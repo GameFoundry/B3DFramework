@@ -29,7 +29,7 @@ namespace bs
 			static const ShaderVariationParameters& GetVariation()
 			{
 				static ShaderVariationParameters variation = ShaderVariationParameters(
-					SmallVector<ShaderVariationParameter, 4>({
+					TInlineArray<ShaderVariationParameter, 4>({
 						ShaderVariationParameter("MSAA_COUNT", MSAA),
 						ShaderVariationParameter("MODE", MODE),
 					}));
@@ -113,7 +113,7 @@ namespace bs
 			static const ShaderVariationParameters& GetVariation()
 			{
 				static ShaderVariationParameters variation = ShaderVariationParameters(
-					SmallVector<ShaderVariationParameter, 4>({ ShaderVariationParameter("HERMITE", HERMITE) }));
+					TInlineArray<ShaderVariationParameter, 4>({ ShaderVariationParameter("HERMITE", HERMITE) }));
 
 				return variation;
 			}

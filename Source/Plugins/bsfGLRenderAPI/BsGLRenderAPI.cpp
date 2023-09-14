@@ -989,7 +989,7 @@ void GLRenderAPI::SetVertexBuffers(u32 index, SPtr<VertexBuffer>* buffers, u32 n
 	}
 #endif
 
-	auto executeRef = [&](u32 index, const SmallVector<SPtr<VertexBuffer>, 8>& buffers, u32 numBuffers)
+	auto executeRef = [&](u32 index, const TInlineArray<SPtr<VertexBuffer>, 8>& buffers, u32 numBuffers)
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
@@ -997,7 +997,7 @@ void GLRenderAPI::SetVertexBuffers(u32 index, SPtr<VertexBuffer>* buffers, u32 n
 			mBoundVertexBuffers[index + i] = buffers[i];
 	};
 
-	SmallVector<SPtr<VertexBuffer>, 8> _buffers;
+	TInlineArray<SPtr<VertexBuffer>, 8> _buffers;
 	for(u32 i = 0; i < numBuffers; i++)
 		_buffers.Add(buffers[i]);
 

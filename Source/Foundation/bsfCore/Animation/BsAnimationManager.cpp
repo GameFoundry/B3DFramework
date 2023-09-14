@@ -16,7 +16,7 @@ using namespace bs;
 
 AnimationManager::AnimationManager()
 {
-	SmallVector<VertexElement, 8> vertexElements;
+	TInlineArray<VertexElement, 8> vertexElements;
 	vertexElements.Add(VertexElement(VET_FLOAT3, VES_POSITION, 1, 1));
 	vertexElements.Add(VertexElement(VET_UBYTE4_NORM, VES_NORMAL, 1, 1));
 

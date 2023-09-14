@@ -662,7 +662,7 @@ void Renderable::SyncToCore(const CoreSyncData& data, FrameAlloc& allocator)
 		// Create special vertex declaration if using morph shapes
 		if(mAnimType == RenderableAnimType::Morph || mAnimType == RenderableAnimType::SkinnedMorph)
 		{
-			SmallVector<VertexElement, 8> vertexElements = mMesh->GetVertexDescription()->GetElements();
+			TInlineArray<VertexElement, 8> vertexElements = mMesh->GetVertexDescription()->GetElements();
 			vertexElements.Add(VertexElement(VET_FLOAT3, VES_POSITION, 1, 1));
 			vertexElements.Add(VertexElement(VET_UBYTE4_NORM, VES_NORMAL, 1, 1));
 

@@ -35,24 +35,24 @@ namespace bs
 	{
 	public:
 		/** Returns all stored objects. */
-		const SmallVector<SPtr<IReflectable>, 1>& GetObjects() const { return mObjects; }
+		const TInlineArray<SPtr<IReflectable>, 1>& GetObjects() const { return mObjects; }
 
 		/** Creates the resource holding a single object. */
 		static SPtr<PersistentCacheObject> Create(const SPtr<IReflectable>& object);
 
 		/** Creates the resource holding multiple objects. */
-		static SPtr<PersistentCacheObject> Create(const SmallVector<SPtr<IReflectable>, 1>& objects);
+		static SPtr<PersistentCacheObject> Create(const TInlineArray<SPtr<IReflectable>, 1>& objects);
 
 	private:
 		PersistentCacheObject(const SPtr<IReflectable>& object)
 			: Resource(false), mObjects({ object })
 		{ }
 
-		PersistentCacheObject(const SmallVector<SPtr<IReflectable>, 1>& objects)
+		PersistentCacheObject(const TInlineArray<SPtr<IReflectable>, 1>& objects)
 			: Resource(false), mObjects(objects)
 		{ }
 
-		SmallVector<SPtr<IReflectable>, 1> mObjects;
+		TInlineArray<SPtr<IReflectable>, 1> mObjects;
 
 		/************************************************************************/
 		/* 								SERIALIZATION                      		*/

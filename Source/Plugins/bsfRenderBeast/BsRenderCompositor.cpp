@@ -83,7 +83,7 @@ void RenderCompositor::Build(const RendererView& view, const StringID& finalNode
 			}
 
 			// Register node dependencies
-			SmallVector<StringID, 4> depIds = nodeType->GetDependencies(view);
+			TInlineArray<StringID, 4> depIds = nodeType->GetDependencies(view);
 			for(auto& dep : depIds)
 			{
 				if(!registerNode(dep))
@@ -229,7 +229,7 @@ void RCNodeSceneDepth::Clear()
 	DepthTex = nullptr;
 }
 
-SmallVector<StringID, 4> RCNodeSceneDepth::GetDependencies(const RendererView& view)
+TInlineArray<StringID, 4> RCNodeSceneDepth::GetDependencies(const RendererView& view)
 {
 	return {};
 }
@@ -502,7 +502,7 @@ void RCNodeBasePass::Clear()
 	IdTex = nullptr;
 }
 
-SmallVector<StringID, 4> RCNodeBasePass::GetDependencies(const RendererView& view)
+TInlineArray<StringID, 4> RCNodeBasePass::GetDependencies(const RendererView& view)
 {
 	return {
 		RCNodeSceneDepth::GetNodeId(), RCNodeSceneColor::GetNodeId(), RCNodeParticleSort::GetNodeId(),
@@ -597,7 +597,7 @@ void RCNodeSceneColor::SetExternalTexture(const SPtr<PooledRenderTexture>& textu
 	SceneColorTex = texture;
 }
 
-SmallVector<StringID, 4> RCNodeSceneColor::GetDependencies(const RendererView& view)
+TInlineArray<StringID, 4> RCNodeSceneColor::GetDependencies(const RendererView& view)
 {
 	return { RCNodeSceneDepth::GetNodeId() };
 }
@@ -624,7 +624,7 @@ void RCNodeMSAACoverage::Clear()
 	Output = nullptr;
 }
 
-SmallVector<StringID, 4> RCNodeMSAACoverage::GetDependencies(const RendererView& view)
+TInlineArray<StringID, 4> RCNodeMSAACoverage::GetDependencies(const RendererView& view)
 {
 	return {};
 }
@@ -654,7 +654,7 @@ void RCNodeParticleSimulate::Clear()
 	// Do nothing
 }
 
-SmallVector<StringID, 4> RCNodeParticleSimulate::GetDependencies(const RendererView& view)
+TInlineArray<StringID, 4> RCNodeParticleSimulate::GetDependencies(const RendererView& view)
 {
 	return { RCNodeBasePass::GetNodeId(), RCNodeSceneDepth::GetNodeId() };
 }
@@ -736,7 +736,7 @@ void RCNodeParticleSort::Clear()
 	// Do nothing
 }
 
-SmallVector<StringID, 4> RCNodeParticleSort::GetDependencies(const RendererView& view)
+TInlineArray<StringID, 4> RCNodeParticleSort::GetDependencies(const RendererView& view)
 {
 	return {};
 }
@@ -831,9 +831,9 @@ void RCNodeLightAccumulation::Clear()
 	LightAccumulationTexArray = nullptr;
 }
 
-SmallVector<StringID, 4> RCNodeLightAccumulation::GetDependencies(const RendererView& view)
+TInlineArray<StringID, 4> RCNodeLightAccumulation::GetDependencies(const RendererView& view)
 {
-	SmallVector<StringID, 4> deps;
+	TInlineArray<StringID, 4> deps;
 
 	const bool supportsTiledDeferred = GetRenderBeast()->GetFeatureSet() != RenderBeastFeatureSet::DesktopMacOS;
 	if(!supportsTiledDeferred)
@@ -994,9 +994,9 @@ void RCNodeDeferredDirectLighting::Clear()
 	Output = nullptr;
 }
 
-SmallVector<StringID, 4> RCNodeDeferredDirectLighting::GetDependencies(const RendererView& view)
+TInlineArray<StringID, 4> RCNodeDeferredDirectLighting::GetDependencies(const RendererView& view)
 {
-	SmallVector<StringID, 4> deps;
+	TInlineArray<StringID, 4> deps;
 	deps.Add(RCNodeLightAccumulation::GetNodeId());
 	deps.Add(RCNodeBasePass::GetNodeId());
 	deps.Add(RCNodeSceneDepth::GetNodeId());
@@ -1082,9 +1082,9 @@ void RCNodeIndirectDiffuseLighting::Clear()
 	// Do nothing
 }
 
-SmallVector<StringID, 4> RCNodeIndirectDiffuseLighting::GetDependencies(const RendererView& view)
+TInlineArray<StringID, 4> RCNodeIndirectDiffuseLighting::GetDependencies(const RendererView& view)
 {
-	SmallVector<StringID, 4> deps;
+	TInlineArray<StringID, 4> deps;
 	deps.Add(RCNodeBasePass::GetNodeId());
 	deps.Add(RCNodeSceneDepth::GetNodeId());
 	deps.Add(RCNodeLightAccumulation::GetNodeId());
@@ -1254,9 +1254,9 @@ void RCNodeDeferredIndirectSpecularLighting::Clear()
 	Output = nullptr;
 }
 
-SmallVector<StringID, 4> RCNodeDeferredIndirectSpecularLighting::GetDependencies(const RendererView& view)
+TInlineArray<StringID, 4> RCNodeDeferredIndirectSpecularLighting::GetDependencies(const RendererView& view)
 {
-	SmallVector<StringID, 4> deps;
+	TInlineArray<StringID, 4> deps;
 	deps.Add(RCNodeSceneColor::GetNodeId());
 	deps.Add(RCNodeBasePass::GetNodeId());
 	deps.Add(RCNodeSceneDepth::GetNodeId());
@@ -1544,7 +1544,7 @@ void RCNodeClusteredForward::Clear()
 	// Do nothing
 }
 
-SmallVector<StringID, 4> RCNodeClusteredForward::GetDependencies(const RendererView& view)
+TInlineArray<StringID, 4> RCNodeClusteredForward::GetDependencies(const RendererView& view)
 {
 	return {
 		RCNodeSceneColor::GetNodeId(),
@@ -1594,9 +1594,9 @@ void RCNodeSkybox::Render(const RenderCompositorNodeInputs& inputs)
 void RCNodeSkybox::Clear()
 {}
 
-SmallVector<StringID, 4> RCNodeSkybox::GetDependencies(const RendererView& view)
+TInlineArray<StringID, 4> RCNodeSkybox::GetDependencies(const RendererView& view)
 {
-	SmallVector<StringID, 4> deps;
+	TInlineArray<StringID, 4> deps;
 	deps.Add(RCNodeSceneColor::GetNodeId());
 	deps.Add(RCNodeDeferredIndirectSpecularLighting::GetNodeId());
 
@@ -1659,11 +1659,11 @@ void RCNodeFinalResolve::Render(const RenderCompositorNodeInputs& inputs)
 void RCNodeFinalResolve::Clear()
 {}
 
-SmallVector<StringID, 4> RCNodeFinalResolve::GetDependencies(const RendererView& view)
+TInlineArray<StringID, 4> RCNodeFinalResolve::GetDependencies(const RendererView& view)
 {
 	const RendererViewProperties& viewProps = view.GetProperties();
 
-	SmallVector<StringID, 4> deps;
+	TInlineArray<StringID, 4> deps;
 	if(viewProps.RunPostProcessing)
 	{
 		deps.Add(RCNodePostProcess::GetNodeId());
@@ -1723,7 +1723,7 @@ void RCNodePostProcess::Clear()
 	mCurrentIdx = 0;
 }
 
-SmallVector<StringID, 4> RCNodePostProcess::GetDependencies(const RendererView& view)
+TInlineArray<StringID, 4> RCNodePostProcess::GetDependencies(const RendererView& view)
 {
 	return {};
 }
@@ -1845,9 +1845,9 @@ bool RCNodeEyeAdaptation::UseHistogramEyeAdapatation(const RenderCompositorNodeI
 	return inputs.FeatureSet == RenderBeastFeatureSet::Desktop;
 }
 
-SmallVector<StringID, 4> RCNodeEyeAdaptation::GetDependencies(const RendererView& view)
+TInlineArray<StringID, 4> RCNodeEyeAdaptation::GetDependencies(const RendererView& view)
 {
-	SmallVector<StringID, 4> deps;
+	TInlineArray<StringID, 4> deps;
 	deps.Add(RCNodeClusteredForward::GetNodeId());
 
 	const RenderSettings& settings = view.GetRenderSettings();
@@ -1948,9 +1948,9 @@ void RCNodeTonemapping::Clear()
 	// Do nothing
 }
 
-SmallVector<StringID, 4> RCNodeTonemapping::GetDependencies(const RendererView& view)
+TInlineArray<StringID, 4> RCNodeTonemapping::GetDependencies(const RendererView& view)
 {
-	SmallVector<StringID, 4> deps = {
+	TInlineArray<StringID, 4> deps = {
 		RCNodeEyeAdaptation::GetNodeId(),
 		RCNodeSceneColor::GetNodeId(),
 		RCNodeMotionBlur::GetNodeId(),
@@ -2011,7 +2011,7 @@ void RCNodeBokehDOF::Clear()
 	// Do nothing
 }
 
-SmallVector<StringID, 4> RCNodeBokehDOF::GetDependencies(const RendererView& view)
+TInlineArray<StringID, 4> RCNodeBokehDOF::GetDependencies(const RendererView& view)
 {
 	return {
 		RCNodeClusteredForward::GetNodeId(),
@@ -2105,7 +2105,7 @@ void RCNodeTemporalAA::DeallocOutputs()
 	Output = nullptr;
 }
 
-SmallVector<StringID, 4> RCNodeTemporalAA::GetDependencies(const RendererView& view)
+TInlineArray<StringID, 4> RCNodeTemporalAA::GetDependencies(const RendererView& view)
 {
 	return {
 		RCNodeBokehDOF::GetNodeId(),
@@ -2144,7 +2144,7 @@ void RCNodeMotionBlur::Clear()
 	// Do nothing
 }
 
-SmallVector<StringID, 4> RCNodeMotionBlur::GetDependencies(const RendererView& view)
+TInlineArray<StringID, 4> RCNodeMotionBlur::GetDependencies(const RendererView& view)
 {
 	return {
 		RCNodeTemporalAA::GetNodeId(),
@@ -2231,7 +2231,7 @@ void RCNodeGaussianDOF::Clear()
 	// Do nothing
 }
 
-SmallVector<StringID, 4> RCNodeGaussianDOF::GetDependencies(const RendererView& view)
+TInlineArray<StringID, 4> RCNodeGaussianDOF::GetDependencies(const RendererView& view)
 {
 	return { RCNodeTonemapping::GetNodeId(), RCNodeSceneDepth::GetNodeId(), RCNodePostProcess::GetNodeId() };
 }
@@ -2258,7 +2258,7 @@ void RCNodeFXAA::Clear()
 	// Do nothing
 }
 
-SmallVector<StringID, 4> RCNodeFXAA::GetDependencies(const RendererView& view)
+TInlineArray<StringID, 4> RCNodeFXAA::GetDependencies(const RendererView& view)
 {
 	return { RCNodeGaussianDOF::GetNodeId(), RCNodePostProcess::GetNodeId() };
 }
@@ -2284,7 +2284,7 @@ void RCNodeChromaticAberration::Clear()
 	// Do nothing
 }
 
-SmallVector<StringID, 4> RCNodeChromaticAberration::GetDependencies(const RendererView& view)
+TInlineArray<StringID, 4> RCNodeChromaticAberration::GetDependencies(const RendererView& view)
 {
 	return { RCNodeFXAA::GetNodeId(), RCNodePostProcess::GetNodeId() };
 }
@@ -2310,7 +2310,7 @@ void RCNodeFilmGrain::Clear()
 	// Do nothing
 }
 
-SmallVector<StringID, 4> RCNodeFilmGrain::GetDependencies(const RendererView& view)
+TInlineArray<StringID, 4> RCNodeFilmGrain::GetDependencies(const RendererView& view)
 {
 	return { RCNodeChromaticAberration::GetNodeId(), RCNodePostProcess::GetNodeId() };
 }
@@ -2336,7 +2336,7 @@ void RCNodeHalfSceneColor::Clear()
 	Output = nullptr;
 }
 
-SmallVector<StringID, 4> RCNodeHalfSceneColor::GetDependencies(const RendererView& view)
+TInlineArray<StringID, 4> RCNodeHalfSceneColor::GetDependencies(const RendererView& view)
 {
 	return { RCNodeSceneColor::GetNodeId() };
 }
@@ -2377,7 +2377,7 @@ void RCNodeSceneColorDownsamples::Clear()
 		Output[i] = nullptr;
 }
 
-SmallVector<StringID, 4> RCNodeSceneColorDownsamples::GetDependencies(const RendererView& view)
+TInlineArray<StringID, 4> RCNodeSceneColorDownsamples::GetDependencies(const RendererView& view)
 {
 	return { RCNodeHalfSceneColor::GetNodeId() };
 }
@@ -2409,7 +2409,7 @@ void RCNodeResolvedSceneDepth::Clear()
 	Output = nullptr;
 }
 
-SmallVector<StringID, 4> RCNodeResolvedSceneDepth::GetDependencies(const RendererView& view)
+TInlineArray<StringID, 4> RCNodeResolvedSceneDepth::GetDependencies(const RendererView& view)
 {
 	// GBuffer require because it renders the base pass (populates the depth buffer)
 	return { RCNodeSceneDepth::GetNodeId(), RCNodeBasePass::GetNodeId() };
@@ -2493,7 +2493,7 @@ void RCNodeHiZ::Clear()
 	Output = nullptr;
 }
 
-SmallVector<StringID, 4> RCNodeHiZ::GetDependencies(const RendererView& view)
+TInlineArray<StringID, 4> RCNodeHiZ::GetDependencies(const RendererView& view)
 {
 	// Note: This doesn't actually use any gbuffer textures, but node is a dependency because it renders to the depth
 	// buffer. In order to avoid keeping gbuffer textures alive I could separate out the base pass into its own node
@@ -2672,7 +2672,7 @@ void RCNodeSSAO::Clear()
 	Output = nullptr;
 }
 
-SmallVector<StringID, 4> RCNodeSSAO::GetDependencies(const RendererView& view)
+TInlineArray<StringID, 4> RCNodeSSAO::GetDependencies(const RendererView& view)
 {
 	return { RCNodeResolvedSceneDepth::GetNodeId(), RCNodeBasePass::GetNodeId() };
 }
@@ -2788,9 +2788,9 @@ void RCNodeSSR::DeallocOutputs()
 	Output = nullptr;
 }
 
-SmallVector<StringID, 4> RCNodeSSR::GetDependencies(const RendererView& view)
+TInlineArray<StringID, 4> RCNodeSSR::GetDependencies(const RendererView& view)
 {
-	SmallVector<StringID, 4> deps;
+	TInlineArray<StringID, 4> deps;
 	if(view.GetRenderSettings().ScreenSpaceReflections.Enabled)
 	{
 		deps.Add(RCNodeSceneDepth::GetNodeId());
@@ -2879,7 +2879,7 @@ void RCNodeBloom::Clear()
 	Output = nullptr;
 }
 
-SmallVector<StringID, 4> RCNodeBloom::GetDependencies(const RendererView& view)
+TInlineArray<StringID, 4> RCNodeBloom::GetDependencies(const RendererView& view)
 {
 	return {
 		RCNodeClusteredForward::GetNodeId(),
@@ -2949,7 +2949,7 @@ void RCNodeScreenSpaceLensFlare::Clear()
 	// Do nothing
 }
 
-SmallVector<StringID, 4> RCNodeScreenSpaceLensFlare::GetDependencies(const RendererView& view)
+TInlineArray<StringID, 4> RCNodeScreenSpaceLensFlare::GetDependencies(const RendererView& view)
 {
 	return {
 		RCNodeClusteredForward::GetNodeId(),

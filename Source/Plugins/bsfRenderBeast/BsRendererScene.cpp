@@ -132,7 +132,7 @@ static void ValidateBasePassMaterial(Material& material, RenderableAnimType anim
 		SPtr<VertexDescription> shaderVertexDescription = graphicsPipeline->GetVertexProgram()->GetVertexInputDescription();
 		if(shaderVertexDescription && !VertexDescription::IsCompatibleWithShaderInputs(vertexBufferDescription, *shaderVertexDescription))
 		{
-			SmallVector<VertexElement, 8> missingElements = VertexDescription::GetMissingElementsForShaderInput(vertexBufferDescription, *shaderVertexDescription);
+			TInlineArray<VertexElement, 8> missingElements = VertexDescription::GetMissingElementsForShaderInput(vertexBufferDescription, *shaderVertexDescription);
 
 			// If using morph shapes ignore POSITION1 and NORMAL1 missing since we assign them from within the renderer
 			if(animType == RenderableAnimType::Morph || animType == RenderableAnimType::SkinnedMorph)

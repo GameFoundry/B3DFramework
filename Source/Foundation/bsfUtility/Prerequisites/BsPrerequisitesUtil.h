@@ -230,6 +230,6 @@
 #include "Utility/BsPlatformUtility.h"
 #include "Utility/BsNonCopyable.h"
 #include "Utility/BsTArray.h"
-#include "Utility/BsArrayView.h"
+#include "Utility/BsTArrayView.h"
 #include "FileSystem/BsPath.h"
 #include "Error/BsCrashHandler.h"

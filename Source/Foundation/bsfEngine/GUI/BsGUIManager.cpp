@@ -1449,7 +1449,7 @@ SPtr<RenderWindow> GUIManager::GetBridgeWindow(const SPtr<RenderTexture>& target
 	return nullptr;
 }
 
-void GUIManager::GetBridgedElements(const GUIWidget* widget, SmallVector<std::pair<const GUIElement*, SPtr<const RenderTarget>>, 4>& elements)
+void GUIManager::GetBridgedElements(const GUIWidget* widget, TInlineArray<std::pair<const GUIElement*, SPtr<const RenderTarget>>, 4>& elements)
 {
 	if(widget == nullptr)
 		return;

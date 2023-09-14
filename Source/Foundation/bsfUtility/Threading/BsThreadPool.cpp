@@ -194,9 +194,9 @@ void ThreadPool::ClearUnused()
 	if(mThreads.size() <= mDefaultCapacity)
 		return;
 
-	SmallVector<SPtr<PooledThread>, 4> idleThreads;
-	SmallVector<SPtr<PooledThread>, 4> expiredThreads;
-	SmallVector<SPtr<PooledThread>, 4> activeThreads;
+	TInlineArray<SPtr<PooledThread>, 4> idleThreads;
+	TInlineArray<SPtr<PooledThread>, 4> expiredThreads;
+	TInlineArray<SPtr<PooledThread>, 4> activeThreads;
 
 	idleThreads.reserve(mThreads.size());
 	expiredThreads.reserve(mThreads.size());

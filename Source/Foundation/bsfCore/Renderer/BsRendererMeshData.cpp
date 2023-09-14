@@ -340,7 +340,7 @@ SPtr<RendererMeshData> RendererMeshData::Create(const SPtr<MeshData>& meshData)
 
 SPtr<VertexDescription> RendererMeshData::VertexLayoutVertexDesc(VertexLayout type)
 {
-	SmallVector<VertexElement, 8> vertexElements;
+	TInlineArray<VertexElement, 8> vertexElements;
 	i32 intType = (i32)type;
 
 	if(intType == 0)

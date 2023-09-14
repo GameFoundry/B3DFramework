@@ -369,7 +369,7 @@ void LightProbes::UpdateProbes(GpuCommandBuffer& commandBuffer)
 	// frustum culling and possibly even sort by distance from camera.
 	u32 numVertices = mNumValidTetrahedra * 4 * 3 + numValidFaces * 9 * 3;
 
-	SmallVector<VertexElement, 8> vertexElements;
+	TInlineArray<VertexElement, 8> vertexElements;
 	vertexElements.Add(VertexElement(VET_FLOAT3, VES_POSITION));
 	vertexElements.Add(VertexElement(VET_UINT1, VES_TEXCOORD));
 

@@ -74,7 +74,7 @@ namespace bs
 	};
 
 	template <class T, u32 N>
-	struct RTTIPlainType<SmallVector<T, N>>
+	struct RTTIPlainType<TInlineArray<T, N>>
 	{
 		enum
 		{
@@ -86,7 +86,7 @@ namespace bs
 			hasDynamicSize = 1
 		};
 
-		static BitLength ToMemory(const SmallVector<T, N>& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
+		static BitLength ToMemory(const TInlineArray<T, N>& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			return B3DRTTIWriteWithSizeHeader(stream, data, compress, [&data, &stream]()
 											   {
@@ -101,7 +101,7 @@ namespace bs
 				return size; });
 		}
 
-		static BitLength FromMemory(SmallVector<T, N>& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
+		static BitLength FromMemory(TInlineArray<T, N>& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			BitLength size;
 			B3DRTTIReadSizeHeader(stream, compress, size);
@@ -121,7 +121,7 @@ namespace bs
 			return size;
 		}
 
-		static BitLength GetSize(const SmallVector<T, N>& data, const RTTIFieldInfo& fieldInfo, bool compress)
+		static BitLength GetSize(const TInlineArray<T, N>& data, const RTTIFieldInfo& fieldInfo, bool compress)
 		{
 			BitLength dataSize = sizeof(uint32_t);
 

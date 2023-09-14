@@ -189,7 +189,7 @@ namespace bs
 
 		/** Copies an array from the non-core object into the field in the CoreSyncPacket. */
 		template <bool Core, class FieldTypeA, class FieldTypeB, u64 N>
-		void CoreSyncField(CoreSyncVector<FieldTypeA>& a, SmallVector<FieldTypeB, N>& b, std::enable_if_t<!Core>* = 0)
+		void CoreSyncField(CoreSyncVector<FieldTypeA>& a, TInlineArray<FieldTypeB, N>& b, std::enable_if_t<!Core>* = 0)
 		{
 			a.resize(b.size());
 			for(size_t index = 0; index < b.size(); ++index)
@@ -198,7 +198,7 @@ namespace bs
 
 		/** Copies an array from the CoreSyncPacket to a core object. */
 		template <bool Core, class FieldTypeA, class FieldTypeB, u64 N>
-		void CoreSyncField(CoreSyncVector<FieldTypeA>& a, SmallVector<FieldTypeB, N>& b, std::enable_if_t<Core>* = 0)
+		void CoreSyncField(CoreSyncVector<FieldTypeA>& a, TInlineArray<FieldTypeB, N>& b, std::enable_if_t<Core>* = 0)
 		{
 			b.resize(a.size());
 			for(size_t index = 0; index < a.size(); ++index)
@@ -221,7 +221,7 @@ namespace bs
 
 		/** Defines an intermediate type used for storing data of type T in a CoreSyncPacket. */
 		template <class T, u64 N>
-		struct CoreSyncPacketType<SmallVector<T, N>>
+		struct CoreSyncPacketType<TInlineArray<T, N>>
 		{
 			typedef CoreSyncVector<std::decay_t<decltype(GetCoreObject(RemoveHandle(T())))>> Type;
 		};

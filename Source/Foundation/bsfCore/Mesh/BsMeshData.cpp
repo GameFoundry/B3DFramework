@@ -61,7 +61,7 @@ SPtr<MeshData> MeshData::Combine(const Vector<SPtr<MeshData>>& meshes, const Vec
 		totalIndexCount += meshData->GetIndexCount();
 	}
 
-	SmallVector<VertexElement, 8> vertexElements;
+	TInlineArray<VertexElement, 8> vertexElements;
 
 	Vector<VertexElement> combinedVertexElements;
 	for(auto& meshData : meshes)

@@ -26,7 +26,7 @@ RendererUtility::RendererUtility()
 	const SPtr<GpuDevice>& gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
 
 	{
-		SmallVector<VertexElement, 8> vertexElements;
+		TInlineArray<VertexElement, 8> vertexElements;
 		vertexElements.Add(VertexElement(VET_FLOAT3, VES_POSITION));
 		vertexElements.Add(VertexElement(VET_FLOAT2, VES_TEXCOORD));
 
@@ -53,7 +53,7 @@ RendererUtility::RendererUtility()
 	}
 
 	{
-		SmallVector<VertexElement, 8> vertexElements;
+		TInlineArray<VertexElement, 8> vertexElements;
 		vertexElements.Add(VertexElement(VET_FLOAT3, VES_POSITION));
 
 		SPtr<VertexDescription> vertexDesc = B3DMakeShared<VertexDescription>(vertexElements);
@@ -74,7 +74,7 @@ RendererUtility::RendererUtility()
 	}
 
 	{
-		SmallVector<VertexElement, 8> vertexElements;
+		TInlineArray<VertexElement, 8> vertexElements;
 		vertexElements.Add(VertexElement(VET_FLOAT3, VES_POSITION));
 
 		SPtr<VertexDescription> vertexDescription = B3DMakeShared<VertexDescription>(vertexElements);
@@ -98,7 +98,7 @@ RendererUtility::RendererUtility()
 		u32 numSides = Light::kLightConeNumSides;
 		u32 numSlices = Light::kLightConeNumSlices;
 
-		SmallVector<VertexElement, 8> vertexElements;
+		TInlineArray<VertexElement, 8> vertexElements;
 		vertexElements.Add(VertexElement(VET_FLOAT3, VES_POSITION));
 
 		SPtr<VertexDescription> vertexDescription = B3DMakeShared<VertexDescription>(vertexElements);
@@ -155,7 +155,7 @@ RendererUtility::RendererUtility()
 	}
 
 	{
-		SmallVector<VertexElement, 8> vertexElements;
+		TInlineArray<VertexElement, 8> vertexElements;
 		vertexElements.Add(VertexElement(VET_FLOAT3, VES_POSITION));
 
 		SPtr<VertexDescription> vertexDescription = B3DMakeShared<VertexDescription>(vertexElements);

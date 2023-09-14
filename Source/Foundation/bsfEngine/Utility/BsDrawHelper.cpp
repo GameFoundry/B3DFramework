@@ -22,26 +22,26 @@ DrawHelper::DrawHelper()
 {
 	mTransform = Matrix4::kIdentity;
 
-	SmallVector<VertexElement, 8> solidVertexElements;
+	TInlineArray<VertexElement, 8> solidVertexElements;
 	solidVertexElements.Add(VertexElement(VET_FLOAT3, VES_POSITION));
 	solidVertexElements.Add(VertexElement(VET_FLOAT3, VES_NORMAL));
 	solidVertexElements.Add(VertexElement(VET_COLOR, VES_COLOR));
 
 	mSolidVertexDesc = B3DMakeShared<VertexDescription>(solidVertexElements);
 
-	SmallVector<VertexElement, 8> wireVertexElements;
+	TInlineArray<VertexElement, 8> wireVertexElements;
 	wireVertexElements.Add(VertexElement(VET_FLOAT3, VES_POSITION));
 	wireVertexElements.Add(VertexElement(VET_COLOR, VES_COLOR));
 
 	mWireVertexDesc = B3DMakeShared<VertexDescription>(wireVertexElements);
 
-	SmallVector<VertexElement, 8> lineVertexElements;
+	TInlineArray<VertexElement, 8> lineVertexElements;
 	lineVertexElements.Add(VertexElement(VET_FLOAT3, VES_POSITION));
 	lineVertexElements.Add(VertexElement(VET_COLOR, VES_COLOR));
 
 	mLineVertexDesc = B3DMakeShared<VertexDescription>(lineVertexElements);
 
-	SmallVector<VertexElement, 8> textVertexElements;
+	TInlineArray<VertexElement, 8> textVertexElements;
 	textVertexElements.Add(VertexElement(VET_FLOAT3, VES_POSITION));
 	textVertexElements.Add(VertexElement(VET_FLOAT2, VES_TEXCOORD));
 	textVertexElements.Add(VertexElement(VET_COLOR, VES_COLOR));

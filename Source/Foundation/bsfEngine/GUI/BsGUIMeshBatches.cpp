@@ -16,7 +16,7 @@ SPtr<VertexDescription> GetGUITriangleMeshDesc()
 
 	if(!sDesc)
 	{
-		SmallVector<VertexElement, 8> vertexElements;
+		TInlineArray<VertexElement, 8> vertexElements;
 		vertexElements.Add(VertexElement(VET_FLOAT2, VES_POSITION));
 		vertexElements.Add(VertexElement(VET_FLOAT2, VES_TEXCOORD));
 
@@ -32,7 +32,7 @@ SPtr<VertexDescription> GetGUILineMeshDesc()
 
 	if(!sDesc)
 	{
-		SmallVector<VertexElement, 8> vertexElements;
+		TInlineArray<VertexElement, 8> vertexElements;
 		vertexElements.Add(VertexElement(VET_FLOAT2, VES_POSITION));
 
 		sDesc = B3DMakeShared<VertexDescription>(vertexElements);
@@ -54,7 +54,7 @@ GUIMeshBatches::GUIMeshBatches(GUIWidget* parentWidget)
 
 void GUIMeshBatches::Add(GUIElement* guiElement)
 {
-	const SmallVector<GUIRenderElement, 4>& guiRenderElements = guiElement->GetRenderElements();
+	const TInlineArray<GUIRenderElement, 4>& guiRenderElements = guiElement->GetRenderElements();
 
 	BatchedGUIElement& batchedGuiElement = mElements[guiElement];
 	batchedGuiElement.GUIElement = guiElement;
@@ -73,7 +73,7 @@ void GUIMeshBatches::Add(GUIElement* guiElement)
 void GUIMeshBatches::Add(BatchedGUIElement& batchedGuiElement, u32 renderElementIndex)
 {
 	GUIElement* const guiElement = batchedGuiElement.GUIElement;
-	const SmallVector<GUIRenderElement, 4>& renderElements = guiElement->GetRenderElements();
+	const TInlineArray<GUIRenderElement, 4>& renderElements = guiElement->GetRenderElements();
 
 	const GUIRenderElement& guiRenderElement = renderElements[renderElementIndex];
 	const u32 renderElementDepth = guiElement->GetDepth() + guiRenderElement.Depth;
@@ -92,7 +92,7 @@ void GUIMeshBatches::Add(BatchedGUIElement& batchedGuiElement, u32 renderElement
 void GUIMeshBatches::Add(BatchedGUIElement& batchedGuiElement, u32 renderElementIndex, u32 depthRangeIndex)
 {
 	GUIElement* const guiElement = batchedGuiElement.GUIElement;
-	const SmallVector<GUIRenderElement, 4>& guiRenderElements = guiElement->GetRenderElements();
+	const TInlineArray<GUIRenderElement, 4>& guiRenderElements = guiElement->GetRenderElements();
 
 	const GUIRenderElement& guiRenderElement = guiRenderElements[renderElementIndex];
 	const u32 renderElementDepth = guiElement->GetDepth() + guiRenderElement.Depth;
@@ -401,7 +401,7 @@ GUIDrawGroupRenderDataUpdate GUIMeshBatches::RebuildDirty(bool forceRebuildMeshe
 
 		shouldRebuildMeshes = true;
 
-		const SmallVector<GUIRenderElement, 4>& guiRenderElements = guiElement->GetRenderElements();
+		const TInlineArray<GUIRenderElement, 4>& guiRenderElements = guiElement->GetRenderElements();
 		BatchedGUIElement& batchedGuiElement = itFoundElement->second;
 
 		bool dirtyBounds = false;
@@ -574,7 +574,7 @@ GUIDrawGroupRenderDataUpdate GUIMeshBatches::RebuildDirty(bool forceRebuildMeshe
 		}
 
 		// Register elements that depend on render textures (currently these always correspond to input bridged elements)
-		SmallVector<std::pair<const GUIElement*, SPtr<const RenderTarget>>, 4> bridgedElements;
+		TInlineArray<std::pair<const GUIElement*, SPtr<const RenderTarget>>, 4> bridgedElements;
 		GetGUIManager().GetBridgedElements(mWidget, bridgedElements);
 
 		for(auto& entry : bridgedElements)
@@ -658,7 +658,7 @@ void GUIMeshBatches::RebuildMesh(Batch& batch)
 		if(!guiElement->IsVisible())
 			continue;
 
-		const SmallVector<GUIRenderElement, 4>& guiRenderElements = guiElement->GetRenderElements();
+		const TInlineArray<GUIRenderElement, 4>& guiRenderElements = guiElement->GetRenderElements();
 		const GUIRenderElement& guiRenderElement = guiRenderElements[batchedGuiRenderElement.RenderElementIndex];
 
 		batch.VertexCount += guiRenderElement.VertexCount;
@@ -687,7 +687,7 @@ void GUIMeshBatches::RebuildMesh(Batch& batch)
 		if(!guiElement->IsVisible())
 			continue;
 
-		const SmallVector<GUIRenderElement, 4>& guiRenderElements = guiElement->GetRenderElements();
+		const TInlineArray<GUIRenderElement, 4>& guiRenderElements = guiElement->GetRenderElements();
 		const GUIRenderElement& guiRenderElement = guiRenderElements[batchedGuiRenderElement.RenderElementIndex];
 
 		guiElement->FillBuffer(vertices, indices, vertexOffset, indexOffset, groupOffset, batch.VertexCount, batch.IndexCount, batchedGuiRenderElement.RenderElementIndex);
@@ -947,7 +947,7 @@ GUIMeshBatches::BatchedMaterial GUIMeshBatches::CreateBatchedMaterial(const Batc
 
 GUIMeshBatches::BatchedMaterial GUIMeshBatches::CreateBatchedMaterial(const GUIElement& guiElement, u32 renderElementIndex)
 {
-	const SmallVector<GUIRenderElement, 4>& guiRenderElements = guiElement.GetRenderElements();
+	const TInlineArray<GUIRenderElement, 4>& guiRenderElements = guiElement.GetRenderElements();
 	const GUIRenderElement& guiRenderElement = guiRenderElements[renderElementIndex];
 
 	BatchedMaterial batchedMaterial;

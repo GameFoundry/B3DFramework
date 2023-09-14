@@ -10,7 +10,7 @@ using namespace bs;
 
 void MeshManager::OnStartUp()
 {
-	SmallVector<VertexElement, 8> vertexElements;
+	TInlineArray<VertexElement, 8> vertexElements;
 	vertexElements.Add(VertexElement(VET_FLOAT3, VES_POSITION));
 
 	SPtr<VertexDescription> vertexDesc = B3DMakeShared<VertexDescription>(vertexElements);

@@ -27,7 +27,7 @@ void ShaderDefines::Set(const String& name, const String& value)
 
 const ShaderVariationParameters ShaderVariationParameters::kEmpty {};
 
-ShaderVariationParameters::ShaderVariationParameters(const SmallVector<ShaderVariationParameter, 4>& params)
+ShaderVariationParameters::ShaderVariationParameters(const TInlineArray<ShaderVariationParameter, 4>& params)
 	: mParams(params)
 { }
 
@@ -252,7 +252,7 @@ RTTITypeBase* ShaderVariationParameters::GetRtti() const
 }
 
 // This is here to solve a linking issue on Clang 7. The destructor apparently either doesn't get implicitly
-// instantiated. This means external libraries linking with bsf, using the same SmallVector template parameters will
+// instantiated. This means external libraries linking with bsf, using the same TArray template parameters will
 // trigger an undefined reference linker error. And why doesn't the library instantiate it itself? Don't know, either
 // a Clang issue or maybe even some part of the standard.
 template TArray<ShaderVariationParameter, InlineContainerAllocator<4>>::~TArray();

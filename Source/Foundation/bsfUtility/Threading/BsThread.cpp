@@ -56,7 +56,7 @@ namespace
 
 	struct Win32ProcessorGroups
 	{
-		SmallVector<Win32ProcessorGroup, MaxGroupCount> Groups;
+		TInlineArray<Win32ProcessorGroup, MaxGroupCount> Groups;
 	};
 
 	/** Returns information about all logical processor groups. */
@@ -191,7 +191,7 @@ ThreadCoreMask AnyOfThreadAffinityPolicy::GetMaskForThread(u32 threadIndex) cons
 
 	const u8 groupIndex = mAvailableCores[threadIndex % mAvailableCores.GetCoreCount()].Windows.CoreGroup;
 
-	SmallVector<CPUCore, 32> coresInGroup;
+	TInlineArray<CPUCore, 32> coresInGroup;
 	coresInGroup.reserve(availableCoreCount);
 
 	for(size_t coreIndex = 0; coreIndex < mAvailableCores.GetCoreCount(); coreIndex++)

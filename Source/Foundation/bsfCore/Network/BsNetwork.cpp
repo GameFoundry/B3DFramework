@@ -727,7 +727,7 @@ enum class NetworkActionType
 	Despawn
 };
 
-void Network::host(const SmallVector<NetworkAddress, 4>& listenAddresses, u32 tickRate, u32 maxConnections)
+void Network::host(const TInlineArray<NetworkAddress, 4>& listenAddresses, u32 tickRate, u32 maxConnections)
 {
 	if(mPeer)
 	{

@@ -9,11 +9,11 @@ namespace bs
 	 */
 
 	/**
-	 * Provides a way to access elements of any array type (e.g. TArray, Vector, FrameVector, SmallVector). The view provides direct access to the array data.
+	 * Provides a way to access elements of any array type (e.g. TArray, TInlineArray, Vector, FrameVector). The view provides direct access to the array data.
 	 * The caller must ensure the viewed array is not destroyed or reallocated while the view is active.
 	 */
 	template <class Type>
-	class ArrayView final
+	class TArrayView final
 	{
 	public:
 		typedef Type ValueType;
@@ -29,69 +29,69 @@ namespace bs
 		typedef std::reverse_iterator<Type*> reverse_iterator;
 		typedef std::reverse_iterator<const Type*> const_reverse_iterator;
 
-		ArrayView() = default;
-		~ArrayView() = default;
+		TArrayView() = default;
+		~TArrayView() = default;
 
-		ArrayView(const ArrayView& other) = default;
-		ArrayView(ArrayView&& other) = default;
+		TArrayView(const TArrayView& other) = default;
+		TArrayView(TArrayView&& other) = default;
 
-		ArrayView& operator=(const ArrayView& other) = default;
-		ArrayView& operator=(ArrayView&& other) = default;
+		TArrayView& operator=(const TArrayView& other) = default;
+		TArrayView& operator=(TArrayView&& other) = default;
 
-		ArrayView(ValueType* data, u64 size)
+		TArrayView(ValueType* data, u64 size)
 			: mData(data), mSize(size)
 		{ }
 
-		ArrayView(std::nullptr_t, u64)
-			: ArrayView(nullptr, 0)
+		TArrayView(std::nullptr_t, u64)
+			: TArrayView(nullptr, 0)
 		{ }
 
 		template<typename U>
-		ArrayView(ArrayView<U>& other)
-			: ArrayView(other.data(), other.size())
+		TArrayView(TArrayView<U>& other)
+			: TArrayView(other.data(), other.size())
 		{ }
 
 		template<typename U>
-		ArrayView(const ArrayView<U>& other)
-			: ArrayView(other.data(), other.size())
+		TArrayView(const TArrayView<U>& other)
+			: TArrayView(other.data(), other.size())
 		{ }
 
 		template<typename U>
-		ArrayView(ArrayView<U>&& other)
-			: ArrayView(other.data(), other.size())
+		TArrayView(TArrayView<U>&& other)
+			: TArrayView(other.data(), other.size())
 		{ }
 
 		template<typename U, std::enable_if_t<!std::is_rvalue_reference_v<U&&>, i32> = 0>
-		ArrayView(U&& other) : ArrayView(other.data(), other.size())
+		TArrayView(U&& other) : TArrayView(other.data(), other.size())
 		{ }
 
-		bool operator==(const ArrayView& other)
+		bool operator==(const TArrayView& other)
 		{
 			if(this->Size() != other.Size()) return false;
 			return std::equal(this->Begin(), this->End(), other.Begin());
 		}
 
-		bool operator!=(const ArrayView& other)
+		bool operator!=(const TArrayView& other)
 		{
 			return !(*this == other);
 		}
 
-		bool operator<(const ArrayView& other) const
+		bool operator<(const TArrayView& other) const
 		{
 			return std::lexicographical_compare(Begin(), End(), other.Begin(), other.End());
 		}
 
-		bool operator>(const ArrayView& other) const
+		bool operator>(const TArrayView& other) const
 		{
 			return other < *this;
 		}
 
-		bool operator<=(const ArrayView& other) const
+		bool operator<=(const TArrayView& other) const
 		{
 			return !(other < *this);
 		}
 
-		bool operator>=(const ArrayView& other) const
+		bool operator>=(const TArrayView& other) const
 		{
 			return !(*this < other);
 		}

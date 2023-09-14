@@ -79,7 +79,7 @@ namespace bs
 		static const ShaderVariationParameters& GetParticleShaderVariation()
 		{
 			static bool initialized = false;
-			static SmallVector<ShaderVariationParameter, 4> params({
+			static TInlineArray<ShaderVariationParameter, 4> params({
 				ShaderVariationParameter("ORIENT", (u32)ORIENT),
 				ShaderVariationParameter("LOCK_Y", LOCK_Y),
 				ShaderVariationParameter("GPU", GPU),

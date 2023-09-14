@@ -726,7 +726,7 @@ namespace bs::ct
 		if(!gpuDevice)
 			return renderBuffers;
 
-		SmallVector<VertexElement, 2> vertexElements;
+		TInlineArray<VertexElement, 2> vertexElements;
 		vertexElements.Add(VertexElement(VET_FLOAT2, VES_POSITION));
 		vertexElements.Add(VertexElement(VET_FLOAT2, VES_TEXCOORD));
 

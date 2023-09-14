@@ -96,7 +96,7 @@ namespace bs
 			GpuBufferType mType;
 			GpuBufferFlags mFlags;
 			VkBuffer mBuffer;
-			SmallVector<ViewInformation, 2> mViews;
+			TInlineArray<ViewInformation, 2> mViews;
 			VmaAllocation mAllocation;
 
 			u32 mRowPitch;

@@ -22,7 +22,7 @@ SPtr<PersistentCacheObject> PersistentCacheObject::Create(const SPtr<IReflectabl
 	return cacheObject;
 }
 
-SPtr<PersistentCacheObject> PersistentCacheObject::Create(const SmallVector<SPtr<IReflectable>, 1>& objects)
+SPtr<PersistentCacheObject> PersistentCacheObject::Create(const TInlineArray<SPtr<IReflectable>, 1>& objects)
 {
 	SPtr<PersistentCacheObject> cacheObject = B3DMakeCoreFromExisting<PersistentCacheObject>(new (B3DAllocate<PersistentCacheObject>()) PersistentCacheObject(objects));
 	cacheObject->SetId(UUIDGenerator::GenerateRandom());
@@ -368,7 +368,7 @@ SPtr<IReflectable> PersistentCache::TryGetEntry(const Path& path)
 		return nullptr;
 	}
 
-	const SmallVector<SPtr<IReflectable>, 1>& cachedObjects = persistentCacheObject->GetObjects();
+	const TInlineArray<SPtr<IReflectable>, 1>& cachedObjects = persistentCacheObject->GetObjects();
 	if (cachedObjects.Empty())
 		return nullptr;
 

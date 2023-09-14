@@ -360,7 +360,7 @@ namespace bs
 		Mutex mMutex;
 
 		UnorderedSet<Fiber*> mFreeFibers;
-		SmallVector<UPtr<Fiber>, 16> mAllFibers;
+		TInlineArray<UPtr<Fiber>, 16> mAllFibers;
 		bool mIsShutdownRequested = false;
 	};
 	

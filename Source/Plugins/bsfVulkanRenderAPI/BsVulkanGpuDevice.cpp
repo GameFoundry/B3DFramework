@@ -989,7 +989,7 @@ void VulkanGpuDevice::InitializeCapabilities()
 	mCapabilities.AddShaderProfile("glsl");
 }
 
-void VulkanGpuDevice::GetSyncSemaphores(u32 syncMask, SmallVector<VulkanSemaphore*, 8> outSemaphores) const
+void VulkanGpuDevice::GetSyncSemaphores(u32 syncMask, TInlineArray<VulkanSemaphore*, 8> outSemaphores) const
 {
 	AssertIfNotVulkanSubmitThread();
 

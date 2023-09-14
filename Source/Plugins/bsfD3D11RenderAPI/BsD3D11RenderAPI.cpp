@@ -619,7 +619,7 @@ void D3D11RenderAPI::SetViewport(const Rect2& vp, const SPtr<CommandBuffer>& com
 
 void D3D11RenderAPI::SetVertexBuffers(u32 index, SPtr<VertexBuffer>* buffers, u32 numBuffers, const SPtr<CommandBuffer>& commandBuffer)
 {
-	auto executeRef = [&](u32 index, const SmallVector<SPtr<VertexBuffer>, 8>& buffers, u32 numBuffers)
+	auto executeRef = [&](u32 index, const TInlineArray<SPtr<VertexBuffer>, 8>& buffers, u32 numBuffers)
 	{
 		THROW_IF_NOT_CORE_THREAD;
 
@@ -647,7 +647,7 @@ void D3D11RenderAPI::SetVertexBuffers(u32 index, SPtr<VertexBuffer>* buffers, u3
 		mDevice->GetImmediateContext()->IASetVertexBuffers(index, numBuffers, dx11buffers, strides, offsets);
 	};
 
-	SmallVector<SPtr<VertexBuffer>, 8> _buffers;
+	TInlineArray<SPtr<VertexBuffer>, 8> _buffers;
 	for(u32 i = 0; i < numBuffers; i++)
 		_buffers.Add(buffers[i]);
 

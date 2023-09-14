@@ -401,13 +401,13 @@ GpuParticleHelperBuffers::GpuParticleHelperBuffers()
 	const SPtr<GpuDevice>& gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
 
 	// Prepare vertex declaration for rendering tiles
-	SmallVector<VertexElement, 8> tileVertexElements;
+	TInlineArray<VertexElement, 8> tileVertexElements;
 	tileVertexElements.Add(VertexElement(VET_FLOAT2, VES_TEXCOORD));
 
 	TileVertexDescription = B3DMakeShared<VertexDescription>(tileVertexElements);
 
 	// Prepare vertex declaration for injecting new particles
-	SmallVector<VertexElement, 8> injectVertexElements;
+	TInlineArray<VertexElement, 8> injectVertexElements;
 	injectVertexElements.Add(VertexElement(VET_FLOAT4, VES_TEXCOORD, 0, 0, 1)); // Position & time, per instance
 	injectVertexElements.Add(VertexElement(VET_FLOAT4, VES_TEXCOORD, 1, 0, 1)); // Velocity, per instance
 	injectVertexElements.Add(VertexElement(VET_FLOAT2, VES_TEXCOORD, 2, 0, 1)); // Size, per instance
@@ -1347,7 +1347,7 @@ GpuParticleCurves::GpuParticleCurves()
 	mRT = RenderTexture::Create(rtDesc);
 
 	// Prepare vertex declaration for injecting new curves
-	SmallVector<VertexElement, 8> injectVertexElement;
+	TInlineArray<VertexElement, 8> injectVertexElement;
 	injectVertexElement.Add(VertexElement(VET_FLOAT4, VES_TEXCOORD, 0, 0, 1)); // Color, per instance
 	injectVertexElement.Add(VertexElement(VET_FLOAT2, VES_TEXCOORD, 1, 0, 1)); // Data UV, per instance
 	injectVertexElement.Add(VertexElement(VET_FLOAT2, VES_TEXCOORD, 2, 1)); // Pixel texture coordinates

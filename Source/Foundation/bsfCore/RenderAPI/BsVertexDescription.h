@@ -130,7 +130,7 @@ namespace bs
 	class B3D_CORE_EXPORT VertexDescription : public IReflectable
 	{
 	public:
-		VertexDescription(const ArrayView<VertexElement>& elements, bool calculateOffsets = true);
+		VertexDescription(const TArrayView<VertexElement>& elements, bool calculateOffsets = true);
 
 		bool operator==(const VertexDescription& rhs) const;
 		bool operator!=(const VertexDescription& rhs) const { return !operator==(rhs); }
@@ -166,13 +166,13 @@ namespace bs
 		const VertexElement* GetElement(VertexElementSemantic semantic, u32 semanticIndex = 0, u32 streamIndex = 0) const;
 
 		/** Returns all the elements of the definition. */
-		const SmallVector<VertexElement, 8>& GetElements() const { return mVertexElements; }
+		const TInlineArray<VertexElement, 8>& GetElements() const { return mVertexElements; }
 
 		/* Checks can a vertex buffer declared with the provided vertex elements be bound to a shader defined with the provided vertex element inputs. */
 		static bool IsCompatibleWithShaderInputs(const VertexDescription& vertexBufferDescription, const VertexDescription& shaderInputDescription);
 
 		/** Returns a list of vertex elements that the provided shader expects as inputs, but aren't provided in the list of vertex buffer elements. */
-		static SmallVector<VertexElement, 8> GetMissingElementsForShaderInput(const VertexDescription& vertexBufferDescription, const VertexDescription& shaderInputDescription);
+		static TInlineArray<VertexElement, 8> GetMissingElementsForShaderInput(const VertexDescription& vertexBufferDescription, const VertexDescription& shaderInputDescription);
 
 	private:
 		friend class Mesh;
@@ -190,7 +190,7 @@ namespace bs
 		void CalculateOffsets();
 
 	private:
-		SmallVector<VertexElement, 8> mVertexElements;
+		TInlineArray<VertexElement, 8> mVertexElements;
 		u32 mId;
 
 		/************************************************************************/

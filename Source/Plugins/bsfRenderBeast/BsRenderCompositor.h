@@ -38,13 +38,13 @@ namespace bs
 			const RenderBeastFeatureSet FeatureSet;
 
 			// Callbacks to external systems can hook into the compositor
-			SmallVector<RendererExtension*, 4> ExtPrepare;
-			SmallVector<RendererExtension*, 4> ExtPreBasePass;
-			SmallVector<RendererExtension*, 4> ExtPostBasePass;
-			SmallVector<RendererExtension*, 4> ExtPostLighting;
-			SmallVector<RendererExtension*, 4> ExtOverlay;
+			TInlineArray<RendererExtension*, 4> ExtPrepare;
+			TInlineArray<RendererExtension*, 4> ExtPreBasePass;
+			TInlineArray<RendererExtension*, 4> ExtPostBasePass;
+			TInlineArray<RendererExtension*, 4> ExtPostLighting;
+			TInlineArray<RendererExtension*, 4> ExtOverlay;
 
-			SmallVector<RenderCompositorNode*, 4> InputNodes;
+			TInlineArray<RenderCompositorNode*, 4> InputNodes;
 		};
 
 		/**
@@ -89,7 +89,7 @@ namespace bs
 				RenderCompositorNode* Node;
 				NodeType* NodeType;
 				u32 LastUseIdx;
-				SmallVector<RenderCompositorNode*, 4> Inputs;
+				TInlineArray<RenderCompositorNode*, 4> Inputs;
 			};
 
 		public:
@@ -129,7 +129,7 @@ namespace bs
 				virtual RenderCompositorNode* Create() const = 0;
 
 				/** Returns identifier for all the dependencies of a node of this type. */
-				virtual SmallVector<StringID, 4> GetDependencies(const RendererView& view) const = 0;
+				virtual TInlineArray<StringID, 4> GetDependencies(const RendererView& view) const = 0;
 
 				StringID Id;
 			};
@@ -144,7 +144,7 @@ namespace bs
 				}
 
 				RenderCompositorNode* Create() const override { return B3DNew<T>(); }
-				SmallVector<StringID, 4> GetDependencies(const RendererView& view) const override
+				TInlineArray<StringID, 4> GetDependencies(const RendererView& view) const override
 				{
 					return T::GetDependencies(view);
 				}
@@ -190,7 +190,7 @@ namespace bs
 
 			static StringID GetNodeId() { return "SceneDepth"; }
 
-			static SmallVector<StringID, 4> GetDependencies(const RendererView& view);
+			static TInlineArray<StringID, 4> GetDependencies(const RendererView& view);
 
 		protected:
 			void Render(const RenderCompositorNodeInputs& inputs) override;
@@ -216,7 +216,7 @@ namespace bs
 
 			static StringID GetNodeId() { return "BasePass"; }
 
-			static SmallVector<StringID, 4> GetDependencies(const RendererView& view);
+			static TInlineArray<StringID, 4> GetDependencies(const RendererView& view);
 
 		protected:
 			void Render(const RenderCompositorNodeInputs& inputs) override;
@@ -256,7 +256,7 @@ namespace bs
 
 			static StringID GetNodeId() { return "SceneColor"; }
 
-			static SmallVector<StringID, 4> GetDependencies(const RendererView& view);
+			static TInlineArray<StringID, 4> GetDependencies(const RendererView& view);
 
 		protected:
 			/** @copydoc RenderCompositorNode::render */
@@ -279,7 +279,7 @@ namespace bs
 
 			static StringID GetNodeId() { return "MSAACoverage"; }
 
-			static SmallVector<StringID, 4> GetDependencies(const RendererView& view);
+			static TInlineArray<StringID, 4> GetDependencies(const RendererView& view);
 
 		protected:
 			void Render(const RenderCompositorNodeInputs& inputs) override;
@@ -296,7 +296,7 @@ namespace bs
 		public:
 			static StringID GetNodeId() { return "ParticleSimulate"; }
 
-			static SmallVector<StringID, 4> GetDependencies(const RendererView& view);
+			static TInlineArray<StringID, 4> GetDependencies(const RendererView& view);
 
 		protected:
 			void Render(const RenderCompositorNodeInputs& inputs) override;
@@ -309,7 +309,7 @@ namespace bs
 		public:
 			static StringID GetNodeId() { return "ParticleSort"; }
 
-			static SmallVector<StringID, 4> GetDependencies(const RendererView& view);
+			static TInlineArray<StringID, 4> GetDependencies(const RendererView& view);
 
 		protected:
 			void Render(const RenderCompositorNodeInputs& inputs) override;
@@ -344,7 +344,7 @@ namespace bs
 
 			static StringID GetNodeId() { return "LightAccumulation"; }
 
-			static SmallVector<StringID, 4> GetDependencies(const RendererView& view);
+			static TInlineArray<StringID, 4> GetDependencies(const RendererView& view);
 
 		protected:
 			void Render(const RenderCompositorNodeInputs& inputs) override;
@@ -363,7 +363,7 @@ namespace bs
 
 			static StringID GetNodeId() { return "DeferredDirectLighting"; }
 
-			static SmallVector<StringID, 4> GetDependencies(const RendererView& view);
+			static TInlineArray<StringID, 4> GetDependencies(const RendererView& view);
 
 		protected:
 			void Render(const RenderCompositorNodeInputs& inputs) override;
@@ -385,7 +385,7 @@ namespace bs
 
 			static StringID GetNodeId() { return "DeferredIndirectSpecularLighting"; }
 
-			static SmallVector<StringID, 4> GetDependencies(const RendererView& view);
+			static TInlineArray<StringID, 4> GetDependencies(const RendererView& view);
 
 		protected:
 			void Render(const RenderCompositorNodeInputs& inputs) override;
@@ -403,7 +403,7 @@ namespace bs
 
 			static StringID GetNodeId() { return "IndirectDiffuseLighting"; }
 
-			static SmallVector<StringID, 4> GetDependencies(const RendererView& view);
+			static TInlineArray<StringID, 4> GetDependencies(const RendererView& view);
 
 		protected:
 			void Render(const RenderCompositorNodeInputs& inputs) override;
@@ -419,7 +419,7 @@ namespace bs
 		public:
 			static StringID GetNodeId() { return "ClusteredForward"; }
 
-			static SmallVector<StringID, 4> GetDependencies(const RendererView& view);
+			static TInlineArray<StringID, 4> GetDependencies(const RendererView& view);
 
 		protected:
 			void Render(const RenderCompositorNodeInputs& inputs) override;
@@ -437,7 +437,7 @@ namespace bs
 		public:
 			static StringID GetNodeId() { return "Skybox"; }
 
-			static SmallVector<StringID, 4> GetDependencies(const RendererView& view);
+			static TInlineArray<StringID, 4> GetDependencies(const RendererView& view);
 
 		protected:
 			void Render(const RenderCompositorNodeInputs& inputs) override;
@@ -450,7 +450,7 @@ namespace bs
 		public:
 			static StringID GetNodeId() { return "FinalResolve"; }
 
-			static SmallVector<StringID, 4> GetDependencies(const RendererView& view);
+			static TInlineArray<StringID, 4> GetDependencies(const RendererView& view);
 
 		protected:
 			void Render(const RenderCompositorNodeInputs& inputs) override;
@@ -479,7 +479,7 @@ namespace bs
 
 			static StringID GetNodeId() { return "PostProcess"; }
 
-			static SmallVector<StringID, 4> GetDependencies(const RendererView& view);
+			static TInlineArray<StringID, 4> GetDependencies(const RendererView& view);
 
 		protected:
 			void Render(const RenderCompositorNodeInputs& inputs) override;
@@ -497,7 +497,7 @@ namespace bs
 
 			static StringID GetNodeId() { return "EyeAdaptation"; }
 
-			static SmallVector<StringID, 4> GetDependencies(const RendererView& view);
+			static TInlineArray<StringID, 4> GetDependencies(const RendererView& view);
 
 		protected:
 			void Render(const RenderCompositorNodeInputs& inputs) override;
@@ -521,7 +521,7 @@ namespace bs
 		public:
 			static StringID GetNodeId() { return "Tonemapping"; }
 
-			static SmallVector<StringID, 4> GetDependencies(const RendererView& view);
+			static TInlineArray<StringID, 4> GetDependencies(const RendererView& view);
 
 		protected:
 			void Render(const RenderCompositorNodeInputs& inputs) override;
@@ -537,7 +537,7 @@ namespace bs
 		public:
 			static StringID GetNodeId() { return "BokehDOF"; }
 
-			static SmallVector<StringID, 4> GetDependencies(const RendererView& view);
+			static TInlineArray<StringID, 4> GetDependencies(const RendererView& view);
 
 		protected:
 			void Render(const RenderCompositorNodeInputs& inputs) override;
@@ -554,7 +554,7 @@ namespace bs
 		public:
 			static StringID GetNodeId() { return "MotionBlur"; }
 
-			static SmallVector<StringID, 4> GetDependencies(const RendererView& view);
+			static TInlineArray<StringID, 4> GetDependencies(const RendererView& view);
 
 		protected:
 			void Render(const RenderCompositorNodeInputs& inputs) override;
@@ -567,7 +567,7 @@ namespace bs
 		public:
 			static StringID GetNodeId() { return "GaussianDOF"; }
 
-			static SmallVector<StringID, 4> GetDependencies(const RendererView& view);
+			static TInlineArray<StringID, 4> GetDependencies(const RendererView& view);
 
 		protected:
 			void Render(const RenderCompositorNodeInputs& inputs) override;
@@ -580,7 +580,7 @@ namespace bs
 		public:
 			static StringID GetNodeId() { return "FXAA"; }
 
-			static SmallVector<StringID, 4> GetDependencies(const RendererView& view);
+			static TInlineArray<StringID, 4> GetDependencies(const RendererView& view);
 
 		protected:
 			void Render(const RenderCompositorNodeInputs& inputs) override;
@@ -599,7 +599,7 @@ namespace bs
 
 			static StringID GetNodeId() { return "HalfSceneColor"; }
 
-			static SmallVector<StringID, 4> GetDependencies(const RendererView& view);
+			static TInlineArray<StringID, 4> GetDependencies(const RendererView& view);
 
 		protected:
 			void Render(const RenderCompositorNodeInputs& inputs) override;
@@ -620,7 +620,7 @@ namespace bs
 
 			static StringID GetNodeId() { return "SceneColorDownsamples"; }
 
-			static SmallVector<StringID, 4> GetDependencies(const RendererView& view);
+			static TInlineArray<StringID, 4> GetDependencies(const RendererView& view);
 
 		protected:
 			void Render(const RenderCompositorNodeInputs& inputs) override;
@@ -635,7 +635,7 @@ namespace bs
 
 			static StringID GetNodeId() { return "ResolvedSceneDepth"; }
 
-			static SmallVector<StringID, 4> GetDependencies(const RendererView& view);
+			static TInlineArray<StringID, 4> GetDependencies(const RendererView& view);
 
 		protected:
 			void Render(const RenderCompositorNodeInputs& inputs) override;
@@ -650,7 +650,7 @@ namespace bs
 
 			static StringID GetNodeId() { return "HiZ"; }
 
-			static SmallVector<StringID, 4> GetDependencies(const RendererView& view);
+			static TInlineArray<StringID, 4> GetDependencies(const RendererView& view);
 
 		protected:
 			void Render(const RenderCompositorNodeInputs& inputs) override;
@@ -665,7 +665,7 @@ namespace bs
 
 			static StringID GetNodeId() { return "SSAO"; }
 
-			static SmallVector<StringID, 4> GetDependencies(const RendererView& view);
+			static TInlineArray<StringID, 4> GetDependencies(const RendererView& view);
 
 		protected:
 			void Render(const RenderCompositorNodeInputs& inputs) override;
@@ -684,7 +684,7 @@ namespace bs
 
 			static StringID GetNodeId() { return "SSR"; }
 
-			static SmallVector<StringID, 4> GetDependencies(const RendererView& view);
+			static TInlineArray<StringID, 4> GetDependencies(const RendererView& view);
 
 		protected:
 			void Render(const RenderCompositorNodeInputs& inputs) override;
@@ -711,7 +711,7 @@ namespace bs
 
 			static StringID GetNodeId() { return "TemporalAA"; }
 
-			static SmallVector<StringID, 4> GetDependencies(const RendererView& view);
+			static TInlineArray<StringID, 4> GetDependencies(const RendererView& view);
 
 		protected:
 			void Render(const RenderCompositorNodeInputs& inputs) override;
@@ -732,7 +732,7 @@ namespace bs
 
 			static StringID GetNodeId() { return "Bloom"; }
 
-			static SmallVector<StringID, 4> GetDependencies(const RendererView& view);
+			static TInlineArray<StringID, 4> GetDependencies(const RendererView& view);
 
 		protected:
 			void Render(const RenderCompositorNodeInputs& inputs) override;
@@ -747,7 +747,7 @@ namespace bs
 		public:
 			static StringID GetNodeId() { return "ScreenSpaceLensFlare"; }
 
-			static SmallVector<StringID, 4> GetDependencies(const RendererView& view);
+			static TInlineArray<StringID, 4> GetDependencies(const RendererView& view);
 
 		protected:
 			void Render(const RenderCompositorNodeInputs& inputs) override;
@@ -760,7 +760,7 @@ namespace bs
 		public:
 			static StringID GetNodeId() { return "ChromaticAberration"; }
 
-			static SmallVector<StringID, 4> GetDependencies(const RendererView& view);
+			static TInlineArray<StringID, 4> GetDependencies(const RendererView& view);
 
 		protected:
 			void Render(const RenderCompositorNodeInputs& inputs) override;
@@ -773,7 +773,7 @@ namespace bs
 		public:
 			static StringID GetNodeId() { return "FilmGrain"; }
 
-			static SmallVector<StringID, 4> GetDependencies(const RendererView& view);
+			static TInlineArray<StringID, 4> GetDependencies(const RendererView& view);
 
 		protected:
 			void Render(const RenderCompositorNodeInputs& inputs) override;

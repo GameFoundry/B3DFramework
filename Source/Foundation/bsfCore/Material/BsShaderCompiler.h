@@ -50,7 +50,7 @@ namespace bs
 		String Source; /**< High level source code of the shader. */
 		String NameInCache; /**< Unique name of this shader in the shader cache. */
 		Array<u64, 2> ShaderHash; /**< Hash of the shader's source code (not including the include file source). */
-		SmallVector<GpuProgramType, 2> GPUProgramTypes; /**< Types of GPU programs used by the shader. */
+		TInlineArray<GpuProgramType, 2> GPUProgramTypes; /**< Types of GPU programs used by the shader. */
 		Vector<ShaderVariationParameters> Variations; /**< Sets of defines controlling which variations of the shader are present. */
 		UnorderedMap<String, String> Defines; /**< Optional list of defines to provide when compiling the shader variations. This is added along with the shader variation defines. */
 

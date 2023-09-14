@@ -63,7 +63,7 @@ ShaderCompilerResult BSLCompiler::TCompile(const String& name, const String& sou
 	compilerMetaData->Variations = CreateShaderVariations(parsedShaderMetaData);
 	compilerMetaData->Defines = defines;
 
-	SmallVector<ShadingLanguageFlag, (u32)ShadingLanguageFlag::Count> requiredLanguageSet;
+	TInlineArray<ShadingLanguageFlag, (u32)ShadingLanguageFlag::Count> requiredLanguageSet;
 	for(u32 shadingLanguageIndex = 0; shadingLanguageIndex < (u32)ShadingLanguageFlag::Count; shadingLanguageIndex++)
 	{
 		if(languages.IsSet((ShadingLanguageFlag)(1 << shadingLanguageIndex)))
@@ -360,7 +360,7 @@ ShaderCompilerResult BSLCompiler::TCompileVariation(const String& name, const BS
 		}
 	}
 
-	SmallVector<SPtr<PassType>, 1> orderedPasses;
+	TInlineArray<SPtr<PassType>, 1> orderedPasses;
 	for(auto& KVP : passes)
 		orderedPasses.Add(KVP.second);
 

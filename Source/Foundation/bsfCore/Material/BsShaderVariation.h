@@ -90,7 +90,7 @@ namespace bs
 		ShaderVariationParameters() = default;
 
 		/** Creates a new shader variation with the specified parameters. */
-		ShaderVariationParameters(const SmallVector<ShaderVariationParameter, 4>& params);
+		ShaderVariationParameters(const TInlineArray<ShaderVariationParameter, 4>& params);
 
 		/**
 		 * Returns the value of a signed integer parameter with the specified name. Returns 0 if the parameter cannot be
@@ -182,7 +182,7 @@ namespace bs
 		bool Matches(const ShaderVariationParameters& other, bool exact = true) const;
 
 		/** Returns all the variation parameters. */
-		const SmallVector<ShaderVariationParameter, 4>& GetParams() const { return mParams; }
+		const TInlineArray<ShaderVariationParameter, 4>& GetParams() const { return mParams; }
 
 		bool operator==(const ShaderVariationParameters& rhs) const;
 
@@ -211,7 +211,7 @@ namespace bs
 	private:
 		friend class ShaderVariations;
 
-		SmallVector<ShaderVariationParameter, 4> mParams;
+		TInlineArray<ShaderVariationParameter, 4> mParams;
 		mutable u32 mIdx = -1;
 
 		/************************************************************************/
@@ -241,7 +241,7 @@ namespace bs
 		u32 Find(const ShaderVariationParameters& variation) const;
 
 		/** Returns a list of all variations. */
-		const SmallVector<ShaderVariationParameters, 4>& GetVariations() const { return mVariations; }
+		const TInlineArray<ShaderVariationParameters, 4>& GetVariations() const { return mVariations; }
 
 		/** Clears all the shader variations from the set. */
 		void Clear()
@@ -254,7 +254,7 @@ namespace bs
 		bool IsEmpty() const { return mVariations.Empty(); }
 
 	private:
-		SmallVector<ShaderVariationParameters, 4> mVariations;
+		TInlineArray<ShaderVariationParameters, 4> mVariations;
 		u32 mNextIdx = 0;
 	};
 

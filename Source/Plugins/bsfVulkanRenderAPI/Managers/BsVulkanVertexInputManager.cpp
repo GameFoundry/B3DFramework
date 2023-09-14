@@ -79,8 +79,8 @@ SPtr<VulkanVertexInput> VulkanVertexInputManager::GetVertexInfo(const SPtr<Verte
 
 void VulkanVertexInputManager::AddNew(const SPtr<VertexDescription>& vertexBufferDescription, const SPtr<VertexDescription>& shaderInputDescription)
 {
-	const SmallVector<VertexElement, 8>& vertexBufferElements = vertexBufferDescription->GetElements();
-	const SmallVector<VertexElement, 8>& shaderInputElements = shaderInputDescription->GetElements();
+	const TInlineArray<VertexElement, 8>& vertexBufferElements = vertexBufferDescription->GetElements();
+	const TInlineArray<VertexElement, 8>& shaderInputElements = shaderInputDescription->GetElements();
 
 	const u32 attributeCount = (u32)shaderInputElements.size();
 

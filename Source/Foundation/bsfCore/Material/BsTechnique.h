@@ -30,11 +30,11 @@ namespace bs
 	{
 		using PassType = CoreVariantType<Pass, Core>;
 
-		TPrecompiledVariationData(const SmallVector<SPtr<PassType>, 1>& precompiledPasses = {})
+		TPrecompiledVariationData(const TInlineArray<SPtr<PassType>, 1>& precompiledPasses = {})
 			: PrecompiledPasses(precompiledPasses)
 		{ }
 
-		SmallVector<SPtr<PassType>, 1> PrecompiledPasses;
+		TInlineArray<SPtr<PassType>, 1> PrecompiledPasses;
 	};
 
 	using PrecompiledVariationData = TPrecompiledVariationData<false>;
@@ -95,7 +95,7 @@ namespace bs
 		 */
 
 		/** Assigns a set of compiled passes to the technique. This should be called only when a technique has not been initialized with precompiled pass data, and compilation for the technique finished. */
-		void SetCompiledPassData(SmallVector<SPtr<PassType>, 1> compiledPasses);
+		void SetCompiledPassData(TInlineArray<SPtr<PassType>, 1> compiledPasses);
 
 		/** Sets the shader that owns this variation. */
 		void SetOwner(const WeakSPtr<ShaderType>& owner);
@@ -107,7 +107,7 @@ namespace bs
 		virtual SPtr<TechniqueType> GetSelf() = 0;
 
 		WeakSPtr<ShaderType> mOwner;
-		SmallVector<SPtr<PassType>, 1> mPasses;
+		TInlineArray<SPtr<PassType>, 1> mPasses;
 		bool mHasPassData = false;
 		bool mIsCompiled = false;
 	};

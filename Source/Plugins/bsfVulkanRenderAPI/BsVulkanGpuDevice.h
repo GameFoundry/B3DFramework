@@ -137,7 +137,7 @@ namespace bs
 			 *
 			 * @note	Submit thread only.
 			 */
-			void GetSyncSemaphores(u32 syncMask, SmallVector<VulkanSemaphore*, 8> outSemaphores) const;
+			void GetSyncSemaphores(u32 syncMask, TInlineArray<VulkanSemaphore*, 8> outSemaphores) const;
 
 			/**
 			 * @name Memory Allocation

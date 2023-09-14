@@ -71,7 +71,7 @@ u32 TTechnique<Core>::GetPassCount() const
 }
 
 template <bool Core>
-void TTechnique<Core>::SetCompiledPassData(SmallVector<SPtr<PassType>, 1> compiledPasses)
+void TTechnique<Core>::SetCompiledPassData(TInlineArray<SPtr<PassType>, 1> compiledPasses)
 {
 	mPasses = std::move(compiledPasses);
 	mHasPassData = true;
@@ -194,7 +194,7 @@ SPtr<ct::CoreObject> Technique::CreateCore() const
 	const SPtr<Shader> owner = mOwner.lock();
 	const WeakSPtr<ct::Shader> coreOwner = owner != nullptr ? owner->GetCore() : nullptr;
 
-	SmallVector<SPtr<ct::Pass>, 1> corePasses;
+	TInlineArray<SPtr<ct::Pass>, 1> corePasses;
 	for(auto& pass : mPasses)
 		corePasses.Add(pass->GetCore());
 

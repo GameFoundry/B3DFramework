@@ -151,7 +151,7 @@ namespace bs
 		void UpdateBounds() const;
 
 		mutable Rect2I mBounds;
-		mutable SmallVector<SpriteRenderElementData, 2> mCachedRenderElements;
+		mutable TInlineArray<SpriteRenderElementData, 2> mCachedRenderElements;
 	};
 
 	inline void Sprite::GetRenderElement(u32 index, SpriteRenderElement& info) const

@@ -133,7 +133,7 @@ namespace bs
 		struct BatchedGUIElement
 		{
 			GUIElement* GUIElement = nullptr;
-			SmallVector<u32, 4> BatchPerRenderElement;
+			TInlineArray<u32, 4> BatchPerRenderElement;
 			Rect2I Bounds;
 		};
 

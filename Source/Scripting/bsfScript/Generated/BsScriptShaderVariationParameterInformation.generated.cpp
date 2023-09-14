@@ -36,7 +36,7 @@ namespace bs
 		tmpIdentifier = MonoUtil::MonoToString(value.Identifier);
 		output.Identifier = tmpIdentifier;
 		output.IsInternal = value.IsInternal;
-		SmallVector<ShaderVariationParameterValue, 4> vecValues;
+		TInlineArray<ShaderVariationParameterValue, 4> vecValues;
 		if(value.Values != nullptr)
 		{
 			ScriptArray arrayValues(value.Values);

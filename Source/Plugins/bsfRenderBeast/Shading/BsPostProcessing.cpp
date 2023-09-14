@@ -1236,7 +1236,7 @@ void BokehDOFMat::Initialize()
 	mGPUParameters->GetSampledTextureParameter("gBokehTex", mBokehTexture);
 
 	// Prepare vertex declaration for rendering tiles
-	SmallVector<VertexElement, 8> tileVertexElements;
+	TInlineArray<VertexElement, 8> tileVertexElements;
 	tileVertexElements.Add(VertexElement(VET_FLOAT2, VES_TEXCOORD));
 
 	mTileVertexDescription = B3DMakeShared<VertexDescription>(tileVertexElements);

@@ -619,7 +619,7 @@ static bool ParseParameters(const Xsc::Reflection::ReflectionData& reflectionDat
 }
 
 template<bool Core>
-static String CrossCompile(const String& hlsl, GpuProgramType type, HLSLCrossCompileOutput outputType, bool optionalEntry, u32& startBindingSlot, ShaderCompilerResult& outCompileResult, CoreVariantType<ShaderCreateInformation, Core>* outShaderCreateInformation = nullptr, SmallVector<GpuProgramType, 2>* detectedTypes = nullptr)
+static String CrossCompile(const String& hlsl, GpuProgramType type, HLSLCrossCompileOutput outputType, bool optionalEntry, u32& startBindingSlot, ShaderCompilerResult& outCompileResult, CoreVariantType<ShaderCreateInformation, Core>* outShaderCreateInformation = nullptr, TInlineArray<GpuProgramType, 2>* detectedTypes = nullptr)
 {
 	SPtr<StringStream> input = B3DMakeShared<StringStream>();
 
@@ -802,7 +802,7 @@ ShaderCompilerResult HLSLCrossCompiler::CrossCompile(const String& hlsl, GpuProg
 }
 
 template<bool Core>
-ShaderCompilerResult HLSLCrossCompiler::TReflect(const String& hlsl, CoreVariantType<ShaderCreateInformation, Core>& outShaderCreateInformation, SmallVector<GpuProgramType, 2>& outEntryPoints)
+ShaderCompilerResult HLSLCrossCompiler::TReflect(const String& hlsl, CoreVariantType<ShaderCreateInformation, Core>& outShaderCreateInformation, TInlineArray<GpuProgramType, 2>& outEntryPoints)
 {
 	ShaderCompilerResult compileResult;
 	u32 dummy = 0;
@@ -811,5 +811,5 @@ ShaderCompilerResult HLSLCrossCompiler::TReflect(const String& hlsl, CoreVariant
 	return compileResult;
 }
 
-template ShaderCompilerResult HLSLCrossCompiler::TReflect<false>(const String& hlsl, CoreVariantType<ShaderCreateInformation, false>& outShaderCreateInformation, SmallVector<GpuProgramType, 2>& outEntryPoints);
-template ShaderCompilerResult HLSLCrossCompiler::TReflect<true>(const String& hlsl, CoreVariantType<ShaderCreateInformation, true>& outShaderCreateInformation, SmallVector<GpuProgramType, 2>& outEntryPoints);
+template ShaderCompilerResult HLSLCrossCompiler::TReflect<false>(const String& hlsl, CoreVariantType<ShaderCreateInformation, false>& outShaderCreateInformation, TInlineArray<GpuProgramType, 2>& outEntryPoints);
+template ShaderCompilerResult HLSLCrossCompiler::TReflect<true>(const String& hlsl, CoreVariantType<ShaderCreateInformation, true>& outShaderCreateInformation, TInlineArray<GpuProgramType, 2>& outEntryPoints);

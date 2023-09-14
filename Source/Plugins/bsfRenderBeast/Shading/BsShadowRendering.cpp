@@ -694,7 +694,7 @@ ShadowRendering::ShadowRendering(u32 shadowMapSize)
 {
 	const SPtr<GpuDevice>& gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
 
-	SmallVector<VertexElement, 8> vertexElements;
+	TInlineArray<VertexElement, 8> vertexElements;
 	vertexElements.Add(VertexElement(VET_FLOAT3, VES_POSITION));
 
 	mPositionOnlyVertexDescription = B3DMakeShared<VertexDescription>(vertexElements);
@@ -1622,7 +1622,7 @@ void ShadowRendering::RenderRadialShadowMap(GpuCommandBuffer& commandBuffer, con
 	lightShadows.NumShadows++;
 }
 
-void ShadowRendering::CalcShadowMapProperties(const RendererLight& light, const RendererViewGroup& viewGroup, u32 border, u32& size, SmallVector<float, 6>& fadePercents, float& maxFadePercent) const
+void ShadowRendering::CalcShadowMapProperties(const RendererLight& light, const RendererViewGroup& viewGroup, u32 border, u32& size, TInlineArray<float, 6>& fadePercents, float& maxFadePercent) const
 {
 	const static float kShadowTexelsPerPixel = 1.0f;
 

@@ -111,7 +111,7 @@ bool VulkanGpuQueue::IsExecuting() const
 	return mLastSubmittedCommandBuffer->IsSubmitted() || mLastSubmittedCommandBuffer->IsDone();
 }
 
-VkResult VulkanGpuQueue::Present(VulkanSwapChain* swapChain, u32 swapChainImageIndex, ArrayView<VulkanSemaphore*> waitSemaphores)
+VkResult VulkanGpuQueue::Present(VulkanSwapChain* swapChain, u32 swapChainImageIndex, TArrayView<VulkanSemaphore*> waitSemaphores)
 {
 	AssertIfNotVulkanSubmitThread();
 
@@ -154,13 +154,13 @@ void VulkanGpuQueue::WaitUntilIdle()
 	GetVulkanSubmitThread().WaitUntilIdle(*this);
 }
 
-VkSubmitInfo VulkanGpuQueue::RegisterSubmissionAndGenerateSubmitInfo(const SPtr<VulkanGpuCommandBuffer>& commandBuffer, const ArrayView<VulkanSemaphore*>& waitSemaphores)
+VkSubmitInfo VulkanGpuQueue::RegisterSubmissionAndGenerateSubmitInfo(const SPtr<VulkanGpuCommandBuffer>& commandBuffer, const TArrayView<VulkanSemaphore*>& waitSemaphores)
 {
-	SmallVector<SPtr<VulkanGpuCommandBuffer>, 1> commandBuffers = { commandBuffer };
+	TInlineArray<SPtr<VulkanGpuCommandBuffer>, 1> commandBuffers = { commandBuffer };
 	return RegisterSubmissionAndGenerateSubmitInfo(commandBuffers, waitSemaphores);
 }
 
-VkSubmitInfo VulkanGpuQueue::RegisterSubmissionAndGenerateSubmitInfo(const ArrayView<SPtr<VulkanGpuCommandBuffer>>& commandBuffers, const ArrayView<VulkanSemaphore*>& waitSemaphores)
+VkSubmitInfo VulkanGpuQueue::RegisterSubmissionAndGenerateSubmitInfo(const TArrayView<SPtr<VulkanGpuCommandBuffer>>& commandBuffers, const TArrayView<VulkanSemaphore*>& waitSemaphores)
 {
 	const u32 commandBufferOffset = (u32)mCommandBufferHandleBuffer.Size();
 	const u32 waitSemaphoreOffset = (u32)mWaitSemaphoreHandleBuffer.Size();
@@ -274,7 +274,7 @@ void VulkanGpuQueue::ExecuteSubmitOnSubmitThread(const GpuCommandBufferSubmitInf
 	B3D_ENSURE(mWaitSemaphoreHandleBuffer.Empty());
 	B3D_ENSURE(mCommandBufferHandleBuffer.Empty());
 
-	SmallVector<VkSubmitInfo, 3> submitInfos;
+	TInlineArray<VkSubmitInfo, 3> submitInfos;
 
 	if (submitInformation.QueryResetCommandBuffer != nullptr)
 		submitInfos.Add(RegisterSubmissionAndGenerateSubmitInfo(submitInformation.QueryResetCommandBuffer, {}));
@@ -348,7 +348,7 @@ void VulkanGpuQueue::RefreshCompletionStateOnSubmitThread(bool forceWait, bool q
 			const bool isPresentCall = queueSubmissionInformation.CommandBuffer == nullptr;
 			SingleConsumerQueue& messageBackQueue = isPresentCall ? it->PresentOperationSwapChain->GetMessageQueue() : queueSubmissionInformation.CommandBuffer->GetPool().GetMessageQueue();
 
-			SmallVector<VulkanSemaphore*, 8> semaphoresToRelease;
+			TInlineArray<VulkanSemaphore*, 8> semaphoresToRelease;
 			for (u32 semaphoreIndex = 0; semaphoreIndex < queueSubmissionInformation.SemaphoreCount; semaphoreIndex++)
 			{
 				VulkanSemaphore* const semaphore = mActiveSemaphores.front();
@@ -383,7 +383,7 @@ void VulkanGpuQueue::RefreshCompletionStateOnSubmitThread(bool forceWait, bool q
 	}
 }
 
-u32 VulkanGpuQueue::RegisterSemaphoresAndGetHandles(const ArrayView<VulkanSemaphore*>& inSemaphores, SmallVector<VkSemaphore, 8>& outSemaphores)
+u32 VulkanGpuQueue::RegisterSemaphoresAndGetHandles(const TArrayView<VulkanSemaphore*>& inSemaphores, TInlineArray<VkSemaphore, 8>& outSemaphores)
 {
 	AssertIfNotVulkanSubmitThread();
 

@@ -175,7 +175,7 @@ namespace bs
 		bool IsInternal = true;
 
 		/** A list of potential values this parameter can take on. */
-		SmallVector<ShaderVariationParameterValue, 4> Values;
+		TInlineArray<ShaderVariationParameterValue, 4> Values;
 	};
 
 	/** @} */

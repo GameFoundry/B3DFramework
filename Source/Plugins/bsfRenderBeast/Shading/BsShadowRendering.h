@@ -391,7 +391,7 @@ namespace bs
 			Sphere SubjectBounds;
 
 			/** Determines the fade amount of the shadow, for each view in the scene. */
-			SmallVector<float, 6> FadePerView;
+			TInlineArray<float, 6> FadePerView;
 		};
 
 		/**
@@ -521,7 +521,7 @@ namespace bs
 			{
 				u32 LightIdx;
 				u32 MapSize;
-				SmallVector<float, 6> FadePercents;
+				TInlineArray<float, 6> FadePercents;
 			};
 
 			/** Contains references to all shadows cast by a specific light. */
@@ -534,7 +534,7 @@ namespace bs
 			/** Contains references to all shadows cast by a specific light, per view. */
 			struct PerViewLightShadows
 			{
-				SmallVector<LightShadows, 6> ViewShadows;
+				TInlineArray<LightShadows, 6> ViewShadows;
 			};
 
 		public:
@@ -574,7 +574,7 @@ namespace bs
 			 *								entry corresponds to a single view.
 			 * @param[out]	maxFadePercent	Maximum value in the @p fadePercents array.
 			 */
-			void CalcShadowMapProperties(const RendererLight& light, const RendererViewGroup& viewGroup, u32 border, u32& size, SmallVector<float, 6>& fadePercents, float& maxFadePercent) const;
+			void CalcShadowMapProperties(const RendererLight& light, const RendererViewGroup& viewGroup, u32 border, u32& size, TInlineArray<float, 6>& fadePercents, float& maxFadePercent) const;
 
 			/**
 			 * Draws a mesh representing near and far planes at the provided coordinates. The mesh is constructed using

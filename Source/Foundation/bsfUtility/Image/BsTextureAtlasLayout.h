@@ -248,7 +248,7 @@ namespace bs
 		TreeTextureAtlasLayoutSettings mSettings;
 
 		Vector<Node> mNodes;
-		SmallVector<Page, 2> mPages;
+		TInlineArray<Page, 2> mPages;
 		u32 mUnusedNodeListHead = ~0u; /**< Index into mNodex of the first unused node, stored as a linked list. ~0u if no unused nodes. */
 	};
 

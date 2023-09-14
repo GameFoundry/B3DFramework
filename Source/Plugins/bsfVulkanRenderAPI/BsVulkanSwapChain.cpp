@@ -456,7 +456,7 @@ void VulkanSwapChain::Present(u32 imageIndex, VulkanGpuQueue& queue, u32 syncMas
 	}
 }
 
-bool VulkanSwapChain::AppendWaitSemaphoreIfRequired(u32 imageIndex, SmallVector<VulkanSemaphore*, 8>& outSemaphores)
+bool VulkanSwapChain::AppendWaitSemaphoreIfRequired(u32 imageIndex, TInlineArray<VulkanSemaphore*, 8>& outSemaphores)
 {
 	AssertIfNotVulkanSubmitThread();
 

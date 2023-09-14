@@ -166,13 +166,13 @@ namespace bs
 		/** Information about a single set in the param info object. */
 		struct SetInformation
 		{
-			SmallVector<UniformInformation*, 32> Uniforms; /**< Uniform for each slot index. */
+			TInlineArray<UniformInformation*, 32> Uniforms; /**< Uniform for each slot index. */
 		};
 
 		UnorderedMap<String, UniformInformation> mUniformMap; /**< A map of all uniforms. */
 		UnorderedMap<String, GpuDataParameterInformation> mUniformBufferMembers; /**< All data parameters in all uniform buffers. */
-		Array<SmallVector<UniformInformation*, 16>, (u32)GpuParameterType::Count> mUniformsPerType; /**< List of uniforms per type. */
-		SmallVector<SetInformation, 2> mSets;
+		Array<TInlineArray<UniformInformation*, 16>, (u32)GpuParameterType::Count> mUniformsPerType; /**< List of uniforms per type. */
+		TInlineArray<SetInformation, 2> mSets;
 		u32 mResourceCount = 0;
 		u32 mBindingCount = 0;
 		Array<u32, (u32)GpuParameterType::Count> mResourceCountPerType;

@@ -34,7 +34,7 @@ namespace bs
 	private:
 		VkInstance mInstance = nullptr;
 
-		SmallVector<SPtr<ct::VulkanGpuDevice>, 2> mDevices;
+		TInlineArray<SPtr<ct::VulkanGpuDevice>, 2> mDevices;
 		SPtr<ct::VulkanGpuDevice> mPresentDevice;
 
 		VkDebugReportCallbackEXT mDebugReportCallback = nullptr;

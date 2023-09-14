@@ -123,7 +123,7 @@ UtilityTestSuite::UtilityTestSuite()
 {
 	B3D_ADD_TEST(UtilityTestSuite::TestOctree);
 	B3D_ADD_TEST(UtilityTestSuite::TestBitfield);
-	B3D_ADD_TEST(UtilityTestSuite::TestSmallVector);
+	B3D_ADD_TEST(UtilityTestSuite::TestTInlineArray);
 	B3D_ADD_TEST(UtilityTestSuite::TestDynArray);
 	B3D_ADD_TEST(UtilityTestSuite::TestComplex);
 	B3D_ADD_TEST(UtilityTestSuite::TestMinHeap);
@@ -294,7 +294,7 @@ void UtilityTestSuite::TestOctree()
 		octree.RemoveElement(entry.OctreeId);
 }
 
-void UtilityTestSuite::TestSmallVector()
+void UtilityTestSuite::TestTInlineArray()
 {
 	struct SomeElem
 	{
@@ -303,7 +303,7 @@ void UtilityTestSuite::TestSmallVector()
 	};
 
 	// Make sure initial construction works
-	SmallVector<SomeElem, 4> v(4);
+	TInlineArray<SomeElem, 4> v(4);
 	B3D_TEST_ASSERT(v.size() == 4);
 	B3D_TEST_ASSERT(v.capacity() == 4);
 	B3D_TEST_ASSERT(v[0].A == 10);
@@ -320,7 +320,7 @@ void UtilityTestSuite::TestSmallVector()
 	B3D_TEST_ASSERT(v[4].B == 4);
 
 	// Make a copy
-	SmallVector<SomeElem, 4> v2 = v;
+	TInlineArray<SomeElem, 4> v2 = v;
 	B3D_TEST_ASSERT(v2.size() == 5);
 	B3D_TEST_ASSERT(v2[0].A == 10);
 	B3D_TEST_ASSERT(v2[3].A == 10);
@@ -336,7 +336,7 @@ void UtilityTestSuite::TestSmallVector()
 	B3D_TEST_ASSERT(v2[3].B == 0);
 
 	// Make a static only copy
-	SmallVector<SomeElem, 4> v3 = v2;
+	TInlineArray<SomeElem, 4> v3 = v2;
 	B3D_TEST_ASSERT(v3.size() == 4);
 	B3D_TEST_ASSERT(v3.capacity() == 4);
 	B3D_TEST_ASSERT(v3[0].A == 10);
@@ -352,7 +352,7 @@ void UtilityTestSuite::TestSmallVector()
 	B3D_TEST_ASSERT(v[3].B == 4);
 
 	// Move a static vector
-	SmallVector<SomeElem, 4> v4 = std::move(v3);
+	TInlineArray<SomeElem, 4> v4 = std::move(v3);
 	B3D_TEST_ASSERT(v3.size() == 0);
 	B3D_TEST_ASSERT(v4.size() == 4);
 	B3D_TEST_ASSERT(v4.capacity() == 4);
@@ -361,7 +361,7 @@ void UtilityTestSuite::TestSmallVector()
 	B3D_TEST_ASSERT(v4[3].B == 0);
 
 	// Move a dynamic vector
-	SmallVector<SomeElem, 4> v5 = std::move(v2);
+	TInlineArray<SomeElem, 4> v5 = std::move(v2);
 	B3D_TEST_ASSERT(v2.size() == 0);
 	B3D_TEST_ASSERT(v5.size() == 4);
 	B3D_TEST_ASSERT(v5[0].A == 10);
@@ -370,7 +370,7 @@ void UtilityTestSuite::TestSmallVector()
 
 	// Move a dynamic vector into a dynamic vector
 	v.Add({ 33, 44 });
-	SmallVector<SomeElem, 4> v6 = std::move(v);
+	TInlineArray<SomeElem, 4> v6 = std::move(v);
 	B3D_TEST_ASSERT(v.size() == 0);
 	B3D_TEST_ASSERT(v6.size() == 5);
 	B3D_TEST_ASSERT(v6[0].A == 10);

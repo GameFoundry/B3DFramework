@@ -620,7 +620,7 @@ bool BSLParser::ParseBlendState(BSLParsedShaderPassData& desc, ASTFXNode* blendN
 		return false;
 
 	bool isDefault = true;
-	SmallVector<ASTFXNode*, 8> targets;
+	TInlineArray<ASTFXNode*, 8> targets;
 
 	for(int i = 0; i < blendNode->Options->Count; i++)
 	{

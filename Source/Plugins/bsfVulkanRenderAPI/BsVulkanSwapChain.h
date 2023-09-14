@@ -138,7 +138,7 @@ namespace bs
 			 * @param	outSemaphores	Array in which to add the wait semaphore if needed.
 			 * @return					True if the wait semaphore was added, or false otherwise.
 			 */
-			bool AppendWaitSemaphoreIfRequired(u32 imageIndex, SmallVector<VulkanSemaphore*, 8>& outSemaphores);
+			bool AppendWaitSemaphoreIfRequired(u32 imageIndex, TInlineArray<VulkanSemaphore*, 8>& outSemaphores);
 
 			/** Lets the swap chain know that it is invalid and it should rebuilt itself. */
 			void MarkAsInvalid() { mIsValid = false; }
@@ -165,7 +165,7 @@ namespace bs
 			u32 mWidth = 0;
 			u32 mHeight = 0;
 			Vector<SwapChainImage> mSurfaces;
-			SmallVector<u32, 4> mAcquiredImageIndicesOnRenderThread;
+			TInlineArray<u32, 4> mAcquiredImageIndicesOnRenderThread;
 			u32 mAcquiredImageCountOnSubmitThread = 0;
 
 			u32 mLastAcquiredSemaphoreIndex = 0;
@@ -176,10 +176,10 @@ namespace bs
 			Mutex mImageAcquireMutex;
 			Signal mImageAcquireSignal;
 			u32 mQueuedImageAcquireOperationCount = 0;
-			SmallVector<ImageAcquireResult, 4> mImageAcquireResults;
+			TInlineArray<ImageAcquireResult, 4> mImageAcquireResults;
 
 			VulkanImage* mDepthStencilImage = nullptr;
-			SmallVector<VulkanSemaphore*, 8> mSemaphoresBuffer;
+			TInlineArray<VulkanSemaphore*, 8> mSemaphoresBuffer;
 
 			SingleConsumerQueue mMessageQueue;
 		};

@@ -138,7 +138,7 @@ namespace bs
 		 * Returns information about all renderable elements in this GUI element, including their mesh, material and
 		 * general information.
 		 */
-		const SmallVector<GUIRenderElement, 4>& GetRenderElements() const { return mRenderElements; }
+		const TInlineArray<GUIRenderElement, 4>& GetRenderElements() const { return mRenderElements; }
 
 		/**
 		 * Fill the pre-allocated vertex, uv and index buffers with the mesh data for the specified render element.
@@ -318,7 +318,7 @@ namespace bs
 		bool mIsDestroyed = false;
 		GUIElementOptions mOptionFlags;
 		Rect2I mClippedBounds;
-		SmallVector<GUIRenderElement, 4> mRenderElements;
+		TInlineArray<GUIRenderElement, 4> mRenderElements;
 
 	private:
 		static const Color kDisabledColor;
@@ -357,7 +357,7 @@ namespace bs
 		 * many render elements from the sprite render elements and the extra information provided in SpriteInfo.
 		 */
 		template <u32 N>
-		static void Populate(const SpriteInfo (&spriteInfos)[N], SmallVector<GUIRenderElement, 4>& output)
+		static void Populate(const SpriteInfo (&spriteInfos)[N], TInlineArray<GUIRenderElement, 4>& output)
 		{
 			u32 totalCount = 0;
 			for(u32 i = 0; i < N; i++)

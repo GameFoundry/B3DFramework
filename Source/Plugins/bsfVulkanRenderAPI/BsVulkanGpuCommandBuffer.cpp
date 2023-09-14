@@ -1087,7 +1087,7 @@ void VulkanGpuCommandBuffer::EndRenderPass(bool isInternalInterrupt)
 	mBoundParamsDirty = true;
 }
 
-u32 VulkanGpuCommandBuffer::AllocateSignalSemaphores(SmallVector<VkSemaphore, 8>& outSemaphores)
+u32 VulkanGpuCommandBuffer::AllocateSignalSemaphores(TInlineArray<VkSemaphore, 8>& outSemaphores)
 {
 	// TODO - Do I need multiple semaphores? Can't I just have one?
 

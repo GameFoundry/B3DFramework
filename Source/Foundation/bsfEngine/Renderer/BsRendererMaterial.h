@@ -94,7 +94,7 @@ namespace bs
 			ShaderVariations VariationParameterSet;
 			ShaderDefines Defines;
 
-			SmallVector<RendererMaterialVariationInformation, 4> VariationInformation;
+			TInlineArray<RendererMaterialVariationInformation, 4> VariationInformation;
 
 #if B3D_PROFILING_ENABLED
 			ProfilerString ProfilerSampleName;
@@ -288,7 +288,7 @@ namespace bs
 
 				const Vector<SPtr<Technique>> variations = mMetaData.Shader->GetCompatibleTechniques();
 
-				static SmallVector<RendererMaterialVariationInformation, 4> newVariationInformation;
+				static TInlineArray<RendererMaterialVariationInformation, 4> newVariationInformation;
 				static ShaderVariations newVariationParameterSet;
 
 				B3D_ASSERT(newVariationInformation.Empty());

@@ -54,7 +54,7 @@ namespace bs
 		ThreadCoreMask(const ThreadCoreMask& other) = default;
 		ThreadCoreMask(ThreadCoreMask&& other): mCores(std::move(other.mCores)) { }
 		ThreadCoreMask(std::initializer_list<CPUCore> initializerList);
-		ThreadCoreMask(const SmallVector<CPUCore, 32>& cores): mCores(cores) {}
+		ThreadCoreMask(const TInlineArray<CPUCore, 32>& cores): mCores(cores) {}
 
 		ThreadCoreMask& operator=(ThreadCoreMask&& other)
 		{
@@ -81,7 +81,7 @@ namespace bs
 		static ThreadCoreMask CreateAnyThreadMask();
 
 	private:
-		SmallVector<CPUCore, 32> mCores;
+		TInlineArray<CPUCore, 32> mCores;
 	};
 
 	/** Assigns thread affinities to threads according to a particular policy. */

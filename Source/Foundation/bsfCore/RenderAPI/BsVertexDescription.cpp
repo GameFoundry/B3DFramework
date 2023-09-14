@@ -153,8 +153,8 @@ static Mutex gVertexDescriptionCacheMutex;
 static UnorderedMap<VertexDescription, u32> gVertexDescriptionCache;
 static u32 gNextVertexDescriptionId = 1;
 
-VertexDescription::VertexDescription(const ArrayView<VertexElement>& elements, bool calculateOffsets)
-	: mVertexElements(SmallVector<VertexElement, 8>(elements.begin(), elements.end()))
+VertexDescription::VertexDescription(const TArrayView<VertexElement>& elements, bool calculateOffsets)
+	: mVertexElements(TInlineArray<VertexElement, 8>(elements.begin(), elements.end()))
 {
 	// Sort by stream, but preserve remaining ordering
 	std::stable_sort(mVertexElements.begin(), mVertexElements.end(), [](const VertexElement& lhs, const VertexElement& rhs)
@@ -178,7 +178,7 @@ VertexDescription::VertexDescription(const ArrayView<VertexElement>& elements, b
 
 bool VertexDescription::operator==(const VertexDescription& rhs) const
 {
-	const SmallVector<VertexElement, 8>& otherElements = rhs.GetElements();
+	const TInlineArray<VertexElement, 8>& otherElements = rhs.GetElements();
 
 	if(mVertexElements.size() != otherElements.size())
 		return false;
@@ -328,8 +328,8 @@ const VertexElement* VertexDescription::GetElement(VertexElementSemantic semanti
 
 bool VertexDescription::IsCompatibleWithShaderInputs(const VertexDescription& vertexBufferDescription, const VertexDescription& shaderInputDescription)
 {
-	const SmallVector<VertexElement, 8>& vertexBufferElements = vertexBufferDescription.GetElements();
-	const SmallVector<VertexElement, 8>& shaderInputElements = shaderInputDescription.GetElements();
+	const TInlineArray<VertexElement, 8>& vertexBufferElements = vertexBufferDescription.GetElements();
+	const TInlineArray<VertexElement, 8>& shaderInputElements = shaderInputDescription.GetElements();
 
 	for(const auto& shaderInputElement : shaderInputElements)
 	{
@@ -350,12 +350,12 @@ bool VertexDescription::IsCompatibleWithShaderInputs(const VertexDescription& ve
 	return true;
 }
 
-SmallVector<VertexElement, 8> VertexDescription::GetMissingElementsForShaderInput(const VertexDescription& vertexBufferDescription, const VertexDescription& shaderInputDescription)
+TInlineArray<VertexElement, 8> VertexDescription::GetMissingElementsForShaderInput(const VertexDescription& vertexBufferDescription, const VertexDescription& shaderInputDescription)
 {
-	SmallVector<VertexElement, 8> missingElements;
+	TInlineArray<VertexElement, 8> missingElements;
 
-	const SmallVector<VertexElement, 8>& vertexBufferElements = vertexBufferDescription.GetElements();
-	const SmallVector<VertexElement, 8>& shaderInputElements = shaderInputDescription.GetElements();
+	const TInlineArray<VertexElement, 8>& vertexBufferElements = vertexBufferDescription.GetElements();
+	const TInlineArray<VertexElement, 8>& shaderInputElements = shaderInputDescription.GetElements();
 
 	for(const auto& shaderInputElement : shaderInputElements)
 	{

@@ -369,7 +369,7 @@ ParticleRenderer::ParticleRenderer()
 {
 	const SPtr<GpuDevice>& gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
 
-	SmallVector<VertexElement, 8> vertexElements;
+	TInlineArray<VertexElement, 8> vertexElements;
 	vertexElements.Add(VertexElement(VET_FLOAT3, VES_POSITION));
 	vertexElements.Add(VertexElement(VET_FLOAT2, VES_TEXCOORD));
 	vertexElements.Add(VertexElement(VET_UBYTE4_NORM, VES_NORMAL));

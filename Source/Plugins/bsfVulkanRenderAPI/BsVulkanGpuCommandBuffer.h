@@ -106,7 +106,7 @@ namespace bs
 			SPtr<VulkanGpuCommandBuffer> SourceQueueTransitionCommandBuffer[GQT_COUNT]; /**< Contains resource transitions from their current queue to the destination queue, if there is a queue change. May be empty if there are no queue changes. To be executed on the source queue, rather than on the queue you are submitting on. */
 			SPtr<VulkanGpuCommandBuffer> DestinationQueueTransitionCommandBuffer; /**< Contains image layout transitions and transitions from source to the destination queue, if there are any. Should be submitted after the query reset command buffer. This submit should contain the provided semaphores if not empty. */
 			SPtr<VulkanGpuCommandBuffer> PrimaryCommandBuffer; /**< Primary command buffer we're submitting. This should be submitted after the destination queue transition command buffer. This submit should contain the semaphores if destination queue transition command buffer is not present. */
-			SmallVector<VulkanSemaphore*, 8> Semaphores; /**< Semaphores that need to be waited on before executing the command buffers. */
+			TInlineArray<VulkanSemaphore*, 8> Semaphores; /**< Semaphores that need to be waited on before executing the command buffers. */
 		};
 
 		/** CommandBuffer implementation for Vulkan. */
@@ -216,7 +216,7 @@ namespace bs
 			 *
 			 * @param	outSemaphores	Output array to append all allocated semaphores in. 
 			 */
-			u32 AllocateSignalSemaphores(SmallVector<VkSemaphore, 8>& outSemaphores);
+			u32 AllocateSignalSemaphores(TInlineArray<VkSemaphore, 8>& outSemaphores);
 
 			/** Returns true if the command buffer is currently being processed by the device. */
 			bool IsSubmitted() const { return mState == State::Submitted; }

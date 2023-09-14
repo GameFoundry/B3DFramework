@@ -578,7 +578,7 @@ namespace bs
 	 * count exceeds the statically allocated buffer size the vector falls back to general purpose dynamic allocator.
 	 */
 	template<class T, u32 N>
-	using SmallVector = TArray<T, InlineContainerAllocator<N>>;
+	using TInlineArray = TArray<T, InlineContainerAllocator<N>>;
 
 	/** @} */
 } // namespace bs
