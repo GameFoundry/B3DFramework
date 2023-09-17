@@ -2,8 +2,10 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
+#include "BsGUIContent.h"
 #include "BsPrerequisites.h"
 #include "Image/BsColor.h"
+#include "Utility/BsBitfield.h"
 #include "Utility/BsRectOffset.h"
 
 namespace bs
@@ -34,6 +36,72 @@ namespace bs
 		Top, Middle, Bottom
 	};
 
+	enum class GUIStyleSheetPropertyType
+	{
+		Undefined,
+
+		Width,
+		Height,
+		MinWidth,
+		MinHeight,
+		MaxWidth,
+		MaxHeight,
+
+		Margin,
+		MarginTop,
+		MarginBottom,
+		MarginLeft,
+		MarginRight,
+
+		Padding,
+		PaddingTop,
+		PaddingBottom,
+		PaddingLeft,
+		PaddingRight,
+
+		Color,
+		Opacity,
+		BackgroundColor,
+
+		TextAlign,
+		VerticalAlign,
+		FontFamily,
+		FontSize,
+
+		Border,
+		BorderStyle,
+		BorderWidth,
+		BorderColor,
+
+		BorderTop,
+		BorderTopStyle,
+		BorderTopWidth,
+		BorderTopColor,
+
+		BorderBottom,
+		BorderBottomStyle,
+		BorderBottomWidth,
+		BorderBottomColor,
+
+		BorderLeft,
+		BorderLeftStyle,
+		BorderLeftWidth,
+		BorderLeftColor,
+
+		BorderRight,
+		BorderRightStyle,
+		BorderRightWidth,
+		BorderRightColor,
+
+		BorderRadius,
+		BorderTopLeftRadius,
+		BorderTopRightRadius,
+		BorderBottomLeftRadius,
+		BorderBottomRightRadius,
+
+		Count,
+	};
+
 	struct GUIBorderElement
 	{
 		u32 Width = 0;
@@ -41,10 +109,10 @@ namespace bs
 		GUIBorderElementStyle Style = GUIBorderElementStyle::None;
 	};
 
-	struct GUIStyleSheetElement
+	struct GUIStyleSheetStateStyle
 	{
 		String Selector;
-		String State;
+		String PseudoClass;
 		GUIStyleSheetSelectorType SelectorType = GUIStyleSheetSelectorType::Element;
 
 		RectOffset Margins;
@@ -63,21 +131,43 @@ namespace bs
 		GUIBorderElement BorderTop;
 		GUIBorderElement BorderBottom;
 
-		float BorderLeftRadius = 0.0f;
-		float BorderRightRadius = 0.0f;
-		float BorderTopRadius = 0.0f;
-		float BorderBottomRadius = 0.0f;
+		u32 BorderTopLeftRadius = 0;
+		u32 BorderTopRightRadius = 0;
+		u32 BorderBottomLeftRadius = 0;
+		u32 BorderBottomRightRadius = 0;
 
 		String FontFamily;
-		float FontSize = 8.0f;
+		u32 FontSize = 8;
 		GUIHorizontalTextAlignment HorizontalTextAlignment = GUIHorizontalTextAlignment::Left;
 		GUIVerticalTextAlignment VerticalTextAlignment = GUIVerticalTextAlignment::Middle;
+
+		static constexpr u32 kPropertyDWordCount = Math::DivideAndRoundUp((u32)GUIStyleSheetPropertyType::Count, (u32)sizeof(u32));
+		TBitfield<InlineContainerAllocator<kPropertyDWordCount>> OverridenProperties;
+
+		void Override(const GUIStyleSheetStateStyle& other);
+	};
+
+	struct GUIStyleSheetStyle
+	{
+		GUIStyleSheetStateStyle Normal;
+		Optional<GUIStyleSheetStateStyle> Hover;
+		Optional<GUIStyleSheetStateStyle> Active;
+		Optional<GUIStyleSheetStateStyle> Focused;
+		Optional<GUIStyleSheetStateStyle> Disabled;
+		Optional<GUIStyleSheetStateStyle> Checked;
 	};
 
 	// TODO - Doc
-	class GUIStyleSheet
+	class B3D_EXPORT GUIStyleSheet
 	{
-		GUIStyleSheet Parse(const Path& file);
+	public:
+		static Optional<GUIStyleSheet> Parse(const Path& file);
+
+		GUIStyleSheetStateStyle FindStyle(const String& elementType, const String& elementId, GUIElementState state);
+
+	private:
+		UnorderedMap<String, GUIStyleSheetStyle> mElementStyles;
+		UnorderedMap<String, GUIStyleSheetStyle> mIdStyles;
 	};
 
 
