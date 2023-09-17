@@ -221,11 +221,22 @@ namespace bs
 		/**
 		 * Creates a color value from hue, saturation and brightness.
 		 *
-		 * @param[in] hue			Hue value, scaled to the [0,1] range.
-		 * @param[in] saturation	Saturation level, [0,1].
-		 * @param[in] brightness	Brightness level, [0,1].
+		 * @param hue			Hue value, scaled to the [0,1] range.
+		 * @param saturation	Saturation level, [0,1].
+		 * @param brightness	Brightness level, [0,1].
+		 * @param alpha			Transparency level, [0,1].
 		 */
-		static Color FromHsb(float hue, float saturation, float brightness);
+		static Color FromHSB(float hue, float saturation, float brightness, float alpha = 1.0f);
+
+		/**
+		 * Creates an RGBA color from a HSL(A) color.
+		 *
+		 * @param hue			Hue value, scaled to the [0,1] range.
+		 * @param saturation	Saturation level, [0,1].
+		 * @param lightness		Lightness level, [0,1].
+		 * @param alpha			Transparency level, [0,1].
+		 */
+		static Color FromHSL(float hue, float saturation, float lightness, float alpha = 1.0f);
 
 		/**
 		 * Linearly interpolates between the two colors using @p t. t should be in [0, 1] range, where t = 0 corresponds

@@ -67,7 +67,7 @@ Color Color::FromBgra(BGRA val)
 	return output;
 }
 
-Color Color::FromHsb(float hue, float saturation, float brightness)
+Color Color::FromHSB(float hue, float saturation, float brightness, float alpha)
 {
 	Color output;
 
@@ -149,6 +149,43 @@ Color Color::FromHsb(float hue, float saturation, float brightness)
 		output.B = f2;
 		break;
 	}
+
+	output.A = alpha;
+	return output;
+}
+
+Color Color::FromHSL(float hue, float saturation, float lightness, float alpha)
+{
+	auto fnHue = [](float hue, float m1, float m2)
+	{
+		if(hue < 0.0f) hue += 1.0f;
+		if(hue > 1.0f) hue -= 1.0f;
+
+		if(hue < 1.0f / 6.0f)
+			return m1 + (m2 - m1) * hue * 6.0f;
+		else if(hue < 3.0f / 6.0f)
+			return m2;
+		else if(hue < 4.0f / 6.0f)
+			return m1 + (m2 - m1) * (2.0f / 3.0f - hue) * 6.0f;
+
+		return m1;
+	};
+
+	hue = fmodf(hue, 1.0f);
+	if(hue < 0.0f)
+		hue += 1.0f;
+
+	saturation = Math::Clamp01(saturation);
+	lightness = Math::Clamp01(lightness);
+
+	const float m2 = lightness <= 0.5f ? (lightness * (1 + saturation)) : (lightness + saturation - lightness * saturation);
+	const float m1 = 2 * lightness - m2;
+
+	Color output;
+	output.R = Math::Clamp01(fnHue(hue + 1.0f / 3.0f, m1, m2));
+	output.G = Math::Clamp01(fnHue(hue, m1, m2));
+	output.B = Math::Clamp01(fnHue(hue - 1.0f / 3.0f, m1, m2));
+	output.A = alpha;
 
 	return output;
 }
