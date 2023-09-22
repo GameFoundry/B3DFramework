@@ -107,13 +107,13 @@ namespace bs
 		/** Tries to scan the next token as a number. Returns null if the scanning failed. */
 		Optional<Token> ScanNumber();
 
-		/** Records an error message and returns null (primarily for convenience). */
+		/** Records an error message and returns null. */
 		Optional<Token> Error(const String& message);
 
-		/** Records an error message that the current token is unexpected and returns null (primarily for convenience). */
+		/** Records an error message that the current character is unexpected and returns null. */
 		Optional<Token> ErrorUnexpected();
 
-		/** Records an error message that the current token doesn't match @p expectedCharacter and returns null (primarily for convenience). */
+		/** Records an error message that the current character doesn't match @p expectedCharacter and returns null. */
 		Optional<Token> ErrorUnexpected(char expectedCharacter);
 
 		SPtr<SourceCode> mSourceCode;

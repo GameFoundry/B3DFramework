@@ -15,7 +15,7 @@ namespace bs
 	 *  @{
 	 */
 
-	// TODO - Doc
+	/** Parses a GUI style sheet source file and outputs a GUIStyleSheet. */
 	class GUIStyleSheetParser
 	{
 		using Token = GUIStyleSheetToken;
@@ -24,9 +24,12 @@ namespace bs
 	public:
 		GUIStyleSheetParser();
 		bool Parse(const SPtr<SourceCode>& sourceCode);
+
+		/** Returns errors in case parsing failed. */
 		const String& GetErrors() const { return mErrors; }
 		
 	private:
+		/** All possible types for property values. */
 		enum class ValueType
 		{
 			Undefined,
@@ -42,6 +45,7 @@ namespace bs
 			Multiple
 		};
 
+		/** Contains a union storing all possible types of property values. */
 		struct VariableValue
 		{
 			union
@@ -117,11 +121,13 @@ namespace bs
 			}
 		};
 
+		/** Stores a set of variables defined in a particular scope. */
 		struct VariableContext
 		{
 			UnorderedMap<String, VariableValue> Variables;
 		};
 
+		/** Description of a single property. */
 		struct PropertyInformation
 		{
 			PropertyInformation(GUIStyleSheetPropertyType propertyType = GUIStyleSheetPropertyType::Undefined, ValueType valueType = ValueType::Undefined)
@@ -131,66 +137,222 @@ namespace bs
 			ValueType ValueType = ValueType::Undefined;
 		};
 
-		// Property value (Literals)
+		/**
+		 * @name Property value (Literals)
+		 * @{
+		 */
+
+		/** Attempts to parse the next token as an integer literal. Integer literal is detected as a set of digits with no decimal point or suffix. If successful, returns true and outputs the parsed value. */
 		bool TryParseIntegerLiteral(i32& outValue);
+
+		/** Attempts to parse the next token as an integer literal. Integer literal is detected as a set of digits with no decimal point or suffix. If successful, returns true and outputs the parsed value. */
 		bool TryParseIntegerLiteral(u32& outValue);
+
+		/** Attempts to parse the next token as a pixel literal. Pixel literal is detected as a set of digits with no decimal point with 'px' suffix. If successful, returns true and outputs the parsed value. */
 		bool TryParsePixelLiteral(i32& outValue);
+
+		/** Attempts to parse the next token as a pixel literal. Pixel literal is detected as a set of digits with no decimal point with 'px' suffix. If successful, returns true and outputs the parsed value. */
 		bool TryParsePixelLiteral(u32& outValue);
+
+		/** Attempts to parse the next token as a decimal literal. Decimal literal is detected as a set of digits with an optional decimal point. If successful, returns true and outputs the parsed value. */
 		bool TryParseDecimalLiteral(float& outValue);
+
+		/** Attempts to parse the next token as a percent literal. Percent literal is detected as a set of digits with an optional decimal point, with a '%' suffix. If successful, returns true and outputs the parsed value. */
 		bool TryParsePercentLiteral(float& outValue);
+
+		/** Attempts to parse the next token as a string literal. String literal is detected as a pair of '"', with an optional text in-between. If successful, returns true and outputs the parsed value. */
 		bool TryParseStringLiteral(String& outValue);
 
-		// Property value (Complex)
+		/** @} */
+
+		/**
+		 * @name Property value (Complex)
+		 * @{
+		 */
+
+		/**
+		 * @page StyleSheetSides
+		 *
+		 * If one value is parsed, all sides are assigned the parsed value.
+		 * If two values are parsed, first value is assigned to top/bottom and second value to left/right sides.
+		 * If three values are parsed, first value is assigned to top, second value to left/right, and third value to bottom side.
+		 * If four values are parsed, first value is assigned to top, second value to right, third value to bottom, and fourth value to left side.
+		 */
+
+		/** Attempts to parse the next token (or set of tokens) as a color. Can be a hex color (#FFFFFF, rgb(), hsl(), rgba() or hsla() construct). If successful, returns true and outputs the parsed value. */
 		bool TryParseColor(Color& outValue);
+
+		/**
+		 * Attempts to parse the next set of 1 to 4 pixel values and assigns them to the rectangle offset sides. If successful, returns true and outputs the parsed value.
+		 * @copydoc StyleSheetSides
+		 */
 		bool TryParseRectOffset(RectOffset& outValue);
+
+		/** Attempts to parse the next token as a border style. Token must be one of supported border style identifiers. If successful, returns true and outputs the parsed value. */
 		bool TryParseBorderStyle(GUIBorderElementStyle& outValue);
+
+		/**
+		 * Attempts to parse the next set of 1 to 4 tokens as border styles for each side. Each token must be one of supported border style identifiers. If successful, returns true and outputs the parsed values.
+		 * @copydoc StyleSheetSides
+		 */
 		bool TryParseBorderStyle(GUIBorderElementStyle& outTop, GUIBorderElementStyle& outRight, GUIBorderElementStyle& outBottom, GUIBorderElementStyle& outLeft);
+
+		/**
+		 * Attempts to parse the next set of 1 to 4 tokens as pixel literals for each side. If successful, returns true and outputs the parsed values.
+		 * @copydoc StyleSheetSides
+		 */
 		bool TryParseBorderWidth(u32& outTop, u32& outRight, u32& outBottom, u32& outLeft);
+
+		/**
+		 * Attempts to parse the next set of 1 to 4 tokens as colors for each side. If successful, returns true and outputs the parsed values.
+		 * @copydoc StyleSheetSides
+		 */
 		bool TryParseBorderColor(Color& outTop, Color& outRight, Color& outBottom, Color& outLeft);
+
+		/** Attempts to parse the next token as a text alignment style. Token must be one of supported text alignment identifiers. If successful, returns true and outputs the parsed value. */
 		bool TryParseTextAlign(GUIHorizontalTextAlignment& outValue);
+
+		/** Attempts to parse the next token as a vertical alignment style. Token must be one of supported vertical alignment identifiers. If successful, returns true and outputs the parsed value. */
 		bool TryParseVerticalAlign(GUIVerticalTextAlignment& outValue);
+
+		/** Attempts to parse the next 1 to 3 tokens as style, width and color for the border. Tokens may be provided in any order, but cannot be duplicated. If successful, returns true and outputs the parsed value. */
 		bool TryParseBorderElement(GUIBorderElement& outValue);
+
+		/**
+		 * Attempts to parse the next set of 1 to 4 tokens as colors for each corner. If successful, returns true and outputs the parsed values.
+		 *
+		 * If one value is parsed, all corners are assigned the parsed value.
+		 * If two values are parsed, first value is assigned to top-left/bottom-right and second value to bottom-left/top-right corners.
+		 * If three values are parsed, first value is assigned to top-left, second value to bottom-left/top-right, and third value to bottom-right corner.
+		 * If four values are parsed, first value is assigned to top-left, second value to top-right, third value to bottom-right, and fourth value to bottom-left corner.
+
+		 */
 		bool TryParseBorderRadius(u32& outTopLeft, u32& outTopRight, u32& outBottomLeft, u32& outBottomRight);
+
+		/**
+		 * Attempts to parse the variable value of the specified type. Internally redirects to the correct parsing method depending on the value type. 
+		 *
+		 * @param expectedType		Variable type to parse.
+		 * @param outValue			Output value.
+		 * @return					True if parsing is successful, false otherwise.
+		 */
 		bool TryParseAndLookupVariableValue(ValueType expectedType, VariableValue& outValue);
 
-		// Higher level constructs
+		/** @} */
+
+		/**
+		 * @name Higher level constructs
+		 * @{
+		 */
+
+		/** Attempts to parse a property and its value. If successful, returns true and writes the property data in the provided data structure. */
 		bool TryParseProperty(GUIStyleSheetStateStyle& inOutValue);
+
+		/** Attempts to parse a variable declaration and its value. If successful, returns true and appends (or overwrites) the variable in the provided context. */
 		bool TryParseVariable(VariableContext& inOutVariableContext);
+
+		/**
+		 * Attempts to parse all properties and/or variable declarations in a particular selector. If successful returns true and the selector state information is added
+		 * to the currently parsed style sheet (or appended to existing state with the same selector identifier and pseudo class).
+		 */
 		bool TryParseSelector();
 
-		// Parse helpers
+		/** @} */
+
+		/**
+		 * @name Parse helpers
+		 * @{
+		 */
+
+		/** Helper that parses between 1-4 tokens needed, assigning the correct values to output variables depending on how many tokens were parsed. Follows the rules from @ref StyleSheetSides. */
 		template<class T>
 		bool TryParsePropertyValueSides(ValueType valueType, T& outTop, T& outRight, T& outBottom, T& outLeft);
 
+		/**
+		 * Attempts to parse the property value of the specified type. Internally redirects to the correct parsing method depending on the property value type. If the value is determined
+		 * to be a variable, variable lookup is performed in the existing variable contexts.
+		 *
+		 * @param valueType		Property type to parse.
+		 * @param outValue		Output value.
+		 * @return				True if parsing is successful, false otherwise.
+		 */
 		template<class T>
 		bool TryParsePropertyValue(ValueType valueType, T& outValue);
 
+		/**
+		 * Parses a variable identifier used as a property value, and looks up the value of the variable in the current variable contexts.
+		 *
+		 * @param	expectedType		Value type as expected by the property.
+		 * @param	outValue			Variable value, if successful.
+		 * @return						True if successful and variable was found and was of correct type, false otherwise.
+		 */
 		template<class T>
 		bool TryParseAndLookupVariableValue(ValueType expectedType, T& outValue);
+
+		/** @copydoc TryParseAndLookupVariableValue(ValueType, T&) */
 		bool TryParseAndLookupVariableValue(ValueType expectedType, String& outValue);
 
+		/** Attempts to parse an integer from the provided string. Returns true if successful, and outputs the parsed integer. */
 		bool TryParseInteger(const StringView& toParse, i32& outValue) const;
+
+		/** Attempts to parse a float from the provided string. Returns true if successful, and outputs the parsed float. */
 		bool TryParseFloat(const StringView& toParse, float& outValue) const;
+
+		/** Attempts to parse a color from the provided hex string (e. #FFFFFF or #FFFFFFAA). Returns true if successful, and outputs the parsed color. */
 		bool TryParseHexColor(const StringView& toParse, Color& outValue) const;
 
-		// Token iteration and lookup
+		/** @} */
+
+		/**
+		 * @name Token iteration and lookup
+		 * @{
+		 */
+
+		/** Returns true if the current token is of the specified type. */
 		bool IsCurrentToken(TokenType type) const;
+
+		/** Returns true if the current token is of the specified type and has the provided spelling. */
 		bool IsCurrentToken(TokenType type, const String& spelling) const;
 
+		/** Returns the type of the current token. */
 		TokenType GetCurrentTokenType() const { return mCurrentToken.has_value() ? mCurrentToken->GetType() : GUIStyleSheetTokenTypes::Undefined; }
+
+		/** Returns the current token. */
 		Optional<Token> GetCurrentToken() const { return mCurrentToken; }
+
+		/** Returns the current token and advances to the next token. */
 		Optional<Token> GetCurrentTokenAndAdvance();
+
+		/** Returns the current token if it matches the provided type, and advances to the next token. If the type is not matching and error is logged and null is returned. */
 		Optional<Token> GetCurrentTokenAndAdvance(TokenType expectedType);
+
+		/** Returns the current token if it matches the provided type and spelling, and advances to the next token. If the type or spelling is not matching and error is logged and null is returned. */
 		Optional<Token> GetCurrentTokenAndAdvance(TokenType expectedType, const String& spelling);
+
+		/** Skips the current token if it matches the provided type. */
 		void SkipToken(TokenType type);
 
-		// Error handling
+		/**
+		 * @name Error handling
+		 * @{
+		 */
+
+		/** Records an error message and returns null. */
 		Optional<Token> Error(const String& message);
+
+		/** Records an error message that the current token is unexpected and returns null. */
 		Optional<Token> ErrorUnexpected();
+
+		/** Records an error message that the current token doesn't match @p expectedTokenType and returns null. */
 		Optional<Token> ErrorUnexpected(TokenType expectedTokenType);
+
+		/** Records an error message that the current token doesn't match @p expectedTokenSpelling and returns null. */
 		Optional<Token> ErrorUnexpected(const String& expectedTokenSpelling);
 
+		/** Converts property value type into a human readable string. */
 		static const char* ValueTypeToString(ValueType type);
+
+		/** @} */
 
 		SPtr<SourceCode> mSourceCode;
 		GUIStyleSheetLexer mLexer;

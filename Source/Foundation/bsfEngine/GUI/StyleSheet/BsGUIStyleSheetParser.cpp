@@ -1071,6 +1071,8 @@ Optional<GUIStyleSheetParser::Token> GUIStyleSheetParser::GetCurrentTokenAndAdva
 	Optional<Token> previousToken = mCurrentToken;
 	mCurrentToken = mLexer.ScanNextToken();
 
+	// TODO - Check for lexer error if it returned null
+
 	return previousToken;
 }
 
