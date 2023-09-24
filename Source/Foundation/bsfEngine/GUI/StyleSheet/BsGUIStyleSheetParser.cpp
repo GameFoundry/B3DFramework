@@ -69,50 +69,53 @@ GUIStyleSheetParser::GUIStyleSheetParser()
 	mPropertyKeywords["border-bottom-right-radius"] = { GUIStyleSheetPropertyType::BorderBottomRightRadius, ValueType::Pixel };
 }
 
-bool GUIStyleSheetParser::Parse(const SPtr<SourceCode>& sourceCode)
+Optional<GUIStyleSheet> GUIStyleSheetParser::Parse(const SPtr<SourceCode>& sourceCode)
 {
 	mLexer.StartScanning(sourceCode);
 
 	// Grabs the first token
 	GetCurrentTokenAndAdvance();
 
+	GUIStyleSheet styleSheet;
 	mGlobalVariableContext = VariableContext();
+
 	while(!IsCurrentToken(GUIStyleSheetTokenTypes::EndOfStream))
 	{
-		if(!TryParseSelector())
-			return false;
+		if(!TryParseSelector(styleSheet))
+			return {};
 	}
 
-	return true;
+	return styleSheet;
 }
 
-bool GUIStyleSheetParser::TryParseSelector()
+bool GUIStyleSheetParser::TryParseSelector(GUIStyleSheet& inOutStyleSheet)
 {
-	GUIStyleSheetStateStyle stateStyle; // TODO - Should probably do a lookup if an element with the same name is already specified, and just overwrite/append to it
-
 	// Parse selector name, which can be element or #id, or empty (if empty, pseudo-class must be specified)
 	bool foundSelectorName = false;
+	GUIStyleSheetSelectorType selectorType = GUIStyleSheetSelectorType::Element;
+	String selectorName;
 	if(IsCurrentToken(TokenType::ElementSelector) || IsCurrentToken(GUIStyleSheetTokenTypes::IdSelector))
 	{
 		Token selectorNameToken = *GetCurrentTokenAndAdvance();
 		switch(selectorNameToken.GetType())
 		{
 		case TokenType::ElementSelector:
-			stateStyle.SelectorType = GUIStyleSheetSelectorType::Element;
+			selectorType = GUIStyleSheetSelectorType::Element;
 			break;
 		case TokenType::IdSelector:
-			stateStyle.SelectorType = GUIStyleSheetSelectorType::Id;
+			selectorType = GUIStyleSheetSelectorType::Id;
 			break;
 		default:
 			B3D_ASSERT(false);
 			break;
 		}
 
-		stateStyle.Selector = selectorNameToken.GetSpelling();
+		selectorName = selectorNameToken.GetSpelling();
 		foundSelectorName = true;
 	}
 
 	bool foundPseudoClass = false;
+	String pseudoClass;
 	if(IsCurrentToken(GUIStyleSheetTokenTypes::Colon))
 	{
 		GetCurrentTokenAndAdvance(GUIStyleSheetTokenTypes::Colon);
@@ -121,7 +124,7 @@ bool GUIStyleSheetParser::TryParseSelector()
 		if(!pseudoClassToken)
 			return {};
 
-		stateStyle.PseudoClass = pseudoClassToken->GetSpelling();
+		pseudoClass = pseudoClassToken->GetSpelling();
 		foundPseudoClass = true;
 	}
 
@@ -130,6 +133,40 @@ bool GUIStyleSheetParser::TryParseSelector()
 		Error("No selector name or pseudo-class provided.");
 		return false;
 	}
+
+	GUIStyleSheetStateStyle stateStyle; // TODO - Should probably do a lookup if an element with the same name is already specified, and just overwrite/append to it
+
+	if(foundSelectorName)
+	{
+		GUIStyleSheetStyle* style = nullptr;
+		if(selectorType == GUIStyleSheetSelectorType::Element)
+		{
+			if(auto found = inOutStyleSheet.mElementStyles.find(selectorName); found != inOutStyleSheet.mElementStyles.end())
+				style = &found->second;
+		}
+		else if(selectorType == GUIStyleSheetSelectorType::Id)
+		{
+			if(auto found = inOutStyleSheet.mIdStyles.find(selectorName); found != inOutStyleSheet.mIdStyles.end())
+				style = &found->second;
+		}
+
+		if(style != nullptr)
+		{
+			if(!foundPseudoClass)
+				stateStyle = style->Normal;
+			else
+			{
+				if(auto found = style->FindStateStyle(pseudoClass))
+				{
+					stateStyle = *found;
+				}
+			}
+		}
+	}
+
+	stateStyle.Selector = selectorName;
+	stateStyle.SelectorType = selectorType;
+	stateStyle.PseudoClass = pseudoClass;
 
 	if(!GetCurrentTokenAndAdvance(GUIStyleSheetTokenTypes::LeftCurly).has_value())
 		return false;

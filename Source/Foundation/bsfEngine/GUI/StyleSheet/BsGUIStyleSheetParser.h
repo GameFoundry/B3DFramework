@@ -2,9 +2,9 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsGUIStyleSheet.h"
 #include "BsPrerequisites.h"
 #include "BsGUIStyleSheetLexer.h"
+#include "BsGUIStyleSheet.h"
 #include "Image/BsColor.h"
 #include "Utility/BsBitfield.h"
 #include "Utility/BsRectOffset.h"
@@ -16,14 +16,14 @@ namespace bs
 	 */
 
 	/** Parses a GUI style sheet source file and outputs a GUIStyleSheet. */
-	class GUIStyleSheetParser
+	class B3D_EXPORT GUIStyleSheetParser
 	{
 		using Token = GUIStyleSheetToken;
 		using TokenType = GUIStyleSheetTokenTypes;
 		using Lexer = GUIStyleSheetLexer;
 	public:
 		GUIStyleSheetParser();
-		bool Parse(const SPtr<SourceCode>& sourceCode);
+		Optional<GUIStyleSheet> Parse(const SPtr<SourceCode>& sourceCode);
 
 		/** Returns errors in case parsing failed. */
 		const String& GetErrors() const { return mErrors; }
@@ -253,9 +253,9 @@ namespace bs
 
 		/**
 		 * Attempts to parse all properties and/or variable declarations in a particular selector. If successful returns true and the selector state information is added
-		 * to the currently parsed style sheet (or appended to existing state with the same selector identifier and pseudo class).
+		 * to the provided style sheet (or appended to existing state with the same selector identifier and pseudo class).
 		 */
-		bool TryParseSelector();
+		bool TryParseSelector(GUIStyleSheet& inOutStyleSheet);
 
 		/** @} */
 
@@ -357,6 +357,7 @@ namespace bs
 		SPtr<SourceCode> mSourceCode;
 		GUIStyleSheetLexer mLexer;
 		Optional<Token> mCurrentToken;
+
 		VariableContext mGlobalVariableContext;
 		VariableContext mLocalVariableContext;
 		Vector<String> mStringLiterals;

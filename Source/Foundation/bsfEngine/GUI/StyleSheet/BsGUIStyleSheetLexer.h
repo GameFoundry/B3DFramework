@@ -12,7 +12,7 @@ namespace bs
 	 */
 
 	/** Scans style sheet code and outputs token that can then by used by the parser to parse style sheet code. */
-	class GUIStyleSheetLexer
+	class B3D_EXPORT GUIStyleSheetLexer
 	{
 		using Token = GUIStyleSheetToken;
 		using TokenType = GUIStyleSheetTokenTypes;

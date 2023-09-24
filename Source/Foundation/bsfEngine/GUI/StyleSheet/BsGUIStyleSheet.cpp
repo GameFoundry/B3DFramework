@@ -61,7 +61,70 @@ void GUIStyleSheetStateStyle::Override(const GUIStyleSheetStateStyle& other)
 	OVERRIDE_PROPERTY(BorderBottomRightRadius, BorderBottomRightRadius);
 
 #undef OVERRIDE_PROPERTY
-	
+}
+
+const GUIStyleSheetStateStyle* GUIStyleSheetStyle::FindStateStyle(const StringView& name) const
+{
+	if(StringUtil::Compare(name, "normal", false))
+		return &Normal;
+
+	if(StringUtil::Compare(name, "hover", false))
+		return Hover.has_value() ? &Hover.value() : nullptr;
+
+	if(StringUtil::Compare(name, "active", false))
+		return Active.has_value() ? &Active.value() : nullptr;
+
+	if(StringUtil::Compare(name, "focused", false))
+		return Focused.has_value() ? &Focused.value() : nullptr;
+
+	if(StringUtil::Compare(name, "disabled", false))
+		return Disabled.has_value() ? &Disabled.value() : nullptr;
+
+	if(StringUtil::Compare(name, "checked", false))
+		return Checked.has_value() ? &Checked.value() : nullptr;
+
+	return nullptr;
+}
+
+bool GUIStyleSheetStyle::FindAndSetStateStyle(const StringView& name, const GUIStyleSheetStateStyle& stateStyle)
+{
+	if(StringUtil::Compare(name, "normal", false))
+	{
+		Normal = stateStyle;
+		return true;
+	}
+
+	if(StringUtil::Compare(name, "hover", false))
+	{
+		Hover = stateStyle;
+		return true;
+	}
+
+	if(StringUtil::Compare(name, "active", false))
+	{
+		Active = stateStyle;
+		return true;
+	}
+
+	if(StringUtil::Compare(name, "focused", false))
+	{
+		Focused = stateStyle;
+		return true;
+	}
+
+	if(StringUtil::Compare(name, "disabled", false))
+	{
+		Disabled = stateStyle;
+		return true;
+	}
+
+	if(StringUtil::Compare(name, "checked", false))
+	{
+		Checked = stateStyle;
+		return true;
+	}
+
+	return false;
 }
 
 Optional<GUIStyleSheet> GUIStyleSheet::Parse(const Path& file)
@@ -71,78 +134,73 @@ Optional<GUIStyleSheet> GUIStyleSheet::Parse(const Path& file)
 		return {};
 
 	GUIStyleSheetParser parser;
-	parser.Parse(B3DMakeShared<SourceCode>(fileStream->GetAsString()));
-	
-	// TODO - Returne parsed style
-	return {};
+	return parser.Parse(B3DMakeShared<SourceCode>(fileStream->GetAsString()));
 }
 
-GUIStyleSheetStateStyle GUIStyleSheet::FindStyle(const String& elementType, const String& elementId, GUIElementState state)
+GUIStyleSheetStateStyle GUIStyleSheetStyle::FindStateStyle(GUIElementState state) const
 {
-	// TODO - Cache the style
+	// TODO - Replace the current set of states with a new set of flags where each state is a bitmask
+	GUIStyleSheetStateStyle stateStyle = Normal;
 
-	// TODO:
-	// - Find element type style, narrow down inhertiance chain to the particular state
-	// - Then find id style, override everything from previous step
-
-	auto fnLookupStateStyle = [](const GUIStyleSheetStyle& style, GUIElementState state)
+	const bool isChecked = ((u32)state & (u32)GUIElementState::OnFlag) != 0;
+	if(isChecked)
 	{
-		GUIStyleSheetStateStyle stateStyle = style.Normal;
+		if(Checked.has_value())
+			stateStyle.Override(*Checked);
+	}
 
-		// TODO - Handle this case:
-		// - Red color is always used on hover, but the border radius is used from the focus state
-		// - Unless border-radius is also specified in 'hover', in which case it is used
+	switch(state)
+	{
+	default:
+	case GUIElementState::Normal: 
+	case GUIElementState::NormalOn:
+		break;
+	case GUIElementState::Hover:
+	case GUIElementState::HoverOn:
+		if(Hover.has_value())
+			stateStyle.Override(*Hover);
+		break;
+	case GUIElementState::Active:
+	case GUIElementState::ActiveOn:
+		if(Hover.has_value())
+			stateStyle.Override(*Hover);
 
-		//input:focus
-		//	{
-		//		background - color : lightblue;
-		//		border - radius : 25px;
-		//	}
+		if(Active.has_value())
+			stateStyle.Override(*Active);
+		break;
+	case GUIElementState::Focused:
+	case GUIElementState::FocusedOn:
+		if(Focused.has_value())
+			stateStyle.Override(*Focused);
+		break;
+	case GUIElementState::FocusedHover:
+	case GUIElementState::FocusedHoverOn:
+		if(Focused.has_value())
+			stateStyle.Override(*Focused);
 
-		//input:hover
-		//	{
-		//		background - color : red;
-		//	}
+		if(Hover.has_value())
+			stateStyle.Override(*Hover);
+		break;
+	}
 
-		// normal -> focused -> hover
-		// normal -> disabled -> hover
+	return stateStyle;
+}
 
-		switch(state)
-		{
-		case GUIElementState::Normal: break;
-		case GUIElementState::Hover:
-			if(style.Hover.has_value())
-				stateStyle.Override(*style.Hover);
-			break;
-		case GUIElementState::Active:
-			if(style.Active.has_value())
-				stateStyle.Override(*style.Active);
-			break;
-		case GUIElementState::Focused:
+const GUIStyleSheetStateStyle& GUIStyleSheet::FindStyle(const String& elementType, const String& elementId, GUIElementState state)
+{
+	CachedStateStyleKey key(elementType, elementId, state);
 
-			break;
-		case GUIElementState::FocusedHover: break;
-		case GUIElementState::NormalOn: break;
-		case GUIElementState::HoverOn: break;
-		case GUIElementState::ActiveOn: break;
-		case GUIElementState::FocusedOn: break;
-		case GUIElementState::FocusedHoverOn: break;
-		case GUIElementState::TypeMask: break;
-		case GUIElementState::OnFlag: break;
-		default: ;
-		}
-
-		return stateStyle;
-
-	};
+	if(auto found = mCachedStateStyles.find(key); found != mCachedStateStyles.end())
+		return found->second;
 
 	GUIStyleSheetStateStyle style;
 
-	//if(auto it = mElementStyles.find(elementType); it != mElementStyles.end())
-	//{
-	//	style = it->second;
-	//}
+	if(auto it = mElementStyles.find(elementType); it != mElementStyles.end())
+		style = it->second.FindStateStyle(state);
 
-	return style;
+	if(auto it = mIdStyles.find(elementId); it != mElementStyles.end())
+		style.Override(it->second.FindStateStyle(state));
+
+	return mCachedStateStyles.insert(std::make_pair(std::move(key),  style)).first->second;
 }
 

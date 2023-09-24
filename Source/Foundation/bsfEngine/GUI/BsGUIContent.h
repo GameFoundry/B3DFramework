@@ -10,7 +10,7 @@ namespace bs
 	 */
 
 	/**	Type of GUI element states. */
-	enum class B3D_SCRIPT_EXPORT(ExportAsStruct(true), DocumentationGroup(GUI)) GUIElementState
+	enum class B3D_SCRIPT_EXPORT(ExportAsStruct(true), DocumentationGroup(GUI)) GUIElementState // TODO - Replace this with bitmask, add disabled state, handle focused+active, hover+active, etc.
 	{
 		Normal = 0x01, /**< Normal state when element is not being iteracted with. */
 		Hover = 0x02, /**< State when pointer is hovering over the element. */

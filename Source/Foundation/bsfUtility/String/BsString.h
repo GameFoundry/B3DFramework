@@ -521,6 +521,28 @@ namespace bs
 		static const WString ReplaceAll(const WString& source, const WString& replaceWhat, const WString& replaceWithWhat);
 
 		/**
+		 * Compares two strings. Returns true if the two compare equal.
+		 *
+		 * @param[in]	lhs				Left string to compare.
+		 * @param[in]	rhs				Right string to compare.
+		 * @param[in]	caseSensitive	If true the comparison will consider uppercase and lowercase characters different.
+		 *								Note that case conversion does not handle UTF8 strings.
+		 */
+		template <class T1, class T2>
+		static bool Compare(const T1& lhs, const T2& rhs, bool caseSensitive = true)
+		{
+			auto fnCaseInsensitiveEquals = [](char lhs, char rhs)
+			{
+				return std::tolower(lhs) == std::tolower(rhs);
+			};
+
+			if(caseSensitive)
+				return std::equal(lhs.begin(), lhs.end(), rhs.begin(), rhs.end());
+
+			return std::equal(lhs.begin(), lhs.end(), rhs.begin(), rhs.end(), fnCaseInsensitiveEquals);
+		}
+
+		/**
 		 * Compares two strings. Returns 0 if the two compare equal, <0 if the value of the left string is lower than of
 		 * the right string, or >0 if the value of the left string is higher than the right string.
 		 *
@@ -530,7 +552,7 @@ namespace bs
 		 *								Note that case conversion does not handle UTF8 strings.
 		 */
 		template <class T>
-		static int Compare(const BasicString<T>& lhs, const BasicString<T>& rhs, bool caseSensitive = true)
+		static int LexicographicalCompare(const BasicString<T>& lhs, const BasicString<T>& rhs, bool caseSensitive = true)
 		{
 			if(caseSensitive)
 				return (int)lhs.compare(rhs);
