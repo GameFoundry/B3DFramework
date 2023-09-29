@@ -329,7 +329,7 @@ bool GUIStyleSheetParser::TryParseProperty(GUIStyleSheetStateStyle& inOutValue)
 
 		case GUIStyleSheetPropertyType::Border:
 			{
-				GUIBorderElement borderElement;
+				GUIStyleSheetBorderElement borderElement;
 				if(!TryParseBorderElement(borderElement))
 					return false;
 
@@ -886,7 +886,7 @@ bool GUIStyleSheetParser::TryParseVerticalAlign(GUIVerticalTextAlignment& outVal
 	return false;
 }
 
-bool GUIStyleSheetParser::TryParseBorderElement(GUIBorderElement& outValue)
+bool GUIStyleSheetParser::TryParseBorderElement(GUIStyleSheetBorderElement& outValue)
 {
 	bool hasWidth = false;
 	bool hasStyle = false;

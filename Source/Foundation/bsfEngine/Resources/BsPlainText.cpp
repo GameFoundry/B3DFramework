@@ -13,7 +13,7 @@ PlainText::PlainText(const WString& data)
 
 HPlainText PlainText::Create(const WString& data)
 {
-	return B3DStaticResourceCast<PlainText>(GetResources().CreateResourceHandleInternal(CreatePtrInternal(data)));
+	return B3DStaticResourceCast<PlainText>(GetResources().CreateResourceHandle(CreatePtrInternal(data)));
 }
 
 SPtr<PlainText> PlainText::CreatePtrInternal(const WString& data)

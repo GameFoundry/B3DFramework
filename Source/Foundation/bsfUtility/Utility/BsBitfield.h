@@ -155,10 +155,10 @@ namespace bs
 	template<class Allocator = DefaultContainerAllocator>
 	class TBitfield
 	{
+	public:
 		static constexpr u64 kBitsPerDword = sizeof(u32) * 8;
 		static constexpr u64 kBitsPerDwordLoG2 = 5;
 
-	public:
 		using Iterator = TBitfieldIterator<false, Allocator>;
 		using ConstIterator = TBitfieldIterator<true, Allocator>;
 
@@ -341,6 +341,18 @@ namespace bs
 				(*this)[index] = value;
 		}
 
+		/**
+		 * Resizes the internal buffer to the specified size, but doesn't add any new elements. If existing capacity is equal or larger than the
+		 * requested size, no operation is performed.
+		 */
+		void Reserve(u64 size)
+		{
+			if(mMaxBits >= size)
+				return;
+
+			Realloc(size);
+		}
+
 		/** Resets all the bits in the field to the specified value. */
 		void Reset(bool value = false)
 		{
@@ -368,10 +380,28 @@ namespace bs
 			}
 		}
 
-		/** Returns the number of bits in the bitfield */
+		/** Returns the number of bits in the bitfield. */
 		u64 Size() const
 		{
 			return mNumBits;
+		}
+
+		/** Returns the total allocated capacity of the bitfield, in number of bits. */
+		u64 Capacity() const
+		{
+			return mMaxBits;
+		}
+
+		/** Returns the underlying bitfield data. Data is always sequential and allocated using 32-bit alignment. */
+		const u32* Data() const
+		{
+			return mAllocator.GetElements();
+		}
+
+		/** Returns the underlying bitfield data. */
+		u32* Data() 
+		{
+			return mAllocator.GetElements();
 		}
 
 		/** Returns a non-const iterator pointing to the first bit in the bitfield. */

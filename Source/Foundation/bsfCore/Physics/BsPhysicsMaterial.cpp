@@ -11,7 +11,7 @@ HPhysicsMaterial PhysicsMaterial::Create(float staticFriction, float dynamicFric
 {
 	SPtr<PhysicsMaterial> newMaterial = CreatePtrInternal(staticFriction, dynamicFriction, restitution);
 
-	return B3DStaticResourceCast<PhysicsMaterial>(GetResources().CreateResourceHandleInternal(newMaterial));
+	return B3DStaticResourceCast<PhysicsMaterial>(GetResources().CreateResourceHandle(newMaterial));
 }
 
 SPtr<PhysicsMaterial> PhysicsMaterial::CreatePtrInternal(float staticFriction, float dynamicFriction, float restitution)

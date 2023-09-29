@@ -643,7 +643,7 @@ HShader Shader::Create(const String& name, const ShaderCreateInformation& create
 {
 	SPtr<Shader> newShader = CreateShared(name, createInformation);
 
-	return B3DStaticResourceCast<Shader>(GetResources().CreateResourceHandleInternal(newShader));
+	return B3DStaticResourceCast<Shader>(GetResources().CreateResourceHandle(newShader));
 }
 
 SPtr<Shader> Shader::CreateShared(const String& name, const ShaderCreateInformation& createInformation)

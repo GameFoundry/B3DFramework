@@ -107,13 +107,13 @@ AnimationClip::AnimationClip(const SPtr<AnimationCurves>& curves, bool isAdditiv
 
 HAnimationClip AnimationClip::Create(bool isAdditive)
 {
-	return B3DStaticResourceCast<AnimationClip>(GetResources().CreateResourceHandleInternal(
+	return B3DStaticResourceCast<AnimationClip>(GetResources().CreateResourceHandle(
 		CreatePtrInternal(B3DMakeShared<AnimationCurves>(), isAdditive)));
 }
 
 HAnimationClip AnimationClip::Create(const SPtr<AnimationCurves>& curves, bool isAdditive, u32 sampleRate, const SPtr<RootMotion>& rootMotion)
 {
-	return B3DStaticResourceCast<AnimationClip>(GetResources().CreateResourceHandleInternal(
+	return B3DStaticResourceCast<AnimationClip>(GetResources().CreateResourceHandle(
 		CreatePtrInternal(curves, isAdditive, sampleRate, rootMotion)));
 }
 

@@ -106,7 +106,7 @@ void BuiltinResourcesHelper::ImportAssets(const nlohmann::json& entries, const V
 		outputPath.SetFilename("sprite_" + fileName + ".asset");
 
 		SPtr<SpriteTexture> spriteTexPtr = SpriteTexture::CreatePtrInternal(texture);
-		HResource spriteTex = GetResources().CreateResourceHandleInternal(spriteTexPtr, UUID);
+		HResource spriteTex = GetResources().CreateResourceHandle(spriteTexPtr, UUID);
 
 		Resources::Instance().Save(spriteTex, outputPath, true, compress);
 		manifest->RegisterResource(spriteTex.GetId(), outputPath);
@@ -124,7 +124,7 @@ void BuiltinResourcesHelper::ImportAssets(const nlohmann::json& entries, const V
 		spriteTexPtr->SetAnimation(animation);
 		spriteTexPtr->SetAnimationPlayback(playback);
 
-		HResource spriteTex = GetResources().CreateResourceHandleInternal(spriteTexPtr, UUID);
+		HResource spriteTex = GetResources().CreateResourceHandle(spriteTexPtr, UUID);
 
 		Resources::Instance().Save(spriteTex, outputPath, true, compress);
 		manifest->RegisterResource(spriteTex.GetId(), outputPath);
@@ -284,7 +284,7 @@ void BuiltinResourcesHelper::ImportAssets(const nlohmann::json& entries, const V
 	auto saveTexture = [&](auto& pixelData, auto& path, std::string& uuid)
 	{
 		SPtr<Texture> texturePtr = Texture::CreateShared(pixelData);
-		HResource texture = GetResources().CreateResourceHandleInternal(texturePtr, UUID(uuid.c_str()));
+		HResource texture = GetResources().CreateResourceHandle(texturePtr, UUID(uuid.c_str()));
 
 		Resources::Instance().Save(texture, path, true, compress);
 		manifest->RegisterResource(texture.GetId(), path);

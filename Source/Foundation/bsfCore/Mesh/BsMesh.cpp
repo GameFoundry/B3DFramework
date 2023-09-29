@@ -193,25 +193,25 @@ HMesh Mesh::Create(u32 vertexCount, u32 indexCount, const SPtr<VertexDescription
 	meshCreateInformation.IndexType = indexType;
 
 	SPtr<Mesh> meshPtr = CreateShared(meshCreateInformation);
-	return B3DStaticResourceCast<Mesh>(GetResources().CreateResourceHandleInternal(meshPtr));
+	return B3DStaticResourceCast<Mesh>(GetResources().CreateResourceHandle(meshPtr));
 }
 
 HMesh Mesh::Create(const MeshCreateInformation& meshCreateInformation)
 {
 	SPtr<Mesh> meshPtr = CreateShared(meshCreateInformation);
-	return B3DStaticResourceCast<Mesh>(GetResources().CreateResourceHandleInternal(meshPtr));
+	return B3DStaticResourceCast<Mesh>(GetResources().CreateResourceHandle(meshPtr));
 }
 
 HMesh Mesh::Create(const SPtr<MeshData>& initialMeshData, const MeshCreateInformation& meshCreateInformation)
 {
 	SPtr<Mesh> meshPtr = CreateShared(initialMeshData, meshCreateInformation);
-	return B3DStaticResourceCast<Mesh>(GetResources().CreateResourceHandleInternal(meshPtr));
+	return B3DStaticResourceCast<Mesh>(GetResources().CreateResourceHandle(meshPtr));
 }
 
 HMesh Mesh::Create(const SPtr<MeshData>& initialMeshData, int usage, DrawOperationType primitiveType)
 {
 	SPtr<Mesh> meshPtr = CreateShared(initialMeshData, usage, primitiveType);
-	return B3DStaticResourceCast<Mesh>(GetResources().CreateResourceHandleInternal(meshPtr));
+	return B3DStaticResourceCast<Mesh>(GetResources().CreateResourceHandle(meshPtr));
 }
 
 SPtr<Mesh> Mesh::CreateShared(const MeshCreateInformation& meshCreateInformation)

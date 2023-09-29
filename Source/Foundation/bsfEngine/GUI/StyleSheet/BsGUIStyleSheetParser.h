@@ -218,7 +218,7 @@ namespace bs
 		bool TryParseVerticalAlign(GUIVerticalTextAlignment& outValue);
 
 		/** Attempts to parse the next 1 to 3 tokens as style, width and color for the border. Tokens may be provided in any order, but cannot be duplicated. If successful, returns true and outputs the parsed value. */
-		bool TryParseBorderElement(GUIBorderElement& outValue);
+		bool TryParseBorderElement(GUIStyleSheetBorderElement& outValue);
 
 		/**
 		 * Attempts to parse the next set of 1 to 4 tokens as colors for each corner. If successful, returns true and outputs the parsed values.

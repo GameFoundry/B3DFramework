@@ -13,7 +13,7 @@ ShaderInclude::ShaderInclude(const String& includeString)
 
 HShaderInclude ShaderInclude::Create(const String& includeString)
 {
-	return B3DStaticResourceCast<ShaderInclude>(GetResources().CreateResourceHandleInternal(CreatePtrInternal(includeString)));
+	return B3DStaticResourceCast<ShaderInclude>(GetResources().CreateResourceHandle(CreatePtrInternal(includeString)));
 }
 
 SPtr<ShaderInclude> ShaderInclude::CreatePtrInternal(const String& includeString)

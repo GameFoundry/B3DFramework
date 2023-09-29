@@ -270,7 +270,7 @@ SPtr<LocalizedStringData> StringTable::GetStringData(const String& identifier, L
 
 HStringTable StringTable::Create()
 {
-	return B3DStaticResourceCast<StringTable>(GetResources().CreateResourceHandleInternal(CreatePtrInternal()));
+	return B3DStaticResourceCast<StringTable>(GetResources().CreateResourceHandle(CreatePtrInternal()));
 }
 
 SPtr<StringTable> StringTable::CreatePtrInternal()

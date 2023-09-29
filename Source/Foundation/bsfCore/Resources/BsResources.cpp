@@ -929,13 +929,13 @@ float Resources::GetLoadProgress(const HResource& resource, bool includeDependen
 	return std::min(1.0f, totalBytesLoaded / totalBytesToLoad);
 }
 
-HResource Resources::CreateResourceHandleInternal(const SPtr<Resource>& obj)
+HResource Resources::CreateResourceHandle(const SPtr<Resource>& obj)
 {
 	UUID uuid = UUIDGenerator::GenerateRandom();
-	return CreateResourceHandleInternal(obj, uuid);
+	return CreateResourceHandle(obj, uuid);
 }
 
-HResource Resources::CreateResourceHandleInternal(const SPtr<Resource>& obj, const UUID& UUID)
+HResource Resources::CreateResourceHandle(const SPtr<Resource>& obj, const UUID& UUID)
 {
 	HResource newHandle(obj, UUID);
 

@@ -250,7 +250,7 @@ HShader BuiltinResources::GetOrCompileShader(const Path& path) const
 
 		if(shaderShared != nullptr)
 		{
-			shader = B3DStaticResourceCast<Shader>(GetResources().CreateResourceHandleInternal(shaderShared));
+			shader = B3DStaticResourceCast<Shader>(GetResources().CreateResourceHandle(shaderShared));
 		}
 	}
 

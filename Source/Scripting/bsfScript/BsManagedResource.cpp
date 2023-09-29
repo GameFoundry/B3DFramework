@@ -101,7 +101,7 @@ HManagedResource ManagedResource::Create(MonoObject* managedResource)
 	newRes->SetShared(newRes);
 	newRes->Initialize();
 
-	HManagedResource handle = B3DStaticResourceCast<ManagedResource>(GetResources().CreateResourceHandleInternal(newRes));
+	HManagedResource handle = B3DStaticResourceCast<ManagedResource>(GetResources().CreateResourceHandle(newRes));
 	newRes->SetHandle(managedResource, handle);
 
 	return handle;

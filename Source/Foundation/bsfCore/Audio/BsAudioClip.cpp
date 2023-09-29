@@ -25,7 +25,7 @@ void AudioClip::Initialize()
 
 HAudioClip AudioClip::Create(const SPtr<DataStream>& samples, u32 streamSize, u32 numSamples, const AUDIO_CLIP_DESC& desc)
 {
-	return B3DStaticResourceCast<AudioClip>(GetResources().CreateResourceHandleInternal(CreatePtrInternal(samples, streamSize, numSamples, desc)));
+	return B3DStaticResourceCast<AudioClip>(GetResources().CreateResourceHandle(CreatePtrInternal(samples, streamSize, numSamples, desc)));
 }
 
 SPtr<AudioClip> AudioClip::CreatePtrInternal(const SPtr<DataStream>& samples, u32 streamSize, u32 numSamples, const AUDIO_CLIP_DESC& desc)

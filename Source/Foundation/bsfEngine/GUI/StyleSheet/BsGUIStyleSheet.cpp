@@ -4,6 +4,8 @@
 #include "BsGUIStyleSheetParser.h"
 #include "FileSystem/BsFileSystem.h"
 #include "FileSystem/BsDataStream.h"
+#include "Private/RTTI/BsGUIStyleSheetRTTI.h"
+#include "Resources/BsResources.h"
 
 using namespace bs;
 
@@ -133,14 +135,16 @@ bool GUIStyleSheetStyle::FindAndSetStateStyle(const StringView& name, const GUIS
 	return false;
 }
 
-SPtr<GUIStyleSheet> GUIStyleSheet::Parse(const Path& file)
+HGUIStyleSheet GUIStyleSheet::Parse(const Path& file)
 {
 	const SPtr<DataStream> fileStream = FileSystem::OpenFile(file);
 	if(!fileStream)
 		return nullptr;
 
 	GUIStyleSheetParser parser;
-	return parser.Parse(B3DMakeShared<SourceCode>(fileStream->GetAsString()));
+	SPtr<GUIStyleSheet> styleSheet = parser.Parse(B3DMakeShared<SourceCode>(fileStream->GetAsString()));
+
+	return B3DStaticResourceCast<GUIStyleSheet>(GetResources().CreateResourceHandle(styleSheet));
 }
 
 GUIStyleSheetStateStyle GUIStyleSheetStyle::FindStateStyle(GUIElementState state) const
@@ -192,6 +196,10 @@ GUIStyleSheetStateStyle GUIStyleSheetStyle::FindStateStyle(GUIElementState state
 	return stateStyle;
 }
 
+GUIStyleSheet::GUIStyleSheet()
+	: Resource(false, "StyleSheet")
+{ }
+ 
 const GUIStyleSheetStateStyle& GUIStyleSheet::FindStyle(const String& elementType, const String& elementId, GUIElementState state)
 {
 	CachedStateStyleKey key(elementType, elementId, state);
@@ -210,3 +218,28 @@ const GUIStyleSheetStateStyle& GUIStyleSheet::FindStyle(const String& elementTyp
 	return mCachedStateStyles.insert(std::make_pair(std::move(key),  style)).first->second;
 }
 
+HGUIStyleSheet GUIStyleSheet::Create()
+{
+	const SPtr<GUIStyleSheet> newStyleSheet = CreateShared();
+
+	return B3DStaticResourceCast<GUIStyleSheet>(GetResources().CreateResourceHandle(newStyleSheet));
+}
+
+SPtr<GUIStyleSheet> GUIStyleSheet::CreateShared()
+{
+	SPtr<GUIStyleSheet> newStyleSheet = B3DMakeCoreFromExisting<GUIStyleSheet>(new(B3DAllocate<GUIStyleSheet>()) GUIStyleSheet());
+	newStyleSheet->SetShared(newStyleSheet);
+	newStyleSheet->Initialize();
+
+	return newStyleSheet;
+}
+
+RTTITypeBase* GUIStyleSheet::GetRttiStatic()
+{
+	return GUIStyleSheetRTTI::Instance();
+}
+
+RTTITypeBase* GUIStyleSheet::GetRtti() const
+{
+	return GUIStyleSheet::GetRttiStatic();
+}

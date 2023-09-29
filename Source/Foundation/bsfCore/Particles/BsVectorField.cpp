@@ -100,7 +100,7 @@ HVectorField VectorField::Create(const VECTOR_FIELD_DESC& desc, const Vector<Vec
 {
 	SPtr<VectorField> vectorFieldPtr = CreatePtrInternal(desc, values);
 
-	return B3DStaticResourceCast<VectorField>(GetResources().CreateResourceHandleInternal(vectorFieldPtr));
+	return B3DStaticResourceCast<VectorField>(GetResources().CreateResourceHandle(vectorFieldPtr));
 }
 
 SPtr<VectorField> VectorField::CreatePtrInternal(const VECTOR_FIELD_DESC& desc, const Vector<Vector3>& values)

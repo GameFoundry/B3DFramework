@@ -321,7 +321,7 @@ HTexture Texture::Create(const TextureCreateInformation& createInformation)
 {
 	SPtr<Texture> texture = CreateShared(createInformation);
 
-	return B3DStaticResourceCast<Texture>(GetResources().CreateResourceHandleInternal(texture));
+	return B3DStaticResourceCast<Texture>(GetResources().CreateResourceHandle(texture));
 }
 
 SPtr<Texture> Texture::CreateShared(const TextureCreateInformation& createInformation)

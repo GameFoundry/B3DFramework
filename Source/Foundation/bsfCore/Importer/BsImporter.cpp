@@ -61,9 +61,9 @@ HResource Importer::Import(const Path& inputFilePath, SPtr<const ImportOptions> 
 	SPtr<Resource> importedResource = ImportInternal(inputFilePath, importOptions);
 
 	if(UUID.Empty())
-		return GetResources().CreateResourceHandleInternal(importedResource);
+		return GetResources().CreateResourceHandle(importedResource);
 
-	return GetResources().CreateResourceHandleInternal(importedResource, UUID);
+	return GetResources().CreateResourceHandle(importedResource, UUID);
 }
 
 TAsyncOp<HResource> Importer::ImportAsync(const Path& inputFilePath, SPtr<const ImportOptions> importOptions, const UUID& UUID)
@@ -88,7 +88,7 @@ SPtr<MultiResource> Importer::ImportAll(const Path& inputFilePath, SPtr<const Im
 	Vector<SubResourceRaw> importedResource = ImportAllInternal(inputFilePath, importOptions);
 	for(auto& entry : importedResource)
 	{
-		HResource handle = GetResources().CreateResourceHandleInternal(entry.Value);
+		HResource handle = GetResources().CreateResourceHandle(entry.Value);
 		output.push_back({ entry.Name, handle });
 	}
 
@@ -184,9 +184,9 @@ void DoImport(TAsyncOp<HResource> op, SpecificImporter* importer, const Path& fi
 
 	HResource resource;
 	if(uuid.Empty())
-		resource = GetResources().CreateResourceHandleInternal(resourcePtr);
+		resource = GetResources().CreateResourceHandle(resourcePtr);
 	else
-		resource = GetResources().CreateResourceHandleInternal(resourcePtr, uuid);
+		resource = GetResources().CreateResourceHandle(resourcePtr, uuid);
 
 	op.CompleteOperation(resource);
 }
@@ -199,7 +199,7 @@ void DoImport(TAsyncOp<SPtr<MultiResource>> op, SpecificImporter* importer, cons
 	Vector<SubResource> subresources;
 	for(auto& entry : rawSubresources)
 	{
-		HResource handle = GetResources().CreateResourceHandleInternal(entry.Value);
+		HResource handle = GetResources().CreateResourceHandle(entry.Value);
 		subresources.push_back({ entry.Name, handle });
 	}
 

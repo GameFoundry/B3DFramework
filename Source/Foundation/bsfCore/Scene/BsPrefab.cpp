@@ -28,7 +28,7 @@ HPrefab Prefab::Create(const HSceneObject& sceneObject, bool isScene)
 	PrefabUtility::ClearPrefabIds(sceneObject, true, false);
 	newPrefab->Initialize(sceneObject);
 
-	HPrefab handle = B3DStaticResourceCast<Prefab>(GetResources().CreateResourceHandleInternal(newPrefab));
+	HPrefab handle = B3DStaticResourceCast<Prefab>(GetResources().CreateResourceHandle(newPrefab));
 	newPrefab->mUUID = handle.GetId();
 	sceneObject->mPrefabLinkUUID = newPrefab->mUUID;
 	newPrefab->GetRootInternal()->mPrefabLinkUUID = newPrefab->mUUID;

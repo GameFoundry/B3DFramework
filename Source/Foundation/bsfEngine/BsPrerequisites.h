@@ -180,6 +180,7 @@ namespace bs
 	class GUISliderHorz;
 	class GUIProgressBar;
 	class GUICanvas;
+	class GUIStyleSheet;
 
 	class RenderableHandler;
 	class CProfilerOverlay;
@@ -202,6 +203,7 @@ namespace bs
 	typedef ResourceHandle<PlainText> HPlainText;
 	typedef ResourceHandle<ScriptCode> HScriptCode;
 	typedef ResourceHandle<GUISkin> HGUISkin;
+	typedef ResourceHandle<GUIStyleSheet> HGUIStyleSheet;
 
 	/**	RTTI types. */
 	enum TypeID_Engine
@@ -228,5 +230,9 @@ namespace bs
 		//TID_DepthOfFieldSettings = 30020,
 		//TID_AmbientOcclusionSettings = 30021,
 		//TID_ScreenSpaceReflectionsSettings = 30022
+		TID_GUIStyleSheet = 30023,
+		TID_GUIStyleSheetStyle = 30024,
+		TID_GUIStyleSheetStyleState = 30025,
+		TID_GUIStyleSheetBorderElement = 30026,
 	};
 }

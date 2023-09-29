@@ -369,8 +369,10 @@ namespace bs
 		 * Aligns the read/write cursor to a byte boundary. @p count determines the alignment in bytes. Note the
 		 * requested alignment might not be achieved if count > 1 and it would move the cursor past the capacity of the
 		 * buffer, as the cursor will be clamped to buffer end regardless of alignment.
+		 *
+		 * Returns number of bits skipped due to alignment.
 		 */
-		void Align(uint32_t count = 1);
+		u64 Align(uint32_t count = 1);
 
 		/** Expands the capacity to the specified number of bytes, unless already equal or greater. */
 		void Reserve(uint32_t count);
@@ -1001,13 +1003,16 @@ namespace bs
 		mCursor = std::min(pos, mMaxBits);
 	}
 
-	inline void Bitstream::Align(uint32_t count)
+	inline u64 Bitstream::Align(uint32_t count)
 	{
 		if(count == 0)
-			return;
+			return 0;
 
-		uint32_t bits = count * 8;
-		Skip(bits - (((mCursor - 1) & (bits - 1)) + 1));
+		const u64 bitsToAlign = count * 8;
+		const u64 bitsToSkip = bitsToAlign - (((mCursor - 1) & (bitsToAlign - 1)) + 1);
+		Skip((i64)bitsToSkip);
+
+		return bitsToSkip;
 	}
 
 	inline void Bitstream::Reserve(uint32_t count)

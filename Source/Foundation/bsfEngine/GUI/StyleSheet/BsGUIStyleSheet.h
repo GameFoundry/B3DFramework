@@ -5,6 +5,7 @@
 #include "BsPrerequisites.h"
 #include "GUI/BsGUIContent.h"
 #include "Image/BsColor.h"
+#include "Resources/BsResource.h"
 #include "Utility/BsBitfield.h"
 #include "Utility/BsRectOffset.h"
 
@@ -108,7 +109,7 @@ namespace bs
 	};
 
 	/** Style information for a single border side (left, right, top or bottom). */
-	struct GUIBorderElement
+	struct GUIStyleSheetBorderElement
 	{
 		u32 Width = 0; /**< Size of the border in pixels. Zero means no border. */
 		Color Color; /**< Color of the border. */
@@ -133,10 +134,10 @@ namespace bs
 		Color Color; /**< Color of the GUI element contents (usually text or icon). */
 		float Opacity = 1.0f; /**< Opacity of the GUI element. This value will affect all aspects of the GUI element (border, background and contents). In range [0, 1]. */
 
-		GUIBorderElement BorderLeft; /**< Style information for the left border. */
-		GUIBorderElement BorderRight; /**< Style information for the right border. */
-		GUIBorderElement BorderTop; /**< Style information for the top border. */
-		GUIBorderElement BorderBottom; /**< Style information for the bottom border. */
+		GUIStyleSheetBorderElement BorderLeft; /**< Style information for the left border. */
+		GUIStyleSheetBorderElement BorderRight; /**< Style information for the right border. */
+		GUIStyleSheetBorderElement BorderTop; /**< Style information for the top border. */
+		GUIStyleSheetBorderElement BorderBottom; /**< Style information for the bottom border. */
 
 		u32 BorderTopLeftRadius = 0; /**< Radius of the top left border corner, if rounded corners are desired. In pixels. */
 		u32 BorderTopRightRadius = 0; /**< Radius of the top right border corner, if rounded corners are desired. In pixels. */
@@ -180,11 +181,20 @@ namespace bs
 	 * Contains a set of styles that determine how are GUI elements displayed. GUI elements will perform lookup into the style sheet
 	 * based on the element type, element ID and current element state.
 	 */
-	class B3D_EXPORT GUIStyleSheet
+	class B3D_EXPORT GUIStyleSheet : public Resource
 	{
 	public:
+		GUIStyleSheet();
+		~GUIStyleSheet() override = default;
+
 		/** Attempts to parse the provided style sheet file and outputs the parsed style sheet, if successful. */
-		static SPtr<GUIStyleSheet> Parse(const Path& file);
+		static HGUIStyleSheet Parse(const Path& file);
+
+		/** Creates a new empty style sheet. */
+		static HGUIStyleSheet Create();
+
+		/** Creates a new empty style sheet. */
+		static SPtr<GUIStyleSheet> CreateShared();
 
 		// TODO - Add LoadOrParse() method that attempts to lookup an existing style sheet from PersistentCache first
 
@@ -236,6 +246,14 @@ namespace bs
 		UnorderedMap<String, GUIStyleSheetStyle> mIdStyles;
 
 		UnorderedMap<CachedStateStyleKey, GUIStyleSheetStateStyle, CachedStateStyleKey::Hash> mCachedStateStyles;
+
+		/************************************************************************/
+		/* 								SERIALIZATION                      		*/
+		/************************************************************************/
+	public:
+		friend class GUIStyleSheetRTTI;
+		static RTTITypeBase* GetRttiStatic();
+		RTTITypeBase* GetRtti() const override;
 	};
 
 	/** @} */

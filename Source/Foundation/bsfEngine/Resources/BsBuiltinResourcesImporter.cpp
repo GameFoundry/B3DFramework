@@ -181,7 +181,7 @@ void GenerateTextures()
 
 	auto saveTexture = [&](const Path& path, const SPtr<Texture>& texture, const String& uuid)
 	{
-		HResource textureResource = GetResources().CreateResourceHandleInternal(texture, bs::UUID(uuid));
+		HResource textureResource = GetResources().CreateResourceHandle(texture, bs::UUID(uuid));
 
 		GetResources().Save(textureResource, path, true);
 		sManifest->RegisterResource(textureResource.GetId(), path);
@@ -271,7 +271,7 @@ void GenerateMeshes()
 
 	auto saveMesh = [&](const Path& path, const SPtr<Mesh>& mesh, const String& uuid)
 	{
-		HResource meshResource = GetResources().CreateResourceHandleInternal(mesh, bs::UUID(uuid));
+		HResource meshResource = GetResources().CreateResourceHandle(mesh, bs::UUID(uuid));
 
 		GetResources().Save(meshResource, path, true);
 		sManifest->RegisterResource(meshResource.GetId(), path);
@@ -786,7 +786,7 @@ void ProcessAssets(bool generateGenerated, bool forceImport, time_t lastUpdateTi
 		const SPtr<GUISkin> skin = GenerateGuiSkin();
 		const Path outputPath = sOutputFolder + (fileName + u8".asset");
 
-		HResource skinResource = GetResources().CreateResourceHandleInternal(skin, UUID);
+		HResource skinResource = GetResources().CreateResourceHandle(skin, UUID);
 
 		GetResources().Save(skinResource, outputPath, true);
 		sManifest->RegisterResource(skinResource.GetId(), outputPath);
