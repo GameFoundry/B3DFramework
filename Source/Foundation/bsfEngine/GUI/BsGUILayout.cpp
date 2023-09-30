@@ -18,8 +18,8 @@ GUILayout::GUILayout()
 
 GUILayout::~GUILayout()
 {
-	if(mParentElement != nullptr)
-		mParentElement->UnregisterChildElement(this);
+	if(mParent != nullptr)
+		mParent->UnregisterChildElement(this);
 }
 
 void GUILayout::AddElement(GUIElementBase* element)
@@ -48,7 +48,7 @@ void GUILayout::InsertElement(u32 idx, GUIElementBase* element)
 	}
 
 	element->SetParent(this);
-	mChildren.insert(mChildren.begin() + idx, element);
+	mChildren.Insert(mChildren.begin() + idx, element);
 
 	element->SetActiveRecursive(IsActive());
 	element->SetVisibleRecursive(IsVisible());

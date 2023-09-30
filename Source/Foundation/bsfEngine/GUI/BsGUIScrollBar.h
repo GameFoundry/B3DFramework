@@ -92,7 +92,7 @@ namespace bs
 		void UpdateRenderElements() override;
 		void UpdateClippedBounds() override;
 		u32 GetRenderElementDepthRange() const override;
-		void StyleUpdated() override;
+		void NotifyStyleChanged() override;
 
 		/**
 		 * Helper method that returns style name used by a specific scrollbar type. If override style is empty, default

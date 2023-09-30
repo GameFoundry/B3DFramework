@@ -65,7 +65,7 @@ void GUIProgressBar::UpdateLayoutRecursive(const GUILayoutData& data)
 	mBar->SetLayoutData(barLayoutData);
 }
 
-void GUIProgressBar::StyleUpdated()
+void GUIProgressBar::NotifyStyleChanged()
 {
 	mBar->SetStyle(GetSubStyleName(GetBarStyleType()));
 	mBackground->SetStyle(GetSubStyleName(GetBackgroundStyleType()));

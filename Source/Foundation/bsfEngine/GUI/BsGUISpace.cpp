@@ -6,8 +6,8 @@ using namespace bs;
 
 GUIFixedSpace::~GUIFixedSpace()
 {
-	if(mParentElement != nullptr)
-		mParentElement->UnregisterChildElement(this);
+	if(mParent != nullptr)
+		mParent->UnregisterChildElement(this);
 }
 
 LayoutSizeRange GUIFixedSpace::CalculateLayoutSizeRange() const
@@ -32,8 +32,8 @@ void GUIFixedSpace::Destroy(GUIFixedSpace* space)
 
 GUIFlexibleSpace::~GUIFlexibleSpace()
 {
-	if(mParentElement != nullptr)
-		mParentElement->UnregisterChildElement(this);
+	if(mParent != nullptr)
+		mParent->UnregisterChildElement(this);
 }
 
 LayoutSizeRange GUIFlexibleSpace::CalculateLayoutSizeRange() const

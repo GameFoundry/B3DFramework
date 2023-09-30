@@ -78,7 +78,7 @@ namespace bs
 
 		Vector2I GetOptimalSize() const override;
 		void UpdateLayoutRecursive(const GUILayoutData& data) override;
-		void StyleUpdated() override;
+		void NotifyStyleChanged() override;
 		bool DoOnCommandEvent(const GUICommandEvent& ev) override;
 		bool DoOnMouseEvent(const GUIMouseEvent& ev) override;
 

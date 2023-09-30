@@ -38,6 +38,12 @@ namespace bs
 		/**	Returns the currently active GUI skin resource. */
 		const HGUISkin& GetSkinResource() const { return mSkin; }
 
+		/** Determines the style sheet that all GUI elements part of this widget will lookup styles in. */
+		void SetStyleSheet(const HGUIStyleSheet& styleSheet);
+
+		/** @copydoc SetStyleSheet */
+		const HGUIStyleSheet& GetStyleSheet() const { return mStyleSheet; }
+
 		/** Returns the root GUI panel for the widget. */
 		GUIPanel* GetPanel() const { return mPanel; }
 
@@ -205,6 +211,7 @@ namespace bs
 		mutable Rect2I mBounds;
 
 		HGUISkin mSkin;
+		HGUIStyleSheet mStyleSheet;
 	};
 
 	/** @} */

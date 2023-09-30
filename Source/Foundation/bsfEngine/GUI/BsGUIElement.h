@@ -225,7 +225,7 @@ namespace bs
 		bool IsDestroyed() const override { return mIsDestroyed; }
 
 		/** Update element style based on active GUI skin and style name. */
-		void RefreshStyle();
+		void NotifyStyleSheetChanged();
 
 		/**	Gets the currently active element style. */
 		const GUIElementStyle* GetStyle() const { return mStyle; }
@@ -298,7 +298,7 @@ namespace bs
 		const String& GetSubStyleName(const String& subStyleTypeName) const;
 
 		/**	Method that gets triggered whenever element style changes. */
-		virtual void StyleUpdated() {}
+		virtual void NotifyStyleChanged() {}
 
 		/**	Returns clipped bounds excluding the margins. Relative to parent widget. */
 		Rect2I GetCachedVisibleBounds() const;

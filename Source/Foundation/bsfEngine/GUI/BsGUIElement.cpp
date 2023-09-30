@@ -38,7 +38,7 @@ void GUIElement::UpdateClippedBounds()
 void GUIElement::SetStyle(const String& styleName)
 {
 	mStyleName = styleName;
-	RefreshStyle();
+	NotifyStyleSheetChanged();
 }
 
 bool GUIElement::DoOnMouseEvent(const GUIMouseEvent& event)
@@ -124,7 +124,7 @@ void GUIElement::ChangeParentWidget(GUIWidget* widget)
 		if(!mNavigationGroup && mParentWidget)
 			mParentWidget->GetDefaultNavGroupInternal()->RegisterElement(this);
 
-		RefreshStyle();
+		NotifyStyleSheetChanged();
 	}
 }
 
@@ -188,7 +188,7 @@ void GUIElement::ResetDimensions()
 	bool isFixedAfter = (mDimensions.Flags & GUIDF_FixedWidth) != 0 && (mDimensions.Flags & GUIDF_FixedHeight) != 0;
 
 	if(isFixedBefore != isFixedAfter)
-		RefreshChildUpdateParents();
+		RefreshLayoutUpdateParentsForChildren();
 
 	MarkLayoutAsDirty();
 }
@@ -256,7 +256,7 @@ SPtr<GUIContextMenu> GUIElement::GetContextMenu() const
 	return nullptr;
 }
 
-void GUIElement::RefreshStyle()
+void GUIElement::NotifyStyleSheetChanged()
 {
 	const GUIElementStyle* newStyle = nullptr;
 	if(GetParentWidget() != nullptr && !mStyleName.empty())
@@ -274,9 +274,9 @@ void GUIElement::RefreshStyle()
 
 		bool isFixedAfter = (mDimensions.Flags & GUIDF_FixedWidth) != 0 && (mDimensions.Flags & GUIDF_FixedHeight) != 0;
 		if(isFixedBefore != isFixedAfter)
-			RefreshChildUpdateParents();
+			RefreshLayoutUpdateParentsForChildren();
 
-		StyleUpdated();
+		NotifyStyleChanged();
 		MarkLayoutAsDirty();
 	}
 }
@@ -300,8 +300,8 @@ void GUIElement::Destroy(GUIElement* element)
 	if(currentNavGroup)
 		currentNavGroup->UnregisterElement(element);
 
-	if(element->mParentElement != nullptr)
-		element->mParentElement->UnregisterChildElement(element);
+	if(element->mParent != nullptr)
+		element->mParent->UnregisterChildElement(element);
 
 	element->mIsDestroyed = true;
 

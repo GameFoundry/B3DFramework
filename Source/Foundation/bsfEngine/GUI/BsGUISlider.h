@@ -83,7 +83,7 @@ namespace bs
 		virtual ~GUISlider();
 
 		void UpdateLayoutRecursive(const GUILayoutData& data) override;
-		void StyleUpdated();
+		void NotifyStyleChanged();
 
 		/**	Triggered when the slider handles moves. */
 		void OnHandleMoved(float newPosition, float newSize);

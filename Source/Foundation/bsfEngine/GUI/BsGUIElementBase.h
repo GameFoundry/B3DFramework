@@ -209,7 +209,7 @@ namespace bs
 		virtual Type GetType() const = 0;
 
 		/**	Returns parent GUI base element. */
-		GUIElementBase* GetParent() const { return mParentElement; }
+		GUIElementBase* GetParent() const { return mParent; }
 
 		/**
 		 * Returns the parent element whose layout needs to be updated when this elements contents change.
@@ -220,7 +220,7 @@ namespace bs
 		 * updating. This parent usually has fixed bounds or some other property that allows its children to be updated
 		 * independently from the even higher-up elements.
 		 */
-		GUIElementBase* GetUpdateParent() const { return mUpdateParent; }
+		GUIElementBase* GetUpdateParent() const { return mLayoutUpdateParent; }
 
 		/**	Returns parent GUI widget, can be null. */
 		GUIWidget* GetParentWidget() const { return mParentWidget; }
@@ -298,10 +298,10 @@ namespace bs
 
 	protected:
 		/**	Finds anchor and update parents and recursively assigns them to all children. */
-		void UpdateAnchorAndUpdateParents();
+		void UpdatePanelAndLayoutUpdateParents();
 
 		/**	Refreshes update parents of all child elements. */
-		void RefreshChildUpdateParents();
+		void RefreshLayoutUpdateParentsForChildren();
 
 		/**
 		 * Finds the first parent element whose size doesn't depend on child sizes.
@@ -310,33 +310,34 @@ namespace bs
 		 * This allows us to optimize layout updates and trigger them only on such parents when their child elements
 		 * contents change, compared to doing them on the entire GUI hierarchy.
 		 */
-		GUIElementBase* FindUpdateParent();
+		GUIElementBase* FindLayoutUpdateParent();
 
 		/**
 		 * Helper method for recursion in UpdateAUParentsInternal(). Sets the provided anchor parent for all children recursively.
 		 * Recursion stops when a child anchor is detected.
 		 */
-		void SetAnchorParent(GUIPanel* anchorParent);
+		void SetPanelParent(GUIPanel* panelParent);
 
 		/**
 		 * Helper method for recursion in UpdateAUParentsInternal(). Sets the provided update parent for all children recursively.
 		 * Recursion stops when a child update parent is detected.
 		 */
-		void SetUpdateParent(GUIElementBase* updateParent);
+		void SetLayoutUpdateParent(GUIElementBase* layoutUpdateParent);
 
 		/** Unregisters and destroys all child elements. */
 		void DestroyChildElements();
 
 		GUIWidget* mParentWidget = nullptr;
-		GUIPanel* mAnchorParent = nullptr;
-		GUIElementBase* mUpdateParent = nullptr;
-		GUIElementBase* mParentElement = nullptr;
+		GUIPanel* mPanelParent = nullptr; /**< First panel in the parent hierarchy, if any. */
+		GUIElementBase* mLayoutUpdateParent = nullptr; /**< Parent on which we need to call layout update if this element's size changes. This will be the first parent GUI element that doesn't have fixed bounds. */
 
-		Vector<GUIElementBase*> mChildren;
+		GUIElementBase* mParent = nullptr; /**< Direct parent of this element. */
+		TInlineArray<GUIElementBase*, 4> mChildren;
+
 		u8 mFlags = GUIElem_Dirty;
 
-		GUIDimensions mDimensions;
-		GUILayoutData mLayoutData;
+		GUIDimensions mDimensions; /**< Wanted position and size, as requested by the style, or set explicitly at runtime. */
+		GUILayoutData mLayoutData; /**< Calculated position, size, depth and other information, valid after a layout update. */
 	};
 
 	/** @} */

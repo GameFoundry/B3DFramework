@@ -382,7 +382,7 @@ TextSpriteInformation GUIButtonBase::GetTextDesc() const
 	return textDesc;
 }
 
-void GUIButtonBase::StyleUpdated()
+void GUIButtonBase::NotifyStyleChanged()
 {
 	mImageDesc.AnimationStartTime = GetTime().GetTime();
 }

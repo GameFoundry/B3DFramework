@@ -67,7 +67,7 @@ namespace bs
 		bool DoOnMouseEvent(const GUIMouseEvent& ev) override;
 		bool DoOnCommandEvent(const GUICommandEvent& ev) override;
 		String GetTooltip() const override;
-		void StyleUpdated() override;
+		void NotifyStyleChanged() override;
 
 		/** Creates or destroys the content image sprite depending if there is a content image for the active state. */
 		void RefreshContentSprite();

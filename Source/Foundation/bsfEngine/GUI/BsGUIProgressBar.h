@@ -70,7 +70,7 @@ namespace bs
 		GUIProgressBar(const String& styleName, const GUIDimensions& dimensions);
 
 		void UpdateLayoutRecursive(const GUILayoutData& data) override;
-		void StyleUpdated() override;
+		void NotifyStyleChanged() override;
 
 	private:
 		GUITexture* mBar;

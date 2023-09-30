@@ -176,7 +176,7 @@ void GUITexture::UpdateRenderElements()
 	GUIElement::UpdateRenderElements();
 }
 
-void GUITexture::StyleUpdated()
+void GUITexture::NotifyStyleChanged()
 {
 	if(mUsingStyleTexture)
 	{

@@ -44,7 +44,7 @@ GUIDropDownContent* GUIDropDownContent::Create(GUIDropDownMenu::DropDownSubMenu*
 	return new(B3DAllocate<GUIDropDownContent>()) GUIDropDownContent(parent, dropDownData, *curStyle, GUIDimensions::Create(options));
 }
 
-void GUIDropDownContent::StyleUpdated()
+void GUIDropDownContent::NotifyStyleChanged()
 {
 	for(auto& visElem : mVisibleElements)
 	{

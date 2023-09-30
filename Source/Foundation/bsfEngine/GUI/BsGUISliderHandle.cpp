@@ -23,7 +23,7 @@ GUISliderHandle::GUISliderHandle(GUISliderHandleFlags flags, const String& style
 	mImageSprite = B3DNew<ImageSprite>();
 
 	// Calling virtual method is okay in this case
-	StyleUpdated();
+	NotifyStyleChanged();
 }
 
 GUISliderHandle::~GUISliderHandle()
@@ -484,7 +484,7 @@ float GUISliderHandle::GetHandleSizePctInternal() const
 	return mPctHandleSize;
 }
 
-void GUISliderHandle::StyleUpdated()
+void GUISliderHandle::NotifyStyleChanged()
 {
 	const GUIElementStyle* style = GetStyle();
 	if(style != nullptr)

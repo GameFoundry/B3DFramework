@@ -151,7 +151,7 @@ namespace bs
 
 		void FillBuffer(u8* vertices, u32* indices, u32 vertexOffset, u32 indexOffset, const Vector2I& offset, u32 maxNumVerts, u32 maxNumIndices, u32 renderElementIdx) const override;
 		void UpdateRenderElements() override;
-		void StyleUpdated() override;
+		void NotifyStyleChanged() override;
 
 		ImageSprite* mImageSprite;
 		Vector2I mImageSpriteOffset;

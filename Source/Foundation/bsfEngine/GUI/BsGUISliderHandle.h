@@ -156,7 +156,7 @@ namespace bs
 		/**	Gets the currently active texture, depending on handle state. */
 		const HSpriteTexture& GetActiveTexture() const;
 
-		void StyleUpdated() override;
+		void NotifyStyleChanged() override;
 
 		static const u32 kResizeHandleSize;
 

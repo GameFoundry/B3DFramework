@@ -41,7 +41,7 @@ void GUIElementBase::SetSize(u32 width, u32 height)
 	bool isFixedAfter = (mDimensions.Flags & GUIDF_FixedWidth) != 0 && (mDimensions.Flags & GUIDF_FixedHeight) != 0;
 
 	if(isFixedBefore != isFixedAfter)
-		RefreshChildUpdateParents();
+		RefreshLayoutUpdateParentsForChildren();
 
 	MarkLayoutAsDirty();
 }
@@ -56,7 +56,7 @@ void GUIElementBase::SetWidth(u32 width)
 	bool isFixedAfter = (mDimensions.Flags & GUIDF_FixedWidth) != 0 && (mDimensions.Flags & GUIDF_FixedHeight) != 0;
 
 	if(isFixedBefore != isFixedAfter)
-		RefreshChildUpdateParents();
+		RefreshLayoutUpdateParentsForChildren();
 
 	MarkLayoutAsDirty();
 }
@@ -76,7 +76,7 @@ void GUIElementBase::SetFlexibleWidth(u32 minWidth, u32 maxWidth)
 	bool isFixedAfter = (mDimensions.Flags & GUIDF_FixedWidth) != 0 && (mDimensions.Flags & GUIDF_FixedHeight) != 0;
 
 	if(isFixedBefore != isFixedAfter)
-		RefreshChildUpdateParents();
+		RefreshLayoutUpdateParentsForChildren();
 
 	MarkLayoutAsDirty();
 }
@@ -91,7 +91,7 @@ void GUIElementBase::SetHeight(u32 height)
 	bool isFixedAfter = (mDimensions.Flags & GUIDF_FixedWidth) != 0 && (mDimensions.Flags & GUIDF_FixedHeight) != 0;
 
 	if(isFixedBefore != isFixedAfter)
-		RefreshChildUpdateParents();
+		RefreshLayoutUpdateParentsForChildren();
 
 	MarkLayoutAsDirty();
 }
@@ -111,7 +111,7 @@ void GUIElementBase::SetFlexibleHeight(u32 minHeight, u32 maxHeight)
 	bool isFixedAfter = (mDimensions.Flags & GUIDF_FixedWidth) != 0 && (mDimensions.Flags & GUIDF_FixedHeight) != 0;
 
 	if(isFixedBefore != isFixedAfter)
-		RefreshChildUpdateParents();
+		RefreshLayoutUpdateParentsForChildren();
 
 	MarkLayoutAsDirty();
 }
@@ -125,7 +125,7 @@ void GUIElementBase::ResetDimensions()
 	bool isFixedAfter = (mDimensions.Flags & GUIDF_FixedWidth) != 0 && (mDimensions.Flags & GUIDF_FixedHeight) != 0;
 
 	if(isFixedBefore != isFixedAfter)
-		RefreshChildUpdateParents();
+		RefreshLayoutUpdateParentsForChildren();
 
 	MarkLayoutAsDirty();
 }
@@ -133,14 +133,14 @@ void GUIElementBase::ResetDimensions()
 Rect2I GUIElementBase::GetBounds(GUIPanel* relativeTo)
 {
 	if(relativeTo == nullptr)
-		relativeTo = mAnchorParent;
+		relativeTo = mPanelParent;
 
 	Rect2I anchorBounds;
 	if(relativeTo != nullptr)
 		anchorBounds = relativeTo->GetGlobalBounds();
 
-	if(mUpdateParent != nullptr && mUpdateParent->IsDirty() && mParentWidget != nullptr)
-		mParentWidget->UpdateLayoutInternal(mUpdateParent);
+	if(mLayoutUpdateParent != nullptr && mLayoutUpdateParent->IsDirty() && mParentWidget != nullptr)
+		mParentWidget->UpdateLayoutInternal(mLayoutUpdateParent);
 
 	Rect2I bounds = mLayoutData.Area;
 	bounds.X -= anchorBounds.X;
@@ -158,16 +158,16 @@ void GUIElementBase::SetBounds(const Rect2I& bounds)
 
 Rect2I GUIElementBase::GetGlobalBounds()
 {
-	if(mUpdateParent != nullptr && mUpdateParent->IsDirty() && mParentWidget != nullptr)
-		mParentWidget->UpdateLayoutInternal(mUpdateParent);
+	if(mLayoutUpdateParent != nullptr && mLayoutUpdateParent->IsDirty() && mParentWidget != nullptr)
+		mParentWidget->UpdateLayoutInternal(mLayoutUpdateParent);
 
 	return mLayoutData.Area;
 }
 
 Rect2I GUIElementBase::GetScreenBounds() const
 {
-	if(mUpdateParent != nullptr && mUpdateParent->IsDirty() && mParentWidget != nullptr)
-		mParentWidget->UpdateLayoutInternal(mUpdateParent);
+	if(mLayoutUpdateParent != nullptr && mLayoutUpdateParent->IsDirty() && mParentWidget != nullptr)
+		mParentWidget->UpdateLayoutInternal(mLayoutUpdateParent);
 
 	Rect2I area = mLayoutData.Area;
 	if(mParentWidget)
@@ -210,8 +210,8 @@ void GUIElementBase::MarkLayoutAsDirty()
 	if(!IsVisible())
 		return;
 
-	if(mUpdateParent != nullptr)
-		mUpdateParent->mFlags |= GUIElem_Dirty;
+	if(mLayoutUpdateParent != nullptr)
+		mLayoutUpdateParent->mFlags |= GUIElem_Dirty;
 	else
 		mFlags |= GUIElem_Dirty;
 }
@@ -253,7 +253,7 @@ void GUIElementBase::SetVisible(bool visible)
 		{
 			mFlags &= ~GUIElem_HiddenSelf;
 
-			if(mParentElement == nullptr || mParentElement->IsVisible())
+			if(mParent == nullptr || mParent->IsVisible())
 				SetVisibleRecursive(true);
 		}
 	}
@@ -312,13 +312,13 @@ void GUIElementBase::SetActive(bool active)
 		{
 			mFlags &= ~kActiveFlags;
 
-			if(mParentElement != nullptr)
+			if(mParent != nullptr)
 			{
-				if(mParentElement->IsActive())
+				if(mParent->IsActive())
 				{
 					SetActiveRecursive(true);
 
-					if(mParentElement->IsVisible())
+					if(mParent->IsVisible())
 						SetVisibleRecursive(true);
 				}
 			}
@@ -443,10 +443,10 @@ void GUIElementBase::GetChildLayoutAreas(const Rect2I& layoutArea, Rect2I* eleme
 
 void GUIElementBase::SetParent(GUIElementBase* parent)
 {
-	if(mParentElement != parent)
+	if(mParent != parent)
 	{
-		mParentElement = parent;
-		UpdateAnchorAndUpdateParents();
+		mParent = parent;
+		UpdatePanelAndLayoutUpdateParents();
 
 		if(parent != nullptr)
 		{
@@ -469,7 +469,7 @@ void GUIElementBase::RegisterChildElement(GUIElementBase* element)
 	}
 
 	element->SetParent(this);
-	mChildren.push_back(element);
+	mChildren.Add(element);
 
 	element->SetActiveRecursive(IsActive());
 	element->SetVisibleRecursive(IsVisible());
@@ -504,7 +504,7 @@ void GUIElementBase::UnregisterChildElement(GUIElementBase* element)
 
 void GUIElementBase::DestroyChildElements()
 {
-	Vector<GUIElementBase*> childCopy = mChildren;
+	TInlineArray<GUIElementBase*, 4> childCopy = mChildren;
 	for(auto& child : childCopy)
 	{
 		if(child->GetType() == Type::Element)
@@ -529,7 +529,7 @@ void GUIElementBase::DestroyChildElements()
 		}
 	}
 
-	B3D_ASSERT(mChildren.empty());
+	B3D_ASSERT(mChildren.Empty());
 }
 
 void GUIElementBase::ChangeParentWidget(GUIWidget* widget)
@@ -555,43 +555,43 @@ void GUIElementBase::ChangeParentWidget(GUIWidget* widget)
 	MarkLayoutAsDirty();
 }
 
-void GUIElementBase::UpdateAnchorAndUpdateParents()
+void GUIElementBase::UpdatePanelAndLayoutUpdateParents()
 {
-	GUIElementBase* updateParent = nullptr;
-	if(mParentElement != nullptr)
+	GUIElementBase* layoutUpdateParent = nullptr;
+	if(mParent != nullptr)
 	{
-		updateParent = mParentElement->FindUpdateParent();
+		layoutUpdateParent = mParent->FindLayoutUpdateParent();
 
 		// If parent is a panel then we can do an optimization and only update
 		// one child instead of all of them, so change parent to that child.
-		if(updateParent != nullptr && updateParent->GetType() == GUIElementBase::Type::Panel)
+		if(layoutUpdateParent != nullptr && layoutUpdateParent->GetType() == GUIElementBase::Type::Panel)
 		{
 			GUIElementBase* optimizedUpdateParent = this;
-			while(optimizedUpdateParent->GetParent() != updateParent)
+			while(optimizedUpdateParent->GetParent() != layoutUpdateParent)
 				optimizedUpdateParent = optimizedUpdateParent->GetParent();
 
-			updateParent = optimizedUpdateParent;
+			layoutUpdateParent = optimizedUpdateParent;
 		}
 	}
 
-	GUIPanel* anchorParent = nullptr;
-	GUIElementBase* currentParent = mParentElement;
+	GUIPanel* panelParent = nullptr;
+	GUIElementBase* currentParent = mParent;
 	while(currentParent != nullptr)
 	{
 		if(currentParent->GetType() == Type::Panel)
 		{
-			anchorParent = static_cast<GUIPanel*>(currentParent);
+			panelParent = static_cast<GUIPanel*>(currentParent);
 			break;
 		}
 
-		currentParent = currentParent->mParentElement;
+		currentParent = currentParent->mParent;
 	}
 
-	SetAnchorParent(anchorParent);
-	SetUpdateParent(updateParent);
+	SetPanelParent(panelParent);
+	SetLayoutUpdateParent(layoutUpdateParent);
 }
 
-GUIElementBase* GUIElementBase::FindUpdateParent()
+GUIElementBase* GUIElementBase::FindLayoutUpdateParent()
 {
 	GUIElementBase* currentElement = this;
 	while(currentElement != nullptr)
@@ -602,15 +602,15 @@ GUIElementBase* GUIElementBase::FindUpdateParent()
 		if(!boundsDependOnChildren)
 			return currentElement;
 
-		currentElement = currentElement->mParentElement;
+		currentElement = currentElement->mParent;
 	}
 
 	return nullptr;
 }
 
-void GUIElementBase::RefreshChildUpdateParents()
+void GUIElementBase::RefreshLayoutUpdateParentsForChildren()
 {
-	GUIElementBase* updateParent = FindUpdateParent();
+	GUIElementBase* updateParent = FindLayoutUpdateParent();
 
 	for(auto& child : mChildren)
 	{
@@ -627,24 +627,24 @@ void GUIElementBase::RefreshChildUpdateParents()
 			childUpdateParent = optimizedUpdateParent;
 		}
 
-		child->SetUpdateParent(childUpdateParent);
+		child->SetLayoutUpdateParent(childUpdateParent);
 	}
 }
 
-void GUIElementBase::SetAnchorParent(GUIPanel* anchorParent)
+void GUIElementBase::SetPanelParent(GUIPanel* panelParent)
 {
-	mAnchorParent = anchorParent;
+	mPanelParent = panelParent;
 
 	if(GetType() == Type::Panel)
 		return;
 
 	for(auto& child : mChildren)
-		child->SetAnchorParent(anchorParent);
+		child->SetPanelParent(panelParent);
 }
 
-void GUIElementBase::SetUpdateParent(GUIElementBase* updateParent)
+void GUIElementBase::SetLayoutUpdateParent(GUIElementBase* layoutUpdateParent)
 {
-	mUpdateParent = updateParent;
+	mLayoutUpdateParent = layoutUpdateParent;
 
 	const GUIDimensions& dimensions = GetDimensions();
 	bool boundsDependOnChildren = !dimensions.FixedHeight() || !dimensions.FixedWidth();
@@ -653,5 +653,5 @@ void GUIElementBase::SetUpdateParent(GUIElementBase* updateParent)
 		return;
 
 	for(auto& child : mChildren)
-		child->SetUpdateParent(updateParent);
+		child->SetLayoutUpdateParent(layoutUpdateParent);
 }

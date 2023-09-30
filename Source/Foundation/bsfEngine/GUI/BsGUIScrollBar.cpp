@@ -144,7 +144,7 @@ void GUIScrollBar::FillBuffer(
 	mImageSprite->FillBuffer(vertices, uvs, indices, vertexOffset, indexOffset, maxNumVerts, maxNumIndices, vertexStride, indexStride, renderElementIdx, layoutOffset, mLayoutData.GetLocalClipRect());
 }
 
-void GUIScrollBar::StyleUpdated()
+void GUIScrollBar::NotifyStyleChanged()
 {
 	if(mHorizontal)
 		mHandleBtn->SetStyle(GetSubStyleName(GetHScrollHandleType()));

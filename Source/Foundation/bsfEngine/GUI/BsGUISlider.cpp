@@ -133,7 +133,7 @@ void GUISlider::UpdateLayoutRecursive(const GUILayoutData& data)
 	}
 }
 
-void GUISlider::StyleUpdated()
+void GUISlider::NotifyStyleChanged()
 {
 	mBackground->SetStyle(GetSubStyleName(GetBackgroundStyleType()));
 	mFillBackground->SetStyle(GetSubStyleName(GetFillStyleType()));
