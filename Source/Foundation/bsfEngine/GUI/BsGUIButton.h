@@ -61,6 +61,12 @@ namespace bs
 		 */
 		static GUIButton* Create(const GUIContent& content, const GUIOptions& options, const String& styleName = StringUtil::kBlank);
 
+		const char* GetStyleSheetElement() const override
+		{
+			return nullptr;
+			//return "button";
+		}
+
 	public: // ***** INTERNAL ******
 		/** @name Internal
 		 *  @{

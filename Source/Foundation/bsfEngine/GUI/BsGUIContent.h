@@ -28,21 +28,6 @@ namespace bs
 		OnFlag B3D_SCRIPT_EXPORT(Exclude(true)) = 0x100 /**< Flag that differentiates between on and off states. */
 	};
 
-	/** Flags that determine the state that a GUI element may be in. */
-	enum class GUIElementStateFlag
-	{
-		Normal = 0,
-		Hover = 1 << 0,
-		Active = 1 << 1,
-		Focused = 1 << 2,
-		Disabled = 1 << 3,
-		Checked = 1 << 4,
-		Count = 5
-	};
-
-	using GUIElementStateFlags = Flags<GUIElementStateFlag>;
-	B3D_FLAGS_OPERATORS(GUIElementStateFlag)
-
 	/**	Contains separate GUI content images for every possible GUI element state. */
 	struct B3D_EXPORT B3D_SCRIPT_EXPORT(ExportAsStruct(true), DocumentationGroup(GUI)) GUIContentImages
 	{

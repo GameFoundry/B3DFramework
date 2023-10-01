@@ -242,6 +242,34 @@ Color GUIElement::GetTint() const
 	return mColor * kDisabledColor;
 }
 
+void GUIElement::AddStateFlag(GUIElementStateFlag flag)
+{
+	if(mStateFlags.IsSet(flag))
+		return;
+
+	mStateFlags.Set(flag);
+	if(mStyleSheetStyle != nullptr)
+		mStyleSheetStateStyle = mStyleSheetStyle->FindStateStyle(mStateFlags);
+	else
+		mStyleSheetStateStyle = GUIStyleSheetStateStyle::kDefault;
+
+	MarkContentAsDirty();
+}
+
+void GUIElement::RemoveStateFlag(GUIElementStateFlag flag)
+{
+	if(!mStateFlags.IsSet(flag))
+		return;
+
+	mStateFlags.Unset(flag);
+	if(mStyleSheetStyle != nullptr)
+		mStyleSheetStateStyle = mStyleSheetStyle->FindStateStyle(mStateFlags);
+	else
+		mStyleSheetStateStyle = GUIStyleSheetStateStyle::kDefault;
+
+	MarkContentAsDirty();
+}
+
 bool GUIElement::IsInBounds(const Vector2I position) const
 {
 	Rect2I contentBounds = GetCachedVisibleBounds();
@@ -281,10 +309,8 @@ void GUIElement::NotifyStyleSheetChanged()
 
 			bool isFixedBefore = (mDimensions.Flags & GUIDF_FixedWidth) != 0 && (mDimensions.Flags & GUIDF_FixedHeight) != 0;
 
-			// TODO - Need to store current state flags, so I can look up the state style here
-
-
-			//mDimensions.UpdateWithStyle(mStyleSheetStyle);
+			mStyleSheetStateStyle = mStyleSheetStyle->FindStateStyle(mStateFlags);
+			mDimensions.UpdateWithStyle(*mStyleSheetStateStyle);
 
 			bool isFixedAfter = (mDimensions.Flags & GUIDF_FixedWidth) != 0 && (mDimensions.Flags & GUIDF_FixedHeight) != 0;
 			if(isFixedBefore != isFixedAfter)

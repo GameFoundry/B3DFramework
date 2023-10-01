@@ -110,11 +110,11 @@ namespace bs
 		SPtr<GpuDevice> GetPrimaryGpuDevice() const { return mPrimaryGpu; }
 
 		/**
-		 * Returns the id of the simulation thread.
+		 * Returns a unique identifier of the main thread.
 		 *
 		 * @note	Thread safe.
 		 */
-		ThreadId GetSimThreadId() const { return mSimThreadId; }
+		ThreadId GetMainThreadId() const { return mSimThreadId; }
 
 		/**	Returns true if the application is running in an editor, false if standalone. */
 		virtual bool IsEditor() const { return false; }
@@ -204,6 +204,12 @@ namespace bs
 
 	/**	Provides easy access to CoreApplication. */
 	B3D_CORE_EXPORT CoreApplication& GetCoreApplication();
+
+	/** Returns false if currently not at the main thread, and triggers an ensure. */
+	B3D_CORE_EXPORT inline bool EnsureMainThread()
+	{
+		return B3D_ENSURE(B3D_CURRENT_THREAD_ID == CoreApplication::Instance().GetMainThreadId());
+	}
 
 	/** @} */
 } // namespace bs

@@ -9,6 +9,7 @@
 
 using namespace bs;
 
+SPtr<GUIStyleSheetStateStyle> GUIStyleSheetStateStyle::kDefault = B3DMakeShared<GUIStyleSheetStateStyle>();
 
 GUIStyleSheetStateStyle::GUIStyleSheetStateStyle()
 {
@@ -149,7 +150,7 @@ HGUIStyleSheet GUIStyleSheet::Parse(const Path& file)
 	return B3DStaticResourceCast<GUIStyleSheet>(GetResources().CreateResourceHandle(styleSheet));
 }
 
-SPtr<GUIStyleSheetStateStyle> GUIStyleSheetStyle::FindStateStyle(GUIElementStateFlags stateFlags)
+SPtr<GUIStyleSheetStateStyle> GUIStyleSheetStyle::FindStateStyle(GUIElementStateFlags stateFlags) const
 {
 	if(auto found = mCachedStateStyles.find(stateFlags); found != mCachedStateStyles.end())
 		return found->second;
@@ -241,7 +242,7 @@ GUIStyleSheet::GUIStyleSheet()
 	: Resource(false, "StyleSheet")
 { }
  
-SPtr<GUIStyleSheetStyle> GUIStyleSheet::FindStyle(const String& elementType, const String& elementId)
+SPtr<GUIStyleSheetStyle> GUIStyleSheet::FindStyle(const String& elementType, const String& elementId) const
 {
 	CachedStateStyleKey key(elementType, elementId);
 
@@ -253,7 +254,7 @@ SPtr<GUIStyleSheetStyle> GUIStyleSheet::FindStyle(const String& elementType, con
 	if(auto it = mElementStyles.find(elementType); it != mElementStyles.end())
 		*style = it->second;
 
-	if(auto it = mIdStyles.find(elementId); it != mElementStyles.end())
+	if(auto it = mIdStyles.find(elementId); it != mIdStyles.end())
 		style->Override(it->second);
 
 	return mCachedStyles.insert(std::make_pair(std::move(key),  style)).first->second;

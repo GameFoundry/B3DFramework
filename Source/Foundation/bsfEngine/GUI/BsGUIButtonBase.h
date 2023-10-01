@@ -6,6 +6,7 @@
 #include "GUI/BsGUIElement.h"
 #include "2D/BsImageSprite.h"
 #include "2D/BsTextSprite.h"
+#include "2D/BsVectorSprite.h"
 #include "GUI/BsGUIContent.h"
 #include "Utility/BsEvent.h"
 
@@ -84,13 +85,18 @@ namespace bs
 		/**	Returns the active text color, depending on the current state. */
 		Color GetActiveTextColor() const;
 
+		/** Creates a vector path responsible for drawing the background. */
+		virtual HVectorPath CreateBackgroundVectorPath(const Size2UI& size, const GUIStyleSheetStateStyle& style);
+
 	private:
 		ImageSprite* mImageSprite;
+		VectorSprite* mBackgroundSprite;
 		ImageSprite* mContentImageSprite = nullptr;
 		TextSprite* mTextSprite;
 		GUIElementState mActiveState = GUIElementState::Normal;
 
 		ImageSpriteInformation mImageDesc;
+		VectorSpriteInformation mBackgroundSpriteInformation;
 		GUIContent mContent;
 		bool mHasFocus = false;
 		float mContentAnimationStartTime = 0.0f;

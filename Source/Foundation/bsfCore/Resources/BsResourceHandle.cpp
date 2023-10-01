@@ -35,7 +35,7 @@ void ResourceHandleBase::BlockUntilLoaded(bool waitForDependencies) const
 
 		// Send out ResourceListener events right away, as whatever called this method probably also expects the
 		// listener events to trigger immediately as well
-		if(B3D_CURRENT_THREAD_ID == GetCoreApplication().GetSimThreadId())
+		if(B3D_CURRENT_THREAD_ID == GetCoreApplication().GetMainThreadId())
 			ResourceListenerManager::Instance().NotifyListeners(mData->MUuid);
 	}
 

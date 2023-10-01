@@ -22,7 +22,7 @@ VectorSprite::~VectorSprite()
 
 void VectorSprite::Update(const VectorSpriteInformation& information, u64 groupId)
 {
-	if(!information.VectorPath.IsLoaded())
+	if(!information.VectorPath.IsLoaded() || information.Width == 0 || information.Height == 0)
 	{
 		ClearMesh();
 		return;
@@ -37,11 +37,11 @@ void VectorSprite::Update(const VectorSpriteInformation& information, u64 groupI
 
 	GUIVectorSpriteAtlas& vectorSpriteAtlas = GetGUIManager().GetVectorSpriteAtlas();
 
-	SPtr<GUIVectorSpriteAtlasAllocation> spriteAtlasAllocation = vectorSpriteAtlas.Allocate(*information.VectorPath, vectorGraphicsSettings);
-	if(!B3D_ENSURE(spriteAtlasAllocation))
+	mSpriteAtlasAllocation = vectorSpriteAtlas.Allocate(*information.VectorPath, vectorGraphicsSettings);
+	if(!B3D_ENSURE(mSpriteAtlasAllocation))
 		return;
 
-	HSpriteTexture image = spriteAtlasAllocation->Image;
+	HSpriteTexture image = mSpriteAtlasAllocation->Image;
 
 	SpriteRenderElementData& renderElementData = mCachedRenderElements[0];
 	if(renderElementData.QuadCount != 1)
@@ -82,6 +82,7 @@ void VectorSprite::Update(const VectorSpriteInformation& information, u64 groupI
 void VectorSprite::ClearMesh()
 {
 	mCachedRenderElements.clear();
+	mSpriteAtlasAllocation = nullptr;
 	UpdateBounds();
 }
 
@@ -100,12 +101,24 @@ GUIVectorSpriteAtlas::GUIVectorSpriteAtlas(const GUIVectorSpriteAtlasSettings& s
 	
 }
 
+GUIVectorSpriteAtlas::~GUIVectorSpriteAtlas()
+{
+	DestroyPendingReleasedAllocations();
+}
+
 SPtr<GUIVectorSpriteAtlasAllocation> GUIVectorSpriteAtlas::Allocate(const VectorPath& vectorPath, const VectorGraphicsSettings& settings)
 {
+	if(!EnsureMainThread())
+		return nullptr;
+
 	GUIVectorSpriteAtlasAllocation::Key key(vectorPath, settings);
 
-	if(auto found = mAllocations.find(key); found != mAllocations.end())
-		return found->second->shared_from_this();
+	{
+		Lock lock(mAllocationsMutex);
+
+		if(auto found = mAllocations.find(key); found != mAllocations.end())
+			return found->second->shared_from_this();
+	}
 
 	const Size2UI requestedSize = Size2UI((u32)settings.Size.Width, (u32)settings.Size.Height);
 	const bool useUniqueTexture = requestedSize.Width >= mSettings.UniqueAllocationSize || requestedSize.Height >= mSettings.UniqueAllocationSize;
@@ -120,7 +133,7 @@ SPtr<GUIVectorSpriteAtlasAllocation> GUIVectorSpriteAtlas::Allocate(const Vector
 		const HTexture texture = CreateOrFindTexture(requestedSize);
 
 		textureId = GetNextUniqueTextureId();
-		mAtlasLayoutTextures[textureId] = texture;
+		mUniqueTextures[textureId] = texture;
 
 		image = SpriteTexture::Create(Vector2::kZero, Vector2::kOne, texture);
 	}
@@ -135,7 +148,7 @@ SPtr<GUIVectorSpriteAtlasAllocation> GUIVectorSpriteAtlas::Allocate(const Vector
 		HTexture texture;
 		if(auto found = mAtlasLayoutTextures.find(layoutAllocation->PageId); found == mAtlasLayoutTextures.end())
 		{
-			texture = CreateOrFindTexture(requestedSize);
+			texture = CreateOrFindTexture(mAtlasLayout.GetSize());
 			mAtlasLayoutTextures[layoutAllocation->PageId] = texture;
 		}
 		else
@@ -160,17 +173,20 @@ SPtr<GUIVectorSpriteAtlasAllocation> GUIVectorSpriteAtlas::Allocate(const Vector
 		{
 			GUIVectorSpriteAtlas* owner = allocation->GetOwner();
 			owner->NotifyAllocationReleased(allocation);
-
-			B3DDelete(allocation);
 	});
 
-	mAllocations[key] = allocation;
+	{
+		Lock lock(mAllocationsMutex);
+		mAllocations[key] = allocation;
+	}
 
 	DirtySpriteInformation dirtySpriteInformation;
 	dirtySpriteInformation.Texture = image->GetTexture()->GetCore();
 	dirtySpriteInformation.Renderable = renderable;
 	dirtySpriteInformation.UVRegion = Rect2(image->GetOffset().X, image->GetOffset().Y, image->GetScale().X, image->GetScale().Y);
 	dirtySpriteInformation.Size = Size2UI(image->GetWidth(), image->GetHeight());
+
+	B3D_ASSERT(image->GetWidth() > 0 && image->GetHeight() > 0);
 
 	{
 		Lock lock(mDirtySpriteMutex);
@@ -183,14 +199,34 @@ SPtr<GUIVectorSpriteAtlasAllocation> GUIVectorSpriteAtlas::Allocate(const Vector
 
 void GUIVectorSpriteAtlas::NotifyAllocationReleased(GUIVectorSpriteAtlasAllocation* allocation)
 {
-	Lock lock(mFreeAllocationMutex);
+	Lock lock(mAllocationsMutex);
 	mFreeAllocations.push_back(allocation);
+			
+	B3D_ENSURE(mAllocations.erase(allocation->GetKey()) == 1);
 }
 
 void GUIVectorSpriteAtlas::Update()
 {
+	DestroyPendingReleasedAllocations();
+
+	const u64 currentFrameIndex = GetTime().GetCurrentFrameIndex();
+	for(auto it = mFreeTextureCache.begin(); it != mFreeTextureCache.end();)
 	{
-		Lock lock(mFreeAllocationMutex);
+		const u64 frameDelta = currentFrameIndex - it->second.LastUsedFrame;
+		if(frameDelta < mSettings.KeepUnusedTexturesFor)
+		{
+			++it;
+			continue;
+		}
+
+		it = mFreeTextureCache.erase(it);
+	}
+}
+
+void GUIVectorSpriteAtlas::DestroyPendingReleasedAllocations()
+{
+	{
+		Lock lock(mAllocationsMutex);
 
 		if(!mFreeAllocations.empty())
 			mFreeAllocations.swap(mFreeAllocationsTemp);
@@ -206,9 +242,10 @@ void GUIVectorSpriteAtlas::Update()
 				mAtlasLayout.RemoveElement(layoutAllocation.PageId, layoutAllocation.NodeId);
 
 				if(mAtlasLayout.IsPageEmpty(layoutAllocation.PageId))
+				{
 					mAtlasLayoutTextures.erase(layoutAllocation.PageId);
-
-				ReleaseTexture(entry->Image->GetTexture());
+					ReleaseTexture(entry->Image->GetTexture());
+				}
 			}
 			else
 			{
@@ -217,24 +254,11 @@ void GUIVectorSpriteAtlas::Update()
 
 				mUniqueTextures.erase(entry->mTextureId);
 			}
-			
-			B3D_ENSURE(mAllocations.erase(entry->GetKey()) == 1);
+
+			B3DDelete(entry);
 		}
 
 		mFreeAllocationsTemp.clear();
-	}
-
-	const u64 currentFrameIndex = GetTime().GetCurrentFrameIndex();
-	for(auto it = mFreeTextureCache.begin(); it != mFreeTextureCache.end();)
-	{
-		const u64 frameDelta = currentFrameIndex - it->second.LastUsedFrame;
-		if(frameDelta < mSettings.KeepUnusedTexturesFor)
-		{
-			++it;
-			continue;
-		}
-
-		it = mFreeTextureCache.erase(it);
 	}
 }
 
@@ -303,7 +327,7 @@ void GUIVectorSpriteAtlas::RenderDirtySprites()
 			ct::RenderTextureCreateInformation atlasTextureCreateInformation;
 			atlasTextureCreateInformation.ColorSurfaces[0].Texture = entry.Texture;
 
-			atlasRenderTexture = ct::RenderTexture::Create(renderTextureCreateInformation);
+			atlasRenderTexture = ct::RenderTexture::Create(atlasTextureCreateInformation);
 			atlasRenderTextures[entry.Texture.get()] = atlasRenderTexture;
 		}
 

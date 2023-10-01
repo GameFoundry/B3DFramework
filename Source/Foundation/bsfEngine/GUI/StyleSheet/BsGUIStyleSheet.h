@@ -4,6 +4,7 @@
 
 #include "BsPrerequisites.h"
 #include "GUI/BsGUIContent.h"
+#include "GUI/BsGUIElement.h"
 #include "Image/BsColor.h"
 #include "Resources/BsResource.h"
 #include "Utility/BsBitfield.h"
@@ -113,7 +114,7 @@ namespace bs
 	{
 		u32 Width = 0; /**< Size of the border in pixels. Zero means no border. */
 		Color Color; /**< Color of the border. */
-		GUIBorderElementStyle Style = GUIBorderElementStyle::None; /**< Style how to render the border. */
+		GUIBorderElementStyle Style = GUIBorderElementStyle::Solid; /**< Style how to render the border. */
 	};
 
 	/** Style for a particular state of a GUI element (e.g. normal, hover, focused, disabled, etc. */
@@ -152,6 +153,9 @@ namespace bs
 		static constexpr u32 kPropertyDWordCount = Math::DivideAndRoundUp((u32)GUIStyleSheetPropertyType::Count, (u32)sizeof(u32) * 8);
 		TBitfield<InlineContainerAllocator<kPropertyDWordCount>> OverridenProperties; /**< Bit for each property that is different than the default will be set. Used for determining which properties to override from parent style. */
 
+		/**	Default style that may be used when no other is available. */
+		static SPtr<GUIStyleSheetStateStyle> kDefault;
+
 		GUIStyleSheetStateStyle();
 
 		/** Overrides all the properties of this style with the set properties from @p other style. */
@@ -175,7 +179,7 @@ namespace bs
 		const GUIStyleSheetStateStyle* FindStateStyle(const StringView& name) const;
 
 		/** Returns the state with the given GUI element state flags. Note this may be a combination of internal states depending on the provided flags. */
-		SPtr<GUIStyleSheetStateStyle> FindStateStyle(GUIElementStateFlags state);
+		SPtr<GUIStyleSheetStateStyle> FindStateStyle(GUIElementStateFlags state) const;
 
 		/** Assigns state information to a state with the specified name. If a state with the specified name the method returns false, otherwise true. */
 		bool FindAndSetStateStyle(const StringView& name, const GUIStyleSheetStateStyle& stateStyle);
@@ -186,7 +190,7 @@ namespace bs
 		/**	Default style that may be used when no other is available. */
 		static SPtr<GUIStyleSheetStyle> kDefault;
 	private:
-		UnorderedMap<GUIElementStateFlags, SPtr<GUIStyleSheetStateStyle>> mCachedStateStyles;
+		mutable UnorderedMap<GUIElementStateFlags, SPtr<GUIStyleSheetStateStyle>> mCachedStateStyles;
 	};
 
 	/**
@@ -218,7 +222,7 @@ namespace bs
 		 *							properties defined in the global element style.
 		 * @return					Style that should be used to rendering the provided GUI element.
 		 */
-		SPtr<GUIStyleSheetStyle> FindStyle(const String& elementType, const String& elementId);
+		SPtr<GUIStyleSheetStyle> FindStyle(const String& elementType, const String& elementId) const;
 	private:
 		friend class GUIStyleSheetParser;
 
@@ -255,7 +259,7 @@ namespace bs
 		UnorderedMap<String, GUIStyleSheetStyle> mElementStyles;
 		UnorderedMap<String, GUIStyleSheetStyle> mIdStyles;
 
-		UnorderedMap<CachedStateStyleKey, SPtr<GUIStyleSheetStyle>, CachedStateStyleKey::Hash> mCachedStyles;
+		mutable UnorderedMap<CachedStateStyleKey, SPtr<GUIStyleSheetStyle>, CachedStateStyleKey::Hash> mCachedStyles;
 
 		/************************************************************************/
 		/* 								SERIALIZATION                      		*/

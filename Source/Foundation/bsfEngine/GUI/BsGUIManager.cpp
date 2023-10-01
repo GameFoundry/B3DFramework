@@ -1573,6 +1573,9 @@ namespace bs { namespace ct
 	/** If enabled, regions of the GUI that are being redrawn will be drawn in a special debug material so they are easily noticeable. */
 	static constexpr bool kEnableGUIRegionDebugDrawing = false;
 
+	/** If true, all draw regions will be redrawn every frame, regardless if dirty or not. */
+	static constexpr bool kRedrawAllRegions = true;
+
 GUIRenderer::GUIRenderer()
 	: RendererExtension(RenderLocation::Overlay, 10)
 {}
@@ -1757,7 +1760,7 @@ void GUIRenderer::Render(const Camera& camera, const RendererViewContext& viewCo
 		}
 	};
 
-	if(!rebuildCachedRenderTexture)
+	if(!rebuildCachedRenderTexture && !kRedrawAllRegions)
 	{
 		fnDrawRegions(cameraRenderData.LastFrameDirtyDebugDrawRegions, false);
 		fnDrawRegions(cameraRenderData.DirtyRegions, true);

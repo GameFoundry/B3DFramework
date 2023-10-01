@@ -9,6 +9,8 @@
 #include "GUI/BsGUIMouseEvent.h"
 #include "GUI/BsGUICommandEvent.h"
 #include "GUI/BsGUIHelper.h"
+#include "StyleSheet/BsGUIStyleSheet.h"
+#include "VectorGraphics/BsVectorGraphics.h"
 
 using namespace bs;
 
@@ -16,6 +18,7 @@ GUIButtonBase::GUIButtonBase(const String& styleName, const GUIContent& content,
 	: GUIElement(styleName, dimensions, options), mContent(content)
 {
 	mImageSprite = B3DNew<ImageSprite>();
+	mBackgroundSprite = B3DNew<VectorSprite>();
 	mTextSprite = B3DNew<TextSprite>();
 
 	mImageDesc.AnimationStartTime = GetTime().GetTime();
@@ -28,6 +31,7 @@ GUIButtonBase::~GUIButtonBase()
 {
 	B3DDelete(mTextSprite);
 	B3DDelete(mImageSprite);
+	B3DDelete(mBackgroundSprite);
 
 	if(mContentImageSprite != nullptr)
 		B3DDelete(mContentImageSprite);
@@ -64,22 +68,38 @@ bool GUIButtonBase::IsOnInternal() const
 
 void GUIButtonBase::UpdateRenderElements()
 {
-	mImageDesc.Width = mLayoutData.Area.Width;
-	mImageDesc.Height = mLayoutData.Area.Height;
+	const bool isUsingStyleSheets = GetStyleSheetElement() != nullptr;
+	if(isUsingStyleSheets)
+	{
+		mBackgroundSpriteInformation.Width = mLayoutData.Area.Width;
+		mBackgroundSpriteInformation.Height = mLayoutData.Area.Height;
 
-	const HSpriteTexture& activeTex = GetActiveTexture();
-	if(SpriteTexture::CheckIsLoaded(activeTex))
-		mImageDesc.Image = activeTex;
+		mBackgroundSpriteInformation.VectorPath = CreateBackgroundVectorPath(Size2UI(mLayoutData.Area.Width, mLayoutData.Area.Height), *mStyleSheetStateStyle);
+		mBackgroundSpriteInformation.Color = GetTint();
+		mBackgroundSpriteInformation.Color.A *= mStyleSheetStateStyle->Opacity;
+
+		mBackgroundSprite->Update(mBackgroundSpriteInformation, (u64)GetParentWidget());
+	}
 	else
-		mImageDesc.Image = nullptr;
+	{
+		mImageDesc.Width = mLayoutData.Area.Width;
+		mImageDesc.Height = mLayoutData.Area.Height;
 
-	mImageDesc.BorderLeft = GetStyle()->Border.Left;
-	mImageDesc.BorderRight = GetStyle()->Border.Right;
-	mImageDesc.BorderTop = GetStyle()->Border.Top;
-	mImageDesc.BorderBottom = GetStyle()->Border.Bottom;
-	mImageDesc.Color = GetTint();
+		const HSpriteTexture& activeTex = GetActiveTexture();
+		if(SpriteTexture::CheckIsLoaded(activeTex))
+			mImageDesc.Image = activeTex;
+		else
+			mImageDesc.Image = nullptr;
 
-	mImageSprite->Update(mImageDesc, (u64)GetParentWidget());
+		mImageDesc.BorderLeft = GetStyle()->Border.Left;
+		mImageDesc.BorderRight = GetStyle()->Border.Right;
+		mImageDesc.BorderTop = GetStyle()->Border.Top;
+		mImageDesc.BorderBottom = GetStyle()->Border.Bottom;
+		mImageDesc.Color = GetTint();
+
+		mImageSprite->Update(mImageDesc, (u64)GetParentWidget());
+	}
+
 	mTextSprite->Update(GetTextDesc(), (u64)GetParentWidget());
 
 	if(mContentImageSprite != nullptr)
@@ -120,7 +140,11 @@ void GUIButtonBase::UpdateRenderElements()
 	// Populate GUI render elements from the sprites
 	{
 		using T = GUIRenderElementHelper;
-		T::Populate({ T::SpriteInfo(mImageSprite, 1), T::SpriteInfo(mTextSprite), T::SpriteInfo(mContentImageSprite) }, mRenderElements);
+
+		if(isUsingStyleSheets)
+			T::Populate({ T::SpriteInfo(mBackgroundSprite, 1), T::SpriteInfo(mTextSprite), T::SpriteInfo(mContentImageSprite) }, mRenderElements);
+		else
+			T::Populate({ T::SpriteInfo(mImageSprite, 1), T::SpriteInfo(mTextSprite), T::SpriteInfo(mContentImageSprite) }, mRenderElements);
 	}
 
 	GUIElement::UpdateRenderElements();
@@ -164,14 +188,18 @@ void GUIButtonBase::FillBuffer(
 	u32 vertexStride = sizeof(Vector2) * 2;
 	u32 indexStride = sizeof(u32);
 
-	u32 textSpriteIdx = mImageSprite->GetRenderElementCount();
+	const bool isUsingStyleSheets = GetStyleSheetElement() != nullptr;
+	u32 textSpriteIdx = isUsingStyleSheets ? mBackgroundSprite->GetRenderElementCount() : mImageSprite->GetRenderElementCount();
 	u32 contentImgSpriteIdx = textSpriteIdx + mTextSprite->GetRenderElementCount();
 
 	if(renderElementIdx < textSpriteIdx)
 	{
 		Vector2I imageOffset = Vector2I(mLayoutData.Area.X, mLayoutData.Area.Y) + offset;
 
-		mImageSprite->FillBuffer(vertices, uvs, indices, vertexOffset, indexOffset, maxNumVerts, maxNumIndices, vertexStride, indexStride, renderElementIdx, imageOffset, mLayoutData.GetLocalClipRect());
+		if(isUsingStyleSheets)
+			mBackgroundSprite->FillBuffer(vertices, uvs, indices, vertexOffset, indexOffset, maxNumVerts, maxNumIndices, vertexStride, indexStride, renderElementIdx, imageOffset, mLayoutData.GetLocalClipRect());
+		else
+			mImageSprite->FillBuffer(vertices, uvs, indices, vertexOffset, indexOffset, maxNumVerts, maxNumIndices, vertexStride, indexStride, renderElementIdx, imageOffset, mLayoutData.GetLocalClipRect());
 
 		return;
 	}
@@ -465,3 +493,27 @@ Color GUIButtonBase::GetActiveTextColor() const
 
 	return GetStyle()->Normal.TextColor;
 }
+
+HVectorPath GUIButtonBase::CreateBackgroundVectorPath(const Size2UI& size, const GUIStyleSheetStateStyle& style)
+{
+	HVectorPath path = VectorPath::Create();
+
+	const Rect2 fillArea = Rect2(0.0f, 0.0f, (float)size.Width, (float)size.Height);
+
+	path->DrawRoundedRectangle(fillArea, (float)style.BorderTopLeftRadius, (float)style.BorderTopRightRadius, (float)style. BorderBottomLeftRadius, (float)style.BorderTopRightRadius)
+		.ClosePath()
+		.SetFillPaint(style.BackgroundColor)
+		.DrawFill();
+
+	// TODO - Not supporting separate border styles at the moment. See nvgRoundedRectVarying for implementation. Also ideally support elliptical corners
+	const bool drawBorder = style.BorderLeft.Width > 0 && style.BorderLeft.Style != GUIBorderElementStyle::None;
+	if(drawBorder)
+	{
+		path->SetStrokePaint(style.BorderLeft.Color)
+			.SetStrokeWidth((float)style.BorderLeft.Width)
+			.DrawStroke();
+	}
+
+	return path;
+}
+

@@ -3,13 +3,14 @@
 #include "BsVectorGraphics.h"
 #include "BsNVGVectorGraphics.h"
 #include "Private/RTTI/BsVectorGraphicsRTTI.h"
+#include "Resources/BsResources.h"
 
 using namespace bs;
 
 namespace bs
 {
 	VectorPath::VectorPath()
-		: Resource(false)
+		: Resource(false, "VectorPath")
 	{ }
 
 	VectorPath& VectorPath::SetDrawCursor(const Vector2& cursor)
@@ -244,6 +245,22 @@ namespace bs
 	SPtr<ct::VectorPathRenderable> VectorPath::CreateRenderable(const VectorGraphicsSettings& settings) const
 	{
 		return B3DMakeShared<ct::NVGVectorPathRenderable>(*this, settings);
+	}
+
+	SPtr<VectorPath> VectorPath::CreateShared()
+	{
+		SPtr<VectorPath> newVectorPath = B3DMakeCoreFromExisting<VectorPath>(new(B3DAllocate<VectorPath>()) VectorPath());
+		newVectorPath->SetShared(newVectorPath);
+		newVectorPath->Initialize();
+
+		return newVectorPath;
+	}
+
+	HVectorPath VectorPath::Create()
+	{
+		const SPtr<VectorPath> newVectorPath = CreateShared();
+
+		return B3DStaticResourceCast<VectorPath>(GetResources().CreateResourceHandle(newVectorPath));
 	}
 
 	RTTITypeBase* VectorPath::GetRttiStatic()

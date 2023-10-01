@@ -594,6 +594,12 @@ namespace bs
 		/** Creates a renderable object that can be used for rasterizing the vector path into pixels. */
 		SPtr<ct::VectorPathRenderable> CreateRenderable(const VectorGraphicsSettings& settings) const;
 
+		/** Creates a new empty vector path. */
+		static SPtr<VectorPath> CreateShared();
+
+		/** Creates a new empty vector path. */
+		static HVectorPath Create();
+
 	private:
 		VectorPathState mCurrentState;
 		Vector<VectorPathCommand> mCommands;

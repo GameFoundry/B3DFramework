@@ -9,7 +9,10 @@
 #include "VectorGraphics/BsVectorGraphics.h"
 
 namespace bs
-{namespace ct
+{
+	class GUIVectorSpriteAtlasAllocation;
+
+	namespace ct
 	{
 		class VectorPathRenderable;
 	}
@@ -66,6 +69,8 @@ namespace bs
 		Array<Vector2, 4> mPositionBuffer;
 		Array<Vector2, 4> mUVBuffer;
 		Array<u32, 6> mIndexBuffer;
+
+		SPtr<GUIVectorSpriteAtlasAllocation> mSpriteAtlasAllocation;
 	};
 
 	class GUIVectorSpriteAtlas;
@@ -127,6 +132,7 @@ namespace bs
 	{
 	public:
 		GUIVectorSpriteAtlas(const GUIVectorSpriteAtlasSettings& settings);
+		~GUIVectorSpriteAtlas();
 
 		/**
 		 * Allocates a new sprite entry in the atlas. If the entry with the same path & settings combination already exists, an existing entry
@@ -158,6 +164,9 @@ namespace bs
 
 		/** Notifies the system that the specified texture ID is no longer being used. */
 		void ReleaseTextureId(u32 id);
+
+		/** Cleans up any allocations that were released, but haven't yet been destroyed. */
+		void DestroyPendingReleasedAllocations();
 
 		/** Information about a texture that is no longer used, but we're keeping around in case it gets re-used. */
 		struct FreeTextureInformation
@@ -198,7 +207,7 @@ namespace bs
 		UnorderedMap<u32, HTexture> mAtlasLayoutTextures;
 		UnorderedMap<u32, HTexture> mUniqueTextures;
 
-		Mutex mFreeAllocationMutex;
+		Mutex mAllocationsMutex;
 		Vector<GUIVectorSpriteAtlasAllocation*> mFreeAllocations; // Allocations recorded here in a thread safe manner
 		Vector<GUIVectorSpriteAtlasAllocation*> mFreeAllocationsTemp; // Temporary buffer when iterating over the array on the main thread
 

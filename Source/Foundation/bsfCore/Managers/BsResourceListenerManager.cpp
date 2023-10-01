@@ -13,7 +13,7 @@ using namespace bs;
 #if B3D_DEBUG
 void throwIfNotSimThread()
 {
-	if(B3D_CURRENT_THREAD_ID != CoreApplication::Instance().GetSimThreadId())
+	if(B3D_CURRENT_THREAD_ID != CoreApplication::Instance().GetMainThreadId())
 		B3D_EXCEPT(InternalErrorException, "This method can only be accessed from the simulation thread.");
 }
 

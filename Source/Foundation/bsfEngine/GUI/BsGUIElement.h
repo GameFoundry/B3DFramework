@@ -38,6 +38,21 @@ namespace bs
 	typedef Flags<GUIElementOption> GUIElementOptions;
 	B3D_FLAGS_OPERATORS(GUIElementOption)
 
+	/** Flags that determine the state that a GUI element may be in. */
+	enum class GUIElementStateFlag
+	{
+		Normal = 0,
+		Hover = 1 << 0,
+		Active = 1 << 1,
+		Focused = 1 << 2,
+		Disabled = 1 << 3,
+		Checked = 1 << 4,
+		Count = 5
+	};
+
+	using GUIElementStateFlags = Flags<GUIElementStateFlag>;
+	B3D_FLAGS_OPERATORS(GUIElementStateFlag)
+
 	/** Contains information about a single renderable element within a GUIElement. */
 	struct GUIRenderElement : SpriteRenderElement
 	{
@@ -322,16 +337,25 @@ namespace bs
 		/**	Returns the tint that is applied to the GUI element. */
 		Color GetTint() const;
 
+		/** Transitions the GUI element into a new state by adding a state flag. */
+		void AddStateFlag(GUIElementStateFlag flag);
+
+		/** Transitions the GUI element into a new state by removing a state flag. */
+		void RemoveStateFlag(GUIElementStateFlag flag);
+
 		bool mIsDestroyed = false;
 		GUIElementOptions mOptionFlags;
+		GUIElementStateFlags mStateFlags = GUIElementStateFlag::Normal;
 		Rect2I mClippedBounds;
 		TInlineArray<GUIRenderElement, 4> mRenderElements;
 
+		SPtr<const GUIStyleSheetStyle> mStyleSheetStyle;
+		SPtr<const GUIStyleSheetStateStyle> mStyleSheetStateStyle;
 	private:
 		static const Color kDisabledColor;
 
 		const GUIElementStyle* mStyle;
-		SPtr<const GUIStyleSheetStyle> mStyleSheetStyle;
+
 		String mStyleName;
 
 		SPtr<GUIContextMenu> mContextMenu;
