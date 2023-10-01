@@ -45,6 +45,9 @@ namespace bs
 		/** Extends this rectangle so that the provided rectangle is completely contained within it. */
 		void Encapsulate(const Rect2& other);
 
+		/** Reduces the size of the rectangle equally in all directions, keeping the current center point. */
+		void Inset(float amount);
+
 		/** Clips current rectangle so that it does not overlap the provided rectangle. */
 		void Clip(const Rect2& clipRect);
 

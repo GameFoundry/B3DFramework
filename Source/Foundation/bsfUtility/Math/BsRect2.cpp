@@ -71,6 +71,15 @@ void Rect2::Encapsulate(const Rect2& other)
 		Height = myBottom - Y;
 }
 
+void Rect2::Inset(float amount)
+{
+	Width = Math::Max(0.0f, Width - amount * 2.0f);
+	Height = Math::Max(0.0f, Height - amount * 2.0f);
+
+	X += amount;
+	Y += amount;
+}
+
 void Rect2::Clip(const Rect2& clipRect)
 {
 	float newLeft = std::max(X, clipRect.X);

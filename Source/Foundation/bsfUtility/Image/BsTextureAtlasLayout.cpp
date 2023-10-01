@@ -195,13 +195,15 @@ Optional<TreeTextureAtlasLayout::Allocation> TreeTextureAtlasLayout::AddElement(
 
 	u32 bestFreeNodeId = ~0u;
 	Page* freePage = nullptr;
+	u32 freePageIndex = ~0u;
 
-	for(auto& page : mPages)
+	for(u32 pageIndex = 0; pageIndex < (u32)mPages.size(); pageIndex++)
 	{
-		bestFreeNodeId = FindBestFreeNode(page, alignedSize);
+		bestFreeNodeId = FindBestFreeNode(mPages[pageIndex], alignedSize);
 		if(bestFreeNodeId != ~0u)
 		{
-			freePage = &page;
+			freePage = &mPages[pageIndex];
+			freePageIndex = pageIndex;
 			break;
 		}
 	}
@@ -209,44 +211,43 @@ Optional<TreeTextureAtlasLayout::Allocation> TreeTextureAtlasLayout::AddElement(
 	if(freePage == nullptr)
 	{
 		const u32 pageCount = (u32)mPages.size();
-		if(pageCount == mSettings.MaximumPageCount)
+		if(mSettings.MaximumPageCount > 0 && pageCount == mSettings.MaximumPageCount)
 			return {}; // No more room
 
 		mPages.Add(AllocatePage());
 		freePage = &mPages.back();
+		freePageIndex = (u32)mPages.size() - 1;
 		bestFreeNodeId = FindBestFreeNode(*freePage, alignedSize);
 	}
 
 	if(bestFreeNodeId == ~0u)
 		return {};
 
-	Node& bestFreeNode = mNodes[bestFreeNodeId]; 
-
-	const Rect2I allocatedArea(bestFreeNode.Area.X, bestFreeNode.Area.Y, alignedSize.Width, alignedSize.Height);
-	const NodeSplitResult splitResult = Split(bestFreeNode, alignedSize);
-	const NodeOrientation bestFreeNodeFlippedOrientation = bestFreeNode.Orientation == NodeOrientation::Horizontal ? NodeOrientation::Vertical : NodeOrientation::Horizontal;
+	const Rect2I allocatedArea(mNodes[bestFreeNodeId].Area.X, mNodes[bestFreeNodeId].Area.Y, alignedSize.Width, alignedSize.Height);
+	const NodeSplitResult splitResult = Split(mNodes[bestFreeNodeId], alignedSize);
+	const NodeOrientation bestFreeNodeFlippedOrientation = mNodes[bestFreeNodeId].Orientation == NodeOrientation::Horizontal ? NodeOrientation::Vertical : NodeOrientation::Horizontal;
 
 	u32 allocatedNodeId = ~0u;
 	u32 smallerLeftoverNodeId = ~0u;
 	u32 largerLeftoverNodeId = ~0u;
 
-	if(splitResult.LargerAreaOrientation == bestFreeNode.Orientation)
+	if(splitResult.LargerAreaOrientation == mNodes[bestFreeNodeId].Orientation)
 	{
 		// Add larger node as sibling to the best fit node
 		if(splitResult.LargerLeftoverArea != Rect2I::kEmpty)
 		{
-			const u32 nextSiblingId = bestFreeNode.NextSiblingId;
+			const u32 nextSiblingId = mNodes[bestFreeNodeId].NextSiblingId;
 			largerLeftoverNodeId = AllocateNode();
 
 			Node& largerLeftoverNode = mNodes[largerLeftoverNodeId];
-			largerLeftoverNode.ParentNodeId = bestFreeNode.ParentNodeId;
+			largerLeftoverNode.ParentNodeId = mNodes[bestFreeNodeId].ParentNodeId;
 			largerLeftoverNode.NextSiblingId = nextSiblingId;
 			largerLeftoverNode.PreviousSiblingId = bestFreeNodeId;
 			largerLeftoverNode.Area = splitResult.LargerLeftoverArea;
 			largerLeftoverNode.State = NodeState::Free;
-			largerLeftoverNode.Orientation = bestFreeNode.Orientation;
+			largerLeftoverNode.Orientation = mNodes[bestFreeNodeId].Orientation;
 
-			bestFreeNode.NextSiblingId = largerLeftoverNodeId;
+			mNodes[bestFreeNodeId].NextSiblingId = largerLeftoverNodeId;
 			if(nextSiblingId != ~0u)
 				mNodes[nextSiblingId].PreviousSiblingId = largerLeftoverNodeId;
 		}
@@ -254,7 +255,7 @@ Optional<TreeTextureAtlasLayout::Allocation> TreeTextureAtlasLayout::AddElement(
 		// Split best fit node
 		if(splitResult.SmallerLeftoverArea != Rect2I::kEmpty)
 		{
-			bestFreeNode.State = NodeState::Container;
+			mNodes[bestFreeNodeId].State = NodeState::Container;
 
 			allocatedNodeId = AllocateNode();
 			smallerLeftoverNodeId = AllocateNode();
@@ -278,13 +279,13 @@ Optional<TreeTextureAtlasLayout::Allocation> TreeTextureAtlasLayout::AddElement(
 		else
 		{
 			allocatedNodeId = bestFreeNodeId;
-			bestFreeNode.State = NodeState::Allocated;
-			bestFreeNode.Area = allocatedArea;
+			mNodes[bestFreeNodeId].State = NodeState::Allocated;
+			mNodes[bestFreeNodeId].Area = allocatedArea;
 		}
 	}
 	else
 	{
-		bestFreeNode.State = NodeState::Container;
+		mNodes[bestFreeNodeId].State = NodeState::Container;
 
 		if(splitResult.LargerLeftoverArea != Rect2I::kEmpty)
 		{
@@ -305,26 +306,26 @@ Optional<TreeTextureAtlasLayout::Allocation> TreeTextureAtlasLayout::AddElement(
 
 			Node& containerNode = mNodes[containerNodeId];
 			containerNode.ParentNodeId = bestFreeNodeId;
-			containerNode.PreviousSiblingId = largerLeftoverNodeId;
+			containerNode.NextSiblingId = largerLeftoverNodeId;
 			containerNode.State = NodeState::Container;
 			containerNode.Orientation = bestFreeNodeFlippedOrientation;
 
 			if(largerLeftoverNodeId != ~0u)
-				mNodes[largerLeftoverNodeId].NextSiblingId = containerNodeId;
+				mNodes[largerLeftoverNodeId].PreviousSiblingId = containerNodeId;
 
 			Node& allocatedNode = mNodes[allocatedNodeId];
 			allocatedNode.ParentNodeId = containerNodeId;
 			allocatedNode.NextSiblingId = smallerLeftoverNodeId;
 			allocatedNode.Area = allocatedArea;
 			allocatedNode.State = NodeState::Allocated;
-			allocatedNode.Orientation = bestFreeNode.Orientation;
+			allocatedNode.Orientation = mNodes[bestFreeNodeId].Orientation;
 
 			Node& smallerLeftoverNode = mNodes[smallerLeftoverNodeId];
 			smallerLeftoverNode.ParentNodeId = containerNodeId;
 			smallerLeftoverNode.PreviousSiblingId = allocatedNodeId;
 			smallerLeftoverNode.Area = splitResult.SmallerLeftoverArea;
 			smallerLeftoverNode.State = NodeState::Free;
-			smallerLeftoverNode.Orientation = bestFreeNode.Orientation;
+			smallerLeftoverNode.Orientation = mNodes[bestFreeNodeId].Orientation;
 		}
 		else
 		{
@@ -349,8 +350,9 @@ Optional<TreeTextureAtlasLayout::Allocation> TreeTextureAtlasLayout::AddElement(
 		RegisterFreeNode(*freePage, largerLeftoverNodeId, Size2UI(splitResult.LargerLeftoverArea.Width, splitResult.LargerLeftoverArea.Height));
 
 	Allocation output;
+	output.PageId = freePageIndex;
 	output.NodeId = allocatedNodeId;
-	output.Position = Vector2I(bestFreeNode.Area.X, bestFreeNode.Area.Y);
+	output.Position = Vector2I(mNodes[bestFreeNodeId].Area.X, mNodes[bestFreeNodeId].Area.Y);
 
 	return output;
 }
@@ -379,7 +381,7 @@ void TreeTextureAtlasLayout::RemoveElement(u32 pageId, u32 nodeId)
 				MergeWithNextSibling(currentNodeId);
 
 			const u32 previousSiblingId = currentNode.PreviousSiblingId;
-			if(previousSiblingId != ~0u)
+			if(previousSiblingId != ~0u && mNodes[previousSiblingId].State == NodeState::Free)
 			{
 				MergeWithNextSibling(previousSiblingId);
 				currentNodeId = previousSiblingId;
@@ -450,20 +452,18 @@ void TreeTextureAtlasLayout::Grow(const Size2UI& newSize)
 
 	for(auto& page : mPages)
 	{
-		Node& rootNode = mNodes[page.RootNodeId];
-
 		// Just the root node, we can resize it directly
-		if(rootNode.State == NodeState::Free && rootNode.Area.Width == oldSize.Width && rootNode.Area.Height == oldSize.Height)
+		if(mNodes[page.RootNodeId].State == NodeState::Free && mNodes[page.RootNodeId].Area.Width == oldSize.Width && mNodes[page.RootNodeId].Area.Height == oldSize.Height)
 		{
-			B3D_ENSURE(rootNode.Area.Width == oldSize.Width && rootNode.Area.Height == oldSize.Height);
-			rootNode.Area.Width = newSize.Width;
-			rootNode.Area.Height = newSize.Height;
+			B3D_ENSURE(mNodes[page.RootNodeId].Area.Width == oldSize.Width && mNodes[page.RootNodeId].Area.Height == oldSize.Height);
+			mNodes[page.RootNodeId].Area.Width = newSize.Width;
+			mNodes[page.RootNodeId].Area.Height = newSize.Height;
 
 			continue;
 		}
 
-		const bool isGrowingInRootDirection = rootNode.Orientation == NodeOrientation::Horizontal ? deltaX > 0 : deltaY > 0;
-		const bool isGrowingInFlippedRootDirection = rootNode.Orientation == NodeOrientation::Horizontal ? deltaY > 0 : deltaX > 0;
+		const bool isGrowingInRootDirection = mNodes[page.RootNodeId].Orientation == NodeOrientation::Horizontal ? deltaX > 0 : deltaY > 0;
+		const bool isGrowingInFlippedRootDirection = mNodes[page.RootNodeId].Orientation == NodeOrientation::Horizontal ? deltaY > 0 : deltaX > 0;
 
 		// Find last sibling and either expend it (if free), or add a new free sibling
 		if(isGrowingInRootDirection)
@@ -472,41 +472,40 @@ void TreeTextureAtlasLayout::Grow(const Size2UI& newSize)
 			while(mNodes[currentNodeId].NextSiblingId != ~0u)
 				currentNodeId = mNodes[currentNodeId].NextSiblingId;
 
-			Node& currentNode = mNodes[currentNodeId];
-			if(currentNode.State == NodeState::Free)
+			if(mNodes[currentNodeId].State == NodeState::Free)
 			{
-				if(rootNode.Orientation == NodeOrientation::Horizontal)
-					currentNode.Area.Width += deltaX;
+				if(mNodes[page.RootNodeId].Orientation == NodeOrientation::Horizontal)
+					mNodes[currentNodeId].Area.Width += deltaX;
 				else
-					currentNode.Area.Height += deltaY;
+					mNodes[currentNodeId].Area.Height += deltaY;
 			}
 			else
 			{
 				Rect2I newArea;
 
-				if(rootNode.Orientation == NodeOrientation::Horizontal)
+				if(mNodes[page.RootNodeId].Orientation == NodeOrientation::Horizontal)
 				{
-					newArea.X = currentNode.Area.X + (i32)currentNode.Area.Width;
-					newArea.Y = currentNode.Area.Y;
+					newArea.X = mNodes[currentNodeId].Area.X + (i32)mNodes[currentNodeId].Area.Width;
+					newArea.Y = mNodes[currentNodeId].Area.Y;
 					newArea.Width = deltaX;
-					newArea.Height = currentNode.Area.Height;
+					newArea.Height = mNodes[currentNodeId].Area.Height;
 				}
 				else
 				{
-					newArea.X = currentNode.Area.X;
-					newArea.Y = currentNode.Area.Y + (i32)currentNode.Area.Height;
-					newArea.Width = currentNode.Area.Width;
+					newArea.X = mNodes[currentNodeId].Area.X;
+					newArea.Y = mNodes[currentNodeId].Area.Y + (i32)mNodes[currentNodeId].Area.Height;
+					newArea.Width = mNodes[currentNodeId].Area.Width;
 					newArea.Height = deltaY;
 				}
 
 				const u32 newSiblingNodeId = AllocateNode();
-				currentNode.NextSiblingId = newSiblingNodeId;
+				mNodes[currentNodeId].NextSiblingId = newSiblingNodeId;
 
 				Node& newSiblingNode = mNodes[newSiblingNodeId];
 				newSiblingNode.PreviousSiblingId = currentNodeId;
 				newSiblingNode.Area = newArea;
 				newSiblingNode.State = NodeState::Free;
-				newSiblingNode.Orientation = currentNode.Orientation;
+				newSiblingNode.Orientation = mNodes[currentNodeId].Orientation;
 
 				RegisterFreeNode(page, newSiblingNodeId, Size2UI(newArea.Width, newArea.Height));
 			}
@@ -521,7 +520,7 @@ void TreeTextureAtlasLayout::Grow(const Size2UI& newSize)
 			const u32 oldRootId = page.RootNodeId;
 			page.RootNodeId = newRootNodeId;
 
-			const NodeOrientation newRootOrientation = rootNode.Orientation == NodeOrientation::Horizontal ? NodeOrientation::Vertical : NodeOrientation::Horizontal;
+			const NodeOrientation newRootOrientation = mNodes[page.RootNodeId].Orientation == NodeOrientation::Horizontal ? NodeOrientation::Vertical : NodeOrientation::Horizontal;
 
 			Rect2I newArea;
 			if(newRootOrientation == NodeOrientation::Horizontal)
@@ -575,7 +574,7 @@ u32 TreeTextureAtlasLayout::FindBestFreeNode(Page& page, const Size2UI& size)
 	const u32 bestBucketIndex = GetFreeNodeBucketForSize(page, size);
 	const bool useWorstFit = bestBucketIndex == (u32)(page.FreeNodeBuckets.size() - 1); // Worst fit for bucket containing large objects
 
-	for(u32 bucketIndex = bestBucketIndex; bucketIndex < (u32)(page.FreeNodeBuckets.size() - 1); ++bucketIndex)
+	for(u32 bucketIndex = bestBucketIndex; bucketIndex < (u32)page.FreeNodeBuckets.size(); ++bucketIndex)
 	{
 		u32 bestScore = useWorstFit ? 0 : std::numeric_limits<u32>::max();
 		u32 bestNodeIndex = ~0u;
@@ -594,8 +593,8 @@ u32 TreeTextureAtlasLayout::FindBestFreeNode(Page& page, const Size2UI& size)
 				continue;
 			}
 
-			const i32 deltaX = (i32)size.Width - (i32)node.Area.Width;
-			const i32 deltaY = (i32)size.Height - (i32)node.Area.Height;
+			const i32 deltaX = (i32)node.Area.Width - (i32)size.Width;
+			const i32 deltaY = (i32)node.Area.Height - (i32)size.Height;
 
 			if(deltaX < 0 || deltaY < 0)
 				continue;
