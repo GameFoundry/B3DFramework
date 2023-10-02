@@ -47,7 +47,9 @@ namespace bs
 		BorderStyle, // none, solid
 		TextAlign, // left, center, right
 		VerticalAlign, // top, middle, bottom
+		WordWrap, // none, wrap-word
 		PseudoClassSelector, // active, hover, focus, checked, disabled
+		None, // none
 
 		EndOfStream
 	};

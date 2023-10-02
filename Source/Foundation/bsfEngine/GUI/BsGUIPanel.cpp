@@ -40,8 +40,8 @@ LayoutSizeRange GUIPanel::CalculateLayoutSizeRange() const
 			sizeRange.Min.X = sizeRange.Min.Y = 0;
 		}
 
-		u32 paddingX = child->GetPadding().Left + child->GetPadding().Right;
-		u32 paddingY = child->GetPadding().Top + child->GetPadding().Bottom;
+		u32 paddingX = child->GetMargins().Left + child->GetMargins().Right;
+		u32 paddingY = child->GetMargins().Top + child->GetMargins().Bottom;
 
 		Vector2I childMax;
 		childMax.X = child->GetDimensions().X + sizeRange.Optimal.X + paddingX;
@@ -100,8 +100,8 @@ void GUIPanel::UpdateOptimalLayoutSizes()
 		{
 			childSizeRange = GetElementSizeRangeInternal(child);
 
-			u32 paddingX = child->GetPadding().Left + child->GetPadding().Right;
-			u32 paddingY = child->GetPadding().Top + child->GetPadding().Bottom;
+			u32 paddingX = child->GetMargins().Left + child->GetMargins().Right;
+			u32 paddingY = child->GetMargins().Top + child->GetMargins().Bottom;
 
 			Vector2I childMax;
 			childMax.X = child->GetDimensions().X + childSizeRange.Optimal.X + paddingX;

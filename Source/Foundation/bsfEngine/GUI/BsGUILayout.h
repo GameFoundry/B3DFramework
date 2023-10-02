@@ -79,7 +79,6 @@ namespace bs
 		const Vector<LayoutSizeRange>& GetCachedChildSizeRangesInternal() const { return mChildSizeRanges; }
 
 		Vector2I GetOptimalSize() const override { return mSizeRange.Optimal; }
-		const RectOffset& GetPadding() const override;
 		Type GetType() const override { return GUIElementBase::Type::Layout; }
 
 		/** @} */

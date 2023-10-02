@@ -129,14 +129,28 @@ void GUIElement::ChangeParentWidget(GUIWidget* widget)
 	}
 }
 
+const RectOffset& GUIElement::GetMargins() const
+{
+	if(mStyleSheetStateStyle)
+		return mStyleSheetStateStyle->Padding; // Note: Old GUI style has the meaning of padding/margins swapped
+	else if(mStyle != nullptr)
+		return mStyle->Margins;
+	else
+	{
+		static RectOffset margins;
+		return margins;
+	}
+}
+
 const RectOffset& GUIElement::GetPadding() const
 {
-	if(mStyle != nullptr)
+	if(mStyleSheetStateStyle)
+		return mStyleSheetStateStyle->Margins; // Note: Old GUI style has the meaning of padding/margins swapped
+	else if(mStyle != nullptr)
 		return mStyle->Padding;
 	else
 	{
 		static RectOffset padding;
-
 		return padding;
 	}
 }
@@ -196,24 +210,26 @@ void GUIElement::ResetDimensions()
 
 Rect2I GUIElement::GetCachedVisibleBounds() const
 {
+	const RectOffset& margins = GetPadding();
 	Rect2I bounds = GetClippedBounds();
 
-	bounds.X += mStyle->Margins.Left;
-	bounds.Y += mStyle->Margins.Top;
-	bounds.Width = (u32)std::max(0, (i32)bounds.Width - (i32)(mStyle->Margins.Left + mStyle->Margins.Right));
-	bounds.Height = (u32)std::max(0, (i32)bounds.Height - (i32)(mStyle->Margins.Top + mStyle->Margins.Bottom));
+	bounds.X += margins.Left;
+	bounds.Y += margins.Top;
+	bounds.Width = (u32)std::max(0, (i32)bounds.Width - (i32)(margins.Left + margins.Right));
+	bounds.Height = (u32)std::max(0, (i32)bounds.Height - (i32)(margins.Top + margins.Bottom));
 
 	return bounds;
 }
 
 Rect2I GUIElement::GetCachedContentBounds() const
 {
+	const RectOffset& margins = GetPadding();
 	Rect2I bounds;
 
-	bounds.X = mLayoutData.Area.X + mStyle->Margins.Left + mStyle->ContentOffset.Left;
-	bounds.Y = mLayoutData.Area.Y + mStyle->Margins.Top + mStyle->ContentOffset.Top;
-	bounds.Width = (u32)std::max(0, (i32)mLayoutData.Area.Width - (i32)(mStyle->Margins.Left + mStyle->Margins.Right + mStyle->ContentOffset.Left + mStyle->ContentOffset.Right));
-	bounds.Height = (u32)std::max(0, (i32)mLayoutData.Area.Height - (i32)(mStyle->Margins.Top + mStyle->Margins.Bottom + mStyle->ContentOffset.Top + mStyle->ContentOffset.Bottom));
+	bounds.X = mLayoutData.Area.X + margins.Left + mStyle->ContentOffset.Left;
+	bounds.Y = mLayoutData.Area.Y + margins.Top + mStyle->ContentOffset.Top;
+	bounds.Width = (u32)std::max(0, (i32)mLayoutData.Area.Width - (i32)(margins.Left + margins.Right + mStyle->ContentOffset.Left + mStyle->ContentOffset.Right));
+	bounds.Height = (u32)std::max(0, (i32)mLayoutData.Area.Height - (i32)(margins.Top + margins.Bottom + mStyle->ContentOffset.Top + mStyle->ContentOffset.Bottom));
 
 	return bounds;
 }
@@ -375,12 +391,13 @@ void GUIElement::Destroy(GUIElement* element)
 
 Rect2I GUIElement::GetVisibleBounds()
 {
+	const RectOffset& margins = GetPadding();
 	Rect2I bounds = GetBounds();
 
-	bounds.X += mStyle->Margins.Left;
-	bounds.Y += mStyle->Margins.Top;
-	bounds.Width = (u32)std::max(0, (i32)bounds.Width - (i32)(mStyle->Margins.Left + mStyle->Margins.Right));
-	bounds.Height = (u32)std::max(0, (i32)bounds.Height - (i32)(mStyle->Margins.Top + mStyle->Margins.Bottom));
+	bounds.X += margins.Left;
+	bounds.Y += margins.Top;
+	bounds.Width = (u32)std::max(0, (i32)bounds.Width - (i32)(margins.Left + margins.Right));
+	bounds.Height = (u32)std::max(0, (i32)bounds.Height - (i32)(margins.Top + margins.Bottom));
 
 	return bounds;
 }

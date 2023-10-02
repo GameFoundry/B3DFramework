@@ -44,7 +44,7 @@ GUITooltip::GUITooltip(const HSceneObject& parent, const GUIWidget& overlaidWidg
 	if(multiLineLabelStyle != nullptr)
 	{
 		GUIDimensions dimensions = GUIDimensions::Create(GUIOptions(GUIOption::FixedWidth(kTooltipWidth)));
-		size = GUIHelper::CalcOptimalContentsSize(text, *multiLineLabelStyle, dimensions);
+		size = GUIHelper::CalculateOptimalContentSize(text, *multiLineLabelStyle, dimensions);
 	}
 
 	i32 contentOffsetX = 0;

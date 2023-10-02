@@ -69,7 +69,6 @@ GUIStyleSheetLexer::GUIStyleSheetLexer()
 	mPropertyKeywords["border-bottom-right-radius"] = GUIStyleSheetTokenTypes::Property;
 
 	// Border styles
-	mPropertyKeywords["none"] = GUIStyleSheetTokenTypes::BorderStyle;
 	mPropertyKeywords["solid"] = GUIStyleSheetTokenTypes::BorderStyle;
 
 	// Text align
@@ -81,6 +80,12 @@ GUIStyleSheetLexer::GUIStyleSheetLexer()
 	mPropertyKeywords["top"] = GUIStyleSheetTokenTypes::VerticalAlign;
 	mPropertyKeywords["middle"] = GUIStyleSheetTokenTypes::VerticalAlign;
 	mPropertyKeywords["bottom"] = GUIStyleSheetTokenTypes::VerticalAlign;
+
+	// Word wrap
+	mPropertyKeywords["wrap-word"] = GUIStyleSheetTokenTypes::WordWrap;
+
+	// None
+	mPropertyKeywords["none"] = GUIStyleSheetTokenTypes::None;
 
 	// Pseudo-class
 	mPropertyKeywords["active"] = GUIStyleSheetTokenTypes::PseudoClassSelector;

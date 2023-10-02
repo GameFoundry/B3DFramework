@@ -75,13 +75,6 @@ void GUILayout::RemoveElementAt(u32 idx)
 	MarkLayoutAsDirty();
 }
 
-const RectOffset& GUILayout::GetPadding() const
-{
-	static RectOffset padding;
-
-	return padding;
-}
-
 void GUILayout::Destroy(GUILayout* layout)
 {
 	B3DDelete(layout);

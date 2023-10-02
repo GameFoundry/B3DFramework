@@ -44,6 +44,8 @@ namespace bs
 			BorderStyle,
 			TextAlign,
 			VerticalAlign,
+			WordWrap,
+			None,
 			Multiple
 		};
 
@@ -106,8 +108,12 @@ namespace bs
 
 			void GetValue(GUIBorderElementStyle& outValue)
 			{
-				B3D_ASSERT(Type == ValueType::BorderStyle);
-				outValue = (GUIBorderElementStyle)UnsignedInteger;
+				if(Type == ValueType::BorderStyle)
+					outValue = (GUIBorderElementStyle)UnsignedInteger;
+				else if(Type == ValueType::None)
+					outValue = GUIBorderElementStyle::None;
+				else
+					B3D_ASSERT(false);
 			}
 
 			void GetValue(GUIHorizontalTextAlignment& outValue)
@@ -120,6 +126,16 @@ namespace bs
 			{
 				B3D_ASSERT(Type == ValueType::VerticalAlign);
 				outValue = (GUIVerticalTextAlignment)UnsignedInteger;
+			}
+
+			void GetValue(GUIWordWrapMode& outValue)
+			{
+				if(Type == ValueType::WordWrap)
+					outValue = (GUIWordWrapMode)UnsignedInteger;
+				else if(Type == ValueType::None)
+					outValue = GUIWordWrapMode::None;
+				else
+					B3D_ASSERT(false);
 			}
 		};
 
@@ -164,6 +180,9 @@ namespace bs
 
 		/** Attempts to parse the next token as a string literal. String literal is detected as a pair of '"', with an optional text in-between. If successful, returns true and outputs the parsed value. */
 		bool TryParseStringLiteral(String& outValue);
+
+		/** Attempts to parse the next token as 'none' token and returns true if successful. */
+		bool TryParseNone();
 
 		/** @} */
 
@@ -216,6 +235,9 @@ namespace bs
 
 		/** Attempts to parse the next token as a vertical alignment style. Token must be one of supported vertical alignment identifiers. If successful, returns true and outputs the parsed value. */
 		bool TryParseVerticalAlign(GUIVerticalTextAlignment& outValue);
+
+		/** Attempts to parse the next token as a word wrap mode. Token must be one of supported word rap mode identifiers. If successful, returns true and outputs the parsed value. */
+		bool TryParseWordWrapMode(GUIWordWrapMode& outValue);
 
 		/** Attempts to parse the next 1 to 3 tokens as style, width and color for the border. Tokens may be provided in any order, but cannot be duplicated. If successful, returns true and outputs the parsed value. */
 		bool TryParseBorderElement(GUIStyleSheetBorderElement& outValue);
@@ -353,6 +375,9 @@ namespace bs
 
 		/** Converts property value type into a human readable string. */
 		static const char* ValueTypeToString(ValueType type);
+
+		/** Returns true if the values of the provided types can be cast between each other safely. */
+		static bool CanCastValue(ValueType expectedType, ValueType receivedType);
 
 		/** @} */
 

@@ -235,6 +235,18 @@ HShader BuiltinResources::GetShader(const Path& path) const
 	return GetOrCompileShader(fullShaderPath);
 }
 
+HFont BuiltinResources::GetFont(const String& fontFamily) const
+{
+	// TODO: This needs to perform a lookup in the project library. Likely need to enumerate all fonts from data packages on start-up, and register them in FontManager for lookup.
+	// - Other alternative is to integrate ProjectLibrary into the framework, but in my mind that should remain editor only functionality. We can perhaps pull some generic
+	// package manipulation in a helper library, for use in the framework.
+	if(fontFamily == "Arial")
+		return GetDefaultFont();
+
+	B3D_LOG(Warning, GUI, "Cannot find font of the requested font family: {0}. Using default font instead.", fontFamily);
+	return GetDefaultFont();
+}
+
 HShader BuiltinResources::GetOrCompileShader(const Path& path) const
 {
 #ifndef BS_IS_ASSET_TOOL

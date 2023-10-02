@@ -27,8 +27,8 @@ LayoutSizeRange GUILayoutX::CalculateLayoutSizeRange() const
 		if(child->GetType() == GUIElementBase::Type::FixedSpace)
 			sizeRange.Optimal.Y = sizeRange.Min.Y = 0;
 
-		u32 paddingX = child->GetPadding().Left + child->GetPadding().Right;
-		u32 paddingY = child->GetPadding().Top + child->GetPadding().Bottom;
+		u32 paddingX = child->GetMargins().Left + child->GetMargins().Right;
+		u32 paddingY = child->GetMargins().Top + child->GetMargins().Bottom;
 
 		optimalSize.X += sizeRange.Optimal.X + paddingX;
 		optimalSize.Y = std::max((u32)optimalSize.Y, sizeRange.Optimal.Y + paddingY);
@@ -69,8 +69,8 @@ void GUILayoutX::UpdateOptimalLayoutSizes()
 				childSizeRange.Min.Y = 0;
 			}
 
-			u32 paddingX = child->GetPadding().Left + child->GetPadding().Right;
-			u32 paddingY = child->GetPadding().Top + child->GetPadding().Bottom;
+			u32 paddingX = child->GetMargins().Left + child->GetMargins().Right;
+			u32 paddingY = child->GetMargins().Top + child->GetMargins().Bottom;
 
 			optimalSize.X += childSizeRange.Optimal.X + paddingX;
 			optimalSize.Y = std::max((u32)optimalSize.Y, childSizeRange.Optimal.Y + paddingY);
@@ -346,7 +346,7 @@ void GUILayoutX::GetChildLayoutAreas(const Rect2I& layoutArea, Rect2I* elementAr
 	for(auto& child : mChildren)
 	{
 		u32 elemWidth = elementAreas[childIdx].Width;
-		xOffset += child->GetPadding().Left;
+		xOffset += child->GetMargins().Left;
 
 		const LayoutSizeRange& sizeRange = sizeRanges[childIdx];
 		u32 elemHeight = (u32)sizeRange.Optimal.Y;
@@ -366,7 +366,7 @@ void GUILayoutX::GetChildLayoutAreas(const Rect2I& layoutArea, Rect2I* elementAr
 		{
 			GUIElement* element = static_cast<GUIElement*>(child);
 
-			u32 yPadding = element->GetPadding().Top + element->GetPadding().Bottom;
+			u32 yPadding = element->GetMargins().Top + element->GetMargins().Bottom;
 			i32 yOffset = Math::CeilToInt(((i32)layoutArea.Height - (i32)(elemHeight + yPadding)) * 0.5f);
 			yOffset = std::max(0, yOffset);
 
@@ -379,7 +379,7 @@ void GUILayoutX::GetChildLayoutAreas(const Rect2I& layoutArea, Rect2I* elementAr
 			elementAreas[childIdx].Y = layoutArea.Y;
 		}
 
-		xOffset += elemWidth + child->GetPadding().Right;
+		xOffset += elemWidth + child->GetMargins().Right;
 		childIdx++;
 	}
 

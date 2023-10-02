@@ -40,6 +40,7 @@ GUIStyleSheetParser::GUIStyleSheetParser()
 	mPropertyKeywords["vertical-align"] = { GUIStyleSheetPropertyType::VerticalAlign, ValueType::VerticalAlign };
 	mPropertyKeywords["font-family"] = { GUIStyleSheetPropertyType::FontFamily, ValueType::String };
 	mPropertyKeywords["font-size"] = { GUIStyleSheetPropertyType::FontSize, ValueType::Integer };
+	mPropertyKeywords["b3d-word-wrap"] = { GUIStyleSheetPropertyType::WordWrap, ValueType::WordWrap };
 
 	// Border properties
 	mPropertyKeywords["border"] = { GUIStyleSheetPropertyType::Border, ValueType::Multiple };
@@ -76,7 +77,7 @@ SPtr<GUIStyleSheet> GUIStyleSheetParser::Parse(const SPtr<SourceCode>& sourceCod
 	// Grabs the first token
 	GetCurrentTokenAndAdvance();
 
-	SPtr<GUIStyleSheet> styleSheet = B3DMakeShared<GUIStyleSheet>();
+	SPtr<GUIStyleSheet> styleSheet = GUIStyleSheet::CreateShared();
 	mGlobalVariableContext = VariableContext();
 
 	while(!IsCurrentToken(GUIStyleSheetTokenTypes::EndOfStream))
@@ -279,6 +280,7 @@ bool GUIStyleSheetParser::TryParseProperty(GUIStyleSheetStateStyle& inOutValue)
 			CASE_PARSE(FontSize, FontSize)
 			CASE_PARSE(TextAlign, HorizontalTextAlignment)
 			CASE_PARSE(VerticalAlign, VerticalTextAlignment)
+			CASE_PARSE(WordWrap, WordWrap)
 
 			// Border
 			CASE_PARSE(BorderLeftWidth, BorderLeft.Width)
@@ -550,6 +552,15 @@ bool GUIStyleSheetParser::TryParseVariable(VariableContext& inOutVariableContext
 		value.Type = ValueType::BorderStyle;
 		break;
 	}
+	case GUIStyleSheetTokenTypes::None:
+	{
+		if(!TryParseNone())
+			return false;
+
+		value.UnsignedInteger = 0;
+		value.Type = ValueType::None;
+		break;
+	}
 	case GUIStyleSheetTokenTypes::TextAlign:
 	{
 		GUIHorizontalTextAlignment parsedValue;
@@ -568,6 +579,16 @@ bool GUIStyleSheetParser::TryParseVariable(VariableContext& inOutVariableContext
 
 		value.UnsignedInteger = (u32)parsedValue;
 		value.Type = ValueType::VerticalAlign;
+		break;
+	}
+	case GUIStyleSheetTokenTypes::WordWrap:
+	{
+		GUIWordWrapMode parsedValue;
+		if(!TryParseWordWrapMode(parsedValue))
+			return false;
+
+		value.UnsignedInteger = (u32)parsedValue;
+		value.Type = ValueType::WordWrap;
 		break;
 	}
 	default:
@@ -610,7 +631,7 @@ bool GUIStyleSheetParser::TryParseAndLookupVariableValue(ValueType expectedType,
 	const String& variableIdentifier = variableIdentifierToken->GetSpelling();
 	auto fnEnsureType = [this, expectedType, &variableIdentifier](const VariableValue& value) -> bool
 	{
-		if(value.Type != expectedType)
+		if(!CanCastValue(expectedType, value.Type))
 		{
 			Error(StringFormat::Format("Provided variable '{0}' is of incorrect type. Expected '{1}' but variable is '{2}'.", variableIdentifier, ValueTypeToString(expectedType), ValueTypeToString(value.Type)));
 			return false;
@@ -705,6 +726,12 @@ bool GUIStyleSheetParser::TryParseStringLiteral(String& outValue)
 
 	outValue = token->GetSpelling();
 	return true;
+}
+
+bool GUIStyleSheetParser::TryParseNone()
+{
+	Optional<GUIStyleSheetToken> token = GetCurrentTokenAndAdvance(GUIStyleSheetTokenTypes::None);
+	return token.has_value();
 }
 
 bool GUIStyleSheetParser::TryParseColor(Color& outValue)
@@ -818,19 +845,29 @@ bool GUIStyleSheetParser::TryParseColor(Color& outValue)
 
 bool GUIStyleSheetParser::TryParseBorderStyle(GUIBorderElementStyle& outValue)
 {
-	Optional<GUIStyleSheetToken> token = GetCurrentTokenAndAdvance(GUIStyleSheetTokenTypes::BorderStyle);
-	if(!token)
-		return false;
+	if(IsCurrentToken(GUIStyleSheetTokenTypes::BorderStyle))
+	{
+		Optional<GUIStyleSheetToken> token = GetCurrentTokenAndAdvance(GUIStyleSheetTokenTypes::BorderStyle);
+		if(!token)
+			return false;
 
-	if(token->GetSpelling() == "none")
-	{
-		outValue = GUIBorderElementStyle::None;
-		return true;
+		if(token->GetSpelling() == "solid")
+		{
+			outValue = GUIBorderElementStyle::Solid;
+			return true;
+		}
 	}
-	else if(token->GetSpelling() == "solid")
+	else if(IsCurrentToken(GUIStyleSheetTokenTypes::None))
 	{
-		outValue = GUIBorderElementStyle::Solid;
-		return true;
+		Optional<GUIStyleSheetToken> token = GetCurrentTokenAndAdvance(GUIStyleSheetTokenTypes::None);
+		if(!token)
+			return false;
+
+		if(token->GetSpelling() == "none")
+		{
+			outValue = GUIBorderElementStyle::None;
+			return true;
+		}
 	}
 
 	return false;
@@ -886,6 +923,36 @@ bool GUIStyleSheetParser::TryParseVerticalAlign(GUIVerticalTextAlignment& outVal
 	return false;
 }
 
+bool GUIStyleSheetParser::TryParseWordWrapMode(GUIWordWrapMode& outValue)
+{
+	if(IsCurrentToken(GUIStyleSheetTokenTypes::WordWrap))
+	{
+		Optional<GUIStyleSheetToken> token = GetCurrentTokenAndAdvance(GUIStyleSheetTokenTypes::WordWrap);
+		if(!token)
+			return false;
+
+		if(token->GetSpelling() == "wrap-word")
+		{
+			outValue = GUIWordWrapMode::WrapWord;
+			return true;
+		}
+	}
+	else if(IsCurrentToken(GUIStyleSheetTokenTypes::None))
+	{
+		Optional<GUIStyleSheetToken> token = GetCurrentTokenAndAdvance(GUIStyleSheetTokenTypes::None);
+		if(!token)
+			return false;
+
+		if(token->GetSpelling() == "none")
+		{
+			outValue = GUIWordWrapMode::None;
+			return true;
+		}
+	}
+
+	return false;
+}
+
 bool GUIStyleSheetParser::TryParseBorderElement(GUIStyleSheetBorderElement& outValue)
 {
 	bool hasWidth = false;
@@ -923,7 +990,7 @@ bool GUIStyleSheetParser::TryParseBorderElement(GUIStyleSheetBorderElement& outV
 			hasColor = true;
 		}
 
-		if(IsCurrentToken(GUIStyleSheetTokenTypes::BorderStyle))
+		if(IsCurrentToken(GUIStyleSheetTokenTypes::BorderStyle) || IsCurrentToken(GUIStyleSheetTokenTypes::None))
 		{
 			if(hasStyle)
 			{
@@ -1003,6 +1070,8 @@ bool GUIStyleSheetParser::TryParsePropertyValue(ValueType valueType, T& outValue
 		return TryParseTextAlign(outValue);
 	else if constexpr(std::is_same_v<T, GUIVerticalTextAlignment>)
 		return TryParseVerticalAlign(outValue);
+	else if constexpr(std::is_same_v<T, GUIWordWrapMode>)
+		return TryParseWordWrapMode(outValue);
 
 	Error("Internal error.");
 	return false;
@@ -1215,5 +1284,24 @@ const char* GUIStyleSheetParser::ValueTypeToString(ValueType type)
 	case ValueType::BorderStyle: return "BorderStyle";
 	case ValueType::TextAlign: return "TextAlign";
 	case ValueType::VerticalAlign: return "VerticalAlign";
+	case ValueType::WordWrap: return "WordWrap";
+	case ValueType::None: return "None";
 	}
 }
+
+bool GUIStyleSheetParser::CanCastValue(ValueType expectedType, ValueType receivedType)
+{
+	if(expectedType == receivedType)
+		return true;
+
+	switch(expectedType)
+	{
+	case ValueType::BorderStyle:
+		return receivedType == ValueType::None;
+	case ValueType::WordWrap:
+		return receivedType == ValueType::None;
+	default:
+		return false;
+	}
+}
+

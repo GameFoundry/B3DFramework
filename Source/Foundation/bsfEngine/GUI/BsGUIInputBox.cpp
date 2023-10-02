@@ -323,7 +323,7 @@ Vector2I GUIInputBox::GetOptimalSize() const
 		imageHeight = activeTex->GetHeight();
 	}
 
-	Vector2I contentSize = GUIHelper::CalcOptimalContentsSize(mText, *GetStyle(), GetDimensions());
+	Vector2I contentSize = GUIHelper::CalculateOptimalContentSize(mText, *GetStyle(), GetDimensions());
 	u32 contentWidth = std::max(imageWidth, (u32)contentSize.X);
 	u32 contentHeight = std::max(imageHeight, (u32)contentSize.Y);
 

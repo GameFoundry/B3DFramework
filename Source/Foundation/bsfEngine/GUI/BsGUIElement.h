@@ -255,10 +255,7 @@ namespace bs
 		/**	Gets GUI element bounds relative to parent widget, clipped by specified clip rect. */
 		const Rect2I& GetClippedBounds() const { return mClippedBounds; }
 
-		/**
-		 * Returns GUI element padding. Padding is modified by changing element style and determines minimum distance
-		 * between different GUI elements.
-		 */
+		const RectOffset& GetMargins() const override;
 		const RectOffset& GetPadding() const override;
 
 		/**

@@ -5,6 +5,7 @@
 #include "FileSystem/BsFileSystem.h"
 #include "FileSystem/BsDataStream.h"
 #include "Private/RTTI/BsGUIStyleSheetRTTI.h"
+#include "Resources/BsBuiltinResources.h"
 #include "Resources/BsResources.h"
 
 using namespace bs;
@@ -47,6 +48,7 @@ void GUIStyleSheetStateStyle::Override(const GUIStyleSheetStateStyle& other)
 	OVERRIDE_PROPERTY(VerticalAlign, VerticalTextAlignment)
 	OVERRIDE_PROPERTY(FontFamily, FontFamily)
 	OVERRIDE_PROPERTY(FontSize, FontSize)
+	OVERRIDE_PROPERTY(WordWrap, WordWrap)
 
 	OVERRIDE_PROPERTY(BorderTopStyle, BorderTop.Style)
 	OVERRIDE_PROPERTY(BorderTopWidth, BorderTop.Width)
@@ -70,6 +72,14 @@ void GUIStyleSheetStateStyle::Override(const GUIStyleSheetStateStyle& other)
 	OVERRIDE_PROPERTY(BorderBottomRightRadius, BorderBottomRightRadius);
 
 #undef OVERRIDE_PROPERTY
+}
+
+HFont GUIStyleSheetStateStyle::GetOrLoadFont() const
+{
+	if(!mCachedFont.IsLoaded(false))
+		mCachedFont = GetBuiltinResources().GetFont(FontFamily);
+
+	return mCachedFont;
 }
 
 const GUIStyleSheetStateStyle* GUIStyleSheetStyle::FindStateStyle(const StringView& name) const

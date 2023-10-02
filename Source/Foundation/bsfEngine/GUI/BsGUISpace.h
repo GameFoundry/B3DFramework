@@ -49,13 +49,6 @@ namespace bs
 		Vector2I GetOptimalSize() const override { return Vector2I(GetSize(), GetSize()); }
 		LayoutSizeRange CalculateLayoutSizeRange() const override;
 
-		const RectOffset& GetPadding() const override
-		{
-			static RectOffset padding;
-
-			return padding;
-		}
-
 		/** @} */
 	protected:
 		u32 mSize;
@@ -91,13 +84,6 @@ namespace bs
 		Type GetType() const override { return GUIElementBase::Type::FlexibleSpace; }
 		Vector2I GetOptimalSize() const override { return Vector2I(0, 0); }
 		LayoutSizeRange CalculateLayoutSizeRange() const override;
-
-		const RectOffset& GetPadding() const override
-		{
-			static RectOffset padding;
-
-			return padding;
-		}
 
 		/** @} */
 	};

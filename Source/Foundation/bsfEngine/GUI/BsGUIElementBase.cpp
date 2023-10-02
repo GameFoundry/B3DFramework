@@ -436,6 +436,18 @@ LayoutSizeRange GUIElementBase::GetLayoutSizeRange() const
 	return CalculateLayoutSizeRange();
 }
 
+const RectOffset& GUIElementBase::GetMargins() const
+{
+	static RectOffset margins;
+	return margins;
+}
+
+const RectOffset& GUIElementBase::GetPadding() const
+{
+	static RectOffset padding;
+	return padding;
+}
+
 void GUIElementBase::GetChildLayoutAreas(const Rect2I& layoutArea, Rect2I* elementAreas, u32 numElements, const Vector<LayoutSizeRange>& sizeRanges, const LayoutSizeRange& mySizeRange) const
 {
 	B3D_ASSERT(mChildren.size() == 0);

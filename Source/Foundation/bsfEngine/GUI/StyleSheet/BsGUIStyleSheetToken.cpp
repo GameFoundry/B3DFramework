@@ -75,7 +75,9 @@ String GUIStyleSheetToken::TypeToString(const GUIStyleSheetTokenTypes type)
 	case GUIStyleSheetTokenTypes::BorderStyle: return "Border style";
 	case GUIStyleSheetTokenTypes::TextAlign: return "Text align mode";
 	case GUIStyleSheetTokenTypes::VerticalAlign: return "Vertical alignment mode";
+	case GUIStyleSheetTokenTypes::WordWrap: return "Word wrap mode";
 	case GUIStyleSheetTokenTypes::PseudoClassSelector: return "Pseudo class selector";
+	case GUIStyleSheetTokenTypes::None: return "None";
 	case GUIStyleSheetTokenTypes::EndOfStream: return "End of stream";
 	default: return "Unknown";
 	}

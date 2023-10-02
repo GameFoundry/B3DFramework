@@ -42,6 +42,14 @@ namespace bs
 		Top, Middle, Bottom
 	};
 
+	/** Determines if and how text wraps to a new line if it doesn't fit on a single line. */
+	enum class GUIWordWrapMode
+	{
+		None,
+		WrapWord
+		// For later: BreakWord, flag for Ellipis, etc.
+	};
+
 	/** All possible properties in a GUI style sheet. See GUIStyleSheetStateStyle for their descriptions. */
 	enum class GUIStyleSheetPropertyType
 	{
@@ -74,6 +82,7 @@ namespace bs
 		VerticalAlign,
 		FontFamily,
 		FontSize,
+		WordWrap,
 
 		Border,
 		BorderStyle,
@@ -149,6 +158,7 @@ namespace bs
 		u32 FontSize = 8; /**< Font size to render the text contents of the GUI element with. */
 		GUIHorizontalTextAlignment HorizontalTextAlignment = GUIHorizontalTextAlignment::Left; /**< Determines horizontal alignment of text within the GUI element. */
 		GUIVerticalTextAlignment VerticalTextAlignment = GUIVerticalTextAlignment::Middle; /**< Determines vertical alignment of text within the GUI element. */
+		GUIWordWrapMode WordWrap = GUIWordWrapMode::None; /**< Determines if text wraps when it doesn't fit in a single line. */
 
 		static constexpr u32 kPropertyDWordCount = Math::DivideAndRoundUp((u32)GUIStyleSheetPropertyType::Count, (u32)sizeof(u32) * 8);
 		TBitfield<InlineContainerAllocator<kPropertyDWordCount>> OverridenProperties; /**< Bit for each property that is different than the default will be set. Used for determining which properties to override from parent style. */
@@ -163,6 +173,12 @@ namespace bs
 
 		/** Returns true if that property has been assigned. If false the property is using the default value. */
 		bool IsPropertySet(GUIStyleSheetPropertyType property) const { return OverridenProperties[(u32)property]; }
+
+		/** Returns the font as specified by FontFamily. If the font isn't already loaded, loads it. If exact font cannot be found, it falls back to a default font. */
+		HFont GetOrLoadFont() const;
+
+	private:
+		mutable HFont mCachedFont;
 	};
 
 	/** Contains a set of state styles for all supported states. */

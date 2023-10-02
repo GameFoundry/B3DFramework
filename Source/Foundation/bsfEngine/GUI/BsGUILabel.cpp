@@ -87,7 +87,7 @@ void GUILabel::UpdateRenderElements()
 
 Vector2I GUILabel::GetOptimalSize() const
 {
-	return GUIHelper::CalcOptimalContentsSize(mContent, *GetStyle(), GetDimensions());
+	return GUIHelper::CalculateOptimalContentSize(mContent, *GetStyle(), GetDimensions());
 }
 
 void GUILabel::FillBuffer(

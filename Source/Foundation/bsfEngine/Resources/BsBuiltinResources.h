@@ -143,6 +143,9 @@ namespace bs
 		 */
 		HShader GetShader(const Path& path) const;
 
+		/** Attempts to return a font of the given font family. Returns the default font is provided font is not found. */
+		HFont GetFont(const String& fontFamily) const; // TODO: This needs to perform a lookup in the project library. See method implementation for more information.
+
 		/**
 		 * Loads the shader with the specified name from the cache if available, or compiles the shader from source if not available.
 		 *

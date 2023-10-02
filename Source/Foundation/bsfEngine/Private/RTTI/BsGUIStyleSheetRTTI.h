@@ -66,6 +66,7 @@ namespace bs
 			processor(object.FontSize);
 			processor(object.HorizontalTextAlignment);
 			processor(object.VerticalTextAlignment);
+			processor(object.WordWrap);
 
 			processor(object.OverridenProperties);
 		}

@@ -162,11 +162,24 @@ Vector2I GUIButtonBase::GetOptimalSize() const
 		imageHeight = activeTex->GetHeight();
 	}
 
-	Vector2I contentSize = GUIHelper::CalcOptimalContentsSize(mContent, *GetStyle(), GetDimensions(), mActiveState);
-	u32 contentWidth = std::max(imageWidth, (u32)contentSize.X);
-	u32 contentHeight = std::max(imageHeight, (u32)contentSize.Y);
+	const bool isUsingStyleSheets = GetStyleSheetElement() != nullptr;
+	if(isUsingStyleSheets)
+	{
+		const Size2UI contentSize = GUIHelper::CalculateOptimalContentSizeWithPadding(mContent, *mStyleSheetStateStyle, GetDimensions());
+		
+		const u32 contentWidth = std::max(imageWidth, contentSize.Width);
+		const u32 contentHeight = std::max(imageHeight, contentSize.Height);
 
-	return Vector2I(contentWidth, contentHeight);
+		return Vector2I(contentWidth, contentHeight);
+	}
+	else
+	{
+		Vector2I contentSize = GUIHelper::CalculateOptimalContentSize(mContent, *GetStyle(), GetDimensions(), mActiveState);
+		u32 contentWidth = std::max(imageWidth, (u32)contentSize.X);
+		u32 contentHeight = std::max(imageHeight, (u32)contentSize.Y);
+
+		return Vector2I(contentWidth, contentHeight);
+	}
 }
 
 u32 GUIButtonBase::GetRenderElementDepthRange() const

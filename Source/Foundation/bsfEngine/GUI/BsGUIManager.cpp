@@ -1574,7 +1574,7 @@ namespace bs { namespace ct
 	static constexpr bool kEnableGUIRegionDebugDrawing = false;
 
 	/** If true, all draw regions will be redrawn every frame, regardless if dirty or not. */
-	static constexpr bool kRedrawAllRegions = true;
+	static constexpr bool kRedrawAllRegions = false;
 
 GUIRenderer::GUIRenderer()
 	: RendererExtension(RenderLocation::Overlay, 10)

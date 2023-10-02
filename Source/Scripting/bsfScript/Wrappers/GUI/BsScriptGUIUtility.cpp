@@ -53,5 +53,5 @@ void ScriptGUILayoutUtility::InternalCalculateTextBounds(MonoString* text, Scrip
 	String nativeText = MonoUtil::MonoToString(text);
 	HFont nativeFont = fontPtr->GetHandle();
 
-	*output = GUIHelper::CalcTextSize(nativeText, nativeFont, fontSize);
+	*output = GUIHelper::CalculateTextBounds(nativeText, nativeFont, fontSize);
 }

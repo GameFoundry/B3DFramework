@@ -201,9 +201,16 @@ namespace bs
 		virtual LayoutSizeRange GetLayoutSizeRange() const;
 
 		/**
-		 * Returns element padding that determines how far apart to space out this element from other elements in a layout.
+		 * Returns GUI element margins. Margins are modified by changing element style and determines minimum distance
+		 * between GUI element border and surrounding GUI elements.
 		 */
-		virtual const RectOffset& GetPadding() const = 0;
+		virtual const RectOffset& GetMargins() const;
+
+		/**
+		 * Returns GUI element padding. Padding is modified by changing element style and determines minimum distance
+		 * between GUI element border and contents.
+		 */
+		virtual const RectOffset& GetPadding() const;
 
 		/**	Returns specific sub-type of this object. */
 		virtual Type GetType() const = 0;
