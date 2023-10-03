@@ -25,6 +25,9 @@ namespace bs
 		u32 Width = 0;
 		u32 Height = 0;
 
+		/** Returns true if the area covered is 0. */
+		bool IsEmpty() const { return Width == 0 || Height == 0; }
+
 		/** Returns true if the rectangle contains the provided point. */
 		bool Contains(const Vector2I& point) const;
 

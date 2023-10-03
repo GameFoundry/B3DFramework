@@ -56,6 +56,11 @@ void GUIButtonBase::SetContent(const GUIContent& content)
 void GUIButtonBase::SetOnInternal(bool on)
 {
 	if(on)
+		AddStateFlags(GUIElementStateFlag::Checked);
+	else
+		RemoveStateFlags(GUIElementStateFlag::Checked);
+
+	if(on)
 		SetStateInternal((GUIElementState)((i32)mActiveState | (i32)GUIElementState::OnFlag));
 	else
 		SetStateInternal((GUIElementState)((i32)mActiveState & ~(i32)GUIElementState::OnFlag));
@@ -292,6 +297,8 @@ bool GUIButtonBase::DoOnMouseEvent(const GUIMouseEvent& ev)
 	{
 		if(!IsDisabled())
 		{
+			AddStateFlags(GUIElementStateFlag::Hover);
+
 			if(mHasFocus)
 				SetStateInternal(IsOnInternal() ? GUIElementState::FocusedHoverOn : GUIElementState::FocusedHover);
 			else
@@ -306,6 +313,8 @@ bool GUIButtonBase::DoOnMouseEvent(const GUIMouseEvent& ev)
 	{
 		if(!IsDisabled())
 		{
+			RemoveStateFlags(GUIElementStateFlag::Hover | GUIElementStateFlag::Active);
+
 			if(mHasFocus)
 				SetStateInternal(IsOnInternal() ? GUIElementState::FocusedOn : GUIElementState::Focused);
 			else
@@ -319,7 +328,10 @@ bool GUIButtonBase::DoOnMouseEvent(const GUIMouseEvent& ev)
 	else if(ev.GetType() == GUIMouseEventType::MouseDown)
 	{
 		if(!IsDisabled())
+		{
+			AddStateFlags(GUIElementStateFlag::Active);
 			SetStateInternal(IsOnInternal() ? GUIElementState::ActiveOn : GUIElementState::Active);
+		}
 
 		return !mOptionFlags.IsSet(GUIElementOption::ClickThrough);
 	}
@@ -327,6 +339,8 @@ bool GUIButtonBase::DoOnMouseEvent(const GUIMouseEvent& ev)
 	{
 		if(!IsDisabled())
 		{
+			RemoveStateFlags(GUIElementStateFlag::Active);
+
 			if(mHasFocus)
 				SetStateInternal(IsOnInternal() ? GUIElementState::FocusedHoverOn : GUIElementState::FocusedHover);
 			else
@@ -359,6 +373,8 @@ bool GUIButtonBase::DoOnCommandEvent(const GUICommandEvent& ev)
 
 		if(!IsDisabled())
 		{
+			AddStateFlags(GUIElementStateFlag::Focused);
+
 			if(state == GUIElementState::Normal)
 				SetStateInternal(IsOnInternal() ? GUIElementState::FocusedOn : GUIElementState::Focused);
 			else if(state == GUIElementState::Hover)
@@ -370,6 +386,7 @@ bool GUIButtonBase::DoOnCommandEvent(const GUICommandEvent& ev)
 	else if(ev.GetType() == GUICommandEventType::FocusLost)
 	{
 		mHasFocus = false;
+		RemoveStateFlags(GUIElementStateFlag::Focused);
 
 		if(state == GUIElementState::Focused)
 			SetStateInternal(IsOnInternal() ? GUIElementState::NormalOn : GUIElementState::Normal);

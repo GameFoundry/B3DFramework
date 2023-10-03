@@ -132,9 +132,9 @@ void GUIElement::ChangeParentWidget(GUIWidget* widget)
 const RectOffset& GUIElement::GetMargins() const
 {
 	if(mStyleSheetStateStyle)
-		return mStyleSheetStateStyle->Padding; // Note: Old GUI style has the meaning of padding/margins swapped
+		return mStyleSheetStateStyle->Margins;
 	else if(mStyle != nullptr)
-		return mStyle->Margins;
+		return mStyle->Padding; // Note: Old GUI style has the meaning of padding/margins swapped
 	else
 	{
 		static RectOffset margins;
@@ -145,9 +145,9 @@ const RectOffset& GUIElement::GetMargins() const
 const RectOffset& GUIElement::GetPadding() const
 {
 	if(mStyleSheetStateStyle)
-		return mStyleSheetStateStyle->Margins; // Note: Old GUI style has the meaning of padding/margins swapped
+		return mStyleSheetStateStyle->Padding;
 	else if(mStyle != nullptr)
-		return mStyle->Padding;
+		return mStyle->Margins; // Note: Old GUI style has the meaning of padding/margins swapped
 	else
 	{
 		static RectOffset padding;
@@ -258,12 +258,13 @@ Color GUIElement::GetTint() const
 	return mColor * kDisabledColor;
 }
 
-void GUIElement::AddStateFlag(GUIElementStateFlag flag)
+void GUIElement::AddStateFlags(GUIElementStateFlags flags)
 {
-	if(mStateFlags.IsSet(flag))
+	if(mStateFlags.IsSetAll(flags))
 		return;
 
-	mStateFlags.Set(flag);
+	mStateFlags |= flags;
+
 	if(mStyleSheetStyle != nullptr)
 		mStyleSheetStateStyle = mStyleSheetStyle->FindStateStyle(mStateFlags);
 	else
@@ -272,12 +273,13 @@ void GUIElement::AddStateFlag(GUIElementStateFlag flag)
 	MarkContentAsDirty();
 }
 
-void GUIElement::RemoveStateFlag(GUIElementStateFlag flag)
+void GUIElement::RemoveStateFlags(GUIElementStateFlags flags)
 {
-	if(!mStateFlags.IsSet(flag))
+	if(!mStateFlags.IsSetAny(flags))
 		return;
 
-	mStateFlags.Unset(flag);
+	mStateFlags &= ~flags;
+
 	if(mStyleSheetStyle != nullptr)
 		mStyleSheetStateStyle = mStyleSheetStyle->FindStateStyle(mStateFlags);
 	else

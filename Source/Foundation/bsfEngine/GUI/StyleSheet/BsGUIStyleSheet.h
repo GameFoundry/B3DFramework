@@ -175,7 +175,7 @@ namespace bs
 		bool IsPropertySet(GUIStyleSheetPropertyType property) const { return OverridenProperties[(u32)property]; }
 
 		/** Returns the font as specified by FontFamily. If the font isn't already loaded, loads it. If exact font cannot be found, it falls back to a default font. */
-		HFont GetOrLoadFont() const;
+		HFont GetOrLoadFont() const; // TODO - Style should be containing the HFont reference directly. See implementation for more information.
 
 	private:
 		mutable HFont mCachedFont;

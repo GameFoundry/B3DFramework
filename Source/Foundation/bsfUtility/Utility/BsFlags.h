@@ -50,6 +50,12 @@ namespace bs
 			return (mBits & value.mBits) != 0;
 		}
 
+		/** Checks whether all of the provided bits are set */
+		bool IsSetAll(const Flags<Enum, Storage>& value) const
+		{
+			return (mBits & value.mBits) == value.mBits;
+		}
+
 		/** Activates all of the provided bits. */
 		Flags<Enum, Storage>& Set(Enum value)
 		{

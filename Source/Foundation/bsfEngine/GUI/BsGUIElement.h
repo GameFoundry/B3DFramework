@@ -334,11 +334,11 @@ namespace bs
 		/**	Returns the tint that is applied to the GUI element. */
 		Color GetTint() const;
 
-		/** Transitions the GUI element into a new state by adding a state flag. */
-		void AddStateFlag(GUIElementStateFlag flag);
+		/** Transitions the GUI element into a new state by adding state flags. */
+		void AddStateFlags(GUIElementStateFlags flags);
 
-		/** Transitions the GUI element into a new state by removing a state flag. */
-		void RemoveStateFlag(GUIElementStateFlag flag);
+		/** Transitions the GUI element into a new state by removing state flags. */
+		void RemoveStateFlags(GUIElementStateFlags flags);
 
 		bool mIsDestroyed = false;
 		GUIElementOptions mOptionFlags;

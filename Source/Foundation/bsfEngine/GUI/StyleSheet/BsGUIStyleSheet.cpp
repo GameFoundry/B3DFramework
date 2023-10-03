@@ -76,6 +76,10 @@ void GUIStyleSheetStateStyle::Override(const GUIStyleSheetStateStyle& other)
 
 HFont GUIStyleSheetStateStyle::GetOrLoadFont() const
 {
+	// TODO - Style should be containing the HFont reference directly. Otherwise we cannot use the reference search mechanism.
+	// - And we'll need the same for styles referencing textures
+	// - So these should be resolved directly by the parser. We can provide an interface class that does the lookup, either in builtin resources or project library
+
 	if(!mCachedFont.IsLoaded(false))
 		mCachedFont = GetBuiltinResources().GetFont(FontFamily);
 

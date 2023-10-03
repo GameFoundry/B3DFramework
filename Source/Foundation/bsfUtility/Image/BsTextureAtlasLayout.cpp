@@ -234,7 +234,7 @@ Optional<TreeTextureAtlasLayout::Allocation> TreeTextureAtlasLayout::AddElement(
 	if(splitResult.LargerAreaOrientation == mNodes[bestFreeNodeId].Orientation)
 	{
 		// Add larger node as sibling to the best fit node
-		if(splitResult.LargerLeftoverArea != Rect2I::kEmpty)
+		if(!splitResult.LargerLeftoverArea.IsEmpty())
 		{
 			const u32 nextSiblingId = mNodes[bestFreeNodeId].NextSiblingId;
 			largerLeftoverNodeId = AllocateNode();
@@ -253,7 +253,7 @@ Optional<TreeTextureAtlasLayout::Allocation> TreeTextureAtlasLayout::AddElement(
 		}
 
 		// Split best fit node
-		if(splitResult.SmallerLeftoverArea != Rect2I::kEmpty)
+		if(!splitResult.SmallerLeftoverArea.IsEmpty())
 		{
 			mNodes[bestFreeNodeId].State = NodeState::Container;
 
@@ -287,7 +287,7 @@ Optional<TreeTextureAtlasLayout::Allocation> TreeTextureAtlasLayout::AddElement(
 	{
 		mNodes[bestFreeNodeId].State = NodeState::Container;
 
-		if(splitResult.LargerLeftoverArea != Rect2I::kEmpty)
+		if(!splitResult.LargerLeftoverArea.IsEmpty())
 		{
 			largerLeftoverNodeId = AllocateNode();
 
@@ -298,7 +298,7 @@ Optional<TreeTextureAtlasLayout::Allocation> TreeTextureAtlasLayout::AddElement(
 			largerLeftoverNode.Orientation = bestFreeNodeFlippedOrientation;
 		}
 
-		if(splitResult.SmallerLeftoverArea != Rect2I::kEmpty)
+		if(!splitResult.SmallerLeftoverArea.IsEmpty())
 		{
 			const u32 containerNodeId = AllocateNode();
 			allocatedNodeId = AllocateNode();
@@ -581,7 +581,7 @@ u32 TreeTextureAtlasLayout::FindBestFreeNode(Page& page, const Size2UI& size)
 		u32 bestBucketEntryIndex = ~0u;
 
 		FreeNodeBucket& bucket = page.FreeNodeBuckets[bucketIndex];
-		for(u32 bucketEntryIndex = 0; bucketEntryIndex < (u32)bucket.FreeNodes.size(); ++bucketEntryIndex)
+		for(u32 bucketEntryIndex = 0; bucketEntryIndex < (u32)bucket.FreeNodes.size();)
 		{
 			const u32 nodeIndex = bucket.FreeNodes[bucketEntryIndex];
 			Node& node = mNodes[nodeIndex];
@@ -597,7 +597,10 @@ u32 TreeTextureAtlasLayout::FindBestFreeNode(Page& page, const Size2UI& size)
 			const i32 deltaY = (i32)node.Area.Height - (i32)size.Height;
 
 			if(deltaX < 0 || deltaY < 0)
+			{
+				bucketEntryIndex++;
 				continue;
+			}
 
 			if(deltaX == 0 && deltaY == 0)
 			{
@@ -613,6 +616,8 @@ u32 TreeTextureAtlasLayout::FindBestFreeNode(Page& page, const Size2UI& size)
 				bestNodeIndex = nodeIndex;
 				bestBucketEntryIndex = bucketEntryIndex;
 			}
+
+			bucketEntryIndex++;
 		}
 
 		if(bestNodeIndex != ~0u)
@@ -786,7 +791,7 @@ TreeTextureAtlasLayout::Page TreeTextureAtlasLayout::AllocatePage()
 	rootNode.State = NodeState::Free;
 
 	FreeNodeBucket& rootNodeBucket = page.FreeNodeBuckets[GetFreeNodeBucketForSize(page, mSettings.Size)];
-	rootNodeBucket.FreeNodes.push_back(0);
+	rootNodeBucket.FreeNodes.push_back(page.RootNodeId);
 
 	return page;
 }
