@@ -86,7 +86,7 @@ namespace bs
 		Color GetActiveTextColor() const;
 
 		/** Creates a vector path responsible for drawing the background. */
-		virtual HVectorPath CreateBackgroundVectorPath(const Size2UI& size, const GUIStyleSheetStateStyle& style);
+		virtual HVectorPath CreateBackgroundVectorPath(const Size2UI& size, const GUIStyleSheetStateRule& style);
 
 	private:
 		ImageSprite* mImageSprite;

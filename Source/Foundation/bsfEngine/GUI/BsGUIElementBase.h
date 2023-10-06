@@ -47,6 +47,15 @@ namespace bs
 		GUIElementBase(const GUIDimensions& dimensions);
 		virtual ~GUIElementBase();
 
+		/** Returns the name of the GUI element type to be used for style lookup in the style sheet. */
+		virtual const char* GetStyleSheetElement() const { return nullptr; } // Note: Null style sheet name currently means element doesn't support style-sheets
+
+		/** Returns a user-specified class that will be used for style lookup in the style sheet. */
+		virtual const String& GetStyleSheetClass() const { return StringUtil::kBlank; /* Unused at the moment. */ }
+
+		/** Returns an user-specific ID will be used for style lookup in the style sheet. */
+		virtual const String& GetStyleSheetId() const { return StringUtil::kBlank; }
+
 		/**
 		 * Sets element position relative to parent GUI panel.
 		 *

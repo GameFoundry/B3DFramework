@@ -7,7 +7,7 @@
 
 namespace bs
 {
-	struct GUIStyleSheetStateStyle;
+	struct GUIStyleSheetStateRule;
 	/** @addtogroup GUI-Internal
 	 *  @{
 	 */
@@ -50,7 +50,7 @@ namespace bs
 		 * Updates layout options from the provided style. If user has not manually set a specific layout property, that
 		 * property will be inherited from style.
 		 */
-		void UpdateWithStyle(const GUIStyleSheetStateStyle& style);
+		void UpdateWithStyle(const GUIStyleSheetStateRule& style);
 
 		/**
 		 * Calculates size range for a GUI element using this layout.

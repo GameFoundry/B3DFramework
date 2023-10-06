@@ -268,7 +268,7 @@ void GUIElement::AddStateFlags(GUIElementStateFlags flags)
 	if(mStyleSheetStyle != nullptr)
 		mStyleSheetStateStyle = mStyleSheetStyle->FindStateStyle(mStateFlags);
 	else
-		mStyleSheetStateStyle = GUIStyleSheetStateStyle::kDefault;
+		mStyleSheetStateStyle = GUIStyleSheetStateRule::kDefault;
 
 	MarkContentAsDirty();
 }
@@ -283,7 +283,7 @@ void GUIElement::RemoveStateFlags(GUIElementStateFlags flags)
 	if(mStyleSheetStyle != nullptr)
 		mStyleSheetStateStyle = mStyleSheetStyle->FindStateStyle(mStateFlags);
 	else
-		mStyleSheetStateStyle = GUIStyleSheetStateStyle::kDefault;
+		mStyleSheetStateStyle = GUIStyleSheetStateRule::kDefault;
 
 	MarkContentAsDirty();
 }
@@ -314,12 +314,12 @@ void GUIElement::NotifyStyleSheetChanged()
 		if(GetParentWidget())
 			styleSheet = GetParentWidget()->GetStyleSheet();
 
-		SPtr<GUIStyleSheetStyle> newStyle;
+		SPtr<GUIStyleSheetRule> newStyle;
 		if(styleSheet.IsLoaded(false))
-			newStyle = styleSheet->FindStyle(styleSheetElement, GetStyleSheetId());
+			newStyle = styleSheet->BuildRule(*this);
 
 		if(!newStyle)
-			newStyle = GUIStyleSheetStyle::kDefault;
+			newStyle = GUIStyleSheetRule::kDefault;
 
 		if(newStyle != mStyleSheetStyle)
 		{

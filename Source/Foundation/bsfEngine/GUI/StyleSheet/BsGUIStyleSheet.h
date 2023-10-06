@@ -116,18 +116,47 @@ namespace bs
 		GUIBorderElementStyle Style = GUIBorderElementStyle::Solid; /**< Style how to render the border. */
 	};
 
-	struct GUIStyleSheetSelector
+	/** If multiple selectors are provided for a style sheet, this is used for determining their relationship. */
+	enum class GUIStyleSheetCombinatorType
 	{
-		String Name;
+		None, /*< No combinator, the selector applies to the GUI element directly matching the selector. */
+		AncestorOf, /**< GUI element we're looking up the selector for, must have an ancestor matching this selector. */
 	};
 
-	/** Style for a particular state of a GUI element (e.g. normal, hover, focused, disabled, etc. */
-	struct B3D_EXPORT GUIStyleSheetStateStyle
+	/** Determines to which GUI elements a particular style will be applied to. */
+	struct GUIStyleSheetSelector
 	{
-		String Selector; /**< Selector that describes to which GUI elements this style applies to. */
-		String PseudoClass; /**< Psuedo-class determines which state of the GUI element this style applies to (normal, hover, focused, disabled, etc.). */
-		GUIStyleSheetSelectorType SelectorType = GUIStyleSheetSelectorType::Element; /**< Type of selector provided in @p Selector. */
+		GUIStyleSheetSelector() = default;
+		GUIStyleSheetSelector(const String& name, GUIStyleSheetSelectorType selectorType, GUIStyleSheetCombinatorType combinatorType)
+			: Name(name), SelectorType(selectorType), CombinatorType(combinatorType)
+		{ }
 
+		String Name;
+		GUIStyleSheetSelectorType SelectorType = GUIStyleSheetSelectorType::Id;
+		GUIStyleSheetCombinatorType CombinatorType = GUIStyleSheetCombinatorType::None;
+
+		/** Checks does the selector match the provided GUI element. */
+		bool IsMatching(const GUIElementBase& element) const;
+	};
+
+	/** List of all selectors on a particular GUI style sheet. */
+	struct GUIStyleSheetSelectorList
+	{
+		TInlineArray<GUIStyleSheetSelector, 4> Selectors;
+
+		/** Checks does the selector match the provided GUI element. */
+		bool IsMatching(const GUIElementBase& element) const;
+
+		/** Returns a unique name that represents all the selectors in the list. */
+		const String& GetUniqueName() const;
+
+	private:
+		mutable String mCachedUniqueName;
+	};
+
+	/** Style rule for a particular state of a GUI element (e.g. normal, hover, focused, disabled, etc.). */
+	struct B3D_EXPORT GUIStyleSheetStateRule
+	{
 		RectOffset Margins; /**< Empty space around the GUI element outside of the border. In pixels.*/
 		RectOffset Padding; /**< Empty space within the GUI element inside the border. In pixels. */
 
@@ -159,12 +188,12 @@ namespace bs
 		TBitfield<InlineContainerAllocator<kPropertyDWordCount>> OverridenProperties; /**< Bit for each property that is different than the default will be set. Used for determining which properties to override from parent style. */
 
 		/**	Default style that may be used when no other is available. */
-		static SPtr<GUIStyleSheetStateStyle> kDefault;
+		static SPtr<GUIStyleSheetStateRule> kDefault;
 
-		GUIStyleSheetStateStyle();
+		GUIStyleSheetStateRule();
 
 		/** Overrides all the properties of this style with the set properties from @p other style. */
-		void Override(const GUIStyleSheetStateStyle& other);
+		void Override(const GUIStyleSheetStateRule& other);
 
 		/** Returns true if that property has been assigned. If false the property is using the default value. */
 		bool IsPropertySet(GUIStyleSheetPropertyType property) const { return OverridenProperties[(u32)property]; }
@@ -176,32 +205,34 @@ namespace bs
 		mutable HFont mCachedFont;
 	};
 
-	/** Contains a set of state styles for all supported states. */
-	struct B3D_EXPORT GUIStyleSheetStyle
+	/** Contains a set of style rules for all states in a GUI element. */
+	struct B3D_EXPORT GUIStyleSheetRule
 	{
-		GUIStyleSheetStateStyle Normal; /**< Normal style of the GUI element that is interactable, but isn't currently being interacted with. */
-		Optional<GUIStyleSheetStateStyle> Hover; /**< Style of GUI element that is interactable and the mouse pointer is hovering over the GUI element. Inherits from Normal state and optionally from Focused, or Checked state, if those are active. */
-		Optional<GUIStyleSheetStateStyle> Active; /**< Style of GUI element that is interactable and the user is currently clicking on the element. Inherits from Normal state and optionally from Focused, Hover or Checked state, if those are active. */
-		Optional<GUIStyleSheetStateStyle> Focus; /**< Style of GUI element that is interactable and currently has input focus. Inherits from Normal state. */
-		Optional<GUIStyleSheetStateStyle> Disabled; /**< Style of GUI element that is interactable and currently has input focus. Inherits from Normal state. */
-		Optional<GUIStyleSheetStateStyle> Checked; /**< Style of GUI element that is interactable, can be toggled on/off and is currently toggled on. Inherits from Normal state. */
+		GUIStyleSheetSelectorList SelectorList; /**< List of selectors that determines which GUI elements this style applies to. */
+
+		GUIStyleSheetStateRule Normal; /**< Normal style of the GUI element that is interactable, but isn't currently being interacted with. */
+		Optional<GUIStyleSheetStateRule> Hover; /**< Style of GUI element that is interactable and the mouse pointer is hovering over the GUI element. Inherits from Normal state and optionally from Focused, or Checked state, if those are active. */
+		Optional<GUIStyleSheetStateRule> Active; /**< Style of GUI element that is interactable and the user is currently clicking on the element. Inherits from Normal state and optionally from Focused, Hover or Checked state, if those are active. */
+		Optional<GUIStyleSheetStateRule> Focus; /**< Style of GUI element that is interactable and currently has input focus. Inherits from Normal state. */
+		Optional<GUIStyleSheetStateRule> Disabled; /**< Style of GUI element that is interactable and currently has input focus. Inherits from Normal state. */
+		Optional<GUIStyleSheetStateRule> Checked; /**< Style of GUI element that is interactable, can be toggled on/off and is currently toggled on. Inherits from Normal state. */
 
 		/** Returns the state with the given name. Returns null if the state with the name doesn't exist, or if the state has default values. */
-		const GUIStyleSheetStateStyle* FindStateStyle(const StringView& name) const;
+		const GUIStyleSheetStateRule* FindStateStyle(const StringView& name) const;
 
 		/** Returns the state with the given GUI element state flags. Note this may be a combination of internal states depending on the provided flags. */
-		SPtr<GUIStyleSheetStateStyle> FindStateStyle(GUIElementStateFlags state) const;
+		SPtr<GUIStyleSheetStateRule> FindStateStyle(GUIElementStateFlags state) const;
 
 		/** Assigns state information to a state with the specified name. If a state with the specified name the method returns false, otherwise true. */
-		bool FindAndSetStateStyle(const StringView& name, const GUIStyleSheetStateStyle& stateStyle);
+		bool FindAndSetStateStyle(const StringView& name, const GUIStyleSheetStateRule& stateStyle);
 
 		/** Overrides all the properties of this style with the set properties from @p other style. */
-		void Override(const GUIStyleSheetStyle& other);
+		void Override(const GUIStyleSheetRule& other);
 
 		/**	Default style that may be used when no other is available. */
-		static SPtr<GUIStyleSheetStyle> kDefault;
+		static SPtr<GUIStyleSheetRule> kDefault;
 	private:
-		mutable UnorderedMap<GUIElementStateFlags, SPtr<GUIStyleSheetStateStyle>> mCachedStateStyles;
+		mutable UnorderedMap<GUIElementStateFlags, SPtr<GUIStyleSheetStateRule>> mCachedStateStyles;
 	};
 
 	/**
@@ -211,66 +242,41 @@ namespace bs
 	class B3D_EXPORT GUIStyleSheet : public Resource
 	{
 	public:
-		GUIStyleSheet();
+		GUIStyleSheet(TArray<GUIStyleSheetRule> rules = {});
 		~GUIStyleSheet() override = default;
+
+		/** Builds the appropriate rule to use for a particular GUI element.  */
+		SPtr<GUIStyleSheetRule> BuildRule(const GUIElement& guiElement) const;
 
 		/** Attempts to parse the provided style sheet file and outputs the parsed style sheet, if successful. */
 		static HGUIStyleSheet Parse(const Path& file);
-
-		/** Creates a new empty style sheet. */
-		static HGUIStyleSheet Create();
-
-		/** Creates a new empty style sheet. */
-		static SPtr<GUIStyleSheet> CreateShared();
-
 		// TODO - Add LoadOrParse() method that attempts to lookup an existing style sheet from PersistentCache first
 
-		/**
-		 * Find the appropriate style to use for a particular GUI element.
-		 *
-		 * @name	elementType		Name of the GUI element type to retrieve the state for (e.g. button, input, checkbox, etc.)
-		 * @name	elementId		Element ID, in case you wish to style a particular GUI element differently from the rest of its type. This will override any
-		 *							properties defined in the global element style.
-		 * @return					Style that should be used to rendering the provided GUI element.
-		 */
-		SPtr<GUIStyleSheetStyle> FindStyle(const String& elementType, const String& elementId) const;
+		/** Creates a new style sheet. */
+		static HGUIStyleSheet Create(TArray<GUIStyleSheetRule> rules = {});
+
+		/** Creates a new style sheet. */
+		static SPtr<GUIStyleSheet> CreateShared(TArray<GUIStyleSheetRule> rules = {});
 	private:
 		friend class GUIStyleSheetParser;
 
-		/** Structure used for looking up cached states. */
-		struct CachedStateStyleKey
+		void Initialize() override;
+
+		/** Rebuilds the cache based on mStyles array. Should be called after first created or after deserialization. */
+		void RebuildCache();
+
+		/** List of rules in a GUI style sheet. */
+		struct GUIStyleSheetRuleList
 		{
-			CachedStateStyleKey(const String& elementType, const String& elementId)
-				: ElementType(elementType), ElementId(elementId)
-			{ }
-
-			struct Hash
-			{
-				size_t operator()(const CachedStateStyleKey& value) const
-				{
-					size_t hash = 0;
-					B3DCombineHash(hash, value.ElementType);
-					B3DCombineHash(hash, value.ElementId);
-
-					return hash;
-				}
-			};
-
-			bool operator==(const CachedStateStyleKey& other) const
-			{
-				return ElementType == other.ElementType && ElementId == other.ElementId;
-			}
-
-			String ElementType;
-			String ElementId;
+			TArray<u32> RuleIndices; /**< Maps into the mStyles array in GUIStyleSheet. */ 
 		};
 
-		friend struct ::std::hash<CachedStateStyleKey>;
+		TArray<GUIStyleSheetRule> mRules;
 
-		UnorderedMap<String, GUIStyleSheetStyle> mElementStyles;
-		UnorderedMap<String, GUIStyleSheetStyle> mIdStyles;
-
-		mutable UnorderedMap<CachedStateStyleKey, SPtr<GUIStyleSheetStyle>, CachedStateStyleKey::Hash> mCachedStyles;
+		// Cached by last selector, for faster lookup (avoids iterating over the entire mRules array)
+		mutable UnorderedMap<String, GUIStyleSheetRuleList> mCachedRulesByElement;
+		mutable UnorderedMap<String, GUIStyleSheetRuleList> mCachedRulesByClass;
+		mutable UnorderedMap<String, GUIStyleSheetRuleList> mCachedRulesById;
 
 		/************************************************************************/
 		/* 								SERIALIZATION                      		*/

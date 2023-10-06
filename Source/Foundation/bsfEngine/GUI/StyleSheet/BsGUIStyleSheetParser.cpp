@@ -77,46 +77,25 @@ SPtr<GUIStyleSheet> GUIStyleSheetParser::Parse(const SPtr<SourceCode>& sourceCod
 	// Grabs the first token
 	GetCurrentTokenAndAdvance();
 
-	SPtr<GUIStyleSheet> styleSheet = GUIStyleSheet::CreateShared();
 	mGlobalVariableContext = VariableContext();
+	mParsedRules.clear();
 
 	while(!IsCurrentToken(GUIStyleSheetTokenTypes::EndOfStream))
 	{
-		if(!TryParseSelector(*styleSheet))
+		if(!TryParseRule())
 			return nullptr;
 	}
 
-	return styleSheet;
+	TArray<GUIStyleSheetRule> rules;
+	for(auto& pair : mParsedRules)
+		rules.Add(pair.second);
+
+	return GUIStyleSheet::CreateShared(std::move(rules));
 }
 
-bool GUIStyleSheetParser::TryParseSelector(GUIStyleSheet& inOutStyleSheet)
+bool GUIStyleSheetParser::TryParseRule()
 {
-	// Parse selector name, which can be element or #id, or empty (if empty, pseudo-class must be specified)
-	bool foundSelectorName = false;
-	GUIStyleSheetSelectorType selectorType = GUIStyleSheetSelectorType::Element;
-	String selectorName;
-	if(IsCurrentToken(TokenType::ElementSelector) || IsCurrentToken(GUIStyleSheetTokenTypes::ClassSelector) || IsCurrentToken(GUIStyleSheetTokenTypes::IdSelector))
-	{
-		Token selectorNameToken = *GetCurrentTokenAndAdvance();
-		switch(selectorNameToken.GetType())
-		{
-		case TokenType::ElementSelector:
-			selectorType = GUIStyleSheetSelectorType::Element;
-			break;
-		case TokenType::ClassSelector:
-			selectorType = GUIStyleSheetSelectorType::Class;
-			break;
-		case TokenType::IdSelector:
-			selectorType = GUIStyleSheetSelectorType::Id;
-			break;
-		default:
-			B3D_ASSERT(false);
-			break;
-		}
-
-		selectorName = selectorNameToken.GetSpelling();
-		foundSelectorName = true;
-	}
+	Optional<GUIStyleSheetSelectorList> selectorList = TryParseSelectorList();
 
 	bool foundPseudoClass = false;
 	String pseudoClass;
@@ -132,27 +111,20 @@ bool GUIStyleSheetParser::TryParseSelector(GUIStyleSheet& inOutStyleSheet)
 		foundPseudoClass = true;
 	}
 
-	if(!foundSelectorName && !foundPseudoClass)
+	if(!selectorList && !foundPseudoClass)
 	{
 		Error("No selector name or pseudo-class provided.");
 		return false;
 	}
 
-	GUIStyleSheetStateStyle stateStyle;
-	GUIStyleSheetStyle* existingStyle = nullptr;
+	GUIStyleSheetStateRule stateStyle;
+	GUIStyleSheetRule* existingStyle = nullptr;
 
-	if(foundSelectorName)
+	if(selectorList)
 	{
-		if(selectorType == GUIStyleSheetSelectorType::Element)
-		{
-			if(auto found = inOutStyleSheet.mElementStyles.find(selectorName); found != inOutStyleSheet.mElementStyles.end())
-				existingStyle = &found->second;
-		}
-		else if(selectorType == GUIStyleSheetSelectorType::Id)
-		{
-			if(auto found = inOutStyleSheet.mIdStyles.find(selectorName); found != inOutStyleSheet.mIdStyles.end())
-				existingStyle = &found->second;
-		}
+		const String& selectorListUniqueName = selectorList->GetUniqueName();
+		if(auto found = mParsedRules.find(selectorListUniqueName); found != mParsedRules.end())
+			existingStyle = &found->second;
 
 		if(existingStyle != nullptr)
 		{
@@ -161,21 +133,15 @@ bool GUIStyleSheetParser::TryParseSelector(GUIStyleSheet& inOutStyleSheet)
 			else
 			{
 				if(auto found = existingStyle->FindStateStyle(pseudoClass))
-				{
 					stateStyle = *found;
-				}
 			}
 		}
 	}
 
-	stateStyle.Selector = selectorName;
-	stateStyle.SelectorType = selectorType;
-	stateStyle.PseudoClass = pseudoClass;
-
 	if(!GetCurrentTokenAndAdvance(GUIStyleSheetTokenTypes::LeftCurly).has_value())
 		return false;
 
-	const bool isInGlobalVariableContext = foundPseudoClass && stateStyle.PseudoClass == "root";
+	const bool isInGlobalVariableContext = foundPseudoClass && pseudoClass == "root";
 
 	mLocalVariableContext = VariableContext();
 	while(!IsCurrentToken(GUIStyleSheetTokenTypes::RightCurly))
@@ -202,7 +168,7 @@ bool GUIStyleSheetParser::TryParseSelector(GUIStyleSheet& inOutStyleSheet)
 		return false;
 
 	// Note: Not storing root state anywhere
-	if(foundSelectorName)
+	if(selectorList)
 	{
 		if(existingStyle != nullptr)
 		{
@@ -213,24 +179,63 @@ bool GUIStyleSheetParser::TryParseSelector(GUIStyleSheet& inOutStyleSheet)
 		}
 		else
 		{
-			GUIStyleSheetStyle newStyle;
+			GUIStyleSheetRule newStyle;
+			newStyle.SelectorList = std::move(*selectorList);
 
 			if(foundPseudoClass)
 				newStyle.FindAndSetStateStyle(pseudoClass, stateStyle);
 			else
 				newStyle.Normal = stateStyle;
 
-			if(selectorType == GUIStyleSheetSelectorType::Element)
-				inOutStyleSheet.mElementStyles[selectorName] = newStyle;
-			else if(selectorType == GUIStyleSheetSelectorType::Id)
-				inOutStyleSheet.mIdStyles[selectorName] = newStyle;
+			mParsedRules[newStyle.SelectorList.GetUniqueName()] = std::move(newStyle);
 		}
 	}
 
 	return true;
 }
 
-bool GUIStyleSheetParser::TryParseProperty(GUIStyleSheetStateStyle& inOutValue)
+Optional<GUIStyleSheetSelectorList> GUIStyleSheetParser::TryParseSelectorList()
+{
+	Optional<GUIStyleSheetSelectorList> optionalSelectorList;
+
+	// Parse selector name, which can be element or #id, or empty (if empty, pseudo-class must be specified)
+	while(IsCurrentToken(TokenType::ElementSelector) || IsCurrentToken(GUIStyleSheetTokenTypes::ClassSelector) || IsCurrentToken(GUIStyleSheetTokenTypes::IdSelector))
+	{
+		GUIStyleSheetSelector selector;
+
+		Token selectorNameToken = *GetCurrentTokenAndAdvance();
+		switch(selectorNameToken.GetType())
+		{
+		case TokenType::ElementSelector:
+			selector.SelectorType = GUIStyleSheetSelectorType::Element;
+			break;
+		case TokenType::ClassSelector:
+			selector.SelectorType = GUIStyleSheetSelectorType::Class;
+			break;
+		case TokenType::IdSelector:
+			selector.SelectorType = GUIStyleSheetSelectorType::Id;
+			break;
+		default:
+			B3D_ASSERT(false);
+			break;
+		}
+
+		selector.Name = selectorNameToken.GetSpelling();
+
+		if(!optionalSelectorList.has_value())
+			optionalSelectorList = GUIStyleSheetSelectorList();
+
+		// If there is any previous selector, it is considered to be an ancestor of the current selector
+		if(!optionalSelectorList->Selectors.Empty())
+			optionalSelectorList->Selectors.back().CombinatorType = GUIStyleSheetCombinatorType::AncestorOf;
+
+		optionalSelectorList->Selectors.Add(selector);
+	}
+
+	return optionalSelectorList;
+}
+
+bool GUIStyleSheetParser::TryParseProperty(GUIStyleSheetStateRule& inOutValue)
 {
 	Optional<Token> propertyToken = GetCurrentTokenAndAdvance(GUIStyleSheetTokenTypes::Property);
 	if(!propertyToken)

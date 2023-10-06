@@ -83,7 +83,7 @@ void GUIDimensions::UpdateWithStyle(const GUIElementStyle* style)
 	}
 }
 
-void GUIDimensions::UpdateWithStyle(const GUIStyleSheetStateStyle& style)
+void GUIDimensions::UpdateWithStyle(const GUIStyleSheetStateRule& style)
 {
 	if(!IsWidthOverridenAtRuntime())
 	{

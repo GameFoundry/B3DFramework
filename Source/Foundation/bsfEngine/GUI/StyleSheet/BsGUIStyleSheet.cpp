@@ -10,14 +10,104 @@
 
 using namespace bs;
 
-SPtr<GUIStyleSheetStateStyle> GUIStyleSheetStateStyle::kDefault = B3DMakeShared<GUIStyleSheetStateStyle>();
+bool GUIStyleSheetSelector::IsMatching(const GUIElementBase& element) const
+{
+	if(Name.empty())
+		return false;
 
-GUIStyleSheetStateStyle::GUIStyleSheetStateStyle()
+	switch(SelectorType)
+	{
+	case GUIStyleSheetSelectorType::Element:
+		if(!element.GetStyleSheetElement())
+			return false;
+
+		return Name == element.GetStyleSheetElement();
+	case GUIStyleSheetSelectorType::Class:
+		if(element.GetStyleSheetClass().empty())
+			return false;
+
+		return Name == element.GetStyleSheetClass();
+	case GUIStyleSheetSelectorType::Id:
+		if(element.GetStyleSheetId().empty())
+			return false;
+
+		return Name == element.GetStyleSheetId();
+	default:
+		return false;
+	}
+}
+
+bool GUIStyleSheetSelectorList::IsMatching(const GUIElementBase& element) const
+{
+	if(Selectors.Empty())
+		return false;
+
+	// Last selector must be an exact match for the element we're looking for
+	if(!Selectors.back().IsMatching(element))
+		return false;
+
+	// The rest of the selectors should be combinators
+	GUIElementBase* currentParent = element.GetParent();
+	for(auto it = Selectors.rbegin() + 1; it != Selectors.rend(); ++it)
+	{
+		const GUIStyleSheetSelector& selector = *it;
+		if(!B3D_ENSURE(selector.CombinatorType == GUIStyleSheetCombinatorType::AncestorOf))
+			continue;
+
+		bool isFound = false;
+		while(currentParent != nullptr)
+		{
+			if(!selector.IsMatching(*currentParent))
+			{
+				currentParent = currentParent->GetParent();
+				continue;
+			}
+
+			isFound = true;
+			break;
+		}
+
+		if(!isFound)
+			return false;
+	}
+
+	return true;
+}
+
+const String& GUIStyleSheetSelectorList::GetUniqueName() const
+{
+	if(mCachedUniqueName.empty())
+	{
+		StringStream stringStream;
+		for(const auto& entry : Selectors)
+		{
+			switch(entry.SelectorType)
+			{
+			case GUIStyleSheetSelectorType::Class:
+				stringStream << ".";
+				break;
+			case GUIStyleSheetSelectorType::Id:
+				stringStream << "#";
+				break;
+			}
+
+			stringStream << entry.Name;
+		}
+
+		mCachedUniqueName = stringStream.str();
+	}
+
+	return mCachedUniqueName;
+}
+
+SPtr<GUIStyleSheetStateRule> GUIStyleSheetStateRule::kDefault = B3DMakeShared<GUIStyleSheetStateRule>();
+
+GUIStyleSheetStateRule::GUIStyleSheetStateRule()
 {
 	OverridenProperties.Resize((u32)GUIStyleSheetPropertyType::Count);
 }
 
-void GUIStyleSheetStateStyle::Override(const GUIStyleSheetStateStyle& other)
+void GUIStyleSheetStateRule::Override(const GUIStyleSheetStateRule& other)
 {
 #define OVERRIDE_PROPERTY(PropertyName, FieldName)                              \
 	if(other.OverridenProperties[(u32)GUIStyleSheetPropertyType::PropertyName]) \
@@ -74,7 +164,7 @@ void GUIStyleSheetStateStyle::Override(const GUIStyleSheetStateStyle& other)
 #undef OVERRIDE_PROPERTY
 }
 
-HFont GUIStyleSheetStateStyle::GetOrLoadFont() const
+HFont GUIStyleSheetStateRule::GetOrLoadFont() const
 {
 	// TODO - Style should be containing the HFont reference directly. Otherwise we cannot use the reference search mechanism.
 	// - And we'll need the same for styles referencing textures
@@ -86,7 +176,7 @@ HFont GUIStyleSheetStateStyle::GetOrLoadFont() const
 	return mCachedFont;
 }
 
-const GUIStyleSheetStateStyle* GUIStyleSheetStyle::FindStateStyle(const StringView& name) const
+const GUIStyleSheetStateRule* GUIStyleSheetRule::FindStateStyle(const StringView& name) const
 {
 	if(StringUtil::Compare(name, "normal", false))
 		return &Normal;
@@ -109,9 +199,9 @@ const GUIStyleSheetStateStyle* GUIStyleSheetStyle::FindStateStyle(const StringVi
 	return nullptr;
 }
 
-SPtr<GUIStyleSheetStyle> GUIStyleSheetStyle::kDefault = B3DMakeShared<GUIStyleSheetStyle>();
+SPtr<GUIStyleSheetRule> GUIStyleSheetRule::kDefault = B3DMakeShared<GUIStyleSheetRule>();
 
-bool GUIStyleSheetStyle::FindAndSetStateStyle(const StringView& name, const GUIStyleSheetStateStyle& stateStyle)
+bool GUIStyleSheetRule::FindAndSetStateStyle(const StringView& name, const GUIStyleSheetStateRule& stateStyle)
 {
 	if(StringUtil::Compare(name, "normal", false))
 	{
@@ -164,12 +254,12 @@ HGUIStyleSheet GUIStyleSheet::Parse(const Path& file)
 	return B3DStaticResourceCast<GUIStyleSheet>(GetResources().CreateResourceHandle(styleSheet));
 }
 
-SPtr<GUIStyleSheetStateStyle> GUIStyleSheetStyle::FindStateStyle(GUIElementStateFlags stateFlags) const
+SPtr<GUIStyleSheetStateRule> GUIStyleSheetRule::FindStateStyle(GUIElementStateFlags stateFlags) const
 {
 	if(auto found = mCachedStateStyles.find(stateFlags); found != mCachedStateStyles.end())
 		return found->second;
 
-	SPtr<GUIStyleSheetStateStyle> stateStyle = B3DMakeShared<GUIStyleSheetStateStyle>();
+	SPtr<GUIStyleSheetStateRule> stateStyle = B3DMakeShared<GUIStyleSheetStateRule>();
 	*stateStyle = Normal;
 
 	if(stateFlags.IsSet(GUIElementStateFlag::Checked))
@@ -207,7 +297,7 @@ SPtr<GUIStyleSheetStateStyle> GUIStyleSheetStyle::FindStateStyle(GUIElementState
 	return mCachedStateStyles.insert(std::make_pair(stateFlags, stateStyle)).first->second;
 }
 
-void GUIStyleSheetStyle::Override(const GUIStyleSheetStyle& other)
+void GUIStyleSheetRule::Override(const GUIStyleSheetRule& other)
 {
 	Normal.Override(other.Normal);
 
@@ -252,38 +342,117 @@ void GUIStyleSheetStyle::Override(const GUIStyleSheetStyle& other)
 		Disabled = other.Disabled;
 }
 
-GUIStyleSheet::GUIStyleSheet()
-	: Resource(false, "StyleSheet")
+GUIStyleSheet::GUIStyleSheet(TArray<GUIStyleSheetRule> rules)
+	: Resource(false, "StyleSheet"), mRules(std::move(rules))
 { }
- 
-SPtr<GUIStyleSheetStyle> GUIStyleSheet::FindStyle(const String& elementType, const String& elementId) const
+
+void GUIStyleSheet::Initialize()
 {
-	CachedStateStyleKey key(elementType, elementId);
-
-	if(auto found = mCachedStyles.find(key); found != mCachedStyles.end())
-		return found->second;
-
-	SPtr<GUIStyleSheetStyle> style = B3DMakeShared<GUIStyleSheetStyle>();
-
-	if(auto it = mElementStyles.find(elementType); it != mElementStyles.end())
-		*style = it->second;
-
-	if(auto it = mIdStyles.find(elementId); it != mIdStyles.end())
-		style->Override(it->second);
-
-	return mCachedStyles.insert(std::make_pair(std::move(key),  style)).first->second;
+	RebuildCache();
 }
 
-HGUIStyleSheet GUIStyleSheet::Create()
+void GUIStyleSheet::RebuildCache()
 {
-	const SPtr<GUIStyleSheet> newStyleSheet = CreateShared();
+	for(u32 ruleIndex = 0; ruleIndex < (u32)mRules.size(); ++ruleIndex)
+	{
+		GUIStyleSheetRule& rule = mRules[ruleIndex];
+
+		if(!B3D_ENSURE(!rule.SelectorList.Selectors.Empty()))
+			continue;
+
+		GUIStyleSheetSelector& lastSelector = rule.SelectorList.Selectors.back();
+		switch(lastSelector.SelectorType)
+		{
+		case GUIStyleSheetSelectorType::Element:
+			mCachedRulesByElement[lastSelector.Name].RuleIndices.Add(ruleIndex);
+			break;
+		case GUIStyleSheetSelectorType::Class:
+			mCachedRulesByClass[lastSelector.Name].RuleIndices.Add(ruleIndex);
+			break;
+		case GUIStyleSheetSelectorType::Id:
+			mCachedRulesById[lastSelector.Name].RuleIndices.Add(ruleIndex);
+			break;
+		}
+	}
+
+	auto fnSortEntries = [this](UnorderedMap<String, GUIStyleSheetRuleList>& map) {
+		for(auto& pair : map)
+		{
+			std::sort(pair.second.RuleIndices.begin(), pair.second.RuleIndices.end(), [this](u32 lhs, u32 rhs) {
+				const GUIStyleSheetRule& ruleLHS = mRules[lhs];
+				const GUIStyleSheetRule& ruleRHS = mRules[rhs];
+
+				const u32 specificityLHS = (u32)ruleLHS.SelectorList.Selectors.size();
+				const u32 specificityRHS = (u32)ruleRHS.SelectorList.Selectors.size();
+
+				return specificityLHS < specificityRHS;
+			});
+		}
+	};
+
+	// Sort from least specific to most specific
+	fnSortEntries(mCachedRulesByElement);
+	fnSortEntries(mCachedRulesByClass);
+	fnSortEntries(mCachedRulesById);
+}
+ 
+SPtr<GUIStyleSheetRule> GUIStyleSheet::BuildRule(const GUIElement& guiElement) const
+{
+	SPtr<GUIStyleSheetRule> outputRule = B3DMakeShared<GUIStyleSheetRule>();
+
+	// Go over rules based on specificity: rules matching element name, then rules matching class name, then rules matching id.
+	// Rules within each category are already sorted from least to most specific.
+	// More specific rules keep overriding the properties from less specific rules, until we build our output rule.
+
+	if(auto it = mCachedRulesByElement.find(guiElement.GetStyleSheetElement()); it != mCachedRulesByElement.end())
+	{
+		for(const auto& ruleIndex : it->second.RuleIndices)
+		{
+			const GUIStyleSheetRule& rule = mRules[ruleIndex];
+			if(!rule.SelectorList.IsMatching(guiElement))
+				continue;
+
+			outputRule->Override(rule);
+		}
+	}
+
+	if(auto it = mCachedRulesByClass.find(guiElement.GetStyleSheetClass()); it != mCachedRulesByClass.end())
+	{
+		for(const auto& ruleIndex : it->second.RuleIndices)
+		{
+			const GUIStyleSheetRule& rule = mRules[ruleIndex];
+			if(!rule.SelectorList.IsMatching(guiElement))
+				continue;
+
+			outputRule->Override(rule);
+		}
+	}
+
+	if(auto it = mCachedRulesById.find(guiElement.GetStyleSheetId()); it != mCachedRulesById.end())
+	{
+		for(const auto& ruleIndex : it->second.RuleIndices)
+		{
+			const GUIStyleSheetRule& rule = mRules[ruleIndex];
+			if(!rule.SelectorList.IsMatching(guiElement))
+				continue;
+
+			outputRule->Override(rule);
+		}
+	}
+
+	return outputRule;
+}
+
+HGUIStyleSheet GUIStyleSheet::Create(TArray<GUIStyleSheetRule> rules)
+{
+	const SPtr<GUIStyleSheet> newStyleSheet = CreateShared(std::move(rules));
 
 	return B3DStaticResourceCast<GUIStyleSheet>(GetResources().CreateResourceHandle(newStyleSheet));
 }
 
-SPtr<GUIStyleSheet> GUIStyleSheet::CreateShared()
+SPtr<GUIStyleSheet> GUIStyleSheet::CreateShared(TArray<GUIStyleSheetRule> rules)
 {
-	SPtr<GUIStyleSheet> newStyleSheet = B3DMakeCoreFromExisting<GUIStyleSheet>(new(B3DAllocate<GUIStyleSheet>()) GUIStyleSheet());
+	SPtr<GUIStyleSheet> newStyleSheet = B3DMakeCoreFromExisting<GUIStyleSheet>(new(B3DAllocate<GUIStyleSheet>()) GUIStyleSheet(std::move(rules)));
 	newStyleSheet->SetShared(newStyleSheet);
 	newStyleSheet->Initialize();
 

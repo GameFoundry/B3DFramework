@@ -234,5 +234,7 @@ namespace bs
 		TID_GUIStyleSheetStyle = 30024,
 		TID_GUIStyleSheetStyleState = 30025,
 		TID_GUIStyleSheetBorderElement = 30026,
+		TID_GUIStyleSheetSelector = 30027,
+		TID_GUIStyleSheetSelectorList = 30028,
 	};
 }

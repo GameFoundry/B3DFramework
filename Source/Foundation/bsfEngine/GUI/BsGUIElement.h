@@ -12,7 +12,7 @@
 
 namespace bs
 {
-	struct GUIStyleSheetStyle;
+	struct GUIStyleSheetRule;
 	class GUINavGroup;
 
 	/** @addtogroup Implementation
@@ -84,7 +84,9 @@ namespace bs
 	public:
 		GUIElement(String styleName, const GUIDimensions& dimensions, GUIElementOptions options = GUIElementOptions(0));
 		GUIElement(const char* styleName, const GUIDimensions& dimensions, GUIElementOptions options = GUIElementOptions(0));
-		virtual ~GUIElement() = default;
+		~GUIElement() override = default;
+
+		const String& GetStyleSheetClass() const override { return mStyleName; }
 
 		/**
 		 * Change the GUI element focus state.
@@ -99,12 +101,6 @@ namespace bs
 		virtual void SetTint(const Color& color);
 
 		void ResetDimensions() override;
-
-		/** Returns the name of the GUI element type to be used for style lookup in the style sheet. */
-		virtual const char* GetStyleSheetElement() const { return nullptr; } // Note: Null style sheet name currently means element doesn't support style-sheets
-
-		/** Returns an ID will be used for style lookup in the style sheet. If specified, this allows the style sheet to further specialize the look of the element. */
-		virtual const String& GetStyleSheetId() const { return mStyleName; }
 
 		/**	Sets new style to be used by the element. */
 		void SetStyle(const String& styleName);
@@ -346,8 +342,8 @@ namespace bs
 		Rect2I mClippedBounds;
 		TInlineArray<GUIRenderElement, 4> mRenderElements;
 
-		SPtr<const GUIStyleSheetStyle> mStyleSheetStyle;
-		SPtr<const GUIStyleSheetStateStyle> mStyleSheetStateStyle;
+		SPtr<const GUIStyleSheetRule> mStyleSheetStyle;
+		SPtr<const GUIStyleSheetStateRule> mStyleSheetStateStyle;
 	private:
 		static const Color kDisabledColor;
 

@@ -8,7 +8,7 @@
 
 namespace bs
 {
-	struct GUIStyleSheetStateStyle;
+	struct GUIStyleSheetStateRule;
 	/** @addtogroup GUI-Internal
 	 *  @{
 	 */
@@ -54,7 +54,7 @@ namespace bs
 		 * @param	style			Style to use when rendering the GUI element.
 		 * @return					Size of the GUI element (area within GUI elements border).
 		 */
-		static Size2UI CalculateSizeWithPadding(const Size2UI& contentSize, const GUIStyleSheetStateStyle& style);
+		static Size2UI CalculateSizeWithPadding(const Size2UI& contentSize, const GUIStyleSheetStateRule& style);
 
 		/**
 		 * Calculates optimal size for displaying particular GUI contents.
@@ -64,7 +64,7 @@ namespace bs
 		 * @param	dimensions		Dimension constraints of a GUI element, primarily used if word wrap is required by the style.
 		 * @return					Optimal size of the GUI element, including content size and the style padding (area within GUI elements border).
 		 */
-		static Size2UI CalculateOptimalContentSizeWithPadding(const GUIContent& content, const GUIStyleSheetStateStyle& style, const GUIDimensions& dimensions);
+		static Size2UI CalculateOptimalContentSizeWithPadding(const GUIContent& content, const GUIStyleSheetStateRule& style, const GUIDimensions& dimensions);
 
 		/**
 		 * Calculates optimal size for displaying text.
@@ -74,7 +74,7 @@ namespace bs
 		 * @param	dimensions		Dimension constraints of a GUI element, primarily used if word wrap is required by the style.
 		 * @return					Optimal size of the GUI element, including content size and the style padding (area within GUI elements border).
 		 */
-		static Size2UI CalculateOptimalContentSizeWithPadding(const String& text, const GUIStyleSheetStateStyle& style, const GUIDimensions& dimensions);
+		static Size2UI CalculateOptimalContentSizeWithPadding(const String& text, const GUIStyleSheetStateRule& style, const GUIDimensions& dimensions);
 
 		/**
 		 * Calculates optimal content size for the provided text using the provided font and size. Size is calculated

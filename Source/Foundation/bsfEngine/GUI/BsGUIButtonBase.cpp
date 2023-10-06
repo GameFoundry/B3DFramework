@@ -524,7 +524,7 @@ Color GUIButtonBase::GetActiveTextColor() const
 	return GetStyle()->Normal.TextColor;
 }
 
-HVectorPath GUIButtonBase::CreateBackgroundVectorPath(const Size2UI& size, const GUIStyleSheetStateStyle& style)
+HVectorPath GUIButtonBase::CreateBackgroundVectorPath(const Size2UI& size, const GUIStyleSheetStateRule& style)
 {
 	HVectorPath path = VectorPath::Create();
 

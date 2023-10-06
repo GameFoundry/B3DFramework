@@ -58,7 +58,7 @@ Vector2I GUIHelper::CalculateOptimalContentSize(const String& text, const GUIEle
 	return Vector2I(contentWidth, contentHeight);
 }
 
-Size2UI GUIHelper::CalculateSizeWithPadding(const Size2UI& contentSize, const GUIStyleSheetStateStyle& style)
+Size2UI GUIHelper::CalculateSizeWithPadding(const Size2UI& contentSize, const GUIStyleSheetStateRule& style)
 {
 	const u32 paddingWidth = style.Padding.Left + style.Padding.Right;
 	const u32 paddingHeight = style.Padding.Top + style.Padding.Bottom;
@@ -66,7 +66,7 @@ Size2UI GUIHelper::CalculateSizeWithPadding(const Size2UI& contentSize, const GU
 	return Size2UI(contentSize.Width + paddingWidth, contentSize.Height + paddingHeight);
 }
 
-Size2UI GUIHelper::CalculateOptimalContentSizeWithPadding(const GUIContent& content, const GUIStyleSheetStateStyle& style, const GUIDimensions& dimensions)
+Size2UI GUIHelper::CalculateOptimalContentSizeWithPadding(const GUIContent& content, const GUIStyleSheetStateRule& style, const GUIDimensions& dimensions)
 {
 	Size2UI contentBounds = CalculateOptimalContentSizeWithPadding((const String&)content.Text, style, dimensions);
 
@@ -82,7 +82,7 @@ Size2UI GUIHelper::CalculateOptimalContentSizeWithPadding(const GUIContent& cont
 	return contentBounds;
 }
 
-Size2UI GUIHelper::CalculateOptimalContentSizeWithPadding(const String& text, const GUIStyleSheetStateStyle& style, const GUIDimensions& dimensions)
+Size2UI GUIHelper::CalculateOptimalContentSizeWithPadding(const String& text, const GUIStyleSheetStateRule& style, const GUIDimensions& dimensions)
 {
 	u32 wordWrapWidth = 0;
 
