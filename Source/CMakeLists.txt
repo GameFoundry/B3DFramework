@@ -256,7 +256,7 @@ target_link_libraries(bsfImportTool bsf)
 add_engine_dependencies(bsfImportTool)
 add_importer_dependencies(bsfImportTool)
 
-set_property(TARGET bsfImportTool PROPERTY FOLDER Utilities)
+set_property(TARGET bsfImportTool PROPERTY FOLDER Tools)
 
 if(NOT B3D_IS_ENGINE)
 	install(TARGETS bsfImportTool RUNTIME DESTINATION bin)	
@@ -278,11 +278,6 @@ check_and_update_builtin_assets(bsfCompiled ${BSF_SOURCE_DIR}/../Data Data ${COM
 set(DOC_IMAGES_VERSION_FILE ${BSF_SOURCE_DIR}/../Documentation/.reqversion)
 file (STRINGS ${DOC_IMAGES_VERSION_FILE} DOC_IMAGES_VERSION)
 check_and_update_builtin_assets(bsfDocImages ${BSF_SOURCE_DIR}/../Documentation Documentation ${DOC_IMAGES_VERSION} NO)
-
-## Script binding generation
-if(((SCRIPT_API AND (NOT SCRIPT_API MATCHES "None")) OR B3D_IS_ENGINE) AND B3D_SCRIPT_BINDING_GENERATION)
-	include(${BSF_SOURCE_DIR}/CMake/GenerateScriptBindings.cmake)
-endif()
 
 if(NOT B3D_IS_ENGINE)
 	set(DATA_DST_DIR bin)

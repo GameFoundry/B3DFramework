@@ -73,6 +73,43 @@ function(B3DGlobSourceFiles parentPath path foldersToIgnore outSourceFiles)
 	set(${outSourceFiles} ${sourceFiles} PARENT_SCOPE)
 endfunction()
 
+# Registers optional subdirectories based on selected properties.
+function(B3DRegisterOptionalFrameworkSubdirectories)
+	# Grab examples projects
+	if(B3D_BUILD_EXAMPLES)
+		find_path(EXAMPLE_SUBMODULE_SOURCES "CMakeLists.txt" PATHS "${BSF_DIRECTORY}/Examples" NO_DEFAULT_PATH NO_CACHE)
+		if(NOT EXAMPLE_SUBMODULE_SOURCES)
+			execute_process(COMMAND git submodule update
+					--init
+					-- Examples
+					WORKING_DIRECTORY ${BSF_DIRECTORY})
+		endif()
+		mark_as_advanced(EXAMPLE_SUBMODULE_SOURCES)
+
+		add_subdirectory(${BSF_DIRECTORY}/Examples)
+	endif()
+
+	# Grab code-generator project
+	if(B3D_BUILD_CODEGEN)
+		find_path(CODEGEN_SUBMODULE_SOURCES "CMakeLists.txt" PATHS "${BSF_TOOLS_DIRECTORY}/BansheeCodeGenerator" NO_DEFAULT_PATH NO_CACHE)
+		if(NOT CODEGEN_SUBMODULE_SOURCES)
+			execute_process(COMMAND git submodule update
+					--init
+					-- BansheeCodeGenerator
+					WORKING_DIRECTORY ${BSF_TOOLS_DIRECTORY})
+		endif()
+		mark_as_advanced(CODEGEN_SUBMODULE_SOURCES)
+
+		add_subdirectory(${BSF_TOOLS_DIRECTORY}/BansheeCodeGenerator)
+		set_property(TARGET BansheeCodeGenerator PROPERTY FOLDER Tools)
+	endif()
+
+	# Script binding generation script
+	if(((SCRIPT_API AND (NOT SCRIPT_API MATCHES "None")) OR B3D_IS_ENGINE) AND B3D_BUILD_CODEGEN)
+		include(${BSF_SOURCE_DIR}/CMake/GenerateScriptBindings.cmake)
+	endif()
+endfunction()
+
 function(add_prefix var prefix)
    SET(listVar "")
    FOREACH(f ${ARGN})

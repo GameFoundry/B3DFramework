@@ -1,35 +1,39 @@
-set(BS_GSB_COMMAND @GenScriptBinding_SBGEN_EXECUTABLE@
-	@GenScriptBinding_SOURCE_FILE@
-	-output-cpp @GenScriptBinding_OUTPUT_CPP_DIR@
-	-output-cs @GenScriptBinding_OUTPUT_CS_DIR@
-	-output-cpp-editor @GenScriptBinding_OUTPUT_CPP_EDITOR_DIR@
-	-output-cs-editor @GenScriptBinding_OUTPUT_CS_EDITOR_DIR@
-	@GenScriptBinding_DEFINES@
-	-- @GenScriptBinding_INCLUDE_DIRS@
-	-std=c++17
-	-DBS_STATIC_LIB
-	-DBS_SBGEN
-	-D_ALLOW_COMPILER_AND_STL_VERSION_MISMATCH
-	-w)
+set(codegenExecutable ${CMAKE_ARGV4})
+set(runCodegenCommand ${codegenExecutable}
+	@runCodegenCommandArguments@
+)
+# set(runCodegenCommand ${codegenExecutable}
+#	@GenScriptBinding_SOURCE_FILE@
+#	-output-cpp @GenScriptBinding_OUTPUT_CPP_DIR@
+#	-output-cs @GenScriptBinding_OUTPUT_CS_DIR@
+#	-output-cpp-editor @GenScriptBinding_OUTPUT_CPP_EDITOR_DIR@
+#	-output-cs-editor @GenScriptBinding_OUTPUT_CS_EDITOR_DIR@
+#	@GenScriptBinding_DEFINES@
+#	-- @GenScriptBinding_INCLUDE_DIRS@
+#	-std=c++17
+#	-DBS_STATIC_LIB
+#	-DBS_SBGEN
+#	-D_ALLOW_COMPILER_AND_STL_VERSION_MISMATCH
+#	-w)
 
-message(STATUS ${BS_GSB_COMMAND})
+message(STATUS ${runCodegenCommand})
 
 if(APPLE)
-	list(APPEND BS_GSB_COMMAND
+	list(APPEND ${runCodegenCommand}
 		-isystem /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include/c++/v1)
-	list(APPEND BS_GSB_COMMAND
+	list(APPEND ${runCodegenCommand}
 		-isystem /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include)
-	list(APPEND BS_GSB_COMMAND -stdlib=libc++)
+	list(APPEND ${runCodegenCommand} -stdlib=libc++)
 endif()
 
 message(STATUS "Generating script bindings, please wait...")
 execute_process(
-	COMMAND ${BS_GSB_COMMAND}
+	COMMAND ${runCodegenCommand}
 	WORKING_DIRECTORY @GenScriptBinding_WORKING_DIR@
-	RESULT_VARIABLE SBGEN_RETURN_VALUE
+	RESULT_VARIABLE codegenReturnValue
 )
 
-if (NOT SBGEN_RETURN_VALUE EQUAL 0)
+if (NOT codegenReturnValue EQUAL 0)
 	message(FATAL_ERROR "Failed to generate script bindings.")
 else()
 	message(STATUS "...scripting binding generation OK.")
