@@ -44,6 +44,8 @@ function(B3DRegisterCodeGenTarget)
 	list(REMOVE_DUPLICATES B3D_CODEGEN_HEADER_FOLDERS)
 	list(REMOVE_DUPLICATES B3D_CODEGEN_HEADER_FILES)
 
+	string(REPLACE ";" " " headerFoldersArgument "${B3D_CODEGEN_HEADER_FOLDERS}")
+
 	# Generate a single .cpp file including all headers
 	set(parseTargetFileContents "")
 	foreach(path ${B3D_CODEGEN_HEADER_FILES})
@@ -55,7 +57,7 @@ function(B3DRegisterCodeGenTarget)
 	set(GenScriptBinding_SOURCE_FILE ${PROJECT_BINARY_DIR}/B3DCodeGenParseTarget.cpp)
 	set(GenScriptBinding_OUTPUT_CPP_DIR ${BSF_SOURCE_DIR}/Scripting/bsfScript/Generated)
 	set(GenScriptBinding_OUTPUT_CS_DIR ${BSF_SOURCE_DIR}/Scripting/bsfSharp/Generated)
-	set(GenScriptBinding_INCLUDE_DIRS ${B3D_CODEGEN_HEADER_FOLDERS})
+	set(GenScriptBinding_INCLUDE_DIRS ${headerFoldersArgument})
 	set(GenScriptBinding_WORKING_DIR ${PROJECT_SOURCE_DIR})
 
 	if(B3D_IS_ENGINE)

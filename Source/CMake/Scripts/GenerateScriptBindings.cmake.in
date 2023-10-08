@@ -2,19 +2,6 @@ set(codegenExecutable ${CMAKE_ARGV4})
 set(runCodegenCommand ${codegenExecutable}
 	@runCodegenCommandArguments@
 )
-# set(runCodegenCommand ${codegenExecutable}
-#	@GenScriptBinding_SOURCE_FILE@
-#	-output-cpp @GenScriptBinding_OUTPUT_CPP_DIR@
-#	-output-cs @GenScriptBinding_OUTPUT_CS_DIR@
-#	-output-cpp-editor @GenScriptBinding_OUTPUT_CPP_EDITOR_DIR@
-#	-output-cs-editor @GenScriptBinding_OUTPUT_CS_EDITOR_DIR@
-#	@GenScriptBinding_DEFINES@
-#	-- @GenScriptBinding_INCLUDE_DIRS@
-#	-std=c++17
-#	-DBS_STATIC_LIB
-#	-DBS_SBGEN
-#	-D_ALLOW_COMPILER_AND_STL_VERSION_MISMATCH
-#	-w)
 
 message(STATUS ${runCodegenCommand})
 
