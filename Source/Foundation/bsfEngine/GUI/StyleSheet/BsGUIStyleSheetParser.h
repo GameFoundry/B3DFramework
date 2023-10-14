@@ -29,6 +29,9 @@ namespace bs
 
 		/** Returns errors in case parsing failed. */
 		const String& GetErrors() const { return mErrors; }
+
+		/** Returns any warnings generated during the parse process. */
+		String GetWarnings() const { return mWarnings.str(); }
 		
 	private:
 		/** All possible types for property values. */
@@ -41,6 +44,7 @@ namespace bs
 			Percent,
 			Color,
 			String,
+			URL,
 			BorderStyle,
 			TextAlign,
 			VerticalAlign,
@@ -84,13 +88,13 @@ namespace bs
 
 			void GetValue(u32& outValue) const
 			{
-				B3D_ASSERT(Type == ValueType::Integer || Type == ValueType::Pixel || Type == ValueType::String);
+				B3D_ASSERT(Type == ValueType::Integer || Type == ValueType::Pixel || Type == ValueType::String || Type == ValueType::URL);
 				outValue = UnsignedInteger;
 			}
 
 			void GetValue(i32& outValue) const
 			{
-				B3D_ASSERT(Type == ValueType::Integer || Type == ValueType::Pixel || Type == ValueType::String);
+				B3D_ASSERT(Type == ValueType::Integer || Type == ValueType::Pixel || Type == ValueType::String || Type == ValueType::URL);
 				outValue = SignedInteger;
 			}
 
@@ -202,6 +206,12 @@ namespace bs
 
 		/** Attempts to parse the next token (or set of tokens) as a color. Can be a hex color (#FFFFFF, rgb(), hsl(), rgba() or hsla() construct). If successful, returns true and outputs the parsed value. */
 		bool TryParseColor(Color& outValue);
+
+		/** Attempts to parse the next token as an image loaded from the resource system based on provided path. If successful, returns true and outputs the parsed value. */
+		bool TryParseImage(HTexture& outValue);
+
+		/** Attempts to parse the next token as an image loaded from the resource system based on provided font name. If successful, returns true and outputs the parsed value. */
+		bool TryParseFont(HFont& outValue);
 
 		/**
 		 * Attempts to parse the next set of 1 to 4 pixel values and assigns them to the rectangle offset sides. If successful, returns true and outputs the parsed value.
@@ -319,6 +329,12 @@ namespace bs
 		/** @copydoc TryParseAndLookupVariableValue(ValueType, T&) */
 		bool TryParseAndLookupVariableValue(ValueType expectedType, String& outValue);
 
+		/** @copydoc TryParseAndLookupVariableValue(ValueType, T&) */
+		bool TryParseAndLookupVariableValue(ValueType expectedType, HTexture& outValue);
+
+		/** @copydoc TryParseAndLookupVariableValue(ValueType, T&) */
+		bool TryParseAndLookupVariableValue(ValueType expectedType, HFont& outValue);
+
 		/** Attempts to parse an integer from the provided string. Returns true if successful, and outputs the parsed integer. */
 		bool TryParseInteger(const StringView& toParse, i32& outValue) const;
 
@@ -364,6 +380,9 @@ namespace bs
 		 * @{
 		 */
 
+		/** Records a warning message. */
+		void Warning(const String& message);
+
 		/** Records an error message and returns null. */
 		Optional<Token> Error(const String& message);
 
@@ -394,6 +413,7 @@ namespace bs
 		Vector<String> mStringLiterals;
 
 		String mErrors;
+		StringStream mWarnings;
 
 		UnorderedMap<String, PropertyInformation> mPropertyKeywords;
 	};

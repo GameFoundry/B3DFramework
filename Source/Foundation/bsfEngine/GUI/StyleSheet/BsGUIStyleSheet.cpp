@@ -109,9 +109,12 @@ GUIStyleSheetStateRule::GUIStyleSheetStateRule()
 
 void GUIStyleSheetStateRule::Override(const GUIStyleSheetStateRule& other)
 {
-#define OVERRIDE_PROPERTY(PropertyName, FieldName)                              \
-	if(other.OverridenProperties[(u32)GUIStyleSheetPropertyType::PropertyName]) \
-		(FieldName) = other.FieldName;
+#define OVERRIDE_PROPERTY(PropertyName, FieldName)                                \
+	if(other.OverridenProperties[(u32)GUIStyleSheetPropertyType::PropertyName])   \
+	{                                                                             \
+		(FieldName) = other.FieldName;                                            \
+		OverridenProperties[(u32)GUIStyleSheetPropertyType::PropertyName] = true; \
+	}
 
 	OVERRIDE_PROPERTY(Width, Size.Width)
 	OVERRIDE_PROPERTY(Height, Size.Height)
@@ -134,9 +137,11 @@ void GUIStyleSheetStateRule::Override(const GUIStyleSheetStateRule& other)
 	OVERRIDE_PROPERTY(Opacity, Opacity)
 	OVERRIDE_PROPERTY(BackgroundColor, BackgroundColor)
 
+	OVERRIDE_PROPERTY(BackgroundImage, BackgroundImage)
+
 	OVERRIDE_PROPERTY(TextAlign, HorizontalTextAlignment)
 	OVERRIDE_PROPERTY(VerticalAlign, VerticalTextAlignment)
-	OVERRIDE_PROPERTY(FontFamily, FontFamily)
+	OVERRIDE_PROPERTY(FontFamily, Font)
 	OVERRIDE_PROPERTY(FontSize, FontSize)
 	OVERRIDE_PROPERTY(WordWrap, WordWrap)
 
@@ -164,16 +169,19 @@ void GUIStyleSheetStateRule::Override(const GUIStyleSheetStateRule& other)
 #undef OVERRIDE_PROPERTY
 }
 
-HFont GUIStyleSheetStateRule::GetOrLoadFont() const
+RTTITypeBase* GUIStyleSheetStateRule::GetRttiStatic()
 {
-	// TODO - Style should be containing the HFont reference directly. Otherwise we cannot use the reference search mechanism.
-	// - And we'll need the same for styles referencing textures
-	// - So these should be resolved directly by the parser. We can provide an interface class that does the lookup, either in builtin resources or project library
+	return GUIStyleSheetStateRuleRTTI::Instance();
+}
 
-	if(!mCachedFont.IsLoaded(false))
-		mCachedFont = GetBuiltinResources().GetFont(FontFamily);
+RTTITypeBase* GUIStyleSheetStateRule::GetRtti() const
+{
+	return GetRttiStatic();
+}
 
-	return mCachedFont;
+GUIStyleSheetRule::GUIStyleSheetRule()
+{
+	OverridenStates.Resize((u32)GUIStyleSheetStateType::Count);
 }
 
 const GUIStyleSheetStateRule* GUIStyleSheetRule::FindStateStyle(const StringView& name) const
@@ -182,19 +190,19 @@ const GUIStyleSheetStateRule* GUIStyleSheetRule::FindStateStyle(const StringView
 		return &Normal;
 
 	if(StringUtil::Compare(name, "hover", false))
-		return Hover.has_value() ? &Hover.value() : nullptr;
+		return IsStateSet(GUIStyleSheetStateType::Hover) ? &Hover : nullptr;
 
 	if(StringUtil::Compare(name, "active", false))
-		return Active.has_value() ? &Active.value() : nullptr;
+		return IsStateSet(GUIStyleSheetStateType::Active) ? &Active : nullptr;
 
 	if(StringUtil::Compare(name, "focus", false))
-		return Focus.has_value() ? &Focus.value() : nullptr;
+		return IsStateSet(GUIStyleSheetStateType::Focus) ? &Focus : nullptr;
 
 	if(StringUtil::Compare(name, "disabled", false))
-		return Disabled.has_value() ? &Disabled.value() : nullptr;
+		return IsStateSet(GUIStyleSheetStateType::Disabled) ? &Disabled : nullptr;
 
 	if(StringUtil::Compare(name, "checked", false))
-		return Checked.has_value() ? &Checked.value() : nullptr;
+		return IsStateSet(GUIStyleSheetStateType::Checked) ? &Checked : nullptr;
 
 	return nullptr;
 }
@@ -206,52 +214,52 @@ bool GUIStyleSheetRule::FindAndSetStateStyle(const StringView& name, const GUISt
 	if(StringUtil::Compare(name, "normal", false))
 	{
 		Normal = stateStyle;
+		OverridenStates[(u32)GUIStyleSheetStateType::Normal] = true;
+
 		return true;
 	}
 
 	if(StringUtil::Compare(name, "hover", false))
 	{
 		Hover = stateStyle;
+		OverridenStates[(u32)GUIStyleSheetStateType::Hover] = true;
+
 		return true;
 	}
 
 	if(StringUtil::Compare(name, "active", false))
 	{
 		Active = stateStyle;
+		OverridenStates[(u32)GUIStyleSheetStateType::Active] = true;
+
 		return true;
 	}
 
 	if(StringUtil::Compare(name, "focus", false))
 	{
 		Focus = stateStyle;
+		OverridenStates[(u32)GUIStyleSheetStateType::Focus] = true;
+
 		return true;
 	}
 
 	if(StringUtil::Compare(name, "disabled", false))
 	{
 		Disabled = stateStyle;
+		OverridenStates[(u32)GUIStyleSheetStateType::Disabled] = true;
+
 		return true;
 	}
 
 	if(StringUtil::Compare(name, "checked", false))
 	{
 		Checked = stateStyle;
+		OverridenStates[(u32)GUIStyleSheetStateType::Checked] = true;
+
 		return true;
 	}
 
 	return false;
-}
-
-HGUIStyleSheet GUIStyleSheet::Parse(const Path& file)
-{
-	const SPtr<DataStream> fileStream = FileSystem::OpenFile(file);
-	if(!fileStream)
-		return nullptr;
-
-	GUIStyleSheetParser parser;
-	SPtr<GUIStyleSheet> styleSheet = parser.Parse(B3DMakeShared<SourceCode>(fileStream->GetAsString()));
-
-	return B3DStaticResourceCast<GUIStyleSheet>(GetResources().CreateResourceHandle(styleSheet));
 }
 
 SPtr<GUIStyleSheetStateRule> GUIStyleSheetRule::FindStateStyle(GUIElementStateFlags stateFlags) const
@@ -264,33 +272,33 @@ SPtr<GUIStyleSheetStateRule> GUIStyleSheetRule::FindStateStyle(GUIElementStateFl
 
 	if(stateFlags.IsSet(GUIElementStateFlag::Checked))
 	{
-		if(Checked.has_value())
-			stateStyle->Override(*Checked);
+		if(IsStateSet(GUIStyleSheetStateType::Checked))
+			stateStyle->Override(Checked);
 	}
 
 	if(stateFlags.IsSet(GUIElementStateFlag::Disabled))
 	{
-		if(Checked.has_value())
-			stateStyle->Override(*Checked);
+		if(IsStateSet(GUIStyleSheetStateType::Disabled))
+			stateStyle->Override(Disabled);
 	}
 	else
 	{
 		if(stateFlags.IsSet(GUIElementStateFlag::Focused))
 		{
-			if(Focus.has_value())
-				stateStyle->Override(*Focus);
+			if(IsStateSet(GUIStyleSheetStateType::Focus))
+				stateStyle->Override(Focus);
 		}
 
 		if(stateFlags.IsSet(GUIElementStateFlag::Hover))
 		{
-			if(Hover.has_value())
-				stateStyle->Override(*Hover);
+			if(IsStateSet(GUIStyleSheetStateType::Hover))
+				stateStyle->Override(Hover);
 		}
 		
 		if(stateFlags.IsSet(GUIElementStateFlag::Active))
 		{
-			if(Active.has_value())
-				stateStyle->Override(*Active);
+			if(IsStateSet(GUIStyleSheetStateType::Active))
+				stateStyle->Override(Active);
 		}
 	}
 
@@ -300,46 +308,87 @@ SPtr<GUIStyleSheetStateRule> GUIStyleSheetRule::FindStateStyle(GUIElementStateFl
 void GUIStyleSheetRule::Override(const GUIStyleSheetRule& other)
 {
 	Normal.Override(other.Normal);
+	OverridenStates[(u32)GUIStyleSheetStateType::Normal] = true;
 
-	if(Hover.has_value())
+	if(IsStateSet(GUIStyleSheetStateType::Hover))
 	{
-		if(other.Hover.has_value())
-			Hover->Override(*other.Hover);
+		if(other.IsStateSet(GUIStyleSheetStateType::Hover))
+			Hover.Override(other.Hover);
 	}
 	else
-		Hover = other.Hover;
+	{
+		if(other.IsStateSet(GUIStyleSheetStateType::Hover))
+		{
+			Hover = other.Hover;
+			OverridenStates[(u32)GUIStyleSheetStateType::Hover] = true;
+		}
+	}
 	
-	if(Active.has_value())
+	if(IsStateSet(GUIStyleSheetStateType::Active))
 	{
-		if(other.Active.has_value())
-			Active->Override(*other.Active);
+		if(other.IsStateSet(GUIStyleSheetStateType::Active))
+			Active.Override(other.Active);
 	}
 	else
-		Active = other.Active;
+	{
+		if(other.IsStateSet(GUIStyleSheetStateType::Active))
+		{
+			Active = other.Active;
+			OverridenStates[(u32)GUIStyleSheetStateType::Active] = true;
+		}
+	}
 
-	if(Focus.has_value())
+	if(IsStateSet(GUIStyleSheetStateType::Focus))
 	{
-		if(other.Focus.has_value())
-			Focus->Override(*other.Focus);
+		if(other.IsStateSet(GUIStyleSheetStateType::Focus))
+			Focus.Override(other.Focus);
 	}
 	else
-		Focus = other.Focus;
+	{
+		if(other.IsStateSet(GUIStyleSheetStateType::Focus))
+		{
+			Focus = other.Focus;
+			OverridenStates[(u32)GUIStyleSheetStateType::Focus] = true;
+		}
+	}
 
-	if(Checked.has_value())
+	if(IsStateSet(GUIStyleSheetStateType::Checked))
 	{
-		if(other.Checked.has_value())
-			Checked->Override(*other.Checked);
+		if(other.IsStateSet(GUIStyleSheetStateType::Checked))
+			Checked.Override(other.Checked);
 	}
 	else
-		Checked = other.Checked;
+	{
+		if(other.IsStateSet(GUIStyleSheetStateType::Checked))
+		{
+			Checked = other.Checked;
+			OverridenStates[(u32)GUIStyleSheetStateType::Checked] = true;
+		}
+	}
 
-	if(Disabled.has_value())
+	if(IsStateSet(GUIStyleSheetStateType::Disabled))
 	{
-		if(other.Disabled.has_value())
-			Disabled->Override(*other.Disabled);
+		if(other.IsStateSet(GUIStyleSheetStateType::Disabled))
+			Disabled.Override(other.Disabled);
 	}
 	else
-		Disabled = other.Disabled;
+	{
+		if(other.IsStateSet(GUIStyleSheetStateType::Disabled))
+		{
+			Disabled = other.Disabled;
+			OverridenStates[(u32)GUIStyleSheetStateType::Disabled] = true;
+		}
+	}
+}
+
+RTTITypeBase* GUIStyleSheetRule::GetRttiStatic()
+{
+	return GUIStyleSheetRuleRTTI::Instance();
+}
+
+RTTITypeBase* GUIStyleSheetRule::GetRtti() const
+{
+	return GetRttiStatic();
 }
 
 GUIStyleSheet::GUIStyleSheet(TArray<GUIStyleSheetRule> rules)
@@ -349,6 +398,18 @@ GUIStyleSheet::GUIStyleSheet(TArray<GUIStyleSheetRule> rules)
 void GUIStyleSheet::Initialize()
 {
 	RebuildCache();
+}
+
+HGUIStyleSheet GUIStyleSheet::Parse(const Path& file)
+{
+	const SPtr<DataStream> fileStream = FileSystem::OpenFile(file);
+	if(!fileStream)
+		return nullptr;
+
+	GUIStyleSheetParser parser;
+	SPtr<GUIStyleSheet> styleSheet = parser.Parse(B3DMakeShared<SourceCode>(fileStream->GetAsString()));
+
+	return B3DStaticResourceCast<GUIStyleSheet>(GetResources().CreateResourceHandle(styleSheet));
 }
 
 void GUIStyleSheet::RebuildCache()
@@ -456,5 +517,5 @@ RTTITypeBase* GUIStyleSheet::GetRttiStatic()
 
 RTTITypeBase* GUIStyleSheet::GetRtti() const
 {
-	return GUIStyleSheet::GetRttiStatic();
+	return GetRttiStatic();
 }

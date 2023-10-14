@@ -90,7 +90,7 @@ BuiltinResources::~BuiltinResources()
 	GetCoreThread().PostCommand([]() { ct::BuiltinResources::ShutDown(); });
 }
 
-BuiltinResources::BuiltinResources()
+void BuiltinResources::OnStartUp()
 {
 	// Set up paths
 	mBuiltinRawDataFolder = Paths::GetDataPath() + u8"Raw/";

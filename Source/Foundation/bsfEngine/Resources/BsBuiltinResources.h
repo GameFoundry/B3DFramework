@@ -67,7 +67,7 @@ namespace bs
 	class B3D_EXPORT BuiltinResources : public bs::Module<BuiltinResources>
 	{
 	public:
-		BuiltinResources();
+		BuiltinResources() = default;
 		~BuiltinResources();
 
 		/**	Returns the default skin used by engine GUI elements. */
@@ -214,6 +214,8 @@ namespace bs
 		static constexpr const char* kGuiSkinFile = u8"GUISkin";
 
 	private:
+		void OnStartUp() override;
+
 		/**	Loads a GUI skin texture with the specified filename. */
 		HSpriteTexture GetSkinTexture(const String& name) const;
 

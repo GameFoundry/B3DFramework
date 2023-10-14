@@ -71,6 +71,7 @@ String GUIStyleSheetToken::TypeToString(const GUIStyleSheetTokenTypes type)
 	case GUIStyleSheetTokenTypes::ColorHSL: return "hsl";
 	case GUIStyleSheetTokenTypes::ColorRGBA: return "rgba";
 	case GUIStyleSheetTokenTypes::ColorHSLA: return "hlsa";
+	case GUIStyleSheetTokenTypes::URL: return "url";
 	case GUIStyleSheetTokenTypes::ColorHex: return "Hex color";
 	case GUIStyleSheetTokenTypes::Property: return "Property name";
 	case GUIStyleSheetTokenTypes::BorderStyle: return "Border style";

@@ -231,8 +231,8 @@ namespace bs
 		//TID_AmbientOcclusionSettings = 30021,
 		//TID_ScreenSpaceReflectionsSettings = 30022
 		TID_GUIStyleSheet = 30023,
-		TID_GUIStyleSheetStyle = 30024,
-		TID_GUIStyleSheetStyleState = 30025,
+		TID_GUIStyleSheetRule = 30024,
+		TID_GUIStyleSheetStateRule = 30025,
 		TID_GUIStyleSheetBorderElement = 30026,
 		TID_GUIStyleSheetSelector = 30027,
 		TID_GUIStyleSheetSelectorList = 30028,

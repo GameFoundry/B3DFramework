@@ -5,6 +5,9 @@
 #include "FileSystem/BsDataStream.h"
 #include <charconv>
 
+#include "Resources/BsBuiltinResources.h"
+#include "Resources/BsResources.h"
+
 using namespace bs;
 
 GUIStyleSheetParser::GUIStyleSheetParser()
@@ -34,6 +37,9 @@ GUIStyleSheetParser::GUIStyleSheetParser()
 	mPropertyKeywords["color"] = { GUIStyleSheetPropertyType::Color, ValueType::Color };
 	mPropertyKeywords["opacity"] = { GUIStyleSheetPropertyType::Opacity, ValueType::Decimal };
 	mPropertyKeywords["background-color"] = { GUIStyleSheetPropertyType::BackgroundColor, ValueType::Color };
+
+	// Image properties
+	mPropertyKeywords["background-image"] = { GUIStyleSheetPropertyType::BackgroundImage, ValueType::URL };
 
 	// Text properties
 	mPropertyKeywords["text-align"] = { GUIStyleSheetPropertyType::TextAlign, ValueType::TextAlign };
@@ -302,8 +308,11 @@ bool GUIStyleSheetParser::TryParseProperty(GUIStyleSheetStateRule& inOutValue)
 			CASE_PARSE(Opacity, Opacity)
 			CASE_PARSE(BackgroundColor, BackgroundColor)
 
+			// Image
+			CASE_PARSE(BackgroundImage, BackgroundImage)
+
 			// Text
-			CASE_PARSE(FontFamily, FontFamily)
+			CASE_PARSE(FontFamily, Font)
 			CASE_PARSE(FontSize, FontSize)
 			CASE_PARSE(TextAlign, HorizontalTextAlignment)
 			CASE_PARSE(VerticalAlign, VerticalTextAlignment)
@@ -523,6 +532,18 @@ bool GUIStyleSheetParser::TryParseVariable(VariableContext& inOutVariableContext
 			return false;
 
 		value.Type = ValueType::Color;
+		break;
+	}
+	case GUIStyleSheetTokenTypes::URL:
+	{
+		String parsedValue;
+		if(!TryParseStringLiteral(parsedValue))
+			return false;
+
+		value.UnsignedInteger = (u32)mStringLiterals.size();
+		value.Type = ValueType::URL;
+
+		mStringLiterals.push_back(parsedValue);
 		break;
 	}
 	case GUIStyleSheetTokenTypes::StringLiteral:
@@ -870,6 +891,43 @@ bool GUIStyleSheetParser::TryParseColor(Color& outValue)
 	}
 }
 
+bool GUIStyleSheetParser::TryParseImage(HTexture& outValue)
+{
+	if(!GetCurrentTokenAndAdvance(GUIStyleSheetTokenTypes::URL))
+		return false;
+
+	if(!GetCurrentTokenAndAdvance(GUIStyleSheetTokenTypes::LeftParenthesis))
+		return false;
+
+	String pathString;
+	if(!TryParseStringLiteral(pathString))
+		return false;
+
+	if(!GetCurrentTokenAndAdvance(GUIStyleSheetTokenTypes::RightParenthesis))
+		return false;
+
+	outValue = GetResources().Load<Texture>(pathString);
+
+	if(!outValue.IsLoaded(false))
+		Warning(StringUtil::Format("Unable to load image at path \"{0}\".", pathString));
+
+	return true;
+}
+
+bool GUIStyleSheetParser::TryParseFont(HFont& outValue)
+{
+	String fontFamily;
+	if(!TryParseStringLiteral(fontFamily))
+		return false;
+
+	outValue = GetBuiltinResources().GetFont(fontFamily);
+
+	if(!outValue.IsLoaded(false))
+		Warning(StringUtil::Format("Unable to load font family \"{0}\".", fontFamily));
+
+	return true;
+}
+
 bool GUIStyleSheetParser::TryParseBorderStyle(GUIBorderElementStyle& outValue)
 {
 	if(IsCurrentToken(GUIStyleSheetTokenTypes::BorderStyle))
@@ -1099,6 +1157,10 @@ bool GUIStyleSheetParser::TryParsePropertyValue(ValueType valueType, T& outValue
 		return TryParseVerticalAlign(outValue);
 	else if constexpr(std::is_same_v<T, GUIWordWrapMode>)
 		return TryParseWordWrapMode(outValue);
+	else if constexpr(std::is_same_v<T, HTexture>)
+		return TryParseImage(outValue);
+	else if constexpr(std::is_same_v<T, HFont>)
+		return TryParseFont(outValue);
 
 	Error("Internal error.");
 	return false;
@@ -1165,6 +1227,42 @@ bool GUIStyleSheetParser::TryParseAndLookupVariableValue(ValueType expectedType,
 	value.GetValue(stringLiteralIndex);
 
 	outValue = mStringLiterals[stringLiteralIndex];
+	return true;
+}
+
+bool GUIStyleSheetParser::TryParseAndLookupVariableValue(ValueType expectedType, HTexture& outValue)
+{
+	VariableValue value;
+	if(!TryParseAndLookupVariableValue(expectedType, value))
+		return false;
+
+	u32 stringLiteralIndex;
+	value.GetValue(stringLiteralIndex);
+
+	const Path filePath = mStringLiterals[stringLiteralIndex];
+	outValue = GetResources().Load<Texture>(filePath);
+
+	if(!outValue.IsLoaded(false))
+		Warning(StringUtil::Format("Unable to load image at path \"{0}\".", filePath));
+
+	return true;
+}
+
+bool GUIStyleSheetParser::TryParseAndLookupVariableValue(ValueType expectedType, HFont& outValue)
+{
+	VariableValue value;
+	if(!TryParseAndLookupVariableValue(expectedType, value))
+		return false;
+
+	u32 stringLiteralIndex;
+	value.GetValue(stringLiteralIndex);
+
+	const String& fontFamily = mStringLiterals[stringLiteralIndex];
+	outValue = GetBuiltinResources().GetFont(fontFamily); // TODO - Add improved lookup of fonts by name
+
+	if(!outValue.IsLoaded(false))
+		Warning(StringUtil::Format("Unable to load font family \"{0}\".", fontFamily));
+
 	return true;
 }
 
@@ -1272,6 +1370,11 @@ void GUIStyleSheetParser::SkipToken(TokenType type)
 	GetCurrentTokenAndAdvance(type);
 }
 
+void GUIStyleSheetParser::Warning(const String& message)
+{
+	mWarnings << StringUtil::Format("Parser warning ({0}): {1}", mCurrentToken->GetSourceCodePosition().ToString(), message) << '\n';
+}
+
 Optional<GUIStyleSheetParser::Token> GUIStyleSheetParser::Error(const String& message)
 {
 	mErrors = StringUtil::Format("Parser error ({0}): {1}", mCurrentToken->GetSourceCodePosition().ToString(), message);
@@ -1308,6 +1411,7 @@ const char* GUIStyleSheetParser::ValueTypeToString(ValueType type)
 	case ValueType::Percent: return "Percent";
 	case ValueType::Color: return "Color";
 	case ValueType::String: return "String";
+	case ValueType::URL: return "URL";
 	case ValueType::BorderStyle: return "BorderStyle";
 	case ValueType::TextAlign: return "TextAlign";
 	case ValueType::VerticalAlign: return "VerticalAlign";

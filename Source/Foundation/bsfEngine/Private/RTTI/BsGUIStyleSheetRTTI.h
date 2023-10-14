@@ -11,6 +11,8 @@
 #include "RTTI/BsColorRTTI.h"
 #include "RTTI/BsTArrayRTTI.h"
 #include "RTTI/BsStdRTTI.h"
+#include "Private/RTTI/BsFontRTTI.h"
+#include "Private/RTTI/BsTextureRTTI.h"
 #include "GUI/StyleSheet/BsGUIStyleSheet.h"
 
 namespace bs
@@ -54,57 +56,88 @@ namespace bs
 		}
 	};
 
-	template<>
-	struct RTTIPlainType<GUIStyleSheetStateRule> : RTTIPlainTypeHelper<GUIStyleSheetStateRule, TID_GUIStyleSheetStyleState, 0>
+	class B3D_EXPORT GUIStyleSheetStateRuleRTTI : public RTTIType<GUIStyleSheetStateRule, IReflectable, GUIStyleSheetStateRuleRTTI>
 	{
-		template <class Processor>
-		static void RTTIEnumerateFields(GUIStyleSheetStateRule& object, Processor& processor, u8 version)
+	private:
+		B3D_RTTI_BEGIN_MEMBERS
+			B3D_RTTI_MEMBER_PLAIN(Margins, 0)
+			B3D_RTTI_MEMBER_PLAIN(Padding, 1)
+
+			B3D_RTTI_MEMBER_PLAIN(Size, 2)
+			B3D_RTTI_MEMBER_PLAIN(MinimumSize, 3)
+			B3D_RTTI_MEMBER_PLAIN(MaximumSize, 4)
+
+			B3D_RTTI_MEMBER_PLAIN(BackgroundColor, 5)
+			B3D_RTTI_MEMBER_PLAIN(Color, 6)
+			B3D_RTTI_MEMBER_PLAIN(Opacity, 7)
+
+			B3D_RTTI_MEMBER_REFL(BackgroundImage, 8)
+
+			B3D_RTTI_MEMBER_PLAIN(BorderLeft, 9)
+			B3D_RTTI_MEMBER_PLAIN(BorderRight, 10)
+			B3D_RTTI_MEMBER_PLAIN(BorderTop, 11)
+			B3D_RTTI_MEMBER_PLAIN(BorderBottom, 12)
+
+			B3D_RTTI_MEMBER_PLAIN(BorderTopLeftRadius, 13)
+			B3D_RTTI_MEMBER_PLAIN(BorderTopRightRadius, 14)
+			B3D_RTTI_MEMBER_PLAIN(BorderBottomLeftRadius, 15)
+			B3D_RTTI_MEMBER_PLAIN(BorderBottomRightRadius, 16)
+
+			B3D_RTTI_MEMBER_REFL(Font, 17)
+			B3D_RTTI_MEMBER_PLAIN(FontSize, 18)
+			B3D_RTTI_MEMBER_PLAIN(HorizontalTextAlignment, 19)
+			B3D_RTTI_MEMBER_PLAIN(VerticalTextAlignment, 20)
+			B3D_RTTI_MEMBER_PLAIN(WordWrap, 21)
+
+			B3D_RTTI_MEMBER_PLAIN(OverridenProperties, 22)
+		B3D_RTTI_END_MEMBERS
+	public:
+		const String& GetRttiName() override
 		{
-			processor(object.Margins);
-			processor(object.Padding);
+			static String name = "GUIStyleSheetStateRule";
+			return name;
+		}
 
-			processor(object.Size);
-			processor(object.MinimumSize);
-			processor(object.MaximumSize);
+		u32 GetRttiId() override 
+		{
+			return TID_GUIStyleSheetStateRule;
+		}
 
-			processor(object.BackgroundColor);
-			processor(object.Color);
-			processor(object.Opacity);
-
-			processor(object.BorderLeft);
-			processor(object.BorderRight);
-			processor(object.BorderTop);
-			processor(object.BorderBottom);
-
-			processor(object.BorderTopLeftRadius);
-			processor(object.BorderTopRightRadius);
-			processor(object.BorderBottomLeftRadius);
-			processor(object.BorderBottomRightRadius);
-
-			processor(object.FontFamily);
-			processor(object.FontSize);
-			processor(object.HorizontalTextAlignment);
-			processor(object.VerticalTextAlignment);
-			processor(object.WordWrap);
-
-			processor(object.OverridenProperties);
+		SPtr<IReflectable> NewRttiObject() override
+		{
+			return B3DMakeShared<GUIStyleSheetStateRule>();
 		}
 	};
 
-	template<>
-	struct RTTIPlainType<GUIStyleSheetRule> : RTTIPlainTypeHelper<GUIStyleSheetRule, TID_GUIStyleSheetStyle, 0>
+	class B3D_EXPORT GUIStyleSheetRuleRTTI : public RTTIType<GUIStyleSheetRule, IReflectable, GUIStyleSheetRuleRTTI>
 	{
-		template <class Processor>
-		static void RTTIEnumerateFields(GUIStyleSheetRule& object, Processor& processor, u8 version)
+	private:
+		B3D_RTTI_BEGIN_MEMBERS
+			B3D_RTTI_MEMBER_PLAIN(SelectorList, 0)
+			B3D_RTTI_MEMBER_PLAIN(PseudoElement, 1)
+			B3D_RTTI_MEMBER_REFL(Normal, 2)
+			B3D_RTTI_MEMBER_REFL(Focus, 3)
+			B3D_RTTI_MEMBER_REFL(Hover, 4)
+			B3D_RTTI_MEMBER_REFL(Active, 5)
+			B3D_RTTI_MEMBER_REFL(Disabled, 6)
+			B3D_RTTI_MEMBER_REFL(Checked, 7)
+			B3D_RTTI_MEMBER_PLAIN(OverridenStates, 8)
+		B3D_RTTI_END_MEMBERS
+	public:
+		const String& GetRttiName() override
 		{
-			processor(object.SelectorList);
-			processor(object.PseudoElement);
-			processor(object.Normal);
-			processor(object.Focus);
-			processor(object.Hover);
-			processor(object.Active);
-			processor(object.Disabled);
-			processor(object.Checked);
+			static String name = "GUIStyleSheetRule";
+			return name;
+		}
+
+		u32 GetRttiId() override 
+		{
+			return TID_GUIStyleSheetRule;
+		}
+
+		SPtr<IReflectable> NewRttiObject() override
+		{
+			return B3DMakeShared<GUIStyleSheetRule>();
 		}
 	};
 
@@ -112,7 +145,7 @@ namespace bs
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
-			B3D_RTTI_MEMBER_PLAIN_ARRAY(mRules, 0)
+			B3D_RTTI_MEMBER_REFL_ARRAY(mRules, 0)
 		B3D_RTTI_END_MEMBERS
 	public:
 		void OnDeserializationEnded(IReflectable* obj, SerializationContext* context) override
