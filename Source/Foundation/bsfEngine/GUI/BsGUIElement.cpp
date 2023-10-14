@@ -210,26 +210,26 @@ void GUIElement::ResetDimensions()
 
 Rect2I GUIElement::GetCachedVisibleBounds() const
 {
-	const RectOffset& margins = GetPadding();
+	const RectOffset& padding = GetPadding();
 	Rect2I bounds = GetClippedBounds();
 
-	bounds.X += margins.Left;
-	bounds.Y += margins.Top;
-	bounds.Width = (u32)std::max(0, (i32)bounds.Width - (i32)(margins.Left + margins.Right));
-	bounds.Height = (u32)std::max(0, (i32)bounds.Height - (i32)(margins.Top + margins.Bottom));
+	bounds.X += padding.Left;
+	bounds.Y += padding.Top;
+	bounds.Width = (u32)std::max(0, (i32)bounds.Width - (i32)(padding.Left + padding.Right));
+	bounds.Height = (u32)std::max(0, (i32)bounds.Height - (i32)(padding.Top + padding.Bottom));
 
 	return bounds;
 }
 
 Rect2I GUIElement::GetCachedContentBounds() const
 {
-	const RectOffset& margins = GetPadding();
+	const RectOffset& padding = GetPadding();
 	Rect2I bounds;
 
-	bounds.X = mLayoutData.Area.X + margins.Left + mStyle->ContentOffset.Left;
-	bounds.Y = mLayoutData.Area.Y + margins.Top + mStyle->ContentOffset.Top;
-	bounds.Width = (u32)std::max(0, (i32)mLayoutData.Area.Width - (i32)(margins.Left + margins.Right + mStyle->ContentOffset.Left + mStyle->ContentOffset.Right));
-	bounds.Height = (u32)std::max(0, (i32)mLayoutData.Area.Height - (i32)(margins.Top + margins.Bottom + mStyle->ContentOffset.Top + mStyle->ContentOffset.Bottom));
+	bounds.X = mLayoutData.Area.X + padding.Left + mStyle->ContentOffset.Left;
+	bounds.Y = mLayoutData.Area.Y + padding.Top + mStyle->ContentOffset.Top;
+	bounds.Width = (u32)std::max(0, (i32)mLayoutData.Area.Width - (i32)(padding.Left + padding.Right + mStyle->ContentOffset.Left + mStyle->ContentOffset.Right));
+	bounds.Height = (u32)std::max(0, (i32)mLayoutData.Area.Height - (i32)(padding.Top + padding.Bottom + mStyle->ContentOffset.Top + mStyle->ContentOffset.Bottom));
 
 	return bounds;
 }
@@ -252,10 +252,15 @@ Rect2I GUIElement::GetCachedContentClipRect() const
 
 Color GUIElement::GetTint() const
 {
-	if(!IsDisabled())
+	if(mStyleSheetStateStyle != nullptr) // With style sheets, disabled color is controlled via a separate rule, rather than being hardcoded
 		return mColor;
+	else
+	{
+		if(!IsDisabled())
+			return mColor;
 
-	return mColor * kDisabledColor;
+		return mColor * kDisabledColor;
+	}
 }
 
 void GUIElement::AddStateFlags(GUIElementStateFlags flags)

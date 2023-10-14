@@ -58,41 +58,42 @@ Vector2I GUIHelper::CalculateOptimalContentSize(const String& text, const GUIEle
 	return Vector2I(contentWidth, contentHeight);
 }
 
-Size2UI GUIHelper::CalculateSizeWithPadding(const Size2UI& contentSize, const GUIStyleSheetStateRule& style)
+Size2UI GUIHelper::CalculateSizeWithPaddingAndBorder(const Size2UI& contentSize, const GUIStyleSheetStateRule& style)
 {
 	const u32 paddingWidth = style.Padding.Left + style.Padding.Right;
 	const u32 paddingHeight = style.Padding.Top + style.Padding.Bottom;
 
-	return Size2UI(contentSize.Width + paddingWidth, contentSize.Height + paddingHeight);
+	const u32 borderWidth = style.BorderLeft.GetVisibleWidth() + style.BorderRight.GetVisibleWidth();
+	const u32 borderHeight = style.BorderTop.GetVisibleWidth() + style.BorderBottom.GetVisibleWidth();
+
+	return Size2UI(contentSize.Width + paddingWidth + borderWidth, contentSize.Height + paddingHeight + borderHeight);
 }
 
-Size2UI GUIHelper::CalculateOptimalContentSizeWithPadding(const GUIContent& content, const GUIStyleSheetStateRule& style, const GUIDimensions& dimensions)
+Size2UI GUIHelper::CalculateOptimalContentSizeWithPaddingAndBorder(const GUIContent& content, const GUIStyleSheetStateRule& style, u32 wordWrapWidth)
 {
-	Size2UI contentBounds = CalculateOptimalContentSizeWithPadding((const String&)content.Text, style, dimensions);
+	Size2UI contentBounds = CalculateOptimalContentSizeWithPaddingAndBorder((const String&)content.Text, style, wordWrapWidth);
 
 	const HSpriteTexture& image = content.GetImage(GUIElementState::Normal);
 	if(SpriteTexture::CheckIsLoaded(image))
 	{
 		const u32 paddingHeight = style.Padding.Top + style.Padding.Bottom;
+		const u32 borderHeight = style.BorderTop.GetVisibleWidth() + style.BorderBottom.GetVisibleWidth();
 
 		contentBounds.Width += image->GetWidth() + GUIContent::kImageTextSpacing;
-		contentBounds.Height = std::max(image->GetHeight() + paddingHeight, (u32)contentBounds.Height);
+		contentBounds.Height = std::max(image->GetHeight() + paddingHeight + borderHeight, contentBounds.Height);
 	}
 
 	return contentBounds;
 }
 
-Size2UI GUIHelper::CalculateOptimalContentSizeWithPadding(const String& text, const GUIStyleSheetStateRule& style, const GUIDimensions& dimensions)
+Size2UI GUIHelper::CalculateOptimalContentSizeWithPaddingAndBorder(const String& text, const GUIStyleSheetStateRule& style, u32 wordWrapWidth)
 {
-	u32 wordWrapWidth = 0;
+	Size2UI contentSize(BsZero);
 
-	if(style.WordWrap == GUIWordWrapMode::WrapWord)
-		wordWrapWidth = dimensions.MaxWidth;
+	if(style.WordWrap != GUIWordWrapMode::WrapWord)
+		wordWrapWidth = 0;
 
-	u32 contentWidth = style.Padding.Left + style.Padding.Right;
-	u32 contentHeight = style.Padding.Top + style.Padding.Bottom;
-
-	const HFont font = style.GetOrLoadFont();
+	const HFont font = style.Font;
 	if(font != nullptr && !text.empty())
 	{
 		B3DMarkAllocatorFrame();
@@ -100,13 +101,13 @@ Size2UI GUIHelper::CalculateOptimalContentSizeWithPadding(const String& text, co
 		const U32String utf32text = UTF8::ToUtF32(text);
 		TextData<FrameAllocatorTag> textData(utf32text, font, style.FontSize, wordWrapWidth, 0, style.WordWrap == GUIWordWrapMode::WrapWord);
 
-		contentWidth += textData.GetWidth();
-		contentHeight += textData.GetNumLines() * textData.GetLineHeight();
+		contentSize.Width += textData.GetWidth();
+		contentSize.Height += textData.GetNumLines() * textData.GetLineHeight();
 
 		B3DClearAllocatorFrame();
 	}
 
-	return Size2UI(contentWidth, contentHeight);
+	return CalculateSizeWithPaddingAndBorder(contentSize, style);
 }
 
 Vector2I GUIHelper::CalculateTextBounds(const String& text, const HFont& font, u32 fontSize)

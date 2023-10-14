@@ -160,17 +160,10 @@ Vector2I GUIButtonBase::GetOptimalSize() const
 	u32 imageWidth = 0;
 	u32 imageHeight = 0;
 
-	const HSpriteTexture& activeTex = GetActiveTexture();
-	if(SpriteTexture::CheckIsLoaded(activeTex))
-	{
-		imageWidth = activeTex->GetWidth();
-		imageHeight = activeTex->GetHeight();
-	}
-
 	const bool isUsingStyleSheets = GetStyleSheetElement() != nullptr;
 	if(isUsingStyleSheets)
 	{
-		const Size2UI contentSize = GUIHelper::CalculateOptimalContentSizeWithPadding(mContent, *mStyleSheetStateStyle, GetDimensions());
+		const Size2UI contentSize = GUIHelper::CalculateOptimalContentSizeWithPaddingAndBorder(mContent, *mStyleSheetStateStyle, GetDimensions().MaxWidth);
 		
 		const u32 contentWidth = std::max(imageWidth, contentSize.Width);
 		const u32 contentHeight = std::max(imageHeight, contentSize.Height);
@@ -179,6 +172,13 @@ Vector2I GUIButtonBase::GetOptimalSize() const
 	}
 	else
 	{
+		const HSpriteTexture& activeTex = GetActiveTexture();
+		if(SpriteTexture::CheckIsLoaded(activeTex))
+		{
+			imageWidth = activeTex->GetWidth();
+			imageHeight = activeTex->GetHeight();
+		}
+
 		Vector2I contentSize = GUIHelper::CalculateOptimalContentSize(mContent, *GetStyle(), GetDimensions(), mActiveState);
 		u32 contentWidth = std::max(imageWidth, (u32)contentSize.X);
 		u32 contentHeight = std::max(imageHeight, (u32)contentSize.Y);
@@ -424,20 +424,42 @@ void GUIButtonBase::RefreshContentSprite()
 
 TextSpriteInformation GUIButtonBase::GetTextDesc() const
 {
-	TextSpriteInformation textDesc;
-	textDesc.Text = mContent.Text;
-	textDesc.Font = GetStyle()->Font;
-	textDesc.FontSize = GetStyle()->FontSize;
-	textDesc.Color = GetTint() * GetActiveTextColor();
+	const bool isUsingStyleSheets = GetStyleSheetElement() != nullptr;
+	if(isUsingStyleSheets)
+	{
+		TextSpriteInformation textSpriteInformation;
+		textSpriteInformation.Text = mContent.Text;
+		textSpriteInformation.Font = mStyleSheetStateStyle->Font;
+		textSpriteInformation.FontSize = mStyleSheetStateStyle->FontSize;
+		textSpriteInformation.Color = GetTint() * mStyleSheetStateStyle->Color;
+		textSpriteInformation.Color.A *= mStyleSheetStateStyle->Opacity;
 
-	Rect2I textBounds = GetCachedContentBounds();
+		Rect2I textBounds = GetCachedContentBounds();
 
-	textDesc.Width = textBounds.Width;
-	textDesc.Height = textBounds.Height;
-	textDesc.HorzAlign = GetStyle()->TextHorzAlign;
-	textDesc.VertAlign = GetStyle()->TextVertAlign;
+		textSpriteInformation.Width = textBounds.Width;
+		textSpriteInformation.Height = textBounds.Height;
+		textSpriteInformation.HorzAlign = mStyleSheetStateStyle->HorizontalTextAlignment;
+		textSpriteInformation.VertAlign = mStyleSheetStateStyle->VerticalTextAlignment;
 
-	return textDesc;
+		return textSpriteInformation;
+	}
+	else
+	{
+		TextSpriteInformation textDesc;
+		textDesc.Text = mContent.Text;
+		textDesc.Font = GetStyle()->Font;
+		textDesc.FontSize = GetStyle()->FontSize;
+		textDesc.Color = GetTint() * GetActiveTextColor();
+
+		Rect2I textBounds = GetCachedContentBounds();
+
+		textDesc.Width = textBounds.Width;
+		textDesc.Height = textBounds.Height;
+		textDesc.HorzAlign = GetStyle()->TextHorzAlign;
+		textDesc.VertAlign = GetStyle()->TextVertAlign;
+
+		return textDesc;
+	}
 }
 
 void GUIButtonBase::NotifyStyleChanged()
