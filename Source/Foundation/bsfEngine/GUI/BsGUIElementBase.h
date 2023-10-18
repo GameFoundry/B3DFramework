@@ -11,6 +11,8 @@
 
 namespace bs
 {
+	class IGUIVectorPathBuilder;
+
 	/** @addtogroup Implementation
 	 *  @{
 	 */
@@ -271,6 +273,9 @@ namespace bs
 		 */
 		void SetDisabledRecursive(bool disabled);
 
+		/** Sets an interface that constructs the vector path used for drawing the GUI element background. */
+		void SetBackgroundPathBuilder(const IGUIVectorPathBuilder* pathBuilder) { mBackgroundPathBuilder = pathBuilder; }
+
 		/**
 		 * Changes the active GUI element widget. This allows you to move an element to a different viewport, or change
 		 * element style by using a widget with a different skin. You are allowed to pass null here, but elements with no
@@ -350,6 +355,8 @@ namespace bs
 
 		GUISizeConstraints mSizeConstraints; /**< Constraints on the element size as set by the style, or set explicitly at runtime. */
 		GUILayoutData mLayoutData; /**< Calculated position, size, depth and other information, valid after a layout update. */
+
+		const IGUIVectorPathBuilder* mBackgroundPathBuilder = nullptr; /**< Constructs the vector path used for drawing the GUI element background. */
 	};
 
 	/** @} */

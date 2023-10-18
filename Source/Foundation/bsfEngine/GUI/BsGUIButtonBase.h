@@ -85,9 +85,6 @@ namespace bs
 		/**	Returns the active text color, depending on the current state. */
 		Color GetActiveTextColor() const;
 
-		/** Creates a vector path responsible for drawing the background. */
-		virtual HVectorPath CreateBackgroundVectorPath(const Size2UI& size, const GUIStyleSheetStateRule& style);
-
 	private:
 		ImageSprite* mImageSprite;
 		VectorSprite* mBackgroundSprite;

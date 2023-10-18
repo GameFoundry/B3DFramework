@@ -144,9 +144,8 @@ namespace bs
 		static void RTTIEnumerateFields(VectorGraphicsSettings& object, Processor& processor, u8 version)
 		{
 			processor(object.Size);
-			processor(object.Scale);
+			processor(object.ScalingMode);
 			processor(object.Transform);
-			processor(object.Scale9GridBorder);
 			processor(object.UseAntialiasing);
 			processor(object.StencilStrokes);
 			processor(object.DevicePixelRatio);
@@ -160,6 +159,7 @@ namespace bs
 			B3D_RTTI_MEMBER_PLAIN(mCurrentState, 0)
 			B3D_RTTI_MEMBER_PLAIN(mCommands, 1)
 			B3D_RTTI_MEMBER_PLAIN(mCommandStates, 2)
+			B3D_RTTI_MEMBER_PLAIN(mCanvasSize, 3)
 		B3D_RTTI_END_MEMBERS
 
 	public:

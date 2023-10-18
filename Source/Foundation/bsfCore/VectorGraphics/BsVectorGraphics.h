@@ -22,24 +22,28 @@ namespace bs
 	 *  @{
 	 */
 
+	/** Determines how to scale path canvas when rasterizing for a particular size. */
+	enum class VectorGraphicsRasterizationScaling
+	{
+		StretchToFit, /**< Canvas will stretch non-uniformly in both dimensions in order to cover the raster area fully. */
+		ScaleToFit, /**< Canvas will scale uniformly until one dimension is aligned with the raster area. Remaining dimension might have empty space, and canvas will be placed in the center of the raster dimension. */
+		CropToFit, /**< Canvas will scale uniformly until both dimensions are larger or aligned with the raster area. Remaining dimension might be cropped. */
+		None, /**< Do not perform any scaling. Canvas size is ignored and path coordinates are mapped 1:1 to raster coordinates. */
+	};
+
 	/** Settings that control how is a VectorPath drawn. */
 	struct VectorGraphicsSettings
 	{
-		Size2 Size = Size2::kZero; /**< Size of the canvas on which to draw the path. In pixels. */
-		Vector2 Scale = Vector2::kOne; /**< Optional scaling to apply to the path. */
+		Size2 Size = Size2::kZero; /**< Size of the area in which the path is being rasterized to, in pixels. Canvas size will be mapped to this size according to @p ScalingMode. */
+		VectorGraphicsRasterizationScaling ScalingMode = VectorGraphicsRasterizationScaling::ScaleToFit; /**< Determines how is canvas size mapped to @p Size. */
 		Matrix4 Transform = Matrix4::kIdentity; /**< Optional transform to apply to the path. */
-		/**
-		 * Optional border that controls how are the edges and corners of the path scaled. Corners will not be scaled, left/right edge will be
-		 * scaled in height only and top/bottom edge will be scaled in width only, while center will be scaled in both dimensions.
-		 * If all values of the border are 0 they are not used. */
-		RectOffset Scale9GridBorder;
 		bool UseAntialiasing = true; /**< If true, path will be rasterized using higher quality rendering. */
 		bool StencilStrokes = true; /**< If true, strokes will be rasterized using higher quality rendering. */
-		float DevicePixelRatio = 1.0f; /**< Allows high DPI rendering. */
+		float DevicePixelRatio = 1.0f; /**< Adjusts vector rendering to better match high DPI rendering. */
 
 		bool operator==(const VectorGraphicsSettings& rhs) const
 		{
-			return Size == rhs.Size && Scale == rhs.Scale && Transform == rhs.Transform && Scale9GridBorder == rhs.Scale9GridBorder && UseAntialiasing == rhs.UseAntialiasing && StencilStrokes == rhs.StencilStrokes && DevicePixelRatio == rhs.DevicePixelRatio;
+			return Size == rhs.Size && ScalingMode == rhs.ScalingMode && Transform == rhs.Transform && UseAntialiasing == rhs.UseAntialiasing && StencilStrokes == rhs.StencilStrokes && DevicePixelRatio == rhs.DevicePixelRatio;
 		}
 	};
 
@@ -493,7 +497,15 @@ namespace bs
 	class B3D_CORE_EXPORT VectorPath : public Resource
 	{
 	public:
-		VectorPath();
+		static constexpr Size2 kDefaultCanvasSize = Size2(512.0f, 512.0f);
+
+		VectorPath(const Size2& canvasSize = kDefaultCanvasSize);
+
+		 /** Determines the size of the coordinate system in which to draw the path. This will be used for scaling/offset when rasterizing the path and for bounds testing. */
+		void SetCanvasSize(const Size2& canvasSize) { mCanvasSize = canvasSize; }
+
+		/** @copydoc SetCanvasSize() */
+		const Size2& GetCanvasSize() const { return mCanvasSize; }
 
 		/** Changes the current location of the draw cursor. Any command using a draw cursor will use this value as the starting point. */
 		VectorPath& SetDrawCursor(const Vector2& cursor);
@@ -594,13 +606,20 @@ namespace bs
 		/** Creates a renderable object that can be used for rasterizing the vector path into pixels. */
 		SPtr<ct::VectorPathRenderable> CreateRenderable(const VectorGraphicsSettings& settings) const;
 
-		/** Creates a new empty vector path. */
-		static SPtr<VectorPath> CreateShared();
+		/**
+		 * Creates a new empty vector path.
+		 *
+		 * @param	canvasSize		Determines the size of the coordinate system in which to draw the path. This will be used for scaling/offset
+		 *							when rasterizing the path and for bounds testing. 
+		 * @return					Newly created path.
+		 */
+		static SPtr<VectorPath> CreateShared(const Size2& canvasSize = kDefaultCanvasSize);
 
-		/** Creates a new empty vector path. */
-		static HVectorPath Create();
+		/** @copydoc CreateShared() */
+		static HVectorPath Create(const Size2& canvasSize = kDefaultCanvasSize);
 
 	private:
+		Size2 mCanvasSize;
 		VectorPathState mCurrentState;
 		Vector<VectorPathCommand> mCommands;
 		Vector<VectorPathState> mCommandStates;
@@ -620,7 +639,9 @@ namespace bs
 		class B3D_CORE_EXPORT VectorPathRenderable : public IReflectable
 		{
 		public:
-			VectorPathRenderable(const VectorPath& vectorPath, const VectorGraphicsSettings& settings): mSettings(settings) { }
+			VectorPathRenderable(const VectorPath& vectorPath, const VectorGraphicsSettings& settings)
+				: mSettings(settings)
+			{ }
 			~VectorPathRenderable() override = default;
 
 			/** Returns the settings object used for creating this renderable. */
@@ -663,9 +684,8 @@ struct hash<bs::VectorGraphicsSettings>
 	{
 		size_t hash = 0;
 		bs::B3DCombineHash(hash, value.Size);
-		bs::B3DCombineHash(hash, value.Scale);
+		bs::B3DCombineHash(hash, value.ScalingMode);
 		bs::B3DCombineHash(hash, value.Transform);
-		bs::B3DCombineHash(hash, value.Scale9GridBorder);
 		bs::B3DCombineHash(hash, value.UseAntialiasing);
 		bs::B3DCombineHash(hash, value.StencilStrokes);
 		bs::B3DCombineHash(hash, value.DevicePixelRatio);

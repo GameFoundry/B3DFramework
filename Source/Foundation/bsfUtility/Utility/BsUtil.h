@@ -136,6 +136,146 @@ namespace bs
 			: Width(width), Height(height)
 		{}
 
+		TSize2 operator+(const TSize2& rhs) const
+		{
+			return TSize2(Width + rhs.Width, Height + rhs.Height);
+		}
+
+		TSize2 operator-(const TSize2& rhs) const
+		{
+			return TSize2(Width - rhs.Width, Height - rhs.Height);
+		}
+
+		TSize2 operator*(const T rhs) const
+		{
+			return TSize2(Width * rhs, Height * rhs);
+		}
+
+		TSize2 operator*(const TSize2& rhs) const
+		{
+			return TSize2(Width * rhs.Width, Height * rhs.Height);
+		}
+
+		TSize2 operator/(const T rhs) const
+		{
+			B3D_ASSERT(rhs != (T)0.0);
+
+			const T inverseRHS = (T)1.0 / rhs;
+			return TSize2(Width * inverseRHS, Height * inverseRHS);
+		}
+
+		TSize2 operator/(const TSize2& rhs) const
+		{
+			return TSize2(Width / rhs.Width, Height / rhs.Height);
+		}
+
+		const TSize2& operator+() const
+		{
+			return *this;
+		}
+
+		TSize2 operator-() const
+		{
+			return TSize2(-Width, -Height);
+		}
+
+		friend TSize2 operator*(T lhs, const TSize2& rhs)
+		{
+			return TSize2(lhs * rhs.Width, lhs * rhs.Height);
+		}
+
+		friend TSize2 operator/(T lhs, const TSize2& rhs)
+		{
+			return TSize2(lhs / rhs.Width, lhs / rhs.Height);
+		}
+
+		friend TSize2 operator+(TSize2& lhs, T rhs)
+		{
+			return TSize2(lhs.Width + rhs, lhs.Height + rhs);
+		}
+
+		friend TSize2 operator+(T lhs, const TSize2& rhs)
+		{
+			return TSize2(lhs + rhs.Width, lhs + rhs.Height);
+		}
+
+		friend TSize2 operator-(const TSize2& lhs, T rhs)
+		{
+			return TSize2(lhs.Width - rhs, lhs.Height - rhs);
+		}
+
+		friend TSize2 operator-(const T lhs, const TSize2& rhs)
+		{
+			return TSize2(lhs - rhs.Width, lhs - rhs.Height);
+		}
+
+		TSize2& operator+=(const TSize2& rhs)
+		{
+			Width += rhs.Width;
+			Height += rhs.Height;
+
+			return *this;
+		}
+
+		TSize2& operator+=(T rhs)
+		{
+			Width += rhs;
+			Height += rhs;
+
+			return *this;
+		}
+
+		TSize2& operator-=(const TSize2& rhs)
+		{
+			Width -= rhs.Width;
+			Height -= rhs.Height;
+
+			return *this;
+		}
+
+		TSize2& operator-=(T rhs)
+		{
+			Width -= rhs;
+			Height -= rhs;
+
+			return *this;
+		}
+
+		TSize2& operator*=(T rhs)
+		{
+			Width *= rhs;
+			Height *= rhs;
+
+			return *this;
+		}
+
+		TSize2& operator*=(const TSize2& rhs)
+		{
+			Width *= rhs.Width;
+			Height *= rhs.Height;
+
+			return *this;
+		}
+
+		TSize2& operator/=(T rhs)
+		{
+			B3D_ASSERT(rhs != (T)0.0);
+
+			const T inverseRHS = (T)1.0 / rhs;
+			Width *= inverseRHS;
+			Height *= inverseRHS;
+
+			return *this;
+		}
+
+		TSize2& operator/=(const TSize2& rhs)
+		{
+			Width /= rhs.Width;
+			Height /= rhs.Height;
+
+			return *this;
+		}
+
 		bool operator==(const TSize2& rhs) const
 		{
 			return (Width == rhs.Width && Height == rhs.Height);

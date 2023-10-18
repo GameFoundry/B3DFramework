@@ -9,8 +9,10 @@ using namespace bs;
 
 namespace bs
 {
-	VectorPath::VectorPath()
-		: Resource(false, "VectorPath")
+	constexpr Size2 VectorPath::kDefaultCanvasSize;
+
+	VectorPath::VectorPath(const Size2& canvasSize)
+		: Resource(false, "VectorPath"), mCanvasSize(canvasSize)
 	{ }
 
 	VectorPath& VectorPath::SetDrawCursor(const Vector2& cursor)
@@ -247,18 +249,18 @@ namespace bs
 		return B3DMakeShared<ct::NVGVectorPathRenderable>(*this, settings);
 	}
 
-	SPtr<VectorPath> VectorPath::CreateShared()
+	SPtr<VectorPath> VectorPath::CreateShared(const Size2& canvasSize)
 	{
-		SPtr<VectorPath> newVectorPath = B3DMakeCoreFromExisting<VectorPath>(new(B3DAllocate<VectorPath>()) VectorPath());
+		SPtr<VectorPath> newVectorPath = B3DMakeCoreFromExisting<VectorPath>(new(B3DAllocate<VectorPath>()) VectorPath(canvasSize));
 		newVectorPath->SetShared(newVectorPath);
 		newVectorPath->Initialize();
 
 		return newVectorPath;
 	}
 
-	HVectorPath VectorPath::Create()
+	HVectorPath VectorPath::Create(const Size2& canvasSize)
 	{
-		const SPtr<VectorPath> newVectorPath = CreateShared();
+		const SPtr<VectorPath> newVectorPath = CreateShared(canvasSize);
 
 		return B3DStaticResourceCast<VectorPath>(GetResources().CreateResourceHandle(newVectorPath));
 	}

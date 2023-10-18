@@ -1,6 +1,8 @@
 //************************************ bs::framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "GUI/BsGUIButtonBase.h"
+
+#include "BsGUIVectorPaths.h"
 #include "2D/BsImageSprite.h"
 #include "GUI/BsGUISkin.h"
 #include "Image/BsSpriteTexture.h"
@@ -24,6 +26,7 @@ GUIButtonBase::GUIButtonBase(const String& styleName, const GUIContent& content,
 	mImageDesc.AnimationStartTime = GetTime().GetTime();
 	mContentAnimationStartTime = mImageDesc.AnimationStartTime;
 
+	SetBackgroundPathBuilder(GUIBackgroundVectorPathBuilder::Get());
 	RefreshContentSprite();
 }
 
@@ -79,7 +82,11 @@ void GUIButtonBase::UpdateRenderElements()
 		mBackgroundSpriteInformation.Width = mLayoutData.Area.Width;
 		mBackgroundSpriteInformation.Height = mLayoutData.Area.Height;
 
-		mBackgroundSpriteInformation.VectorPath = CreateBackgroundVectorPath(Size2UI(mLayoutData.Area.Width, mLayoutData.Area.Height), *mStyleSheetStateStyle);
+		if(mBackgroundPathBuilder)
+			mBackgroundSpriteInformation.VectorPath = mBackgroundPathBuilder->BuildPath(Size2UI(mLayoutData.Area.Width, mLayoutData.Area.Height), *mStyleSheetStateStyle);
+		else
+			mBackgroundSpriteInformation.VectorPath = nullptr;
+
 		mBackgroundSpriteInformation.Color = GetTint();
 		mBackgroundSpriteInformation.Color.A *= mStyleSheetStateStyle->Opacity;
 
@@ -545,27 +552,3 @@ Color GUIButtonBase::GetActiveTextColor() const
 
 	return GetStyle()->Normal.TextColor;
 }
-
-HVectorPath GUIButtonBase::CreateBackgroundVectorPath(const Size2UI& size, const GUIStyleSheetStateRule& style)
-{
-	HVectorPath path = VectorPath::Create();
-
-	const Rect2 fillArea = Rect2(0.0f, 0.0f, (float)size.Width, (float)size.Height);
-
-	path->DrawRoundedRectangle(fillArea, (float)style.BorderTopLeftRadius, (float)style.BorderTopRightRadius, (float)style. BorderBottomLeftRadius, (float)style.BorderTopRightRadius)
-		.ClosePath()
-		.SetFillPaint(style.BackgroundColor)
-		.DrawFill();
-
-	// TODO - Not supporting separate border styles at the moment. See nvgRoundedRectVarying for implementation. Also ideally support elliptical corners
-	const bool drawBorder = style.BorderLeft.Width > 0 && style.BorderLeft.Style != GUIBorderElementStyle::None;
-	if(drawBorder)
-	{
-		path->SetStrokePaint(style.BorderLeft.Color)
-			.SetStrokeWidth((float)style.BorderLeft.Width)
-			.DrawStroke();
-	}
-
-	return path;
-}
-

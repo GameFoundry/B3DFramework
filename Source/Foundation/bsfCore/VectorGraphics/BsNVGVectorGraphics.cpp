@@ -58,88 +58,6 @@ namespace bs::ct
 		return nvgRGBAf(color.R, color.G, color.B, color.A);
 	}
 
-	/**
-	 * Scales the provided input using optional scale-9-grid border.
-	 *
-	 * @param	input				Position to scale.
-	 * @param	shapeSize			Size of the vector path.
-	 * @param	scale9GridBorder	Border offset from the shape size, determining in which areas to apply the scale 9 grid approach. If border is zero, it
-	 *								will not be scaled using scale 9 grid.
-	 * @param	scale				Regular scale to apply to input.
-	 * @return						Scaled position.
-	 */
-	static Vector2 ApplyScale9GridTransform(const Vector2& input, const Size2& shapeSize, const RectOffset& scale9GridBorder, const Vector2& scale)
-	{
-		const float unscaledLeft = (float)scale9GridBorder.Left;
-		const float unscaledRight = shapeSize.Width - (float)scale9GridBorder.Right;
-		const float unscaledTop = (float)scale9GridBorder.Top;
-		const float unscaledBottom = shapeSize.Height - (float)scale9GridBorder.Bottom;
-
-		const float scaledWidth = shapeSize.Width * scale.X;
-		const float scaledHeight = shapeSize.Height * scale.Y;
-		const float scaledRight = scaledWidth - (float)scale9GridBorder.Right;
-		const float scaledBottom = scaledHeight - (float)scale9GridBorder.Bottom;
-
-		// Top left
-		if(input.Y <= unscaledTop && input.X <= unscaledLeft)
-		{
-			return input;
-		}
-		// Top right
-		else if(input.Y <= unscaledTop && input.X >= unscaledRight)
-		{
-			return Vector2(scaledRight + (input.X - unscaledRight), input.Y);
-		}
-		// Top center
-		else if(input.Y <= unscaledTop)
-		{
-			return Vector2(input.X * scale.X, input.Y);
-		}
-		// Bottom left
-		else if(input.Y >= unscaledBottom && input.X <= unscaledLeft)
-		{
-			return Vector2(input.X, scaledBottom + (input.Y - unscaledBottom));
-		}
-		// Bottom right
-		else if(input.Y >= unscaledBottom && input.X >= unscaledRight)
-		{
-			return Vector2(scaledRight + (input.X - unscaledRight), scaledBottom + (input.Y - unscaledBottom));
-		}
-		// Bottom center
-		else if(input.Y >= unscaledBottom)
-		{
-			return Vector2(input.X * scale.X, scaledBottom - (input.Y - unscaledBottom));
-		}
-		// Middle left
-		else if(input.X <= unscaledLeft)
-		{
-			return Vector2(input.X, input.Y * scale.Y);
-		}
-		// Middle right
-		else if(input.X >= unscaledRight)
-		{
-			return Vector2(scaledRight - (input.X - unscaledRight), input.Y * scale.Y);
-		}
-
-		// Middle center
-		return input * scale;
-	}
-
-	/** Applies scale from the vector graphics settings to the provided input point. */
-	static Vector2 ApplyScaleTransform(const Vector2& input, const VectorGraphicsSettings& settings)
-	{
-		const bool useScale9Grid =
-			settings.Scale9GridBorder.Left != 0 ||
-			settings.Scale9GridBorder.Right != 0 ||
-			settings.Scale9GridBorder.Top != 0 ||
-			settings.Scale9GridBorder.Bottom != 0;
-
-		if(useScale9Grid)
-			return ApplyScale9GridTransform(input, settings.Size, settings.Scale9GridBorder, settings.Scale);
-
-		return input * settings.Scale;
-	}
-
 	/** Creates a NanoVG paint from a B3D paint. Gradients will have scaling applied as provided by vector graphics settings. */
 	static NVGpaint CreateNVGPaint(NVGcontext& context, const VectorGraphicsPaint& paint, const VectorGraphicsSettings& settings)
 	{
@@ -157,8 +75,8 @@ namespace bs::ct
 				const VectorGraphicsPaint::LinearGradientPaint& linearGradientPaint = paint.GetLinearGradientPaint();
 				const NVGcolor& startColor = B3DColorToNVGColor(linearGradientPaint.StartColor);
 				const NVGcolor& endColor = B3DColorToNVGColor(linearGradientPaint.EndColor);
-				const Vector2& startPoint = ApplyScaleTransform(linearGradientPaint.StartPoint, settings);
-				const Vector2& endPoint = ApplyScaleTransform(linearGradientPaint.EndPoint, settings);
+				const Vector2& startPoint = linearGradientPaint.StartPoint;
+				const Vector2& endPoint = linearGradientPaint.EndPoint;
 
 				return nvgLinearGradient(&context, startPoint.X, startPoint.Y, endPoint.X, endPoint.Y, startColor, endColor);
 			}
@@ -167,8 +85,8 @@ namespace bs::ct
 				const VectorGraphicsPaint::BoxGradientPaint& boxGradientPaint = paint.GetBoxGradientPaint();
 				const NVGcolor& innerColor = B3DColorToNVGColor(boxGradientPaint.InnerColor);
 				const NVGcolor& outerColor = B3DColorToNVGColor(boxGradientPaint.OuterColor);
-				const Vector2& topLeft = ApplyScaleTransform(Vector2(boxGradientPaint.Area.X, boxGradientPaint.Area.Y), settings);
-				const Vector2& bottomRight = ApplyScaleTransform(Vector2(boxGradientPaint.Area.X + boxGradientPaint.Area.Width, boxGradientPaint.Area.Y + boxGradientPaint.Area.Height), settings);
+				const Vector2& topLeft = Vector2(boxGradientPaint.Area.X, boxGradientPaint.Area.Y);
+				const Vector2& bottomRight = Vector2(boxGradientPaint.Area.X + boxGradientPaint.Area.Width, boxGradientPaint.Area.Y + boxGradientPaint.Area.Height);
 
 				const Rect2 area(topLeft.X, topLeft.Y, bottomRight.X - topLeft.X, bottomRight.Y - topLeft.Y);
 
@@ -179,9 +97,9 @@ namespace bs::ct
 				const VectorGraphicsPaint::RadialGradientPaint& radialGradientPaint = paint.GetRadialGradientPaint();
 				const NVGcolor& innerColor = B3DColorToNVGColor(radialGradientPaint.InnerColor);
 				const NVGcolor& outerColor = B3DColorToNVGColor(radialGradientPaint.OuterColor);
-				const Vector2& center = ApplyScaleTransform(radialGradientPaint.Center, settings);
-				const float innerRadius = radialGradientPaint.InnerRadius * settings.Scale.X;
-				const float outerRadius = radialGradientPaint.OuterRadius * settings.Scale.X;
+				const Vector2& center = radialGradientPaint.Center;
+				const float innerRadius = radialGradientPaint.InnerRadius;
+				const float outerRadius = radialGradientPaint.OuterRadius;
 
 				return nvgRadialGradient(&context, center.X, center.Y, innerRadius, outerRadius, innerColor, outerColor);
 			}
@@ -278,7 +196,7 @@ namespace bs::ct
 				{
 					fnEnsurePathOpen();
 
-					const Vector2& position = ApplyScaleTransform(command.SetDrawCursor.Position, settings);
+					const Vector2& position = command.SetDrawCursor.Position;
 					nvgMoveTo(&context, position.X, position.Y);
 					break;
 				}
@@ -308,7 +226,7 @@ namespace bs::ct
 				{
 					fnEnsurePathOpen();
 
-					const Vector2& position = ApplyScaleTransform(command.DrawLineTo.Target, settings);
+					const Vector2& position = command.DrawLineTo.Target;
 					nvgLineTo(&context, position.X, position.Y);
 					break;
 				}
@@ -316,9 +234,9 @@ namespace bs::ct
 				{
 					fnEnsurePathOpen();
 
-					const Vector2& middlePoint = ApplyScaleTransform(Vector2(command.DrawArcTo.MiddlePoint), settings);
-					const Vector2& endPoint = ApplyScaleTransform(Vector2(command.DrawArcTo.EndPoint), settings);
-					const float radius = command.DrawArcTo.Radius * settings.Scale.X;
+					const Vector2& middlePoint = Vector2(command.DrawArcTo.MiddlePoint);
+					const Vector2& endPoint = Vector2(command.DrawArcTo.EndPoint);
+					const float radius = command.DrawArcTo.Radius;
 
 					nvgArcTo(&context, middlePoint.X, middlePoint.Y, endPoint.X, endPoint.Y, radius);
 					break;
@@ -327,9 +245,9 @@ namespace bs::ct
 				{
 					fnEnsurePathOpen();
 
-					const Vector2 controlPoint1 = ApplyScaleTransform(command.DrawCubicBezierTo.ControlPoint1, settings);
-					const Vector2 controlPoint2 = ApplyScaleTransform(command.DrawCubicBezierTo.ControlPoint2, settings);
-					const Vector2 endPoint = ApplyScaleTransform(command.DrawCubicBezierTo.EndPoint, settings);
+					const Vector2 controlPoint1 = command.DrawCubicBezierTo.ControlPoint1;
+					const Vector2 controlPoint2 = command.DrawCubicBezierTo.ControlPoint2;
+					const Vector2 endPoint = command.DrawCubicBezierTo.EndPoint;
 
 					nvgBezierTo(&context, controlPoint1.X, controlPoint1.Y, controlPoint2.X, controlPoint2.Y, endPoint.X, endPoint.Y);
 					break;
@@ -338,8 +256,8 @@ namespace bs::ct
 				{
 					fnEnsurePathOpen();
 
-					const Vector2 controlPoint = ApplyScaleTransform(command.DrawQuadraticBezierTo.ControlPoint, settings);
-					const Vector2 endPoint = ApplyScaleTransform(command.DrawQuadraticBezierTo.EndPoint, settings);
+					const Vector2 controlPoint = command.DrawQuadraticBezierTo.ControlPoint;
+					const Vector2 endPoint = command.DrawQuadraticBezierTo.EndPoint;
 
 					nvgQuadTo(&context, controlPoint.X, controlPoint.Y, endPoint.X, endPoint.Y);
 					break;
@@ -351,8 +269,8 @@ namespace bs::ct
 
 					const Rect2& area = command.DrawRectangle.Area;
 
-					const Vector2& topLeft = ApplyScaleTransform(Vector2(area.X, area.Y), settings);
-					const Vector2& bottomRight = ApplyScaleTransform(Vector2(area.X + area.Width, area.Y + area.Height), settings);
+					const Vector2& topLeft = Vector2(area.X, area.Y);
+					const Vector2& bottomRight = Vector2(area.X + area.Width, area.Y + area.Height);
 
 					nvgRect(&context, topLeft.X, topLeft.Y, bottomRight.X - topLeft.X, bottomRight.Y - topLeft.Y);
 					break;
@@ -365,8 +283,8 @@ namespace bs::ct
 					const VectorPathCommand::DrawRoundedRectangleCommand& drawRoundedRectangle = command.DrawRoundedRectangle;
 					const Rect2& area = drawRoundedRectangle.Area;
 
-					const Vector2& topLeft = ApplyScaleTransform(Vector2(area.X, area.Y), settings);
-					const Vector2& bottomRight = ApplyScaleTransform(Vector2(area.X + area.Width, area.Y + area.Height), settings);
+					const Vector2& topLeft = Vector2(area.X, area.Y);
+					const Vector2& bottomRight = Vector2(area.X + area.Width, area.Y + area.Height);
 
 					nvgRoundedRectVarying(&context, topLeft.X, topLeft.Y, bottomRight.X - topLeft.X, bottomRight.Y - topLeft.Y,
 						drawRoundedRectangle.RadiusTopLeft, drawRoundedRectangle.RadiusTopRight,
@@ -379,8 +297,8 @@ namespace bs::ct
 					fnEnsurePathOpen();
 
 					const VectorPathCommand::DrawEllipseCommand& drawEllipse = command.DrawEllipse;
-					const Vector2& origin = ApplyScaleTransform(drawEllipse.Origin, settings);
-					const Vector2& radius = drawEllipse.Radius * settings.Scale;
+					const Vector2& origin = drawEllipse.Origin;
+					const Vector2& radius = drawEllipse.Radius;
 
 					nvgEllipse(&context, origin.X, origin.Y, radius.X, radius.Y);
 					break;
@@ -391,8 +309,8 @@ namespace bs::ct
 					fnEnsurePathOpen();
 
 					const VectorPathCommand::DrawArcCommand& drawArc = command.DrawArc;
-					const Vector2 origin = ApplyScaleTransform(drawArc.Origin, settings);
-					const float radius = drawArc.Radius * settings.Scale.X;
+					const Vector2 origin = drawArc.Origin;
+					const float radius = drawArc.Radius;
 					const NVGwinding winding = drawArc.Direction == VectorGraphicsPathWinding::Clockwise ? NVG_CW : NVG_CCW;
 
 					nvgArc(&context, origin.X, origin.Y, radius, drawArc.StartAngle.GetValueInRadians(), drawArc.EndAngle.GetValueInRadians(), winding);
@@ -680,6 +598,57 @@ namespace bs::ct
 		NVGRenderContext userContext;
 		userContext.Settings = settings;
 
+		// Scale canvas to output area if requested
+		if(settings.ScalingMode != VectorGraphicsRasterizationScaling::None)
+		{
+			const Size2 canvasSize = vectorPath.GetCanvasSize();
+			const Size2 rasterSize = settings.Size;
+
+			const Size2 ratio = rasterSize / canvasSize;
+
+			Size2 scale(1.0f, 1.0f);
+			Size2 offset(0.0f, 0.0f);
+
+			switch(settings.ScalingMode)
+			{
+			case VectorGraphicsRasterizationScaling::StretchToFit:
+				{
+					scale = ratio;
+					break;
+				}
+			case VectorGraphicsRasterizationScaling::ScaleToFit:
+				{
+					const float uniformScale = Math::Min(ratio.Width, ratio.Height);
+					scale = Size2(uniformScale, uniformScale);
+
+					const Size2 aspectRestrictedScreenSize = Size2(canvasSize.Width * scale.Width, canvasSize.Height * scale.Height);
+					offset = (rasterSize - aspectRestrictedScreenSize) * 0.5f;
+
+					break;
+				}
+			case VectorGraphicsRasterizationScaling::CropToFit:
+				{
+					const float uniformScale = Math::Max(ratio.Width, ratio.Height);
+					scale = Size2(uniformScale, uniformScale);
+
+					const Size2 aspectRestrictedScreenSize = Size2(canvasSize.Width * scale.Width, canvasSize.Height * scale.Height);
+					offset = (rasterSize - aspectRestrictedScreenSize) * 0.5f;
+
+					break;
+				}
+			default:
+			case VectorGraphicsRasterizationScaling::None:
+				break;
+			}
+
+			const Matrix4 scaleTransform =
+				Matrix4::Translation(Vector3(canvasSize.Width * 0.5f * scale.Width, canvasSize.Height * 0.5f * scale.Height, 0.0f)) *
+				Matrix4::TRS(Vector3(offset.Width, offset.Height, 0.0f), Quaternion::kIdentity, Vector3(scale.Width, scale.Height, 1.0f)) *
+				Matrix4::Translation(Vector3(-canvasSize.Width * 0.5f, -canvasSize.Height * 0.5f, 0.0f));
+
+			userContext.Settings.Transform = settings.Transform * scaleTransform;
+		}
+
 		NVGparams nvgParameters;
 		B3DZeroOut(nvgParameters);
 
@@ -698,7 +667,7 @@ namespace bs::ct
 
 		nvgBeginFrame(nvgContext, (float)settings.Size.Width, (float)settings.Size.Height, settings.DevicePixelRatio);
 
-		const Matrix4& transform = settings.Transform;
+		const Matrix4& transform = userContext.Settings.Transform;
 		const Vector3 translation = transform.GetTranslation();
 		nvgTranslate(nvgContext, translation.X, translation.Y);
 		nvgTransform(nvgContext, transform[0][0], transform[1][0], transform[0][1], transform[1][1], transform[0][2], transform[1][2]);
