@@ -43,38 +43,41 @@ void VectorSprite::Update(const VectorSpriteInformation& information, u64 groupI
 
 	HSpriteTexture image = mSpriteAtlasAllocation->Image;
 
-	SpriteRenderElementData& renderElementData = mCachedRenderElements[0];
-	if(renderElementData.QuadCount != 1)
+	RenderElementData& renderElementData = mCachedRenderElements[0];
+	SpriteRenderElement& renderElement = renderElementData.RenderElement;
+	if(renderElement.VertexCount < 4)
 	{
-		renderElementData.VertexPositions = mPositionBuffer.data();
-		renderElementData.VertexUVs = mUVBuffer.data();
-		renderElementData.Indices = mIndexBuffer.data();
-		renderElementData.QuadCount = 1;
+		renderElement.VertexPositions = mPositionBuffer.data();
+		renderElement.VertexUVs = mUVBuffer.data();
+		renderElement.Indices = mIndexBuffer.data();
+		renderElement.VertexCount = 4;
+		renderElement.IndexCount = 6;
 	}
 
-	SpriteMaterialInfo& matInfo = renderElementData.MaterialInformation;
-	matInfo.GroupId = groupId;
-	matInfo.Texture = image->GetTexture();
-	matInfo.Tint = information.Color;
+	SpriteMaterialInfo& materialInformation = renderElementData.MaterialInformation;
+	materialInformation.GroupId = groupId;
+	materialInformation.Texture = image->GetTexture();
+	materialInformation.Tint = information.Color;
 
-	renderElementData.Material = SpriteManager::Instance().GetImageMaterial(SpriteMaterialTransparency::Premultiplied);
+	renderElement.Material = SpriteManager::Instance().GetImageMaterial(SpriteMaterialTransparency::Premultiplied);
+	renderElement.MaterialInformation = &renderElementData.MaterialInformation;
 
-	renderElementData.Indices[0] = 0;
-	renderElementData.Indices[1] = 1;
-	renderElementData.Indices[2] = 2;
-	renderElementData.Indices[3] = 1;
-	renderElementData.Indices[4] = 3;
-	renderElementData.Indices[5] = 2;
+	renderElement.Indices[0] = 0;
+	renderElement.Indices[1] = 1;
+	renderElement.Indices[2] = 2;
+	renderElement.Indices[3] = 1;
+	renderElement.Indices[4] = 3;
+	renderElement.Indices[5] = 2;
 
-	renderElementData.VertexPositions[0] = Vector2(0.0f, 0.0f);
-	renderElementData.VertexPositions[1] = Vector2((float)information.Width, 0.0f);
-	renderElementData.VertexPositions[2] = Vector2(0.0f, (float)information.Height);
-	renderElementData.VertexPositions[3] = Vector2((float)information.Width, (float)information.Height);
+	renderElement.VertexPositions[0] = Vector2(0.0f, 0.0f);
+	renderElement.VertexPositions[1] = Vector2((float)information.Width, 0.0f);
+	renderElement.VertexPositions[2] = Vector2(0.0f, (float)information.Height);
+	renderElement.VertexPositions[3] = Vector2((float)information.Width, (float)information.Height);
 
-	renderElementData.VertexUVs[0] = image->TransformUv(Vector2(0.0f, 0.0f));
-	renderElementData.VertexUVs[1] = image->TransformUv(Vector2(1.0f, 0.0f));
-	renderElementData.VertexUVs[2] = image->TransformUv(Vector2(0.0f, 1.0f));
-	renderElementData.VertexUVs[3] = image->TransformUv(Vector2(1.0f, 1.0f));
+	renderElement.VertexUVs[0] = image->TransformUv(Vector2(0.0f, 0.0f));
+	renderElement.VertexUVs[1] = image->TransformUv(Vector2(1.0f, 0.0f));
+	renderElement.VertexUVs[2] = image->TransformUv(Vector2(0.0f, 1.0f));
+	renderElement.VertexUVs[3] = image->TransformUv(Vector2(1.0f, 1.0f));
 
 	UpdateBounds();
 }

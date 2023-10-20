@@ -20,52 +20,59 @@ void TextSprite::Update(const TextSpriteInformation& information, u64 groupId)
 		const U32String utf32text = UTF8::ToUtF32(information.Text);
 		TextData<FrameAllocatorTag> textData(utf32text, information.Font, information.FontSize, information.Width, information.Height, information.WordWrap, information.WordBreak);
 
-		u32 numPages = textData.GetNumPages();
+		const u32 pageCount = textData.GetNumPages();
 
 		// Free all previous memory
-		for(auto& cachedElem : mCachedRenderElements)
+		for(auto& entry : mCachedRenderElements)
 		{
-			if(cachedElem.VertexPositions != nullptr) mAlloc.Free(cachedElem.VertexPositions);
-			if(cachedElem.VertexUVs != nullptr) mAlloc.Free(cachedElem.VertexUVs);
-			if(cachedElem.Indices != nullptr) mAlloc.Free(cachedElem.Indices);
+			SpriteRenderElement& renderElement = entry.RenderElement;
+
+			if(renderElement.VertexPositions != nullptr) mAlloc.Free(renderElement.VertexPositions);
+			if(renderElement.VertexUVs != nullptr) mAlloc.Free(renderElement.VertexUVs);
+			if(renderElement.Indices != nullptr) mAlloc.Free(renderElement.Indices);
 		}
 
 		mAlloc.Clear();
 
 		// Resize cached mesh array to needed size
-		if(mCachedRenderElements.size() != numPages)
-			mCachedRenderElements.resize(numPages);
+		if(mCachedRenderElements.size() != pageCount)
+			mCachedRenderElements.resize(pageCount);
 
 		// Actually generate a mesh
-		u32 texPage = 0;
-		for(auto& cachedElem : mCachedRenderElements)
+		u32 pageIndex = 0;
+		for(auto& renderElementData : mCachedRenderElements)
 		{
-			u32 newNumQuads = textData.GetNumQuadsForPage(texPage);
+			const u32 newQuadCount = textData.GetNumQuadsForPage(pageIndex);
 
-			cachedElem.VertexPositions = (Vector2*)mAlloc.Alloc(sizeof(Vector2) * newNumQuads * 4);
-			cachedElem.VertexUVs = (Vector2*)mAlloc.Alloc(sizeof(Vector2) * newNumQuads * 4);
-			cachedElem.Indices = (u32*)mAlloc.Alloc(sizeof(u32) * newNumQuads * 6);
-			cachedElem.QuadCount = newNumQuads;
+			SpriteRenderElement& renderElement = renderElementData.RenderElement;
+			renderElement.VertexCount = newQuadCount * 4;
+			renderElement.IndexCount = newQuadCount * 6;
+			renderElement.VertexPositions = (Vector2*)mAlloc.Alloc(sizeof(Vector2) * renderElement.VertexCount);
+			renderElement.VertexUVs = (Vector2*)mAlloc.Alloc(sizeof(Vector2) * renderElement.VertexCount);
+			renderElement.Indices = (u32*)mAlloc.Alloc(sizeof(u32) * renderElement.IndexCount);
 
-			const HTexture& tex = textData.GetTextureForPage(texPage);
+			const HTexture& tex = textData.GetTextureForPage(pageIndex);
 
-			SpriteMaterialInfo& matInfo = cachedElem.MaterialInformation;
-			matInfo.GroupId = groupId;
-			matInfo.Texture = tex;
-			matInfo.Tint = information.Color;
-			matInfo.AnimationStartTime = 0.0f;
+			SpriteMaterialInfo& materialInformation = renderElementData.MaterialInformation;
+			materialInformation.GroupId = groupId;
+			materialInformation.Texture = tex;
+			materialInformation.Tint = information.Color;
+			materialInformation.AnimationStartTime = 0.0f;
 
-			cachedElem.Material = SpriteManager::Instance().GetTextMaterial();
+			renderElement.Material = SpriteManager::Instance().GetTextMaterial();
+			renderElement.MaterialInformation = &renderElementData.MaterialInformation;
 
-			texPage++;
+			pageIndex++;
 		}
 
 		// Calc alignment and anchor offsets and set final line positions
-		for(u32 j = 0; j < numPages; j++)
+		pageIndex = 0;
+		for(; pageIndex < pageCount; pageIndex++)
 		{
-			SpriteRenderElementData& renderElem = mCachedRenderElements[j];
+			SpriteRenderElement& renderElement = mCachedRenderElements[pageIndex].RenderElement;
 
-			GenTextQuads(j, textData, information.Width, information.Height, information.HorzAlign, information.VertAlign, information.Anchor, renderElem.VertexPositions, renderElem.VertexUVs, renderElem.Indices, renderElem.QuadCount);
+			const u32 quadCount = renderElement.VertexCount / 4;
+			GenTextQuads(pageIndex, textData, information.Width, information.Height, information.HorzAlign, information.VertAlign, information.Anchor, renderElement.VertexPositions, renderElement.VertexUVs, renderElement.Indices, quadCount);
 		}
 	}
 
@@ -192,24 +199,25 @@ void TextSprite::GetAlignmentOffsets(const TextDataBase& textData, u32 width, u3
 
 void TextSprite::ClearMesh()
 {
-	for(auto& renderElem : mCachedRenderElements)
+	for(auto& entry : mCachedRenderElements)
 	{
-		if(renderElem.VertexPositions != nullptr)
+		SpriteRenderElement& renderElement = entry.RenderElement;
+		if(renderElement.VertexPositions != nullptr)
 		{
-			mAlloc.Free(renderElem.VertexPositions);
-			renderElem.VertexPositions = nullptr;
+			mAlloc.Free(renderElement.VertexPositions);
+			renderElement.VertexPositions = nullptr;
 		}
 
-		if(renderElem.VertexUVs != nullptr)
+		if(renderElement.VertexUVs != nullptr)
 		{
-			mAlloc.Free(renderElem.VertexUVs);
-			renderElem.VertexUVs = nullptr;
+			mAlloc.Free(renderElement.VertexUVs);
+			renderElement.VertexUVs = nullptr;
 		}
 
-		if(renderElem.Indices != nullptr)
+		if(renderElement.Indices != nullptr)
 		{
-			mAlloc.Free(renderElem.Indices);
-			renderElem.Indices = nullptr;
+			mAlloc.Free(renderElement.Indices);
+			renderElement.Indices = nullptr;
 		}
 	}
 

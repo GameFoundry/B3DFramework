@@ -30,6 +30,34 @@ void GUIElement::UpdateRenderElements()
 	UpdateClippedBounds();
 }
 
+void GUIElement::GetRenderElementVertexAndIndexData(u32 renderElementIndex, u32 vertexOffset, u32 indexOffset, DataRange& outPositions, DataRange& outUVs, DataRange& outIndices) const
+{
+	const GUIRenderElement& renderElement = mRenderElements[renderElementIndex];
+
+	const Vector2I guiElementOffset(mLayoutData.Area.X, mLayoutData.Area.Y);
+	const Rect2 guiElementClipRectangle = (Rect2)mLayoutData.GetLocalClipRect();
+
+	// Build the render element bounds to use for clipping
+	Rect2 renderElementBounds( // In space relative to parent GUI element
+		renderElement.Offset.X,
+		renderElement.Offset.Y,
+		renderElement.ClipSize.Width,
+		renderElement.ClipSize.Height);
+
+	// Clip by the elements clip rectangle
+	renderElementBounds.Clip(guiElementClipRectangle);
+
+	// Move the bounds into space relative to the content bounds
+	renderElementBounds.X -= renderElement.Offset.X;
+	renderElementBounds.Y -= renderElement.Offset.Y;
+
+	const Vector2 renderElementOffset =
+		Vector2((float)guiElementOffset.X, (float)guiElementOffset.Y) +
+		renderElement.Offset;
+
+	renderElement.GetVertexAndIndexData(vertexOffset, indexOffset, renderElementOffset, renderElementBounds, true, outPositions, outUVs, outIndices);
+}
+
 void GUIElement::UpdateClippedBounds()
 {
 	mClippedBounds = mLayoutData.Area;
@@ -244,20 +272,37 @@ Rect2I GUIElement::GetCachedContentBounds() const
 	}
 }
 
-Rect2I GUIElement::GetCachedClippedLocalContentBounds() const
+Rect2I GUIElement::GetCachedClippedContentBoundsInContentSpace() const
 {
-	Rect2I contentBounds = GetCachedContentBounds();
+	const Vector2I contentOffset = GetContentOffsetInElementSpace();
+	const Rect2I contentBounds = GetCachedContentBounds();
 
 	// Transform into element space so we can clip it using the element clip rectangle
-	Vector2I offsetDiff = Vector2I(contentBounds.X - mLayoutData.Area.X, contentBounds.Y - mLayoutData.Area.Y);
-	Rect2I contentClipRect(offsetDiff.X, offsetDiff.Y, contentBounds.Width, contentBounds.Height);
+	Rect2I contentClipRect(contentOffset.X, contentOffset.Y, contentBounds.Width, contentBounds.Height);
 	contentClipRect.Clip(mLayoutData.GetLocalClipRect());
 
 	// Transform into content sprite space
-	contentClipRect.X -= offsetDiff.X;
-	contentClipRect.Y -= offsetDiff.Y;
+	contentClipRect.X -= contentOffset.X;
+	contentClipRect.Y -= contentOffset.Y;
 
 	return contentClipRect;
+}
+
+Vector2I GUIElement::GetContentOffsetInElementSpace() const
+{
+	const RectOffset& padding = GetPadding();
+	if(mStyleSheetStateStyle != nullptr)
+	{
+		return Vector2I(
+			padding.Left + mStyleSheetStateStyle->BorderLeft.GetVisibleWidth(),
+			padding.Top + mStyleSheetStateStyle->BorderTop.GetVisibleWidth());
+	}
+	else
+	{
+		return Vector2I(
+			padding.Left + mStyle->ContentOffset.Left,
+			padding.Top + mStyle->ContentOffset.Top);
+	}
 }
 
 Color GUIElement::GetTint() const

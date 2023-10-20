@@ -58,6 +58,9 @@ namespace bs
 	{
 		GUIMeshType Type = GUIMeshType::Triangle;
 		u32 Depth = 0;
+		Vector2 Offset = Vector2::kZero; /**< Offset to apply to every vertex in the render element, relative to parent GUI element. */
+		Size2 ClipSize = Size2::kZero; /**< Size of the clip rectangle, relative to the offset. Any vertices outside of this area will be clipped. */
+		bool UseNewFillBuffer = false;
 	};
 
 	/**
@@ -182,6 +185,32 @@ namespace bs
 			u32 maxNumVerts,
 			u32 maxNumIndices,
 			u32 renderElementIdx) const = 0;
+
+		/**
+		 * Retrieves vertex and index data from GUI render element and outputs them to the provided buffers. GUI render
+		 * elements must have been previously populated by calling UpdateRenderElements().
+		 *
+		 * @param	renderElementIndex	Zero-based index of the render element from which to retrieve the data.
+		 * @param	vertexOffset		At which vertex should the method start writing to the output position/uv buffer.
+		 * @param	indexOffset			At which index should the method start writing to the output index buffer.
+		 * @param	outPositions		Previously allocated buffer where to store the vertex positions. Caller must ensure
+		 *								size and data type match the mesh type and vertex count retrieved from
+		 *								GetRenderElements() for the specified element.
+		 * @param	outUVs				Previously allocated buffer where to store the vertex UVs. Caller must ensure
+		 *								size and data type match the mesh type and vertex count retrieved from
+		 *								GetRenderElements() for the specified element. Can be null if not needed.
+		 * @param	outIndices			Previously allocated buffer where to store the indices. Caller must ensure
+		 *								size and data type match the mesh type and index count retrieved from
+		 *								GetRenderElements() for the specified element. 
+		 */
+		virtual void GetRenderElementVertexAndIndexData(
+			u32 renderElementIndex,
+			u32 vertexOffset,
+			u32 indexOffset,
+			DataRange& outPositions,
+			DataRange& outUVs,
+			DataRange& outIndices
+		) const;
 
 		/**
 		 * Recreates the internal render elements. Must be called before fillBuffer if element is dirty. Marks the element
@@ -321,9 +350,12 @@ namespace bs
 
 		/**
 		 * Similar to GetCachedContentBounds(), except the bounds will be clipped by the current clip rectangle, and the
-		 * bounds will be relative to GetCachedBounds() rather than relative to the parent widget.
+		 * bounds will be relative to the content area of the GUI element rather than relative to the parent widget.
 		 */
-		Rect2I GetCachedClippedLocalContentBounds() const;
+		Rect2I GetCachedClippedContentBoundsInContentSpace() const;
+
+		/** Calculates the offset from the origin of the GUI element to the area containing content (combined border + padding offsets). */
+		Vector2I GetContentOffsetInElementSpace() const;
 
 		/**	Returns the tint that is applied to the GUI element. */
 		Color GetTint() const;
@@ -370,9 +402,15 @@ namespace bs
 				: Sprite(sprite), Depth(depth), MeshType(meshType)
 			{}
 
+			SpriteInfo(Sprite* sprite, u32 depth, const Rect2& bounds, GUIMeshType meshType = GUIMeshType::Triangle)
+				: Sprite(sprite), Depth(depth), MeshType(meshType), Bounds(bounds), UseNewFillBuffer(true)
+			{}
+
 			Sprite* Sprite;
 			u32 Depth = 0;
 			GUIMeshType MeshType = GUIMeshType::Triangle;
+			Rect2 Bounds = Rect2::kEmpty;
+			bool UseNewFillBuffer = false;
 		};
 
 		/**
@@ -401,6 +439,9 @@ namespace bs
 
 					renderElem.Depth = spriteInfo.Depth;
 					renderElem.Type = spriteInfo.MeshType;
+					renderElem.Offset = Vector2(spriteInfo.Bounds.X, spriteInfo.Bounds.Y);
+					renderElem.ClipSize = Size2(spriteInfo.Bounds.Width, spriteInfo.Bounds.Height);
+					renderElem.UseNewFillBuffer = spriteInfo.UseNewFillBuffer;
 
 					globalIdx++;
 				}

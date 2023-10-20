@@ -3,6 +3,7 @@
 #pragma once
 
 #include "Prerequisites/BsPrerequisitesUtil.h"
+#include "BsRect2.h"
 
 namespace bs
 {
@@ -86,6 +87,11 @@ namespace bs
 		bool operator!=(const Rect2I& rhs) const
 		{
 			return !(*this == rhs);
+		}
+
+		explicit operator Rect2() const
+		{
+			return Rect2((float)X, (float)Y, (float)Width, (float)Height);
 		}
 
 		static const Rect2I kEmpty;

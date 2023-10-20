@@ -14,19 +14,15 @@ namespace bs
 	 */
 
 	/**	Information used for initializing or updating an image sprite. */
-	struct ImageSpriteInformation
+	struct ImageSpriteInformation : SpriteInformation
 	{
 		ImageSpriteInformation() = default;
 
-		u32 Width = 0; /**< Width of the image in pixels. */
-		u32 Height = 0; /**< Height of the image in pixels. */
 		SpriteAnchor Anchor = SA_TopLeft; /**< Determines where in the provided bounds will the sprite be placed. */
 		Vector2 UvScale = Vector2(1.0f, 1.0f); /**< Scale applied to UV width/height used for rendering the sprite. */
 		Vector2 UvOffset = Vector2(0.0f, 0.0f); /**< Offset applied to UV coordinates when rendering the sprite. */
-		bool Transparent = true; /**< Should the sprite be rendered with transparency. */
 
 		HSpriteTexture Image; /**< Image to overlay on the sprite. */
-		Color Color; /**< Color tint to apply to the sprite. */
 		/**
 		 * Time (since application start) at which the sprite texture's 0th frame is played. Used if the sprite texture
 		 * has sprite sheet animation defined.

@@ -28,18 +28,15 @@ namespace bs
 	};
 
 	/**	Information for initializing or updating a text sprite. */
-	struct TextSpriteInformation
+	struct TextSpriteInformation : SpriteInformation
 	{
 		TextSpriteInformation() = default;
 
-		u32 Width = 0; /**< Width of the bounds to render the text within, in pixels. */
-		u32 Height = 0; /**< Height of the bounds to render the text within, in pixels. */
 		SpriteAnchor Anchor = SA_TopLeft; /**< Determines how to anchor the text within the bounds. */
 
 		String Text; /**< UTF-8 encoded text to generate geometry for. */
 		HFont Font; /**< Font containing the data about character glyphs. */
 		u32 FontSize = 0; /**< Size of the font to use when displaying the text. */
-		Color Color; /**< Color tint of the text. */
 		GUIHorizontalTextAlignment HorzAlign = GUIHorizontalTextAlignment::Left; /**< Specifies how is text horizontally aligned within its bounds. */
 		GUIVerticalTextAlignment VertAlign = GUIVerticalTextAlignment::Top; /**< Specifies how is text vertically aligned within its bounds. */
 		bool WordWrap = false; /**< If true the text will word wrap when it doesn't fit, otherwise it will overflow. */

@@ -7,6 +7,7 @@
 #include "Math/BsVector2I.h"
 #include "Math/BsRect2I.h"
 #include "Image/BsColor.h"
+#include "Math/BsRect2.h"
 
 namespace bs
 {
@@ -28,27 +29,45 @@ namespace bs
 		SA_BottomRight
 	};
 
-	/** Contains information about a single sprite render element, including its geometry and material. */
-	struct SpriteRenderElementData
-	{
-		SpriteRenderElementData() = default;
-
-		Vector2* VertexPositions = nullptr;
-		Vector2* VertexUVs = nullptr;
-		u32* Indices = nullptr;
-		u32 QuadCount = 0;
-		SpriteMaterialInfo MaterialInformation;
-		SpriteMaterial* Material = nullptr;
-	};
-
 	/** Contains information about a single sprite render elements mesh and material */
 	struct SpriteRenderElement
 	{
 		u32 IndexCount = 0;
 		u32 VertexCount = 0;
 
+		Vector2* VertexPositions = nullptr;
+		Vector2* VertexUVs = nullptr;
+		u32* Indices = nullptr;
+
 		SpriteMaterialInfo* MaterialInformation = nullptr;
 		SpriteMaterial* Material = nullptr;
+
+		/**
+		 * Retrieves vertex and index data from the sprite render element and outputs them to the provided buffers.
+		 *
+		 * @param	vertexOffset		At which vertex should the method start writing to the output position/uv buffer.
+		 * @param	indexOffset			At which index should the method start writing to the output index buffer.
+		 * @param	offset				Offset that should be applied to all output vertex positions.
+		 * @param	clipRectangle		Rectangle to clip the vertices to, if clipping is enabled.
+		 * @param	performClipping		Should the vertices be clipped to the provided @p clipRectangle.
+		 * @param	outPositions		Previously allocated buffer where to store the vertex positions. Caller must ensure
+		 *								size matches the vertex count.
+		 * @param	outUVs				Previously allocated buffer where to store the vertex UVs. Caller must ensure
+		 *								size matches the vertex count.
+		 * @param	outIndices			Previously allocated buffer where to store the indices. Caller must ensure
+		 *								size matches the index count.
+		 * @return						Number of quads that were written.
+		 */
+		u32 GetVertexAndIndexData(u32 vertexOffset, u32 indexOffset, const Vector2& offset, const Rect2& clipRectangle, bool performClipping, DataRange& outPositions, DataRange& outUVs, DataRange& outIndices) const;
+	};
+
+	/** Common information for all sprite types. */
+	struct SpriteInformation
+	{
+		u32 Width = 0; /**< Width of the sprite in pixels. */
+		u32 Height = 0; /**< Height of the sprite in pixels. */
+		bool Transparent = true; /**< Should the sprite be rendered with transparency. */
+		Color Color; /**< Color tint to apply to the sprite. */
 	};
 
 	/**	Generates geometry and contains information needed for rendering a two dimensional element. */
@@ -78,16 +97,13 @@ namespace bs
 		u32 GetRenderElementCount() const { return (u32)mCachedRenderElements.size(); }
 
 		/**
-		 * Returns information about the number of vertices and indices the required render element requires, as well
-		 * as information about the material that it should be rendered with. Vertex/index counts are required
-		 * when creating the buffers before calling fillBuffer().
+		 * Copies the internal render element information into the provided @p info object.
 		 *
-		 * Returned data is valid until the next call to update() or until the sprite is destroyed.
-		 *
-		 * @param[in]		index		Index of the render element to return the information for.
-		 * @param[out]		info		Information about the render element.
+		 * Note the pointers to vertex/index buffers continue to be owned by the Sprite. You must not manually free them.
+		 * They will be valid until the sprite is destroyed, or until sprite is updated with new data or its mesh data is
+		 * explicitly cleared, at which point you must no longer use them. 
 		 */
-		void GetRenderElement(u32 index, SpriteRenderElement& info) const;
+		void GetRenderElement(u32 index, SpriteRenderElement& info) const { info = mCachedRenderElements[index].RenderElement; }
 
 		/**
 		 * Fill the pre-allocated vertex, uv and index buffers with the mesh data for the specified render element.
@@ -111,7 +127,7 @@ namespace bs
 		 * @see		getNumRenderElements()
 		 * @see		getNumQuads()
 		 */
-		u32 FillBuffer(u8* vertices, u8* uv, u32* indices, u32 vertexOffset, u32 indexOffset, u32 maxNumVerts, u32 maxNumIndices, u32 vertexStride, u32 indexStride, u32 renderElementIdx, const Vector2I& offset, const Rect2I& clipRect, bool clip = true) const;
+		u32 FillBuffer(u8* vertices, u8* uv, u32* indices, u32 vertexOffset, u32 indexOffset, u32 maxNumVerts, u32 maxNumIndices, u32 vertexStride, u32 indexStride, u32 renderElementIdx, const Vector2I& offset, const Rect2I& clipRect, bool clip = true) const; // DEPRECATED
 
 		/**
 		 * Clips the provided 2D vertices to the provided clip rectangle. The vertices must form axis aligned quads.
@@ -125,6 +141,17 @@ namespace bs
 		 * @param[in]		clipRect	Rectangle to clip the geometry to.
 		 */
 		static void ClipQuadsToRect(u8* vertices, u8* uv, u32 numQuads, u32 vertStride, const Rect2I& clipRect);
+
+		/**
+		 * Clips the provided 2D vertices to the provided clip rectangle. The vertices must form axis aligned quads.
+		 *
+		 * @param	vertices			Buffer containing vertex positions to clip.
+		 * @param	uv					Buffer containing UV positions to clip.
+		 * @param	quadCount			Number of quads to clip.
+		 * @param	startVertexIndex	Offset into vertex/uv buffers at which to start clipping.
+		 * @param	clipRectangle		Rectangle to clip the geometry to.
+		 */
+		static void ClipQuadsToRectangle(DataRange& vertices, DataRange& uv, u32 quadCount, u32 startVertexIndex, const Rect2& clipRectangle);
 
 		/**
 		 * Clips the provided 2D vertices to the provided clip rectangle. The vertices can be arbitrary triangles.
@@ -150,19 +177,16 @@ namespace bs
 		/**	Calculates the bounds of all sprite vertices. */
 		void UpdateBounds() const;
 
+		/** Information about a sprite render element. */
+		struct RenderElementData
+		{
+			SpriteRenderElement RenderElement;
+			SpriteMaterialInfo MaterialInformation;
+		};
+
 		mutable Rect2I mBounds;
-		mutable TInlineArray<SpriteRenderElementData, 2> mCachedRenderElements;
+		mutable TInlineArray<RenderElementData, 2> mCachedRenderElements;
 	};
-
-	inline void Sprite::GetRenderElement(u32 index, SpriteRenderElement& info) const
-	{
-		SpriteRenderElementData& renderElement = mCachedRenderElements[index];
-
-		info.VertexCount = renderElement.QuadCount * 4;
-		info.IndexCount = renderElement.QuadCount * 6;
-		info.MaterialInformation = &renderElement.MaterialInformation;
-		info.Material = renderElement.Material;
-	}
 
 	/** @} */
 } // namespace bs

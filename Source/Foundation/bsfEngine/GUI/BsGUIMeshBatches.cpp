@@ -672,13 +672,17 @@ void GUIMeshBatches::RebuildMesh(Batch& batch)
 
 	const SPtr<VertexDescription> vertexDescription = batch.Material.MeshType == GUIMeshType::Triangle ? GetGUITriangleMeshDesc() : GetGUILineMeshDesc();
 	const SPtr<MeshData> meshData = MeshData::Create(batch.VertexCount, batch.IndexCount, vertexDescription);
-	u8* vertices = meshData->GetElementData(VES_POSITION);
-	u32* indices = meshData->GetIndices32();
+	u8* positionData = meshData->GetElementData(VES_POSITION);
+	u8* uvData = vertexDescription->HasElement(VES_TEXCOORD) ? meshData->GetElementData(VES_TEXCOORD) : nullptr;
+	u32* indexData = meshData->GetIndices32();
+
+	DataRange positions(positionData, batch.VertexCount, vertexDescription->GetVertexStride());
+	DataRange uv(uvData, batch.VertexCount, vertexDescription->GetVertexStride());
+	DataRange indices(indexData, batch.IndexCount, meshData->GetIndexElementSize());
 
 	u32 vertexOffset = 0;
 	u32 indexOffset = 0;
 
-	const Vector2I groupOffset = Vector2I::kZero;
 	for(const auto& batchedGuiRenderElement : batch.RenderElements)
 	{
 		const GUIElement* const guiElement = batchedGuiRenderElement.ParentGUIElement;
@@ -690,13 +694,16 @@ void GUIMeshBatches::RebuildMesh(Batch& batch)
 		const TInlineArray<GUIRenderElement, 4>& guiRenderElements = guiElement->GetRenderElements();
 		const GUIRenderElement& guiRenderElement = guiRenderElements[batchedGuiRenderElement.RenderElementIndex];
 
-		guiElement->FillBuffer(vertices, indices, vertexOffset, indexOffset, groupOffset, batch.VertexCount, batch.IndexCount, batchedGuiRenderElement.RenderElementIndex);
+		if(!guiRenderElement.UseNewFillBuffer)
+			guiElement->FillBuffer(positionData, indexData, vertexOffset, indexOffset, Vector2I::kZero, batch.VertexCount, batch.IndexCount, batchedGuiRenderElement.RenderElementIndex); // DEPRECATED
+		else
+			guiElement->GetRenderElementVertexAndIndexData(batchedGuiRenderElement.RenderElementIndex, vertexOffset, indexOffset, positions, uv, indices);
 
 		const u32 indexStart = indexOffset;
 		const u32 indexEnd = indexStart + guiRenderElement.IndexCount;
 
 		for(u32 j = indexStart; j < indexEnd; j++)
-			indices[j] += vertexOffset;
+			indexData[j] += vertexOffset;
 
 		indexOffset += guiRenderElement.IndexCount;
 		vertexOffset += guiRenderElement.VertexCount;

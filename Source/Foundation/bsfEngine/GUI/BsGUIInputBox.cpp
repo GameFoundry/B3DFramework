@@ -1145,7 +1145,7 @@ Vector2I GUIInputBox::GetTextOffset() const
 
 Rect2I GUIInputBox::GetTextClipRect() const
 {
-	Rect2I contentClipRect = GetCachedClippedLocalContentBounds();
+	Rect2I contentClipRect = GetCachedClippedContentBoundsInContentSpace();
 	return Rect2I(contentClipRect.X - mTextOffset.X, contentClipRect.Y - mTextOffset.Y, contentClipRect.Width, contentClipRect.Height);
 }
 

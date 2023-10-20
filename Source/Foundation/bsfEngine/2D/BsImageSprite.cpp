@@ -2,6 +2,7 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "2D/BsImageSprite.h"
 #include "2D/BsSpriteManager.h"
+#include "GUI/BsGUIElement.h"
 #include "Image/BsTexture.h"
 #include "Image/BsSpriteTexture.h"
 
@@ -24,55 +25,56 @@ void ImageSprite::Update(const ImageSpriteInformation& information, u64 groupId)
 	if(mCachedRenderElements.size() < 1)
 		mCachedRenderElements.resize(1);
 
-	bool useScale9Grid = information.BorderLeft > 0 || information.BorderRight > 0 ||
+	const bool useScale9Grid = information.BorderLeft > 0 || information.BorderRight > 0 ||
 		information.BorderTop > 0 || information.BorderBottom > 0;
 
-	u32 numQuads = 1;
+	u32 quadCount = 1;
 	if(useScale9Grid)
-		numQuads = 9;
+		quadCount = 9;
 
-	SpriteRenderElementData& renderElem = mCachedRenderElements[0];
+	RenderElementData& renderElementData = mCachedRenderElements[0];
+	SpriteRenderElement& renderElement = renderElementData.RenderElement;
 	{
-		u32 newNumQuads = numQuads;
-		if(newNumQuads != renderElem.QuadCount)
+		const u32 existingQuadCount = renderElement.VertexCount / 4;
+		u32 newNumQuads = quadCount;
+		if(newNumQuads != existingQuadCount)
 		{
-			u32 oldVertexCount = renderElem.QuadCount * 4;
-			u32 oldIndexCount = renderElem.QuadCount * 6;
+			if(renderElement.VertexPositions != nullptr) B3DDeleteMultiple(renderElement.VertexPositions, renderElement.VertexCount);
+			if(renderElement.VertexUVs != nullptr) B3DDeleteMultiple(renderElement.VertexUVs, renderElement.VertexCount);
+			if(renderElement.Indices != nullptr) B3DDeleteMultiple(renderElement.Indices, renderElement.IndexCount);
 
-			if(renderElem.VertexPositions != nullptr) B3DDeleteMultiple(renderElem.VertexPositions, oldVertexCount);
-			if(renderElem.VertexUVs != nullptr) B3DDeleteMultiple(renderElem.VertexUVs, oldVertexCount);
-			if(renderElem.Indices != nullptr) B3DDeleteMultiple(renderElem.Indices, oldIndexCount);
-
-			renderElem.VertexPositions = B3DNewMultiple<Vector2>(newNumQuads * 4);
-			renderElem.VertexUVs = B3DNewMultiple<Vector2>(newNumQuads * 4);
-			renderElem.Indices = B3DNewMultiple<u32>(newNumQuads * 6);
-			renderElem.QuadCount = newNumQuads;
+			renderElement.VertexCount = newNumQuads * 4;
+			renderElement.IndexCount = newNumQuads * 6;
+			renderElement.VertexPositions = B3DNewMultiple<Vector2>(renderElement.VertexCount);
+			renderElement.VertexUVs = B3DNewMultiple<Vector2>(renderElement.VertexCount);
+			renderElement.Indices = B3DNewMultiple<u32>(renderElement.IndexCount);
 		}
 
 		const HTexture& tex = information.Image->GetTexture();
 
-		SpriteMaterialInfo& matInfo = renderElem.MaterialInformation;
-		matInfo.GroupId = groupId;
-		matInfo.Texture = tex;
-		matInfo.Tint = information.Color;
-		matInfo.AnimationStartTime = information.AnimationStartTime;
+		SpriteMaterialInfo& materialInformation = renderElementData.MaterialInformation;
+		materialInformation.GroupId = groupId;
+		materialInformation.Texture = tex;
+		materialInformation.Tint = information.Color;
+		materialInformation.AnimationStartTime = information.AnimationStartTime;
 
 		bool animated = information.Image->GetAnimation().Count > 1;
 		if(animated)
-			matInfo.SpriteTexture = information.Image;
+			materialInformation.SpriteTexture = information.Image;
 
-		renderElem.Material = SpriteManager::Instance().GetImageMaterial(
+		renderElement.Material = SpriteManager::Instance().GetImageMaterial(
 			information.Transparent ? SpriteMaterialTransparency::Alpha : SpriteMaterialTransparency::Opaque, animated);
+		renderElement.MaterialInformation = &renderElementData.MaterialInformation;
 	}
 
-	for(u32 i = 0; i < numQuads; i++)
+	for(u32 i = 0; i < quadCount; i++)
 	{
-		renderElem.Indices[i * 6 + 0] = i * 4 + 0;
-		renderElem.Indices[i * 6 + 1] = i * 4 + 1;
-		renderElem.Indices[i * 6 + 2] = i * 4 + 2;
-		renderElem.Indices[i * 6 + 3] = i * 4 + 1;
-		renderElem.Indices[i * 6 + 4] = i * 4 + 3;
-		renderElem.Indices[i * 6 + 5] = i * 4 + 2;
+		renderElement.Indices[i * 6 + 0] = i * 4 + 0;
+		renderElement.Indices[i * 6 + 1] = i * 4 + 1;
+		renderElement.Indices[i * 6 + 2] = i * 4 + 2;
+		renderElement.Indices[i * 6 + 3] = i * 4 + 1;
+		renderElement.Indices[i * 6 + 4] = i * 4 + 3;
+		renderElement.Indices[i * 6 + 5] = i * 4 + 2;
 	}
 
 	Vector2I offset = GetAnchorOffset(information.Anchor, information.Width, information.Height);
@@ -96,58 +98,58 @@ void ImageSprite::Update(const ImageSpriteInformation& information, u64 groupId)
 		float bottomStart = (float)(middleStart + centerHeight);
 
 		// Top left
-		renderElem.VertexPositions[0] = Vector2((float)offset.X, (float)offset.Y);
-		renderElem.VertexPositions[1] = Vector2((float)offset.X + leftBorder, (float)offset.Y);
-		renderElem.VertexPositions[2] = Vector2((float)offset.X, middleStart);
-		renderElem.VertexPositions[3] = Vector2((float)offset.X + leftBorder, middleStart);
+		renderElement.VertexPositions[0] = Vector2((float)offset.X, (float)offset.Y);
+		renderElement.VertexPositions[1] = Vector2((float)offset.X + leftBorder, (float)offset.Y);
+		renderElement.VertexPositions[2] = Vector2((float)offset.X, middleStart);
+		renderElement.VertexPositions[3] = Vector2((float)offset.X + leftBorder, middleStart);
 
 		// Top center
-		renderElem.VertexPositions[4] = Vector2(topCenterStart, (float)offset.Y);
-		renderElem.VertexPositions[5] = Vector2(topCenterStart + centerWidth, (float)offset.Y);
-		renderElem.VertexPositions[6] = Vector2(topCenterStart, middleStart);
-		renderElem.VertexPositions[7] = Vector2(topCenterStart + centerWidth, middleStart);
+		renderElement.VertexPositions[4] = Vector2(topCenterStart, (float)offset.Y);
+		renderElement.VertexPositions[5] = Vector2(topCenterStart + centerWidth, (float)offset.Y);
+		renderElement.VertexPositions[6] = Vector2(topCenterStart, middleStart);
+		renderElement.VertexPositions[7] = Vector2(topCenterStart + centerWidth, middleStart);
 
 		// Top right
-		renderElem.VertexPositions[8] = Vector2(topRightStart, (float)offset.Y);
-		renderElem.VertexPositions[9] = Vector2(topRightStart + rightBorder, (float)offset.Y);
-		renderElem.VertexPositions[10] = Vector2(topRightStart, middleStart);
-		renderElem.VertexPositions[11] = Vector2(topRightStart + rightBorder, middleStart);
+		renderElement.VertexPositions[8] = Vector2(topRightStart, (float)offset.Y);
+		renderElement.VertexPositions[9] = Vector2(topRightStart + rightBorder, (float)offset.Y);
+		renderElement.VertexPositions[10] = Vector2(topRightStart, middleStart);
+		renderElement.VertexPositions[11] = Vector2(topRightStart + rightBorder, middleStart);
 
 		// Middle left
-		renderElem.VertexPositions[12] = Vector2((float)offset.X, middleStart);
-		renderElem.VertexPositions[13] = Vector2((float)offset.X + leftBorder, middleStart);
-		renderElem.VertexPositions[14] = Vector2((float)offset.X, bottomStart);
-		renderElem.VertexPositions[15] = Vector2((float)offset.X + leftBorder, bottomStart);
+		renderElement.VertexPositions[12] = Vector2((float)offset.X, middleStart);
+		renderElement.VertexPositions[13] = Vector2((float)offset.X + leftBorder, middleStart);
+		renderElement.VertexPositions[14] = Vector2((float)offset.X, bottomStart);
+		renderElement.VertexPositions[15] = Vector2((float)offset.X + leftBorder, bottomStart);
 
 		// Middle center
-		renderElem.VertexPositions[16] = Vector2(topCenterStart, middleStart);
-		renderElem.VertexPositions[17] = Vector2(topCenterStart + centerWidth, middleStart);
-		renderElem.VertexPositions[18] = Vector2(topCenterStart, bottomStart);
-		renderElem.VertexPositions[19] = Vector2(topCenterStart + centerWidth, bottomStart);
+		renderElement.VertexPositions[16] = Vector2(topCenterStart, middleStart);
+		renderElement.VertexPositions[17] = Vector2(topCenterStart + centerWidth, middleStart);
+		renderElement.VertexPositions[18] = Vector2(topCenterStart, bottomStart);
+		renderElement.VertexPositions[19] = Vector2(topCenterStart + centerWidth, bottomStart);
 
 		// Middle right
-		renderElem.VertexPositions[20] = Vector2(topRightStart, middleStart);
-		renderElem.VertexPositions[21] = Vector2(topRightStart + rightBorder, middleStart);
-		renderElem.VertexPositions[22] = Vector2(topRightStart, bottomStart);
-		renderElem.VertexPositions[23] = Vector2(topRightStart + rightBorder, bottomStart);
+		renderElement.VertexPositions[20] = Vector2(topRightStart, middleStart);
+		renderElement.VertexPositions[21] = Vector2(topRightStart + rightBorder, middleStart);
+		renderElement.VertexPositions[22] = Vector2(topRightStart, bottomStart);
+		renderElement.VertexPositions[23] = Vector2(topRightStart + rightBorder, bottomStart);
 
 		// Bottom left
-		renderElem.VertexPositions[24] = Vector2((float)offset.X, bottomStart);
-		renderElem.VertexPositions[25] = Vector2((float)offset.X + leftBorder, bottomStart);
-		renderElem.VertexPositions[26] = Vector2((float)offset.X, bottomStart + bottomBorder);
-		renderElem.VertexPositions[27] = Vector2((float)offset.X + leftBorder, bottomStart + bottomBorder);
+		renderElement.VertexPositions[24] = Vector2((float)offset.X, bottomStart);
+		renderElement.VertexPositions[25] = Vector2((float)offset.X + leftBorder, bottomStart);
+		renderElement.VertexPositions[26] = Vector2((float)offset.X, bottomStart + bottomBorder);
+		renderElement.VertexPositions[27] = Vector2((float)offset.X + leftBorder, bottomStart + bottomBorder);
 
 		// Bottom center
-		renderElem.VertexPositions[28] = Vector2(topCenterStart, bottomStart);
-		renderElem.VertexPositions[29] = Vector2(topCenterStart + centerWidth, bottomStart);
-		renderElem.VertexPositions[30] = Vector2(topCenterStart, bottomStart + bottomBorder);
-		renderElem.VertexPositions[31] = Vector2(topCenterStart + centerWidth, bottomStart + bottomBorder);
+		renderElement.VertexPositions[28] = Vector2(topCenterStart, bottomStart);
+		renderElement.VertexPositions[29] = Vector2(topCenterStart + centerWidth, bottomStart);
+		renderElement.VertexPositions[30] = Vector2(topCenterStart, bottomStart + bottomBorder);
+		renderElement.VertexPositions[31] = Vector2(topCenterStart + centerWidth, bottomStart + bottomBorder);
 
 		// Bottom right
-		renderElem.VertexPositions[32] = Vector2(topRightStart, bottomStart);
-		renderElem.VertexPositions[33] = Vector2(topRightStart + rightBorder, bottomStart);
-		renderElem.VertexPositions[34] = Vector2(topRightStart, bottomStart + bottomBorder);
-		renderElem.VertexPositions[35] = Vector2(topRightStart + rightBorder, bottomStart + bottomBorder);
+		renderElement.VertexPositions[32] = Vector2(topRightStart, bottomStart);
+		renderElement.VertexPositions[33] = Vector2(topRightStart + rightBorder, bottomStart);
+		renderElement.VertexPositions[34] = Vector2(topRightStart, bottomStart + bottomBorder);
+		renderElement.VertexPositions[35] = Vector2(topRightStart + rightBorder, bottomStart + bottomBorder);
 
 		float invWidth = 1.0f / (float)information.Image->GetTexture()->GetProperties().Width;
 		float invHeight = 1.0f / (float)information.Image->GetTexture()->GetProperties().Height;
@@ -167,70 +169,70 @@ void ImageSprite::Update(const ImageSpriteInformation& information, u64 groupId)
 		float uvBottomStart = uvMiddleStart + uvCenterHeight;
 
 		// UV - Top left
-		renderElem.VertexUVs[0] = information.Image->TransformUv(Vector2(uvOffset.X, uvOffset.Y));
-		renderElem.VertexUVs[1] = information.Image->TransformUv(Vector2(uvOffset.X + uvLeftBorder, uvOffset.Y));
-		renderElem.VertexUVs[2] = information.Image->TransformUv(Vector2(uvOffset.X, uvOffset.Y + uvTopBorder));
-		renderElem.VertexUVs[3] = information.Image->TransformUv(Vector2(uvOffset.X + uvLeftBorder, uvOffset.Y + uvTopBorder));
+		renderElement.VertexUVs[0] = information.Image->TransformUv(Vector2(uvOffset.X, uvOffset.Y));
+		renderElement.VertexUVs[1] = information.Image->TransformUv(Vector2(uvOffset.X + uvLeftBorder, uvOffset.Y));
+		renderElement.VertexUVs[2] = information.Image->TransformUv(Vector2(uvOffset.X, uvOffset.Y + uvTopBorder));
+		renderElement.VertexUVs[3] = information.Image->TransformUv(Vector2(uvOffset.X + uvLeftBorder, uvOffset.Y + uvTopBorder));
 
 		// UV - Top center
-		renderElem.VertexUVs[4] = information.Image->TransformUv(Vector2(uvTopCenterStart, uvOffset.Y));
-		renderElem.VertexUVs[5] = information.Image->TransformUv(Vector2(uvTopCenterStart + uvCenterWidth, uvOffset.Y));
-		renderElem.VertexUVs[6] = information.Image->TransformUv(Vector2(uvTopCenterStart, uvOffset.Y + uvTopBorder));
-		renderElem.VertexUVs[7] = information.Image->TransformUv(Vector2(uvTopCenterStart + uvCenterWidth, uvOffset.Y + uvTopBorder));
+		renderElement.VertexUVs[4] = information.Image->TransformUv(Vector2(uvTopCenterStart, uvOffset.Y));
+		renderElement.VertexUVs[5] = information.Image->TransformUv(Vector2(uvTopCenterStart + uvCenterWidth, uvOffset.Y));
+		renderElement.VertexUVs[6] = information.Image->TransformUv(Vector2(uvTopCenterStart, uvOffset.Y + uvTopBorder));
+		renderElement.VertexUVs[7] = information.Image->TransformUv(Vector2(uvTopCenterStart + uvCenterWidth, uvOffset.Y + uvTopBorder));
 
 		// UV - Top right
-		renderElem.VertexUVs[8] = information.Image->TransformUv(Vector2(uvTopRightStart, uvOffset.Y));
-		renderElem.VertexUVs[9] = information.Image->TransformUv(Vector2(uvTopRightStart + uvRightBorder, uvOffset.Y));
-		renderElem.VertexUVs[10] = information.Image->TransformUv(Vector2(uvTopRightStart, uvOffset.Y + uvTopBorder));
-		renderElem.VertexUVs[11] = information.Image->TransformUv(Vector2(uvTopRightStart + uvRightBorder, uvOffset.Y + uvTopBorder));
+		renderElement.VertexUVs[8] = information.Image->TransformUv(Vector2(uvTopRightStart, uvOffset.Y));
+		renderElement.VertexUVs[9] = information.Image->TransformUv(Vector2(uvTopRightStart + uvRightBorder, uvOffset.Y));
+		renderElement.VertexUVs[10] = information.Image->TransformUv(Vector2(uvTopRightStart, uvOffset.Y + uvTopBorder));
+		renderElement.VertexUVs[11] = information.Image->TransformUv(Vector2(uvTopRightStart + uvRightBorder, uvOffset.Y + uvTopBorder));
 
 		// UV - Middle left
-		renderElem.VertexUVs[12] = information.Image->TransformUv(Vector2(uvOffset.X, uvMiddleStart));
-		renderElem.VertexUVs[13] = information.Image->TransformUv(Vector2(uvOffset.X + uvLeftBorder, uvMiddleStart));
-		renderElem.VertexUVs[14] = information.Image->TransformUv(Vector2(uvOffset.X, uvMiddleStart + uvCenterHeight));
-		renderElem.VertexUVs[15] = information.Image->TransformUv(Vector2(uvOffset.X + uvLeftBorder, uvMiddleStart + uvCenterHeight));
+		renderElement.VertexUVs[12] = information.Image->TransformUv(Vector2(uvOffset.X, uvMiddleStart));
+		renderElement.VertexUVs[13] = information.Image->TransformUv(Vector2(uvOffset.X + uvLeftBorder, uvMiddleStart));
+		renderElement.VertexUVs[14] = information.Image->TransformUv(Vector2(uvOffset.X, uvMiddleStart + uvCenterHeight));
+		renderElement.VertexUVs[15] = information.Image->TransformUv(Vector2(uvOffset.X + uvLeftBorder, uvMiddleStart + uvCenterHeight));
 
 		// UV - Middle center
-		renderElem.VertexUVs[16] = information.Image->TransformUv(Vector2(uvTopCenterStart, uvMiddleStart));
-		renderElem.VertexUVs[17] = information.Image->TransformUv(Vector2(uvTopCenterStart + uvCenterWidth, uvMiddleStart));
-		renderElem.VertexUVs[18] = information.Image->TransformUv(Vector2(uvTopCenterStart, uvMiddleStart + uvCenterHeight));
-		renderElem.VertexUVs[19] = information.Image->TransformUv(Vector2(uvTopCenterStart + uvCenterWidth, uvMiddleStart + uvCenterHeight));
+		renderElement.VertexUVs[16] = information.Image->TransformUv(Vector2(uvTopCenterStart, uvMiddleStart));
+		renderElement.VertexUVs[17] = information.Image->TransformUv(Vector2(uvTopCenterStart + uvCenterWidth, uvMiddleStart));
+		renderElement.VertexUVs[18] = information.Image->TransformUv(Vector2(uvTopCenterStart, uvMiddleStart + uvCenterHeight));
+		renderElement.VertexUVs[19] = information.Image->TransformUv(Vector2(uvTopCenterStart + uvCenterWidth, uvMiddleStart + uvCenterHeight));
 
 		// UV - Middle right
-		renderElem.VertexUVs[20] = information.Image->TransformUv(Vector2(uvTopRightStart, uvMiddleStart));
-		renderElem.VertexUVs[21] = information.Image->TransformUv(Vector2(uvTopRightStart + uvRightBorder, uvMiddleStart));
-		renderElem.VertexUVs[22] = information.Image->TransformUv(Vector2(uvTopRightStart, uvMiddleStart + uvCenterHeight));
-		renderElem.VertexUVs[23] = information.Image->TransformUv(Vector2(uvTopRightStart + uvRightBorder, uvMiddleStart + uvCenterHeight));
+		renderElement.VertexUVs[20] = information.Image->TransformUv(Vector2(uvTopRightStart, uvMiddleStart));
+		renderElement.VertexUVs[21] = information.Image->TransformUv(Vector2(uvTopRightStart + uvRightBorder, uvMiddleStart));
+		renderElement.VertexUVs[22] = information.Image->TransformUv(Vector2(uvTopRightStart, uvMiddleStart + uvCenterHeight));
+		renderElement.VertexUVs[23] = information.Image->TransformUv(Vector2(uvTopRightStart + uvRightBorder, uvMiddleStart + uvCenterHeight));
 
 		// UV - Bottom left
-		renderElem.VertexUVs[24] = information.Image->TransformUv(Vector2(uvOffset.X, uvBottomStart));
-		renderElem.VertexUVs[25] = information.Image->TransformUv(Vector2(uvOffset.X + uvLeftBorder, uvBottomStart));
-		renderElem.VertexUVs[26] = information.Image->TransformUv(Vector2(uvOffset.X, uvBottomStart + uvBottomBorder));
-		renderElem.VertexUVs[27] = information.Image->TransformUv(Vector2(uvOffset.X + uvLeftBorder, uvBottomStart + uvBottomBorder));
+		renderElement.VertexUVs[24] = information.Image->TransformUv(Vector2(uvOffset.X, uvBottomStart));
+		renderElement.VertexUVs[25] = information.Image->TransformUv(Vector2(uvOffset.X + uvLeftBorder, uvBottomStart));
+		renderElement.VertexUVs[26] = information.Image->TransformUv(Vector2(uvOffset.X, uvBottomStart + uvBottomBorder));
+		renderElement.VertexUVs[27] = information.Image->TransformUv(Vector2(uvOffset.X + uvLeftBorder, uvBottomStart + uvBottomBorder));
 
 		// UV - Bottom center
-		renderElem.VertexUVs[28] = information.Image->TransformUv(Vector2(uvTopCenterStart, uvBottomStart));
-		renderElem.VertexUVs[29] = information.Image->TransformUv(Vector2(uvTopCenterStart + uvCenterWidth, uvBottomStart));
-		renderElem.VertexUVs[30] = information.Image->TransformUv(Vector2(uvTopCenterStart, uvBottomStart + uvBottomBorder));
-		renderElem.VertexUVs[31] = information.Image->TransformUv(Vector2(uvTopCenterStart + uvCenterWidth, uvBottomStart + uvBottomBorder));
+		renderElement.VertexUVs[28] = information.Image->TransformUv(Vector2(uvTopCenterStart, uvBottomStart));
+		renderElement.VertexUVs[29] = information.Image->TransformUv(Vector2(uvTopCenterStart + uvCenterWidth, uvBottomStart));
+		renderElement.VertexUVs[30] = information.Image->TransformUv(Vector2(uvTopCenterStart, uvBottomStart + uvBottomBorder));
+		renderElement.VertexUVs[31] = information.Image->TransformUv(Vector2(uvTopCenterStart + uvCenterWidth, uvBottomStart + uvBottomBorder));
 
 		// UV - Bottom right
-		renderElem.VertexUVs[32] = information.Image->TransformUv(Vector2(uvTopRightStart, uvBottomStart));
-		renderElem.VertexUVs[33] = information.Image->TransformUv(Vector2(uvTopRightStart + uvRightBorder, uvBottomStart));
-		renderElem.VertexUVs[34] = information.Image->TransformUv(Vector2(uvTopRightStart, uvBottomStart + uvBottomBorder));
-		renderElem.VertexUVs[35] = information.Image->TransformUv(Vector2(uvTopRightStart + uvRightBorder, uvBottomStart + uvBottomBorder));
+		renderElement.VertexUVs[32] = information.Image->TransformUv(Vector2(uvTopRightStart, uvBottomStart));
+		renderElement.VertexUVs[33] = information.Image->TransformUv(Vector2(uvTopRightStart + uvRightBorder, uvBottomStart));
+		renderElement.VertexUVs[34] = information.Image->TransformUv(Vector2(uvTopRightStart, uvBottomStart + uvBottomBorder));
+		renderElement.VertexUVs[35] = information.Image->TransformUv(Vector2(uvTopRightStart + uvRightBorder, uvBottomStart + uvBottomBorder));
 	}
 	else
 	{
-		renderElem.VertexPositions[0] = Vector2((float)offset.X, (float)offset.Y);
-		renderElem.VertexPositions[1] = Vector2((float)offset.X + information.Width, (float)offset.Y);
-		renderElem.VertexPositions[2] = Vector2((float)offset.X, (float)offset.Y + information.Height);
-		renderElem.VertexPositions[3] = Vector2((float)offset.X + information.Width, (float)offset.Y + information.Height);
+		renderElement.VertexPositions[0] = Vector2((float)offset.X, (float)offset.Y);
+		renderElement.VertexPositions[1] = Vector2((float)offset.X + information.Width, (float)offset.Y);
+		renderElement.VertexPositions[2] = Vector2((float)offset.X, (float)offset.Y + information.Height);
+		renderElement.VertexPositions[3] = Vector2((float)offset.X + information.Width, (float)offset.Y + information.Height);
 
-		renderElem.VertexUVs[0] = information.Image->TransformUv(Vector2(uvOffset.X, uvOffset.Y));
-		renderElem.VertexUVs[1] = information.Image->TransformUv(Vector2(uvOffset.X + uvScale.X, uvOffset.Y));
-		renderElem.VertexUVs[2] = information.Image->TransformUv(Vector2(uvOffset.X, uvOffset.Y + uvScale.Y));
-		renderElem.VertexUVs[3] = information.Image->TransformUv(Vector2(uvOffset.X + uvScale.X, uvOffset.Y + uvScale.Y));
+		renderElement.VertexUVs[0] = information.Image->TransformUv(Vector2(uvOffset.X, uvOffset.Y));
+		renderElement.VertexUVs[1] = information.Image->TransformUv(Vector2(uvOffset.X + uvScale.X, uvOffset.Y));
+		renderElement.VertexUVs[2] = information.Image->TransformUv(Vector2(uvOffset.X, uvOffset.Y + uvScale.Y));
+		renderElement.VertexUVs[3] = information.Image->TransformUv(Vector2(uvOffset.X + uvScale.X, uvOffset.Y + uvScale.Y));
 	}
 
 	UpdateBounds();
@@ -238,27 +240,25 @@ void ImageSprite::Update(const ImageSpriteInformation& information, u64 groupId)
 
 void ImageSprite::ClearMesh()
 {
-	for(auto& renderElem : mCachedRenderElements)
+	for(auto& entry: mCachedRenderElements)
 	{
-		u32 vertexCount = renderElem.QuadCount * 4;
-		u32 indexCount = renderElem.QuadCount * 6;
-
-		if(renderElem.VertexPositions != nullptr)
+		SpriteRenderElement& renderElement = entry.RenderElement;
+		if(renderElement.VertexPositions != nullptr)
 		{
-			B3DDeleteMultiple(renderElem.VertexPositions, vertexCount);
-			renderElem.VertexPositions = nullptr;
+			B3DDeleteMultiple(renderElement.VertexPositions, renderElement.VertexCount);
+			renderElement.VertexPositions = nullptr;
 		}
 
-		if(renderElem.VertexUVs != nullptr)
+		if(renderElement.VertexUVs != nullptr)
 		{
-			B3DDeleteMultiple(renderElem.VertexUVs, vertexCount);
-			renderElem.VertexUVs = nullptr;
+			B3DDeleteMultiple(renderElement.VertexUVs, renderElement.VertexCount);
+			renderElement.VertexUVs = nullptr;
 		}
 
-		if(renderElem.Indices != nullptr)
+		if(renderElement.Indices != nullptr)
 		{
-			B3DDeleteMultiple(renderElem.Indices, indexCount);
-			renderElem.Indices = nullptr;
+			B3DDeleteMultiple(renderElement.Indices, renderElement.IndexCount);
+			renderElement.Indices = nullptr;
 		}
 	}
 

@@ -76,6 +76,67 @@ bool GUIButtonBase::IsOnInternal() const
 
 void GUIButtonBase::UpdateRenderElements()
 {
+	const Rect2 backgroundImageBounds(
+		0.0f, 0.0f,
+		(float)mLayoutData.Area.Width, (float)mLayoutData.Area.Height);
+
+	Rect2 textBounds;
+	Rect2 contentImageBounds;
+
+	const Vector2I contentOffset = GetContentOffsetInElementSpace();
+	Rect2I contentBounds = GetCachedContentBounds();
+	Rect2I textSpriteBounds = mTextSprite->GetBounds(Vector2I(), Rect2I());
+
+	if(mContentImageSprite != nullptr)
+	{
+		Rect2I contentImageSpriteBounds = mContentImageSprite->GetBounds(Vector2I(), Rect2I());
+		i32 imageXOffset = 0;
+		i32 textImageSpacing = 0;
+
+		if(textSpriteBounds.Width == 0)
+		{
+			const u32 freeWidth = (u32)std::max(0, (i32)contentBounds.Width - (i32)textSpriteBounds.Width - (i32)contentImageSpriteBounds.Width);
+			imageXOffset = (i32)(freeWidth / 2);
+		}
+		else
+			textImageSpacing = GUIContent::kImageTextSpacing;
+
+		if(GetStyle()->ImagePosition == GUIImagePosition::Right)
+		{
+			const i32 imageReservedWidth = Math::Max(0, (i32)contentBounds.Width - (i32)textSpriteBounds.Width);
+
+			textBounds.X = (float)contentOffset.X;
+			textBounds.Width = (float)Math::Max(0, (i32)contentBounds.Width - imageReservedWidth);
+
+			contentImageBounds.X = (float)(contentOffset.X + textSpriteBounds.Width + imageXOffset + textImageSpacing);
+			contentImageBounds.Width = (float)Math::Max(0, imageReservedWidth - imageXOffset);
+		}
+		else
+		{
+			const i32 imageReservedWidth = (i32)contentImageSpriteBounds.Width + imageXOffset;
+
+			contentImageBounds.X = (float)(contentOffset.X + imageXOffset);
+			contentImageBounds.Width = (float)Math::Min(imageReservedWidth - imageXOffset, (i32)contentBounds.Width);
+
+			textBounds.X = (float)(contentOffset.X + imageReservedWidth + textImageSpacing);
+			textBounds.Width = (float)Math::Max(0, (i32)contentBounds.Width - imageReservedWidth);
+		}
+
+		textBounds.Y = (float)contentOffset.Y;
+		textBounds.Height = (float)contentBounds.Height;
+
+		const float imageYOffset = Math::Max(0, (float)contentBounds.Height - (float)contentImageSpriteBounds.Height) / 2.0f;
+		contentImageBounds.Y = (float)contentOffset.Y + (float)imageYOffset;
+		contentImageBounds.Height = (float)contentBounds.Height - imageYOffset;
+	}
+	else
+	{
+		textBounds.X = (float)contentOffset.X;
+		textBounds.Y = (float)contentOffset.Y;
+		textBounds.Width = (float)contentBounds.Width;
+		textBounds.Height = (float)contentBounds.Height;
+	}
+
 	const bool isUsingStyleSheets = GetStyleSheetElement() != nullptr;
 	if(isUsingStyleSheets)
 	{
@@ -154,7 +215,13 @@ void GUIButtonBase::UpdateRenderElements()
 		using T = GUIRenderElementHelper;
 
 		if(isUsingStyleSheets)
-			T::Populate({ T::SpriteInfo(mBackgroundSprite, 1), T::SpriteInfo(mTextSprite), T::SpriteInfo(mContentImageSprite) }, mRenderElements);
+		{
+			T::Populate({
+				T::SpriteInfo(mBackgroundSprite, 1, backgroundImageBounds),
+				T::SpriteInfo(mTextSprite, 0, textBounds),
+				T::SpriteInfo(mContentImageSprite, 0, contentImageBounds) },
+				mRenderElements);
+		}
 		else
 			T::Populate({ T::SpriteInfo(mImageSprite, 1), T::SpriteInfo(mTextSprite), T::SpriteInfo(mContentImageSprite) }, mRenderElements);
 	}
@@ -230,7 +297,7 @@ void GUIButtonBase::FillBuffer(
 	}
 
 	Rect2I contentBounds = GetCachedContentBounds();
-	Rect2I contentClipRect = GetCachedClippedLocalContentBounds();
+	Rect2I contentClipRect = GetCachedClippedContentBoundsInContentSpace();
 	Rect2I textBounds = mTextSprite->GetBounds(Vector2I(), Rect2I());
 
 	Vector2I textOffset;
