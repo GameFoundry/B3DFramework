@@ -27,14 +27,15 @@ u32 SpriteRenderElement::GetVertexAndIndexData(u32 vertexOffset, u32 indexOffset
 
 			for(u32 vertexIndex = 0; vertexIndex < 4; vertexIndex++)
 			{
-				outPositions.Set(globalFirstVertexIndex, VertexPositions[localFirstVertexIndex + vertexIndex]);
-				outUVs.Set(globalFirstVertexIndex, VertexUVs[localFirstVertexIndex + vertexIndex]);
+				outPositions.Set(globalFirstVertexIndex + vertexIndex, VertexPositions[localFirstVertexIndex + vertexIndex]);
+				outUVs.Set(globalFirstVertexIndex + vertexIndex, VertexUVs[localFirstVertexIndex + vertexIndex]);
 			}
 
 			Sprite::ClipQuadsToRectangle(outPositions, outUVs, 1, globalFirstVertexIndex, clipRectangle);
 
 			for(u32 vertexIndex = 0; vertexIndex < 4; vertexIndex++)
-				outPositions.At<Vector2>(globalFirstVertexIndex) += offset;
+				outPositions.At<Vector2>(globalFirstVertexIndex + vertexIndex) += offset;
+
 		}
 	}
 	else
@@ -46,8 +47,8 @@ u32 SpriteRenderElement::GetVertexAndIndexData(u32 vertexOffset, u32 indexOffset
 
 			for(u32 vertexIndex = 0; vertexIndex < 4; vertexIndex++)
 			{
-				outPositions.Set(globalFirstVertexIndex, VertexPositions[localFirstVertexIndex + vertexIndex] + offset);
-				outUVs.Set(globalFirstVertexIndex, VertexUVs[localFirstVertexIndex + vertexIndex]);
+				outPositions.Set(globalFirstVertexIndex + vertexIndex, VertexPositions[localFirstVertexIndex + vertexIndex] + offset);
+				outUVs.Set(globalFirstVertexIndex + vertexIndex, VertexUVs[localFirstVertexIndex + vertexIndex]);
 			}
 		}
 	}
