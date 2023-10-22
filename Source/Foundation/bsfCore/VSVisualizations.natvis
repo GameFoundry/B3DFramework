@@ -2,19 +2,16 @@
 <AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
 
 	<Type Name="bs::GameObjectHandle&lt;*&gt;">
-		<DisplayString Condition="mData._Ptr->mPtr._Ptr == 0 || mData._Ptr->mPtr._Ptr->object._Ptr == 0">Empty</DisplayString>
-		<DisplayString>Name = {mData._Ptr->mPtr._Ptr->object._Ptr->mName}, InstanceId = {mData._Ptr->mPtr._Ptr->mInstanceId}</DisplayString>
+		<DisplayString Condition="mData._Ptr->MPtr._Ptr == 0 || mData._Ptr->MPtr._Ptr->Object._Ptr == 0">Empty</DisplayString>
+		<DisplayString>Name = {mData._Ptr->MPtr._Ptr->Object._Ptr->mName}, InstanceId = {mData._Ptr->MPtr._Ptr->MInstanceId}</DisplayString>
 		<Expand>
-			<ExpandedItem Condition="mData._Ptr->mPtr._Ptr != 0 &amp;&amp; mData._Ptr->mPtr._Ptr->object._Ptr != 0">($T1*)mData._Ptr->mPtr._Ptr->object._Ptr</ExpandedItem>
+			<ExpandedItem Condition="mData._Ptr->MPtr._Ptr != 0 &amp;&amp; mData._Ptr->MPtr._Ptr->Object._Ptr != 0">($T1*)mData._Ptr->MPtr._Ptr->Object._Ptr</ExpandedItem>
 		</Expand>
 	</Type>
 
 	<Type Name="bs::TResourceHandle&lt;*&gt;">
-		<DisplayString Condition="mData._Ptr == 0 || mData._Ptr->mPtr._Ptr == 0">Empty</DisplayString>
-		<DisplayString>Name = {mData._Ptr->mPtr._Ptr->mMetaData._Ptr->displayName}, UUID = {mData._Ptr->mUUID}</DisplayString>
-		<Expand>
-			<ExpandedItem Condition="mData._Ptr != 0 &amp;&amp; mData._Ptr->mPtr._Ptr != 0">($T1*)mData._Ptr->mPtr._Ptr</ExpandedItem>
-		</Expand>
+		<DisplayString Condition="mData._Ptr == 0 || mData._Ptr->MPtr._Ptr == 0">Empty</DisplayString>
+		<DisplayString>Name = Unknown, UUID = {mData._Ptr->MUuid}</DisplayString>
 	</Type>
 	
 	<Type Name="std::shared_ptr&lt;*&gt;">
@@ -27,9 +24,13 @@
 		</Expand>
 	</Type>
 
+	<Type Name="bs::UUID">
+		<DisplayString>{mData[0],nvoXb}-{mData[1],nvoXb}-{mData[2],nvoXb}-{mData[3],nvoXb}</DisplayString>
+	</Type>
+
 	<Type Name="bs::HString">
 		<DisplayString Condition="mStringData._Ptr == 0">Empty</DisplayString>
-		<DisplayString>Value = {mStringData._Ptr->string}</DisplayString>
+		<DisplayString>Value = {mStringData._Ptr->String}</DisplayString>
 	</Type>
 
 	<Type Name="bs::Matrix4">
@@ -65,32 +66,58 @@
 		</Expand>
 	</Type>
 
-	<Type Name="bs::Vector3">
-		<DisplayString>Vector3 {{{x}, {y}, {z}}}</DisplayString>
+	<Type Name="bs::TVector3&lt;*&gt;">
+		<DisplayString>Vector3 {{{X}, {Y}, {Z}}}</DisplayString>
 		<Expand>
-			<Item Name="X">x</Item>
-			<Item Name="Y">y</Item>
-			<Item Name="Z">z</Item>
+			<Item Name="X">X</Item>
+			<Item Name="Y">Y</Item>
+			<Item Name="Z">Z</Item>
 		</Expand>
 	</Type>
 
-	<Type Name="bs::Vector4">
-		<DisplayString>Vector4 {{{x}, {y}, {z}, {w}}}</DisplayString>
+	<Type Name="bs::TVector4&lt;*&gt;">
+		<DisplayString>Vector4 {{{X}, {Y}, {Z}, {W}}}</DisplayString>
 		<Expand>
-			<Item Name="X">x</Item>
-			<Item Name="Y">y</Item>
-			<Item Name="Z">z</Item>
-			<Item Name="W">w</Item>
+			<Item Name="X">X</Item>
+			<Item Name="Y">Y</Item>
+			<Item Name="Z">Z</Item>
+			<Item Name="W">W</Item>
 		</Expand>
 	</Type>
 
 	<Type Name="bs::Quaternion">
-		<DisplayString>Quaternion {{{x}, {y}, {z}, {w}}}</DisplayString>
+		<DisplayString>Quaternion {{{X}, {Y}, {Z}, {W}}}</DisplayString>
 		<Expand>
-			<Item Name="X">x</Item>
-			<Item Name="Y">y</Item>
-			<Item Name="Z">z</Item>
-			<Item Name="W">w</Item>
+			<Item Name="X">X</Item>
+			<Item Name="Y">Y</Item>
+			<Item Name="Z">Z</Item>
+			<Item Name="W">W</Item>
 		</Expand>
 	</Type>
+
+	<Type Name="bs::TArray&lt;*&gt;">
+		<DisplayString>{{ size={mSize} }}</DisplayString>
+		<Expand>
+			<Item Name="[size]" ExcludeView="simple">mSize</Item>
+			<Item Name="[capacity]" ExcludeView="simple">mCapacity</Item>
+			<ArrayItems>
+				<Size>mSize</Size>
+				<ValuePointer>mAllocator.mElements</ValuePointer>
+			</ArrayItems>
+		</Expand>
+	</Type>
+
+	<Type Name="bs::TBitfield&lt;*&gt;">
+		<DisplayString>{{ size={mNumBits} }}</DisplayString>
+		<Expand>
+			<Item Name="[size]" ExcludeView="simple">mNumBits</Item>
+			<Item Name="[capacity]" ExcludeView="simple">mMaxBits</Item>
+			<IndexListItems>
+				<Size>mNumBits</Size>
+				<ValueNode Condition="(mAllocator.mElements != 0) &amp;&amp; (reinterpret_cast&lt;uint32*&gt;(mAllocator.mElements)[$i/32]&gt;&gt;($i%32) &amp; 1) != 0">true</ValueNode>
+				<ValueNode Condition="(mAllocator.mElements != 0) &amp;&amp; (reinterpret_cast&lt;uint32*&gt;(mAllocator.mElements)[$i/32]&gt;&gt;($i%32) &amp; 1) == 0">false</ValueNode>
+			</IndexListItems>
+		</Expand>
+	</Type>
+
 </AutoVisualizer>
