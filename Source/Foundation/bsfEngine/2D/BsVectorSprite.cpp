@@ -316,7 +316,7 @@ void GUIVectorSpriteAtlas::RenderDirtySprites()
 		// Bind render surface & clear it
 		commandBuffer->SetRenderTarget(renderTarget, 0, RT_NONE);
 		commandBuffer->SetViewport(Rect2(0.0f, 0.0f, 1.0f, 1.0f));
-		commandBuffer->ClearRenderTarget(FBT_COLOR | FBT_DEPTH | FBT_STENCIL, Color::kWhite, 1, 0, 0xFF);
+		commandBuffer->ClearRenderTarget(FBT_COLOR | FBT_DEPTH | FBT_STENCIL, Color::kZero, 1, 0, 0xFF);
 
 		entry.Renderable->Render(*commandBuffer);
 
