@@ -1,0 +1,77 @@
+:root
+{
+    --PrimaryTextColor: #B2B2B2;
+    --PrimaryBackgroundColor: #212121;
+    --PrimaryBorderColor: #2E2E2E;
+    --HoverBorderColor: #373737;
+    --HoverBackgroundColor: #2D2D2D;
+    --FocusColor: #FFA800;
+    --PrimaryFontFamily: "Arial";
+    --PrimaryFontSize: 8;
+}
+
+button
+{
+    min-width: 20px;
+    height: 17px;
+    margin-bottom: 4px;
+    padding-top: 2px;
+    text-align: center;
+    vertical-align: middle;
+    color: var(--PrimaryTextColor);
+    background-color: var(--PrimaryBackgroundColor);
+    border-color: var(--PrimaryBorderColor);
+    border-width: 1px;
+    font-family: var(--PrimaryFontFamily);
+    font-size: var(--PrimaryFontSize);
+}
+
+button:hover
+{
+    background-color: var(--HoverBackgroundColor);
+    border-color: var(--HoverBorderColor);
+}
+
+button:focus
+{
+    border-color: var(--FocusColor);
+}
+
+button:active
+{
+    background-color: var(--FocusColor);
+    border-color: var(--FocusColor);
+    color: #000000;
+}
+
+toggle
+{
+    width: 13px;
+    height: 15px;
+    padding: 1px;
+    background-color: var(--PrimaryBackgroundColor);
+    border-color: var(--PrimaryBorderColor);
+    border-width: 1px;
+}
+
+toggle:hover
+{
+    background-color: var(--HoverBackgroundColor);
+    border-color: var(--HoverBorderColor);
+}
+
+toggle:focus
+{
+    border-color: var(--FocusColor);
+}
+
+toggle:active
+{
+    background-color: var(--FocusColor);
+    border-color: var(--FocusColor);
+}
+
+toggle::checkmark
+{
+    color: var(--FocusColor);
+}
