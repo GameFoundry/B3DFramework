@@ -45,5 +45,109 @@ HVectorPath GUICheckmarkVectorPathBuilder::BuildPath(const Size2UI& size, const 
 		.DrawFill();
 
 	return path;
-	
+}
+
+HVectorPath GUITabBackgroundVectorPathBuilder::BuildPath(const Size2UI& size, const GUIStyleSheetRules& styleSheetRule) const
+{
+	HVectorPath path = VectorPath::Create(Size2(135.0f, 27.0f));
+
+	path->SetDrawCursor(Vector2(42.075512f, 56.356697f))
+		.DrawCubicBezierTo(Vector2(34.958691f, 56.362197f), Vector2(26.990934f, 83.272579f), Vector2(20.075512f, 83.356697f))
+		.DrawCubicBezierTo(Vector2(13.16009f, 83.440797f), Vector2(163.36359f, 83.446497f), Vector2(155.07551f, 83.356697f))
+		.DrawCubicBezierTo(Vector2(146.78742f, 83.266907f), Vector2(140.507f, 56.314452f), Vector2(133.07551f, 56.356697f))
+		.DrawCubicBezierTo(Vector2(125.64402f, 56.398947f), Vector2(49.192332f, 56.351197f), Vector2(42.075512f, 56.356697f))
+		.ClosePath()
+		.SetFillPaint(styleSheetRule.BackgroundColor)
+		.DrawFill();
+
+	const bool drawBorder = styleSheetRule.BorderLeft.Width > 0 && styleSheetRule.BorderLeft.Style != GUIBorderElementStyle::None;
+	if(drawBorder)
+	{
+		path->SetStrokePaint(styleSheetRule.BorderLeft.Color)
+			.SetStrokeWidth((float)styleSheetRule.BorderLeft.Width)
+			.DrawStroke();
+	}
+
+	return path;
+}
+
+HVectorPath GUIDropDownArrowVectorPathBuilder::BuildPath(const Size2UI& size, const GUIStyleSheetRules& styleSheetRule) const
+{
+	HVectorPath path = VectorPath::Create(Size2(100.0f, 100.0f));
+
+	path->SetDrawCursor(Vector2(0.0f, 0.0f))
+		.DrawLineTo(Vector2(50.0f, 100.0f))
+		.DrawLineTo(Vector2(100.0f, 0.0f))
+		.ClosePath()
+		.SetFillPaint(styleSheetRule.BackgroundColor)
+		.DrawFill();
+
+	const bool drawBorder = styleSheetRule.BorderLeft.Width > 0 && styleSheetRule.BorderLeft.Style != GUIBorderElementStyle::None;
+	if(drawBorder)
+	{
+		path->SetStrokePaint(styleSheetRule.BorderLeft.Color)
+			.SetStrokeWidth((float)styleSheetRule.BorderLeft.Width)
+			.DrawStroke();
+	}
+
+	return path;
+}
+
+HVectorPath GUIScrollArrowVectorPathBuilder::BuildPath(const Size2UI& size, const GUIStyleSheetRules& styleSheetRule) const
+{
+	HVectorPath path = VectorPath::Create(Size2(100.0f, 75.0f));
+
+	path->SetDrawCursor(Vector2(0.0f, 0.0f))
+		.DrawLineTo(Vector2(50.724423f, 75.0f))
+		.DrawLineTo(Vector2(100.0f, 0.0f))
+		.DrawCubicBezierTo(Vector2(69.114599f, 25.917529f), Vector2(36.035557f, 28.608797f), Vector2(0.0f, 0.0f))
+		.ClosePath()
+		.SetFillPaint(styleSheetRule.Color)
+		.DrawFill();
+
+	const bool drawBorder = styleSheetRule.BorderLeft.Width > 0 && styleSheetRule.BorderLeft.Style != GUIBorderElementStyle::None;
+	if(drawBorder)
+	{
+		path->SetStrokePaint(styleSheetRule.BorderLeft.Color)
+			.SetStrokeWidth((float)styleSheetRule.BorderLeft.Width)
+			.DrawStroke();
+	}
+
+	return path;
+}
+
+HVectorPath GUIScrollHandleVectorPathBuilder::BuildPath(const Size2UI& size, const GUIStyleSheetRules& styleSheetRule) const
+{
+	constexpr u32 kReferenceRasterSize = 13; // Reference size of the handle in pixels, both width and height
+	constexpr float kReferenceCanvasSize = 100.0f; // Reference size of the vector path canvas
+
+	float canvasUnitsPerPixel = kReferenceCanvasSize / (float)kReferenceRasterSize;
+
+	// Adjust the height so it expands
+	const u32 shaftRasterHeight = (u32)Math::Max(0, ((i32)size.Height - (i32)kReferenceRasterSize)); // Height not including the caps
+	float shaftCanvasHeight = (float)shaftRasterHeight * canvasUnitsPerPixel;
+
+	const Size2 canvasSize(kReferenceCanvasSize, kReferenceCanvasSize + shaftCanvasHeight);
+
+	HVectorPath path = VectorPath::Create(canvasSize);
+
+	path->SetDrawCursor(Vector2(0.0, 50.0f))
+		.DrawCubicBezierTo(Vector2(0.0f, 22.32227f), Vector2(22.605928f, 0.0f), Vector2(50.0f, 0.0f))
+		.DrawCubicBezierTo(Vector2(77.677738f, 0.0f), Vector2(100.0f, 22.32225f), Vector2(100.0f, 50.0f))
+		.DrawLineTo(Vector2(100.0f, 50.0f + shaftCanvasHeight))
+		.DrawCubicBezierTo(Vector2(100.0f, 77.78187f), Vector2(77.677738f, 99.78705f), Vector2(50.0f, 100.0f))
+		.DrawCubicBezierTo(Vector2(22.60593f, 100.0f), Vector2(0.0f, 77.78187f), Vector2(0.0f, 50.0f))
+		.ClosePath()
+		.SetFillPaint(styleSheetRule.Color)
+		.DrawFill();
+
+	const bool drawBorder = styleSheetRule.BorderLeft.Width > 0 && styleSheetRule.BorderLeft.Style != GUIBorderElementStyle::None;
+	if(drawBorder)
+	{
+		path->SetStrokePaint(styleSheetRule.BorderLeft.Color)
+			.SetStrokeWidth((float)styleSheetRule.BorderLeft.Width)
+			.DrawStroke();
+	}
+
+	return path;
 }

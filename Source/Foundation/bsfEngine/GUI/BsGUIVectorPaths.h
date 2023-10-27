@@ -39,5 +39,62 @@ namespace bs
 		}
 	};
 
+	/** Builds a vector path that draws a tab button background. */
+	class B3D_EXPORT GUITabBackgroundVectorPathBuilder : public IGUIVectorPathBuilder
+	{
+	public:
+		HVectorPath BuildPath(const Size2UI& size, const GUIStyleSheetRules& styleSheetRule) const override;
+
+		/** Returns a singleton instance of this builder. */
+		static const GUITabBackgroundVectorPathBuilder* Get()
+		{
+			static const GUITabBackgroundVectorPathBuilder instance;
+			return &instance;
+		}
+	};
+
+	/** Builds a vector path that draws a drop down arrow. */
+	class B3D_EXPORT GUIDropDownArrowVectorPathBuilder : public IGUIVectorPathBuilder
+	{
+	public:
+		HVectorPath BuildPath(const Size2UI& size, const GUIStyleSheetRules& styleSheetRule) const override;
+
+		/** Returns a singleton instance of this builder. */
+		static const GUIDropDownArrowVectorPathBuilder* Get()
+		{
+			static const GUIDropDownArrowVectorPathBuilder instance;
+			return &instance;
+		}
+	};
+
+	/** Builds a vector path that draws a scroll arrow pointing down. */
+	class B3D_EXPORT GUIScrollArrowVectorPathBuilder : public IGUIVectorPathBuilder
+	{
+	public:
+		HVectorPath BuildPath(const Size2UI& size, const GUIStyleSheetRules& styleSheetRule) const override;
+
+		/** Returns a singleton instance of this builder. */
+		static const GUIScrollArrowVectorPathBuilder* Get()
+		{
+			static const GUIScrollArrowVectorPathBuilder instance;
+			return &instance;
+		}
+	};
+
+	/** Builds a vector path that draws a scroll handle. */
+	class B3D_EXPORT GUIScrollHandleVectorPathBuilder : public IGUIVectorPathBuilder
+	{
+	public:
+		HVectorPath BuildPath(const Size2UI& size, const GUIStyleSheetRules& styleSheetRule) const override;
+
+		/** Returns a singleton instance of this builder. */
+		static const GUIScrollHandleVectorPathBuilder* Get()
+		{
+			static const GUIScrollHandleVectorPathBuilder instance;
+			return &instance;
+		}
+	};
+
+
 	/** @} */
 } // namespace bs
