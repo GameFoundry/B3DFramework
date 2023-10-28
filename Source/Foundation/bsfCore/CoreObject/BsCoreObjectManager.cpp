@@ -67,8 +67,8 @@ void CoreObjectManager::UnregisterObject(CoreObject* object)
 
 		if(isDirty)
 		{
-			SPtr<ct::RenderProxy> coreObject = object->GetRenderProxy();
-			if(coreObject != nullptr)
+			SPtr<ct::RenderProxy> renderProxy = object->GetRenderProxy();
+			if(renderProxy != nullptr)
 			{
 				FrameAllocator* allocator = mSyncAllocators[mActiveFrameAllocatorIndex];
 				CoreSyncData objSyncData;
@@ -77,7 +77,7 @@ void CoreObjectManager::UnregisterObject(CoreObject* object)
 				if(syncPacket != nullptr)
 					objSyncData = CoreSyncData(syncPacket);
 
-				mDestroyedSyncData.push_back(CoreStoredSyncObjData(coreObject, internalId, objSyncData));
+				mDestroyedSyncData.push_back(PerObjectSyncData(renderProxy, internalId, objSyncData));
 
 				DirtyObjectData& dirtyObjData = mDirtyObjects[internalId];
 				dirtyObjData.SyncDataId = (i32)mDestroyedSyncData.size() - 1;
@@ -127,7 +127,7 @@ void CoreObjectManager::UnregisterObject(CoreObject* object)
 	}
 }
 
-void CoreObjectManager::NotifyCoreDirty(CoreObject* object)
+void CoreObjectManager::NotifyRenderProxyDirty(CoreObject* object)
 {
 	u64 id = object->GetInternalId();
 
@@ -223,7 +223,7 @@ void CoreObjectManager::UpdateDependencies(CoreObject* object, Vector<CoreObject
 	B3DClearAllocatorFrame();
 }
 
-void CoreObjectManager::SyncToCore(bool swapBuffers)
+void CoreObjectManager::SyncToRenderThread(bool swapBuffers)
 {
 	Lock lock(mObjectsMutex);
 
@@ -237,7 +237,7 @@ void CoreObjectManager::SyncToCore(bool swapBuffers)
 	}
 }
 
-void CoreObjectManager::SyncToCore(CoreObject* object)
+void CoreObjectManager::SyncToRenderThread(CoreObject* object)
 {
 	struct IndividualCoreSyncData
 	{
@@ -270,8 +270,8 @@ void CoreObjectManager::SyncToCore(CoreObject* object)
 				syncObject(dependency);
 		}
 
-		SPtr<ct::RenderProxy> objectCore = curObj->GetRenderProxy();
-		if(objectCore == nullptr)
+		SPtr<ct::RenderProxy> renderProxy = curObj->GetRenderProxy();
+		if(renderProxy == nullptr)
 		{
 			curObj->MarkRenderProxyDataUpToDate();
 			mDirtyObjects.erase(id);
@@ -281,7 +281,7 @@ void CoreObjectManager::SyncToCore(CoreObject* object)
 		syncData.push_back(IndividualCoreSyncData());
 		IndividualCoreSyncData& data = syncData.back();
 		data.Allocator = allocator;
-		data.Destination = objectCore;
+		data.Destination = renderProxy;
 
 		RenderProxySyncPacket* const syncPacket = curObj->CreateRenderProxySyncPacket(*allocator, curObj->GetRenderProxyDirtyFlags());
 		if(syncPacket != nullptr)
@@ -314,8 +314,8 @@ void CoreObjectManager::SyncToCore(CoreObject* object)
 
 void CoreObjectManager::SyncDownload(FrameAllocator* allocator)
 {
-	CoreStoredSyncData syncData;
-	syncData.Alloc = allocator;
+	PerFrameSyncData syncData;
+	syncData.Allocator = allocator;
 
 	// Add all objects dependant on the dirty objects
 	B3DMarkAllocatorFrame();
@@ -329,13 +329,13 @@ void CoreObjectManager::SyncDownload(FrameAllocator* allocator)
 				const Vector<CoreObject*>& dependants = iterFind->second;
 				for(auto& dependant : dependants)
 				{
-					const bool wasDirty = dependant->IsRenderProxyDataOutOfDate();
+					const bool wasOutOfDate = dependant->IsRenderProxyDataOutOfDate();
 
 					// Let the dependant objects know their dependency changed
 					CoreObject* dependency = objectData.second.Object;
 					dependant->OnDependencyDirty(dependency, dependency->GetRenderProxyDirtyFlags());
 
-					if(!wasDirty && dependant->IsRenderProxyDataOutOfDate())
+					if(!wasOutOfDate && dependant->IsRenderProxyDataOutOfDate())
 						dirtyDependants.insert(dependant);
 				}
 			}
@@ -374,8 +374,8 @@ void CoreObjectManager::SyncDownload(FrameAllocator* allocator)
 					syncObject(dependency);
 			}
 
-			SPtr<ct::RenderProxy> objectCore = curObj->GetRenderProxy();
-			if(objectCore == nullptr)
+			SPtr<ct::RenderProxy> renderProxy = curObj->GetRenderProxy();
+			if(renderProxy == nullptr)
 			{
 				curObj->MarkRenderProxyDataUpToDate();
 				return;
@@ -388,7 +388,7 @@ void CoreObjectManager::SyncDownload(FrameAllocator* allocator)
 				objSyncData = CoreSyncData(syncPacket);
 
 			curObj->MarkRenderProxyDataUpToDate();
-			syncData.Entries.push_back(CoreStoredSyncObjData(objectCore, curObj->GetInternalId(), objSyncData));
+			syncData.Entries.push_back(PerObjectSyncData(renderProxy, curObj->GetInternalId(), objSyncData));
 		};
 
 		CoreObject* object = objectData.second.Object;
@@ -399,10 +399,10 @@ void CoreObjectManager::SyncDownload(FrameAllocator* allocator)
 			// Object was destroyed but we still need to sync its modifications before it was destroyed
 			if(objectData.second.SyncDataId != -1)
 			{
-				const CoreStoredSyncObjData& objData = mDestroyedSyncData[objectData.second.SyncDataId];
+				const PerObjectSyncData& objData = mDestroyedSyncData[objectData.second.SyncDataId];
 
 				syncData.Entries.push_back(objData);
-				syncData.DestroyedObjects.push_back(objData.DestinationObj);
+				syncData.DestroyedObjects.push_back(objData.RenderProxy);
 			}
 		}
 	}
@@ -410,31 +410,31 @@ void CoreObjectManager::SyncDownload(FrameAllocator* allocator)
 	mDirtyObjects.clear();
 	mDestroyedSyncData.clear();
 
-	mCoreSyncData.emplace_back(std::move(syncData));
+	mPerFrameSyncData.emplace_back(std::move(syncData));
 }
 
 void CoreObjectManager::SyncUpload()
 {
-	CoreStoredSyncData syncData;
+	PerFrameSyncData syncData;
 	{
 		Lock lock(mObjectsMutex);
 
-		if(mCoreSyncData.empty())
+		if(mPerFrameSyncData.empty())
 			return;
 
-		syncData = std::move(mCoreSyncData.front());
-		mCoreSyncData.pop_front();
+		syncData = std::move(mPerFrameSyncData.front());
+		mPerFrameSyncData.pop_front();
 	}
 
 	for(auto& objSyncData : syncData.Entries)
 	{
-		SPtr<ct::RenderProxy> destinationObj = objSyncData.DestinationObj;
+		SPtr<ct::RenderProxy> destinationObj = objSyncData.RenderProxy;
 		if(destinationObj != nullptr)
-			destinationObj->SyncFromCoreObject(objSyncData.SyncData, *syncData.Alloc);
+			destinationObj->SyncFromCoreObject(objSyncData.SyncData, *syncData.Allocator);
 
 		RenderProxySyncPacket* const syncPacket = objSyncData.SyncData.GetSyncPacket();
 		if(syncPacket != nullptr)
-			syncData.Alloc->Destruct(syncPacket);
+			syncData.Allocator->Destruct(syncPacket);
 	}
 
 	syncData.DestroyedObjects.clear();

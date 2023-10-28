@@ -112,7 +112,7 @@ CoreApplication::~CoreApplication()
 
 	// All CoreObject related modules should be shut down now. They have likely queued CoreObjects for destruction, so
 	// we need to wait for those objects to get destroyed before continuing.
-	CoreObjectManager::Instance().SyncToCore(true);
+	CoreObjectManager::Instance().SyncToRenderThread(true);
 	GetRenderThread().PostCommand([] {}, true);
 
 	UnloadPlugin(mStartUpDesc.Renderer);

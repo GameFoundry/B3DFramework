@@ -310,7 +310,7 @@ void RenderBeast::SyncOptions(const RenderBeastOptions& options)
 void RenderBeast::RenderAll(PerFrameData perFrameData)
 {
 	// Sync all dirty sim thread CoreObject data to core thread
-	PROFILE_CALL(CoreObjectManager::Instance().SyncToCore(true), "Sync to core")
+	PROFILE_CALL(CoreObjectManager::Instance().SyncToRenderThread(true), "Sync to core")
 
 	if(mOptionsDirty)
 	{

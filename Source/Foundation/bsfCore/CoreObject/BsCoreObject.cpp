@@ -76,7 +76,7 @@ void CoreObject::BlockUntilRenderProxyInitialized() const
 
 void CoreObject::SyncToRenderProxy()
 {
-	CoreObjectManager::Instance().SyncToCore(this);
+	CoreObjectManager::Instance().SyncToRenderThread(this);
 }
 
 void CoreObject::MarkRenderProxyDataDirty(u32 flags)
@@ -86,7 +86,7 @@ void CoreObject::MarkRenderProxyDataDirty(u32 flags)
 	mRenderProxyDirtyFlags |= flags;
 
 	if(!wasDirty && IsRenderProxyDataOutOfDate())
-		CoreObjectManager::Instance().NotifyCoreDirty(this);
+		CoreObjectManager::Instance().NotifyRenderProxyDirty(this);
 }
 
 void CoreObject::MarkDependenciesDirty()
