@@ -639,7 +639,7 @@ namespace bs
 		class B3D_CORE_EXPORT VectorPathRenderable : public IReflectable
 		{
 		public:
-			VectorPathRenderable(const VectorPath& vectorPath, const VectorGraphicsSettings& settings)
+			VectorPathRenderable(const bs::VectorPath& vectorPath, const VectorGraphicsSettings& settings)
 				: mSettings(settings)
 			{ }
 			~VectorPathRenderable() override = default;

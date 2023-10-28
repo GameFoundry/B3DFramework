@@ -5,6 +5,7 @@
 #include "BsCorePrerequisites.h"
 #include "CoreThread/BsCoreObjectCore.h"
 #include "Threading/BsAsyncOp.h"
+#include "Utility/BsFlags.h"
 
 namespace bs
 {
@@ -13,53 +14,46 @@ namespace bs
 	 *  @{
 	 */
 
+	/** Represents the current state of a CoreObject. */
+	enum class CoreObjectFlag
+	{
+		None = 0,
+		Destroyed = 1 << 0, /**< Object has been destroyed and shouldn't be used. */
+		RequiresRenderProxy = 1 << 1, /**< Object creates a proxy representation for use by the render thread. */
+		Initialized = 1 << 2, /**< Object's Initialize() method has been called. */
+	};
+
+	using CoreObjectFlags = Flags<CoreObjectFlag>;
+	B3D_FLAGS_OPERATORS(CoreObjectFlag)
+
 	/**
-	 * Core objects provides functionality for dealing with objects that need to exist on both simulation and core thread.
-	 * It handles cross-thread initialization, destruction as well as syncing data between the two threads.
-	 *
-	 * It also provides a standardized way to initialize/destroy objects, and a way to specify dependant CoreObject%s. For
-	 * those purposes it might also be used for objects that only exist on the core thread.
-	 *
-	 * @note	ct::CoreObject is a counterpart to CoreObject that is used exclusively on the core thread. CoreObject on the
-	 *			other hand should be used exclusively on the simulation thread. Types that exist on both threads need to
-	 *			implement both of these.
+	 * Provides a standardized way to initialize/destroy objects, a unique runtime ID for each object, and a way to specify dependant CoreObject%s. 
+	 * Optionally it may also be used to create render proxy objects for use by the render thread.
 	 */
 	class B3D_CORE_EXPORT CoreObject
 	{
-	protected:
-		/** Values that represent current state of the core object */
-		enum Flags
-		{
-			CGO_DESTROYED = 0x01, /**< Object has been destroyed and shouldn't be used. */
-			CGO_INIT_ON_CORE_THREAD = 0x02, /**< Object requires initialization on core thread. */
-			CGO_INITIALIZED = 0x04 /**< Object's Initialize() method has been called. */
-		};
-
 	public:
 		/**
 		 * Frees all the data held by this object.
 		 *
-		 * @note
-		 * If this object require initialization on core thread destruction is not done immediately, and is
-		 * instead just scheduled on the core thread. Otherwise the object is destroyed immediately.
+		 * If the object has a render proxy, the internal reference to the render proxy will be released, but the
+		 * proxy will not be destroyed unless this was the last reference. If render proxy destruction does happen, it
+		 * is not immediate, but rather queued for destruction on the render thread.
 		 */
 		virtual void Destroy();
 
 		/**
-		 * Initializes all the internal resources of this object. Must be called right after construction. Generally you
-		 * should call this from a factory method to avoid the issue where user forgets to call it.
-		 *
-		 * @note
-		 * If this object require initialization on core thread initialization is not done immediately, and is instead just
-		 * scheduled on the core thread. Otherwise the object is initialized immediately.
+		 * Initializes all the internal data of this object. Must be called right after construction for new objects,
+		 * or after deserialization for deserialized objects. If requested, render proxy is created and queued for
+		 * initialization on the render thread.
 		 */
 		virtual void Initialize();
 
 		/** Returns true if the object has been initialized. Non-initialized object should not be used. */
-		bool IsInitialized() const { return (mFlags & CGO_INITIALIZED) != 0; }
+		bool IsInitialized() const { return mFlags.IsSet(CoreObjectFlag::Initialized); }
 
 		/** Returns true if the object has been destroyed. Destroyed object should not be used. */
-		bool IsDestroyed() const { return (mFlags & CGO_DESTROYED) != 0; }
+		bool IsDestroyed() const { return mFlags.IsSet(CoreObjectFlag::Destroyed); }
 
 		/**
 		 * Blocks the current thread until the resource is fully initialized.
@@ -105,14 +99,14 @@ namespace bs
 		 */
 		void SetShared(SPtr<CoreObject> ptrThis);
 
-		/** Schedules the object to be destroyed, and then deleted. */
+		/** Called when the last reference in the shared pointer owning this object goes out of scope. */
 		template <class T, class MemAlloc>
-		static void DeleteInternal(CoreObject* obj)
+		static void SharedDeleter(CoreObject* object)
 		{
-			if(!obj->IsDestroyed())
-				obj->Destroy();
+			if(!object->IsDestroyed())
+				object->Destroy();
 
-			B3DDelete<T, MemAlloc>((T*)obj);
+			B3DDelete<T, MemAlloc>((T*)object);
 		}
 
 		/** @} */
@@ -127,46 +121,13 @@ namespace bs
 		CoreObject(bool requiresCoreInit = true);
 		virtual ~CoreObject();
 
-		/**
-		 * Queues a command to be executed on the core thread.
-		 *
-		 * @note
-		 * Requires a shared pointer to the object this function will be executed on, in order to make sure the object is
-		 * not deleted before the command executes. Can be null if the function is static or global.
-		 */
-		static void QueueGpuCommand(const SPtr<ct::CoreObject>& obj, std::function<void()> func);
-
-		bool RequiresInitOnCoreThread() const { return (mFlags & CGO_INIT_ON_CORE_THREAD) != 0; }
-
-		void SetIsDestroyed(bool destroyed) { mFlags = destroyed ? mFlags | CGO_DESTROYED : mFlags & ~CGO_DESTROYED; }
-
 	private:
 		friend class CoreObjectManager;
 
-		volatile u8 mFlags;
+		CoreObjectFlags mFlags;
 		u32 mCoreDirtyFlags;
 		u64 mInternalID; // ID == 0 is not a valid ID
 		std::weak_ptr<CoreObject> mThis;
-
-		/**
-		 * Queues object initialization command on the core thread. The command is added to the primary core thread queue
-		 * and will be executed as soon as the core thread is ready.
-		 */
-		static void QueueInitializeGpuCommand(const SPtr<ct::CoreObject>& obj);
-
-		/**
-		 * Queues object destruction command on the core thread. The command is added to the core thread queue of this
-		 * thread and will be executed after qzeze commands are submitted and any previously queued commands are executed.
-		 *
-		 * @note	It is up to the caller to ensure no other threads attempt to use this object.
-		 */
-		static void QueueDestroyGpuCommand(SPtr<ct::CoreObject>&& object);
-
-		/** Helper wrapper method used for queuing commands with no return value on the core thread. */
-		static void ExecuteGpuCommand(const SPtr<ct::CoreObject>& obj, std::function<void()> func);
-
-		/**	Helper wrapper method used for queuing commands with a return value on the core thread. */
-		static void ExecuteReturnGpuCommand(const SPtr<ct::CoreObject>& obj, std::function<void(AsyncOp&)> func, AsyncOp& op);
 
 	protected:
 		/************************************************************************/
@@ -250,7 +211,7 @@ namespace bs
 	template <class Type, class MainAlloc, class PtrDataAlloc, class... Args>
 	SPtr<Type> B3DMakeCoreShared(Args&&... args)
 	{
-		return SPtr<Type>(B3DNew<Type, MainAlloc>(std::forward<Args>(args)...), &CoreObject::DeleteInternal<Type, MainAlloc>, StdAlloc<Type, PtrDataAlloc>());
+		return SPtr<Type>(B3DNew<Type, MainAlloc>(std::forward<Args>(args)...), &Type::template SharedDeleter<Type, MainAlloc>, StdAlloc<Type, PtrDataAlloc>());
 	}
 
 	/**
@@ -263,7 +224,7 @@ namespace bs
 	template <class Type, class MainAlloc, class... Args>
 	SPtr<Type> B3DMakeCoreShared(Args&&... args)
 	{
-		return SPtr<Type>(B3DNew<Type, MainAlloc>(std::forward<Args>(args)...), &CoreObject::DeleteInternal<Type, MainAlloc>, StdAlloc<Type, DefaultAllocatorTag>());
+		return SPtr<Type>(B3DNew<Type, MainAlloc>(std::forward<Args>(args)...), &Type::template SharedDeleter<Type, MainAlloc>, StdAlloc<Type, DefaultAllocatorTag>());
 	}
 
 	/**
@@ -276,7 +237,7 @@ namespace bs
 	template <class Type, class... Args>
 	SPtr<Type> B3DMakeCoreShared(Args&&... args)
 	{
-		return SPtr<Type>(B3DNew<Type, DefaultAllocatorTag>(std::forward<Args>(args)...), &CoreObject::DeleteInternal<Type, DefaultAllocatorTag>, StdAlloc<Type, DefaultAllocatorTag>());
+		return SPtr<Type>(B3DNew<Type, DefaultAllocatorTag>(std::forward<Args>(args)...), &Type::template SharedDeleter<Type, DefaultAllocatorTag>, StdAlloc<Type, DefaultAllocatorTag>());
 	}
 
 	/**
@@ -289,7 +250,7 @@ namespace bs
 	template <class Type, class MainAlloc = DefaultAllocatorTag, class PtrDataAlloc = DefaultAllocatorTag>
 	SPtr<Type> B3DMakeCoreFromExisting(Type* data)
 	{
-		return SPtr<Type>(data, &CoreObject::DeleteInternal<Type, MainAlloc>, StdAlloc<Type, PtrDataAlloc>());
+		return SPtr<Type>(data, &Type::template SharedDeleter<Type, MainAlloc>, StdAlloc<Type, PtrDataAlloc>());
 	}
 
 	/** Returns associated core object, or null if the object is null. */

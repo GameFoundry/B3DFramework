@@ -138,21 +138,43 @@ namespace bs
 	template <typename T, typename AllocatorTag = DefaultAllocatorTag, typename Delete = Deleter<T, AllocatorTag>>
 	using UPtr = std::unique_ptr<T, Delete>;
 
-	/** Create a new shared pointer using a custom allocator category. */
+	/**
+	 * Checks if the class @p T has a SharedDeleter static method that accepts a non-const pointer to T. 	 */
+	template <typename T, typename = void>
+	struct HasSharedDeleter
+		: std::false_type
+	{};
+
+	template <typename T>
+	struct HasSharedDeleter<T, std::enable_if_t<std::is_same_v<decltype(T::template SharedDeleter<T, DefaultAllocatorTag>(std::declval<T*>())), void>>>
+		: std::true_type
+	{};
+
+	/**
+	 * Create a new shared pointer using a custom allocator category.
+	 * If class provides a `static SharedDeleter(Type*)` method it will be used as a shared pointer deleter, instead of the default.
+	 */
 	template <typename Type, typename AllocatorTag = DefaultAllocatorTag, typename... Args>
 	SPtr<Type> B3DMakeShared(Args&&... args)
 	{
-		return std::allocate_shared<Type>(StdAlloc<Type, AllocatorTag>(), std::forward<Args>(args)...);
+		if constexpr(HasSharedDeleter<Type>::value)
+			return SPtr<Type>(B3DNew<Type, AllocatorTag>(std::forward<Args>(args)...), &Type::template SharedDeleter<Type, AllocatorTag>, StdAlloc<Type, AllocatorTag>());
+		else
+			return std::allocate_shared<Type>(StdAlloc<Type, AllocatorTag>(), std::forward<Args>(args)...);
 	}
 
 	/**
 	 * Create a new shared pointer from a previously constructed object.
 	 * Pointer specific data will be allocated using the provided allocator category.
+	 * If class provides a `static SharedDeleter(Type*)` method it will be used as a shared pointer deleter, instead of the default. 
 	 */
 	template <typename Type, typename MainAllocatorTag = DefaultAllocatorTag, typename PointerDataAllocatorTag = DefaultAllocatorTag, typename Delete = Deleter<Type, MainAllocatorTag>>
 	SPtr<Type> B3DMakeSharedFromExisting(Type* data, Delete del = Delete())
 	{
-		return SPtr<Type>(data, std::move(del), StdAlloc<Type, PointerDataAllocatorTag>());
+		if constexpr(HasSharedDeleter<Type>::value)
+			return SPtr<Type>(data, &Type::template SharedDeleter<Type, MainAllocatorTag>, StdAlloc<Type, PointerDataAllocatorTag>());
+		else
+			return SPtr<Type>(data, std::move(del), StdAlloc<Type, PointerDataAllocatorTag>());
 	}
 
 	/**

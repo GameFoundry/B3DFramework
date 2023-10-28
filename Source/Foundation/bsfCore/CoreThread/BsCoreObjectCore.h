@@ -3,6 +3,7 @@
 #pragma once
 
 #include "BsCorePrerequisites.h"
+#include "BsCoreThread.h"
 #include "Threading/BsAsyncOp.h"
 
 namespace bs
@@ -13,28 +14,40 @@ namespace bs
 		 *  @{
 		 */
 
+		/** Represents the current state of a RenderProxy. */
+		enum class RenderProxyFlag
+		{
+			None = 0,
+			Destroyed = 1 << 0, /**< Object has been destroyed and shouldn't be used. */
+			ScheduledForInitialization = 1 << 1, /**< Object has been scheduled for initialization on the render thread, but the render thread hasn't processed it yet. */
+			Initialized = 1 << 2, /**< Object's Initialize() method has been called. */
+		};
+
+		using RenderProxyFlags = Flags<RenderProxyFlag>;
+		B3D_FLAGS_OPERATORS(RenderProxyFlag)
+
 		/**
-		 * Represents counterpart of a CoreObject that is meant to be used specifically on the core thread.
+		 * Represents a version of a CoreObject that is meant to be used specifically on the render thread.
 		 *
-		 * @note	Core thread only.
-		 * @note	Different CoreObject implementations should implement this class for their own needs.
+		 * @note	Render thread only.
 		 */
 		class B3D_CORE_EXPORT CoreObject
 		{
-		protected:
-			/** Values that represent current state of the object */
-			enum Flags
-			{
-				CGCO_INITIALIZED = 0x01, /**< Object has been initialized and can be used. */
-				CGCO_SCHEDULED_FOR_INIT = 0x02 /**< Object has been scheduled for initialization but core thread has not completed it yet. */
-			};
-
 		public:
 			CoreObject();
 			virtual ~CoreObject();
 
 			/**	Called on the core thread when the object is first created. */
 			virtual void Initialize();
+
+			/**	Called on the core thread before the object is destroyed. */
+			virtual void Destroy();
+
+			/** Returns true if the object has been initialized. Non-initialized object should not be used. */
+			bool IsInitialized() const { return mFlags.IsSet(RenderProxyFlag::Initialized); }
+
+			/** Returns true if the object has been destroyed. Destroyed object should not be used. */
+			bool IsDestroyed() const { return mFlags.IsSet(RenderProxyFlag::Destroyed); }
 
 			/** Returns a shared pointer version of "this" pointer. */
 			SPtr<CoreObject> GetShared() const { return mThis.lock(); }
@@ -50,6 +63,24 @@ namespace bs
 			 * @note	Called automatically by the factory creation methods so user should not call this manually.
 			 */
 			void SetShared(SPtr<CoreObject> sharedToThis);
+
+			/** Called when the last reference in the shared pointer owning this object goes out of scope. */
+			template <class T, class MemAlloc>
+			static void SharedDeleter(CoreObject* object)
+			{
+				auto fnDestroy = [object]
+				{
+					if(!object->IsDestroyed())
+						object->Destroy();
+
+					B3DDelete<T, MemAlloc>((T*)object);
+				};
+
+				if(B3D_CURRENT_THREAD_ID != GetCoreThread().GetCoreThreadId())
+					GetCoreThread().PostCommand(fnDestroy);
+				else
+					fnDestroy();
+			}
 
 			/** @} */
 
@@ -75,19 +106,7 @@ namespace bs
 			 */
 			void Synchronize();
 
-			/**
-			 * Returns true if the object has been properly initialized. Methods are not allowed to be called on the object
-			 * until it is initialized.
-			 */
-			bool IsInitialized() const { return (mFlags & CGCO_INITIALIZED) != 0; }
-
-			bool IsScheduledToBeInitialized() const { return (mFlags & CGCO_SCHEDULED_FOR_INIT) != 0; }
-
-			void SetIsInitialized(bool initialized) { mFlags = initialized ? mFlags | CGCO_INITIALIZED : mFlags & ~CGCO_INITIALIZED; }
-
-			void SetScheduledToBeInitialized(bool scheduled) { mFlags = scheduled ? mFlags | CGCO_SCHEDULED_FOR_INIT : mFlags & ~CGCO_SCHEDULED_FOR_INIT; }
-
-			volatile u8 mFlags;
+			RenderProxyFlags mFlags;
 			std::weak_ptr<CoreObject> mThis;
 
 			static Signal mCoreGpuObjectLoadedCondition;

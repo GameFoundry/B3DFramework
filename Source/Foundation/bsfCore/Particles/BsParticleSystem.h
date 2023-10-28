@@ -28,9 +28,9 @@ namespace bs
 		class ParticleSystem;
 	}
 
-	CORE_OBJECT_FORWARD_DECLARE_STRUCT(ParticleSystemSettings)
-	CORE_OBJECT_FORWARD_DECLARE_STRUCT(ParticleVectorFieldSettings)
-	CORE_OBJECT_FORWARD_DECLARE_STRUCT(ParticleGpuSimulationSettings)
+	B3D_CORE_OBJECT_FORWARD_DECLARE_STRUCT(ParticleSystemSettings)
+	B3D_CORE_OBJECT_FORWARD_DECLARE_STRUCT(ParticleVectorFieldSettings)
+	B3D_CORE_OBJECT_FORWARD_DECLARE_STRUCT(ParticleGpuSimulationSettings)
 
 	/** @addtogroup Implementation
 	 *  @{

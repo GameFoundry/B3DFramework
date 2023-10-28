@@ -154,7 +154,7 @@ namespace bs::ct
 	}
 
 	/** Executes the NanoVG path commands in the provided path. Command output will be recorded to the provided context object. */
-	static void ApplyPathCommands(NVGcontext& context, const VectorPath& path, const VectorGraphicsSettings& settings)
+	static void ApplyPathCommands(NVGcontext& context, const bs::VectorPath& path, const VectorGraphicsSettings& settings)
 	{
 		nvgBeginPath(&context);
 
@@ -390,7 +390,7 @@ namespace bs::ct
 			}));
 	}
 
-	NVGVectorPathRenderable::NVGVectorPathRenderable(const VectorPath& vectorPath, const VectorGraphicsSettings& settings)
+	NVGVectorPathRenderable::NVGVectorPathRenderable(const bs::VectorPath& vectorPath, const VectorGraphicsSettings& settings)
 		:VectorPathRenderable(vectorPath, settings), mRawRenderData(PlaybackPathCommands(vectorPath, settings))
 	{ }
 
@@ -593,7 +593,7 @@ namespace bs::ct
 		outputRenderData.RenderCommands.push_back(renderCommand);
 	}
 
-	NVGPathRenderData NVGVectorPathRenderable::PlaybackPathCommands(const VectorPath& vectorPath, const VectorGraphicsSettings& settings)
+	NVGPathRenderData NVGVectorPathRenderable::PlaybackPathCommands(const bs::VectorPath& vectorPath, const VectorGraphicsSettings& settings)
 	{
 		NVGRenderContext userContext;
 		userContext.Settings = settings;

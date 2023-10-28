@@ -11,22 +11,34 @@ Signal CoreObject::mCoreGpuObjectLoadedCondition;
 Mutex CoreObject::mCoreGpuObjectLoadedMutex;
 
 CoreObject::CoreObject()
-	: mFlags(0)
+	: mFlags(RenderProxyFlag::None)
 {}
 
 CoreObject::~CoreObject()
-{ }
+{
+	EnsureRenderThread();
+
+	B3D_ENSURE(IsDestroyed());
+	B3D_ENSURE(mThis.expired());
+}
 
 void CoreObject::Initialize()
 {
 	{
 		Lock lock(mCoreGpuObjectLoadedMutex);
-		SetIsInitialized(true);
+		mFlags.Set(RenderProxyFlag::Initialized);
 	}
 
-	SetScheduledToBeInitialized(false);
-
+	mFlags.Unset(RenderProxyFlag::ScheduledForInitialization);
 	mCoreGpuObjectLoadedCondition.NotifyAll();
+}
+
+void CoreObject::Destroy()
+{
+	if(!B3D_ENSURE(!IsDestroyed()))
+		return;
+
+	mFlags.Set(RenderProxyFlag::Destroyed);
 }
 
 void CoreObject::Synchronize()
@@ -41,7 +53,7 @@ void CoreObject::Synchronize()
 		GetCoreThread().PostCommand([] {}, true);
 
 		Lock lock(mCoreGpuObjectLoadedMutex);
-		if(!IsInitialized() && !IsScheduledToBeInitialized())
+		if(!IsInitialized() && !mFlags.IsSet(RenderProxyFlag::ScheduledForInitialization))
 			B3D_EXCEPT(InternalErrorException, "Attempting to wait until initialization finishes but object is not scheduled to be initialized.");
 
 		mCoreGpuObjectLoadedCondition.Wait(lock, [this] { return IsInitialized(); });

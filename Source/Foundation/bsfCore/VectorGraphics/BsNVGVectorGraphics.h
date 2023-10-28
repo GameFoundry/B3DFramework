@@ -138,7 +138,7 @@ namespace bs
 		class NVGVectorPathRenderable : public VectorPathRenderable
 		{
 		public:
-			NVGVectorPathRenderable(const VectorPath& vectorPath, const VectorGraphicsSettings& settings);
+			NVGVectorPathRenderable(const bs::VectorPath& vectorPath, const VectorGraphicsSettings& settings);
 
 			void Render(GpuCommandBuffer& commandBuffer) override;
 
@@ -164,7 +164,7 @@ namespace bs
 			RenderGpuBuffers CookRenderBuffers();
 
 			/** Plays back the commands in @p vectorPath and returns the mesh data and render commands that can be executed for rendering the path. */
-			static NVGPathRenderData PlaybackPathCommands(const VectorPath& vectorPath, const VectorGraphicsSettings& settings);
+			static NVGPathRenderData PlaybackPathCommands(const bs::VectorPath& vectorPath, const VectorGraphicsSettings& settings);
 
 			/** Callback called by NanoVG when a fill command is executed. This will record the provided vertices and indices into the render context, as well as render commands for rendering that mesh data. */
 			static void NVGRenderFillCallback(void* uptr, NVGpaint* paint, NVGcompositeOperationState compositeOperation, NVGscissor* scissor, float fringe, const float* bounds, const NVGpath* paths, int npaths);
