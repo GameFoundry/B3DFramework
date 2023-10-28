@@ -3,7 +3,7 @@
 #pragma once
 
 #include "BsCorePrerequisites.h"
-#include "CoreThread/BsCoreObject.h"
+#include "CoreObject/BsCoreObject.h"
 #include "Math/BsAABox.h"
 #include "Math/BsVector3.h"
 #include "Math/BsQuaternion.h"

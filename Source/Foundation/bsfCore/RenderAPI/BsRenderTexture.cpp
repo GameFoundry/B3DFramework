@@ -5,10 +5,10 @@
 #include "Image/BsTexture.h"
 #include "Managers/BsTextureManager.h"
 #include "Resources/BsResources.h"
-#include "CoreThread/BsRenderThread.h"
+#include "CoreObject/BsRenderThread.h"
 #include <Private/RTTI/BsRenderTargetRTTI.h>
 
-#include "CoreThread/BsCoreObjectSync.h"
+#include "CoreObject/BsCoreObjectSync.h"
 
 using namespace bs;
 

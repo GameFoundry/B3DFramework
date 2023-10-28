@@ -6,7 +6,7 @@
 #include "Image/BsColor.h"
 #include "RenderAPI/BsGpuProgram.h"
 #include "Reflection/BsIReflectable.h"
-#include "CoreThread/BsCoreObject.h"
+#include "CoreObject/BsCoreObject.h"
 #include "RenderAPI/BsGpuPipelineState.h"
 
 namespace bs

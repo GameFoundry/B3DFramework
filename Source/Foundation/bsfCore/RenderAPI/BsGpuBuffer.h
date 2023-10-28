@@ -3,8 +3,8 @@
 #pragma once
 
 #include "BsCorePrerequisites.h"
-#include "CoreThread/BsCoreObject.h"
-#include "CoreThread/BsRenderProxy.h"
+#include "CoreObject/BsCoreObject.h"
+#include "CoreObject/BsRenderProxy.h"
 
 namespace bs
 {

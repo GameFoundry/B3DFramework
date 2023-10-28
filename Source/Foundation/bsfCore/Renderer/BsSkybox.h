@@ -4,7 +4,7 @@
 
 #include "BsCorePrerequisites.h"
 #include "Reflection/BsIReflectable.h"
-#include "CoreThread/BsCoreObject.h"
+#include "CoreObject/BsCoreObject.h"
 #include "Scene/BsSceneActor.h"
 
 namespace bs

@@ -7,7 +7,7 @@
 #include "FileSystem/BsDataStream.h"
 #include "Error/BsException.h"
 #include "Debug/BsDebug.h"
-#include "CoreThread/BsRenderThread.h"
+#include "CoreObject/BsRenderThread.h"
 #include "Threading/BsAsyncOp.h"
 #include "Resources/BsResources.h"
 #include "Image/BsPixelUtil.h"

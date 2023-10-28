@@ -15,7 +15,7 @@
 #include "Math/BsVector3I.h"
 #include "Math/BsVector4I.h"
 #include "Math/BsMatrixNxM.h"
-#include "CoreThread/BsCoreObjectSync.h"
+#include "CoreObject/BsCoreObjectSync.h"
 
 using namespace bs;
 

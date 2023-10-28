@@ -6,7 +6,7 @@
 #include "Scene/BsSceneObject.h"
 #include "Renderer/BsRenderer.h"
 #include "Material/BsMaterial.h"
-#include "CoreThread/BsCoreObjectSync.h"
+#include "CoreObject/BsCoreObjectSync.h"
 
 using namespace bs;
 

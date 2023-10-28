@@ -4,7 +4,7 @@
 
 #include "BsCorePrerequisites.h"
 #include "Utility/BsModule.h"
-#include "CoreThread/BsRenderThread.h"
+#include "CoreObject/BsRenderThread.h"
 #include "Math/BsConvexVolume.h"
 #include "RenderAPI/BsVertexDescription.h"
 #include "Threading/BsWaitGroup.h"

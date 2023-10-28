@@ -3,7 +3,7 @@
 #pragma once
 
 #include "BsApplication.h"
-#include "CoreThread/BsRenderThread.h"
+#include "CoreObject/BsRenderThread.h"
 
 /** Provides an entry point for executables. */
 int bs_main(int argc, char* argv[]);

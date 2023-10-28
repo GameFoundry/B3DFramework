@@ -8,7 +8,7 @@
 #include "RenderAPI/BsGpuParameters.h"
 #include "RenderAPI/BsGpuProgram.h"
 #include "RenderAPI/BsGpuPipelineState.h"
-#include "CoreThread/BsCoreObjectSync.h"
+#include "CoreObject/BsCoreObjectSync.h"
 #include "RenderAPI/BsGpuDevice.h"
 
 using namespace bs;

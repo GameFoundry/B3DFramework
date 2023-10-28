@@ -10,7 +10,7 @@
 #include "Image/BsColorGradient.h"
 #include "Animation/BsAnimationCurve.h"
 #include "Allocators/BsPoolAlloc.h"
-#include "CoreThread/BsCoreObjectSync.h"
+#include "CoreObject/BsCoreObjectSync.h"
 
 using namespace bs;
 

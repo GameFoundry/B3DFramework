@@ -13,7 +13,7 @@
 #include "BsVulkanGLSLToSPIRV.h"
 #include "BsVulkanRenderPass.h"
 #include "BsVulkanSubmitThread.h"
-#include "CoreThread/BsRenderThread.h"
+#include "CoreObject/BsRenderThread.h"
 #include "Win32/BsRenderDocFrameCapture.h"
 
 #if B3D_PLATFORM == B3D_PLATFORM_ID_WIN32

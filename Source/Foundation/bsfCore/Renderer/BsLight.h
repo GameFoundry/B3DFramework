@@ -8,7 +8,7 @@
 #include "Math/BsQuaternion.h"
 #include "Image/BsColor.h"
 #include "Math/BsSphere.h"
-#include "CoreThread/BsCoreObject.h"
+#include "CoreObject/BsCoreObject.h"
 #include "Scene/BsSceneActor.h"
 
 namespace bs

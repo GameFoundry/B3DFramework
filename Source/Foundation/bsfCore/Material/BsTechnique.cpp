@@ -4,7 +4,7 @@
 
 #include "BsCoreApplication.h"
 #include "BsShaderCompiler.h"
-#include "CoreThread/BsCoreObjectSync.h"
+#include "CoreObject/BsCoreObjectSync.h"
 #include "Error/BsException.h"
 #include "Renderer/BsRendererManager.h"
 #include "Material/BsPass.h"

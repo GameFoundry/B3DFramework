@@ -3,7 +3,7 @@
 #pragma once
 
 #include "BsCorePrerequisites.h"
-#include "CoreThread/BsCoreObject.h"
+#include "CoreObject/BsCoreObject.h"
 #include "Resources/BsIResourceListener.h"
 #include "Utility/BsFlags.h"
 #include "Animation/BsSkeleton.h"

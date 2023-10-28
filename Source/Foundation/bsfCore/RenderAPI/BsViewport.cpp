@@ -5,7 +5,7 @@
 #include "Error/BsException.h"
 #include "RenderAPI/BsRenderTarget.h"
 #include "Math/BsMath.h"
-#include "CoreThread/BsCoreObjectSync.h"
+#include "CoreObject/BsCoreObjectSync.h"
 
 using namespace bs;
 

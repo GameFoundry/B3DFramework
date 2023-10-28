@@ -5,7 +5,7 @@
 #include "BsCorePrerequisites.h"
 #include "Image/BsPixelUtil.h"
 #include "RenderAPI/BsViewport.h"
-#include "CoreThread/BsCoreObject.h"
+#include "CoreObject/BsCoreObject.h"
 #include "Utility/BsEvent.h"
 
 namespace bs

@@ -2,7 +2,7 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "2D/BsVectorSprite.h"
 #include "2D/BsSpriteManager.h"
-#include "CoreThread/BsRenderThread.h"
+#include "CoreObject/BsRenderThread.h"
 #include "GUI/BsGUIManager.h"
 #include "Image/BsSpriteTexture.h"
 #include "Image/BsTexture.h"

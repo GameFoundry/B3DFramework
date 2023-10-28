@@ -26,7 +26,7 @@
 #include "Profiling/BsProfilerCPU.h"
 #include "Input/BsVirtualInput.h"
 #include "Platform/BsCursor.h"
-#include "CoreThread/BsRenderThread.h"
+#include "CoreObject/BsRenderThread.h"
 #include "Renderer/BsRendererManager.h"
 #include "Renderer/BsRenderer.h"
 #include "Renderer/BsCamera.h"

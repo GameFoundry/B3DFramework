@@ -7,7 +7,7 @@
 #include "Reflection/BsRTTIPlain.h"
 #include "Image/BsTexture.h"
 #include "Math/BsMath.h"
-#include "CoreThread/BsRenderThread.h"
+#include "CoreObject/BsRenderThread.h"
 #include "Managers/BsTextureManager.h"
 #include "Image/BsPixelData.h"
 

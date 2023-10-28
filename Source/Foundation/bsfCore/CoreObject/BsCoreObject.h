@@ -3,7 +3,7 @@
 #pragma once
 
 #include "BsCorePrerequisites.h"
-#include "CoreThread/BsRenderProxy.h"
+#include "CoreObject/BsRenderProxy.h"
 #include "Threading/BsAsyncOp.h"
 #include "Utility/BsFlags.h"
 

@@ -13,7 +13,7 @@
 #include "Physics/BsPhysics.h"
 #include "Particles/BsVectorField.h"
 #include "Mesh/BsMesh.h"
-#include "CoreThread/BsCoreObjectSync.h"
+#include "CoreObject/BsCoreObjectSync.h"
 #include "Scene/BsSceneManager.h"
 
 using namespace bs;

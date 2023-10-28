@@ -9,7 +9,7 @@
 #include "Mesh/BsMesh.h"
 #include "Animation/BsSkeleton.h"
 #include "Animation/BsMorphShapes.h"
-#include "CoreThread/BsRenderThread.h"
+#include "CoreObject/BsRenderThread.h"
 
 namespace bs
 {

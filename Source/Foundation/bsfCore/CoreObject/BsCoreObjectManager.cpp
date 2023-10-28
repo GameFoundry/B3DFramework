@@ -1,11 +1,11 @@
 //************************************ bs::framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "CoreThread/BsCoreObjectManager.h"
-#include "CoreThread/BsCoreObject.h"
-#include "CoreThread/BsRenderProxy.h"
+#include "CoreObject/BsCoreObjectManager.h"
+#include "CoreObject/BsCoreObject.h"
+#include "CoreObject/BsRenderProxy.h"
 #include "Error/BsException.h"
-#include "CoreThread/BsRenderThread.h"
-#include "CoreThread/BsCoreObjectSync.h"
+#include "CoreObject/BsRenderThread.h"
+#include "CoreObject/BsCoreObjectSync.h"
 
 using namespace bs;
 

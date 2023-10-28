@@ -9,7 +9,7 @@
 #include "Image/BsTexture.h"
 #include "Renderer/BsIBLUtility.h"
 #include "Scene/BsSceneObject.h"
-#include "CoreThread/BsCoreObjectSync.h"
+#include "CoreObject/BsCoreObjectSync.h"
 #include "Profiling/BsProfilerGPU.h"
 #include "RenderAPI/BsGpuDevice.h"
 #include "RenderAPI/BsGpuPipelineState.h"

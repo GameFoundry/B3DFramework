@@ -1,12 +1,12 @@
 //************************************ bs::framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "Renderer/BsRenderer.h"
-#include "CoreThread/BsRenderThread.h"
+#include "CoreObject/BsRenderThread.h"
 #include "Mesh/BsMesh.h"
 #include "Material/BsMaterial.h"
 #include "Renderer/BsRendererExtension.h"
 #include "Renderer/BsRendererManager.h"
-#include "CoreThread/BsCoreObjectManager.h"
+#include "CoreObject/BsCoreObjectManager.h"
 #include "Scene/BsSceneManager.h"
 #include "Material/BsShader.h"
 #include "Profiling/BsProfilerGPU.h"

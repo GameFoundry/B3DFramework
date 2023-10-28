@@ -2,8 +2,8 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "BsRenderBeast.h"
 #include "BsCoreApplication.h"
-#include "CoreThread/BsRenderThread.h"
-#include "CoreThread/BsCoreObjectManager.h"
+#include "CoreObject/BsRenderThread.h"
+#include "CoreObject/BsCoreObjectManager.h"
 #include "Material/BsMaterial.h"
 #include "Material/BsShader.h"
 #include "Material/BsPass.h"

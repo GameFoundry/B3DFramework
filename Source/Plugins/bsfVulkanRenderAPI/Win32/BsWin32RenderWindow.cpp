@@ -6,7 +6,7 @@
 #include "Private/Win32/BsWin32Platform.h"
 #include "Private/Win32/BsWin32Window.h"
 #include "Win32/BsWin32VideoModeInfo.h"
-#include "CoreThread/BsRenderThread.h"
+#include "CoreObject/BsRenderThread.h"
 #include "Profiling/BsRenderStats.h"
 #include "Managers/BsRenderWindowManager.h"
 #include "BsVulkanGpuDevice.h"

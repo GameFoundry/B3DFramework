@@ -6,7 +6,7 @@
 #include "Image/BsPixelData.h"
 #include "Utility/BsModule.h"
 #include "Math/BsAABox.h"
-#include "CoreThread/BsRenderThread.h"
+#include "CoreObject/BsRenderThread.h"
 #include "BsParticleSystem.h"
 
 namespace bs

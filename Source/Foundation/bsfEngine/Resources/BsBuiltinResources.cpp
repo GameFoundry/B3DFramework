@@ -13,7 +13,7 @@
 #include "Material/BsMaterial.h"
 #include "Reflection/BsRTTIType.h"
 #include "FileSystem/BsFileSystem.h"
-#include "CoreThread/BsRenderThread.h"
+#include "CoreObject/BsRenderThread.h"
 #include "GUI/StyleSheet/BsGUIStyleSheet.h"
 #include "Material/BsShaderCompiler.h"
 #include "Utility/BsShapeMeshes3D.h"

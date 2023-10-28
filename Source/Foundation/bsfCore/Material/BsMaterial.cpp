@@ -13,7 +13,7 @@
 #include "Material/BsMaterialParams.h"
 #include "Material/BsGpuParamsSet.h"
 #include "Animation/BsAnimationCurve.h"
-#include "CoreThread/BsCoreObjectSync.h"
+#include "CoreObject/BsCoreObjectSync.h"
 #include "Private/RTTI/BsShaderVariationRTTI.h"
 #include "Serialization/BsBinarySerializer.h"
 #include "FileSystem/BsDataStream.h"

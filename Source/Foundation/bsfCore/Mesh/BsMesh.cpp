@@ -5,7 +5,7 @@
 #include "Mesh/BsMeshData.h"
 #include "Debug/BsDebug.h"
 #include "Managers/BsMeshManager.h"
-#include "CoreThread/BsRenderThread.h"
+#include "CoreObject/BsRenderThread.h"
 #include "RenderAPI/BsGpuBuffer.h"
 #include "RenderAPI/BsGpuDevice.h"
 #include "Threading/BsAsyncOp.h"

@@ -5,7 +5,7 @@
 #include <utility>
 #include "BsCorePrerequisites.h"
 #include "Reflection/BsIReflectable.h"
-#include "CoreThread/BsCoreObject.h"
+#include "CoreObject/BsCoreObject.h"
 #include "Image/BsColor.h"
 #include "Math/BsRect2I.h"
 #include "Math/BsRect2.h"

@@ -5,7 +5,7 @@
 #include "Image/BsTexture.h"
 #include "Resources/BsResources.h"
 #include "Resources/BsBuiltinResources.h"
-#include "CoreThread/BsCoreObjectSync.h"
+#include "CoreObject/BsCoreObjectSync.h"
 
 using namespace bs;
 

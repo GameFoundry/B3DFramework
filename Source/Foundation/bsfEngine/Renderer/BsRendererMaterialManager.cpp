@@ -3,7 +3,7 @@
 #include "Renderer/BsRendererMaterialManager.h"
 #include "Renderer/BsRendererMaterial.h"
 #include "Resources/BsBuiltinResources.h"
-#include "CoreThread/BsRenderThread.h"
+#include "CoreObject/BsRenderThread.h"
 #include "Material/BsShader.h"
 
 using namespace bs;

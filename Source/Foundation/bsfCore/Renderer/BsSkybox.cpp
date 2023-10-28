@@ -9,7 +9,7 @@
 #include "Renderer/BsRenderer.h"
 #include "Utility/BsUUID.h"
 #include "Renderer/BsIBLUtility.h"
-#include "CoreThread/BsCoreObjectSync.h"
+#include "CoreObject/BsCoreObjectSync.h"
 #include "Profiling/BsProfilerGPU.h"
 #include "RenderAPI/BsGpuDevice.h"
 

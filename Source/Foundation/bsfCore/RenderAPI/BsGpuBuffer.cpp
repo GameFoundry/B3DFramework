@@ -4,7 +4,7 @@
 #include "BsCoreApplication.h"
 #include "BsGpuDevice.h"
 #include "BsGpuDeviceCapabilities.h"
-#include "CoreThread/BsCoreObjectSync.h"
+#include "CoreObject/BsCoreObjectSync.h"
 
 using namespace bs;
 

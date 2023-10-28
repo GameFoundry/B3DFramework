@@ -8,7 +8,7 @@
 #include "RenderAPI/BsRenderTarget.h"
 #include "RenderAPI/BsRenderTexture.h"
 #include "RenderAPI/BsRenderWindow.h"
-#include "CoreThread/BsRenderThread.h"
+#include "CoreObject/BsRenderThread.h"
 
 namespace bs
 {
