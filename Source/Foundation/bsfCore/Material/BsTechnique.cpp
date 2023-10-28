@@ -246,7 +246,7 @@ CoreSyncPacket* Technique::CreateSyncPacket(FrameAllocator& allocator, u32 flags
 SPtr<Technique> Technique::Create(const WeakSPtr<Shader>& owner, const String& language, const ShaderVariationParameters& variationParameters, const Optional<PrecompiledVariationData>& precompiledData)
 {
 	Technique* technique = new(B3DAllocate<Technique>()) Technique(owner, language, variationParameters, precompiledData);
-	SPtr<Technique> techniquePtr = B3DMakeCoreFromExisting<Technique>(technique);
+	SPtr<Technique> techniquePtr = B3DMakeSharedFromExisting<Technique>(technique);
 	techniquePtr->SetShared(techniquePtr);
 	techniquePtr->Initialize();
 
@@ -256,7 +256,7 @@ SPtr<Technique> Technique::Create(const WeakSPtr<Shader>& owner, const String& l
 SPtr<Technique> Technique::CreateEmpty()
 {
 	Technique* technique = new(B3DAllocate<Technique>()) Technique();
-	SPtr<Technique> techniquePtr = B3DMakeCoreFromExisting<Technique>(technique);
+	SPtr<Technique> techniquePtr = B3DMakeSharedFromExisting<Technique>(technique);
 	techniquePtr->SetShared(techniquePtr);
 
 	return techniquePtr;

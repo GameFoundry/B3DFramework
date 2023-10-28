@@ -327,7 +327,7 @@ HTexture Texture::Create(const TextureCreateInformation& createInformation)
 SPtr<Texture> Texture::CreateShared(const TextureCreateInformation& createInformation)
 {
 	Texture* const texture = new(B3DAllocate<Texture>()) Texture(createInformation);
-	SPtr<Texture> shared = B3DMakeCoreFromExisting<Texture>(texture);
+	SPtr<Texture> shared = B3DMakeSharedFromExisting<Texture>(texture);
 
 	shared->SetShared(shared);
 	shared->Initialize();
@@ -338,7 +338,7 @@ SPtr<Texture> Texture::CreateShared(const TextureCreateInformation& createInform
 SPtr<Texture> Texture::CreateEmpty()
 {
 	Texture* const texture = new(B3DAllocate<Texture>()) Texture();
-	SPtr<Texture> shared = B3DMakeCoreFromExisting<Texture>(texture);
+	SPtr<Texture> shared = B3DMakeSharedFromExisting<Texture>(texture);
 
 	shared->SetShared(shared);
 	return shared;

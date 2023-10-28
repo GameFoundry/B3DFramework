@@ -275,7 +275,7 @@ HStringTable StringTable::Create()
 
 SPtr<StringTable> StringTable::CreatePtrInternal()
 {
-	SPtr<StringTable> scriptCodePtr = B3DMakeCoreFromExisting<StringTable>(
+	SPtr<StringTable> scriptCodePtr = B3DMakeSharedFromExisting<StringTable>(
 		new(B3DAllocate<StringTable>()) StringTable());
 	scriptCodePtr->SetShared(scriptCodePtr);
 	scriptCodePtr->Initialize();

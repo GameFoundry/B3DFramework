@@ -18,7 +18,7 @@ HScriptCode ScriptCode::Create(const WString& data, bool editorScript)
 
 SPtr<ScriptCode> ScriptCode::CreatePtrInternal(const WString& data, bool editorScript)
 {
-	SPtr<ScriptCode> scriptCodePtr = B3DMakeCoreFromExisting<ScriptCode>(
+	SPtr<ScriptCode> scriptCodePtr = B3DMakeSharedFromExisting<ScriptCode>(
 		new(B3DAllocate<ScriptCode>()) ScriptCode(data, editorScript));
 	scriptCodePtr->SetShared(scriptCodePtr);
 	scriptCodePtr->Initialize();

@@ -567,7 +567,7 @@ SPtr<GpuParameters> GpuParameters::Create(const SPtr<GpuComputePipelineState>& p
 SPtr<GpuParameters> GpuParameters::Create(const SPtr<GpuPipelineParameterLayout>& parameterLayout)
 {
 	GpuParameters* const output = new(B3DAllocate<GpuParameters>()) GpuParameters(parameterLayout);
-	SPtr<GpuParameters> shared = B3DMakeCoreFromExisting<GpuParameters>(output);
+	SPtr<GpuParameters> shared = B3DMakeSharedFromExisting<GpuParameters>(output);
 	shared->SetShared(shared);
 	shared->Initialize();
 

@@ -38,7 +38,7 @@ HPrefab Prefab::Create(const HSceneObject& sceneObject, bool isScene)
 
 SPtr<Prefab> Prefab::CreateEmpty()
 {
-	SPtr<Prefab> newPrefab = B3DMakeCoreFromExisting<Prefab>(new(B3DAllocate<Prefab>()) Prefab());
+	SPtr<Prefab> newPrefab = B3DMakeSharedFromExisting<Prefab>(new(B3DAllocate<Prefab>()) Prefab());
 	newPrefab->SetShared(newPrefab);
 
 	return newPrefab;

@@ -110,7 +110,7 @@ HFont Font::Create(const Vector<SPtr<FontBitmap>>& fontData)
 
 SPtr<Font> Font::CreatePtrInternal(const Vector<SPtr<FontBitmap>>& fontData)
 {
-	SPtr<Font> newFont = B3DMakeCoreFromExisting<Font>(new(B3DAllocate<Font>()) Font());
+	SPtr<Font> newFont = B3DMakeSharedFromExisting<Font>(new(B3DAllocate<Font>()) Font());
 	newFont->SetShared(newFont);
 	newFont->Initialize(fontData);
 
@@ -119,7 +119,7 @@ SPtr<Font> Font::CreatePtrInternal(const Vector<SPtr<FontBitmap>>& fontData)
 
 SPtr<Font> Font::CreateEmptyInternal()
 {
-	SPtr<Font> newFont = B3DMakeCoreFromExisting<Font>(new(B3DAllocate<Font>()) Font());
+	SPtr<Font> newFont = B3DMakeSharedFromExisting<Font>(new(B3DAllocate<Font>()) Font());
 	newFont->SetShared(newFont);
 
 	return newFont;

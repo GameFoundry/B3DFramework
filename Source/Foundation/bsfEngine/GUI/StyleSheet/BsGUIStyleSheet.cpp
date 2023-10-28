@@ -524,7 +524,7 @@ SPtr<GUIStyleSheet> GUIStyleSheet::CreateShared(TArray<GUIStyleSheetRuleset> rul
 
 SPtr<GUIStyleSheet> GUIStyleSheet::CreateUninitialized(TArray<GUIStyleSheetRuleset> rulesets)
 {
-	SPtr<GUIStyleSheet> newStyleSheet = B3DMakeCoreFromExisting<GUIStyleSheet>(new(B3DAllocate<GUIStyleSheet>()) GUIStyleSheet(std::move(rulesets)));
+	SPtr<GUIStyleSheet> newStyleSheet = B3DMakeSharedFromExisting<GUIStyleSheet>(new(B3DAllocate<GUIStyleSheet>()) GUIStyleSheet(std::move(rulesets)));
 	newStyleSheet->SetShared(newStyleSheet);
 
 	return newStyleSheet;

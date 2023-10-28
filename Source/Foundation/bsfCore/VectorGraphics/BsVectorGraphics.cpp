@@ -251,7 +251,7 @@ namespace bs
 
 	SPtr<VectorPath> VectorPath::CreateShared(const Size2& canvasSize)
 	{
-		SPtr<VectorPath> newVectorPath = B3DMakeCoreFromExisting<VectorPath>(new(B3DAllocate<VectorPath>()) VectorPath(canvasSize));
+		SPtr<VectorPath> newVectorPath = B3DMakeSharedFromExisting<VectorPath>(new(B3DAllocate<VectorPath>()) VectorPath(canvasSize));
 		newVectorPath->SetShared(newVectorPath);
 		newVectorPath->Initialize();
 

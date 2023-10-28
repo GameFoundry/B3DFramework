@@ -24,12 +24,12 @@ SPtr<RenderWindow> VulkanRenderWindowManager::CreateImpl(RENDER_WINDOW_DESC& des
 	// Create the window
 #if B3D_PLATFORM == B3D_PLATFORM_ID_WIN32
 	Win32RenderWindow* renderWindow = new(B3DAllocate<Win32RenderWindow>()) Win32RenderWindow(desc, windowId);
-	return B3DMakeCoreFromExisting<Win32RenderWindow>(renderWindow);
+	return B3DMakeSharedFromExisting<Win32RenderWindow>(renderWindow);
 #elif B3D_PLATFORM == B3D_PLATFORM_ID_LINUX
 	LinuxRenderWindow* renderWindow = new(B3DAllocate<LinuxRenderWindow>()) LinuxRenderWindow(desc, windowId);
-	return B3DMakeCoreFromExisting<LinuxRenderWindow>(renderWindow);
+	return B3DMakeSharedFromExisting<LinuxRenderWindow>(renderWindow);
 #elif B3D_PLATFORM == B3D_PLATFORM_ID_MACOS
 	MacOSRenderWindow* renderWindow = new(B3DAllocate<MacOSRenderWindow>()) MacOSRenderWindow(desc, windowId);
-	return B3DMakeCoreFromExisting<MacOSRenderWindow>(renderWindow);
+	return B3DMakeSharedFromExisting<MacOSRenderWindow>(renderWindow);
 #endif
 }

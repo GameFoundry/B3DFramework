@@ -173,7 +173,7 @@ SPtr<ct::ReflectionProbe> ReflectionProbe::GetCore() const
 SPtr<ReflectionProbe> ReflectionProbe::CreateSphere(float radius)
 {
 	ReflectionProbe* probe = new(B3DAllocate<ReflectionProbe>()) ReflectionProbe(ReflectionProbeType::Sphere, radius, Vector3::kZero);
-	SPtr<ReflectionProbe> probePtr = B3DMakeCoreFromExisting<ReflectionProbe>(probe);
+	SPtr<ReflectionProbe> probePtr = B3DMakeSharedFromExisting<ReflectionProbe>(probe);
 	probePtr->SetShared(probePtr);
 	probePtr->Initialize();
 
@@ -183,7 +183,7 @@ SPtr<ReflectionProbe> ReflectionProbe::CreateSphere(float radius)
 SPtr<ReflectionProbe> ReflectionProbe::CreateBox(const Vector3& extents)
 {
 	ReflectionProbe* probe = new(B3DAllocate<ReflectionProbe>()) ReflectionProbe(ReflectionProbeType::Box, 1.0f, extents);
-	SPtr<ReflectionProbe> probePtr = B3DMakeCoreFromExisting<ReflectionProbe>(probe);
+	SPtr<ReflectionProbe> probePtr = B3DMakeSharedFromExisting<ReflectionProbe>(probe);
 	probePtr->SetShared(probePtr);
 	probePtr->Initialize();
 
@@ -193,7 +193,7 @@ SPtr<ReflectionProbe> ReflectionProbe::CreateBox(const Vector3& extents)
 SPtr<ReflectionProbe> ReflectionProbe::CreateEmpty()
 {
 	ReflectionProbe* probe = new(B3DAllocate<ReflectionProbe>()) ReflectionProbe();
-	SPtr<ReflectionProbe> probePtr = B3DMakeCoreFromExisting<ReflectionProbe>(probe);
+	SPtr<ReflectionProbe> probePtr = B3DMakeSharedFromExisting<ReflectionProbe>(probe);
 	probePtr->SetShared(probePtr);
 
 	return probePtr;

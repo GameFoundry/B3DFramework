@@ -160,7 +160,7 @@ CoreSyncPacket* Pass::CreateSyncPacket(FrameAllocator& allocator, u32 flags)
 SPtr<Pass> Pass::Create(const PassCreateInformation& desc)
 {
 	Pass* newPass = new(B3DAllocate<Pass>()) Pass(desc);
-	SPtr<Pass> newPassPtr = B3DMakeCoreFromExisting<Pass>(newPass);
+	SPtr<Pass> newPassPtr = B3DMakeSharedFromExisting<Pass>(newPass);
 	newPassPtr->SetShared(newPassPtr);
 	newPassPtr->Initialize();
 
@@ -170,7 +170,7 @@ SPtr<Pass> Pass::Create(const PassCreateInformation& desc)
 SPtr<Pass> Pass::CreateEmpty()
 {
 	Pass* newPass = new(B3DAllocate<Pass>()) Pass();
-	SPtr<Pass> newPassPtr = B3DMakeCoreFromExisting<Pass>(newPass);
+	SPtr<Pass> newPassPtr = B3DMakeSharedFromExisting<Pass>(newPass);
 	newPassPtr->SetShared(newPassPtr);
 
 	return newPassPtr;

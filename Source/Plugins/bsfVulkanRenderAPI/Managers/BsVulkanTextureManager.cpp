@@ -34,7 +34,7 @@ SPtr<RenderTexture> VulkanTextureManager::CreateRenderTextureImpl(const RenderTe
 {
 	VulkanRenderTexture* tex = new(B3DAllocate<VulkanRenderTexture>()) VulkanRenderTexture(desc);
 
-	return B3DMakeCoreFromExisting<VulkanRenderTexture>(tex);
+	return B3DMakeSharedFromExisting<VulkanRenderTexture>(tex);
 }
 
 PixelFormat VulkanTextureManager::GetNativeFormat(TextureType ttype, PixelFormat format, int usage, bool hwGamma)

@@ -18,7 +18,7 @@ HPlainText PlainText::Create(const WString& data)
 
 SPtr<PlainText> PlainText::CreatePtrInternal(const WString& data)
 {
-	SPtr<PlainText> plainTextPtr = B3DMakeCoreFromExisting<PlainText>(
+	SPtr<PlainText> plainTextPtr = B3DMakeSharedFromExisting<PlainText>(
 		new(B3DAllocate<PlainText>()) PlainText(data));
 	plainTextPtr->SetShared(plainTextPtr);
 	plainTextPtr->Initialize();

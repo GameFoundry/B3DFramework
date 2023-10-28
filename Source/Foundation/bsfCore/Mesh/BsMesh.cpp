@@ -216,7 +216,7 @@ HMesh Mesh::Create(const SPtr<MeshData>& initialMeshData, int usage, DrawOperati
 
 SPtr<Mesh> Mesh::CreateShared(const MeshCreateInformation& meshCreateInformation)
 {
-	SPtr<Mesh> mesh = B3DMakeCoreFromExisting<Mesh>(new(B3DAllocate<Mesh>()) Mesh(meshCreateInformation));
+	SPtr<Mesh> mesh = B3DMakeSharedFromExisting<Mesh>(new(B3DAllocate<Mesh>()) Mesh(meshCreateInformation));
 	mesh->SetShared(mesh);
 	mesh->Initialize();
 
@@ -225,7 +225,7 @@ SPtr<Mesh> Mesh::CreateShared(const MeshCreateInformation& meshCreateInformation
 
 SPtr<Mesh> Mesh::CreateShared(const SPtr<MeshData>& initialMeshData, const MeshCreateInformation& meshCreateInformation)
 {
-	SPtr<Mesh> mesh = B3DMakeCoreFromExisting<Mesh>(new(B3DAllocate<Mesh>()) Mesh(initialMeshData, meshCreateInformation));
+	SPtr<Mesh> mesh = B3DMakeSharedFromExisting<Mesh>(new(B3DAllocate<Mesh>()) Mesh(initialMeshData, meshCreateInformation));
 	mesh->SetShared(mesh);
 	mesh->Initialize();
 
@@ -238,7 +238,7 @@ SPtr<Mesh> Mesh::CreateShared(const SPtr<MeshData>& initialMeshData, int usage, 
 	meshCreateInformation.Usage = usage;
 	meshCreateInformation.SubMeshes.push_back(SubMesh(0, initialMeshData->GetIndexCount(), primitiveType));
 
-	SPtr<Mesh> mesh = B3DMakeCoreFromExisting<Mesh>(new(B3DAllocate<Mesh>()) Mesh(initialMeshData, meshCreateInformation));
+	SPtr<Mesh> mesh = B3DMakeSharedFromExisting<Mesh>(new(B3DAllocate<Mesh>()) Mesh(initialMeshData, meshCreateInformation));
 	mesh->SetShared(mesh);
 	mesh->Initialize();
 
@@ -247,7 +247,7 @@ SPtr<Mesh> Mesh::CreateShared(const SPtr<MeshData>& initialMeshData, int usage, 
 
 SPtr<Mesh> Mesh::CreateEmptyShared()
 {
-	SPtr<Mesh> mesh = B3DMakeCoreFromExisting<Mesh>(new(B3DAllocate<Mesh>()) Mesh());
+	SPtr<Mesh> mesh = B3DMakeSharedFromExisting<Mesh>(new(B3DAllocate<Mesh>()) Mesh());
 	mesh->SetShared(mesh);
 
 	return mesh;

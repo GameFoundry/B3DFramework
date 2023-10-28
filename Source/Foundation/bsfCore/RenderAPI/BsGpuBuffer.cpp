@@ -142,7 +142,7 @@ CoreSyncPacket* GpuBuffer::CreateSyncPacket(FrameAllocator& allocator, u32 flags
 
 SPtr<GpuBuffer> GpuBuffer::Create(const GpuBufferCreateInformation& createInformation)
 {
-	SPtr<GpuBuffer> buffer = B3DMakeCoreFromExisting<GpuBuffer>(new(B3DAllocate<GpuBuffer>()) GpuBuffer(createInformation));
+	SPtr<GpuBuffer> buffer = B3DMakeSharedFromExisting<GpuBuffer>(new(B3DAllocate<GpuBuffer>()) GpuBuffer(createInformation));
 	buffer->SetShared(buffer);
 	buffer->Initialize();
 

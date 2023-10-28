@@ -201,58 +201,6 @@ namespace bs
 		SPtr<ct::CoreObject> mCoreSpecific;
 	};
 
-	/**
-	 * Creates a new core object using the specified allocators and returns a shared pointer to it.
-	 *
-	 * @note
-	 * All core thread object shared pointers must be created using this method or its overloads and you should not create
-	 * them manually.
-	 */
-	template <class Type, class MainAlloc, class PtrDataAlloc, class... Args>
-	SPtr<Type> B3DMakeCoreShared(Args&&... args)
-	{
-		return SPtr<Type>(B3DNew<Type, MainAlloc>(std::forward<Args>(args)...), &Type::template SharedDeleter<Type, MainAlloc>, StdAlloc<Type, PtrDataAlloc>());
-	}
-
-	/**
-	 * Creates a new core object using the specified allocator and returns a shared pointer to it.
-	 *
-	 * @note
-	 * All core thread object shared pointers must be created using this method or its overloads and you should not create
-	 * them manually.
-	 */
-	template <class Type, class MainAlloc, class... Args>
-	SPtr<Type> B3DMakeCoreShared(Args&&... args)
-	{
-		return SPtr<Type>(B3DNew<Type, MainAlloc>(std::forward<Args>(args)...), &Type::template SharedDeleter<Type, MainAlloc>, StdAlloc<Type, DefaultAllocatorTag>());
-	}
-
-	/**
-	 * Creates a new core object and returns a shared pointer to it.
-	 *
-	 * @note
-	 * All core thread object shared pointers must be created using this method or its overloads and you should not create
-	 * them manually.
-	 */
-	template <class Type, class... Args>
-	SPtr<Type> B3DMakeCoreShared(Args&&... args)
-	{
-		return SPtr<Type>(B3DNew<Type, DefaultAllocatorTag>(std::forward<Args>(args)...), &Type::template SharedDeleter<Type, DefaultAllocatorTag>, StdAlloc<Type, DefaultAllocatorTag>());
-	}
-
-	/**
-	 * Creates a core object shared pointer using a previously constructed object.
-	 *
-	 * @note
-	 * All core thread object shared pointers must be created using this method or its overloads and you should not create
-	 * them manually.
-	 */
-	template <class Type, class MainAlloc = DefaultAllocatorTag, class PtrDataAlloc = DefaultAllocatorTag>
-	SPtr<Type> B3DMakeCoreFromExisting(Type* data)
-	{
-		return SPtr<Type>(data, &Type::template SharedDeleter<Type, MainAlloc>, StdAlloc<Type, PtrDataAlloc>());
-	}
-
 	/** Returns associated core object, or null if the object is null. */
 	template<class Type>
 	auto B3DGetCoreObject(const SPtr<Type>& object)

@@ -423,7 +423,7 @@ SPtr<Renderable> Renderable::Create()
 SPtr<Renderable> Renderable::CreateEmpty()
 {
 	Renderable* handler = new(B3DAllocate<Renderable>()) Renderable();
-	SPtr<Renderable> handlerPtr = B3DMakeCoreFromExisting<Renderable>(handler);
+	SPtr<Renderable> handlerPtr = B3DMakeSharedFromExisting<Renderable>(handler);
 	handlerPtr->SetShared(handlerPtr);
 
 	return handlerPtr;

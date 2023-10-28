@@ -207,7 +207,7 @@ SPtr<Light> Light::Create(LightType type, Color color, float intensity, float at
 {
 	Light* handler = new(B3DAllocate<Light>())
 		Light(type, color, intensity, attRadius, 0.0f, castsShadows, spotAngle, spotFalloffAngle);
-	SPtr<Light> handlerPtr = B3DMakeCoreFromExisting<Light>(handler);
+	SPtr<Light> handlerPtr = B3DMakeSharedFromExisting<Light>(handler);
 	handlerPtr->SetShared(handlerPtr);
 	handlerPtr->Initialize();
 
@@ -217,7 +217,7 @@ SPtr<Light> Light::Create(LightType type, Color color, float intensity, float at
 SPtr<Light> Light::CreateEmpty()
 {
 	Light* handler = new(B3DAllocate<Light>()) Light();
-	SPtr<Light> handlerPtr = B3DMakeCoreFromExisting<Light>(handler);
+	SPtr<Light> handlerPtr = B3DMakeSharedFromExisting<Light>(handler);
 	handlerPtr->SetShared(handlerPtr);
 
 	return handlerPtr;

@@ -689,7 +689,7 @@ SPtr<ct::Camera> Camera::GetCore() const
 SPtr<Camera> Camera::Create()
 {
 	Camera* handler = new(B3DAllocate<Camera>()) Camera();
-	SPtr<Camera> handlerPtr = B3DMakeCoreFromExisting<Camera>(handler);
+	SPtr<Camera> handlerPtr = B3DMakeSharedFromExisting<Camera>(handler);
 	handlerPtr->SetShared(handlerPtr);
 	handlerPtr->Initialize();
 
@@ -699,7 +699,7 @@ SPtr<Camera> Camera::Create()
 SPtr<Camera> Camera::CreateEmpty()
 {
 	Camera* handler = new(B3DAllocate<Camera>()) Camera();
-	SPtr<Camera> handlerPtr = B3DMakeCoreFromExisting<Camera>(handler);
+	SPtr<Camera> handlerPtr = B3DMakeSharedFromExisting<Camera>(handler);
 	handlerPtr->SetShared(handlerPtr);
 
 	return handlerPtr;

@@ -154,7 +154,7 @@ void Viewport::GetCoreDependencies(Vector<CoreObject*>& dependencies)
 SPtr<Viewport> Viewport::Create(const SPtr<RenderTarget>& target, float x, float y, float width, float height)
 {
 	Viewport* viewport = new(B3DAllocate<Viewport>()) Viewport(target, x, y, width, height);
-	SPtr<Viewport> viewportPtr = B3DMakeCoreFromExisting<Viewport>(viewport);
+	SPtr<Viewport> viewportPtr = B3DMakeSharedFromExisting<Viewport>(viewport);
 	viewportPtr->SetShared(viewportPtr);
 	viewportPtr->Initialize();
 
@@ -164,7 +164,7 @@ SPtr<Viewport> Viewport::Create(const SPtr<RenderTarget>& target, float x, float
 SPtr<Viewport> Viewport::CreateEmpty()
 {
 	Viewport* viewport = new(B3DAllocate<Viewport>()) Viewport();
-	SPtr<Viewport> viewportPtr = B3DMakeCoreFromExisting<Viewport>(viewport);
+	SPtr<Viewport> viewportPtr = B3DMakeSharedFromExisting<Viewport>(viewport);
 	viewportPtr->SetShared(viewportPtr);
 
 	return viewportPtr;

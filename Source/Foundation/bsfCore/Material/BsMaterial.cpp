@@ -985,7 +985,7 @@ HMaterial Material::Create(const HShader& shader)
 
 HMaterial Material::Create(const HShader& shader, const ShaderVariationParameters& variation)
 {
-	SPtr<Material> materialPtr = B3DMakeCoreFromExisting<Material>(new(B3DAllocate<Material>()) Material(shader, variation));
+	SPtr<Material> materialPtr = B3DMakeSharedFromExisting<Material>(new(B3DAllocate<Material>()) Material(shader, variation));
 	materialPtr->SetShared(materialPtr);
 	materialPtr->Initialize();
 
@@ -994,7 +994,7 @@ HMaterial Material::Create(const HShader& shader, const ShaderVariationParameter
 
 SPtr<Material> Material::CreateEmpty()
 {
-	SPtr<Material> newMat = B3DMakeCoreFromExisting<Material>(new(B3DAllocate<Material>()) Material());
+	SPtr<Material> newMat = B3DMakeSharedFromExisting<Material>(new(B3DAllocate<Material>()) Material());
 	newMat->SetShared(newMat);
 
 	return newMat;

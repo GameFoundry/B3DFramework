@@ -702,12 +702,12 @@ void PhysX::TriggerEvents()
 
 SPtr<PhysicsMaterial> PhysX::CreateMaterial(float staticFriction, float dynamicFriction, float restitution)
 {
-	return B3DMakeCoreShared<PhysXMaterial>(mPhysics, staticFriction, dynamicFriction, restitution);
+	return B3DMakeShared<PhysXMaterial>(mPhysics, staticFriction, dynamicFriction, restitution);
 }
 
 SPtr<PhysicsMesh> PhysX::CreateMesh(const SPtr<MeshData>& meshData, PhysicsMeshType type)
 {
-	return B3DMakeCoreShared<PhysXMesh>(meshData, type);
+	return B3DMakeShared<PhysXMesh>(meshData, type);
 }
 
 SPtr<PhysicsScene> PhysX::CreatePhysicsScene()

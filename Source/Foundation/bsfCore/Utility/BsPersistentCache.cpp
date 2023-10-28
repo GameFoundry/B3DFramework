@@ -14,7 +14,7 @@ B3D_LOG_CATEGORY_STATIC(PersistentCache, Log)
 
 SPtr<PersistentCacheObject> PersistentCacheObject::Create(const SPtr<IReflectable>& object)
 {
-	SPtr<PersistentCacheObject> cacheObject = B3DMakeCoreFromExisting<PersistentCacheObject>(new (B3DAllocate<PersistentCacheObject>()) PersistentCacheObject(object));
+	SPtr<PersistentCacheObject> cacheObject = B3DMakeSharedFromExisting<PersistentCacheObject>(new (B3DAllocate<PersistentCacheObject>()) PersistentCacheObject(object));
 	cacheObject->SetId(UUIDGenerator::GenerateRandom());
 	cacheObject->SetShared(cacheObject);
 	cacheObject->Initialize();
@@ -24,7 +24,7 @@ SPtr<PersistentCacheObject> PersistentCacheObject::Create(const SPtr<IReflectabl
 
 SPtr<PersistentCacheObject> PersistentCacheObject::Create(const TInlineArray<SPtr<IReflectable>, 1>& objects)
 {
-	SPtr<PersistentCacheObject> cacheObject = B3DMakeCoreFromExisting<PersistentCacheObject>(new (B3DAllocate<PersistentCacheObject>()) PersistentCacheObject(objects));
+	SPtr<PersistentCacheObject> cacheObject = B3DMakeSharedFromExisting<PersistentCacheObject>(new (B3DAllocate<PersistentCacheObject>()) PersistentCacheObject(objects));
 	cacheObject->SetId(UUIDGenerator::GenerateRandom());
 	cacheObject->SetShared(cacheObject);
 	cacheObject->Initialize();

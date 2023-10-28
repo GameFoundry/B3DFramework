@@ -651,7 +651,7 @@ SPtr<Shader> Shader::CreateShared(const String& name, const ShaderCreateInformat
 	u32 id = ct::Shader::mNextShaderId.fetch_add(1, std::memory_order_relaxed);
 	B3D_ASSERT(id < std::numeric_limits<u32>::max() && "Created too many shaders, reached maximum id.");
 
-	SPtr<Shader> newShader = B3DMakeCoreFromExisting<Shader>(new(B3DAllocate<Shader>()) Shader(name, createInformation, id));
+	SPtr<Shader> newShader = B3DMakeSharedFromExisting<Shader>(new(B3DAllocate<Shader>()) Shader(name, createInformation, id));
 	newShader->SetShared(newShader);
 	newShader->Initialize();
 
@@ -663,7 +663,7 @@ SPtr<Shader> Shader::CreateEmpty()
 	u32 id = ct::Shader::mNextShaderId.fetch_add(1, std::memory_order_relaxed);
 	B3D_ASSERT(id < std::numeric_limits<u32>::max() && "Created too many shaders, reached maximum id.");
 
-	SPtr<Shader> newShader = B3DMakeCoreFromExisting<Shader>(new(B3DAllocate<Shader>()) Shader(id));
+	SPtr<Shader> newShader = B3DMakeSharedFromExisting<Shader>(new(B3DAllocate<Shader>()) Shader(id));
 	newShader->SetShared(newShader);
 
 	return newShader;
