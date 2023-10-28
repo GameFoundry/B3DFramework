@@ -17,6 +17,7 @@ Data/Raw/*
 !Data/Raw/ShaderDependencies.json
 !Data/Raw/DataList.json
 !Data/Raw/GUISkin.json
+!Data/Raw/GUI.css
 !Data/Raw/Shaders/
 !Data/Raw/Shaders/Includes/
 !Data/Raw/.reqversion
