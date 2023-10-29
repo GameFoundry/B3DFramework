@@ -32,11 +32,11 @@ namespace bs
 	 * Renderable represents any visible object in the scene. It has a mesh, bounds and a set of materials. Renderer will
 	 * render any Renderable objects visible by a camera.
 	 */
-	template <bool Core>
+	template <bool IsRenderProxy>
 	class B3D_CORE_EXPORT TRenderable : public SceneActor
 	{
-		using MeshType = CoreVariantHandleType<Mesh, Core>;
-		using MaterialType = CoreVariantHandleType<Material, Core>;
+		using MeshType = CoreVariantHandleType<Mesh, IsRenderProxy>;
+		using MaterialType = CoreVariantHandleType<Material, IsRenderProxy>;
 
 	public:
 		TRenderable();

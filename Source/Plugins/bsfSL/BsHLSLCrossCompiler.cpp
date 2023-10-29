@@ -391,8 +391,8 @@ static SamplerStateCreateInformation ParseSamplerState(const Xsc::Reflection::Sa
 	return samplerCreateInformation;
 }
 
-template<bool Core>
-static bool ParseParameters(const Xsc::Reflection::ReflectionData& reflectionData, ShaderCompilerResult& outCompileResult, CoreVariantType<ShaderCreateInformation, Core>& outShaderCreateInformation)
+template<bool IsRenderProxy>
+static bool ParseParameters(const Xsc::Reflection::ReflectionData& reflectionData, ShaderCompilerResult& outCompileResult, CoreVariantType<ShaderCreateInformation, IsRenderProxy>& outShaderCreateInformation)
 {
 	for(auto& entry : reflectionData.uniforms)
 	{
@@ -618,8 +618,8 @@ static bool ParseParameters(const Xsc::Reflection::ReflectionData& reflectionDat
 	return true;
 }
 
-template<bool Core>
-static String CrossCompile(const String& hlsl, GpuProgramType type, HLSLCrossCompileOutput outputType, bool optionalEntry, u32& startBindingSlot, ShaderCompilerResult& outCompileResult, CoreVariantType<ShaderCreateInformation, Core>* outShaderCreateInformation = nullptr, TInlineArray<GpuProgramType, 2>* detectedTypes = nullptr)
+template<bool IsRenderProxy>
+static String CrossCompile(const String& hlsl, GpuProgramType type, HLSLCrossCompileOutput outputType, bool optionalEntry, u32& startBindingSlot, ShaderCompilerResult& outCompileResult, CoreVariantType<ShaderCreateInformation, IsRenderProxy>* outShaderCreateInformation = nullptr, TInlineArray<GpuProgramType, 2>* detectedTypes = nullptr)
 {
 	SPtr<StringStream> input = B3DMakeShared<StringStream>();
 
@@ -786,7 +786,7 @@ static String CrossCompile(const String& hlsl, GpuProgramType type, HLSLCrossCom
 
 	if (outShaderCreateInformation != nullptr)
 	{
-		if (!ParseParameters<Core>(reflectionData, outCompileResult, *outShaderCreateInformation))
+		if (!ParseParameters<IsRenderProxy>(reflectionData, outCompileResult, *outShaderCreateInformation))
 			return "";
 	}
 
@@ -801,12 +801,12 @@ ShaderCompilerResult HLSLCrossCompiler::CrossCompile(const String& hlsl, GpuProg
 	return compileResult;
 }
 
-template<bool Core>
-ShaderCompilerResult HLSLCrossCompiler::TReflect(const String& hlsl, CoreVariantType<ShaderCreateInformation, Core>& outShaderCreateInformation, TInlineArray<GpuProgramType, 2>& outEntryPoints)
+template<bool IsRenderProxy>
+ShaderCompilerResult HLSLCrossCompiler::TReflect(const String& hlsl, CoreVariantType<ShaderCreateInformation, IsRenderProxy>& outShaderCreateInformation, TInlineArray<GpuProgramType, 2>& outEntryPoints)
 {
 	ShaderCompilerResult compileResult;
 	u32 dummy = 0;
-	::CrossCompile<Core>(hlsl, GPT_VERTEX_PROGRAM, HLSLCrossCompileOutput::GLSL45, true, dummy, compileResult, &outShaderCreateInformation, &outEntryPoints);
+	::CrossCompile<IsRenderProxy>(hlsl, GPT_VERTEX_PROGRAM, HLSLCrossCompileOutput::GLSL45, true, dummy, compileResult, &outShaderCreateInformation, &outEntryPoints);
 
 	return compileResult;
 }

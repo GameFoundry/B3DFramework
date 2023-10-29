@@ -457,8 +457,8 @@ SPtr<ct::GpuBuffer> CreateGpuBuffer(const GpuBufferCreateInformation& gpuBufferC
 	return device->CreateGpuBuffer(gpuBufferCreateInformation);
 }
 
-template <bool Core>
-SPtr<CoreVariantType<GpuParameters, Core>> CreateGpuParameters(const SPtr<GpuPipelineParameterLayout>& parameterLayout)
+template <bool IsRenderProxy>
+SPtr<CoreVariantType<GpuParameters, IsRenderProxy>> CreateGpuParameters(const SPtr<GpuPipelineParameterLayout>& parameterLayout)
 {
 	return nullptr;
 }
@@ -476,11 +476,11 @@ SPtr<ct::GpuParameters> CreateGpuParameters<true>(const SPtr<GpuPipelineParamete
 	return device->CreateGpuParameters(parameterLayout);
 }
 
-template <bool Core>
-const u32 TGpuParamsSet<Core>::kNumStages = 6;
+template <bool IsRenderProxy>
+const u32 TGpuParamsSet<IsRenderProxy>::kNumStages = 6;
 
-template <bool Core>
-TGpuParamsSet<Core>::TGpuParamsSet(const SPtr<TechniqueType>& technique, const ShaderType& shader, const SPtr<MaterialParamsType>& params)
+template <bool IsRenderProxy>
+TGpuParamsSet<IsRenderProxy>::TGpuParamsSet(const SPtr<TechniqueType>& technique, const ShaderType& shader, const SPtr<MaterialParamsType>& params)
 	: mPassParams(technique->GetPassCount()), mParamVersion(0)
 {
 	const u32 passCount = technique->GetPassCount();
@@ -494,11 +494,11 @@ TGpuParamsSet<Core>::TGpuParamsSet(const SPtr<TechniqueType>& technique, const S
 
 		SPtr<GpuGraphicsPipelineState> gfxPipeline = curPass->GetGraphicsPipelineState();
 		if(gfxPipeline != nullptr)
-			mPassParams[passIndex] = CreateGpuParameters<Core>(gfxPipeline->GetParameterLayout());
+			mPassParams[passIndex] = CreateGpuParameters<IsRenderProxy>(gfxPipeline->GetParameterLayout());
 		else
 		{
 			SPtr<GpuComputePipelineState> computePipeline = curPass->GetComputePipelineState();
-			mPassParams[passIndex] = CreateGpuParameters<Core>(computePipeline->GetParameterLayout());
+			mPassParams[passIndex] = CreateGpuParameters<IsRenderProxy>(computePipeline->GetParameterLayout());
 		}
 
 		parameterDescriptionsPerPass.push_back(GatherParameterDescriptions(curPass));
@@ -804,15 +804,15 @@ TGpuParamsSet<Core>::TGpuParamsSet(const SPtr<TechniqueType>& technique, const S
 	B3DClearAllocatorFrame();
 }
 
-template <bool Core>
-TGpuParamsSet<Core>::~TGpuParamsSet()
+template <bool IsRenderProxy>
+TGpuParamsSet<IsRenderProxy>::~TGpuParamsSet()
 {
 	// All allocations share the same memory, so we just clear it all at once
 	B3DFree(mData);
 }
 
-template <bool Core>
-SPtr<typename TGpuParamsSet<Core>::GpuParamsType> TGpuParamsSet<Core>::GetGpuParams(u32 passIdx)
+template <bool IsRenderProxy>
+SPtr<typename TGpuParamsSet<IsRenderProxy>::GpuParamsType> TGpuParamsSet<IsRenderProxy>::GetGpuParams(u32 passIdx)
 {
 	if(passIdx >= mPassParams.size())
 		return nullptr;
@@ -820,8 +820,8 @@ SPtr<typename TGpuParamsSet<Core>::GpuParamsType> TGpuParamsSet<Core>::GetGpuPar
 	return mPassParams[passIdx];
 }
 
-template <bool Core>
-u32 TGpuParamsSet<Core>::GetParamBlockBufferIndex(const String& name) const
+template <bool IsRenderProxy>
+u32 TGpuParamsSet<IsRenderProxy>::GetParamBlockBufferIndex(const String& name) const
 {
 	for(u32 i = 0; i < (u32)mBlocks.size(); i++)
 	{
@@ -833,8 +833,8 @@ u32 TGpuParamsSet<Core>::GetParamBlockBufferIndex(const String& name) const
 	return -1;
 }
 
-template <bool Core>
-void TGpuParamsSet<Core>::SetParamBlockBuffer(u32 index, const ParamBlockPtrType& paramBlock, bool ignoreInUpdate)
+template <bool IsRenderProxy>
+void TGpuParamsSet<IsRenderProxy>::SetParamBlockBuffer(u32 index, const ParamBlockPtrType& paramBlock, bool ignoreInUpdate)
 {
 	BlockInfo& blockInfo = mBlocks[index];
 	if(!blockInfo.Shareable)
@@ -871,8 +871,8 @@ void TGpuParamsSet<Core>::SetParamBlockBuffer(u32 index, const ParamBlockPtrType
 	}
 }
 
-template <bool Core>
-void TGpuParamsSet<Core>::SetParamBlockBuffer(const String& name, const ParamBlockPtrType& paramBlock, bool ignoreInUpdate)
+template <bool IsRenderProxy>
+void TGpuParamsSet<IsRenderProxy>::SetParamBlockBuffer(const String& name, const ParamBlockPtrType& paramBlock, bool ignoreInUpdate)
 {
 	u32 bufferIdx = GetParamBlockBufferIndex(name);
 	if(bufferIdx == (u32)-1)
@@ -884,8 +884,8 @@ void TGpuParamsSet<Core>::SetParamBlockBuffer(const String& name, const ParamBlo
 	SetParamBlockBuffer(bufferIdx, paramBlock, ignoreInUpdate);
 }
 
-template <bool Core>
-void TGpuParamsSet<Core>::Update(const SPtr<MaterialParamsType>& params, float t, bool updateAll)
+template <bool IsRenderProxy>
+void TGpuParamsSet<IsRenderProxy>::Update(const SPtr<MaterialParamsType>& params, float t, bool updateAll)
 {
 	// Note: Instead of iterating over every single parameter, it might be more efficient for @p params to keep
 	// a ring buffer and a version number. Then we could just iterate over the ring buffer and only access dirty
@@ -1050,7 +1050,7 @@ void TGpuParamsSet<Core>::Update(const SPtr<MaterialParamsType>& params, float t
 				{
 					B3D_ASSERT(paramSize == sizeof(Rect2));
 
-					CoreVariantHandleType<SpriteTexture, Core> spriteTexture =
+					CoreVariantHandleType<SpriteTexture, IsRenderProxy> spriteTexture =
 						params->GetOwningSpriteTexture(*materialParamInfo);
 
 					u32 writeOffset = paramInfo.Offset * sizeof(u32);

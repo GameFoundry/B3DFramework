@@ -485,7 +485,7 @@ namespace bs
 	};
 
 	/** Helper typedefs that reference types used by either core or sim thread implementation of TMaterialParams<Core>. */
-	template <bool Core>
+	template <bool IsRenderProxz>
 	struct TMaterialParamsTypes
 	{};
 
@@ -508,20 +508,20 @@ namespace bs
 	};
 
 	/** Common code that may be specialized for both MaterialParams and ct::MaterialParams. */
-	template <bool Core>
+	template <bool IsRenderProxy>
 	class B3D_CORE_EXPORT TMaterialParams : public MaterialParamsBase
 	{
 	public:
-		using GpuParamsType = CoreVariantType<GpuParameters, Core>;
-		using TextureType = CoreVariantHandleType<Texture, Core>;
-		using ShaderType = CoreVariantHandleType<Shader, Core>;
-		using SpriteTextureType = CoreVariantHandleType<SpriteTexture, Core>;
-		using BufferType = SPtr<CoreVariantType<GpuBuffer, Core>>;
+		using GpuParamsType = CoreVariantType<GpuParameters, IsRenderProxy>;
+		using TextureType = CoreVariantHandleType<Texture, IsRenderProxy>;
+		using ShaderType = CoreVariantHandleType<Shader, IsRenderProxy>;
+		using SpriteTextureType = CoreVariantHandleType<SpriteTexture, IsRenderProxy>;
+		using BufferType = SPtr<CoreVariantType<GpuBuffer, IsRenderProxy>>;
 
-		using ParamStructDataType = typename TMaterialParamsTypes<Core>::StructParamDataType;
-		using ParamTextureDataType = typename TMaterialParamsTypes<Core>::TextureParamDataType;
-		using ParamBufferDataType = typename TMaterialParamsTypes<Core>::BufferParamDataType;
-		using ParamSamplerStateDataType = typename TMaterialParamsTypes<Core>::SamplerStateParamDataType;
+		using ParamStructDataType = typename TMaterialParamsTypes<IsRenderProxy>::StructParamDataType;
+		using ParamTextureDataType = typename TMaterialParamsTypes<IsRenderProxy>::TextureParamDataType;
+		using ParamBufferDataType = typename TMaterialParamsTypes<IsRenderProxy>::BufferParamDataType;
+		using ParamSamplerStateDataType = typename TMaterialParamsTypes<IsRenderProxy>::SamplerStateParamDataType;
 
 		/**
 		 * Creates a new material params object and initializes enough room for parameters from the provided shader.

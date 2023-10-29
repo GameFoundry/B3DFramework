@@ -94,12 +94,12 @@ namespace bs
 	 *
 	 * @see		Material
 	 */
-	template <class T, bool Core>
+	template <class T, bool IsRenderProxy>
 	class B3D_CORE_EXPORT TGpuParameterPrimitive
 	{
 	private:
-		using GpuParamBufferType = SPtr<CoreVariantType<GpuBuffer, Core>>;
-		using GpuParamsType = SPtr<CoreVariantType<GpuParameters, Core>>;
+		using GpuParamBufferType = SPtr<CoreVariantType<GpuBuffer, IsRenderProxy>>;
+		using GpuParamsType = SPtr<CoreVariantType<GpuParameters, IsRenderProxy>>;
 
 	public:
 		TGpuParameterPrimitive();
@@ -134,12 +134,12 @@ namespace bs
 	};
 
 	/** @copydoc TGpuParameterPrimitive */
-	template <bool Core>
+	template <bool IsRenderProxy>
 	class B3D_CORE_EXPORT TGpuParameterStruct
 	{
 	public:
-		using GpuParamBufferType = SPtr<CoreVariantType<GpuBuffer, Core>>;
-		using GpuParamsType = SPtr<CoreVariantType<GpuParameters, Core>>;
+		using GpuParamBufferType = SPtr<CoreVariantType<GpuBuffer, IsRenderProxy>>;
+		using GpuParamsType = SPtr<CoreVariantType<GpuParameters, IsRenderProxy>>;
 
 		TGpuParameterStruct();
 		TGpuParameterStruct(const GpuDataParameterInformation* parameterInformation, const GpuParamsType& parent);
@@ -165,15 +165,15 @@ namespace bs
 	};
 
 	/** @copydoc TGpuParameterPrimitive */
-	template <bool Core>
+	template <bool IsRenderProxy>
 	class B3D_CORE_EXPORT TGpuParameterSampledTexture
 	{
 	private:
 		friend class GpuParameters;
 		friend class ct::GpuParameters;
 
-		using GpuParamsType = SPtr<CoreVariantType<GpuParameters, Core>>;
-		using TextureType = CoreVariantHandleType<Texture, Core>;
+		using GpuParamsType = SPtr<CoreVariantType<GpuParameters, IsRenderProxy>>;
+		using TextureType = CoreVariantHandleType<Texture, IsRenderProxy>;
 
 	public:
 		TGpuParameterSampledTexture();
@@ -197,15 +197,15 @@ namespace bs
 	};
 
 	/** @copydoc TGpuParameterPrimitive */
-	template <bool Core>
+	template <bool IsRenderProxy>
 	class B3D_CORE_EXPORT TGpuParameterStorageTexture
 	{
 	private:
 		friend class GpuParameters;
 		friend class ct::GpuParameters;
 
-		using GpuParamsType = SPtr<CoreVariantType<GpuParameters, Core>>;
-		using TextureType = CoreVariantHandleType<Texture, Core>;
+		using GpuParamsType = SPtr<CoreVariantType<GpuParameters, IsRenderProxy>>;
+		using TextureType = CoreVariantHandleType<Texture, IsRenderProxy>;
 
 	public:
 		TGpuParameterStorageTexture();
@@ -229,15 +229,15 @@ namespace bs
 	};
 
 	/** @copydoc TGpuParameterPrimitive */
-	template <bool Core>
+	template <bool IsRenderProxy>
 	class B3D_CORE_EXPORT TGpuParameterBuffer
 	{
 	private:
 		friend class GpuParameters;
 		friend class ct::GpuParameters;
 
-		using GpuParamsType = SPtr<CoreVariantType<GpuParameters, Core>>;
-		using BufferType = SPtr<CoreVariantType<GpuBuffer, Core>>;
+		using GpuParamsType = SPtr<CoreVariantType<GpuParameters, IsRenderProxy>>;
+		using BufferType = SPtr<CoreVariantType<GpuBuffer, IsRenderProxy>>;
 
 	public:
 		TGpuParameterBuffer();
@@ -261,14 +261,14 @@ namespace bs
 	};
 
 	/** @copydoc TGpuParameterPrimitive */
-	template <bool Core>
+	template <bool IsRenderProxy>
 	class B3D_CORE_EXPORT TGpuParameterSampler
 	{
 	private:
 		friend class GpuParameters;
 		friend class ct::GpuParameters;
 
-		using GpuParamsType = SPtr<CoreVariantType<GpuParameters, Core>>;
+		using GpuParamsType = SPtr<CoreVariantType<GpuParameters, IsRenderProxy>>;
 
 	public:
 		TGpuParameterSampler();

@@ -470,11 +470,11 @@ namespace bs
 	};
 
 	/** Templated common base class for both sim and core thread implementations of Camera. */
-	template <bool Core>
+	template <bool IsRenderProxy>
 	class B3D_CORE_EXPORT TCamera : public CameraBase
 	{
-		using ViewportType = CoreVariantType<Viewport, Core>;
-		using RenderSettingsType = CoreVariantType<RenderSettings, Core>;
+		using ViewportType = CoreVariantType<Viewport, IsRenderProxy>;
+		using RenderSettingsType = CoreVariantType<RenderSettings, IsRenderProxy>;
 
 	public:
 		TCamera();

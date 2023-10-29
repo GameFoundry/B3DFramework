@@ -35,10 +35,10 @@ void ShaderCompilers::RegisterSearchPath(const Path& folder)
 	mSearchPaths.push_back(folder);
 }
 
-template <bool Core>
-SPtr<CoreVariantType<Shader, Core>> ShaderCompilers::GetOrCompileShader(const Path& shaderPath, const String& cachePrefix, const ShaderDefines& defines)
+template <bool IsRenderProxy>
+SPtr<CoreVariantType<Shader, IsRenderProxy>> ShaderCompilers::GetOrCompileShader(const Path& shaderPath, const String& cachePrefix, const ShaderDefines& defines)
 {
-	using ShaderType = CoreVariantType<Shader, Core>;
+	using ShaderType = CoreVariantType<Shader, IsRenderProxy>;
 
 	SPtr<DataStream> shaderFileStream = nullptr;
 

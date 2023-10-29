@@ -46,11 +46,11 @@ namespace bs
 	};
 
 	/** Common functionality for both main and render thread thread variants of SpriteMaterialInformation. */
-	template <bool Core>
+	template <bool IsRenderProxy>
 	struct TSpriteMaterialInfo
 	{
-		using TextureType = CoreVariantHandleType<Texture, Core>;
-		using SpriteTextureType = CoreVariantHandleType<SpriteTexture, Core>;
+		using TextureType = CoreVariantHandleType<Texture, IsRenderProxy>;
+		using SpriteTextureType = CoreVariantHandleType<SpriteTexture, IsRenderProxy>;
 
 		TSpriteMaterialInfo() = default;
 

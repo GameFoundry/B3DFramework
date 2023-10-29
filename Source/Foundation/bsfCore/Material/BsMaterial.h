@@ -104,18 +104,18 @@ namespace bs
 	};
 
 	/** @copydoc MaterialBase */
-	template <bool Core>
+	template <bool IsRenderProxy>
 	class B3D_CORE_EXPORT TMaterial : public MaterialBase
 	{
 	public:
-		using TextureType = CoreVariantHandleType<Texture, Core>;
-		using SpriteTextureType = CoreVariantHandleType<SpriteTexture, Core>;
-		using BufferType = SPtr<CoreVariantType<GpuBuffer, Core>>;
-		using PassType = CoreVariantType<Pass, Core>;
-		using TechniqueType = CoreVariantType<Technique, Core>;
-		using ShaderType = CoreVariantHandleType<Shader, Core>;
-		using GpuParamsSetType = CoreVariantType<GpuParamsSet, Core>;
-		using MaterialParamsType = CoreVariantType<MaterialParams, Core>;
+		using TextureType = CoreVariantHandleType<Texture, IsRenderProxy>;
+		using SpriteTextureType = CoreVariantHandleType<SpriteTexture, IsRenderProxy>;
+		using BufferType = SPtr<CoreVariantType<GpuBuffer, IsRenderProxy>>;
+		using PassType = CoreVariantType<Pass, IsRenderProxy>;
+		using TechniqueType = CoreVariantType<Technique, IsRenderProxy>;
+		using ShaderType = CoreVariantHandleType<Shader, IsRenderProxy>;
+		using GpuParamsSetType = CoreVariantType<GpuParamsSet, IsRenderProxy>;
+		using MaterialParamsType = CoreVariantType<MaterialParams, IsRenderProxy>;
 
 		TMaterial() = default;
 		virtual ~TMaterial() = default;
@@ -429,7 +429,7 @@ namespace bs
 		 */
 		MaterialBase::StructData GetStructData(const String& name, u32 arrayIdx = 0) const
 		{
-			TMaterialParameterStruct<Core> structParam = GetParamStruct(name);
+			TMaterialParameterStruct<IsRenderProxy> structParam = GetParamStruct(name);
 
 			MaterialBase::StructData data(structParam.GetElementSize());
 			structParam.Get(data.Data.get(), structParam.GetElementSize(), arrayIdx);
@@ -448,9 +448,9 @@ namespace bs
 		 * @note
 		 * If material shader changes this handle will be invalidated.
 		 */
-		TMaterialParameterPrimitive<float, Core> GetParamFloat(const String& name) const
+		TMaterialParameterPrimitive<float, IsRenderProxy> GetParamFloat(const String& name) const
 		{
-			TMaterialParameterPrimitive<float, Core> gpuParam;
+			TMaterialParameterPrimitive<float, IsRenderProxy> gpuParam;
 			GetParam(name, gpuParam);
 
 			return gpuParam;
@@ -467,7 +467,7 @@ namespace bs
 		 * @note
 		 * If material shader changes this handle will be invalidated.
 		 */
-		TMaterialParameterCurve<float, Core> GetParamFloatCurve(const String& name) const;
+		TMaterialParameterCurve<float, IsRenderProxy> GetParamFloatCurve(const String& name) const;
 
 		/**
 		 * Returns a handle that allows you to assign a constant value to a color parameter. This handle may be
@@ -480,9 +480,9 @@ namespace bs
 		 * @note
 		 * If material shader changes this handle will be invalidated.
 		 */
-		TMaterialParameterPrimitive<Color, Core> GetParamColor(const String& name) const
+		TMaterialParameterPrimitive<Color, IsRenderProxy> GetParamColor(const String& name) const
 		{
-			TMaterialParameterPrimitive<Color, Core> gpuParam;
+			TMaterialParameterPrimitive<Color, IsRenderProxy> gpuParam;
 			GetParam(name, gpuParam);
 
 			return gpuParam;
@@ -499,7 +499,7 @@ namespace bs
 		 * @note
 		 * If material shader changes this handle will be invalidated.
 		 */
-		TMaterialParameterColorGradient<Core> GetParamColorGradient(const String& name) const;
+		TMaterialParameterColorGradient<IsRenderProxy> GetParamColorGradient(const String& name) const;
 
 		/**
 		 * Returns a handle that allows you to assign a constant value to a 2D vector parameter. This handle may be
@@ -512,9 +512,9 @@ namespace bs
 		 * @note
 		 * If material shader changes this handle will be invalidated.
 		 */
-		TMaterialParameterPrimitive<Vector2, Core> GetParamVec2(const String& name) const
+		TMaterialParameterPrimitive<Vector2, IsRenderProxy> GetParamVec2(const String& name) const
 		{
-			TMaterialParameterPrimitive<Vector2, Core> gpuParam;
+			TMaterialParameterPrimitive<Vector2, IsRenderProxy> gpuParam;
 			GetParam(name, gpuParam);
 
 			return gpuParam;
@@ -531,9 +531,9 @@ namespace bs
 		 * @note
 		 * If material shader changes this handle will be invalidated.
 		 */
-		TMaterialParameterPrimitive<Vector3, Core> GetParamVec3(const String& name) const
+		TMaterialParameterPrimitive<Vector3, IsRenderProxy> GetParamVec3(const String& name) const
 		{
-			TMaterialParameterPrimitive<Vector3, Core> gpuParam;
+			TMaterialParameterPrimitive<Vector3, IsRenderProxy> gpuParam;
 			GetParam(name, gpuParam);
 
 			return gpuParam;
@@ -550,9 +550,9 @@ namespace bs
 		 * @note
 		 * If material shader changes this handle will be invalidated.
 		 */
-		TMaterialParameterPrimitive<Vector4, Core> GetParamVec4(const String& name) const
+		TMaterialParameterPrimitive<Vector4, IsRenderProxy> GetParamVec4(const String& name) const
 		{
-			TMaterialParameterPrimitive<Vector4, Core> gpuParam;
+			TMaterialParameterPrimitive<Vector4, IsRenderProxy> gpuParam;
 			GetParam(name, gpuParam);
 
 			return gpuParam;
@@ -569,9 +569,9 @@ namespace bs
 		 * @note
 		 * If material shader changes this handle will be invalidated.
 		 */
-		TMaterialParameterPrimitive<Matrix3, Core> GetParamMat3(const String& name) const
+		TMaterialParameterPrimitive<Matrix3, IsRenderProxy> GetParamMat3(const String& name) const
 		{
-			TMaterialParameterPrimitive<Matrix3, Core> gpuParam;
+			TMaterialParameterPrimitive<Matrix3, IsRenderProxy> gpuParam;
 			GetParam(name, gpuParam);
 
 			return gpuParam;
@@ -588,9 +588,9 @@ namespace bs
 		 * @note
 		 * If material shader changes this handle will be invalidated.
 		 */
-		TMaterialParameterPrimitive<Matrix4, Core> GetParamMat4(const String& name) const
+		TMaterialParameterPrimitive<Matrix4, IsRenderProxy> GetParamMat4(const String& name) const
 		{
-			TMaterialParameterPrimitive<Matrix4, Core> gpuParam;
+			TMaterialParameterPrimitive<Matrix4, IsRenderProxy> gpuParam;
 			GetParam(name, gpuParam);
 
 			return gpuParam;
@@ -606,7 +606,7 @@ namespace bs
 		 * @note
 		 * If material shader changes this handle will be invalidated.
 		 */
-		TMaterialParameterStruct<Core> GetParamStruct(const String& name) const;
+		TMaterialParameterStruct<IsRenderProxy> GetParamStruct(const String& name) const;
 
 		/**
 		 * Returns a handle that allows you to assign a texture GPU parameter. This handle may be used for more
@@ -618,7 +618,7 @@ namespace bs
 		 * @note
 		 * If material shader changes this handle will be invalidated.
 		 */
-		TMaterialParameterSampledTexture<Core> GetParamTexture(const String& name) const;
+		TMaterialParameterSampledTexture<IsRenderProxy> GetParamTexture(const String& name) const;
 
 		/**
 		 * Returns a handle that allows you to assign a sprite texture GPU parameter. This handle may be used for more
@@ -630,7 +630,7 @@ namespace bs
 		 * @note
 		 * If material shader changes this handle will be invalidated.
 		 */
-		TMaterialParamSpriteTexture<Core> GetParamSpriteTexture(const String& name) const;
+		TMaterialParamSpriteTexture<IsRenderProxy> GetParamSpriteTexture(const String& name) const;
 
 		/**
 		 * Returns a handle that allows you to assign a load-store texture GPU parameter. This handle may be used for more
@@ -642,7 +642,7 @@ namespace bs
 		 * @note
 		 * If material shader changes this handle will be invalidated.
 		 */
-		TMaterialParameterStorageTexture<Core> GetParamLoadStoreTexture(const String& name) const;
+		TMaterialParameterStorageTexture<IsRenderProxy> GetParamLoadStoreTexture(const String& name) const;
 
 		/**
 		 * Returns a handle that allows you to assign a buffer GPU parameter. This handle may be used for more
@@ -654,7 +654,7 @@ namespace bs
 		 * @note
 		 * If material shader changes this handle will be invalidated.
 		 */
-		TMaterialParameterBuffer<Core> GetParamBuffer(const String& name) const;
+		TMaterialParameterBuffer<IsRenderProxy> GetParamBuffer(const String& name) const;
 
 		/**
 		 * Returns a handle that allows you to assign a sampler state GPU parameter. This handle may be used for more
@@ -666,7 +666,7 @@ namespace bs
 		 * @note
 		 * If material shader changes this handle will be invalidated.
 		 */
-		TMaterialParameterSampler<Core> GetParamSamplerState(const String& name) const;
+		TMaterialParameterSampler<IsRenderProxy> GetParamSamplerState(const String& name) const;
 
 		/**
 		 * Allows you to retrieve a handle to a parameter that you can then use for quickly setting and retrieving parameter
@@ -677,7 +677,7 @@ namespace bs
 		 * of that.
 		 */
 		template <typename T>
-		void GetParam(const String& name, TMaterialParameterPrimitive<T, Core>& output) const;
+		void GetParam(const String& name, TMaterialParameterPrimitive<T, IsRenderProxy>& output) const;
 
 		/**
 		 * @name Internal

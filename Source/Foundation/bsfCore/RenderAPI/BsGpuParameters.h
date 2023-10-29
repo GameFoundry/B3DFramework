@@ -296,14 +296,14 @@ namespace bs
 	};
 
 	/** Templated version of GpuParameters that contains functionality for both sim and core thread versions of stored data. */
-	template <bool Core>
+	template <bool IsRenderProxy>
 	class B3D_CORE_EXPORT TGpuParams : public GpuParamsBase
 	{
 	public:
-		using GpuParamsType = CoreVariantType<GpuParameters, Core>;
-		using TextureType = CoreVariantHandleType<Texture, Core>;
-		using BufferType = SPtr<CoreVariantType<GpuBuffer, Core>>;
-		using UniformBufferType = SPtr<CoreVariantType<GpuBuffer, Core>>;
+		using GpuParamsType = CoreVariantType<GpuParameters, IsRenderProxy>;
+		using TextureType = CoreVariantHandleType<Texture, IsRenderProxy>;
+		using BufferType = SPtr<CoreVariantType<GpuBuffer, IsRenderProxy>>;
+		using UniformBufferType = SPtr<CoreVariantType<GpuBuffer, IsRenderProxy>>;
 
 		virtual ~TGpuParams();
 
@@ -316,40 +316,40 @@ namespace bs
 		 * Parameter handles will be invalidated when their parent GpuParameters object changes.
 		 */
 		template <class T>
-		void GetParameter(const String& name, TGpuParameterPrimitive<T, Core>& output) const;
+		void GetParameter(const String& name, TGpuParameterPrimitive<T, IsRenderProxy>& output) const;
 
 		/** @copydoc GetParameter */
-		void GetStructParameter(const String& name, TGpuParameterStruct<Core>& output) const;
+		void GetStructParameter(const String& name, TGpuParameterStruct<IsRenderProxy>& output) const;
 
 		/** @copydoc GetParameter */
-		void GetSampledTextureParameter(const String& name, TGpuParameterSampledTexture<Core>& output) const;
+		void GetSampledTextureParameter(const String& name, TGpuParameterSampledTexture<IsRenderProxy>& output) const;
 
 		/** @copydoc GetParameter */
-		void GetStorageTextureParameter(const String& name, TGpuParameterStorageTexture<Core>& output) const;
+		void GetStorageTextureParameter(const String& name, TGpuParameterStorageTexture<IsRenderProxy>& output) const;
 
 		/** @copydoc GetParameter */
-		void GetStorageBufferParameter(const String& name, TGpuParameterBuffer<Core>& output) const;
+		void GetStorageBufferParameter(const String& name, TGpuParameterBuffer<IsRenderProxy>& output) const;
 
 		/** @copydoc GetParameter */
-		void GetSamplerStateParameter(const String& name, TGpuParameterSampler<Core>& output) const;
+		void GetSamplerStateParameter(const String& name, TGpuParameterSampler<IsRenderProxy>& output) const;
 
 		/** Equivalent to GetParam(), but doesn't warn if the parameter cannot be found. Return true if the parameter was found. */
-		template<class T> bool TryGetParameter(const String& name, TGpuParameterPrimitive<T, Core>& output) const;
+		template<class T> bool TryGetParameter(const String& name, TGpuParameterPrimitive<T, IsRenderProxy>& output) const;
 
 		/** @copydoc TryGetParameter */
-		bool TryGetStructParameter(const String& name, TGpuParameterStruct<Core>& output) const;
+		bool TryGetStructParameter(const String& name, TGpuParameterStruct<IsRenderProxy>& output) const;
 
 		/** @copydoc TryGetParameter */
-		bool TryGetSampledTextureParameter(const String& name, TGpuParameterSampledTexture<Core>& output) const;
+		bool TryGetSampledTextureParameter(const String& name, TGpuParameterSampledTexture<IsRenderProxy>& output) const;
 
 		/** @copydoc TryGetParameter */
-		bool TryGetStorageTextureParameter(const String& name, TGpuParameterStorageTexture<Core>& output) const;
+		bool TryGetStorageTextureParameter(const String& name, TGpuParameterStorageTexture<IsRenderProxy>& output) const;
 
 		/** @copydoc TryGetParameter */
-		bool TryGetStorageBufferParameter(const String& name, TGpuParameterBuffer<Core>& output) const;
+		bool TryGetStorageBufferParameter(const String& name, TGpuParameterBuffer<IsRenderProxy>& output) const;
 
 		/** @copydoc TryGetParameter */
-		bool TryGetSamplerStateParameter(const String& name, TGpuParameterSampler<Core>& output) const;
+		bool TryGetSamplerStateParameter(const String& name, TGpuParameterSampler<IsRenderProxy>& output) const;
 
 		/**	Gets a uniform buffer from the specified set/slot/array index combination. */
 		UniformBufferType GetUniformBuffer(u32 set, u32 slot, u32 arrayIndex = 0) const;
@@ -433,7 +433,7 @@ namespace bs
 		template <class T>
 		void SetParameter(const String& name, const T& value)
 		{
-			TGpuParameterPrimitive<T, Core> param;
+			TGpuParameterPrimitive<T, IsRenderProxy> param;
 			GetParameter(name, param);
 			param.Set(value);
 		}
@@ -441,7 +441,7 @@ namespace bs
 		/**	Assigns a texture to the parameter with the specified name. */
 		void SetSampledTexture(const String& name, const TextureType& texture, const TextureSurface& surface = TextureSurface::kComplete)
 		{
-			TGpuParameterSampledTexture<Core> param;
+			TGpuParameterSampledTexture<IsRenderProxy> param;
 			GetSampledTextureParameter(name, param);
 			param.Set(texture, surface);
 		}
@@ -449,7 +449,7 @@ namespace bs
 		/**	Assigns a load/store texture to the parameter with the specified name. */
 		void SetStorageTexture(const String& name, const TextureType& texture, const TextureSurface& surface)
 		{
-			TGpuParameterStorageTexture<Core> param;
+			TGpuParameterStorageTexture<IsRenderProxy> param;
 			GetStorageTextureParameter(name, param);
 			param.Set(texture, surface);
 		}
@@ -464,7 +464,7 @@ namespace bs
 		 */
 		void SetStorageBuffer(const String& name, const BufferType& buffer, u32 arrayIndex = 0, GpuBufferViewInformation view = GpuBufferViewInformation())
 		{
-			TGpuParameterBuffer<Core> param;
+			TGpuParameterBuffer<IsRenderProxy> param;
 			GetStorageBufferParameter(name, param);
 			param.Set(buffer, arrayIndex, view);
 		}
@@ -472,7 +472,7 @@ namespace bs
 		/**	Assigns a sampler state to the parameter with the specified name. */
 		void SetSamplerState(const String& name, const SPtr<SamplerState>& sampler)
 		{
-			TGpuParameterSampler<Core> param;
+			TGpuParameterSampler<IsRenderProxy> param;
 			GetSamplerStateParameter(name, param);
 			param.Set(sampler);
 		}

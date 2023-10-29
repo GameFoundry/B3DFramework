@@ -25,10 +25,10 @@ namespace bs
 	B3D_FLAGS_OPERATORS(ShaderVariationDirtyFlags)
 
 	/** Data that may be passed to Technique on creation to initialize it with precompiled set of passes (rather than requiring on-demand compilation). */
-	template<bool Core>
+	template<bool IsRenderProxy>
 	struct TPrecompiledVariationData
 	{
-		using PassType = CoreVariantType<Pass, Core>;
+		using PassType = CoreVariantType<Pass, IsRenderProxy>;
 
 		TPrecompiledVariationData(const TInlineArray<SPtr<PassType>, 1>& precompiledPasses = {})
 			: PrecompiledPasses(precompiledPasses)
@@ -65,16 +65,16 @@ namespace bs
 	};
 
 	/** Templated class that is used for implementing both sim and core versions of Technique. */
-	template <bool Core>
+	template <bool IsRenderProxy>
 	class B3D_CORE_EXPORT TTechnique : public TechniqueBase
 	{
 	public:
-		using PassType = CoreVariantType<Pass, Core>;
-		using ShaderType = CoreVariantType<Shader, Core>;
-		using TechniqueType = CoreVariantType<Technique, Core>;
+		using PassType = CoreVariantType<Pass, IsRenderProxy>;
+		using ShaderType = CoreVariantType<Shader, IsRenderProxy>;
+		using TechniqueType = CoreVariantType<Technique, IsRenderProxy>;
 
 		TTechnique();
-		TTechnique(const WeakSPtr<ShaderType>& owner, const String& language, const ShaderVariationParameters& variationParameters, const Optional<TPrecompiledVariationData<Core>>& precompiledData);
+		TTechnique(const WeakSPtr<ShaderType>& owner, const String& language, const ShaderVariationParameters& variationParameters, const Optional<TPrecompiledVariationData<IsRenderProxy>>& precompiledData);
 		virtual ~TTechnique() = default;
 
 		/**	Returns a pass with the specified index. */

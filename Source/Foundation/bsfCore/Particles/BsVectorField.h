@@ -42,11 +42,11 @@ namespace bs
 	 */
 
 	/** Common functionality for both the sim and core thread variants of VectorField. */
-	template <bool Core>
+	template <bool IsRenderProxy>
 	class B3D_CORE_EXPORT TVectorField
 	{
 	public:
-		using TextureType = SPtr<CoreVariantType<Texture, Core>>;
+		using TextureType = SPtr<CoreVariantType<Texture, IsRenderProxy>>;
 
 		TVectorField() = default;
 

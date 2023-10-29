@@ -319,8 +319,8 @@ RTTITypeBase* MaterialParamTextureData::GetRtti() const
 	return GetRttiStatic();
 }
 
-template <bool Core>
-TMaterialParams<Core>::TMaterialParams(const ShaderType& shader, u64 initialParamVersion)
+template <bool IsRenderProxz>
+TMaterialParams<IsRenderProxz>::TMaterialParams(const ShaderType& shader, u64 initialParamVersion)
 	: MaterialParamsBase(
 		  shader->GetDataParams(),
 		  shader->GetTextureParams(),
@@ -406,8 +406,8 @@ TMaterialParams<Core>::TMaterialParams(const ShaderType& shader, u64 initialPara
 	}
 }
 
-template <bool Core>
-TMaterialParams<Core>::~TMaterialParams()
+template <bool IsRenderProxz>
+TMaterialParams<IsRenderProxz>::~TMaterialParams()
 {
 	if(mStructParams != nullptr)
 	{
@@ -427,8 +427,8 @@ TMaterialParams<Core>::~TMaterialParams()
 		mAlloc.Destruct(mDefaultSamplerStateParams, mNumSamplerParams);
 }
 
-template <bool Core>
-void TMaterialParams<Core>::GetStructData(const String& name, void* value, u32 size, u32 arrayIdx) const
+template <bool IsRenderProxz>
+void TMaterialParams<IsRenderProxz>::GetStructData(const String& name, void* value, u32 size, u32 arrayIdx) const
 {
 	const ParamData* param = nullptr;
 	GetParamResult result = GetParamData(name, ParamType::Data, GPDT_STRUCT, arrayIdx, &param);
@@ -441,8 +441,8 @@ void TMaterialParams<Core>::GetStructData(const String& name, void* value, u32 s
 	GetStructData(*param, value, size, arrayIdx);
 }
 
-template <bool Core>
-void TMaterialParams<Core>::SetStructData(const String& name, const void* value, u32 size, u32 arrayIdx)
+template <bool IsRenderProxz>
+void TMaterialParams<IsRenderProxz>::SetStructData(const String& name, const void* value, u32 size, u32 arrayIdx)
 {
 	const ParamData* param = nullptr;
 	GetParamResult result = GetParamData(name, ParamType::Data, GPDT_STRUCT, arrayIdx, &param);
@@ -455,8 +455,8 @@ void TMaterialParams<Core>::SetStructData(const String& name, const void* value,
 	SetStructData(*param, value, size, arrayIdx);
 }
 
-template <bool Core>
-void TMaterialParams<Core>::GetTexture(const String& name, TextureType& value, TextureSurface& surface) const
+template <bool IsRenderProxz>
+void TMaterialParams<IsRenderProxz>::GetTexture(const String& name, TextureType& value, TextureSurface& surface) const
 {
 	const ParamData* param = nullptr;
 	GetParamResult result = GetParamData(name, ParamType::Texture, GPDT_UNKNOWN, 0, &param);
@@ -469,8 +469,8 @@ void TMaterialParams<Core>::GetTexture(const String& name, TextureType& value, T
 	GetTexture(*param, value, surface);
 }
 
-template <bool Core>
-void TMaterialParams<Core>::SetTexture(const String& name, const TextureType& value, const TextureSurface& surface)
+template <bool IsRenderProxz>
+void TMaterialParams<IsRenderProxz>::SetTexture(const String& name, const TextureType& value, const TextureSurface& surface)
 {
 	const ParamData* param = nullptr;
 	GetParamResult result = GetParamData(name, ParamType::Texture, GPDT_UNKNOWN, 0, &param);
@@ -483,8 +483,8 @@ void TMaterialParams<Core>::SetTexture(const String& name, const TextureType& va
 	SetTexture(*param, value, surface);
 }
 
-template <bool Core>
-void TMaterialParams<Core>::GetSpriteTexture(const String& name, SpriteTextureType& value) const
+template <bool IsRenderProxz>
+void TMaterialParams<IsRenderProxz>::GetSpriteTexture(const String& name, SpriteTextureType& value) const
 {
 	const ParamData* param = nullptr;
 	GetParamResult result = GetParamData(name, ParamType::Texture, GPDT_UNKNOWN, 0, &param);
@@ -497,8 +497,8 @@ void TMaterialParams<Core>::GetSpriteTexture(const String& name, SpriteTextureTy
 	GetSpriteTexture(*param, value);
 }
 
-template <bool Core>
-void TMaterialParams<Core>::SetSpriteTexture(const String& name, const SpriteTextureType& value)
+template <bool IsRenderProxz>
+void TMaterialParams<IsRenderProxz>::SetSpriteTexture(const String& name, const SpriteTextureType& value)
 {
 	const ParamData* param = nullptr;
 	GetParamResult result = GetParamData(name, ParamType::Texture, GPDT_UNKNOWN, 0, &param);
@@ -511,8 +511,8 @@ void TMaterialParams<Core>::SetSpriteTexture(const String& name, const SpriteTex
 	SetSpriteTexture(*param, value);
 }
 
-template <bool Core>
-void TMaterialParams<Core>::GetStorageTexture(const String& name, TextureType& value, TextureSurface& surface) const
+template <bool IsRenderProxz>
+void TMaterialParams<IsRenderProxz>::GetStorageTexture(const String& name, TextureType& value, TextureSurface& surface) const
 {
 	const ParamData* param = nullptr;
 	GetParamResult result = GetParamData(name, ParamType::Texture, GPDT_UNKNOWN, 0, &param);
@@ -525,8 +525,8 @@ void TMaterialParams<Core>::GetStorageTexture(const String& name, TextureType& v
 	GetStorageTexture(*param, value, surface);
 }
 
-template <bool Core>
-void TMaterialParams<Core>::SetStorageTexture(const String& name, const TextureType& value, const TextureSurface& surface)
+template <bool IsRenderProxz>
+void TMaterialParams<IsRenderProxz>::SetStorageTexture(const String& name, const TextureType& value, const TextureSurface& surface)
 {
 	const ParamData* param = nullptr;
 	GetParamResult result = GetParamData(name, ParamType::Texture, GPDT_UNKNOWN, 0, &param);
@@ -539,8 +539,8 @@ void TMaterialParams<Core>::SetStorageTexture(const String& name, const TextureT
 	SetStorageTexture(*param, value, surface);
 }
 
-template <bool Core>
-void TMaterialParams<Core>::GetBuffer(const String& name, BufferType& value) const
+template <bool IsRenderProxz>
+void TMaterialParams<IsRenderProxz>::GetBuffer(const String& name, BufferType& value) const
 {
 	const ParamData* param = nullptr;
 	GetParamResult result = GetParamData(name, ParamType::Buffer, GPDT_UNKNOWN, 0, &param);
@@ -553,8 +553,8 @@ void TMaterialParams<Core>::GetBuffer(const String& name, BufferType& value) con
 	GetBuffer(*param, value);
 }
 
-template <bool Core>
-void TMaterialParams<Core>::SetBuffer(const String& name, const BufferType& value)
+template <bool IsRenderProxz>
+void TMaterialParams<IsRenderProxz>::SetBuffer(const String& name, const BufferType& value)
 {
 	const ParamData* param = nullptr;
 	GetParamResult result = GetParamData(name, ParamType::Buffer, GPDT_UNKNOWN, 0, &param);
@@ -567,8 +567,8 @@ void TMaterialParams<Core>::SetBuffer(const String& name, const BufferType& valu
 	SetBuffer(*param, value);
 }
 
-template <bool Core>
-void TMaterialParams<Core>::GetSamplerState(const String& name, SPtr<SamplerState>& value) const
+template <bool IsRenderProxz>
+void TMaterialParams<IsRenderProxz>::GetSamplerState(const String& name, SPtr<SamplerState>& value) const
 {
 	const ParamData* param = nullptr;
 	GetParamResult result = GetParamData(name, ParamType::Sampler, GPDT_UNKNOWN, 0, &param);
@@ -581,8 +581,8 @@ void TMaterialParams<Core>::GetSamplerState(const String& name, SPtr<SamplerStat
 	GetSamplerState(*param, value);
 }
 
-template <bool Core>
-void TMaterialParams<Core>::SetSamplerState(const String& name, const SPtr<SamplerState>& value)
+template <bool IsRenderProxz>
+void TMaterialParams<IsRenderProxz>::SetSamplerState(const String& name, const SPtr<SamplerState>& value)
 {
 	const ParamData* param = nullptr;
 	GetParamResult result = GetParamData(name, ParamType::Sampler, GPDT_UNKNOWN, 0, &param);
@@ -595,8 +595,8 @@ void TMaterialParams<Core>::SetSamplerState(const String& name, const SPtr<Sampl
 	SetSamplerState(*param, value);
 }
 
-template <bool Core>
-bool TMaterialParams<Core>::IsAnimated(const String& name, u32 arrayIdx)
+template <bool IsRenderProxz>
+bool TMaterialParams<IsRenderProxz>::IsAnimated(const String& name, u32 arrayIdx)
 {
 	auto iterFind = mParamLookup.find(name);
 	if(iterFind == mParamLookup.end())
@@ -614,8 +614,8 @@ bool TMaterialParams<Core>::IsAnimated(const String& name, u32 arrayIdx)
 	return IsAnimated(param, arrayIdx);
 }
 
-template <bool Core>
-void TMaterialParams<Core>::GetStructData(const ParamData& param, void* value, u32 size, u32 arrayIdx) const
+template <bool IsRenderProxz>
+void TMaterialParams<IsRenderProxz>::GetStructData(const ParamData& param, void* value, u32 size, u32 arrayIdx) const
 {
 	const ParamStructDataType& structParam = mStructParams[param.Index + arrayIdx];
 	if(structParam.DataSize != size)
@@ -629,8 +629,8 @@ void TMaterialParams<Core>::GetStructData(const ParamData& param, void* value, u
 	memcpy(value, structParam.Data, structParam.DataSize);
 }
 
-template <bool Core>
-void TMaterialParams<Core>::SetStructData(const ParamData& param, const void* value, u32 size, u32 arrayIdx)
+template <bool IsRenderProxz>
+void TMaterialParams<IsRenderProxz>::SetStructData(const ParamData& param, const void* value, u32 size, u32 arrayIdx)
 {
 	const ParamStructDataType& structParam = mStructParams[param.Index + arrayIdx];
 	if(structParam.DataSize != size)
@@ -645,15 +645,15 @@ void TMaterialParams<Core>::SetStructData(const ParamData& param, const void* va
 	param.Version = ++mParamVersion;
 }
 
-template <bool Core>
-u32 TMaterialParams<Core>::GetStructSize(const ParamData& param) const
+template <bool IsRenderProxz>
+u32 TMaterialParams<IsRenderProxz>::GetStructSize(const ParamData& param) const
 {
 	const ParamStructDataType& structParam = mStructParams[param.Index];
 	return structParam.DataSize;
 }
 
-template <bool Core>
-void TMaterialParams<Core>::GetTexture(const ParamData& param, TextureType& value, TextureSurface& surface) const
+template <bool IsRenderProxz>
+void TMaterialParams<IsRenderProxz>::GetTexture(const ParamData& param, TextureType& value, TextureSurface& surface) const
 {
 	ParamTextureDataType& textureParam = mTextureParams[param.Index];
 
@@ -665,8 +665,8 @@ void TMaterialParams<Core>::GetTexture(const ParamData& param, TextureType& valu
 	surface = textureParam.Surface;
 }
 
-template <bool Core>
-void TMaterialParams<Core>::SetTexture(const ParamData& param, const TextureType& value, const TextureSurface& surface)
+template <bool IsRenderProxz>
+void TMaterialParams<IsRenderProxz>::SetTexture(const ParamData& param, const TextureType& value, const TextureSurface& surface)
 {
 	ParamTextureDataType& textureParam = mTextureParams[param.Index];
 	textureParam.Texture = value;
@@ -677,15 +677,15 @@ void TMaterialParams<Core>::SetTexture(const ParamData& param, const TextureType
 	param.Version = ++mParamVersion;
 }
 
-template <bool Core>
-void TMaterialParams<Core>::GetSpriteTexture(const ParamData& param, SpriteTextureType& value) const
+template <bool IsRenderProxz>
+void TMaterialParams<IsRenderProxz>::GetSpriteTexture(const ParamData& param, SpriteTextureType& value) const
 {
 	ParamTextureDataType& textureParam = mTextureParams[param.Index];
 	value = textureParam.SpriteTexture;
 }
 
-template <bool Core>
-void TMaterialParams<Core>::SetSpriteTexture(const ParamData& param, const SpriteTextureType& value)
+template <bool IsRenderProxz>
+void TMaterialParams<IsRenderProxz>::SetSpriteTexture(const ParamData& param, const SpriteTextureType& value)
 {
 	ParamTextureDataType& textureParam = mTextureParams[param.Index];
 	textureParam.Texture = nullptr;
@@ -696,30 +696,30 @@ void TMaterialParams<Core>::SetSpriteTexture(const ParamData& param, const Sprit
 	param.Version = ++mParamVersion;
 }
 
-template <bool Core>
-void TMaterialParams<Core>::GetBuffer(const ParamData& param, BufferType& value) const
+template <bool IsRenderProxz>
+void TMaterialParams<IsRenderProxz>::GetBuffer(const ParamData& param, BufferType& value) const
 {
 	value = mBufferParams[param.Index].Value;
 }
 
-template <bool Core>
-void TMaterialParams<Core>::SetBuffer(const ParamData& param, const BufferType& value)
+template <bool IsRenderProxz>
+void TMaterialParams<IsRenderProxz>::SetBuffer(const ParamData& param, const BufferType& value)
 {
 	mBufferParams[param.Index].Value = value;
 
 	param.Version = ++mParamVersion;
 }
 
-template <bool Core>
-void TMaterialParams<Core>::GetStorageTexture(const ParamData& param, TextureType& value, TextureSurface& surface) const
+template <bool IsRenderProxz>
+void TMaterialParams<IsRenderProxz>::GetStorageTexture(const ParamData& param, TextureType& value, TextureSurface& surface) const
 {
 	ParamTextureDataType& textureParam = mTextureParams[param.Index];
 	value = textureParam.Texture;
 	surface = textureParam.Surface;
 }
 
-template <bool Core>
-void TMaterialParams<Core>::SetStorageTexture(const ParamData& param, const TextureType& value, const TextureSurface& surface)
+template <bool IsRenderProxz>
+void TMaterialParams<IsRenderProxz>::SetStorageTexture(const ParamData& param, const TextureType& value, const TextureSurface& surface)
 {
 	ParamTextureDataType& textureParam = mTextureParams[param.Index];
 	textureParam.Texture = value;
@@ -730,22 +730,22 @@ void TMaterialParams<Core>::SetStorageTexture(const ParamData& param, const Text
 	param.Version = ++mParamVersion;
 }
 
-template <bool Core>
-void TMaterialParams<Core>::GetSamplerState(const ParamData& param, SPtr<SamplerState>& value) const
+template <bool IsRenderProxz>
+void TMaterialParams<IsRenderProxz>::GetSamplerState(const ParamData& param, SPtr<SamplerState>& value) const
 {
 	value = mSamplerStateParams[param.Index].Value;
 }
 
-template <bool Core>
-void TMaterialParams<Core>::SetSamplerState(const ParamData& param, const SPtr<SamplerState>& value)
+template <bool IsRenderProxz>
+void TMaterialParams<IsRenderProxz>::SetSamplerState(const ParamData& param, const SPtr<SamplerState>& value)
 {
 	mSamplerStateParams[param.Index].Value = value;
 
 	param.Version = ++mParamVersion;
 }
 
-template <bool Core>
-MateralParamTextureType TMaterialParams<Core>::GetTextureType(const ParamData& param) const
+template <bool IsRenderProxz>
+MateralParamTextureType TMaterialParams<IsRenderProxz>::GetTextureType(const ParamData& param) const
 {
 	if(mTextureParams[param.Index].IsLoadStore)
 		return MateralParamTextureType::LoadStore;
@@ -756,16 +756,16 @@ MateralParamTextureType TMaterialParams<Core>::GetTextureType(const ParamData& p
 	return MateralParamTextureType::Normal;
 }
 
-template <bool Core>
-bool TMaterialParams<Core>::IsAnimated(const ParamData& param, u32 arrayIdx) const
+template <bool IsRenderProxz>
+bool TMaterialParams<IsRenderProxz>::IsAnimated(const ParamData& param, u32 arrayIdx) const
 {
 	const DataParamInfo& paramInfo = mDataParams[param.Index + arrayIdx];
 
 	return paramInfo.FloatCurve || paramInfo.ColorGradient || paramInfo.SpriteTextureIdx != (u32)-1;
 }
 
-template <bool Core>
-typename TMaterialParams<Core>::SpriteTextureType TMaterialParams<Core>::GetOwningSpriteTexture(const ParamData& param) const
+template <bool IsRenderProxz>
+typename TMaterialParams<IsRenderProxz>::SpriteTextureType TMaterialParams<IsRenderProxz>::GetOwningSpriteTexture(const ParamData& param) const
 {
 	SpriteTextureType output;
 
@@ -780,14 +780,14 @@ typename TMaterialParams<Core>::SpriteTextureType TMaterialParams<Core>::GetOwni
 	return output;
 }
 
-template <bool Core>
-void TMaterialParams<Core>::GetDefaultTexture(const ParamData& param, TextureType& value) const
+template <bool IsRenderProxz>
+void TMaterialParams<IsRenderProxz>::GetDefaultTexture(const ParamData& param, TextureType& value) const
 {
 	value = mDefaultTextureParams[param.Index];
 }
 
-template <bool Core>
-void TMaterialParams<Core>::GetDefaultSamplerState(const ParamData& param, SPtr<SamplerState>& value) const
+template <bool IsRenderProxz>
+void TMaterialParams<IsRenderProxz>::GetDefaultSamplerState(const ParamData& param, SPtr<SamplerState>& value) const
 {
 	value = mDefaultSamplerStateParams[param.Index];
 }

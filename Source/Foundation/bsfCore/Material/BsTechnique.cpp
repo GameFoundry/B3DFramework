@@ -30,18 +30,18 @@ bool TechniqueBase::IsSupported() const
 	return false;
 }
 
-template <bool Core>
-TTechnique<Core>::TTechnique(const WeakSPtr<ShaderType>& owner, const String& language, const ShaderVariationParameters& variationParameters, const Optional<TPrecompiledVariationData<Core>>& precompiledData)
-	: TechniqueBase(language, variationParameters), mOwner(owner), mPasses(precompiledData.value_or(TPrecompiledVariationData<Core>()).PrecompiledPasses), mHasPassData(precompiledData.has_value())
+template <bool IsRenderProxy>
+TTechnique<IsRenderProxy>::TTechnique(const WeakSPtr<ShaderType>& owner, const String& language, const ShaderVariationParameters& variationParameters, const Optional<TPrecompiledVariationData<IsRenderProxy>>& precompiledData)
+	: TechniqueBase(language, variationParameters), mOwner(owner), mPasses(precompiledData.value_or(TPrecompiledVariationData<IsRenderProxy>()).PrecompiledPasses), mHasPassData(precompiledData.has_value())
 { }
 
-template <bool Core>
-TTechnique<Core>::TTechnique()
+template <bool IsRenderProxy>
+TTechnique<IsRenderProxy>::TTechnique()
 	: TechniqueBase(StringUtil::kBlank, ShaderVariationParameters())
 {}
 
-template <bool Core>
-SPtr<typename TTechnique<Core>::PassType> TTechnique<Core>::GetPass(u32 index) const
+template <bool IsRenderProxy>
+SPtr<typename TTechnique<IsRenderProxy>::PassType> TTechnique<IsRenderProxy>::GetPass(u32 index) const
 {
 	if(!mHasPassData)
 	{
@@ -58,8 +58,8 @@ SPtr<typename TTechnique<Core>::PassType> TTechnique<Core>::GetPass(u32 index) c
 	return mPasses[index];
 }
 
-template <bool Core>
-u32 TTechnique<Core>::GetPassCount() const
+template <bool IsRenderProxy>
+u32 TTechnique<IsRenderProxy>::GetPassCount() const
 {
 	if(!mHasPassData)
 	{
@@ -70,8 +70,8 @@ u32 TTechnique<Core>::GetPassCount() const
 	return (u32)mPasses.size();
 }
 
-template <bool Core>
-void TTechnique<Core>::SetCompiledPassData(TInlineArray<SPtr<PassType>, 1> compiledPasses)
+template <bool IsRenderProxy>
+void TTechnique<IsRenderProxy>::SetCompiledPassData(TInlineArray<SPtr<PassType>, 1> compiledPasses)
 {
 	mPasses = std::move(compiledPasses);
 	mHasPassData = true;
@@ -80,8 +80,8 @@ void TTechnique<Core>::SetCompiledPassData(TInlineArray<SPtr<PassType>, 1> compi
 	SyncToCore();
 }
 
-template <bool Core>
-void TTechnique<Core>::SetOwner(const WeakSPtr<ShaderType>& owner)
+template <bool IsRenderProxy>
+void TTechnique<IsRenderProxy>::SetOwner(const WeakSPtr<ShaderType>& owner)
 {
 	mOwner = owner;
 
@@ -89,8 +89,8 @@ void TTechnique<Core>::SetOwner(const WeakSPtr<ShaderType>& owner)
 	SyncToCore();
 }
 
-template<bool Core>
-TAsyncOp<bool> TTechnique<Core>::Compile()
+template<bool IsRenderProxy>
+TAsyncOp<bool> TTechnique<IsRenderProxy>::Compile()
 {
 	// TODO - This should be done async, but XShaderCompiler has issues with multiple threads. Additionally the pass compile needs to be made thread safe on the Vulkan level.
 	TAsyncOp<bool> operation;

@@ -40,12 +40,12 @@ namespace bs
 		}
 	private:
 		/** Templated version of Compile() for both main and render thread. */
-		template <bool Core>
-		ShaderCompilerResult TCompile(const String& name, const String& source, const UnorderedMap<String, String>& defines, ShadingLanguageFlags languages, bool compileVariations, SPtr<CoreVariantType<Shader, Core>>& outShader);
+		template <bool IsRenderProxy>
+		ShaderCompilerResult TCompile(const String& name, const String& source, const UnorderedMap<String, String>& defines, ShadingLanguageFlags languages, bool compileVariations, SPtr<CoreVariantType<Shader, IsRenderProxy>>& outShader);
 
 		/** Templated version of CompileVariation() for both main and render thread. */
-		template <bool Core>
-		ShaderCompilerResult TCompileVariation(const CoreVariantType<Shader, Core>& shader, const ShaderVariationParameters& variationParameters, ShadingLanguageFlag language, CoreVariantType<Technique, Core>& inOutVariation);
+		template <bool IsRenderProxy>
+		ShaderCompilerResult TCompileVariation(const CoreVariantType<Shader, IsRenderProxy>& shader, const ShaderVariationParameters& variationParameters, ShadingLanguageFlag language, CoreVariantType<Technique, IsRenderProxy>& inOutVariation);
 
 		/**
 		 * Compiles a particular shader variation into the low level shader source from the parsed shader data.
@@ -57,8 +57,8 @@ namespace bs
 		 * @param	inOutVariation	Object on which to assigned the compiled data if successful.
 		 * @return					A result object containing an error message if not successful.
 		 */
-		template<bool Core>
-		static ShaderCompilerResult TCompileVariation(const String& name, const BSLParsedShaderData& parsedShader, const ShaderCompilerMetaData& shaderMetaData, ShadingLanguageFlag language, CoreVariantType<Technique, Core>& inOutVariation);
+		template<bool IsRenderProxy>
+		static ShaderCompilerResult TCompileVariation(const String& name, const BSLParsedShaderData& parsedShader, const ShaderCompilerMetaData& shaderMetaData, ShadingLanguageFlag language, CoreVariantType<Technique, IsRenderProxy>& inOutVariation);
 
 		/** Converts internal variation representations in the shader meta-data into a set of ShaderVariation objects. */
 		static Vector<ShaderVariationParameters> CreateShaderVariations(const BSLParsedShaderMetaData& shaderMetaData);

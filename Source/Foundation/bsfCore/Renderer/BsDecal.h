@@ -106,11 +106,11 @@ namespace bs
 	};
 
 	/** Templated base class for both core and sim thread implementations of Decal. */
-	template <bool Core>
+	template <bool IsRenderProxy>
 	class B3D_CORE_EXPORT TDecal : public DecalBase
 	{
 	public:
-		using MaterialType = CoreVariantHandleType<Material, Core>;
+		using MaterialType = CoreVariantHandleType<Material, IsRenderProxy>;
 
 		TDecal() = default;
 

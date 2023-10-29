@@ -38,14 +38,14 @@ bool IsMeshValid(const SPtr<ct::Mesh>& mesh)
 	return mesh != nullptr;
 }
 
-template <bool Core>
-TRenderable<Core>::TRenderable()
+template <bool IsRenderProxy>
+TRenderable<IsRenderProxy>::TRenderable()
 {
 	mMaterials.resize(1);
 }
 
-template <bool Core>
-void TRenderable<Core>::SetTransform(const Transform& transform)
+template <bool IsRenderProxy>
+void TRenderable<IsRenderProxy>::SetTransform(const Transform& transform)
 {
 	if(mMobility != ObjectMobility::Movable)
 		return;
@@ -57,8 +57,8 @@ void TRenderable<Core>::SetTransform(const Transform& transform)
 	MarkCoreDirtyInternal(ActorDirtyFlag::Transform);
 }
 
-template <bool Core>
-void TRenderable<Core>::SetMesh(const MeshType& mesh)
+template <bool IsRenderProxy>
+void TRenderable<IsRenderProxy>::SetMesh(const MeshType& mesh)
 {
 	mMesh = mesh;
 
@@ -75,8 +75,8 @@ void TRenderable<Core>::SetMesh(const MeshType& mesh)
 	MarkCoreDirtyInternal();
 }
 
-template <bool Core>
-void TRenderable<Core>::SetMaterial(u32 idx, const MaterialType& material)
+template <bool IsRenderProxy>
+void TRenderable<IsRenderProxy>::SetMaterial(u32 idx, const MaterialType& material)
 {
 	if(idx >= (u32)mMaterials.size())
 		return;
@@ -88,8 +88,8 @@ void TRenderable<Core>::SetMaterial(u32 idx, const MaterialType& material)
 	MarkCoreDirtyInternal();
 }
 
-template <bool Core>
-void TRenderable<Core>::SetMaterials(const Vector<MaterialType>& materials)
+template <bool IsRenderProxy>
+void TRenderable<IsRenderProxy>::SetMaterials(const Vector<MaterialType>& materials)
 {
 	u32 numMaterials = (u32)mMaterials.size();
 	u32 min = std::min(numMaterials, (u32)materials.size());
@@ -105,14 +105,14 @@ void TRenderable<Core>::SetMaterials(const Vector<MaterialType>& materials)
 	MarkCoreDirtyInternal();
 }
 
-template <bool Core>
-void TRenderable<Core>::SetMaterial(const MaterialType& material)
+template <bool IsRenderProxy>
+void TRenderable<IsRenderProxy>::SetMaterial(const MaterialType& material)
 {
 	SetMaterial(0, material);
 }
 
-template <bool Core>
-typename TRenderable<Core>::MaterialType TRenderable<Core>::GetMaterial(u32 idx) const
+template <bool IsRenderProxy>
+typename TRenderable<IsRenderProxy>::MaterialType TRenderable<IsRenderProxy>::GetMaterial(u32 idx) const
 {
 	if(idx >= (u32)mMaterials.size())
 		return nullptr;
@@ -120,8 +120,8 @@ typename TRenderable<Core>::MaterialType TRenderable<Core>::GetMaterial(u32 idx)
 	return mMaterials[idx];
 }
 
-template <bool Core>
-void TRenderable<Core>::SetLayer(u64 layer)
+template <bool IsRenderProxy>
+void TRenderable<IsRenderProxy>::SetLayer(u64 layer)
 {
 	const bool isPow2 = layer && !((layer - 1) & layer);
 
@@ -135,8 +135,8 @@ void TRenderable<Core>::SetLayer(u64 layer)
 	MarkCoreDirtyInternal();
 }
 
-template <bool Core>
-void TRenderable<Core>::SetOverrideBounds(const AABox& bounds)
+template <bool IsRenderProxy>
+void TRenderable<IsRenderProxy>::SetOverrideBounds(const AABox& bounds)
 {
 	mOverrideBounds = bounds;
 
@@ -144,8 +144,8 @@ void TRenderable<Core>::SetOverrideBounds(const AABox& bounds)
 		MarkCoreDirtyInternal();
 }
 
-template <bool Core>
-void TRenderable<Core>::SetUseOverrideBounds(bool enable)
+template <bool IsRenderProxy>
+void TRenderable<IsRenderProxy>::SetUseOverrideBounds(bool enable)
 {
 	if(mUseOverrideBounds == enable)
 		return;
@@ -154,8 +154,8 @@ void TRenderable<Core>::SetUseOverrideBounds(bool enable)
 	MarkCoreDirtyInternal();
 }
 
-template <bool Core>
-void TRenderable<Core>::SetWriteVelocity(bool enable)
+template <bool IsRenderProxy>
+void TRenderable<IsRenderProxy>::SetWriteVelocity(bool enable)
 {
 	if(mWriteVelocity == enable)
 		return;
@@ -164,8 +164,8 @@ void TRenderable<Core>::SetWriteVelocity(bool enable)
 	MarkCoreDirtyInternal();
 }
 
-template <bool Core>
-void TRenderable<Core>::SetCullDistanceFactor(float factor)
+template <bool IsRenderProxy>
+void TRenderable<IsRenderProxy>::SetCullDistanceFactor(float factor)
 {
 	mCullDistanceFactor = factor;
 

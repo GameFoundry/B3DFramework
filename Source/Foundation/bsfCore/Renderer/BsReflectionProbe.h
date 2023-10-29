@@ -103,11 +103,11 @@ namespace bs
 	};
 
 	/** Templated base class for both core and sim thread implementations of a reflection probe. */
-	template <bool Core>
+	template <bool IsRenderProxy>
 	class B3D_CORE_EXPORT TReflectionProbe : public ReflectionProbeBase
 	{
 	public:
-		using TextureType = CoreVariantType<Texture, Core>;
+		using TextureType = CoreVariantType<Texture, IsRenderProxy>;
 
 		TReflectionProbe() = default;
 

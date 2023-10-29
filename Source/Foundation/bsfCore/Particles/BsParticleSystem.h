@@ -236,11 +236,11 @@ namespace bs
 	};
 
 	/** Templated common base for both sim and core thread variants of ParticleSystemSettings. */
-	template <bool Core>
+	template <bool IsRenderProxy>
 	struct TParticleSystemSettings : ParticleSystemSettingsBase
 	{
-		using MaterialType = CoreVariantHandleType<Material, Core>;
-		using MeshType = CoreVariantHandleType<Mesh, Core>;
+		using MaterialType = CoreVariantHandleType<Material, IsRenderProxy>;
+		using MeshType = CoreVariantHandleType<Mesh, IsRenderProxy>;
 
 		/** Material to render the particles with. */
 		B3D_SCRIPT_EXPORT(LoadOnAssign(true))
@@ -311,12 +311,12 @@ namespace bs
 	};
 
 	/** Templated common base for both sim and core thread variants of ParticleVectorFieldSettings. */
-	template <bool Core>
+	template <bool IsRenderProxy>
 	struct TParticleVectorFieldSettings : ParticleVectorFieldSettingsBase
 	{
 		/** Vector field resource used for influencing the particles. */
 		B3D_SCRIPT_EXPORT()
-		CoreVariantHandleType<VectorField, Core> VectorField;
+		CoreVariantHandleType<VectorField, IsRenderProxy> VectorField;
 	};
 
 	/** @} */
@@ -380,11 +380,11 @@ namespace bs
 	};
 
 	/** Templated common base for both sim and core threat variants of ParticleGpuSimulationSettings. */
-	template <bool Core>
+	template <bool IsRenderProxy>
 	struct TParticleGpuSimulationSettings : ParticleGpuSimulationSettingsBase
 	{
 		B3D_SCRIPT_EXPORT()
-		CoreVariantType<ParticleVectorFieldSettings, Core> VectorField;
+		CoreVariantType<ParticleVectorFieldSettings, IsRenderProxy> VectorField;
 	};
 
 	/** @} */

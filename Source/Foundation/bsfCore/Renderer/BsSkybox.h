@@ -50,11 +50,11 @@ namespace bs
 	};
 
 	/** Templated base class for both core and sim thread implementations of a skybox. */
-	template <bool Core>
+	template <bool IsRenderProxy>
 	class B3D_CORE_EXPORT TSkybox : public SkyboxBase
 	{
 	public:
-		using TextureType = CoreVariantHandleType<Texture, Core>;
+		using TextureType = CoreVariantHandleType<Texture, IsRenderProxy>;
 
 		virtual ~TSkybox() = default;
 

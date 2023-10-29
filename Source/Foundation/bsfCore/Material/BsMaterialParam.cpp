@@ -8,8 +8,8 @@
 
 using namespace bs;
 
-template <int DATA_TYPE, bool Core>
-TMaterialDataCommon<DATA_TYPE, Core>::TMaterialDataCommon(const String& name, const MaterialPtrType& material)
+template <int DATA_TYPE, bool IsRenderProxy>
+TMaterialDataCommon<DATA_TYPE, IsRenderProxy>::TMaterialDataCommon(const String& name, const MaterialPtrType& material)
 	: mParamIndex(0), mArraySize(0), mMaterial(nullptr)
 {
 	if(material != nullptr)
@@ -32,8 +32,8 @@ TMaterialDataCommon<DATA_TYPE, Core>::TMaterialDataCommon(const String& name, co
 	}
 }
 
-template <class T, bool Core>
-void TMaterialParameterPrimitive<T, Core>::Set(const T& value, u32 arrayIdx) const
+template <class T, bool IsRenderProxy>
+void TMaterialParameterPrimitive<T, IsRenderProxy>::Set(const T& value, u32 arrayIdx) const
 {
 	if(this->mMaterial == nullptr)
 		return;
@@ -51,8 +51,8 @@ void TMaterialParameterPrimitive<T, Core>::Set(const T& value, u32 arrayIdx) con
 	this->mMaterial->MarkCoreDirtyInternal();
 }
 
-template <class T, bool Core>
-T TMaterialParameterPrimitive<T, Core>::Get(u32 arrayIdx) const
+template <class T, bool IsRenderProxy>
+T TMaterialParameterPrimitive<T, IsRenderProxy>::Get(u32 arrayIdx) const
 {
 	T output{};
 	if(this->mMaterial == nullptr || arrayIdx >= this->mArraySize)
@@ -65,8 +65,8 @@ T TMaterialParameterPrimitive<T, Core>::Get(u32 arrayIdx) const
 	return output;
 }
 
-template <class T, bool Core>
-void TMaterialParameterCurve<T, Core>::Set(TAnimationCurve<T> value, u32 arrayIdx) const
+template <class T, bool IsRenderProxy>
+void TMaterialParameterCurve<T, IsRenderProxy>::Set(TAnimationCurve<T> value, u32 arrayIdx) const
 {
 	if(this->mMaterial == nullptr)
 		return;
@@ -84,8 +84,8 @@ void TMaterialParameterCurve<T, Core>::Set(TAnimationCurve<T> value, u32 arrayId
 	this->mMaterial->MarkCoreDirtyInternal();
 }
 
-template <class T, bool Core>
-const TAnimationCurve<T>& TMaterialParameterCurve<T, Core>::Get(u32 arrayIdx) const
+template <class T, bool IsRenderProxy>
+const TAnimationCurve<T>& TMaterialParameterCurve<T, IsRenderProxy>::Get(u32 arrayIdx) const
 {
 	static TAnimationCurve<T> EMPTY_CURVE;
 
@@ -98,8 +98,8 @@ const TAnimationCurve<T>& TMaterialParameterCurve<T, Core>::Get(u32 arrayIdx) co
 	return params->template GetCurveParam<T>(*data, arrayIdx);
 }
 
-template <bool Core>
-void TMaterialParameterColorGradient<Core>::Set(const ColorGradientHDR& value, u32 arrayIdx) const
+template <bool IsRenderProxy>
+void TMaterialParameterColorGradient<IsRenderProxy>::Set(const ColorGradientHDR& value, u32 arrayIdx) const
 {
 	if(this->mMaterial == nullptr)
 		return;
@@ -117,8 +117,8 @@ void TMaterialParameterColorGradient<Core>::Set(const ColorGradientHDR& value, u
 	this->mMaterial->MarkCoreDirtyInternal();
 }
 
-template <bool Core>
-const ColorGradientHDR& TMaterialParameterColorGradient<Core>::Get(u32 arrayIdx) const
+template <bool IsRenderProxy>
+const ColorGradientHDR& TMaterialParameterColorGradient<IsRenderProxy>::Get(u32 arrayIdx) const
 {
 	static ColorGradientHDR EMPTY_GRADIENT;
 
@@ -131,8 +131,8 @@ const ColorGradientHDR& TMaterialParameterColorGradient<Core>::Get(u32 arrayIdx)
 	return params->GetColorGradientParam(*data, arrayIdx);
 }
 
-template <bool Core>
-void TMaterialParameterStruct<Core>::Set(const void* value, u32 sizeBytes, u32 arrayIdx) const
+template <bool IsRenderProxy>
+void TMaterialParameterStruct<IsRenderProxy>::Set(const void* value, u32 sizeBytes, u32 arrayIdx) const
 {
 	if(this->mMaterial == nullptr)
 		return;
@@ -150,8 +150,8 @@ void TMaterialParameterStruct<Core>::Set(const void* value, u32 sizeBytes, u32 a
 	this->mMaterial->MarkCoreDirtyInternal();
 }
 
-template <bool Core>
-void TMaterialParameterStruct<Core>::Get(void* value, u32 sizeBytes, u32 arrayIdx) const
+template <bool IsRenderProxy>
+void TMaterialParameterStruct<IsRenderProxy>::Get(void* value, u32 sizeBytes, u32 arrayIdx) const
 {
 	if(this->mMaterial == nullptr || arrayIdx >= this->mArraySize)
 		return;
@@ -162,8 +162,8 @@ void TMaterialParameterStruct<Core>::Get(void* value, u32 sizeBytes, u32 arrayId
 	params->GetStructData(*data, value, sizeBytes, arrayIdx);
 }
 
-template <bool Core>
-u32 TMaterialParameterStruct<Core>::GetElementSize() const
+template <bool IsRenderProxy>
+u32 TMaterialParameterStruct<IsRenderProxy>::GetElementSize() const
 {
 	if(this->mMaterial == nullptr)
 		return 0;
@@ -174,8 +174,8 @@ u32 TMaterialParameterStruct<Core>::GetElementSize() const
 	return params->GetStructSize(*data);
 }
 
-template <bool Core>
-TMaterialParameterSampledTexture<Core>::TMaterialParameterSampledTexture(const String& name, const MaterialPtrType& material)
+template <bool IsRenderProxy>
+TMaterialParameterSampledTexture<IsRenderProxy>::TMaterialParameterSampledTexture(const String& name, const MaterialPtrType& material)
 	: mParamIndex(0), mMaterial(nullptr)
 {
 	if(material != nullptr)
@@ -195,8 +195,8 @@ TMaterialParameterSampledTexture<Core>::TMaterialParameterSampledTexture(const S
 	}
 }
 
-template <bool Core>
-void TMaterialParameterSampledTexture<Core>::Set(const TextureType& texture, const TextureSurface& surface) const
+template <bool IsRenderProxy>
+void TMaterialParameterSampledTexture<IsRenderProxy>::Set(const TextureType& texture, const TextureSurface& surface) const
 {
 	if(mMaterial == nullptr)
 		return;
@@ -215,8 +215,8 @@ void TMaterialParameterSampledTexture<Core>::Set(const TextureType& texture, con
 	mMaterial->MarkResourcesDirtyInternal();
 }
 
-template <bool Core>
-typename TMaterialParameterSampledTexture<Core>::TextureType TMaterialParameterSampledTexture<Core>::Get() const
+template <bool IsRenderProxy>
+typename TMaterialParameterSampledTexture<IsRenderProxy>::TextureType TMaterialParameterSampledTexture<IsRenderProxy>::Get() const
 {
 	TextureType texture;
 	if(mMaterial == nullptr)
@@ -231,8 +231,8 @@ typename TMaterialParameterSampledTexture<Core>::TextureType TMaterialParameterS
 	return texture;
 }
 
-template <bool Core>
-TMaterialParamSpriteTexture<Core>::TMaterialParamSpriteTexture(const String& name, const MaterialPtrType& material)
+template <bool IsRenderProxy>
+TMaterialParamSpriteTexture<IsRenderProxy>::TMaterialParamSpriteTexture(const String& name, const MaterialPtrType& material)
 	: mParamIndex(0), mMaterial(nullptr)
 {
 	if(material != nullptr)
@@ -252,8 +252,8 @@ TMaterialParamSpriteTexture<Core>::TMaterialParamSpriteTexture(const String& nam
 	}
 }
 
-template <bool Core>
-void TMaterialParamSpriteTexture<Core>::Set(const SpriteTextureType& texture) const
+template <bool IsRenderProxy>
+void TMaterialParamSpriteTexture<IsRenderProxy>::Set(const SpriteTextureType& texture) const
 {
 	if(mMaterial == nullptr)
 		return;
@@ -276,8 +276,8 @@ void TMaterialParamSpriteTexture<Core>::Set(const SpriteTextureType& texture) co
 	mMaterial->MarkResourcesDirtyInternal();
 }
 
-template <bool Core>
-typename TMaterialParamSpriteTexture<Core>::SpriteTextureType TMaterialParamSpriteTexture<Core>::Get() const
+template <bool IsRenderProxy>
+typename TMaterialParamSpriteTexture<IsRenderProxy>::SpriteTextureType TMaterialParamSpriteTexture<IsRenderProxy>::Get() const
 {
 	SpriteTextureType texture;
 	if(mMaterial == nullptr)
@@ -290,8 +290,8 @@ typename TMaterialParamSpriteTexture<Core>::SpriteTextureType TMaterialParamSpri
 	return texture;
 }
 
-template <bool Core>
-TMaterialParameterStorageTexture<Core>::TMaterialParameterStorageTexture(const String& name, const MaterialPtrType& material)
+template <bool IsRenderProxy>
+TMaterialParameterStorageTexture<IsRenderProxy>::TMaterialParameterStorageTexture(const String& name, const MaterialPtrType& material)
 	: mParamIndex(0), mMaterial(nullptr)
 {
 	if(material != nullptr)
@@ -311,8 +311,8 @@ TMaterialParameterStorageTexture<Core>::TMaterialParameterStorageTexture(const S
 	}
 }
 
-template <bool Core>
-void TMaterialParameterStorageTexture<Core>::Set(const TextureType& texture, const TextureSurface& surface) const
+template <bool IsRenderProxy>
+void TMaterialParameterStorageTexture<IsRenderProxy>::Set(const TextureType& texture, const TextureSurface& surface) const
 {
 	if(mMaterial == nullptr)
 		return;
@@ -326,8 +326,8 @@ void TMaterialParameterStorageTexture<Core>::Set(const TextureType& texture, con
 	mMaterial->MarkResourcesDirtyInternal();
 }
 
-template <bool Core>
-typename TMaterialParameterStorageTexture<Core>::TextureType TMaterialParameterStorageTexture<Core>::Get() const
+template <bool IsRenderProxy>
+typename TMaterialParameterStorageTexture<IsRenderProxy>::TextureType TMaterialParameterStorageTexture<IsRenderProxy>::Get() const
 {
 	TextureType texture;
 	if(mMaterial == nullptr)
@@ -343,8 +343,8 @@ typename TMaterialParameterStorageTexture<Core>::TextureType TMaterialParameterS
 	return texture;
 }
 
-template <bool Core>
-TMaterialParameterBuffer<Core>::TMaterialParameterBuffer(const String& name, const MaterialPtrType& material)
+template <bool IsRenderProxy>
+TMaterialParameterBuffer<IsRenderProxy>::TMaterialParameterBuffer(const String& name, const MaterialPtrType& material)
 	: mParamIndex(0), mMaterial(nullptr)
 {
 	if(material != nullptr)
@@ -364,8 +364,8 @@ TMaterialParameterBuffer<Core>::TMaterialParameterBuffer(const String& name, con
 	}
 }
 
-template <bool Core>
-void TMaterialParameterBuffer<Core>::Set(const BufferType& buffer) const
+template <bool IsRenderProxy>
+void TMaterialParameterBuffer<IsRenderProxy>::Set(const BufferType& buffer) const
 {
 	if(mMaterial == nullptr)
 		return;
@@ -378,8 +378,8 @@ void TMaterialParameterBuffer<Core>::Set(const BufferType& buffer) const
 	mMaterial->MarkDependenciesDirtyInternal();
 }
 
-template <bool Core>
-typename TMaterialParameterBuffer<Core>::BufferType TMaterialParameterBuffer<Core>::Get() const
+template <bool IsRenderProxy>
+typename TMaterialParameterBuffer<IsRenderProxy>::BufferType TMaterialParameterBuffer<IsRenderProxy>::Get() const
 {
 	BufferType buffer;
 	if(mMaterial == nullptr)
@@ -392,8 +392,8 @@ typename TMaterialParameterBuffer<Core>::BufferType TMaterialParameterBuffer<Cor
 	return buffer;
 }
 
-template <bool Core>
-TMaterialParameterSampler<Core>::TMaterialParameterSampler(const String& name, const MaterialPtrType& material)
+template <bool IsRenderProxy>
+TMaterialParameterSampler<IsRenderProxy>::TMaterialParameterSampler(const String& name, const MaterialPtrType& material)
 	: mParamIndex(0), mMaterial(nullptr)
 {
 	if(material != nullptr)
@@ -413,8 +413,8 @@ TMaterialParameterSampler<Core>::TMaterialParameterSampler(const String& name, c
 	}
 }
 
-template <bool Core>
-void TMaterialParameterSampler<Core>::Set(const SPtr<SamplerState>& sampState) const
+template <bool IsRenderProxy>
+void TMaterialParameterSampler<IsRenderProxy>::Set(const SPtr<SamplerState>& sampState) const
 {
 	if(mMaterial == nullptr)
 		return;
@@ -432,8 +432,8 @@ void TMaterialParameterSampler<Core>::Set(const SPtr<SamplerState>& sampState) c
 	mMaterial->MarkDependenciesDirtyInternal();
 }
 
-template <bool Core>
-SPtr<SamplerState> TMaterialParameterSampler<Core>::Get() const
+template <bool IsRenderProxy>
+SPtr<SamplerState> TMaterialParameterSampler<IsRenderProxy>::Get() const
 {
 	SPtr<SamplerState> samplerState;
 	if(mMaterial == nullptr)

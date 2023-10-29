@@ -155,11 +155,11 @@ namespace bs
 	};
 
 	/** Templated base class used for both sim and core thread SpriteTexture implementations. */
-	template <bool Core>
+	template <bool IsRenderProxy>
 	class B3D_CORE_EXPORT TSpriteTexture : public SpriteTextureBase
 	{
 	public:
-		using TextureType = CoreVariantHandleType<Texture, Core>;
+		using TextureType = CoreVariantHandleType<Texture, IsRenderProxy>;
 
 		TSpriteTexture(const Vector2& uvOffset, const Vector2& uvScale, TextureType atlasTexture)
 			: SpriteTextureBase(uvOffset, uvScale), mAtlasTexture(std::move(atlasTexture))

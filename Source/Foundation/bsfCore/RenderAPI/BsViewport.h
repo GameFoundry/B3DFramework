@@ -108,11 +108,11 @@ namespace bs
 	};
 
 	/** Templated common base type used for both sim and core thread variants of Viewport. */
-	template <bool Core>
+	template <bool IsRenderProxy>
 	class TViewport : public ViewportBase
 	{
 	public:
-		using RenderTargetType = CoreVariantType<RenderTarget, Core>;
+		using RenderTargetType = CoreVariantType<RenderTarget, IsRenderProxy>;
 
 		TViewport(SPtr<RenderTargetType> target = nullptr, float x = 0.0f, float y = 0.0f, float width = 1.0f, float height = 1.0f)
 			: ViewportBase(x, y, width, height), mTarget(std::move(target))

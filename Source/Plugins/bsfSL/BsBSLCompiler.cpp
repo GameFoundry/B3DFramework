@@ -46,10 +46,10 @@ static SPtr<ct::Shader> CreateShader(const String& name, const ct::ShaderCreateI
 	return shader;
 }
 
-template<bool Core>
-ShaderCompilerResult BSLCompiler::TCompile(const String& name, const String& source, const UnorderedMap<String, String>& defines, ShadingLanguageFlags languages, bool compileVariations, SPtr<CoreVariantType<Shader, Core>>& outShader)
+template<bool IsRenderProxy>
+ShaderCompilerResult BSLCompiler::TCompile(const String& name, const String& source, const UnorderedMap<String, String>& defines, ShadingLanguageFlags languages, bool compileVariations, SPtr<CoreVariantType<Shader, IsRenderProxy>>& outShader)
 {
-	CoreVariantType<ShaderCreateInformation, Core> shaderCreateInformation;
+	CoreVariantType<ShaderCreateInformation, IsRenderProxy> shaderCreateInformation;
 	Vector<String> shaderIncludes;
 
 	BSLParsedShaderMetaData parsedShaderMetaData;
@@ -70,13 +70,13 @@ ShaderCompilerResult BSLCompiler::TCompile(const String& name, const String& sou
 			requiredLanguageSet.Add((ShadingLanguageFlag)(1 << shadingLanguageIndex));
 	}
 
-	SPtr<CoreVariantType<Shader, Core>> shader;
+	SPtr<CoreVariantType<Shader, IsRenderProxy>> shader;
 	for(auto& variationParameters : compilerMetaData->Variations)
 	{
 		for(u32 languageIndex = 0; languageIndex < requiredLanguageSet.size(); ++languageIndex)
 		{
 			const String languageName = ShaderCompilers::GetShadingLanguageName(requiredLanguageSet[languageIndex]);
-			SPtr<CoreVariantType<Technique, Core>> variation = CoreVariantType<Technique, Core>::Create(shader, languageName, variationParameters);
+			SPtr<CoreVariantType<Technique, IsRenderProxy>> variation = CoreVariantType<Technique, IsRenderProxy>::Create(shader, languageName, variationParameters);
 
 			shaderCreateInformation.Techniques.push_back(std::move(variation));
 		}
@@ -123,11 +123,11 @@ ShaderCompilerResult BSLCompiler::TCompile(const String& name, const String& sou
 			}
 
 			const String languageName = ShaderCompilers::GetShadingLanguageName(requiredLanguageSet[languageIndex]);
-			const SPtr<CoreVariantType<Technique, Core>>& variation = shaderCreateInformation.Techniques[variationIndex];
+			const SPtr<CoreVariantType<Technique, IsRenderProxy>>& variation = shaderCreateInformation.Techniques[variationIndex];
 
 			if(compileVariations)
 			{
-				compileResult = TCompileVariation<Core>(parsedShaderMetaData.Name, parsedNode, *compilerMetaData, requiredLanguageSet[languageIndex], *variation);
+				compileResult = TCompileVariation<IsRenderProxy>(parsedShaderMetaData.Name, parsedNode, *compilerMetaData, requiredLanguageSet[languageIndex], *variation);
 
 				if(!compileResult.ErrorMessage.empty())
 					return compileResult;
@@ -149,8 +149,8 @@ ShaderCompilerResult BSLCompiler::TCompile(const String& name, const String& sou
 template ShaderCompilerResult BSLCompiler::TCompile<false>(const String&, const String&, const UnorderedMap<String, String>&, ShadingLanguageFlags, bool, SPtr<CoreVariantType<Shader, false>>&);
 template ShaderCompilerResult BSLCompiler::TCompile<true>(const String&, const String&, const UnorderedMap<String, String>&, ShadingLanguageFlags, bool, SPtr<CoreVariantType<Shader, true>>&);
 
-template<bool Core>
-ShaderCompilerResult BSLCompiler::TCompileVariation(const CoreVariantType<Shader, Core>& shader, const ShaderVariationParameters& variationParameters, ShadingLanguageFlag language, CoreVariantType<Technique, Core>& outVariation)
+template<bool IsRenderProxy>
+ShaderCompilerResult BSLCompiler::TCompileVariation(const CoreVariantType<Shader, IsRenderProxy>& shader, const ShaderVariationParameters& variationParameters, ShadingLanguageFlag language, CoreVariantType<Technique, IsRenderProxy>& outVariation)
 {
 	SPtr<ShaderCompilerMetaData> compilerMetaData = shader.GetCompilerMetaData();
 	if(compilerMetaData == nullptr)
@@ -167,14 +167,14 @@ ShaderCompilerResult BSLCompiler::TCompileVariation(const CoreVariantType<Shader
 	if(!compileResult.ErrorMessage.empty())
 		return compileResult;
 
-	return TCompileVariation<Core>(shader.GetShaderName(), parsedNode, *compilerMetaData, language, outVariation);
+	return TCompileVariation<IsRenderProxy>(shader.GetShaderName(), parsedNode, *compilerMetaData, language, outVariation);
 }
 
 template ShaderCompilerResult BSLCompiler::TCompileVariation<false>(const CoreVariantType<Shader, false>&, const ShaderVariationParameters&, ShadingLanguageFlag, CoreVariantType<Technique, false>& outVariation);
 template ShaderCompilerResult BSLCompiler::TCompileVariation<true>(const CoreVariantType<Shader, true>&, const ShaderVariationParameters&, ShadingLanguageFlag, CoreVariantType<Technique, true>& outVariation);
 
-template<bool Core>
-ShaderCompilerResult BSLCompiler::TCompileVariation(const String& name, const BSLParsedShaderData& parsedShader, const ShaderCompilerMetaData& shaderMetaData, ShadingLanguageFlag language, CoreVariantType<Technique, Core>& outVariation)
+template<bool IsRenderProxy>
+ShaderCompilerResult BSLCompiler::TCompileVariation(const String& name, const BSLParsedShaderData& parsedShader, const ShaderCompilerMetaData& shaderMetaData, ShadingLanguageFlag language, CoreVariantType<Technique, IsRenderProxy>& outVariation)
 {
 	B3D_ASSERT(!parsedShader.MetaData.IsMixin);
 	B3D_ASSERT(shaderMetaData.GPUProgramTypes.size() > 0);
@@ -201,9 +201,9 @@ ShaderCompilerResult BSLCompiler::TCompileVariation(const String& name, const BS
 		String ProgramCodePerType[GPT_COUNT];
 	};
 
-	using PassType = CoreVariantType<Pass, Core>;
+	using PassType = CoreVariantType<Pass, IsRenderProxy>;
 
-	Map<u32, SPtr<CoreVariantType<Pass, Core>>, std::greater<u32>> passes;
+	Map<u32, SPtr<CoreVariantType<Pass, IsRenderProxy>>, std::greater<u32>> passes;
 	const auto passCount = (u32)parsedShader.Passes.size();
 	for(u32 passIndex = 0; passIndex < passCount; passIndex++)
 	{

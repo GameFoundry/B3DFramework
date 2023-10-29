@@ -57,8 +57,8 @@ namespace bs
 		}
 
 	private:
-		template<bool Core>
-		static ShaderCompilerResult TReflect(const String& hlsl, CoreVariantType<ShaderCreateInformation, Core>& outShaderCreateInformation, TInlineArray<GpuProgramType, 2>& outEntryPoints); // TODO - Output reflection information in a more generalized form, rather than ShaderCreateInformation
+		template<bool IsRenderProxy>
+		static ShaderCompilerResult TReflect(const String& hlsl, CoreVariantType<ShaderCreateInformation, IsRenderProxy>& outShaderCreateInformation, TInlineArray<GpuProgramType, 2>& outEntryPoints); // TODO - Output reflection information in a more generalized form, rather than ShaderCreateInformation
 	};
 
 	/** @} */

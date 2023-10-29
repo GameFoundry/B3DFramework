@@ -172,8 +172,8 @@ BSLParsedShaderMetaData BSLParser::ParseShaderMetaData(ASTFXNode* shader)
 	return metaData;
 }
 
-template<bool Core>
-ShaderCompilerResult BSLParser::TParseMetaDataAndOptions(ASTFXNode* rootNode, Vector<std::pair<ASTFXNode*, BSLParsedShaderMetaData>>& shaderMetaData, CoreVariantType<ShaderCreateInformation, Core>& shaderCreateInformation)
+template<bool IsRenderProxy>
+ShaderCompilerResult BSLParser::TParseMetaDataAndOptions(ASTFXNode* rootNode, Vector<std::pair<ASTFXNode*, BSLParsedShaderMetaData>>& shaderMetaData, CoreVariantType<ShaderCreateInformation, IsRenderProxy>& shaderCreateInformation)
 {
 	ShaderCompilerResult parseResult;
 
@@ -195,7 +195,7 @@ ShaderCompilerResult BSLParser::TParseMetaDataAndOptions(ASTFXNode* rootNode, Ve
 		switch(option->Type)
 		{
 		case OT_Options:
-			TParseOptions<Core>(option->Value.NodePtr, shaderCreateInformation);
+			TParseOptions<IsRenderProxy>(option->Value.NodePtr, shaderCreateInformation);
 			break;
 		case OT_Shader:
 			{
@@ -931,8 +931,8 @@ void BSLParser::ParseShader(ASTFXNode* shaderNode, const Vector<String>& codeBlo
 	}
 }
 
-template<bool Core>
-void BSLParser::TParseOptions(ASTFXNode* optionsNode, CoreVariantType<ShaderCreateInformation, Core>& outShaderCreateInformation)
+template<bool IsRenderProxy>
+void BSLParser::TParseOptions(ASTFXNode* optionsNode, CoreVariantType<ShaderCreateInformation, IsRenderProxy>& outShaderCreateInformation)
 {
 	if(optionsNode == nullptr || optionsNode->Type != NT_Options)
 		return;
@@ -1044,8 +1044,8 @@ ShaderCompilerResult BSLParser::PopulateVariations(Vector<std::pair<ASTFXNode*, 
 	return parseResult;
 }
 
-template<bool Core>
-void BSLParser::TPopulateVariationParameters(const BSLParsedShaderMetaData& shaderMetaData, CoreVariantType<ShaderCreateInformation, Core>& shaderCreateInformation)
+template<bool IsRenderProxy>
+void BSLParser::TPopulateVariationParameters(const BSLParsedShaderMetaData& shaderMetaData, CoreVariantType<ShaderCreateInformation, IsRenderProxy>& shaderCreateInformation)
 {
 	for(auto& entry : shaderMetaData.Variations)
 	{
@@ -1067,8 +1067,8 @@ void BSLParser::TPopulateVariationParameters(const BSLParsedShaderMetaData& shad
 	}
 }
 
-template<bool Core>
-ShaderCompilerResult BSLParser::TParseMetaData(const String& source, const UnorderedMap<String, String>& defines, CoreVariantType<ShaderCreateInformation, Core>& outShaderInformation, BSLParsedShaderMetaData& outShaderMetaData, Vector<String>& outIncludes)
+template<bool IsRenderProxy>
+ShaderCompilerResult BSLParser::TParseMetaData(const String& source, const UnorderedMap<String, String>& defines, CoreVariantType<ShaderCreateInformation, IsRenderProxy>& outShaderInformation, BSLParsedShaderMetaData& outShaderMetaData, Vector<String>& outIncludes)
 {
 	ParseState* parseState = ParseStateCreate();
 	ShaderCompilerResult parseResult = RunParser(parseState, source.c_str(), defines);
@@ -1081,7 +1081,7 @@ ShaderCompilerResult BSLParser::TParseMetaData(const String& source, const Unord
 
 	// Parse global shader options & shader meta-data
 	Vector<pair<ASTFXNode*, BSLParsedShaderMetaData>> shaderMetaDataWithNodes;
-	parseResult = TParseMetaDataAndOptions<Core>(parseState->RootNode, shaderMetaDataWithNodes, outShaderInformation);
+	parseResult = TParseMetaDataAndOptions<IsRenderProxy>(parseState->RootNode, shaderMetaDataWithNodes, outShaderInformation);
 
 	if(!parseResult.ErrorMessage.empty())
 	{
@@ -1123,7 +1123,7 @@ ShaderCompilerResult BSLParser::TParseMetaData(const String& source, const Unord
 			continue;
 		}
 
-		TPopulateVariationParameters<Core>(entry.second, outShaderInformation);
+		TPopulateVariationParameters<IsRenderProxy>(entry.second, outShaderInformation);
 		outShaderMetaData = entry.second;
 		foundShader = true;
 	}

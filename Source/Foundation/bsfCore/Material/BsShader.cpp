@@ -281,8 +281,8 @@ RTTITypeBase* ShaderInformation::GetRtti() const
 }
 } // namespace ct
 
-template <bool Core>
-CoreVariantHandleType<Texture, Core> GetBuiltin2DTexture(ShaderDefaultTextureType texture);
+template <bool IsRenderProxy>
+CoreVariantHandleType<Texture, IsRenderProxy> GetBuiltin2DTexture(ShaderDefaultTextureType texture);
 
 template <>
 CoreVariantHandleType<Texture, true> GetBuiltin2DTexture<true>(ShaderDefaultTextureType texture)
@@ -310,8 +310,8 @@ CoreVariantHandleType<Texture, false> GetBuiltin2DTexture<false>(ShaderDefaultTe
 	return HTexture();
 }
 
-template <bool Core>
-CoreVariantHandleType<Texture, Core> GetBuiltin3DTexture(ShaderDefaultTextureType texture);
+template <bool IsRenderProxy>
+CoreVariantHandleType<Texture, IsRenderProxy> GetBuiltin3DTexture(ShaderDefaultTextureType texture);
 
 template <>
 CoreVariantHandleType<Texture, true> GetBuiltin3DTexture<true>(ShaderDefaultTextureType texture)
@@ -335,22 +335,22 @@ CoreVariantHandleType<Texture, false> GetBuiltin3DTexture<false>(ShaderDefaultTe
 	return HTexture();
 }
 
-template <bool Core>
-TShader<Core>::TShader(u32 id)
+template <bool IsRenderProxy>
+TShader<IsRenderProxy>::TShader(u32 id)
 	: mShaderId(id)
 {}
 
-template <bool Core>
-TShader<Core>::TShader(const String& name, const ShaderCreateInformationType& createInformation, u32 id)
+template <bool IsRenderProxy>
+TShader<IsRenderProxy>::TShader(const String& name, const ShaderCreateInformationType& createInformation, u32 id)
 	: mName(name), mInformation(createInformation), mShaderId(id)
 {}
 
-template <bool Core>
-TShader<Core>::~TShader()
+template <bool IsRenderProxy>
+TShader<IsRenderProxy>::~TShader()
 {}
 
-template <bool Core>
-const ShaderDataParameterInformation& TShader<Core>::GetDataParamDesc(const String& name) const
+template <bool IsRenderProxy>
+const ShaderDataParameterInformation& TShader<IsRenderProxy>::GetDataParamDesc(const String& name) const
 {
 	auto findIterData = mInformation.DataParameters.find(name);
 	if(findIterData != mInformation.DataParameters.end())
@@ -361,8 +361,8 @@ const ShaderDataParameterInformation& TShader<Core>::GetDataParamDesc(const Stri
 	return dummy;
 }
 
-template <bool Core>
-const ShaderObjectParameterInformation& TShader<Core>::GetTextureParamDesc(const String& name) const
+template <bool IsRenderProxy>
+const ShaderObjectParameterInformation& TShader<IsRenderProxy>::GetTextureParamDesc(const String& name) const
 {
 	auto findIterObject = mInformation.TextureParameters.find(name);
 	if(findIterObject != mInformation.TextureParameters.end())
@@ -373,8 +373,8 @@ const ShaderObjectParameterInformation& TShader<Core>::GetTextureParamDesc(const
 	return dummy;
 }
 
-template <bool Core>
-const ShaderObjectParameterInformation& TShader<Core>::GetSamplerParamDesc(const String& name) const
+template <bool IsRenderProxy>
+const ShaderObjectParameterInformation& TShader<IsRenderProxy>::GetSamplerParamDesc(const String& name) const
 {
 	auto findIterObject = mInformation.SamplerParameters.find(name);
 	if(findIterObject != mInformation.SamplerParameters.end())
@@ -385,8 +385,8 @@ const ShaderObjectParameterInformation& TShader<Core>::GetSamplerParamDesc(const
 	return dummy;
 }
 
-template <bool Core>
-const ShaderObjectParameterInformation& TShader<Core>::GetBufferParamDesc(const String& name) const
+template <bool IsRenderProxy>
+const ShaderObjectParameterInformation& TShader<IsRenderProxy>::GetBufferParamDesc(const String& name) const
 {
 	auto findIterObject = mInformation.BufferParameters.find(name);
 	if(findIterObject != mInformation.BufferParameters.end())
@@ -397,8 +397,8 @@ const ShaderObjectParameterInformation& TShader<Core>::GetBufferParamDesc(const 
 	return dummy;
 }
 
-template <bool Core>
-bool TShader<Core>::HasDataParam(const String& name) const
+template <bool IsRenderProxy>
+bool TShader<IsRenderProxy>::HasDataParam(const String& name) const
 {
 	auto findIterData = mInformation.DataParameters.find(name);
 	if(findIterData != mInformation.DataParameters.end())
@@ -407,8 +407,8 @@ bool TShader<Core>::HasDataParam(const String& name) const
 	return false;
 }
 
-template <bool Core>
-bool TShader<Core>::HasTextureParam(const String& name) const
+template <bool IsRenderProxy>
+bool TShader<IsRenderProxy>::HasTextureParam(const String& name) const
 {
 	auto findIterObject = mInformation.TextureParameters.find(name);
 	if(findIterObject != mInformation.TextureParameters.end())
@@ -417,8 +417,8 @@ bool TShader<Core>::HasTextureParam(const String& name) const
 	return false;
 }
 
-template <bool Core>
-bool TShader<Core>::HasSamplerParam(const String& name) const
+template <bool IsRenderProxy>
+bool TShader<IsRenderProxy>::HasSamplerParam(const String& name) const
 {
 	auto findIterObject = mInformation.SamplerParameters.find(name);
 	if(findIterObject != mInformation.SamplerParameters.end())
@@ -427,8 +427,8 @@ bool TShader<Core>::HasSamplerParam(const String& name) const
 	return false;
 }
 
-template <bool Core>
-bool TShader<Core>::HasBufferParam(const String& name) const
+template <bool IsRenderProxy>
+bool TShader<IsRenderProxy>::HasBufferParam(const String& name) const
 {
 	auto findIterObject = mInformation.BufferParameters.find(name);
 	if(findIterObject != mInformation.BufferParameters.end())
@@ -437,8 +437,8 @@ bool TShader<Core>::HasBufferParam(const String& name) const
 	return false;
 }
 
-template <bool Core>
-bool TShader<Core>::HasParamBlock(const String& name) const
+template <bool IsRenderProxy>
+bool TShader<IsRenderProxy>::HasParamBlock(const String& name) const
 {
 	auto findIterObject = mInformation.DataParameterBlocks.find(name);
 	if(findIterObject != mInformation.DataParameterBlocks.end())
@@ -447,26 +447,26 @@ bool TShader<Core>::HasParamBlock(const String& name) const
 	return false;
 }
 
-template <bool Core>
-typename TShader<Core>::TextureType TShader<Core>::GetDefault2DTexture(u32 index) const
+template <bool IsRenderProxy>
+typename TShader<IsRenderProxy>::TextureType TShader<IsRenderProxy>::GetDefault2DTexture(u32 index) const
 {
 	if(index < (u32)mInformation.TextureDefaultValues.size())
-		return GetBuiltin2DTexture<Core>(mInformation.TextureDefaultValues[index]);
+		return GetBuiltin2DTexture<IsRenderProxy>(mInformation.TextureDefaultValues[index]);
 
 	return TextureType();
 }
 
-template <bool Core>
-typename TShader<Core>::TextureType TShader<Core>::GetDefault3DTexture(u32 index) const
+template <bool IsRenderProxy>
+typename TShader<IsRenderProxy>::TextureType TShader<IsRenderProxy>::GetDefault3DTexture(u32 index) const
 {
 	if(index < (u32)mInformation.TextureDefaultValues.size())
-		return GetBuiltin3DTexture<Core>(mInformation.TextureDefaultValues[index]);
+		return GetBuiltin3DTexture<IsRenderProxy>(mInformation.TextureDefaultValues[index]);
 
 	return TextureType();
 }
 
-template <bool Core>
-SPtr<SamplerState> TShader<Core>::GetDefaultSampler(u32 index) const
+template <bool IsRenderProxy>
+SPtr<SamplerState> TShader<IsRenderProxy>::GetDefaultSampler(u32 index) const
 {
 	if (index < (u32)mInformation.SamplerDefaultValues.size())
 	{
@@ -480,8 +480,8 @@ SPtr<SamplerState> TShader<Core>::GetDefaultSampler(u32 index) const
 	return SPtr<SamplerState>();
 }
 
-template <bool Core>
-u8* TShader<Core>::GetDefaultValue(u32 index) const
+template <bool IsRenderProxy>
+u8* TShader<IsRenderProxy>::GetDefaultValue(u32 index) const
 {
 	if(index < (u32)mInformation.DataDefaultValues.size())
 		return (u8*)&mInformation.DataDefaultValues[index];
@@ -489,8 +489,8 @@ u8* TShader<Core>::GetDefaultValue(u32 index) const
 	return nullptr;
 }
 
-template <bool Core>
-Vector<SPtr<typename TShader<Core>::TechniqueType>> TShader<Core>::GetCompatibleTechniques() const
+template <bool IsRenderProxy>
+Vector<SPtr<typename TShader<IsRenderProxy>::TechniqueType>> TShader<IsRenderProxy>::GetCompatibleTechniques() const
 {
 	Vector<SPtr<TechniqueType>> output;
 	for(auto& technique : mInformation.Techniques)
@@ -502,8 +502,8 @@ Vector<SPtr<typename TShader<Core>::TechniqueType>> TShader<Core>::GetCompatible
 	return output;
 }
 
-template <bool Core>
-Vector<SPtr<typename TShader<Core>::TechniqueType>> TShader<Core>::GetCompatibleTechniques(
+template <bool IsRenderProxy>
+Vector<SPtr<typename TShader<IsRenderProxy>::TechniqueType>> TShader<IsRenderProxy>::GetCompatibleTechniques(
 	const ShaderVariationParameters& variation, bool exact) const
 {
 	Vector<SPtr<TechniqueType>> output;

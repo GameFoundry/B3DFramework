@@ -14,17 +14,17 @@
 
 using namespace bs;
 
-template <class T, bool Core>
-TGpuParameterPrimitive<T, Core>::TGpuParameterPrimitive()
+template <class T, bool IsRenderProxy>
+TGpuParameterPrimitive<T, IsRenderProxy>::TGpuParameterPrimitive()
 {}
 
-template <class T, bool Core>
-TGpuParameterPrimitive<T, Core>::TGpuParameterPrimitive(const GpuDataParameterInformation* parameterInformation, const GpuParamsType& parent)
+template <class T, bool IsRenderProxy>
+TGpuParameterPrimitive<T, IsRenderProxy>::TGpuParameterPrimitive(const GpuDataParameterInformation* parameterInformation, const GpuParamsType& parent)
 	: mParent(parent), mParameterInformation(parameterInformation)
 {}
 
-template <class T, bool Core>
-void TGpuParameterPrimitive<T, Core>::Set(const T& value, u32 arrayIdx) const
+template <class T, bool IsRenderProxy>
+void TGpuParameterPrimitive<T, IsRenderProxy>::Set(const T& value, u32 arrayIdx) const
 {
 	if(mParent == nullptr)
 		return;
@@ -57,8 +57,8 @@ void TGpuParameterPrimitive<T, Core>::Set(const T& value, u32 arrayIdx) const
 	mParent->MarkCoreDirtyInternal();
 }
 
-template <class T, bool Core>
-T TGpuParameterPrimitive<T, Core>::Get(u32 arrayIdx) const
+template <class T, bool IsRenderProxy>
+T TGpuParameterPrimitive<T, IsRenderProxy>::Get(u32 arrayIdx) const
 {
 	if(mParent == nullptr)
 		return T();
@@ -83,17 +83,17 @@ T TGpuParameterPrimitive<T, Core>::Get(u32 arrayIdx) const
 	return value;
 }
 
-template <bool Core>
-TGpuParameterStruct<Core>::TGpuParameterStruct()
+template <bool IsRenderProxy>
+TGpuParameterStruct<IsRenderProxy>::TGpuParameterStruct()
 {}
 
-template <bool Core>
-TGpuParameterStruct<Core>::TGpuParameterStruct(const GpuDataParameterInformation* parameterInformation, const GpuParamsType& parent)
+template <bool IsRenderProxy>
+TGpuParameterStruct<IsRenderProxy>::TGpuParameterStruct(const GpuDataParameterInformation* parameterInformation, const GpuParamsType& parent)
 	: mParent(parent), mParameterInformation(parameterInformation)
 {}
 
-template <bool Core>
-void TGpuParameterStruct<Core>::Set(const void* value, u32 sizeBytes, u32 arrayIdx) const
+template <bool IsRenderProxy>
+void TGpuParameterStruct<IsRenderProxy>::Set(const void* value, u32 sizeBytes, u32 arrayIdx) const
 {
 	if(mParent == nullptr)
 		return;
@@ -132,8 +132,8 @@ void TGpuParameterStruct<Core>::Set(const void* value, u32 sizeBytes, u32 arrayI
 	mParent->MarkCoreDirtyInternal();
 }
 
-template <bool Core>
-void TGpuParameterStruct<Core>::Get(void* value, u32 sizeBytes, u32 arrayIdx) const
+template <bool IsRenderProxy>
+void TGpuParameterStruct<IsRenderProxy>::Get(void* value, u32 sizeBytes, u32 arrayIdx) const
 {
 	if(mParent == nullptr)
 		return;
@@ -162,8 +162,8 @@ void TGpuParameterStruct<Core>::Get(void* value, u32 sizeBytes, u32 arrayIdx) co
 	paramBlock->ReadCached((mParameterInformation->CpuOffset + arrayIdx * mParameterInformation->ArrayElementStride) * sizeof(u32), sizeBytes, value);
 }
 
-template <bool Core>
-u32 TGpuParameterStruct<Core>::GetElementSize() const
+template <bool IsRenderProxy>
+u32 TGpuParameterStruct<IsRenderProxy>::GetElementSize() const
 {
 	if(mParent == nullptr)
 		return 0;
@@ -171,17 +171,17 @@ u32 TGpuParameterStruct<Core>::GetElementSize() const
 	return mParameterInformation->ElementSize * sizeof(u32);
 }
 
-template <bool Core>
-TGpuParameterSampledTexture<Core>::TGpuParameterSampledTexture()
+template <bool IsRenderProxy>
+TGpuParameterSampledTexture<IsRenderProxy>::TGpuParameterSampledTexture()
 {}
 
-template <bool Core>
-TGpuParameterSampledTexture<Core>::TGpuParameterSampledTexture(const GpuParameterBinding& binding, const GpuParamsType& parent)
+template <bool IsRenderProxy>
+TGpuParameterSampledTexture<IsRenderProxy>::TGpuParameterSampledTexture(const GpuParameterBinding& binding, const GpuParamsType& parent)
 	: mParent(parent), mBinding(binding)
 {}
 
-template <bool Core>
-void TGpuParameterSampledTexture<Core>::Set(const TextureType& texture, const TextureSurface& surface, u32 arrayIndex) const
+template <bool IsRenderProxy>
+void TGpuParameterSampledTexture<IsRenderProxy>::Set(const TextureType& texture, const TextureSurface& surface, u32 arrayIndex) const
 {
 	if(mParent == nullptr)
 		return;
@@ -192,8 +192,8 @@ void TGpuParameterSampledTexture<Core>::Set(const TextureType& texture, const Te
 	mParent->MarkCoreDirtyInternal();
 }
 
-template <bool Core>
-typename TGpuParameterSampledTexture<Core>::TextureType TGpuParameterSampledTexture<Core>::Get(u32 arrayIndex) const
+template <bool IsRenderProxy>
+typename TGpuParameterSampledTexture<IsRenderProxy>::TextureType TGpuParameterSampledTexture<IsRenderProxy>::Get(u32 arrayIndex) const
 {
 	if(mParent == nullptr)
 		return TextureType();
@@ -201,17 +201,17 @@ typename TGpuParameterSampledTexture<Core>::TextureType TGpuParameterSampledText
 	return mParent->GetSampledTexture(mBinding.Set, mBinding.Slot, arrayIndex);
 }
 
-template <bool Core>
-TGpuParameterBuffer<Core>::TGpuParameterBuffer()
+template <bool IsRenderProxy>
+TGpuParameterBuffer<IsRenderProxy>::TGpuParameterBuffer()
 {}
 
-template <bool Core>
-TGpuParameterBuffer<Core>::TGpuParameterBuffer(const GpuParameterBinding& binding, const GpuParamsType& parent)
+template <bool IsRenderProxy>
+TGpuParameterBuffer<IsRenderProxy>::TGpuParameterBuffer(const GpuParameterBinding& binding, const GpuParamsType& parent)
 	: mParent(parent), mBinding(binding)
 {}
 
-template <bool Core>
-void TGpuParameterBuffer<Core>::Set(const BufferType& buffer, u32 arrayIndex, GpuBufferViewInformation view) const
+template <bool IsRenderProxy>
+void TGpuParameterBuffer<IsRenderProxy>::Set(const BufferType& buffer, u32 arrayIndex, GpuBufferViewInformation view) const
 {
 	if(mParent == nullptr)
 		return;
@@ -222,8 +222,8 @@ void TGpuParameterBuffer<Core>::Set(const BufferType& buffer, u32 arrayIndex, Gp
 	mParent->MarkCoreDirtyInternal();
 }
 
-template <bool Core>
-typename TGpuParameterBuffer<Core>::BufferType TGpuParameterBuffer<Core>::Get(u32 arrayIndex) const
+template <bool IsRenderProxy>
+typename TGpuParameterBuffer<IsRenderProxy>::BufferType TGpuParameterBuffer<IsRenderProxy>::Get(u32 arrayIndex) const
 {
 	if(mParent == nullptr)
 		return BufferType();
@@ -231,17 +231,17 @@ typename TGpuParameterBuffer<Core>::BufferType TGpuParameterBuffer<Core>::Get(u3
 	return mParent->GetStorageBuffer(mBinding.Set, mBinding.Slot, arrayIndex);
 }
 
-template <bool Core>
-TGpuParameterStorageTexture<Core>::TGpuParameterStorageTexture()
+template <bool IsRenderProxy>
+TGpuParameterStorageTexture<IsRenderProxy>::TGpuParameterStorageTexture()
 {}
 
-template <bool Core>
-TGpuParameterStorageTexture<Core>::TGpuParameterStorageTexture(const GpuParameterBinding& binding, const GpuParamsType& parent)
+template <bool IsRenderProxy>
+TGpuParameterStorageTexture<IsRenderProxy>::TGpuParameterStorageTexture(const GpuParameterBinding& binding, const GpuParamsType& parent)
 	: mParent(parent), mBinding(binding)
 {}
 
-template <bool Core>
-void TGpuParameterStorageTexture<Core>::Set(const TextureType& texture, const TextureSurface& surface, u32 arrayIndex) const
+template <bool IsRenderProxy>
+void TGpuParameterStorageTexture<IsRenderProxy>::Set(const TextureType& texture, const TextureSurface& surface, u32 arrayIndex) const
 {
 	if(mParent == nullptr)
 		return;
@@ -252,8 +252,8 @@ void TGpuParameterStorageTexture<Core>::Set(const TextureType& texture, const Te
 	mParent->MarkCoreDirtyInternal();
 }
 
-template <bool Core>
-typename TGpuParameterStorageTexture<Core>::TextureType TGpuParameterStorageTexture<Core>::Get(u32 arrayIndex) const
+template <bool IsRenderProxy>
+typename TGpuParameterStorageTexture<IsRenderProxy>::TextureType TGpuParameterStorageTexture<IsRenderProxy>::Get(u32 arrayIndex) const
 {
 	if(mParent == nullptr)
 		return TextureType();
@@ -261,17 +261,17 @@ typename TGpuParameterStorageTexture<Core>::TextureType TGpuParameterStorageText
 	return mParent->GetSampledTexture(mBinding.Set, mBinding.Slot, arrayIndex);
 }
 
-template <bool Core>
-TGpuParameterSampler<Core>::TGpuParameterSampler()
+template <bool IsRenderProxy>
+TGpuParameterSampler<IsRenderProxy>::TGpuParameterSampler()
 {}
 
-template <bool Core>
-TGpuParameterSampler<Core>::TGpuParameterSampler(const GpuParameterBinding& binding, const GpuParamsType& parent)
+template <bool IsRenderProxy>
+TGpuParameterSampler<IsRenderProxy>::TGpuParameterSampler(const GpuParameterBinding& binding, const GpuParamsType& parent)
 	: mParent(parent), mBinding(binding)
 {}
 
-template <bool Core>
-void TGpuParameterSampler<Core>::Set(const SPtr<SamplerState>& samplerState, u32 arrayIndex) const
+template <bool IsRenderProxy>
+void TGpuParameterSampler<IsRenderProxy>::Set(const SPtr<SamplerState>& samplerState, u32 arrayIndex) const
 {
 	if(mParent == nullptr)
 		return;
@@ -282,8 +282,8 @@ void TGpuParameterSampler<Core>::Set(const SPtr<SamplerState>& samplerState, u32
 	mParent->MarkCoreDirtyInternal();
 }
 
-template <bool Core>
-SPtr<SamplerState> TGpuParameterSampler<Core>::Get(u32 arrayIndex) const
+template <bool IsRenderProxy>
+SPtr<SamplerState> TGpuParameterSampler<IsRenderProxy>::Get(u32 arrayIndex) const
 {
 	if (mParent == nullptr)
 		return nullptr;

@@ -847,7 +847,7 @@ namespace bs
 	/** Used for marking a CoreObject dependency as dirty. */
 	static constexpr i32 kDirtyDependencyMask = 1 << 31;
 
-	template <class T, bool Core>
+	template <class T, bool IsRenderProxy>
 	struct CoreVariant
 	{};
 
@@ -863,14 +863,11 @@ namespace bs
 		typedef typename CoreThreadType<T>::Type Type;
 	};
 
-	/**
-	 * Allows a simple way to define a member that can be both CoreObject variants depending on the Core template
-	 * parameter.
-	 */
-	template <class T, bool Core>
-	using CoreVariantType = typename CoreVariant<T, Core>::Type;
+	/** Allows a simple way to define a member that can be both CoreObject and its RenderProxy variant depending on the IsRenderProxy template parameter. */
+	template <class T, bool IsRenderProxy>
+	using CoreVariantType = typename CoreVariant<T, IsRenderProxy>::Type;
 
-	template <class T, bool Core>
+	template <class T, bool IsRenderProxy>
 	struct CoreVariantHandle
 	{};
 
@@ -887,12 +884,11 @@ namespace bs
 	};
 
 	/**
-	 * Allows a simple way to define a member that can be both CoreObject variants depending on the Core template
-	 * parameter. Sim thread type is wrapped in as a resource handle while the core thread variant is wrapped in a shared
-	 * pointer.
+	 * Allows a simple way to define a member that can be both CoreObject and its RenderProxy variant depending on the IsRenderProxy template
+	 * parameter. Main thread type is wrapped in as a resource handle while the render thread thread variant is wrapped in a shared pointer.
 	 */
-	template <class T, bool Core>
-	using CoreVariantHandleType = typename CoreVariantHandle<T, Core>::Type;
+	template <class T, bool IsRenderProxy>
+	using CoreVariantHandleType = typename CoreVariantHandle<T, IsRenderProxy>::Type;
 
 	/** Flags that are provided to the serialization system to control serialization/deserialization. */
 	enum SerializationFlags

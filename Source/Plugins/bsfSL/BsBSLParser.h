@@ -132,8 +132,8 @@ namespace bs
 		static ShaderCompilerResult RunParser(ParseState* parseState, const char* source, const UnorderedMap<String, String>& defines);
 
 		/** Templated version of ParseMetaData for both main and render thread. */
-		template<bool Core>
-		static ShaderCompilerResult TParseMetaData(const String& source, const UnorderedMap<String, String>& defines, CoreVariantType<ShaderCreateInformation, Core>& inOutShaderInformation, BSLParsedShaderMetaData& outShaderMetaData, Vector<String>& outIncludes);
+		template<bool IsRenderProxy>
+		static ShaderCompilerResult TParseMetaData(const String& source, const UnorderedMap<String, String>& defines, CoreVariantType<ShaderCreateInformation, IsRenderProxy>& inOutShaderInformation, BSLParsedShaderMetaData& outShaderMetaData, Vector<String>& outIncludes);
 
 		/** Parses the shader/mixin node and outputs the relevant meta-data. */
 		static BSLParsedShaderMetaData ParseShaderMetaData(ASTFXNode* shader);
@@ -142,8 +142,8 @@ namespace bs
 		 * Parses the root AST node and outputs a list of all mixins/shaders and their meta-data, sub-shader meta-data,
 		 * as well as any global shader options.
 		 */
-		template<bool Core>
-		static ShaderCompilerResult TParseMetaDataAndOptions(ASTFXNode* rootNode, Vector<std::pair<ASTFXNode*, BSLParsedShaderMetaData>>& metaData, CoreVariantType<ShaderCreateInformation, Core>& shaderCreateInformation);
+		template<bool IsRenderProxy>
+		static ShaderCompilerResult TParseMetaDataAndOptions(ASTFXNode* rootNode, Vector<std::pair<ASTFXNode*, BSLParsedShaderMetaData>>& metaData, CoreVariantType<ShaderCreateInformation, IsRenderProxy>& shaderCreateInformation);
 
 		/** Parses shader variations and writes them to the provided meta-data object. */
 		static void ParseVariations(BSLParsedShaderMetaData& metaData, ASTFXNode* variations);
@@ -257,8 +257,8 @@ namespace bs
 		 * @param	optionsNode						Node to parse.
 		 * @param	outShaderCreateInformation		Descriptor to apply the found options to.
 		 */
-		template<bool Core>
-		static void TParseOptions(ASTFXNode* optionsNode, CoreVariantType<ShaderCreateInformation, Core>& outShaderCreateInformation);
+		template<bool IsRenderProxy>
+		static void TParseOptions(ASTFXNode* optionsNode, CoreVariantType<ShaderCreateInformation, IsRenderProxy>& outShaderCreateInformation);
 
 		/**
 		 * Iterates over all provided mixins/shaders and inherits any variations. The variations are written in-place, to
@@ -267,8 +267,8 @@ namespace bs
 		static ShaderCompilerResult PopulateVariations(Vector<std::pair<ASTFXNode*, BSLParsedShaderMetaData>>& shaderMetaData);
 
 		/** Populates the information about variation parameters and their values. */
-		template<bool Core>
-		static void TPopulateVariationParameters(const BSLParsedShaderMetaData& shaderMetaData, CoreVariantType<ShaderCreateInformation, Core>& shaderCreateInformation);
+		template<bool IsRenderProxy>
+		static void TPopulateVariationParameters(const BSLParsedShaderMetaData& shaderMetaData, CoreVariantType<ShaderCreateInformation, IsRenderProxy>& shaderCreateInformation);
 
 		/**
 		 * Converts a null-terminated string into a standard string, and eliminates quotes that are assumed to be at the

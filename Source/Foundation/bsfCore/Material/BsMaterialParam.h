@@ -18,12 +18,12 @@ namespace bs
 	 */
 
 	/** Common functionality for all material data params. */
-	template <int DATA_TYPE, bool Core>
+	template <int DATA_TYPE, bool IsRenderProxy>
 	class B3D_CORE_EXPORT TMaterialDataCommon
 	{
 	protected:
-		using MaterialPtrType = SPtr<CoreVariantType<Material, Core>>;
-		using MaterialParamsType = CoreVariantType<MaterialParams, Core>;
+		using MaterialPtrType = SPtr<CoreVariantType<Material, IsRenderProxy>>;
+		using MaterialParamsType = CoreVariantType<MaterialParams, IsRenderProxy>;
 
 	public:
 		TMaterialDataCommon() = default;
@@ -57,13 +57,13 @@ namespace bs
 	 *
 	 * @see		Material
 	 */
-	template <class T, bool Core>
-	class B3D_CORE_EXPORT TMaterialParameterPrimitive : public TMaterialDataCommon<TGpuDataParamInfo<T>::TypeId, Core>
+	template <class T, bool IsRenderProxy>
+	class B3D_CORE_EXPORT TMaterialParameterPrimitive : public TMaterialDataCommon<TGpuDataParamInfo<T>::TypeId, IsRenderProxy>
 	{
-		using Base = TMaterialDataCommon<TGpuDataParamInfo<T>::TypeId, Core>;
+		using Base = TMaterialDataCommon<TGpuDataParamInfo<T>::TypeId, IsRenderProxy>;
 
 	public:
-		using TMaterialDataCommon<TGpuDataParamInfo<T>::TypeId, Core>::TMaterialDataCommon;
+		using TMaterialDataCommon<TGpuDataParamInfo<T>::TypeId, IsRenderProxy>::TMaterialDataCommon;
 
 		/** @copydoc TGpuDataParam::Set */
 		void Set(const T& value, u32 arrayIdx = 0) const;
@@ -73,13 +73,13 @@ namespace bs
 	};
 
 	/** @copydoc TMaterialParameterPrimitive */
-	template <class T, bool Core>
-	class B3D_CORE_EXPORT TMaterialParameterCurve : public TMaterialDataCommon<TGpuDataParamInfo<T>::TypeId, Core>
+	template <class T, bool IsRenderProxy>
+	class B3D_CORE_EXPORT TMaterialParameterCurve : public TMaterialDataCommon<TGpuDataParamInfo<T>::TypeId, IsRenderProxy>
 	{
-		using Base = TMaterialDataCommon<TGpuDataParamInfo<T>::TypeId, Core>;
+		using Base = TMaterialDataCommon<TGpuDataParamInfo<T>::TypeId, IsRenderProxy>;
 
 	public:
-		using TMaterialDataCommon<TGpuDataParamInfo<T>::TypeId, Core>::TMaterialDataCommon;
+		using TMaterialDataCommon<TGpuDataParamInfo<T>::TypeId, IsRenderProxy>::TMaterialDataCommon;
 
 		/** @copydoc TGpuDataParam::Set */
 		void Set(TAnimationCurve<T> value, u32 arrayIdx = 0) const;
@@ -89,13 +89,13 @@ namespace bs
 	};
 
 	/** @copydoc TMaterialParameterPrimitive */
-	template <bool Core>
-	class B3D_CORE_EXPORT TMaterialParameterColorGradient : public TMaterialDataCommon<GPDT_COLOR, Core>
+	template <bool IsRenderProxy>
+	class B3D_CORE_EXPORT TMaterialParameterColorGradient : public TMaterialDataCommon<GPDT_COLOR, IsRenderProxy>
 	{
-		using Base = TMaterialDataCommon<GPDT_COLOR, Core>;
+		using Base = TMaterialDataCommon<GPDT_COLOR, IsRenderProxy>;
 
 	public:
-		using TMaterialDataCommon<GPDT_COLOR, Core>::TMaterialDataCommon;
+		using TMaterialDataCommon<GPDT_COLOR, IsRenderProxy>::TMaterialDataCommon;
 
 		/** @copydoc TGpuDataParam::Set */
 		void Set(const ColorGradientHDR& value, u32 arrayIdx = 0) const;
@@ -105,13 +105,13 @@ namespace bs
 	};
 
 	/** @copydoc TMaterialParameterPrimitive */
-	template <bool Core>
-	class B3D_CORE_EXPORT TMaterialParameterStruct : public TMaterialDataCommon<GPDT_STRUCT, Core>
+	template <bool IsRenderProxy>
+	class B3D_CORE_EXPORT TMaterialParameterStruct : public TMaterialDataCommon<GPDT_STRUCT, IsRenderProxy>
 	{
-		using Base = TMaterialDataCommon<GPDT_STRUCT, Core>;
+		using Base = TMaterialDataCommon<GPDT_STRUCT, IsRenderProxy>;
 
 	public:
-		using TMaterialDataCommon<GPDT_STRUCT, Core>::TMaterialDataCommon;
+		using TMaterialDataCommon<GPDT_STRUCT, IsRenderProxy>::TMaterialDataCommon;
 
 		/** @copydoc TGpuParamStruct::Set */
 		void Set(const void* value, u32 sizeBytes, u32 arrayIdx = 0) const;
@@ -124,12 +124,12 @@ namespace bs
 	};
 
 	/** @copydoc TMaterialParameterPrimitive */
-	template <bool Core>
+	template <bool IsRenderProxy>
 	class B3D_CORE_EXPORT TMaterialParameterSampledTexture
 	{
-		using MaterialPtrType = SPtr<CoreVariantType<Material, Core>>;
-		using MaterialParamsType = CoreVariantType<MaterialParams, Core>;
-		using TextureType = CoreVariantHandleType<Texture, Core>;
+		using MaterialPtrType = SPtr<CoreVariantType<Material, IsRenderProxy>>;
+		using MaterialParamsType = CoreVariantType<MaterialParams, IsRenderProxy>;
+		using TextureType = CoreVariantHandleType<Texture, IsRenderProxy>;
 
 	public:
 		TMaterialParameterSampledTexture(const String& name, const MaterialPtrType& material);
@@ -154,13 +154,13 @@ namespace bs
 	};
 
 	/** @copydoc TMaterialParameterPrimitive */
-	template <bool Core>
+	template <bool IsRenderProxy>
 	class B3D_CORE_EXPORT TMaterialParamSpriteTexture
 	{
-		using MaterialPtrType = SPtr<CoreVariantType<Material, Core>>;
-		using MaterialParamsType = CoreVariantType<MaterialParams, Core>;
-		using SpriteTextureType = CoreVariantHandleType<SpriteTexture, Core>;
-		using TextureType = CoreVariantHandleType<Texture, Core>;
+		using MaterialPtrType = SPtr<CoreVariantType<Material, IsRenderProxy>>;
+		using MaterialParamsType = CoreVariantType<MaterialParams, IsRenderProxy>;
+		using SpriteTextureType = CoreVariantHandleType<SpriteTexture, IsRenderProxy>;
+		using TextureType = CoreVariantHandleType<Texture, IsRenderProxy>;
 
 	public:
 		TMaterialParamSpriteTexture(const String& name, const MaterialPtrType& material);
@@ -185,12 +185,12 @@ namespace bs
 	};
 
 	/** @copydoc TMaterialParameterPrimitive */
-	template <bool Core>
+	template <bool IsRenderProxy>
 	class B3D_CORE_EXPORT TMaterialParameterStorageTexture
 	{
-		using MaterialPtrType = SPtr<CoreVariantType<Material, Core>>;
-		using MaterialParamsType = CoreVariantType<MaterialParams, Core>;
-		using TextureType = CoreVariantHandleType<Texture, Core>;
+		using MaterialPtrType = SPtr<CoreVariantType<Material, IsRenderProxy>>;
+		using MaterialParamsType = CoreVariantType<MaterialParams, IsRenderProxy>;
+		using TextureType = CoreVariantHandleType<Texture, IsRenderProxy>;
 
 	public:
 		TMaterialParameterStorageTexture(const String& name, const MaterialPtrType& material);
@@ -215,12 +215,12 @@ namespace bs
 	};
 
 	/** @copydoc TMaterialParameterPrimitive */
-	template <bool Core>
+	template <bool IsRenderProxy>
 	class B3D_CORE_EXPORT TMaterialParameterBuffer
 	{
-		using MaterialPtrType = SPtr<CoreVariantType<Material, Core>>;
-		using MaterialParamsType = CoreVariantType<MaterialParams, Core>;
-		using BufferType = SPtr<CoreVariantType<GpuBuffer, Core>>;
+		using MaterialPtrType = SPtr<CoreVariantType<Material, IsRenderProxy>>;
+		using MaterialParamsType = CoreVariantType<MaterialParams, IsRenderProxy>;
+		using BufferType = SPtr<CoreVariantType<GpuBuffer, IsRenderProxy>>;
 
 	public:
 		TMaterialParameterBuffer(const String& name, const MaterialPtrType& material);
@@ -245,11 +245,11 @@ namespace bs
 	};
 
 	/** @copydoc TMaterialParameterPrimitive */
-	template <bool Core>
+	template <bool IsRenderProxy>
 	class B3D_CORE_EXPORT TMaterialParameterSampler
 	{
-		using MaterialPtrType = SPtr<CoreVariantType<Material, Core>>;
-		using MaterialParamsType = CoreVariantType<MaterialParams, Core>;
+		using MaterialPtrType = SPtr<CoreVariantType<Material, IsRenderProxy>>;
+		using MaterialParamsType = CoreVariantType<MaterialParams, IsRenderProxy>;
 
 	public:
 		TMaterialParameterSampler(const String& name, const MaterialPtrType& material);

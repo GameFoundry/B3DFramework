@@ -14,18 +14,18 @@ namespace bs
 	 */
 
 	/** Contains a set of GpuParameters used for a single technique within a Material. */
-	template <bool Core>
+	template <bool IsRenderProxy>
 	class B3D_CORE_EXPORT TGpuParamsSet
 	{
-		using GpuParamsType = CoreVariantType<GpuParameters, Core>;
-		using MaterialParamsType = CoreVariantType<MaterialParams, Core>;
-		using ParamBlockPtrType = SPtr<CoreVariantType<GpuBuffer, Core>>;
-		using TechniqueType = CoreVariantType<Technique, Core>;
-		using ShaderType = CoreVariantHandleType<Shader, Core>;
-		using PassType = CoreVariantType<Pass, Core>;
-		using ParamBlockType = CoreVariantType<GpuBuffer, Core>;
-		using TextureType = CoreVariantHandleType<Texture, Core>;
-		using BufferType = SPtr<CoreVariantType<GpuBuffer, Core>>;
+		using GpuParamsType = CoreVariantType<GpuParameters, IsRenderProxy>;
+		using MaterialParamsType = CoreVariantType<MaterialParams, IsRenderProxy>;
+		using ParamBlockPtrType = SPtr<CoreVariantType<GpuBuffer, IsRenderProxy>>;
+		using TechniqueType = CoreVariantType<Technique, IsRenderProxy>;
+		using ShaderType = CoreVariantHandleType<Shader, IsRenderProxy>;
+		using PassType = CoreVariantType<Pass, IsRenderProxy>;
+		using ParamBlockType = CoreVariantType<GpuBuffer, IsRenderProxy>;
+		using TextureType = CoreVariantHandleType<Texture, IsRenderProxy>;
+		using BufferType = SPtr<CoreVariantType<GpuBuffer, IsRenderProxy>>;
 
 		/** Binding location for a single GPU param block buffer. */
 		struct BlockBinding
@@ -164,7 +164,7 @@ namespace bs
 		static const u32 kNumStages;
 
 	private:
-		template <bool Core2>
+		template <bool IsRenderProxy2>
 		friend class TMaterial;
 
 		Vector<SPtr<GpuParamsType>> mPassParams;

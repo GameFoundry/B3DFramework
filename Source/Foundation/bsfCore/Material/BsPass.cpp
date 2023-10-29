@@ -13,20 +13,20 @@
 
 using namespace bs;
 
-template <bool Core>
-TPass<Core>::TPass()
+template <bool IsRenderProxy>
+TPass<IsRenderProxy>::TPass()
 {
 	mData.StencilRefValue = 0;
 }
 
-template <bool Core>
-TPass<Core>::TPass(const PassCreateInformation& data)
+template <bool IsRenderProxy>
+TPass<IsRenderProxy>::TPass(const PassCreateInformation& data)
 	: mData(data)
 {
 }
 
-template <bool Core>
-bool TPass<Core>::HasBlending() const
+template <bool IsRenderProxy>
+bool TPass<IsRenderProxy>::HasBlending() const
 {
 	bool transparent = false;
 
@@ -46,8 +46,8 @@ bool TPass<Core>::HasBlending() const
 	return transparent;
 }
 
-template <bool Core>
-const GpuProgramCreateInformation& TPass<Core>::GetGpuProgramCreateInformation(bs::GpuProgramType type) const
+template <bool IsRenderProxy>
+const GpuProgramCreateInformation& TPass<IsRenderProxy>::GetGpuProgramCreateInformation(bs::GpuProgramType type) const
 {
 	switch(type)
 	{
@@ -67,8 +67,8 @@ const GpuProgramCreateInformation& TPass<Core>::GetGpuProgramCreateInformation(b
 	}
 }
 
-template <bool Core>
-void TPass<Core>::CreatePipelineState()
+template <bool IsRenderProxy>
+void TPass<IsRenderProxy>::CreatePipelineState()
 {
 	const SPtr<GpuDevice>& device = GetCoreApplication().GetPrimaryGpuDevice();
 

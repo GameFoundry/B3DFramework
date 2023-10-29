@@ -444,10 +444,10 @@ namespace bs
 	};
 
 	/** Template version of DepthOfFieldSettings that can be specialized for either core or simulation thread. */
-	template <bool Core>
+	template <bool IsRenderProxy>
 	struct B3D_CORE_EXPORT TDepthOfFieldSettings : DepthOfFieldSettingsBase
 	{
-		using TextureType = CoreVariantHandleType<Texture, Core>;
+		using TextureType = CoreVariantHandleType<Texture, IsRenderProxy>;
 
 		/** Texture to use for the bokeh shape. Only relevant when using Bokeh depth of field. */
 		B3D_SCRIPT_EXPORT()
@@ -859,10 +859,10 @@ namespace bs
 	};
 
 	/** Template version of ChromaticAberrationSettings that can be specialized for either core or simulation thread. */
-	template <bool Core>
+	template <bool IsRenderProxy>
 	struct B3D_CORE_EXPORT TChromaticAberrationSettings : ChromaticAberrationSettingsBase
 	{
-		using TextureType = CoreVariantHandleType<Texture, Core>;
+		using TextureType = CoreVariantHandleType<Texture, IsRenderProxy>;
 
 		/**
 		 * Optional texture to apply to generate the channel shift fringe, allowing you to modulate the shifted colors.
@@ -1151,16 +1151,16 @@ namespace bs
 	};
 
 	/** Template version of RenderSettings that can be specialized for either core or simulation thread. */
-	template <bool Core>
+	template <bool IsRenderProxy>
 	struct B3D_CORE_EXPORT TRenderSettings : RenderSettingsBase
 	{
 		/** Parameters used for customizing the gaussian depth of field effect. */
 		B3D_SCRIPT_EXPORT()
-		CoreVariantType<DepthOfFieldSettings, Core> DepthOfField;
+		CoreVariantType<DepthOfFieldSettings, IsRenderProxy> DepthOfField;
 
 		/** Parameters used for customizing the chromatic aberration effect. */
 		B3D_SCRIPT_EXPORT()
-		CoreVariantType<ChromaticAberrationSettings, Core> ChromaticAberration;
+		CoreVariantType<ChromaticAberrationSettings, IsRenderProxy> ChromaticAberration;
 
 	protected:
 		~TRenderSettings() = default;

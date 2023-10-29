@@ -672,8 +672,8 @@ Vector3 CameraBase::UnprojectPoint(const Vector3& point) const
 	return Vector3(0.0f, 0.0f, 0.0f);
 }
 
-template <bool Core>
-TCamera<Core>::TCamera()
+template <bool IsRenderProxy>
+TCamera<IsRenderProxy>::TCamera()
 {
 	mRenderSettings = B3DMakeShared<RenderSettingsType>();
 }

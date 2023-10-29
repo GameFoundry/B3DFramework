@@ -38,7 +38,7 @@ namespace bs
 	 */
 
 	/** Contains common functionality used by both sim and core thread versions of Pass. */
-	template <bool Core>
+	template <bool IsRenderProxy>
 	class B3D_CORE_EXPORT TPass
 	{
 	public:

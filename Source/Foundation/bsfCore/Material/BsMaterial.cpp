@@ -45,15 +45,15 @@ bool IsShaderValid(const SPtr<ct::Shader>& shader)
 	return shader != nullptr;
 }
 
-template <bool Core>
-SPtr<CoreVariantType<Material, Core>> GetMaterialPtr(const TMaterial<Core>* material)
+template <bool IsRenderProxy>
+SPtr<CoreVariantType<Material, IsRenderProxy>> GetMaterialPtr(const TMaterial<IsRenderProxy>* material)
 {
-	return std::static_pointer_cast<CoreVariantType<Material, Core>>(
-		static_cast<const CoreVariantType<Material, Core>*>(material)->GetShared());
+	return std::static_pointer_cast<CoreVariantType<Material, IsRenderProxy>>(
+		static_cast<const CoreVariantType<Material, IsRenderProxy>*>(material)->GetShared());
 }
 
-template <bool Core>
-SPtr<typename TMaterial<Core>::GpuParamsSetType> TMaterial<Core>::CreateParamsSet(u32 techniqueIdx)
+template <bool IsRenderProxy>
+SPtr<typename TMaterial<IsRenderProxy>::GpuParamsSetType> TMaterial<IsRenderProxy>::CreateParamsSet(u32 techniqueIdx)
 {
 	if(techniqueIdx >= (u32)mTechniques.size())
 		return nullptr;
@@ -62,14 +62,14 @@ SPtr<typename TMaterial<Core>::GpuParamsSetType> TMaterial<Core>::CreateParamsSe
 	return B3DMakeShared<GpuParamsSetType>(technique, mShader, mParams);
 }
 
-template <bool Core>
-void TMaterial<Core>::UpdateParamsSet(const SPtr<GpuParamsSetType>& paramsSet, float t, bool updateAll)
+template <bool IsRenderProxy>
+void TMaterial<IsRenderProxy>::UpdateParamsSet(const SPtr<GpuParamsSetType>& paramsSet, float t, bool updateAll)
 {
 	paramsSet->Update(mParams, t, updateAll);
 }
 
-template <bool Core>
-u32 TMaterial<Core>::FindTechnique(const FindVariationInformation& desc) const
+template <bool IsRenderProxy>
+u32 TMaterial<IsRenderProxy>::FindTechnique(const FindVariationInformation& desc) const
 {
 	u32 bestTechniqueIdx = (u32)-1;
 	u32 bestTechniqueScore = std::numeric_limits<u32>::max();
@@ -200,8 +200,8 @@ u32 TMaterial<Core>::FindTechnique(const FindVariationInformation& desc) const
 	return bestTechniqueIdx;
 }
 
-template <bool Core>
-u32 TMaterial<Core>::GetDefaultTechnique() const
+template <bool IsRenderProxy>
+u32 TMaterial<IsRenderProxy>::GetDefaultTechnique() const
 {
 	u32 bestTechniqueIdx = 0;
 	u32 bestTechniqueScore = std::numeric_limits<u32>::max();
@@ -264,8 +264,8 @@ u32 TMaterial<Core>::GetDefaultTechnique() const
 	return bestTechniqueIdx;
 }
 
-template <bool Core>
-u32 TMaterial<Core>::GetNumPasses(u32 techniqueIdx) const
+template <bool IsRenderProxy>
+u32 TMaterial<IsRenderProxy>::GetNumPasses(u32 techniqueIdx) const
 {
 	if(mShader == nullptr)
 		return 0;
@@ -276,8 +276,8 @@ u32 TMaterial<Core>::GetNumPasses(u32 techniqueIdx) const
 	return mTechniques[techniqueIdx]->GetPassCount();
 }
 
-template <bool Core>
-SPtr<typename TMaterial<Core>::PassType> TMaterial<Core>::GetPass(u32 passIdx, u32 techniqueIdx) const
+template <bool IsRenderProxy>
+SPtr<typename TMaterial<IsRenderProxy>::PassType> TMaterial<IsRenderProxy>::GetPass(u32 passIdx, u32 techniqueIdx) const
 {
 	if(mShader == nullptr)
 		return nullptr;
@@ -291,78 +291,78 @@ SPtr<typename TMaterial<Core>::PassType> TMaterial<Core>::GetPass(u32 passIdx, u
 	return mTechniques[techniqueIdx]->GetPass(passIdx);
 }
 
-template <bool Core>
-TMaterialParameterStruct<Core> TMaterial<Core>::GetParamStruct(const String& name) const
+template <bool IsRenderProxy>
+TMaterialParameterStruct<IsRenderProxy> TMaterial<IsRenderProxy>::GetParamStruct(const String& name) const
 {
 	ThrowIfNotInitialized();
 
-	return TMaterialParameterStruct<Core>(name, GetMaterialPtr(this));
+	return TMaterialParameterStruct<IsRenderProxy>(name, GetMaterialPtr(this));
 }
 
-template <bool Core>
-TMaterialParameterColorGradient<Core> TMaterial<Core>::GetParamColorGradient(const String& name) const
+template <bool IsRenderProxy>
+TMaterialParameterColorGradient<IsRenderProxy> TMaterial<IsRenderProxy>::GetParamColorGradient(const String& name) const
 {
 	ThrowIfNotInitialized();
 
-	return TMaterialParameterColorGradient<Core>(name, GetMaterialPtr(this));
+	return TMaterialParameterColorGradient<IsRenderProxy>(name, GetMaterialPtr(this));
 }
 
-template <bool Core>
-TMaterialParameterCurve<float, Core> TMaterial<Core>::GetParamFloatCurve(const String& name) const
+template <bool IsRenderProxy>
+TMaterialParameterCurve<float, IsRenderProxy> TMaterial<IsRenderProxy>::GetParamFloatCurve(const String& name) const
 {
 	ThrowIfNotInitialized();
 
-	return TMaterialParameterCurve<float, Core>(name, GetMaterialPtr(this));
+	return TMaterialParameterCurve<float, IsRenderProxy>(name, GetMaterialPtr(this));
 }
 
-template <bool Core>
-TMaterialParameterSampledTexture<Core> TMaterial<Core>::GetParamTexture(const String& name) const
+template <bool IsRenderProxy>
+TMaterialParameterSampledTexture<IsRenderProxy> TMaterial<IsRenderProxy>::GetParamTexture(const String& name) const
 {
 	ThrowIfNotInitialized();
 
-	return TMaterialParameterSampledTexture<Core>(name, GetMaterialPtr(this));
+	return TMaterialParameterSampledTexture<IsRenderProxy>(name, GetMaterialPtr(this));
 }
 
-template <bool Core>
-TMaterialParamSpriteTexture<Core> TMaterial<Core>::GetParamSpriteTexture(const String& name) const
+template <bool IsRenderProxy>
+TMaterialParamSpriteTexture<IsRenderProxy> TMaterial<IsRenderProxy>::GetParamSpriteTexture(const String& name) const
 {
 	ThrowIfNotInitialized();
 
-	return TMaterialParamSpriteTexture<Core>(name, GetMaterialPtr(this));
+	return TMaterialParamSpriteTexture<IsRenderProxy>(name, GetMaterialPtr(this));
 }
 
-template <bool Core>
-TMaterialParameterStorageTexture<Core> TMaterial<Core>::GetParamLoadStoreTexture(const String& name) const
+template <bool IsRenderProxy>
+TMaterialParameterStorageTexture<IsRenderProxy> TMaterial<IsRenderProxy>::GetParamLoadStoreTexture(const String& name) const
 {
 	ThrowIfNotInitialized();
 
-	return TMaterialParameterStorageTexture<Core>(name, GetMaterialPtr(this));
+	return TMaterialParameterStorageTexture<IsRenderProxy>(name, GetMaterialPtr(this));
 }
 
-template <bool Core>
-TMaterialParameterBuffer<Core> TMaterial<Core>::GetParamBuffer(const String& name) const
+template <bool IsRenderProxy>
+TMaterialParameterBuffer<IsRenderProxy> TMaterial<IsRenderProxy>::GetParamBuffer(const String& name) const
 {
 	ThrowIfNotInitialized();
 
-	return TMaterialParameterBuffer<Core>(name, GetMaterialPtr(this));
+	return TMaterialParameterBuffer<IsRenderProxy>(name, GetMaterialPtr(this));
 }
 
-template <bool Core>
-TMaterialParameterSampler<Core> TMaterial<Core>::GetParamSamplerState(const String& name) const
+template <bool IsRenderProxy>
+TMaterialParameterSampler<IsRenderProxy> TMaterial<IsRenderProxy>::GetParamSamplerState(const String& name) const
 {
 	ThrowIfNotInitialized();
 
-	return TMaterialParameterSampler<Core>(name, GetMaterialPtr(this));
+	return TMaterialParameterSampler<IsRenderProxy>(name, GetMaterialPtr(this));
 }
 
-template <bool Core>
-bool TMaterial<Core>::IsAnimated(const String& name, u32 arrayIdx)
+template <bool IsRenderProxy>
+bool TMaterial<IsRenderProxy>::IsAnimated(const String& name, u32 arrayIdx)
 {
 	return mParams->IsAnimated(name, arrayIdx);
 }
 
-template <bool Core>
-void TMaterial<Core>::InitializeTechniques()
+template <bool IsRenderProxy>
+void TMaterial<IsRenderProxy>::InitializeTechniques()
 {
 	mTechniques.clear();
 
@@ -382,11 +382,11 @@ void TMaterial<Core>::InitializeTechniques()
 	MarkDependenciesDirtyInternal();
 }
 
-template <bool Core>
+template <bool IsRenderProxy>
 template <typename T>
-void TMaterial<Core>::SetParamValue(const String& name, u8* buffer, u32 numElements)
+void TMaterial<IsRenderProxy>::SetParamValue(const String& name, u8* buffer, u32 numElements)
 {
-	TMaterialParameterPrimitive<T, Core> param;
+	TMaterialParameterPrimitive<T, IsRenderProxy> param;
 	GetParam(name, param);
 
 	T* ptr = (T*)buffer;
@@ -394,8 +394,8 @@ void TMaterial<Core>::SetParamValue(const String& name, u8* buffer, u32 numEleme
 		param.Set(ptr[i], i);
 }
 
-template <bool Core>
-void TMaterial<Core>::InitDefaultParameters()
+template <bool IsRenderProxy>
+void TMaterial<IsRenderProxy>::InitDefaultParameters()
 {
 	const Map<String, ShaderDataParameterInformation>& dataParams = mShader->GetDataParams();
 	for(auto& paramData : dataParams)
@@ -480,7 +480,7 @@ void TMaterial<Core>::InitDefaultParameters()
 			break;
 		case GPDT_STRUCT:
 			{
-				TMaterialParameterStruct<Core> param = GetParamStruct(paramData.first);
+				TMaterialParameterStruct<IsRenderProxy> param = GetParamStruct(paramData.first);
 
 				u32 elementSizeBytes = paramData.second.ElementSize * sizeof(u32);
 				u8* ptr = buffer;
@@ -517,17 +517,17 @@ void TMaterial<Core>::InitDefaultParameters()
 	}
 }
 
-template <bool Core>
+template <bool IsRenderProxy>
 template <typename T>
-void TMaterial<Core>::GetParam(const String& name, TMaterialParameterPrimitive<T, Core>& output) const
+void TMaterial<IsRenderProxy>::GetParam(const String& name, TMaterialParameterPrimitive<T, IsRenderProxy>& output) const
 {
 	ThrowIfNotInitialized();
 
-	output = TMaterialParameterPrimitive<T, Core>(name, GetMaterialPtr(this));
+	output = TMaterialParameterPrimitive<T, IsRenderProxy>(name, GetMaterialPtr(this));
 }
 
-template <bool Core>
-void TMaterial<Core>::ThrowIfNotInitialized() const
+template <bool IsRenderProxy>
+void TMaterial<IsRenderProxy>::ThrowIfNotInitialized() const
 {
 	if(mShader == nullptr)
 		B3D_EXCEPT(InternalErrorException, "Material does not have shader set.");

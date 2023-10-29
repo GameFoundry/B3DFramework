@@ -129,8 +129,8 @@ namespace bs
 		 * @param	defines			Optional set of defines to use when compiling the shader.
 		 * @return					Shader object on success, or null on failure.
 		 */
-		template <bool Core>
-		SPtr<CoreVariantType<Shader, Core>> GetOrCompileShader(const Path& shaderPath, const String& cachePrefix, const ShaderDefines& defines);
+		template <bool IsRenderProxy>
+		SPtr<CoreVariantType<Shader, IsRenderProxy>> GetOrCompileShader(const Path& shaderPath, const String& cachePrefix, const ShaderDefines& defines);
 
 		/** Detects shading language supported by the current render backend. */
 		static ShadingLanguageFlag DetectActiveShadingLanguage();

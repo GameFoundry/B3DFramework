@@ -406,14 +406,14 @@ namespace bs
 	};
 
 	/**	Templated version of Shader used for implementing both sim and core thread variants. */
-	template <bool Core>
+	template <bool IsRenderProxy>
 	class B3D_CORE_EXPORT TShader
 	{
 	public:
-		using TechniqueType = CoreVariantType<Technique, Core>;
-		using TextureType = CoreVariantHandleType<Texture, Core>;
-		using ShaderInformationType = CoreVariantType<ShaderInformation, Core>;
-		using ShaderCreateInformationType = CoreVariantType<ShaderCreateInformation, Core>;
+		using TechniqueType = CoreVariantType<Technique, IsRenderProxy>;
+		using TextureType = CoreVariantHandleType<Texture, IsRenderProxy>;
+		using ShaderInformationType = CoreVariantType<ShaderInformation, IsRenderProxy>;
+		using ShaderCreateInformationType = CoreVariantType<ShaderCreateInformation, IsRenderProxy>;
 
 		TShader(u32 id);
 		TShader(const String& name, const ShaderCreateInformationType& createInformation, u32 id);
