@@ -16,7 +16,7 @@ namespace bs
 	/**
 	 * Manager for the render thread. Takes care of starting, running, queuing commands and shutting down the render thread.
 	 *
-	 * Commands from various threads can be queued for execution on the core thread by calling PostCommand()
+	 * Commands from various threads can be queued for execution on the render thread by calling PostCommand()
 	 */
 	class B3D_CORE_EXPORT RenderThread : public Module<RenderThread>
 	{

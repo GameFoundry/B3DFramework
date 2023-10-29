@@ -171,7 +171,7 @@ namespace bs
 		/**
 		 * Contains various utility methods that make various common operations in the renderer easier.
 		 *
-		 * @note	Core thread only.
+		 * @note	Render thread only.
 		 */
 		class B3D_EXPORT RendererUtility : public Module<RendererUtility>
 		{
@@ -187,7 +187,7 @@ namespace bs
 			 * @param	passIdx			Index of the pass in the material.
 			 * @param	techniqueIdx	Index of the technique the pass belongs to, if the material has multiple techniques.
 			 *
-			 * @note	Core thread.
+			 * @note	Render thread.
 			 */
 			void SetPass(GpuCommandBuffer& commandBuffer, const SPtr<Material>& material, u32 passIdx = 0, u32 techniqueIdx = 0);
 
@@ -198,7 +198,7 @@ namespace bs
 			 * @param	material		Material containing the pass.
 			 * @param	passIdx			Index of the pass in the material.
 			 *
-			 * @note	Core thread.
+			 * @note	Render thread.
 			 */
 			void SetComputePass(GpuCommandBuffer& commandBuffer, const SPtr<Material>& material, u32 passIdx = 0);
 
@@ -209,7 +209,7 @@ namespace bs
 			 * @param	params			Object containing the parameters.
 			 * @param	passIdx			Pass for which to set the parameters.
 			 *
-			 * @note	Core thread.
+			 * @note	Render thread.
 			 */
 			void SetPassParams(GpuCommandBuffer& commandBuffer, const SPtr<GpuParamsSet>& params, u32 passIdx = 0);
 
@@ -220,7 +220,7 @@ namespace bs
 			 * @param	mesh			Mesh to draw.
 			 * @param	numInstances	Number of times to draw the mesh using instanced rendering.
 			 *
-			 * @note	Core thread.
+			 * @note	Render thread.
 			 */
 			void Draw(GpuCommandBuffer& commandBuffer, const SPtr<MeshBase>& mesh, u32 numInstances = 1);
 
@@ -232,7 +232,7 @@ namespace bs
 			 * @param	subMesh			Portion of the mesh to draw.
 			 * @param	numInstances	Number of times to draw the mesh using instanced rendering.
 			 *
-			 * @note	Core thread.
+			 * @note	Render thread.
 			 */
 			void Draw(GpuCommandBuffer& commandBuffer, const SPtr<MeshBase>& mesh, const SubMesh& subMesh, u32 numInstances = 1);
 
@@ -247,7 +247,7 @@ namespace bs
 			 * @param	morphVertexDescription	Object describing vertices of the provided mesh and the vertices
 			 *									provided in the morph vertex buffer.
 			 *
-			 * @note	Core thread.
+			 * @note	Render thread.
 			 */
 			void DrawMorph(GpuCommandBuffer& commandBuffer, const SPtr<MeshBase>& mesh, const SubMesh& subMesh, const SPtr<GpuBuffer>& morphVertices, const SPtr<VertexDescription>& morphVertexDescription);
 
@@ -281,7 +281,7 @@ namespace bs
 			 *							drawing to 3D textures.
 			 * @param	flipUV			If true, vertical UV coordinate will be flipped upside down.
 			 *
-			 * @note	Core thread.
+			 * @note	Render thread.
 			 */
 			void DrawScreenQuad(GpuCommandBuffer& commandBuffer, const Rect2& uv, const Vector2I& textureSize = Vector2I(1, 1), u32 numInstances = 1, bool flipUV = false);
 
@@ -292,7 +292,7 @@ namespace bs
 			 * @param	numInstances	How many instances of the quad to draw (using instanced rendering). Useful when
 			 *							drawing to 3D textures.
 			 *
-			 * @note	Core thread.
+			 * @note	Render thread.
 			 */
 			void DrawScreenQuad(GpuCommandBuffer& commandBuffer, u32 numInstances = 1)
 			{

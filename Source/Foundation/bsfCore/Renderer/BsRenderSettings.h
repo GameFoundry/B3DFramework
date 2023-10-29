@@ -325,7 +325,7 @@ namespace bs
 		Bokeh
 	};
 
-	/** Base class for both sim and core thread variants of DepthOfFieldSettings. */
+	/** Base class for both main and render thread variants of DepthOfFieldSettings. */
 	struct B3D_CORE_EXPORT DepthOfFieldSettingsBase
 	{
 		DepthOfFieldSettingsBase() = default;
@@ -479,7 +479,7 @@ namespace bs
 
 	namespace ct
 	{
-		/** Core thread variant of DepthOfFieldSettings. */
+		/** Render thread variant of DepthOfFieldSettings. */
 		struct B3D_CORE_EXPORT B3D_SCRIPT_EXPORT() DepthOfFieldSettings : TDepthOfFieldSettings<true>
 		{
 			DepthOfFieldSettings() = default;
@@ -834,7 +834,7 @@ namespace bs
 		Complex
 	};
 
-	/** Base class used for both sim and core thread variants of ChromaticAberrationSettings. */
+	/** Base class used for both main and render thread variants of ChromaticAberrationSettings. */
 	struct B3D_CORE_EXPORT ChromaticAberrationSettingsBase
 	{
 		ChromaticAberrationSettingsBase() = default;
@@ -899,7 +899,7 @@ namespace bs
 
 	namespace ct
 	{
-		/** Core thread variant of ChromaticAberrationSettings. */
+		/** Render thread variant of ChromaticAberrationSettings. */
 		struct B3D_CORE_EXPORT ChromaticAberrationSettings : TChromaticAberrationSettings<true>
 		{
 			ChromaticAberrationSettings() = default;
@@ -985,7 +985,7 @@ namespace bs
 		RTTITypeBase* GetRtti() const override;
 	};
 
-	/** Base class for both sim and core thread variants of RenderSettings. */
+	/** Base class for both main and render thread variants of RenderSettings. */
 	struct B3D_CORE_EXPORT RenderSettingsBase
 	{
 		RenderSettingsBase() = default;
@@ -1187,7 +1187,7 @@ namespace bs
 
 	namespace ct
 	{
-		/** Core thread variant of RenderSettings. */
+		/** Render thread variant of RenderSettings. */
 		struct B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Rendering)) RenderSettings : TRenderSettings<true>
 		{
 			RenderSettings() = default;

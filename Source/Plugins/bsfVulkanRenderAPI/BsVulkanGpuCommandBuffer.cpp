@@ -538,9 +538,9 @@ void VulkanGpuCommandBuffer::SetGpuParameters(const SPtr<GpuParameters>& paramet
 {
 	EnsureValidThread();
 
-	// Note: We keep an internal reference to GPU params even though we shouldn't keep a reference to a core thread
+	// Note: We keep an internal reference to GPU params even though we shouldn't keep a reference to a render thread
 	// object. But it should be fine since we expect the resource to be externally synchronized so it should never
-	// be allowed to go out of scope on a non-core thread anyway.
+	// be allowed to go out of scope on a non-render thread anyway.
 	mBoundParams = std::static_pointer_cast<VulkanGpuParameters>(parameters);
 
 	if (mBoundParams != nullptr)

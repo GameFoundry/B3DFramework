@@ -484,7 +484,7 @@ namespace bs
 		SPtr<SamplerState> Value;
 	};
 
-	/** Helper typedefs that reference types used by either core or sim thread implementation of TMaterialParams<Core>. */
+	/** Helper typedefs that reference types used by either render or main thread implementation of TMaterialParams<Core>. */
 	template <bool IsRenderProxz>
 	struct TMaterialParamsTypes
 	{};
@@ -851,19 +851,19 @@ namespace bs
 
 	namespace ct
 	{
-		/** Core thread version of MaterialParams. */
+		/** Render thread version of MaterialParams. */
 		class B3D_CORE_EXPORT MaterialParams : public TMaterialParams<true>
 		{
 		public:
-			/** Initializes the core thread version of MaterialParams from its sim thread counterpart. */
+			/** Initializes the render proxy its main thread counterpart. */
 			MaterialParams(const SPtr<Shader>& shader, const SPtr<bs::MaterialParams>& params);
 
 			/** @copydoc TMaterialParams::TMaterialParams(const ShaderType&, u64) */
 			MaterialParams(const SPtr<Shader>& shader, u64 initialParamVersion = 1);
 
 			/**
-			 * Updates the stored parameters from the provided sync packet, allowing changes to be transfered between the main and
-			 * core thread objects. Packet must be retrieved from bs::MaterialParams::CreateSyncPacket(). Sync packet is destroyed
+			 * Updates the stored parameters from the provided sync packet, allowing changes to be transfered between core objects and
+			 * render proxies. Packet must be retrieved from bs::MaterialParams::CreateSyncPacket(). Sync packet is destroyed
 			 * using the provided allocator after it has been applied.
 			 */
 			void ApplyAndDestroySyncPacket(FrameAllocator& allocator, const bs::MaterialParams::SyncPacket& syncPacket);

@@ -55,7 +55,7 @@ namespace bs
 	 *  @{
 	 */
 
-	/** Common base class for both sim and core thread implementations of Camera. */
+	/** Common base class for both main and render thread implementations of Camera. */
 	class B3D_CORE_EXPORT CameraBase : public SceneActor
 	{
 	public:
@@ -469,7 +469,7 @@ namespace bs
 		mutable AABox mBoundingBox; /**< Frustum bounding box. */
 	};
 
-	/** Templated common base class for both sim and core thread implementations of Camera. */
+	/** Templated common base class for both main and render thread implementations of Camera. */
 	template <bool IsRenderProxy>
 	class B3D_CORE_EXPORT TCamera : public CameraBase
 	{
@@ -526,7 +526,7 @@ namespace bs
 		/** @copydoc SetMain() */
 		bool IsMain() const { return mMain; }
 
-		/** Retrieves an implementation of a camera handler usable only from the core thread. */
+		/** Retrieves the render proxy. */
 		SPtr<ct::Camera> GetCore() const;
 
 		/**	Creates a new camera that renders to the specified portion of the provided render target. */

@@ -192,7 +192,7 @@ namespace bs
 		 * @param[in]		sceneObjects	A list of scene objects that are influenced by specific animation curves.
 		 * @param[in]		morphShapes		Morph shapes used for per-vertex animation.
 		 *
-		 * @note	Should be called from the sim thread when the caller is sure the animation thread is not using it.
+		 * @note	Should be called from the main thread when the caller is sure the animation thread is not using it.
 		 */
 		void Rebuild(const SPtr<Skeleton>& skeleton, const SkeletonMask& mask, Vector<AnimationClipInfo>& clipInfos, const Vector<AnimatedSceneObject>& sceneObjects, const SPtr<MorphShapes>& morphShapes);
 
@@ -206,7 +206,7 @@ namespace bs
 		 * @param[in]		sceneObjects	A list of scene objects that are influenced by specific animation curves.
 		 * * @param[in]		morphShapes		Morph shapes used for per-vertex animation.
 		 *
-		 * @note	Should be called from the sim thread when the caller is sure the animation thread is not using it.
+		 * @note	Should be called from the main thread when the caller is sure the animation thread is not using it.
 		 */
 		void Rebuild(Vector<AnimationClipInfo>& clipInfos, const Vector<AnimatedSceneObject>& sceneObjects, const SPtr<MorphShapes>& morphShapes);
 
@@ -214,7 +214,7 @@ namespace bs
 		 * Updates the proxy data with new information about the clips. Caller must guarantee that clip layout didn't
 		 * change since the last call to rebuild().
 		 *
-		 * @note	Should be called from the sim thread when the caller is sure the animation thread is not using it.
+		 * @note	Should be called from the main thread when the caller is sure the animation thread is not using it.
 		 */
 		void UpdateClipInfos(const Vector<AnimationClipInfo>& clipInfos);
 
@@ -228,7 +228,7 @@ namespace bs
 		 * Updates the proxy data with new scene object transforms. Caller must guarantee that clip layout didn't
 		 * change since the last call to rebuild().
 		 *
-		 * @note	Should be called from the sim thread when the caller is sure the animation thread is not using it.
+		 * @note	Should be called from the main thread when the caller is sure the animation thread is not using it.
 		 */
 		void UpdateTransforms(const Vector<AnimatedSceneObject>& sceneObjects);
 
@@ -236,7 +236,7 @@ namespace bs
 		 * Updates the proxy data with new clip times. Caller must guarantee that clip layout didn't change since the last
 		 * call to rebuild().
 		 *
-		 * @note	Should be called from the sim thread when the caller is sure the animation thread is not using it.
+		 * @note	Should be called from the main thread when the caller is sure the animation thread is not using it.
 		 */
 		void UpdateTime(const Vector<AnimationClipInfo>& clipInfos);
 
@@ -279,7 +279,7 @@ namespace bs
 
 	/**
 	 * Handles animation playback. Takes one or multiple animation clips as input and evaluates them every animation update
-	 * tick depending on set properties. The evaluated data is used by the core thread for skeletal animation, by the sim
+	 * tick depending on set properties. The evaluated data is used by the render thread for skeletal animation, by the main
 	 * thread for updating attached scene objects and bones (if skeleton is attached), or the data is made available for
 	 * manual queries in the case of generic animation.
 	 */

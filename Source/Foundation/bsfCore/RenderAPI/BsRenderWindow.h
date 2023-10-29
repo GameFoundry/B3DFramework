@@ -235,7 +235,7 @@ namespace bs
 		 */
 		virtual void SwapBuffers(u32 syncMask = 0xFFFFFFFF) {}
 
-		/**	Retrieves a core implementation of a render window usable only from the core thread. */
+		/**	Retrieves the render proxy. */
 		SPtr<ct::RenderWindow> GetCore() const;
 
 		/**	Returns properties that describe the render window. */
@@ -304,7 +304,7 @@ namespace bs
 		 *  @{
 		 */
 
-		/** Core thread counterpart of bs::RenderWindow. */
+		/** Render thread counterpart of bs::RenderWindow. */
 		class B3D_CORE_EXPORT RenderWindow : public RenderTarget
 		{
 		public:
@@ -391,7 +391,7 @@ namespace bs
 			friend class bs::RenderWindowManager;
 
 			/**
-			 * Returns window properties that are always kept in sync between core and sim threads.
+			 * Returns window properties that are always kept in sync between render and main threads.
 			 *
 			 * @note	Used for keeping up what are the most up to date settings.
 			 */

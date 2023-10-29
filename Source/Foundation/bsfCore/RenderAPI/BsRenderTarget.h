@@ -104,12 +104,7 @@ namespace bs
 		u32 MultisampleCount = 0;
 	};
 
-	/**
-	 * Render target is a frame buffer or a texture that the render system renders the scene to.
-	 *
-	 * @note
-	 * Sim thread unless noted otherwise. Retrieve core implementation from getCore() for core thread only functionality.
-	 */
+	/** Render target is a frame buffer or a texture that the render system renders the scene to. */
 	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Rendering)) RenderTarget : public IReflectable, public CoreObject
 	{
 	public:
@@ -129,17 +124,17 @@ namespace bs
 		/**
 		 * Returns properties that describe the render target.
 		 *
-		 * @note	Sim thread only.
+		 * @note	Main thread only.
 		 */
 		const RenderTargetProperties& GetProperties() const;
 
-		/** Retrieves a core implementation of a render target usable only from the core thread. */
+		/** Retrieves the render proxy. */
 		SPtr<ct::RenderTarget> GetCore() const;
 
 		/**
 		 * Event that gets triggered whenever the render target is resized.
 		 *
-		 * @note	Sim thread only.
+		 * @note	Main thread only.
 		 */
 		mutable Event<void()> OnResized;
 
@@ -167,9 +162,9 @@ namespace bs
 		 */
 
 		/**
-		 * Provides access to internal render target implementation usable only from the core thread.
+		 * Provides access to internal render target implementation usable only from the render thread.
 		 *
-		 * @note	Core thread only.
+		 * @note	Render thread only.
 		 */
 		class B3D_CORE_EXPORT RenderTarget : public RenderProxy
 		{

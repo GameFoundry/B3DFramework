@@ -43,7 +43,7 @@ void IterateOverPixels(PixelData& pixels, u32 count, PR predicate)
 
 /**
  * Maintains a pool of buffers that are used for passing results of particle simulation from the simulation to the
- * core thread.
+ * render thread.
  */
 class ParticleSimulationDataPool
 {
@@ -376,7 +376,7 @@ ParticlePerFrameData* ParticleManager::Update(const EvaluatedAnimationData& anim
 			ParticleGPUSimulationData* simulationDataGPU = nullptr;
 			if(system->mParticleSet)
 			{
-				// Generate simulation data to transfer to the core thread
+				// Generate simulation data to transfer to the render thread
 				const u32 numParticles = system->mParticleSet->GetParticleCount();
 				const ParticleSystemSettings& settings = system->GetSettings();
 

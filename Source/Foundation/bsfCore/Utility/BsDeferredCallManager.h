@@ -14,7 +14,7 @@ namespace bs
 	/**
 	 * Allows you to queue calls that can get executed later.
 	 *
-	 * @note	Sim thread only.
+	 * @note	Main thread only.
 	 */
 	class B3D_CORE_EXPORT DeferredCallManager : public Module<DeferredCallManager>
 	{

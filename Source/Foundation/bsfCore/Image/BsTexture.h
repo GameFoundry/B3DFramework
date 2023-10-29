@@ -163,7 +163,7 @@ namespace bs
 		B3D_CORE_EXPORT static const TextureBlitInformation kDefault;
 	};
 
-	/** Properties of a Texture. Shared between sim and core thread versions of a Texture. */
+	/** Properties of a Texture. Shared between main and render thread counterparts of a Texture. */
 	struct B3D_CORE_EXPORT TextureProperties : TextureInformation
 	{
 	public:
@@ -208,7 +208,7 @@ namespace bs
 	 * Abstract class representing a texture. Specific render systems have their own Texture implementations. Internally
 	 * represented as one or more surfaces with pixels in a certain number of dimensions, backed by a hardware buffer.
 	 *
-	 * @note	Sim thread.
+	 * @note	Main thread.
 	 */
 	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Rendering)) Texture : public Resource
 	{
@@ -266,8 +266,8 @@ namespace bs
 		 * @param[in]	mipLevel	Mipmap level to read from.
 		 *
 		 * @note
-		 * The data read is the cached texture data. Any data written to the texture from the GPU or core thread will not
-		 * be reflected in this data. Use readData() if you require those changes.
+		 * The data read is the cached texture data. Any data written to the texture from the GPU or render thread will not
+		 * be reflected in this data. Use ReadData() if you require those changes.
 		 * @note
 		 * The texture must have been created with TU_CPUCACHED usage otherwise this method will not return any data.
 		 */
@@ -276,7 +276,7 @@ namespace bs
 		/**	Returns properties that contain information about the texture. */
 		const TextureProperties& GetProperties() const { return mProperties; }
 
-		/**	Retrieves a core implementation of a texture usable only from the core thread. */
+		/**	Retrieves the render proxy. */
 		SPtr<ct::Texture> GetCore() const;
 
 		/************************************************************************/
@@ -349,9 +349,9 @@ namespace bs
 		 */
 
 		/**
-		 * Core thread version of a bs::Texture.
+		 * Render thread counterpart of a bs::Texture.
 		 *
-		 * @note	Core thread.
+		 * @note	Render thread.
 		 */
 		class B3D_CORE_EXPORT Texture : public RenderProxy
 		{
@@ -472,7 +472,7 @@ namespace bs
 			 * Requests a texture view for the specified mip and array ranges. Returns an existing view of one for the specified
 			 * ranges already exists, otherwise creates a new one. You must release all views by calling ReleaseView() when done.
 			 *
-			 * @note	Core thread only.
+			 * @note	Render thread only.
 			 */
 			SPtr<TextureView> RequestView(const TextureSurface& surface, GpuViewUsage usage);
 

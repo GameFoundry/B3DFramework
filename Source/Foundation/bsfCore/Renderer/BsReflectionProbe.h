@@ -37,7 +37,7 @@ namespace bs
 	 *  @{
 	 */
 
-	/** Base class for both core and sim thread implementations of a reflection probe. */
+	/** Base class for both render and main thread implementations of a reflection probe. */
 	class B3D_CORE_EXPORT ReflectionProbeBase : public SceneActor
 	{
 	public:
@@ -102,7 +102,7 @@ namespace bs
 		Sphere mBounds = { Vector3::kZero, 1.0f }; /**< Sphere that bounds the probe area of influence. */
 	};
 
-	/** Templated base class for both core and sim thread implementations of a reflection probe. */
+	/** Templated base class for both render and main thread implementations of a reflection probe. */
 	template <bool IsRenderProxy>
 	class B3D_CORE_EXPORT TReflectionProbe : public ReflectionProbeBase
 	{
@@ -171,7 +171,7 @@ namespace bs
 		 */
 		void Filter();
 
-		/**	Retrieves an implementation of the reflection probe usable only from the core thread. */
+		/**	Retrieves an implementation of the reflection probe usable only from the render thread. */
 		SPtr<ct::ReflectionProbe> GetCore() const;
 
 		/**
@@ -226,7 +226,7 @@ namespace bs
 
 	namespace ct
 	{
-		/** Core thread usable version of a bs::ReflectionProbe */
+		/** Render thread counterpart of a bs::ReflectionProbe */
 		class B3D_CORE_EXPORT ReflectionProbe : public RenderProxy, public TReflectionProbe<true>
 		{
 		public:

@@ -142,7 +142,7 @@ namespace bs
 	 *  @{
 	 */
 
-	/** Common base for both sim and core thread variants of ParticleSystemSettings. */
+	/** Common base for both main and render thread variants of ParticleSystemSettings. */
 	struct ParticleSystemSettingsBase
 	{
 		/** Determines in which space are particles in. */
@@ -235,7 +235,7 @@ namespace bs
 		AABox CustomBounds;
 	};
 
-	/** Templated common base for both sim and core thread variants of ParticleSystemSettings. */
+	/** Templated common base for both main and render thread variants of ParticleSystemSettings. */
 	template <bool IsRenderProxy>
 	struct TParticleSystemSettings : ParticleSystemSettingsBase
 	{
@@ -251,7 +251,7 @@ namespace bs
 		MeshType Mesh;
 	};
 
-	/** Common base for both sim and core thread variants of ParticleVectorFieldSettings. */
+	/** Common base for both main and render thread variants of ParticleVectorFieldSettings. */
 	struct ParticleVectorFieldSettingsBase
 	{
 		/** Intensity of the forces and velocities applied by the vector field. */
@@ -310,7 +310,7 @@ namespace bs
 		bool TilingZ = false;
 	};
 
-	/** Templated common base for both sim and core thread variants of ParticleVectorFieldSettings. */
+	/** Templated common base for both main and render thread variants of ParticleVectorFieldSettings. */
 	template <bool IsRenderProxy>
 	struct TParticleVectorFieldSettings : ParticleVectorFieldSettingsBase
 	{
@@ -343,7 +343,7 @@ namespace bs
 
 	namespace ct
 	{
-		/** Core thread counterpart of bs::ParticleVectorFieldSettings. */
+		/** Render thread counterpart of bs::ParticleVectorFieldSettings. */
 		struct ParticleVectorFieldSettings : TParticleVectorFieldSettings<true>
 		{
 			friend struct bs::ParticleVectorFieldSettings;
@@ -435,13 +435,13 @@ namespace bs
 	{
 		class VectorField;
 
-		/** Core thread counterpart of bs::ParticleSystemSettings. */
+		/** Render  thread counterpart of bs::ParticleSystemSettings. */
 		struct ParticleSystemSettings : TParticleSystemSettings<true>
 		{
 			friend struct bs::ParticleSystemSettings;
 		};
 
-		/** Core thread counterpart of bs::ParticleVectorFieldSettings. */
+		/** Render  thread counterpart of bs::ParticleVectorFieldSettings. */
 		struct ParticleGpuSimulationSettings : TParticleGpuSimulationSettings<true>
 		{
 			friend struct bs::ParticleGpuSimulationSettings;
@@ -515,7 +515,7 @@ namespace bs
 		/** Stops the particle system and resets it to initial state, clearing all particles. */
 		void Stop();
 
-		/**	Retrieves an implementation of the particle system usable only from the core thread. */
+		/**	Retrieves the render proxy. */
 		SPtr<ct::ParticleSystem> GetCore() const;
 
 		/** Creates a new empty ParticleSystem object. */
@@ -659,7 +659,7 @@ namespace bs
 
 	namespace ct
 	{
-		/** Core thread counterpart of bs::ParticleSystem. */
+		/** Render  thread counterpart of bs::ParticleSystem. */
 		class B3D_CORE_EXPORT ParticleSystem final : public RenderProxy, public SceneActor, public INonCopyable
 		{
 		public:

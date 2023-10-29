@@ -14,7 +14,7 @@ namespace bs
 	/**
 	 * Render window implementation for Windows and Vulkan.
 	 *
-	 * @note	Sim thread only.
+	 * @note	Main thread only.
 	 */
 	class Win32RenderWindow : public RenderWindow
 	{
@@ -52,7 +52,7 @@ namespace bs
 		/**
 		 * Render window implementation for Windows and Vulkan.
 		 *
-		 * @note	Core thread only.
+		 * @note	Render thread only.
 		 */
 		class Win32RenderWindow : public RenderWindow
 		{

@@ -47,7 +47,7 @@
 
 namespace bs
 {
-	B3D_LOG_CATEGORY(CoreThread)
+	B3D_LOG_CATEGORY(RenderThread)
 	B3D_LOG_CATEGORY(Renderer)
 	B3D_LOG_CATEGORY(Scene)
 	B3D_LOG_CATEGORY(Physics)
@@ -328,10 +328,10 @@ void CoreApplication::RunMainLoopFrame()
 
 	GetSceneManager().UpdateCoreObjectTransformsInternal();
 
-	// Core and sim thread run in lockstep. This will result in a larger input latency than if I was
-	// running just a single thread. Latency becomes worse if the core thread takes longer than sim
-	// thread, in which case sim thread needs to wait. Optimal solution would be to get an average
-	// difference between sim/core thread and start the sim thread a bit later so they finish at nearly the same time.
+	// Render and main thread run in lockstep. This will result in a larger input latency than if I was
+	// running just a single thread. Latency becomes worse if the render thread takes longer than main
+	// thread, in which case main thread needs to wait. Optimal solution would be to get an average
+	// difference between main/render thread and start the main thread a bit later so they finish at nearly the same time.
 	WaitUntilFrameFinished();
 
 	GetRenderThread().PostCommand([this] { BeginCoreProfiling(); });

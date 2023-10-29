@@ -122,14 +122,14 @@ namespace bs
 		/**
 		 * Allocates a new sprite entry in the atlas. If the entry with the same path & settings combination already exists, an existing entry
 		 * will be returned instead. Note that before using the texture that is part of the allocation you must call RenderDirtySprites() on the
-		 * core thread.
+		 * render thread.
 		 */
 		SPtr<GUIVectorSpriteAtlasAllocation> Allocate(const VectorPath& vectorPath, const VectorGraphicsSettings& settings);
 
 		/** To be called once per frame on the main thread. */
 		void Update();
 
-		/** Render any sprites that are newly allocated. Core thread only. */
+		/** Render any sprites that are newly allocated. Render thread only. */
 		void RenderDirtySprites();
 		
 	private:
@@ -198,7 +198,7 @@ namespace bs
 
 		Mutex mDirtySpriteMutex;
 		Vector<DirtySpriteInformation> mDirtySprites;// Dirty sprites recorded here in a thread safe manner
-		Vector<DirtySpriteInformation> mDirtySpritesTemp; // Dirty sprites iterated here on the core thread when rendering
+		Vector<DirtySpriteInformation> mDirtySpritesTemp; // Dirty sprites iterated here on the render thread when rendering
 
 		mutable UnorderedMap<FreeTextureInformation::Key, FreeTextureInformation, FreeTextureInformation::Key::Hash> mFreeTextureCache;
 

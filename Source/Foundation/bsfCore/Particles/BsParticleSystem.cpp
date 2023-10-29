@@ -281,7 +281,7 @@ void ParticleSystem::SimulateInternal(float timeDelta, const EvaluatedAnimationD
 			emitter->Spawn(mRandom, state, *mParticleSet);
 	}
 
-	// Simulate if running on CPU, otherwise just pass the spawned particles off to the core thread
+	// Simulate if running on CPU, otherwise just pass the spawned particles off to the render thread
 	if(!mSettings.GpuSimulation)
 	{
 		const u32 numParticles = mParticleSet->GetParticleCount();

@@ -65,7 +65,7 @@ namespace bs
 	 *  @{
 	 */
 
-	/** Base class used for both sim and core thread SpriteTexture implementations. */
+	/** Base class used for both main and render thread counterparts of SpriteTexture. */
 	class B3D_CORE_EXPORT SpriteTextureBase
 	{
 	public:
@@ -144,7 +144,7 @@ namespace bs
 		SpriteAnimationPlayback GetAnimationPlayback() const { return mPlayback; };
 
 	protected:
-		/** Marks the contents of the sim thread object as dirty, causing it to sync with its core thread counterpart. */
+		/** Marks the contents of the main thread object as dirty, causing it to sync with its render thread counterpart. */
 		virtual void MarkCoreDirtyInternal() {}
 
 		Vector2 mUVOffset;
@@ -154,7 +154,7 @@ namespace bs
 		SpriteSheetGridAnimation mAnimation;
 	};
 
-	/** Templated base class used for both sim and core thread SpriteTexture implementations. */
+	/** Templated base class used for both main and render thread SpriteTexture counterparts. */
 	template <bool IsRenderProxy>
 	class B3D_CORE_EXPORT TSpriteTexture : public SpriteTextureBase
 	{
@@ -216,7 +216,7 @@ namespace bs
 		B3D_SCRIPT_EXPORT(ExportName(FrameHeight), Property(Getter))
 		u32 GetFrameHeight() const;
 
-		/**	Retrieves a core implementation of a sprite texture usable only from the core thread. */
+		/**	Retrieves the render proxy. */
 		SPtr<ct::SpriteTexture> GetCore() const;
 
 		/**	Creates a new sprite texture that references the entire area of the provided texture. */
@@ -281,9 +281,9 @@ namespace bs
 		 */
 
 		/**
-		 * Core thread version of a bs::SpriteTexture.
+		 * Render proxy counterpart of a bs::SpriteTexture.
 		 *
-		 * @note	Core thread.
+		 * @note	Render thread.
 		 */
 		class B3D_CORE_EXPORT SpriteTexture : public RenderProxy, public TSpriteTexture<true>
 		{

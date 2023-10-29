@@ -14,7 +14,7 @@ namespace bs
 	/**
 	 * Manages all time related functionality.
 	 *
-	 * @note	Sim thread only unless where specified otherwise.
+	 * @note	Main thread only unless where specified otherwise.
 	 */
 	class B3D_UTILITY_EXPORT Time : public Module<Time>
 	{
@@ -57,7 +57,7 @@ namespace bs
 		 *
 		 * @return	The current frame.
 		 *
-		 * @note	Thread safe, but only counts sim thread frames.
+		 * @note	Thread safe, but only counts main thread frames.
 		 */
 		u64 GetCurrentFrameIndex() const { return mCurrentFrame.load(); }
 

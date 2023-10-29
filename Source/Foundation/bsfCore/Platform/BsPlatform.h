@@ -271,75 +271,75 @@ namespace bs
 		/**
 		 * Message pump. Processes OS messages and returns when it's free.
 		 *
-		 * @note	Core thread only.
+		 * @note	Render thread only.
 		 */
 		static void MessagePumpInternal();
 
-		/** Called during application start up from the sim thread. Must be called before any other operations are done. */
+		/** Called during application start up from the main thread. Must be called before any other operations are done. */
 		static void StartUpInternal();
 
-		/** Called once per frame from the sim thread. */
+		/** Called once per frame from the main thread. */
 		static void UpdateInternal();
 
-		/** Called once per frame from the core thread. */
+		/** Called once per frame from the render thread. */
 		static void CoreUpdateInternal();
 
-		/** Called during application shut down from the sim thread. */
+		/** Called during application shut down from the main thread. */
 		static void ShutDownInternal();
 
 		/**
 		 * Triggered whenever the pointer moves.
 		 *
-		 * @note	Core thread only.
+		 * @note	Render  thread only.
 		 */
 		static Event<void(const Vector2I&, const OSPointerButtonStates&)> onCursorMoved;
 
 		/**
 		 * Triggered whenever a pointer button is pressed.
 		 *
-		 * @note	Core thread only.
+		 * @note	Render  thread only.
 		 */
 		static Event<void(const Vector2I&, OSMouseButton button, const OSPointerButtonStates&)> onCursorButtonPressed;
 
 		/**
 		 * Triggered whenever pointer button is released.
 		 *
-		 * @note	Core thread only.
+		 * @note	Render  thread only.
 		 */
 		static Event<void(const Vector2I&, OSMouseButton button, const OSPointerButtonStates&)> onCursorButtonReleased;
 
 		/**
 		 * Triggered whenever a pointer button is double clicked.
 		 *
-		 * @note	Core thread only.
+		 * @note	Render  thread only.
 		 */
 		static Event<void(const Vector2I&, const OSPointerButtonStates&)> onCursorDoubleClick;
 
 		/**
 		 * Triggered whenever an input command is entered.
 		 *
-		 * @note	Core thread only.
+		 * @note	Render  thread only.
 		 */
 		static Event<void(InputCommandType)> onInputCommand;
 
 		/**
 		 * Triggered whenever the mouse wheel is scolled.
 		 *
-		 * @note	Core thread only.
+		 * @note	Render  thread only.
 		 */
 		static Event<void(float)> onMouseWheelScrolled;
 
 		/**
 		 * Triggered whenever a character is entered.
 		 *
-		 * @note	Core thread only.
+		 * @note	Render  thread only.
 		 */
 		static Event<void(u32)> onCharInput;
 
 		/**
 		 * Triggered whenever mouse capture state for the window is changed (it receives or loses it).
 		 *
-		 * @note	Core thread only.
+		 * @note	Render  thread only.
 		 */
 		static Event<void()> onMouseCaptureChanged;
 

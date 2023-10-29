@@ -107,7 +107,7 @@ namespace bs
 		 * method will not return any data. Caller should not modify the returned data.
 		 *
 		 * @note
-		 * The data read is the cached mesh data. Any data written to the mesh from the GPU or core thread will not be
+		 * The data read is the cached mesh data. Any data written to the mesh from the GPU or render thread will not be
 		 * reflected in this data. Use readData() if you require those changes.
 		 */
 		SPtr<MeshData> GetCachedData() const { return mCPUData; }
@@ -120,7 +120,7 @@ namespace bs
 		B3D_SCRIPT_EXPORT(Property(Getter), ExportName(MorphShapes))
 		SPtr<MorphShapes> GetMorphShapes() const { return mMorphShapes; }
 
-		/** Retrieves a core implementation of a mesh usable only from the core thread. */
+		/** Retrieves the render proxy. */
 		SPtr<ct::Mesh> GetCore() const;
 
 		/**	Returns a dummy mesh, containing just one triangle. Don't modify the returned mesh. */
@@ -261,9 +261,9 @@ namespace bs
 		 */
 
 		/**
-		 * Core thread portion of a bs::Mesh.
+		 * Render thread portion of a bs::Mesh.
 		 *
-		 * @note	Core thread.
+		 * @note	Render thread.
 		 */
 		class B3D_CORE_EXPORT Mesh : public MeshBase
 		{

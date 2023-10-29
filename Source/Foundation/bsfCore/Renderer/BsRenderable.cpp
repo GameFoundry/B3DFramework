@@ -179,7 +179,7 @@ void Renderable::Initialize()
 {
 	CoreObject::Initialize();
 
-	// Since we don't pass any information along to the core thread object on its construction, make sure the data
+	// Since we don't pass any information along to the render thread object on its construction, make sure the data
 	// sync executes
 	MarkCoreDirtyInternal();
 

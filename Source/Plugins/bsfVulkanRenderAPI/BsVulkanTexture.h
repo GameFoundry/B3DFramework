@@ -233,7 +233,7 @@ namespace bs
 			/**
 			 * Returns the layout the subresource is currently in. Note that this is only used to communicate layouts between
 			 * different command buffers, and will only be updated only after command buffer submit() call. In short this means
-			 * you should only care about this value on the core thread.
+			 * you should only care about this value on the render thread.
 			 *
 			 * @note	Submit thread only.
 			 */

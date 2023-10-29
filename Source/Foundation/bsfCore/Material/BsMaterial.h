@@ -91,7 +91,7 @@ namespace bs
 		 *  @{
 		 */
 
-		/** Marks the contents of the sim thread object as dirty, causing it to sync with its core thread counterpart. */
+		/** Marks the contents of the main thread object as dirty, causing it to sync with the render proxy. */
 		virtual void MarkCoreDirtyInternal(MaterialDirtyFlags flags = MaterialDirtyFlags::Param) {}
 
 		/** @copydoc CoreObject::MarkDependenciesDirty */
@@ -742,7 +742,7 @@ namespace bs
 		B3D_SCRIPT_EXPORT(ExportName(Variation), Property(Setter), UI(Hide))
 		void SetVariation(const ShaderVariationParameters& variation);
 
-		/** Retrieves an implementation of a material usable only from the core thread. */
+		/** Retrieves an implementation of a material usable only from the render thread. */
 		SPtr<ct::Material> GetCore() const;
 
 		void Initialize() override;
@@ -775,7 +775,7 @@ namespace bs
 
 		/**
 		 * Marks the core data as dirty. This causes the syncToCore() method to trigger the next time objects are synced
-		 * between core and sim threads.
+		 * between render and main threads.
 		 */
 		void MarkCoreDirtyInternal(MaterialDirtyFlags flags = MaterialDirtyFlags::Param) override;
 

@@ -82,7 +82,7 @@ namespace bs
 
 		/**
 		 * Synchronizes all CoreObjects with dirty render proxy data with the render thread. Their dirty data will be allocated using the global
-		 * frame allocator and then queued for update using the core thread queue for the calling thread.
+		 * frame allocator and then queued for update using the render thread queue for the calling thread.
 		 *
 		 *	@param swapBuffers		Switch ownership of the current buffer from the main thread to the render thread. All data written during sync download
 		 *							will now become owned by the render thread, and a new buffer will be made available on the main thread. Note that

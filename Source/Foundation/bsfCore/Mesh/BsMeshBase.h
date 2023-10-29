@@ -36,7 +36,7 @@ namespace bs
 		MU_CPUCACHED B3D_SCRIPT_EXPORT(ExportName(CPUCached)) = 0x1000,
 	};
 
-	/** Properties of a Mesh. Shared between sim and core thread versions of a Mesh. */
+	/** Properties of a Mesh. Shared between main and render thread counterparts of a Mesh. */
 	class B3D_CORE_EXPORT MeshProperties
 	{
 	public:
@@ -67,7 +67,7 @@ namespace bs
 	 * Base class all mesh implementations derive from. Meshes hold geometry information, normally in the form of one or
 	 * several index or vertex buffers. Different mesh implementations might choose to manage those buffers differently.
 	 *
-	 * @note	Sim thread.
+	 * @note	Main thread.
 	 */
 	class B3D_CORE_EXPORT MeshBase : public Resource
 	{
@@ -98,7 +98,7 @@ namespace bs
 		/**	Returns properties that contain information about the mesh. */
 		const MeshProperties& GetProperties() const { return mProperties; }
 
-		/**	Retrieves a core implementation of a mesh usable only from the core thread. */
+		/**	Retrieves the render proxy. */
 		SPtr<ct::MeshBase> GetCore() const;
 
 	protected:
@@ -124,11 +124,11 @@ namespace bs
 	namespace ct
 	{
 		/**
-		 * Core version of a class used as a basis for all implemenations of meshes.
+		 * Render proxy  used as a basis for all implemenations of meshes.
 		 *
 		 * @see		bs::MeshBase
 		 *
-		 * @note	Core thread.
+		 * @note	Render thread.
 		 */
 		class B3D_CORE_EXPORT MeshBase : public RenderProxy
 		{

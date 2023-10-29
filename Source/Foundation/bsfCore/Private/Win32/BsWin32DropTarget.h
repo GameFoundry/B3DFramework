@@ -17,7 +17,7 @@ namespace bs
 	 * Called by the OS when various drag and drop actions are performed over a window this control is registered for.
 	 *
 	 * @note
-	 * This class queues all messages receives by the OS (from the core thread), and then executes the queue on sim thread.
+	 * This class queues all messages receives by the OS (from the render thread), and then executes the queue on main thread.
 	 * You should be wary of which methods are allowed to be called from which thread.
 	 */
 	class Win32DropTarget : public IDropTarget
@@ -69,53 +69,53 @@ namespace bs
 		/**
 		 * Called by the OS when user enters the drop target area while dragging an object.
 		 *
-		 * @note	Called on core thread.
+		 * @note	Called on render thread.
 		 */
 		HRESULT __stdcall DragEnter(IDataObject* pDataObj, DWORD grfKeyState, POINTL pt, DWORD* pdwEffect) override;
 
 		/**
 		 * Called by the OS while user continues to drag an object over the drop target.
 		 *
-		 * @note	Called on core thread.
+		 * @note	Called on render thread.
 		 */
 		HRESULT __stdcall DragOver(DWORD grfKeyState, POINTL pt, DWORD* pdwEffect) override;
 
 		/**
 		 * Called by the OS when user leaves the drop target.
 		 *
-		 * @note	Called on core thread.
+		 * @note	Called on render thread.
 		 */
 		HRESULT __stdcall DragLeave() override;
 
 		/**
 		 * Called by the OS when the user ends the drag operation while over the drop target.
 		 *
-		 * @note	Called on core thread.
+		 * @note	Called on render thread.
 		 */
 		HRESULT __stdcall Drop(IDataObject* pDataObj, DWORD grfKeyState, POINTL pt, DWORD* pdwEffect) override;
 
 		/**
 		 * Registers a new drop target to monitor.
 		 *
-		 * @note	Sim thread only.
+		 * @note	Main thread only.
 		 */
 		void RegisterDropTarget(DropTarget* dropTarget);
 
 		/**
 		 * Unregisters an existing drop target and stops monitoring it.
 		 *
-		 * @note	Sim thread only.
+		 * @note	Main thread only.
 		 */
 		void UnregisterDropTarget(DropTarget* dropTarget);
 
 		/**
 		 * Gets the total number of monitored drop targets.
 		 *
-		 * @note	Sim thread only.
+		 * @note	Main thread only.
 		 */
 		unsigned int GetNumDropTargets() const;
 
-		/** Called every frame by the sim thread. Internal method. */
+		/** Called every frame by the main thread. Internal method. */
 		void Update();
 
 	private:

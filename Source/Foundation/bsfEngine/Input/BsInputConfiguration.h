@@ -76,7 +76,7 @@ namespace bs
 	 * compare. Generally you want to create one of these using the button name, and then store it for later use.
 	 *
 	 * @note
-	 * This class is not thread safe and should only be used on the sim thread.
+	 * This class is not thread safe and should only be used on the main thread.
 	 *
 	 * @see		VIRTUAL_BUTTON_DESC
 	 */
@@ -108,7 +108,7 @@ namespace bs
 	 * use.
 	 *
 	 * @note
-	 * This class is not thread safe and should only be used on the sim thread.
+	 * This class is not thread safe and should only be used on the main thread.
 	 *
 	 * @see		VIRTUAL_AXIS_DESC
 	 */

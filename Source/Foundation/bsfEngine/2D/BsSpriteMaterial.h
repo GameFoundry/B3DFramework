@@ -135,16 +135,16 @@ namespace bs
 		virtual void Render(ct::GpuCommandBuffer& commandBuffer, const SPtr<ct::MeshBase>& mesh, const SubMesh& subMesh, const SPtr<ct::Texture>& texture, const SPtr<SamplerState>& sampler, const SPtr<ct::GpuBuffer>& paramBuffer, const SPtr<SpriteMaterialExtraInfo>& additionalData) const;
 
 	protected:
-		/** Perform initialization of core-thread specific objects. */
+		/** Perform initialization of render-thread specific objects. */
 		virtual void Initialize();
 
-		/** Destroys the core thread material. */
+		/** Destroys the render thread material. */
 		static void Destroy(const SPtr<ct::Material>& material, const SPtr<ct::GpuParamsSet>& params);
 
 		u32 mId;
 		bool mAllowBatching;
 
-		// Core thread only (everything below)
+		// Render thread only (everything below)
 		SPtr<ct::Material> mMaterial;
 		u32 mTechnique;
 		std::atomic<bool> mMaterialStored;

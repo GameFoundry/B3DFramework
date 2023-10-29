@@ -48,6 +48,6 @@ void ScriptObjectImpl::InitRuntimeData()
 void ScriptObjectImpl::InternalManagedInstanceDeleted(ScriptObjectBase* instance)
 {
 	// This method gets called on the finalizer thread, but so that we don't need to deal
-	// with multi-threading issues we just delay it and execute it on the sim thread.
+	// with multi-threading issues we just delay it and execute it on the main thread.
 	ScriptObjectManager::Instance().NotifyObjectFinalized(instance);
 }

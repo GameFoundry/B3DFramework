@@ -37,7 +37,7 @@ namespace bs
 	 *  @{
 	 */
 
-	/** Contains common functionality used by both sim and core thread versions of Pass. */
+	/** Contains common functionality used by both main and render thread counterparts of Pass. */
 	template <bool IsRenderProxy>
 	class B3D_CORE_EXPORT TPass
 	{
@@ -90,14 +90,14 @@ namespace bs
 	 * fragment, geometry, etc.), and a set of pipeline states (blend, rasterizer, etc.). When initially created the pass
 	 * is in its uncompiled state. It needs to be explicitly compiled by calling Compile() before use.
 	 *
-	 * @note	Sim thread.
+	 * @note	Main thread.
 	 */
 	class B3D_CORE_EXPORT Pass : public IReflectable, public CoreObject, public TPass<false>
 	{
 	public:
 		virtual ~Pass() = default;
 
-		/** Retrieves an implementation of a pass usable only from the core thread. */
+		/** Retrieves the render proxy. */
 		SPtr<ct::Pass> GetCore() const;
 
 		/**
@@ -144,9 +144,9 @@ namespace bs
 		 */
 
 		/**
-		 * Core thread counterpart of bs::Pass.
+		 * Render thread counterpart of bs::Pass.
 		 *
-		 * @note	Core thread.
+		 * @note	Render thread.
 		 */
 		class B3D_CORE_EXPORT Pass : public IReflectable, public RenderProxy, public TPass<true>
 		{

@@ -12,13 +12,13 @@ namespace bs
 
 	/**
 	 * You can use this class as a storage for reading and writing from/to various GPU resources. It is meant to be created
-	 * on sim thread and used on the core thread. This class is abstract and specific resource types need to implement their
+	 * on main thread and used on the render thread. This class is abstract and specific resource types need to implement their
 	 * own type of GpuResourceData.
 	 *
 	 * @note
 	 * Normal use of this class involves requesting an instance of GpuResourceData from a Resource, then scheduling a read
-	 * or write on that resource using the provided instance. Instance will be locked while it is used by the core thread
-	 * and sim thread will be allowed to access it when the operation ends. Caller can track AsyncOp%s regarding the
+	 * or write on that resource using the provided instance. Instance will be locked while it is used by the render thread
+	 * and main thread will be allowed to access it when the operation ends. Caller can track AsyncOp%s regarding the
 	 * read/write operation to be notified when it is complete.
 	 * @note
 	 * If you allocate an internal buffer to store the resource data, the ownership of the buffer will always remain with
@@ -76,7 +76,7 @@ namespace bs
 		/** Checks if the internal buffer is locked due to some other thread using it. */
 		bool IsLocked() const { return mLocked; }
 
-		/** Locks the data and makes it available only to the core thread. */
+		/** Locks the data and makes it available only to the render thread. */
 		void LockInternal() const;
 
 		/**	Unlocks the data and makes it available to all threads.  */

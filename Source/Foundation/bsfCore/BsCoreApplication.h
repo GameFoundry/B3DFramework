@@ -61,7 +61,7 @@ namespace bs
 	 * Represents the primary entry point for the core systems. Handles start-up, shutdown, primary loop and allows you to
 	 * load and unload plugins.
 	 *
-	 * @note	Sim thread only.
+	 * @note	Main thread only.
 	 */
 	class B3D_CORE_EXPORT CoreApplication : public Module<CoreApplication>
 	{
@@ -165,10 +165,10 @@ namespace bs
 		/**	Called when the frame finishes rendering. */
 		void FrameRenderingFinishedCallback();
 
-		/**	Called by the core thread to begin profiling. */
+		/**	Called by the render thread to begin profiling. */
 		void BeginCoreProfiling();
 
-		/**	Called by the core thread to end profiling. */
+		/**	Called by the render thread to end profiling. */
 		void EndCoreProfiling();
 
 	protected:

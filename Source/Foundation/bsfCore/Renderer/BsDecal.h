@@ -15,7 +15,7 @@ namespace bs
 	 *  @{
 	 */
 
-	/** Base class for both core and sim thread implementations of Decal. */
+	/** Base class for both render and main thread implementations of Decal. */
 	class B3D_CORE_EXPORT DecalBase : public SceneActor
 	{
 	public:
@@ -105,7 +105,7 @@ namespace bs
 		Bounds mBounds;
 	};
 
-	/** Templated base class for both core and sim thread implementations of Decal. */
+	/** Templated base class for both render and main thread implementations of Decal. */
 	template <bool IsRenderProxy>
 	class B3D_CORE_EXPORT TDecal : public DecalBase
 	{
@@ -151,7 +151,7 @@ namespace bs
 	class B3D_CORE_EXPORT Decal : public IReflectable, public CoreObject, public TDecal<false>
 	{
 	public:
-		/**	Retrieves an implementation of the decal usable only from the core thread. */
+		/**	Retrieves the render proxy. */
 		SPtr<ct::Decal> GetCore() const;
 
 		/**
@@ -193,7 +193,7 @@ namespace bs
 
 	namespace ct
 	{
-		/** Core thread version of a bs::Decal */
+		/** Render thread counterpart of a bs::Decal */
 		class B3D_CORE_EXPORT Decal : public RenderProxy, public TDecal<true>
 		{
 		public:

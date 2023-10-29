@@ -251,7 +251,7 @@ namespace bs
 		};
 	};
 
-	/** Contains functionality common for both sim and core thread version of GpuParameters. */
+	/** Contains functionality common for both main and render thread versions of GpuParameters. */
 	class B3D_CORE_EXPORT GpuParamsBase
 	{
 	public:
@@ -283,7 +283,7 @@ namespace bs
 		/** Checks if a parameter block with the specified name exists for the specific GPU program type. */
 		bool HasUniformBuffer(const String& name) const;
 
-		/** Marks the sim thread object as dirty, causing it to sync its contents with its core thread counterpart. */
+		/** Marks the main thread object as dirty, causing it to sync its contents with its render thread counterpart. */
 		virtual void MarkCoreDirtyInternal() {}
 
 		/** @copydoc IResourceListener::MarkListenerResourcesDirty */
@@ -295,7 +295,7 @@ namespace bs
 		SPtr<GpuPipelineParameterLayout> mParameterLayout;
 	};
 
-	/** Templated version of GpuParameters that contains functionality for both sim and core thread versions of stored data. */
+	/** Templated version of GpuParameters that contains functionality for both main and render thread versions of stored data. */
 	template <bool IsRenderProxy>
 	class B3D_CORE_EXPORT TGpuParams : public GpuParamsBase
 	{
@@ -525,14 +525,14 @@ namespace bs
 	 * those parameters. All parameter values are stored internally on the CPU, and are only submitted to the GPU once the
 	 * parameters are bound to the pipeline.
 	 *
-	 * @note	Sim thread only.
+	 * @note	Main thread only.
 	 */
 	class B3D_CORE_EXPORT GpuParameters : public CoreObject, public TGpuParams<false>, public IResourceListener
 	{
 	public:
 		~GpuParameters() {}
 
-		/** Retrieves a core implementation of a mesh usable only from the core thread. */
+		/** Retrieves the render proxy. */
 		SPtr<ct::GpuParameters> GetCore() const;
 
 		/**
@@ -588,9 +588,9 @@ namespace bs
 		 */
 
 		/**
-		 * Core thread version of bs::GpuParameters.
+		 * Render thread version of bs::GpuParameters.
 		 *
-		 * @note	Core thread only.
+		 * @note	Render thread only.
 		 */
 		class B3D_CORE_EXPORT GpuParameters : public RenderProxy, public TGpuParams<true>
 		{

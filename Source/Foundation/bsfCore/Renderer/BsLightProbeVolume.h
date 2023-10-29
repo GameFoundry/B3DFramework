@@ -175,7 +175,7 @@ namespace bs
 		/** Returns the cell count that's used for determining the density of probes within a grid volume. */
 		const Vector3I& GetCellCount() const { return mCellCount; }
 
-		/**	Retrieves an implementation of the object usable only from the core thread. */
+		/**	Retrieves the render proxy. */
 		SPtr<ct::LightProbeVolume> GetCore() const;
 
 		/**
@@ -194,12 +194,12 @@ namespace bs
 
 		LightProbeVolume(const AABox& volume, const Vector3I& cellCount);
 
-		/** Renders the light probe data on the core thread. */
+		/** Renders the light probe data on the render thread. */
 		void RunRenderProbeTask();
 
 		/**
-		 * Fetches latest SH coefficient data from the core thread. Note this method will block the caller thread until
-		 * the data is fetched from the core thread. It will also force any in-progress light probe updates to finish.
+		 * Fetches latest SH coefficient data from the render thread. Note this method will block the caller thread until
+		 * the data is fetched from the render thread. It will also force any in-progress light probe updates to finish.
 		 */
 		void UpdateCoefficients();
 
@@ -245,7 +245,7 @@ namespace bs
 			u32 BufferIdx;
 		};
 
-		/** Core thread usable version of bs::LightProbeVolume. */
+		/** Render thread counterpart of bs::LightProbeVolume. */
 		class B3D_CORE_EXPORT LightProbeVolume : public RenderProxy, public SceneActor
 		{
 		public:

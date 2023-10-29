@@ -12,7 +12,7 @@ namespace bs
 		 *  @{
 		 */
 
-		/** Textures that get loaded on the sim thread and get passed to the renderer. */
+		/** Textures that get loaded on the main thread and get passed to the renderer. */
 		struct LoadedRendererTextures
 		{
 			/** Default texture to use for Bokeh flare. */

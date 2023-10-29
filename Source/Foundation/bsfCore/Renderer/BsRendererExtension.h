@@ -85,17 +85,17 @@ namespace bs
 	 * Interface that can be implemented in order to provide custom rendering code to the renderer.
 	 * See Renderer::addPlugin().
 	 *
-	 * @note	Core thread.
+	 * @note	Render thread.
 	 */
 	class B3D_CORE_EXPORT RendererExtension
 	{
 	public:
 		/**
 		 * Creates a brand new instance of a specific implementation of a renderer extension. Queues initialization of the
-		 * object on the core thread and registers it with the renderer. Destruction will be queued on the core thread when
+		 * object on the render thread and registers it with the renderer. Destruction will be queued on the render thread when
 		 * the object goes out of scope.
 		 *
-		 * @note	Sim thread.
+		 * @note	Main thread.
 		 */
 		template <class T>
 		static SPtr<T> Create(const Any& data)

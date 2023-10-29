@@ -176,7 +176,7 @@ namespace bs
 		u8* mData;
 	};
 
-	/** Sim thread version of TGpuParamsSet<Core>. */
+	/** Main thread version of TGpuParamsSet<Core>. */
 	class B3D_CORE_EXPORT GpuParamsSet : public TGpuParamsSet<false>
 	{
 	public:
@@ -189,7 +189,7 @@ namespace bs
 
 	namespace ct
 	{
-		/** Core thread version of TGpuParamsSet<Core>. */
+		/** Render thread version of TGpuParamsSet<Core>. */
 		class B3D_CORE_EXPORT GpuParamsSet : public TGpuParamsSet<true>
 		{
 		public:

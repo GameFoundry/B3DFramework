@@ -70,14 +70,14 @@ namespace bs
 		/**
 		 * Triggered when a new entry in the log is added.
 		 *
-		 * @note	Sim thread only.
+		 * @note	Main thread only.
 		 */
 		Event<void(const LogEntry&)> OnLogEntryAdded;
 
 		/**
 		 * Triggered whenever one or multiple log entries were added or removed. Triggers only once per frame.
 		 *
-		 * @note	Sim thread only.
+		 * @note	Main thread only.
 		 */
 		Event<void()> OnLogModified;
 
@@ -96,7 +96,7 @@ namespace bs
 		/**
 		 * Triggers callbacks that notify external code that a log entry was added.
 		 *
-		 * @note	Sim thread only.
+		 * @note	Main thread only.
 		 */
 		void TriggerCallbacksInternal();
 

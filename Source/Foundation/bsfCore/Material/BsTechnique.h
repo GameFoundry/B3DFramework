@@ -133,7 +133,7 @@ namespace bs
 	public:
 		Technique(const WeakSPtr<Shader>& owner, const String& language, const ShaderVariationParameters& variationParameters, const Optional<PrecompiledVariationData>& precompiledData);
 
-		/** Retrieves an implementation of a technique usable only from the core thread. */
+		/** Retrieves the render proxy. */
 		SPtr<ct::Technique> GetCore() const;
 
 		/**
@@ -186,7 +186,7 @@ namespace bs
 		 *  @{
 		 */
 
-		/** Core thread version of bs::Technique. */
+		/** Render thread version of bs::Technique. */
 		class B3D_CORE_EXPORT Technique : public IReflectable, public RenderProxy, public TTechnique<true>
 		{
 		public:

@@ -231,7 +231,7 @@ namespace bs
 
 			/**
 			 * Updates the internal data that is used for rendering. Normally you would call this after updating the meshes
-			 * on the sim thread.
+			 * on the main thread.
 			 *
 			 * @param[in]	meshes			Meshes to render.
 			 */

@@ -80,7 +80,7 @@ void SpriteMaterial::Initialize()
 
 void SpriteMaterial::Destroy(const SPtr<ct::Material>& material, const SPtr<ct::GpuParamsSet>& params)
 {
-	// Do nothing, we just need to make sure the material pointer's last reference is lost while on the core thread
+	// Do nothing, we just need to make sure the material pointer's last reference is lost while on the render thread
 }
 
 u64 SpriteMaterial::GetMergeHash(const SpriteMaterialInfo& info) const

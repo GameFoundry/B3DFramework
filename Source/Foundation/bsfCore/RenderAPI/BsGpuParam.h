@@ -110,7 +110,7 @@ namespace bs
 		 *
 		 * @note
 		 * Like with all GPU parameters, the actual GPU buffer will not be updated until rendering with material this
-		 * parameter was created from starts on the core thread.
+		 * parameter was created from starts on the render thread.
 		 */
 		void Set(const T& value, u32 arrayIdx = 0) const;
 

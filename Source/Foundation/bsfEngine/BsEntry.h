@@ -24,7 +24,7 @@ int main(int __argc, char* __argv[])
 #if B3D_SWAP_RENDER_AND_MAIN_THREAD
 	Thread thread([argc = __argc, argv = __argv]()
 				  { bs_main(argc, argv); });
-	CoreThread::RunInternal();
+	RenderThread::RunInternal();
 	thread.join();
 #else
 	bs_main(__argc, __argv);

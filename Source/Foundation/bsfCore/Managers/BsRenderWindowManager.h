@@ -29,25 +29,25 @@ namespace bs
 		/** Called once per frame. Dispatches events. */
 		void UpdateInternal();
 
-		/** Called by the core thread when window is destroyed. */
+		/** Called by the render thread when window is destroyed. */
 		void NotifyWindowDestroyed(RenderWindow* window);
 
-		/**	Called by the core thread when window receives focus. */
+		/**	Called by the render thread when window receives focus. */
 		void NotifyFocusReceived(ct::RenderWindow* window);
 
-		/**	Called by the core thread when window loses focus. */
+		/**	Called by the render thread when window loses focus. */
 		void NotifyFocusLost(ct::RenderWindow* window);
 
-		/**	Called by the core thread when window is moved or resized. */
+		/**	Called by the render thread when window is moved or resized. */
 		void NotifyMovedOrResized(ct::RenderWindow* window);
 
-		/**	Called by the core thread when mouse leaves a window. */
+		/**	Called by the render thread when mouse leaves a window. */
 		void NotifyMouseLeft(ct::RenderWindow* window);
 
-		/** Called by the core thread when the user requests for the window to close. */
+		/** Called by the render thread when the user requests for the window to close. */
 		void NotifyCloseRequested(ct::RenderWindow* coreWindow);
 
-		/**	Called by the sim thread when window properties change. */
+		/**	Called by the main thread when window properties change. */
 		void NotifySyncDataDirty(ct::RenderWindow* coreWindow);
 
 		/**	Returns a list of all open render windows. */
@@ -68,8 +68,8 @@ namespace bs
 	protected:
 		friend class RenderWindow;
 
-		/**	Finds a sim thread equivalent of the provided core thread window implementation. */
-		RenderWindow* GetNonCore(const ct::RenderWindow* window) const;
+		/**	Finds a main thread equivalent of the provided render proxy. */
+		RenderWindow* GetCoreObject(const ct::RenderWindow* window) const;
 
 		/** @copydoc Create */
 		virtual SPtr<RenderWindow> CreateImpl(RENDER_WINDOW_DESC& desc, u32 windowId, const SPtr<RenderWindow>& parentWindow) = 0;
@@ -92,7 +92,7 @@ namespace bs
 		/**
 		 * Handles creation and internal updates relating to render windows.
 		 *
-		 * @note	Core thread only.
+		 * @note	Render thread only.
 		 */
 		class B3D_CORE_EXPORT RenderWindowManager : public Module<RenderWindowManager>
 		{
@@ -102,7 +102,7 @@ namespace bs
 			/** Called once per frame. Dispatches events. */
 			void UpdateInternal();
 
-			/**	Called by the core thread when window properties change. */
+			/**	Called by the render thread when window properties change. */
 			void NotifySyncDataDirty(RenderWindow* window);
 
 			/**	Returns a list of all open render windows. */
@@ -116,7 +116,7 @@ namespace bs
 			/**	Called whenever a window is created. */
 			void WindowCreated(RenderWindow* window);
 
-			/**	Called by the core thread when window is destroyed. */
+			/**	Called by the render thread when window is destroyed. */
 			void WindowDestroyed(RenderWindow* window);
 
 			mutable Mutex mWindowMutex;

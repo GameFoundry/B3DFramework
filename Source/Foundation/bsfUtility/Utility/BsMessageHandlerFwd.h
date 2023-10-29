@@ -18,7 +18,7 @@ namespace bs
 	 * Primary purpose of this class is to avoid expensive string compare, and instead use a unique message identifier for
 	 * compare. Generally you want to create one of these using the message name, and then store it for later use.
 	 * @note
-	 * This class is not thread safe and should only be used on the sim thread.
+	 * This class is not thread safe and should only be used on the main thread.
 	 */
 	class B3D_UTILITY_EXPORT MessageId
 	{
@@ -60,7 +60,7 @@ namespace bs
 	/**
 	 * Sends a message using the global messaging system.
 	 *
-	 * @note	Sim thread only.
+	 * @note	Main thread only.
 	 */
 	void B3D_UTILITY_EXPORT SendMessage(MessageId message);
 

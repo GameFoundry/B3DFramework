@@ -112,7 +112,7 @@ namespace bs
 		return std::forward<T>(value);
 	}
 
-	/** Convert shared-pointers with classes that derive from CoreObject to their core thread variants. */
+	/** Convert shared-pointers with classes that derive from CoreObject to their RenderProxy variants. */
 	template <class T>
 	decltype(B3DGetRenderProxy(std::declval<T>()))
 	GetRenderProxy(T&& value, std::enable_if_t<is_shared_ptr<std::decay_t<T>>::value && (std::is_class<std::decay_t<typename std::decay_t<T>::element_type>>::value && std::is_base_of<CoreObject, std::decay_t<typename std::decay_t<T>::element_type>>::value)>* = 0)

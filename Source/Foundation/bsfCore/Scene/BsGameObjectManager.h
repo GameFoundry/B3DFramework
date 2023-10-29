@@ -34,7 +34,7 @@ namespace bs
 	/**
 	 * Tracks GameObject creation and destructions. Also resolves GameObject references from GameObject handles.
 	 *
-	 * @note	Sim thread only.
+	 * @note	Main thread only.
 	 */
 	class B3D_CORE_EXPORT GameObjectManager : public Module<GameObjectManager>
 	{

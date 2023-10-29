@@ -29,8 +29,8 @@
  *	Built-in components (elements that may be attached to scene objects).
  */
 
-/** @defgroup CoreThread Core thread
- *	Core objects and interaction with the core (rendering) thread.
+/** @defgroup RenderThread Render thread
+ *	Core objects and interaction with the render thread.
  */
 
 /** @defgroup Importer Importer
@@ -115,8 +115,8 @@
  *	Audio clips, 3D sound and music reproduction.
  */
 
-/** @defgroup CoreThread-Internal Core thread
- *	Core objects and interaction with the core (rendering) thread.
+/** @defgroup RenderThread-Internal Render thread
+ *	Core objects and interaction with the render thread.
  */
 
 /** @defgroup Importer-Internal Importer
@@ -236,7 +236,7 @@ namespace bs
 {
 	// Core objects
 	template <class T>
-	struct CoreThreadType
+	struct RenderThreadType
 	{
 		typedef T Type;
 	};
@@ -248,7 +248,7 @@ namespace bs
 		class TYPE;                       \
 	}                                     \
 	template <>                           \
-	struct CoreThreadType<TYPE>           \
+	struct RenderThreadType<TYPE>           \
 	{                                     \
 		typedef ct::TYPE Type;            \
 	};
@@ -260,7 +260,7 @@ namespace bs
 		struct TYPE;                             \
 	}                                            \
 	template <>                                  \
-	struct CoreThreadType<TYPE>                  \
+	struct RenderThreadType<TYPE>                  \
 	{                                            \
 		typedef ct::TYPE Type;                   \
 	};
@@ -479,11 +479,6 @@ namespace bs
 	struct SPHERICAL_JOINT_DESC;
 	struct D6_JOINT_DESC;
 	struct AUDIO_CLIP_DESC;
-
-	template <class T>
-	class TCoreThreadQueue;
-	class CommandQueueNoSync;
-	class CommandQueueSync;
 
 	namespace ct
 	{
@@ -860,7 +855,7 @@ namespace bs
 	template <class T>
 	struct CoreVariant<T, true>
 	{
-		typedef typename CoreThreadType<T>::Type Type;
+		typedef typename RenderThreadType<T>::Type Type;
 	};
 
 	/** Allows a simple way to define a member that can be both CoreObject and its RenderProxy variant depending on the IsRenderProxy template parameter. */
@@ -880,7 +875,7 @@ namespace bs
 	template <class T>
 	struct CoreVariantHandle<T, true>
 	{
-		typedef SPtr<typename CoreThreadType<T>::Type> Type;
+		typedef SPtr<typename RenderThreadType<T>::Type> Type;
 	};
 
 	/**
@@ -946,7 +941,7 @@ namespace bs
 		SPtr<T> mActor;
 	};
 
-	B3D_CORE_EXPORT B3D_LOG_CATEGORY_EXTERN(CoreThread, Log)
+	B3D_CORE_EXPORT B3D_LOG_CATEGORY_EXTERN(RenderThread, Log)
 	B3D_CORE_EXPORT B3D_LOG_CATEGORY_EXTERN(Renderer, Log)
 	B3D_CORE_EXPORT B3D_LOG_CATEGORY_EXTERN(Scene, Log)
 	B3D_CORE_EXPORT B3D_LOG_CATEGORY_EXTERN(Physics, Log)

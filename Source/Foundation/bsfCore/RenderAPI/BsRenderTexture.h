@@ -53,8 +53,6 @@ namespace bs
 	/**
 	 * Render target specialization that allows you to render into one or multiple textures. Such textures can then be used
 	 * in other operations as GPU program input.
-	 *
-	 * @note	Sim thread only. Retrieve core implementation from getCore() for core thread only functionality.
 	 */
 	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Rendering)) RenderTexture : public RenderTarget
 	{
@@ -82,9 +80,9 @@ namespace bs
 		const HTexture& GetDepthStencilTexture() const { return mBindableDepthStencilTex; }
 
 		/**
-		 * Retrieves a core implementation of a render texture usable only from the core thread.
+		 * Retrieves the render proxy.
 		 *
-		 * @note	Core thread only.
+		 * @note	Render thread only.
 		 */
 		SPtr<ct::RenderTexture> GetCore() const;
 
@@ -141,9 +139,9 @@ namespace bs
 		};
 
 		/**
-		 * Provides access to internal render texture implementation usable only from the core thread.
+		 * Render proxy variant of render texture.
 		 *
-		 * @note	Core thread only.
+		 * @note	Render thread only.
 		 */
 		class B3D_CORE_EXPORT RenderTexture : public RenderTarget
 		{

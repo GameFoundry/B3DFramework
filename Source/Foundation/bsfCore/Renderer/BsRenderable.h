@@ -176,7 +176,7 @@ namespace bs
 		/** Checks is the renderable animated or static. */
 		bool IsAnimated() const { return mAnimation != nullptr; }
 
-		/**	Retrieves an implementation of a renderable handler usable only from the core thread. */
+		/**	Retrieves the render proxy. */
 		SPtr<ct::Renderable> GetCore() const;
 
 		/**	Creates a new renderable handler instance. */

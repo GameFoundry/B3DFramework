@@ -231,9 +231,9 @@ namespace bs
 		void UpdateTextSelectionTexture();
 
 		/**
-		 * Destroys the core thread counterpart of the GUI manager.
+		 * Destroys the render thread counterpart of the GUI manager.
 		 *
-		 * @param[in]	core	Previously constructed core thread GUI manager instance.
+		 * @param[in]	core	Previously constructed render thread GUI manager instance.
 		 */
 		void DestroyCore(ct::GUIRenderer* core);
 
@@ -427,7 +427,7 @@ namespace bs
 
 		extern GUISpriteParamBlockDef gGUISpriteParamBlockDef;
 
-		/**	Handles GUI rendering on the core thread. */
+		/**	Handles GUI rendering on the render thread. */
 		class B3D_EXPORT GUIRenderer : public RendererExtension
 		{
 			friend class bs::GUIManager;

@@ -26,9 +26,9 @@ namespace bs
 	};
 
 	/**
-	 * Tracks CPU profiling information with each frame for sim and core threads.
+	 * Tracks CPU profiling information with each frame for main and render threads.
 	 *
-	 * @note	Sim thread only unless specified otherwise.
+	 * @note	Main thread only unless specified otherwise.
 	 */
 	class B3D_CORE_EXPORT ProfilingManager : public Module<ProfilingManager>
 	{
@@ -40,9 +40,9 @@ namespace bs
 		void UpdateInternal();
 
 		/**
-		 * Called every frame from the core thread.
+		 * Called every frame from the render thread.
 		 *
-		 * @note	Core thread only.
+		 * @note	Render thread only.
 		 */
 		void UpdateCoreInternal();
 

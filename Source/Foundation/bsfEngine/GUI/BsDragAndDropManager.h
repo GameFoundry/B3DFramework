@@ -24,7 +24,7 @@ namespace bs
 	 * Handles GUI drag and drop operations. When active GUI elements will be notified of any drag events and will be able
 	 * to retrieve dragged data.
 	 *
-	 * @note	Sim thread only.
+	 * @note	Main thread only.
 	 */
 	class B3D_EXPORT DragAndDropManager : public Module<DragAndDropManager>
 	{
@@ -92,10 +92,10 @@ namespace bs
 		void EndDrag(bool processed);
 
 		/**
-		 * Called by the core thread whenever mouse capture state changes. This can happen when window loses focus
+		 * Called by the render thread whenever mouse capture state changes. This can happen when window loses focus
 		 * (for example alt+tab). In that case we want to end the drag even if the user is still holding the dragged item.
 		 *
-		 * @note	Core thread.
+		 * @note	Render thread.
 		 */
 		void MouseCaptureChanged();
 

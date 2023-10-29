@@ -15,7 +15,7 @@ namespace bs
 	/**
 	 * Vulkan implementation of a render texture.
 	 *
-	 * @note	Sim thread only.
+	 * @note	Main thread only.
 	 */
 	class VulkanRenderTexture : public RenderTexture
 	{
@@ -37,7 +37,7 @@ namespace bs
 		/**
 		 * Vulkan implementation of a render texture.
 		 *
-		 * @note	Core thread only.
+		 * @note	Render thread only.
 		 */
 		class VulkanRenderTexture : public RenderTexture
 		{

@@ -30,6 +30,6 @@ void RendererExtension::DeleterInternal(RendererExtension* obj)
 		B3DFree(obj);
 	};
 
-	// Queue deletion on the core thread
+	// Queue deletion on the render thread
 	GetRenderThread().PostCommand(deleteObj);
 }

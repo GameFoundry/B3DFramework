@@ -53,7 +53,7 @@ namespace bs
 	/**
 	 * Tracks various render system statistics.
 	 *
-	 * @note	Core thread only.
+	 * @note	Render thread only.
 	 */
 	class B3D_CORE_EXPORT RenderStats : public Module<RenderStats>
 	{

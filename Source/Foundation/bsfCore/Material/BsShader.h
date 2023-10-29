@@ -405,7 +405,7 @@ namespace bs
 		{ }
 	};
 
-	/**	Templated version of Shader used for implementing both sim and core thread variants. */
+	/**	Templated version of Shader used for implementing both main and render thread counterparts. */
 	template <bool IsRenderProxy>
 	class B3D_CORE_EXPORT TShader
 	{
@@ -707,7 +707,7 @@ namespace bs
 		 *  @{
 		 */
 
-		/** Core thread version of Shader. */
+		/** Render thread version of Shader. */
 		class B3D_CORE_EXPORT Shader : public IReflectable, public RenderProxy, public TShader<true>
 		{
 		public:

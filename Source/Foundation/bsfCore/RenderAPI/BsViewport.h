@@ -29,7 +29,7 @@ namespace bs
 	typedef Flags<ClearFlagBits> ClearFlags;
 	B3D_FLAGS_OPERATORS(ClearFlagBits)
 
-	/** Common base type used for both sim and core thread variants of Viewport. */
+	/** Common base type used for both main and render thread variants of Viewport. */
 	class B3D_CORE_EXPORT ViewportBase
 	{
 	public:
@@ -86,7 +86,7 @@ namespace bs
 		ViewportBase(float x = 0.0f, float y = 0.0f, float width = 1.0f, float height = 1.0f);
 
 		/**
-		 * Marks the core data as dirty. This causes the data from the sim thread object be synced with the core thread
+		 * Marks the render proxy data as dirty. This causes the data from the main thread object be synced with the render thread
 		 * version of the object.
 		 */
 		virtual void MarkCoreDirtyInternal() {}
@@ -107,7 +107,7 @@ namespace bs
 		static const Color kDefaultClearColor;
 	};
 
-	/** Templated common base type used for both sim and core thread variants of Viewport. */
+	/** Templated common base type used for both main and render thread variants of Viewport. */
 	template <bool IsRenderProxy>
 	class TViewport : public ViewportBase
 	{
@@ -146,7 +146,7 @@ namespace bs
 
 		SPtr<RenderTarget> GetTarget() const { return mTarget; }
 
-		/**	Retrieves a core implementation of a viewport usable only from the core thread. */
+		/**	Retrieves the render proxy. */
 		SPtr<ct::Viewport> GetCore() const;
 
 		/**

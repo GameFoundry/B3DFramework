@@ -33,7 +33,7 @@ namespace bs
 	 *  @{
 	 */
 
-	/** Base class for both sim and core thread Light implementations. */
+	/** Base class for both main and render thread Light implementations. */
 	class B3D_CORE_EXPORT LightBase : public SceneActor
 	{
 	public:
@@ -210,7 +210,7 @@ namespace bs
 	class B3D_CORE_EXPORT Light : public IReflectable, public CoreObject, public LightBase
 	{
 	public:
-		/**	Retrieves an implementation of the light usable only from the core thread. */
+		/**	Retrieves the render proxy. */
 		SPtr<ct::Light> GetCore() const;
 
 		/**
@@ -255,7 +255,7 @@ namespace bs
 
 	namespace ct
 	{
-		/** Core thread usable version of bs::Light. */
+		/** Render thread counterpart of bs::Light. */
 		class B3D_CORE_EXPORT Light : public RenderProxy, public LightBase
 		{
 		public:

@@ -141,7 +141,7 @@ namespace bs
 		/**
 		 * Contains a list of render API commands that can be queued for execution on the GPU. User is allowed to populate the
 		 * command buffer from any thread, ensuring render API command generation can be multi-threaded. Command buffers
-		 * must always be created on the core thread. Same command buffer cannot be used on multiple threads simulateously
+		 * must always be created on the render thread. Same command buffer cannot be used on multiple threads simulateously
 		 * without external synchronization.
 		 */
 		class B3D_CORE_EXPORT GpuCommandBuffer

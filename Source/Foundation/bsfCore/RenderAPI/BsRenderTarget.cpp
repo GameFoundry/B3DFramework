@@ -10,7 +10,7 @@ using namespace bs;
 
 RenderTarget::RenderTarget()
 {
-	// We never sync from sim to core, so mark it clean to avoid overwriting core thread changes
+	// We never sync from main to render thread, so mark it clean to avoid overwriting render thread changes
 	MarkRenderProxyDataUpToDate();
 }
 

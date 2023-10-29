@@ -88,9 +88,9 @@ namespace bs
 			void NotifyDecalRemoved(Decal* decal) override;
 
 			/**
-			 * Updates the render options on the core thread.
+			 * Updates the render options on the render thread.
 			 *
-			 * @note	Core thread only.
+			 * @note	Render thread only.
 			 */
 			void SyncOptions(const RenderBeastOptions& options);
 
@@ -100,28 +100,28 @@ namespace bs
 			 * @param[in]	timings			Information about frame time and frame index.
 			 * @param[in]	perFrameData	Per-frame data provided by external systems.
 			 *
-			 * @note	Core thread only.
+			 * @note	Render thread only.
 			 */
 			void RenderAllCore(FrameTimings timings, PerFrameData perFrameData);
 
 			/**
 			 * Renders all views in the provided view group. Returns true if anything has been draw to any of the views.
 			 *
-			 * @note	Core thread only.
+			 * @note	Render thread only.
 			 */
 			bool RenderViews(GpuCommandBuffer& commandBuffer, RendererViewGroup& viewGroup, const FrameInfo& frameInfo);
 
 			/**
 			 * Renders all objects visible by the provided view.
 			 *
-			 * @note	Core thread only.
+			 * @note	Render thread only.
 			 */
 			void RenderView(GpuCommandBuffer& commandBuffer, const RendererViewGroup& viewGroup, RendererView& view, const FrameInfo& frameInfo);
 
 			/**
 			 * Renders all overlay callbacks of the provided view. Returns true if anything has been rendered in any of the views.
 			 *
-			 * @note	Core thread only.
+			 * @note	Render thread only.
 			 */
 			bool RenderOverlay(GpuCommandBuffer& commandBuffer, RendererView& view, const FrameInfo& frameInfo);
 
@@ -134,7 +134,7 @@ namespace bs
 			/** Updates the global reflection probe cubemap array with changed probe textures. */
 			void UpdateReflProbeArray(GpuCommandBuffer& commandBuffer);
 
-			// Core thread only fields
+			// Render thread only fields
 			RenderBeastFeatureSet mFeatureSet = RenderBeastFeatureSet::Desktop;
 			bool mIsFrameCaptureRequested = false;
 
@@ -146,7 +146,7 @@ namespace bs
 			// Helpers to avoid memory allocations
 			RendererViewGroup* mMainViewGroup = nullptr;
 
-			// Sim thread only fields
+			// Main thread only fields
 			SPtr<RenderBeastOptions> mOptions;
 			bool mOptionsDirty = true;
 

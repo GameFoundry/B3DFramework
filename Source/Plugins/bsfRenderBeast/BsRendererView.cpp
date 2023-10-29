@@ -135,8 +135,8 @@ void RendererView::BeginFrame(const FrameInfo& frameInfo)
 {
 	// Check if render target resized and update the view properties accordingly
 	// Note: Normally we rely on the renderer notify* methods to let us know of changes to camera/viewport, but since
-	// render target resize can often originate from the core thread, this avoids the back and forth between
-	// main <-> core thread, and the frame delay that comes with it
+	// render target resize can often originate from the render thread, this avoids the back and forth between
+	// main <-> render thread, and the frame delay that comes with it
 	bool perViewBufferDirty = false;
 	if(mCamera)
 	{

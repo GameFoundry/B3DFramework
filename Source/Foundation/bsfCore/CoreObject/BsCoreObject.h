@@ -11,7 +11,7 @@ namespace bs
 {
 	struct RenderProxySyncPacket;
 
-	/** @addtogroup CoreThread
+	/** @addtogroup CoreObject
 	 *  @{
 	 */
 
@@ -74,7 +74,7 @@ namespace bs
 		 * Returns an object that contains render thread specific implementation of this CoreObject. Null is a valid return
 		 * value in case object requires no render thread implementation.
 		 *
-		 * @note	Thread safe to retrieve, but its data is only valid on the core thread.
+		 * @note	Thread safe to retrieve, but its data is only valid on the render thread.
 		 */
 		SPtr<ct::RenderProxy> GetRenderProxy() const { return mRenderProxy; }
 

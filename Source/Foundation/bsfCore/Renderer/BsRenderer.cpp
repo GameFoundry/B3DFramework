@@ -93,7 +93,7 @@ void Renderer::ProcessTasks(bool forceAll, u64 upToFrame)
 	if (!B3D_ENSURE(mCommandBufferPool != nullptr))
 		return;
 
-	// Move all tasks to the core thread queue
+	// Move all tasks to the render thread queue
 	{
 		Lock lock(mTaskMutex);
 
@@ -142,7 +142,7 @@ void Renderer::ProcessTask(RendererTask& task, bool forceAll)
 	if (!B3D_ENSURE(mCommandBufferPool != nullptr))
 		return;
 
-	// Move task to the core thread queue
+	// Move task to the render thread queue
 	{
 		Lock lock(mTaskMutex);
 
@@ -206,7 +206,7 @@ bool RendererTask::IsCanceled() const
 void RendererTask::Wait()
 {
 	// Task is about to be executed outside of normal rendering workflow. Make sure to manually sync all changes to
-	// the core thread first.
+	// the render thread first.
 	// Note: wait() might only get called during serialization, in which case we might call these methods just once
 	// before a level save, instead for every individual component
 	GetSceneManager().UpdateCoreObjectTransformsInternal();

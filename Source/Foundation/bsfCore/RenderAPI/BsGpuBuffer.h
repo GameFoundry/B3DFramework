@@ -251,12 +251,12 @@ namespace bs
 		/** Returns information describing the buffer. */
 		const GpuBufferInformation& GetInformation() const { return mInformation; }
 
-		/** Retrieves a core implementation of the buffer usable only from the core thread. */
+		/** Retrieves the render proxy. */
 		SPtr<ct::GpuBuffer> GetCore() const;
 
 		/**
 		 * Writes the data into the CPU cached buffer. Buffer must have been created with AllowWriteCachingOnCPU flag. Data will be synced
-		 * with the core thread counterpart on the next sync call.
+		 * with the render proxy on the next sync call.
 		 */
 		void WriteCached(u32 offset, u32 length, const void* source);
 
@@ -268,7 +268,7 @@ namespace bs
 
 		/**
 		 * Clears the specified area of the cache. Buffer must have been created with AllowWriteCachingOnCPU flag. Data will be synced
-		 * with the core thread counterpart on the next sync call.
+		 * with the render proxy on the next sync call.
 		 */
 		void ZeroOutCached(u32 offset, u32 length);
 

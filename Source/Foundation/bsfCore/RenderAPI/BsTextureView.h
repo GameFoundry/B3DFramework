@@ -28,7 +28,7 @@ namespace bs
 		 *
 		 * They also allow you to re-purpose a texture (for example make a render target a bindable texture).
 		 *
-		 * @note	Core thread.
+		 * @note	Render thread.
 		 */
 		class B3D_CORE_EXPORT TextureView
 		{

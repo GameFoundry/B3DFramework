@@ -59,7 +59,7 @@ namespace bs
 	/**
 	 * Profiler that measures time and amount of various GPU operations.
 	 *
-	 * @note	Core thread only except where noted otherwise.
+	 * @note	Render thread only except where noted otherwise.
 	 */
 	class B3D_CORE_EXPORT ProfilerGPU : public Module<ProfilerGPU>
 	{
@@ -98,7 +98,7 @@ namespace bs
 
 		/**
 		 * Signals an end of the currently sampled frame. Results of the sampling will be available once
-		 * getNumAvailableReports increments. This may take a while as the sampling is scheduled on the core thread and
+		 * getNumAvailableReports increments. This may take a while as the sampling is scheduled on the render thread and
 		 * on the GPU.
 		 *
 		 * @param[in]	 discard		If true, the results of the frame will not be resolved and it will be discarded.
@@ -171,7 +171,7 @@ namespace bs
 		 */
 
 		/**
-		 * To be called once per frame from the Core thread.
+		 * To be called once per frame from the render thread.
 		 */
 		void UpdateInternal();
 

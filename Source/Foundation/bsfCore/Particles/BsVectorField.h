@@ -41,7 +41,7 @@ namespace bs
 	 *  @{
 	 */
 
-	/** Common functionality for both the sim and core thread variants of VectorField. */
+	/** Common functionality for both the main and render thread variants of VectorField. */
 	template <bool IsRenderProxy>
 	class B3D_CORE_EXPORT TVectorField
 	{
@@ -80,7 +80,7 @@ namespace bs
 	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Particles)) VectorField : public Resource, public TVectorField<false>
 	{
 	public:
-		/**	Retrieves a core implementation of a vector field usable only from the core thread. */
+		/**	Retrieves the render proxy. */
 		SPtr<ct::VectorField> GetCore() const;
 
 		/************************************************************************/
@@ -133,7 +133,7 @@ namespace bs
 		 *  @{
 		 */
 
-		/** Core thread version of a bs::VectorField. */
+		/** Render  thread version of a bs::VectorField. */
 		class B3D_CORE_EXPORT VectorField : public RenderProxy, public TVectorField<true>
 		{
 		public:

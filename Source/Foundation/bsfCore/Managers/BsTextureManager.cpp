@@ -120,7 +120,7 @@ void TextureManager::OnStartUp()
 
 void TextureManager::OnShutDown()
 {
-	// Need to make sure these are freed while still on the core thread
+	// Need to make sure these are freed while still on the render thread
 	Texture::kWhite = nullptr;
 	Texture::kBlack = nullptr;
 	Texture::kPink = nullptr;

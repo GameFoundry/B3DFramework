@@ -10,7 +10,7 @@ namespace bs
 {
 	namespace ct
 	{
-		/** @addtogroup CoreThread
+		/** @addtogroup RenderThread 
 		 *  @{
 		 */
 

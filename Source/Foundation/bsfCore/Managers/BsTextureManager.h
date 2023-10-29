@@ -16,7 +16,7 @@ namespace bs
 	/**
 	 * Defines interface for creation of textures. Render systems provide their own implementations.
 	 *
-	 * @note	Sim thread only.
+	 * @note	Main thread only.
 	 */
 	class B3D_CORE_EXPORT TextureManager : public Module<TextureManager>
 	{
@@ -61,7 +61,7 @@ namespace bs
 		/**
 		 * Defines interface for creation of textures. Render systems provide their own implementations.
 		 *
-		 * @note	Core thread only.
+		 * @note	Render thread only.
 		 */
 		class B3D_CORE_EXPORT TextureManager : public Module<TextureManager>
 		{

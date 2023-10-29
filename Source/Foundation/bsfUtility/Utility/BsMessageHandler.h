@@ -14,7 +14,7 @@ namespace bs
 	/**
 	 * Allows you to transparently pass messages between different systems.
 	 *
-	 * @note Sim thread only.
+	 * @note Main thread only.
 	 */
 	class B3D_UTILITY_EXPORT MessageHandler : public Module<MessageHandler>
 	{

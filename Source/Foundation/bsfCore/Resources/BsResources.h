@@ -43,7 +43,7 @@ namespace bs
 	/**
 	 * Manager for dealing with all engine resources. It allows you to save new resources and load existing ones.
 	 *
-	 * @note	Sim thread only.
+	 * @note	Main thread only.
 	 */
 	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Resources), API(Framework)) Resources : public Module<Resources>
 	{
@@ -208,11 +208,11 @@ namespace bs
 		 *							already	compressed and this option will be ignored for such resources.
 		 *
 		 * @note
-		 * If the resource is used on the GPU and you are in some way modifying it from the core thread, make sure all
-		 * core thread commands are submitted and executed before you call this method. Otherwise an obsolete version of
+		 * If the resource is used on the GPU and you are in some way modifying it from the render thread, make sure all
+		 * render thread commands are submitted and executed before you call this method. Otherwise an obsolete version of
 		 * the resource might get saved.
 		 * @note
-		 * If saving a core thread resource this is a potentially very slow operation as we must wait on the core thread
+		 * If saving a render thread resource this is a potentially very slow operation as we must wait on the render thread
 		 * and the GPU in order to read the resource.
 		 * @note
 		 * Thread safe if you guarantee the resource isn't being written to from another thread.
@@ -228,11 +228,11 @@ namespace bs
 		 *							already compressed and this option will be ignored for such resources.
 		 *
 		 * @note
-		 * If the resource is used on the GPU and you are in some way modifying it from the core thread, make sure all
-		 * core thread commands are submitted and executed before you call this method. Otherwise an obsolete version of
+		 * If the resource is used on the GPU and you are in some way modifying it from the render thread, make sure all
+		 * render thread commands are submitted and executed before you call this method. Otherwise an obsolete version of
 		 * the resource might get saved.
 		 * @note
-		 * If saving a core thread resource this is a potentially very slow operation as we must wait on the core thread
+		 * If saving a render thread resource this is a potentially very slow operation as we must wait on the render thread
 		 * and the GPU in order to read the resource.
 		 * @note
 		 * Thread safe if you guarantee the resource isn't being written to from another thread.
@@ -319,7 +319,7 @@ namespace bs
 		 * Called when the resource has been successfully loaded.
 		 *
 		 * @note
-		 * It is undefined from which thread this will get called from. Most definitely not the sim thread if resource was
+		 * It is undefined from which thread this will get called from. Most definitely not the main thread if resource was
 		 * being loaded asynchronously.
 		 */
 		B3D_SCRIPT_EXPORT()

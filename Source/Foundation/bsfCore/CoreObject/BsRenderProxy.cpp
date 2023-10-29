@@ -47,7 +47,7 @@ void RenderProxy::BlockUntilInitialized()
 	{
 #if B3D_DEBUG
 		if(B3D_CURRENT_THREAD_ID == RenderThread::Instance().GetThreadId())
-			B3D_EXCEPT(InternalErrorException, "You cannot call this method on the core thread. It will cause a deadlock!");
+			B3D_EXCEPT(InternalErrorException, "You cannot call this method on the render thread. It will cause a deadlock.");
 #endif
 
 		GetRenderThread().PostCommand([] {}, true);

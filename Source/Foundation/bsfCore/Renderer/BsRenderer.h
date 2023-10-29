@@ -163,7 +163,7 @@ namespace bs
 			/**
 			 * Called whenever a new camera is created.
 			 *
-			 * @note	Core thread.
+			 * @note	Render thread.
 			 */
 			virtual void NotifyCameraAdded(Camera* camera) {}
 
@@ -173,154 +173,154 @@ namespace bs
 			 * @param[in]	camera		Camera that was updated.
 			 * @param[in]	updateFlag	Optional flag that allows the camera to signal to the renderer exactly what was updated.
 			 *
-			 * @note	Core thread.
+			 * @note	Render thread.
 			 */
 			virtual void NotifyCameraUpdated(Camera* camera, u32 updateFlag) {}
 
 			/**
 			 * Called whenever a camera is destroyed.
 			 *
-			 * @note	Core thread.
+			 * @note	Render thread.
 			 */
 			virtual void NotifyCameraRemoved(Camera* camera) {}
 
 			/**
 			 * Called whenever a new renderable is created.
 			 *
-			 * @note	Core thread.
+			 * @note	Render thread.
 			 */
 			virtual void NotifyRenderableAdded(Renderable* renderable) {}
 
 			/**
 			 * Called whenever a renderable is updated.
 			 *
-			 * @note	Core thread.
+			 * @note	Render thread.
 			 */
 			virtual void NotifyRenderableUpdated(Renderable* renderable) {}
 
 			/**
 			 * Called whenever a renderable is destroyed.
 			 *
-			 * @note	Core thread.
+			 * @note	Render thread.
 			 */
 			virtual void NotifyRenderableRemoved(Renderable* renderable) {}
 
 			/**
 			 * Called whenever a new light is created.
 			 *
-			 * @note	Core thread.
+			 * @note	Render thread.
 			 */
 			virtual void NotifyLightAdded(Light* light) {}
 
 			/**
 			 * Called whenever a light is updated.
 			 *
-			 * @note	Core thread.
+			 * @note	Render thread.
 			 */
 			virtual void NotifyLightUpdated(Light* light) {}
 
 			/**
 			 * Called whenever a light is destroyed.
 			 *
-			 * @note	Core thread.
+			 * @note	Render thread.
 			 */
 			virtual void NotifyLightRemoved(Light* light) {}
 
 			/**
 			 * Called whenever a new reflection probe is created.
 			 *
-			 * @note	Core thread.
+			 * @note	Render thread.
 			 */
 			virtual void NotifyReflectionProbeAdded(ReflectionProbe* probe) {}
 
 			/**
 			 * Called whenever a reflection probe is updated.
 			 *
-			 * @note	Core thread.
+			 * @note	Render thread.
 			 */
 			virtual void NotifyReflectionProbeUpdated(ReflectionProbe* probe, bool texture) {}
 
 			/**
 			 * Called whenever a reflection probe is destroyed.
 			 *
-			 * @note	Core thread.
+			 * @note	Render thread.
 			 */
 			virtual void NotifyReflectionProbeRemoved(ReflectionProbe* probe) {}
 
 			/**
 			 * Called whenever a new light probe volume is created.
 			 *
-			 * @note	Core thread.
+			 * @note	Render thread.
 			 */
 			virtual void NotifyLightProbeVolumeAdded(LightProbeVolume* volume) {}
 
 			/**
 			 * Called whenever a light probe volume is updated.
 			 *
-			 * @note	Core thread.
+			 * @note	Render thread.
 			 */
 			virtual void NotifyLightProbeVolumeUpdated(LightProbeVolume* volume) {}
 
 			/**
 			 * Called whenever a light probe volume is destroyed.
 			 *
-			 * @note	Core thread.
+			 * @note	Render thread.
 			 */
 			virtual void NotifyLightProbeVolumeRemoved(LightProbeVolume* volume) {}
 
 			/**
 			 * Called whenever a skybox is created.
 			 *
-			 * @note	Core thread.
+			 * @note	Render thread.
 			 */
 			virtual void NotifySkyboxAdded(Skybox* skybox) {}
 
 			/**
 			 * Called whenever a skybox is destroyed.
 			 *
-			 * @note	Core thread.
+			 * @note	Render thread.
 			 */
 			virtual void NotifySkyboxRemoved(Skybox* skybox) {}
 
 			/**
 			 * Called whenever a new particle system is created.
 			 *
-			 * @note	Core thread.
+			 * @note	Render thread.
 			 */
 			virtual void NotifyParticleSystemAdded(ParticleSystem* particleSystem) {}
 
 			/**
 			 * Called whenever a particle system is updated.
 			 *
-			 * @note	Core thread.
+			 * @note	Render thread.
 			 */
 			virtual void NotifyParticleSystemUpdated(ParticleSystem* particleSystem, bool tfrmOnly) {}
 
 			/**
 			 * Called whenever a particle system is destroyed.
 			 *
-			 * @note	Core thread.
+			 * @note	Render thread.
 			 */
 			virtual void NotifyParticleSystemRemoved(ParticleSystem* particleSystem) {}
 
 			/**
 			 * Called whenever a new decal is created.
 			 *
-			 * @note	Core thread.
+			 * @note	Render thread.
 			 */
 			virtual void NotifyDecalAdded(Decal* decal) {}
 
 			/**
 			 * Called whenever a decal is updated.
 			 *
-			 * @note	Core thread.
+			 * @note	Render thread.
 			 */
 			virtual void NotifyDecalUpdated(Decal* decal) {}
 
 			/**
 			 * Called whenever a decal is destroyed.
 			 *
-			 * @note	Core thread.
+			 * @note	Render thread.
 			 */
 			virtual void NotifyDecalRemoved(Decal* decal) {}
 
@@ -332,14 +332,14 @@ namespace bs
 			 * @param	position		Position to capture the scene at.
 			 * @param	settings		Settings that allow you to customize the capture.
 			 *
-			 * @note	Core thread.
+			 * @note	Render thread.
 			 */
 			virtual void CaptureSceneCubeMap(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& cubemap, const Vector3& position, const CaptureSettings& settings) = 0;
 
 			/**
 			 * Creates a new empty renderer mesh data.
 			 *
-			 * @note	Sim thread.
+			 * @note	Main thread.
 			 *
 			 * @see		RendererMeshData
 			 */
@@ -348,7 +348,7 @@ namespace bs
 			/**
 			 * Creates a new renderer mesh data using an existing generic mesh data buffer.
 			 *
-			 * @note	Sim thread.
+			 * @note	Main thread.
 			 *
 			 * @see		RendererMeshData
 			 */
@@ -361,19 +361,19 @@ namespace bs
 			 * Registers an extension object that will be called every frame by the renderer. Allows external code to perform
 			 * custom rendering interleaved with the renderer's output.
 			 *
-			 * @note	Core thread.
+			 * @note	Render thread.
 			 */
 			void AddPlugin(RendererExtension* plugin) { mCallbacks.insert(plugin); }
 
 			/**
 			 * Unregisters an extension registered with addPlugin().
 			 *
-			 * @note	Core thread.
+			 * @note	Render thread.
 			 */
 			void RemovePlugin(RendererExtension* plugin) { mCallbacks.erase(plugin); }
 
 			/**
-			 * Registers a new task for execution on the core thread.
+			 * Registers a new task for execution on the render thread.
 			 *
 			 * @note	Thread safe.
 			 */
@@ -412,7 +412,7 @@ namespace bs
 			 * @param[in]	upToFrame	Only tasks that were queued before or during the frame with the provided index will
 			 *							be processed.
 			 *
-			 * @note	Core thread.
+			 * @note	Render thread.
 			 */
 			void ProcessTasks(bool forceAll, u64 upToFrame = std::numeric_limits<u64>::max());
 
@@ -422,7 +422,7 @@ namespace bs
 			 * @param[in]	task		Task to execute.
 			 * @param[in]	forceAll	If true, multi-frame tasks will be forced to execute fully within this call.
 			 *
-			 * @note	Core thread.
+			 * @note	Render thread.
 			 */
 			void ProcessTask(RendererTask& task, bool forceAll);
 
@@ -434,11 +434,11 @@ namespace bs
 
 			Set<RendererExtension*, std::function<bool(const RendererExtension*, const RendererExtension*)>> mCallbacks;
 
-			Vector<RendererTaskQueuedInfo> mQueuedTasks; // Sim & core thread
-			Vector<SPtr<RendererTask>> mUnresolvedTasks; // Sim thread
-			Vector<SPtr<RendererTask>> mRemainingUnresolvedTasks; // Sim thread
-			Vector<SPtr<RendererTask>> mRunningTasks; // Core thread
-			Vector<SPtr<RendererTask>> mRemainingTasks; // Core thread
+			Vector<RendererTaskQueuedInfo> mQueuedTasks; // Main & render thread
+			Vector<SPtr<RendererTask>> mUnresolvedTasks; // Main thread
+			Vector<SPtr<RendererTask>> mRemainingUnresolvedTasks; // Main thread
+			Vector<SPtr<RendererTask>> mRunningTasks; // Render thread
+			Vector<SPtr<RendererTask>> mRemainingTasks; // Render thread
 			Mutex mTaskMutex;
 
 		};
@@ -447,7 +447,7 @@ namespace bs
 		SPtr<Renderer> B3D_CORE_EXPORT GetRenderer();
 
 		/**
-		 * Task that represents an asynchonous operation queued for execution on the core thread. All such tasks are executed
+		 * Task that represents an asynchonous operation queued for execution on the render thread. All such tasks are executed
 		 * before main rendering happens, every frame.
 		 *
 		 * @note	Thread safe except where stated otherwise.
@@ -483,9 +483,9 @@ namespace bs
 			void Cancel();
 
 			/**
-			 * Callback triggered on the sim thread, when the task completes. Is not triggered if the task is cancelled.
+			 * Callback triggered on the main thread, when the task completes. Is not triggered if the task is cancelled.
 			 *
-			 * @note	Sim thread only.
+			 * @note	Main thread only.
 			 */
 			Event<void()> OnComplete;
 

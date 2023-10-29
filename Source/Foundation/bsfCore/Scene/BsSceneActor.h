@@ -28,7 +28,7 @@ namespace bs
 
 	// SceneActor is not a core object itself, but as it's used as a base for many, this is needed for common core sync functionality used by those.
 	template <>
-	struct CoreThreadType<SceneActor>
+	struct RenderThreadType<SceneActor>
 	{
 		typedef SceneActor Type;
 	};

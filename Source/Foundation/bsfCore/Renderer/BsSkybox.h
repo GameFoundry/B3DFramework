@@ -25,7 +25,7 @@ namespace bs
 		Texture = 1 << 4
 	};
 
-	/** Base class for both core and sim thread implementations of a skybox. */
+	/** Base class for both render and main thread implementations of a skybox. */
 	class B3D_CORE_EXPORT SkyboxBase : public SceneActor
 	{
 	public:
@@ -49,7 +49,7 @@ namespace bs
 		float mBrightness = 1.0f; /**< Multiplier to apply to evaluated skybox values before using them. */
 	};
 
-	/** Templated base class for both core and sim thread implementations of a skybox. */
+	/** Templated base class for both render and main thread implementations of a skybox. */
 	template <bool IsRenderProxy>
 	class B3D_CORE_EXPORT TSkybox : public SkyboxBase
 	{
@@ -87,7 +87,7 @@ namespace bs
 		/** @copydoc TSkybox::GetTexture */
 		void SetTexture(const HTexture& texture);
 
-		/**	Retrieves an implementation of the skybox usable only from the core thread. */
+		/**	Retrieves the render proxy. */
 		SPtr<ct::Skybox> GetCore() const;
 
 		/** Creates a new skybox. */
@@ -127,7 +127,7 @@ namespace bs
 
 	namespace ct
 	{
-		/** Core thread usable version of a bs::Skybox */
+		/** Render thread counterpart of a bs::Skybox */
 		class B3D_CORE_EXPORT Skybox : public RenderProxy, public TSkybox<true>
 		{
 		public:

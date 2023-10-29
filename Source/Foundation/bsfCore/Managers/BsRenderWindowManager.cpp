@@ -57,7 +57,7 @@ void RenderWindowManager::NotifyFocusReceived(ct::RenderWindow* coreWindow)
 {
 	Lock lock(mWindowMutex);
 
-	RenderWindow* window = GetNonCore(coreWindow);
+	RenderWindow* window = GetCoreObject(coreWindow);
 	mNewWindowInFocus = window;
 }
 
@@ -72,7 +72,7 @@ void RenderWindowManager::NotifyMovedOrResized(ct::RenderWindow* coreWindow)
 {
 	Lock lock(mWindowMutex);
 
-	RenderWindow* window = GetNonCore(coreWindow);
+	RenderWindow* window = GetCoreObject(coreWindow);
 	if(window == nullptr)
 		return;
 
@@ -85,7 +85,7 @@ void RenderWindowManager::NotifyMouseLeft(ct::RenderWindow* coreWindow)
 {
 	Lock lock(mWindowMutex);
 
-	RenderWindow* window = GetNonCore(coreWindow);
+	RenderWindow* window = GetCoreObject(coreWindow);
 	auto iterFind = std::find(begin(mMouseLeftWindows), end(mMouseLeftWindows), window);
 
 	if(iterFind == end(mMouseLeftWindows))
@@ -96,7 +96,7 @@ void RenderWindowManager::NotifyCloseRequested(ct::RenderWindow* coreWindow)
 {
 	Lock lock(mWindowMutex);
 
-	RenderWindow* window = GetNonCore(coreWindow);
+	RenderWindow* window = GetCoreObject(coreWindow);
 	auto iterFind = std::find(begin(mCloseRequestedWindows), end(mCloseRequestedWindows), window);
 
 	if(iterFind == end(mCloseRequestedWindows))
@@ -107,7 +107,7 @@ void RenderWindowManager::NotifySyncDataDirty(ct::RenderWindow* coreWindow)
 {
 	Lock lock(mWindowMutex);
 
-	RenderWindow* window = GetNonCore(coreWindow);
+	RenderWindow* window = GetCoreObject(coreWindow);
 
 	if(window != nullptr)
 		mDirtyProperties.insert(window);
@@ -188,7 +188,7 @@ RenderWindow* RenderWindowManager::GetTopMostModal() const
 	return mModalWindowStack.back();
 }
 
-RenderWindow* RenderWindowManager::GetNonCore(const ct::RenderWindow* window) const
+RenderWindow* RenderWindowManager::GetCoreObject(const ct::RenderWindow* window) const
 {
 	auto iterFind = mWindows.find(window->mWindowId);
 
