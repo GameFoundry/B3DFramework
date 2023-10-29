@@ -33,7 +33,7 @@ u32 LightProbeVolume::AddProbe(const Vector3& position)
 	u32 handle = mNextProbeId++;
 	mProbes[handle] = ProbeInfo(LightProbeFlags::Clean, position);
 
-	MarkCoreDirtyInternal();
+	MarkRenderProxyDataDirtyInternal();
 	return handle;
 }
 
@@ -43,7 +43,7 @@ void LightProbeVolume::RemoveProbe(u32 handle)
 	if(iterFind != mProbes.end() && mProbes.size() > 4)
 	{
 		iterFind->second.Flags = LightProbeFlags::Removed;
-		MarkCoreDirtyInternal();
+		MarkRenderProxyDataDirtyInternal();
 	}
 }
 
@@ -53,7 +53,7 @@ void LightProbeVolume::SetProbePosition(u32 handle, const Vector3& position)
 	if(iterFind != mProbes.end())
 	{
 		iterFind->second.Position = position;
-		MarkCoreDirtyInternal();
+		MarkRenderProxyDataDirtyInternal();
 	}
 }
 
@@ -115,7 +115,7 @@ void LightProbeVolume::Resize(const AABox& volume, const Vector3I& cellCount)
 	mVolume = volume;
 	mCellCount = cellCount;
 
-	MarkCoreDirtyInternal();
+	MarkRenderProxyDataDirtyInternal();
 }
 
 void LightProbeVolume::Reset()
@@ -165,7 +165,7 @@ void LightProbeVolume::Reset()
 		++iter;
 	}
 
-	MarkCoreDirtyInternal();
+	MarkRenderProxyDataDirtyInternal();
 }
 
 void LightProbeVolume::Clip()
@@ -176,7 +176,7 @@ void LightProbeVolume::Clip()
 			entry.second.Flags = LightProbeFlags::Removed;
 	}
 
-	MarkCoreDirtyInternal();
+	MarkRenderProxyDataDirtyInternal();
 }
 
 void LightProbeVolume::RenderProbe(u32 handle)
@@ -188,7 +188,7 @@ void LightProbeVolume::RenderProbe(u32 handle)
 		{
 			iterFind->second.Flags = LightProbeFlags::Dirty;
 
-			MarkCoreDirtyInternal();
+			MarkRenderProxyDataDirtyInternal();
 			RunRenderProbeTask();
 		}
 	}
@@ -208,7 +208,7 @@ void LightProbeVolume::RenderProbes()
 
 	if(anyModified)
 	{
-		MarkCoreDirtyInternal();
+		MarkRenderProxyDataDirtyInternal();
 		RunRenderProbeTask();
 	}
 }
@@ -228,7 +228,7 @@ void LightProbeVolume::RunRenderProbeTask()
 		mRendererTask = nullptr;
 	};
 
-	SPtr<ct::LightProbeVolume> coreProbeVolume = GetCore();
+	SPtr<ct::LightProbeVolume> coreProbeVolume = B3DGetRenderProxy(this);
 	auto renderProbes = [coreProbeVolume](ct::GpuCommandBufferPool& commandBufferPool)
 	{
 		SPtr<ct::GpuCommandBuffer> commandBuffer = commandBufferPool.Create(ct::GpuCommandBufferCreateInformation::Create("LightProbeRendering"));
@@ -254,7 +254,7 @@ void LightProbeVolume::UpdateCoefficients()
 	if(mRendererTask)
 		mRendererTask->Wait();
 
-	ct::LightProbeVolume* coreVolume = GetCore().get();
+	ct::LightProbeVolume* coreVolume = B3DGetRenderProxy(this).get();
 
 	Vector<LightProbeCoefficientInfo> coeffInfo;
 	auto getSaveData = [coreVolume, &coeffInfo]()
@@ -272,11 +272,6 @@ void LightProbeVolume::UpdateCoefficients()
 
 		iterFind->second.Coefficients = entry.Coefficients;
 	}
-}
-
-SPtr<ct::LightProbeVolume> LightProbeVolume::GetCore() const
-{
-	return std::static_pointer_cast<ct::LightProbeVolume>(mRenderProxy);
 }
 
 SPtr<LightProbeVolume> LightProbeVolume::Create(const AABox& volume, const Vector3I& cellCount)
@@ -341,7 +336,7 @@ RenderProxySyncPacket* LightProbeVolume::CreateRenderProxySyncPacket(FrameAlloca
 	return syncPacket;
 }
 
-void LightProbeVolume::MarkCoreDirtyInternal(ActorDirtyFlag dirtyFlag)
+void LightProbeVolume::MarkRenderProxyDataDirtyInternal(ActorDirtyFlag dirtyFlag)
 {
 	MarkRenderProxyDataDirty((u32)dirtyFlag);
 }

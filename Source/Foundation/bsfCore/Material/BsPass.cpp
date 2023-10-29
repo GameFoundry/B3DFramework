@@ -121,11 +121,6 @@ Pass::Pass(const PassCreateInformation& createInformation)
 	: TPass(createInformation)
 {}
 
-SPtr<ct::Pass> Pass::GetCore() const
-{
-	return std::static_pointer_cast<ct::Pass>(mRenderProxy);
-}
-
 SPtr<ct::RenderProxy> Pass::CreateRenderProxy() const
 {
 	ct::Pass* pass = new(B3DAllocate<ct::Pass>()) ct::Pass(mData);

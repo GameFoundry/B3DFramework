@@ -159,7 +159,7 @@ bool TGpuParams<IsRenderProxy>::SetUniformBuffer(u32 set, u32 slot, const Unifor
 	mUniformBufferData[sequentialResourceIndex].Buffer = paramBlockBuffer;
 	mUniformBufferData[sequentialResourceIndex].Offset = offset;
 
-	MarkCoreDirtyInternal();
+	MarkRenderProxyDataDirtyInternal();
 	return true;
 }
 
@@ -401,7 +401,7 @@ bool TGpuParams<IsRenderProxy>::SetSampledTexture(u32 set, u32 slot, const Textu
 	mSampledTextureData[sequentialArrayIndex].Surface = surface;
 
 	MarkResourcesDirtyInternal();
-	MarkCoreDirtyInternal();
+	MarkRenderProxyDataDirtyInternal();
 
 	return true;
 }
@@ -420,7 +420,7 @@ bool TGpuParams<IsRenderProxy>::SetStorageTexture(u32 set, u32 slot, const Textu
 	mStorageTextureData[sequentialArrayIndex].Surface = surface;
 
 	MarkResourcesDirtyInternal();
-	MarkCoreDirtyInternal();
+	MarkRenderProxyDataDirtyInternal();
 
 	return true;
 }
@@ -439,7 +439,7 @@ bool TGpuParams<IsRenderProxy>::SetStorageBuffer(u32 set, u32 slot, const Buffer
 	mStorageBufferData[sequentialArrayIndex].View = view;
 
 	MarkResourcesDirtyInternal();
-	MarkCoreDirtyInternal();
+	MarkRenderProxyDataDirtyInternal();
 
 	return true;
 }
@@ -457,7 +457,7 @@ bool TGpuParams<IsRenderProxy>::SetSamplerState(u32 set, u32 slot, const SPtr<Sa
 	mSamplerStates[sequentialArrayIndex] = sampler;
 
 	MarkResourcesDirtyInternal();
-	MarkCoreDirtyInternal();
+	MarkRenderProxyDataDirtyInternal();
 
 	return true;
 }
@@ -529,11 +529,6 @@ SPtr<GpuParameters> GpuParameters::GetThisPtrInternal() const
 	return std::static_pointer_cast<GpuParameters>(GetShared());
 }
 
-SPtr<ct::GpuParameters> GpuParameters::GetCore() const
-{
-	return std::static_pointer_cast<ct::GpuParameters>(mRenderProxy);
-}
-
 SPtr<ct::RenderProxy> GpuParameters::CreateRenderProxy() const
 {
 	const SPtr<GpuDevice>& gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
@@ -544,7 +539,7 @@ SPtr<ct::RenderProxy> GpuParameters::CreateRenderProxy() const
 	return gpuDevice->CreateGpuParameters(parameterLayout, true);
 }
 
-void GpuParameters::MarkCoreDirtyInternal()
+void GpuParameters::MarkRenderProxyDataDirtyInternal()
 {
 	MarkRenderProxyDataDirty();
 }

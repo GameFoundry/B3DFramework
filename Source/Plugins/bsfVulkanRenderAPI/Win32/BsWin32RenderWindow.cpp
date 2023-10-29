@@ -53,7 +53,7 @@ Vector2I Win32RenderWindow::WindowToScreenPos(const Vector2I& windowPos) const
 	return Vector2I(pos.x, pos.y);
 }
 
-SPtr<ct::Win32RenderWindow> Win32RenderWindow::GetCore() const
+SPtr<ct::Win32RenderWindow> Win32RenderWindow::GetImplementationRenderProxy() const
 {
 	return std::static_pointer_cast<ct::Win32RenderWindow>(mRenderProxy);
 }
@@ -61,13 +61,13 @@ SPtr<ct::Win32RenderWindow> Win32RenderWindow::GetCore() const
 HWND Win32RenderWindow::GetHWnd() const
 {
 	BlockUntilRenderProxyInitialized();
-	return GetCore()->GetWindowHandleInternal();
+	return GetImplementationRenderProxy()->GetWindowHandleInternal();
 }
 
 void Win32RenderWindow::SyncProperties()
 {
-	ScopedSpinLock lock(GetCore()->mLock);
-	mProperties = GetCore()->mSyncedProperties;
+	ScopedSpinLock lock(GetImplementationRenderProxy()->mLock);
+	mProperties = GetImplementationRenderProxy()->mSyncedProperties;
 }
 
 SPtr<ct::RenderProxy> Win32RenderWindow::CreateRenderProxy() const

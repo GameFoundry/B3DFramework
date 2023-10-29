@@ -55,7 +55,7 @@ namespace bs
 
 	protected:
 		/** Marks the contents as dirty, causing it to sync with the render thread object. */
-		virtual void MarkCoreDirty(ShaderVariationDirtyFlags flag) {}
+		virtual void MarkRenderProxyDirty(ShaderVariationDirtyFlags flag) {}
 
 		/** @copydoc CoreObject::SyncToCore */
 		virtual void SyncToCore() {};
@@ -133,9 +133,6 @@ namespace bs
 	public:
 		Technique(const WeakSPtr<Shader>& owner, const String& language, const ShaderVariationParameters& variationParameters, const Optional<PrecompiledVariationData>& precompiledData);
 
-		/** Retrieves the render proxy. */
-		SPtr<ct::Technique> GetCore() const;
-
 		/**
 		 * Creates a new variation.
 		 *
@@ -150,7 +147,7 @@ namespace bs
 	protected:
 		SPtr<ct::RenderProxy> CreateRenderProxy() const override;
 		void GetCoreDependencies(Vector<CoreObject*>& dependencies) override;
-		void MarkCoreDirty(ShaderVariationDirtyFlags flag) override;
+		void MarkRenderProxyDirty(ShaderVariationDirtyFlags flag) override;
 		RenderProxySyncPacket* CreateRenderProxySyncPacket(FrameAllocator& allocator, u32 flags) override;
 		void SyncToCore() override;
 

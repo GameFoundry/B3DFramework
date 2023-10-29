@@ -139,7 +139,7 @@ AsyncOp Texture::WriteData(const SPtr<PixelData>& data, u32 face, u32 mipLevel, 
 	};
 
 	AsyncOp asyncOp;
-	GetRenderThread().PostCommand([func = std::move(func), core = GetCore(), face, mipLevel, data, discardEntireBuffer, asyncOp]() mutable { func(core, face, mipLevel, data, discardEntireBuffer, asyncOp); });
+	GetRenderThread().PostCommand([func = std::move(func), core = B3DGetRenderProxy(this), face, mipLevel, data, discardEntireBuffer, asyncOp]() mutable { func(core, face, mipLevel, data, discardEntireBuffer, asyncOp); });
 
 	return asyncOp;
 }
@@ -163,7 +163,7 @@ AsyncOp Texture::ReadData(const SPtr<PixelData>& data, u32 face, u32 mipLevel)
 	};
 
 	AsyncOp asyncOp;
-	GetRenderThread().PostCommand([func = std::move(func), core = GetCore(), face, mipLevel, data, asyncOp]() mutable { func(core, face, mipLevel, data, asyncOp); });
+	GetRenderThread().PostCommand([func = std::move(func), core = B3DGetRenderProxy(this), face, mipLevel, data, asyncOp]() mutable { func(core, face, mipLevel, data, asyncOp); });
 
 	return asyncOp;
 }
@@ -172,7 +172,7 @@ TAsyncOp<SPtr<PixelData>> Texture::ReadData(u32 face, u32 mipLevel)
 {
 	TAsyncOp<SPtr<PixelData>> op;
 
-	auto func = [texture = GetCore(), face, mipLevel, op]() mutable
+	auto func = [texture = B3DGetRenderProxy(this), face, mipLevel, op]() mutable
 	{
 		// TODO - Transfer buffers should be handled by the Renderer
 		const SPtr<GpuDevice> gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
@@ -293,11 +293,6 @@ void Texture::CreateCpuBuffers()
 				curDepth = curDepth / 2;
 		}
 	}
-}
-
-SPtr<ct::Texture> Texture::GetCore() const
-{
-	return std::static_pointer_cast<ct::Texture>(mRenderProxy);
 }
 
 /************************************************************************/

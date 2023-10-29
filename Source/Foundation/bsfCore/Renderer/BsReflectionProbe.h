@@ -52,7 +52,7 @@ namespace bs
 		void SetType(ReflectionProbeType type)
 		{
 			mType = type;
-			MarkCoreDirtyInternal();
+			MarkRenderProxyDataDirtyInternal();
 			UpdateBounds();
 		}
 
@@ -63,7 +63,7 @@ namespace bs
 		void SetRadius(float radius)
 		{
 			mRadius = radius;
-			MarkCoreDirtyInternal();
+			MarkRenderProxyDataDirtyInternal();
 			UpdateBounds();
 		}
 
@@ -74,7 +74,7 @@ namespace bs
 		void SetExtents(const Vector3& extents)
 		{
 			mExtents = extents;
-			MarkCoreDirtyInternal();
+			MarkRenderProxyDataDirtyInternal();
 			UpdateBounds();
 		}
 
@@ -171,9 +171,6 @@ namespace bs
 		 */
 		void Filter();
 
-		/**	Retrieves an implementation of the reflection probe usable only from the render thread. */
-		SPtr<ct::ReflectionProbe> GetCore() const;
-
 		/**
 		 * Creates a new sphere reflection probe.
 		 *
@@ -197,7 +194,7 @@ namespace bs
 		ReflectionProbe(ReflectionProbeType type, float radius, const Vector3& extents);
 
 		SPtr<ct::RenderProxy> CreateRenderProxy() const override;
-		void MarkCoreDirtyInternal(ActorDirtyFlag flags = ActorDirtyFlag::Everything) override;
+		void MarkRenderProxyDataDirtyInternal(ActorDirtyFlag flags = ActorDirtyFlag::Everything) override;
 		RenderProxySyncPacket* CreateRenderProxySyncPacket(FrameAllocator& allocator, u32 flags) override;
 
 		/**

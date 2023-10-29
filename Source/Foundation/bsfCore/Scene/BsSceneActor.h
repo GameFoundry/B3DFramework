@@ -106,7 +106,7 @@ namespace bs
 		 * Marks the simulation thread object as dirty and notifies the system its data should be synced with its core
 		 * thread counterpart.
 		 */
-		virtual void MarkCoreDirtyInternal(ActorDirtyFlag flag = ActorDirtyFlag::Everything) {}
+		virtual void MarkRenderProxyDataDirtyInternal(ActorDirtyFlag flag = ActorDirtyFlag::Everything) {}
 
 	protected:
 		friend class SceneManager;

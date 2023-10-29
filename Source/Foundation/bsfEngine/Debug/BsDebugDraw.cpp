@@ -113,11 +113,11 @@ Vector<DebugDraw::MeshRenderData> DebugDraw::CreateMeshProxyData(const Vector<Dr
 	for(auto& entry : meshData)
 	{
 		if(entry.Type == DrawHelper::MeshType::Solid)
-			proxyData.push_back(MeshRenderData(entry.Mesh->GetCore(), entry.SubMesh, DebugDrawMaterial::Solid));
+			proxyData.push_back(MeshRenderData(B3DGetRenderProxy(entry.Mesh), entry.SubMesh, DebugDrawMaterial::Solid));
 		else if(entry.Type == DrawHelper::MeshType::Wire)
-			proxyData.push_back(MeshRenderData(entry.Mesh->GetCore(), entry.SubMesh, DebugDrawMaterial::Wire));
+			proxyData.push_back(MeshRenderData(B3DGetRenderProxy(entry.Mesh), entry.SubMesh, DebugDrawMaterial::Wire));
 		else if(entry.Type == DrawHelper::MeshType::Line)
-			proxyData.push_back(MeshRenderData(entry.Mesh->GetCore(), entry.SubMesh, DebugDrawMaterial::Line));
+			proxyData.push_back(MeshRenderData(B3DGetRenderProxy(entry.Mesh), entry.SubMesh, DebugDrawMaterial::Line));
 	}
 
 	return proxyData;

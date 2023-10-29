@@ -1179,7 +1179,7 @@ void TGpuParamsSet<IsRenderProxy>::Update(const SPtr<MaterialParamsType>& params
 			}
 		}
 
-		paramPtr->MarkCoreDirtyInternal();
+		paramPtr->MarkRenderProxyDataDirtyInternal();
 	}
 
 	mParamVersion = params->GetParamVersion();

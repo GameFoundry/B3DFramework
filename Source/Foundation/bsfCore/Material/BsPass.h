@@ -97,9 +97,6 @@ namespace bs
 	public:
 		virtual ~Pass() = default;
 
-		/** Retrieves the render proxy. */
-		SPtr<ct::Pass> GetCore() const;
-
 		/**
 		 * Initializes the pass internals by compiling the GPU programs and creating the relevant pipeline state. This
 		 * method must be called before pass pipelines can be retrieved. After initial compilation further calls do this

@@ -1079,19 +1079,13 @@ MaterialParams::MaterialParams(const SPtr<Shader>& shader, const SPtr<bs::Materi
 		case ParamType::Texture:
 			{
 				HTexture texture = params->mTextureParams[param.Index].Texture;
-				SPtr<Texture> textureCore;
-				if(texture.IsLoaded())
-					textureCore = texture->GetCore();
+				SPtr<Texture> textureCore = B3DGetRenderProxy(texture);
 
 				mTextureParams[param.Index].Texture = textureCore;
 
 				HSpriteTexture spriteTexture = params->mTextureParams[param.Index].SpriteTexture;
-				SPtr<SpriteTexture> spriteTextureCore;
-				if(spriteTexture.IsLoaded())
-					spriteTextureCore = spriteTexture->GetCore();
 
-				mTextureParams[param.Index].SpriteTexture = spriteTextureCore;
-
+				mTextureParams[param.Index].SpriteTexture = B3DGetRenderProxy(spriteTexture);
 				mTextureParams[param.Index].IsLoadStore = params->mTextureParams[param.Index].IsLoadStore;
 				mTextureParams[param.Index].Surface = params->mTextureParams[param.Index].Surface;
 			}
@@ -1101,7 +1095,7 @@ MaterialParams::MaterialParams(const SPtr<Shader>& shader, const SPtr<bs::Materi
 				SPtr<bs::GpuBuffer> buffer = params->mBufferParams[param.Index].Value;
 				SPtr<GpuBuffer> bufferCore;
 				if(buffer != nullptr)
-					bufferCore = buffer->GetCore();
+					bufferCore = B3DGetRenderProxy(buffer);
 
 				mBufferParams[param.Index].Value = bufferCore;
 			}

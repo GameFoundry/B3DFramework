@@ -128,9 +128,6 @@ namespace bs
 		 */
 		const RenderTargetProperties& GetProperties() const;
 
-		/** Retrieves the render proxy. */
-		SPtr<ct::RenderTarget> GetCore() const;
-
 		/**
 		 * Event that gets triggered whenever the render target is resized.
 		 *

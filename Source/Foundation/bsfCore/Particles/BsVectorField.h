@@ -80,9 +80,6 @@ namespace bs
 	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Particles)) VectorField : public Resource, public TVectorField<false>
 	{
 	public:
-		/**	Retrieves the render proxy. */
-		SPtr<ct::VectorField> GetCore() const;
-
 		/************************************************************************/
 		/* 								STATICS		                     		*/
 		/************************************************************************/

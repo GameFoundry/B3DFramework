@@ -66,17 +66,12 @@ VectorField::VectorField(const VECTOR_FIELD_DESC& desc, const Vector<Vector3>& v
 
 SPtr<ct::RenderProxy> VectorField::CreateRenderProxy() const
 {
-	ct::VectorField* vectorField = new(B3DAllocate<ct::VectorField>()) ct::VectorField(mDesc, mTexture->GetCore());
+	ct::VectorField* vectorField = new(B3DAllocate<ct::VectorField>()) ct::VectorField(mDesc, B3DGetRenderProxy(mTexture));
 
 	SPtr<ct::VectorField> vectorFieldPtr = B3DMakeSharedFromExisting<ct::VectorField>(vectorField);
 	vectorFieldPtr->SetShared(vectorFieldPtr);
 
 	return vectorFieldPtr;
-}
-
-SPtr<ct::VectorField> VectorField::GetCore() const
-{
-	return std::static_pointer_cast<ct::VectorField>(mRenderProxy);
 }
 
 /************************************************************************/

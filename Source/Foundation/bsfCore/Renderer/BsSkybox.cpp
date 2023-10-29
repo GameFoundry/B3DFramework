@@ -78,9 +78,9 @@ void Skybox::FilterTexture()
 		mRendererTask = nullptr;
 	};
 
-	SPtr<ct::Skybox> coreSkybox = GetCore();
-	SPtr<ct::Texture> coreFilteredRadiance = mFilteredRadiance->GetCore();
-	SPtr<ct::Texture> coreIrradiance = mIrradiance->GetCore();
+	SPtr<ct::Skybox> coreSkybox = B3DGetRenderProxy(this);
+	SPtr<ct::Texture> coreFilteredRadiance = B3DGetRenderProxy(mFilteredRadiance);
+	SPtr<ct::Texture> coreIrradiance = B3DGetRenderProxy(mIrradiance);
 
 	auto filterSkybox = [coreFilteredRadiance, coreIrradiance, coreSkybox](ct::GpuCommandBufferPool& commandBufferPool)
 	{
@@ -121,12 +121,7 @@ void Skybox::SetTexture(const HTexture& texture)
 	if(mTexture.IsLoaded())
 		FilterTexture();
 
-	MarkCoreDirtyInternal((ActorDirtyFlag)SkyboxDirtyFlag::Texture);
-}
-
-SPtr<ct::Skybox> Skybox::GetCore() const
-{
-	return std::static_pointer_cast<ct::Skybox>(mRenderProxy);
+	MarkRenderProxyDataDirtyInternal((ActorDirtyFlag)SkyboxDirtyFlag::Texture);
 }
 
 SPtr<Skybox> Skybox::CreateEmpty()
@@ -148,17 +143,9 @@ SPtr<Skybox> Skybox::Create()
 
 SPtr<ct::RenderProxy> Skybox::CreateRenderProxy() const
 {
-	SPtr<ct::Texture> radiance;
-	if(mTexture.IsLoaded(false))
-		radiance = mTexture->GetCore();
-
-	SPtr<ct::Texture> filteredRadiance;
-	if(mFilteredRadiance)
-		filteredRadiance = mFilteredRadiance->GetCore();
-
-	SPtr<ct::Texture> irradiance;
-	if(mIrradiance)
-		irradiance = mIrradiance->GetCore();
+	SPtr<ct::Texture> radiance = B3DGetRenderProxy(mTexture);
+	SPtr<ct::Texture> filteredRadiance = B3DGetRenderProxy(mFilteredRadiance);
+	SPtr<ct::Texture> irradiance = B3DGetRenderProxy(mIrradiance);
 
 	ct::Skybox* skybox = new(B3DAllocate<ct::Skybox>()) ct::Skybox(radiance, filteredRadiance, irradiance);
 	SPtr<ct::Skybox> skyboxPtr = B3DMakeSharedFromExisting<ct::Skybox>(skybox);
@@ -176,7 +163,7 @@ RenderProxySyncPacket* Skybox::CreateRenderProxySyncPacket(FrameAllocator& alloc
 	return syncPacket;
 }
 
-void Skybox::MarkCoreDirtyInternal(ActorDirtyFlag flags)
+void Skybox::MarkRenderProxyDataDirtyInternal(ActorDirtyFlag flags)
 {
 	MarkRenderProxyDataDirty((u32)flags);
 }

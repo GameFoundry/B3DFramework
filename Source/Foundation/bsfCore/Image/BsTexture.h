@@ -276,9 +276,6 @@ namespace bs
 		/**	Returns properties that contain information about the texture. */
 		const TextureProperties& GetProperties() const { return mProperties; }
 
-		/**	Retrieves the render proxy. */
-		SPtr<ct::Texture> GetCore() const;
-
 		/************************************************************************/
 		/* 								STATICS		                     		*/
 		/************************************************************************/

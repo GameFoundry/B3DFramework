@@ -20,7 +20,7 @@ void ViewportBase::SetArea(const Rect2& area)
 {
 	mNormArea = area;
 
-	MarkCoreDirtyInternal();
+	MarkRenderProxyDataDirtyInternal();
 }
 
 Rect2I ViewportBase::GetPixelArea() const
@@ -41,7 +41,7 @@ void ViewportBase::SetClearFlags(ClearFlags flags)
 {
 	mClearFlags = flags;
 
-	MarkCoreDirtyInternal();
+	MarkRenderProxyDataDirtyInternal();
 }
 
 void ViewportBase::SetClearValues(const Color& clearColor, float clearDepth, u16 clearStencil)
@@ -50,28 +50,28 @@ void ViewportBase::SetClearValues(const Color& clearColor, float clearDepth, u16
 	mClearDepthValue = clearDepth;
 	mClearStencilValue = clearStencil;
 
-	MarkCoreDirtyInternal();
+	MarkRenderProxyDataDirtyInternal();
 }
 
 void ViewportBase::SetClearColorValue(const Color& color)
 {
 	mClearColorValue = color;
 
-	MarkCoreDirtyInternal();
+	MarkRenderProxyDataDirtyInternal();
 }
 
 void ViewportBase::SetClearDepthValue(float depth)
 {
 	mClearDepthValue = depth;
 
-	MarkCoreDirtyInternal();
+	MarkRenderProxyDataDirtyInternal();
 }
 
 void ViewportBase::SetClearStencilValue(u16 value)
 {
 	mClearStencilValue = value;
 
-	MarkCoreDirtyInternal();
+	MarkRenderProxyDataDirtyInternal();
 }
 
 namespace bs
@@ -96,15 +96,10 @@ void Viewport::SetTarget(const SPtr<RenderTarget>& target)
 	mTarget = target;
 
 	MarkDependenciesDirty();
-	MarkCoreDirtyInternal();
+	MarkRenderProxyDataDirtyInternal();
 }
 
-SPtr<ct::Viewport> Viewport::GetCore() const
-{
-	return std::static_pointer_cast<ct::Viewport>(mRenderProxy);
-}
-
-void Viewport::MarkCoreDirtyInternal()
+void Viewport::MarkRenderProxyDataDirtyInternal()
 {
 	MarkRenderProxyDataDirty();
 }
@@ -129,7 +124,7 @@ SPtr<ct::RenderProxy> Viewport::CreateRenderProxy() const
 {
 	SPtr<ct::RenderTarget> targetCore;
 	if(mTarget != nullptr)
-		targetCore = mTarget->GetCore();
+		targetCore = B3DGetRenderProxy(mTarget);
 
 	ct::Viewport* viewport = new(B3DAllocate<ct::Viewport>())
 		ct::Viewport(targetCore, mNormArea.X, mNormArea.Y, mNormArea.Width, mNormArea.Height);

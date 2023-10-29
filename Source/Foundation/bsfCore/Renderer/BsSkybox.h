@@ -39,7 +39,7 @@ namespace bs
 		void SetBrightness(float brightness)
 		{
 			mBrightness = brightness;
-			MarkCoreDirtyInternal();
+			MarkRenderProxyDataDirtyInternal();
 		}
 
 		/** @copydoc SetBrightness */
@@ -87,9 +87,6 @@ namespace bs
 		/** @copydoc TSkybox::GetTexture */
 		void SetTexture(const HTexture& texture);
 
-		/**	Retrieves the render proxy. */
-		SPtr<ct::Skybox> GetCore() const;
-
 		/** Creates a new skybox. */
 		static SPtr<Skybox> Create();
 	
@@ -106,7 +103,7 @@ namespace bs
 		void FilterTexture();
 
 		SPtr<ct::RenderProxy> CreateRenderProxy() const override;
-		void MarkCoreDirtyInternal(ActorDirtyFlag flags = ActorDirtyFlag::Everything) override;
+		void MarkRenderProxyDataDirtyInternal(ActorDirtyFlag flags = ActorDirtyFlag::Everything) override;
 		RenderProxySyncPacket* CreateRenderProxySyncPacket(FrameAllocator& allocator, u32 flags) override;
 
 		SPtr<Texture> mFilteredRadiance;

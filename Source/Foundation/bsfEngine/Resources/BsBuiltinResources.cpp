@@ -148,7 +148,7 @@ void BuiltinResources::OnStartUp()
 	const HTexture whiteTexture3D = GetTexture(BuiltinTexture::White3D);
 	const HTexture blackTexture3D = GetTexture(BuiltinTexture::Black3D);
 
-	auto fnInitializeCoreBuiltinResources = [whiteTexture2D = whiteTexture2D->GetCore(), blackTexture2D = blackTexture2D->GetCore(), normalTexture = normalTexture->GetCore(), whiteTexture3D = whiteTexture3D->GetCore(), blackTexture3D = blackTexture3D->GetCore()]()
+	auto fnInitializeCoreBuiltinResources = [whiteTexture2D = B3DGetRenderProxy(whiteTexture2D), blackTexture2D = B3DGetRenderProxy(blackTexture2D), normalTexture = B3DGetRenderProxy(normalTexture), whiteTexture3D = B3DGetRenderProxy(whiteTexture3D), blackTexture3D = B3DGetRenderProxy(blackTexture3D)]()
 
 	{
 		ct::BuiltinResources::StartUp();

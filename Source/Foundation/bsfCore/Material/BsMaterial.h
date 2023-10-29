@@ -92,7 +92,7 @@ namespace bs
 		 */
 
 		/** Marks the contents of the main thread object as dirty, causing it to sync with the render proxy. */
-		virtual void MarkCoreDirtyInternal(MaterialDirtyFlags flags = MaterialDirtyFlags::Param) {}
+		virtual void MarkRenderProxyDataDirtyInternal(MaterialDirtyFlags flags = MaterialDirtyFlags::Param) {}
 
 		/** @copydoc CoreObject::MarkDependenciesDirty */
 		virtual void MarkDependenciesDirtyInternal() {}
@@ -742,9 +742,6 @@ namespace bs
 		B3D_SCRIPT_EXPORT(ExportName(Variation), Property(Setter), UI(Hide))
 		void SetVariation(const ShaderVariationParameters& variation);
 
-		/** Retrieves an implementation of a material usable only from the render thread. */
-		SPtr<ct::Material> GetCore() const;
-
 		void Initialize() override;
 
 		/** Creates a deep copy of the material and returns the new object. */
@@ -777,7 +774,7 @@ namespace bs
 		 * Marks the core data as dirty. This causes the syncToCore() method to trigger the next time objects are synced
 		 * between render and main threads.
 		 */
-		void MarkCoreDirtyInternal(MaterialDirtyFlags flags = MaterialDirtyFlags::Param) override;
+		void MarkRenderProxyDataDirtyInternal(MaterialDirtyFlags flags = MaterialDirtyFlags::Param) override;
 
 		void MarkDependenciesDirtyInternal() override;
 		void MarkResourcesDirtyInternal() override;

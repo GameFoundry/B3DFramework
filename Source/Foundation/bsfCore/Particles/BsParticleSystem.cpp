@@ -164,14 +164,14 @@ void ParticleSystem::SetSettings(const ParticleSystemSettings& settings)
 		mParticleSet->Clear(settings.MaxParticles);
 
 	mSettings = settings;
-	MarkCoreDirtyInternal();
+	MarkRenderProxyDataDirtyInternal();
 	MarkDependenciesDirty();
 }
 
 void ParticleSystem::SetGpuSimulationSettings(const ParticleGpuSimulationSettings& settings)
 {
 	mGpuSimulationSettings = settings;
-	MarkCoreDirtyInternal();
+	MarkRenderProxyDataDirtyInternal();
 }
 
 void ParticleSystem::SetLayer(u64 layer)
@@ -185,13 +185,13 @@ void ParticleSystem::SetLayer(u64 layer)
 	}
 
 	mLayer = layer;
-	MarkCoreDirtyInternal();
+	MarkRenderProxyDataDirtyInternal();
 }
 
 void ParticleSystem::SetEmitters(const Vector<SPtr<ParticleEmitter>>& emitters)
 {
 	mEmitters = emitters;
-	MarkCoreDirtyInternal();
+	MarkRenderProxyDataDirtyInternal();
 }
 
 void ParticleSystem::SetEvolvers(const Vector<SPtr<ParticleEvolver>>& evolvers)
@@ -208,7 +208,7 @@ void ParticleSystem::SetEvolvers(const Vector<SPtr<ParticleEvolver>>& evolvers)
 			else
 				return priorityA > priorityB; });
 
-	MarkCoreDirtyInternal();
+	MarkRenderProxyDataDirtyInternal();
 }
 
 void ParticleSystem::Play()
@@ -418,11 +418,6 @@ float ParticleSystem::AdvanceTimeInternal(float time, float timeDelta, float dur
 	return newTime;
 }
 
-SPtr<ct::ParticleSystem> ParticleSystem::GetCore() const
-{
-	return std::static_pointer_cast<ct::ParticleSystem>(mRenderProxy);
-}
-
 SPtr<ct::RenderProxy> ParticleSystem::CreateRenderProxy() const
 {
 	ct::ParticleSystem* rawPtr = new(B3DAllocate<ct::ParticleSystem>()) ct::ParticleSystem(mId);
@@ -432,7 +427,7 @@ SPtr<ct::RenderProxy> ParticleSystem::CreateRenderProxy() const
 	return ptr;
 }
 
-void ParticleSystem::MarkCoreDirtyInternal(ActorDirtyFlag flag)
+void ParticleSystem::MarkRenderProxyDataDirtyInternal(ActorDirtyFlag flag)
 {
 	MarkRenderProxyDataDirty((u32)flag);
 }
@@ -515,7 +510,7 @@ void ParticleSystem::SetLayer(u64 layer)
 	}
 
 	mLayer = layer;
-	MarkCoreDirtyInternal();
+	MarkRenderProxyDataDirtyInternal();
 }
 
 void ParticleSystem::SyncFromCoreObject(const CoreSyncData& data, FrameAllocator& allocator)

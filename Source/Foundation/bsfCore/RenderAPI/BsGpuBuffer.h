@@ -251,9 +251,6 @@ namespace bs
 		/** Returns information describing the buffer. */
 		const GpuBufferInformation& GetInformation() const { return mInformation; }
 
-		/** Retrieves the render proxy. */
-		SPtr<ct::GpuBuffer> GetCore() const;
-
 		/**
 		 * Writes the data into the CPU cached buffer. Buffer must have been created with AllowWriteCachingOnCPU flag. Data will be synced
 		 * with the render proxy on the next sync call.

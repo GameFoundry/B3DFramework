@@ -60,8 +60,7 @@ void RenderBeast::Initialize(const SPtr<GpuDevice>& gpuDevice)
 
 	LoadedRendererTextures textures;
 	HTexture bokehFlare = GetBuiltinResources().GetTexture(BuiltinTexture::BokehFlare);
-	if(bokehFlare.IsLoaded(false))
-		textures.BokehFlare = bokehFlare->GetCore();
+	textures.BokehFlare = B3DGetRenderProxy(bokehFlare);
 
 	GetRenderThread().PostCommand([this, textures]() { InitializeOnRenderThread(textures); });
 }

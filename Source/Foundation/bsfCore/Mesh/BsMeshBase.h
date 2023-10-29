@@ -98,9 +98,6 @@ namespace bs
 		/**	Returns properties that contain information about the mesh. */
 		const MeshProperties& GetProperties() const { return mProperties; }
 
-		/**	Retrieves the render proxy. */
-		SPtr<ct::MeshBase> GetCore() const;
-
 	protected:
 		friend class ct::MeshBase;
 		struct SyncPacket;

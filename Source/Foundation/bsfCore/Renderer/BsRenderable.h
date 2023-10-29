@@ -176,9 +176,6 @@ namespace bs
 		/** Checks is the renderable animated or static. */
 		bool IsAnimated() const { return mAnimation != nullptr; }
 
-		/**	Retrieves the render proxy. */
-		SPtr<ct::Renderable> GetCore() const;
-
 		/**	Creates a new renderable handler instance. */
 		static SPtr<Renderable> Create();
 
@@ -202,7 +199,7 @@ namespace bs
 		/** Updates animation properties depending on the current mesh. */
 		void RefreshAnimation();
 
-		void MarkCoreDirtyInternal(ActorDirtyFlag flag = ActorDirtyFlag::Everything) override;
+		void MarkRenderProxyDataDirtyInternal(ActorDirtyFlag flag = ActorDirtyFlag::Everything) override;
 		RenderProxySyncPacket* CreateRenderProxySyncPacket(FrameAllocator& allocator, u32 flags) override;
 
 		void MarkDependenciesDirtyInternal() override;

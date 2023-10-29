@@ -45,7 +45,7 @@ AsyncOp Mesh::WriteData(const SPtr<MeshData>& data, bool discardEntireBuffer)
 	};
 
 	AsyncOp asyncOp;
-	GetRenderThread().PostCommand([func = std::move(func), core = GetCore(), data, discardEntireBuffer, asyncOp]() mutable { func(core, data, discardEntireBuffer, asyncOp); });
+	GetRenderThread().PostCommand([func = std::move(func), core = B3DGetRenderProxy(this), data, discardEntireBuffer, asyncOp]() mutable { func(core, data, discardEntireBuffer, asyncOp); });
 
 	return asyncOp;
 }
@@ -68,7 +68,7 @@ AsyncOp Mesh::ReadData(const SPtr<MeshData>& data)
 	};
 
 	AsyncOp asyncOp;
-	GetRenderThread().PostCommand([func = std::move(func), core = GetCore(), data, asyncOp]() mutable { func(core, data, asyncOp); });
+	GetRenderThread().PostCommand([func = std::move(func), core = B3DGetRenderProxy(this), data, asyncOp]() mutable { func(core, data, asyncOp); });
 
 	return asyncOp;
 }
@@ -95,11 +95,6 @@ void Mesh::UpdateBounds(const MeshData& meshData)
 {
 	mProperties.Bounds = meshData.CalculateBounds();
 	MarkRenderProxyDataDirty();
-}
-
-SPtr<ct::Mesh> Mesh::GetCore() const
-{
-	return std::static_pointer_cast<ct::Mesh>(mRenderProxy);
 }
 
 SPtr<ct::RenderProxy> Mesh::CreateRenderProxy() const

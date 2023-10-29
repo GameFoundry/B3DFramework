@@ -107,11 +107,6 @@ SPtr<RenderTexture> RenderTexture::Create(const RenderTextureCreateInformation& 
 	return TextureManager::Instance().CreateRenderTexture(createInformation);
 }
 
-SPtr<ct::RenderTexture> RenderTexture::GetCore() const
-{
-	return std::static_pointer_cast<ct::RenderTexture>(mRenderProxy);
-}
-
 RenderTexture::RenderTexture(const RenderTextureCreateInformation& createInformation)
 	: mInformation(createInformation)
 {
@@ -132,9 +127,7 @@ SPtr<ct::RenderProxy> RenderTexture::CreateRenderProxy() const
 	for(u32 i = 0; i < B3D_MAXIMUM_RENDER_TARGET_COUNT; i++)
 	{
 		ct::RenderSurfaceInformation surfaceDesc;
-		if(mInformation.ColorSurfaces[i].Texture.IsLoaded())
-			surfaceDesc.Texture = mInformation.ColorSurfaces[i].Texture->GetCore();
-
+		surfaceDesc.Texture = B3DGetRenderProxy(mInformation.ColorSurfaces[i].Texture);
 		surfaceDesc.Face = mInformation.ColorSurfaces[i].Face;
 		surfaceDesc.FaceCount = mInformation.ColorSurfaces[i].FaceCount;
 		surfaceDesc.MipLevel = mInformation.ColorSurfaces[i].MipLevel;
@@ -142,9 +135,7 @@ SPtr<ct::RenderProxy> RenderTexture::CreateRenderProxy() const
 		coreDesc.ColorSurfaces[i] = surfaceDesc;
 	}
 
-	if(mInformation.DepthStencilSurface.Texture.IsLoaded())
-		coreDesc.DepthStencilSurface.Texture = mInformation.DepthStencilSurface.Texture->GetCore();
-
+	coreDesc.DepthStencilSurface.Texture = B3DGetRenderProxy(mInformation.DepthStencilSurface.Texture);
 	coreDesc.DepthStencilSurface.Face = mInformation.DepthStencilSurface.Face;
 	coreDesc.DepthStencilSurface.FaceCount = mInformation.DepthStencilSurface.FaceCount;
 	coreDesc.DepthStencilSurface.MipLevel = mInformation.DepthStencilSurface.MipLevel;

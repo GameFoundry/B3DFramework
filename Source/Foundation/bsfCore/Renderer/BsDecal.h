@@ -27,7 +27,7 @@ namespace bs
 		void SetSize(const Vector2& size)
 		{
 			mSize = Vector2::Max(Vector2::kZero, size);
-			MarkCoreDirtyInternal();
+			MarkRenderProxyDataDirtyInternal();
 			UpdateBounds();
 		}
 
@@ -44,7 +44,7 @@ namespace bs
 		void SetMaxDistance(float distance)
 		{
 			mMaxDistance = Math::Max(0.0f, distance);
-			MarkCoreDirtyInternal();
+			MarkRenderProxyDataDirtyInternal();
 			UpdateBounds();
 		}
 
@@ -62,7 +62,7 @@ namespace bs
 		void SetLayerMask(u32 mask)
 		{
 			mLayerMask = mask;
-			MarkCoreDirtyInternal();
+			MarkRenderProxyDataDirtyInternal();
 		}
 
 		/** @copydoc SetLayerMask */
@@ -124,7 +124,7 @@ namespace bs
 		void SetMaterial(const MaterialType& material)
 		{
 			mMaterial = material;
-			MarkCoreDirtyInternal();
+			MarkRenderProxyDataDirtyInternal();
 		}
 
 		/** @copydoc SetMaterial */
@@ -151,9 +151,6 @@ namespace bs
 	class B3D_CORE_EXPORT Decal : public IReflectable, public CoreObject, public TDecal<false>
 	{
 	public:
-		/**	Retrieves the render proxy. */
-		SPtr<ct::Decal> GetCore() const;
-
 		/**
 		 * Creates a new decal.
 		 *
@@ -173,7 +170,7 @@ namespace bs
 
 		SPtr<ct::RenderProxy> CreateRenderProxy() const override;
 		void GetCoreDependencies(Vector<CoreObject*>& dependencies) override;
-		void MarkCoreDirtyInternal(ActorDirtyFlag flags = ActorDirtyFlag::Everything) override;
+		void MarkRenderProxyDataDirtyInternal(ActorDirtyFlag flags = ActorDirtyFlag::Everything) override;
 		RenderProxySyncPacket* CreateRenderProxySyncPacket(FrameAllocator& allocator, u32 flags) override;
 
 		/**	Creates the object with without initializing it. Used for serialization. */

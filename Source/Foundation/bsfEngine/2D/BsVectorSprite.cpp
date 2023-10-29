@@ -184,7 +184,7 @@ SPtr<GUIVectorSpriteAtlasAllocation> GUIVectorSpriteAtlas::Allocate(const Vector
 	}
 
 	DirtySpriteInformation dirtySpriteInformation;
-	dirtySpriteInformation.Texture = image->GetTexture()->GetCore();
+	dirtySpriteInformation.Texture = B3DGetRenderProxy(image->GetTexture());
 	dirtySpriteInformation.Renderable = renderable;
 	dirtySpriteInformation.UVRegion = Rect2(image->GetOffset().X, image->GetOffset().Y, image->GetScale().X, image->GetScale().Y);
 	dirtySpriteInformation.Size = Size2UI(image->GetWidth(), image->GetHeight());

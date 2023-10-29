@@ -175,9 +175,6 @@ namespace bs
 		/** Returns the cell count that's used for determining the density of probes within a grid volume. */
 		const Vector3I& GetCellCount() const { return mCellCount; }
 
-		/**	Retrieves the render proxy. */
-		SPtr<ct::LightProbeVolume> GetCore() const;
-
 		/**
 		 * Creates a new light volume with probes aligned in a grid pattern.
 		 *
@@ -204,7 +201,7 @@ namespace bs
 		void UpdateCoefficients();
 
 		SPtr<ct::RenderProxy> CreateRenderProxy() const override;
-		void MarkCoreDirtyInternal(ActorDirtyFlag dirtFlags = ActorDirtyFlag::Everything) override;
+		void MarkRenderProxyDataDirtyInternal(ActorDirtyFlag dirtFlags = ActorDirtyFlag::Everything) override;
 		RenderProxySyncPacket* CreateRenderProxySyncPacket(FrameAllocator& allocator, u32 flags) override;
 
 		/**	Creates a light volume with without initializing it. Used for serialization. */

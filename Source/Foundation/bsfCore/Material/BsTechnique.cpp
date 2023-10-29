@@ -76,7 +76,7 @@ void TTechnique<IsRenderProxy>::SetCompiledPassData(TInlineArray<SPtr<PassType>,
 	mPasses = std::move(compiledPasses);
 	mHasPassData = true;
 
-	MarkCoreDirty(ShaderVariationDirtyFlag::Passes);
+	MarkRenderProxyDirty(ShaderVariationDirtyFlag::Passes);
 	SyncToCore();
 }
 
@@ -85,7 +85,7 @@ void TTechnique<IsRenderProxy>::SetOwner(const WeakSPtr<ShaderType>& owner)
 {
 	mOwner = owner;
 
-	MarkCoreDirty(ShaderVariationDirtyFlag::Parent);
+	MarkRenderProxyDirty(ShaderVariationDirtyFlag::Parent);
 	SyncToCore();
 }
 
@@ -184,11 +184,6 @@ Technique::Technique()
 	: TTechnique()
 {}
 
-SPtr<ct::Technique> Technique::GetCore() const
-{
-	return std::static_pointer_cast<ct::Technique>(mRenderProxy);
-}
-
 SPtr<ct::RenderProxy> Technique::CreateRenderProxy() const
 {
 	const SPtr<Shader> owner = mOwner.lock();
@@ -196,7 +191,7 @@ SPtr<ct::RenderProxy> Technique::CreateRenderProxy() const
 
 	TInlineArray<SPtr<ct::Pass>, 1> corePasses;
 	for(auto& pass : mPasses)
-		corePasses.Add(pass->GetCore());
+		corePasses.Add(B3DGetRenderProxy(pass));
 
 	Optional<ct::PrecompiledVariationData> corePrecompileData = mHasPassData ? ct::PrecompiledVariationData(corePasses) : Optional<ct::PrecompiledVariationData>{};
 	ct::Technique* const coreVariation = new(B3DAllocate<ct::Technique>()) ct::Technique(coreOwner, mLanguage, mVariationParameters, corePrecompileData);
@@ -212,7 +207,7 @@ void Technique::GetCoreDependencies(Vector<CoreObject*>& dependencies)
 		dependencies.push_back(pass.get());
 }
 
-void Technique::MarkCoreDirty(ShaderVariationDirtyFlags flags)
+void Technique::MarkRenderProxyDirty(ShaderVariationDirtyFlags flags)
 {
 	CoreObject::MarkRenderProxyDataDirty(flags);
 }

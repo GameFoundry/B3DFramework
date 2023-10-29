@@ -120,9 +120,6 @@ namespace bs
 		B3D_SCRIPT_EXPORT(Property(Getter), ExportName(MorphShapes))
 		SPtr<MorphShapes> GetMorphShapes() const { return mMorphShapes; }
 
-		/** Retrieves the render proxy. */
-		SPtr<ct::Mesh> GetCore() const;
-
 		/**	Returns a dummy mesh, containing just one triangle. Don't modify the returned mesh. */
 		static HMesh Dummy();
 

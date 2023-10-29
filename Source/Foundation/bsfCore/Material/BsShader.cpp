@@ -226,7 +226,7 @@ RTTITypeBase* ShaderInformationBase::GetRtti() const
 	return GetRttiStatic();
 }
 
-ct::ShaderInformation ShaderInformation::ConvertToCore(const ShaderInformation& value)
+ct::ShaderInformation ShaderInformation::ConvertToRenderProxy(const ShaderInformation& value)
 {
 	ct::ShaderInformation output;
 	output.DataParameters = value.DataParameters;
@@ -248,7 +248,7 @@ ct::ShaderInformation ShaderInformation::ConvertToCore(const ShaderInformation& 
 	for(auto& entry : value.Techniques)
 	{
 		if(entry != nullptr)
-			output.Techniques.push_back(entry->GetCore());
+			output.Techniques.push_back(B3DGetRenderProxy(entry));
 	}
 
 	output.VariationParams = value.VariationParams;
@@ -539,9 +539,9 @@ SPtr<ct::RenderProxy> Shader::CreateRenderProxy() const
 {
 	Vector<SPtr<ct::Technique>> techniques;
 	for(auto& technique : mInformation.Techniques)
-		techniques.push_back(technique->GetCore());
+		techniques.push_back(B3DGetRenderProxy(technique));
 
-	ct::Shader* shaderCore = new(B3DAllocate<ct::Shader>()) ct::Shader(mName, ShaderInformation::ConvertToCore(mInformation), mShaderId);
+	ct::Shader* shaderCore = new(B3DAllocate<ct::Shader>()) ct::Shader(mName, ShaderInformation::ConvertToRenderProxy(mInformation), mShaderId);
 	SPtr<ct::Shader> shaderCorePtr = B3DMakeSharedFromExisting<ct::Shader>(shaderCore);
 	shaderCorePtr->SetShared(shaderCorePtr);
 

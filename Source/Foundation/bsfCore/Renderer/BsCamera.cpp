@@ -32,21 +32,21 @@ CameraBase::CameraBase()
 void CameraBase::SetFlags(CameraFlags flags)
 {
 	mCameraFlags = flags;
-	MarkCoreDirtyInternal();
+	MarkRenderProxyDataDirtyInternal();
 }
 
 void CameraBase::SetHorzFov(const Radian& fov)
 {
 	mHorzFOV = fov;
 	InvalidateFrustum();
-	MarkCoreDirtyInternal();
+	MarkRenderProxyDataDirtyInternal();
 }
 
 void CameraBase::SetFarClipDistance(float farPlane)
 {
 	mFarDist = farPlane;
 	InvalidateFrustum();
-	MarkCoreDirtyInternal();
+	MarkRenderProxyDataDirtyInternal();
 }
 
 void CameraBase::SetNearClipDistance(float nearPlane)
@@ -59,7 +59,7 @@ void CameraBase::SetNearClipDistance(float nearPlane)
 
 	mNearDist = nearPlane;
 	InvalidateFrustum();
-	MarkCoreDirtyInternal();
+	MarkRenderProxyDataDirtyInternal();
 }
 
 const Matrix4& CameraBase::GetProjectionMatrix() const
@@ -345,7 +345,7 @@ void CameraBase::SetAspectRatio(float r)
 {
 	mAspect = r;
 	InvalidateFrustum();
-	MarkCoreDirtyInternal();
+	MarkRenderProxyDataDirtyInternal();
 }
 
 const AABox& CameraBase::GetBoundingBox() const
@@ -359,7 +359,7 @@ void CameraBase::SetProjectionType(ProjectionType pt)
 {
 	mProjType = pt;
 	InvalidateFrustum();
-	MarkCoreDirtyInternal();
+	MarkRenderProxyDataDirtyInternal();
 }
 
 ProjectionType CameraBase::GetProjectionType() const
@@ -376,7 +376,7 @@ void CameraBase::SetCustomViewMatrix(bool enable, const Matrix4& viewMatrix)
 		mViewMatrixInv = mViewMatrix.InverseAffine();
 	}
 
-	MarkCoreDirtyInternal();
+	MarkRenderProxyDataDirtyInternal();
 }
 
 void CameraBase::SetCustomProjectionMatrix(bool enable, const Matrix4& projMatrix)
@@ -387,7 +387,7 @@ void CameraBase::SetCustomProjectionMatrix(bool enable, const Matrix4& projMatri
 		mProjMatrix = projMatrix;
 
 	InvalidateFrustum();
-	MarkCoreDirtyInternal();
+	MarkRenderProxyDataDirtyInternal();
 }
 
 void CameraBase::SetOrthoWindow(float w, float h)
@@ -396,7 +396,7 @@ void CameraBase::SetOrthoWindow(float w, float h)
 	mAspect = w / h;
 
 	InvalidateFrustum();
-	MarkCoreDirtyInternal();
+	MarkRenderProxyDataDirtyInternal();
 }
 
 void CameraBase::SetOrthoWindowHeight(float h)
@@ -404,7 +404,7 @@ void CameraBase::SetOrthoWindowHeight(float h)
 	mOrthoHeight = h;
 
 	InvalidateFrustum();
-	MarkCoreDirtyInternal();
+	MarkRenderProxyDataDirtyInternal();
 }
 
 void CameraBase::SetOrthoWindowWidth(float w)
@@ -412,7 +412,7 @@ void CameraBase::SetOrthoWindowWidth(float w)
 	mOrthoHeight = w / mAspect;
 
 	InvalidateFrustum();
-	MarkCoreDirtyInternal();
+	MarkRenderProxyDataDirtyInternal();
 }
 
 float CameraBase::GetOrthoWindowHeight() const
@@ -434,7 +434,7 @@ void CameraBase::SetFrustumExtents(float left, float right, float top, float bot
 	mBottom = bottom;
 
 	InvalidateFrustum();
-	MarkCoreDirtyInternal();
+	MarkRenderProxyDataDirtyInternal();
 }
 
 void CameraBase::ResetFrustumExtents()
@@ -442,7 +442,7 @@ void CameraBase::ResetFrustumExtents()
 	mFrustumExtentsManuallySet = false;
 
 	InvalidateFrustum();
-	MarkCoreDirtyInternal();
+	MarkRenderProxyDataDirtyInternal();
 }
 
 void CameraBase::GetFrustumExtents(float& outleft, float& outright, float& outtop, float& outbottom) const
@@ -681,11 +681,6 @@ TCamera<IsRenderProxy>::TCamera()
 template class TCamera<false>;
 template class TCamera<true>;
 
-SPtr<ct::Camera> Camera::GetCore() const
-{
-	return std::static_pointer_cast<ct::Camera>(mRenderProxy);
-}
-
 SPtr<Camera> Camera::Create()
 {
 	Camera* handler = new(B3DAllocate<Camera>()) Camera();
@@ -707,7 +702,7 @@ SPtr<Camera> Camera::CreateEmpty()
 
 SPtr<ct::RenderProxy> Camera::CreateRenderProxy() const
 {
-	ct::Camera* handler = new(B3DAllocate<ct::Camera>()) ct::Camera(mViewport->GetCore());
+	ct::Camera* handler = new(B3DAllocate<ct::Camera>()) ct::Camera(B3DGetRenderProxy(mViewport));
 	SPtr<ct::Camera> handlerPtr = B3DMakeSharedFromExisting<ct::Camera>(handler);
 	handlerPtr->SetShared(handlerPtr);
 
@@ -802,7 +797,7 @@ void Camera::GetCoreDependencies(Vector<CoreObject*>& dependencies)
 	dependencies.push_back(mViewport.get());
 }
 
-void Camera::MarkCoreDirtyInternal(ActorDirtyFlag flag)
+void Camera::MarkRenderProxyDataDirtyInternal(ActorDirtyFlag flag)
 {
 	MarkRenderProxyDataDirty((u32)flag);
 }

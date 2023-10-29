@@ -225,7 +225,7 @@ namespace bs
 		void SetPriority(i32 priority)
 		{
 			mPriority = priority;
-			MarkCoreDirtyInternal();
+			MarkRenderProxyDataDirtyInternal();
 		}
 
 		/** @copydoc SetPriority() */
@@ -235,7 +235,7 @@ namespace bs
 		void SetLayers(u64 layers)
 		{
 			mLayers = layers;
-			MarkCoreDirtyInternal();
+			MarkRenderProxyDataDirtyInternal();
 		}
 
 		/** @copydoc SetLayers() */
@@ -248,7 +248,7 @@ namespace bs
 		void SetMsaaCount(u32 count)
 		{
 			mMSAA = count;
-			MarkCoreDirtyInternal();
+			MarkRenderProxyDataDirtyInternal();
 		}
 
 		/** @copydoc SetMsaaCount() */
@@ -258,7 +258,7 @@ namespace bs
 		 * Notifies a on-demand camera that it should re-draw its contents on the next frame. Ignored for a camera
 		 * that isn't on-demand.
 		 */
-		void NotifyNeedsRedraw() { MarkCoreDirtyInternal((ActorDirtyFlag)CameraDirtyFlag::Redraw); }
+		void NotifyNeedsRedraw() { MarkRenderProxyDataDirtyInternal((ActorDirtyFlag)CameraDirtyFlag::Redraw); }
 
 		/**
 		 * Converts a point in world space to screen coordinates.
@@ -490,7 +490,7 @@ namespace bs
 		void SetRenderSettings(const SPtr<RenderSettingsType>& settings)
 		{
 			mRenderSettings = settings;
-			MarkCoreDirtyInternal((ActorDirtyFlag)CameraDirtyFlag::RenderSettings);
+			MarkRenderProxyDataDirtyInternal((ActorDirtyFlag)CameraDirtyFlag::RenderSettings);
 		}
 
 		/** @copydoc SetRenderSettings() */
@@ -526,9 +526,6 @@ namespace bs
 		/** @copydoc SetMain() */
 		bool IsMain() const { return mMain; }
 
-		/** Retrieves the render proxy. */
-		SPtr<ct::Camera> GetCore() const;
-
 		/**	Creates a new camera that renders to the specified portion of the provided render target. */
 		static SPtr<Camera> Create();
 
@@ -552,7 +549,7 @@ namespace bs
 		Rect2I GetViewportRect() const override;
 
 		SPtr<ct::RenderProxy> CreateRenderProxy() const override;
-		void MarkCoreDirtyInternal(ActorDirtyFlag flag = ActorDirtyFlag::Everything) override;
+		void MarkRenderProxyDataDirtyInternal(ActorDirtyFlag flag = ActorDirtyFlag::Everything) override;
 		RenderProxySyncPacket* CreateRenderProxySyncPacket(FrameAllocator& allocator, u32 flags) override;
 
 		void GetCoreDependencies(Vector<CoreObject*>& dependencies) override;

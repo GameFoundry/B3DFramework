@@ -104,11 +104,6 @@ void GpuBuffer::ReadCached(u32 offset, u32 length, void* destination)
 	memcpy(destination, mCache + offset, length);
 }
 
-SPtr<ct::GpuBuffer> GpuBuffer::GetCore() const
-{
-	return std::static_pointer_cast<ct::GpuBuffer>(mRenderProxy);
-}
-
 SPtr<ct::RenderProxy> GpuBuffer::CreateRenderProxy() const
 {
 	const SPtr<GpuDevice>& gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();

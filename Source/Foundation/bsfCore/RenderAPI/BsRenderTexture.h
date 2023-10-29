@@ -79,13 +79,6 @@ namespace bs
 		 */
 		const HTexture& GetDepthStencilTexture() const { return mBindableDepthStencilTex; }
 
-		/**
-		 * Retrieves the render proxy.
-		 *
-		 * @note	Render thread only.
-		 */
-		SPtr<ct::RenderTexture> GetCore() const;
-
 		/**	Returns properties that describe the render texture. */
 		const RenderTextureProperties& GetProperties() const;
 

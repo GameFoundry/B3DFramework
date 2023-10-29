@@ -46,11 +46,11 @@ void RenderWindow::Resize(u32 width, u32 height)
 		renderWindow->Resize(width, height);
 	};
 
-	GetRenderThread().PostCommand([core = GetCore(), resizeFunc, width, height] { resizeFunc(core, width, height); }, true);
+	GetRenderThread().PostCommand([core = B3DGetRenderProxy(this), resizeFunc, width, height] { resizeFunc(core, width, height); }, true);
 
 	{
-		ScopedSpinLock lock(GetCore()->mLock);
-		const RenderWindowProperties& syncedProps = GetCore()->GetSyncedProperties();
+		ScopedSpinLock lock(B3DGetRenderProxy(this)->mLock);
+		const RenderWindowProperties& syncedProps = B3DGetRenderProxy(this)->GetSyncedProperties();
 		RenderWindowProperties& mutableProps = GetMutableProperties();
 
 		mutableProps.Width = syncedProps.Width;
@@ -66,11 +66,11 @@ void RenderWindow::Move(i32 left, i32 top)
 		renderWindow->Move(left, top);
 	};
 
-	GetRenderThread().PostCommand([core = GetCore(), moveFunc, left, top] { moveFunc(core, left, top); }, true);
+	GetRenderThread().PostCommand([core = B3DGetRenderProxy(this), moveFunc, left, top] { moveFunc(core, left, top); }, true);
 
 	{
-		ScopedSpinLock lock(GetCore()->mLock);
-		const RenderWindowProperties& syncedProps = GetCore()->GetSyncedProperties();
+		ScopedSpinLock lock(B3DGetRenderProxy(this)->mLock);
+		const RenderWindowProperties& syncedProps = B3DGetRenderProxy(this)->GetSyncedProperties();
 		RenderWindowProperties& mutableProps = GetMutableProperties();
 
 		mutableProps.Left = syncedProps.Left;
@@ -88,7 +88,7 @@ void RenderWindow::Hide()
 
 	GetMutableProperties().IsHidden = true;
 
-	GetRenderThread().PostCommand(std::bind(hideFunc, GetCore()));
+	GetRenderThread().PostCommand(std::bind(hideFunc, B3DGetRenderProxy(this)));
 }
 
 void RenderWindow::Show()
@@ -101,7 +101,7 @@ void RenderWindow::Show()
 
 	GetMutableProperties().IsHidden = false;
 
-	GetRenderThread().PostCommand(std::bind(showFunc, GetCore()));
+	GetRenderThread().PostCommand(std::bind(showFunc, B3DGetRenderProxy(this)));
 }
 
 void RenderWindow::Minimize()
@@ -114,7 +114,7 @@ void RenderWindow::Minimize()
 
 	GetMutableProperties().IsMaximized = false;
 
-	GetRenderThread().PostCommand(std::bind(minimizeFunc, GetCore()));
+	GetRenderThread().PostCommand(std::bind(minimizeFunc, B3DGetRenderProxy(this)));
 }
 
 void RenderWindow::Maximize()
@@ -127,11 +127,11 @@ void RenderWindow::Maximize()
 
 	GetMutableProperties().IsMaximized = true;
 
-	GetRenderThread().PostCommand(std::bind(maximizeFunc, GetCore()), true);
+	GetRenderThread().PostCommand(std::bind(maximizeFunc, B3DGetRenderProxy(this)), true);
 
 	{
-		ScopedSpinLock lock(GetCore()->mLock);
-		const RenderWindowProperties& syncedProps = GetCore()->GetSyncedProperties();
+		ScopedSpinLock lock(B3DGetRenderProxy(this)->mLock);
+		const RenderWindowProperties& syncedProps = B3DGetRenderProxy(this)->GetSyncedProperties();
 		RenderWindowProperties& mutableProps = GetMutableProperties();
 
 		mutableProps.Width = syncedProps.Width;
@@ -149,11 +149,11 @@ void RenderWindow::Restore()
 
 	GetMutableProperties().IsMaximized = false;
 
-	GetRenderThread().PostCommand(std::bind(restoreFunc, GetCore()), true);
+	GetRenderThread().PostCommand(std::bind(restoreFunc, B3DGetRenderProxy(this)), true);
 
 	{
-		ScopedSpinLock lock(GetCore()->mLock);
-		const RenderWindowProperties& syncedProps = GetCore()->GetSyncedProperties();
+		ScopedSpinLock lock(B3DGetRenderProxy(this)->mLock);
+		const RenderWindowProperties& syncedProps = B3DGetRenderProxy(this)->GetSyncedProperties();
 		RenderWindowProperties& mutableProps = GetMutableProperties();
 
 		mutableProps.Width = syncedProps.Width;
@@ -169,11 +169,11 @@ void RenderWindow::SetFullscreen(u32 width, u32 height, float refreshRate, u32 m
 		renderWindow->SetFullscreen(width, height, refreshRate, monitorIdx);
 	};
 
-	GetRenderThread().PostCommand(std::bind(fullscreenFunc, GetCore(), width, height, refreshRate, monitorIdx), true);
+	GetRenderThread().PostCommand(std::bind(fullscreenFunc, B3DGetRenderProxy(this), width, height, refreshRate, monitorIdx), true);
 
 	{
-		ScopedSpinLock lock(GetCore()->mLock);
-		const RenderWindowProperties& syncedProps = GetCore()->GetSyncedProperties();
+		ScopedSpinLock lock(B3DGetRenderProxy(this)->mLock);
+		const RenderWindowProperties& syncedProps = B3DGetRenderProxy(this)->GetSyncedProperties();
 		RenderWindowProperties& mutableProps = GetMutableProperties();
 
 		mutableProps.Width = syncedProps.Width;
@@ -189,11 +189,11 @@ void RenderWindow::SetFullscreen(const VideoMode& mode)
 		renderWindow->SetFullscreen(mode);
 	};
 
-	GetRenderThread().PostCommand(std::bind(fullscreenFunc, GetCore(), std::cref(mode)), true);
+	GetRenderThread().PostCommand(std::bind(fullscreenFunc, B3DGetRenderProxy(this), std::cref(mode)), true);
 
 	{
-		ScopedSpinLock lock(GetCore()->mLock);
-		const RenderWindowProperties& syncedProps = GetCore()->GetSyncedProperties();
+		ScopedSpinLock lock(B3DGetRenderProxy(this)->mLock);
+		const RenderWindowProperties& syncedProps = B3DGetRenderProxy(this)->GetSyncedProperties();
 		RenderWindowProperties& mutableProps = GetMutableProperties();
 
 		mutableProps.Width = syncedProps.Width;
@@ -209,21 +209,16 @@ void RenderWindow::SetWindowed(u32 width, u32 height)
 		renderWindow->SetWindowed(width, height);
 	};
 
-	GetRenderThread().PostCommand(std::bind(windowedFunc, GetCore(), width, height), true);
+	GetRenderThread().PostCommand(std::bind(windowedFunc, B3DGetRenderProxy(this), width, height), true);
 
 	{
-		ScopedSpinLock lock(GetCore()->mLock);
-		const RenderWindowProperties& syncedProps = GetCore()->GetSyncedProperties();
+		ScopedSpinLock lock(B3DGetRenderProxy(this)->mLock);
+		const RenderWindowProperties& syncedProps = B3DGetRenderProxy(this)->GetSyncedProperties();
 		RenderWindowProperties& mutableProps = GetMutableProperties();
 
 		mutableProps.Width = syncedProps.Width;
 		mutableProps.Height = syncedProps.Height;
 	}
-}
-
-SPtr<ct::RenderWindow> RenderWindow::GetCore() const
-{
-	return std::static_pointer_cast<ct::RenderWindow>(mRenderProxy);
 }
 
 SPtr<RenderWindow> RenderWindow::Create(RENDER_WINDOW_DESC& desc, SPtr<RenderWindow> parentWindow)
@@ -245,7 +240,7 @@ void RenderWindow::NotifyWindowEventInternal(WindowEventType type)
 {
 	ASSERT_IF_RENDER_THREAD;
 
-	ct::RenderWindow* coreWindow = GetCore().get();
+	ct::RenderWindow* coreWindow = B3DGetRenderProxy(this).get();
 	RenderWindowProperties& syncProps = coreWindow->GetSyncedProperties();
 	RenderWindowProperties& props = const_cast<RenderWindowProperties&>(GetProperties());
 

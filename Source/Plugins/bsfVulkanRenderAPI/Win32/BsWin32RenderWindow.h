@@ -25,8 +25,8 @@ namespace bs
 		Vector2I ScreenToWindowPos(const Vector2I& screenPos) const override;
 		Vector2I WindowToScreenPos(const Vector2I& windowPos) const override;
 
-		/** @copydoc RenderWindow::GetCore */
-		SPtr<ct::Win32RenderWindow> GetCore() const;
+		/** @copydoc RenderWindow::GetRenderProxy */
+		SPtr<ct::Win32RenderWindow> GetImplementationRenderProxy() const;
 
 		/**	Retrieves internal window handle. */
 		HWND GetHWnd() const;

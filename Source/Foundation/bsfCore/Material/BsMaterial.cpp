@@ -624,7 +624,7 @@ void Material::SetVariation(const ShaderVariationParameters& variation)
 	MarkRenderProxyDataDirty();
 }
 
-void Material::MarkCoreDirtyInternal(MaterialDirtyFlags flags)
+void Material::MarkRenderProxyDataDirtyInternal(MaterialDirtyFlags flags)
 {
 	MarkRenderProxyDataDirty((u32)flags);
 }
@@ -639,11 +639,6 @@ void Material::MarkResourcesDirtyInternal()
 	MarkListenerResourcesDirty();
 }
 
-SPtr<ct::Material> Material::GetCore() const
-{
-	return std::static_pointer_cast<ct::Material>(mRenderProxy);
-}
-
 SPtr<ct::RenderProxy> Material::CreateRenderProxy() const
 {
 	ct::Material* material = nullptr;
@@ -655,7 +650,7 @@ SPtr<ct::RenderProxy> Material::CreateRenderProxy() const
 
 		Vector<SPtr<ct::Technique>> techniques(mTechniques.size());
 		for(u32 i = 0; i < (u32)mTechniques.size(); i++)
-			techniques[i] = mTechniques[i]->GetCore();
+			techniques[i] = B3DGetRenderProxy(mTechniques[i]);
 
 		SPtr<ct::MaterialParams> materialParams = B3DMakeShared<ct::MaterialParams>(shader, mParams);
 
@@ -752,7 +747,7 @@ void Material::NotifyResourceLoaded(const HResource& resource)
 	else
 	{
 		// Otherwise just sync changes (most likely just a texture got loaded)
-		MarkCoreDirtyInternal(MaterialDirtyFlags::ParamResource);
+		MarkRenderProxyDataDirtyInternal(MaterialDirtyFlags::ParamResource);
 	}
 }
 
@@ -767,7 +762,7 @@ void Material::NotifyResourceChanged(const HResource& resource)
 	else
 	{
 		// Otherwise just sync changes (most likely just a texture got reimported)
-		MarkCoreDirtyInternal(MaterialDirtyFlags::ParamResource);
+		MarkRenderProxyDataDirtyInternal(MaterialDirtyFlags::ParamResource);
 	}
 }
 

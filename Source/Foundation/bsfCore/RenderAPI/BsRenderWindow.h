@@ -235,9 +235,6 @@ namespace bs
 		 */
 		virtual void SwapBuffers(u32 syncMask = 0xFFFFFFFF) {}
 
-		/**	Retrieves the render proxy. */
-		SPtr<ct::RenderWindow> GetCore() const;
-
 		/**	Returns properties that describe the render window. */
 		const RenderWindowProperties& GetProperties() const;
 

@@ -85,9 +85,6 @@ namespace bs
 	struct SpriteMaterialInfo : TSpriteMaterialInfo<false>
 	{
 		using TSpriteMaterialInfo::TSpriteMaterialInfo;
-
-		/** Creates a render thread variant of the object. */
-		ct::SpriteMaterialInfo GetCore() const;
 	};
 
 	/** Interfaced implemented by materials used for rendering sprites. This is expected to be used as a singleton. */

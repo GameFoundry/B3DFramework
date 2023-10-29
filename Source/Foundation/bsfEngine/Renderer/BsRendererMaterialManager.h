@@ -43,10 +43,10 @@ namespace bs
 		friend class ct::RendererMaterialBase;
 
 		/**	Initializes the manager on the render thread. */
-		static void InitOnCore();
+		static void InitOnRenderThread();
 
 		/**	Destroys all materials on the render thread. */
-		static void DestroyOnCore();
+		static void DestroyOnRenderThread();
 
 		/**	Returns a list in which are all materials managed by this module. */
 		static Vector<RendererMaterialData>& GetMaterials();

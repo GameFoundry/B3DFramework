@@ -48,7 +48,7 @@ void TMaterialParameterPrimitive<T, IsRenderProxy>::Set(const T& value, u32 arra
 	const MaterialParams::ParamData* data = params->GetParamData(this->mParamIndex);
 
 	params->SetDataParam(*data, arrayIdx, value);
-	this->mMaterial->MarkCoreDirtyInternal();
+	this->mMaterial->MarkRenderProxyDataDirtyInternal();
 }
 
 template <class T, bool IsRenderProxy>
@@ -81,7 +81,7 @@ void TMaterialParameterCurve<T, IsRenderProxy>::Set(TAnimationCurve<T> value, u3
 	const MaterialParams::ParamData* data = params->GetParamData(this->mParamIndex);
 
 	params->SetCurveParam(*data, arrayIdx, std::move(value));
-	this->mMaterial->MarkCoreDirtyInternal();
+	this->mMaterial->MarkRenderProxyDataDirtyInternal();
 }
 
 template <class T, bool IsRenderProxy>
@@ -114,7 +114,7 @@ void TMaterialParameterColorGradient<IsRenderProxy>::Set(const ColorGradientHDR&
 	const MaterialParams::ParamData* data = params->GetParamData(this->mParamIndex);
 
 	params->SetColorGradientParam(*data, arrayIdx, value);
-	this->mMaterial->MarkCoreDirtyInternal();
+	this->mMaterial->MarkRenderProxyDataDirtyInternal();
 }
 
 template <bool IsRenderProxy>
@@ -147,7 +147,7 @@ void TMaterialParameterStruct<IsRenderProxy>::Set(const void* value, u32 sizeByt
 	const MaterialParams::ParamData* data = params->GetParamData(this->mParamIndex);
 
 	params->SetStructData(*data, value, sizeBytes, arrayIdx);
-	this->mMaterial->MarkCoreDirtyInternal();
+	this->mMaterial->MarkRenderProxyDataDirtyInternal();
 }
 
 template <bool IsRenderProxy>
@@ -210,7 +210,7 @@ void TMaterialParameterSampledTexture<IsRenderProxy>::Set(const TextureType& tex
 		params->GetDefaultTexture(*data, newValue);
 
 	params->SetTexture(*data, newValue, surface);
-	mMaterial->MarkCoreDirtyInternal();
+	mMaterial->MarkRenderProxyDataDirtyInternal();
 	mMaterial->MarkDependenciesDirtyInternal();
 	mMaterial->MarkResourcesDirtyInternal();
 }
@@ -271,7 +271,7 @@ void TMaterialParamSpriteTexture<IsRenderProxy>::Set(const SpriteTextureType& te
 	else
 		params->SetSpriteTexture(*data, texture);
 
-	mMaterial->MarkCoreDirtyInternal();
+	mMaterial->MarkRenderProxyDataDirtyInternal();
 	mMaterial->MarkDependenciesDirtyInternal();
 	mMaterial->MarkResourcesDirtyInternal();
 }
@@ -321,7 +321,7 @@ void TMaterialParameterStorageTexture<IsRenderProxy>::Set(const TextureType& tex
 	const MaterialParams::ParamData* data = params->GetParamData(mParamIndex);
 
 	params->SetStorageTexture(*data, texture, surface);
-	mMaterial->MarkCoreDirtyInternal();
+	mMaterial->MarkRenderProxyDataDirtyInternal();
 	mMaterial->MarkDependenciesDirtyInternal();
 	mMaterial->MarkResourcesDirtyInternal();
 }
@@ -374,7 +374,7 @@ void TMaterialParameterBuffer<IsRenderProxy>::Set(const BufferType& buffer) cons
 	const MaterialParams::ParamData* data = params->GetParamData(mParamIndex);
 
 	params->SetBuffer(*data, buffer);
-	mMaterial->MarkCoreDirtyInternal();
+	mMaterial->MarkRenderProxyDataDirtyInternal();
 	mMaterial->MarkDependenciesDirtyInternal();
 }
 
@@ -428,7 +428,7 @@ void TMaterialParameterSampler<IsRenderProxy>::Set(const SPtr<SamplerState>& sam
 		params->GetDefaultSamplerState(*data, newValue);
 
 	params->SetSamplerState(*data, newValue);
-	mMaterial->MarkCoreDirtyInternal();
+	mMaterial->MarkRenderProxyDataDirtyInternal();
 	mMaterial->MarkDependenciesDirtyInternal();
 }
 

@@ -382,7 +382,7 @@ namespace bs
 		ShaderInformation() = default;
 
 		/** Converts object to the render thread variant. */
-		static ct::ShaderInformation ConvertToCore(const ShaderInformation& other);
+		static ct::ShaderInformation ConvertToRenderProxy(const ShaderInformation& other);
 
 		/** Techniques to initialize the shader with. */
 		Vector<SPtr<Technique>> Techniques;

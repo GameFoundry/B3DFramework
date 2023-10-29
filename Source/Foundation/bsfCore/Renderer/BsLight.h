@@ -49,7 +49,7 @@ namespace bs
 		void SetType(LightType type)
 		{
 			mType = type;
-			MarkCoreDirtyInternal();
+			MarkRenderProxyDataDirtyInternal();
 			UpdateBounds();
 		}
 
@@ -57,7 +57,7 @@ namespace bs
 		void SetCastsShadow(bool castsShadow)
 		{
 			mCastsShadows = castsShadow;
-			MarkCoreDirtyInternal();
+			MarkRenderProxyDataDirtyInternal();
 		}
 
 		/** @copydoc SetCastsShadow */
@@ -76,7 +76,7 @@ namespace bs
 		void SetShadowBias(float bias)
 		{
 			mShadowBias = bias;
-			MarkCoreDirtyInternal();
+			MarkRenderProxyDataDirtyInternal();
 		}
 
 		/** @copydoc SetShadowBias() */
@@ -86,7 +86,7 @@ namespace bs
 		void SetColor(const Color& color)
 		{
 			mColor = color;
-			MarkCoreDirtyInternal();
+			MarkRenderProxyDataDirtyInternal();
 		}
 
 		/** @copydoc SetColor() */
@@ -141,7 +141,7 @@ namespace bs
 		void SetSpotAngle(const Degree& spotAngle)
 		{
 			mSpotAngle = spotAngle;
-			MarkCoreDirtyInternal();
+			MarkRenderProxyDataDirtyInternal();
 			UpdateBounds();
 		}
 
@@ -155,7 +155,7 @@ namespace bs
 		void SetSpotFalloffAngle(const Degree& spotFallofAngle)
 		{
 			mSpotFalloffAngle = spotFallofAngle;
-			MarkCoreDirtyInternal();
+			MarkRenderProxyDataDirtyInternal();
 			UpdateBounds();
 		}
 
@@ -210,9 +210,6 @@ namespace bs
 	class B3D_CORE_EXPORT Light : public IReflectable, public CoreObject, public LightBase
 	{
 	public:
-		/**	Retrieves the render proxy. */
-		SPtr<ct::Light> GetCore() const;
-
 		/**
 		 * Creates a new light with provided settings.
 		 *
@@ -235,7 +232,7 @@ namespace bs
 		Light(LightType type, Color color, float intensity, float attRadius, float srcRadius, bool castsShadows, Degree spotAngle, Degree spotFalloffAngle);
 
 		SPtr<ct::RenderProxy> CreateRenderProxy() const override;
-		void MarkCoreDirtyInternal(ActorDirtyFlag flag = ActorDirtyFlag::Everything) override;
+		void MarkRenderProxyDataDirtyInternal(ActorDirtyFlag flag = ActorDirtyFlag::Everything) override;
 		RenderProxySyncPacket* CreateRenderProxySyncPacket(FrameAllocator& allocator, u32 flags) override;
 
 		/**	Creates a light with without initializing it. Used for serialization. */

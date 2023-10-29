@@ -32,7 +32,7 @@ void DecalBase::SetLayer(u64 layer)
 	}
 
 	mLayer = layer;
-	MarkCoreDirtyInternal();
+	MarkRenderProxyDataDirtyInternal();
 }
 
 void DecalBase::SetTransform(const Transform& transform)
@@ -44,7 +44,7 @@ void DecalBase::SetTransform(const Transform& transform)
 	mTfrmMatrix = transform.GetMatrix();
 	mTfrmMatrixNoScale = Matrix4::TRS(transform.GetPosition(), transform.GetRotation(), Vector3::kOne);
 
-	MarkCoreDirtyInternal(ActorDirtyFlag::Transform);
+	MarkRenderProxyDataDirtyInternal(ActorDirtyFlag::Transform);
 }
 
 void DecalBase::UpdateBounds()
@@ -80,11 +80,6 @@ Decal::Decal(const HMaterial& material, const Vector2& size, float maxDistance)
 	UpdateBounds();
 }
 
-SPtr<ct::Decal> Decal::GetCore() const
-{
-	return std::static_pointer_cast<ct::Decal>(mRenderProxy);
-}
-
 SPtr<Decal> Decal::Create(const HMaterial& material, const Vector2& size, float maxDistance)
 {
 	Decal* decal = new(B3DAllocate<Decal>()) Decal(material, size, maxDistance);
@@ -106,9 +101,7 @@ SPtr<Decal> Decal::CreateEmpty()
 
 SPtr<ct::RenderProxy> Decal::CreateRenderProxy() const
 {
-	SPtr<ct::Material> material;
-	if(mMaterial.IsLoaded(false))
-		material = mMaterial->GetCore();
+	SPtr<ct::Material> material = B3DGetRenderProxy(mMaterial);
 
 	ct::Decal* decal = new(B3DAllocate<ct::Decal>()) ct::Decal(material, mSize, mMaxDistance);
 	SPtr<ct::Decal> decalPtr = B3DMakeSharedFromExisting<ct::Decal>(decal);
@@ -132,7 +125,7 @@ RenderProxySyncPacket* Decal::CreateRenderProxySyncPacket(FrameAllocator& alloca
 	return syncPacket;
 }
 
-void Decal::MarkCoreDirtyInternal(ActorDirtyFlag flags)
+void Decal::MarkRenderProxyDataDirtyInternal(ActorDirtyFlag flags)
 {
 	MarkRenderProxyDataDirty((u32)flags);
 }

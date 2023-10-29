@@ -10,12 +10,12 @@ using namespace bs;
 
 RendererMaterialManager::RendererMaterialManager()
 {
-	GetRenderThread().PostCommand([this]() { InitOnCore(); });
+	GetRenderThread().PostCommand([this]() { InitOnRenderThread(); });
 }
 
 RendererMaterialManager::~RendererMaterialManager()
 {
-	GetRenderThread().PostCommand(std::bind(&RendererMaterialManager::DestroyOnCore));
+	GetRenderThread().PostCommand(std::bind(&RendererMaterialManager::DestroyOnRenderThread));
 }
 
 void RendererMaterialManager::RegisterMaterial(ct::RendererMaterialMetaData* metaData, const char* shaderPath)
@@ -26,7 +26,7 @@ void RendererMaterialManager::RegisterMaterial(ct::RendererMaterialMetaData* met
 	materials.push_back({ metaData, shaderPath });
 }
 
-void RendererMaterialManager::InitOnCore()
+void RendererMaterialManager::InitOnRenderThread()
 {
 	Lock lock(GetMutex());
 
@@ -57,7 +57,7 @@ ShaderDefines RendererMaterialManager::GetDefinesInternal(const Path& shaderPath
 	return output;
 }
 
-void RendererMaterialManager::DestroyOnCore()
+void RendererMaterialManager::DestroyOnRenderThread()
 {
 	Lock lock(GetMutex());
 

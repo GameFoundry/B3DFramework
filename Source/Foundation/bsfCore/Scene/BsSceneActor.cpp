@@ -29,19 +29,19 @@ void SceneActor::SetTransform(const Transform& transform)
 		return;
 
 	mTransform = transform;
-	MarkCoreDirtyInternal(ActorDirtyFlag::Transform);
+	MarkRenderProxyDataDirtyInternal(ActorDirtyFlag::Transform);
 }
 
 void SceneActor::SetMobility(ObjectMobility mobility)
 {
 	mMobility = mobility;
-	MarkCoreDirtyInternal(ActorDirtyFlag::Mobility);
+	MarkRenderProxyDataDirtyInternal(ActorDirtyFlag::Mobility);
 }
 
 void SceneActor::SetActive(bool active)
 {
 	mActive = active;
-	MarkCoreDirtyInternal(ActorDirtyFlag::Active);
+	MarkRenderProxyDataDirtyInternal(ActorDirtyFlag::Active);
 }
 
 void SceneActor::UpdateStateInternal(const SceneObject& so, bool force)

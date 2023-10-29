@@ -284,7 +284,7 @@ namespace bs
 		bool HasUniformBuffer(const String& name) const;
 
 		/** Marks the main thread object as dirty, causing it to sync its contents with its render thread counterpart. */
-		virtual void MarkCoreDirtyInternal() {}
+		virtual void MarkRenderProxyDataDirtyInternal() {}
 
 		/** @copydoc IResourceListener::MarkListenerResourcesDirty */
 		virtual void MarkResourcesDirtyInternal() {}
@@ -532,9 +532,6 @@ namespace bs
 	public:
 		~GpuParameters() {}
 
-		/** Retrieves the render proxy. */
-		SPtr<ct::GpuParameters> GetCore() const;
-
 		/**
 		 * Creates new GpuParameters object that can serve for changing the GPU program parameters on the specified pipeline.
 		 *
@@ -560,7 +557,7 @@ namespace bs
 		 *  @{
 		 */
 
-		void MarkCoreDirtyInternal() override;
+		void MarkRenderProxyDataDirtyInternal() override;
 		void MarkResourcesDirtyInternal() override;
 
 		/** @} */

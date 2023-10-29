@@ -123,7 +123,7 @@ u32 SpriteTexture::GetFrameHeight() const
 	return GetHeight() / std::max(1U, mAnimation.NumRows);
 }
 
-void SpriteTexture::MarkCoreDirtyInternal()
+void SpriteTexture::MarkRenderProxyDataDirtyInternal()
 {
 	MarkRenderProxyDataDirty();
 }
@@ -137,10 +137,7 @@ void SpriteTexture::Initialize()
 
 SPtr<ct::RenderProxy> SpriteTexture::CreateRenderProxy() const
 {
-	SPtr<ct::Texture> texturePtr;
-	if(mAtlasTexture.IsLoaded())
-		texturePtr = mAtlasTexture->GetCore();
-
+	SPtr<ct::Texture> texturePtr = B3DGetRenderProxy(mAtlasTexture);
 	ct::SpriteTexture* spriteTexture = new(B3DAllocate<ct::SpriteTexture>()) ct::SpriteTexture(mUVOffset, mUVScale, std::move(texturePtr), mAnimation, mPlayback);
 
 	SPtr<ct::SpriteTexture> spriteTexPtr = B3DMakeSharedFromExisting<ct::SpriteTexture>(spriteTexture);
@@ -158,11 +155,6 @@ void SpriteTexture::GetCoreDependencies(Vector<CoreObject*>& dependencies)
 {
 	if(mAtlasTexture.IsLoaded())
 		dependencies.push_back(mAtlasTexture.Get());
-}
-
-SPtr<ct::SpriteTexture> SpriteTexture::GetCore() const
-{
-	return std::static_pointer_cast<ct::SpriteTexture>(mRenderProxy);
 }
 
 HSpriteTexture SpriteTexture::Create(const HTexture& texture)

@@ -52,11 +52,6 @@ RenderProxySyncPacket* MeshBase::CreateRenderProxySyncPacket(FrameAllocator& all
 	return syncPacket;
 }
 
-SPtr<ct::MeshBase> MeshBase::GetCore() const
-{
-	return std::static_pointer_cast<ct::MeshBase>(mRenderProxy);
-}
-
 /************************************************************************/
 /* 								SERIALIZATION                      		*/
 /************************************************************************/

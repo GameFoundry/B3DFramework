@@ -106,8 +106,8 @@ void ReflectionProbe::CaptureAndFilter()
 		mRendererTask = nullptr;
 	};
 
-	SPtr<ct::ReflectionProbe> coreProbe = GetCore();
-	SPtr<ct::Texture> coreTexture = mFilteredTexture->GetCore();
+	SPtr<ct::ReflectionProbe> coreProbe = B3DGetRenderProxy(this);
+	SPtr<ct::Texture> coreTexture = B3DGetRenderProxy(mFilteredTexture);
 
 	if(mCustomTexture == nullptr)
 	{
@@ -139,7 +139,7 @@ void ReflectionProbe::CaptureAndFilter()
 	}
 	else
 	{
-		SPtr<ct::Texture> coreCustomTex = mCustomTexture->GetCore();
+		SPtr<ct::Texture> coreCustomTex = B3DGetRenderProxy(mCustomTexture);
 		auto filterReflProbe = [coreCustomTex, coreTexture, coreProbe](ct::GpuCommandBufferPool& commandBufferPool)
 		{
 			const SPtr<ct::GpuCommandBuffer> commandBuffer = commandBufferPool.Create(ct::GpuCommandBufferCreateInformation::Create("FilterReflectionProbe"));
@@ -163,11 +163,6 @@ void ReflectionProbe::CaptureAndFilter()
 
 	mRendererTask->OnComplete.Connect(renderComplete);
 	ct::GetRenderer()->AddTask(mRendererTask);
-}
-
-SPtr<ct::ReflectionProbe> ReflectionProbe::GetCore() const
-{
-	return std::static_pointer_cast<ct::ReflectionProbe>(mRenderProxy);
 }
 
 SPtr<ReflectionProbe> ReflectionProbe::CreateSphere(float radius)
@@ -201,9 +196,7 @@ SPtr<ReflectionProbe> ReflectionProbe::CreateEmpty()
 
 SPtr<ct::RenderProxy> ReflectionProbe::CreateRenderProxy() const
 {
-	SPtr<ct::Texture> filteredTexture;
-	if(mFilteredTexture != nullptr)
-		filteredTexture = mFilteredTexture->GetCore();
+	SPtr<ct::Texture> filteredTexture = B3DGetRenderProxy(mFilteredTexture);
 
 	ct::ReflectionProbe* probe = new(B3DAllocate<ct::ReflectionProbe>()) ct::ReflectionProbe(mType, mRadius, mExtents, filteredTexture);
 	SPtr<ct::ReflectionProbe> probePtr = B3DMakeSharedFromExisting<ct::ReflectionProbe>(probe);
@@ -221,7 +214,7 @@ RenderProxySyncPacket* ReflectionProbe::CreateRenderProxySyncPacket(FrameAllocat
 	return syncPacket;
 }
 
-void ReflectionProbe::MarkCoreDirtyInternal(ActorDirtyFlag flags)
+void ReflectionProbe::MarkRenderProxyDataDirtyInternal(ActorDirtyFlag flags)
 {
 	MarkRenderProxyDataDirty((u32)flags);
 }

@@ -83,7 +83,7 @@ namespace bs
 		void SetOffset(const Vector2& offset)
 		{
 			mUVOffset = offset;
-			MarkCoreDirtyInternal();
+			MarkRenderProxyDataDirtyInternal();
 		}
 
 		/** @copydoc SetOffset() */
@@ -95,7 +95,7 @@ namespace bs
 		void SetScale(const Vector2& scale)
 		{
 			mUVScale = scale;
-			MarkCoreDirtyInternal();
+			MarkRenderProxyDataDirtyInternal();
 		}
 
 		/** @copydoc SetScale() */
@@ -124,7 +124,7 @@ namespace bs
 		void SetAnimation(const SpriteSheetGridAnimation& anim)
 		{
 			mAnimation = anim;
-			MarkCoreDirtyInternal();
+			MarkRenderProxyDataDirtyInternal();
 		}
 
 		/** @copydoc SetAnimation */
@@ -136,7 +136,7 @@ namespace bs
 		void SetAnimationPlayback(SpriteAnimationPlayback playback)
 		{
 			mPlayback = playback;
-			MarkCoreDirtyInternal();
+			MarkRenderProxyDataDirtyInternal();
 		}
 
 		/** @copydoc SetAnimationPlayback */
@@ -145,7 +145,7 @@ namespace bs
 
 	protected:
 		/** Marks the contents of the main thread object as dirty, causing it to sync with its render thread counterpart. */
-		virtual void MarkCoreDirtyInternal() {}
+		virtual void MarkRenderProxyDataDirtyInternal() {}
 
 		Vector2 mUVOffset;
 		Vector2 mUVScale;
@@ -216,9 +216,6 @@ namespace bs
 		B3D_SCRIPT_EXPORT(ExportName(FrameHeight), Property(Getter))
 		u32 GetFrameHeight() const;
 
-		/**	Retrieves the render proxy. */
-		SPtr<ct::SpriteTexture> GetCore() const;
-
 		/**	Creates a new sprite texture that references the entire area of the provided texture. */
 		B3D_SCRIPT_EXPORT(ExtensionConstructorForType(SpriteTexture))
 		static HSpriteTexture Create(const HTexture& texture);
@@ -243,7 +240,7 @@ namespace bs
 		/** Creates a new SpriteTexture without a resource handle. Use create() for normal use. */
 		static SPtr<SpriteTexture> CreatePtrInternal(const Vector2& uvOffset, const Vector2& uvScale, const HTexture& texture);
 
-		void MarkCoreDirtyInternal() override;
+		void MarkRenderProxyDataDirtyInternal() override;
 
 		/** @} */
 	private:

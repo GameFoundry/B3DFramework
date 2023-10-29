@@ -13,15 +13,10 @@
 
 using namespace bs;
 
-ct::SpriteMaterialInfo SpriteMaterialInfo::GetCore() const
-{
-	return ct::SpriteMaterialInfo(*this);
-}
-
 SpriteMaterial::SpriteMaterial(u32 id, const HMaterial& material, ShaderVariationParameters variation, bool allowBatching)
 	: mId(id), mAllowBatching(allowBatching), mMaterialStored(false), mParamBufferIdx(-1)
 {
-	mMaterial = material->GetCore();
+	mMaterial = B3DGetRenderProxy(material);
 
 	FindVariationInformation findTechniqueDesc;
 	findTechniqueDesc.VariationParameters = &variation;
@@ -126,8 +121,8 @@ namespace bs
 		SpriteMaterialInfo::SpriteMaterialInfo(const TSpriteMaterialInfo<false>& other)
 		{
 			GroupId = other.GroupId;
-			Texture = other.Texture != nullptr ? other.Texture->GetCore() : nullptr;
-			SpriteTexture = other.SpriteTexture != nullptr ? other.SpriteTexture->GetCore() : nullptr;
+			Texture = B3DGetRenderProxy(other.Texture);
+			SpriteTexture = B3DGetRenderProxy(other.SpriteTexture);
 			Tint = other.Tint;
 			AnimationStartTime = other.AnimationStartTime;
 			AdditionalData = other.AdditionalData;

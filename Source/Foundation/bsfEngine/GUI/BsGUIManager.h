@@ -233,9 +233,9 @@ namespace bs
 		/**
 		 * Destroys the render thread counterpart of the GUI manager.
 		 *
-		 * @param[in]	core	Previously constructed render thread GUI manager instance.
+		 * @param[in]	renderer	Previously constructed render thread GUI manager instance.
 		 */
-		void DestroyCore(ct::GUIRenderer* core);
+		void DestroyRenderer(ct::GUIRenderer* renderer);
 
 		/**
 		 * Destroys any elements or widgets queued for destruction.

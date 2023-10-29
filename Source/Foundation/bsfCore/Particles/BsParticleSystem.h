@@ -515,9 +515,6 @@ namespace bs
 		/** Stops the particle system and resets it to initial state, clearing all particles. */
 		void Stop();
 
-		/**	Retrieves the render proxy. */
-		SPtr<ct::ParticleSystem> GetCore() const;
-
 		/** Creates a new empty ParticleSystem object. */
 		static SPtr<ParticleSystem> Create();
 
@@ -618,7 +615,7 @@ namespace bs
 		void PostSimulate(const ParticleSystemState& state, u32 startIdx, u32 count, bool spacing, float spacingOffset);
 
 		SPtr<ct::RenderProxy> CreateRenderProxy() const override;
-		void MarkCoreDirtyInternal(ActorDirtyFlag flag = ActorDirtyFlag::Everything) override;
+		void MarkRenderProxyDataDirtyInternal(ActorDirtyFlag flag = ActorDirtyFlag::Everything) override;
 		RenderProxySyncPacket* CreateRenderProxySyncPacket(FrameAllocator& allocator, u32 flags) override;
 		void GetCoreDependencies(Vector<CoreObject*>& dependencies) override;
 

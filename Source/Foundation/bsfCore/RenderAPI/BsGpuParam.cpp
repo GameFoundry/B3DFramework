@@ -54,7 +54,7 @@ void TGpuParameterPrimitive<T, IsRenderProxy>::Set(const T& value, u32 arrayIdx)
 	else
 		paramBlock->WriteCachedType((mParameterInformation->CpuOffset + arrayIdx * mParameterInformation->ArrayElementStride) * sizeof(u32), typeInformation, &value);
 
-	mParent->MarkCoreDirtyInternal();
+	mParent->MarkRenderProxyDataDirtyInternal();
 }
 
 template <class T, bool IsRenderProxy>
@@ -129,7 +129,7 @@ void TGpuParameterStruct<IsRenderProxy>::Set(const void* value, u32 sizeBytes, u
 		paramBlock->ZeroOutCached((mParameterInformation->CpuOffset + arrayIdx * mParameterInformation->ArrayElementStride) * sizeof(u32) + sizeBytes, diffSize);
 	}
 
-	mParent->MarkCoreDirtyInternal();
+	mParent->MarkRenderProxyDataDirtyInternal();
 }
 
 template <bool IsRenderProxy>
@@ -189,7 +189,7 @@ void TGpuParameterSampledTexture<IsRenderProxy>::Set(const TextureType& texture,
 	mParent->SetSampledTexture(mBinding.Set, mBinding.Slot, texture, surface, arrayIndex);
 
 	mParent->MarkResourcesDirtyInternal();
-	mParent->MarkCoreDirtyInternal();
+	mParent->MarkRenderProxyDataDirtyInternal();
 }
 
 template <bool IsRenderProxy>
@@ -219,7 +219,7 @@ void TGpuParameterBuffer<IsRenderProxy>::Set(const BufferType& buffer, u32 array
 	mParent->SetStorageBuffer(mBinding.Set, mBinding.Slot, buffer, arrayIndex, view);
 
 	mParent->MarkResourcesDirtyInternal();
-	mParent->MarkCoreDirtyInternal();
+	mParent->MarkRenderProxyDataDirtyInternal();
 }
 
 template <bool IsRenderProxy>
@@ -249,7 +249,7 @@ void TGpuParameterStorageTexture<IsRenderProxy>::Set(const TextureType& texture,
 	mParent->SetStorageTexture(mBinding.Set, mBinding.Slot, texture, surface, arrayIndex);
 
 	mParent->MarkResourcesDirtyInternal();
-	mParent->MarkCoreDirtyInternal();
+	mParent->MarkRenderProxyDataDirtyInternal();
 }
 
 template <bool IsRenderProxy>
@@ -279,7 +279,7 @@ void TGpuParameterSampler<IsRenderProxy>::Set(const SPtr<SamplerState>& samplerS
 	mParent->SetSamplerState(mBinding.Set, mBinding.Slot, samplerState, arrayIndex);
 
 	mParent->MarkResourcesDirtyInternal();
-	mParent->MarkCoreDirtyInternal();
+	mParent->MarkRenderProxyDataDirtyInternal();
 }
 
 template <bool IsRenderProxy>

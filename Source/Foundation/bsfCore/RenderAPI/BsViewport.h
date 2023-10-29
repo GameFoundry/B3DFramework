@@ -89,7 +89,7 @@ namespace bs
 		 * Marks the render proxy data as dirty. This causes the data from the main thread object be synced with the render thread
 		 * version of the object.
 		 */
-		virtual void MarkCoreDirtyInternal() {}
+		virtual void MarkRenderProxyDataDirtyInternal() {}
 
 		/** Gets the render target width. */
 		virtual u32 GetTargetWidth() const = 0;
@@ -146,9 +146,6 @@ namespace bs
 
 		SPtr<RenderTarget> GetTarget() const { return mTarget; }
 
-		/**	Retrieves the render proxy. */
-		SPtr<ct::Viewport> GetCore() const;
-
 		/**
 		 * Creates a new viewport.
 		 *
@@ -163,7 +160,7 @@ namespace bs
 
 		Viewport(const SPtr<RenderTarget>& target, float x = 0.0f, float y = 0.0f, float width = 1.0f, float height = 1.0f);
 
-		void MarkCoreDirtyInternal() override;
+		void MarkRenderProxyDataDirtyInternal() override;
 		u32 GetTargetWidth() const override;
 		u32 GetTargetHeight() const override;
 

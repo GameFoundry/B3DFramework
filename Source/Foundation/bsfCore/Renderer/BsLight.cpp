@@ -28,7 +28,7 @@ void LightBase::SetUseAutoAttenuation(bool enabled)
 	if(enabled)
 		UpdateAttenuationRange();
 
-	MarkCoreDirtyInternal();
+	MarkRenderProxyDataDirtyInternal();
 }
 
 void LightBase::SetAttenuationRadius(float radius)
@@ -37,7 +37,7 @@ void LightBase::SetAttenuationRadius(float radius)
 		return;
 
 	mAttRadius = radius;
-	MarkCoreDirtyInternal();
+	MarkRenderProxyDataDirtyInternal();
 	UpdateBounds();
 }
 
@@ -48,7 +48,7 @@ void LightBase::SetSourceRadius(float radius)
 	if(mAutoAttenuation)
 		UpdateAttenuationRange();
 
-	MarkCoreDirtyInternal();
+	MarkRenderProxyDataDirtyInternal();
 }
 
 void LightBase::SetIntensity(float intensity)
@@ -58,7 +58,7 @@ void LightBase::SetIntensity(float intensity)
 	if(mAutoAttenuation)
 		UpdateAttenuationRange();
 
-	MarkCoreDirtyInternal();
+	MarkRenderProxyDataDirtyInternal();
 }
 
 float LightBase::GetLuminance() const
@@ -198,11 +198,6 @@ Light::Light(LightType type, Color color, float intensity, float attRadius, floa
 	UpdateBounds();
 }
 
-SPtr<ct::Light> Light::GetCore() const
-{
-	return std::static_pointer_cast<ct::Light>(mRenderProxy);
-}
-
 SPtr<Light> Light::Create(LightType type, Color color, float intensity, float attRadius, bool castsShadows, Degree spotAngle, Degree spotFalloffAngle)
 {
 	Light* handler = new(B3DAllocate<Light>())
@@ -242,7 +237,7 @@ RenderProxySyncPacket* Light::CreateRenderProxySyncPacket(FrameAllocator& alloca
 	return syncPacket;
 }
 
-void Light::MarkCoreDirtyInternal(ActorDirtyFlag flag)
+void Light::MarkRenderProxyDataDirtyInternal(ActorDirtyFlag flag)
 {
 	MarkRenderProxyDataDirty((u32)flag);
 }

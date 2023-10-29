@@ -116,9 +116,9 @@ GUIManager::~GUIManager()
 	B3DDelete(mInputSelection);
 }
 
-void GUIManager::DestroyCore(ct::GUIRenderer* core)
+void GUIManager::DestroyRenderer(ct::GUIRenderer* renderer)
 {
-	B3DDelete(core);
+	B3DDelete(renderer);
 }
 
 void GUIManager::RegisterWidget(GUIWidget* widget)
@@ -172,7 +172,7 @@ void GUIManager::UnregisterWidget(GUIWidget* widget)
 	{
 		auto widgetId = (u64)widget;
 		GetRenderThread().PostCommand([renderer = mRenderer.get(),
-									camera = camera->GetCore(),
+									camera = B3DGetRenderProxy(camera),
 									widgetId]()
 								   { renderer->ClearDrawGroups(camera, widgetId); });
 	}
@@ -357,7 +357,7 @@ void GUIManager::Update()
 		auto widgetId = (u64)widget;
 		GetRenderThread().PostCommand([renderer = mRenderer.get(),
 									updateData = std::move(updateData),
-									camera = camera->GetCore(),
+									camera = B3DGetRenderProxy(camera),
 									widgetId,
 									widgetDepth = widget->GetDepth(),
 									worldTransform = widget->GetWorldTfrm()]()
