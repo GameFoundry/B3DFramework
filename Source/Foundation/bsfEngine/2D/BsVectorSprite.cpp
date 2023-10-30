@@ -191,12 +191,7 @@ SPtr<GUIVectorSpriteAtlasAllocation> GUIVectorSpriteAtlas::Allocate(const Vector
 
 	B3D_ASSERT(image->GetWidth() > 0 && image->GetHeight() > 0);
 
-	{
-		Lock lock(mDirtySpriteMutex);
-
-		mDirtySprites.push_back(dirtySpriteInformation);
-	}
-
+	mDirtySpriteBuffers[mDirtySpriteWriteBufferIndex].push_back(dirtySpriteInformation);
 	return allocationShared;
 }
 
@@ -223,6 +218,15 @@ void GUIVectorSpriteAtlas::Update()
 		}
 
 		it = mFreeTextureCache.erase(it);
+	}
+
+
+	mDirtySpriteWriteBufferIndex = (mDirtySpriteWriteBufferIndex + 1) % B3DSize(mDirtySpriteBuffers);
+	mDirtySpriteBuffers[mDirtySpriteWriteBufferIndex].clear();
+
+	{
+		Lock lock(mDirtySpriteMutex);
+		mDirtySpriteReadBufferIndex = (mDirtySpriteReadBufferIndex + 1) % B3DSize(mDirtySpriteBuffers);
 	}
 }
 
@@ -270,14 +274,15 @@ void GUIVectorSpriteAtlas::RenderDirtySprites()
 	if(!EnsureRenderThread())
 		return;
 
+	u32 readBufferIndex = 0;
 	{
 		Lock lock(mDirtySpriteMutex);
-
-		if(!mDirtySprites.empty())
-			mDirtySprites.swap(mDirtySpritesTemp);
+		readBufferIndex = mDirtySpriteReadBufferIndex;
 	}
 
-	if(mDirtySpritesTemp.empty())
+	Vector<DirtySpriteInformation>& dirtySprites = mDirtySpriteBuffers[readBufferIndex];
+
+	if(dirtySprites.empty())
 		return;
 
 	const SPtr<GpuDevice> gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
@@ -289,7 +294,7 @@ void GUIVectorSpriteAtlas::RenderDirtySprites()
 	FrameScope frameScope;
 	FrameUnorderedMap<ct::Texture*, SPtr<ct::RenderTexture>> atlasRenderTextures;
 
-	for(const auto& entry : mDirtySpritesTemp)
+	for(const auto& entry : dirtySprites)
 	{
 		TextureCreateInformation colorTextureCreateInformation;
 		colorTextureCreateInformation.Width = entry.Size.Width;
@@ -340,7 +345,7 @@ void GUIVectorSpriteAtlas::RenderDirtySprites()
 	}
 
 	gpuDevice->SubmitCommandBuffer(commandBuffer);
-	mDirtySpritesTemp.clear();	
+	dirtySprites.clear();	
 }
 
 HTexture GUIVectorSpriteAtlas::CreateOrFindTexture(Size2UI size) const

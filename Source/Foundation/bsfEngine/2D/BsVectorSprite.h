@@ -197,8 +197,9 @@ namespace bs
 		Vector<GUIVectorSpriteAtlasAllocation*> mFreeAllocationsTemp; // Temporary buffer when iterating over the array on the main thread
 
 		Mutex mDirtySpriteMutex;
-		Vector<DirtySpriteInformation> mDirtySprites;// Dirty sprites recorded here in a thread safe manner
-		Vector<DirtySpriteInformation> mDirtySpritesTemp; // Dirty sprites iterated here on the render thread when rendering
+		u32 mDirtySpriteWriteBufferIndex = 0;
+		u32 mDirtySpriteReadBufferIndex = RenderThread::kSyncBufferCount;
+		Vector<DirtySpriteInformation> mDirtySpriteBuffers[RenderThread::kSyncBufferCount + 1];// Dirty sprites recorded here in a thread safe manner
 
 		mutable UnorderedMap<FreeTextureInformation::Key, FreeTextureInformation, FreeTextureInformation::Key::Hash> mFreeTextureCache;
 
