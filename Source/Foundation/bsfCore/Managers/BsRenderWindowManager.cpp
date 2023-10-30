@@ -53,26 +53,26 @@ void RenderWindowManager::NotifyWindowDestroyed(RenderWindow* window)
 	}
 }
 
-void RenderWindowManager::NotifyFocusReceived(ct::RenderWindow* coreWindow)
+void RenderWindowManager::NotifyFocusReceived(ct::RenderWindow* renderProxy)
 {
 	Lock lock(mWindowMutex);
 
-	RenderWindow* window = GetCoreObject(coreWindow);
+	RenderWindow* window = GetCoreObject(renderProxy);
 	mNewWindowInFocus = window;
 }
 
-void RenderWindowManager::NotifyFocusLost(ct::RenderWindow* coreWindow)
+void RenderWindowManager::NotifyFocusLost(ct::RenderWindow* renderProxy)
 {
 	Lock lock(mWindowMutex);
 
 	mNewWindowInFocus = nullptr;
 }
 
-void RenderWindowManager::NotifyMovedOrResized(ct::RenderWindow* coreWindow)
+void RenderWindowManager::NotifyMovedOrResized(ct::RenderWindow* renderProxy)
 {
 	Lock lock(mWindowMutex);
 
-	RenderWindow* window = GetCoreObject(coreWindow);
+	RenderWindow* window = GetCoreObject(renderProxy);
 	if(window == nullptr)
 		return;
 
@@ -81,33 +81,33 @@ void RenderWindowManager::NotifyMovedOrResized(ct::RenderWindow* coreWindow)
 		mMovedOrResizedWindows.push_back(window);
 }
 
-void RenderWindowManager::NotifyMouseLeft(ct::RenderWindow* coreWindow)
+void RenderWindowManager::NotifyMouseLeft(ct::RenderWindow* renderProxy)
 {
 	Lock lock(mWindowMutex);
 
-	RenderWindow* window = GetCoreObject(coreWindow);
+	RenderWindow* window = GetCoreObject(renderProxy);
 	auto iterFind = std::find(begin(mMouseLeftWindows), end(mMouseLeftWindows), window);
 
 	if(iterFind == end(mMouseLeftWindows))
 		mMouseLeftWindows.push_back(window);
 }
 
-void RenderWindowManager::NotifyCloseRequested(ct::RenderWindow* coreWindow)
+void RenderWindowManager::NotifyCloseRequested(ct::RenderWindow* renderProxy)
 {
 	Lock lock(mWindowMutex);
 
-	RenderWindow* window = GetCoreObject(coreWindow);
+	RenderWindow* window = GetCoreObject(renderProxy);
 	auto iterFind = std::find(begin(mCloseRequestedWindows), end(mCloseRequestedWindows), window);
 
 	if(iterFind == end(mCloseRequestedWindows))
 		mCloseRequestedWindows.push_back(window);
 }
 
-void RenderWindowManager::NotifySyncDataDirty(ct::RenderWindow* coreWindow)
+void RenderWindowManager::NotifySyncDataDirty(ct::RenderWindow* renderProxy)
 {
 	Lock lock(mWindowMutex);
 
-	RenderWindow* window = GetCoreObject(coreWindow);
+	RenderWindow* window = GetCoreObject(renderProxy);
 
 	if(window != nullptr)
 		mDirtyProperties.insert(window);

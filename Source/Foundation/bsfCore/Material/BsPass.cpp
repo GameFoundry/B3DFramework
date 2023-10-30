@@ -141,7 +141,7 @@ void Pass::Compile()
 	// not being used much (at all) to warrant a complex solution. Something to keep in mind for later though.
 	CreatePipelineState();
 
-	// TODO - Non-core Pass possibly shouldn't even hold onto the pipeline states. The sync can just include a request to compile.
+	// TODO - Non-render proxy Pass possibly shouldn't even hold onto the pipeline states. The sync can just include a request to compile.
 
 	MarkRenderProxyDataDirty();
 	CoreObject::SyncToRenderProxy();
@@ -226,7 +226,7 @@ SPtr<Pass> Pass::CreateEmpty()
 
 RTTITypeBase* Pass::GetRttiStatic()
 {
-	return CorePassRTTI::Instance();
+	return PassRenderProxyRTTI::Instance();
 }
 
 RTTITypeBase* Pass::GetRtti() const

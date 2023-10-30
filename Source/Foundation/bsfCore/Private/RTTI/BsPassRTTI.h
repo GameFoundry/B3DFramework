@@ -57,7 +57,7 @@ namespace bs
 		}
 	};
 
-	class B3D_CORE_EXPORT CorePassRTTI : public RTTIType<ct::Pass, IReflectable, CorePassRTTI>
+	class B3D_CORE_EXPORT PassRenderProxyRTTI : public RTTIType<ct::Pass, IReflectable, PassRenderProxyRTTI>
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
@@ -83,13 +83,13 @@ namespace bs
 
 		const String& GetRttiName() override
 		{
-			static String name = "CorePass";
+			static String name = "PassRenderProxy";
 			return name;
 		}
 
 		u32 GetRttiId() override
 		{
-			return TID_CorePass;
+			return TID_PassRenderProxy;
 		}
 
 		SPtr<IReflectable> NewRttiObject() override

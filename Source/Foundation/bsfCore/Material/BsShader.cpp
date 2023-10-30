@@ -272,7 +272,7 @@ RTTITypeBase* ShaderInformation::GetRtti() const
 namespace bs::ct {
 RTTITypeBase* ShaderInformation::GetRttiStatic()
 {
-	return CoreShaderInformationRTTI::Instance();
+	return ShaderInformationRenderProxyRTTI::Instance();
 }
 
 RTTITypeBase* ShaderInformation::GetRtti() const
@@ -541,11 +541,11 @@ SPtr<ct::RenderProxy> Shader::CreateRenderProxy() const
 	for(auto& technique : mInformation.Techniques)
 		techniques.push_back(B3DGetRenderProxy(technique));
 
-	ct::Shader* shaderCore = new(B3DAllocate<ct::Shader>()) ct::Shader(mName, ShaderInformation::ConvertToRenderProxy(mInformation), mShaderId);
-	SPtr<ct::Shader> shaderCorePtr = B3DMakeSharedFromExisting<ct::Shader>(shaderCore);
-	shaderCorePtr->SetShared(shaderCorePtr);
+	ct::Shader* renderProxy = new(B3DAllocate<ct::Shader>()) ct::Shader(mName, ShaderInformation::ConvertToRenderProxy(mInformation), mShaderId);
+	SPtr<ct::Shader> renderProxyShared = B3DMakeSharedFromExisting<ct::Shader>(renderProxy);
+	renderProxyShared->SetShared(renderProxyShared);
 
-	return shaderCorePtr;
+	return renderProxyShared;
 }
 
 void Shader::GetCoreDependencies(Vector<CoreObject*>& dependencies)
@@ -716,12 +716,12 @@ SPtr<Shader> Shader::Create(const String& name, const ShaderCreateInformation& c
 	const u32 id = mNextShaderId.fetch_add(1, std::memory_order_relaxed);
 	B3D_ASSERT(id < std::numeric_limits<u32>::max() && "Created too many shaders, reached maximum id.");
 
-	Shader* const shaderCore = new(B3DAllocate<Shader>()) Shader(name, createInformation, id);
-	SPtr<Shader> shaderCorePtr = B3DMakeSharedFromExisting<Shader>(shaderCore);
-	shaderCorePtr->SetShared(shaderCorePtr);
-	shaderCorePtr->Initialize();
+	Shader* const shader = new(B3DAllocate<Shader>()) Shader(name, createInformation, id);
+	SPtr<Shader> shaderShared = B3DMakeSharedFromExisting<Shader>(shader);
+	shaderShared->SetShared(shaderShared);
+	shaderShared->Initialize();
 
-	return shaderCorePtr;
+	return shaderShared;
 }
 
 SPtr<Shader> Shader::CreateEmpty()
@@ -729,16 +729,16 @@ SPtr<Shader> Shader::CreateEmpty()
 	const uint32 id = mNextShaderId.fetch_add(1, std::memory_order_relaxed);
 	B3D_ASSERT(id < std::numeric_limits<uint32>::max() && "Created too many shaders, reached maximum id.");
 
-	Shader* const shaderCore = new(B3DAllocate<Shader>()) Shader(id);
-	SPtr<Shader> shaderCoreShared = B3DMakeSharedFromExisting<Shader>(shaderCore);
-	shaderCoreShared->SetShared(shaderCoreShared);
+	Shader* const shader = new(B3DAllocate<Shader>()) Shader(id);
+	SPtr<Shader> shaderShared = B3DMakeSharedFromExisting<Shader>(shader);
+	shaderShared->SetShared(shaderShared);
 
-	return shaderCoreShared;
+	return shaderShared;
 }
 
 RTTITypeBase* Shader::GetRttiStatic()
 {
-	return CoreShaderRTTI::Instance();
+	return ShaderRenderProxyRTTI::Instance();
 }
 
 RTTITypeBase* Shader::GetRtti() const

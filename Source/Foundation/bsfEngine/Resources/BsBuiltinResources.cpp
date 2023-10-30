@@ -152,12 +152,12 @@ void BuiltinResources::OnStartUp()
 
 	{
 		ct::BuiltinResources::StartUp();
-		ct::BuiltinResources& coreBuiltinResources = ct::BuiltinResources::Instance();
-		coreBuiltinResources.WhiteTexture2D = whiteTexture2D;
-		coreBuiltinResources.BlackTexture2D = blackTexture2D;
-		coreBuiltinResources.NormalTexture2D = normalTexture;
-		coreBuiltinResources.WhiteTexture3D = whiteTexture3D;
-		coreBuiltinResources.BlackTexture3D = blackTexture3D;
+		ct::BuiltinResources& renderThreadBuiltinResources = ct::BuiltinResources::Instance();
+		renderThreadBuiltinResources.WhiteTexture2D = whiteTexture2D;
+		renderThreadBuiltinResources.BlackTexture2D = blackTexture2D;
+		renderThreadBuiltinResources.NormalTexture2D = normalTexture;
+		renderThreadBuiltinResources.WhiteTexture3D = whiteTexture3D;
+		renderThreadBuiltinResources.BlackTexture3D = blackTexture3D;
 	};
 
 	GetRenderThread().PostCommand(fnInitializeCoreBuiltinResources);

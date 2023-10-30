@@ -277,10 +277,7 @@ namespace bs
 
 			Renderable();
 
-			/** @copydoc CoreObject::initialize */
 			void Initialize() override;
-
-			/** @copydoc CoreObject::syncToCore */
 			void SyncFromCoreObject(const CoreSyncData& data, FrameAllocator& allocator) override;
 
 			/** Creates any buffers required for renderable animation. Should be called whenever animation properties change. */

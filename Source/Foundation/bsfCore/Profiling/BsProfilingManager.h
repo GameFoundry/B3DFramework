@@ -21,8 +21,8 @@ namespace bs
 	/**	Type of thread used by the profiler. */
 	enum class ProfiledThread
 	{
-		Sim,
-		Core
+		Main,
+		Render
 	};
 
 	/**
@@ -44,7 +44,7 @@ namespace bs
 		 *
 		 * @note	Render thread only.
 		 */
-		void UpdateCoreInternal();
+		void UpdateRenderThreadInternal();
 
 		/**
 		 * Returns a profiler report for the specified frame, for the specified thread.
@@ -62,11 +62,11 @@ namespace bs
 
 	private:
 		static const u32 kNumSavedFrames;
-		ProfilerReport* mSavedSimReports = nullptr;
-		u32 mNextSimReportIdx = 0;
+		ProfilerReport* mSavedMainThreadReports = nullptr;
+		u32 mNextSimulationReportIndex = 0;
 
-		ProfilerReport* mSavedCoreReports = nullptr;
-		u32 mNextCoreReportIdx = 0;
+		ProfilerReport* mSavedRenderThreadReports = nullptr;
+		u32 mNextRenderThreadReportIndex = 0;
 
 		mutable Mutex mSync;
 	};

@@ -46,7 +46,7 @@ void RenderWindow::Resize(u32 width, u32 height)
 		renderWindow->Resize(width, height);
 	};
 
-	GetRenderThread().PostCommand([core = B3DGetRenderProxy(this), resizeFunc, width, height] { resizeFunc(core, width, height); }, true);
+	GetRenderThread().PostCommand([renderProxy = B3DGetRenderProxy(this), resizeFunc, width, height] { resizeFunc(renderProxy, width, height); }, true);
 
 	{
 		ScopedSpinLock lock(B3DGetRenderProxy(this)->mLock);
@@ -66,7 +66,7 @@ void RenderWindow::Move(i32 left, i32 top)
 		renderWindow->Move(left, top);
 	};
 
-	GetRenderThread().PostCommand([core = B3DGetRenderProxy(this), moveFunc, left, top] { moveFunc(core, left, top); }, true);
+	GetRenderThread().PostCommand([renderProxy = B3DGetRenderProxy(this), moveFunc, left, top] { moveFunc(renderProxy, left, top); }, true);
 
 	{
 		ScopedSpinLock lock(B3DGetRenderProxy(this)->mLock);
@@ -240,8 +240,8 @@ void RenderWindow::NotifyWindowEventInternal(WindowEventType type)
 {
 	ASSERT_IF_RENDER_THREAD;
 
-	ct::RenderWindow* coreWindow = B3DGetRenderProxy(this).get();
-	RenderWindowProperties& syncProps = coreWindow->GetSyncedProperties();
+	ct::RenderWindow* renderProxy = B3DGetRenderProxy(this).get();
+	RenderWindowProperties& syncProps = renderProxy->GetSyncedProperties();
 	RenderWindowProperties& props = const_cast<RenderWindowProperties&>(GetProperties());
 
 	switch(type)
@@ -251,13 +251,13 @@ void RenderWindow::NotifyWindowEventInternal(WindowEventType type)
 			WindowMovedOrResizedInternal();
 
 			{
-				ScopedSpinLock lock(coreWindow->mLock);
+				ScopedSpinLock lock(renderProxy->mLock);
 				syncProps.Width = props.Width;
 				syncProps.Height = props.Height;
 			}
 
-			ct::RenderWindowManager::Instance().NotifySyncDataDirty(coreWindow);
-			RenderWindowManager::Instance().NotifyMovedOrResized(coreWindow);
+			ct::RenderWindowManager::Instance().NotifySyncDataDirty(renderProxy);
+			RenderWindowManager::Instance().NotifyMovedOrResized(renderProxy);
 
 			break;
 		}
@@ -266,86 +266,86 @@ void RenderWindow::NotifyWindowEventInternal(WindowEventType type)
 			WindowMovedOrResizedInternal();
 
 			{
-				ScopedSpinLock lock(coreWindow->mLock);
+				ScopedSpinLock lock(renderProxy->mLock);
 				syncProps.Top = props.Top;
 				syncProps.Left = props.Left;
 			}
 
-			ct::RenderWindowManager::Instance().NotifySyncDataDirty(coreWindow);
-			RenderWindowManager::Instance().NotifyMovedOrResized(coreWindow);
+			ct::RenderWindowManager::Instance().NotifySyncDataDirty(renderProxy);
+			RenderWindowManager::Instance().NotifyMovedOrResized(renderProxy);
 
 			break;
 		}
 	case WindowEventType::FocusReceived:
 		{
 			{
-				ScopedSpinLock lock(coreWindow->mLock);
+				ScopedSpinLock lock(renderProxy->mLock);
 				syncProps.HasFocus = true;
 			}
 
 			props.HasFocus = true;
 
-			ct::RenderWindowManager::Instance().NotifySyncDataDirty(coreWindow);
-			RenderWindowManager::Instance().NotifyFocusReceived(coreWindow);
+			ct::RenderWindowManager::Instance().NotifySyncDataDirty(renderProxy);
+			RenderWindowManager::Instance().NotifyFocusReceived(renderProxy);
 			break;
 		}
 	case WindowEventType::FocusLost:
 		{
 			{
-				ScopedSpinLock lock(coreWindow->mLock);
+				ScopedSpinLock lock(renderProxy->mLock);
 				syncProps.HasFocus = false;
 			}
 
 			props.HasFocus = false;
 
-			ct::RenderWindowManager::Instance().NotifySyncDataDirty(coreWindow);
-			RenderWindowManager::Instance().NotifyFocusLost(coreWindow);
+			ct::RenderWindowManager::Instance().NotifySyncDataDirty(renderProxy);
+			RenderWindowManager::Instance().NotifyFocusLost(renderProxy);
 			break;
 		}
 	case WindowEventType::Minimized:
 		{
 			{
-				ScopedSpinLock lock(coreWindow->mLock);
+				ScopedSpinLock lock(renderProxy->mLock);
 				syncProps.IsMaximized = false;
 			}
 
 			props.IsMaximized = false;
 
-			ct::RenderWindowManager::Instance().NotifySyncDataDirty(coreWindow);
+			ct::RenderWindowManager::Instance().NotifySyncDataDirty(renderProxy);
 			break;
 		}
 	case WindowEventType::Maximized:
 		{
 			{
-				ScopedSpinLock lock(coreWindow->mLock);
+				ScopedSpinLock lock(renderProxy->mLock);
 				syncProps.IsMaximized = true;
 			}
 
 			props.IsMaximized = true;
 
-			ct::RenderWindowManager::Instance().NotifySyncDataDirty(coreWindow);
+			ct::RenderWindowManager::Instance().NotifySyncDataDirty(renderProxy);
 			break;
 		}
 	case WindowEventType::Restored:
 		{
 			{
-				ScopedSpinLock lock(coreWindow->mLock);
+				ScopedSpinLock lock(renderProxy->mLock);
 				syncProps.IsMaximized = false;
 			}
 
 			props.IsMaximized = false;
 
-			ct::RenderWindowManager::Instance().NotifySyncDataDirty(coreWindow);
+			ct::RenderWindowManager::Instance().NotifySyncDataDirty(renderProxy);
 			break;
 		}
 	case WindowEventType::MouseLeft:
 		{
-			RenderWindowManager::Instance().NotifyMouseLeft(coreWindow);
+			RenderWindowManager::Instance().NotifyMouseLeft(renderProxy);
 			break;
 		}
 	case WindowEventType::CloseRequested:
 		{
-			RenderWindowManager::Instance().NotifyCloseRequested(coreWindow);
+			RenderWindowManager::Instance().NotifyCloseRequested(renderProxy);
 			break;
 		}
 	}

@@ -745,7 +745,7 @@ namespace bs
 		u32 BitDepth; /**< Number of bits per sample. */
 	};
 
-	/** Helper class for syncing dirty data from sim CoreObject to core CoreObject and other way around. */
+	/** Helper class for syncing dirty data from CoreObject to RenderProxy. */
 	class CoreSyncData
 	{
 	public:

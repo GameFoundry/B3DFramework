@@ -771,7 +771,7 @@ namespace bs
 		 */
 
 		/**
-		 * Marks the core data as dirty. This causes the syncToCore() method to trigger the next time objects are synced
+		 * Marks the render proxy data as dirty. This causes the syncToCore() method to trigger the next time objects are synced
 		 * between render and main threads.
 		 */
 		void MarkRenderProxyDataDirtyInternal(MaterialDirtyFlags flags = MaterialDirtyFlags::Param) override;

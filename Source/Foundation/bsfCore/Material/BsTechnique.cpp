@@ -77,7 +77,7 @@ void TTechnique<IsRenderProxy>::SetCompiledPassData(TInlineArray<SPtr<PassType>,
 	mHasPassData = true;
 
 	MarkRenderProxyDirty(ShaderVariationDirtyFlag::Passes);
-	SyncToCore();
+	SyncToRenderProxy();
 }
 
 template <bool IsRenderProxy>
@@ -86,7 +86,7 @@ void TTechnique<IsRenderProxy>::SetOwner(const WeakSPtr<ShaderType>& owner)
 	mOwner = owner;
 
 	MarkRenderProxyDirty(ShaderVariationDirtyFlag::Parent);
-	SyncToCore();
+	SyncToRenderProxy();
 }
 
 template<bool IsRenderProxy>
@@ -213,7 +213,7 @@ void Technique::MarkRenderProxyDirty(ShaderVariationDirtyFlags flags)
 	CoreObject::MarkRenderProxyDataDirty(flags);
 }
 
-void Technique::SyncToCore()
+void Technique::SyncToRenderProxy()
 {
 	CoreObject::SyncToRenderProxy();
 }
@@ -314,7 +314,7 @@ void Technique::SyncFromCoreObject(const CoreSyncData& data, FrameAllocator& all
 
 RTTITypeBase* Technique::GetRttiStatic()
 {
-	return CoreTechniqueRTTI::Instance();
+	return TechniqueRenderProxyRTTI::Instance();
 }
 
 RTTITypeBase* Technique::GetRtti() const

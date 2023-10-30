@@ -186,7 +186,7 @@
 #define B3D_MAXIMUM_RENDER_TARGET_COUNT 8
 
 /**
- * Runs the core thead on the application's main (initial) thread, rather than on a separate worker. Important for macOS
+ * Runs the render thead on the application's main (initial) thread, rather than on a separate worker. Important for macOS
  * which has limitations regarding what can run on non-main threads.
  */
 #define B3D_SWAP_RENDER_AND_MAIN_THREAD 0
@@ -690,13 +690,13 @@ namespace bs
 		TID_PersistentCacheObject = 1216,
 		TID_PersistentCacheMetaData = 1217,
 		TID_GpuProgramCreateInformation = 1218,
-		TID_CorePass = 1219,
-		TID_CoreTechnique = 1220,
+		TID_PassRenderProxy = 1219,
+		TID_TechniqueRenderProxy = 1220,
 		TID_ShaderCompilerMetaData = 1221,
 		TID_ShaderInformationBase = 1222,
 		TID_ShaderInformation = 1223,
-		TID_CoreShaderInformation = 1224,
-		TID_CoreShader = 1225,
+		TID_ShaderInformationRenderProxy = 1224,
+		TID_ShaderRenderProxy = 1225,
 		TID_VectorPathCommand = 1226,
 		TID_VectorGraphicsPaint = 1227,
 		TID_VectorPathState = 1228,

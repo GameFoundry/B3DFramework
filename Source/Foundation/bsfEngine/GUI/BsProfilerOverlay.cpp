@@ -525,8 +525,8 @@ void ProfilerOverlay::Hide()
 
 void ProfilerOverlay::Update()
 {
-	const ProfilerReport& latestSimReport = ProfilingManager::Instance().GetReport(ProfiledThread::Sim);
-	const ProfilerReport& latestCoreReport = ProfilingManager::Instance().GetReport(ProfiledThread::Core);
+	const ProfilerReport& latestSimReport = ProfilingManager::Instance().GetReport(ProfiledThread::Main);
+	const ProfilerReport& latestCoreReport = ProfilingManager::Instance().GetReport(ProfiledThread::Render);
 
 	UpdateCpuSampleContents(latestSimReport, latestCoreReport);
 
@@ -615,15 +615,15 @@ void ProfilerOverlay::UpdateGpuSampleAreaSizes()
 	mNumGPUSamplesPerColumn = columnHeight / kHeightPerEntry;
 }
 
-void ProfilerOverlay::UpdateCpuSampleContents(const ProfilerReport& simReport, const ProfilerReport& coreReport)
+void ProfilerOverlay::UpdateCpuSampleContents(const ProfilerReport& mainThreadReport, const ProfilerReport& renderThreadReport)
 {
 	static const u32 kNumRootEntries = 2;
 
-	const CPUProfilerBasicSamplingEntry& simBasicRootEntry = simReport.CpuReport.GetBasicSamplingData();
-	const CPUProfilerPreciseSamplingEntry& simPreciseRootEntry = simReport.CpuReport.GetPreciseSamplingData();
+	const CPUProfilerBasicSamplingEntry& mainThreadBasicRootEntry = mainThreadReport.CpuReport.GetBasicSamplingData();
+	const CPUProfilerPreciseSamplingEntry& mainThreadPreciseRootEntry = mainThreadReport.CpuReport.GetPreciseSamplingData();
 
-	const CPUProfilerBasicSamplingEntry& coreBasicRootEntry = coreReport.CpuReport.GetBasicSamplingData();
-	const CPUProfilerPreciseSamplingEntry& corePreciseRootEntry = coreReport.CpuReport.GetPreciseSamplingData();
+	const CPUProfilerBasicSamplingEntry& renderThreadBasicRootEntry = renderThreadReport.CpuReport.GetBasicSamplingData();
+	const CPUProfilerPreciseSamplingEntry& renderThreadPreciseRootEntry = renderThreadReport.CpuReport.GetPreciseSamplingData();
 
 	struct TodoBasic
 	{
@@ -649,8 +649,8 @@ void ProfilerOverlay::UpdateCpuSampleContents(const ProfilerReport& simReport, c
 	Stack<TodoBasic> todoBasic;
 
 	const CPUProfilerBasicSamplingEntry* basicRootEntries[kNumRootEntries];
-	basicRootEntries[0] = &simBasicRootEntry;
-	basicRootEntries[1] = &coreBasicRootEntry;
+	basicRootEntries[0] = &mainThreadBasicRootEntry;
+	basicRootEntries[1] = &renderThreadBasicRootEntry;
 
 	for(u32 i = 0; i < kNumRootEntries; i++)
 	{
@@ -678,8 +678,8 @@ void ProfilerOverlay::UpdateCpuSampleContents(const ProfilerReport& simReport, c
 	Stack<TodoPrecise> todoPrecise;
 
 	const CPUProfilerPreciseSamplingEntry* preciseRootEntries[kNumRootEntries];
-	preciseRootEntries[0] = &simPreciseRootEntry;
-	preciseRootEntries[1] = &corePreciseRootEntry;
+	preciseRootEntries[0] = &mainThreadPreciseRootEntry;
+	preciseRootEntries[1] = &renderThreadPreciseRootEntry;
 
 	for(u32 i = 0; i < kNumRootEntries; i++)
 	{

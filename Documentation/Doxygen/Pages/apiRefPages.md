@@ -6,7 +6,7 @@ When a write operation is being performed it is the responsibility of the caller
 
 This value is a global queue index which encodes both the queue type and queue index. Retrieve it from CommandSyncMask::getGlobalQueueIdx().
 
-@page asyncMethod Core thread asynchronous methods
+@page asyncMethod Render thread asynchronous methods
 This type of method doesn't execute immediately when called. Instead it is queued for execution and will be executed when the current frame ends. These methods generally need to perform some kind of communication between the main and core (rendering) threads, making direct calls impossible.
 
 You can force the core thread to start executing queued methods before the end of the current frame, by calling @ref bs::CoreThread::submit() "CoreThread::submit()". This guarantees the commands will start executing, but doesn't guarantee they will finish, as it might take the core thread some time to process all queued commands.

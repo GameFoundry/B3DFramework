@@ -40,7 +40,7 @@ namespace bs
 	using PrecompiledVariationData = TPrecompiledVariationData<false>;
 	namespace ct { using PrecompiledVariationData = TPrecompiledVariationData<true>; }
 
-	/** Base class that is used for implementing both sim and core versions of Technique. */
+	/** Base class that is used for implementing both main and render thread versions of Technique. */
 	class B3D_CORE_EXPORT TechniqueBase
 	{
 	public:
@@ -57,14 +57,14 @@ namespace bs
 		/** Marks the contents as dirty, causing it to sync with the render thread object. */
 		virtual void MarkRenderProxyDirty(ShaderVariationDirtyFlags flag) {}
 
-		/** @copydoc CoreObject::SyncToCore */
-		virtual void SyncToCore() {};
+		/** @copydoc CoreObject::SyncToRenderProxy */
+		virtual void SyncToRenderProxy() {}
 
 		String mLanguage;
 		ShaderVariationParameters mVariationParameters;
 	};
 
-	/** Templated class that is used for implementing both sim and core versions of Technique. */
+	/** Templated class that is used for implementing both main and render thread versions of Technique. */
 	template <bool IsRenderProxy>
 	class B3D_CORE_EXPORT TTechnique : public TechniqueBase
 	{
@@ -149,7 +149,7 @@ namespace bs
 		void GetCoreDependencies(Vector<CoreObject*>& dependencies) override;
 		void MarkRenderProxyDirty(ShaderVariationDirtyFlags flag) override;
 		RenderProxySyncPacket* CreateRenderProxySyncPacket(FrameAllocator& allocator, u32 flags) override;
-		void SyncToCore() override;
+		void SyncToRenderProxy() override;
 
 		SPtr<Technique> GetSelf() override { return std::static_pointer_cast<Technique>(GetShared()); }
 
@@ -175,7 +175,7 @@ namespace bs
 
 	/** @} */
 
-	class CoreTechniqueRTTI;
+	class TechniqueRenderProxyRTTI;
 
 	namespace ct
 	{
@@ -210,7 +210,7 @@ namespace bs
 			Technique();
 
 		public:
-			friend class bs::CoreTechniqueRTTI;
+			friend class bs::TechniqueRenderProxyRTTI;
 			static RTTITypeBase* GetRttiStatic();
 			RTTITypeBase* GetRtti() const override;
 		};

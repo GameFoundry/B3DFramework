@@ -282,7 +282,7 @@ namespace bs
 		static void UpdateInternal();
 
 		/** Called once per frame from the render thread. */
-		static void CoreUpdateInternal();
+		static void RenderThreadUpdateInternal();
 
 		/** Called during application shut down from the main thread. */
 		static void ShutDownInternal();

@@ -55,7 +55,7 @@ namespace bs
 	};
 
 	/**
-	 * Keeps track of all active animations, queues animation thread tasks and synchronizes data between simulation, core
+	 * Keeps track of all active animations, queues animation thread tasks and synchronizes data between main, render
 	 * and animation threads.
 	 */
 	class B3D_CORE_EXPORT AnimationManager : public Module<AnimationManager>

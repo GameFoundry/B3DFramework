@@ -132,7 +132,7 @@ namespace bs
 
 	/** @} */
 
-	class CorePassRTTI;
+	class PassRenderProxyRTTI;
 
 	namespace ct
 	{
@@ -172,7 +172,7 @@ namespace bs
 			/* 								RTTI		                     		*/
 			/************************************************************************/
 		public:
-			friend class bs::CorePassRTTI;
+			friend class bs::PassRenderProxyRTTI;
 			static RTTITypeBase* GetRttiStatic();
 			RTTITypeBase* GetRtti() const override;
 		};

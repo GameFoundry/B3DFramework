@@ -50,7 +50,7 @@ namespace bs
 		}
 	};
 
-	class B3D_CORE_EXPORT CoreTechniqueRTTI : public RTTIType<ct::Technique, IReflectable, CoreTechniqueRTTI>
+	class B3D_CORE_EXPORT TechniqueRenderProxyRTTI : public RTTIType<ct::Technique, IReflectable, TechniqueRenderProxyRTTI>
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
@@ -69,13 +69,13 @@ namespace bs
 
 		const String& GetRttiName() override
 		{
-			static String name = "CoreTechnique";
+			static String name = "TechniqueRenderProxy";
 			return name;
 		}
 
 		u32 GetRttiId() override
 		{
-			return TID_CoreTechnique;
+			return TID_TechniqueRenderProxy;
 		}
 
 		SPtr<IReflectable> NewRttiObject() override

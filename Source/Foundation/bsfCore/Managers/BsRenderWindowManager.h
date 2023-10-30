@@ -45,10 +45,10 @@ namespace bs
 		void NotifyMouseLeft(ct::RenderWindow* window);
 
 		/** Called by the render thread when the user requests for the window to close. */
-		void NotifyCloseRequested(ct::RenderWindow* coreWindow);
+		void NotifyCloseRequested(ct::RenderWindow* renderProxy);
 
 		/**	Called by the main thread when window properties change. */
-		void NotifySyncDataDirty(ct::RenderWindow* coreWindow);
+		void NotifySyncDataDirty(ct::RenderWindow* renderProxy);
 
 		/**	Returns a list of all open render windows. */
 		Vector<RenderWindow*> GetRenderWindows() const;

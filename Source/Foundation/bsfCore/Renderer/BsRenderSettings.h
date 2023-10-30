@@ -443,7 +443,7 @@ namespace bs
 		~DepthOfFieldSettingsBase() = default;
 	};
 
-	/** Template version of DepthOfFieldSettings that can be specialized for either core or simulation thread. */
+	/** Template version of DepthOfFieldSettings that can be specialized for either render or main thread. */
 	template <bool IsRenderProxy>
 	struct B3D_CORE_EXPORT TDepthOfFieldSettings : DepthOfFieldSettingsBase
 	{
@@ -858,7 +858,7 @@ namespace bs
 		~ChromaticAberrationSettingsBase() = default;
 	};
 
-	/** Template version of ChromaticAberrationSettings that can be specialized for either core or simulation thread. */
+	/** Template version of ChromaticAberrationSettings that can be specialized for either render or main thread. */
 	template <bool IsRenderProxy>
 	struct B3D_CORE_EXPORT TChromaticAberrationSettings : ChromaticAberrationSettingsBase
 	{
@@ -1150,7 +1150,7 @@ namespace bs
 		~RenderSettingsBase() = default;
 	};
 
-	/** Template version of RenderSettings that can be specialized for either core or simulation thread. */
+	/** Template version of RenderSettings that can be specialized for either render or main thread. */
 	template <bool IsRenderProxy>
 	struct B3D_CORE_EXPORT TRenderSettings : RenderSettingsBase
 	{

@@ -9,13 +9,13 @@ using namespace bs;
 
 void RendererExtension::InitializerInternal(RendererExtension* obj, const Any& data)
 {
-	auto coreInitializer = [=]()
+	auto renderThreadInitializer = [=]()
 	{
 		RendererManager::Instance().GetActive()->AddPlugin(obj);
 		obj->Initialize(data);
 	};
 
-	GetRenderThread().PostCommand(coreInitializer);
+	GetRenderThread().PostCommand(renderThreadInitializer);
 }
 
 void RendererExtension::DeleterInternal(RendererExtension* obj)

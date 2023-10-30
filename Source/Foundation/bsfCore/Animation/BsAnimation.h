@@ -509,7 +509,7 @@ namespace bs
 
 		/**
 		 * Applies any outputs stored in the animation proxy (as written by the animation thread), and uses them to update
-		 * the animation state on the simulation thread. Caller must ensure that the animation thread has finished
+		 * the animation state on the main thread. Caller must ensure that the animation thread has finished
 		 * with the animation proxy.
 		 */
 		void UpdateFromProxy();

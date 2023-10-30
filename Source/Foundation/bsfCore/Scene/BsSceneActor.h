@@ -91,7 +91,7 @@ namespace bs
 		virtual void UpdateStateInternal(const SceneObject& so, bool force = false);
 
 		/**
-		 * Creates a data packet that will be used for syncing the core object with it's render thread counter-part.
+		 * Creates a data packet that will be used for syncing the core object with it's render proxy.
 		 * Caller must free the retrieved packet using the provided allocator, when done using it.
 		 */
 		RenderProxySyncPacket* CreateSceneActorRenderProxySyncPacket(FrameAllocator& allocator, u32 flags);
@@ -103,7 +103,7 @@ namespace bs
 		/** @} */
 	protected:
 		/**
-		 * Marks the simulation thread object as dirty and notifies the system its data should be synced with its core
+		 * Marks the main thread object as dirty and notifies the system its data should be synced with its render
 		 * thread counterpart.
 		 */
 		virtual void MarkRenderProxyDataDirtyInternal(ActorDirtyFlag flag = ActorDirtyFlag::Everything) {}

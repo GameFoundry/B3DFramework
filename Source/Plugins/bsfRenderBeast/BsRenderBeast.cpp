@@ -95,8 +95,8 @@ void RenderBeast::InitializeOnRenderThread(const LoadedRendererTextures& rendere
 	IBLUtility::StartUp<RenderBeastIBLUtility>();
 	RendererTextures::StartUp(rendererTextures);
 
-	mCoreOptions = B3DMakeShared<RenderBeastOptions>();
-	mScene = B3DMakeShared<RendererScene>(*mDevice, mCoreOptions);
+	mRenderThreadOptions = B3DMakeShared<RenderBeastOptions>();
+	mScene = B3DMakeShared<RendererScene>(*mDevice, mRenderThreadOptions);
 
 	mMainViewGroup = B3DNew<RendererViewGroup>(nullptr, 0, true);
 
@@ -291,19 +291,19 @@ SPtr<RendererOptions> RenderBeast::GetOptions() const
 
 void RenderBeast::SyncOptions(const RenderBeastOptions& options)
 {
-	bool filteringChanged = mCoreOptions->Filtering != options.Filtering;
+	bool filteringChanged = mRenderThreadOptions->Filtering != options.Filtering;
 	if(options.Filtering == RenderBeastFiltering::Anisotropic)
-		filteringChanged |= mCoreOptions->AnisotropyMax != options.AnisotropyMax;
+		filteringChanged |= mRenderThreadOptions->AnisotropyMax != options.AnisotropyMax;
 
 	if(filteringChanged)
 		mScene->RefreshSamplerOverrides(true);
 
-	*mCoreOptions = options;
+	*mRenderThreadOptions = options;
 
-	mScene->SetOptions(mCoreOptions);
+	mScene->SetOptions(mRenderThreadOptions);
 
 	ShadowRendering& shadowRenderer = mMainViewGroup->GetShadowRenderer();
-	shadowRenderer.SetShadowMapSize(mCoreOptions->ShadowMapSize);
+	shadowRenderer.SetShadowMapSize(mRenderThreadOptions->ShadowMapSize);
 }
 
 void RenderBeast::RenderAll(PerFrameData perFrameData)
@@ -322,10 +322,10 @@ void RenderBeast::RenderAll(PerFrameData perFrameData)
 	timings.TimeDelta = GetTime().GetFrameDelta();
 	timings.FrameIdx = GetTime().GetCurrentFrameIndex();
 
-	GetRenderThread().PostCommand(std::bind(&::bs::ct::RenderBeast::RenderAllCore, this, timings, perFrameData));
+	GetRenderThread().PostCommand(std::bind(&::bs::ct::RenderBeast::RenderThreadRenderAll, this, timings, perFrameData));
 }
 
-void RenderBeast::RenderAllCore(FrameTimings timings, PerFrameData perFrameData)
+void RenderBeast::RenderThreadRenderAll(FrameTimings timings, PerFrameData perFrameData)
 {
 	ASSERT_IF_NOT_RENDER_THREAD;
 
@@ -513,7 +513,7 @@ void RenderBeast::RenderView(GpuCommandBuffer& commandBuffer, const RendererView
 
 	view.BeginFrame(frameInfo);
 
-	RenderCompositorNodeInputs inputs(viewGroup, view, sceneInfo, *mCoreOptions, frameInfo, mFeatureSet);
+	RenderCompositorNodeInputs inputs(viewGroup, view, sceneInfo, *mRenderThreadOptions, frameInfo, mFeatureSet);
 	inputs.ActiveCommandBuffer = commandBuffer.GetShared();
 
 	// Register callbacks
@@ -763,7 +763,7 @@ void RenderBeast::CaptureSceneCubeMap(GpuCommandBuffer& commandBuffer, const SPt
 	viewDesc.ProjTransform = projTransform;
 	viewDesc.ProjType = PT_PERSPECTIVE;
 
-	viewDesc.StateReduction = mCoreOptions->StateReductionMode;
+	viewDesc.StateReduction = mRenderThreadOptions->StateReductionMode;
 	viewDesc.SceneCamera = nullptr;
 
 	SPtr<RenderSettings> renderSettings = B3DMakeShared<RenderSettings>();
@@ -848,7 +848,7 @@ void RenderBeast::CaptureSceneCubeMap(GpuCommandBuffer& commandBuffer, const SPt
 
 	RendererView* viewPtrs[] = { &views[0], &views[1], &views[2], &views[3], &views[4], &views[5] };
 
-	RendererViewGroup viewGroup(viewPtrs, 6, false, mCoreOptions->ShadowMapSize);
+	RendererViewGroup viewGroup(viewPtrs, 6, false, mRenderThreadOptions->ShadowMapSize);
 	viewGroup.DetermineVisibility(commandBuffer, sceneInfo);
 
 	FrameInfo frameInfo({ 0.0f, 1.0f / 60.0f, 0 }, PerFrameData());

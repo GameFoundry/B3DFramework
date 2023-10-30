@@ -471,7 +471,7 @@ void Platform::UpdateInternal()
 	}
 }
 
-void Platform::CoreUpdateInternal()
+void Platform::RenderThreadUpdateInternal()
 {
 	{
 		Lock lock(mData->MSync);

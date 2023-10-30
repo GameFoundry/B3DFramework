@@ -460,7 +460,7 @@ namespace bs
 		}
 	};
 
-	class B3D_CORE_EXPORT CoreShaderInformationRTTI : public RTTIType<ct::ShaderInformation, ShaderInformationBase, CoreShaderInformationRTTI>
+	class B3D_CORE_EXPORT ShaderInformationRenderProxyRTTI : public RTTIType<ct::ShaderInformation, ShaderInformationBase, ShaderInformationRenderProxyRTTI>
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
@@ -470,13 +470,13 @@ namespace bs
 	public:
 		const String& GetRttiName() override
 		{
-			static String name = "CoreShaderInformation";
+			static String name = "ShaderInformationRenderProxy";
 			return name;
 		}
 
 		u32 GetRttiId() override
 		{
-			return TID_CoreShaderInformation;
+			return TID_ShaderInformationRenderProxy;
 		}
 
 		SPtr<IReflectable> NewRttiObject() override
@@ -521,7 +521,7 @@ namespace bs
 		}
 	};
 
-	class B3D_CORE_EXPORT CoreShaderRTTI : public RTTIType<ct::Shader, IReflectable, CoreShaderRTTI>
+	class B3D_CORE_EXPORT ShaderRenderProxyRTTI : public RTTIType<ct::Shader, IReflectable, ShaderRenderProxyRTTI>
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
@@ -542,13 +542,13 @@ namespace bs
 
 		const String& GetRttiName() override
 		{
-			static String name = "CoreShader";
+			static String name = "ShaderRenderProxy";
 			return name;
 		}
 
 		u32 GetRttiId() override
 		{
-			return TID_CoreShader;
+			return TID_ShaderRenderProxy;
 		}
 
 		SPtr<IReflectable> NewRttiObject() override

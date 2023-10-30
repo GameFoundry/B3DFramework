@@ -271,8 +271,8 @@ namespace bs
 
 		/**
 		 * Reads the data from the cached buffer. Buffer must have been created with AllowWriteCachingOnCPU flag. Note the cached data
-		 * only includes writes done by WriteData() and ZeroOutData() calls. It will not account for writes done explicitly on the core
-		 * object, or on the GPU.
+		 * only includes writes done by WriteData() and ZeroOutData() calls. It will not account for writes done explicitly on the render
+		 * thread, or on the GPU.
 		 */
 		void ReadCached(u32 offset, u32 length, void* destination);
 

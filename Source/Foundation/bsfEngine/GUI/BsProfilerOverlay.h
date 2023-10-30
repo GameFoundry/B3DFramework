@@ -126,7 +126,7 @@ namespace bs
 		 * Updates CPU GUI elements from the data in the provided profiler reports. To be called whenever a new report is
 		 * received.
 		 */
-		void UpdateCpuSampleContents(const ProfilerReport& simReport, const ProfilerReport& coreReport);
+		void UpdateCpuSampleContents(const ProfilerReport& mainThreadReport, const ProfilerReport& renderThreadReport);
 
 		/**
 		 * Updates GPU GUI elemnts from the data in the provided profiler report. To be called whenever a new report is

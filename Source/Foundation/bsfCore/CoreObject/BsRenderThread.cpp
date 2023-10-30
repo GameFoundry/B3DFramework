@@ -42,7 +42,7 @@ void RenderThread::OnStartUp()
 		Scheduler::UnbindFromCurrentThread();
 	};
 
-	mRenderThread = ThreadPool::Instance().Run("Core", fnRunThread);
+	mRenderThread = ThreadPool::Instance().Run("Render", fnRunThread);
 
 	// Need to wait to unsure thread ID is correctly set before continuing
 	Lock lock(mThreadStartedMutex);

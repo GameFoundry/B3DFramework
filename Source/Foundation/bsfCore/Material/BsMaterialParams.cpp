@@ -1055,7 +1055,7 @@ MaterialParams::MaterialParams(const SPtr<Shader>& shader, const SPtr<bs::Materi
 					for(u32 i = 0; i < arraySize; i++)
 					{
 						const MaterialParamStructData& srcParamInfo = params->mStructParams[param.Index + i];
-						MaterialParamStructDataCore& dstParamInfo = mStructParams[param.Index + i];
+						MaterialParamStructDataRenderProxy& dstParamInfo = mStructParams[param.Index + i];
 
 						memcpy(dstParamInfo.Data, srcParamInfo.Data, srcParamInfo.DataSize);
 					}

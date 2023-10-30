@@ -347,7 +347,7 @@ namespace bs
 		RTTITypeBase* GetRtti() const override;
 	};
 
-	class CoreShaderInformationRTTI;
+	class ShaderInformationRenderProxyRTTI;
 
 	namespace ct
 	{
@@ -362,7 +362,7 @@ namespace bs
 		/* 								SERIALIZATION                      		*/
 		/************************************************************************/
 	public:
-		friend class bs::CoreShaderInformationRTTI;
+		friend class bs::ShaderInformationRenderProxyRTTI;
 		static RTTITypeBase* GetRttiStatic();
 		RTTITypeBase* GetRtti() const override;
 	};
@@ -699,7 +699,7 @@ namespace bs
 
 	/** @} */
 
-	class CoreShaderRTTI;
+	class ShaderRenderProxyRTTI;
 
 	namespace ct
 	{
@@ -732,7 +732,7 @@ namespace bs
 			Shader(u32 id);
 
 		public:
-			friend class CoreShaderRTTI;
+			friend class ShaderRenderProxyRTTI;
 			static RTTITypeBase* GetRttiStatic();
 			RTTITypeBase* GetRtti() const override;
 		};

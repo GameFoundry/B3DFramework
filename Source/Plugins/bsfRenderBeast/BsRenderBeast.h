@@ -102,7 +102,7 @@ namespace bs
 			 *
 			 * @note	Render thread only.
 			 */
-			void RenderAllCore(FrameTimings timings, PerFrameData perFrameData);
+			void RenderThreadRenderAll(FrameTimings timings, PerFrameData perFrameData);
 
 			/**
 			 * Renders all views in the provided view group. Returns true if anything has been draw to any of the views.
@@ -141,7 +141,7 @@ namespace bs
 			// Scene data
 			SPtr<RendererScene> mScene;
 
-			SPtr<RenderBeastOptions> mCoreOptions;
+			SPtr<RenderBeastOptions> mRenderThreadOptions;
 
 			// Helpers to avoid memory allocations
 			RendererViewGroup* mMainViewGroup = nullptr;

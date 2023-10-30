@@ -506,7 +506,7 @@ void Mesh::UpdateBounds(const MeshData& meshData)
 {
 	mProperties.Bounds = meshData.CalculateBounds();
 
-	// TODO - Sync this to sim-thread possibly?
+	// TODO - Sync this to main-thread possibly?
 }
 
 SPtr<Mesh> Mesh::Create(u32 vertexCount, u32 indexCount, const SPtr<VertexDescription>& vertexDescription, int usage, DrawOperationType primitiveType, IndexType indexType)

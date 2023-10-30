@@ -355,7 +355,7 @@ namespace bs
 	 *  @{
 	 */
 
-	/** Common base for both sim and core threat variants of ParticleGpuSimulationSettings. */
+	/** Common base for both main and render thread variants of ParticleGpuSimulationSettings. */
 	struct ParticleGpuSimulationSettingsBase
 	{
 		/** Determines particle color, evaluated over the particle lifetime. */
@@ -379,7 +379,7 @@ namespace bs
 		ParticleDepthCollisionSettings DepthCollision;
 	};
 
-	/** Templated common base for both sim and core threat variants of ParticleGpuSimulationSettings. */
+	/** Templated common base for both main and render thread variants of ParticleGpuSimulationSettings. */
 	template <bool IsRenderProxy>
 	struct TParticleGpuSimulationSettings : ParticleGpuSimulationSettingsBase
 	{

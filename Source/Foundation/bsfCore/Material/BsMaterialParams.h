@@ -413,7 +413,7 @@ namespace bs
 	};
 
 	/** Raw data for a single structure parameter. */
-	class B3D_CORE_EXPORT MaterialParamStructDataCore
+	class B3D_CORE_EXPORT MaterialParamStructDataRenderProxy
 	{
 	public:
 		u8* Data;
@@ -433,7 +433,7 @@ namespace bs
 	};
 
 	/** Data for a single texture parameter. */
-	class B3D_CORE_EXPORT MaterialParamTextureDataCore
+	class B3D_CORE_EXPORT MaterialParamTextureDataRenderProxy
 	{
 	public:
 		SPtr<ct::Texture> Texture;
@@ -457,7 +457,7 @@ namespace bs
 	};
 
 	/** Data for a single buffer parameter. */
-	class B3D_CORE_EXPORT MaterialParamBufferDataCore
+	class B3D_CORE_EXPORT MaterialParamBufferDataRenderProxy
 	{
 	public:
 		SPtr<ct::GpuBuffer> Value;
@@ -471,7 +471,7 @@ namespace bs
 	};
 
 	/** Data for a single sampler state parameter. */
-	class B3D_CORE_EXPORT MaterialParamSamplerStateDataCore
+	class B3D_CORE_EXPORT MaterialParamSamplerStateDataRenderProxy
 	{
 	public:
 		SPtr<SamplerState> Value;
@@ -484,8 +484,8 @@ namespace bs
 		SPtr<SamplerState> Value;
 	};
 
-	/** Helper typedefs that reference types used by either render or main thread implementation of TMaterialParams<Core>. */
-	template <bool IsRenderProxz>
+	/** Helper typedefs that reference types used by either render or main thread implementation of TMaterialParams<IsRenderProxy>. */
+	template <bool IsRenderProxy>
 	struct TMaterialParamsTypes
 	{};
 
@@ -501,10 +501,10 @@ namespace bs
 	template <>
 	struct TMaterialParamsTypes<true>
 	{
-		typedef MaterialParamStructDataCore StructParamDataType;
-		typedef MaterialParamTextureDataCore TextureParamDataType;
-		typedef MaterialParamBufferDataCore BufferParamDataType;
-		typedef MaterialParamSamplerStateDataCore SamplerStateParamDataType;
+		typedef MaterialParamStructDataRenderProxy StructParamDataType;
+		typedef MaterialParamTextureDataRenderProxy TextureParamDataType;
+		typedef MaterialParamBufferDataRenderProxy BufferParamDataType;
+		typedef MaterialParamSamplerStateDataRenderProxy SamplerStateParamDataType;
 	};
 
 	/** Common code that may be specialized for both MaterialParams and ct::MaterialParams. */
@@ -818,7 +818,7 @@ namespace bs
 		MaterialParams(const HShader& shader, u64 initialParamVersion = 1);
 
 		/**
-		 * Creates sync packet that can be used for bringing the core version of this object up to date.
+		 * Creates sync packet that can be used for bringing the render proxy up to date.
 		 *
 		 * @param allocator			Allocator with which to allocate the sync packet.
 		 * @param forceAll			By default only dirty parameter will be synced. If you wish to sync all parameters

@@ -109,7 +109,7 @@ namespace bs
 		/**
 		 * Render window implementation for MacOS.
 		 *
-		 * @note	Core thread only.
+		 * @note	Render thread only.
 		 */
 		class MacOSRenderWindow : public RenderWindow
 		{

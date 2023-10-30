@@ -265,7 +265,7 @@ void CoreApplication::EndMainLoop()
 
 void CoreApplication::RunMainLoopFrame()
 {
-	GetProfilerCPU().BeginThread("Sim");
+	GetProfilerCPU().BeginThread("Main");
 
 	Platform::UpdateInternal();
 	DeferredCallManager::Instance().UpdateInternal();
@@ -335,7 +335,7 @@ void CoreApplication::RunMainLoopFrame()
 	WaitUntilFrameFinished();
 
 	GetRenderThread().PostCommand([this] { BeginCoreProfiling(); });
-	GetRenderThread().PostCommand([] { Platform::CoreUpdateInternal(); });
+	GetRenderThread().PostCommand([] { Platform::RenderThreadUpdateInternal(); });
 	GetRenderThread().PostCommand([] { ct::RenderWindowManager::Instance().UpdateInternal(); });
 
 	PROFILE_CALL(RendererManager::Instance().GetActive()->RenderAll(perFrameData), "Render");
@@ -406,7 +406,7 @@ void CoreApplication::EndCoreProfiling()
 	ProfilerGPU::Instance().UpdateInternal();
 
 	GetProfilerCPU().EndThread();
-	GetProfiler().UpdateCoreInternal();
+	GetProfiler().UpdateRenderThreadInternal();
 }
 
 void* CoreApplication::LoadPlugin(const String& pluginName, DynamicLibrary** outLibrary, void* passThrough)
