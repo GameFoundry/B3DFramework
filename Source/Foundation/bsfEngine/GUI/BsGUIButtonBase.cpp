@@ -76,7 +76,7 @@ bool GUIButtonBase::IsOnInternal() const
 
 void GUIButtonBase::UpdateRenderElements()
 {
-	const bool isUsingStyleSheets = GetStyleSheetElement() != nullptr;
+	const bool isUsingStyleSheets = IsUsingStyleSheets();
 	if(isUsingStyleSheets)
 	{
 		const GUIStyleSheetRules& styleSheetRules = mStyleSheetRuleInformation.CurrentStateRuleset->Rules;
@@ -243,7 +243,7 @@ Vector2I GUIButtonBase::GetOptimalSize() const
 	u32 imageWidth = 0;
 	u32 imageHeight = 0;
 
-	const bool isUsingStyleSheets = GetStyleSheetElement() != nullptr;
+	const bool isUsingStyleSheets = IsUsingStyleSheets();
 	if(isUsingStyleSheets)
 	{
 		const GUIStyleSheetRules& styleSheetRules = mStyleSheetRuleInformation.CurrentStateRuleset->Rules;
@@ -409,7 +409,7 @@ void GUIButtonBase::RefreshContentSprite()
 
 TextSpriteInformation GUIButtonBase::GetTextDesc() const
 {
-	const bool isUsingStyleSheets = GetStyleSheetElement() != nullptr;
+	const bool isUsingStyleSheets = IsUsingStyleSheets();
 	if(isUsingStyleSheets)
 	{
 		const GUIStyleSheetRules& styleSheetRules = mStyleSheetRuleInformation.CurrentStateRuleset->Rules;

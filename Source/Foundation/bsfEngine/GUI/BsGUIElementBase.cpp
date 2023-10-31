@@ -8,6 +8,7 @@
 #include "Error/BsException.h"
 #include "GUI/BsGUIWidget.h"
 #include "BsGUIManager.h"
+#include "StyleSheet/BsGUIStyleSheet.h"
 
 using namespace bs;
 
@@ -18,6 +19,11 @@ GUIElementBase::GUIElementBase(const GUISizeConstraints& dimensions)
 GUIElementBase::~GUIElementBase()
 {
 	DestroyChildElements();
+}
+
+bool GUIElementBase::IsUsingStyleSheets() const
+{
+	return mStyleSheetRuleInformation.StateRulesets != nullptr && !mStyleSheetRuleInformation.StateRulesets->RulesetIndices.Empty();
 }
 
 void GUIElementBase::SetPosition(i32 x, i32 y)

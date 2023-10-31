@@ -11,11 +11,31 @@
 
 namespace bs
 {
+	struct GUIStyleSheetRuleset;
+	struct GUIStyleSheetStateRulesets;
 	class IGUIVectorPathBuilder;
 
 	/** @addtogroup Implementation
 	 *  @{
 	 */
+
+	/**
+	 * Contains style sheet rule for a GUI element, along with state rule for the particular state the GUI element is currently in.
+	 * If used for pseudo-elements, also contains the name of the pseudo element the rule is for.
+	 */
+	struct GUIStyleSheetRuleInformation
+	{
+		GUIStyleSheetRuleInformation(const char* pseudoElementName = nullptr):
+			PseudoElementName(pseudoElementName)
+		{ }
+
+		const char* PseudoElementName = nullptr; /**< Name of the pseudo-element, if the rule is for a pseudo-element. */
+		SPtr<const GUIStyleSheetStateRulesets> StateRulesets; /**< Rulesets for all states for a particular pseudo-element. */
+		SPtr<const GUIStyleSheetRuleset> CurrentStateRuleset; /**< Ruleset for the currently active state. */
+
+		static const GUIStyleSheetRuleInformation kInvalid;
+	};
+
 
 	/**	Base class for all GUI elements (visible or layout). */
 	class B3D_EXPORT GUIElementBase
@@ -57,6 +77,9 @@ namespace bs
 
 		/** Returns an user-specific ID will be used for style lookup in the style sheet. */
 		virtual const String& GetStyleSheetId() const { return StringUtil::kBlank; }
+
+		/** Returns true if the GUI elements wants to use the new style sheet approach for styling. */
+		bool IsUsingStyleSheets() const;
 
 		/**
 		 * Sets element position relative to parent GUI panel.
@@ -357,6 +380,10 @@ namespace bs
 		GUILayoutData mLayoutData; /**< Calculated position, size, depth and other information, valid after a layout update. */
 
 		const IGUIVectorPathBuilder* mBackgroundPathBuilder = nullptr; /**< Constructs the vector path used for drawing the GUI element background. */
+
+		// Style sheet
+		TInlineArray<GUIStyleSheetRuleInformation, 2> mPseudoElementStyleSheetRules;
+		GUIStyleSheetRuleInformation mStyleSheetRuleInformation;
 	};
 
 	/** @} */

@@ -181,7 +181,7 @@ void GUIToggle::UpdateRenderElements()
 	if(!mIsToggled)
 		return;
 
-	const bool isUsingStyleSheets = GetStyleSheetElement() != nullptr;
+	const bool isUsingStyleSheets = IsUsingStyleSheets();
 	if(!isUsingStyleSheets)
 		return;
 

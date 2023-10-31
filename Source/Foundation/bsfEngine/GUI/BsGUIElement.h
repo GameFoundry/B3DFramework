@@ -12,8 +12,6 @@
 
 namespace bs
 {
-	struct GUIStyleSheetStateRulesets;
-	struct GUIStyleSheetRuleset;
 	class GUINavGroup;
 
 	/** @addtogroup Implementation
@@ -62,23 +60,6 @@ namespace bs
 		Vector2 Offset = Vector2::kZero; /**< Offset to apply to every vertex in the render element, relative to parent GUI element. */
 		Size2 ClipSize = Size2::kZero; /**< Size of the clip rectangle, relative to the offset. Any vertices outside of this area will be clipped. */
 		bool UseNewFillBuffer = false;
-	};
-
-	/**
-	 * Contains style sheet rule for a GUI element, along with state rule for the particular state the GUI element is currently in.
-	 * If used for pseudo-elements, also contains the name of the pseudo element the rule is for.
-	 */
-	struct GUIStyleSheetRuleInformation
-	{
-		GUIStyleSheetRuleInformation(const char* pseudoElementName = nullptr):
-			PseudoElementName(pseudoElementName)
-		{ }
-
-		const char* PseudoElementName = nullptr; /**< Name of the pseudo-element, if the rule is for a pseudo-element. */
-		SPtr<const GUIStyleSheetStateRulesets> StateRulesets; /**< Rulesets for all states for a particular pseudo-element. */
-		SPtr<const GUIStyleSheetRuleset> CurrentStateRuleset; /**< Ruleset for the currently active state. */
-
-		static const GUIStyleSheetRuleInformation kInvalid;
 	};
 
 	/**
@@ -412,10 +393,6 @@ namespace bs
 		GUIElementStateFlags mStateFlags = GUIElementStateFlag::Normal;
 		Rect2I mClippedBounds;
 		TInlineArray<GUIRenderElement, 4> mRenderElements;
-
-		// Style sheet
-		TInlineArray<GUIStyleSheetRuleInformation, 2> mPseudoElementStyleSheetRules;
-		GUIStyleSheetRuleInformation mStyleSheetRuleInformation;
 	private:
 		static const Color kDisabledColor;
 
