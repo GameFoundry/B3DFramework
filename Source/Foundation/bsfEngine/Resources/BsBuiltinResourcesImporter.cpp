@@ -615,58 +615,6 @@ void ProcessAssets(bool generateGenerated, bool forceImport, time_t lastUpdateTi
 			nullptr, false, true);
 	}
 
-	// Import shaders
-	if(!shadersJSON.is_null() && !includesJSON.is_null())
-	{
-		BuiltinResourcesHelper::UpdateManifest(
-			shaderIncludeFolder,
-			includesJSON,
-			sManifest,
-			BuiltinResourcesHelper::AssetType::Normal);
-
-		BuiltinResourcesHelper::UpdateManifest(
-			shaderFolder,
-			shadersJSON,
-			sManifest,
-			BuiltinResourcesHelper::AssetType::Normal);
-
-		Vector<bool> includeImportFlags = BuiltinResourcesHelper::GenerateImportFlags(
-			includesJSON,
-			rawShaderIncludeFolder,
-			lastUpdateTime,
-			forceImport);
-
-		Vector<bool> shaderImportFlags = BuiltinResourcesHelper::GenerateImportFlags(
-			shadersJSON,
-			rawShaderFolder,
-			lastUpdateTime,
-			forceImport,
-			&shaderDependenciesJSON,
-			rawShaderIncludeFolder);
-
-		// Hidden dependency: Includes must be imported before shaders, but import flags for shaders must be generated
-		// before includes are imported, since the process checks if imports changed
-		BuiltinResourcesHelper::ImportAssets(
-			includesJSON,
-			includeImportFlags,
-			rawShaderIncludeFolder,
-			shaderIncludeFolder,
-			sManifest,
-			BuiltinResourcesHelper::AssetType::Normal,
-			nullptr,
-			true);
-
-		BuiltinResourcesHelper::ImportAssets(
-			shadersJSON,
-			shaderImportFlags,
-			rawShaderFolder,
-			shaderFolder,
-			sManifest,
-			BuiltinResourcesHelper::AssetType::Normal,
-			&shaderDependenciesJSON,
-			true);
-	}
-
 	// Import GUI sprites
 	if(!skinJSON.is_null())
 	{

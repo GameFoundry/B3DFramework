@@ -349,7 +349,7 @@ void BuiltinResourcesHelper::ImportFont(const Path& inputFile, const String& out
 	{
 		SPtr<const FontBitmap> fontData = font->GetBitmap(size);
 
-		Path texPageOutputPath = outputFolder;
+		Path texPageOutputPath = outputPath;
 
 		u32 pageIdx = 0;
 		for(auto tex : fontData->TexturePages)

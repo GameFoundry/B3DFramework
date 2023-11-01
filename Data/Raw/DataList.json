@@ -581,6 +581,10 @@
         {
             "Path": "PPCreateTonemap3DLUT.bsl",
             "UUID": "37d8a24f-44d0-f192-3e81-44d0c10ac350"
+        },
+        {
+            "Path": "VectorGraphics.bsl",
+            "UUID": "b61a0c57-49ee-a1f9-78b0-49ee11d021e0"
         }
     ],
     "Skin": [

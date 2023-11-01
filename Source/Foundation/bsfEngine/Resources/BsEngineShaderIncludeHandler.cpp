@@ -29,8 +29,6 @@ Optional<String> EngineShaderIncludeHandler::FindIncludeSource(const String& nam
 	
 	if(FileSystem::IsFile(path))
 	{
-		Lock fileLock = FileScheduler::GetLock(path);
-
 		if(const SPtr<DataStream> stream = FileSystem::OpenFile(path))
 			return stream->GetAsString();
 	}

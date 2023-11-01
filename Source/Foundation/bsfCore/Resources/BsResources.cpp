@@ -427,8 +427,6 @@ Resources::LoadInfo Resources::LoadInternal(const UUID& uuid, const Path& filePa
 
 SPtr<Resource> Resources::LoadFromDiskAndDeserialize(const Path& filePath, bool loadWithSaveData, std::atomic<float>& progress)
 {
-	Lock fileLock = FileScheduler::GetLock(filePath);
-
 	SPtr<DataStream> stream = FileSystem::OpenFile(filePath, true);
 	if(stream == nullptr)
 		return nullptr;
@@ -728,8 +726,6 @@ void Resources::SaveInternal(const SPtr<Resource>& resource, const Path& filePat
 	}
 	else
 		savePath = filePath;
-
-	Lock fileLock = FileScheduler::GetLock(filePath);
 
 	SPtr<DataStream> stream = FileSystem::CreateAndOpenFile(savePath);
 

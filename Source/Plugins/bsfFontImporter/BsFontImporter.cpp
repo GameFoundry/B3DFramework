@@ -62,7 +62,6 @@ SPtr<Resource> FontImporter::Import(const Path& filePath, SPtr<const ImportOptio
 	FT_Face face;
 
 	{
-		Lock fileLock = FileScheduler::GetLock(filePath);
 		error = FT_New_Face(library, filePath.ToString().c_str(), 0, &face);
 	}
 

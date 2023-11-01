@@ -25,8 +25,6 @@ SPtr<Resource> ScriptCodeImporter::Import(const Path& filePath, SPtr<const Impor
 {
 	WString textData;
 	{
-		Lock fileLock = FileScheduler::GetLock(filePath);
-
 		SPtr<DataStream> stream = FileSystem::OpenFile(filePath);
 		textData = stream->GetAsWString();
 	}

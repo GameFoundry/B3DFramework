@@ -24,8 +24,6 @@ SPtr<Resource> PlainTextImporter::Import(const Path& filePath, SPtr<const Import
 {
 	WString textData;
 	{
-		Lock fileLock = FileScheduler::GetLock(filePath);
-
 		SPtr<DataStream> stream = FileSystem::OpenFile(filePath);
 		textData = stream->GetAsWString();
 	}

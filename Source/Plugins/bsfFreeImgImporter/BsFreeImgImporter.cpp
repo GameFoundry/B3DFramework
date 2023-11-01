@@ -216,8 +216,6 @@ SPtr<PixelData> FreeImgImporter::ImportRawImage(const Path& filePath)
 	UPtr<MemoryDataStream> memStream;
 	FREE_IMAGE_FORMAT imageFormat;
 	{
-		Lock lock = FileScheduler::GetLock(filePath);
-
 		SPtr<DataStream> fileData = FileSystem::OpenFile(filePath, true);
 		if(fileData->Size() > std::numeric_limits<u32>::max())
 		{

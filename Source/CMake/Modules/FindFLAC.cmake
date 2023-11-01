@@ -26,13 +26,13 @@ else()
 	B3DFindImportedLibraryWithAlternateBinaryName(FLAC ${FLAC_LIBNAME} SHARED libFLAC_dynamic)
 endif()
 
-if(B3D_USE_BUNDLED_LIBRARIES)
-	if(WIN32)
-		# .dll has a different name than .lib, so we must register it separately
-		install_dependency_dll(FLAC ${BSF_SOURCE_DIR}/.. libFLAC_dynamic)
-	endif()
-	
-	install_dependency_binaries(FLAC)
-endif()
+#if(B3D_USE_BUNDLED_LIBRARIES)
+#	if(WIN32)
+#		# .dll has a different name than .lib, so we must register it separately
+#		install_dependency_dll(FLAC ${BSF_SOURCE_DIR}/.. libFLAC_dynamic)
+#	endif()
+#
+#	install_dependency_binaries(FLAC)
+#endif()
 
 B3DEndFindPackage(FLAC ${FLAC_LIBNAME})

@@ -24,8 +24,6 @@ SPtr<Resource> ShaderIncludeImporter::Import(const Path& filePath, SPtr<const Im
 {
 	String includeString;
 	{
-		Lock fileLock = FileScheduler::GetLock(filePath);
-
 		SPtr<DataStream> stream = FileSystem::OpenFile(filePath);
 		includeString = stream->GetAsString();
 	}

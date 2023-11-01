@@ -469,8 +469,6 @@ void VulkanGpuBuffer::ReadData(u32 offset, u32 length, void* destination, const 
 	vulkanCommandBuffer->AppendSyncMask(syncMask);
 	transferGpuQueue.SubmitTransferCommandBuffer(true);
 
-	B3D_ASSERT(!mBuffer->IsUsed());
-
 	void* lockedStagingData = stagingBuffer->Map(0, length, true);
 	memcpy(destination, lockedStagingData, length);
 

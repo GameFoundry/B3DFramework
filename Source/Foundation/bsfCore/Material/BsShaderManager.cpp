@@ -19,8 +19,6 @@ Optional<String> DefaultShaderIncludeHandler::FindIncludeSource(const String& na
 	const Path filePath = FileSystem::GetWorkingDirectoryPath() + name;
 	if(FileSystem::IsFile(filePath))
 	{
-		Lock fileLock = FileScheduler::GetLock(filePath);
-
 		if(const SPtr<DataStream> stream = FileSystem::OpenFile(filePath))
 			return stream->GetAsString();
 	}

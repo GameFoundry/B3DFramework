@@ -145,8 +145,6 @@ SPtr<Resource> FGAImporter::Import(const Path& filePath, SPtr<const ImportOption
 {
 	String data;
 	{
-		Lock fileLock = FileScheduler::GetLock(filePath);
-
 		SPtr<DataStream> stream = FileSystem::OpenFile(filePath);
 		data = stream->GetAsString();
 	}
