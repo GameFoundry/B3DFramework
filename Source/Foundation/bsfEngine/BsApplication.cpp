@@ -35,7 +35,7 @@ Application::~Application()
 {
 	// Cleanup any new objects queued for destruction by unloaded scripts
 	CoreObjectManager::Instance().SyncToRenderThread(true);
-	GetRenderThread().PostCommand([]{}, true);
+	GetRenderThread().PostCommand([]{}, "SyncToRenderThread() before shutdown", true);
 
 	Cursor::ShutDown();
 

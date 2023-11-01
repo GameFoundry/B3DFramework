@@ -279,7 +279,7 @@ void BuiltinResourcesHelper::ImportAssets(const nlohmann::json& entries, const V
 		data.Source->ReadData(data.SrcData);
 	}
 
-	GetRenderThread().PostCommand([] {}, true);
+	GetRenderThread().PostCommand([] {}, "Reading back generated icon data", true);
 
 	auto saveTexture = [&](auto& pixelData, auto& path, std::string& uuid)
 	{
@@ -659,7 +659,7 @@ bool BuiltinResourcesHelper::VerifyAndReportShader(const HShader& shader)
 #if B3D_DEBUG
 					B3D_EXCEPT(InvalidStateException, errMsg);
 #else
-					B3D_LOG(Error, Importer, errMsg);
+					B3D_LOG(Error, Importer, "{0}", errMsg);
 #endif
 					return false;
 				}

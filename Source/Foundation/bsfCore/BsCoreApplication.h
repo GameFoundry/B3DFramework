@@ -166,10 +166,10 @@ namespace bs
 		void FrameRenderingFinishedCallback();
 
 		/**	Called by the render thread to begin profiling. */
-		void BeginCoreProfiling();
+		void BeginRenderThreadProfiling();
 
 		/**	Called by the render thread to end profiling. */
-		void EndCoreProfiling();
+		void EndRenderThreadProfiling();
 
 	protected:
 		typedef void (*UpdatePluginFunctionPointer)();

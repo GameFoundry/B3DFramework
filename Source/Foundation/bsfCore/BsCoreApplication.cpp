@@ -113,7 +113,7 @@ CoreApplication::~CoreApplication()
 	// All CoreObject related modules should be shut down now. They have likely queued CoreObjects for destruction, so
 	// we need to wait for those objects to get destroyed before continuing.
 	CoreObjectManager::Instance().SyncToRenderThread(true);
-	GetRenderThread().PostCommand([] {}, true);
+	GetRenderThread().PostCommand([] {}, "SyncToRenderThread before shutdown", true);
 
 	UnloadPlugin(mStartUpDesc.Renderer);
 
@@ -334,14 +334,14 @@ void CoreApplication::RunMainLoopFrame()
 	// difference between main/render thread and start the main thread a bit later so they finish at nearly the same time.
 	WaitUntilFrameFinished();
 
-	GetRenderThread().PostCommand([this] { BeginCoreProfiling(); });
-	GetRenderThread().PostCommand([] { Platform::RenderThreadUpdateInternal(); });
-	GetRenderThread().PostCommand([] { ct::RenderWindowManager::Instance().UpdateInternal(); });
+	GetRenderThread().PostCommand([this] { BeginRenderThreadProfiling(); }, "BeginRenderThreadProfiling");
+	GetRenderThread().PostCommand([] { Platform::RenderThreadUpdateInternal(); }, "Platform::RenderThreadUpdate");
+	GetRenderThread().PostCommand([] { ct::RenderWindowManager::Instance().UpdateInternal(); }, "RenderWindowManager::Update");
 
 	PROFILE_CALL(RendererManager::Instance().GetActive()->RenderAll(perFrameData), "Render");
 
-	GetRenderThread().PostCommand([this] { FrameRenderingFinishedCallback(); });
-	GetRenderThread().PostCommand([this] { EndCoreProfiling(); });
+	GetRenderThread().PostCommand([this] { FrameRenderingFinishedCallback(); }, "FrameRenderingFinishedCallback");
+	GetRenderThread().PostCommand([this] { EndRenderThreadProfiling(); }, "EndRenderThreadProfiling");
 
 	GetProfilerCPU().EndThread();
 	GetProfiler().UpdateInternal();
@@ -396,12 +396,12 @@ void CoreApplication::StartUpRenderer()
 	RendererManager::Instance().Initialize(GetPrimaryGpuDevice());
 }
 
-void CoreApplication::BeginCoreProfiling()
+void CoreApplication::BeginRenderThreadProfiling()
 {
 	GetProfilerCPU().BeginThread("Core");
 }
 
-void CoreApplication::EndCoreProfiling()
+void CoreApplication::EndRenderThreadProfiling()
 {
 	ProfilerGPU::Instance().UpdateInternal();
 

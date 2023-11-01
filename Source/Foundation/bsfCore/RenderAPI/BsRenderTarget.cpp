@@ -22,7 +22,7 @@ void RenderTarget::SetPriority(i32 priority)
 		renderTarget->SetPriority(priority);
 	};
 
-	GetRenderThread().PostCommand(std::bind(windowedFunc, B3DGetRenderProxy(this), priority));
+	GetRenderThread().PostCommand(std::bind(windowedFunc, B3DGetRenderProxy(this), priority), "RenderTarget::SetPriority");
 }
 
 const RenderTargetProperties& RenderTarget::GetProperties() const

@@ -749,7 +749,7 @@ bool MeshEmissionHelper::Initialize(const HMesh& mesh, bool perVertex, bool skin
 			mMeshData = mesh->AllocBuffer();
 			mesh->ReadData(mMeshData);
 
-			GetRenderThread().PostCommand([] {}, true);
+			GetRenderThread().PostCommand([] {}, "MeshEmissionHelper", true);
 		}
 	}
 

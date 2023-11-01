@@ -81,9 +81,9 @@ void RenderThread::RunInternal()
 }
 #endif
 
-void RenderThread::PostCommand(std::function<void()>&& commandCallback, bool waitUntilComplete)
+void RenderThread::PostCommand(std::function<void()>&& commandCallback, const char* debugName, bool waitUntilComplete, const String& extraDebugInformation)
 {
-	mCommandQueue.PostCommand(std::move(commandCallback), "RenderThread Command", waitUntilComplete);
+	mCommandQueue.PostCommand(std::move(commandCallback), debugName, waitUntilComplete, extraDebugInformation);
 }
 
 namespace bs

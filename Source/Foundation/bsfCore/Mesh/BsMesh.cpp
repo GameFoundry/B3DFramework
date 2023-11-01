@@ -45,7 +45,7 @@ AsyncOp Mesh::WriteData(const SPtr<MeshData>& data, bool discardEntireBuffer)
 	};
 
 	AsyncOp asyncOp;
-	GetRenderThread().PostCommand([func = std::move(func), renderProxy = B3DGetRenderProxy(this), data, discardEntireBuffer, asyncOp]() mutable { func(renderProxy, data, discardEntireBuffer, asyncOp); });
+	GetRenderThread().PostCommand([func = std::move(func), renderProxy = B3DGetRenderProxy(this), data, discardEntireBuffer, asyncOp]() mutable { func(renderProxy, data, discardEntireBuffer, asyncOp); }, "Mesh::WriteData", false, GetName());
 
 	return asyncOp;
 }
@@ -68,7 +68,7 @@ AsyncOp Mesh::ReadData(const SPtr<MeshData>& data)
 	};
 
 	AsyncOp asyncOp;
-	GetRenderThread().PostCommand([func = std::move(func), renderProxy = B3DGetRenderProxy(this), data, asyncOp]() mutable { func(renderProxy, data, asyncOp); });
+	GetRenderThread().PostCommand([func = std::move(func), renderProxy = B3DGetRenderProxy(this), data, asyncOp]() mutable { func(renderProxy, data, asyncOp); }, "Mesh::ReadData", false, GetName());
 
 	return asyncOp;
 }

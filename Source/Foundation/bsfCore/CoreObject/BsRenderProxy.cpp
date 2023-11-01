@@ -50,7 +50,7 @@ void RenderProxy::BlockUntilInitialized()
 			B3D_EXCEPT(InternalErrorException, "You cannot call this method on the render thread. It will cause a deadlock.");
 #endif
 
-		GetRenderThread().PostCommand([] {}, true);
+		GetRenderThread().PostCommand([] {}, "RenderProxy::BlockUntilInitialized", true);
 
 		Lock lock(mRenderProxyInitializedMutex);
 		if(!IsInitialized() && !mFlags.IsSet(RenderProxyFlag::ScheduledForInitialization))

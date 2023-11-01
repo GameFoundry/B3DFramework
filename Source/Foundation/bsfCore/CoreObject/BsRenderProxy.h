@@ -77,7 +77,7 @@ namespace bs
 				};
 
 				if(B3D_CURRENT_THREAD_ID != GetRenderThread().GetThreadId())
-					GetRenderThread().PostCommand(fnDestroy);
+					GetRenderThread().PostCommand(fnDestroy, "RenderProxy::Destroy");
 				else
 					fnDestroy();
 			}

@@ -87,7 +87,7 @@ BuiltinResources::~BuiltinResources()
 	mCursorSizeWE = nullptr;
 	mFrameworkIcon = nullptr;
 
-	GetRenderThread().PostCommand([]() { ct::BuiltinResources::ShutDown(); });
+	GetRenderThread().PostCommand([]() { ct::BuiltinResources::ShutDown(); }, "Shutting down builtin resources");
 }
 
 void BuiltinResources::OnStartUp()
@@ -148,7 +148,7 @@ void BuiltinResources::OnStartUp()
 	const HTexture whiteTexture3D = GetTexture(BuiltinTexture::White3D);
 	const HTexture blackTexture3D = GetTexture(BuiltinTexture::Black3D);
 
-	auto fnInitializeCoreBuiltinResources = [whiteTexture2D = B3DGetRenderProxy(whiteTexture2D), blackTexture2D = B3DGetRenderProxy(blackTexture2D), normalTexture = B3DGetRenderProxy(normalTexture), whiteTexture3D = B3DGetRenderProxy(whiteTexture3D), blackTexture3D = B3DGetRenderProxy(blackTexture3D)]()
+	auto fnInitializeBuiltinResourceRenderProxies = [whiteTexture2D = B3DGetRenderProxy(whiteTexture2D), blackTexture2D = B3DGetRenderProxy(blackTexture2D), normalTexture = B3DGetRenderProxy(normalTexture), whiteTexture3D = B3DGetRenderProxy(whiteTexture3D), blackTexture3D = B3DGetRenderProxy(blackTexture3D)]()
 
 	{
 		ct::BuiltinResources::StartUp();
@@ -160,7 +160,7 @@ void BuiltinResources::OnStartUp()
 		renderThreadBuiltinResources.BlackTexture3D = blackTexture3D;
 	};
 
-	GetRenderThread().PostCommand(fnInitializeCoreBuiltinResources);
+	GetRenderThread().PostCommand(fnInitializeBuiltinResourceRenderProxies, "Initialize builtin resource render proxies");
 
 	/************************************************************************/
 	/* 								CURSOR		                     		*/
@@ -219,7 +219,7 @@ void BuiltinResources::OnStartUp()
 	mFrameworkIcon = iconTex->GetProperties().AllocBuffer(0, 0);
 	iconTex->ReadData(mFrameworkIcon);
 
-	GetRenderThread().PostCommand([] {}, true);
+	GetRenderThread().PostCommand([] {}, "Reading back cursor and icon pixels",true);
 }
 
 HSpriteTexture BuiltinResources::GetSkinTexture(const String& name) const

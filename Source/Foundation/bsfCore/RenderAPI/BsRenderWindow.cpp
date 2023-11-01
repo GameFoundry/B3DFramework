@@ -46,7 +46,7 @@ void RenderWindow::Resize(u32 width, u32 height)
 		renderWindow->Resize(width, height);
 	};
 
-	GetRenderThread().PostCommand([renderProxy = B3DGetRenderProxy(this), resizeFunc, width, height] { resizeFunc(renderProxy, width, height); }, true);
+	GetRenderThread().PostCommand([renderProxy = B3DGetRenderProxy(this), resizeFunc, width, height] { resizeFunc(renderProxy, width, height); }, "RenderWindow::Resize", true);
 
 	{
 		ScopedSpinLock lock(B3DGetRenderProxy(this)->mLock);
@@ -66,7 +66,7 @@ void RenderWindow::Move(i32 left, i32 top)
 		renderWindow->Move(left, top);
 	};
 
-	GetRenderThread().PostCommand([renderProxy = B3DGetRenderProxy(this), moveFunc, left, top] { moveFunc(renderProxy, left, top); }, true);
+	GetRenderThread().PostCommand([renderProxy = B3DGetRenderProxy(this), moveFunc, left, top] { moveFunc(renderProxy, left, top); }, "RenderWindow::Move", true);
 
 	{
 		ScopedSpinLock lock(B3DGetRenderProxy(this)->mLock);
@@ -88,7 +88,7 @@ void RenderWindow::Hide()
 
 	GetMutableProperties().IsHidden = true;
 
-	GetRenderThread().PostCommand(std::bind(hideFunc, B3DGetRenderProxy(this)));
+	GetRenderThread().PostCommand(std::bind(hideFunc, B3DGetRenderProxy(this)), "RenderWindow::Hide");
 }
 
 void RenderWindow::Show()
@@ -101,7 +101,7 @@ void RenderWindow::Show()
 
 	GetMutableProperties().IsHidden = false;
 
-	GetRenderThread().PostCommand(std::bind(showFunc, B3DGetRenderProxy(this)));
+	GetRenderThread().PostCommand(std::bind(showFunc, B3DGetRenderProxy(this)), "RenderWindow::Show");
 }
 
 void RenderWindow::Minimize()
@@ -114,7 +114,7 @@ void RenderWindow::Minimize()
 
 	GetMutableProperties().IsMaximized = false;
 
-	GetRenderThread().PostCommand(std::bind(minimizeFunc, B3DGetRenderProxy(this)));
+	GetRenderThread().PostCommand(std::bind(minimizeFunc, B3DGetRenderProxy(this)), "RenderWindow::Minimize");
 }
 
 void RenderWindow::Maximize()
@@ -127,7 +127,7 @@ void RenderWindow::Maximize()
 
 	GetMutableProperties().IsMaximized = true;
 
-	GetRenderThread().PostCommand(std::bind(maximizeFunc, B3DGetRenderProxy(this)), true);
+	GetRenderThread().PostCommand(std::bind(maximizeFunc, B3DGetRenderProxy(this)), "RenderWindow::Maximize", true);
 
 	{
 		ScopedSpinLock lock(B3DGetRenderProxy(this)->mLock);
@@ -149,7 +149,7 @@ void RenderWindow::Restore()
 
 	GetMutableProperties().IsMaximized = false;
 
-	GetRenderThread().PostCommand(std::bind(restoreFunc, B3DGetRenderProxy(this)), true);
+	GetRenderThread().PostCommand(std::bind(restoreFunc, B3DGetRenderProxy(this)), "RenderWindow::Restore", true);
 
 	{
 		ScopedSpinLock lock(B3DGetRenderProxy(this)->mLock);
@@ -169,7 +169,7 @@ void RenderWindow::SetFullscreen(u32 width, u32 height, float refreshRate, u32 m
 		renderWindow->SetFullscreen(width, height, refreshRate, monitorIdx);
 	};
 
-	GetRenderThread().PostCommand(std::bind(fullscreenFunc, B3DGetRenderProxy(this), width, height, refreshRate, monitorIdx), true);
+	GetRenderThread().PostCommand(std::bind(fullscreenFunc, B3DGetRenderProxy(this), width, height, refreshRate, monitorIdx), "RenderWindow::SetFullscreen", true);
 
 	{
 		ScopedSpinLock lock(B3DGetRenderProxy(this)->mLock);
@@ -189,7 +189,7 @@ void RenderWindow::SetFullscreen(const VideoMode& mode)
 		renderWindow->SetFullscreen(mode);
 	};
 
-	GetRenderThread().PostCommand(std::bind(fullscreenFunc, B3DGetRenderProxy(this), std::cref(mode)), true);
+	GetRenderThread().PostCommand(std::bind(fullscreenFunc, B3DGetRenderProxy(this), std::cref(mode)), "RenderWindow::SetFullscreen", true);
 
 	{
 		ScopedSpinLock lock(B3DGetRenderProxy(this)->mLock);
@@ -209,7 +209,7 @@ void RenderWindow::SetWindowed(u32 width, u32 height)
 		renderWindow->SetWindowed(width, height);
 	};
 
-	GetRenderThread().PostCommand(std::bind(windowedFunc, B3DGetRenderProxy(this), width, height), true);
+	GetRenderThread().PostCommand(std::bind(windowedFunc, B3DGetRenderProxy(this), width, height), "RenderWindow::SetWindowed", true);
 
 	{
 		ScopedSpinLock lock(B3DGetRenderProxy(this)->mLock);

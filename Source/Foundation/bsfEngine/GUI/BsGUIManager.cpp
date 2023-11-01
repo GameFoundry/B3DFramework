@@ -174,7 +174,7 @@ void GUIManager::UnregisterWidget(GUIWidget* widget)
 		GetRenderThread().PostCommand([renderer = mRenderer.get(),
 									camera = B3DGetRenderProxy(camera),
 									widgetId]()
-								   { renderer->ClearDrawGroups(camera, widgetId); });
+								   { renderer->ClearDrawGroups(camera, widgetId); }, "GUIRenderer::ClearDrawGroups");
 	}
 }
 
@@ -361,11 +361,11 @@ void GUIManager::Update()
 									widgetId,
 									widgetDepth = widget->GetDepth(),
 									worldTransform = widget->GetWorldTfrm()]()
-								   { renderer->UpdateDrawGroups(camera, widgetId, widgetDepth, worldTransform, updateData); });
+								   { renderer->UpdateDrawGroups(camera, widgetId, widgetDepth, worldTransform, updateData); }, "GUIRenderer::UpdateDrawGroups");
 	}
 
 	GetRenderThread().PostCommand([renderer = mRenderer.get(), time = GetTime().GetTime()]()
-							   { renderer->Update(time); });
+							   { renderer->Update(time); }, "GUIRenderer::Update");
 }
 
 void GUIManager::ProcessDestroyQueue()

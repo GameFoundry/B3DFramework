@@ -62,14 +62,14 @@ void RenderBeast::Initialize(const SPtr<GpuDevice>& gpuDevice)
 	HTexture bokehFlare = GetBuiltinResources().GetTexture(BuiltinTexture::BokehFlare);
 	textures.BokehFlare = B3DGetRenderProxy(bokehFlare);
 
-	GetRenderThread().PostCommand([this, textures]() { InitializeOnRenderThread(textures); });
+	GetRenderThread().PostCommand([this, textures]() { InitializeOnRenderThread(textures); }, "RenderBeast::InitializeOnRenderThread");
 }
 
 void RenderBeast::Destroy()
 {
 	Renderer::Destroy();
 
-	GetRenderThread().PostCommand([this]() { DestroyOnRenderThread(); }, true);
+	GetRenderThread().PostCommand([this]() { DestroyOnRenderThread(); }, "RenderBeast::DestroyOnRenderThread", true);
 }
 
 void RenderBeast::InitializeOnRenderThread(const LoadedRendererTextures& rendererTextures)
@@ -313,7 +313,7 @@ void RenderBeast::RenderAll(PerFrameData perFrameData)
 
 	if(mOptionsDirty)
 	{
-		GetRenderThread().PostCommand(std::bind(&::bs::ct::RenderBeast::SyncOptions, this, *mOptions));
+		GetRenderThread().PostCommand(std::bind(&::bs::ct::RenderBeast::SyncOptions, this, *mOptions), "RenderBeast::SyncOptions");
 		mOptionsDirty = false;
 	}
 
@@ -322,7 +322,7 @@ void RenderBeast::RenderAll(PerFrameData perFrameData)
 	timings.TimeDelta = GetTime().GetFrameDelta();
 	timings.FrameIdx = GetTime().GetCurrentFrameIndex();
 
-	GetRenderThread().PostCommand(std::bind(&::bs::ct::RenderBeast::RenderThreadRenderAll, this, timings, perFrameData));
+	GetRenderThread().PostCommand(std::bind(&::bs::ct::RenderBeast::RenderThreadRenderAll, this, timings, perFrameData), "RenderBeast::RenderAll");
 }
 
 void RenderBeast::RenderThreadRenderAll(FrameTimings timings, PerFrameData perFrameData)

@@ -15,7 +15,7 @@ void RendererExtension::InitializerInternal(RendererExtension* obj, const Any& d
 		obj->Initialize(data);
 	};
 
-	GetRenderThread().PostCommand(renderThreadInitializer);
+	GetRenderThread().PostCommand(renderThreadInitializer, "RendererExtension::Initialize");
 }
 
 void RendererExtension::DeleterInternal(RendererExtension* obj)
@@ -31,5 +31,5 @@ void RendererExtension::DeleterInternal(RendererExtension* obj)
 	};
 
 	// Queue deletion on the render thread
-	GetRenderThread().PostCommand(deleteObj);
+	GetRenderThread().PostCommand(deleteObj, "RendererExtension::Destroy");
 }

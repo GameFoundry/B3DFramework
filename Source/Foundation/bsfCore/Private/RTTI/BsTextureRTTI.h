@@ -56,7 +56,7 @@ namespace bs
 			SPtr<PixelData> pixelData = obj->mProperties.AllocBuffer(face, mipmap);
 
 			obj->ReadData(pixelData, face, mipmap);
-			GetRenderThread().PostCommand([] {}, true);
+			GetRenderThread().PostCommand([] {}, "TextureRTTI::GetPixelData", true, obj->GetName());
 
 			return pixelData;
 		}

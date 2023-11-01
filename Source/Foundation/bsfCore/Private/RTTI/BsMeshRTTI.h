@@ -33,7 +33,7 @@ namespace bs
 			SPtr<MeshData> meshData = obj->AllocBuffer();
 
 			obj->ReadData(meshData);
-			GetRenderThread().PostCommand([] {}, true);
+			GetRenderThread().PostCommand([] {}, "MeshRTTI::GetMeshData", true, obj->GetName());
 
 			return meshData;
 		}

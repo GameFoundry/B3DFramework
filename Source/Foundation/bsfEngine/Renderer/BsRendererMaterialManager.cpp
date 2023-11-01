@@ -10,12 +10,12 @@ using namespace bs;
 
 RendererMaterialManager::RendererMaterialManager()
 {
-	GetRenderThread().PostCommand([this]() { InitOnRenderThread(); });
+	GetRenderThread().PostCommand([this]() { InitOnRenderThread(); }, "RendererMaterialManager::Initialize");
 }
 
 RendererMaterialManager::~RendererMaterialManager()
 {
-	GetRenderThread().PostCommand(std::bind(&RendererMaterialManager::DestroyOnRenderThread));
+	GetRenderThread().PostCommand(std::bind(&RendererMaterialManager::DestroyOnRenderThread), "RendererMaterialManager::Destroy");
 }
 
 void RendererMaterialManager::RegisterMaterial(ct::RendererMaterialMetaData* metaData, const char* shaderPath)

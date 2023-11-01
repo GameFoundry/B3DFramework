@@ -56,7 +56,7 @@ void CoreObject::Initialize()
 			B3D_ENSURE_LOG(B3D_CURRENT_THREAD_ID != GetRenderThread().GetThreadId(), "Cannot initialize CoreObject object from the render thread.");
 
 			GetRenderThread().PostCommand([object = mRenderProxy]
-										{ object->Initialize(); });
+										{ object->Initialize(); }, "RenderProxy::Initialize");
 		}
 		else
 		{
