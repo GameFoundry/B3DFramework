@@ -4,7 +4,7 @@
 
 #include "BsPrerequisites.h"
 #include "2D/BsSprite.h"
-#include "Text/BsTextData.h"
+#include "Text/BsTextGeometry.h"
 #include "Image/BsColor.h"
 #include "Math/BsVector2.h"
 #include "Allocators/BsStaticAlloc.h"
