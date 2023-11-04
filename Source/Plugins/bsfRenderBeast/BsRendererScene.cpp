@@ -754,7 +754,7 @@ void RendererScene::UpdateParticleSystem(ParticleSystem* particleSystem, bool tf
 		gParticlesParamDef.gUVScale.Set(particlesParamBuffer, spriteTexture->GetScale());
 
 		const SpriteSheetGridAnimation& anim = spriteTexture->GetAnimation();
-		gParticlesParamDef.gSubImageSize.Set(particlesParamBuffer, Vector4((float)anim.NumColumns, (float)anim.NumRows, 1.0f / anim.NumColumns, 1.0f / anim.NumRows));
+		gParticlesParamDef.gSubImageSize.Set(particlesParamBuffer, Vector4((float)anim.ColumnCount, (float)anim.RowCount, 1.0f / anim.ColumnCount, 1.0f / anim.RowCount));
 	}
 	else
 	{
@@ -885,7 +885,7 @@ void RendererScene::UpdateParticleSystem(ParticleSystem* particleSystem, bool tf
 			for(u32 i = 0; i < kNumCurveSamples; i++)
 			{
 				const float t = i / (float)(kNumCurveSamples - 1);
-				frameSamples[i] = t * (anim.Count - 1);
+				frameSamples[i] = t * (anim.FrameCount - 1);
 			}
 		}
 		else
@@ -920,7 +920,7 @@ void RendererScene::UpdateParticleSystem(ParticleSystem* particleSystem, bool tf
 			gParticlesParamDef.gUVScale.Set(particlesParamBuffer, spriteTexture->GetScale());
 
 			const SpriteSheetGridAnimation& anim = spriteTexture->GetAnimation();
-			gParticlesParamDef.gSubImageSize.Set(particlesParamBuffer, Vector4((float)anim.NumColumns, (float)anim.NumRows, 1.0f / anim.NumColumns, 1.0f / anim.NumRows));
+			gParticlesParamDef.gSubImageSize.Set(particlesParamBuffer, Vector4((float)anim.ColumnCount, (float)anim.RowCount, 1.0f / anim.ColumnCount, 1.0f / anim.RowCount));
 		}
 	}
 

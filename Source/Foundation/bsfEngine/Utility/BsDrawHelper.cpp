@@ -6,7 +6,7 @@
 #include "Math/BsSphere.h"
 #include "RenderAPI/BsVertexDescription.h"
 #include "Utility/BsShapeMeshes3D.h"
-#include "Text/BsTextData.h"
+#include "Text/BsTextGeometry.h"
 #include "Math/BsVector2.h"
 #include "Math/BsQuaternion.h"
 #include "String/BsUnicode.h"

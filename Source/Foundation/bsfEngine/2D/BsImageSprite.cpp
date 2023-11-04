@@ -58,7 +58,7 @@ void ImageSprite::Update(const ImageSpriteInformation& information, u64 groupId)
 		materialInformation.Tint = information.Color;
 		materialInformation.AnimationStartTime = information.AnimationStartTime;
 
-		bool animated = information.Image->GetAnimation().Count > 1;
+		bool animated = information.Image->GetAnimation().FrameCount > 1;
 		if(animated)
 			materialInformation.SpriteTexture = information.Image;
 

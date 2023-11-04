@@ -1898,8 +1898,8 @@ void GUIRenderer::UpdateParamBlockBuffer(const SPtr<GpuBuffer>& buffer, const Ve
 		u32 column;
 		materialInformation.SpriteTexture->GetAnimationFrame(t, row, column);
 
-		float invWidth = 1.0f / materialInformation.SpriteTexture->GetAnimation().NumColumns;
-		float invHeight = 1.0f / materialInformation.SpriteTexture->GetAnimation().NumRows;
+		float invWidth = 1.0f / materialInformation.SpriteTexture->GetAnimation().ColumnCount;
+		float invHeight = 1.0f / materialInformation.SpriteTexture->GetAnimation().RowCount;
 
 		Vector4 sizeOffset(invWidth, invHeight, column * invWidth, row * invHeight);
 		gGUISpriteParamBlockDef.gUVSizeOffset.Set(buffer, sizeOffset);

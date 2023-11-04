@@ -94,7 +94,7 @@ void ParticleTextureAnimation::Evolve(Random& random, const ParticleSystemState&
 	if(hasValidAnimation)
 	{
 		const SpriteSheetGridAnimation& gridAnim = texture->GetAnimation();
-		hasValidAnimation = gridAnim.NumRows > 0 && gridAnim.NumColumns > 0 && gridAnim.Count > 0;
+		hasValidAnimation = gridAnim.RowCount > 0 && gridAnim.ColumnCount > 0 && gridAnim.FrameCount > 0;
 	}
 
 	if(!hasValidAnimation)
@@ -114,15 +114,15 @@ void ParticleTextureAnimation::Evolve(Random& random, const ParticleSystemState&
 		if(mDesc.RandomizeRow)
 		{
 			const u32 rowSeed = particles.Seed[i] + kParticleRowVariation;
-			const u32 row = Random(rowSeed).GetRange(0, gridAnim.NumRows);
+			const u32 row = Random(rowSeed).GetRange(0, gridAnim.RowCount);
 
-			frameOffset = row * gridAnim.NumColumns;
-			numFrames = gridAnim.NumColumns;
+			frameOffset = row * gridAnim.ColumnCount;
+			numFrames = gridAnim.ColumnCount;
 		}
 		else
 		{
 			frameOffset = 0;
-			numFrames = gridAnim.Count;
+			numFrames = gridAnim.FrameCount;
 		}
 
 		float particleT = (particles.InitialLifetime[i] - particles.Lifetime[i]) / particles.InitialLifetime[i];

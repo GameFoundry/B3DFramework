@@ -229,10 +229,10 @@ void BuiltinResourcesHelper::ImportAssets(const nlohmann::json& entries, const V
 						auto& jsonAnimation = entry["Animation"];
 
 						SpriteSheetGridAnimation animation;
-						animation.NumRows = jsonAnimation["NumRows"].get<u32>();
-						animation.NumColumns = jsonAnimation["NumColumns"].get<u32>();
-						animation.Count = jsonAnimation["Count"].get<u32>();
-						animation.Fps = jsonAnimation["FPS"].get<u32>();
+						animation.RowCount = jsonAnimation["NumRows"].get<u32>();
+						animation.ColumnCount = jsonAnimation["NumColumns"].get<u32>();
+						animation.FrameCount = jsonAnimation["Count"].get<u32>();
+						animation.FramesPerSecond = jsonAnimation["FPS"].get<u32>();
 
 						generateAnimatedSprite(tex, name.c_str(), UUID(spriteUUID.c_str()), SpriteAnimationPlayback::Loop, animation);
 					}
