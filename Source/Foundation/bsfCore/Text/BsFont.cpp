@@ -360,6 +360,7 @@ bool Font::RenderGlyphs(u32 size, const TArrayView<u32>& characterIds)
 			pageTextureCreateInformation.Format = PF_R8;
 
 			newPage.Texture = Texture::Create(pageTextureCreateInformation);
+			AddResourceDependency(newPage.Texture);
 
 			TreeTextureAtlasLayoutSettings atlasLayoutSettings;
 			atlasLayoutSettings.Size = Size2UI(kFontPageSize, kFontPageSize);

@@ -275,6 +275,8 @@ namespace bs
 		using TSpriteTextureCreateInformation::TSpriteTextureCreateInformation;
 	};
 
+	/** @} */
+
 	namespace ct
 	{
 		/** @addtogroup Resources-Internal
@@ -293,8 +295,6 @@ namespace bs
 
 		/** @} */
 	} // namespace ct
-
-	/** @} */
 
 	/** @addtogroup Resources
 	 *  @{
@@ -373,6 +373,142 @@ namespace bs
 			friend class bs::SpriteTexture;
 
 			SpriteTexture(const SpriteTextureCreateInformation& createInformation);
+
+			void SyncFromCoreObject(const CoreSyncData& data, FrameAllocator& allocator) override;
+		};
+
+		/** @} */
+	} // namespace ct
+
+	/** @addtogroup Resources
+	 *  @{
+	 */
+
+	/** Descriptor structure used for initialization of a SpriteGlyph. */
+	struct B3D_SCRIPT_EXPORT(ExportAsStruct(true), DocumentationGroup(Rendering)) SpriteGlyphCreateInformation : SpriteImageInformation
+	{
+		SpriteGlyphCreateInformation() = default;
+		SpriteGlyphCreateInformation(const SpriteImageInformation& spriteImageInformation, const HFont& font, u32 glyph, u32 size)
+			: SpriteImageInformation(spriteImageInformation), Font(font), Glyph(glyph), Size(size)
+		{ }
+
+		HFont Font; /**< Font from which to render the glyph from. */
+		u32 Glyph = 0; /**< Unicode code for the glyph to render. */
+		u32 Size = 8; /**< Size of the glyph in points. */
+	};
+
+	/** @} */
+
+	namespace ct
+	{
+		/** @addtogroup Resources-Internal
+		 *  @{
+		 */
+
+		/**
+		 * Render proxy counterpart of a bs::SpriteGlyphCreateInformation.
+		 *
+		 * @note	Render thread.
+		 */
+		struct SpriteGlyphCreateInformation : SpriteImageInformation
+		{
+			SpriteGlyphCreateInformation() = default;
+			SpriteGlyphCreateInformation(const SpriteImageInformation& spriteImageInformation, const SPtr<Texture>& atlasTexture)
+				: SpriteImageInformation(spriteImageInformation), AtlasTexture(atlasTexture)
+			{ }
+
+			/** Texture used as the atlas. */
+			SPtr<Texture> AtlasTexture;
+		};
+
+		/** @} */
+	} // namespace ct
+	/** @addtogroup Resources
+	 *  @{
+	 */
+
+	/** Implementation of SpriteImage that renders a single glyph from a Font. */
+	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Rendering)) SpriteGlyph : public CoreVariantType<SpriteImage, false>
+	{
+	public:
+		/**	Sets the font to render the glyph from. */
+		B3D_SCRIPT_EXPORT()
+		void SetFont(const HFont& font);
+
+		/**	Sets the unicode code of the glyph to render. */
+		B3D_SCRIPT_EXPORT()
+		void SetGlyph(u32 glyph);
+
+		/**	Sets the size of the glyph in points. */
+		B3D_SCRIPT_EXPORT()
+		void SetGlyphSize(u32 size);
+
+		/**	Creates a new sprite glyph. */
+		B3D_SCRIPT_EXPORT(ExtensionConstructorForType(SpriteGlyph))
+		static HSpriteGlyph Create(const HFont& font, u32 glyph, u32 size = 8);
+
+		/**	Creates a new sprite glyph. */
+		B3D_SCRIPT_EXPORT(ExtensionConstructorForType(SpriteGlyph))
+		static HSpriteGlyph Create(const SpriteGlyphCreateInformation& createInformation);
+
+		/** Creates a new SpriteGlyph without a resource handle. Use Create() for normal use. */
+		static SPtr<SpriteGlyph> CreateShared(const HFont& font, u32 glyph, u32 size = 8);
+
+		/** Creates a new SpriteGlyph without a resource handle. Use Create() for normal use. */
+		static SPtr<SpriteGlyph> CreateShared(const SpriteGlyphCreateInformation& createInformation);
+
+	private:
+		friend class SpriteGlyphRTTI;
+		friend class ct::SpriteGlyph;
+		struct SyncPacket;
+
+		SpriteGlyph(const SpriteGlyphCreateInformation& createInformation);
+
+		/** Updates information about the atlas the glyph is stored in. Call this after glyph, font or size of the glyph changes. */
+		void UpdateGlyphAtlasInformation();
+
+		void Initialize() override;
+		SPtr<ct::RenderProxy> CreateRenderProxy() const override;
+		RenderProxySyncPacket* CreateRenderProxySyncPacket(FrameAllocator& allocator, u32 flags) override;
+		void GetCoreDependencies(Vector<CoreObject*>& dependencies) override;
+
+		HFont mFont;
+		u32 mGlyph = 0;
+		u32 mGlyphSize = 8;
+
+		/************************************************************************/
+		/* 								RTTI		                     		*/
+		/************************************************************************/
+
+		/**	Creates a new empty and uninitialized sprite glyph. */
+		static SPtr<SpriteGlyph> CreateEmpty();
+
+	public:
+		friend class SpriteGlyphRTTI;
+		static RTTITypeBase* GetRttiStatic();
+		RTTITypeBase* GetRtti() const override;
+	};
+
+	/** @} */
+
+	namespace ct
+	{
+		/** @addtogroup Resources-Internal
+		 *  @{
+		 */
+
+		/**
+		 * Render proxy counterpart of a bs::SpriteGlyph.
+		 *
+		 * @note	Render thread.
+		 */
+		class B3D_CORE_EXPORT SpriteGlyph : public CoreVariantType<SpriteImage, true>
+		{
+		public:
+		private:
+			friend class bs::SpriteGlyph;
+
+			SpriteGlyph(const SpriteGlyphCreateInformation& createInformation);
 
 			void SyncFromCoreObject(const CoreSyncData& data, FrameAllocator& allocator) override;
 		};
