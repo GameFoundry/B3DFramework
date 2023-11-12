@@ -5,7 +5,7 @@
 #include "BsScriptEnginePrerequisites.h"
 #include "Wrappers/BsScriptResource.h"
 #include "BsScriptSpriteImage.generated.h"
-#include "../../../Foundation/bsfCore/Image/BsSpriteTexture.h"
+#include "../../../Foundation/bsfCore/Image/BsSpriteGlyph.h"
 
 namespace bs { class SpriteGlyph; }
 namespace bs { struct __SpriteGlyphCreateInformationInterop; }

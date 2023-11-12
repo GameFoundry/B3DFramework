@@ -5,7 +5,7 @@
 #include "BsMonoClass.h"
 #include "BsMonoUtil.h"
 #include "BsScriptResourceManager.h"
-#include "../../../Foundation/bsfCore/Image/BsSpriteTexture.h"
+#include "../../../Foundation/bsfCore/Image/BsSpriteImage.h"
 #include "BsScriptSpriteImage.generated.h"
 #include "Image/BsColor.h"
 #include "Wrappers/BsScriptColor.h"

@@ -18,7 +18,7 @@
 #include "Wrappers/BsScriptVector.h"
 #include "../../../Foundation/bsfCore/Image/BsTexture.h"
 #include "../Extensions/BsMaterialEx.h"
-#include "../../../Foundation/bsfCore/Image/BsSpriteTexture.h"
+#include "../../../Foundation/bsfCore/Image/BsSpriteImage.h"
 
 namespace bs
 {

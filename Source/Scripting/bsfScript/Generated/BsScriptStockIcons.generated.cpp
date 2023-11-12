@@ -7,7 +7,7 @@
 #include "../../../Foundation/bsfCore/Text/BsStockIcons.h"
 #include "BsScriptResourceManager.h"
 #include "Wrappers/BsScriptRRefBase.h"
-#include "../../../Foundation/bsfCore/Image/BsSpriteTexture.h"
+#include "../../../Foundation/bsfCore/Image/BsSpriteImage.h"
 #include "../../../Foundation/bsfCore/Text/BsFont.h"
 
 namespace bs

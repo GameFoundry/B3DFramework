@@ -6,7 +6,7 @@
 #include "Reflection/BsRTTIType.h"
 #include "Reflection/BsRTTIPlain.h"
 #include "Private/RTTI/BsSpriteImageRTTI.h"
-#include "Image/BsSpriteTexture.h"
+#include "Image/BsSpriteGlyph.h"
 
 namespace bs
 {
@@ -15,35 +15,38 @@ namespace bs
 	 *  @{
 	 */
 
-	class B3D_CORE_EXPORT SpriteTextureRTTI : public RTTIType<SpriteTexture, SpriteImage, SpriteTextureRTTI>
+	class B3D_CORE_EXPORT SpriteGlyphRTTI : public RTTIType<SpriteGlyph, SpriteImage, SpriteGlyphRTTI>
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
 			B3D_RTTI_MEMBER_REFL(mAtlasTexture, 0)
+			B3D_RTTI_MEMBER_REFL(mFont, 1)
+			B3D_RTTI_MEMBER_PLAIN(mGlyph, 2)
+			B3D_RTTI_MEMBER_PLAIN(mGlyphSize, 3)
 		B3D_RTTI_END_MEMBERS
 
 	public:
 		const String& GetRttiName()
 		{
-			static String name = "SpriteTexture";
+			static String name = "SpriteGlyph";
 			return name;
 		}
 
 		u32 GetRttiId()
 		{
-			return TID_SpriteTexture;
+			return TID_SpriteGlyph;
 		}
 
 		SPtr<IReflectable> NewRttiObject()
 		{
-			return SpriteTexture::CreateEmpty();
+			return SpriteGlyph::CreateEmpty();
 		}
 
 	private:
 		void OnDeserializationEnded(IReflectable* obj, SerializationContext* context)
 		{
-			SpriteTexture* texture = static_cast<SpriteTexture*>(obj);
-			texture->Initialize();
+			SpriteGlyph* glyph = static_cast<SpriteGlyph*>(obj);
+			glyph->Initialize();
 		}
 	};
 

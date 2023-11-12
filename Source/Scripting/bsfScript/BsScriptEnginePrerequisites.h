@@ -220,6 +220,7 @@ namespace bs
 		AnimationClip,
 		VectorField,
 		SpriteImage,
+		SpriteGlyph,
 		Undefined
 	};
 

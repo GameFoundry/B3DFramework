@@ -5773,24 +5773,6 @@ Sprite images also allow you to specify sprite sheet animation by varying which 
 			<doc>Describes the sprite sheet grid used for animation, if animation is used.</doc>
 		</field>
 	</struct>
-	<class native="SpriteTexture" script="SpriteTexture">
-		<doc>Implementation of SpriteImage that uses a user-provided texture as the atlas texture.</doc>
-		<method native="SetAtlasTexture" script="SetAtlasTexture" static="false">
-			<doc>Sets the atlas texture to utilize.</doc>
-			<param name="texture" type="RRef&lt;Texture&gt;">
-			</param>
-		</method>
-		<ctor>
-			<doc>Creates a new sprite texture that references the entire area of the provided texture.</doc>
-			<param name="texture" type="RRef&lt;Texture&gt;">
-			</param>
-		</ctor>
-		<ctor>
-			<doc>Creates a new sprite texture that references a sub-area of the provided texture.</doc>
-			<param name="createInformation" type="SpriteTextureCreateInformation">
-			</param>
-		</ctor>
-	</class>
 	<struct native="SpriteGlyphCreateInformation" script="SpriteGlyphCreateInformation">
 		<doc>Descriptor structure used for initialization of a SpriteGlyph.</doc>
 		<ctor>
@@ -5853,6 +5835,24 @@ Sprite images also allow you to specify sprite sheet animation by varying which 
 		<ctor>
 			<doc>Creates a new sprite glyph.</doc>
 			<param name="createInformation" type="SpriteGlyphCreateInformation">
+			</param>
+		</ctor>
+	</class>
+	<class native="SpriteTexture" script="SpriteTexture">
+		<doc>Implementation of SpriteImage that uses a user-provided texture as the atlas texture.</doc>
+		<method native="SetAtlasTexture" script="SetAtlasTexture" static="false">
+			<doc>Sets the atlas texture to utilize.</doc>
+			<param name="texture" type="RRef&lt;Texture&gt;">
+			</param>
+		</method>
+		<ctor>
+			<doc>Creates a new sprite texture that references the entire area of the provided texture.</doc>
+			<param name="texture" type="RRef&lt;Texture&gt;">
+			</param>
+		</ctor>
+		<ctor>
+			<doc>Creates a new sprite texture that references a sub-area of the provided texture.</doc>
+			<param name="createInformation" type="SpriteTextureCreateInformation">
 			</param>
 		</ctor>
 	</class>
