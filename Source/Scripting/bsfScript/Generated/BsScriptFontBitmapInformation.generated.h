@@ -24,8 +24,8 @@ namespace bs
 
 	private:
 		static void InternalGetCharacterInformation(ScriptFontBitmapInformation* thisPtr, uint32_t characterId, __CharacterInformationInterop* __output);
-		static uint32_t InternalGetSize(ScriptFontBitmapInformation* thisPtr);
-		static void InternalSetSize(ScriptFontBitmapInformation* thisPtr, uint32_t value);
+		static float InternalGetSize(ScriptFontBitmapInformation* thisPtr);
+		static void InternalSetSize(ScriptFontBitmapInformation* thisPtr, float value);
 		static float InternalGetBaselineOffset(ScriptFontBitmapInformation* thisPtr);
 		static void InternalSetBaselineOffset(ScriptFontBitmapInformation* thisPtr, float value);
 		static float InternalGetLineHeight(ScriptFontBitmapInformation* thisPtr);

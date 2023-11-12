@@ -139,7 +139,7 @@ namespace bs
 			 * @param	offset		Offsets the location at which the method writes to the buffers. Counted as number
 			 *						of quads.
 			 * @param	size		Total number of quads that can fit into the specified buffers.
-			 * @return					Number of quads that were written.
+			 * @return				Number of quads that were written.
 			 */
 			u32 FillBuffer(u32 page, Vector2* outVertices, Vector2* outUVs, u32* outIndices, u32 offset, u32 size) const;
 
@@ -218,7 +218,7 @@ namespace bs
 		 *
 		 * After this object is constructed you may call various getter methods to get needed information.
 		 */
-		B3D_CORE_EXPORT TextGeometry(const U32String& text, const HFont& font, u32 fontSize, u32 width = 0, u32 height = 0, bool wordWrap = false, bool wordBreak = true);
+		B3D_CORE_EXPORT TextGeometry(const U32String& text, const HFont& font, float fontSize, u32 width = 0, u32 height = 0, bool wordWrap = false, bool wordBreak = true);
 		B3D_CORE_EXPORT virtual ~TextGeometry() = default;
 
 		/**	Returns the number of lines that were generated. */
@@ -350,7 +350,7 @@ namespace bs
 	class TTextGeometry : public TextGeometry
 	{
 	public:
-		TTextGeometry(const U32String& text, const HFont& font, u32 fontSize, u32 width = 0, u32 height = 0, bool wordWrap = false, bool wordBreak = true)
+		TTextGeometry(const U32String& text, const HFont& font, float fontSize, u32 width = 0, u32 height = 0, bool wordWrap = false, bool wordBreak = true)
 			: TextGeometry(text, font, fontSize, width, height, wordWrap, wordBreak), mData(nullptr)
 		{
 			u32 totalBufferSize = 0;

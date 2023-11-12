@@ -322,7 +322,7 @@ void BuiltinResourcesHelper::ImportAssets(const nlohmann::json& entries, const V
 	}
 }
 
-void BuiltinResourcesHelper::ImportFont(const Path& inputFile, const String& outputName, const Path& outputFolder, const Vector<u32>& fontSizes, bool antialiasing, const UUID& UUID, const SPtr<ResourceManifest>& manifest)
+void BuiltinResourcesHelper::ImportFont(const Path& inputFile, const String& outputName, const Path& outputFolder, const Vector<float>& fontSizes, bool antialiasing, const UUID& UUID, const SPtr<ResourceManifest>& manifest)
 {
 	SPtr<ImportOptions> fontImportOptions = Importer::Instance().CreateImportOptions(inputFile);
 	if(B3DRTTIIsOfType<FontImportOptions>(fontImportOptions))

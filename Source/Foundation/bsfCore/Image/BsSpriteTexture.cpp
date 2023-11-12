@@ -314,7 +314,7 @@ void SpriteGlyph::SetGlyph(u32 glyph)
 	UpdateGlyphAtlasInformation();
 }
 
-void SpriteGlyph::SetGlyphSize(u32 size)
+void SpriteGlyph::SetGlyphSize(float size)
 {
 	if(mGlyphSize == size)
 		return;
@@ -385,7 +385,7 @@ void SpriteGlyph::GetCoreDependencies(Vector<CoreObject*>& dependencies)
 		dependencies.push_back(mAtlasTexture.Get());
 }
 
-HSpriteGlyph SpriteGlyph::Create(const HFont& font, u32 glyph, u32 size)
+HSpriteGlyph SpriteGlyph::Create(const HFont& font, u32 glyph, float size)
 {
 	SPtr<SpriteGlyph> spriteGlyph = CreateShared(font, glyph, size);
 
@@ -399,7 +399,7 @@ HSpriteGlyph SpriteGlyph::Create(const SpriteGlyphCreateInformation& createInfor
 	return B3DStaticResourceCast<SpriteGlyph>(GetResources().CreateResourceHandle(spriteGlyph));
 }
 
-SPtr<SpriteGlyph> SpriteGlyph::CreateShared(const HFont& font, u32 glyph, u32 size)
+SPtr<SpriteGlyph> SpriteGlyph::CreateShared(const HFont& font, u32 glyph, float size)
 {
 	SpriteGlyphCreateInformation createInformation;
 	createInformation.Font = font;

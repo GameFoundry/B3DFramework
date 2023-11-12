@@ -222,7 +222,7 @@ namespace bs
         /// <param name="depth">Depth at which to draw the element. Elements with higher depth will be drawn before others.
         ///                     Additionally elements of the same type (triangle or line) will be drawn in order they are
         ///                     submitted if they share the same depth.</param>
-        public void DrawText(string text, Vector2I position, Font font, Color color, int size = 10, byte depth = 128)
+        public void DrawText(string text, Vector2I position, Font font, Color color, float size = 10.0f, byte depth = 128)
         {
             IntPtr fontPtr = IntPtr.Zero;
             if (font != null)
@@ -243,7 +243,7 @@ namespace bs
         /// <param name="depth">Depth at which to draw the element. Elements with higher depth will be drawn before others.
         ///                     Additionally elements of the same type (triangle or line) will be drawn in order they are
         ///                     submitted if they share the same depth.</param>
-        public void DrawText(string text, Vector2I position, Font font, int size = 10, byte depth = 128)
+        public void DrawText(string text, Vector2I position, Font font, float size = 10.0f, byte depth = 128)
         {
             IntPtr fontPtr = IntPtr.Zero;
             if (font != null)
@@ -286,7 +286,7 @@ namespace bs
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern void Internal_DrawText(IntPtr nativeInstance, string text, ref Vector2I position,
-            IntPtr font, int size, ref Color color, byte depth);
+            IntPtr font, float size, ref Color color, byte depth);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern void Internal_Clear(IntPtr nativeInstance);

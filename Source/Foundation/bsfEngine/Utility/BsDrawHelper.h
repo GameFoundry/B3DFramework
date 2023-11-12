@@ -117,7 +117,7 @@ namespace bs
 		 * @param[in]	font		Font to use for rendering the text's characters.
 		 * @param[in]	size		Size of the characters, in points.
 		 */
-		void Text(const Vector3& position, const String& text, const HFont& font, u32 size = 10);
+		void Text(const Vector3& position, const String& text, const HFont& font, float size = 10.0f);
 
 		/**	Clears all recorded shapes. */
 		void Clear();
@@ -215,7 +215,7 @@ namespace bs
 			Vector3 Position;
 			String Text;
 			HFont Font;
-			u32 Size;
+			float Size;
 		};
 
 		struct WireMeshData : CommonData

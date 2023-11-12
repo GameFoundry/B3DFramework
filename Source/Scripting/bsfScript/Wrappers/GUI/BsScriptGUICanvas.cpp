@@ -98,7 +98,7 @@ void ScriptGUICanvas::InternalDrawTriangleList(ScriptGUICanvas* nativeInstance, 
 	canvas->DrawTriangleList(nativeVertices, *color, depth);
 }
 
-void ScriptGUICanvas::InternalDrawText(ScriptGUICanvas* nativeInstance, MonoString* text, Vector2I* position, ScriptFont* font, u32 size, Color* color, u8 depth)
+void ScriptGUICanvas::InternalDrawText(ScriptGUICanvas* nativeInstance, MonoString* text, Vector2I* position, ScriptFont* font, float size, Color* color, u8 depth)
 {
 	GUICanvas* canvas = (GUICanvas*)nativeInstance->GetGuiElement();
 	String nativeText = MonoUtil::MonoToString(text);

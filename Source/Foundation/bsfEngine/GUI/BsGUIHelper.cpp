@@ -113,7 +113,7 @@ Size2UI GUIHelper::CalculateOptimalContentSizeWithPaddingAndBorder(const String&
 	return CalculateSizeWithPaddingAndBorder(contentSize, styleSheetRule);
 }
 
-Vector2I GUIHelper::CalculateTextBounds(const String& text, const HFont& font, u32 fontSize)
+Vector2I GUIHelper::CalculateTextBounds(const String& text, const HFont& font, float fontSize)
 {
 	Vector2I size;
 	if(font != nullptr)

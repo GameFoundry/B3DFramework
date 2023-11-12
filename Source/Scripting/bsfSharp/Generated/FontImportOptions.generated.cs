@@ -26,7 +26,7 @@ namespace bs
 		/// <summary>Determines font sizes that are to be imported. Sizes are in points.</summary>
 		[ShowInInspector]
 		[NativeWrapper]
-		public int[] FontSizes
+		public float[] FontSizes
 		{
 			get { return Internal_GetFontSizes(mCachedPtr); }
 			set { Internal_SetFontSizes(mCachedPtr, value); }
@@ -78,9 +78,9 @@ namespace bs
 		}
 
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern int[] Internal_GetFontSizes(IntPtr thisPtr);
+		private static extern float[] Internal_GetFontSizes(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_SetFontSizes(IntPtr thisPtr, int[] value);
+		private static extern void Internal_SetFontSizes(IntPtr thisPtr, float[] value);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern CharRange[] Internal_GetCharIndexRanges(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]

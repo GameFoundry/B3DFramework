@@ -345,7 +345,7 @@ void TextGeometry::Line::CalculateBounds()
 	}
 }
 
-TextGeometry::TextGeometry(const U32String& text, const HFont& font, u32 fontSize, u32 width, u32 height, bool wordWrap, bool wordBreak)
+TextGeometry::TextGeometry(const U32String& text, const HFont& font, float fontSize, u32 width, u32 height, bool wordWrap, bool wordBreak)
 	: mCharacters(nullptr), mCharacterCount(0), mWords(nullptr), mWordCount(0), mLines(nullptr), mLineCount(0), mPageInfos(nullptr), mPageCount(0), mFont(font), mFontBitmapInformation(nullptr)
 {
 	// In order to reduce number of memory allocations algorithm first calculates data into temporary buffers and then copies the results
@@ -594,7 +594,7 @@ u32 TextGeometry::TemporaryBuffer::AllocWord(bool spacer)
 	{
 		u32 newBufferSize = WordBufferSize * 2;
 		Word* newBuffer = B3DNewMultiple<Word>(newBufferSize);
-		memcpy(WordBuffer, newBuffer, WordBufferSize);
+		memcpy(newBuffer, WordBuffer, WordBufferSize * sizeof(Word));
 
 		B3DDeleteMultiple(WordBuffer, WordBufferSize);
 		WordBuffer = newBuffer;
@@ -612,7 +612,7 @@ u32 TextGeometry::TemporaryBuffer::AllocLine(TextGeometry* textData)
 	{
 		u32 newBufferSize = LineBufferSize * 2;
 		Line* newBuffer = B3DNewMultiple<Line>(newBufferSize);
-		memcpy(LineBuffer, newBuffer, LineBufferSize);
+		memcpy(newBuffer, LineBuffer, LineBufferSize * sizeof(Line));
 
 		B3DDeleteMultiple(LineBuffer, LineBufferSize);
 		LineBuffer = newBuffer;
@@ -637,7 +637,7 @@ void TextGeometry::TemporaryBuffer::AddCharToPage(u32 page, const FontBitmapInfo
 	{
 		u32 newBufferSize = PageBufferSize * 2;
 		PageInfo* newBuffer = B3DNewMultiple<PageInfo>(newBufferSize);
-		memcpy((void*)PageBuffer, (void*)newBuffer, PageBufferSize);
+		memcpy(newBuffer, PageBuffer, PageBufferSize * sizeof(PageInfo));
 
 		B3DDeleteMultiple(PageBuffer, PageBufferSize);
 		PageBuffer = newBuffer;

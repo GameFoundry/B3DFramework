@@ -42,7 +42,7 @@ namespace bs
 		B3D_NO_RREF HFont Font; /**< Font to use for all text within the GUI element. */
 
 		B3D_SCRIPT_EXPORT()
-		u32 FontSize = 8; /**< Font size to use for all text within the GUI element. */
+		float FontSize = 8.0f; /**< Font size to use for all text within the GUI element. */
 
 		B3D_SCRIPT_EXPORT()
 		GUIHorizontalTextAlignment TextHorzAlign = GUIHorizontalTextAlignment::Left; /**< Horizontal alignment of text within the GUI element. */

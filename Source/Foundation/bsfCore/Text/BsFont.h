@@ -64,7 +64,7 @@ namespace bs
 
 		/** Font size for which the bitmaps are rendered. */
 		B3D_SCRIPT_EXPORT()
-		u32 Size;
+		float Size;
 
 		/** Y offset to the baseline on which the characters are placed, in pixels. */
 		B3D_SCRIPT_EXPORT()
@@ -151,7 +151,7 @@ namespace bs
 		 * @return			Bitmap object if it exists, false otherwise.
 		 */
 		B3D_SCRIPT_EXPORT()
-		SPtr<FontBitmapInformation> GetBitmap(u32 size) const;
+		SPtr<FontBitmapInformation> GetBitmap(float size) const;
 
 		/**
 		 * Finds the available font bitmap size closest to the provided size.
@@ -160,13 +160,13 @@ namespace bs
 		 * @return				Nearest available bitmap size.
 		 */
 		B3D_SCRIPT_EXPORT()
-		i32 GetClosestSize(u32 size) const;
+		float GetClosestSize(float size) const;
 
 		/**
 		 * Renders glyphs for particular characters as a particular size (in points). The rendered glyphs will be added to the first
 		 * free texture page, or new texture page(s) will be allocated. Returns true if successful.
 		 */
-		bool RenderGlyphs(u32 size, const TArrayView<u32>& characterIds);
+		bool RenderGlyphs(float size, const TArrayView<u32>& characterIds);
 
 		/**
 		 * Bakes all the currently rasterized glyphs. This ensures that texture pages containing those glyphs
@@ -211,14 +211,18 @@ namespace bs
 		void DestroyFontRenderer();
 
 		/** Attempts to retrieve existing bitmap information for particular font size, or creates new bitmap information if one doesn't exist. */
-		SPtr<FontBitmapInformation> GetOrCreateBitmapInformationForSize(u32 size);
+		SPtr<FontBitmapInformation> GetOrCreateBitmapInformationForSize(float size);
 
 		void GetCoreDependencies(Vector<CoreObject*>& dependencies) override;
 
+		/** Retrieves font size that is quantized in a way we can use it to perform bitmap lookup. */
+		static float GetQuantizedFontSize(float size);
+
 		static constexpr u32 kFontPageSize = 1024;
+		static constexpr u32 kFontQuantizeAmount = 100; // Font sizes with 2 decimal places or lower are treated as unique size bitmaps
 	private:
 		FontInformation mInformation;
-		Map<u32, SPtr<FontBitmapInformation>> mFontBitmaps;
+		Map<float, SPtr<FontBitmapInformation>> mFontBitmaps;
 
 		struct Implementation;
 		Implementation* mImplementation = nullptr;

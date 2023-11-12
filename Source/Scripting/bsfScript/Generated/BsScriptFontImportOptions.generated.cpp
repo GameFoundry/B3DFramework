@@ -52,12 +52,12 @@ namespace bs
 	}
 	MonoArray* ScriptFontImportOptions::InternalGetFontSizes(ScriptFontImportOptions* thisPtr)
 	{
-		Vector<uint32_t> vec__output;
+		Vector<float> vec__output;
 		vec__output = thisPtr->GetInternal()->FontSizes;
 
 		MonoArray* __output;
 		int arraySize__output = (int)vec__output.size();
-		ScriptArray array__output = ScriptArray::Create<uint32_t>(arraySize__output);
+		ScriptArray array__output = ScriptArray::Create<float>(arraySize__output);
 		for(int i = 0; i < arraySize__output; i++)
 		{
 			array__output.Set(i, vec__output[i]);
@@ -69,14 +69,14 @@ namespace bs
 
 	void ScriptFontImportOptions::InternalSetFontSizes(ScriptFontImportOptions* thisPtr, MonoArray* value)
 	{
-		Vector<uint32_t> vecvalue;
+		Vector<float> vecvalue;
 		if(value != nullptr)
 		{
 			ScriptArray arrayvalue(value);
 			vecvalue.resize(arrayvalue.Size());
 			for(int i = 0; i < (int)arrayvalue.Size(); i++)
 			{
-				vecvalue[i] = arrayvalue.Get<uint32_t>(i);
+				vecvalue[i] = arrayvalue.Get<float>(i);
 			}
 
 		}

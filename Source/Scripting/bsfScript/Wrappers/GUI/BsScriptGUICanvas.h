@@ -30,7 +30,7 @@ namespace bs
 		static void InternalDrawImage(ScriptGUICanvas* nativeInstance, ScriptSpriteImage* texture, Rect2I* area, TextureScaleMode scaleMode, Color* color, u8 depth);
 		static void InternalDrawTriangleStrip(ScriptGUICanvas* nativeInstance, MonoArray* vertices, Color* color, u8 depth);
 		static void InternalDrawTriangleList(ScriptGUICanvas* nativeInstance, MonoArray* vertices, Color* color, u8 depth);
-		static void InternalDrawText(ScriptGUICanvas* nativeInstance, MonoString* text, Vector2I* position, ScriptFont* font, u32 size, Color* color, u8 depth);
+		static void InternalDrawText(ScriptGUICanvas* nativeInstance, MonoString* text, Vector2I* position, ScriptFont* font, float size, Color* color, u8 depth);
 		static void InternalClear(ScriptGUICanvas* nativeInstance);
 	};
 

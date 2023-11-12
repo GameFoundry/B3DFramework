@@ -19,7 +19,7 @@ void StockIcons::OnShutDown()
 	mCache.clear();
 }
 
-HSpriteImage StockIcons::GetIcon(StockIcon icon, u32 size) const
+HSpriteImage StockIcons::GetIcon(StockIcon icon, float size) const
 {
 	StockIconKey key(icon, size);
 

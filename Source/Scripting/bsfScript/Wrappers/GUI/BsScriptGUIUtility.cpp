@@ -48,7 +48,7 @@ void ScriptGUILayoutUtility::InternalCalculateBounds(ScriptGUIElementBaseTBase* 
 	*output = guiElement->GetGuiElement()->GetBoundsRelativeTo(relativeToPanel);
 }
 
-void ScriptGUILayoutUtility::InternalCalculateTextBounds(MonoString* text, ScriptFont* fontPtr, int fontSize, Vector2I* output)
+void ScriptGUILayoutUtility::InternalCalculateTextBounds(MonoString* text, ScriptFont* fontPtr, float fontSize, Vector2I* output)
 {
 	String nativeText = MonoUtil::MonoToString(text);
 	HFont nativeFont = fontPtr->GetHandle();

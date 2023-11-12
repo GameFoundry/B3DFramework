@@ -53,18 +53,18 @@ namespace bs
 		MonoUtil::ValueCopy(__output, &interop__output, ScriptCharacterInformation::GetMetaData()->ScriptClass->GetInternalClassInternal());
 	}
 
-	uint32_t ScriptFontBitmapInformation::InternalGetSize(ScriptFontBitmapInformation* thisPtr)
+	float ScriptFontBitmapInformation::InternalGetSize(ScriptFontBitmapInformation* thisPtr)
 	{
-		uint32_t tmp__output;
+		float tmp__output;
 		tmp__output = thisPtr->GetInternal()->Size;
 
-		uint32_t __output;
+		float __output;
 		__output = tmp__output;
 
 		return __output;
 	}
 
-	void ScriptFontBitmapInformation::InternalSetSize(ScriptFontBitmapInformation* thisPtr, uint32_t value)
+	void ScriptFontBitmapInformation::InternalSetSize(ScriptFontBitmapInformation* thisPtr, float value)
 	{
 		thisPtr->GetInternal()->Size = value;
 	}

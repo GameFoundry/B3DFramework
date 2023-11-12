@@ -45,7 +45,7 @@ GUIStyleSheetParser::GUIStyleSheetParser()
 	mPropertyKeywords["text-align"] = { GUIStyleSheetPropertyType::TextAlign, ValueType::TextAlign };
 	mPropertyKeywords["vertical-align"] = { GUIStyleSheetPropertyType::VerticalAlign, ValueType::VerticalAlign };
 	mPropertyKeywords["font-family"] = { GUIStyleSheetPropertyType::FontFamily, ValueType::String };
-	mPropertyKeywords["font-size"] = { GUIStyleSheetPropertyType::FontSize, ValueType::Integer };
+	mPropertyKeywords["font-size"] = { GUIStyleSheetPropertyType::FontSize, ValueType::Decimal };
 	mPropertyKeywords["b3d-word-wrap"] = { GUIStyleSheetPropertyType::WordWrap, ValueType::WordWrap };
 
 	// Border properties

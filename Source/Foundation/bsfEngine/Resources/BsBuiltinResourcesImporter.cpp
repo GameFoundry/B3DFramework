@@ -728,7 +728,7 @@ void ProcessAssets(bool generateGenerated, bool forceImport, time_t lastUpdateTi
 				const bool antialiasing = entry.count("Antialiasing") > 0 ? entry["Antialiasing"] : true;
 
 				json fontSizesJSON = entry["Sizes"];
-				Vector<u32> fontSizes;
+				Vector<float> fontSizes;
 
 				if(fontSizesJSON.is_array())
 				{

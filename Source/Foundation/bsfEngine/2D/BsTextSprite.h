@@ -36,7 +36,7 @@ namespace bs
 
 		String Text; /**< UTF-8 encoded text to generate geometry for. */
 		HFont Font; /**< Font containing the data about character glyphs. */
-		u32 FontSize = 0; /**< Size of the font to use when displaying the text. */
+		float FontSize = 0.0f; /**< Size of the font to use when displaying the text, in points. */
 		GUIHorizontalTextAlignment HorzAlign = GUIHorizontalTextAlignment::Left; /**< Specifies how is text horizontally aligned within its bounds. */
 		GUIVerticalTextAlignment VertAlign = GUIVerticalTextAlignment::Top; /**< Specifies how is text vertically aligned within its bounds. */
 		bool WordWrap = false; /**< If true the text will word wrap when it doesn't fit, otherwise it will overflow. */

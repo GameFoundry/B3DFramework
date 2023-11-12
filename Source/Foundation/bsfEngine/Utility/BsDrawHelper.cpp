@@ -291,7 +291,7 @@ void DrawHelper::Rectangle(const Rect3& area)
 	rectData.Center = mTransform.MultiplyAffine(area.GetCenter());
 }
 
-void DrawHelper::Text(const Vector3& position, const String& text, const HFont& font, u32 size)
+void DrawHelper::Text(const Vector3& position, const String& text, const HFont& font, float size)
 {
 	if(!font.IsLoaded() || text.empty())
 		return;

@@ -120,7 +120,7 @@ namespace bs
 		 *							others. Additionally elements of the same type (triangle or line) will be drawn in order
 		 *							they are submitted if they share the same depth.
 		 */
-		void DrawText(const String& text, const Vector2I& position, const HFont& font, u32 size = 10, const Color& color = Color::kWhite, u8 depth = 128);
+		void DrawText(const String& text, const Vector2I& position, const HFont& font, float size = 10.0f, const Color& color = Color::kWhite, u8 depth = 128);
 
 		/** Clears the canvas, removing any previously drawn elements. */
 		void Clear();
@@ -173,7 +173,7 @@ namespace bs
 				struct
 				{
 					TextSprite* TextSprite;
-					u32 Size;
+					float Size;
 				};
 			};
 		};

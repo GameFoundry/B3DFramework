@@ -165,8 +165,10 @@ void Font::DestroyFontRenderer()
 	mImplementation->Face = nullptr;
 }
 
-bool Font::RenderGlyphs(u32 size, const TArrayView<u32>& characterIds)
+bool Font::RenderGlyphs(float size, const TArrayView<u32>& characterIds)
 {
+	const float quantizedFontSize = GetQuantizedFontSize(size);
+
 	SPtr<FontBitmapInformation> bitmapInformation = GetOrCreateBitmapInformationForSize(size);
 	if(!bitmapInformation)
 	{
@@ -180,7 +182,7 @@ bool Font::RenderGlyphs(u32 size, const TArrayView<u32>& characterIds)
 		return nullptr;
 	}
 
-	if(!B3D_ENSURE(FT_Set_Char_Size(mImplementation->Face, ConvertFloatToFixed26Dot6((float)size), 0, mInformation.DPI, mInformation.DPI) == 0))
+	if(!B3D_ENSURE(FT_Set_Char_Size(mImplementation->Face, ConvertFloatToFixed26Dot6(quantizedFontSize), 0, mInformation.DPI, mInformation.DPI) == 0))
 	{
 		B3D_LOG(Error, Font, "Failed to render font glyphs. Failed to set character size.");
 		return nullptr;
@@ -456,9 +458,11 @@ void Font::Bake(bool clearFontData)
 	}
 }
 
-SPtr<FontBitmapInformation> Font::GetOrCreateBitmapInformationForSize(u32 size)
+SPtr<FontBitmapInformation> Font::GetOrCreateBitmapInformationForSize(float size)
 {
-	auto itFontBitmap = mFontBitmaps.find(size);
+	const float quantizedFontSize = GetQuantizedFontSize(size);
+
+	auto itFontBitmap = mFontBitmaps.find(quantizedFontSize);
 	if(itFontBitmap != mFontBitmaps.end())
 		return itFontBitmap->second;
 
@@ -468,7 +472,7 @@ SPtr<FontBitmapInformation> Font::GetOrCreateBitmapInformationForSize(u32 size)
 		return nullptr;
 	}
 
-	if(!B3D_ENSURE(FT_Set_Char_Size(mImplementation->Face, ConvertFloatToFixed26Dot6((float)size), 0, mInformation.DPI, mInformation.DPI) == 0))
+	if(!B3D_ENSURE(FT_Set_Char_Size(mImplementation->Face, ConvertFloatToFixed26Dot6(quantizedFontSize), 0, mInformation.DPI, mInformation.DPI) == 0))
 	{
 		B3D_LOG(Error, Font, "Cannot create font bitmap information. Failed to set character size.");
 		return nullptr;
@@ -479,7 +483,7 @@ SPtr<FontBitmapInformation> Font::GetOrCreateBitmapInformationForSize(u32 size)
 
 	const FT_Size_Metrics& faceMetrics = mImplementation->Face->size->metrics;
 
-	newBitmapInformation->Size = size;
+	newBitmapInformation->Size = quantizedFontSize;
 	newBitmapInformation->LineHeight = ConvertFixed26Dot6ToFloat(faceMetrics.height);
 	newBitmapInformation->BaselineOffset = ConvertFixed26Dot6ToFloat(faceMetrics.height + faceMetrics.descender);
 
@@ -489,7 +493,7 @@ SPtr<FontBitmapInformation> Font::GetOrCreateBitmapInformationForSize(u32 size)
 	const FT_GlyphSlot& glyph = mImplementation->Face->glyph;
 	newBitmapInformation->SpaceWidth = ConvertFixed26Dot6ToFloat(glyph->advance.x);
 
-	mFontBitmaps[size] = newBitmapInformation;
+	mFontBitmaps[quantizedFontSize] = newBitmapInformation;
 
 	u32 kMissingGlyphId[] = { 0 };
 	RenderGlyphs(size, TArrayView(kMissingGlyphId, 1));
@@ -501,20 +505,21 @@ SPtr<FontBitmapInformation> Font::GetOrCreateBitmapInformationForSize(u32 size)
 	return newBitmapInformation;
 }
 
-SPtr<FontBitmapInformation> Font::GetBitmap(u32 size) const
+SPtr<FontBitmapInformation> Font::GetBitmap(float size) const
 {
-	auto iterFind = mFontBitmaps.find(size);
+	const float quantizedFontSize = GetQuantizedFontSize(size);
+	auto itFound = mFontBitmaps.find(quantizedFontSize);
 
-	if(iterFind == mFontBitmaps.end())
+	if(itFound == mFontBitmaps.end())
 		return nullptr;
 
-	return iterFind->second;
+	return itFound->second;
 }
 
-i32 Font::GetClosestSize(u32 size) const
+float Font::GetClosestSize(float size) const
 {
-	u32 minDiff = std::numeric_limits<u32>::max();
-	u32 bestSize = size;
+	float minDiff = std::numeric_limits<float>::max();
+	float bestSize = size;
 
 	for(auto iter = mFontBitmaps.begin(); iter != mFontBitmaps.end(); ++iter)
 	{
@@ -522,7 +527,7 @@ i32 Font::GetClosestSize(u32 size) const
 			return size;
 		else if(iter->first > size)
 		{
-			u32 diff = iter->first - size;
+			const float diff = iter->first - size;
 			if(diff < minDiff)
 			{
 				minDiff = diff;
@@ -531,7 +536,7 @@ i32 Font::GetClosestSize(u32 size) const
 		}
 		else
 		{
-			u32 diff = size - iter->first;
+			const float diff = size - iter->first;
 			if(diff < minDiff)
 			{
 				minDiff = diff;
@@ -553,6 +558,11 @@ void Font::GetCoreDependencies(Vector<CoreObject*>& dependencies)
 				dependencies.push_back(page.Texture.Get());
 		}
 	}
+}
+
+float Font::GetQuantizedFontSize(float size)
+{
+	return (float)Math::RoundToI32(size * kFontQuantizeAmount) / (float)kFontQuantizeAmount;
 }
 
 HFont Font::Create(const FontCreateInformation& createInformation)

@@ -31,7 +31,7 @@ namespace bs
 		 * @param	size		Size of the icon in points.
 		 */
 		B3D_SCRIPT_EXPORT()
-		HSpriteImage GetIcon(StockIcon icon, u32 size = 8) const;
+		HSpriteImage GetIcon(StockIcon icon, float size = 8.0f) const;
 
 		/** Returns the unicode character corresponding to an icon. */
 		B3D_SCRIPT_EXPORT()
@@ -67,13 +67,13 @@ namespace bs
 				return Icon == other.Icon && Size == other.Size;
 			}
 
-			StockIconKey(StockIcon icon, u32 size)
+			StockIconKey(StockIcon icon, float size)
 				: Icon(icon), Size(size)
 			{
 			}
 
 			StockIcon Icon = StockIcon::None;
-			u32 Size = 8;
+			float Size = 8.0f;
 		};
 
 		mutable TUnorderedMap<StockIconKey, WeakResourceHandle<SpriteImage>> mCache;

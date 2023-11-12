@@ -36,7 +36,7 @@ namespace bs
 		/// <summary>Font size to use for all text within the GUI element.</summary>
 		[ShowInInspector]
 		[NativeWrapper]
-		public int FontSize
+		public float FontSize
 		{
 			get { return Internal_GetFontSize(mCachedPtr); }
 			set { Internal_SetFontSize(mCachedPtr, value); }
@@ -398,9 +398,9 @@ namespace bs
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_SetFont(IntPtr thisPtr, Font value);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern int Internal_GetFontSize(IntPtr thisPtr);
+		private static extern float Internal_GetFontSize(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_SetFontSize(IntPtr thisPtr, int value);
+		private static extern void Internal_SetFontSize(IntPtr thisPtr, float value);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern GUIHorizontalTextAlignment Internal_GetTextHorzAlign(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]

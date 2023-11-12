@@ -54,7 +54,7 @@ namespace bs
         /// <param name="font">Font that will be used for rendering the text.</param>
         /// <param name="fontSize">Size of individual characters in the font, in points.</param>
         /// <returns>Width/height required to display the text, in pixels.</returns>
-        public static Vector2I CalculateTextBounds(string text, Font font, int fontSize)
+        public static Vector2I CalculateTextBounds(string text, Font font, float fontSize)
         {
             Vector2I output;
 
@@ -76,7 +76,7 @@ namespace bs
         private static extern void Internal_CalculateBounds(IntPtr element, IntPtr relativeTo, out Rect2I output);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
-        private static extern void Internal_CalculateTextBounds(string text, IntPtr fontPtr, int fontSize, out Vector2I output);
+        private static extern void Internal_CalculateTextBounds(string text, IntPtr fontPtr, float fontSize, out Vector2I output);
     }
 
     /** @} */

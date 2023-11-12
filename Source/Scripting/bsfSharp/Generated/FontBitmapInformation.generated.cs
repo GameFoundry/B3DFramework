@@ -22,7 +22,7 @@ namespace bs
 		/// <summary>Font size for which the bitmaps are rendered.</summary>
 		[ShowInInspector]
 		[NativeWrapper]
-		public int Size
+		public float Size
 		{
 			get { return Internal_GetSize(mCachedPtr); }
 			set { Internal_SetSize(mCachedPtr, value); }
@@ -89,9 +89,9 @@ namespace bs
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_GetCharacterInformation(IntPtr thisPtr, int characterId, out CharacterInformation __output);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern int Internal_GetSize(IntPtr thisPtr);
+		private static extern float Internal_GetSize(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_SetSize(IntPtr thisPtr, int value);
+		private static extern void Internal_SetSize(IntPtr thisPtr, float value);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern float Internal_GetBaselineOffset(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]

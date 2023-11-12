@@ -20,7 +20,7 @@ namespace bs
 	private:
 		static MonoObject* InternalGetRef(ScriptFont* thisPtr);
 
-		static MonoObject* InternalGetBitmap(ScriptFont* thisPtr, uint32_t size);
-		static int32_t InternalGetClosestSize(ScriptFont* thisPtr, uint32_t size);
+		static MonoObject* InternalGetBitmap(ScriptFont* thisPtr, float size);
+		static float InternalGetClosestSize(ScriptFont* thisPtr, float size);
 	};
 }

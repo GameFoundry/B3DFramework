@@ -193,7 +193,7 @@ namespace bs
 		u32 BorderBottomRightRadius = 0; /**< Radius of the bottom right border corner, if rounded corners are desired. In pixels. */
 
 		HFont Font; /**< Font family to render the text contents of the GUI element with. */
-		u32 FontSize = 8; /**< Font size to render the text contents of the GUI element with. */
+		float FontSize = 8.0f; /**< Font size to render the text contents of the GUI element with. */
 		GUIHorizontalTextAlignment HorizontalTextAlignment = GUIHorizontalTextAlignment::Left; /**< Determines horizontal alignment of text within the GUI element. */
 		GUIVerticalTextAlignment VerticalTextAlignment = GUIVerticalTextAlignment::Middle; /**< Determines vertical alignment of text within the GUI element. */
 		GUIWordWrapMode WordWrap = GUIWordWrapMode::None; /**< Determines if text wraps when it doesn't fit in a single line. */

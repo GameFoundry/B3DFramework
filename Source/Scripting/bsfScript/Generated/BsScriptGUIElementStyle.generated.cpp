@@ -131,18 +131,18 @@ namespace bs
 		thisPtr->GetInternal()->Font = tmpvalue;
 	}
 
-	uint32_t ScriptGUIElementStyle::InternalGetFontSize(ScriptGUIElementStyle* thisPtr)
+	float ScriptGUIElementStyle::InternalGetFontSize(ScriptGUIElementStyle* thisPtr)
 	{
-		uint32_t tmp__output;
+		float tmp__output;
 		tmp__output = thisPtr->GetInternal()->FontSize;
 
-		uint32_t __output;
+		float __output;
 		__output = tmp__output;
 
 		return __output;
 	}
 
-	void ScriptGUIElementStyle::InternalSetFontSize(ScriptGUIElementStyle* thisPtr, uint32_t value)
+	void ScriptGUIElementStyle::InternalSetFontSize(ScriptGUIElementStyle* thisPtr, float value)
 	{
 		thisPtr->GetInternal()->FontSize = value;
 	}

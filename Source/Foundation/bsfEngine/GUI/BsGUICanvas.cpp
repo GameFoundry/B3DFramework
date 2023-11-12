@@ -175,7 +175,7 @@ void GUICanvas::DrawTriangleList(const Vector<Vector2I>& vertices, const Color& 
 	MarkContentAsDirty();
 }
 
-void GUICanvas::DrawText(const String& text, const Vector2I& position, const HFont& font, u32 size, const Color& color, u8 depth)
+void GUICanvas::DrawText(const String& text, const Vector2I& position, const HFont& font, float size, const Color& color, u8 depth)
 {
 	mElements.push_back(CanvasElement());
 	CanvasElement& element = mElements.back();

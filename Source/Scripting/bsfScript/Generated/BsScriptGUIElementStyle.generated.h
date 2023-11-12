@@ -29,8 +29,8 @@ namespace bs
 		static void InternalAddSubStyle(ScriptGUIElementStyle* thisPtr, MonoString* guiType, MonoString* styleName);
 		static MonoObject* InternalGetFont(ScriptGUIElementStyle* thisPtr);
 		static void InternalSetFont(ScriptGUIElementStyle* thisPtr, MonoObject* value);
-		static uint32_t InternalGetFontSize(ScriptGUIElementStyle* thisPtr);
-		static void InternalSetFontSize(ScriptGUIElementStyle* thisPtr, uint32_t value);
+		static float InternalGetFontSize(ScriptGUIElementStyle* thisPtr);
+		static void InternalSetFontSize(ScriptGUIElementStyle* thisPtr, float value);
 		static GUIHorizontalTextAlignment InternalGetTextHorzAlign(ScriptGUIElementStyle* thisPtr);
 		static void InternalSetTextHorzAlign(ScriptGUIElementStyle* thisPtr, GUIHorizontalTextAlignment value);
 		static GUIVerticalTextAlignment InternalGetTextVertAlign(ScriptGUIElementStyle* thisPtr);

@@ -46,7 +46,7 @@ SPtr<Resource> FontImporter::Import(const Path& filePath, SPtr<const ImportOptio
 	const FontImportOptions* fontImportOptions = static_cast<const FontImportOptions*>(importOptions.get());
 
 	const Vector<CharRange>& charIndexRanges = fontImportOptions->CharIndexRanges;
-	const Vector<u32>& fontSizes = fontImportOptions->FontSizes;
+	const Vector<float>& fontSizes = fontImportOptions->FontSizes;
 
 	const String fileName = filePath.GetFilename(false);
 

@@ -388,13 +388,13 @@ namespace bs
 	struct B3D_SCRIPT_EXPORT(ExportAsStruct(true), DocumentationGroup(Rendering)) SpriteGlyphCreateInformation : SpriteImageInformation
 	{
 		SpriteGlyphCreateInformation() = default;
-		SpriteGlyphCreateInformation(const SpriteImageInformation& spriteImageInformation, const HFont& font, u32 glyph, u32 size)
+		SpriteGlyphCreateInformation(const SpriteImageInformation& spriteImageInformation, const HFont& font, u32 glyph, float size)
 			: SpriteImageInformation(spriteImageInformation), Font(font), Glyph(glyph), Size(size)
 		{ }
 
 		HFont Font; /**< Font from which to render the glyph from. */
 		u32 Glyph = 0; /**< Unicode code for the glyph to render. */
-		u32 Size = 8; /**< Size of the glyph in points. */
+		float Size = 8.0f; /**< Size of the glyph in points. */
 	};
 
 	/** @} */
@@ -441,18 +441,18 @@ namespace bs
 
 		/**	Sets the size of the glyph in points. */
 		B3D_SCRIPT_EXPORT()
-		void SetGlyphSize(u32 size);
+		void SetGlyphSize(float size);
 
 		/**	Creates a new sprite glyph. */
 		B3D_SCRIPT_EXPORT(ExtensionConstructorForType(SpriteGlyph))
-		static HSpriteGlyph Create(const HFont& font, u32 glyph, u32 size = 8);
+		static HSpriteGlyph Create(const HFont& font, u32 glyph, float size = 8.0f);
 
 		/**	Creates a new sprite glyph. */
 		B3D_SCRIPT_EXPORT(ExtensionConstructorForType(SpriteGlyph))
 		static HSpriteGlyph Create(const SpriteGlyphCreateInformation& createInformation);
 
 		/** Creates a new SpriteGlyph without a resource handle. Use Create() for normal use. */
-		static SPtr<SpriteGlyph> CreateShared(const HFont& font, u32 glyph, u32 size = 8);
+		static SPtr<SpriteGlyph> CreateShared(const HFont& font, u32 glyph, float size = 8.0f);
 
 		/** Creates a new SpriteGlyph without a resource handle. Use Create() for normal use. */
 		static SPtr<SpriteGlyph> CreateShared(const SpriteGlyphCreateInformation& createInformation);
@@ -474,7 +474,7 @@ namespace bs
 
 		HFont mFont;
 		u32 mGlyph = 0;
-		u32 mGlyphSize = 8;
+		float mGlyphSize = 8.0f;
 
 		/************************************************************************/
 		/* 								RTTI		                     		*/

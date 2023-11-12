@@ -33,7 +33,7 @@ namespace bs
 
 		/**	Determines font sizes that are to be imported. Sizes are in points. */
 		B3D_SCRIPT_EXPORT()
-		Vector<u32> FontSizes = { 10 };
+		Vector<float> FontSizes = { };
 
 		/**	Determines character index ranges to import. Ranges are defined as unicode numbers. */
 		B3D_SCRIPT_EXPORT()

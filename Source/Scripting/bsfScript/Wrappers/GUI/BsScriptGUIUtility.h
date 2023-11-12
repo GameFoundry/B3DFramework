@@ -28,7 +28,7 @@ namespace bs
 		/************************************************************************/
 		static void InternalCalculateOptimalSize(ScriptGUIElementBaseTBase* guiElement, Vector2I* output);
 		static void InternalCalculateBounds(ScriptGUIElementBaseTBase* guiElement, ScriptGUILayout* relativeTo, Rect2I* output);
-		static void InternalCalculateTextBounds(MonoString* text, ScriptFont* fontPtr, int fontSize, Vector2I* output);
+		static void InternalCalculateTextBounds(MonoString* text, ScriptFont* fontPtr, float fontSize, Vector2I* output);
 	};
 
 	/** @} */
