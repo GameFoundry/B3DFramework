@@ -227,14 +227,13 @@ void GUIVectorSpriteAtlas::Update()
 		it = mFreeTextureCache.erase(it);
 	}
 
+	GetRenderThread().PostCommand([this, bufferIndex = mDirtySpriteWriteBufferIndex]()
+	{
+		RenderDirtySprites(bufferIndex);
+	});
 
 	mDirtySpriteWriteBufferIndex = (mDirtySpriteWriteBufferIndex + 1) % B3DSize(mDirtySpriteBuffers);
-	mDirtySpriteBuffers[mDirtySpriteWriteBufferIndex].clear();
-
-	{
-		Lock lock(mDirtySpriteMutex);
-		mDirtySpriteReadBufferIndex = (mDirtySpriteReadBufferIndex + 1) % B3DSize(mDirtySpriteBuffers);
-	}
+	B3D_ENSURE(mDirtySpriteBuffers[mDirtySpriteWriteBufferIndex].empty());
 }
 
 void GUIVectorSpriteAtlas::DestroyPendingReleasedAllocations()
@@ -276,18 +275,12 @@ void GUIVectorSpriteAtlas::DestroyPendingReleasedAllocations()
 	}
 }
 
-void GUIVectorSpriteAtlas::RenderDirtySprites()
+void GUIVectorSpriteAtlas::RenderDirtySprites(u32 bufferIndex)
 {
 	if(!EnsureRenderThread())
 		return;
 
-	u32 readBufferIndex = 0;
-	{
-		Lock lock(mDirtySpriteMutex);
-		readBufferIndex = mDirtySpriteReadBufferIndex;
-	}
-
-	Vector<DirtySpriteInformation>& dirtySprites = mDirtySpriteBuffers[readBufferIndex];
+	Vector<DirtySpriteInformation>& dirtySprites = mDirtySpriteBuffers[bufferIndex];
 
 	if(dirtySprites.empty())
 		return;

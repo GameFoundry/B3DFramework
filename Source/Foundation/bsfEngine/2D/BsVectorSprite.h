@@ -130,7 +130,7 @@ namespace bs
 		void Update();
 
 		/** Render any sprites that are newly allocated. Render thread only. */
-		void RenderDirtySprites();
+		void RenderDirtySprites(u32 bufferIndex);
 		
 	private:
 		friend class GUIVectorSpriteAtlasAllocation;
@@ -196,9 +196,7 @@ namespace bs
 		Vector<GUIVectorSpriteAtlasAllocation*> mFreeAllocations; // Allocations recorded here in a thread safe manner
 		Vector<GUIVectorSpriteAtlasAllocation*> mFreeAllocationsTemp; // Temporary buffer when iterating over the array on the main thread
 
-		Mutex mDirtySpriteMutex;
 		u32 mDirtySpriteWriteBufferIndex = 0;
-		u32 mDirtySpriteReadBufferIndex = RenderThread::kSyncBufferCount;
 		Vector<DirtySpriteInformation> mDirtySpriteBuffers[RenderThread::kSyncBufferCount + 1];// Dirty sprites recorded here in a thread safe manner
 
 		mutable UnorderedMap<FreeTextureInformation::Key, FreeTextureInformation, FreeTextureInformation::Key::Hash> mFreeTextureCache;

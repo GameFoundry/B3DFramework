@@ -38,6 +38,7 @@
 #include "Resources/BsBuiltinResources.h"
 #include "2D/BsSpriteManager.h"
 #include "2D/BsVectorSprite.h"
+#include "RenderAPI/BsGpuBackend.h"
 #include "RenderAPI/BsGpuCommandBuffer.h"
 #include "RenderAPI/BsGpuDeviceCapabilities.h"
 
@@ -181,8 +182,6 @@ void GUIManager::UnregisterWidget(GUIWidget* widget)
 void GUIManager::Update()
 {
 	DragAndDropManager::Instance().UpdateInternal();
-
-	mVectorSpriteAtlas->Update();
 
 	// Show tooltip if needed
 	if(mShowTooltip)
@@ -363,6 +362,9 @@ void GUIManager::Update()
 									worldTransform = widget->GetWorldTfrm()]()
 								   { renderer->UpdateDrawGroups(camera, widgetId, widgetDepth, worldTransform, updateData); }, "GUIRenderer::UpdateDrawGroups");
 	}
+
+	// Note: It's important to call this after GUI elements rebuild their render data, as this will request new vector paths
+	mVectorSpriteAtlas->Update();
 
 	GetRenderThread().PostCommand([renderer = mRenderer.get(), time = GetTime().GetTime()]()
 							   { renderer->Update(time); }, "GUIRenderer::Update");
@@ -1625,9 +1627,6 @@ RendererExtensionRequest GUIRenderer::Check(const Camera& camera)
 void GUIRenderer::Render(const Camera& camera, const RendererViewContext& viewContext)
 {
 	// TODO - Sprite animation might be broken. I need to continually mark the animated region as dirty.
-
-	GUIVectorSpriteAtlas& vectorSpriteAtlas = GetGUIManager().GetVectorSpriteAtlas(); // Note: Might want to split the atlas into a Renderer part for use on the render thread
-	vectorSpriteAtlas.RenderDirtySprites();
 
 	FrameScope frameScope;
 	const SPtr<GpuDevice>& gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
