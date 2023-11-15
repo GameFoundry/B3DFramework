@@ -396,50 +396,53 @@ void GUIElement::RefreshStyle()
 		const GUIWidget* parentWidget = GetParentWidget();
 		const GUIStyleSheet& styleSheet = (parentWidget && parentWidget->GetStyleSheet().IsLoaded(false)) ? *parentWidget->GetStyleSheet() : GetBuiltinResources().GetEmptyGUIStyleSheet();
 
-		SPtr<const GUIStyleSheetStateRulesets> newStateRulesets = styleSheet.BuildStateRulesets(*this);
-
-		if(!newStateRulesets)
-			newStateRulesets = GUIStyleSheetStateRulesets::kDefault;
-
-		bool anyRuleChanged = false;
-		if(newStateRulesets != mStyleSheetRuleInformation.StateRulesets)
+		if(styleSheet.HasRulesetForClass(GetStyleSheetClass(), GetStyleSheetElement()))
 		{
-			mStyleSheetRuleInformation.StateRulesets = newStateRulesets;
-			mStyleSheetRuleInformation.CurrentStateRuleset = nullptr;
+			SPtr<const GUIStyleSheetStateRulesets> newStateRulesets = styleSheet.BuildStateRulesets(*this);
+
+			if(!newStateRulesets)
+				newStateRulesets = GUIStyleSheetStateRulesets::kDefault;
+
+			bool anyRuleChanged = false;
+			if(newStateRulesets != mStyleSheetRuleInformation.StateRulesets)
+			{
+				mStyleSheetRuleInformation.StateRulesets = newStateRulesets;
+				mStyleSheetRuleInformation.CurrentStateRuleset = nullptr;
+
+				if(IsUsingStyleSheets())
+				{
+					const bool isFixedBefore = mSizeConstraints.IsWidthFixed() && mSizeConstraints.IsHeightFixed();
+
+					mStyleSheetRuleInformation.CurrentStateRuleset = mStyleSheetRuleInformation.StateRulesets->BuildStateRuleset(mStateFlags);
+					mSizeConstraints.UpdateWithStyleSheetRule(mStyleSheetRuleInformation.CurrentStateRuleset->Rules);
+
+					const bool isFixedAfter = mSizeConstraints.IsWidthFixed() && mSizeConstraints.IsHeightFixed();
+					if(isFixedBefore != isFixedAfter)
+						RefreshLayoutUpdateParentsForChildren();
+
+					anyRuleChanged = true;
+				}
+			}
 
 			if(IsUsingStyleSheets())
 			{
-				const bool isFixedBefore = mSizeConstraints.IsWidthFixed() && mSizeConstraints.IsHeightFixed();
+				const GUIStyleSheetRules* inheritedRules = mStyleSheetRuleInformation.CurrentStateRuleset != nullptr ? &mStyleSheetRuleInformation.CurrentStateRuleset->Rules : nullptr;
+				for(auto& pseudoElementRuleInformation : mPseudoElementStyleSheetRules)
+				{
+					SPtr<const GUIStyleSheetStateRulesets> newPseudoElementStateRulesets = styleSheet.BuildStateRulesets(*this, pseudoElementRuleInformation.PseudoElementName);
 
-				mStyleSheetRuleInformation.CurrentStateRuleset = mStyleSheetRuleInformation.StateRulesets->BuildStateRuleset(mStateFlags);
-				mSizeConstraints.UpdateWithStyleSheetRule(mStyleSheetRuleInformation.CurrentStateRuleset->Rules);
+					if(!newPseudoElementStateRulesets)
+						newPseudoElementStateRulesets = GUIStyleSheetStateRulesets::kDefault;
 
-				const bool isFixedAfter = mSizeConstraints.IsWidthFixed() && mSizeConstraints.IsHeightFixed();
-				if(isFixedBefore != isFixedAfter)
-					RefreshLayoutUpdateParentsForChildren();
+					pseudoElementRuleInformation.StateRulesets = newPseudoElementStateRulesets;
+					pseudoElementRuleInformation.CurrentStateRuleset = pseudoElementRuleInformation.StateRulesets->BuildStateRuleset(mStateFlags, inheritedRules);
+				}
 
-				anyRuleChanged = true;
-			}
-		}
-
-		if(IsUsingStyleSheets())
-		{
-			const GUIStyleSheetRules* inheritedRules = mStyleSheetRuleInformation.CurrentStateRuleset != nullptr ? &mStyleSheetRuleInformation.CurrentStateRuleset->Rules : nullptr;
-			for(auto& pseudoElementRuleInformation : mPseudoElementStyleSheetRules)
-			{
-				SPtr<const GUIStyleSheetStateRulesets> newPseudoElementStateRulesets = styleSheet.BuildStateRulesets(*this, pseudoElementRuleInformation.PseudoElementName);
-
-				if(!newPseudoElementStateRulesets)
-					newPseudoElementStateRulesets = GUIStyleSheetStateRulesets::kDefault;
-
-				pseudoElementRuleInformation.StateRulesets = newPseudoElementStateRulesets;
-				pseudoElementRuleInformation.CurrentStateRuleset = pseudoElementRuleInformation.StateRulesets->BuildStateRuleset(mStateFlags, inheritedRules);
-			}
-
-			if(anyRuleChanged)
-			{
-				NotifyStyleChanged();
-				MarkLayoutAsDirty();
+				if(anyRuleChanged)
+				{
+					NotifyStyleChanged();
+					MarkLayoutAsDirty();
+				}
 			}
 		}
 	}

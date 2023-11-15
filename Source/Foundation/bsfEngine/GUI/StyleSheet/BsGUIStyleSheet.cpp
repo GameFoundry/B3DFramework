@@ -481,6 +481,24 @@ SPtr<const GUIStyleSheetStateRulesets> GUIStyleSheet::BuildStateRulesets(const G
 	return newStateRulesets;
 }
 
+bool GUIStyleSheet::HasRulesetForClass(StringView elementClass, StringView elementType) const
+{
+	bool foundClass = elementClass.empty();
+	bool foundElement = elementType.empty();
+	for(const auto& ruleset : mRulesets)
+	{
+		for(const auto& selector : ruleset.SelectorList.Selectors)
+		{
+			if(selector.SelectorType == GUIStyleSheetSelectorType::Class)
+				foundClass |= selector.Name == elementClass;
+			else if(selector.SelectorType == GUIStyleSheetSelectorType::Element)
+				foundElement |= selector.Name == elementType;
+		}
+	}
+
+	return foundElement && foundClass;
+}
+
 void GUIStyleSheet::PopulatePotentialRulesetIndices(const GUIElement& guiElement, FrameSet<u32>& outOrderedRulesetIndices) const
 {
 	StringView idSelector = guiElement.GetStyleSheetId();

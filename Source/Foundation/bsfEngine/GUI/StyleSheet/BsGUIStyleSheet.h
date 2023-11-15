@@ -308,6 +308,15 @@ namespace bs
 		/** Returns all rulesets stored in the stylesheet. */
 		const TArray<GUIStyleSheetRuleset>& GetRulesets() const { return mRulesets; }
 
+		/**
+		 * Checks if the style sheet has a ruleset for this particular class.
+		 *
+		 * @param elementClass		Class name to check.
+		 * @param elementType		Optional name of the GUI element type. If not empty, only classes matching this element will be considered.
+		 * @return					True if there is at least one ruleset for the class.
+		 */
+		bool HasRulesetForClass(StringView elementClass, StringView elementType = "") const;
+
 		/** Attempts to parse the provided style sheet file and outputs the parsed style sheet, if successful. */
 		static HGUIStyleSheet Parse(const Path& file);
 		// TODO - Add LoadOrParse() method that attempts to lookup an existing style sheet from PersistentCache first
