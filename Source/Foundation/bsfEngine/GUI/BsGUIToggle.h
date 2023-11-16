@@ -117,12 +117,6 @@ namespace bs
 		 */
 		static SPtr<GUIToggleGroup> CreateToggleGroup(bool allowAllOff = false);
 
-		const char* GetStyleSheetElement() const override
-		{
-			return nullptr;
-			//return "toggle";
-		}
-
 		/**	Checks the toggle, making it active. */
 		void ToggleOn() { ToggleOnInternal(false); }
 

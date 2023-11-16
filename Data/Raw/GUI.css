@@ -2,8 +2,8 @@
 {
     --PrimaryTextColor: #B2B2B2;
     --PrimaryBackgroundColor: #212121;
-    --PrimaryBorderColor: #2E2E2E;
-    --HoverBorderColor: #373737;
+    --PrimaryBorderColor: #1B1B1B;
+    --HoverBorderColor: #1B1B1B;
     --HoverBackgroundColor: #2D2D2D;
     --FocusColor: #FFA800;
     --PrimaryFontFamily: "Arial";
@@ -13,15 +13,14 @@
 button
 {
     min-width: 20px;
-    height: 17px;
+    height: 22px;
     margin-bottom: 4px;
-    padding-top: 2px;
     text-align: center;
     vertical-align: middle;
     color: var(--PrimaryTextColor);
     background-color: var(--PrimaryBackgroundColor);
     border-color: var(--PrimaryBorderColor);
-    border-width: 1px;
+    border-width: 2px;
     font-family: var(--PrimaryFontFamily);
     font-size: var(--PrimaryFontSize);
 }
@@ -38,6 +37,13 @@ button:focus
 }
 
 button:active
+{
+    background-color: var(--FocusColor);
+    border-color: var(--FocusColor);
+    color: #000000;
+}
+
+button:checked
 {
     background-color: var(--FocusColor);
     border-color: var(--FocusColor);
@@ -63,7 +69,7 @@ label.Label
 
 }
 
-toggle
+button.Toggle
 {
     width: 13px;
     height: 15px;
@@ -73,24 +79,31 @@ toggle
     border-width: 1px;
 }
 
-toggle:hover
+button.Toggle:hover
 {
     background-color: var(--HoverBackgroundColor);
     border-color: var(--HoverBorderColor);
 }
 
-toggle:focus
+button.Toggle:focus
 {
     border-color: var(--FocusColor);
 }
 
-toggle:active
+button.Toggle:active
 {
     background-color: var(--FocusColor);
     border-color: var(--FocusColor);
 }
 
-toggle::checkmark
+button.Toggle::checkmark
 {
     color: var(--FocusColor);
+}
+
+button.TabbedBarBtn_DISABLED
+{
+    height: 15px;
+    min-width: 24px;
+    max-width: 110px;
 }

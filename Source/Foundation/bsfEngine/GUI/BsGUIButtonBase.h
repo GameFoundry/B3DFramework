@@ -57,6 +57,7 @@ namespace bs
 
 		Vector2I GetOptimalSize() const override;
 		u32 GetRenderElementDepthRange() const override;
+		const char* GetStyleSheetElement() const override { return "button"; }
 
 		/** @} */
 	protected:
@@ -84,7 +85,7 @@ namespace bs
 		/**	Returns the active text color, depending on the current state. */
 		Color GetActiveTextColor() const;
 
-	private:
+	protected:
 		ImageSprite* mImageSprite;
 		VectorSprite* mBackgroundSprite;
 		ImageSprite* mContentImageSprite = nullptr;
