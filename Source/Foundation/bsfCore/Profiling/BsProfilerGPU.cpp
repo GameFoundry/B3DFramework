@@ -110,10 +110,7 @@ void ProfilerGPU::EndView(ct::GpuCommandBuffer& commandBuffer)
 void ProfilerGPU::BeginSample(ct::GpuCommandBuffer& commandBuffer, ProfilerString name)
 {
 	if(!mIsFrameActive)
-	{
-		B3D_LOG(Error, Profiler, "Cannot begin a sample because no frame is active.");
 		return;
-	}
 
 	auto sample = mSamplePool.Construct<ProfiledSample>();
 	sample->Name = std::move(name);
