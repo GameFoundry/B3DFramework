@@ -6,7 +6,6 @@
 #include "GUI/BsGUIElement.h"
 #include "2D/BsImageSprite.h"
 #include "2D/BsTextSprite.h"
-#include "2D/BsVectorSprite.h"
 #include "GUI/BsGUIContent.h"
 #include "Utility/BsEvent.h"
 

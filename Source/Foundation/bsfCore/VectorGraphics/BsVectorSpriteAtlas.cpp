@@ -1,7 +1,6 @@
 //************************************ bs::framework - Copyright 2023 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "2D/BsVectorSprite.h"
-#include "2D/BsSpriteManager.h"
+#include "VectorGraphics/BsVectorSpriteAtlas.h"
 #include "CoreObject/BsRenderThread.h"
 #include "GUI/BsGUIManager.h"
 #include "Image/BsSpriteTexture.h"
@@ -14,84 +13,6 @@
 #include "Renderer/BsRendererUtility.h"
 
 using namespace bs;
-
-VectorSprite::~VectorSprite()
-{
-	ClearMesh();
-}
-
-void VectorSprite::Update(const VectorSpriteInformation& information, u64 groupId)
-{
-	if(!information.VectorPath.IsLoaded() || information.Width == 0 || information.Height == 0)
-	{
-		ClearMesh();
-		return;
-	}
-
-	// Actually generate a mesh
-	if(mCachedRenderElements.size() < 1)
-		mCachedRenderElements.resize(1);
-
-	VectorGraphicsSettings vectorGraphicsSettings;
-	vectorGraphicsSettings.Size = Size2((float)information.Width, (float)information.Height);
-
-	GUIVectorSpriteAtlas& vectorSpriteAtlas = GetGUIManager().GetVectorSpriteAtlas();
-
-	mSpriteAtlasAllocation = vectorSpriteAtlas.Allocate(*information.VectorPath, vectorGraphicsSettings);
-	if(!B3D_ENSURE(mSpriteAtlasAllocation))
-		return;
-
-	SpriteTextureCreateInformation spriteTextureCreateInformation;
-	spriteTextureCreateInformation.AtlasTexture = mSpriteAtlasAllocation->AtlasTexture;
-	spriteTextureCreateInformation.UVRange = mSpriteAtlasAllocation->UVRange;
-
-	HSpriteImage image = SpriteTexture::Create(spriteTextureCreateInformation);
-
-	RenderElementData& renderElementData = mCachedRenderElements[0];
-	SpriteRenderElement& renderElement = renderElementData.RenderElement;
-	if(renderElement.VertexCount < 4)
-	{
-		renderElement.VertexPositions = mPositionBuffer.data();
-		renderElement.VertexUVs = mUVBuffer.data();
-		renderElement.Indices = mIndexBuffer.data();
-		renderElement.VertexCount = 4;
-		renderElement.IndexCount = 6;
-	}
-
-	SpriteMaterialInfo& materialInformation = renderElementData.MaterialInformation;
-	materialInformation.GroupId = groupId;
-	materialInformation.Texture = image->GetAtlasTexture();
-	materialInformation.Tint = information.Color;
-
-	renderElement.Material = SpriteManager::Instance().GetImageMaterial(SpriteMaterialTransparency::Premultiplied);
-	renderElement.MaterialInformation = &renderElementData.MaterialInformation;
-
-	renderElement.Indices[0] = 0;
-	renderElement.Indices[1] = 1;
-	renderElement.Indices[2] = 2;
-	renderElement.Indices[3] = 1;
-	renderElement.Indices[4] = 3;
-	renderElement.Indices[5] = 2;
-
-	renderElement.VertexPositions[0] = Vector2(0.0f, 0.0f);
-	renderElement.VertexPositions[1] = Vector2((float)information.Width, 0.0f);
-	renderElement.VertexPositions[2] = Vector2(0.0f, (float)information.Height);
-	renderElement.VertexPositions[3] = Vector2((float)information.Width, (float)information.Height);
-
-	renderElement.VertexUVs[0] = image->TransformUV(Vector2(0.0f, 0.0f));
-	renderElement.VertexUVs[1] = image->TransformUV(Vector2(1.0f, 0.0f));
-	renderElement.VertexUVs[2] = image->TransformUV(Vector2(0.0f, 1.0f));
-	renderElement.VertexUVs[3] = image->TransformUV(Vector2(1.0f, 1.0f));
-
-	UpdateBounds();
-}
-
-void VectorSprite::ClearMesh()
-{
-	mCachedRenderElements.clear();
-	mSpriteAtlasAllocation = nullptr;
-	UpdateBounds();
-}
 
 static TreeTextureAtlasLayoutSettings GetGUIVectorSpriteAtlasSettings(u32 pageSize)
 {

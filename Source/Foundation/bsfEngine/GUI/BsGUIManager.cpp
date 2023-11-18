@@ -37,7 +37,7 @@
 #include "RenderAPI/BsSamplerState.h"
 #include "Resources/BsBuiltinResources.h"
 #include "2D/BsSpriteManager.h"
-#include "2D/BsVectorSprite.h"
+#include "VectorGraphics/BsVectorSpriteAtlas.h"
 #include "RenderAPI/BsGpuBackend.h"
 #include "RenderAPI/BsGpuCommandBuffer.h"
 #include "RenderAPI/BsGpuDeviceCapabilities.h"

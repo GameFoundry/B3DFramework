@@ -2,15 +2,14 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "Image/BsSpriteVectorPath.h"
 
-#include "2D/BsVectorSprite.h"
 #include "Private/RTTI/BsSpriteVectorPathRTTI.h"
 #include "Image/BsTexture.h"
 #include "Resources/BsResources.h"
 #include "Resources/BsBuiltinResources.h"
 #include "CoreObject/BsCoreObjectSync.h"
 #include "GUI/BsGUIManager.h"
-#include "Text/BsFont.h"
 #include "VectorGraphics/BsVectorGraphics.h"
+#include "VectorGraphics/BsVectorSpriteAtlas.h"
 
 using namespace bs;
 

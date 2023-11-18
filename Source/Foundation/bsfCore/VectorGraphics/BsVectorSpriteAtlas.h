@@ -2,9 +2,7 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsPrerequisites.h"
-#include "2D/BsSprite.h"
-#include "Image/BsColor.h"
+#include "BsCorePrerequisites.h"
 #include "Image/BsTextureAtlasLayout.h"
 #include "VectorGraphics/BsVectorGraphics.h"
 
@@ -22,46 +20,10 @@ namespace bs
 	 *  @{
 	 */
 
-	/**	Information used for initializing or updating a vector sprite. */
-	struct VectorSpriteInformation : SpriteInformation
-	{
-		VectorSpriteInformation() = default;
-
-		HVectorPath VectorPath; /**< Vector path to render on the sprite. */
-	};
-
-	/**	A sprite consisting of a vector path represented by a sprite texture. */
-	class B3D_EXPORT VectorSprite : public Sprite
-	{
-	public:
-		VectorSprite() = default;
-		~VectorSprite();
-
-		/**
-		 * Recreates internal sprite data according the specified description structure.
-		 *
-		 * @param	information		Describes the geometry and material of the sprite.
-		 * @param	groupId			Group identifier that forces different materials to be used for different groups (for
-		 *							example you don't want the sprites to share the same material if they use different world
-		 *							transform matrices).
-		 */
-		void Update(const VectorSpriteInformation& information, u64 groupId);
-
-	private:
-		/**	Clears internal geometry buffers. */
-		void ClearMesh();
-
-		Array<Vector2, 4> mPositionBuffer;
-		Array<Vector2, 4> mUVBuffer;
-		Array<u32, 6> mIndexBuffer;
-
-		SPtr<GUIVectorSpriteAtlasAllocation> mSpriteAtlasAllocation;
-	};
-
 	class GUIVectorSpriteAtlas;
 
 	/** Represents a single allocation in a GUIVectorSpriteAtlas. */
-	class GUIVectorSpriteAtlasAllocation : public std::enable_shared_from_this<GUIVectorSpriteAtlasAllocation>
+	class B3D_CORE_EXPORT GUIVectorSpriteAtlasAllocation : public std::enable_shared_from_this<GUIVectorSpriteAtlasAllocation>
 	{
 	public:
 		GUIVectorSpriteAtlasAllocation(GUIVectorSpriteAtlas* owner, u64 vectorPathId, const HTexture& atlasTexture, const Rect2& uvRange, const Optional<TreeTextureAtlasLayout::Allocation>& layoutAllocation, u32 textureId, const SPtr<ct::VectorPathRenderable>& renderable)
@@ -114,7 +76,7 @@ namespace bs
 	};
 
 	/** Manages a cache of all VectorPath objects used by the GUI and maintains an atlas containing their rasterized representation for use by GUI. */
-	class GUIVectorSpriteAtlas
+	class B3D_CORE_EXPORT GUIVectorSpriteAtlas
 	{
 	public:
 		GUIVectorSpriteAtlas(const GUIVectorSpriteAtlasSettings& settings);
