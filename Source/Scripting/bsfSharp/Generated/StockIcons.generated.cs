@@ -20,7 +20,7 @@ namespace bs
 		/// <summary>Retrieves a particular stock icon.</summary>
 		/// <param name="icon">Icon to retrieve.</param>
 		/// <param name="size">Size of the icon in points.</param>
-		public static RRef<SpriteImage> GetIcon(StockIcon icon, float size = 8f)
+		public static SpriteImage GetIcon(StockIcon icon, float size = 8f)
 		{
 			return Internal_GetIcon(icon, size);
 		}
@@ -32,7 +32,7 @@ namespace bs
 		}
 
 		/// <summary>Returns the font in which the provided icon is stored in.</summary>
-		public static RRef<Font> GetFont(StockIcon icon)
+		public static Font GetFont(StockIcon icon)
 		{
 			return Internal_GetFont(icon);
 		}
@@ -44,11 +44,11 @@ namespace bs
 		}
 
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern RRef<SpriteImage> Internal_GetIcon(StockIcon icon, float size);
+		private static extern SpriteImage Internal_GetIcon(StockIcon icon, float size);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern int Internal_GetUnicode(StockIcon icon);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern RRef<Font> Internal_GetFont(StockIcon icon);
+		private static extern Font Internal_GetFont(StockIcon icon);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern StockIcon Internal_ParseIconName(string name);
 	}

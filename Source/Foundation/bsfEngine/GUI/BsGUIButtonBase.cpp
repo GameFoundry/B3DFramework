@@ -149,6 +149,13 @@ void GUIButtonBase::UpdateRenderElements()
 		contentImgDesc.Color = GetTint();
 		contentImgDesc.AnimationStartTime = mContentAnimationStartTime;
 
+		if(isUsingStyleSheets)
+		{
+			const GUIStyleSheetRules& styleSheetRules = mStyleSheetRuleInformation.CurrentStateRuleset->Rules;
+			contentImgDesc.Color *= styleSheetRules.Color;
+			contentImgDesc.Color.A *= styleSheetRules.Opacity;
+		}
+
 		mContentImageSprite->Update(contentImgDesc, (u64)GetParentWidget());
 	}
 

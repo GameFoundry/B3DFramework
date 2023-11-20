@@ -23,7 +23,7 @@ namespace bs
 	 */
 
 	/** Determines how to scale path canvas when rasterizing for a particular size. */
-	enum class VectorGraphicsRasterizationScaling
+	enum class B3D_SCRIPT_EXPORT(DocumentationGroup(VectorGraphics)) VectorGraphicsRasterizationScaling
 	{
 		StretchToFit, /**< Canvas will stretch non-uniformly in both dimensions in order to cover the raster area fully. */
 		ScaleToFit, /**< Canvas will scale uniformly until one dimension is aligned with the raster area. Remaining dimension might have empty space, and canvas will be placed in the center of the raster dimension. */
@@ -32,7 +32,7 @@ namespace bs
 	};
 
 	/** Settings that control how is a VectorPath drawn. */
-	struct VectorGraphicsSettings
+	struct B3D_SCRIPT_EXPORT(DocumentationGroup(VectorGraphics)) VectorGraphicsSettings
 	{
 		Size2 Size = Size2::kZero; /**< Size of the area in which the path is being rasterized to, in pixels. Canvas size will be mapped to this size according to @p ScalingMode. */
 		VectorGraphicsRasterizationScaling ScalingMode = VectorGraphicsRasterizationScaling::ScaleToFit; /**< Determines how is canvas size mapped to @p Size. */
@@ -494,7 +494,7 @@ namespace bs
 	};
 
 	/** Represents a vector path containing curves and geometric shapes that can be rasterized to any dimension. */
-	class B3D_CORE_EXPORT VectorPath : public Resource
+	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(VectorGraphics)) VectorPath : public Resource
 	{
 	public:
 		static constexpr Size2 kDefaultCanvasSize = Size2(512.0f, 512.0f);

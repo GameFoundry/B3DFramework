@@ -111,3 +111,10 @@ button.TabbedBarBtn
     padding-left: 10px;
     padding-right: 10px;
 }
+
+button.ToolBarBtn
+{
+    width: 32px;
+    height: 32px;
+    border-width: 0px;
+}

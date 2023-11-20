@@ -221,6 +221,8 @@ namespace bs
 		VectorField,
 		SpriteImage,
 		SpriteGlyph,
+		SpriteVectorPath,
+		VectorPath,
 		Undefined
 	};
 

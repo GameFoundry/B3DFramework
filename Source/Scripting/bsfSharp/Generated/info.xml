@@ -1210,6 +1210,9 @@ Use {0}, {1}, etc. in the string value for values that might change dynamically.
 	<class native="ImportOptions" script="ImportOptions">
 		<doc>Base class for creating import options from. Import options are specific for each importer and control how is data imported.</doc>
 	</class>
+	<class native="VectorGraphicsSettings" script="VectorGraphicsSettings">
+		<doc>Settings that control how is a VectorPath drawn.</doc>
+	</class>
 	<class native="ParticleEmitterStaticMeshShape" script="ParticleEmitterStaticMeshShape">
 		<doc>Particle emitter shape that emits particles from a surface of a static (non-animated) mesh. Particles can be emitted from mesh vertices, edges or triangles. If information about normals exists, particles will also inherit the normals.</doc>
 		<ctor>
@@ -4763,7 +4766,7 @@ Sprite images also allow you to specify sprite sheet animation by varying which 
 			<param name="size" type="float">
 				<doc>Size of the icon in points.</doc>
 			</param>
-			<returns type="RRef&lt;SpriteImage&gt;">
+			<returns type="SpriteImage">
 			</returns>
 		</method>
 		<method native="GetUnicode" script="GetUnicode" static="false">
@@ -4777,7 +4780,7 @@ Sprite images also allow you to specify sprite sheet animation by varying which 
 			<doc>Returns the font in which the provided icon is stored in.</doc>
 			<param name="icon" type="StockIcon">
 			</param>
-			<returns type="RRef&lt;Font&gt;">
+			<returns type="Font">
 			</returns>
 		</method>
 		<method native="ParseIconName" script="ParseIconName" static="false">
@@ -5853,6 +5856,75 @@ Sprite images also allow you to specify sprite sheet animation by varying which 
 		<ctor>
 			<doc>Creates a new sprite texture that references a sub-area of the provided texture.</doc>
 			<param name="createInformation" type="SpriteTextureCreateInformation">
+			</param>
+		</ctor>
+	</class>
+	<enum native="VectorGraphicsRasterizationScaling" script="VectorGraphicsRasterizationScaling">
+		<doc>Determines how to scale path canvas when rasterizing for a particular size.</doc>
+		<enumentry native="StretchToFit" script="StretchToFit">
+			<doc>Canvas will stretch non-uniformly in both dimensions in order to cover the raster area fully.</doc>
+		</enumentry>
+		<enumentry native="ScaleToFit" script="ScaleToFit">
+			<doc>Canvas will scale uniformly until one dimension is aligned with the raster area. Remaining dimension might have empty space, and canvas will be placed in the center of the raster dimension.</doc>
+		</enumentry>
+		<enumentry native="CropToFit" script="CropToFit">
+			<doc>Canvas will scale uniformly until both dimensions are larger or aligned with the raster area. Remaining dimension might be cropped.</doc>
+		</enumentry>
+		<enumentry native="None" script="None">
+			<doc>Do not perform any scaling. Canvas size is ignored and path coordinates are mapped 1:1 to raster coordinates.</doc>
+		</enumentry>
+	</enum>
+	<class native="VectorPath" script="VectorPath">
+		<doc>Represents a vector path containing curves and geometric shapes that can be rasterized to any dimension.</doc>
+	</class>
+	<struct native="SpriteVectorPathCreateInformation" script="SpriteVectorPathCreateInformation">
+		<doc>Descriptor structure used for initialization of a SpriteVectorPath.</doc>
+		<ctor>
+		</ctor>
+		<ctor>
+			<param name="spriteImageInformation" type="SpriteImageInformation">
+			</param>
+			<param name="vectorPath" type="RRef&lt;VectorPath&gt;">
+			</param>
+			<param name="size" type="Size2UI">
+			</param>
+		</ctor>
+		<field name="VectorPath" type="RRef&lt;VectorPath&gt;">
+			<doc>Vector path to render on the sprite.</doc>
+		</field>
+		<field name="Size" type="Size2UI">
+			<doc>Size of the rasterized path, in pixels.</doc>
+		</field>
+		<field name="ScalingMode" type="VectorGraphicsRasterizationScaling">
+			<doc>How to scale the path canvas onto the rasterized destination.</doc>
+		</field>
+		<field name="UVRange" type="Rect2">
+			<doc>Range in the atlas texture that the image maps to.</doc>
+		</field>
+		<field name="AnimationPlayback" type="SpriteAnimationPlayback">
+			<doc>Determines if animation is enabled and how should it play.</doc>
+		</field>
+		<field name="Animation" type="SpriteSheetGridAnimation">
+			<doc>Describes the sprite sheet grid used for animation, if animation is used.</doc>
+		</field>
+	</struct>
+	<class native="SpriteVectorPath" script="SpriteVectorPath">
+		<doc>Implementation of SpriteImage that renders a vector path.</doc>
+		<method native="SetVectorPath" script="SetVectorPath" static="false">
+			<doc>Sets the vector path to render.</doc>
+			<param name="vectorPath" type="RRef&lt;VectorPath&gt;">
+			</param>
+		</method>
+		<ctor>
+			<doc>Creates a new sprite vector path.</doc>
+			<param name="vectorPath" type="RRef&lt;VectorPath&gt;">
+			</param>
+			<param name="size" type="Size2UI">
+			</param>
+		</ctor>
+		<ctor>
+			<doc>Creates a new sprite vector path.</doc>
+			<param name="createInformation" type="SpriteVectorPathCreateInformation">
 			</param>
 		</ctor>
 	</class>

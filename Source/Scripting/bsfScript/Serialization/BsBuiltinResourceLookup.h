@@ -45,6 +45,8 @@
 #	include "Generated/BsScriptVectorField.generated.h"
 #	include "Generated/BsScriptGUISkin.generated.h"
 #	include "Generated/BsScriptSpriteGlyph.generated.h"
+#	include "Generated/BsScriptSpriteVectorPath.generated.h"
+#	include "Generated/BsScriptVectorPath.generated.h"
 
 namespace bs
 {
@@ -132,6 +134,8 @@ namespace bs
 	ADD_ENTRY(VectorField, ScriptVectorField, ScriptResourceType::VectorField)
 	ADD_ENTRY(SpriteImage, ScriptSpriteImage, ScriptResourceType::SpriteImage)
 	ADD_ENTRY(SpriteGlyph, ScriptSpriteGlyph, ScriptResourceType::SpriteGlyph)
+	ADD_ENTRY(SpriteVectorPath, ScriptSpriteVectorPath, ScriptResourceType::SpriteVectorPath)
+	ADD_ENTRY(VectorPath, ScriptVectorPath, ScriptResourceType::VectorPath)
 	LOOKUP_END
 
 #	undef LOOKUP_BEGIN
