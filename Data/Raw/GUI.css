@@ -112,6 +112,26 @@ button.TabbedBarBtn
     padding-right: 10px;
 }
 
+button.Separator
+{
+    border-width: 0px;
+}
+
+button.Separator:hover
+{
+    background-color: var(--PrimaryBackgroundColor);
+}
+
+button.Separator:focus
+{
+    background-color: var(--PrimaryBackgroundColor);
+}
+
+button.Separator:active
+{
+    background-color: var(--PrimaryBackgroundColor);
+}
+
 button.ToolBarBtn
 {
     width: 32px;
