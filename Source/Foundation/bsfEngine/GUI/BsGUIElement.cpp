@@ -445,6 +445,17 @@ void GUIElement::RefreshStyle()
 				}
 			}
 		}
+		else
+		{
+			mStyleSheetRuleInformation.StateRulesets = nullptr;
+			mStyleSheetRuleInformation.CurrentStateRuleset = nullptr;
+
+			for(auto& pseudoElementRuleInformation : mPseudoElementStyleSheetRules)
+			{
+				pseudoElementRuleInformation.StateRulesets = nullptr;
+				pseudoElementRuleInformation.CurrentStateRuleset = nullptr;
+			}
+		}
 	}
 
 	// DEPRECATED
