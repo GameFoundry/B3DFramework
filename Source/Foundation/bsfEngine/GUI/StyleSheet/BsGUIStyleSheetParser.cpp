@@ -162,11 +162,11 @@ Optional<GUIStyleSheetSelectorList> GUIStyleSheetParser::TryParseSelectorList()
 			selector.SelectorType = GUIStyleSheetSelectorType::Element;
 			selector.Name = token.GetSpelling();
 
-			// If there is any previous element selector, it is considered to be an ancestor of the current selector
+			// If there is any previous element selector, the last entry before this one needs to be marked as the ancestor
 			if(lastElementSelectorIndex != ~0u)
 			{
 				B3D_ASSERT(optionalSelectorList.has_value());
-				optionalSelectorList->Selectors[lastElementSelectorIndex].CombinatorType = GUIStyleSheetCombinatorType::AncestorOf;
+				optionalSelectorList->Selectors[optionalSelectorList->Selectors.size() - 1].CombinatorType = GUIStyleSheetCombinatorType::AncestorOf;
 			}
 
 			if(optionalSelectorList.has_value())
