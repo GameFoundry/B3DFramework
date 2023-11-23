@@ -18,6 +18,8 @@ namespace bs
 		/** @copydoc GUIElement::SetFocus */
 		void SetFocus(bool enabled, bool clear = false);
 
+		const char* GetStyleSheetElement() const override { return "container"; }
+
 	protected:
 		GUIElementContainer(const GUISizeConstraints& dimensions, const char* style, GUIElementOptions options = GUIElementOptions(0));
 		GUIElementContainer(const GUISizeConstraints& dimensions, const String& style = StringUtil::kBlank, GUIElementOptions options = GUIElementOptions(0));

@@ -71,7 +71,6 @@ namespace bs
 
 		/** @copydoc Renderable::GetLayer */
 		B3D_SCRIPT_EXPORT(ExportName(Layers), Property(Getter))
-
 		u64 GetLayer() const { return mInternal->GetLayer(); }
 
 		/**	Gets world bounds of the mesh rendered by this object. */

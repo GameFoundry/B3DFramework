@@ -1,7 +1,8 @@
 :root
 {
-    --PrimaryTextColor: #B2B2B2;
+    --PrimaryContentColor: #B2B2B2;
     --PrimaryBackgroundColor: #212121;
+    --BrighterBackgroundColor: #343434;
     --PrimaryBorderColor: #1B1B1B;
     --HoverBorderColor: #1B1B1B;
     --HoverBackgroundColor: #2D2D2D;
@@ -17,7 +18,7 @@ button
     margin-bottom: 4px;
     text-align: center;
     vertical-align: middle;
-    color: var(--PrimaryTextColor);
+    color: var(--PrimaryContentColor);
     background-color: var(--PrimaryBackgroundColor);
     border-color: var(--PrimaryBorderColor);
     border-width: 2px;
@@ -59,7 +60,7 @@ label
 {
     height: 14px;
     min-width: 10px;
-    color: var(--PrimaryTextColor);
+    color: var(--PrimaryContentColor);
     font-family: var(--PrimaryFontFamily);
     font-size: var(--PrimaryFontSize);
 }
@@ -137,4 +138,50 @@ button.ToolBarBtn
     width: 32px;
     height: 32px;
     border-width: 0px;
+}
+
+label.EditorFieldLabel
+{
+
+}
+
+container.GUIGameObjectField
+{
+    height: 26px;
+    min-width: 30px;
+}
+
+container.GUIResourceField
+{
+    height: 26px;
+    min-width: 30px;
+}
+
+button.ObjectClearButton
+{
+    width: 16px;
+    height: 22px;
+    border-width: 2px 2px 2px 2px;
+    background-color: var(--BrighterBackgroundColor);
+}
+
+button.ObjectClearButton:hover
+{
+    background-color: var(--HoverBackgroundColor);
+    border-color: var(--HoverBorderColor);
+}
+
+button.ObjectClearButton:active
+{
+    color: var(--FocusColor);
+}
+
+button.ObjectClearButton:focus
+{
+    border-color: var(--PrimaryBorderColor);
+}
+
+button.ObjectDropButton
+{
+
 }
