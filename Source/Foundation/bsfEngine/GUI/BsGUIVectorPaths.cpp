@@ -10,20 +10,174 @@ HVectorPath GUIBackgroundVectorPathBuilder::BuildPath(const Size2UI& size, const
 {
 	HVectorPath path = VectorPath::Create(Size2((float)size.Width, (float)size.Height));
 
-	const Rect2 fillArea = Rect2(0.0f, 0.0f, (float)size.Width, (float)size.Height);
+	const bool allBordersEqual =
+		styleSheetRule.BorderLeft == styleSheetRule.BorderRight &&
+		styleSheetRule.BorderLeft == styleSheetRule.BorderTop &&
+		styleSheetRule.BorderLeft == styleSheetRule.BorderBottom;
 
-	path->DrawRoundedRectangle(fillArea, (float)styleSheetRule.BorderTopLeftRadius, (float)styleSheetRule.BorderTopRightRadius, (float)styleSheetRule. BorderBottomLeftRadius, (float)styleSheetRule.BorderTopRightRadius)
-		.ClosePath()
-		.SetFillPaint(styleSheetRule.BackgroundColor)
-		.DrawFill();
+	const bool drawBorder = ((styleSheetRule.BorderLeft.Width > 0 && styleSheetRule.BorderLeft.Style != GUIBorderElementStyle::None)
+		|| (styleSheetRule.BorderRight.Width > 0 && styleSheetRule.BorderRight.Style != GUIBorderElementStyle::None)
+		|| (styleSheetRule.BorderTop.Width > 0 && styleSheetRule.BorderTop.Style != GUIBorderElementStyle::None)
+		|| (styleSheetRule.BorderBottom.Width > 0 && styleSheetRule.BorderBottom.Style != GUIBorderElementStyle::None));
 
-	// TODO - Not supporting separate border styles at the moment. See nvgRoundedRectVarying for implementation. Also ideally support elliptical corners
-	const bool drawBorder = styleSheetRule.BorderLeft.Width > 0 && styleSheetRule.BorderLeft.Style != GUIBorderElementStyle::None;
-	if(drawBorder)
+	// If no border, or border with all equal sides, draw border using a stroke
+	if(!drawBorder || allBordersEqual)
 	{
-		path->SetStrokePaint(styleSheetRule.BorderLeft.Color)
-			.SetStrokeWidth((float)styleSheetRule.BorderLeft.Width)
-			.DrawStroke();
+		// Drawing stroke will extend the width/height by 'strokeWidth', so account for that so our final drawn area matches the requested size. i.e.
+		// If user requests a height of 35 pixels, a top & bottom borders of 5 pixels each (strokeWidth = 5), we want the fill rectangle to be 30 pixels high.
+		// Note that the total border height in the above example is 10 pixels (5 for top, 5 for bottom), but the other 5 pixels are taken from the fill size, so they won't expand the drawn area.
+		const float strokeWidth = drawBorder ? (float)styleSheetRule.BorderLeft.Width : 0.0f;
+		const Rect2 fillArea = Rect2(strokeWidth * 0.5f, strokeWidth * 0.5f, (float)size.Width - strokeWidth, (float)size.Height - strokeWidth);
+
+		path->DrawRoundedRectangle(fillArea, (float)styleSheetRule.BorderTopLeftRadius, (float)styleSheetRule.BorderTopRightRadius, (float)styleSheetRule. BorderBottomLeftRadius, (float)styleSheetRule.BorderTopRightRadius)
+			.ClosePath()
+			.SetFillPaint(styleSheetRule.BackgroundColor)
+			.DrawFill();
+
+		// Draw simple borders using stroke
+		if(drawBorder)
+		{
+			path->SetStrokePaint(styleSheetRule.BorderLeft.Color)
+				.SetStrokeWidth(strokeWidth)
+				.DrawStroke();
+		}
+	}
+	// If not all border sides are equal then we can't use stroke for drawing it, need to draw it manually
+	else
+	{
+		const float x = 0.0f;
+		const float y = 0.0f;
+
+		const float width = (float)size.Width;
+		const float height = (float)size.Height;
+
+		const float leftBorderWidth = styleSheetRule.BorderLeft.Style != GUIBorderElementStyle::None ? (float)styleSheetRule.BorderLeft.Width : 0.0f;
+		const float rightBorderWidth = styleSheetRule.BorderRight.Style != GUIBorderElementStyle::None ? (float)styleSheetRule.BorderRight.Width : 0.0f;
+		const float topBorderWidth = styleSheetRule.BorderTop.Style != GUIBorderElementStyle::None ? (float)styleSheetRule.BorderTop.Width : 0.0f;
+		const float bottomBorderWidth = styleSheetRule.BorderBottom.Style != GUIBorderElementStyle::None ? (float)styleSheetRule.BorderBottom.Width : 0.0f;
+
+		// Inner border is the edge of the center rectangle
+		const float innerX = x + leftBorderWidth;
+		const float innerY = y + topBorderWidth;
+
+		const float innerWidth = Math::Max(0.0f, width - leftBorderWidth - rightBorderWidth);
+		const float innerHeight = Math::Max(0.0f, height - topBorderWidth - bottomBorderWidth);
+
+		enum BorderCorner
+		{
+			BC_TopRight,
+			BC_TopLeft,
+			BC_BottomLeft,
+			BC_BottomRight,
+		};
+
+		enum BorderSide
+		{
+			BS_Top,
+			BS_Left,
+			BS_Bottom,
+			BS_Right,
+		};
+
+		constexpr BorderCorner kCornersPerSide[4][2]{
+			{ BC_TopRight, BC_TopLeft },
+			{ BC_TopLeft, BC_BottomLeft },
+			{ BC_BottomLeft, BC_BottomRight },
+			{ BC_BottomRight, BC_TopRight },
+		};
+
+		float cornerRadii[4];
+		cornerRadii[BC_TopRight] = (float)styleSheetRule.BorderTopRightRadius;
+		cornerRadii[BC_TopLeft] = (float)styleSheetRule.BorderTopLeftRadius;
+		cornerRadii[BC_BottomLeft] = (float)styleSheetRule.BorderBottomLeftRadius;
+		cornerRadii[BC_BottomRight] = (float)styleSheetRule.BorderBottomRightRadius;
+
+		GUIStyleSheetBorderElement borderStylePerSide[4];
+		borderStylePerSide[BS_Top] = styleSheetRule.BorderTop;
+		borderStylePerSide[BS_Left] = styleSheetRule.BorderLeft;
+		borderStylePerSide[BS_Bottom] = styleSheetRule.BorderBottom;
+		borderStylePerSide[BS_Right] = styleSheetRule.BorderRight;
+
+		// Generates centers we can use for drawing the corner arcs
+		auto fnGenerateCornerCenters = [&cornerRadii](float x, float y, float width, float height) {
+			const float halfWidth = Math::Abs(width) * 0.5f;
+			const float halfHeight = Math::Abs(height) * 0.5f;
+
+			const float right = x + width;
+			const float bottom = y + height;
+
+			Vector2 borderCornerOffset[4];
+			for(u32 cornerIndex = 0; cornerIndex < 4; ++cornerIndex)
+			{
+				// TODO - Known issue if the radius is larger than the half height of the inner border, border will not match up with the center rectangle
+				borderCornerOffset[cornerIndex] = Vector2(
+					Math::Min(cornerRadii[cornerIndex], halfWidth) * Math::Sign(width),
+					Math::Min(cornerRadii[cornerIndex], halfHeight) * Math::Sign(height));
+			}
+
+			Array<Vector2, 4> cornerCenters;
+			cornerCenters[BC_TopRight] = Vector2(right - borderCornerOffset[BC_TopRight].X, y + borderCornerOffset[BC_TopRight].Y);
+			cornerCenters[BC_TopLeft] = Vector2(x + borderCornerOffset[BC_TopLeft].X, y + borderCornerOffset[BC_TopLeft].Y);
+			cornerCenters[BC_BottomLeft] = Vector2(x + borderCornerOffset[BC_BottomLeft].X, bottom - borderCornerOffset[BC_BottomLeft].Y);
+			cornerCenters[BC_BottomRight] = Vector2(right - borderCornerOffset[BC_BottomRight].X, bottom - borderCornerOffset[BC_BottomRight].Y);
+
+			return cornerCenters;
+		};
+
+		// Generate centers which form the centers of circles used for the corner arcs
+		const Array<Vector2, 4> outerBorderCornerCenters = fnGenerateCornerCenters(x, y, width, height);
+		const Array<Vector2, 4> innerBorderCornerCenters = fnGenerateCornerCenters(innerX, innerY, innerWidth, innerHeight);
+
+		// Draw borders separately for each side. Each border is formed by an outer edge and an inner edge, connecting to form the shape we'll fill to draw the border.
+		// Inner edge is inset by the border width. Both edges are composed of a 45 degree arc, followed by a straight line, and another 45 degree arc. 
+		Degree currentAngle(315.0f);
+		const Degree kAngle45(45.0f);
+		for(u32 side = 0; side < 4; ++side)
+		{
+			const bool isVisible = borderStylePerSide[side].Style != GUIBorderElementStyle::None && borderStylePerSide[side].Width > 0;
+			if(!isVisible)
+				continue;
+
+			const u32 sideCornerA = kCornersPerSide[side][0];
+			const u32 sideCornerB = kCornersPerSide[side][1];
+
+			// Outer edge of the border
+			path->DrawArc(
+				outerBorderCornerCenters[sideCornerA],
+				cornerRadii[sideCornerA],
+				currentAngle,
+				currentAngle - kAngle45, VectorGraphicsPathWinding::Counterclockwise);
+			// Line connecting the arcs is done implicitly by the DrawArc call if the new arc's starting coordinate doesn't match previous end coordinate.
+			path->DrawArc(
+				outerBorderCornerCenters[sideCornerB],
+				cornerRadii[sideCornerB],
+				currentAngle - kAngle45,
+				currentAngle - kAngle45 * 2.0f, VectorGraphicsPathWinding::Counterclockwise);
+
+			// Inner edge of the border (matches the center rectangle)
+			path->DrawArc(
+				innerBorderCornerCenters[sideCornerB],
+				cornerRadii[sideCornerB],
+				currentAngle - kAngle45 * 2.0,
+				currentAngle - kAngle45, VectorGraphicsPathWinding::Clockwise);
+			// Line connecting the arcs is done implicitly by the DrawArc call if the new arc's starting coordinate doesn't match previous end coordinate.
+			path->DrawArc(
+				innerBorderCornerCenters[sideCornerA],
+				cornerRadii[sideCornerA],
+				currentAngle - kAngle45,
+				currentAngle, VectorGraphicsPathWinding::Clockwise);
+
+			path->ClosePath();
+			path->SetFillPaint(borderStylePerSide[side].Color);
+			path->DrawFill();
+
+			currentAngle -= kAngle45 * 2.0f;
+		}
+
+		// Center rectangle
+		path->DrawRoundedRectangle(Rect2(innerX, innerY, innerWidth, innerHeight), (float)styleSheetRule.BorderTopLeftRadius, (float)styleSheetRule.BorderTopRightRadius, (float)styleSheetRule.BorderBottomLeftRadius, (float)styleSheetRule.BorderBottomRightRadius);
+		path->SetFillPaint(styleSheetRule.BackgroundColor);
+		path->DrawFill();
 	}
 
 	return path;

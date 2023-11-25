@@ -118,6 +118,11 @@ namespace bs
 		Color Color; /**< Color of the border. */
 		GUIBorderElementStyle Style = GUIBorderElementStyle::Solid; /**< Style how to render the border. */
 
+		bool operator==(const GUIStyleSheetBorderElement& other) const
+		{
+			return Width == other.Width && Color == other.Color && Style == other.Style;
+		}
+
 		/** Returns the width of the border if visible, or zero otherwise. */
 		u32 GetVisibleWidth() const { return Style != GUIBorderElementStyle::None ? Width : 0; }
 	};

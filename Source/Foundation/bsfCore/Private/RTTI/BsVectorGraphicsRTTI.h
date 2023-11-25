@@ -109,7 +109,7 @@ namespace bs
 				processor(object.DrawEllipse.Radius);
 				break;
 			case VectorPathCommandType::DrawArc:
-				processor(object.DrawArc.Origin);
+				processor(object.DrawArc.Center);
 				processor(object.DrawArc.Radius);
 				processor(object.DrawArc.StartAngle);
 				processor(object.DrawArc.EndAngle);

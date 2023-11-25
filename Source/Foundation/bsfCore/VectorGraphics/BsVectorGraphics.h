@@ -459,7 +459,7 @@ namespace bs
 		/** Draws an arc. */
 		struct DrawArcCommand
 		{
-			Vector2 Origin;
+			Vector2 Center;
 			float Radius;
 			Radian StartAngle;
 			Radian EndAngle;
@@ -468,7 +468,7 @@ namespace bs
 			Rect2 GetBoundsAndUpdateCursor(Vector2& cursor) const
 			{
 				// TODO - Calculate minimum arc bounds with a more algebraic approach
-				return Rect2(Origin.X, Origin.Y, Radius, Radius);
+				return Rect2(Center.X, Center.Y, Radius, Radius);
 			}
 		};
 
@@ -555,8 +555,21 @@ namespace bs
 		/** Draws an ellipse. */
 		VectorPath& DrawEllipse(const Vector2& origin, const Vector2& radius);
 
-		/** Draws an arc. */
-		VectorPath& DrawArc(const Vector2& origin, float radius, Radian startAngle, Radian endAngle, VectorGraphicsPathWinding direction);
+		/**
+		 * Draws an arc. Note if the start of the arc doesn't correspond to the last drawn cursor position, and line will be drawn between the
+		 * last drawn point (if any) and the arc start.
+		 *
+		 * @param	center		Center of the circle that the arc is a part of.
+		 * @param	radius		Radius of the circle that the arc is a part of.
+		 * @param	startAngle	Angle at which to start drawing the arc.
+		 * @param	endAngle	Angle at which to start drawing the arc.
+		 * @param	direction	Direction of the arc. Doesn't affect coordinate system of @p startAngle or @p endAngle, but the direction in which
+		 *						the arc is filled. e.g. start angle 0, end angle 90 and direction 'counter-clickwise' will result in a 270 degree arc.
+		 *
+		 * @note	Note the underlying NVG backend is using non-conventional angle coordinates, where 90 degrees in on negative Y, and 270 on positive Y
+		 *			(angles map to clockwise XY coordinates on the graph).
+		 */
+		VectorPath& DrawArc(const Vector2& center, float radius, Radian startAngle, Radian endAngle, VectorGraphicsPathWinding direction = VectorGraphicsPathWinding::Clockwise);
 
 		/** Sets the paint to use when calling DrawFill(). */
 		VectorPath& SetFillPaint(const VectorGraphicsPaint& paint);

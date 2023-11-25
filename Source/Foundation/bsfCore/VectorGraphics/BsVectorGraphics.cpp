@@ -140,11 +140,11 @@ namespace bs
 		return *this;
 	}
 
-	VectorPath& VectorPath::DrawArc(const Vector2& origin, float radius, Radian startAngle, Radian endAngle, VectorGraphicsPathWinding direction)
+	VectorPath& VectorPath::DrawArc(const Vector2& center, float radius, Radian startAngle, Radian endAngle, VectorGraphicsPathWinding direction)
 	{
 		VectorPathCommand command;
 		command.Type = VectorPathCommandType::DrawArc;
-		command.DrawArc.Origin = origin;
+		command.DrawArc.Center = center;
 		command.DrawArc.Radius = radius;
 		command.DrawArc.StartAngle = startAngle;
 		command.DrawArc.EndAngle = endAngle;

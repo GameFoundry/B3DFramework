@@ -309,7 +309,7 @@ namespace bs::ct
 					fnEnsurePathOpen();
 
 					const VectorPathCommand::DrawArcCommand& drawArc = command.DrawArc;
-					const Vector2 origin = drawArc.Origin;
+					const Vector2 origin = drawArc.Center;
 					const float radius = drawArc.Radius;
 					const NVGwinding winding = drawArc.Direction == VectorGraphicsPathWinding::Clockwise ? NVG_CW : NVG_CCW;
 
