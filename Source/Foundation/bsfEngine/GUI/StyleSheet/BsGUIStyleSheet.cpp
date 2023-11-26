@@ -12,20 +12,25 @@ using namespace bs;
 
 bool GUIStyleSheetSelector::IsMatching(const GUIElementBase& element, StringView pseudoElement, StringView pseudoClass, bool ignorePseudoClass) const
 {
+	return IsMatching(element.GetStyleSheetElement(), element.GetStyleSheetClass(), element.GetStyleSheetId(), pseudoElement, pseudoClass, ignorePseudoClass);
+}
+
+bool GUIStyleSheetSelector::IsMatching(StringView elementType, StringView elementClass, StringView elementId, StringView pseudoElement, StringView pseudoClass, bool ignorePseudoClass) const
+{
 	if(Name.empty())
 		return false;
 
 	switch(SelectorType)
 	{
 	case GUIStyleSheetSelectorType::Element:
-		if(!element.GetStyleSheetElement())
+		if(elementType.empty())
 			return false;
 
-		return Name == element.GetStyleSheetElement();
+		return Name == elementType;
 	case GUIStyleSheetSelectorType::Class:
-		return Name == element.GetStyleSheetClass();
+		return Name == elementClass;
 	case GUIStyleSheetSelectorType::Id:
-		return Name == element.GetStyleSheetId();
+		return Name == elementId;
 	case GUIStyleSheetSelectorType::PseudoElement:
 		return Name == pseudoElement;
 	case GUIStyleSheetSelectorType::PseudoClass:
@@ -40,7 +45,6 @@ bool GUIStyleSheetSelectorList::IsMatching(const GUIElementBase& element, String
 	if(Selectors.Empty())
 		return true; // Empty list matches everything
 
-	// The rest of the selectors should be combinators
 	const GUIElementBase* currentElement = &element;
 	auto itLastAncestorSelectorStart = Selectors.rbegin();
 	bool isMatchingAnyAncestor = false;
@@ -70,6 +74,28 @@ bool GUIStyleSheetSelectorList::IsMatching(const GUIElementBase& element, String
 			else // Otherwise, no match
 				return false;
 		}
+
+		++it;
+	}
+
+	return true;
+}
+
+bool GUIStyleSheetSelectorList::IsMatching(StringView elementType, StringView elementClass, StringView elementId, StringView pseudoElement, StringView pseudoClass, bool ignorePseudoClass) const
+{
+	if(Selectors.Empty())
+		return true; // Empty list matches everything
+
+	for(auto it = Selectors.rbegin(); it != Selectors.rend();)
+	{
+		const GUIStyleSheetSelector& selector = *it;
+
+		// No parent/ancestor, so not chance for a match
+		if(selector.CombinatorType == GUIStyleSheetCombinatorType::AncestorOf || selector.CombinatorType == GUIStyleSheetCombinatorType::ParentOf)
+			return false;
+
+		if(!selector.IsMatching(elementType, elementClass, elementId, pseudoElement, pseudoClass, ignorePseudoClass))
+			return false;
 
 		++it;
 	}
@@ -448,6 +474,28 @@ SPtr<const GUIStyleSheetRuleset> GUIStyleSheet::BuildRuleset(const GUIElement& g
 	return outputRuleset;
 }
 
+SPtr<const GUIStyleSheetRuleset> GUIStyleSheet::BuildRuleset(StringView elementType, StringView elementClass, StringView elementId, StringView pseudoElement, StringView pseudoClass, const GUIStyleSheetRules* inheritedRules) const
+{
+	SPtr<GUIStyleSheetRuleset> outputRuleset = B3DMakeShared<GUIStyleSheetRuleset>();
+	if(inheritedRules)
+		outputRuleset->Rules = *inheritedRules;
+
+	FrameScope frameScope;
+	FrameSet<u32> sortedRulesetIndices;
+
+	PopulatePotentialRulesetIndices(elementType, elementClass, elementId, sortedRulesetIndices);
+
+	for(u32 rulesetIndex : sortedRulesetIndices)
+	{
+		const GUIStyleSheetRuleset& ruleset = mRulesets[rulesetIndex];
+
+		if(ruleset.SelectorList.IsMatching(elementType, elementClass, elementId, pseudoElement, pseudoClass))
+			outputRuleset->Rules.Override(ruleset.Rules);
+	}
+
+	return outputRuleset;
+}
+
 SPtr<const GUIStyleSheetStateRulesets> GUIStyleSheet::BuildStateRulesets(const GUIElement& guiElement, StringView pseudoElement) const
 {
 	thread_local SPtr<GUIStyleSheetStateRulesets> tlLookupValue = B3DMakeShared<GUIStyleSheetStateRulesets>();
@@ -505,6 +553,11 @@ void GUIStyleSheet::PopulatePotentialRulesetIndices(const GUIElement& guiElement
 	StringView classSelector = guiElement.GetStyleSheetClass();
 	StringView elementSelector = guiElement.GetStyleSheetElement();
 
+	PopulatePotentialRulesetIndices(elementSelector, classSelector, idSelector, outOrderedRulesetIndices);
+}
+
+void GUIStyleSheet::PopulatePotentialRulesetIndices(const StringView& elementSelector, const StringView& classSelector, const StringView& idSelector, FrameSet<u32>& outOrderedRulesetIndices) const
+{
 	auto fnLookupRulesets = [&outOrderedRulesetIndices, this](const String& lookupValue)
 	{
 		auto found = mRulesetLookupMap.find(lookupValue);

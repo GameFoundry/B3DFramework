@@ -216,3 +216,17 @@ button.TextureDropButton
     height: 84px;
     width: 82px;
 }
+
+button.DropDownEntryBtn
+{
+    height: 16px;
+    min-width: 30px;
+    border-width: 0px;
+    text-align: left;
+}
+
+button.DropDownEntryBtn:active
+{
+    color: var(--PrimaryContentColor);
+    background-color: var(--HoverBackgroundColor);
+}

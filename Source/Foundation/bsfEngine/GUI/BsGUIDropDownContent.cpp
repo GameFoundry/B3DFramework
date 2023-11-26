@@ -12,6 +12,8 @@
 
 #include <climits>
 
+#include "StyleSheet/BsGUIStyleSheet.h"
+
 using namespace std::placeholders;
 
 using namespace bs;
@@ -58,8 +60,6 @@ void GUIDropDownContent::NotifyStyleChanged()
 		{
 			if(mIsToggle)
 				visElem.Button->SetStyle(GetSubStyleName(kEntryToggleStyleType));
-			else
-				visElem.Button->SetStyle(GetSubStyleName(kEntryStyleType));
 		}
 	}
 }
@@ -153,20 +153,35 @@ void GUIDropDownContent::SetRange(u32 start, u32 end)
 
 u32 GUIDropDownContent::GetElementHeight(u32 idx) const
 {
-	if(GetParentWidget() == nullptr)
-		return 14; // Arbitrary
+	static constexpr u32 kDefaultHeight = 16; // Height to use when no style available
+
+	GUIWidget* const widget = GetParentWidget();
+	if(widget == nullptr)
+		return kDefaultHeight;
+
+	const GUISkin& skin = widget->GetSkin();
+	const HGUIStyleSheet styleSheet = widget->GetStyleSheet();
 
 	if(mDropDownData.Entries[idx].IsSeparator())
-		return GetParentWidget()->GetSkin().GetStyle(GetSubStyleName(kSeparatorStyleType))->Height;
+		return skin.GetStyle(GetSubStyleName(kSeparatorStyleType))->Height;
 	else if(mDropDownData.Entries[idx].IsSubMenu())
-		return GetParentWidget()->GetSkin().GetStyle(GetSubStyleName(kEntryExpStyleType))->Height;
+		return skin.GetStyle(GetSubStyleName(kEntryExpStyleType))->Height;
 	else
 	{
 		if(mIsToggle)
-			return GetParentWidget()->GetSkin().GetStyle(GetSubStyleName(kEntryToggleStyleType))->Height;
+			return skin.GetStyle(GetSubStyleName(kEntryToggleStyleType))->Height;
 		else
-			return GetParentWidget()->GetSkin().GetStyle(GetSubStyleName(kEntryStyleType))->Height;
+		{
+			SPtr<const GUIStyleSheetRuleset> ruleset;
+			if(styleSheet.IsLoaded(false))
+				ruleset = styleSheet->BuildRuleset("button", kEntryStyleType);
+
+			if(ruleset)
+				return ruleset->Rules.Size.Height;
+		}
 	}
+
+	return kDefaultHeight;
 }
 
 HString GUIDropDownContent::GetElementLocalizedName(u32 idx) const

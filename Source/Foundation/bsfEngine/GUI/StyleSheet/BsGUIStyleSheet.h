@@ -149,6 +149,9 @@ namespace bs
 
 		/** Checks does the selector match the provided GUI element. */
 		bool IsMatching(const GUIElementBase& element, StringView pseudoElement = "", StringView pseudoClass = "", bool ignorePseudoClass = false) const;
+
+		/** Checks does the selector matches a GUI element with the provided type/class/id/pseudo-element/pseudo-class. */
+		bool IsMatching(StringView elementType, StringView elementClass = "", StringView elementId = "", StringView pseudoElement = "", StringView pseudoClass = "", bool ignorePseudoClass = false) const;
 	};
 
 	/** List of all selectors on a particular GUI style sheet. */
@@ -158,6 +161,9 @@ namespace bs
 
 		/** Checks does the selector match the provided GUI element. */
 		bool IsMatching(const GUIElementBase& element, StringView pseudoElement = "", StringView pseudoClass = "", bool ignorePseudoClass = false) const;
+
+		/** Checks does the selector match a GUI element with provided type/class/id/pseudo-element/pseudo-class. It is assumed the GUI element has no parents. */
+		bool IsMatching(StringView elementType, StringView elementClass = "", StringView elementId = "", StringView pseudoElement = "", StringView pseudoClass = "", bool ignorePseudoClass = false) const;
 
 		/** Returns a unique name that represents all the selectors in the list. */
 		const String& GetUniqueName() const;
@@ -304,6 +310,12 @@ namespace bs
 		SPtr<const GUIStyleSheetRuleset> BuildRuleset(const GUIElement& guiElement, StringView pseudoElement = "", StringView pseudoClass = "", const GUIStyleSheetRules* inheritedRules = nullptr) const;
 
 		/**
+		 * Builds the appropriate ruleset that matches a GUI element with the provided type/class/id/pseud-class/pseudo-element. Any of the provided
+		 * selectors may be empty, in which case they will be ignored* in the lookup.
+		 */
+		SPtr<const GUIStyleSheetRuleset> BuildRuleset(StringView elementType, StringView elementClass = "", StringView elementId = "", StringView pseudoElement = "", StringView pseudoClass = "", const GUIStyleSheetRules* inheritedRules = nullptr) const;
+
+		/**
 		 * Similar to BuildRuleset(), except it matches all pseudo-classes that match dynamic GUI element states (e.g. hover, active, focused, etc.).
 		 * Rulesets specific for a particular state can then be retrieved from GUIStyleSheetStateRulesets in a separate step. This allows you to
 		 * skip calling expensive BuildRuleset() whenever GUI element state changes.
@@ -345,6 +357,13 @@ namespace bs
 		 * rulesets in the set don't necessarily need to match - the caller needs to check for a match explicitly.
 		 */
 		void PopulatePotentialRulesetIndices(const GUIElement& guiElement, FrameSet<u32>& outOrderedRulesetIndices) const;
+
+		/**
+		 * Builds a list of all potential ruleset indices for a GUI element with specified type, class and/or id selectors,
+		 * using the ruleset lookup map.* Note it's guaranteed that rulesets not in the set will not be a match for the provided
+		 * type/class/id, but rulesets in the set don't necessarily need to match - the caller needs to check for a match explicitly.
+		 */
+		void PopulatePotentialRulesetIndices(const StringView& elementSelector, const StringView& classSelector, const StringView& idSelector, FrameSet<u32>& outOrderedRulesetIndices) const;
 
 		/** Builds a string that can be used for looking up narrowed list of rulesets matching every one of the provided selectors. */
 		static String BuildCacheLookupName(StringView idSelector, StringView classSelector, StringView elementSelector);
