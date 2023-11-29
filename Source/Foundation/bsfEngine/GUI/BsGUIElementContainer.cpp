@@ -18,17 +18,6 @@ GUIElementContainer::GUIElementContainer(const GUISizeConstraints& dimensions, c
 	mOptionFlags.Set(GUIElementOption::ClickThrough);
 }
 
-void GUIElementContainer::FillBuffer(
-	u8* vertices,
-	u32* indices,
-	u32 vertexOffset,
-	u32 indexOffset,
-	const Vector2I& offset,
-	u32 maxNumVerts,
-	u32 maxNumIndices,
-	u32 renderElementIdx) const
-{}
-
 Vector2I GUIElementContainer::CalculateUnconstrainedOptimalSize() const
 {
 	return Vector2I();

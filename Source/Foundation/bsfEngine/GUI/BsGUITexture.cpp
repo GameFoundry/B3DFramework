@@ -1,10 +1,13 @@
 //************************************ bs::framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "GUI/BsGUITexture.h"
+
+#include "BsGUIHelper.h"
 #include "2D/BsImageSprite.h"
 #include "GUI/BsGUISkin.h"
 #include "Image/BsSpriteTexture.h"
 #include "GUI/BsGUISizeConstraints.h"
+#include "StyleSheet/BsGUIStyleSheet.h"
 
 using namespace bs;
 
@@ -15,21 +18,11 @@ const String& GUITexture::GetGuiTypeName()
 }
 
 GUITexture::GUITexture(const String& styleName, const HSpriteImage& image, TextureScaleMode scale, bool transparent, const GUISizeConstraints& dimensions)
-	: GUIElement(styleName, dimensions), mScaleMode(scale), mTransparent(transparent), mUsingStyleTexture(false)
+	: GUIElement(styleName, dimensions), mScaleMode(scale), mTransparent(transparent), mUsingStyleTexture(image == nullptr)
 {
 	mImageSprite = B3DNew<ImageSprite>();
 	mDesc.AnimationStartTime = GetTime().GetTime();
-
-	if(image != nullptr)
-	{
-		mActiveImage = image;
-		mUsingStyleTexture = false;
-	}
-	else
-	{
-		mActiveImage = GetStyle()->Normal.Image;
-		mUsingStyleTexture = true;
-	}
+	mActiveImage = image;
 
 	if(SpriteImage::CheckIsLoaded(mActiveImage))
 	{
@@ -139,6 +132,7 @@ void GUITexture::UpdateRenderElements()
 
 	// ScaleToFit is the only scaling mode that might result in the GUITexture area not being completely covered by
 	// the sprite. We need the actual sprite size and offsets to center it.
+	Vector2I imageSpriteOffset;
 	if(mScaleMode == TextureScaleMode::ScaleToFit)
 	{
 		if(destSize.X != 0 && destSize.Y != 0)
@@ -158,22 +152,32 @@ void GUITexture::UpdateRenderElements()
 			}
 		}
 
-		mImageSpriteOffset = Vector2I(
+		imageSpriteOffset = Vector2I(
 			((i32)mLayoutData.Area.Width - destSize.X) / 2,
 			((i32)mLayoutData.Area.Height - destSize.Y) / 2);
 	}
 	else
-		mImageSpriteOffset = Vector2I();
+		imageSpriteOffset = Vector2I();
 
 	mDesc.Width = (u32)destSize.X;
 	mDesc.Height = (u32)destSize.Y;
-
-	mDesc.BorderLeft = GetStyle()->Border.Left;
-	mDesc.BorderRight = GetStyle()->Border.Right;
-	mDesc.BorderTop = GetStyle()->Border.Top;
-	mDesc.BorderBottom = GetStyle()->Border.Bottom;
 	mDesc.Transparent = mTransparent;
 	mDesc.Color = GetTint();
+
+	const bool isUsingStyleSheets = IsUsingStyleSheets();
+	if(isUsingStyleSheets)
+	{
+		const GUIStyleSheetRules& styleSheetRules = mStyleSheetRuleInformation.CurrentStateRuleset->Rules;
+
+		mDesc.Color.A *= styleSheetRules.Opacity;
+	}
+	else
+	{
+		mDesc.BorderLeft = GetStyle()->Border.Left;
+		mDesc.BorderRight = GetStyle()->Border.Right;
+		mDesc.BorderTop = GetStyle()->Border.Top;
+		mDesc.BorderBottom = GetStyle()->Border.Bottom;
+	}
 
 	if(mScaleMode != TextureScaleMode::ScaleToFit)
 		mDesc.UvScale = ImageSprite::GetTextureUvScale(textureSize, destSize, mScaleMode);
@@ -182,10 +186,14 @@ void GUITexture::UpdateRenderElements()
 
 	mImageSprite->Update(mDesc, (u64)GetParentWidget());
 
+	const Rect2 imageSpriteBounds(
+		(float)imageSpriteOffset.X, (float)imageSpriteOffset.Y,
+		(float)mDesc.Width, (float)mDesc.Height);
+
 	// Populate GUI render elements from the sprites
 	{
 		using T = GUIRenderElementHelper;
-		T::Populate({ T::SpriteInfo(mImageSprite) }, mRenderElements);
+		T::Populate({ T::SpriteInfo(mImageSprite, 0, imageSpriteBounds) }, mRenderElements);
 	}
 
 	GUIElement::UpdateRenderElements();
@@ -195,7 +203,12 @@ void GUITexture::NotifyStyleChanged()
 {
 	if(mUsingStyleTexture)
 	{
-		mActiveImage = GetStyle()->Normal.Image;
+		const bool isUsingStyleSheets = IsUsingStyleSheets();
+		if(isUsingStyleSheets)
+			mActiveImage = mStyleSheetRuleInformation.CurrentStateRuleset->Rules.BackgroundImage;
+		else
+			mActiveImage = GetStyle()->Normal.Image;
+
 		mDesc.AnimationStartTime = GetTime().GetTime();
 
 		if(SpriteImage::CheckIsLoaded(mActiveImage))
@@ -214,6 +227,18 @@ void GUITexture::NotifyStyleChanged()
 
 Vector2I GUITexture::CalculateUnconstrainedOptimalSize() const
 {
+	const bool isUsingStyleSheets = IsUsingStyleSheets();
+	if(isUsingStyleSheets)
+	{
+		const GUIStyleSheetRules& styleSheetRules = mStyleSheetRuleInformation.CurrentStateRuleset->Rules;
+		const Size2UI contentSize = GUIHelper::CalculateOptimalContentSizeWithPaddingAndBorder(GUIContent(mActiveImage), styleSheetRules, GetSizeConstraints().MaxWidth);
+		
+		const i32 contentWidth = std::max(0, (i32)contentSize.Width);
+		const i32 contentHeight = std::max(0, (i32)contentSize.Height);
+
+		return Vector2I(contentWidth, contentHeight);
+	}
+
 	// TODO - Accounting for style dimensions might be redundant here, I'm pretty sure we do that on higher level anyway
 	Vector2I optimalSize;
 
@@ -242,22 +267,4 @@ Vector2I GUITexture::CalculateUnconstrainedOptimalSize() const
 	}
 
 	return optimalSize;
-}
-
-void GUITexture::FillBuffer(
-	u8* vertices,
-	u32* indices,
-	u32 vertexOffset,
-	u32 indexOffset,
-	const Vector2I& offset,
-	u32 maxNumVerts,
-	u32 maxNumIndices,
-	u32 renderElementIdx) const
-{
-	u8* uvs = vertices + sizeof(Vector2);
-	u32 vertexStride = sizeof(Vector2) * 2;
-	u32 indexStride = sizeof(u32);
-
-	Vector2I layoutOffset = Vector2I(mLayoutData.Area.X, mLayoutData.Area.Y) + mImageSpriteOffset + offset;
-	mImageSprite->FillBuffer(vertices, uvs, indices, vertexOffset, indexOffset, maxNumVerts, maxNumIndices, vertexStride, indexStride, renderElementIdx, layoutOffset, mLayoutData.GetLocalClipRect());
 }

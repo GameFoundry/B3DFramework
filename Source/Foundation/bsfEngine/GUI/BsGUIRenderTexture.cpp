@@ -84,10 +84,14 @@ void GUIRenderTexture::UpdateRenderElements()
 
 	mImageSprite->Update(mDesc, (u64)GetParentWidget());
 
+	const Rect2 imageBounds(
+		0.0f, 0.0f,
+		(float)mLayoutData.Area.Width, (float)mLayoutData.Area.Height);
+
 	// Populate GUI render elements from the sprites
 	{
 		using T = GUIRenderElementHelper;
-		T::Populate({ T::SpriteInfo(mImageSprite) }, mRenderElements);
+		T::Populate({ T::SpriteInfo(mImageSprite, 0, imageBounds) }, mRenderElements);
 	}
 
 	GUIElement::UpdateRenderElements();

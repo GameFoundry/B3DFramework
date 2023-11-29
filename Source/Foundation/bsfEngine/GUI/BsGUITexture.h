@@ -137,18 +137,17 @@ namespace bs
 
 		ElementType GetElementType() const override { return ElementType::Texture; }
 		Vector2I CalculateUnconstrainedOptimalSize() const override;
+		const char* GetStyleSheetElement() const override { return "texture"; }
 
 		/** @} */
 	protected:
 		GUITexture(const String& styleName, const HSpriteImage& image, TextureScaleMode scale, bool transparent, const GUISizeConstraints& dimensions);
 		virtual ~GUITexture();
 
-		void FillBuffer(u8* vertices, u32* indices, u32 vertexOffset, u32 indexOffset, const Vector2I& offset, u32 maxNumVerts, u32 maxNumIndices, u32 renderElementIdx) const override;
 		void UpdateRenderElements() override;
 		void NotifyStyleChanged() override;
 
 		ImageSprite* mImageSprite;
-		Vector2I mImageSpriteOffset;
 		HSpriteImage mActiveImage;
 		u32 mActiveImageWidth = 0;
 		u32 mActiveImageHeight = 0;
