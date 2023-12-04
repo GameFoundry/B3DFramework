@@ -290,3 +290,24 @@ texture.GUIDropDownScrollbarBackground
     width: 9px;
     min-height: 8px;
 }
+
+button.GUIDropDownScrollbarButton
+{
+    background-color: var(--PrimaryBackgroundColor);
+    color: var(--PrimaryContentColor);
+    border-width: 0px;
+    width: 8px;
+    height: 8px;
+}
+
+button.GUIDropDownScrollbarButton:hover
+{
+    border-width: 0px;
+    color: var(--HoverColor);
+}
+
+button.GUIDropDownScrollbarButton:focus
+{
+    border-width: 0px;
+    color: var(--HoverColor);
+}

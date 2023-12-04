@@ -35,6 +35,7 @@ namespace bs
 		/**	Triggered when button is clicked twice in rapid succession. */
 		Event<void()> OnDoubleClick;
 
+		static constexpr const char* kElementType = "button";
 	public: // ***** INTERNAL ******
 		/** @name Internal
 		 *  @{
@@ -57,7 +58,7 @@ namespace bs
 
 		Vector2I CalculateUnconstrainedOptimalSize() const override;
 		u32 GetRenderElementDepthRange() const override;
-		const char* GetStyleSheetElement() const override { return "button"; }
+		const char* GetStyleSheetElement() const override { return kElementType; }
 
 		/** @} */
 	protected:

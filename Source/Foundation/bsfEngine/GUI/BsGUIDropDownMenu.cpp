@@ -19,6 +19,7 @@
 #include "Renderer/BsCamera.h"
 #include "Debug/BsDebug.h"
 #include "StyleSheet/BsGUIStyleSheet.h"
+#include "Text/BsStockIcons.h"
 
 using namespace std::placeholders;
 
@@ -74,8 +75,6 @@ GUIDropDownMenu::GUIDropDownMenu(const HSceneObject& parent, const DROP_DOWN_BOX
 		break;
 	}
 
-	mScrollUpStyle = stylePrefix + "ScrollUpBtn";
-	mScrollDownStyle = stylePrefix + "ScrollDownBtn";
 	mHandleStyle = stylePrefix + "Handle";
 
 	SetDepth(0); // Needs to be in front of everything
@@ -88,6 +87,10 @@ GUIDropDownMenu::GUIDropDownMenu(const HSceneObject& parent, const DROP_DOWN_BOX
 	const SPtr<const GUIStyleSheetRuleset> scrollbarBackgroundStyleSheetRuleset = GetStyleSheet()->BuildRuleset(GUITexture::kElementType, kScrollbarBackgroundStyleClass);
 	if(scrollbarBackgroundStyleSheetRuleset != nullptr)
 		mScrollbarWidth = scrollbarBackgroundStyleSheetRuleset->Rules.Size.Width;
+
+	const SPtr<const GUIStyleSheetRuleset> scrollbarButtonStyleSheetRuleset = GetStyleSheet()->BuildRuleset(GUIButton::kElementType, kScrollbarButtonStyleClass);
+	if(scrollbarButtonStyleSheetRuleset != nullptr)
+		mScrollButtonHeight = scrollbarButtonStyleSheetRuleset->Rules.Size.Height;
 
 	mFrontHitBox = GUIDropDownHitBox::Create(false, false);
 	mFrontHitBox->OnFocusLost.Connect(std::bind(&GUIDropDownMenu::DropDownFocusLost, this));
@@ -324,8 +327,7 @@ void GUIDropDownMenu::DropDownSubMenu::UpdateGuiElements()
 
 	const RectOffset& backgroundFramePadding = Owner->mBackgroundFramePadding;
 	const u32 scrollbarWidth = Owner->mScrollbarWidth;
-	const GUIElementStyle* scrollUpStyle = Owner->GetSkin().GetStyle(Owner->mScrollUpStyle);
-	const GUIElementStyle* scrollDownStyle = Owner->GetSkin().GetStyle(Owner->mScrollDownStyle);
+	const u32 scrollButtonHeight = Owner->mScrollButtonHeight;
 
 	Vector<PageInfo> pageInfos = GetPageInfos();
 
@@ -355,7 +357,7 @@ void GUIDropDownMenu::DropDownSubMenu::UpdateGuiElements()
 		{
 			SidebarPanel = Owner->GetPanel()->AddNewElement<GUIPanel>();
 
-			MScrollUpBtn = GUIButton::Create(HString(""), Owner->mScrollUpStyle);
+			MScrollUpBtn = GUIButton::Create(GUIContent(StockIcons::Instance().GetIcon(StockIcon::FontAwesomeCaretUp)), kScrollbarButtonStyleClass);
 			MScrollUpBtn->OnClick.Connect(std::bind(&DropDownSubMenu::ScrollUp, this));
 
 			GUIElementOptions scrollUpBtnOptions = MScrollUpBtn->GetOptionFlags();
@@ -363,7 +365,7 @@ void GUIDropDownMenu::DropDownSubMenu::UpdateGuiElements()
 
 			MScrollUpBtn->SetOptionFlags(scrollUpBtnOptions);
 
-			MScrollDownBtn = GUIButton::Create(HString(""), Owner->mScrollDownStyle);
+			MScrollDownBtn = GUIButton::Create(GUIContent(StockIcons::Instance().GetIcon(StockIcon::FontAwesomeCaretDown)), kScrollbarButtonStyleClass);
 			MScrollDownBtn->OnClick.Connect(std::bind(&::bs::GUIDropDownMenu::DropDownSubMenu::ScrollDown, this));
 
 			GUIElementOptions scrollDownBtnOptions = MScrollDownBtn->GetOptionFlags();
@@ -382,12 +384,12 @@ void GUIDropDownMenu::DropDownSubMenu::UpdateGuiElements()
 		}
 
 		MScrollUpBtn->SetPosition(1, 1);
-		MScrollDownBtn->SetPosition(1, sidebarHeight - 1 - scrollDownStyle->Height);
+		MScrollDownBtn->SetPosition(1, sidebarHeight - 1 - scrollButtonHeight);
 
-		u32 maxHandleSize = std::max(0, (i32)sidebarHeight - (i32)scrollDownStyle->Height - (i32)scrollUpStyle->Height - 2);
+		u32 maxHandleSize = std::max(0, (i32)sidebarHeight - (i32)scrollButtonHeight * 2 - 2);
 		u32 handleSize = maxHandleSize / pageCount;
 
-		i32 handlePos = 1 + scrollUpStyle->Height + Page * handleSize;
+		i32 handlePos = 1 + scrollButtonHeight + Page * handleSize;
 
 		MHandle->SetPosition(1, handlePos);
 		MHandle->SetHeight(handleSize);
