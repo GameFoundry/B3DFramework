@@ -311,3 +311,10 @@ button.GUIDropDownScrollbarButton:focus
     border-width: 0px;
     color: var(--HoverColor);
 }
+
+texture.GUIDropDownScrollbarHandle
+{
+    width: 8px;
+    min-height: 8px;
+    background-color: var(--PrimaryBackgroundColor);
+}

@@ -60,23 +60,6 @@ GUIDropDownDataEntry GUIDropDownDataEntry::SubMenu(const String& label, const GU
 GUIDropDownMenu::GUIDropDownMenu(const HSceneObject& parent, const DROP_DOWN_BOX_DESC& desc, GUIDropDownType type)
 	: CGUIWidget(parent, desc.Camera), mRootMenu(nullptr), mFrontHitBox(nullptr), mBackHitBox(nullptr), mCaptureHitBox(nullptr)
 {
-	String stylePrefix = "";
-	switch(type)
-	{
-	case GUIDropDownType::ContextMenu:
-		stylePrefix = "ContextMenu";
-		break;
-	case GUIDropDownType::ListBox:
-	case GUIDropDownType::MultiListBox:
-		stylePrefix = "ListBox";
-		break;
-	case GUIDropDownType::MenuBar:
-		stylePrefix = "MenuBar";
-		break;
-	}
-
-	mHandleStyle = stylePrefix + "Handle";
-
 	SetDepth(0); // Needs to be in front of everything
 	SetSkin(desc.Skin);
 
@@ -373,7 +356,7 @@ void GUIDropDownMenu::DropDownSubMenu::UpdateGuiElements()
 
 			MScrollDownBtn->SetOptionFlags(scrollDownBtnOptions);
 
-			MHandle = GUITexture::Create(Owner->mHandleStyle);
+			MHandle = GUITexture::Create(kScrollbarHandleStyleClass);
 			GUITexture* background = GUITexture::Create(kScrollbarBackgroundStyleClass);
 			background->SetElementDepth(2);
 

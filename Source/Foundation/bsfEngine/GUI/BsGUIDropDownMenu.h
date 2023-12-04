@@ -229,8 +229,7 @@ namespace bs
 		static constexpr const char* kBackgroundFrameStyleClass = "GUIDropDownBackgroundFrame";
 		static constexpr const char* kScrollbarBackgroundStyleClass = "GUIDropDownScrollbarBackground";
 		static constexpr const char* kScrollbarButtonStyleClass = "GUIDropDownScrollbarButton";
-
-		String mHandleStyle;
+		static constexpr const char* kScrollbarHandleStyleClass = "GUIDropDownScrollbarHandle";
 
 		RectOffset mBackgroundFramePadding;
 		u32 mScrollbarWidth = 0;
