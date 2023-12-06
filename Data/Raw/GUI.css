@@ -8,6 +8,7 @@
     --HoverBackgroundColor: #2D2D2D;
     --HoverColor: #D3D3D3;
     --FocusColor: #FFA800;
+    --DarkerContentcolor: #1A1A1A;
     --PrimaryFontFamily: "Arial";
     --PrimaryFontSize: 8;
 }
@@ -113,6 +114,53 @@ button.Toggle:active
 button.Toggle::checkmark
 {
     color: var(--FocusColor);
+}
+
+listbox
+{
+    min-width: 20px;
+    height: 22px;
+    margin-bottom: 4px;
+    text-align: center;
+    vertical-align: middle;
+    color: var(--PrimaryContentColor);
+    background-color: var(--PrimaryBackgroundColor);
+    border-color: var(--PrimaryBorderColor);
+    border-width: 2px;
+    font-family: var(--PrimaryFontFamily);
+    font-size: var(--PrimaryFontSize);
+}
+
+listbox:hover
+{
+    border-color: var(--HoverBorderColor);
+}
+
+listbox:focus
+{
+    border-color: var(--FocusColor);
+}
+
+listbox::arrow
+{
+    background-color: var(--BrighterBackgroundColor);
+    color: var(--DarkerContentcolor);
+    width: 20px;
+}
+
+listbox::arrow:hover
+{
+    color: var(--PrimaryContentColor);
+}
+
+listbox::arrow:active
+{
+    color: var(--FocusColor);
+}
+
+listbox.ListBox
+{
+
 }
 
 button.TabbedBarBtn

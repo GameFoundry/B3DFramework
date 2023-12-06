@@ -81,12 +81,14 @@ namespace bs
 		 */
 		Event<void(u32, bool)> OnSelectionToggled;
 
+		static constexpr const char* kElementType = "listbox";
 	public: // ***** INTERNAL ******
 		/** @name Internal
 		 *  @{
 		 */
 
 		ElementType GetElementType() const override { return ElementType::ListBox; }
+		const char* GetStyleSheetElement() const override { return kElementType; }
 
 		/** @} */
 	protected:
@@ -95,8 +97,16 @@ namespace bs
 	private:
 		GUIListBox(const String& styleName, const Vector<HString>& elements, bool isMultiselect, const GUISizeConstraints& dimensions);
 
+		Rect2I GetCachedContentBoundsInElementSpace() const override;
+		void UpdateRenderElements() override;
 		bool DoOnMouseEvent(const GUIMouseEvent& ev) override;
 		bool DoOnCommandEvent(const GUICommandEvent& ev) override;
+
+		/** Returns the area in which the arrow box will be placed, local to the GUI element space. */
+		Rect2I GetArrowCachedContentBoundsInElementSpace() const;
+
+		/** Returns the width/height of the arrow box. */
+		Size2UI GetArrowCachedContentSize() const;
 
 		/**	Triggered when user clicks on an element. */
 		void ElementSelected(u32 idx);
@@ -117,6 +127,11 @@ namespace bs
 		Vector<HString> mElements;
 		Vector<bool> mElementStates;
 		GameObjectHandle<GUIDropDownMenu> mDropDownBox;
+
+		ImageSprite* mArrowSprite = nullptr;
+		ImageSpriteInformation mArrowSpriteInformation;
+		const IGUIVectorPathBuilder* mArrowPathBuilder = nullptr;
+		u32 mArrowPseudoElementIndex = ~0u;
 
 		bool mIsMultiselect;
 	};

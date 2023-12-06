@@ -1,11 +1,16 @@
 //************************************ bs::framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "GUI/BsGUIListBox.h"
+
+#include "BsGUIHelper.h"
+#include "BsGUIVectorPaths.h"
 #include "GUI/BsGUIWidget.h"
 #include "GUI/BsGUISizeConstraints.h"
 #include "GUI/BsGUIMouseEvent.h"
 #include "GUI/BsGUIManager.h"
 #include "GUI/BsGUIDropDownBoxManager.h"
+#include "Image/BsSpriteVectorPath.h"
+#include "StyleSheet/BsGUIStyleSheet.h"
 
 using namespace bs;
 
@@ -22,12 +27,18 @@ GUIListBox::GUIListBox(const String& styleName, const Vector<HString>& elements,
 	if(!mIsMultiselect && mElementStates.size() > 0)
 		mElementStates[0] = true;
 
+	mArrowSprite = B3DNew<ImageSprite>();
+	mArrowPathBuilder = GUIDropDownArrowVectorPathBuilder::Get();
+	mArrowPseudoElementIndex = RegisterPseudoElement("arrow");
+
 	UpdateContents();
 }
 
 GUIListBox::~GUIListBox()
 {
 	CloseListBox();
+
+	B3DDelete(mArrowSprite);
 }
 
 GUIListBox* GUIListBox::Create(const Vector<HString>& elements, bool isMultiselect, const String& styleName)
@@ -126,6 +137,116 @@ void GUIListBox::SetElementStates(const Vector<bool>& states)
 
 	if(wasOpen)
 		OpenListBox();
+}
+
+Rect2I GUIListBox::GetCachedContentBoundsInElementSpace() const
+{
+	const Rect2I& cachedBounds = GetCachedBounds();
+
+	if(mStyleSheetRuleInformation.CurrentStateRuleset != nullptr)
+	{
+		Size2UI layoutSize(cachedBounds.Width, cachedBounds.Height);
+
+		const u32 arrowAreaWidth = GetArrowCachedContentSize().Width;
+		layoutSize.Width = Math::Max(0, (i32)layoutSize.Width - arrowAreaWidth);
+
+		const GUIStyleSheetRules& styleSheetRules = mStyleSheetRuleInformation.CurrentStateRuleset->Rules;
+		return GUIHelper::CalculateContentArea(layoutSize, styleSheetRules);
+	}
+	else
+	{
+		const Size2UI layoutSize(cachedBounds.Width, cachedBounds.Height);
+		return GUIHelper::CalculateContentArea(layoutSize, *GetStyle());
+	}
+}
+
+Rect2I GUIListBox::GetArrowCachedContentBoundsInElementSpace() const
+{
+	Rect2I output = Rect2I::kEmpty;
+
+	if(!IsUsingStyleSheets() || mStyleSheetRuleInformation.CurrentStateRuleset == nullptr)
+		return output;
+
+	const Rect2I& cachedBounds = GetCachedBounds();
+	const Size2UI layoutSize(cachedBounds.Width, cachedBounds.Height);
+
+	const GUIStyleSheetRules& styleSheetRules = mStyleSheetRuleInformation.CurrentStateRuleset->Rules;
+	const Rect2I& fullContentArea = GUIHelper::CalculateContentArea(layoutSize, styleSheetRules);
+
+	const GUIStyleSheetRuleInformation& arrowRuleInformation = GetPseudoElementStyleSheetRuleInformation(mArrowPseudoElementIndex);
+	if(arrowRuleInformation.CurrentStateRuleset != nullptr)
+	{
+		const GUIStyleSheetRules& arrowRules = arrowRuleInformation.CurrentStateRuleset->Rules;
+		output = GUIHelper::CalculateContentArea(GetArrowCachedContentSize(), arrowRules);
+
+		const i32 arrowAreaOffset = Math::Max(0, (i32)fullContentArea.Width - (i32)(output.Width + arrowRules.Padding.Right + arrowRules.BorderRight.GetVisibleWidth()));
+		output.X += fullContentArea.X + arrowAreaOffset;
+	}
+
+	return output;
+}
+
+Size2UI GUIListBox::GetArrowCachedContentSize() const
+{
+	const Rect2I& cachedBounds = GetCachedBounds();
+
+	Size2UI output(0, cachedBounds.Height);
+	if(!IsUsingStyleSheets() || mStyleSheetRuleInformation.CurrentStateRuleset == nullptr)
+		return output;
+	
+	const GUIStyleSheetRuleInformation& arrowRuleInformation = GetPseudoElementStyleSheetRuleInformation(mArrowPseudoElementIndex);
+	if(arrowRuleInformation.CurrentStateRuleset != nullptr)
+	{
+		const GUIStyleSheetRules& arrowRules = arrowRuleInformation.CurrentStateRuleset->Rules;
+		output.Width = arrowRules.Size.Width +
+			arrowRules.Padding.Left + arrowRules.Padding.Right +
+			arrowRules.BorderLeft.GetVisibleWidth() + arrowRules.BorderRight.GetVisibleWidth();
+	}
+
+	return output;
+}
+
+
+void GUIListBox::UpdateRenderElements()
+{
+	GUIButtonBase::UpdateRenderElements();
+
+	const bool isUsingStyleSheets = IsUsingStyleSheets();
+	if(!isUsingStyleSheets)
+		return;
+
+	const GUIStyleSheetRuleInformation& ruleInformation = GetPseudoElementStyleSheetRuleInformation(mArrowPseudoElementIndex);
+	if(ruleInformation.CurrentStateRuleset == nullptr)
+		return;
+
+	const GUIStyleSheetRules& arrowStyleSheetRules = ruleInformation.CurrentStateRuleset->Rules;
+	const Rect2I arrowBounds = GetArrowCachedContentBoundsInElementSpace();
+
+	mArrowSpriteInformation.Width = arrowBounds.Width;
+	mArrowSpriteInformation.Height = arrowBounds.Height;
+
+	if(mArrowPathBuilder)
+	{
+		SpriteVectorPathCreateInformation spriteVectorPathCreateInformation;
+		spriteVectorPathCreateInformation.Size = Size2UI(mArrowSpriteInformation.Width, mArrowSpriteInformation.Height);
+		spriteVectorPathCreateInformation.VectorPath = mArrowPathBuilder->BuildPath(spriteVectorPathCreateInformation.Size, arrowStyleSheetRules);
+
+		mArrowSpriteInformation.Image = SpriteVectorPath::Create(spriteVectorPathCreateInformation);
+	}
+	else
+		mArrowSpriteInformation.Image = nullptr;
+
+	mArrowSpriteInformation.Color = GetTint();
+	mArrowSpriteInformation.Color.A *= arrowStyleSheetRules.Opacity;
+
+	mArrowSprite->Update(mArrowSpriteInformation, (u64)GetParentWidget());
+
+	// Populate GUI render elements from the sprites
+	{
+		using T = GUIRenderElementHelper;
+
+		T::Append({ T::SpriteInfo(mArrowSprite, 0, (Rect2)arrowBounds) }, mRenderElements);
+	}
 }
 
 bool GUIListBox::DoOnMouseEvent(const GUIMouseEvent& ev)

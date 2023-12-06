@@ -359,16 +359,16 @@ namespace bs
 		virtual void NotifyStyleChanged() {}
 
 		/**
+		 * Similar to GetCachedContentBounds(), except the bounds are relative to the parent GUI element rather than the
+		 * parent widget.
+		 */
+		virtual Rect2I GetCachedContentBoundsInElementSpace() const;
+
+		/**
 		 * Returns bounds of the content contained within the GUI element. This will be the bounds returned by GetCachedBounds(),
 		 * minus the border and the padding. Relative to parent widget.
 		 */
 		Rect2I GetCachedContentBounds() const;
-
-		/**
-		 * Similar to GetCachedContentBounds(), except the bounds are relative to the parent GUI element rather than the
-		 * parent widget.
-		 */
-		Rect2I GetCachedContentBoundsInElementSpace() const;
 
 		/**
 		 * Similar to GetCachedContentBounds(), except the bounds will be clipped by the current clip rectangle, and the

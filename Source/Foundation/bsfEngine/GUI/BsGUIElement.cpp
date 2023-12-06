@@ -268,16 +268,15 @@ Rect2I GUIElement::GetCachedContentBoundsInElementSpace() const
 
 Rect2I GUIElement::GetCachedClippedContentBoundsInContentSpace() const
 {
-	const Vector2I contentOffset = GetContentOffsetInElementSpace();
-	const Rect2I contentBounds = GetCachedContentBounds();
+	const Rect2I localContentBounds = GetCachedContentBoundsInElementSpace();
 
 	// Transform into element space so we can clip it using the element clip rectangle
-	Rect2I contentClipRect(contentOffset.X, contentOffset.Y, contentBounds.Width, contentBounds.Height);
+	Rect2I contentClipRect = localContentBounds;
 	contentClipRect.Clip(mLayoutData.GetLocalClipRect());
 
 	// Transform into content sprite space
-	contentClipRect.X -= contentOffset.X;
-	contentClipRect.Y -= contentOffset.Y;
+	contentClipRect.X -= localContentBounds.X;
+	contentClipRect.Y -= localContentBounds.Y;
 
 	return contentClipRect;
 }

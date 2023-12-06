@@ -227,22 +227,21 @@ HVectorPath GUITabBackgroundVectorPathBuilder::BuildPath(const Size2UI& size, co
 
 HVectorPath GUIDropDownArrowVectorPathBuilder::BuildPath(const Size2UI& size, const GUIStyleSheetRules& styleSheetRule) const
 {
-	HVectorPath path = VectorPath::Create(Size2(100.0f, 100.0f));
+	constexpr float kCanvasSize = 100.0f;
+	constexpr float kArrowSize = kCanvasSize * 0.75f;
+	HVectorPath path = VectorPath::Create(Size2(kCanvasSize, kCanvasSize));
 
-	path->SetDrawCursor(Vector2(0.0f, 0.0f))
-		.DrawLineTo(Vector2(50.0f, 100.0f))
-		.DrawLineTo(Vector2(100.0f, 0.0f))
+	path->DrawRectangle(Rect2(0.0f, 0.0f, kCanvasSize, kCanvasSize))
 		.ClosePath()
 		.SetFillPaint(styleSheetRule.BackgroundColor)
 		.DrawFill();
 
-	const bool drawBorder = styleSheetRule.BorderLeft.Width > 0 && styleSheetRule.BorderLeft.Style != GUIBorderElementStyle::None;
-	if(drawBorder)
-	{
-		path->SetStrokePaint(styleSheetRule.BorderLeft.Color)
-			.SetStrokeWidth((float)styleSheetRule.BorderLeft.Width)
-			.DrawStroke();
-	}
+	path->SetDrawCursor(Vector2(kCanvasSize - kArrowSize, kCanvasSize - kArrowSize))
+		.DrawLineTo(Vector2(kCanvasSize * 0.5f, kArrowSize))
+		.DrawLineTo(Vector2(kArrowSize, kCanvasSize - kArrowSize))
+		.ClosePath()
+		.SetFillPaint(styleSheetRule.Color)
+		.DrawFill();
 
 	return path;
 }
