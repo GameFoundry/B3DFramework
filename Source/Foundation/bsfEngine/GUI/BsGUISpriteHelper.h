@@ -29,11 +29,12 @@ namespace bs
 		 * @param	tint				Runtime color tint to apply to the sprite.
 		 * @param	batchId				ID that specifies if the sprite is allowed to be batched with other sprites. Only sprites with the same batch ID can be batched.
 		 * @param	outRenderElements	Array to which the generated render element will be appended to.
+		 * @param	offset				Optional offset at which to place the sprite.
 		 */
-		void BuildRenderElements(const Size2UI& size, const GUIStyleSheetRules& rules, const Color& tint, u64 batchId, TInlineArray<GUIRenderElement, 4>& outRenderElements);
+		void BuildRenderElements(const Size2UI& size, const GUIStyleSheetRules& rules, const Color& tint, u64 batchId, TInlineArray<GUIRenderElement, 4>& outRenderElements, const Vector2I& offset = Vector2I::kZero);
 
 		/** Same as the other overload, but for the old deprecated GUIElementStyle type, instead of style-sheets. */
-		void BuildRenderElements(const Size2UI& size, const GUIElementStyle& style, GUIElementState state, const Color& tint, u64 batchId, TInlineArray<GUIRenderElement, 4>& outRenderElements);
+		void BuildRenderElements(const Size2UI& size, const GUIElementStyle& style, GUIElementState state, const Color& tint, u64 batchId, TInlineArray<GUIRenderElement, 4>& outRenderElements, const Vector2I& offset = Vector2I::kZero);
 
 		/** Updates the animation start time (in seconds since application start), in case the background contains an animated sprite. */
 		void SetAnimationStartTime(float time);

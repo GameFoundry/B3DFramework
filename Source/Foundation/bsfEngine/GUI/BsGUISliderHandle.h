@@ -2,6 +2,7 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
+#include "BsGUIContent.h"
 #include "BsPrerequisites.h"
 #include "GUI/BsGUIElement.h"
 #include "2D/BsImageSprite.h"
@@ -35,14 +36,6 @@ namespace bs
 	/** A handle that can be dragged from its predefined minimum and maximum position, either horizontally or vertically. */
 	class B3D_EXPORT GUISliderHandle : public GUIElement
 	{
-		/**	Visual state of the handle. */
-		enum class State
-		{
-			Normal,
-			Hover,
-			Active
-		};
-
 		/** State the handle can be in while user is dragging it. */
 		enum class DragState
 		{
@@ -135,10 +128,9 @@ namespace bs
 	protected:
 		~GUISliderHandle();
 
-		void FillBuffer(u8* vertices, u32* indices, u32 vertexOffset, u32 indexOffset, const Vector2I& offset, u32 maxNumVerts, u32 maxNumIndices, u32 renderElementIdx) const override;
 		void UpdateRenderElements() override;
-		void UpdateClippedBounds() override;
 
+		static constexpr u32 kMinimumHandleSize = 5;
 	private:
 		GUISliderHandle(GUISliderHandleFlags flags, const String& styleName, const GUISizeConstraints& dimensions);
 
@@ -153,17 +145,11 @@ namespace bs
 		/** Returns the size of the handle button, in pixels. */
 		u32 GetHandleSize() const;
 
-		/**	Gets the currently active image, depending on handle state. */
-		const HSpriteImage& GetActiveImage() const;
-
-		void NotifyStyleChanged() override;
-
 		static const u32 kResizeHandleSize;
 
 		ImageSprite* mImageSprite;
 
 		GUISliderHandleFlags mFlags;
-		u32 mMinHandleSize = 0;
 		float mPctHandlePos = 0.0f;
 		float mPctHandleSize = 0.0f;
 		float mStep = 0.0f;
@@ -171,7 +157,7 @@ namespace bs
 		DragState mDragState = DragState::Normal;
 		bool mMouseOverHandle = false;
 		bool mHandleDragged = false;
-		State mState = State::Normal;
+		GUIElementState mState = GUIElementState::Normal;
 	};
 
 	/** @} */

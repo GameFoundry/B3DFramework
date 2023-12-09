@@ -21,9 +21,6 @@ GUISliderHandle::GUISliderHandle(GUISliderHandleFlags flags, const String& style
 	: GUIElement(styleName, dimensions), mFlags(flags)
 {
 	mImageSprite = B3DNew<ImageSprite>();
-
-	// Calling virtual method is okay in this case
-	NotifyStyleChanged();
 }
 
 GUISliderHandle::~GUISliderHandle()
@@ -61,7 +58,6 @@ void GUISliderHandle::SetHandlePosInternal(float pct)
 float GUISliderHandle::GetHandlePos() const
 {
 	return mPctHandlePos;
-	;
 }
 
 float GUISliderHandle::GetStep() const
@@ -83,30 +79,18 @@ void GUISliderHandle::UpdateRenderElements()
 {
 	ImageSpriteInformation desc;
 
-	HSpriteImage activeImage = GetActiveImage();
+	HSpriteImage activeImage = GetStyle()->GetImageForState(mState);
 	if(SpriteImage::CheckIsLoaded(activeImage))
 		desc.Image = activeImage;
 
 	u32 handleSize = GetHandleSize();
 	if(mFlags.IsSet(GUISliderHandleFlag::Horizontal))
 	{
-		if(handleSize == 0 && desc.Image != nullptr)
-		{
-			handleSize = desc.Image->GetSize().Width;
-			mPctHandleSize = handleSize / (float)GetMaxSize();
-		}
-
 		desc.Width = handleSize;
 		desc.Height = mLayoutData.Area.Height;
 	}
 	else
 	{
-		if(handleSize == 0 && desc.Image != nullptr)
-		{
-			handleSize = desc.Image->GetSize().Height;
-			mPctHandleSize = handleSize / (float)GetMaxSize();
-		}
-
 		desc.Width = mLayoutData.Area.Width;
 		desc.Height = handleSize;
 	}
@@ -118,64 +102,31 @@ void GUISliderHandle::UpdateRenderElements()
 	desc.Color = GetTint();
 	mImageSprite->Update(desc, (u64)GetParentWidget());
 
+	Rect2 area = Rect2::kEmpty;
+	if(mFlags.IsSet(GUISliderHandleFlag::Horizontal))
+	{
+		area.X += GetHandlePosPx();
+	}
+	else
+	{
+		area.Y += GetHandlePosPx();
+	}
+
+	area.Width = (float)desc.Width;
+	area.Height = (float)desc.Height;
+
 	// Populate GUI render elements from the sprites
 	{
 		using T = GUIRenderElementHelper;
-		T::Populate({ T::SpriteInfo(mImageSprite) }, mRenderElements);
+		T::Populate({ T::SpriteInfo(mImageSprite, 0, area) }, mRenderElements);
 	}
 
 	GUIElement::UpdateRenderElements();
 }
 
-void GUISliderHandle::UpdateClippedBounds()
-{
-	mClippedBounds = mLayoutData.Area;
-	mClippedBounds.Clip(mLayoutData.ClipRect);
-}
-
 Vector2I GUISliderHandle::CalculateUnconstrainedOptimalSize() const
 {
-	HSpriteImage activeImage = GetActiveImage();
-
-	if(SpriteImage::CheckIsLoaded(activeImage))
-	{
-		const Size2UI& imageSize = activeImage->GetSize();
-
-		return Vector2I((i32)imageSize.Width, (i32)imageSize.Height);
-	}
-
-	return Vector2I();
-}
-
-void GUISliderHandle::FillBuffer(
-	u8* vertices,
-	u32* indices,
-	u32 vertexOffset,
-	u32 indexOffset,
-	const Vector2I& offset,
-	u32 maxNumVerts,
-	u32 maxNumIndices,
-	u32 renderElementIdx) const
-{
-	u8* uvs = vertices + sizeof(Vector2);
-	u32 vertexStride = sizeof(Vector2) * 2;
-	u32 indexStride = sizeof(u32);
-
-	Vector2I layoutOffset = Vector2I(mLayoutData.Area.X, mLayoutData.Area.Y) + offset;
-	Rect2I clipRect = mLayoutData.GetLocalClipRect();
-
-	if(mFlags.IsSet(GUISliderHandleFlag::Horizontal))
-	{
-		layoutOffset.X += GetHandlePosPx();
-		clipRect.X -= GetHandlePosPx();
-	}
-	else
-	{
-		layoutOffset.Y += GetHandlePosPx();
-		clipRect.Y -= GetHandlePosPx();
-	}
-
-	mImageSprite->FillBuffer(vertices, uvs, indices, vertexOffset, indexOffset, maxNumVerts, maxNumIndices, vertexStride, indexStride, renderElementIdx, layoutOffset, clipRect);
+	return Vector2I(kMinimumHandleSize, kMinimumHandleSize);
 }
 
 bool GUISliderHandle::DoOnMouseEvent(const GUIMouseEvent& ev)
@@ -192,7 +143,8 @@ bool GUISliderHandle::DoOnMouseEvent(const GUIMouseEvent& ev)
 				{
 					mMouseOverHandle = false;
 
-					mState = State::Normal;
+					mState = GUIElementState::Normal;
+					RemoveStateFlags(GUIElementStateFlag::Hover);
 					MarkLayoutAsDirty();
 
 					return true;
@@ -204,7 +156,8 @@ bool GUISliderHandle::DoOnMouseEvent(const GUIMouseEvent& ev)
 				{
 					mMouseOverHandle = true;
 
-					mState = State::Hover;
+					mState = GUIElementState::Hover;
+					AddStateFlags(GUIElementStateFlag::Hover);
 					MarkLayoutAsDirty();
 
 					return true;
@@ -218,7 +171,8 @@ bool GUISliderHandle::DoOnMouseEvent(const GUIMouseEvent& ev)
 	{
 		if(!IsDisabled())
 		{
-			mState = State::Active;
+			mState = GUIElementState::Active;
+			AddStateFlags(GUIElementStateFlag::Active);
 			MarkLayoutAsDirty();
 
 			if(jumpOnClick)
@@ -318,7 +272,7 @@ bool GUISliderHandle::DoOnMouseEvent(const GUIMouseEvent& ev)
 					i32 right = left + handleSize;
 					newLeft = Math::Clamp(newLeft, 0, right);
 
-					newHandleSize = std::max((i32)mMinHandleSize, right - newLeft);
+					newHandleSize = std::max((i32)kMinimumHandleSize, right - newLeft);
 					newLeft = right - newHandleSize;
 
 					float scrollableSize = (float)(maxSize - newHandleSize);
@@ -330,7 +284,7 @@ bool GUISliderHandle::DoOnMouseEvent(const GUIMouseEvent& ev)
 				else // Right resize
 				{
 					i32 newRight = clickPosPx;
-					newHandleSize = std::max((i32)mMinHandleSize, std::min(newRight, (i32)maxSize) - left);
+					newHandleSize = std::max((i32)kMinimumHandleSize, std::min(newRight, (i32)maxSize) - left);
 
 					float scrollableSize = (float)(maxSize - newHandleSize);
 					if(scrollableSize > 0.0f)
@@ -359,7 +313,8 @@ bool GUISliderHandle::DoOnMouseEvent(const GUIMouseEvent& ev)
 
 			if(!mHandleDragged)
 			{
-				mState = State::Normal;
+				mState = GUIElementState::Normal;
+				RemoveStateFlags(GUIElementStateFlag::Hover | GUIElementStateFlag::Active);
 				MarkLayoutAsDirty();
 			}
 		}
@@ -372,10 +327,11 @@ bool GUISliderHandle::DoOnMouseEvent(const GUIMouseEvent& ev)
 		if(!IsDisabled())
 		{
 			if(mMouseOverHandle)
-				mState = State::Hover;
+				mState = GUIElementState::Hover;
 			else
-				mState = State::Normal;
+				mState = GUIElementState::Normal;
 
+			RemoveStateFlags(GUIElementStateFlag::Active);
 			if(!mHandleDragged)
 			{
 				// If we clicked above or below the scroll handle, scroll by one page
@@ -417,10 +373,11 @@ bool GUISliderHandle::DoOnMouseEvent(const GUIMouseEvent& ev)
 		{
 			mHandleDragged = false;
 			if(mMouseOverHandle)
-				mState = State::Hover;
+				mState = GUIElementState::Hover;
 			else
-				mState = State::Normal;
+				mState = GUIElementState::Normal;
 
+			RemoveStateFlags(GUIElementStateFlag::Active);
 			MarkLayoutAsDirty();
 		}
 
@@ -480,24 +437,12 @@ i32 GUISliderHandle::GetHandlePosPx() const
 
 u32 GUISliderHandle::GetHandleSize() const
 {
-	return std::max(mMinHandleSize, (u32)(GetMaxSize() * mPctHandleSize));
+	return std::max(kMinimumHandleSize, (u32)(GetMaxSize() * mPctHandleSize));
 }
 
 float GUISliderHandle::GetHandleSizePctInternal() const
 {
 	return mPctHandleSize;
-}
-
-void GUISliderHandle::NotifyStyleChanged()
-{
-	const GUIElementStyle* style = GetStyle();
-	if(style != nullptr)
-	{
-		if(mFlags.IsSet(GUISliderHandleFlag::Horizontal))
-			mMinHandleSize = style->FixedWidth ? style->Width : style->MinWidth;
-		else
-			mMinHandleSize = style->FixedHeight ? style->Height : style->MinHeight;
-	}
 }
 
 void GUISliderHandle::SetHandlePosPx(i32 pos)
@@ -517,19 +462,4 @@ u32 GUISliderHandle::GetMaxSize() const
 		maxSize = mLayoutData.Area.Width;
 
 	return maxSize;
-}
-
-const HSpriteImage& GUISliderHandle::GetActiveImage() const
-{
-	switch(mState)
-	{
-	case State::Active:
-		return GetStyle()->Active.Image;
-	case State::Hover:
-		return GetStyle()->Hover.Image;
-	case State::Normal:
-		return GetStyle()->Normal.Image;
-	}
-
-	return GetStyle()->Normal.Image;
 }
