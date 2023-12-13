@@ -442,14 +442,14 @@ texture.WindowFrame
 {
     border-width: 1px;
     border-color: #000000;
-    background-color: #00000000;
+    background-color: var(--HoverBackgroundColor);
 }
 
 texture.WindowFrame:checked
 {
     border-width: 1px;
     border-color: var(--FocusColor);
-    background-color: #00000000;
+    background-color: var(--HoverBackgroundColor);
 }
 
 button.GUIDropDownScrollbarButton
