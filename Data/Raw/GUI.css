@@ -438,6 +438,20 @@ texture.GUIDropDownScrollbarBackground
     min-height: 8px;
 }
 
+texture.WindowFrame
+{
+    border-width: 1px;
+    border-color: #000000;
+    background-color: #00000000;
+}
+
+texture.WindowFrame:checked
+{
+    border-width: 1px;
+    border-color: var(--FocusColor);
+    background-color: #00000000;
+}
+
 button.GUIDropDownScrollbarButton
 {
     background-color: var(--PrimaryBackgroundColor);
