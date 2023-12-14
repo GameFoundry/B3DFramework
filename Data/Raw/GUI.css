@@ -452,6 +452,28 @@ texture.WindowFrame:checked
     background-color: var(--HoverBackgroundColor);
 }
 
+button.WindowChromeButton
+{
+	width: 14px;
+	height: 14px;
+    border-width: 0px;
+    background-color: #00000000;
+    color: var(--PrimaryContentColor);
+    margin: 0px 1px;
+}
+
+button.WindowChromeButton:hover
+{
+    background-color: var(--HoverBackgroundColor);
+    color: var(--PrimaryContentColor);
+}
+
+button.WindowChromeButton:active
+{
+    background-color: var(--FocusColor);
+    color: var(--DarkerContentcolor);
+}
+
 button.GUIDropDownScrollbarButton
 {
     background-color: var(--PrimaryBackgroundColor);
