@@ -250,7 +250,7 @@ button.ScrollButton:active
     background-color: var(--FocusColor);
 }
 
-button.TabbedBarBtn
+button.TabBarButton
 {
     height: 15px;
     min-width: 24px;
@@ -259,6 +259,14 @@ button.TabbedBarBtn
     border-width: 0px;
     padding-left: 10px;
     padding-right: 10px;
+}
+
+texture.TabBarBackground
+{
+    background-color: var(--PrimaryBackgroundColor);
+    border-bottom-width: 1px;
+    border-color: var(--FocusColor);
+    height: 16px;
 }
 
 button.Separator
