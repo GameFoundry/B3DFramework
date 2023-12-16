@@ -119,7 +119,7 @@ namespace bs
         ///                     Additionally elements of the same type (triangle or line) will be drawn in order they are
         ///                     submitted if they share the same depth.</param>
         public void DrawImage(SpriteImage image, Rect2I area,
-            GUITextureScaleMode scaleMode = GUITextureScaleMode.StretchToFit, byte depth = 128)
+            TextureScaleMode scaleMode = TextureScaleMode.StretchToFit, byte depth = 128)
         {
             IntPtr imagePtr = IntPtr.Zero;
             if (image != null)
@@ -142,7 +142,7 @@ namespace bs
         ///                     Additionally elements of the same type (triangle or line) will be drawn in order they are
         ///                     submitted if they share the same depth.</param>
         public void DrawImage(SpriteImage image, Rect2I area, Color color,
-            GUITextureScaleMode scaleMode = GUITextureScaleMode.StretchToFit, byte depth = 128)
+            TextureScaleMode scaleMode = TextureScaleMode.StretchToFit, byte depth = 128)
         {
             IntPtr imagePtr = IntPtr.Zero;
             if (image != null)
@@ -274,7 +274,7 @@ namespace bs
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern void Internal_DrawImage(IntPtr nativeInstance, IntPtr image, ref Rect2I area,
-            GUITextureScaleMode scaleMode, ref Color color, byte depth);
+            TextureScaleMode scaleMode, ref Color color, byte depth);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern void Internal_DrawTriangleStrip(IntPtr nativeInstance, Vector2I[] vertices, ref Color color,

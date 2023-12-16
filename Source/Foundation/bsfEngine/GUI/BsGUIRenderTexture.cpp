@@ -1,6 +1,8 @@
 //************************************ bs::framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "GUI/BsGUIRenderTexture.h"
+
+#include "BsGUITexture.h"
 #include "GUI/BsGUIManager.h"
 #include "RenderAPI/BsRenderTexture.h"
 #include "Image/BsSpriteTexture.h"
@@ -14,7 +16,7 @@ const String& GUIRenderTexture::GetGuiTypeName()
 }
 
 GUIRenderTexture::GUIRenderTexture(const String& styleName, const SPtr<RenderTexture>& texture, bool transparent, const GUISizeConstraints& dimensions)
-	: GUITexture(styleName, HSpriteImage(), TextureScaleMode::StretchToFit, false, dimensions), mTransparent(transparent)
+	: GUITexture(PrivatelyConstruct(), GUITextureContents(nullptr, TextureScaleMode::StretchToFit, false), styleName, dimensions), mTransparent(transparent)
 {
 	SetRenderTexture(texture);
 }

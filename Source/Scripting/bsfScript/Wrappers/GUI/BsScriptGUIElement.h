@@ -148,6 +148,7 @@ namespace bs
 		static void InternalSetFlexibleWidth(ScriptGUIElementBaseTBase* nativeInstance, u32 minWidth, u32 maxWidth);
 		static void InternalSetHeight(ScriptGUIElementBaseTBase* nativeInstance, u32 height);
 		static void InternalSetFlexibleHeight(ScriptGUIElementBaseTBase* nativeInstance, u32 minHeight, u32 maxHeight);
+		static void InternalSetTint(ScriptGUIElementBaseTBase* nativeInstance, Color* tint);
 		static void InternalSetContextMenu(ScriptGUIElementBaseTBase* nativeInstance, ScriptContextMenu* contextMenu);
 		static void InternalResetDimensions(ScriptGUIElementBaseTBase* nativeInstance);
 		static MonoString* InternalGetStyle(ScriptGUIElementBaseTBase* nativeInstance);

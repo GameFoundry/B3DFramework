@@ -72,7 +72,7 @@ GUITooltip::GUITooltip(const HSceneObject& parent, const GUIWidget& overlaidWidg
 
 	GUILayout* backgroundLayout = backgroundPanel->AddNewElement<GUILayoutX>();
 
-	GUITexture* backgroundFrame = GUITexture::Create(TextureScaleMode::StretchToFit, GetFrameStyleName());
+	GUITexture* backgroundFrame = GUITexture::Create(GUITextureContents(nullptr, TextureScaleMode::StretchToFit), GetFrameStyleName());
 	backgroundLayout->AddElement(backgroundFrame);
 
 	GUILayout* contentLayout = contentPanel->AddNewElement<GUILayoutY>();

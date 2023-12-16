@@ -120,6 +120,7 @@ void ScriptGUIElement::InitRuntimeData()
 	metaData.ScriptClass->AddInternalCall("Internal_GetStyle", (void*)&ScriptGUIElement::InternalGetStyle);
 	metaData.ScriptClass->AddInternalCall("Internal_SetStyle", (void*)&ScriptGUIElement::InternalSetStyle);
 	metaData.ScriptClass->AddInternalCall("Internal_GetParent", (void*)&ScriptGUIElement::InternalGetParent);
+	metaData.ScriptClass->AddInternalCall("Internal_SetTint", (void*)&ScriptGUIElement::InternalSetTint);
 
 	onFocusGainedThunk = (OnFocusChangedThunkDef)metaData.ScriptClass->GetMethod("Internal_OnFocusGained", 0)->GetThunk();
 	onFocusLostThunk = (OnFocusChangedThunkDef)metaData.ScriptClass->GetMethod("Internal_OnFocusLost", 0)->GetThunk();
@@ -356,6 +357,19 @@ void ScriptGUIElement::InternalSetFlexibleHeight(ScriptGUIElementBaseTBase* nati
 		return;
 
 	nativeInstance->GetGuiElement()->SetFlexibleHeight(minHeight, maxHeight);
+}
+
+void ScriptGUIElement::InternalSetTint(ScriptGUIElementBaseTBase* nativeInstance, Color* tint)
+{
+	if(nativeInstance->IsDestroyed())
+		return;
+
+	GUIElementBase* const guiElementBase = nativeInstance->GetGuiElement();
+	if(guiElementBase->GetType() != GUIElementBase::Type::Element)
+		return;
+
+	GUIElement* const guiElement = static_cast<GUIElement*>(guiElementBase);
+	guiElement->SetTint(*tint);
 }
 
 void ScriptGUIElement::InternalResetDimensions(ScriptGUIElementBaseTBase* nativeInstance)

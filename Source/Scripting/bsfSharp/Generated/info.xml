@@ -134,58 +134,6 @@
 			<doc>Returns the total number of bones in the skeleton.</doc>
 		</property>
 	</class>
-	<class native="MotionBlurSettings" script="MotionBlurSettings">
-		<doc>Settings that control the motion blur effect.</doc>
-		<ctor>
-		</ctor>
-		<property name="Enabled" type="bool" getter="GetEnabled" setter="SetEnabled" static="false">
-			<doc>Enables or disables the motion blur effect.</doc>
-		</property>
-		<property name="Domain" type="MotionBlurDomain" getter="GetDomain" setter="SetDomain" static="false">
-			<doc>Determines which parts of the scene will trigger motion blur.</doc>
-		</property>
-		<property name="Filter" type="MotionBlurFilter" getter="GetFilter" setter="SetFilter" static="false">
-			<doc>Type of filter to use when filtering samples contributing to a blurred pixel.</doc>
-		</property>
-		<property name="Quality" type="MotionBlurQuality" getter="GetQuality" setter="SetQuality" static="false">
-			<doc>Determines the number of samples to take during motion blur filtering. Increasing this value will yield higher quality blur at the cost of the performance.</doc>
-		</property>
-		<property name="MaximumRadius" type="float" getter="GetMaximumRadius" setter="SetMaximumRadius" static="false">
-			<doc>Determines the maximum radius over which the blur samples are allowed to be taken, in percent of the screen width (e.g. with 1% radius, on 1920x1028 resolution the maximum radius in pixels will be 1920 * 0.01 = 20px). This clamps the maximum velocity that can affect the blur, as higher velocities require higher radius. Very high values can adversely affect performance as cache accesses become more random.</doc>
-		</property>
-	</class>
-	<struct native="START_UP_DESC" script="StartUpDesc">
-		<doc>Structure containing parameters for starting the application.</doc>
-		<ctor>
-		</ctor>
-		<field name="RenderApi" type="string">
-			<doc>Name of the render system plugin to use.</doc>
-		</field>
-		<field name="Renderer" type="string">
-			<doc>Name of the renderer plugin to use.</doc>
-		</field>
-		<field name="Physics" type="string">
-			<doc>Name of physics plugin to use.</doc>
-		</field>
-		<field name="Audio" type="string">
-			<doc>Name of the audio plugin to use.</doc>
-		</field>
-		<field name="Input" type="string">
-			<doc>Name of the input plugin to use.</doc>
-		</field>
-		<field name="PhysicsCooking" type="bool">
-			<doc>True if physics cooking library should be loaded. Cooking is useful for creating collision meshes during development type, but might be unnecessary in the final application. When turned off you can save on space by not shipping the cooking library.</doc>
-		</field>
-		<field name="AsyncAnimation" type="bool">
-			<doc>True if animation should be evaluated at the same time while rendering is happening. This introduces a one frame delay to all animations but can result in better performance. If false the animation will be forced to finish evaluating before rendering starts, ensuring up-to-date frame but potentially blocking the rendering thread from moving forward until the animation finishes.</doc>
-		</field>
-		<field name="PrimaryWindowDesc" type="RenderWindowDesc">
-			<doc>Describes the window to create during start-up.</doc>
-		</field>
-		<field name="Importers" type="string">
-			<doc>A list of importer plugins to load.</doc>
-		</field>
-	</struct>
 	<struct native="ColorGradientKey" script="ColorGradientKey">
 		<doc>Single key in a ColorGradient.</doc>
 		<ctor>
@@ -1479,6 +1427,19 @@ Use {0}, {1}, etc. in the string value for values that might change dynamically.
 			<doc>Inverse transform of the pose the skeleton was initially created in.</doc>
 		</field>
 	</struct>
+	<enum native="GUIOptionType" script="GUIOptionType">
+		<doc>Type of GUI element options.</doc>
+		<enumentry native="FixedWidth" script="FixedWidth">
+		</enumentry>
+		<enumentry native="FlexibleWidth" script="FlexibleWidth">
+		</enumentry>
+		<enumentry native="FixedHeight" script="FixedHeight">
+		</enumentry>
+		<enumentry native="FlexibleHeight" script="FlexibleHeight">
+		</enumentry>
+		<enumentry native="Position" script="Position">
+		</enumentry>
+	</enum>
 	<enum native="RangeComponent" script="RangeComponent">
 		<doc>Identifiers representing a range of values.</doc>
 		<enumentry native="Min" script="Min">
@@ -1543,6 +1504,35 @@ Use {0}, {1}, etc. in the string value for values that might change dynamically.
 			<doc>Returns a list of all morph channels in the morph animation.</doc>
 		</property>
 	</class>
+	<class native="ParticleEmitterSkinnedMeshShape" script="ParticleEmitterSkinnedMeshShape">
+		<doc>Particle emitter shape that emits particles from a surface of a skinned (animated) mesh. Particles can be emitted from mesh vertices, edges or triangles. If information about normals exists, particles will also inherit the normals.</doc>
+		<ctor>
+			<doc>Creates a new particle emitter skinned mesh shape.</doc>
+			<param name="desc" type="ParticleSkinnedMeshShapeOptions">
+			</param>
+		</ctor>
+		<ctor>
+			<doc>Creates a new particle emitter skinned mesh shape.</doc>
+		</ctor>
+		<property name="Options" type="ParticleSkinnedMeshShapeOptions" getter="GetOptions" setter="SetOptions" static="false">
+			<doc>Options describing the shape.</doc>
+		</property>
+	</class>
+	<enum native="TextureScaleMode" script="TextureScaleMode">
+		<doc>Type of scaling modes for GUI images.</doc>
+		<enumentry native="StretchToFit" script="StretchToFit">
+			<doc>Image will stretch non-uniformly in all dimensions in order to cover the assigned area fully.</doc>
+		</enumentry>
+		<enumentry native="ScaleToFit" script="ScaleToFit">
+			<doc>Image will scale uniformly until one dimension is aligned with the assigned area. Remaining dimension might have empty space.</doc>
+		</enumentry>
+		<enumentry native="CropToFit" script="CropToFit">
+			<doc>Image will scale uniformly until both dimensions are larger or aligned with the assigned area. Remaining dimension might be cropped.</doc>
+		</enumentry>
+		<enumentry native="RepeatToFit" script="RepeatToFit">
+			<doc>Image will keep its original size, but will repeat in order to fill the assigned area.</doc>
+		</enumentry>
+	</enum>
 	<enum native="ParticleRenderMode" script="ParticleRenderMode">
 		<doc>Determines how are particles represented on the screen.</doc>
 		<enumentry native="Billboard" script="Billboard">
@@ -2517,6 +2507,58 @@ Use {0}, {1}, etc. in the string value for values that might change dynamically.
 		<property name="SampleCount" type="int" getter="GetSampleCount" setter="" static="false">
 		</property>
 	</class>
+	<class native="MotionBlurSettings" script="MotionBlurSettings">
+		<doc>Settings that control the motion blur effect.</doc>
+		<ctor>
+		</ctor>
+		<property name="Enabled" type="bool" getter="GetEnabled" setter="SetEnabled" static="false">
+			<doc>Enables or disables the motion blur effect.</doc>
+		</property>
+		<property name="Domain" type="MotionBlurDomain" getter="GetDomain" setter="SetDomain" static="false">
+			<doc>Determines which parts of the scene will trigger motion blur.</doc>
+		</property>
+		<property name="Filter" type="MotionBlurFilter" getter="GetFilter" setter="SetFilter" static="false">
+			<doc>Type of filter to use when filtering samples contributing to a blurred pixel.</doc>
+		</property>
+		<property name="Quality" type="MotionBlurQuality" getter="GetQuality" setter="SetQuality" static="false">
+			<doc>Determines the number of samples to take during motion blur filtering. Increasing this value will yield higher quality blur at the cost of the performance.</doc>
+		</property>
+		<property name="MaximumRadius" type="float" getter="GetMaximumRadius" setter="SetMaximumRadius" static="false">
+			<doc>Determines the maximum radius over which the blur samples are allowed to be taken, in percent of the screen width (e.g. with 1% radius, on 1920x1028 resolution the maximum radius in pixels will be 1920 * 0.01 = 20px). This clamps the maximum velocity that can affect the blur, as higher velocities require higher radius. Very high values can adversely affect performance as cache accesses become more random.</doc>
+		</property>
+	</class>
+	<struct native="START_UP_DESC" script="StartUpDesc">
+		<doc>Structure containing parameters for starting the application.</doc>
+		<ctor>
+		</ctor>
+		<field name="RenderApi" type="string">
+			<doc>Name of the render system plugin to use.</doc>
+		</field>
+		<field name="Renderer" type="string">
+			<doc>Name of the renderer plugin to use.</doc>
+		</field>
+		<field name="Physics" type="string">
+			<doc>Name of physics plugin to use.</doc>
+		</field>
+		<field name="Audio" type="string">
+			<doc>Name of the audio plugin to use.</doc>
+		</field>
+		<field name="Input" type="string">
+			<doc>Name of the input plugin to use.</doc>
+		</field>
+		<field name="PhysicsCooking" type="bool">
+			<doc>True if physics cooking library should be loaded. Cooking is useful for creating collision meshes during development type, but might be unnecessary in the final application. When turned off you can save on space by not shipping the cooking library.</doc>
+		</field>
+		<field name="AsyncAnimation" type="bool">
+			<doc>True if animation should be evaluated at the same time while rendering is happening. This introduces a one frame delay to all animations but can result in better performance. If false the animation will be forced to finish evaluating before rendering starts, ensuring up-to-date frame but potentially blocking the rendering thread from moving forward until the animation finishes.</doc>
+		</field>
+		<field name="PrimaryWindowDesc" type="RenderWindowDesc">
+			<doc>Describes the window to create during start-up.</doc>
+		</field>
+		<field name="Importers" type="string">
+			<doc>A list of importer plugins to load.</doc>
+		</field>
+	</struct>
 	<class native="CAudioListener" script="AudioListener">
 	</class>
 	<class native="CAudioSource" script="AudioSource">
@@ -5285,20 +5327,6 @@ Sprite images also allow you to specify sprite sheet animation by varying which 
 			<doc>Renderable object containing a mesh to spawn particles on, as well as the attached Animation object resposible for performing skinned animation. Mesh must at least contain per-vertex position data encoded as 3D float vectors, blend indices encoded in 4-byte format, and blend weights encoded a 4D float vectors. Can optionally contain per-vertex normals encoded as 3D float vectors or as 4-byte unsigned-normalized format.</doc>
 		</field>
 	</struct>
-	<class native="ParticleEmitterSkinnedMeshShape" script="ParticleEmitterSkinnedMeshShape">
-		<doc>Particle emitter shape that emits particles from a surface of a skinned (animated) mesh. Particles can be emitted from mesh vertices, edges or triangles. If information about normals exists, particles will also inherit the normals.</doc>
-		<ctor>
-			<doc>Creates a new particle emitter skinned mesh shape.</doc>
-			<param name="desc" type="ParticleSkinnedMeshShapeOptions">
-			</param>
-		</ctor>
-		<ctor>
-			<doc>Creates a new particle emitter skinned mesh shape.</doc>
-		</ctor>
-		<property name="Options" type="ParticleSkinnedMeshShapeOptions" getter="GetOptions" setter="SetOptions" static="false">
-			<doc>Options describing the shape.</doc>
-		</property>
-	</class>
 	<struct native="ParticleBurst" script="ParticleBurst">
 		<doc>Specifies a burst of particles that occurs at a certain time point.</doc>
 		<ctor>
@@ -11985,6 +12013,28 @@ Alternatively you can also skip manually calling release() and call unloadAllUnu
 		<enumentry native="Right" script="Right">
 		</enumentry>
 	</enum>
+	<struct native="GUITextureContents" script="GUITextureContents">
+		<doc>Structure describing contents of a GUITexture element.</doc>
+		<ctor>
+		</ctor>
+		<ctor>
+			<param name="image" type="SpriteImage">
+			</param>
+			<param name="scaleMode" type="TextureScaleMode">
+			</param>
+			<param name="isTransparent" type="bool">
+			</param>
+		</ctor>
+		<field name="Image" type="SpriteImage">
+			<doc>Image to display. If this is null then the image specified by the style will be used.</doc>
+		</field>
+		<field name="ScaleMode" type="TextureScaleMode">
+			<doc>Scale mode to use when sizing the texture.</doc>
+		</field>
+		<field name="IsTransparent" type="bool">
+			<doc>Determines should the texture be rendered with transparency active.</doc>
+		</field>
+	</struct>
 	<class native="GUIElementStyle" script="GUIElementStyle">
 		<doc>GUI element style that determines the look of a GUI element, as well as the element&apos;s default layout options. Different looks can be provided for different element states.</doc>
 		<ctor>
@@ -12141,6 +12191,17 @@ Alternatively you can also skip manually calling release() and call unloadAllUnu
 			<doc>Special shader used for rendering decals that project onto other geometry.</doc>
 		</enumentry>
 	</enum>
+	<struct native="GUIOption" script="GUIOption">
+		<doc>Controls GUI element layout options, possibly by overriding the default options specified in GUI element style. These options control GUI element placement and size in a GUI layout.</doc>
+		<ctor>
+		</ctor>
+		<field name="min" type="int">
+		</field>
+		<field name="max" type="int">
+		</field>
+		<field name="type" type="GUIOptionType">
+		</field>
+	</struct>
 	<enum native="GUIElementState" script="GUIElementState">
 		<doc>Type of GUI element states.</doc>
 		<enumentry native="HoverOn" script="HoverOn">
@@ -12226,6 +12287,50 @@ Alternatively you can also skip manually calling release() and call unloadAllUnu
 		<field name="Tooltip" type="LocString">
 		</field>
 	</struct>
+	<class native="GUITexture" script="GUITexture">
+		<doc>A GUI element that displays a texture.</doc>
+		<method native="SetImage" script="SetImage" static="false">
+			<doc>Changes the active image. If the provided image is null then the image specified by the style will be used.</doc>
+			<param name="image" type="RRef&lt;SpriteImage&gt;">
+			</param>
+		</method>
+		<ctor>
+			<doc>Creates a new GUI element.</doc>
+			<param name="contents" type="GUITextureContents">
+				<doc>Structure describing the contents of the GUI element to create.</doc>
+			</param>
+			<param name="styleClass" type="string">
+				<doc>Style class that will be used for determining GUI element visuals from the current style sheet. If no class is provided, default style is determined based on GUI element type.</doc>
+			</param>
+			<param name="options" type="GUIOption">
+				<doc>Additional options that control GUI element size and position. This will override options set in the style sheet.</doc>
+			</param>
+		</ctor>
+		<ctor>
+			<doc>Creates a new GUI element.</doc>
+			<param name="contents" type="GUITextureContents">
+				<doc>Structure describing the contents of the GUI element to create.</doc>
+			</param>
+			<param name="options" type="GUIOption">
+				<doc>Additional options that control GUI element size and position. This will override options set in the style sheet.</doc>
+			</param>
+		</ctor>
+		<ctor>
+			<doc>Creates a new GUI element.</doc>
+			<param name="styleClass" type="string">
+				<doc>Style class that will be used for determining GUI element visuals from the current style sheet. If no class is provided, default style is determined based on GUI element type.</doc>
+			</param>
+			<param name="options" type="GUIOption">
+				<doc>Additional options that control GUI element size and position. This will override options set in the style sheet.</doc>
+			</param>
+		</ctor>
+		<ctor>
+			<doc>Creates a new GUI element.</doc>
+			<param name="options" type="GUIOption">
+				<doc>Additional options that control GUI element size and position. This will override options set in the style sheet.</doc>
+			</param>
+		</ctor>
+	</class>
 	<struct native="ShaderParameter" script="ShaderParameter">
 		<doc>Contains information about a single shader parameter.</doc>
 		<field name="Name" type="string">

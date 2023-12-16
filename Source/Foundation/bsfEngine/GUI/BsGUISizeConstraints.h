@@ -7,6 +7,7 @@
 
 namespace bs
 {
+	class GUIOption;
 	struct GUIStyleSheetRules;
 	/** @addtogroup GUI-Internal
 	 *  @{
@@ -41,6 +42,9 @@ namespace bs
 
 		/**	Creates new constraints from user defined options. */
 		static GUISizeConstraints Create(const GUIOptions& options);
+
+		/**	Creates new constraints from user defined options. */
+		static GUISizeConstraints Create(const TInlineArray<GUIOption, 4>& options);
 
 		GUISizeConstraints() = default;
 

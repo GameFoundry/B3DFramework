@@ -82,7 +82,7 @@ void GUIDropDownContent::SetRange(u32 start, u32 end)
 
 		if(element.IsSeparator())
 		{
-			visibleElement.Separator = GUITexture::Create(TextureScaleMode::StretchToFit, kSeparatorStyleClass);
+			visibleElement.Separator = GUITexture::Create(GUITextureContents(nullptr, TextureScaleMode::StretchToFit), kSeparatorStyleClass);
 			RegisterChildElement(visibleElement.Separator);
 		}
 		else

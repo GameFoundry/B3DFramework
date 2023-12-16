@@ -10,21 +10,22 @@ namespace bs
 	 *  @{
 	 */
 
+	/**	Type of GUI element options. */
+	enum class B3D_SCRIPT_EXPORT(DocumentationGroup(GUI)) GUIOptionType
+	{
+		FixedWidth,
+		FlexibleWidth,
+		FixedHeight,
+		FlexibleHeight,
+		Position
+	};
+
 	/**
 	 * Controls GUI element layout options, possibly by overriding the default options specified in GUI element style.
 	 * These options control GUI element placement and size in a GUI layout.
 	 */
-	class B3D_EXPORT GUIOption
+	class B3D_EXPORT B3D_SCRIPT_EXPORT(ExportAsStruct(true), DocumentationGroup(GUI)) GUIOption
 	{
-		/**	Type of GUI element options. */
-		enum class Type
-		{
-			FixedWidth,
-			FlexibleWidth,
-			FixedHeight,
-			FlexibleHeight,
-			Position
-		};
 
 	public:
 		GUIOption() = default;
@@ -64,7 +65,7 @@ namespace bs
 
 		u32 min = 0;
 		u32 max = 0;
-		Type type = Type::FixedWidth;
+		GUIOptionType type = GUIOptionType::FixedWidth;
 	};
 
 	/**	Container for a list of options used for controlling GUI element properties. */
@@ -75,49 +76,49 @@ namespace bs
 
 		GUIOptions(const GUIOption& e0)
 		{
-			mOptions.push_back(e0);
+			mOptions.Add(e0);
 		}
 
 		GUIOptions(const GUIOption& e0, const GUIOption& e1)
 		{
-			mOptions.push_back(e0);
-			mOptions.push_back(e1);
+			mOptions.Add(e0);
+			mOptions.Add(e1);
 		}
 
 		GUIOptions(const GUIOption& e0, const GUIOption& e1, const GUIOption& e2)
 		{
-			mOptions.push_back(e0);
-			mOptions.push_back(e1);
-			mOptions.push_back(e2);
+			mOptions.Add(e0);
+			mOptions.Add(e1);
+			mOptions.Add(e2);
 		}
 
 		GUIOptions(const GUIOption& e0, const GUIOption& e1, const GUIOption& e2, const GUIOption& e3)
 		{
-			mOptions.push_back(e0);
-			mOptions.push_back(e1);
-			mOptions.push_back(e2);
-			mOptions.push_back(e3);
+			mOptions.Add(e0);
+			mOptions.Add(e1);
+			mOptions.Add(e2);
+			mOptions.Add(e3);
 		}
 
 		GUIOptions(const GUIOption& e0, const GUIOption& e1, const GUIOption& e2, const GUIOption& e3, const GUIOption& e4)
 		{
-			mOptions.push_back(e0);
-			mOptions.push_back(e1);
-			mOptions.push_back(e2);
-			mOptions.push_back(e3);
-			mOptions.push_back(e4);
+			mOptions.Add(e0);
+			mOptions.Add(e1);
+			mOptions.Add(e2);
+			mOptions.Add(e3);
+			mOptions.Add(e4);
 		}
 
 		/**	Adds a new option to the options list.  */
 		void AddOption(const GUIOption& option)
 		{
-			mOptions.push_back(option);
+			mOptions.Add(option);
 		}
 
 	private:
 		friend struct GUISizeConstraints;
 
-		Vector<GUIOption> mOptions;
+		TInlineArray<GUIOption, 4> mOptions;
 	};
 
 	/** @} */

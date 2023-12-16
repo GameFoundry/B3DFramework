@@ -27,7 +27,7 @@ namespace bs
 	};
 
 	/**	Type of scaling modes for GUI images. */
-	enum class TextureScaleMode
+	enum class B3D_SCRIPT_EXPORT(DocumentationGroup(GUI)) TextureScaleMode
 	{
 		StretchToFit, /**< Image will stretch non-uniformly in all dimensions in order to cover the assigned area fully. */
 		ScaleToFit, /**< Image will scale uniformly until one dimension is aligned with the assigned area. Remaining dimension might have empty space. */

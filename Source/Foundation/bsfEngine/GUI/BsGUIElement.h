@@ -159,6 +159,19 @@ namespace bs
 		 */
 
 		/**
+		 * Helper method that returns style name used by an element of a certain type. If override style is empty, default
+		 * style for that type is returned.
+		 */
+		template <class T>
+		static const String& GetStyleName(const String& overrideStyle)
+		{
+			if(overrideStyle == StringUtil::kBlank)
+				return T::GetGuiTypeName();
+
+			return overrideStyle;
+		}
+
+		/**
 		 * Returns information about all renderable elements in this GUI element, including their mesh, material and
 		 * general information.
 		 */
@@ -335,19 +348,6 @@ namespace bs
 		 * rectangles changes).
 		 */
 		virtual void UpdateClippedBounds();
-
-		/**
-		 * Helper method that returns style name used by an element of a certain type. If override style is empty, default
-		 * style for that type is returned.
-		 */
-		template <class T>
-		static const String& GetStyleName(const String& overrideStyle)
-		{
-			if(overrideStyle == StringUtil::kBlank)
-				return T::GetGuiTypeName();
-
-			return overrideStyle;
-		}
 
 		/**
 		 * Attempts to find a sub-style for the specified type in the currently set GUI element style. If one cannot be

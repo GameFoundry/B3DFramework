@@ -14,31 +14,36 @@ GUISizeConstraints GUISizeConstraints::Create()
 
 GUISizeConstraints GUISizeConstraints::Create(const GUIOptions& options)
 {
+	return Create(options.mOptions);
+}
+
+GUISizeConstraints GUISizeConstraints::Create(const TInlineArray<GUIOption, 4>& options)
+{
 	GUISizeConstraints dimensions;
 
-	for(auto& option : options.mOptions)
+	for(auto& option : options)
 	{
 		switch(option.type)
 		{
-		case GUIOption::Type::Position:
+		case GUIOptionType::Position:
 			dimensions.X = (i32)option.min;
 			dimensions.Y = (i32)option.max;
 			break;
-		case GUIOption::Type::FixedWidth:
+		case GUIOptionType::FixedWidth:
 			dimensions.Flags |= GUISizeConstraintFlag::FixedWidth | GUISizeConstraintFlag::WidthOverridenAtRuntime;
 			dimensions.MinWidth = dimensions.MaxWidth = option.min;
 			break;
-		case GUIOption::Type::FixedHeight:
+		case GUIOptionType::FixedHeight:
 			dimensions.Flags |= GUISizeConstraintFlag::FixedHeight | GUISizeConstraintFlag::HeightOverridenAtRuntime;
 			dimensions.MinHeight = dimensions.MaxHeight = option.min;
 			break;
-		case GUIOption::Type::FlexibleWidth:
+		case GUIOptionType::FlexibleWidth:
 			dimensions.Flags |= GUISizeConstraintFlag::WidthOverridenAtRuntime;
 			dimensions.Flags.Unset(GUISizeConstraintFlag::FixedWidth);
 			dimensions.MinWidth = option.min;
 			dimensions.MaxWidth = option.max;
 			break;
-		case GUIOption::Type::FlexibleHeight:
+		case GUIOptionType::FlexibleHeight:
 			dimensions.Flags |= GUISizeConstraintFlag::HeightOverridenAtRuntime;
 			dimensions.Flags.Unset(GUISizeConstraintFlag::FixedHeight);
 			dimensions.MinHeight = option.min;

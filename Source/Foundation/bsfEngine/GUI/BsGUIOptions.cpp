@@ -10,7 +10,7 @@ GUIOption GUIOption::Position(i32 x, i32 y)
 
 	option.min = (u32)x;
 	option.max = (u32)y;
-	option.type = Type::Position;
+	option.type = GUIOptionType::Position;
 
 	return option;
 }
@@ -20,7 +20,7 @@ GUIOption GUIOption::FixedWidth(u32 value)
 	GUIOption option;
 
 	option.min = option.max = value;
-	option.type = Type::FixedWidth;
+	option.type = GUIOptionType::FixedWidth;
 
 	return option;
 }
@@ -31,7 +31,7 @@ GUIOption GUIOption::FlexibleWidth(u32 min, u32 max)
 
 	option.min = min;
 	option.max = max;
-	option.type = Type::FlexibleWidth;
+	option.type = GUIOptionType::FlexibleWidth;
 
 	return option;
 }
@@ -41,7 +41,7 @@ GUIOption GUIOption::FixedHeight(u32 value)
 	GUIOption option;
 
 	option.min = option.max = value;
-	option.type = Type::FixedHeight;
+	option.type = GUIOptionType::FixedHeight;
 
 	return option;
 }
@@ -52,7 +52,7 @@ GUIOption GUIOption::FlexibleHeight(u32 min, u32 max)
 
 	option.min = min;
 	option.max = max;
-	option.type = Type::FlexibleHeight;
+	option.type = GUIOptionType::FlexibleHeight;
 
 	return option;
 }

@@ -9,28 +9,8 @@ namespace bs
      *  @{
      */
 
-    /// <summary>
-    /// Controls GUI element layout options, possibly by overriding the default options specified in GUI element style.
-    /// These options control GUI element placement and size in a GUI layout.
-    /// </summary>
-    [StructLayout(LayoutKind.Sequential)]
-    public struct GUIOption // Note: Structure of this type must match C++ class GUIOption
+    public partial struct GUIOption
     {
-        /// <summary>
-        /// Type of GUI element option.
-        /// </summary>
-        internal enum Type
-        {
-            FixedWidth,
-            FlexibleWidth,
-            FixedHeight,
-            FlexibleHeight,
-            Position
-        }
-
-        internal int min, max;
-        internal Type type;
-
         /// <summary>
         /// Constructs a GUI option notifying the GUI layout that this element should be positioned at this offset from the
         /// parent GUI panel. This option is ignored if element is part of a layout since it controls its placement.
@@ -43,7 +23,7 @@ namespace bs
             GUIOption option = new GUIOption();
             option.min = x;
             option.max = y;
-            option.type = Type.Position;
+            option.type = GUIOptionType.Position;
 
             return option;
         }
@@ -58,7 +38,7 @@ namespace bs
         {
             GUIOption option = new GUIOption();
             option.min = option.max = width;
-            option.type = Type.FixedWidth;
+            option.type = GUIOptionType.FixedWidth;
 
             return option;
         }
@@ -73,7 +53,7 @@ namespace bs
         {
             GUIOption option = new GUIOption();
             option.min = option.max = height;
-            option.type = Type.FixedHeight;
+            option.type = GUIOptionType.FixedHeight;
 
             return option;
         }
@@ -92,7 +72,7 @@ namespace bs
             GUIOption option = new GUIOption();
             option.min = minWidth;
             option.max = maxWidth;
-            option.type = Type.FlexibleWidth;
+            option.type = GUIOptionType.FlexibleWidth;
 
             return option;
         }
@@ -111,7 +91,7 @@ namespace bs
             GUIOption option = new GUIOption();
             option.min = minHeight;
             option.max = maxHeight;
-            option.type = Type.FlexibleHeight;
+            option.type = GUIOptionType.FlexibleHeight;
 
             return option;
         }

@@ -208,6 +208,15 @@ namespace bs
         }
 
         /// <summary>
+        /// Colors the element with a specific tint.
+        /// </summary>
+        /// <param name="color">Tint to apply to the element.</param>
+        public void SetTint(Color color)
+        {
+            Internal_SetTint(mCachedPtr, ref color);
+        }
+
+        /// <summary>
         /// Resets element bounds to their initial values dictated by the element's style.
         /// </summary>
         public void ResetDimensions()
@@ -320,6 +329,9 @@ namespace bs
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern void Internal_SetStyle(IntPtr nativeInstance, string style);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        private static extern void Internal_SetTint(IntPtr nativeInstance, ref Color tint);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern void Internal_Destroy(IntPtr nativeInstance);

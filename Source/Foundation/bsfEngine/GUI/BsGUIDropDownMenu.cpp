@@ -197,7 +197,7 @@ GUIDropDownMenu::DropDownSubMenu::DropDownSubMenu(GUIDropDownMenu* owner, DropDo
 
 	GUILayout* backgroundLayout = BackgroundPanel->AddNewElement<GUILayoutX>();
 
-	BackgroundFrame = GUITexture::Create(TextureScaleMode::StretchToFit, GUIDropDownMenu::kBackgroundFrameStyleClass);
+	BackgroundFrame = GUITexture::Create(GUITextureContents(nullptr, TextureScaleMode::StretchToFit), GUIDropDownMenu::kBackgroundFrameStyleClass);
 	backgroundLayout->AddElement(BackgroundFrame);
 
 	ContentLayout = ContentPanel->AddNewElement<GUILayoutY>();
