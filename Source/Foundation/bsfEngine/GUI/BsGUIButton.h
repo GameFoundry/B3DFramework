@@ -14,7 +14,7 @@ namespace bs
 	 */
 
 	/** GUI button that can be clicked. Has normal, hover and active states with an optional label. */
-	class B3D_EXPORT GUIButton : public GUIClickable, public TGUIConstructionMethods<GUIButton, GUIContent>
+	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(GUI)) GUIButton : public GUIClickable, public TGUIConstructionMethods<GUIButton, GUIContent>
 	{
 	public:
 		/**

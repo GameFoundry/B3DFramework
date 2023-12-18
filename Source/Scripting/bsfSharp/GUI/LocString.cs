@@ -16,7 +16,7 @@ namespace bs
         /// </summary>
         /// <param name="identifier">Localized string identifier.</param>
         /// <returns>Localized string with the provided identifier, from the default string table.</returns>
-        public static implicit operator LocString(string identifier)
+        public static explicit operator LocString(string identifier)
         {
             return new LocString(identifier);
         }

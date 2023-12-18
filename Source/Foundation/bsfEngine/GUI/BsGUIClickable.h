@@ -17,22 +17,27 @@ namespace bs
 	 */
 
 	/**	Base class for a clickable GUI button element. */
-	class B3D_EXPORT GUIClickable : public GUIElement
+	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(GUI)) GUIClickable : public GUIElement
 	{
 	public:
 		/**	Change content displayed by the button. */
+		B3D_SCRIPT_EXPORT()
 		void SetContent(const GUIContent& content);
 
 		/**	Triggered when button is clicked. */
+		B3D_SCRIPT_EXPORT()
 		Event<void()> OnClick;
 
 		/**	Triggered when pointer hovers over the button. */
+		B3D_SCRIPT_EXPORT()
 		Event<void()> OnHover;
 
 		/**	Triggered when pointer that was previously hovering leaves the button. */
+		B3D_SCRIPT_EXPORT()
 		Event<void()> OnOut;
 
 		/**	Triggered when button is clicked twice in rapid succession. */
+		B3D_SCRIPT_EXPORT()
 		Event<void()> OnDoubleClick;
 
 		static constexpr const char* kElementType = "button";
