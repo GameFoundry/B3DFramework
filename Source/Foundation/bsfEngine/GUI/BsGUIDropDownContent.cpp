@@ -116,7 +116,7 @@ void GUIDropDownContent::SetRange(u32 start, u32 end)
 				toggle->SetOptionFlags(GUIElementOption::IgnorePointerEvents);
 
 				if(mStates[i])
-					toggle->ToggleOn();
+					toggle->SetIsToggled(true);
 
 				visibleElement.Button = toggle;
 
@@ -129,10 +129,7 @@ void GUIDropDownContent::SetRange(u32 start, u32 end)
 				});
 
 				visibleElement.UnderlayButton->OnClick.Connect([toggle]() {
-					if(toggle->IsToggled())
-						toggle->ToggleOff();
-					else
-						toggle->ToggleOn();
+					toggle->SetIsToggled(!toggle->IsToggled());
 				});
 
 				visibleElement.Layout->AddElement(visibleElement.Button);

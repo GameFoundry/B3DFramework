@@ -93,11 +93,7 @@ bool ScriptGUIToggle::InternalGetValue(ScriptGUIToggle* nativeInstance)
 void ScriptGUIToggle::InternalSetValue(ScriptGUIToggle* nativeInstance, bool value)
 {
 	GUIToggle* toggle = (GUIToggle*)nativeInstance->GetGuiElement();
-
-	if(value)
-		toggle->ToggleOn();
-	else
-		toggle->ToggleOff();
+	toggle->SetIsToggled(value);
 }
 
 void ScriptGUIToggle::OnClick()

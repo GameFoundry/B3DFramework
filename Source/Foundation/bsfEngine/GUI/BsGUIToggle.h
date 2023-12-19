@@ -46,11 +46,8 @@ namespace bs
 		 */
 		static SPtr<GUIToggleGroup> CreateToggleGroup(bool allowAllOff = false);
 
-		/**	Checks the toggle, making it active. */
-		void ToggleOn() { ToggleOnInternal(false); }
-
-		/**	Unchecks the toggle, making it inactive. */
-		void ToggleOff() { ToggleOffInternal(false); }
+		/** Checks or unchecks the toggle. */
+		void SetIsToggled(bool isToggled) { SetIsToggled(isToggled, false); }
 
 		/**	Checks is the toggle currently on. */
 		bool IsToggled() const { return mIsToggled; }
@@ -74,11 +71,8 @@ namespace bs
 		/** Sets a toggle group of the toggle button. Toggling one button in a group will automatically untoggle others. */
 		void SetToggleGroupInternal(SPtr<GUIToggleGroup> toggleGroup);
 
-		/**	Checks the toggle, making it active and optionally triggering the onToggled event. */
-		virtual void ToggleOnInternal(bool triggerEvent);
-
-		/**	Unchecks the toggle, making it inactive and optionally triggering the onToggled event. */
-		virtual void ToggleOffInternal(bool triggerEvent);
+		/** Checks or unchecks the toggle, and optionally triggers the OnToggled event. */
+		virtual void SetIsToggled(bool isToggled, bool triggerEvent);
 
 		/** @} */
 	protected:

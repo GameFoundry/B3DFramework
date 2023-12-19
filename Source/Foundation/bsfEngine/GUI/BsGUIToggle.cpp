@@ -58,7 +58,7 @@ void GUIToggle::SetToggleGroupInternal(SPtr<GUIToggleGroup> toggleGroup)
 			if(isToggled)
 			{
 				if(toggleElem->mIsToggled)
-					toggleElem->ToggleOff();
+					toggleElem->SetIsToggled(false);
 			}
 			else
 			{
@@ -68,16 +68,46 @@ void GUIToggle::SetToggleGroupInternal(SPtr<GUIToggleGroup> toggleGroup)
 		}
 
 		if(!isToggled && !toggleGroup->mAllowAllOff)
-			ToggleOn();
+			SetIsToggled(true);
 	}
 }
 
-void GUIToggle::ToggleOnInternal(bool triggerEvent)
+void GUIToggle::SetIsToggled(bool isToggled, bool triggerEvent)
 {
-	if(mIsToggled)
+	if(mIsToggled == isToggled)
 		return;
 
-	mIsToggled = true;
+	if(!isToggled)
+	{
+		bool canBeToggledOff = false;
+		if(mToggleGroup != nullptr) // If in group ensure at least one element is toggled on
+		{
+
+			if(mToggleGroup->mAllowAllOff)
+				canBeToggledOff = true;
+			else
+			{
+				for(auto& toggleElem : mToggleGroup->mButtons)
+				{
+					if(toggleElem != this)
+					{
+						if(toggleElem->mIsToggled)
+						{
+							canBeToggledOff = true;
+							break;
+						}
+					}
+				}
+			}
+		}
+		else
+			canBeToggledOff = true;
+
+		if(!canBeToggledOff)
+			return;
+	}
+
+	mIsToggled = isToggled;
 
 	if(triggerEvent)
 	{
@@ -85,53 +115,19 @@ void GUIToggle::ToggleOnInternal(bool triggerEvent)
 			OnToggled(mIsToggled);
 	}
 
-	if(mToggleGroup != nullptr)
+	if(isToggled)
 	{
-		for(auto& toggleElem : mToggleGroup->mButtons)
+		if(mToggleGroup != nullptr)
 		{
-			if(toggleElem != this)
-				toggleElem->ToggleOffInternal(triggerEvent);
-		}
-	}
-
-	SetOnInternal(true);
-}
-
-void GUIToggle::ToggleOffInternal(bool triggerEvent)
-{
-	if(!mIsToggled)
-		return;
-
-	bool canBeToggledOff = false;
-	if(mToggleGroup != nullptr) // If in group ensure at least one element is toggled on
-	{
-		for(auto& toggleElem : mToggleGroup->mButtons)
-		{
-			if(toggleElem != this)
+			for(auto& toggleElem : mToggleGroup->mButtons)
 			{
-				if(toggleElem->mIsToggled)
-				{
-					canBeToggledOff = true;
-					break;
-				}
+				if(toggleElem != this)
+					toggleElem->SetIsToggled(false, triggerEvent);
 			}
 		}
 	}
-	else
-		canBeToggledOff = true;
 
-	if(canBeToggledOff || mToggleGroup->mAllowAllOff)
-	{
-		mIsToggled = false;
-
-		if(triggerEvent)
-		{
-			if(!OnToggled.Empty())
-				OnToggled(mIsToggled);
-		}
-
-		SetOnInternal(false);
-	}
+	SetOnInternal(mIsToggled);
 }
 
 void GUIToggle::UpdateRenderElements()
@@ -191,12 +187,7 @@ bool GUIToggle::DoOnMouseEvent(const GUIMouseEvent& event)
 	if(event.GetType() == GUIMouseEventType::MouseUp)
 	{
 		if(!IsDisabled())
-		{
-			if(mIsToggled)
-				ToggleOffInternal(true);
-			else
-				ToggleOnInternal(true);
-		}
+			SetIsToggled(!mIsToggled, true);
 
 		processed = true;
 	}
@@ -211,12 +202,7 @@ bool GUIToggle::DoOnCommandEvent(const GUICommandEvent& event)
 	if(event.GetType() == GUICommandEventType::Confirm)
 	{
 		if(!IsDisabled())
-		{
-			if(mIsToggled)
-				ToggleOffInternal(true);
-			else
-				ToggleOnInternal(true);
-		}
+			SetIsToggled(!mIsToggled, true);
 
 		return true;
 	}
