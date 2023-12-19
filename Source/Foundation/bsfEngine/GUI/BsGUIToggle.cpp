@@ -17,11 +17,11 @@ const String& GUIToggle::GetGuiTypeName()
 	return name;
 }
 
-GUIToggle::GUIToggle(const String& styleName, const GUIContent& content, SPtr<GUIToggleGroup> toggleGroup, const GUISizeConstraints& dimensions)
-	: GUIClickable(styleName, content, dimensions), mToggleGroup(nullptr), mIsToggled(false)
+GUIToggle::GUIToggle(PrivatelyConstruct, const GUIToggleContent& contents, const String& styleName, const GUISizeConstraints& dimensions)
+	: GUIClickable(styleName, contents.GeneralContent, dimensions), mToggleGroup(nullptr), mIsToggled(false)
 {
-	if(toggleGroup != nullptr)
-		toggleGroup->AddInternal(this);
+	if(contents.ToggleGroup != nullptr)
+		contents.ToggleGroup->AddInternal(this);
 
 	mCheckmarkSprite = B3DNew<ImageSprite>();
 	mCheckmarkPathBuilder = GUICheckmarkVectorPathBuilder::Get();
@@ -36,46 +36,6 @@ GUIToggle::~GUIToggle()
 	{
 		mToggleGroup->RemoveInternal(this);
 	}
-}
-
-GUIToggle* GUIToggle::Create(const HString& text, const String& styleName)
-{
-	return Create(GUIContent(text), styleName);
-}
-
-GUIToggle* GUIToggle::Create(const HString& text, const GUIOptions& options, const String& styleName)
-{
-	return Create(GUIContent(text), options, styleName);
-}
-
-GUIToggle* GUIToggle::Create(const HString& text, SPtr<GUIToggleGroup> toggleGroup, const String& styleName)
-{
-	return Create(GUIContent(text), toggleGroup, styleName);
-}
-
-GUIToggle* GUIToggle::Create(const HString& text, SPtr<GUIToggleGroup> toggleGroup, const GUIOptions& options, const String& styleName)
-{
-	return Create(GUIContent(text), toggleGroup, options, styleName);
-}
-
-GUIToggle* GUIToggle::Create(const GUIContent& content, const String& styleName)
-{
-	return new(B3DAllocate<GUIToggle>()) GUIToggle(GetStyleName<GUIToggle>(styleName), content, nullptr, GUISizeConstraints::Create());
-}
-
-GUIToggle* GUIToggle::Create(const GUIContent& content, const GUIOptions& options, const String& styleName)
-{
-	return new(B3DAllocate<GUIToggle>()) GUIToggle(GetStyleName<GUIToggle>(styleName), content, nullptr, GUISizeConstraints::Create(options));
-}
-
-GUIToggle* GUIToggle::Create(const GUIContent& content, SPtr<GUIToggleGroup> toggleGroup, const String& styleName)
-{
-	return new(B3DAllocate<GUIToggle>()) GUIToggle(GetStyleName<GUIToggle>(styleName), content, toggleGroup, GUISizeConstraints::Create());
-}
-
-GUIToggle* GUIToggle::Create(const GUIContent& content, SPtr<GUIToggleGroup> toggleGroup, const GUIOptions& options, const String& styleName)
-{
-	return new(B3DAllocate<GUIToggle>()) GUIToggle(GetStyleName<GUIToggle>(styleName), content, toggleGroup, GUISizeConstraints::Create(options));
 }
 
 SPtr<GUIToggleGroup> GUIToggle::CreateToggleGroup(bool allowAllOff)

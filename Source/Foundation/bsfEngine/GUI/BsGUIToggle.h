@@ -9,6 +9,7 @@
 #include "2D/BsTextSprite.h"
 #include "GUI/BsGUIContent.h"
 #include "Utility/BsEvent.h"
+#include "BsGUIConstructionMethods.h"
 
 namespace bs
 {
@@ -16,97 +17,25 @@ namespace bs
 	 *  @{
 	 */
 
+	/** Structure describing contents of a GUIToggle element. */
+	struct B3D_SCRIPT_EXPORT(ExportAsStruct(true), DocumentationGroup(GUI)) GUIToggleContent
+	{
+		GUIToggleContent() = default;
+		GUIToggleContent(const GUIContent& content, const SPtr<GUIToggleGroup>& toggleGroup = nullptr)
+			: GeneralContent(content), ToggleGroup(toggleGroup)
+		{ }
+
+		GUIContent GeneralContent;
+		SPtr<GUIToggleGroup> ToggleGroup;
+	};
+
 	/**	GUI element representing a toggle (on/off) button. */
-	class B3D_EXPORT GUIToggle : public GUIClickable
+	class B3D_EXPORT GUIToggle : public GUIClickable, public TGUIConstructionMethods<GUIToggle, GUIToggleContent>
 	{
 		using Super = GUIClickable;
 	public:
 		/** Returns type name of the GUI element used for finding GUI element styles.  */
 		static const String& GetGuiTypeName();
-
-		/**
-		 * Creates a new toggle button with the specified label.
-		 *
-		 * @param[in]	text			Label to display in the button, if any.
-		 * @param[in]	styleName		Optional style to use for the element. Style will be retrieved from GUISkin of the
-		 *								GUIWidget the element is used on. If not specified default style is used.
-		 */
-		static GUIToggle* Create(const HString& text, const String& styleName = StringUtil::kBlank);
-
-		/**
-		 * Creates a new toggle button with the specified label.
-		 *
-		 * @param[in]	text			Label to display in the button, if any.
-		 * @param[in]	options			Options that allow you to control how is the element positioned and sized.
-		 *								This will override any similar options set by style.
-		 * @param[in]	styleName		Optional style to use for the element. Style will be retrieved from GUISkin of the
-		 *								GUIWidget the element is used on. If not specified default style is used.
-		 */
-		static GUIToggle* Create(const HString& text, const GUIOptions& options, const String& styleName = StringUtil::kBlank);
-
-		/**
-		 * Creates a new toggle button with the specified label.
-		 *
-		 * @param[in]	text			Label to display in the button, if any.
-		 * @param[in]	toggleGroup		Toggle group this button belongs to.
-		 * @param[in]	styleName		Optional style to use for the element. Style will be retrieved from GUISkin of the
-		 *								GUIWidget the element is used on. If not specified default style is used.
-		 */
-		static GUIToggle* Create(const HString& text, SPtr<GUIToggleGroup> toggleGroup, const String& styleName = StringUtil::kBlank);
-
-		/**
-		 * Creates a new toggle button with the specified label.
-		 *
-		 * @param[in]	text			Label to display in the button, if any.
-		 * @param[in]	toggleGroup		Toggle group this button belongs to.
-		 * @param[in]	options			Options that allow you to control how is the element positioned and sized.
-		 *								This will override any similar options set by style.
-		 * @param[in]	styleName		Optional style to use for the element. Style will be retrieved from GUISkin of the
-		 *								GUIWidget the element is used on. If not specified default style is used.
-		 */
-		static GUIToggle* Create(const HString& text, SPtr<GUIToggleGroup> toggleGroup, const GUIOptions& options, const String& styleName = StringUtil::kBlank);
-
-		/**
-		 * Creates a new toggle button with the specified label.
-		 *
-		 * @param[in]	content			Content to display in the button, if any.
-		 * @param[in]	styleName		Optional style to use for the element. Style will be retrieved from GUISkin of the
-		 *								GUIWidget the element is used on. If not specified default style is used.
-		 */
-		static GUIToggle* Create(const GUIContent& content, const String& styleName = StringUtil::kBlank);
-
-		/**
-		 * Creates a new toggle button with the specified label.
-		 *
-		 * @param[in]	content			Content to display in the button, if any.
-		 * @param[in]	options			Options that allow you to control how is the element positioned and sized.
-		 *								This will override any similar options set by style.
-		 * @param[in]	styleName		Optional style to use for the element. Style will be retrieved from GUISkin of the
-		 *								GUIWidget the element is used on. If not specified default style is used.
-		 */
-		static GUIToggle* Create(const GUIContent& content, const GUIOptions& options, const String& styleName = StringUtil::kBlank);
-
-		/**
-		 * Creates a new toggle button with the specified label.
-		 *
-		 * @param[in]	content			Content to display in the button, if any.
-		 * @param[in]	toggleGroup		Toggle group this button belongs to.
-		 * @param[in]	styleName		Optional style to use for the element. Style will be retrieved from GUISkin of the
-		 *								GUIWidget the element is used on. If not specified default style is used.
-		 */
-		static GUIToggle* Create(const GUIContent& content, SPtr<GUIToggleGroup> toggleGroup, const String& styleName = StringUtil::kBlank);
-
-		/**
-		 * Creates a new toggle button with the specified label.
-		 *
-		 * @param[in]	content			Content to display in the button, if any.
-		 * @param[in]	toggleGroup		Toggle group this button belongs to.
-		 * @param[in]	options			Options that allow you to control how is the element positioned and sized.
-		 *								This will override any similar options set by style.
-		 * @param[in]	styleName		Optional style to use for the element. Style will be retrieved from GUISkin of the
-		 *								GUIWidget the element is used on. If not specified default style is used.
-		 */
-		static GUIToggle* Create(const GUIContent& content, SPtr<GUIToggleGroup> toggleGroup, const GUIOptions& options, const String& styleName = StringUtil::kBlank);
 
 		/**
 		 * Creates a toggle group that you may provide to GUIToggle upon construction. Toggles sharing the same group will
@@ -137,6 +66,9 @@ namespace bs
 		 *  @{
 		 */
 
+		struct PrivatelyConstruct {};
+		GUIToggle(PrivatelyConstruct, const GUIToggleContent& contents, const String& styleName, const GUISizeConstraints& dimensions);
+
 		ElementType GetElementType() const override { return ElementType::Toggle; }
 
 		/** Sets a toggle group of the toggle button. Toggling one button in a group will automatically untoggle others. */
@@ -153,7 +85,6 @@ namespace bs
 		virtual ~GUIToggle();
 
 	protected:
-		GUIToggle(const String& styleName, const GUIContent& content, SPtr<GUIToggleGroup> toggleGroup, const GUISizeConstraints& dimensions);
 
 		void UpdateRenderElements() override;
 		bool DoOnMouseEvent(const GUIMouseEvent& event) override;

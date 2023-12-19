@@ -65,7 +65,7 @@ void ScriptGUIToggle::InternalCreateInstance(MonoObject* instance, __GUIContentI
 	}
 
 	GUIContent nativeContent = ScriptGUIContent::FromInterop(*content);
-	GUIToggle* guiToggle = GUIToggle::Create(nativeContent, toggleGroup, options, MonoUtil::MonoToString(style));
+	GUIToggle* guiToggle = GUIToggle::Create(GUIToggleContent(nativeContent, toggleGroup), MonoUtil::MonoToString(style), options);
 
 	auto nativeInstance = new(B3DAllocate<ScriptGUIToggle>()) ScriptGUIToggle(instance, guiToggle);
 
