@@ -30,7 +30,7 @@ namespace bs
 	};
 
 	/**	GUI element representing a toggle (on/off) button. */
-	class B3D_EXPORT GUIToggle : public GUIClickable, public TGUIConstructionMethods<GUIToggle, GUIToggleContent>
+	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(GUI)) GUIToggle : public GUIClickable, public TGUIConstructionMethods<GUIToggle, GUIToggleContent>
 	{
 		using Super = GUIClickable;
 	public:
@@ -44,18 +44,22 @@ namespace bs
 		 * @param[in]	allowAllOff	If true all of the toggle buttons can be turned off, if false one will always be turned
 		 *							on.
 		 */
+		B3D_SCRIPT_EXPORT(ExtensionConstructorForType(GUIToggleGroup))
 		static SPtr<GUIToggleGroup> CreateToggleGroup(bool allowAllOff = false);
 
 		/** Checks or unchecks the toggle. */
+		B3D_SCRIPT_EXPORT(Property(Setter), ExportName(IsToggled))
 		void SetIsToggled(bool isToggled) { SetIsToggled(isToggled, false); }
 
 		/**	Checks is the toggle currently on. */
+		B3D_SCRIPT_EXPORT(Property(Getter), ExportName(IsToggled))
 		bool IsToggled() const { return mIsToggled; }
 
 		/** Sets an interface that constructs the vector path used for drawing the GUI element checkmark. */
 		void SetCheckmarkPathBuilder(const IGUIVectorPathBuilder* pathBuilder) { mCheckmarkPathBuilder = pathBuilder; }
 
 		/**	Triggered whenever the button is toggled on or off. */
+		B3D_SCRIPT_EXPORT()
 		Event<void(bool)> OnToggled;
 
 	public: // ***** INTERNAL ******

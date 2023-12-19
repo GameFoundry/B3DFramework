@@ -1,0 +1,33 @@
+//********************************* bs::framework - Copyright 2018-2022 Marko Pintera ************************************//
+//*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
+#pragma once
+
+#include "BsScriptEnginePrerequisites.h"
+#include "BsScriptObject.h"
+#include "../../../Foundation/bsfEngine/GUI/BsGUIToggle.h"
+#include "../../../Foundation/bsfEngine/GUI/BsGUIContent.h"
+#include "BsScriptGUIContent.generated.h"
+
+namespace bs
+{
+	struct __GUIToggleContentInterop
+	{
+		__GUIContentInterop GeneralContent;
+		MonoObject* ToggleGroup;
+	};
+
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptGUIToggleContent : public ScriptObject<ScriptGUIToggleContent>
+	{
+	public:
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "GUIToggleContent")
+
+		static MonoObject* Box(const __GUIToggleContentInterop& value);
+		static __GUIToggleContentInterop Unbox(MonoObject* value);
+		static GUIToggleContent FromInterop(const __GUIToggleContentInterop& value);
+		static __GUIToggleContentInterop ToInterop(const GUIToggleContent& value);
+
+	private:
+		ScriptGUIToggleContent(MonoObject* managedInstance);
+
+	};
+}

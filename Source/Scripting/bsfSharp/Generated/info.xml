@@ -3298,6 +3298,53 @@ In range [-1.0f, 1.0f].</doc>
 			<doc>Both the camera movement and object movement will result in motion blur.</doc>
 		</enumentry>
 	</enum>
+	<class native="GUIToggle" script="GUIToggle">
+		<doc>GUI element representing a toggle (on/off) button.</doc>
+		<ctor>
+			<doc>Creates a new GUI element.</doc>
+			<param name="contents" type="GUIToggleContent">
+				<doc>Structure describing the contents of the GUI element to create.</doc>
+			</param>
+			<param name="styleClass" type="string">
+				<doc>Style class that will be used for determining GUI element visuals from the current style sheet. If no class is provided, default style is determined based on GUI element type.</doc>
+			</param>
+			<param name="options" type="GUIOption">
+				<doc>Additional options that control GUI element size and position. This will override options set in the style sheet.</doc>
+			</param>
+		</ctor>
+		<ctor>
+			<doc>Creates a new GUI element.</doc>
+			<param name="contents" type="GUIToggleContent">
+				<doc>Structure describing the contents of the GUI element to create.</doc>
+			</param>
+			<param name="options" type="GUIOption">
+				<doc>Additional options that control GUI element size and position. This will override options set in the style sheet.</doc>
+			</param>
+		</ctor>
+		<ctor>
+			<doc>Creates a new GUI element.</doc>
+			<param name="styleClass" type="string">
+				<doc>Style class that will be used for determining GUI element visuals from the current style sheet. If no class is provided, default style is determined based on GUI element type.</doc>
+			</param>
+			<param name="options" type="GUIOption">
+				<doc>Additional options that control GUI element size and position. This will override options set in the style sheet.</doc>
+			</param>
+		</ctor>
+		<ctor>
+			<doc>Creates a new GUI element.</doc>
+			<param name="options" type="GUIOption">
+				<doc>Additional options that control GUI element size and position. This will override options set in the style sheet.</doc>
+			</param>
+		</ctor>
+		<property name="IsToggled" type="bool" getter="IsToggled" setter="SetIsToggled" static="false">
+			<doc>Checks or unchecks the toggle.</doc>
+		</property>
+		<event native="OnToggled" script="OnToggled" static="false">
+			<doc>Triggered whenever the button is toggled on or off.</doc>
+			<param name="p0" type="bool">
+			</param>
+		</event>
+	</class>
 	<struct native="SubMesh" script="SubMesh">
 		<doc>Data about a sub-mesh range and the type of primitives contained in the range.</doc>
 		<ctor>
@@ -12434,6 +12481,30 @@ Alternatively you can also skip manually calling release() and call unloadAllUnu
 			</param>
 		</ctor>
 	</class>
+	<class native="GUIToggleGroup" script="GUIToggleGroup">
+		<doc>Object that allows you to group multiple GUI toggle buttons. Only one button among the grouped ones can be active.</doc>
+		<ctor>
+			<doc>Creates a toggle group that you may provide to GUIToggle upon construction. Toggles sharing the same group will only have a single element active at a time.</doc>
+			<param name="allowAllOff" type="bool">
+				<doc>If true all of the toggle buttons can be turned off, if false one will always be turned on.</doc>
+			</param>
+		</ctor>
+	</class>
+	<struct native="GUIToggleContent" script="GUIToggleContent">
+		<doc>Structure describing contents of a GUIToggle element.</doc>
+		<ctor>
+		</ctor>
+		<ctor>
+			<param name="content" type="GUIContent">
+			</param>
+			<param name="toggleGroup" type="GUIToggleGroup">
+			</param>
+		</ctor>
+		<field name="GeneralContent" type="GUIContent">
+		</field>
+		<field name="ToggleGroup" type="GUIToggleGroup">
+		</field>
+	</struct>
 	<struct native="ShaderParameter" script="ShaderParameter">
 		<doc>Contains information about a single shader parameter.</doc>
 		<field name="Name" type="string">
