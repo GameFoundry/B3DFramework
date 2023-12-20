@@ -987,13 +987,13 @@ bool GUIManager::FindElementUnderPointer(const Vector2I& pointerScreenPos, bool 
 			GUIWidget* widget = widgetInfo.Widget;
 			if(widgetWindows[widgetIdx] == windowUnderPointer && widget->InBounds(WindowToBridgedCoords(widget->GetTarget()->GetTarget(), windowPos)))
 			{
-				const Vector<GUIElement*>& elements = widget->GetElements();
+				const Vector<GUIInteractable*>& elements = widget->GetElements();
 				Vector2I localPos = GetWidgetRelativePos(widget, pointerScreenPos);
 
 				// Elements with lowest depth (most to the front) get handled first
 				for(auto iter = elements.begin(); iter != elements.end(); ++iter)
 				{
-					GUIElement* element = *iter;
+					GUIInteractable* element = *iter;
 
 					if(element->IsVisible() && element->IsInBounds(localPos))
 					{
@@ -1025,7 +1025,7 @@ bool GUIManager::FindElementUnderPointer(const Vector2I& pointerScreenPos, bool 
 
 	for(auto& elementInfo : mNewElementsUnderPointer)
 	{
-		GUIElement* element = elementInfo.Element;
+		GUIInteractable* element = elementInfo.Element;
 		GUIWidget* widget = elementInfo.Widget;
 
 		if(elementInfo.ReceivedMouseOver)
@@ -1084,7 +1084,7 @@ bool GUIManager::FindElementUnderPointer(const Vector2I& pointerScreenPos, bool 
 
 	for(auto& elementInfo : mElementsUnderPointer)
 	{
-		GUIElement* element = elementInfo.Element;
+		GUIInteractable* element = elementInfo.Element;
 		GUIWidget* widget = elementInfo.Widget;
 
 		auto iterFind = std::find_if(mNewElementsUnderPointer.begin(), mNewElementsUnderPointer.end(), [=](const ElementInfoUnderPointer& x)
@@ -1237,7 +1237,7 @@ void GUIManager::OnMouseLeftWindow(RenderWindow& win)
 
 	for(auto& elementInfo : mElementsUnderPointer)
 	{
-		GUIElement* element = elementInfo.Element;
+		GUIInteractable* element = elementInfo.Element;
 		GUIWidget* widget = elementInfo.Widget;
 
 		if(widget != nullptr && widget->GetTarget()->GetTarget().get() != &win)
@@ -1278,12 +1278,12 @@ void GUIManager::HideTooltip()
 	mShowTooltip = false;
 }
 
-void GUIManager::QueueForDestroy(GUIElement* element)
+void GUIManager::QueueForDestroy(GUIInteractable* element)
 {
 	mScheduledForDestruction.push(element);
 }
 
-void GUIManager::SetFocus(GUIElement* element, bool focus, bool clear)
+void GUIManager::SetFocus(GUIInteractable* element, bool focus, bool clear)
 {
 	ElementForcedFocusInfo efi;
 	efi.Element = element;
@@ -1300,8 +1300,8 @@ void GUIManager::SetFocus(GUIElement* element, bool focus, bool clear)
 
 bool GUIManager::ProcessDestroyQueueIteration()
 {
-	Stack<GUIElement*> toDestroy = mScheduledForDestruction;
-	mScheduledForDestruction = Stack<GUIElement*>();
+	Stack<GUIInteractable*> toDestroy = mScheduledForDestruction;
+	mScheduledForDestruction = Stack<GUIInteractable*>();
 
 	while(!toDestroy.empty())
 	{
@@ -1312,7 +1312,7 @@ bool GUIManager::ProcessDestroyQueueIteration()
 	return !mScheduledForDestruction.empty();
 }
 
-void GUIManager::SetInputBridge(const SPtr<RenderTexture>& renderTex, const GUIElement* element)
+void GUIManager::SetInputBridge(const SPtr<RenderTexture>& renderTex, const GUIInteractable* element)
 {
 	if(element == nullptr)
 		mInputBridge.erase(renderTex);
@@ -1364,7 +1364,7 @@ Vector2I GUIManager::WindowToBridgedCoords(const SPtr<RenderTarget>& target, con
 	auto iterFind = mInputBridge.find(renderTexture);
 	if(iterFind != mInputBridge.end()) // Widget input is bridged, which means we need to transform the coordinates
 	{
-		const GUIElement* bridgeElement = iterFind->second;
+		const GUIInteractable* bridgeElement = iterFind->second;
 		const GUIWidget* parentWidget = bridgeElement->GetParentWidget();
 		if(parentWidget == nullptr)
 			return windowPos;
@@ -1451,14 +1451,14 @@ SPtr<RenderWindow> GUIManager::GetBridgeWindow(const SPtr<RenderTexture>& target
 	return nullptr;
 }
 
-void GUIManager::GetBridgedElements(const GUIWidget* widget, TInlineArray<std::pair<const GUIElement*, SPtr<const RenderTarget>>, 4>& elements)
+void GUIManager::GetBridgedElements(const GUIWidget* widget, TInlineArray<std::pair<const GUIInteractable*, SPtr<const RenderTarget>>, 4>& elements)
 {
 	if(widget == nullptr)
 		return;
 
 	for(auto& entry : mInputBridge)
 	{
-		const GUIElement* element = entry.second;
+		const GUIInteractable* element = entry.second;
 		GUIWidget* parentWidget = element->GetParentWidget();
 		if(parentWidget == widget)
 			elements.Add(std::make_pair(element, entry.first));
@@ -1468,14 +1468,14 @@ void GUIManager::GetBridgedElements(const GUIWidget* widget, TInlineArray<std::p
 void GUIManager::TabFocusFirst()
 {
 	u32 nearestDist = std::numeric_limits<u32>::max();
-	GUIElement* closestElement = nullptr;
+	GUIInteractable* closestElement = nullptr;
 
 	// Find to top-left most element
 	for(auto& widgetInfo : mWidgets)
 	{
 		const RenderWindow* window = GetWidgetWindow(*widgetInfo.Widget);
 
-		const Vector<GUIElement*>& elements = widgetInfo.Widget->GetElements();
+		const Vector<GUIInteractable*>& elements = widgetInfo.Widget->GetElements();
 		for(auto& element : elements)
 		{
 			const bool acceptsKeyFocus = element->GetOptionFlags().IsSet(GUIElementOption::AcceptsKeyFocus);
@@ -1526,7 +1526,7 @@ void GUIManager::TabFocusNext()
 	TabFocusFirst();
 }
 
-bool GUIManager::SendMouseEvent(GUIElement* element, const GUIMouseEvent& event)
+bool GUIManager::SendMouseEvent(GUIInteractable* element, const GUIMouseEvent& event)
 {
 	if(element->IsDestroyed())
 		return false;
@@ -1534,7 +1534,7 @@ bool GUIManager::SendMouseEvent(GUIElement* element, const GUIMouseEvent& event)
 	return element->DoOnMouseEvent(event);
 }
 
-bool GUIManager::SendTextInputEvent(GUIElement* element, const GUITextInputEvent& event)
+bool GUIManager::SendTextInputEvent(GUIInteractable* element, const GUITextInputEvent& event)
 {
 	if(element->IsDestroyed())
 		return false;
@@ -1542,7 +1542,7 @@ bool GUIManager::SendTextInputEvent(GUIElement* element, const GUITextInputEvent
 	return element->DoOnTextInputEvent(event);
 }
 
-bool GUIManager::SendCommandEvent(GUIElement* element, const GUICommandEvent& event)
+bool GUIManager::SendCommandEvent(GUIInteractable* element, const GUICommandEvent& event)
 {
 	if(element->IsDestroyed())
 		return false;
@@ -1550,7 +1550,7 @@ bool GUIManager::SendCommandEvent(GUIElement* element, const GUICommandEvent& ev
 	return element->DoOnCommandEvent(event);
 }
 
-bool GUIManager::SendVirtualButtonEvent(GUIElement* element, const GUIVirtualButtonEvent& event)
+bool GUIManager::SendVirtualButtonEvent(GUIInteractable* element, const GUIVirtualButtonEvent& event)
 {
 	if(element->IsDestroyed())
 		return false;

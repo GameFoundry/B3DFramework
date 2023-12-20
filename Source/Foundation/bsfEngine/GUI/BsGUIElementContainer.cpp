@@ -7,13 +7,13 @@
 using namespace bs;
 
 GUIElementContainer::GUIElementContainer(const GUISizeConstraints& dimensions, const char* style, GUIElementOptions options)
-	: GUIElement(style, dimensions, options)
+	: GUIInteractable(style, dimensions, options)
 {
 	mOptionFlags.Set(GUIElementOption::ClickThrough);
 }
 
 GUIElementContainer::GUIElementContainer(const GUISizeConstraints& dimensions, const String& style, GUIElementOptions options)
-	: GUIElement(style, dimensions, options)
+	: GUIInteractable(style, dimensions, options)
 {
 	mOptionFlags.Set(GUIElementOption::ClickThrough);
 }
@@ -28,7 +28,7 @@ void GUIElementContainer::SetFocus(bool enabled, bool clear)
 	if(mFocusElement)
 		mFocusElement->SetFocus(enabled, clear);
 	else
-		GUIElement::SetFocus(enabled, clear);
+		GUIInteractable::SetFocus(enabled, clear);
 }
 
 bool GUIElementContainer::DoOnCommandEvent(const GUICommandEvent& ev)
@@ -39,5 +39,5 @@ bool GUIElementContainer::DoOnCommandEvent(const GUICommandEvent& ev)
 	else if(ev.GetType() == GUICommandEventType::FocusLost)
 		return false;
 
-	return GUIElement::DoOnCommandEvent(ev);
+	return GUIInteractable::DoOnCommandEvent(ev);
 }

@@ -21,7 +21,7 @@ const String& GUITexture::GetGuiTypeName()
 }
 
 GUITexture::GUITexture(PrivatelyConstruct, const GUITextureContents& contents, const String& styleName, const GUISizeConstraints& dimensions)
-	: GUIElement(styleName, dimensions), mScaleMode(contents.ScaleMode), mTransparent(contents.IsTransparent), mUsingStyleTexture(contents.Image == nullptr)
+	: GUIInteractable(styleName, dimensions), mScaleMode(contents.ScaleMode), mTransparent(contents.IsTransparent), mUsingStyleTexture(contents.Image == nullptr)
 {
 	mImageSprite = B3DNew<ImageSprite>();
 	mDesc.AnimationStartTime = GetTime().GetTime();
@@ -152,7 +152,7 @@ void GUITexture::UpdateRenderElements()
 		T::Append({ T::SpriteInfo(mImageSprite, 0, imageSpriteBounds) }, mRenderElements);
 	}
 
-	GUIElement::UpdateRenderElements();
+	GUIInteractable::UpdateRenderElements();
 }
 
 void GUITexture::NotifyStyleChanged()

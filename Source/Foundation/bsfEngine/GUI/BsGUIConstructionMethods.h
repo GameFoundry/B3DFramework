@@ -29,7 +29,7 @@ namespace bs
 		B3D_SCRIPT_EXPORT(ExtensionConstructorForType(T))
 		static GUIElementType* Create(const ContentType& contents, const String& styleClass, B3D_PARAMS const TInlineArray<GUIOption, 4>& options)
 		{
-			return B3DNew<GUIElementType>(GUIElementType::PrivatelyConstruct(), contents, GUIElement::GetStyleName<GUIElementType>(styleClass), GUISizeConstraints::Create(options));
+			return B3DNew<GUIElementType>(GUIElementType::PrivatelyConstruct(), contents, GUIRenderable::GetStyleClass<GUIElementType>(styleClass), GUISizeConstraints::Create(options));
 		}
 
 		/**
@@ -40,7 +40,7 @@ namespace bs
 		 */
 		static GUIElementType* Create(const ContentType& contents, const String& styleClass)
 		{
-			return B3DNew<GUIElementType>(GUIElementType::PrivatelyConstruct(), contents, GUIElement::GetStyleName<GUIElementType>(styleClass), GUISizeConstraints::Create());
+			return B3DNew<GUIElementType>(GUIElementType::PrivatelyConstruct(), contents, GUIRenderable::GetStyleClass<GUIElementType>(styleClass), GUISizeConstraints::Create());
 		}
 
 		/**
@@ -52,7 +52,7 @@ namespace bs
 		B3D_SCRIPT_EXPORT(ExtensionConstructorForType(T))
 		static GUIElementType* Create(const ContentType& contents, B3D_PARAMS const TInlineArray<GUIOption, 4>& options)
 		{
-			return B3DNew<GUIElementType>(GUIElementType::PrivatelyConstruct(), contents, GUIElement::GetStyleName<GUIElementType>(StringUtil::kBlank), GUISizeConstraints::Create(options));
+			return B3DNew<GUIElementType>(GUIElementType::PrivatelyConstruct(), contents, GUIRenderable::GetStyleClass<GUIElementType>(StringUtil::kBlank), GUISizeConstraints::Create(options));
 		}
 
 		/**
@@ -62,7 +62,7 @@ namespace bs
 		 */
 		static GUIElementType* Create(const ContentType& contents)
 		{
-			return B3DNew<GUIElementType>(GUIElementType::PrivatelyConstruct(), contents, GUIElement::GetStyleName<GUIElementType>(StringUtil::kBlank), GUISizeConstraints::Create());
+			return B3DNew<GUIElementType>(GUIElementType::PrivatelyConstruct(), contents, GUIRenderable::GetStyleClass<GUIElementType>(StringUtil::kBlank), GUISizeConstraints::Create());
 		}
 
 		/**
@@ -74,7 +74,7 @@ namespace bs
 		B3D_SCRIPT_EXPORT(ExtensionConstructorForType(T))
 		static GUIElementType* Create(const String& styleClass, B3D_PARAMS const TInlineArray<GUIOption, 4>& options)
 		{
-			return B3DNew<GUIElementType>(GUIElementType::PrivatelyConstruct(), ContentType(), GUIElement::GetStyleName<GUIElementType>(styleClass), GUISizeConstraints::Create(options));
+			return B3DNew<GUIElementType>(GUIElementType::PrivatelyConstruct(), ContentType(), GUIRenderable::GetStyleClass<GUIElementType>(styleClass), GUISizeConstraints::Create(options));
 		}
 
 		/**
@@ -84,7 +84,7 @@ namespace bs
 		 */
 		static GUIElementType* Create(const String& styleClass)
 		{
-			return B3DNew<GUIElementType>(GUIElementType::PrivatelyConstruct(), ContentType(), GUIElement::GetStyleName<GUIElementType>(styleClass), GUISizeConstraints::Create());
+			return B3DNew<GUIElementType>(GUIElementType::PrivatelyConstruct(), ContentType(), GUIRenderable::GetStyleClass<GUIElementType>(styleClass), GUISizeConstraints::Create());
 		}
 
 		/**
@@ -95,13 +95,13 @@ namespace bs
 		B3D_SCRIPT_EXPORT(ExtensionConstructorForType(T))
 		static GUIElementType* Create(B3D_PARAMS const TInlineArray<GUIOption, 4>& options)
 		{
-			return B3DNew<GUIElementType>(GUIElementType::PrivatelyConstruct(), ContentType(), GUIElement::GetStyleName<GUIElementType>(StringUtil::kBlank), GUISizeConstraints::Create(options));
+			return B3DNew<GUIElementType>(GUIElementType::PrivatelyConstruct(), ContentType(), GUIRenderable::GetStyleClass<GUIElementType>(StringUtil::kBlank), GUISizeConstraints::Create(options));
 		}
 
 		/** Creates a new GUI element. */
 		static GUIElementType* Create()
 		{
-			return B3DNew<GUIElementType>(GUIElementType::PrivatelyConstruct(), ContentType(), GUIElement::GetStyleName<GUIElementType>(StringUtil::kBlank), GUISizeConstraints::Create());
+			return B3DNew<GUIElementType>(GUIElementType::PrivatelyConstruct(), ContentType(), GUIRenderable::GetStyleClass<GUIElementType>(StringUtil::kBlank), GUISizeConstraints::Create());
 		}
 	};
 

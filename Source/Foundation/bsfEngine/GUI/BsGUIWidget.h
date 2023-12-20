@@ -83,7 +83,7 @@ namespace bs
 		void SetCamera(const SPtr<Camera>& camera);
 
 		/**	Returns a list of all elements parented to this widget. */
-		const Vector<GUIElement*>& GetElements() const { return mElements; }
+		const Vector<GUIInteractable*>& GetElements() const { return mElements; }
 
 		/** Returns the world transform that all GUI elements beloning to this widget will be transformed by. */
 		const Matrix4 GetWorldTfrm() const { return mTransform; }
@@ -191,7 +191,7 @@ namespace bs
 		void UpdateRootPanel();
 
 		SPtr<Camera> mCamera;
-		Vector<GUIElement*> mElements;
+		Vector<GUIInteractable*> mElements;
 		GUIMeshBatches mBatches;
 		GUIPanel* mPanel = nullptr;
 		u8 mDepth = 128;
@@ -203,8 +203,8 @@ namespace bs
 		Vector3 mScale = Vector3::kOne;
 		Matrix4 mTransform = BsIdentity;
 
-		Set<GUIElement*> mDirtyContents;
-		Set<GUIElement*> mDirtyContentsTemp;
+		Set<GUIInteractable*> mDirtyContents;
+		Set<GUIInteractable*> mDirtyContentsTemp;
 
 		mutable u64 mCachedRTId = 0;
 		mutable bool mWidgetIsDirty = false;

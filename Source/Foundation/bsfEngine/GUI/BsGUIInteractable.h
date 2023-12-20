@@ -42,7 +42,7 @@ namespace bs
 	B3D_FLAGS_OPERATORS(GUIElementOption)
 
 	/** Represents a GUI element that can be interacted with. All interactable elements are also renderable (i.e. have a visual component). */
-	class B3D_EXPORT GUIElement : public GUIRenderable
+	class B3D_EXPORT GUIInteractable : public GUIRenderable
 	{
 	public:
 		/**	Different sub-types of GUI elements. */
@@ -60,9 +60,9 @@ namespace bs
 		};
 
 	public:
-		GUIElement(String styleClass, const GUISizeConstraints& dimensions, GUIElementOptions options = GUIElementOptions(0));
-		GUIElement(const char* styleClass, const GUISizeConstraints& dimensions, GUIElementOptions options = GUIElementOptions(0));
-		~GUIElement() override = default;
+		GUIInteractable(String styleClass, const GUISizeConstraints& dimensions, GUIElementOptions options = GUIElementOptions(0));
+		GUIInteractable(const char* styleClass, const GUISizeConstraints& dimensions, GUIElementOptions options = GUIElementOptions(0));
+		~GUIInteractable() override = default;
 
 		/**
 		 * Change the GUI element focus state.
@@ -105,7 +105,7 @@ namespace bs
 		 * Destroy the element. Removes it from parent and widget, and queues it for deletion. Element memory will be
 		 * released delayed, next frame.
 		 */
-		static void Destroy(GUIElement* element);
+		static void Destroy(GUIInteractable* element);
 
 		/**	Triggered when the element loses or gains focus. */
 		Event<void(bool)> OnFocusChanged;

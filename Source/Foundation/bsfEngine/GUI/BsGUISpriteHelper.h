@@ -112,10 +112,10 @@ namespace bs
 	{
 	public:
 		/** Builds sprite elements for GUIBackgroundSprites. */
-		static void BuildSpriteRenderElements(GUIElement& element, GUIElementState state, GUIBackgroundSprite& sprite);
+		static void BuildSpriteRenderElements(GUIInteractable& element, GUIElementState state, GUIBackgroundSprite& sprite);
 
 		/** Builds sprite elements for GUIContentSprites. */
-		static void BuildSpriteRenderElements(GUIElement& element, GUIElementState state, const GUIContent& content, GUIContentSprites& sprites);
+		static void BuildSpriteRenderElements(GUIInteractable& element, GUIElementState state, const GUIContent& content, GUIContentSprites& sprites);
 	};
 
 	/** @} */

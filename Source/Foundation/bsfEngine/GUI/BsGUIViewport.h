@@ -13,7 +13,7 @@ namespace bs
 	 */
 
 	/**	Displays a Camera view in the form of a GUI element. */
-	class B3D_EXPORT GUIViewport : public GUIElement
+	class B3D_EXPORT GUIViewport : public GUIInteractable
 	{
 	public:
 		/** Returns type name of the GUI element used for finding GUI element styles.  */

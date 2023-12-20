@@ -17,7 +17,7 @@ const String& GUISliderHandle::GetGuiTypeName()
 }
 
 GUISliderHandle::GUISliderHandle(GUISliderHandleFlags flags, const String& styleName, const GUISizeConstraints& dimensions)
-	: GUIElement(styleName, dimensions), mFlags(flags)
+	: GUIInteractable(styleName, dimensions), mFlags(flags)
 {
 	if(flags.IsSet(GUISliderHandleFlag::Resizeable))
 	{
@@ -30,12 +30,12 @@ GUISliderHandle::GUISliderHandle(GUISliderHandleFlags flags, const String& style
 
 GUISliderHandle* GUISliderHandle::Create(GUISliderHandleFlags flags, const String& styleName)
 {
-	return new(B3DAllocate<GUISliderHandle>()) GUISliderHandle(flags, GetStyleName<GUISliderHandle>(styleName), GUISizeConstraints::Create());
+	return new(B3DAllocate<GUISliderHandle>()) GUISliderHandle(flags, GetStyleClass<GUISliderHandle>(styleName), GUISizeConstraints::Create());
 }
 
 GUISliderHandle* GUISliderHandle::Create(GUISliderHandleFlags flags, const GUIOptions& options, const String& styleName)
 {
-	return new(B3DAllocate<GUISliderHandle>()) GUISliderHandle(flags, GetStyleName<GUISliderHandle>(styleName), GUISizeConstraints::Create(options));
+	return new(B3DAllocate<GUISliderHandle>()) GUISliderHandle(flags, GetStyleClass<GUISliderHandle>(styleName), GUISizeConstraints::Create(options));
 }
 
 void GUISliderHandle::SetHandlePositionInPercent(float percent)
@@ -89,7 +89,7 @@ void GUISliderHandle::UpdateRenderElements()
 		mBackgroundSprite.BuildRenderElements(size, *GetStyle(), mState, tint, batchId, mRenderElements, offset);
 	}
 
-	GUIElement::UpdateRenderElements();
+	GUIInteractable::UpdateRenderElements();
 }
 
 Vector2I GUISliderHandle::CalculateUnconstrainedOptimalSize() const

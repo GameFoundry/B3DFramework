@@ -364,7 +364,7 @@ void GUILayoutX::GetChildLayoutAreas(const Rect2I& layoutArea, Rect2I* elementAr
 
 		if(child->GetType() == GUIElementBase::Type::Element)
 		{
-			GUIElement* element = static_cast<GUIElement*>(child);
+			GUIInteractable* element = static_cast<GUIInteractable*>(child);
 
 			u32 yPadding = element->GetMargins().Top + element->GetMargins().Bottom;
 			i32 yOffset = Math::CeilToInt(((i32)layoutArea.Height - (i32)(elemHeight + yPadding)) * 0.5f);

@@ -17,7 +17,7 @@ namespace bs
 	 */
 
 	/**	Base class for a clickable GUI button element. */
-	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(GUI)) GUIClickable : public GUIElement
+	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(GUI)) GUIClickable : public GUIInteractable
 	{
 	public:
 		/**	Change content displayed by the button. */

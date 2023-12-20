@@ -82,11 +82,11 @@ namespace bs
 		 */
 
 		/**
-		 * Helper method that returns style name used by an element of a certain type. If override style is empty, default
-		 * style for that type is returned.
+		 * Helper method that returns style class used by an element of a certain type. If override style class is empty, default
+		 * class for that type is returned.
 		 */
 		template <class T>
-		static const String& GetStyleName(const String& overrideStyle)
+		static const String& GetStyleClass(const String& overrideStyle)
 		{
 			if(overrideStyle == StringUtil::kBlank)
 				return T::GetGuiTypeName();

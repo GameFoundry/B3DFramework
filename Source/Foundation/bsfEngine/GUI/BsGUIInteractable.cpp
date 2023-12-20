@@ -16,7 +16,7 @@ using namespace bs;
 
 namespace bs
 {
-	class B3D_EXPORT GUIInteractableRTTI : public RTTIType<GUIElement, GUIRenderable, GUIInteractableRTTI>
+	class B3D_EXPORT GUIInteractableRTTI : public RTTIType<GUIInteractable, GUIRenderable, GUIInteractableRTTI>
 	{
 	public:
 		const String& GetRttiName()
@@ -34,7 +34,7 @@ namespace bs
 /** @} */
 /** @endcond */
 
-void GUIElement::NotifyStateFlagsChanged()
+void GUIInteractable::NotifyStateFlagsChanged()
 {
 	if(mStyleSheetRuleInformation.StateRulesets != nullptr)
 		mStyleSheetRuleInformation.CurrentStateRuleset = mStyleSheetRuleInformation.StateRulesets->BuildStateRuleset(mStateFlags);
@@ -51,27 +51,27 @@ void GUIElement::NotifyStateFlagsChanged()
 	}
 }
 
-GUIElement::GUIElement(String styleClass, const GUISizeConstraints& dimensions, GUIElementOptions options)
+GUIInteractable::GUIInteractable(String styleClass, const GUISizeConstraints& dimensions, GUIElementOptions options)
 	: GUIRenderable(std::move(styleClass), dimensions), mOptionFlags(options)
 {
 }
 
-GUIElement::GUIElement(const char* styleClass, const GUISizeConstraints& dimensions, GUIElementOptions options)
+GUIInteractable::GUIInteractable(const char* styleClass, const GUISizeConstraints& dimensions, GUIElementOptions options)
 	: GUIRenderable(styleClass, dimensions), mOptionFlags(options)
 {
 }
 
-bool GUIElement::DoOnMouseEvent(const GUIMouseEvent& event)
+bool GUIInteractable::DoOnMouseEvent(const GUIMouseEvent& event)
 {
 	return false;
 }
 
-bool GUIElement::DoOnTextInputEvent(const GUITextInputEvent& event)
+bool GUIInteractable::DoOnTextInputEvent(const GUITextInputEvent& event)
 {
 	return false;
 }
 
-bool GUIElement::DoOnCommandEvent(const GUICommandEvent& event)
+bool GUIInteractable::DoOnCommandEvent(const GUICommandEvent& event)
 {
 	if(event.GetType() == GUICommandEventType::FocusGained)
 	{
@@ -87,12 +87,12 @@ bool GUIElement::DoOnCommandEvent(const GUICommandEvent& event)
 	return false;
 }
 
-bool GUIElement::DoOnVirtualButtonEvent(const GUIVirtualButtonEvent& event)
+bool GUIInteractable::DoOnVirtualButtonEvent(const GUIVirtualButtonEvent& event)
 {
 	return false;
 }
 
-void GUIElement::ChangeParentWidget(GUIWidget* widget)
+void GUIInteractable::ChangeParentWidget(GUIWidget* widget)
 {
 	if(IsDestroyed())
 		return;
@@ -117,7 +117,7 @@ void GUIElement::ChangeParentWidget(GUIWidget* widget)
 	}
 }
 
-void GUIElement::SetNavigationGroup(const SPtr<GUINavGroup>& navGroup)
+void GUIInteractable::SetNavigationGroup(const SPtr<GUINavGroup>& navGroup)
 {
 	SPtr<GUINavGroup> currentNavGroup = GetNavigationGroup();
 	if(currentNavGroup == navGroup)
@@ -132,14 +132,14 @@ void GUIElement::SetNavigationGroup(const SPtr<GUINavGroup>& navGroup)
 	mNavigationGroup = navGroup;
 }
 
-void GUIElement::SetNavigationGroupIndex(i32 index)
+void GUIInteractable::SetNavigationGroupIndex(i32 index)
 {
 	SPtr<GUINavGroup> navGroup = GetNavigationGroup();
 	if(navGroup != nullptr)
 		navGroup->SetIndex(this, index);
 }
 
-SPtr<GUINavGroup> GUIElement::GetNavigationGroup() const
+SPtr<GUINavGroup> GUIInteractable::GetNavigationGroup() const
 {
 	if(mNavigationGroup)
 		return mNavigationGroup;
@@ -150,12 +150,12 @@ SPtr<GUINavGroup> GUIElement::GetNavigationGroup() const
 	return nullptr;
 }
 
-void GUIElement::SetFocus(bool enabled, bool clear)
+void GUIInteractable::SetFocus(bool enabled, bool clear)
 {
 	GUIManager::Instance().SetFocus(this, enabled, clear);
 }
 
-void GUIElement::AddStateFlags(GUIElementStateFlags flags)
+void GUIInteractable::AddStateFlags(GUIElementStateFlags flags)
 {
 	if(mStateFlags.IsSetAll(flags))
 		return;
@@ -166,7 +166,7 @@ void GUIElement::AddStateFlags(GUIElementStateFlags flags)
 	MarkContentAsDirty();
 }
 
-void GUIElement::RemoveStateFlags(GUIElementStateFlags flags)
+void GUIInteractable::RemoveStateFlags(GUIElementStateFlags flags)
 {
 	if(!mStateFlags.IsSetAny(flags))
 		return;
@@ -177,12 +177,12 @@ void GUIElement::RemoveStateFlags(GUIElementStateFlags flags)
 	MarkContentAsDirty();
 }
 
-bool GUIElement::IsInBounds(const Vector2I& position) const
+bool GUIInteractable::IsInBounds(const Vector2I& position) const
 {
 	return GetCachedClippedBounds().Contains(position);
 }
 
-SPtr<GUIContextMenu> GUIElement::GetContextMenu() const
+SPtr<GUIContextMenu> GUIInteractable::GetContextMenu() const
 {
 	if(!IsDisabled())
 		return mContextMenu;
@@ -190,7 +190,7 @@ SPtr<GUIContextMenu> GUIElement::GetContextMenu() const
 	return nullptr;
 }
 
-void GUIElement::Destroy(GUIElement* element)
+void GUIInteractable::Destroy(GUIInteractable* element)
 {
 	if(element->mIsDestroyed)
 		return;
@@ -208,12 +208,12 @@ void GUIElement::Destroy(GUIElement* element)
 }
 
 
-RTTITypeBase* GUIElement::GetRttiStatic()
+RTTITypeBase* GUIInteractable::GetRttiStatic()
 {
 	return GUIInteractableRTTI::Instance();
 }
 
-RTTITypeBase* GUIElement::GetRtti() const
+RTTITypeBase* GUIInteractable::GetRtti() const
 {
 	return GetRttiStatic();
 }

@@ -12,7 +12,7 @@ namespace bs
 	 */
 
 	/** Base for GUI elements that combine multiple GUI elements into one more complex element. */
-	class B3D_EXPORT GUIElementContainer : public GUIElement
+	class B3D_EXPORT GUIElementContainer : public GUIInteractable
 	{
 	public:
 		/** @copydoc GUIElement::SetFocus */
@@ -28,7 +28,7 @@ namespace bs
 		Vector2I CalculateUnconstrainedOptimalSize() const override;
 		bool DoOnCommandEvent(const GUICommandEvent& ev) override;
 
-		GUIElement* mFocusElement = nullptr;
+		GUIInteractable* mFocusElement = nullptr;
 	};
 
 	/** @} */

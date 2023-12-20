@@ -14,7 +14,7 @@ namespace bs
 	 */
 
 	/** GUI element representing an element with a draggable handle of a variable size. */
-	class B3D_EXPORT GUIScrollBar : public GUIElement
+	class B3D_EXPORT GUIScrollBar : public GUIInteractable
 	{
 	public:
 		/**	Returns the position of the scroll handle in percent (ranging [0, 1]). */

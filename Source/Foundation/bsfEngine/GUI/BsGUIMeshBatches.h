@@ -77,19 +77,19 @@ namespace bs
 		GUIMeshBatches(GUIWidget* parentWidget);
 
 		/** Iterates over all the render elements in the GUI elements and adds them to suitable batches. */
-		void Add(GUIElement* guiElement);
+		void Add(GUIInteractable* guiElement);
 
 		/** Removes all render elements in the provided GUI element from their current set of batches. */
-		void Remove(GUIElement* guiElement);
+		void Remove(GUIInteractable* guiElement);
 
 		/** Rebuilds any dirty internal data and returns the data structure required for updating the GUI renderer. */
 		GUIDrawGroupRenderDataUpdate RebuildDirty(bool forceRebuildMeshes);
 
 		/** Notifies the system that element's contents were marked as dirty. */
-		void MarkContentDirty(GUIElement* guiElement);
+		void MarkContentDirty(GUIInteractable* guiElement);
 
 		/** Notifies the system that element's mesh was marked as dirty. */
-		void MarkMeshDirty(GUIElement* guiElement);
+		void MarkMeshDirty(GUIInteractable* guiElement);
 
 	private:
 		/** Information about a material used by a batch. */
@@ -120,11 +120,11 @@ namespace bs
 		{
 			BatchedGUIRenderElement() = default;
 
-			BatchedGUIRenderElement(GUIElement* element, u32 renderElementIndex, u32 depth)
+			BatchedGUIRenderElement(GUIInteractable* element, u32 renderElementIndex, u32 depth)
 				: ParentGUIElement(element), RenderElementIndex(renderElementIndex), Depth(depth)
 			{}
 
-			GUIElement* ParentGUIElement = nullptr;
+			GUIInteractable* ParentGUIElement = nullptr;
 			u32 RenderElementIndex = 0;
 			u32 Depth = 0;
 		};
@@ -132,7 +132,7 @@ namespace bs
 		/** Represents a batched GUI element. */
 		struct BatchedGUIElement
 		{
-			GUIElement* GUIElement = nullptr;
+			GUIInteractable* GUIElement = nullptr;
 			TInlineArray<u32, 4> BatchPerRenderElement;
 			Rect2I Bounds;
 		};
@@ -238,13 +238,13 @@ namespace bs
 		static BatchedMaterial CreateBatchedMaterial(const BatchedGUIRenderElement& batchedGuiRenderElement);
 
 		/** Creates information about a material for the provided render element. */
-		static BatchedMaterial CreateBatchedMaterial(const GUIElement& guiElement, u32 renderElementIndex);
+		static BatchedMaterial CreateBatchedMaterial(const GUIInteractable& guiElement, u32 renderElementIndex);
 
 		Vector<BatchesInDepthRange> mDepthRanges;
 		UnorderedMap<u32, Batch> mBatches;
 
-		UnorderedMap<GUIElement*, BatchedGUIElement> mElements;
-		UnorderedMap<GUIElement*, u32> mDirtyElements;
+		UnorderedMap<GUIInteractable*, BatchedGUIElement> mElements;
+		UnorderedMap<GUIInteractable*, u32> mDirtyElements;
 		Vector<Rect2I> mDirtyRegionsForRemovedBatches;
 		bool mBatchesOutOfDateInRenderer = true;
 		GUIWidget* mWidget;

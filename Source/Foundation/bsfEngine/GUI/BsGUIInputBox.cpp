@@ -32,7 +32,7 @@ const String& GUIInputBox::GetGuiTypeName()
 }
 
 GUIInputBox::GUIInputBox(const String& styleName, const GUISizeConstraints& dimensions, bool multiline)
-	: GUIElement(styleName, dimensions, GUIElementOption::AcceptsKeyFocus), mIsMultiline(multiline)
+	: GUIInteractable(styleName, dimensions, GUIElementOption::AcceptsKeyFocus), mIsMultiline(multiline)
 {
 	mImageSprite = B3DNew<ImageSprite>();
 	mTextSprite = B3DNew<TextSprite>();
@@ -46,17 +46,17 @@ GUIInputBox::~GUIInputBox()
 
 GUIInputBox* GUIInputBox::Create(bool multiline, const String& styleName)
 {
-	return new(B3DAllocate<GUIInputBox>()) GUIInputBox(GetStyleName<GUIInputBox>(styleName), GUISizeConstraints::Create(), multiline);
+	return new(B3DAllocate<GUIInputBox>()) GUIInputBox(GetStyleClass<GUIInputBox>(styleName), GUISizeConstraints::Create(), multiline);
 }
 
 GUIInputBox* GUIInputBox::Create(bool multiline, const GUIOptions& options, const String& styleName)
 {
-	return new(B3DAllocate<GUIInputBox>()) GUIInputBox(GetStyleName<GUIInputBox>(styleName), GUISizeConstraints::Create(options), multiline);
+	return new(B3DAllocate<GUIInputBox>()) GUIInputBox(GetStyleClass<GUIInputBox>(styleName), GUISizeConstraints::Create(options), multiline);
 }
 
 GUIInputBox* GUIInputBox::Create(const GUIOptions& options, const String& styleName)
 {
-	return new(B3DAllocate<GUIInputBox>()) GUIInputBox(GetStyleName<GUIInputBox>(styleName), GUISizeConstraints::Create(options), false);
+	return new(B3DAllocate<GUIInputBox>()) GUIInputBox(GetStyleClass<GUIInputBox>(styleName), GUISizeConstraints::Create(options), false);
 }
 
 void GUIInputBox::SetText(const String& text)
@@ -166,7 +166,7 @@ void GUIInputBox::UpdateRenderElements()
 		}
 	}
 
-	GUIElement::UpdateRenderElements();
+	GUIInteractable::UpdateRenderElements();
 }
 
 void GUIInputBox::UpdateClippedBounds()
@@ -575,7 +575,7 @@ bool GUIInputBox::DoOnCommandEvent(const GUICommandEvent& ev)
 	if(IsDisabled())
 		return false;
 
-	bool baseReturn = GUIElement::DoOnCommandEvent(ev);
+	bool baseReturn = GUIInteractable::DoOnCommandEvent(ev);
 
 	if(ev.GetType() == GUICommandEventType::Redraw)
 	{

@@ -11,7 +11,7 @@
 using namespace bs;
 
 GUILabel::GUILabel(PrivatelyConstruct, const GUIContent& content, const String& styleClass, const GUISizeConstraints& dimensions)
-	: GUIElement(styleClass, dimensions), mContent(content), mBackgroundImageSprite(nullptr)
+	: GUIInteractable(styleClass, dimensions), mContent(content), mBackgroundImageSprite(nullptr)
 {
 	mTextSprite = B3DNew<TextSprite>();
 }
@@ -115,7 +115,7 @@ void GUILabel::UpdateRenderElements()
 		T::Populate({ T::SpriteInfo(mTextSprite, 0, textBounds), T::SpriteInfo(mBackgroundImageSprite, 1, backgroundBounds) }, mRenderElements);
 	}
 
-	GUIElement::UpdateRenderElements();
+	GUIInteractable::UpdateRenderElements();
 }
 
 Vector2I GUILabel::CalculateUnconstrainedOptimalSize() const

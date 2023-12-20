@@ -120,9 +120,9 @@ GUIDropDownMenu::~GUIDropDownMenu()
 
 void GUIDropDownMenu::OnDestroyed()
 {
-	GUIElement::Destroy(mFrontHitBox);
-	GUIElement::Destroy(mBackHitBox);
-	GUIElement::Destroy(mCaptureHitBox);
+	GUIInteractable::Destroy(mFrontHitBox);
+	GUIInteractable::Destroy(mBackHitBox);
+	GUIInteractable::Destroy(mCaptureHitBox);
 	B3DDelete(mRootMenu);
 	mRootMenu = nullptr;
 
@@ -241,9 +241,9 @@ GUIDropDownMenu::DropDownSubMenu::~DropDownSubMenu()
 
 	Owner->NotifySubMenuClosed(this);
 
-	GUIElement::Destroy(Content);
+	GUIInteractable::Destroy(Content);
 
-	GUIElement::Destroy(BackgroundFrame);
+	GUIInteractable::Destroy(BackgroundFrame);
 
 	GUILayout::Destroy(BackgroundPanel);
 	GUILayout::Destroy(ContentPanel);

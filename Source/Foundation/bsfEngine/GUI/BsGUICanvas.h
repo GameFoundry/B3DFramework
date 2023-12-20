@@ -17,7 +17,7 @@ namespace bs
 	 * A GUI element that allows the user to draw custom graphics. All drawn elements relative to the canvas, to its origin
 	 * in the top left corner.
 	 */
-	class B3D_EXPORT GUICanvas : public GUIElement
+	class B3D_EXPORT GUICanvas : public GUIInteractable
 	{
 	public:
 		/** Returns type name of the GUI element used for finding GUI element styles.  */

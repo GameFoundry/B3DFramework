@@ -18,19 +18,19 @@ const String& GUIViewport::GetGuiTypeName()
 }
 
 GUIViewport::GUIViewport(const String& styleName, const HCamera& camera, float aspectRatio, Degree fieldOfView, const GUISizeConstraints& dimensions)
-	: GUIElement(styleName, dimensions), mCamera(camera), mAspectRatio(aspectRatio), mFieldOfView(fieldOfView)
+	: GUIInteractable(styleName, dimensions), mCamera(camera), mAspectRatio(aspectRatio), mFieldOfView(fieldOfView)
 {
 	mVerticalFOV = 2.0f * Math::Atan(Math::Tan(mFieldOfView.GetValueInRadians() * 0.5f) * (1.0f / mAspectRatio));
 }
 
 GUIViewport* GUIViewport::Create(const HCamera& camera, float aspectRatio, Degree fieldOfView, const String& styleName)
 {
-	return new(B3DAllocate<GUIViewport>()) GUIViewport(GetStyleName<GUIViewport>(styleName), camera, aspectRatio, fieldOfView, GUISizeConstraints::Create());
+	return new(B3DAllocate<GUIViewport>()) GUIViewport(GetStyleClass<GUIViewport>(styleName), camera, aspectRatio, fieldOfView, GUISizeConstraints::Create());
 }
 
 GUIViewport* GUIViewport::Create(const GUIOptions& options, const HCamera& camera, float aspectRatio, Degree fieldOfView, const String& styleName)
 {
-	return new(B3DAllocate<GUIViewport>()) GUIViewport(GetStyleName<GUIViewport>(styleName), camera, aspectRatio, fieldOfView, GUISizeConstraints::Create(options));
+	return new(B3DAllocate<GUIViewport>()) GUIViewport(GetStyleClass<GUIViewport>(styleName), camera, aspectRatio, fieldOfView, GUISizeConstraints::Create(options));
 }
 
 void GUIViewport::UpdateClippedBounds()
@@ -78,7 +78,7 @@ void GUIViewport::UpdateRenderElements()
 
 void GUIViewport::ChangeParentWidget(GUIWidget* widget)
 {
-	GUIElement::ChangeParentWidget(widget);
+	GUIInteractable::ChangeParentWidget(widget);
 
 	if(widget != nullptr)
 	{

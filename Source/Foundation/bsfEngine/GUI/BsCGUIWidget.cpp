@@ -84,7 +84,7 @@ SPtr<Camera> CGUIWidget::GetCamera() const
 	return mInternal->GetCamera();
 }
 
-const Vector<GUIElement*>& CGUIWidget::GetElements() const
+const Vector<GUIInteractable*>& CGUIWidget::GetElements() const
 {
 	return mInternal->GetElements();
 }

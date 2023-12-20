@@ -540,8 +540,8 @@ void GUIElementBase::DestroyChildElements()
 	{
 		if(child->GetType() == Type::Element)
 		{
-			const auto element = static_cast<GUIElement*>(child);
-			GUIElement::Destroy(element);
+			const auto element = static_cast<GUIInteractable*>(child);
+			GUIInteractable::Destroy(element);
 		}
 		else if(child->GetType() == Type::Layout || child->GetType() == GUIElementBase::Type::Panel)
 		{

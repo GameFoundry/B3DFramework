@@ -25,12 +25,12 @@ GUIDropDownContent::GUIDropDownContent(GUIDropDownMenu::DropDownSubMenu* parent,
 
 GUIDropDownContent* GUIDropDownContent::Create(GUIDropDownMenu::DropDownSubMenu* parent, const GUIDropDownData& dropDownData, const String& style)
 {
-	return new(B3DAllocate<GUIDropDownContent>()) GUIDropDownContent(parent, dropDownData, GetStyleName<GUIDropDownContent>(style), GUISizeConstraints::Create());
+	return new(B3DAllocate<GUIDropDownContent>()) GUIDropDownContent(parent, dropDownData, GetStyleClass<GUIDropDownContent>(style), GUISizeConstraints::Create());
 }
 
 GUIDropDownContent* GUIDropDownContent::Create(GUIDropDownMenu::DropDownSubMenu* parent, const GUIDropDownData& dropDownData, const GUIOptions& options, const String& style)
 {
-	return new(B3DAllocate<GUIDropDownContent>()) GUIDropDownContent(parent, dropDownData, GetStyleName<GUIDropDownContent>(style), GUISizeConstraints::Create(options));
+	return new(B3DAllocate<GUIDropDownContent>()) GUIDropDownContent(parent, dropDownData, GetStyleClass<GUIDropDownContent>(style), GUISizeConstraints::Create(options));
 }
 
 void GUIDropDownContent::SetRange(u32 start, u32 end)
@@ -58,7 +58,7 @@ void GUIDropDownContent::SetRange(u32 start, u32 end)
 	{
 		GUIElementBase* child = GetChild(GetChildCount() - 1);
 		if(child->GetType() == Type::Element)
-			GUIElement::Destroy(static_cast<GUIElement*>(child));
+			GUIInteractable::Destroy(static_cast<GUIInteractable*>(child));
 		else if(child->GetType() == Type::Layout || child->GetType() == Type::Panel)
 			GUILayout::Destroy(static_cast<GUILayout*>(child));
 	}

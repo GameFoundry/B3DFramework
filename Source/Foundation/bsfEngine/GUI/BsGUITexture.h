@@ -28,7 +28,7 @@ namespace bs
 	};
 
 	/**	A GUI element that displays a texture. */
-	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(GUI)) GUITexture : public GUIElement, public TGUIConstructionMethods<GUITexture, GUITextureContents>
+	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(GUI)) GUITexture : public GUIInteractable, public TGUIConstructionMethods<GUITexture, GUITextureContents>
 	{
 	public:
 		/** Returns type name of the GUI element used for finding GUI element styles.  */

@@ -18,7 +18,7 @@ using namespace bs;
 const u32 GUIScrollBar::kButtonScrollAmount = 10;
 
 GUIScrollBar::GUIScrollBar(bool horizontal, bool resizable, const String& styleName, const GUISizeConstraints& dimensions)
-	: GUIElement(styleName, dimensions), mHorizontal(horizontal)
+	: GUIInteractable(styleName, dimensions), mHorizontal(horizontal)
 {
 	GUISliderHandleFlags flags;
 	if(resizable)
@@ -71,9 +71,9 @@ GUIScrollBar::GUIScrollBar(bool horizontal, bool resizable, const String& styleN
 
 GUIScrollBar::~GUIScrollBar()
 {
-	GUIElement::Destroy(mUpBtn);
-	GUIElement::Destroy(mDownBtn);
-	GUIElement::Destroy(mHandleBtn);
+	GUIInteractable::Destroy(mUpBtn);
+	GUIInteractable::Destroy(mDownBtn);
+	GUIInteractable::Destroy(mHandleBtn);
 }
 
 void GUIScrollBar::UpdateRenderElements()
@@ -81,7 +81,7 @@ void GUIScrollBar::UpdateRenderElements()
 	mRenderElements.Clear();
 	GUISpriteHelper::BuildSpriteRenderElements(*this, GUIElementState::Normal, mBackgroundSprite);
 
-	GUIElement::UpdateRenderElements();
+	GUIInteractable::UpdateRenderElements();
 }
 
 void GUIScrollBar::UpdateClippedBounds()
@@ -189,5 +189,5 @@ void GUIScrollBar::SetTint(const Color& color)
 	mDownBtn->SetTint(color);
 	mHandleBtn->SetTint(color);
 
-	GUIElement::SetTint(color);
+	GUIInteractable::SetTint(color);
 }

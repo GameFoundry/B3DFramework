@@ -28,7 +28,7 @@ void GUINavGroup::FocusFirst()
 	FocusTopLeft();
 }
 
-void GUINavGroup::FocusNext(GUIElement* anchor)
+void GUINavGroup::FocusNext(GUIInteractable* anchor)
 {
 	// Nothing currently in focus
 	if(!anchor)
@@ -79,7 +79,7 @@ void GUINavGroup::FocusNext(GUIElement* anchor)
 		{
 			struct YCompare
 			{
-				bool operator()(const GUIElement* lhs, const GUIElement* rhs) const
+				bool operator()(const GUIInteractable* lhs, const GUIInteractable* rhs) const
 				{
 					const Rect2I boundsLHS = lhs->GetCachedClippedBounds();
 					const Rect2I boundsRHS = rhs->GetCachedClippedBounds();
@@ -92,10 +92,10 @@ void GUINavGroup::FocusNext(GUIElement* anchor)
 			};
 
 			// Build a list of relevant elements, ordered by height
-			FrameSet<GUIElement*, YCompare> elements;
+			FrameSet<GUIInteractable*, YCompare> elements;
 			for(auto iter = unindexedRange.first; iter != unindexedRange.second; ++iter)
 			{
-				GUIElement* element = iter->second;
+				GUIInteractable* element = iter->second;
 				const bool acceptsKeyFocus = element->GetOptionFlags().IsSet(GUIElementOption::AcceptsKeyFocus);
 				if(!acceptsKeyFocus || !element->IsVisible() || element->IsDisabled())
 					continue;
@@ -117,7 +117,7 @@ void GUINavGroup::FocusNext(GUIElement* anchor)
 			i32 rowY = 0;
 			for(; iterElem != elements.end(); ++iterElem)
 			{
-				GUIElement* element = *iterElem;
+				GUIInteractable* element = *iterElem;
 
 				const Rect2I elemBounds = element->GetCachedClippedBounds();
 				if(iterElem == elements.begin())
@@ -146,12 +146,12 @@ void GUINavGroup::FocusNext(GUIElement* anchor)
 				rowY = firstRowY;
 
 			// Try to find the next element in the current row (to the right of the current one)
-			GUIElement* nextElement = nullptr;
+			GUIInteractable* nextElement = nullptr;
 			i32 nearestX = std::numeric_limits<i32>::max();
 			iterElem = iterRowStart;
 			for(; iterElem != elements.end(); ++iterElem)
 			{
-				GUIElement* element = *iterElem;
+				GUIInteractable* element = *iterElem;
 				if(element == anchor)
 					continue;
 
@@ -185,7 +185,7 @@ void GUINavGroup::FocusNext(GUIElement* anchor)
 				nearestX = std::numeric_limits<i32>::max();
 				for(; iterElem != elements.end(); ++iterElem)
 				{
-					GUIElement* element = *iterElem;
+					GUIInteractable* element = *iterElem;
 
 					const Rect2I elemBounds = element->GetCachedClippedBounds();
 					const i32 yDiff = elemBounds.Y - rowY;
@@ -226,13 +226,13 @@ void GUINavGroup::FocusNext(GUIElement* anchor)
 void GUINavGroup::FocusTopLeft()
 {
 	u32 lowestDist = std::numeric_limits<u32>::max();
-	GUIElement* topLeftElement = nullptr;
+	GUIInteractable* topLeftElement = nullptr;
 
 	// Grab only elements without an explicit index
 	const auto unindexedRange = mOrderedElements.equal_range(0);
 	for(auto iter = unindexedRange.first; iter != unindexedRange.second; ++iter)
 	{
-		GUIElement* element = iter->second;
+		GUIInteractable* element = iter->second;
 
 		// Ignore elements that are hidden, disabled or just don't accept input focus
 		const bool acceptsKeyFocus = element->GetOptionFlags().IsSet(GUIElementOption::AcceptsKeyFocus);
@@ -258,13 +258,13 @@ void GUINavGroup::FocusTopLeft()
 		topLeftElement->SetFocus(true, true);
 }
 
-void GUINavGroup::RegisterElement(GUIElement* element, i32 tabIdx)
+void GUINavGroup::RegisterElement(GUIInteractable* element, i32 tabIdx)
 {
 	mElements[element] = tabIdx;
 	mOrderedElements.insert(std::make_pair(tabIdx, element));
 }
 
-void GUINavGroup::SetIndex(GUIElement* element, i32 tabIdx)
+void GUINavGroup::SetIndex(GUIInteractable* element, i32 tabIdx)
 {
 	const auto iterFind = mElements.find(element);
 	B3D_ASSERT(iterFind != mElements.end());
@@ -285,7 +285,7 @@ void GUINavGroup::SetIndex(GUIElement* element, i32 tabIdx)
 	mOrderedElements.insert(std::make_pair(tabIdx, element));
 }
 
-void GUINavGroup::UnregisterElement(GUIElement* element)
+void GUINavGroup::UnregisterElement(GUIInteractable* element)
 {
 	const auto iterFind = mElements.find(element);
 	if(iterFind == mElements.end())

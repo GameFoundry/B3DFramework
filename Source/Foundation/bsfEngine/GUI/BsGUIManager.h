@@ -67,22 +67,22 @@ namespace bs
 		/**	Container for data about a single GUI element and its widget. */
 		struct ElementInfo
 		{
-			ElementInfo(GUIElement* element, GUIWidget* widget)
+			ElementInfo(GUIInteractable* element, GUIWidget* widget)
 				: Element(element), Widget(widget)
 			{}
 
-			GUIElement* Element;
+			GUIInteractable* Element;
 			GUIWidget* Widget;
 		};
 
 		/**	Container for data about a single GUI element and its widget currently under the pointer. */
 		struct ElementInfoUnderPointer
 		{
-			ElementInfoUnderPointer(GUIElement* element, GUIWidget* widget)
+			ElementInfoUnderPointer(GUIInteractable* element, GUIWidget* widget)
 				: Element(element), Widget(widget), UsesMouseOver(false), ReceivedMouseOver(false), IsHovering(false)
 			{}
 
-			GUIElement* Element;
+			GUIInteractable* Element;
 			GUIWidget* Widget;
 			bool UsesMouseOver;
 			bool ReceivedMouseOver;
@@ -92,11 +92,11 @@ namespace bs
 		/**	Container for GUI element in focus. */
 		struct ElementFocusInfo
 		{
-			ElementFocusInfo(GUIElement* element, GUIWidget* widget, bool usesFocus)
+			ElementFocusInfo(GUIInteractable* element, GUIWidget* widget, bool usesFocus)
 				: Element(element), Widget(widget), UsesFocus(usesFocus)
 			{}
 
-			GUIElement* Element;
+			GUIInteractable* Element;
 			GUIWidget* Widget;
 			bool UsesFocus;
 		};
@@ -104,7 +104,7 @@ namespace bs
 		/**	Container for GUI elements that need to have their focus state forcefully changed. */
 		struct ElementForcedFocusInfo
 		{
-			GUIElement* Element;
+			GUIInteractable* Element;
 			bool Focus;
 		};
 
@@ -124,7 +124,7 @@ namespace bs
 		void Update();
 
 		/** Queues the GUI element for destruction. Element will be destroyed during the next call to update(). */
-		void QueueForDestroy(GUIElement* element);
+		void QueueForDestroy(GUIInteractable* element);
 
 		/** Forces all GUI elements that are queued for destruction to be destroyed immediately. */
 		void ProcessDestroyQueue();
@@ -137,7 +137,7 @@ namespace bs
 		 * @param[in]	clear		If true the focus will be cleared from any elements currently in focus. Otherwise
 		 *							the element will just be appended to the in-focus list (if enabling focus).
 		 */
-		void SetFocus(GUIElement* element, bool focus, bool clear);
+		void SetFocus(GUIInteractable* element, bool focus, bool clear);
 
 		/**	Changes the color of the input caret used in input boxes and similar controls. */
 		void SetCaretColor(const Color& color)
@@ -196,7 +196,7 @@ namespace bs
 		 * @note
 		 * Bridged element needs to remove itself as the bridge when it is destroyed.
 		 */
-		void SetInputBridge(const SPtr<RenderTexture>& renderTex, const GUIElement* element);
+		void SetInputBridge(const SPtr<RenderTexture>& renderTex, const GUIInteractable* element);
 
 		/**
 		 * Converts window coordinates to coordinates relative to the specified bridged render target (target displayed
@@ -216,7 +216,7 @@ namespace bs
 		SPtr<RenderWindow> GetBridgeWindow(const SPtr<RenderTexture>& target) const;
 
 		/** Returns all GUI elements that have input bridging set up and belong to the provided GUI widget. */
-		void GetBridgedElements(const GUIWidget* widget, TInlineArray<std::pair<const GUIElement*, SPtr<const RenderTarget>>, 4>& elements);
+		void GetBridgedElements(const GUIWidget* widget, TInlineArray<std::pair<const GUIInteractable*, SPtr<const RenderTarget>>, 4>& elements);
 
 		/**	Returns the parent render window of the specified widget. */
 		const RenderWindow* GetWidgetWindow(const GUIWidget& widget) const;
@@ -312,7 +312,7 @@ namespace bs
 		 * @param[in]	element	Element to send the event to.
 		 * @param[in]	event	Event data.
 		 */
-		bool SendMouseEvent(GUIElement* element, const GUIMouseEvent& event);
+		bool SendMouseEvent(GUIInteractable* element, const GUIMouseEvent& event);
 
 		/**
 		 * Sends a text input event to the specified GUI element.
@@ -320,7 +320,7 @@ namespace bs
 		 * @param[in]	element	Element to send the event to.
 		 * @param[in]	event	Event data.
 		 */
-		bool SendTextInputEvent(GUIElement* element, const GUITextInputEvent& event);
+		bool SendTextInputEvent(GUIInteractable* element, const GUITextInputEvent& event);
 
 		/**
 		 * Sends a command event to the specified GUI element.
@@ -328,7 +328,7 @@ namespace bs
 		 * @param[in]	element	Element to send the event to.
 		 * @param[in]	event	Event data.
 		 */
-		bool SendCommandEvent(GUIElement* element, const GUICommandEvent& event);
+		bool SendCommandEvent(GUIInteractable* element, const GUICommandEvent& event);
 
 		/**
 		 * Sends a virtual button event to the specified GUI element.
@@ -336,7 +336,7 @@ namespace bs
 		 * @param[in]	element	Element to send the event to.
 		 * @param[in]	event	Event data.
 		 */
-		bool SendVirtualButtonEvent(GUIElement* element, const GUIVirtualButtonEvent& event);
+		bool SendVirtualButtonEvent(GUIInteractable* element, const GUIVirtualButtonEvent& event);
 
 		static const u32 kDragDistance;
 		static const float kTooltipHoverTime;
@@ -347,7 +347,7 @@ namespace bs
 		Vector<WidgetInfo> mWidgets;
 		SPtr<ct::GUIRenderer> mRenderer;
 
-		Stack<GUIElement*> mScheduledForDestruction;
+		Stack<GUIInteractable*> mScheduledForDestruction;
 
 		// Element and widget pointer is currently over
 		Vector<ElementInfoUnderPointer> mElementsUnderPointer;
@@ -394,7 +394,7 @@ namespace bs
 		HSpriteTexture mTextSelectionImage;
 		Color mTextSelectionColor{ 0.0f, 114 / 255.0f, 188 / 255.0f };
 
-		Map<SPtr<const RenderTexture>, const GUIElement*> mInputBridge;
+		Map<SPtr<const RenderTexture>, const GUIInteractable*> mInputBridge;
 		UPtr<GUIVectorSpriteAtlas> mVectorSpriteAtlas;
 
 		HEvent mOnPointerMovedConn;

@@ -96,5 +96,5 @@ void GUIRenderTexture::UpdateRenderElements()
 		T::Populate({ T::SpriteInfo(mImageSprite, 0, imageBounds) }, mRenderElements);
 	}
 
-	GUIElement::UpdateRenderElements();
+	GUIInteractable::UpdateRenderElements();
 }

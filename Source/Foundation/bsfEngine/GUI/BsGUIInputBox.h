@@ -18,7 +18,7 @@ namespace bs
 	 * Input box is a GUI element that accepts Unicode textual input. It can be single or multi-line and handles various
 	 * types of text manipulation.
 	 */
-	class B3D_EXPORT GUIInputBox : public GUIElement
+	class B3D_EXPORT GUIInputBox : public GUIInteractable
 	{
 		/**	Possible visual states the input box can be in. */
 		enum class State

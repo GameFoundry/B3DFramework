@@ -266,12 +266,12 @@ void GUIWidget::RegisterElement(GUIElementBase* guiElementBase)
 
 	if(guiElementBase->GetType() == GUIElementBase::Type::Element)
 	{
-		mElements.push_back(static_cast<GUIElement*>(guiElementBase));
+		mElements.push_back(static_cast<GUIInteractable*>(guiElementBase));
 		mWidgetIsDirty = true;
 
 		if(guiElementBase->IsVisible())
 		{
-			auto guiElement = static_cast<GUIElement*>(guiElementBase);
+			auto guiElement = static_cast<GUIInteractable*>(guiElementBase);
 			mBatches.Add(guiElement);
 			mBatches.MarkContentDirty(guiElement);
 		}
@@ -292,9 +292,9 @@ void GUIWidget::UnregisterElement(GUIElementBase* guiElement)
 
 	if(guiElement->GetType() == GUIElementBase::Type::Element)
 	{
-		mDirtyContents.erase(static_cast<GUIElement*>(guiElement));
+		mDirtyContents.erase(static_cast<GUIInteractable*>(guiElement));
 
-		const auto guiElem = static_cast<GUIElement*>(guiElement);
+		const auto guiElem = static_cast<GUIInteractable*>(guiElement);
 		mBatches.Remove(guiElem);
 	}
 }
@@ -304,7 +304,7 @@ void GUIWidget::NotifyElementVisibilityChanged(GUIElementBase* guiElementBase, b
 	if(guiElementBase->GetType() != GUIElementBase::Type::Element)
 		return;
 
-	const auto guiElement = static_cast<GUIElement*>(guiElementBase);
+	const auto guiElement = static_cast<GUIInteractable*>(guiElementBase);
 	if(isVisible)
 		mBatches.Add(guiElement);
 	else
@@ -316,14 +316,14 @@ void GUIWidget::MarkMeshDirty(GUIElementBase* elem)
 	mWidgetIsDirty = true;
 
 	if(elem->GetType() == GUIElementBase::Type::Element)
-		mBatches.MarkMeshDirty(static_cast<GUIElement*>(elem));
+		mBatches.MarkMeshDirty(static_cast<GUIInteractable*>(elem));
 }
 
 void GUIWidget::MarkContentDirty(GUIElementBase* elem)
 {
 	if(elem->GetType() == GUIElementBase::Type::Element)
 	{
-		auto guiElement = static_cast<GUIElement*>(elem);
+		auto guiElement = static_cast<GUIInteractable*>(elem);
 		if(!guiElement->IsVisible())
 			return;
 

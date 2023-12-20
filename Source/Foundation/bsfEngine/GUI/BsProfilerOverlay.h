@@ -147,25 +147,25 @@ namespace bs
 		GUILayout* mBasicLayoutContents = nullptr;
 		GUILayout* mPreciseLayoutContents = nullptr;
 
-		GUIElement* mTitleBasicName = nullptr;
-		GUIElement* mTitleBasicPctOfParent = nullptr;
-		GUIElement* mTitleBasicNumCalls = nullptr;
-		GUIElement* mTitleBasicNumAllocs = nullptr;
-		GUIElement* mTitleBasicNumFrees = nullptr;
-		GUIElement* mTitleBasicAvgTime = nullptr;
-		GUIElement* mTitleBasicTotalTime = nullptr;
-		GUIElement* mTitleBasicAvgTitleSelf = nullptr;
-		GUIElement* mTitleBasicTotalTimeSelf = nullptr;
+		GUIInteractable* mTitleBasicName = nullptr;
+		GUIInteractable* mTitleBasicPctOfParent = nullptr;
+		GUIInteractable* mTitleBasicNumCalls = nullptr;
+		GUIInteractable* mTitleBasicNumAllocs = nullptr;
+		GUIInteractable* mTitleBasicNumFrees = nullptr;
+		GUIInteractable* mTitleBasicAvgTime = nullptr;
+		GUIInteractable* mTitleBasicTotalTime = nullptr;
+		GUIInteractable* mTitleBasicAvgTitleSelf = nullptr;
+		GUIInteractable* mTitleBasicTotalTimeSelf = nullptr;
 
-		GUIElement* mTitlePreciseName = nullptr;
-		GUIElement* mTitlePrecisePctOfParent = nullptr;
-		GUIElement* mTitlePreciseNumCalls = nullptr;
-		GUIElement* mTitlePreciseNumAllocs = nullptr;
-		GUIElement* mTitlePreciseNumFrees = nullptr;
-		GUIElement* mTitlePreciseAvgCycles = nullptr;
-		GUIElement* mTitlePreciseTotalCycles = nullptr;
-		GUIElement* mTitlePreciseAvgCyclesSelf = nullptr;
-		GUIElement* mTitlePreciseTotalCyclesSelf = nullptr;
+		GUIInteractable* mTitlePreciseName = nullptr;
+		GUIInteractable* mTitlePrecisePctOfParent = nullptr;
+		GUIInteractable* mTitlePreciseNumCalls = nullptr;
+		GUIInteractable* mTitlePreciseNumAllocs = nullptr;
+		GUIInteractable* mTitlePreciseNumFrees = nullptr;
+		GUIInteractable* mTitlePreciseAvgCycles = nullptr;
+		GUIInteractable* mTitlePreciseTotalCycles = nullptr;
+		GUIInteractable* mTitlePreciseAvgCyclesSelf = nullptr;
+		GUIInteractable* mTitlePreciseTotalCyclesSelf = nullptr;
 
 		GUILayout* mGPULayoutFrameContents = nullptr;
 		GUILayout* mGPULayoutFrameContentsLeft = nullptr;

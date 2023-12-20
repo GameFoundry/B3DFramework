@@ -72,7 +72,7 @@ namespace bs
 		 * Updates the input tool with new text descriptor and parent GUI element. These values will be used for all
 		 * further calculations.
 		 */
-		void UpdateText(const GUIElement* element, const TextSpriteInformation& textDesc);
+		void UpdateText(const GUIInteractable* element, const TextSpriteInformation& textDesc);
 
 	protected:
 		/**	Returns text offset relative to parent widget. */
@@ -132,7 +132,7 @@ namespace bs
 		bool IsNewline(u32 inputIdx) const;
 
 	protected:
-		const GUIElement* mElement = nullptr;
+		const GUIInteractable* mElement = nullptr;
 
 		Vector2* mQuads = nullptr;
 		u32 mNumQuads = 0;

@@ -308,7 +308,7 @@ void GUIContentSprites::CalculateContentBounds(const Rect2I& contentArea, const 
 	}
 }
 
-void GUISpriteHelper::BuildSpriteRenderElements(GUIElement& element, GUIElementState state, GUIBackgroundSprite& sprite)
+void GUISpriteHelper::BuildSpriteRenderElements(GUIInteractable& element, GUIElementState state, GUIBackgroundSprite& sprite)
 {
 	const Size2UI size(element.GetLayoutData().Area.Width, element.GetLayoutData().Area.Height);
 	const u64 batchId = (u64)element.GetParentWidget();
@@ -326,7 +326,7 @@ void GUISpriteHelper::BuildSpriteRenderElements(GUIElement& element, GUIElementS
 	}
 }
 
-void GUISpriteHelper::BuildSpriteRenderElements(GUIElement& element, GUIElementState state, const GUIContent& content, GUIContentSprites& sprites)
+void GUISpriteHelper::BuildSpriteRenderElements(GUIInteractable& element, GUIElementState state, const GUIContent& content, GUIContentSprites& sprites)
 {
 	const Size2UI size(element.GetLayoutData().Area.Width, element.GetLayoutData().Area.Height);
 	const u64 batchId = (u64)element.GetParentWidget();

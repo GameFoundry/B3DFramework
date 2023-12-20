@@ -219,7 +219,7 @@ void GUISlider::OnHandleMoved(float newPosition, float newSize)
 
 bool GUISlider::DoOnCommandEvent(const GUICommandEvent& ev)
 {
-	const bool baseReturnValue = GUIElement::DoOnCommandEvent(ev);
+	const bool baseReturnValue = GUIInteractable::DoOnCommandEvent(ev);
 
 	const GUIElementStyle* bgStyle = mBackground->GetStyle();
 	if(ev.GetType() == GUICommandEventType::FocusGained)
@@ -259,12 +259,12 @@ GUISliderHorz::GUISliderHorz(const String& styleName, const GUISizeConstraints& 
 
 GUISliderHorz* GUISliderHorz::Create(const String& styleName)
 {
-	return new(B3DAllocate<GUISliderHorz>()) GUISliderHorz(GetStyleName<GUISliderHorz>(styleName), GUISizeConstraints::Create());
+	return new(B3DAllocate<GUISliderHorz>()) GUISliderHorz(GetStyleClass<GUISliderHorz>(styleName), GUISizeConstraints::Create());
 }
 
 GUISliderHorz* GUISliderHorz::Create(const GUIOptions& options, const String& styleName)
 {
-	return new(B3DAllocate<GUISliderHorz>()) GUISliderHorz(GetStyleName<GUISliderHorz>(styleName), GUISizeConstraints::Create(options));
+	return new(B3DAllocate<GUISliderHorz>()) GUISliderHorz(GetStyleClass<GUISliderHorz>(styleName), GUISizeConstraints::Create(options));
 }
 
 const String& GUISliderHorz::GetGuiTypeName()
@@ -280,12 +280,12 @@ GUISliderVert::GUISliderVert(const String& styleName, const GUISizeConstraints& 
 
 GUISliderVert* GUISliderVert::Create(const String& styleName)
 {
-	return new(B3DAllocate<GUISliderVert>()) GUISliderVert(GetStyleName<GUISliderVert>(styleName), GUISizeConstraints::Create());
+	return new(B3DAllocate<GUISliderVert>()) GUISliderVert(GetStyleClass<GUISliderVert>(styleName), GUISizeConstraints::Create());
 }
 
 GUISliderVert* GUISliderVert::Create(const GUIOptions& options, const String& styleName)
 {
-	return new(B3DAllocate<GUISliderVert>()) GUISliderVert(GetStyleName<GUISliderVert>(styleName), GUISizeConstraints::Create(options));
+	return new(B3DAllocate<GUISliderVert>()) GUISliderVert(GetStyleClass<GUISliderVert>(styleName), GUISizeConstraints::Create(options));
 }
 
 const String& GUISliderVert::GetGuiTypeName()

@@ -35,7 +35,7 @@ namespace bs
 	B3D_FLAGS_OPERATORS(GUISliderHandleFlag);
 
 	/** A handle that can be dragged from its predefined minimum and maximum position, either horizontally or vertically. */
-	class B3D_EXPORT GUISliderHandle : public GUIElement
+	class B3D_EXPORT GUISliderHandle : public GUIInteractable
 	{
 		/** State the handle can be in while user is dragging it. */
 		enum class DragState

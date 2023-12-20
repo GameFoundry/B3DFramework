@@ -15,7 +15,7 @@
 using namespace bs;
 
 GUIClickable::GUIClickable(const String& styleName, const GUIContent& content, const GUISizeConstraints& dimensions, GUIElementOptions options)
-	: GUIElement(styleName, dimensions, options), mContent(content)
+	: GUIInteractable(styleName, dimensions, options), mContent(content)
 {
 	mBackgroundSprite.SetAnimationStartTime(GetTime().GetTime());
 	mContentSprites.SetAnimationStartTime(GetTime().GetTime());
@@ -60,7 +60,7 @@ void GUIClickable::UpdateRenderElements()
 	GUISpriteHelper::BuildSpriteRenderElements(*this, mActiveState, mBackgroundSprite);
 	GUISpriteHelper::BuildSpriteRenderElements(*this, mActiveState, mContent, mContentSprites);
 
-	GUIElement::UpdateRenderElements();
+	GUIInteractable::UpdateRenderElements();
 }
 
 Vector2I GUIClickable::CalculateUnconstrainedOptimalSize() const
@@ -177,7 +177,7 @@ bool GUIClickable::DoOnMouseEvent(const GUIMouseEvent& ev)
 
 bool GUIClickable::DoOnCommandEvent(const GUICommandEvent& ev)
 {
-	const bool baseReturnValue = GUIElement::DoOnCommandEvent(ev);
+	const bool baseReturnValue = GUIInteractable::DoOnCommandEvent(ev);
 
 	GUIElementState state = (GUIElementState)((u32)mActiveState & (u32)GUIElementState::TypeMask);
 	if(ev.GetType() == GUICommandEventType::FocusGained)

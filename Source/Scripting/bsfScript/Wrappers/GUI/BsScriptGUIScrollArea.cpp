@@ -57,7 +57,7 @@ void ScriptGUIScrollArea::Destroy()
 
 		if(mElement->GetType() == GUIElementBase::Type::Element)
 		{
-			GUIElement::Destroy((GUIElement*)mElement);
+			GUIInteractable::Destroy((GUIInteractable*)mElement);
 			mElement = nullptr;
 
 			mIsDestroyed = true;

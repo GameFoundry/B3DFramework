@@ -22,7 +22,7 @@ const String& GUICanvas::GetGuiTypeName()
 }
 
 GUICanvas::GUICanvas(const String& styleName, const GUISizeConstraints& dimensions)
-	: GUIElement(styleName, dimensions)
+	: GUIInteractable(styleName, dimensions)
 {}
 
 GUICanvas::~GUICanvas()
@@ -32,12 +32,12 @@ GUICanvas::~GUICanvas()
 
 GUICanvas* GUICanvas::Create(const GUIOptions& options, const String& styleName)
 {
-	return new(B3DAllocate<GUICanvas>()) GUICanvas(GetStyleName<GUICanvas>(styleName), GUISizeConstraints::Create(options));
+	return new(B3DAllocate<GUICanvas>()) GUICanvas(GetStyleClass<GUICanvas>(styleName), GUISizeConstraints::Create(options));
 }
 
 GUICanvas* GUICanvas::Create(const String& styleName)
 {
-	return new(B3DAllocate<GUICanvas>()) GUICanvas(GetStyleName<GUICanvas>(styleName), GUISizeConstraints::Create());
+	return new(B3DAllocate<GUICanvas>()) GUICanvas(GetStyleClass<GUICanvas>(styleName), GUISizeConstraints::Create());
 }
 
 void GUICanvas::DrawLine(const Vector2I& a, const Vector2I& b, const Color& color, u8 depth)
@@ -303,7 +303,7 @@ void GUICanvas::UpdateRenderElements()
 		element.RenderElemEnd = (u32)mRenderElements.Size();
 	}
 
-	GUIElement::UpdateRenderElements();
+	GUIInteractable::UpdateRenderElements();
 }
 
 Vector2I GUICanvas::CalculateUnconstrainedOptimalSize() const
