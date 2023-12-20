@@ -4,7 +4,7 @@
 
 #include "BsScriptEnginePrerequisites.h"
 #include "BsScriptObject.h"
-#include "../../../Foundation/bsfEngine/GUI/BsGUIToggle.h"
+#include "../../../Foundation/bsfEngine/GUI/BsGUIToggleable.h"
 #include "../../../Foundation/bsfEngine/GUI/BsGUIContent.h"
 #include "BsScriptGUIContent.generated.h"
 

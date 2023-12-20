@@ -6,7 +6,7 @@
 #include "Wrappers/GUI/BsScriptGUIElement.h"
 #include "BsScriptGUIToggleable.generated.h"
 #include "../../../Foundation/bsfEngine/GUI/BsGUIOptions.h"
-#include "../../../Foundation/bsfEngine/GUI/BsGUIToggle.h"
+#include "../../../Foundation/bsfEngine/GUI/BsGUIToggleable.h"
 
 namespace bs { class GUIToggle; }
 namespace bs { struct __GUIToggleContentInterop; }

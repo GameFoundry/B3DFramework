@@ -12523,4 +12523,21 @@ Alternatively you can also skip manually calling release() and call unloadAllUnu
 			<doc>Flags used to further describe the parameter.</doc>
 		</field>
 	</struct>
+	<struct native="GUITabButtonContent" script="GUITabButtonContent">
+		<doc>Structure describing contents of a GUIToggle element.</doc>
+		<ctor>
+			<param name="index" type="int">
+			</param>
+			<param name="content" type="GUIContent">
+			</param>
+			<param name="toggleGroup" type="GUIToggleGroup">
+			</param>
+		</ctor>
+		<field name="Index" type="int">
+		</field>
+		<field name="GeneralContent" type="GUIContent">
+		</field>
+		<field name="ToggleGroup" type="GUIToggleGroup">
+		</field>
+	</struct>
 </entries>

@@ -4,7 +4,7 @@
 #include "BsMonoMethod.h"
 #include "BsMonoClass.h"
 #include "BsMonoUtil.h"
-#include "../../../Foundation/bsfEngine/GUI/BsGUIToggle.h"
+#include "../../../Foundation/bsfEngine/GUI/BsGUIToggleable.h"
 
 namespace bs
 {
