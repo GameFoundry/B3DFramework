@@ -421,7 +421,7 @@ void ScriptGUIElement::InternalSetStyle(ScriptGUIElementBaseTBase* nativeInstanc
 		if(guiElemBase->GetType() == GUIElementBase::Type::Element)
 		{
 			GUIElement* guiElem = static_cast<GUIElement*>(guiElemBase);
-			guiElem->SetStyle(MonoUtil::MonoToString(style));
+			guiElem->SetStyleSheetClass(MonoUtil::MonoToString(style));
 		}
 	}
 }

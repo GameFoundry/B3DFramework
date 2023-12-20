@@ -10,7 +10,7 @@
 
 using namespace bs;
 
-bool GUIStyleSheetSelector::IsMatching(const GUIElementBase& element, StringView pseudoElement, StringView pseudoClass, bool ignorePseudoClass) const
+bool GUIStyleSheetSelector::IsMatching(const GUIRenderable& element, StringView pseudoElement, StringView pseudoClass, bool ignorePseudoClass) const
 {
 	return IsMatching(element.GetStyleSheetElement(), element.GetStyleSheetClass(), element.GetStyleSheetId(), pseudoElement, pseudoClass, ignorePseudoClass);
 }
@@ -40,12 +40,12 @@ bool GUIStyleSheetSelector::IsMatching(StringView elementType, StringView elemen
 	}
 }
 
-bool GUIStyleSheetSelectorList::IsMatching(const GUIElementBase& element, StringView pseudoElement, StringView pseudoClass, bool ignorePseudoClass) const
+bool GUIStyleSheetSelectorList::IsMatching(const GUIRenderable& element, StringView pseudoElement, StringView pseudoClass, bool ignorePseudoClass) const
 {
 	if(Selectors.Empty())
 		return true; // Empty list matches everything
 
-	const GUIElementBase* currentElement = &element;
+	const GUIRenderable* currentElement = &element;
 	auto itLastAncestorSelectorStart = Selectors.rbegin();
 	bool isMatchingAnyAncestor = false;
 	for(auto it = Selectors.rbegin(); it != Selectors.rend();)
@@ -54,7 +54,7 @@ bool GUIStyleSheetSelectorList::IsMatching(const GUIElementBase& element, String
 
 		if(selector.CombinatorType == GUIStyleSheetCombinatorType::AncestorOf || selector.CombinatorType == GUIStyleSheetCombinatorType::ParentOf)
 		{
-			currentElement = currentElement->GetParent();
+			currentElement = B3DRTTICast<GUIRenderable>(currentElement->GetParent());
 			isMatchingAnyAncestor = selector.CombinatorType == GUIStyleSheetCombinatorType::AncestorOf;
 			itLastAncestorSelectorStart = it;
 

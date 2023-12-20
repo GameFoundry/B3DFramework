@@ -714,6 +714,10 @@ namespace bs
 		TID_SpriteImage = 1237,
 		TID_SpriteGlyph = 1238,
 		TID_SpriteVectorPath = 1239,
+		TID_GUIElement = 1240,
+		TID_GUIRenderable = 1241,
+		TID_GUIInteractable = 1242,
+		TID_GUILayout = 1243,
 
 		// Moved from Engine layer
 		TID_CCamera = 30000,

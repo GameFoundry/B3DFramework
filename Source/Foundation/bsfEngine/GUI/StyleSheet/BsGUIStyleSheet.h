@@ -148,7 +148,7 @@ namespace bs
 		GUIStyleSheetCombinatorType CombinatorType = GUIStyleSheetCombinatorType::None;
 
 		/** Checks does the selector match the provided GUI element. */
-		bool IsMatching(const GUIElementBase& element, StringView pseudoElement = "", StringView pseudoClass = "", bool ignorePseudoClass = false) const;
+		bool IsMatching(const GUIRenderable& element, StringView pseudoElement = "", StringView pseudoClass = "", bool ignorePseudoClass = false) const;
 
 		/** Checks does the selector matches a GUI element with the provided type/class/id/pseudo-element/pseudo-class. */
 		bool IsMatching(StringView elementType, StringView elementClass = "", StringView elementId = "", StringView pseudoElement = "", StringView pseudoClass = "", bool ignorePseudoClass = false) const;
@@ -160,7 +160,7 @@ namespace bs
 		TInlineArray<GUIStyleSheetSelector, 4> Selectors;
 
 		/** Checks does the selector match the provided GUI element. */
-		bool IsMatching(const GUIElementBase& element, StringView pseudoElement = "", StringView pseudoClass = "", bool ignorePseudoClass = false) const;
+		bool IsMatching(const GUIRenderable& element, StringView pseudoElement = "", StringView pseudoClass = "", bool ignorePseudoClass = false) const;
 
 		/** Checks does the selector match a GUI element with provided type/class/id/pseudo-element/pseudo-class. It is assumed the GUI element has no parents. */
 		bool IsMatching(StringView elementType, StringView elementClass = "", StringView elementId = "", StringView pseudoElement = "", StringView pseudoClass = "", bool ignorePseudoClass = false) const;

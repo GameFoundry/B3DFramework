@@ -38,7 +38,7 @@ namespace bs
 
 
 	/**	Base class for all GUI elements (visible or layout). */
-	class B3D_EXPORT GUIElementBase
+	class B3D_EXPORT GUIElementBase : public IReflectable
 	{
 	public:
 		/**	Valid types of GUI base elements. */
@@ -68,18 +68,6 @@ namespace bs
 		GUIElementBase() = default;
 		GUIElementBase(const GUISizeConstraints& dimensions);
 		virtual ~GUIElementBase();
-
-		/** Returns the name of the GUI element type to be used for style lookup in the style sheet. */
-		virtual const char* GetStyleSheetElement() const { return nullptr; } // Note: Null style sheet name currently means element doesn't support style-sheets
-
-		/** Returns a user-specified class that will be used for style lookup in the style sheet. */
-		virtual const String& GetStyleSheetClass() const { return StringUtil::kBlank; /* Unused at the moment. */ }
-
-		/** Returns an user-specific ID will be used for style lookup in the style sheet. */
-		virtual const String& GetStyleSheetId() const { return StringUtil::kBlank; }
-
-		/** Returns true if the GUI elements wants to use the new style sheet approach for styling. */
-		bool IsUsingStyleSheets() const;
 
 		/**
 		 * Sets element position relative to parent GUI panel.
@@ -378,9 +366,13 @@ namespace bs
 		GUISizeConstraints mSizeConstraints; /**< Constraints on the element size as set by the style, or set explicitly at runtime. */
 		GUILayoutData mLayoutData; /**< Calculated position, size, depth and other information, valid after a layout update. */
 
-		// Style sheet
-		TInlineArray<GUIStyleSheetRuleInformation, 2> mPseudoElementStyleSheetRules;
-		GUIStyleSheetRuleInformation mStyleSheetRuleInformation;
+		/************************************************************************/
+		/* 								RTTI		                     		*/
+		/************************************************************************/
+	public:
+		friend class GUIElementRTTI;
+		static RTTITypeBase* GetRttiStatic();
+		RTTITypeBase* GetRtti() const override;
 	};
 
 	/** @} */

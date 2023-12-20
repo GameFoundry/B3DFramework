@@ -76,11 +76,20 @@ namespace bs
 		GUIRenderable(const char* styleClass, const GUISizeConstraints& sizeConstraints);
 		~GUIRenderable() override = default;
 
-		/**	Sets new style class to be used by the element. */
-		void SetStyle(const String& styleClass); // TODO - Rename to SetStyleSheetClass
+		/** Returns the name of the GUI element type to be used for style lookup in the style sheet. */
+		virtual const char* GetStyleSheetElement() const { return nullptr; } // Note: Null style sheet name currently means element doesn't support style-sheets
 
-		// TODO - Move this from base class to GUIRenderable (together with style sheet data)
-		const String& GetStyleSheetClass() const override { return mStyleClass; }
+		/** Returns a user-specified class that will be used for style lookup in the style sheet. */
+		virtual const String& GetStyleSheetClass() const { return mStyleClass; }
+
+		/** Returns an user-specific ID will be used for style lookup in the style sheet. */
+		virtual const String& GetStyleSheetId() const { return StringUtil::kBlank; }
+
+		/**	Sets new style class to be used by the element. */
+		void SetStyleSheetClass(const String& styleClass);
+
+		/** Returns true if the GUI elements wants to use the new style sheet approach for styling. */
+		bool IsUsingStyleSheets() const;
 		
 		/**	Sets the tint of the GUI element. */
 		virtual void SetTint(const Color& color);
@@ -276,10 +285,22 @@ namespace bs
 		TInlineArray<GUIRenderElement, 4> mRenderElements;
 		GUIElementStateFlags mStateFlags = GUIElementStateFlag::Normal;
 
-		const GUIElementStyle* mStyle = nullptr; // TODO - Deprecated
+		Color mColor;
+
+		// Style sheet
+		TInlineArray<GUIStyleSheetRuleInformation, 2> mPseudoElementStyleSheetRules;
+		GUIStyleSheetRuleInformation mStyleSheetRuleInformation;
 		String mStyleClass;
 
-		Color mColor;
+		const GUIElementStyle* mStyle = nullptr; // TODO - Deprecated
+
+		/************************************************************************/
+		/* 								RTTI		                     		*/
+		/************************************************************************/
+	public:
+		friend class GUIRenderableRTTI;
+		static RTTITypeBase* GetRttiStatic();
+		RTTITypeBase* GetRtti() const override;
 	};
 
 	/**
@@ -430,6 +451,14 @@ namespace bs
 	private:
 		SPtr<GUIContextMenu> mContextMenu;
 		SPtr<GUINavGroup> mNavigationGroup;
+
+		/************************************************************************/
+		/* 								RTTI		                     		*/
+		/************************************************************************/
+	public:
+		friend class GUIInteractableRTTI;
+		static RTTITypeBase* GetRttiStatic();
+		RTTITypeBase* GetRtti() const override;
 	};
 
 	/** @} */

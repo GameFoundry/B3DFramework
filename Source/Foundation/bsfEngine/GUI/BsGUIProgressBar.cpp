@@ -67,8 +67,8 @@ void GUIProgressBar::UpdateLayoutRecursive(const GUILayoutData& data)
 
 void GUIProgressBar::NotifyStyleChanged()
 {
-	mBar->SetStyle(GetSubStyleName(GetBarStyleType()));
-	mBackground->SetStyle(GetSubStyleName(GetBackgroundStyleType()));
+	mBar->SetStyleSheetClass(GetSubStyleName(GetBarStyleType()));
+	mBackground->SetStyleSheetClass(GetSubStyleName(GetBackgroundStyleType()));
 }
 
 void GUIProgressBar::SetPercent(float pct)

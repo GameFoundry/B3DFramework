@@ -135,9 +135,9 @@ void GUISlider::UpdateLayoutRecursive(const GUILayoutData& data)
 
 void GUISlider::NotifyStyleChanged()
 {
-	mBackground->SetStyle(GetSubStyleName(GetBackgroundStyleType()));
-	mFillBackground->SetStyle(GetSubStyleName(GetFillStyleType()));
-	mSliderHandle->SetStyle(GetSubStyleName(GetHandleStyleType()));
+	mBackground->SetStyleSheetClass(GetSubStyleName(GetBackgroundStyleType()));
+	mFillBackground->SetStyleSheetClass(GetSubStyleName(GetFillStyleType()));
+	mSliderHandle->SetStyleSheetClass(GetSubStyleName(GetHandleStyleType()));
 
 	const GUIElementStyle* bgStyle = mBackground->GetStyle();
 	if(mHasFocus)

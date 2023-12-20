@@ -9,8 +9,34 @@
 #include "GUI/BsGUIWidget.h"
 #include "BsGUIManager.h"
 #include "StyleSheet/BsGUIStyleSheet.h"
+#include "Reflection/BsRTTIType.h"
 
 using namespace bs;
+
+/** @cond RTTI */
+/** @addtogroup RTTI-Impl-Engine
+ *  @{
+ */
+
+namespace bs
+{
+	class B3D_EXPORT GUIElementRTTI : public RTTIType<GUIElementBase, IReflectable, GUIElementRTTI>
+	{
+	public:
+		const String& GetRttiName()
+		{
+			static String name = "GUIElement";
+			return name;
+		}
+
+		u32 GetRttiId() { return TID_GUIElement; }
+
+		SPtr<IReflectable> NewRttiObject() { return nullptr; }
+	};
+} // namespace bs
+
+/** @} */
+/** @endcond */
 
 GUIElementBase::GUIElementBase(const GUISizeConstraints& dimensions)
 	: mSizeConstraints(dimensions)
@@ -19,11 +45,6 @@ GUIElementBase::GUIElementBase(const GUISizeConstraints& dimensions)
 GUIElementBase::~GUIElementBase()
 {
 	DestroyChildElements();
-}
-
-bool GUIElementBase::IsUsingStyleSheets() const
-{
-	return mStyleSheetRuleInformation.StateRulesets != nullptr && !mStyleSheetRuleInformation.StateRulesets->RulesetIndices.Empty();
 }
 
 void GUIElementBase::SetPosition(i32 x, i32 y)
@@ -664,4 +685,14 @@ void GUIElementBase::SetLayoutUpdateParent(GUIElementBase* layoutUpdateParent)
 
 	for(auto& child : mChildren)
 		child->SetLayoutUpdateParent(layoutUpdateParent);
+}
+
+RTTITypeBase* GUIElementBase::GetRttiStatic()
+{
+	return GUIElementRTTI::Instance();
+}
+
+RTTITypeBase* GUIElementBase::GetRtti() const
+{
+	return GUIElementBase::GetRttiStatic();
 }

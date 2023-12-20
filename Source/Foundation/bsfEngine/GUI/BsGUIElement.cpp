@@ -12,6 +12,56 @@
 
 using namespace bs;
 
+/** @cond RTTI */
+/** @addtogroup RTTI-Impl-Engine
+ *  @{
+ */
+
+namespace bs
+{
+	class B3D_EXPORT GUIRenderableRTTI : public RTTIType<GUIRenderable, GUIElementBase, GUIRenderableRTTI>
+	{
+	public:
+		const String& GetRttiName()
+		{
+			static String name = "GUIRenderable";
+			return name;
+		}
+
+		u32 GetRttiId() { return TID_GUIRenderable; }
+
+		SPtr<IReflectable> NewRttiObject() { return nullptr; }
+	};
+} // namespace bs
+
+/** @} */
+/** @endcond */
+
+/** @cond RTTI */
+/** @addtogroup RTTI-Impl-Engine
+ *  @{
+ */
+
+namespace bs
+{
+	class B3D_EXPORT GUIInteractableRTTI : public RTTIType<GUIElement, GUIRenderable, GUIInteractableRTTI>
+	{
+	public:
+		const String& GetRttiName()
+		{
+			static String name = "GUIInteractable";
+			return name;
+		}
+
+		u32 GetRttiId() { return TID_GUIInteractable; }
+
+		SPtr<IReflectable> NewRttiObject() { return nullptr; }
+	};
+} // namespace bs
+
+/** @} */
+/** @endcond */
+
 const GUIStyleSheetRuleInformation GUIStyleSheetRuleInformation::kInvalid("Invalid");
 const Color GUIRenderable::kDisabledColor = Color(0.5f, 0.5f, 0.5f, 1.0f);
 
@@ -27,6 +77,11 @@ GUIRenderable::GUIRenderable(const char* styleClass, const GUISizeConstraints& s
 {
 	// Style is set to default here, and the proper one is assigned once GUI element
 	// is assigned to a parent (that's when the active GUI skin becomes known)
+}
+
+bool GUIRenderable::IsUsingStyleSheets() const
+{
+	return mStyleSheetRuleInformation.StateRulesets != nullptr && !mStyleSheetRuleInformation.StateRulesets->RulesetIndices.Empty();
 }
 
 void GUIRenderable::UpdateRenderElements()
@@ -68,7 +123,7 @@ void GUIRenderable::UpdateClippedBounds()
 	mClippedBounds.Clip(mLayoutData.ClipRect);
 }
 
-void GUIRenderable::SetStyle(const String& styleClass)
+void GUIRenderable::SetStyleSheetClass(const String& styleClass)
 {
 	mStyleClass = styleClass;
 	RefreshStyle();
@@ -345,6 +400,16 @@ void GUIRenderable::RefreshStyle()
 	}
 }
 
+RTTITypeBase* GUIRenderable::GetRttiStatic()
+{
+	return GUIRenderableRTTI::Instance();
+}
+
+RTTITypeBase* GUIRenderable::GetRtti() const
+{
+	return GetRttiStatic();
+}
+
 void GUIElement::NotifyStateFlagsChanged()
 {
 	if(mStyleSheetRuleInformation.StateRulesets != nullptr)
@@ -526,4 +591,15 @@ void GUIElement::Destroy(GUIElement* element)
 	element->mIsDestroyed = true;
 
 	GUIManager::Instance().QueueForDestroy(element);
+}
+
+
+RTTITypeBase* GUIElement::GetRttiStatic()
+{
+	return GUIInteractableRTTI::Instance();
+}
+
+RTTITypeBase* GUIElement::GetRtti() const
+{
+	return GetRttiStatic();
 }
