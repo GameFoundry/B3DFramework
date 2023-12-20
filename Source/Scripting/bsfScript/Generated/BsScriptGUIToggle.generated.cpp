@@ -11,44 +11,18 @@
 
 namespace bs
 {
-	ScriptGUIToggle::OnToggledThunkDef ScriptGUIToggle::OnToggledThunk; 
-
 	ScriptGUIToggle::ScriptGUIToggle(MonoObject* managedInstance, GUIToggle* value)
 		:TScriptGUIElement(managedInstance, value)
 	{
-		value->OnToggled.Connect(std::bind(&ScriptGUIToggle::OnToggled, this, std::placeholders::_1));
 	}
 
 	void ScriptGUIToggle::InitRuntimeData()
 	{
-		metaData.ScriptClass->AddInternalCall("Internal_SetIsToggled", (void*)&ScriptGUIToggle::InternalSetIsToggled);
-		metaData.ScriptClass->AddInternalCall("Internal_IsToggled", (void*)&ScriptGUIToggle::InternalIsToggled);
 		metaData.ScriptClass->AddInternalCall("Internal_Create", (void*)&ScriptGUIToggle::InternalCreate);
 		metaData.ScriptClass->AddInternalCall("Internal_Create0", (void*)&ScriptGUIToggle::InternalCreate0);
 		metaData.ScriptClass->AddInternalCall("Internal_Create1", (void*)&ScriptGUIToggle::InternalCreate1);
 		metaData.ScriptClass->AddInternalCall("Internal_Create2", (void*)&ScriptGUIToggle::InternalCreate2);
 
-		OnToggledThunk = (OnToggledThunkDef)metaData.ScriptClass->GetMethodExact("Internal_OnToggled", "bool")->GetThunk();
-	}
-
-	void ScriptGUIToggle::OnToggled(bool p0)
-	{
-		MonoUtil::InvokeThunk(OnToggledThunk, GetManagedInstance(), p0);
-	}
-	void ScriptGUIToggle::InternalSetIsToggled(ScriptGUIToggle* thisPtr, bool isToggled)
-	{
-		static_cast<GUIToggle*>(thisPtr->GetGuiElement())->SetIsToggled(isToggled);
-	}
-
-	bool ScriptGUIToggle::InternalIsToggled(ScriptGUIToggle* thisPtr)
-	{
-		bool tmp__output;
-		tmp__output = static_cast<GUIToggle*>(thisPtr->GetGuiElement())->IsToggled();
-
-		bool __output;
-		__output = tmp__output;
-
-		return __output;
 	}
 
 	void ScriptGUIToggle::InternalCreate(MonoObject* managedInstance, __GUIToggleContentInterop* contents, MonoString* styleClass, MonoArray* options)

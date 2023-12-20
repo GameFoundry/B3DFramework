@@ -20,19 +20,19 @@ namespace bs
 		protected GUIToggleGroup() { }
 
 		/// <summary>
-		/// Creates a toggle group that you may provide to GUIToggle upon construction. Toggles sharing the same group will only 
-		/// have a single element active at a time.
+		/// Creates a toggle group that you may provide to GUIToggleable upon construction. Toggles sharing the same group will 
+		/// only have a single element active at a time.
 		/// </summary>
 		/// <param name="allowAllOff">
 		/// If true all of the toggle buttons can be turned off, if false one will always be turned on.
 		/// </param>
 		public GUIToggleGroup(bool allowAllOff = false)
 		{
-			Internal_CreateToggleGroup(this, allowAllOff);
+			Internal_Create(this, allowAllOff);
 		}
 
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_CreateToggleGroup(GUIToggleGroup managedInstance, bool allowAllOff);
+		private static extern void Internal_Create(GUIToggleGroup managedInstance, bool allowAllOff);
 	}
 
 	/** @} */

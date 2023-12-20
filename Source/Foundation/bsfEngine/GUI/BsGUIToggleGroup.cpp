@@ -22,7 +22,15 @@ void GUIToggleGroup::Initialize(const SPtr<GUIToggleGroup>& sharedPtr)
 	mThis = sharedPtr;
 }
 
-void GUIToggleGroup::AddInternal(GUIToggle* toggle)
+SPtr<GUIToggleGroup> GUIToggleGroup::Create(bool allowAllOff)
+{
+	SPtr<GUIToggleGroup> toggleGroup = B3DMakeSharedFromExisting<GUIToggleGroup>(new(B3DAllocate<GUIToggleGroup>()) GUIToggleGroup(allowAllOff));
+	toggleGroup->Initialize(toggleGroup);
+
+	return toggleGroup;
+}
+
+void GUIToggleGroup::AddInternal(GUIToggleable* toggle)
 {
 	auto iterFind = std::find(begin(mButtons), end(mButtons), toggle);
 	if(iterFind != end(mButtons))
@@ -32,7 +40,7 @@ void GUIToggleGroup::AddInternal(GUIToggle* toggle)
 	toggle->SetToggleGroupInternal(mThis.lock());
 }
 
-void GUIToggleGroup::RemoveInternal(GUIToggle* toggle)
+void GUIToggleGroup::RemoveInternal(GUIToggleable* toggle)
 {
 	auto sharedPtr = mThis.lock(); // Make sure we keep a reference because calling SetToggleGroupInternal(nullptr)
 								   // may otherwise clear the last reference and cause us to destruct

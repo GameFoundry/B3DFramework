@@ -17,7 +17,7 @@ const String& GUIToggle::GetGuiTypeName()
 	return name;
 }
 
-GUIToggle::GUIToggle(PrivatelyConstruct, const GUIToggleContent& contents, const String& styleName, const GUISizeConstraints& dimensions)
+GUIToggleable::GUIToggleable(const GUIToggleContent& contents, const String& styleName, const GUISizeConstraints& dimensions)
 	: GUIClickable(styleName, contents.GeneralContent, dimensions), mToggleGroup(nullptr), mIsToggled(false)
 {
 	if(contents.ToggleGroup != nullptr)
@@ -28,7 +28,7 @@ GUIToggle::GUIToggle(PrivatelyConstruct, const GUIToggleContent& contents, const
 	mCheckmarkPseudoElementIndex = RegisterPseudoElement("checkmark");
 }
 
-GUIToggle::~GUIToggle()
+GUIToggleable::~GUIToggleable()
 {
 	B3DDelete(mCheckmarkSprite);
 
@@ -38,15 +38,7 @@ GUIToggle::~GUIToggle()
 	}
 }
 
-SPtr<GUIToggleGroup> GUIToggle::CreateToggleGroup(bool allowAllOff)
-{
-	SPtr<GUIToggleGroup> toggleGroup = B3DMakeSharedFromExisting<GUIToggleGroup>(new(B3DAllocate<GUIToggleGroup>()) GUIToggleGroup(allowAllOff));
-	toggleGroup->Initialize(toggleGroup);
-
-	return toggleGroup;
-}
-
-void GUIToggle::SetToggleGroupInternal(SPtr<GUIToggleGroup> toggleGroup)
+void GUIToggleable::SetToggleGroupInternal(SPtr<GUIToggleGroup> toggleGroup)
 {
 	mToggleGroup = toggleGroup;
 
@@ -72,7 +64,7 @@ void GUIToggle::SetToggleGroupInternal(SPtr<GUIToggleGroup> toggleGroup)
 	}
 }
 
-void GUIToggle::SetIsToggled(bool isToggled, bool triggerEvent)
+void GUIToggleable::SetIsToggled(bool isToggled, bool triggerEvent)
 {
 	if(mIsToggled == isToggled)
 		return;
@@ -130,7 +122,7 @@ void GUIToggle::SetIsToggled(bool isToggled, bool triggerEvent)
 	SetOnInternal(mIsToggled);
 }
 
-void GUIToggle::UpdateRenderElements()
+void GUIToggleable::UpdateRenderElements()
 {
 	Super::UpdateRenderElements();
 
@@ -180,7 +172,7 @@ void GUIToggle::UpdateRenderElements()
 	}
 }
 
-bool GUIToggle::DoOnMouseEvent(const GUIMouseEvent& event)
+bool GUIToggleable::DoOnMouseEvent(const GUIMouseEvent& event)
 {
 	bool processed = GUIClickable::DoOnMouseEvent(event);
 
@@ -195,7 +187,7 @@ bool GUIToggle::DoOnMouseEvent(const GUIMouseEvent& event)
 	return processed;
 }
 
-bool GUIToggle::DoOnCommandEvent(const GUICommandEvent& event)
+bool GUIToggleable::DoOnCommandEvent(const GUICommandEvent& event)
 {
 	const bool processed = GUIClickable::DoOnCommandEvent(event);
 
@@ -209,3 +201,7 @@ bool GUIToggle::DoOnCommandEvent(const GUICommandEvent& event)
 
 	return processed;
 }
+
+GUIToggle::GUIToggle(PrivatelyConstruct, const GUIToggleContent& contents, const String& styleName, const GUISizeConstraints& dimensions)
+	: GUIToggleable(contents.GeneralContent, styleName, dimensions)
+{ }

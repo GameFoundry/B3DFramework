@@ -6,7 +6,6 @@
 #include "BsScriptObject.h"
 
 namespace bs { class GUIToggleGroup; }
-namespace bs { class GUIToggle; }
 namespace bs
 {
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptGUIToggleGroup : public ScriptObject<ScriptGUIToggleGroup>
@@ -22,6 +21,6 @@ namespace bs
 	private:
 		SPtr<GUIToggleGroup> mInternal;
 
-		static void InternalCreateToggleGroup(MonoObject* managedInstance, bool allowAllOff);
+		static void InternalCreate(MonoObject* managedInstance, bool allowAllOff);
 	};
 }

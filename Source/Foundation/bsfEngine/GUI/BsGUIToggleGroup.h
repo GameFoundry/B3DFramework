@@ -6,6 +6,8 @@
 
 namespace bs
 {
+	class GUIToggleable;
+
 	/** @addtogroup GUI
 	 *  @{
 	 */
@@ -16,27 +18,36 @@ namespace bs
 	public:
 		~GUIToggleGroup();
 
+		/**
+		 * Creates a toggle group that you may provide to GUIToggleable upon construction. Toggles sharing the same group will
+		 * only have a single element active at a time.
+		 *
+		 * @param	allowAllOff	If true all of the toggle buttons can be turned off, if false one will always be turned on.
+		 */
+		B3D_SCRIPT_EXPORT(ExtensionConstructorForType(GUIToggleGroup))
+		static SPtr<GUIToggleGroup> Create(bool allowAllOff = false);
+
 	public: // ***** INTERNAL ******
 		/** @name Internal
 		 *  @{
 		 */
 
 		/** Registers a new toggle button with the group. */
-		void AddInternal(GUIToggle* toggle);
+		void AddInternal(GUIToggleable* toggle);
 
 		/**	Unregisters a toggle button from the group. */
-		void RemoveInternal(GUIToggle* toggle);
+		void RemoveInternal(GUIToggleable* toggle);
 
 		/** @} */
 	private:
-		friend class GUIToggle;
+		friend class GUIToggleable;
 
 		GUIToggleGroup(bool allowAllOff);
 
 		/**	Initializes the toggle group. To be called right after construction. */
 		void Initialize(const SPtr<GUIToggleGroup>& sharedPtr);
 
-		Vector<GUIToggle*> mButtons;
+		Vector<GUIToggleable*> mButtons;
 		bool mAllowAllOff;
 		std::weak_ptr<GUIToggleGroup> mThis;
 	};

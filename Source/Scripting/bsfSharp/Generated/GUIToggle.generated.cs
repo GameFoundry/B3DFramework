@@ -12,7 +12,7 @@ namespace bs
 
 	/// <summary>GUI element representing a toggle (on/off) button.</summary>
 	[ShowInInspector]
-	public partial class GUIToggle : GUIClickable
+	public partial class GUIToggle : GUIToggleable
 	{
 		private GUIToggle(bool __dummy0) { }
 		protected GUIToggle() { }
@@ -63,22 +63,6 @@ namespace bs
 			Internal_Create2(this, options);
 		}
 
-		/// <summary>Checks or unchecks the toggle.</summary>
-		[ShowInInspector]
-		[NativeWrapper]
-		public bool IsToggled
-		{
-			get { return Internal_IsToggled(mCachedPtr); }
-			set { Internal_SetIsToggled(mCachedPtr, value); }
-		}
-
-		/// <summary>Triggered whenever the button is toggled on or off.</summary>
-		public event Action<bool> OnToggled;
-
-		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_SetIsToggled(IntPtr thisPtr, bool isToggled);
-		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern bool Internal_IsToggled(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_Create(GUIToggle managedInstance, ref GUIToggleContent contents, string styleClass, params GUIOption[] options);
 		[MethodImpl(MethodImplOptions.InternalCall)]
@@ -87,10 +71,6 @@ namespace bs
 		private static extern void Internal_Create1(GUIToggle managedInstance, string styleClass, params GUIOption[] options);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_Create2(GUIToggle managedInstance, params GUIOption[] options);
-		private void Internal_OnToggled(bool p0)
-		{
-			OnToggled?.Invoke(p0);
-		}
 	}
 
 	/** @} */

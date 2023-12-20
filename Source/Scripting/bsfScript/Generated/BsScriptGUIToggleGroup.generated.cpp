@@ -6,7 +6,6 @@
 #include "BsMonoUtil.h"
 #include "../../../Foundation/bsfEngine/GUI/BsGUIToggleGroup.h"
 #include "BsScriptGUIToggleGroup.generated.h"
-#include "../../../Foundation/bsfEngine/GUI/BsGUIToggle.h"
 
 namespace bs
 {
@@ -17,7 +16,7 @@ namespace bs
 
 	void ScriptGUIToggleGroup::InitRuntimeData()
 	{
-		metaData.ScriptClass->AddInternalCall("Internal_CreateToggleGroup", (void*)&ScriptGUIToggleGroup::InternalCreateToggleGroup);
+		metaData.ScriptClass->AddInternalCall("Internal_Create", (void*)&ScriptGUIToggleGroup::InternalCreate);
 
 	}
 
@@ -32,9 +31,9 @@ namespace bs
 		new (B3DAllocate<ScriptGUIToggleGroup>()) ScriptGUIToggleGroup(managedInstance, value);
 		return managedInstance;
 	}
-	void ScriptGUIToggleGroup::InternalCreateToggleGroup(MonoObject* managedInstance, bool allowAllOff)
+	void ScriptGUIToggleGroup::InternalCreate(MonoObject* managedInstance, bool allowAllOff)
 	{
-		SPtr<GUIToggleGroup> instance = GUIToggle::CreateToggleGroup(allowAllOff);
+		SPtr<GUIToggleGroup> instance = GUIToggleGroup::Create(allowAllOff);
 		new (B3DAllocate<ScriptGUIToggleGroup>())ScriptGUIToggleGroup(managedInstance, instance);
 	}
 }
