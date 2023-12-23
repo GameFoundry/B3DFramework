@@ -987,20 +987,22 @@ bool GUIManager::FindElementUnderPointer(const Vector2I& pointerScreenPos, bool 
 			GUIWidget* widget = widgetInfo.Widget;
 			if(widgetWindows[widgetIdx] == windowUnderPointer && widget->InBounds(WindowToBridgedCoords(widget->GetTarget()->GetTarget(), windowPos)))
 			{
-				const Vector<GUIInteractable*>& elements = widget->GetElements();
+				const Vector<GUIRenderable*>& elements = widget->GetElements();
 				Vector2I localPos = GetWidgetRelativePos(widget, pointerScreenPos);
 
 				// Elements with lowest depth (most to the front) get handled first
 				for(auto iter = elements.begin(); iter != elements.end(); ++iter)
 				{
-					GUIInteractable* element = *iter;
+					GUIInteractable* const interactableElement = B3DRTTICast<GUIInteractable>(*iter);
+					if(!interactableElement)
+						continue;
 
-					if(element->IsVisible() && element->IsInBounds(localPos))
+					if(interactableElement->IsVisible() && interactableElement->IsInBounds(localPos))
 					{
-						ElementInfoUnderPointer elementInfo(element, widget);
+						ElementInfoUnderPointer elementInfo(interactableElement, widget);
 
 						auto iterFind = std::find_if(mElementsUnderPointer.begin(), mElementsUnderPointer.end(), [=](const ElementInfoUnderPointer& x)
-													 { return x.Element == element; });
+													 { return x.Element == interactableElement; });
 
 						if(iterFind != mElementsUnderPointer.end())
 						{
@@ -1475,10 +1477,14 @@ void GUIManager::TabFocusFirst()
 	{
 		const RenderWindow* window = GetWidgetWindow(*widgetInfo.Widget);
 
-		const Vector<GUIInteractable*>& elements = widgetInfo.Widget->GetElements();
+		const Vector<GUIRenderable*>& elements = widgetInfo.Widget->GetElements();
 		for(auto& element : elements)
 		{
-			const bool acceptsKeyFocus = element->GetOptionFlags().IsSet(GUIElementOption::AcceptsKeyFocus);
+			GUIInteractable* const interactableElement = B3DRTTICast<GUIInteractable>(element);
+			if(!interactableElement)
+				continue;
+
+			const bool acceptsKeyFocus = interactableElement->GetOptionFlags().IsSet(GUIElementOption::AcceptsKeyFocus);
 			if(!acceptsKeyFocus || element->IsDisabled() || !element->IsVisible())
 				continue;
 
@@ -1496,7 +1502,7 @@ void GUIManager::TabFocusFirst()
 			if(dist < nearestDist)
 			{
 				nearestDist = dist;
-				closestElement = element;
+				closestElement = interactableElement;
 			}
 		}
 	}

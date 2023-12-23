@@ -183,6 +183,9 @@ namespace bs
 		/** Similar to GetCachedBounds(), except the bounds are clipped against the current clip rectangle. */
 		const Rect2I& GetCachedClippedBounds() const { return mClippedBounds; }
 
+		/** Checks is the specified position within GUI element bounds. Position is relative to parent GUI widget. */
+		virtual bool IsInBounds(const Vector2I& position) const;
+
 		/**
 		 * Returns GUI element depth. This includes widget and area depth, but does not include specific per-render-element
 		 * depth.

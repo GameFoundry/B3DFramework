@@ -4,12 +4,13 @@
 
 #include "BsPrerequisites.h"
 #include "Math/BsRect2I.h"
-#include "Math/BsVector3.h"
 #include "2D/BsSpriteMaterial.h"
 #include "RenderAPI/BsSubMesh.h"
 
 namespace bs
 {
+	class GUIRenderable;
+
 	/** @addtogroup Implementation
 	 *  @{
 	 */
@@ -77,19 +78,19 @@ namespace bs
 		GUIMeshBatches(GUIWidget* parentWidget);
 
 		/** Iterates over all the render elements in the GUI elements and adds them to suitable batches. */
-		void Add(GUIInteractable* guiElement);
+		void Add(GUIRenderable* guiElement);
 
 		/** Removes all render elements in the provided GUI element from their current set of batches. */
-		void Remove(GUIInteractable* guiElement);
+		void Remove(GUIRenderable* guiElement);
 
 		/** Rebuilds any dirty internal data and returns the data structure required for updating the GUI renderer. */
 		GUIDrawGroupRenderDataUpdate RebuildDirty(bool forceRebuildMeshes);
 
 		/** Notifies the system that element's contents were marked as dirty. */
-		void MarkContentDirty(GUIInteractable* guiElement);
+		void MarkContentDirty(GUIRenderable* guiElement);
 
 		/** Notifies the system that element's mesh was marked as dirty. */
-		void MarkMeshDirty(GUIInteractable* guiElement);
+		void MarkMeshDirty(GUIRenderable* guiElement);
 
 	private:
 		/** Information about a material used by a batch. */
@@ -120,11 +121,11 @@ namespace bs
 		{
 			BatchedGUIRenderElement() = default;
 
-			BatchedGUIRenderElement(GUIInteractable* element, u32 renderElementIndex, u32 depth)
+			BatchedGUIRenderElement(GUIRenderable* element, u32 renderElementIndex, u32 depth)
 				: ParentGUIElement(element), RenderElementIndex(renderElementIndex), Depth(depth)
 			{}
 
-			GUIInteractable* ParentGUIElement = nullptr;
+			GUIRenderable* ParentGUIElement = nullptr;
 			u32 RenderElementIndex = 0;
 			u32 Depth = 0;
 		};
@@ -132,7 +133,7 @@ namespace bs
 		/** Represents a batched GUI element. */
 		struct BatchedGUIElement
 		{
-			GUIInteractable* GUIElement = nullptr;
+			GUIRenderable* GUIElement = nullptr;
 			TInlineArray<u32, 4> BatchPerRenderElement;
 			Rect2I Bounds;
 		};
@@ -238,13 +239,13 @@ namespace bs
 		static BatchedMaterial CreateBatchedMaterial(const BatchedGUIRenderElement& batchedGuiRenderElement);
 
 		/** Creates information about a material for the provided render element. */
-		static BatchedMaterial CreateBatchedMaterial(const GUIInteractable& guiElement, u32 renderElementIndex);
+		static BatchedMaterial CreateBatchedMaterial(const GUIRenderable& guiElement, u32 renderElementIndex);
 
 		Vector<BatchesInDepthRange> mDepthRanges;
 		UnorderedMap<u32, Batch> mBatches;
 
-		UnorderedMap<GUIInteractable*, BatchedGUIElement> mElements;
-		UnorderedMap<GUIInteractable*, u32> mDirtyElements;
+		UnorderedMap<GUIRenderable*, BatchedGUIElement> mElements;
+		UnorderedMap<GUIRenderable*, u32> mDirtyElements;
 		Vector<Rect2I> mDirtyRegionsForRemovedBatches;
 		bool mBatchesOutOfDateInRenderer = true;
 		GUIWidget* mWidget;

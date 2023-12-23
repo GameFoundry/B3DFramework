@@ -260,20 +260,19 @@ void GUIWidget::UpdateLayoutInternal(GUIElementBase* elem)
 	B3DClearAllocatorFrame();
 }
 
-void GUIWidget::RegisterElement(GUIElementBase* guiElementBase)
+void GUIWidget::RegisterElement(GUIElementBase* guiElement)
 {
-	B3D_ASSERT(guiElementBase != nullptr && !guiElementBase->IsPendingDestroy());
+	B3D_ASSERT(guiElement != nullptr && !guiElement->IsPendingDestroy());
 
-	if(guiElementBase->GetType() == GUIElementBase::Type::Element)
+	if(GUIRenderable* const renderable = B3DRTTICast<GUIRenderable>(guiElement))
 	{
-		mElements.push_back(static_cast<GUIInteractable*>(guiElementBase));
+		mElements.push_back(renderable);
 		mWidgetIsDirty = true;
 
-		if(guiElementBase->IsVisible())
+		if(guiElement->IsVisible())
 		{
-			auto guiElement = static_cast<GUIInteractable*>(guiElementBase);
-			mBatches.Add(guiElement);
-			mBatches.MarkContentDirty(guiElement);
+			mBatches.Add(renderable);
+			mBatches.MarkContentDirty(renderable);
 		}
 	}
 }
@@ -290,45 +289,41 @@ void GUIWidget::UnregisterElement(GUIElementBase* guiElement)
 		mWidgetIsDirty = true;
 	}
 
-	if(guiElement->GetType() == GUIElementBase::Type::Element)
+	if(GUIRenderable* const renderable = B3DRTTICast<GUIRenderable>(guiElement))
 	{
-		mDirtyContents.erase(static_cast<GUIInteractable*>(guiElement));
-
-		const auto guiElem = static_cast<GUIInteractable*>(guiElement);
-		mBatches.Remove(guiElem);
+		mDirtyContents.erase(renderable);
+		mBatches.Remove(renderable);
 	}
 }
 
-void GUIWidget::NotifyElementVisibilityChanged(GUIElementBase* guiElementBase, bool isVisible)
+void GUIWidget::NotifyElementVisibilityChanged(GUIElementBase* guiElement, bool isVisible)
 {
-	if(guiElementBase->GetType() != GUIElementBase::Type::Element)
-		return;
-
-	const auto guiElement = static_cast<GUIInteractable*>(guiElementBase);
-	if(isVisible)
-		mBatches.Add(guiElement);
-	else
-		mBatches.Remove(guiElement);
+	if(GUIRenderable* const renderable = B3DRTTICast<GUIRenderable>(guiElement))
+	{
+		if(isVisible)
+			mBatches.Add(renderable);
+		else
+			mBatches.Remove(renderable);
+	}
 }
 
 void GUIWidget::MarkMeshDirty(GUIElementBase* elem)
 {
 	mWidgetIsDirty = true;
 
-	if(elem->GetType() == GUIElementBase::Type::Element)
-		mBatches.MarkMeshDirty(static_cast<GUIInteractable*>(elem));
+	if(GUIRenderable *const renderable = B3DRTTICast<GUIRenderable>(elem))
+		mBatches.MarkMeshDirty(renderable);
 }
 
 void GUIWidget::MarkContentDirty(GUIElementBase* elem)
 {
-	if(elem->GetType() == GUIElementBase::Type::Element)
+	if(GUIRenderable *const renderable = B3DRTTICast<GUIRenderable>(elem))
 	{
-		auto guiElement = static_cast<GUIInteractable*>(elem);
-		if(!guiElement->IsVisible())
+		if(!renderable->IsVisible())
 			return;
 
-		mDirtyContents.insert(guiElement);
-		mBatches.MarkContentDirty(guiElement);
+		mDirtyContents.insert(renderable);
+		mBatches.MarkContentDirty(renderable);
 	}
 }
 

@@ -12,6 +12,7 @@
 
 namespace bs
 {
+	class GUIRenderable;
 	class GUINavGroup;
 
 	/** @addtogroup GUI
@@ -83,7 +84,7 @@ namespace bs
 		void SetCamera(const SPtr<Camera>& camera);
 
 		/**	Returns a list of all elements parented to this widget. */
-		const Vector<GUIInteractable*>& GetElements() const { return mElements; }
+		const Vector<GUIRenderable*>& GetElements() const { return mElements; }
 
 		/** Returns the world transform that all GUI elements beloning to this widget will be transformed by. */
 		const Matrix4 GetWorldTfrm() const { return mTransform; }
@@ -112,7 +113,7 @@ namespace bs
 		 */
 
 		/** Registers a new element as a child of the widget. */
-		void RegisterElement(GUIElementBase* guiElementBase);
+		void RegisterElement(GUIElementBase* guiElement);
 
 		/**
 		 * Unregisters an element from the widget. Usually called when the element is destroyed, or reparented to another
@@ -121,7 +122,7 @@ namespace bs
 		void UnregisterElement(GUIElementBase* guiElementBase);
 
 		/** Called when a registered GUI element is hidden or made visible. Only needs to be called if visibility changes after registration. */
-		void NotifyElementVisibilityChanged(GUIElementBase* guiElementBase, bool isVisible);
+		void NotifyElementVisibilityChanged(GUIElementBase* guiElement, bool isVisible);
 
 		/**
 		 * Returns the default navigation group assigned to all elements of this widget that don't have an explicit nav-
@@ -191,7 +192,7 @@ namespace bs
 		void UpdateRootPanel();
 
 		SPtr<Camera> mCamera;
-		Vector<GUIInteractable*> mElements;
+		Vector<GUIRenderable*> mElements;
 		GUIMeshBatches mBatches;
 		GUIPanel* mPanel = nullptr;
 		u8 mDepth = 128;
@@ -203,8 +204,8 @@ namespace bs
 		Vector3 mScale = Vector3::kOne;
 		Matrix4 mTransform = BsIdentity;
 
-		Set<GUIInteractable*> mDirtyContents;
-		Set<GUIInteractable*> mDirtyContentsTemp;
+		Set<GUIRenderable*> mDirtyContents;
+		Set<GUIRenderable*> mDirtyContentsTemp;
 
 		mutable u64 mCachedRTId = 0;
 		mutable bool mWidgetIsDirty = false;

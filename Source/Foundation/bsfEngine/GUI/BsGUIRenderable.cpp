@@ -224,6 +224,11 @@ Rect2I GUIRenderable::GetCachedClippedContentBoundsInContentSpace() const
 	return contentClipRect;
 }
 
+bool GUIRenderable::IsInBounds(const Vector2I& position) const
+{
+	return GetCachedClippedBounds().Contains(position);
+}
+
 Vector2I GUIRenderable::GetContentOffsetInElementSpace() const
 {
 	const RectOffset& padding = GetPadding();

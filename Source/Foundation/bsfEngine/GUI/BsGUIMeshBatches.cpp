@@ -52,7 +52,7 @@ GUIMeshBatches::GUIMeshBatches(GUIWidget* parentWidget)
 	mDepthRanges.push_back(rootDepthRange);
 }
 
-void GUIMeshBatches::Add(GUIInteractable* guiElement)
+void GUIMeshBatches::Add(GUIRenderable* guiElement)
 {
 	const TInlineArray<GUIRenderElement, 4>& guiRenderElements = guiElement->GetRenderElements();
 
@@ -72,7 +72,7 @@ void GUIMeshBatches::Add(GUIInteractable* guiElement)
 
 void GUIMeshBatches::Add(BatchedGUIElement& batchedGuiElement, u32 renderElementIndex)
 {
-	GUIInteractable* const guiElement = batchedGuiElement.GUIElement;
+	GUIRenderable* const guiElement = batchedGuiElement.GUIElement;
 	const TInlineArray<GUIRenderElement, 4>& renderElements = guiElement->GetRenderElements();
 
 	const GUIRenderElement& guiRenderElement = renderElements[renderElementIndex];
@@ -91,7 +91,7 @@ void GUIMeshBatches::Add(BatchedGUIElement& batchedGuiElement, u32 renderElement
 
 void GUIMeshBatches::Add(BatchedGUIElement& batchedGuiElement, u32 renderElementIndex, u32 depthRangeIndex)
 {
-	GUIInteractable* const guiElement = batchedGuiElement.GUIElement;
+	GUIRenderable* const guiElement = batchedGuiElement.GUIElement;
 	const TInlineArray<GUIRenderElement, 4>& guiRenderElements = guiElement->GetRenderElements();
 
 	const GUIRenderElement& guiRenderElement = guiRenderElements[renderElementIndex];
@@ -287,7 +287,7 @@ GUIMeshBatches::Batch* GUIMeshBatches::Add(BatchedGUIElement& batchedGuiElement,
 	return foundBatch;
 }
 
-void GUIMeshBatches::Remove(GUIInteractable* guiElement)
+void GUIMeshBatches::Remove(GUIRenderable* guiElement)
 {
 	auto found = mElements.find(guiElement);
 	if(found == mElements.end())
@@ -331,7 +331,7 @@ void GUIMeshBatches::Remove(BatchedGUIElement& batchedGuiElement, u32 renderElem
 	if(!B3D_ENSURE(itFoundBatch != mBatches.end()))
 		return;
 
-	GUIInteractable* const guiElement = batchedGuiElement.GUIElement;
+	GUIRenderable* const guiElement = batchedGuiElement.GUIElement;
 	BatchesInDepthRange& depthRange = mDepthRanges[depthRangeIndex];
 
 	bool hasFoundElementToRemove = false;
@@ -393,7 +393,7 @@ GUIDrawGroupRenderDataUpdate GUIMeshBatches::RebuildDirty(bool forceRebuildMeshe
 	bool shouldRebuildMeshes = forceRebuildMeshes;
 	for(auto& entry : mDirtyElements)
 	{
-		GUIInteractable* const guiElement = entry.first;
+		GUIRenderable* const guiElement = entry.first;
 
 		auto itFoundElement = mElements.find(guiElement);
 		if(itFoundElement == mElements.end())
@@ -603,12 +603,12 @@ GUIDrawGroupRenderDataUpdate GUIMeshBatches::RebuildDirty(bool forceRebuildMeshe
 	return output;
 }
 
-void GUIMeshBatches::MarkContentDirty(GUIInteractable* guiElement)
+void GUIMeshBatches::MarkContentDirty(GUIRenderable* guiElement)
 {
 	mDirtyElements[guiElement] |= DirtyContent;
 }
 
-void GUIMeshBatches::MarkMeshDirty(GUIInteractable* guiElement)
+void GUIMeshBatches::MarkMeshDirty(GUIRenderable* guiElement)
 {
 	mDirtyElements[guiElement] |= DirtyMesh;
 }
@@ -652,7 +652,7 @@ void GUIMeshBatches::RebuildMesh(Batch& batch)
 
 	for(const auto& batchedGuiRenderElement : batch.RenderElements)
 	{
-		const GUIInteractable* const guiElement = batchedGuiRenderElement.ParentGUIElement;
+		const GUIRenderable* const guiElement = batchedGuiRenderElement.ParentGUIElement;
 		B3D_ASSERT(guiElement != nullptr);
 
 		if(!guiElement->IsVisible())
@@ -685,7 +685,7 @@ void GUIMeshBatches::RebuildMesh(Batch& batch)
 
 	for(const auto& batchedGuiRenderElement : batch.RenderElements)
 	{
-		const GUIInteractable* const guiElement = batchedGuiRenderElement.ParentGUIElement;
+		const GUIRenderable* const guiElement = batchedGuiRenderElement.ParentGUIElement;
 		B3D_ASSERT(guiElement != nullptr);
 
 		if(!guiElement->IsVisible())
@@ -946,13 +946,13 @@ Rect2I GUIMeshBatches::CalculateBounds(Batch& batch)
 
 GUIMeshBatches::BatchedMaterial GUIMeshBatches::CreateBatchedMaterial(const BatchedGUIRenderElement& batchedGuiRenderElement)
 {
-	GUIInteractable* const guiElement = batchedGuiRenderElement.ParentGUIElement;
+	GUIRenderable* const guiElement = batchedGuiRenderElement.ParentGUIElement;
 	B3D_ASSERT(guiElement != nullptr);
 
 	return CreateBatchedMaterial(*guiElement, batchedGuiRenderElement.RenderElementIndex);
 }
 
-GUIMeshBatches::BatchedMaterial GUIMeshBatches::CreateBatchedMaterial(const GUIInteractable& guiElement, u32 renderElementIndex)
+GUIMeshBatches::BatchedMaterial GUIMeshBatches::CreateBatchedMaterial(const GUIRenderable& guiElement, u32 renderElementIndex)
 {
 	const TInlineArray<GUIRenderElement, 4>& guiRenderElements = guiElement.GetRenderElements();
 	const GUIRenderElement& guiRenderElement = guiRenderElements[renderElementIndex];

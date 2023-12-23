@@ -155,9 +155,6 @@ namespace bs
 		/** Transitions the GUI element into a new state by removing state flags. */
 		void RemoveStateFlags(GUIElementStateFlags flags);
 
-		/** Checks is the specified position within GUI element bounds. Position is relative to parent GUI widget. */
-		virtual bool IsInBounds(const Vector2I& position) const;
-
 		/**	Checks if the GUI element has a custom cursor and outputs the cursor type if it does. */
 		virtual bool HasCustomCursor(const Vector2I position, CursorType& type) const { return false; }
 

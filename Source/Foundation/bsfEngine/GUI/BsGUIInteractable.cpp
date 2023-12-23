@@ -177,11 +177,6 @@ void GUIInteractable::RemoveStateFlags(GUIElementStateFlags flags)
 	MarkContentAsDirty();
 }
 
-bool GUIInteractable::IsInBounds(const Vector2I& position) const
-{
-	return GetCachedClippedBounds().Contains(position);
-}
-
 SPtr<GUIContextMenu> GUIInteractable::GetContextMenu() const
 {
 	if(!IsDisabled())

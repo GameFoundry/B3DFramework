@@ -53,7 +53,7 @@ namespace bs
 		SPtr<Camera> GetCamera() const;
 
 		/** @copydoc GUIWidget::GetElements */
-		const Vector<GUIInteractable*>& GetElements() const;
+		const Vector<GUIRenderable*>& GetElements() const;
 
 	public: // ***** INTERNAL ******
 		/** @name Internal
