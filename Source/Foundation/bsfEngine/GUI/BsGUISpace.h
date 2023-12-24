@@ -49,6 +49,14 @@ namespace bs
 		/** @} */
 	protected:
 		u32 mSize;
+
+		/************************************************************************/
+		/* 								RTTI		                     		*/
+		/************************************************************************/
+	public:
+		friend class GUIFixedSpaceRTTI;
+		static RTTITypeBase* GetRttiStatic();
+		RTTITypeBase* GetRtti() const override;
 	};
 
 	/**
@@ -79,6 +87,14 @@ namespace bs
 		GUIConstrainedSize CalculateConstrainedSize() const override;
 
 		/** @} */
+
+		/************************************************************************/
+		/* 								RTTI		                     		*/
+		/************************************************************************/
+	public:
+		friend class GUIFlexibleSpaceRTTI;
+		static RTTITypeBase* GetRttiStatic();
+		RTTITypeBase* GetRtti() const override;
 	};
 
 	/** @} */

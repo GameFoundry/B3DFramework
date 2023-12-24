@@ -141,7 +141,7 @@ namespace bs
 		void ChangeParentWidget(GUIWidget* widget) override;
 
 		/** Gets internal element style representing the exact type of GUI element in this object. */
-		Type GetType() const override { return GUIElementBase::Type::Element; } // TODO - Deprecated
+		Type GetType() const override { return GUIElementBase::Type::Interactable; } // TODO - Deprecated
 
 		/** Notifies the system the state flag was added or removed. */
 		virtual void NotifyStateFlagsChanged();

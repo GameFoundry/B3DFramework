@@ -109,6 +109,14 @@ namespace bs
 		i16 mDepthOffset;
 		u16 mDepthRangeMin;
 		u16 mDepthRangeMax;
+
+		/************************************************************************/
+		/* 								RTTI		                     		*/
+		/************************************************************************/
+	public:
+		friend class GUIPanelRTTI;
+		static RTTITypeBase* GetRttiStatic();
+		RTTITypeBase* GetRtti() const override;
 	};
 
 	/** @} */

@@ -25,7 +25,7 @@ void ScriptGUIElementBaseTBase::Initialize(GUIElementBase* element)
 {
 	mElement = element;
 
-	if(mElement != nullptr && mElement->GetType() == GUIElementBase::Type::Element)
+	if(mElement != nullptr && mElement->GetType() == GUIElementBase::Type::Interactable)
 	{
 		GUIInteractable* guiElem = static_cast<GUIInteractable*>(element);
 		guiElem->OnFocusChanged.Connect(std::bind(&ScriptGUIElementBaseTBase::OnFocusChanged, this, _1));
@@ -158,7 +158,7 @@ void ScriptGUIElement::InternalSetFocus(ScriptGUIElementBaseTBase* nativeInstanc
 		return;
 
 	GUIElementBase* guiElemBase = nativeInstance->GetGuiElement();
-	if(guiElemBase->GetType() == GUIElementBase::Type::Element)
+	if(guiElemBase->GetType() == GUIElementBase::Type::Interactable)
 	{
 		GUIInteractable* guiElem = static_cast<GUIInteractable*>(guiElemBase);
 		guiElem->SetFocus(focus, true);
@@ -198,7 +198,7 @@ bool ScriptGUIElement::InternalGetBlocking(ScriptGUIElementBaseTBase* nativeInst
 		return false;
 
 	GUIElementBase* guiElemBase = nativeInstance->GetGuiElement();
-	if(guiElemBase->GetType() == GUIElementBase::Type::Element)
+	if(guiElemBase->GetType() == GUIElementBase::Type::Interactable)
 	{
 		GUIInteractable* guiElem = static_cast<GUIInteractable*>(guiElemBase);
 		return !guiElem->GetOptionFlags().IsSet(GUIElementOption::ClickThrough);
@@ -213,7 +213,7 @@ void ScriptGUIElement::InternalSetBlocking(ScriptGUIElementBaseTBase* nativeInst
 		return;
 
 	GUIElementBase* guiElemBase = nativeInstance->GetGuiElement();
-	if(guiElemBase->GetType() == GUIElementBase::Type::Element)
+	if(guiElemBase->GetType() == GUIElementBase::Type::Interactable)
 	{
 		GUIInteractable* guiElem = static_cast<GUIInteractable*>(guiElemBase);
 
@@ -233,7 +233,7 @@ bool ScriptGUIElement::InternalGetAcceptsKeyFocus(ScriptGUIElementBaseTBase* nat
 		return false;
 
 	GUIElementBase* guiElemBase = nativeInstance->GetGuiElement();
-	if(guiElemBase->GetType() == GUIElementBase::Type::Element)
+	if(guiElemBase->GetType() == GUIElementBase::Type::Interactable)
 	{
 		GUIInteractable* guiElem = static_cast<GUIInteractable*>(guiElemBase);
 		return guiElem->GetOptionFlags().IsSet(GUIElementOption::AcceptsKeyFocus);
@@ -248,7 +248,7 @@ void ScriptGUIElement::InternalSetAcceptsKeyFocus(ScriptGUIElementBaseTBase* nat
 		return;
 
 	GUIElementBase* guiElemBase = nativeInstance->GetGuiElement();
-	if(guiElemBase->GetType() == GUIElementBase::Type::Element)
+	if(guiElemBase->GetType() == GUIElementBase::Type::Interactable)
 	{
 		GUIInteractable* guiElem = static_cast<GUIInteractable*>(guiElemBase);
 
@@ -362,7 +362,7 @@ void ScriptGUIElement::InternalSetTint(ScriptGUIElementBaseTBase* nativeInstance
 		return;
 
 	GUIElementBase* const guiElementBase = nativeInstance->GetGuiElement();
-	if(guiElementBase->GetType() != GUIElementBase::Type::Element)
+	if(guiElementBase->GetType() != GUIElementBase::Type::Interactable)
 		return;
 
 	GUIInteractable* const guiElement = static_cast<GUIInteractable*>(guiElementBase);
@@ -383,7 +383,7 @@ void ScriptGUIElement::InternalSetContextMenu(ScriptGUIElementBaseTBase* nativeI
 		return;
 
 	GUIElementBase* guiElemBase = nativeInstance->GetGuiElement();
-	if(guiElemBase->GetType() == GUIElementBase::Type::Element)
+	if(guiElemBase->GetType() == GUIElementBase::Type::Interactable)
 	{
 		GUIInteractable* guiElem = static_cast<GUIInteractable*>(guiElemBase);
 
@@ -400,7 +400,7 @@ MonoString* ScriptGUIElement::InternalGetStyle(ScriptGUIElementBaseTBase* native
 	if(!nativeInstance->IsDestroyed())
 	{
 		GUIElementBase* guiElemBase = nativeInstance->GetGuiElement();
-		if(guiElemBase->GetType() == GUIElementBase::Type::Element)
+		if(guiElemBase->GetType() == GUIElementBase::Type::Interactable)
 		{
 			GUIInteractable* guiElem = static_cast<GUIInteractable*>(guiElemBase);
 			return MonoUtil::StringToMono(guiElem->GetStyleSheetClass());
@@ -415,7 +415,7 @@ void ScriptGUIElement::InternalSetStyle(ScriptGUIElementBaseTBase* nativeInstanc
 	if(!nativeInstance->IsDestroyed())
 	{
 		GUIElementBase* guiElemBase = nativeInstance->GetGuiElement();
-		if(guiElemBase->GetType() == GUIElementBase::Type::Element)
+		if(guiElemBase->GetType() == GUIElementBase::Type::Interactable)
 		{
 			GUIInteractable* guiElem = static_cast<GUIInteractable*>(guiElemBase);
 			guiElem->SetStyleSheetClass(MonoUtil::MonoToString(style));

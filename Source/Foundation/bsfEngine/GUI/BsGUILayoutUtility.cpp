@@ -45,7 +45,7 @@ Vector2I GUIUtility::CalcActualSizeInternal(u32 width, u32 height, GUILayout* la
 			actualAreas[i].Width = (u32)childActualSize.X;
 			actualAreas[i].Height = (u32)childActualSize.Y;
 		}
-		else if(child->GetType() == GUIElementBase::Type::Element)
+		else if(child->GetType() == GUIElementBase::Type::Interactable)
 		{
 			RectOffset padding = child->GetMargins();
 

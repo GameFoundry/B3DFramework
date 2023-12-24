@@ -6,8 +6,34 @@
 #include "Math/BsMath.h"
 #include "Math/BsVector2I.h"
 #include "Profiling/BsProfilerCPU.h"
+#include "Reflection/BsRTTIType.h"
 
 using namespace bs;
+
+/** @cond RTTI */
+/** @addtogroup RTTI-Impl-Engine
+ *  @{
+ */
+
+namespace bs
+{
+	class B3D_EXPORT GUIPanelRTTI : public RTTIType<GUIPanel, GUILayout, GUIPanelRTTI>
+	{
+	public:
+		const String& GetRttiName()
+		{
+			static String name = "GUIPanel";
+			return name;
+		}
+
+		u32 GetRttiId() { return TID_GUIPanel; }
+
+		SPtr<IReflectable> NewRttiObject() { return nullptr; }
+	};
+} // namespace bs
+
+/** @} */
+/** @endcond */
 
 GUIPanel::GUIPanel(i16 depth, u16 depthRangeMin, u16 depthRangeMax, const GUISizeConstraints& dimensions)
 	: GUILayout(dimensions), mDepthOffset(depth), mDepthRangeMin(depthRangeMin), mDepthRangeMax(depthRangeMax)
@@ -274,4 +300,14 @@ GUIPanel* GUIPanel::Create(const GUIOptions& options)
 GUIPanel* GUIPanel::Create(i16 depth, u16 depthRangeMin, u16 depthRangeMax, const GUIOptions& options)
 {
 	return B3DNew<GUIPanel>(depth, depthRangeMin, depthRangeMax, GUISizeConstraints::Create(options));
+}
+
+RTTITypeBase* GUIPanel::GetRttiStatic()
+{
+	return GUIPanelRTTI::Instance();
+}
+
+RTTITypeBase* GUIPanel::GetRtti() const
+{
+	return GetRttiStatic();
 }

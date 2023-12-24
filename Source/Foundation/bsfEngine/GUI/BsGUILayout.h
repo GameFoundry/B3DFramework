@@ -83,6 +83,14 @@ namespace bs
 	protected:
 		Vector<GUIConstrainedSize> mChildrenConstrainedSizes;
 		GUIConstrainedSize mConstrainedSize;
+
+		/************************************************************************/
+		/* 								RTTI		                     		*/
+		/************************************************************************/
+	public:
+		friend class GUILayoutRTTI;
+		static RTTITypeBase* GetRttiStatic();
+		RTTITypeBase* GetRtti() const override;
 	};
 
 	/** @} */

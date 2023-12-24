@@ -718,6 +718,9 @@ namespace bs
 		TID_GUIRenderable = 1241,
 		TID_GUIInteractable = 1242,
 		TID_GUILayout = 1243,
+		TID_GUIPanel = 1244,
+		TID_GUIFixedSpace = 1245,
+		TID_GUIFlexibleSpace = 1246,
 
 		// Moved from Engine layer
 		TID_CCamera = 30000,

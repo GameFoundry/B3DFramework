@@ -48,7 +48,7 @@ namespace bs
 		enum class Type
 		{
 			Layout,
-			Element,
+			Interactable,
 			FixedSpace,
 			FlexibleSpace,
 			Panel

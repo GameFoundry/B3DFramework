@@ -243,7 +243,7 @@ void GUILayoutX::GetChildLayoutAreas(const Rect2I& layoutArea, Rect2I* elementAr
 					processedElements[childIdx] = true;
 					numNonClampedElements--;
 					break;
-				case GUIElementBase::Type::Element:
+				case GUIElementBase::Type::Interactable:
 				case GUIElementBase::Type::Layout:
 				case GUIElementBase::Type::Panel:
 					{
@@ -306,7 +306,7 @@ void GUILayoutX::GetChildLayoutAreas(const Rect2I& layoutArea, Rect2I* elementAr
 					processedElements[childIdx] = true;
 					numNonClampedElements--;
 					break;
-				case GUIElementBase::Type::Element:
+				case GUIElementBase::Type::Interactable:
 				case GUIElementBase::Type::Layout:
 				case GUIElementBase::Type::Panel:
 					{
@@ -362,7 +362,7 @@ void GUILayoutX::GetChildLayoutAreas(const Rect2I& layoutArea, Rect2I* elementAr
 		}
 		elementAreas[childIdx].Height = elemHeight;
 
-		if(child->GetType() == GUIElementBase::Type::Element)
+		if(child->GetType() == GUIElementBase::Type::Interactable)
 		{
 			GUIInteractable* element = static_cast<GUIInteractable*>(child);
 
