@@ -20,10 +20,10 @@ const String& GUIListBox::GetGuiTypeName()
 	return name;
 }
 
-GUIListBox::GUIListBox(const String& styleName, const Vector<HString>& elements, bool isMultiselect, const GUISizeConstraints& dimensions)
-	: GUIClickable(styleName, GUIContent(HString("")), dimensions), mElements(elements), mIsMultiselect(isMultiselect)
+GUIListBox::GUIListBox(PrivatelyConstruct, const GUIListBoxContent& content, const String& styleName, const GUISizeConstraints& sizeConstraints)
+	: GUIClickable(styleName, GUIContent(HString("")), sizeConstraints), mElements(content.Elements), mIsMultiselect(content.AllowMultiselect)
 {
-	mElementStates.resize(elements.size(), false);
+	mElementStates.resize(mElements.size(), false);
 	if(!mIsMultiselect && mElementStates.size() > 0)
 		mElementStates[0] = true;
 
@@ -39,21 +39,6 @@ GUIListBox::~GUIListBox()
 	CloseListBox();
 
 	B3DDelete(mArrowSprite);
-}
-
-GUIListBox* GUIListBox::Create(const Vector<HString>& elements, bool isMultiselect, const String& styleName)
-{
-	return new(B3DAllocate<GUIListBox>()) GUIListBox(GetStyleClass<GUIListBox>(styleName), elements, isMultiselect, GUISizeConstraints::Create());
-}
-
-GUIListBox* GUIListBox::Create(const Vector<HString>& elements, bool isMultiselect, const GUIOptions& options, const String& styleName)
-{
-	return new(B3DAllocate<GUIListBox>()) GUIListBox(GetStyleClass<GUIListBox>(styleName), elements, isMultiselect, GUISizeConstraints::Create(options));
-}
-
-GUIListBox* GUIListBox::Create(const Vector<HString>& elements, const GUIOptions& options, const String& styleName)
-{
-	return new(B3DAllocate<GUIListBox>()) GUIListBox(GetStyleClass<GUIListBox>(styleName), elements, false, GUISizeConstraints::Create(options));
 }
 
 void GUIListBox::SetElements(const Vector<HString>& elements)

@@ -3,6 +3,7 @@
 #pragma once
 
 #include "BsPrerequisites.h"
+#include "BsGUIOptions.h"
 
 namespace bs
 {

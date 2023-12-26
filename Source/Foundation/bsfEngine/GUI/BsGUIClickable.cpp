@@ -14,8 +14,8 @@
 
 using namespace bs;
 
-GUIClickable::GUIClickable(const String& styleName, const GUIContent& content, const GUISizeConstraints& dimensions, GUIElementOptions options)
-	: GUIInteractable(styleName, dimensions, options), mContent(content)
+GUIClickable::GUIClickable(const String& styleName, const GUIContent& content, const GUISizeConstraints& sizeConstraints, GUIElementOptions options)
+	: GUIInteractable(styleName, sizeConstraints, options), mContent(content)
 {
 	mBackgroundSprite.SetAnimationStartTime(GetTime().GetTime());
 	mContentSprites.SetAnimationStartTime(GetTime().GetTime());

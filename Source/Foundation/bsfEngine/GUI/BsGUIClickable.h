@@ -67,7 +67,7 @@ namespace bs
 
 		/** @} */
 	protected:
-		GUIClickable(const String& styleName, const GUIContent& content, const GUISizeConstraints& dimensions, GUIElementOptions options = GUIElementOption::AcceptsKeyFocus);
+		GUIClickable(const String& styleName, const GUIContent& content, const GUISizeConstraints& sizeConstraints, GUIElementOptions options = GUIElementOption::AcceptsKeyFocus);
 		~GUIClickable() override = default;
 
 		void UpdateRenderElements() override;

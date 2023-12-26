@@ -2,6 +2,7 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
+#include "BsGUIConstructionMethods.h"
 #include "BsPrerequisites.h"
 #include "GUI/BsGUIClickable.h"
 #include "2D/BsImageSprite.h"
@@ -14,45 +15,24 @@ namespace bs
 	 *  @{
 	 */
 
+	/** Structure describing contents of a GUIListBox element. */
+	struct B3D_SCRIPT_EXPORT(ExportAsStruct(true), DocumentationGroup(GUI)) GUIListBoxContent
+	{
+		GUIListBoxContent() = default;
+		GUIListBoxContent(const Vector<HString>& elements, bool allowMultiselect = false)
+			: Elements(elements), AllowMultiselect(allowMultiselect)
+		{ }
+
+		Vector<HString> Elements;
+		bool AllowMultiselect = false;
+	};
+
 	/** List box GUI element which when active opens a drop down selection with provided elements. */
-	class B3D_EXPORT GUIListBox : public GUIClickable
+	class B3D_EXPORT GUIListBox : public GUIClickable, public TGUIConstructionMethods<GUIListBox, GUIListBoxContent>
 	{
 	public:
 		/** Returns type name of the GUI element used for finding GUI element styles. */
 		static const String& GetGuiTypeName();
-
-		/**
-		 * Creates a new listbox with the provided elements.
-		 *
-		 * @param[in]	elements		Elements to display in the list box.
-		 * @param[in]	multiselect		Determines should the listbox allow multiple elements to be selected or just one.
-		 * @param[in]	styleName		Optional style to use for the element. Style will be retrieved from GUISkin of the
-		 *								GUIWidget the element is used on. If not specified default style is used.
-		 */
-		static GUIListBox* Create(const Vector<HString>& elements, bool multiselect = false, const String& styleName = StringUtil::kBlank);
-
-		/**
-		 * Creates a new listbox with the provided elements.
-		 *
-		 * @param[in]	elements		Elements to display in the list box.
-		 * @param[in]	multiselect		Determines should the listbox allow multiple elements to be selected or just one.
-		 * @param[in]	options			Options that allow you to control how is the element positioned and sized. This will
-		 *								override any similar options set by style.
-		 * @param[in]	styleName		Optional style to use for the element. Style will be retrieved from GUISkin of the
-		 *								GUIWidget the element is used on. If not specified default style is used.
-		 */
-		static GUIListBox* Create(const Vector<HString>& elements, bool multiselect, const GUIOptions& options, const String& styleName = StringUtil::kBlank);
-
-		/**
-		 * Creates a new single-select listbox with the provided elements.
-		 *
-		 * @param[in]	elements		Elements to display in the list box.
-		 * @param[in]	options			Options that allow you to control how is the element positioned and sized. This will
-		 *								override any similar options set by style.
-		 * @param[in]	styleName		Optional style to use for the element. Style will be retrieved from GUISkin of the
-		 *								GUIWidget the element is used on. If not specified default style is used.
-		 */
-		static GUIListBox* Create(const Vector<HString>& elements, const GUIOptions& options, const String& styleName = StringUtil::kBlank);
 
 		/**	Checks whether the listbox supports multiple selected elements at once. */
 		bool IsMultiselect() const { return mIsMultiselect; }
@@ -87,6 +67,9 @@ namespace bs
 		 *  @{
 		 */
 
+		struct PrivatelyConstruct { };
+		GUIListBox(PrivatelyConstruct, const GUIListBoxContent& content, const String& styleName, const GUISizeConstraints& sizeConstraints);
+
 		ElementType GetElementType() const override { return ElementType::ListBox; }
 		const char* GetStyleSheetElement() const override { return kElementType; }
 
@@ -95,8 +78,6 @@ namespace bs
 		~GUIListBox();
 
 	private:
-		GUIListBox(const String& styleName, const Vector<HString>& elements, bool isMultiselect, const GUISizeConstraints& dimensions);
-
 		Rect2I GetCachedContentBoundsInElementSpace() const override;
 		void UpdateRenderElements() override;
 		bool DoOnMouseEvent(const GUIMouseEvent& ev) override;

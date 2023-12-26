@@ -63,7 +63,8 @@ void ScriptGUIListBox::InternalCreateInstance(MonoObject* instance, MonoArray* e
 		}
 	}
 
-	GUIListBox* guiListBox = GUIListBox::Create(nativeElements, multiselect, options, MonoUtil::MonoToString(style));
+	GUIListBoxContent listBoxContent(nativeElements, multiselect);
+	GUIListBox* guiListBox = GUIListBox::Create(listBoxContent, MonoUtil::MonoToString(style), options);
 
 	auto nativeInstance = new(B3DAllocate<ScriptGUIListBox>()) ScriptGUIListBox(instance, guiListBox);
 
