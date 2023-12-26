@@ -61,22 +61,22 @@ void GUIListBox::SetElements(const Vector<HString>& elements)
 		OpenListBox();
 }
 
-void GUIListBox::SelectElement(u32 idx)
+void GUIListBox::SelectElement(u32 index)
 {
-	if(idx >= (u32)mElements.size())
+	if(index >= (u32)mElements.size())
 		return;
 
-	if(mElementStates[idx] != true)
-		ElementSelected(idx);
+	if(mElementStates[index] != true)
+		ElementSelected(index);
 }
 
-void GUIListBox::DeselectElement(u32 idx)
+void GUIListBox::DeselectElement(u32 index)
 {
-	if(!mIsMultiselect || idx >= (u32)mElements.size())
+	if(!mIsMultiselect || index >= (u32)mElements.size())
 		return;
 
-	if(mElementStates[idx] != false)
-		ElementSelected(idx);
+	if(mElementStates[index] != false)
+		ElementSelected(index);
 }
 
 void GUIListBox::SetElementStates(const Vector<bool>& states)

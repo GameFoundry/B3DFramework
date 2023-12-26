@@ -28,37 +28,44 @@ namespace bs
 	};
 
 	/** List box GUI element which when active opens a drop down selection with provided elements. */
-	class B3D_EXPORT GUIListBox : public GUIClickable, public TGUIConstructionMethods<GUIListBox, GUIListBoxContent>
+	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(GUI)) GUIListBox : public GUIClickable, public TGUIConstructionMethods<GUIListBox, GUIListBoxContent>
 	{
 	public:
 		/** Returns type name of the GUI element used for finding GUI element styles. */
 		static const String& GetGuiTypeName();
 
 		/**	Checks whether the listbox supports multiple selected elements at once. */
+		B3D_SCRIPT_EXPORT(Property(Getter))
 		bool IsMultiselect() const { return mIsMultiselect; }
 
 		/**	Changes the list box elements. */
+		B3D_SCRIPT_EXPORT()
 		void SetElements(const Vector<HString>& elements);
 
 		/**	Makes the element with the specified index selected. */
-		void SelectElement(u32 idx);
+		B3D_SCRIPT_EXPORT()
+		void SelectElement(u32 index);
 
 		/**	Deselect element the element with the specified index. Only relevant for multi-select list boxes. */
-		void DeselectElement(u32 idx);
+		B3D_SCRIPT_EXPORT()
+		void DeselectElement(u32 index);
 
 		/**	Returns states of all element in the list box (enabled or disabled). */
+		B3D_SCRIPT_EXPORT(Property(Getter), ExportName(ElementStates))
 		const Vector<bool>& GetElementStates() const { return mElementStates; }
 
 		/**
 		 * Sets states for all list box elements. Only valid for multi-select list boxes. Number of states must match number
 		 * of list box elements.
 		 */
+		B3D_SCRIPT_EXPORT(Property(Setter), ExportName(ElementStates))
 		void SetElementStates(const Vector<bool>& states);
 
 		/**
 		 * Triggered whenever user selects or deselects an element in the list box. Returned index maps to the element in
 		 * the elements array that the list box was initialized with.
 		 */
+		B3D_SCRIPT_EXPORT()
 		Event<void(u32, bool)> OnSelectionToggled;
 
 		static constexpr const char* kElementType = "listbox";

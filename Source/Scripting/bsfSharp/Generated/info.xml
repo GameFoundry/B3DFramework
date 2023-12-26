@@ -12429,6 +12429,88 @@ Alternatively you can also skip manually calling release() and call unloadAllUnu
 			</param>
 		</ctor>
 	</class>
+	<struct native="GUIListBoxContent" script="GUIListBoxContent">
+		<doc>Structure describing contents of a GUIListBox element.</doc>
+		<ctor>
+		</ctor>
+		<ctor>
+			<param name="elements" type="LocString">
+			</param>
+			<param name="allowMultiselect" type="bool">
+			</param>
+		</ctor>
+		<field name="Elements" type="LocString">
+		</field>
+		<field name="AllowMultiselect" type="bool">
+		</field>
+	</struct>
+	<class native="GUIListBox" script="GUIListBox">
+		<doc>List box GUI element which when active opens a drop down selection with provided elements.</doc>
+		<method native="SetElements" script="SetElements" static="false">
+			<doc>Changes the list box elements.</doc>
+			<param name="elements" type="LocString">
+			</param>
+		</method>
+		<method native="SelectElement" script="SelectElement" static="false">
+			<doc>Makes the element with the specified index selected.</doc>
+			<param name="index" type="int">
+			</param>
+		</method>
+		<method native="DeselectElement" script="DeselectElement" static="false">
+			<doc>Deselect element the element with the specified index. Only relevant for multi-select list boxes.</doc>
+			<param name="index" type="int">
+			</param>
+		</method>
+		<ctor>
+			<doc>Creates a new GUI element.</doc>
+			<param name="contents" type="GUIListBoxContent">
+				<doc>Structure describing the contents of the GUI element to create.</doc>
+			</param>
+			<param name="styleClass" type="string">
+				<doc>Style class that will be used for determining GUI element visuals from the current style sheet. If no class is provided, default style is determined based on GUI element type.</doc>
+			</param>
+			<param name="options" type="GUIOption">
+				<doc>Additional options that control GUI element size and position. This will override options set in the style sheet.</doc>
+			</param>
+		</ctor>
+		<ctor>
+			<doc>Creates a new GUI element.</doc>
+			<param name="contents" type="GUIListBoxContent">
+				<doc>Structure describing the contents of the GUI element to create.</doc>
+			</param>
+			<param name="options" type="GUIOption">
+				<doc>Additional options that control GUI element size and position. This will override options set in the style sheet.</doc>
+			</param>
+		</ctor>
+		<ctor>
+			<doc>Creates a new GUI element.</doc>
+			<param name="styleClass" type="string">
+				<doc>Style class that will be used for determining GUI element visuals from the current style sheet. If no class is provided, default style is determined based on GUI element type.</doc>
+			</param>
+			<param name="options" type="GUIOption">
+				<doc>Additional options that control GUI element size and position. This will override options set in the style sheet.</doc>
+			</param>
+		</ctor>
+		<ctor>
+			<doc>Creates a new GUI element.</doc>
+			<param name="options" type="GUIOption">
+				<doc>Additional options that control GUI element size and position. This will override options set in the style sheet.</doc>
+			</param>
+		</ctor>
+		<property name="IsMultiselect" type="bool" getter="IsMultiselect" setter="" static="false">
+			<doc>Checks whether the listbox supports multiple selected elements at once.</doc>
+		</property>
+		<property name="ElementStates" type="bool" getter="GetElementStates" setter="SetElementStates" static="false">
+			<doc>Sets states for all list box elements. Only valid for multi-select list boxes. Number of states must match number of list box elements.</doc>
+		</property>
+		<event native="OnSelectionToggled" script="OnSelectionToggled" static="false">
+			<doc>Triggered whenever user selects or deselects an element in the list box. Returned index maps to the element in the elements array that the list box was initialized with.</doc>
+			<param name="p0" type="int">
+			</param>
+			<param name="p1" type="bool">
+			</param>
+		</event>
+	</class>
 	<class native="GUITexture" script="GUITexture">
 		<doc>A GUI element that displays a texture.</doc>
 		<method native="SetImage" script="SetImage" static="false">
