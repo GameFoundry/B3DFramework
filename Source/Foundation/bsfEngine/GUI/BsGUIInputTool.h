@@ -75,9 +75,6 @@ namespace bs
 		void UpdateText(const GUIInteractable* element, const TextSpriteInformation& textDesc);
 
 	protected:
-		/**	Returns text offset relative to parent widget. */
-		Vector2I GetTextOffset() const;
-
 		/**	Returns number of lines in the current text string. */
 		u32 GetNumLines() const { return (u32)mLineDescs.size(); }
 
@@ -93,19 +90,10 @@ namespace bs
 		 */
 		u32 GetLineForChar(u32 charIdx, bool newlineCountsOnNextLine = false) const;
 
-		/**
-		 * Returns a rectangle containing position and size of the character with the provided index, relative to parent
-		 * widget.
-		 */
-		Rect2I GetCharRect(u32 charIdx) const;
+		/** Returns a rectangle containing position and size of the character with the provided index, relative to parent GUI element. */
+		Rect2I GetCharacterBounds(u32 characterIndex) const;
 
-		/**
-		 * Returns a rectangle containing position and size of the character with the provided index, relative to parent
-		 * element.
-		 */
-		Rect2I GetLocalCharRect(u32 charIdx) const;
-
-		/** Returns character index nearest to the specified position. Position should be relative to parent widget. */
+		/** Returns character index nearest to the specified position. Position should be relative to parent GUI element. */
 		i32 GetCharIdxAtPos(const Vector2I& pos) const;
 
 		/**	Returns true if the currently set text desctiptor is valid (has any characters). */

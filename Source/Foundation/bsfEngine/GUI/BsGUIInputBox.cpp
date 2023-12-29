@@ -213,20 +213,6 @@ Vector2I GUIInputBox::CalculateUnconstrainedOptimalSize() const
 	return Vector2I(contentWidth, contentHeight);
 }
 
-Vector2I GUIInputBox::GetTextInputOffset() const
-{
-	return mTextOffset;
-}
-
-Rect2I GUIInputBox::GetTextInputRect() const
-{
-	Rect2I textBounds = GetCachedContentBounds();
-	textBounds.X -= mLayoutData.Area.X;
-	textBounds.Y -= mLayoutData.Area.Y;
-
-	return textBounds;
-}
-
 u32 GUIInputBox::GetRenderElementDepthRange() const
 {
 	return 4;
@@ -320,7 +306,7 @@ bool GUIInputBox::DoOnMouseEvent(const GUIMouseEvent& ev)
 			}
 
 			if(mNumChars > 0)
-				GetGUIManager().GetInputCaretTool()->MoveCaretToPos(ev.GetPosition());
+				GetGUIManager().GetInputCaretTool()->MoveCaretToPos(ev.GetPosition() - GetTextOffset());
 			else
 				GetGUIManager().GetInputCaretTool()->MoveCaretToStart();
 
@@ -371,7 +357,7 @@ bool GUIInputBox::DoOnMouseEvent(const GUIMouseEvent& ev)
 			if(!ev.IsShiftDown())
 			{
 				if(mNumChars > 0)
-					GetGUIManager().GetInputCaretTool()->MoveCaretToPos(ev.GetPosition());
+					GetGUIManager().GetInputCaretTool()->MoveCaretToPos(ev.GetPosition() - GetTextOffset());
 				else
 					GetGUIManager().GetInputCaretTool()->MoveCaretToStart();
 
@@ -838,7 +824,7 @@ void GUIInputBox::ScrollTextToCaret()
 	TextSpriteInformation textDesc = GetTextDesc();
 
 	Vector2I textOffset = GetTextOffset();
-	Vector2I caretPos = GetGUIManager().GetInputCaretTool()->GetCaretPosition(textOffset);
+	Vector2I caretPos = GetGUIManager().GetInputCaretTool()->GetCaretPosition() + textOffset;
 	u32 caretHeight = GetGUIManager().GetInputCaretTool()->GetCaretHeight();
 	u32 caretWidth = 1;
 

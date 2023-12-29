@@ -29,19 +29,8 @@ namespace bs
 		/**	Returns sprite used for rendering the caret. */
 		ImageSprite* GetSprite() const { return mCaretSprite; }
 
-		/** Returns offset relative to parent widget that determines placement of the caret sprite. */
-		Vector2I GetSpriteOffset() const;
-
 		/** Returns the bounds of the caret, relative to the current parent GUI element. */
 		Rect2I GetBounds() const;
-
-		/**
-		 * Returns clip rectangle relative to parent GUI element that determines how is caret sprite clipped.
-		 *
-		 * @param[in]	parentClipRect	Clip rectangle of the parent GUI element. Caret clip rectangle will additionally be
-		 *								clipped by this area. Relative to parent element.
-		 */
-		Rect2I GetSpriteClipRect(const Rect2I& parentClipRect) const;
 
 		/**	Rebuilts internal caret sprite using current properties. */
 		void UpdateSprite();
@@ -64,7 +53,7 @@ namespace bs
 		/**	Moves caret one line down if possible. */
 		void MoveCaretDown();
 
-		/** Moves caret to the character nearest to the specified position. Position is relative to parent widget. */
+		/** Moves caret to the character nearest to the specified position. Position is relative to parent GUI element. */
 		void MoveCaretToPos(const Vector2I& pos);
 
 		/**
@@ -78,11 +67,8 @@ namespace bs
 		/**	Returns character index after the current caret position. */
 		u32 GetCharIdxAtCaretPos() const;
 
-		/**
-		 * Returns current caret position, relative to parent widget. Requires you to provide offset to text the caret is
-		 * used for (also relative to parent widget).
-		 */
-		Vector2I GetCaretPosition(const Vector2I& offset) const;
+		/** Returns current caret position, relative to parent GUI element. */
+		Vector2I GetCaretPosition() const;
 
 		/**	Returns height of the caret, in pixels. */
 		u32 GetCaretHeight() const;

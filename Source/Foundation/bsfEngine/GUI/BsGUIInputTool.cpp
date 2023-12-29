@@ -67,38 +67,20 @@ void GUIInputTool::UpdateText(const GUIInteractable* element, const TextSpriteIn
 	B3DClearAllocatorFrame();
 }
 
-Vector2I GUIInputTool::GetTextOffset() const
+Rect2I GUIInputTool::GetCharacterBounds(u32 characterIndex) const
 {
-	Vector2I offset(mElement->GetLayoutData().Area.X, mElement->GetLayoutData().Area.Y);
-
-	return offset + mElement->GetTextInputOffset() + Vector2I(mElement->GetTextInputRect().X, mElement->GetTextInputRect().Y);
-}
-
-Rect2I GUIInputTool::GetCharRect(u32 charIdx) const
-{
-	Rect2I charRect = GetLocalCharRect(charIdx);
-	Vector2I textOffset = GetTextOffset();
-
-	charRect.X += textOffset.X;
-	charRect.Y += textOffset.Y;
-
-	return charRect;
-}
-
-Rect2I GUIInputTool::GetLocalCharRect(u32 charIdx) const
-{
-	u32 lineIdx = GetLineForChar(charIdx);
+	u32 lineIdx = GetLineForChar(characterIndex);
 
 	// If char is newline we don't have any geometry to return
 	const GUIInputLineDesc& lineDesc = GetLineDesc(lineIdx);
-	if(lineDesc.IsNewline(charIdx))
+	if(lineDesc.IsNewline(characterIndex))
 		return Rect2I();
 
 	u32 numNewlineChars = 0;
 	for(u32 i = 0; i < lineIdx; i++)
 		numNewlineChars += (GetLineDesc(i).HasNewlineChar() ? 1 : 0);
 
-	i32 quadIdx = (i32)(charIdx - numNewlineChars);
+	i32 quadIdx = (i32)(characterIndex - numNewlineChars);
 	if(quadIdx >= 0 && quadIdx < (i32)mNumQuads)
 	{
 		u32 vertIdx = quadIdx * 4;
@@ -112,7 +94,7 @@ Rect2I GUIInputTool::GetLocalCharRect(u32 charIdx) const
 		return charRect;
 	}
 
-	B3D_LOG(Error, GUI, "Invalid character index: {0}", charIdx);
+	B3D_LOG(Error, GUI, "Invalid character index: {0}", characterIndex);
 	return Rect2I();
 }
 
@@ -126,7 +108,7 @@ i32 GUIInputTool::GetCharIdxAtPos(const Vector2I& pos) const
 	u32 lineIdx = 0;
 	for(auto& line : mLineDescs)
 	{
-		i32 lineStart = line.GetLineYStart() + GetTextOffset().Y;
+		i32 lineStart = line.GetLineYStart();
 		if(pos.Y >= lineStart && pos.Y < (lineStart + (i32)line.GetLineHeight()))
 		{
 			lineStartChar = line.GetStartChar();
@@ -148,14 +130,12 @@ i32 GUIInputTool::GetCharIdxAtPos(const Vector2I& pos) const
 	u32 nearestChar = 0;
 	bool foundChar = false;
 
-	Vector2I textOffset = GetTextOffset();
 	for(u32 i = lineStartQuad; i < lineEndQuad; i++)
 	{
 		u32 curVert = i * 4;
 
 		float centerX = mQuads[curVert + 0].X + mQuads[curVert + 1].X;
 		centerX *= 0.5f;
-		centerX += textOffset.X;
 
 		float dist = Math::Abs(centerX - vecPos.X);
 		if(dist < nearestDist)

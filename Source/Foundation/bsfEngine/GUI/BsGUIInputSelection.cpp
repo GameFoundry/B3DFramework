@@ -53,33 +53,6 @@ void GUIInputSelection::UpdateSprite()
 	}
 }
 
-Vector2I GUIInputSelection::GetSelectionSpriteOffset(u32 spriteIdx) const
-{
-	return Vector2I(mSelectionRects[spriteIdx].X, mSelectionRects[spriteIdx].Y) + GetTextOffset();
-}
-
-Rect2I GUIInputSelection::GetSelectionSpriteClipRect(u32 spriteIdx, const Rect2I& parentClipRect) const
-{
-	Vector2I selectionOffset(mSelectionRects[spriteIdx].X, mSelectionRects[spriteIdx].Y);
-	Vector2I clipOffset = selectionOffset + mElement->GetTextInputOffset();
-
-	Rect2I clipRect(-clipOffset.X, -clipOffset.Y, mTextDesc.Width, mTextDesc.Height);
-
-	Rect2I localParentCliprect = parentClipRect;
-
-	// Move parent rect to our space
-	localParentCliprect.X += mElement->GetTextInputOffset().X + clipRect.X;
-	localParentCliprect.Y += mElement->GetTextInputOffset().Y + clipRect.Y;
-
-	// Clip our rectangle so its not larger then the parent
-	clipRect.Clip(localParentCliprect);
-
-	// Increase clip size by 1, so we can fit the caret in case it is fully at the end of the text
-	clipRect.Width += 1;
-
-	return clipRect;
-}
-
 Vector<Rect2I> GUIInputSelection::GetSelectionRects() const
 {
 	Vector<Rect2I> selectionRects;
@@ -108,8 +81,8 @@ Vector<Rect2I> GUIInputSelection::GetSelectionRects() const
 
 		if(!IsNewlineChar(startCharIdx) && !IsNewlineChar(endCharIdx))
 		{
-			Rect2I startChar = GetLocalCharRect(startCharIdx);
-			Rect2I endChar = GetLocalCharRect(endCharIdx);
+			Rect2I startChar = GetCharacterBounds(startCharIdx);
+			Rect2I endChar = GetCharacterBounds(endCharIdx);
 
 			Rect2I selectionRect;
 			selectionRect.X = startChar.X;
@@ -131,8 +104,8 @@ Vector<Rect2I> GUIInputSelection::GetSelectionRects() const
 		if(endCharIdx > 0)
 			endCharIdx = endCharIdx - 1;
 
-		Rect2I startChar = GetLocalCharRect(lineDesc.GetStartChar());
-		Rect2I endChar = GetLocalCharRect(endCharIdx);
+		Rect2I startChar = GetCharacterBounds(lineDesc.GetStartChar());
+		Rect2I endChar = GetCharacterBounds(endCharIdx);
 
 		Rect2I selectionRect;
 		selectionRect.X = startChar.X;
@@ -153,8 +126,8 @@ Vector<Rect2I> GUIInputSelection::GetSelectionRects() const
 
 			if(!IsNewlineChar(endCharIdx))
 			{
-				Rect2I startChar = GetLocalCharRect(lineDesc.GetStartChar());
-				Rect2I endChar = GetLocalCharRect(endCharIdx);
+				Rect2I startChar = GetCharacterBounds(lineDesc.GetStartChar());
+				Rect2I endChar = GetCharacterBounds(endCharIdx);
 
 				Rect2I selectionRect;
 				selectionRect.X = startChar.X;

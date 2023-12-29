@@ -95,19 +95,6 @@ namespace bs
 		bool DoOnTextInputEvent(const GUITextInputEvent& ev) override;
 		bool DoOnCommandEvent(const GUICommandEvent& ev) override;
 		bool DoOnVirtualButtonEvent(const GUIVirtualButtonEvent& ev) override;
-
-		/**
-		 * Returns how much to offset text due to scrolling.
-		 *
-		 * @note
-		 * This is used when text is larger than the input box itself. As the caret moves the text will scroll so that the
-		 * caret remains visible, and how much scroll is applied is determined by this value.
-		 */
-		Vector2I GetTextInputOffset() const override;
-
-		/** Returns rectangle in which the text can be displayed, in local coordinates (text will start at 0, 0). */
-		Rect2I GetTextInputRect() const override;
-
 		u32 GetRenderElementDepthRange() const override;
 		bool HasCustomCursor(const Vector2I position, CursorType& type) const override;
 		SPtr<GUIContextMenu> GetContextMenu() const override;

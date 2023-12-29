@@ -192,12 +192,6 @@ namespace bs
 		 */
 		u32 GetDepth() const { return mLayoutData.Depth; }
 
-		/**	Returns a clip rectangle relative to the element, used for offsetting the input text. */
-		virtual Vector2I GetTextInputOffset() const { return Vector2I(); }
-
-		/**	Returns a clip rectangle relative to the element, used for clipping	the input text. */
-		virtual Rect2I GetTextInputRect() const { return Rect2I(); }
-
 		const RectOffset& GetMargins() const override;
 		const RectOffset& GetPadding() const override;
 

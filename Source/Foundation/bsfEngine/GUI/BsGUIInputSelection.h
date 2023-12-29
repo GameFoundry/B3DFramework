@@ -22,18 +22,6 @@ namespace bs
 		/**	Returns sprites representing the currently selected areas. */
 		const Vector<ImageSprite*>& GetSprites() const { return mSprites; }
 
-		/** Returns how much to offset the sprite with the specified index, relative to the parent widget. */
-		Vector2I GetSelectionSpriteOffset(u32 spriteIdx) const;
-
-		/**
-		 * Returns clip rectangle relative to parent GUI element for the sprite with the specified index.
-		 *
-		 * @param[in]	spriteIdx		Index of the sprite to retrieve the clip rectangle for.
-		 * @param[in]	parentClipRect	Clip rectangle of the parent GUI element. Selection clip rectangle will
-		 *								additionally be clipped by this area. Relative to parent element.
-		 */
-		Rect2I GetSelectionSpriteClipRect(u32 spriteIdx, const Rect2I& parentClipRect) const;
-
 		/** Returns the bounds of the particular selection sprite, relative to the current parent GUI element. */
 		Rect2I GetBounds(u32 spriteIndex) const;
 

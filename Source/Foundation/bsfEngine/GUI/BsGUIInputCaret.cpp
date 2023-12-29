@@ -19,39 +19,10 @@ GUIInputCaret::~GUIInputCaret()
 	B3DDelete(mCaretSprite);
 }
 
-Vector2I GUIInputCaret::GetSpriteOffset() const
-{
-	return GetCaretPosition(GetTextOffset());
-}
-
 Rect2I GUIInputCaret::GetBounds() const
 {
-	const Vector2I caretPosition = GetCaretPosition(Vector2I()) - GetTextOffset();
+	const Vector2I caretPosition = GetCaretPosition();
 	return Rect2I(caretPosition.X, caretPosition.Y, 1, GetCaretHeight());
-}
-
-Rect2I GUIInputCaret::GetSpriteClipRect(const Rect2I& parentClipRect) const
-{
-	Vector2I offset(mElement->GetLayoutData().Area.X, mElement->GetLayoutData().Area.Y);
-
-	Vector2I clipOffset = GetSpriteOffset() - offset -
-		Vector2I(mElement->GetTextInputRect().X, mElement->GetTextInputRect().Y);
-
-	Rect2I clipRect(-clipOffset.X, -clipOffset.Y, mTextDesc.Width, mTextDesc.Height);
-
-	Rect2I localParentCliprect = parentClipRect;
-
-	// Move parent rect to our space
-	localParentCliprect.X += mElement->GetTextInputOffset().X + clipRect.X;
-	localParentCliprect.Y += mElement->GetTextInputOffset().Y + clipRect.Y;
-
-	// Clip our rectangle so its not larger then the parent
-	clipRect.Clip(localParentCliprect);
-
-	// Increase clip size by 1, so we can fit the caret in case it is fully at the end of the text
-	clipRect.Width += 1;
-
-	return clipRect;
 }
 
 void GUIInputCaret::UpdateSprite()
@@ -109,7 +80,7 @@ void GUIInputCaret::MoveCaretUp()
 		return;
 	}
 
-	Vector2I caretCoords = GetCaretPosition(mElement->GetTextInputOffset());
+	Vector2I caretCoords = GetCaretPosition();
 	caretCoords.Y -= GetCaretHeight();
 
 	MoveCaretToPos(caretCoords);
@@ -134,7 +105,7 @@ void GUIInputCaret::MoveCaretDown()
 		return;
 	}
 
-	Vector2I caretCoords = GetCaretPosition(mElement->GetTextInputOffset());
+	Vector2I caretCoords = GetCaretPosition();
 	caretCoords.Y += GetCaretHeight();
 
 	MoveCaretToPos(caretCoords);
@@ -146,7 +117,7 @@ void GUIInputCaret::MoveCaretToPos(const Vector2I& pos)
 
 	if(charIdx != -1)
 	{
-		Rect2I charRect = GetCharRect(charIdx);
+		Rect2I charRect = GetCharacterBounds(charIdx);
 
 		float xCenter = charRect.X + charRect.Width * 0.5f;
 		if(pos.X <= xCenter)
@@ -169,7 +140,7 @@ void GUIInputCaret::MoveCaretToPos(const Vector2I& pos)
 		{
 			const GUIInputLineDesc& line = GetLineDesc(i);
 
-			i32 lineStart = line.GetLineYStart() + GetTextOffset().Y;
+			i32 lineStart = line.GetLineYStart();
 			if(pos.Y >= lineStart && pos.Y < (lineStart + (i32)line.GetLineHeight()))
 			{
 				mCaretPos = curPos;
@@ -182,7 +153,7 @@ void GUIInputCaret::MoveCaretToPos(const Vector2I& pos)
 
 		{
 			const GUIInputLineDesc& firstLine = GetLineDesc(0);
-			i32 lineStart = firstLine.GetLineYStart() + GetTextOffset().Y;
+			i32 lineStart = firstLine.GetLineYStart();
 
 			if(pos.Y < lineStart) // Before first line
 				mCaretPos = 0;
@@ -236,7 +207,7 @@ u32 GUIInputCaret::GetCharIdxAtCaretPos() const
 	return GetCharIdxAtInputIdx(mCaretPos);
 }
 
-Vector2I GUIInputCaret::GetCaretPosition(const Vector2I& offset) const
+Vector2I GUIInputCaret::GetCaretPosition() const
 {
 	if(mNumChars > 0 && IsDescValid())
 	{
@@ -250,7 +221,7 @@ Vector2I GUIInputCaret::GetCaretPosition(const Vector2I& offset) const
 			if(mCaretPos == curPos)
 			{
 				// Caret is on line start
-				return Vector2I(offset.X, lineDesc.GetLineYStart() + GetTextOffset().Y);
+				return Vector2I(0, lineDesc.GetLineYStart());
 			}
 
 			curPos += lineDesc.GetEndChar(false) - lineDesc.GetStartChar() + 1; // + 1 for special line start position
@@ -262,14 +233,14 @@ Vector2I GUIInputCaret::GetCaretPosition(const Vector2I& offset) const
 
 		charIdx = std::min((u32)(mNumChars - 1), charIdx);
 
-		Rect2I charRect = GetCharRect(charIdx);
+		Rect2I charRect = GetCharacterBounds(charIdx);
 		u32 lineIdx = GetLineForChar(charIdx);
-		u32 yOffset = GetLineDesc(lineIdx).GetLineYStart() + GetTextOffset().Y;
+		u32 yOffset = GetLineDesc(lineIdx).GetLineYStart();
 
 		return Vector2I(charRect.X + charRect.Width, yOffset);
 	}
 
-	return offset;
+	return Vector2I(0, 0);
 }
 
 u32 GUIInputCaret::GetCaretHeight() const
