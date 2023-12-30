@@ -153,12 +153,12 @@ void GUIScrollBar::SetScrollPosInternal(float pct)
 	mHandleBtn->SetHandlePositionInPercent(pct);
 }
 
-float GUIScrollBar::GetScrollPos() const
+float GUIScrollBar::GetScrollHandlePosition() const
 {
 	return mHandleBtn->GetHandlePositionInPercent();
 }
 
-void GUIScrollBar::SetScrollPos(float pct)
+void GUIScrollBar::SetScrollHandlePosition(float pct)
 {
 	float oldHandlePos = mHandleBtn->GetHandlePositionInPercent();
 	mHandleBtn->SetHandlePositionInPercent(pct);
@@ -167,12 +167,12 @@ void GUIScrollBar::SetScrollPos(float pct)
 		mHandleBtn->MarkLayoutAsDirty();
 }
 
-float GUIScrollBar::GetHandleSize() const
+float GUIScrollBar::GetScrollHandleSize() const
 {
 	return mHandleBtn->GetHandleSizeInPercent();
 }
 
-void GUIScrollBar::SetHandleSize(float pct)
+void GUIScrollBar::SetScrollHandleSize(float pct)
 {
 	mHandleBtn->SetHandleSizeInPercent(pct);
 	mHandleBtn->MarkLayoutAsDirty();

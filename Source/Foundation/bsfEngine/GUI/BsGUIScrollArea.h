@@ -181,7 +181,7 @@ namespace bs
 
 		GUILayout* mContentLayout;
 		GUIScrollBarVert* mVertScroll;
-		GUIScrollBarHorz* mHorzScroll;
+		GUIHorizontalScrollBar* mHorzScroll;
 
 		float mVertOffset;
 		float mHorzOffset;

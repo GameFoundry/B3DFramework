@@ -17,17 +17,21 @@ namespace bs
 	class B3D_EXPORT GUIScrollBar : public GUIInteractable
 	{
 	public:
-		/**	Returns the position of the scroll handle in percent (ranging [0, 1]). */
-		float GetScrollPos() const;
+		/**	Position of the scroll handle in percent (ranging [0, 1]). */
+		B3D_SCRIPT_EXPORT(Property(Setter), ExportName(ScrollHandlePosition))
+		void SetScrollHandlePosition(float pct);
 
-		/** Sets the position of the scroll handle in percent (ranging [0, 1]). */
-		void SetScrollPos(float pct);
+		/**	@copydoc SetScrollHandlePosition */
+		B3D_SCRIPT_EXPORT(Property(Getter), ExportName(ScrollHandlePosition))
+		float GetScrollHandlePosition() const;
 
-		/** Gets the size of the scroll handle in percent (ranging [0, 1]) of the total scroll bar area. */
-		float GetHandleSize() const;
+		/** Size of the scroll handle in percent (ranging [0, 1]) of the total scroll bar area. */
+		B3D_SCRIPT_EXPORT(Property(Setter), ExportName(ScrollHandleSize))
+		void SetScrollHandleSize(float pct);
 
-		/** Sets the size of the scroll handle in percent (ranging [0, 1]) of the total scroll bar area. */
-		void SetHandleSize(float pct);
+		/**	@copydoc SetScrollHandleSize */
+		B3D_SCRIPT_EXPORT(Property(Getter), ExportName(ScrollHandleSize))
+		float GetScrollHandleSize() const;
 
 		/**
 		 * Moves the handle by some amount. Amount is specified in the percentage of the entire scrollable area. Values out

@@ -7,7 +7,7 @@
 #include "BsMonoUtil.h"
 #include "Wrappers/GUI/BsScriptGUIElement.h"
 #include "GUI/BsGUIScrollBar.h"
-#include "GUI/BsGUIScrollBarHorz.h"
+#include "GUI/BsGUIHorizontalScrollBar.h"
 #include "GUI/BsGUIScrollBarVert.h"
 
 using namespace std::placeholders;
@@ -29,7 +29,7 @@ void ScriptGUIScrollBar::InitRuntimeData()
 float ScriptGUIScrollBar::InternalGetPosition(ScriptGUIElementBase* nativeInstance)
 {
 	GUIScrollBar* scrollBar = (GUIScrollBar*)nativeInstance->GetGuiElement();
-	return scrollBar->GetScrollPos();
+	return scrollBar->GetScrollHandlePosition();
 }
 
 void ScriptGUIScrollBar::InternalSetPosition(ScriptGUIElementBase* nativeInstance, float percent)
@@ -41,18 +41,18 @@ void ScriptGUIScrollBar::InternalSetPosition(ScriptGUIElementBase* nativeInstanc
 float ScriptGUIScrollBar::InternalGetHandleSize(ScriptGUIElementBase* nativeInstance)
 {
 	GUIScrollBar* scrollBar = (GUIScrollBar*)nativeInstance->GetGuiElement();
-	return scrollBar->GetHandleSize();
+	return scrollBar->GetScrollHandleSize();
 }
 
 void ScriptGUIScrollBar::InternalSetHandleSize(ScriptGUIElementBase* nativeInstance, float percent)
 {
 	GUIScrollBar* scrollBar = (GUIScrollBar*)nativeInstance->GetGuiElement();
-	scrollBar->SetHandleSize(percent);
+	scrollBar->SetScrollHandleSize(percent);
 }
 
 ScriptGUIScrollBarH::OnScrolledThunkDef ScriptGUIScrollBarH::onScrolledThunk;
 
-ScriptGUIScrollBarH::ScriptGUIScrollBarH(MonoObject* instance, GUIScrollBarHorz* scrollBar)
+ScriptGUIScrollBarH::ScriptGUIScrollBarH(MonoObject* instance, GUIHorizontalScrollBar* scrollBar)
 	: TScriptGUIInteractable(instance, scrollBar)
 {
 }
@@ -73,7 +73,7 @@ void ScriptGUIScrollBarH::InternalCreateInstance(MonoObject* instance, MonoStrin
 	for(u32 i = 0; i < arrayLen; i++)
 		options.AddOption(scriptArray.Get<GUIOption>(i));
 
-	GUIScrollBarHorz* guiScrollBar = GUIScrollBarHorz::Create(options, MonoUtil::MonoToString(style));
+	GUIHorizontalScrollBar* guiScrollBar = GUIHorizontalScrollBar::Create(MonoUtil::MonoToString(style), options);
 	ScriptGUIScrollBarH* scriptScrollBar = new(B3DAllocate<ScriptGUIScrollBarH>()) ScriptGUIScrollBarH(instance, guiScrollBar);
 
 	guiScrollBar->OnScrollOrResize.Connect(std::bind(&ScriptGUIScrollBarH::OnScroll, scriptScrollBar, _1, _2));
@@ -120,7 +120,7 @@ void ScriptGUIScrollBarV::OnScroll(float position, float size)
 
 ScriptGUIResizeableScrollBarH::OnScrollOrResizeThunkDef ScriptGUIResizeableScrollBarH::onScrollOrResizeThunk;
 
-ScriptGUIResizeableScrollBarH::ScriptGUIResizeableScrollBarH(MonoObject* instance, GUIScrollBarHorz* scrollBar)
+ScriptGUIResizeableScrollBarH::ScriptGUIResizeableScrollBarH(MonoObject* instance, GUIResizableHorizontalScrollBar* scrollBar)
 	: TScriptGUIInteractable(instance, scrollBar)
 {
 }
@@ -141,7 +141,7 @@ void ScriptGUIResizeableScrollBarH::InternalCreateInstance(MonoObject* instance,
 	for(u32 i = 0; i < arrayLen; i++)
 		options.AddOption(scriptArray.Get<GUIOption>(i));
 
-	GUIScrollBarHorz* guiScrollBar = GUIScrollBarHorz::Create(true, options, MonoUtil::MonoToString(style));
+	GUIResizableHorizontalScrollBar* guiScrollBar = GUIResizableHorizontalScrollBar::Create(MonoUtil::MonoToString(style), options);
 	ScriptGUIResizeableScrollBarH* scriptScrollBar = new(B3DAllocate<ScriptGUIResizeableScrollBarH>()) ScriptGUIResizeableScrollBarH(instance, guiScrollBar);
 
 	guiScrollBar->OnScrollOrResize.Connect(std::bind(&ScriptGUIResizeableScrollBarH::OnScroll, scriptScrollBar, _1, _2));

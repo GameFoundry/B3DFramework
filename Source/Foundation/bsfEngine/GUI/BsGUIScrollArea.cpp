@@ -5,7 +5,7 @@
 #include "GUI/BsGUISizeConstraints.h"
 #include "GUI/BsGUILayoutY.h"
 #include "GUI/BsGUIScrollBarVert.h"
-#include "GUI/BsGUIScrollBarHorz.h"
+#include "GUI/BsGUIHorizontalScrollBar.h"
 #include "GUI/BsGUIMouseEvent.h"
 #include "GUI/BsGUIUtility.h"
 
@@ -22,7 +22,7 @@ GUIScrollArea::GUIScrollArea(ScrollBarType vertBarType, ScrollBarType horzBarTyp
 	mContentLayout = GUILayoutY::Create();
 	RegisterChildElement(mContentLayout);
 
-	mHorzScroll = GUIScrollBarHorz::Create(mScrollBarStyle);
+	mHorzScroll = GUIHorizontalScrollBar::Create(mScrollBarStyle);
 	mVertScroll = GUIScrollBarVert::Create(mScrollBarStyle);
 
 	RegisterChildElement(mHorzScroll);
@@ -262,7 +262,7 @@ void GUIScrollArea::UpdateLayoutRecursive(const GUILayoutData& data)
 	u32 scrollableHeight = (u32)std::max(0, i32(mContentSize.Y) - i32(mVisibleSize.Y));
 	if(mRecalculateVertOffset)
 	{
-		mVertOffset = scrollableHeight * Math::Clamp01(mVertScroll->GetScrollPos());
+		mVertOffset = scrollableHeight * Math::Clamp01(mVertScroll->GetScrollHandlePosition());
 
 		mRecalculateVertOffset = false;
 	}
@@ -270,7 +270,7 @@ void GUIScrollArea::UpdateLayoutRecursive(const GUILayoutData& data)
 	u32 scrollableWidth = (u32)std::max(0, i32(mContentSize.X) - i32(mVisibleSize.X));
 	if(mRecalculateHorzOffset)
 	{
-		mHorzOffset = scrollableWidth * Math::Clamp01(mHorzScroll->GetScrollPos());
+		mHorzOffset = scrollableWidth * Math::Clamp01(mHorzScroll->GetScrollHandlePosition());
 
 		mRecalculateHorzOffset = false;
 	}
@@ -381,7 +381,7 @@ void GUIScrollArea::ScrollToHorizontal(float pct)
 float GUIScrollArea::GetVerticalScroll() const
 {
 	if(mVertScroll != nullptr)
-		return mVertScroll->GetScrollPos();
+		return mVertScroll->GetScrollHandlePosition();
 
 	return 0.0f;
 }
@@ -389,7 +389,7 @@ float GUIScrollArea::GetVerticalScroll() const
 float GUIScrollArea::GetHorizontalScroll() const
 {
 	if(mHorzScroll != nullptr)
-		return mHorzScroll->GetScrollPos();
+		return mHorzScroll->GetScrollHandlePosition();
 
 	return 0.0f;
 }

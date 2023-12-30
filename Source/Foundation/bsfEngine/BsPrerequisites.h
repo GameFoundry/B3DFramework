@@ -144,7 +144,7 @@ namespace bs
 	class GUIInputBox;
 	class GUISliderHandle;
 	class GUIScrollBarVert;
-	class GUIScrollBarHorz;
+	class GUIHorizontalScrollBar;
 	class GUIScrollArea;
 	class GUISkin;
 	class GUIRenderTexture;
