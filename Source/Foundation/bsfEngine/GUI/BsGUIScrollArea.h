@@ -180,7 +180,7 @@ namespace bs
 		String mScrollBarStyle;
 
 		GUILayout* mContentLayout;
-		GUIScrollBarVert* mVertScroll;
+		GUIVerticalScrollBar* mVertScroll;
 		GUIHorizontalScrollBar* mHorzScroll;
 
 		float mVertOffset;

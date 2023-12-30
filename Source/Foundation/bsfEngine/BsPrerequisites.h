@@ -143,7 +143,7 @@ namespace bs
 	class GUIToggle;
 	class GUIInputBox;
 	class GUISliderHandle;
-	class GUIScrollBarVert;
+	class GUIVerticalScrollBar;
 	class GUIHorizontalScrollBar;
 	class GUIScrollArea;
 	class GUISkin;

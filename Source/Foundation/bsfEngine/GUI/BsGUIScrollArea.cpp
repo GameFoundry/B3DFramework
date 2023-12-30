@@ -4,7 +4,7 @@
 #include "GUI/BsGUIElementStyle.h"
 #include "GUI/BsGUISizeConstraints.h"
 #include "GUI/BsGUILayoutY.h"
-#include "GUI/BsGUIScrollBarVert.h"
+#include "GUI/BsGUIVerticalScrollBar.h"
 #include "GUI/BsGUIHorizontalScrollBar.h"
 #include "GUI/BsGUIMouseEvent.h"
 #include "GUI/BsGUIUtility.h"
@@ -23,7 +23,7 @@ GUIScrollArea::GUIScrollArea(ScrollBarType vertBarType, ScrollBarType horzBarTyp
 	RegisterChildElement(mContentLayout);
 
 	mHorzScroll = GUIHorizontalScrollBar::Create(mScrollBarStyle);
-	mVertScroll = GUIScrollBarVert::Create(mScrollBarStyle);
+	mVertScroll = GUIVerticalScrollBar::Create(mScrollBarStyle);
 
 	RegisterChildElement(mHorzScroll);
 	RegisterChildElement(mVertScroll);

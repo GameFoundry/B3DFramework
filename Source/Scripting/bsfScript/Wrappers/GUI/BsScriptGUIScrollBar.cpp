@@ -8,7 +8,7 @@
 #include "Wrappers/GUI/BsScriptGUIElement.h"
 #include "GUI/BsGUIScrollBar.h"
 #include "GUI/BsGUIHorizontalScrollBar.h"
-#include "GUI/BsGUIScrollBarVert.h"
+#include "GUI/BsGUIVerticalScrollBar.h"
 
 using namespace std::placeholders;
 
@@ -86,7 +86,7 @@ void ScriptGUIScrollBarH::OnScroll(float position, float size)
 
 ScriptGUIScrollBarV::OnScrolledThunkDef ScriptGUIScrollBarV::onScrolledThunk;
 
-ScriptGUIScrollBarV::ScriptGUIScrollBarV(MonoObject* instance, GUIScrollBarVert* scrollBar)
+ScriptGUIScrollBarV::ScriptGUIScrollBarV(MonoObject* instance, GUIVerticalScrollBar* scrollBar)
 	: TScriptGUIInteractable(instance, scrollBar)
 {
 }
@@ -107,7 +107,7 @@ void ScriptGUIScrollBarV::InternalCreateInstance(MonoObject* instance, MonoStrin
 	for(u32 i = 0; i < arrayLen; i++)
 		options.AddOption(scriptArray.Get<GUIOption>(i));
 
-	GUIScrollBarVert* guiScrollBar = GUIScrollBarVert::Create(options, MonoUtil::MonoToString(style));
+	GUIVerticalScrollBar* guiScrollBar = GUIVerticalScrollBar::Create(MonoUtil::MonoToString(style), options);
 	ScriptGUIScrollBarV* scriptScrollBar = new(B3DAllocate<ScriptGUIScrollBarV>()) ScriptGUIScrollBarV(instance, guiScrollBar);
 
 	guiScrollBar->OnScrollOrResize.Connect(std::bind(&ScriptGUIScrollBarV::OnScroll, scriptScrollBar, _1, _2));
@@ -154,7 +154,7 @@ void ScriptGUIResizeableScrollBarH::OnScroll(float position, float size)
 
 ScriptGUIResizeableScrollBarV::OnScrollOrResizeThunkDef ScriptGUIResizeableScrollBarV::onScrollOrResizeThunk;
 
-ScriptGUIResizeableScrollBarV::ScriptGUIResizeableScrollBarV(MonoObject* instance, GUIScrollBarVert* scrollBar)
+ScriptGUIResizeableScrollBarV::ScriptGUIResizeableScrollBarV(MonoObject* instance, GUIResizableVerticalScrollBar* scrollBar)
 	: TScriptGUIInteractable(instance, scrollBar)
 {
 }
@@ -175,7 +175,7 @@ void ScriptGUIResizeableScrollBarV::InternalCreateInstance(MonoObject* instance,
 	for(u32 i = 0; i < arrayLen; i++)
 		options.AddOption(scriptArray.Get<GUIOption>(i));
 
-	GUIScrollBarVert* guiScrollBar = GUIScrollBarVert::Create(true, options, MonoUtil::MonoToString(style));
+	GUIResizableVerticalScrollBar* guiScrollBar = GUIResizableVerticalScrollBar::Create(MonoUtil::MonoToString(style), options);
 	ScriptGUIResizeableScrollBarV* scriptScrollBar = new(B3DAllocate<ScriptGUIResizeableScrollBarV>()) ScriptGUIResizeableScrollBarV(instance, guiScrollBar);
 
 	guiScrollBar->OnScrollOrResize.Connect(std::bind(&ScriptGUIResizeableScrollBarV::OnScroll, scriptScrollBar, _1, _2));

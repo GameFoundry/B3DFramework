@@ -7,6 +7,7 @@
 
 namespace bs
 {
+	class GUIResizableVerticalScrollBar;
 	class GUIResizableHorizontalScrollBar;
 	/** @addtogroup ScriptInteropEngine
 	 *  @{
@@ -60,7 +61,7 @@ namespace bs
 		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "GUIScrollBarV")
 
 	private:
-		ScriptGUIScrollBarV(MonoObject* instance, GUIScrollBarVert* scrollBar);
+		ScriptGUIScrollBarV(MonoObject* instance, GUIVerticalScrollBar* scrollBar);
 
 		/**	Triggers when the user scrolls the scroll bar. */
 		void OnScroll(float position, float size);
@@ -102,7 +103,7 @@ namespace bs
 		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "GUIResizeableScrollBarV")
 
 	private:
-		ScriptGUIResizeableScrollBarV(MonoObject* instance, GUIScrollBarVert* scrollBar);
+		ScriptGUIResizeableScrollBarV(MonoObject* instance, GUIResizableVerticalScrollBar* scrollBar);
 
 		/**	Triggers when the user scrolls the scroll bar. */
 		void OnScroll(float position, float size);
