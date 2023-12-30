@@ -2,6 +2,7 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
+#include "BsGUIConstructionMethods.h"
 #include "BsGUIContent.h"
 #include "BsGUISpriteHelper.h"
 #include "BsPrerequisites.h"
@@ -34,8 +35,19 @@ namespace bs
 	typedef Flags<GUISliderHandleFlag> GUISliderHandleFlags;
 	B3D_FLAGS_OPERATORS(GUISliderHandleFlag);
 
+	/** Structure describing contents of a GUISliderHandle element. */
+	struct B3D_SCRIPT_EXPORT(ExportAsStruct(true), DocumentationGroup(GUI)) GUISliderHandleContent
+	{
+		GUISliderHandleContent() = default;
+		GUISliderHandleContent(GUISliderHandleFlags flags)
+			: Flags(flags)
+		{ }
+
+		GUISliderHandleFlags Flags; /**< Flags that control how does the slider handle behave. */
+	};
+
 	/** A handle that can be dragged from its predefined minimum and maximum position, either horizontally or vertically. */
-	class B3D_EXPORT GUISliderHandle : public GUIInteractable
+	class B3D_EXPORT GUISliderHandle : public GUIInteractable, public TGUIConstructionMethods<GUISliderHandle, GUISliderHandleContent>
 	{
 		/** State the handle can be in while user is dragging it. */
 		enum class DragState
@@ -48,26 +60,6 @@ namespace bs
 	public:
 		/** Returns type name of the GUI element used for finding GUI element styles.  */
 		static const String& GetGuiTypeName();
-
-		/**
-		 * Creates a new handle.
-		 *
-		 * @param[in]	flags			Flags that control how does the handle behave.
-		 * @param[in]	styleName		Optional style to use for the element. Style will be retrieved from GUISkin of the
-		 *								GUIWidget the element is used on. If not specified default style is used.
-		 */
-		static GUISliderHandle* Create(GUISliderHandleFlags flags, const String& styleName = StringUtil::kBlank);
-
-		/**
-		 * Creates a new handle.
-		 *
-		 * @param[in]	flags			Flags that control how does the handle behave.
-		 * @param[in]	options			Options that allow you to control how is the element positioned and sized.
-		 *								This will override any similar options set by style.
-		 * @param[in]	styleName		Optional style to use for the element. Style will be retrieved from GUISkin of the
-		 *								GUIWidget the element is used on. If not specified default style is used.
-		 */
-		static GUISliderHandle* Create(GUISliderHandleFlags flags, const GUIOptions& options, const String& styleName = StringUtil::kBlank);
 
 		const char* GetStyleSheetElement() const override { return "slider-handle"; }
 
@@ -106,6 +98,9 @@ namespace bs
 		 *  @{
 		 */
 
+		struct PrivatelyConstruct { };
+		GUISliderHandle(PrivatelyConstruct, GUISliderHandleContent content, const String& styleName, const GUISizeConstraints& sizeConstraints);
+
 		/** Returns the size of the slider handle, in percent of the total area. */
 		float GetHandleSizeInPercent() const { return mHandleSizeInPercent; }
 
@@ -141,8 +136,6 @@ namespace bs
 
 		static constexpr u32 kMinimumHandleSize = 5;
 	private:
-		GUISliderHandle(GUISliderHandleFlags flags, const String& styleName, const GUISizeConstraints& dimensions);
-
 		bool DoOnMouseEvent(const GUIMouseEvent& ev) override;
 
 		/** Checks are the specified over the scroll handle. Coordinates are relative to the parent widget. */

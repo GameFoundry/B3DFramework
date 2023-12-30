@@ -16,26 +16,16 @@ const String& GUISliderHandle::GetGuiTypeName()
 	return name;
 }
 
-GUISliderHandle::GUISliderHandle(GUISliderHandleFlags flags, const String& styleName, const GUISizeConstraints& dimensions)
-	: GUIInteractable(styleName, dimensions), mFlags(flags)
+GUISliderHandle::GUISliderHandle(PrivatelyConstruct, GUISliderHandleContent content, const String& styleName, const GUISizeConstraints& sizeConstraints)
+	: GUIInteractable(styleName, sizeConstraints), mFlags(content.Flags)
 {
-	if(flags.IsSet(GUISliderHandleFlag::Resizeable))
+	if(content.Flags.IsSet(GUISliderHandleFlag::Resizeable))
 	{
-		if(flags.IsSet(GUISliderHandleFlag::Horizontal))
+		if(content.Flags.IsSet(GUISliderHandleFlag::Horizontal))
 			mBackgroundSprite.SetBackgroundPathBuilder(GUIResizableHorizontalScrollHandleVectorPathBuilder::Get());
 		else
 			mBackgroundSprite.SetBackgroundPathBuilder(GUIResizableVerticalScrollHandleVectorPathBuilder::Get());
 	}
-}
-
-GUISliderHandle* GUISliderHandle::Create(GUISliderHandleFlags flags, const String& styleName)
-{
-	return new(B3DAllocate<GUISliderHandle>()) GUISliderHandle(flags, GetStyleClass<GUISliderHandle>(styleName), GUISizeConstraints::Create());
-}
-
-GUISliderHandle* GUISliderHandle::Create(GUISliderHandleFlags flags, const GUIOptions& options, const String& styleName)
-{
-	return new(B3DAllocate<GUISliderHandle>()) GUISliderHandle(flags, GetStyleClass<GUISliderHandle>(styleName), GUISizeConstraints::Create(options));
 }
 
 void GUISliderHandle::SetHandlePositionInPercent(float percent)
