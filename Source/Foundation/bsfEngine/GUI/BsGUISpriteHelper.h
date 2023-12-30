@@ -22,14 +22,13 @@ namespace bs
 			: Size(size), Rules(rules), Tint(tint), BatchId(batchId)
 		{ }
 
-		Vector2I Offset = Vector2I::kZero;
-		RectOffset Border;
-		Size2UI Size;
-		u32 Depth = 1;
-		Color Tint;
-		u64 BatchId = 0;
+		Vector2I Offset = Vector2I::kZero; /**< Offset relative to the parent GUI element's content area to place the sprite at. */
+		Size2UI Size; /**< Size of the GUI element as determined by the layouting pass. */
+		u32 Depth = 1; /**< Depth at which to render the sprite. Higher depth means a sprite is rendered behind sprites with lower depth. */
+		Color Tint; /**< Runtime color tint to apply to the sprite. */
+		u64 BatchId = 0; /**< ID that specifies if the sprite is allowed to be batched with other sprites. Only sprites with the same batch ID can be batched. */
 
-		const GUIStyleSheetRules& Rules;
+		const GUIStyleSheetRules& Rules; /**< Style sheet rules that determine how to style the sprite. */
 	};
 
 	/** Wrapper around Sprite that helps construct a sprite for drawing a GUI element background controlled by style sheet rules. */
@@ -61,6 +60,23 @@ namespace bs
 		const IGUIVectorPathBuilder* mBackgroundPathBuilder;
 	};
 
+	/** Structure used for initializing GUIContentSprites. */
+	struct GUIContentSpriteCreateInformation
+	{
+		GUIContentSpriteCreateInformation(const Size2UI& size, const GUIContent& content, const GUIStyleSheetRules& rules, const Color& tint, u64 batchId)
+			: Content(content), Size(size), Rules(rules), Tint(tint), BatchId(batchId)
+		{ }
+
+		GUIContent Content; /**< Image and/or text content to display. */
+		Vector2I Offset = Vector2I::kZero; /**< Offset relative to the parent GUI element's content area to place the sprite at. */
+		Size2UI Size; /**< Size of the GUI element as determined by the layouting pass. */
+		u32 Depth = 0; /**< Depth at which to render the sprites. Higher depth means a sprite is rendered behind sprites with lower depth. */
+		Color Tint; /**< Runtime color tint to apply to the sprite. */
+		u64 BatchId = 0; /**< ID that specifies if the sprite is allowed to be batched with other sprites. Only sprites with the same batch ID can be batched. */
+
+		const GUIStyleSheetRules& Rules; /**< Style sheet rules that determine how to style the sprites. */
+	};
+
 	/** Wrapper around Sprite that helps construct a sprite for drawing a GUI element with text and/or image contents. */
 	class GUIContentSprites
 	{
@@ -68,17 +84,13 @@ namespace bs
 		/**
 		 * Builds the background render elements and appends them to the render elements array.
 		 *
-		 * @param	size				Size of the GUI element as determined by the layouting pass.
-		 * @param	content				Content (text and/or image) to display.
-		 * @param	rules				Active style-sheet rules for the GUI element.
-		 * @param	tint				Runtime color tint to apply to the sprite.
-		 * @param	batchId				ID that specifies if the sprite is allowed to be batched with other sprites. Only sprites with the same batch ID can be batched.
+		 * @param	createInformation	Information about the sprites to build render elements for.
 		 * @param	outRenderElements	Array to which the generated render element will be appended to.
 		 */
-		void BuildRenderElements(const Size2UI& size, const GUIContent& content, const GUIStyleSheetRules& rules, const Color& tint, u64 batchId, TInlineArray<GUIRenderElement, 4>& outRenderElements);
+		void BuildRenderElements(const GUIContentSpriteCreateInformation& createInformation, TInlineArray<GUIRenderElement, 4>& outRenderElements);
 
 		/** Same as the other overload, but for the old deprecated GUIElementStyle type, instead of style-sheets. */
-		void BuildRenderElements(const Size2UI& size, const GUIContent& content, const GUIElementStyle& style, GUIElementState state, const Color& tint, u64 batchId, TInlineArray<GUIRenderElement, 4>& outRenderElements);
+		void BuildRenderElements(const Size2UI& size, const GUIContent& content, const GUIElementStyle& style, GUIElementState state, const Color& tint, u64 batchId, TInlineArray<GUIRenderElement, 4>& outRenderElements, const Vector2I& offset = Vector2I::kZero, u32 depth = 1);
 
 		/** Updates the animation start time (in seconds since application start), in case the content image contains an animated sprite. */
 		void SetAnimationStartTime(float time);
@@ -111,10 +123,10 @@ namespace bs
 	{
 	public:
 		/** Builds sprite elements for GUIBackgroundSprites. */
-		static void BuildSpriteRenderElements(GUIInteractable& element, GUIElementState state, GUIBackgroundSprite& sprite, u32 depth = 1);
+		static void BuildSpriteRenderElements(GUIInteractable& element, GUIElementState state, GUIBackgroundSprite& sprite, const Vector2I& offset = Vector2I::kZero, u32 depth = 1);
 
 		/** Builds sprite elements for GUIContentSprites. */
-		static void BuildSpriteRenderElements(GUIInteractable& element, GUIElementState state, const GUIContent& content, GUIContentSprites& sprites);
+		static void BuildSpriteRenderElements(GUIInteractable& element, GUIElementState state, const GUIContent& content, GUIContentSprites& sprites, const Vector2I& offset = Vector2I::kZero, u32 depth = 0);
 	};
 
 	/** @} */

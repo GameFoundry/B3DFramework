@@ -122,39 +122,39 @@ void GUIBackgroundSprite::SetAnimationStartTime(float time)
 	mBackgroundSpriteInformation.AnimationStartTime = time;
 }
 
-void GUIContentSprites::BuildRenderElements(const Size2UI& size, const GUIContent& content, const GUIStyleSheetRules& rules, const Color& tint, u64 batchId, TInlineArray<GUIRenderElement, 4>& outRenderElements)
+void GUIContentSprites::BuildRenderElements(const GUIContentSpriteCreateInformation& createInformation, TInlineArray<GUIRenderElement, 4>& outRenderElements)
 {
-	const Rect2I contentArea = GUIHelper::CalculateContentArea(size, rules);
+	const Rect2I contentArea = GUIHelper::CalculateContentArea(createInformation.Size, createInformation.Rules);
 
-	const bool isContentTextAvailable = !content.Text.GetValue().empty();
+	const bool isContentTextAvailable = !createInformation.Content.Text.GetValue().empty();
 	if(isContentTextAvailable)
 	{
-		mContentTextSpriteInformation.Text = (String)content.Text;
+		mContentTextSpriteInformation.Text = (String)createInformation.Content.Text;
 
 		mContentTextSpriteInformation.Width = contentArea.Width;
 		mContentTextSpriteInformation.Height = contentArea.Height;
 
-		mContentTextSpriteInformation.InitializeFromStyleSheetRules(rules);
-		mContentTextSpriteInformation.Color *= tint;
+		mContentTextSpriteInformation.InitializeFromStyleSheetRules(createInformation.Rules);
+		mContentTextSpriteInformation.Color *= createInformation.Tint;
 
-		mContentTextSprite.Update(mContentTextSpriteInformation, batchId);
+		mContentTextSprite.Update(mContentTextSpriteInformation, createInformation.BatchId);
 	}
 
-	HSpriteImage contentImage = content.GetImage(GUIElementState::Normal);
+	HSpriteImage contentImage = createInformation.Content.GetImage(GUIElementState::Normal);
 	const bool isContentImageAvailable = contentImage.IsLoaded(false);
 	if(isContentImageAvailable)
 	{
-		const Size2UI scaledImageSize = CalculateScaledImageSize(contentImage, size);
+		const Size2UI scaledImageSize = CalculateScaledImageSize(contentImage, createInformation.Size);
 
 		mContentImageSpriteInformation.Image = contentImage;
 		mContentImageSpriteInformation.Width = scaledImageSize.Width;
 		mContentImageSpriteInformation.Height = scaledImageSize.Height;
-		mContentImageSpriteInformation.Color = tint;
+		mContentImageSpriteInformation.Color = createInformation.Tint;
 
-		mContentImageSpriteInformation.Color *= rules.Color;
-		mContentImageSpriteInformation.Color.A *= rules.Opacity;
+		mContentImageSpriteInformation.Color *= createInformation.Rules.Color;
+		mContentImageSpriteInformation.Color.A *= createInformation.Rules.Opacity;
 
-		mContentImageSprite.Update(mContentImageSpriteInformation, batchId);
+		mContentImageSprite.Update(mContentImageSpriteInformation, createInformation.BatchId);
 	}
 
 	// Calculate content bounds
@@ -166,14 +166,17 @@ void GUIContentSprites::BuildRenderElements(const Size2UI& size, const GUIConten
 
 	CalculateContentBounds(contentArea, Size2UI(contentImageSpriteBounds.Width, contentImageSpriteBounds.Height), Size2UI(textSpriteBounds.Width, textSpriteBounds.Height), GUIImagePosition::Left, textBounds, imageBounds);
 
+	const Vector2 textOffset = Vector2(textBounds.X, textBounds.Y) + createInformation.Offset.ToFloat();
+	const Vector2 imageOffset = Vector2(imageBounds.X, imageBounds.Y) + createInformation.Offset.ToFloat();
+
 	if(isContentImageAvailable)
-		GUIRenderElementHelper::Append({ GUIRenderElementHelper::SpriteInfo(&mContentImageSprite, 0, imageBounds) }, outRenderElements );
+		GUIRenderElementHelper::Append({ GUIRenderElementHelper::SpriteInfo(&mContentImageSprite, createInformation.Depth, imageOffset, imageBounds) }, outRenderElements );
 
 	if(isContentTextAvailable)
-		GUIRenderElementHelper::Append({ GUIRenderElementHelper::SpriteInfo(&mContentTextSprite, 0, textBounds) }, outRenderElements );
+		GUIRenderElementHelper::Append({ GUIRenderElementHelper::SpriteInfo(&mContentTextSprite, createInformation.Depth, textOffset, textBounds) }, outRenderElements );
 }
 
-void GUIContentSprites::BuildRenderElements(const Size2UI& size, const GUIContent& content, const GUIElementStyle& style, GUIElementState state, const Color& tint, u64 batchId, TInlineArray<GUIRenderElement, 4>& outRenderElements)
+void GUIContentSprites::BuildRenderElements(const Size2UI& size, const GUIContent& content, const GUIElementStyle& style, GUIElementState state, const Color& tint, u64 batchId, TInlineArray<GUIRenderElement, 4>& outRenderElements, const Vector2I& offset, u32 depth)
 {
 	const Rect2I contentArea = GUIHelper::CalculateContentArea(size, style);
 
@@ -216,11 +219,14 @@ void GUIContentSprites::BuildRenderElements(const Size2UI& size, const GUIConten
 
 	CalculateContentBounds(contentArea, Size2UI(contentImageSpriteBounds.Width, contentImageSpriteBounds.Height), Size2UI(textSpriteBounds.Width, textSpriteBounds.Height), style.ImagePosition, textBounds, imageBounds);
 
+	const Vector2 textOffset = Vector2(textBounds.X, textBounds.Y) + offset.ToFloat();
+	const Vector2 imageOffset = Vector2(imageBounds.X, imageBounds.Y) + offset.ToFloat();
+
 	if(isContentImageAvailable)
-		GUIRenderElementHelper::Append({ GUIRenderElementHelper::SpriteInfo(&mContentImageSprite, 0, imageBounds) }, outRenderElements );
+		GUIRenderElementHelper::Append({ GUIRenderElementHelper::SpriteInfo(&mContentImageSprite, depth, imageOffset, imageBounds) }, outRenderElements );
 
 	if(isContentTextAvailable)
-		GUIRenderElementHelper::Append({ GUIRenderElementHelper::SpriteInfo(&mContentTextSprite, 0, textBounds) }, outRenderElements );
+		GUIRenderElementHelper::Append({ GUIRenderElementHelper::SpriteInfo(&mContentTextSprite, depth, textOffset, textBounds) }, outRenderElements );
 }
 
 void GUIContentSprites::SetAnimationStartTime(float time)
@@ -308,7 +314,7 @@ void GUIContentSprites::CalculateContentBounds(const Rect2I& contentArea, const 
 	}
 }
 
-void GUISpriteHelper::BuildSpriteRenderElements(GUIInteractable& element, GUIElementState state, GUIBackgroundSprite& sprite, u32 depth)
+void GUISpriteHelper::BuildSpriteRenderElements(GUIInteractable& element, GUIElementState state, GUIBackgroundSprite& sprite, const Vector2I& offset, u32 depth)
 {
 	const Size2UI size(element.GetLayoutData().Area.Width, element.GetLayoutData().Area.Height);
 	const u64 batchId = (u64)element.GetParentWidget();
@@ -321,16 +327,17 @@ void GUISpriteHelper::BuildSpriteRenderElements(GUIInteractable& element, GUIEle
 
 		GUIBackgroundSpriteCreateInformation backgroundSpriteCreateInformation(size, styleSheetRules, tint, batchId);
 		backgroundSpriteCreateInformation.Depth = depth;
+		backgroundSpriteCreateInformation.Offset = offset;
 
 		sprite.BuildRenderElements(backgroundSpriteCreateInformation, element.mRenderElements);
 	}
 	else
 	{
-		sprite.BuildRenderElements(size, *element.GetStyle(), state, tint, batchId, element.mRenderElements, Vector2I::kZero, depth);
+		sprite.BuildRenderElements(size, *element.GetStyle(), state, tint, batchId, element.mRenderElements, offset, depth);
 	}
 }
 
-void GUISpriteHelper::BuildSpriteRenderElements(GUIInteractable& element, GUIElementState state, const GUIContent& content, GUIContentSprites& sprites)
+void GUISpriteHelper::BuildSpriteRenderElements(GUIInteractable& element, GUIElementState state, const GUIContent& content, GUIContentSprites& sprites, const Vector2I& offset, u32 depth)
 {
 	const Size2UI size(element.GetLayoutData().Area.Width, element.GetLayoutData().Area.Height);
 	const u64 batchId = (u64)element.GetParentWidget();
@@ -340,10 +347,14 @@ void GUISpriteHelper::BuildSpriteRenderElements(GUIInteractable& element, GUIEle
 	if(isUsingStyleSheets)
 	{
 		const GUIStyleSheetRules& styleSheetRules = element.mStyleSheetRuleInformation.CurrentStateRuleset->Rules;
-		sprites.BuildRenderElements(size, content, styleSheetRules, tint, batchId, element.mRenderElements);
+		GUIContentSpriteCreateInformation contentSpriteCreateInformation(size, content, styleSheetRules, tint, batchId);
+		contentSpriteCreateInformation.Depth = depth;
+		contentSpriteCreateInformation.Offset = offset;
+
+		sprites.BuildRenderElements(contentSpriteCreateInformation, element.mRenderElements);
 	}
 	else
 	{
-		sprites.BuildRenderElements(size, content, *element.GetStyle(), state, tint, batchId, element.mRenderElements);
+		sprites.BuildRenderElements(size, content, *element.GetStyle(), state, tint, batchId, element.mRenderElements, offset, depth);
 	}
 }

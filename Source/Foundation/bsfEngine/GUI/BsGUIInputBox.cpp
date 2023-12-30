@@ -91,7 +91,7 @@ void GUIInputBox::UpdateRenderElements()
 {
 	mRenderElements.clear();
 
-	GUISpriteHelper::BuildSpriteRenderElements(*this, mState, mBackgroundSprite, 3);
+	GUISpriteHelper::BuildSpriteRenderElements(*this, mState, mBackgroundSprite, Vector2I::kZero, 3);
 
 	TextSpriteInformation textDesc = GetTextDesc();
 	mTextSprite->Update(textDesc, (u64)GetParentWidget());
