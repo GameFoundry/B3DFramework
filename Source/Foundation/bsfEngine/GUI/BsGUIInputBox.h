@@ -4,6 +4,7 @@
 
 #include "BsGUIConstructionMethods.h"
 #include "BsGUIContent.h"
+#include "BsGUISpriteHelper.h"
 #include "BsPrerequisites.h"
 #include "GUI/BsGUIInteractable.h"
 #include "2D/BsImageSprite.h"
@@ -75,7 +76,6 @@ namespace bs
 		virtual ~GUIInputBox();
 
 		void UpdateRenderElements() override;
-		void UpdateClippedBounds() override;
 		bool DoOnMouseEvent(const GUIMouseEvent& ev) override;
 		bool DoOnTextInputEvent(const GUITextInputEvent& ev) override;
 		bool DoOnCommandEvent(const GUICommandEvent& ev) override;
@@ -152,7 +152,7 @@ namespace bs
 		static VirtualButton mSelectAllVB;
 
 		// Sprites
-		ImageSprite* mImageSprite;
+		GUIBackgroundSprite mBackgroundSprite;
 		TextSprite* mTextSprite;
 		bool mIsMultiline;
 		Vector2I mTextOffset;
@@ -161,7 +161,6 @@ namespace bs
 		bool mIsMouseOver = false;
 		GUIElementState mState = GUIElementState::Normal;
 
-		ImageSpriteInformation mImageDesc;
 		String mText;
 		u32 mNumChars = 0;
 		std::function<bool(const String&)> mFilter;

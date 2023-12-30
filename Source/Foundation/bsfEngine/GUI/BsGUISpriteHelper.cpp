@@ -308,7 +308,7 @@ void GUIContentSprites::CalculateContentBounds(const Rect2I& contentArea, const 
 	}
 }
 
-void GUISpriteHelper::BuildSpriteRenderElements(GUIInteractable& element, GUIElementState state, GUIBackgroundSprite& sprite)
+void GUISpriteHelper::BuildSpriteRenderElements(GUIInteractable& element, GUIElementState state, GUIBackgroundSprite& sprite, u32 depth)
 {
 	const Size2UI size(element.GetLayoutData().Area.Width, element.GetLayoutData().Area.Height);
 	const u64 batchId = (u64)element.GetParentWidget();
@@ -318,11 +318,15 @@ void GUISpriteHelper::BuildSpriteRenderElements(GUIInteractable& element, GUIEle
 	if(isUsingStyleSheets)
 	{
 		const GUIStyleSheetRules& styleSheetRules = element.mStyleSheetRuleInformation.CurrentStateRuleset->Rules;
-		sprite.BuildRenderElements(GUIBackgroundSpriteCreateInformation(size, styleSheetRules, tint, batchId), element.mRenderElements);
+
+		GUIBackgroundSpriteCreateInformation backgroundSpriteCreateInformation(size, styleSheetRules, tint, batchId);
+		backgroundSpriteCreateInformation.Depth = depth;
+
+		sprite.BuildRenderElements(backgroundSpriteCreateInformation, element.mRenderElements);
 	}
 	else
 	{
-		sprite.BuildRenderElements(size, *element.GetStyle(), state, tint, batchId, element.mRenderElements);
+		sprite.BuildRenderElements(size, *element.GetStyle(), state, tint, batchId, element.mRenderElements, Vector2I::kZero, depth);
 	}
 }
 

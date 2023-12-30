@@ -35,14 +35,12 @@ const String& GUIInputBox::GetGuiTypeName()
 GUIInputBox::GUIInputBox(PrivatelyConstruct, const GUIInputBoxContent& content, const String& styleName, const GUISizeConstraints& sizeConstraints)
 	: GUIInteractable(styleName, sizeConstraints, GUIElementOption::AcceptsKeyFocus), mIsMultiline(content.AllowMultiline)
 {
-	mImageSprite = B3DNew<ImageSprite>();
 	mTextSprite = B3DNew<TextSprite>();
 }
 
 GUIInputBox::~GUIInputBox()
 {
 	B3DDelete(mTextSprite);
-	B3DDelete(mImageSprite);
 }
 
 void GUIInputBox::SetText(const String& text)
@@ -91,19 +89,9 @@ void GUIInputBox::SetText(const String& text)
 
 void GUIInputBox::UpdateRenderElements()
 {
-	mImageDesc.Width = mLayoutData.Area.Width;
-	mImageDesc.Height = mLayoutData.Area.Height;
-	mImageDesc.BorderLeft = GetStyle()->Border.Left;
-	mImageDesc.BorderRight = GetStyle()->Border.Right;
-	mImageDesc.BorderTop = GetStyle()->Border.Top;
-	mImageDesc.BorderBottom = GetStyle()->Border.Bottom;
-	mImageDesc.Color = GetTint();
+	mRenderElements.clear();
 
-	const HSpriteImage& activeImage = GetStyle()->GetImageForState(mState);
-	if(SpriteImage::CheckIsLoaded(activeImage))
-		mImageDesc.Image = activeImage;
-
-	mImageSprite->Update(mImageDesc, (u64)GetParentWidget());
+	GUISpriteHelper::BuildSpriteRenderElements(*this, mState, mBackgroundSprite, 3);
 
 	TextSpriteInformation textDesc = GetTextDesc();
 	mTextSprite->Update(textDesc, (u64)GetParentWidget());
@@ -134,7 +122,6 @@ void GUIInputBox::UpdateRenderElements()
 	ClampScrollToBounds(mTextSprite->GetBounds(offset, Rect2I()));
 
 	const Rect2I contentBounds = GetCachedContentBoundsInElementSpace();
-	const Rect2 imageBounds(0.0f, 0.0f, (float)mLayoutData.Area.Width, (float)mLayoutData.Area.Height);
 
 	const Vector2 textOffset = Vector2I(mTextOffset.X + contentBounds.X, mTextOffset.Y + contentBounds.Y).ToFloat();
 	const Vector2 caretOffset = Vector2(caretBounds.X, caretBounds.Y) + textOffset;
@@ -142,7 +129,7 @@ void GUIInputBox::UpdateRenderElements()
 	// Populate GUI render elements from the sprites
 	{
 		using T = GUIRenderElementHelper;
-		T::Populate({ T::SpriteInfo(mTextSprite, 1, textOffset, (Rect2)contentBounds), T::SpriteInfo(mImageSprite, 3, imageBounds), T::SpriteInfo(caretSprite, 0, caretOffset, (Rect2)contentBounds) }, mRenderElements);
+		T::Append({ T::SpriteInfo(mTextSprite, 1, textOffset, (Rect2)contentBounds), T::SpriteInfo(caretSprite, 0, caretOffset, (Rect2)contentBounds) }, mRenderElements);
 
 		if(mSelectionShown)
 		{
@@ -170,12 +157,6 @@ void GUIInputBox::UpdateRenderElements()
 	}
 
 	GUIInteractable::UpdateRenderElements();
-}
-
-void GUIInputBox::UpdateClippedBounds()
-{
-	Vector2I offset(mLayoutData.Area.X, mLayoutData.Area.Y);
-	mClippedBounds = mImageSprite->GetBounds(offset, mLayoutData.GetLocalClipRect());
 }
 
 Vector2I GUIInputBox::CalculateUnconstrainedOptimalSize() const

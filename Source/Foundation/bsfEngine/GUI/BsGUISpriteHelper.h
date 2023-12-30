@@ -111,7 +111,7 @@ namespace bs
 	{
 	public:
 		/** Builds sprite elements for GUIBackgroundSprites. */
-		static void BuildSpriteRenderElements(GUIInteractable& element, GUIElementState state, GUIBackgroundSprite& sprite);
+		static void BuildSpriteRenderElements(GUIInteractable& element, GUIElementState state, GUIBackgroundSprite& sprite, u32 depth = 1);
 
 		/** Builds sprite elements for GUIContentSprites. */
 		static void BuildSpriteRenderElements(GUIInteractable& element, GUIElementState state, const GUIContent& content, GUIContentSprites& sprites);
