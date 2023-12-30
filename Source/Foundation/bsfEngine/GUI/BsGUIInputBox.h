@@ -73,7 +73,7 @@ namespace bs
 
 		/** @} */
 	protected:
-		virtual ~GUIInputBox();
+		virtual ~GUIInputBox() = default;
 
 		void UpdateRenderElements() override;
 		bool DoOnMouseEvent(const GUIMouseEvent& ev) override;
@@ -153,7 +153,7 @@ namespace bs
 
 		// Sprites
 		GUIBackgroundSprite mBackgroundSprite;
-		TextSprite* mTextSprite;
+		GUIContentSprites mTextSprite;
 		bool mIsMultiline;
 		Vector2I mTextOffset;
 		bool mHasFocus = false;

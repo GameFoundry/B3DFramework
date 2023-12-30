@@ -34,14 +34,7 @@ const String& GUIInputBox::GetGuiTypeName()
 
 GUIInputBox::GUIInputBox(PrivatelyConstruct, const GUIInputBoxContent& content, const String& styleName, const GUISizeConstraints& sizeConstraints)
 	: GUIInteractable(styleName, sizeConstraints, GUIElementOption::AcceptsKeyFocus), mIsMultiline(content.AllowMultiline)
-{
-	mTextSprite = B3DNew<TextSprite>();
-}
-
-GUIInputBox::~GUIInputBox()
-{
-	B3DDelete(mTextSprite);
-}
+{ }
 
 void GUIInputBox::SetText(const String& text)
 {
@@ -93,8 +86,8 @@ void GUIInputBox::UpdateRenderElements()
 
 	GUISpriteHelper::BuildSpriteRenderElements(*this, mState, mBackgroundSprite, Vector2I::kZero, 3);
 
-	TextSpriteInformation textDesc = GetTextDesc();
-	mTextSprite->Update(textDesc, (u64)GetParentWidget());
+	GUIContent textContent = GUIContent(HString(mText));
+	GUISpriteHelper::BuildSpriteRenderElements(*this, mState, textContent, mTextSprite, mTextOffset, 1, mIsMultiline);
 
 	GUIInputCaret* const caret = GetGUIManager().GetInputCaretTool();
 	GUIInputSelection* const selection = GetGUIManager().GetInputSelectionTool();
@@ -103,7 +96,7 @@ void GUIInputBox::UpdateRenderElements()
 	Rect2 caretBounds;
 	if(mCaretShown && GetGUIManager().GetCaretBlinkState())
 	{
-		caret->UpdateText(this, textDesc); // TODO - These shouldn't be here. Only call this when one of these parameters changes.
+		caret->UpdateText(this, mTextSprite.GetTextSpriteInformation()); // TODO - These shouldn't be here. Only call this when one of these parameters changes.
 		caret->UpdateSprite();
 
 		caretSprite = caret->GetSprite();
@@ -112,14 +105,14 @@ void GUIInputBox::UpdateRenderElements()
 
 	if(mSelectionShown)
 	{
-		selection->UpdateText(this, textDesc); // TODO - These shouldn't be here. Only call this when one of these parameters changes.
+		selection->UpdateText(this, mTextSprite.GetTextSpriteInformation()); // TODO - These shouldn't be here. Only call this when one of these parameters changes.
 		selection->UpdateSprite();
 	}
 
 	// When text bounds are reduced the scroll needs to be adjusted so that
 	// input box isn't filled with mostly empty space.
 	Vector2I offset(mLayoutData.Area.X, mLayoutData.Area.Y);
-	ClampScrollToBounds(mTextSprite->GetBounds(offset, Rect2I()));
+	ClampScrollToBounds(mTextSprite.GetTextSprite().GetBounds(offset, Rect2I()));
 
 	const Rect2I contentBounds = GetCachedContentBoundsInElementSpace();
 
@@ -129,7 +122,7 @@ void GUIInputBox::UpdateRenderElements()
 	// Populate GUI render elements from the sprites
 	{
 		using T = GUIRenderElementHelper;
-		T::Append({ T::SpriteInfo(mTextSprite, 1, textOffset, (Rect2)contentBounds), T::SpriteInfo(caretSprite, 0, caretOffset, (Rect2)contentBounds) }, mRenderElements);
+		T::Append({ T::SpriteInfo(caretSprite, 0, caretOffset, (Rect2)contentBounds) }, mRenderElements);
 
 		if(mSelectionShown)
 		{

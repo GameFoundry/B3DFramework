@@ -176,7 +176,7 @@ void GUIContentSprites::BuildRenderElements(const GUIContentSpriteCreateInformat
 		GUIRenderElementHelper::Append({ GUIRenderElementHelper::SpriteInfo(&mContentTextSprite, createInformation.Depth, textOffset, textBounds) }, outRenderElements );
 }
 
-void GUIContentSprites::BuildRenderElements(const Size2UI& size, const GUIContent& content, const GUIElementStyle& style, GUIElementState state, const Color& tint, u64 batchId, TInlineArray<GUIRenderElement, 4>& outRenderElements, const Vector2I& offset, u32 depth)
+void GUIContentSprites::BuildRenderElements(const Size2UI& size, const GUIContent& content, const GUIElementStyle& style, GUIElementState state, const Color& tint, u64 batchId, TInlineArray<GUIRenderElement, 4>& outRenderElements, const Vector2I& offset, u32 depth, bool wordWrap)
 {
 	const Rect2I contentArea = GUIHelper::CalculateContentArea(size, style);
 
@@ -192,6 +192,7 @@ void GUIContentSprites::BuildRenderElements(const Size2UI& size, const GUIConten
 		mContentTextSpriteInformation.Height = contentArea.Height;
 		mContentTextSpriteInformation.HorzAlign = style.TextHorzAlign;
 		mContentTextSpriteInformation.VertAlign = style.TextVertAlign;
+		mContentTextSpriteInformation.WordWrap = wordWrap;
 
 		mContentTextSprite.Update(mContentTextSpriteInformation, batchId);
 	}
@@ -337,7 +338,7 @@ void GUISpriteHelper::BuildSpriteRenderElements(GUIInteractable& element, GUIEle
 	}
 }
 
-void GUISpriteHelper::BuildSpriteRenderElements(GUIInteractable& element, GUIElementState state, const GUIContent& content, GUIContentSprites& sprites, const Vector2I& offset, u32 depth)
+void GUISpriteHelper::BuildSpriteRenderElements(GUIInteractable& element, GUIElementState state, const GUIContent& content, GUIContentSprites& sprites, const Vector2I& offset, u32 depth, bool wordWrap)
 {
 	const Size2UI size(element.GetLayoutData().Area.Width, element.GetLayoutData().Area.Height);
 	const u64 batchId = (u64)element.GetParentWidget();
@@ -355,6 +356,6 @@ void GUISpriteHelper::BuildSpriteRenderElements(GUIInteractable& element, GUIEle
 	}
 	else
 	{
-		sprites.BuildRenderElements(size, content, *element.GetStyle(), state, tint, batchId, element.mRenderElements, offset, depth);
+		sprites.BuildRenderElements(size, content, *element.GetStyle(), state, tint, batchId, element.mRenderElements, offset, depth, wordWrap);
 	}
 }

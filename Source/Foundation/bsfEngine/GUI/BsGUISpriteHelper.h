@@ -73,6 +73,7 @@ namespace bs
 		u32 Depth = 0; /**< Depth at which to render the sprites. Higher depth means a sprite is rendered behind sprites with lower depth. */
 		Color Tint; /**< Runtime color tint to apply to the sprite. */
 		u64 BatchId = 0; /**< ID that specifies if the sprite is allowed to be batched with other sprites. Only sprites with the same batch ID can be batched. */
+		bool WordWrap = false; /**< If true, text will wrap to a new line if it exceeds the content area width. If false, the text will be clipped. */
 
 		const GUIStyleSheetRules& Rules; /**< Style sheet rules that determine how to style the sprites. */
 	};
@@ -90,10 +91,22 @@ namespace bs
 		void BuildRenderElements(const GUIContentSpriteCreateInformation& createInformation, TInlineArray<GUIRenderElement, 4>& outRenderElements);
 
 		/** Same as the other overload, but for the old deprecated GUIElementStyle type, instead of style-sheets. */
-		void BuildRenderElements(const Size2UI& size, const GUIContent& content, const GUIElementStyle& style, GUIElementState state, const Color& tint, u64 batchId, TInlineArray<GUIRenderElement, 4>& outRenderElements, const Vector2I& offset = Vector2I::kZero, u32 depth = 1);
+		void BuildRenderElements(const Size2UI& size, const GUIContent& content, const GUIElementStyle& style, GUIElementState state, const Color& tint, u64 batchId, TInlineArray<GUIRenderElement, 4>& outRenderElements, const Vector2I& offset = Vector2I::kZero, u32 depth = 0, bool wordWrap = false);
 
 		/** Updates the animation start time (in seconds since application start), in case the content image contains an animated sprite. */
 		void SetAnimationStartTime(float time);
+
+		/** Returns the information used for creating the image sprite. Only valid after the first call to BuildRenderElements(). */
+		const ImageSpriteInformation& GetImageSpriteInformation() const { return mContentImageSpriteInformation; }
+
+		/** Returns the information used for creating the text sprite. Only valid after the first call to BuildRenderElements(). */
+		const TextSpriteInformation& GetTextSpriteInformation() const { return mContentTextSpriteInformation; }
+
+		/** Returns the image sprite. Note the sprite is only initialized/updated after a call to BuildRenderElements(). */
+		const ImageSprite& GetImageSprite() const { return mContentImageSprite; }
+
+		/** Returns the text sprite. Note the sprite is only initialized/updated after a call to BuildRenderElements(). */
+		const TextSprite& GetTextSprite() const { return mContentTextSprite; }
 
 	private:
 		/** Calculates the size of the provided image so it fits in the provided @p size, while preserving aspect ratio of the image. */
@@ -126,7 +139,7 @@ namespace bs
 		static void BuildSpriteRenderElements(GUIInteractable& element, GUIElementState state, GUIBackgroundSprite& sprite, const Vector2I& offset = Vector2I::kZero, u32 depth = 1);
 
 		/** Builds sprite elements for GUIContentSprites. */
-		static void BuildSpriteRenderElements(GUIInteractable& element, GUIElementState state, const GUIContent& content, GUIContentSprites& sprites, const Vector2I& offset = Vector2I::kZero, u32 depth = 0);
+		static void BuildSpriteRenderElements(GUIInteractable& element, GUIElementState state, const GUIContent& content, GUIContentSprites& sprites, const Vector2I& offset = Vector2I::kZero, u32 depth = 0, bool wordWrap = false);
 	};
 
 	/** @} */
