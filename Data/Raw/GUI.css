@@ -116,6 +116,38 @@ button.Toggle::checkmark
     color: var(--FocusColor);
 }
 
+inputbox
+{
+    height: 21px;
+    min-width: 10px;
+    margin-bottom: 4px;
+    text-align: left;
+    vertical-align: top;
+    color: var(--PrimaryContentColor);
+    background-color: var(--PrimaryBackgroundColor);
+    border-color: var(--PrimaryBorderColor);
+    border-width: 2px;
+    font-family: var(--PrimaryFontFamily);
+    font-size: var(--PrimaryFontSize);
+    padding: 2px;
+}
+
+inputbox:hover
+{
+    background-color: var(--HoverBackgroundColor);
+    border-color: var(--HoverBorderColor);
+}
+
+inputbox:focus
+{
+    border-color: var(--FocusColor);
+}
+
+inputbox.InputBox
+{
+
+}
+
 listbox
 {
     min-width: 20px;

@@ -75,6 +75,7 @@ namespace bs
 	protected:
 		virtual ~GUIInputBox() = default;
 
+		const char* GetStyleSheetElement() const override { return "inputbox"; }
 		void UpdateRenderElements() override;
 		bool DoOnMouseEvent(const GUIMouseEvent& ev) override;
 		bool DoOnTextInputEvent(const GUITextInputEvent& ev) override;
@@ -129,9 +130,6 @@ namespace bs
 
 		/**	Returns offset at which to render the text. Relative to parent widget. */
 		Vector2I GetTextOffset() const;
-
-		/**	Returns rectangle used for clipping the text. Relative to element. */
-		Rect2I GetTextClipRect() const;
 
 		/**	Cuts currently selected text to clipboard. */
 		void CutText();
