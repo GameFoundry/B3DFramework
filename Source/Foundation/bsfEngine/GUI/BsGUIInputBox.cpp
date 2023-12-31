@@ -56,10 +56,10 @@ void GUIInputBox::SetText(const String& text)
 
 		if(mHasFocus)
 		{
-			TextSpriteInformation textDesc = GetTextDesc();
+			const TextSpriteInformation textSpriteInformation = BuildTextSpriteInformation();
 
-			GetGUIManager().GetInputCaretTool()->UpdateText(this, textDesc);
-			GetGUIManager().GetInputSelectionTool()->UpdateText(this, textDesc);
+			GetGUIManager().GetInputCaretTool()->UpdateText(this, textSpriteInformation);
+			GetGUIManager().GetInputSelectionTool()->UpdateText(this, textSpriteInformation);
 
 			if(mNumChars > 0)
 				GetGUIManager().GetInputCaretTool()->MoveCaretToChar(mNumChars - 1, CARET_AFTER);
@@ -92,11 +92,15 @@ void GUIInputBox::UpdateRenderElements()
 	GUIInputCaret* const caret = GetGUIManager().GetInputCaretTool();
 	GUIInputSelection* const selection = GetGUIManager().GetInputSelectionTool();
 
+	Optional<TextSpriteInformation> textSpriteInformation;
+
 	ImageSprite* caretSprite = nullptr;
 	Rect2 caretBounds;
 	if(mCaretShown && GetGUIManager().GetCaretBlinkState())
 	{
-		caret->UpdateText(this, mTextSprite.GetTextSpriteInformation()); // TODO - These shouldn't be here. Only call this when one of these parameters changes.
+		textSpriteInformation = BuildTextSpriteInformation();
+
+		caret->UpdateText(this, *textSpriteInformation); // TODO - These shouldn't be here. Only call this when one of these parameters changes.
 		caret->UpdateSprite();
 
 		caretSprite = caret->GetSprite();
@@ -105,7 +109,10 @@ void GUIInputBox::UpdateRenderElements()
 
 	if(mSelectionShown)
 	{
-		selection->UpdateText(this, mTextSprite.GetTextSpriteInformation()); // TODO - These shouldn't be here. Only call this when one of these parameters changes.
+		if(!textSpriteInformation.has_value())
+			textSpriteInformation = BuildTextSpriteInformation();
+
+		selection->UpdateText(this, *textSpriteInformation); // TODO - These shouldn't be here. Only call this when one of these parameters changes.
 		selection->UpdateSprite();
 	}
 
@@ -754,8 +761,7 @@ void GUIInputBox::ShowCaret()
 {
 	mCaretShown = true;
 
-	TextSpriteInformation textDesc = GetTextDesc();
-	GetGUIManager().GetInputCaretTool()->UpdateText(this, textDesc);
+	GetGUIManager().GetInputCaretTool()->UpdateText(this, BuildTextSpriteInformation());
 }
 
 void GUIInputBox::HideCaret()
@@ -765,8 +771,7 @@ void GUIInputBox::HideCaret()
 
 void GUIInputBox::ShowSelection(u32 anchorCaretPos)
 {
-	TextSpriteInformation textDesc = GetTextDesc();
-	GetGUIManager().GetInputSelectionTool()->UpdateText(this, textDesc);
+	GetGUIManager().GetInputSelectionTool()->UpdateText(this, BuildTextSpriteInformation());
 
 	GetGUIManager().GetInputSelectionTool()->ShowSelection(anchorCaretPos);
 	mSelectionShown = true;
@@ -780,7 +785,7 @@ void GUIInputBox::ClearSelection()
 
 void GUIInputBox::ScrollTextToCaret()
 {
-	TextSpriteInformation textDesc = GetTextDesc();
+	TextSpriteInformation textSpriteInformation = BuildTextSpriteInformation();
 
 	Vector2I textOffset = GetTextOffset();
 	Vector2I caretPos = GetGUIManager().GetInputCaretTool()->GetCaretPosition() + textOffset;
@@ -790,9 +795,9 @@ void GUIInputBox::ScrollTextToCaret()
 	i32 left = textOffset.X - mTextOffset.X;
 	// Include caret width here because we don't want to scroll if just the caret is outside the bounds
 	// (Possible if the text width is exactly the maximum width)
-	i32 right = left + (i32)textDesc.Width + caretWidth;
+	i32 right = left + (i32)textSpriteInformation.Width + caretWidth;
 	i32 top = textOffset.Y - mTextOffset.Y;
-	i32 bottom = top + (i32)textDesc.Height;
+	i32 bottom = top + (i32)textSpriteInformation.Height;
 
 	// If caret is too high to display we don't want the offset to keep adjusting itself
 	caretHeight = std::min(caretHeight, (u32)(bottom - top));
@@ -820,17 +825,17 @@ void GUIInputBox::ScrollTextToCaret()
 
 	mTextOffset += offset;
 
-	GetGUIManager().GetInputCaretTool()->UpdateText(this, textDesc);
-	GetGUIManager().GetInputSelectionTool()->UpdateText(this, textDesc);
+	GetGUIManager().GetInputCaretTool()->UpdateText(this, textSpriteInformation);
+	GetGUIManager().GetInputSelectionTool()->UpdateText(this, textSpriteInformation);
 }
 
 void GUIInputBox::ClampScrollToBounds(Rect2I unclippedTextBounds)
 {
-	TextSpriteInformation textDesc = GetTextDesc();
+	const TextSpriteInformation textSpriteInformation = BuildTextSpriteInformation();
 
 	Vector2I newTextOffset;
-	i32 maxScrollableWidth = std::max(0, (i32)unclippedTextBounds.Width - (i32)textDesc.Width);
-	i32 maxScrollableHeight = std::max(0, (i32)unclippedTextBounds.Height - (i32)textDesc.Height);
+	i32 maxScrollableWidth = std::max(0, (i32)unclippedTextBounds.Width - (i32)textSpriteInformation.Width);
+	i32 maxScrollableHeight = std::max(0, (i32)unclippedTextBounds.Height - (i32)textSpriteInformation.Height);
 	newTextOffset.X = Math::Clamp(mTextOffset.X, -maxScrollableWidth, 0);
 	newTextOffset.Y = Math::Clamp(mTextOffset.Y, -maxScrollableHeight, 0);
 
@@ -838,8 +843,8 @@ void GUIInputBox::ClampScrollToBounds(Rect2I unclippedTextBounds)
 	{
 		mTextOffset = newTextOffset;
 
-		GetGUIManager().GetInputCaretTool()->UpdateText(this, textDesc);
-		GetGUIManager().GetInputSelectionTool()->UpdateText(this, textDesc);
+		GetGUIManager().GetInputCaretTool()->UpdateText(this, textSpriteInformation);
+		GetGUIManager().GetInputSelectionTool()->UpdateText(this, textSpriteInformation);
 	}
 }
 
@@ -850,10 +855,10 @@ void GUIInputBox::InsertString(u32 charIdx, const String& string)
 	mText.insert(mText.begin() + byteIdx, string.begin(), string.end());
 	mNumChars = UTF8::Count(mText);
 
-	TextSpriteInformation textDesc = GetTextDesc();
+	const TextSpriteInformation textSpriteInformation = BuildTextSpriteInformation();
 
-	GetGUIManager().GetInputCaretTool()->UpdateText(this, textDesc);
-	GetGUIManager().GetInputSelectionTool()->UpdateText(this, textDesc);
+	GetGUIManager().GetInputCaretTool()->UpdateText(this, textSpriteInformation);
+	GetGUIManager().GetInputSelectionTool()->UpdateText(this, textSpriteInformation);
 }
 
 void GUIInputBox::InsertChar(u32 charIdx, u32 charCode)
@@ -864,10 +869,10 @@ void GUIInputBox::InsertChar(u32 charIdx, u32 charCode)
 	mText.insert(mText.begin() + byteIdx, utf8chars.begin(), utf8chars.end());
 	mNumChars = UTF8::Count(mText);
 
-	TextSpriteInformation textDesc = GetTextDesc();
+	const TextSpriteInformation textSpriteInformation = BuildTextSpriteInformation();
 
-	GetGUIManager().GetInputCaretTool()->UpdateText(this, textDesc);
-	GetGUIManager().GetInputSelectionTool()->UpdateText(this, textDesc);
+	GetGUIManager().GetInputCaretTool()->UpdateText(this, textSpriteInformation);
+	GetGUIManager().GetInputSelectionTool()->UpdateText(this, textSpriteInformation);
 }
 
 void GUIInputBox::EraseChar(u32 charIdx)
@@ -878,10 +883,10 @@ void GUIInputBox::EraseChar(u32 charIdx)
 	mText.erase(byteIdx, byteCount);
 	mNumChars = UTF8::Count(mText);
 
-	TextSpriteInformation textDesc = GetTextDesc();
+	const TextSpriteInformation textSpriteInformation = BuildTextSpriteInformation();
 
-	GetGUIManager().GetInputCaretTool()->UpdateText(this, textDesc);
-	GetGUIManager().GetInputSelectionTool()->UpdateText(this, textDesc);
+	GetGUIManager().GetInputCaretTool()->UpdateText(this, textSpriteInformation);
+	GetGUIManager().GetInputSelectionTool()->UpdateText(this, textSpriteInformation);
 }
 
 void GUIInputBox::DeleteSelectedText(bool internal)
@@ -909,9 +914,9 @@ void GUIInputBox::DeleteSelectedText(bool internal)
 		mText.erase(mText.begin() + byteStart, mText.begin() + byteEnd);
 		mNumChars = UTF8::Count(mText);
 
-		TextSpriteInformation textDesc = GetTextDesc();
-		GetGUIManager().GetInputCaretTool()->UpdateText(this, textDesc);
-		GetGUIManager().GetInputSelectionTool()->UpdateText(this, textDesc);
+		const TextSpriteInformation textSpriteInformation = BuildTextSpriteInformation();
+		GetGUIManager().GetInputCaretTool()->UpdateText(this, textSpriteInformation);
+		GetGUIManager().GetInputSelectionTool()->UpdateText(this, textSpriteInformation);
 
 		if(selStart > 0)
 		{
@@ -953,24 +958,6 @@ Rect2I GUIInputBox::GetTextClipRect() const
 {
 	Rect2I contentClipRect = GetCachedClippedContentBoundsInContentSpace();
 	return Rect2I(contentClipRect.X - mTextOffset.X, contentClipRect.Y - mTextOffset.Y, contentClipRect.Width, contentClipRect.Height);
-}
-
-TextSpriteInformation GUIInputBox::GetTextDesc() const
-{
-	TextSpriteInformation textDesc;
-	textDesc.Text = mText;
-	textDesc.Font = GetStyle()->Font;
-	textDesc.FontSize = GetStyle()->FontSize;
-	textDesc.Color = GetTint() * GetStyle()->GetTextColorForState(mState);
-
-	Rect2I textBounds = GetCachedContentBounds();
-	textDesc.Width = textBounds.Width;
-	textDesc.Height = textBounds.Height;
-	textDesc.HorzAlign = GetStyle()->TextHorzAlign;
-	textDesc.VertAlign = GetStyle()->TextVertAlign;
-	textDesc.WordWrap = mIsMultiline;
-
-	return textDesc;
 }
 
 SPtr<GUIContextMenu> GUIInputBox::GetContextMenu() const
@@ -1054,3 +1041,9 @@ void GUIInputBox::PasteText()
 			OnValueChanged(mText);
 	}
 }
+
+TextSpriteInformation GUIInputBox::BuildTextSpriteInformation() const
+{
+	return GUISpriteHelper::BuildTextSpriteInformation(*this, mState, mText, mIsMultiline);
+}
+

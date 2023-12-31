@@ -133,9 +133,6 @@ namespace bs
 		/**	Returns rectangle used for clipping the text. Relative to element. */
 		Rect2I GetTextClipRect() const;
 
-		/**	Returns text sprite descriptor determining how is text sprite created. */
-		TextSpriteInformation GetTextDesc() const;
-
 		/**	Cuts currently selected text to clipboard. */
 		void CutText();
 
@@ -144,6 +141,9 @@ namespace bs
 
 		/**	Inserts text from clipboard to current caret location. */
 		void PasteText();
+
+		/** Builds a structure describing the text, using the current text. */
+		TextSpriteInformation BuildTextSpriteInformation() const;
 
 	private:
 		static VirtualButton mCopyVB;

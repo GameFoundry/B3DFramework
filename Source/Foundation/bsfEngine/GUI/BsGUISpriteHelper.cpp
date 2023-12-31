@@ -129,13 +129,7 @@ void GUIContentSprites::BuildRenderElements(const GUIContentSpriteCreateInformat
 	const bool isContentTextAvailable = !createInformation.Content.Text.GetValue().empty();
 	if(isContentTextAvailable)
 	{
-		mContentTextSpriteInformation.Text = (String)createInformation.Content.Text;
-
-		mContentTextSpriteInformation.Width = contentArea.Width;
-		mContentTextSpriteInformation.Height = contentArea.Height;
-
-		mContentTextSpriteInformation.InitializeFromStyleSheetRules(createInformation.Rules);
-		mContentTextSpriteInformation.Color *= createInformation.Tint;
+		mContentTextSpriteInformation = BuildTextSpriteInformation(contentArea, createInformation.Content.Text.GetValue(), createInformation.Rules, createInformation.Tint, createInformation.WordWrap);
 
 		mContentTextSprite.Update(mContentTextSpriteInformation, createInformation.BatchId);
 	}
@@ -183,16 +177,7 @@ void GUIContentSprites::BuildRenderElements(const Size2UI& size, const GUIConten
 	const bool isContentTextAvailable = !content.Text.GetValue().empty();
 	if(isContentTextAvailable)
 	{
-		mContentTextSpriteInformation.Text = (String)content.Text;
-		mContentTextSpriteInformation.Font = style.Font;
-		mContentTextSpriteInformation.FontSize = style.FontSize;
-		mContentTextSpriteInformation.Color = tint * style.GetTextColorForState(state);
-
-		mContentTextSpriteInformation.Width = contentArea.Width;
-		mContentTextSpriteInformation.Height = contentArea.Height;
-		mContentTextSpriteInformation.HorzAlign = style.TextHorzAlign;
-		mContentTextSpriteInformation.VertAlign = style.TextVertAlign;
-		mContentTextSpriteInformation.WordWrap = wordWrap;
+		mContentTextSpriteInformation = BuildTextSpriteInformation(contentArea, content.Text.GetValue(), state, style, tint, wordWrap);
 
 		mContentTextSprite.Update(mContentTextSpriteInformation, batchId);
 	}
@@ -228,6 +213,39 @@ void GUIContentSprites::BuildRenderElements(const Size2UI& size, const GUIConten
 
 	if(isContentTextAvailable)
 		GUIRenderElementHelper::Append({ GUIRenderElementHelper::SpriteInfo(&mContentTextSprite, depth, textOffset, textBounds) }, outRenderElements );
+}
+
+TextSpriteInformation GUIContentSprites::BuildTextSpriteInformation(const Rect2I& contentArea, const String& text, GUIElementState state, const GUIElementStyle& style, const Color& tint, bool wordWrap)
+{
+	TextSpriteInformation textSpriteInformation;
+
+	textSpriteInformation.Text = text;
+	textSpriteInformation.Font = style.Font;
+	textSpriteInformation.FontSize = style.FontSize;
+	textSpriteInformation.Color = tint * style.GetTextColorForState(state);
+
+	textSpriteInformation.Width = contentArea.Width;
+	textSpriteInformation.Height = contentArea.Height;
+	textSpriteInformation.HorzAlign = style.TextHorzAlign;
+	textSpriteInformation.VertAlign = style.TextVertAlign;
+	textSpriteInformation.WordWrap = wordWrap;
+
+	return textSpriteInformation;
+}
+
+TextSpriteInformation GUIContentSprites::BuildTextSpriteInformation(const Rect2I& contentArea, const String& text, const GUIStyleSheetRules& rules, const Color& tint, bool wordWrap)
+{
+	TextSpriteInformation textSpriteInformation;
+
+	textSpriteInformation.Text = text;
+	textSpriteInformation.Width = contentArea.Width;
+	textSpriteInformation.Height = contentArea.Height;
+	textSpriteInformation.WordWrap = wordWrap;
+
+	textSpriteInformation.InitializeFromStyleSheetRules(rules);
+	textSpriteInformation.Color *= tint;
+	
+	return textSpriteInformation;
 }
 
 void GUIContentSprites::SetAnimationStartTime(float time)
@@ -357,5 +375,27 @@ void GUISpriteHelper::BuildSpriteRenderElements(GUIInteractable& element, GUIEle
 	else
 	{
 		sprites.BuildRenderElements(size, content, *element.GetStyle(), state, tint, batchId, element.mRenderElements, offset, depth, wordWrap);
+	}
+}
+
+TextSpriteInformation GUISpriteHelper::BuildTextSpriteInformation(const GUIInteractable& element, GUIElementState state, const String& text, bool wordWrap)
+{
+	const Size2UI size(element.GetLayoutData().Area.Width, element.GetLayoutData().Area.Height);
+	const Color& tint = element.GetTint();
+
+	const bool isUsingStyleSheets = element.IsUsingStyleSheets();
+	if(isUsingStyleSheets)
+	{
+		const GUIStyleSheetRules& styleSheetRules = element.mStyleSheetRuleInformation.CurrentStateRuleset->Rules;
+		const Rect2I contentArea = GUIHelper::CalculateContentArea(size, styleSheetRules);
+
+		return GUIContentSprites::BuildTextSpriteInformation(contentArea, text, styleSheetRules, tint, wordWrap);
+	}
+	else
+	{
+		const GUIElementStyle& style = *element.GetStyle();
+
+		const Rect2I contentArea = GUIHelper::CalculateContentArea(size, style);
+		return GUIContentSprites::BuildTextSpriteInformation(contentArea, text, state, style, tint, wordWrap);
 	}
 }

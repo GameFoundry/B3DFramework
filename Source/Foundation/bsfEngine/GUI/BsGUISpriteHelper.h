@@ -93,14 +93,14 @@ namespace bs
 		/** Same as the other overload, but for the old deprecated GUIElementStyle type, instead of style-sheets. */
 		void BuildRenderElements(const Size2UI& size, const GUIContent& content, const GUIElementStyle& style, GUIElementState state, const Color& tint, u64 batchId, TInlineArray<GUIRenderElement, 4>& outRenderElements, const Vector2I& offset = Vector2I::kZero, u32 depth = 0, bool wordWrap = false);
 
+		/** Builds a struct used for initializing the text sprite required for rendering the provided contents within the provided bounds. */
+		static TextSpriteInformation BuildTextSpriteInformation(const Rect2I& contentArea, const String& text, GUIElementState state, const GUIElementStyle& style, const Color& tint, bool  wordWrap = false);
+
+		/** Builds a struct used for initializing the text sprite required for rendering the provided contents within the provided bounds. */
+		static TextSpriteInformation BuildTextSpriteInformation(const Rect2I& contentArea, const String& text, const GUIStyleSheetRules& rules, const Color& tint, bool  wordWrap = false);
+
 		/** Updates the animation start time (in seconds since application start), in case the content image contains an animated sprite. */
 		void SetAnimationStartTime(float time);
-
-		/** Returns the information used for creating the image sprite. Only valid after the first call to BuildRenderElements(). */
-		const ImageSpriteInformation& GetImageSpriteInformation() const { return mContentImageSpriteInformation; }
-
-		/** Returns the information used for creating the text sprite. Only valid after the first call to BuildRenderElements(). */
-		const TextSpriteInformation& GetTextSpriteInformation() const { return mContentTextSpriteInformation; }
 
 		/** Returns the image sprite. Note the sprite is only initialized/updated after a call to BuildRenderElements(). */
 		const ImageSprite& GetImageSprite() const { return mContentImageSprite; }
@@ -140,6 +140,9 @@ namespace bs
 
 		/** Builds sprite elements for GUIContentSprites. */
 		static void BuildSpriteRenderElements(GUIInteractable& element, GUIElementState state, const GUIContent& content, GUIContentSprites& sprites, const Vector2I& offset = Vector2I::kZero, u32 depth = 0, bool wordWrap = false);
+
+		/** Builds a struct used for initializing a TextSprite, required for rendering the provided contents from the provided GUI element. */
+		static TextSpriteInformation BuildTextSpriteInformation(const GUIInteractable& element, GUIElementState state, const String& text, bool wordWrap = false);
 	};
 
 	/** @} */
