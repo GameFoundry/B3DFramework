@@ -176,8 +176,8 @@ namespace bs
 	class GUIDropDownContent;
 	class RenderElement;
 	class GUISlider;
-	class GUISliderVert;
-	class GUISliderHorz;
+	class GUIVerticalSlider;
+	class GUIHorizontalSlider;
 	class GUIProgressBar;
 	class GUICanvas;
 	class GUIStyleSheet;

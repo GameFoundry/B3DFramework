@@ -15,10 +15,10 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptGUISliderH : public TScriptGUIInteractable<ScriptGUISliderH>
 	{
 	public:
-		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "GUISliderH")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "GUIHorizontalSlider")
 
 	private:
-		ScriptGUISliderH(MonoObject* instance, GUISliderHorz* slider);
+		ScriptGUISliderH(MonoObject* instance, GUIHorizontalSlider* slider);
 
 		/**	Triggered when the native slider is moved. */
 		void OnChanged(float percent);
@@ -45,10 +45,10 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptGUISliderV : public TScriptGUIInteractable<ScriptGUISliderV>
 	{
 	public:
-		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "GUISliderV")
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "GUIVerticalSlider")
 
 	private:
-		ScriptGUISliderV(MonoObject* instance, GUISliderVert* slider);
+		ScriptGUISliderV(MonoObject* instance, GUIVerticalSlider* slider);
 
 		/**	Triggered when the native slider is moved. */
 		void OnChanged(float percent);

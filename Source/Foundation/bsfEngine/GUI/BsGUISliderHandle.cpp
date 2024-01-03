@@ -320,6 +320,7 @@ bool GUISliderHandle::DoOnMouseEvent(const GUIMouseEvent& ev)
 					}
 				}
 			}
+
 			mHandleDragged = false;
 			MarkLayoutAsDirty();
 		}
@@ -403,9 +404,9 @@ u32 GUISliderHandle::GetHandleSizeInPixels() const
 	const Vector2I optimalSize = CalculateConstrainedSize().Optimal;
 
 	if(mFlags.IsSet(GUISliderHandleFlag::Horizontal))
-		return Math::Max(kMinimumHandleSize, optimalSize.X);
+		return Math::Max(kMinimumHandleSize, (u32)optimalSize.X);
 
-	return Math::Max(kMinimumHandleSize, optimalSize.Y);
+	return Math::Max(kMinimumHandleSize, (u32)optimalSize.Y);
 }
 
 void GUISliderHandle::SetHandlePositionInPixels(i32 position)

@@ -12,7 +12,7 @@ namespace bs
     /// <summary>
     /// A GUI element that represents a horizontal slider with a draggable handle.
     /// </summary>
-    public sealed class GUISliderH : GUIElement
+    public sealed class GUIHorizontalSlider : GUIElement
     {
         public delegate void OnChangedDelegate(float percent);
 
@@ -49,7 +49,7 @@ namespace bs
         ///                     default element style is used.</param>
         /// <param name="options">Options that allow you to control how is the element positioned and sized. This will
         ///                       override any similar options set by style.</param>
-        public GUISliderH(string style, params GUIOption[] options)
+        public GUIHorizontalSlider(string style, params GUIOption[] options)
         {
             Internal_CreateInstance(this, style, options);
         }
@@ -60,7 +60,7 @@ namespace bs
         /// <param name="style">Optional style to use for the element. Style controls the look of the element, as well as
         ///                     default layout options. Style will be retrieved from the active GUISkin. If not specified
         ///                     default element style is used.</param>
-        public GUISliderH(string style = "")
+        public GUIHorizontalSlider(string style = "")
         {
             Internal_CreateInstance(this, style, new GUIOption[0]);
         }
@@ -114,7 +114,7 @@ namespace bs
         }
 
         [MethodImpl(MethodImplOptions.InternalCall)]
-        private static extern void Internal_CreateInstance(GUISliderH instance, string style, GUIOption[] options);
+        private static extern void Internal_CreateInstance(GUIHorizontalSlider instance, string style, GUIOption[] options);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern float Internal_GetPercent(IntPtr nativeInstance);
@@ -147,7 +147,7 @@ namespace bs
     /// <summary>
     /// A GUI element that represents a vertical slider with a draggable handle.
     /// </summary>
-    public sealed class GUISliderV : GUIElement
+    public sealed class GUIVerticalSlider : GUIElement
     {
         public delegate void OnChangedDelegate(float percent);
 
@@ -184,7 +184,7 @@ namespace bs
         ///                     default element style is used.</param>
         /// <param name="options">Options that allow you to control how is the element positioned and sized. This will
         ///                       override any similar options set by style.</param>
-        public GUISliderV(string style, params GUIOption[] options)
+        public GUIVerticalSlider(string style, params GUIOption[] options)
         {
             Internal_CreateInstance(this, style, options);
         }
@@ -195,7 +195,7 @@ namespace bs
         /// <param name="style">Optional style to use for the element. Style controls the look of the element, as well as
         ///                     default layout options. Style will be retrieved from the active GUISkin. If not specified
         ///                     default element style is used.</param>
-        public GUISliderV(string style = "")
+        public GUIVerticalSlider(string style = "")
         {
             Internal_CreateInstance(this, style, new GUIOption[0]);
         }
@@ -249,7 +249,7 @@ namespace bs
         }
 
         [MethodImpl(MethodImplOptions.InternalCall)]
-        private static extern void Internal_CreateInstance(GUISliderV instance, string style, GUIOption[] options);
+        private static extern void Internal_CreateInstance(GUIVerticalSlider instance, string style, GUIOption[] options);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern float Internal_GetPercent(IntPtr nativeInstance);

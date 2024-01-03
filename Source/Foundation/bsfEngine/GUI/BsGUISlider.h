@@ -104,7 +104,7 @@ namespace bs
 	 */
 
 	/**	A horizontal slider with a draggable handle. */
-	class B3D_EXPORT GUISliderHorz : public GUISlider
+	class B3D_EXPORT GUIHorizontalSlider : public GUISlider
 	{
 	public:
 		/** Returns type name of the GUI element used for finding GUI element styles.  */
@@ -116,7 +116,7 @@ namespace bs
 		 * @param[in]	styleName		Optional style to use for the element. Style will be retrieved from GUISkin of the
 		 *								GUIWidget the element is used on. If not specified default style is used.
 		 */
-		static GUISliderHorz* Create(const String& styleName = StringUtil::kBlank);
+		static GUIHorizontalSlider* Create(const String& styleName = StringUtil::kBlank);
 
 		/**
 		 * Creates a new horizontal slider.
@@ -126,14 +126,14 @@ namespace bs
 		 * @param[in]	styleName		Optional style to use for the element. Style will be retrieved from GUISkin of the
 		 *								GUIWidget the element is used on. If not specified default style is used.
 		 */
-		static GUISliderHorz* Create(const GUIOptions& options, const String& styleName = StringUtil::kBlank);
+		static GUIHorizontalSlider* Create(const GUIOptions& options, const String& styleName = StringUtil::kBlank);
 
 	private:
-		GUISliderHorz(const String& styleName, const GUISizeConstraints& dimensions);
+		GUIHorizontalSlider(const String& styleName, const GUISizeConstraints& dimensions);
 	};
 
 	/**	A vertical slider with a draggable handle. */
-	class B3D_EXPORT GUISliderVert : public GUISlider
+	class B3D_EXPORT GUIVerticalSlider : public GUISlider
 	{
 	public:
 		/** Returns type name of the GUI element used for finding GUI element styles.  */
@@ -145,7 +145,7 @@ namespace bs
 		 * @param[in]	styleName		Optional style to use for the element. Style will be retrieved from GUISkin of the
 		 *								GUIWidget the element is used on. If not specified default style is used.
 		 */
-		static GUISliderVert* Create(const String& styleName = StringUtil::kBlank);
+		static GUIVerticalSlider* Create(const String& styleName = StringUtil::kBlank);
 
 		/**
 		 * Creates a new vertical slider.
@@ -155,10 +155,10 @@ namespace bs
 		 * @param[in]	styleName		Optional style to use for the element. Style will be retrieved from GUISkin of the
 		 *								GUIWidget the element is used on. If not specified default style is used.
 		 */
-		static GUISliderVert* Create(const GUIOptions& options, const String& styleName = StringUtil::kBlank);
+		static GUIVerticalSlider* Create(const GUIOptions& options, const String& styleName = StringUtil::kBlank);
 
 	private:
-		GUISliderVert(const String& styleName, const GUISizeConstraints& dimensions);
+		GUIVerticalSlider(const String& styleName, const GUISizeConstraints& dimensions);
 	};
 
 	/** @} */
