@@ -2029,6 +2029,36 @@ Use {0}, {1}, etc. in the string value for values that might change dynamically.
 		<enumentry native="Out" script="Out">
 		</enumentry>
 	</enum>
+	<class native="GUISlider" script="GUISlider">
+		<doc>A slider with a draggable handle that can be vertical or horizontal.</doc>
+		<method native="SetRange" script="SetRange" static="false">
+			<doc>Sets a minimum and maximum allow values in the input field. Set to large negative/positive values if you don&apos;t require clamping.</doc>
+			<param name="min" type="float">
+			</param>
+			<param name="max" type="float">
+			</param>
+		</method>
+		<property name="HandlePositionInPercent" type="float" getter="GetHandlePositionInPercent" setter="SetHandlePositionInPercent" static="false">
+			<doc>Current position of the slider handle, in percent ranging [0.0f, 1.0f].</doc>
+		</property>
+		<property name="HandlePositionInRange" type="float" getter="GetHandlePositionInRange" setter="SetHandlePositionInRange" static="false">
+			<doc>Current position of the slider handle, scaled within the current minimum and maximum range, rounded up to nearest step increment. If no range is provided, the range is [0, 1].</doc>
+		</property>
+		<property name="RangeMinimum" type="float" getter="GetRangeMinimum" setter="" static="false">
+			<doc>Returns the minimum value of the slider</doc>
+		</property>
+		<property name="RangeMaximum" type="float" getter="GetRangeMaximum" setter="" static="false">
+			<doc>Returns the maximum value of the slider</doc>
+		</property>
+		<property name="Step" type="float" getter="GetStep" setter="SetStep" static="false">
+			<doc>Step that defines the minimal increment the value can be increased/decreased by. Set to zero to have no step.</doc>
+		</property>
+		<event native="OnChanged" script="OnChanged" static="false">
+			<doc>Triggered when the user changes the value of the slider.</doc>
+			<param name="p0" type="float">
+			</param>
+		</event>
+	</class>
 	<enum native="TangentModeBits" script="TangentMode">
 		<doc>Flags that are used for describing how are tangents calculated for a specific keyframe in an animation curve. Modes for &quot;in&quot; and &quot;out&quot; tangents can be combined.</doc>
 		<enumentry native="Auto" script="Auto">
@@ -2160,6 +2190,24 @@ Use {0}, {1}, etc. in the string value for values that might change dynamically.
 			<doc>Audio will be slowly streamed from the disk, and decompressed if needed. Uses very little memory, and has either low or high CPU impact depending if the audio is in a compressed format. Since data is streamed from the disk, read speeds could also be a bottleneck.</doc>
 		</enumentry>
 	</enum>
+	<class native="GUIHorizontalSlider" script="GUIHorizontalSlider">
+		<doc>A horizontal slider with a draggable handle.</doc>
+		<ctor>
+			<doc>Creates a new GUI element.</doc>
+			<param name="styleClass" type="string">
+				<doc>Style class that will be used for determining GUI element visuals from the current style sheet. If no class is provided, default style is determined based on GUI element type.</doc>
+			</param>
+			<param name="options" type="GUIOption">
+				<doc>Additional options that control GUI element size and position. This will override options set in the style sheet.</doc>
+			</param>
+		</ctor>
+		<ctor>
+			<doc>Creates a new GUI element.</doc>
+			<param name="options" type="GUIOption">
+				<doc>Additional options that control GUI element size and position. This will override options set in the style sheet.</doc>
+			</param>
+		</ctor>
+	</class>
 	<class native="TemporalAASettings" script="TemporalAASettings">
 		<doc>Settings that control temporal anti-aliasing.</doc>
 		<ctor>
@@ -12673,6 +12721,24 @@ Alternatively you can also skip manually calling release() and call unloadAllUnu
 				<doc>Additional options that control GUI element size and position. This will override options set in the style sheet.</doc>
 			</param>
 		</ctor>
+		<ctor>
+			<doc>Creates a new GUI element.</doc>
+			<param name="styleClass" type="string">
+				<doc>Style class that will be used for determining GUI element visuals from the current style sheet. If no class is provided, default style is determined based on GUI element type.</doc>
+			</param>
+			<param name="options" type="GUIOption">
+				<doc>Additional options that control GUI element size and position. This will override options set in the style sheet.</doc>
+			</param>
+		</ctor>
+		<ctor>
+			<doc>Creates a new GUI element.</doc>
+			<param name="options" type="GUIOption">
+				<doc>Additional options that control GUI element size and position. This will override options set in the style sheet.</doc>
+			</param>
+		</ctor>
+	</class>
+	<class native="GUIVerticalSlider" script="GUIVerticalSlider">
+		<doc>A vertical slider with a draggable handle.</doc>
 		<ctor>
 			<doc>Creates a new GUI element.</doc>
 			<param name="styleClass" type="string">
