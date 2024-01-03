@@ -270,7 +270,7 @@ bool GUISliderHandle::DoOnMouseEvent(const GUIMouseEvent& ev)
 		if(!IsDisabled())
 		{
 			mMouseOverHandle = false;
-			RemoveStateFlags(GUIElementStateFlag::Hover | GUIElementStateFlag::Active);
+			RemoveStateFlags(GUIElementStateFlag::Hover);
 
 			if(!mHandleDragged)
 			{
@@ -397,7 +397,15 @@ i32 GUISliderHandle::GetHandlePositionInPixels() const
 
 u32 GUISliderHandle::GetHandleSizeInPixels() const
 {
-	return std::max(kMinimumHandleSize, (u32)(GetTotalLength() * mHandleSizeInPercent));
+	if(mFlags.IsSet(GUISliderHandleFlag::Resizeable))
+		return Math::Max(kMinimumHandleSize, (u32)(GetTotalLength() * mHandleSizeInPercent));
+
+	const Vector2I optimalSize = CalculateConstrainedSize().Optimal;
+
+	if(mFlags.IsSet(GUISliderHandleFlag::Horizontal))
+		return Math::Max(kMinimumHandleSize, optimalSize.X);
+
+	return Math::Max(kMinimumHandleSize, optimalSize.Y);
 }
 
 void GUISliderHandle::SetHandlePositionInPixels(i32 position)
