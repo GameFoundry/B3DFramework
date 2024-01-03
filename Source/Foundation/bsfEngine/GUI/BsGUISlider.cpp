@@ -217,19 +217,9 @@ bool GUISlider::DoOnCommandEvent(const GUICommandEvent& ev)
 	return baseReturnValue;
 }
 
-GUIHorizontalSlider::GUIHorizontalSlider(const String& styleName, const GUISizeConstraints& dimensions)
+GUIHorizontalSlider::GUIHorizontalSlider(PrivatelyConstruct, const String& styleName, const GUISizeConstraints& dimensions)
 	: GUISlider(true, styleName, dimensions)
 {
-}
-
-GUIHorizontalSlider* GUIHorizontalSlider::Create(const String& styleName)
-{
-	return new(B3DAllocate<GUIHorizontalSlider>()) GUIHorizontalSlider(GetStyleClass<GUIHorizontalSlider>(styleName), GUISizeConstraints::Create());
-}
-
-GUIHorizontalSlider* GUIHorizontalSlider::Create(const GUIOptions& options, const String& styleName)
-{
-	return new(B3DAllocate<GUIHorizontalSlider>()) GUIHorizontalSlider(GetStyleClass<GUIHorizontalSlider>(styleName), GUISizeConstraints::Create(options));
 }
 
 const String& GUIHorizontalSlider::GetGuiTypeName()
@@ -238,19 +228,9 @@ const String& GUIHorizontalSlider::GetGuiTypeName()
 	return typeName;
 }
 
-GUIVerticalSlider::GUIVerticalSlider(const String& styleName, const GUISizeConstraints& dimensions)
+GUIVerticalSlider::GUIVerticalSlider(PrivatelyConstruct, const String& styleName, const GUISizeConstraints& dimensions)
 	: GUISlider(false, styleName, dimensions)
 {
-}
-
-GUIVerticalSlider* GUIVerticalSlider::Create(const String& styleName)
-{
-	return new(B3DAllocate<GUIVerticalSlider>()) GUIVerticalSlider(GetStyleClass<GUIVerticalSlider>(styleName), GUISizeConstraints::Create());
-}
-
-GUIVerticalSlider* GUIVerticalSlider::Create(const GUIOptions& options, const String& styleName)
-{
-	return new(B3DAllocate<GUIVerticalSlider>()) GUIVerticalSlider(GetStyleClass<GUIVerticalSlider>(styleName), GUISizeConstraints::Create(options));
 }
 
 const String& GUIVerticalSlider::GetGuiTypeName()

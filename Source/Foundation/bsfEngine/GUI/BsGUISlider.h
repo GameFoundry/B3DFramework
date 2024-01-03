@@ -2,6 +2,7 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
+#include "BsGUIConstructionMethods.h"
 #include "BsPrerequisites.h"
 #include "GUI/BsGUIElementContainer.h"
 #include "Utility/BsEvent.h"
@@ -104,61 +105,39 @@ namespace bs
 	 */
 
 	/**	A horizontal slider with a draggable handle. */
-	class B3D_EXPORT GUIHorizontalSlider : public GUISlider
+	class B3D_EXPORT GUIHorizontalSlider : public GUISlider, public TGUIConstructionMethodsWithoutContent<GUIHorizontalSlider>
 	{
 	public:
 		/** Returns type name of the GUI element used for finding GUI element styles.  */
 		static const String& GetGuiTypeName();
 
 		/**
-		 * Creates a new horizontal slider.
-		 *
-		 * @param[in]	styleName		Optional style to use for the element. Style will be retrieved from GUISkin of the
-		 *								GUIWidget the element is used on. If not specified default style is used.
+		 * @name Internal
+		 * @{
 		 */
-		static GUIHorizontalSlider* Create(const String& styleName = StringUtil::kBlank);
 
-		/**
-		 * Creates a new horizontal slider.
-		 *
-		 * @param[in]	options			Options that allow you to control how is the element positioned and sized.
-		 *								This will override any similar options set by style.
-		 * @param[in]	styleName		Optional style to use for the element. Style will be retrieved from GUISkin of the
-		 *								GUIWidget the element is used on. If not specified default style is used.
-		 */
-		static GUIHorizontalSlider* Create(const GUIOptions& options, const String& styleName = StringUtil::kBlank);
+		struct PrivatelyConstruct {};
+		GUIHorizontalSlider(PrivatelyConstruct, const String& styleName, const GUISizeConstraints& dimensions);
 
-	private:
-		GUIHorizontalSlider(const String& styleName, const GUISizeConstraints& dimensions);
+		/** @} */
 	};
 
 	/**	A vertical slider with a draggable handle. */
-	class B3D_EXPORT GUIVerticalSlider : public GUISlider
+	class B3D_EXPORT GUIVerticalSlider : public GUISlider, public TGUIConstructionMethodsWithoutContent<GUIVerticalSlider>
 	{
 	public:
 		/** Returns type name of the GUI element used for finding GUI element styles.  */
 		static const String& GetGuiTypeName();
 
 		/**
-		 * Creates a new vertical slider.
-		 *
-		 * @param[in]	styleName		Optional style to use for the element. Style will be retrieved from GUISkin of the
-		 *								GUIWidget the element is used on. If not specified default style is used.
+		 * @name Internal
+		 * @{
 		 */
-		static GUIVerticalSlider* Create(const String& styleName = StringUtil::kBlank);
 
-		/**
-		 * Creates a new vertical slider.
-		 *
-		 * @param[in]	options			Options that allow you to control how is the element positioned and sized.
-		 *								This will override any similar options set by style.
-		 * @param[in]	styleName		Optional style to use for the element. Style will be retrieved from GUISkin of the
-		 *								GUIWidget the element is used on. If not specified default style is used.
-		 */
-		static GUIVerticalSlider* Create(const GUIOptions& options, const String& styleName = StringUtil::kBlank);
+		struct PrivatelyConstruct {};
+		GUIVerticalSlider (PrivatelyConstruct, const String& styleName, const GUISizeConstraints& dimensions);
 
-	private:
-		GUIVerticalSlider(const String& styleName, const GUISizeConstraints& dimensions);
+		/** @} */
 	};
 
 	/** @} */

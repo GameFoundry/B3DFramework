@@ -52,7 +52,7 @@ void ScriptGUISliderH::InternalCreateInstance(MonoObject* instance, MonoString* 
 	for(u32 i = 0; i < arrayLen; i++)
 		options.AddOption(scriptArray.Get<GUIOption>(i));
 
-	GUIHorizontalSlider* guiSlider = GUIHorizontalSlider::Create(options, MonoUtil::MonoToString(style));
+	GUIHorizontalSlider* guiSlider = GUIHorizontalSlider::Create(MonoUtil::MonoToString(style), options);
 
 	auto nativeInstance = new(B3DAllocate<ScriptGUISliderH>()) ScriptGUISliderH(instance, guiSlider);
 	guiSlider->OnChanged.Connect(std::bind(&::bs::ScriptGUISliderH::OnChanged, nativeInstance, _1));
@@ -149,7 +149,7 @@ void ScriptGUISliderV::InternalCreateInstance(MonoObject* instance, MonoString* 
 	for(u32 i = 0; i < arrayLen; i++)
 		options.AddOption(scriptArray.Get<GUIOption>(i));
 
-	GUIVerticalSlider* guiSlider = GUIVerticalSlider::Create(options, MonoUtil::MonoToString(style));
+	GUIVerticalSlider* guiSlider = GUIVerticalSlider::Create(MonoUtil::MonoToString(style), options);
 
 	auto nativeInstance = new(B3DAllocate<ScriptGUISliderV>()) ScriptGUISliderV(instance, guiSlider);
 	guiSlider->OnChanged.Connect(std::bind(&::bs::ScriptGUISliderV::OnChanged, nativeInstance, _1));
