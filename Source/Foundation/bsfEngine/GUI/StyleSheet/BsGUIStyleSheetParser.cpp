@@ -150,29 +150,17 @@ Optional<GUIStyleSheetSelectorList> GUIStyleSheetParser::TryParseSelectorList()
 	Optional<GUIStyleSheetSelectorList> optionalSelectorList;
 
 	// Parse selector name, which can be element, #id, .class, :pseudo-class or ::pseudo-element
-	u32 lastElementSelectorIndex = ~0u;
+	bool foundWhitespaceAfterLastElement = false;
 	while(IsCurrentToken(TokenType::ElementSelector) || IsCurrentToken(GUIStyleSheetTokenTypes::ClassSelector) || IsCurrentToken(GUIStyleSheetTokenTypes::IdSelector) || IsCurrentToken(GUIStyleSheetTokenTypes::Colon))
 	{
 		GUIStyleSheetSelector selector;
 
-		Token token = *GetCurrentTokenAndAdvance();
+		Token token = *GetCurrentTokenAndAdvance(false);
 		switch(token.GetType())
 		{
 		case TokenType::ElementSelector:
 			selector.SelectorType = GUIStyleSheetSelectorType::Element;
 			selector.Name = token.GetSpelling();
-
-			// If there is any previous element selector, the last entry before this one needs to be marked as the ancestor
-			if(lastElementSelectorIndex != ~0u)
-			{
-				B3D_ASSERT(optionalSelectorList.has_value());
-				optionalSelectorList->Selectors[optionalSelectorList->Selectors.size() - 1].CombinatorType = GUIStyleSheetCombinatorType::AncestorOf;
-			}
-
-			if(optionalSelectorList.has_value())
-				lastElementSelectorIndex = (u32)optionalSelectorList->Selectors.size();
-			else
-				lastElementSelectorIndex = 0;
 			break;
 		case TokenType::ClassSelector:
 			selector.SelectorType = GUIStyleSheetSelectorType::Class;
@@ -212,10 +200,17 @@ Optional<GUIStyleSheetSelectorList> GUIStyleSheetParser::TryParseSelectorList()
 			break;
 		}
 
+		if(foundWhitespaceAfterLastElement)
+			optionalSelectorList->Selectors.back().CombinatorType = GUIStyleSheetCombinatorType::AncestorOf;
+
 		if(!optionalSelectorList.has_value())
 			optionalSelectorList = GUIStyleSheetSelectorList();
 
 		optionalSelectorList->Selectors.Add(selector);
+
+		foundWhitespaceAfterLastElement = IsCurrentToken(TokenType::Space) || IsCurrentToken(TokenType::Newline);
+		if(foundWhitespaceAfterLastElement)
+			GetCurrentTokenAndAdvance();
 	}
 
 	return optionalSelectorList;
@@ -1398,13 +1393,13 @@ bool GUIStyleSheetParser::IsCurrentToken(TokenType type, const String& spelling)
 	return mCurrentToken && mCurrentToken->GetType() == type && mCurrentToken->GetSpelling() == spelling;
 }
 
-Optional<GUIStyleSheetParser::Token> GUIStyleSheetParser::GetCurrentTokenAndAdvance()
+Optional<GUIStyleSheetParser::Token> GUIStyleSheetParser::GetCurrentTokenAndAdvance(bool skipWhitespace)
 {
 	if(mCurrentToken && mCurrentToken->GetType() == TokenType::EndOfStream)
 		return Error("Unexpected end of stream.");
 
 	Optional<Token> previousToken = mCurrentToken;
-	mCurrentToken = mLexer.ScanNextToken();
+	mCurrentToken = mLexer.ScanNextToken(skipWhitespace);
 
 	if(!mCurrentToken)
 	{

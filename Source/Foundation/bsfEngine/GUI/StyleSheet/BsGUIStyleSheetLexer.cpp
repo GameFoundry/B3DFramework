@@ -170,9 +170,10 @@ GUIStyleSheetToken GUIStyleSheetLexer::CreateToken(const TokenType& type, String
 	return Token(sourceCodePosition, type, std::move(spelling));
 }
 
-Optional<GUIStyleSheetLexer::Token> GUIStyleSheetLexer::ScanNextToken()
+Optional<GUIStyleSheetLexer::Token> GUIStyleSheetLexer::ScanNextToken(bool skipWhitespace)
 {
-	SkipWhiteSpaces();
+	if(skipWhitespace)
+		SkipWhiteSpaces();
 
 	// Check for end-of-file
 	if(IsCurrentCharacter(0))
@@ -200,6 +201,12 @@ void GUIStyleSheetLexer::SkipWhiteSpaces(bool includeNewLines)
 
 Optional<GUIStyleSheetLexer::Token> GUIStyleSheetLexer::ScanToken()
 {
+	if(std::isspace(GetCurrentCharacter()))
+		return CreateToken(TokenType::Space, true);
+
+	if(IsCurrentCharacterNewLine())
+		return CreateToken(TokenType::Newline, true);
+
 	if(std::isalpha(GetCurrentCharacter()) || IsCurrentCharacter('_') || IsCurrentCharacter('-'))
 		return ScanIdentifier(false);
 

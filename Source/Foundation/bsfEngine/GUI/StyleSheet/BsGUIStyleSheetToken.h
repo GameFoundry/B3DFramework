@@ -15,6 +15,8 @@ namespace bs
 	enum class GUIStyleSheetTokenTypes
 	{
 		Undefined,
+		Space,
+		Newline,
 		ElementSelector, // -?[_a-zA-Z]+[_a-zA-Z0-9-]*
 		IdSelector, // #-?[_a-zA-Z]+[_a-zA-Z0-9-]*
 		ClassSelector, // .-?[_a-zA-Z]+[_a-zA-Z0-9-]*

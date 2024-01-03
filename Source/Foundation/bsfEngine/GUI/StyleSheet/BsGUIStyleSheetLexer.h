@@ -26,7 +26,7 @@ namespace bs
 		 * Returns the current token and advances to the next token. EndOfStream token will be returned once end of stream has been reached. 
 		 * Returns null if token scanning failed. Error that caused the failure can be read from GetErrors().
 		 */
-		Optional<GUIStyleSheetToken> ScanNextToken();
+		Optional<GUIStyleSheetToken> ScanNextToken(bool skipWhitespace = true);
 
 		/** Returns errors that occurred during scanning, if any. */
 		const String& GetErrors() const { return mErrors; }

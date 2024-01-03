@@ -405,7 +405,7 @@ namespace bs
 		Optional<Token> GetCurrentToken() const { return mCurrentToken; }
 
 		/** Returns the current token and advances to the next token. */
-		Optional<Token> GetCurrentTokenAndAdvance();
+		Optional<Token> GetCurrentTokenAndAdvance(bool skipWhitespace = true);
 
 		/** Returns the current token if it matches the provided type, and advances to the next token. If the type is not matching and error is logged and null is returned. */
 		Optional<Token> GetCurrentTokenAndAdvance(TokenType expectedType);
