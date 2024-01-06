@@ -551,6 +551,14 @@ texture.GUIDropDownScrollbarBackground
     min-height: 8px;
 }
 
+texture.TooltipFrame
+{
+    background-color: var(--PrimaryBackgroundColor);
+    border-color: #000000;
+    border-width: 1px;
+    padding: 4px;
+}
+
 texture.WindowFrame
 {
     border-width: 1px;

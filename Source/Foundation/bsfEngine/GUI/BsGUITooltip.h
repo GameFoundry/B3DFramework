@@ -15,9 +15,6 @@ namespace bs
 	class B3D_EXPORT GUITooltip : public CGUIWidget
 	{
 	public:
-		/**	Name of the style used for tooltip's background frame. */
-		static String GetFrameStyleName();
-
 		/**
 		 * Creates a new tooltip widget.
 		 *
@@ -30,6 +27,7 @@ namespace bs
 		~GUITooltip() = default;
 
 	private:
+		static constexpr const char* kBackgroundStyleClass = "TooltipFrame";
 		static const u32 kTooltipWidth;
 		static const u32 kCursorSize;
 	};

@@ -12,6 +12,7 @@
 #include "GUI/BsGUISkin.h"
 #include "Resources/BsBuiltinResources.h"
 #include "GUI/BsDropDownAreaPlacement.h"
+#include "StyleSheet/BsGUIStyleSheet.h"
 
 using namespace std::placeholders;
 
@@ -19,11 +20,6 @@ using namespace bs;
 
 const u32 GUITooltip::kTooltipWidth = 200;
 const u32 GUITooltip::kCursorSize = 16;
-
-String GUITooltip::GetFrameStyleName()
-{
-	return "TooltipFrame";
-}
 
 GUITooltip::GUITooltip(const HSceneObject& parent, const GUIWidget& overlaidWidget, const Vector2I& position, const String& text)
 	: CGUIWidget(parent, overlaidWidget.GetCamera())
@@ -38,7 +34,8 @@ GUITooltip::GUITooltip(const HSceneObject& parent, const GUIWidget& overlaidWidg
 
 	const GUISkin& skin = GetSkin();
 	const GUIElementStyle* multiLineLabelStyle = skin.GetStyle(BuiltinResources::kMultiLineLabelStyle);
-	const GUIElementStyle* backgroundStyle = skin.GetStyle(GetFrameStyleName());
+
+	const SPtr<const GUIStyleSheetRuleset> backgroundStyleSheetRuleset = GetStyleSheet()->BuildRuleset(GUITexture::kElementType, kBackgroundStyleClass);
 
 	Vector2I size(kTooltipWidth, 25);
 	if(multiLineLabelStyle != nullptr)
@@ -49,13 +46,15 @@ GUITooltip::GUITooltip(const HSceneObject& parent, const GUIWidget& overlaidWidg
 
 	i32 contentOffsetX = 0;
 	i32 contentOffsetY = 0;
-	if(backgroundStyle != nullptr)
+	if(backgroundStyleSheetRuleset != nullptr)
 	{
-		size.X += backgroundStyle->Margins.Left + backgroundStyle->Margins.Right;
-		size.Y += backgroundStyle->Margins.Top + backgroundStyle->Margins.Bottom;
+		const GUIStyleSheetRules& backgroundStyleSheetRules = backgroundStyleSheetRuleset->Rules;
 
-		contentOffsetX = backgroundStyle->Margins.Left;
-		contentOffsetY = backgroundStyle->Margins.Top;
+		size.X += backgroundStyleSheetRules.Padding.Left + backgroundStyleSheetRules.Padding.Right;
+		size.Y += backgroundStyleSheetRules.Padding.Top + backgroundStyleSheetRules.Padding.Bottom;
+
+		contentOffsetX = backgroundStyleSheetRules.Padding.Left;
+		contentOffsetY = backgroundStyleSheetRules.Padding.Top;
 	}
 
 	// Content area
@@ -72,7 +71,7 @@ GUITooltip::GUITooltip(const HSceneObject& parent, const GUIWidget& overlaidWidg
 
 	GUILayout* backgroundLayout = backgroundPanel->AddNewElement<GUILayoutX>();
 
-	GUITexture* backgroundFrame = GUITexture::Create(GUITextureContents(nullptr, TextureScaleMode::StretchToFit), GetFrameStyleName());
+	GUITexture* backgroundFrame = GUITexture::Create(GUITextureContents(nullptr, TextureScaleMode::StretchToFit), kBackgroundStyleClass);
 	backgroundLayout->AddElement(backgroundFrame);
 
 	GUILayout* contentLayout = contentPanel->AddNewElement<GUILayoutY>();
