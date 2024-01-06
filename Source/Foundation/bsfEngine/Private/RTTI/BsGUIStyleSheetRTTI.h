@@ -72,26 +72,27 @@ namespace bs
 			B3D_RTTI_MEMBER_PLAIN(Opacity, 7)
 
 			B3D_RTTI_MEMBER_REFL(BackgroundImage, 8)
+			B3D_RTTI_MEMBER_PLAIN(Visibility, 9)
 
-			B3D_RTTI_MEMBER_PLAIN(BorderLeft, 9)
-			B3D_RTTI_MEMBER_PLAIN(BorderRight, 10)
-			B3D_RTTI_MEMBER_PLAIN(BorderTop, 11)
-			B3D_RTTI_MEMBER_PLAIN(BorderBottom, 12)
+			B3D_RTTI_MEMBER_PLAIN(BorderLeft, 10)
+			B3D_RTTI_MEMBER_PLAIN(BorderRight, 11)
+			B3D_RTTI_MEMBER_PLAIN(BorderTop, 12)
+			B3D_RTTI_MEMBER_PLAIN(BorderBottom, 13)
 
-			B3D_RTTI_MEMBER_PLAIN(BorderTopLeftRadius, 13)
-			B3D_RTTI_MEMBER_PLAIN(BorderTopRightRadius, 14)
-			B3D_RTTI_MEMBER_PLAIN(BorderBottomLeftRadius, 15)
-			B3D_RTTI_MEMBER_PLAIN(BorderBottomRightRadius, 16)
+			B3D_RTTI_MEMBER_PLAIN(BorderTopLeftRadius, 14)
+			B3D_RTTI_MEMBER_PLAIN(BorderTopRightRadius, 15)
+			B3D_RTTI_MEMBER_PLAIN(BorderBottomLeftRadius, 16)
+			B3D_RTTI_MEMBER_PLAIN(BorderBottomRightRadius, 17)
 
-			B3D_RTTI_MEMBER_REFL(Font, 17)
-			B3D_RTTI_MEMBER_PLAIN(FontSize, 18)
-			B3D_RTTI_MEMBER_PLAIN(HorizontalTextAlignment, 19)
-			B3D_RTTI_MEMBER_PLAIN(VerticalTextAlignment, 20)
-			B3D_RTTI_MEMBER_PLAIN(WordWrap, 21)
+			B3D_RTTI_MEMBER_REFL(Font, 18)
+			B3D_RTTI_MEMBER_PLAIN(FontSize, 19)
+			B3D_RTTI_MEMBER_PLAIN(HorizontalTextAlignment, 20)
+			B3D_RTTI_MEMBER_PLAIN(VerticalTextAlignment, 21)
+			B3D_RTTI_MEMBER_PLAIN(WordWrap, 22)
 
-			B3D_RTTI_MEMBER_PLAIN(OverridenProperties, 22)
+			B3D_RTTI_MEMBER_PLAIN(OverridenProperties, 23)
 
-			B3D_RTTI_MEMBER_PLAIN(PseudoClass, 23)
+			B3D_RTTI_MEMBER_PLAIN(PseudoClass, 24)
 		B3D_RTTI_END_MEMBERS
 	public:
 		const String& GetRttiName() override

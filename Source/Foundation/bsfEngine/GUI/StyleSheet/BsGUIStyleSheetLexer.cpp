@@ -35,6 +35,9 @@ GUIStyleSheetLexer::GUIStyleSheetLexer()
 	mPropertyKeywords["opacity"] = GUIStyleSheetTokenTypes::Property;
 	mPropertyKeywords["background-color"] = GUIStyleSheetTokenTypes::Property;
 
+	// Image properties
+	mPropertyKeywords["background-image"] = GUIStyleSheetTokenTypes::Property;
+
 	// Text properties
 	mPropertyKeywords["text-align"] = GUIStyleSheetTokenTypes::Property;
 	mPropertyKeywords["vertical-align"] = GUIStyleSheetTokenTypes::Property;
@@ -83,6 +86,11 @@ GUIStyleSheetLexer::GUIStyleSheetLexer()
 
 	// Word wrap
 	mPropertyKeywords["wrap-word"] = GUIStyleSheetTokenTypes::WordWrap;
+
+	// Visibility
+	mPropertyKeywords["visibility"] = GUIStyleSheetTokenTypes::Property;
+	mPropertyKeywords["hidden"] = GUIStyleSheetTokenTypes::Visibility;
+	mPropertyKeywords["visible"] = GUIStyleSheetTokenTypes::Visibility;
 
 	// None
 	mPropertyKeywords["none"] = GUIStyleSheetTokenTypes::None;
@@ -376,6 +384,12 @@ Optional<GUIStyleSheetLexer::Token> GUIStyleSheetLexer::ScanNumber(bool isStarti
 	};
 
 	const bool hasDigitsBeforeDot = !isStartingWithDot && fnScanDigitSequence(spelling);
+
+	if(IsCurrentCharacter('.'))
+	{
+		GetCurrentCharacterAndAdvance();
+		isStartingWithDot = true;
+	}
 
 	TokenType type = GUIStyleSheetTokenTypes::Undefined;
 	if(isStartingWithDot)

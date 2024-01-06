@@ -201,6 +201,8 @@ void GUIStyleSheetRules::Override(const GUIStyleSheetRules& other)
 
 	OVERRIDE_PROPERTY(BackgroundImage, BackgroundImage)
 
+	OVERRIDE_PROPERTY(Visibility, Visibility)
+
 	OVERRIDE_PROPERTY(TextAlign, HorizontalTextAlignment)
 	OVERRIDE_PROPERTY(VerticalAlign, VerticalTextAlignment)
 	OVERRIDE_PROPERTY(FontFamily, Font)

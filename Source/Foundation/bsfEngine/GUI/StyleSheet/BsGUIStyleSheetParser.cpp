@@ -49,6 +49,9 @@ GUIStyleSheetParser::GUIStyleSheetParser()
 	mPropertyKeywords["font-size"] = { GUIStyleSheetPropertyType::FontSize, ValueType::Decimal };
 	mPropertyKeywords["b3d-word-wrap"] = { GUIStyleSheetPropertyType::WordWrap, ValueType::WordWrap };
 
+	// Other properties
+	mPropertyKeywords["visibility"] = { GUIStyleSheetPropertyType::Visibility, ValueType::Visibility };
+
 	// Border properties
 	mPropertyKeywords["border"] = { GUIStyleSheetPropertyType::Border, ValueType::Multiple };
 	mPropertyKeywords["border-style"] = { GUIStyleSheetPropertyType::BorderStyle, ValueType::Multiple };
@@ -266,6 +269,9 @@ bool GUIStyleSheetParser::TryParseProperty(GUIStyleSheetRules& inOutValue)
 
 			// Image
 			CASE_PARSE(BackgroundImage, BackgroundImage)
+
+			// Other
+			CASE_PARSE(Visibility, Visibility)
 
 			// Text
 			CASE_PARSE(FontFamily, Font)
@@ -597,6 +603,16 @@ bool GUIStyleSheetParser::TryParseVariable(VariableContext& inOutVariableContext
 
 		value.UnsignedInteger = (u32)parsedValue;
 		value.Type = ValueType::VerticalAlign;
+		break;
+	}
+	case GUIStyleSheetTokenTypes::Visibility:
+	{
+		GUIElementVisibility parsedValue;
+		if(!TryParseVisibility(parsedValue))
+			return false;
+
+		value.UnsignedInteger = (u32)parsedValue;
+		value.Type = ValueType::Visibility;
 		break;
 	}
 	case GUIStyleSheetTokenTypes::WordWrap:
@@ -1084,6 +1100,26 @@ bool GUIStyleSheetParser::TryParseWordWrapMode(GUIWordWrapMode& outValue)
 	return false;
 }
 
+bool GUIStyleSheetParser::TryParseVisibility(GUIElementVisibility& outValue)
+{
+	Optional<GUIStyleSheetToken> token = GetCurrentTokenAndAdvance(GUIStyleSheetTokenTypes::Visibility);
+	if(!token)
+		return false;
+
+	if(token->GetSpelling() == "hidden")
+	{
+		outValue = GUIElementVisibility::Hidden;
+		return true;
+	}
+	if(token->GetSpelling() == "visible")
+	{
+		outValue = GUIElementVisibility::Visible;
+		return true;
+	}
+
+	return false;
+}
+
 bool GUIStyleSheetParser::TryParseBorderElement(GUIStyleSheetBorderElement& outValue)
 {
 	bool hasWidth = false;
@@ -1204,6 +1240,8 @@ bool GUIStyleSheetParser::TryParsePropertyValue(ValueType valueType, T& outValue
 		return TryParseVerticalAlign(outValue);
 	else if constexpr(std::is_same_v<T, GUIWordWrapMode>)
 		return TryParseWordWrapMode(outValue);
+	else if constexpr(std::is_same_v<T, GUIElementVisibility>)
+		return TryParseVisibility(outValue);
 	else if constexpr(std::is_same_v<T, HSpriteImage>)
 		return TryParseImage(outValue);
 	else if constexpr(std::is_same_v<T, HFont>)
@@ -1484,6 +1522,7 @@ const char* GUIStyleSheetParser::ValueTypeToString(ValueType type)
 	case ValueType::TextAlign: return "TextAlign";
 	case ValueType::VerticalAlign: return "VerticalAlign";
 	case ValueType::WordWrap: return "WordWrap";
+	case ValueType::Visibility: return "Visibility";
 	case ValueType::None: return "None";
 	}
 }

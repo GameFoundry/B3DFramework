@@ -8,7 +8,7 @@ using namespace bs;
 
 void StockIcons::OnStartUp()
 {
-	#define B3D_STOCK_ICON(Id, Identifier, Unicode, Label, Font) mNameLookup[#Id] = StockIcon::Identifier;
+	#define B3D_STOCK_ICON(Id, Identifier, Unicode, Label, Font) mNameLookup[Id] = StockIcon::Identifier;
 	#include "Text/B3DStockIcons.generated.inc"
 	#undef B3D_STOCK_ICON
 }

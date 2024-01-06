@@ -56,8 +56,8 @@ void Application::OnStartUp()
 	Importer::Instance().RegisterAssetImporterInternal(importer);
 
 	VirtualInput::StartUp();
-	BuiltinResources::StartUp();
 	StockIcons::StartUp();
+	BuiltinResources::StartUp();
 	RendererMaterialManager::StartUp();
 	RendererManager::Instance().Initialize(GetPrimaryGpuDevice());
 	SpriteManager::StartUp();

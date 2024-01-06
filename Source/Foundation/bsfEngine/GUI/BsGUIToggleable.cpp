@@ -120,40 +120,48 @@ void GUIToggleable::UpdateRenderElements()
 {
 	Super::UpdateRenderElements();
 
-	// No checkmark when not toggled
-	if(!mIsToggled)
-		return;
-
 	const bool isUsingStyleSheets = IsUsingStyleSheets();
 	if(!isUsingStyleSheets)
 		return;
 
+	// Draw checkmark if needed
 	const GUIStyleSheetRuleInformation& ruleInformation = GetPseudoElementStyleSheetRuleInformation(mCheckmarkPseudoElementIndex);
 	if(ruleInformation.CurrentStateRuleset == nullptr)
 		return;
 
-	HSpriteImage contentImage = mContent.GetImage(mActiveState);
-	if(contentImage.IsLoaded(false) || !mContent.Text.GetValue().empty())
+	const GUIStyleSheetRules& checkmarkStyleSheetRules = ruleInformation.CurrentStateRuleset->Rules;
+	if(checkmarkStyleSheetRules.Visibility == GUIElementVisibility::Hidden)
 		return;
 
-	const GUIStyleSheetRules& checkmarkStyleSheetRules = ruleInformation.CurrentStateRuleset->Rules;
 	const Rect2I checkmarkBounds = GetCachedContentBoundsInElementSpace();
 
 	mCheckmarkSpriteInformation.Width = checkmarkBounds.Width;
 	mCheckmarkSpriteInformation.Height = checkmarkBounds.Height;
 
-	if(mCheckmarkPathBuilder)
+	// Use user-provided image, if one is provided
+	if(checkmarkStyleSheetRules.BackgroundImage.IsLoaded(false))
 	{
+		mCheckmarkSpriteInformation.Image = checkmarkStyleSheetRules.BackgroundImage;
+		mCheckmarkSpriteInformation.Color = checkmarkStyleSheetRules.Color;
+	}
+	// Otherwise, use the default checkmark builder
+	else if(mCheckmarkPathBuilder)
+	{
+		// No checkmark when not toggled
+		if(!mIsToggled)
+			return;
+
 		SpriteVectorPathCreateInformation spriteVectorPathCreateInformation;
 		spriteVectorPathCreateInformation.Size = Size2UI(mCheckmarkSpriteInformation.Width, mCheckmarkSpriteInformation.Height);
 		spriteVectorPathCreateInformation.VectorPath = mCheckmarkPathBuilder->BuildPath(spriteVectorPathCreateInformation.Size, checkmarkStyleSheetRules);
 
 		mCheckmarkSpriteInformation.Image = SpriteVectorPath::Create(spriteVectorPathCreateInformation);
+		mCheckmarkSpriteInformation.Color = Color::kWhite;
 	}
 	else
-		mCheckmarkSpriteInformation.Image = nullptr;
+		return;
 
-	mCheckmarkSpriteInformation.Color = GetTint();
+	mCheckmarkSpriteInformation.Color *= GetTint();
 	mCheckmarkSpriteInformation.Color.A *= checkmarkStyleSheetRules.Opacity;
 
 	mCheckmarkSprite->Update(mCheckmarkSpriteInformation, (u64)GetParentWidget());

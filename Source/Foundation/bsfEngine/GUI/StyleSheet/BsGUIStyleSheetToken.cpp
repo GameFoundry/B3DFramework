@@ -79,6 +79,7 @@ String GUIStyleSheetToken::TypeToString(const GUIStyleSheetTokenTypes type)
 	case GUIStyleSheetTokenTypes::TextAlign: return "Text align mode";
 	case GUIStyleSheetTokenTypes::VerticalAlign: return "Vertical alignment mode";
 	case GUIStyleSheetTokenTypes::WordWrap: return "Word wrap mode";
+	case GUIStyleSheetTokenTypes::Visibility: return "Visibility";
 	case GUIStyleSheetTokenTypes::PseudoClassSelector: return "Pseudo class selector";
 	case GUIStyleSheetTokenTypes::None: return "None";
 	case GUIStyleSheetTokenTypes::EndOfStream: return "End of stream";

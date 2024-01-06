@@ -59,6 +59,11 @@ button.Button
 
 }
 
+button.Button::checkmark
+{
+    visibility: hidden;
+}
+
 button.ButtonLeft
 {
     border-top-left-radius: 10px;
@@ -354,6 +359,11 @@ button.TabBarButton
     border-width: 0px;
     padding-left: 10px;
     padding-right: 10px;
+}
+
+button.TabBarButton::checkmark
+{
+    visibility: hidden;
 }
 
 texture.TabBarBackground

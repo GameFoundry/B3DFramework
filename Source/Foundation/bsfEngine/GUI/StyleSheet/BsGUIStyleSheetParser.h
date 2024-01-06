@@ -50,6 +50,7 @@ namespace bs
 			TextAlign,
 			VerticalAlign,
 			WordWrap,
+			Visibility,
 			None,
 			Multiple
 		};
@@ -173,6 +174,12 @@ namespace bs
 				else
 					B3D_ASSERT(false);
 			}
+
+			void GetValue(GUIElementVisibility& outValue)
+			{
+				B3D_ASSERT(Type == ValueType::Visibility);
+				outValue = (GUIElementVisibility)UnsignedInteger;
+			}
 		};
 
 		/** Stores a set of variables defined in a particular scope. */
@@ -287,8 +294,11 @@ namespace bs
 		/** Attempts to parse the next token as a vertical alignment style. Token must be one of supported vertical alignment identifiers. If successful, returns true and outputs the parsed value. */
 		bool TryParseVerticalAlign(GUIVerticalTextAlignment& outValue);
 
-		/** Attempts to parse the next token as a word wrap mode. Token must be one of supported word rap mode identifiers. If successful, returns true and outputs the parsed value. */
+		/** Attempts to parse the next token as a word wrap mode. Token must be one of supported word wrap mode identifiers. If successful, returns true and outputs the parsed value. */
 		bool TryParseWordWrapMode(GUIWordWrapMode& outValue);
+
+		/** Attempts to parse the next token as a visibility mode. Token must be one of supported visibility mode identifiers. If successful, returns true and outputs the parsed value. */
+		bool TryParseVisibility(GUIElementVisibility& outValue);
 
 		/** Attempts to parse the next 1 to 3 tokens as style, width and color for the border. Tokens may be provided in any order, but cannot be duplicated. If successful, returns true and outputs the parsed value. */
 		bool TryParseBorderElement(GUIStyleSheetBorderElement& outValue);

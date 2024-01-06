@@ -42,6 +42,13 @@ namespace bs
 		// For later: BreakWord, flag for Ellipis, etc.
 	};
 
+	/** Possible values of the style-sheet 'visibility' property. */
+	enum class GUIElementVisibility
+	{
+		Visible,
+		Hidden
+	};
+
 	/** All possible properties in a GUI style sheet. See GUIStyleSheetStateStyle for their descriptions. */
 	enum class GUIStyleSheetPropertyType
 	{
@@ -70,6 +77,7 @@ namespace bs
 		Opacity,
 		BackgroundColor,
 		BackgroundImage,
+		Visibility,
 
 		TextAlign,
 		VerticalAlign,
@@ -192,6 +200,7 @@ namespace bs
 		float Opacity = 1.0f; /**< Opacity of the GUI element. This value will affect all aspects of the GUI element (border, background and contents). In range [0, 1]. */
 
 		HSpriteImage BackgroundImage; /**< Image to render as the background. */
+		GUIElementVisibility Visibility = GUIElementVisibility::Visible; /**< Determines if the element should be displayed or not. */
 
 		GUIStyleSheetBorderElement BorderLeft; /**< Style information for the left border. */
 		GUIStyleSheetBorderElement BorderRight; /**< Style information for the right border. */

@@ -53,6 +53,7 @@ namespace bs
 		TextAlign, // left, center, right
 		VerticalAlign, // top, middle, bottom
 		WordWrap, // none, wrap-word
+		Visibility, // hidden, visible
 		PseudoClassSelector, // active, hover, focus, checked, disabled
 		None, // none
 
