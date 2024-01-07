@@ -8,6 +8,7 @@
 #include "2D/BsImageSprite.h"
 #include "GUI/BsGUIContent.h"
 #include "BsGUIConstructionMethods.h"
+#include "BsGUISpriteHelper.h"
 
 namespace bs
 {
@@ -50,10 +51,9 @@ namespace bs
 		GUIContent mContent;
 
 		TextSprite* mTextSprite;
-		ImageSprite* mBackgroundImageSprite;
+		GUIBackgroundSprite mBackgroundSprite;
 
 		TextSpriteInformation mTextSpriteInformation;
-		ImageSpriteInformation mImageSpriteInformation;
 	};
 
 	/** @} */

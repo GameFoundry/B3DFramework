@@ -11,7 +11,7 @@
 using namespace bs;
 
 GUILabel::GUILabel(PrivatelyConstruct, const GUIContent& content, const String& styleClass, const GUISizeConstraints& dimensions)
-	: GUIInteractable(styleClass, dimensions), mContent(content), mBackgroundImageSprite(nullptr)
+	: GUIInteractable(styleClass, dimensions), mContent(content)
 {
 	mTextSprite = B3DNew<TextSprite>();
 }
@@ -19,9 +19,6 @@ GUILabel::GUILabel(PrivatelyConstruct, const GUIContent& content, const String& 
 GUILabel::~GUILabel()
 {
 	B3DDelete(mTextSprite);
-
-	if(mBackgroundImageSprite != nullptr)
-		B3DDelete(mBackgroundImageSprite);
 }
 
 u32 GUILabel::GetRenderElementDepthRange() const
@@ -31,30 +28,9 @@ u32 GUILabel::GetRenderElementDepthRange() const
 
 void GUILabel::UpdateRenderElements()
 {
-	const HSpriteImage& activeImage = GetStyle()->Normal.Image;
-	if(SpriteImage::CheckIsLoaded(activeImage))
-	{
-		mImageSpriteInformation.Image = activeImage;
+	mRenderElements.clear();
 
-		if(mBackgroundImageSprite == nullptr)
-			mBackgroundImageSprite = B3DNew<ImageSprite>();
-	}
-	else
-	{
-		mImageSpriteInformation.Image = nullptr;
-
-		if(mBackgroundImageSprite != nullptr)
-		{
-			B3DDelete(mBackgroundImageSprite);
-			mBackgroundImageSprite = nullptr;
-		}
-	}
-
-	if(mBackgroundImageSprite != nullptr)
-	{
-		mImageSpriteInformation.Width = mLayoutData.Area.Width;
-		mImageSpriteInformation.Height = mLayoutData.Area.Height;
-	}
+	GUISpriteHelper::BuildSpriteRenderElements(*this, GUIElementState::Normal, mBackgroundSprite);
 
 	mTextSpriteInformation.Width = mLayoutData.Area.Width;
 	mTextSpriteInformation.Height = mLayoutData.Area.Height;
@@ -65,26 +41,11 @@ void GUILabel::UpdateRenderElements()
 	{
 		const GUIStyleSheetRules& styleSheetRules = mStyleSheetRuleInformation.CurrentStateRuleset->Rules;
 
-		if(mBackgroundImageSprite != nullptr)
-		{
-			mImageSpriteInformation.Color = GetTint() * styleSheetRules.BackgroundColor;
-			mImageSpriteInformation.Color.A *= styleSheetRules.Opacity;
-		}
-
 		mTextSpriteInformation.InitializeFromStyleSheetRules(styleSheetRules);
 		mTextSpriteInformation.Color *= GetTint();
 	}
 	else
 	{
-		if(mBackgroundImageSprite != nullptr)
-		{
-			mImageSpriteInformation.BorderLeft = GetStyle()->Border.Left;
-			mImageSpriteInformation.BorderRight = GetStyle()->Border.Right;
-			mImageSpriteInformation.BorderTop = GetStyle()->Border.Top;
-			mImageSpriteInformation.BorderBottom = GetStyle()->Border.Bottom;
-			mImageSpriteInformation.Color = GetTint();
-		}
-
 		mTextSpriteInformation.Font = GetStyle()->Font;
 		mTextSpriteInformation.FontSize = GetStyle()->FontSize;
 		mTextSpriteInformation.WordWrap = GetStyle()->WordWrap;
@@ -92,9 +53,6 @@ void GUILabel::UpdateRenderElements()
 		mTextSpriteInformation.VertAlign = GetStyle()->TextVertAlign;
 		mTextSpriteInformation.Color = GetTint() * GetStyle()->Normal.TextColor;
 	}
-
-	if(mBackgroundImageSprite != nullptr)
-		mBackgroundImageSprite->Update(mImageSpriteInformation, (u64)GetParentWidget());
 
 	mTextSprite->Update(mTextSpriteInformation, (u64)GetParentWidget());
 
@@ -112,7 +70,7 @@ void GUILabel::UpdateRenderElements()
 	// Populate GUI render elements from the sprites
 	{
 		using T = GUIRenderElementHelper;
-		T::Populate({ T::SpriteInfo(mTextSprite, 0, textBounds), T::SpriteInfo(mBackgroundImageSprite, 1, backgroundBounds) }, mRenderElements);
+		T::Append({ T::SpriteInfo(mTextSprite, 0, textBounds) }, mRenderElements);
 	}
 
 	GUIInteractable::UpdateRenderElements();
