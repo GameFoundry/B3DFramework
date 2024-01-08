@@ -655,11 +655,16 @@ texture.MenuBarBackground
     border-color: #000000;
 }
 
-label.ButtonAddOnRed
+.FloatFieldX {}
+.FloatFieldY {}
+.FloatFieldZ {}
+.FloatFieldW {}
+
+.FloatFieldX label.Label
 {
-    border-width: 2px 0px 2px 2px;
-    border-color: var(--PrimaryBorderColor);
     background-color: var(--RedBackgroundColor);
+    border-width: 2px 0px 2px 2px;
+    border-color: var(--PrimaryBorderColor);
     text-align: center;
     vertical-align: middle;
     font-family: var(--BoldFontFamily);
@@ -669,11 +674,11 @@ label.ButtonAddOnRed
     color: var(--DarkContentColor);
 }
 
-label.ButtonAddOnGreen
+.FloatFieldY label
 {
-    border-width: 2px 0px 2px 2px;
-    border-color: var(--PrimaryBorderColor);
     background-color: var(--GreenBackgroundColor);
+    border-width: 2px 0px 2px 2px;
+    border-color: var(--PrimaryBorderColor);
     text-align: center;
     vertical-align: middle;
     font-family: var(--BoldFontFamily);
@@ -683,11 +688,11 @@ label.ButtonAddOnGreen
     color: var(--DarkContentColor);
 }
 
-label.ButtonAddOnBlue
+.FloatFieldZ label
 {
-    border-width: 2px 0px 2px 2px;
-    border-color: var(--PrimaryBorderColor);
     background-color: var(--BlueBackgroundColor);
+    border-width: 2px 0px 2px 2px;
+    border-color: var(--PrimaryBorderColor);
     text-align: center;
     vertical-align: middle;
     font-family: var(--BoldFontFamily);
@@ -697,11 +702,11 @@ label.ButtonAddOnBlue
     color: var(--DarkContentColor);
 }
 
-label.ButtonAddOnGrey
+.FloatFieldW label
 {
+    background-color: var(--GreyBackgroundColor);
     border-width: 2px 0px 2px 2px;
     border-color: var(--PrimaryBorderColor);
-    background-color: var(--GreyBackgroundColor);
     text-align: center;
     vertical-align: middle;
     font-family: var(--BoldFontFamily);

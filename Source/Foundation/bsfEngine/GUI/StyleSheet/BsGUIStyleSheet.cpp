@@ -54,7 +54,18 @@ bool GUIStyleSheetSelectorList::IsMatching(const GUIRenderable& element, StringV
 
 		if(selector.CombinatorType == GUIStyleSheetCombinatorType::AncestorOf || selector.CombinatorType == GUIStyleSheetCombinatorType::ParentOf)
 		{
-			currentElement = B3DRTTICast<GUIRenderable>(currentElement->GetParent());
+			// Find next parent renderable
+			const GUIElement* parent = currentElement;
+			do
+			{
+				parent = parent->GetParent();
+				currentElement = B3DRTTICast<GUIRenderable>(parent);
+
+				if(currentElement != nullptr)
+					break;
+
+			} while(parent != nullptr);
+
 			isMatchingAnyAncestor = selector.CombinatorType == GUIStyleSheetCombinatorType::AncestorOf;
 			itLastAncestorSelectorStart = it;
 
