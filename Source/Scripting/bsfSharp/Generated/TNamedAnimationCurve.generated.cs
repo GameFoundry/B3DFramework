@@ -30,9 +30,9 @@ namespace bs
 		/// <param name="curve">Curve containing the animation data.</param>
 		public NamedFloatCurve(string name, AnimationCurve curve)
 		{
-			this.Name = name;
+			this.Name = "";
 			this.Flags = (AnimationCurveFlags)0;
-			this.Curve = curve;
+			this.Curve = null;
 		}
 
 		/// <summary>Constructs a new named animation curve.</summary>
@@ -41,9 +41,9 @@ namespace bs
 		/// <param name="curve">Curve containing the animation data.</param>
 		public NamedFloatCurve(string name, AnimationCurveFlags flags, AnimationCurve curve)
 		{
-			this.Name = name;
+			this.Name = "";
 			this.Flags = (AnimationCurveFlags)0;
-			this.Curve = curve;
+			this.Curve = null;
 		}
 
 		/// <summary>Name of the curve.</summary>
@@ -80,9 +80,9 @@ namespace bs
 		/// <param name="curve">Curve containing the animation data.</param>
 		public NamedVector3Curve(string name, Vector3Curve curve)
 		{
-			this.Name = name;
+			this.Name = "";
 			this.Flags = (AnimationCurveFlags)0;
-			this.Curve = curve;
+			this.Curve = null;
 		}
 
 		/// <summary>Constructs a new named animation curve.</summary>
@@ -91,9 +91,9 @@ namespace bs
 		/// <param name="curve">Curve containing the animation data.</param>
 		public NamedVector3Curve(string name, AnimationCurveFlags flags, Vector3Curve curve)
 		{
-			this.Name = name;
+			this.Name = "";
 			this.Flags = (AnimationCurveFlags)0;
-			this.Curve = curve;
+			this.Curve = null;
 		}
 
 		/// <summary>Name of the curve.</summary>
@@ -130,9 +130,9 @@ namespace bs
 		/// <param name="curve">Curve containing the animation data.</param>
 		public NamedVector2Curve(string name, Vector2Curve curve)
 		{
-			this.Name = name;
+			this.Name = "";
 			this.Flags = (AnimationCurveFlags)0;
-			this.Curve = curve;
+			this.Curve = null;
 		}
 
 		/// <summary>Constructs a new named animation curve.</summary>
@@ -141,9 +141,9 @@ namespace bs
 		/// <param name="curve">Curve containing the animation data.</param>
 		public NamedVector2Curve(string name, AnimationCurveFlags flags, Vector2Curve curve)
 		{
-			this.Name = name;
+			this.Name = "";
 			this.Flags = (AnimationCurveFlags)0;
-			this.Curve = curve;
+			this.Curve = null;
 		}
 
 		/// <summary>Name of the curve.</summary>
@@ -180,9 +180,9 @@ namespace bs
 		/// <param name="curve">Curve containing the animation data.</param>
 		public NamedQuaternionCurve(string name, QuaternionCurve curve)
 		{
-			this.Name = name;
+			this.Name = "";
 			this.Flags = (AnimationCurveFlags)0;
-			this.Curve = curve;
+			this.Curve = null;
 		}
 
 		/// <summary>Constructs a new named animation curve.</summary>
@@ -191,9 +191,9 @@ namespace bs
 		/// <param name="curve">Curve containing the animation data.</param>
 		public NamedQuaternionCurve(string name, AnimationCurveFlags flags, QuaternionCurve curve)
 		{
-			this.Name = name;
+			this.Name = "";
 			this.Flags = (AnimationCurveFlags)0;
-			this.Curve = curve;
+			this.Curve = null;
 		}
 
 		/// <summary>Name of the curve.</summary>
@@ -230,9 +230,9 @@ namespace bs
 		/// <param name="curve">Curve containing the animation data.</param>
 		public NamedIntegerCurve(string name, IntegerCurve curve)
 		{
-			this.Name = name;
+			this.Name = "";
 			this.Flags = (AnimationCurveFlags)0;
-			this.Curve = curve;
+			this.Curve = null;
 		}
 
 		/// <summary>Constructs a new named animation curve.</summary>
@@ -241,9 +241,9 @@ namespace bs
 		/// <param name="curve">Curve containing the animation data.</param>
 		public NamedIntegerCurve(string name, AnimationCurveFlags flags, IntegerCurve curve)
 		{
-			this.Name = name;
+			this.Name = "";
 			this.Flags = (AnimationCurveFlags)0;
-			this.Curve = curve;
+			this.Curve = null;
 		}
 
 		/// <summary>Name of the curve.</summary>
