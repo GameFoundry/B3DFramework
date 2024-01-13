@@ -17,8 +17,8 @@ namespace bs
 	ScriptCharacterController::ScriptCharacterController(MonoObject* managedInstance, const GameObjectHandle<CCharacterController>& value)
 		:TScriptComponent(managedInstance, value)
 	{
-		value->OnColliderHit.Connect(std::bind(&ScriptCharacterController::OnColliderHit, this, std::placeholders::_1));
-		value->OnControllerHit.Connect(std::bind(&ScriptCharacterController::OnControllerHit, this, std::placeholders::_1));
+		static_cast<GameObjectHandle<CCharacterController>>(value)->OnColliderHit.Connect(std::bind(&ScriptCharacterController::OnColliderHit, this, std::placeholders::_1));
+		static_cast<GameObjectHandle<CCharacterController>>(value)->OnControllerHit.Connect(std::bind(&ScriptCharacterController::OnControllerHit, this, std::placeholders::_1));
 	}
 
 	void ScriptCharacterController::InitRuntimeData()

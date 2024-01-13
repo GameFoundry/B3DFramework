@@ -22,9 +22,9 @@ namespace bs
 	ScriptAnimation::ScriptAnimation(MonoObject* managedInstance, const GameObjectHandle<CAnimation>& value)
 		:TScriptComponent(managedInstance, value)
 	{
-		value->ScriptRebuildFloatPropertiesInternal = std::bind(&ScriptAnimation::ScriptRebuildFloatPropertiesInternal, this, std::placeholders::_1);
-		value->ScriptUpdateFloatPropertiesInternal = std::bind(&ScriptAnimation::ScriptUpdateFloatPropertiesInternal, this);
-		value->ScriptOnEventTriggeredInternal = std::bind(&ScriptAnimation::ScriptOnEventTriggeredInternal, this, std::placeholders::_1, std::placeholders::_2);
+		static_cast<GameObjectHandle<CAnimation>>(value)->ScriptRebuildFloatPropertiesInternal = std::bind(&ScriptAnimation::ScriptRebuildFloatPropertiesInternal, this, std::placeholders::_1);
+		static_cast<GameObjectHandle<CAnimation>>(value)->ScriptUpdateFloatPropertiesInternal = std::bind(&ScriptAnimation::ScriptUpdateFloatPropertiesInternal, this);
+		static_cast<GameObjectHandle<CAnimation>>(value)->ScriptOnEventTriggeredInternal = std::bind(&ScriptAnimation::ScriptOnEventTriggeredInternal, this, std::placeholders::_1, std::placeholders::_2);
 	}
 
 	void ScriptAnimation::InitRuntimeData()

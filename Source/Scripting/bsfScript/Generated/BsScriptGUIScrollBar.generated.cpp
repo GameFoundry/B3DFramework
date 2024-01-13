@@ -19,10 +19,14 @@ namespace bs
 		MonoUtil::InvokeThunk(OnScrollOrResizeThunk, GetManagedInstance(), p0, p1);
 	}
 
+	void ScriptGUIScrollBarBase::RegisterEvents(GUIElement* value)
+	{
+		static_cast<GUIScrollBar*>(value)->OnScrollOrResize.Connect(std::bind(&ScriptGUIScrollBarBase::OnScrollOrResize, this, std::placeholders::_1, std::placeholders::_2));
+		ScriptGUIInteractableBase::RegisterEvents(value);
+	}
 	ScriptGUIScrollBar::ScriptGUIScrollBar(MonoObject* managedInstance, GUIScrollBar* value)
 		:TScriptGUIInteractable(managedInstance, value)
 	{
-		value->OnScrollOrResize.Connect(std::bind(&ScriptGUIScrollBar::OnScrollOrResize, this, std::placeholders::_1, std::placeholders::_2));
 	}
 
 	void ScriptGUIScrollBar::InitRuntimeData()

@@ -14,6 +14,7 @@ namespace bs
 	ScriptGUIToggle::ScriptGUIToggle(MonoObject* managedInstance, GUIToggle* value)
 		:TScriptGUIInteractable(managedInstance, value)
 	{
+		RegisterEvents(value);
 	}
 
 	void ScriptGUIToggle::InitRuntimeData()

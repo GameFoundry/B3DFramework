@@ -17,6 +17,7 @@ namespace bs
 	ScriptGUITexture::ScriptGUITexture(MonoObject* managedInstance, GUITexture* value)
 		:TScriptGUIInteractable(managedInstance, value)
 	{
+		RegisterEvents(value);
 	}
 
 	void ScriptGUITexture::InitRuntimeData()

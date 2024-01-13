@@ -17,8 +17,7 @@ namespace bs
 	ScriptGUIInputBox::ScriptGUIInputBox(MonoObject* managedInstance, GUIInputBox* value)
 		:TScriptGUIInteractable(managedInstance, value)
 	{
-		value->OnValueChanged.Connect(std::bind(&ScriptGUIInputBox::OnValueChanged, this, std::placeholders::_1));
-		value->OnConfirm.Connect(std::bind(&ScriptGUIInputBox::OnConfirm, this));
+		RegisterEvents(value);
 	}
 
 	void ScriptGUIInputBox::InitRuntimeData()
@@ -46,6 +45,12 @@ namespace bs
 		MonoUtil::InvokeThunk(OnConfirmThunk, GetManagedInstance());
 	}
 
+	void ScriptGUIInputBox::RegisterEvents(GUIElement* value)
+	{
+		static_cast<GUIInputBox*>(value)->OnValueChanged.Connect(std::bind(&ScriptGUIInputBox::OnValueChanged, this, std::placeholders::_1));
+		static_cast<GUIInputBox*>(value)->OnConfirm.Connect(std::bind(&ScriptGUIInputBox::OnConfirm, this));
+		ScriptGUIElementBase::RegisterEvents(value);
+	}
 	void ScriptGUIInputBox::InternalSetText(ScriptGUIInputBox* thisPtr, MonoString* text)
 	{
 		String tmptext;

@@ -19,10 +19,14 @@ namespace bs
 		MonoUtil::InvokeThunk(OnChangedThunk, GetManagedInstance(), p0);
 	}
 
+	void ScriptGUISliderBase::RegisterEvents(GUIElement* value)
+	{
+		static_cast<GUISlider*>(value)->OnChanged.Connect(std::bind(&ScriptGUISliderBase::OnChanged, this, std::placeholders::_1));
+		ScriptGUIInteractableBase::RegisterEvents(value);
+	}
 	ScriptGUISlider::ScriptGUISlider(MonoObject* managedInstance, GUISlider* value)
 		:TScriptGUIInteractable(managedInstance, value)
 	{
-		value->OnChanged.Connect(std::bind(&ScriptGUISlider::OnChanged, this, std::placeholders::_1));
 	}
 
 	void ScriptGUISlider::InitRuntimeData()

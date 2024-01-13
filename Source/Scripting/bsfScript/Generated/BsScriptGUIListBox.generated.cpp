@@ -17,7 +17,7 @@ namespace bs
 	ScriptGUIListBox::ScriptGUIListBox(MonoObject* managedInstance, GUIListBox* value)
 		:TScriptGUIInteractable(managedInstance, value)
 	{
-		value->OnSelectionToggled.Connect(std::bind(&ScriptGUIListBox::OnSelectionToggled, this, std::placeholders::_1, std::placeholders::_2));
+		RegisterEvents(value);
 	}
 
 	void ScriptGUIListBox::InitRuntimeData()
@@ -41,6 +41,11 @@ namespace bs
 		MonoUtil::InvokeThunk(OnSelectionToggledThunk, GetManagedInstance(), p0, p1);
 	}
 
+	void ScriptGUIListBox::RegisterEvents(GUIElement* value)
+	{
+		static_cast<GUIListBox*>(value)->OnSelectionToggled.Connect(std::bind(&ScriptGUIListBox::OnSelectionToggled, this, std::placeholders::_1, std::placeholders::_2));
+		ScriptGUIClickableBase::RegisterEvents(value);
+	}
 	bool ScriptGUIListBox::InternalIsMultiselect(ScriptGUIListBox* thisPtr)
 	{
 		bool tmp__output;

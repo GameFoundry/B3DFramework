@@ -15,6 +15,7 @@ namespace bs
 	public:
 		ScriptGUIClickableBase(MonoObject* instance);
 		virtual ~ScriptGUIClickableBase() {}
+		void RegisterEvents(GUIElement* value) override;
 		void OnClick();
 		void OnHover();
 		void OnOut();

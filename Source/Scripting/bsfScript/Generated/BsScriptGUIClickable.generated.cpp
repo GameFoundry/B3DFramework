@@ -38,13 +38,17 @@ namespace bs
 		MonoUtil::InvokeThunk(OnDoubleClickThunk, GetManagedInstance());
 	}
 
+	void ScriptGUIClickableBase::RegisterEvents(GUIElement* value)
+	{
+		static_cast<GUIClickable*>(value)->OnClick.Connect(std::bind(&ScriptGUIClickableBase::OnClick, this));
+		static_cast<GUIClickable*>(value)->OnHover.Connect(std::bind(&ScriptGUIClickableBase::OnHover, this));
+		static_cast<GUIClickable*>(value)->OnOut.Connect(std::bind(&ScriptGUIClickableBase::OnOut, this));
+		static_cast<GUIClickable*>(value)->OnDoubleClick.Connect(std::bind(&ScriptGUIClickableBase::OnDoubleClick, this));
+		ScriptGUIInteractableBase::RegisterEvents(value);
+	}
 	ScriptGUIClickable::ScriptGUIClickable(MonoObject* managedInstance, GUIClickable* value)
 		:TScriptGUIInteractable(managedInstance, value)
 	{
-		value->OnClick.Connect(std::bind(&ScriptGUIClickable::OnClick, this));
-		value->OnHover.Connect(std::bind(&ScriptGUIClickable::OnHover, this));
-		value->OnOut.Connect(std::bind(&ScriptGUIClickable::OnOut, this));
-		value->OnDoubleClick.Connect(std::bind(&ScriptGUIClickable::OnDoubleClick, this));
 	}
 
 	void ScriptGUIClickable::InitRuntimeData()

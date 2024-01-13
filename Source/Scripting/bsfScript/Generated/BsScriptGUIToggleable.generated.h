@@ -14,6 +14,7 @@ namespace bs
 	public:
 		ScriptGUIToggleableBase(MonoObject* instance);
 		virtual ~ScriptGUIToggleableBase() {}
+		void RegisterEvents(GUIElement* value) override;
 		void OnToggled(bool p0);
 
 		typedef void(B3D_THUNKCALL *OnToggledThunkDef) (MonoObject*, bool p0, MonoException**);

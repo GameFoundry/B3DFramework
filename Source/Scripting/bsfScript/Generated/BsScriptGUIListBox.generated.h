@@ -20,6 +20,7 @@ namespace bs
 
 		ScriptGUIListBox(MonoObject* managedInstance, GUIListBox* value);
 
+		void RegisterEvents(GUIElement* value) override;
 	private:
 		void OnSelectionToggled(uint32_t p0, bool p1);
 

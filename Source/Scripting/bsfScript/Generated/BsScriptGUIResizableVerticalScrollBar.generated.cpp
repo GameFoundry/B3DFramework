@@ -13,6 +13,7 @@ namespace bs
 	ScriptGUIResizableVerticalScrollBar::ScriptGUIResizableVerticalScrollBar(MonoObject* managedInstance, GUIResizableVerticalScrollBar* value)
 		:TScriptGUIInteractable(managedInstance, value)
 	{
+		RegisterEvents(value);
 	}
 
 	void ScriptGUIResizableVerticalScrollBar::InitRuntimeData()

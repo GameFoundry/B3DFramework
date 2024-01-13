@@ -17,6 +17,7 @@ namespace bs
 
 		ScriptGUIInputBox(MonoObject* managedInstance, GUIInputBox* value);
 
+		void RegisterEvents(GUIElement* value) override;
 	private:
 		void OnValueChanged(const String& p0);
 		void OnConfirm();

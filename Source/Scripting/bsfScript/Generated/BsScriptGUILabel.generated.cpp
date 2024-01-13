@@ -14,6 +14,7 @@ namespace bs
 	ScriptGUILabel::ScriptGUILabel(MonoObject* managedInstance, GUILabel* value)
 		:TScriptGUIInteractable(managedInstance, value)
 	{
+		RegisterEvents(value);
 	}
 
 	void ScriptGUILabel::InitRuntimeData()

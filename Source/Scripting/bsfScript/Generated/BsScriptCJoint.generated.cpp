@@ -26,7 +26,7 @@ namespace bs
 	ScriptJoint::ScriptJoint(MonoObject* managedInstance, const GameObjectHandle<CJoint>& value)
 		:TScriptComponent(managedInstance, value)
 	{
-		value->OnJointBreak.Connect(std::bind(&ScriptJoint::OnJointBreak, this));
+		static_cast<GameObjectHandle<CJoint>>(value)->OnJointBreak.Connect(std::bind(&ScriptJoint::OnJointBreak, this));
 	}
 
 	void ScriptJoint::InitRuntimeData()

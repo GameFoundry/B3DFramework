@@ -13,6 +13,7 @@ namespace bs
 	ScriptGUIVerticalSlider::ScriptGUIVerticalSlider(MonoObject* managedInstance, GUIVerticalSlider* value)
 		:TScriptGUIInteractable(managedInstance, value)
 	{
+		RegisterEvents(value);
 	}
 
 	void ScriptGUIVerticalSlider::InitRuntimeData()

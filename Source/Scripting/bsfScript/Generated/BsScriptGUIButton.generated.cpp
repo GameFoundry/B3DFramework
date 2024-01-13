@@ -14,6 +14,7 @@ namespace bs
 	ScriptGUIButton::ScriptGUIButton(MonoObject* managedInstance, GUIButton* value)
 		:TScriptGUIInteractable(managedInstance, value)
 	{
+		RegisterEvents(value);
 	}
 
 	void ScriptGUIButton::InitRuntimeData()

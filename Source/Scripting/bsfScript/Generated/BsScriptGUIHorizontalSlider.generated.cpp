@@ -13,6 +13,7 @@ namespace bs
 	ScriptGUIHorizontalSlider::ScriptGUIHorizontalSlider(MonoObject* managedInstance, GUIHorizontalSlider* value)
 		:TScriptGUIInteractable(managedInstance, value)
 	{
+		RegisterEvents(value);
 	}
 
 	void ScriptGUIHorizontalSlider::InitRuntimeData()

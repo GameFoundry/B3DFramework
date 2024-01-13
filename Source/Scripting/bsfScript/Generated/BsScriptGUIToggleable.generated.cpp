@@ -19,10 +19,14 @@ namespace bs
 		MonoUtil::InvokeThunk(OnToggledThunk, GetManagedInstance(), p0);
 	}
 
+	void ScriptGUIToggleableBase::RegisterEvents(GUIElement* value)
+	{
+		static_cast<GUIToggleable*>(value)->OnToggled.Connect(std::bind(&ScriptGUIToggleableBase::OnToggled, this, std::placeholders::_1));
+		ScriptGUIClickableBase::RegisterEvents(value);
+	}
 	ScriptGUIToggleable::ScriptGUIToggleable(MonoObject* managedInstance, GUIToggleable* value)
 		:TScriptGUIInteractable(managedInstance, value)
 	{
-		value->OnToggled.Connect(std::bind(&ScriptGUIToggleable::OnToggled, this, std::placeholders::_1));
 	}
 
 	void ScriptGUIToggleable::InitRuntimeData()

@@ -13,6 +13,7 @@ namespace bs
 	public:
 		ScriptGUISliderBase(MonoObject* instance);
 		virtual ~ScriptGUISliderBase() {}
+		void RegisterEvents(GUIElement* value) override;
 		void OnChanged(float p0);
 
 		typedef void(B3D_THUNKCALL *OnChangedThunkDef) (MonoObject*, float p0, MonoException**);

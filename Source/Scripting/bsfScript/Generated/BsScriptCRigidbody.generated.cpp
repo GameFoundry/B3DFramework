@@ -18,9 +18,9 @@ namespace bs
 	ScriptRigidbody::ScriptRigidbody(MonoObject* managedInstance, const GameObjectHandle<CRigidbody>& value)
 		:TScriptComponent(managedInstance, value)
 	{
-		value->OnCollisionBegin.Connect(std::bind(&ScriptRigidbody::OnCollisionBegin, this, std::placeholders::_1));
-		value->OnCollisionStay.Connect(std::bind(&ScriptRigidbody::OnCollisionStay, this, std::placeholders::_1));
-		value->OnCollisionEnd.Connect(std::bind(&ScriptRigidbody::OnCollisionEnd, this, std::placeholders::_1));
+		static_cast<GameObjectHandle<CRigidbody>>(value)->OnCollisionBegin.Connect(std::bind(&ScriptRigidbody::OnCollisionBegin, this, std::placeholders::_1));
+		static_cast<GameObjectHandle<CRigidbody>>(value)->OnCollisionStay.Connect(std::bind(&ScriptRigidbody::OnCollisionStay, this, std::placeholders::_1));
+		static_cast<GameObjectHandle<CRigidbody>>(value)->OnCollisionEnd.Connect(std::bind(&ScriptRigidbody::OnCollisionEnd, this, std::placeholders::_1));
 	}
 
 	void ScriptRigidbody::InitRuntimeData()

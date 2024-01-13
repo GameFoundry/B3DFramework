@@ -46,6 +46,9 @@ namespace bs
 		 */
 		void Initialize(GUIElement* element);
 
+		/** Registers event callback to the provided @p element. */
+		virtual void RegisterEvents(GUIElement* element) {} // TODO - This should be moved to ScriptObjectBase, but currently we don't have a common base class for all script exportable objects
+
 		void OnManagedInstanceDeletedInternal(bool assemblyRefresh) override;
 		void ClearManagedInstanceInternal() override;
 

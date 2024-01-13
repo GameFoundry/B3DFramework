@@ -13,6 +13,7 @@ namespace bs
 	ScriptGUIResizableHorizontalScrollBar::ScriptGUIResizableHorizontalScrollBar(MonoObject* managedInstance, GUIResizableHorizontalScrollBar* value)
 		:TScriptGUIInteractable(managedInstance, value)
 	{
+		RegisterEvents(value);
 	}
 
 	void ScriptGUIResizableHorizontalScrollBar::InitRuntimeData()

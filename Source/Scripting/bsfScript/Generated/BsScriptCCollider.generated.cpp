@@ -50,9 +50,9 @@ namespace bs
 	ScriptCollider::ScriptCollider(MonoObject* managedInstance, const GameObjectHandle<CCollider>& value)
 		:TScriptComponent(managedInstance, value)
 	{
-		value->OnCollisionBegin.Connect(std::bind(&ScriptCollider::OnCollisionBegin, this, std::placeholders::_1));
-		value->OnCollisionStay.Connect(std::bind(&ScriptCollider::OnCollisionStay, this, std::placeholders::_1));
-		value->OnCollisionEnd.Connect(std::bind(&ScriptCollider::OnCollisionEnd, this, std::placeholders::_1));
+		static_cast<GameObjectHandle<CCollider>>(value)->OnCollisionBegin.Connect(std::bind(&ScriptCollider::OnCollisionBegin, this, std::placeholders::_1));
+		static_cast<GameObjectHandle<CCollider>>(value)->OnCollisionStay.Connect(std::bind(&ScriptCollider::OnCollisionStay, this, std::placeholders::_1));
+		static_cast<GameObjectHandle<CCollider>>(value)->OnCollisionEnd.Connect(std::bind(&ScriptCollider::OnCollisionEnd, this, std::placeholders::_1));
 	}
 
 	void ScriptCollider::InitRuntimeData()
