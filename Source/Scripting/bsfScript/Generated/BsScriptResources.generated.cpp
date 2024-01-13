@@ -94,6 +94,7 @@ namespace bs
 			tmpp0 = nullptr;
 		MonoUtil::InvokeThunk(OnResourceModifiedThunk, tmpp0);
 	}
+
 	MonoObject* ScriptResources::InternalLoad(MonoString* filePath, ResourceLoadFlag loadFlags)
 	{
 		ResourceHandle<Resource> tmp__output;

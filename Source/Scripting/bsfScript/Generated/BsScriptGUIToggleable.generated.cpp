@@ -8,11 +8,16 @@
 
 namespace bs
 {
+	ScriptGUIToggleableBase::OnToggledThunkDef ScriptGUIToggleableBase::OnToggledThunk; 
+
 	ScriptGUIToggleableBase::ScriptGUIToggleableBase(MonoObject* managedInstance)
 		:ScriptGUIClickableBase(managedInstance)
 	 { }
 
-	ScriptGUIToggleable::OnToggledThunkDef ScriptGUIToggleable::OnToggledThunk; 
+	void ScriptGUIToggleableBase::OnToggled(bool p0)
+	{
+		MonoUtil::InvokeThunk(OnToggledThunk, GetManagedInstance(), p0);
+	}
 
 	ScriptGUIToggleable::ScriptGUIToggleable(MonoObject* managedInstance, GUIToggleable* value)
 		:TScriptGUIInteractable(managedInstance, value)
@@ -28,10 +33,6 @@ namespace bs
 		OnToggledThunk = (OnToggledThunkDef)metaData.ScriptClass->GetMethodExact("Internal_OnToggled", "bool")->GetThunk();
 	}
 
-	void ScriptGUIToggleable::OnToggled(bool p0)
-	{
-		MonoUtil::InvokeThunk(OnToggledThunk, GetManagedInstance(), p0);
-	}
 	void ScriptGUIToggleable::InternalSetIsToggled(ScriptGUIElementBase* thisPtr, bool isToggled)
 	{
 		static_cast<GUIToggleable*>(thisPtr->GetGuiElement())->SetIsToggled(isToggled);

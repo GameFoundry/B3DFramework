@@ -9,14 +9,34 @@
 
 namespace bs
 {
+	ScriptGUIClickableBase::OnClickThunkDef ScriptGUIClickableBase::OnClickThunk; 
+	ScriptGUIClickableBase::OnHoverThunkDef ScriptGUIClickableBase::OnHoverThunk; 
+	ScriptGUIClickableBase::OnOutThunkDef ScriptGUIClickableBase::OnOutThunk; 
+	ScriptGUIClickableBase::OnDoubleClickThunkDef ScriptGUIClickableBase::OnDoubleClickThunk; 
+
 	ScriptGUIClickableBase::ScriptGUIClickableBase(MonoObject* managedInstance)
 		:ScriptGUIInteractableBase(managedInstance)
 	 { }
 
-	ScriptGUIClickable::OnClickThunkDef ScriptGUIClickable::OnClickThunk; 
-	ScriptGUIClickable::OnHoverThunkDef ScriptGUIClickable::OnHoverThunk; 
-	ScriptGUIClickable::OnOutThunkDef ScriptGUIClickable::OnOutThunk; 
-	ScriptGUIClickable::OnDoubleClickThunkDef ScriptGUIClickable::OnDoubleClickThunk; 
+	void ScriptGUIClickableBase::OnClick()
+	{
+		MonoUtil::InvokeThunk(OnClickThunk, GetManagedInstance());
+	}
+
+	void ScriptGUIClickableBase::OnHover()
+	{
+		MonoUtil::InvokeThunk(OnHoverThunk, GetManagedInstance());
+	}
+
+	void ScriptGUIClickableBase::OnOut()
+	{
+		MonoUtil::InvokeThunk(OnOutThunk, GetManagedInstance());
+	}
+
+	void ScriptGUIClickableBase::OnDoubleClick()
+	{
+		MonoUtil::InvokeThunk(OnDoubleClickThunk, GetManagedInstance());
+	}
 
 	ScriptGUIClickable::ScriptGUIClickable(MonoObject* managedInstance, GUIClickable* value)
 		:TScriptGUIInteractable(managedInstance, value)
@@ -37,25 +57,6 @@ namespace bs
 		OnDoubleClickThunk = (OnDoubleClickThunkDef)metaData.ScriptClass->GetMethodExact("Internal_OnDoubleClick", "")->GetThunk();
 	}
 
-	void ScriptGUIClickable::OnClick()
-	{
-		MonoUtil::InvokeThunk(OnClickThunk, GetManagedInstance());
-	}
-
-	void ScriptGUIClickable::OnHover()
-	{
-		MonoUtil::InvokeThunk(OnHoverThunk, GetManagedInstance());
-	}
-
-	void ScriptGUIClickable::OnOut()
-	{
-		MonoUtil::InvokeThunk(OnOutThunk, GetManagedInstance());
-	}
-
-	void ScriptGUIClickable::OnDoubleClick()
-	{
-		MonoUtil::InvokeThunk(OnDoubleClickThunk, GetManagedInstance());
-	}
 	void ScriptGUIClickable::InternalSetContent(ScriptGUIElementBase* thisPtr, __GUIContentInterop* content)
 	{
 		GUIContent tmpcontent;

@@ -45,6 +45,7 @@ namespace bs
 	{
 		MonoUtil::InvokeThunk(OnConfirmThunk, GetManagedInstance());
 	}
+
 	void ScriptGUIInputBox::InternalSetText(ScriptGUIInputBox* thisPtr, MonoString* text)
 	{
 		String tmptext;

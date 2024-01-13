@@ -68,6 +68,7 @@ namespace bs
 		tmpp0 = ScriptControllerControllerCollision::Box(interopp0);
 		MonoUtil::InvokeThunk(OnControllerHitThunk, GetManagedInstance(), tmpp0);
 	}
+
 	CharacterCollisionFlag ScriptCharacterController::InternalMove(ScriptCharacterController* thisPtr, TVector3<float>* displacement)
 	{
 		Flags<CharacterCollisionFlag> tmp__output;

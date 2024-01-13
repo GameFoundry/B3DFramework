@@ -12,13 +12,40 @@
 
 namespace bs
 {
+	ScriptColliderBase::OnCollisionBeginThunkDef ScriptColliderBase::OnCollisionBeginThunk; 
+	ScriptColliderBase::OnCollisionStayThunkDef ScriptColliderBase::OnCollisionStayThunk; 
+	ScriptColliderBase::OnCollisionEndThunkDef ScriptColliderBase::OnCollisionEndThunk; 
+
 	ScriptColliderBase::ScriptColliderBase(MonoObject* managedInstance)
 		:ScriptComponentBase(managedInstance)
 	 { }
 
-	ScriptCollider::OnCollisionBeginThunkDef ScriptCollider::OnCollisionBeginThunk; 
-	ScriptCollider::OnCollisionStayThunkDef ScriptCollider::OnCollisionStayThunk; 
-	ScriptCollider::OnCollisionEndThunkDef ScriptCollider::OnCollisionEndThunk; 
+	void ScriptColliderBase::OnCollisionBegin(const CollisionData& p0)
+	{
+		MonoObject* tmpp0;
+		__CollisionDataInterop interopp0;
+		interopp0 = ScriptCollisionData::ToInterop(p0);
+		tmpp0 = ScriptCollisionData::Box(interopp0);
+		MonoUtil::InvokeThunk(OnCollisionBeginThunk, GetManagedInstance(), tmpp0);
+	}
+
+	void ScriptColliderBase::OnCollisionStay(const CollisionData& p0)
+	{
+		MonoObject* tmpp0;
+		__CollisionDataInterop interopp0;
+		interopp0 = ScriptCollisionData::ToInterop(p0);
+		tmpp0 = ScriptCollisionData::Box(interopp0);
+		MonoUtil::InvokeThunk(OnCollisionStayThunk, GetManagedInstance(), tmpp0);
+	}
+
+	void ScriptColliderBase::OnCollisionEnd(const CollisionData& p0)
+	{
+		MonoObject* tmpp0;
+		__CollisionDataInterop interopp0;
+		interopp0 = ScriptCollisionData::ToInterop(p0);
+		tmpp0 = ScriptCollisionData::Box(interopp0);
+		MonoUtil::InvokeThunk(OnCollisionEndThunk, GetManagedInstance(), tmpp0);
+	}
 
 	ScriptCollider::ScriptCollider(MonoObject* managedInstance, const GameObjectHandle<CCollider>& value)
 		:TScriptComponent(managedInstance, value)
@@ -50,32 +77,6 @@ namespace bs
 		OnCollisionEndThunk = (OnCollisionEndThunkDef)metaData.ScriptClass->GetMethodExact("Internal_OnCollisionEnd", "CollisionData&")->GetThunk();
 	}
 
-	void ScriptCollider::OnCollisionBegin(const CollisionData& p0)
-	{
-		MonoObject* tmpp0;
-		__CollisionDataInterop interopp0;
-		interopp0 = ScriptCollisionData::ToInterop(p0);
-		tmpp0 = ScriptCollisionData::Box(interopp0);
-		MonoUtil::InvokeThunk(OnCollisionBeginThunk, GetManagedInstance(), tmpp0);
-	}
-
-	void ScriptCollider::OnCollisionStay(const CollisionData& p0)
-	{
-		MonoObject* tmpp0;
-		__CollisionDataInterop interopp0;
-		interopp0 = ScriptCollisionData::ToInterop(p0);
-		tmpp0 = ScriptCollisionData::Box(interopp0);
-		MonoUtil::InvokeThunk(OnCollisionStayThunk, GetManagedInstance(), tmpp0);
-	}
-
-	void ScriptCollider::OnCollisionEnd(const CollisionData& p0)
-	{
-		MonoObject* tmpp0;
-		__CollisionDataInterop interopp0;
-		interopp0 = ScriptCollisionData::ToInterop(p0);
-		tmpp0 = ScriptCollisionData::Box(interopp0);
-		MonoUtil::InvokeThunk(OnCollisionEndThunk, GetManagedInstance(), tmpp0);
-	}
 	void ScriptCollider::InternalSetIsTrigger(ScriptColliderBase* thisPtr, bool value)
 	{
 		B3DStaticGameObjectCast<CCollider>(thisPtr->GetComponent())->SetIsTrigger(value);

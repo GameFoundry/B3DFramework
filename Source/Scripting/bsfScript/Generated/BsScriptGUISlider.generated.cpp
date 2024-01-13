@@ -8,11 +8,16 @@
 
 namespace bs
 {
+	ScriptGUISliderBase::OnChangedThunkDef ScriptGUISliderBase::OnChangedThunk; 
+
 	ScriptGUISliderBase::ScriptGUISliderBase(MonoObject* managedInstance)
 		:ScriptGUIInteractableBase(managedInstance)
 	 { }
 
-	ScriptGUISlider::OnChangedThunkDef ScriptGUISlider::OnChangedThunk; 
+	void ScriptGUISliderBase::OnChanged(float p0)
+	{
+		MonoUtil::InvokeThunk(OnChangedThunk, GetManagedInstance(), p0);
+	}
 
 	ScriptGUISlider::ScriptGUISlider(MonoObject* managedInstance, GUISlider* value)
 		:TScriptGUIInteractable(managedInstance, value)
@@ -35,10 +40,6 @@ namespace bs
 		OnChangedThunk = (OnChangedThunkDef)metaData.ScriptClass->GetMethodExact("Internal_OnChanged", "single")->GetThunk();
 	}
 
-	void ScriptGUISlider::OnChanged(float p0)
-	{
-		MonoUtil::InvokeThunk(OnChangedThunk, GetManagedInstance(), p0);
-	}
 	void ScriptGUISlider::InternalSetHandlePositionInPercent(ScriptGUIElementBase* thisPtr, float percent)
 	{
 		static_cast<GUISlider*>(thisPtr->GetGuiElement())->SetHandlePositionInPercent(percent);

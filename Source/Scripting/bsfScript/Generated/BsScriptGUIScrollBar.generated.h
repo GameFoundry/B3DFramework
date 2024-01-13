@@ -13,6 +13,11 @@ namespace bs
 	public:
 		ScriptGUIScrollBarBase(MonoObject* instance);
 		virtual ~ScriptGUIScrollBarBase() {}
+		void OnScrollOrResize(float p0, float p1);
+
+		typedef void(B3D_THUNKCALL *OnScrollOrResizeThunkDef) (MonoObject*, float p0, float p1, MonoException**);
+		static OnScrollOrResizeThunkDef OnScrollOrResizeThunk;
+
 	};
 
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptGUIScrollBar : public TScriptGUIInteractable<ScriptGUIScrollBar, ScriptGUIScrollBarBase>
@@ -23,11 +28,6 @@ namespace bs
 		ScriptGUIScrollBar(MonoObject* managedInstance, GUIScrollBar* value);
 
 	private:
-		void OnScrollOrResize(float p0, float p1);
-
-		typedef void(B3D_THUNKCALL *OnScrollOrResizeThunkDef) (MonoObject*, float p0, float p1, MonoException**);
-		static OnScrollOrResizeThunkDef OnScrollOrResizeThunk;
-
 		static void InternalSetScrollHandlePosition(ScriptGUIElementBase* thisPtr, float pct);
 		static float InternalGetScrollHandlePosition(ScriptGUIElementBase* thisPtr);
 		static void InternalSetScrollHandleSize(ScriptGUIElementBase* thisPtr, float pct);

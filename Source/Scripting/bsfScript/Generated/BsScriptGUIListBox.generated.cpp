@@ -40,6 +40,7 @@ namespace bs
 	{
 		MonoUtil::InvokeThunk(OnSelectionToggledThunk, GetManagedInstance(), p0, p1);
 	}
+
 	bool ScriptGUIListBox::InternalIsMultiselect(ScriptGUIListBox* thisPtr)
 	{
 		bool tmp__output;

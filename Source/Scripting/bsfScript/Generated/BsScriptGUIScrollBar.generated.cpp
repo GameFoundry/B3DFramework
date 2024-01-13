@@ -8,11 +8,16 @@
 
 namespace bs
 {
+	ScriptGUIScrollBarBase::OnScrollOrResizeThunkDef ScriptGUIScrollBarBase::OnScrollOrResizeThunk; 
+
 	ScriptGUIScrollBarBase::ScriptGUIScrollBarBase(MonoObject* managedInstance)
 		:ScriptGUIInteractableBase(managedInstance)
 	 { }
 
-	ScriptGUIScrollBar::OnScrollOrResizeThunkDef ScriptGUIScrollBar::OnScrollOrResizeThunk; 
+	void ScriptGUIScrollBarBase::OnScrollOrResize(float p0, float p1)
+	{
+		MonoUtil::InvokeThunk(OnScrollOrResizeThunk, GetManagedInstance(), p0, p1);
+	}
 
 	ScriptGUIScrollBar::ScriptGUIScrollBar(MonoObject* managedInstance, GUIScrollBar* value)
 		:TScriptGUIInteractable(managedInstance, value)
@@ -30,10 +35,6 @@ namespace bs
 		OnScrollOrResizeThunk = (OnScrollOrResizeThunkDef)metaData.ScriptClass->GetMethodExact("Internal_OnScrollOrResize", "single,single")->GetThunk();
 	}
 
-	void ScriptGUIScrollBar::OnScrollOrResize(float p0, float p1)
-	{
-		MonoUtil::InvokeThunk(OnScrollOrResizeThunk, GetManagedInstance(), p0, p1);
-	}
 	void ScriptGUIScrollBar::InternalSetScrollHandlePosition(ScriptGUIElementBase* thisPtr, float pct)
 	{
 		static_cast<GUIScrollBar*>(thisPtr->GetGuiElement())->SetScrollHandlePosition(pct);

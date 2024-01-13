@@ -14,6 +14,11 @@ namespace bs
 	public:
 		ScriptGUIToggleableBase(MonoObject* instance);
 		virtual ~ScriptGUIToggleableBase() {}
+		void OnToggled(bool p0);
+
+		typedef void(B3D_THUNKCALL *OnToggledThunkDef) (MonoObject*, bool p0, MonoException**);
+		static OnToggledThunkDef OnToggledThunk;
+
 	};
 
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptGUIToggleable : public TScriptGUIInteractable<ScriptGUIToggleable, ScriptGUIToggleableBase>
@@ -24,11 +29,6 @@ namespace bs
 		ScriptGUIToggleable(MonoObject* managedInstance, GUIToggleable* value);
 
 	private:
-		void OnToggled(bool p0);
-
-		typedef void(B3D_THUNKCALL *OnToggledThunkDef) (MonoObject*, bool p0, MonoException**);
-		static OnToggledThunkDef OnToggledThunk;
-
 		static void InternalSetIsToggled(ScriptGUIElementBase* thisPtr, bool isToggled);
 		static bool InternalIsToggled(ScriptGUIElementBase* thisPtr);
 	};

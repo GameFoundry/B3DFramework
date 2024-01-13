@@ -16,6 +16,11 @@ namespace bs
 	public:
 		ScriptJointBase(MonoObject* instance);
 		virtual ~ScriptJointBase() {}
+		void OnJointBreak();
+
+		typedef void(B3D_THUNKCALL *OnJointBreakThunkDef) (MonoObject*, MonoException**);
+		static OnJointBreakThunkDef OnJointBreakThunk;
+
 	};
 
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptJoint : public TScriptComponent<ScriptJoint, CJoint, ScriptJointBase>
@@ -26,11 +31,6 @@ namespace bs
 		ScriptJoint(MonoObject* managedInstance, const GameObjectHandle<CJoint>& value);
 
 	private:
-		void OnJointBreak();
-
-		typedef void(B3D_THUNKCALL *OnJointBreakThunkDef) (MonoObject*, MonoException**);
-		static OnJointBreakThunkDef OnJointBreakThunk;
-
 		static MonoObject* InternalGetBody(ScriptJointBase* thisPtr, JointBody body);
 		static void InternalSetBody(ScriptJointBase* thisPtr, JointBody body, MonoObject* value);
 		static void InternalGetPosition(ScriptJointBase* thisPtr, JointBody body, TVector3<float>* __output);

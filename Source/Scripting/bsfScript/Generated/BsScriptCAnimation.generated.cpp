@@ -94,6 +94,7 @@ namespace bs
 		tmpp1 = MonoUtil::StringToMono(p1);
 		MonoUtil::InvokeThunk(ScriptOnEventTriggeredInternalThunk, GetManagedInstance(), tmpp0, tmpp1);
 	}
+
 	void ScriptAnimation::InternalSetDefaultClip(ScriptAnimation* thisPtr, MonoObject* clip)
 	{
 		ResourceHandle<AnimationClip> tmpclip;

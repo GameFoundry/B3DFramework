@@ -15,16 +15,6 @@ namespace bs
 	public:
 		ScriptGUIClickableBase(MonoObject* instance);
 		virtual ~ScriptGUIClickableBase() {}
-	};
-
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptGUIClickable : public TScriptGUIInteractable<ScriptGUIClickable, ScriptGUIClickableBase>
-	{
-	public:
-		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "GUIClickable")
-
-		ScriptGUIClickable(MonoObject* managedInstance, GUIClickable* value);
-
-	private:
 		void OnClick();
 		void OnHover();
 		void OnOut();
@@ -39,6 +29,16 @@ namespace bs
 		typedef void(B3D_THUNKCALL *OnDoubleClickThunkDef) (MonoObject*, MonoException**);
 		static OnDoubleClickThunkDef OnDoubleClickThunk;
 
+	};
+
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptGUIClickable : public TScriptGUIInteractable<ScriptGUIClickable, ScriptGUIClickableBase>
+	{
+	public:
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "GUIClickable")
+
+		ScriptGUIClickable(MonoObject* managedInstance, GUIClickable* value);
+
+	private:
 		static void InternalSetContent(ScriptGUIElementBase* thisPtr, __GUIContentInterop* content);
 	};
 }

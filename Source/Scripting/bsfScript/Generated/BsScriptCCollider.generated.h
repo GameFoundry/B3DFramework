@@ -16,16 +16,6 @@ namespace bs
 	public:
 		ScriptColliderBase(MonoObject* instance);
 		virtual ~ScriptColliderBase() {}
-	};
-
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptCollider : public TScriptComponent<ScriptCollider, CCollider, ScriptColliderBase>
-	{
-	public:
-		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "Collider")
-
-		ScriptCollider(MonoObject* managedInstance, const GameObjectHandle<CCollider>& value);
-
-	private:
 		void OnCollisionBegin(const CollisionData& p0);
 		void OnCollisionStay(const CollisionData& p0);
 		void OnCollisionEnd(const CollisionData& p0);
@@ -37,6 +27,16 @@ namespace bs
 		typedef void(B3D_THUNKCALL *OnCollisionEndThunkDef) (MonoObject*, MonoObject* p0, MonoException**);
 		static OnCollisionEndThunkDef OnCollisionEndThunk;
 
+	};
+
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptCollider : public TScriptComponent<ScriptCollider, CCollider, ScriptColliderBase>
+	{
+	public:
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "Collider")
+
+		ScriptCollider(MonoObject* managedInstance, const GameObjectHandle<CCollider>& value);
+
+	private:
 		static void InternalSetIsTrigger(ScriptColliderBase* thisPtr, bool value);
 		static bool InternalGetIsTrigger(ScriptColliderBase* thisPtr);
 		static void InternalSetMass(ScriptColliderBase* thisPtr, float mass);

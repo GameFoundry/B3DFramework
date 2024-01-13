@@ -12,11 +12,16 @@
 
 namespace bs
 {
+	ScriptJointBase::OnJointBreakThunkDef ScriptJointBase::OnJointBreakThunk; 
+
 	ScriptJointBase::ScriptJointBase(MonoObject* managedInstance)
 		:ScriptComponentBase(managedInstance)
 	 { }
 
-	ScriptJoint::OnJointBreakThunkDef ScriptJoint::OnJointBreakThunk; 
+	void ScriptJointBase::OnJointBreak()
+	{
+		MonoUtil::InvokeThunk(OnJointBreakThunk, GetManagedInstance());
+	}
 
 	ScriptJoint::ScriptJoint(MonoObject* managedInstance, const GameObjectHandle<CJoint>& value)
 		:TScriptComponent(managedInstance, value)
@@ -41,10 +46,6 @@ namespace bs
 		OnJointBreakThunk = (OnJointBreakThunkDef)metaData.ScriptClass->GetMethodExact("Internal_OnJointBreak", "")->GetThunk();
 	}
 
-	void ScriptJoint::OnJointBreak()
-	{
-		MonoUtil::InvokeThunk(OnJointBreakThunk, GetManagedInstance());
-	}
 	MonoObject* ScriptJoint::InternalGetBody(ScriptJointBase* thisPtr, JointBody body)
 	{
 		GameObjectHandle<CRigidbody> tmp__output;

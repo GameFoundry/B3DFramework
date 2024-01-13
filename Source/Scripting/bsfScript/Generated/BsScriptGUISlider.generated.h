@@ -13,6 +13,11 @@ namespace bs
 	public:
 		ScriptGUISliderBase(MonoObject* instance);
 		virtual ~ScriptGUISliderBase() {}
+		void OnChanged(float p0);
+
+		typedef void(B3D_THUNKCALL *OnChangedThunkDef) (MonoObject*, float p0, MonoException**);
+		static OnChangedThunkDef OnChangedThunk;
+
 	};
 
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptGUISlider : public TScriptGUIInteractable<ScriptGUISlider, ScriptGUISliderBase>
@@ -23,11 +28,6 @@ namespace bs
 		ScriptGUISlider(MonoObject* managedInstance, GUISlider* value);
 
 	private:
-		void OnChanged(float p0);
-
-		typedef void(B3D_THUNKCALL *OnChangedThunkDef) (MonoObject*, float p0, MonoException**);
-		static OnChangedThunkDef OnChangedThunk;
-
 		static void InternalSetHandlePositionInPercent(ScriptGUIElementBase* thisPtr, float percent);
 		static float InternalGetHandlePositionInPercent(ScriptGUIElementBase* thisPtr);
 		static void InternalSetHandlePositionInRange(ScriptGUIElementBase* thisPtr, float value);

@@ -98,6 +98,7 @@ namespace bs
 		tmpp0 = ScriptCollisionData::Box(interopp0);
 		MonoUtil::InvokeThunk(OnCollisionEndThunk, GetManagedInstance(), tmpp0);
 	}
+
 	void ScriptRigidbody::InternalMove(ScriptRigidbody* thisPtr, TVector3<float>* position)
 	{
 		thisPtr->GetHandle()->Move(*position);
