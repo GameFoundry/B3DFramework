@@ -816,37 +816,37 @@ SPtr<SerializedObject> GenerateDiff(RTTIObjectWrapper<REFL_ORG> orgObj, RTTIObje
 	SerializationContext* context = nullptr;
 	FrameAllocator* alloc = &GetFrameAllocator();
 
-	RTTISubObjectWrapperIterator<REFL_NEW> newObjTypeIter = newObj.GetSubObjectIterator();
+	RTTISubObjectWrapperIterator<REFL_NEW> newSubObjectIterator = newObj.GetSubObjectIterator();
 
 	SPtr<SerializedObject> output;
-	while(newObjTypeIter.MoveNext())
+	while(newSubObjectIterator.MoveNext())
 	{
-		RTTISubObjectWrapper<REFL_NEW> newSubObject = newObjTypeIter.Value();
+		RTTISubObjectWrapper<REFL_NEW> newSubObject = newSubObjectIterator.Value();
 
 		RTTITypeBase* rtti = IReflectable::GetRttifromTypeIdInternal(newSubObject.GetTypeId());
 		if(rtti == nullptr)
 			continue;
 
-		RTTISubObjectWrapper<REFL_ORG> orgSubObject;
-		RTTISubObjectWrapperIterator<REFL_ORG> orgObjTypeIter = orgObj.GetSubObjectIterator();
-		while(orgObjTypeIter.MoveNext())
+		RTTISubObjectWrapper<REFL_ORG> originalSubObject;
+		RTTISubObjectWrapperIterator<REFL_ORG> originalSubObjectIterator = orgObj.GetSubObjectIterator();
+		while(originalSubObjectIterator.MoveNext())
 		{
-			RTTISubObjectWrapper<REFL_ORG> curSubObject = orgObjTypeIter.Value();
-			if(curSubObject.GetTypeId() == newSubObject.GetTypeId())
+			RTTISubObjectWrapper<REFL_ORG> originalSubObjectCandidate = originalSubObjectIterator.Value();
+			if(originalSubObjectCandidate.GetTypeId() == newSubObject.GetTypeId())
 			{
-				orgSubObject = curSubObject;
+				originalSubObject = originalSubObjectCandidate;
 				break;
 			}
 		}
 
-		RTTIFieldWrapperIterator<REFL_NEW> newObjFieldIter = newSubObject.GetFieldIter();
+		RTTIFieldWrapperIterator<REFL_NEW> newObjectFieldIterator = newSubObject.GetFieldIter();
 
-		SerializedSubObject* diffSubObject = nullptr;
-		while(newObjFieldIter.MoveNext())
+		SerializedSubObject* subObjectDelta = nullptr;
+		while(newObjectFieldIterator.MoveNext())
 		{
-			RTTIFieldWrapper<REFL_NEW> newEntry = newObjFieldIter.Value();
+			RTTIFieldWrapper<REFL_NEW> newFieldEntry = newObjectFieldIterator.Value();
 
-			RTTIField* genericField = rtti->FindField(newEntry.GetId());
+			RTTIField* genericField = rtti->FindField(newFieldEntry.GetId());
 			if(genericField == nullptr)
 				continue;
 
@@ -856,18 +856,17 @@ SPtr<SerializedObject> GenerateDiff(RTTIObjectWrapper<REFL_ORG> orgObj, RTTIObje
 					continue;
 			}
 
-			RTTIFieldWrapperIterator<REFL_ORG> orgObjFieldIter = orgSubObject.GetFieldIter();
+			RTTIFieldWrapperIterator<REFL_ORG> originalObjectFieldIterator = originalSubObject.GetFieldIter();
 
-			RTTIFieldWrapper<REFL_ORG> orgEntry;
-			bool hasOrgEntry = false;
-			while(orgObjFieldIter.MoveNext())
+			RTTIFieldWrapper<REFL_ORG> originalFieldEntry;
+			bool hasOriginalEntry = false;
+			while(originalObjectFieldIterator.MoveNext())
 			{
-				RTTIFieldWrapper<REFL_ORG> curEntry = orgObjFieldIter.Value();
-
-				if(curEntry.GetId() == newEntry.GetId())
+				RTTIFieldWrapper<REFL_ORG> originalFieldEntryCandidate = originalObjectFieldIterator.Value();
+				if(originalFieldEntryCandidate.GetId() == newFieldEntry.GetId())
 				{
-					orgEntry = curEntry;
-					hasOrgEntry = true;
+					originalFieldEntry = originalFieldEntryCandidate;
+					hasOriginalEntry = true;
 
 					break;
 				}
@@ -879,27 +878,59 @@ SPtr<SerializedObject> GenerateDiff(RTTIObjectWrapper<REFL_ORG> orgObj, RTTIObje
 			{
 				SPtr<SerializedArray> serializedArray;
 
-				if(hasOrgEntry)
+				if(hasOriginalEntry)
 				{
 					// Check for new or different array entries
-					u32 newNumArrayEntries = newEntry.GetArraySize();
-					for(u32 i = 0; i < newNumArrayEntries; i++)
+					const u32 newArraySize = newFieldEntry.GetArraySize();
+					for(u32 newArrayIndex = 0; newArrayIndex < newArraySize; newArrayIndex++)
 					{
-						RTTIFieldWrapper<REFL_NEW> newArrayEntry = newEntry.GetArrayElement(i);
+						RTTIFieldWrapper<REFL_NEW> newArrayEntry = newFieldEntry.GetArrayElement(newArrayIndex);
+
+						bool isNewEntryNull = false;
+						if(genericField->Schema.Type == SerializableFT_ReflectablePtr)
+							isNewEntryNull = newArrayEntry.GetObject().GetObjectPtr() == nullptr;
 
 						SPtr<SerializedInstance> arrayModification;
-						bool hasArrayModification;
+						bool hasArrayModification = false;
 
-						u32 orgNumArrayEntries = orgEntry.GetArraySize();
-						if(i < orgNumArrayEntries)
+						const u32 originalArraySize = originalFieldEntry.GetArraySize();
+						if(newArrayIndex < originalArraySize)
 						{
-							RTTIFieldWrapper<REFL_ORG> orgArrayEntry = orgEntry.GetArrayElement(i);
-							arrayModification = GenerateFieldDiff(rtti, genericField->Schema.Type, orgArrayEntry, newArrayEntry, objectMap, replicableOnly);
-							hasArrayModification = arrayModification != nullptr;
+							RTTIFieldWrapper<REFL_ORG> originalArrayEntry = originalFieldEntry.GetArrayElement(newArrayIndex);
+
+							bool isOriginalEntryNull = false;
+							if(genericField->Schema.Type == SerializableFT_ReflectablePtr)
+								isOriginalEntryNull = originalArrayEntry.GetObject().GetObjectPtr() == nullptr;
+									
+							if(!isOriginalEntryNull)
+							{
+								if(!isNewEntryNull)
+								{
+									arrayModification = GenerateFieldDiff(rtti, genericField->Schema.Type, originalArrayEntry, newArrayEntry, objectMap, replicableOnly);
+									hasArrayModification = arrayModification != nullptr;
+								}
+								else
+								{
+									arrayModification = nullptr;
+									hasArrayModification = true;
+								}
+							}
+							else
+							{
+								if(!isNewEntryNull)
+								{
+									arrayModification = std::static_pointer_cast<SerializedArray>(newArrayEntry.Clone(flags, context, alloc));
+									hasArrayModification = true;
+								}
+							}
 						}
 						else
 						{
-							arrayModification = std::static_pointer_cast<SerializedArray>(newArrayEntry.Clone(flags, context, alloc));
+							if(!isNewEntryNull)
+								arrayModification = std::static_pointer_cast<SerializedArray>(newArrayEntry.Clone(flags, context, alloc));
+							else
+								arrayModification = nullptr;
+
 							hasArrayModification = true;
 						}
 
@@ -908,28 +939,28 @@ SPtr<SerializedObject> GenerateDiff(RTTIObjectWrapper<REFL_ORG> orgObj, RTTIObje
 							if(serializedArray == nullptr)
 							{
 								serializedArray = B3DMakeShared<SerializedArray>();
-								serializedArray->NumElements = newEntry.GetArraySize();
+								serializedArray->NumElements = newFieldEntry.GetArraySize();
 							}
 
 							SerializedArrayEntry arrayEntry;
-							arrayEntry.Index = i;
+							arrayEntry.Index = newArrayIndex;
 							arrayEntry.Serialized = arrayModification;
-							serializedArray->Entries[i] = arrayEntry;
+							serializedArray->Entries[newArrayIndex] = arrayEntry;
 						}
 					}
 
-					if(orgEntry.GetArraySize() != newEntry.GetArraySize())
+					if(originalFieldEntry.GetArraySize() != newFieldEntry.GetArraySize())
 					{
 						if(serializedArray == nullptr)
 						{
 							serializedArray = B3DMakeShared<SerializedArray>();
-							serializedArray->NumElements = newEntry.GetArraySize();
+							serializedArray->NumElements = newFieldEntry.GetArraySize();
 						}
 					}
 				}
 				else
 				{
-					serializedArray = std::static_pointer_cast<SerializedArray>(newEntry.Clone(flags, context, alloc));
+					serializedArray = std::static_pointer_cast<SerializedArray>(newFieldEntry.Clone(flags, context, alloc));
 				}
 
 				modification = serializedArray;
@@ -937,21 +968,21 @@ SPtr<SerializedObject> GenerateDiff(RTTIObjectWrapper<REFL_ORG> orgObj, RTTIObje
 			}
 			else
 			{
-				bool newEntryNull = false;
+				bool isNewEntryNull = false;
 				if(genericField->Schema.Type == SerializableFT_ReflectablePtr)
-					newEntryNull = newEntry.GetObject().GetObjectPtr() == nullptr;
+					isNewEntryNull = newFieldEntry.GetObject().GetObjectPtr() == nullptr;
 
-				if(hasOrgEntry)
+				if(hasOriginalEntry)
 				{
-					bool orgEntryNull = false;
+					bool isOriginalEntryNull = false;
 					if(genericField->Schema.Type == SerializableFT_ReflectablePtr)
-						orgEntryNull = orgEntry.GetObject().GetObjectPtr() == nullptr;
+						isOriginalEntryNull = originalFieldEntry.GetObject().GetObjectPtr() == nullptr;
 
-					if(!orgEntryNull)
+					if(!isOriginalEntryNull)
 					{
-						if(!newEntryNull)
+						if(!isNewEntryNull)
 						{
-							modification = GenerateFieldDiff(rtti, genericField->Schema.Type, orgEntry, newEntry, objectMap, replicableOnly);
+							modification = GenerateFieldDiff(rtti, genericField->Schema.Type, originalFieldEntry, newFieldEntry, objectMap, replicableOnly);
 							hasModification = modification != nullptr;
 						}
 						else
@@ -962,17 +993,17 @@ SPtr<SerializedObject> GenerateDiff(RTTIObjectWrapper<REFL_ORG> orgObj, RTTIObje
 					}
 					else
 					{
-						if(!newEntryNull)
+						if(!isNewEntryNull)
 						{
-							modification = newEntry.Clone(flags, context, alloc);
+							modification = newFieldEntry.Clone(flags, context, alloc);
 							hasModification = true;
 						}
 					}
 				}
 				else
 				{
-					if(!newEntryNull)
-						modification = newEntry.Clone(flags, context, alloc);
+					if(!isNewEntryNull)
+						modification = newFieldEntry.Clone(flags, context, alloc);
 					else
 						modification = nullptr;
 
@@ -985,17 +1016,17 @@ SPtr<SerializedObject> GenerateDiff(RTTIObjectWrapper<REFL_ORG> orgObj, RTTIObje
 				if(output == nullptr)
 					output = B3DMakeShared<SerializedObject>();
 
-				if(diffSubObject == nullptr)
+				if(subObjectDelta == nullptr)
 				{
 					output->SubObjects.push_back(SerializedSubObject());
-					diffSubObject = &output->SubObjects.back();
-					diffSubObject->TypeId = rtti->GetRttiId();
+					subObjectDelta = &output->SubObjects.back();
+					subObjectDelta->TypeId = rtti->GetRttiId();
 				}
 
 				SerializedEntry modificationEntry;
 				modificationEntry.FieldId = genericField->Schema.Id;
 				modificationEntry.Serialized = modification;
-				diffSubObject->Entries[genericField->Schema.Id] = modificationEntry;
+				subObjectDelta->Entries[genericField->Schema.Id] = modificationEntry;
 			}
 		}
 	}
