@@ -377,7 +377,7 @@ GUIStyleSheet::GUIStyleSheet(TArray<GUIStyleSheetRuleset> rulesets)
 void GUIStyleSheet::Initialize()
 {
 	// Sort from least specific to more specific (so more specific properties override the less specific ones)
-	std::sort(mRulesets.begin(), mRulesets.end(), [this](const GUIStyleSheetRuleset& lhs, const GUIStyleSheetRuleset& rhs) {
+	std::stable_sort(mRulesets.begin(), mRulesets.end(), [this](const GUIStyleSheetRuleset& lhs, const GUIStyleSheetRuleset& rhs) {
 		const u32 specifityLHS = lhs.SelectorList.CalculateSpecificity();
 		const u32 specifityRHS = rhs.SelectorList.CalculateSpecificity();
 
