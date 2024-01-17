@@ -751,3 +751,7 @@ button.DropDownArrowButton:active
     border-color: var(--PrimaryBorderColor);
     color: var(--FocusColor);
 }
+
+.GUIFloatDistributionField {}
+.GUIVector2DistributionField {}
+.GUIVector3DistributionField {}
