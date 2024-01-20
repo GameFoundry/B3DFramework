@@ -57,15 +57,15 @@ void GUICanvas::DrawPolyLine(const Vector<Vector2I>& vertices, const Color& colo
 	element.Color = color;
 	element.DataId = (u32)mTriangleElementData.size();
 	element.VertexStart = (u32)mVertexData.size();
-	element.NumVertices = (u32)vertices.size();
+	element.VertexCount = (u32)vertices.size();
 	element.Depth = depth;
 
 	mDepthRange = std::max(mDepthRange, (u8)(depth + 1));
 
 	mTriangleElementData.push_back(TriangleElementData());
 	TriangleElementData& elemData = mTriangleElementData.back();
-	elemData.MatInfo.GroupId = 0;
-	elemData.MatInfo.Tint = color;
+	elemData.MaterialInfo.GroupId = 0;
+	elemData.MaterialInfo.Tint = color;
 
 	for(auto& vertex : vertices)
 	{
@@ -112,7 +112,7 @@ void GUICanvas::DrawTriangleStrip(const Vector<Vector2I>& vertices, const Color&
 	element.Color = color;
 	element.DataId = (u32)mTriangleElementData.size();
 	element.VertexStart = (u32)mVertexData.size();
-	element.NumVertices = (u32)(vertices.size() - 2) * 3;
+	element.VertexCount = (u32)(vertices.size() - 2) * 3;
 	element.Depth = depth;
 
 	mDepthRange = std::max(mDepthRange, (u8)(depth + 1));
@@ -136,8 +136,8 @@ void GUICanvas::DrawTriangleStrip(const Vector<Vector2I>& vertices, const Color&
 
 	mTriangleElementData.push_back(TriangleElementData());
 	TriangleElementData& elemData = mTriangleElementData.back();
-	elemData.MatInfo.GroupId = 0;
-	elemData.MatInfo.Tint = color;
+	elemData.MaterialInfo.GroupId = 0;
+	elemData.MaterialInfo.Tint = color;
 
 	mForceTriangleBuild = true;
 	MarkContentAsDirty();
@@ -158,7 +158,7 @@ void GUICanvas::DrawTriangleList(const Vector<Vector2I>& vertices, const Color& 
 	element.Color = color;
 	element.DataId = (u32)mTriangleElementData.size();
 	element.VertexStart = (u32)mVertexData.size();
-	element.NumVertices = (u32)vertices.size();
+	element.VertexCount = (u32)vertices.size();
 	element.Depth = depth;
 
 	mDepthRange = std::max(mDepthRange, (u8)(depth + 1));
@@ -168,8 +168,8 @@ void GUICanvas::DrawTriangleList(const Vector<Vector2I>& vertices, const Color& 
 
 	mTriangleElementData.push_back(TriangleElementData());
 	TriangleElementData& elemData = mTriangleElementData.back();
-	elemData.MatInfo.GroupId = 0;
-	elemData.MatInfo.Tint = color;
+	elemData.MaterialInfo.GroupId = 0;
+	elemData.MaterialInfo.Tint = color;
 
 	mForceTriangleBuild = true;
 	MarkContentAsDirty();
@@ -264,16 +264,16 @@ void GUICanvas::UpdateRenderElements()
 				mRenderElements.Add(GUIRenderElement());
 				GUIRenderElement& renderElement = mRenderElements.Back();
 
-				renderElement.VertexCount = element.ClippedNumVertices;
-				renderElement.IndexCount = element.ClippedNumVertices;
+				renderElement.VertexCount = element.ClippedVertexCount;
+				renderElement.IndexCount = element.ClippedVertexCount;
 
 				renderElement.Material = SpriteManager::Instance().GetLineMaterial();
-				renderElement.MaterialInformation = &mTriangleElementData[element.DataId].MatInfo;
+				renderElement.MaterialInformation = &mTriangleElementData[element.DataId].MaterialInfo;
 
 				renderElement.Depth = element.Depth;
 				renderElement.Type = GUIMeshType::Line;
 
-				mTriangleElementData[element.DataId].MatInfo.GroupId = (u64)GetParentWidget();
+				mTriangleElementData[element.DataId].MaterialInfo.GroupId = (u64)GetParentWidget();
 
 				// Actual mesh build happens when reading from it, because the mesh size varies due to clipping rectangle/offset
 				break;
@@ -284,16 +284,16 @@ void GUICanvas::UpdateRenderElements()
 				mRenderElements.Add(GUIRenderElement());
 				GUIRenderElement& renderElement = mRenderElements.Back();
 
-				renderElement.VertexCount = element.ClippedNumVertices;
-				renderElement.IndexCount = element.ClippedNumVertices;
+				renderElement.VertexCount = element.ClippedVertexCount;
+				renderElement.IndexCount = element.ClippedVertexCount;
 
 				renderElement.Material = SpriteManager::Instance().GetImageMaterial(SpriteMaterialTransparency::Alpha);
-				renderElement.MaterialInformation = &mTriangleElementData[element.DataId].MatInfo;
+				renderElement.MaterialInformation = &mTriangleElementData[element.DataId].MaterialInfo;
 
 				renderElement.Depth = element.Depth;
 				renderElement.Type = GUIMeshType::Triangle;
 
-				mTriangleElementData[element.DataId].MatInfo.GroupId = (u64)GetParentWidget();
+				mTriangleElementData[element.DataId].MaterialInfo.GroupId = (u64)GetParentWidget();
 
 				// Actual mesh build happens when reading from it, because the mesh size varies due to clipping rectangle/offset
 				break;
@@ -369,7 +369,7 @@ void GUICanvas::FillBuffer(
 			u32 maxVertIdx = maxNumVerts;
 			u32 maxIndexIdx = maxNumIndices;
 
-			u32 numVertices = element.ClippedNumVertices;
+			u32 numVertices = element.ClippedVertexCount;
 			u32 numIndices = numVertices;
 
 			B3D_ASSERT((startVert + numVertices) <= maxVertIdx);
@@ -380,7 +380,7 @@ void GUICanvas::FillBuffer(
 			u32* indexDst = indices + startIndex;
 
 			Vector2 zeroUV(BsZero);
-			for(u32 i = 0; i < element.ClippedNumVertices; i++)
+			for(u32 i = 0; i < element.ClippedVertexCount; i++)
 			{
 				memcpy(vertDst, &mClippedVertices[element.ClippedVertexStart + i], sizeof(Vector2));
 				memcpy(uvDst, &zeroUV, sizeof(Vector2));
@@ -401,7 +401,7 @@ void GUICanvas::FillBuffer(
 			u32 maxVertIdx = maxNumVerts;
 			u32 maxIndexIdx = maxNumIndices;
 
-			u32 numVertices = element.ClippedNumVertices;
+			u32 numVertices = element.ClippedVertexCount;
 			u32 numIndices = numVertices;
 
 			B3D_ASSERT((startVert + numVertices) <= maxVertIdx);
@@ -410,7 +410,7 @@ void GUICanvas::FillBuffer(
 			u8* vertDst = vertices + startVert * vertexStride;
 			u32* indexDst = indices + startIndex;
 
-			for(u32 i = 0; i < element.ClippedNumVertices; i++)
+			for(u32 i = 0; i < element.ClippedVertexCount; i++)
 			{
 				const Vector2& point = mClippedLineVertices[element.ClippedVertexStart + i];
 
@@ -473,24 +473,24 @@ void GUICanvas::BuildTriangleElement(const CanvasElement& element, const Vector2
 	if(element.Type == CanvasElementType::Triangle)
 	{
 		u8* verticesToClip = (u8*)&mVertexData[element.VertexStart];
-		u32 trianglesToClip = element.NumVertices / 3;
+		u32 trianglesToClip = element.VertexCount / 3;
 
 		auto writeCallback = [&](Vector2* vertices, Vector2* uvs, u32 count)
 		{
 			for(u32 i = 0; i < count; i++)
 				mClippedVertices.push_back(vertices[i] + offset);
 
-			element.ClippedNumVertices += count;
+			element.ClippedVertexCount += count;
 		};
 
 		element.ClippedVertexStart = (u32)mClippedVertices.size();
-		element.ClippedNumVertices = 0;
+		element.ClippedVertexCount = 0;
 
 		ImageSprite::ClipTrianglesToRect(verticesToClip, nullptr, trianglesToClip, sizeof(Vector2), clipRect, writeCallback);
 	}
 	else
 	{
-		u32 numLines = element.NumVertices - 1;
+		u32 numLines = element.VertexCount - 1;
 		const Vector2* linePoints = &mVertexData[element.VertexStart];
 
 		struct Plane2D
@@ -509,7 +509,7 @@ void GUICanvas::BuildTriangleElement(const CanvasElement& element, const Vector2
 												Plane2D(Vector2(0.0f, -1.0f), (float)-(clipRect.Y + (i32)clipRect.Height)) } };
 
 		element.ClippedVertexStart = (u32)mClippedLineVertices.size();
-		element.ClippedNumVertices = 0;
+		element.ClippedVertexCount = 0;
 
 		for(u32 i = 0; i < numLines; i++)
 		{
@@ -550,7 +550,7 @@ void GUICanvas::BuildTriangleElement(const CanvasElement& element, const Vector2
 			mClippedLineVertices.push_back(a + offset);
 			mClippedLineVertices.push_back(b + offset);
 
-			element.ClippedNumVertices += 2;
+			element.ClippedVertexCount += 2;
 		}
 	}
 }

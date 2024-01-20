@@ -159,9 +159,9 @@ namespace bs
 				struct
 				{
 					u32 VertexStart;
-					u32 NumVertices;
+					u32 VertexCount;
 					mutable u32 ClippedVertexStart;
-					mutable u32 ClippedNumVertices;
+					mutable u32 ClippedVertexCount;
 				};
 
 				struct
@@ -196,7 +196,7 @@ namespace bs
 		/** Information required for drawing an arbitrary triangle canvas element. */
 		struct TriangleElementData
 		{
-			SpriteMaterialInfo MatInfo;
+			SpriteMaterialInfo MaterialInfo;
 		};
 
 		GUICanvas(const String& styleName, const GUISizeConstraints& dimensions);
