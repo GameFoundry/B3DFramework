@@ -668,6 +668,7 @@ texture.MenuBarBackground
 .GUIFloatField {}
 .GUIIntField {}
 .GUITextField {}
+.GUIColorField {}
 .FloatFieldX {}
 .FloatFieldY {}
 .FloatFieldZ {}
