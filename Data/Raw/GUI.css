@@ -856,3 +856,10 @@ label.HeaderLight
     min-height: 30px;
     color: var(--DarkContentColor);
 }
+
+texture.ContainerBackground
+{
+    background-color: var(--PrimaryBackgroundColor);
+    border-color: var(--PrimaryBorderColor);
+    border-width: 2px;
+}
