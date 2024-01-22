@@ -10,6 +10,6 @@ const String& GUIToggle::GetGuiTypeName()
 	return name;
 }
 
-GUIToggle::GUIToggle(PrivatelyConstruct, const GUIToggleContent& contents, const String& styleName, const GUISizeConstraints& dimensions)
-	: GUIToggleable(contents.GeneralContent, styleName, dimensions)
+GUIToggle::GUIToggle(PrivatelyConstruct, const GUIToggleContent& contents, const String& styleName, const GUISizeConstraints& sizeConstraints)
+	: GUIToggleable(contents.GeneralContent, styleName, sizeConstraints)
 { }

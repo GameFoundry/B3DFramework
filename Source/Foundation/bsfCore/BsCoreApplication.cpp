@@ -43,6 +43,7 @@
 #include "Particles/BsVectorField.h"
 #include "RenderAPI/BsGpuBackend.h"
 #include "RenderAPI/BsGpuDevice.h"
+#include "Text/BsFont.h"
 #include "Threading/BsScheduler.h"
 
 namespace bs
@@ -92,6 +93,7 @@ CoreApplication::~CoreApplication()
 
 	Input::ShutDown();
 
+	FontAtlasRenderer::ShutDown();
 	ct::GpuDataParameterBlockManager::ShutDown();
 	StringTableManager::ShutDown();
 	Resources::ShutDown();
@@ -187,6 +189,7 @@ void CoreApplication::OnStartUp()
 	mPrimaryWindow = RenderWindow::Create(mStartUpDesc.PrimaryWindowDesc, nullptr);
 
 	ct::GpuDataParameterBlockManager::StartUp();
+	FontAtlasRenderer::StartUp();
 	Input::StartUp();
 	RendererManager::StartUp();
 

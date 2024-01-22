@@ -7,7 +7,11 @@
 #include "Resources/BsResource.h"
 
 namespace bs
-{
+{namespace ct
+	{
+		class GpuCommandBufferPool;
+	}
+
 	/** @addtogroup Text
 	 *  @{
 	 */
@@ -234,6 +238,34 @@ namespace bs
 		friend class FontRTTI;
 		static RTTITypeBase* GetRttiStatic();
 		RTTITypeBase* GetRtti() const override;
+	};
+
+	/** Contains a rendered bitmap for a single glyph. */
+	struct GlyphBitmap
+	{
+		SPtr<ct::Texture> GlyphTexture;
+		SPtr<ct::Texture> AtlasTexture;
+		Size2UI Size;
+		Vector2I PositionInAtlas;
+	};
+
+	/** Handles blitting of individual font glyphs into a texture atlas. */
+	class FontAtlasRenderer : public Module<FontAtlasRenderer>
+	{
+	public:
+		void OnStartUp() override;
+		void OnShutDown() override;
+
+		/**
+		 * Queues bliy operations from the provided source textures to their destination atlases by creating an internal
+		 * command buffer and queuing it for execution on the GPU.
+		 *
+		 * @note Thread safe.
+		 */
+		void BlitGlyphs(Vector<GlyphBitmap> glyphBitmaps);
+		
+	private:
+		SPtr<ct::GpuCommandBufferPool> mCommandBufferPool;
 	};
 
 	/** @} */

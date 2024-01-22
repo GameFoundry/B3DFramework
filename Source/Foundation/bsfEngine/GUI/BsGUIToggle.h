@@ -26,7 +26,7 @@ namespace bs
 		 */
 
 		struct PrivatelyConstruct {};
-		GUIToggle(PrivatelyConstruct, const GUIToggleContent& contents, const String& styleName, const GUISizeConstraints& dimensions);
+		GUIToggle(PrivatelyConstruct, const GUIToggleContent& contents, const String& styleName, const GUISizeConstraints& sizeConstraints);
 
 		ElementType GetElementType() const override { return ElementType::Toggle; }
 

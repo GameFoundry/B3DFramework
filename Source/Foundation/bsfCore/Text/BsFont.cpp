@@ -10,6 +10,7 @@
 #include "RenderAPI/BsGpuDevice.h"
 #include "Renderer/BsRenderer.h"
 #include "Renderer/BsRendererManager.h"
+#include "RenderAPI/BsGpuCommandBuffer.h"
 
 #define USE_FREETYPE2_STATIC
 #include <ft2build.h>
@@ -187,15 +188,6 @@ bool Font::RenderGlyphs(float size, const TArrayView<u32>& characterIds)
 		B3D_LOG(Error, Font, "Failed to render font glyphs. Failed to set character size.");
 		return nullptr;
 	}
-
-	/** Contains a rendered bitmap for a single glyph. */
-	struct GlyphBitmap
-	{
-		SPtr<ct::Texture> GlyphTexture;
-		SPtr<ct::Texture> AtlasTexture;
-		Size2UI Size;
-		Vector2I PositionInAtlas;
-	};
 
 	Vector<GlyphBitmap> glyphBitmaps;
 
@@ -403,37 +395,7 @@ bool Font::RenderGlyphs(float size, const TArrayView<u32>& characterIds)
 		glyphBitmaps.push_back(std::move(glyphBitmap));
 	}
 
-	auto fnBlitToAtlas = [glyphBitmaps = std::move(glyphBitmaps)]() {
-
-		const SPtr<ct::Renderer> renderer = RendererManager::Instance().GetActive();
-		if (!renderer)
-			return;
-
-		const SPtr<ct::GpuCommandBufferPool>& commandBufferPool = renderer->GetCommandBufferPool();
-		if (!commandBufferPool)
-			return;
-
-		const SPtr<ct::GpuCommandBuffer> commandBuffer = commandBufferPool->Create(ct::GpuCommandBufferCreateInformation::Create("BlitGlyphBitmaps"));
-
-		for(const auto& entry : glyphBitmaps)
-		{
-			TextureBlitInformation blitInformation;
-			blitInformation.DestinationVolume.Left = entry.PositionInAtlas.X;
-			blitInformation.DestinationVolume.Top = entry.PositionInAtlas.Y;
-			blitInformation.DestinationVolume.Right = entry.PositionInAtlas.X + (i32)entry.Size.Width;
-			blitInformation.DestinationVolume.Bottom = entry.PositionInAtlas.Y + (i32)entry.Size.Height;
-			blitInformation.DestinationVolume.Back = 1;
-
-			entry.GlyphTexture->Blit(*commandBuffer, entry.AtlasTexture, blitInformation);
-		}
-
-		const SPtr<GpuDevice>& gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
-		gpuDevice->SubmitCommandBuffer(commandBuffer);
-
-	};
-
-	GetRenderThread().PostCommand(fnBlitToAtlas, "Font::RenderGlyphs");
-
+	FontAtlasRenderer::Instance().BlitGlyphs(std::move(glyphBitmaps));
 	return false;
 }
 
@@ -598,3 +560,53 @@ RTTITypeBase* Font::GetRtti() const
 {
 	return Font::GetRttiStatic();
 }
+
+void FontAtlasRenderer::OnStartUp()
+{
+	SPtr<GpuDevice> gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
+	if (!gpuDevice)
+		return;
+
+	ct::GpuCommandBufferPoolCreateInformation poolCreateInformation;
+	poolCreateInformation.Thread = GetRenderThread().GetThreadId();
+	poolCreateInformation.Usage = GQT_GRAPHICS;
+
+	mCommandBufferPool = gpuDevice->CreateGpuCommandBufferPool(poolCreateInformation);
+}
+
+void FontAtlasRenderer::OnShutDown()
+{
+	mCommandBufferPool = nullptr;
+}
+
+void FontAtlasRenderer::BlitGlyphs(Vector<GlyphBitmap> glyphBitmaps)
+{
+	auto fnBlitToAtlas = [this, glyphBitmaps = std::move(glyphBitmaps)]() {
+
+		if (!B3D_ENSURE(mCommandBufferPool))
+			return;
+
+		const SPtr<ct::GpuCommandBuffer> commandBuffer = mCommandBufferPool->Create(ct::GpuCommandBufferCreateInformation::Create("BlitGlyphBitmaps"));
+
+		for(const auto& entry : glyphBitmaps)
+		{
+			TextureBlitInformation blitInformation;
+			blitInformation.DestinationVolume.Left = entry.PositionInAtlas.X;
+			blitInformation.DestinationVolume.Top = entry.PositionInAtlas.Y;
+			blitInformation.DestinationVolume.Right = entry.PositionInAtlas.X + (i32)entry.Size.Width;
+			blitInformation.DestinationVolume.Bottom = entry.PositionInAtlas.Y + (i32)entry.Size.Height;
+			blitInformation.DestinationVolume.Back = 1;
+
+			entry.GlyphTexture->Blit(*commandBuffer, entry.AtlasTexture, blitInformation);
+		}
+
+		const SPtr<GpuDevice>& gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
+		if(!B3D_ENSURE(gpuDevice))
+			return;
+
+		gpuDevice->SubmitCommandBuffer(commandBuffer);
+	};
+
+	GetRenderThread().PostCommand(fnBlitToAtlas, "FontAtlasRenderer::BlitGlyphs");
+}
+
