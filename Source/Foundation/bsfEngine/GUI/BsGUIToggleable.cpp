@@ -117,7 +117,7 @@ void GUIToggleable::SetIsToggled(bool isToggled, bool triggerEvent)
 	SetOnInternal(mIsToggled);
 }
 
-Size2UI GUIToggleable::CalculateCheckmarkSize() const
+Size2UI GUIToggleable::CalculateCheckmarkSize(const Size2UI& elementOptimalSize) const
 {
 	const bool isUsingStyleSheets = IsUsingStyleSheets();
 	if(!isUsingStyleSheets)
@@ -130,14 +130,14 @@ Size2UI GUIToggleable::CalculateCheckmarkSize() const
 		return Size2UI::kZero;
 
 	const GUISizeConstraints& sizeConstraints = GetSizeConstraints();
-	const Vector2I optimalSize = sizeConstraints.CalculateConstrainedSize(GUIClickable::CalculateUnconstrainedOptimalSize()).Optimal;
+	const Vector2I constrainedOptimalSize = sizeConstraints.CalculateConstrainedSize(elementOptimalSize).Optimal;
 
 	// If no content and no fixed size set, then default to some value
 	Size2UI actualOptimalSize;
-	if(optimalSize.X == 0 || optimalSize.Y == 0)
+	if(constrainedOptimalSize.X == 0 || constrainedOptimalSize.Y == 0)
 		actualOptimalSize = kDefaultCheckmarkSize;
 	else
-		actualOptimalSize = Size2UI((u32)optimalSize.X, (u32)optimalSize.Y);
+		actualOptimalSize = Size2UI((u32)constrainedOptimalSize.X, (u32)constrainedOptimalSize.Y);
 
 	const GUIStyleSheetRules& styleSheetRules = mStyleSheetRuleInformation.CurrentStateRuleset->Rules;
 	const Rect2I contentArea = GUIHelper::CalculateContentArea(actualOptimalSize, styleSheetRules);
@@ -169,7 +169,7 @@ Vector2I GUIToggleable::CalculateUnconstrainedOptimalSize() const
 	const GUIStyleSheetRules& styleSheetRules = mStyleSheetRuleInformation.CurrentStateRuleset->Rules;
 	const Rect2I contentArea = GUIHelper::CalculateContentArea(Size2UI(optimalSize.X, optimalSize.Y), styleSheetRules);
 
-	const Size2UI checkmarkSize = CalculateCheckmarkSize();
+	const Size2UI checkmarkSize = CalculateCheckmarkSize(Size2UI((u32)optimalSize.X, (u32)optimalSize.Y));
 	Size2UI contentSizeWithCheckMark(contentArea.Width, contentArea.Height);
 
 	if(checkmarkSize.Width > 0)
@@ -207,10 +207,7 @@ void GUIToggleable::UpdateRenderElements()
 	}
 
 	// Otherwise, create the checkmark sprite and offset the parent's contents to make room
-	const Size2UI checkmarkSize = CalculateCheckmarkSize();
-
-	const GUIStyleSheetRules& styleSheetRules = mStyleSheetRuleInformation.CurrentStateRuleset->Rules;
-	const Rect2I checkmarkContentArea = GUIHelper::CalculateContentArea(GUIHelper::CalculateSizeWithPaddingAndBorder(checkmarkSize, styleSheetRules), styleSheetRules);
+	const Size2UI checkmarkSize = CalculateCheckmarkSize(GetCachedBounds().GetSize());
 
 	mCheckmarkSpriteInformation.Width = checkmarkSize.Width;
 	mCheckmarkSpriteInformation.Height = checkmarkSize.Height;
@@ -241,11 +238,23 @@ void GUIToggleable::UpdateRenderElements()
 		}
 	}
 
-	const Vector2I contentOffset((i32)kCheckmarkContentSpacing + checkmarkSize.Width, 0);
-
 	mRenderElements.clear();
 	GUISpriteHelper::BuildSpriteRenderElements(*this, mActiveState, mBackgroundSprite);
-	GUISpriteHelper::BuildSpriteRenderElements(*this, mActiveState, mContent, mContentSprites, contentOffset);
+
+	const u64 batchId = (u64)GetParentWidget();
+	const Color& tint = GetTint();
+
+	const GUIStyleSheetRules& styleSheetRules = mStyleSheetRuleInformation.CurrentStateRuleset->Rules;
+
+	GUIContentSpriteCreateInformation contentSpriteCreateInformation(Size2UI::kZero, mContent, styleSheetRules, tint, batchId);
+
+	const Rect2I& contentAreaBounds = GetCachedContentBoundsInElementSpace();
+	contentSpriteCreateInformation.ContentArea = Rect2I(contentAreaBounds.X + (i32)kCheckmarkContentSpacing + (i32)checkmarkSize.Width, contentAreaBounds.Y,
+		contentAreaBounds.Width - (i32)kCheckmarkContentSpacing - checkmarkSize.Width, contentAreaBounds.Height);
+
+	const Rect2I checkmarkContentArea = Rect2I(contentAreaBounds.X, contentAreaBounds.Y, checkmarkSize.Width, checkmarkSize.Height);
+
+	mContentSprites.BuildRenderElements(contentSpriteCreateInformation, mRenderElements);
 
 	// Note: Purposefully skipping the parent's implementation, as we add its sprites above
 	GUIInteractable::UpdateRenderElements();

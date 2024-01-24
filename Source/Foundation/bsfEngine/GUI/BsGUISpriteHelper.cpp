@@ -124,7 +124,8 @@ void GUIBackgroundSprite::SetAnimationStartTime(float time)
 
 void GUIContentSprites::BuildRenderElements(const GUIContentSpriteCreateInformation& createInformation, TInlineArray<GUIRenderElement, 4>& outRenderElements)
 {
-	const Rect2I contentArea = GUIHelper::CalculateContentArea(createInformation.Size, createInformation.Rules);
+	const Rect2I contentArea = createInformation.ContentArea;
+	const Size2UI contentAreaSize(contentArea.Width, contentArea.Height);
 
 	const bool isContentTextAvailable = !createInformation.Content.Text.GetValue().empty();
 	if(isContentTextAvailable)
@@ -138,7 +139,7 @@ void GUIContentSprites::BuildRenderElements(const GUIContentSpriteCreateInformat
 	const bool isContentImageAvailable = contentImage.IsLoaded(false);
 	if(isContentImageAvailable)
 	{
-		const Size2UI scaledImageSize = CalculateScaledImageSize(contentImage, createInformation.Size);
+		const Size2UI scaledImageSize = CalculateScaledImageSize(contentImage, contentAreaSize);
 
 		mContentImageSpriteInformation.Image = contentImage;
 		mContentImageSpriteInformation.Width = scaledImageSize.Width;
@@ -369,6 +370,7 @@ void GUISpriteHelper::BuildSpriteRenderElements(GUIInteractable& element, GUIEle
 		GUIContentSpriteCreateInformation contentSpriteCreateInformation(size, content, styleSheetRules, tint, batchId);
 		contentSpriteCreateInformation.Depth = depth;
 		contentSpriteCreateInformation.Offset = offset;
+		contentSpriteCreateInformation.ContentArea = GUIHelper::CalculateContentArea(size, styleSheetRules);
 
 		sprites.BuildRenderElements(contentSpriteCreateInformation, element.mRenderElements);
 	}

@@ -57,6 +57,9 @@ namespace bs
 		/** Constrains the provided optimal element size based on active constraints. */
 		GUIConstrainedSize CalculateConstrainedSize(const Vector2I& optimalSize) const;
 
+		/** Constrains the provided optimal element size based on active constraints. */
+		GUIConstrainedSize CalculateConstrainedSize(const Size2UI& optimalSize) const;
+
 		/**	Checks if the user has overriden the height at runtime. This means that width options set by the style will be ignored. */
 		bool IsHeightOverridenAtRuntime() const { return Flags.IsSet(GUISizeConstraintFlag::HeightOverridenAtRuntime); }
 

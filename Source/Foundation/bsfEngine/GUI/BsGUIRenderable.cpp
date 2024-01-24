@@ -75,7 +75,7 @@ void GUIRenderable::GetRenderElementVertexAndIndexData(u32 renderElementIndex, u
 	// Clip by the elements clip rectangle
 	renderElementClipRectangle.Clip(guiElementClipRectangle);
 
-	// Move the bounds into space relative to the content bounds
+	// Move the bounds into space relative to the content bounds (as the offset gets applied after clipping).
 	renderElementClipRectangle.X -= renderElement.Offset.X;
 	renderElementClipRectangle.Y -= renderElement.Offset.Y;
 

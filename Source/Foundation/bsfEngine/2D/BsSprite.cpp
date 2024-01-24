@@ -35,7 +35,6 @@ u32 SpriteRenderElement::GetVertexAndIndexData(u32 vertexOffset, u32 indexOffset
 
 			for(u32 vertexIndex = 0; vertexIndex < 4; vertexIndex++)
 				outPositions.At<Vector2>(globalFirstVertexIndex + vertexIndex) += offset;
-
 		}
 	}
 	else

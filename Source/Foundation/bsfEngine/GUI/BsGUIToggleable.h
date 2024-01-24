@@ -69,8 +69,12 @@ namespace bs
 		bool DoOnMouseEvent(const GUIMouseEvent& event) override;
 		bool DoOnCommandEvent(const GUICommandEvent& event) override;
 
-		/** Calculates the bounds of the checkmark sprite, based on the current optimal size. */
-		Size2UI CalculateCheckmarkSize() const;
+		/**
+		 * Calculates the bounds of the checkmark sprite, based on the current optimal size.
+		 *
+		 * @param	elementOptimalSize		Unconstrained optimal size for the GUI element. If zero, default checkmark size will be used.
+		 */
+		Size2UI CalculateCheckmarkSize(const Size2UI& elementOptimalSize) const;
 
 		static constexpr i32 kCheckmarkContentSpacing = 3; /**< Spacing between the checkmark and contents, in pixels. */
 		static constexpr Size2UI kDefaultCheckmarkSize = Size2UI(12, 12);

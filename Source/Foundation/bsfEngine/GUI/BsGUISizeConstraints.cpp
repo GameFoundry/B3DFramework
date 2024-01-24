@@ -173,3 +173,9 @@ GUIConstrainedSize GUISizeConstraints::CalculateConstrainedSize(const Vector2I& 
 
 	return sizeRange;
 }
+
+GUIConstrainedSize GUISizeConstraints::CalculateConstrainedSize(const Size2UI& optimalSize) const
+{
+	return CalculateConstrainedSize(Vector2I((i32)optimalSize.Width, (i32)optimalSize.Height));
+}
+

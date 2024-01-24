@@ -64,12 +64,12 @@ namespace bs
 	struct GUIContentSpriteCreateInformation
 	{
 		GUIContentSpriteCreateInformation(const Size2UI& size, const GUIContent& content, const GUIStyleSheetRules& rules, const Color& tint, u64 batchId)
-			: Content(content), Size(size), Rules(rules), Tint(tint), BatchId(batchId)
+			: Content(content), ContentArea(0, 0, size.Width, size.Height), Rules(rules), Tint(tint), BatchId(batchId)
 		{ }
 
 		GUIContent Content; /**< Image and/or text content to display. */
 		Vector2I Offset = Vector2I::kZero; /**< Offset relative to the parent GUI element's content area to place the sprite at. */
-		Size2UI Size; /**< Size of the GUI element as determined by the layouting pass. */
+		Rect2I ContentArea = Rect2I::kEmpty; /**< Area relative to parent GUI element, in which to place the contents. Any sprite elements outside of this area will be clipped. */
 		u32 Depth = 0; /**< Depth at which to render the sprites. Higher depth means a sprite is rendered behind sprites with lower depth. */
 		Color Tint; /**< Runtime color tint to apply to the sprite. */
 		u64 BatchId = 0; /**< ID that specifies if the sprite is allowed to be batched with other sprites. Only sprites with the same batch ID can be batched. */

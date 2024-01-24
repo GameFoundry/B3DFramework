@@ -29,6 +29,9 @@ namespace bs
 		/** Returns true if the area covered is 0. */
 		bool IsEmpty() const { return Width == 0 || Height == 0; }
 
+		/** Returns the size of the rectangle. */
+		Size2UI GetSize() const { return Size2UI(Width, Height); }
+
 		/** Returns true if the rectangle contains the provided point. */
 		bool Contains(const Vector2I& point) const;
 
