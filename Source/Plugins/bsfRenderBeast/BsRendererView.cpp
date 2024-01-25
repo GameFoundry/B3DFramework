@@ -523,6 +523,11 @@ void RendererView::CalculateVisibility(const Vector<AABox>& bounds, Vector<bool>
 
 void RendererView::QueueRenderElements(const SceneInfo& sceneInfo)
 {
+	B3D_ENSURE(mDeferredOpaqueQueue->GetSortedElements().empty());
+	B3D_ENSURE(mForwardOpaqueQueue->GetSortedElements().empty());
+	B3D_ENSURE(mDecalQueue->GetSortedElements().empty());
+	B3D_ENSURE(mTransparentQueue->GetSortedElements().empty());
+	
 	// Queue renderables
 	for(u32 i = 0; i < (u32)sceneInfo.Renderables.size(); i++)
 	{

@@ -389,6 +389,7 @@ void RenderBeast::RenderThreadRenderAll(FrameTimings timings, PerFrameData perFr
 			if (mIsFrameCaptureRequested)
 				viewInfo->NotifyNeedsRedraw();
 
+			viewInfo->UpdateAsyncOperations(); // Note: Needs to happen before any ShouldDraw*() calls, to be consistent
 			views.push_back(viewInfo);
 		}
 
@@ -466,7 +467,6 @@ bool RenderBeast::RenderViews(GpuCommandBuffer& commandBuffer, RendererViewGroup
 	for(u32 i = 0; i < numViews; i++)
 	{
 		RendererView* view = viewGroup.GetView(i);
-		view->UpdateAsyncOperations();
 
 		auto viewId = (u64)view;
 		const RendererViewTargetData& viewTarget = view->GetProperties().Target;
@@ -844,6 +844,7 @@ void RenderBeast::CaptureSceneCubeMap(GpuCommandBuffer& commandBuffer, const SPt
 		views[i].SetView(viewDesc);
 		views[i].SetRenderSettings(renderSettings);
 		views[i].UpdatePerViewBuffer();
+		views[i].UpdateAsyncOperations(); // Note: Needs to happen before any ShouldDraw*() calls, to be consistent
 	}
 
 	RendererView* viewPtrs[] = { &views[0], &views[1], &views[2], &views[3], &views[4], &views[5] };
