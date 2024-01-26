@@ -863,3 +863,32 @@ texture.ContainerBackground
     border-color: var(--PrimaryBorderColor);
     border-width: 2px;
 }
+
+button.Expand
+{
+    height: 10px;
+    width: 11px;
+    border-width: 0px;
+    background-color: #00000000;
+}
+
+button.Expand::checkmark
+{
+    background-image: icon(fa-caret-right, 10.0);
+    color: var(--PrimaryContentColor);
+}
+
+button.Expand::checkmark:hover
+{
+    color: var(--HoverColor);
+}
+
+button.Expand::checkmark:active
+{
+    color: var(--FocusColor);
+}
+
+button.Expand::checkmark:checked
+{
+    background-image: icon(fa-caret-down, 10.0);
+}
