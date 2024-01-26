@@ -145,10 +145,23 @@ Size2UI GUIToggleable::CalculateCheckmarkSize(const Size2UI& elementOptimalSize)
 	if(checkmarkStyleSheetRules.BackgroundImage.IsLoaded(false))
 	{
 		const Size2UI imageSize = checkmarkStyleSheetRules.BackgroundImage->GetSize();
-		const float backgroundImageAspectRatio = (float)imageSize.Width / (float)imageSize.Height;
 
-		// Background image, scaled to fit the content area height, while respecting aspect ratio
-		return Size2UI(Math::RoundToU32((float)contentArea.Height * backgroundImageAspectRatio), contentArea.Height);
+		const float aspectX = (float)imageSize.Width / (float)contentArea.Width;
+		const float aspectY = (float)imageSize.Height / (float)contentArea.Height;
+
+		Size2UI checkmarkSize;
+		if(aspectY > aspectX)
+		{
+			checkmarkSize.Width = Math::RoundToU32(imageSize.Width / aspectY);
+			checkmarkSize.Height = Math::RoundToU32(imageSize.Height / aspectY);
+		}
+		else
+		{
+			checkmarkSize.Width = Math::RoundToU32(imageSize.Width / aspectX);
+			checkmarkSize.Height = Math::RoundToU32(imageSize.Height / aspectX);
+		}
+
+		return checkmarkSize;
 	}
 	else if(mCheckmarkPathBuilder)
 	{
