@@ -964,3 +964,36 @@ button.Foldout::checkmark:checked
     height: 21px;
     background-color: var(--PrimaryBackgroundColor);
 }
+
+label.LabelCentered
+{
+    text-align: center;
+}
+
+label.TitleLabel
+{
+    text-align: center;
+    font-size: 16.0;
+    height: 20px;
+}
+
+label.MultiLineLabel
+{
+    b3d-word-wrap: wrap-word;
+}
+
+label.MultiLineLabelCentered
+{
+    text-align: center;
+    b3d-word-wrap: wrap-word;
+}
+
+label.RightAlignedLabel
+{
+    text-align: right;
+}
+
+label.LabelBold
+{
+    font-family: var(--BoldFontFamily);
+}
