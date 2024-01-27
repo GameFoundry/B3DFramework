@@ -782,6 +782,7 @@ button.DropDownArrowButton:active
 .GUIFloatDistributionField {}
 .GUIVector2DistributionField {}
 .GUIVector3DistributionField {}
+.GUIColorDistributionField {}
 
 label.HeaderLight
 {
