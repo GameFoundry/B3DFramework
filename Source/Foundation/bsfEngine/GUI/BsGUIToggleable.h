@@ -68,16 +68,17 @@ namespace bs
 		void UpdateRenderElements() override;
 		bool DoOnMouseEvent(const GUIMouseEvent& event) override;
 		bool DoOnCommandEvent(const GUICommandEvent& event) override;
+		void NotifyStyleChanged() override;
 
 		/**
-		 * Calculates the bounds of the checkmark sprite, based on the current optimal size.
+		 * Calculates the bounds of the content are in which the checkmark will be placed.
 		 *
-		 * @param	elementOptimalSize		Unconstrained optimal size for the GUI element. If zero, default checkmark size will be used.
+		 * @param	elementOptimalSize		Unconstrained optimal size for the GUI element. Will be used to derive checkmark area
+		 *									size if explicit size is not provided in the style sheet.
 		 */
-		Size2UI CalculateCheckmarkSize(const Size2UI& elementOptimalSize) const;
+		Size2UI CalculateCheckmarkContentAreaSize(const Size2UI& elementOptimalSize) const;
 
 		static constexpr i32 kCheckmarkContentSpacing = 3; /**< Spacing between the checkmark and contents, in pixels. */
-		static constexpr Size2UI kDefaultCheckmarkSize = Size2UI(12, 12);
 	protected:
 		ImageSprite* mCheckmarkSprite = nullptr;
 		ImageSpriteInformation mCheckmarkSpriteInformation;
@@ -86,6 +87,8 @@ namespace bs
 
 		SPtr<GUIToggleGroup> mToggleGroup;
 		bool mIsToggled;
+
+		GUISizeConstraints mCheckmarkSizeConstraints;
 	};
 
 	/** @} */
