@@ -19,14 +19,11 @@ namespace bs
 	class B3D_EXPORT GUIProgressBar : public GUIElementContainer
 	{
 	public:
+		static constexpr const char* kProgressBarFillStyleClass = "ProgressBarFill"; /**< Style class for the progress bar fill. */
+		static constexpr const char* kProgressBarBackgroundStyleClass = "ProgressBarBackground"; /**< Style class for the progress bar background. */
+
 		/** Returns type name of the GUI element used for finding GUI element styles.  */
 		static const String& GetGuiTypeName();
-
-		/**	Name of the style for the fill image used by the progress bar. */
-		static const String& GetBarStyleType();
-
-		/**	Name of the style for the background image used by the progress bar. */
-		static const String& GetBackgroundStyleType();
 
 		/**
 		 * Creates a new progress bar.
@@ -70,7 +67,6 @@ namespace bs
 		GUIProgressBar(const String& styleName, const GUISizeConstraints& dimensions);
 
 		void UpdateLayoutRecursive(const GUILayoutData& data) override;
-		void NotifyStyleChanged() override;
 
 	private:
 		GUITexture* mBar;

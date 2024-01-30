@@ -1012,3 +1012,37 @@ label.LabelBold
     width: 3px;
     background-color: var(--HoverBackgroundColor);
 }
+
+container.ProgressBar { }
+texture.ProgressBarBackground { }
+texture.ProgressBarFill { }
+
+container.ProgressBar texture.ProgressBarBackground
+{
+    height: 27px;
+    min-width: 20px;
+    border-width: 2px;
+    padding: 2px;
+    border-color: #000000;
+    background-color: var(--BrighterBackgroundColor);
+}
+
+container.ProgressBar texture.ProgressBarFill
+{
+    background-color: var(--FocusColor);
+}
+
+container.ProgressBarSmall texture.ProgressBarBackground
+{
+    height: 12px;
+    min-width: 20px;
+    border-width: 2px;
+    padding: 2px;
+    border-color: #000000;
+    background-color: var(--BrighterBackgroundColor);
+}
+
+container.ProgressBarSmall texture.ProgressBarFill
+{
+    background-color: var(--FocusColor);
+}

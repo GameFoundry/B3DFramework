@@ -13,8 +13,8 @@ using namespace bs;
 GUIProgressBar::GUIProgressBar(const String& styleName, const GUISizeConstraints& dimensions)
 	: GUIElementContainer(dimensions, styleName), mPercent(0)
 {
-	mBar = GUITexture::Create(GetSubStyleName(GetBarStyleType()));
-	mBackground = GUITexture::Create(GetSubStyleName(GetBackgroundStyleType()));
+	mBar = GUITexture::Create(kProgressBarFillStyleClass);
+	mBackground = GUITexture::Create(kProgressBarBackgroundStyleClass);
 
 	mBackground->SetElementDepth(mBar->GetRenderElementDepthRange());
 
@@ -22,23 +22,11 @@ GUIProgressBar::GUIProgressBar(const String& styleName, const GUISizeConstraints
 	RegisterChildElement(mBackground);
 }
 
-const String& GUIProgressBar::GetBarStyleType()
-{
-	static String HANDLE_STYLE_TYPE = "ProgressBarFill";
-	return HANDLE_STYLE_TYPE;
-}
-
-const String& GUIProgressBar::GetBackgroundStyleType()
-{
-	static String BACKGROUND_STYLE_TYPE = "ProgressBarBackground";
-	return BACKGROUND_STYLE_TYPE;
-}
-
 Vector2I GUIProgressBar::CalculateUnconstrainedOptimalSize() const
 {
-	Vector2I optimalSize = mBar->CalculateUnconstrainedOptimalSize();
+	Vector2I optimalSize = mBar->CalculateConstrainedSize().Optimal;
 
-	Vector2I backgroundSize = mBackground->CalculateUnconstrainedOptimalSize();
+	Vector2I backgroundSize = mBackground->CalculateConstrainedSize().Optimal;
 	optimalSize.X = std::max(optimalSize.X, backgroundSize.X);
 	optimalSize.Y = std::max(optimalSize.Y, backgroundSize.Y);
 
@@ -49,7 +37,7 @@ void GUIProgressBar::UpdateLayoutRecursive(const GUILayoutData& data)
 {
 	mBackground->SetLayoutData(data);
 
-	const RectOffset& margins = GetPadding();
+	const RectOffset& margins = mBackground->GetPadding();
 
 	GUILayoutData barLayoutData = data;
 
@@ -63,12 +51,6 @@ void GUIProgressBar::UpdateLayoutRecursive(const GUILayoutData& data)
 	barLayoutData.Area.Height = progressBarHeight;
 
 	mBar->SetLayoutData(barLayoutData);
-}
-
-void GUIProgressBar::NotifyStyleChanged()
-{
-	mBar->SetStyleSheetClass(GetSubStyleName(GetBarStyleType()));
-	mBackground->SetStyleSheetClass(GetSubStyleName(GetBackgroundStyleType()));
 }
 
 void GUIProgressBar::SetPercent(float pct)
