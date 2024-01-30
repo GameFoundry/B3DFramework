@@ -10,8 +10,8 @@ using namespace std::placeholders;
 
 using namespace bs;
 
-GUIProgressBar::GUIProgressBar(const String& styleName, const GUISizeConstraints& dimensions)
-	: GUIElementContainer(dimensions, styleName), mPercent(0)
+GUIProgressBar::GUIProgressBar(PrivatelyConstruct, const String& styleName, const GUISizeConstraints& sizeConstraints)
+	: GUIElementContainer(sizeConstraints, styleName), mPercent(0)
 {
 	mBar = GUITexture::Create(kProgressBarFillStyleClass);
 	mBackground = GUITexture::Create(kProgressBarBackgroundStyleClass);
@@ -53,9 +53,9 @@ void GUIProgressBar::UpdateLayoutRecursive(const GUILayoutData& data)
 	mBar->SetLayoutData(barLayoutData);
 }
 
-void GUIProgressBar::SetPercent(float pct)
+void GUIProgressBar::SetPercent(float percent)
 {
-	mPercent = pct;
+	mPercent = percent;
 	MarkLayoutAsDirty();
 }
 
@@ -63,16 +63,6 @@ void GUIProgressBar::SetTint(const Color& color)
 {
 	mBar->SetTint(color);
 	mBackground->SetTint(color);
-}
-
-GUIProgressBar* GUIProgressBar::Create(const String& styleName)
-{
-	return new(B3DAllocate<GUIProgressBar>()) GUIProgressBar(GetStyleClass<GUIProgressBar>(styleName), GUISizeConstraints::Create());
-}
-
-GUIProgressBar* GUIProgressBar::Create(const GUIOptions& options, const String& styleName)
-{
-	return new(B3DAllocate<GUIProgressBar>()) GUIProgressBar(GetStyleClass<GUIProgressBar>(styleName), GUISizeConstraints::Create(options));
 }
 
 const String& GUIProgressBar::GetGuiTypeName()

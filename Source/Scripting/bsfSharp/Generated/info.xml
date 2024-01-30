@@ -3851,6 +3851,27 @@ Sprite images also allow you to specify sprite sheet animation by varying which 
 			<doc>Body the joint is attached to (if any).</doc>
 		</enumentry>
 	</enum>
+	<class native="GUIProgressBar" script="GUIProgressBar">
+		<doc>GUI element containing a background image and a fill image that is scaled depending on the percentage set by the caller.</doc>
+		<ctor>
+			<doc>Creates a new GUI element.</doc>
+			<param name="styleClass" type="string">
+				<doc>Style class that will be used for determining GUI element visuals from the current style sheet. If no class is provided, default style is determined based on GUI element type.</doc>
+			</param>
+			<param name="options" type="GUIOption">
+				<doc>Additional options that control GUI element size and position. This will override options set in the style sheet.</doc>
+			</param>
+		</ctor>
+		<ctor>
+			<doc>Creates a new GUI element.</doc>
+			<param name="options" type="GUIOption">
+				<doc>Additional options that control GUI element size and position. This will override options set in the style sheet.</doc>
+			</param>
+		</ctor>
+		<property name="Percent" type="float" getter="GetPercent" setter="SetPercent" static="false">
+			<doc>Determines how far is the progress bar filled, in range [0, 1].</doc>
+		</property>
+	</class>
 	<struct native="Spring" script="Spring">
 		<doc>Controls spring parameters for a physics joint limits. If a limit is soft (body bounces back due to restition when the limit is reached) the spring will pull the body back towards the limit using the specified parameters.</doc>
 		<ctor>
