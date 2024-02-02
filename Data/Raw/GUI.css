@@ -1078,3 +1078,9 @@ label.GUIStatusBarLabel
 {
     height: 16px;
 }
+
+inputbox.TreeViewEditBox
+{
+    height: 16px;
+    border-width: 1px;
+}
