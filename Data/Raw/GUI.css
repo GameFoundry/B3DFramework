@@ -15,6 +15,7 @@
     --GreenBackgroundColor: #07C931;
     --RedBackgroundColor: #C40000;
     --GreyBackgroundColor: #3A3A3A;
+    --SelectionColor: #0072BC;
     --PrimaryFontFamily: "Arial";
     --BoldFontFamily: "Arial";
     --PrimaryFontSize: 8;
@@ -1083,4 +1084,31 @@ inputbox.TreeViewEditBox
 {
     height: 16px;
     border-width: 1px;
+}
+
+.TreeViewElementButton
+{
+    height: 16px;
+}
+
+.TreeViewElementDragHighlight
+{
+    background-color: #00000000;
+    border-width: 1px;
+    border-color: var(--SelectionColor);
+}
+
+.TreeViewElementPingHighlight
+{
+    background-color: var(--FocusColor);
+}
+
+.TreeViewSelectionBackground
+{
+    background-color: var(--SelectionColor);
+}
+
+.TreeViewBackground
+{
+    background-color: #00000000;
 }
