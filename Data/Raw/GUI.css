@@ -1169,3 +1169,51 @@ inputbox.TreeViewEditBox
     border-color: var(--PrimaryBorderColor);
     border-width: 2px;
 }
+
+.LibraryGridMultiElementFirst
+{
+    height: 60px;
+    border-width: 2px 0px 2px 2px;
+    border-color: var(--PrimaryBorderColor);
+    background-color: var(--BrighterBackgroundColor);
+}
+
+.LibraryGridMultiElementMiddle
+{
+    height: 60px;
+    border-width: 2px 0px 2px 0px;
+    border-color: var(--PrimaryBorderColor);
+    background-color: var(--BrighterBackgroundColor);
+}
+
+.LibraryGridMultiElementLast
+{
+    height: 60px;
+    border-width: 2px 2px 2px 0px;
+    border-color: var(--PrimaryBorderColor);
+    background-color: var(--BrighterBackgroundColor);
+}
+
+.LibraryListMultiElementFirst
+{
+    width: 65px;
+    border-width: 2px 2px 0px 2px;
+    border-color: var(--PrimaryBorderColor);
+    background-color: var(--BrighterBackgroundColor);
+}
+
+.LibraryListMultiElementMiddle
+{
+    width: 65px;
+    border-width: 0px 2px 0px 2px;
+    border-color: var(--PrimaryBorderColor);
+    background-color: var(--BrighterBackgroundColor);
+}
+
+.LibraryListMultiElementLast
+{
+    width: 65px;
+    border-width: 0px 2px 2px 2px;
+    border-color: var(--PrimaryBorderColor);
+    background-color: var(--BrighterBackgroundColor);
+}
