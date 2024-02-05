@@ -550,6 +550,8 @@ texture
     background-color: #00000000;
 }
 
+texture.Texture {}
+
 texture.DropDownEntrySeparator
 {
     height: 2px;
@@ -1262,4 +1264,29 @@ slider.ColorPickerVerticalSlider .SliderFill
 {
     background-color: #00000000;
     border-width: 0px;
+}
+
+canvas { }
+canvas.Canvas {}
+
+.Blank
+{
+    background-color: #00000000;
+    color: #00000000;
+    border-width: 0px;
+}
+
+.Blank:hover
+{
+    background-color: #00000000;
+}
+
+.Blank:active
+{
+    background-color: #00000000;
+}
+
+.Blank:focus
+{
+    background-color: #00000000;
 }
