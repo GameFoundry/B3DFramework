@@ -628,8 +628,6 @@ const GUIStyleSheetCascade GUIStyleSheetCascade::kEmpty = GUIStyleSheetCascade()
 	if(inheritedRules)
 		combinedRules = *inheritedRules;
 
-	// TODO: Currently not supporting the correct logic if two style sheets have the same importance. The decision should be made on specificity in that case, but in our case
-	// the one visited after (which is arbitrary) will override the one visited earlier
 	for(const auto& styleSheetWithImportance : mStyleSheets)
 	{
 		GUIStyleSheetRules rules = styleSheetWithImportance.StyleSheet->BuildRules(elementType, elementClass, elementId, pseudoElement, pseudoClass);
@@ -645,8 +643,6 @@ GUIStyleSheetRules GUIStyleSheetCascade::BuildRules(const GUIRenderable& guiElem
 	if(inheritedRules)
 		combinedRules = *inheritedRules;
 
-	// TODO: Currently not supporting the correct logic if two style sheets have the same importance. The decision should be made on specificity in that case, but in our case
-	// the one visited after (which is arbitrary) will override the one visited earlier
 	for(const auto& styleSheetWithImportance : mStyleSheets)
 	{
 		GUIStyleSheetRules rules = styleSheetWithImportance.StyleSheet->BuildRules(guiElement, pseudoElement, pseudoClass);
@@ -701,6 +697,31 @@ bool GUIStyleSheetCascade::HasRulesetForClass(StringView elementClass, StringVie
 void GUIStyleSheetCascade::RegisterStyleSheet(const HGUIStyleSheet& styleSheet, i32 importance)
 {
 	if(!B3D_ENSURE(styleSheet.IsLoaded(false)))
+		return;
+
+	// If there are style sheets registered with equal importance, we merge them together. This way when their merged rules can be sorted in a way
+	// so they are picked based on specificity (which is in accordance with CSS specification).
+	bool foundEqualImportanceEntry = false;
+	for(auto it = mStyleSheets.begin(); it != mStyleSheets.end(); ++it)
+	{
+		StyleSheetWithImportance& entry = *it;
+		if(entry.Importance != importance)
+			continue;
+
+		if(!B3D_ENSURE(entry.StyleSheet.IsLoaded(false)))
+			continue;
+
+		foundEqualImportanceEntry = true;
+
+		TArray<GUIStyleSheetRuleset> combinedRulesets = entry.StyleSheet->GetRulesets();
+		combinedRulesets.Append(styleSheet->GetRulesets().begin(), styleSheet->GetRulesets().end());
+
+		HGUIStyleSheet newStyleSheet = GUIStyleSheet::Create(combinedRulesets);
+		entry.StyleSheet = newStyleSheet;
+	}
+
+	// If no equal importance entry, we register a new entry and then re-sort
+	if(foundEqualImportanceEntry)
 		return;
 
 	StyleSheetWithImportance entry;
