@@ -165,24 +165,18 @@ u32 GUIDropDownContent::GetElementHeight(u32 idx) const
 	if(widget == nullptr)
 		return kDefaultHeight;
 
-	const HGUIStyleSheet styleSheet = widget->GetStyleSheet();
+	const GUIStyleSheetCascade& styleSheetCascade = widget->GetStyleSheetCascade();
 
-	SPtr<const GUIStyleSheetRuleset> ruleset;
-	if(styleSheet.IsLoaded(false))
-	{
+	GUIStyleSheetRules rules;
 		if(mDropDownData.Entries[idx].IsSeparator())
-			ruleset = styleSheet->BuildRuleset("texture", kSeparatorStyleClass);
+			rules = styleSheetCascade.BuildRules("texture", kSeparatorStyleClass);
 		else
 		{
 			const char* elementClass = mIsToggle ? kToggleStyleClass : kButtonStyleClass;
-			ruleset = styleSheet->BuildRuleset("button", elementClass);
+			rules = styleSheetCascade.BuildRules("button", elementClass);
 		}
-	}
 
-	if(ruleset)
-		return ruleset->Rules.Size.Height;
-
-	return kDefaultHeight;
+	return rules.Size.Height;
 }
 
 HString GUIDropDownContent::GetElementLocalizedName(u32 idx) const

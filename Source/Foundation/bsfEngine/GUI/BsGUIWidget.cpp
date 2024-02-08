@@ -30,7 +30,7 @@ GUIWidget::GUIWidget(const HCamera& camera)
 
 void GUIWidget::Construct(const SPtr<Camera>& camera)
 {
-	mStyleSheet = GetBuiltinResources().GetDefaultGUIStyleSheet();
+	mStyleSheetCascade = GetBuiltinResources().GetDefaultGUIStyleSheetCascade();
 
 	if(mCamera != nullptr)
 	{
@@ -343,12 +343,20 @@ const GUISkin& GUIWidget::GetSkin() const
 		return *BuiltinResources::Instance().GetGuiSkin();
 }
 
-void GUIWidget::SetStyleSheet(const HGUIStyleSheet& styleSheet)
+void GUIWidget::SetStyleSheetCascade(const SPtr<GUIStyleSheetCascade>& styleSheetCascade)
 {
-	mStyleSheet = styleSheet;
+	mStyleSheetCascade = styleSheetCascade;
 
 	for(auto& element : mElements)
 		element->RefreshStyle();
+}
+
+const GUIStyleSheetCascade& GUIWidget::GetStyleSheetCascade() const
+{
+	if(mStyleSheetCascade != nullptr)
+		return *mStyleSheetCascade;
+
+	return GUIStyleSheetCascade::kEmpty;
 }
 
 void GUIWidget::SetCamera(const SPtr<Camera>& camera)

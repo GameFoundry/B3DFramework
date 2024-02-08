@@ -63,17 +63,14 @@ GUIDropDownMenu::GUIDropDownMenu(const HSceneObject& parent, const DROP_DOWN_BOX
 	SetDepth(0); // Needs to be in front of everything
 	SetSkin(desc.Skin);
 
-	const SPtr<const GUIStyleSheetRuleset> frameStyleSheetRuleset = GetStyleSheet()->BuildRuleset(GUITexture::kElementType, kBackgroundFrameStyleClass);
-	if(frameStyleSheetRuleset != nullptr)
-		mBackgroundFramePadding = frameStyleSheetRuleset->Rules.Padding;
+	const GUIStyleSheetRules frameStyleSheetRules = GetStyleSheetCascade().BuildRules(GUITexture::kElementType, kBackgroundFrameStyleClass);
+	mBackgroundFramePadding = frameStyleSheetRules.Padding;
 
-	const SPtr<const GUIStyleSheetRuleset> scrollbarBackgroundStyleSheetRuleset = GetStyleSheet()->BuildRuleset(GUITexture::kElementType, kScrollbarBackgroundStyleClass);
-	if(scrollbarBackgroundStyleSheetRuleset != nullptr)
-		mScrollbarWidth = scrollbarBackgroundStyleSheetRuleset->Rules.Size.Width;
+	const GUIStyleSheetRules scrollbarBackgroundStyleSheetRules = GetStyleSheetCascade().BuildRules(GUITexture::kElementType, kScrollbarBackgroundStyleClass);
+	mScrollbarWidth = scrollbarBackgroundStyleSheetRules.Size.Width;
 
-	const SPtr<const GUIStyleSheetRuleset> scrollbarButtonStyleSheetRuleset = GetStyleSheet()->BuildRuleset(GUIButton::kElementType, kScrollbarButtonStyleClass);
-	if(scrollbarButtonStyleSheetRuleset != nullptr)
-		mScrollButtonHeight = scrollbarButtonStyleSheetRuleset->Rules.Size.Height;
+	const GUIStyleSheetRules scrollbarButtonStyleSheetRules = GetStyleSheetCascade().BuildRules(GUIButton::kElementType, kScrollbarButtonStyleClass);
+	mScrollButtonHeight = scrollbarButtonStyleSheetRules.Size.Height;
 
 	mFrontHitBox = GUIDropDownHitBox::Create(false, false);
 	mFrontHitBox->OnFocusLost.Connect(std::bind(&GUIDropDownMenu::DropDownFocusLost, this));

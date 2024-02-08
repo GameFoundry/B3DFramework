@@ -66,7 +66,7 @@ namespace bs
 		void SetStyleSheetClass(const String& styleClass);
 
 		/** Returns true if the GUI elements wants to use the new style sheet approach for styling. */
-		bool IsUsingStyleSheets() const;
+		bool IsUsingStyleSheets() const; // TODO - Temporary only while we transition styles out
 		
 		/**	Sets the tint of the GUI element. */
 		virtual void SetTint(const Color& color);

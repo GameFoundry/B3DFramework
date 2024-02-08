@@ -54,7 +54,16 @@ GUIRenderable::GUIRenderable(const char* styleClass, const GUISizeConstraints& s
 
 bool GUIRenderable::IsUsingStyleSheets() const
 {
-	return mStyleSheetRuleInformation.StateRulesets != nullptr && !mStyleSheetRuleInformation.StateRulesets->RulesetIndices.Empty();
+	if(mStyleSheetRuleInformation.StateRulesets == nullptr || mStyleSheetRuleInformation.StateRulesets->StyleSheets.Empty())
+		return false;
+
+	for(const auto& entry : mStyleSheetRuleInformation.StateRulesets->StyleSheets)
+	{
+		if(!entry.RulesetIndices.Empty())
+			return true;
+	}
+
+	return false;
 }
 
 void GUIRenderable::UpdateRenderElements()
@@ -283,11 +292,11 @@ void GUIRenderable::RefreshStyle()
 	if(isUsingStyleSheets)
 	{
 		const GUIWidget* parentWidget = GetParentWidget();
-		const GUIStyleSheet& styleSheet = (parentWidget && parentWidget->GetStyleSheet().IsLoaded(false)) ? *parentWidget->GetStyleSheet() : GetBuiltinResources().GetEmptyGUIStyleSheet();
+		const GUIStyleSheetCascade& styleSheetCascade = parentWidget != nullptr ? parentWidget->GetStyleSheetCascade() : GUIStyleSheetCascade::kEmpty;
 
-		if(styleSheet.HasRulesetForClass(GetStyleSheetClass(), GetStyleSheetElement()))
+		if(styleSheetCascade.HasRulesetForClass(GetStyleSheetClass(), GetStyleSheetElement()))
 		{
-			SPtr<const GUIStyleSheetStateRulesets> newStateRulesets = styleSheet.BuildStateRulesets(*this);
+			SPtr<const GUIStyleSheetStateRulesets> newStateRulesets = styleSheetCascade.BuildStateRulesets(*this);
 
 			if(!newStateRulesets)
 				newStateRulesets = GUIStyleSheetStateRulesets::kDefault;
@@ -318,7 +327,7 @@ void GUIRenderable::RefreshStyle()
 				const GUIStyleSheetRules* inheritedRules = mStyleSheetRuleInformation.CurrentStateRuleset != nullptr ? &mStyleSheetRuleInformation.CurrentStateRuleset->Rules : nullptr;
 				for(auto& pseudoElementRuleInformation : mPseudoElementStyleSheetRules)
 				{
-					SPtr<const GUIStyleSheetStateRulesets> newPseudoElementStateRulesets = styleSheet.BuildStateRulesets(*this, pseudoElementRuleInformation.PseudoElementName);
+					SPtr<const GUIStyleSheetStateRulesets> newPseudoElementStateRulesets = styleSheetCascade.BuildStateRulesets(*this, pseudoElementRuleInformation.PseudoElementName);
 
 					if(!newPseudoElementStateRulesets)
 						newPseudoElementStateRulesets = GUIStyleSheetStateRulesets::kDefault;

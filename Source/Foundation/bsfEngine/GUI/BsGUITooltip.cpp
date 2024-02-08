@@ -35,7 +35,7 @@ GUITooltip::GUITooltip(const HSceneObject& parent, const GUIWidget& overlaidWidg
 	const GUISkin& skin = GetSkin();
 	const GUIElementStyle* multiLineLabelStyle = skin.GetStyle(BuiltinResources::kMultiLineLabelStyle);
 
-	const SPtr<const GUIStyleSheetRuleset> backgroundStyleSheetRuleset = GetStyleSheet()->BuildRuleset(GUITexture::kElementType, kBackgroundStyleClass);
+	const GUIStyleSheetRules backgroundStyleSheetRules = GetStyleSheetCascade().BuildRules(GUITexture::kElementType, kBackgroundStyleClass);
 
 	Vector2I size(kTooltipWidth, 25);
 	if(multiLineLabelStyle != nullptr)
@@ -44,18 +44,11 @@ GUITooltip::GUITooltip(const HSceneObject& parent, const GUIWidget& overlaidWidg
 		size = GUIHelper::CalculateOptimalContentSize(text, *multiLineLabelStyle, dimensions);
 	}
 
-	i32 contentOffsetX = 0;
-	i32 contentOffsetY = 0;
-	if(backgroundStyleSheetRuleset != nullptr)
-	{
-		const GUIStyleSheetRules& backgroundStyleSheetRules = backgroundStyleSheetRuleset->Rules;
+	size.X += backgroundStyleSheetRules.Padding.Left + backgroundStyleSheetRules.Padding.Right;
+	size.Y += backgroundStyleSheetRules.Padding.Top + backgroundStyleSheetRules.Padding.Bottom;
 
-		size.X += backgroundStyleSheetRules.Padding.Left + backgroundStyleSheetRules.Padding.Right;
-		size.Y += backgroundStyleSheetRules.Padding.Top + backgroundStyleSheetRules.Padding.Bottom;
-
-		contentOffsetX = backgroundStyleSheetRules.Padding.Left;
-		contentOffsetY = backgroundStyleSheetRules.Padding.Top;
-	}
+	i32 contentOffsetX = backgroundStyleSheetRules.Padding.Left;
+	i32 contentOffsetY = backgroundStyleSheetRules.Padding.Top;
 
 	// Content area
 	GUIPanel* contentPanel = GetPanel()->AddNewElement<GUIPanel>();

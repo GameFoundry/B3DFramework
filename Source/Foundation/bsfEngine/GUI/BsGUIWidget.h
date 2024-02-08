@@ -12,6 +12,7 @@
 
 namespace bs
 {
+	class GUIStyleSheetCascade;
 	class GUIRenderable;
 	class GUINavGroup;
 
@@ -39,11 +40,11 @@ namespace bs
 		/**	Returns the currently active GUI skin resource. */
 		const HGUISkin& GetSkinResource() const { return mSkin; }
 
-		/** Determines the style sheet that all GUI elements part of this widget will lookup styles in. */
-		void SetStyleSheet(const HGUIStyleSheet& styleSheet);
+		/** Determines the style sheets that all GUI elements part of this widget will lookup styles in. */
+		void SetStyleSheetCascade(const SPtr<GUIStyleSheetCascade>& styleSheetCascade);
 
-		/** @copydoc SetStyleSheet */
-		const HGUIStyleSheet& GetStyleSheet() const { return mStyleSheet; }
+		/** @copydoc SetStyleSheetCascade */
+		const GUIStyleSheetCascade& GetStyleSheetCascade() const;
 
 		/** Returns the root GUI panel for the widget. */
 		GUIPanel* GetPanel() const { return mPanel; }
@@ -212,7 +213,7 @@ namespace bs
 		mutable Rect2I mBounds;
 
 		HGUISkin mSkin;
-		HGUIStyleSheet mStyleSheet;
+		SPtr<const GUIStyleSheetCascade> mStyleSheetCascade;
 	};
 
 	/** @} */

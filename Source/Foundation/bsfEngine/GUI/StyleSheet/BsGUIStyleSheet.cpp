@@ -279,33 +279,46 @@ u64 GUIStyleSheetStateRulesets::RulesetKey::GenerateHash() const
 
 bool GUIStyleSheetStateRulesets::operator==(const GUIStyleSheetStateRulesets& other) const
 {
-	const SPtr<const GUIStyleSheet> myStyleSheet = StyleSheet.lock();
-	const SPtr<const GUIStyleSheet> otherStyleSheet = other.StyleSheet.lock();
-
-	if(myStyleSheet != otherStyleSheet)
+	if(StyleSheets.Size() != other.StyleSheets.Size())
 		return false;
 
-	if(RulesetIndices.Size() != other.RulesetIndices.Size())
-		return false;
-
-	for(u32 index = 0; index < (u32)RulesetIndices.Size(); ++index)
+	for(u32 styleSheetIndex = 0; styleSheetIndex < (u32)StyleSheets.Size(); ++styleSheetIndex)
 	{
-		if(RulesetIndices[index] != other.RulesetIndices[index])
+		const SPtr<const GUIStyleSheet> myStyleSheet = StyleSheets[styleSheetIndex].StyleSheet.lock();
+		const SPtr<const GUIStyleSheet> otherStyleSheet = other.StyleSheets[styleSheetIndex].StyleSheet.lock();
+
+		const TArray<u32>& myRulesetIndices = StyleSheets[styleSheetIndex].RulesetIndices;
+		const TArray<u32>& otherRulesetIndices = other.StyleSheets[styleSheetIndex].RulesetIndices;
+
+		if(myStyleSheet != otherStyleSheet)
 			return false;
+
+		if(myRulesetIndices.Size() != otherRulesetIndices.Size())
+			return false;
+
+		for(u32 rulesetIndex = 0; rulesetIndex < (u32)myRulesetIndices.Size(); ++rulesetIndex)
+		{
+			if(myRulesetIndices[rulesetIndex] != otherRulesetIndices[rulesetIndex])
+				return false;
+		}
 	}
 
-	return false;
+	return true;
 }
 
 u64 GUIStyleSheetStateRulesets::GenerateHash() const
 {
-	const SPtr<const GUIStyleSheet> myStyleSheet = StyleSheet.lock();
-
 	u64 hash = 0;
-	B3DCombineHash(hash, (u64)myStyleSheet.get());
 
-	for(u32 index : RulesetIndices)
-		B3DCombineHash(hash, index);
+	for(const auto& entry : StyleSheets)
+	{
+		const SPtr<const GUIStyleSheet> styleSheet = entry.StyleSheet.lock();
+
+		B3DCombineHash(hash, (u64)styleSheet.get());
+
+		for(u32 index : entry.RulesetIndices)
+			B3DCombineHash(hash, index);
+	}
 
 	return hash;
 }
@@ -322,48 +335,51 @@ SPtr<const GUIStyleSheetRuleset> GUIStyleSheetStateRulesets::BuildStateRuleset(G
 	if(inheritedRules)
 		outputRuleset->Rules = *inheritedRules;
 
-	SPtr<const GUIStyleSheet> styleSheet = StyleSheet.lock();
-	if(styleSheet == nullptr)
-		return outputRuleset;
-
-	const TArray<GUIStyleSheetRuleset>& rulesets = styleSheet->GetRulesets();
-	for(u32 rulesetIndex : RulesetIndices)
+	for(const auto& entry : StyleSheets)
 	{
-		const GUIStyleSheetRuleset& ruleset = rulesets[rulesetIndex];
+		SPtr<const GUIStyleSheet> styleSheet = entry.StyleSheet.lock();
+		if(styleSheet == nullptr)
+			continue;
 
-		bool allPseudoClassSelectorsMatching = true;
-		for(const auto& selector : ruleset.SelectorList.Selectors)
+		const TArray<GUIStyleSheetRuleset>& rulesets = styleSheet->GetRulesets();
+		for(u32 rulesetIndex : entry.RulesetIndices)
 		{
-			// Non-pseudo class selectors are already matching
-			if(selector.SelectorType != GUIStyleSheetSelectorType::PseudoClass)
-				continue;
+			const GUIStyleSheetRuleset& ruleset = rulesets[rulesetIndex];
 
-			bool foundMatchingPseudoClass = false;
-#define B3D_MATCH_SELECTOR(EnumValue, SelectorName) if(state.IsSet(GUIElementStateFlag::EnumValue)) \
-			{\
-				if(selector.Name == #SelectorName)\
-				{\
-					foundMatchingPseudoClass = true;\
-				}\
-			}
-
-			B3D_MATCH_SELECTOR(Normal, normal)
-			B3D_MATCH_SELECTOR(Hover, hover)
-			B3D_MATCH_SELECTOR(Active, active)
-			B3D_MATCH_SELECTOR(Focus, focus)
-			B3D_MATCH_SELECTOR(Disabled, disabled)
-			B3D_MATCH_SELECTOR(Checked, checked)
-#undef B3D_MATCH_SELECTOR
-
-			if(!foundMatchingPseudoClass)
+			bool allPseudoClassSelectorsMatching = true;
+			for(const auto& selector : ruleset.SelectorList.Selectors)
 			{
-				allPseudoClassSelectorsMatching = false;
-				break;
-			}
-		}
+				// Non-pseudo class selectors are already matching
+				if(selector.SelectorType != GUIStyleSheetSelectorType::PseudoClass)
+					continue;
 
-		if(allPseudoClassSelectorsMatching)
-			outputRuleset->Rules.Override(ruleset.Rules);
+				bool foundMatchingPseudoClass = false;
+	#define B3D_MATCH_SELECTOR(EnumValue, SelectorName) if(state.IsSet(GUIElementStateFlag::EnumValue)) \
+				{\
+					if(selector.Name == #SelectorName)\
+					{\
+						foundMatchingPseudoClass = true;\
+					}\
+				}
+
+				B3D_MATCH_SELECTOR(Normal, normal)
+				B3D_MATCH_SELECTOR(Hover, hover)
+				B3D_MATCH_SELECTOR(Active, active)
+				B3D_MATCH_SELECTOR(Focus, focus)
+				B3D_MATCH_SELECTOR(Disabled, disabled)
+				B3D_MATCH_SELECTOR(Checked, checked)
+	#undef B3D_MATCH_SELECTOR
+
+				if(!foundMatchingPseudoClass)
+				{
+					allPseudoClassSelectorsMatching = false;
+					break;
+				}
+			}
+
+			if(allPseudoClassSelectorsMatching)
+				outputRuleset->Rules.Override(ruleset.Rules);
+		}
 	}
 
 	mCachedRulesets[key] = outputRuleset;
@@ -460,13 +476,13 @@ String GUIStyleSheet::BuildCacheLookupName(StringView idSelector, StringView cla
 	return cacheLookupName;
 }
  
-SPtr<const GUIStyleSheetRuleset> GUIStyleSheet::BuildRuleset(const GUIRenderable& guiElement, StringView pseudoElement, StringView pseudoClass, const GUIStyleSheetRules* inheritedRules) const
+GUIStyleSheetRules GUIStyleSheet::BuildRules(const GUIRenderable& guiElement, StringView pseudoElement, StringView pseudoClass, const GUIStyleSheetRules* inheritedRules) const
 {
 	// Note: Not supporting multiple pseudo classes at the moment
 
-	SPtr<GUIStyleSheetRuleset> outputRuleset = B3DMakeShared<GUIStyleSheetRuleset>();
+	GUIStyleSheetRules outputRules;
 	if(inheritedRules)
-		outputRuleset->Rules = *inheritedRules;
+		outputRules = *inheritedRules;
 
 	FrameScope frameScope;
 	FrameSet<u32> sortedRulesetIndices;
@@ -478,17 +494,17 @@ SPtr<const GUIStyleSheetRuleset> GUIStyleSheet::BuildRuleset(const GUIRenderable
 		const GUIStyleSheetRuleset& ruleset = mRulesets[rulesetIndex];
 
 		if(ruleset.SelectorList.IsMatching(guiElement, pseudoElement, pseudoClass))
-			outputRuleset->Rules.Override(ruleset.Rules);
+			outputRules.Override(ruleset.Rules);
 	}
 
-	return outputRuleset;
+	return outputRules;
 }
 
-SPtr<const GUIStyleSheetRuleset> GUIStyleSheet::BuildRuleset(StringView elementType, StringView elementClass, StringView elementId, StringView pseudoElement, StringView pseudoClass, const GUIStyleSheetRules* inheritedRules) const
+GUIStyleSheetRules GUIStyleSheet::BuildRules(StringView elementType, StringView elementClass, StringView elementId, StringView pseudoElement, StringView pseudoClass, const GUIStyleSheetRules* inheritedRules) const
 {
-	SPtr<GUIStyleSheetRuleset> outputRuleset = B3DMakeShared<GUIStyleSheetRuleset>();
+	GUIStyleSheetRules outputRules;
 	if(inheritedRules)
-		outputRuleset->Rules = *inheritedRules;
+		outputRules = *inheritedRules;
 
 	FrameScope frameScope;
 	FrameSet<u32> sortedRulesetIndices;
@@ -500,43 +516,10 @@ SPtr<const GUIStyleSheetRuleset> GUIStyleSheet::BuildRuleset(StringView elementT
 		const GUIStyleSheetRuleset& ruleset = mRulesets[rulesetIndex];
 
 		if(ruleset.SelectorList.IsMatching(elementType, elementClass, elementId, pseudoElement, pseudoClass))
-			outputRuleset->Rules.Override(ruleset.Rules);
+			outputRules.Override(ruleset.Rules);
 	}
 
-	return outputRuleset;
-}
-
-SPtr<const GUIStyleSheetStateRulesets> GUIStyleSheet::BuildStateRulesets(const GUIRenderable& guiElement, StringView pseudoElement) const
-{
-	thread_local SPtr<GUIStyleSheetStateRulesets> tlLookupValue = B3DMakeShared<GUIStyleSheetStateRulesets>();
-	const static SPtr<GUIStyleSheetStateRulesets> kEmpty = B3DMakeShared<GUIStyleSheetStateRulesets>();
-
-	tlLookupValue->StyleSheet = shared_from_this();
-	tlLookupValue->RulesetIndices.Clear();
-
-	FrameScope frameScope;
-	FrameSet<u32> sortedRulesetIndices;
-
-	PopulatePotentialRulesetIndices(guiElement, sortedRulesetIndices);
-
-	for(u32 rulesetIndex : sortedRulesetIndices)
-	{
-		const GUIStyleSheetRuleset& ruleset = mRulesets[rulesetIndex];
-
-		if(ruleset.SelectorList.IsMatching(guiElement, pseudoElement, "", true))
-			tlLookupValue->RulesetIndices.Add(rulesetIndex);
-	}
-
-	auto foundCacheEntry = mCachedStateRulesets.find(tlLookupValue);
-	if(foundCacheEntry != mCachedStateRulesets.end())
-		return *foundCacheEntry;
-
-	SPtr<GUIStyleSheetStateRulesets> newStateRulesets = B3DMakeShared<GUIStyleSheetStateRulesets>();
-	newStateRulesets->StyleSheet = shared_from_this();
-	newStateRulesets->RulesetIndices = std::move(tlLookupValue->RulesetIndices);
-
-	mCachedStateRulesets.insert(newStateRulesets);
-	return newStateRulesets;
+	return outputRules;
 }
 
 bool GUIStyleSheet::HasRulesetForClass(StringView elementClass, StringView elementType) const
@@ -555,6 +538,22 @@ bool GUIStyleSheet::HasRulesetForClass(StringView elementClass, StringView eleme
 	}
 
 	return foundElement && foundClass;
+}
+
+void GUIStyleSheet::GetMatchingRulesetIndices(const GUIRenderable& guiElement, TArray<u32>& outOrderedRulesetIndices, StringView pseudoElement, StringView pseudoClass, bool ignorePseudoClass) const
+{
+	FrameScope frameScope;
+	FrameSet<u32> sortedRulesetIndices;
+
+	PopulatePotentialRulesetIndices(guiElement, sortedRulesetIndices);
+
+	for(u32 rulesetIndex : sortedRulesetIndices)
+	{
+		const GUIStyleSheetRuleset& ruleset = mRulesets[rulesetIndex];
+
+		if(ruleset.SelectorList.IsMatching(guiElement, pseudoElement, pseudoClass, ignorePseudoClass))
+			outOrderedRulesetIndices.Add(rulesetIndex);
+	}
 }
 
 void GUIStyleSheet::PopulatePotentialRulesetIndices(const GUIRenderable& guiElement, FrameSet<u32>& outOrderedRulesetIndices) const
@@ -620,3 +619,97 @@ RTTITypeBase* GUIStyleSheet::GetRtti() const
 {
 	return GetRttiStatic();
 }
+
+const GUIStyleSheetCascade GUIStyleSheetCascade::kEmpty = GUIStyleSheetCascade();
+
+ GUIStyleSheetRules GUIStyleSheetCascade::BuildRules(StringView elementType, StringView elementClass, StringView elementId, StringView pseudoElement, StringView pseudoClass, const GUIStyleSheetRules* inheritedRules) const
+{
+	GUIStyleSheetRules combinedRules;
+	if(inheritedRules)
+		combinedRules = *inheritedRules;
+
+	// TODO: Currently not supporting the correct logic if two style sheets have the same importance. The decision should be made on specificity in that case, but in our case
+	// the one visited after (which is arbitrary) will override the one visited earlier
+	for(const auto& styleSheetWithImportance : mStyleSheets)
+	{
+		GUIStyleSheetRules rules = styleSheetWithImportance.StyleSheet->BuildRules(elementType, elementClass, elementId, pseudoElement, pseudoClass);
+		combinedRules.Override(rules);
+	}
+
+	return combinedRules;
+}
+
+GUIStyleSheetRules GUIStyleSheetCascade::BuildRules(const GUIRenderable& guiElement, StringView pseudoElement, StringView pseudoClass, const GUIStyleSheetRules* inheritedRules) const
+{
+	GUIStyleSheetRules combinedRules;
+	if(inheritedRules)
+		combinedRules = *inheritedRules;
+
+	// TODO: Currently not supporting the correct logic if two style sheets have the same importance. The decision should be made on specificity in that case, but in our case
+	// the one visited after (which is arbitrary) will override the one visited earlier
+	for(const auto& styleSheetWithImportance : mStyleSheets)
+	{
+		GUIStyleSheetRules rules = styleSheetWithImportance.StyleSheet->BuildRules(guiElement, pseudoElement, pseudoClass);
+		combinedRules.Override(rules);
+	}
+
+	return combinedRules;
+}
+
+SPtr<const GUIStyleSheetStateRulesets> GUIStyleSheetCascade::BuildStateRulesets(const GUIRenderable& guiElement, StringView pseudoElement) const
+{
+	thread_local SPtr<GUIStyleSheetStateRulesets> tlLookupValue = B3DMakeShared<GUIStyleSheetStateRulesets>();
+	const static SPtr<GUIStyleSheetStateRulesets> kEmpty = B3DMakeShared<GUIStyleSheetStateRulesets>();
+
+	tlLookupValue->StyleSheets.Clear();
+
+	for(const auto& entry : mStyleSheets)
+	{
+		GUIStyleSheetStateRulesets::StyleSheetRulesetIndices styleSheetRulesetIndices;
+		styleSheetRulesetIndices.StyleSheet = entry.StyleSheet.GetShared();
+
+		entry.StyleSheet->GetMatchingRulesetIndices(guiElement, styleSheetRulesetIndices.RulesetIndices, pseudoElement, "", true);
+
+		tlLookupValue->StyleSheets.Add(styleSheetRulesetIndices);
+	}
+
+	auto foundCacheEntry = mCachedStateRulesets.find(tlLookupValue);
+	if(foundCacheEntry != mCachedStateRulesets.end())
+		return *foundCacheEntry;
+
+	SPtr<GUIStyleSheetStateRulesets> newStateRulesets = B3DMakeShared<GUIStyleSheetStateRulesets>();
+	newStateRulesets->StyleSheets = std::move(tlLookupValue->StyleSheets);
+
+	mCachedStateRulesets.insert(newStateRulesets);
+	return newStateRulesets;
+}
+
+bool GUIStyleSheetCascade::HasRulesetForClass(StringView elementClass, StringView elementType) const
+{
+	for(const auto& entry : mStyleSheets)
+	{
+		if(!B3D_ENSURE(entry.StyleSheet.IsLoaded(false)))
+			continue;
+
+		if(entry.StyleSheet->HasRulesetForClass(elementClass, elementType))
+			return true;
+	}
+
+	return false;
+}
+
+void GUIStyleSheetCascade::RegisterStyleSheet(const HGUIStyleSheet& styleSheet, i32 importance)
+{
+	if(!B3D_ENSURE(styleSheet.IsLoaded(false)))
+		return;
+
+	StyleSheetWithImportance entry;
+	entry.StyleSheet = styleSheet;
+	entry.Importance = importance;
+
+	mStyleSheets.Add(entry);
+	std::sort(mStyleSheets.begin(), mStyleSheets.end(), [](const StyleSheetWithImportance& lhs, const StyleSheetWithImportance& rhs) {
+		return lhs.Importance < rhs.Importance; // Lower importance comes first, so when we iterate over the list we override higher with lower importance items
+	});
+}
+

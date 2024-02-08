@@ -265,6 +265,12 @@ namespace bs
 	/** Contains a set of rulesets for all states that are commonly changing on a GUI element (e.g. hover, focused, checked, active, etc.). */
 	struct B3D_EXPORT GUIStyleSheetStateRulesets
 	{
+		struct StyleSheetRulesetIndices
+		{
+			WeakSPtr<const GUIStyleSheet> StyleSheet; /**< Style sheet holding the rules that are being referenced. */
+			TArray<u32> RulesetIndices; /**< Maps into the mRulesets array in GUIStyleSheet. */
+		};
+
 		bool operator==(const GUIStyleSheetStateRulesets& other) const;
 		u64 GenerateHash() const;
 
@@ -278,8 +284,7 @@ namespace bs
 		 */
 		SPtr<const GUIStyleSheetRuleset> BuildStateRuleset(GUIElementStateFlags state, const GUIStyleSheetRules* inheritedRules = nullptr) const;
 
-		WeakSPtr<const GUIStyleSheet> StyleSheet; /**< Style sheet holding the rules that are being referenced. */
-		TArray<u32> RulesetIndices; /**< Maps into the mRulesets array in GUIStyleSheet. */
+		TInlineArray<StyleSheetRulesetIndices, 4> StyleSheets;
 
 		/**	Default value that may be used when no other is available. */
 		static SPtr<const GUIStyleSheetStateRulesets> kDefault;
@@ -316,23 +321,22 @@ namespace bs
 		 * Builds the appropriate ruleset to use for a particular GUI element. This looks up relevant rulesets
 		 * based on GUI elements type and optionally its class, id, parent elements and provided pseudo-element name.
 		 */
-		SPtr<const GUIStyleSheetRuleset> BuildRuleset(const GUIRenderable& guiElement, StringView pseudoElement = "", StringView pseudoClass = "", const GUIStyleSheetRules* inheritedRules = nullptr) const;
+		GUIStyleSheetRules BuildRules(const GUIRenderable& guiElement, StringView pseudoElement = "", StringView pseudoClass = "", const GUIStyleSheetRules* inheritedRules = nullptr) const;
 
 		/**
-		 * Builds the appropriate ruleset that matches a GUI element with the provided type/class/id/pseud-class/pseudo-element. Any of the provided
-		 * selectors may be empty, in which case they will be ignored* in the lookup.
+		 * Builds the appropriate rules that matches a GUI element with the provided type/class/id/pseud-class/pseudo-element. Any of the provided
+		 * selectors may be empty, in which case they will be ignored in the lookup.
 		 */
-		SPtr<const GUIStyleSheetRuleset> BuildRuleset(StringView elementType, StringView elementClass = "", StringView elementId = "", StringView pseudoElement = "", StringView pseudoClass = "", const GUIStyleSheetRules* inheritedRules = nullptr) const;
-
-		/**
-		 * Similar to BuildRuleset(), except it matches all pseudo-classes that match dynamic GUI element states (e.g. hover, active, focused, etc.).
-		 * Rulesets specific for a particular state can then be retrieved from GUIStyleSheetStateRulesets in a separate step. This allows you to
-		 * skip calling expensive BuildRuleset() whenever GUI element state changes.
-		 */
-		SPtr<const GUIStyleSheetStateRulesets> BuildStateRulesets(const GUIRenderable& guiElement, StringView pseudoElement = "") const;
+		GUIStyleSheetRules BuildRules(StringView elementType, StringView elementClass = "", StringView elementId = "", StringView pseudoElement = "", StringView pseudoClass = "", const GUIStyleSheetRules* inheritedRules = nullptr) const;
 
 		/** Returns all rulesets stored in the stylesheet. */
 		const TArray<GUIStyleSheetRuleset>& GetRulesets() const { return mRulesets; }
+
+		/**
+		 * Populates the provided array with a list of ruleset indices matching the provided GUI element. The ruleset indices can be used for
+		 * accessing the array returned from GetRulesets().
+		 */
+		void GetMatchingRulesetIndices(const GUIRenderable& guiElement, TArray<u32>& outOrderedRulesetIndices, StringView pseudoElement = "", StringView pseudoClass = "", bool ignorePseudoClass = false) const;
 
 		/**
 		 * Checks if the style sheet has a ruleset for this particular class.
@@ -355,6 +359,10 @@ namespace bs
 
 		/** Creates a new style sheet without calling Initialize(). Caller must manually call Initialize(). */
 		static SPtr<GUIStyleSheet> CreateUninitialized(TArray<GUIStyleSheetRuleset> rulesets = {});
+
+		static constexpr i32 kBuiltinImportance = -1000; /**< Style-sheet importance for style-sheets built into the application (engine or editor). */
+		static constexpr i32 kDeveloperImportance = 0; /**< Style-sheet importance for developers modifying the engine, editor, or building their own application. Overrides builtin styles. */
+		static constexpr i32 kUserImportance = 1000; /**< Style-sheet importance for users wanting to customize the look of the application. Overrides developer styles. */
 	private:
 		friend class GUIStyleSheetParser;
 
@@ -386,7 +394,6 @@ namespace bs
 		TArray<GUIStyleSheetRuleset> mRulesets;
 
 		mutable UnorderedMap<String, GUIStyleSheetRulesetList> mRulesetLookupMap; /**< Map to avoid iterating over entire mRuleset array. */
-		mutable TSharedUnorderedSet<GUIStyleSheetStateRulesets> mCachedStateRulesets; /**< Cached state rulesets to avoid re-building them on every call. */ 
 
 		/************************************************************************/
 		/* 								SERIALIZATION                      		*/
@@ -395,6 +402,50 @@ namespace bs
 		friend class GUIStyleSheetRTTI;
 		static RTTITypeBase* GetRttiStatic();
 		RTTITypeBase* GetRtti() const override;
+	};
+
+	/** Contains a set of multiple style sheets, sorted by importance. */
+	class B3D_EXPORT GUIStyleSheetCascade
+	{
+	public:
+		/** Same as GUIStyleSheet::BuildRules(const GUIRenderable&, StringView, StringView, const GUIStyleSheetRules*), except it gathers rules for all style sheets in the cascade. */
+		GUIStyleSheetRules BuildRules(const GUIRenderable& guiElement, StringView pseudoElement = "", StringView pseudoClass = "", const GUIStyleSheetRules* inheritedRules = nullptr) const;
+
+		/** Same as GUIStyleSheet::BuildRuleset(StringView, StringView, StringView, StringView, StringView, const GUIStyleSheetRules*), except it gathers rules for all style sheets in the cascade. */
+		GUIStyleSheetRules BuildRules(StringView elementType, StringView elementClass = "", StringView elementId = "", StringView pseudoElement = "", StringView pseudoClass = "", const GUIStyleSheetRules* inheritedRules = nullptr) const;
+
+		/** Same as GUIStyleSheet::BuildStateRulesets(const GUIRenderable&, StringView), except it gathers rules for all style sheets in the cascade. */
+		SPtr<const GUIStyleSheetStateRulesets> BuildStateRulesets(const GUIRenderable& guiElement, StringView pseudoElement = "") const;
+
+		/**
+		 * Checks if the cascade has any style sheets with a ruleset for this particular class.
+		 *
+		 * @param elementClass		Class name to check.
+		 * @param elementType		Optional name of the GUI element type. If not empty, only classes matching this element will be considered.
+		 * @return					True if there is at least one ruleset for the class.
+		 */
+		bool HasRulesetForClass(StringView elementClass, StringView elementType = "") const;
+
+		/**
+		 * Registers a new style sheet in the cascade.
+		 *
+		 * @param styleSheet		Style sheet to register.
+		 * @param importance		Style sheets with higher importance will override style sheet rules from ones with lower importance.
+		 */
+		void RegisterStyleSheet(const HGUIStyleSheet& styleSheet, i32 importance);
+
+		static const GUIStyleSheetCascade kEmpty; /**< Empty cascade containing no style sheets. */
+
+	private:
+		struct StyleSheetWithImportance
+		{
+			HGUIStyleSheet StyleSheet;
+			i32 Importance = 0;
+		};
+
+		TInlineArray<StyleSheetWithImportance, 4> mStyleSheets;
+
+		mutable TSharedUnorderedSet<GUIStyleSheetStateRulesets> mCachedStateRulesets; /**< Cached state rulesets to avoid re-building them on every call. */ 
 	};
 
 	/** @} */

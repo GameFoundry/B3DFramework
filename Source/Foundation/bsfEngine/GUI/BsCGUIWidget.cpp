@@ -44,9 +44,9 @@ const HGUISkin& CGUIWidget::GetSkinResource() const
 	return mInternal->GetSkinResource();
 }
 
-const HGUIStyleSheet& CGUIWidget::GetStyleSheet() const
+const GUIStyleSheetCascade& CGUIWidget::GetStyleSheetCascade() const
 {
-	return mInternal->GetStyleSheet();
+	return mInternal->GetStyleSheetCascade();
 }
 
 GUIPanel* CGUIWidget::GetPanel() const
