@@ -120,19 +120,11 @@ void GUITexture::UpdateRenderElements()
 	mDesc.Transparent = mTransparent;
 	mDesc.Color = GetTint();
 
-	const bool isUsingStyleSheets = IsUsingStyleSheets();
-	if(isUsingStyleSheets)
+	if(mStyleSheetRuleInformation.CurrentStateRuleset != nullptr)
 	{
 		const GUIStyleSheetRules& styleSheetRules = mStyleSheetRuleInformation.CurrentStateRuleset->Rules;
 
 		mDesc.Color.A *= styleSheetRules.Opacity;
-	}
-	else
-	{
-		mDesc.BorderLeft = GetStyle()->Border.Left;
-		mDesc.BorderRight = GetStyle()->Border.Right;
-		mDesc.BorderTop = GetStyle()->Border.Top;
-		mDesc.BorderBottom = GetStyle()->Border.Bottom;
 	}
 
 	if(mScaleMode != TextureScaleMode::ScaleToFit)
@@ -159,11 +151,8 @@ void GUITexture::NotifyStyleChanged()
 {
 	if(mUsingStyleTexture)
 	{
-		const bool isUsingStyleSheets = IsUsingStyleSheets();
-		if(isUsingStyleSheets)
+		if(mStyleSheetRuleInformation.CurrentStateRuleset != nullptr)
 			mActiveImage = mStyleSheetRuleInformation.CurrentStateRuleset->Rules.BackgroundImage;
-		else
-			mActiveImage = GetStyle()->Normal.Image;
 
 		mDesc.AnimationStartTime = GetTime().GetTime();
 

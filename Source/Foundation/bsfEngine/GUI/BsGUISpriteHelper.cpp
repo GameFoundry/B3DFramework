@@ -340,21 +340,16 @@ void GUISpriteHelper::BuildSpriteRenderElements(GUIInteractable& element, GUIEle
 	const u64 batchId = (u64)element.GetParentWidget();
 	const Color& tint = element.GetTint();
 
-	const bool isUsingStyleSheets = element.IsUsingStyleSheets();
-	if(isUsingStyleSheets)
-	{
-		const GUIStyleSheetRules& styleSheetRules = element.mStyleSheetRuleInformation.CurrentStateRuleset->Rules;
+	if(element.mStyleSheetRuleInformation.CurrentStateRuleset == nullptr)
+		return;
 
-		GUIBackgroundSpriteCreateInformation backgroundSpriteCreateInformation(size, styleSheetRules, tint, batchId);
-		backgroundSpriteCreateInformation.Depth = depth;
-		backgroundSpriteCreateInformation.Offset = offset;
+	const GUIStyleSheetRules& styleSheetRules = element.mStyleSheetRuleInformation.CurrentStateRuleset->Rules;
 
-		sprite.BuildRenderElements(backgroundSpriteCreateInformation, element.mRenderElements);
-	}
-	else
-	{
-		sprite.BuildRenderElements(size, *element.GetStyle(), state, tint, batchId, element.mRenderElements, offset, depth);
-	}
+	GUIBackgroundSpriteCreateInformation backgroundSpriteCreateInformation(size, styleSheetRules, tint, batchId);
+	backgroundSpriteCreateInformation.Depth = depth;
+	backgroundSpriteCreateInformation.Offset = offset;
+
+	sprite.BuildRenderElements(backgroundSpriteCreateInformation, element.mRenderElements);
 }
 
 void GUISpriteHelper::BuildSpriteRenderElements(GUIInteractable& element, GUIElementState state, const GUIContent& content, GUIContentSprites& sprites, const Vector2I& offset, u32 depth, bool wordWrap)
@@ -363,21 +358,16 @@ void GUISpriteHelper::BuildSpriteRenderElements(GUIInteractable& element, GUIEle
 	const u64 batchId = (u64)element.GetParentWidget();
 	const Color& tint = element.GetTint();
 
-	const bool isUsingStyleSheets = element.IsUsingStyleSheets();
-	if(isUsingStyleSheets)
-	{
-		const GUIStyleSheetRules& styleSheetRules = element.mStyleSheetRuleInformation.CurrentStateRuleset->Rules;
-		GUIContentSpriteCreateInformation contentSpriteCreateInformation(size, content, styleSheetRules, tint, batchId);
-		contentSpriteCreateInformation.Depth = depth;
-		contentSpriteCreateInformation.Offset = offset;
-		contentSpriteCreateInformation.ContentArea = GUIHelper::CalculateContentArea(size, styleSheetRules);
+	if(element.mStyleSheetRuleInformation.CurrentStateRuleset == nullptr)
+		return;
 
-		sprites.BuildRenderElements(contentSpriteCreateInformation, element.mRenderElements);
-	}
-	else
-	{
-		sprites.BuildRenderElements(size, content, *element.GetStyle(), state, tint, batchId, element.mRenderElements, offset, depth, wordWrap);
-	}
+	const GUIStyleSheetRules& styleSheetRules = element.mStyleSheetRuleInformation.CurrentStateRuleset->Rules;
+	GUIContentSpriteCreateInformation contentSpriteCreateInformation(size, content, styleSheetRules, tint, batchId);
+	contentSpriteCreateInformation.Depth = depth;
+	contentSpriteCreateInformation.Offset = offset;
+	contentSpriteCreateInformation.ContentArea = GUIHelper::CalculateContentArea(size, styleSheetRules);
+
+	sprites.BuildRenderElements(contentSpriteCreateInformation, element.mRenderElements);
 }
 
 TextSpriteInformation GUISpriteHelper::BuildTextSpriteInformation(const GUIInteractable& element, GUIElementState state, const String& text, bool wordWrap)
@@ -385,19 +375,13 @@ TextSpriteInformation GUISpriteHelper::BuildTextSpriteInformation(const GUIInter
 	const Size2UI size(element.GetLayoutData().Area.Width, element.GetLayoutData().Area.Height);
 	const Color& tint = element.GetTint();
 
-	const bool isUsingStyleSheets = element.IsUsingStyleSheets();
-	if(isUsingStyleSheets)
+	if(element.mStyleSheetRuleInformation.CurrentStateRuleset != nullptr)
 	{
 		const GUIStyleSheetRules& styleSheetRules = element.mStyleSheetRuleInformation.CurrentStateRuleset->Rules;
 		const Rect2I contentArea = GUIHelper::CalculateContentArea(size, styleSheetRules);
 
 		return GUIContentSprites::BuildTextSpriteInformation(contentArea, text, styleSheetRules, tint, wordWrap);
 	}
-	else
-	{
-		const GUIElementStyle& style = *element.GetStyle();
 
-		const Rect2I contentArea = GUIHelper::CalculateContentArea(size, style);
-		return GUIContentSprites::BuildTextSpriteInformation(contentArea, text, state, style, tint, wordWrap);
-	}
+	return TextSpriteInformation();
 }

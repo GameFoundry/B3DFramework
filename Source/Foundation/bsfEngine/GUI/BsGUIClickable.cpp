@@ -65,35 +65,13 @@ void GUIClickable::UpdateRenderElements()
 
 Vector2I GUIClickable::CalculateUnconstrainedOptimalSize() const
 {
-	u32 imageWidth = 0;
-	u32 imageHeight = 0;
+	if(mStyleSheetRuleInformation.CurrentStateRuleset == nullptr)
+		return Vector2I::kZero;
 
-	const bool isUsingStyleSheets = IsUsingStyleSheets();
-	if(isUsingStyleSheets)
-	{
-		const GUIStyleSheetRules& styleSheetRules = mStyleSheetRuleInformation.CurrentStateRuleset->Rules;
-		const Size2UI contentSize = GUIHelper::CalculateOptimalContentSizeWithPaddingAndBorder(mContent, styleSheetRules, GetSizeConstraints().MaxWidth);
-		
-		const u32 contentWidth = std::max(imageWidth, contentSize.Width);
-		const u32 contentHeight = std::max(imageHeight, contentSize.Height);
-
-		return Vector2I(contentWidth, contentHeight);
-	}
-	else
-	{
-		const HSpriteImage& activeImage = GetStyle()->GetImageForState(mActiveState);
-		if(SpriteImage::CheckIsLoaded(activeImage))
-		{
-			imageWidth = activeImage->GetSize().Width;
-			imageHeight = activeImage->GetSize().Height;
-		}
-
-		Vector2I contentSize = GUIHelper::CalculateOptimalContentSize(mContent, *GetStyle(), GetSizeConstraints(), mActiveState);
-		u32 contentWidth = std::max(imageWidth, (u32)contentSize.X);
-		u32 contentHeight = std::max(imageHeight, (u32)contentSize.Y);
-
-		return Vector2I(contentWidth, contentHeight);
-	}
+	const GUIStyleSheetRules& styleSheetRules = mStyleSheetRuleInformation.CurrentStateRuleset->Rules;
+	const Size2UI contentSize = GUIHelper::CalculateOptimalContentSizeWithPaddingAndBorder(mContent, styleSheetRules, GetSizeConstraints().MaxWidth);
+	
+	return Vector2I((i32)contentSize.Width, (i32)contentSize.Height);
 }
 
 u32 GUIClickable::GetRenderElementDepthRange() const

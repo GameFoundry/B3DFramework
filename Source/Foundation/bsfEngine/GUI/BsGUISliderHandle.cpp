@@ -64,8 +64,7 @@ void GUISliderHandle::UpdateRenderElements()
 	const u64 batchId = (u64)GetParentWidget();
 	const Color& tint = GetTint();
 
-	const bool isUsingStyleSheets = IsUsingStyleSheets();
-	if(isUsingStyleSheets)
+	if(mStyleSheetRuleInformation.CurrentStateRuleset != nullptr)
 	{
 		const GUIStyleSheetRules& styleSheetRules = mStyleSheetRuleInformation.CurrentStateRuleset->Rules;
 
@@ -73,10 +72,6 @@ void GUISliderHandle::UpdateRenderElements()
 		createInformation.Offset = offset;
 
 		mBackgroundSprite.BuildRenderElements(createInformation, mRenderElements);
-	}
-	else
-	{
-		mBackgroundSprite.BuildRenderElements(size, *GetStyle(), mState, tint, batchId, mRenderElements, offset);
 	}
 
 	GUIInteractable::UpdateRenderElements();

@@ -392,13 +392,3 @@ RTTITypeBase* GUIRenderable::GetRtti() const
 {
 	return GetRttiStatic();
 }
-
-const String& GUIRenderable::GetSubStyleName(const String& subStyleTypeName) const
-{
-	auto iterFind = mStyle->SubStyles.find(subStyleTypeName);
-
-	if(iterFind != mStyle->SubStyles.end())
-		return iterFind->second;
-	else
-		return StringUtil::kBlank;
-}

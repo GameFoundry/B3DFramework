@@ -177,9 +177,6 @@ namespace bs
 		/** Updates element style based on active GUI style sheet. Call this after active style sheet changes, or element class/id changes. */
 		void RefreshStyle();
 
-		/**	Gets the currently active element style. */
-		const GUIElementStyle* GetStyle() const { return mStyle; } // TODO - Deprecated
-
 		/** Similar to GetCachedBounds(), except the bounds are clipped against the current clip rectangle. */
 		const Rect2I& GetCachedClippedBounds() const { return mClippedBounds; }
 
@@ -207,12 +204,6 @@ namespace bs
 		 * rectangles changes).
 		 */
 		virtual void UpdateClippedBounds();
-
-		/**
-		 * Attempts to find a sub-style for the specified type in the currently set GUI element style. If one cannot be
-		 * found empty string is returned.
-		 */
-		const String& GetSubStyleName(const String& subStyleTypeName) const; // TODO - Deprecated
 
 		/**	Method that gets triggered whenever element style changes. */
 		virtual void NotifyStyleChanged() {}

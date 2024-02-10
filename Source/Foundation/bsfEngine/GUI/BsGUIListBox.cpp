@@ -139,21 +139,18 @@ Rect2I GUIListBox::GetCachedContentBoundsInElementSpace() const
 {
 	const Rect2I& cachedBounds = GetCachedBounds();
 
+	Size2UI layoutSize(cachedBounds.Width, cachedBounds.Height);
+
+	const u32 arrowAreaWidth = GetArrowCachedContentSize().Width;
+	layoutSize.Width = (u32)Math::Max(0, (i32)layoutSize.Width - (i32)arrowAreaWidth);
+
 	if(mStyleSheetRuleInformation.CurrentStateRuleset != nullptr)
 	{
-		Size2UI layoutSize(cachedBounds.Width, cachedBounds.Height);
-
-		const u32 arrowAreaWidth = GetArrowCachedContentSize().Width;
-		layoutSize.Width = (u32)Math::Max(0, (i32)layoutSize.Width - (i32)arrowAreaWidth);
-
 		const GUIStyleSheetRules& styleSheetRules = mStyleSheetRuleInformation.CurrentStateRuleset->Rules;
 		return GUIHelper::CalculateContentArea(layoutSize, styleSheetRules);
 	}
-	else
-	{
-		const Size2UI layoutSize(cachedBounds.Width, cachedBounds.Height);
-		return GUIHelper::CalculateContentArea(layoutSize, *GetStyle());
-	}
+
+	return Rect2I(0, 0, layoutSize.Width, layoutSize.Height);
 }
 
 Rect2I GUIListBox::GetArrowCachedContentBoundsInElementSpace() const

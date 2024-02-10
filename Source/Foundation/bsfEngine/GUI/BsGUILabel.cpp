@@ -36,29 +36,15 @@ void GUILabel::UpdateRenderElements()
 	mTextSpriteInformation.Height = mLayoutData.Area.Height;
 	mTextSpriteInformation.Text = (String)mContent.Text;
 
-	const bool isUsingStyleSheets = IsUsingStyleSheets();
-	if(isUsingStyleSheets)
+	if(mStyleSheetRuleInformation.CurrentStateRuleset != nullptr)
 	{
 		const GUIStyleSheetRules& styleSheetRules = mStyleSheetRuleInformation.CurrentStateRuleset->Rules;
 
 		mTextSpriteInformation.InitializeFromStyleSheetRules(styleSheetRules);
 		mTextSpriteInformation.Color *= GetTint();
 	}
-	else
-	{
-		mTextSpriteInformation.Font = GetStyle()->Font;
-		mTextSpriteInformation.FontSize = GetStyle()->FontSize;
-		mTextSpriteInformation.WordWrap = GetStyle()->WordWrap;
-		mTextSpriteInformation.HorzAlign = GetStyle()->TextHorzAlign;
-		mTextSpriteInformation.VertAlign = GetStyle()->TextVertAlign;
-		mTextSpriteInformation.Color = GetTint() * GetStyle()->Normal.TextColor;
-	}
 
 	mTextSprite->Update(mTextSpriteInformation, (u64)GetParentWidget());
-
-	const Rect2 backgroundBounds(
-		0.0f, 0.0f,
-		(float)mLayoutData.Area.Width, (float)mLayoutData.Area.Height);
 
 	const Vector2I contentOffset = GetContentOffsetInElementSpace();
 	Rect2I contentBounds = GetCachedContentBounds();
@@ -78,16 +64,13 @@ void GUILabel::UpdateRenderElements()
 
 Vector2I GUILabel::CalculateUnconstrainedOptimalSize() const
 {
-	const bool isUsingStyleSheets = IsUsingStyleSheets();
-	if(isUsingStyleSheets)
-	{
-		const GUIStyleSheetRules& styleSheetRules = mStyleSheetRuleInformation.CurrentStateRuleset->Rules;
-		const Size2UI contentSize = GUIHelper::CalculateOptimalContentSizeWithPaddingAndBorder(mContent, styleSheetRules, GetSizeConstraints().MaxWidth);
+	if(mStyleSheetRuleInformation.CurrentStateRuleset == nullptr)
+		return Vector2I::kZero;
 
-		return Vector2I(contentSize.Width, contentSize.Height);
-	}
-	else
-		return GUIHelper::CalculateOptimalContentSize(mContent, *GetStyle(), GetSizeConstraints());
+	const GUIStyleSheetRules& styleSheetRules = mStyleSheetRuleInformation.CurrentStateRuleset->Rules;
+	const Size2UI contentSize = GUIHelper::CalculateOptimalContentSizeWithPaddingAndBorder(mContent, styleSheetRules, GetSizeConstraints().MaxWidth);
+
+	return Vector2I((i32)contentSize.Width, (i32)contentSize.Height);
 }
 
 void GUILabel::SetContent(const GUIContent& content)
