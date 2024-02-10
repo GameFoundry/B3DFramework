@@ -39,14 +39,14 @@ const GUIStyleSheetRuleInformation GUIStyleSheetRuleInformation::kInvalid("Inval
 const Color GUIRenderable::kDisabledColor = Color(0.5f, 0.5f, 0.5f, 1.0f);
 
 GUIRenderable::GUIRenderable(String styleClass, const GUISizeConstraints& sizeConstraints)
-	: GUIElement(sizeConstraints), mStyle(&GUISkin::DefaultStyle), mStyleClass(std::move(styleClass))
+	: GUIElement(sizeConstraints), mStyleClass(std::move(styleClass))
 {
 	// Style is set to default here, and the proper one is assigned once GUI element
 	// is assigned to a parent (that's when the active GUI skin becomes known)
 }
 
 GUIRenderable::GUIRenderable(const char* styleClass, const GUISizeConstraints& sizeConstraints)
-	: GUIElement(sizeConstraints), mStyle(&GUISkin::DefaultStyle), mStyleClass(styleClass ? styleClass : StringUtil::kBlank)
+	: GUIElement(sizeConstraints), mStyleClass(styleClass ? styleClass : StringUtil::kBlank)
 {
 	// Style is set to default here, and the proper one is assigned once GUI element
 	// is assigned to a parent (that's when the active GUI skin becomes known)
@@ -152,8 +152,6 @@ const RectOffset& GUIRenderable::GetMargins() const
 {
 	if(mStyleSheetRuleInformation.CurrentStateRuleset)
 		return mStyleSheetRuleInformation.CurrentStateRuleset->Rules.Margins;
-	else if(mStyle != nullptr)
-		return mStyle->Padding; // Note: Old GUI style has the meaning of padding/margins swapped
 	else
 	{
 		static RectOffset margins;
@@ -165,8 +163,6 @@ const RectOffset& GUIRenderable::GetPadding() const
 {
 	if(mStyleSheetRuleInformation.CurrentStateRuleset)
 		return mStyleSheetRuleInformation.CurrentStateRuleset->Rules.Padding;
-	else if(mStyle != nullptr)
-		return mStyle->Margins; // Note: Old GUI style has the meaning of padding/margins swapped
 	else
 	{
 		static RectOffset padding;
@@ -179,7 +175,9 @@ void GUIRenderable::ResetDimensions()
 	const bool isFixedBefore = mSizeConstraints.IsWidthFixed() && mSizeConstraints.IsHeightFixed();
 
 	mSizeConstraints = GUISizeConstraints::Create();
-	mSizeConstraints.UpdateWithStyle(mStyle);
+
+	if(mStyleSheetRuleInformation.CurrentStateRuleset != nullptr)
+		mSizeConstraints.UpdateWithStyleSheetRule(mStyleSheetRuleInformation.CurrentStateRuleset->Rules);
 
 	const bool isFixedAfter = mSizeConstraints.IsWidthFixed() && mSizeConstraints.IsHeightFixed();
 
@@ -211,7 +209,7 @@ Rect2I GUIRenderable::GetCachedContentBoundsInElementSpace() const
 		return GUIHelper::CalculateContentArea(layoutSize, styleSheetRules);
 	}
 
-	return GUIHelper::CalculateContentArea(layoutSize, *mStyle);
+	return Rect2I(0, 0, layoutSize.Width, layoutSize.Height);
 }
 
 Rect2I GUIRenderable::GetCachedClippedContentBoundsInContentSpace() const
@@ -236,21 +234,17 @@ bool GUIRenderable::IsInBounds(const Vector2I& position) const
 
 Vector2I GUIRenderable::GetContentOffsetInElementSpace() const
 {
-	const RectOffset& padding = GetPadding();
 	if(mStyleSheetRuleInformation.CurrentStateRuleset != nullptr)
 	{
 		const GUIStyleSheetRules& styleSheetRules = mStyleSheetRuleInformation.CurrentStateRuleset->Rules;
 
+		const RectOffset& padding = GetPadding();
 		return Vector2I(
 			padding.Left + styleSheetRules.BorderLeft.GetVisibleWidth(),
 			padding.Top + styleSheetRules.BorderTop.GetVisibleWidth());
 	}
-	else
-	{
-		return Vector2I(
-			padding.Left + mStyle->ContentOffset.Left,
-			padding.Top + mStyle->ContentOffset.Top);
-	}
+
+	return Vector2I(0, 0);
 }
 
 Color GUIRenderable::GetTint() const
@@ -288,98 +282,76 @@ const GUIStyleSheetRuleInformation& GUIRenderable::GetPseudoElementStyleSheetRul
 
 void GUIRenderable::RefreshStyle()
 {
-	const bool isUsingStyleSheets = GetStyleSheetElement() != nullptr;
-	if(isUsingStyleSheets)
+	bool anyRuleChanged = false;
+	if(GetStyleSheetElement() != nullptr)
 	{
 		const GUIWidget* parentWidget = GetParentWidget();
 		const GUIStyleSheetCascade& styleSheetCascade = parentWidget != nullptr ? parentWidget->GetStyleSheetCascade() : GUIStyleSheetCascade::kEmpty;
 
-		if(styleSheetCascade.HasRulesetForClass(GetStyleSheetClass(), GetStyleSheetElement()))
+		SPtr<const GUIStyleSheetStateRulesets> newStateRulesets = styleSheetCascade.BuildStateRulesets(*this);
+
+		if(!newStateRulesets)
+			newStateRulesets = GUIStyleSheetStateRulesets::kDefault;
+
+		if(newStateRulesets != mStyleSheetRuleInformation.StateRulesets)
 		{
-			SPtr<const GUIStyleSheetStateRulesets> newStateRulesets = styleSheetCascade.BuildStateRulesets(*this);
-
-			if(!newStateRulesets)
-				newStateRulesets = GUIStyleSheetStateRulesets::kDefault;
-
-			bool anyRuleChanged = false;
-			if(newStateRulesets != mStyleSheetRuleInformation.StateRulesets)
-			{
-				mStyleSheetRuleInformation.StateRulesets = newStateRulesets;
-				mStyleSheetRuleInformation.CurrentStateRuleset = nullptr;
-
-				if(IsUsingStyleSheets())
-				{
-					const bool isFixedBefore = mSizeConstraints.IsWidthFixed() && mSizeConstraints.IsHeightFixed();
-
-					mStyleSheetRuleInformation.CurrentStateRuleset = mStyleSheetRuleInformation.StateRulesets->BuildStateRuleset(mStateFlags);
-					mSizeConstraints.UpdateWithStyleSheetRule(mStyleSheetRuleInformation.CurrentStateRuleset->Rules);
-
-					const bool isFixedAfter = mSizeConstraints.IsWidthFixed() && mSizeConstraints.IsHeightFixed();
-					if(isFixedBefore != isFixedAfter)
-						RefreshLayoutUpdateParentsForChildren();
-
-					anyRuleChanged = true;
-				}
-			}
-
-			if(IsUsingStyleSheets())
-			{
-				const GUIStyleSheetRules* inheritedRules = mStyleSheetRuleInformation.CurrentStateRuleset != nullptr ? &mStyleSheetRuleInformation.CurrentStateRuleset->Rules : nullptr;
-				for(auto& pseudoElementRuleInformation : mPseudoElementStyleSheetRules)
-				{
-					SPtr<const GUIStyleSheetStateRulesets> newPseudoElementStateRulesets = styleSheetCascade.BuildStateRulesets(*this, pseudoElementRuleInformation.PseudoElementName);
-
-					if(!newPseudoElementStateRulesets)
-						newPseudoElementStateRulesets = GUIStyleSheetStateRulesets::kDefault;
-
-					pseudoElementRuleInformation.StateRulesets = newPseudoElementStateRulesets;
-					pseudoElementRuleInformation.CurrentStateRuleset = pseudoElementRuleInformation.StateRulesets->BuildStateRuleset(mStateFlags, inheritedRules);
-				}
-
-				if(anyRuleChanged)
-				{
-					NotifyStyleChanged();
-					MarkLayoutAsDirty();
-				}
-			}
-		}
-		else
-		{
-			mStyleSheetRuleInformation.StateRulesets = nullptr;
+			mStyleSheetRuleInformation.StateRulesets = newStateRulesets;
 			mStyleSheetRuleInformation.CurrentStateRuleset = nullptr;
-
-			for(auto& pseudoElementRuleInformation : mPseudoElementStyleSheetRules)
-			{
-				pseudoElementRuleInformation.StateRulesets = nullptr;
-				pseudoElementRuleInformation.CurrentStateRuleset = nullptr;
-			}
-		}
-	}
-
-	// DEPRECATED
-	if(!IsUsingStyleSheets())
-	{
-		const GUIElementStyle* newStyle = nullptr;
-		if(GetParentWidget() != nullptr && !mStyleClass.empty())
-			newStyle = GetParentWidget()->GetSkin().GetStyle(mStyleClass);
-		else
-			newStyle = &GUISkin::DefaultStyle;
-
-		if(newStyle != mStyle)
-		{
-			mStyle = newStyle;
 
 			const bool isFixedBefore = mSizeConstraints.IsWidthFixed() && mSizeConstraints.IsHeightFixed();
 
-			mSizeConstraints.UpdateWithStyle(mStyle);
+			mStyleSheetRuleInformation.CurrentStateRuleset = mStyleSheetRuleInformation.StateRulesets->BuildStateRuleset(mStateFlags);
+			mSizeConstraints.UpdateWithStyleSheetRule(mStyleSheetRuleInformation.CurrentStateRuleset->Rules);
 
 			const bool isFixedAfter = mSizeConstraints.IsWidthFixed() && mSizeConstraints.IsHeightFixed();
 			if(isFixedBefore != isFixedAfter)
 				RefreshLayoutUpdateParentsForChildren();
 
-			NotifyStyleChanged();
-			MarkLayoutAsDirty();
+			anyRuleChanged = true;
 		}
+
+		const GUIStyleSheetRules* inheritedRules = mStyleSheetRuleInformation.CurrentStateRuleset != nullptr ? &mStyleSheetRuleInformation.CurrentStateRuleset->Rules : nullptr;
+		for(auto& pseudoElementRuleInformation : mPseudoElementStyleSheetRules)
+		{
+			SPtr<const GUIStyleSheetStateRulesets> newPseudoElementStateRulesets = styleSheetCascade.BuildStateRulesets(*this, pseudoElementRuleInformation.PseudoElementName);
+
+			if(!newPseudoElementStateRulesets)
+				newPseudoElementStateRulesets = GUIStyleSheetStateRulesets::kDefault;
+
+			if(pseudoElementRuleInformation.StateRulesets != newPseudoElementStateRulesets)
+			{
+				pseudoElementRuleInformation.StateRulesets = newPseudoElementStateRulesets;
+				pseudoElementRuleInformation.CurrentStateRuleset = pseudoElementRuleInformation.StateRulesets->BuildStateRuleset(mStateFlags, inheritedRules);
+				anyRuleChanged = true;
+			}
+		}
+	}
+	else
+	{
+		if(mStyleSheetRuleInformation.StateRulesets != nullptr)
+		{
+			mStyleSheetRuleInformation.StateRulesets = nullptr;
+			mStyleSheetRuleInformation.CurrentStateRuleset = nullptr;
+
+			anyRuleChanged = true;
+		}
+
+		for(auto& pseudoElementRuleInformation : mPseudoElementStyleSheetRules)
+		{
+			if(pseudoElementRuleInformation.StateRulesets != nullptr)
+			{
+				pseudoElementRuleInformation.StateRulesets = nullptr;
+				pseudoElementRuleInformation.CurrentStateRuleset = nullptr;
+
+				anyRuleChanged = true;
+			}
+		}
+	}
+
+	if(anyRuleChanged)
+	{
+		NotifyStyleChanged();
+		MarkLayoutAsDirty();
 	}
 }
 

@@ -257,8 +257,6 @@ namespace bs
 		GUIStyleSheetRuleInformation mStyleSheetRuleInformation;
 		String mStyleClass;
 
-		const GUIElementStyle* mStyle = nullptr; // TODO - Deprecated
-
 		/************************************************************************/
 		/* 								RTTI		                     		*/
 		/************************************************************************/
