@@ -45,9 +45,6 @@ namespace bs
 		 */
 		void BuildRenderElements(const GUIBackgroundSpriteCreateInformation& createInformation, TInlineArray<GUIRenderElement, 4>& outRenderElements);
 
-		/** Same as the other overload, but for the old deprecated GUIElementStyle type, instead of style-sheets. */
-		void BuildRenderElements(const Size2UI& size, const GUIElementStyle& style, GUIElementState state, const Color& tint, u64 batchId, TInlineArray<GUIRenderElement, 4>& outRenderElements, const Vector2I& offset = Vector2I::kZero, u32 depth = 1);
-
 		/** Updates the animation start time (in seconds since application start), in case the background contains an animated sprite. */
 		void SetAnimationStartTime(float time);
 
@@ -89,12 +86,6 @@ namespace bs
 		 * @param	outRenderElements	Array to which the generated render element will be appended to.
 		 */
 		void BuildRenderElements(const GUIContentSpriteCreateInformation& createInformation, TInlineArray<GUIRenderElement, 4>& outRenderElements);
-
-		/** Same as the other overload, but for the old deprecated GUIElementStyle type, instead of style-sheets. */
-		void BuildRenderElements(const Size2UI& size, const GUIContent& content, const GUIElementStyle& style, GUIElementState state, const Color& tint, u64 batchId, TInlineArray<GUIRenderElement, 4>& outRenderElements, const Vector2I& offset = Vector2I::kZero, u32 depth = 0, bool wordWrap = false);
-
-		/** Builds a struct used for initializing the text sprite required for rendering the provided contents within the provided bounds. */
-		static TextSpriteInformation BuildTextSpriteInformation(const Rect2I& contentArea, const String& text, GUIElementState state, const GUIElementStyle& style, const Color& tint, bool  wordWrap = false);
 
 		/** Builds a struct used for initializing the text sprite required for rendering the provided contents within the provided bounds. */
 		static TextSpriteInformation BuildTextSpriteInformation(const Rect2I& contentArea, const String& text, const GUIStyleSheetRules& rules, const Color& tint, bool  wordWrap = false);

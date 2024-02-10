@@ -48,9 +48,6 @@ namespace bs
 
 		GUISizeConstraints() = default;
 
-		/** Updates constraints from the provided style. If user has not manually set a specific constraint, that property will be inherited from style. */
-		void UpdateWithStyle(const GUIElementStyle* style); // TODO: Deprecated
-
 		/** Updates constraints from the provided style sheet rule. If user has not manually set a specific constraint, that property will be inherited from the rule. */
 		void UpdateWithStyleSheetRule(const GUIStyleSheetRules& rule);
 

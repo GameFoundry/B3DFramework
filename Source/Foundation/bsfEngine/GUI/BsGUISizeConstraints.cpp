@@ -55,39 +55,6 @@ GUISizeConstraints GUISizeConstraints::Create(const TInlineArray<GUIOption, 4>& 
 	return dimensions;
 }
 
-void GUISizeConstraints::UpdateWithStyle(const GUIElementStyle* style)
-{
-	if(!IsWidthOverridenAtRuntime())
-	{
-		if(style->FixedWidth)
-		{
-			Flags |= GUISizeConstraintFlag::FixedWidth;
-			MinWidth = MaxWidth = style->Width;
-		}
-		else
-		{
-			Flags.Unset(GUISizeConstraintFlag::FixedWidth);
-			MinWidth = style->MinWidth;
-			MaxWidth = style->MaxWidth;
-		}
-	}
-
-	if(!IsHeightOverridenAtRuntime())
-	{
-		if(style->FixedHeight)
-		{
-			Flags |= GUISizeConstraintFlag::FixedHeight;
-			MinHeight = MaxHeight = style->Height;
-		}
-		else
-		{
-			Flags.Unset(GUISizeConstraintFlag::FixedHeight);
-			MinHeight = style->MinHeight;
-			MaxHeight = style->MaxHeight;
-		}
-	}
-}
-
 void GUISizeConstraints::UpdateWithStyleSheetRule(const GUIStyleSheetRules& rule)
 {
 	if(!IsWidthOverridenAtRuntime())

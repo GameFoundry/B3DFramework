@@ -86,37 +86,6 @@ void GUIBackgroundSprite::BuildRenderElements(const GUIBackgroundSpriteCreateInf
 	}
 }
 
-void GUIBackgroundSprite::BuildRenderElements(const Size2UI& size, const GUIElementStyle& style, GUIElementState state, const Color& tint, u64 batchId, TInlineArray<GUIRenderElement, 4>& outRenderElements, const Vector2I& offset, u32 depth)
-{
-	mBackgroundSpriteInformation.Width = size.Width;
-	mBackgroundSpriteInformation.Height = size.Height;
-
-	const HSpriteImage& activeImage = style.GetImageForState(state);
-	if(SpriteImage::CheckIsLoaded(activeImage))
-		mBackgroundSpriteInformation.Image = activeImage;
-	else
-		mBackgroundSpriteInformation.Image = nullptr;
-
-	mBackgroundSpriteInformation.BorderLeft = style.Border.Left;
-	mBackgroundSpriteInformation.BorderRight = style.Border.Right;
-	mBackgroundSpriteInformation.BorderTop = style.Border.Top;
-	mBackgroundSpriteInformation.BorderBottom = style.Border.Bottom;
-	mBackgroundSpriteInformation.Color = tint;
-
-	mBackgroundSprite.Update(mBackgroundSpriteInformation, batchId);
-
-	// Calculate content bounds
-	const Rect2 backgroundImageBounds(
-		(float)offset.X, (float)offset.Y,
-		(float)size.Width, (float)size.Height);
-
-	// Populate GUI render elements from the sprite
-	{
-		using T = GUIRenderElementHelper;
-		T::Append({ T::SpriteInfo(&mBackgroundSprite, depth, backgroundImageBounds) }, outRenderElements );
-	}
-}
-
 void GUIBackgroundSprite::SetAnimationStartTime(float time)
 {
 	mBackgroundSpriteInformation.AnimationStartTime = time;
@@ -169,69 +138,6 @@ void GUIContentSprites::BuildRenderElements(const GUIContentSpriteCreateInformat
 
 	if(isContentTextAvailable)
 		GUIRenderElementHelper::Append({ GUIRenderElementHelper::SpriteInfo(&mContentTextSprite, createInformation.Depth, textOffset, textBounds) }, outRenderElements );
-}
-
-void GUIContentSprites::BuildRenderElements(const Size2UI& size, const GUIContent& content, const GUIElementStyle& style, GUIElementState state, const Color& tint, u64 batchId, TInlineArray<GUIRenderElement, 4>& outRenderElements, const Vector2I& offset, u32 depth, bool wordWrap)
-{
-	const Rect2I contentArea = GUIHelper::CalculateContentArea(size, style);
-
-	const bool isContentTextAvailable = !content.Text.GetValue().empty();
-	if(isContentTextAvailable)
-	{
-		mContentTextSpriteInformation = BuildTextSpriteInformation(contentArea, content.Text.GetValue(), state, style, tint, wordWrap);
-
-		mContentTextSprite.Update(mContentTextSpriteInformation, batchId);
-	}
-
-	HSpriteImage contentImage = content.GetImage(state);
-	const bool isContentImageAvailable = contentImage.IsLoaded(false);
-	if(isContentImageAvailable)
-	{
-		const Size2UI scaledImageSize = CalculateScaledImageSize(contentImage, size);
-
-		mContentImageSpriteInformation.Image = contentImage;
-		mContentImageSpriteInformation.Width = scaledImageSize.Width;
-		mContentImageSpriteInformation.Height = scaledImageSize.Height;
-		mContentImageSpriteInformation.Color = tint;
-
-		mContentImageSprite.Update(mContentImageSpriteInformation, batchId);
-	}
-
-	// Calculate content bounds
-	Rect2 textBounds;
-	Rect2 imageBounds;
-
-	Rect2I textSpriteBounds = isContentTextAvailable ? mContentTextSprite.GetBounds(Vector2I(), Rect2I()) : Rect2I();
-	Rect2I contentImageSpriteBounds = isContentImageAvailable ? mContentImageSprite.GetBounds(Vector2I(), Rect2I()) : Rect2I();
-
-	CalculateContentBounds(contentArea, Size2UI(contentImageSpriteBounds.Width, contentImageSpriteBounds.Height), Size2UI(textSpriteBounds.Width, textSpriteBounds.Height), style.ImagePosition, textBounds, imageBounds);
-
-	const Vector2 textOffset = Vector2(textBounds.X, textBounds.Y) + offset.ToFloat();
-	const Vector2 imageOffset = Vector2(imageBounds.X, imageBounds.Y) + offset.ToFloat();
-
-	if(isContentImageAvailable)
-		GUIRenderElementHelper::Append({ GUIRenderElementHelper::SpriteInfo(&mContentImageSprite, depth, imageOffset, imageBounds) }, outRenderElements );
-
-	if(isContentTextAvailable)
-		GUIRenderElementHelper::Append({ GUIRenderElementHelper::SpriteInfo(&mContentTextSprite, depth, textOffset, textBounds) }, outRenderElements );
-}
-
-TextSpriteInformation GUIContentSprites::BuildTextSpriteInformation(const Rect2I& contentArea, const String& text, GUIElementState state, const GUIElementStyle& style, const Color& tint, bool wordWrap)
-{
-	TextSpriteInformation textSpriteInformation;
-
-	textSpriteInformation.Text = text;
-	textSpriteInformation.Font = style.Font;
-	textSpriteInformation.FontSize = style.FontSize;
-	textSpriteInformation.Color = tint * style.GetTextColorForState(state);
-
-	textSpriteInformation.Width = contentArea.Width;
-	textSpriteInformation.Height = contentArea.Height;
-	textSpriteInformation.HorzAlign = style.TextHorzAlign;
-	textSpriteInformation.VertAlign = style.TextVertAlign;
-	textSpriteInformation.WordWrap = wordWrap;
-
-	return textSpriteInformation;
 }
 
 TextSpriteInformation GUIContentSprites::BuildTextSpriteInformation(const Rect2I& contentArea, const String& text, const GUIStyleSheetRules& rules, const Color& tint, bool wordWrap)

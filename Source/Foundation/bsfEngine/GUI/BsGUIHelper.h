@@ -18,42 +18,6 @@ namespace bs
 	{
 	public:
 		/**
-		 * Calculates optimal content size by returning the nearest valid size to the provided value.
-		 *
-		 * @param	contentSize		Wanted content size. This will be limited by minimal constraints of the style and layout options.
-		 * @param	style			Style to use for determining size constraints.
-		 * @param	dimensions		Dimension constraints of a GUI element.
-		 */
-		static Vector2I CalculateOptimalContentSize(const Vector2I& contentSize, const GUIElementStyle& style, const GUISizeConstraints& dimensions); // TODO: DEPRECATED
-
-		/**
-		 * Calculates optimal content size for the provided content using the provided style and layout options for
-		 * constraints.
-		 *
-		 * @param	content			Content to calculate size for.
-		 * @param	style			Style to use for determining size constraints.
-		 * @param	dimensions		Dimension constraints of a GUI element.
-		 * @param	state			State of the GUI element in case the content changes according to state.
-		 */
-		static Vector2I CalculateOptimalContentSize(const GUIContent& content, const GUIElementStyle& style, const GUISizeConstraints& dimensions, GUIElementState state = GUIElementState::Normal); // TODO: DEPRECATED
-
-		/**
-		 * Calculates optimal content size for the provided text using the provided style and layout options for
-		 * constraints.
-		 *
-		 * @param	text			Text to calculate size for.
-		 * @param	style			Style to use for determining size constraints.
-		 * @param	dimensions		Dimension constraints of a GUI element.
-		 */
-		static Vector2I CalculateOptimalContentSize(const String& text, const GUIElementStyle& style, const GUISizeConstraints& dimensions); // TODO: DEPRECATED
-
-		/**
-		 * Calculates the content area based on the total element size (i.e. size as calculated by the layout). This is the layout area potentially
-		 * offset/reduced by padding/content offset as specified in the GUI element style.
-		 */
-		static Rect2I CalculateContentArea(const Size2UI& layoutSize, const GUIElementStyle& style);
-
-		/**
 		 * Calculates size of the GUI element area based on the GUI content size. This is just the content area expanded by padding and border provided by the style.
 		 *
 		 * @param	contentSize		Size of the GUI element's content area.

@@ -168,13 +168,13 @@ u32 GUIDropDownContent::GetElementHeight(u32 idx) const
 	const GUIStyleSheetCascade& styleSheetCascade = widget->GetStyleSheetCascade();
 
 	GUIStyleSheetRules rules;
-		if(mDropDownData.Entries[idx].IsSeparator())
-			rules = styleSheetCascade.BuildRules("texture", kSeparatorStyleClass);
-		else
-		{
-			const char* elementClass = mIsToggle ? kToggleStyleClass : kButtonStyleClass;
-			rules = styleSheetCascade.BuildRules("button", elementClass);
-		}
+	if(mDropDownData.Entries[idx].IsSeparator())
+		rules = styleSheetCascade.BuildRules("texture", kSeparatorStyleClass);
+	else
+	{
+		const char* elementClass = mIsToggle ? kToggleStyleClass : kButtonStyleClass;
+		rules = styleSheetCascade.BuildRules("button", elementClass);
+	}
 
 	return rules.Size.Height;
 }
