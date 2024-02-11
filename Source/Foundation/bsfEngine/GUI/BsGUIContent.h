@@ -9,6 +9,13 @@ namespace bs
 	 *  @{
 	 */
 
+	/**	Possible positions used for positioning content image within a GUI element. */
+	enum class B3D_SCRIPT_EXPORT(DocumentationGroup(GUI)) GUIImagePosition
+	{
+		Left,
+		Right
+	};
+
 	/**	Type of GUI element states. */
 	enum class B3D_SCRIPT_EXPORT(ExportAsStruct(true), DocumentationGroup(GUI)) GUIElementState // TODO - Replace this with bitmask, add disabled state, handle focused+active, hover+active, etc.
 	{

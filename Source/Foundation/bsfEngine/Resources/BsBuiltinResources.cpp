@@ -137,9 +137,6 @@ void BuiltinResources::OnStartUp()
 	mWhiteSpriteTexture = GetSkinTexture(kWhiteTex);
 
 	mFont = GetResources().Load<Font>(mEngineFontsFolder + (String(kDefaultFontName) + u8".asset"));
-	mSkin = GetResources().Load<GUISkin>(mBuiltinDataFolder + (String(kGuiSkinFile) + u8".json.asset"));
-	mEmptySkin = GUISkin::Create();
-
 	mDefaultGUIStyleSheet = GUIStyleSheet::Parse(mBuiltinRawDataFolder + "GUI.css");
 	mDefaultGUIStyleSheetCascade = B3DMakeShared<GUIStyleSheetCascade>();
 	mDefaultGUIStyleSheetCascade->RegisterStyleSheet(mDefaultGUIStyleSheet, GUIStyleSheet::kBuiltinImportance);

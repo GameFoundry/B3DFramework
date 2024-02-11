@@ -202,7 +202,6 @@ namespace bs
 
 	typedef ResourceHandle<PlainText> HPlainText;
 	typedef ResourceHandle<ScriptCode> HScriptCode;
-	typedef ResourceHandle<GUISkin> HGUISkin;
 	typedef ResourceHandle<GUIStyleSheet> HGUIStyleSheet;
 
 	/**	RTTI types. */
@@ -217,8 +216,8 @@ namespace bs
 		TID_ScriptCode = 30006,
 		TID_ScriptCodeImportOptions = 30007,
 		TID_GUIElementStyle = 30008,
-		TID_GUISkin = 30009,
-		TID_GUISkinEntry = 30010,
+		//TID_GUISkin = 30009, - Class removed
+		//TID_GUISkinEntry = 30010, - Class removed
 		/* TID_Light = 30011, */
 		/* TID_CLight = 30012, */
 		TID_GameSettings = 30013,

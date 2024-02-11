@@ -9,7 +9,6 @@
 #include "GUI/BsGUIButton.h"
 #include "GUI/BsGUISpace.h"
 #include "GUI/BsGUIContent.h"
-#include "GUI/BsGUISkin.h"
 #include "RenderAPI/BsViewport.h"
 #include "GUI/BsGUIListBox.h"
 #include "GUI/BsGUIDropDownBoxManager.h"
@@ -61,7 +60,7 @@ GUIDropDownMenu::GUIDropDownMenu(const HSceneObject& parent, const DROP_DOWN_BOX
 	: CGUIWidget(parent, desc.Camera), mRootMenu(nullptr), mFrontHitBox(nullptr), mBackHitBox(nullptr), mCaptureHitBox(nullptr)
 {
 	SetDepth(0); // Needs to be in front of everything
-	SetSkin(desc.Skin);
+	SetStyleSheetCascade(desc.StyleSheetCascade);
 
 	const GUIStyleSheetRules frameStyleSheetRules = GetStyleSheetCascade().BuildRules(GUITexture::kElementType, kBackgroundFrameStyleClass);
 	mBackgroundFramePadding = frameStyleSheetRules.Padding;

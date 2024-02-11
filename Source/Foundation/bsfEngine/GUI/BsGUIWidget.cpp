@@ -327,22 +327,6 @@ void GUIWidget::MarkContentDirty(GUIElement* elem)
 	}
 }
 
-void GUIWidget::SetSkin(const HGUISkin& skin)
-{
-	mSkin = skin;
-
-	for(auto& element : mElements)
-		element->RefreshStyle();
-}
-
-const GUISkin& GUIWidget::GetSkin() const
-{
-	if(mSkin.IsLoaded())
-		return *mSkin;
-	else
-		return *BuiltinResources::Instance().GetGuiSkin();
-}
-
 void GUIWidget::SetStyleSheetCascade(const SPtr<const GUIStyleSheetCascade>& styleSheetCascade)
 {
 	if(!B3D_ENSURE(styleSheetCascade != nullptr))

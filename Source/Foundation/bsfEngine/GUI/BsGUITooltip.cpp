@@ -9,7 +9,6 @@
 #include "GUI/BsGUITexture.h"
 #include "GUI/BsGUILabel.h"
 #include "GUI/BsGUIHelper.h"
-#include "GUI/BsGUISkin.h"
 #include "Resources/BsBuiltinResources.h"
 #include "GUI/BsDropDownAreaPlacement.h"
 #include "StyleSheet/BsGUIStyleSheet.h"
@@ -25,7 +24,7 @@ GUITooltip::GUITooltip(const HSceneObject& parent, const GUIWidget& overlaidWidg
 	: CGUIWidget(parent, overlaidWidget.GetCamera())
 {
 	SetDepth(0); // Needs to be in front of everything
-	SetSkin(overlaidWidget.GetSkinResource());
+	SetStyleSheetCascade(overlaidWidget.GetStyleSheetCascadeAsShared());
 
 	SPtr<Camera> camera = overlaidWidget.GetCamera();
 	SPtr<Viewport> viewport = camera->GetViewport();

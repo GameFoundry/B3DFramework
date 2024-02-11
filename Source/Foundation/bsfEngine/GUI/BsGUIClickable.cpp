@@ -1,15 +1,11 @@
 //************************************ bs::framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "GUI/BsGUIClickable.h"
-#include "2D/BsImageSprite.h"
-#include "GUI/BsGUISkin.h"
 #include "Image/BsSpriteTexture.h"
-#include "2D/BsTextSprite.h"
 #include "GUI/BsGUISizeConstraints.h"
 #include "GUI/BsGUIMouseEvent.h"
 #include "GUI/BsGUICommandEvent.h"
 #include "GUI/BsGUIHelper.h"
-#include "Image/BsSpriteVectorPath.h"
 #include "StyleSheet/BsGUIStyleSheet.h"
 
 using namespace bs;

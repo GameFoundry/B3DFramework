@@ -18,7 +18,6 @@
 #	include "Resources/BsPlainText.h"
 #	include "Resources/BsScriptCode.h"
 #	include "Localization/BsStringTable.h"
-#	include "GUI/BsGUISkin.h"
 #	include "Physics/BsPhysicsMaterial.h"
 #	include "Physics/BsPhysicsMesh.h"
 #	include "Audio/BsAudioClip.h"

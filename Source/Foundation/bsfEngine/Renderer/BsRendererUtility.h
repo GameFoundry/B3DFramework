@@ -8,6 +8,7 @@
 #include "Math/BsVector2I.h"
 #include "Math/BsRect2I.h"
 #include "RenderAPI/BsGpuDevice.h"
+#include "Mesh/BsMeshBase.h"
 #include "Renderer/BsRendererMaterial.h"
 #include "Renderer/BsGpuDataParameterBlock.h"
 

@@ -3,7 +3,6 @@
 #pragma once
 
 #include "BsPrerequisites.h"
-#include "GUI/BsGUISkin.h"
 #include "Utility/BsModule.h"
 #include "Math/BsVector2I.h"
 #include "BsApplication.h"
@@ -70,12 +69,6 @@ namespace bs
 	public:
 		BuiltinResources() = default;
 		~BuiltinResources();
-
-		/**	Returns the default skin used by engine GUI elements. */
-		const HGUISkin& GetGuiSkin() const { return mSkin; }
-
-		/**	Returns an empty skin used to be used when no other is available. */
-		const HGUISkin& GetEmptyGuiSkin() const { return mEmptySkin; }
 
 		/** Returns the default style sheet used by the GUI, if no other style sheet is provided. */
 		const HGUIStyleSheet& GetDefaultGUIStyleSheet() const { return mDefaultGUIStyleSheet; }
@@ -224,8 +217,6 @@ namespace bs
 		/**	Loads a cursor texture with the specified filename. */
 		HTexture GetCursorTexture(const String& name) const;
 
-		HGUISkin mEmptySkin;
-		HGUISkin mSkin;
 		HGUIStyleSheet mDefaultGUIStyleSheet;
 		SPtr<GUIStyleSheetCascade> mDefaultGUIStyleSheetCascade;
 		HFont mFont;

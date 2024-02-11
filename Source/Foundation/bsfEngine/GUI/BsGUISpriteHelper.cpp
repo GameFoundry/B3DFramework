@@ -4,7 +4,6 @@
 
 #include "BsGUIHelper.h"
 #include "BsGUIVectorPaths.h"
-#include "GUI/BsGUISkin.h"
 #include "Image/BsSpriteTexture.h"
 #include "2D/BsTextSprite.h"
 #include "Image/BsSpriteVectorPath.h"

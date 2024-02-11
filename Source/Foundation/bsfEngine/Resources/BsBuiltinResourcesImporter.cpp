@@ -296,31 +296,6 @@ void GenerateMeshes()
 	saveMesh(discPath, discMesh, "6f496313-344a-495c-83e8-152e3053c52d");
 }
 
-SPtr<GUISkin> GenerateGuiSkin()
-{
-	using nlohmann::json;
-
-	const Path skinFolder = sOutputFolder + BuiltinResources::kSkinFolder + BuiltinResources::kSpriteFolder;
-	const Path fontsFolder = sOutputFolder + BuiltinResources::kFontsFolder;
-	BuiltinResourceGUIElementStyleLoader loader(fontsFolder, skinFolder);
-
-	Path guiSkinPath = sInputFolder + kGuiSkinJson;
-	SPtr<DataStream> guiSkinStream = FileSystem::OpenFile(guiSkinPath);
-	json guiSkinJSON = json::parse(guiSkinStream->GetAsString().c_str());
-
-	SPtr<GUISkin> skin = GUISkin::CreatePtrInternal();
-
-	for(auto& entry : guiSkinJSON)
-	{
-		std::string name = entry["name"];
-
-		GUIElementStyle style = BuiltinResourcesHelper::LoadGuiStyleFromJson(entry, loader);
-		skin->SetStyle(name.c_str(), style);
-	}
-
-	return skin;
-}
-
 void ProcessAssets(bool generateGenerated, bool forceImport, time_t lastUpdateTime)
 {
 	using nlohmann::json;
@@ -345,7 +320,6 @@ void ProcessAssets(bool generateGenerated, bool forceImport, time_t lastUpdateTi
 	json includesJSON = dataListJSON["Includes"];
 	json shadersJSON = dataListJSON["Shaders"];
 	json fontsJSON = dataListJSON["Fonts"];
-	json guiSkinJSON = dataListJSON["GUISkin"];
 	json splashScreenJSON = dataListJSON["SplashScreen"];
 	json texturesJSON = dataListJSON["Textures"];
 
@@ -466,9 +440,6 @@ void ProcessAssets(bool generateGenerated, bool forceImport, time_t lastUpdateTi
 
 		if(!fontsJSON.is_null())
 			dataListJSON["Fonts"] = fontsJSON;
-
-		if(!guiSkinJSON.is_null())
-			dataListJSON["GUISkin"] = guiSkinJSON;
 
 		if(!splashScreenJSON.is_null())
 			dataListJSON["SplashScreen"] = splashScreenJSON;
@@ -744,24 +715,6 @@ void ProcessAssets(bool generateGenerated, bool forceImport, time_t lastUpdateTi
 				BuiltinResourcesHelper::ImportFont(fontSourcePath, fontSourcePath.GetFilename(), fontsFolder, fontSizes, antialiasing, UUID, sManifest);
 			}
 		}
-	}
-
-	// Generate & save GUI skin
-	if(!guiSkinJSON.is_null())
-	{
-		std::string name = guiSkinJSON["Path"];
-		std::string uuidStr = guiSkinJSON["UUID"];
-
-		String fileName(name.data(), name.size());
-		bs::UUID UUID(String(uuidStr.data(), uuidStr.size()));
-
-		const SPtr<GUISkin> skin = GenerateGuiSkin();
-		const Path outputPath = sOutputFolder + (fileName + u8".asset");
-
-		HResource skinResource = GetResources().CreateResourceHandle(skin, UUID);
-
-		GetResources().Save(skinResource, outputPath, true);
-		sManifest->RegisterResource(skinResource.GetId(), outputPath);
 	}
 
 	// Generate & save splash screen

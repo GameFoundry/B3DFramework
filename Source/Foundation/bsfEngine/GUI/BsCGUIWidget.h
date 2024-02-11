@@ -19,9 +19,6 @@ namespace bs
 	public:
 		virtual ~CGUIWidget() = default;
 
-		/** @copydoc GUIWidget::SetSkin */
-		void SetSkin(const HGUISkin& skin);
-
 		/** @copydoc GUIWidget::GetStyleSheetCascade */
 		const GUIStyleSheetCascade& GetStyleSheetCascade() const;
 

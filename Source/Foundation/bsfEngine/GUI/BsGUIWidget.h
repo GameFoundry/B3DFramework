@@ -31,20 +31,14 @@ namespace bs
 	public:
 		virtual ~GUIWidget();
 
-		/** Sets the skin used for all GUI elements in the widget. This will update the look of all current elements. */
-		void SetSkin(const HGUISkin& skin);
-
-		/**	Returns the currently active GUI skin. */
-		const GUISkin& GetSkin() const;
-
-		/**	Returns the currently active GUI skin resource. */
-		const HGUISkin& GetSkinResource() const { return mSkin; }
-
 		/** Determines the style sheets that all GUI elements part of this widget will lookup styles in. */
 		void SetStyleSheetCascade(const SPtr<const GUIStyleSheetCascade>& styleSheetCascade);
 
 		/** @copydoc SetStyleSheetCascade */
 		const GUIStyleSheetCascade& GetStyleSheetCascade() const;
+
+		/** @copydoc SetStyleSheetCascade */
+		const SPtr<const GUIStyleSheetCascade>& GetStyleSheetCascadeAsShared() const { return mStyleSheetCascade; }
 
 		/** Returns the root GUI panel for the widget. */
 		GUIPanel* GetPanel() const { return mPanel; }
@@ -212,7 +206,6 @@ namespace bs
 		mutable bool mWidgetIsDirty = false;
 		mutable Rect2I mBounds;
 
-		HGUISkin mSkin;
 		SPtr<const GUIStyleSheetCascade> mStyleSheetCascade;
 	};
 

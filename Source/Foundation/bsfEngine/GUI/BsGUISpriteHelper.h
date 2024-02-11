@@ -2,7 +2,6 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsGUIElementStyle.h"
 #include "BsPrerequisites.h"
 #include "GUI/BsGUIInteractable.h"
 #include "2D/BsImageSprite.h"

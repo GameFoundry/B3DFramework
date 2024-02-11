@@ -4,15 +4,12 @@
 
 #include "BsPrerequisites.h"
 #include "ThirdParty/json.hpp"
-#include "GUI/BsGUIElementStyle.h"
 
 namespace bs
 {
 	/** @addtogroup Resources-Engine-Internal
 	 *  @{
 	 */
-
-	class GUIElementStyleLoader;
 
 	/**	Provides various methods commonly used for managing builtin resources. */
 	class B3D_EXPORT BuiltinResourcesHelper
@@ -108,42 +105,6 @@ namespace bs
 
 		/** Loads the shader at the specified path, updates its bytecode if required, and re-saves the shader file. */
 		static void UpdateShaderBytecode(const Path& path);
-
-		/** Constructs a GUIElementStyle from the provided JSON entry. */
-		static GUIElementStyle LoadGuiStyleFromJson(const nlohmann::json& entry, const GUIElementStyleLoader& loader);
-	};
-
-	/**
-	 * Determines how are resources for GUIElementStyle loaded, when it is being decoded from a non-binary format that only
-	 * stores resource names.
-	 */
-	class B3D_EXPORT GUIElementStyleLoader
-	{
-	public:
-		virtual ~GUIElementStyleLoader() = default;
-
-		/** Loads a font with the specified name. */
-		virtual HFont LoadFont(const String& name) const = 0;
-
-		/** Loads a sprite texture with the specified name. */
-		virtual HSpriteTexture LoadTexture(const String& name) const = 0;
-	};
-
-	/** Handles loading of GUIELementStyle resources by retrieving them from the builtin resources folder. */
-	class B3D_EXPORT BuiltinResourceGUIElementStyleLoader final : public GUIElementStyleLoader
-	{
-	public:
-		BuiltinResourceGUIElementStyleLoader(const Path& fontPath, const Path& texturePath);
-
-		/** Loads a font with the specified name. */
-		HFont LoadFont(const String& name) const override;
-
-		/** Loads a sprite texture with the specified name. */
-		HSpriteTexture LoadTexture(const String& name) const override;
-
-	private:
-		Path mFontPath;
-		Path mTexturePath;
 	};
 
 	/** @} */

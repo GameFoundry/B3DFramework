@@ -15,7 +15,7 @@ void GUIContextMenu::Open(const Vector2I& position, GUIWidget& widget)
 {
 	DROP_DOWN_BOX_DESC desc;
 	desc.Camera = widget.GetCamera();
-	desc.Skin = widget.GetSkinResource();
+	desc.StyleSheetCascade = widget.GetStyleSheetCascadeAsShared();
 	desc.Placement = DropDownAreaPlacement::AroundPosition(position);
 	desc.DropDownData = GetDropDownData();
 

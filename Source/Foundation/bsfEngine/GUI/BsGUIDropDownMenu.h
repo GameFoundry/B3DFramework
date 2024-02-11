@@ -28,7 +28,7 @@ namespace bs
 		SPtr<Camera> Camera; /**< Camera on which to open the drop down box. */
 		DropDownAreaPlacement Placement; /**< Determines how is the drop down box positioned in the visible area. */
 		GUIDropDownData DropDownData; /**< Data to use for initializing menu items of the drop down box. */
-		HGUISkin Skin; /**< Skin to use for drop down box GUI elements. */
+		SPtr<const GUIStyleSheetCascade> StyleSheetCascade; /**< Style sheets to apply to drop down box GUI elements. */
 		/** Additional bounds that control what is considered the inside or the outside of the drop down box. */
 		Vector<Rect2I> AdditionalBounds;
 	};

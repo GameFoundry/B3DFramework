@@ -6,7 +6,6 @@
 #include "GUI/BsGUILabel.h"
 #include "GUI/BsGUIWidget.h"
 #include "GUI/BsGUIToggle.h"
-#include "GUI/BsGUISkin.h"
 #include "GUI/BsGUIMouseEvent.h"
 #include "GUI/BsGUICommandEvent.h"
 #include "BsGUILayoutX.h"

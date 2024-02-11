@@ -6,6 +6,7 @@
 #include "Resources/BsBuiltinResources.h"
 
 #define XSC_ENABLE_LANGUAGE_EXT 1
+#include "RenderAPI/BsGpuParameters.h"
 #include "Xsc/Xsc.h"
 
 using namespace std;

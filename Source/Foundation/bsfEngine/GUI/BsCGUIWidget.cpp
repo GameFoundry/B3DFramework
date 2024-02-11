@@ -29,11 +29,6 @@ CGUIWidget::CGUIWidget(const HSceneObject& parent, const HCamera& camera)
 	: CGUIWidget(parent, camera->GetCameraInternal())
 {}
 
-void CGUIWidget::SetSkin(const HGUISkin& skin)
-{
-	mInternal->SetSkin(skin);
-}
-
 const GUIStyleSheetCascade& CGUIWidget::GetStyleSheetCascade() const
 {
 	return mInternal->GetStyleSheetCascade();

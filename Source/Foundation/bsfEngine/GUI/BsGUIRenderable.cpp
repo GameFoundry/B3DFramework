@@ -3,7 +3,6 @@
 #include "GUI/BsGUIRenderable.h"
 #include "BsGUIHelper.h"
 #include "GUI/BsGUIWidget.h"
-#include "GUI/BsGUISkin.h"
 #include "GUI/BsGUIManager.h"
 #include "Resources/BsBuiltinResources.h"
 #include "StyleSheet/BsGUIStyleSheet.h"

@@ -329,7 +329,7 @@ void GUIListBox::OpenListBox()
 	GUIWidget* widget = GetParentWidget();
 
 	desc.Camera = widget->GetCamera();
-	desc.Skin = widget->GetSkinResource();
+	desc.StyleSheetCascade = widget->GetStyleSheetCascadeAsShared();
 	desc.Placement = DropDownAreaPlacement::AroundBoundsHorz(mClippedBounds);
 	desc.DropDownData.States = mElementStates;
 
