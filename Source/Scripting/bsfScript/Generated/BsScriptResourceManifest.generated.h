@@ -24,12 +24,13 @@ namespace bs
 		static MonoString* InternalGetName(ScriptResourceManifest* thisPtr);
 		static void InternalRegisterResource(ScriptResourceManifest* thisPtr, UUID* uuid, MonoString* filePath);
 		static void InternalUnregisterResource(ScriptResourceManifest* thisPtr, UUID* uuid);
-		static bool InternalUuidToFilePath(ScriptResourceManifest* thisPtr, UUID* uuid, MonoString** filePath);
-		static bool InternalFilePathToUuid(ScriptResourceManifest* thisPtr, MonoString* filePath, UUID* outUUID);
+		static bool InternalUUIDToPhysicalFilePath(ScriptResourceManifest* thisPtr, UUID* uuid, MonoString** filePath);
+		static bool InternalPhysicalFilePathToUUID(ScriptResourceManifest* thisPtr, MonoString* filePath, UUID* outUUID);
+		static bool InternalVirtualFilePathToUUID(ScriptResourceManifest* thisPtr, MonoString* filePath, UUID* outUUID);
 		static bool InternalUuidExists(ScriptResourceManifest* thisPtr, UUID* uuid);
 		static bool InternalFilePathExists(ScriptResourceManifest* thisPtr, MonoString* filePath);
 		static void InternalSave(MonoObject* manifest, MonoString* path, MonoString* relativePath);
-		static MonoObject* InternalLoad(MonoString* path, MonoString* relativePath);
+		static MonoObject* InternalLoad(MonoString* path, MonoString* relativePath, MonoString* virtualRelativePath);
 		static void InternalCreate(MonoObject* managedInstance, MonoString* name);
 	};
 #endif

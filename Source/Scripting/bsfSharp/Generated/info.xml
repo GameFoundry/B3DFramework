@@ -1611,13 +1611,6 @@ Use {0}, {1}, etc. in the string value for values that might change dynamically.
 		<field name="KeyIdx" type="int">
 		</field>
 	</struct>
-	<struct native="GUIElementStateStyle" script="GUIElementStateStyle">
-		<doc>Specific texture and text color used in a particular GUI element style.</doc>
-		<field name="Image" type="SpriteImage">
-		</field>
-		<field name="TextColor" type="Color">
-		</field>
-	</struct>
 	<struct native="Blend2DInfo" script="Blend2DInfo">
 		<doc>Defines a 2D blend where two animation clips are blended between each other using bilinear interpolation.</doc>
 		<field name="TopLeftClip" type="RRef&lt;AnimationClip&gt;">
@@ -6442,8 +6435,8 @@ Sprite images also allow you to specify sprite sheet animation by varying which 
 			<param name="uuid" type="UUID">
 			</param>
 		</method>
-		<method native="UuidToFilePath" script="UuidToFilePath" static="false">
-			<doc>Attempts to find a resource with the provided UUID and outputs the path to the resource if found. Returns true if UUID was found, false otherwise.</doc>
+		<method native="UUIDToPhysicalFilePath" script="UUIDToPhysicalFilePath" static="false">
+			<doc>Attempts to find a resource with the provided UUID and outputs the absolute physical path to the resource if found. Returns true if UUID was found, false otherwise.</doc>
 			<param name="uuid" type="UUID">
 			</param>
 			<param name="filePath" type="string">
@@ -6451,8 +6444,17 @@ Sprite images also allow you to specify sprite sheet animation by varying which 
 			<returns type="bool">
 			</returns>
 		</method>
-		<method native="FilePathToUuid" script="FilePathToUuid" static="false">
-			<doc>Attempts to find a resource with the provided path and outputs the UUID to the resource if found. Returns true if path was found, false otherwise.</doc>
+		<method native="PhysicalFilePathToUUID" script="PhysicalFilePathToUUID" static="false">
+			<doc>Attempts to find a resource with the provided physical path and outputs the UUID to the resource if found. Returns true if path was found, false otherwise.</doc>
+			<param name="filePath" type="string">
+			</param>
+			<param name="outUUID" type="UUID">
+			</param>
+			<returns type="bool">
+			</returns>
+		</method>
+		<method native="VirtualFilePathToUUID" script="VirtualFilePathToUUID" static="false">
+			<doc>Attempts to find a resource with the provided virtual path and outputs the UUID to the resource if found. Returns true if path was found, false otherwise.</doc>
 			<param name="filePath" type="string">
 			</param>
 			<param name="outUUID" type="UUID">
@@ -6493,6 +6495,9 @@ Sprite images also allow you to specify sprite sheet animation by varying which 
 			</param>
 			<param name="relativePath" type="string">
 				<doc>If not empty, all loaded pathnames will have this path prepended.</doc>
+			</param>
+			<param name="virtualRelativePath" type="string">
+				<doc>If not empty, adds an additional set of paths that the resource can be referenced from.</doc>
 			</param>
 			<returns type="ResourceManifest">
 			</returns>
@@ -7930,11 +7935,13 @@ Alternatively you can also skip manually calling release() and call unloadAllUnu
 			<returns type="bool">
 			</returns>
 		</method>
-		<method native="GetUuidFromFilePath" script="GetUuidFromFilePath" static="false">
-			<doc>Attempts to retrieve UUID from the provided file path. Returns true if successful, false otherwise.</doc>
+		<method native="GetUUUIDAndPhysicalPathFromFilePath" script="GetUUUIDAndPhysicalPathFromFilePath" static="false">
+			<doc>Attempts to retrieve UUID and physical file path from the provided file path. Provided path can be physical or virtual. Returns true if successful, false otherwise.</doc>
 			<param name="path" type="string">
 			</param>
-			<param name="uuid" type="UUID">
+			<param name="outUUID" type="UUID">
+			</param>
+			<param name="outPhysicalFilePath" type="string">
 			</param>
 			<returns type="bool">
 			</returns>
@@ -12177,161 +12184,6 @@ Alternatively you can also skip manually calling release() and call unloadAllUnu
 		<enumentry native="Right" script="Right">
 		</enumentry>
 	</enum>
-	<struct native="GUITextureContents" script="GUITextureContents">
-		<doc>Structure describing contents of a GUITexture element.</doc>
-		<ctor>
-		</ctor>
-		<ctor>
-			<param name="image" type="SpriteImage">
-			</param>
-			<param name="scaleMode" type="TextureScaleMode">
-			</param>
-			<param name="isTransparent" type="bool">
-			</param>
-		</ctor>
-		<field name="Image" type="SpriteImage">
-			<doc>Image to display. If this is null then the image specified by the style will be used.</doc>
-		</field>
-		<field name="ScaleMode" type="TextureScaleMode">
-			<doc>Scale mode to use when sizing the texture.</doc>
-		</field>
-		<field name="IsTransparent" type="bool">
-			<doc>Determines should the texture be rendered with transparency active.</doc>
-		</field>
-	</struct>
-	<class native="GUIElementStyle" script="GUIElementStyle">
-		<doc>GUI element style that determines the look of a GUI element, as well as the element&apos;s default layout options. Different looks can be provided for different element states.</doc>
-		<ctor>
-		</ctor>
-		<method native="AddSubStyle" script="AddSubStyle" static="false">
-			<doc>Registers a new sub-style that is used by complex GUI elements that contain one or multiple sub-elements.</doc>
-			<param name="guiType" type="string">
-				<doc>Name of the sub-element this style is to be used for. This depends on GUI element the style is applied to.</doc>
-			</param>
-			<param name="styleName" type="string">
-				<doc>Name of the style in GUI skin to use for the sub-element.</doc>
-			</param>
-		</method>
-		<property name="Font" type="Font" getter="GetFont" setter="SetFont" static="false">
-			<doc>Font to use for all text within the GUI element.</doc>
-		</property>
-		<property name="FontSize" type="float" getter="GetFontSize" setter="SetFontSize" static="false">
-			<doc>Font size to use for all text within the GUI element.</doc>
-		</property>
-		<property name="TextHorzAlign" type="GUIHorizontalTextAlignment" getter="GetTextHorzAlign" setter="SetTextHorzAlign" static="false">
-			<doc>Horizontal alignment of text within the GUI element.</doc>
-		</property>
-		<property name="TextVertAlign" type="GUIVerticalTextAlignment" getter="GetTextVertAlign" setter="SetTextVertAlign" static="false">
-			<doc>Vertical alignment of text within the GUI element.</doc>
-		</property>
-		<property name="ImagePosition" type="GUIImagePosition" getter="GetImagePosition" setter="SetImagePosition" static="false">
-			<doc>Position of content image relative to text.</doc>
-		</property>
-		<property name="WordWrap" type="bool" getter="GetWordWrap" setter="SetWordWrap" static="false">
-			<doc>Should the text word wrap if it doesn&apos;t fit.</doc>
-		</property>
-		<property name="Normal" type="GUIElementStateStyle" getter="GetNormal" setter="SetNormal" static="false">
-			<doc>Style used when the element doesn&apos;t have focus nor is the user interacting with the element. Used when the element is in the &apos;off&apos; state.</doc>
-		</property>
-		<property name="Hover" type="GUIElementStateStyle" getter="GetHover" setter="SetHover" static="false">
-			<doc>Style used when the user is hovering the pointer over the element, while the element doesn&apos;t have focus. Used when the element is in the &apos;off&apos; state.</doc>
-		</property>
-		<property name="Active" type="GUIElementStateStyle" getter="GetActive" setter="SetActive" static="false">
-			<doc>Style used when the user is actively interacting with the element. Used when the element is in the &apos;off&apos; state.</doc>
-		</property>
-		<property name="Focused" type="GUIElementStateStyle" getter="GetFocused" setter="SetFocused" static="false">
-			<doc>Style used when the element has focus but the pointer is not hovering over the element. Used when the element is in the &apos;off&apos; state.</doc>
-		</property>
-		<property name="FocusedHover" type="GUIElementStateStyle" getter="GetFocusedHover" setter="SetFocusedHover" static="false">
-			<doc>Style used when the element has focus and the pointer is hovering over the element. Used when the element is in the &apos;off&apos; state.</doc>
-		</property>
-		<property name="NormalOn" type="GUIElementStateStyle" getter="GetNormalOn" setter="SetNormalOn" static="false">
-			<doc>Same as GUIElementStyle::normal, except it&apos;s used when element is in the &apos;on&apos; state.</doc>
-		</property>
-		<property name="HoverOn" type="GUIElementStateStyle" getter="GetHoverOn" setter="SetHoverOn" static="false">
-			<doc>Same as GUIElementStyle::hover, except it&apos;s used when element is in the &apos;on&apos; state.</doc>
-		</property>
-		<property name="ActiveOn" type="GUIElementStateStyle" getter="GetActiveOn" setter="SetActiveOn" static="false">
-			<doc>Same as GUIElementStyle::active, except it&apos;s used when element is in the &apos;on&apos; state.</doc>
-		</property>
-		<property name="FocusedOn" type="GUIElementStateStyle" getter="GetFocusedOn" setter="SetFocusedOn" static="false">
-			<doc>Same as GUIElementStyle::focused, except it&apos;s used when element is in the &apos;on&apos; state.</doc>
-		</property>
-		<property name="FocusedHoverOn" type="GUIElementStateStyle" getter="GetFocusedHoverOn" setter="SetFocusedHoverOn" static="false">
-			<doc>Same as GUIElementStyle::focusedHover, except it&apos;s used when element is in the &apos;on&apos; state.</doc>
-		</property>
-		<property name="Border" type="RectOffset" getter="GetBorder" setter="SetBorder" static="false">
-			<doc>Determines how the element is scaled (using the typical Scale9Grid approach).</doc>
-		</property>
-		<property name="Margins" type="RectOffset" getter="GetMargins" setter="SetMargins" static="false">
-			<doc>Determines offset from the background graphics to the content. Input uses bounds offset by this value.</doc>
-		</property>
-		<property name="ContentOffset" type="RectOffset" getter="GetContentOffset" setter="SetContentOffset" static="false">
-			<doc>Additional offset to the content, that doesn&apos;t effect the bounds. Applied on top of the margins offsets.</doc>
-		</property>
-		<property name="Padding" type="RectOffset" getter="GetPadding" setter="SetPadding" static="false">
-			<doc>Determines extra distance between this and other elements in a layout.</doc>
-		</property>
-		<property name="Width" type="int" getter="GetWidth" setter="SetWidth" static="false">
-			<doc>Wanted width of the GUI element in pixels. Only used if fixedWidth is enabled.</doc>
-		</property>
-		<property name="Height" type="int" getter="GetHeight" setter="SetHeight" static="false">
-			<doc>Wanted height of the GUI element in pixels. Only used if fixedHeight is enabled.</doc>
-		</property>
-		<property name="MinWidth" type="int" getter="GetMinWidth" setter="SetMinWidth" static="false">
-			<doc>Minimum width allowed for the GUI element. Used by the layout only when exact width is not specified.</doc>
-		</property>
-		<property name="MaxWidth" type="int" getter="GetMaxWidth" setter="SetMaxWidth" static="false">
-			<doc>Maximum width allowed for the GUI element. Used by the layout only when exact width is not specified.</doc>
-		</property>
-		<property name="MinHeight" type="int" getter="GetMinHeight" setter="SetMinHeight" static="false">
-			<doc>Minimum height allowed for the GUI element. Used by the layout only when exact height is not specified.</doc>
-		</property>
-		<property name="MaxHeight" type="int" getter="GetMaxHeight" setter="SetMaxHeight" static="false">
-			<doc>Maximum height allowed for the GUI element. Used by the layout only when exact height is not specified.</doc>
-		</property>
-		<property name="FixedWidth" type="bool" getter="GetFixedWidth" setter="SetFixedWidth" static="false">
-			<doc>Determines should the layout resize the element depending on available size. If true no resizing will be done.</doc>
-		</property>
-		<property name="FixedHeight" type="bool" getter="GetFixedHeight" setter="SetFixedHeight" static="false">
-			<doc>Determines should the layout resize the element depending on available size. If true no resizing will be done.</doc>
-		</property>
-	</class>
-	<class native="GUISkin" script="GUISkin">
-		<doc>Holds a set of styles that control how are GUI element types positioned and displayed in the GUI. Each element type can be assigned a specific style.</doc>
-		<method native="HasStyle" script="HasStyle" static="false">
-			<doc>Checks if the style with the specified name exists.</doc>
-			<param name="name" type="string">
-			</param>
-			<returns type="bool">
-			</returns>
-		</method>
-		<method native="GetStyle" script="GetStyle" static="false">
-			<doc>Returns a style for the specified GUI element type.</doc>
-			<param name="guiElemType" type="string">
-			</param>
-			<returns type="GUIElementStyle">
-			</returns>
-		</method>
-		<method native="SetStyle" script="SetStyle" static="false">
-			<doc>Sets a style for the specified GUI element type.</doc>
-			<param name="guiElemType" type="string">
-			</param>
-			<param name="style" type="GUIElementStyle">
-			</param>
-		</method>
-		<method native="RemoveStyle" script="RemoveStyle" static="false">
-			<doc>Removes a style for the specified GUI element type.</doc>
-			<param name="guiElemType" type="string">
-			</param>
-		</method>
-		<ctor>
-			<doc>Creates an empty GUI skin and returns a handle to it.</doc>
-		</ctor>
-		<property name="StyleNames" type="string" getter="GetStyleNames" setter="" static="false">
-			<doc>Returns names of all styles registered on this skin.</doc>
-		</property>
-	</class>
 	<enum native="BuiltinShader" script="BuiltinShader">
 		<doc>Types of builtin shaders that are always available.</doc>
 		<enumentry native="Custom" script="Custom">
@@ -12717,6 +12569,28 @@ Alternatively you can also skip manually calling release() and call unloadAllUnu
 			</param>
 		</event>
 	</class>
+	<struct native="GUITextureContents" script="GUITextureContents">
+		<doc>Structure describing contents of a GUITexture element.</doc>
+		<ctor>
+		</ctor>
+		<ctor>
+			<param name="image" type="SpriteImage">
+			</param>
+			<param name="scaleMode" type="TextureScaleMode">
+			</param>
+			<param name="isTransparent" type="bool">
+			</param>
+		</ctor>
+		<field name="Image" type="SpriteImage">
+			<doc>Image to display. If this is null then the image specified by the style will be used.</doc>
+		</field>
+		<field name="ScaleMode" type="TextureScaleMode">
+			<doc>Scale mode to use when sizing the texture.</doc>
+		</field>
+		<field name="IsTransparent" type="bool">
+			<doc>Determines should the texture be rendered with transparency active.</doc>
+		</field>
+	</struct>
 	<class native="GUITexture" script="GUITexture">
 		<doc>A GUI element that displays a texture.</doc>
 		<method native="SetImage" script="SetImage" static="false">

@@ -15,7 +15,6 @@
 #include "Generated/BsScriptHString.generated.h"
 #include "Generated/BsScriptGUIContent.generated.h"
 #include "Generated/BsScriptRenderTexture.generated.h"
-#include "Generated/BsScriptGUIElementStyle.generated.h"
 
 using namespace bs;
 ScriptGUIRenderTexture::ScriptGUIRenderTexture(MonoObject* instance, GUIRenderTexture* texture)

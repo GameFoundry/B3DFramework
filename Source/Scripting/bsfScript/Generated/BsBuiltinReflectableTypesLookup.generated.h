@@ -144,8 +144,6 @@
 #include "../../../Foundation/bsfCore/Text/BsFontImportOptions.h"
 #endif
 #include "BsScriptFontImportOptions.generated.h"
-#include "../../../Foundation/bsfEngine/GUI/BsGUIElementStyle.h"
-#include "BsScriptGUIElementStyle.generated.h"
 
 namespace bs
 {
@@ -230,7 +228,6 @@ namespace bs
 #if !B3D_IS_ENGINE
 		ADD_ENTRY(FontImportOptions, ScriptFontImportOptions)
 #endif
-		ADD_ENTRY(GUIElementStyle, ScriptGUIElementStyle)
 	LOOKUP_END
 }
 #undef LOOKUP_BEGIN

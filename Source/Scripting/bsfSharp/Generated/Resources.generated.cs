@@ -182,11 +182,12 @@ namespace bs
 		}
 
 		/// <summary>
-		/// Attempts to retrieve UUID from the provided file path. Returns true if successful, false otherwise.
+		/// Attempts to retrieve UUID and physical file path from the provided file path. Provided path can be physical or 
+		/// virtual. Returns true if successful, false otherwise.
 		/// </summary>
-		public static bool GetUuidFromFilePath(string path, out UUID uuid)
+		public static bool GetUUUIDAndPhysicalPathFromFilePath(string path, out UUID outUUID, out string outPhysicalFilePath)
 		{
-			return Internal_GetUuidFromFilePath(path, out uuid);
+			return Internal_GetUUUIDAndPhysicalPathFromFilePath(path, out outUUID, out outPhysicalFilePath);
 		}
 
 		[MethodImpl(MethodImplOptions.InternalCall)]
@@ -220,7 +221,7 @@ namespace bs
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern bool Internal_GetFilePathFromUuid(ref UUID uuid, out string filePath);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern bool Internal_GetUuidFromFilePath(string path, out UUID uuid);
+		private static extern bool Internal_GetUUUIDAndPhysicalPathFromFilePath(string path, out UUID outUUID, out string outPhysicalFilePath);
 		private static void Internal_OnResourceLoaded(RRefBase p0)
 		{
 			OnResourceLoaded?.Invoke(p0);

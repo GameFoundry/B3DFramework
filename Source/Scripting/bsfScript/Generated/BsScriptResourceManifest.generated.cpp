@@ -19,8 +19,9 @@ namespace bs
 		metaData.ScriptClass->AddInternalCall("Internal_GetName", (void*)&ScriptResourceManifest::InternalGetName);
 		metaData.ScriptClass->AddInternalCall("Internal_RegisterResource", (void*)&ScriptResourceManifest::InternalRegisterResource);
 		metaData.ScriptClass->AddInternalCall("Internal_UnregisterResource", (void*)&ScriptResourceManifest::InternalUnregisterResource);
-		metaData.ScriptClass->AddInternalCall("Internal_UuidToFilePath", (void*)&ScriptResourceManifest::InternalUuidToFilePath);
-		metaData.ScriptClass->AddInternalCall("Internal_FilePathToUuid", (void*)&ScriptResourceManifest::InternalFilePathToUuid);
+		metaData.ScriptClass->AddInternalCall("Internal_UUIDToPhysicalFilePath", (void*)&ScriptResourceManifest::InternalUUIDToPhysicalFilePath);
+		metaData.ScriptClass->AddInternalCall("Internal_PhysicalFilePathToUUID", (void*)&ScriptResourceManifest::InternalPhysicalFilePathToUUID);
+		metaData.ScriptClass->AddInternalCall("Internal_VirtualFilePathToUUID", (void*)&ScriptResourceManifest::InternalVirtualFilePathToUUID);
 		metaData.ScriptClass->AddInternalCall("Internal_UuidExists", (void*)&ScriptResourceManifest::InternalUuidExists);
 		metaData.ScriptClass->AddInternalCall("Internal_FilePathExists", (void*)&ScriptResourceManifest::InternalFilePathExists);
 		metaData.ScriptClass->AddInternalCall("Internal_Save", (void*)&ScriptResourceManifest::InternalSave);
@@ -63,11 +64,11 @@ namespace bs
 		thisPtr->GetInternal()->UnregisterResource(*uuid);
 	}
 
-	bool ScriptResourceManifest::InternalUuidToFilePath(ScriptResourceManifest* thisPtr, UUID* uuid, MonoString** filePath)
+	bool ScriptResourceManifest::InternalUUIDToPhysicalFilePath(ScriptResourceManifest* thisPtr, UUID* uuid, MonoString** filePath)
 	{
 		bool tmp__output;
 		Path tmpfilePath;
-		tmp__output = thisPtr->GetInternal()->UuidToFilePath(*uuid, tmpfilePath);
+		tmp__output = thisPtr->GetInternal()->UUIDToPhysicalFilePath(*uuid, tmpfilePath);
 
 		bool __output;
 		__output = tmp__output;
@@ -76,12 +77,25 @@ namespace bs
 		return __output;
 	}
 
-	bool ScriptResourceManifest::InternalFilePathToUuid(ScriptResourceManifest* thisPtr, MonoString* filePath, UUID* outUUID)
+	bool ScriptResourceManifest::InternalPhysicalFilePathToUUID(ScriptResourceManifest* thisPtr, MonoString* filePath, UUID* outUUID)
 	{
 		bool tmp__output;
 		Path tmpfilePath;
 		tmpfilePath = MonoUtil::MonoToString(filePath);
-		tmp__output = thisPtr->GetInternal()->FilePathToUuid(tmpfilePath, *outUUID);
+		tmp__output = thisPtr->GetInternal()->PhysicalFilePathToUUID(tmpfilePath, *outUUID);
+
+		bool __output;
+		__output = tmp__output;
+
+		return __output;
+	}
+
+	bool ScriptResourceManifest::InternalVirtualFilePathToUUID(ScriptResourceManifest* thisPtr, MonoString* filePath, UUID* outUUID)
+	{
+		bool tmp__output;
+		Path tmpfilePath;
+		tmpfilePath = MonoUtil::MonoToString(filePath);
+		tmp__output = thisPtr->GetInternal()->VirtualFilePathToUUID(tmpfilePath, *outUUID);
 
 		bool __output;
 		__output = tmp__output;
@@ -127,14 +141,16 @@ namespace bs
 		ResourceManifest::Save(tmpmanifest, tmppath, tmprelativePath);
 	}
 
-	MonoObject* ScriptResourceManifest::InternalLoad(MonoString* path, MonoString* relativePath)
+	MonoObject* ScriptResourceManifest::InternalLoad(MonoString* path, MonoString* relativePath, MonoString* virtualRelativePath)
 	{
 		SPtr<ResourceManifest> tmp__output;
 		Path tmppath;
 		tmppath = MonoUtil::MonoToString(path);
 		Path tmprelativePath;
 		tmprelativePath = MonoUtil::MonoToString(relativePath);
-		tmp__output = ResourceManifest::Load(tmppath, tmprelativePath);
+		Path tmpvirtualRelativePath;
+		tmpvirtualRelativePath = MonoUtil::MonoToString(virtualRelativePath);
+		tmp__output = ResourceManifest::Load(tmppath, tmprelativePath, tmpvirtualRelativePath);
 
 		MonoObject* __output;
 		__output = ScriptResourceManifest::Create(tmp__output);

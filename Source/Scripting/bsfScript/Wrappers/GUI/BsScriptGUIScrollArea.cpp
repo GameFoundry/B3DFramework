@@ -12,8 +12,6 @@
 #include "GUI/BsGUIOptions.h"
 #include "Wrappers/GUI/BsScriptGUILayout.h"
 
-#include "Generated/BsScriptGUIElementStyle.generated.h"
-
 using namespace bs;
 ScriptGUIScrollArea::ScriptGUIScrollArea(MonoObject* instance, GUIScrollArea* scrollArea)
 	: TScriptGUIInteractable(instance, scrollArea), mLayout(nullptr)

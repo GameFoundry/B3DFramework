@@ -44,21 +44,30 @@ namespace bs
 		}
 
 		/// <summary>
-		/// Attempts to find a resource with the provided UUID and outputs the path to the resource if found. Returns true if 
-		/// UUID was found, false otherwise.
+		/// Attempts to find a resource with the provided UUID and outputs the absolute physical path to the resource if found. 
+		/// Returns true if UUID was found, false otherwise.
 		/// </summary>
-		public bool UuidToFilePath(UUID uuid, out string filePath)
+		public bool UUIDToPhysicalFilePath(UUID uuid, out string filePath)
 		{
-			return Internal_UuidToFilePath(mCachedPtr, ref uuid, out filePath);
+			return Internal_UUIDToPhysicalFilePath(mCachedPtr, ref uuid, out filePath);
 		}
 
 		/// <summary>
-		/// Attempts to find a resource with the provided path and outputs the UUID to the resource if found. Returns true if 
-		/// path was found, false otherwise.
+		/// Attempts to find a resource with the provided physical path and outputs the UUID to the resource if found. Returns 
+		/// true if path was found, false otherwise.
 		/// </summary>
-		public bool FilePathToUuid(string filePath, out UUID outUUID)
+		public bool PhysicalFilePathToUUID(string filePath, out UUID outUUID)
 		{
-			return Internal_FilePathToUuid(mCachedPtr, filePath, out outUUID);
+			return Internal_PhysicalFilePathToUUID(mCachedPtr, filePath, out outUUID);
+		}
+
+		/// <summary>
+		/// Attempts to find a resource with the provided virtual path and outputs the UUID to the resource if found. Returns 
+		/// true if path was found, false otherwise.
+		/// </summary>
+		public bool VirtualFilePathToUUID(string filePath, out UUID outUUID)
+		{
+			return Internal_VirtualFilePathToUUID(mCachedPtr, filePath, out outUUID);
 		}
 
 		/// <summary>Checks if provided UUID exists in the manifest.</summary>
@@ -87,9 +96,12 @@ namespace bs
 		/// <summary>Loads the resource manifest from the specified location.</summary>
 		/// <param name="path">Full pathname of the file to load the manifest from.</param>
 		/// <param name="relativePath">If not empty, all loaded pathnames will have this path prepended.</param>
-		public static ResourceManifest Load(string path, string relativePath)
+		/// <param name="virtualRelativePath">
+		/// If not empty, adds an additional set of paths that the resource can be referenced from.
+		/// </param>
+		public static ResourceManifest Load(string path, string relativePath, string virtualRelativePath)
 		{
-			return Internal_Load(path, relativePath);
+			return Internal_Load(path, relativePath, virtualRelativePath);
 		}
 
 		[MethodImpl(MethodImplOptions.InternalCall)]
@@ -99,9 +111,11 @@ namespace bs
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_UnregisterResource(IntPtr thisPtr, ref UUID uuid);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern bool Internal_UuidToFilePath(IntPtr thisPtr, ref UUID uuid, out string filePath);
+		private static extern bool Internal_UUIDToPhysicalFilePath(IntPtr thisPtr, ref UUID uuid, out string filePath);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern bool Internal_FilePathToUuid(IntPtr thisPtr, string filePath, out UUID outUUID);
+		private static extern bool Internal_PhysicalFilePathToUUID(IntPtr thisPtr, string filePath, out UUID outUUID);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		private static extern bool Internal_VirtualFilePathToUUID(IntPtr thisPtr, string filePath, out UUID outUUID);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern bool Internal_UuidExists(IntPtr thisPtr, ref UUID uuid);
 		[MethodImpl(MethodImplOptions.InternalCall)]
@@ -109,7 +123,7 @@ namespace bs
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_Save(ResourceManifest manifest, string path, string relativePath);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern ResourceManifest Internal_Load(string path, string relativePath);
+		private static extern ResourceManifest Internal_Load(string path, string relativePath, string virtualRelativePath);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_Create(ResourceManifest managedInstance, string name);
 	}

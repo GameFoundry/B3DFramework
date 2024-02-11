@@ -8,8 +8,6 @@
 #include "Resources/BsBuiltinResources.h"
 #include "BsMonoMethod.h"
 
-#include "Generated/BsScriptGUISkin.generated.h"
-
 using namespace bs;
 SPtr<GUIWidget> ScriptGUI::sGUIWidget;
 ScriptGUILayout* ScriptGUI::sPanel = nullptr;
@@ -28,7 +26,6 @@ void ScriptGUI::StartUp()
 {
 	SPtr<Camera> mainCamera = GetSceneManager().GetMainCamera();
 	sGUIWidget = GUIWidget::Create(mainCamera);
-	sGUIWidget->SetSkin(BuiltinResources::Instance().GetGuiSkin());
 
 	auto createPanel = []()
 	{

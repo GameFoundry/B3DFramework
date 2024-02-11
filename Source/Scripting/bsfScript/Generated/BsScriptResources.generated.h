@@ -54,7 +54,7 @@ namespace bs
 		static void InternalUnregisterResourceManifest(MonoObject* manifest);
 		static MonoObject* InternalGetResourceManifest(MonoString* name);
 		static bool InternalGetFilePathFromUuid(UUID* uuid, MonoString** filePath);
-		static bool InternalGetUuidFromFilePath(MonoString* path, UUID* uuid);
+		static bool InternalGetUUUIDAndPhysicalPathFromFilePath(MonoString* path, UUID* outUUID, MonoString** outPhysicalFilePath);
 	};
 #endif
 }

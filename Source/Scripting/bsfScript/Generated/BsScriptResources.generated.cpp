@@ -44,7 +44,7 @@ namespace bs
 		metaData.ScriptClass->AddInternalCall("Internal_UnregisterResourceManifest", (void*)&ScriptResources::InternalUnregisterResourceManifest);
 		metaData.ScriptClass->AddInternalCall("Internal_GetResourceManifest", (void*)&ScriptResources::InternalGetResourceManifest);
 		metaData.ScriptClass->AddInternalCall("Internal_GetFilePathFromUuid", (void*)&ScriptResources::InternalGetFilePathFromUuid);
-		metaData.ScriptClass->AddInternalCall("Internal_GetUuidFromFilePath", (void*)&ScriptResources::InternalGetUuidFromFilePath);
+		metaData.ScriptClass->AddInternalCall("Internal_GetUUUIDAndPhysicalPathFromFilePath", (void*)&ScriptResources::InternalGetUUUIDAndPhysicalPathFromFilePath);
 
 		OnResourceLoadedThunk = (OnResourceLoadedThunkDef)metaData.ScriptClass->GetMethodExact("Internal_OnResourceLoaded", "RRefBase")->GetThunk();
 		OnResourceDestroyedThunk = (OnResourceDestroyedThunkDef)metaData.ScriptClass->GetMethodExact("Internal_OnResourceDestroyed", "UUID&")->GetThunk();
@@ -281,15 +281,17 @@ namespace bs
 		return __output;
 	}
 
-	bool ScriptResources::InternalGetUuidFromFilePath(MonoString* path, UUID* uuid)
+	bool ScriptResources::InternalGetUUUIDAndPhysicalPathFromFilePath(MonoString* path, UUID* outUUID, MonoString** outPhysicalFilePath)
 	{
 		bool tmp__output;
 		Path tmppath;
 		tmppath = MonoUtil::MonoToString(path);
-		tmp__output = Resources::Instance().GetUuidFromFilePath(tmppath, *uuid);
+		Path tmpoutPhysicalFilePath;
+		tmp__output = Resources::Instance().GetUUUIDAndPhysicalPathFromFilePath(tmppath, *outUUID, tmpoutPhysicalFilePath);
 
 		bool __output;
 		__output = tmp__output;
+		MonoUtil::ReferenceCopy(outPhysicalFilePath,  (MonoObject*)MonoUtil::StringToMono(tmpoutPhysicalFilePath.ToString()));
 
 		return __output;
 	}

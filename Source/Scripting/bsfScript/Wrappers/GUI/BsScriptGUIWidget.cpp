@@ -10,7 +10,6 @@
 #include "Components/BsCCamera.h"
 
 #include "Generated/BsScriptCCamera.generated.h"
-#include "Generated/BsScriptGUISkin.generated.h"
 
 using namespace bs;
 MonoField* ScriptGUIWidget::sGUIPanelField = nullptr;
@@ -21,7 +20,6 @@ ScriptGUIWidget::ScriptGUIWidget(MonoObject* managedInstance)
 	SPtr<Camera> mainCamera = GetSceneManager().GetMainCamera();
 
 	mGUIWidget = GUIWidget::Create(mainCamera);
-	mGUIWidget->SetSkin(BuiltinResources::Instance().GetGuiSkin());
 
 	MonoObject* guiPanel = ScriptGUIPanel::CreateFromExisting(mGUIWidget->GetPanel());
 	mPanel = ScriptGUILayout::ToNative(guiPanel);

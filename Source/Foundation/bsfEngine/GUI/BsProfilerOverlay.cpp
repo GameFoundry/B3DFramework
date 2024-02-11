@@ -326,7 +326,6 @@ void ProfilerOverlay::SetTarget(const SPtr<Camera>& camera)
 	mWidgetSO = SceneObject::Create("ProfilerOverlay", SOF_Internal | SOF_Persistent | SOF_DontSave);
 	mWidget = mWidgetSO->AddComponent<CGUIWidget>(camera);
 	mWidget->SetDepth(127);
-	mWidget->SetSkin(BuiltinResources::Instance().GetGuiSkin());
 
 	// Set up CPU sample areas
 	mBasicLayoutLabels = mWidget->GetPanel()->AddNewElement<GUILayoutY>();

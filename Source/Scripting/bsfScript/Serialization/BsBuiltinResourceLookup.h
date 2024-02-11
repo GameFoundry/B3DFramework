@@ -43,7 +43,6 @@
 #	include "Generated/BsScriptSpriteTexture.generated.h"
 #	include "Generated/BsScriptStringTable.generated.h"
 #	include "Generated/BsScriptVectorField.generated.h"
-#	include "Generated/BsScriptGUISkin.generated.h"
 #	include "Generated/BsScriptSpriteGlyph.generated.h"
 #	include "Generated/BsScriptSpriteVectorPath.generated.h"
 #	include "Generated/BsScriptVectorPath.generated.h"
@@ -126,7 +125,6 @@ namespace bs
 	ADD_ENTRY(PlainText, ScriptPlainText, ScriptResourceType::PlainText)
 	ADD_ENTRY(ScriptCode, ScriptScriptCode, ScriptResourceType::ScriptCode)
 	ADD_ENTRY(StringTable, ScriptStringTable, ScriptResourceType::StringTable)
-	ADD_ENTRY(GUISkin, ScriptGUISkin, ScriptResourceType::GUISkin)
 	ADD_ENTRY(PhysicsMaterial, ScriptPhysicsMaterial, ScriptResourceType::PhysicsMaterial)
 	ADD_ENTRY(PhysicsMesh, ScriptPhysicsMesh, ScriptResourceType::PhysicsMesh)
 	ADD_ENTRY(AudioClip, ScriptAudioClip, ScriptResourceType::AudioClip)
