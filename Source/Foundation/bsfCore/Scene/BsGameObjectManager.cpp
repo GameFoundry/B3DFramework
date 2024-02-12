@@ -131,28 +131,28 @@ void GameObjectDeserializationState::Resolve()
 			const auto findIterObj = mDeserializedObjects.find(instanceId);
 
 			if(findIterObj != mDeserializedObjects.end())
-				entry.Handle.ResolveInternal(findIterObj->second);
+				entry.Handle.SetSharedHandleData(findIterObj->second);
 			else
 			{
 				if((mOptions & GODM_KeepMissing) == 0)
-					entry.Handle.ResolveInternal(nullptr);
+					entry.Handle.ClearSharedHandleData();
 			}
 		}
 		else if(!isInternalReference && (mOptions & GODM_RestoreExternal) != 0)
 		{
 			HGameObject obj;
 			if(GameObjectManager::Instance().TryGetObject(instanceId, obj))
-				entry.Handle.ResolveInternal(obj);
+				entry.Handle.SetSharedHandleData(obj);
 			else
 			{
 				if((mOptions & GODM_KeepMissing) == 0)
-					entry.Handle.ResolveInternal(nullptr);
+					entry.Handle.ClearSharedHandleData();
 			}
 		}
 		else
 		{
 			if((mOptions & GODM_KeepMissing) == 0)
-				entry.Handle.ResolveInternal(nullptr);
+				entry.Handle.ClearSharedHandleData();
 		}
 	}
 
@@ -185,7 +185,7 @@ void GameObjectDeserializationState::RegisterUnresolvedHandle(u64 originalId, Ga
 		const auto iterFind2 = mDeserializedObjects.find(iterFind->second);
 		if(iterFind2 != mDeserializedObjects.end())
 		{
-			object.mData = iterFind2->second.mData;
+			object.mSharedHandleData = iterFind2->second.mSharedHandleData;
 			foundHandleData = true;
 		}
 	}
@@ -196,14 +196,14 @@ void GameObjectDeserializationState::RegisterUnresolvedHandle(u64 originalId, Ga
 		auto iterFind = mUnresolvedHandleData.find(originalId);
 		if(iterFind != mUnresolvedHandleData.end())
 		{
-			object.mData = iterFind->second;
+			object.mSharedHandleData = iterFind->second;
 			foundHandleData = true;
 		}
 	}
 
 	// If still not found, this is the first such handle so register its handle data
 	if(!foundHandleData)
-		mUnresolvedHandleData[originalId] = object.mData;
+		mUnresolvedHandleData[originalId] = object.mSharedHandleData;
 
 	mUnresolvedHandles.push_back({ originalId, object });
 }
@@ -215,10 +215,10 @@ void GameObjectDeserializationState::RegisterObject(u64 originalId, GameObjectHa
 	const auto iterFind = mUnresolvedHandleData.find(originalId);
 	if(iterFind != mUnresolvedHandleData.end())
 	{
-		SPtr<GameObject> ptr = object.GetInternalPtr();
+		SPtr<GameObject> ptr = object.GetShared();
 
-		object.mData = iterFind->second;
-		object.SetHandleDataInternal(ptr);
+		object.mSharedHandleData = iterFind->second;
+		object.SetSharedHandleData(ptr);
 	}
 
 	const u64 newId = object->GetInstanceId();

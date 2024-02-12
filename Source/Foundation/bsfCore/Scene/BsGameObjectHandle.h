@@ -31,11 +31,12 @@ namespace bs
 	{
 		GameObjectHandleData() = default;
 
-		GameObjectHandleData(SPtr<GameObjectInstanceData> ptr)
-			: MPtr(std::move(ptr))
+		GameObjectHandleData(SPtr<GameObjectInstanceData> instanceData, const UUID& id)
+			: InstanceData(std::move(instanceData)), Id(id)
 		{}
 
-		SPtr<GameObjectInstanceData> MPtr;
+		SPtr<GameObjectInstanceData> InstanceData;
+		UUID Id;
 	};
 
 	/**
@@ -51,7 +52,7 @@ namespace bs
 	{
 	public:
 		GameObjectHandleBase()
-			: mData(B3DMakeShared<GameObjectHandleData>(nullptr))
+			: mSharedHandleData(B3DMakeShared<GameObjectHandleData>(nullptr, UUID::kEmpty))
 		{}
 
 		/**
@@ -65,7 +66,7 @@ namespace bs
 		bool IsDestroyed(bool checkQueued = false) const;
 
 		/**	Returns the instance ID of the object the handle is referencing. */
-		u64 GetInstanceId() const { return mData->MPtr != nullptr ? mData->MPtr->MInstanceId : 0; }
+		u64 GetInstanceId() const { return mSharedHandleData->InstanceData != nullptr ? mSharedHandleData->InstanceData->MInstanceId : 0; }
 
 		/**
 		 * Returns pointer to the referenced GameObject.
@@ -74,35 +75,29 @@ namespace bs
 		 */
 		GameObject* Get() const
 		{
-			ThrowIfDestroyed();
+			if(!B3D_ENSURE(!IsDestroyed()))
+				return nullptr;
 
-			return mData->MPtr->Object.get();
+			return mSharedHandleData->InstanceData->Object.get();
 		}
 
 		/**
-		 * Returns a smart pointer to the referenced GameObject.
+		 * Returns the shared pointer to the referenced GameObject.
 		 *
 		 * @note	Throws exception if the GameObject was destroyed.
 		 */
-		SPtr<GameObject> GetInternalPtr() const
+		SPtr<GameObject> GetShared() const
 		{
-			ThrowIfDestroyed();
+			if(!B3D_ENSURE(!IsDestroyed()))
+				return nullptr;
 
-			return mData->MPtr->Object;
+			return mSharedHandleData->InstanceData->Object;
 		}
 
-		/**
-		 * Returns pointer to the referenced GameObject.
-		 *
-		 * @note	Throws exception if the GameObject was destroyed.
-		 */
+		/** Returns pointer to the referenced GameObject. */
 		GameObject* operator->() const { return Get(); }
 
-		/**
-		 * Returns reference to the referenced GameObject.
-		 *
-		 * @note	Throws exception if the GameObject was destroyed.
-		 */
+		/** Returns reference to the referenced GameObject. */
 		GameObject& operator*() const { return *Get(); }
 
 	public: // ***** INTERNAL ******
@@ -111,13 +106,32 @@ namespace bs
 		 */
 
 		/** Returns internal handle data. */
-		const SPtr<GameObjectHandleData>& GetHandleDataInternal() const { return mData; }
+		const SPtr<GameObjectHandleData>& GetSharedHandleData() const { return mSharedHandleData; }
 
-		/** Resolves a handle to a proper GameObject in case it was created uninitialized. */
-		void ResolveInternal(const GameObjectHandleBase& object) { mData->MPtr = object.mData->MPtr; }
+		/**
+		 * Updates the shared handle data so it has the same contents as the provided shared handle data. Note this will affect any other handles
+		 * sharing the handle data.
+		 */
+		void SetSharedHandleData(const GameObjectHandleBase& other)
+		{
+			B3D_ASSERT(mSharedHandleData != nullptr);
+			B3D_ASSERT(other.mSharedHandleData != nullptr);
 
-		/**	Changes the GameObject instance the handle is pointing to. */
-		void SetHandleDataInternal(const SPtr<GameObject>& object);
+			mSharedHandleData->InstanceData = other.mSharedHandleData->InstanceData;
+			mSharedHandleData->Id = other.mSharedHandleData->Id;
+		}
+
+		/** Clears the shared handle data to empty values. Note this will affect any other handles sharing the handle data. */
+		void ClearSharedHandleData()
+		{
+			B3D_ASSERT(mSharedHandleData != nullptr);
+
+			mSharedHandleData->InstanceData = nullptr;
+			mSharedHandleData->Id = UUID::kEmpty;
+		}
+
+		/** Updates the shared handle data so it points to the provided object. Note this will affect any other handles sharing the handle data. */
+		void SetSharedHandleData(const SPtr<GameObject>& object);
 
 		/** @} */
 
@@ -126,32 +140,29 @@ namespace bs
 		friend class GameObjectDeserializationState;
 
 		template <class _Ty1, class _Ty2>
-		friend bool operator==(const GameObjectHandle<_Ty1>& _Left, const GameObjectHandle<_Ty2>& _Right);
+		friend bool operator==(const GameObjectHandle<_Ty1>& lhs, const GameObjectHandle<_Ty2>& rhs);
 
-		GameObjectHandleBase(const SPtr<GameObject>& ptr);
+		GameObjectHandleBase(const SPtr<GameObject>& object);
 
-		GameObjectHandleBase(SPtr<GameObjectHandleData> data)
-			: mData(std::move(data))
+		GameObjectHandleBase(SPtr<GameObjectHandleData> sharedHandleData)
+			: mSharedHandleData(std::move(sharedHandleData))
 		{}
 
-		GameObjectHandleBase(std::nullptr_t ptr)
-			: mData(B3DMakeShared<GameObjectHandleData>(nullptr))
+		GameObjectHandleBase(std::nullptr_t)
+			: mSharedHandleData(B3DMakeShared<GameObjectHandleData>(nullptr, UUID::kEmpty))
 		{}
-
-		/**	Throws an exception if the referenced GameObject has been destroyed. */
-		void ThrowIfDestroyed() const;
 
 		/**	Invalidates the handle signifying the referenced object was destroyed. */
 		void Destroy()
 		{
-			// It's important not to clear mData->mPtr as some code might rely
-			// on it. (for example for restoring lost handles)
+			// It's important not to clear mSharedHandleData->InstanceData as some code might rely on it. (for example for restoring lost handles)
 
-			if(mData->MPtr != nullptr)
-				mData->MPtr->Object = nullptr;
+			if(mSharedHandleData->InstanceData != nullptr)
+				mSharedHandleData->InstanceData->Object = nullptr;
 		}
 
-		SPtr<GameObjectHandleData> mData;
+		/** Data shared between a set of handles pointing the referenced object. */
+		SPtr<GameObjectHandleData> mSharedHandleData;
 
 		/************************************************************************/
 		/* 								RTTI		                     		*/
@@ -179,21 +190,20 @@ namespace bs
 	public:
 		/**	Constructs a new empty handle. */
 		GameObjectHandle()
-			: GameObjectHandleBase()
 		{
-			mData = B3DMakeShared<GameObjectHandleData>();
+			mSharedHandleData = B3DMakeShared<GameObjectHandleData>();
 		}
 
 		/**	Copy constructor from another handle of the same type. */
-		GameObjectHandle(const GameObjectHandle<T>& ptr) = default;
+		GameObjectHandle(const GameObjectHandle<T>& other) = default;
 
 		/**	Move constructor from another handle of the same type. */
-		GameObjectHandle(GameObjectHandle<T>&& ptr) = default;
+		GameObjectHandle(GameObjectHandle<T>&& other) = default;
 
 		/**	Invalidates the handle. */
-		GameObjectHandle<T>& operator=(std::nullptr_t ptr)
+		GameObjectHandle<T>& operator=(std::nullptr_t)
 		{
-			mData = B3DMakeShared<GameObjectHandleData>();
+			mSharedHandleData = B3DMakeShared<GameObjectHandleData>();
 
 			return *this;
 		}
@@ -204,42 +214,28 @@ namespace bs
 		/** Move assignment */
 		GameObjectHandle<T>& operator=(GameObjectHandle<T>&& other) = default;
 
-		/**
-		 * Returns a pointer to the referenced GameObject.
-		 *
-		 * @note	Throws exception if the GameObject was destroyed.
-		 */
+		/** Returns a pointer to the referenced GameObject. */
 		T* Get() const
 		{
-			ThrowIfDestroyed();
+			if(!B3D_ENSURE(!IsDestroyed()))
+				return nullptr;
 
-			return reinterpret_cast<T*>(mData->MPtr->Object.get());
+			return reinterpret_cast<T*>(mSharedHandleData->InstanceData->Object.get());
 		}
 
-		/**
-		 * Returns a smart pointer to the referenced GameObject.
-		 *
-		 * @note	Throws exception if the GameObject was destroyed.
-		 */
-		SPtr<T> GetInternalPtr() const
+		/** Returns a smart pointer to the referenced GameObject. */
+		SPtr<T> GetShared() const
 		{
-			ThrowIfDestroyed();
+			if(!B3D_ENSURE(!IsDestroyed()))
+				return nullptr;
 
-			return std::static_pointer_cast<T>(mData->MPtr->Object);
+			return std::static_pointer_cast<T>(mSharedHandleData->InstanceData->Object);
 		}
 
-		/**
-		 * Returns pointer to the referenced GameObject.
-		 *
-		 * @note	Throws exception if the GameObject was destroyed.
-		 */
+		/** Returns pointer to the referenced GameObject.  */
 		T* operator->() const { return Get(); }
 
-		/**
-		 * Returns reference to the referenced GameObject.
-		 *
-		 * @note	Throws exception if the GameObject was destroyed.
-		 */
+		/** Returns reference to the referenced GameObject. */
 		T& operator*() const { return *Get(); }
 
 	public: // ***** INTERNAL ******
@@ -262,7 +258,7 @@ namespace bs
 		 */
 		operator int Bool_struct<T>::*() const
 		{
-			return (((mData->MPtr != nullptr) && (mData->MPtr->Object != nullptr)) ? &Bool_struct<T>::Member : 0);
+			return (((mSharedHandleData->InstanceData != nullptr) && (mSharedHandleData->InstanceData->Object != nullptr)) ? &Bool_struct<T>::Member : 0);
 		}
 
 		/** @} */
@@ -283,29 +279,29 @@ namespace bs
 	template <class _Ty1, class _Ty2>
 	GameObjectHandle<_Ty1> B3DStaticGameObjectCast(const GameObjectHandle<_Ty2>& other)
 	{
-		return GameObjectHandle<_Ty1>(other.GetHandleDataInternal());
+		return GameObjectHandle<_Ty1>(other.GetSharedHandleData());
 	}
 
 	/**	Casts a generic GameObject handle to a specific one . */
 	template <class T>
 	GameObjectHandle<T> B3DStaticGameObjectCast(const GameObjectHandleBase& other)
 	{
-		return GameObjectHandle<T>(other.GetHandleDataInternal());
+		return GameObjectHandle<T>(other.GetSharedHandleData());
 	}
 
 	/**	Compares if two handles point to the same GameObject. */
 	template <class _Ty1, class _Ty2>
-	bool operator==(const GameObjectHandle<_Ty1>& _Left, const GameObjectHandle<_Ty2>& _Right)
+	bool operator==(const GameObjectHandle<_Ty1>& lhs, const GameObjectHandle<_Ty2>& rhs)
 	{
-		return (_Left.mData == nullptr && _Right.mData == nullptr) ||
-			(_Left.mData != nullptr && _Right.mData != nullptr && _Left.GetInstanceId() == _Right.GetInstanceId());
+		return (lhs.mSharedHandleData == nullptr && rhs.mSharedHandleData == nullptr) ||
+			(lhs.mSharedHandleData != nullptr && rhs.mSharedHandleData != nullptr && lhs.GetInstanceId() == rhs.GetInstanceId());
 	}
 
 	/**	Compares if two handles point to different GameObject%s. */
 	template <class _Ty1, class _Ty2>
-	bool operator!=(const GameObjectHandle<_Ty1>& _Left, const GameObjectHandle<_Ty2>& _Right)
+	bool operator!=(const GameObjectHandle<_Ty1>& lhs, const GameObjectHandle<_Ty2>& rhs)
 	{
-		return (!(_Left == _Right));
+		return (!(lhs == rhs));
 	}
 
 	/** @} */

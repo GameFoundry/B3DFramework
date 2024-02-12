@@ -137,7 +137,7 @@ void PrefabDiff::ApplyDiff(const SPtr<PrefabObjectDiff>& diff, const HSceneObjec
 			if(componentDiff->Id == (i32)component->GetLinkId())
 			{
 				IDiff& diffHandler = component->GetRtti()->GetDiffHandler();
-				diffHandler.ApplyDiff(component.GetInternalPtr(), componentDiff->Data, context);
+				diffHandler.ApplyDiff(component.GetShared(), componentDiff->Data, context);
 				break;
 			}
 		}

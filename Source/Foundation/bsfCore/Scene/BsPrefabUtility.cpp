@@ -57,8 +57,8 @@ void RecordInstanceData(const HSceneObject& so, SceneObjectProxy& output, Unorde
 	Stack<StackData> todo;
 	todo.push({ so, &output });
 
-	output.InstanceData = so->GetInstanceDataInternal();
-	output.Uuid = so->GetUuid();
+	output.InstanceData = so->GetInstanceData();
+	output.Uuid = so->GetId();
 	output.LinkId = (u32)-1;
 
 	while(!todo.empty())
@@ -72,8 +72,8 @@ void RecordInstanceData(const HSceneObject& so, SceneObjectProxy& output, Unorde
 			curData.Proxy->Components.push_back(ComponentProxy());
 
 			ComponentProxy& componentProxy = curData.Proxy->Components.back();
-			componentProxy.InstanceData = component->GetInstanceDataInternal();
-			componentProxy.Uuid = component->GetUuid();
+			componentProxy.InstanceData = component->GetInstanceData();
+			componentProxy.Uuid = component->GetId();
 			componentProxy.LinkId = component->GetLinkId();
 
 			linkedInstanceData[componentProxy.LinkId] = { componentProxy.InstanceData, componentProxy.Uuid };
@@ -88,8 +88,8 @@ void RecordInstanceData(const HSceneObject& so, SceneObjectProxy& output, Unorde
 
 			SceneObjectProxy& childProxy = curData.Proxy->Children[i];
 
-			childProxy.InstanceData = child->GetInstanceDataInternal();
-			childProxy.Uuid = child->GetUuid();
+			childProxy.InstanceData = child->GetInstanceData();
+			childProxy.Uuid = child->GetId();
 			childProxy.LinkId = child->GetLinkId();
 
 			linkedInstanceData[childProxy.LinkId] = { childProxy.InstanceData, childProxy.Uuid };
@@ -130,7 +130,7 @@ void RestoreLinkedInstanceData(const HSceneObject& so, SceneObjectProxy& proxy, 
 				{
 					component->SetInstanceDataInternal(iterFind->second.InstanceData);
 					component->SetUUIDInternal(iterFind->second.Uuid);
-					component.SetHandleDataInternal(component.GetInternalPtr());
+					component.SetSharedHandleData(component.GetShared());
 				}
 			}
 		}
@@ -208,7 +208,7 @@ void RestoreUnlinkedInstanceData(const HSceneObject& so, SceneObjectProxy& proxy
 
 					component->SetInstanceDataInternal(current.Proxy->Components[componentProxyIdx].InstanceData);
 					component->SetUUIDInternal(current.Proxy->Components[componentProxyIdx].Uuid);
-					component.SetHandleDataInternal(component.GetInternalPtr());
+					component.SetSharedHandleData(component.GetShared());
 
 					foundInstanceData = true;
 					break;

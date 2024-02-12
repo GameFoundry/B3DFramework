@@ -3,33 +3,43 @@
 #include "BsCorePrerequisites.h"
 #include "Scene/BsGameObject.h"
 #include "Scene/BsGameObjectHandle.h"
-#include "Error/BsException.h"
 #include "Scene/BsGameObject.h"
 #include "Private/RTTI/BsGameObjectHandleRTTI.h"
 
 using namespace bs;
 
-GameObjectHandleBase::GameObjectHandleBase(const SPtr<GameObject>& ptr)
+GameObjectHandleBase::GameObjectHandleBase(const SPtr<GameObject>& object)
 {
-	mData = B3DMakeShared<GameObjectHandleData>(ptr->mInstanceData);
+	B3D_ASSERT(object != nullptr);
+
+	const SPtr<GameObjectInstanceData>& instanceData = object->GetInstanceData();
+	const UUID id = object->GetId();
+
+	B3D_ASSERT(instanceData != nullptr);
+	B3D_ASSERT(id != UUID::kEmpty);
+
+	mSharedHandleData = B3DMakeShared<GameObjectHandleData>(instanceData, id);
 }
 
 bool GameObjectHandleBase::IsDestroyed(bool checkQueued) const
 {
-	return mData->MPtr == nullptr || mData->MPtr->Object == nullptr || (checkQueued && mData->MPtr->Object->GetIsDestroyedInternal());
+	return mSharedHandleData->InstanceData == nullptr || mSharedHandleData->InstanceData->Object == nullptr || (checkQueued && mSharedHandleData->InstanceData->Object->GetIsDestroyedInternal());
 }
 
-void GameObjectHandleBase::SetHandleDataInternal(const SPtr<GameObject>& object)
+void GameObjectHandleBase::SetSharedHandleData(const SPtr<GameObject>& object)
 {
-	mData->MPtr = object->mInstanceData;
-}
+	B3D_ASSERT(mSharedHandleData != nullptr);
+	B3D_ASSERT(object != nullptr);
 
-void GameObjectHandleBase::ThrowIfDestroyed() const
-{
-	if(IsDestroyed())
-	{
-		B3D_EXCEPT(InternalErrorException, "Trying to access an object that has been destroyed.");
-	}
+	const SPtr<GameObjectInstanceData>& instanceData = object->GetInstanceData();
+	const UUID id = object->GetId();
+
+	B3D_ASSERT(instanceData != nullptr);
+	B3D_ASSERT(id != UUID::kEmpty);
+
+	mSharedHandleData->InstanceData = instanceData;
+	mSharedHandleData->Id = id;
+			
 }
 
 RTTITypeBase* GameObjectHandleBase::GetRttiStatic()

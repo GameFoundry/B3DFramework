@@ -110,8 +110,8 @@ void SceneObject::SetInstanceDataInternal(GameObjectInstanceDataPtr& other)
 	GameObject::SetInstanceDataInternal(other);
 
 	// Instance data changed, so make sure to refresh the handles to reflect that
-	SPtr<SceneObject> thisPtr = mThisHandle.GetInternalPtr();
-	mThisHandle.SetHandleDataInternal(thisPtr);
+	SPtr<SceneObject> thisPtr = mThisHandle.GetShared();
+	mThisHandle.SetSharedHandleData(thisPtr);
 }
 
 UUID SceneObject::GetPrefabLink(bool onlyDirect) const
@@ -827,7 +827,7 @@ void SceneObject::DestroyComponent(Component* component, bool immediate)
 			if(x.IsDestroyed())
 				return false;
 
-			return x.GetHandleDataInternal()->MPtr->Object.get() == component; });
+			return x.GetSharedHandleData()->InstanceData->Object.get() == component; });
 
 	if(iterFind != mComponents.end())
 	{
@@ -846,6 +846,7 @@ HComponent SceneObject::AddComponent(u32 typeId)
 	}
 
 	SPtr<Component> componentPtr = std::static_pointer_cast<Component>(newObj);
+	componentPtr->SetUUIDInternal(UUIDGenerator::GenerateRandom());
 
 	// Clean up the self-reference assigned by the RTTI system
 	componentPtr->mRTTIData = nullptr;

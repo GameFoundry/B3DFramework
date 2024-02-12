@@ -45,7 +45,7 @@ namespace bs
 		u32 GetLinkId() const { return mLinkId; }
 
 		/**	Globally unique identifier of the game object that persists scene save/load. */
-		const UUID& GetUuid() const { return mUUID; }
+		const UUID& GetId() const { return mUUID; }
 
 		/**	Gets the name of the object. */
 		const String& GetName() const { return mName; }
@@ -70,7 +70,7 @@ namespace bs
 		/** Changes the prefab link ID for this object. See getLinkId(). */
 		void SetLinkIdInternal(u32 id) { mLinkId = id; }
 
-		/** @copydoc GetUuid */
+		/** @copydoc GetId */
 		void SetUUIDInternal(const UUID& uuid) { mUUID = uuid; }
 
 		/**
@@ -83,7 +83,7 @@ namespace bs
 		virtual void SetInstanceDataInternal(GameObjectInstanceDataPtr& other);
 
 		/** Returns instance data that identifies this GameObject and is used for referencing by game object handles. */
-		virtual GameObjectInstanceDataPtr GetInstanceDataInternal() const { return mInstanceData; }
+		virtual GameObjectInstanceDataPtr GetInstanceData() const { return mInstanceData; }
 
 		/** @} */
 

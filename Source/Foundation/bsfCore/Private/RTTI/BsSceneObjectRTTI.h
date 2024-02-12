@@ -34,7 +34,7 @@ namespace bs
 
 		void SetActive(SceneObject* obj, bool& value) { obj->mActiveSelf = value; }
 
-		SPtr<SceneObject> GetChild(SceneObject* obj, u32 idx) { return obj->mChildren[idx].GetInternalPtr(); }
+		SPtr<SceneObject> GetChild(SceneObject* obj, u32 idx) { return obj->mChildren[idx].GetShared(); }
 
 		void SetChild(SceneObject* obj, u32 idx, SPtr<SceneObject> param)
 		{
@@ -53,7 +53,7 @@ namespace bs
 		}
 
 		// NOTE - These can only be set sequentially, specific array index is ignored
-		SPtr<Component> GetComponent(SceneObject* obj, u32 idx) { return obj->mComponents[idx].GetInternalPtr(); }
+		SPtr<Component> GetComponent(SceneObject* obj, u32 idx) { return obj->mComponents[idx].GetShared(); }
 
 		void SetComponent(SceneObject* obj, u32 idx, SPtr<Component> param)
 		{

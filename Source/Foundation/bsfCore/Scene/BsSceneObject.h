@@ -494,6 +494,7 @@ namespace bs
 			static_assert((std::is_base_of<bs::Component, T>::value), "Specified type is not a valid Component.");
 
 			SPtr<T> gameObject(new(B3DAllocate<T>()) T(mThisHandle, std::forward<Args>(args)...), &B3DDelete<T>, StdAlloc<T>());
+			gameObject->SetUUIDInternal(UUIDGenerator::GenerateRandom());
 
 			const HComponent newComponent =
 				B3DStaticGameObjectCast<Component>(GameObjectManager::Instance().RegisterObject(gameObject));

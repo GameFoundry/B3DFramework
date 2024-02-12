@@ -72,7 +72,7 @@ void ScriptGameObject::InternalGetUuid(ScriptGameObject* nativeInstance, UUID* u
 		return;
 	}
 
-	*uuid = nativeInstance->GetNativeHandle()->GetUuid();
+	*uuid = nativeInstance->GetNativeHandle()->GetId();
 }
 
 bool ScriptGameObject::InternalGetIsDestroyed(ScriptGameObject* nativeInstance)

@@ -984,7 +984,7 @@ SPtr<IReflectable> ScriptAssemblyManager::GetReflectableFromManagedObject(MonoOb
 				if(handle.IsDestroyed())
 					return nullptr;
 
-				return handle.GetInternalPtr();
+				return handle.GetShared();
 			}
 		}
 
