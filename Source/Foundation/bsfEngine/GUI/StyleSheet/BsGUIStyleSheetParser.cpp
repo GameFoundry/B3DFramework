@@ -45,7 +45,7 @@ GUIStyleSheetParser::GUIStyleSheetParser()
 	// Text properties
 	mPropertyKeywords["text-align"] = { GUIStyleSheetPropertyType::TextAlign, ValueType::TextAlign };
 	mPropertyKeywords["vertical-align"] = { GUIStyleSheetPropertyType::VerticalAlign, ValueType::VerticalAlign };
-	mPropertyKeywords["font-family"] = { GUIStyleSheetPropertyType::FontFamily, ValueType::String };
+	mPropertyKeywords["font-family"] = { GUIStyleSheetPropertyType::FontFamily, ValueType::Multiple };
 	mPropertyKeywords["font-size"] = { GUIStyleSheetPropertyType::FontSize, ValueType::Decimal };
 	mPropertyKeywords["b3d-word-wrap"] = { GUIStyleSheetPropertyType::WordWrap, ValueType::WordWrap };
 
@@ -978,14 +978,36 @@ bool GUIStyleSheetParser::TryParseImage(HSpriteImage& outValue)
 
 bool GUIStyleSheetParser::TryParseFont(HFont& outValue)
 {
-	String fontFamily;
-	if(!TryParseStringLiteral(fontFamily))
+	const bool isURL = IsCurrentToken(GUIStyleSheetTokenTypes::URL);
+	const bool isStringLiteral = IsCurrentToken(GUIStyleSheetTokenTypes::StringLiteral);
+
+	if(!isURL && !isStringLiteral)
 		return false;
 
-	outValue = GetBuiltinResources().GetFont(fontFamily);
+	if(isStringLiteral)
+	{
+		String fontFamily;
+		if(!TryParseStringLiteral(fontFamily))
+			return false;
 
-	if(!outValue.IsLoaded(false))
-		Warning(StringUtil::Format("Unable to load font family \"{0}\".", fontFamily));
+		outValue = GetBuiltinResources().GetFont(fontFamily);
+
+		if(!outValue.IsLoaded(false))
+			Warning(StringUtil::Format("Unable to load font family \"{0}\".", fontFamily));
+	}
+	else
+	{
+		B3D_ENSURE(isURL);
+
+		String url;
+		if(!TryParseURL(url))
+			return false;
+
+		outValue = GetResources().Load<Font>(url);
+
+		if(!outValue.IsLoaded(false))
+			Warning(StringUtil::Format("Unable to load font at path \"{0}\".", url));
+	}
 
 	return true;
 }
@@ -1359,14 +1381,33 @@ bool GUIStyleSheetParser::TryParseAndLookupVariableValue(ValueType expectedType,
 	if(!TryParseAndLookupVariableValue(expectedType, value))
 		return false;
 
-	u32 stringLiteralIndex;
-	value.GetValue(stringLiteralIndex);
+	if(value.Type == ValueType::URL)
+	{
+		u32 stringLiteralIndex;
+		value.GetValue(stringLiteralIndex);
 
-	const String& fontFamily = mStringLiterals[stringLiteralIndex];
-	outValue = GetBuiltinResources().GetFont(fontFamily); // TODO - Add improved lookup of fonts by name
+		const Path filePath = mStringLiterals[stringLiteralIndex];
+		outValue = GetResources().Load<Font>(filePath);
 
-	if(!outValue.IsLoaded(false))
-		Warning(StringUtil::Format("Unable to load font family \"{0}\".", fontFamily));
+		if(!outValue.IsLoaded(false))
+			Warning(StringUtil::Format("Unable to load font at path \"{0}\".", filePath));
+	}
+	else if(value.Type == ValueType::String)
+	{
+		u32 stringLiteralIndex;
+		value.GetValue(stringLiteralIndex);
+
+		const String& fontFamily = mStringLiterals[stringLiteralIndex];
+		outValue = GetBuiltinResources().GetFont(fontFamily); // TODO - Add improved lookup of fonts by name
+
+		if(!outValue.IsLoaded(false))
+			Warning(StringUtil::Format("Unable to load font family \"{0}\".", fontFamily));
+	}
+	else
+	{
+		Error(StringFormat::Format("Provided variable is of incorrect type. Expected 'url' or 'string literal' but variable is '{0}'.", ValueTypeToString(value.Type)));
+		return false;
+	}
 
 	return true;
 }
