@@ -16,12 +16,17 @@ namespace bs
 	 *  @{
 	 */
 
-	/** Contains differences between two components of the same type. */
-	struct B3D_CORE_EXPORT ComponentDelta : public IReflectable
+	/** Contains either a fully serialized game object, or a delta between two game objects. Used internally by SceneObjectHierarchyDelta. */
+	struct B3D_CORE_EXPORT SceneObjectHierarchyDeltaObject : public IReflectable
 	{
+		SceneObjectHierarchyDeltaObject(const HComponent& component, const SPtr<SerializedObject>& data);
+		SceneObjectHierarchyDeltaObject(const HSceneObject& sceneObject, const SPtr<SerializedObject>& data);
+
 		UUID Id;
 		UUID ParentId;
 		UUID PrefabObjectId;
+		UUID PrefabResourceId;
+
 		SPtr<SerializedObject> Data;
 
 		/************************************************************************/
@@ -29,51 +34,7 @@ namespace bs
 		/************************************************************************/
 
 	public:
-		friend class ComponentDeltaRTTI;
-		static RTTITypeBase* GetRttiStatic();
-		RTTITypeBase* GetRtti() const override;
-	};
-
-	/** Flags that mark which portion of a scene-object is modified. */
-	enum class B3D_SCRIPT_EXPORT(API(Editor), DocumentationGroup(Utility - Editor)) SceneObjectDiffFlags
-	{
-		Name = 0x01,
-		Position = 0x02,
-		Rotation = 0x04,
-		Scale = 0x08,
-		Active = 0x10
-	};
-
-	/** Contains a set of differences between two scene objects. */
-	struct B3D_CORE_EXPORT SceneObjectDelta : public IReflectable
-	{
-		UUID Id;
-		UUID ParentId;
-		UUID PrefabObjectId;
-		UUID PrefabResourceId;
-
-		// TODO - Serialize these as part of SerializedObject
-		String Name;
-		Vector3 Position = Vector3::kZero;
-		Quaternion Rotation = Quaternion::kIdentity;
-		Vector3 Scale = Vector3::kZero;
-		bool IsActive = false;
-		u32 SoFlags = 0;
-
-		Vector<SPtr<ComponentDelta>> ComponentDeltas;
-		Vector<UUID> RemovedComponents;
-		Vector<SPtr<SerializedObject>> AddedComponents;
-
-		Vector<SPtr<SceneObjectDelta>> ChildDeltas;
-		Vector<UUID> RemovedChildren;
-		Vector<SPtr<SerializedObject>> AddedChildren;
-
-		/************************************************************************/
-		/* 								RTTI		                     		*/
-		/************************************************************************/
-
-	public:
-		friend class SceneObjectDeltaRTTI;
+		friend class SceneObjectHierarchyDeltaObjectRTTI;
 		static RTTITypeBase* GetRttiStatic();
 		RTTITypeBase* GetRtti() const override;
 	};
@@ -99,12 +60,33 @@ namespace bs
 
 	private:
 		/** Recursively generates differences between original and the modified version, for every scene object in the hierarchy. */
-		static SPtr<SceneObjectDelta> GenerateDelta(const HSceneObject& original, const HSceneObject& modified);
+		static SPtr<SceneObjectHierarchyDeltaObject> GenerateDelta(const HSceneObject& original, const HSceneObject& modified, SPtr<SceneObjectHierarchyDeltaObject>& outDelta);
+
+		/**
+		 * Generates differences between components of the two provided scene objects. If components with matching ids are found, a delta
+		 * of their properties is recorded. Otherwise a component is registered in either the added or removed component list. @p outDelta
+		 * will be created if changes are found, if not already created.
+		 */
+		static void GenerateComponentDelta(const HSceneObject& original, const HSceneObject& modified, SPtr<SceneObjectHierarchyDelta>& outDelta);
+
+		/**
+		 * Generates differences between the two provided scene objects. If the object ids match, a delta of their properties is recorded.
+		 * If one of the scene objects is not valid, we record the relevant id in the added or removed scene object list. Note this
+		 * not compare scene object components, nor does it iterate over the child hierarchy.@p outDelta will be created if changes are found,
+		 * if not already created.
+		 */
+		static void GenerateSceneObjectDelta(const HSceneObject& original, const HSceneObject& modified, SPtr<SceneObjectHierarchyDelta>& outDelta);
 
 		/** Recursively applies a per-object set of differences to a specific object.  */
-		static void ApplyDiff(const SPtr<SceneObjectDelta>& delta, const HSceneObject& original, SerializationContext* context);
+		static void ApplyDiff(const SPtr<SceneObjectHierarchyDeltaObject>& delta, const HSceneObject& original, SerializationContext* context);
 
-		SPtr<SceneObjectDelta> mRoot;
+		UnorderedMap<UUID, SPtr<SceneObjectHierarchyDeltaObject>> Objects;
+
+		UnorderedSet<UUID> AddedComponents;
+		UnorderedSet<UUID> RemovedComponents;
+
+		UnorderedSet<UUID> AddedSceneObjects;
+		UnorderedSet<UUID> RemovedSceneObjects;
 
 		/************************************************************************/
 		/* 								RTTI		                     		*/
