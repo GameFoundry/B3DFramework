@@ -16,14 +16,12 @@ namespace bs
 	 *  @{
 	 */
 
-	/**
-	 * Contains differences between two components of the same type.
-	 *
-	 * @see		PrefabDiff
-	 */
-	struct B3D_CORE_EXPORT PrefabComponentDiff : public IReflectable
+	/** Contains differences between two components of the same type. */
+	struct B3D_CORE_EXPORT ComponentDelta : public IReflectable
 	{
-		UUID Id = UUID::kEmpty;
+		UUID Id;
+		UUID ParentId;
+		UUID PrefabObjectId;
 		SPtr<SerializedObject> Data;
 
 		/************************************************************************/
@@ -31,7 +29,7 @@ namespace bs
 		/************************************************************************/
 
 	public:
-		friend class PrefabComponentDiffRTTI;
+		friend class ComponentDeltaRTTI;
 		static RTTITypeBase* GetRttiStatic();
 		RTTITypeBase* GetRtti() const override;
 	};
@@ -46,17 +44,15 @@ namespace bs
 		Active = 0x10
 	};
 
-	/**
-	 * Contains a set of prefab differences for a single scene object.
-	 *
-	 * @see		PrefabDiff
-	 */
-	struct B3D_CORE_EXPORT PrefabObjectDiff : public IReflectable
+	/** Contains a set of differences between two scene objects. */
+	struct B3D_CORE_EXPORT SceneObjectDelta : public IReflectable
 	{
-		PrefabObjectDiff() {}
+		UUID Id;
+		UUID ParentId;
+		UUID PrefabObjectId;
+		UUID PrefabResourceId;
 
-		UUID Id = UUID::kEmpty;
-
+		// TODO - Serialize these as part of SerializedObject
 		String Name;
 		Vector3 Position = Vector3::kZero;
 		Quaternion Rotation = Quaternion::kIdentity;
@@ -64,11 +60,11 @@ namespace bs
 		bool IsActive = false;
 		u32 SoFlags = 0;
 
-		Vector<SPtr<PrefabComponentDiff>> ComponentDeltas;
+		Vector<SPtr<ComponentDelta>> ComponentDeltas;
 		Vector<UUID> RemovedComponents;
 		Vector<SPtr<SerializedObject>> AddedComponents;
 
-		Vector<SPtr<PrefabObjectDiff>> ChildDeltas;
+		Vector<SPtr<SceneObjectDelta>> ChildDeltas;
 		Vector<UUID> RemovedChildren;
 		Vector<SPtr<SerializedObject>> AddedChildren;
 
@@ -77,50 +73,38 @@ namespace bs
 		/************************************************************************/
 
 	public:
-		friend class PrefabObjectDiffRTTI;
+		friend class SceneObjectDeltaRTTI;
 		static RTTITypeBase* GetRttiStatic();
 		RTTITypeBase* GetRtti() const override;
 	};
 
 	/**
-	 * Contains modifications between an prefab and its instance. The modifications are a set of added/removed children or
-	 * components and per-field "diffs" of their components.
+	 * Contains modifications between two scene object hierarchies. The modifications are a set of added/removed children or
+	 * components and per-field deltas of their components.
 	 */
-	class B3D_CORE_EXPORT PrefabDiff : public IReflectable
+	class B3D_CORE_EXPORT SceneObjectHierarchyDelta : public IReflectable
 	{
 	public:
-		/**
-		 * Creates a new prefab diff by comparing the provided instanced scene object hierarchy with the prefab scene
-		 * object hierarchy.
-		 */
-		static SPtr<PrefabDiff> Create(const HSceneObject& prefab, const HSceneObject& instance);
+		/** Creates a new delta by recording changes present in @p modified, compared to @p original. */
+		static SPtr<SceneObjectHierarchyDelta> Create(const HSceneObject& original, const HSceneObject& modified);
 
 		/**
-		 * Applies the internal prefab diff to the provided object. The object should have similar hierarchy as the prefab
-		 * the diff was created for, otherwise the results are undefined.
+		 * Applies the delta to the provided object. 
 		 *
 		 * @note	Be aware that this method will not instantiate newly added components or scene objects. It's expected
 		 *			that this method will be called on a fresh copy of a scene object hierarchy, and everything to be
-		 *			instantiated at once after diff is applied.
+		 *			instantiated at once after delta is applied.
 		 */
-		void Apply(const HSceneObject& object);
+		void Apply(const HSceneObject& original);
 
 	private:
-		/**
-		 * Recurses over every scene object in the prefab a generates differences between itself and the instanced version.
-		 *
-		 * @see		Create
-		 */
-		static SPtr<PrefabObjectDiff> GenerateDelta(const HSceneObject& prefab, const HSceneObject& instance);
+		/** Recursively generates differences between original and the modified version, for every scene object in the hierarchy. */
+		static SPtr<SceneObjectDelta> GenerateDelta(const HSceneObject& original, const HSceneObject& modified);
 
-		/**
-		 * Recursively applies a per-object set of prefab differences to a specific object.
-		 *
-		 * @see		apply
-		 */
-		static void ApplyDiff(const SPtr<PrefabObjectDiff>& diff, const HSceneObject& object, SerializationContext* context);
+		/** Recursively applies a per-object set of differences to a specific object.  */
+		static void ApplyDiff(const SPtr<SceneObjectDelta>& delta, const HSceneObject& original, SerializationContext* context);
 
-		SPtr<PrefabObjectDiff> mRoot;
+		SPtr<SceneObjectDelta> mRoot;
 
 		/************************************************************************/
 		/* 								RTTI		                     		*/
@@ -129,7 +113,7 @@ namespace bs
 		Any mRTTIData;
 
 	public:
-		friend class PrefabDiffRTTI;
+		friend class SceneObjectHierarchyDeltaRTTI;
 		static RTTITypeBase* GetRttiStatic();
 		RTTITypeBase* GetRtti() const override;
 	};

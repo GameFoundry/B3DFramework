@@ -175,7 +175,7 @@ void PrefabUtility::UpdateFromPrefab(const HSceneObject& sceneObject)
 	{
 		HSceneObject NewInstance;
 		HSceneObject OriginalParent;
-		SPtr<PrefabDiff> Delta;
+		SPtr<SceneObjectHierarchyDelta> Delta;
 	};
 
 	Vector<RestoredPrefabInstance> newPrefabInstanceData;
@@ -200,7 +200,7 @@ void PrefabUtility::UpdateFromPrefab(const HSceneObject& sceneObject)
 			RecordInstanceData(current, instanceData);
 
 			HSceneObject parent = current->GetParent();
-			SPtr<PrefabDiff> prefabDiff = current->mPrefabDelta;
+			SPtr<SceneObjectHierarchyDelta> prefabDiff = current->mPrefabDelta;
 
 			current->Destroy(true);
 			HSceneObject newInstance = prefabLink->CloneInternal();
@@ -309,7 +309,7 @@ void PrefabUtility::RecordPrefabDelta(const HSceneObject& sceneObject)
 			{
 				HPrefab linkedPrefab = B3DStaticResourceCast<Prefab>(GetResources().LoadFromUuid(prefabResourceId, false, ResourceLoadFlag::None));
 				if(linkedPrefab.IsLoaded(false))
-					sceneObject->SetPrefabDelta(PrefabDiff::Create(linkedPrefab->GetRootInternal(), sceneObject));
+					sceneObject->SetPrefabDelta(SceneObjectHierarchyDelta::Create(linkedPrefab->GetRootInternal(), sceneObject));
 				else
 				{
 					B3D_LOG(Warning, Prefab, "Cannot record prefab delta for scene object '{0}'. Failed to load prefab with ID: '{1}'.", sceneObject.GetId(), prefabResourceId);

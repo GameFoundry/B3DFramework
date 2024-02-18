@@ -1,7 +1,7 @@
 //************************************ bs::framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "Scene/BsPrefabDiff.h"
-#include "Private/RTTI/BsPrefabDiffRTTI.h"
+#include "Scene/BsSceneObjectHierarchyDelta.h"
+#include "Private/RTTI/BsSceneObjectHierarchyDeltaRTTI.h"
 #include "Scene/BsSceneObject.h"
 #include "Serialization/BsBinarySerializer.h"
 #include "Serialization/BsBinaryDiff.h"
@@ -11,41 +11,41 @@
 
 using namespace bs;
 
-RTTITypeBase* PrefabComponentDiff::GetRttiStatic()
+RTTITypeBase* ComponentDelta::GetRttiStatic()
 {
-	return PrefabComponentDiffRTTI::Instance();
+	return ComponentDeltaRTTI::Instance();
 }
 
-RTTITypeBase* PrefabComponentDiff::GetRtti() const
+RTTITypeBase* ComponentDelta::GetRtti() const
 {
-	return PrefabComponentDiff::GetRttiStatic();
+	return GetRttiStatic();
 }
 
-RTTITypeBase* PrefabObjectDiff::GetRttiStatic()
+RTTITypeBase* SceneObjectDelta::GetRttiStatic()
 {
-	return PrefabObjectDiffRTTI::Instance();
+	return SceneObjectDeltaRTTI::Instance();
 }
 
-RTTITypeBase* PrefabObjectDiff::GetRtti() const
+RTTITypeBase* SceneObjectDelta::GetRtti() const
 {
-	return PrefabObjectDiff::GetRttiStatic();
+	return GetRttiStatic();
 }
 
-SPtr<PrefabDiff> PrefabDiff::Create(const HSceneObject& prefab, const HSceneObject& instance)
+SPtr<SceneObjectHierarchyDelta> SceneObjectHierarchyDelta::Create(const HSceneObject& original, const HSceneObject& modified)
 {
-	if(prefab->GetPrefabResourceId() != instance->GetPrefabResourceId())
+	if(original->GetPrefabResourceId() != modified->GetPrefabResourceId())
 	{
 		B3D_LOG(Warning, Prefab, "Cannot create a delta between objects not linked to the same prefab.");
 		return nullptr;
 	}
 
-	SPtr<PrefabDiff> output = B3DMakeShared<PrefabDiff>();
-	output->mRoot = GenerateDelta(prefab, instance);
+	SPtr<SceneObjectHierarchyDelta> output = B3DMakeShared<SceneObjectHierarchyDelta>();
+	output->mRoot = GenerateDelta(original, modified);
 
 	return output;
 }
 
-void PrefabDiff::Apply(const HSceneObject& object)
+void SceneObjectHierarchyDelta::Apply(const HSceneObject& original)
 {
 	if(mRoot == nullptr)
 		return;
@@ -54,33 +54,33 @@ void PrefabDiff::Apply(const HSceneObject& object)
 	serzContext.GoState = B3DMakeShared<GameObjectDeserializationState>(GODM_UseNewIds | GODM_RestoreExternal);
 	serzContext.GoDeserializationActive = true;
 
-	ApplyDiff(mRoot, object, &serzContext);
+	ApplyDiff(mRoot, original, &serzContext);
 
 	serzContext.GoState->Resolve();
 }
 
-void PrefabDiff::ApplyDiff(const SPtr<PrefabObjectDiff>& diff, const HSceneObject& object, SerializationContext* context)
+void SceneObjectHierarchyDelta::ApplyDiff(const SPtr<SceneObjectDelta>& delta, const HSceneObject& original, SerializationContext* context)
 {
-	if((diff->SoFlags & (u32)SceneObjectDiffFlags::Name) != 0)
-		object->SetName(diff->Name);
+	if((delta->SoFlags & (u32)SceneObjectDiffFlags::Name) != 0)
+		original->SetName(delta->Name);
 
-	if((diff->SoFlags & (u32)SceneObjectDiffFlags::Position) != 0)
-		object->SetPosition(diff->Position);
+	if((delta->SoFlags & (u32)SceneObjectDiffFlags::Position) != 0)
+		original->SetPosition(delta->Position);
 
-	if((diff->SoFlags & (u32)SceneObjectDiffFlags::Rotation) != 0)
-		object->SetRotation(diff->Rotation);
+	if((delta->SoFlags & (u32)SceneObjectDiffFlags::Rotation) != 0)
+		original->SetRotation(delta->Rotation);
 
-	if((diff->SoFlags & (u32)SceneObjectDiffFlags::Scale) != 0)
-		object->SetScale(diff->Scale);
+	if((delta->SoFlags & (u32)SceneObjectDiffFlags::Scale) != 0)
+		original->SetScale(delta->Scale);
 
-	if((diff->SoFlags & (u32)SceneObjectDiffFlags::Active) != 0)
-		object->SetActive(diff->IsActive);
+	if((delta->SoFlags & (u32)SceneObjectDiffFlags::Active) != 0)
+		original->SetActive(delta->IsActive);
 
 	// Note: It is important to remove objects and components first, before adding them.
 	//		 Some systems rely on the fact that applyDiff added components/objects are
 	//       always at the end.
-	const Vector<HComponent>& components = object->GetComponents();
-	for(auto& removedId : diff->RemovedComponents)
+	const Vector<HComponent>& components = original->GetComponents();
+	for(auto& removedId : delta->RemovedComponents)
 	{
 		for(auto component : components)
 		{
@@ -92,12 +92,12 @@ void PrefabDiff::ApplyDiff(const SPtr<PrefabObjectDiff>& diff, const HSceneObjec
 		}
 	}
 
-	for(auto& removedId : diff->RemovedChildren)
+	for(auto& removedId : delta->RemovedChildren)
 	{
-		u32 childCount = object->GetChildCount();
+		u32 childCount = original->GetChildCount();
 		for(u32 i = 0; i < childCount; i++)
 		{
-			HSceneObject child = object->GetChild(i);
+			HSceneObject child = original->GetChild(i);
 			if(removedId == child->GetPrefabObjectId())
 			{
 				child->Destroy(true);
@@ -106,23 +106,23 @@ void PrefabDiff::ApplyDiff(const SPtr<PrefabObjectDiff>& diff, const HSceneObjec
 		}
 	}
 
-	for(auto& addedComponentData : diff->AddedComponents)
+	for(auto& addedComponentData : delta->AddedComponents)
 	{
 		SPtr<Component> component = std::static_pointer_cast<Component>(addedComponentData->Decode(context));
 
-		object->AddAndInitializeComponent(component);
+		original->AddAndInitializeComponent(component);
 	}
 
-	for(auto& addedChildData : diff->AddedChildren)
+	for(auto& addedChildData : delta->AddedChildren)
 	{
 		SPtr<SceneObject> sceneObject = std::static_pointer_cast<SceneObject>(addedChildData->Decode(context));
-		sceneObject->SetParent(object);
+		sceneObject->SetParent(original);
 
-		if(object->IsInstantiated())
+		if(original->IsInstantiated())
 			sceneObject->InstantiateInternal();
 	}
 
-	for(auto& componentDiff : diff->ComponentDeltas)
+	for(auto& componentDiff : delta->ComponentDeltas)
 	{
 		for(auto& component : components)
 		{
@@ -135,12 +135,12 @@ void PrefabDiff::ApplyDiff(const SPtr<PrefabObjectDiff>& diff, const HSceneObjec
 		}
 	}
 
-	for(auto& childDiff : diff->ChildDeltas)
+	for(auto& childDiff : delta->ChildDeltas)
 	{
-		u32 childCount = object->GetChildCount();
+		u32 childCount = original->GetChildCount();
 		for(u32 i = 0; i < childCount; i++)
 		{
-			HSceneObject child = object->GetChild(i);
+			HSceneObject child = original->GetChild(i);
 			if(childDiff->Id == child->GetPrefabObjectId())
 			{
 				ApplyDiff(childDiff, child, context);
@@ -150,25 +150,25 @@ void PrefabDiff::ApplyDiff(const SPtr<PrefabObjectDiff>& diff, const HSceneObjec
 	}
 }
 
-SPtr<PrefabObjectDiff> PrefabDiff::GenerateDelta(const HSceneObject& prefab, const HSceneObject& instance)
+SPtr<SceneObjectDelta> SceneObjectHierarchyDelta::GenerateDelta(const HSceneObject& original, const HSceneObject& modified)
 {
-	SPtr<PrefabObjectDiff> output;
+	SPtr<SceneObjectDelta> output;
 
-	if(prefab->GetName() != instance->GetName())
+	if(original->GetName() != modified->GetName())
 	{
 		if(output == nullptr)
-			output = B3DMakeShared<PrefabObjectDiff>();
+			output = B3DMakeShared<SceneObjectDelta>();
 
-		output->Name = instance->GetName();
+		output->Name = modified->GetName();
 		output->SoFlags |= (u32)SceneObjectDiffFlags::Name;
 	}
 
-	const Transform& prefabTfrm = prefab->GetLocalTransform();
-	const Transform& instanceTfrm = instance->GetLocalTransform();
+	const Transform& prefabTfrm = original->GetLocalTransform();
+	const Transform& instanceTfrm = modified->GetLocalTransform();
 	if(prefabTfrm.GetPosition() != instanceTfrm.GetPosition())
 	{
 		if(output == nullptr)
-			output = B3DMakeShared<PrefabObjectDiff>();
+			output = B3DMakeShared<SceneObjectDelta>();
 
 		output->Position = instanceTfrm.GetPosition();
 		output->SoFlags |= (u32)SceneObjectDiffFlags::Position;
@@ -177,7 +177,7 @@ SPtr<PrefabObjectDiff> PrefabDiff::GenerateDelta(const HSceneObject& prefab, con
 	if(prefabTfrm.GetRotation() != instanceTfrm.GetRotation())
 	{
 		if(output == nullptr)
-			output = B3DMakeShared<PrefabObjectDiff>();
+			output = B3DMakeShared<SceneObjectDelta>();
 
 		output->Rotation = instanceTfrm.GetRotation();
 		output->SoFlags |= (u32)SceneObjectDiffFlags::Rotation;
@@ -186,34 +186,34 @@ SPtr<PrefabObjectDiff> PrefabDiff::GenerateDelta(const HSceneObject& prefab, con
 	if(prefabTfrm.GetScale() != instanceTfrm.GetScale())
 	{
 		if(output == nullptr)
-			output = B3DMakeShared<PrefabObjectDiff>();
+			output = B3DMakeShared<SceneObjectDelta>();
 
 		output->Scale = instanceTfrm.GetScale();
 		output->SoFlags |= (u32)SceneObjectDiffFlags::Scale;
 	}
 
-	if(prefab->GetActive() != instance->GetActive())
+	if(original->GetActive() != modified->GetActive())
 	{
 		if(output == nullptr)
-			output = B3DMakeShared<PrefabObjectDiff>();
+			output = B3DMakeShared<SceneObjectDelta>();
 
-		output->IsActive = instance->GetActive();
+		output->IsActive = modified->GetActive();
 		output->SoFlags |= (u32)SceneObjectDiffFlags::Active;
 	}
 
-	u32 prefabChildCount = prefab->GetChildCount();
-	u32 instanceChildCount = instance->GetChildCount();
+	u32 prefabChildCount = original->GetChildCount();
+	u32 instanceChildCount = modified->GetChildCount();
 
 	// Find modified and removed children
 	for(u32 i = 0; i < prefabChildCount; i++)
 	{
-		HSceneObject prefabChild = prefab->GetChild(i);
+		HSceneObject prefabChild = original->GetChild(i);
 
-		SPtr<PrefabObjectDiff> childDiff;
+		SPtr<SceneObjectDelta> childDiff;
 		bool foundMatching = false;
 		for(u32 j = 0; j < instanceChildCount; j++)
 		{
-			HSceneObject instanceChild = instance->GetChild(j);
+			HSceneObject instanceChild = modified->GetChild(j);
 
 			if(prefabChild->GetId() == instanceChild->GetPrefabObjectId())
 			{
@@ -230,7 +230,7 @@ SPtr<PrefabObjectDiff> PrefabDiff::GenerateDelta(const HSceneObject& prefab, con
 			if(childDiff != nullptr)
 			{
 				if(output == nullptr)
-					output = B3DMakeShared<PrefabObjectDiff>();
+					output = B3DMakeShared<SceneObjectDelta>();
 
 				output->ChildDeltas.push_back(childDiff);
 			}
@@ -238,7 +238,7 @@ SPtr<PrefabObjectDiff> PrefabDiff::GenerateDelta(const HSceneObject& prefab, con
 		else
 		{
 			if(output == nullptr)
-				output = B3DMakeShared<PrefabObjectDiff>();
+				output = B3DMakeShared<SceneObjectDelta>();
 
 			output->RemovedChildren.push_back(prefabChild->GetId());
 		}
@@ -247,7 +247,7 @@ SPtr<PrefabObjectDiff> PrefabDiff::GenerateDelta(const HSceneObject& prefab, con
 	// Find added children
 	for(u32 i = 0; i < instanceChildCount; i++)
 	{
-		HSceneObject instanceChild = instance->GetChild(i);
+		HSceneObject instanceChild = modified->GetChild(i);
 
 		if(instanceChild->HasFlag(SOF_DontSave))
 			continue;
@@ -257,7 +257,7 @@ SPtr<PrefabObjectDiff> PrefabDiff::GenerateDelta(const HSceneObject& prefab, con
 		{
 			for(u32 j = 0; j < prefabChildCount; j++)
 			{
-				HSceneObject prefabChild = prefab->GetChild(j);
+				HSceneObject prefabChild = original->GetChild(j);
 
 				if(prefabChild->GetId() == instanceChild->GetPrefabObjectId())
 				{
@@ -272,14 +272,14 @@ SPtr<PrefabObjectDiff> PrefabDiff::GenerateDelta(const HSceneObject& prefab, con
 			SPtr<SerializedObject> obj = SerializedObject::Create(*instanceChild);
 
 			if(output == nullptr)
-				output = B3DMakeShared<PrefabObjectDiff>();
+				output = B3DMakeShared<SceneObjectDelta>();
 
 			output->AddedChildren.push_back(obj);
 		}
 	}
 
-	const Vector<HComponent>& prefabComponents = prefab->GetComponents();
-	const Vector<HComponent>& instanceComponents = instance->GetComponents();
+	const Vector<HComponent>& prefabComponents = original->GetComponents();
+	const Vector<HComponent>& instanceComponents = modified->GetComponents();
 
 	u32 prefabComponentCount = (u32)prefabComponents.size();
 	u32 instanceComponentCount = (u32)instanceComponents.size();
@@ -289,7 +289,7 @@ SPtr<PrefabObjectDiff> PrefabDiff::GenerateDelta(const HSceneObject& prefab, con
 	{
 		HComponent prefabComponent = prefabComponents[i];
 
-		SPtr<PrefabComponentDiff> childDiff;
+		SPtr<ComponentDelta> childDiff;
 		bool foundMatching = false;
 		for(u32 j = 0; j < instanceComponentCount; j++)
 		{
@@ -305,7 +305,7 @@ SPtr<PrefabObjectDiff> PrefabDiff::GenerateDelta(const HSceneObject& prefab, con
 
 				if(diff != nullptr)
 				{
-					childDiff = B3DMakeShared<PrefabComponentDiff>();
+					childDiff = B3DMakeShared<ComponentDelta>();
 					childDiff->Id = prefabComponent->GetId();
 					childDiff->Data = diff;
 				}
@@ -320,7 +320,7 @@ SPtr<PrefabObjectDiff> PrefabDiff::GenerateDelta(const HSceneObject& prefab, con
 			if(childDiff != nullptr)
 			{
 				if(output == nullptr)
-					output = B3DMakeShared<PrefabObjectDiff>();
+					output = B3DMakeShared<SceneObjectDelta>();
 
 				output->ComponentDeltas.push_back(childDiff);
 			}
@@ -328,7 +328,7 @@ SPtr<PrefabObjectDiff> PrefabDiff::GenerateDelta(const HSceneObject& prefab, con
 		else
 		{
 			if(output == nullptr)
-				output = B3DMakeShared<PrefabObjectDiff>();
+				output = B3DMakeShared<SceneObjectDelta>();
 
 			output->RemovedComponents.push_back(prefabComponent->GetId());
 		}
@@ -359,24 +359,24 @@ SPtr<PrefabObjectDiff> PrefabDiff::GenerateDelta(const HSceneObject& prefab, con
 			SPtr<SerializedObject> obj = SerializedObject::Create(*instanceComponent);
 
 			if(output == nullptr)
-				output = B3DMakeShared<PrefabObjectDiff>();
+				output = B3DMakeShared<SceneObjectDelta>();
 
 			output->AddedComponents.push_back(obj);
 		}
 	}
 
 	if(output != nullptr)
-		output->Id = instance->GetPrefabObjectId();
+		output->Id = modified->GetPrefabObjectId();
 
 	return output;
 }
 
-RTTITypeBase* PrefabDiff::GetRttiStatic()
+RTTITypeBase* SceneObjectHierarchyDelta::GetRttiStatic()
 {
-	return PrefabDiffRTTI::Instance();
+	return SceneObjectHierarchyDeltaRTTI::Instance();
 }
 
-RTTITypeBase* PrefabDiff::GetRtti() const
+RTTITypeBase* SceneObjectHierarchyDelta::GetRtti() const
 {
-	return PrefabDiff::GetRttiStatic();
+	return GetRttiStatic();
 }

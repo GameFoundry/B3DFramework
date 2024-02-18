@@ -93,7 +93,7 @@ namespace bs
 	protected:
 		friend class GameObjectHandleBase;
 		friend class GameObjectManager;
-		friend class PrefabDiff;
+		friend class SceneObjectHierarchyDelta;
 		friend class PrefabUtility;
 
 		/**	Initializes the GameObject after construction. */

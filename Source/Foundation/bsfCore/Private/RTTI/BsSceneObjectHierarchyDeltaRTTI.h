@@ -6,7 +6,7 @@
 #include "Reflection/BsRTTIType.h"
 #include "RTTI/BsStringRTTI.h"
 #include "RTTI/BsUUIDRTTI.h"
-#include "Scene/BsPrefabDiff.h"
+#include "Scene/BsSceneObjectHierarchyDelta.h"
 #include "Serialization/BsSerializedObject.h"
 #include "Scene/BsGameObjectManager.h"
 #include "Serialization/BsBinarySerializer.h"
@@ -19,32 +19,34 @@ namespace bs
 	 *  @{
 	 */
 
-	class B3D_CORE_EXPORT PrefabComponentDiffRTTI : public RTTIType<PrefabComponentDiff, IReflectable, PrefabComponentDiffRTTI>
+	class B3D_CORE_EXPORT ComponentDeltaRTTI : public RTTIType<ComponentDelta, IReflectable, ComponentDeltaRTTI>
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
 			B3D_RTTI_MEMBER_PLAIN(Id, 0)
 			B3D_RTTI_MEMBER_REFLPTR(Data, 1)
+			B3D_RTTI_MEMBER_PLAIN(ParentId, 2)
+			B3D_RTTI_MEMBER_PLAIN(PrefabObjectId, 3)
 		B3D_RTTI_END_MEMBERS
 	public:
 		const String& GetRttiName()
 		{
-			static String name = "PrefabComponentDiff";
+			static String name = "ComponentDelta";
 			return name;
 		}
 
 		u32 GetRttiId() const override
 		{
-			return TID_PrefabComponentDiff;
+			return TID_ComponentDelta;
 		}
 
 		SPtr<IReflectable> NewRttiObject()
 		{
-			return B3DMakeShared<PrefabComponentDiff>();
+			return B3DMakeShared<ComponentDelta>();
 		}
 	};
 
-	class B3D_CORE_EXPORT PrefabObjectDiffRTTI : public RTTIType<PrefabObjectDiff, IReflectable, PrefabObjectDiffRTTI>
+	class B3D_CORE_EXPORT SceneObjectDeltaRTTI : public RTTIType<SceneObjectDelta, IReflectable, SceneObjectDeltaRTTI>
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
@@ -64,26 +66,30 @@ namespace bs
 			B3D_RTTI_MEMBER_PLAIN(Scale, 10)
 			B3D_RTTI_MEMBER_PLAIN(IsActive, 11)
 			B3D_RTTI_MEMBER_PLAIN(SoFlags, 12)
+
+			B3D_RTTI_MEMBER_PLAIN(ParentId, 13)
+			B3D_RTTI_MEMBER_PLAIN(PrefabObjectId, 14)
+			B3D_RTTI_MEMBER_PLAIN(PrefabResourceId, 15)
 		B3D_RTTI_END_MEMBERS
 	public:
 		const String& GetRttiName()
 		{
-			static String name = "PrefabObjectDiff";
+			static String name = "SceneObjectDelta";
 			return name;
 		}
 
 		u32 GetRttiId() const override
 		{
-			return TID_PrefabObjectDiff;
+			return TID_SceneObjectDelta;
 		}
 
 		SPtr<IReflectable> NewRttiObject() override
 		{
-			return B3DMakeShared<PrefabObjectDiff>();
+			return B3DMakeShared<SceneObjectDelta>();
 		}
 	};
 
-	class B3D_CORE_EXPORT PrefabDiffRTTI : public RTTIType<PrefabDiff, IReflectable, PrefabDiffRTTI>
+	class B3D_CORE_EXPORT SceneObjectHierarchyDeltaRTTI : public RTTIType<SceneObjectHierarchyDelta, IReflectable, SceneObjectHierarchyDeltaRTTI>
 	{
 		/**	Contains data about a game object handle serialized in a prefab diff.  */
 		struct SerializedHandle
@@ -99,7 +105,7 @@ namespace bs
 	public:
 		void OnDeserializationStarted(IReflectable* obj, SerializationContext* context) override
 		{
-			PrefabDiff* prefabDiff = static_cast<PrefabDiff*>(obj);
+			SceneObjectHierarchyDelta* prefabDiff = static_cast<SceneObjectHierarchyDelta*>(obj);
 
 			B3D_ASSERT(context != nullptr && B3DRTTIIsOfType<CoreSerializationContext>(context));
 			auto coreContext = static_cast<CoreSerializationContext*>(context);
@@ -107,7 +113,7 @@ namespace bs
 			if(coreContext->GoState)
 			{
 				coreContext->GoState->RegisterOnDeserializationEndCallback(
-					std::bind(&PrefabDiffRTTI::DelayedOnDeserializationEnded, prefabDiff));
+					std::bind(&SceneObjectHierarchyDeltaRTTI::DelayedOnDeserializationEnded, prefabDiff));
 			}
 		}
 
@@ -120,9 +126,9 @@ namespace bs
 			// Make sure to deserialize all game object handles since their IDs need to be updated. Normally they are
 			// updated automatically upon deserialization but since we store them in intermediate form we need to manually
 			// deserialize and reserialize them in order to update their IDs.
-			PrefabDiff* prefabDiff = static_cast<PrefabDiff*>(obj);
+			SceneObjectHierarchyDelta* prefabDiff = static_cast<SceneObjectHierarchyDelta*>(obj);
 
-			Stack<SPtr<PrefabObjectDiff>> todo;
+			Stack<SPtr<SceneObjectDelta>> todo;
 
 			if(prefabDiff->mRoot != nullptr)
 				todo.push(prefabDiff->mRoot);
@@ -131,7 +137,7 @@ namespace bs
 
 			while(!todo.empty())
 			{
-				SPtr<PrefabObjectDiff> current = todo.top();
+				SPtr<SceneObjectDelta> current = todo.top();
 				todo.pop();
 
 				for(auto& component : current->AddedComponents)
@@ -168,7 +174,7 @@ namespace bs
 		 * all object IDs and we want to keep the handles up to date.So we deserialize them and allow them to be updated
 		 * before storing them back into binary format.
 		 */
-		static void DelayedOnDeserializationEnded(PrefabDiff* prefabDiff)
+		static void DelayedOnDeserializationEnded(SceneObjectHierarchyDelta* prefabDiff)
 		{
 			Vector<SerializedHandle>& handleData = AnyCastRef<Vector<SerializedHandle>>(prefabDiff->mRTTIData);
 
@@ -230,18 +236,18 @@ namespace bs
 
 		const String& GetRttiName() override
 		{
-			static String name = "PrefabDiff";
+			static String name = "SceneObjectHierarchyDelta";
 			return name;
 		}
 
 		u32 GetRttiId() const override
 		{
-			return TID_PrefabDiff;
+			return TID_SceneObjectHierarchyDelta;
 		}
 
 		SPtr<IReflectable> NewRttiObject() override
 		{
-			return B3DMakeShared<PrefabDiff>();
+			return B3DMakeShared<SceneObjectHierarchyDelta>();
 		}
 	};
 

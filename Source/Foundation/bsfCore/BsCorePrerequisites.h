@@ -414,7 +414,7 @@ namespace bs
 	struct TextureProperties;
 	class IShaderIncludeHandler;
 	class Prefab;
-	class PrefabDiff;
+	class SceneObjectHierarchyDelta;
 	class RendererMeshData;
 	class Win32Window;
 	class GpuBackendFactory;
@@ -551,9 +551,9 @@ namespace bs
 		TID_ShaderMetaData = 1075,
 		TID_MeshImportOptions = 1076,
 		TID_Prefab = 1077,
-		TID_PrefabDiff = 1078,
-		TID_PrefabObjectDiff = 1079,
-		TID_PrefabComponentDiff = 1080,
+		TID_SceneObjectHierarchyDelta = 1078,
+		TID_SceneObjectDelta = 1079,
+		TID_ComponentDelta = 1080,
 		TID_CGUIWidget = 1081,
 		/// TID_ProfilerOverlay = 1082,
 		TID_StringTable = 1083,

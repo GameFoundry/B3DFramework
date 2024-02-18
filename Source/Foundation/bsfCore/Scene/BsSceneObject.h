@@ -51,7 +51,7 @@ namespace bs
 
 		friend class SceneManager;
 		friend class Prefab;
-		friend class PrefabDiff;
+		friend class SceneObjectHierarchyDelta;
 		friend class PrefabUtility;
 
 	public:
@@ -123,10 +123,10 @@ namespace bs
 		void ClearPrefabDelta() { mPrefabDelta = nullptr; }
 
 		/** Returns a prefab delta object containing instance specific modifications of this object compared to its prefab reference, if any. */
-		const SPtr<PrefabDiff>& GetPrefabDelta() const { return mPrefabDelta; }
+		const SPtr<SceneObjectHierarchyDelta>& GetPrefabDelta() const { return mPrefabDelta; }
 
 		/** Assigns a new prefab delta. Caller must ensure the prefab delta was generated for this object. */
-		void SetPrefabDelta(const SPtr<PrefabDiff>& delta) { mPrefabDelta = delta; }
+		void SetPrefabDelta(const SPtr<SceneObjectHierarchyDelta>& delta) { mPrefabDelta = delta; }
 
 		/** Recursively enables the provided set of flags on this object and all children. */
 		void SetFlagsInternal(u32 flags);
@@ -174,7 +174,7 @@ namespace bs
 	private:
 		HSceneObject mThisHandle;
 		UUID mPrefabResourceId; /**< Identifier of the prefab resource that this object is linked to, if any. */
-		SPtr<PrefabDiff> mPrefabDelta; // TODO - It would probably be better if each scene object/component holds an instance of this
+		SPtr<SceneObjectHierarchyDelta> mPrefabDelta; // TODO - It would probably be better if each scene object/component holds an instance of this
 		u32 mPrefabHash = 0;
 		u32 mFlags;
 

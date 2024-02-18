@@ -71,9 +71,9 @@ namespace bs
 		{ /* DO NOTHING */
 		}
 
-		SPtr<PrefabDiff> GetPrefabDelta(SceneObject* obj) { return obj->mPrefabDelta; }
+		SPtr<SceneObjectHierarchyDelta> GetPrefabDelta(SceneObject* obj) { return obj->mPrefabDelta; }
 
-		void SetPrefabDelta(SceneObject* obj, SPtr<PrefabDiff> value) { obj->mPrefabDelta = value; }
+		void SetPrefabDelta(SceneObject* obj, SPtr<SceneObjectHierarchyDelta> value) { obj->mPrefabDelta = value; }
 
 		u32& GetFlags(SceneObject* obj) { return obj->mFlags; }
 
