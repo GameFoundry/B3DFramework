@@ -1,7 +1,7 @@
 //************************************ bs::framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "Scene/BsPrefabUtility.h"
-#include "Scene/BsPrefabDiff.h"
+#include "Scene/BsSceneObjectHierarchyDelta.h"
 #include "Scene/BsPrefab.h"
 #include "Scene/BsSceneObject.h"
 #include "Resources/BsResources.h"
@@ -200,7 +200,7 @@ void PrefabUtility::UpdateFromPrefab(const HSceneObject& sceneObject)
 			RecordInstanceData(current, instanceData);
 
 			HSceneObject parent = current->GetParent();
-			SPtr<SceneObjectHierarchyDelta> prefabDiff = current->mPrefabDelta;
+			SPtr<SceneObjectHierarchyDelta> prefabDelta = current->mPrefabDelta;
 
 			current->Destroy(true);
 			HSceneObject newInstance = prefabLink->CloneInternal();
@@ -213,7 +213,7 @@ void PrefabUtility::UpdateFromPrefab(const HSceneObject& sceneObject)
 			// new handles at this point, but old ones must keep referencing what they already were.)
 			RestoreInstanceData(newInstance, instanceData);
 
-			newPrefabInstanceData.push_back({ newInstance, parent, prefabDiff });
+			newPrefabInstanceData.push_back({ newInstance, parent, prefabDelta });
 		}
 	}
 
@@ -309,7 +309,7 @@ void PrefabUtility::RecordPrefabDelta(const HSceneObject& sceneObject)
 			{
 				HPrefab linkedPrefab = B3DStaticResourceCast<Prefab>(GetResources().LoadFromUuid(prefabResourceId, false, ResourceLoadFlag::None));
 				if(linkedPrefab.IsLoaded(false))
-					sceneObject->SetPrefabDelta(SceneObjectHierarchyDelta::Create(linkedPrefab->GetRootInternal(), sceneObject));
+					sceneObject->SetPrefabDelta(SceneObjectHierarchyDelta::Create(linkedPrefab->GetRootInternal(), sceneObject, SceneObjectHierarchyDeltaFlag::PrefabDelta));
 				else
 				{
 					B3D_LOG(Warning, Prefab, "Cannot record prefab delta for scene object '{0}'. Failed to load prefab with ID: '{1}'.", sceneObject.GetId(), prefabResourceId);

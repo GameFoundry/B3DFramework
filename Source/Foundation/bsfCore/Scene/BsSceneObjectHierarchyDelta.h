@@ -78,6 +78,16 @@ namespace bs
 		RTTITypeBase* GetRtti() const override;
 	};
 
+	/** Flags used to control the creation of SceneObjectHierarchyDelta. */
+	enum class SceneObjectHierarchyDeltaFlag
+	{
+		None = 0,
+		PrefabDelta = 1 << 0, /**< Delta generated between the prefab root hierarchy and a prefab instance. Compares objects using prefab object ids where necessary. */
+	};
+
+	using SceneObjectHierarchyDeltaFlags = Flags<SceneObjectHierarchyDeltaFlag>;
+	B3D_FLAGS_OPERATORS(SceneObjectHierarchyDeltaFlag);
+
 	/**
 	 * Contains modifications between two scene object hierarchies. The modifications are a set of added/removed children or
 	 * components and per-field deltas of their components.
@@ -86,7 +96,7 @@ namespace bs
 	{
 	public:
 		/** Creates a new delta by recording changes present in @p modified, compared to @p original. */
-		static SPtr<SceneObjectHierarchyDelta> Create(const HSceneObject& original, const HSceneObject& modified);
+		static SPtr<SceneObjectHierarchyDelta> Create(const HSceneObject& original, const HSceneObject& modified, SceneObjectHierarchyDeltaFlags flags = SceneObjectHierarchyDeltaFlag::None);
 
 		/**
 		 * Applies the delta to the provided object. 
@@ -99,7 +109,7 @@ namespace bs
 
 	private:
 		/** Recursively generates differences between original and the modified version, for every scene object in the hierarchy. */
-		static SPtr<SceneObjectDelta> GenerateDelta(const HSceneObject& original, const HSceneObject& modified);
+		static SPtr<SceneObjectDelta> GenerateDelta(const HSceneObject& original, const HSceneObject& modified, SceneObjectHierarchyDeltaFlags flags);
 
 		/** Recursively applies a per-object set of differences to a specific object.  */
 		static void ApplyDiff(const SPtr<SceneObjectDelta>& delta, const HSceneObject& original, SerializationContext* context);

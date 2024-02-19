@@ -31,7 +31,7 @@ RTTITypeBase* SceneObjectDelta::GetRtti() const
 	return GetRttiStatic();
 }
 
-SPtr<SceneObjectHierarchyDelta> SceneObjectHierarchyDelta::Create(const HSceneObject& original, const HSceneObject& modified)
+SPtr<SceneObjectHierarchyDelta> SceneObjectHierarchyDelta::Create(const HSceneObject& original, const HSceneObject& modified, SceneObjectHierarchyDeltaFlags flags)
 {
 	if(original->GetPrefabResourceId() != modified->GetPrefabResourceId())
 	{
@@ -40,7 +40,7 @@ SPtr<SceneObjectHierarchyDelta> SceneObjectHierarchyDelta::Create(const HSceneOb
 	}
 
 	SPtr<SceneObjectHierarchyDelta> output = B3DMakeShared<SceneObjectHierarchyDelta>();
-	output->mRoot = GenerateDelta(original, modified);
+	output->mRoot = GenerateDelta(original, modified, flags);
 
 	return output;
 }
@@ -150,7 +150,7 @@ void SceneObjectHierarchyDelta::ApplyDiff(const SPtr<SceneObjectDelta>& delta, c
 	}
 }
 
-SPtr<SceneObjectDelta> SceneObjectHierarchyDelta::GenerateDelta(const HSceneObject& original, const HSceneObject& modified)
+SPtr<SceneObjectDelta> SceneObjectHierarchyDelta::GenerateDelta(const HSceneObject& original, const HSceneObject& modified, SceneObjectHierarchyDeltaFlags flags)
 {
 	SPtr<SceneObjectDelta> output;
 
@@ -218,7 +218,7 @@ SPtr<SceneObjectDelta> SceneObjectHierarchyDelta::GenerateDelta(const HSceneObje
 			if(prefabChild->GetId() == instanceChild->GetPrefabObjectId())
 			{
 				if(!instanceChild->IsPrefabInstanceRoot())
-					childDiff = GenerateDelta(prefabChild, instanceChild);
+					childDiff = GenerateDelta(prefabChild, instanceChild, flags);
 
 				foundMatching = true;
 				break;

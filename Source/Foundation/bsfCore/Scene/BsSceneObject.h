@@ -174,7 +174,7 @@ namespace bs
 	private:
 		HSceneObject mThisHandle;
 		UUID mPrefabResourceId; /**< Identifier of the prefab resource that this object is linked to, if any. */
-		SPtr<SceneObjectHierarchyDelta> mPrefabDelta; // TODO - It would probably be better if each scene object/component holds an instance of this
+		SPtr<SceneObjectHierarchyDelta> mPrefabDelta;
 		u32 mPrefabHash = 0;
 		u32 mFlags;
 
