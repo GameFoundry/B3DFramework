@@ -93,7 +93,7 @@ void RestoreInstanceData(const HSceneObject& sceneObject, const UnorderedMap<UUI
 					component->SetId(found->second.Id);
 
 					HComponent mutableComponentHandle = component; // TODO - Unify this so it's the same as the SceneObject case above
-					mutableComponentHandle.SetSharedHandleData(component.GetShared());
+					mutableComponentHandle.SetObject(component.GetShared());
 				}
 			}
 		});

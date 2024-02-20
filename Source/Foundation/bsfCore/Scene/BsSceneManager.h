@@ -47,17 +47,14 @@ namespace bs
 
 		/** Name of the scene. */
 		B3D_SCRIPT_EXPORT(ExportName(Name), Property(Getter))
-
 		const String& GetName() const { return mName; }
 
 		/** Root object of the scene. */
 		B3D_SCRIPT_EXPORT(ExportName(Root), Property(Getter))
-
 		const HSceneObject& GetRoot() const { return mRoot; }
 
 		/** Checks is the scene currently active. IF inactive the scene properties aside from the name are undefined. */
 		B3D_SCRIPT_EXPORT(ExportName(IsActive), Property(Getter))
-
 		bool IsActive() const { return mIsActive; }
 
 		/**
@@ -65,7 +62,6 @@ namespace bs
 		 * physics plugin used.
 		 */
 		B3D_SCRIPT_EXPORT(ExportName(Physics), Property(Getter))
-
 		const SPtr<PhysicsScene>& GetPhysicsScene() const { return mPhysicsScene; }
 
 	private:

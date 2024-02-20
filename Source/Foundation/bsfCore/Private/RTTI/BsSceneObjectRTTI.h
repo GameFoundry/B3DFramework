@@ -9,7 +9,7 @@
 #include "Scene/BsGameObjectManager.h"
 #include "Scene/BsComponent.h"
 #include "Private/RTTI/BsGameObjectRTTI.h"
-#include "Scene/BsPrefabDiff.h"
+#include "Scene/BsSceneObjectHierarchyDelta.h"
 #include "Utility/BsUtility.h"
 
 namespace bs

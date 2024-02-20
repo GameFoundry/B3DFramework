@@ -112,11 +112,26 @@ namespace bs
 		/** Returns internal handle data. */
 		const SPtr<GameObjectHandleData>& GetSharedHandleData() const { return mSharedHandleData; }
 
+		/** Clears the handle so it doesn't point to any object. Note this will affect any other handles sharing the handle data. */
+		void ClearObject()
+		{
+			B3D_ASSERT(mSharedHandleData != nullptr);
+
+			mSharedHandleData->InstanceData = nullptr;
+			mSharedHandleData->Id = UUID::kEmpty;
+		}
+
+		/** Updates the handle so it points to the provided object. Note this will affect any other handles sharing the handle data. */
+		void SetObject(const SPtr<GameObject>& object);
+
 		/**
-		 * Updates the shared handle data so it has the same contents as the provided shared handle data. Note this will affect any other handles
-		 * sharing the handle data.
+		 * Updates the handle so it points to the same object as the provided object. Compared to the other overload of this method,
+		 * this one has the advantage that its able to handle objects have been destroyed. The handle data will remain to be
+		 * valid in case the object is later resurrected.
+		 *
+		 * Note this will affect any other handles sharing the handle data.
 		 */
-		void SetSharedHandleData(const GameObjectHandleBase& other)
+		void SetObject(const GameObjectHandleBase& other)
 		{
 			B3D_ASSERT(mSharedHandleData != nullptr);
 			B3D_ASSERT(other.mSharedHandleData != nullptr);
@@ -125,23 +140,12 @@ namespace bs
 			mSharedHandleData->Id = other.mSharedHandleData->Id;
 		}
 
-		/** Clears the shared handle data to empty values. Note this will affect any other handles sharing the handle data. */
-		void ClearSharedHandleData()
-		{
-			B3D_ASSERT(mSharedHandleData != nullptr);
-
-			mSharedHandleData->InstanceData = nullptr;
-			mSharedHandleData->Id = UUID::kEmpty;
-		}
-
-		/** Updates the shared handle data so it points to the provided object. Note this will affect any other handles sharing the handle data. */
-		void SetSharedHandleData(const SPtr<GameObject>& object);
-
 		/** @} */
 
 	protected:
 		friend class GameObjectManager;
 		friend class GameObjectDeserializationState;
+		friend class GameObjectCollection;
 
 		template <class _Ty1, class _Ty2>
 		friend bool operator==(const GameObjectHandle<_Ty1>& lhs, const GameObjectHandle<_Ty2>& rhs);

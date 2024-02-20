@@ -93,6 +93,7 @@ namespace bs
 	protected:
 		friend class GameObjectHandleBase;
 		friend class GameObjectManager;
+		friend class GameObjectCollection;
 		friend class SceneObjectHierarchyDelta;
 		friend class PrefabUtility;
 
@@ -112,6 +113,7 @@ namespace bs
 		String mName;
 		UUID mId; /**< Unique identifier for this object. */
 		UUID mPrefabObjectId; /**< Identifier of the object in the prefab that this object is linked to, if any. */
+		WeakSPtr<GameObjectCollection> mOwnerCollection; /**< Collection that owns this game object. */
 
 		Any mRTTIData; // RTTI only
 	private:

@@ -131,28 +131,28 @@ void GameObjectDeserializationState::Resolve()
 			const auto findIterObj = mDeserializedObjects.find(instanceId);
 
 			if(findIterObj != mDeserializedObjects.end())
-				entry.Handle.SetSharedHandleData(findIterObj->second);
+				entry.Handle.SetObject(findIterObj->second);
 			else
 			{
 				if((mOptions & GODM_KeepMissing) == 0)
-					entry.Handle.ClearSharedHandleData();
+					entry.Handle.ClearObject();
 			}
 		}
 		else if(!isInternalReference && (mOptions & GODM_RestoreExternal) != 0)
 		{
 			HGameObject obj;
 			if(GameObjectManager::Instance().TryGetObject(instanceId, obj))
-				entry.Handle.SetSharedHandleData(obj);
+				entry.Handle.SetObject(obj);
 			else
 			{
 				if((mOptions & GODM_KeepMissing) == 0)
-					entry.Handle.ClearSharedHandleData();
+					entry.Handle.ClearObject();
 			}
 		}
 		else
 		{
 			if((mOptions & GODM_KeepMissing) == 0)
-				entry.Handle.ClearSharedHandleData();
+				entry.Handle.ClearObject();
 		}
 	}
 
@@ -218,7 +218,7 @@ void GameObjectDeserializationState::RegisterObject(u64 originalId, GameObjectHa
 		SPtr<GameObject> ptr = object.GetShared();
 
 		object.mSharedHandleData = iterFind->second;
-		object.SetSharedHandleData(ptr);
+		object.SetObject(ptr);
 	}
 
 	const u64 newId = object->GetInstanceId();

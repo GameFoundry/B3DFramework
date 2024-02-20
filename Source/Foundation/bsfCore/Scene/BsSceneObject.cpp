@@ -111,7 +111,7 @@ void SceneObject::SetInstanceData(const SPtr<GameObjectInstanceData>& other)
 
 	// Instance data changed, so make sure to refresh the handles to reflect that
 	SPtr<SceneObject> thisPtr = mThisHandle.GetShared();
-	mThisHandle.SetSharedHandleData(thisPtr);
+	mThisHandle.SetObject(thisPtr);
 }
 
 bool SceneObject::IsPrefabInstanceRoot() const
