@@ -32,10 +32,22 @@ void Component::Destroy(bool immediate)
 
 void Component::DestroyInternal(GameObjectHandleBase& handle, bool immediate)
 {
+	const SPtr<GameObjectCollection>& ownerCollection = mOwnerCollection.lock();
+
 	if(immediate)
-		GameObjectManager::Instance().UnregisterObject(handle);
+	{
+		if(B3D_ENSURE(ownerCollection != nullptr))
+			ownerCollection->UnregisterObject(handle, SO()->IsInstantiated());
+		else
+			GameObjectManager::Instance().UnregisterObject(handle);
+	}
 	else
-		GameObjectManager::Instance().QueueForDestroy(handle);
+	{
+		if(B3D_ENSURE(ownerCollection != nullptr))
+			ownerCollection->QueueForDestroy(handle);
+		else
+			GameObjectManager::Instance().QueueForDestroy(handle);
+	}
 }
 
 RTTITypeBase* Component::GetRttiStatic()

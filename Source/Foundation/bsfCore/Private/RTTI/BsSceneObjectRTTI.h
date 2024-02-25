@@ -9,6 +9,7 @@
 #include "Scene/BsGameObjectManager.h"
 #include "Scene/BsComponent.h"
 #include "Private/RTTI/BsGameObjectRTTI.h"
+#include "Scene/BsGameObjectCollection.h"
 #include "Scene/BsSceneObjectHierarchyDelta.h"
 #include "Utility/BsUtility.h"
 
@@ -107,84 +108,99 @@ namespace bs
 			AddReflectableField("mLocalTfrm", 12, &SceneObjectRTTI::GetLocalTransform, &SceneObjectRTTI::SetLocalTransform);
 		}
 
-		void OnDeserializationStarted(IReflectable* obj, SerializationContext* context) override
+		void OnDeserializationStarted(IReflectable* object, SerializationContext* context) override
 		{
 			// If this is the root scene object we're deserializing, activate game object deserialization so the system
 			// can resolve deserialized handles to the newly created objects
-			SceneObject* so = static_cast<SceneObject*>(obj);
+			SceneObject* const sceneObject = static_cast<SceneObject*>(object);
 
 			// It's possible we're just accessing the game object fields, in which case the process below is not needed
 			// (it's only required for new scene objects).
-			if(so->mRTTIData.Empty())
+			if(sceneObject->mRTTIData.Empty())
 				return;
 
-			if(context == nullptr || !B3DRTTIIsOfType<CoreSerializationContext>(context))
+			CoreSerializationContext* const serializationContext = B3DRTTICast<CoreSerializationContext>(context);
+			if(serializationContext == nullptr)
 				return;
 
-			auto coreContext = static_cast<CoreSerializationContext*>(context);
-			if(!coreContext->GoDeserializationActive)
+			if(!serializationContext->GoDeserializationActive)
 			{
-				if(!coreContext->GoState)
-					coreContext->GoState = B3DMakeShared<GameObjectDeserializationState>();
+				if(!serializationContext->GoState)
+					serializationContext->GoState = B3DMakeShared<GameObjectDeserializationState>();
 
 				mIsDeserializationParent = true;
-				coreContext->GoDeserializationActive = true;
+				serializationContext->GoDeserializationActive = true;
+
+				if(serializationContext->GameObjectCollection != nullptr)
+					serializationContext->GameObjectCollection->BeginHandleResolve();
 			}
 		}
 
 		void OnDeserializationEnded(IReflectable* obj, SerializationContext* context) override
 		{
-			SceneObject* so = static_cast<SceneObject*>(obj);
+			SceneObject* sceneObject = static_cast<SceneObject*>(obj);
 
 			// It's possible we're just accessing the game object fields, in which case the process below is not needed
 			// (it's only required for new scene objects).
-			if(so->mRTTIData.Empty())
+			if(sceneObject->mRTTIData.Empty())
 				return;
 
-			B3D_ASSERT(context != nullptr && B3DRTTIIsOfType<CoreSerializationContext>(context));
-			auto coreContext = static_cast<CoreSerializationContext*>(context);
+			CoreSerializationContext* serializationContext = B3DRTTICast<CoreSerializationContext>(context);
+			B3D_ASSERT(serializationContext != nullptr);
 
-			GODeserializationData& goDeserializationData = AnyCastRef<GODeserializationData>(so->mRTTIData);
+			GODeserializationData& goDeserializationData = AnyCastRef<GODeserializationData>(sceneObject->mRTTIData);
 
 			// Register the newly created SO with the GameObjectManager and provide it with the original ID so that
 			// deserialized handles pointing to this object can be resolved.
-			SPtr<SceneObject> soPtr = std::static_pointer_cast<SceneObject>(goDeserializationData.Ptr);
+			SPtr<SceneObject> sceneObjectShared = std::static_pointer_cast<SceneObject>(goDeserializationData.Ptr);
 
-			HSceneObject soHandle = SceneObject::CreateInternal(soPtr);
-			coreContext->GoState->RegisterObject(goDeserializationData.OriginalId, soHandle);
+			if(sceneObject->mId.Empty() || serializationContext->GoState->GetUseNewUuiDs())
+			{
+				const UUID oldId = sceneObject->mId;
+				sceneObject->mId = UUIDGenerator::GenerateRandom();
+
+				if(!oldId.Empty())
+				{
+					if(serializationContext->GameObjectCollection != nullptr)
+						serializationContext->GameObjectCollection->RegisterUnresolvedHandleIdRemapping(oldId, sceneObject->mId);
+				}
+			}
+
+			HSceneObject sceneObjectHandle = SceneObject::CreateInternal(serializationContext->GameObjectCollection, sceneObjectShared);
+			serializationContext->GoState->RegisterObject(goDeserializationData.OriginalId, sceneObjectHandle);
 
 			// We stored all components and children in a temporary structure because they rely on the SceneObject being
 			// initialized with the GameObjectManager. Now that it is, we add them.
 			for(auto& component : mComponents)
-				so->AddComponentInternal(component);
+				sceneObject->InternalAddComponent(component, false);
 
 			for(auto& child : mChildren)
 			{
 				if(child != nullptr)
-					child->SetParentInternal(so->mThisHandle, false);
+					child->SetParentInternal(sceneObject->GetHandle(), false);
 			}
-
-			if(so->mId.Empty() || coreContext->GoState->GetUseNewUuiDs())
-				so->mId = UUIDGenerator::GenerateRandom();
 
 			// If this is the deserialization parent, end deserialization (which resolves all game object handles, if we
 			// provided valid IDs), and instantiate (i.e. activate) the deserialized hierarchy.
 			if(mIsDeserializationParent)
 			{
-				coreContext->GoState->Resolve();
-				coreContext->GoDeserializationActive = false;
+				if(serializationContext->GameObjectCollection != nullptr)
+					serializationContext->GameObjectCollection->EndHandleResolve();
+
+				serializationContext->GoState->Resolve();
+				serializationContext->GoDeserializationActive = false;
 
 				bool parentActive = true;
-				if(so->GetParent() != nullptr)
-					parentActive = so->GetParent()->GetActive();
+				if(sceneObject->GetParent() != nullptr)
+					parentActive = sceneObject->GetParent()->GetActive();
 
-				so->SetActiveHierarchy(parentActive, false);
+				sceneObject->SetActiveHierarchy(parentActive, false);
 
-				if((so->mFlags & SOF_DontInstantiate) == 0)
-					so->InstantiateInternal();
+				if((sceneObject->mFlags & SOF_DontInstantiate) == 0)
+					sceneObject->InstantiateInternal();
 			}
 
-			so->mRTTIData = nullptr;
+			sceneObject->mRTTIData = nullptr;
 		}
 
 		const String& GetRttiName() override

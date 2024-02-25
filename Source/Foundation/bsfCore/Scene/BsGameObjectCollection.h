@@ -18,9 +18,13 @@ namespace bs
 	 */
 	class B3D_CORE_EXPORT GameObjectCollection final : public std::enable_shared_from_this<GameObjectCollection>
 	{
+		struct PrivatelyConstruct { };
 	public:
-		GameObjectCollection() = default;
+		GameObjectCollection(PrivatelyConstruct);
 		~GameObjectCollection();
+
+		/** Unique ID for the collection. */
+		UUID GetId() const { return mId; }
 
 		/**
 		 * Registers a new game object and returns the handle to the object.
@@ -115,9 +119,13 @@ namespace bs
 		/**	Destroys any GameObjects that were queued for destruction. */
 		void DestroyQueuedObjects();
 
+		/** Creates a new empty game object collection. */
+		static SPtr<GameObjectCollection> Create();
+
 		Event<void(const HGameObject&)> OnDestroyed; /**< Triggered when a game object is being destroyed. */
 
 	private:
+		UUID mId;
 		bool mHandleResolveActive = false;
 
 		UnorderedMap<UUID, UUID> mUUIDRemapping;

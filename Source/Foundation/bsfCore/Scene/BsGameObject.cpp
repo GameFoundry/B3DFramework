@@ -1,6 +1,8 @@
 //************************************ bs::framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "Scene/BsGameObject.h"
+
+#include "BsGameObjectCollection.h"
 #include "Private/RTTI/BsGameObjectRTTI.h"
 #include "Scene/BsGameObjectManager.h"
 
@@ -22,6 +24,22 @@ void GameObject::SetInstanceData(const SPtr<GameObjectInstanceData>& other)
 	mInstanceData->Object = myPtr;
 
 	GameObjectManager::Instance().RemapId(oldId, mInstanceData->MInstanceId);
+}
+
+void GameObject::SetOwnerCollection(const SPtr<GameObjectCollection>& collection)
+{
+	if(!B3D_ENSURE(collection != nullptr))
+		return;
+
+	SPtr<GameObjectCollection> currentCollection = mOwnerCollection.lock();
+	if(currentCollection == collection)
+		return;
+
+	if(B3D_ENSURE(currentCollection != nullptr))
+		currentCollection->UnregisterObject(mThisHandle, false);
+
+	collection->RegisterInitializedObject(mThisHandle);
+	mOwnerCollection = collection;
 }
 
 RTTITypeBase* GameObject::GetRttiStatic()

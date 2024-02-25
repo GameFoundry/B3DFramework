@@ -79,13 +79,16 @@ namespace bs
 		/**
 		 * Creates the clone of the prefab's current hierarchy but doesn't instantiate it.
 		 *
-		 * @param[in]	preserveUUIDs	If false, each cloned game object will be assigned a brand new UUID. Otherwise
-		 *								the UUID of the original game objects will be preserved. Note that two instantiated
-		 *								scene objects should never have the same UUID, so if preserving UUID's make sure
-		 *								the original is destroyed before instantiating.
-		 * @return						Clone of the prefab's scene object hierarchy.
+		 * @param	cloneOwnerCollection	Collection into which to place the cloned scene objects. If @p preserveIds is true
+		 *									this must be a different collection that the current scene object, otherwise IDs would
+		 *									conflict.
+		 * @param	preserveIds				If false, each cloned game object will be assigned a brand new ID. Otherwise
+		 *									the ID of the original game objects will be preserved. Note that two instantiated
+			 *								scene objects should never have the same ID, so if preserving ID's make sure
+			 *								the original is destroyed before instantiating.
+		 * @return							Clone of the prefab's scene object hierarchy.
 		 */
-		HSceneObject CloneInternal(bool preserveUUIDs = false) const;
+		HSceneObject CloneInternal(const SPtr<GameObjectCollection>& cloneOwnerCollection, bool preserveIds = false) const;
 
 		/**
 		 * Instantiates a prefab by creating an instance of the prefab's scene object hierarchy. The returned hierarchy
@@ -114,6 +117,7 @@ namespace bs
 		u32 mHash = 0;
 		UUID mUUID;
 		bool mIsScene = true;
+		SPtr<GameObjectCollection> mGameObjectCollection; /**< Collection owning the internal hierarchy. */
 
 		/************************************************************************/
 		/* 								RTTI		                     		*/

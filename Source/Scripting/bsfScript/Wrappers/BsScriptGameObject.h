@@ -58,7 +58,6 @@ namespace bs
 		/************************************************************************/
 		/* 								CLR HOOKS						   		*/
 		/************************************************************************/
-		static u64 InternalGetInstanceId(ScriptGameObject* nativeInstance);
 		static void InternalGetUuid(ScriptGameObject* nativeInstance, UUID* uuid);
 		static bool InternalGetIsDestroyed(ScriptGameObject* nativeInstance);
 	};

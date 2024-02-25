@@ -96,6 +96,7 @@ namespace bs
 		bool mScheduledStateChange;
 
 		float mPausableTime;
+		SPtr<GameObjectCollection> mSavedSceneGameObjectCollection;
 		HSceneObject mSavedScene;
 	};
 

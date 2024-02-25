@@ -35,7 +35,7 @@ bool ScriptComponentBase::CheckIfDestroyed(const GameObjectHandleBase& handle)
 {
 	if(handle.IsDestroyed())
 	{
-		B3D_LOG(Warning, Scene, "Trying to access a destroyed GameObject with instance ID: {0}", handle.GetInstanceId());
+		B3D_LOG(Warning, Scene, "Trying to access a destroyed GameObject with ID: {0}", handle.GetId());
 		return true;
 	}
 

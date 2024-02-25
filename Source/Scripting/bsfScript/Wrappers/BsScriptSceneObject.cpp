@@ -411,7 +411,7 @@ bool ScriptSceneObject::CheckIfDestroyed(ScriptSceneObject* nativeInstance)
 {
 	if(nativeInstance->mSceneObject.IsDestroyed())
 	{
-		B3D_LOG(Warning, Scene, "Trying to access a destroyed SceneObject with instance ID: {0}", +nativeInstance->mSceneObject.GetInstanceId());
+		B3D_LOG(Warning, Scene, "Trying to access a destroyed SceneObject with ID: {0}", nativeInstance->mSceneObject.GetId());
 		return true;
 	}
 

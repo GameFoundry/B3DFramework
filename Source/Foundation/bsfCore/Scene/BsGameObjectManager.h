@@ -108,9 +108,18 @@ namespace bs
 		Event<void(const HGameObject&)> OnDestroyed;
 
 	private:
+		friend class GameObjectCollection;
+
+		/** Notifies the manager that a new game object collection was created. */
+		void RegisterGameObjectCollection(const SPtr<GameObjectCollection>& collection);
+
+		/** Notifies the manager that a game object collection was about to be destroyed. */
+		void UnregisterGameObjectCollection(const GameObjectCollection& collection);
+
 		std::atomic<u64> mNextAvailableID = { 1 }; // 0 is not a valid ID
 		Map<u64, GameObjectHandleBase> mObjects;
 		Map<u64, GameObjectHandleBase> mQueuedForDestroy;
+		UnorderedMap<UUID, WeakSPtr<GameObjectCollection>> mGameObjectCollections;
 
 		mutable Mutex mMutex;
 	};

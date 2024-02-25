@@ -163,7 +163,7 @@ namespace bs
 	/** Contains information about a scene object that is animated by a specific animation curve. */
 	struct AnimatedSceneObjectInfo
 	{
-		u64 Id; /**< Instance ID of the scene object. */
+		UUID Id; /**< ID of the scene object. */
 		i32 BoneIdx; /**< Bone from which to access the transform. If -1 then no bone mapping is present. */
 		i32 LayerIdx; /**< If no bone mapping, layer on which the animation containing the referenced curve is in. */
 		i32 StateIdx; /**< If no bone mapping, animation state containing the referenced curve. */
@@ -537,7 +537,7 @@ namespace bs
 		SPtr<MorphShapes> mMorphShapes;
 		Vector<float> mMorphChannelWeights;
 		Vector<AnimationClipInfo> mClipInfos;
-		UnorderedMap<u64, AnimatedSceneObject> mSceneObjects;
+		UnorderedMap<UUID, AnimatedSceneObject> mSceneObjects;
 		Vector<float> mGenericCurveOutputs;
 		bool mGenericCurveValuesValid = false;
 		AnimSampleStep mSampleStep = AnimSampleStep::None;

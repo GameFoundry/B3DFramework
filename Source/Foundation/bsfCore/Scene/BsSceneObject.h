@@ -74,7 +74,7 @@ namespace bs
 		void Destroy(bool immediate = false);
 
 		/**	Returns a handle to this object. */
-		HSceneObject GetHandle() const { return mThisHandle; }
+		HSceneObject GetHandle() const { return B3DStaticGameObjectCast<SceneObject>(mThisHandle); }
 
 		/** Identifies the prefab resource this object is linked to. Will return an empty ID if the object is not linked to a prefab. */
 		const UUID& GetPrefabResourceId() const { return mPrefabResourceId; }
@@ -107,6 +107,7 @@ namespace bs
 		 */
 
 		void SetInstanceData(const SPtr<GameObjectInstanceData>& other) override;
+		void SetOwnerCollection(const SPtr<GameObjectCollection>& collection) override;
 
 		/**
 		 * Register the scene object with the scene and activate all of its components.
@@ -140,22 +141,26 @@ namespace bs
 		SceneObject(const String& name, u32 flags);
 
 		/**
-		 * Creates a new SceneObject instance, registers it with the game object manager, creates and returns a handle to
+		 * Creates a new SceneObject instance and registers it with the game object collection, and returns a handle to
 		 * the new object.
+		 *
+		 * @param	ownerCollection			Collection to register the scene object with.
+		 * @param	name					Name of the scene object.
+		 * @param	flags					Optional flags that control scene object behaviour.
 		 *
 		 * @note
 		 * When creating objects with DontInstantiate flag it is the callers responsibility to manually destroy the object,
 		 * otherwise it will leak.
 		 */
-		static HSceneObject CreateInternal(const String& name, u32 flags = 0);
+		static HSceneObject CreateInternal(const SPtr<GameObjectCollection>& ownerCollection, const String& name, u32 flags = 0);
 
 		/**
-		 * Creates a new SceneObject instance from an existing pointer, registers it with the game object manager, creates
-		 * and returns a handle to the object.
+		 * Registers an existing SceneObject instance with the game object collection, and returns a handle to the object.
 		 *
-		 * @param[in]	soPtr		Pointer to the scene object register and return a handle to.
+		 * @param	ownerCollection			Collection to register the scene object with.
+		 * @param	sceneObject				Scene object to register.
 		 */
-		static HSceneObject CreateInternal(const SPtr<SceneObject>& soPtr);
+		static HSceneObject CreateInternal(const SPtr<GameObjectCollection>& ownerCollection, const SPtr<SceneObject>& sceneObject);
 
 		/**
 		 * Destroys this object and any of its held components.
@@ -172,7 +177,8 @@ namespace bs
 		bool IsInstantiated() const { return (mFlags & SOF_DontInstantiate) == 0; }
 
 	private:
-		HSceneObject mThisHandle;
+		friend class Component;
+
 		UUID mPrefabResourceId; /**< Identifier of the prefab resource that this object is linked to, if any. */
 		SPtr<SceneObjectHierarchyDelta> mPrefabDelta;
 		u32 mPrefabHash = 0;
@@ -432,19 +438,32 @@ namespace bs
 		 */
 		ObjectMobility GetMobility() const { return mMobility; }
 
-		/**
-		 * Makes a deep copy of this object.
-		 *
-		 * @param[in]	instantiate		If false, the cloned hierarchy will just be a memory copy, but will not be present
-		 *								in the scene or otherwise active until instantiate() is called.
-		 * @param[in]	preserveUUIDs	If false, each cloned game object will be assigned a brand new UUID. Otherwise
-		 *								the UUID of the original game objects will be preserved. Note that two instantiated
-		 *								scene objects should never have the same UUID, so if preserving UUID's make sure
-		 *								the original is destroyed before instantiating.
+		/** Makes a deep copy of this object (including all its children). */
+		HSceneObject Clone();
+
+		/** @name Internal
+		 *  @{
 		 */
-		HSceneObject Clone(bool instantiate = true, bool preserveUUIDs = false);
+
+		/**
+		 * Makes a deep copy of this object (including all its children).
+		 *
+		 * @param		cloneOwnerCollection	Collection into which to place the cloned scene objects. If @p preserveIds is true
+		 *										this must be a different collection that the current scene object, otherwise IDs would
+		 *										conflict.
+		 * @param		instantiate				If false, the cloned hierarchy will just be a memory copy, but will not be present
+		 *										in the scene or otherwise active until Instantiate() is called.
+		 * @param		preserveIds				If false, each cloned game object will be assigned a brand new ID. Otherwise
+		 *										the ID of the original game objects will be preserved. 
+		 * @return								Cloned scene object hierarchy.
+		 */
+		HSceneObject Clone(const SPtr<GameObjectCollection>& cloneOwnerCollection, bool instantiate = true, bool preserveIds = false);
+
+		/** @} */
 
 	private:
+		friend class SceneInstance;
+
 		SPtr<SceneInstance> mParentScene;
 		HSceneObject mParent;
 		Vector<HSceneObject> mChildren;
@@ -461,8 +480,8 @@ namespace bs
 		 */
 		void SetParentInternal(const HSceneObject& parent, bool keepWorldTransform = true);
 
-		/** Changes the owning scene of the scene object and all children. */
-		void SetScene(const SPtr<SceneInstance>& scene);
+		/** Changes the owning scene of the scene object and optionally all children if @p recursive is true. */
+		void SetScene(const SPtr<SceneInstance>& scene, bool recursive = true);
 
 		/**
 		 * Adds a child to the child array. This method doesn't check for null or duplicate values.
@@ -491,14 +510,12 @@ namespace bs
 		{
 			static_assert((std::is_base_of<bs::Component, T>::value), "Specified type is not a valid Component.");
 
-			SPtr<T> gameObject(new(B3DAllocate<T>()) T(mThisHandle, std::forward<Args>(args)...), &B3DDelete<T>, StdAlloc<T>());
-			gameObject->SetId(UUIDGenerator::GenerateRandom());
+			SPtr<T> component(new(B3DAllocate<T>()) T(GetHandle(), std::forward<Args>(args)...), &B3DDelete<T>, StdAlloc<T>());
+			component->SetId(UUIDGenerator::GenerateRandom());
 
-			const HComponent newComponent =
-				B3DStaticGameObjectCast<Component>(GameObjectManager::Instance().RegisterObject(gameObject));
-
-			AddAndInitializeComponent(newComponent);
-			return B3DStaticGameObjectCast<T>(newComponent);
+			const HComponent componentHandle = RegisterComponentWithOwnerCollection(component);
+			InternalAddComponent(componentHandle, true);
+			return B3DStaticGameObjectCast<T>(componentHandle);
 		}
 
 		/**
@@ -631,14 +648,17 @@ namespace bs
 
 		/** @} */
 	private:
-		/**	Adds the component to the internal component array. */
-		void AddComponentInternal(const SPtr<Component>& component);
+		/** Registers the provided component with the owner game object collection and returns the component handle. */
+		HComponent RegisterComponentWithOwnerCollection(const SPtr<Component>& component);
 
-		/**	Adds the component to the internal component array, and initializes it. */
-		void AddAndInitializeComponent(const HComponent& component);
+		/**
+		 *	Adds the component to the internal component array, and optionally instantiates it. Note the component will only
+		 *	be instantiated if this scene object is instantiated and @p instantiate flag is true.
+		 */
+		void InternalAddComponent(const HComponent& component, bool instantiate);
 
-		/**	Adds the component to the internal component array, and initializes it. */
-		void AddAndInitializeComponent(const SPtr<Component>& component);
+		/** Equivalent to AddComponent(const HComponent&, bool), but internally looks up the component handle from the game object collection. */
+		void InternalAddComponent(const SPtr<Component>& component, bool instantiate);
 
 		Vector<HComponent> mComponents;
 

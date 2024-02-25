@@ -12,6 +12,7 @@
 #include "Scene/BsPrefabUtility.h"
 #include "Math/BsMatrix3.h"
 #include "BsCoreApplication.h"
+#include "BsGameObjectCollection.h"
 
 using namespace bs;
 
@@ -32,7 +33,11 @@ SceneObject::~SceneObject()
 
 HSceneObject SceneObject::Create(const String& name, u32 flags)
 {
-	HSceneObject newObject = CreateInternal(name, flags);
+	// TODO - Scene should be something user provides on construction
+	const SPtr<SceneInstance>& mainScene = SceneManager::Instance().GetMainScene();
+	const SPtr<GameObjectCollection>& sceneGameObjectCollection = mainScene->GetGameObjectCollection();
+
+	HSceneObject newObject = CreateInternal(sceneGameObjectCollection, name, flags);
 
 	if(newObject->IsInstantiated())
 		GetSceneManager().RegisterNewSo(newObject);
@@ -40,25 +45,23 @@ HSceneObject SceneObject::Create(const String& name, u32 flags)
 	return newObject;
 }
 
-HSceneObject SceneObject::CreateInternal(const String& name, u32 flags)
+HSceneObject SceneObject::CreateInternal(const SPtr<GameObjectCollection>& ownerCollection, const String& name, u32 flags)
 {
-	SPtr<SceneObject> sceneObjectPtr = SPtr<SceneObject>(new(B3DAllocate<SceneObject>()) SceneObject(name, flags), &B3DDelete<SceneObject>, StdAlloc<SceneObject>());
-	sceneObjectPtr->mId = UUIDGenerator::GenerateRandom();
+	const SPtr<SceneObject> sceneObject = SPtr<SceneObject>(new(B3DAllocate<SceneObject>()) SceneObject(name, flags), &B3DDelete<SceneObject>, StdAlloc<SceneObject>());
+	sceneObject->mId = UUIDGenerator::GenerateRandom();
 
-	HSceneObject sceneObject = B3DStaticGameObjectCast<SceneObject>(
-		GameObjectManager::Instance().RegisterObject(sceneObjectPtr));
-	sceneObject->mThisHandle = sceneObject;
-
-	return sceneObject;
+	return CreateInternal(ownerCollection, sceneObject);
 }
 
-HSceneObject SceneObject::CreateInternal(const SPtr<SceneObject>& soPtr)
+HSceneObject SceneObject::CreateInternal(const SPtr<GameObjectCollection>& ownerCollection, const SPtr<SceneObject>& sceneObject)
 {
-	HSceneObject sceneObject = B3DStaticGameObjectCast<SceneObject>(
-		GameObjectManager::Instance().RegisterObject(soPtr));
-	sceneObject->mThisHandle = sceneObject;
+	HSceneObject sceneObjectHandle =
+		B3DStaticGameObjectCast<SceneObject>(B3D_ENSURE(ownerCollection != nullptr)
+			? ownerCollection->RegisterAndInitializeObject(sceneObject)
+			: GameObjectManager::Instance().RegisterObject(sceneObject));
+	sceneObjectHandle->mThisHandle = sceneObjectHandle;
 
-	return sceneObject;
+	return sceneObjectHandle;
 }
 
 void SceneObject::Destroy(bool immediate)
@@ -68,7 +71,7 @@ void SceneObject::Destroy(bool immediate)
 	if(mParent != nullptr)
 	{
 		if(!mParent.IsDestroyed())
-			mParent->RemoveChild(mThisHandle);
+			mParent->RemoveChild(GetHandle());
 
 		mParent = nullptr;
 	}
@@ -78,6 +81,8 @@ void SceneObject::Destroy(bool immediate)
 
 void SceneObject::DestroyInternal(GameObjectHandleBase& handle, bool immediate)
 {
+	const SPtr<GameObjectCollection>& ownerCollection = mOwnerCollection.lock();
+
 	if(immediate)
 	{
 		for(auto iter = mChildren.begin(); iter != mChildren.end(); ++iter)
@@ -99,10 +104,18 @@ void SceneObject::DestroyInternal(GameObjectHandleBase& handle, bool immediate)
 			mComponents.erase(mComponents.end() - 1);
 		}
 
-		GameObjectManager::Instance().UnregisterObject(handle);
+		if(B3D_ENSURE(ownerCollection != nullptr))
+			ownerCollection->UnregisterObject(handle, IsInstantiated());
+		else
+			GameObjectManager::Instance().UnregisterObject(handle);
 	}
 	else
-		GameObjectManager::Instance().QueueForDestroy(handle);
+	{
+		if(B3D_ENSURE(ownerCollection != nullptr))
+			ownerCollection->QueueForDestroy(handle);
+		else
+			GameObjectManager::Instance().QueueForDestroy(handle);
+	}
 }
 
 void SceneObject::SetInstanceData(const SPtr<GameObjectInstanceData>& other)
@@ -110,8 +123,16 @@ void SceneObject::SetInstanceData(const SPtr<GameObjectInstanceData>& other)
 	GameObject::SetInstanceData(other);
 
 	// Instance data changed, so make sure to refresh the handles to reflect that
-	SPtr<SceneObject> thisPtr = mThisHandle.GetShared();
+	SPtr<SceneObject> thisPtr = GetHandle().GetShared();
 	mThisHandle.SetObject(thisPtr);
+}
+
+void SceneObject::SetOwnerCollection(const SPtr<GameObjectCollection>& collection)
+{
+	for(const auto& component : mComponents)
+		component->SetOwnerCollection(collection);
+
+	GameObject::SetOwnerCollection(collection);
 }
 
 bool SceneObject::IsPrefabInstanceRoot() const
@@ -135,7 +156,7 @@ HSceneObject SceneObject::GetPrefabInstanceRoot() const
 	if(mPrefabResourceId.Empty())
 		return HSceneObject();
 
-	HSceneObject currentObject = mThisHandle;
+	HSceneObject currentObject = GetHandle();
 	while(currentObject != nullptr)
 	{
 		if(currentObject->IsPrefabInstanceRoot())
@@ -192,7 +213,7 @@ void SceneObject::InstantiateInternal(bool prefabOnly)
 		obj->mFlags &= ~SOF_DontInstantiate;
 
 		if(obj->mParent == nullptr)
-			GetSceneManager().RegisterNewSo(obj->mThisHandle);
+			GetSceneManager().RegisterNewSo(obj->GetHandle());
 
 		for(auto& component : obj->mComponents)
 			component->InstantiateInternal();
@@ -499,8 +520,8 @@ void SceneObject::SetParent(const HSceneObject& parent, bool keepWorldTransform)
 		UUID newPrefabResourceId = GetPrefabResourceId();
 		if(originalPrefabResourceId != newPrefabResourceId)
 		{
-			PrefabUtility::ClearPrefabIds(mThisHandle);
-			PrefabUtility::AssignPrefabResourceId(mThisHandle, newPrefabResourceId);
+			PrefabUtility::ClearPrefabIds(GetHandle());
+			PrefabUtility::AssignPrefabResourceId(GetHandle(), newPrefabResourceId);
 		}
 	}
 #endif
@@ -520,15 +541,15 @@ void SceneObject::SetParentInternal(const HSceneObject& parent, bool keepWorldTr
 			worldTfrm = GetTransform();
 
 		if(mParent != nullptr)
-			mParent->RemoveChild(mThisHandle);
+			mParent->RemoveChild(GetHandle());
 
 		if(parent != nullptr)
 		{
-			parent->AddChild(mThisHandle);
-			SetScene(parent->mParentScene);
+			parent->AddChild(GetHandle());
+			SetScene(parent->mParentScene, true);
 		}
 		else
-			SetScene(nullptr);
+			SetScene(nullptr, true);
 
 		mParent = parent;
 
@@ -555,15 +576,22 @@ const SPtr<SceneInstance>& SceneObject::GetScene() const
 	return GetSceneManager().GetMainScene();
 }
 
-void SceneObject::SetScene(const SPtr<SceneInstance>& scene)
+void SceneObject::SetScene(const SPtr<SceneInstance>& scene, bool recursive)
 {
+	if(!B3D_ENSURE(scene != nullptr))
+		return;
+
 	if(mParentScene == scene)
 		return;
 
 	mParentScene = scene;
+	SetOwnerCollection(scene->GetGameObjectCollection());
 
-	for(auto& child : mChildren)
-		child->SetScene(scene);
+	if(recursive)
+	{
+		for(auto& child : mChildren)
+			child->SetScene(scene, true);
+	}
 }
 
 HSceneObject SceneObject::GetChild(u32 idx) const
@@ -609,7 +637,7 @@ void SceneObject::IterateHierarchy(const Function<bool(const HSceneObject&)>& on
 
 	if(visitSelf)
 	{
-		fnVisitComponentsAndChildren(mThisHandle);
+		fnVisitComponentsAndChildren(GetHandle());
 	}
 	else
 	{
@@ -719,7 +747,7 @@ Vector<HSceneObject> SceneObject::FindChildren(const String& name, bool recursiv
 	};
 
 	Vector<HSceneObject> output;
-	findChildrenInternal(mThisHandle, output);
+	findChildrenInternal(GetHandle(), output);
 
 	return output;
 }
@@ -781,7 +809,12 @@ void SceneObject::SetMobility(ObjectMobility mobility)
 	}
 }
 
-HSceneObject SceneObject::Clone(bool instantiate, bool preserveUUIDs)
+HSceneObject SceneObject::Clone()
+{
+	return Clone(GetOwnerCollection().lock());
+}
+
+HSceneObject SceneObject::Clone(const SPtr<GameObjectCollection>& cloneOwnerCollection, bool instantiate, bool preserveIds)
 {
 	const bool isInstantiated = !HasFlag(SOF_DontInstantiate);
 
@@ -795,22 +828,25 @@ HSceneObject SceneObject::Clone(bool instantiate, bool preserveUUIDs)
 	serializer.Encode(this, stream);
 
 	int flags = GODM_RestoreExternal | GODM_UseNewIds;
-	if(!preserveUUIDs)
+	if(!preserveIds)
 		flags |= GODM_UseNewUUID;
 
-	CoreSerializationContext serzContext;
-	serzContext.GoState = B3DMakeShared<GameObjectDeserializationState>(flags);
+	B3D_ENSURE(!preserveIds || cloneOwnerCollection != mOwnerCollection.lock());
+
+	CoreSerializationContext serializationContext;
+	serializationContext.GoState = B3DMakeShared<GameObjectDeserializationState>(flags);
+	serializationContext.GameObjectCollection = cloneOwnerCollection;
 
 	stream->Seek(0);
 	SPtr<SceneObject> cloneObj = std::static_pointer_cast<SceneObject>(
-		serializer.Decode(stream, (u32)stream->Size(), BinarySerializerFlag::None, &serzContext));
+		serializer.Decode(stream, (u32)stream->Size(), BinarySerializerFlag::None, &serializationContext));
 
 	if(isInstantiated)
 		UnsetFlagsInternal(SOF_DontInstantiate);
 	else
 		SetFlagsInternal(SOF_DontInstantiate);
 
-	return cloneObj->mThisHandle;
+	return cloneObj->GetHandle();
 }
 
 HComponent SceneObject::GetComponent(RTTITypeBase* type) const
@@ -876,31 +912,43 @@ HComponent SceneObject::AddComponent(u32 typeId)
 		return HComponent();
 	}
 
-	SPtr<Component> componentPtr = std::static_pointer_cast<Component>(newObj);
-	componentPtr->SetId(UUIDGenerator::GenerateRandom());
+	SPtr<Component> component = std::static_pointer_cast<Component>(newObj);
 
 	// Clean up the self-reference assigned by the RTTI system
-	componentPtr->mRTTIData = nullptr;
+	component->mRTTIData = nullptr;
 
-	HComponent newComponent = B3DStaticGameObjectCast<Component>(GameObjectManager::Instance().RegisterObject(componentPtr));
-	newComponent->mParent = mThisHandle;
-
-	AddAndInitializeComponent(newComponent);
-	return newComponent;
+	HComponent componentHandle = RegisterComponentWithOwnerCollection(component);
+	InternalAddComponent(componentHandle, true);
+	return componentHandle;
 }
 
-void SceneObject::AddComponentInternal(const SPtr<Component>& component)
+HComponent SceneObject::RegisterComponentWithOwnerCollection(const SPtr<Component>& component)
 {
-	HComponent newComponent = B3DStaticGameObjectCast<Component>(
-		GameObjectManager::Instance().GetObject(component->GetInstanceId()));
-	newComponent->mParent = mThisHandle;
-	newComponent->mThisHandle = newComponent;
+	component->SetId(UUIDGenerator::GenerateRandom());
 
-	mComponents.push_back(newComponent);
+	const SPtr<GameObjectCollection>& ownerCollection = mOwnerCollection.lock();
+	if(!B3D_ENSURE(ownerCollection != nullptr))
+		return B3DStaticGameObjectCast<Component>(GameObjectManager::Instance().RegisterObject(component));
+
+	return B3DStaticGameObjectCast<Component>(ownerCollection->RegisterAndInitializeObject(component));
 }
 
-void SceneObject::AddAndInitializeComponent(const HComponent& component)
+void SceneObject::InternalAddComponent(const SPtr<Component>& component, bool instantiate)
 {
+	const SPtr<GameObjectCollection>& ownerCollection = mOwnerCollection.lock();
+	if(!B3D_ENSURE(ownerCollection != nullptr))
+	{
+		InternalAddComponent(B3DStaticGameObjectCast<Component>(GameObjectManager::Instance().GetObject(component->GetInstanceId())), instantiate);
+		return;
+	}
+
+	const HComponent& componentHandle = B3DStaticGameObjectCast<Component>(ownerCollection->GetObject(component->GetId()));
+	InternalAddComponent(componentHandle, instantiate);
+}
+
+void SceneObject::InternalAddComponent(const HComponent& component, bool instantiate)
+{
+	component->mParent = GetHandle();
 	component->mThisHandle = component;
 
 	if(component->mId.Empty())
@@ -908,21 +956,12 @@ void SceneObject::AddAndInitializeComponent(const HComponent& component)
 
 	mComponents.push_back(component);
 
-	if(IsInstantiated())
+	if(instantiate && IsInstantiated())
 	{
 		component->InstantiateInternal();
 
 		GetSceneManager().NotifyComponentCreatedInternal(component, GetActive());
 	}
-}
-
-void SceneObject::AddAndInitializeComponent(const SPtr<Component>& component)
-{
-	HComponent newComponent = B3DStaticGameObjectCast<Component>(
-		GameObjectManager::Instance().GetObject(component->GetInstanceId()));
-	newComponent->mParent = mThisHandle;
-
-	AddAndInitializeComponent(newComponent);
 }
 
 RTTITypeBase* SceneObject::GetRttiStatic()

@@ -6,6 +6,7 @@
 #include "Reflection/BsRTTIType.h"
 #include "Reflection/BsRTTIPlain.h"
 #include "RTTI/BsUUIDRTTI.h"
+#include "Scene/BsGameObjectCollection.h"
 #include "Scene/BsGameObjectHandle.h"
 #include "Scene/BsGameObjectManager.h"
 #include "Utility/BsUtility.h"
@@ -55,17 +56,18 @@ namespace bs
 			AddPlainField("mId", 1, &GameObjectHandleRTTI::GetId, &GameObjectHandleRTTI::SetId);
 		}
 
-		void OnDeserializationEnded(IReflectable* obj, SerializationContext* context)
+		void OnDeserializationEnded(IReflectable* object, SerializationContext* context)
 		{
-			if(context == nullptr || !B3DRTTIIsOfType<CoreSerializationContext>(context))
+			CoreSerializationContext* const serializationContext = B3DRTTICast<CoreSerializationContext>(context);
+			if(serializationContext == nullptr)
 				return;
 
-			auto coreContext = static_cast<CoreSerializationContext*>(context);
-			if(coreContext->GoState)
-			{
-				GameObjectHandleBase* gameObjectHandle = static_cast<GameObjectHandleBase*>(obj);
-				coreContext->GoState->RegisterUnresolvedHandle(mOriginalInstanceId, *gameObjectHandle);
-			}
+			GameObjectHandleBase* gameObjectHandle = static_cast<GameObjectHandleBase*>(object);
+			if(serializationContext->GoState)
+				serializationContext->GoState->RegisterUnresolvedHandle(mOriginalInstanceId, *gameObjectHandle);
+
+			if(serializationContext->GameObjectCollection != nullptr)
+				serializationContext->GameObjectCollection->RegisterUnresolvedHandle(*gameObjectHandle);
 		}
 
 		const String& GetRttiName()

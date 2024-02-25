@@ -6,6 +6,8 @@
 #include "Scene/BsSceneObject.h"
 #include "Scene/BsPrefabUtility.h"
 #include "BsCoreApplication.h"
+#include "BsGameObjectCollection.h"
+#include "BsSceneManager.h"
 
 using namespace bs;
 
@@ -15,7 +17,7 @@ namespace bs
 }
 
 Prefab::Prefab()
-	: Resource(false)
+	: Resource(false), mGameObjectCollection(GameObjectCollection::Create())
 {
 }
 
@@ -53,7 +55,8 @@ void Prefab::Initialize(const HSceneObject& sceneObject)
 	if(mRoot.IsValid())
 		mRoot->Destroy(true);
 
-	mRoot = sceneObject->Clone(false, true);
+	const SPtr<GameObjectCollection> newGameObjectCollection = GameObjectCollection::Create();
+	mRoot = sceneObject->Clone(newGameObjectCollection, false, true);
 	mRoot->mParent = nullptr;
 
 	// Remove objects with "dont save" flag
@@ -71,6 +74,8 @@ void Prefab::Initialize(const HSceneObject& sceneObject)
 
 	for(const auto& entry : sceneObjectsToDestroy)
 		entry->Destroy();
+
+	mGameObjectCollection = newGameObjectCollection;
 
 	if(!mIsScene)
 	{
@@ -210,19 +215,22 @@ HSceneObject Prefab::InstantiateInternal(bool preserveUUIDs) const
 	}
 #endif
 
-	HSceneObject clone = CloneInternal(preserveUUIDs);
+	SPtr<SceneInstance> scene = GetSceneManager().GetMainScene(); // TODO - Scene should be a a parameter
+	SPtr<GameObjectCollection> gameObjectCollection = scene->GetGameObjectCollection();
+
+	HSceneObject clone = CloneInternal(gameObjectCollection, preserveUUIDs);
 	clone->InstantiateInternal();
 
 	return clone;
 }
 
-HSceneObject Prefab::CloneInternal(bool preserveUUIDs) const
+HSceneObject Prefab::CloneInternal(const SPtr<GameObjectCollection>& cloneOwnerCollection, bool preserveUUIDs) const
 {
 	if(mRoot == nullptr)
 		return HSceneObject();
 
 	mRoot->mPrefabHash = mHash;
-	return mRoot->Clone(false, preserveUUIDs);
+	return mRoot->Clone(cloneOwnerCollection, false, preserveUUIDs);
 }
 
 RTTITypeBase* Prefab::GetRttiStatic()

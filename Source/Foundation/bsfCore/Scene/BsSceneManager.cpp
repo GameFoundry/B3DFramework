@@ -1,6 +1,8 @@
 //************************************ bs::framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "Scene/BsSceneManager.h"
+
+#include "BsGameObjectCollection.h"
 #include "Scene/BsSceneObject.h"
 #include "Scene/BsComponent.h"
 #include "Renderer/BsRenderable.h"
@@ -36,12 +38,20 @@ private:
 };
 
 SceneInstance::SceneInstance(ConstructPrivately dummy, const String& name, const HSceneObject& root, const SPtr<PhysicsScene>& physicsScene)
-	: mName(name), mRoot(root), mPhysicsScene(physicsScene)
+	: mName(name), mRoot(root), mPhysicsScene(physicsScene), mGameObjectCollection(root->GetOwnerCollection())
 {}
 
+SPtr<SceneInstance> SceneInstance::Create(const String& name)
+{
+	const SPtr<GameObjectCollection>& gameObjectCollection = GameObjectCollection::Create();
+	HSceneObject root = SceneObject::CreateInternal(gameObjectCollection, "Root");
+
+	return B3DMakeShared<SceneInstance>(ConstructPrivately(), name, root, GetPhysics().CreatePhysicsScene());
+}
+
+
 SceneManager::SceneManager()
-	: mMainScene(
-		  B3DMakeShared<SceneInstance>(SceneInstance::ConstructPrivately(), "Main", SceneObject::CreateInternal("SceneRoot"), GetPhysics().CreatePhysicsScene()))
+	: mMainScene(SceneInstance::Create("Main"))
 {
 	mMainScene->mRoot->SetScene(mMainScene);
 }
@@ -69,9 +79,13 @@ void SceneManager::ClearScene(bool forceAll)
 			curIdx++;
 	}
 
-	GameObjectManager::Instance().DestroyQueuedObjects();
+	const SPtr<GameObjectCollection>& gameObjectCollection = mMainScene->GetGameObjectCollection();
+	if(gameObjectCollection != nullptr)
+		gameObjectCollection->DestroyQueuedObjects();
+	else
+		GameObjectManager::Instance().DestroyQueuedObjects();
 
-	HSceneObject newRoot = SceneObject::CreateInternal("SceneRoot");
+	HSceneObject newRoot = SceneObject::CreateInternal(gameObjectCollection, "SceneRoot");
 	SetRootNodeInternal(newRoot);
 }
 
@@ -94,13 +108,13 @@ void SceneManager::SetRootNodeInternal(const HSceneObject& root)
 
 	HSceneObject oldRoot = mMainScene->mRoot;
 
-	u32 numChildren = oldRoot->GetChildCount();
+	const u32 childCount = oldRoot->GetChildCount();
 	// Make sure to keep persistent objects
 
 	B3DMarkAllocatorFrame();
 	{
 		FrameVector<HSceneObject> toRemove;
-		for(u32 i = 0; i < numChildren; i++)
+		for(u32 i = 0; i < childCount; i++)
 		{
 			HSceneObject child = oldRoot->GetChild(i);
 
@@ -113,9 +127,11 @@ void SceneManager::SetRootNodeInternal(const HSceneObject& root)
 	}
 	B3DClearAllocatorFrame();
 
+	// TODO - This function should just replace the scene instance, rather than update it
 	mMainScene->mRoot = root;
 	mMainScene->mRoot->SetParentInternal(HSceneObject());
 	mMainScene->mRoot->SetScene(mMainScene);
+	mMainScene->mGameObjectCollection = root->GetOwnerCollection().lock();
 
 	oldRoot->Destroy();
 }

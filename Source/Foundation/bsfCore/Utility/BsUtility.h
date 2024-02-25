@@ -54,6 +54,7 @@ namespace bs
 	{
 		SPtr<GameObjectDeserializationState> GoState;
 		bool GoDeserializationActive = false;
+		SPtr<GameObjectCollection> GameObjectCollection; /**< If deserializing game objects, collection to place them in. */
 
 		static RTTITypeBase* GetRttiStatic();
 		RTTITypeBase* GetRtti() const;

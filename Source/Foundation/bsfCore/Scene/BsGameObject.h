@@ -88,6 +88,15 @@ namespace bs
 		/** Returns instance data that identifies this GameObject and is used for referencing by game object handles. */
 		virtual const SPtr<GameObjectInstanceData>& GetInstanceData() const { return mInstanceData; }
 
+		/** Returns the collection that this game object is a part of. */
+		const WeakSPtr<GameObjectCollection>& GetOwnerCollection() const { return mOwnerCollection; }
+
+		/**
+		 * Changes the collection the game object is part of. Game object will be unregistered with the
+		 * old collection (if any) and registered with the new collection.
+		 */
+		virtual void SetOwnerCollection(const SPtr<GameObjectCollection>& collection);
+
 		/** @} */
 
 	protected:
@@ -111,6 +120,7 @@ namespace bs
 
 	protected:
 		String mName;
+		HGameObject mThisHandle;
 		UUID mId; /**< Unique identifier for this object. */
 		UUID mPrefabObjectId; /**< Identifier of the object in the prefab that this object is linked to, if any. */
 		WeakSPtr<GameObjectCollection> mOwnerCollection; /**< Collection that owns this game object. */

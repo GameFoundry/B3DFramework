@@ -6,6 +6,7 @@
 #include "Reflection/BsRTTIType.h"
 #include "Scene/BsComponent.h"
 #include "Private/RTTI/BsGameObjectRTTI.h"
+#include "Scene/BsGameObjectCollection.h"
 #include "Utility/BsUtility.h"
 
 namespace bs
@@ -18,19 +19,31 @@ namespace bs
 	class B3D_CORE_EXPORT ComponentRTTI : public RTTIType<Component, GameObject, ComponentRTTI>
 	{
 	public:
-		void OnDeserializationEnded(IReflectable* obj, SerializationContext* context) override
+		void OnDeserializationEnded(IReflectable* object, SerializationContext* context) override
 		{
-			Component* comp = static_cast<Component*>(obj);
+			Component* const component = static_cast<Component*>(object);
 
 			// It's possible we're just accessing the game object fields, in which case the process below is not needed
 			// (it's only required for new components).
-			if(comp->mRTTIData.Empty())
+			if(component->mRTTIData.Empty())
 				return;
 
-			B3D_ASSERT(context != nullptr && B3DRTTIIsOfType<CoreSerializationContext>(context));
-			auto coreContext = static_cast<CoreSerializationContext*>(context);
+			CoreSerializationContext* const serializationContext = B3DRTTICast<CoreSerializationContext>(context);
+			B3D_ASSERT(serializationContext != nullptr);
 
-			GODeserializationData& deserializationData = AnyCastRef<GODeserializationData>(comp->mRTTIData);
+			if(component->mId.Empty() || serializationContext->GoState->GetUseNewUuiDs())
+			{
+				const UUID oldId = component->GetId();
+				component->mId = UUIDGenerator::GenerateRandom();
+
+				if(!oldId.Empty())
+				{
+					if(serializationContext->GameObjectCollection != nullptr)
+						serializationContext->GameObjectCollection->RegisterUnresolvedHandleIdRemapping(oldId, component->GetId());
+				}
+			}
+
+			GODeserializationData& deserializationData = AnyCastRef<GODeserializationData>(component->mRTTIData);
 
 			// This shouldn't be null during normal deserialization but could be during some other operations, like applying
 			// a binary diff.
@@ -38,16 +51,19 @@ namespace bs
 			{
 				// Register the newly created SO with the GameObjectManager and provide it with the original ID so that
 				// deserialized handles pointing to this object can be resolved.
-				SPtr<Component> compPtr = std::static_pointer_cast<Component>(deserializationData.Ptr);
+				SPtr<Component> componentShared = std::static_pointer_cast<Component>(deserializationData.Ptr);
 
-				GameObjectHandleBase handle = GameObjectManager::Instance().RegisterObject(compPtr);
-				coreContext->GoState->RegisterObject(deserializationData.OriginalId, handle);
+				GameObjectHandleBase handle;
+
+				if(serializationContext->GameObjectCollection != nullptr)
+					handle = serializationContext->GameObjectCollection->RegisterAndInitializeObject(componentShared);
+				else
+					handle = GameObjectManager::Instance().RegisterObject(componentShared);
+
+				serializationContext->GoState->RegisterObject(deserializationData.OriginalId, handle);
 			}
 
-			if(comp->mId.Empty() || coreContext->GoState->GetUseNewUuiDs())
-				comp->mId = UUIDGenerator::GenerateRandom();
-
-			comp->mRTTIData = nullptr;
+			component->mRTTIData = nullptr;
 		}
 
 		const String& GetRttiName() override

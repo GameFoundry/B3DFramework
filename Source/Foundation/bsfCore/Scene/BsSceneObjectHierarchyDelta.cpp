@@ -53,6 +53,7 @@ void SceneObjectHierarchyDelta::Apply(const HSceneObject& original)
 	CoreSerializationContext serzContext;
 	serzContext.GoState = B3DMakeShared<GameObjectDeserializationState>(GODM_UseNewIds | GODM_RestoreExternal);
 	serzContext.GoDeserializationActive = true;
+	serzContext.GameObjectCollection = original->GetOwnerCollection().lock();
 
 	ApplyDiff(mRoot, original, &serzContext);
 
@@ -110,7 +111,7 @@ void SceneObjectHierarchyDelta::ApplyDiff(const SPtr<SceneObjectDelta>& delta, c
 	{
 		SPtr<Component> component = std::static_pointer_cast<Component>(addedComponentData->Decode(context));
 
-		original->AddAndInitializeComponent(component);
+		original->InternalAddComponent(component, true);
 	}
 
 	for(auto& addedChildData : delta->AddedChildren)

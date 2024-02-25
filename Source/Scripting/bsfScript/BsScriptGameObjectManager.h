@@ -18,6 +18,7 @@ namespace bs
 	 * therefore we need to keep a dictionary or all the native objects we have mapped to managed objects.
 	 */
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptGameObjectManager : public Module<ScriptGameObjectManager>
+		// TODO - This should be refactored to ScriptGameObjectCollection, as currently UUIDs from all native game objects will be referenced here
 	{
 		/**	Contains information about a single interop object containing a game object. */
 		struct ScriptGameObjectEntry
@@ -76,32 +77,23 @@ namespace bs
 		 */
 		ScriptManagedComponent* GetManagedScriptComponent(const HManagedComponent& component) const;
 
-		/**
-		 * Attempts to find the interop object for a component with the specified instance ID. If one cannot be
-		 * found null is returned.
-		 */
-		ScriptComponentBase* GetScriptComponent(u64 instanceId) const;
+		/** Attempts to find the interop object for a component with the specified ID. If one cannot be found null is returned. */
+		ScriptComponentBase* GetScriptComponent(const UUID& id) const;
 
 		/** Attempts to find the interop object for the specified SceneObject. If one cannot be found null is returned. */
 		ScriptSceneObject* GetScriptSceneObject(const HSceneObject& sceneObject) const;
 
-		/**
-		 * Attempts to find the interop object for a managed scene object with the specified instance ID. If one cannot be
-		 * found null is returned.
-		 */
-		ScriptSceneObject* GetScriptSceneObject(u64 instanceId) const;
+		/** Attempts to find the interop object for a managed scene object with the instance ID. If one cannot be found null is returned. */
+		ScriptSceneObject* GetScriptSceneObject(const UUID& id) const;
 
-		/**
-		 * Attempts to find the interop object for a GameObject with the specified instance ID. If one cannot be found null
-		 * is returned.
-		 */
-		ScriptGameObjectBase* GetScriptGameObject(u64 instanceId) const;
+		/** Attempts to find the interop object for a GameObject with the specified instance ID. If one cannot be found null is returned. */
+		ScriptGameObjectBase* GetScriptGameObject(const UUID& id) const;
 
 		/**	Destroys and unregisters the specified SceneObject interop object. */
-		void DestroyScriptSceneObject(ScriptSceneObject* sceneObject);
+		void DestroyScriptSceneObject(ScriptSceneObject* scriptSceneObject);
 
 		/**	Destroys and unregisters the specified ManagedComponent interop object. */
-		void DestroyScriptComponent(ScriptComponentBase* component);
+		void DestroyScriptComponent(ScriptComponentBase* scriptComponent);
 
 	private:
 		/**
@@ -114,8 +106,8 @@ namespace bs
 		/**	Triggered when the any game object is destroyed. */
 		void OnGameObjectDestroyed(const HGameObject& go);
 
-		UnorderedMap<u64, ScriptComponentBase*> mScriptComponents;
-		UnorderedMap<u64, ScriptSceneObject*> mScriptSceneObjects;
+		UnorderedMap<UUID, ScriptComponentBase*> mScriptComponents;
+		UnorderedMap<UUID, ScriptSceneObject*> mScriptSceneObjects;
 
 		HEvent mOnAssemblyReloadDoneConn;
 		HEvent onGameObjectDestroyedConn;

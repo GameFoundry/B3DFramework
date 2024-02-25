@@ -49,14 +49,14 @@ namespace bs
 	class B3D_CORE_EXPORT Component : public GameObject
 	{
 	public:
+		/**	Returns a handle to this object. */
+		HComponent GetHandle() const { return B3DStaticGameObjectCast<Component>(mThisHandle); }
+
 		/**	Returns the SceneObject this Component is assigned to. */
 		const HSceneObject& SceneObject() const { return mParent; }
 
 		/** @copydoc SceneObject */
 		const HSceneObject& SO() const { return SceneObject(); }
-
-		/**	Returns a handle to this object. */
-		const HComponent& GetHandle() const { return mThisHandle; }
 
 		/** Called once per frame. Only called if the component is in Running state. */
 		virtual void Update() {}
@@ -186,7 +186,6 @@ namespace bs
 		Component(const Component& other) {}
 
 	protected:
-		HComponent mThisHandle;
 		TransformChangedFlags mNotifyFlags = TCF_None;
 		ComponentFlags mFlags;
 		u32 mSceneManagerId = 0;

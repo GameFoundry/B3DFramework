@@ -106,6 +106,7 @@ void ManagedComponent::Restore(const RawBackupData& data, bool missingType)
 
 		CoreSerializationContext serzContext;
 		serzContext.GoState = B3DMakeShared<GameObjectDeserializationState>();
+		serzContext.GameObjectCollection = SO()->GetOwnerCollection().lock();
 
 		auto serializableObject = std::static_pointer_cast<ManagedSerializableObject>(
 			bs.Decode(B3DMakeShared<MemoryDataStream>(data.Data, data.Size), data.Size, BinarySerializerFlag::None, &serzContext));

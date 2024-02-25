@@ -9,6 +9,7 @@
 #include "Physics/BsPhysics.h"
 #include "Audio/BsAudio.h"
 #include "Animation/BsAnimationManager.h"
+#include "Scene/BsGameObjectCollection.h"
 
 using namespace bs;
 PlayInEditor::PlayInEditor()
@@ -134,7 +135,8 @@ void PlayInEditor::Update()
 
 void PlayInEditor::SaveSceneInMemory()
 {
-	mSavedScene = SceneManager::Instance().GetMainScene()->GetRoot()->Clone(false, true);
+	mSavedSceneGameObjectCollection = GameObjectCollection::Create();
+	mSavedScene = SceneManager::Instance().GetMainScene()->GetRoot()->Clone(mSavedSceneGameObjectCollection, false, true);
 
 	// Remove objects with "dont save" flag
 	Stack<HSceneObject> todo;

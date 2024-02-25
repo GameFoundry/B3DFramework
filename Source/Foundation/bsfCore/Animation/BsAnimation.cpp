@@ -500,7 +500,7 @@ void AnimationProxy::Rebuild(Vector<AnimationClipInfo>& clipInfos, const Vector<
 		{
 			HSceneObject so = sceneObjects[i].So;
 			AnimatedSceneObjectInfo& soInfo = SceneObjectInfos[i];
-			soInfo.Id = so.GetInstanceId();
+			soInfo.Id = so.GetId();
 			soInfo.BoneIdx = mappedBoneIndices[i];
 
 			bool isSOValid = !so.IsDestroyed(true);
@@ -1253,14 +1253,14 @@ void Animation::TriggerEvents(float delta)
 void Animation::MapCurveToSceneObject(const String& curve, const HSceneObject& so)
 {
 	AnimatedSceneObject animSo = { so, curve };
-	mSceneObjects[so.GetInstanceId()] = animSo;
+	mSceneObjects[so.GetId()] = animSo;
 
 	mDirty |= AnimDirtyStateFlag::All;
 }
 
 void Animation::UnmapSceneObject(const HSceneObject& so)
 {
-	mSceneObjects.erase(so.GetInstanceId());
+	mSceneObjects.erase(so.GetId());
 
 	mDirty |= AnimDirtyStateFlag::All;
 }

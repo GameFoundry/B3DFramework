@@ -10,7 +10,7 @@ bool CheckIfDestroyed(ScriptGameObject* nativeInstance)
 	HGameObject go = nativeInstance->GetNativeHandle();
 	if(go.IsDestroyed())
 	{
-		B3D_LOG(Warning, Scene, "Trying to access a destroyed GameObject with instance ID: {0}", go.GetInstanceId());
+		B3D_LOG(Warning, Scene, "Trying to access a destroyed GameObject with ID: {0}", go.GetId());
 		return true;
 	}
 
@@ -54,14 +54,8 @@ ScriptGameObject::ScriptGameObject(MonoObject* instance)
 
 void ScriptGameObject::InitRuntimeData()
 {
-	metaData.ScriptClass->AddInternalCall("Internal_GetInstanceId", (void*)&ScriptGameObject::InternalGetInstanceId);
 	metaData.ScriptClass->AddInternalCall("Internal_GetUUID", (void*)&ScriptGameObject::InternalGetUuid);
 	metaData.ScriptClass->AddInternalCall("Internal_GetIsDestroyed", (void*)&ScriptGameObject::InternalGetIsDestroyed);
-}
-
-u64 ScriptGameObject::InternalGetInstanceId(ScriptGameObject* nativeInstance)
-{
-	return nativeInstance->GetNativeHandle().GetInstanceId();
 }
 
 void ScriptGameObject::InternalGetUuid(ScriptGameObject* nativeInstance, UUID* uuid)

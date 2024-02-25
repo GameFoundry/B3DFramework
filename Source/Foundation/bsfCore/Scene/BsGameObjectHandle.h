@@ -1,6 +1,7 @@
 //************************************ bs::framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
+#include "Reflection/BsRTTIType.h"
 
 namespace bs
 {
@@ -208,6 +209,18 @@ namespace bs
 		/**	Move constructor from another handle of the same type. */
 		GameObjectHandle(GameObjectHandle<T>&& other) = default;
 
+		/** Casting of derived type to base. */
+		template <typename DerivedType, typename = std::enable_if_t<std::is_base_of_v<T, DerivedType>>>
+		GameObjectHandle(const GameObjectHandle<DerivedType>& other)
+			: GameObjectHandle(other.GetSharedHandleData())
+		{ }
+
+		/** Casting of derived type to base. */
+		template <typename DerivedType, typename = std::enable_if_t<std::is_base_of_v<T, DerivedType>>>
+		GameObjectHandle(GameObjectHandle<DerivedType>&& other)
+			: GameObjectHandle(std::move(other.GetSharedHandleData()))
+		{ }
+
 		/**	Invalidates the handle. */
 		GameObjectHandle<T>& operator=(std::nullptr_t)
 		{
@@ -238,6 +251,19 @@ namespace bs
 				return nullptr;
 
 			return std::static_pointer_cast<T>(mSharedHandleData->InstanceData->Object);
+		}
+
+		/** Attempts to cast the handle to another type. Returns nullptr if cast is not valid. */
+		template<class CastType>
+		GameObjectHandle<CastType> As() const
+		{
+			RTTITypeBase* const CastTypeRTTI = CastType::GetRttiStatic();
+			RTTITypeBase* const MyTypeRTTI = T::GetRttiStatic();
+
+			if(CastTypeRTTI->IsDerivedFrom(MyTypeRTTI))
+				return GameObjectHandle<CastType>(GetSharedHandleData());
+
+			return nullptr;
 		}
 
 		/** Returns pointer to the referenced GameObject.  */

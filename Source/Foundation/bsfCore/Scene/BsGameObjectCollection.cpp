@@ -7,6 +7,10 @@
 
 using namespace bs;
 
+GameObjectCollection::GameObjectCollection(PrivatelyConstruct)
+	:mId(UUIDGenerator::GenerateRandom())
+{ }
+
 GameObjectCollection::~GameObjectCollection()
 {
 	DestroyQueuedObjects();
@@ -77,7 +81,14 @@ void GameObjectCollection::UnregisterObject(GameObjectHandleBase& object, bool t
 	object->mOwnerCollection.reset();
 
 	if(triggerDestroyEvent)
+	{
 		OnDestroyed(B3DStaticGameObjectCast<GameObject>(object));
+
+		// TODO: Some systems still depend on sending out a global OnDestroyed event
+		GameObjectManager::Instance().OnDestroyed(B3DStaticGameObjectCast<GameObject>(object));
+
+		object.Destroy();
+	}
 }
 
 GameObjectHandleBase GameObjectCollection::GetObject(const UUID& id) const
@@ -221,3 +232,12 @@ void GameObjectCollection::EndHandleResolve()
 
 	mHandleResolveActive = false;
 }
+
+SPtr<GameObjectCollection> GameObjectCollection::Create()
+{
+	SPtr<GameObjectCollection> collection = B3DMakeShared<GameObjectCollection>(PrivatelyConstruct());
+	GameObjectManager::Instance().RegisterGameObjectCollection(collection);
+
+	return collection;
+}
+

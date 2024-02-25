@@ -15,11 +15,6 @@ namespace bs
     public class GameObject : ScriptObject
     {
         /// <summary>
-        /// Returns a unique ID for the game object.
-        /// </summary>
-        public UInt64 InstanceId => Internal_GetInstanceId(mCachedPtr);
-
-        /// <summary>
         /// Returns a universally unique identifier that persists scene save/load.
         /// </summary>
         public UUID UUID
@@ -36,9 +31,6 @@ namespace bs
         /// Checks if the game object has been destroyed.
         /// </summary>
         public bool IsDestroyed => Internal_GetIsDestroyed(mCachedPtr);
-
-        [MethodImpl(MethodImplOptions.InternalCall)]
-        private static extern UInt64 Internal_GetInstanceId(IntPtr thisPtr);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern void Internal_GetUUID(IntPtr nativeInstance, out UUID uuid);

@@ -200,10 +200,12 @@ void PrefabUtility::UpdateFromPrefab(const HSceneObject& sceneObject)
 			RecordInstanceData(current, instanceData);
 
 			HSceneObject parent = current->GetParent();
-			SPtr<SceneObjectHierarchyDelta> prefabDelta = current->mPrefabDelta;
+			SPtr<SceneObjectHierarchyDelta> prefabDelta = current->GetPrefabDelta();
+
+			const SPtr<GameObjectCollection> gameObjectCollection = current->GetOwnerCollection().lock();
 
 			current->Destroy(true);
-			HSceneObject newInstance = prefabLink->CloneInternal();
+			HSceneObject newInstance = prefabLink->CloneInternal(gameObjectCollection);
 
 			// When restoring instance IDs it is important to make all the new handles point to the old GameObjectInstanceData.
 			// This is because old handles will have different GameObjectHandleData and we have no easy way of accessing it to

@@ -64,6 +64,13 @@ namespace bs
 		B3D_SCRIPT_EXPORT(ExportName(Physics), Property(Getter))
 		const SPtr<PhysicsScene>& GetPhysicsScene() const { return mPhysicsScene; }
 
+		/** Returns the game object collection storing all the scene's game objects. */
+		const SPtr<GameObjectCollection>& GetGameObjectCollection() const { return mGameObjectCollection; }
+
+		/** Creates a new empty scene instance. */
+		B3D_SCRIPT_EXPORT(ExtensionConstructorForType(SceneInstance))
+		static SPtr<SceneInstance> Create(const String& name);
+
 	private:
 		friend class SceneManager;
 
@@ -71,6 +78,7 @@ namespace bs
 		HSceneObject mRoot;
 		bool mIsActive = true;
 		SPtr<PhysicsScene> mPhysicsScene;
+		SPtr<GameObjectCollection> mGameObjectCollection;
 	};
 
 	/**
