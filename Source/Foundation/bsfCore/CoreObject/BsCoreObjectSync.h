@@ -15,73 +15,44 @@ namespace bs
 	///////////////// Various helper methods used for syncing data between the main and the render thread. /////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	// Checks is the provided type a shared pointer
-	template <typename T>
-	struct is_shared_ptr : std::false_type
-	{};
-
-	template <typename T>
-	struct is_shared_ptr<SPtr<T>> : std::true_type
-	{};
-
 	// Checks is the provided type a resource handle
 	template <typename T>
-	struct is_resource_handle : std::false_type
+	struct B3DIsResourceHandle : std::false_type
 	{};
 
 	template <typename T>
-	struct is_resource_handle<ResourceHandle<T>> : std::true_type
+	struct B3DIsResourceHandle<ResourceHandle<T>> : std::true_type
 	{};
 
 	// Returns the underlying type if the provided type is a resource handle, or itself otherwise
 	template <typename T>
-	struct decay_handle
+	struct B3DDecayResourceHandle
 	{
 		using value = T;
 	};
 
 	template <typename T>
-	struct decay_handle<ResourceHandle<T>>
-	{
-		using value = T;
-	};
-
-	// Returns the underlying type if the provided type is a shared pointer, or itself otherwise
-	template <typename T>
-	struct decay_sptr
+	struct B3DDecayResourceHandle<ResourceHandle<T>>
 	{
 		using value = T;
 	};
 
 	template <typename T>
-	struct decay_sptr<SPtr<T>>
-	{
-		using value = typename SPtr<T>::element_type;
-	};
-
-	// Checks if a specific template specialization exists
-	template <class T, std::size_t = sizeof(T)>
-	std::true_type IsCompleteImpl(T*);
-	std::false_type IsCompleteImpl(...);
-	template <class T>
-	using is_complete = decltype(is_complete_impl(std::declval<T*>()));
-
-	template <typename T>
-	using decay_all_t = typename decay_sptr<typename decay_handle<std::decay_t<T>>::value>::value;
+	using decay_all_t = typename B3DDecaySharedPointer<typename B3DDecayResourceHandle<std::decay_t<T>>::value>::value;
 
 	// Converts a ResourceHandle to an underlying SPtr, or if the type is not a ResourceHandle it just passes it
 	// through as is.
 
 	/** Pass non-resource-handle types as is. */
 	template <class T>
-	T&& RemoveHandle(T&& value, std::enable_if_t<!is_resource_handle<std::decay_t<T>>::value>* = 0)
+	T&& RemoveHandle(T&& value, std::enable_if_t<!B3DIsResourceHandle<std::decay_t<T>>::value>* = 0)
 	{
 		return std::forward<T>(value);
 	}
 
 	/** Convert a resource handle to the underlying resource SPtr. */
 	template <class T>
-	decltype(((std::decay_t<T>*)nullptr)->GetShared()) RemoveHandle(T&& handle, std::enable_if_t<is_resource_handle<std::decay_t<T>>::value>* = 0)
+	decltype(((std::decay_t<T>*)nullptr)->GetShared()) RemoveHandle(T&& handle, std::enable_if_t<B3DIsResourceHandle<std::decay_t<T>>::value>* = 0)
 	{
 		if(handle.IsLoaded(false))
 			return handle.GetShared();
@@ -93,21 +64,21 @@ namespace bs
 
 	/** Pass non-shared-pointers as is, they aren't core objects. */
 	template <class T>
-	T&& GetRenderProxy(T&& value, std::enable_if_t<!is_shared_ptr<std::decay_t<T>>::value>* = 0)
+	T&& GetRenderProxy(T&& value, std::enable_if_t<!B3DIsSharedPointer<std::decay_t<T>>::value>* = 0)
 	{
 		return std::forward<T>(value);
 	}
 
 	/** Pass shared-pointers to non-classes as is, they aren't core objects. */
 	template <class T>
-	T&& GetRenderProxy(T&& value, std::enable_if_t<is_shared_ptr<std::decay_t<T>>::value && !std::is_class<std::decay_t<typename std::decay_t<T>::element_type>>::value>* = 0)
+	T&& GetRenderProxy(T&& value, std::enable_if_t<B3DIsSharedPointer<std::decay_t<T>>::value && !std::is_class<std::decay_t<typename std::decay_t<T>::element_type>>::value>* = 0)
 	{
 		return std::forward<T>(value);
 	}
 
 	/** Pass shared-pointers to classes that don't derive from CoreObject as is, they aren't core objects. */
 	template <class T>
-	T&& GetRenderProxy(T&& value, std::enable_if_t<is_shared_ptr<std::decay_t<T>>::value && (std::is_class<std::decay_t<typename std::decay_t<T>::element_type>>::value && !std::is_base_of<CoreObject, std::decay_t<typename std::decay_t<T>::element_type>>::value)>* = 0)
+	T&& GetRenderProxy(T&& value, std::enable_if_t<B3DIsSharedPointer<std::decay_t<T>>::value && (std::is_class<std::decay_t<typename std::decay_t<T>::element_type>>::value && !std::is_base_of<CoreObject, std::decay_t<typename std::decay_t<T>::element_type>>::value)>* = 0)
 	{
 		return std::forward<T>(value);
 	}
@@ -115,7 +86,7 @@ namespace bs
 	/** Convert shared-pointers with classes that derive from CoreObject to their RenderProxy variants. */
 	template <class T>
 	decltype(B3DGetRenderProxy(std::declval<T>()))
-	GetRenderProxy(T&& value, std::enable_if_t<is_shared_ptr<std::decay_t<T>>::value && (std::is_class<std::decay_t<typename std::decay_t<T>::element_type>>::value && std::is_base_of<CoreObject, std::decay_t<typename std::decay_t<T>::element_type>>::value)>* = 0)
+	GetRenderProxy(T&& value, std::enable_if_t<B3DIsSharedPointer<std::decay_t<T>>::value && (std::is_class<std::decay_t<typename std::decay_t<T>::element_type>>::value && std::is_base_of<CoreObject, std::decay_t<typename std::decay_t<T>::element_type>>::value)>* = 0)
 	{
 		if(value)
 			return B3DGetRenderProxy(value);

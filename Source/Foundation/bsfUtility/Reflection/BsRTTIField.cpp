@@ -7,6 +7,16 @@
 
 using namespace bs;
 
+RTTITypeBase* RTTIFieldTypeSchema::GetRttiStatic()
+{
+	return RTTIFieldTypeSchemaRTTI::Instance();
+}
+
+RTTITypeBase* RTTIFieldTypeSchema::GetRtti() const
+{
+	return GetRttiStatic();
+}
+
 RTTITypeBase* RTTIFieldSchema::GetRttiStatic()
 {
 	return RTTIFieldSchemaRTTI::Instance();

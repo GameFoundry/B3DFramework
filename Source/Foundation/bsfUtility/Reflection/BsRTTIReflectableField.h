@@ -111,9 +111,6 @@ namespace bs
 			ArrayGetSize = getSize;
 			ArraySetSize = setSize;
 
-			const SPtr<RTTISchema>& fieldTypeSchema = DataType::GetRttiStatic()->GetSchema();
-			;
-			u32 typeId = DataType::GetRttiStatic()->GetRttiId();
 			Init(std::move(name), RTTIFieldSchema(uniqueId, true, true, 0, SerializableFT_Reflectable, 0, nullptr, info));
 		}
 

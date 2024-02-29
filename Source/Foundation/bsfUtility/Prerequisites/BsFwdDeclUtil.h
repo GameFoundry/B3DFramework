@@ -246,5 +246,6 @@ namespace bs
 		TID_Optional = 80,
 		TID_TArray = 81,
 		TID_Bitfield = 82,
+		TID_RTTIFieldTypeSchema = 83,
 	};
 } // namespace bs

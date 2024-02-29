@@ -141,14 +141,39 @@ namespace bs
 	/**
 	 * Checks if the class @p T has a SharedDeleter static method that accepts a non-const pointer to T. 	 */
 	template <typename T, typename = void>
-	struct HasSharedDeleter
-		: std::false_type
-	{};
+	struct B3DHasSharedDeleter : std::false_type {};
 
 	template <typename T>
-	struct HasSharedDeleter<T, std::enable_if_t<std::is_same_v<decltype(T::template SharedDeleter<T, DefaultAllocatorTag>(std::declval<T*>())), void>>>
-		: std::true_type
-	{};
+	struct B3DHasSharedDeleter<T, std::enable_if_t<std::is_same_v<decltype(T::template SharedDeleter<T, DefaultAllocatorTag>(std::declval<T*>())), void>>>
+		: std::true_type {};
+
+	// Checks is the provided type a shared pointer
+	template <typename T>
+	struct B3DIsSharedPointer : std::false_type {};
+
+	template <typename T>
+	struct B3DIsSharedPointer<SPtr<T>> : std::true_type {};
+
+	// Returns the underlying type if the provided type is a shared pointer, or itself otherwise
+	template <typename T>
+	struct B3DDecaySharedPointer
+	{
+		using value = T;
+	};
+
+	template <typename T>
+	struct B3DDecaySharedPointer<SPtr<T>>
+	{
+		using value = typename SPtr<T>::element_type;
+	};
+
+	// Checks if a specific template specialization exists
+	template <class T, std::size_t = sizeof(T)>
+	std::true_type B3DIsCompleteImplementation(T*);
+	std::false_type B3DIsCompleteImplementation(...);
+
+	template <class T>
+	using B3DIsComplete = decltype(B3DIsCompleteImplementation(std::declval<T*>()));
 
 	/**
 	 * Create a new shared pointer using a custom allocator category.
@@ -157,7 +182,7 @@ namespace bs
 	template <typename Type, typename AllocatorTag = DefaultAllocatorTag, typename... Args>
 	SPtr<Type> B3DMakeShared(Args&&... args)
 	{
-		if constexpr(HasSharedDeleter<Type>::value)
+		if constexpr(B3DHasSharedDeleter<Type>::value)
 			return SPtr<Type>(B3DNew<Type, AllocatorTag>(std::forward<Args>(args)...), &Type::template SharedDeleter<Type, AllocatorTag>, StdAlloc<Type, AllocatorTag>());
 		else
 			return std::allocate_shared<Type>(StdAlloc<Type, AllocatorTag>(), std::forward<Args>(args)...);
@@ -171,7 +196,7 @@ namespace bs
 	template <typename Type, typename MainAllocatorTag = DefaultAllocatorTag, typename PointerDataAllocatorTag = DefaultAllocatorTag, typename Delete = Deleter<Type, MainAllocatorTag>>
 	SPtr<Type> B3DMakeSharedFromExisting(Type* data, Delete del = Delete())
 	{
-		if constexpr(HasSharedDeleter<Type>::value)
+		if constexpr(B3DHasSharedDeleter<Type>::value)
 			return SPtr<Type>(data, &Type::template SharedDeleter<Type, MainAllocatorTag>, StdAlloc<Type, PointerDataAllocatorTag>());
 		else
 			return SPtr<Type>(data, std::move(del), StdAlloc<Type, PointerDataAllocatorTag>());

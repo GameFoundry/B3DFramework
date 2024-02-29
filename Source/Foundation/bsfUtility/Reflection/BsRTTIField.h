@@ -5,6 +5,7 @@
 #include <utility>
 #include "Prerequisites/BsPrerequisitesUtil.h"
 #include "Reflection/BsRTTIPlain.h"
+#include "Reflection/BsRTTIIterator.h"
 #include "Reflection/BsIReflectable.h"
 #include "Utility/BsAny.h"
 
@@ -47,23 +48,41 @@ namespace bs
 		SerializableFT_ReflectablePtr
 	};
 
+	/** Information about a type stored in a RTTIField. A single field can hold one or multiple types (e.g. in case of a map entry it will store a key/value pair). */
+	struct RTTIFieldTypeSchema : IReflectable
+	{
+		RTTIFieldTypeSchema() = default;
+		RTTIFieldTypeSchema(bool hasDynamicSize, BitLength fixedSize, SerializableFieldType type, u32 fieldTypeId, SPtr<RTTISchema> fieldTypeSchema)
+			: HasDynamicSize(hasDynamicSize), FixedSize(fixedSize), Type(type), FieldTypeId(fieldTypeId), FieldTypeSchema(std::move(fieldTypeSchema))
+		{}
+
+		bool HasDynamicSize = false;
+		BitLength FixedSize = 0;
+		SerializableFieldType Type = SerializableFT_Plain;
+		u32 FieldTypeId = 0;
+		SPtr<RTTISchema> FieldTypeSchema;
+
+		static RTTITypeBase* GetRttiStatic();
+		RTTITypeBase* GetRtti() const override;
+	};
+
 	/** Contains serializable meta-data about a single RTTI field. */
 	struct B3D_UTILITY_EXPORT RTTIFieldSchema : IReflectable
 	{
 		RTTIFieldSchema() = default;
-
 		RTTIFieldSchema(i16 id, bool isArray, bool hasDynamicSize, BitLength size, SerializableFieldType type, u32 fieldTypeId, SPtr<RTTISchema> fieldTypeSchema, const RTTIFieldInfo& info)
 			: Id(id), IsArray(isArray), HasDynamicSize(hasDynamicSize), Size(size), Type(type), FieldTypeId(fieldTypeId), FieldTypeSchema(std::move(fieldTypeSchema)), Info(info)
 		{}
 
 		u16 Id = 0;
 		bool IsArray = false;
-		bool HasDynamicSize = false;
-		BitLength Size = 0;
-		SerializableFieldType Type = SerializableFT_Plain;
-		u32 FieldTypeId = 0;
-		SPtr<RTTISchema> FieldTypeSchema;
+		bool HasDynamicSize = false; // DEPRECATED - Stored in FieldTypes now
+		BitLength Size = 0; // DEPRECATED - Stored in FieldTypes now
+		SerializableFieldType Type = SerializableFT_Plain; // DEPRECATED - Stored in FieldTypes now
+		u32 FieldTypeId = 0; // DEPRECATED - Stored in FieldTypes now
+		SPtr<RTTISchema> FieldTypeSchema; // DEPRECATED - Stored in FieldTypes now
 		RTTIFieldInfo Info;
+		TInlineArray<RTTIFieldTypeSchema, 2> FieldTypes; /**< Types references by the field. In 99% of the cases this is a single type, but in case of e.g. a map it will be two types (key/value pair). */
 
 		static RTTITypeBase* GetRttiStatic();
 		RTTITypeBase* GetRtti() const override;

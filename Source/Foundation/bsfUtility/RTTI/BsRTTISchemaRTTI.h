@@ -49,6 +49,35 @@ namespace bs
 		}
 	};
 
+	class RTTIFieldTypeSchemaRTTI : public RTTIType<RTTIFieldTypeSchema, IReflectable, RTTIFieldTypeSchemaRTTI>
+	{
+	private:
+		B3D_RTTI_BEGIN_MEMBERS
+			B3D_RTTI_MEMBER_PLAIN(Type, 0)
+			B3D_RTTI_MEMBER_PLAIN(HasDynamicSize, 1)
+			B3D_RTTI_MEMBER_PLAIN(FixedSize, 2)
+			B3D_RTTI_MEMBER_PLAIN(FieldTypeId, 3)
+			B3D_RTTI_MEMBER_REFLPTR(FieldTypeSchema, 4)
+		B3D_RTTI_END_MEMBERS
+
+	public:
+		const String& GetRttiName()
+		{
+			static String name = "RTTIFieldTupleSchema";
+			return name;
+		}
+
+		u32 GetRttiId() const override
+		{
+			return TID_RTTIFieldTypeSchema;
+		}
+
+		SPtr<IReflectable> NewRttiObject()
+		{
+			return B3DMakeShared<RTTIFieldTypeSchema>();
+		}
+	};
+
 	class RTTIFieldSchemaRTTI : public RTTIType<RTTIFieldSchema, IReflectable, RTTIFieldSchemaRTTI>
 	{
 	private:
@@ -61,6 +90,7 @@ namespace bs
 			B3D_RTTI_MEMBER_PLAIN(FieldTypeId, 5)
 			B3D_RTTI_MEMBER_REFLPTR(FieldTypeSchema, 6)
 			B3D_RTTI_MEMBER_PLAIN(Info, 7)
+			B3D_RTTI_MEMBER_REFL_ARRAY(FieldTypes, 8)
 		B3D_RTTI_END_MEMBERS
 
 	public:
