@@ -20,9 +20,85 @@ namespace bs
 	{
 		virtual ~RTTIIteratorField() = default;
 
-		virtual UPtr<IRTTIIterator> GetIterator() const = 0;
-		virtual void DecodeFromStream(RTTITypeBase* objectType, void* object, IRTTIIterator& iterator, Bitstream& stream, bool compress) = 0;
-		virtual void EncodeToStream(RTTITypeBase* objectType, void* object, IRTTIIterator& iterator, Bitstream& stream, bool compress) = 0;
+		/** Returns the iterator that can be used for iterating all entries in the field. */
+		virtual UPtr<IRTTIIterator> GetIterator(RTTITypeBase* rttiType, void* object, FrameAllocator& frameAllocator) const = 0;
+
+		/** Returns the current value of the iterator. */
+		virtual const void* GetIteratorValue(RTTITypeBase* rttiType, void* object, FrameAllocator& frameAllocator, const IRTTIIterator& iterator) const = 0;
+
+		/**
+		 * Appends a new value at the end of the iterator, and increments the iterator. @p value must have been created by a call to CreateEmptyFieldValue(),
+		 * using the same @p frameAllocator.
+		 */
+		virtual void SetIteratorValue(RTTITypeBase* rttiType, void* object, FrameAllocator& frameAllocator, IRTTIIterator& iterator, void* value) = 0;
+
+		/**
+		 * Creates a new empty field value. This should be populated by calls to WritePlainTypeTupleToStream, SetReflectablePointer or SetReflectable, and then
+		 * passed to SetIteratorValue().
+		 */
+		virtual void* CreateEmptyFieldValue(FrameAllocator& frameAllocator);
+		
+		/**
+		 * Reads into the provided field value from the stream. If the field value represents a tuple (i.e. contains multiple sub-types, such as std::pair<K, V>),
+		 * this reads just a single tuple element, as specified by @p tupleElementIndex.
+		 *
+		 * @param	fieldValue			Field value to read into, as created by CreateEmptyFieldValue().
+		 * @param	tupleElementIndex	Index of the tuple element in @p fieldValue to read into. If @p fieldValue doesn't represent a tuple, this should be 0.
+		 * @param	stream				Stream from which to read from.
+		 * @param	useCompression		If true, values will read as compressed where relevant. Must be set of the value was written with compression enabled.
+		 */
+		virtual void ReadPlainTypeTupleFromStream(void* fieldValue, u32 tupleElementIndex, Bitstream& stream, bool useCompression) = 0;
+
+		/**
+		 * Writes the provided field value to the stream. If the field value represents a tuple (i.e. contains multiple sub-types, such as std::pair<K, V>),
+		 * this encodes just a single tuple element, as specified by @p tupleElementIndex.
+		 *
+		 * @param	fieldValue			Field value to write, as returned by GetIteratorValue().
+		 * @param	tupleElementIndex	Index of the tuple element in @p fieldValue to write. If @p fieldValue doesn't represent a tuple, this should be 0.
+		 * @param	stream				Stream in which to write to.
+		 * @param	useCompression		If true, values will attempt to be compressed where relevant. Must be decoded with this flag in the same state.
+		 */
+		virtual void WritePlainTypeTupleToStream(const void* fieldValue, u32 tupleElementIndex, Bitstream& stream, bool useCompression) = 0;
+
+		/**
+		 * Assigns the reflectable pointer to the provided field value. If the field value represents a tuple (i.e. contains multiple sub-types, such as std::pair<K, V>),
+		 * this assigns a single element of the tuple, as specified by @p tupleElementIndex. If the field value is not a tuple, @p reflectable is simply assigned to @p fieldValue.
+		 *
+		 * @param fieldValue		Field value in which to store the reflectable pointer, as created by CreateEmptyFieldValue().
+		 * @param tupleElementIndex Index of the tuple element in @p fieldValue in which to store the reflectable pointer. If @p fieldValue doesn't represent a tuple, this should be 0.
+		 * @param reflectable		Reflectable pointer to assign to the field value.
+		 */
+		virtual void SetReflectablePointer(const void* fieldValue, u32 tupleElementIndex, const SPtr<IReflectable>& reflectable) = 0;
+
+		/**
+		 * Reads the reflectable pointer from the provided field value. If the field value represents a tuple (i.e. contains multiple sub-types, such as std::pair<K, V>),
+		 * this reads a single element of the tuple, as specified by @p tupleElementIndex. If the field value is not a tuple, @p fieldValue is simply cast to a reflectable pointer type.
+		 *
+		 * @param fieldValue		Field value containing the reflectable pointer, as returned by GetIteratorValue().
+		 * @param tupleElementIndex Index of the tuple element in @p fieldValue which contains the reflectable pointer. If @p fieldValue doesn't represent a tuple, this should be 0.
+		 * @return					Reflectable pointer.
+		 */
+		virtual SPtr<IReflectable> GetReflectablePointer(const void* fieldValue, u32 tupleElementIndex) = 0;
+
+		/**
+		 * Assigns the reflectable to the provided field value. If the field value represents a tuple (i.e. contains multiple sub-types, such as std::pair<K, V>),
+		 * this assigns a single element of the tuple, as specified by @p tupleElementIndex. If the field value is not a tuple, @p reflectable is simply assigned to @p fieldValue.
+		 *
+		 * @param fieldValue		Field value in which to store the reflectable, as created by CreateEmptyFieldValue().
+		 * @param tupleElementIndex Index of the tuple element in @p fieldValue in which to store the reflectable. If @p fieldValue doesn't represent a tuple, this should be 0.
+		 * @param reflectable		Reflectable to assign to the field value.
+		 */
+		virtual void SetReflectable(const void* fieldValue, u32 tupleElementIndex, const IReflectable& reflectable) = 0;
+
+		/**
+		 * Reads the reflectable value from the provided field value. If the field value represents a tuple (i.e. contains multiple sub-types, such as std::pair<K, V>),
+		 * this reads a single element of the tuple, as specified by @p tupleElementIndex. If the field value is not a tuple, @p fieldValue is simply cast to a reflectable type.
+		 *
+		 * @param fieldValue		Field value containing the reflectable, as returned by GetIteratorValue().
+		 * @param tupleElementIndex Index of the tuple element in @p fieldValue which contains the reflectable. If @p fieldValue doesn't represent a tuple, this should be 0.
+		 * @return					Reflectable.
+		 */
+		virtual const IReflectable& GetReflectable(const void* fieldValue, u32 tupleElementIndex) = 0;
 	};
 
 	template<typename T>
@@ -44,9 +120,9 @@ namespace bs
 	{
 		using ElementType = typename ContainerType::value_type;
 
-		typedef UPtr<TRTTIIterator<ContainerType>> (RTTIType::*GetIteratorDelegate)(ObjectType*);
-		typedef const ElementType& (RTTIType::*GetValueDelegate)(ObjectType*, TRTTIIterator<ContainerType>&);
-		typedef void (RTTIType::*SetValueDelegate)(ObjectType*, TRTTIIterator<ContainerType>&, const ElementType&);
+		typedef UPtr<TRTTIIterator<ContainerType>> (RTTIType::*GetIteratorDelegate)(ObjectType*, FrameAllocator&);
+		typedef const ElementType& (RTTIType::*GetValueDelegate)(ObjectType*, FrameAllocator&, TRTTIIterator<ContainerType>&);
+		typedef void (RTTIType::*SetValueDelegate)(ObjectType*, FrameAllocator&, TRTTIIterator<ContainerType>&, const ElementType&);
 
 		TRTTIIteratorField(String name, u16 uniqueId, GetIteratorDelegate getIteratorCallback, GetValueDelegate getValueCallback, SetValueDelegate setValueCallback, const RTTIFieldInfo& fieldInfo)
 		{
@@ -76,25 +152,172 @@ namespace bs
 			}
 		}
 
+		UPtr<IRTTIIterator> GetIterator(RTTITypeBase* rttiType, void* object, FrameAllocator& frameAllocator) const override
+		{
+			RTTIType* const exactRttiType = static_cast<RTTIType*>(rttiType);
+			ObjectType* const exactObject = static_cast<ObjectType*>(object);
+
+			return (exactRttiType->*mGetIteratorCallback)(exactObject, frameAllocator);
+		}
+
+		const void* GetIteratorValue(RTTITypeBase* rttiType, void* object, FrameAllocator& frameAllocator, const IRTTIIterator& iterator) const override
+		{
+			RTTIType* const exactRttiType = static_cast<RTTIType*>(rttiType);
+			ObjectType* const exactObject = static_cast<ObjectType*>(object);
+
+			return &(exactRttiType->*mGetValueCallback)(exactObject, frameAllocator, iterator);
+		}
+
+		void SetIteratorValue(RTTITypeBase* rttiType, void* object, FrameAllocator& frameAllocator, IRTTIIterator& iterator, void* value) override
+		{
+			RTTIType* const exactRttiType = static_cast<RTTIType*>(rttiType);
+			ObjectType* const exactObject = static_cast<ObjectType*>(object);
+
+			ElementType& exactValue = *static_cast<ElementType*>(value);
+			(exactRttiType->*mSetValueCallback)(exactObject, frameAllocator, iterator, exactValue);
+
+			frameAllocator.Destruct(&exactValue);
+		}
+
+		void* CreateEmptyFieldValue(FrameAllocator& frameAllocator) override
+		{
+			return frameAllocator.Construct<ElementType>();
+		}
+
+		void ReadPlainTypeTupleFromStream(void* fieldValue, u32 tupleElementIndex, Bitstream& stream, bool useCompression) override
+		{
+			ElementType& value = *static_cast<ElementType*>(fieldValue);
+			if constexpr(B3DIsStdPair<ElementType>::value_type) // Note: Currently supporting just std::pair, but can support other types eventually
+			{
+				if(!B3D_ENSURE(tupleElementIndex <= 1))
+					return;
+
+				if(tupleElementIndex == 0)
+					ReadPlainTypeFromStream(value.first, stream, useCompression);
+				else
+					ReadPlainTypeFromStream(value.second, stream, useCompression);
+			}
+			else
+			{
+				B3D_ENSURE(tupleElementIndex == 0);
+				ReadPlainTypeFromStream(value, stream, useCompression);
+			}
+		}
+
+		void WritePlainTypeTupleToStream(const void* fieldValue, u32 tupleElementIndex, Bitstream& stream, bool useCompression) override
+		{
+			const ElementType& value = *static_cast<const ElementType*>(fieldValue);
+			if constexpr(B3DIsStdPair<ElementType>::value_type)
+			{
+				B3D_ENSURE(tupleElementIndex <= 1);
+
+				if(tupleElementIndex == 0)
+					WritePlainTypeToStream(value.first, stream, useCompression);
+				else
+					WritePlainTypeToStream(value.second, stream, useCompression);
+			}
+			else
+			{
+				B3D_ENSURE(tupleElementIndex == 0);
+				WritePlainTypeToStream(value, stream, useCompression);
+			}
+		}
+
+		void SetReflectablePointer(const void* fieldValue, u32 tupleElementIndex, const SPtr<IReflectable>& reflectable) override
+		{
+			ElementType& value = *static_cast<ElementType*>(fieldValue);
+			if constexpr(B3DIsStdPair<ElementType>::value_type)
+			{
+				B3D_ENSURE(tupleElementIndex <= 1);
+
+				if(tupleElementIndex == 0)
+					value.first = reflectable;
+				else
+					value.second = reflectable;
+			}
+			else
+			{
+				B3D_ENSURE(tupleElementIndex == 0);
+				value = reflectable;
+			}
+		}
+
+		SPtr<IReflectable> GetReflectablePointer(const void* fieldValue, u32 tupleElementIndex) override
+		{
+			const ElementType& value = *static_cast<const ElementType*>(fieldValue);
+			if constexpr(B3DIsStdPair<ElementType>::value_type)
+			{
+				B3D_ENSURE(tupleElementIndex <= 1);
+
+				if(tupleElementIndex == 0)
+					return value.first;
+
+				return value.second;
+			}
+			else
+			{
+				B3D_ENSURE(tupleElementIndex == 0);
+				return value;
+			}
+		}
+
+		void SetReflectable(const void* fieldValue, u32 tupleElementIndex, const IReflectable& reflectable) override
+		{
+			ElementType& value = *static_cast<ElementType*>(fieldValue);
+			if constexpr(B3DIsStdPair<ElementType>::value_type)
+			{
+				B3D_ENSURE(tupleElementIndex <= 1);
+
+				if(tupleElementIndex == 0)
+					value.first = reflectable;
+				else
+					value.second = reflectable;
+			}
+			else
+			{
+				B3D_ENSURE(tupleElementIndex == 0);
+				value = reflectable;
+			}
+		}
+
+		const IReflectable& GetReflectable(const void* fieldValue, u32 tupleElementIndex) override
+		{
+			const ElementType& value = *static_cast<const ElementType*>(fieldValue);
+			if constexpr(B3DIsStdPair<ElementType>::value_type)
+			{
+				B3D_ENSURE(tupleElementIndex <= 1);
+
+				if(tupleElementIndex == 0)
+					return value.first;
+
+				return value.second;
+			}
+			else
+			{
+				B3D_ENSURE(tupleElementIndex == 0);
+				return value;
+			}
+		}
+
+	private:
 		/** Creates a schema for a type stored in the field. */
 		template<typename FieldType>
 		RTTIFieldTypeSchema CreateFieldTypeSchema(const RTTIFieldInfo& fieldInfo)
 		{
-			if constexpr(B3DIsSharedPointer<FieldType>())
+			if constexpr(IsReflectableShared<FieldType>())
 			{
 				using UnderlyingType = B3DDecaySharedPointer<FieldType>;
 				static_assert(std::is_base_of_v<IReflectable, UnderlyingType>, "RTTI fields holding shared pointers must ensure the pointed-to data types implement the IReflectable interface.");
 
 				return RTTIFieldTypeSchema(true, 0, SerializableFT_ReflectablePtr, UnderlyingType::GetRttiStatic()->GetRttiId(), UnderlyingType::GetRttiStatic()->GetSchema());
 			}
-			else if constexpr(std::is_base_of_v<IReflectable, FieldType>)
+			else if constexpr(IsReflectable<FieldType>())
 			{
 				return RTTIFieldTypeSchema(true, 0, SerializableFT_Reflectable, FieldType::GetRttiStatic()->GetRttiId(), FieldType::GetRttiStatic()->GetSchema());
 			}
-			else // Plain type
+			else if constexpr(IsPlain<FieldType>())
 			{
-				static_assert(B3DIsComplete<RTTIPlainType<FieldType>>::value, "RTTI field type that doesn't derive from IReflectable must implement the RTTIPlainType specialization.");
-				static_assert(sizeof(RTTIPlainType<FieldType>::id) > 0, "Plain type has no valid ID.");
+				static_assert(sizeof(RTTIPlainType<FieldType>::id) > 0, "Plain type has no valid ID."); // TODO - sizeof here is probably a bug, but it would break too many things to fix right now (also breaks memcpy serialization)
 
 				BitLength fixedSize = 0; 
 				const bool hasDynamicSize = RTTIPlainType<FieldType>::hasDynamicSize != 0;
@@ -112,11 +335,31 @@ namespace bs
 
 				return RTTIFieldTypeSchema(RTTIPlainType<FieldType>::hasDynamicSize, fixedSize, SerializableFT_Plain, RTTIPlainType<FieldType>::id, nullptr);
 			}
+			else
+			{
+				static_assert(false, "Cannot initialize RTTIField. Unsupported type provided. Make sure your type either derives from IReflectable or implements the RTTIPlainType<T> specialization.");
+				return RTTIFieldTypeSchema();
+			}
 		}
 
-		UPtr<IRTTIIterator> GetIterator() const override
+		/** Writes the provided plain object to the stream. */
+		template<typename T>
+		void WritePlainTypeToStream(const T& value, Bitstream& stream, bool useCompression)
 		{
-			return mGetIteratorCallback();
+			if(!B3D_ENSURE(IsPlain<T>))
+				return;
+
+			RTTIPlainType<T>::ToMemory(value, stream, Schema.Info, useCompression);
+		}
+
+		/** Reads the provided plain object from the stream. */
+		template<typename T>
+		void ReadPlainTypeFromStream(T& value, Bitstream& stream, bool useCompression)
+		{
+			if(!B3D_ENSURE(IsPlain<T>))
+				return;
+
+			RTTIPlainType<T>::FromMemory(value, stream, Schema.Info, useCompression);
 		}
 
 		/*
@@ -199,6 +442,27 @@ namespace bs
 		 * }
 		 *
 		 */
+
+		/** Checks is the provided type a value type deriving from IReflectable. */
+		template<class T>
+		constexpr bool IsReflectable() const
+		{
+			return std::is_base_of_v<IReflectable, B3DDecaySharedPointer<T>>;
+		}
+
+		/** Checks is the provided type a shared pointer referencing a type deriving from IReflectable. */
+		template<class T>
+		constexpr bool IsReflectableShared() const
+		{
+			return B3DIsSharedPointer<T>() && IsReflectable<B3DDecaySharedPointer<T>>;
+		}
+
+		/** Checks is the provided type a plain type (implements the RTTIPlainType<T> specialization). */
+		template<class T>
+		constexpr bool IsPlain() const
+		{
+			return B3DIsComplete<RTTIPlainType<T>>::value;
+		}
 		
 		GetIteratorDelegate mGetIteratorCallback;
 		GetValueDelegate mGetValueCallback;
