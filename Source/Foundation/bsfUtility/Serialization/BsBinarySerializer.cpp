@@ -589,61 +589,100 @@ bool DeserializationContext::DeserializeReflectableObject(SPtr<RTTISchema> outpu
 
 			for(u32 elementIndex = 0; elementIndex < elementCount; ++elementIndex)
 			{
-				// TODO
-				
+				void* fieldValue = nullptr;
+				if(field != nullptr && iterator != nullptr)
+					fieldValue = field->CreateEmptyFieldValue(mAllocator);
+
+				for(u32 typeIndex = 0; typeIndex < (u32)fieldSchema.FieldTypes.Size(); ++typeIndex)
+				{
+					const RTTIFieldTypeSchema& fieldSubTypeSchema = fieldSchema.FieldTypes[typeIndex];
+
+					switch(fieldSubTypeSchema.Type)
+					{
+					case SerializableFT_ReflectablePtr:
+						{
+							const u32 referencedObjectId = ReadReferencedReflectableObjectId();
+
+							// If reading from schema we need to create object here as we don't know its type during the normal pass
+							if(outputObjectSchema != nullptr)
+								EnsureReflectableObjectExists(referencedObjectId, fieldTypeSchema);
+
+							if(field != nullptr)
+							{
+								SPtr<IReflectable> referencedObject;
+								if(field->Schema.Info.Flags.IsSet(RTTIFieldFlag::WeakRef))
+									referencedObject = GetReflectableObject(referencedObjectId);
+								else
+									referencedObject = GetOrDeserializeReflectableObject(referencedObjectId, fieldTypeSchema);
+
+								field->SetReflectablePointer(fieldValue, typeIndex, referencedObject);
+							}
+							break;
+						}
+					case SerializableFT_Reflectable:
+						{
+							SPtr<IReflectable> referencedObject;
+							if(field != nullptr)
+								referencedObject = IReflectable::CreateInstanceFromTypeId(field->Schema.FieldTypes[typeIndex].FieldTypeId);
+
+							DeserializeReflectableObject(fieldTypeSchema, referencedObject);
+
+							if(field != nullptr)
+							{
+								// Note: Would be nice to avoid this copy by value and decode directly into the field
+								field->SetReflectable(fieldValue, typeIndex, *referencedObject);
+							}
+
+							break;
+						}
+					case SerializableFT_Plain:
+						{
+							uint64_t typeSizeBits = fieldSchema.Size.GetBits();
+							if(fieldSchema.HasDynamicSize)
+							{
+								if(compressed)
+								{
+									BitLength typeSize;
+									BitLength headerSize = B3DRTTIReadSizeHeader(mStream, true, typeSize);
+									mStream.Skip(-(int64_t)headerSize.GetBits());
+
+									typeSizeBits = typeSize.GetBits();
+								}
+								else
+								{
+									uint32_t typeSize;
+									mStream.ReadBytes(typeSize);
+									mStream.SkipBytes(-(int32_t)sizeof(uint32_t));
+
+									typeSizeBits = (uint64_t)typeSize * 8;
+								}
+							}
+
+							if(field != nullptr)
+							{
+								mStream.Preload((uint32_t)Math::DivideAndRoundUp(typeSizeBits, (uint64_t)8));
+								field->ReadPlainTypeTupleFromStream(fieldValue, typeIndex, mStream.GetBitstream(), compressed);
+
+								mStream.Skip(typeSizeBits);
+							}
+							else
+							{
+								bool builtin = fieldSchema.FieldTypeId < 16;
+								if(compressed && builtin)
+									SkipBuiltinType(fieldSchema.FieldTypeId, mStream, compressed);
+								else
+									mStream.Skip(typeSizeBits);
+							}
+							break;
+						}
+					default:
+						B3D_EXCEPT(InternalErrorException, "Error decoding data. Encountered a type I don't know how to decode. Type: " + ToString(u32(fieldSchema.Type)) + ", Is array: " + ToString(fieldSchema.IsArray));
+					}
+
+					if(field != nullptr && iterator != nullptr)
+						field->SetIteratorValue(rttiInstance, output.get(), mAllocator, *iterator, fieldValue);
+				}
 			}
-
-			//void* fieldValue = nullptr;
-			//{
-
-
-			//	for(; iterator->IsValid(); iterator->Increment())
-			//	{
-			//		const void* fieldValue = iterator->GetValue();
-			//		for(u32 typeIndex = 0; typeIndex < (u32)field->Schema.FieldTypes.Size(); ++typeIndex)
-			//		{
-			//			const RTTIFieldTypeSchema& typeSchema = field->Schema.FieldTypes[typeIndex];
-			//			switch(typeSchema.Type)
-			//			{
-			//			case SerializableFT_ReflectablePtr:
-			//				{
-			//					SPtr<IReflectable> childObject;
-
-			//					if(!flags.IsSet(BinarySerializerFlag::Shallow))
-			//						childObject = field->GetReflectablePointer(fieldValue, typeIndex);
-
-			//					const u32 objectId = RegisterReflectableObjectForSerialization(childObject);
-			//					if(compress)
-			//						stream.WriteVarInt(objectId);
-			//					else
-			//						stream.WriteBytes(objectId);
-
-			//					break;
-			//				}
-			//			case SerializableFT_Reflectable:
-			//				{
-			//					const IReflectable& childObject = field->GetReflectable(fieldValue, typeIndex);
-			//					if(!SerializeReflectableObjectInline(const_cast<IReflectable*>(&childObject), stream, flags)) // TODO - Get rid of const cast
-			//					{
-			//						cleanup();
-			//						return false;
-			//					}
-
-			//					break;
-			//				}
-			//			case SerializableFT_Plain:
-			//				{
-			//					field->WritePlainTypeTupleToStream(fieldValue, typeIndex, stream.GetBitstream(), compress);
-			//					break;
-			//				}
-			//			default:
-			//				B3D_LOG(Error, Serialization, "Error serializing data. Encountered a type I don't know how to encode. Type: {0}, Is array: {1}", typeSchema.Type, field->Schema.IsArray);
-			//			}
-			//		}
-			//	}
-			//}
-
-			
 		}
 		else if(fieldSchema.IsArray)
 		{
