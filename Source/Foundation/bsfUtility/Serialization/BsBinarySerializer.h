@@ -131,19 +131,6 @@ namespace bs
 			SPtr<IReflectable> Object;
 		};
 
-		struct ObjectToDecode
-		{
-			ObjectToDecode(SPtr<IReflectable> object = nullptr, uint64_t offset = 0, SPtr<RTTISchema> schema = nullptr)
-				: Object(std::move(object)), Offset(offset), Schema(std::move(schema))
-			{}
-
-			SPtr<IReflectable> Object;
-			bool IsDecoded = false;
-			bool DecodeInProgress = false; // Used for error reporting circular references
-			uint64_t Offset;
-			SPtr<RTTISchema> Schema;
-		};
-
 		/**
 		 * Serializes a single IReflectable object. Any pointers referencing other reflectable types will be registered in mObjectsToSerialize, and
 		 * this method should also be called over all objects registered in that array.
@@ -155,9 +142,6 @@ namespace bs
 		 * @return				True if successful, false otherwise.
 		 */
 		bool SerializeReflectableObject(IReflectable* object, u32 objectId, BufferedBitstreamWriter& stream, BinarySerializerFlags flags);
-
-		/**	Decodes a single IReflectable object. */
-		bool DecodeEntry(BufferedBitstreamReader& stream, size_t dataLength, BinarySerializerFlags flags, const SPtr<IReflectable>& output, SPtr<RTTISchema> schema);
 
 		/**
 		 * Serializes an IReflectable inline as a field value. This is opposed to serializing a reflectable by pointer, which
@@ -175,26 +159,11 @@ namespace bs
 		 */
 		u32 RegisterReflectableObjectForSerialization(SPtr<IReflectable> object);
 
-		/**
-		 * Decodes object meta-data from the current location in the stream. Decoding accounts for the serializer flags to decode
-		 * using the correct format. Returns number of bits read.
-		 */
-		static u32 ReadObjectMetaData(BufferedBitstreamReader& stream, BinarySerializerFlags flags, u32& objId, u32& objTypeId, bool& isBaseType);
-
 		/** Encodes and writes data required for representing a serialized field, into the provided stream. */
 		static void WriteFieldMetaData(const RTTIFieldSchema& fieldSchema, bool isLastFieldInType, BufferedBitstreamWriter& stream);
 
-		/** Decode meta field that was encoded using encodeFieldMetaData().*/
-		static RTTIFieldSchema ReadFieldMetaData(BufferedBitstreamReader& stream, bool& terminator);
-
 		/** Encodes data representing a field terminator into 1 byte. */
 		static u8 EncodeFieldTerminator();
-
-		/** Skips the builtin type at the current location in the stream. */
-		static void SkipBuiltinType(u32 fieldType, BufferedBitstreamReader& stream, bool compressed);
-
-		/** Returns true if the data in the provided byte represents a field terminator as encoded with encodeFieldTerminator(). */
-		static bool IsFieldTerminator(u8 data);
 
 		/**
 		 * Encodes an object identifier, its type and other meta-data into 8 bytes.
@@ -206,12 +175,6 @@ namespace bs
 		 */
 		static ObjectMetaData EncodeObjectMetaData(u32 objId, u32 objTypeId, bool isBaseClass);
 
-		/** Decode meta field that was encoded using encodeObjectMetaData(u32, u32, bool). */
-		static void DecodeObjectMetaData(ObjectMetaData encodedData, u32& objId, u32& objTypeId, bool& isBaseClass);
-
-		/** Returns true if the provided encoded meta data represents object meta data. */
-		static bool IsObjectMetaData(u32 encodedData);
-
 		/**
 		 * Encodes an object identifier and meta-data into 4 bytes.
 		 *
@@ -221,10 +184,6 @@ namespace bs
 		 */
 		static u32 EncodeObjectMetaData(u32 objId, bool isBaseClass);
 
-		/** Decode meta field that was encoded using encodeObjectMetaData(u32, bool). */
-		static void DecodeObjectMetaData(u32 encodedData, u32& objId, bool& isBaseClass);
-
-		Map<u32, ObjectToDecode> mDecodeObjectMap;
 		Vector<ObjectToSerialize> mReflectableObjectsToSerialize;
 		UnorderedMap<void*, u32> mReflectableObjectToID;
 		u32 mLastUsedObjectId = 1;
