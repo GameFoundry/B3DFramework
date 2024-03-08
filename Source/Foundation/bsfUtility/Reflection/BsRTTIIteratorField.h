@@ -120,9 +120,9 @@ namespace bs
 	{
 		using ElementType = typename ContainerType::value_type;
 
-		typedef UPtr<TRTTIIterator<ContainerType>, DefaultAllocatorTag, TRTTIIteratorDeleter<ContainerType>> (RTTIType::*GetIteratorDelegate)(ObjectType*, FrameAllocator&);
-		typedef const ElementType& (RTTIType::*GetValueDelegate)(ObjectType*, FrameAllocator&, TRTTIIterator<ContainerType>&);
-		typedef void (RTTIType::*SetValueDelegate)(ObjectType*, FrameAllocator&, TRTTIIterator<ContainerType>&, const ElementType&);
+		typedef UPtr<TRTTIIterator<ContainerType>, DefaultAllocatorTag, TRTTIIteratorDeleter<ContainerType>> (RTTIType::*GetIteratorDelegate)(ObjectType&, FrameAllocator&);
+		typedef const ElementType& (RTTIType::*GetValueDelegate)(ObjectType&, FrameAllocator&, TRTTIIterator<ContainerType>&);
+		typedef void (RTTIType::*SetValueDelegate)(ObjectType&, FrameAllocator&, TRTTIIterator<ContainerType>&, const ElementType&);
 
 		TRTTIIteratorField(String name, u16 uniqueId, GetIteratorDelegate getIteratorCallback, GetValueDelegate getValueCallback, SetValueDelegate setValueCallback, const RTTIFieldInfo& fieldInfo)
 		{
@@ -157,7 +157,7 @@ namespace bs
 			RTTIType* const exactRttiType = static_cast<RTTIType*>(rttiType);
 			ObjectType* const exactObject = static_cast<ObjectType*>(object);
 
-			return std::move((exactRttiType->*mGetIteratorCallback)(exactObject, frameAllocator));
+			return std::move((exactRttiType->*mGetIteratorCallback)(*exactObject, frameAllocator));
 		}
 
 		const void* GetIteratorValue(RTTITypeBase* rttiType, void* object, FrameAllocator& frameAllocator, IRTTIIterator& iterator) const override
@@ -166,7 +166,7 @@ namespace bs
 			ObjectType* const exactObject = static_cast<ObjectType*>(object);
 			TRTTIIterator<ContainerType>& exactIterator = static_cast<TRTTIIterator<ContainerType>&>(iterator);
 
-			return &(exactRttiType->*mGetValueCallback)(exactObject, frameAllocator, exactIterator);
+			return &(exactRttiType->*mGetValueCallback)(*exactObject, frameAllocator, exactIterator);
 		}
 
 		void SetIteratorValue(RTTITypeBase* rttiType, void* object, FrameAllocator& frameAllocator, IRTTIIterator& iterator, void* value) override
@@ -176,7 +176,7 @@ namespace bs
 			TRTTIIterator<ContainerType>& exactIterator = static_cast<TRTTIIterator<ContainerType>&>(iterator);
 
 			ElementType& exactValue = *static_cast<ElementType*>(value);
-			(exactRttiType->*mSetValueCallback)(exactObject, frameAllocator, exactIterator, exactValue);
+			(exactRttiType->*mSetValueCallback)(*exactObject, frameAllocator, exactIterator, exactValue);
 
 			frameAllocator.Destruct(&exactValue);
 		}
