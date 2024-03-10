@@ -357,48 +357,72 @@ namespace bs
 	/** Same as B3D_RTTI_MEMBER_REFLPTR_ARRAY, but allows you to specify an info structure that further describes the field. */
 #define B3D_RTTI_MEMBER_REFLPTR_ARRAY_INFO(name, id, info) B3D_RTTI_MEMBER_REFLPTR_ARRAY_FULL(name, name, id, info)
 
+/** Common code for implementing both B3D_RTTI_MEMBER_FULL and B3D_RTTI_MEMBER_CONTAINER_FULL. */
+#define B3D_RTTI_MEMBER_IMPL(name, field, id, info, container)                                                                                                      \
+	META_Entry_##name;                                                                                                                                              \
+                                                                                                                                                                    \
+	using __TRTTIIterator##name##Type = TRTTIIterator<decltype(OwnerType::field), container>;                                                                       \
+	using __TRTTIIteratorDeleter##name##Type = TRTTIIteratorDeleter<decltype(OwnerType::field), container>;                                                         \
+                                                                                                                                                                    \
+	UPtr<__TRTTIIterator##name##Type, DefaultAllocatorTag, __TRTTIIteratorDeleter##name##Type> GetIterator##name(OwnerType& object, FrameAllocator& allocator)      \
+	{                                                                                                                                                               \
+		return CreateRTTIIterator<decltype(OwnerType::field), container>(allocator, object.field);                                                                  \
+	}                                                                                                                                                               \
+	const __TRTTIIterator##name##Type::ElementType& GetValue##name(OwnerType& object, FrameAllocator& allocator, __TRTTIIterator##name##Type& iterator)             \
+	{                                                                                                                                                               \
+		return *iterator;                                                                                                                                           \
+	}                                                                                                                                                               \
+	void SetValue##name(OwnerType& object, FrameAllocator& allocator, __TRTTIIterator##name##Type& iterator, const __TRTTIIterator##name##Type::ElementType& value) \
+	{                                                                                                                                                               \
+		iterator = value;                                                                                                                                           \
+	}                                                                                                                                                               \
+                                                                                                                                                                    \
+	struct META_NextEntry_##name                                                                                                                                    \
+	{};                                                                                                                                                             \
+	void META_InitPrevEntry(META_NextEntry_##name typeId)                                                                                                           \
+	{                                                                                                                                                               \
+		AddField(#name, id, &MyType::GetIterator##name, &MyType::GetValue##name, &MyType::SetValue##name, info);                                                    \
+                                                                                                                                                                    \
+		META_InitPrevEntry(META_Entry_##name());                                                                                                                    \
+	}                                                                                                                                                               \
+                                                                                                                                                                    \
+	typedef META_NextEntry_##name
 /**
- * Same as B3D_RTTI_MEMBER_ITERATOR, but allows you to specify separate names for the field name and the member variable,
+ * Same as B3D_RTTI_MEMBER, but allows you to specify separate names for the field name and the member variable,
  * as well as an optional info structure further describing the field.
  */
-#define B3D_RTTI_MEMBER_ITERATOR_FULL(name, field, id, info)                                                                                                                               \
-	META_Entry_##name;                                                                                                                                                                     \
-                                                                                                                                                                                           \
-	UPtr<TRTTIIterator<decltype(OwnerType::field)>, DefaultAllocatorTag, TRTTIIteratorDeleter<decltype(OwnerType::field)>> GetIterator##name(OwnerType& object, FrameAllocator& allocator) \
-	{                                                                                                                                                                                      \
-		return CreateRTTIIterator<decltype(OwnerType::field)>(allocator, object.field);                                                                                                    \
-	}                                                                                                                                                                                      \
-	const decltype(OwnerType::field)::value_type& GetValue##name(OwnerType& object, FrameAllocator& allocator, TRTTIIterator<decltype(OwnerType::field)>& iterator)                        \
-	{                                                                                                                                                                                      \
-		return *iterator;                                                                                                                                                                  \
-	}                                                                                                                                                                                      \
-	void SetValue##name(OwnerType& object, FrameAllocator& allocator, TRTTIIterator<decltype(OwnerType::field)>& iterator, const decltype(OwnerType::field)::value_type& value)            \
-	{                                                                                                                                                                                      \
-		iterator = value;                                                                                                                                                                  \
-	}                                                                                                                                                                                      \
-                                                                                                                                                                                           \
-	struct META_NextEntry_##name                                                                                                                                                           \
-	{};                                                                                                                                                                                    \
-	void META_InitPrevEntry(META_NextEntry_##name typeId)                                                                                                                                  \
-	{                                                                                                                                                                                      \
-		AddIteratorField(#name, id, &MyType::GetIterator##name, &MyType::GetValue##name, &MyType::SetValue##name, info);                                                                   \
-		META_InitPrevEntry(META_Entry_##name());                                                                                                                                           \
-	}                                                                                                                                                                                      \
-                                                                                                                                                                                           \
-	typedef META_NextEntry_##name
+#define B3D_RTTI_MEMBER_FULL(name, field, id, info) B3D_RTTI_MEMBER_IMPL(name, field, id, info, false)
 
 /**
  * Registers a new member field in the RTTI type. The field references the @p name member in the owner class.
  * The type of the member must be a valid container type (e.g. vector or map). The container is allowed to contain
  * plain, reflectable and reflectable pointer types alike. Each field must specify a unique ID for @p id.
  */
-#define B3D_RTTI_MEMBER_ITERATOR(name, id) B3D_RTTI_MEMBER_ITERATOR_FULL(name, name, id, bs::RTTIFieldInfo::DEFAULT)
+#define B3D_RTTI_MEMBER_CONTAINER(name, id) B3D_RTTI_MEMBER_CONTAINER_FULL(name, name, id, bs::RTTIFieldInfo::DEFAULT)
 
-/** Same as B3D_RTTI_MEMBER_ITERATOR, but allows you to specify separate names for the field name and the member variable. */
-#define B3D_RTTI_MEMBER_ITERATOR_NAMED(name, field, id) B3D_RTTI_MEMBER_ITERATOR_FULL(name, field, id, RTTIFieldInfo::DEFAULT)
+/** Same as B3D_RTTI_MEMBER_CONTAINER, but allows you to specify separate names for the field name and the member variable. */
+#define B3D_RTTI_MEMBER_CONTAINER_NAMED(name, field, id) B3D_RTTI_MEMBER_CONTAINER_FULL(name, field, id, RTTIFieldInfo::DEFAULT)
 
 /** Same as B3D_RTTI_MEMBER_ITERATOR, but allows you to specify an info structure that further describes the field. */
-#define B3D_RTTI_MEMBER_ITERATOR_INFO(name, id, info) B3D_RTTI_MEMBER_ITERATOR_FULL(name, name, id, info)
+#define B3D_RTTI_MEMBER_CONTAINER_INFO(name, id, info) B3D_RTTI_MEMBER_CONTAINER_FULL(name, name, id, info)
+/**
+ * Same as B3D_RTTI_MEMBER_CONTAINER, but allows you to specify separate names for the field name and the member variable,
+ * as well as an optional info structure further describing the field.
+ */
+#define B3D_RTTI_MEMBER_CONTAINER_FULL(name, field, id, info) B3D_RTTI_MEMBER_IMPL(name, field, id, info, true)
+
+/**
+ * Registers a new member field in the RTTI type. The field references the @p name member in the owner class.
+ * The type of the member must be a valid container type (e.g. vector or map). The container is allowed to contain
+ * plain, reflectable and reflectable pointer types alike. Each field must specify a unique ID for @p id.
+ */
+#define B3D_RTTI_MEMBER_CONTAINER(name, id) B3D_RTTI_MEMBER_CONTAINER_FULL(name, name, id, bs::RTTIFieldInfo::DEFAULT)
+
+/** Same as B3D_RTTI_MEMBER_CONTAINER, but allows you to specify separate names for the field name and the member variable. */
+#define B3D_RTTI_MEMBER_CONTAINER_NAMED(name, field, id) B3D_RTTI_MEMBER_CONTAINER_FULL(name, field, id, RTTIFieldInfo::DEFAULT)
+
+/** Same as B3D_RTTI_MEMBER_ITERATOR, but allows you to specify an info structure that further describes the field. */
+#define B3D_RTTI_MEMBER_CONTAINER_INFO(name, id, info) B3D_RTTI_MEMBER_CONTAINER_FULL(name, name, id, info)
 
 /** Ends definitions for member fields with a RTTI type. Must follow B3D_RTTI_BEGIN_MEMBERS. */
 #define B3D_RTTI_END_MEMBERS                                  \
@@ -727,8 +751,8 @@ namespace bs
 		typedef Type OwnerType;
 		typedef MyRTTIType MyType;
 
-		template<typename DataType>
-		using UPtrRTTIIterator = UPtr<TRTTIIterator<DataType>, DefaultAllocatorTag, TRTTIIteratorDeleter<DataType>>;
+		template<typename DataType, bool IsContainer>
+		using UPtrRTTIIterator = UPtr<TRTTIIterator<DataType, IsContainer>, DefaultAllocatorTag, TRTTIIteratorDeleter<DataType, IsContainer>>;
 
 		/** Registers a field referencing a plain type. */
 		template <class InterfaceType, class ObjectType, class DataType>
@@ -809,26 +833,46 @@ namespace bs
 			AddNewField(newField);
 		}
 
-		/** Registers a field referencing an iterable container (such as an array or a map). */
+		/**
+		 * Registers a field containing a type derived from IReflectable, shared pointer to IReflectable, or a type implementing
+		 * RTTIPlainType<T> specialization. Containers (vectors, map) containing plain types are also supported, but if the container
+		 * contains IReflectable types, then use AddContainerField.
+		 */
 		template <class InterfaceType, class ObjectType, class DataType>
-		void AddIteratorField(const String& name, u32 uniqueId,
-			UPtr<TRTTIIterator<DataType>, DefaultAllocatorTag, TRTTIIteratorDeleter<DataType>> (InterfaceType::*getIteratorCallback)(ObjectType&, FrameAllocator&),
-			const typename DataType::value_type& (InterfaceType::*getValueCallback)(ObjectType&, FrameAllocator&, TRTTIIterator<DataType>&),
-			void (InterfaceType::*setValueCallback)(ObjectType&, FrameAllocator&, TRTTIIterator<DataType>&, const typename DataType::value_type&),
+		void AddField(const String& name, u32 uniqueId,
+			UPtr<TRTTIIterator<DataType, false>, DefaultAllocatorTag, TRTTIIteratorDeleter<DataType, false>> (InterfaceType::*getIteratorCallback)(ObjectType&, FrameAllocator&),
+			const DataType& (InterfaceType::*getValueCallback)(ObjectType&, FrameAllocator&, TRTTIIterator<DataType, false>&),
+			void (InterfaceType::*setValueCallback)(ObjectType&, FrameAllocator&, TRTTIIterator<DataType, false>&, const DataType&),
 			const RTTIFieldInfo& info = RTTIFieldInfo::DEFAULT)
 		{
-			auto field = B3DNew<TRTTIIteratorField<InterfaceType, DataType, typename DataType::value_type, ObjectType>>(name, uniqueId, getIteratorCallback, getValueCallback, setValueCallback, info);
+			auto field = B3DNew<TRTTIIteratorField<InterfaceType, DataType, false, ObjectType>>(name, uniqueId, getIteratorCallback, getValueCallback, setValueCallback, info);
+			AddNewField(field);
+		}
+
+		/**
+		 * Registers a field referencing an iterable container (such as an array or a map). Unlike AddField(), this overload will allow
+		 * enumeration of child IReflectable entries within the container.
+		 */
+		template <class InterfaceType, class ObjectType, class DataType>
+		void AddField(const String& name, u32 uniqueId,
+			UPtr<TRTTIIterator<DataType, true>, DefaultAllocatorTag, TRTTIIteratorDeleter<DataType, true>> (InterfaceType::*getIteratorCallback)(ObjectType&, FrameAllocator&),
+			const typename DataType::value_type& (InterfaceType::*getValueCallback)(ObjectType&, FrameAllocator&, TRTTIIterator<DataType, true>&),
+			void (InterfaceType::*setValueCallback)(ObjectType&, FrameAllocator&, TRTTIIterator<DataType, true>&, const typename DataType::value_type&),
+			const RTTIFieldInfo& info = RTTIFieldInfo::DEFAULT)
+		{
+			auto field = B3DNew<TRTTIIteratorField<InterfaceType, DataType, true, ObjectType>>(name, uniqueId, getIteratorCallback, getValueCallback, setValueCallback, info);
 			AddNewField(field);
 		}
 
 		/**
 		 * Helper function to create a RTTI iterator that may be used for reading or writing to the provided data type. Iterator will be allocated
-		 * using the provided frame allocator. Caller must ensure that allocator lives longer than the iterator.
+		 * using the provided frame allocator. Caller must ensure that allocator lives longer than the iterator. If @p IsContainer if false, you
+		 * may provide a non-container type in @p value, in which case the iterator will act as faux single-value iterator.
 		 */
-		template<class DataType>
-		static UPtrRTTIIterator<DataType> CreateRTTIIterator(FrameAllocator& allocator, DataType& container)
+		template<class DataType, bool IsContainer>
+		static UPtrRTTIIterator<DataType, IsContainer> CreateRTTIIterator(FrameAllocator& allocator, DataType& value)
 		{
-			return UPtrRTTIIterator<DataType>(allocator.Construct<TRTTIIterator<DataType>>(container), TRTTIIteratorDeleter<DataType>(&allocator));
+			return UPtrRTTIIterator<DataType, IsContainer>(allocator.Construct<TRTTIIterator<DataType, IsContainer>>(value), TRTTIIteratorDeleter<DataType, IsContainer>(&allocator));
 		}
 	};
 

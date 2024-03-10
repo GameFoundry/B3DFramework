@@ -121,17 +121,20 @@ namespace bs
 	 * RTTI field type that supports iteration over arbitrary containers, including maps. Unlike older field types, this field type internally handles plain, reflectable and reflectable pointer types,
 	 * rather than requiring a separate field type for each.
 	 *
-	 * @tparam RTTIType			RTTIType of the object that contains the field we're accessing.
-	 * @tparam ContainerType	Type of the container being iterated over. If using a faux iterator that is only accessing a single non-container field, this will be the same as @p ElementType.
-	 * @tparam ElementType		Type of the element within the container.
-	 * @tparam ObjectType		Type of the object that the field is a member of.
+	 * @tparam RTTIType				RTTIType of the object that contains the field we're accessing.
+	 * @tparam DataType				Type of the container being iterated over. 
+	 * @tparam IsDataTypeContainer	Set to true DataType is a container (e.g. vector, map) and you wish to iterate over it as such. If false, the iterator will act as faux iterator over a single element.
+	 * @tparam ObjectType			Type of the object that the field is a member of.
 	 */
-	template <class RTTIType, class ContainerType, class ElementType, class ObjectType>
-	struct TRTTIIteratorField : public RTTIIteratorField // TODO - This type should be re-used for non-container types as well (treat the iterator as a single entry array)
+	template <class RTTIType, class DataType, bool IsDataTypeContainer, class ObjectType>
+	struct TRTTIIteratorField : public RTTIIteratorField
 	{
-		typedef UPtr<TRTTIIterator<ContainerType>, DefaultAllocatorTag, TRTTIIteratorDeleter<ContainerType>> (RTTIType::*GetIteratorDelegate)(ObjectType&, FrameAllocator&);
-		typedef const ElementType& (RTTIType::*GetValueDelegate)(ObjectType&, FrameAllocator&, TRTTIIterator<ContainerType>&);
-		typedef void (RTTIType::*SetValueDelegate)(ObjectType&, FrameAllocator&, TRTTIIterator<ContainerType>&, const ElementType&);
+		using IteratorType = TRTTIIterator<DataType, IsDataTypeContainer>;
+		using ElementType = typename IteratorType::ElementType;
+
+		typedef UPtr<IteratorType, DefaultAllocatorTag, TRTTIIteratorDeleter<DataType, IsDataTypeContainer>> (RTTIType::*GetIteratorDelegate)(ObjectType&, FrameAllocator&);
+		typedef const ElementType& (RTTIType::*GetValueDelegate)(ObjectType&, FrameAllocator&, IteratorType&);
+		typedef void (RTTIType::*SetValueDelegate)(ObjectType&, FrameAllocator&, IteratorType&, const ElementType&);
 
 		TRTTIIteratorField(String name, u16 uniqueId, GetIteratorDelegate getIteratorCallback, GetValueDelegate getValueCallback, SetValueDelegate setValueCallback, const RTTIFieldInfo& fieldInfo)
 		{
@@ -173,7 +176,7 @@ namespace bs
 		{
 			RTTIType* const exactRttiType = static_cast<RTTIType*>(rttiType);
 			ObjectType* const exactObject = static_cast<ObjectType*>(object);
-			TRTTIIterator<ContainerType>& exactIterator = static_cast<TRTTIIterator<ContainerType>&>(iterator);
+			IteratorType& exactIterator = static_cast<IteratorType&>(iterator);
 
 			return &(exactRttiType->*mGetValueCallback)(*exactObject, frameAllocator, exactIterator);
 		}
@@ -182,7 +185,7 @@ namespace bs
 		{
 			RTTIType* const exactRttiType = static_cast<RTTIType*>(rttiType);
 			ObjectType* const exactObject = static_cast<ObjectType*>(object);
-			TRTTIIterator<ContainerType>& exactIterator = static_cast<TRTTIIterator<ContainerType>&>(iterator);
+			IteratorType& exactIterator = static_cast<IteratorType&>(iterator);
 
 			ElementType& exactValue = *static_cast<ElementType*>(value);
 			(exactRttiType->*mSetValueCallback)(*exactObject, frameAllocator, exactIterator, exactValue);
