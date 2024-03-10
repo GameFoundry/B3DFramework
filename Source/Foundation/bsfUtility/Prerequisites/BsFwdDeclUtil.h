@@ -193,7 +193,7 @@ namespace bs
 	struct RTTIField;
 	struct RTTIReflectablePtrFieldBase;
 	struct SerializedObject;
-	struct SerializedInstance;
+	struct ISerialized;
 	class FrameAllocator;
 	class LogEntry;
 	// Reflection
@@ -222,11 +222,11 @@ namespace bs
 		TID_Pair = 56,
 		TID_Set = 57,
 		TID_StringID = 58,
-		TID_SerializedInstance = 59,
-		TID_SerializedField = 60,
+		TID_ISerialized = 59,
+		TID_SerializedPlainData = 60,
 		TID_SerializedObject = 61,
 		TID_SerializedArray = 62,
-		TID_SerializedEntry = 63,
+		TID_SerializedField = 63,
 		TID_SerializedArrayEntry = 64,
 		TID_SerializedSubObject = 65,
 		TID_UnorderedSet = 66,
@@ -247,5 +247,6 @@ namespace bs
 		TID_TArray = 81,
 		TID_Bitfield = 82,
 		TID_RTTIFieldTypeSchema = 83,
+		TID_SerializedTuple = 84,
 	};
 } // namespace bs

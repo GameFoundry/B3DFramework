@@ -554,6 +554,8 @@ namespace bs
 		Type& back() { return Back(); } // NOLINT
 		const Type& back() const { return Back(); } // NOLINT
 
+		Iterator insert(ConstIterator it, const Type& element) { return Insert(it, element); } // NOLINT
+
 		Iterator erase(ConstIterator iter) { return Erase(iter); } // NOLINT
 		Iterator erase(ConstIterator start, ConstIterator end) { return Erase(start, end); } // NOLINT
 

@@ -74,7 +74,7 @@ bool BinaryCompare::Compare(IReflectable& a, IReflectable& b)
 		rttiInstanceA->OnSerializationStarted(&a, mContext);
 		rttiInstanceB->OnSerializationStarted(&b, mContext);
 
-		const u32 numFields = rtti->GetNumFields();
+		const u32 numFields = rtti->GetFieldCount();
 		for(u32 i = 0; i < numFields; i++)
 		{
 			RTTIField* curGenericField = rtti->GetField(i);

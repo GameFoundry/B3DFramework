@@ -526,7 +526,7 @@ namespace bs
 		}
 
 		/** Returns the total number of fields in this RTTI type. */
-		u32 GetNumFields() const { return (u32)mFields.size(); }
+		u32 GetFieldCount() const { return (u32)mFields.size(); }
 
 		/** Returns a field based on the field index. Use getNumFields() to get total number of fields available. */
 		RTTIField* GetField(u32 idx) { return mFields.at(idx); }

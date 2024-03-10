@@ -61,7 +61,7 @@ void BinaryCloner::GatherReferences(IReflectable* object, FrameAllocator& alloc,
 		rttiInstance->OnSerializationStarted(object, nullptr);
 		SubObjectReferenceData* subObjectData = nullptr;
 
-		u32 numFields = rtti->GetNumFields();
+		u32 numFields = rtti->GetFieldCount();
 		for(u32 i = 0; i < numFields; i++)
 		{
 			RTTIField* field = rtti->GetField(i);

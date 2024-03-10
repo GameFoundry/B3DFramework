@@ -6,10 +6,10 @@
 
 using namespace bs;
 
-SPtr<SerializedObject> SerializedObject::Create(IReflectable& obj, SerializedObjectEncodeFlags flags, SerializationContext* context)
+SPtr<SerializedObject> SerializedObject::Create(IReflectable& object, SerializedObjectEncodeFlags flags, SerializationContext* context)
 {
 	IntermediateSerializer is;
-	return is.Encode(&obj, flags, context);
+	return is.Encode(&object, flags, context);
 }
 
 SPtr<IReflectable> SerializedObject::Decode(SerializationContext* context) const
@@ -18,7 +18,7 @@ SPtr<IReflectable> SerializedObject::Decode(SerializationContext* context) const
 	return is.Decode(this, context);
 }
 
-SPtr<SerializedInstance> SerializedObject::Clone(bool cloneData)
+SPtr<ISerialized> SerializedObject::Clone(bool cloneData)
 {
 	SPtr<SerializedObject> copy = B3DMakeShared<SerializedObject>();
 	copy->SubObjects = Vector<SerializedSubObject>(SubObjects.size());
@@ -28,14 +28,14 @@ SPtr<SerializedInstance> SerializedObject::Clone(bool cloneData)
 	{
 		copy->SubObjects[i].TypeId = subObject.TypeId;
 
-		for(auto& entryPair : subObject.Entries)
+		for(auto& entryPair : subObject.FieldEntries)
 		{
-			SerializedEntry entry = entryPair.second;
+			SerializedField entry = entryPair.second;
 
-			if(entry.Serialized != nullptr)
-				entry.Serialized = entry.Serialized->Clone(cloneData);
+			if(entry.Value != nullptr)
+				entry.Value = entry.Value->Clone(cloneData);
 
-			copy->SubObjects[i].Entries[entryPair.first] = entry;
+			copy->SubObjects[i].FieldEntries[entryPair.first] = entry;
 		}
 
 		i++;
@@ -44,9 +44,24 @@ SPtr<SerializedInstance> SerializedObject::Clone(bool cloneData)
 	return copy;
 }
 
-SPtr<SerializedInstance> SerializedField::Clone(bool cloneData)
+SPtr<ISerialized> SerializedTuple::Clone(bool cloneData)
 {
-	SPtr<SerializedField> copy = B3DMakeShared<SerializedField>();
+	SPtr<SerializedTuple> copy = B3DMakeShared<SerializedTuple>();
+
+	for(const auto& entry : Values)
+	{
+		if(entry != nullptr)
+			copy->Values.Add(entry->Clone(cloneData));
+		else
+			copy->Values.Add(nullptr);
+	}
+
+	return copy;
+}
+
+SPtr<ISerialized> SerializedPlainData::Clone(bool cloneData)
+{
+	SPtr<SerializedPlainData> copy = B3DMakeShared<SerializedPlainData>();
 	copy->Size = Size;
 
 	if(cloneData)
@@ -64,7 +79,7 @@ SPtr<SerializedInstance> SerializedField::Clone(bool cloneData)
 	return copy;
 }
 
-SPtr<SerializedInstance> SerializedDataBlock::Clone(bool cloneData)
+SPtr<ISerialized> SerializedDataBlock::Clone(bool cloneData)
 {
 	SPtr<SerializedDataBlock> copy = B3DMakeShared<SerializedDataBlock>();
 	copy->Size = Size;
@@ -91,30 +106,32 @@ SPtr<SerializedInstance> SerializedDataBlock::Clone(bool cloneData)
 	return copy;
 }
 
-SPtr<SerializedInstance> SerializedArray::Clone(bool cloneData)
+SPtr<ISerialized> SerializedArray::Clone(bool cloneData)
 {
 	SPtr<SerializedArray> copy = B3DMakeShared<SerializedArray>();
 	copy->ElementCount = ElementCount;
 
 	for(auto& entryPair : Entries)
 	{
-		SerializedArrayEntry entry = entryPair.second;
-		entry.Serialized = entry.Serialized->Clone(cloneData);
+		SerializedArrayEntry arrayEntry = entryPair.second;
 
-		copy->Entries[entryPair.first] = entry;
+		if(arrayEntry.Value != nullptr)
+			arrayEntry.Value = arrayEntry.Value->Clone(cloneData);
+
+		copy->Entries[entryPair.first] = arrayEntry;
 	}
 
 	return copy;
 }
 
-RTTITypeBase* SerializedInstance::GetRttiStatic()
+RTTITypeBase* ISerialized::GetRttiStatic()
 {
-	return SerializedInstanceRTTI::Instance();
+	return ISerializedRTTI::Instance();
 }
 
-RTTITypeBase* SerializedInstance::GetRtti() const
+RTTITypeBase* ISerialized::GetRtti() const
 {
-	return SerializedInstance::GetRttiStatic();
+	return ISerialized::GetRttiStatic();
 }
 
 RTTITypeBase* SerializedDataBlock::GetRttiStatic()
@@ -127,14 +144,14 @@ RTTITypeBase* SerializedDataBlock::GetRtti() const
 	return SerializedDataBlock::GetRttiStatic();
 }
 
-RTTITypeBase* SerializedField::GetRttiStatic()
+RTTITypeBase* SerializedPlainData::GetRttiStatic()
 {
-	return SerializedFieldRTTI::Instance();
+	return SerializedPlainDataRTTI::Instance();
 }
 
-RTTITypeBase* SerializedField::GetRtti() const
+RTTITypeBase* SerializedPlainData::GetRtti() const
 {
-	return SerializedField::GetRttiStatic();
+	return SerializedPlainData::GetRttiStatic();
 }
 
 u32 SerializedObject::GetRootTypeId() const
@@ -175,14 +192,24 @@ RTTITypeBase* SerializedSubObject::GetRtti() const
 	return SerializedSubObject::GetRttiStatic();
 }
 
-RTTITypeBase* SerializedEntry::GetRttiStatic()
+RTTITypeBase* SerializedField::GetRttiStatic()
 {
-	return SerializedEntryRTTI::Instance();
+	return SerializedFieldRTTI::Instance();
 }
 
-RTTITypeBase* SerializedEntry::GetRtti() const
+RTTITypeBase* SerializedField::GetRtti() const
 {
-	return SerializedEntry::GetRttiStatic();
+	return SerializedField::GetRttiStatic();
+}
+
+RTTITypeBase* SerializedTuple::GetRttiStatic()
+{
+	return SerializedTupleRTTI::Instance();
+}
+
+RTTITypeBase* SerializedTuple::GetRtti() const
+{
+	return GetRttiStatic();
 }
 
 RTTITypeBase* SerializedArrayEntry::GetRttiStatic()

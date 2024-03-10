@@ -15,18 +15,18 @@ namespace bs
 	 *  @{
 	 */
 
-	class B3D_UTILITY_EXPORT SerializedInstanceRTTI : public RTTIType<SerializedInstance, IReflectable, SerializedInstanceRTTI>
+	class B3D_UTILITY_EXPORT ISerializedRTTI : public RTTIType<ISerialized, IReflectable, ISerializedRTTI>
 	{
 	public:
 		const String& GetRttiName()
 		{
-			static String name = "SerializedInstance";
+			static String name = "ISerialized";
 			return name;
 		}
 
 		u32 GetRttiId() const override
 		{
-			return TID_SerializedInstance;
+			return TID_ISerialized;
 		}
 
 		SPtr<IReflectable> NewRttiObject()
@@ -35,17 +35,17 @@ namespace bs
 		}
 	};
 
-	class B3D_UTILITY_EXPORT SerializedFieldRTTI : public RTTIType<SerializedField, SerializedInstance, SerializedFieldRTTI>
+	class B3D_UTILITY_EXPORT SerializedPlainDataRTTI : public RTTIType<SerializedPlainData, ISerialized, SerializedPlainDataRTTI>
 	{
 	private:
-		SPtr<DataStream> GetData(SerializedField* obj, u32& size)
+		SPtr<DataStream> GetData(SerializedPlainData* obj, u32& size)
 		{
 			size = obj->Size;
 
 			return B3DMakeShared<MemoryDataStream>(obj->Value, obj->Size);
 		}
 
-		void SetData(SerializedField* obj, const SPtr<DataStream>& value, u32 size)
+		void SetData(SerializedPlainData* obj, const SPtr<DataStream>& value, u32 size)
 		{
 			obj->Value = (u8*)B3DAllocate(size);
 			obj->Size = size;
@@ -55,29 +55,29 @@ namespace bs
 		}
 
 	public:
-		SerializedFieldRTTI()
+		SerializedPlainDataRTTI()
 		{
-			AddDataBlockField("data", 0, &SerializedFieldRTTI::GetData, &SerializedFieldRTTI::SetData);
+			AddDataBlockField("data", 0, &SerializedPlainDataRTTI::GetData, &SerializedPlainDataRTTI::SetData);
 		}
 
 		const String& GetRttiName()
 		{
-			static String name = "SerializedField";
+			static String name = "SerializedPlainData";
 			return name;
 		}
 
 		u32 GetRttiId() const override
 		{
-			return TID_SerializedField;
+			return TID_SerializedPlainData;
 		}
 
 		SPtr<IReflectable> NewRttiObject()
 		{
-			return B3DMakeShared<SerializedField>();
+			return B3DMakeShared<SerializedPlainData>();
 		}
 	};
 
-	class B3D_UTILITY_EXPORT SerializedDataBlockRTTI : public RTTIType<SerializedDataBlock, SerializedInstance, SerializedDataBlockRTTI>
+	class B3D_UTILITY_EXPORT SerializedDataBlockRTTI : public RTTIType<SerializedDataBlock, ISerialized, SerializedDataBlockRTTI>
 	{
 	private:
 		SPtr<DataStream> GetData(SerializedDataBlock* obj, u32& size)
@@ -121,35 +121,14 @@ namespace bs
 		}
 	};
 
-	class B3D_UTILITY_EXPORT SerializedObjectRTTI : public RTTIType<SerializedObject, SerializedInstance, SerializedObjectRTTI>
+	class B3D_UTILITY_EXPORT SerializedObjectRTTI : public RTTIType<SerializedObject, ISerialized, SerializedObjectRTTI>
 	{
 	private:
-		SerializedSubObject& GetEntry(SerializedObject* obj, u32 arrayIdx)
-		{
-			return obj->SubObjects[arrayIdx];
-		}
-
-		void SetEntry(SerializedObject* obj, u32 arrayIdx, SerializedSubObject& val)
-		{
-			obj->SubObjects[arrayIdx] = val;
-		}
-
-		u32 GetNumEntries(SerializedObject* obj)
-		{
-			return (u32)obj->SubObjects.size();
-		}
-
-		void SetNumEntries(SerializedObject* obj, u32 numEntries)
-		{
-			obj->SubObjects = Vector<SerializedSubObject>(numEntries);
-		}
+		B3D_RTTI_BEGIN_MEMBERS
+			B3D_RTTI_MEMBER_ITERATOR(SubObjects, 0)
+		B3D_RTTI_END_MEMBERS
 
 	public:
-		SerializedObjectRTTI()
-		{
-			AddReflectableArrayField("entries", 1, &SerializedObjectRTTI::GetEntry, &SerializedObjectRTTI::GetNumEntries, &SerializedObjectRTTI::SetEntry, &SerializedObjectRTTI::SetNumEntries);
-		}
-
 		const String& GetRttiName() override
 		{
 			static String name = "SerializedObject";
@@ -167,54 +146,15 @@ namespace bs
 		}
 	};
 
-	class B3D_UTILITY_EXPORT SerializedArrayRTTI : public RTTIType<SerializedArray, SerializedInstance, SerializedArrayRTTI>
+	class B3D_UTILITY_EXPORT SerializedArrayRTTI : public RTTIType<SerializedArray, ISerialized, SerializedArrayRTTI>
 	{
 	private:
-		u32& GetNumElements(SerializedArray* obj)
-		{
-			return obj->ElementCount;
-		}
-
-		void SetNumElements(SerializedArray* obj, u32& val)
-		{
-			obj->ElementCount = val;
-		}
-
-		SerializedArrayEntry& GetEntry(SerializedArray* obj, u32 arrayIdx)
-		{
-			return mSequentialEntries[arrayIdx];
-		}
-
-		void SetEntry(SerializedArray* obj, u32 arrayIdx, SerializedArrayEntry& val)
-		{
-			obj->Entries[val.Index] = val;
-		}
-
-		u32 GetNumEntries(SerializedArray* obj)
-		{
-			return (u32)mSequentialEntries.size();
-		}
-
-		void SetNumEntries(SerializedArray* obj, u32 numEntries)
-		{
-			obj->Entries = UnorderedMap<u32, SerializedArrayEntry>();
-		}
+		B3D_RTTI_BEGIN_MEMBERS
+			B3D_RTTI_MEMBER_PLAIN(ElementCount, 0)
+			B3D_RTTI_MEMBER_ITERATOR(Entries, 1)
+		B3D_RTTI_END_MEMBERS
 
 	public:
-		SerializedArrayRTTI()
-		{
-			AddPlainField("numElements", 0, &SerializedArrayRTTI::GetNumElements, &SerializedArrayRTTI::SetNumElements);
-			AddReflectableArrayField("entries", 1, &SerializedArrayRTTI::GetEntry, &SerializedArrayRTTI::GetNumEntries, &SerializedArrayRTTI::SetEntry, &SerializedArrayRTTI::SetNumEntries);
-		}
-
-		void OnSerializationStarted(IReflectable* obj, SerializationContext* context) override
-		{
-			SerializedArray* serializedArray = static_cast<SerializedArray*>(obj);
-
-			for(auto& entry : serializedArray->Entries)
-				mSequentialEntries.push_back(entry.second);
-		}
-
 		const String& GetRttiName() override
 		{
 			static String name = "SerializedArray";
@@ -230,59 +170,17 @@ namespace bs
 		{
 			return B3DMakeShared<SerializedArray>();
 		}
-
-	private:
-		Vector<SerializedArrayEntry> mSequentialEntries;
 	};
 
 	class B3D_UTILITY_EXPORT SerializedSubObjectRTTI : public RTTIType<SerializedSubObject, IReflectable, SerializedSubObjectRTTI>
 	{
 	private:
-		u32& GetTypeId(SerializedSubObject* obj)
-		{
-			return obj->TypeId;
-		}
-
-		void SetTypeId(SerializedSubObject* obj, u32& val)
-		{
-			obj->TypeId = val;
-		}
-
-		SerializedEntry& GetEntry(SerializedSubObject* obj, u32 arrayIdx)
-		{
-			return mSequentialEntries[arrayIdx];
-		}
-
-		void SetEntry(SerializedSubObject* obj, u32 arrayIdx, SerializedEntry& val)
-		{
-			obj->Entries[val.FieldId] = val;
-		}
-
-		u32 GetNumEntries(SerializedSubObject* obj)
-		{
-			return (u32)mSequentialEntries.size();
-		}
-
-		void SetNumEntries(SerializedSubObject* obj, u32 numEntries)
-		{
-			obj->Entries = UnorderedMap<u32, SerializedEntry>();
-		}
+		B3D_RTTI_BEGIN_MEMBERS
+			B3D_RTTI_MEMBER_PLAIN(TypeId, 0)
+			B3D_RTTI_MEMBER_ITERATOR(FieldEntries, 1)
+		B3D_RTTI_END_MEMBERS
 
 	public:
-		SerializedSubObjectRTTI()
-		{
-			AddPlainField("typeId", 0, &SerializedSubObjectRTTI::GetTypeId, &SerializedSubObjectRTTI::SetTypeId);
-			AddReflectableArrayField("entries", 1, &SerializedSubObjectRTTI::GetEntry, &SerializedSubObjectRTTI::GetNumEntries, &SerializedSubObjectRTTI::SetEntry, &SerializedSubObjectRTTI::SetNumEntries);
-		}
-
-		void OnSerializationStarted(IReflectable* obj, SerializationContext* context) override
-		{
-			SerializedSubObject* serializableObject = static_cast<SerializedSubObject*>(obj);
-
-			for(auto& entry : serializableObject->Entries)
-				mSequentialEntries.push_back(entry.second);
-		}
-
 		const String& GetRttiName() override
 		{
 			static String name = "SerializedSubObject";
@@ -298,88 +196,68 @@ namespace bs
 		{
 			return B3DMakeShared<SerializedSubObject>();
 		}
-
-	private:
-		Vector<SerializedEntry> mSequentialEntries;
 	};
 
-	class B3D_UTILITY_EXPORT SerializedEntryRTTI : public RTTIType<SerializedEntry, IReflectable, SerializedEntryRTTI>
+	class B3D_UTILITY_EXPORT SerializedTupleRTTI : public RTTIType<SerializedTuple, ISerialized, SerializedTupleRTTI>
 	{
 	private:
-		u32& GetFieldId(SerializedEntry* obj)
-		{
-			return obj->FieldId;
-		}
-
-		void SetFieldId(SerializedEntry* obj, u32& val)
-		{
-			obj->FieldId = val;
-		}
-
-		SPtr<SerializedInstance> GetSerialized(SerializedEntry* obj)
-		{
-			return obj->Serialized;
-		}
-
-		void SetSerialized(SerializedEntry* obj, SPtr<SerializedInstance> val)
-		{
-			obj->Serialized = val;
-		}
+		B3D_RTTI_BEGIN_MEMBERS
+			B3D_RTTI_MEMBER_ITERATOR(Values, 0)
+		B3D_RTTI_END_MEMBERS
 
 	public:
-		SerializedEntryRTTI()
-		{
-			AddPlainField("fieldId", 0, &SerializedEntryRTTI::GetFieldId, &SerializedEntryRTTI::SetFieldId);
-			AddReflectablePtrField("serialized", 1, &SerializedEntryRTTI::GetSerialized, &SerializedEntryRTTI::SetSerialized);
-		}
-
 		const String& GetRttiName() override
 		{
-			static String name = "SerializedEntry";
+			static String name = "SerializedTuple";
 			return name;
 		}
 
 		u32 GetRttiId() const override
 		{
-			return TID_SerializedEntry;
+			return TID_SerializedTuple;
 		}
 
 		SPtr<IReflectable> NewRttiObject() override
 		{
-			return B3DMakeShared<SerializedEntry>();
+			return B3DMakeShared<SerializedTuple>();
+		}
+	};
+
+	class B3D_UTILITY_EXPORT SerializedFieldRTTI : public RTTIType<SerializedField, IReflectable, SerializedFieldRTTI>
+	{
+	private:
+		B3D_RTTI_BEGIN_MEMBERS
+			B3D_RTTI_MEMBER_PLAIN(FieldId, 0)
+			B3D_RTTI_MEMBER_REFLPTR(Value, 1)
+		B3D_RTTI_END_MEMBERS
+
+	public:
+		const String& GetRttiName() override
+		{
+			static String name = "SerializedField";
+			return name;
+		}
+
+		u32 GetRttiId() const override
+		{
+			return TID_SerializedField;
+		}
+
+		SPtr<IReflectable> NewRttiObject() override
+		{
+			return B3DMakeShared<SerializedField>();
 		}
 	};
 
 	class B3D_UTILITY_EXPORT SerializedArrayEntryRTTI : public RTTIType<SerializedArrayEntry, IReflectable, SerializedArrayEntryRTTI>
 	{
 	private:
-		u32& GetArrayIdx(SerializedArrayEntry* obj)
-		{
-			return obj->Index;
-		}
-
-		void SetArrayIdx(SerializedArrayEntry* obj, u32& val)
-		{
-			obj->Index = val;
-		}
-
-		SPtr<SerializedInstance> GetSerialized(SerializedArrayEntry* obj)
-		{
-			return obj->Serialized;
-		}
-
-		void SetSerialized(SerializedArrayEntry* obj, SPtr<SerializedInstance> val)
-		{
-			obj->Serialized = val;
-		}
+		B3D_RTTI_BEGIN_MEMBERS
+			B3D_RTTI_MEMBER_PLAIN(Index, 0)
+			B3D_RTTI_MEMBER_REFLPTR(Value, 1)
+		B3D_RTTI_END_MEMBERS
 
 	public:
-		SerializedArrayEntryRTTI()
-		{
-			AddPlainField("index", 0, &SerializedArrayEntryRTTI::GetArrayIdx, &SerializedArrayEntryRTTI::SetArrayIdx);
-			AddReflectablePtrField("serialized", 1, &SerializedArrayEntryRTTI::GetSerialized, &SerializedArrayEntryRTTI::SetSerialized);
-		}
-
 		const String& GetRttiName() override
 		{
 			static String name = "SerializedArrayEntry";

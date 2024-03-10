@@ -14,9 +14,9 @@ namespace bs
 	 */
 
 	/** Base class for all data types used in intermediate IReflectable object representation. */
-	struct B3D_UTILITY_EXPORT SerializedInstance : IReflectable
+	struct B3D_UTILITY_EXPORT ISerialized : IReflectable
 	{
-		virtual ~SerializedInstance() = default;
+		virtual ~ISerialized() = default;
 
 		/**
 		 * Performs a deep clone of this object any any potential child objects.
@@ -26,30 +26,48 @@ namespace bs
 		 *							same instances of data. The original will retain data ownership and it will go out of
 		 *							scope when the original does.
 		 */
-		virtual SPtr<SerializedInstance> Clone(bool cloneData = true) = 0;
+		virtual SPtr<ISerialized> Clone(bool cloneData = true) = 0;
 
 		/************************************************************************/
 		/* 								RTTI		                     		*/
 		/************************************************************************/
 	public:
-		friend class SerializedInstanceRTTI;
+		friend class ISerializedRTTI;
+		static RTTITypeBase* GetRttiStatic();
+		RTTITypeBase* GetRtti() const override;
+	};
+
+	/** Contains data for fields or container entries that are made up of more than one type (e.g. std::pair<K, V>). */
+	struct B3D_UTILITY_EXPORT SerializedTuple : ISerialized
+	{
+		SerializedTuple() = default;
+
+		SPtr<ISerialized> Clone(bool cloneData = true) override;
+
+		TInlineArray<SPtr<ISerialized>, 2> Values; /**< One value per type. */
+
+		/************************************************************************/
+		/* 								RTTI		                     		*/
+		/************************************************************************/
+	public:
+		friend class SerializedTupleRTTI;
 		static RTTITypeBase* GetRttiStatic();
 		RTTITypeBase* GetRtti() const override;
 	};
 
 	/** Contains data for a single field in a serialized object. */
-	struct B3D_UTILITY_EXPORT SerializedEntry : IReflectable
+	struct B3D_UTILITY_EXPORT SerializedField : IReflectable
 	{
-		SerializedEntry() = default;
+		SerializedField() = default;
 
 		u32 FieldId = 0;
-		SPtr<SerializedInstance> Serialized;
+		SPtr<ISerialized> Value;
 
 		/************************************************************************/
 		/* 								RTTI		                     		*/
 		/************************************************************************/
 	public:
-		friend class SerializedEntryRTTI;
+		friend class SerializedFieldRTTI;
 		static RTTITypeBase* GetRttiStatic();
 		RTTITypeBase* GetRtti() const override;
 	};
@@ -60,7 +78,7 @@ namespace bs
 		SerializedSubObject() = default;
 
 		u32 TypeId = 0;
-		UnorderedMap<u32, SerializedEntry> Entries;
+		UnorderedMap<u32, SerializedField> FieldEntries;
 
 		/************************************************************************/
 		/* 								RTTI		                     		*/
@@ -89,12 +107,12 @@ namespace bs
 	 * memory but complex objects, their references and fields are available as their own serialized objects and can be
 	 * iterated over, viewed, compared or modified. Serialized object can later be decoded back into a IReflectable object.
 	 */
-	struct B3D_UTILITY_EXPORT SerializedObject : SerializedInstance
+	struct B3D_UTILITY_EXPORT SerializedObject : ISerialized
 	{
 		/** Returns the RTTI type ID for the most-derived class of this object. */
 		u32 GetRootTypeId() const;
 
-		SPtr<SerializedInstance> Clone(bool cloneData = true) override;
+		SPtr<ISerialized> Clone(bool cloneData = true) override;
 
 		/**
 		 * Decodes the serialized object back into its original IReflectable object form.
@@ -109,7 +127,7 @@ namespace bs
 		/**
 		 * Serializes the provided object and returns its SerializedObject representation.
 		 *
-		 * @param[in]	obj			Object to serialize;
+		 * @param[in]	object		Object to serialize;
 		 * @param[in]	flags		Flags used for controlling the serialization process.
 		 * @param[in]	context		Optional object that will be passed along to all deserialized objects through
 		 *							their deserialization callbacks. Can be used for controlling deserialization,
@@ -117,7 +135,7 @@ namespace bs
 		 *							deserialization.
 		 * @return					Serialized version of @p obj.
 		 */
-		static SPtr<SerializedObject> Create(IReflectable& obj, SerializedObjectEncodeFlags flags = SerializedObjectEncodeFlags(), SerializationContext* context = nullptr);
+		static SPtr<SerializedObject> Create(IReflectable& object, SerializedObjectEncodeFlags flags = SerializedObjectEncodeFlags(), SerializationContext* context = nullptr);
 
 		Vector<SerializedSubObject> SubObjects;
 
@@ -131,17 +149,17 @@ namespace bs
 	};
 
 	/** Contains data for a serialized value of a specific field or array entry. */
-	struct B3D_UTILITY_EXPORT SerializedField : SerializedInstance
+	struct B3D_UTILITY_EXPORT SerializedPlainData : ISerialized
 	{
-		SerializedField() = default;
+		SerializedPlainData() = default;
 
-		~SerializedField()
+		~SerializedPlainData()
 		{
 			if(OwnsMemory && Value != nullptr)
 				B3DFree(Value);
 		}
 
-		SPtr<SerializedInstance> Clone(bool cloneData = true) override;
+		SPtr<ISerialized> Clone(bool cloneData = true) override;
 
 		u8* Value = nullptr;
 		u32 Size = 0;
@@ -151,17 +169,17 @@ namespace bs
 		/* 								RTTI		                     		*/
 		/************************************************************************/
 	public:
-		friend class SerializedFieldRTTI;
+		friend class SerializedPlainDataRTTI;
 		static RTTITypeBase* GetRttiStatic();
 		RTTITypeBase* GetRtti() const override;
 	};
 
 	/** Contains data for a serialized value of a data block field. */
-	struct B3D_UTILITY_EXPORT SerializedDataBlock : SerializedInstance
+	struct B3D_UTILITY_EXPORT SerializedDataBlock : ISerialized
 	{
 		SerializedDataBlock() = default;
 
-		SPtr<SerializedInstance> Clone(bool cloneData = true) override;
+		SPtr<ISerialized> Clone(bool cloneData = true) override;
 
 		SPtr<DataStream> Stream;
 		u32 Offset = 0;
@@ -182,7 +200,7 @@ namespace bs
 		SerializedArrayEntry() = default;
 
 		u32 Index = 0;
-		SPtr<SerializedInstance> Serialized;
+		SPtr<ISerialized> Value;
 
 		/************************************************************************/
 		/* 								RTTI		                     		*/
@@ -194,11 +212,11 @@ namespace bs
 	};
 
 	/** A serialized array containing a list of all its entries. */
-	struct B3D_UTILITY_EXPORT SerializedArray : SerializedInstance
+	struct B3D_UTILITY_EXPORT SerializedArray : ISerialized
 	{
 		SerializedArray() = default;
 
-		SPtr<SerializedInstance> Clone(bool cloneData = true) override;
+		SPtr<ISerialized> Clone(bool cloneData = true) override;
 
 		UnorderedMap<u32, SerializedArrayEntry> Entries;
 		u32 ElementCount = 0;

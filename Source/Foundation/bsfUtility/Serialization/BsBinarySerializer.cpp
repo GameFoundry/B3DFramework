@@ -1171,7 +1171,7 @@ bool BinarySerializationContext::SerializeReflectableObject(IReflectable* object
 				mStream.WriteBytes(objectMetaData);
 		}
 
-		const u32 numFields = rtti->GetNumFields();
+		const u32 numFields = rtti->GetFieldCount();
 		for(u32 i = 0; i < numFields; i++)
 		{
 			RTTIField* curGenericField = rtti->GetField(i);

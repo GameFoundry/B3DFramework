@@ -53,18 +53,18 @@ SPtr<SerializedObject> ManagedDiff::GenerateDiffInternal(IReflectable* orgObj, I
 	SerializedSubObject& subObject = output->SubObjects.back();
 	subObject.TypeId = ManagedSerializableObject::GetRttiStatic()->GetRttiId();
 
-	SerializedEntry entry;
+	SerializedField entry;
 	entry.FieldId = 0;
-	entry.Serialized = SerializedObject::Create(*diff);
+	entry.Value = SerializedObject::Create(*diff);
 
-	subObject.Entries[0] = entry;
+	subObject.FieldEntries[0] = entry;
 
 	return output;
 }
 
 void ManagedDiff::ApplyDiff(const SPtr<IReflectable>& object, const SPtr<SerializedObject>& serzDiff, FrameAllocator& alloc, DiffObjectMap& objectMap, FrameVector<DiffCommand>& diffCommands, SerializationContext* context)
 {
-	SPtr<SerializedObject> diffObj = std::static_pointer_cast<SerializedObject>(serzDiff->SubObjects[0].Entries[0].Serialized);
+	SPtr<SerializedObject> diffObj = std::static_pointer_cast<SerializedObject>(serzDiff->SubObjects[0].FieldEntries[0].Value);
 
 	SPtr<ManagedSerializableDiff> diff = std::static_pointer_cast<ManagedSerializableDiff>(diffObj->Decode(context));
 

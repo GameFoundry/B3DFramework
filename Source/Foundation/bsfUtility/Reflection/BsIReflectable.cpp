@@ -59,7 +59,7 @@ void IReflectable::CheckForCircularReferencesInternal()
 	{
 		RTTITypeBase* myType = entry.second;
 
-		u32 myNumFields = myType->GetNumFields();
+		u32 myNumFields = myType->GetFieldCount();
 		for(u32 i = 0; i < myNumFields; i++)
 		{
 			RTTIField* myField = myType->GetField(i);
@@ -70,7 +70,7 @@ void IReflectable::CheckForCircularReferencesInternal()
 			auto* myReflectablePtrField = static_cast<RTTIReflectablePtrFieldBase*>(myField);
 
 			RTTITypeBase* otherType = myReflectablePtrField->GetType();
-			u32 otherNumFields = otherType->GetNumFields();
+			u32 otherNumFields = otherType->GetFieldCount();
 			for(u32 j = 0; j < otherNumFields; j++)
 			{
 				RTTIField* otherField = otherType->GetField(j);

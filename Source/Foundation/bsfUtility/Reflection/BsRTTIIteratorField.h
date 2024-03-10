@@ -99,6 +99,16 @@ namespace bs
 		 * @return					Reflectable.
 		 */
 		virtual const IReflectable& GetReflectable(const void* fieldValue, u32 tupleElementIndex) = 0;
+
+		/**
+		 * Returns the size of the plain type in the provided field value. If the field value represents a tuple (i.e. contains multiple sub-types, such as std::pair<K, V>),
+		 * this returns the size of just a single tuple element, as specified by @p tupleElementIndex.
+		 *
+		 * @param	fieldValue			Field value to retrieve size from, as returned by GetIteratorValue().
+		 * @param	tupleElementIndex	Index of the tuple element in @p fieldValue to retrieve size for. If @p fieldValue doesn't represent a tuple, this should be 0.
+		 * @param	useCompression		If true, size will be compressed if possible.
+		 */
+		virtual BitLength GetPlainTypeSize(const void* fieldValue, u32 tupleElementIndex, bool useCompression) = 0;
 	};
 
 	template<typename T>
@@ -335,6 +345,25 @@ namespace bs
 			return *kNull;
 		}
 
+		BitLength GetPlainTypeSize(const void* fieldValue, u32 tupleElementIndex, bool useCompression) override
+		{
+			const ElementType& value = *static_cast<const ElementType*>(fieldValue);
+			if constexpr(B3DIsStdPair<ElementType>::value)
+			{
+				B3D_ENSURE(tupleElementIndex <= 1);
+
+				if(tupleElementIndex == 0)
+					return GetPlainTypeSize(value.first, useCompression);
+				else
+					return GetPlainTypeSize(value.second, useCompression);
+			}
+			else
+			{
+				B3D_ENSURE(tupleElementIndex == 0);
+				return GetPlainTypeSize(value, useCompression);
+			}
+		}
+
 	private:
 		/** Creates a schema for a type stored in the field. */
 		template<typename FieldType>
@@ -392,6 +421,16 @@ namespace bs
 		{
 			if constexpr(IsPlain<T>())
 				RTTIPlainType<T>::FromMemory(value, stream, Schema.Info, useCompression);
+		}
+
+		/** Returns the size of the provided plain object. */
+		template<typename T>
+		BitLength GetPlainTypeSize(const T& value, bool useCompression)
+		{
+			if constexpr(IsPlain<T>())
+				return RTTIPlainType<T>::GetSize(value, Schema.Info, useCompression);
+
+			return 0;
 		}
 
 		/** Checks is the provided type a value type deriving from IReflectable. */

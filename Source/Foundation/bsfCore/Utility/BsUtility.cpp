@@ -12,7 +12,7 @@ using namespace bs;
  */
 bool HasReflectableChildren(RTTITypeBase* type)
 {
-	u32 numFields = type->GetNumFields();
+	u32 numFields = type->GetFieldCount();
 	for(u32 i = 0; i < numFields; i++)
 	{
 		RTTIField* field = type->GetField(i);
@@ -23,7 +23,7 @@ bool HasReflectableChildren(RTTITypeBase* type)
 	const Vector<RTTITypeBase*>& derivedClasses = type->GetDerivedClasses();
 	for(auto& derivedClass : derivedClasses)
 	{
-		numFields = derivedClass->GetNumFields();
+		numFields = derivedClass->GetFieldCount();
 		for(u32 i = 0; i < numFields; i++)
 		{
 			RTTIField* field = derivedClass->GetField(i);
@@ -43,7 +43,7 @@ void FindResourceDependenciesInternal(IReflectable& obj, FrameAllocator& alloc, 
 		RTTITypeBase* rttiInstance = rtti->CloneInternal(alloc);
 		rttiInstance->OnSerializationStarted(&obj, nullptr);
 
-		const u32 numFields = rtti->GetNumFields();
+		const u32 numFields = rtti->GetFieldCount();
 		for(u32 i = 0; i < numFields; i++)
 		{
 			RTTIField* field = rtti->GetField(i);
