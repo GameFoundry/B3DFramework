@@ -79,7 +79,7 @@ namespace bs
 
 		u16 Id = 0;
 		bool IsArray = false;
-		bool IsIterator = false;
+		bool IsIterator = false; // DEPRECATED - Once we fully switch to iterator model, we can assume this based on type
 		bool HasDynamicSize = false; // DEPRECATED - Stored in FieldTypes now
 		BitLength Size = 0; // DEPRECATED - Stored in FieldTypes now
 		SerializableFieldType Type = SerializableFT_Plain; // DEPRECATED - Stored in FieldTypes now
