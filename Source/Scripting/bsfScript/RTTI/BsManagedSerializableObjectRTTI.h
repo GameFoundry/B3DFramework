@@ -8,7 +8,6 @@
 #include "Serialization/BsManagedSerializableObject.h"
 #include "Serialization/BsManagedSerializableField.h"
 #include "Serialization/BsManagedDiff.h"
-#include "Serialization/BsManagedCompare.h"
 
 namespace bs
 {
@@ -83,12 +82,6 @@ namespace bs
 		{
 			static ManagedDiff managedDiffHandler;
 			return managedDiffHandler;
-		}
-
-		ICompare& GetCompareHandler() const
-		{
-			static ManagedCompare managedCompareHandler;
-			return managedCompareHandler;
 		}
 
 		const String& GetRttiName()

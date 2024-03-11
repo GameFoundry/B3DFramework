@@ -68,16 +68,6 @@ namespace bs
 		/** Checks if the provided type id is unique. */
 		static bool IsTypeIdDuplicateInternal(u32 typeId);
 
-		/**
-		 * Iterates over all RTTI types and reports any circular references (for example one type having a field referencing
-		 * another type, and that type having a field referencing the first type). Circular references are problematic
-		 * because when serializing the system cannot determine in which order they should be resolved. In that case user
-		 * should use RTTI_Flag_WeakRef to mark one of the references as weak. This flags tells the system that the reference
-		 * may be resolved in an undefined order, but also no longer guarantees that object assigned to that field during
-		 * deserialization will be fully deserialized itself, as that might be delayed to a later time.
-		 */
-		static void CheckForCircularReferencesInternal();
-
 		/** Returns an interface you can use to access class' Run Time Type Information. */
 		static RTTITypeBase* GetRttiStatic();
 

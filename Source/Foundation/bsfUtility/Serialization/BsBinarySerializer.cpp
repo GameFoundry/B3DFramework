@@ -489,19 +489,32 @@ bool BinaryDeserializationContext::DeserializeReflectableObject(SPtr<RTTISchema>
 
 		if(field != nullptr)
 		{
-			if(!fieldSchema.HasDynamicSize && field->Schema.Size != fieldSchema.Size)
-			{
-				B3D_EXCEPT(InternalErrorException, "Data type mismatch. Type size stored in file and actual type size don't match. (" + ToString(field->Schema.Size.Bytes) + " vs. " + ToString(fieldSchema.Size.Bytes) + ")");
-			}
-
 			if(field->Schema.IsArray != fieldSchema.IsArray)
 			{
-				B3D_EXCEPT(InternalErrorException, "Data type mismatch. One is array, other is a single type.");
+				B3D_LOG(Error, Serialization, "Data type mismatch. One is array, other is a single type.");
+				return false;
 			}
 
-			if(field->Schema.Type != fieldSchema.Type)
+			if(field->Schema.FieldTypes.Size() != fieldSchema.FieldTypes.Size())
 			{
-				B3D_EXCEPT(InternalErrorException, "Data type mismatch. Field types don't match. " + ToString(u32(field->Schema.Type)) + " vs. " + ToString(u32(fieldSchema.Type)));
+				B3D_LOG(Error, Serialization, "Data type mismatch. Field type count doesn't match ({0} vs {1}). ", field->Schema.FieldTypes.Size(), fieldSchema.FieldTypes.Size());
+				return false;
+			}
+
+			const u32 fieldTypeCount = (u32)field->Schema.FieldTypes.Size();
+			for(u32 fieldTypeIndex = 0; fieldTypeIndex < fieldTypeCount; ++fieldTypeIndex)
+			{
+				if(!fieldSchema.FieldTypes[fieldTypeIndex].HasDynamicSize && field->Schema.FieldTypes[fieldTypeIndex].FixedSize != fieldSchema.FieldTypes[fieldTypeIndex].FixedSize)
+				{
+					B3D_LOG(Error, Serialization, "Data type mismatch. Type size stored in file and actual type size don't match ({0} vs {1}).", field->Schema.FieldTypes[fieldTypeIndex].FixedSize.Bytes, fieldSchema.FieldTypes[fieldTypeIndex].FixedSize.Bytes);
+					return false;
+				}
+
+				if(field->Schema.FieldTypes[fieldTypeIndex].Type != fieldSchema.FieldTypes[fieldTypeIndex].Type)
+				{
+					B3D_LOG(Error, Serialization, "Data type mismatch. Type stored in file and actual type don't match ({0} vs {1}).", field->Schema.FieldTypes[fieldTypeIndex].Type, fieldSchema.FieldTypes[fieldTypeIndex].Type);
+					return false;
+				}
 			}
 		}
 
@@ -746,7 +759,7 @@ bool BinaryDeserializationContext::DeserializeReflectableObject(SPtr<RTTISchema>
 		}
 		else // All but DataBlock case is DEPRECATED
 		{
-			switch(fieldSchema.Type)
+			switch(fieldSchema.Type) // TODO - Not supporting tuples
 			{
 			case SerializableFT_ReflectablePtr:
 				{
@@ -1266,7 +1279,7 @@ bool BinarySerializationContext::SerializeReflectableObject(IReflectable* object
 
 			if(field->Schema.IsIterator)
 			{
-				RTTIIteratorField* const iteratorField = static_cast<RTTIIteratorField*>(iteratorField);
+				RTTIIteratorField* const iteratorField = static_cast<RTTIIteratorField*>(field);
 				SPtr<IRTTIIterator> iterator = iteratorField->GetIterator(rttiInstance, object, mAllocator);
 
 				if(iteratorField->Schema.IsArray)
@@ -1340,7 +1353,7 @@ bool BinarySerializationContext::SerializeReflectableObject(IReflectable* object
 				else
 					mStream.WriteBytes(arrayNumElems);
 
-				switch(field->Schema.Type)
+				switch(field->Schema.Type) // TODO - Not supporting tuples
 				{
 				case SerializableFT_ReflectablePtr:
 					{
@@ -1394,7 +1407,7 @@ bool BinarySerializationContext::SerializeReflectableObject(IReflectable* object
 			}
 			else // All but DataBlock case is DEPRECATED
 			{
-				switch(field->Schema.Type)
+				switch(field->Schema.Type) // TODO - Not supporting tuples
 				{
 				case SerializableFT_ReflectablePtr:
 					{

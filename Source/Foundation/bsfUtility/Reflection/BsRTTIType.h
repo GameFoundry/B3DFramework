@@ -15,7 +15,6 @@
 #include "Reflection/BsRTTIManagedDataBlockField.h"
 #include "Reflection/BsIReflectable.h"
 #include "Serialization/BsBinaryDiff.h"
-#include "Serialization/BsBinaryCompare.h"
 
 namespace bs
 {
@@ -540,13 +539,6 @@ namespace bs
 		{
 			static BinaryDiff diffHandler;
 			return diffHandler;
-		}
-
-		/** Returns a handler that determines how are IReflectable objects compared for equality. */
-		virtual ICompare& GetCompareHandler() const
-		{
-			static BinaryCompare compareHandler;
-			return compareHandler;
 		}
 
 		/** Returns the total number of fields in this RTTI type. */

@@ -126,6 +126,8 @@ void IntermediateSerializer::DeserializeReflectableObject(const SPtr<IReflectabl
 
 					for(u32 fieldTypeIndex = 0; fieldTypeIndex < (u32)curGenericField->Schema.FieldTypes.Size(); ++fieldTypeIndex)
 					{
+						RTTIFieldTypeSchema& tupleSchema = curGenericField->Schema.FieldTypes[fieldTypeIndex];
+
 						SPtr<ISerialized> serializedTupleValue;
 						if(isTuple)
 						{
@@ -137,7 +139,7 @@ void IntermediateSerializer::DeserializeReflectableObject(const SPtr<IReflectabl
 							serializedTupleValue = serializedValue;
 						}
 
-						switch(curGenericField->Schema.Type)
+						switch(tupleSchema.Type)
 						{
 						case SerializableFT_ReflectablePtr:
 							{
@@ -205,6 +207,8 @@ void IntermediateSerializer::DeserializeReflectableObject(const SPtr<IReflectabl
 
 					for(u32 fieldTypeIndex = 0; fieldTypeIndex < (u32)curGenericField->Schema.FieldTypes.Size(); ++fieldTypeIndex)
 					{
+						RTTIFieldTypeSchema& tupleSchema = curGenericField->Schema.FieldTypes[fieldTypeIndex];
+
 						SPtr<ISerialized> serializedTupleValue;
 						if(isTuple)
 						{
@@ -216,7 +220,7 @@ void IntermediateSerializer::DeserializeReflectableObject(const SPtr<IReflectabl
 							serializedTupleValue = serializedArrayEntryValue;
 						}
 
-						switch(curGenericField->Schema.Type)
+						switch(tupleSchema.Type)
 						{
 						case SerializableFT_ReflectablePtr:
 							{
@@ -278,6 +282,8 @@ void IntermediateSerializer::DeserializeReflectableObject(const SPtr<IReflectabl
 
 				for(u32 fieldTypeIndex = 0; fieldTypeIndex < (u32)curGenericField->Schema.FieldTypes.Size(); ++fieldTypeIndex)
 				{
+					RTTIFieldTypeSchema& tupleSchema = curGenericField->Schema.FieldTypes[fieldTypeIndex];
+
 					SPtr<ISerialized> serializedTupleValue;
 					if(isTuple)
 					{
@@ -289,7 +295,7 @@ void IntermediateSerializer::DeserializeReflectableObject(const SPtr<IReflectabl
 						serializedTupleValue = serializedFieldValue;
 					}
 
-					switch(curGenericField->Schema.Type)
+					switch(tupleSchema.Type)
 					{
 					case SerializableFT_ReflectablePtr:
 						{
@@ -457,7 +463,7 @@ SPtr<ISerialized> IntermediateSerializer::SerializeField(IReflectable* object, R
 			output = serializedArray;
 		}
 
-		switch(field->Schema.Type)
+		switch(field->Schema.Type) // TODO - Not handling tuples
 		{
 		case SerializableFT_ReflectablePtr:
 			{
@@ -553,7 +559,7 @@ SPtr<ISerialized> IntermediateSerializer::SerializeField(IReflectable* object, R
 	}
 	else
 	{
-		switch(field->Schema.Type)
+		switch(field->Schema.Type) // TODO - Not handling tuples
 		{
 		case SerializableFT_ReflectablePtr:
 			{
