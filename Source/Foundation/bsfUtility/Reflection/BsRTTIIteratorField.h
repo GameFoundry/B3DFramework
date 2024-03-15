@@ -23,20 +23,35 @@ namespace bs
 		/** Returns the iterator that can be used for iterating all entries in the field. */
 		virtual SPtr<IRTTIIterator> GetIterator(RTTITypeBase* rttiType, void* object, FrameAllocator& frameAllocator) const = 0;
 
+		/** Returns true if the iterator is allowed to seek to index. True for iterators over arrays. */
+		virtual bool IteratorSupportsSeekToIndex() const = 0;
+
+		/** Returns true if the iterator is allowed to seek to key. True for iterators over sets and maps. */
+		virtual bool IteratorSupportsSeekToKey() const = 0;
+
 		/** Returns the current value of the iterator. */
 		virtual const void* GetIteratorValue(RTTITypeBase* rttiType, void* object, FrameAllocator& frameAllocator, IRTTIIterator& iterator) const = 0;
 
+		/** Returns a modifiable copy of the current value of the iterator. Returned value must be freed via FreeFieldValue() when done using it. */
+		virtual void* GetIteratorValueCopy(RTTITypeBase* rttiType, void* object, FrameAllocator& frameAllocator, IRTTIIterator& iterator) const = 0;
+
 		/**
-		 * Appends a new value at the end of the iterator, and increments the iterator. @p value must have been created by a call to CreateEmptyFieldValue(),
-		 * using the same @p frameAllocator.
+		 * Inserts a new value before the iterator location. @p value must have been created by a call to CreateEmptyFieldValue() or
+		 * GetIteratorValueCopy(), using the same @p frameAllocator. 
 		 */
 		virtual void SetIteratorValue(RTTITypeBase* rttiType, void* object, FrameAllocator& frameAllocator, IRTTIIterator& iterator, void* value) = 0;
 
 		/**
-		 * Creates a new empty field value. This should be populated by calls to WritePlainTypeTupleToStream, SetReflectablePointer or SetReflectable, and then
-		 * passed to SetIteratorValue().
+		 * Creates a new empty field value. This should be populated by calls to WritePlainTypeTupleToStream(), SetReflectablePointer() or SetReflectable(), then
+		 * passed to SetIteratorValue(), and finally freed via FreeFieldValue().
 		 */
 		virtual void* CreateEmptyFieldValue(FrameAllocator& frameAllocator) = 0;
+
+		/**
+		 * Frees the field value created by CreateEmptyFieldValue() or GetIteratorValueCopy(). Same allocator must be provided as used for creating the field
+		 * value.
+		 */
+		virtual void FreeFieldValue(void* fieldValue, FrameAllocator& frameAllocator) = 0;
 		
 		/**
 		 * Reads into the provided field value from the stream. If the field value represents a tuple (i.e. contains multiple sub-types, such as std::pair<K, V>),
@@ -111,12 +126,6 @@ namespace bs
 		virtual BitLength GetPlainTypeSize(const void* fieldValue, u32 tupleElementIndex, bool useCompression) = 0;
 	};
 
-	template<typename T>
-	struct B3DIsStdPair : std::false_type { };
-
-	template<typename KeyType, typename ValueType>
-	struct B3DIsStdPair<std::pair<KeyType, ValueType>> : std::true_type { };
-
 	/**
 	 * RTTI field type that supports iteration over arbitrary containers, including maps. Unlike older field types, this field type internally handles plain, reflectable and reflectable pointer types,
 	 * rather than requiring a separate field type for each.
@@ -172,6 +181,16 @@ namespace bs
 			return std::move((exactRttiType->*mGetIteratorCallback)(*exactObject, frameAllocator));
 		}
 
+		bool IteratorSupportsSeekToIndex() const override
+		{
+			return IteratorType::SupportsSeekToIndex();
+		}
+
+		bool IteratorSupportsSeekToKey() const override
+		{
+			return IteratorType::SupportsSeekToKey();
+		}
+
 		const void* GetIteratorValue(RTTITypeBase* rttiType, void* object, FrameAllocator& frameAllocator, IRTTIIterator& iterator) const override
 		{
 			RTTIType* const exactRttiType = static_cast<RTTIType*>(rttiType);
@@ -189,13 +208,25 @@ namespace bs
 
 			ElementType& exactValue = *static_cast<ElementType*>(value);
 			(exactRttiType->*mSetValueCallback)(*exactObject, frameAllocator, exactIterator, exactValue);
-
-			frameAllocator.Destruct(&exactValue);
 		}
 
 		void* CreateEmptyFieldValue(FrameAllocator& frameAllocator) override
 		{
 			return frameAllocator.Construct<ElementType>();
+		}
+
+		void* GetIteratorValueCopy(RTTITypeBase* rttiType, void* object, FrameAllocator& frameAllocator, IRTTIIterator& iterator) const override
+		{
+			 return frameAllocator.Construct<ElementType>(*static_cast<const ElementType*>(GetIteratorValue(rttiType, object, frameAllocator, iterator)));
+		}
+
+		void FreeFieldValue(void* fieldValue, FrameAllocator& frameAllocator) override
+		{
+			if(fieldValue != nullptr)
+			{
+				ElementType& exactValue = *static_cast<ElementType*>(fieldValue);
+				frameAllocator.Destruct(&exactValue);
+			}
 		}
 
 		void ReadPlainTypeTupleFromStream(void* fieldValue, u32 tupleElementIndex, Bitstream& stream, bool useCompression) override

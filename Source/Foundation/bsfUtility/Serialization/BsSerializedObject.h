@@ -13,6 +13,9 @@ namespace bs
 	 *  @{
 	 */
 
+	/** Helper to compare two ISerialized objects for equality, while also checking if they are null. */
+	B3D_UTILITY_EXPORT bool Equals(const SPtr<ISerialized>& lhs, const SPtr<ISerialized>& rhs);
+
 	/** Base class for all data types used in intermediate IReflectable object representation. */
 	struct B3D_UTILITY_EXPORT ISerialized : IReflectable
 	{
@@ -28,6 +31,12 @@ namespace bs
 		 */
 		virtual SPtr<ISerialized> Clone(bool cloneData = true) = 0;
 
+		/** Calculates the hash value of the contained data. */
+		virtual u64 CalculateHash() const = 0;
+
+		/** Checks if this value matches the other provided value. */
+		virtual bool Equals(const SPtr<ISerialized>& other) const = 0;
+
 		/************************************************************************/
 		/* 								RTTI		                     		*/
 		/************************************************************************/
@@ -36,13 +45,48 @@ namespace bs
 		static RTTITypeBase* GetRttiStatic();
 		RTTITypeBase* GetRtti() const override;
 	};
+}
 
+/** @cond STDLIB */
+
+namespace std
+{
+	/** Hash value generator for SPtr<ISerialized>. */
+	template <>
+	struct hash<bs::SPtr<bs::ISerialized>>
+	{
+		size_t operator()(const bs::SPtr<bs::ISerialized>& value) const
+		{
+			if(value == nullptr)
+				return 0;
+
+			return value->CalculateHash();
+		}
+	};
+
+	/** Equality operator for SPtr<ISerialized>. */
+	template <>
+	struct equal_to<bs::SPtr<bs::ISerialized>>
+	{
+		bool operator()(const bs::SPtr<bs::ISerialized>& lhs, const bs::SPtr<bs::ISerialized>& rhs) const
+		{
+			return bs::Equals(lhs, rhs);
+		}
+	};
+} // namespace std
+
+/** @endcond */
+
+namespace bs
+{
 	/** Contains data for fields or container entries that are made up of more than one type (e.g. std::pair<K, V>). */
 	struct B3D_UTILITY_EXPORT SerializedTuple : ISerialized
 	{
 		SerializedTuple() = default;
 
 		SPtr<ISerialized> Clone(bool cloneData = true) override;
+		u64 CalculateHash() const override;
+		bool Equals(const SPtr<ISerialized>& other) const override;
 
 		TInlineArray<SPtr<ISerialized>, 2> Values; /**< One value per type. */
 
@@ -113,6 +157,8 @@ namespace bs
 		u32 GetRootTypeId() const;
 
 		SPtr<ISerialized> Clone(bool cloneData = true) override;
+		u64 CalculateHash() const override;
+		bool Equals(const SPtr<ISerialized>& other) const override;
 
 		/**
 		 * Decodes the serialized object back into its original IReflectable object form.
@@ -160,6 +206,8 @@ namespace bs
 		}
 
 		SPtr<ISerialized> Clone(bool cloneData = true) override;
+		u64 CalculateHash() const override;
+		bool Equals(const SPtr<ISerialized>& other) const override;
 
 		u8* Value = nullptr;
 		u32 Size = 0;
@@ -180,6 +228,8 @@ namespace bs
 		SerializedDataBlock() = default;
 
 		SPtr<ISerialized> Clone(bool cloneData = true) override;
+		u64 CalculateHash() const override;
+		bool Equals(const SPtr<ISerialized>& other) const override;
 
 		SPtr<DataStream> Stream;
 		u32 Offset = 0;
@@ -217,6 +267,8 @@ namespace bs
 		SerializedArray() = default;
 
 		SPtr<ISerialized> Clone(bool cloneData = true) override;
+		u64 CalculateHash() const override;
+		bool Equals(const SPtr<ISerialized>& other) const override;
 
 		UnorderedMap<u32, SerializedArrayEntry> Entries;
 		u32 ElementCount = 0;
@@ -229,6 +281,27 @@ namespace bs
 		static RTTITypeBase* GetRttiStatic();
 		RTTITypeBase* GetRtti() const override;
 	};
+
+	/** A serialized map containing a list of all its entries. */
+	struct B3D_UTILITY_EXPORT SerializedMap : ISerialized
+	{
+		SerializedMap() = default;
+
+		SPtr<ISerialized> Clone(bool cloneData = true) override;
+		u64 CalculateHash() const override;
+		bool Equals(const SPtr<ISerialized>& other) const override;
+
+		UnorderedMap<SPtr<ISerialized>, SPtr<ISerialized>> Entries;
+
+		/************************************************************************/
+		/* 								RTTI		                     		*/
+		/************************************************************************/
+	public:
+		friend class SerializedMapRTTI;
+		static RTTITypeBase* GetRttiStatic();
+		RTTITypeBase* GetRtti() const override;
+	};
+
 
 	/** @} */
 } // namespace bs

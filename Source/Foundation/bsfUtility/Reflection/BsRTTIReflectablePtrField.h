@@ -128,8 +128,17 @@ namespace bs
 			// This need to be initialized after the field itself, otherwise we get recursive static constructor
 			// calls due to one type calling GetRttiStatic() on one another
 			Schema.FieldTypeSchema = DataType::GetRttiStatic()->GetSchema();
-			;
 			Schema.FieldTypeId = DataType::GetRttiStatic()->GetRttiId();
+
+			// Add the new schema type
+			RTTIFieldTypeSchema fieldTypeSchema;
+			fieldTypeSchema.FieldTypeId = Schema.FieldTypeId;
+			fieldTypeSchema.FieldTypeSchema = Schema.FieldTypeSchema;
+			fieldTypeSchema.Type = Schema.Type;
+			fieldTypeSchema.FixedSize = Schema.Size;
+			fieldTypeSchema.HasDynamicSize = Schema.HasDynamicSize;
+
+			Schema.FieldTypes.Add(fieldTypeSchema);
 		}
 
 		SPtr<IReflectable> GetValue(RTTITypeBase* rtti, void* object) override

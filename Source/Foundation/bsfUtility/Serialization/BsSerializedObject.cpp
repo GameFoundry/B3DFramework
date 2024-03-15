@@ -4,18 +4,42 @@
 #include "Serialization/BsIntermediateSerializer.h"
 #include "RTTI/BsSerializedObjectRTTI.h"
 
+#include "ThirdParty/CityHash/city.h"
+
 using namespace bs;
+
+namespace bs
+{
+	bool Equals(const SPtr<ISerialized>& lhs, const SPtr<ISerialized>& rhs)
+	{
+		if(lhs == nullptr)
+			return rhs == nullptr;
+
+		if(rhs == nullptr) // lhs isn't null, so not equal
+			return false;
+
+		return lhs->Equals(rhs);
+	}
+} // namespace bs
 
 SPtr<SerializedObject> SerializedObject::Create(IReflectable& object, SerializedObjectEncodeFlags flags, SerializationContext* context)
 {
-	IntermediateSerializer is;
+	IntermediateSerializer is(&GetFrameAllocator());
 	return is.Encode(&object, flags, context);
 }
 
 SPtr<IReflectable> SerializedObject::Decode(SerializationContext* context) const
 {
-	IntermediateSerializer is;
+	IntermediateSerializer is(&GetFrameAllocator());
 	return is.Decode(this, context);
+}
+
+u32 SerializedObject::GetRootTypeId() const
+{
+	if(SubObjects.size() > 0)
+		return SubObjects[0].TypeId;
+
+	return 0;
 }
 
 SPtr<ISerialized> SerializedObject::Clone(bool cloneData)
@@ -44,6 +68,62 @@ SPtr<ISerialized> SerializedObject::Clone(bool cloneData)
 	return copy;
 }
 
+u64 SerializedObject::CalculateHash() const
+{
+	u64 hash = 0;
+
+	for(auto& subObject : SubObjects)
+	{
+		B3DCombineHash(hash, subObject.TypeId);
+
+		for(auto& entryPair : subObject.FieldEntries)
+		{
+			SerializedField entry = entryPair.second;
+
+			if(entry.Value != nullptr)
+				B3DCombineHash(hash, entry.Value->CalculateHash());
+		}
+	}
+
+	return hash;
+}
+
+bool SerializedObject::Equals(const SPtr<ISerialized>& other) const
+{
+	if(SPtr<SerializedObject> otherObject = B3DRTTICast<SerializedObject>(other))
+	{
+		if(SubObjects.size() != otherObject->SubObjects.size())
+			return false;
+
+		const u32 subObjectCount = (u32)SubObjects.size();
+		for(u32 subObjectIndex = 0; subObjectIndex < subObjectCount; ++subObjectIndex)
+		{
+			const SerializedSubObject& mySubObject = SubObjects[subObjectIndex];
+			const SerializedSubObject& otherSubObject = otherObject->SubObjects[subObjectIndex];
+
+			if(mySubObject.TypeId != otherSubObject.TypeId)
+				return false;
+
+			if(mySubObject.FieldEntries.size() != otherSubObject.FieldEntries.size())
+				return false;
+
+			for(auto myFieldIterator = mySubObject.FieldEntries.begin(); myFieldIterator != mySubObject.FieldEntries.end(); ++myFieldIterator)
+			{
+				auto foundOtherField = otherSubObject.FieldEntries.find(myFieldIterator->first);
+				if(foundOtherField == otherSubObject.FieldEntries.end())
+					return false;
+				
+				if(!::Equals(myFieldIterator->second.Value, foundOtherField->second.Value))
+					return false;
+			}
+		}
+
+		return true;
+	}
+
+	return false;
+}
+
 SPtr<ISerialized> SerializedTuple::Clone(bool cloneData)
 {
 	SPtr<SerializedTuple> copy = B3DMakeShared<SerializedTuple>();
@@ -57,6 +137,39 @@ SPtr<ISerialized> SerializedTuple::Clone(bool cloneData)
 	}
 
 	return copy;
+}
+
+u64 SerializedTuple::CalculateHash() const
+{
+	u64 hash = 0;
+
+	for(auto& entry : Values)
+	{
+		if(entry != nullptr)
+			B3DCombineHash(hash, entry->CalculateHash());
+	}
+
+	return hash;
+}
+
+bool SerializedTuple::Equals(const SPtr<ISerialized>& other) const
+{
+	if(SPtr<SerializedTuple> otherTuple = B3DRTTICast<SerializedTuple>(other))
+	{
+		if(Values.Size() != otherTuple->Values.Size())
+			return false;
+
+		const u32 valueCount = (u32)Values.Size();
+		for(u32 valueIndex = 0; valueIndex < valueCount; ++valueIndex)
+		{
+			if(!::Equals(Values[valueIndex], otherTuple->Values[valueIndex]))
+				return false;
+		}
+
+		return true;
+	}
+
+	return false;
 }
 
 SPtr<ISerialized> SerializedPlainData::Clone(bool cloneData)
@@ -77,6 +190,24 @@ SPtr<ISerialized> SerializedPlainData::Clone(bool cloneData)
 	}
 
 	return copy;
+}
+
+u64 SerializedPlainData::CalculateHash() const
+{
+	return CityHash64(reinterpret_cast<char*>(Value), Size);
+}
+
+bool SerializedPlainData::Equals(const SPtr<ISerialized>& other) const
+{
+	if(SPtr<SerializedPlainData> otherPlainData = B3DRTTICast<SerializedPlainData>(other))
+	{
+		if(Size != otherPlainData->Size)
+			return false;
+
+		return memcmp(Value, otherPlainData->Value, Size) == 0;
+	}
+
+	return false;
 }
 
 SPtr<ISerialized> SerializedDataBlock::Clone(bool cloneData)
@@ -106,6 +237,86 @@ SPtr<ISerialized> SerializedDataBlock::Clone(bool cloneData)
 	return copy;
 }
 
+u64 SerializedDataBlock::CalculateHash() const
+{
+	u64 hash = B3DHash(Offset);
+
+	if(Stream != nullptr)
+	{
+		SPtr<DataStream> copy = Stream->Clone(false);
+		copy->Seek(Offset);
+
+		u64 remainingSize = Size;
+		while(remainingSize > 0)
+		{
+			static constexpr u32 kBufferSize = 1024;
+
+			u8* readBuffer[kBufferSize];
+
+			const u64 amountToRead = Math::Min(kBufferSize, remainingSize);
+			const u64 amountRead = copy->Read(readBuffer, amountToRead);
+
+			B3DCombineHash(hash, CityHash64((const char*)readBuffer, amountRead));
+
+			B3D_ASSERT(amountRead <= remainingSize);
+			remainingSize -= amountRead;
+		}
+	}
+
+	return hash;
+}
+
+bool SerializedDataBlock::Equals(const SPtr<ISerialized>& other) const
+{
+	if(SPtr<SerializedDataBlock> otherDataBlock = B3DRTTICast<SerializedDataBlock>(other))
+	{
+		if(Offset != otherDataBlock->Offset)
+			return false;
+
+		if(Size != otherDataBlock->Size)
+			return false;
+
+		if(Stream == nullptr)
+			return otherDataBlock->Stream == nullptr;
+
+		if(otherDataBlock->Stream == nullptr)
+			return false;
+
+		SPtr<DataStream> myStreamCopy = Stream->Clone(false);
+		myStreamCopy->Seek(Offset);
+
+		SPtr<DataStream> otherStreamCopy = otherDataBlock->Stream->Clone(false);
+		otherStreamCopy->Seek(Offset);
+
+		u64 remainingSize = Size;
+		while(remainingSize > 0)
+		{
+			static constexpr u32 kBufferSize = 1024;
+
+			u8* myReadBuffer[kBufferSize];
+			u8* otherReadBuffer[kBufferSize];
+
+			const u64 amountToRead = Math::Min(kBufferSize, remainingSize);
+
+			const u64 myAmountRead = myStreamCopy->Read(myReadBuffer, amountToRead);
+			const u64 otherAmountRead = otherStreamCopy->Read(otherReadBuffer, amountToRead);
+
+			if(myAmountRead != otherAmountRead)
+				return false;
+
+			if(memcmp(myReadBuffer, otherReadBuffer, myAmountRead) != 0)
+				return false;
+
+			B3D_ASSERT(myAmountRead <= remainingSize);
+			remainingSize -= myAmountRead;
+		}
+
+		return true;
+	}
+
+	return false;
+}
+
 SPtr<ISerialized> SerializedArray::Clone(bool cloneData)
 {
 	SPtr<SerializedArray> copy = B3DMakeShared<SerializedArray>();
@@ -122,6 +333,105 @@ SPtr<ISerialized> SerializedArray::Clone(bool cloneData)
 	}
 
 	return copy;
+}
+
+u64 SerializedArray::CalculateHash() const
+{
+	u64 hash = B3DHash(ElementCount);
+
+	for(auto& entryPair : Entries)
+	{
+		SerializedArrayEntry arrayEntry = entryPair.second;
+
+		if(arrayEntry.Value != nullptr)
+			B3DCombineHash(hash, arrayEntry.Value->CalculateHash());
+	}
+
+	return hash;
+}
+
+bool SerializedArray::Equals(const SPtr<ISerialized>& other) const
+{
+	if(SPtr<SerializedArray> otherArray = B3DRTTICast<SerializedArray>(other))
+	{
+		if(ElementCount != otherArray->ElementCount)
+			return false;
+
+		if(Entries.size() != otherArray->Entries.size())
+			return false;
+
+		for(auto myEntryIterator = Entries.begin(); myEntryIterator != Entries.end(); ++myEntryIterator)
+		{
+			auto foundOtherEntry = otherArray->Entries.find(myEntryIterator->first);
+			if(foundOtherEntry == otherArray->Entries.end())
+				return false;
+
+			if(!::Equals(myEntryIterator->second.Value, foundOtherEntry->second.Value))
+				return false;
+		}
+
+		return true;
+	}
+
+	return false;
+}
+
+SPtr<ISerialized> SerializedMap::Clone(bool cloneData)
+{
+	SPtr<SerializedMap> copy = B3DMakeShared<SerializedMap>();
+
+	for(auto& entryPair : Entries)
+	{
+		std::pair<SPtr<ISerialized>, SPtr<ISerialized>> copiedEntry;
+		if(entryPair.first != nullptr)
+			copiedEntry.first = entryPair.first->Clone(cloneData);
+
+		if(entryPair.second != nullptr)
+			copiedEntry.second = entryPair.second->Clone(cloneData);
+
+		copy->Entries.insert(copiedEntry);
+	}
+
+	return copy;
+}
+
+u64 SerializedMap::CalculateHash() const
+{
+	u64 hash = B3DHash(Entries.size());
+
+	for(auto& entryPair : Entries)
+	{
+		if(entryPair.first != nullptr)
+			B3DCombineHash(hash, entryPair.first->CalculateHash());
+
+		if(entryPair.second != nullptr)
+			B3DCombineHash(hash, entryPair.second->CalculateHash());
+	}
+
+	return hash;
+}
+
+bool SerializedMap::Equals(const SPtr<ISerialized>& other) const
+{
+	if(SPtr<SerializedMap> otherMap = B3DRTTICast<SerializedMap>(other))
+	{
+		if(Entries.size() != otherMap->Entries.size())
+			return false;
+
+		for(auto myEntryIterator = Entries.begin(); myEntryIterator != Entries.end(); ++myEntryIterator)
+		{
+			auto foundOtherEntry = otherMap->Entries.find(myEntryIterator->first);
+			if(foundOtherEntry == otherMap->Entries.end())
+				return false;
+
+			if(!::Equals(myEntryIterator->second, foundOtherEntry->second))
+				return false;
+		}
+
+		return true;
+	}
+
+	return false;
 }
 
 RTTITypeBase* ISerialized::GetRttiStatic()
@@ -154,14 +464,6 @@ RTTITypeBase* SerializedPlainData::GetRtti() const
 	return SerializedPlainData::GetRttiStatic();
 }
 
-u32 SerializedObject::GetRootTypeId() const
-{
-	if(SubObjects.size() > 0)
-		return SubObjects[0].TypeId;
-
-	return 0;
-}
-
 RTTITypeBase* SerializedObject::GetRttiStatic()
 {
 	return SerializedObjectRTTI::Instance();
@@ -180,6 +482,16 @@ RTTITypeBase* SerializedArray::GetRttiStatic()
 RTTITypeBase* SerializedArray::GetRtti() const
 {
 	return SerializedArray::GetRttiStatic();
+}
+
+RTTITypeBase* SerializedMap::GetRttiStatic()
+{
+	return SerializedMapRTTI::Instance();
+}
+
+RTTITypeBase* SerializedMap::GetRtti() const
+{
+	return SerializedMap::GetRttiStatic();
 }
 
 RTTITypeBase* SerializedSubObject::GetRttiStatic()

@@ -7,6 +7,8 @@
 
 namespace bs
 {
+	class IRTTIIterator;
+	struct RTTIIteratorField;
 	/** @addtogroup Internal-Utility
 	 *  @{
 	 */
@@ -52,16 +54,16 @@ namespace bs
 		typedef UnorderedMap<IReflectable*, SPtr<SerializedObject>> ObjectMap;
 
 		/**
-		 * Recursive version of generateDiff(const SPtr<IReflectable>&, const SPtr<IReflectable>&, bool).
+		 * Recursive version of GenerateDiff(const SPtr<IReflectable>&, const SPtr<IReflectable>&, bool).
 		 *
-		 * @see		generateDiff(const SPtr<IReflectable>&, const SPtr<IReflectable>&, bool)
+		 * @see		GenerateDiff(const SPtr<IReflectable>&, const SPtr<IReflectable>&, bool)
 		 */
-		virtual SPtr<SerializedObject> GenerateDiffInternal(IReflectable* orgObj, IReflectable* newObj, ObjectMap& objectMap, bool replicableOnly) = 0;
+		virtual SPtr<SerializedObject> GenerateDeltaRecursive(IReflectable* orgObj, IReflectable* newObj, ObjectMap& objectMap, bool replicableOnly) = 0;
 
 		/** @} */
 
 	protected:
-		typedef UnorderedMap<SPtr<SerializedObject>, SPtr<IReflectable>> DiffObjectMap;
+		typedef UnorderedMap<SPtr<SerializedObject>, SPtr<IReflectable>> DeltaObjectMap;
 
 		/** Types of commands that are used when applying difference field values. */
 		enum DiffCommandType
@@ -74,14 +76,17 @@ namespace bs
 			Diff_ObjectStart = 0x06,
 			Diff_ObjectEnd = 0x07,
 			Diff_SubObjectStart = 0x08,
-			Diff_ArrayFlag = 0x10
+			Diff_IterableEntryStart = 0x09,
+			Diff_IterableEntryEnd = 0x0A,
+			Diff_ArrayFlag = 0x10,
+			Diff_MapFlag = 0x20
 		};
 
 		/**
 		 * A command that is used for delaying writing to an object, it contains all necessary information for setting RTTI
 		 * field values on an object.
 		 */
-		struct DiffCommand
+		struct DeltaCommand
 		{
 			RTTIField* Field;
 			u32 Type;
@@ -89,29 +94,31 @@ namespace bs
 			u8* Value;
 			SPtr<DataStream> StreamValue;
 			u32 Size;
+			u32 TupleElementIndex = 0;
 
 			union
 			{
-				u32 ArrayIdx;
+				u32 ArrayIndex;
 				u32 ArraySize;
 				RTTITypeBase* RttiType;
+				void* MapKey;
 			};
 		};
 
 		/**
-		 * Recursive version of applyDiff(const SPtr<IReflectable>& object, const SPtr<SerializedObject>& diff). Outputs a
+		 * Recursive version of ApplyDiff(const SPtr<IReflectable>& object, const SPtr<SerializedObject>& diff). Outputs a
 		 * set of commands that then must be executed in order to actually apply the difference to the provided object.
 		 *
-		 * @see		applyDiff(const SPtr<IReflectable>& object, const SPtr<SerializedObject>& diff)
+		 * @see		ApplyDiff(const SPtr<IReflectable>& object, const SPtr<SerializedObject>& diff)
 		 */
-		virtual void ApplyDiff(const SPtr<IReflectable>& object, const SPtr<SerializedObject>& diff, FrameAllocator& alloc, DiffObjectMap& objectMap, FrameVector<DiffCommand>& diffCommands, SerializationContext* context) = 0;
+		virtual void GenerateDeltaApplyCommands(const SPtr<IReflectable>& object, const SPtr<SerializedObject>& diff, FrameAllocator& alloc, DeltaObjectMap& objectMap, FrameVector<DeltaCommand>& diffCommands, SerializationContext* context) = 0;
 
 		/**
 		 * Applies diff according to the diff handler retrieved from the provided RTTI object.
 		 *
-		 * @see		applyDiff(const SPtr<IReflectable>& object, const SPtr<SerializedObject>& diff)
+		 * @see		ApplyDiff(const SPtr<IReflectable>& object, const SPtr<SerializedObject>& diff)
 		 */
-		void ApplyDiff(RTTITypeBase* rtti, const SPtr<IReflectable>& object, const SPtr<SerializedObject>& diff, FrameAllocator& alloc, DiffObjectMap& objectMap, FrameVector<DiffCommand>& diffCommands, SerializationContext* context);
+		void ApplyDiff(RTTITypeBase* rtti, const SPtr<IReflectable>& object, const SPtr<SerializedObject>& diff, FrameAllocator& alloc, DeltaObjectMap& objectMap, FrameVector<DeltaCommand>& diffCommands, SerializationContext* context);
 	};
 
 	/**
@@ -124,8 +131,27 @@ namespace bs
 	class B3D_UTILITY_EXPORT BinaryDiff : public IDiff
 	{
 	private:
-		SPtr<SerializedObject> GenerateDiffInternal(IReflectable* orgObj, IReflectable* newObj, ObjectMap& objectMap, bool replicableOnly) override;
-		void ApplyDiff(const SPtr<IReflectable>& object, const SPtr<SerializedObject>& diff, FrameAllocator& alloc, DiffObjectMap& objectMap, FrameVector<DiffCommand>& diffCommands, SerializationContext* context) override;
+		SPtr<SerializedObject> GenerateDeltaRecursive(IReflectable* lhs, IReflectable* rhs, ObjectMap& objectMap, bool replicableOnly) override;
+		void GenerateDeltaApplyCommands(const SPtr<IReflectable>& object, const SPtr<SerializedObject>& diff, FrameAllocator& allocator, DeltaObjectMap& objectMap, FrameVector<DeltaCommand>& diffCommands, SerializationContext* context) override;
+
+		/**
+		 * Generates delta commands for a single field entry (e.g. a single array or map entry, or the entire field if not a container).
+		 *
+		 * @param rttiInstance		RTTIType instance for the current object.
+		 * @param object			Object that contains the field we're applying the delta to.
+		 * @param field				Field to which to apply the delta to.
+		 * @param entryDelta		Object containing the delta value to apply.
+		 * @param arrayIndex		Optional array index, if the entry we're applying the value to is part of an array. Set to ~0u if not an array.
+		 * @param mapKey			Optional map key, if the entry we're applying the value to is part of a map. Set to null if not a map.
+		 * @param inOutObjectMap	Map that contains any deserialized objects so far, and into which new deserialized objects will be inserted.
+		 * @param outCommands		List of generated commands into which to output the commands.
+		 * @param context			Serialization context.
+		 * @param allocator			Allocator to perform temporary allocations with.
+		 */
+		void GenerateDeltaCommandForEntry(RTTITypeBase* rttiInstance, const SPtr<IReflectable>& object, RTTIIteratorField& field, const SPtr<ISerialized>& entryDelta, u32 arrayIndex, void* mapKey, DeltaObjectMap& inOutObjectMap, FrameVector<DeltaCommand>& outCommands, SerializationContext* context, FrameAllocator& allocator);
+
+		// TODO - Doc
+		void GenerateDeltaCommandForEntry(RTTITypeBase* rttiInstance, const SPtr<IReflectable>& object, RTTIField& field, const SPtr<ISerialized>& entryDelta, u32 arrayIndex, DeltaObjectMap& inOutObjectMap, FrameVector<DeltaCommand>& outCommands, SerializationContext* context, FrameAllocator& allocator); // DEPRECATED - Except the DataBlock case
 	};
 
 	/** @} */

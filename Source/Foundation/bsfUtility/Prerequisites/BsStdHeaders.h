@@ -181,6 +181,14 @@ namespace bs
 		using value = typename SPtr<T>::element_type;
 	};
 
+	/** Checks is the provided type std::pair<K, V>. */
+	template<typename T>
+	struct B3DIsStdPair : std::false_type { };
+
+	template<typename KeyType, typename ValueType>
+	struct B3DIsStdPair<std::pair<KeyType, ValueType>> : std::true_type { };
+
+
 	// Checks if a specific template specialization exists
 	template <class T, std::size_t = sizeof(T)>
 	std::true_type B3DIsCompleteImplementation(T*);

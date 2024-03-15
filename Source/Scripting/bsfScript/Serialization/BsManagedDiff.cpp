@@ -9,7 +9,7 @@
 #include "Scene/BsSceneObject.h"
 
 using namespace bs;
-SPtr<SerializedObject> ManagedDiff::GenerateDiffInternal(IReflectable* orgObj, IReflectable* newObj, ObjectMap& objectMap, bool reflectableOnly)
+SPtr<SerializedObject> ManagedDiff::GenerateDeltaRecursive(IReflectable* orgObj, IReflectable* newObj, ObjectMap& objectMap, bool reflectableOnly)
 {
 	CoreSerializationContext context;
 
@@ -62,7 +62,7 @@ SPtr<SerializedObject> ManagedDiff::GenerateDiffInternal(IReflectable* orgObj, I
 	return output;
 }
 
-void ManagedDiff::ApplyDiff(const SPtr<IReflectable>& object, const SPtr<SerializedObject>& serzDiff, FrameAllocator& alloc, DiffObjectMap& objectMap, FrameVector<DiffCommand>& diffCommands, SerializationContext* context)
+void ManagedDiff::GenerateDeltaApplyCommands(const SPtr<IReflectable>& object, const SPtr<SerializedObject>& serzDiff, FrameAllocator& alloc, DeltaObjectMap& objectMap, FrameVector<DeltaCommand>& diffCommands, SerializationContext* context)
 {
 	SPtr<SerializedObject> diffObj = std::static_pointer_cast<SerializedObject>(serzDiff->SubObjects[0].FieldEntries[0].Value);
 

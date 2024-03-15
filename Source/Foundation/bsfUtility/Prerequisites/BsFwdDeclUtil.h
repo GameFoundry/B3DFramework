@@ -248,5 +248,6 @@ namespace bs
 		TID_Bitfield = 82,
 		TID_RTTIFieldTypeSchema = 83,
 		TID_SerializedTuple = 84,
+		TID_SerializedMap = 85,
 	};
 } // namespace bs

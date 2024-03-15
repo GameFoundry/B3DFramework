@@ -636,7 +636,12 @@ bool BinaryDeserializationContext::DeserializeReflectableObject(SPtr<RTTISchema>
 					}
 
 					if(iterator != nullptr)
+					{
+						iterator->SeekToEnd(); // Ensures value is inserted at the end of the iterable container
+
 						iteratorField->SetIteratorValue(rttiInstance, output.get(), mAllocator, *iterator, fieldValue);
+						iteratorField->FreeFieldValue(fieldValue, mAllocator);
+					}
 				}
 			}
 		}
@@ -1299,7 +1304,7 @@ bool BinarySerializationContext::SerializeReflectableObject(IReflectable* object
 				{
 					for(; iterator->IsValid(); iterator->Increment())
 					{
-						const void* fieldValue = iterator->GetValue();
+						const void* fieldValue = iteratorField->GetIteratorValue(rttiInstance, object, mAllocator, *iterator);
 						for(u32 typeIndex = 0; typeIndex < (u32)iteratorField->Schema.FieldTypes.Size(); ++typeIndex)
 						{
 							const RTTIFieldTypeSchema& typeSchema = iteratorField->Schema.FieldTypes[typeIndex];

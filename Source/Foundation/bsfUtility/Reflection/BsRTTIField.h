@@ -23,22 +23,21 @@ namespace bs
 	 */
 
 	/**
-	 * Types of fields we can serialize:
+	 * Data types we can serialize:
+	 *
+	 * - Reflectable - Reference to an object implementing the IReflectable interface. Each field in its RTTI information will be iterated over
+	 *				   and visited recursively. Fields can contain other IReflectable objects, which will be iterated recursively.
+	 *				   Supports versioning via field IDs, so you are freed to add/remove fields as long as they have unique IDs.
+	 * 
+	 * - Reflectable pointer - A SPtr<IReflectable>. Same as Reflectable type, except the object is not referenced by value, and is instead referenced by pointer.
+	 *						   If multiple fields point to the same object the serialization system will ensure a single object instance is serialized and deserialized.
 	 *
 	 * - Plain - Native data types, POD (Plain old data) structures, or in general types we don't want to (or can't) inherit from IReflectable.
-	 *			 Type must be copyable by memcpy.
+	 *			 Type must specialize RTTIPlainType<T> template.
 	 *
 	 * - DataBlock - Array of bytes of a certain size. When returning a data block you may specify if its managed or unmanaged.
 	 *				 Managed data blocks have their buffers deleted after they go out of scope. This is useful if you need to return some
 	 *				 temporary data. On the other hand if the data in the block belongs to your class, and isn't temporary, keep the data unmanaged.
-	 *
-	 * - Reflectable - Field that is of IReflectable type. Cannot be a pointer to IReflectable and must be actual value type.
-	 *				   Type and its fields are serialized recursively. Supports versioning so you may add/remove fields from the type
-	 *				   without breaking previously serialized data.
-	 *
-	 * - ReflectablePtr - A pointer to IReflectable. Same as "Reflectable" except that data isn't serialized as a value type,
-	 *					  but as a pointer, which may be referenced by multiple other instances. All references are saved upon
-	 *					  serialization and restored upon deserialization.
 	 */
 	enum SerializableFieldType
 	{
@@ -49,7 +48,7 @@ namespace bs
 	};
 
 	/** Information about a type stored in a RTTIField. A single field can hold one or multiple types (e.g. in case of a map entry it will store a key/value pair). */
-	struct RTTIFieldTypeSchema : IReflectable
+	struct B3D_UTILITY_EXPORT RTTIFieldTypeSchema : IReflectable
 	{
 		RTTIFieldTypeSchema() = default;
 		RTTIFieldTypeSchema(bool hasDynamicSize, BitLength fixedSize, SerializableFieldType type, u32 fieldTypeId, SPtr<RTTISchema> fieldTypeSchema)

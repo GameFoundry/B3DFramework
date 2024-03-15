@@ -168,6 +168,19 @@ namespace bs
 			Init(std::move(name), RTTIFieldSchema(uniqueId, true, RTTIPlainType<DataType>::hasDynamicSize, size, SerializableFT_Plain, RTTIPlainType<DataType>::id, nullptr, info));
 		}
 
+		void InitSchema() override
+		{
+			// Add the new schema type
+			RTTIFieldTypeSchema fieldTypeSchema;
+			fieldTypeSchema.FieldTypeId = Schema.FieldTypeId;
+			fieldTypeSchema.FieldTypeSchema = Schema.FieldTypeSchema;
+			fieldTypeSchema.Type = Schema.Type;
+			fieldTypeSchema.FixedSize = Schema.Size;
+			fieldTypeSchema.HasDynamicSize = Schema.HasDynamicSize;
+
+			Schema.FieldTypes.Add(fieldTypeSchema);
+		}
+
 		u32 GetTypeId() override
 		{
 			return RTTIPlainType<DataType>::id;

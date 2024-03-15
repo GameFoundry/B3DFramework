@@ -57,6 +57,19 @@ namespace bs
 			Init(std::move(name), RTTIFieldSchema(uniqueId, false, true, 0, SerializableFT_DataBlock, 0, nullptr, info));
 		}
 
+		void InitSchema() override
+		{
+			// Add the new schema type
+			RTTIFieldTypeSchema fieldTypeSchema;
+			fieldTypeSchema.FieldTypeId = Schema.FieldTypeId;
+			fieldTypeSchema.FieldTypeSchema = Schema.FieldTypeSchema;
+			fieldTypeSchema.Type = Schema.Type;
+			fieldTypeSchema.FixedSize = Schema.Size;
+			fieldTypeSchema.HasDynamicSize = Schema.HasDynamicSize;
+
+			Schema.FieldTypes.Add(fieldTypeSchema);
+		}
+
 		u32 GetArraySize(RTTITypeBase* rtti, void* object) override
 		{
 			B3D_EXCEPT(InternalErrorException, "Data block types don't support arrays.");
