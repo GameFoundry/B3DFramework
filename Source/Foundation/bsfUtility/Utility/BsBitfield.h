@@ -132,7 +132,7 @@ namespace bs
 		{
 			B3D_ASSERT((bool)*this);
 
-			return ReferenceType(mOwner.mData[mDwordIndex], mMask);
+			return ReferenceType(mOwner.mAllocator.GetElements()[mDwordIndex], mMask);
 		}
 
 	private:
@@ -166,19 +166,19 @@ namespace bs
 		 * Initializes the bitfield with enough storage for @p count bits and sets them to the initial value of @p value.
 		 */
 		TBitfield(bool value = false, u64 count = 0)
-			: mNumBits(count)
 		{
+			Realloc(count);
+
+			// Must assign this after reallocating, as reallocation uses this to determine current element count
+			mNumBits = count;
+
 			if(count > 0)
-			{
-				Realloc(count);
 				Reset(value);
-			}
 		}
 
 		~TBitfield() = default;
 
 		TBitfield(const TBitfield& other)
-			: mNumBits(other.mNumBits)
 		{
 			*this = other;
 		}
@@ -209,7 +209,6 @@ namespace bs
 
 		TBitfield& operator=(TBitfield&& rhs)
 		{
-
 			if(this != &rhs)
 			{
 				const u64 myDwordCount = Math::DivideAndRoundUp(mNumBits, kBitsPerDword);
@@ -458,11 +457,10 @@ namespace bs
 		void Realloc(u64 bitCapacity)
 		{
 			bitCapacity = Math::DivideAndRoundUp(bitCapacity, kBitsPerDword) * kBitsPerDword;
+			bitCapacity = Math::Max(mAllocator.GetMinimumCapacity() * kBitsPerDword, bitCapacity);
 
 			if(bitCapacity != mMaxBits)
 			{
-				B3D_ASSERT(bitCapacity > mMaxBits);
-
 				const u64 currentDwordCount = Math::DivideAndRoundUp(mNumBits, kBitsPerDword);
 				const u64 newDwordCount = Math::DivideAndRoundUp(bitCapacity, kBitsPerDword);
 

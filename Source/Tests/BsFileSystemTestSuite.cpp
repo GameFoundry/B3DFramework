@@ -293,5 +293,5 @@ void FileSystemTestSuite::TestGetTempDirectoryPath()
 {
 	Path path = FileSystem::GetTempDirectoryPath();
 	/* No judging. */
-	B3D_TEST_ASSERT(!path.toString().empty());
+	B3D_TEST_ASSERT(!path.ToString().empty());
 }

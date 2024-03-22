@@ -16,8 +16,8 @@ namespace bs
 	private:
 		void TestBitfield();
 		void TestOctree();
-		void TestSmallVector();
-		void TestDynArray();
+		void TestInlineArray();
+		void TestArray();
 		void TestComplex();
 		void TestMinHeap();
 		void TestQuadtree();

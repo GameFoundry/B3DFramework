@@ -720,6 +720,8 @@ namespace bs
 		TID_GUIPanel = 1244,
 		TID_GUIFixedSpace = 1245,
 		TID_GUIFlexibleSpace = 1246,
+		TID_UnitTestSerializationObjectA = 1247,
+		TID_UnitTestSerializationObjectB = 1248,
 
 		// Moved from Engine layer
 		TID_CCamera = 30000,

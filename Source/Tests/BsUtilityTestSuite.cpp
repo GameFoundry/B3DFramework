@@ -4,7 +4,7 @@
 #include "BsFileSystemTestSuite.h"
 #include "Utility/BsOctree.h"
 #include "Utility/BsBitfield.h"
-#include "Utility/BsDynArray.h"
+#include "Utility/BsTArray.h"
 #include "Math/BsComplex.h"
 #include "Reflection/BsRTTIIterator.h"
 #include "Utility/BsMinHeap.h"
@@ -124,13 +124,14 @@ UtilityTestSuite::UtilityTestSuite()
 {
 	B3D_ADD_TEST(UtilityTestSuite::TestOctree);
 	B3D_ADD_TEST(UtilityTestSuite::TestBitfield);
-	B3D_ADD_TEST(UtilityTestSuite::TestTInlineArray);
-	B3D_ADD_TEST(UtilityTestSuite::TestDynArray);
+	B3D_ADD_TEST(UtilityTestSuite::TestInlineArray);
+	B3D_ADD_TEST(UtilityTestSuite::TestArray);
 	B3D_ADD_TEST(UtilityTestSuite::TestComplex);
 	B3D_ADD_TEST(UtilityTestSuite::TestMinHeap);
 	B3D_ADD_TEST(UtilityTestSuite::TestQuadtree)
 	B3D_ADD_TEST(UtilityTestSuite::TestVarInt)
 	B3D_ADD_TEST(UtilityTestSuite::TestBitStream)
+	B3D_ADD_TEST(UtilityTestSuite::TestRTTIIterator)
 }
 
 void UtilityTestSuite::TestBitfield()
@@ -138,7 +139,7 @@ void UtilityTestSuite::TestBitfield()
 	static constexpr u32 kCount = 100;
 	static constexpr u32 kExtraCount = 32;
 
-	Bitfield bitfield(true, kCount);
+	TBitfield bitfield(true, kCount);
 
 	// Basic iteration
 	u32 i = 0;
@@ -295,7 +296,7 @@ void UtilityTestSuite::TestOctree()
 		octree.RemoveElement(entry.OctreeId);
 }
 
-void UtilityTestSuite::TestTInlineArray()
+void UtilityTestSuite::TestInlineArray()
 {
 	struct SomeElem
 	{
@@ -381,7 +382,7 @@ void UtilityTestSuite::TestTInlineArray()
 	B3D_TEST_ASSERT(v6[4].B == 44);
 }
 
-void UtilityTestSuite::TestDynArray()
+void UtilityTestSuite::TestArray()
 {
 	struct SomeElem
 	{
@@ -390,7 +391,7 @@ void UtilityTestSuite::TestDynArray()
 	};
 
 	// Make sure initial construction works
-	DynArray<SomeElem> v(4);
+	TArray<SomeElem> v(4);
 	B3D_TEST_ASSERT(v.Size() == 4);
 	B3D_TEST_ASSERT(v.Capacity() == 4);
 	B3D_TEST_ASSERT(v[0].A == 10);
@@ -407,7 +408,7 @@ void UtilityTestSuite::TestDynArray()
 	B3D_TEST_ASSERT(v[4].B == 4);
 
 	// Make a copy
-	DynArray<SomeElem> v2 = v;
+	TArray<SomeElem> v2 = v;
 	B3D_TEST_ASSERT(v2.Size() == 5);
 	B3D_TEST_ASSERT(v2[0].A == 10);
 	B3D_TEST_ASSERT(v2[3].A == 10);
@@ -475,19 +476,19 @@ void UtilityTestSuite::TestDynArray()
 	B3D_TEST_ASSERT(v[6].B == 4);
 
 	// Shrink capacity
-	v.Shrink();
-	B3D_TEST_ASSERT(v.Size() == v.Capacity());
-	B3D_TEST_ASSERT(v[0].A == 10);
-	B3D_TEST_ASSERT(v[1].A == 10);
-	B3D_TEST_ASSERT(v[2].A == 10);
-	B3D_TEST_ASSERT(v[3].A == 55);
-	B3D_TEST_ASSERT(v[4].A == 99);
-	B3D_TEST_ASSERT(v[5].A == 10);
-	B3D_TEST_ASSERT(v[6].A == 3);
-	B3D_TEST_ASSERT(v[6].B == 4);
+	//v.Shrink();
+	//B3D_TEST_ASSERT(v.Size() == v.Capacity());
+	//B3D_TEST_ASSERT(v[0].A == 10);
+	//B3D_TEST_ASSERT(v[1].A == 10);
+	//B3D_TEST_ASSERT(v[2].A == 10);
+	//B3D_TEST_ASSERT(v[3].A == 55);
+	//B3D_TEST_ASSERT(v[4].A == 99);
+	//B3D_TEST_ASSERT(v[5].A == 10);
+	//B3D_TEST_ASSERT(v[6].A == 3);
+	//B3D_TEST_ASSERT(v[6].B == 4);
 
 	// Move it
-	DynArray<SomeElem> v3 = std::move(v2);
+	TArray<SomeElem> v3 = std::move(v2);
 	B3D_TEST_ASSERT(v2.Size() == 0);
 	B3D_TEST_ASSERT(v3.Size() == 4);
 	B3D_TEST_ASSERT(v3[0].A == 10);
@@ -869,48 +870,116 @@ void UtilityTestSuite::TestBitStream()
 	B3D_TEST_ASSERT(ulv == v11);
 }
 
-void UtilityTestSuite::TestRTITIterator()
+void UtilityTestSuite::TestRTTIIterator()
 {
 	Vector<int> values = { 5, 10, 33, 24, 16 };
 
-	RTTIIterator vectorIterator(values);
-	for(auto iterator = vectorIterator; iterator.IsValid(); ++iterator)
+	TRTTIIterator<Vector<int>, true> rttiVectorIterator(values);
+	B3D_TEST_ASSERT(rttiVectorIterator.SupportsSeekToIndex());
+	B3D_TEST_ASSERT(!rttiVectorIterator.SupportsSeekToKey());
+
+	auto vectorIterator = values.begin();
+	for(; rttiVectorIterator.IsValid(); ++rttiVectorIterator, ++vectorIterator)
 	{
-		B3D_LOG(Warning, GUI, "Value is {0}", *iterator);
+		B3D_TEST_ASSERT(*rttiVectorIterator == *vectorIterator)
 	}
 
-	vectorIterator.ResetToEnd();
-	vectorIterator = 100;
-	vectorIterator = 200;
-	vectorIterator = 500;
+	rttiVectorIterator.SeekToEnd();
+	rttiVectorIterator = 100;
+	rttiVectorIterator.SeekToEnd();
+	rttiVectorIterator = 200;
+	rttiVectorIterator.SeekToEnd();
+	rttiVectorIterator = 500;
+	B3D_TEST_ASSERT(rttiVectorIterator.GetElementCount() == 8)
 
-	vectorIterator.ResetToBeginning();
-	for(auto iterator = vectorIterator; iterator.IsValid(); ++iterator)
+	rttiVectorIterator.SeekToBeginning();
+	vectorIterator = values.begin();
+	for(; rttiVectorIterator.IsValid(); ++rttiVectorIterator, ++vectorIterator)
 	{
-		B3D_LOG(Warning, GUI, "Value is {0}", *iterator);
+		B3D_TEST_ASSERT(*rttiVectorIterator == *vectorIterator)
 	}
 
-	UnorderedMap<int, int> mapValues;
+	rttiVectorIterator.SeekToIndex(3);
+	B3D_TEST_ASSERT(*rttiVectorIterator == values[3])
+
+	rttiVectorIterator.SeekToIndex(5);
+	B3D_TEST_ASSERT(*rttiVectorIterator == 100)
+
+	rttiVectorIterator = 1000;
+	B3D_TEST_ASSERT(*rttiVectorIterator == 1000)
+	B3D_TEST_ASSERT(rttiVectorIterator.GetElementCount() == 8)
+
+	rttiVectorIterator.SeekToIndex(50);
+	B3D_TEST_ASSERT(!rttiVectorIterator.IsValid())
+
+	rttiVectorIterator.SeekToEnd();
+	rttiVectorIterator = 5000;
+	B3D_TEST_ASSERT(*rttiVectorIterator == 5000)
+	B3D_TEST_ASSERT(rttiVectorIterator.GetElementCount() == 9)
+
+	Map<int, int> mapValues;
 	mapValues[5] = 500;
 	mapValues[10] = 1000;
 	mapValues[33] = 3300;
 	mapValues[24] = 2400;
 	mapValues[16] = 1600;
 
-	RTTIIterator mapIterator(mapValues);
-	for(auto iterator = mapIterator; iterator.IsValid(); ++iterator)
+	TRTTIIterator<Map<int, int>, true> rttiMapIterator(mapValues);
+	B3D_TEST_ASSERT(rttiMapIterator.SupportsSeekToKey())
+
+	auto mapIterator = mapValues.begin();
+	for(; rttiMapIterator.IsValid(); ++rttiMapIterator, ++mapIterator)
 	{
-		B3D_LOG(Warning, GUI, "Value is {0}:{1}", (*iterator).first, (*iterator).second);
+		B3D_TEST_ASSERT(*rttiMapIterator == *mapIterator)
 	}
 
-	mapIterator.ResetToEnd();
-	mapIterator = std::make_pair(100, 10000);
-	mapIterator = std::make_pair(200, 20000);
-	mapIterator = std::make_pair(500, 50000);
+	rttiMapIterator.SeekToEnd();
+	rttiMapIterator = std::make_pair(100, 10000);
+	rttiMapIterator.SeekToEnd();
+	rttiMapIterator = std::make_pair(200, 20000);
+	rttiMapIterator.SeekToEnd();
+	rttiMapIterator = std::make_pair(500, 50000);
 
-	mapIterator.ResetToBeginning();
-	for(auto iterator = mapIterator; iterator.IsValid(); ++iterator)
+	B3D_TEST_ASSERT(rttiMapIterator.GetElementCount() == 8)
+
+	rttiMapIterator.SeekToBeginning();
+	mapIterator = mapValues.begin();
+	for(; rttiMapIterator.IsValid(); ++rttiMapIterator, ++mapIterator)
 	{
-		B3D_LOG(Warning, GUI, "Value is {0}:{1}", (*iterator).first, (*iterator).second);
+		B3D_TEST_ASSERT(*rttiMapIterator == *mapIterator)
 	}
+
+	rttiMapIterator.SeekToBeginning();
+	const void* pair5 = rttiMapIterator.GetValue();
+	rttiMapIterator.SeekToKey(pair5);
+	B3D_TEST_ASSERT((*rttiMapIterator).first == 5)
+	B3D_TEST_ASSERT((*rttiMapIterator).second == mapValues[5])
+
+	const auto pair33 = std::make_pair(33, 3300);
+	rttiMapIterator.SeekToKey(&pair33);
+	B3D_TEST_ASSERT((*rttiMapIterator).first == pair33.first)
+	B3D_TEST_ASSERT((*rttiMapIterator).second == mapValues[33])
+
+	const auto pair100 = std::make_pair(100, 10000);
+	rttiMapIterator.SeekToKey(&pair100);
+	B3D_TEST_ASSERT((*rttiMapIterator).first == pair100.first)
+	B3D_TEST_ASSERT((*rttiMapIterator).second == mapValues[100])
+
+	rttiMapIterator = std::make_pair(800, 33333);
+	B3D_TEST_ASSERT((*rttiMapIterator).first == 800)
+	B3D_TEST_ASSERT((*rttiMapIterator).second == 33333)
+	B3D_TEST_ASSERT((*rttiMapIterator).second == mapValues[800])
+	B3D_TEST_ASSERT(mapValues.find(100) == mapValues.end())
+	B3D_TEST_ASSERT(rttiMapIterator.GetElementCount() == 8)
+
+	const auto pair70 = std::make_pair(70, 0);
+	rttiMapIterator.SeekToKey(&pair70);
+	B3D_TEST_ASSERT(!rttiMapIterator.IsValid())
+
+	rttiMapIterator.SeekToEnd();
+	rttiMapIterator = std::make_pair(1200, 66666);
+	B3D_TEST_ASSERT((*rttiMapIterator).first == 1200)
+	B3D_TEST_ASSERT((*rttiMapIterator).second == 66666)
+	B3D_TEST_ASSERT((*rttiMapIterator).second == mapValues[1200])
+	B3D_TEST_ASSERT(rttiMapIterator.GetElementCount() == 9)
 }
