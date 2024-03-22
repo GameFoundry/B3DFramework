@@ -496,7 +496,6 @@ namespace RTTIWrapper
 	Object<false>::Object(SerializedObject* object, FrameAllocator* frameAllocator)
 		: mObject(object), mFrameAllocator(frameAllocator)
 	{
-		B3D_ASSERT(object != nullptr);
 		B3D_ASSERT(frameAllocator != nullptr);
 	}
 
@@ -732,7 +731,7 @@ namespace RTTIWrapper
 
 			return mMapIterator != mMapContainerValue->Entries.end();
 		}
-		else if(mValue != nullptr)
+		else
 		{
 			if(!mIsIteratorSet)
 			{
