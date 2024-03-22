@@ -211,6 +211,14 @@ namespace bs
 		TID_Bool = 0,
 		TID_Int32 = 1,
 		TID_UInt32 = 2,
+		TID_Float = 0, // TODO - Keeping ID 0 for compatibility. This should be updated with a proper id.
+		TID_Double = 0, // TODO - Keeping ID 0 for compatibility. This should be updated with a proper id.
+		TID_Int8 = 0, // TODO - Keeping ID 0 for compatibility. This should be updated with a proper id.
+		TID_UInt8 = 0, // TODO - Keeping ID 0 for compatibility. This should be updated with a proper id.
+		TID_Int16 = 0, // TODO - Keeping ID 0 for compatibility. This should be updated with a proper id.
+		TID_UInt16 = 0, // TODO - Keeping ID 0 for compatibility. This should be updated with a proper id.
+		TID_Int64 = 0, // TODO - Keeping ID 0 for compatibility. This should be updated with a proper id.
+		TID_UInt64 = 0, // TODO - Keeping ID 0 for compatibility. This should be updated with a proper id.
 		// First 16 entries reserved for builtin types
 
 		TID_Abstract = 50, // Special type ID used for Abstract classes. Only type ID that may be used by more than one class.
@@ -249,5 +257,7 @@ namespace bs
 		TID_RTTIFieldTypeSchema = 83,
 		TID_SerializedTuple = 84,
 		TID_SerializedMap = 85,
+		TID_Size2 = 86,
+		TID_Size2UI = 87
 	};
 } // namespace bs

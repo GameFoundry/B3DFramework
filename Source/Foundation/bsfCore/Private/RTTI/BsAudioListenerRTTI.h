@@ -5,6 +5,7 @@
 #include "BsCorePrerequisites.h"
 #include "Reflection/BsRTTIPlain.h"
 #include "Reflection/BsRTTIType.h"
+#include "RTTI/BsMathRTTI.h"
 #include "Audio/BsAudioListener.h"
 
 namespace bs

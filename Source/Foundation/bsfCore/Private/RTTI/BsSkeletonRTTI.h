@@ -5,6 +5,7 @@
 #include "BsCorePrerequisites.h"
 #include "Reflection/BsRTTIType.h"
 #include "RTTI/BsStringRTTI.h"
+#include "RTTI/BsMathRTTI.h"
 #include "Animation/BsSkeleton.h"
 
 namespace bs

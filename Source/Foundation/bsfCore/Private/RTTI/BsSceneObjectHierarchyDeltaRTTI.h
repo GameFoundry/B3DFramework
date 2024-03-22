@@ -6,6 +6,7 @@
 #include "Reflection/BsRTTIType.h"
 #include "RTTI/BsStringRTTI.h"
 #include "RTTI/BsUUIDRTTI.h"
+#include "RTTI/BsMathRTTI.h"
 #include "Scene/BsSceneObjectHierarchyDelta.h"
 #include "Serialization/BsSerializedObject.h"
 #include "Scene/BsGameObjectManager.h"

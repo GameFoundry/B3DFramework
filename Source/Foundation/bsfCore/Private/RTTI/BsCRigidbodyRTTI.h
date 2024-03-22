@@ -6,6 +6,7 @@
 #include "Reflection/BsRTTIType.h"
 #include "Components/BsCRigidbody.h"
 #include "Private/RTTI/BsGameObjectRTTI.h"
+#include "RTTI/BsMathRTTI.h"
 
 namespace bs
 {

@@ -6,6 +6,7 @@
 #include "Reflection/BsRTTIType.h"
 #include "Reflection/BsRTTIPlain.h"
 #include "Components/BsCCollider.h"
+#include "RTTI/BsMathRTTI.h"
 
 namespace bs
 {

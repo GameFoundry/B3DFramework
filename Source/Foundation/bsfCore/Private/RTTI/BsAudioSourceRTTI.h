@@ -6,6 +6,7 @@
 #include "Reflection/BsRTTIPlain.h"
 #include "Reflection/BsRTTIType.h"
 #include "Audio/BsAudioSource.h"
+#include "RTTI/BsMathRTTI.h"
 
 namespace bs
 {

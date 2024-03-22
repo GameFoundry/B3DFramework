@@ -751,8 +751,8 @@ namespace bs
 		void AddPlainField(const String& name, u32 uniqueId, DataType& (InterfaceType::*getter)(ObjectType*), void (InterfaceType::*setter)(ObjectType*, DataType&), const RTTIFieldInfo& info = RTTIFieldInfo::DEFAULT)
 		{
 			static_assert((std::is_base_of<bs::RTTIType<Type, BaseType, MyRTTIType>, InterfaceType>::value), "Class with the get/set methods must derive from bs::RTTIType.");
-
 			static_assert(!(std::is_base_of<bs::IReflectable, DataType>::value), "Data type derives from IReflectable but it is being added as a plain field.");
+			static_assert(B3DHasRTTIPlainTypeSpecialization<DataType>::value, "Data type must provide a RTTIPlainType specialization.");
 
 			auto newField = B3DNew<RTTIPlainField<InterfaceType, DataType, ObjectType>>();
 			newField->InitSingle(name, uniqueId, getter, setter, info);
@@ -786,8 +786,8 @@ namespace bs
 		void AddPlainArrayField(const String& name, u32 uniqueId, DataType& (InterfaceType::*getter)(ObjectType*, u32), u32 (InterfaceType::*getSize)(ObjectType*), void (InterfaceType::*setter)(ObjectType*, u32, DataType&), void (InterfaceType::*setSize)(ObjectType*, u32), const RTTIFieldInfo& info = RTTIFieldInfo::DEFAULT)
 		{
 			static_assert((std::is_base_of<bs::RTTIType<Type, BaseType, MyRTTIType>, InterfaceType>::value), "Class with the get/set methods must derive from bs::RTTIType.");
-
 			static_assert(!(std::is_base_of<bs::IReflectable, DataType>::value), "Data type derives from IReflectable but it is being added as a plain field.");
+			static_assert(B3DHasRTTIPlainTypeSpecialization<DataType>::value, "Data type must provide a RTTIPlainType specialization.");
 
 			auto newField = B3DNew<RTTIPlainField<InterfaceType, DataType, ObjectType>>();
 			newField->InitArray(name, uniqueId, getter, getSize, setter, setSize, info);
