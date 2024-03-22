@@ -5,6 +5,7 @@
 #include "BsCorePrerequisites.h"
 #include "Reflection/BsRTTIType.h"
 #include "RTTI/BsColorRTTI.h"
+#include "RTTI/BsMathRTTI.h"
 #include "Renderer/BsRenderSettings.h"
 
 namespace bs

@@ -80,6 +80,71 @@ namespace bs
 	};
 
 	/**
+	 * RTTIPlainType for std::array.
+	 *
+	 * @see		RTTIPlainType
+	 */
+	template <class T, u32 N>
+	struct RTTIPlainType<std::array<T, N>>
+	{
+		enum
+		{
+			id = TID_Array
+		};
+
+		enum
+		{
+			hasDynamicSize = 1
+		};
+
+		static BitLength ToMemory(const std::array<T, N>& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
+		{
+			return B3DRTTIWriteWithSizeHeader(stream, data, compress, [&data, &stream]()
+											   {
+				BitLength size = 0;
+
+				size += B3DRTTIWrite(N, stream);
+
+				for (const auto& item : data)
+					size += B3DRTTIWrite(item, stream);
+
+				return size; });
+		}
+
+		static BitLength FromMemory(std::array<T, N>& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
+		{
+			BitLength size;
+			B3DRTTIReadSizeHeader(stream, compress, size);
+
+			uint32_t numElements;
+			B3DRTTIRead(numElements, stream);
+
+			numElements = std::min(numElements, N);
+
+			for(uint32_t i = 0; i < numElements; i++)
+			{
+				T element;
+				B3DRTTIRead(element, stream);
+
+				data[i] = element;
+			}
+
+			return size;
+		}
+
+		static BitLength GetSize(const std::array<T, N>& data, const RTTIFieldInfo& fieldInfo, bool compress)
+		{
+			BitLength dataSize = sizeof(uint32_t);
+
+			for(const auto& item : data)
+				dataSize += B3DRTTISize(item);
+
+			B3DRTTIAddHeaderSize(dataSize, compress);
+			return dataSize;
+		}
+	};
+
+	/**
 	 * RTTIPlainType for std::list.
 	 *
 	 * @see		RTTIPlainType
