@@ -130,6 +130,8 @@ void IntermediateSerializer::DeserializeReflectableObject(const SPtr<IReflectabl
 			{
 				SPtr<SerializedArray> serializedArray = std::static_pointer_cast<SerializedArray>(serializedFieldValue);
 
+				curGenericField->SetArraySize(rttiInstance, object.get(), serializedArray->ElementCount);
+
 				for(const auto& serializedArrayEntryPair : serializedArray->Entries)
 				{
 					SPtr<ISerialized> serializedArrayEntryValue = serializedArrayEntryPair.second.Value;
