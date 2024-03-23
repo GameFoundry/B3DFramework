@@ -5,6 +5,8 @@
 #include "Animation/BsAnimationCurve.h"
 #include "Particles/BsParticleDistribution.h"
 #include "RTTI/BsStringRTTI.h"
+#include "Serialization/BsBinarySerializer.h"
+#include "FileSystem/BsDataStream.h"
 
 using namespace bs;
 
@@ -177,20 +179,94 @@ public:
 private:
 	void TestAnimCurveIntegration();
 	void TestLookupTable();
+	void TestBinarySerialization();
+	void TestSerializedObject();
 	void TestBinaryDelta();
+
+	void AssertObjectsMatch(const SPtr<UnitTestSerializationObjectA>& lhs, const SPtr<UnitTestSerializationObjectA>& rhs);
+
+	static SPtr<UnitTestSerializationObjectA> CreateSerializationTestObjectVariantA();
+	static SPtr<UnitTestSerializationObjectA> CreateSerializationTestObjectVariantB();
+
 };
 
 CoreTestSuite::CoreTestSuite()
 {
 	B3D_ADD_TEST(CoreTestSuite::TestAnimCurveIntegration)
 	B3D_ADD_TEST(CoreTestSuite::TestLookupTable)
+	B3D_ADD_TEST(CoreTestSuite::TestBinarySerialization)
+	B3D_ADD_TEST(CoreTestSuite::TestSerializedObject)
 	B3D_ADD_TEST(CoreTestSuite::TestBinaryDelta)
 
 	// TODO - Add unit tests for:
-	// - Binary serialization/deserialization
-	// - Intermediate serialization/deserialization
 	// - SceneObject/Component serialization/deserialization
 	// - Various Prefab operations
+}
+
+SPtr<UnitTestSerializationObjectA> CoreTestSuite::CreateSerializationTestObjectVariantA()
+{
+	return B3DMakeShared<UnitTestSerializationObjectA>();
+}
+
+SPtr<UnitTestSerializationObjectA> CoreTestSuite::CreateSerializationTestObjectVariantB()
+{
+	SPtr<UnitTestSerializationObjectA> object = B3DMakeShared<UnitTestSerializationObjectA>();
+
+	object->IntA = 995;
+	object->StrA = "potato";
+	object->ArrStrB = { "orange", "carrot" };
+	object->ArrStrC[2] = "banana";
+	object->ObjB.IntA = 9940;
+	object->ObjPtrB->StrA = "kiwi";
+	object->ObjPtrC = nullptr;
+	object->ObjPtrD = B3DMakeShared<UnitTestSerializationObjectB>();
+	object->ArrObjB[1].StrA = "strawberry";
+	object->ArrObjPtrB[0]->IntA = 99100;
+
+	return object;
+}
+
+void CoreTestSuite::AssertObjectsMatch(const SPtr<UnitTestSerializationObjectA>& lhs, const SPtr<UnitTestSerializationObjectA>& rhs)
+{
+	B3D_TEST_ASSERT(lhs->IntA == rhs->IntA)
+	B3D_TEST_ASSERT(lhs->StrA == rhs->StrA)
+	B3D_TEST_ASSERT(lhs->StrB == rhs->StrB)
+
+	B3D_TEST_ASSERT(lhs->ObjA.IntA == rhs->ObjA.IntA)
+	B3D_TEST_ASSERT(lhs->ObjB.IntA == rhs->ObjB.IntA)
+
+	B3D_TEST_ASSERT(lhs->ObjPtrA->StrA == rhs->ObjPtrA->StrA)
+	B3D_TEST_ASSERT(lhs->ObjPtrB->StrA == rhs->ObjPtrB->StrA)
+	B3D_TEST_ASSERT(lhs->ObjPtrD->StrA == rhs->ObjPtrD->StrA)
+	B3D_TEST_ASSERT(lhs->ObjPtrC == rhs->ObjPtrC);
+
+	B3D_TEST_ASSERT(lhs->ArrStrA.size() == rhs->ArrStrA.size())
+	for(u32 i = 0; i < (u32)lhs->ArrStrA.size(); i++)
+		B3D_TEST_ASSERT(lhs->ArrStrA[i] == rhs->ArrStrA[i])
+
+	B3D_TEST_ASSERT(lhs->ArrStrB.size() == rhs->ArrStrB.size())
+	for(u32 i = 0; i < (u32)lhs->ArrStrB.size(); i++)
+		B3D_TEST_ASSERT(lhs->ArrStrB[i] == rhs->ArrStrB[i])
+
+	B3D_TEST_ASSERT(lhs->ArrStrC.size() == rhs->ArrStrC.size())
+	for(u32 i = 0; i < (u32)lhs->ArrStrC.size(); i++)
+		B3D_TEST_ASSERT(lhs->ArrStrC[i] == rhs->ArrStrC[i])
+
+	B3D_TEST_ASSERT(lhs->ArrObjA.size() == rhs->ArrObjA.size())
+	for(u32 i = 0; i < (u32)lhs->ArrObjA.size(); i++)
+		B3D_TEST_ASSERT(lhs->ArrObjA[i].StrA == rhs->ArrObjA[i].StrA)
+
+	B3D_TEST_ASSERT(lhs->ArrObjB.size() == rhs->ArrObjB.size())
+	for(u32 i = 0; i < (u32)lhs->ArrObjB.size(); i++)
+		B3D_TEST_ASSERT(lhs->ArrObjB[i].StrA == rhs->ArrObjB[i].StrA)
+
+	B3D_TEST_ASSERT(lhs->ArrObjPtrA.size() == rhs->ArrObjPtrA.size())
+	for(u32 i = 0; i < (u32)lhs->ArrObjPtrA.size(); i++)
+		B3D_TEST_ASSERT(lhs->ArrObjPtrA[i]->IntA == rhs->ArrObjPtrA[i]->IntA)
+
+	B3D_TEST_ASSERT(lhs->ArrObjPtrB.size() == rhs->ArrObjPtrB.size())
+	for(u32 i = 0; i < (u32)lhs->ArrObjPtrB.size(); i++)
+		B3D_TEST_ASSERT(lhs->ArrObjPtrB[i]->IntA == rhs->ArrObjPtrB[i]->IntA)
 }
 
 void CoreTestSuite::TestAnimCurveIntegration()
@@ -296,68 +372,43 @@ void CoreTestSuite::TestLookupTable()
 	}
 }
 
+void CoreTestSuite::TestBinarySerialization()
+{
+	const SPtr<UnitTestSerializationObjectA> object = CreateSerializationTestObjectVariantB();
+	
+	SPtr<MemoryDataStream> stream = B3DMakeShared<MemoryDataStream>();
+	BinarySerializer serializer;
+	serializer.Encode(object.get(), stream, BinarySerializerFlag::None);
+
+	stream->Seek(0);
+
+	const SPtr<UnitTestSerializationObjectA> deserializedObject = B3DRTTICast<UnitTestSerializationObjectA>(serializer.Decode(stream, (u32)stream->Size()));
+	AssertObjectsMatch(object, deserializedObject);
+}
+
+void CoreTestSuite::TestSerializedObject()
+{
+	const SPtr<UnitTestSerializationObjectA> object = CreateSerializationTestObjectVariantB();
+
+	const SPtr<SerializedObject> serializedObject = SerializedObject::Create(*object);
+	const SPtr<UnitTestSerializationObjectA> deserializedObject = B3DRTTICast<UnitTestSerializationObjectA>(serializedObject->Decode());
+
+	AssertObjectsMatch(object, deserializedObject);
+}
+
 void CoreTestSuite::TestBinaryDelta()
 {
-	SPtr<UnitTestSerializationObjectA> orgObj = B3DMakeShared<UnitTestSerializationObjectA>();
-	SPtr<UnitTestSerializationObjectA> newObj = B3DMakeShared<UnitTestSerializationObjectA>();
+	const SPtr<UnitTestSerializationObjectA> objectA = CreateSerializationTestObjectVariantA();
+	const SPtr<UnitTestSerializationObjectA> objectB = CreateSerializationTestObjectVariantB();
 
-	newObj->IntA = 995;
-	newObj->StrA = "potato";
-	newObj->ArrStrB = { "orange", "carrot" };
-	newObj->ArrStrC[2] = "banana";
-	newObj->ObjB.IntA = 9940;
-	newObj->ObjPtrB->StrA = "kiwi";
-	newObj->ObjPtrC = nullptr;
-	newObj->ObjPtrD = B3DMakeShared<UnitTestSerializationObjectB>();
-	newObj->ArrObjB[1].StrA = "strawberry";
-	newObj->ArrObjPtrB[0]->IntA = 99100;
+	const SPtr<SerializedObject> serializedObjectA = SerializedObject::Create(*objectA.get());
+	const SPtr<SerializedObject> serializedObjectB = SerializedObject::Create(*objectB.get());
 
-	SPtr<SerializedObject> orgSerialized = SerializedObject::Create(*orgObj.get());
-	SPtr<SerializedObject> newSerialized = SerializedObject::Create(*newObj.get());
+	IDeltaHandler& deltaHandler = objectA->GetRtti()->GetDeltaHandler();
+	SPtr<SerializedObject> delta = deltaHandler.GenerateDelta(serializedObjectA, serializedObjectB);
+	deltaHandler.ApplyDelta(objectA, delta, nullptr);
 
-	IDiff& diffHandler = orgObj->GetRtti()->GetDiffHandler();
-	SPtr<SerializedObject> objDiff = diffHandler.GenerateDiff(orgSerialized, newSerialized);
-	diffHandler.ApplyDiff(orgObj, objDiff, nullptr);
-
-	B3D_TEST_ASSERT(orgObj->IntA == newObj->IntA);
-	B3D_TEST_ASSERT(orgObj->StrA == newObj->StrA);
-	B3D_TEST_ASSERT(orgObj->StrB == newObj->StrB);
-
-	B3D_TEST_ASSERT(orgObj->ObjA.IntA == newObj->ObjA.IntA);
-	B3D_TEST_ASSERT(orgObj->ObjB.IntA == newObj->ObjB.IntA);
-
-	B3D_TEST_ASSERT(orgObj->ObjPtrA->StrA == newObj->ObjPtrA->StrA);
-	B3D_TEST_ASSERT(orgObj->ObjPtrB->StrA == newObj->ObjPtrB->StrA);
-	B3D_TEST_ASSERT(orgObj->ObjPtrD->StrA == newObj->ObjPtrD->StrA);
-	B3D_TEST_ASSERT(orgObj->ObjPtrC == newObj->ObjPtrC);
-
-	B3D_TEST_ASSERT(orgObj->ArrStrA.size() == newObj->ArrStrA.size());
-	for(u32 i = 0; i < (u32)orgObj->ArrStrA.size(); i++)
-		B3D_TEST_ASSERT(orgObj->ArrStrA[i] == newObj->ArrStrA[i]);
-
-	B3D_TEST_ASSERT(orgObj->ArrStrB.size() == newObj->ArrStrB.size());
-	for(u32 i = 0; i < (u32)orgObj->ArrStrB.size(); i++)
-		B3D_TEST_ASSERT(orgObj->ArrStrB[i] == newObj->ArrStrB[i]);
-
-	B3D_TEST_ASSERT(orgObj->ArrStrC.size() == newObj->ArrStrC.size());
-	for(u32 i = 0; i < (u32)orgObj->ArrStrC.size(); i++)
-		B3D_TEST_ASSERT(orgObj->ArrStrC[i] == newObj->ArrStrC[i]);
-
-	B3D_TEST_ASSERT(orgObj->ArrObjA.size() == newObj->ArrObjA.size());
-	for(u32 i = 0; i < (u32)orgObj->ArrObjA.size(); i++)
-		B3D_TEST_ASSERT(orgObj->ArrObjA[i].StrA == newObj->ArrObjA[i].StrA);
-
-	B3D_TEST_ASSERT(orgObj->ArrObjB.size() == newObj->ArrObjB.size());
-	for(u32 i = 0; i < (u32)orgObj->ArrObjB.size(); i++)
-		B3D_TEST_ASSERT(orgObj->ArrObjB[i].StrA == newObj->ArrObjB[i].StrA);
-
-	B3D_TEST_ASSERT(orgObj->ArrObjPtrA.size() == newObj->ArrObjPtrA.size());
-	for(u32 i = 0; i < (u32)orgObj->ArrObjPtrA.size(); i++)
-		B3D_TEST_ASSERT(orgObj->ArrObjPtrA[i]->IntA == newObj->ArrObjPtrA[i]->IntA);
-
-	B3D_TEST_ASSERT(orgObj->ArrObjPtrB.size() == newObj->ArrObjPtrB.size());
-	for(u32 i = 0; i < (u32)orgObj->ArrObjPtrB.size(); i++)
-		B3D_TEST_ASSERT(orgObj->ArrObjPtrB[i]->IntA == newObj->ArrObjPtrB[i]->IntA);
+	AssertObjectsMatch(objectA, objectB);
 }
 
 using namespace bs;
