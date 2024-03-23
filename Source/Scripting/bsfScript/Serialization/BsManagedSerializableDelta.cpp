@@ -7,7 +7,7 @@
 #include "Serialization/BsManagedSerializableArray.h"
 #include "Serialization/BsManagedSerializableList.h"
 #include "Serialization/BsManagedSerializableDictionary.h"
-#include "RTTI/BsManagedSerializableDiffRTTI.h"
+#include "RTTI/BsManagedSerializableDeltaRTTI.h"
 
 using namespace bs;
 ManagedSerializableDelta::ModifiedField::ModifiedField(const SPtr<ManagedSerializableTypeInfo>& parentType, const SPtr<ManagedSerializableMemberInfo>& fieldType, const SPtr<ManagedSerializableDelta::Modification>& modification)
