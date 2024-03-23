@@ -12,16 +12,16 @@ namespace bs
 	 */
 
 	/**
-	 * Handles creation and applying of managed diffs. A diff contains differences between two objects of identical types.
+	 * Handles creation and applying of managed deltas. A delta contains differences between two objects of identical types.
 	 * If the initial state of an object is known the recorded differences can be saved and applied to the original state to
 	 * restore the modified object.
 	 *
 	 * Differences are recorded per primitive field in an object. Complex objects are recursed. Special handling is
-	 * implemented to properly generate diffs for arrays, lists and dictionaries.
+	 * implemented to properly generate deltas for individual entries within arrays, lists and dictionaries.
 	 *
 	 * All primitive types supported by managed serialization are supported (see ScriptPrimitiveType).
 	 */
-	class B3D_SCRIPT_INTEROP_EXPORT ManagedSerializableDiff : public IReflectable
+	class B3D_SCRIPT_INTEROP_EXPORT ManagedSerializableDelta : public IReflectable
 	{
 	public:
 		/**	A base class for all modifications recorded in a diff. */
@@ -172,86 +172,78 @@ namespace bs
 		};
 
 	public:
-		ManagedSerializableDiff();
-		~ManagedSerializableDiff() = default;
+		ManagedSerializableDelta();
+		~ManagedSerializableDelta() = default;
 
 		/**
-		 * Generates a new managed diff object by comparing two objects of the same type. Callers must ensure both objects
-		 * are not null and of identical types.
+		 * Generates a new managed delta by comparing two objects. Caller must ensure both objects are not null and of identical types.
 		 *
-		 * @param[in]	oldObj	Original object. This is the object you can apply the diff to to convert it to @p newObj.
-		 * @param[in]	newObj	New modified object. Any values in this object that differ from the original object will be
-		 *						recorded in the diff.
+		 * @param	original	Original object to compared with @p modified. This is the object you can apply the delta to to convert it to @p modified.
+		 * @param	modified	Modified object. Any values in this object that differ from the original object will be recorded in the delta.
 		 * @return				Returns null if objects are identical.
 		 */
-		static SPtr<ManagedSerializableDiff> Create(const ManagedSerializableObject* oldObj, const ManagedSerializableObject* newObj);
+		static SPtr<ManagedSerializableDelta> Create(const ManagedSerializableObject* original, const ManagedSerializableObject* modified);
 
 		/**
-		 * Applies the diff data stored in this object to the specified object, modifying all fields in the object to
-		 * correspond to the stored diff data.
+		 * Applies the delta stored in this object to the specified object, modifying all fields in the object to correspond to the delta.
 		 */
-		void Apply(const SPtr<ManagedSerializableObject>& obj);
+		void Apply(const SPtr<ManagedSerializableObject>& object);
 
 	private:
-		/**
-		 * Recursively generates a diff between all fields of the specified objects. Returns null if objects are identical.
-		 */
-		SPtr<ModifiedObject> GenerateDiff(const ManagedSerializableObject* oldObj, const ManagedSerializableObject* newObj);
+		/** Recursively generates a delta between all fields of the specified objects. Returns null if objects are identical. */
+		SPtr<ModifiedObject> GenerateObjectDelta(const ManagedSerializableObject* original, const ManagedSerializableObject* modified);
 
 		/**
-		 * Generates a diff between two fields. Fields can be of any type and the system will generate the diff
-		 * appropriately. Diff is generated recursively on all complex objects as well. Returns null if fields contain
-		 * identical data.
+		 * Generates a delta between two fields. Fields can be of any type and the system will generate the delta appropriately. Delta is generated recursively on all complex objects.
+		 * Returns null if fields contain identical data.
 		 */
-		SPtr<Modification> GenerateDiff(const SPtr<ManagedSerializableFieldData>& oldData, const SPtr<ManagedSerializableFieldData>& newData, u32 fieldTypeId);
+		SPtr<Modification> GenerateFieldDelta(const SPtr<ManagedSerializableFieldData>& original, const SPtr<ManagedSerializableFieldData>& modified, u32 fieldTypeId);
 
 		/**
 		 * Applies an object modification to a managed object. Modifications are applied recursively.
 		 *
-		 * @param[in]	mod Object modification to apply.
-		 * @param[in]	obj	Object to apply the modification to.
-		 * @return		New field data in the case modification needed the object to be re-created instead of just modified.
+		 * @param	delta	Object modification to apply.
+		 * @param	object	Object to apply the modification to.
+		 * @return			New field data in the case modification needed the object to be re-created instead of just modified.
 		 */
-		SPtr<ManagedSerializableFieldData> ApplyDiff(const SPtr<ModifiedObject>& mod, const SPtr<ManagedSerializableObject>& obj);
+		SPtr<ManagedSerializableFieldData> ApplyObjectDelta(const SPtr<ModifiedObject>& delta, const SPtr<ManagedSerializableObject>& object);
 
 		/**
 		 * Applies an array modification to a managed array. Modifications are applied recursively.
 		 *
-		 * @param[in]	mod Array modification to apply.
-		 * @param[in]	obj	Array to apply the modification to.
-		 * @return		New field data in the case modification needed the array to be re-created instead of just modified.
+		 * @param	delta	Array modification to apply.
+		 * @param	object	Array to apply the modification to.
+		 * @return			New field data in the case modification needed the array to be re-created instead of just modified.
 		 */
-		SPtr<ManagedSerializableFieldData> ApplyDiff(const SPtr<ModifiedArray>& mod, const SPtr<ManagedSerializableArray>& obj);
+		SPtr<ManagedSerializableFieldData> ApplyArrayDelta(const SPtr<ModifiedArray>& delta, const SPtr<ManagedSerializableArray>& object);
 
 		/**
 		 * Applies an list modification to a managed list. Modifications are applied recursively.
 		 *
-		 * @param[in]	mod List modification to apply.
-		 * @param[in]	obj	List to apply the modification to.
-		 * @return		New field data in the case modification needed the list to be re-created instead of just modified.
+		 * @param	delta	List modification to apply.
+		 * @param	object	List to apply the modification to.
+		 * @return			New field data in the case modification needed the list to be re-created instead of just modified.
 		 */
-		SPtr<ManagedSerializableFieldData> ApplyDiff(const SPtr<ModifiedArray>& mod, const SPtr<ManagedSerializableList>& obj);
+		SPtr<ManagedSerializableFieldData> ApplyListDelta(const SPtr<ModifiedArray>& delta, const SPtr<ManagedSerializableList>& object);
 
 		/**
 		 * Applies an dictionary modification to a managed dictionary. Modifications are applied recursively.
 		 *
-		 * @param[in]	mod Dictionary modification to apply.
-		 * @param[in]	obj	Dictionary to apply the modification to.
-		 * @return	New field data in the case modification needed the dictionary to be re-created instead of just modified.
+		 * @param	delta	Dictionary modification to apply.
+		 * @param	object	Dictionary to apply the modification to.
+		 * @return			New field data in the case modification needed the dictionary to be re-created instead of just modified.
 		 */
-		SPtr<ManagedSerializableFieldData> ApplyDiff(const SPtr<ModifiedDictionary>& mod, const SPtr<ManagedSerializableDictionary>& obj);
+		SPtr<ManagedSerializableFieldData> ApplyDictionaryDelta(const SPtr<ModifiedDictionary>& delta, const SPtr<ManagedSerializableDictionary>& object);
 
 		/**
-		 * Applies a modification to a single field. Field type is determined and the modification is applied to the
-		 * specific field type as needed. Modifications are applied recursively.
+		 * Applies a modification to a single field. Field type is determined and the modification is applied to the specific field type as needed. Modifications are applied recursively.
 		 *
-		 * @param[in]	mod			Modification to apply.
-		 * @param[in]	fieldType	Type of the field we're applying the modification to.
-		 * @param[in]	origData	Original data of the field.
-		 * @return					New field data in the case modification needed the field data to be re-created instead
-		 *							of just modified.
+		 * @param	delta		Modification to apply.
+		 * @param	fieldType	Type of the field we're applying the modification to.
+		 * @param	fieldData	Original data of the field, to apply the modification to.
+		 * @return				New field data in the case modification needed the field data to be re-created instead of just modified.
 		 */
-		SPtr<ManagedSerializableFieldData> ApplyDiff(const SPtr<Modification>& mod, const SPtr<ManagedSerializableTypeInfo>& fieldType, const SPtr<ManagedSerializableFieldData>& origData);
+		SPtr<ManagedSerializableFieldData> ApplyDiff(const SPtr<Modification>& delta, const SPtr<ManagedSerializableTypeInfo>& fieldType, const SPtr<ManagedSerializableFieldData>& fieldData);
 
 		SPtr<ModifiedObject> mModificationRoot;
 
@@ -259,7 +251,7 @@ namespace bs
 		/* 								RTTI		                     		*/
 		/************************************************************************/
 	public:
-		friend class ManagedSerializableDiffRTTI;
+		friend class ManagedSerializableDeltaRTTI;
 		static RTTITypeBase* GetRttiStatic();
 		RTTITypeBase* GetRtti() const override;
 	};

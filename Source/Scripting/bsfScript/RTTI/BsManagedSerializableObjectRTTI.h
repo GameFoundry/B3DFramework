@@ -78,9 +78,9 @@ namespace bs
 			}
 		}
 
-		IDiff& GetDiffHandler() const
+		IDeltaHandler& GetDeltaHandler() const
 		{
-			static ManagedDiff managedDiffHandler;
+			static ManagedDeltaHandler managedDiffHandler;
 			return managedDiffHandler;
 		}
 

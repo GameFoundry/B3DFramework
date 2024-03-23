@@ -10,140 +10,140 @@
 #include "RTTI/BsManagedSerializableDiffRTTI.h"
 
 using namespace bs;
-ManagedSerializableDiff::ModifiedField::ModifiedField(const SPtr<ManagedSerializableTypeInfo>& parentType, const SPtr<ManagedSerializableMemberInfo>& fieldType, const SPtr<ManagedSerializableDiff::Modification>& modification)
+ManagedSerializableDelta::ModifiedField::ModifiedField(const SPtr<ManagedSerializableTypeInfo>& parentType, const SPtr<ManagedSerializableMemberInfo>& fieldType, const SPtr<ManagedSerializableDelta::Modification>& modification)
 	: ParentType(parentType), FieldType(fieldType), Modification(modification)
 {}
 
-RTTITypeBase* ManagedSerializableDiff::ModifiedField::GetRttiStatic()
+RTTITypeBase* ManagedSerializableDelta::ModifiedField::GetRttiStatic()
 {
 	return ModifiedFieldRTTI::Instance();
 }
 
-RTTITypeBase* ManagedSerializableDiff::ModifiedField::GetRtti() const
+RTTITypeBase* ManagedSerializableDelta::ModifiedField::GetRtti() const
 {
 	return GetRttiStatic();
 }
 
-ManagedSerializableDiff::ModifiedArrayEntry::ModifiedArrayEntry(u32 idx, const SPtr<ManagedSerializableDiff::Modification>& modification)
+ManagedSerializableDelta::ModifiedArrayEntry::ModifiedArrayEntry(u32 idx, const SPtr<ManagedSerializableDelta::Modification>& modification)
 	: Idx(idx), Modification(modification)
 {}
 
-RTTITypeBase* ManagedSerializableDiff::ModifiedArrayEntry::GetRttiStatic()
+RTTITypeBase* ManagedSerializableDelta::ModifiedArrayEntry::GetRttiStatic()
 {
 	return ModifiedArrayEntryRTTI::Instance();
 }
 
-RTTITypeBase* ManagedSerializableDiff::ModifiedArrayEntry::GetRtti() const
+RTTITypeBase* ManagedSerializableDelta::ModifiedArrayEntry::GetRtti() const
 {
 	return GetRttiStatic();
 }
 
-ManagedSerializableDiff::ModifiedDictionaryEntry::ModifiedDictionaryEntry(
-	const SPtr<ManagedSerializableFieldData>& key, const SPtr<ManagedSerializableDiff::Modification>& modification)
+ManagedSerializableDelta::ModifiedDictionaryEntry::ModifiedDictionaryEntry(
+	const SPtr<ManagedSerializableFieldData>& key, const SPtr<ManagedSerializableDelta::Modification>& modification)
 	: Key(key), Modification(modification)
 {}
 
-RTTITypeBase* ManagedSerializableDiff::ModifiedDictionaryEntry::GetRttiStatic()
+RTTITypeBase* ManagedSerializableDelta::ModifiedDictionaryEntry::GetRttiStatic()
 {
 	return ModifiedDictionaryEntryRTTI::Instance();
 }
 
-RTTITypeBase* ManagedSerializableDiff::ModifiedDictionaryEntry::GetRtti() const
+RTTITypeBase* ManagedSerializableDelta::ModifiedDictionaryEntry::GetRtti() const
 {
 	return GetRttiStatic();
 }
 
-RTTITypeBase* ManagedSerializableDiff::Modification::GetRttiStatic()
+RTTITypeBase* ManagedSerializableDelta::Modification::GetRttiStatic()
 {
 	return ModificationRTTI::Instance();
 }
 
-RTTITypeBase* ManagedSerializableDiff::Modification::GetRtti() const
+RTTITypeBase* ManagedSerializableDelta::Modification::GetRtti() const
 {
 	return GetRttiStatic();
 }
 
-SPtr<ManagedSerializableDiff::ModifiedObject> ManagedSerializableDiff::ModifiedObject::Create()
+SPtr<ManagedSerializableDelta::ModifiedObject> ManagedSerializableDelta::ModifiedObject::Create()
 {
 	return B3DMakeShared<ModifiedObject>();
 }
 
-RTTITypeBase* ManagedSerializableDiff::ModifiedObject::GetRttiStatic()
+RTTITypeBase* ManagedSerializableDelta::ModifiedObject::GetRttiStatic()
 {
 	return ModifiedObjectRTTI::Instance();
 }
 
-RTTITypeBase* ManagedSerializableDiff::ModifiedObject::GetRtti() const
+RTTITypeBase* ManagedSerializableDelta::ModifiedObject::GetRtti() const
 {
 	return GetRttiStatic();
 }
 
-SPtr<ManagedSerializableDiff::ModifiedArray> ManagedSerializableDiff::ModifiedArray::Create()
+SPtr<ManagedSerializableDelta::ModifiedArray> ManagedSerializableDelta::ModifiedArray::Create()
 {
 	return B3DMakeShared<ModifiedArray>();
 }
 
-RTTITypeBase* ManagedSerializableDiff::ModifiedArray::GetRttiStatic()
+RTTITypeBase* ManagedSerializableDelta::ModifiedArray::GetRttiStatic()
 {
 	return ModifiedArrayRTTI::Instance();
 }
 
-RTTITypeBase* ManagedSerializableDiff::ModifiedArray::GetRtti() const
+RTTITypeBase* ManagedSerializableDelta::ModifiedArray::GetRtti() const
 {
 	return GetRttiStatic();
 }
 
-SPtr<ManagedSerializableDiff::ModifiedDictionary> ManagedSerializableDiff::ModifiedDictionary::Create()
+SPtr<ManagedSerializableDelta::ModifiedDictionary> ManagedSerializableDelta::ModifiedDictionary::Create()
 {
 	return B3DMakeShared<ModifiedDictionary>();
 }
 
-RTTITypeBase* ManagedSerializableDiff::ModifiedDictionary::GetRttiStatic()
+RTTITypeBase* ManagedSerializableDelta::ModifiedDictionary::GetRttiStatic()
 {
 	return ModifiedDictionaryRTTI::Instance();
 }
 
-RTTITypeBase* ManagedSerializableDiff::ModifiedDictionary::GetRtti() const
+RTTITypeBase* ManagedSerializableDelta::ModifiedDictionary::GetRtti() const
 {
 	return GetRttiStatic();
 }
 
-ManagedSerializableDiff::ModifiedEntry::ModifiedEntry(const SPtr<ManagedSerializableFieldData>& value)
+ManagedSerializableDelta::ModifiedEntry::ModifiedEntry(const SPtr<ManagedSerializableFieldData>& value)
 	: Value(value)
 {}
 
-SPtr<ManagedSerializableDiff::ModifiedEntry> ManagedSerializableDiff::ModifiedEntry::Create(const SPtr<ManagedSerializableFieldData>& value)
+SPtr<ManagedSerializableDelta::ModifiedEntry> ManagedSerializableDelta::ModifiedEntry::Create(const SPtr<ManagedSerializableFieldData>& value)
 {
 	return B3DMakeShared<ModifiedEntry>(value);
 }
 
-RTTITypeBase* ManagedSerializableDiff::ModifiedEntry::GetRttiStatic()
+RTTITypeBase* ManagedSerializableDelta::ModifiedEntry::GetRttiStatic()
 {
 	return ModifiedEntryRTTI::Instance();
 }
 
-RTTITypeBase* ManagedSerializableDiff::ModifiedEntry::GetRtti() const
+RTTITypeBase* ManagedSerializableDelta::ModifiedEntry::GetRtti() const
 {
 	return GetRttiStatic();
 }
 
-ManagedSerializableDiff::ManagedSerializableDiff()
+ManagedSerializableDelta::ManagedSerializableDelta()
 	: mModificationRoot(ModifiedObject::Create())
 {
 }
 
-SPtr<ManagedSerializableDiff> ManagedSerializableDiff::Create(const ManagedSerializableObject* oldObj, const ManagedSerializableObject* newObj)
+SPtr<ManagedSerializableDelta> ManagedSerializableDelta::Create(const ManagedSerializableObject* original, const ManagedSerializableObject* modified)
 {
-	B3D_ASSERT(oldObj != nullptr && newObj != nullptr);
+	B3D_ASSERT(original != nullptr && modified != nullptr);
 
-	SPtr<ManagedSerializableObjectInfo> oldObjInfo = oldObj->GetObjectInfo();
-	SPtr<ManagedSerializableObjectInfo> newObjInfo = newObj->GetObjectInfo();
+	SPtr<ManagedSerializableObjectInfo> oldObjInfo = original->GetObjectInfo();
+	SPtr<ManagedSerializableObjectInfo> newObjInfo = modified->GetObjectInfo();
 
 	if(!oldObjInfo->MTypeInfo->Matches(newObjInfo->MTypeInfo))
 		return nullptr;
 
-	SPtr<ManagedSerializableDiff> output = B3DMakeShared<ManagedSerializableDiff>();
-	SPtr<ModifiedObject> modifications = output->GenerateDiff(oldObj, newObj);
+	SPtr<ManagedSerializableDelta> output = B3DMakeShared<ManagedSerializableDelta>();
+	SPtr<ModifiedObject> modifications = output->GenerateObjectDelta(original, modified);
 
 	if(modifications != nullptr)
 	{
@@ -154,11 +154,11 @@ SPtr<ManagedSerializableDiff> ManagedSerializableDiff::Create(const ManagedSeria
 	return nullptr;
 }
 
-SPtr<ManagedSerializableDiff::ModifiedObject> ManagedSerializableDiff::GenerateDiff(const ManagedSerializableObject* oldObj, const ManagedSerializableObject* newObj)
+SPtr<ManagedSerializableDelta::ModifiedObject> ManagedSerializableDelta::GenerateObjectDelta(const ManagedSerializableObject* original, const ManagedSerializableObject* modified)
 {
 	SPtr<ModifiedObject> output = nullptr;
 
-	SPtr<ManagedSerializableObjectInfo> curObjInfo = newObj->GetObjectInfo();
+	SPtr<ManagedSerializableObjectInfo> curObjInfo = modified->GetObjectInfo();
 	while(curObjInfo != nullptr)
 	{
 		for(auto& field : curObjInfo->MFields)
@@ -168,9 +168,9 @@ SPtr<ManagedSerializableDiff::ModifiedObject> ManagedSerializableDiff::GenerateD
 
 			u32 fieldTypeId = field.second->MTypeInfo->GetTypeId();
 
-			SPtr<ManagedSerializableFieldData> oldData = oldObj->GetFieldData(field.second);
-			SPtr<ManagedSerializableFieldData> newData = newObj->GetFieldData(field.second);
-			SPtr<Modification> newMod = GenerateDiff(oldData, newData, fieldTypeId);
+			SPtr<ManagedSerializableFieldData> oldData = original->GetFieldData(field.second);
+			SPtr<ManagedSerializableFieldData> newData = modified->GetFieldData(field.second);
+			SPtr<Modification> newMod = GenerateFieldDelta(oldData, newData, fieldTypeId);
 
 			if(newMod != nullptr)
 			{
@@ -187,8 +187,8 @@ SPtr<ManagedSerializableDiff::ModifiedObject> ManagedSerializableDiff::GenerateD
 	return output;
 }
 
-SPtr<ManagedSerializableDiff::Modification> ManagedSerializableDiff::GenerateDiff(
-	const SPtr<ManagedSerializableFieldData>& oldData, const SPtr<ManagedSerializableFieldData>& newData,
+SPtr<ManagedSerializableDelta::Modification> ManagedSerializableDelta::GenerateFieldDelta(
+	const SPtr<ManagedSerializableFieldData>& original, const SPtr<ManagedSerializableFieldData>& modified,
 	u32 entryTypeId)
 {
 	bool isPrimitive = entryTypeId == TID_SerializableTypeInfoPrimitive ||
@@ -198,24 +198,24 @@ SPtr<ManagedSerializableDiff::Modification> ManagedSerializableDiff::GenerateDif
 
 	// It's possible the field data is null if the class structure changed (i.e. new field was added that is not present
 	// in serialized data). Check for this case first to ensure field data is valid for the remainder of the method.
-	if(oldData == nullptr)
+	if(original == nullptr)
 	{
-		if(newData == nullptr)
+		if(modified == nullptr)
 			return nullptr;
 		else
-			return ModifiedEntry::Create(newData);
+			return ModifiedEntry::Create(modified);
 	}
 	else
 	{
-		if(newData == nullptr)
+		if(modified == nullptr)
 			return nullptr;
 	}
 
 	SPtr<Modification> newMod = nullptr;
 	if(isPrimitive)
 	{
-		if(!oldData->Equals(newData))
-			newMod = ModifiedEntry::Create(newData);
+		if(!original->Equals(modified))
+			newMod = ModifiedEntry::Create(modified);
 	}
 	else
 	{
@@ -224,13 +224,13 @@ SPtr<ManagedSerializableDiff::Modification> ManagedSerializableDiff::GenerateDif
 		case TID_SerializableTypeInfoObject:
 			{
 				SPtr<ManagedSerializableFieldDataObject> oldObjData =
-					std::static_pointer_cast<ManagedSerializableFieldDataObject>(oldData);
+					std::static_pointer_cast<ManagedSerializableFieldDataObject>(original);
 				SPtr<ManagedSerializableFieldDataObject> newObjData =
-					std::static_pointer_cast<ManagedSerializableFieldDataObject>(newData);
+					std::static_pointer_cast<ManagedSerializableFieldDataObject>(modified);
 
 				if(oldObjData->Value != nullptr && newObjData->Value != nullptr)
 				{
-					newMod = GenerateDiff(oldObjData->Value.get(), newObjData->Value.get());
+					newMod = GenerateObjectDelta(oldObjData->Value.get(), newObjData->Value.get());
 				}
 				else if(oldObjData->Value == nullptr && newObjData->Value == nullptr)
 				{
@@ -238,16 +238,16 @@ SPtr<ManagedSerializableDiff::Modification> ManagedSerializableDiff::GenerateDif
 				}
 				else // We either record null if new value is null, or the entire object if old value is null
 				{
-					newMod = ModifiedEntry::Create(newData);
+					newMod = ModifiedEntry::Create(modified);
 				}
 			}
 			break;
 		case TID_SerializableTypeInfoArray:
 			{
 				SPtr<ManagedSerializableFieldDataArray> oldArrayData =
-					std::static_pointer_cast<ManagedSerializableFieldDataArray>(oldData);
+					std::static_pointer_cast<ManagedSerializableFieldDataArray>(original);
 				SPtr<ManagedSerializableFieldDataArray> newArrayData =
-					std::static_pointer_cast<ManagedSerializableFieldDataArray>(newData);
+					std::static_pointer_cast<ManagedSerializableFieldDataArray>(modified);
 
 				if(oldArrayData->Value != nullptr && newArrayData->Value != nullptr)
 				{
@@ -265,7 +265,7 @@ SPtr<ManagedSerializableDiff::Modification> ManagedSerializableDiff::GenerateDif
 							SPtr<ManagedSerializableFieldData> oldArrayElem = oldArrayData->Value->GetFieldData(i);
 
 							u32 arrayElemTypeId = newArrayData->Value->GetTypeInfo()->MElementType->GetTypeId();
-							arrayElemMod = GenerateDiff(oldArrayElem, newArrayElem, arrayElemTypeId);
+							arrayElemMod = GenerateFieldDelta(oldArrayElem, newArrayElem, arrayElemTypeId);
 						}
 						else
 						{
@@ -301,16 +301,16 @@ SPtr<ManagedSerializableDiff::Modification> ManagedSerializableDiff::GenerateDif
 				}
 				else // We either record null if new value is null, or the entire array if old value is null
 				{
-					newMod = ModifiedEntry::Create(newData);
+					newMod = ModifiedEntry::Create(modified);
 				}
 			}
 			break;
 		case TID_SerializableTypeInfoList:
 			{
 				SPtr<ManagedSerializableFieldDataList> oldListData =
-					std::static_pointer_cast<ManagedSerializableFieldDataList>(oldData);
+					std::static_pointer_cast<ManagedSerializableFieldDataList>(original);
 				SPtr<ManagedSerializableFieldDataList> newListData =
-					std::static_pointer_cast<ManagedSerializableFieldDataList>(newData);
+					std::static_pointer_cast<ManagedSerializableFieldDataList>(modified);
 
 				if(oldListData->Value != nullptr && newListData->Value != nullptr)
 				{
@@ -328,7 +328,7 @@ SPtr<ManagedSerializableDiff::Modification> ManagedSerializableDiff::GenerateDif
 							SPtr<ManagedSerializableFieldData> oldListElem = oldListData->Value->GetFieldData(i);
 
 							u32 arrayElemTypeId = newListData->Value->GetTypeInfo()->MElementType->GetTypeId();
-							listElemMod = GenerateDiff(oldListElem, newListElem, arrayElemTypeId);
+							listElemMod = GenerateFieldDelta(oldListElem, newListElem, arrayElemTypeId);
 						}
 						else
 						{
@@ -364,16 +364,16 @@ SPtr<ManagedSerializableDiff::Modification> ManagedSerializableDiff::GenerateDif
 				}
 				else // We either record null if new value is null, or the entire list if old value is null
 				{
-					newMod = ModifiedEntry::Create(newData);
+					newMod = ModifiedEntry::Create(modified);
 				}
 			}
 			break;
 		case TID_SerializableTypeInfoDictionary:
 			{
 				SPtr<ManagedSerializableFieldDataDictionary> oldDictData =
-					std::static_pointer_cast<ManagedSerializableFieldDataDictionary>(oldData);
+					std::static_pointer_cast<ManagedSerializableFieldDataDictionary>(original);
 				SPtr<ManagedSerializableFieldDataDictionary> newDictData =
-					std::static_pointer_cast<ManagedSerializableFieldDataDictionary>(newData);
+					std::static_pointer_cast<ManagedSerializableFieldDataDictionary>(modified);
 
 				if(oldDictData->Value != nullptr && newDictData->Value != nullptr)
 				{
@@ -389,7 +389,7 @@ SPtr<ManagedSerializableDiff::Modification> ManagedSerializableDiff::GenerateDif
 						{
 							u32 dictElemTypeId = newDictData->Value->GetTypeInfo()->MValueType->GetTypeId();
 
-							dictElemMod = GenerateDiff(oldDictData->Value->GetFieldData(key), newEnumerator.GetValue(), dictElemTypeId);
+							dictElemMod = GenerateFieldDelta(oldDictData->Value->GetFieldData(key), newEnumerator.GetValue(), dictElemTypeId);
 						}
 						else
 						{
@@ -426,7 +426,7 @@ SPtr<ManagedSerializableDiff::Modification> ManagedSerializableDiff::GenerateDif
 				}
 				else // We either record null if new value is null, or the entire dictionary if old value is null
 				{
-					newMod = ModifiedEntry::Create(newData);
+					newMod = ModifiedEntry::Create(modified);
 				}
 			}
 			break;
@@ -439,15 +439,15 @@ SPtr<ManagedSerializableDiff::Modification> ManagedSerializableDiff::GenerateDif
 	return newMod;
 }
 
-void ManagedSerializableDiff::Apply(const SPtr<ManagedSerializableObject>& obj)
+void ManagedSerializableDelta::Apply(const SPtr<ManagedSerializableObject>& object)
 {
-	ApplyDiff(mModificationRoot, obj);
+	ApplyObjectDelta(mModificationRoot, object);
 }
 
-SPtr<ManagedSerializableFieldData> ManagedSerializableDiff::ApplyDiff(const SPtr<ModifiedObject>& mod, const SPtr<ManagedSerializableObject>& obj)
+SPtr<ManagedSerializableFieldData> ManagedSerializableDelta::ApplyObjectDelta(const SPtr<ModifiedObject>& delta, const SPtr<ManagedSerializableObject>& object)
 {
-	SPtr<ManagedSerializableObjectInfo> objInfo = obj->GetObjectInfo();
-	for(auto& modEntry : mod->Entries)
+	SPtr<ManagedSerializableObjectInfo> objInfo = object->GetObjectInfo();
+	for(auto& modEntry : delta->Entries)
 	{
 		SPtr<ManagedSerializableMemberInfo> fieldType = modEntry.FieldType;
 		SPtr<ManagedSerializableTypeInfo> typeInfo = modEntry.ParentType;
@@ -456,23 +456,23 @@ SPtr<ManagedSerializableFieldData> ManagedSerializableDiff::ApplyDiff(const SPtr
 		if(matchingFieldInfo == nullptr)
 			continue; // Field no longer exists in the type
 
-		SPtr<ManagedSerializableFieldData> origData = obj->GetFieldData(matchingFieldInfo);
+		SPtr<ManagedSerializableFieldData> origData = object->GetFieldData(matchingFieldInfo);
 
 		SPtr<ManagedSerializableFieldData> newData = ApplyDiff(modEntry.Modification, matchingFieldInfo->MTypeInfo, origData);
 		if(newData != nullptr)
-			obj->SetFieldData(matchingFieldInfo, newData);
+			object->SetFieldData(matchingFieldInfo, newData);
 	}
 
 	return nullptr;
 }
 
-SPtr<ManagedSerializableFieldData> ManagedSerializableDiff::ApplyDiff(const SPtr<ModifiedArray>& mod, const SPtr<ManagedSerializableArray>& obj)
+SPtr<ManagedSerializableFieldData> ManagedSerializableDelta::ApplyArrayDelta(const SPtr<ModifiedArray>& delta, const SPtr<ManagedSerializableArray>& object)
 {
 	bool needsResize = false;
 
-	for(u32 i = 0; i < (u32)mod->NewSizes.size(); i++)
+	for(u32 i = 0; i < (u32)delta->NewSizes.size(); i++)
 	{
-		if(mod->NewSizes[i] != obj->GetLength(i))
+		if(delta->NewSizes[i] != object->GetLength(i))
 		{
 			needsResize = true;
 			break;
@@ -482,78 +482,78 @@ SPtr<ManagedSerializableFieldData> ManagedSerializableDiff::ApplyDiff(const SPtr
 	SPtr<ManagedSerializableFieldData> newArray;
 	if(needsResize)
 	{
-		obj->Resize(mod->NewSizes);
-		newArray = ManagedSerializableFieldData::Create(obj->GetTypeInfo(), obj->GetManagedInstance());
+		object->Resize(delta->NewSizes);
+		newArray = ManagedSerializableFieldData::Create(object->GetTypeInfo(), object->GetManagedInstance());
 	}
 
-	for(auto& modEntry : mod->Entries)
+	for(auto& modEntry : delta->Entries)
 	{
 		u32 arrayIdx = modEntry.Idx;
 
-		SPtr<ManagedSerializableFieldData> origData = obj->GetFieldData(arrayIdx);
-		SPtr<ManagedSerializableFieldData> newData = ApplyDiff(modEntry.Modification, obj->GetTypeInfo()->MElementType, origData);
+		SPtr<ManagedSerializableFieldData> origData = object->GetFieldData(arrayIdx);
+		SPtr<ManagedSerializableFieldData> newData = ApplyDiff(modEntry.Modification, object->GetTypeInfo()->MElementType, origData);
 
 		if(newData != nullptr)
-			obj->SetFieldData(arrayIdx, newData);
+			object->SetFieldData(arrayIdx, newData);
 	}
 
 	return newArray;
 }
 
-SPtr<ManagedSerializableFieldData> ManagedSerializableDiff::ApplyDiff(const SPtr<ModifiedArray>& mod, const SPtr<ManagedSerializableList>& obj)
+SPtr<ManagedSerializableFieldData> ManagedSerializableDelta::ApplyListDelta(const SPtr<ModifiedArray>& delta, const SPtr<ManagedSerializableList>& object)
 {
-	bool needsResize = mod->NewSizes[0] != obj->GetLength();
+	bool needsResize = delta->NewSizes[0] != object->GetLength();
 
 	SPtr<ManagedSerializableFieldData> newList;
 	if(needsResize)
 	{
-		obj->Resize(mod->NewSizes[0]);
-		newList = ManagedSerializableFieldData::Create(obj->GetTypeInfo(), obj->GetManagedInstance());
+		object->Resize(delta->NewSizes[0]);
+		newList = ManagedSerializableFieldData::Create(object->GetTypeInfo(), object->GetManagedInstance());
 	}
 
-	for(auto& modEntry : mod->Entries)
+	for(auto& modEntry : delta->Entries)
 	{
 		u32 arrayIdx = modEntry.Idx;
 
-		SPtr<ManagedSerializableFieldData> origData = obj->GetFieldData(arrayIdx);
-		SPtr<ManagedSerializableFieldData> newData = ApplyDiff(modEntry.Modification, obj->GetTypeInfo()->MElementType, origData);
+		SPtr<ManagedSerializableFieldData> origData = object->GetFieldData(arrayIdx);
+		SPtr<ManagedSerializableFieldData> newData = ApplyDiff(modEntry.Modification, object->GetTypeInfo()->MElementType, origData);
 
 		if(newData != nullptr)
-			obj->SetFieldData(arrayIdx, newData);
+			object->SetFieldData(arrayIdx, newData);
 	}
 
 	return newList;
 }
 
-SPtr<ManagedSerializableFieldData> ManagedSerializableDiff::ApplyDiff(const SPtr<ModifiedDictionary>& mod, const SPtr<ManagedSerializableDictionary>& obj)
+SPtr<ManagedSerializableFieldData> ManagedSerializableDelta::ApplyDictionaryDelta(const SPtr<ModifiedDictionary>& delta, const SPtr<ManagedSerializableDictionary>& object)
 {
-	for(auto& modEntry : mod->Entries)
+	for(auto& modEntry : delta->Entries)
 	{
 		SPtr<ManagedSerializableFieldData> key = modEntry.Key;
 
-		SPtr<ManagedSerializableFieldData> origData = obj->GetFieldData(key);
-		SPtr<ManagedSerializableFieldData> newData = ApplyDiff(modEntry.Modification, obj->GetTypeInfo()->MValueType, origData);
+		SPtr<ManagedSerializableFieldData> origData = object->GetFieldData(key);
+		SPtr<ManagedSerializableFieldData> newData = ApplyDiff(modEntry.Modification, object->GetTypeInfo()->MValueType, origData);
 
 		if(newData != nullptr)
-			obj->SetFieldData(key, newData);
+			object->SetFieldData(key, newData);
 	}
 
-	for(auto& key : mod->Removed)
+	for(auto& key : delta->Removed)
 	{
-		obj->RemoveFieldData(key);
+		object->RemoveFieldData(key);
 	}
 
 	return nullptr;
 }
 
-SPtr<ManagedSerializableFieldData> ManagedSerializableDiff::ApplyDiff(const SPtr<Modification>& mod, const SPtr<ManagedSerializableTypeInfo>& fieldType, const SPtr<ManagedSerializableFieldData>& origData)
+SPtr<ManagedSerializableFieldData> ManagedSerializableDelta::ApplyDiff(const SPtr<Modification>& delta, const SPtr<ManagedSerializableTypeInfo>& fieldType, const SPtr<ManagedSerializableFieldData>& fieldData)
 {
 	SPtr<ManagedSerializableFieldData> newData;
-	switch(mod->GetTypeId())
+	switch(delta->GetTypeId())
 	{
 	case TID_ScriptModifiedObject:
 		{
-			SPtr<ManagedSerializableFieldDataObject> origObjData = std::static_pointer_cast<ManagedSerializableFieldDataObject>(origData);
+			SPtr<ManagedSerializableFieldDataObject> origObjData = std::static_pointer_cast<ManagedSerializableFieldDataObject>(fieldData);
 			SPtr<ManagedSerializableObject> childObj = origObjData->Value;
 
 			SPtr<ManagedSerializableTypeInfoObject> objTypeInfo =
@@ -565,45 +565,45 @@ SPtr<ManagedSerializableFieldData> ManagedSerializableDiff::ApplyDiff(const SPtr
 				newData = ManagedSerializableFieldData::Create(objTypeInfo, childObj->GetManagedInstance());
 			}
 
-			SPtr<ModifiedObject> childMod = std::static_pointer_cast<ModifiedObject>(mod);
-			ApplyDiff(childMod, childObj);
+			SPtr<ModifiedObject> childMod = std::static_pointer_cast<ModifiedObject>(delta);
+			ApplyObjectDelta(childMod, childObj);
 		}
 		break;
 	case TID_ScriptModifiedArray:
 		{
 			if(fieldType->GetTypeId() == TID_SerializableTypeInfoArray)
 			{
-				SPtr<ManagedSerializableFieldDataArray> origArrayData = std::static_pointer_cast<ManagedSerializableFieldDataArray>(origData);
+				SPtr<ManagedSerializableFieldDataArray> origArrayData = std::static_pointer_cast<ManagedSerializableFieldDataArray>(fieldData);
 				SPtr<ManagedSerializableArray> childArray = origArrayData->Value;
 
 				SPtr<ManagedSerializableTypeInfoArray> arrayTypeInfo =
 					std::static_pointer_cast<ManagedSerializableTypeInfoArray>(fieldType);
 
-				SPtr<ModifiedArray> childMod = std::static_pointer_cast<ModifiedArray>(mod);
+				SPtr<ModifiedArray> childMod = std::static_pointer_cast<ModifiedArray>(delta);
 				if(childArray == nullptr) // Object was deleted in original but we have modifications for it, so we create it
 					childArray = ManagedSerializableArray::CreateNew(arrayTypeInfo, childMod->OrigSizes);
 
-				newData = ApplyDiff(childMod, childArray);
+				newData = ApplyArrayDelta(childMod, childArray);
 			}
 			else if(fieldType->GetTypeId() == TID_SerializableTypeInfoList)
 			{
-				SPtr<ManagedSerializableFieldDataList> origListData = std::static_pointer_cast<ManagedSerializableFieldDataList>(origData);
+				SPtr<ManagedSerializableFieldDataList> origListData = std::static_pointer_cast<ManagedSerializableFieldDataList>(fieldData);
 				SPtr<ManagedSerializableList> childList = origListData->Value;
 
 				SPtr<ManagedSerializableTypeInfoList> listTypeInfo =
 					std::static_pointer_cast<ManagedSerializableTypeInfoList>(fieldType);
 
-				SPtr<ModifiedArray> childMod = std::static_pointer_cast<ModifiedArray>(mod);
+				SPtr<ModifiedArray> childMod = std::static_pointer_cast<ModifiedArray>(delta);
 				if(childList == nullptr) // Object was deleted in original but we have modifications for it, so we create it
 					childList = ManagedSerializableList::CreateNew(listTypeInfo, childMod->OrigSizes[0]);
 
-				newData = ApplyDiff(childMod, childList);
+				newData = ApplyListDelta(childMod, childList);
 			}
 		}
 		break;
 	case TID_ScriptModifiedDictionary:
 		{
-			SPtr<ManagedSerializableFieldDataDictionary> origObjData = std::static_pointer_cast<ManagedSerializableFieldDataDictionary>(origData);
+			SPtr<ManagedSerializableFieldDataDictionary> origObjData = std::static_pointer_cast<ManagedSerializableFieldDataDictionary>(fieldData);
 			SPtr<ManagedSerializableDictionary> childDict = origObjData->Value;
 
 			SPtr<ManagedSerializableTypeInfoDictionary> dictTypeInfo =
@@ -615,13 +615,13 @@ SPtr<ManagedSerializableFieldData> ManagedSerializableDiff::ApplyDiff(const SPtr
 				newData = ManagedSerializableFieldData::Create(dictTypeInfo, childDict->GetManagedInstance());
 			}
 
-			SPtr<ModifiedDictionary> childMod = std::static_pointer_cast<ModifiedDictionary>(mod);
-			ApplyDiff(childMod, childDict);
+			SPtr<ModifiedDictionary> childMod = std::static_pointer_cast<ModifiedDictionary>(delta);
+			ApplyDictionaryDelta(childMod, childDict);
 		}
 		break;
 	default: // Modified field
 		{
-			SPtr<ModifiedEntry> childMod = std::static_pointer_cast<ModifiedEntry>(mod);
+			SPtr<ModifiedEntry> childMod = std::static_pointer_cast<ModifiedEntry>(delta);
 			newData = childMod->Value;
 		}
 		break;
@@ -630,12 +630,12 @@ SPtr<ManagedSerializableFieldData> ManagedSerializableDiff::ApplyDiff(const SPtr
 	return newData;
 }
 
-RTTITypeBase* ManagedSerializableDiff::GetRttiStatic()
+RTTITypeBase* ManagedSerializableDelta::GetRttiStatic()
 {
-	return ManagedSerializableDiffRTTI::Instance();
+	return ManagedSerializableDeltaRTTI::Instance();
 }
 
-RTTITypeBase* ManagedSerializableDiff::GetRtti() const
+RTTITypeBase* ManagedSerializableDelta::GetRtti() const
 {
-	return ManagedSerializableDiff::GetRttiStatic();
+	return ManagedSerializableDelta::GetRttiStatic();
 }

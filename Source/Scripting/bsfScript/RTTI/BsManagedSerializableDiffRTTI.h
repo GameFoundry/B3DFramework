@@ -14,35 +14,35 @@ namespace bs
 	 *  @{
 	 */
 
-	class B3D_SCRIPT_INTEROP_EXPORT ModifiedFieldRTTI : public RTTIType<ManagedSerializableDiff::ModifiedField, IReflectable, ModifiedFieldRTTI>
+	class B3D_SCRIPT_INTEROP_EXPORT ModifiedFieldRTTI : public RTTIType<ManagedSerializableDelta::ModifiedField, IReflectable, ModifiedFieldRTTI>
 	{
 	private:
-		SPtr<ManagedSerializableTypeInfo> GetParentType(ManagedSerializableDiff::ModifiedField* obj)
+		SPtr<ManagedSerializableTypeInfo> GetParentType(ManagedSerializableDelta::ModifiedField* obj)
 		{
 			return obj->ParentType;
 		}
 
-		void SetParentType(ManagedSerializableDiff::ModifiedField* obj, SPtr<ManagedSerializableTypeInfo> val)
+		void SetParentType(ManagedSerializableDelta::ModifiedField* obj, SPtr<ManagedSerializableTypeInfo> val)
 		{
 			obj->ParentType = val;
 		}
 
-		SPtr<ManagedSerializableMemberInfo> GetFieldType(ManagedSerializableDiff::ModifiedField* obj)
+		SPtr<ManagedSerializableMemberInfo> GetFieldType(ManagedSerializableDelta::ModifiedField* obj)
 		{
 			return obj->FieldType;
 		}
 
-		void SetFieldType(ManagedSerializableDiff::ModifiedField* obj, SPtr<ManagedSerializableMemberInfo> val)
+		void SetFieldType(ManagedSerializableDelta::ModifiedField* obj, SPtr<ManagedSerializableMemberInfo> val)
 		{
 			obj->FieldType = val;
 		}
 
-		SPtr<ManagedSerializableDiff::Modification> GetModification(ManagedSerializableDiff::ModifiedField* obj)
+		SPtr<ManagedSerializableDelta::Modification> GetModification(ManagedSerializableDelta::ModifiedField* obj)
 		{
 			return obj->Modification;
 		}
 
-		void SetModification(ManagedSerializableDiff::ModifiedField* obj, SPtr<ManagedSerializableDiff::Modification> val)
+		void SetModification(ManagedSerializableDelta::ModifiedField* obj, SPtr<ManagedSerializableDelta::Modification> val)
 		{
 			obj->Modification = val;
 		}
@@ -68,29 +68,29 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject()
 		{
-			return B3DMakeShared<ManagedSerializableDiff::ModifiedField>();
+			return B3DMakeShared<ManagedSerializableDelta::ModifiedField>();
 		}
 	};
 
-	class B3D_SCRIPT_INTEROP_EXPORT ModifiedArrayEntryRTTI : public RTTIType<ManagedSerializableDiff::ModifiedArrayEntry, IReflectable, ModifiedArrayEntryRTTI>
+	class B3D_SCRIPT_INTEROP_EXPORT ModifiedArrayEntryRTTI : public RTTIType<ManagedSerializableDelta::ModifiedArrayEntry, IReflectable, ModifiedArrayEntryRTTI>
 	{
 	private:
-		u32& GetIdx(ManagedSerializableDiff::ModifiedArrayEntry* obj)
+		u32& GetIdx(ManagedSerializableDelta::ModifiedArrayEntry* obj)
 		{
 			return obj->Idx;
 		}
 
-		void SetIdx(ManagedSerializableDiff::ModifiedArrayEntry* obj, u32& val)
+		void SetIdx(ManagedSerializableDelta::ModifiedArrayEntry* obj, u32& val)
 		{
 			obj->Idx = val;
 		}
 
-		SPtr<ManagedSerializableDiff::Modification> GetModification(ManagedSerializableDiff::ModifiedArrayEntry* obj)
+		SPtr<ManagedSerializableDelta::Modification> GetModification(ManagedSerializableDelta::ModifiedArrayEntry* obj)
 		{
 			return obj->Modification;
 		}
 
-		void SetModification(ManagedSerializableDiff::ModifiedArrayEntry* obj, SPtr<ManagedSerializableDiff::Modification> val)
+		void SetModification(ManagedSerializableDelta::ModifiedArrayEntry* obj, SPtr<ManagedSerializableDelta::Modification> val)
 		{
 			obj->Modification = val;
 		}
@@ -115,29 +115,29 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject() override
 		{
-			return B3DMakeShared<ManagedSerializableDiff::ModifiedArrayEntry>();
+			return B3DMakeShared<ManagedSerializableDelta::ModifiedArrayEntry>();
 		}
 	};
 
-	class B3D_SCRIPT_INTEROP_EXPORT ModifiedDictionaryEntryRTTI : public RTTIType<ManagedSerializableDiff::ModifiedDictionaryEntry, IReflectable, ModifiedDictionaryEntryRTTI>
+	class B3D_SCRIPT_INTEROP_EXPORT ModifiedDictionaryEntryRTTI : public RTTIType<ManagedSerializableDelta::ModifiedDictionaryEntry, IReflectable, ModifiedDictionaryEntryRTTI>
 	{
 	private:
-		SPtr<ManagedSerializableFieldData> GetKey(ManagedSerializableDiff::ModifiedDictionaryEntry* obj)
+		SPtr<ManagedSerializableFieldData> GetKey(ManagedSerializableDelta::ModifiedDictionaryEntry* obj)
 		{
 			return obj->Key;
 		}
 
-		void SetKey(ManagedSerializableDiff::ModifiedDictionaryEntry* obj, SPtr<ManagedSerializableFieldData> val)
+		void SetKey(ManagedSerializableDelta::ModifiedDictionaryEntry* obj, SPtr<ManagedSerializableFieldData> val)
 		{
 			obj->Key = val;
 		}
 
-		SPtr<ManagedSerializableDiff::Modification> GetModification(ManagedSerializableDiff::ModifiedDictionaryEntry* obj)
+		SPtr<ManagedSerializableDelta::Modification> GetModification(ManagedSerializableDelta::ModifiedDictionaryEntry* obj)
 		{
 			return obj->Modification;
 		}
 
-		void SetModification(ManagedSerializableDiff::ModifiedDictionaryEntry* obj, SPtr<ManagedSerializableDiff::Modification> val)
+		void SetModification(ManagedSerializableDelta::ModifiedDictionaryEntry* obj, SPtr<ManagedSerializableDelta::Modification> val)
 		{
 			obj->Modification = val;
 		}
@@ -162,11 +162,11 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject() override
 		{
-			return B3DMakeShared<ManagedSerializableDiff::ModifiedDictionaryEntry>();
+			return B3DMakeShared<ManagedSerializableDelta::ModifiedDictionaryEntry>();
 		}
 	};
 
-	class B3D_SCRIPT_INTEROP_EXPORT ModificationRTTI : public RTTIType<ManagedSerializableDiff::Modification, IReflectable, ModificationRTTI>
+	class B3D_SCRIPT_INTEROP_EXPORT ModificationRTTI : public RTTIType<ManagedSerializableDelta::Modification, IReflectable, ModificationRTTI>
 	{
 	public:
 		ModificationRTTI()
@@ -189,27 +189,27 @@ namespace bs
 		}
 	};
 
-	class B3D_SCRIPT_INTEROP_EXPORT ModifiedObjectRTTI : public RTTIType<ManagedSerializableDiff::ModifiedObject, ManagedSerializableDiff::Modification, ModifiedObjectRTTI>
+	class B3D_SCRIPT_INTEROP_EXPORT ModifiedObjectRTTI : public RTTIType<ManagedSerializableDelta::ModifiedObject, ManagedSerializableDelta::Modification, ModifiedObjectRTTI>
 	{
 	private:
-		ManagedSerializableDiff::ModifiedField& GetFieldEntry(ManagedSerializableDiff::ModifiedObject* obj, u32 arrayIdx)
+		ManagedSerializableDelta::ModifiedField& GetFieldEntry(ManagedSerializableDelta::ModifiedObject* obj, u32 arrayIdx)
 		{
 			return obj->Entries[arrayIdx];
 		}
 
-		void SetFieldEntry(ManagedSerializableDiff::ModifiedObject* obj, u32 arrayIdx, ManagedSerializableDiff::ModifiedField& val)
+		void SetFieldEntry(ManagedSerializableDelta::ModifiedObject* obj, u32 arrayIdx, ManagedSerializableDelta::ModifiedField& val)
 		{
 			obj->Entries[arrayIdx] = val;
 		}
 
-		u32 GetNumFieldEntries(ManagedSerializableDiff::ModifiedObject* obj)
+		u32 GetNumFieldEntries(ManagedSerializableDelta::ModifiedObject* obj)
 		{
 			return (u32)obj->Entries.size();
 		}
 
-		void SetNumFieldEntries(ManagedSerializableDiff::ModifiedObject* obj, u32 numEntries)
+		void SetNumFieldEntries(ManagedSerializableDelta::ModifiedObject* obj, u32 numEntries)
 		{
-			obj->Entries = Vector<ManagedSerializableDiff::ModifiedField>(numEntries);
+			obj->Entries = Vector<ManagedSerializableDelta::ModifiedField>(numEntries);
 		}
 
 	public:
@@ -231,51 +231,51 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject() override
 		{
-			return ManagedSerializableDiff::ModifiedObject::Create();
+			return ManagedSerializableDelta::ModifiedObject::Create();
 		}
 	};
 
-	class B3D_SCRIPT_INTEROP_EXPORT ModifiedArrayRTTI : public RTTIType<ManagedSerializableDiff::ModifiedArray, ManagedSerializableDiff::Modification, ModifiedArrayRTTI>
+	class B3D_SCRIPT_INTEROP_EXPORT ModifiedArrayRTTI : public RTTIType<ManagedSerializableDelta::ModifiedArray, ManagedSerializableDelta::Modification, ModifiedArrayRTTI>
 	{
 	private:
-		Vector<u32>& GetOrigSizes(ManagedSerializableDiff::ModifiedArray* obj)
+		Vector<u32>& GetOrigSizes(ManagedSerializableDelta::ModifiedArray* obj)
 		{
 			return obj->OrigSizes;
 		}
 
-		void SetOrigSizes(ManagedSerializableDiff::ModifiedArray* obj, Vector<u32>& val)
+		void SetOrigSizes(ManagedSerializableDelta::ModifiedArray* obj, Vector<u32>& val)
 		{
 			obj->OrigSizes = val;
 		}
 
-		Vector<u32>& GetNewSizes(ManagedSerializableDiff::ModifiedArray* obj)
+		Vector<u32>& GetNewSizes(ManagedSerializableDelta::ModifiedArray* obj)
 		{
 			return obj->NewSizes;
 		}
 
-		void SetNewSizes(ManagedSerializableDiff::ModifiedArray* obj, Vector<u32>& val)
+		void SetNewSizes(ManagedSerializableDelta::ModifiedArray* obj, Vector<u32>& val)
 		{
 			obj->NewSizes = val;
 		}
 
-		ManagedSerializableDiff::ModifiedArrayEntry& GetFieldEntry(ManagedSerializableDiff::ModifiedArray* obj, u32 arrayIdx)
+		ManagedSerializableDelta::ModifiedArrayEntry& GetFieldEntry(ManagedSerializableDelta::ModifiedArray* obj, u32 arrayIdx)
 		{
 			return obj->Entries[arrayIdx];
 		}
 
-		void SetFieldEntry(ManagedSerializableDiff::ModifiedArray* obj, u32 arrayIdx, ManagedSerializableDiff::ModifiedArrayEntry& val)
+		void SetFieldEntry(ManagedSerializableDelta::ModifiedArray* obj, u32 arrayIdx, ManagedSerializableDelta::ModifiedArrayEntry& val)
 		{
 			obj->Entries[arrayIdx] = val;
 		}
 
-		u32 GetNumFieldEntries(ManagedSerializableDiff::ModifiedArray* obj)
+		u32 GetNumFieldEntries(ManagedSerializableDelta::ModifiedArray* obj)
 		{
 			return (u32)obj->Entries.size();
 		}
 
-		void SetNumFieldEntries(ManagedSerializableDiff::ModifiedArray* obj, u32 numEntries)
+		void SetNumFieldEntries(ManagedSerializableDelta::ModifiedArray* obj, u32 numEntries)
 		{
-			obj->Entries = Vector<ManagedSerializableDiff::ModifiedArrayEntry>(numEntries);
+			obj->Entries = Vector<ManagedSerializableDelta::ModifiedArrayEntry>(numEntries);
 		}
 
 	public:
@@ -299,51 +299,51 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject() override
 		{
-			return ManagedSerializableDiff::ModifiedArray::Create();
+			return ManagedSerializableDelta::ModifiedArray::Create();
 		}
 	};
 
-	class B3D_SCRIPT_INTEROP_EXPORT ModifiedDictionaryRTTI : public RTTIType<ManagedSerializableDiff::ModifiedDictionary, ManagedSerializableDiff::Modification, ModifiedDictionaryRTTI>
+	class B3D_SCRIPT_INTEROP_EXPORT ModifiedDictionaryRTTI : public RTTIType<ManagedSerializableDelta::ModifiedDictionary, ManagedSerializableDelta::Modification, ModifiedDictionaryRTTI>
 	{
 	private:
-		SPtr<ManagedSerializableFieldData> GetRemovedEntry(ManagedSerializableDiff::ModifiedDictionary* obj, u32 arrayIdx)
+		SPtr<ManagedSerializableFieldData> GetRemovedEntry(ManagedSerializableDelta::ModifiedDictionary* obj, u32 arrayIdx)
 		{
 			return obj->Removed[arrayIdx];
 		}
 
-		void SetRemovedEntry(ManagedSerializableDiff::ModifiedDictionary* obj, u32 arrayIdx, SPtr<ManagedSerializableFieldData> val)
+		void SetRemovedEntry(ManagedSerializableDelta::ModifiedDictionary* obj, u32 arrayIdx, SPtr<ManagedSerializableFieldData> val)
 		{
 			obj->Removed[arrayIdx] = val;
 		}
 
-		u32 GetNumRemovedEntries(ManagedSerializableDiff::ModifiedDictionary* obj)
+		u32 GetNumRemovedEntries(ManagedSerializableDelta::ModifiedDictionary* obj)
 		{
 			return (u32)obj->Removed.size();
 		}
 
-		void SetNumRemovedEntries(ManagedSerializableDiff::ModifiedDictionary* obj, u32 numEntries)
+		void SetNumRemovedEntries(ManagedSerializableDelta::ModifiedDictionary* obj, u32 numEntries)
 		{
 			obj->Removed = Vector<SPtr<ManagedSerializableFieldData>>(numEntries);
 		}
 
-		ManagedSerializableDiff::ModifiedDictionaryEntry& GetFieldEntry(ManagedSerializableDiff::ModifiedDictionary* obj, u32 arrayIdx)
+		ManagedSerializableDelta::ModifiedDictionaryEntry& GetFieldEntry(ManagedSerializableDelta::ModifiedDictionary* obj, u32 arrayIdx)
 		{
 			return obj->Entries[arrayIdx];
 		}
 
-		void SetFieldEntry(ManagedSerializableDiff::ModifiedDictionary* obj, u32 arrayIdx, ManagedSerializableDiff::ModifiedDictionaryEntry& val)
+		void SetFieldEntry(ManagedSerializableDelta::ModifiedDictionary* obj, u32 arrayIdx, ManagedSerializableDelta::ModifiedDictionaryEntry& val)
 		{
 			obj->Entries[arrayIdx] = val;
 		}
 
-		u32 GetNumFieldEntries(ManagedSerializableDiff::ModifiedDictionary* obj)
+		u32 GetNumFieldEntries(ManagedSerializableDelta::ModifiedDictionary* obj)
 		{
 			return (u32)obj->Entries.size();
 		}
 
-		void SetNumFieldEntries(ManagedSerializableDiff::ModifiedDictionary* obj, u32 numEntries)
+		void SetNumFieldEntries(ManagedSerializableDelta::ModifiedDictionary* obj, u32 numEntries)
 		{
-			obj->Entries = Vector<ManagedSerializableDiff::ModifiedDictionaryEntry>(numEntries);
+			obj->Entries = Vector<ManagedSerializableDelta::ModifiedDictionaryEntry>(numEntries);
 		}
 
 	public:
@@ -366,19 +366,19 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject() override
 		{
-			return ManagedSerializableDiff::ModifiedDictionary::Create();
+			return ManagedSerializableDelta::ModifiedDictionary::Create();
 		}
 	};
 
-	class B3D_SCRIPT_INTEROP_EXPORT ModifiedEntryRTTI : public RTTIType<ManagedSerializableDiff::ModifiedEntry, ManagedSerializableDiff::Modification, ModifiedEntryRTTI>
+	class B3D_SCRIPT_INTEROP_EXPORT ModifiedEntryRTTI : public RTTIType<ManagedSerializableDelta::ModifiedEntry, ManagedSerializableDelta::Modification, ModifiedEntryRTTI>
 	{
 	private:
-		SPtr<ManagedSerializableFieldData> GetValue(ManagedSerializableDiff::ModifiedEntry* obj)
+		SPtr<ManagedSerializableFieldData> GetValue(ManagedSerializableDelta::ModifiedEntry* obj)
 		{
 			return obj->Value;
 		}
 
-		void SetValue(ManagedSerializableDiff::ModifiedEntry* obj, SPtr<ManagedSerializableFieldData> val)
+		void SetValue(ManagedSerializableDelta::ModifiedEntry* obj, SPtr<ManagedSerializableFieldData> val)
 		{
 			obj->Value = val;
 		}
@@ -402,43 +402,43 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject() override
 		{
-			return ManagedSerializableDiff::ModifiedEntry::Create(nullptr);
+			return ManagedSerializableDelta::ModifiedEntry::Create(nullptr);
 		}
 	};
 
-	class B3D_SCRIPT_INTEROP_EXPORT ManagedSerializableDiffRTTI : public RTTIType<ManagedSerializableDiff, IReflectable, ManagedSerializableDiffRTTI>
+	class B3D_SCRIPT_INTEROP_EXPORT ManagedSerializableDeltaRTTI : public RTTIType<ManagedSerializableDelta, IReflectable, ManagedSerializableDeltaRTTI>
 	{
 	private:
-		SPtr<ManagedSerializableDiff::ModifiedObject> GetModificationRoot(ManagedSerializableDiff* obj)
+		SPtr<ManagedSerializableDelta::ModifiedObject> GetModificationRoot(ManagedSerializableDelta* obj)
 		{
 			return obj->mModificationRoot;
 		}
 
-		void SetModificationRoot(ManagedSerializableDiff* obj, SPtr<ManagedSerializableDiff::ModifiedObject> val)
+		void SetModificationRoot(ManagedSerializableDelta* obj, SPtr<ManagedSerializableDelta::ModifiedObject> val)
 		{
 			obj->mModificationRoot = val;
 		}
 
 	public:
-		ManagedSerializableDiffRTTI()
+		ManagedSerializableDeltaRTTI()
 		{
-			AddReflectablePtrField("mModificationRoot", 0, &ManagedSerializableDiffRTTI::GetModificationRoot, &ManagedSerializableDiffRTTI::SetModificationRoot);
+			AddReflectablePtrField("mModificationRoot", 0, &ManagedSerializableDeltaRTTI::GetModificationRoot, &ManagedSerializableDeltaRTTI::SetModificationRoot);
 		}
 
 		const String& GetRttiName() override
 		{
-			static String name = "ScriptSerializableDiff";
+			static String name = "ManagedSerializableDelta";
 			return name;
 		}
 
 		u32 GetRttiId() const override
 		{
-			return TID_ScriptSerializableDiff;
+			return TID_ManagedSerializableDelta;
 		}
 
 		SPtr<IReflectable> NewRttiObject() override
 		{
-			return B3DMakeShared<ManagedSerializableDiff>();
+			return B3DMakeShared<ManagedSerializableDelta>();
 		}
 	};
 

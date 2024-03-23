@@ -12,14 +12,13 @@ namespace bs
 	 */
 
 	/**
-	 * Diff handler that performs RTTI object diff for managed objects. Managed objects require special diff handling since
-	 * their serialization works differently.
+	 * Delta handler that performs RTTI object delta for managed objects. Managed objects require special delta handling since their serialization works differently.
 	 */
-	class B3D_SCRIPT_INTEROP_EXPORT ManagedDiff : public IDiff
+	class B3D_SCRIPT_INTEROP_EXPORT ManagedDeltaHandler : public IDeltaHandler
 	{
 	protected:
-		SPtr<SerializedObject> GenerateDeltaRecursive(IReflectable* orgObj, IReflectable* newObj, ObjectMap& objectMap, bool replicableOnly) override;
-		void GenerateDeltaApplyCommands(const SPtr<IReflectable>& object, const SPtr<SerializedObject>& serzDiff, FrameAllocator& alloc, DeltaObjectMap& objectMap, FrameVector<DeltaCommand>& diffCommands, SerializationContext* context) override;
+		SPtr<SerializedObject> GenerateDeltaRecursive(IReflectable* original, IReflectable* modified, ObjectMap& objectMap, bool replicableOnly) override;
+		void GenerateDeltaApplyCommands(const SPtr<IReflectable>& object, const SPtr<SerializedObject>& delta, FrameAllocator& allocator, DeltaObjectMap& objectMap, FrameVector<DeltaCommand>& inOutDeltaCommands, SerializationContext* context) override;
 	};
 
 	/** @} */

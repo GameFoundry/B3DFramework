@@ -1334,7 +1334,7 @@ SPtr<ISerialized> GenerateValueDelta(const RTTIFieldSchema& fieldSchema, const V
 					SPtr<SerializedObject> objectDelta;
 					if(rttiType != nullptr)
 					{
-						IDiff& handler = rttiType->GetDiffHandler();
+						IDeltaHandler& handler = rttiType->GetDeltaHandler();
 						objectDelta = handler.GenerateDeltaRecursive(lhsObject.GetWrappedObject(), rhsObject.GetWrappedObject(), objectMap, replicableOnly);
 					}
 
@@ -1631,13 +1631,13 @@ SPtr<SerializedObject> GenerateObjectDelta(Object<IsLHSIReflectable> lhs, Object
 	return output;
 }
 
-SPtr<SerializedObject> IDiff::GenerateDiff(const SPtr<IReflectable>& orgObj, const SPtr<IReflectable>& newObj, bool replicableOnly)
+SPtr<SerializedObject> IDeltaHandler::GenerateDelta(const SPtr<IReflectable>& original, const SPtr<IReflectable>& modified, bool replicableOnly)
 {
 	ObjectMap objectMap;
-	return GenerateDeltaRecursive(orgObj.get(), newObj.get(), objectMap, replicableOnly);
+	return GenerateDeltaRecursive(original.get(), modified.get(), objectMap, replicableOnly);
 }
 
-void IDiff::ApplyDiff(const SPtr<IReflectable>& object, const SPtr<SerializedObject>& diff, SerializationContext* context)
+void IDeltaHandler::ApplyDelta(const SPtr<IReflectable>& object, const SPtr<SerializedObject>& delta, SerializationContext* context)
 {
 	FrameAllocator& allocator = GetFrameAllocator();
 	allocator.MarkFrame();
@@ -1645,7 +1645,7 @@ void IDiff::ApplyDiff(const SPtr<IReflectable>& object, const SPtr<SerializedObj
 	FrameVector<DeltaCommand> commands;
 
 	DeltaObjectMap objectMap;
-	GenerateDeltaApplyCommands(object, diff, allocator, objectMap, commands, context);
+	GenerateDeltaApplyCommands(object, delta, allocator, objectMap, commands, context);
 
 	IReflectable* destinationObject = nullptr;
 	RTTITypeBase* rttiInstance = nullptr;
@@ -1660,7 +1660,7 @@ void IDiff::ApplyDiff(const SPtr<IReflectable>& object, const SPtr<SerializedObj
 	{
 		const bool isArray = (command.Type & Diff_ArrayFlag) != 0;
 		const bool isMap = (command.Type & Diff_MapFlag) != 0;
-		DiffCommandType type = (DiffCommandType)(command.Type & 0xF);
+		DeltaCommandType type = (DeltaCommandType)(command.Type & 0xF);
 
 		switch(type)
 		{
@@ -1912,54 +1912,54 @@ void IDiff::ApplyDiff(const SPtr<IReflectable>& object, const SPtr<SerializedObj
 	allocator.Clear();
 }
 
-void IDiff::ApplyDiff(RTTITypeBase* rtti, const SPtr<IReflectable>& object, const SPtr<SerializedObject>& diff, FrameAllocator& alloc, DeltaObjectMap& objectMap, FrameVector<DeltaCommand>& diffCommands, SerializationContext* context)
+void IDeltaHandler::GenerateDeltaApplyCommands(RTTITypeBase* rtti, const SPtr<IReflectable>& object, const SPtr<SerializedObject>& delta, FrameAllocator& allocator, DeltaObjectMap& objectMap, FrameVector<DeltaCommand>& inOutDeltaCommands, SerializationContext* context)
 {
-	IDiff& diffHandler = rtti->GetDiffHandler();
-	diffHandler.GenerateDeltaApplyCommands(object, diff, alloc, objectMap, diffCommands, context);
+	IDeltaHandler& deltaHandler = rtti->GetDeltaHandler();
+	deltaHandler.GenerateDeltaApplyCommands(object, delta, allocator, objectMap, inOutDeltaCommands, context);
 }
 
-SPtr<SerializedObject> BinaryDiff::GenerateDeltaRecursive(IReflectable* lhs, IReflectable* rhs, ObjectMap& objectMap, bool replicableOnly)
+SPtr<SerializedObject> BinaryDeltaHandler::GenerateDeltaRecursive(IReflectable* original, IReflectable* modified, ObjectMap& objectMap, bool replicableOnly)
 {
 	FrameAllocator& frameAllocator = GetFrameAllocator();
 
-	if(lhs->GetTypeId() == TID_SerializedObject)
+	if(original->GetTypeId() == TID_SerializedObject)
 	{
-		Object<false> lhsWrapper(static_cast<SerializedObject*>(lhs), &frameAllocator);
+		Object<false> lhsWrapper(static_cast<SerializedObject*>(original), &frameAllocator);
 
-		if(rhs->GetTypeId() == TID_SerializedObject)
+		if(modified->GetTypeId() == TID_SerializedObject)
 		{
-			Object<false> rhsWrapper(static_cast<SerializedObject*>(rhs), &frameAllocator);
+			Object<false> rhsWrapper(static_cast<SerializedObject*>(modified), &frameAllocator);
 			return ::GenerateObjectDelta(lhsWrapper, rhsWrapper, objectMap, replicableOnly);
 		}
 
-		Object<true> rhsWrapper(rhs, rhs->GetRtti(), &frameAllocator);
+		Object<true> rhsWrapper(modified, modified->GetRtti(), &frameAllocator);
 		return ::GenerateObjectDelta(lhsWrapper, rhsWrapper, objectMap, replicableOnly);
 	}
 	else
 	{
-		Object<true> lhsWrapper(lhs, lhs->GetRtti(), &frameAllocator);
+		Object<true> lhsWrapper(original, original->GetRtti(), &frameAllocator);
 
-		if(rhs->GetTypeId() == TID_SerializedObject)
+		if(modified->GetTypeId() == TID_SerializedObject)
 		{
-			Object<false> rhsWrapper(static_cast<SerializedObject*>(rhs), &frameAllocator);
+			Object<false> rhsWrapper(static_cast<SerializedObject*>(modified), &frameAllocator);
 			return ::GenerateObjectDelta(lhsWrapper, rhsWrapper, objectMap, replicableOnly);
 		}
 
-		Object<true> rhsWrapper(rhs, rhs->GetRtti(), &frameAllocator);
+		Object<true> rhsWrapper(modified, modified->GetRtti(), &frameAllocator);
 		return ::GenerateObjectDelta(lhsWrapper, rhsWrapper, objectMap, replicableOnly);
 	}
 }
 
-void BinaryDiff::GenerateDeltaApplyCommands(const SPtr<IReflectable>& object, const SPtr<SerializedObject>& diff, FrameAllocator& allocator, DeltaObjectMap& objectMap, FrameVector<DeltaCommand>& diffCommands, SerializationContext* context)
+void BinaryDeltaHandler::GenerateDeltaApplyCommands(const SPtr<IReflectable>& object, const SPtr<SerializedObject>& delta, FrameAllocator& allocator, DeltaObjectMap& objectMap, FrameVector<DeltaCommand>& inOutDeltaCommands, SerializationContext* context)
 {
-	if(object == nullptr || diff == nullptr || object->GetTypeId() != diff->GetRootTypeId())
+	if(object == nullptr || delta == nullptr || object->GetTypeId() != delta->GetRootTypeId())
 		return;
 
 	// Generate a list of commands per sub-object
-	FrameVector<FrameVector<DeltaCommand>> commandsPerSubObj;
+	FrameVector<FrameVector<DeltaCommand>> commandsPerSubObject;
 
 	Stack<RTTITypeBase*> rttiInstances;
-	for(auto& subObject : diff->SubObjects)
+	for(auto& subObject : delta->SubObjects)
 	{
 		RTTITypeBase* rtti = IReflectable::GetRTTITypeFromTypeId(subObject.TypeId);
 		if(rtti == nullptr)
@@ -1972,14 +1972,14 @@ void BinaryDiff::GenerateDeltaApplyCommands(const SPtr<IReflectable>& object, co
 		rttiInstance->OnSerializationStarted(object.get(), nullptr);
 		rttiInstances.push(rttiInstance);
 
-		FrameVector<DeltaCommand> commands;
+		FrameVector<DeltaCommand> subObjectCommands;
 
-		DeltaCommand subObjStartCommand;
-		subObjStartCommand.RttiType = rtti;
-		subObjStartCommand.Field = nullptr;
-		subObjStartCommand.Type = Diff_SubObjectStart;
+		DeltaCommand subObjectStartCommand;
+		subObjectStartCommand.RttiType = rtti;
+		subObjectStartCommand.Field = nullptr;
+		subObjectStartCommand.Type = Diff_SubObjectStart;
 
-		commands.push_back(subObjStartCommand);
+		subObjectCommands.push_back(subObjectStartCommand);
 
 		for(auto& diffEntry : subObject.FieldEntries)
 		{
@@ -2002,11 +2002,11 @@ void BinaryDiff::GenerateDeltaApplyCommands(const SPtr<IReflectable>& object, co
 					arraySizeCommand.Type = Diff_ArraySize | Diff_ArrayFlag;
 					arraySizeCommand.ArraySize = arrayDeltaElementCount;
 
-					commands.push_back(arraySizeCommand);
+					subObjectCommands.push_back(arraySizeCommand);
 
 					for(auto& arrayDeltaElement : serializedArrayDelta->Entries)
 					{
-						GenerateDeltaCommandForEntry(rttiInstance, object, *field, arrayDeltaElement.second.Value, arrayDeltaElement.second.Index, nullptr, objectMap, commands, context, allocator);
+						GenerateDeltaCommandForEntry(rttiInstance, object, *field, arrayDeltaElement.second.Value, arrayDeltaElement.second.Index, nullptr, objectMap, subObjectCommands, context, allocator);
 					}
 				}
 				else if(const auto& serializedMapDelta = B3DRTTICast<SerializedMap>(fieldDelta))
@@ -2018,12 +2018,12 @@ void BinaryDiff::GenerateDeltaApplyCommands(const SPtr<IReflectable>& object, co
 						IntermediateSerializer intermediateSerializer(&allocator);
 						intermediateSerializer.DeserializeTupleElement(*field, deserializedMapKey, 0, mapDeltaElement.first);
 
-						GenerateDeltaCommandForEntry(rttiInstance, object, *field, mapDeltaElement.second, ~0u, deserializedMapKey, objectMap, commands, context, allocator);
+						GenerateDeltaCommandForEntry(rttiInstance, object, *field, mapDeltaElement.second, ~0u, deserializedMapKey, objectMap, subObjectCommands, context, allocator);
 					}
 				}
 				else
 				{
-					GenerateDeltaCommandForEntry(rttiInstance, object, *field, fieldDelta, ~0u, nullptr, objectMap, commands, context, allocator);
+					GenerateDeltaCommandForEntry(rttiInstance, object, *field, fieldDelta, ~0u, nullptr, objectMap, subObjectCommands, context, allocator);
 				}
 			}
 			else if(genericField->Schema.IsArray) // DEPRECATED
@@ -2037,37 +2037,37 @@ void BinaryDiff::GenerateDeltaApplyCommands(const SPtr<IReflectable>& object, co
 				arraySizeCommand.Type = Diff_ArraySize | Diff_ArrayFlag;
 				arraySizeCommand.ArraySize = arrayDeltaElementCount;
 
-				commands.push_back(arraySizeCommand);
+				subObjectCommands.push_back(arraySizeCommand);
 
 				for(auto& arrayDeltaElement : arrayDelta->Entries)
-					GenerateDeltaCommandForEntry(rttiInstance, object, *genericField, arrayDeltaElement.second.Value, arrayDeltaElement.second.Index, objectMap, commands, context, allocator);
+					GenerateDeltaCommandForEntry(rttiInstance, object, *genericField, arrayDeltaElement.second.Value, arrayDeltaElement.second.Index, objectMap, subObjectCommands, context, allocator);
 			}
 			else
 			{
-				GenerateDeltaCommandForEntry(rttiInstance, object, *genericField, fieldDelta, ~0u, objectMap, commands, context, allocator);
+				GenerateDeltaCommandForEntry(rttiInstance, object, *genericField, fieldDelta, ~0u, objectMap, subObjectCommands, context, allocator);
 			}
 		}
 
-		commandsPerSubObj.emplace_back(std::move(commands));
+		commandsPerSubObject.emplace_back(std::move(subObjectCommands));
 	}
 
-	DeltaCommand objStartCommand;
-	objStartCommand.Field = nullptr;
-	objStartCommand.Type = Diff_ObjectStart;
-	objStartCommand.Object = object;
+	DeltaCommand objectStartCommand;
+	objectStartCommand.Field = nullptr;
+	objectStartCommand.Type = Diff_ObjectStart;
+	objectStartCommand.Object = object;
 
-	diffCommands.push_back(objStartCommand);
+	inOutDeltaCommands.push_back(objectStartCommand);
 
 	// Go in reverse because when deserializing we want to deserialize base first, and then derived types
-	for(auto iter = commandsPerSubObj.rbegin(); iter != commandsPerSubObj.rend(); ++iter)
-		diffCommands.insert(diffCommands.end(), iter->begin(), iter->end());
+	for(auto iter = commandsPerSubObject.rbegin(); iter != commandsPerSubObject.rend(); ++iter)
+		inOutDeltaCommands.insert(inOutDeltaCommands.end(), iter->begin(), iter->end());
 
-	DeltaCommand objEndCommand;
-	objEndCommand.Field = nullptr;
-	objEndCommand.Type = Diff_ObjectEnd;
-	objEndCommand.Object = object;
+	DeltaCommand objectEndCommand;
+	objectEndCommand.Field = nullptr;
+	objectEndCommand.Type = Diff_ObjectEnd;
+	objectEndCommand.Object = object;
 
-	diffCommands.push_back(objEndCommand);
+	inOutDeltaCommands.push_back(objectEndCommand);
 
 	while(!rttiInstances.empty())
 	{
@@ -2079,7 +2079,7 @@ void BinaryDiff::GenerateDeltaApplyCommands(const SPtr<IReflectable>& object, co
 	}
 }
 
-void BinaryDiff::GenerateDeltaCommandForEntry(RTTITypeBase* rttiInstance, const SPtr<IReflectable>& object, RTTIIteratorField& field, const SPtr<ISerialized>& entryDelta, u32 arrayIndex, void* mapKey, DeltaObjectMap& inOutObjectMap, FrameVector<DeltaCommand>& outCommands, SerializationContext* context, FrameAllocator& allocator)
+void BinaryDeltaHandler::GenerateDeltaCommandForEntry(RTTITypeBase* rttiInstance, const SPtr<IReflectable>& object, RTTIIteratorField& field, const SPtr<ISerialized>& entryDelta, u32 arrayIndex, void* mapKey, DeltaObjectMap& inOutObjectMap, FrameVector<DeltaCommand>& outCommands, SerializationContext* context, FrameAllocator& allocator)
 {
 	const SPtr<SerializedTuple> serializedTuple = B3DRTTICast<SerializedTuple>(entryDelta);
 	if(!B3D_ENSURE(field.Schema.FieldTypes.Size() == 1 || serializedTuple != nullptr))
@@ -2173,7 +2173,7 @@ void BinaryDiff::GenerateDeltaCommandForEntry(RTTITypeBase* rttiInstance, const 
 						command.Object = childObject;
 
 					if(childObject != nullptr)
-						IDiff::ApplyDiff(childObject->GetRtti(), childObject, serializedObjectDelta, allocator, inOutObjectMap, outCommands, context);
+						IDeltaHandler::GenerateDeltaApplyCommands(childObject->GetRtti(), childObject, serializedObjectDelta, allocator, inOutObjectMap, outCommands, context);
 				}
 
 				outCommands.push_back(command);
@@ -2193,7 +2193,7 @@ void BinaryDiff::GenerateDeltaCommandForEntry(RTTITypeBase* rttiInstance, const 
 					clonedObject = fnGetOrDeserializeObject(serializedObjectDelta);
 
 				if(B3D_ENSURE(clonedObject != nullptr))
-					IDiff::ApplyDiff(clonedObject->GetRtti(), clonedObject, serializedObjectDelta, allocator, inOutObjectMap, outCommands, context);
+					IDeltaHandler::GenerateDeltaApplyCommands(clonedObject->GetRtti(), clonedObject, serializedObjectDelta, allocator, inOutObjectMap, outCommands, context);
 
 				command.Type |= Diff_Reflectable;
 				command.Object = clonedObject;
@@ -2239,7 +2239,7 @@ void BinaryDiff::GenerateDeltaCommandForEntry(RTTITypeBase* rttiInstance, const 
 	outCommands.push_back(iteratorEndCommand);
 }
 
-void BinaryDiff::GenerateDeltaCommandForEntry(RTTITypeBase* rttiInstance, const SPtr<IReflectable>& object, RTTIField& field, const SPtr<ISerialized>& entryDelta, u32 arrayIndex, DeltaObjectMap& inOutObjectMap, FrameVector<DeltaCommand>& outCommands, SerializationContext* context, FrameAllocator& allocator)
+void BinaryDeltaHandler::GenerateDeltaCommandForEntry(RTTITypeBase* rttiInstance, const SPtr<IReflectable>& object, RTTIField& field, const SPtr<ISerialized>& entryDelta, u32 arrayIndex, DeltaObjectMap& inOutObjectMap, FrameVector<DeltaCommand>& outCommands, SerializationContext* context, FrameAllocator& allocator)
 {
 	const SPtr<SerializedTuple> serializedTuple = B3DRTTICast<SerializedTuple>(entryDelta);
 	if(!B3D_ENSURE(field.Schema.FieldTypes.Size() == 1 || serializedTuple != nullptr))
@@ -2295,7 +2295,7 @@ void BinaryDiff::GenerateDeltaCommandForEntry(RTTITypeBase* rttiInstance, const 
 								findObj = inOutObjectMap.insert(std::make_pair(serializedObjectDelta, newObject)).first;
 							}
 
-							IDiff::ApplyDiff(childRtti, findObj->second, serializedObjectDelta, allocator, inOutObjectMap, outCommands, context);
+							IDeltaHandler::GenerateDeltaApplyCommands(childRtti, findObj->second, serializedObjectDelta, allocator, inOutObjectMap, outCommands, context);
 							command.Object = findObj->second;
 						}
 						else
@@ -2305,7 +2305,7 @@ void BinaryDiff::GenerateDeltaCommandForEntry(RTTITypeBase* rttiInstance, const 
 					}
 					else
 					{
-						IDiff::ApplyDiff(childObject->GetRtti(), childObject, serializedObjectDelta, allocator, inOutObjectMap, outCommands, context);
+						IDeltaHandler::GenerateDeltaApplyCommands(childObject->GetRtti(), childObject, serializedObjectDelta, allocator, inOutObjectMap, outCommands, context);
 						command.Object = childObject;
 					}
 				}
@@ -2339,7 +2339,7 @@ void BinaryDiff::GenerateDeltaCommandForEntry(RTTITypeBase* rttiInstance, const 
 					clonedObject = BinaryCloner::Clone(&childObject, true);
 				}
 
-				IDiff::ApplyDiff(clonedObject->GetRtti(), clonedObject, fieldObjectData, allocator, inOutObjectMap, outCommands, context);
+				IDeltaHandler::GenerateDeltaApplyCommands(clonedObject->GetRtti(), clonedObject, fieldObjectData, allocator, inOutObjectMap, outCommands, context);
 
 				DeltaCommand command;
 				command.Field = &field;

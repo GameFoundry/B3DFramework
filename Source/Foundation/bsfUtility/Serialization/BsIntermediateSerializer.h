@@ -93,7 +93,7 @@ namespace bs
 
 		/** @} */
 	private:
-		friend class BinaryDiff;
+		friend class BinaryDeltaHandler;
 
 		struct ObjectDeserializationData
 		{

@@ -111,7 +111,7 @@ namespace bs
 	class ManagedSerializableObjectInfo;
 	class ManagedSerializableMemberInfo;
 	class ManagedSerializableObjectData;
-	class ManagedSerializableDiff;
+	class ManagedSerializableDelta;
 	class ManagedResource;
 	class ManagedResourceMetaData;
 	class ScriptSerializableProperty;
@@ -172,7 +172,7 @@ namespace bs
 		TID_ManagedResource = 50037,
 		TID_ManagedResourceMetaData = 50038,
 		TID_ScriptSerializableObjectData = 50039,
-		TID_ScriptSerializableDiff = 50040,
+		TID_ManagedSerializableDelta = 50040,
 		TID_ScriptModification = 50041,
 		TID_ScriptModifiedObject = 50042,
 		TID_ScriptModifiedArray = 50043,

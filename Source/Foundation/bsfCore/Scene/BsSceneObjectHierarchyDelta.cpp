@@ -133,8 +133,8 @@ void SceneObjectHierarchyDelta::ApplyDiff(const SPtr<SceneObjectDelta>& delta, c
 		{
 			if(componentDiff->Id == component->GetPrefabObjectId())
 			{
-				IDiff& diffHandler = component->GetRtti()->GetDiffHandler();
-				diffHandler.ApplyDiff(component.GetShared(), componentDiff->Data, context);
+				IDeltaHandler& deltaHandler = component->GetRtti()->GetDeltaHandler();
+				deltaHandler.ApplyDelta(component.GetShared(), componentDiff->Data, context);
 				break;
 			}
 		}
@@ -305,8 +305,8 @@ SPtr<SceneObjectDelta> SceneObjectHierarchyDelta::GenerateDelta(const HSceneObje
 				SPtr<SerializedObject> encodedPrefab = SerializedObject::Create(*prefabComponent);
 				SPtr<SerializedObject> encodedInstance = SerializedObject::Create(*instanceComponent);
 
-				IDiff& diffHandler = prefabComponent->GetRtti()->GetDiffHandler();
-				SPtr<SerializedObject> diff = diffHandler.GenerateDiff(encodedPrefab, encodedInstance);
+				IDeltaHandler& deltaHandler = prefabComponent->GetRtti()->GetDeltaHandler();
+				SPtr<SerializedObject> diff = deltaHandler.GenerateDelta(encodedPrefab, encodedInstance);
 
 				if(diff != nullptr)
 				{

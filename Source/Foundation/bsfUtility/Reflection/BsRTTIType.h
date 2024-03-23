@@ -531,14 +531,14 @@ namespace bs
 		virtual void OnDeserializationEnded(IReflectable* obj, SerializationContext* context) {}
 
 		/**
-		 * Returns a handler that determines how are "diffs" generated and applied when it comes to objects of this RTTI
-		 * type. A "diff" is a list of differences between two objects that may be saved, viewed or applied to another
-		 * object to transform it.
+		 * Returns a handler that determines how are deltas generated and applied when it comes to objects of this RTTI
+		 * type. A delta is a list of differences between two objects that may be saved, viewed or applied to another
+		 * object.
 		 */
-		virtual IDiff& GetDiffHandler() const
+		virtual IDeltaHandler& GetDeltaHandler() const
 		{
-			static BinaryDiff diffHandler;
-			return diffHandler;
+			static BinaryDeltaHandler deltaHandler;
+			return deltaHandler;
 		}
 
 		/** Returns the total number of fields in this RTTI type. */

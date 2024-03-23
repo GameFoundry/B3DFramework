@@ -9,41 +9,41 @@
 #include "Scene/BsSceneObject.h"
 
 using namespace bs;
-SPtr<SerializedObject> ManagedDiff::GenerateDeltaRecursive(IReflectable* orgObj, IReflectable* newObj, ObjectMap& objectMap, bool reflectableOnly)
+SPtr<SerializedObject> ManagedDeltaHandler::GenerateDeltaRecursive(IReflectable* original, IReflectable* modified, ObjectMap& objectMap, bool reflectableOnly)
 {
 	CoreSerializationContext context;
 
 	ManagedSerializableObject* orgManSerzObj;
 	SPtr<ManagedSerializableObject> orgDecodedObject;
-	if(orgObj->GetTypeId() == TID_SerializedObject)
+	if(original->GetTypeId() == TID_SerializedObject)
 	{
-		auto* orgSerzObj = static_cast<SerializedObject*>(orgObj);
+		auto* orgSerzObj = static_cast<SerializedObject*>(original);
 		orgDecodedObject = std::static_pointer_cast<ManagedSerializableObject>(orgSerzObj->Decode(&context));
 
 		orgManSerzObj = orgDecodedObject.get();
 	}
 	else
 	{
-		B3D_ASSERT(orgObj->GetTypeId() == TID_ScriptSerializableObject);
-		orgManSerzObj = static_cast<ManagedSerializableObject*>(orgObj);
+		B3D_ASSERT(original->GetTypeId() == TID_ScriptSerializableObject);
+		orgManSerzObj = static_cast<ManagedSerializableObject*>(original);
 	}
 
 	ManagedSerializableObject* newManSerzObj;
 	SPtr<ManagedSerializableObject> newDecodedObject;
-	if(newObj->GetTypeId() == TID_SerializedObject)
+	if(modified->GetTypeId() == TID_SerializedObject)
 	{
-		auto* newSerzObj = static_cast<SerializedObject*>(newObj);
+		auto* newSerzObj = static_cast<SerializedObject*>(modified);
 		newDecodedObject = std::static_pointer_cast<ManagedSerializableObject>(newSerzObj->Decode(&context));
 
 		newManSerzObj = newDecodedObject.get();
 	}
 	else
 	{
-		B3D_ASSERT(newObj->GetTypeId() == TID_ScriptSerializableObject);
-		newManSerzObj = static_cast<ManagedSerializableObject*>(newObj);
+		B3D_ASSERT(modified->GetTypeId() == TID_ScriptSerializableObject);
+		newManSerzObj = static_cast<ManagedSerializableObject*>(modified);
 	}
 
-	SPtr<ManagedSerializableDiff> diff = ManagedSerializableDiff::Create(orgManSerzObj, newManSerzObj);
+	SPtr<ManagedSerializableDelta> diff = ManagedSerializableDelta::Create(orgManSerzObj, newManSerzObj);
 	if(diff == nullptr)
 		return nullptr;
 
@@ -62,11 +62,11 @@ SPtr<SerializedObject> ManagedDiff::GenerateDeltaRecursive(IReflectable* orgObj,
 	return output;
 }
 
-void ManagedDiff::GenerateDeltaApplyCommands(const SPtr<IReflectable>& object, const SPtr<SerializedObject>& serzDiff, FrameAllocator& alloc, DeltaObjectMap& objectMap, FrameVector<DeltaCommand>& diffCommands, SerializationContext* context)
+void ManagedDeltaHandler::GenerateDeltaApplyCommands(const SPtr<IReflectable>& object, const SPtr<SerializedObject>& delta, FrameAllocator& allocator, DeltaObjectMap& objectMap, FrameVector<DeltaCommand>& inOutDeltaCommands, SerializationContext* context)
 {
-	SPtr<SerializedObject> diffObj = std::static_pointer_cast<SerializedObject>(serzDiff->SubObjects[0].FieldEntries[0].Value);
+	SPtr<SerializedObject> diffObj = std::static_pointer_cast<SerializedObject>(delta->SubObjects[0].FieldEntries[0].Value);
 
-	SPtr<ManagedSerializableDiff> diff = std::static_pointer_cast<ManagedSerializableDiff>(diffObj->Decode(context));
+	SPtr<ManagedSerializableDelta> diff = std::static_pointer_cast<ManagedSerializableDelta>(diffObj->Decode(context));
 
 	if(diff != nullptr)
 	{

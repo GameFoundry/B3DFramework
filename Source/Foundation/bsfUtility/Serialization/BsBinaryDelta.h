@@ -17,34 +17,30 @@ namespace bs
 	 *  @{
 	 */
 
-	/**
-	 * Represents an interface RTTI objects need to implement if they want to provide custom "diff" generation and applying.
-	 */
-	class B3D_UTILITY_EXPORT IDiff
+	/** Represents an interface RTTI objects need to implement if they want to provide custom delta generation and applying. */
+	class B3D_UTILITY_EXPORT IDeltaHandler
 	{
 	public:
-		virtual ~IDiff() = default;
+		virtual ~IDeltaHandler() = default;
 
 		/**
-		 * Generates per-field differences between the provided original and new object. Any field or array entry that is
-		 * different in the new object compared to the original will be output in the resulting object, with a full
-		 * hierarchy of that field.
+		 * Generates differences between the provided original and new object. Each field is compared with a matching field on the other object.
+		 * If the field references a container (e.g. an array or a map), then delta is recorded only for entries that don't match (and not the entire container).
+		 *
+		 * Both provided objects must of the same type. 
 		 *
 		 * If @p replicableOnly true then only fields with replication enabled will be evaluated and all others will be
 		 * ignored.
 		 *
-		 * You may compare a raw IReflectable object instance, or an object serialized as a SerializedObject. You can mix
-		 * and match the two as long as their source types match.
-		 *
 		 * Will return null if there is no difference.
 		 */
-		SPtr<SerializedObject> GenerateDiff(const SPtr<IReflectable>& orgObj, const SPtr<IReflectable>& newObj, bool replicableOnly = false);
+		SPtr<SerializedObject> GenerateDelta(const SPtr<IReflectable>& original, const SPtr<IReflectable>& modified, bool replicableOnly = false);
 
 		/**
-		 * Applies a previously generated per-field differences to the provided object. This will essentially transform the
+		 * Applies a previously generated delta to the provided object. This will essentially transform the
 		 * original object the differences were generated for into the modified version.
 		 */
-		void ApplyDiff(const SPtr<IReflectable>& object, const SPtr<SerializedObject>& diff, SerializationContext* context);
+		void ApplyDelta(const SPtr<IReflectable>& object, const SPtr<SerializedObject>& delta, SerializationContext* context);
 
 		/**
 		 * @name Internal
@@ -54,11 +50,11 @@ namespace bs
 		typedef UnorderedMap<IReflectable*, SPtr<SerializedObject>> ObjectMap;
 
 		/**
-		 * Recursive version of GenerateDiff(const SPtr<IReflectable>&, const SPtr<IReflectable>&, bool).
+		 * Recursive version of GenerateDelta(const SPtr<IReflectable>&, const SPtr<IReflectable>&, bool).
 		 *
-		 * @see		GenerateDiff(const SPtr<IReflectable>&, const SPtr<IReflectable>&, bool)
+		 * @see		GenerateDelta(const SPtr<IReflectable>&, const SPtr<IReflectable>&, bool)
 		 */
-		virtual SPtr<SerializedObject> GenerateDeltaRecursive(IReflectable* orgObj, IReflectable* newObj, ObjectMap& objectMap, bool replicableOnly) = 0;
+		virtual SPtr<SerializedObject> GenerateDeltaRecursive(IReflectable* original, IReflectable* modified, ObjectMap& objectMap, bool replicableOnly) = 0;
 
 		/** @} */
 
@@ -66,7 +62,7 @@ namespace bs
 		typedef UnorderedMap<SPtr<SerializedObject>, SPtr<IReflectable>> DeltaObjectMap;
 
 		/** Types of commands that are used when applying difference field values. */
-		enum DiffCommandType
+		enum DeltaCommandType
 		{
 			Diff_Plain = 0x01,
 			Diff_Reflectable = 0x02,
@@ -106,33 +102,26 @@ namespace bs
 		};
 
 		/**
-		 * Recursive version of ApplyDiff(const SPtr<IReflectable>& object, const SPtr<SerializedObject>& diff). Outputs a
-		 * set of commands that then must be executed in order to actually apply the difference to the provided object.
-		 *
-		 * @see		ApplyDiff(const SPtr<IReflectable>& object, const SPtr<SerializedObject>& diff)
+		 * Generates a set of commands that determine operations that need to be performed on @p object in order to apply all the changes from @p delta. Commands
+		 * are output in @p inOutDeltaCommands.
 		 */
-		virtual void GenerateDeltaApplyCommands(const SPtr<IReflectable>& object, const SPtr<SerializedObject>& diff, FrameAllocator& alloc, DeltaObjectMap& objectMap, FrameVector<DeltaCommand>& diffCommands, SerializationContext* context) = 0;
+		virtual void GenerateDeltaApplyCommands(const SPtr<IReflectable>& object, const SPtr<SerializedObject>& delta, FrameAllocator& allocator, DeltaObjectMap& objectMap, FrameVector<DeltaCommand>& inOutDeltaCommands, SerializationContext* context) = 0;
 
-		/**
-		 * Applies diff according to the diff handler retrieved from the provided RTTI object.
-		 *
-		 * @see		ApplyDiff(const SPtr<IReflectable>& object, const SPtr<SerializedObject>& diff)
-		 */
-		void ApplyDiff(RTTITypeBase* rtti, const SPtr<IReflectable>& object, const SPtr<SerializedObject>& diff, FrameAllocator& alloc, DeltaObjectMap& objectMap, FrameVector<DeltaCommand>& diffCommands, SerializationContext* context);
+		/** Retrieves the appropriate IDeltaHandler from the provided object and calls the other GenerateDeltaApplyCommands overload. */
+		void GenerateDeltaApplyCommands(RTTITypeBase* rtti, const SPtr<IReflectable>& object, const SPtr<SerializedObject>& delta, FrameAllocator& allocator, DeltaObjectMap& objectMap, FrameVector<DeltaCommand>& inOutDeltaCommands, SerializationContext* context);
 	};
 
 	/**
-	 * Generates and applies "diffs". Diffs contain per-field differences between an original and new object. These
-	 * differences can be saved and then applied to an original object to transform it to the new version.
+	 * Generates and applies delta (differences) between two objects. This handler is to be used for all native types, while a separate IDeltaHandler is to be provided
+	 * for script types.
 	 *
-	 * Any IReflectable object can have a diff generated, as well as objects in an intermediate serialized format
-	 * generated by IntermediateSerializer.
+	 * Provided object may be any IReflectable object, and special handling is done to also natively support delta between SerializedObject types.
 	 */
-	class B3D_UTILITY_EXPORT BinaryDiff : public IDiff
+	class B3D_UTILITY_EXPORT BinaryDeltaHandler : public IDeltaHandler
 	{
 	private:
-		SPtr<SerializedObject> GenerateDeltaRecursive(IReflectable* lhs, IReflectable* rhs, ObjectMap& objectMap, bool replicableOnly) override;
-		void GenerateDeltaApplyCommands(const SPtr<IReflectable>& object, const SPtr<SerializedObject>& diff, FrameAllocator& allocator, DeltaObjectMap& objectMap, FrameVector<DeltaCommand>& diffCommands, SerializationContext* context) override;
+		SPtr<SerializedObject> GenerateDeltaRecursive(IReflectable* original, IReflectable* modified, ObjectMap& objectMap, bool replicableOnly) override;
+		void GenerateDeltaApplyCommands(const SPtr<IReflectable>& object, const SPtr<SerializedObject>& delta, FrameAllocator& allocator, DeltaObjectMap& objectMap, FrameVector<DeltaCommand>& inOutDeltaCommands, SerializationContext* context) override;
 
 		/**
 		 * Generates delta commands for a single field entry (e.g. a single array or map entry, or the entire field if not a container).
@@ -150,7 +139,19 @@ namespace bs
 		 */
 		void GenerateDeltaCommandForEntry(RTTITypeBase* rttiInstance, const SPtr<IReflectable>& object, RTTIIteratorField& field, const SPtr<ISerialized>& entryDelta, u32 arrayIndex, void* mapKey, DeltaObjectMap& inOutObjectMap, FrameVector<DeltaCommand>& outCommands, SerializationContext* context, FrameAllocator& allocator);
 
-		// TODO - Doc
+		/**
+		 * Generates delta commands for a single field entry (e.g. a single array entry, or the entire field if not an array).
+		 *
+		 * @param rttiInstance		RTTIType instance for the current object.
+		 * @param object			Object that contains the field we're applying the delta to.
+		 * @param field				Field to which to apply the delta to.
+		 * @param entryDelta		Object containing the delta value to apply.
+		 * @param arrayIndex		Optional array index, if the entry we're applying the value to is part of an array. Set to ~0u if not an array.
+		 * @param inOutObjectMap	Map that contains any deserialized objects so far, and into which new deserialized objects will be inserted.
+		 * @param outCommands		List of generated commands into which to output the commands.
+		 * @param context			Serialization context.
+		 * @param allocator			Allocator to perform temporary allocations with.
+		 */
 		void GenerateDeltaCommandForEntry(RTTITypeBase* rttiInstance, const SPtr<IReflectable>& object, RTTIField& field, const SPtr<ISerialized>& entryDelta, u32 arrayIndex, DeltaObjectMap& inOutObjectMap, FrameVector<DeltaCommand>& outCommands, SerializationContext* context, FrameAllocator& allocator); // DEPRECATED - Except the DataBlock case
 	};
 
