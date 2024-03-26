@@ -1,6 +1,8 @@
 //************************************ bs::framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "Utility/BsUtility.h"
+
+#include "Reflection/BsRTTIObjectWrapper.h"
 #include "Reflection/BsRTTIType.h"
 #include "Scene/BsSceneObject.h"
 
@@ -12,143 +14,90 @@ using namespace bs;
  */
 bool HasReflectableChildren(RTTITypeBase* type)
 {
-	u32 numFields = type->GetFieldCount();
-	for(u32 i = 0; i < numFields; i++)
 	{
-		RTTIField* field = type->GetField(i);
-		if(field->Schema.Type == SerializableFT_Reflectable || field->Schema.Type == SerializableFT_ReflectablePtr)
-			return true;
+		const u32 fieldCount = type->GetFieldCount();
+		for(u32 fieldIndex = 0; fieldIndex < fieldCount; fieldIndex++)
+		{
+			const RTTIField* const field = type->GetField(fieldIndex);
+
+			for(const auto& fieldTypeSchema : field->Schema.FieldTypes)
+			{
+				if(fieldTypeSchema.Type == SerializableFT_Reflectable || fieldTypeSchema.Type == SerializableFT_ReflectablePtr)
+					return true;
+			}
+		}
 	}
 
 	const Vector<RTTITypeBase*>& derivedClasses = type->GetDerivedClasses();
 	for(auto& derivedClass : derivedClasses)
 	{
-		numFields = derivedClass->GetFieldCount();
-		for(u32 i = 0; i < numFields; i++)
+		const u32 fieldCount = derivedClass->GetFieldCount();
+		for(u32 fieldIndex = 0; fieldIndex < fieldCount; fieldIndex++)
 		{
-			RTTIField* field = derivedClass->GetField(i);
-			if(field->Schema.Type == SerializableFT_Reflectable || field->Schema.Type == SerializableFT_ReflectablePtr)
-				return true;
+			const RTTIField* const field = derivedClass->GetField(fieldIndex);
+			for(const auto& fieldTypeSchema : field->Schema.FieldTypes)
+			{
+				if(fieldTypeSchema.Type == SerializableFT_Reflectable || fieldTypeSchema.Type == SerializableFT_ReflectablePtr)
+					return true;
+			}
 		}
 	}
 
 	return false;
 }
 
-void FindResourceDependenciesInternal(IReflectable& obj, FrameAllocator& alloc, bool recursive, Map<UUID, ResourceDependency>& dependencies)
+static void FindResourceDependenciesRecursive(IReflectable& object, FrameAllocator& allocator, bool recurseChildren, UnorderedMap<UUID, ResourceDependency>& outDependencies)
 {
-	RTTITypeBase* rtti = obj.GetRtti();
-	do
-	{
-		RTTITypeBase* rttiInstance = rtti->CloneInternal(alloc);
-		rttiInstance->OnSerializationStarted(&obj, nullptr);
-
-		const u32 numFields = rtti->GetFieldCount();
-		for(u32 i = 0; i < numFields; i++)
+	auto fnFieldFilter = [](const RTTIFieldSchema& fieldSchema)
 		{
-			RTTIField* field = rtti->GetField(i);
-			if(field->Schema.Info.Flags.IsSet(RTTIFieldFlag::SkipInReferenceSearch))
-				continue;
+			if(fieldSchema.Info.Flags.IsSet(RTTIFieldFlag::SkipInReferenceSearch))
+				return false;
 
-			if(field->Schema.Type == SerializableFT_Reflectable)
+			return true;
+		};
+
+	Function<void(const RTTIFieldTypeSchema&, RTTIObjectWrapper::Value<true>&)> fnProcessFieldTupleValue =
+		[&outDependencies, &fnFieldFilter, &fnProcessFieldTupleValue, recurseChildren](const RTTIFieldTypeSchema& fieldTypeSchema, RTTIObjectWrapper::Value<true>& value)
+	{
+		if(fieldTypeSchema.Type == SerializableFT_Reflectable)
+		{
+			if(fieldTypeSchema.FieldTypeId == TID_ResourceHandle)
 			{
-				auto reflectableField = static_cast<RTTIReflectableFieldBase*>(field);
-
-				if(reflectableField->GetType()->GetRttiId() == TID_ResourceHandle)
+				const RTTIObjectWrapper::Object<true>& handleObject = value.GetObject();
+				HResource* const resource = B3DRTTICast<HResource>(handleObject.GetWrappedObject());
+				if(B3D_ENSURE(resource != nullptr))
 				{
-					if(reflectableField->Schema.IsArray)
+					if(!resource->GetId().Empty())
 					{
-						const u32 numElements = reflectableField->GetArraySize(rttiInstance, &obj);
-						for(u32 j = 0; j < numElements; j++)
-						{
-							HResource resource = (HResource&)reflectableField->GetArrayValue(rttiInstance, &obj, j);
-							if(!resource.GetId().Empty())
-							{
-								ResourceDependency& dependency = dependencies[resource.GetId()];
-								dependency.Resource = resource;
-								dependency.NumReferences++;
-							}
-						}
-					}
-					else
-					{
-						HResource resource = (HResource&)reflectableField->GetValue(rttiInstance, &obj);
-						if(!resource.GetId().Empty())
-						{
-							ResourceDependency& dependency = dependencies[resource.GetId()];
-							dependency.Resource = resource;
-							dependency.NumReferences++;
-						}
-					}
-				}
-				else if(recursive)
-				{
-					// Optimization, no need to retrieve its value and go deeper if it has no
-					// reflectable children that may hold the reference.
-					if(HasReflectableChildren(reflectableField->GetType()))
-					{
-						if(reflectableField->Schema.IsArray)
-						{
-							const u32 numElements = reflectableField->GetArraySize(rttiInstance, &obj);
-							for(u32 j = 0; j < numElements; j++)
-							{
-								IReflectable& childObj = reflectableField->GetArrayValue(rttiInstance, &obj, j);
-								FindResourceDependenciesInternal(childObj, alloc, true, dependencies);
-							}
-						}
-						else
-						{
-							IReflectable& childObj = reflectableField->GetValue(rttiInstance, &obj);
-							FindResourceDependenciesInternal(childObj, alloc, true, dependencies);
-						}
-					}
-				}
-			}
-			else if(field->Schema.Type == SerializableFT_ReflectablePtr && recursive)
-			{
-				auto reflectablePtrField = static_cast<RTTIReflectablePtrFieldBase*>(field);
-
-				// Optimization, no need to retrieve its value and go deeper if it has no
-				// reflectable children that may hold the reference.
-				if(HasReflectableChildren(reflectablePtrField->GetType()))
-				{
-					if(reflectablePtrField->Schema.IsArray)
-					{
-						const u32 numElements = reflectablePtrField->GetArraySize(rttiInstance, &obj);
-						for(u32 j = 0; j < numElements; j++)
-						{
-							const SPtr<IReflectable>& childObj =
-								reflectablePtrField->GetArrayValue(rttiInstance, &obj, j);
-
-							if(childObj != nullptr)
-								FindResourceDependenciesInternal(*childObj, alloc, true, dependencies);
-						}
-					}
-					else
-					{
-						const SPtr<IReflectable>& childObj = reflectablePtrField->GetValue(rttiInstance, &obj);
-
-						if(childObj != nullptr)
-							FindResourceDependenciesInternal(*childObj, alloc, true, dependencies);
+						ResourceDependency& dependency = outDependencies[resource->GetId()];
+						dependency.Resource = *resource;
+						dependency.NumReferences++;
 					}
 				}
 			}
 		}
 
-		rttiInstance->OnSerializationEnded(&obj, nullptr);
-		alloc.Destruct(rttiInstance);
+		if(recurseChildren)
+		{
+			if(fieldTypeSchema.Type == SerializableFT_Reflectable || fieldTypeSchema.Type == SerializableFT_ReflectablePtr)
+			{
+				RTTIObjectWrapper::Object<true> wrappedChildObject = value.GetObject();
+				RTTIObjectWrapper::IterateFieldTupleValues(wrappedChildObject, fnProcessFieldTupleValue, fnFieldFilter);
+			}
+		}
+	};
 
-		rtti = rtti->GetBaseClass();
-	}
-	while(rtti != nullptr);
+	RTTITypeBase* const rtti = object.GetRtti();
+	RTTIObjectWrapper::Object<true> wrappedObject(&object, rtti, &allocator);
+	RTTIObjectWrapper::IterateFieldTupleValues(wrappedObject, fnProcessFieldTupleValue, fnFieldFilter);
 }
 
 Vector<ResourceDependency> Utility::FindResourceDependencies(IReflectable& obj, bool recursive)
 {
 	GetFrameAllocator().MarkFrame();
 
-	Map<UUID, ResourceDependency> dependencies;
-	FindResourceDependenciesInternal(obj, GetFrameAllocator(), recursive, dependencies);
+	UnorderedMap<UUID, ResourceDependency> dependencies;
+	FindResourceDependenciesRecursive(obj, GetFrameAllocator(), recursive, dependencies);
 
 	GetFrameAllocator().Clear();
 
