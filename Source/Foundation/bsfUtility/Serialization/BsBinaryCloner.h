@@ -24,19 +24,21 @@ namespace bs
 		static SPtr<IReflectable> Clone(IReflectable* object, bool shallow = false);
 
 	private:
-		struct ObjectReferenceData;
+		struct ObjectExternalReferences;
 
-		/** Identifier representing a single field or an array entry in an object. */
-		struct FieldId
+		/** Identifier representing a single field or a container entry in an object. */
+		struct ReferenceId
 		{
-			RTTIField* Field;
-			i32 ArrayIdx;
+			RTTIField* Field = nullptr;
+			u32 ArrayIndex = ~0u;
+			const void* MapKey = nullptr;
+			u32 TupleElementIndex = ~0u;
 		};
 
 		/** A saved reference to an object with a field identifier that owns it. */
 		struct ObjectReference
 		{
-			FieldId FieldId;
+			ReferenceId Id;
 			SPtr<IReflectable> Object;
 		};
 
@@ -44,33 +46,28 @@ namespace bs
 		 * Contains all object references in a portion of an object belonging to a specific class (base and derived
 		 * classes count as separate sub-objects).
 		 */
-		struct SubObjectReferenceData
+		struct SubObjectExternalReferences
 		{
-			RTTITypeBase* Rtti;
+			RTTITypeBase* Rtti = nullptr;
 			Vector<ObjectReference> References;
-			Vector<ObjectReferenceData> Children;
+			Vector<ObjectExternalReferences> ChildObjects;
 		};
 
-		/**
-		 * Contains all object references in an entire object, as well as the identifier of the field owning this object.
-		 */
-		struct ObjectReferenceData
+		/** Contains all object references in an entire object, as well as the identifier of the field owning this object. */
+		struct ObjectExternalReferences
 		{
-			FieldId FieldId;
-			Vector<SubObjectReferenceData> SubObjectData;
+			ReferenceId Id;
+			Vector<SubObjectExternalReferences> SubObjectReferences;
 		};
 
-		/**
-		 * Iterates over the provided object hierarchy and retrieves all object references which are returned in
-		 * @p referenceData output parameter, also in a hierarchical format for easier parsing.
-		 */
-		static void GatherReferences(IReflectable* object, FrameAllocator& alloc, ObjectReferenceData& referenceData);
+		/** Iterates over the provided object hierarchy and retrieves all object references which are returned in a hierarchical format for easier parsing. */
+		static ObjectExternalReferences GatherExternalReferences(IReflectable* object, FrameAllocator& allocator);
 
 		/**
-		 * Restores a set of references retrieved by gatherReferences() and applies them to a specific object. Type of the
-		 * object must be the same as the type that was used when calling gatherReferences().
+		 * Restores a set of references retrieved by GatherExternalReferences() and applies them to a specific object. Type of the
+		 * object must be the same as the type that was used when calling GatherExternalReferences().
 		 */
-		static void RestoreReferences(IReflectable* object, FrameAllocator& alloc, const ObjectReferenceData& referenceData);
+		static void RestoreExternalReferences(IReflectable* object, FrameAllocator& allocator, const ObjectExternalReferences& externalReferences);
 	};
 
 	/**
