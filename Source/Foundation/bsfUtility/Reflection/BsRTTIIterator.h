@@ -39,6 +39,12 @@ namespace bs
 		/** Increment operator. */
 		virtual void Increment() = 0;
 
+		/** Clears all the entries from the underlying container. */
+		virtual void Clear() = 0;
+
+		/** Removes the current iterator element. */
+		virtual void Erase() = 0;
+
 		/** Makes a copy of this iterator at its current location. */
 		virtual SPtr<IRTTIIterator> Clone(FrameAllocator& allocator) const = 0;
 
@@ -74,6 +80,7 @@ namespace bs
 		static IteratorType Increment(IteratorType iterator) { iterator = nullptr; return iterator; }
 		static ElementType& GetValue(IteratorType iterator) { return *iterator; }
 		static IteratorType Erase(T& container, IteratorType iterator) { return iterator; }
+		static void Clear(T& container) { }
 		static u64 Size(T& container) { return 1; }
 		
 	};
@@ -109,6 +116,7 @@ namespace bs
 		static IteratorType Increment(IteratorType iterator) { ++iterator; return iterator; }
 		static ElementType& GetValue(IteratorType iterator) { return *iterator; }
 		static IteratorType Erase(T& container, IteratorType iterator) { return container.erase(iterator); }
+		static void Clear(T& container) { container.clear(); }
 		static u64 Size(T& container) { return (u64)container.size(); }
 	};
 
@@ -142,6 +150,13 @@ namespace bs
 		const void* GetValue() const override { return &(*mIterator); }
 		void Increment() override { operator++(); }
 		SPtr<IRTTIIterator> Clone(FrameAllocator& allocator) const override;
+		void Clear() override { IteratorAdapter::Clear(*mValue); }
+		void Erase() override
+		{
+			if(IsValid())
+				mIterator = IteratorAdapter::Erase(*mValue, mIterator);
+			
+		}
 
 		bool SeekToIndex(u64 index) override
 		{

@@ -92,6 +92,9 @@ void IntermediateSerializer::DeserializeReflectableObject(const SPtr<IReflectabl
 				RTTIIteratorField* iteratorField = static_cast<RTTIIteratorField*>(curGenericField);
 				SPtr<IRTTIIterator> iterator = iteratorField->GetIterator(rttiInstance, object.get(), *mAllocator);
 
+				if(iterator != nullptr)
+					iterator->Clear();
+
 				const bool encodedAsArray = iteratorField->Schema.IsArray && iteratorField->IteratorSupportsSeekToIndex();
 				const bool encodedAsMap = iteratorField->Schema.IsArray && iteratorField->IteratorSupportsSeekToKey();
 

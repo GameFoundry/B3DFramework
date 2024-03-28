@@ -541,7 +541,12 @@ bool BinaryDeserializationContext::DeserializeReflectableObject(SPtr<RTTISchema>
 			SPtr<IRTTIIterator> iterator;
 
 			if(iteratorField != nullptr)
+			{
 				iterator = iteratorField->GetIterator(rttiInstance, output.get(), mAllocator);
+
+				if(iterator != nullptr)
+					iterator->Clear();
+			}
 
 			for(u32 elementIndex = 0; elementIndex < elementCount; ++elementIndex)
 			{

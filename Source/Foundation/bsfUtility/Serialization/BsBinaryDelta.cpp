@@ -642,7 +642,44 @@ void IDeltaHandler::ApplyDelta(const SPtr<IReflectable>& object, const SPtr<Seri
 		switch(type)
 		{
 		case Diff_ArraySize:
-			command.Field->SetArraySize(rttiInstance, destinationObject, command.ArraySize);
+			{
+				if(command.Field->Schema.IsIterator)
+				{
+					auto& field = *static_cast<RTTIIteratorField*>(command.Field);
+					SPtr<IRTTIIterator> iterator = field.GetIterator(rttiInstance, destinationObject, allocator);
+					if(B3D_ENSURE(iterator != nullptr))
+					{
+						// Add or remove excess elements
+						if(command.ArraySize > iterator->GetElementCount())
+						{
+							while(command.ArraySize > iterator->GetElementCount())
+							{
+								iterator->SeekToEnd(); // Ensures value is inserted at the end of the iterable container
+
+								void* fieldValue = field.CreateEmptyFieldValue(allocator);
+								field.SetIteratorValue(rttiInstance, destinationObject, allocator, *iterator, fieldValue);
+								field.FreeFieldValue(fieldValue, allocator);
+							}
+						}
+						else if(command.ArraySize < iterator->GetElementCount())
+						{
+							while(command.ArraySize < iterator->GetElementCount())
+							{
+								if(!B3D_ENSURE(field.IteratorSupportsSeekToIndex())) // ArraySize command shouldn't have been generated if this is not the case
+									continue;
+
+								// Erase last element
+								iterator->SeekToIndex(iterator->GetElementCount() - 1);
+								iterator->Erase();
+							}
+						}
+					}
+				}
+				else
+				{
+					command.Field->SetArraySize(rttiInstance, destinationObject, command.ArraySize);
+				}
+			}
 			break;
 		case Diff_ObjectStart:
 			{
@@ -739,18 +776,8 @@ void IDeltaHandler::ApplyDelta(const SPtr<IReflectable>& object, const SPtr<Seri
 				{
 					B3D_ASSERT(command.ArrayIndex != ~0u);
 
-					// If there are any missing elements in the array, insert empty ones first
-					if((command.ArrayIndex + 1) < currentIterator->GetElementCount())
-					{
-						while((command.ArrayIndex + 1) < currentIterator->GetElementCount())
-						{
-							currentIterator->SeekToEnd(); // Ensures value is inserted at the end of the iterable container
-
-							void* fieldValue = field.CreateEmptyFieldValue(allocator);
-							field.SetIteratorValue(rttiInstance, destinationObject, allocator, *currentIterator, fieldValue);
-							field.FreeFieldValue(fieldValue, allocator);
-						}
-					}
+					// This should have been guaranteed by the ArraySize command
+					B3D_ASSERT(command.ArrayIndex < currentIterator->GetElementCount());
 
 					if(currentIterator->SeekToIndex(command.ArrayIndex))
 						currentIteratorFieldValue = field.GetIteratorValueCopy(rttiInstance, destinationObject, allocator, *currentIterator);
@@ -1092,7 +1119,7 @@ void BinaryDeltaHandler::GenerateDeltaCommandForEntry(RTTITypeBase* rttiInstance
 	const void* fieldValue = nullptr;
 	if(arrayIndex != ~0u)
 	{
-		iteratorStartCommand.Type = Diff_ArrayFlag;
+		iteratorStartCommand.Type |= Diff_ArrayFlag;
 		iteratorStartCommand.ArrayIndex = arrayIndex;
 
 		if(!B3D_ENSURE(field.IteratorSupportsSeekToIndex()))
@@ -1103,7 +1130,7 @@ void BinaryDeltaHandler::GenerateDeltaCommandForEntry(RTTITypeBase* rttiInstance
 	}
 	else if(mapKey != nullptr)
 	{
-		iteratorStartCommand.Type = Diff_MapFlag;
+		iteratorStartCommand.Type |= Diff_MapFlag;
 		iteratorStartCommand.MapKey = mapKey;
 
 		if(!B3D_ENSURE(field.IteratorSupportsSeekToKey()))
@@ -1238,12 +1265,12 @@ void BinaryDeltaHandler::GenerateDeltaCommandForEntry(RTTITypeBase* rttiInstance
 
 	if(arrayIndex != ~0u)
 	{
-		iteratorEndCommand.Type = Diff_ArrayFlag;
+		iteratorEndCommand.Type |= Diff_ArrayFlag;
 		iteratorEndCommand.ArrayIndex = arrayIndex;
 	}
 	else if(mapKey != nullptr)
 	{
-		iteratorEndCommand.Type = Diff_MapFlag;
+		iteratorEndCommand.Type |= Diff_MapFlag;
 		iteratorEndCommand.MapKey = mapKey;
 	}
 
