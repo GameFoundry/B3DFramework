@@ -616,9 +616,20 @@ void IDeltaHandler::ApplyDelta(const SPtr<IReflectable>& object, const SPtr<Seri
 	IReflectable* destinationObject = nullptr;
 	RTTITypeBase* rttiInstance = nullptr;
 
-	Stack<IReflectable*> objectStack;
-	Vector<std::pair<RTTITypeBase*, IReflectable*>> rttiInstances;
+	FrameStack<IReflectable*> objectStack;
+	FrameVector<std::pair<RTTITypeBase*, IReflectable*>> rttiInstances;
 
+	struct IteratorAndValue
+	{
+		IteratorAndValue(const SPtr<IRTTIIterator>& iterator, void* fieldValue)
+			: Iterator(iterator), FieldValue(fieldValue)
+		{ }
+
+		SPtr<IRTTIIterator> Iterator;
+		void* FieldValue = nullptr;
+	};
+
+	FrameStack<IteratorAndValue> iteratorStack;
 	SPtr<IRTTIIterator> currentIterator;
 	void* currentIteratorFieldValue = nullptr;
 
@@ -702,13 +713,15 @@ void IDeltaHandler::ApplyDelta(const SPtr<IReflectable>& object, const SPtr<Seri
 			{
 				B3D_ASSERT(command.Field != nullptr);
 				B3D_ASSERT(command.Field->Schema.IsIterator);
-				B3D_ASSERT(currentIterator == nullptr);
-				B3D_ASSERT(currentIteratorFieldValue == nullptr);
 				B3D_ASSERT(rttiInstance != nullptr);
 				B3D_ASSERT(destinationObject != nullptr);
 
+				if(currentIterator != nullptr)
+					iteratorStack.push(IteratorAndValue(currentIterator, currentIteratorFieldValue));
+
 				auto& field = *static_cast<RTTIIteratorField*>(command.Field);
 				currentIterator = field.GetIterator(rttiInstance, destinationObject, allocator);
+				currentIteratorFieldValue = nullptr;
 
 				if(isMap)
 				{
@@ -765,8 +778,17 @@ void IDeltaHandler::ApplyDelta(const SPtr<IReflectable>& object, const SPtr<Seri
 				auto& field = *static_cast<RTTIIteratorField*>(command.Field);
 				field.SetIteratorValue(rttiInstance, destinationObject, allocator, *currentIterator, currentIteratorFieldValue);
 				field.FreeFieldValue(currentIteratorFieldValue, allocator);
-				currentIteratorFieldValue = nullptr;
+
 				currentIterator = nullptr;
+				currentIteratorFieldValue = nullptr;
+
+				if(!iteratorStack.empty())
+				{
+					currentIterator = iteratorStack.top().Iterator;
+					currentIteratorFieldValue = iteratorStack.top().FieldValue;
+
+					iteratorStack.pop();
+				}
 			}
 			break;
 		default:
