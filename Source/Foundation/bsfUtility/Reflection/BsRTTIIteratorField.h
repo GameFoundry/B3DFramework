@@ -238,14 +238,25 @@ namespace bs
 					return;
 
 				if(tupleElementIndex == 0)
-					ReadPlainTypeFromStream(value.first, stream, useCompression);
+				{
+					// Make sure to remove constness, as map values usually have a const key (Proper fix would be to deduce a non-const version of std::pair<const K, V>/etc.)
+					using MutableType = std::remove_cv_t<typename ElementType::first_type>;
+					ReadPlainTypeFromStream(const_cast<MutableType&>(value.first), stream, useCompression);
+				}
 				else
-					ReadPlainTypeFromStream(value.second, stream, useCompression);
+				{
+					// Same as above
+					using MutableType = std::remove_cv_t<typename ElementType::second_type>;
+					ReadPlainTypeFromStream(const_cast<MutableType&>(value.second), stream, useCompression);
+				}
 			}
 			else
 			{
 				B3D_ENSURE(tupleElementIndex == 0);
-				ReadPlainTypeFromStream(value, stream, useCompression);
+
+				// Same as above
+				using MutableType = std::remove_cv_t<ElementType>;
+				ReadPlainTypeFromStream(const_cast<MutableType&>(value), stream, useCompression);
 			}
 		}
 
@@ -277,21 +288,30 @@ namespace bs
 
 				if(tupleElementIndex == 0)
 				{
-					if constexpr(IsReflectableShared<typename ElementType::first_type>())
-						value.first = std::static_pointer_cast<typename B3DDecaySharedPointer<typename ElementType::first_type>::value>(reflectable);
+					// Make sure to remove constness, as map values usually have a const key (Proper fix would be to deduce a non-const version of std::pair<const K, V>/etc.)
+					using MutableType = std::remove_cv_t<typename ElementType::first_type>;
+
+					if constexpr(IsReflectableShared<MutableType>())
+						const_cast<MutableType&>(value.first) = std::static_pointer_cast<typename B3DDecaySharedPointer<MutableType>::value>(reflectable);
 				}
 				else
 				{
-					if constexpr(IsReflectableShared<typename ElementType::second_type>())
-						value.second = std::static_pointer_cast<typename B3DDecaySharedPointer<typename ElementType::second_type>::value>(reflectable);
+					// Same as above
+					using MutableType = std::remove_cv_t<typename ElementType::second_type>;
+
+					if constexpr(IsReflectableShared<MutableType>())
+						const_cast<MutableType&>(value.second) = std::static_pointer_cast<typename B3DDecaySharedPointer<MutableType>::value>(reflectable);
 				}
 			}
 			else
 			{
 				B3D_ENSURE(tupleElementIndex == 0);
 
-				if constexpr(IsReflectableShared<ElementType>())
-					value = std::static_pointer_cast<typename B3DDecaySharedPointer<ElementType>::value>(reflectable);
+				// Same as above
+				using MutableType = std::remove_cv_t<ElementType>;
+
+				if constexpr(IsReflectableShared<MutableType>())
+					const_cast<MutableType&>(value) = std::static_pointer_cast<typename B3DDecaySharedPointer<MutableType>::value>(reflectable);
 			}
 		}
 
@@ -331,21 +351,30 @@ namespace bs
 
 				if(tupleElementIndex == 0)
 				{
-					if constexpr(IsReflectable<typename ElementType::first_type>())
-						value.first = static_cast<const typename ElementType::first_type&>(reflectable);
+					// Make sure to remove constness, as map values usually have a const key (Proper fix would be to deduce a non-const version of std::pair<const K, V>/etc.)
+					using MutableType = std::remove_cv_t<typename ElementType::first_type>;
+
+					if constexpr(IsReflectable<MutableType>())
+						const_cast<MutableType&>(value.first) = static_cast<const MutableType&>(reflectable);
 				}
 				else
 				{
-					if constexpr(IsReflectable<typename ElementType::second_type>())
-						value.second = static_cast<const typename ElementType::second_type&>(reflectable);
+					// Same as above
+					using MutableType = std::remove_cv_t<typename ElementType::second_type>;
+
+					if constexpr(IsReflectable<MutableType>())
+						const_cast<MutableType&>(value.second) = static_cast<const MutableType&>(reflectable);
 				}
 			}
 			else
 			{
 				B3D_ENSURE(tupleElementIndex == 0);
 
-				if constexpr(IsReflectable<ElementType>())
-					value = static_cast<const ElementType&>(reflectable);
+				// Same as above
+				using MutableType = std::remove_cv_t<ElementType>;
+
+				if constexpr(IsReflectable<MutableType>())
+					const_cast<MutableType&>(value) = static_cast<const ElementType&>(reflectable);
 			}
 		}
 
@@ -470,21 +499,21 @@ namespace bs
 		template<class T>
 		static constexpr bool IsReflectable()
 		{
-			return std::is_base_of_v<IReflectable, T>;
+			return std::is_base_of_v<IReflectable, std::remove_reference_t<std::remove_cv_t<T>>>;
 		}
 
 		/** Checks is the provided type a shared pointer referencing a type deriving from IReflectable. */
 		template<class T>
 		static constexpr bool IsReflectableShared()
 		{
-			return B3DIsSharedPointer<T>::value && IsReflectable<B3DDecaySharedPointer<T>::value>();
+			return B3DIsSharedPointer<std::remove_reference_t<std::remove_cv_t<T>>>::value && IsReflectable<B3DDecaySharedPointer<std::remove_reference_t<std::remove_cv_t<T>>>::value>();
 		}
 
 		/** Checks is the provided type a plain type (implements the RTTIPlainType<T> specialization). */
 		template<class T>
 		static constexpr bool IsPlain()
 		{
-			return B3DHasRTTIPlainTypeSpecialization<T>::value;
+			return B3DHasRTTIPlainTypeSpecialization<std::remove_reference_t<std::remove_cv_t<T>>>::value;
 		}
 		
 		GetIteratorDelegate mGetIteratorCallback;

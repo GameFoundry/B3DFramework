@@ -412,7 +412,7 @@ Optional<SPtr<ISerialized>> GenerateValueDelta(const RTTIFieldSchema& fieldSchem
 				tupleDeltaEntry.Index = tupleElementIndex;
 				tupleDeltaEntry.Value = *tupleElementModification;
 
-				serializedTupleDelta->Values[tupleElementIndex] = std::move(tupleDeltaEntry);
+				serializedTupleDelta->Values.Add(std::move(tupleDeltaEntry));
 			}
 			else
 				modification = tupleElementModification;

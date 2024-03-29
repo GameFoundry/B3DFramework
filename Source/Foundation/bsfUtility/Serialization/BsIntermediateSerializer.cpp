@@ -334,7 +334,7 @@ void IntermediateSerializer::DeserializeElement(RTTIIteratorField& field, void* 
 		SPtr<ISerialized> serializedTupleValue;
 		if(isTuple)
 		{
-			if(B3D_ENSURE(serializedTuple != nullptr && fieldTypeIndex > serializedTuple->Values.Size()))
+			if(B3D_ENSURE(serializedTuple != nullptr && fieldTypeIndex < serializedTuple->Values.Size()))
 				serializedTupleValue = serializedTuple->Values[fieldTypeIndex];
 		}
 		else

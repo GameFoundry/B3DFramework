@@ -685,7 +685,7 @@ namespace bs::RTTIObjectWrapper
 			auto* field = static_cast<RTTIPlainFieldBase*>(mField);
 
 			u32 size;
-			if(field->Schema.HasDynamicSize)
+			if(field->Schema.FieldTypes[mTupleElementIndex].HasDynamicSize)
 			{
 				const bool isArrayElement = mArrayIndex != ~0u;
 				if(isArrayElement)
@@ -694,7 +694,7 @@ namespace bs::RTTIObjectWrapper
 					size = field->GetDynamicSize(mRTTIType, mObject, false).Bytes;
 			}
 			else
-				size = field->Schema.Size.Bytes;
+				size = field->Schema.FieldTypes[mTupleElementIndex].FixedSize.Bytes;
 
 			return size;
 		}
