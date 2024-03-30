@@ -20,13 +20,13 @@ namespace bs
 	class B3D_UTILITY_EXPORT IntermediateSerializer
 	{
 	public:
-		IntermediateSerializer(FrameAllocator* allocator);
+		IntermediateSerializer(FrameAllocator* allocator, SerializationContext* context = nullptr);
 
 		/** Encodes an IReflectable object into an intermediate representation. */
-		SPtr<SerializedObject> Encode(IReflectable* object, SerializedObjectEncodeFlags flags, SerializationContext* context = nullptr);
+		SPtr<SerializedObject> Encode(IReflectable* object, SerializedObjectEncodeFlags flags);
 
 		/** Decodes an intermediate representation of a serialized object into the actual object. */
-		SPtr<IReflectable> Decode(const SerializedObject* serializedObject, SerializationContext* context = nullptr);
+		SPtr<IReflectable> Decode(const SerializedObject* serializedObject);
 
 		/**
 		 * @name Internal
@@ -38,7 +38,7 @@ namespace bs
 		 * @p arrayIdx is -1 then the entire array will be encoded, otherwise just a single array field will. If the
 		 * field is not array the value of @p arrayIdx is not relevant.
 		 */
-		static SPtr<ISerialized> SerializeField(IReflectable* object, RTTITypeBase* rtti, RTTIField* field, u32 arrayIdx, SerializedObjectEncodeFlags flags, SerializationContext* context, FrameAllocator* alloc); // DEPRECATED
+		SPtr<ISerialized> SerializeField(IReflectable* object, RTTITypeBase* rtti, RTTIField* field, u32 arrayIdx, SerializedObjectEncodeFlags flags); // DEPRECATED
 
 		/**
 		 * Serializes a the entire field from the provided reflectable object.
@@ -47,11 +47,9 @@ namespace bs
 		 * @param rttiInstance			Type information describing @p object.
 		 * @param field					Field to serialize.
 		 * @param flags					Flags controlling the serialization process.
-		 * @param context				Context that gives more information about the serialization process, and allows the user to store his own.
-		 * @param allocator				Allocator to perform temporary allocations with.
 		 * @return						Serialized field, or null if the field data is null.
 		 */
-		static SPtr<ISerialized> SerializeField(IReflectable& object, RTTITypeBase& rttiInstance, RTTIIteratorField& field, SerializedObjectEncodeFlags flags, SerializationContext* context, FrameAllocator& allocator);
+		SPtr<ISerialized> SerializeField(IReflectable& object, RTTITypeBase& rttiInstance, RTTIIteratorField& field, SerializedObjectEncodeFlags flags);
 
 		/**
 		 * Serializes an element at the provided iterator location. 
@@ -62,10 +60,9 @@ namespace bs
 		 * @param iterator				Iterator pointing to the location of the element to serialize.
 		 * @param flags					Flags controlling the serialization process.
 		 * @param context				Context that gives more information about the serialization process, and allows the user to store his own.
-		 * @param allocator				Allocator to perform temporary allocations with.
 		 * @return						Serialized element, or null if the source element is null.
 		 */
-		static SPtr<ISerialized> SerializeElement(IReflectable& object, RTTITypeBase& rttiInstance, RTTIIteratorField& field, IRTTIIterator& iterator, SerializedObjectEncodeFlags flags, SerializationContext* context, FrameAllocator& allocator);
+		SPtr<ISerialized> SerializeElement(IReflectable& object, RTTITypeBase& rttiInstance, RTTIIteratorField& field, IRTTIIterator& iterator, SerializedObjectEncodeFlags flags);
 
 		/**
 		 * Serializes a single tuple element from the provided iterator location. 
@@ -77,10 +74,9 @@ namespace bs
 		 * @param tupleElementIndex		Tuple index to serialize. e.g. if element is of std::pair<K, V> type, index 0 would represent K and index 1 would represent V. Should be 0 if the iterator element is not a tuple type.
 		 * @param flags					Flags controlling the serialization process.
 		 * @param context				Context that gives more information about the serialization process, and allows the user to store his own.
-		 * @param allocator				Allocator to perform temporary allocations with.
 		 * @return						Serialized tuple element, or null if the source element is null.
 		 */
-		static SPtr<ISerialized> SerializeTupleElement(IReflectable& object, RTTITypeBase& rttiInstance, RTTIIteratorField& field, IRTTIIterator& iterator, u32 tupleElementIndex, SerializedObjectEncodeFlags flags, SerializationContext* context, FrameAllocator& allocator);
+		SPtr<ISerialized> SerializeTupleElement(IReflectable& object, RTTITypeBase& rttiInstance, RTTIIteratorField& field, IRTTIIterator& iterator, u32 tupleElementIndex, SerializedObjectEncodeFlags flags);
 
 		/** Deserializes a single field, array or map entry from the provided field, at the provided iterator location. */
 		void DeserializeElement(RTTITypeBase& rttiInstance, const SPtr<IReflectable>& object, RTTIIteratorField& field, const SPtr<IRTTIIterator>& iterator, const SPtr<ISerialized>& entry);
@@ -117,9 +113,13 @@ namespace bs
 		SPtr<IReflectable> GetReflectableObject(const SPtr<SerializedObject>& serializedObject);
 
 		/** Serializes a single IReflectable object. */
-		static SPtr<SerializedObject> SerializeReflectableObject(const IReflectable& object, SerializedObjectEncodeFlags flags, SerializationContext* context, FrameAllocator& allocator);
+		SPtr<SerializedObject> SerializeReflectableObject(const IReflectable& object, SerializedObjectEncodeFlags flags);
+
+		/** Attempts to retrieve a previously serialized object for the provided reflectable object, or if not found, serializes the object. */
+		SPtr<SerializedObject> GetOrSerializeReflectableObject(const IReflectable& object, SerializedObjectEncodeFlags flags);
 
 		UnorderedMap<const SerializedObject*, ObjectDeserializationData> mDeserializedObjectMap;
+		UnorderedMap<const IReflectable*, SPtr<SerializedObject>> mSerializedObjectMap;
 		SerializationContext* mContext = nullptr;
 		FrameAllocator* mAllocator = nullptr;
 	};

@@ -234,13 +234,15 @@ namespace bs::RTTIObjectWrapper
 
 	inline SPtr<ISerialized> Field<true>::Clone(SerializedObjectEncodeFlags flags, SerializationContext* context) const
 	{
+		IntermediateSerializer intermediateSerializer(mFrameAllocator, context);
+
 		if(mField->Schema.IsIterator)
 		{
 			auto* const field = static_cast<RTTIIteratorField*>(mField);
-			return IntermediateSerializer::SerializeField(*mObject, *mRTTIType, *field, flags, context, *mFrameAllocator);
+			return intermediateSerializer.SerializeField(*mObject, *mRTTIType, *field, flags);
 		}
 
-		return IntermediateSerializer::SerializeField(mObject, mRTTIType, mField, ~0u, flags, context, mFrameAllocator);
+		return intermediateSerializer.SerializeField(mObject, mRTTIType, mField, ~0u, flags);
 	}
 
 	inline ValueIterator<false>::ValueIterator(const SPtr<ISerialized>& value, FrameAllocator* frameAllocator)
@@ -774,15 +776,17 @@ namespace bs::RTTIObjectWrapper
 	{
 		auto* field = static_cast<RTTIIteratorField*>(mField);
 
+		IntermediateSerializer intermediateSerializer(mFrameAllocator, context);
+
 		if(mIterator != nullptr)
 		{
 			if(mTupleElementIndex != ~0u)
-				return IntermediateSerializer::SerializeTupleElement(*mObject, *mRTTIType, *field, *mIterator, mTupleElementIndex, flags, context, *mFrameAllocator);
+				return intermediateSerializer.SerializeTupleElement(*mObject, *mRTTIType, *field, *mIterator, mTupleElementIndex, flags);
 
-			return IntermediateSerializer::SerializeElement(*mObject, *mRTTIType, *field, *mIterator, flags, context, *mFrameAllocator);
+			return intermediateSerializer.SerializeElement(*mObject, *mRTTIType, *field, *mIterator, flags);
 		}
 
-		return IntermediateSerializer::SerializeField(mObject, mRTTIType, mField, mArrayIndex, flags, context, mFrameAllocator);
+		return intermediateSerializer.SerializeField(mObject, mRTTIType, mField, mArrayIndex, flags);
 	}
 
 	inline FieldIterator<false>::FieldIterator(SerializedObject* value, u32 subObjectIndex, FrameAllocator* frameAllocator)

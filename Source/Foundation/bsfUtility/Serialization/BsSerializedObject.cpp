@@ -24,14 +24,14 @@ namespace bs
 
 SPtr<SerializedObject> SerializedObject::Create(IReflectable& object, SerializedObjectEncodeFlags flags, SerializationContext* context)
 {
-	IntermediateSerializer is(&GetFrameAllocator());
-	return is.Encode(&object, flags, context);
+	IntermediateSerializer is(&GetFrameAllocator(), context);
+	return is.Encode(&object, flags);
 }
 
 SPtr<IReflectable> SerializedObject::Decode(SerializationContext* context) const
 {
-	IntermediateSerializer is(&GetFrameAllocator());
-	return is.Decode(this, context);
+	IntermediateSerializer is(&GetFrameAllocator(), context);
+	return is.Decode(this);
 }
 
 u32 SerializedObject::GetRootTypeId() const
