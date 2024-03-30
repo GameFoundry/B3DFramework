@@ -263,6 +263,9 @@ using namespace RTTIObjectWrapper;
 
 typedef UnorderedMap<IReflectable*, SPtr<SerializedObject>> ObjectMap;
 
+template <bool IsLHSIReflectable, bool IsRHSIReflectable>
+SPtr<SerializedObject> GenerateObjectDelta(Optional<Object<IsLHSIReflectable>> maybeLhs, Object<IsRHSIReflectable> rhs, ObjectMap& inOutObjectMap, bool replicableOnly);
+
 /**
  * Compares two values and creates an object that contains differences between them (if any).
  *
@@ -347,7 +350,7 @@ Optional<SPtr<ISerialized>> GenerateValueDelta(const RTTIFieldSchema& fieldSchem
 				else
 				{
 					if(!isRHSEntryNull)
-						tupleElementModification = rhsTupleElement.Clone(flags, context); // TODO - Should recursively call GenerateObjectDelta
+						tupleElementModification = GenerateObjectDelta(Optional<Object<IsLHSIReflectable>>(), rhsObject, objectMap, replicableOnly);
 				}
 			}
 			break;
@@ -444,7 +447,7 @@ Optional<SPtr<ISerialized>> GenerateValueDelta(const RTTIFieldSchema& fieldSchem
 }
 
 template <bool IsLHSIReflectable, bool IsRHSIReflectable>
-SPtr<SerializedObject> GenerateObjectDelta(Object<IsLHSIReflectable> lhs, Object<IsRHSIReflectable> rhs, ObjectMap& inOutObjectMap, bool replicableOnly)
+SPtr<SerializedObject> GenerateObjectDelta(Optional<Object<IsLHSIReflectable>> maybeLhs, Object<IsRHSIReflectable> rhs, ObjectMap& inOutObjectMap, bool replicableOnly)
 {
 	SerializedObjectEncodeFlags flags = replicableOnly ? SerializedObjectEncodeFlag::ReplicableOnly : SerializedObjectEncodeFlags();
 	SerializationContext* context = nullptr;
@@ -460,20 +463,26 @@ SPtr<SerializedObject> GenerateObjectDelta(Object<IsLHSIReflectable> lhs, Object
 		if(rtti == nullptr)
 			continue;
 
-		SubObject<IsLHSIReflectable> lhsSubObject;
-		SubObjectIterator<IsLHSIReflectable> lhsSubObjectIterator = lhs.GetSubObjectIterator();
-		while(lhsSubObjectIterator.MoveNext())
+		Optional<SubObject<IsLHSIReflectable>> maybeLhsSubObject;
+
+		if(maybeLhs.has_value())
 		{
-			SubObject<IsLHSIReflectable> lhsSubObjectCandidate = lhsSubObjectIterator.GetValue();
-			if(lhsSubObjectCandidate.GetTypeId() == rhsSubObject.GetTypeId())
+			SubObjectIterator<IsLHSIReflectable> lhsSubObjectIterator = maybeLhs->GetSubObjectIterator();
+			while(lhsSubObjectIterator.MoveNext())
 			{
-				lhsSubObject = lhsSubObjectCandidate;
-				break;
+				SubObject<IsLHSIReflectable> lhsSubObjectCandidate = lhsSubObjectIterator.GetValue();
+				if(lhsSubObjectCandidate.GetTypeId() == rhsSubObject.GetTypeId())
+				{
+					maybeLhsSubObject = lhsSubObjectCandidate;
+					break;
+				}
 			}
 		}
 
 		rhs.NotifyBeginOperation(rhsSubObject, context);
-		lhs.NotifyBeginOperation(lhsSubObject, context);
+
+		if(maybeLhsSubObject.has_value())
+			maybeLhs->NotifyBeginOperation(*maybeLhsSubObject, context);
 
 		FieldIterator<IsRHSIReflectable> rhsFieldIterator = rhsSubObject.GetFieldIterator();
 
@@ -492,19 +501,18 @@ SPtr<SerializedObject> GenerateObjectDelta(Object<IsLHSIReflectable> lhs, Object
 					continue;
 			}
 
-			FieldIterator<IsLHSIReflectable> lhsFieldIterator = lhsSubObject.GetFieldIterator();
-
-			Field<IsLHSIReflectable> lhsField;
-			bool foundMatchingField = false;
-			while(lhsFieldIterator.MoveNext())
+			Optional<Field<IsLHSIReflectable>> maybeLhsField;
+			if(maybeLhsSubObject.has_value())
 			{
-				Field<IsLHSIReflectable> lhsFieldCandidate = lhsFieldIterator.GetValue();
-				if(lhsFieldCandidate.GetId() == rhsField.GetId())
+				FieldIterator<IsLHSIReflectable> lhsFieldIterator = maybeLhsSubObject->GetFieldIterator();
+				while(lhsFieldIterator.MoveNext())
 				{
-					lhsField = lhsFieldCandidate;
-					foundMatchingField = true;
-
-					break;
+					Field<IsLHSIReflectable> lhsFieldCandidate = lhsFieldIterator.GetValue();
+					if(lhsFieldCandidate.GetId() == rhsField.GetId())
+					{
+						maybeLhsField = lhsFieldCandidate;
+						break;
+					}
 				}
 			}
 
@@ -519,9 +527,9 @@ SPtr<SerializedObject> GenerateObjectDelta(Object<IsLHSIReflectable> lhs, Object
 				Value<IsRHSIReflectable> rhsValue = rhsValueIterator.GetValue();
 				Optional<Value<IsLHSIReflectable>> maybeLHSValue;
 
-				if(foundMatchingField)
+				if(maybeLhsField.has_value())
 				{
-					ValueIterator<IsLHSIReflectable> lhsValueIterator = lhsField.GetValueIterator();
+					ValueIterator<IsLHSIReflectable> lhsValueIterator = maybeLhsField->GetValueIterator();
 					maybeLHSValue = lhsValueIterator.FindMatchingValue(rhsValueIterator);
 				}
 
@@ -597,7 +605,8 @@ SPtr<SerializedObject> GenerateObjectDelta(Object<IsLHSIReflectable> lhs, Object
 			}
 		}
 
-		lhs.NotifyEndOperation(context);
+		if(maybeLhs.has_value())
+			maybeLhs->NotifyEndOperation(context);
 		rhs.NotifyEndOperation(context);
 	}
 
@@ -952,11 +961,11 @@ SPtr<SerializedObject> BinaryDeltaHandler::GenerateDeltaRecursive(IReflectable* 
 		if(modified->GetTypeId() == TID_SerializedObject)
 		{
 			Object<false> rhsWrapper(static_cast<SerializedObject*>(modified), &frameAllocator);
-			return ::GenerateObjectDelta(lhsWrapper, rhsWrapper, objectMap, replicableOnly);
+			return ::GenerateObjectDelta(std::make_optional(lhsWrapper), rhsWrapper, objectMap, replicableOnly);
 		}
 
 		Object<true> rhsWrapper(modified, modified->GetRtti(), &frameAllocator);
-		return ::GenerateObjectDelta(lhsWrapper, rhsWrapper, objectMap, replicableOnly);
+		return ::GenerateObjectDelta(std::make_optional(lhsWrapper), rhsWrapper, objectMap, replicableOnly);
 	}
 	else
 	{
@@ -965,11 +974,11 @@ SPtr<SerializedObject> BinaryDeltaHandler::GenerateDeltaRecursive(IReflectable* 
 		if(modified->GetTypeId() == TID_SerializedObject)
 		{
 			Object<false> rhsWrapper(static_cast<SerializedObject*>(modified), &frameAllocator);
-			return ::GenerateObjectDelta(lhsWrapper, rhsWrapper, objectMap, replicableOnly);
+			return ::GenerateObjectDelta(std::make_optional(lhsWrapper), rhsWrapper, objectMap, replicableOnly);
 		}
 
 		Object<true> rhsWrapper(modified, modified->GetRtti(), &frameAllocator);
-		return ::GenerateObjectDelta(lhsWrapper, rhsWrapper, objectMap, replicableOnly);
+		return ::GenerateObjectDelta(std::make_optional(lhsWrapper), rhsWrapper, objectMap, replicableOnly);
 	}
 }
 
