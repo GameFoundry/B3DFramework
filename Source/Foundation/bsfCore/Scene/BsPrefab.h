@@ -102,7 +102,7 @@ namespace bs
 		 *							the original is destroyed before instantiating.
 		 * @return					Instantiated clone of the prefab's scene object hierarchy.
 		 */
-		HSceneObject Instantiate(const SPtr<SceneInstance>& sceneInstance = nullptr, bool preserveIds = false) const;
+		HSceneObject Instantiate(const SPtr<SceneInstance>& sceneInstance, bool preserveIds) const;
 
 		/** @} */
 

@@ -219,6 +219,7 @@ HSceneObject Prefab::Instantiate(const SPtr<SceneInstance>& sceneInstance, bool 
 	SPtr<GameObjectCollection> gameObjectCollection = finalSceneInstance->GetGameObjectCollection();
 
 	HSceneObject clone = Clone(gameObjectCollection, preserveIds);
+	PrefabUtility::AssignPrefabInstanceIds(clone, mRoot, mUUID);
 	clone->InstantiateInternal();
 
 	return clone;

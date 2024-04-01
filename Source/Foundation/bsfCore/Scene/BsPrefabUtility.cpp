@@ -129,7 +129,7 @@ void PrefabUtility::RevertToPrefab(const HSceneObject& sceneObject)
 	HSceneObject currentSceneObject = sceneObject;
 	sceneObject->DestroyInternal(currentSceneObject, true);
 
-	HSceneObject newInstance = linkedPrefab->Instantiate();
+	HSceneObject newInstance = linkedPrefab->Instantiate(nullptr, false);
 
 	// Remove default parent, and replace with original one
 	newInstance->mParent->RemoveChild(newInstance);
@@ -267,6 +267,60 @@ void PrefabUtility::AssignPrefabResourceId(const HSceneObject& sceneObject, cons
 		{
 			component->SetPrefabObjectId(component->GetId());
 		});
+}
+
+
+void PrefabUtility::AssignPrefabInstanceIds(const HSceneObject& instanceRoot, const HSceneObject& prefabRoot, const UUID& prefabResourceId)
+{
+	struct MatchingSceneObjects
+	{
+		MatchingSceneObjects(HSceneObject instance, HSceneObject prefab)
+			: InstanceSceneObject(std::move(instance)), PrefabSceneObject(std::move(prefab))
+		{ }
+
+		HSceneObject InstanceSceneObject;
+		HSceneObject PrefabSceneObject;
+	};
+
+	FrameScope frameScope;
+	FrameStack<MatchingSceneObjects> todo;
+	todo.emplace(instanceRoot, prefabRoot);
+
+	while(!todo.empty())
+	{
+		MatchingSceneObjects currentMatchingSceneObjects = todo.top();
+		todo.pop();
+
+		currentMatchingSceneObjects.InstanceSceneObject->SetPrefabResourceId(prefabResourceId);
+		currentMatchingSceneObjects.InstanceSceneObject->SetPrefabObjectId(currentMatchingSceneObjects.PrefabSceneObject.GetId());
+
+		const Vector<HComponent>& instanceComponents = currentMatchingSceneObjects.InstanceSceneObject->GetComponents();
+		const Vector<HComponent>& prefabComponents = currentMatchingSceneObjects.PrefabSceneObject->GetComponents();
+
+		const u32 componentCount = (u32)instanceComponents.size();
+		if(!B3D_ENSURE(componentCount == prefabComponents.size()))
+			return;
+
+		for(u32 componentIndex = 0; componentIndex < componentCount; ++componentIndex)
+		{
+			const HComponent& instanceComponent = instanceComponents[componentIndex];
+			const HComponent& prefabComponent = prefabComponents[componentIndex];
+
+			instanceComponent->SetPrefabObjectId(prefabComponent.GetId());
+		}
+
+		const u32 childCount = currentMatchingSceneObjects.InstanceSceneObject->GetChildCount();
+		if(!B3D_ENSURE(childCount == currentMatchingSceneObjects.PrefabSceneObject->GetChildCount()))
+			return;
+
+		for(u32 childIndex = 0; childIndex < childCount; ++childIndex)
+		{
+			const HSceneObject& instanceChild = currentMatchingSceneObjects.InstanceSceneObject->GetChild(childIndex);
+			const HSceneObject& prefabChild = currentMatchingSceneObjects.PrefabSceneObject->GetChild(childIndex);
+
+			todo.emplace(instanceChild, prefabChild);
+		}
+	}
 }
 
 void PrefabUtility::ClearPrefabIds(const HSceneObject& sceneObject)

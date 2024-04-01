@@ -46,6 +46,13 @@ namespace bs
 		static void AssignPrefabResourceId(const HSceneObject& sceneObject, const UUID& newPrefabResourceId);
 
 		/**
+		 * Assigns prefab object and resource IDs to the provided scene object hierarchy. The object IDs are retrieved from the provided
+		 * @p prefabRoot hierarchy, which must exactly match @p instanceRoot hierarchy (i.e. @p instanceRoot should be a clone of @p prefabRoot).
+		 * All objects will be assigned @p prefabResourceId as the prefab resource ID.
+		 */
+		static void AssignPrefabInstanceIds(const HSceneObject& instanceRoot, const HSceneObject& prefabRoot, const UUID& prefabResourceId);
+
+		/**
 		 * Clears all prefab IDs in the provided object and its children (includes both the prefab object and prefab resource IDs).
 		 *
 		 * @note	If any of its children belong to another prefab they will not be cleared.

@@ -680,154 +680,265 @@ void CoreTestSuite::TestBinaryDelta()
 	TestAssertObjectsMatch(objectA, objectB, true);
 }
 
+/** Wrapper for easier scene creation and object access. */
+struct Scene0Wrapper
+{
+	/** Populates the provided scene instance with the scene. */
+	Scene0Wrapper(const SPtr<SceneInstance>& sceneInstance)
+	{
+		SceneObject_0 = sceneInstance->CreateSceneObject("Scene0_SceneObject_0");
+		SceneObject_0_0 = sceneInstance->CreateSceneObject("Scene0_SceneObject_0_0");
+		SceneObject_0_1 = sceneInstance->CreateSceneObject("Scene0_SceneObject_0_1");
+		SceneObject_0_1_0 = sceneInstance->CreateSceneObject("Scene0_SceneObject_0_1_0");
+		SceneObject_1 = sceneInstance->CreateSceneObject("Scene0_SceneObject_1");
+		SceneObject_1_0 = sceneInstance->CreateSceneObject("Scene0_SceneObject_1_0");
+
+		SceneObject_0_0->SetParent(SceneObject_0);
+		SceneObject_0_1->SetParent(SceneObject_0);
+		SceneObject_1_0->SetParent(SceneObject_1);
+		SceneObject_0_1_0->SetParent(SceneObject_0_1);
+
+		SceneObject_0_1_0->SetPosition(Vector3(10.0f, 15.0f, 20.0f));
+		SceneObject_0_1->SetPosition(Vector3(1.0f, 2.0f, 3.0f));
+		SceneObject_1_0->SetPosition(Vector3(0, 123.0f, 0.0f));
+
+		Component_0 = SceneObject_0->AddComponent<UnitTestComponentA>();
+		Component_1 = SceneObject_1->AddComponent<UnitTestComponentB>();
+		Component_0_1 = SceneObject_0_1->AddComponent<UnitTestComponentA>();
+		Component_0_1_0 = SceneObject_0_1_0->AddComponent<UnitTestComponentA>();
+	}
+
+	/** Populates the scene objects and components by looking them up in the provided hierarchy. */
+	Scene0Wrapper(const HSceneObject& root)
+	{
+		SceneObject_0 = root->FindChild("Scene0_SceneObject_0", false);
+		SceneObject_0_0 = SceneObject_0->FindChild("Scene0_SceneObject_0_0", false);
+		SceneObject_0_1 = SceneObject_0->FindChild("Scene0_SceneObject_0_1", false);
+		SceneObject_0_1_0 = SceneObject_0_1->FindChild("Scene0_SceneObject_0_1_0", false);
+		SceneObject_1 = root->FindChild("Scene0_SceneObject_1", false);
+		SceneObject_1_0 = SceneObject_1->FindChild("Scene0_SceneObject_1_0", false);
+
+		Component_0 = SceneObject_0->GetComponent<UnitTestComponentA>();
+		Component_1 = SceneObject_1->GetComponent<UnitTestComponentB>();
+		Component_0_1 = SceneObject_0_1->GetComponent<UnitTestComponentA>();
+		Component_0_1_0 = SceneObject_0_1_0->GetComponent<UnitTestComponentA>();
+	}
+
+	template<class T>
+	void PerformSceneObjectUnaryOperation(T&& predicate)
+	{
+		predicate(SceneObject_0);
+		predicate(SceneObject_0_0);
+		predicate(SceneObject_0_1);
+		predicate(SceneObject_0_1_0);
+		predicate(SceneObject_1);
+		predicate(SceneObject_1_0);
+	}
+
+	template<class T>
+	void PerformComponentUnaryOperation(T&& predicate)
+	{
+		predicate(Component_0);
+		predicate(Component_1);
+		predicate(Component_0_1);
+		predicate(Component_0_1_0);
+	}
+
+	template<class T>
+	void PerformSceneObjectBinaryOperation(Scene0Wrapper& other, T&& predicate)
+	{
+		predicate(SceneObject_0, other.SceneObject_0);
+		predicate(SceneObject_0_0, other.SceneObject_0_0);
+		predicate(SceneObject_0_1, other.SceneObject_0_1);
+		predicate(SceneObject_0_1_0, other.SceneObject_0_1_0);
+		predicate(SceneObject_1, other.SceneObject_1);
+		predicate(SceneObject_1_0, other.SceneObject_1_0);
+	}
+
+	template<class T>
+	void PerformComponentBinaryOperation(Scene0Wrapper& other, T&& predicate)
+	{
+		predicate(Component_0, other.Component_0);
+		predicate(Component_1, other.Component_1);
+		predicate(Component_0_1, other.Component_0_1);
+		predicate(Component_0_1_0, other.Component_0_1_0);
+	}
+
+	HSceneObject SceneObject_0;
+	HSceneObject SceneObject_0_0;
+	HSceneObject SceneObject_0_1;
+	HSceneObject SceneObject_0_1_0;
+	HSceneObject SceneObject_1;
+	HSceneObject SceneObject_1_0;
+
+	HUnitTestComponentA Component_0;
+	HUnitTestComponentB Component_1;
+	HUnitTestComponentA Component_0_1;
+	HUnitTestComponentA Component_0_1_0;
+};
+
+/** Wrapper for easier scene creation and object access. */
+struct Scene1Wrapper
+{
+	/** Populates the provided scene instance with the scene. */
+	Scene1Wrapper(const SPtr<SceneInstance>& sceneInstance, const SPtr<Prefab>& childPrefab)
+	{
+		SceneObject_0 = sceneInstance->CreateSceneObject("Scene0_SceneObject_0");
+		SceneObject_0_0_PrefabInstance = childPrefab->Instantiate(sceneInstance);
+		SceneObject_1 = sceneInstance->CreateSceneObject("Scene0_SceneObject_1");
+		SceneObject_1_0 = sceneInstance->CreateSceneObject("Scene0_SceneObject_1_0");
+
+		SceneObject_0_0_PrefabInstance->SetParent(SceneObject_0);
+		SceneObject_1_0->SetParent(SceneObject_1);
+
+		SceneObject_0->SetPosition(Vector3(50.0f, 50.0f, 50.0f));
+		SceneObject_0_0_PrefabInstance->SetPosition(Vector3(0.0f, 0.0f, 0.0f));
+
+		Component_1_0 = SceneObject_1_0->AddComponent<UnitTestComponentA>();
+	}
+
+	/** Populates the scene objects and components by looking them up in the provided hierarchy. */
+	Scene1Wrapper(const HSceneObject& root)
+	{
+		SceneObject_0 = root->FindChild("Scene0_SceneObject_0", false);
+		SceneObject_0_0_PrefabInstance = SceneObject_0->GetChild(0);
+		SceneObject_1 = root->FindChild("Scene0_SceneObject_1", false);
+		SceneObject_1_0 = SceneObject_1->FindChild("Scene0_SceneObject_1_0", false);
+
+		Component_1_0 = SceneObject_1_0->GetComponent<UnitTestComponentA>();
+	}
+
+	HSceneObject SceneObject_0;
+	HSceneObject SceneObject_0_0_PrefabInstance;
+	HSceneObject SceneObject_1;
+	HSceneObject SceneObject_1_0;
+
+	HUnitTestComponentA Component_1_0;
+};
+
 void CoreTestSuite::TestSceneSaveLoad()
 {
-	// Simple scene save & load
+	// Create & serialize scene 0
+	SPtr<MemoryDataStream> serializedScene0Stream = B3DMakeShared<MemoryDataStream>();
 	{
-		SPtr<MemoryDataStream> serializedSceneStream = B3DMakeShared<MemoryDataStream>();
-		{
-			SPtr<SceneInstance> sceneInstance = SceneInstance::Create("UnitTestSceneInstance");
+		SPtr<SceneInstance> scene0Instance = SceneInstance::Create("UnitTestScene0Instance");
+		Scene0Wrapper scene0Wrapper(scene0Instance);
 
-			HSceneObject sceneObject_0 = sceneInstance->CreateSceneObject("sceneObject_0");
-				HSceneObject sceneObject_0_0 = sceneInstance->CreateSceneObject("sceneObject_0_0");
-				HSceneObject sceneObject_0_1 = sceneInstance->CreateSceneObject("sceneObject_0_1");
-					HSceneObject sceneObject_0_1_0 = sceneInstance->CreateSceneObject("sceneObject_0_1_0");
-			HSceneObject sceneObject_1 = sceneInstance->CreateSceneObject("sceneObject_1");
-				HSceneObject sceneObject_1_0 = sceneInstance->CreateSceneObject("sceneObject_1_0");
+		scene0Wrapper.Component_0->SceneObjectReference = scene0Wrapper.SceneObject_0_1_0;
+		scene0Wrapper.Component_0->ComponentReference = scene0Wrapper.Component_1;
 
-			sceneObject_0_0->SetParent(sceneObject_0);
-			sceneObject_0_1->SetParent(sceneObject_0);
-			sceneObject_1_0->SetParent(sceneObject_1);
-			sceneObject_0_1_0->SetParent(sceneObject_0_1);
+		scene0Wrapper.Component_0_1->StringValue = "originalValue2";
 
-			sceneObject_0_1_0->SetPosition(Vector3(10.0f, 15.0f, 20.0f));
-			sceneObject_0_1->SetPosition(Vector3(1.0f, 2.0f, 3.0f));
-			sceneObject_1_0->SetPosition(Vector3(0, 123.0f, 0.0f));
+		scene0Wrapper.Component_0_1_0->StringValue = "testValue";
+		scene0Wrapper.Component_0_1_0->SceneObjectReference = scene0Wrapper.SceneObject_0;
+		scene0Wrapper.Component_0_1_0->ComponentReference = scene0Wrapper.Component_0;
 
-			HUnitTestComponentA component_0 = sceneObject_0->AddComponent<UnitTestComponentA>();
-			HUnitTestComponentB component_1 = sceneObject_1->AddComponent<UnitTestComponentB>();
-			HUnitTestComponentA component_0_1 = sceneObject_0_1->AddComponent<UnitTestComponentA>();
-			HUnitTestComponentA component_0_1_0 = sceneObject_0_1_0->AddComponent<UnitTestComponentA>();
+		HPrefab scene0prefab = Prefab::Create(scene0Instance->GetRoot());
 
-			component_0->SceneObjectReference = sceneObject_0_1_0;
-			component_0->ComponentReference = component_1;
+		BinarySerializer serializer;
+		serializer.Encode(scene0prefab.Get(), serializedScene0Stream, BinarySerializerFlag::None);
+	}
 
-			component_0_1->StringValue = "originalValue2";
+	// Deserialize scene 0 and verify object references remain valid
+	SPtr<Prefab> scene0Prefab;
+	{
+		serializedScene0Stream->Seek(0);
 
-			component_0_1_0->StringValue = "testValue";
-			component_0_1_0->SceneObjectReference = sceneObject_0;
-			component_0_1_0->ComponentReference = component_0;
+		BinarySerializer serializer;
+		CoreSerializationContext serializationContext;
+		scene0Prefab = B3DRTTICast<Prefab>(serializer.Decode(serializedScene0Stream, (u32)serializedScene0Stream->Size(), BinarySerializerFlag::None, &serializationContext));
 
-			HPrefab scene = Prefab::Create(sceneInstance->GetRoot());
+		Scene0Wrapper scene0Wrapper(scene0Prefab->GetRoot());
 
-			BinarySerializer serializer;
-			serializer.Encode(scene.Get(), serializedSceneStream, BinarySerializerFlag::None);
-		}
-		{
-			serializedSceneStream->Seek(0);
+		B3D_TEST_ASSERT(scene0Wrapper.Component_0_1_0->StringValue == "testValue")
+		B3D_TEST_ASSERT(scene0Wrapper.Component_0->SceneObjectReference == scene0Wrapper.SceneObject_0_1_0)
+		B3D_TEST_ASSERT(scene0Wrapper.Component_0->ComponentReference == scene0Wrapper.Component_1)
+		B3D_TEST_ASSERT(scene0Wrapper.Component_0_1_0->SceneObjectReference == scene0Wrapper.SceneObject_0)
+		B3D_TEST_ASSERT(scene0Wrapper.Component_0_1_0->ComponentReference == scene0Wrapper.Component_0)
+	}
 
-			BinarySerializer serializer;
-			CoreSerializationContext serializationContext;
-			const SPtr<Prefab> prefab = B3DRTTICast<Prefab>(serializer.Decode(serializedSceneStream, (u32)serializedSceneStream->Size(), BinarySerializerFlag::None, &serializationContext));
+	// Instantiate the scene and ensure prefab links are valid
+	{
+		SPtr<SceneInstance> scene0Instance = SceneInstance::Create("UnitTestScene0Instance");
+		HSceneObject instancedSceneRoot = scene0Prefab->Instantiate(scene0Instance);
+		Scene0Wrapper instancedScene0Wrapper(instancedSceneRoot);
 
-			HSceneObject sceneRoot = prefab->GetRoot();
-			HSceneObject sceneObject_0 = sceneRoot->FindChild("sceneObject_0", false);
-			HSceneObject sceneObject_1 = sceneRoot->FindChild("sceneObject_1", false);
-			HSceneObject sceneObject_0_0 = sceneObject_0->FindChild("sceneObject_0_0", false);
-			HSceneObject sceneObject_0_1 = sceneObject_0->FindChild("sceneObject_0_1", false);
-			HSceneObject sceneObject_0_1_0 = sceneObject_0_1->FindChild("sceneObject_0_1_0", false);
+		Scene0Wrapper prefabScene0Wrapper(scene0Prefab->GetRoot());
 
-			B3D_TEST_ASSERT(sceneObject_0_0 != nullptr);
-			B3D_TEST_ASSERT(sceneObject_0_1 != nullptr);
-			B3D_TEST_ASSERT(sceneObject_0_1_0 != nullptr);
+		instancedScene0Wrapper.PerformSceneObjectBinaryOperation(prefabScene0Wrapper,
+			[this, scene0PrefabId = scene0Prefab->GetId()] (const HSceneObject& instanceSceneObject, const HSceneObject& prefabSceneObject) {
+			// Instance should be linked to the prefab
+			 B3D_TEST_ASSERT(!instanceSceneObject->GetPrefabObjectId().Empty())
+			 B3D_TEST_ASSERT(instanceSceneObject->GetPrefabObjectId() == prefabSceneObject->GetId())
+			 B3D_TEST_ASSERT(instanceSceneObject->GetPrefabResourceId() == scene0PrefabId)
 
-			HUnitTestComponentA comp0 = sceneObject_0->GetComponent<UnitTestComponentA>();
-			HUnitTestComponentB comp1 = sceneObject_1->GetComponent<UnitTestComponentB>();
-			HUnitTestComponentA comp0_1_0 = sceneObject_0_1_0->GetComponent<UnitTestComponentA>();
+			 // Prefab hierarchy should have no links
+			 B3D_TEST_ASSERT(prefabSceneObject->GetPrefabObjectId().Empty())
+			 B3D_TEST_ASSERT(prefabSceneObject->GetPrefabResourceId().Empty())
+		});
 
-			B3D_TEST_ASSERT(comp0 != nullptr)
-			B3D_TEST_ASSERT(comp1 != nullptr)
-			B3D_TEST_ASSERT(comp0_1_0 != nullptr)
-			B3D_TEST_ASSERT(comp0_1_0->StringValue == "testValue")
-			B3D_TEST_ASSERT(comp0->SceneObjectReference == sceneObject_0_1_0)
-			B3D_TEST_ASSERT(comp0->ComponentReference == comp1)
-			B3D_TEST_ASSERT(comp0_1_0->SceneObjectReference == sceneObject_0)
-			B3D_TEST_ASSERT(comp0_1_0->ComponentReference == comp0)
-		}
+		instancedScene0Wrapper.PerformComponentBinaryOperation(prefabScene0Wrapper,
+			[this, scene0PrefabId = scene0Prefab->GetId()] (const HComponent& instanceComponent, const HComponent& prefabComponent) {
+			// Instance should be linked to the prefab
+			 B3D_TEST_ASSERT(!instanceComponent->GetPrefabObjectId().Empty())
+			 B3D_TEST_ASSERT(instanceComponent->GetPrefabObjectId() == prefabComponent->GetId())
+
+			 // Prefab hierarchy should have no links
+			 B3D_TEST_ASSERT(prefabComponent->GetPrefabObjectId().Empty())
+		});
+	}
+
+	// Create and serialize scene 1 that contains an instance of the above prefab, and they reference eachother objects
+	SPtr<MemoryDataStream> serializedScene1Stream = B3DMakeShared<MemoryDataStream>();
+	{
+		SPtr<SceneInstance> scene1Instance = SceneInstance::Create("UnitTestScene1Instance");
+
+		Scene1Wrapper scene1Wrapper(scene1Instance, scene0Prefab);
+		Scene0Wrapper scene0Wrapper(scene1Wrapper.SceneObject_0_0_PrefabInstance);
+		HPrefab scene1prefab = Prefab::Create(scene1Instance->GetRoot());
+
+		scene0Wrapper.Component_0_1_0->SceneObjectReference = scene1Wrapper.SceneObject_1_0;
+		scene0Wrapper.Component_0_1_0->ComponentReference = scene1Wrapper.Component_1_0;
+
+		scene1Wrapper.Component_1_0->SceneObjectReference = scene0Wrapper.SceneObject_1_0;
+		scene1Wrapper.Component_1_0->ComponentReference = scene0Wrapper.Component_0_1_0;
+
+		BinarySerializer serializer;
+		serializer.Encode(scene1prefab.Get(), serializedScene1Stream, BinarySerializerFlag::None);
+	}
+
+	// Deserialize scene 1 and ensure references remain valid
+	SPtr<Prefab> scene1Prefab;
+	{
+		serializedScene1Stream->Seek(0);
+
+		BinarySerializer serializer;
+		CoreSerializationContext serializationContext;
+		scene1Prefab = B3DRTTICast<Prefab>(serializer.Decode(serializedScene1Stream, (u32)serializedScene1Stream->Size(), BinarySerializerFlag::None, &serializationContext));
+
+		Scene1Wrapper scene1Wrapper(scene1Prefab->GetRoot());
+		Scene0Wrapper scene0Wrapper(scene1Wrapper.SceneObject_0_0_PrefabInstance);
+
+		B3D_TEST_ASSERT(scene0Wrapper.Component_0_1_0->SceneObjectReference = scene1Wrapper.SceneObject_1_0)
+		B3D_TEST_ASSERT(scene0Wrapper.Component_0_1_0->ComponentReference = scene1Wrapper.Component_1_0)
+
+		B3D_TEST_ASSERT(scene1Wrapper.Component_1_0->SceneObjectReference = scene0Wrapper.SceneObject_1_0)
+		B3D_TEST_ASSERT(scene1Wrapper.Component_1_0->ComponentReference = scene0Wrapper.Component_0_1_0)
+
+
+
+		// TODO - Should also verify prefab links are correct (both within the prefab, and in the instantiated hierarchy)
+		
 	}
 
 	// TODO - Add following tests:
-	// 1. Instantiate the above prefab and verify prefab links are valid
-	// 2. Create a new scene into which we instantiate the above prefab (See example below)
-	//  - Have the prefab reference some of the scene's objects, and ensure those are valid
-	//  - Ensure scene objects have correct prefab links, and the prefab itself does
-	// 3. Update the prefab, verify update has been applied correctly in the scene
-	// 4. Make an instance specific change in the scene, verify the instance specific change persists
+	// 1. [x] Instantiate the above prefab and verify prefab links are valid
+	// 2. [x] Create a new scene into which we instantiate the above prefab (See example below)
+	//  - [x] Have the prefab reference some of the scene's objects, and ensure those are valid
+	//  - [ ] Ensure scene objects have correct prefab links, and the prefab itself does
+	// 3. [ ] Update the prefab, verify update has been applied correctly in the scene
+	// 4. [ ] Make an instance specific change in the scene, verify the instance specific change persists
 	// 5. TODO - Nested prefab test
-
-
-	//// Load & save a scene that contains a prefab and references its objects
-	//{
-	//	{
-	//		// unitTest4Scene_1.prefab:
-	//		// parentSO0
-	//		//  - [unitTest4Scene_0.prefab]
-	//		// parentSO1
-	//		//  - parentSO1_0 (Comp1)
-
-	//		Scene.Clear();
-
-	//		HSceneObject parentSO0 = sceneInstance->CreateSceneObject("parentSO0", false);
-	//		HSceneObject parentSO1 = sceneInstance->CreateSceneObject("parentSO1", false);
-	//		HSceneObject parentSO1_0 = sceneInstance->CreateSceneObject("parentSO1_0", false);
-
-	//		parentSO1_0.Parent = parentSO1;
-	//		parentSO0.LocalPosition = new Vector3(50.0f, 50.0f, 50.0f);
-
-	//		UnitTestComponentA parentComp1_0 = parentSO1_0->AddComponent<UnitTestComponentA>();
-
-	//		Prefab scene0Prefab = ProjectLibrary.Load<Prefab>("unitTest4Scene_0.prefab");
-	//		HSceneObject prefabInstance = scene0Prefab.Instantiate();
-	//		prefabInstance.Parent = parentSO0;
-	//		prefabInstance.LocalPosition = Vector3.Zero;
-
-	//		HSceneObject so0 = prefabInstance.FindChild("so0", false);
-	//		HSceneObject so1 = prefabInstance.FindChild("so1", false);
-	//		HSceneObject so0_1 = so0.FindChild("so0_1", false);
-	//		HSceneObject so1_0 = so1.FindChild("so1_0", false);
-	//		HSceneObject so0_1_0 = so0_1.FindChild("so0_1_0", false);
-
-	//		UnitTestComponentA comp0_1_0 = so0_1_0->GetComponent<UnitTestComponentA>();
-
-	//		parentComp1_0.otherSO = so1_0;
-	//		parentComp1_0.otherComponent2 = comp0_1_0;
-
-	//		EditorApplication.SaveScene("unitTest4Scene_1.prefab");
-	//	}
-	//	{
-	//		EditorApplication.LoadScene("unitTest4Scene_1.prefab");
-
-	//		HSceneObject parentSO0 = Scene.Root.FindChild("parentSO0", false);
-	//		HSceneObject parentSO1 = Scene.Root.FindChild("parentSO1", false);
-	//		HSceneObject parentSO1_0 = parentSO1.FindChild("parentSO1_0", false);
-
-	//		UnitTestComponentA parentComp1_0 = parentSO1_0->GetComponent<UnitTestComponentA>();
-
-	//		HSceneObject prefabInstance = parentSO0.GetChild(0);
-	//		HSceneObject so0 = prefabInstance.FindChild("so0", false);
-	//		HSceneObject so1 = prefabInstance.FindChild("so1", false);
-	//		HSceneObject so0_1 = so0.FindChild("so0_1", false);
-	//		HSceneObject so1_0 = so1.FindChild("so1_0", false);
-	//		HSceneObject so0_1_0 = so0_1.FindChild("so0_1_0", false);
-
-	//		UnitTestComponentA comp0_1_0 = so0_1_0->GetComponent<UnitTestComponentA>();
-
-	//		B3D_TEST_ASSERT(parentComp1_0.otherSO == so1_0);
-	//		B3D_TEST_ASSERT(parentComp1_0.otherComponent2 == comp0_1_0);
-	//	}
-	//}
-
-	//Debug.Log("Passed stage 2");
 
 	//// Modify prefab, reload the scene and ensure it is updated with modified prefab
 	//{
