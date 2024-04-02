@@ -16,6 +16,170 @@ namespace bs
 	B3D_LOG_CATEGORY(Prefab)
 }
 
+/**
+ * Helper class to allow prefab game objects preserve their IDs when they are being updated from an instance of that prefab.
+ *
+ * This is needed due to the fact that instanced prefabs will have unique game object IDs, and their prefab object IDs will point directly to their parent prefab (ignoring nested prefabs).
+ * Game objects in the prefab resource itself must have game object IDs that matches prefab object IDs of instances of that prefab.
+ * Additionally these objects will also contain prefab object ID and prefab resource ID links to the first nested prefab, while IDs to root will be empty.
+ *
+ * To restore the IDs we need to find out which instance game object ID maps to which object in the prefab resource (if any), and set its game object ID, prefab object ID and
+ * prefab resource ID accordingly.
+ */
+class PrefabIdUtility
+{
+public:
+	struct SceneObjectInformation
+	{
+		SceneObjectInformation(const HSceneObject& sceneObject, const UUID& parentPrefabResourceId, i32 prefabNestingLevel)
+			: SceneObject(sceneObject), ParentPrefabResourceId(parentPrefabResourceId), PrefabNestingLevel(prefabNestingLevel)
+		{}
+
+		HSceneObject SceneObject;
+		UUID ParentPrefabResourceId;
+		i32 PrefabNestingLevel = 0;
+	};
+
+	/**
+	 * Deduces original game object ID, prefab object ID and prefab resource ID, as they would be stored in the prefab resource, from an instance of that prefab
+	 * and original prefab hierarchy. To be used when updating a prefab from a prefab instance.
+	 *
+	 * @param gameObject							Game object instance for which to deduce the IDs.
+	 * @param associatedSceneObjectInformation		Information about the parent scene object that owns @p gameObject. If @p gameObject is a SceneObject, this should point to the same object.
+	 * @param originalPrefabHierarchyIds			Game object ID -> { prefab object ID, prefab resource ID } mapping for all objects in the original hierarchy in the prefab resource.
+	 * @param outPrefabGameObjectId					Game object ID to assign to the object in the prefab hierarchy.
+	 * @param outNestedPrefabLinkInformation		Prefab object ID and prefab resource ID to assign to the object in the prefab hierarchy.
+	 */
+	static void DeduceOriginalPrefabIds(const HGameObject& gameObject, const SceneObjectInformation& associatedSceneObjectInformation, const UnorderedMap<UUID, PrefabLinkInformation>& originalPrefabHierarchyIds, UUID& outPrefabGameObjectId, PrefabLinkInformation& outNestedPrefabLinkInformation);
+
+	/**
+	 * Updates all objects in @p clonedInstanceHierarchyRoot with IDs so they match previously stored prefab hierarchy. This method should be called after
+	 * updating the prefab from an instance.
+	 *
+	 * Returns a map containing a remapping from instance game object IDs to prefab game object IDs.
+	 */
+	static UnorderedMap<UUID, UUID> RestoreOriginalPrefabIds(const HSceneObject& originalPrefabHierarchyRoot, const HSceneObject& clonedInstanceHierarchyRoot, const UUID& prefabResourceId);
+};
+
+void PrefabIdUtility::DeduceOriginalPrefabIds(const HGameObject& gameObject, const SceneObjectInformation& associatedSceneObjectInformation, const UnorderedMap<UUID, PrefabLinkInformation>& originalPrefabHierarchyIds, UUID& outPrefabGameObjectId, PrefabLinkInformation& outNestedPrefabLinkInformation)
+{
+	// Try to find or generate a new scene object ID and prefab object ID
+	bool generateNewId = false;
+	UUID prefabObjectId = UUID::kEmpty;
+	{
+		const UUID& instancePrefabObjectId = gameObject->GetPrefabObjectId();
+		if(gameObject->GetPrefabObjectId().Empty()) // New object if no prefab ID assigned
+			generateNewId = true;
+		else
+		{
+			auto found = originalPrefabHierarchyIds.find(instancePrefabObjectId);
+			if(found != originalPrefabHierarchyIds.end())
+			{
+				outPrefabGameObjectId = instancePrefabObjectId;
+				prefabObjectId = found->second.PrefabObjectId;
+			}
+			else // Treat as new object if it cannot be found in the original prefab hierarchy
+				generateNewId = true;
+		}
+	}
+
+	if(generateNewId)
+	{
+		outPrefabGameObjectId = UUIDGenerator::GenerateRandom();
+		prefabObjectId = gameObject->GetPrefabObjectId();
+	}
+
+	if(associatedSceneObjectInformation.PrefabNestingLevel == 0) // Root objects don't need prefab object and resource ids
+	{
+		outNestedPrefabLinkInformation.PrefabObjectId = UUID::kEmpty;
+		outNestedPrefabLinkInformation.PrefabResourceId = UUID::kEmpty;
+	}
+	else if(associatedSceneObjectInformation.PrefabNestingLevel == 1) // First-level nested prefabs need to record a link to their prefab
+	{
+		outNestedPrefabLinkInformation.PrefabObjectId = prefabObjectId;
+		outNestedPrefabLinkInformation.PrefabResourceId = associatedSceneObjectInformation.SceneObject->GetPrefabResourceId();
+	}
+	else // Any lower level prefab instances are treated as instance-modifications of the top-most nested prefab
+	{
+		outNestedPrefabLinkInformation.PrefabObjectId = UUID::kEmpty;
+		outNestedPrefabLinkInformation.PrefabResourceId = associatedSceneObjectInformation.ParentPrefabResourceId;
+	}
+}
+
+UnorderedMap<UUID, UUID> PrefabIdUtility::RestoreOriginalPrefabIds(const HSceneObject& originalPrefabHierarchyRoot, const HSceneObject& clonedInstanceHierarchyRoot, const UUID& prefabResourceId)
+{
+	UnorderedMap<UUID, PrefabLinkInformation> originalPrefabHierarchyIds = PrefabUtility::GetInstanceToPrefabLinkInformationMap(originalPrefabHierarchyRoot, true);
+	UnorderedMap<UUID, UUID> remappedGameObjectIDs;
+
+	FrameScope frameScope;
+	FrameStack<SceneObjectInformation> todo;
+	todo.emplace(clonedInstanceHierarchyRoot, prefabResourceId, 0);
+
+	 while(!todo.empty())
+	{
+		const SceneObjectInformation currentObjectToProcess = todo.top();
+		todo.pop();
+
+		HSceneObject sceneObject = currentObjectToProcess.SceneObject;
+
+		{
+			const UUID originalGameObjectId = currentObjectToProcess.SceneObject.GetId();
+			UUID prefabGameObjectId = UUID::kEmpty;
+			PrefabLinkInformation prefabLinkInformation;
+
+			DeduceOriginalPrefabIds(currentObjectToProcess.SceneObject, currentObjectToProcess, originalPrefabHierarchyIds, prefabGameObjectId, prefabLinkInformation);
+
+			sceneObject->SetId(prefabGameObjectId);
+			sceneObject.GetSharedHandleData()->Id = prefabGameObjectId;
+
+			sceneObject->SetPrefabObjectId(prefabLinkInformation.PrefabObjectId);
+			sceneObject->SetPrefabResourceId(prefabLinkInformation.PrefabResourceId);
+
+			remappedGameObjectIDs[originalGameObjectId] = prefabGameObjectId;
+		}
+
+		for(auto& component : sceneObject->GetComponents())
+		{
+			const UUID originalGameObjectId = component.GetId();
+			UUID prefabGameObjectId = UUID::kEmpty;
+			PrefabLinkInformation prefabLinkInformation;
+
+			DeduceOriginalPrefabIds(component, currentObjectToProcess, originalPrefabHierarchyIds, prefabGameObjectId, prefabLinkInformation);
+
+			component->SetId(prefabGameObjectId);
+			component.GetSharedHandleData()->Id = prefabGameObjectId;
+
+			component->SetPrefabObjectId(prefabLinkInformation.PrefabObjectId);
+
+			remappedGameObjectIDs[originalGameObjectId] = prefabGameObjectId;
+		}
+
+		const u32 childCount = currentObjectToProcess.SceneObject->GetChildCount();
+		for(u32 childIndex = 0; childIndex < childCount; childIndex++)
+		{
+			const HSceneObject childSceneObject = currentObjectToProcess.SceneObject->GetChild(childIndex);
+
+			// If we've reached a new prefab instance, increment nesting level
+			u32 currentPrefabNestingLevel = currentObjectToProcess.PrefabNestingLevel;
+			{
+				const UUID& instancePrefabResourceId = sceneObject->GetPrefabResourceId();
+				if(instancePrefabResourceId != currentObjectToProcess.ParentPrefabResourceId)
+					currentPrefabNestingLevel++;
+			}
+
+			UUID newParentPrefabResourceId;
+			if(currentPrefabNestingLevel <= 1)
+				newParentPrefabResourceId = currentObjectToProcess.SceneObject->GetPrefabResourceId();
+			else
+				newParentPrefabResourceId = currentObjectToProcess.ParentPrefabResourceId;
+
+			todo.emplace(childSceneObject, newParentPrefabResourceId, currentPrefabNestingLevel);
+		}
+	}
+
+	return remappedGameObjectIDs;
+}
+
 Prefab::Prefab()
 	: Resource(false), mGameObjectCollection(GameObjectCollection::Create())
 {
@@ -51,18 +215,14 @@ void Prefab::Initialize(const HSceneObject& sceneObject)
 {
 	sceneObject->mPrefabDelta = nullptr;
 
-	// Record original prefab object ids so we know to restore them, then destroy the internal hierarchy
-	if(mRoot.IsValid())
-		mRoot->Destroy(true);
-
 	const SPtr<GameObjectCollection> newGameObjectCollection = GameObjectCollection::Create();
-	mRoot = sceneObject->Clone(newGameObjectCollection, false, true);
-	mRoot->mParent = nullptr;
+	HSceneObject newRoot = sceneObject->Clone(newGameObjectCollection, false, true);
+	newRoot->mParent = nullptr;
 
 	// Remove objects with "dont save" flag
 	FrameScope frameScope;
 	FrameVector<HSceneObject> sceneObjectsToDestroy;
-	mRoot->IterateHierarchy([&sceneObjectsToDestroy](const HSceneObject& sceneObject) {
+	newRoot->IterateHierarchy([&sceneObjectsToDestroy](const HSceneObject& sceneObject) {
 		if(sceneObject->HasFlag(SOF_DontSave))
 		{
 			sceneObjectsToDestroy.push_back(sceneObject);
@@ -75,96 +235,34 @@ void Prefab::Initialize(const HSceneObject& sceneObject)
 	for(const auto& entry : sceneObjectsToDestroy)
 		entry->Destroy();
 
-	mGameObjectCollection = newGameObjectCollection;
-
 	if(!mIsScene)
 	{
 		// Ensure the prefab hierarchy keeps the original ids
-		UnorderedMap<UUID, PrefabLinkInformation> instanceHierarchyIds = PrefabUtility::GetInstanceToPrefabLinkInformationMap(sceneObject, true);
-
-		// TODO - What happens with objects with no prefab link, yet part of nested prefabs? Keep them with empty prefab object/resource id?
-		// TODO - What happens when creating a template from another templates instance? Just clear the prefab object ids until the first nested prefab instance?
-		mRoot->IterateHierarchy([this, &instanceHierarchyIds](const HSceneObject& sceneObject) {
-			UUID idInPrefab;
-			if(auto found = instanceHierarchyIds.find(sceneObject.GetId()); found != instanceHierarchyIds.end())
-				idInPrefab = found->second.PrefabObjectId;
-			else
-			{
-				idInPrefab = UUIDGenerator::GenerateRandom();
-
-				// Record this here, as we'll re-use this map when assigning prefab object IDs to the instance hierarchy
-				instanceHierarchyIds.insert(std::make_pair(sceneObject.GetId(), idInPrefab));
-			}
-
-			sceneObject->SetId(idInPrefab);
-			sceneObject.GetSharedHandleData()->Id = idInPrefab;
-
-			const bool isPartOfRootPrefab = sceneObject->GetPrefabResourceId() == mUUID;
-			if(isPartOfRootPrefab)
-			{
-				// Only nested prefabs should have prefab links within the prefab
-				sceneObject->SetPrefabObjectId(UUID::kEmpty);
-				sceneObject->SetPrefabResourceId(UUID::kEmpty);
-			}
-			else
-			{
-				// Objects not part of the root prefab keep their prefab object and resource ids, as those will point to nested prefabs
-			}
-
-			return true;
-		},
-		[this, &instanceHierarchyIds](const HComponent& component) {
-			UUID idInPrefab;
-			if(auto found = instanceHierarchyIds.find(component.GetId()); found != instanceHierarchyIds.end())
-				idInPrefab = found->second.PrefabObjectId;
-			else
-			{
-				idInPrefab = UUIDGenerator::GenerateRandom();
-
-				// Record this here, as we'll re-use this map when assigning prefab object IDs to the instance hierarchy
-				instanceHierarchyIds.insert(std::make_pair(component.GetId(), idInPrefab));
-			}
-
-			component->SetId(idInPrefab);
-			component.GetSharedHandleData()->Id = idInPrefab;
-
-			const bool isPartOfRootPrefab = component->SceneObject()->GetPrefabResourceId() == mUUID;
-			if(isPartOfRootPrefab)
-			{
-				// Only nested prefabs should have prefab links within the prefab
-				component->SetPrefabObjectId(UUID::kEmpty);
-			}
-			else
-			{
-				// Objects not part of the original prefab keep their prefab object id, as this will point to nested prefabs
-			}
-		});
+		UnorderedMap<UUID, UUID> remappedGameObjectIDs = PrefabIdUtility::RestoreOriginalPrefabIds(mRoot, newRoot, mUUID);
 
 		// Ensure the instance hierarchy links to this prefab
 		B3D_ASSERT(mUUID != UUID::kEmpty);
-		sceneObject->IterateHierarchy([this, &instanceHierarchyIds](const HSceneObject& sceneObject)
+		sceneObject->IterateHierarchy([this, &remappedGameObjectIDs](const HSceneObject& sceneObject)
 		{
 			if(sceneObject->HasFlag(SOF_DontSave))
 				return false;
 
-			if(auto found = instanceHierarchyIds.find(sceneObject.GetId()); B3D_ENSURE(found != instanceHierarchyIds.end()))
+			if(auto found = remappedGameObjectIDs.find(sceneObject.GetId()); B3D_ENSURE(found != remappedGameObjectIDs.end()))
 			{
-				sceneObject->SetPrefabObjectId(found->second.PrefabObjectId);
+				sceneObject->SetPrefabObjectId(found->second);
 				sceneObject->SetPrefabResourceId(mUUID);
 			}
 
 			return true;
 		},
-		[this, &instanceHierarchyIds](const HComponent& component)
+		[this, &remappedGameObjectIDs](const HComponent& component)
 		{
-			if(auto found = instanceHierarchyIds.find(component.GetId()); B3D_ENSURE(found != instanceHierarchyIds.end()))
-			{
-				component->SetPrefabObjectId(found->second.PrefabObjectId);
-			}
+			if(auto found = remappedGameObjectIDs.find(component.GetId()); B3D_ENSURE(found != remappedGameObjectIDs.end()))
+				component->SetPrefabObjectId(found->second);
 		});
 
 		// Generate deltas for nested prefabs
-		mRoot->IterateHierarchy([this](const HSceneObject& sceneObject) {
+		newRoot->IterateHierarchy([this](const HSceneObject& sceneObject) {
 			if(sceneObject->IsPrefabInstanceRoot())
 				PrefabUtility::RecordPrefabDelta(sceneObject);
 
@@ -172,10 +270,18 @@ void Prefab::Initialize(const HSceneObject& sceneObject)
 		}, nullptr);
 	}
 
+	if(mRoot.IsValid())
+		mRoot->Destroy(true);
+
+	mRoot = newRoot;
+	mGameObjectCollection = newGameObjectCollection;
+
 	// TODO - Write some unit tests to ensure this works correctly
 	// - Create a non-nested prefab from a scene object hierarchy, instantiate it, make changes, instantiate again, ensure all links are still valid
 	// - Create a nested prefab, make changes to it and the root (add new objects), ensure all links are still valid
 	// - But probably just try to get the simple case working correctly
+
+	// TODO - Make sure to add a test with 2 levels of nested prefabs
 
 
 	// TODO - Don't forget to re-visit UpdateFromPrefab (see comment there)

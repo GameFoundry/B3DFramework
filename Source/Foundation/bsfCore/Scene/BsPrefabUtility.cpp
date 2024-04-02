@@ -398,9 +398,6 @@ UnorderedMap<UUID, PrefabLinkInformation> PrefabUtility::GetInstanceToPrefabLink
 		const UUID& prefabObjectId = sceneObject->GetPrefabObjectId();
 		const UUID& prefabResourceId = sceneObject->GetPrefabResourceId();
 
-		B3D_ENSURE(!prefabObjectId.Empty());
-		B3D_ENSURE(!prefabResourceId.Empty());
-
 		output[sceneObject.GetId()] = PrefabLinkInformation(prefabObjectId, prefabResourceId);
 		return true;
 	},
@@ -410,9 +407,6 @@ UnorderedMap<UUID, PrefabLinkInformation> PrefabUtility::GetInstanceToPrefabLink
 
 		const UUID& prefabObjectId = component->GetPrefabObjectId();
 		const UUID& prefabResourceId = component->SceneObject()->GetPrefabResourceId();
-
-		B3D_ENSURE(!prefabObjectId.Empty());
-		B3D_ENSURE(!prefabResourceId.Empty());
 
 		output[component.GetId()] = PrefabLinkInformation(prefabObjectId, prefabResourceId);
 
