@@ -38,10 +38,11 @@ namespace bs
 		 * Instantiates a prefab by creating an instance of the prefab's scene object hierarchy. The returned hierarchy
 		 * will be parented to world root by default.
 		 *
-		 * @param	sceneInstance	Scene instance into which to instantiate the prefab instance in.
+		 * @param	sceneInstance	Scene instance into which to instantiate the prefab instance in. If null, prefab will be instantiated
+		 *							in a brand new scene instance.
 		 * @return					Instantiated clone of the prefab's scene object hierarchy.
 		 */
-		HSceneObject Instantiate(const SPtr<SceneInstance>& sceneInstance) const { return Instantiate(sceneInstance, false); }
+		HSceneObject Instantiate(const SPtr<SceneInstance>& sceneInstance = nullptr) const { return Instantiate(sceneInstance, false); }
 
 		/**
 		 * Replaces the contents of this prefab with new contents from the provided object. Object will be automatically

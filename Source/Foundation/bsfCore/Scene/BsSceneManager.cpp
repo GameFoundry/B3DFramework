@@ -60,6 +60,18 @@ SPtr<SceneInstance> SceneInstance::Create(const String& name)
 	return sceneInstance;
 }
 
+SPtr<SceneInstance> SceneInstance::Create(const String& name, const HSceneObject& root)
+{
+	const SPtr<GameObjectCollection>& gameObjectCollection = root->GetOwnerCollection().lock();
+	if(!B3D_ENSURE(gameObjectCollection != nullptr))
+		return nullptr;
+
+	SPtr<SceneInstance> sceneInstance = B3DMakeShared<SceneInstance>(ConstructPrivately(), name, root, GetPhysics().CreatePhysicsScene());
+	root->SetScene(sceneInstance, true);
+
+	return sceneInstance;
+}
+
 SceneManager::SceneManager()
 	: mMainScene(SceneInstance::Create("Main"))
 {

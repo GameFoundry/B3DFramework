@@ -445,7 +445,7 @@ struct Scene1Wrapper
 {
 	/** Populates the provided parent with the scene. */
 	Scene1Wrapper(const HSceneObject& parent, const SPtr<Prefab>& childPrefab)
-		:SceneInstance(parent->GetScene())
+		: SceneInstance(parent->GetScene()), Root(SceneInstance->GetRoot())
 	{
 		SceneObject_0 = SceneInstance->CreateSceneObject("Scene0_SceneObject_0");
 		SceneObject_0->SetParent(parent);
@@ -469,16 +469,17 @@ struct Scene1Wrapper
 
 	/** Populates the scene objects and components by looking them up in the provided hierarchy. */
 	Scene1Wrapper(const HSceneObject& root)
+		: SceneInstance(root->GetScene()), Root(root)
 	{
-		SceneInstance = root->GetScene();
-
 		SceneObject_0 = root->FindChild("Scene0_SceneObject_0", false);
 		SceneObject_1 = root->FindChild("Scene0_SceneObject_1", false);
 
 		if(SceneObject_1.IsValid())
 		{
 			SceneObject_1_0 = SceneObject_1->FindChild("Scene0_SceneObject_1_0", false);
-			Component_1_0 = SceneObject_1_0->GetComponent<UnitTestComponentA>();
+
+			if(SceneObject_1_0.IsValid())
+				Component_1_0 = SceneObject_1_0->GetComponent<UnitTestComponentA>();
 		}
 
 		if(SceneObject_0->GetChildCount() > 0)
@@ -507,12 +508,15 @@ struct Scene1Wrapper
 	void CreateOptionalObjects()
 	{
 		OptionalSceneObject_2 = SceneInstance->CreateSceneObject("Scene0_SceneObject_2");
+		OptionalSceneObject_2->SetParent(Root);
+
 		OptionalComponent_2 = OptionalSceneObject_2->AddComponent<UnitTestComponentA>();
 	}
 
 	template<class T>
 	void PerformSceneObjectUnaryOperation(T&& predicate, bool skipOptional = false)
 	{
+		predicate(Root);
 		if(SceneObject_0.IsValid()) predicate(SceneObject_0);
 		if(SceneObject_1.IsValid()) predicate(SceneObject_1);
 		if(SceneObject_1_0.IsValid()) predicate(SceneObject_1_0);
@@ -529,6 +533,7 @@ struct Scene1Wrapper
 	template<class T>
 	void PerformSceneObjectBinaryOperation(Scene1Wrapper& other, T&& predicate, bool skipOptional = false)
 	{
+		predicate(Root, other.Root);
 		if(SceneObject_0.IsValid()) predicate(SceneObject_0, other.SceneObject_0);
 		if(SceneObject_1.IsValid()) predicate(SceneObject_1, other.SceneObject_1);
 		if(SceneObject_1_0.IsValid()) predicate(SceneObject_1_0, other.SceneObject_1_0);
@@ -543,6 +548,7 @@ struct Scene1Wrapper
 	}
 
 	SPtr<SceneInstance> SceneInstance;
+	HSceneObject Root;
 
 	HSceneObject SceneObject_0;
 	HSceneObject SceneObject_0_0_PrefabInstance;
@@ -798,7 +804,7 @@ void CoreTestSuite::TestAssertPrefabLinkValid(SceneWrapperType& instanceWrapper,
 		B3D_TEST_ASSERT(instanceSceneObject->GetPrefabResourceId() == prefabId)
 	}, skipOptional);
 
-	instanceWrapper.PerformComponentBinaryOperation(prefabWrapper, [this, prefabId](const HComponent& instanceComponent, const HSceneObject& prefabComponent) {
+	instanceWrapper.PerformComponentBinaryOperation(prefabWrapper, [this, prefabId](const HComponent& instanceComponent, const HComponent& prefabComponent) {
 
 		B3D_TEST_ASSERT(!instanceComponent->GetPrefabObjectId().Empty())
 		B3D_TEST_ASSERT(instanceComponent->GetPrefabObjectId() == prefabComponent->GetId())
@@ -1073,8 +1079,7 @@ void CoreTestSuite::TestSceneSaveLoad()
 
 	// Instantiate the scene and ensure prefab links are valid
 	{
-		SPtr<SceneInstance> scene0Instance = SceneInstance::Create("UnitTestScene0Instance");
-		HSceneObject instancedSceneRoot = scene0Prefab->Instantiate(scene0Instance);
+		HSceneObject instancedSceneRoot = scene0Prefab->Instantiate();
 		Scene0Wrapper instancedScene0Wrapper(instancedSceneRoot);
 
 		Scene0Wrapper prefabScene0Wrapper(scene0Prefab->GetRoot());
@@ -1504,8 +1509,7 @@ void CoreTestSuite::TestPrefabUpdate()
 	HSceneObject sourceHierarchy_Root = Scene1Wrapper::PopulateNewSceneInstance("UnitTestRootSceneInstance", prefab_Child0.GetShared());
 	HPrefab prefab_Root = Prefab::Create(sourceHierarchy_Root);
 
-	SPtr<SceneInstance> firstInstantiatedSceneInstance_Root = SceneInstance::Create("UnitTestFirstInstantiatedPrefabSceneInstance");
-	HSceneObject firstInstantiatedHierarchy_Root = prefab_Root->Instantiate(firstInstantiatedSceneInstance_Root);
+	HSceneObject firstInstantiatedHierarchy_Root = prefab_Root->Instantiate();
 
 	// Ensure prefab links are valid
 	TestAssertScene1WrapperPrefabLinks(sourceHierarchy_Root, firstInstantiatedHierarchy_Root, prefab_Root, prefab_Child0, nullptr, PrefabLinkCheckType::Regular);
@@ -1531,8 +1535,7 @@ void CoreTestSuite::TestPrefabUpdate()
 	}
 
 	// Instantiate the prefab with new modifications
-	SPtr<SceneInstance> secondInstantiatedSceneInstance_Root = SceneInstance::Create("UnitTestSecondInstantiatedPrefabSceneInstance");
-	HSceneObject secondInstantiatedHierarchy_Root = prefab_Root->Instantiate(secondInstantiatedSceneInstance_Root);
+	HSceneObject secondInstantiatedHierarchy_Root = prefab_Root->Instantiate();
 
 	// Ensure prefab links are valid
 	TestAssertScene1WrapperPrefabLinks(firstInstantiatedHierarchy_Root, secondInstantiatedHierarchy_Root, prefab_Root, prefab_Child0, nullptr, PrefabLinkCheckType::OptionalsAreInstanceModifications);
@@ -1548,8 +1551,7 @@ void CoreTestSuite::TestPrefabUpdate()
 	}
 
 	// Instantiate the prefab with new modifications
-	SPtr<SceneInstance> thirdInstantiatedSceneInstance_Root = SceneInstance::Create("UnitTestThirdInstantiatedPrefabSceneInstance");
-	HSceneObject thirdInstantiatedHierarchy_Root = prefab_Root->Instantiate(thirdInstantiatedSceneInstance_Root);
+	HSceneObject thirdInstantiatedHierarchy_Root = prefab_Root->Instantiate();
 
 	// Ensure prefab links are valid
 	TestAssertScene1WrapperPrefabLinks(secondInstantiatedHierarchy_Root, thirdInstantiatedHierarchy_Root, prefab_Root, prefab_Child0, nullptr, PrefabLinkCheckType::Regular);
@@ -1571,8 +1573,7 @@ void CoreTestSuite::TestPrefabUpdate()
 	}
 
 	// Instantiate the prefab with new modifications
-	SPtr<SceneInstance> fourthInstantiatedSceneInstance_Root = SceneInstance::Create("UnitTestFourthInstantiatedPrefabSceneInstance");
-	HSceneObject fourthInstantiatedHierarchy_Root = prefab_Root->Instantiate(fourthInstantiatedSceneInstance_Root);
+	HSceneObject fourthInstantiatedHierarchy_Root = prefab_Root->Instantiate();
 
 	// Ensure prefab links are valid
 	TestAssertScene1WrapperPrefabLinks(thirdInstantiatedHierarchy_Root, fourthInstantiatedHierarchy_Root, prefab_Root, prefab_Child0, prefab_Child1, PrefabLinkCheckType::SecondNestedPrefabIsInstanceModification);
@@ -1588,11 +1589,13 @@ void CoreTestSuite::TestPrefabUpdate()
 	}
 
 	// Instantiate the prefab with new modifications
-	SPtr<SceneInstance> fifthInstantiatedSceneInstance_Root = SceneInstance::Create("UnitTestFifthInstantiatedPrefabSceneInstance");
-	HSceneObject fifthInstantiatedHierarchy_Root = prefab_Root->Instantiate(fifthInstantiatedSceneInstance_Root);
+	HSceneObject fifthInstantiatedHierarchy_Root = prefab_Root->Instantiate();
 
 	// Ensure prefab links are valid
 	TestAssertScene1WrapperPrefabLinks(fourthInstantiatedHierarchy_Root, fifthInstantiatedHierarchy_Root, prefab_Root, prefab_Child0, prefab_Child1, PrefabLinkCheckType::Regular);
+
+
+	// TODO - Add unit test that assigns the nested prefab's root instance to the root prefab
 }
 
 using namespace bs;

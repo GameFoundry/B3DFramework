@@ -74,6 +74,7 @@ void SceneObject::Destroy(bool immediate)
 		mParent = nullptr;
 	}
 
+	SetIsDestroyed();
 	DestroyInternal(mThisHandle, immediate);
 }
 
@@ -204,10 +205,16 @@ void SceneObject::InstantiateInternal(bool prefabOnly)
 {
 	std::function<void(SceneObject*)> instantiateRecursive = [&](SceneObject* obj)
 	{
+		if(obj->mParentScene == nullptr)
+		{
+			B3D_LOG(Warning, Scene, "Cannot instantiate scene object. No associated scene found.");
+			return;
+		}
+
 		obj->mFlags &= ~SOF_DontInstantiate;
 
 		if(obj->mParent == nullptr)
-			GetSceneManager().RegisterNewSo(obj->GetHandle());
+			obj->SetParent(obj->mParentScene->GetRoot());
 
 		for(auto& component : obj->mComponents)
 			component->InstantiateInternal();
@@ -221,6 +228,9 @@ void SceneObject::InstantiateInternal(bool prefabOnly)
 
 	std::function<void(SceneObject*)> triggerEventsRecursive = [&](SceneObject* obj)
 	{
+		if(!obj->IsInstantiated())
+			return;
+
 		for(auto& component : obj->mComponents)
 			GetSceneManager().NotifyComponentCreatedInternal(component, obj->GetActive());
 

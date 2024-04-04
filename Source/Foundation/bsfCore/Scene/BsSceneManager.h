@@ -75,6 +75,10 @@ namespace bs
 		B3D_SCRIPT_EXPORT(ExtensionConstructorForType(SceneInstance))
 		static SPtr<SceneInstance> Create(const String& name);
 
+		/** Creates a new scene instance with an existing hierarchy. */
+		B3D_SCRIPT_EXPORT(ExtensionConstructorForType(SceneInstance))
+		static SPtr<SceneInstance> Create(const String& name, const HSceneObject& root);
+
 	private:
 		friend class SceneManager;
 
