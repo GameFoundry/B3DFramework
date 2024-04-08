@@ -431,7 +431,9 @@ SPtr<SerializedObject> IntermediateSerializer::SerializeReflectableObject(const 
 		}
 	};
 
-	bool replicableOnly = flags.IsSet(SerializedObjectEncodeFlag::ReplicableOnly);
+	const bool replicableOnly = flags.IsSet(SerializedObjectEncodeFlag::ReplicableOnly);
+	const bool isDeltaCopy = flags.IsSet(SerializedObjectEncodeFlag::IsDeltaCopy);
+
 	SPtr<SerializedObject> output = B3DMakeShared<SerializedObject>();
 
 	// If an object has base classes, we need to iterate through all of them
@@ -451,11 +453,11 @@ SPtr<SerializedObject> IntermediateSerializer::SerializeReflectableObject(const 
 		{
 			RTTIField* const field = rtti->GetField(fieldIndex);
 
-			if(replicableOnly)
-			{
-				if(!field->Schema.Info.Flags.IsSet(RTTIFieldFlag::Replicate))
-					continue;
-			}
+			if(replicableOnly && !field->Schema.Info.Flags.IsSet(RTTIFieldFlag::Replicate))
+				continue;
+
+			if(isDeltaCopy && field->Schema.Info.Flags.IsSet(RTTIFieldFlag::SkipInDeltaCopy))
+				continue;
 
 			SPtr<ISerialized> serializedEntry;
 			if(field->Schema.IsIterator)

@@ -178,7 +178,7 @@ void ManagedSerializableObject::Deserialize(MonoObject* instance, const SPtr<Man
 	}
 }
 
-bool ManagedSerializableObject::Equals(ManagedSerializableObject& other)
+bool ManagedSerializableObject::Equals(ManagedSerializableObject& other, SerializationContext* context)
 {
 	SPtr<ManagedSerializableObjectInfo> otherObjInfo = other.GetObjectInfo();
 
@@ -204,7 +204,7 @@ bool ManagedSerializableObject::Equals(ManagedSerializableObject& other)
 					return false;
 			}
 
-			if(!oldData->Equals(newData))
+			if(!oldData->Equals(newData, context))
 				return false;
 		}
 

@@ -140,7 +140,13 @@ namespace bs
 		Shallow = 1 << 0,
 
 		/** Only fields with the Replicable RTTI flag will be serialized. */
-		ReplicableOnly = 1 << 1
+		ReplicableOnly = 1 << 1,
+
+		/**
+		 * Lets the system know what the object is being copied as part of delta generation.
+		 * Serialization will skip RTTI fields with IgnoreInDeltaCopy flag set.
+		 */
+		IsDeltaCopy = 1 << 2,
 	};
 
 	using SerializedObjectEncodeFlags = Flags<SerializedObjectEncodeFlag>;

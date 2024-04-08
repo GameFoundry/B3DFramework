@@ -29,8 +29,8 @@ namespace bs
 		B3D_RTTI_BEGIN_MEMBERS
 			B3D_RTTI_MEMBER_PLAIN(mName, 1)
 			// B3D_RTTI_MEMBER_PLAIN(mLinkId, 2)
-			B3D_RTTI_MEMBER_PLAIN(mId, 3)
-			B3D_RTTI_MEMBER_PLAIN(mPrefabObjectId, 4)
+			B3D_RTTI_MEMBER_PLAIN_INFO(mId, 3, RTTIFieldInfo(RTTIFieldFlag::SkipInDeltaCompare))
+			B3D_RTTI_MEMBER_PLAIN_INFO(mPrefabObjectId, 4, RTTIFieldInfo(RTTIFieldFlag::SkipInDeltaCompare))
 		B3D_RTTI_END_MEMBERS
 
 	public:

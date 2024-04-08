@@ -23,6 +23,9 @@ namespace bs
 	private:
 		UUID& GetId(GameObjectHandleBase* object)
 		{
+			if(!mRemappedId.Empty())
+				return mRemappedId;
+
 			if(object->mSharedHandleData == nullptr)
 				return const_cast<UUID&>(UUID::kEmpty);
 
@@ -55,6 +58,17 @@ namespace bs
 				serializationContext->GameObjectCollection->RegisterUnresolvedHandle(*gameObjectHandle);
 		}
 
+		void OnSerializationStarted(IReflectable* object, SerializationContext* context) override
+		{
+			CoreSerializationContext* const serializationContext = B3DRTTICast<CoreSerializationContext>(context);
+			if(serializationContext == nullptr)
+				return;
+
+			GameObjectHandleBase* gameObjectHandle = static_cast<GameObjectHandleBase*>(object);
+			if(auto found = serializationContext->GameObjectIdRemapping.find(gameObjectHandle->GetId()); found != serializationContext->GameObjectIdRemapping.end())
+				mRemappedId = found->second;
+		}
+
 		const String& GetRttiName()
 		{
 			static String name = "GameObjectHandleBase";
@@ -70,6 +84,8 @@ namespace bs
 		{
 			return B3DMakeSharedFromExisting<GameObjectHandleBase>(new(B3DAllocate<GameObjectHandleBase>()) GameObjectHandleBase());
 		}
+
+		UUID mRemappedId;
 	};
 
 	/** @} */

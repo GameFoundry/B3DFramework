@@ -78,6 +78,17 @@ namespace bs
 		 * @return							Generated game object id -> { prefab object id, prefab resource id } map.
 		 */
 		static UnorderedMap<UUID, PrefabLinkInformation> GetInstanceToPrefabLinkInformationMap(const HSceneObject& sceneObject, bool visitChildPrefabs);
+
+		/**
+		 * Iterates over the provided scene object hierarchy and records a map of prefab object id -> game object id for each scene object and
+		 * component in the hierarchy.
+		 *
+		 * @param		sceneObject			Scene object at which to start iterating
+		 * @param		visitChildPrefabs	If false, iteration into child scene objects will stop if they belong to another prefab. Otherwise
+		 *									we iterate until leaf of the hierarchy is reached.
+		 * @return							Generated prefab object id -> game object id map.
+		 */
+		static UnorderedMap<UUID, UUID> GetPrefabToInstanceIdMap(const HSceneObject& sceneObject, bool visitChildPrefabs);
 	};
 
 	/** @} */

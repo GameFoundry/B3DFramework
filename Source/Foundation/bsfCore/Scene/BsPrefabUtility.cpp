@@ -415,3 +415,36 @@ UnorderedMap<UUID, PrefabLinkInformation> PrefabUtility::GetInstanceToPrefabLink
 	return output;
 }
 
+UnorderedMap<UUID, UUID> PrefabUtility::GetPrefabToInstanceIdMap(const HSceneObject& sceneObject, bool visitChildPrefabs)
+{
+	UnorderedMap<UUID, UUID> output;
+	if(!B3D_ENSURE(sceneObject.IsValid()))
+		return output;
+
+	const UUID rootPrefabResourceId = sceneObject->GetPrefabResourceId();
+
+	sceneObject->IterateHierarchy([&output, &rootPrefabResourceId, visitChildPrefabs](const HSceneObject& sceneObject)
+	{
+		if(sceneObject->GetPrefabResourceId() != rootPrefabResourceId && !visitChildPrefabs)
+			return false;
+
+		if(!sceneObject->IsPrefabInstance())
+			return true;
+
+		const UUID& prefabObjectId = sceneObject->GetPrefabObjectId();
+		output[prefabObjectId] = sceneObject.GetId();
+
+		return true;
+	},
+	[&output](const HComponent& component) {
+		if(!component->IsPrefabInstance())
+			return;
+
+		const UUID& prefabObjectId = component->GetPrefabObjectId();
+		output[prefabObjectId] = component.GetId();
+
+	});
+
+	return output;
+}
+

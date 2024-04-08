@@ -16,6 +16,7 @@
 #include "Serialization/BsManagedSerializableList.h"
 #include "Serialization/BsManagedSerializableDictionary.h"
 #include "Serialization/BsScriptAssemblyManager.h"
+#include "Utility/BsUtility.h"
 #include "Wrappers/BsScriptReflectable.h"
 
 using namespace bs;
@@ -31,7 +32,7 @@ bool CompareFieldData(const T* a, const SPtr<ManagedSerializableFieldData>& b)
 	return false;
 }
 
-bool CompareFieldData(const SPtr<ManagedSerializableFieldData>& oldData, const SPtr<ManagedSerializableFieldData>& newData)
+bool CompareFieldData(const SPtr<ManagedSerializableFieldData>& oldData, const SPtr<ManagedSerializableFieldData>& newData, SerializationContext* context)
 {
 	if(!oldData)
 		return !newData;
@@ -41,7 +42,7 @@ bool CompareFieldData(const SPtr<ManagedSerializableFieldData>& oldData, const S
 			return false;
 	}
 
-	return oldData->Equals(newData);
+	return oldData->Equals(newData, context);
 }
 
 bool IsPrimitiveOrEnumType(const SPtr<ManagedSerializableTypeInfo>& typeInfo, ScriptPrimitiveType underlyingType)
@@ -865,67 +866,67 @@ MonoObject* ManagedSerializableFieldDataDictionary::GetValueBoxed(const SPtr<Man
 	return (MonoObject*)GetValue(typeInfo);
 }
 
-bool ManagedSerializableFieldDataBool::Equals(const SPtr<ManagedSerializableFieldData>& other)
+bool ManagedSerializableFieldDataBool::Equals(const SPtr<ManagedSerializableFieldData>& other, SerializationContext* context)
 {
 	return CompareFieldData(this, other);
 }
 
-bool ManagedSerializableFieldDataChar::Equals(const SPtr<ManagedSerializableFieldData>& other)
+bool ManagedSerializableFieldDataChar::Equals(const SPtr<ManagedSerializableFieldData>& other, SerializationContext* context)
 {
 	return CompareFieldData(this, other);
 }
 
-bool ManagedSerializableFieldDataI8::Equals(const SPtr<ManagedSerializableFieldData>& other)
+bool ManagedSerializableFieldDataI8::Equals(const SPtr<ManagedSerializableFieldData>& other, SerializationContext* context)
 {
 	return CompareFieldData(this, other);
 }
 
-bool ManagedSerializableFieldDataU8::Equals(const SPtr<ManagedSerializableFieldData>& other)
+bool ManagedSerializableFieldDataU8::Equals(const SPtr<ManagedSerializableFieldData>& other, SerializationContext* context)
 {
 	return CompareFieldData(this, other);
 }
 
-bool ManagedSerializableFieldDataI16::Equals(const SPtr<ManagedSerializableFieldData>& other)
+bool ManagedSerializableFieldDataI16::Equals(const SPtr<ManagedSerializableFieldData>& other, SerializationContext* context)
 {
 	return CompareFieldData(this, other);
 }
 
-bool ManagedSerializableFieldDataU16::Equals(const SPtr<ManagedSerializableFieldData>& other)
+bool ManagedSerializableFieldDataU16::Equals(const SPtr<ManagedSerializableFieldData>& other, SerializationContext* context)
 {
 	return CompareFieldData(this, other);
 }
 
-bool ManagedSerializableFieldDataI32::Equals(const SPtr<ManagedSerializableFieldData>& other)
+bool ManagedSerializableFieldDataI32::Equals(const SPtr<ManagedSerializableFieldData>& other, SerializationContext* context)
 {
 	return CompareFieldData(this, other);
 }
 
-bool ManagedSerializableFieldDataU32::Equals(const SPtr<ManagedSerializableFieldData>& other)
+bool ManagedSerializableFieldDataU32::Equals(const SPtr<ManagedSerializableFieldData>& other, SerializationContext* context)
 {
 	return CompareFieldData(this, other);
 }
 
-bool ManagedSerializableFieldDataI64::Equals(const SPtr<ManagedSerializableFieldData>& other)
+bool ManagedSerializableFieldDataI64::Equals(const SPtr<ManagedSerializableFieldData>& other, SerializationContext* context)
 {
 	return CompareFieldData(this, other);
 }
 
-bool ManagedSerializableFieldDataU64::Equals(const SPtr<ManagedSerializableFieldData>& other)
+bool ManagedSerializableFieldDataU64::Equals(const SPtr<ManagedSerializableFieldData>& other, SerializationContext* context)
 {
 	return CompareFieldData(this, other);
 }
 
-bool ManagedSerializableFieldDataFloat::Equals(const SPtr<ManagedSerializableFieldData>& other)
+bool ManagedSerializableFieldDataFloat::Equals(const SPtr<ManagedSerializableFieldData>& other, SerializationContext* context)
 {
 	return CompareFieldData(this, other);
 }
 
-bool ManagedSerializableFieldDataDouble::Equals(const SPtr<ManagedSerializableFieldData>& other)
+bool ManagedSerializableFieldDataDouble::Equals(const SPtr<ManagedSerializableFieldData>& other, SerializationContext* context)
 {
 	return CompareFieldData(this, other);
 }
 
-bool ManagedSerializableFieldDataString::Equals(const SPtr<ManagedSerializableFieldData>& other)
+bool ManagedSerializableFieldDataString::Equals(const SPtr<ManagedSerializableFieldData>& other, SerializationContext* context)
 {
 	if(B3DRTTIIsOfType<ManagedSerializableFieldDataString>(other))
 	{
@@ -936,22 +937,41 @@ bool ManagedSerializableFieldDataString::Equals(const SPtr<ManagedSerializableFi
 	return false;
 }
 
-bool ManagedSerializableFieldDataResourceRef::Equals(const SPtr<ManagedSerializableFieldData>& other)
+bool ManagedSerializableFieldDataResourceRef::Equals(const SPtr<ManagedSerializableFieldData>& other, SerializationContext* context)
 {
 	return CompareFieldData(this, other);
 }
 
-bool ManagedSerializableFieldDataGameObjectRef::Equals(const SPtr<ManagedSerializableFieldData>& other)
+bool ManagedSerializableFieldDataGameObjectRef::Equals(const SPtr<ManagedSerializableFieldData>& other, SerializationContext* context)
+{
+	const SPtr<ManagedSerializableFieldDataGameObjectRef>& exactOther = B3DRTTICast<ManagedSerializableFieldDataGameObjectRef>(other);
+	if(exactOther != nullptr)
+	{
+		UUID myId = Value.GetId();
+		UUID otherId = exactOther->Value.GetId();
+
+		// Remap UUIDs if remapping is provided
+		if(CoreSerializationContext* serializationContext = B3DRTTICast<CoreSerializationContext>(context))
+		{
+			if(auto found = serializationContext->GameObjectIdRemapping.find(myId); found != serializationContext->GameObjectIdRemapping.end())
+				myId = found->second;
+
+			if(auto found = serializationContext->GameObjectIdRemapping.find(otherId); found != serializationContext->GameObjectIdRemapping.end())
+				otherId = found->second;
+
+			return myId == otherId;
+		}
+	}
+
+	return CompareFieldData(this, other);
+}
+
+bool ManagedSerializableFieldDataReflectableRef::Equals(const SPtr<ManagedSerializableFieldData>& other, SerializationContext* context)
 {
 	return CompareFieldData(this, other);
 }
 
-bool ManagedSerializableFieldDataReflectableRef::Equals(const SPtr<ManagedSerializableFieldData>& other)
-{
-	return CompareFieldData(this, other);
-}
-
-bool ManagedSerializableFieldDataObject::Equals(const SPtr<ManagedSerializableFieldData>& other)
+bool ManagedSerializableFieldDataObject::Equals(const SPtr<ManagedSerializableFieldData>& other, SerializationContext* context)
 {
 	if(auto otherObj = B3DRTTICast<ManagedSerializableFieldDataObject>(other))
 	{
@@ -961,13 +981,13 @@ bool ManagedSerializableFieldDataObject::Equals(const SPtr<ManagedSerializableFi
 		if((Value == nullptr && otherObj->Value) || (Value && !otherObj->Value))
 			return false;
 
-		return Value->Equals(*otherObj->Value);
+		return Value->Equals(*otherObj->Value, context);
 	}
 
 	return false;
 }
 
-bool ManagedSerializableFieldDataArray::Equals(const SPtr<ManagedSerializableFieldData>& other)
+bool ManagedSerializableFieldDataArray::Equals(const SPtr<ManagedSerializableFieldData>& other, SerializationContext* context)
 {
 	if(auto otherObj = B3DRTTICast<ManagedSerializableFieldDataArray>(other))
 	{
@@ -988,7 +1008,7 @@ bool ManagedSerializableFieldDataArray::Equals(const SPtr<ManagedSerializableFie
 			SPtr<ManagedSerializableFieldData> oldData = Value->GetFieldData(i);
 			SPtr<ManagedSerializableFieldData> newData = otherObj->Value->GetFieldData(i);
 
-			if(CompareFieldData(oldData, newData))
+			if(CompareFieldData(oldData, newData, context))
 				return false;
 		}
 
@@ -998,7 +1018,7 @@ bool ManagedSerializableFieldDataArray::Equals(const SPtr<ManagedSerializableFie
 	return false;
 }
 
-bool ManagedSerializableFieldDataList::Equals(const SPtr<ManagedSerializableFieldData>& other)
+bool ManagedSerializableFieldDataList::Equals(const SPtr<ManagedSerializableFieldData>& other, SerializationContext* context)
 {
 	if(auto otherObj = B3DRTTICast<ManagedSerializableFieldDataList>(other))
 	{
@@ -1019,7 +1039,7 @@ bool ManagedSerializableFieldDataList::Equals(const SPtr<ManagedSerializableFiel
 			SPtr<ManagedSerializableFieldData> oldData = Value->GetFieldData(i);
 			SPtr<ManagedSerializableFieldData> newData = otherObj->Value->GetFieldData(i);
 
-			if(CompareFieldData(oldData, newData))
+			if(CompareFieldData(oldData, newData, context))
 				return false;
 		}
 
@@ -1029,7 +1049,7 @@ bool ManagedSerializableFieldDataList::Equals(const SPtr<ManagedSerializableFiel
 	return false;
 }
 
-bool ManagedSerializableFieldDataDictionary::Equals(const SPtr<ManagedSerializableFieldData>& other)
+bool ManagedSerializableFieldDataDictionary::Equals(const SPtr<ManagedSerializableFieldData>& other, SerializationContext* context)
 {
 	if(auto otherObj = B3DRTTICast<ManagedSerializableFieldDataDictionary>(other))
 	{
@@ -1045,7 +1065,7 @@ bool ManagedSerializableFieldDataDictionary::Equals(const SPtr<ManagedSerializab
 			SPtr<ManagedSerializableFieldData> key = newEnumerator.GetKey();
 			if(Value->Contains(key))
 			{
-				if(!CompareFieldData(Value->GetFieldData(key), newEnumerator.GetValue()))
+				if(!CompareFieldData(Value->GetFieldData(key), newEnumerator.GetValue(), context))
 					return false;
 			}
 			else

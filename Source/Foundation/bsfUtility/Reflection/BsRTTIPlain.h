@@ -59,7 +59,17 @@ namespace bs
 		 * If true, the integer will be encoded as a var-int during networking operations, in order to reduce its
 		 * size. Not relevant for non-integers.
 		 */
-		VarInt = 1 << 3
+		VarInt = 1 << 3, 
+		/**
+		 * When set, field will be skipped if performing delta generation through IDeltaHandler interface.
+		 * If two objects have different values in this field, it will not be recorded as a delta change.
+		 */
+		SkipInDeltaCompare = 1 << 4,
+		/**
+		 * Similar to SkipInDeltaCompare, but extends to concept so a field is also skipped when a complete
+		 * copy of the object is being serialized (i.e. not necessarily limited to IDeltaHandler).
+		 */
+		SkipInDeltaCopy = 1 << 5,
 	};
 
 	typedef Flags<RTTIFieldFlag> RTTIFieldFlags;

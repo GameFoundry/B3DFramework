@@ -114,7 +114,7 @@ namespace bs
 			return container.begin() + arrayIndex;
 		}
 		static IteratorType Increment(IteratorType iterator) { ++iterator; return iterator; }
-		static ElementType& GetValue(IteratorType iterator) { return *iterator; }
+		static ElementType& GetValue(IteratorType iterator) { return const_cast<ElementType&>(*iterator); }
 		static IteratorType Erase(T& container, IteratorType iterator) { return container.erase(iterator); }
 		static void Clear(T& container) { container.clear(); }
 		static u64 Size(T& container) { return (u64)container.size(); }

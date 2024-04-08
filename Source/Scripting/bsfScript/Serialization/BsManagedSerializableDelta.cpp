@@ -132,7 +132,7 @@ ManagedSerializableDelta::ManagedSerializableDelta()
 {
 }
 
-SPtr<ManagedSerializableDelta> ManagedSerializableDelta::Create(const ManagedSerializableObject* original, const ManagedSerializableObject* modified)
+SPtr<ManagedSerializableDelta> ManagedSerializableDelta::Create(const ManagedSerializableObject* original, const ManagedSerializableObject* modified, SerializationContext* context)
 {
 	B3D_ASSERT(original != nullptr && modified != nullptr);
 
@@ -143,7 +143,7 @@ SPtr<ManagedSerializableDelta> ManagedSerializableDelta::Create(const ManagedSer
 		return nullptr;
 
 	SPtr<ManagedSerializableDelta> output = B3DMakeShared<ManagedSerializableDelta>();
-	SPtr<ModifiedObject> modifications = output->GenerateObjectDelta(original, modified);
+	SPtr<ModifiedObject> modifications = output->GenerateObjectDelta(original, modified, context);
 
 	if(modifications != nullptr)
 	{
@@ -154,7 +154,7 @@ SPtr<ManagedSerializableDelta> ManagedSerializableDelta::Create(const ManagedSer
 	return nullptr;
 }
 
-SPtr<ManagedSerializableDelta::ModifiedObject> ManagedSerializableDelta::GenerateObjectDelta(const ManagedSerializableObject* original, const ManagedSerializableObject* modified)
+SPtr<ManagedSerializableDelta::ModifiedObject> ManagedSerializableDelta::GenerateObjectDelta(const ManagedSerializableObject* original, const ManagedSerializableObject* modified, SerializationContext* context)
 {
 	SPtr<ModifiedObject> output = nullptr;
 
@@ -170,7 +170,7 @@ SPtr<ManagedSerializableDelta::ModifiedObject> ManagedSerializableDelta::Generat
 
 			SPtr<ManagedSerializableFieldData> oldData = original->GetFieldData(field.second);
 			SPtr<ManagedSerializableFieldData> newData = modified->GetFieldData(field.second);
-			SPtr<Modification> newMod = GenerateFieldDelta(oldData, newData, fieldTypeId);
+			SPtr<Modification> newMod = GenerateFieldDelta(oldData, newData, fieldTypeId, context);
 
 			if(newMod != nullptr)
 			{
@@ -187,9 +187,7 @@ SPtr<ManagedSerializableDelta::ModifiedObject> ManagedSerializableDelta::Generat
 	return output;
 }
 
-SPtr<ManagedSerializableDelta::Modification> ManagedSerializableDelta::GenerateFieldDelta(
-	const SPtr<ManagedSerializableFieldData>& original, const SPtr<ManagedSerializableFieldData>& modified,
-	u32 entryTypeId)
+SPtr<ManagedSerializableDelta::Modification> ManagedSerializableDelta::GenerateFieldDelta(const SPtr<ManagedSerializableFieldData>& original, const SPtr<ManagedSerializableFieldData>& modified, u32 entryTypeId, SerializationContext* context)
 {
 	bool isPrimitive = entryTypeId == TID_SerializableTypeInfoPrimitive ||
 		entryTypeId == TID_SerializableTypeInfoRef ||
@@ -214,7 +212,7 @@ SPtr<ManagedSerializableDelta::Modification> ManagedSerializableDelta::GenerateF
 	SPtr<Modification> newMod = nullptr;
 	if(isPrimitive)
 	{
-		if(!original->Equals(modified))
+		if(!original->Equals(modified, context))
 			newMod = ModifiedEntry::Create(modified);
 	}
 	else
@@ -230,7 +228,7 @@ SPtr<ManagedSerializableDelta::Modification> ManagedSerializableDelta::GenerateF
 
 				if(oldObjData->Value != nullptr && newObjData->Value != nullptr)
 				{
-					newMod = GenerateObjectDelta(oldObjData->Value.get(), newObjData->Value.get());
+					newMod = GenerateObjectDelta(oldObjData->Value.get(), newObjData->Value.get(), context);
 				}
 				else if(oldObjData->Value == nullptr && newObjData->Value == nullptr)
 				{
@@ -265,7 +263,7 @@ SPtr<ManagedSerializableDelta::Modification> ManagedSerializableDelta::GenerateF
 							SPtr<ManagedSerializableFieldData> oldArrayElem = oldArrayData->Value->GetFieldData(i);
 
 							u32 arrayElemTypeId = newArrayData->Value->GetTypeInfo()->MElementType->GetTypeId();
-							arrayElemMod = GenerateFieldDelta(oldArrayElem, newArrayElem, arrayElemTypeId);
+							arrayElemMod = GenerateFieldDelta(oldArrayElem, newArrayElem, arrayElemTypeId, context);
 						}
 						else
 						{
@@ -328,7 +326,7 @@ SPtr<ManagedSerializableDelta::Modification> ManagedSerializableDelta::GenerateF
 							SPtr<ManagedSerializableFieldData> oldListElem = oldListData->Value->GetFieldData(i);
 
 							u32 arrayElemTypeId = newListData->Value->GetTypeInfo()->MElementType->GetTypeId();
-							listElemMod = GenerateFieldDelta(oldListElem, newListElem, arrayElemTypeId);
+							listElemMod = GenerateFieldDelta(oldListElem, newListElem, arrayElemTypeId, context);
 						}
 						else
 						{
@@ -389,7 +387,7 @@ SPtr<ManagedSerializableDelta::Modification> ManagedSerializableDelta::GenerateF
 						{
 							u32 dictElemTypeId = newDictData->Value->GetTypeInfo()->MValueType->GetTypeId();
 
-							dictElemMod = GenerateFieldDelta(oldDictData->Value->GetFieldData(key), newEnumerator.GetValue(), dictElemTypeId);
+							dictElemMod = GenerateFieldDelta(oldDictData->Value->GetFieldData(key), newEnumerator.GetValue(), dictElemTypeId, context);
 						}
 						else
 						{

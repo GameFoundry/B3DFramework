@@ -89,18 +89,18 @@ namespace bs
 		void SetMobility(SceneObject* obj, ObjectMobility& value) { obj->mMobility = value; }
 
 		B3D_RTTI_BEGIN_MEMBERS
-			B3D_RTTI_MEMBER_PLAIN(mPrefabResourceId, 13)
+			B3D_RTTI_MEMBER_PLAIN_INFO(mPrefabResourceId, 13, RTTIFieldInfo(RTTIFieldFlag::SkipInDeltaCompare | RTTIFieldFlag::SkipInDeltaCopy))
 		B3D_RTTI_END_MEMBERS
 
 	public:
 		SceneObjectRTTI()
 		{
-			AddReflectablePtrArrayField("mChildren", 0, &SceneObjectRTTI::GetChild, &SceneObjectRTTI::GetNumChildren, &SceneObjectRTTI::SetChild, &SceneObjectRTTI::SetNumChildren);
-			AddReflectablePtrArrayField("mComponents", 1, &SceneObjectRTTI::GetComponent, &SceneObjectRTTI::GetNumComponents, &SceneObjectRTTI::SetComponent, &SceneObjectRTTI::SetNumComponents);
+			AddReflectablePtrArrayField("mChildren", 0, &SceneObjectRTTI::GetChild, &SceneObjectRTTI::GetNumChildren, &SceneObjectRTTI::SetChild, &SceneObjectRTTI::SetNumChildren, RTTIFieldInfo(RTTIFieldFlag::SkipInDeltaCompare | RTTIFieldFlag::SkipInDeltaCopy));
+			AddReflectablePtrArrayField("mComponents", 1, &SceneObjectRTTI::GetComponent, &SceneObjectRTTI::GetNumComponents, &SceneObjectRTTI::SetComponent, &SceneObjectRTTI::SetNumComponents, RTTIFieldInfo(RTTIFieldFlag::SkipInDeltaCompare | RTTIFieldFlag::SkipInDeltaCopy));
 			//AddPlainField("mPrefabLink", 2, &SceneObjectRTTI::GetPrefabLink, &SceneObjectRTTI::SetPrefabLink);
 			AddPlainField("mFlags", 3, &SceneObjectRTTI::GetFlags, &SceneObjectRTTI::SetFlags);
-			AddReflectablePtrField("mPrefabDelta", 4, &SceneObjectRTTI::GetPrefabDelta, &SceneObjectRTTI::SetPrefabDelta);
-			AddPlainField("mPrefabHash", 5, &SceneObjectRTTI::GetPrefabHash, &SceneObjectRTTI::SetPrefabHash);
+			AddReflectablePtrField("mPrefabDelta", 4, &SceneObjectRTTI::GetPrefabDelta, &SceneObjectRTTI::SetPrefabDelta, RTTIFieldInfo(RTTIFieldFlag::SkipInDeltaCompare | RTTIFieldFlag::SkipInDeltaCopy));
+			AddPlainField("mPrefabHash", 5, &SceneObjectRTTI::GetPrefabHash, &SceneObjectRTTI::SetPrefabHash, RTTIFieldInfo(RTTIFieldFlag::SkipInDeltaCompare | RTTIFieldFlag::SkipInDeltaCopy));
 			AddPlainField("mActiveSelf", 9, &SceneObjectRTTI::GetActive, &SceneObjectRTTI::SetActive);
 			AddPlainField("mMobility", 10, &SceneObjectRTTI::GetMobility, &SceneObjectRTTI::SetMobility);
 

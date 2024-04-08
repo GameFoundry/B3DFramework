@@ -10,6 +10,7 @@
 #include "Scene/BsSceneManager.h"
 #include "Utility/BsUtility.h"
 #include "BsPrefab.h"
+#include "BsPrefabUtility.h"
 
 using namespace bs;
 
@@ -42,7 +43,6 @@ SceneObjectHierarchyDeltaObject::SceneObjectHierarchyDeltaObject(const HSceneObj
 	Data = data;
 }
 
-
 RTTITypeBase* SceneObjectHierarchyDeltaObject::GetRttiStatic()
 {
 	return SceneObjectHierarchyDeltaObjectRTTI::Instance();
@@ -61,311 +61,336 @@ SPtr<SceneObjectHierarchyDelta> SceneObjectHierarchyDelta::Create(const HSceneOb
 		return nullptr;
 	}
 
+	const bool isPrefabDelta = flags.IsSet(SceneObjectHierarchyDeltaFlag::PrefabDelta);
+
+	CoreSerializationContext serializationContext;
+	if(isPrefabDelta && modified.IsValid())
+	{
+		UnorderedMap<UUID, PrefabLinkInformation> instanceIdToPrefabLink = PrefabUtility::GetInstanceToPrefabLinkInformationMap(modified, true);
+		for(const auto& pair : instanceIdToPrefabLink)
+			serializationContext.GameObjectIdRemapping[pair.first] = pair.second.PrefabObjectId;
+	}
+
 	SPtr<SceneObjectHierarchyDelta> output = B3DMakeShared<SceneObjectHierarchyDelta>();
-	output->mRoot = GenerateDelta(original, modified, flags);
+	GenerateHierarchyDelta(original, modified, &serializationContext, flags, output);
 
 	return output;
 }
 
-void SceneObjectHierarchyDelta::Apply(const HSceneObject& original)
+void SceneObjectHierarchyDelta::Apply(const HSceneObject& original, SceneObjectHierarchyDeltaFlags flags)
 {
-	if(mRoot == nullptr)
+	const SPtr<GameObjectCollection> gameObjectCollection = original->GetOwnerCollection().lock();
+	if(!B3D_ENSURE(gameObjectCollection != nullptr))
 		return;
 
-	CoreSerializationContext serzContext;
-	serzContext.IsGameObjectDeserializationActive = true;
-	serzContext.PreserveGameObjectIds = false;
-	serzContext.GameObjectCollection = original->GetOwnerCollection().lock();
+	const bool isPrefabDelta = flags.IsSet(SceneObjectHierarchyDeltaFlag::PrefabDelta);
 
-	serzContext.GameObjectCollection->BeginHandleResolve();
+	CoreSerializationContext serializationContext;
+	serializationContext.IsGameObjectDeserializationActive = true;
+	serializationContext.PreserveGameObjectIds = !isPrefabDelta;
+	serializationContext.GameObjectCollection = gameObjectCollection;
+	// TODO - Should pass a flag to the RTTI system here, so individual RTTIType implementations can gracefully handle delta apply (rather than thinking it is deserialization)
 
-	ApplyDiff(mRoot, original, &serzContext);
+	serializationContext.GameObjectCollection->BeginHandleResolve();
 
-	serzContext.GameObjectCollection->EndHandleResolve();
-}
+	FrameScope frameScope;
 
-void SceneObjectHierarchyDelta::ApplyDiff(const SPtr<SceneObjectHierarchyDeltaObject>& delta, const HSceneObject& original, SerializationContext* context)
-{
-	if((delta->SoFlags & (u32)SceneObjectDiffFlags::Name) != 0)
-		original->SetName(delta->Name);
-
-	if((delta->SoFlags & (u32)SceneObjectDiffFlags::Position) != 0)
-		original->SetPosition(delta->Position);
-
-	if((delta->SoFlags & (u32)SceneObjectDiffFlags::Rotation) != 0)
-		original->SetRotation(delta->Rotation);
-
-	if((delta->SoFlags & (u32)SceneObjectDiffFlags::Scale) != 0)
-		original->SetScale(delta->Scale);
-
-	if((delta->SoFlags & (u32)SceneObjectDiffFlags::Active) != 0)
-		original->SetActive(delta->IsActive);
-
-	// Note: It is important to remove objects and components first, before adding them.
-	//		 Some systems rely on the fact that applyDiff added components/objects are
-	//       always at the end.
-	const Vector<HComponent>& components = original->GetComponents();
-	for(auto& removedId : delta->RemovedComponents)
+	FrameUnorderedSet<UUID> addedSceneObjectsMap;
+	for(const auto& entry : AddedSceneObjects)
 	{
-		for(auto component : components)
+		auto result = addedSceneObjectsMap.insert(entry);
+		B3D_ENSURE(result.second); // This failing means there's a logic error when generating the delta, resulting in duplicate IDs
+	}
+
+	FrameUnorderedSet<UUID> addedComponentsMap;
+	for(const auto& entry : AddedComponents)
+	{
+		auto result = addedComponentsMap.insert(entry);
+		B3D_ENSURE(result.second); // This failing means there's a logic error when generating the delta, resulting in duplicate IDs
+	}
+
+	// Construct newly added scene objects, but don't instantiate them until later
+	Vector<HSceneObject> createdSceneObjects;
+	for(const auto& sceneObjectId : AddedSceneObjects)
+	{
+		if(!B3D_ENSURE(!gameObjectCollection->GetObject(sceneObjectId).IsValid())) // Object with same ID already exists
+			continue;
+
+		auto found = Objects.find(sceneObjectId);
+		if(!B3D_ENSURE(found != Objects.end() && found->second != nullptr))
+			continue;
+
+		const SPtr<SceneObjectHierarchyDeltaObject> deltaObject = found->second;
+		if(!B3D_ENSURE(deltaObject->Data != nullptr))
+			continue;
+
+		const SPtr<SceneObject> newSceneObject = B3DRTTICast<SceneObject>(deltaObject->Data->Decode(&serializationContext));
+		if(!B3D_ENSURE(newSceneObject != nullptr))
+			continue;
+
+		newSceneObject->SetPrefabObjectId(deltaObject->PrefabObjectId);
+		newSceneObject->SetPrefabResourceId(deltaObject->PrefabResourceId);
+
+		createdSceneObjects.push_back(newSceneObject->GetHandle());
+	}
+
+	// Construct newly added components
+	for(const auto& componentId : AddedComponents)
+	{
+		if(!B3D_ENSURE(!gameObjectCollection->GetObject(componentId).IsValid())) // Object with same ID already exists
+			continue;
+
+		auto found = Objects.find(componentId);
+		if(!B3D_ENSURE(found != Objects.end() && found->second != nullptr))
+			continue;
+
+		const SPtr<SceneObjectHierarchyDeltaObject> deltaObject = found->second;
+		if(!B3D_ENSURE(deltaObject->Data != nullptr))
+			continue;
+
+		HSceneObject parentSceneObject = B3DStaticGameObjectCast<SceneObject>(gameObjectCollection->GetObject(deltaObject->ParentId));
+		if(!B3D_ENSURE(parentSceneObject.IsValid()))
+			continue;
+
+		const SPtr<Component> newComponent = B3DRTTICast<Component>(deltaObject->Data->Decode(&serializationContext));
+		if(!B3D_ENSURE(newComponent != nullptr))
+			continue;
+
+		newComponent->SetPrefabObjectId(deltaObject->PrefabObjectId);
+
+		parentSceneObject->InternalAddComponent(newComponent, false);
+	}
+
+	// Once all the objects are created, apply all changes
+	for(const auto& entry : Objects)
+	{
+		const SPtr<SceneObjectHierarchyDeltaObject> deltaObject = entry.second;
+		if(!B3D_ENSURE(deltaObject != nullptr))
+			continue;
+
+		if(!B3D_ENSURE(deltaObject->Data != nullptr)) // TODO - If there is only a parent change, this might be null
+			continue;
+
+		const UUID& gameObjectId = entry.first;
+		const bool isSceneObject = deltaObject->Data->GetRootTypeId() == SceneObject::GetRttiStatic()->GetRttiId();
+		if(isSceneObject)
 		{
-			if(removedId == component->GetPrefabObjectId())
+			HSceneObject sceneObject = B3DStaticGameObjectCast<SceneObject>(gameObjectCollection->GetObject(gameObjectId));
+			if(!B3D_ENSURE(sceneObject.IsValid()))
+				return;
+
+			if(deltaObject->Flags.IsSet(GameObjectDeltaFlag::ParentChanged))
 			{
-				component->Destroy(true);
-				break;
+				HSceneObject parentSceneObject = B3DStaticGameObjectCast<SceneObject>(gameObjectCollection->GetObject(deltaObject->ParentId));
+				if(B3D_ENSURE(parentSceneObject.IsValid()))
+					sceneObject->SetParent(parentSceneObject, false);
+			}
+
+			const bool isNewObject = addedSceneObjectsMap.find(gameObjectId) != addedSceneObjectsMap.end();
+			if(!isNewObject && deltaObject->Data != nullptr)
+			{
+				IDeltaHandler& deltaHandler = sceneObject->GetRtti()->GetDeltaHandler();
+				deltaHandler.ApplyDelta(sceneObject.GetShared(), deltaObject->Data, &serializationContext);
 			}
 		}
-	}
-
-	for(auto& removedId : delta->RemovedChildren)
-	{
-		u32 childCount = original->GetChildCount();
-		for(u32 i = 0; i < childCount; i++)
+		else // Component
 		{
-			HSceneObject child = original->GetChild(i);
-			if(removedId == child->GetPrefabObjectId())
-			{
-				child->Destroy(true);
-				break;
-			}
-		}
-	}
+			HComponent component = B3DStaticGameObjectCast<Component>(gameObjectCollection->GetObject(gameObjectId));
+			if(!B3D_ENSURE(component.IsValid()))
+				return;
 
-	for(auto& addedComponentData : delta->AddedComponents)
-	{
-		SPtr<Component> component = std::static_pointer_cast<Component>(addedComponentData->Decode(context));
-
-		original->InternalAddComponent(component, true);
-	}
-
-	for(auto& addedChildData : delta->AddedChildren)
-	{
-		SPtr<SceneObject> sceneObject = std::static_pointer_cast<SceneObject>(addedChildData->Decode(context));
-		sceneObject->SetParent(original);
-
-		if(original->IsInstantiated())
-			sceneObject->InstantiateInternal();
-	}
-
-	for(auto& componentDiff : delta->ComponentDeltas)
-	{
-		for(auto& component : components)
-		{
-			if(componentDiff->Id == component->GetPrefabObjectId())
+			const bool isNewObject = addedComponentsMap.find(gameObjectId) != addedComponentsMap.end();
+			if(!isNewObject && deltaObject->Data != nullptr)
 			{
 				IDeltaHandler& deltaHandler = component->GetRtti()->GetDeltaHandler();
-				deltaHandler.ApplyDelta(component.GetShared(), componentDiff->Data, context);
-				break;
+				deltaHandler.ApplyDelta(component.GetShared(), deltaObject->Data, &serializationContext);
 			}
 		}
 	}
 
-	for(auto& childDiff : delta->ChildDeltas)
+	// Instantiate if the object we're applying the delta to is also instantiated
+	if(original->IsInstantiated())
 	{
-		u32 childCount = original->GetChildCount();
-		for(u32 i = 0; i < childCount; i++)
+		for(const auto& entry : createdSceneObjects)
 		{
-			HSceneObject child = original->GetChild(i);
-			if(childDiff->Id == child->GetPrefabObjectId())
-			{
-				ApplyDiff(childDiff, child, context);
-				break;
-			}
+			if(!entry->IsInstantiated())
+				entry->InstantiateInternal();
 		}
 	}
+
+	// Remove components and scene objects
+	for(const auto& componentId : RemovedComponents)
+	{
+		HComponent component = B3DStaticGameObjectCast<Component>(gameObjectCollection->GetObject(componentId));
+		if(!B3D_ENSURE(component.IsValid()))
+			continue;
+
+		component->Destroy(true);
+	}
+
+	FrameUnorderedSet<UUID> destroyedObjects;
+	for(const auto& sceneObjectId : RemovedSceneObjects)
+	{
+		HSceneObject sceneObject = B3DStaticGameObjectCast<SceneObject>(gameObjectCollection->GetObject(sceneObjectId));
+		if(!B3D_ENSURE(sceneObject.IsValid()))
+			continue;
+
+		sceneObject->Destroy(true);
+	}
+
+	serializationContext.GameObjectCollection->EndHandleResolve();
 }
 
-SPtr<SceneObjectDelta> SceneObjectHierarchyDelta::GenerateDelta(const HSceneObject& original, const HSceneObject& modified, SceneObjectHierarchyDeltaFlags flags)
+void SceneObjectHierarchyDelta::GenerateHierarchyDelta(const HSceneObject& original, const HSceneObject& modified, SerializationContext* context, SceneObjectHierarchyDeltaFlags flags, SPtr<SceneObjectHierarchyDelta>& outDelta)
 {
-	const bool isPrefabCompare = true; // TODO - Toggle this via a flag
+	const bool isPrefabDelta = flags.IsSet(SceneObjectHierarchyDeltaFlag::PrefabDelta);
 
 	const bool isOriginalValid = original.IsValid();
 	const bool isModifiedValid = modified.IsValid();
 
 	if(!isOriginalValid && !isModifiedValid)
-		return nullptr;
+		return;
 
-	CoreSerializationContext serializationContext;
-	if(isPrefabCompare)
-	{
-		// TODO - Set up
-		// serializationContext.GameObjectIdRemappingTable
-	}
+	const SPtr<GameObjectCollection> modifiedGameObjectCollection = isModifiedValid ? modified->GetOwnerCollection().lock() : nullptr;
+	const UnorderedMap<UUID, UUID> modifiedPrefabToInstanceIdMap = isPrefabDelta ? PrefabUtility::GetPrefabToInstanceIdMap(modified, true) : UnorderedMap<UUID, UUID>();
 
-	SPtr<SceneObjectHierarchyDeltaObject> output;
-
-
-	u32 prefabChildCount = original->GetChildCount();
-	u32 instanceChildCount = modified->GetChildCount();
-
-	// Find modified and removed children
-	for(u32 i = 0; i < prefabChildCount; i++)
-	{
-		HSceneObject prefabChild = original->GetChild(i);
-
-		SPtr<SceneObjectHierarchyDeltaObject> childDiff;
-		bool foundMatching = false;
-		for(u32 j = 0; j < instanceChildCount; j++)
+	auto fnFindModifiedAndRemovedChildren =
+		[isOriginalValid, modifiedGameObjectCollection, &modifiedPrefabToInstanceIdMap, context, flags, outDelta](const HSceneObject& original, bool ignoreParent, auto& fnFindModifiedAndRemovedChildren) mutable -> void {
+		const u32 originalChildCount = isOriginalValid ? original->GetChildCount() : 0;
+		for(u32 originalChildIndex = 0; originalChildIndex < originalChildCount; ++originalChildIndex)
 		{
-			HSceneObject instanceChild = modified->GetChild(j);
+			const HSceneObject& originalChild = original->GetChild(originalChildIndex);
 
-			if(prefabChild->GetId() == instanceChild->GetPrefabObjectId())
+			if(originalChild->HasFlag(SOF_DontSave))
+				continue;
+
+			// Process children first
+			fnFindModifiedAndRemovedChildren(originalChild, false, fnFindModifiedAndRemovedChildren);
+
+			UUID modifiedCompareId = originalChild.GetId();
+			if(auto found = modifiedPrefabToInstanceIdMap.find(originalChild.GetId()); found != modifiedPrefabToInstanceIdMap.end())
+				modifiedCompareId = found->second;
+
+			HSceneObject modifiedChild = B3DStaticGameObjectCast<SceneObject>(modifiedGameObjectCollection->GetObject(modifiedCompareId));
+			if(!modifiedChild.IsValid())
+				outDelta->RemovedSceneObjects.push_back(originalChild.GetId());
+			else
+				GenerateSceneObjectDelta(originalChild, modifiedChild, context, flags, ignoreParent, outDelta);
+		}
+	};
+
+	const SPtr<GameObjectCollection> originalGameObjectCollection = isOriginalValid ? original->GetOwnerCollection().lock() : nullptr;
+
+	auto fnFindAddedChildren =
+		[isModifiedValid, originalGameObjectCollection, isPrefabDelta, context, flags, outDelta](const HSceneObject& modified, auto& fnFindAddedChildren) mutable -> void {
+		const u32 modifiedChildCount = isModifiedValid ? modified->GetChildCount() : 0;
+		for(u32 modifiedChildIndex = 0; modifiedChildIndex < modifiedChildCount; ++modifiedChildIndex)
+		{
+			const HSceneObject& modifiedChild = modified->GetChild(modifiedChildIndex);
+
+			if(modifiedChild->HasFlag(SOF_DontSave))
+				continue;
+
+			// Process children first
+			fnFindAddedChildren(modifiedChild, fnFindAddedChildren);
+
+			UUID originalCompareId = GetPrefabOrInstanceId(modifiedChild, isPrefabDelta);
+			HSceneObject originalChild = B3DStaticGameObjectCast<SceneObject>(originalGameObjectCollection->GetObject(originalCompareId));
+			if(!originalChild.IsValid())
 			{
-				if(!instanceChild->IsPrefabInstanceRoot())
-					childDiff = GenerateDelta(prefabChild, instanceChild, flags);
+				GenerateSceneObjectDelta(HSceneObject(), modifiedChild, context, flags, false, outDelta);
 
-				foundMatching = true;
-				break;
+				outDelta->AddedSceneObjects.push_back(modifiedChild.GetId());
 			}
 		}
+	};
 
-		if(foundMatching)
-		{
-			if(childDiff != nullptr)
-			{
-				if(output == nullptr)
-					output = B3DMakeShared<SceneObjectHierarchyDeltaObject>();
-
-				output->ChildDeltas.push_back(childDiff);
-			}
-		}
-		else
-		{
-			if(output == nullptr)
-				output = B3DMakeShared<SceneObjectHierarchyDeltaObject>();
-
-			output->RemovedChildren.push_back(prefabChild->GetId());
-		}
-	}
-
-	// Find added children
-	for(u32 i = 0; i < instanceChildCount; i++)
-	{
-		HSceneObject instanceChild = modified->GetChild(i);
-
-		if(instanceChild->HasFlag(SOF_DontSave))
-			continue;
-
-		bool foundMatching = false;
-		if(instanceChild->IsPrefabInstance())
-		{
-			for(u32 j = 0; j < prefabChildCount; j++)
-			{
-				HSceneObject prefabChild = original->GetChild(j);
-
-				if(prefabChild->GetId() == instanceChild->GetPrefabObjectId())
-				{
-					foundMatching = true;
-					break;
-				}
-			}
-		}
-
-		if(!foundMatching)
-		{
-			SPtr<SerializedObject> obj = SerializedObject::Create(*instanceChild);
-
-			if(output == nullptr)
-				output = B3DMakeShared<SceneObjectHierarchyDeltaObject>();
-
-			output->AddedChildren.push_back(obj);
-		}
-	}
-
-	const Vector<HComponent>& prefabComponents = original->GetComponents();
-	const Vector<HComponent>& instanceComponents = modified->GetComponents();
-
-	u32 prefabComponentCount = (u32)prefabComponents.size();
-	u32 instanceComponentCount = (u32)instanceComponents.size();
-
-	// Find modified and removed components
-	for(u32 i = 0; i < prefabComponentCount; i++)
-	{
-		HComponent prefabComponent = prefabComponents[i];
-
-		SPtr<ComponentDelta> childDiff;
-		bool foundMatching = false;
-		for(u32 j = 0; j < instanceComponentCount; j++)
-		{
-			HComponent instanceComponent = instanceComponents[j];
-
-			if(prefabComponent->GetId() == instanceComponent->GetPrefabObjectId())
-			{
-				SPtr<SerializedObject> encodedPrefab = SerializedObject::Create(*prefabComponent);
-				SPtr<SerializedObject> encodedInstance = SerializedObject::Create(*instanceComponent);
-
-				IDeltaHandler& deltaHandler = prefabComponent->GetRtti()->GetDeltaHandler();
-				SPtr<SerializedObject> diff = deltaHandler.GenerateDelta(encodedPrefab, encodedInstance);
-
-				if(diff != nullptr)
-				{
-					childDiff = B3DMakeShared<ComponentDelta>();
-					childDiff->Id = prefabComponent->GetId();
-					childDiff->Data = diff;
-				}
-
-				foundMatching = true;
-				break;
-			}
-		}
-
-		if(foundMatching)
-		{
-			if(childDiff != nullptr)
-			{
-				if(output == nullptr)
-					output = B3DMakeShared<SceneObjectHierarchyDeltaObject>();
-
-				output->ComponentDeltas.push_back(childDiff);
-			}
-		}
-		else
-		{
-			if(output == nullptr)
-				output = B3DMakeShared<SceneObjectHierarchyDeltaObject>();
-
-			output->RemovedComponents.push_back(prefabComponent->GetId());
-		}
-	}
-
-	// Find added components
-	for(u32 i = 0; i < instanceComponentCount; i++)
-	{
-		HComponent instanceComponent = instanceComponents[i];
-
-		bool foundMatching = false;
-		if(instanceComponent->IsPrefabInstance())
-		{
-			for(u32 j = 0; j < prefabComponentCount; j++)
-			{
-				HComponent prefabComponent = prefabComponents[j];
-
-				if(prefabComponent->GetId() == instanceComponent->GetPrefabObjectId())
-				{
-					foundMatching = true;
-					break;
-				}
-			}
-		}
-
-		if(!foundMatching)
-		{
-			SPtr<SerializedObject> obj = SerializedObject::Create(*instanceComponent);
-
-			if(output == nullptr)
-				output = B3DMakeShared<SceneObjectHierarchyDeltaObject>();
-
-			output->AddedComponents.push_back(obj);
-		}
-	}
-
-	if(output != nullptr)
-		output->Id = modified->GetPrefabObjectId();
-
-	return output;
+	fnFindModifiedAndRemovedChildren(original, true, fnFindModifiedAndRemovedChildren);
+	fnFindAddedChildren(modified, fnFindAddedChildren);
 }
 
-void SceneObjectHierarchyDelta::GenerateComponentDelta(const HSceneObject& original, const HSceneObject& modified, SPtr<SceneObjectHierarchyDelta>& outDelta)
+bool SceneObjectHierarchyDelta::GenerateSceneObjectDelta(const HSceneObject& original, const HSceneObject& modified, SerializationContext* context, SceneObjectHierarchyDeltaFlags flags, bool ignoreParent, SPtr<SceneObjectHierarchyDelta>& outDelta)
+{
+	const bool isPrefabDelta = flags.IsSet(SceneObjectHierarchyDeltaFlag::PrefabDelta);
+	const bool isOriginalValid = original.IsValid();
+	const bool isModifiedValid = modified.IsValid();
+
+	if(!isOriginalValid && !isModifiedValid)
+		return false;
+
+	if(isOriginalValid && isModifiedValid)
+	{
+		if(!B3D_ENSURE(original.GetId() == GetPrefabOrInstanceId(modified, isPrefabDelta)))
+			return false;
+	}
+
+	auto fnEnsureOutputObjectIsValid = [&outDelta]
+	{
+		if(!outDelta)
+			outDelta = B3DMakeShared<SceneObjectHierarchyDelta>();
+	};
+
+	if(!isModifiedValid)
+	{
+		fnEnsureOutputObjectIsValid();
+		outDelta->RemovedSceneObjects.push_back(modified.GetId());
+
+		return true;
+	}
+
+	if(!isOriginalValid)
+	{
+		SPtr<SerializedObject> serializedModified = SerializedObject::Create(*modified, SerializedObjectEncodeFlag::IsDeltaCopy);
+		SPtr<SceneObjectHierarchyDeltaObject> sceneDeltaObject = B3DMakeShared<SceneObjectHierarchyDeltaObject>(modified, serializedModified);
+		fnEnsureOutputObjectIsValid();
+
+		const auto result = outDelta->Objects.insert(std::make_pair(sceneDeltaObject->Id, sceneDeltaObject));
+		if(result.second)
+			outDelta->AddedSceneObjects.push_back(sceneDeltaObject->Id);
+	}
+	else
+	{
+		const SPtr<SerializedObject> serializedOriginal = SerializedObject::Create(*original, SerializedObjectEncodeFlag::IsDeltaCopy);
+		const SPtr<SerializedObject> serializedModified = SerializedObject::Create(*modified, SerializedObjectEncodeFlag::IsDeltaCopy);
+
+		IDeltaHandler& deltaHandler = original->GetRtti()->GetDeltaHandler();
+		SPtr<SerializedObject> delta = deltaHandler.GenerateDelta(serializedOriginal, serializedModified, context);
+
+		SPtr<SceneObjectHierarchyDeltaObject> sceneDeltaObject;
+		if(delta != nullptr)
+		{
+			sceneDeltaObject = B3DMakeShared<SceneObjectHierarchyDeltaObject>(modified, delta);
+			fnEnsureOutputObjectIsValid();
+
+			const auto result = outDelta->Objects.insert(std::make_pair(sceneDeltaObject->Id, sceneDeltaObject));
+			B3D_ASSERT(result.second);
+		}
+
+		const HSceneObject& originalParent = original->GetParent();
+		const HSceneObject& modifiedParent = modified->GetParent();
+
+		const UUID& originalParentId = originalParent.IsValid() ? originalParent.GetId() : UUID::kEmpty;
+		const UUID& modifiedParentId = modifiedParent.IsValid() ? GetPrefabOrInstanceId(modifiedParent, isPrefabDelta) : UUID::kEmpty;
+		if(!ignoreParent && originalParentId != modifiedParentId)
+		{
+			if(sceneDeltaObject == nullptr)
+			{
+				sceneDeltaObject = B3DMakeShared<SceneObjectHierarchyDeltaObject>(modified, nullptr);
+				fnEnsureOutputObjectIsValid();
+
+				const auto result = outDelta->Objects.insert(std::make_pair(sceneDeltaObject->Id, sceneDeltaObject));
+				B3D_ASSERT(result.second);
+			}
+
+			sceneDeltaObject->Flags.Set(GameObjectDeltaFlag::ParentChanged);
+		}
+	}
+
+	GenerateComponentDelta(original, modified, context, flags, outDelta);
+	return true;
+}
+
+void SceneObjectHierarchyDelta::GenerateComponentDelta(const HSceneObject& original, const HSceneObject& modified, SerializationContext* context, SceneObjectHierarchyDeltaFlags flags, SPtr<SceneObjectHierarchyDelta>& outDelta)
 {
 	if(!B3D_ENSURE(modified.IsValid()))
 		return;
@@ -376,6 +401,7 @@ void SceneObjectHierarchyDelta::GenerateComponentDelta(const HSceneObject& origi
 			outDelta = B3DMakeShared<SceneObjectHierarchyDelta>();
 	};
 
+	const bool isPrefabDelta = flags.IsSet(SceneObjectHierarchyDeltaFlag::PrefabDelta);
 	const Vector<HComponent>& originalComponents = original.IsValid() ? original->GetComponents() : Vector<HComponent>();
 	const Vector<HComponent>& modifiedComponents = modified->GetComponents();
 
@@ -395,11 +421,11 @@ void SceneObjectHierarchyDelta::GenerateComponentDelta(const HSceneObject& origi
 
 			if(originalComponent.GetId() == modifiedComponentId)
 			{
-				const SPtr<SerializedObject> serializedOriginal = SerializedObject::Create(*originalComponent);
-				const SPtr<SerializedObject> serializedModified = SerializedObject::Create(*modifiedComponent);
+				const SPtr<SerializedObject> serializedOriginal = SerializedObject::Create(*originalComponent, SerializedObjectEncodeFlag::IsDeltaCopy);
+				const SPtr<SerializedObject> serializedModified = SerializedObject::Create(*modifiedComponent, SerializedObjectEncodeFlag::IsDeltaCopy);
 
-				IDiff& diffHandler = originalComponent->GetRtti()->GetDiffHandler();
-				SPtr<SerializedObject> delta = diffHandler.GenerateDiff(serializedOriginal, serializedModified, context);
+				IDeltaHandler& deltaHandler = originalComponent->GetRtti()->GetDeltaHandler();
+				SPtr<SerializedObject> delta = deltaHandler.GenerateDelta(serializedOriginal, serializedModified, context);
 
 				if(delta != nullptr)
 				{
@@ -442,96 +468,16 @@ void SceneObjectHierarchyDelta::GenerateComponentDelta(const HSceneObject& origi
 
 		if(!foundMatch)
 		{
-			SPtr<SerializedObject> serializedModified = SerializedObject::Create(*modifiedComponent);
+			SPtr<SerializedObject> serializedModified = SerializedObject::Create(*modifiedComponent, SerializedObjectEncodeFlag::IsDeltaCopy);
 			SPtr<SceneObjectHierarchyDeltaObject> sceneDeltaObject = B3DMakeShared<SceneObjectHierarchyDeltaObject>(modifiedComponent, serializedModified);
 			fnEnsureOutputObjectIsValid();
 
 			const auto result = outDelta->Objects.insert(std::make_pair(sceneDeltaObject->Id, sceneDeltaObject));
 			if(result.second)
-				outDelta->AddedComponents.insert(sceneDeltaObject->Id);
+				outDelta->AddedComponents.push_back(sceneDeltaObject->Id);
 		}
 	}
 }
-
-void SceneObjectHierarchyDelta::GenerateSceneObjectDelta(const HSceneObject& original, const HSceneObject& modified, SPtr<SceneObjectHierarchyDelta>& outDelta)
-{
-	const bool isOriginalValid = original.IsValid();
-	const bool isModifiedValid = modified.IsValid();
-
-	if(!isOriginalValid && !isModifiedValid)
-		return;
-
-	if(isOriginalValid && isModifiedValid)
-	{
-		if(!B3D_ENSURE(original.GetId() == GetPrefabOrInstanceId(modified, isPrefabDelta)))
-			return;
-	}
-
-	auto fnEnsureOutputObjectIsValid = [&outDelta]
-	{
-		if(!outDelta)
-			outDelta = B3DMakeShared<SceneObjectHierarchyDelta>();
-	};
-
-	if(!isModifiedValid)
-	{
-		fnEnsureOutputObjectIsValid();
-		outDelta->RemovedSceneObjects.insert(modified.GetId());
-
-		return;
-	}
-
-	if(!isOriginalValid)
-	{
-		SPtr<SerializedObject> serializedModified = SerializedObject::Create(*modified);
-		SPtr<SceneObjectHierarchyDeltaObject> sceneDeltaObject = B3DMakeShared<SceneObjectHierarchyDeltaObject>(modified, serializedModified);
-		fnEnsureOutputObjectIsValid();
-
-		const auto result = outDelta->Objects.insert(std::make_pair(sceneDeltaObject->Id, sceneDeltaObject));
-		if(result.second)
-			outDelta->AddedSceneObjects.insert(sceneDeltaObject->Id);
-	}
-	else
-	{
-		const SPtr<SerializedObject> serializedOriginal = SerializedObject::Create(*original);
-		const SPtr<SerializedObject> serializedModified = SerializedObject::Create(*modified);
-
-		IDiff& diffHandler = original->GetRtti()->GetDiffHandler();
-		SPtr<SerializedObject> delta = diffHandler.GenerateDiff(serializedOriginal, serializedModified, context);
-
-		SPtr<SceneObjectHierarchyDeltaObject> sceneDeltaObject;
-		if(delta != nullptr)
-		{
-			sceneDeltaObject = B3DMakeShared<SceneObjectHierarchyDeltaObject>(modified, delta);
-			fnEnsureOutputObjectIsValid();
-
-			const auto result = outDelta->Objects.insert(std::make_pair(sceneDeltaObject->Id, sceneDeltaObject));
-			B3D_ASSERT(result.second);
-		}
-
-		const HSceneObject& originalParent = original->GetParent();
-		const HSceneObject& modifiedParent = modified->GetParent();
-
-		const UUID& originalParentId = originalParent.IsValid() ? originalParent.GetId() : UUID::kEmpty;
-		const UUID& modifiedParentId = modifiedParent.IsValid() ? GetPrefabOrInstanceId(modifiedParent.GetId(), isPrefabDelta) : UUID::kEmpty;
-		if(originalParentId != modifiedParentId)
-		{
-			if(sceneDeltaObject == nullptr)
-			{
-				sceneDeltaObject = B3DMakeShared<SceneObjectHierarchyDeltaObject>(modified, nullptr);
-				fnEnsureOutputObjectIsValid();
-
-				const auto result = outDelta->Objects.insert(std::make_pair(sceneDeltaObject->Id, sceneDeltaObject));
-				B3D_ASSERT(result.second);
-			}
-
-			sceneDeltaObject->Flags.Set(ParentModified);
-		}
-	}
-
-	// TODO - Missing serialization context flags to avoid comparing the parent/child/component fields in the general purpose serialization
-}
-
 
 RTTITypeBase* SceneObjectHierarchyDelta::GetRttiStatic()
 {

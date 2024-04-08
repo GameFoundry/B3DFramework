@@ -34,7 +34,7 @@ namespace bs
 		 *
 		 * Will return null if there is no difference.
 		 */
-		SPtr<SerializedObject> GenerateDelta(const SPtr<IReflectable>& original, const SPtr<IReflectable>& modified, bool replicableOnly = false);
+		SPtr<SerializedObject> GenerateDelta(const SPtr<IReflectable>& original, const SPtr<IReflectable>& modified, SerializationContext* context = nullptr, bool replicableOnly = false);
 
 		/**
 		 * Applies a previously generated delta to the provided object. This will essentially transform the
@@ -52,9 +52,9 @@ namespace bs
 		/**
 		 * Recursive version of GenerateDelta(const SPtr<IReflectable>&, const SPtr<IReflectable>&, bool).
 		 *
-		 * @see		GenerateDelta(const SPtr<IReflectable>&, const SPtr<IReflectable>&, bool)
+		 * @see		GenerateDelta(const SPtr<IReflectable>&, const SPtr<IReflectable>&, SerializationContext*, bool)
 		 */
-		virtual SPtr<SerializedObject> GenerateDeltaRecursive(IReflectable* original, IReflectable* modified, ObjectMap& objectMap, bool replicableOnly) = 0;
+		virtual SPtr<SerializedObject> GenerateDeltaRecursive(IReflectable* original, IReflectable* modified, ObjectMap& objectMap, SerializationContext* context, bool replicableOnly) = 0;
 
 		/** @} */
 
@@ -121,7 +121,7 @@ namespace bs
 	class B3D_UTILITY_EXPORT BinaryDeltaHandler : public IDeltaHandler
 	{
 	private:
-		SPtr<SerializedObject> GenerateDeltaRecursive(IReflectable* original, IReflectable* modified, ObjectMap& objectMap, bool replicableOnly) override;
+		SPtr<SerializedObject> GenerateDeltaRecursive(IReflectable* original, IReflectable* modified, ObjectMap& objectMap, SerializationContext* context, bool replicableOnly) override;
 		void GenerateDeltaApplyCommands(const SPtr<IReflectable>& object, const SPtr<SerializedObject>& delta, FrameAllocator& allocator, DeltaObjectMap& objectMap, FrameVector<DeltaCommand>& inOutDeltaCommands, SerializationContext* context) override;
 
 		/**

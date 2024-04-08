@@ -182,7 +182,7 @@ namespace bs
 		 * @param	modified	Modified object. Any values in this object that differ from the original object will be recorded in the delta.
 		 * @return				Returns null if objects are identical.
 		 */
-		static SPtr<ManagedSerializableDelta> Create(const ManagedSerializableObject* original, const ManagedSerializableObject* modified);
+		static SPtr<ManagedSerializableDelta> Create(const ManagedSerializableObject* original, const ManagedSerializableObject* modified, SerializationContext* context = nullptr);
 
 		/**
 		 * Applies the delta stored in this object to the specified object, modifying all fields in the object to correspond to the delta.
@@ -191,13 +191,13 @@ namespace bs
 
 	private:
 		/** Recursively generates a delta between all fields of the specified objects. Returns null if objects are identical. */
-		SPtr<ModifiedObject> GenerateObjectDelta(const ManagedSerializableObject* original, const ManagedSerializableObject* modified);
+		SPtr<ModifiedObject> GenerateObjectDelta(const ManagedSerializableObject* original, const ManagedSerializableObject* modified, SerializationContext* context);
 
 		/**
 		 * Generates a delta between two fields. Fields can be of any type and the system will generate the delta appropriately. Delta is generated recursively on all complex objects.
 		 * Returns null if fields contain identical data.
 		 */
-		SPtr<Modification> GenerateFieldDelta(const SPtr<ManagedSerializableFieldData>& original, const SPtr<ManagedSerializableFieldData>& modified, u32 fieldTypeId);
+		SPtr<Modification> GenerateFieldDelta(const SPtr<ManagedSerializableFieldData>& original, const SPtr<ManagedSerializableFieldData>& modified, u32 fieldTypeId, SerializationContext* context);
 
 		/**
 		 * Applies an object modification to a managed object. Modifications are applied recursively.

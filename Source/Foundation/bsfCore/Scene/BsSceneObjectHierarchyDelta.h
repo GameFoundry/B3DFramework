@@ -5,8 +5,6 @@
 #include "BsCorePrerequisites.h"
 #include "Reflection/BsIReflectable.h"
 #include "Scene/BsGameObject.h"
-#include "Math/BsVector3.h"
-#include "Math/BsQuaternion.h"
 
 namespace bs
 {
@@ -15,6 +13,16 @@ namespace bs
 	/** @addtogroup Scene-Internal
 	 *  @{
 	 */
+
+	/** Flags that specify additional information about game object delta. */
+	enum class GameObjectDeltaFlag
+	{
+		None = 0,
+		ParentChanged = 1 << 0, /**< Set on scene object deltas whose parent has changed. */
+	};
+
+	using GameObjectDeltaFlags = Flags<GameObjectDeltaFlag>;
+	B3D_FLAGS_OPERATORS(GameObjectDeltaFlag)
 
 	/** Contains either a fully serialized game object, or a delta between two game objects. Used internally by SceneObjectHierarchyDelta. */
 	struct B3D_CORE_EXPORT SceneObjectHierarchyDeltaObject : public IReflectable
@@ -28,12 +36,15 @@ namespace bs
 		UUID PrefabResourceId;
 
 		SPtr<SerializedObject> Data;
+		GameObjectDeltaFlags Flags;
 
 		/************************************************************************/
 		/* 								RTTI		                     		*/
 		/************************************************************************/
 
 	public:
+		SceneObjectHierarchyDeltaObject() = default; // RTTI only
+
 		friend class SceneObjectHierarchyDeltaObjectRTTI;
 		static RTTITypeBase* GetRttiStatic();
 		RTTITypeBase* GetRtti() const override;
@@ -66,37 +77,33 @@ namespace bs
 		 *			that this method will be called on a fresh copy of a scene object hierarchy, and everything to be
 		 *			instantiated at once after delta is applied.
 		 */
-		void Apply(const HSceneObject& original);
+		void Apply(const HSceneObject& original, SceneObjectHierarchyDeltaFlags flags = SceneObjectHierarchyDeltaFlag::None);
 
 	private:
 		/** Recursively generates differences between original and the modified version, for every scene object in the hierarchy. */
-		static SPtr<SceneObjectHierarchyDeltaObject> GenerateDelta(const HSceneObject& original, const HSceneObject& modified, SceneHierarchyDeltaFlags flags, SPtr<SceneObjectHierarchyDeltaObject>& outDelta);
+		static void GenerateHierarchyDelta(const HSceneObject& original, const HSceneObject& modified, SerializationContext* context, SceneObjectHierarchyDeltaFlags flags, SPtr<SceneObjectHierarchyDelta>& outDelta);
+
+		/**
+		 * Generates differences between the two provided scene objects. If the object IDs match, a delta of their properties is recorded.
+		 * If one of the scene objects is not valid, we record the relevant ID in the added or removed scene object list. Note this
+		 * does not iterate over the child hierarchy. @p outDelta will be created if changes are found if not already created.
+		 */
+		static bool GenerateSceneObjectDelta(const HSceneObject& original, const HSceneObject& modified, SerializationContext* context, SceneObjectHierarchyDeltaFlags flags, bool ignoreParent, SPtr<SceneObjectHierarchyDelta>& outDelta);
 
 		/**
 		 * Generates differences between components of the two provided scene objects. If components with matching ids are found, a delta
 		 * of their properties is recorded. Otherwise a component is registered in either the added or removed component list. @p outDelta
 		 * will be created if changes are found, if not already created.
 		 */
-		static void GenerateComponentDelta(const HSceneObject& original, const HSceneObject& modified, SPtr<SceneObjectHierarchyDelta>& outDelta);
-
-		/**
-		 * Generates differences between the two provided scene objects. If the object ids match, a delta of their properties is recorded.
-		 * If one of the scene objects is not valid, we record the relevant id in the added or removed scene object list. Note this
-		 * not compare scene object components, nor does it iterate over the child hierarchy.@p outDelta will be created if changes are found,
-		 * if not already created.
-		 */
-		static void GenerateSceneObjectDelta(const HSceneObject& original, const HSceneObject& modified, SPtr<SceneObjectHierarchyDelta>& outDelta);
-
-		/** Recursively applies a per-object set of differences to a specific object.  */
-		static void ApplyDiff(const SPtr<SceneObjectHierarchyDeltaObject>& delta, const HSceneObject& original, SerializationContext* context);
+		static void GenerateComponentDelta(const HSceneObject& original, const HSceneObject& modified, SerializationContext* context, SceneObjectHierarchyDeltaFlags flags, SPtr<SceneObjectHierarchyDelta>& outDelta);
 
 		UnorderedMap<UUID, SPtr<SceneObjectHierarchyDeltaObject>> Objects;
 
-		UnorderedSet<UUID> AddedComponents;
+		Vector<UUID> AddedComponents; /**< Ordered list of added components. */
 		UnorderedSet<UUID> RemovedComponents;
 
-		UnorderedSet<UUID> AddedSceneObjects;
-		UnorderedSet<UUID> RemovedSceneObjects;
+		Vector<UUID> AddedSceneObjects; /**< Ordered list of added scene objects. */
+		Vector<UUID> RemovedSceneObjects; /**< Ordered list of removed scene objects. */
 
 		/************************************************************************/
 		/* 								RTTI		                     		*/
