@@ -35,7 +35,7 @@ namespace bs
 			B3D_TEST_ASSERT_EXTERNAL(testSuite, sceneObject->GetPrefabResourceId() == prefabId) }, skipOptional);
 	}
 
-	void UnitTestPrefabUpdateHelper::TestAssertUnitTestSceneBPrefabLinks(TestSuite& testSuite, const HSceneObject& sourceInstanceRoot, const HSceneObject& newInstanceRoot, const HPrefab& rootPrefab, const HPrefab& firstNestedPrefab, const HPrefab& secondNestedPrefab, PrefabLinkCheckType checkType)
+	void UnitTestPrefabUpdateHelper::TestAssertUnitTestSceneBPrefabLinksMatchPrefabInternals(TestSuite& testSuite, const HSceneObject& sourceInstanceRoot, const HSceneObject& newInstanceRoot, const HPrefab& rootPrefab, const HPrefab& firstNestedPrefab, const HPrefab& secondNestedPrefab, PrefabLinkCheckType checkType)
 	{
 		// Wrappers for original scene object instances
 		UnitTestSceneB sourceInstanceWrapper_Root(sourceInstanceRoot);

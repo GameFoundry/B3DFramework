@@ -20,7 +20,7 @@ namespace bs
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
-			B3D_RTTI_MEMBER_PLAIN(mHash, 1)
+			B3D_RTTI_MEMBER_PLAIN(mPrefabVersion, 1)
 			// B3D_RTTI_MEMBER_PLAIN(mNextLinkId, 2)
 			B3D_RTTI_MEMBER_PLAIN(mUUID, 3)
 			B3D_RTTI_MEMBER_PLAIN(mIsScene, 4)

@@ -51,10 +51,10 @@ namespace bs
 		void Update(const HSceneObject& sceneObject);
 
 		/**
-		 * Returns a hash value that can be used for determining if a prefab changed by comparing it to a previously saved
-		 * hash.
+		 * Returns a version value that gets updated every time the prefab contents update. Can be used for detecting if a prefab instance
+		 * is up to date.
 		 */
-		u32 GetHash() const { return mHash; }
+		UUID GetPrefabVersion() const { return mPrefabVersion; }
 
 		/**
 		 * Determines if the prefab represents a scene or just a generic group of objects. The only difference between the
@@ -117,7 +117,7 @@ namespace bs
 		static SPtr<Prefab> CreateEmpty();
 
 		HSceneObject mRoot;
-		u32 mHash = 0;
+		UUID mPrefabVersion = UUID::kEmpty;
 		UUID mUUID;
 		bool mIsScene = true;
 		SPtr<GameObjectCollection> mGameObjectCollection; /**< Collection owning the internal hierarchy. */

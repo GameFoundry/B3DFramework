@@ -337,15 +337,12 @@ void Prefab::Initialize(const HSceneObject& sceneObject)
 
 	mRoot = newRoot; // Note: PrefabIdUtility::RestoreOriginalPrefabIds() depends on this being changed after it has been called, as it may try to access the original prefab root
 	mGameObjectCollection = newGameObjectCollection;
-
-	// TODO - Don't forget to re-visit UpdateFromPrefab (see comment there)
+	mPrefabVersion = UUIDGenerator::GenerateRandom();
 }
 
 void Prefab::Update(const HSceneObject& sceneObject)
 {
 	Initialize(sceneObject);
-
-	mHash++;
 }
 
 void Prefab::UpdateChildInstancesInternal() const
@@ -356,7 +353,7 @@ void Prefab::UpdateChildInstancesInternal() const
 	mRoot->IterateHierarchy([this](const HSceneObject& sceneObject)
 	{
 		if(sceneObject->IsPrefabInstanceRoot())
-			PrefabUtility::UpdateFromPrefab(sceneObject);
+			PrefabUtility::UpdateInstanceFromPrefab(sceneObject);
 
 		return true;
 	}, nullptr);
@@ -403,7 +400,7 @@ HSceneObject Prefab::Clone(const SPtr<GameObjectCollection>& cloneOwnerCollectio
 	if(mRoot == nullptr)
 		return HSceneObject();
 
-	mRoot->mPrefabHash = mHash;
+	mRoot->SetPrefabVersion(mPrefabVersion); // TODO - Might make sense to assign this to the entire hierarchy. Also for internal hierarchy, it should be set when internal hierarchy is updated.
 	return mRoot->Clone(cloneOwnerCollection, false, preserveIds);
 }
 

@@ -80,9 +80,9 @@ namespace bs
 
 		void SetFlags(SceneObject* obj, u32& value) { obj->mFlags = value; }
 
-		u32& GetPrefabHash(SceneObject* obj) { return obj->mPrefabHash; }
+		UUID& GetPrefabVersion(SceneObject* obj) { return obj->mPrefabVersion; }
 
-		void SetPrefabHash(SceneObject* obj, u32& value) { obj->mPrefabHash = value; }
+		void SetPrefabVersion(SceneObject* obj, UUID& value) { obj->mPrefabVersion = value; }
 
 		ObjectMobility& GetMobility(SceneObject* obj) { return obj->mMobility; }
 
@@ -100,7 +100,7 @@ namespace bs
 			//AddPlainField("mPrefabLink", 2, &SceneObjectRTTI::GetPrefabLink, &SceneObjectRTTI::SetPrefabLink);
 			AddPlainField("mFlags", 3, &SceneObjectRTTI::GetFlags, &SceneObjectRTTI::SetFlags);
 			AddReflectablePtrField("mPrefabDelta", 4, &SceneObjectRTTI::GetPrefabDelta, &SceneObjectRTTI::SetPrefabDelta, RTTIFieldInfo(RTTIFieldFlag::SkipInDeltaCompare | RTTIFieldFlag::SkipInDeltaCopy));
-			AddPlainField("mPrefabHash", 5, &SceneObjectRTTI::GetPrefabHash, &SceneObjectRTTI::SetPrefabHash, RTTIFieldInfo(RTTIFieldFlag::SkipInDeltaCompare | RTTIFieldFlag::SkipInDeltaCopy));
+			AddPlainField("mPrefabVersion", 5, &SceneObjectRTTI::GetPrefabVersion, &SceneObjectRTTI::SetPrefabVersion, RTTIFieldInfo(RTTIFieldFlag::SkipInDeltaCompare | RTTIFieldFlag::SkipInDeltaCopy));
 			AddPlainField("mActiveSelf", 9, &SceneObjectRTTI::GetActive, &SceneObjectRTTI::SetActive);
 			AddPlainField("mMobility", 10, &SceneObjectRTTI::GetMobility, &SceneObjectRTTI::SetMobility);
 

@@ -38,7 +38,7 @@ namespace bs
 		template <typename SceneWrapperType>
 		static void TestAssetRootPrefabLinkValid(TestSuite& testSuite, SceneWrapperType& prefabWrapper, const UUID& prefabId, bool skipOptional = false);
 
-		static void TestAssertUnitTestSceneBPrefabLinks(TestSuite& testSuite, const HSceneObject& sourceInstanceRoot, const HSceneObject& newInstanceRoot, const HPrefab& rootPrefab, const HPrefab& firstNestedPrefab, const HPrefab& secondNestedPrefab, PrefabLinkCheckType checkType);
+		static void TestAssertUnitTestSceneBPrefabLinksMatchPrefabInternals(TestSuite& testSuite, const HSceneObject& sourceInstanceRoot, const HSceneObject& newInstanceRoot, const HPrefab& rootPrefab, const HPrefab& firstNestedPrefab, const HPrefab& secondNestedPrefab, PrefabLinkCheckType checkType);
 
 		/** Compares two hierarchies and ensure their prefab object IDs and prefab resource IDs match. */
 		static void TestAssertUnitTestSceneBPrefabLinksMatch(TestSuite& testSuite, const HSceneObject& lhsRoot, const HSceneObject& rhsRoot, bool ignoreGameObjectIds, bool skipOptional = false);

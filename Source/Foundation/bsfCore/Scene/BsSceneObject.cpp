@@ -249,6 +249,15 @@ void SceneObject::InstantiateInternal(bool prefabOnly)
 /* 								Transform	                     		*/
 /************************************************************************/
 
+void SceneObject::SetLocalTransform(const Transform& transform)
+{
+	if(mMobility != ObjectMobility::Movable)
+		return;
+
+	mLocalTfrm = transform;
+	NotifyTransformChanged(TCF_Transform);
+}
+
 void SceneObject::SetPosition(const Vector3& position)
 {
 	if(mMobility == ObjectMobility::Movable)

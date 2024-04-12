@@ -138,7 +138,60 @@ void PrefabUtility::RevertToPrefab(const HSceneObject& sceneObject)
 	RestoreInstanceData(newInstance, instanceData);
 }
 
-void PrefabUtility::UpdateFromPrefab(const HSceneObject& sceneObject)
+HSceneObject PrefabUtility::UpdateInstanceFromPrefab(const HSceneObject& instance, const Prefab& prefab)
+{
+	if(!B3D_ENSURE(instance.IsValid()))
+		return HSceneObject();
+
+	if(!instance->IsPrefabInstanceRoot())
+	{
+		B3D_LOG(Warning, Scene, "Cannot update scene object from prefab. Provided scene object '{0}' ({1}) is not a prefab instance root.", instance->GetName(), instance.GetId());
+		return HSceneObject();
+	}
+
+	if(instance->GetPrefabResourceId() != prefab.GetId())
+	{
+		B3D_LOG(Warning, Scene, "Cannot update scene object from prefab. Provided scene object '{0}' ({1}) is referencing prefab '{2}', but the provided prefab is '{3}'.", instance->GetName(), instance.GetId(), instance->GetPrefabResourceId(), prefab.GetId());
+		return HSceneObject();
+	}
+
+	if(instance->GetPrefabVersion() == prefab.GetPrefabVersion())
+		return HSceneObject();
+
+	// Save IDs, destroy original, create new, restore IDs
+	UnorderedMap<UUID, PrefabInstanceData> instanceData;
+	RecordInstanceData(instance, instanceData);
+
+	HSceneObject parent = instance->GetParent();
+	SPtr<SceneObjectHierarchyDelta> prefabDelta = instance->GetPrefabDelta();
+	Transform transform = instance->GetLocalTransform();
+
+	const SPtr<GameObjectCollection> gameObjectCollection = instance->GetOwnerCollection().lock();
+
+	instance->Destroy(true);
+	HSceneObject newInstance = prefab.Clone(gameObjectCollection);
+	AssignPrefabInstanceIds(newInstance, prefab.GetRoot(), prefab.GetId());
+
+	// When restoring instance IDs it is important to make all the new handles point to the old GameObjectInstanceData.
+	// This is because old handles will have different GameObjectHandleData and we have no easy way of accessing it to
+	// change to which GameObjectInstanceData it points. But the GameObjectCollection ensures that all handles deserialized
+	// at once (i.e. during the Clone() call above) will share GameObjectHandleData so we can simply replace
+	// to what they point to, affecting all of the handles to that object. (In another words, we can modify the
+	// new handles at this point, but old ones must keep referencing what they already were.)
+	RestoreInstanceData(newInstance, instanceData);
+
+	newInstance->SetParent(parent, false);
+
+	if(prefabDelta != nullptr)
+		prefabDelta->Apply(newInstance, SceneObjectHierarchyDeltaFlag::PrefabDelta);
+
+	newInstance->SetLocalTransform(transform);
+	newInstance->mPrefabDelta = prefabDelta;
+
+	return newInstance;
+}
+
+void PrefabUtility::UpdateInstanceFromPrefab(const HSceneObject& sceneObject)
 {
 	if(!B3D_ENSURE(sceneObject.IsValid()))
 		return;
@@ -147,97 +200,25 @@ void PrefabUtility::UpdateFromPrefab(const HSceneObject& sceneObject)
 	if(!prefabInstanceRoot.IsValid())
 		return;
 
-	Stack<HSceneObject> todo;
-	todo.push(prefabInstanceRoot);
+	const bool isInstantiated = prefabInstanceRoot->IsInstantiated();
+	const UUID prefabResourceId = prefabInstanceRoot->GetPrefabResourceId();
+	HPrefab prefab = B3DStaticResourceCast<Prefab>(GetResources().LoadFromUuid(prefabResourceId, false, ResourceLoadFlag::None));
 
-	// Find any prefab instances
-	Vector<HSceneObject> prefabInstanceRoots; // TODO - This should probably just perform an update from a single prefab, and we handle the complexity of nested prefabs elsewhere (e.g. in a prefab editor) - or just allow this method to work on prefab hierarchy itself, then call it recursively
-
-	while(!todo.empty())
+	if(!prefab.IsLoaded(false))
 	{
-		HSceneObject current = todo.top();
-		todo.pop();
-
-		if(!current->IsPrefabInstanceRoot())
-			prefabInstanceRoots.push_back(current);
-
-		u32 childCount = current->GetChildCount();
-		for(u32 childIndex = 0; childIndex < childCount; childIndex++)
-		{
-			HSceneObject child = current->GetChild(childIndex);
-			todo.push(child);
-		}
+		B3D_LOG(Warning, Scene, "Cannot update scene object from prefab. Prefab resource with ID: '{0}' cannot be found.", prefabResourceId);
+		return;
 	}
 
-	// Stores data about the new prefab instance and its original parent and link id
-	// (as those aren't stored in the prefab diff)
-	struct RestoredPrefabInstance
-	{
-		HSceneObject NewInstance;
-		HSceneObject OriginalParent;
-		SPtr<SceneObjectHierarchyDelta> Delta;
-	};
+	HSceneObject newInstance = UpdateInstanceFromPrefab(sceneObject, *prefab);
+	if(newInstance == nullptr)
+		return;
 
-	Vector<RestoredPrefabInstance> newPrefabInstanceData;
+	// Load everything referenced by the new prefab objects
+	GetResources().LoadFromUuid(prefabResourceId, true, ResourceLoadFlag::LoadDependencies);
 
-	// For each prefab instance load its reference prefab from the disk and check if it changed. If it has changed
-	// instantiate the prefab and destroy the current instance. Then apply instance specific changes stored in a
-	// prefab diff, if any, as well as restore the original parent and link id (link id of the root prefab instance
-	// belongs to the parent prefab if any). Finally fix any handles pointing to the old objects so that they now point
-	// to the newly instantiated objects. To the outside world it should be transparent that we just destroyed and then
-	// re-created the entire hierarchy from scratch.
-
-	// Need to do this bottom up to ensure I don't destroy the parents before children
-	for(auto iter = prefabInstanceRoots.rbegin(); iter != prefabInstanceRoots.rend(); ++iter)
-	{
-		HSceneObject current = *iter;
-		HPrefab prefabLink = B3DStaticResourceCast<Prefab>(GetResources().LoadFromUuid(current->GetPrefabResourceId(), false, ResourceLoadFlag::None));
-
-		if(prefabLink.IsLoaded(false) && prefabLink->GetHash() != current->mPrefabHash)
-		{
-			// Save IDs, destroy original, create new, restore IDs
-			UnorderedMap<UUID, PrefabInstanceData> instanceData;
-			RecordInstanceData(current, instanceData);
-
-			HSceneObject parent = current->GetParent();
-			SPtr<SceneObjectHierarchyDelta> prefabDelta = current->GetPrefabDelta();
-
-			const SPtr<GameObjectCollection> gameObjectCollection = current->GetOwnerCollection().lock();
-
-			current->Destroy(true);
-			HSceneObject newInstance = prefabLink->Clone(gameObjectCollection);
-
-			// When restoring instance IDs it is important to make all the new handles point to the old GameObjectInstanceData.
-			// This is because old handles will have different GameObjectHandleData and we have no easy way of accessing it to
-			// change to which GameObjectInstanceData it points. But the GameObjectManager ensures that all handles deserialized
-			// at once (i.e. during the ::CloneInternal() call above) will share GameObjectHandleData so we can simply replace
-			// to what they point to, affecting all of the handles to that object. (In another words, we can modify the
-			// new handles at this point, but old ones must keep referencing what they already were.)
-			RestoreInstanceData(newInstance, instanceData);
-
-			newPrefabInstanceData.push_back({ newInstance, parent, prefabDelta });
-		}
-	}
-
-	// Once everything is cloned, apply diffs, restore old parents & link IDs for root.
-	for(auto& entry : newPrefabInstanceData)
-	{
-		// Diffs must be applied after everything is instantiated and instance data restored since it may contain
-		// game object handles within or external to its prefab instance.
-		if(entry.Delta != nullptr)
-			entry.Delta->Apply(entry.NewInstance);
-
-		entry.NewInstance->mPrefabDelta = entry.Delta;
-
-		entry.NewInstance->SetParent(entry.OriginalParent, false);
-	}
-
-	// Finally, instantiate everything if the top scene object is live (instantiated)
-	if(prefabInstanceRoot->IsInstantiated())
-	{
-		for(auto& entry : newPrefabInstanceData)
-			entry.NewInstance->InstantiateInternal(true);
-	}
+	if(isInstantiated)
+		newInstance->InstantiateInternal();
 
 	GetResources().UnloadAllUnused();
 }

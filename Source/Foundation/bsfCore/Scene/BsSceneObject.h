@@ -78,6 +78,9 @@ namespace bs
 		/** Identifies the prefab resource this object is linked to. Will return an empty ID if the object is not linked to a prefab. */
 		const UUID& GetPrefabResourceId() const { return mPrefabResourceId; }
 
+		/** Returns the version of the prefab the prefab instance was created from. Not relevant if the object is not a prefab instance. */
+		const UUID& GetPrefabVersion() const { return mPrefabVersion; }
+
 		/**
 		 * Returns true if this object is linked to a prefab (See IsPrefabInstance()), and is the root of the prefab instance hierarchy (i.e. its parent is
 		 * either not linked to a prefab, or linked to a different prefab). 
@@ -127,6 +130,9 @@ namespace bs
 
 		/** Assigns a new prefab delta. Caller must ensure the prefab delta was generated for this object. */
 		void SetPrefabDelta(const SPtr<SceneObjectHierarchyDelta>& delta) { mPrefabDelta = delta; }
+
+		/** @copydoc GetPrefabVersion */
+		void SetPrefabVersion(const UUID& version) { mPrefabVersion = version; }
 
 		/** Recursively enables the provided set of flags on this object and all children. */
 		void SetFlagsInternal(u32 flags);
@@ -179,8 +185,8 @@ namespace bs
 		friend class Component;
 
 		UUID mPrefabResourceId; /**< Identifier of the prefab resource that this object is linked to, if any. */
+		UUID mPrefabVersion = UUID::kEmpty;
 		SPtr<SceneObjectHierarchyDelta> mPrefabDelta;
-		u32 mPrefabHash = 0;
 		u32 mFlags;
 
 		/************************************************************************/
@@ -192,6 +198,9 @@ namespace bs
 
 		/** Gets the transform object representing object's position/rotation/scale relative to its parent. */
 		const Transform& GetLocalTransform() const { return mLocalTfrm; }
+
+		/** Sets a new transform for the object, relative to the parent. */
+		void SetLocalTransform(const Transform& transform);
 
 		/**	Sets the local position of the object. */
 		void SetPosition(const Vector3& position);

@@ -33,10 +33,17 @@ namespace bs
 		static void RevertToPrefab(const HSceneObject& sceneObject);
 
 		/**
-		 * Updates all of the objects belonging to the same prefab instance as the provided object (if any). The update
-		 * will apply any changes from the linked prefab to the hierarchy (if any).
+		 * Updates the provided scene object hierarchy with latest data from the associated provided prefab. Provided scene object
+		 * hierarchy must be a part of an instance of the provided prefab. If the provided object is not the instance hierarchy root,
+		 * root will be found and updated.
 		 */
-		static void UpdateFromPrefab(const HSceneObject& sceneObject);
+		static void UpdateInstanceFromPrefab(const HSceneObject& sceneObject);
+
+		/**
+		 * Updates the provided scene object hierarchy with latest data from the provided prefab. Provided scene object
+		 * hierarchy must be a root object of an instance of the provided prefab. Returns null if nothing was updated.
+		 */
+		static HSceneObject UpdateInstanceFromPrefab(const HSceneObject& instance, const Prefab& prefab);
 
 		/**
 		 * Assigns the provided prefab resource ID to the provided scene object hierarchy recursively. If a scene object
