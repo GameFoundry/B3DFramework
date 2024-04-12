@@ -32,6 +32,9 @@ namespace bs
 		 */
 		static void RevertToPrefab(const HSceneObject& sceneObject);
 
+		/** Scans the provided hierarchy for any prefab instances, and updates them to the latest prefab data. */
+		static void UpdateAllInstancesFromPrefabs(const HSceneObject& sceneObject);
+
 		/**
 		 * Updates the provided scene object hierarchy with latest data from the associated provided prefab. Provided scene object
 		 * hierarchy must be a part of an instance of the provided prefab. If the provided object is not the instance hierarchy root,
@@ -96,6 +99,9 @@ namespace bs
 		 * @return							Generated prefab object id -> game object id map.
 		 */
 		static UnorderedMap<UUID, UUID> GetPrefabToInstanceIdMap(const HSceneObject& sceneObject, bool visitChildPrefabs);
+	private:
+		/** Scans the provided hierarchy for any prefab instances, and updates them to the latest prefab data. */
+		static void UpdateAllInstancesFromPrefabsRecursive(const HSceneObject& instanceRoot, FrameUnorderedMap<UUID, HPrefab>& inOutPrefabCache, FrameVector<UUID>& inOutParentPrefabChain);
 	};
 
 	/** @} */

@@ -304,6 +304,8 @@ void Prefab::Initialize(const HSceneObject& sceneObject)
 	UnorderedMap<UUID, UUID> remappedGameObjectIDs = PrefabIdUtility::RestoreOriginalPrefabIds(mUUID, mRoot, newRoot);
 
 	// Ensure the instance hierarchy links to this prefab
+	// TODO - This shouldn't be done if hierarchy is part of some other prefab instance. In that case we need to clear the instance prefab delta
+	// and rely on UpdateFromPrefab to update the parent prefab to the version with correct IDs.
 	B3D_ASSERT(mUUID != UUID::kEmpty);
 	sceneObject->IterateHierarchy([this, &remappedGameObjectIDs](const HSceneObject& sceneObject)
 	{
