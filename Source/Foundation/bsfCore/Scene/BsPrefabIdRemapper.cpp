@@ -120,47 +120,50 @@ PrefabIdRemapper::PrefabObjectIdAndLinkInformation PrefabIdRemapper::DeduceInter
 		output.GameObjectId = UUIDGenerator::GenerateRandom();
 		output.LinkInformation.PrefabObjectId = output.GameObjectId;
 		output.LinkInformation.PrefabResourceId = associatedSceneObjectInformation.ParentPrefabResourceId;
+
+		return output;
 	}
-	else
+	// TODO - Improved process for prefab links?
+	//  - prefabResourceId initially provided should be an exact link depending on the current object (rather than always the root)
+	//  - 
+
+	// Find prefab link IDs in the original hierarchy
+	const UnorderedMap<UUID, PrefabLinkInformation>& prefabHierarchyIds = GetOrPopulatePrefabInformation(prefabResourceId).PrefabHierarchyIds;
+	auto found = prefabHierarchyIds.find(prefabObjectId);
+	if(found != prefabHierarchyIds.end()) // This is an object that was previously part of the prefab, retrieve its original ID
 	{
-		// TODO - Improved process for prefab links?
-		//  - prefabResourceId initially provided should be an exact link depending on the current object (rather than always the root)
-		//  - 
-
-		// Find prefab link IDs in the original hierarchy
-		const UnorderedMap<UUID, PrefabLinkInformation>& prefabHierarchyIds = GetOrPopulatePrefabInformation(prefabResourceId).PrefabHierarchyIds;
-		auto found = prefabHierarchyIds.find(prefabObjectId);
-		if(found != prefabHierarchyIds.end()) // This is an object that was previously part of the prefab, retrieve its original ID
+		if(prefabResourceId == mPrefabId)
 		{
-			if(prefabResourceId != mPrefabId) // If it's not this prefab, try looking deeper
-				return DeduceInternalPrefabIds(found->second.PrefabObjectId, found->second.PrefabResourceId, associatedSceneObjectInformation, nestingLevel + 1);
-
 			// Found the prefab object ID in this prefab
 			output.GameObjectId = prefabObjectId;
 			output.LinkInformation = found->second;
+			
+			return output;
 		}
-		else
-		{
-			output.GameObjectId = UUIDGenerator::GenerateRandom();
 
-			// This is an object with a prefab link, but its not part of the top-most instance, which means its a newly added nested prefab and needs a new ID
-			// and link IDs will be taken from the instance itself.
-			if(nestingLevel == 0)
-			{
-				output.LinkInformation.PrefabObjectId = prefabObjectId;
-				output.LinkInformation.PrefabResourceId = associatedSceneObjectInformation.SceneObject->GetPrefabResourceId();
+		// If it's not this prefab, try looking deeper
+		if(prefabResourceId != found->second.PrefabResourceId) // If resource ID points to itself, we're done as that means we've reached the most-nested prefab
+			return DeduceInternalPrefabIds(found->second.PrefabObjectId, found->second.PrefabResourceId, associatedSceneObjectInformation, nestingLevel + 1);
+	}
 
-				if(!B3D_ENSURE(!output.LinkInformation.PrefabResourceId.Empty()))
-					output.LinkInformation.PrefabResourceId = associatedSceneObjectInformation.ParentPrefabResourceId; // Fallback, shouldn't happen
-			}
-			// This is an object with a prefab link, but it's already part of some other prefab's instance, which means it needs a new ID, and link IDs
-			// need to be taken from the prefab it is part of (as the current link IDs point to that other prefab)
-			else
-			{
-				output.LinkInformation.PrefabObjectId = prefabObjectId;
-				output.LinkInformation.PrefabResourceId = prefabResourceId;
-			}
-		}
+	output.GameObjectId = UUIDGenerator::GenerateRandom();
+
+	// This is an object with a prefab link, but its not part of the top-most instance, which means its a newly added nested prefab and needs a new ID
+	// and link IDs will be taken from the instance itself.
+	if(nestingLevel == 0)
+	{
+		output.LinkInformation.PrefabObjectId = prefabObjectId;
+		output.LinkInformation.PrefabResourceId = associatedSceneObjectInformation.SceneObject->GetPrefabResourceId();
+
+		if(!B3D_ENSURE(!output.LinkInformation.PrefabResourceId.Empty()))
+			output.LinkInformation.PrefabResourceId = associatedSceneObjectInformation.ParentPrefabResourceId; // Fallback, shouldn't happen
+	}
+	// This is an object with a prefab link, but it's already part of some other prefab's instance, which means it needs a new ID, and link IDs
+	// need to be taken from the prefab it is part of (as the current link IDs point to that other prefab)
+	else
+	{
+		output.LinkInformation.PrefabObjectId = prefabObjectId;
+		output.LinkInformation.PrefabResourceId = prefabResourceId;
 	}
 
 	return output;
