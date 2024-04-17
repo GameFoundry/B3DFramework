@@ -21,9 +21,6 @@ PrefabIdRemapper::PrefabIdRemapper(const HSceneObject& originalPrefabHierarchy, 
 
 UnorderedMap<UUID, UUID> PrefabIdRemapper::RestoreOriginalPrefabIds(const HSceneObject& hierarchyRoot)
 {
-	// This is used as the starting point when looking up instance IDs.
-	const UUID instanceRootPrefabId = hierarchyRoot->GetPrefabResourceId();
-
 	FrameScope frameScope;
 	FrameStack<SceneObjectInformation> todo;
 	todo.emplace(hierarchyRoot, UUID::kEmpty, -1);
@@ -38,7 +35,7 @@ UnorderedMap<UUID, UUID> PrefabIdRemapper::RestoreOriginalPrefabIds(const HScene
 
 		// Deduce original IDs for the scene object
 		const UUID originalSceneObjectId = currentObjectToProcess.SceneObject.GetId();
-		PrefabObjectIdAndLinkInformation sceneObjectIds = DeduceInternalPrefabIds(currentObjectToProcess.SceneObject->GetPrefabObjectId(), instanceRootPrefabId, currentObjectToProcess);
+		PrefabObjectIdAndLinkInformation sceneObjectIds = DeduceInternalPrefabIds(currentObjectToProcess.SceneObject->GetPrefabObjectId(), currentObjectToProcess.SceneObject->GetPrefabResourceId(), currentObjectToProcess);
 
 		// If we've reached a new prefab instance, increment nesting level.
 		i32 nestingLevel = currentObjectToProcess.ParentNestingLevel;
@@ -52,7 +49,7 @@ UnorderedMap<UUID, UUID> PrefabIdRemapper::RestoreOriginalPrefabIds(const HScene
 		for(auto& component : sceneObject->GetComponents())
 		{
 			const UUID originalComponentId = component.GetId();
-			PrefabObjectIdAndLinkInformation componentIds = DeduceInternalPrefabIds(component->GetPrefabObjectId(), instanceRootPrefabId, currentObjectToProcess);
+			PrefabObjectIdAndLinkInformation componentIds = DeduceInternalPrefabIds(component->GetPrefabObjectId(), currentObjectToProcess.SceneObject->GetPrefabResourceId(), currentObjectToProcess);
 
 			AssignInternalPrefabIds(component, componentIds.GameObjectId, componentIds.LinkInformation, mPrefabId, nestingLevel);
 
