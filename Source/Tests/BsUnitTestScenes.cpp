@@ -45,7 +45,7 @@ UnitTestSceneA::UnitTestSceneA(const HSceneObject& root)
 }
 
 UnitTestSceneB::UnitTestSceneB(const HSceneObject& parent, const SPtr<Prefab>& childPrefab)
-	: SceneInstance(parent->GetScene()), Root(SceneInstance->GetRoot())
+	: SceneInstance(parent->GetScene()), Root(parent)
 {
 	SceneObject_0 = SceneInstance->CreateSceneObject("SceneB_SceneObject_0");
 	SceneObject_0->SetParent(parent);

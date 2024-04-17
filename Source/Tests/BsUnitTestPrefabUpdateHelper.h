@@ -2,6 +2,7 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 #include "BsCorePrerequisites.h"
+#include "Scene/BsPrefabUtility.h"
 
 namespace bs
 {
@@ -25,8 +26,7 @@ namespace bs
 		 * Same as regular, except if there is a second nested prefab, it will be treated as an instance modification.
 		 * Its objects must have empty object id, and resource id pointing to the (first) nested prefab resource.
 		 */
-		SecondNestedPrefabIsInstanceModification,
-		PrefabIsInstanceModification = SecondNestedPrefabIsInstanceModification
+		PrefabIsInstanceModification
 	};
 
 	/** Information about nested prefabs used when performing prefab related unit tests. */
@@ -57,7 +57,7 @@ namespace bs
 		 * Checks if object IDs are valid in prefab internals. If prefab contains nested prefabs they should be listed in order from root to nested in
 		 * @p prefabs array. All nested prefab instances will be checked against their prefab resources.
 		 */
-		static void TestAssertUnitTestSceneBPrefabInternalsMatch(TestSuite& testSuite, u32 prefabIndex, const TArray<UnitTestPrefabInformation>& prefabs);
+		static void TestAssertUnitTestSceneBPrefabInternalsMatch(TestSuite& testSuite, u32 prefabIndex, const TArray<UnitTestPrefabInformation>& prefabs, bool checkNestedPrefabs);
 
 		/**
 		 * Compares two hierarchies and ensure their prefab object IDs and prefab resource IDs match. Note that order of roots matter - if an object is not present in

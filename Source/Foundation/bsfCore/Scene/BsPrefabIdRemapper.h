@@ -114,6 +114,12 @@ namespace bs
 			UnorderedMap<UUID, PrefabLinkInformation> PrefabHierarchyIds; /**< Game object ID -> { Prefab object ID, prefab resource ID } map for all objects in the prefab hierarchy. */
 		};
 
+		struct PrefabObjectIdAndLinkInformation
+		{
+			UUID GameObjectId;
+			PrefabLinkInformation LinkInformation;
+		};
+
 		PrefabIdRemapper(const HSceneObject& originalPrefabHierarchy, const UUID& rootPrefabId);
 
 		/**
@@ -129,30 +135,21 @@ namespace bs
 		 * Finds the prefab associated with the scene object instance, and populates a lookup from instance ID to { prefab object id, prefab resource id }.
 		 * If a prefab has already been processed, cached data will be returned.
 		 */
-		const PrefabInformation& GetOrPopulatePrefabInformation(const HSceneObject& sceneObject);
+		const PrefabInformation& GetOrPopulatePrefabInformation(const UUID& prefabResourceId);
 
 		/**
-		 * Deduces game object ID to used when referencing the object in the internal prefab hierarchy. This will be the matching prefab object ID, if one is provided and still
-		 * exists in the current prefab hierarchy, or a brand new ID.
+		 * Attempts to find existing instance ID, prefab object ID and prefab resource ID for @p prefabObjectId in the active prefab.
 		 *
-		 * @param gameObject							Game object instance for which to deduce the ID.
-		 * @param associatedPrefabOriginalHierarchyIds	Game object ID -> { prefab object ID, prefab resource ID } mapping for all objects in the associated internal prefab hierarchy.
-		 *												This is the prefab hierarchy of the prefab that is currently linked to the associated scene object.
-		 * @return										Game object ID to assign to the game object.
+		 * @param	prefabObjectId						Object ID to perform lookup for.
+		 * @param	prefabResourceId					Resource ID of the prefab in which to perform lookup for.
+		 * @param	associatedSceneObjectInformation	Information about the associated scene object for the object we're looking up the IDs for.
+		 * @param	nestingLevel						Incremented by one each time search into a nested prefab. Should be 0 when initially called.
+		 * @return										Instance ID, prefab object ID and prefab resource ID for @p prefabObjectId. If active prefab
+		 *												contains information about @p prefabObjectId, existing information will be returned, otherwise
+		 *												new instance ID will be generated and prefab object ID and prefab resource ID extracted from
+		 *												provided data
 		 */
-		static UUID DeduceInternalPrefabGameObjectId(const HGameObject& gameObject, const UnorderedMap<UUID, PrefabLinkInformation>& associatedPrefabOriginalHierarchyIds);
-
-		/**
-		 * Deduces original prefab object ID and prefab resource ID, as they would be stored in the internal prefab resource, based on a prefab instance and original prefab hierarchy.
-		 *
-		 * @param gameObject							Game object instance for which to deduce the IDs.
-		 * @param gameObjectIdInPrefab					Game object ID that will be used for @p gameObject in the internal prefab hierarchy.
-		 * @param associatedSceneObjectInformation		Information about the parent scene object that owns @p gameObject. If @p gameObject is a SceneObject, this should point to the same object.
-		 * @param associatedPrefabOriginalHierarchyIds	Game object ID -> { prefab object ID, prefab resource ID } mapping for all objects in the associated internal prefab hierarchy.
-		 *												This is the prefab hierarchy of the prefab that is currently linked to the associated scene object.
-		 * @return										Prefab object ID and prefab resource ID, as they are stored in the associated prefab. Or empty IDs if not found.
-		 */
-		static PrefabLinkInformation DeduceInternalPrefabLinkInformation(const HGameObject& gameObject, const UUID& gameObjectIdInPrefab, const SceneObjectInformation& associatedSceneObjectInformation, const UnorderedMap<UUID, PrefabLinkInformation>& associatedPrefabOriginalHierarchyIds);
+		PrefabObjectIdAndLinkInformation DeduceInternalPrefabIds(const UUID& prefabObjectId, const UUID& prefabResourceId, const SceneObjectInformation& associatedSceneObjectInformation, i32 nestingLevel = 0);
 
 		/**
 		 * Assigns original prefab game object ID, prefab object ID and prefab resource ID to the provided game object. The original prefab IDs refers to the IDs stored when a game object
@@ -167,6 +164,6 @@ namespace bs
 		static void AssignInternalPrefabIds(const GameObjectHandleBase& gameObject, const UUID& gameObjectIdInPrefab, const PrefabLinkInformation& linkInformationInPrefab, const UUID& rootPrefabResourceId, i32 nestingLevel);
 
 		UnorderedMap<UUID, PrefabInformation> mPrefabCache;
-		UUID mRootPrefabId;
+		UUID mPrefabId; /**< ID of the prefab we're restoring IDs for. */
 	};
 } // namespace bs

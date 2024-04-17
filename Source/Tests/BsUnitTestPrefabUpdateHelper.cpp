@@ -16,6 +16,7 @@ namespace bs
 			{
 				B3D_TEST_ASSERT_EXTERNAL(testSuite, !instanceSceneObject->GetPrefabObjectId().Empty())
 				B3D_TEST_ASSERT_EXTERNAL(testSuite, instanceSceneObject->GetPrefabObjectId() == prefabSceneObject->GetId())
+				B3D_TEST_ASSERT_EXTERNAL(testSuite, instanceSceneObject->GetPrefabObjectId() != instanceSceneObject->GetId())
 				B3D_TEST_ASSERT_EXTERNAL(testSuite, instanceSceneObject->GetPrefabResourceId() == prefabId) },
 			skipOptional);
 
@@ -23,7 +24,8 @@ namespace bs
 			prefabWrapper, [&testSuite](const HComponent& instanceComponent, const HComponent& prefabComponent)
 			{
 				B3D_TEST_ASSERT_EXTERNAL(testSuite, !instanceComponent->GetPrefabObjectId().Empty())
-				B3D_TEST_ASSERT_EXTERNAL(testSuite, instanceComponent->GetPrefabObjectId() == prefabComponent->GetId()) },
+				B3D_TEST_ASSERT_EXTERNAL(testSuite, instanceComponent->GetPrefabObjectId() == prefabComponent->GetId())
+				B3D_TEST_ASSERT_EXTERNAL(testSuite, instanceComponent->GetPrefabObjectId() != instanceComponent->GetId()) },
 			skipOptional);
 	}
 
@@ -49,7 +51,7 @@ namespace bs
 		}
 	}
 
-	void UnitTestPrefabUpdateHelper::TestAssertUnitTestSceneBPrefabInternalsMatch(TestSuite& testSuite, u32 prefabIndex, const TArray<UnitTestPrefabInformation>& prefabs)
+	void UnitTestPrefabUpdateHelper::TestAssertUnitTestSceneBPrefabInternalsMatch(TestSuite& testSuite, u32 prefabIndex, const TArray<UnitTestPrefabInformation>& prefabs, bool checkNestedPrefabs)
 	{
 		if(!B3D_ENSURE(prefabIndex < (u32)prefabs.size()))
 			return;
@@ -105,8 +107,8 @@ namespace bs
 				TestAssertPrefabLinkValid(testSuite, internals_Parent_Nested, internals_Nested, nestedPrefabInformation.Prefab->GetId());
 			}
 
-			if(nestedPrefabInformation.CheckType != PrefabLinkCheckType::PrefabIsInstanceModification)
-				TestAssertUnitTestSceneBPrefabInternalsMatch(testSuite, nestedPrefabIndex, prefabs);
+			if(checkNestedPrefabs)
+				TestAssertUnitTestSceneBPrefabInternalsMatch(testSuite, nestedPrefabIndex, prefabs, false);
 		}
 	}
 

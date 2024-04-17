@@ -326,8 +326,6 @@ bool PrefabUtility::UpdateNestedPrefabInstancesRecursive(const HSceneObject& roo
 		if(!entry.Prefab.IsLoaded(false))
 			continue;
 
-		// TODO - This will clone contents of entry.Prefab, which means it will be linked directly to that prefab
-		// - But as this is a part of another prefab instance, it needs to link to that prefab. So need to call Prefab::Update. Or add logic to patch prefab IDs externally
 		if(UpdateInstanceFromPrefab(objectToUpdate, *entry.Prefab) != nullptr)
 			isAnythingModified = true;
 	}
