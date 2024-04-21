@@ -58,6 +58,7 @@ UnitTestSceneB::UnitTestSceneB(const HSceneObject& parent, const SPtr<Prefab>& c
 
 	SceneObject_0->SetPosition(Vector3(50.0f, 50.0f, 50.0f));
 	Component_1_0 = SceneObject_1_0->AddComponent<UnitTestComponentA>();
+	Component_1_0->SetName("SceneB_Component_1_0");
 
 	if(childPrefab != nullptr)
 	{
@@ -109,4 +110,5 @@ void UnitTestSceneB::CreateOptionalObjects()
 	OptionalSceneObject_2->SetParent(Root);
 
 	OptionalComponent_2 = OptionalSceneObject_2->AddComponent<UnitTestComponentA>();
+	OptionalComponent_2->SetName("SceneB_Component_2");
 }

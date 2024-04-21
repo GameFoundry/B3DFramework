@@ -286,7 +286,6 @@ void PrefabUtility::UpdatePrefab(const HPrefab& prefab, const HSceneObject& root
 			HPrefab PrefabToUpdateFrom;
 		};
 
-
 		FrameVector<PrefabInstanceRoot> nestedInstancePrefabRootsToUpdate;
 
 		auto fnIteratePrefab = [&updatedPrefab = prefab, &prefabCache, &nestedInstancePrefabRootsToUpdate](const HPrefab& prefab, const auto& fnIteratePrefab) -> void {

@@ -17,16 +17,13 @@ namespace bs
 		Regular = 0,
 
 		/**
-		 * Same as regular, except for treatment of optionals in the nested prefab.
-		 * Optionals in the nested prefab resource must have empty object id, and resource id pointing to the nested prefab resource.
-		 */
-		OptionalsAreInstanceModifications = 1 << 0,
-
-		/**
 		 * Same as regular, except if there is a second nested prefab, it will be treated as an instance modification.
 		 * Its objects must have empty object id, and resource id pointing to the (first) nested prefab resource.
 		 */
-		PrefabIsInstanceModification = 1 << 2
+		PrefabIsInstanceModification = 1 << 1,
+
+		/** Skips checking prefab internals for a particular prefab. */
+		SkipPrefabInternalsCheck = 1 << 2,
 	};
 
 	using PrefabCheckFlags = Flags<PrefabCheckFlag>;
@@ -50,6 +47,7 @@ namespace bs
 		SkipGameObjectCheck = 1 << 0,
 		SkipPrefabObjectCheck = 1 << 1,
 		SkipPrefabResourceCheck = 1 << 2,
+		IsInstanceModification = 1 << 3,
 		SkipAllChecks = SkipGameObjectCheck | SkipPrefabObjectCheck | SkipPrefabResourceCheck,
 	};
 
@@ -61,11 +59,12 @@ namespace bs
 	{
 		UnitTestPrefabObjectOptionFlags GlobalOptions = UnitTestPrefabObjectOptionFlag::PerformAllChecks;
 
-		UnorderedMap<UUID, UnorderedMap<String, UnitTestPrefabObjectOptionFlags>> ObjectOptionsPerPrefab;
+		/** Specifies per-object flags that control various prefab checks. */
+		UnorderedMap<UUID, UnorderedMap<UUID, UnorderedMap<String, UnitTestPrefabObjectOptionFlags>>> ObjectOptionsPerPrefabPerInstance;
 
-		void SetFlagsForObject(const HPrefab& prefab, const GameObjectHandleBase& gameObject, UnitTestPrefabObjectOptionFlags flags);
-		void SetFlagsForObject(const HPrefab& prefab, const HSceneObject& sceneObject, UnitTestPrefabObjectOptionFlags flags, bool setOnChildren);
-		UnitTestPrefabObjectOptionFlags GetFlagsForObject(const UUID& prefabId, const String& name) const;
+		void SetFlagsForObject(const UUID& rootInstanceId, const HPrefab& prefab, const GameObjectHandleBase& gameObject, UnitTestPrefabObjectOptionFlags flags);
+		void SetFlagsForObject(const UUID& rootInstanceId, const HPrefab& prefab, const HSceneObject& sceneObject, UnitTestPrefabObjectOptionFlags flags, bool setOnChildren);
+		UnitTestPrefabObjectOptionFlags GetFlagsForObject(const UUID& rootInstanceId, const UUID& prefabId, const String& name) const;
 		void ClearAllObjectFlags();
 	};
 
@@ -73,26 +72,26 @@ namespace bs
 	{
 		/** Asserts that instance prefab & resource IDs point to the prefab. */
 		template <typename UnitTestSceneType>
-		static void TestAssertPrefabLinkValid(TestSuite& testSuite, UnitTestSceneType& instanceWrapper, UnitTestSceneType& prefabWrapper, const UUID& prefabId, bool skipOptional = false);
+		static void TestAssertPrefabLinkValid(TestSuite& testSuite, UnitTestSceneType& instanceWrapper, UnitTestSceneType& prefabWrapper, const UUID& prefabResourceId, const UUID& instanceRootId, const UUID& instancePrefabId, const UnitTestPrefabObjectOptions& options);
 
 		/** Asserts that prefab & resource IDs are valid for root prefab. */
-		template <typename SceneWrapperType>
-		static void TestAssetRootPrefabLinkValid(TestSuite& testSuite, SceneWrapperType& prefabWrapper, const UUID& prefabId, bool skipOptional = false);
+		template <typename UnitTestSceneType>
+		static void TestAssetRootPrefabLinkValid(TestSuite& testSuite, UnitTestSceneType& prefabWrapper, const UUID& prefabId, bool skipOptional = false);
 
 		/** Checks if prefab instance matches the object and resource IDs in the internal prefab hierarchy. */
-		static void TestAssertUnitTestSceneBPrefabLinksMatchPrefabInternals(TestSuite& testSuite, const HSceneObject& instanceRoot, const HSceneObject& prefabRoot, const UUID& prefabId);
+		static void TestAssertPrefabLinksMatchPrefabInternals_UnitTestSceneB(TestSuite& testSuite, const HSceneObject& instanceRoot, const HSceneObject& prefabRoot, const UUID& prefabId);
 
 		/**
 		 * Checks if object IDs are valid in prefab internals. If prefab contains nested prefabs they should be listed in order from root to nested in
 		 * @p prefabs array. All nested prefab instances will be checked against their prefab resources.
 		 */
-		static void TestAssertUnitTestSceneBPrefabInternalsMatch(TestSuite& testSuite, u32 prefabIndex, const TArray<UnitTestPrefabInformation>& prefabs, bool checkNestedPrefabs);
+		static void TestAssertPrefabInternalsMatch_UnitTestSceneB(TestSuite& testSuite, u32 prefabIndex, const TArray<UnitTestPrefabInformation>& prefabs, const UnitTestPrefabObjectOptions& options);
 
 		/**
 		 * Compares two hierarchies and ensure their prefab object IDs and prefab resource IDs match. Note that order of roots matter - if an object is not present in
 		 * the LHS hierarchy, it will be skipped. If the object is present in LHS hierarchy, but not in RHS hierarchy, test will fail. So when adding objects pass
 		 * the new hierarchy as RHS, and when destroying objects pass the new hierarchy as LHS.
 		 */
-		static void TestAssertUnitTestSceneBPrefabLinksMatch(TestSuite& testSuite, const UUID& rootPrefabId, const HSceneObject& lhsRoot, const HSceneObject& rhsRoot, const UnitTestPrefabObjectOptions& options);
+		static void TestAssertPrefabLinksMatch_UnitTestSceneB(TestSuite& testSuite, const HSceneObject& lhsRoot, const HSceneObject& rhsRoot, u32 prefabIndex, const TArray<UnitTestPrefabInformation>& prefabs, const UUID& instanceRootId, const UnitTestPrefabObjectOptions& options);
 	};
 } // namespace bs
