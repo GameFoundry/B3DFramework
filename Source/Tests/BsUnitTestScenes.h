@@ -71,6 +71,28 @@ namespace bs
 		HUnitTestComponentA Component_0_1_0;
 	};
 
+	/** Flags that control the checks we perform on objects. */
+	enum class UnitTestSceneObjectFlag
+	{
+		None = 0,
+		IsInstanceModification = 1 << 0,
+		IsPrefabRootInstanceModification = 1 << 1,
+	};
+
+	using UnitTestSceneObjectFlags = Flags<UnitTestSceneObjectFlag>;
+	B3D_FLAGS_OPERATORS(UnitTestSceneObjectFlag)
+
+	/* Information about a game object within a unit test scene. */
+	struct UnitTestGameObjectInformation
+	{
+		UnitTestGameObjectInformation(PrefabLinkInformation prefabLink = PrefabLinkInformation(), UnitTestSceneObjectFlags flags = UnitTestSceneObjectFlag::None)
+			: PrefabLink(prefabLink), Flags(flags)
+		{ }
+
+		PrefabLinkInformation PrefabLink;
+		UnitTestSceneObjectFlags Flags;
+	};
+
 	/**
 	 * Allows you to easily set up the following scene object hierarchy:
 	 * Root
@@ -106,42 +128,42 @@ namespace bs
 		/** Refreshes the hierarchy by assigning a new root object. Original IDs are not updated, except for newly added optional objects, or objects that were destroyed. */
 		void RefreshHierarchy(const HSceneObject& root);
 
-		/** Performs an operation over scene objects in the scene. If an object has been destroyed, the predicate won't be called on it. If @p skipOptional is true, OptionalSceneObject_2 will not be visited. */
+		/** Performs an operation over scene objects in the scene. If an object has been destroyed, the predicate won't be called on it. */
 		template <class T>
-		void PerformSceneObjectUnaryOperation(T&& predicate, bool skipOptional = false)
+		void PerformSceneObjectUnaryOperation(T&& predicate)
 		{
 			predicate(Root);
 			if(SceneObject_0.IsValid()) predicate(SceneObject_0);
 			if(SceneObject_1.IsValid()) predicate(SceneObject_1);
 			if(SceneObject_1_0.IsValid()) predicate(SceneObject_1_0);
-			if(!skipOptional && OptionalSceneObject_2.IsValid()) predicate(OptionalSceneObject_2);
+			if(OptionalSceneObject_2.IsValid()) predicate(OptionalSceneObject_2);
 		}
 
-		/** Performs an operation over components in the scene. If a component has been destroyed, the predicate won't be called on it. If @p skipOptional is true, OptionalComponent_2 will not be visited. */
+		/** Performs an operation over components in the scene. If a component has been destroyed, the predicate won't be called on it. */
 		template <class T>
-		void PerformComponentUnaryOperation(T&& predicate, bool skipOptional = false)
+		void PerformComponentUnaryOperation(T&& predicate)
 		{
 			if(Component_1_0.IsValid()) predicate(Component_1_0);
-			if(!skipOptional && OptionalComponent_2.IsValid()) predicate(OptionalComponent_2);
+			if(OptionalComponent_2.IsValid()) predicate(OptionalComponent_2);
 		}
 
-		/** Performs an operation over matching scene objects in two scenes. If an object has been destroyed in this scene, the predicate won't be called on it. If @p skipOptional is true, OptionalSceneObject_2 will not be visited. */
+		/** Performs an operation over matching scene objects in two scenes. If an object has been destroyed in this scene, the predicate won't be called on it. */
 		template <class T>
-		void PerformSceneObjectBinaryOperation(UnitTestSceneB& other, T&& predicate, bool skipOptional = false)
+		void PerformSceneObjectBinaryOperation(UnitTestSceneB& other, T&& predicate)
 		{
 			predicate(Root, other.Root);
 			if(SceneObject_0.IsValid()) predicate(SceneObject_0, other.SceneObject_0);
 			if(SceneObject_1.IsValid()) predicate(SceneObject_1, other.SceneObject_1);
 			if(SceneObject_1_0.IsValid()) predicate(SceneObject_1_0, other.SceneObject_1_0);
-			if(!skipOptional && OptionalSceneObject_2.IsValid()) predicate(OptionalSceneObject_2, other.OptionalSceneObject_2);
+			if(OptionalSceneObject_2.IsValid()) predicate(OptionalSceneObject_2, other.OptionalSceneObject_2);
 		}
 
-		/** Performs an operation over matching components in two scenes. If a component has been destroyed in this scene, the predicate won't be called on it. If @p skipOptional is true, OptionalComponent_2 will not be visited. */
+		/** Performs an operation over matching components in two scenes. If a component has been destroyed in this scene, the predicate won't be called on it. */
 		template <class T>
-		void PerformComponentBinaryOperation(UnitTestSceneB& other, T&& predicate, bool skipOptional = false)
+		void PerformComponentBinaryOperation(UnitTestSceneB& other, T&& predicate)
 		{
 			if(Component_1_0.IsValid()) predicate(Component_1_0, other.Component_1_0);
-			if(!skipOptional && OptionalComponent_2.IsValid()) predicate(OptionalComponent_2, other.OptionalComponent_2);
+			if(OptionalComponent_2.IsValid()) predicate(OptionalComponent_2, other.OptionalComponent_2);
 		}
 
 		void AddOrUpdateIds(HSceneObject object, bool updatePrefabObjectId = true, bool updatePrefabResourceId = false, bool allowAddNew = false);
@@ -156,8 +178,13 @@ namespace bs
 		void AddNewObjectIds(HSceneObject object) { AddOrUpdateIds(object, true, true, true); }
 		void AddNewObjectIds() { AddNewObjectIds(Root); }
 
+		void SetFlagOnObject(const GameObjectHandleBase& object, UnitTestSceneObjectFlags flags);
+
 		/** Check if all current game object match the original recorded IDs. */
-		void TestAssertOriginalIds(TestSuite& testSuite);
+		void TestAssertHierarchyMatchesOriginalIds(TestSuite& testSuite);
+
+		// TODO - Doc
+		void TestAssertHierarchyMatchesPrefabLinks(TestSuite& testSuite, const UnorderedMap<UUID, SPtr<UnitTestSceneB>>& prefabSceneLookup, u32 nestingLevel = 0, const UUID& parentPrefabId = UUID::kEmpty, const SPtr<UnitTestSceneB>& parentPrefabScene = nullptr);
 
 		SPtr<SceneInstance> SceneInstance;
 		HSceneObject Root;
@@ -172,7 +199,7 @@ namespace bs
 		SPtr<UnitTestSceneB> OptionalPrefabInstance_0_0;
 		SPtr<UnitTestSceneB> OptionalPrefabInstance_1_1;
 
-		UnorderedMap<UUID, PrefabLinkInformation> OriginalObjectIds;
+		UnorderedMap<UUID, UnitTestGameObjectInformation> ObjectInformation;
 
 		// These objects may be created after initial construction
 		HSceneObject OptionalSceneObject_2;

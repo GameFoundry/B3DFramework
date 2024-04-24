@@ -1,8 +1,10 @@
 //************************************ bs::framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "BsUnitTestScenes.h"
+
 #include "Scene/BsPrefab.h"
 #include "Testing/BsTestSuite.h"
+#include "BsUnitTestPrefabUpdateHelper.h"
 
 using namespace bs;
 
@@ -53,9 +55,9 @@ UnitTestSceneB::UnitTestSceneB(const HSceneObject& root)
 
 	// Record IDs
 	PerformSceneObjectUnaryOperation([this](const HSceneObject& sceneObject) {
-		OriginalObjectIds[sceneObject.GetId()] = PrefabLinkInformation(sceneObject->GetPrefabObjectId(), sceneObject->GetPrefabResourceId());
+		ObjectInformation[sceneObject.GetId()] = PrefabLinkInformation(sceneObject->GetPrefabObjectId(), sceneObject->GetPrefabResourceId());
 		for(const auto& component : sceneObject->GetComponents())
-			OriginalObjectIds[component.GetId()] = PrefabLinkInformation(component->GetPrefabObjectId(), sceneObject->GetPrefabResourceId());
+			ObjectInformation[component.GetId()] = PrefabLinkInformation(component->GetPrefabObjectId(), sceneObject->GetPrefabResourceId());
 	 });
 }
 
@@ -138,8 +140,8 @@ void UnitTestSceneB::CreateOptionalSceneObject_2()
 
 void UnitTestSceneB::DestroySceneObject_1_0()
 {
-	OriginalObjectIds.erase(SceneObject_1_0.GetId());
-	OriginalObjectIds.erase(Component_1_0.GetId());
+	ObjectInformation.erase(SceneObject_1_0.GetId());
+	ObjectInformation.erase(Component_1_0.GetId());
 
 	SceneObject_1_0->Destroy();
 	Component_1_0->Destroy();
@@ -208,8 +210,8 @@ void UnitTestSceneB::RefreshHierarchy(const HSceneObject& root)
 	// These objects can be destroyed after initial construction
 	if(SceneObject_1_0 != nullptr && newSceneObject_1_0 == nullptr)
 	{
-		OriginalObjectIds.erase(SceneObject_1_0.GetId());
-		OriginalObjectIds.erase(Component_1_0.GetId());
+		ObjectInformation.erase(SceneObject_1_0.GetId());
+		ObjectInformation.erase(Component_1_0.GetId());
 
 		SceneObject_1_0 = nullptr;
 		Component_1_0 = nullptr;
@@ -221,44 +223,6 @@ void UnitTestSceneB::RefreshHierarchy(const HSceneObject& root)
 	}
 }
 
-void UnitTestSceneB::TestAssertOriginalIds(TestSuite& testSuite)
-{
-	u32 foundIdCount = 0;
-	PerformSceneObjectUnaryOperation([this, &testSuite, &foundIdCount](const HSceneObject& sceneObject) {
-		auto foundSceneObject = OriginalObjectIds.find(sceneObject.GetId());
-		B3D_TEST_ASSERT_EXTERNAL(testSuite, foundSceneObject != OriginalObjectIds.end())
-
-		if(foundSceneObject != OriginalObjectIds.end())
-		{
-			B3D_TEST_ASSERT_EXTERNAL(testSuite, foundSceneObject->second.PrefabObjectId == sceneObject->GetPrefabObjectId())
-			B3D_TEST_ASSERT_EXTERNAL(testSuite, foundSceneObject->second.PrefabResourceId == sceneObject->GetPrefabResourceId())
-
-			foundIdCount++;
-		}
-
-		for(const auto& component : sceneObject->GetComponents())
-		{
-			auto foundComponent = OriginalObjectIds.find(component.GetId());
-			B3D_TEST_ASSERT_EXTERNAL(testSuite, foundComponent != OriginalObjectIds.end())
-
-			if(foundComponent != OriginalObjectIds.end())
-			{
-				B3D_TEST_ASSERT_EXTERNAL(testSuite, foundComponent->second.PrefabObjectId == component->GetPrefabObjectId())
-				foundIdCount++;
-			}
-		}
-
-
-		if(OptionalPrefabInstance_0_0)
-			OptionalPrefabInstance_0_0->TestAssertOriginalIds(testSuite);
-
-		if(OptionalPrefabInstance_1_1)
-			OptionalPrefabInstance_1_1->TestAssertOriginalIds(testSuite);
-	 });
-
-	B3D_TEST_ASSERT_EXTERNAL(testSuite, foundIdCount == (u32)OriginalObjectIds.size())
-}
-
 void UnitTestSceneB::AddOrUpdateIds(HSceneObject object, bool updatePrefabObjectId, bool updatePrefabResourceId, bool allowAddNew)
 {
 	object->IterateHierarchy([this, updatePrefabObjectId, updatePrefabResourceId, allowAddNew](const HSceneObject& sceneObject)
@@ -267,35 +231,137 @@ void UnitTestSceneB::AddOrUpdateIds(HSceneObject object, bool updatePrefabObject
 			return false;
 
 		{
-			auto foundSceneObject = OriginalObjectIds.find(sceneObject.GetId());
-			if(foundSceneObject != OriginalObjectIds.end())
+			auto foundSceneObject = ObjectInformation.find(sceneObject.GetId());
+			if(foundSceneObject != ObjectInformation.end())
 			{
 				if(updatePrefabObjectId)
-					foundSceneObject->second.PrefabObjectId = sceneObject->GetPrefabObjectId();
+					foundSceneObject->second.PrefabLink.PrefabObjectId = sceneObject->GetPrefabObjectId();
 
 				if(updatePrefabResourceId)
-					foundSceneObject->second.PrefabResourceId = sceneObject->GetPrefabResourceId();
+					foundSceneObject->second.PrefabLink.PrefabResourceId = sceneObject->GetPrefabResourceId();
 			}
 			else if(B3D_ENSURE(allowAddNew))
-				OriginalObjectIds[sceneObject.GetId()] = PrefabLinkInformation(sceneObject->GetPrefabObjectId(), sceneObject->GetPrefabResourceId());
+				ObjectInformation[sceneObject.GetId()] = PrefabLinkInformation(sceneObject->GetPrefabObjectId(), sceneObject->GetPrefabResourceId());
 		}
 
 		for(const auto& component : sceneObject->GetComponents())
 		{
-			auto foundComponent = OriginalObjectIds.find(component.GetId());
-			if(foundComponent != OriginalObjectIds.end())
+			auto foundComponent = ObjectInformation.find(component.GetId());
+			if(foundComponent != ObjectInformation.end())
 			{
 				if(updatePrefabObjectId)
-					foundComponent->second.PrefabObjectId = component->GetPrefabObjectId();
+					foundComponent->second.PrefabLink.PrefabObjectId = component->GetPrefabObjectId();
 
 				if(updatePrefabResourceId)
-					foundComponent->second.PrefabResourceId = sceneObject->GetPrefabResourceId();
+					foundComponent->second.PrefabLink.PrefabResourceId = sceneObject->GetPrefabResourceId();
 			}
 			else if(B3D_ENSURE(allowAddNew))
-				OriginalObjectIds[component.GetId()] = PrefabLinkInformation(component->GetPrefabObjectId(), sceneObject->GetPrefabResourceId());
+				ObjectInformation[component.GetId()] = PrefabLinkInformation(component->GetPrefabObjectId(), sceneObject->GetPrefabResourceId());
 		}
 
 		return true;
 		
 	}, nullptr, true);
+}
+
+void UnitTestSceneB::SetFlagOnObject(const GameObjectHandleBase& object, UnitTestSceneObjectFlags flags)
+{
+	auto found = ObjectInformation.find(object.GetId());
+	if(!B3D_ENSURE(found != ObjectInformation.end()))
+		return;
+
+	found->second.Flags = flags;
+}
+
+void UnitTestSceneB::TestAssertHierarchyMatchesOriginalIds(TestSuite& testSuite)
+{
+	u32 foundIdCount = 0;
+	PerformSceneObjectUnaryOperation([this, &testSuite, &foundIdCount](const HSceneObject& sceneObject) {
+		auto foundSceneObject = ObjectInformation.find(sceneObject.GetId());
+		B3D_TEST_ASSERT_EXTERNAL(testSuite, foundSceneObject != ObjectInformation.end())
+
+		if(foundSceneObject != ObjectInformation.end())
+		{
+			B3D_TEST_ASSERT_EXTERNAL(testSuite, foundSceneObject->second.PrefabLink.PrefabObjectId == sceneObject->GetPrefabObjectId())
+			B3D_TEST_ASSERT_EXTERNAL(testSuite, foundSceneObject->second.PrefabLink.PrefabResourceId == sceneObject->GetPrefabResourceId())
+
+			foundIdCount++;
+		}
+
+		for(const auto& component : sceneObject->GetComponents())
+		{
+			auto foundComponent = ObjectInformation.find(component.GetId());
+			B3D_TEST_ASSERT_EXTERNAL(testSuite, foundComponent != ObjectInformation.end())
+
+			if(foundComponent != ObjectInformation.end())
+			{
+				B3D_TEST_ASSERT_EXTERNAL(testSuite, foundComponent->second.PrefabLink.PrefabObjectId == component->GetPrefabObjectId())
+				foundIdCount++;
+			}
+		}
+
+
+		if(OptionalPrefabInstance_0_0)
+			OptionalPrefabInstance_0_0->TestAssertHierarchyMatchesOriginalIds(testSuite);
+
+		if(OptionalPrefabInstance_1_1)
+			OptionalPrefabInstance_1_1->TestAssertHierarchyMatchesOriginalIds(testSuite);
+	 });
+
+	B3D_TEST_ASSERT_EXTERNAL(testSuite, foundIdCount == (u32)ObjectInformation.size())
+}
+
+
+void UnitTestSceneB::TestAssertHierarchyMatchesPrefabLinks(TestSuite& testSuite, const UnorderedMap<UUID, SPtr<UnitTestSceneB>>& prefabSceneLookup, u32 nestingLevel, const UUID& parentPrefabId, const SPtr<UnitTestSceneB>& parentPrefabScene)
+{
+	if(nestingLevel == 0)
+	{
+		const UUID rootPrefabId = Root->GetPrefabResourceId();
+		UnitTestPrefabUpdateHelper::TestAssetRootPrefabLinkValid(testSuite, *this, rootPrefabId);
+	}
+	else
+	{
+		if(!B3D_ENSURE(parentPrefabScene != nullptr))
+			return;
+
+		if(!B3D_ENSURE(!parentPrefabId.Empty()))
+			return;
+
+		UnitTestPrefabUpdateHelper::TestAssertPrefabLinkValid(testSuite, *this, *parentPrefabScene, parentPrefabId);
+	}
+
+	auto fnVisitChildPrefabInstance = [&testSuite, &prefabSceneLookup, nestingLevel, parentPrefabId, &parentPrefabScene](const SPtr<UnitTestSceneB>& childPrefabInstance, const SPtr<UnitTestSceneB>& otherChildPrefabInstance)
+	{
+		if(childPrefabInstance == nullptr)
+			return;
+
+		const auto found = childPrefabInstance->ObjectInformation.find(childPrefabInstance->Root.GetId());
+		if(!B3D_ENSURE(found != childPrefabInstance->ObjectInformation.end()))
+			return;
+
+		const bool isInstanceModification = found->second.Flags.IsSet(UnitTestSceneObjectFlag::IsPrefabRootInstanceModification);
+
+		UUID nestedPrefabId;
+		SPtr<UnitTestSceneB> nestedPrefabScene;
+		if(isInstanceModification || nestingLevel == 0)
+		{
+			nestedPrefabId = childPrefabInstance->Root->GetPrefabResourceId();
+
+			if(auto foundPrefab = prefabSceneLookup.find(nestedPrefabId); foundPrefab != prefabSceneLookup.end())
+				nestedPrefabScene = foundPrefab->second;
+
+			if(!B3D_ENSURE(nestedPrefabScene))
+				return;
+		}
+		else
+		{
+			nestedPrefabId = parentPrefabId;
+			nestedPrefabScene = otherChildPrefabInstance;
+		}
+
+		childPrefabInstance->TestAssertHierarchyMatchesPrefabLinks(testSuite, prefabSceneLookup, nestingLevel + 1, nestedPrefabId, nestedPrefabScene);
+	};
+
+	fnVisitChildPrefabInstance(OptionalPrefabInstance_0_0, parentPrefabScene != nullptr ? parentPrefabScene->OptionalPrefabInstance_0_0 : nullptr);
+	fnVisitChildPrefabInstance(OptionalPrefabInstance_1_1, parentPrefabScene != nullptr ? parentPrefabScene->OptionalPrefabInstance_1_1 : nullptr);
 }
