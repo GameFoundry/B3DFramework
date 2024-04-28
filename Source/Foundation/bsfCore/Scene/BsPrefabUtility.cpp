@@ -34,14 +34,9 @@ struct PrefabInstanceData
  */
 void RecordInstanceData(const HSceneObject& sceneObject, UnorderedMap<UUID, PrefabInstanceData>& outInstanceData)
 {
-	const UUID originalResourceId = sceneObject->GetPrefabResourceId();
-
 	sceneObject->IterateHierarchy(
-		[&originalResourceId, &outInstanceData](const HSceneObject& sceneObject)
+		[&outInstanceData](const HSceneObject& sceneObject)
 		{
-			if(sceneObject->GetPrefabResourceId() != originalResourceId)
-				return false;
-
 			const UUID& prefabObjectId = sceneObject->GetPrefabObjectId();
 			if(!prefabObjectId.Empty())
 				outInstanceData[prefabObjectId] = PrefabInstanceData(sceneObject->GetInstanceData(), sceneObject->GetId());
@@ -66,14 +61,12 @@ void RecordInstanceData(const HSceneObject& sceneObject, UnorderedMap<UUID, Pref
  */
 void RestoreInstanceData(const HSceneObject& sceneObject, const UnorderedMap<UUID, PrefabInstanceData>& instanceData)
 {
-	const UUID originalResourceId = sceneObject->GetPrefabResourceId();
-
 	SPtr<GameObjectCollection> gameObjectCollection = sceneObject->GetOwnerCollection().lock();
 	if(!B3D_ENSURE(gameObjectCollection))
 		return;
 
 	sceneObject->IterateHierarchy(
-		[&originalResourceId, &instanceData, &gameObjectCollection](const HSceneObject& sceneObject)
+		[&instanceData, &gameObjectCollection](const HSceneObject& sceneObject)
 		{
 			const UUID& prefabObjectId = sceneObject->GetPrefabObjectId();
 			if(!prefabObjectId.Empty())
@@ -86,9 +79,6 @@ void RestoreInstanceData(const HSceneObject& sceneObject, const UnorderedMap<UUI
 					gameObjectCollection->ReplaceGameObjectInstance(sceneObjectMutableHandle, found->second.InstanceData);
 				}
 			}
-
-			if(sceneObject->GetPrefabResourceId() != originalResourceId)
-				return false;
 
 			return true;
 		},
@@ -107,6 +97,18 @@ void RestoreInstanceData(const HSceneObject& sceneObject, const UnorderedMap<UUI
 			}
 		});
 }
+
+/** Contains a reference to a scene object representing a prefab instance root, and a prefab resource associated with that root. */
+struct PrefabInstanceRoot
+{
+	PrefabInstanceRoot(const HPrefab& parentPrefab, const HSceneObject& sceneObjectInParentPrefab, const HPrefab& prefabToUpdateFrom)
+		: ParentPrefab(parentPrefab), SceneObjectInParentPrefab(sceneObjectInParentPrefab), PrefabToUpdateFrom(prefabToUpdateFrom)
+	{ }
+
+	HPrefab ParentPrefab;
+	HSceneObject SceneObjectInParentPrefab;
+	HPrefab PrefabToUpdateFrom;
+};
 
 HPrefab PrefabCache::FindOrLoadPrefab(const UUID& prefabId)
 {
@@ -234,18 +236,6 @@ void PrefabUtility::UpdatePrefab(const HPrefab& prefabToUpdate, const HSceneObje
 
 	FrameScope frameScope;
 
-	/** Contains a reference to a scene object representing a prefab instance root, and a prefab resource associated with that root. */
-	struct PrefabInstanceRoot
-	{
-		PrefabInstanceRoot(const HPrefab& parentPrefab, const HSceneObject& sceneObjectInParentPrefab, const HPrefab& prefabToUpdateFrom)
-			: ParentPrefab(parentPrefab), SceneObjectInParentPrefab(sceneObjectInParentPrefab), PrefabToUpdateFrom(prefabToUpdateFrom)
-		{ }
-
-		HPrefab ParentPrefab;
-		HSceneObject SceneObjectInParentPrefab;
-		HPrefab PrefabToUpdateFrom;
-	};
-
 	// TODO - Move outside
 	auto fnFindInstanceInPrefab = [](const HSceneObject& sceneObject) -> Optional<PrefabInstanceRoot> {
 		if(!sceneObject->IsPrefabInstance())
@@ -314,9 +304,6 @@ void PrefabUtility::UpdatePrefab(const HPrefab& prefabToUpdate, const HSceneObje
 	   true);
 
 	// Update all live prefab instances
-	FrameUnorderedSet<UUID> updatedPrefabIds;
-	updatedPrefabIds.insert(prefabToUpdate.GetId());
-
 	PrefabCache prefabCache;
 	prefabCache.AddToCache(prefabToUpdate);
 
@@ -384,7 +371,7 @@ void PrefabUtility::UpdatePrefab(const HPrefab& prefabToUpdate, const HSceneObje
 		if(B3D_ENSURE(scene != nullptr))
 		{
 			FrameVector<UUID> parentPrefabChain;
-			UpdateNestedPrefabInstancesRecursive(scene->GetRoot(), prefabCache, parentPrefabChain, updatedPrefabIds);
+			UpdateNestedPrefabInstancesRecursive(scene->GetRoot(), prefabCache);
 		}
 	}
 
@@ -395,8 +382,7 @@ void PrefabUtility::UpdatePrefab(const HPrefab& prefabToUpdate, const HSceneObje
 		if(prefabCache.ExistsInCache(prefabResourceId))
 			continue;
 
-		FrameVector<UUID> parentPrefabChain;
-		if(UpdateNestedPrefabInstancesRecursive(entry->GetRoot(), prefabCache, parentPrefabChain, updatedPrefabIds))
+		if(UpdateNestedPrefabInstancesRecursive(entry->GetRoot(), prefabCache))
 		{
 			entry->TickPrefabVersion();
 			entry->RecordNestedPrefabInstanceDeltas();
@@ -409,88 +395,85 @@ bool PrefabUtility::UpdateNestedPrefabInstances(const HSceneObject& sceneObject)
 	FrameScope frameScope;
 
 	PrefabCache prefabCache;
-	FrameVector<UUID> parentPrefabChain;
-	FrameUnorderedSet<UUID> updatedPrefabIds;
-	return UpdateNestedPrefabInstancesRecursive(sceneObject, prefabCache, parentPrefabChain, updatedPrefabIds);
+	return UpdateNestedPrefabInstancesRecursive(sceneObject, prefabCache);
 }
 
-bool PrefabUtility::UpdateNestedPrefabInstancesRecursive(const HSceneObject& root, PrefabCache& inOutPrefabCache, FrameVector<UUID>& inOutParentPrefabChain, FrameUnorderedSet<UUID>& inOutUpdatedPrefabs)
+bool PrefabUtility::UpdateNestedPrefabInstancesRecursive(const HSceneObject& root, PrefabCache& inOutPrefabCache)
 {
 	if(!root.IsValid())
 		return false;
 
-	struct PrefabInstanceRoot
-	{
-		PrefabInstanceRoot(const HSceneObject& sceneObject, const HPrefab& prefab)
-			:SceneObject(sceneObject), Prefab(prefab)
-		{ }
-
-		HSceneObject SceneObject;
-		HPrefab Prefab;
-	};
-
-	// Find all child nested prefab instances first, and update those before we update root
-	FrameVector<PrefabInstanceRoot> nestedInstancePrefabRootsToUpdate;
+	// Find all the prefab instances we need to update. This includes the hierarchy of @p root, but also of any prefab that's referenced by root,
+	// or nested prefabs of those prefabs, recursively
+	FrameVector<PrefabInstanceRoot> prefabInstanceRootsToUpdate;
 	bool foundCircularDependency = false;
-	root->IterateHierarchy([&inOutPrefabCache, &inOutParentPrefabChain, &inOutUpdatedPrefabs, &nestedInstancePrefabRootsToUpdate, &foundCircularDependency](const HSceneObject& child) mutable -> bool
-	{
-		if(!child->IsPrefabInstanceRoot())
+	auto fnVisitPrefabInstances = [&inOutPrefabCache, &prefabInstanceRootsToUpdate, &foundCircularDependency](const HSceneObject& instanceRoot, const HPrefab& parentPrefab, FrameVector<UUID>& inOutParentPrefabChain, auto& fnVisitPrefabInstances) -> void {
+
+		instanceRoot->IterateHierarchy([&inOutPrefabCache, &prefabInstanceRootsToUpdate, &foundCircularDependency, &parentPrefab, &inOutParentPrefabChain, &fnVisitPrefabInstances](const HSceneObject& child) mutable -> bool
+		{
+			if(!child->IsPrefabInstanceRoot())
+				return true;
+
+			const UUID& nestedPrefabId = child->GetPrefabResourceId();
+			if(auto found = std::find(inOutParentPrefabChain.begin(), inOutParentPrefabChain.end(), nestedPrefabId); found != inOutParentPrefabChain.end())
+			{
+				B3D_LOG(Error, Scene, "Failed to update instance from prefab. Detected circular dependency for prefab with ID:{0}.)", nestedPrefabId);
+				foundCircularDependency = true;
+				return false;
+			}
+
+			const HPrefab nestedPrefab = inOutPrefabCache.FindOrLoadPrefab(nestedPrefabId);
+			if(nestedPrefab.IsLoaded(false))
+			{
+				FrameVector<UUID> parentPrefabChainCopy = inOutParentPrefabChain;
+				parentPrefabChainCopy.push_back(nestedPrefabId);
+
+				HSceneObject nestedPrefabInternalsRoot = nestedPrefab->GetRoot();
+				if(B3D_ENSURE(nestedPrefabInternalsRoot.IsValid()))
+					fnVisitPrefabInstances(nestedPrefabInternalsRoot, nestedPrefab, parentPrefabChainCopy, fnVisitPrefabInstances);
+			}
+
+			prefabInstanceRootsToUpdate.emplace_back(parentPrefab, child, nestedPrefab);
 			return true;
 
-		const UUID& nestedPrefabId = child->GetPrefabResourceId();
-		if(auto found = std::find(inOutParentPrefabChain.begin(), inOutParentPrefabChain.end(), nestedPrefabId); found != inOutParentPrefabChain.end())
-		{
-			B3D_LOG(Error, Scene, "Failed to update instance from prefab. Detected circular dependency for prefab with ID:{0}.)", nestedPrefabId);
-			foundCircularDependency = true;
-			return false;
-		}
+		},
+		nullptr, false);
+	};
 
-		const bool isPrefabAlreadyProcessed = inOutUpdatedPrefabs.find(nestedPrefabId) != inOutUpdatedPrefabs.end();
-		const HPrefab nestedPrefab = inOutPrefabCache.FindOrLoadPrefab(nestedPrefabId);
-		if(!isPrefabAlreadyProcessed && nestedPrefab.IsLoaded(false))
-		{
-			FrameVector<UUID> parentPrefabChainCopy = inOutParentPrefabChain;
-			parentPrefabChainCopy.push_back(nestedPrefabId);
-			inOutUpdatedPrefabs.insert(nestedPrefabId);
-
-			HSceneObject nestedPrefabRoot = nestedPrefab->GetRoot();
-			if(B3D_ENSURE(nestedPrefabRoot.IsValid()))
-			{
-				if(UpdateNestedPrefabInstancesRecursive(nestedPrefabRoot, inOutPrefabCache, parentPrefabChainCopy, inOutUpdatedPrefabs))
-				{
-					nestedPrefab->TickPrefabVersion();
-					nestedPrefab->RecordNestedPrefabInstanceDeltas();
-				}
-			}
-		}
-
-		nestedInstancePrefabRootsToUpdate.emplace_back(child, nestedPrefab);
-
-		// Keep iterating to also visit any instance modification instances, which will not be part of their parent instance yet.
-		return true;
-
-	},
-	nullptr, false);
+	FrameVector<UUID> parentPrefabChain;
+	fnVisitPrefabInstances(root, nullptr, parentPrefabChain, fnVisitPrefabInstances);
 
 	if(foundCircularDependency)
 		return false;
 
-	if(nestedInstancePrefabRootsToUpdate.empty())
+	if(prefabInstanceRootsToUpdate.empty())
 		return false;
 
 	bool isAnythingModified = false;
-	for(const auto& entry : nestedInstancePrefabRootsToUpdate)
+	FrameUnorderedMap<UUID, HPrefab> updatedPrefabs;
+	for(const auto& entry : prefabInstanceRootsToUpdate)
 	{
-		HSceneObject objectToUpdate = entry.SceneObject;
+		HSceneObject objectToUpdate = entry.SceneObjectInParentPrefab;
 		if(!B3D_ENSURE(objectToUpdate.IsValid()))
 			continue;
 
-		if(!entry.Prefab.IsLoaded(false))
+		if(!entry.PrefabToUpdateFrom.IsLoaded(false))
 			continue;
 
-		if(UpdateInstanceFromPrefab(objectToUpdate, *entry.Prefab) != nullptr)
+		if(UpdateInstanceFromPrefab(objectToUpdate, *entry.PrefabToUpdateFrom) != nullptr)
+		{
 			isAnythingModified = true;
+
+			if(entry.ParentPrefab.IsLoaded(false))
+			{
+				entry.ParentPrefab->TickPrefabVersion(); // Technically we only need to tick this once, but this is easier
+				updatedPrefabs.insert(std::make_pair(entry.ParentPrefab.GetId(), entry.ParentPrefab));
+			}
+		}
 	}
+
+	for(const auto& entry : updatedPrefabs)
+		entry.second->RecordNestedPrefabInstanceDeltas();
 
 	return isAnythingModified;
 }

@@ -113,7 +113,7 @@ namespace bs
 		static bool UpdateNestedPrefabInstances(const HSceneObject& sceneObject);
 
 		/** Scans the provided hierarchy for any prefab instances, and updates them to the latest prefab data. */
-		static bool UpdateNestedPrefabInstancesRecursive(const HSceneObject& root, PrefabCache& inOutPrefabCache, FrameVector<UUID>& inOutParentPrefabChain, FrameUnorderedSet<UUID>& inOutUpdatedPrefabs);
+		static bool UpdateNestedPrefabInstancesRecursive(const HSceneObject& root, PrefabCache& inOutPrefabCache);
 
 		/**
 		 * Updates the provided scene object hierarchy with latest data from the provided prefab. Provided scene object
