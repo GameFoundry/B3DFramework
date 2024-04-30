@@ -330,7 +330,7 @@ void UnitTestSceneB::TestAssertHierarchyMatchesPrefabLinks(TestSuite& testSuite,
 		UnitTestPrefabUpdateHelper::TestAssertPrefabLinkValid(testSuite, *this, *parentPrefabScene, parentPrefabId);
 	}
 
-	auto fnVisitChildPrefabInstance = [&testSuite, &prefabSceneLookup, nestingLevel, parentPrefabId, &parentPrefabScene](const SPtr<UnitTestSceneB>& childPrefabInstance, const SPtr<UnitTestSceneB>& otherChildPrefabInstance)
+	auto fnVisitChildPrefabInstance = [&testSuite, &prefabSceneLookup, nestingLevel, parentPrefabId](const SPtr<UnitTestSceneB>& childPrefabInstance, const SPtr<UnitTestSceneB>& otherChildPrefabInstance)
 	{
 		if(childPrefabInstance == nullptr)
 			return;

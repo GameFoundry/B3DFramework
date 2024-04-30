@@ -64,22 +64,43 @@ namespace bs
 			B3D_TEST_ASSERT_EXTERNAL(testSuite, sceneObject->GetPrefabResourceId() == prefabId) });
 	}
 
-	void UnitTestPrefabUpdateHelper::TestAssertPrefabLinksMatchPrefabInternals_UnitTestSceneB(TestSuite& testSuite, const HSceneObject& instanceRoot, const HSceneObject& prefabRoot, const UUID& prefabId)
+	void UnitTestPrefabUpdateHelper::TestAssertPrefabLinksMatchPrefabInternals_UnitTestSceneB(TestSuite& testSuite, UnitTestSceneB& instanceScene, const SPtr<UnitTestSceneB>& parentPrefabScene, const UUID& parentPrefabId, const UnorderedMap<UUID, SPtr<UnitTestSceneB>>& prefabSceneLookup)
 	{
-		UnitTestSceneB instanceScene(instanceRoot);
-		UnitTestSceneB prefabInternalsScene(prefabRoot);
+		const auto found = instanceScene.ObjectInformation.find(instanceScene.Root.GetId());
+		if(!B3D_ENSURE(found != instanceScene.ObjectInformation.end()))
+			return;
+
+		const bool isInstanceModification = found->second.Flags.IsSet(UnitTestSceneObjectFlag::IsPrefabRootInstanceModification);
+
+		UUID prefabId;
+		SPtr<UnitTestSceneB> prefabScene;
+		if(isInstanceModification || parentPrefabScene == nullptr)
+		{
+			prefabId = instanceScene.Root->GetPrefabResourceId();
+
+			if(auto foundPrefab = prefabSceneLookup.find(prefabId); foundPrefab != prefabSceneLookup.end())
+				prefabScene = foundPrefab->second;
+
+			if(!B3D_ENSURE(prefabScene))
+				return;
+		}
+		else
+		{
+			prefabId = parentPrefabId;
+			prefabScene = parentPrefabScene;
+		}
 
 		// Ensure that newly instantiated prefab instances have correct prefab object & resource IDs
-		TestAssertPrefabLinkValid(testSuite, instanceScene, prefabInternalsScene, prefabId);
+		TestAssertPrefabLinkValid(testSuite, instanceScene, *prefabScene, prefabId);
 
 		if(instanceScene.OptionalSceneObject_0_0_PrefabInstance.IsValid())
 		{
-			TestAssertPrefabLinksMatchPrefabInternals_UnitTestSceneB(testSuite, instanceScene.OptionalSceneObject_0_0_PrefabInstance, prefabInternalsScene.OptionalSceneObject_0_0_PrefabInstance, prefabId);
+			TestAssertPrefabLinksMatchPrefabInternals_UnitTestSceneB(testSuite, *instanceScene.OptionalPrefabInstance_0_0, prefabScene->OptionalPrefabInstance_0_0, prefabId, prefabSceneLookup);
 		}
 
 		if(instanceScene.OptionalSceneObject_1_1_PrefabInstance.IsValid())
 		{
-			TestAssertPrefabLinksMatchPrefabInternals_UnitTestSceneB(testSuite, instanceScene.OptionalSceneObject_1_1_PrefabInstance, prefabInternalsScene.OptionalSceneObject_1_1_PrefabInstance, prefabId);
+			TestAssertPrefabLinksMatchPrefabInternals_UnitTestSceneB(testSuite, *instanceScene.OptionalPrefabInstance_1_1,  prefabScene->OptionalPrefabInstance_1_1, prefabId, prefabSceneLookup);
 		}
 	}
 

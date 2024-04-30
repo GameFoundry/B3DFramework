@@ -51,6 +51,7 @@ private:
 	void TestPrefabScenario6();
 	void TestPrefabScenario7();
 	void TestPrefabScenario8();
+	void TestPrefabScenario9();
 
 	void TestAssertPrefabScenario();
 
@@ -63,7 +64,7 @@ private:
 		SPtr<UnitTestSceneB> PrefabInternalsScene;
 	};
 
-	Array<PrefabTestInformation, 3> mPrefabTestInformation;
+	Array<PrefabTestInformation, 4> mPrefabTestInformation;
 };
 
 CoreTestSuite::CoreTestSuite()
@@ -82,6 +83,7 @@ CoreTestSuite::CoreTestSuite()
 	B3D_ADD_TEST(CoreTestSuite::TestPrefabScenario6)
 	B3D_ADD_TEST(CoreTestSuite::TestPrefabScenario7)
 	B3D_ADD_TEST(CoreTestSuite::TestPrefabScenario8)
+	B3D_ADD_TEST(CoreTestSuite::TestPrefabScenario9)
 
 	// TODO - Add unit tests for:
 	// - Binary cloner test that restores external references
@@ -718,10 +720,11 @@ void CoreTestSuite::TestAssertPrefabScenario()
 		/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 		// Ensure the instances correctly link to the prefab (both the hierarchy used to create/update the prefab, and newly instantiated hierarchy)
 		/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-		UnitTestPrefabUpdateHelper::TestAssertPrefabLinksMatchPrefabInternals_UnitTestSceneB(*this, mScene.Root, prefab->GetRoot(), prefab->GetId());
+		UnitTestPrefabUpdateHelper::TestAssertPrefabLinksMatchPrefabInternals_UnitTestSceneB(*this, mScene, nullptr, UUID::kEmpty, prefabSceneLookup);
 
 		HSceneObject instantiatedInstanceRoot = prefab->Instantiate();
-		UnitTestPrefabUpdateHelper::TestAssertPrefabLinksMatchPrefabInternals_UnitTestSceneB(*this, instantiatedInstanceRoot, prefab->GetRoot(), prefab->GetId());
+		UnitTestSceneB instantiatedScene(instantiatedInstanceRoot);
+		UnitTestPrefabUpdateHelper::TestAssertPrefabLinksMatchPrefabInternals_UnitTestSceneB(*this, instantiatedScene, nullptr, UUID::kEmpty, prefabSceneLookup);
 		instantiatedInstanceRoot->Destroy();
 
 		/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -768,6 +771,14 @@ void CoreTestSuite::TestPrefabScenario1()
 	// Update scene information used for checks
 	mScene.UpdatePrefabLinkIds();
 
+	// Current state:
+	// ***Scene***
+	// Root
+	//   PFB1 Instance #1 [Game Object ID = OBI1, Prefab Object ID = OB11, Prefab Resource ID = PFB1]
+	//  
+	// ***PFB1***
+	// PFB1 Instance [Game Object ID = OB11, Prefab Object ID = OB11, Prefab Resource ID = PFB1]
+
 	// Run the checks
 	TestAssertPrefabScenario();
 }
@@ -775,12 +786,36 @@ void CoreTestSuite::TestPrefabScenario1()
 // Add an object to an instance of Prefab #1, then update the prefab.
 void CoreTestSuite::TestPrefabScenario2()
 {
+	// Initial state:
+	// ***Scene***
+	// Root
+	//   PFB1 Instance #1 [Game Object ID = OBI1, Prefab Object ID = OB11, Prefab Resource ID = PFB1]
+	//  
+	// ***PFB1***
+	// PFB1 Instance [Game Object ID = OB11, Prefab Object ID = OB11, Prefab Resource ID = PFB1]
+
 	// Add a new object to the scene hierarchy
 	mScene.DestroySceneObject_1_0();
 	mScene.CreateOptionalSceneObject_2();
 
+	// Current state:
+	// ***Scene***
+	// Root
+	//   PFB1 Instance #1 [Game Object ID = OBI1, Prefab Object ID = OB11, Prefab Resource ID = PFB1]
+	//     Optional object [Game Object ID = OBI2, Prefab Object ID = None, Prefab Resource ID = None] <- Modified
+
 	// Update Prefab1 from Prefab #1 Instance Root in scene hierarchy
 	PrefabUtility::UpdatePrefab(mPrefabTestInformation[0].Prefab, mScene.Root);
+
+	// Current state:
+	// ***PFB1***
+	// PFB1 Instance [Game Object ID = OB11, Prefab Object ID = OB11, Prefab Resource ID = PFB1]
+	//   Optional object [Game Object ID = OB12, Prefab Object ID = OB12, Prefab Resource ID = PFB1] <- Modified
+	//
+	// ***Scene***
+	// Root
+	//   PFB1 Instance #1 [Game Object ID = OBI1, Prefab Object ID = OB11, Prefab Resource ID = PFB1]
+	//     Optional object [Game Object ID = OBI2, Prefab Object ID = OB12, Prefab Resource ID = PFB1] <- Modified
 
 	// Update scene information used for checks
 	mScene.AddNewObjectIds(mScene.OptionalSceneObject_2);
@@ -793,6 +828,14 @@ void CoreTestSuite::TestPrefabScenario2()
 // Create Prefab2, then add its instance as a child of Prefab #1 Instance Root, and update Prefab1 with Prefab #1 Instance Root
 void CoreTestSuite::TestPrefabScenario3()
 {
+	// Initial state:
+	// ***PFB1***
+	// PFB1 Instance [Game Object ID = OB11, Prefab Object ID = OB11, Prefab Resource ID = PFB1]
+	//
+	// ***Scene***
+	// Root
+	//   PFB1 Instance #1 [Game Object ID = OBI1, Prefab Object ID = OB11, Prefab Resource ID = PFB1]
+
 	// Create prefab 2
 	HSceneObject prefab2NewHierarchy = UnitTestSceneB::PopulateNewSceneInstance("Prefab #2 Scene Instance");
 	mPrefabTestInformation[1].Prefab = Prefab::Create(prefab2NewHierarchy, false);
@@ -807,8 +850,30 @@ void CoreTestSuite::TestPrefabScenario3()
 	HSceneObject prefab2Instance2 = mScene.SetUnitTestSceneBChildPrefab_1_1(*mPrefabTestInformation[1].Prefab);
 	prefab2Instance2->SetName("Prefab #2 Instance Root #2");
 
+	// Current state:
+	// ***Scene***
+	// Root
+	//   PFB1 Instance #1 [Game Object ID = OBI1, Prefab Object ID = OB11, Prefab Resource ID = PFB1]
+	//     PFB2 Instance #1 [Game Object ID = OBI2, Prefab Object ID = OB21, Prefab Resource ID = PFB2] <- Modified
+	//     PFB2 Instance #2 [Game Object ID = OBI3, Prefab Object ID = OB21, Prefab Resource ID = PFB2] <- Modified
+	// 
+	// ***PFB2***
+	// PFB2 Instance [Game Object ID = OB21, Prefab Object ID = OB21, Prefab Resource ID = PFB2]
+
 	// Update Prefab1 from Prefab #1 Instance Root in scene hierarchy
 	PrefabUtility::UpdatePrefab(mPrefabTestInformation[0].Prefab, mScene.Root);
+
+	// Current state:
+	// ***PFB1***
+	// PFB1 Instance [Game Object ID = OB11, Prefab Object ID = OB11, Prefab Resource ID = PFB1]
+	//   PFB2 Instance #1 [Game Object ID = OB12, Prefab Object ID = OB21, Prefab Resource ID = PFB2] <- Modified
+	//   PFB2 Instance #2 [Game Object ID = OB13, Prefab Object ID = OB21, Prefab Resource ID = PFB2] <- Modified
+	//
+	// ***Scene***
+	// Root
+	//   PFB1 Instance #1 [Game Object ID = OBI1, Prefab Object ID = OB11, Prefab Resource ID = PFB1]
+	//     PFB2 Instance #1 [Game Object ID = OBI2, Prefab Object ID = OB12, Prefab Resource ID = PFB1] <- Modified
+	//     PFB2 Instance #2 [Game Object ID = OBI3, Prefab Object ID = OB13, Prefab Resource ID = PFB1] <- Modified
 
 	// Update scene information used for checks
 	mPrefabTestInformation[0].PrefabInternalsScene->RefreshHierarchy(mPrefabTestInformation[0].Prefab->GetRoot());
@@ -822,11 +887,45 @@ void CoreTestSuite::TestPrefabScenario3()
 // Add new object as part of Prefab #2 Instance Root #1, when update Prefab1 with Prefab #1 Instance Root
 void CoreTestSuite::TestPrefabScenario4()
 {
+	// Initial state:
+	// ***Scene***
+	// Root
+	//   PFB1 Instance #1 [Game Object ID = OBI1, Prefab Object ID = OB11, Prefab Resource ID = PFB1]
+	//     PFB2 Instance #1 [Game Object ID = OBI2, Prefab Object ID = OB12, Prefab Resource ID = PFB1]
+	//     PFB2 Instance #2 [Game Object ID = OBI3, Prefab Object ID = OB13, Prefab Resource ID = PFB1]
+	//
+	// ***PFB1***
+	// PFB1 Instance [Game Object ID = OB11, Prefab Object ID = OB11, Prefab Resource ID = PFB1]
+	//   PFB2 Instance #1 [Game Object ID = OB12, Prefab Object ID = OB21, Prefab Resource ID = PFB2]
+	//   PFB2 Instance #2 [Game Object ID = OB13, Prefab Object ID = OB21, Prefab Resource ID = PFB2]
+
 	mScene.OptionalPrefabInstance_0_0->DestroySceneObject_1_0();
 	mScene.OptionalPrefabInstance_0_0->CreateOptionalSceneObject_2();
 
+	// Current state:
+	// ***Scene***
+	// Root
+	//   PFB1 Instance #1 [Game Object ID = OBI1, Prefab Object ID = OB11, Prefab Resource ID = PFB1]
+	//     PFB2 Instance #1 [Game Object ID = OBI2, Prefab Object ID = OB12, Prefab Resource ID = PFB1]
+	//       Optional object [Game Object ID = OBI4, Prefab Object ID = None, Prefab Resource ID = None] <- Modified
+	//     PFB2 Instance #2 [Game Object ID = OBI3, Prefab Object ID = OB13, Prefab Resource ID = PFB1]
+
 	// Update Prefab1 from Prefab #1 Instance Root in scene hierarchy
 	PrefabUtility::UpdatePrefab(mPrefabTestInformation[0].Prefab, mScene.Root);
+
+	// Current state:
+	// ***PFB1***
+	// PFB1 Instance [Game Object ID = OB11, Prefab Object ID = OB11, Prefab Resource ID = PFB1]
+	//   PFB2 Instance #1 [Game Object ID = OB12, Prefab Object ID = OB21, Prefab Resource ID = PFB2]
+	//     Optional object [Game Object ID = OB14, Prefab Object ID = OB14, Prefab Resource ID = PFB2] <- Modified
+	//   PFB2 Instance #2 [Game Object ID = OB13, Prefab Object ID = OB21, Prefab Resource ID = PFB2]
+	//
+	// ***Scene***
+	// Root
+	//   PFB1 Instance #1 [Game Object ID = OBI1, Prefab Object ID = OB11, Prefab Resource ID = PFB1]
+	//     PFB2 Instance #1 [Game Object ID = OBI2, Prefab Object ID = OB12, Prefab Resource ID = PFB1]
+	//       Optional object [Game Object ID = OBI4, Prefab Object ID = OB14, Prefab Resource ID = PFB1] <- Modified
+	//     PFB2 Instance #2 [Game Object ID = OBI3, Prefab Object ID = OB13, Prefab Resource ID = PFB1]
 
 	// Update scene information used for checks
 	mScene.OptionalPrefabInstance_0_0->AddNewObjectIds(mScene.OptionalPrefabInstance_0_0->OptionalSceneObject_2);
@@ -846,8 +945,40 @@ void CoreTestSuite::TestPrefabScenario4()
 // Update Prefab2 with Prefab #2 Instance Root
 void CoreTestSuite::TestPrefabScenario5()
 {
+	// Initial state:
+	// ***Scene***
+	// Root
+	//   PFB1 Instance #1 [Game Object ID = OBI1, Prefab Object ID = OB11, Prefab Resource ID = PFB1]
+	//     PFB2 Instance #1 [Game Object ID = OBI2, Prefab Object ID = OB12, Prefab Resource ID = PFB1]
+	//       Optional object [Game Object ID = OBI4, Prefab Object ID = OB14, Prefab Resource ID = PFB1]
+	//     PFB2 Instance #2 [Game Object ID = OBI3, Prefab Object ID = OB13, Prefab Resource ID = PFB1]
+	//
+	// ***PFB1***
+	// PFB1 Instance [Game Object ID = OB11, Prefab Object ID = OB11, Prefab Resource ID = PFB1]
+	//   PFB2 Instance #1 [Game Object ID = OB12, Prefab Object ID = OB21, Prefab Resource ID = PFB2]
+	//     Optional object [Game Object ID = OB14, Prefab Object ID = OB14, Prefab Resource ID = PFB2]
+	//   PFB2 Instance #2 [Game Object ID = OB13, Prefab Object ID = OB21, Prefab Resource ID = PFB2]
+
 	// Update Prefab2 from Prefab #2 Instance Root in scene hierarchy
 	PrefabUtility::UpdatePrefab(mPrefabTestInformation[1].Prefab, mScene.OptionalPrefabInstance_0_0->Root);
+
+	// Current state:
+	// ***PFB1***
+	// PFB1 Instance [Game Object ID = OB11, Prefab Object ID = OB11, Prefab Resource ID = PFB1]
+	//   PFB2 Instance #1 [Game Object ID = OB12, Prefab Object ID = OB21, Prefab Resource ID = PFB2]
+	//     Optional object [Game Object ID = OB14, Prefab Object ID = OB22, Prefab Resource ID = PFB2] <- Modified
+	//   PFB2 Instance #2 [Game Object ID = OB13, Prefab Object ID = OB21, Prefab Resource ID = PFB2]
+	//
+	// ***PFB2***
+	// PFB2 Instance [Game Object ID = OB21, Prefab Object ID = OB21, Prefab Resource ID = PFB2]
+	//   Optional object [Game Object ID = OB22, Prefab Object ID = OB22, Prefab Resource ID = PFB2] <- Modified
+	//
+	// ***Scene***
+	// Root
+	//   PFB1 Instance #1 [Game Object ID = OBI1, Prefab Object ID = OB11, Prefab Resource ID = PFB1]
+	//     PFB2 Instance #1 [Game Object ID = OBI2, Prefab Object ID = OB12, Prefab Resource ID = PFB1]
+	//       Optional object [Game Object ID = OBI4, Prefab Object ID = OB14, Prefab Resource ID = PFB1]
+	//     PFB2 Instance #2 [Game Object ID = OBI3, Prefab Object ID = OB13, Prefab Resource ID = PFB1]
 
 	// Update scene information used for checks
 	mScene.OptionalPrefabInstance_1_1->RefreshHierarchy(mScene.OptionalPrefabInstance_1_1->Root);
@@ -872,8 +1003,36 @@ void CoreTestSuite::TestPrefabScenario5()
 // Update Prefab1 from Prefab #1 Instance Root
 void CoreTestSuite::TestPrefabScenario6()
 {
+	// Initial state:
+	// ***Scene***
+	// Root
+	//   PFB1 Instance #1 [Game Object ID = OBI1, Prefab Object ID = OB11, Prefab Resource ID = PFB1]
+	//     PFB2 Instance #1 [Game Object ID = OBI2, Prefab Object ID = OB12, Prefab Resource ID = PFB1]
+	//       Optional object [Game Object ID = OBI4, Prefab Object ID = OB14, Prefab Resource ID = PFB1]
+	//     PFB2 Instance #2 [Game Object ID = OBI3, Prefab Object ID = OB13, Prefab Resource ID = PFB1]
+	//
+	// ***PFB1***
+	// PFB1 Instance [Game Object ID = OB11, Prefab Object ID = OB11, Prefab Resource ID = PFB1]
+	//   PFB2 Instance #1 [Game Object ID = OB12, Prefab Object ID = OB21, Prefab Resource ID = PFB2]
+	//     Optional object [Game Object ID = OB14, Prefab Object ID = OB22, Prefab Resource ID = PFB2]
+	//   PFB2 Instance #2 [Game Object ID = OB13, Prefab Object ID = OB21, Prefab Resource ID = PFB2]
+
 	// Update Prefab1 from Prefab #1 Instance Root in scene hierarchy
 	PrefabUtility::UpdatePrefab(mPrefabTestInformation[0].Prefab, mScene.Root);
+
+	// Current state:
+	// ***Scene***
+	// Root
+	//   PFB1 Instance #1 [Game Object ID = OBI1, Prefab Object ID = OB11, Prefab Resource ID = PFB1]
+	//     PFB2 Instance #1 [Game Object ID = OBI2, Prefab Object ID = OB12, Prefab Resource ID = PFB1]
+	//       Optional object [Game Object ID = OBI4, Prefab Object ID = OB14, Prefab Resource ID = PFB1]
+	//     PFB2 Instance #2 [Game Object ID = OBI3, Prefab Object ID = OB13, Prefab Resource ID = PFB1]
+	//
+	// ***PFB1***
+	// PFB1 Instance [Game Object ID = OB11, Prefab Object ID = OB11, Prefab Resource ID = PFB1]
+	//   PFB2 Instance #1 [Game Object ID = OB12, Prefab Object ID = OB21, Prefab Resource ID = PFB2]
+	//     Optional object [Game Object ID = OB14, Prefab Object ID = OB22, Prefab Resource ID = PFB2]
+	//   PFB2 Instance #2 [Game Object ID = OB13, Prefab Object ID = OB21, Prefab Resource ID = PFB2]
 
 	// Update scene information used for checks
 	mPrefabTestInformation[0].PrefabInternalsScene->RefreshHierarchy(mPrefabTestInformation[0].Prefab->GetRoot());
@@ -885,9 +1044,24 @@ void CoreTestSuite::TestPrefabScenario6()
 // Create Prefab3, add it as child of Prefab #2 Instance Root, and update Prefab1 with Prefab #1 Instance Root
 void CoreTestSuite::TestPrefabScenario7()
 {
+	// Initial state:
+	// ***Scene***
+	// Root
+	//   PFB1 Instance #1 [Game Object ID = OBI1, Prefab Object ID = OB11, Prefab Resource ID = PFB1]
+	//     PFB2 Instance #1 [Game Object ID = OBI2, Prefab Object ID = OB12, Prefab Resource ID = PFB1]
+	//     PFB2 Instance #2 [Game Object ID = OBI3, Prefab Object ID = OB13, Prefab Resource ID = PFB1]
+	//  
+	// ***PFB1***
+	// PFB1 Instance [Game Object ID = OB11, Prefab Object ID = OB11, Prefab Resource ID = PFB1]
+	//   PFB2 Instance #1 [Game Object ID = OB12, Prefab Object ID = OB21, Prefab Resource ID = PFB2]
+	//   PFB2 Instance #2 [Game Object ID = OB13, Prefab Object ID = OB21, Prefab Resource ID = PFB2]
+	//
+	// ***PFB2***
+	// PFB2 Instance [Game Object ID = OB21, Prefab Object ID = OB21, Prefab Resource ID = PFB2]
+
 	// Create prefab 3
 	HSceneObject prefab3NewHierarchy = UnitTestSceneB::PopulateNewSceneInstance("Prefab #3 Scene Instance");
-	mPrefabTestInformation[2].Prefab = Prefab::Create(prefab3NewHierarchy);
+	mPrefabTestInformation[2].Prefab = Prefab::Create(prefab3NewHierarchy, false);
 	mPrefabTestInformation[2].PrefabInternalsScene = B3DMakeShared<UnitTestSceneB>(mPrefabTestInformation[2].Prefab->GetRoot());
 	prefab3NewHierarchy->Destroy();
 
@@ -895,8 +1069,30 @@ void CoreTestSuite::TestPrefabScenario7()
 	HSceneObject prefab3Instance = mScene.OptionalPrefabInstance_0_0->SetUnitTestSceneBChildPrefab_0_0(*mPrefabTestInformation[2].Prefab);
 	prefab3Instance->SetName("Prefab #3 Instance Root");
 
+	// Current state:
+	// ***Scene***
+	// Root
+	//   PFB1 Instance #1 [Game Object ID = OBI1, Prefab Object ID = OB11, Prefab Resource ID = PFB1]
+	//     PFB2 Instance #1 [Game Object ID = OBI2, Prefab Object ID = OB12, Prefab Resource ID = PFB1]
+	//       PFB3 Instance #1 [Game Object ID = OBI4, Prefab Object ID = OB31, Prefab Resource ID = PFB3] <- Modified
+	//     PFB2 Instance #2 [Game Object ID = OBI3, Prefab Object ID = OB13, Prefab Resource ID = PFB1]
+
 	// Update Prefab1 from Prefab #1 Instance Root in scene hierarchy
 	PrefabUtility::UpdatePrefab(mPrefabTestInformation[0].Prefab, mScene.Root);
+
+	// Current state:
+	// ***PFB1***
+	// PFB1 Instance [Game Object ID = OB11, Prefab Object ID = OB11, Prefab Resource ID = PFB1]
+	//   PFB2 Instance #1 [Game Object ID = OB12, Prefab Object ID = OB21, Prefab Resource ID = PFB2]
+	//     PFB3 Instance #1 [Game Object ID = OB14, Prefab Object ID = OB31 Prefab Resource ID = PFB3] <- Modified
+	//   PFB2 Instance #2 [Game Object ID = OB13, Prefab Object ID = OB21, Prefab Resource ID = PFB2]
+	//
+	// ***Scene***
+	// Root
+	//   PFB1 Instance #1 [Game Object ID = OBI1, Prefab Object ID = OB11, Prefab Resource ID = PFB1]
+	//     PFB2 Instance #1 [Game Object ID = OBI2, Prefab Object ID = OB12, Prefab Resource ID = PFB1]
+	//       PFB3 Instance #1 [Game Object ID = OBI4, Prefab Object ID = OB14, Prefab Resource ID = PFB1] <- Modified
+	//     PFB2 Instance #2 [Game Object ID = OBI3, Prefab Object ID = OB13, Prefab Resource ID = PFB1]
 
 	// Update scene information used for checks
 	mPrefabTestInformation[0].PrefabInternalsScene->RefreshHierarchy(mPrefabTestInformation[0].Prefab->GetRoot());
@@ -909,15 +1105,43 @@ void CoreTestSuite::TestPrefabScenario7()
 	TestAssertPrefabScenario();
 }
 
-// TODO - Create Prefab4, add it a as a second child of Prefab #2 instanceRoot
+// Create Prefab4, add it a as a second child of Prefab #2 instanceRoot
+void CoreTestSuite::TestPrefabScenario8()
+{
+	// Create prefab 4
+	HSceneObject prefab4NewHierarchy = UnitTestSceneB::PopulateNewSceneInstance("Prefab #4 Scene Instance");
+	mPrefabTestInformation[3].Prefab = Prefab::Create(prefab4NewHierarchy, false);
+	mPrefabTestInformation[3].PrefabInternalsScene = B3DMakeShared<UnitTestSceneB>(mPrefabTestInformation[3].Prefab->GetRoot());
+	prefab4NewHierarchy->Destroy();
+
+	// Add Prefab #4 Instance Root in the scene, as child of Prefab 2 Instance Root/SceneObject_1
+	HSceneObject prefab4Instance = mScene.OptionalPrefabInstance_0_0->SetUnitTestSceneBChildPrefab_1_1(*mPrefabTestInformation[3].Prefab);
+	prefab4Instance->SetName("Prefab #4 Instance Root");
+
+	//// Update scene information used for checks
+	mScene.OptionalPrefabInstance_0_0->OptionalPrefabInstance_1_1->SetFlagOnObject(
+		mScene.OptionalPrefabInstance_0_0->OptionalPrefabInstance_1_1->Root,
+		UnitTestSceneObjectFlag::IsPrefabRootInstanceModification);
+
+	// Run the checks
+	TestAssertPrefabScenario();
+}
 
 // Update Prefab2 from Prefab #2 Instance Root
-void CoreTestSuite::TestPrefabScenario8()
+void CoreTestSuite::TestPrefabScenario9()
 {
 	// Update Prefab2 from Prefab #2 Instance Root in scene hierarchy
 	PrefabUtility::UpdatePrefab(mPrefabTestInformation[1].Prefab, mScene.OptionalPrefabInstance_0_0->Root);
 
 	// Update scene information used for checks
+	mScene.OptionalPrefabInstance_0_0->OptionalPrefabInstance_1_1->SetFlagOnObject(
+		mScene.OptionalPrefabInstance_0_0->OptionalPrefabInstance_1_1->Root,
+		UnitTestSceneObjectFlag::None);
+	mScene.OptionalPrefabInstance_0_0->OptionalPrefabInstance_1_1->UpdatePrefabLinkIds();
+
+	// TODO - Two new prefab instances got added as children of mScene.OptionalPrefabInstance_1_1, which need to be registered and verified
+	//  - Same for PFB1?
+
 	mPrefabTestInformation[0].PrefabInternalsScene->RefreshHierarchy(mPrefabTestInformation[0].Prefab->GetRoot());
 	mPrefabTestInformation[0].PrefabInternalsScene->OptionalPrefabInstance_0_0->OptionalPrefabInstance_0_0->UpdatePrefabLinkIds();
 	mPrefabTestInformation[0].PrefabInternalsScene->OptionalPrefabInstance_0_0->OptionalPrefabInstance_0_0->SetFlagOnObject(

@@ -515,6 +515,29 @@ void PrefabUtility::UpdatePrefab(const HPrefab& prefabToUpdate, const HSceneObje
 		// the prefab could contain multiple instances of our update prefab, and we're only updating one that's related to @p root
 	}
 
+	// TODO - Code duplicated from above, handle this better
+	if(!prefabInstanceParents.empty())
+	{
+		sceneObjectToUpdateWith->IterateHierarchy(
+			[&rootPrefabIdToUpdatePrefabId, prefabId = prefabInstanceParents.back().ParentPrefab->GetId()](const HSceneObject& sceneObject)
+			{
+		if(sceneObject->HasFlag(SOF_DontSave))
+			return false;
+
+		if(auto found = rootPrefabIdToUpdatePrefabId.find(sceneObject.GetId()); found != rootPrefabIdToUpdatePrefabId.end())
+		{
+			sceneObject->SetPrefabObjectId(found->second);
+			sceneObject->SetPrefabResourceId(prefabId);
+		}
+
+		return true; },
+			[&rootPrefabIdToUpdatePrefabId](const HComponent& component)
+			{
+				if(auto found = rootPrefabIdToUpdatePrefabId.find(component.GetId()); found != rootPrefabIdToUpdatePrefabId.end())
+					component->SetPrefabObjectId(found->second);
+			});
+	}
+
 	// Update all live scene instances
 	const UnorderedMap<SceneInstance*, WeakSPtr<SceneInstance>>& sceneInstances = GetSceneManager().GetAllSceneInstances();
 	for(const auto& pair : sceneInstances)

@@ -5,6 +5,7 @@
 
 namespace bs
 {
+	struct UnitTestSceneB;
 
 	struct UnitTestPrefabUpdateHelper
 	{
@@ -17,6 +18,6 @@ namespace bs
 		static void TestAssetRootPrefabLinkValid(TestSuite& testSuite, UnitTestSceneType& prefabWrapper, const UUID& prefabId);
 
 		/** Checks if prefab instance matches the object and resource IDs in the internal prefab hierarchy. */
-		static void TestAssertPrefabLinksMatchPrefabInternals_UnitTestSceneB(TestSuite& testSuite, const HSceneObject& instanceRoot, const HSceneObject& prefabRoot, const UUID& prefabId);
+		static void TestAssertPrefabLinksMatchPrefabInternals_UnitTestSceneB(TestSuite& testSuite, UnitTestSceneB& instanceScene, const SPtr<UnitTestSceneB>& parentPrefabScene, const UUID& parentPrefabId, const UnorderedMap<UUID, SPtr<UnitTestSceneB>>& prefabSceneLookup);
 	};
 } // namespace bs
