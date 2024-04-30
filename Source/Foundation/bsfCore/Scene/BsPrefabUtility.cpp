@@ -320,12 +320,14 @@ static UnorderedMap<UUID, PrefabLinkInformation> MapInstanceIdBottomMostPrefab(c
 						if(!found.has_value())
 							break;
 
-						sceneObjectInBottomMostPrefab = B3DStaticGameObjectCast<SceneObject>(found->InstanceInPrefab);
-						bottomMostPrefab = found->Prefab;
+						HSceneObject instanceInPrefab = B3DStaticGameObjectCast<SceneObject>(found->InstanceInPrefab);
 
 						// Reached the bottom-most prefab, as the instance points to itself
-						if(bottomMostPrefab->GetId() == sceneObjectInBottomMostPrefab->GetPrefabResourceId())
+						if(found->Prefab->GetId() == instanceInPrefab->GetPrefabResourceId())
 							break;
+
+						sceneObjectInBottomMostPrefab = instanceInPrefab;
+						bottomMostPrefab = found->Prefab;
 					}
 
 					if(bottomMostPrefab != nullptr)
@@ -345,12 +347,14 @@ static UnorderedMap<UUID, PrefabLinkInformation> MapInstanceIdBottomMostPrefab(c
 						if(!found.has_value())
 							break;
 
-						componentInBottomMostPrefab = B3DStaticGameObjectCast<Component>(found->InstanceInPrefab);
-						bottomMostPrefab = found->Prefab;
+						HComponent instanceInPrefab = B3DStaticGameObjectCast<Component>(found->InstanceInPrefab);
 
 						// Reached the bottom-most prefab, as the instance points to itself
-						if(bottomMostPrefab->GetId() == componentInBottomMostPrefab->SceneObject()->GetPrefabResourceId())
+						if(found->Prefab->GetId() == instanceInPrefab->SceneObject()->GetPrefabResourceId())
 							break;
+
+						componentInBottomMostPrefab = instanceInPrefab;
+						bottomMostPrefab = found->Prefab;
 					}
 
 					if(bottomMostPrefab != nullptr)
@@ -372,7 +376,14 @@ void PrefabUtility::UpdatePrefab(const HPrefab& prefabToUpdate, const HSceneObje
 	if(!B3D_ENSURE(prefabToUpdate.IsLoaded(false)))
 		return;
 
-	// For each object in the provided instance hierarchy, determine the bottom-most prefab it has been defined in, relative to the root prefab instance
+	// If @p sceneObjectToUpdateWith is part of some other prefab's instance hierarchy, we might need to patch prefab object IDs after performing the update. In general this happens in two cases:
+	// 1. If an object is a child of a nested prefab instance within a parent prefab instance, but only the parent prefab has been updated with the object. In that case the parent prefab will treat
+	//    the object as an instance modification and its prefab object ID will point to itself. Once we update the nested prefab with the object, we must patch the prefab object ID in the parent prefab,
+	//    so it points to the instance ID assigned to it in the nested prefab.
+	// 2. If a new prefab instance is being added as a child of an existing nested prefab instance, and we update the nested prefab with the new prefab instance, we need to update the new prefab instance
+	//    prefab object IDs so they point to the top-most prefab.
+	// 
+	// The map below will contain a list of prefabs and instances in those prefabs that we might need to patch.
 	UnorderedMap<UUID, PrefabLinkInformation> instanceIdToBottomMostPrefab = MapInstanceIdBottomMostPrefab(sceneObjectToUpdateWith);
 
 	FrameScope frameScope;
@@ -413,23 +424,35 @@ void PrefabUtility::UpdatePrefab(const HPrefab& prefabToUpdate, const HSceneObje
 	// If root prefab contains an object that was an instance modification, and is now part of the update prefab, it's prefab object ID will change
 	// (as original object IDs doesn't link to anything). So we need to know to remap that prefab object ID to the new prefab object ID.
 	UnorderedMap<UUID, UUID> rootPrefabIdToUpdatePrefabId;
-	sceneObjectToUpdateWith->IterateHierarchy([&instanceIdToUpdatePrefabId, &rootPrefabIdToUpdatePrefabId](const HSceneObject& child) mutable -> bool
+	sceneObjectToUpdateWith->IterateHierarchy([&instanceIdToUpdatePrefabId, &rootPrefabIdToUpdatePrefabId, &instanceIdToBottomMostPrefab](const HSceneObject& child) mutable -> bool
 	{
+		UUID lookupId;
+		if(auto found = instanceIdToBottomMostPrefab.find(child.GetId()); found != instanceIdToBottomMostPrefab.end())
+			lookupId = found->second.PrefabObjectId;
+		else
+			lookupId = child->GetId();
+
 		// TODO - Will this work if root instance contains multiple instances of the same prefab? In that case we'll have multiple objects with
 		// the same 'child->GetPrefabObjectId()'. e.g. if we add two instance of prefab #4 as children of prefab #2, and then update prefab #2
 		if(auto found = instanceIdToUpdatePrefabId.find(child.GetId()); found != instanceIdToUpdatePrefabId.end())
 		{
-			auto result = rootPrefabIdToUpdatePrefabId.insert(std::make_pair(child->GetPrefabObjectId(), found->second));
+			auto result = rootPrefabIdToUpdatePrefabId.insert(std::make_pair(lookupId, found->second));
 			B3D_ENSURE(result.second);
 		}
 
 		return true;
 	},
-	   [&instanceIdToUpdatePrefabId, &rootPrefabIdToUpdatePrefabId](const HComponent& component) mutable -> void
+	   [&instanceIdToUpdatePrefabId, &rootPrefabIdToUpdatePrefabId, &instanceIdToBottomMostPrefab](const HComponent& component) mutable -> void
 	   {
+			UUID lookupId;
+			if(auto found = instanceIdToBottomMostPrefab.find(component.GetId()); found != instanceIdToBottomMostPrefab.end())
+				lookupId = found->second.PrefabObjectId;
+			else
+				lookupId = component->GetId();
+
 	   		if(auto found = instanceIdToUpdatePrefabId.find(component.GetId()); found != instanceIdToUpdatePrefabId.end())
 	   		{
-	   			auto result = rootPrefabIdToUpdatePrefabId.insert(std::make_pair(component->GetPrefabObjectId(), found->second));
+	   			auto result = rootPrefabIdToUpdatePrefabId.insert(std::make_pair(lookupId, found->second));
 				B3D_ENSURE(result.second);
 	   		}
 	   },
@@ -462,7 +485,7 @@ void PrefabUtility::UpdatePrefab(const HPrefab& prefabToUpdate, const HSceneObje
 			if(sceneObject->HasFlag(SOF_DontSave))
 				return false;
 
-			if(auto found = rootPrefabIdToUpdatePrefabId.find(sceneObject.GetId()); B3D_ENSURE(found != rootPrefabIdToUpdatePrefabId.end()))
+			if(auto found = rootPrefabIdToUpdatePrefabId.find(sceneObject.GetId()); found != rootPrefabIdToUpdatePrefabId.end())
 			{
 				sceneObject->SetPrefabObjectId(found->second);
 				sceneObject->SetPrefabResourceId(prefabId);
@@ -470,7 +493,7 @@ void PrefabUtility::UpdatePrefab(const HPrefab& prefabToUpdate, const HSceneObje
 
 			return true; },
 		  [&rootPrefabIdToUpdatePrefabId](const HComponent& component) {
-			  if(auto found = rootPrefabIdToUpdatePrefabId.find(component.GetId()); B3D_ENSURE(found != rootPrefabIdToUpdatePrefabId.end()))
+			  if(auto found = rootPrefabIdToUpdatePrefabId.find(component.GetId()); found != rootPrefabIdToUpdatePrefabId.end())
 				  component->SetPrefabObjectId(found->second);
 		});
 
