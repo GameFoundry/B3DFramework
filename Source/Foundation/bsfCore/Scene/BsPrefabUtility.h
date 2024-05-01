@@ -73,6 +73,12 @@ namespace bs
 		static void AssignPrefabInstanceIds(const HSceneObject& instanceRoot, const HSceneObject& prefabRoot, const UUID& prefabResourceId);
 
 		/**
+		 * Iterates the hierarchy in @p root, and if a scene object or component is found in @p remappingTable, assigns it the prefab object ID
+		 * from the remapping table, and provided @p prefabId as the prefab resource ID.
+		 */
+		static void RemapPrefabInstanceIds(const HSceneObject& root, const UnorderedMap<UUID, UUID>& remappingTable, const UUID& prefabId);
+
+		/**
 		 * Clears all prefab IDs in the provided object and its children (includes both the prefab object and prefab resource IDs).
 		 *
 		 * @note	If any of its children belong to another prefab they will not be cleared.
@@ -102,6 +108,7 @@ namespace bs
 		static UnorderedMap<UUID, UUID> GetPrefabToInstanceIdMap(const HSceneObject& sceneObject, bool visitChildPrefabs);
 	private:
 		friend class Prefab;
+		friend class PrefabUpdateHelper;
 
 		/**
 		 * Scans the provided hierarchy for any prefab instances, loads their prefab resources and checks if prefab resources

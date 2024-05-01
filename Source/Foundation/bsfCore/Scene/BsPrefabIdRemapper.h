@@ -6,6 +6,10 @@
 
 namespace bs
 {
+	/** @addtogroup Scene-Internal
+	 *  @{
+	 */
+
 	/**
 	 * Helper class that allows prefab instance hierarchy remap their IDs for use within prefab internals. This includes game object ID, prefab object ID and prefab resource ID.
 	 * Examples are provided below for better understanding - the main purpose of this class is find the original IDs from within the prefab, from an instance of that prefab
@@ -167,4 +171,6 @@ namespace bs
 		UUID mPrefabId; /**< ID of the prefab we're restoring IDs for. */
 		SPtr<GameObjectCollection> mNewGameObjectCollection; /**< Game object collection to use for remapping the object IDs. */
 	};
+
+	/** @} */
 } // namespace bs
