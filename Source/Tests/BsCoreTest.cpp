@@ -818,8 +818,9 @@ void CoreTestSuite::TestPrefabScenario2()
 	//     Optional object [Game Object ID = OBI2, Prefab Object ID = OB12, Prefab Resource ID = PFB1] <- Modified
 
 	// Update scene information used for checks
-	mScene.AddNewObjectIds(mScene.OptionalSceneObject_2);
 	mPrefabTestInformation[0].PrefabInternalsScene->RefreshHierarchy(mPrefabTestInformation[0].Prefab->GetRoot());
+
+	mScene.AddNewObjectIds(mScene.OptionalSceneObject_2);
 
 	// Run the checks
 	TestAssertPrefabScenario();
@@ -877,6 +878,7 @@ void CoreTestSuite::TestPrefabScenario3()
 
 	// Update scene information used for checks
 	mPrefabTestInformation[0].PrefabInternalsScene->RefreshHierarchy(mPrefabTestInformation[0].Prefab->GetRoot());
+
 	mScene.OptionalPrefabInstance_0_0->UpdatePrefabLinkIds(mScene.OptionalPrefabInstance_0_0->Root);
 	mScene.OptionalPrefabInstance_1_1->UpdatePrefabLinkIds(mScene.OptionalPrefabInstance_1_1->Root);
 	
@@ -928,15 +930,11 @@ void CoreTestSuite::TestPrefabScenario4()
 	//     PFB2 Instance #2 [Game Object ID = OBI3, Prefab Object ID = OB13, Prefab Resource ID = PFB1]
 
 	// Update scene information used for checks
-	mScene.OptionalPrefabInstance_0_0->AddNewObjectIds(mScene.OptionalPrefabInstance_0_0->OptionalSceneObject_2);
-
 	mPrefabTestInformation[0].PrefabInternalsScene->RefreshHierarchy(mPrefabTestInformation[0].Prefab->GetRoot());
-	mPrefabTestInformation[0].PrefabInternalsScene->OptionalPrefabInstance_0_0->SetFlagOnObject(
-		mPrefabTestInformation[0].PrefabInternalsScene->OptionalPrefabInstance_0_0->OptionalSceneObject_2,
-		UnitTestSceneObjectFlag::IsInstanceModification);
-	mPrefabTestInformation[0].PrefabInternalsScene->OptionalPrefabInstance_0_0->SetFlagOnObject(
-		mPrefabTestInformation[0].PrefabInternalsScene->OptionalPrefabInstance_0_0->OptionalComponent_2,
-		UnitTestSceneObjectFlag::IsInstanceModification);
+	mPrefabTestInformation[0].PrefabInternalsScene->OptionalPrefabInstance_0_0->SetFlagOnObject(mPrefabTestInformation[0].PrefabInternalsScene->OptionalPrefabInstance_0_0->OptionalSceneObject_2, UnitTestSceneObjectFlag::IsInstanceModification);
+	mPrefabTestInformation[0].PrefabInternalsScene->OptionalPrefabInstance_0_0->SetFlagOnObject(mPrefabTestInformation[0].PrefabInternalsScene->OptionalPrefabInstance_0_0->OptionalComponent_2, UnitTestSceneObjectFlag::IsInstanceModification);
+
+	mScene.OptionalPrefabInstance_0_0->AddNewObjectIds(mScene.OptionalPrefabInstance_0_0->OptionalSceneObject_2);
 
 	// Run the checks
 	TestAssertPrefabScenario();
@@ -981,20 +979,14 @@ void CoreTestSuite::TestPrefabScenario5()
 	//     PFB2 Instance #2 [Game Object ID = OBI3, Prefab Object ID = OB13, Prefab Resource ID = PFB1]
 
 	// Update scene information used for checks
-	mScene.OptionalPrefabInstance_1_1->RefreshHierarchy(mScene.OptionalPrefabInstance_1_1->Root);
+	mPrefabTestInformation[1].PrefabInternalsScene->RefreshHierarchy(mPrefabTestInformation[1].Prefab->GetRoot());
 
 	mPrefabTestInformation[0].PrefabInternalsScene->RefreshHierarchy(mPrefabTestInformation[0].Prefab->GetRoot());
+	mPrefabTestInformation[0].PrefabInternalsScene->OptionalPrefabInstance_0_0->UpdatePrefabObjectIds(mPrefabTestInformation[0].PrefabInternalsScene->OptionalPrefabInstance_0_0->OptionalSceneObject_2);
+	mPrefabTestInformation[0].PrefabInternalsScene->OptionalPrefabInstance_0_0->SetFlagOnObject(mPrefabTestInformation[0].PrefabInternalsScene->OptionalPrefabInstance_0_0->OptionalSceneObject_2, UnitTestSceneObjectFlag::None);
+	mPrefabTestInformation[0].PrefabInternalsScene->OptionalPrefabInstance_0_0->SetFlagOnObject(mPrefabTestInformation[0].PrefabInternalsScene->OptionalPrefabInstance_0_0->OptionalComponent_2, UnitTestSceneObjectFlag::None);
 
-	mPrefabTestInformation[0].PrefabInternalsScene->OptionalPrefabInstance_0_0->UpdatePrefabObjectIds(
-		mPrefabTestInformation[0].PrefabInternalsScene->OptionalPrefabInstance_0_0->OptionalSceneObject_2);
-	mPrefabTestInformation[0].PrefabInternalsScene->OptionalPrefabInstance_0_0->SetFlagOnObject(
-		mPrefabTestInformation[0].PrefabInternalsScene->OptionalPrefabInstance_0_0->OptionalSceneObject_2,
-		UnitTestSceneObjectFlag::None);
-	mPrefabTestInformation[0].PrefabInternalsScene->OptionalPrefabInstance_0_0->SetFlagOnObject(
-		mPrefabTestInformation[0].PrefabInternalsScene->OptionalPrefabInstance_0_0->OptionalComponent_2,
-		UnitTestSceneObjectFlag::None);
-
-	mPrefabTestInformation[1].PrefabInternalsScene->RefreshHierarchy(mPrefabTestInformation[1].Prefab->GetRoot());
+	mScene.OptionalPrefabInstance_1_1->RefreshHierarchy(mScene.OptionalPrefabInstance_1_1->Root);
 
 	// Run the checks
 	TestAssertPrefabScenario();
@@ -1096,9 +1088,8 @@ void CoreTestSuite::TestPrefabScenario7()
 
 	// Update scene information used for checks
 	mPrefabTestInformation[0].PrefabInternalsScene->RefreshHierarchy(mPrefabTestInformation[0].Prefab->GetRoot());
-	mPrefabTestInformation[0].PrefabInternalsScene->OptionalPrefabInstance_0_0->OptionalPrefabInstance_0_0->SetFlagOnObject(
-		mPrefabTestInformation[0].PrefabInternalsScene->OptionalPrefabInstance_0_0->OptionalPrefabInstance_0_0->Root,
-		UnitTestSceneObjectFlag::IsPrefabRootInstanceModification);
+	mPrefabTestInformation[0].PrefabInternalsScene->OptionalPrefabInstance_0_0->OptionalPrefabInstance_0_0->SetFlagOnObject(mPrefabTestInformation[0].PrefabInternalsScene->OptionalPrefabInstance_0_0->OptionalPrefabInstance_0_0->Root, UnitTestSceneObjectFlag::IsPrefabRootInstanceModification);
+
 	mScene.OptionalPrefabInstance_0_0->OptionalPrefabInstance_0_0->UpdatePrefabLinkIds();
 
 	// Run the checks
@@ -1108,6 +1099,23 @@ void CoreTestSuite::TestPrefabScenario7()
 // Create Prefab4, add it a as a second child of Prefab #2 instanceRoot
 void CoreTestSuite::TestPrefabScenario8()
 {
+	// Initial state:
+	// ***Scene***
+	// Root
+	//   PFB1 Instance #1 [Game Object ID = OBI1, Prefab Object ID = OB11, Prefab Resource ID = PFB1]
+	//     PFB2 Instance #1 [Game Object ID = OBI2, Prefab Object ID = OB12, Prefab Resource ID = PFB1]
+	//       PFB3 Instance #1 [Game Object ID = OBI4, Prefab Object ID = OB14, Prefab Resource ID = PFB1]
+	//     PFB2 Instance #2 [Game Object ID = OBI3, Prefab Object ID = OB13, Prefab Resource ID = PFB1]
+	//
+	// ***PFB1***
+	// PFB1 Instance [Game Object ID = OB11, Prefab Object ID = OB11, Prefab Resource ID = PFB1]
+	//   PFB2 Instance #1 [Game Object ID = OB12, Prefab Object ID = OB21, Prefab Resource ID = PFB2]
+	//     PFB3 Instance #1 [Game Object ID = OB14, Prefab Object ID = OB31 Prefab Resource ID = PFB3]
+	//   PFB2 Instance #2 [Game Object ID = OB13, Prefab Object ID = OB21, Prefab Resource ID = PFB2]
+	//
+	// ***PFB2***
+	// PFB2 Instance [Game Object ID = OB21, Prefab Object ID = OB21, Prefab Resource ID = PFB2]
+
 	// Create prefab 4
 	HSceneObject prefab4NewHierarchy = UnitTestSceneB::PopulateNewSceneInstance("Prefab #4 Scene Instance");
 	mPrefabTestInformation[3].Prefab = Prefab::Create(prefab4NewHierarchy, false);
@@ -1118,10 +1126,17 @@ void CoreTestSuite::TestPrefabScenario8()
 	HSceneObject prefab4Instance = mScene.OptionalPrefabInstance_0_0->SetUnitTestSceneBChildPrefab_1_1(*mPrefabTestInformation[3].Prefab);
 	prefab4Instance->SetName("Prefab #4 Instance Root");
 
+	// Current state:
+	// ***Scene***
+	// Root
+	//   PFB1 Instance #1 [Game Object ID = OBI1, Prefab Object ID = OB11, Prefab Resource ID = PFB1]
+	//     PFB2 Instance #1 [Game Object ID = OBI2, Prefab Object ID = OB12, Prefab Resource ID = PFB1]
+	//       PFB3 Instance #1 [Game Object ID = OBI4, Prefab Object ID = OB14, Prefab Resource ID = PFB1]
+	//       PFB4 Instance #1 [Game Object ID = OBI5, Prefab Object ID = OB41, Prefab Resource ID = PFB4] <- Modified
+	//     PFB2 Instance #2 [Game Object ID = OBI3, Prefab Object ID = OB13, Prefab Resource ID = PFB1]
+
 	//// Update scene information used for checks
-	mScene.OptionalPrefabInstance_0_0->OptionalPrefabInstance_1_1->SetFlagOnObject(
-		mScene.OptionalPrefabInstance_0_0->OptionalPrefabInstance_1_1->Root,
-		UnitTestSceneObjectFlag::IsPrefabRootInstanceModification);
+	mScene.OptionalPrefabInstance_0_0->OptionalPrefabInstance_1_1->SetFlagOnObject(mScene.OptionalPrefabInstance_0_0->OptionalPrefabInstance_1_1->Root, UnitTestSceneObjectFlag::IsPrefabRootInstanceModification);
 
 	// Run the checks
 	TestAssertPrefabScenario();
@@ -1130,24 +1145,68 @@ void CoreTestSuite::TestPrefabScenario8()
 // Update Prefab2 from Prefab #2 Instance Root
 void CoreTestSuite::TestPrefabScenario9()
 {
+	// Initial state:
+	// ***Scene***
+	// Root
+	//   PFB1 Instance #1 [Game Object ID = OBI1, Prefab Object ID = OB11, Prefab Resource ID = PFB1]
+	//     PFB2 Instance #1 [Game Object ID = OBI2, Prefab Object ID = OB12, Prefab Resource ID = PFB1]
+	//       PFB3 Instance #1 [Game Object ID = OBI4, Prefab Object ID = OB14, Prefab Resource ID = PFB1]
+	//       PFB4 Instance #1 [Game Object ID = OBI5, Prefab Object ID = OB41, Prefab Resource ID = PFB4]
+	//     PFB2 Instance #2 [Game Object ID = OBI3, Prefab Object ID = OB13, Prefab Resource ID = PFB1]
+	//
+	// ***PFB1***
+	// PFB1 Instance [Game Object ID = OB11, Prefab Object ID = OB11, Prefab Resource ID = PFB1]
+	//   PFB2 Instance #1 [Game Object ID = OB12, Prefab Object ID = OB21, Prefab Resource ID = PFB2]
+	//     PFB3 Instance #1 [Game Object ID = OB14, Prefab Object ID = OB31 Prefab Resource ID = PFB3]
+	//   PFB2 Instance #2 [Game Object ID = OB13, Prefab Object ID = OB21, Prefab Resource ID = PFB2]
+	//
+	// ***PFB2***
+	// PFB2 Instance [Game Object ID = OB21, Prefab Object ID = OB21, Prefab Resource ID = PFB2]
+
 	// Update Prefab2 from Prefab #2 Instance Root in scene hierarchy
 	PrefabUtility::UpdatePrefab(mPrefabTestInformation[1].Prefab, mScene.OptionalPrefabInstance_0_0->Root);
 
-	// Update scene information used for checks
-	mScene.OptionalPrefabInstance_0_0->OptionalPrefabInstance_1_1->SetFlagOnObject(
-		mScene.OptionalPrefabInstance_0_0->OptionalPrefabInstance_1_1->Root,
-		UnitTestSceneObjectFlag::None);
-	mScene.OptionalPrefabInstance_0_0->OptionalPrefabInstance_1_1->UpdatePrefabLinkIds();
+	// Current state
+	// ***PFB2***
+	// PFB2 Instance [Game Object ID = OB21, Prefab Object ID = OB21, Prefab Resource ID = PFB2]
+	//   PFB3 Instance #1 [Game Object ID = OB22, Prefab Object ID = OB31, Prefab Resource ID = PFB3] <- Modified
+	//   PFB4 Instance #1 [Game Object ID = OB23, Prefab Object ID = OB41, Prefab Resource ID = PFB4] <- Modified
+	//
+	// ***PFB1***
+	// PFB1 Instance [Game Object ID = OB11, Prefab Object ID = OB11, Prefab Resource ID = PFB1]
+	//   PFB2 Instance #1 [Game Object ID = OB12, Prefab Object ID = OB21, Prefab Resource ID = PFB2]
+	//     PFB3 Instance #1 [Game Object ID = OB14, Prefab Object ID = OB22 Prefab Resource ID = PFB2] <- Modified
+	//     PFB4 Instance #1 [Game Object ID = OB15, Prefab Object ID = OB23, Prefab Resource ID = PFB2] <- Modified
+	//   PFB2 Instance #2 [Game Object ID = OB13, Prefab Object ID = OB21, Prefab Resource ID = PFB2]
+	//     PFB3 Instance #2 [Game Object ID = OB16, Prefab Object ID = OB22 Prefab Resource ID = PFB2] <- Modified
+	//     PFB4 Instance #2 [Game Object ID = OB17, Prefab Object ID = OB23, Prefab Resource ID = PFB2] <- Modified
+	//
+	// ***Scene***
+	// Root
+	//   PFB1 Instance #1 [Game Object ID = OBI1, Prefab Object ID = OB11, Prefab Resource ID = PFB1]
+	//     PFB2 Instance #1 [Game Object ID = OBI2, Prefab Object ID = OB12, Prefab Resource ID = PFB1]
+	//       PFB3 Instance #1 [Game Object ID = OBI4, Prefab Object ID = OB14, Prefab Resource ID = PFB1]
+	//       PFB4 Instance #1 [Game Object ID = OBI5, Prefab Object ID = OB15, Prefab Resource ID = PFB1] <- Modified
+	//     PFB2 Instance #2 [Game Object ID = OBI3, Prefab Object ID = OB13, Prefab Resource ID = PFB1]
+	//       PFB3 Instance #2 [Game Object ID = OBI6, Prefab Object ID = OB16, Prefab Resource ID = PFB1] <- Modified
+	//       PFB4 Instance #2 [Game Object ID = OBI7, Prefab Object ID = OB17, Prefab Resource ID = PFB1] <- Modified
 
-	// TODO - Two new prefab instances got added as children of mScene.OptionalPrefabInstance_1_1, which need to be registered and verified
-	//  - Same for PFB1?
+	// Update scene information used for checks
+	mPrefabTestInformation[1].PrefabInternalsScene->RefreshHierarchy(mPrefabTestInformation[1].Prefab->GetRoot());
 
 	mPrefabTestInformation[0].PrefabInternalsScene->RefreshHierarchy(mPrefabTestInformation[0].Prefab->GetRoot());
 	mPrefabTestInformation[0].PrefabInternalsScene->OptionalPrefabInstance_0_0->OptionalPrefabInstance_0_0->UpdatePrefabLinkIds();
-	mPrefabTestInformation[0].PrefabInternalsScene->OptionalPrefabInstance_0_0->OptionalPrefabInstance_0_0->SetFlagOnObject(
-		mPrefabTestInformation[0].PrefabInternalsScene->OptionalPrefabInstance_0_0->OptionalPrefabInstance_0_0->Root,
-		UnitTestSceneObjectFlag::None);
-	mPrefabTestInformation[1].PrefabInternalsScene->RefreshHierarchy(mPrefabTestInformation[1].Prefab->GetRoot());
+	mPrefabTestInformation[0].PrefabInternalsScene->OptionalPrefabInstance_0_0->OptionalPrefabInstance_0_0->SetFlagOnObject(mPrefabTestInformation[0].PrefabInternalsScene->OptionalPrefabInstance_0_0->OptionalPrefabInstance_0_0->Root, UnitTestSceneObjectFlag::None);
+	mPrefabTestInformation[0].PrefabInternalsScene->OptionalPrefabInstance_1_1->OptionalPrefabInstance_0_0 = B3DMakeShared<UnitTestSceneB>(mPrefabTestInformation[0].PrefabInternalsScene->OptionalPrefabInstance_1_1->OptionalSceneObject_0_0_PrefabInstance);
+	mPrefabTestInformation[0].PrefabInternalsScene->OptionalPrefabInstance_1_1->OptionalPrefabInstance_1_1 = B3DMakeShared<UnitTestSceneB>(mPrefabTestInformation[0].PrefabInternalsScene->OptionalPrefabInstance_1_1->OptionalSceneObject_1_1_PrefabInstance);
+
+	B3D_TEST_ASSERT(mScene.OptionalPrefabInstance_1_1->OptionalPrefabInstance_0_0 == nullptr)
+	B3D_TEST_ASSERT(mScene.OptionalPrefabInstance_1_1->OptionalPrefabInstance_1_1 == nullptr)
+	mScene.OptionalPrefabInstance_1_1->RefreshHierarchy(mScene.OptionalPrefabInstance_1_1->Root);
+	mScene.OptionalPrefabInstance_1_1->OptionalPrefabInstance_0_0 = B3DMakeShared<UnitTestSceneB>(mScene.OptionalPrefabInstance_1_1->OptionalSceneObject_0_0_PrefabInstance);
+	mScene.OptionalPrefabInstance_1_1->OptionalPrefabInstance_1_1 = B3DMakeShared<UnitTestSceneB>(mScene.OptionalPrefabInstance_1_1->OptionalSceneObject_1_1_PrefabInstance);
+	mScene.OptionalPrefabInstance_0_0->OptionalPrefabInstance_1_1->SetFlagOnObject(mScene.OptionalPrefabInstance_0_0->OptionalPrefabInstance_1_1->Root, UnitTestSceneObjectFlag::None);
+	mScene.OptionalPrefabInstance_0_0->OptionalPrefabInstance_1_1->UpdatePrefabLinkIds();
 
 	// Run the checks
 	TestAssertPrefabScenario();
