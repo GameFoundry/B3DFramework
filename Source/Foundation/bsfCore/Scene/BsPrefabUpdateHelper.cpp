@@ -178,7 +178,11 @@ void PrefabUpdateHelper::UpdatePrefab(const HPrefab& prefabToUpdate, const HScen
 			if(parentPrefab == prefabToUpdate)
 				break;
 
-			prefabInstanceParents.push_back(PrefabInstanceRoot(found->Prefab, currentSceneObject, nullptr));
+			HSceneObject currentSceneObjectInstanceRoot = currentSceneObject->GetPrefabInstanceRoot();
+			if(!B3D_ENSURE(currentSceneObjectInstanceRoot != nullptr))
+				continue;
+
+			prefabInstanceParents.push_back(PrefabInstanceRoot(found->Prefab, currentSceneObjectInstanceRoot, nullptr));
 		}
 	}
 
@@ -225,7 +229,9 @@ void PrefabUpdateHelper::UpdatePrefab(const HPrefab& prefabToUpdate, const HScen
 				entry.second = found->second;
 		}
 
-		// Note: We purposefully don't tick the prefab version here, and do another update that takes care of that below. This is because
+		prefabInstanceRoot.ParentPrefab->TickPrefabVersion();
+
+		// Note: We purposefully don't update deltas here, and do another update that takes care of that below. This is because
 		// the prefab could contain multiple instances of our update prefab, and we're only updating one that's related to @p root
 	}
 
