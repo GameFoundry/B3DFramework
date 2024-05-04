@@ -355,7 +355,7 @@ namespace bs
 		 *
 		 * @note	Internal method used primarily be resource factory methods.
 		 */
-		HResource CreateResourceHandle(const SPtr<Resource>& obj);
+		HResource CreateResourceHandle(const SPtr<Resource>& resource);
 
 		/**
 		 * Creates a new resource handle from a resource pointer, with a user defined UUID.

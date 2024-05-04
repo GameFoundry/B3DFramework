@@ -929,10 +929,13 @@ float Resources::GetLoadProgress(const HResource& resource, bool includeDependen
 	return std::min(1.0f, totalBytesLoaded / totalBytesToLoad);
 }
 
-HResource Resources::CreateResourceHandle(const SPtr<Resource>& obj)
+HResource Resources::CreateResourceHandle(const SPtr<Resource>& resource)
 {
-	UUID uuid = UUIDGenerator::GenerateRandom();
-	return CreateResourceHandle(obj, uuid);
+	if(!B3D_ENSURE(resource != nullptr))
+		return nullptr;
+
+	const UUID& uuid = resource->GetId().Empty() ? UUIDGenerator::GenerateRandom() : resource->GetId();
+	return CreateResourceHandle(resource, uuid);
 }
 
 HResource Resources::CreateResourceHandle(const SPtr<Resource>& obj, const UUID& UUID)
