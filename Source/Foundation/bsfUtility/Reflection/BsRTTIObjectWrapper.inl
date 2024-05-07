@@ -899,7 +899,7 @@ namespace bs::RTTIObjectWrapper
 				fnPredicate(rttiFieldSchema, value);
 			}
 
-			return true;;
+			return true;
 		});
 	}
 

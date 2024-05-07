@@ -5,6 +5,7 @@
 #include "BsScriptGameObjectManager.h"
 #include "BsScriptMeta.h"
 #include "BsMonoClass.h"
+#include "Scene/BsSceneManager.h"
 #include "Wrappers/BsScriptSceneObject.h"
 
 using namespace bs;
@@ -30,7 +31,7 @@ MonoObject* ScriptPrefab::InternalInstantiate(ScriptPrefab* thisPtr)
 {
 	HPrefab prefab = thisPtr->GetHandle();
 
-	HSceneObject instance = prefab->Instantiate();
+	HSceneObject instance = prefab->Instantiate(GetSceneManager().GetMainScene());
 	ScriptSceneObject* scriptInstance = ScriptGameObjectManager::Instance().GetOrCreateScriptSceneObject(instance);
 
 	return scriptInstance->GetManagedInstance();
