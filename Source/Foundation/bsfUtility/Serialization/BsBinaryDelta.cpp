@@ -294,9 +294,9 @@ Optional<SPtr<ISerialized>> GenerateValueDelta(const RTTIFieldSchema& fieldSchem
 	{
 		const RTTIFieldTypeSchema& fieldTypeSchema = fieldSchema.FieldTypes[tupleElementIndex];
 
-		const Value<IsRHSIReflectable>& rhsTupleElement = isTuple ? rhs.GetTupleElement(tupleElementIndex) : rhs;
-		Optional<Value<IsLHSIReflectable>> maybeLhsTupleElement = maybeLhs;
-		if(isTuple && !isLhsMissing)
+		const Value<IsRHSIReflectable>& rhsTupleElement = rhs.GetTupleElement(tupleElementIndex);
+		Optional<Value<IsLHSIReflectable>> maybeLhsTupleElement;
+		if(!isLhsMissing)
 			maybeLhsTupleElement = maybeLhs->GetTupleElement(tupleElementIndex);
 
 		Optional<SPtr<ISerialized>> tupleElementModification;
@@ -426,7 +426,7 @@ Optional<SPtr<ISerialized>> GenerateValueDelta(const RTTIFieldSchema& fieldSchem
 				{
 					serializedTupleDelta = B3DMakeShared<SerializedTupleDelta>();
 
-					const Value<IsRHSIReflectable>& rhsTupleKeyElement = isTuple ? rhs.GetTupleElement(0) : rhs;
+					const Value<IsRHSIReflectable>& rhsTupleKeyElement = rhs.GetTupleElement(0);
 					serializedTupleDelta->Key = rhsTupleKeyElement.Clone(flags, context);
 
 					modification = serializedTupleDelta;

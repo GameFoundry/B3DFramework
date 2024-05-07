@@ -35,7 +35,6 @@ namespace bs::RTTIObjectWrapper
 	inline Object<true>::Object(IReflectable* object, RTTITypeBase* type, FrameAllocator* frameAllocator)
 		: mObject(object), mRTTIType(type), mFrameAllocator(frameAllocator)
 	{
-		B3D_ASSERT(object != nullptr);
 		B3D_ASSERT(type != nullptr);
 		B3D_ASSERT(frameAllocator != nullptr);
 	}
@@ -110,7 +109,7 @@ namespace bs::RTTIObjectWrapper
 	inline FieldIterator<true> SubObject<true>::GetFieldIterator() const
 	{
 		B3D_ASSERT(mRTTITypeInstance != nullptr);
-		return FieldIterator<true>(mRTTITypeInstance, mObject, mFrameAllocator);
+		return FieldIterator<true>(mRTTIType, mRTTITypeInstance, mObject, mFrameAllocator);
 	}
 
 	inline SubObjectIterator<false>::SubObjectIterator(SerializedObject* object, FrameAllocator* frameAllocator)
@@ -197,10 +196,10 @@ namespace bs::RTTIObjectWrapper
 		return mValue != nullptr ? mValue->Clone() : nullptr;
 	}
 
-	inline Field<true>::Field(RTTITypeBase* rttiType, RTTIField* field, IReflectable* object, FrameAllocator* frameAllocator)
-		: mRTTIType(rttiType), mField(field), mObject(object), mFrameAllocator(frameAllocator)
+	inline Field<true>::Field(RTTITypeBase* rttiTypeInstance, RTTIField* field, IReflectable* object, FrameAllocator* frameAllocator)
+		: mRTTITypeInstance(rttiTypeInstance), mField(field), mObject(object), mFrameAllocator(frameAllocator)
 	{
-		B3D_ASSERT(rttiType != nullptr);
+		B3D_ASSERT(rttiTypeInstance != nullptr);
 		B3D_ASSERT(field != nullptr);
 		B3D_ASSERT(object != nullptr);
 		B3D_ASSERT(frameAllocator != nullptr);
@@ -216,19 +215,19 @@ namespace bs::RTTIObjectWrapper
 		if(mField->Schema.IsIterator)
 		{
 			auto* const field = static_cast<RTTIIteratorField*>(mField);
-			const SPtr<IRTTIIterator> iterator = field->GetIterator(mRTTIType, mObject, *mFrameAllocator);
+			const SPtr<IRTTIIterator> iterator = field->GetIterator(mRTTITypeInstance, mObject, *mFrameAllocator);
 
-			return ValueIterator<true>(mField, mRTTIType, mObject, iterator, mFrameAllocator);
+			return ValueIterator<true>(mField, mRTTITypeInstance, mObject, iterator, mFrameAllocator);
 		}
 		else
 		{
 			if(mField->Schema.IsArray)
 			{
-				const u32 arraySize = mField->GetArraySize(mRTTIType, mObject);
-				return ValueIterator<true>(mField, mRTTIType, mObject, arraySize, mFrameAllocator);
+				const u32 arraySize = mField->GetArraySize(mRTTITypeInstance, mObject);
+				return ValueIterator<true>(mField, mRTTITypeInstance, mObject, arraySize, mFrameAllocator);
 			}
 			else
-				return ValueIterator<true>(mField, mRTTIType, mObject, ~0u, mFrameAllocator);
+				return ValueIterator<true>(mField, mRTTITypeInstance, mObject, ~0u, mFrameAllocator);
 		}
 	}
 
@@ -239,10 +238,10 @@ namespace bs::RTTIObjectWrapper
 		if(mField->Schema.IsIterator)
 		{
 			auto* const field = static_cast<RTTIIteratorField*>(mField);
-			return intermediateSerializer.SerializeField(*mObject, *mRTTIType, *field, flags);
+			return intermediateSerializer.SerializeField(*mObject, *mRTTITypeInstance, *field, flags);
 		}
 
-		return intermediateSerializer.SerializeField(mObject, mRTTIType, mField, ~0u, flags);
+		return intermediateSerializer.SerializeField(mObject, mRTTITypeInstance, mField, ~0u, flags);
 	}
 
 	inline ValueIterator<false>::ValueIterator(const SPtr<ISerialized>& value, FrameAllocator* frameAllocator)
@@ -353,21 +352,21 @@ namespace bs::RTTIObjectWrapper
 		return {};
 	}
 
-	inline ValueIterator<true>::ValueIterator(RTTIField* field, RTTITypeBase* rttiType, IReflectable* object, const SPtr<IRTTIIterator>& iterator, FrameAllocator* frameAllocator)
-		: mIterator(iterator), mObject(object), mRTTIType(rttiType), mField(field), mFrameAllocator(frameAllocator)
+	inline ValueIterator<true>::ValueIterator(RTTIField* field, RTTITypeBase* rttiTypeInstance, IReflectable* object, const SPtr<IRTTIIterator>& iterator, FrameAllocator* frameAllocator)
+		: mIterator(iterator), mObject(object), mRTTITypeInstance(rttiTypeInstance), mField(field), mFrameAllocator(frameAllocator)
 	{
 		B3D_ASSERT(field != nullptr);
-		B3D_ASSERT(rttiType != nullptr);
+		B3D_ASSERT(rttiTypeInstance != nullptr);
 		B3D_ASSERT(object != nullptr);
 		B3D_ASSERT(iterator != nullptr);
 		B3D_ASSERT(frameAllocator != nullptr);
 	}
 
-	inline ValueIterator<true>::ValueIterator(RTTIField* field, RTTITypeBase* rttiType, IReflectable* object, u32 elementCount, FrameAllocator* frameAllocator)
-		: mElementCount(elementCount), mObject(object), mRTTIType(rttiType), mField(field), mFrameAllocator(frameAllocator)
+	inline ValueIterator<true>::ValueIterator(RTTIField* field, RTTITypeBase* rttiTypeInstance, IReflectable* object, u32 elementCount, FrameAllocator* frameAllocator)
+		: mElementCount(elementCount), mObject(object), mRTTITypeInstance(rttiTypeInstance), mField(field), mFrameAllocator(frameAllocator)
 	{
 		B3D_ASSERT(field != nullptr);
-		B3D_ASSERT(rttiType != nullptr);
+		B3D_ASSERT(rttiTypeInstance != nullptr);
 		B3D_ASSERT(object != nullptr);
 		B3D_ASSERT(frameAllocator != nullptr);
 	}
@@ -378,37 +377,35 @@ namespace bs::RTTIObjectWrapper
 		{
 			mIsIteratorSet = true;
 			mElementIndex = 0;
-
-			return true;
 		}
 		else
 		{
 			mElementIndex++;
 
 			if(mIterator != nullptr)
-			{
 				mIterator->Increment();
-				return mIterator->IsValid();
-			}
+		}
+
+		if(mIterator != nullptr)
+			return mIterator->IsValid();
+		else
+		{
+			if(mElementCount == ~0u)
+				return mElementIndex == 0;
 			else
-			{
-				if(mElementCount == ~0u)
-					return mElementIndex == 0;
-				else
-					return mElementIndex < mElementCount;
-			}
+				return mElementIndex < mElementCount;
 		}
 	}
 
 	inline Value<true> ValueIterator<true>::GetValue() const
 	{
 		if(mIterator != nullptr)
-			return Value<true>(mField, ~0u, mIterator, mRTTIType, mObject, mFrameAllocator);
+			return Value<true>(mField, ~0u, mIterator, mRTTITypeInstance, mObject, mFrameAllocator);
 
 		if(mElementCount != ~0u)
-			return Value<true>(mField, ~0u, mElementIndex, mRTTIType, mObject, mFrameAllocator);
+			return Value<true>(mField, ~0u, mElementIndex, mRTTITypeInstance, mObject, mFrameAllocator);
 
-		return Value<true>(mField, ~0u, ~0u, mRTTIType, mObject, mFrameAllocator);
+		return Value<true>(mField, ~0u, ~0u, mRTTITypeInstance, mObject, mFrameAllocator);
 	}
 
 	inline u32 ValueIterator<true>::GetElementCount() const
@@ -439,12 +436,12 @@ namespace bs::RTTIObjectWrapper
 			{
 				SPtr<IRTTIIterator> iteratorCopy = mIterator->Clone(*mFrameAllocator);
 
-				const void* fieldValue = field.GetIteratorValue(mRTTIType, mObject, *mFrameAllocator, *mIterator);
+				const void* fieldValue = field.GetIteratorValue(mRTTITypeInstance, mObject, *mFrameAllocator, *mIterator);
 
 				if(!iteratorCopy->SeekToKey(fieldValue))
 					return {};
 				
-				return Value<true>(mField, ~0u, iteratorCopy, mRTTIType, mObject, mFrameAllocator);
+				return Value<true>(mField, ~0u, iteratorCopy, mRTTITypeInstance, mObject, mFrameAllocator);
 			}
 			else if(field.IteratorSupportsSeekToIndex())
 			{
@@ -452,20 +449,20 @@ namespace bs::RTTIObjectWrapper
 				if(!iteratorCopy->SeekToIndex(otherIterator.mElementIndex))
 					return {};
 				
-				return Value<true>(mField, ~0u, iteratorCopy, mRTTIType, mObject, mFrameAllocator);
+				return Value<true>(mField, ~0u, iteratorCopy, mRTTITypeInstance, mObject, mFrameAllocator);
 			}
 			else // Just a regular field
-				return Value<true>(mField, ~0u, mIterator, mRTTIType, mObject, mFrameAllocator);
+				return Value<true>(mField, ~0u, mIterator, mRTTITypeInstance, mObject, mFrameAllocator);
 		}
 		else // DEPRECATED
 		{
 			if(mElementCount == ~0u) // Just a regular field
-				return Value<true>(mField, ~0u, ~0u, mRTTIType, mObject, mFrameAllocator);
+				return Value<true>(mField, ~0u, ~0u, mRTTITypeInstance, mObject, mFrameAllocator);
 
 			if(otherIterator.mElementIndex >= mElementCount)
 				return {};
 
-			return Value<true>(mField, ~0u, otherIterator.mElementIndex, mRTTIType, mObject, mFrameAllocator);
+			return Value<true>(mField, ~0u, otherIterator.mElementIndex, mRTTITypeInstance, mObject, mFrameAllocator);
 		}
 
 		return {};
@@ -493,6 +490,9 @@ namespace bs::RTTIObjectWrapper
 
 	inline Value<false> Value<false>::GetTupleElement(u32 tupleElementIndex) const
 	{
+		if(!B3D_ENSURE(mTupleElementIndex == ~0u))
+			return Value<false>(tupleElementIndex, nullptr, mFrameAllocator);
+
 		SPtr<ISerialized> value;
 		if(auto tuple = B3DRTTICast<SerializedTuple>(mValue))
 		{
@@ -505,6 +505,8 @@ namespace bs::RTTIObjectWrapper
 		{
 			if(!B3D_ENSURE(tupleElementIndex == 0))
 				value = nullptr;
+			else
+				value = mValue;
 		}
 
 		return Value<false>(tupleElementIndex, value, mFrameAllocator);
@@ -512,6 +514,9 @@ namespace bs::RTTIObjectWrapper
 
 	inline Object<false> Value<false>::GetObject() const
 	{
+		if(!B3D_ENSURE(mTupleElementIndex != ~0u))
+			return Object<false>(nullptr, mFrameAllocator);
+
 		return Object<false>(static_cast<SerializedObject*>(mValue.get()), mFrameAllocator);
 	}
 
@@ -526,12 +531,18 @@ namespace bs::RTTIObjectWrapper
 
 	inline u32 Value<false>::GetPlainSize() const
 	{
+		if(!B3D_ENSURE(mTupleElementIndex != ~0u))
+			return 0;
+
 		auto* field = static_cast<SerializedPlainData*>(mValue.get());
 		return field->Size;
 	}
 
 	inline bool Value<false>::ComparePlain(const Value<false>& other) const
 	{
+		if(!B3D_ENSURE(mTupleElementIndex != ~0u))
+			return false;
+
 		auto* curFieldData = static_cast<SerializedPlainData*>(mValue.get());
 		auto* otherFieldData = static_cast<SerializedPlainData*>(other.mValue.get());
 
@@ -544,6 +555,9 @@ namespace bs::RTTIObjectWrapper
 
 	inline bool Value<false>::ComparePlain(const Value<true>& other) const
 	{
+		if(!B3D_ENSURE(mTupleElementIndex != ~0u))
+			return false;
+
 		auto* curFieldData = static_cast<SerializedPlainData*>(mValue.get());
 
 		u32 otherTypeSize = other.GetPlainSize();
@@ -566,21 +580,21 @@ namespace bs::RTTIObjectWrapper
 		return nullptr;
 	}
 
-	inline Value<true>::Value(RTTIField* field, u32 tupleElementIndex, const SPtr<IRTTIIterator>& iterator, RTTITypeBase* rttiType, IReflectable* object, FrameAllocator* frameAllocator)
-		: mField(field), mTupleElementIndex(tupleElementIndex), mIterator(iterator), mRTTIType(rttiType), mObject(object), mFrameAllocator(frameAllocator)
+	inline Value<true>::Value(RTTIField* field, u32 tupleElementIndex, const SPtr<IRTTIIterator>& iterator, RTTITypeBase* rttiTypeInstance, IReflectable* object, FrameAllocator* frameAllocator)
+		: mField(field), mTupleElementIndex(tupleElementIndex), mIterator(iterator), mRTTITypeInstance(rttiTypeInstance), mObject(object), mFrameAllocator(frameAllocator)
 	{
 		B3D_ASSERT(field != nullptr);
 		B3D_ASSERT(iterator != nullptr);
-		B3D_ASSERT(rttiType != nullptr);
+		B3D_ASSERT(rttiTypeInstance != nullptr);
 		B3D_ASSERT(object != nullptr);
 		B3D_ASSERT(frameAllocator != nullptr);
 	}
 
-	inline Value<true>::Value(RTTIField* field, u32 tupleElementIndex, u32 arrayIndex, RTTITypeBase* rttiType, IReflectable* object, FrameAllocator* frameAllocator)
-		: mField(field), mTupleElementIndex(tupleElementIndex), mArrayIndex(arrayIndex), mRTTIType(rttiType), mObject(object), mFrameAllocator(frameAllocator)
+	inline Value<true>::Value(RTTIField* field, u32 tupleElementIndex, u32 arrayIndex, RTTITypeBase* rttiTypeInstance, IReflectable* object, FrameAllocator* frameAllocator)
+		: mField(field), mTupleElementIndex(tupleElementIndex), mArrayIndex(arrayIndex), mRTTITypeInstance(rttiTypeInstance), mObject(object), mFrameAllocator(frameAllocator)
 	{
 		B3D_ASSERT(field != nullptr);
-		B3D_ASSERT(rttiType != nullptr);
+		B3D_ASSERT(rttiTypeInstance != nullptr);
 		B3D_ASSERT(object != nullptr);
 		B3D_ASSERT(frameAllocator != nullptr);
 	}
@@ -596,9 +610,12 @@ namespace bs::RTTIObjectWrapper
 	inline Value<true> Value<true>::GetTupleElement(u32 tupleElementIndex) const
 	{
 		if(!B3D_ENSURE(mTupleElementIndex == ~0u))
-			return Value<true>(mField, ~0u, nullptr, mRTTIType, mObject, mFrameAllocator);
+			return Value<true>(mField, ~0u, nullptr, mRTTITypeInstance, mObject, mFrameAllocator);
 
-		return Value<true>(mField, tupleElementIndex, mIterator, mRTTIType, mObject, mFrameAllocator);
+		if(mIterator != nullptr)
+			return Value<true>(mField, tupleElementIndex, mIterator, mRTTITypeInstance, mObject, mFrameAllocator);
+		else
+			return Value<true>(mField, tupleElementIndex, mArrayIndex, mRTTITypeInstance, mObject, mFrameAllocator);
 	}
 
 	inline Object<true> Value<true>::GetObject() const
@@ -613,7 +630,7 @@ namespace bs::RTTIObjectWrapper
 		if(mIterator != nullptr)
 		{
 			auto* field = static_cast<RTTIIteratorField*>(mField);
-			const void* fieldValue = field->GetIteratorValue(mRTTIType, mObject, *mFrameAllocator, *mIterator);
+			const void* fieldValue = field->GetIteratorValue(mRTTITypeInstance, mObject, *mFrameAllocator, *mIterator);
 
 			if(fieldTypeSchema.Type == SerializableFT_ReflectablePtr)
 			{
@@ -639,9 +656,9 @@ namespace bs::RTTIObjectWrapper
 
 				auto* field = static_cast<RTTIReflectablePtrFieldBase*>(mField);
 				if(isArrayElement)
-					object = field->GetArrayValue(mRTTIType, mObject, mArrayIndex);
+					object = field->GetArrayValue(mRTTITypeInstance, mObject, mArrayIndex);
 				else
-					object = field->GetValue(mRTTIType, mObject);
+					object = field->GetValue(mRTTITypeInstance, mObject);
 
 				return Object<true>(object.get(), field->GetType(), mFrameAllocator);
 			}
@@ -651,9 +668,9 @@ namespace bs::RTTIObjectWrapper
 
 				auto* field = static_cast<RTTIReflectableFieldBase*>(mField);
 				if(isArrayElement)
-					object = &field->GetArrayValue(mRTTIType, mObject, mArrayIndex);
+					object = &field->GetArrayValue(mRTTITypeInstance, mObject, mArrayIndex);
 				else
-					object = &field->GetValue(mRTTIType, mObject);
+					object = &field->GetValue(mRTTITypeInstance, mObject);
 
 				return Object<true>(object, field->GetType(), mFrameAllocator);
 			}
@@ -667,7 +684,7 @@ namespace bs::RTTIObjectWrapper
 	{
 		auto* field = static_cast<RTTIManagedDataBlockFieldBase*>(mField);
 
-		SPtr<DataStream> stream = field->GetValue(mRTTIType, mObject, size);
+		SPtr<DataStream> stream = field->GetValue(mRTTITypeInstance, mObject, size);
 		offset = (u32)stream->Tell();
 
 		return stream;
@@ -681,7 +698,7 @@ namespace bs::RTTIObjectWrapper
 		if(mIterator != nullptr)
 		{
 			auto* field = static_cast<RTTIIteratorField*>(mField);
-			const void* fieldValue = field->GetIteratorValue(mRTTIType, mObject, *mFrameAllocator, *mIterator);
+			const void* fieldValue = field->GetIteratorValue(mRTTITypeInstance, mObject, *mFrameAllocator, *mIterator);
 
 			return field->GetPlainTypeSize(fieldValue, mTupleElementIndex, false).Bytes;
 		}
@@ -694,9 +711,9 @@ namespace bs::RTTIObjectWrapper
 			{
 				const bool isArrayElement = mArrayIndex != ~0u;
 				if(isArrayElement)
-					size = field->GetArrayElemDynamicSize(mRTTIType, mObject, (int)mArrayIndex, false).Bytes;
+					size = field->GetArrayElemDynamicSize(mRTTITypeInstance, mObject, (int)mArrayIndex, false).Bytes;
 				else
-					size = field->GetDynamicSize(mRTTIType, mObject, false).Bytes;
+					size = field->GetDynamicSize(mRTTITypeInstance, mObject, false).Bytes;
 			}
 			else
 				size = field->Schema.FieldTypes[mTupleElementIndex].FixedSize.Bytes;
@@ -713,7 +730,7 @@ namespace bs::RTTIObjectWrapper
 		if(mIterator != nullptr)
 		{
 			auto* field = static_cast<RTTIIteratorField*>(mField);
-			const void* fieldValue = field->GetIteratorValue(mRTTIType, mObject, *mFrameAllocator, *mIterator);
+			const void* fieldValue = field->GetIteratorValue(mRTTITypeInstance, mObject, *mFrameAllocator, *mIterator);
 			Bitstream tempStream(buffer, bufferSize);
 
 			field->WritePlainTypeTupleToStream(fieldValue, mTupleElementIndex, tempStream, false);
@@ -725,9 +742,9 @@ namespace bs::RTTIObjectWrapper
 
 			const bool isArrayElement = mArrayIndex != ~0u;
 			if(isArrayElement)
-				field->ArrayElemToStream(mRTTIType, mObject, (int)mArrayIndex, tempStream);
+				field->ArrayElemToStream(mRTTITypeInstance, mObject, (int)mArrayIndex, tempStream);
 			else
-				field->ToStream(mRTTIType, mObject, tempStream);
+				field->ToStream(mRTTITypeInstance, mObject, tempStream);
 		}
 	}
 
@@ -781,12 +798,12 @@ namespace bs::RTTIObjectWrapper
 		if(mIterator != nullptr)
 		{
 			if(mTupleElementIndex != ~0u)
-				return intermediateSerializer.SerializeTupleElement(*mObject, *mRTTIType, *field, *mIterator, mTupleElementIndex, flags);
+				return intermediateSerializer.SerializeTupleElement(*mObject, *mRTTITypeInstance, *field, *mIterator, mTupleElementIndex, flags);
 
-			return intermediateSerializer.SerializeElement(*mObject, *mRTTIType, *field, *mIterator, flags);
+			return intermediateSerializer.SerializeElement(*mObject, *mRTTITypeInstance, *field, *mIterator, flags);
 		}
 
-		return intermediateSerializer.SerializeField(mObject, mRTTIType, mField, mArrayIndex, flags);
+		return intermediateSerializer.SerializeField(mObject, mRTTITypeInstance, mField, mArrayIndex, flags);
 	}
 
 	inline FieldIterator<false>::FieldIterator(SerializedObject* value, u32 subObjectIndex, FrameAllocator* frameAllocator)
@@ -814,8 +831,8 @@ namespace bs::RTTIObjectWrapper
 		return Field<false>(mFieldIterator->first, mFieldIterator->second.Value, mFrameAllocator);
 	}
 
-	inline FieldIterator<true>::FieldIterator(RTTITypeBase* rttiType, IReflectable* value, FrameAllocator* frameAllocator)
-		: mValue(value), mRTTIType(rttiType), mFrameAllocator(frameAllocator)
+	inline FieldIterator<true>::FieldIterator(RTTITypeBase* rttiType, RTTITypeBase* rttiTypeInstance, IReflectable* value, FrameAllocator* frameAllocator)
+		: mValue(value), mRTTIType(rttiType), mRTTITypeInstance(rttiTypeInstance), mFrameAllocator(frameAllocator)
 	{
 		B3D_ASSERT(rttiType != nullptr);
 		B3D_ASSERT(value != nullptr);
@@ -850,12 +867,15 @@ namespace bs::RTTIObjectWrapper
 	{
 		RTTIField* field = mRTTIType->GetField(mFieldIndex);
 
-		return Field<true>(mRTTIType, field, mValue, mFrameAllocator);
+		return Field<true>(mRTTITypeInstance, field, mValue, mFrameAllocator);
 	}
 
 	template<bool IsIReflectable, typename Predicate>
 	void IterateFields(Object<IsIReflectable> object, Predicate&& fnPredicate)
 	{
+		if(object.GetWrappedObject() == nullptr)
+			return;
+
 		SubObjectIterator<IsIReflectable> subObjectIterator = object.GetSubObjectIterator();
 
 		while(subObjectIterator.MoveNext())
@@ -907,11 +927,10 @@ namespace bs::RTTIObjectWrapper
 	void IterateFieldTupleValues(Object<IsIReflectable> object, Predicate&& fnPredicate, FieldFilterPredicate&& fnFieldFilterPredicate)
 	{
 		IterateFieldValues(object, [&fnPredicate](const RTTIFieldSchema& rttiFieldSchema, const Value<IsIReflectable>& value) {
-			const bool isTuple = rttiFieldSchema.FieldTypes.Size() > 1;
 			for(u32 tupleElementIndex = 0; tupleElementIndex < (u32)rttiFieldSchema.FieldTypes.Size(); ++tupleElementIndex)
 			{
 				const RTTIFieldTypeSchema& fieldTypeSchema = rttiFieldSchema.FieldTypes[tupleElementIndex];
-				Value<IsIReflectable> tupleElement = isTuple ? value.GetTupleElement(tupleElementIndex) : value;
+				Value<IsIReflectable> tupleElement = value.GetTupleElement(tupleElementIndex);
 
 				fnPredicate(fieldTypeSchema, tupleElement);
 			}

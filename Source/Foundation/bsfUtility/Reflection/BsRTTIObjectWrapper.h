@@ -256,7 +256,7 @@ namespace bs::RTTIObjectWrapper
 	private:
 		friend struct Field<false>;
 
-		RTTITypeBase* mRTTIType = nullptr;
+		RTTITypeBase* mRTTITypeInstance = nullptr;
 		RTTIField* mField = nullptr;
 		IReflectable* mObject = nullptr;
 
@@ -292,7 +292,7 @@ namespace bs::RTTIObjectWrapper
 	template <>
 	struct FieldIterator<true>
 	{
-		FieldIterator(RTTITypeBase* rttiType, IReflectable* value, FrameAllocator* allocator);
+		FieldIterator(RTTITypeBase* rttiType, RTTITypeBase* rttiTypeInstance, IReflectable* value, FrameAllocator* allocator);
 
 		/**
 		 * Moves to the next field and return false if no field was available (end was reached).
@@ -306,6 +306,7 @@ namespace bs::RTTIObjectWrapper
 	private:
 		IReflectable* mValue = nullptr;
 		RTTITypeBase* mRTTIType = nullptr;
+		RTTITypeBase* mRTTITypeInstance = nullptr;
 		u32 mFieldIndex = ~0u;
 
 		FrameAllocator* mFrameAllocator = nullptr;
@@ -395,7 +396,7 @@ namespace bs::RTTIObjectWrapper
 		u32 mElementCount = 0;
 
 		IReflectable* mObject = nullptr;
-		RTTITypeBase* mRTTIType = nullptr;
+		RTTITypeBase* mRTTITypeInstance = nullptr;
 		RTTIField* mField = nullptr;
 
 		FrameAllocator* mFrameAllocator = nullptr;
@@ -460,8 +461,8 @@ namespace bs::RTTIObjectWrapper
 	{
 	public:
 		Value() = default;
-		Value(RTTIField* field, u32 tupleElementIndex, const SPtr<IRTTIIterator>& iterator, RTTITypeBase* rttiType, IReflectable* object, FrameAllocator* allocator);
-		Value(RTTIField* field, u32 tupleElementIndex, u32 arrayIndex, RTTITypeBase* rttiType, IReflectable* object, FrameAllocator* allocator);
+		Value(RTTIField* field, u32 tupleElementIndex, const SPtr<IRTTIIterator>& iterator, RTTITypeBase* rttiTypeInstance, IReflectable* object, FrameAllocator* allocator);
+		Value(RTTIField* field, u32 tupleElementIndex, u32 arrayIndex, RTTITypeBase* rttiTypeInstance, IReflectable* object, FrameAllocator* allocator);
 
 		/** If the value represents a tuple (e.g. std::pair<K, V>), represents the index within the tuple. */
 		u32 GetTupleElementIndex() const { return mTupleElementIndex; }
@@ -508,7 +509,7 @@ namespace bs::RTTIObjectWrapper
 		u32 mArrayIndex = ~0u;
 
 		IReflectable* mObject = nullptr;
-		RTTITypeBase* mRTTIType = nullptr;
+		RTTITypeBase* mRTTITypeInstance = nullptr;
 		RTTIField* mField = nullptr;
 
 		FrameAllocator* mFrameAllocator = nullptr;
