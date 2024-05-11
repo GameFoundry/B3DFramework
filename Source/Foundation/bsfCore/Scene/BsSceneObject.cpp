@@ -81,11 +81,15 @@ void SceneObject::Destroy(bool immediate)
 
 void SceneObject::QueueForDestroy()
 {
+	// Important to queue components to destroy before the scene objects, as they will reference their parent during destruction
+	while(!mComponents.empty())
+	{
+		HComponent component = mComponents.back();
+		component->Destroy(false);
+	}
+
 	for(const auto& child : mChildren)
 		child->QueueForDestroy();
-
-	for(const auto& component : mComponents)
-		component->Destroy(false);
 
 	SetIsQueuedForDestroy();
 
@@ -96,8 +100,12 @@ void SceneObject::QueueForDestroy()
 
 void SceneObject::DestroyImmediate()
 {
-	for(auto it = mChildren.begin(); it != mChildren.end(); ++it)
-		(*it)->DestroyImmediate();
+	// If queued for destroy, children will be queued as well
+	if(!GetIsQueuedForDestroy())
+	{
+		for(auto it = mChildren.begin(); it != mChildren.end(); ++it)
+			(*it)->DestroyImmediate();
+	}
 
 	mChildren.clear();
 

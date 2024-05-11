@@ -162,18 +162,24 @@ void GameObjectCollection::ChangeGameObjectId(GameObjectHandleBase& gameObject, 
 
 void GameObjectCollection::QueueForDestroy(const GameObjectHandleBase& object)
 {
-	if(object.IsDestroyed())
+	if(object.IsDestroyed(false))
 		return;
 
-	mQueuedForDestroy[object.GetId()] = object;
+	auto result = mQueuedForDestroy.insert(std::make_pair(object.GetId(), object));
+	if(B3D_ENSURE(result.second))
+		mOrderedQueuedForDestroy.push_back(object.GetId());
 }
 
 void GameObjectCollection::DestroyQueuedObjects()
 {
-	for(auto it = mQueuedForDestroy.begin(); it != mQueuedForDestroy.end();)
+	for(const auto& id : mOrderedQueuedForDestroy)
 	{
-		GameObjectHandleBase handle = it->second;
-		it = mQueuedForDestroy.erase(it);
+		auto found = mQueuedForDestroy.find(id);
+		if(!B3D_ENSURE(found != mQueuedForDestroy.end()))
+			continue;
+
+		GameObjectHandleBase handle = found->second;
+		mQueuedForDestroy.erase(found);
 
 		if(handle.IsDestroyed(false))
 			continue;
@@ -182,6 +188,7 @@ void GameObjectCollection::DestroyQueuedObjects()
 	}
 
 	mQueuedForDestroy.clear();
+	mOrderedQueuedForDestroy.clear();
 }
 
 void GameObjectCollection::RegisterUnresolvedHandle(GameObjectHandleBase& handle)

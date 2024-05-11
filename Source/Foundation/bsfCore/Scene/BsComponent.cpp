@@ -34,6 +34,9 @@ void Component::Destroy(bool immediate)
 		return;
 	}
 
+	HComponent thisComponentHandle = B3DStaticGameObjectCast<Component>(mThisHandle);
+	mParent->NotifyWillDestroyComponent(thisComponentHandle);
+
 	// Queue for destroy
 	SetIsQueuedForDestroy();
 
@@ -50,7 +53,9 @@ void Component::DestroyImmediate()
 	if(mParent->IsInstantiated())
 		GetSceneManager().NotifyComponentDestroyedInternal(thisComponentHandle, true);
 
-	mParent->NotifyWillDestroyComponent(thisComponentHandle);
+	// IF queued for destroy, parent will have already been notified
+	if(!GetIsQueuedForDestroy())
+		mParent->NotifyWillDestroyComponent(thisComponentHandle);
 
 	if(ownerCollection != nullptr) // Allowed to be null during GameObjectCollection destructor call
 		ownerCollection->UnregisterObject(mThisHandle, mParent->IsInstantiated());

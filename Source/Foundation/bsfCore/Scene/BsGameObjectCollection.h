@@ -136,6 +136,7 @@ namespace bs
 		UnorderedMap<UUID, UUID> mUUIDRemapping;
 		UnorderedMap<UUID, GameObjectHandleBase> mObjects;
 		UnorderedMap<UUID, GameObjectHandleBase> mQueuedForDestroy;
+		Vector<UUID> mOrderedQueuedForDestroy;
 		UnorderedMap<UUID, SPtr<GameObjectHandleData>> mUnresolvedHandleSharedHandleData;
 		Vector<GameObjectHandleBase> mUnresolvedHandles;
 	};

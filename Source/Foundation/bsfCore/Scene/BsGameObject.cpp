@@ -17,6 +17,7 @@ void GameObject::SetInstanceData(const SPtr<GameObjectInstanceData>& other)
 	SPtr<GameObject> object = mInstanceData->Object;
 
 	mInstanceData = other;
+	mInstanceData->Object = nullptr; // Note: Important to clear this before assign below, because GameObject destructor will clear mInstanceData->Object, which will trigger if this is the last object instance
 	mInstanceData->Object = object;
 }
 
