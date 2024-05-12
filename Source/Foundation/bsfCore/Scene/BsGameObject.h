@@ -20,6 +20,31 @@ namespace bs
 		TCF_Mobility = 0x04 /**< Component will be notified when mobility state changes. */
 	};
 
+	/** Flags that specify the state and control behaviour of a GameObject. */
+	enum class GameObjectFlag
+	{
+		None = 0,
+
+		/**
+		 * Object is initialized, meaning it's registered with the scene manager and sending out events. Objects that are not
+		 * initialized are inert and don't notify external systems about their existence (except owner game object collection),
+		 * making them perfect for in-memory storage within e.g. resource, undo/redo data, deltas and similar.
+		 */
+		Initialized = 1 << 0,
+
+		/** Object has been queued for destruction, but hasn't been destroyed just yet. */
+		QueuedForDestroy = 1 << 1,
+
+		/**
+		 * Object has been destroyed. A shared pointer to the object may be kept by some external system,
+		 * but in most cases setting this flag will immediately be followed by object deallocation.
+		 */
+		Destroyed = 1 << 2,
+	};
+
+	using GameObjectFlags = Flags<GameObjectFlag>;
+	B3D_FLAGS_OPERATORS(GameObjectFlag)
+
 	/** @} */
 	/** @addtogroup Scene
 	 *  @{
@@ -44,6 +69,15 @@ namespace bs
 		/**	Sets the name of the object. */
 		void SetName(const String& name) { mName = name; }
 
+		/** Checks is the particular object flag set. */
+		bool HasGameObjectFlag(GameObjectFlag flag) const { return mObjectFlags.IsSet(flag); }
+
+		/** Sets a particular flag on the game object. */
+		void SetGameObjectFlag(GameObjectFlag flag) { mObjectFlags.Set(flag); }
+
+		/** Removes a particular flag on the game object. */
+		void UnsetGameObjectFlag(GameObjectFlag flag) { mObjectFlags.Unset(flag); }
+
 		/** Identifies the equivalent object in the linked prefab. This will be an empty ID if the object is not linked to a prefab. */
 		const UUID& GetPrefabObjectId() const { return mPrefabObjectId; }
 
@@ -57,15 +91,6 @@ namespace bs
 		/** @name Internal
 		 *  @{
 		 */
-
-		/**
-		 * Marks the object as destroyed. Generally this means the object has been queued for destruction but it hasn't
-		 * occurred yet.
-		 */
-		void SetIsQueuedForDestroy() { mIsQueuedForDestroy = true; }
-
-		/**	Checks if the object has been destroyed. */
-		bool GetIsQueuedForDestroy() const { return mIsQueuedForDestroy; }
 
 		/** @copydoc GetId */
 		void SetId(const UUID& id) { mId = id; }
@@ -109,8 +134,8 @@ namespace bs
 		friend class SceneObjectHierarchyDelta;
 		friend class PrefabUtility;
 
-		/**	Initializes the GameObject after construction. */
-		void Initialize(const SPtr<GameObject>& object);
+		/**	Initializes instance data and assigns the GameObject after construction. */
+		void InitializeInstanceData(const SPtr<GameObject>& object);
 
 	protected:
 		String mName;
@@ -118,12 +143,12 @@ namespace bs
 		UUID mId; /**< Unique identifier for this object. */
 		UUID mPrefabObjectId; /**< Identifier of the object in the prefab that this object is linked to, if any. */
 		WeakSPtr<GameObjectCollection> mOwnerCollection; /**< Collection that owns this game object. */
+		GameObjectFlags mObjectFlags;
 
 		Any mRTTIData; // RTTI only
 	private:
 		friend class Prefab;
 		SPtr<GameObjectInstanceData> mInstanceData;
-		bool mIsQueuedForDestroy = false;
 
 		/************************************************************************/
 		/* 								RTTI		                     		*/

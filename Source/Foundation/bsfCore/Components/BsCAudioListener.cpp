@@ -24,7 +24,7 @@ CAudioListener::CAudioListener(const HSceneObject& parent)
 	mNotifyFlags = TCF_Transform;
 }
 
-void CAudioListener::OnInitialized()
+void CAudioListener::OnBeginPlay()
 {
 }
 

@@ -18,12 +18,12 @@ GameObjectCollection::~GameObjectCollection()
 	GameObjectManager::Instance().UnregisterGameObjectCollection(*this);
 }
 
-GameObjectHandleBase GameObjectCollection::RegisterAndInitializeObject(const SPtr<GameObject>& object)
+GameObjectHandleBase GameObjectCollection::RegisterNewObject(const SPtr<GameObject>& object)
 {
 	if(!B3D_ENSURE(object != nullptr))
 		return nullptr;
 
-	object->Initialize(object);
+	object->InitializeInstanceData(object);
 
 	const UUID& id = object->GetId();
 	B3D_ASSERT(!id.Empty());
@@ -57,7 +57,7 @@ GameObjectHandleBase GameObjectCollection::RegisterAndInitializeObject(const SPt
 	return handle;
 }
 
-void GameObjectCollection::RegisterInitializedObject(const GameObjectHandleBase& handle)
+void GameObjectCollection::RegisterExistingObject(const GameObjectHandleBase& handle)
 {
 	if(!B3D_ENSURE(handle.IsValid()))
 		return;

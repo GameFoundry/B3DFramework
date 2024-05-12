@@ -50,6 +50,7 @@ HSceneObject SceneInstance::CreateSceneObject(const String& name)
 {
 	HSceneObject newSceneObject = SceneObject::CreateInternal(mGameObjectCollection, name);
 	newSceneObject->SetParent(mRoot, false);
+	newSceneObject->InstantiateInternal();
 
 	return newSceneObject;
 }
@@ -63,6 +64,8 @@ SPtr<SceneInstance> SceneInstance::Create(const String& name)
 	root->SetScene(sceneInstance, false);
 
 	SceneManager::Instance().NotifySceneInstanceCreated(sceneInstance);
+	root->InstantiateInternal();
+
 	return sceneInstance;
 }
 
@@ -329,7 +332,7 @@ void SceneManager::SetComponentState(ComponentState state)
 			// Initialize and enable uninitialized components
 			for(auto& entry : mUninitializedComponents)
 			{
-				entry->OnInitialized();
+				entry->OnBeginPlay();
 
 				if(entry->SceneObject()->GetActive())
 				{
@@ -394,7 +397,7 @@ void SceneManager::NotifyComponentCreatedInternal(const HComponent& component, b
 	const bool alwaysRun = component->HasFlag(ComponentFlag::AlwaysRun);
 	if(alwaysRun || mComponentState != ComponentState::Stopped)
 	{
-		component->OnInitialized();
+		component->OnBeginPlay();
 
 		if(parentActive)
 			component->OnEnabled();
@@ -616,7 +619,7 @@ void SceneManager::FixedUpdateInternal()
 		entry->FixedUpdate();
 }
 
-void SceneManager::RegisterNewSo(const HSceneObject& node)
+void SceneManager::AddToMainScene(const HSceneObject& node)
 {
 	if(mMainScene->GetRoot())
 		node->SetParent(mMainScene->GetRoot());

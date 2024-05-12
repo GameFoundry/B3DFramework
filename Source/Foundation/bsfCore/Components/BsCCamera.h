@@ -310,7 +310,7 @@ namespace bs
 		friend class SceneObject;
 
 		void InstantiateInternal() override;
-		void OnInitialized() override;
+		void OnBeginPlay() override;
 		void OnDestroyed() override;
 
 		/************************************************************************/

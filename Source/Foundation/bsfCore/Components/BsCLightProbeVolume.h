@@ -93,7 +93,7 @@ namespace bs
 	protected:
 		friend class SceneObject;
 
-		void OnInitialized();
+		void OnBeginPlay();
 		void OnDestroyed();
 		void Update() {}
 

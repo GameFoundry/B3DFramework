@@ -253,7 +253,7 @@ namespace bs
 		 * Do NOT add nodes that have already been added (if you just want to change their parent). Normally this
 		 * method will only be called by SceneObject.
 		 */
-		void RegisterNewSo(const HSceneObject& node);
+		void AddToMainScene(const HSceneObject& node); // TODO - Deprecated
 
 		/**	Callback that is triggered when the main render target size is changed. */
 		void OnMainRenderTargetResized();

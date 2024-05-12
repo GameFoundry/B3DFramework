@@ -141,7 +141,7 @@ AudioSourceState CAudioSource::GetState() const
 	return AudioSourceState::Stopped;
 }
 
-void CAudioSource::OnInitialized()
+void CAudioSource::OnBeginPlay()
 {
 }
 

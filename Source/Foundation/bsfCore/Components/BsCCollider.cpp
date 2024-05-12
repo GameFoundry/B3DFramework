@@ -101,7 +101,7 @@ void CCollider::SetCollisionReportMode(CollisionReportMode mode)
 		UpdateCollisionReportMode();
 }
 
-void CCollider::OnInitialized()
+void CCollider::OnBeginPlay()
 {
 }
 

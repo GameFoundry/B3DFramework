@@ -424,7 +424,7 @@ void CRigidbody::TriggerOnCollisionEnd(const CollisionDataRaw& data)
 	OnCollisionEnd(hit);
 }
 
-void CRigidbody::OnInitialized()
+void CRigidbody::OnBeginPlay()
 {
 }
 

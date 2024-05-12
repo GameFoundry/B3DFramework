@@ -49,6 +49,8 @@ void CCamera::SetMain(bool main)
 
 void CCamera::InstantiateInternal()
 {
+	Component::InstantiateInternal();
+
 	// If mInternal already exists this means this object was deserialized,
 	// so all we need to do is initialize it.
 	if(mInternal != nullptr)
@@ -57,7 +59,7 @@ void CCamera::InstantiateInternal()
 		mInternal = Camera::Create();
 }
 
-void CCamera::OnInitialized()
+void CCamera::OnBeginPlay()
 {
 	GetSceneManager().BindActorInternal(mInternal, SO());
 

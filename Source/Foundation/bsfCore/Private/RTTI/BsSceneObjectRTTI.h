@@ -191,7 +191,7 @@ namespace bs
 
 				sceneObject->SetActiveHierarchy(parentActive, false);
 
-				if((sceneObject->mFlags & SOF_DontInstantiate) == 0)
+				if(serializationContext->InitializeNewGameObjects)
 					sceneObject->InstantiateInternal();
 			}
 
@@ -211,7 +211,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject() override
 		{
-			SPtr<SceneObject> sceneObject = SPtr<SceneObject>(new(B3DAllocate<SceneObject>()) SceneObject("", SOF_DontInstantiate), &B3DDelete<SceneObject>, StdAlloc<SceneObject>());
+			SPtr<SceneObject> sceneObject = SPtr<SceneObject>(new(B3DAllocate<SceneObject>()) SceneObject("", 0), &B3DDelete<SceneObject>, StdAlloc<SceneObject>());
 			sceneObject->mRTTIData = sceneObject;
 
 			return sceneObject;

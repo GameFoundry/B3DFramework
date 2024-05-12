@@ -36,8 +36,8 @@ HSceneObject SceneObject::Create(const String& name, u32 flags)
 
 	HSceneObject newObject = CreateInternal(sceneGameObjectCollection, name, flags);
 
-	if(newObject->IsInstantiated())
-		GetSceneManager().RegisterNewSo(newObject);
+	GetSceneManager().AddToMainScene(newObject);
+	newObject->InstantiateInternal();
 
 	return newObject;
 }
@@ -56,7 +56,7 @@ HSceneObject SceneObject::CreateInternal(const SPtr<GameObjectCollection>& owner
 		return HSceneObject();
 
 	HSceneObject sceneObjectHandle =
-		B3DStaticGameObjectCast<SceneObject>(ownerCollection->RegisterAndInitializeObject(sceneObject));
+		B3DStaticGameObjectCast<SceneObject>(ownerCollection->RegisterNewObject(sceneObject));
 	sceneObjectHandle->mThisHandle = sceneObjectHandle;
 
 	return sceneObjectHandle;
@@ -91,7 +91,7 @@ void SceneObject::QueueForDestroy()
 	for(const auto& child : mChildren)
 		child->QueueForDestroy();
 
-	SetIsQueuedForDestroy();
+	SetGameObjectFlag(GameObjectFlag::QueuedForDestroy);
 
 	const SPtr<GameObjectCollection>& ownerCollection = mOwnerCollection.lock();
 	if(ownerCollection != nullptr) // Allowed to be null during GameObjectCollection destructor call
@@ -101,7 +101,7 @@ void SceneObject::QueueForDestroy()
 void SceneObject::DestroyImmediate()
 {
 	// If queued for destroy, children will be queued as well
-	if(!GetIsQueuedForDestroy())
+	if(!HasGameObjectFlag(GameObjectFlag::QueuedForDestroy))
 	{
 		for(auto it = mChildren.begin(); it != mChildren.end(); ++it)
 			(*it)->DestroyImmediate();
@@ -119,7 +119,7 @@ void SceneObject::DestroyImmediate()
 
 	const SPtr<GameObjectCollection>& ownerCollection = mOwnerCollection.lock();
 	if(ownerCollection != nullptr) // Allowed to be null during GameObjectCollection destructor call
-		ownerCollection->UnregisterObject(mThisHandle, IsInstantiated());
+		ownerCollection->UnregisterObject(mThisHandle, HasGameObjectFlag(GameObjectFlag::Initialized));
 
 	GameObject::DestroyImmediate();
 }
@@ -213,7 +213,7 @@ void SceneObject::InstantiateInternal(bool prefabOnly)
 			return;
 		}
 
-		obj->mFlags &= ~SOF_DontInstantiate;
+		obj->SetGameObjectFlag(GameObjectFlag::Initialized);
 
 		if(obj->mParent == nullptr)
 			obj->SetParent(obj->GetScene()->GetRoot());
@@ -230,7 +230,7 @@ void SceneObject::InstantiateInternal(bool prefabOnly)
 
 	std::function<void(SceneObject*)> triggerEventsRecursive = [&](SceneObject* obj)
 	{
-		if(!obj->IsInstantiated())
+		if(!obj->HasGameObjectFlag(GameObjectFlag::Initialized))
 			return;
 
 		for(auto& component : obj->mComponents)
@@ -576,8 +576,7 @@ void SceneObject::SetParentInternal(const HSceneObject& parent, bool keepWorldTr
 				mLocalTfrm.MakeLocal(mParent->GetTransform());
 		}
 
-		bool isInstantiated = (mFlags & SOF_DontInstantiate) == 0;
-		if(isInstantiated)
+		if(const bool isInitialized = HasGameObjectFlag(GameObjectFlag::Initialized))
 			NotifyTransformChanged((TransformChangedFlags)(TCF_Parent | TCF_Transform));
 	}
 }
@@ -821,15 +820,8 @@ HSceneObject SceneObject::Clone()
 	return Clone(GetOwnerCollection().lock());
 }
 
-HSceneObject SceneObject::Clone(const SPtr<GameObjectCollection>& cloneOwnerCollection, bool instantiate, bool preserveIds)
+HSceneObject SceneObject::Clone(const SPtr<GameObjectCollection>& cloneOwnerCollection, bool initialize, bool preserveIds)
 {
-	const bool isInstantiated = !HasFlag(SOF_DontInstantiate);
-
-	if(!instantiate)
-		SetFlagsInternal(SOF_DontInstantiate);
-	else
-		UnsetFlagsInternal(SOF_DontInstantiate);
-
 	SPtr<MemoryDataStream> stream = B3DMakeShared<MemoryDataStream>();
 	BinarySerializer serializer;
 	serializer.Encode(this, stream);
@@ -837,17 +829,13 @@ HSceneObject SceneObject::Clone(const SPtr<GameObjectCollection>& cloneOwnerColl
 	B3D_ENSURE(!preserveIds || cloneOwnerCollection != mOwnerCollection.lock());
 
 	CoreSerializationContext serializationContext;
+	serializationContext.InitializeNewGameObjects = initialize;
 	serializationContext.PreserveGameObjectIds = preserveIds;
 	serializationContext.GameObjectCollection = cloneOwnerCollection;
 
 	stream->Seek(0);
 	SPtr<SceneObject> cloneObj = std::static_pointer_cast<SceneObject>(
 		serializer.Decode(stream, (u32)stream->Size(), BinarySerializerFlag::None, &serializationContext));
-
-	if(isInstantiated)
-		UnsetFlagsInternal(SOF_DontInstantiate);
-	else
-		SetFlagsInternal(SOF_DontInstantiate);
 
 	return cloneObj->GetHandle();
 }
@@ -908,20 +896,20 @@ HComponent SceneObject::RegisterComponentWithOwnerCollection(const SPtr<Componen
 	if(!B3D_ENSURE(ownerCollection != nullptr))
 		return HComponent();
 
-	return B3DStaticGameObjectCast<Component>(ownerCollection->RegisterAndInitializeObject(component));
+	return B3DStaticGameObjectCast<Component>(ownerCollection->RegisterNewObject(component));
 }
 
-void SceneObject::InternalAddComponent(const SPtr<Component>& component, bool instantiate)
+void SceneObject::InternalAddComponent(const SPtr<Component>& component, bool initialize)
 {
 	const SPtr<GameObjectCollection>& ownerCollection = mOwnerCollection.lock();
 	if(!B3D_ENSURE(ownerCollection != nullptr))
 		return;
 
 	const HComponent& componentHandle = B3DStaticGameObjectCast<Component>(ownerCollection->GetObject(component->GetId()));
-	InternalAddComponent(componentHandle, instantiate);
+	InternalAddComponent(componentHandle, initialize);
 }
 
-void SceneObject::InternalAddComponent(const HComponent& component, bool instantiate)
+void SceneObject::InternalAddComponent(const HComponent& component, bool initialize)
 {
 	component->mParent = GetHandle();
 	component->mThisHandle = component;
@@ -931,7 +919,7 @@ void SceneObject::InternalAddComponent(const HComponent& component, bool instant
 
 	mComponents.push_back(component);
 
-	if(instantiate && IsInstantiated())
+	if(initialize && HasGameObjectFlag(GameObjectFlag::Initialized))
 	{
 		component->InstantiateInternal();
 

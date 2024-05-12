@@ -27,15 +27,15 @@ namespace bs
 		UUID GetId() const { return mId; }
 
 		/**
-		 * Registers a new game object and returns the handle to the object.
+		 * Registers a newly created game object and returns the handle to the object.
 		 *
 		 * @param[in]	object			Constructed GameObject to wrap in the handle and initialize.
 		 * @return						Handle to the GameObject.
 		 */
-		GameObjectHandleBase RegisterAndInitializeObject(const SPtr<GameObject>& object);
+		GameObjectHandleBase RegisterNewObject(const SPtr<GameObject>& object);
 
 		/** Registers a game object that already has a handle. */
-		void RegisterInitializedObject(const GameObjectHandleBase& object);
+		void RegisterExistingObject(const GameObjectHandleBase& object);
 
 		/**
 		 * Unregisters the game object. Handles to this object will no longer be valid after this call. 

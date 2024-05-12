@@ -54,7 +54,7 @@ namespace bs
 				SPtr<Component> componentShared = std::static_pointer_cast<Component>(deserializationData.Ptr);
 
 				if(B3D_ENSURE(serializationContext->GameObjectCollection != nullptr))
-					GameObjectHandleBase handle = serializationContext->GameObjectCollection->RegisterAndInitializeObject(componentShared);
+					GameObjectHandleBase handle = serializationContext->GameObjectCollection->RegisterNewObject(componentShared);
 			}
 
 			component->mRTTIData = nullptr;

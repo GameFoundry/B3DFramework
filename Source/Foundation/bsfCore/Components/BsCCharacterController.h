@@ -146,7 +146,7 @@ namespace bs
 	protected:
 		friend class SceneObject;
 
-		void OnInitialized() override;
+		void OnBeginPlay() override;
 		void OnDestroyed() override;
 		void OnDisabled() override;
 		void OnEnabled() override;

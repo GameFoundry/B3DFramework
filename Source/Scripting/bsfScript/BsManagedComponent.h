@@ -119,7 +119,7 @@ namespace bs
 
 		void InstantiateInternal() override;
 		void OnCreated() override;
-		void OnInitialized() override;
+		void OnBeginPlay() override;
 		void OnDestroyed() override;
 		void OnEnabled() override;
 		void OnDisabled() override;

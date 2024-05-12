@@ -108,7 +108,7 @@ namespace bs
 
 		CRenderable(const HSceneObject& parent);
 
-		void OnInitialized() override;
+		void OnBeginPlay() override;
 		void OnDestroyed() override;
 
 	public:

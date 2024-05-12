@@ -25,7 +25,7 @@ CSkybox::~CSkybox()
 	mInternal->Destroy();
 }
 
-void CSkybox::OnInitialized()
+void CSkybox::OnBeginPlay()
 {
 	// If mInternal already exists this means this object was deserialized,
 	// so all we need to do is initialize it.

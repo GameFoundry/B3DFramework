@@ -6,7 +6,7 @@
 
 using namespace bs;
 
-void GameObject::Initialize(const SPtr<GameObject>& object)
+void GameObject::InitializeInstanceData(const SPtr<GameObject>& object)
 {
 	mInstanceData = B3DMakeShared<GameObjectInstanceData>();
 	mInstanceData->Object = object;
@@ -33,13 +33,15 @@ void GameObject::SetOwnerCollection(const SPtr<GameObjectCollection>& collection
 	if(B3D_ENSURE(currentCollection != nullptr))
 		currentCollection->UnregisterObject(mThisHandle, false);
 
-	collection->RegisterInitializedObject(mThisHandle);
+	collection->RegisterExistingObject(mThisHandle);
 	mOwnerCollection = collection;
 }
 
 void GameObject::DestroyImmediate()
 {
 	mInstanceData->Object = nullptr;
+
+	SetGameObjectFlag(GameObjectFlag::Destroyed);
 }
 
 RTTITypeBase* GameObject::GetRttiStatic()

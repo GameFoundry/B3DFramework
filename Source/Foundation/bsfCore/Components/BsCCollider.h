@@ -116,7 +116,7 @@ namespace bs
 		friend class SceneObject;
 		friend class CRigidbody;
 
-		void OnInitialized() override;
+		void OnBeginPlay() override;
 		void OnDestroyed() override;
 		void OnDisabled() override;
 		void OnEnabled() override;

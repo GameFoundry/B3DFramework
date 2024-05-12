@@ -38,7 +38,7 @@ void Component::Destroy(bool immediate)
 	mParent->NotifyWillDestroyComponent(thisComponentHandle);
 
 	// Queue for destroy
-	SetIsQueuedForDestroy();
+	SetGameObjectFlag(GameObjectFlag::QueuedForDestroy);
 
 	const SPtr<GameObjectCollection>& ownerCollection = mOwnerCollection.lock();
 	if(ownerCollection != nullptr) // Allowed to be null during GameObjectCollection destructor call
@@ -48,19 +48,26 @@ void Component::Destroy(bool immediate)
 void Component::DestroyImmediate()
 {
 	const SPtr<GameObjectCollection>& ownerCollection = mOwnerCollection.lock();
-	
+
 	HComponent thisComponentHandle = B3DStaticGameObjectCast<Component>(mThisHandle);
-	if(mParent->IsInstantiated())
+
+	const bool isInitialized = HasGameObjectFlag(GameObjectFlag::Initialized);
+	if(isInitialized)
 		GetSceneManager().NotifyComponentDestroyedInternal(thisComponentHandle, true);
 
-	// IF queued for destroy, parent will have already been notified
-	if(!GetIsQueuedForDestroy())
+	// If queued for destroy, parent will have already been notified
+	if(!HasGameObjectFlag(GameObjectFlag::QueuedForDestroy))
 		mParent->NotifyWillDestroyComponent(thisComponentHandle);
 
 	if(ownerCollection != nullptr) // Allowed to be null during GameObjectCollection destructor call
-		ownerCollection->UnregisterObject(mThisHandle, mParent->IsInstantiated());
+		ownerCollection->UnregisterObject(mThisHandle, isInitialized);
 
 	GameObject::DestroyImmediate();
+}
+
+void Component::InstantiateInternal()
+{
+	SetGameObjectFlag(GameObjectFlag::Initialized);
 }
 
 RTTITypeBase* Component::GetRttiStatic()

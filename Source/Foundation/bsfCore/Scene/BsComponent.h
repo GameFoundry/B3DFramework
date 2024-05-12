@@ -29,14 +29,14 @@ namespace bs
 	/**
 	 * Components represent primary logic elements in the scene. They are attached to scene objects.
 	 *
-	 * You should implement some or all of update/fixedUpdate/onCreated/onInitialized/onEnabled/onDisabled/
-	 * onTransformChanged/onDestroyed methods to implement the relevant component logic. Avoid putting logic in constructors
+	 * You should implement some or all of Update/FixedUpdate/OnCreated/OnBeginPlay/OnEnabled/OnDisabled/
+	 * OnTransformChanged/OnDestroyed methods to implement the relevant component logic. Avoid putting logic in constructors
 	 * or destructors.
 	 *
 	 * Components can be in different states. These states control which of the events listed above trigger:
 	 *  - Running - Scene manager is sending out events.
 	 *  - Paused - Scene manager is sending out all events except per-frame update().
-	 *	- Stopped - Scene manager is not sending out events except for onCreated/onDestroyed.
+	 *	- Stopped - Scene manager is not sending out events except for OnCreated/OnDestroyed.
 	 *
 	 * These states can be changed globally though SceneManager and affect all components. Individual components can
 	 * override these states in two ways:
@@ -102,7 +102,7 @@ namespace bs
 		 * Construct any resources the component needs before use. Called when the parent scene object is instantiated.
 		 * A non-instantiated component shouldn't be used for any other purpose than serialization.
 		 */
-		virtual void InstantiateInternal() {}
+		virtual void InstantiateInternal(); // TODO - Rename to Initialize, maybe move to GameObject
 
 		/** Sets new flags that determine when is onTransformChanged called. */
 		void SetNotifyFlags(TransformChangedFlags flags) { mNotifyFlags = flags; }
@@ -124,9 +124,9 @@ namespace bs
 
 		/**
 		 * Called once when the component first leaves the Stopped state. This includes component creation if requirements
-		 * for leaving Stopped state are met, in which case it is called after onCreated.
+		 * for leaving Stopped state are met, in which case it is called after OnCreated.
 		 */
-		virtual void OnInitialized() {}
+		virtual void OnBeginPlay() {}
 
 		/**	Called once just before the component is destroyed. Called regardless of the state the component is in. */
 		virtual void OnDestroyed() {}

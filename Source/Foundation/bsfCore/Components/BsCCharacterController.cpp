@@ -136,7 +136,7 @@ void CCharacterController::SetLayer(u64 layer)
 		mInternal->SetLayer(layer);
 }
 
-void CCharacterController::OnInitialized()
+void CCharacterController::OnBeginPlay()
 {
 }
 

@@ -22,7 +22,6 @@ namespace bs
 	/** Possible modifiers that can be applied to a SceneObject. */
 	enum SceneObjectFlags
 	{
-		SOF_DontInstantiate = 0x01, /**< Object wont be in the main scene and its components won't receive updates. */
 		SOF_DontSave = 0x02, /**< Object will be skipped when saving the scene hierarchy or a prefab. */
 		SOF_Persistent = 0x04, /**< Object will remain in the scene even after scene clear, unless destroyed directly.
 									This only works with top-level objects. */
@@ -116,7 +115,7 @@ namespace bs
 		 * @param[in]	prefabOnly	If true, only objects within the current prefab will be instantiated. If false all child
 		 *							objects and components will.
 		 */
-		void InstantiateInternal(bool prefabOnly = false);
+		void InstantiateInternal(bool prefabOnly = false); // TODO - Rename to Initialize()
 
 		/** @copydoc GetPrefabResourceId */
 		void SetPrefabResourceId(const UUID& id) { mPrefabResourceId = id; }
@@ -170,9 +169,6 @@ namespace bs
 		void QueueForDestroy();
 
 		void DestroyImmediate() override;
-
-		/**	Checks is the scene object instantiated and visible in the scene. */
-		bool IsInstantiated() const { return (mFlags & SOF_DontInstantiate) == 0; }
 
 	private:
 		friend class Component;
@@ -452,13 +448,13 @@ namespace bs
 		 * @param		cloneOwnerCollection	Collection into which to place the cloned scene objects. If @p preserveIds is true
 		 *										this must be a different collection that the current scene object, otherwise IDs would
 		 *										conflict.
-		 * @param		instantiate				If false, the cloned hierarchy will just be a memory copy, but will not be present
-		 *										in the scene or otherwise active until Instantiate() is called.
+		 * @param		initialize				If false, the cloned hierarchy will just be a memory copy, but will not be present
+		 *										in the scene or otherwise active until Initialize() is called.
 		 * @param		preserveIds				If false, each cloned game object will be assigned a brand new ID. Otherwise
 		 *										the ID of the original game objects will be preserved. 
 		 * @return								Cloned scene object hierarchy.
 		 */
-		HSceneObject Clone(const SPtr<GameObjectCollection>& cloneOwnerCollection, bool instantiate = true, bool preserveIds = false);
+		HSceneObject Clone(const SPtr<GameObjectCollection>& cloneOwnerCollection, bool initialize = true, bool preserveIds = false);
 
 		/** @} */
 
@@ -641,13 +637,13 @@ namespace bs
 		HComponent RegisterComponentWithOwnerCollection(const SPtr<Component>& component);
 
 		/**
-		 *	Adds the component to the internal component array, and optionally instantiates it. Note the component will only
-		 *	be instantiated if this scene object is instantiated and @p instantiate flag is true.
+		 *	Adds the component to the internal component array, and optionally initialized it. Note the component will only
+		 *	be initialized if this scene object is initialized and @p initialize flag is true.
 		 */
-		void InternalAddComponent(const HComponent& component, bool instantiate);
+		void InternalAddComponent(const HComponent& component, bool initialize);
 
 		/** Equivalent to AddComponent(const HComponent&, bool), but internally looks up the component handle from the game object collection. */
-		void InternalAddComponent(const SPtr<Component>& component, bool instantiate);
+		void InternalAddComponent(const SPtr<Component>& component, bool initialize);
 
 		Vector<HComponent> mComponents;
 

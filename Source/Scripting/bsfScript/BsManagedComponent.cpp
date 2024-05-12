@@ -310,6 +310,8 @@ void ManagedComponent::TriggerOnReset()
 
 void ManagedComponent::InstantiateInternal()
 {
+	Component::InstantiateInternal();
+
 	mObjInfo = nullptr;
 
 	MonoObject* instance;
@@ -363,7 +365,7 @@ void ManagedComponent::OnCreated()
 	TriggerOnReset();
 }
 
-void ManagedComponent::OnInitialized()
+void ManagedComponent::OnBeginPlay()
 {
 	if(mOnInitializedThunk != nullptr)
 	{

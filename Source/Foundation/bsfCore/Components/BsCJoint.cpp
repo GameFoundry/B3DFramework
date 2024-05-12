@@ -147,7 +147,7 @@ void CJoint::SetEnableCollision(bool value)
 		mInternal->SetEnableCollision(value);
 }
 
-void CJoint::OnInitialized()
+void CJoint::OnBeginPlay()
 {
 }
 

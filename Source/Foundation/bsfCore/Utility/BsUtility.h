@@ -58,6 +58,8 @@ namespace bs
 		 */
 		bool PreserveGameObjectIds = true; 
 		bool IsGameObjectDeserializationActive = false;
+		/** Determines should any newly deserialized game object should be initialized. See SceneObject::Initialize(). */
+		bool InitializeNewGameObjects = false;
 		SPtr<GameObjectCollection> GameObjectCollection; /**< If deserializing game objects, collection to place them in. */
 		UnorderedMap<UUID, UUID> GameObjectIdRemapping; /**< If provided, game object IDs will be remapped to provided values. */
 

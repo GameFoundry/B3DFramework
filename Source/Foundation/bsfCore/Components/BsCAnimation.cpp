@@ -206,7 +206,7 @@ HAnimationClip CAnimation::GetClip(u32 idx) const
 	return HAnimationClip();
 }
 
-void CAnimation::OnInitialized()
+void CAnimation::OnBeginPlay()
 {
 }
 
