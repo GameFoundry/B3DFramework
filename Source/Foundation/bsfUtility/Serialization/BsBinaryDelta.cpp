@@ -1030,7 +1030,7 @@ SPtr<SerializedObject> BinaryDeltaHandler::GenerateDeltaRecursive(IReflectable* 
 
 void BinaryDeltaHandler::GenerateDeltaApplyCommands(const SPtr<IReflectable>& object, const SPtr<SerializedObject>& delta, FrameAllocator& allocator, DeltaObjectMap& objectMap, FrameVector<DeltaCommand>& inOutDeltaCommands, SerializationContext* context)
 {
-	if(object == nullptr || delta == nullptr || object->GetTypeId() != delta->GetRootTypeId())
+	if(object == nullptr || delta == nullptr)
 		return;
 
 	// Generate a list of commands per sub-object

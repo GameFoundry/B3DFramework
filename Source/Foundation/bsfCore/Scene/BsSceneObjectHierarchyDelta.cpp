@@ -32,6 +32,7 @@ SceneObjectHierarchyDeltaObject::SceneObjectHierarchyDeltaObject(const HComponen
 	ParentId = component->SceneObject().GetId();
 	PrefabObjectId = component->GetPrefabObjectId();
 	Data = data;
+	Flags.Set(GameObjectDeltaFlag::ComponentDelta);
 }
 
 SceneObjectHierarchyDeltaObject::SceneObjectHierarchyDeltaObject(const HSceneObject& sceneObject, const SPtr<SerializedObject>& data)
@@ -41,6 +42,7 @@ SceneObjectHierarchyDeltaObject::SceneObjectHierarchyDeltaObject(const HSceneObj
 	PrefabObjectId = sceneObject->GetPrefabObjectId();
 	PrefabResourceId = sceneObject->GetPrefabResourceId();
 	Data = data;
+	Flags.Set(GameObjectDeltaFlag::SceneObjectDelta);
 }
 
 RTTITypeBase* SceneObjectHierarchyDeltaObject::GetRttiStatic()
@@ -178,12 +180,8 @@ void SceneObjectHierarchyDelta::Apply(const HSceneObject& original, SceneObjectH
 		if(!B3D_ENSURE(deltaObject != nullptr))
 			continue;
 
-		if(!B3D_ENSURE(deltaObject->Data != nullptr)) // TODO - If there is only a parent change, this might be null
-			continue;
-
 		const UUID& gameObjectId = entry.first;
-		const bool isSceneObject = deltaObject->Data->GetRootTypeId() == SceneObject::GetRttiStatic()->GetRttiId();
-		if(isSceneObject)
+		if(deltaObject->Flags.IsSet(GameObjectDeltaFlag::SceneObjectDelta))
 		{
 			HSceneObject sceneObject = fnFindSceneObject(gameObjectId);
 			if(!B3D_ENSURE(sceneObject.IsValid()))
@@ -203,7 +201,7 @@ void SceneObjectHierarchyDelta::Apply(const HSceneObject& original, SceneObjectH
 				deltaHandler.ApplyDelta(sceneObject.GetShared(), deltaObject->Data, &serializationContext);
 			}
 		}
-		else // Component
+		else if(deltaObject->Flags.IsSet(GameObjectDeltaFlag::ComponentDelta))
 		{
 			const bool isNewObject = addedComponentsMap.find(gameObjectId) != addedComponentsMap.end();
 			if(isNewObject)
@@ -218,6 +216,10 @@ void SceneObjectHierarchyDelta::Apply(const HSceneObject& original, SceneObjectH
 				IDeltaHandler& deltaHandler = component->GetRtti()->GetDeltaHandler();
 				deltaHandler.ApplyDelta(component.GetShared(), deltaObject->Data, &serializationContext);
 			}
+		}
+		else
+		{
+			B3D_ENSURE(false);
 		}
 	}
 

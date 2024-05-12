@@ -18,7 +18,9 @@ namespace bs
 	enum class GameObjectDeltaFlag
 	{
 		None = 0,
-		ParentChanged = 1 << 0, /**< Set on scene object deltas whose parent has changed. */
+		SceneObjectDelta = 1 << 0, /**< Delta contains information about a scene object. */
+		ComponentDelta = 1 << 1, /**< Delta contains information about a component. */
+		ParentChanged = 1 << 2, /**< Set on scene object deltas whose parent has changed. */
 	};
 
 	using GameObjectDeltaFlags = Flags<GameObjectDeltaFlag>;
