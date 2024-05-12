@@ -70,7 +70,7 @@ void CJoint::SetBody(JointBody body, const HRigidbody& value)
 	else // If joint doesn't exist, check if we can create it
 	{
 		// Must be an active component and at least one of the bodies must be non-null
-		if(SO()->GetActive() && (IsBodyValid(mBodies[0]) || IsBodyValid(mBodies[1])))
+		if(GetEnabled() && (IsBodyValid(mBodies[0]) || IsBodyValid(mBodies[1])))
 		{
 			RestoreInternal();
 		}

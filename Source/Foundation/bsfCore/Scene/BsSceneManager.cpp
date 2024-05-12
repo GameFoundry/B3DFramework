@@ -303,7 +303,7 @@ void SceneManager::SetComponentState(ComponentState state)
 			// Disable, and then re-enable components that have an AlwaysRun flag
 			for(auto& entry : mActiveComponents)
 			{
-				if(entry->SceneObject()->GetActive())
+				if(entry->GetEnabled())
 				{
 					entry->OnDisabled();
 					entry->OnEnabled();
@@ -317,7 +317,7 @@ void SceneManager::SetComponentState(ComponentState state)
 			// inactive components that have active scene object parents)
 			for(auto& entry : mInactiveComponents)
 			{
-				if(entry->SceneObject()->GetActive())
+				if(entry->GetEnabled())
 				{
 					entry->OnEnabled();
 
@@ -334,7 +334,7 @@ void SceneManager::SetComponentState(ComponentState state)
 			{
 				entry->OnBeginPlay();
 
-				if(entry->SceneObject()->GetActive())
+				if(entry->GetEnabled())
 				{
 					entry->OnEnabled();
 					mStateChanges.emplace_back(entry, ComponentStateEventType::Activated);
@@ -360,7 +360,7 @@ void SceneManager::SetComponentState(ComponentState state)
 
 				component->OnDisabled();
 
-				if(alwaysRun)
+				if(alwaysRun && component->GetEnabled())
 					component->OnEnabled();
 			}
 		}
@@ -372,7 +372,7 @@ void SceneManager::SetComponentState(ComponentState state)
 			const HComponent component = mActiveComponents[i];
 
 			const bool alwaysRun = component->HasFlag(ComponentFlag::AlwaysRun);
-			if(alwaysRun)
+			if(alwaysRun && component->GetEnabled())
 				continue;
 
 			RemoveFromStateList(component);
@@ -399,7 +399,7 @@ void SceneManager::NotifyComponentCreatedInternal(const HComponent& component, b
 	{
 		component->OnBeginPlay();
 
-		if(parentActive)
+		if(parentActive && component->GetEnabled(true))
 			component->OnEnabled();
 	}
 }
@@ -453,7 +453,7 @@ void SceneManager::NotifyComponentDestroyedInternal(const HComponent& component,
 	ScopeToggle toggle(mDisableStateChange);
 
 	const bool alwaysRun = component->HasFlag(ComponentFlag::AlwaysRun);
-	const bool isEnabled = component->SceneObject()->GetActive() && (alwaysRun || mComponentState != ComponentState::Stopped);
+	const bool isEnabled = component->GetEnabled() && (alwaysRun || mComponentState != ComponentState::Stopped);
 
 	if(isEnabled)
 		component->OnDisabled();
@@ -542,21 +542,21 @@ void SceneManager::ProcessStateChanges()
 		DecodeComponentId(component->GetSceneManagerId(), existingIdx, existingListType);
 
 		const bool alwaysRun = component->HasFlag(ComponentFlag::AlwaysRun);
-		const bool isActive = component->SO()->GetActive();
+		const bool isEnabled = component->GetEnabled();
 
 		u32 listType = 0;
 		switch(entry.Type)
 		{
 		case ComponentStateEventType::Created:
 			if(alwaysRun || !isStopped)
-				listType = isActive ? ActiveList : InactiveList;
+				listType = isEnabled ? ActiveList : InactiveList;
 			else
 				listType = UninitializedList;
 			break;
 		case ComponentStateEventType::Activated:
 		case ComponentStateEventType::Deactivated:
 			if(alwaysRun || !isStopped)
-				listType = isActive ? ActiveList : InactiveList;
+				listType = isEnabled ? ActiveList : InactiveList;
 			else
 				listType = (existingListType == UninitializedList) ? UninitializedList : InactiveList;
 			break;

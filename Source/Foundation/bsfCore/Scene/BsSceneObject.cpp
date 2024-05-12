@@ -81,10 +81,10 @@ void SceneObject::Destroy(bool immediate)
 
 void SceneObject::QueueForDestroy()
 {
-	if(HasGameObjectFlag(GameObjectFlag::QueuedForDestroy))
+	if(HasGameObjectFlag(GameObjectTransientFlag::QueuedForDestroy))
 		return;
 
-	if(!B3D_ENSURE(!HasGameObjectFlag(GameObjectFlag::Destroyed)))
+	if(!B3D_ENSURE(!HasGameObjectFlag(GameObjectTransientFlag::Destroyed)))
 		return;
 
 	// Important to queue components to destroy before the scene objects, as they will reference their parent during destruction
@@ -100,7 +100,7 @@ void SceneObject::QueueForDestroy()
 void SceneObject::DestroyImmediate()
 {
 	// If queued for destroy, children will be queued as well
-	if(!HasGameObjectFlag(GameObjectFlag::QueuedForDestroy))
+	if(!HasGameObjectFlag(GameObjectTransientFlag::QueuedForDestroy))
 	{
 		for(auto it = mChildren.begin(); it != mChildren.end();)
 		{
@@ -214,7 +214,7 @@ void SceneObject::Initialize()
 			return;
 		}
 
-		sceneObject->SetGameObjectFlag(GameObjectFlag::Initialized);
+		sceneObject->SetGameObjectFlag(GameObjectTransientFlag::Initialized);
 
 		if(sceneObject->mParent == nullptr)
 			sceneObject->SetParent(sceneObject->GetScene()->GetRoot());
@@ -228,7 +228,7 @@ void SceneObject::Initialize()
 
 	Function<void(SceneObject*)> fnTriggerEvents = [&fnTriggerEvents](SceneObject* sceneObject)
 	{
-		if(!sceneObject->HasGameObjectFlag(GameObjectFlag::Initialized))
+		if(!sceneObject->HasGameObjectFlag(GameObjectTransientFlag::Initialized))
 			return;
 
 		for(auto& component : sceneObject->mComponents)
@@ -571,7 +571,7 @@ void SceneObject::SetParentInternal(const HSceneObject& parent, bool keepWorldTr
 				mLocalTfrm.MakeLocal(mParent->GetTransform());
 		}
 
-		if(const bool isInitialized = HasGameObjectFlag(GameObjectFlag::Initialized))
+		if(const bool isInitialized = HasGameObjectFlag(GameObjectTransientFlag::Initialized))
 			NotifyTransformChanged((TransformChangedFlags)(TCF_Parent | TCF_Transform));
 	}
 }
@@ -755,45 +755,43 @@ Vector<HSceneObject> SceneObject::FindChildren(const String& name, bool recursiv
 
 void SceneObject::SetActive(bool active)
 {
-	mActiveSelf = active;
+	if(active)
+		UnsetGameObjectFlag(GameObjectPersistentFlag::DisabledSelf);
+	else
+		SetGameObjectFlag(GameObjectPersistentFlag::DisabledSelf);
+
 	SetActiveHierarchy(active);
 }
 
 void SceneObject::SetActiveHierarchy(bool active, bool triggerEvents)
 {
-	bool activeHierarchy = active && mActiveSelf;
+	const bool oldEnabledHierarchy = !HasGameObjectFlag(GameObjectTransientFlag::Disabled);
+	const bool enabledSelf = !HasGameObjectFlag(GameObjectPersistentFlag::DisabledSelf);
+	const bool newEnabledHierarchy = active && enabledSelf;
 
-	if(mActiveHierarchy != activeHierarchy)
+	if(oldEnabledHierarchy != newEnabledHierarchy)
 	{
-		mActiveHierarchy = activeHierarchy;
+		if(newEnabledHierarchy)
+			UnsetGameObjectFlag(GameObjectTransientFlag::Disabled);
+		else
+			SetGameObjectFlag(GameObjectTransientFlag::Disabled);
 
-		if(triggerEvents)
-		{
-			if(activeHierarchy)
-			{
-				for(auto& component : mComponents)
-					GetSceneManager().NotifyComponentActivatedInternal(component, triggerEvents);
-			}
-			else
-			{
-				for(auto& component : mComponents)
-					GetSceneManager().NotifyComponentDeactivatedInternal(component, triggerEvents);
-			}
-		}
+		for(auto& component : mComponents)
+			component->RefreshEnabledState(triggerEvents);
 	}
 
 	for(auto child : mChildren)
 	{
-		child->SetActiveHierarchy(mActiveHierarchy, triggerEvents);
+		child->SetActiveHierarchy(newEnabledHierarchy, triggerEvents);
 	}
 }
 
 bool SceneObject::GetActive(bool self) const
 {
 	if(self)
-		return mActiveSelf;
+		return !HasGameObjectFlag(GameObjectPersistentFlag::DisabledSelf);
 	else
-		return mActiveHierarchy;
+		return !HasGameObjectFlag(GameObjectTransientFlag::Disabled);
 }
 
 void SceneObject::SetMobility(ObjectMobility mobility)
@@ -914,7 +912,7 @@ void SceneObject::InternalAddComponent(const HComponent& component, bool initial
 
 	mComponents.push_back(component);
 
-	if(initialize && HasGameObjectFlag(GameObjectFlag::Initialized))
+	if(initialize && HasGameObjectFlag(GameObjectTransientFlag::Initialized))
 	{
 		component->Initialize();
 

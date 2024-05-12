@@ -6,6 +6,7 @@
 #include "Reflection/BsRTTIType.h"
 #include "RTTI/BsStringRTTI.h"
 #include "RTTI/BsUUIDRTTI.h"
+#include "RTTI/BsFlagsRTTI.h"
 #include "Scene/BsGameObject.h"
 #include "Scene/BsSceneObject.h"
 #include "Scene/BsGameObjectManager.h"
@@ -31,6 +32,7 @@ namespace bs
 			// B3D_RTTI_MEMBER_PLAIN(mLinkId, 2)
 			B3D_RTTI_MEMBER_PLAIN_INFO(mId, 3, RTTIFieldInfo(RTTIFieldFlag::SkipInDeltaCompare))
 			B3D_RTTI_MEMBER_PLAIN_INFO(mPrefabObjectId, 4, RTTIFieldInfo(RTTIFieldFlag::SkipInDeltaCompare))
+			B3D_RTTI_MEMBER_PLAIN(mPersistentGameObjectFlags, 5)
 		B3D_RTTI_END_MEMBERS
 
 	public:

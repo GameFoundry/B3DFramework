@@ -224,11 +224,11 @@ void SceneObjectHierarchyDelta::Apply(const HSceneObject& original, SceneObjectH
 	}
 
 	// Initialize if the object we're applying the delta to is also initialized
-	if(original->HasGameObjectFlag(GameObjectFlag::Initialized))
+	if(original->HasGameObjectFlag(GameObjectTransientFlag::Initialized))
 	{
 		for(const auto& entry : createdSceneObjects)
 		{
-			if(!entry.second->HasGameObjectFlag(GameObjectFlag::Initialized))
+			if(!entry.second->HasGameObjectFlag(GameObjectTransientFlag::Initialized))
 				entry.second->Initialize();
 		}
 	}

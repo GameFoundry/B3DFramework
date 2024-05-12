@@ -293,7 +293,7 @@ void CAnimation::Update()
 
 void CAnimation::OnTransformChanged(TransformChangedFlags flags)
 {
-	if(!SO()->GetActive())
+	if(!GetEnabled())
 		return;
 
 	if((flags & (TCF_Transform)) != 0)

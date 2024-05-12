@@ -122,7 +122,7 @@ void CCollider::OnEnabled()
 
 void CCollider::OnTransformChanged(TransformChangedFlags flags)
 {
-	if(!SO()->GetActive())
+	if(!GetEnabled())
 		return;
 
 	if((flags & TCF_Parent) != 0)
@@ -232,7 +232,7 @@ void CCollider::UpdateParentRigidbody()
 		HRigidbody parent = currentSO->GetComponent<CRigidbody>();
 		if(parent != nullptr)
 		{
-			if(currentSO->GetActive() && IsValidParent(parent))
+			if(parent->GetEnabled() && IsValidParent(parent))
 				SetRigidbody(parent);
 			else
 				SetRigidbody(HRigidbody());

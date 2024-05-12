@@ -31,10 +31,6 @@ namespace bs
 
 		void SetLocalTransform(SceneObject* obj, Transform& value) { obj->mLocalTfrm = value; }
 
-		bool& GetActive(SceneObject* obj) { return obj->mActiveSelf; }
-
-		void SetActive(SceneObject* obj, bool& value) { obj->mActiveSelf = value; }
-
 		SPtr<SceneObject> GetChild(SceneObject* obj, u32 idx) { return obj->mChildren[idx].GetShared(); }
 
 		void SetChild(SceneObject* obj, u32 idx, SPtr<SceneObject> param)
@@ -101,7 +97,6 @@ namespace bs
 			AddPlainField("mFlags", 3, &SceneObjectRTTI::GetFlags, &SceneObjectRTTI::SetFlags);
 			AddReflectablePtrField("mPrefabDelta", 4, &SceneObjectRTTI::GetPrefabDelta, &SceneObjectRTTI::SetPrefabDelta, RTTIFieldInfo(RTTIFieldFlag::SkipInDeltaCompare | RTTIFieldFlag::SkipInDeltaCopy));
 			AddPlainField("mPrefabVersion", 5, &SceneObjectRTTI::GetPrefabVersion, &SceneObjectRTTI::SetPrefabVersion, RTTIFieldInfo(RTTIFieldFlag::SkipInDeltaCompare | RTTIFieldFlag::SkipInDeltaCopy));
-			AddPlainField("mActiveSelf", 9, &SceneObjectRTTI::GetActive, &SceneObjectRTTI::SetActive);
 			AddPlainField("mMobility", 10, &SceneObjectRTTI::GetMobility, &SceneObjectRTTI::SetMobility);
 
 			AddReflectableField("mWorldTfrm", 11, &SceneObjectRTTI::GetTransform, &SceneObjectRTTI::SetTransform);

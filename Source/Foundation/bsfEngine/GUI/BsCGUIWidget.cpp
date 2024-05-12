@@ -90,8 +90,8 @@ void CGUIWidget::Update()
 		mParentHash = curHash;
 	}
 
-	if(parent->GetActive() != mInternal->GetIsActive())
-		mInternal->SetIsActive(parent->GetActive());
+	if(GetEnabled() != mInternal->GetIsActive())
+		mInternal->SetIsActive(GetEnabled());
 
 	mInternal->UpdateRTInternal();
 }

@@ -405,13 +405,13 @@ namespace bs
 		 * Enables or disables this object. Disabled objects also implicitly disable all their child objects. No components
 		 * on the disabled object are updated.
 		 */
-		void SetActive(bool active);
+		void SetActive(bool active); // TODO - Active -> Enabled, to match Component and OnEnabled/OnDisabled
 
 		/**
 		 * Returns whether or not an object is active.
 		 *
 		 * @param[in]	self	If true, the method will only check if this particular object was activated or deactivated
-		 *						directly via setActive. If false we we also check if any of the objects parents are inactive.
+		 *						directly via SetActive. If false we we also check if any of the objects parents are inactive.
 		 */
 		bool GetActive(bool self = false) const;
 
@@ -457,8 +457,6 @@ namespace bs
 		WeakSPtr<SceneInstance> mParentScene;
 		HSceneObject mParent;
 		Vector<HSceneObject> mChildren;
-		bool mActiveSelf = true;
-		bool mActiveHierarchy = true;
 		ObjectMobility mMobility = ObjectMobility::Movable;
 
 		/**

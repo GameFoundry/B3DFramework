@@ -484,7 +484,7 @@ void CRigidbody::OnEnabled()
 
 void CRigidbody::OnTransformChanged(TransformChangedFlags flags)
 {
-	if(!SO()->GetActive())
+	if(!GetEnabled())
 		return;
 
 	if((flags & TCF_Parent) != 0)

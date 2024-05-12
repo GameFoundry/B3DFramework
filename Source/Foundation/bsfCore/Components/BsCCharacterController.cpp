@@ -167,7 +167,7 @@ void CCharacterController::OnEnabled()
 
 void CCharacterController::OnTransformChanged(TransformChangedFlags flags)
 {
-	if(!SO()->GetActive() || mInternal == nullptr)
+	if(!GetEnabled() || mInternal == nullptr)
 		return;
 
 	mInternal->SetPosition(SO()->GetTransform().GetPosition());

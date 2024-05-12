@@ -45,7 +45,7 @@ void CAudioListener::OnEnabled()
 
 void CAudioListener::OnTransformChanged(TransformChangedFlags flags)
 {
-	if(!SO()->GetActive())
+	if(!GetEnabled())
 		return;
 
 	if((flags & (TCF_Parent | TCF_Transform)) != 0)

@@ -27,7 +27,7 @@ CLightProbeVolume::~CLightProbeVolume()
 
 void CLightProbeVolume::RenderProbe(u32 handle)
 {
-	if(mInternal != nullptr && SO()->GetActive())
+	if(mInternal != nullptr && GetEnabled())
 	{
 		mInternal->UpdateStateInternal(*SO());
 		mInternal->RenderProbe(handle);
@@ -36,7 +36,7 @@ void CLightProbeVolume::RenderProbe(u32 handle)
 
 void CLightProbeVolume::RenderProbes()
 {
-	if(mInternal != nullptr && SO()->GetActive())
+	if(mInternal != nullptr && GetEnabled())
 	{
 		mInternal->UpdateStateInternal(*SO());
 		mInternal->RenderProbes();

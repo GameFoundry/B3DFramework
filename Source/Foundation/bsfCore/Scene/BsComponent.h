@@ -94,6 +94,17 @@ namespace bs
 		 */
 		void Destroy(bool immediate = false);
 
+		/** Enables or disables this object. Disabled component is not updated. */
+		void SetEnabled(bool enabled);
+
+		/**
+		 * Returns whether or not an object is enabled.
+		 *
+		 * @param	self	If true, the method will only check if this particular object was enabled or disabled
+		 *					directly via SetEnabled. If false we also check if any of the objects parents are disabled.
+		 */
+		bool GetEnabled(bool self = false) const;
+
 		/** @name Internal
 		 *  @{
 		 */
@@ -106,6 +117,9 @@ namespace bs
 
 		/** Sets new flags that determine when is onTransformChanged called. */
 		void SetNotifyFlags(TransformChangedFlags flags) { mNotifyFlags = flags; }
+
+		/** Sets or unsets the disable state flag depending on the enabled state of the parent and the component itself. */
+		void RefreshEnabledState(bool triggerEvents = true);
 
 		/** Gets the currently assigned notify flags. See SetNotifyFlagsInternal(). */
 		TransformChangedFlags GetNotifyFlagsInternal() const { return mNotifyFlags; }

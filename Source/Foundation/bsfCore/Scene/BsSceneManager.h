@@ -202,13 +202,13 @@ namespace bs
 		 * Notifies the manager that a scene object the component belongs to was activated. The manager triggers necessary
 		 * callbacks.
 		 */
-		void NotifyComponentActivatedInternal(const HComponent& component, bool triggerEvent);
+		void NotifyComponentActivatedInternal(const HComponent& component, bool triggerEvent); // TODO - Activated -> Enabled, to match OnEnabled
 
 		/**
 		 * Notifies the manager that a scene object the component belongs to was deactivated. The manager triggers necessary
 		 * callbacks.
 		 */
-		void NotifyComponentDeactivatedInternal(const HComponent& component, bool triggerEvent);
+		void NotifyComponentDeactivatedInternal(const HComponent& component, bool triggerEvent); // TODO - Deactivated -> Disabled, to match OnDisabled
 
 		/** Notifies the manager that a component is about to be destroyed. The manager triggers necessary callbacks. */
 		void NotifyComponentDestroyedInternal(const HComponent& component, bool immediate);

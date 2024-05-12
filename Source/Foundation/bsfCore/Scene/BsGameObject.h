@@ -20,8 +20,8 @@ namespace bs
 		TCF_Mobility = 0x04 /**< Component will be notified when mobility state changes. */
 	};
 
-	/** Flags that specify the state and control behaviour of a GameObject. */
-	enum class GameObjectFlag
+	/** Flags that specify the state and control behaviour of a GameObject. State of these flags is not serialized. */
+	enum class GameObjectTransientFlag
 	{
 		None = 0,
 
@@ -40,10 +40,25 @@ namespace bs
 		 * but in most cases setting this flag will immediately be followed by object deallocation.
 		 */
 		Destroyed = 1 << 2,
+
+		/** Game object is disabled, either directly or by one of its parents. */
+		Disabled = 1 << 3,
 	};
 
-	using GameObjectFlags = Flags<GameObjectFlag>;
-	B3D_FLAGS_OPERATORS(GameObjectFlag)
+	using GameObjectTransientFlags = Flags<GameObjectTransientFlag>;
+	B3D_FLAGS_OPERATORS(GameObjectTransientFlag)
+
+	/** Flags that specify the state and control behaviour of a GameObject. State of these flags is serialized. */
+	enum class GameObjectPersistentFlag
+	{
+		None = 0,
+
+		/** Game object is disabled, directly (i.e. not disabled due to its parent being disabled). */
+		DisabledSelf = 1 << 0
+	};
+
+	using GameObjectPersistentFlags = Flags<GameObjectPersistentFlag>;
+	B3D_FLAGS_OPERATORS(GameObjectPersistentFlag)
 
 	/** @} */
 	/** @addtogroup Scene
@@ -70,13 +85,22 @@ namespace bs
 		void SetName(const String& name) { mName = name; }
 
 		/** Checks is the particular object flag set. */
-		bool HasGameObjectFlag(GameObjectFlag flag) const { return mObjectFlags.IsSet(flag); }
+		bool HasGameObjectFlag(GameObjectTransientFlag flag) const { return mTransientGameObjectFlags.IsSet(flag); }
 
 		/** Sets a particular flag on the game object. */
-		void SetGameObjectFlag(GameObjectFlag flag) { mObjectFlags.Set(flag); }
+		void SetGameObjectFlag(GameObjectTransientFlag flag) { mTransientGameObjectFlags.Set(flag); }
 
 		/** Removes a particular flag on the game object. */
-		void UnsetGameObjectFlag(GameObjectFlag flag) { mObjectFlags.Unset(flag); }
+		void UnsetGameObjectFlag(GameObjectTransientFlag flag) { mTransientGameObjectFlags.Unset(flag); }
+
+		/** Checks is the particular object flag set. */
+		bool HasGameObjectFlag(GameObjectPersistentFlag flag) const { return mPersistentGameObjectFlags.IsSet(flag); }
+
+		/** Sets a particular flag on the game object. */
+		void SetGameObjectFlag(GameObjectPersistentFlag flag) { mPersistentGameObjectFlags.Set(flag); }
+
+		/** Removes a particular flag on the game object. */
+		void UnsetGameObjectFlag(GameObjectPersistentFlag flag) { mPersistentGameObjectFlags.Unset(flag); }
 
 		/** Identifies the equivalent object in the linked prefab. This will be an empty ID if the object is not linked to a prefab. */
 		const UUID& GetPrefabObjectId() const { return mPrefabObjectId; }
@@ -149,7 +173,9 @@ namespace bs
 		UUID mId; /**< Unique identifier for this object. */
 		UUID mPrefabObjectId; /**< Identifier of the object in the prefab that this object is linked to, if any. */
 		WeakSPtr<GameObjectCollection> mOwnerCollection; /**< Collection that owns this game object. */
-		GameObjectFlags mObjectFlags;
+		GameObjectTransientFlags mTransientGameObjectFlags;
+		GameObjectPersistentFlags mPersistentGameObjectFlags;
+
 
 		Any mRTTIData; // RTTI only
 	private:

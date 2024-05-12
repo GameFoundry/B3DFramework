@@ -59,7 +59,7 @@ void CBone::OnEnabled()
 
 void CBone::OnTransformChanged(TransformChangedFlags flags)
 {
-	if(!SO()->GetActive())
+	if(!GetEnabled())
 		return;
 
 	if((flags & TCF_Parent) != 0)
@@ -74,7 +74,7 @@ void CBone::UpdateParentAnimation()
 		HAnimation parent = currentSO->GetComponent<CAnimation>();
 		if(parent != nullptr)
 		{
-			if(currentSO->GetActive())
+			if(parent->GetEnabled())
 				SetParentInternal(parent);
 			else
 				SetParentInternal(HAnimation());
