@@ -53,7 +53,7 @@ void PlayInEditor::SetStateImmediate(PlayInEditorState state)
 			SetSystemsPauseState(true);
 
 			GetSceneManager().SetComponentState(ComponentState::Stopped);
-			mSavedScene->InstantiateInternal();
+			mSavedScene->Initialize();
 			GetSceneManager().SetRootNodeInternal(mSavedScene);
 
 			mSavedScene = nullptr;

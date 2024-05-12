@@ -50,7 +50,7 @@ HSceneObject SceneInstance::CreateSceneObject(const String& name)
 {
 	HSceneObject newSceneObject = SceneObject::CreateInternal(mGameObjectCollection, name);
 	newSceneObject->SetParent(mRoot, false);
-	newSceneObject->InstantiateInternal();
+	newSceneObject->Initialize();
 
 	return newSceneObject;
 }
@@ -64,7 +64,7 @@ SPtr<SceneInstance> SceneInstance::Create(const String& name)
 	root->SetScene(sceneInstance, false);
 
 	SceneManager::Instance().NotifySceneInstanceCreated(sceneInstance);
-	root->InstantiateInternal();
+	root->Initialize();
 
 	return sceneInstance;
 }

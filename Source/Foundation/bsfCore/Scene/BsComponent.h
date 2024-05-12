@@ -100,9 +100,9 @@ namespace bs
 
 		/**
 		 * Construct any resources the component needs before use. Called when the parent scene object is instantiated.
-		 * A non-instantiated component shouldn't be used for any other purpose than serialization.
+		 * A non-instantiated component shouldn't be used in a live scene.
 		 */
-		virtual void InstantiateInternal(); // TODO - Rename to Initialize, maybe move to GameObject
+		virtual void Initialize();
 
 		/** Sets new flags that determine when is onTransformChanged called. */
 		void SetNotifyFlags(TransformChangedFlags flags) { mNotifyFlags = flags; }

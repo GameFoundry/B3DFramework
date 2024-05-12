@@ -117,7 +117,7 @@ namespace bs
 
 		ManagedComponent(const HSceneObject& parent, MonoReflectionType* runtimeType);
 
-		void InstantiateInternal() override;
+		void Initialize() override;
 		void OnCreated() override;
 		void OnBeginPlay() override;
 		void OnDestroyed() override;

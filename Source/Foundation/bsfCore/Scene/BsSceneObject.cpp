@@ -37,7 +37,7 @@ HSceneObject SceneObject::Create(const String& name, u32 flags)
 	HSceneObject newObject = CreateInternal(sceneGameObjectCollection, name, flags);
 
 	GetSceneManager().AddToMainScene(newObject);
-	newObject->InstantiateInternal();
+	newObject->Initialize();
 
 	return newObject;
 }
@@ -203,48 +203,42 @@ void SceneObject::UnsetFlagsInternal(u32 flags)
 		child->UnsetFlagsInternal(flags);
 }
 
-void SceneObject::InstantiateInternal(bool prefabOnly)
+void SceneObject::Initialize()
 {
-	std::function<void(SceneObject*)> instantiateRecursive = [&](SceneObject* obj)
+	Function<void(SceneObject*)> fnInitialize = [&fnInitialize](SceneObject* sceneObject)
 	{
-		if(obj->GetScene() == nullptr)
+		if(sceneObject->GetScene() == nullptr)
 		{
 			B3D_LOG(Warning, Scene, "Cannot instantiate scene object. No associated scene found.");
 			return;
 		}
 
-		obj->SetGameObjectFlag(GameObjectFlag::Initialized);
+		sceneObject->SetGameObjectFlag(GameObjectFlag::Initialized);
 
-		if(obj->mParent == nullptr)
-			obj->SetParent(obj->GetScene()->GetRoot());
+		if(sceneObject->mParent == nullptr)
+			sceneObject->SetParent(sceneObject->GetScene()->GetRoot());
 
-		for(auto& component : obj->mComponents)
-			component->InstantiateInternal();
+		for(auto& component : sceneObject->mComponents)
+			component->Initialize();
 
-		for(auto& child : obj->mChildren)
-		{
-			if(!prefabOnly || (child->GetPrefabResourceId().Empty() || child->GetPrefabResourceId() == obj->GetPrefabResourceId()))
-				instantiateRecursive(child.Get());
-		}
+		for(auto& child : sceneObject->mChildren)
+			fnInitialize(child.Get());
 	};
 
-	std::function<void(SceneObject*)> triggerEventsRecursive = [&](SceneObject* obj)
+	Function<void(SceneObject*)> fnTriggerEvents = [&fnTriggerEvents](SceneObject* sceneObject)
 	{
-		if(!obj->HasGameObjectFlag(GameObjectFlag::Initialized))
+		if(!sceneObject->HasGameObjectFlag(GameObjectFlag::Initialized))
 			return;
 
-		for(auto& component : obj->mComponents)
-			GetSceneManager().NotifyComponentCreatedInternal(component, obj->GetActive());
+		for(auto& component : sceneObject->mComponents)
+			GetSceneManager().NotifyComponentCreatedInternal(component, sceneObject->GetActive());
 
-		for(auto& child : obj->mChildren)
-		{
-			if(!prefabOnly || (child->GetPrefabResourceId().Empty() || child->GetPrefabResourceId() == obj->GetPrefabResourceId()))
-				triggerEventsRecursive(child.Get());
-		}
+		for(auto& child : sceneObject->mChildren)
+				fnTriggerEvents(child.Get());
 	};
 
-	instantiateRecursive(this);
-	triggerEventsRecursive(this);
+	fnInitialize(this);
+	fnTriggerEvents(this);
 }
 
 /************************************************************************/
@@ -921,7 +915,7 @@ void SceneObject::InternalAddComponent(const HComponent& component, bool initial
 
 	if(initialize && HasGameObjectFlag(GameObjectFlag::Initialized))
 	{
-		component->InstantiateInternal();
+		component->Initialize();
 
 		GetSceneManager().NotifyComponentCreatedInternal(component, GetActive());
 	}

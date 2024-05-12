@@ -65,7 +65,7 @@ void Component::DestroyImmediate()
 	GameObject::DestroyImmediate();
 }
 
-void Component::InstantiateInternal()
+void Component::Initialize()
 {
 	SetGameObjectFlag(GameObjectFlag::Initialized);
 }

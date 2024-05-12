@@ -192,7 +192,7 @@ namespace bs
 				sceneObject->SetActiveHierarchy(parentActive, false);
 
 				if(serializationContext->InitializeNewGameObjects)
-					sceneObject->InstantiateInternal();
+					sceneObject->Initialize();
 			}
 
 			sceneObject->mRTTIData = nullptr;

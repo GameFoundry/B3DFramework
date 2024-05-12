@@ -163,7 +163,7 @@ HSceneObject Prefab::Instantiate(SPtr<SceneInstance>& inOutSceneInstance, bool p
 	else
 		inOutSceneInstance = SceneInstance::Create("PrefabInstance", clone);
 
-	clone->InstantiateInternal();
+	clone->Initialize();
 	return clone;
 }
 

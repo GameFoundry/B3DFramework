@@ -47,9 +47,9 @@ void CCamera::SetMain(bool main)
 	mInternal->SetMain(main);
 }
 
-void CCamera::InstantiateInternal()
+void CCamera::Initialize()
 {
-	Component::InstantiateInternal();
+	Component::Initialize();
 
 	// If mInternal already exists this means this object was deserialized,
 	// so all we need to do is initialize it.

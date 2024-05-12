@@ -227,7 +227,7 @@ void SceneObjectHierarchyDelta::Apply(const HSceneObject& original, SceneObjectH
 		for(const auto& entry : createdSceneObjects)
 		{
 			if(!entry.second->HasGameObjectFlag(GameObjectFlag::Initialized))
-				entry.second->InstantiateInternal();
+				entry.second->Initialize();
 		}
 	}
 

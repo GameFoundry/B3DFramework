@@ -109,13 +109,8 @@ namespace bs
 
 		void SetOwnerCollection(const SPtr<GameObjectCollection>& collection) override;
 
-		/**
-		 * Register the scene object with the scene and activate all of its components.
-		 *
-		 * @param[in]	prefabOnly	If true, only objects within the current prefab will be instantiated. If false all child
-		 *							objects and components will.
-		 */
-		void InstantiateInternal(bool prefabOnly = false); // TODO - Rename to Initialize()
+		/** Register the scene object and its children with the scene manager, and initialize all of their components. */
+		void Initialize();
 
 		/** @copydoc GetPrefabResourceId */
 		void SetPrefabResourceId(const UUID& id) { mPrefabResourceId = id; }

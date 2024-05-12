@@ -308,9 +308,9 @@ void ManagedComponent::TriggerOnReset()
 	mRequiresReset = false;
 }
 
-void ManagedComponent::InstantiateInternal()
+void ManagedComponent::Initialize()
 {
-	Component::InstantiateInternal();
+	Component::Initialize();
 
 	mObjInfo = nullptr;
 
