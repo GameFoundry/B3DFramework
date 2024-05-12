@@ -34,6 +34,12 @@ void Component::Destroy(bool immediate)
 		return;
 	}
 
+	if(HasGameObjectFlag(GameObjectFlag::QueuedForDestroy))
+		return;
+
+	if(!B3D_ENSURE(!HasGameObjectFlag(GameObjectFlag::Destroyed)))
+		return;
+
 	HComponent thisComponentHandle = B3DStaticGameObjectCast<Component>(mThisHandle);
 	mParent->NotifyWillDestroyComponent(thisComponentHandle);
 

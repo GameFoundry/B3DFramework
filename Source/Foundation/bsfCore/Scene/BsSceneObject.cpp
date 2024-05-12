@@ -81,6 +81,12 @@ void SceneObject::Destroy(bool immediate)
 
 void SceneObject::QueueForDestroy()
 {
+	if(HasGameObjectFlag(GameObjectFlag::QueuedForDestroy))
+		return;
+
+	if(!B3D_ENSURE(!HasGameObjectFlag(GameObjectFlag::Destroyed)))
+		return;
+
 	// Important to queue components to destroy before the scene objects, as they will reference their parent during destruction
 	while(!mComponents.empty())
 	{
