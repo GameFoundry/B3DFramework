@@ -151,6 +151,7 @@ namespace bs
 		virtual void OnTransformChanged(TransformChangedFlags flags) {}
 
 		void DestroyImmediate() override;
+		void QueueForDestroy() override;
 
 		/** Checks whether the component wants to received the specified transform changed message. */
 		bool SupportsNotify(TransformChangedFlags flags) const { return (mNotifyFlags & flags) != 0; }

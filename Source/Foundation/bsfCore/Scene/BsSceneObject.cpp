@@ -88,20 +88,13 @@ void SceneObject::QueueForDestroy()
 		return;
 
 	// Important to queue components to destroy before the scene objects, as they will reference their parent during destruction
-	while(!mComponents.empty())
-	{
-		HComponent component = mComponents.back();
-		component->Destroy(false);
-	}
+	for(const auto& component : mComponents)
+		component->QueueForDestroy();
 
 	for(const auto& child : mChildren)
 		child->QueueForDestroy();
 
-	SetGameObjectFlag(GameObjectFlag::QueuedForDestroy);
-
-	const SPtr<GameObjectCollection>& ownerCollection = mOwnerCollection.lock();
-	if(ownerCollection != nullptr) // Allowed to be null during GameObjectCollection destructor call
-		ownerCollection->QueueForDestroy(mThisHandle);
+	GameObject::QueueForDestroy();
 }
 
 void SceneObject::DestroyImmediate()
@@ -109,23 +102,25 @@ void SceneObject::DestroyImmediate()
 	// If queued for destroy, children will be queued as well
 	if(!HasGameObjectFlag(GameObjectFlag::QueuedForDestroy))
 	{
-		for(auto it = mChildren.begin(); it != mChildren.end(); ++it)
+		for(auto it = mChildren.begin(); it != mChildren.end();)
+		{
 			(*it)->DestroyImmediate();
+
+			it = mChildren.erase(it);
+		}
+
+		// It's important to remove the elements from the array as soon as they're destroyed, as OnDestroy callbacks
+		// for components might query the SO's components, and we want to only return live ones
+		for(auto it = mComponents.begin(); it != mComponents.end();)
+		{
+			(*it)->DestroyImmediate();
+
+			it = mComponents.erase(it);
+		}
 	}
 
 	mChildren.clear();
-
-	// It's important to remove the elements from the array as soon as they're destroyed, as OnDestroy callbacks
-	// for components might query the SO's components, and we want to only return live ones
-	while(!mComponents.empty())
-	{
-		HComponent component = mComponents.back();
-		component->DestroyImmediate();
-	}
-
-	const SPtr<GameObjectCollection>& ownerCollection = mOwnerCollection.lock();
-	if(ownerCollection != nullptr) // Allowed to be null during GameObjectCollection destructor call
-		ownerCollection->UnregisterObject(mThisHandle, HasGameObjectFlag(GameObjectFlag::Initialized));
+	mComponents.clear();
 
 	GameObject::DestroyImmediate();
 }
@@ -854,7 +849,7 @@ HComponent SceneObject::GetComponent(RTTITypeBase* type) const
 	return HComponent();
 }
 
-void SceneObject::NotifyWillDestroyComponent(const HComponent& component)
+void SceneObject::RemoveComponent(const HComponent& component)
 {
 	if(component == nullptr)
 	{

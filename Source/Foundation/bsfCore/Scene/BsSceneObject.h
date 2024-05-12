@@ -160,10 +160,8 @@ namespace bs
 		 */
 		static HSceneObject CreateInternal(const SPtr<GameObjectCollection>& ownerCollection, const SPtr<SceneObject>& sceneObject);
 
-		/** Queues the provided scene object to be destroyed at the end of the frame, including all children and components. */
-		void QueueForDestroy();
-
 		void DestroyImmediate() override;
+		void QueueForDestroy() override;
 
 	private:
 		friend class Component;
@@ -596,12 +594,6 @@ namespace bs
 		 */
 		HComponent GetComponent(RTTITypeBase* type) const;
 
-		/**
-		 * Notifies the scene object that a component is about to be destroyed. This will remove the component from
-		 * the internal component list, and trigger necessary events.
-		 */
-		void NotifyWillDestroyComponent(const HComponent& component);
-
 		/**	Returns all components on this object. */
 		const Vector<HComponent>& GetComponents() const { return mComponents; }
 
@@ -624,7 +616,10 @@ namespace bs
 		 */
 
 		/**	Returns a modifyable list of all components on this object. */
-		Vector<HComponent>& GetComponentsInternal() { return mComponents; }
+		Vector<HComponent>& GetMutableComponents() { return mComponents; }
+
+		/** Removes the component from the internal component list. This shouldn't be called externally, use Component::Destroy() instead. */
+		void RemoveComponent(const HComponent& component);
 
 		/** @} */
 	private:

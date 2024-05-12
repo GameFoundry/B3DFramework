@@ -28,12 +28,6 @@ bool Component::CalculateBounds(Bounds& bounds)
 
 void Component::Destroy(bool immediate)
 {
-	if(immediate)
-	{
-		DestroyImmediate();
-		return;
-	}
-
 	if(HasGameObjectFlag(GameObjectFlag::QueuedForDestroy))
 		return;
 
@@ -41,34 +35,48 @@ void Component::Destroy(bool immediate)
 		return;
 
 	HComponent thisComponentHandle = B3DStaticGameObjectCast<Component>(mThisHandle);
-	mParent->NotifyWillDestroyComponent(thisComponentHandle);
+	mParent->RemoveComponent(thisComponentHandle);
+	mParent = nullptr;
 
-	// Queue for destroy
-	SetGameObjectFlag(GameObjectFlag::QueuedForDestroy);
-
-	const SPtr<GameObjectCollection>& ownerCollection = mOwnerCollection.lock();
-	if(ownerCollection != nullptr) // Allowed to be null during GameObjectCollection destructor call
-		ownerCollection->QueueForDestroy(mThisHandle);
+	if(immediate)
+		DestroyImmediate();
+	else
+		QueueForDestroy();
 }
 
 void Component::DestroyImmediate()
 {
-	const SPtr<GameObjectCollection>& ownerCollection = mOwnerCollection.lock();
+	if(!B3D_ENSURE(!HasGameObjectFlag(GameObjectFlag::Destroyed)))
+		return;
 
-	HComponent thisComponentHandle = B3DStaticGameObjectCast<Component>(mThisHandle);
-
-	const bool isInitialized = HasGameObjectFlag(GameObjectFlag::Initialized);
-	if(isInitialized)
-		GetSceneManager().NotifyComponentDestroyedInternal(thisComponentHandle, true);
-
-	// If queued for destroy, parent will have already been notified
 	if(!HasGameObjectFlag(GameObjectFlag::QueuedForDestroy))
-		mParent->NotifyWillDestroyComponent(thisComponentHandle);
+	{
+		if(HasGameObjectFlag(GameObjectFlag::Initialized))
+		{
+			HComponent thisComponentHandle = B3DStaticGameObjectCast<Component>(mThisHandle);
+			GetSceneManager().NotifyComponentDestroyedInternal(thisComponentHandle, true);
+		}
+	}
 
-	if(ownerCollection != nullptr) // Allowed to be null during GameObjectCollection destructor call
-		ownerCollection->UnregisterObject(mThisHandle, isInitialized);
-
+	mParent = nullptr;
 	GameObject::DestroyImmediate();
+}
+
+void Component::QueueForDestroy()
+{
+	if(HasGameObjectFlag(GameObjectFlag::QueuedForDestroy))
+		return;
+
+	if(!B3D_ENSURE(!HasGameObjectFlag(GameObjectFlag::Destroyed)))
+		return;
+
+	if(HasGameObjectFlag(GameObjectFlag::Initialized))
+	{
+		HComponent thisComponentHandle = B3DStaticGameObjectCast<Component>(mThisHandle);
+		GetSceneManager().NotifyComponentDestroyedInternal(thisComponentHandle, true);
+	}
+
+	GameObject::QueueForDestroy();
 }
 
 void Component::Initialize()

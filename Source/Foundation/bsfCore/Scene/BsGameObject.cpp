@@ -39,9 +39,22 @@ void GameObject::SetOwnerCollection(const SPtr<GameObjectCollection>& collection
 
 void GameObject::DestroyImmediate()
 {
+	const SPtr<GameObjectCollection>& ownerCollection = mOwnerCollection.lock();
+	if(ownerCollection != nullptr) // Allowed to be null during GameObjectCollection destructor call
+		ownerCollection->UnregisterObject(mThisHandle, HasGameObjectFlag(GameObjectFlag::Initialized));
+
 	mInstanceData->Object = nullptr;
 
 	SetGameObjectFlag(GameObjectFlag::Destroyed);
+}
+
+void GameObject::QueueForDestroy()
+{
+	const SPtr<GameObjectCollection>& ownerCollection = mOwnerCollection.lock();
+	if(ownerCollection != nullptr) // Allowed to be null during GameObjectCollection destructor call
+		ownerCollection->QueueForDestroy(mThisHandle);
+
+	SetGameObjectFlag(GameObjectFlag::QueuedForDestroy);
 }
 
 RTTITypeBase* GameObject::GetRttiStatic()

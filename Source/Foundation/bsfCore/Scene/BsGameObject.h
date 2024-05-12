@@ -121,9 +121,15 @@ namespace bs
 
 		/**
 		 * Destroys the game object without delay. Object will be removed from its game object collection, and reference to the object
-		 * in all active handles will become null. If any object contains any child objects, those will be destroyed as well.
+		 * in all active handles will become null. If the object contains any child objects or components, those will be destroyed as well.
 		 */
 		virtual void DestroyImmediate();
+
+		/**
+		 * Queues the provided game object to be destroyed at the end of the frame. If the object contains any child objects or components,
+		 * those will be queued for destroy as well. Object will not be removed from any parent's child or component list.
+		 */
+		virtual void QueueForDestroy();
 
 		/** @} */
 
