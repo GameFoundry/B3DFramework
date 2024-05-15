@@ -576,6 +576,14 @@ void SceneObject::SetParentInternal(const HSceneObject& parent, bool keepWorldTr
 	}
 }
 
+void SceneObject::ClearParent()
+{
+	if(mParent != nullptr)
+		mParent->RemoveChild(GetHandle());
+
+	mParent = nullptr;
+}
+
 void SceneObject::SetScene(const SPtr<SceneInstance>& scene, bool recursive)
 {
 	const SPtr<SceneInstance> currentScene = mParentScene.lock();
@@ -810,11 +818,34 @@ void SceneObject::SetMobility(ObjectMobility mobility)
 
 HSceneObject SceneObject::Clone()
 {
-	return Clone(GetOwnerCollection().lock());
+	HSceneObject cloneParent = GetParent();
+	if(!cloneParent.IsValid())
+	{
+		const SPtr<SceneInstance>& sceneInstance = mParentScene.lock();
+		if(sceneInstance != nullptr)
+			cloneParent = sceneInstance->GetRoot();
+	}
+
+	if(!cloneParent.IsValid())
+	{
+		B3D_LOG(Error, Scene, "Cannot clone scene object {0} ({1}). Cannot find a scene object to parent the clone to.", GetName(), GetId());
+		return HSceneObject();
+	}
+
+	HSceneObject clone = Clone(GetOwnerCollection().lock(), false);
+	clone->SetParent(cloneParent);
+
+	if(HasGameObjectFlag(GameObjectTransientFlag::Initialized))
+		clone->Initialize();
+
+	return clone;
 }
 
-HSceneObject SceneObject::Clone(const SPtr<GameObjectCollection>& cloneOwnerCollection, bool initialize, bool preserveIds)
+HSceneObject SceneObject::Clone(const SPtr<GameObjectCollection>& cloneOwnerCollection, bool preserveIds)
 {
+	if(!B3D_ENSURE(cloneOwnerCollection))
+		return HSceneObject();
+
 	SPtr<MemoryDataStream> stream = B3DMakeShared<MemoryDataStream>();
 	BinarySerializer serializer;
 	serializer.Encode(this, stream);
@@ -822,15 +853,38 @@ HSceneObject SceneObject::Clone(const SPtr<GameObjectCollection>& cloneOwnerColl
 	B3D_ENSURE(!preserveIds || cloneOwnerCollection != mOwnerCollection.lock());
 
 	CoreSerializationContext serializationContext;
-	serializationContext.InitializeNewGameObjects = initialize;
 	serializationContext.PreserveGameObjectIds = preserveIds;
 	serializationContext.GameObjectCollection = cloneOwnerCollection;
 
 	stream->Seek(0);
-	SPtr<SceneObject> cloneObj = std::static_pointer_cast<SceneObject>(
-		serializer.Decode(stream, (u32)stream->Size(), BinarySerializerFlag::None, &serializationContext));
+	SPtr<SceneObject> clone = std::static_pointer_cast<SceneObject>(serializer.Decode(stream, (u32)stream->Size(), BinarySerializerFlag::None, &serializationContext));
 
-	return cloneObj->GetHandle();
+	return clone->GetHandle();
+}
+
+HSceneObject SceneObject::Clone(const SPtr<SceneInstance>& cloneSceneInstance, bool initialize, bool preserveIds)
+{
+	if(!B3D_ENSURE(cloneSceneInstance))
+		return HSceneObject();
+
+	SPtr<MemoryDataStream> stream = B3DMakeShared<MemoryDataStream>();
+	BinarySerializer serializer;
+	serializer.Encode(this, stream);
+
+	B3D_ENSURE(!preserveIds || cloneSceneInstance->GetGameObjectCollection() != mOwnerCollection.lock());
+
+	CoreSerializationContext serializationContext;
+	serializationContext.PreserveGameObjectIds = preserveIds;
+	serializationContext.GameObjectCollection = cloneSceneInstance->GetGameObjectCollection();
+
+	stream->Seek(0);
+	SPtr<SceneObject> clone = std::static_pointer_cast<SceneObject>(serializer.Decode(stream, (u32)stream->Size(), BinarySerializerFlag::None, &serializationContext));
+	clone->SetParent(cloneSceneInstance->GetRoot());
+
+	if(initialize)
+		clone->Initialize();
+
+	return clone->GetHandle();
 }
 
 HComponent SceneObject::GetComponent(RTTITypeBase* type) const

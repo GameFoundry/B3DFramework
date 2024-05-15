@@ -428,7 +428,7 @@ namespace bs
 		 */
 		ObjectMobility GetMobility() const { return mMobility; }
 
-		/** Makes a deep copy of this object (including all its children). */
+		/** Makes a deep copy of this object (including all its children). Cloned object will be parented to the same parent as this object. */
 		HSceneObject Clone();
 
 		/** @name Internal
@@ -436,10 +436,24 @@ namespace bs
 		 */
 
 		/**
-		 * Makes a deep copy of this object (including all its children).
+		 * Makes a deep copy of this object (including all its children). The cloned objects will not be parented to any scene object,
+		 * not be associated with any scene instance and not initialized.
 		 *
 		 * @param		cloneOwnerCollection	Collection into which to place the cloned scene objects. If @p preserveIds is true
 		 *										this must be a different collection that the current scene object, otherwise IDs would
+		 *										conflict.
+		 * @param		preserveIds				If false, each cloned game object will be assigned a brand new ID. Otherwise
+		 *										the ID of the original game objects will be preserved. 
+		 * @return								Cloned scene object hierarchy.
+		 */
+		HSceneObject Clone(const SPtr<GameObjectCollection>& cloneOwnerCollection, bool preserveIds = false);
+
+		/**
+		 * Makes a deep copy of this object (including all its children). Cloned object will be parented to the root of the
+		 * provided scene instance.
+		 *
+		 * @param		cloneSceneInstance		Scene instance into which to place the cloned scene objects. If @p preserveIds is true
+		 *										this must be a different scene instance that the current scene object, otherwise IDs would
 		 *										conflict.
 		 * @param		initialize				If false, the cloned hierarchy will just be a memory copy, but will not be present
 		 *										in the scene or otherwise active until Initialize() is called.
@@ -447,7 +461,7 @@ namespace bs
 		 *										the ID of the original game objects will be preserved. 
 		 * @return								Cloned scene object hierarchy.
 		 */
-		HSceneObject Clone(const SPtr<GameObjectCollection>& cloneOwnerCollection, bool initialize = true, bool preserveIds = false);
+		HSceneObject Clone(const SPtr<SceneInstance>& cloneSceneInstance, bool initialize = true, bool preserveIds = false);
 
 		/** @} */
 
@@ -467,6 +481,9 @@ namespace bs
 		 *									changed (this means the local transform will be modified accordingly).
 		 */
 		void SetParentInternal(const HSceneObject& parent, bool keepWorldTransform = true);
+
+		/** Sets the current scene parent to null. Only useful if an object is replacing an existing scene instance root. */
+		void ClearParent();
 
 		/** Changes the owning scene of the scene object and optionally all children if @p recursive is true. */
 		void SetScene(const SPtr<SceneInstance>& scene, bool recursive = true);

@@ -136,7 +136,7 @@ void PlayInEditor::Update()
 void PlayInEditor::SaveSceneInMemory()
 {
 	mSavedSceneGameObjectCollection = GameObjectCollection::Create();
-	mSavedScene = SceneManager::Instance().GetMainScene()->GetRoot()->Clone(mSavedSceneGameObjectCollection, false, true);
+	mSavedScene = SceneManager::Instance().GetMainScene()->GetRoot()->Clone(mSavedSceneGameObjectCollection, true);
 
 	// Remove objects with "dont save" flag
 	Stack<HSceneObject> todo;

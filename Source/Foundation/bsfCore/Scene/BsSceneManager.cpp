@@ -167,7 +167,7 @@ void SceneManager::SetRootNodeInternal(const HSceneObject& root)
 
 	// TODO - This function should just replace the scene instance, rather than update it
 	mMainScene->mRoot = root;
-	mMainScene->mRoot->SetParentInternal(HSceneObject());
+	mMainScene->mRoot->ClearParent();
 	mMainScene->mRoot->SetScene(mMainScene);
 	mMainScene->mGameObjectCollection = root->GetOwnerCollection().lock();
 

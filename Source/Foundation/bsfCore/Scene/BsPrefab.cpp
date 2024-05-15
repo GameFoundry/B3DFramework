@@ -94,7 +94,7 @@ void Prefab::Destroy()
 UnorderedMap<UUID, UUID> Prefab::ReplaceInternalHierarchy(const HSceneObject& sceneObject)
 {
 	const SPtr<GameObjectCollection> newGameObjectCollection = GameObjectCollection::Create();
-	HSceneObject newRoot = sceneObject->Clone(newGameObjectCollection, false, true);
+	HSceneObject newRoot = sceneObject->Clone(newGameObjectCollection, true);
 	newRoot->mParent = nullptr;
 
 	// Remove objects with "dont save" flag
@@ -173,7 +173,7 @@ HSceneObject Prefab::Clone(const SPtr<GameObjectCollection>& cloneOwnerCollectio
 		return HSceneObject();
 
 	mRoot->SetPrefabVersion(mPrefabVersion); // TODO - Might make sense to assign this to the entire hierarchy. Also for internal hierarchy, it should be set when internal hierarchy is updated.
-	return mRoot->Clone(cloneOwnerCollection, false, preserveIds);
+	return mRoot->Clone(cloneOwnerCollection, preserveIds);
 }
 
 void Prefab::TickPrefabVersion()
