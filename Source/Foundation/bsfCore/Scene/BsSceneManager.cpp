@@ -124,6 +124,8 @@ void SceneManager::ClearScene(bool forceAll)
 		gameObjectCollection->DestroyQueuedObjects();
 
 	HSceneObject newRoot = SceneObject::CreateInternal(gameObjectCollection, "SceneRoot");
+	newRoot->SetScene(mMainScene, false);
+
 	SetRootNodeInternal(newRoot);
 }
 
