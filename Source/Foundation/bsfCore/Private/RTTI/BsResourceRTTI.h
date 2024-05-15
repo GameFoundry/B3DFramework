@@ -20,9 +20,9 @@ namespace bs
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
-			B3D_RTTI_MEMBER_PLAIN(mSize, 0)
-			B3D_RTTI_MEMBER_REFLPTR(mMetaData, 1)
-			B3D_RTTI_MEMBER_PLAIN(mId, 2)
+			B3D_RTTI_MEMBER(mSize, 0)
+			B3D_RTTI_MEMBER(mMetaData, 1)
+			B3D_RTTI_MEMBER(mId, 2)
 		B3D_RTTI_END_MEMBERS
 
 	public:

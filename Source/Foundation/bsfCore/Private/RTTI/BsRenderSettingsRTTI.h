@@ -19,14 +19,14 @@ namespace bs
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
-			B3D_RTTI_MEMBER_PLAIN(HistogramLog2Min, 0)
-			B3D_RTTI_MEMBER_PLAIN(HistogramLog2Max, 1)
-			B3D_RTTI_MEMBER_PLAIN(HistogramPctLow, 2)
-			B3D_RTTI_MEMBER_PLAIN(HistogramPctHigh, 3)
-			B3D_RTTI_MEMBER_PLAIN(MinEyeAdaptation, 4)
-			B3D_RTTI_MEMBER_PLAIN(MaxEyeAdaptation, 5)
-			B3D_RTTI_MEMBER_PLAIN(EyeAdaptationSpeedUp, 6)
-			B3D_RTTI_MEMBER_PLAIN(EyeAdaptationSpeedDown, 7)
+			B3D_RTTI_MEMBER(HistogramLog2Min, 0)
+			B3D_RTTI_MEMBER(HistogramLog2Max, 1)
+			B3D_RTTI_MEMBER(HistogramPctLow, 2)
+			B3D_RTTI_MEMBER(HistogramPctHigh, 3)
+			B3D_RTTI_MEMBER(MinEyeAdaptation, 4)
+			B3D_RTTI_MEMBER(MaxEyeAdaptation, 5)
+			B3D_RTTI_MEMBER(EyeAdaptationSpeedUp, 6)
+			B3D_RTTI_MEMBER(EyeAdaptationSpeedDown, 7)
 		B3D_RTTI_END_MEMBERS
 
 	public:
@@ -51,13 +51,13 @@ namespace bs
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
-			B3D_RTTI_MEMBER_PLAIN(FilmicCurveShoulderStrength, 0)
-			B3D_RTTI_MEMBER_PLAIN(FilmicCurveLinearStrength, 1)
-			B3D_RTTI_MEMBER_PLAIN(FilmicCurveLinearAngle, 2)
-			B3D_RTTI_MEMBER_PLAIN(FilmicCurveToeStrength, 3)
-			B3D_RTTI_MEMBER_PLAIN(FilmicCurveToeNumerator, 4)
-			B3D_RTTI_MEMBER_PLAIN(FilmicCurveToeDenominator, 5)
-			B3D_RTTI_MEMBER_PLAIN(FilmicCurveLinearWhitePoint, 6)
+			B3D_RTTI_MEMBER(FilmicCurveShoulderStrength, 0)
+			B3D_RTTI_MEMBER(FilmicCurveLinearStrength, 1)
+			B3D_RTTI_MEMBER(FilmicCurveLinearAngle, 2)
+			B3D_RTTI_MEMBER(FilmicCurveToeStrength, 3)
+			B3D_RTTI_MEMBER(FilmicCurveToeNumerator, 4)
+			B3D_RTTI_MEMBER(FilmicCurveToeDenominator, 5)
+			B3D_RTTI_MEMBER(FilmicCurveLinearWhitePoint, 6)
 		B3D_RTTI_END_MEMBERS
 
 	public:
@@ -82,8 +82,8 @@ namespace bs
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
-			B3D_RTTI_MEMBER_PLAIN(Temperature, 0)
-			B3D_RTTI_MEMBER_PLAIN(Tint, 1)
+			B3D_RTTI_MEMBER(Temperature, 0)
+			B3D_RTTI_MEMBER(Tint, 1)
 		B3D_RTTI_END_MEMBERS
 
 	public:
@@ -108,10 +108,10 @@ namespace bs
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
-			B3D_RTTI_MEMBER_PLAIN(Saturation, 0)
-			B3D_RTTI_MEMBER_PLAIN(Contrast, 1)
-			B3D_RTTI_MEMBER_PLAIN(Gain, 2)
-			B3D_RTTI_MEMBER_PLAIN(Offset, 3)
+			B3D_RTTI_MEMBER(Saturation, 0)
+			B3D_RTTI_MEMBER(Contrast, 1)
+			B3D_RTTI_MEMBER(Gain, 2)
+			B3D_RTTI_MEMBER(Offset, 3)
 		B3D_RTTI_END_MEMBERS
 
 	public:
@@ -136,23 +136,23 @@ namespace bs
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
-			B3D_RTTI_MEMBER_PLAIN(Enabled, 0)
-			B3D_RTTI_MEMBER_PLAIN(FocalDistance, 1)
-			B3D_RTTI_MEMBER_PLAIN(FocalRange, 2)
-			B3D_RTTI_MEMBER_PLAIN(NearTransitionRange, 3)
-			B3D_RTTI_MEMBER_PLAIN(FarTransitionRange, 4)
-			B3D_RTTI_MEMBER_PLAIN(NearBlurAmount, 5)
-			B3D_RTTI_MEMBER_PLAIN(FarBlurAmount, 6)
-			B3D_RTTI_MEMBER_PLAIN(Type, 7)
-			B3D_RTTI_MEMBER_PLAIN(MaxBokehSize, 8)
-			B3D_RTTI_MEMBER_REFL(BokehShape, 9)
-			B3D_RTTI_MEMBER_PLAIN(AdaptiveColorThreshold, 10)
-			B3D_RTTI_MEMBER_PLAIN(AdaptiveRadiusThreshold, 11)
-			B3D_RTTI_MEMBER_PLAIN(ApertureSize, 12)
-			B3D_RTTI_MEMBER_PLAIN(FocalLength, 13)
-			B3D_RTTI_MEMBER_PLAIN(SensorSize, 14)
-			B3D_RTTI_MEMBER_PLAIN(BokehOcclusion, 15)
-			B3D_RTTI_MEMBER_PLAIN(OcclusionDepthRange, 16)
+			B3D_RTTI_MEMBER(Enabled, 0)
+			B3D_RTTI_MEMBER(FocalDistance, 1)
+			B3D_RTTI_MEMBER(FocalRange, 2)
+			B3D_RTTI_MEMBER(NearTransitionRange, 3)
+			B3D_RTTI_MEMBER(FarTransitionRange, 4)
+			B3D_RTTI_MEMBER(NearBlurAmount, 5)
+			B3D_RTTI_MEMBER(FarBlurAmount, 6)
+			B3D_RTTI_MEMBER(Type, 7)
+			B3D_RTTI_MEMBER(MaxBokehSize, 8)
+			B3D_RTTI_MEMBER(BokehShape, 9)
+			B3D_RTTI_MEMBER(AdaptiveColorThreshold, 10)
+			B3D_RTTI_MEMBER(AdaptiveRadiusThreshold, 11)
+			B3D_RTTI_MEMBER(ApertureSize, 12)
+			B3D_RTTI_MEMBER(FocalLength, 13)
+			B3D_RTTI_MEMBER(SensorSize, 14)
+			B3D_RTTI_MEMBER(BokehOcclusion, 15)
+			B3D_RTTI_MEMBER(OcclusionDepthRange, 16)
 		B3D_RTTI_END_MEMBERS
 
 	public:
@@ -177,14 +177,14 @@ namespace bs
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
-			B3D_RTTI_MEMBER_PLAIN(Enabled, 0)
-			B3D_RTTI_MEMBER_PLAIN(Radius, 1)
-			B3D_RTTI_MEMBER_PLAIN(Bias, 2)
-			B3D_RTTI_MEMBER_PLAIN(FadeRange, 3)
-			B3D_RTTI_MEMBER_PLAIN(FadeDistance, 4)
-			B3D_RTTI_MEMBER_PLAIN(Intensity, 5)
-			B3D_RTTI_MEMBER_PLAIN(Power, 6)
-			B3D_RTTI_MEMBER_PLAIN(Quality, 7)
+			B3D_RTTI_MEMBER(Enabled, 0)
+			B3D_RTTI_MEMBER(Radius, 1)
+			B3D_RTTI_MEMBER(Bias, 2)
+			B3D_RTTI_MEMBER(FadeRange, 3)
+			B3D_RTTI_MEMBER(FadeDistance, 4)
+			B3D_RTTI_MEMBER(Intensity, 5)
+			B3D_RTTI_MEMBER(Power, 6)
+			B3D_RTTI_MEMBER(Quality, 7)
 		B3D_RTTI_END_MEMBERS
 
 	public:
@@ -209,11 +209,11 @@ namespace bs
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
-			B3D_RTTI_MEMBER_PLAIN(Enabled, 0)
-			B3D_RTTI_MEMBER_PLAIN(Domain, 1)
-			B3D_RTTI_MEMBER_PLAIN(Filter, 2)
-			B3D_RTTI_MEMBER_PLAIN(Quality, 3)
-			B3D_RTTI_MEMBER_PLAIN(MaximumRadius, 4)
+			B3D_RTTI_MEMBER(Enabled, 0)
+			B3D_RTTI_MEMBER(Domain, 1)
+			B3D_RTTI_MEMBER(Filter, 2)
+			B3D_RTTI_MEMBER(Quality, 3)
+			B3D_RTTI_MEMBER(MaximumRadius, 4)
 		B3D_RTTI_END_MEMBERS
 
 	public:
@@ -238,9 +238,9 @@ namespace bs
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
-			B3D_RTTI_MEMBER_PLAIN(Enabled, 0)
-			B3D_RTTI_MEMBER_PLAIN(JitteredPositionCount, 1)
-			B3D_RTTI_MEMBER_PLAIN(Sharpness, 2)
+			B3D_RTTI_MEMBER(Enabled, 0)
+			B3D_RTTI_MEMBER(JitteredPositionCount, 1)
+			B3D_RTTI_MEMBER(Sharpness, 2)
 		B3D_RTTI_END_MEMBERS
 
 	public:
@@ -265,10 +265,10 @@ namespace bs
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
-			B3D_RTTI_MEMBER_PLAIN(Enabled, 0)
-			B3D_RTTI_MEMBER_PLAIN(Intensity, 1)
-			B3D_RTTI_MEMBER_PLAIN(MaxRoughness, 2)
-			B3D_RTTI_MEMBER_PLAIN(Quality, 3)
+			B3D_RTTI_MEMBER(Enabled, 0)
+			B3D_RTTI_MEMBER(Intensity, 1)
+			B3D_RTTI_MEMBER(MaxRoughness, 2)
+			B3D_RTTI_MEMBER(Quality, 3)
 		B3D_RTTI_END_MEMBERS
 
 	public:
@@ -293,12 +293,12 @@ namespace bs
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
-			B3D_RTTI_MEMBER_PLAIN(Enabled, 0)
-			B3D_RTTI_MEMBER_PLAIN(Quality, 1)
-			B3D_RTTI_MEMBER_PLAIN(Threshold, 2)
-			B3D_RTTI_MEMBER_PLAIN(Intensity, 3)
-			B3D_RTTI_MEMBER_PLAIN(Tint, 4)
-			B3D_RTTI_MEMBER_PLAIN(FilterSize, 5)
+			B3D_RTTI_MEMBER(Enabled, 0)
+			B3D_RTTI_MEMBER(Quality, 1)
+			B3D_RTTI_MEMBER(Threshold, 2)
+			B3D_RTTI_MEMBER(Intensity, 3)
+			B3D_RTTI_MEMBER(Tint, 4)
+			B3D_RTTI_MEMBER(FilterSize, 5)
 		B3D_RTTI_END_MEMBERS
 
 	public:
@@ -323,21 +323,21 @@ namespace bs
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
-			B3D_RTTI_MEMBER_PLAIN(Enabled, 0)
-			B3D_RTTI_MEMBER_PLAIN(DownsampleCount, 1)
-			B3D_RTTI_MEMBER_PLAIN(Threshold, 2)
-			B3D_RTTI_MEMBER_PLAIN(GhostCount, 3)
-			B3D_RTTI_MEMBER_PLAIN(GhostSpacing, 4)
-			B3D_RTTI_MEMBER_PLAIN(Brightness, 5)
-			B3D_RTTI_MEMBER_PLAIN(FilterSize, 6)
-			B3D_RTTI_MEMBER_PLAIN(Halo, 7)
-			B3D_RTTI_MEMBER_PLAIN(HaloAspectRatio, 8)
-			B3D_RTTI_MEMBER_PLAIN(HaloRadius, 9)
-			B3D_RTTI_MEMBER_PLAIN(HaloThickness, 10)
-			B3D_RTTI_MEMBER_PLAIN(HaloThreshold, 11)
-			B3D_RTTI_MEMBER_PLAIN(ChromaticAberration, 12)
-			B3D_RTTI_MEMBER_PLAIN(ChromaticAberrationOffset, 13)
-			B3D_RTTI_MEMBER_PLAIN(BicubicUpsampling, 14)
+			B3D_RTTI_MEMBER(Enabled, 0)
+			B3D_RTTI_MEMBER(DownsampleCount, 1)
+			B3D_RTTI_MEMBER(Threshold, 2)
+			B3D_RTTI_MEMBER(GhostCount, 3)
+			B3D_RTTI_MEMBER(GhostSpacing, 4)
+			B3D_RTTI_MEMBER(Brightness, 5)
+			B3D_RTTI_MEMBER(FilterSize, 6)
+			B3D_RTTI_MEMBER(Halo, 7)
+			B3D_RTTI_MEMBER(HaloAspectRatio, 8)
+			B3D_RTTI_MEMBER(HaloRadius, 9)
+			B3D_RTTI_MEMBER(HaloThickness, 10)
+			B3D_RTTI_MEMBER(HaloThreshold, 11)
+			B3D_RTTI_MEMBER(ChromaticAberration, 12)
+			B3D_RTTI_MEMBER(ChromaticAberrationOffset, 13)
+			B3D_RTTI_MEMBER(BicubicUpsampling, 14)
 		B3D_RTTI_END_MEMBERS
 
 	public:
@@ -362,10 +362,10 @@ namespace bs
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
-			B3D_RTTI_MEMBER_PLAIN(Enabled, 0)
-			B3D_RTTI_MEMBER_PLAIN(Type, 1)
-			B3D_RTTI_MEMBER_PLAIN(ShiftAmount, 2)
-			B3D_RTTI_MEMBER_REFL(FringeTexture, 3)
+			B3D_RTTI_MEMBER(Enabled, 0)
+			B3D_RTTI_MEMBER(Type, 1)
+			B3D_RTTI_MEMBER(ShiftAmount, 2)
+			B3D_RTTI_MEMBER(FringeTexture, 3)
 		B3D_RTTI_END_MEMBERS
 
 	public:
@@ -390,9 +390,9 @@ namespace bs
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
-			B3D_RTTI_MEMBER_PLAIN(Enabled, 0)
-			B3D_RTTI_MEMBER_PLAIN(Intensity, 1)
-			B3D_RTTI_MEMBER_PLAIN(Speed, 2)
+			B3D_RTTI_MEMBER(Enabled, 0)
+			B3D_RTTI_MEMBER(Intensity, 1)
+			B3D_RTTI_MEMBER(Speed, 2)
 		B3D_RTTI_END_MEMBERS
 
 	public:
@@ -417,10 +417,10 @@ namespace bs
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
-			B3D_RTTI_MEMBER_PLAIN(DirectionalShadowDistance, 0)
-			B3D_RTTI_MEMBER_PLAIN(NumCascades, 1)
-			B3D_RTTI_MEMBER_PLAIN(CascadeDistributionExponent, 2)
-			B3D_RTTI_MEMBER_PLAIN(ShadowFilteringQuality, 3)
+			B3D_RTTI_MEMBER(DirectionalShadowDistance, 0)
+			B3D_RTTI_MEMBER(NumCascades, 1)
+			B3D_RTTI_MEMBER(CascadeDistributionExponent, 2)
+			B3D_RTTI_MEMBER(ShadowFilteringQuality, 3)
 		B3D_RTTI_END_MEMBERS
 
 	public:
@@ -445,32 +445,32 @@ namespace bs
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
-			B3D_RTTI_MEMBER_PLAIN(EnableAutoExposure, 0)
-			B3D_RTTI_MEMBER_REFL(AutoExposure, 1)
-			B3D_RTTI_MEMBER_PLAIN(EnableTonemapping, 2)
-			B3D_RTTI_MEMBER_REFL(Tonemapping, 3)
-			B3D_RTTI_MEMBER_REFL(WhiteBalance, 4)
-			B3D_RTTI_MEMBER_REFL(ColorGrading, 5)
-			B3D_RTTI_MEMBER_PLAIN(ExposureScale, 6)
-			B3D_RTTI_MEMBER_PLAIN(Gamma, 7)
-			B3D_RTTI_MEMBER_REFL(DepthOfField, 8)
-			B3D_RTTI_MEMBER_PLAIN(EnableFxaa, 9)
-			B3D_RTTI_MEMBER_REFL(AmbientOcclusion, 10)
-			B3D_RTTI_MEMBER_REFL(ScreenSpaceReflections, 11)
-			B3D_RTTI_MEMBER_PLAIN(EnableHdr, 12)
-			B3D_RTTI_MEMBER_PLAIN(EnableLighting, 13)
-			B3D_RTTI_MEMBER_PLAIN(EnableShadows, 14)
-			B3D_RTTI_MEMBER_PLAIN(OverlayOnly, 15)
-			B3D_RTTI_MEMBER_PLAIN(EnableIndirectLighting, 16)
-			B3D_RTTI_MEMBER_REFL(ShadowSettings, 17)
-			B3D_RTTI_MEMBER_PLAIN(EnableSkybox, 18)
-			B3D_RTTI_MEMBER_REFL(Bloom, 19)
-			B3D_RTTI_MEMBER_REFL(ScreenSpaceLensFlare, 20)
-			B3D_RTTI_MEMBER_REFL(MotionBlur, 21)
-			B3D_RTTI_MEMBER_REFL(FilmGrain, 22)
-			B3D_RTTI_MEMBER_REFL(ChromaticAberration, 23)
-			B3D_RTTI_MEMBER_REFL(TemporalAa, 24)
-			B3D_RTTI_MEMBER_PLAIN(EnableVelocityBuffer, 25)
+			B3D_RTTI_MEMBER(EnableAutoExposure, 0)
+			B3D_RTTI_MEMBER(AutoExposure, 1)
+			B3D_RTTI_MEMBER(EnableTonemapping, 2)
+			B3D_RTTI_MEMBER(Tonemapping, 3)
+			B3D_RTTI_MEMBER(WhiteBalance, 4)
+			B3D_RTTI_MEMBER(ColorGrading, 5)
+			B3D_RTTI_MEMBER(ExposureScale, 6)
+			B3D_RTTI_MEMBER(Gamma, 7)
+			B3D_RTTI_MEMBER(DepthOfField, 8)
+			B3D_RTTI_MEMBER(EnableFxaa, 9)
+			B3D_RTTI_MEMBER(AmbientOcclusion, 10)
+			B3D_RTTI_MEMBER(ScreenSpaceReflections, 11)
+			B3D_RTTI_MEMBER(EnableHdr, 12)
+			B3D_RTTI_MEMBER(EnableLighting, 13)
+			B3D_RTTI_MEMBER(EnableShadows, 14)
+			B3D_RTTI_MEMBER(OverlayOnly, 15)
+			B3D_RTTI_MEMBER(EnableIndirectLighting, 16)
+			B3D_RTTI_MEMBER(ShadowSettings, 17)
+			B3D_RTTI_MEMBER(EnableSkybox, 18)
+			B3D_RTTI_MEMBER(Bloom, 19)
+			B3D_RTTI_MEMBER(ScreenSpaceLensFlare, 20)
+			B3D_RTTI_MEMBER(MotionBlur, 21)
+			B3D_RTTI_MEMBER(FilmGrain, 22)
+			B3D_RTTI_MEMBER(ChromaticAberration, 23)
+			B3D_RTTI_MEMBER(TemporalAa, 24)
+			B3D_RTTI_MEMBER(EnableVelocityBuffer, 25)
 		B3D_RTTI_END_MEMBERS
 
 	public:

@@ -184,8 +184,8 @@ namespace bs
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
-			B3D_RTTI_MEMBER_PLAIN_NAMED(RenderMode, mInformation.RenderMode, 2)
-			B3D_RTTI_MEMBER_PLAIN_NAMED(DPI, mInformation.DPI, 3)
+			B3D_RTTI_MEMBER_NAMED(RenderMode, mInformation.RenderMode, 2)
+			B3D_RTTI_MEMBER_NAMED(DPI, mInformation.DPI, 3)
 		B3D_RTTI_END_MEMBERS
 
 		FontBitmapInformation& GetBitmap(Font* obj, u32 idx)

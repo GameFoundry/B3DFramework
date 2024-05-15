@@ -18,7 +18,7 @@ namespace bs
 	class B3D_CORE_EXPORT PersistentCacheObjectRTTI : public RTTIType<PersistentCacheObject, Resource, PersistentCacheObjectRTTI>
 	{
 		B3D_RTTI_BEGIN_MEMBERS
-		B3D_RTTI_MEMBER_REFLPTR_ARRAY(mObjects, 0)
+			B3D_RTTI_MEMBER_CONTAINER(mObjects, 0)
 		B3D_RTTI_END_MEMBERS
 
 	public:
@@ -42,9 +42,9 @@ namespace bs
 	class B3D_CORE_EXPORT PersistentCacheMetaDataRTTI : public RTTIType<PersistentCacheMetaData, IReflectable, PersistentCacheMetaDataRTTI>
 	{
 		B3D_RTTI_BEGIN_MEMBERS
-			B3D_RTTI_MEMBER_PLAIN(Priority, 0)
-			B3D_RTTI_MEMBER_PLAIN(LastUsedTimestamp, 1)
-			B3D_RTTI_MEMBER_PLAIN(CacheVersion, 2)
+			B3D_RTTI_MEMBER(Priority, 0)
+			B3D_RTTI_MEMBER(LastUsedTimestamp, 1)
+			B3D_RTTI_MEMBER(CacheVersion, 2)
 		B3D_RTTI_END_MEMBERS
 
 	public:

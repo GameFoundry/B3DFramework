@@ -60,39 +60,39 @@ namespace bs
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
-			B3D_RTTI_MEMBER_PLAIN(Margins, 0)
-			B3D_RTTI_MEMBER_PLAIN(Padding, 1)
+			B3D_RTTI_MEMBER(Margins, 0)
+			B3D_RTTI_MEMBER(Padding, 1)
 
-			B3D_RTTI_MEMBER_PLAIN(Size, 2)
-			B3D_RTTI_MEMBER_PLAIN(MinimumSize, 3)
-			B3D_RTTI_MEMBER_PLAIN(MaximumSize, 4)
+			B3D_RTTI_MEMBER(Size, 2)
+			B3D_RTTI_MEMBER(MinimumSize, 3)
+			B3D_RTTI_MEMBER(MaximumSize, 4)
 
-			B3D_RTTI_MEMBER_PLAIN(BackgroundColor, 5)
-			B3D_RTTI_MEMBER_PLAIN(Color, 6)
-			B3D_RTTI_MEMBER_PLAIN(Opacity, 7)
+			B3D_RTTI_MEMBER(BackgroundColor, 5)
+			B3D_RTTI_MEMBER(Color, 6)
+			B3D_RTTI_MEMBER(Opacity, 7)
 
-			B3D_RTTI_MEMBER_REFL(BackgroundImage, 8)
-			B3D_RTTI_MEMBER_PLAIN(Visibility, 9)
+			B3D_RTTI_MEMBER(BackgroundImage, 8)
+			B3D_RTTI_MEMBER(Visibility, 9)
 
-			B3D_RTTI_MEMBER_PLAIN(BorderLeft, 10)
-			B3D_RTTI_MEMBER_PLAIN(BorderRight, 11)
-			B3D_RTTI_MEMBER_PLAIN(BorderTop, 12)
-			B3D_RTTI_MEMBER_PLAIN(BorderBottom, 13)
+			B3D_RTTI_MEMBER(BorderLeft, 10)
+			B3D_RTTI_MEMBER(BorderRight, 11)
+			B3D_RTTI_MEMBER(BorderTop, 12)
+			B3D_RTTI_MEMBER(BorderBottom, 13)
 
-			B3D_RTTI_MEMBER_PLAIN(BorderTopLeftRadius, 14)
-			B3D_RTTI_MEMBER_PLAIN(BorderTopRightRadius, 15)
-			B3D_RTTI_MEMBER_PLAIN(BorderBottomLeftRadius, 16)
-			B3D_RTTI_MEMBER_PLAIN(BorderBottomRightRadius, 17)
+			B3D_RTTI_MEMBER(BorderTopLeftRadius, 14)
+			B3D_RTTI_MEMBER(BorderTopRightRadius, 15)
+			B3D_RTTI_MEMBER(BorderBottomLeftRadius, 16)
+			B3D_RTTI_MEMBER(BorderBottomRightRadius, 17)
 
-			B3D_RTTI_MEMBER_REFL(Font, 18)
-			B3D_RTTI_MEMBER_PLAIN(FontSize, 19)
-			B3D_RTTI_MEMBER_PLAIN(HorizontalTextAlignment, 20)
-			B3D_RTTI_MEMBER_PLAIN(VerticalTextAlignment, 21)
-			B3D_RTTI_MEMBER_PLAIN(WordWrap, 22)
+			B3D_RTTI_MEMBER(Font, 18)
+			B3D_RTTI_MEMBER(FontSize, 19)
+			B3D_RTTI_MEMBER(HorizontalTextAlignment, 20)
+			B3D_RTTI_MEMBER(VerticalTextAlignment, 21)
+			B3D_RTTI_MEMBER(WordWrap, 22)
 
-			B3D_RTTI_MEMBER_PLAIN(OverridenProperties, 23)
+			B3D_RTTI_MEMBER(OverridenProperties, 23)
 
-			B3D_RTTI_MEMBER_PLAIN(PseudoClass, 24)
+			B3D_RTTI_MEMBER(PseudoClass, 24)
 		B3D_RTTI_END_MEMBERS
 	public:
 		const String& GetRttiName() override
@@ -116,8 +116,8 @@ namespace bs
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
-			B3D_RTTI_MEMBER_PLAIN(SelectorList, 0)
-			B3D_RTTI_MEMBER_REFL(Rules, 1)
+			B3D_RTTI_MEMBER(SelectorList, 0)
+			B3D_RTTI_MEMBER(Rules, 1)
 		B3D_RTTI_END_MEMBERS
 	public:
 		const String& GetRttiName() override
@@ -141,7 +141,7 @@ namespace bs
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
-			B3D_RTTI_MEMBER_REFL_ARRAY(mRulesets, 0)
+			B3D_RTTI_MEMBER_CONTAINER(mRulesets, 0)
 		B3D_RTTI_END_MEMBERS
 	public:
 		void OnDeserializationEnded(IReflectable* obj, SerializationContext* context) override
