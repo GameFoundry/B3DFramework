@@ -931,7 +931,7 @@ float Resources::GetLoadProgress(const HResource& resource, bool includeDependen
 
 HResource Resources::CreateResourceHandle(const SPtr<Resource>& resource)
 {
-	if(!B3D_ENSURE(resource != nullptr))
+	if(resource == nullptr)
 		return nullptr;
 
 	const UUID& uuid = resource->GetId().Empty() ? UUIDGenerator::GenerateRandom() : resource->GetId();
