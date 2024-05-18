@@ -304,11 +304,22 @@ else()
 	set(DATA_DST_DIR .)
 endif()
 
-## Install
+## Install data
 install(
 	DIRECTORY ../Data
 	DESTINATION ${DATA_DST_DIR}
 	PATTERN "../Data/Raw" EXCLUDE
 	PATTERN ".version" EXCLUDE
 	PATTERN ".reqversion" EXCLUDE
+)
+
+# TODO: These should be moved into their own folder for easier copy
+install(
+	DIRECTORY ../Data/Raw/Shaders
+	DESTINATION ${DATA_DST_DIR}/Data/Raw
+)
+
+install(
+	FILES ../Data/Raw/GUI.css
+	DESTINATION ${DATA_DST_DIR}/Data/Raw
 )
