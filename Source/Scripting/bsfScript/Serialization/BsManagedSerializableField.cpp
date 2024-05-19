@@ -32,7 +32,7 @@ bool CompareFieldData(const T* a, const SPtr<ManagedSerializableFieldData>& b)
 	return false;
 }
 
-bool CompareFieldData(const SPtr<ManagedSerializableFieldData>& oldData, const SPtr<ManagedSerializableFieldData>& newData, SerializationContext* context)
+bool CompareFieldData(const SPtr<ManagedSerializableFieldData>& oldData, const SPtr<ManagedSerializableFieldData>& newData, RTTIOperationContext* context)
 {
 	if(!oldData)
 		return !newData;
@@ -875,67 +875,67 @@ MonoObject* ManagedSerializableFieldDataDictionary::GetValueBoxed(const SPtr<Man
 	return (MonoObject*)GetValue(typeInfo);
 }
 
-bool ManagedSerializableFieldDataBool::Equals(const SPtr<ManagedSerializableFieldData>& other, SerializationContext* context)
+bool ManagedSerializableFieldDataBool::Equals(const SPtr<ManagedSerializableFieldData>& other, RTTIOperationContext* context)
 {
 	return CompareFieldData(this, other);
 }
 
-bool ManagedSerializableFieldDataChar::Equals(const SPtr<ManagedSerializableFieldData>& other, SerializationContext* context)
+bool ManagedSerializableFieldDataChar::Equals(const SPtr<ManagedSerializableFieldData>& other, RTTIOperationContext* context)
 {
 	return CompareFieldData(this, other);
 }
 
-bool ManagedSerializableFieldDataI8::Equals(const SPtr<ManagedSerializableFieldData>& other, SerializationContext* context)
+bool ManagedSerializableFieldDataI8::Equals(const SPtr<ManagedSerializableFieldData>& other, RTTIOperationContext* context)
 {
 	return CompareFieldData(this, other);
 }
 
-bool ManagedSerializableFieldDataU8::Equals(const SPtr<ManagedSerializableFieldData>& other, SerializationContext* context)
+bool ManagedSerializableFieldDataU8::Equals(const SPtr<ManagedSerializableFieldData>& other, RTTIOperationContext* context)
 {
 	return CompareFieldData(this, other);
 }
 
-bool ManagedSerializableFieldDataI16::Equals(const SPtr<ManagedSerializableFieldData>& other, SerializationContext* context)
+bool ManagedSerializableFieldDataI16::Equals(const SPtr<ManagedSerializableFieldData>& other, RTTIOperationContext* context)
 {
 	return CompareFieldData(this, other);
 }
 
-bool ManagedSerializableFieldDataU16::Equals(const SPtr<ManagedSerializableFieldData>& other, SerializationContext* context)
+bool ManagedSerializableFieldDataU16::Equals(const SPtr<ManagedSerializableFieldData>& other, RTTIOperationContext* context)
 {
 	return CompareFieldData(this, other);
 }
 
-bool ManagedSerializableFieldDataI32::Equals(const SPtr<ManagedSerializableFieldData>& other, SerializationContext* context)
+bool ManagedSerializableFieldDataI32::Equals(const SPtr<ManagedSerializableFieldData>& other, RTTIOperationContext* context)
 {
 	return CompareFieldData(this, other);
 }
 
-bool ManagedSerializableFieldDataU32::Equals(const SPtr<ManagedSerializableFieldData>& other, SerializationContext* context)
+bool ManagedSerializableFieldDataU32::Equals(const SPtr<ManagedSerializableFieldData>& other, RTTIOperationContext* context)
 {
 	return CompareFieldData(this, other);
 }
 
-bool ManagedSerializableFieldDataI64::Equals(const SPtr<ManagedSerializableFieldData>& other, SerializationContext* context)
+bool ManagedSerializableFieldDataI64::Equals(const SPtr<ManagedSerializableFieldData>& other, RTTIOperationContext* context)
 {
 	return CompareFieldData(this, other);
 }
 
-bool ManagedSerializableFieldDataU64::Equals(const SPtr<ManagedSerializableFieldData>& other, SerializationContext* context)
+bool ManagedSerializableFieldDataU64::Equals(const SPtr<ManagedSerializableFieldData>& other, RTTIOperationContext* context)
 {
 	return CompareFieldData(this, other);
 }
 
-bool ManagedSerializableFieldDataFloat::Equals(const SPtr<ManagedSerializableFieldData>& other, SerializationContext* context)
+bool ManagedSerializableFieldDataFloat::Equals(const SPtr<ManagedSerializableFieldData>& other, RTTIOperationContext* context)
 {
 	return CompareFieldData(this, other);
 }
 
-bool ManagedSerializableFieldDataDouble::Equals(const SPtr<ManagedSerializableFieldData>& other, SerializationContext* context)
+bool ManagedSerializableFieldDataDouble::Equals(const SPtr<ManagedSerializableFieldData>& other, RTTIOperationContext* context)
 {
 	return CompareFieldData(this, other);
 }
 
-bool ManagedSerializableFieldDataString::Equals(const SPtr<ManagedSerializableFieldData>& other, SerializationContext* context)
+bool ManagedSerializableFieldDataString::Equals(const SPtr<ManagedSerializableFieldData>& other, RTTIOperationContext* context)
 {
 	if(B3DRTTIIsOfType<ManagedSerializableFieldDataString>(other))
 	{
@@ -946,12 +946,12 @@ bool ManagedSerializableFieldDataString::Equals(const SPtr<ManagedSerializableFi
 	return false;
 }
 
-bool ManagedSerializableFieldDataResourceRef::Equals(const SPtr<ManagedSerializableFieldData>& other, SerializationContext* context)
+bool ManagedSerializableFieldDataResourceRef::Equals(const SPtr<ManagedSerializableFieldData>& other, RTTIOperationContext* context)
 {
 	return CompareFieldData(this, other);
 }
 
-bool ManagedSerializableFieldDataGameObjectRef::Equals(const SPtr<ManagedSerializableFieldData>& other, SerializationContext* context)
+bool ManagedSerializableFieldDataGameObjectRef::Equals(const SPtr<ManagedSerializableFieldData>& other, RTTIOperationContext* context)
 {
 	const SPtr<ManagedSerializableFieldDataGameObjectRef>& exactOther = B3DRTTICast<ManagedSerializableFieldDataGameObjectRef>(other);
 	if(exactOther != nullptr)
@@ -960,7 +960,7 @@ bool ManagedSerializableFieldDataGameObjectRef::Equals(const SPtr<ManagedSeriali
 		UUID otherId = exactOther->Value.GetId();
 
 		// Remap UUIDs if remapping is provided
-		if(CoreSerializationContext* serializationContext = B3DRTTICast<CoreSerializationContext>(context))
+		if(RTTIOperationEngineContext* serializationContext = B3DRTTICast<RTTIOperationEngineContext>(context))
 		{
 			if(auto found = serializationContext->GameObjectIdRemapping.find(myId); found != serializationContext->GameObjectIdRemapping.end())
 				myId = found->second;
@@ -975,12 +975,12 @@ bool ManagedSerializableFieldDataGameObjectRef::Equals(const SPtr<ManagedSeriali
 	return CompareFieldData(this, other);
 }
 
-bool ManagedSerializableFieldDataReflectableRef::Equals(const SPtr<ManagedSerializableFieldData>& other, SerializationContext* context)
+bool ManagedSerializableFieldDataReflectableRef::Equals(const SPtr<ManagedSerializableFieldData>& other, RTTIOperationContext* context)
 {
 	return CompareFieldData(this, other);
 }
 
-bool ManagedSerializableFieldDataObject::Equals(const SPtr<ManagedSerializableFieldData>& other, SerializationContext* context)
+bool ManagedSerializableFieldDataObject::Equals(const SPtr<ManagedSerializableFieldData>& other, RTTIOperationContext* context)
 {
 	if(auto otherObj = B3DRTTICast<ManagedSerializableFieldDataObject>(other))
 	{
@@ -996,7 +996,7 @@ bool ManagedSerializableFieldDataObject::Equals(const SPtr<ManagedSerializableFi
 	return false;
 }
 
-bool ManagedSerializableFieldDataArray::Equals(const SPtr<ManagedSerializableFieldData>& other, SerializationContext* context)
+bool ManagedSerializableFieldDataArray::Equals(const SPtr<ManagedSerializableFieldData>& other, RTTIOperationContext* context)
 {
 	if(auto otherObj = B3DRTTICast<ManagedSerializableFieldDataArray>(other))
 	{
@@ -1027,7 +1027,7 @@ bool ManagedSerializableFieldDataArray::Equals(const SPtr<ManagedSerializableFie
 	return false;
 }
 
-bool ManagedSerializableFieldDataList::Equals(const SPtr<ManagedSerializableFieldData>& other, SerializationContext* context)
+bool ManagedSerializableFieldDataList::Equals(const SPtr<ManagedSerializableFieldData>& other, RTTIOperationContext* context)
 {
 	if(auto otherObj = B3DRTTICast<ManagedSerializableFieldDataList>(other))
 	{
@@ -1058,7 +1058,7 @@ bool ManagedSerializableFieldDataList::Equals(const SPtr<ManagedSerializableFiel
 	return false;
 }
 
-bool ManagedSerializableFieldDataDictionary::Equals(const SPtr<ManagedSerializableFieldData>& other, SerializationContext* context)
+bool ManagedSerializableFieldDataDictionary::Equals(const SPtr<ManagedSerializableFieldData>& other, RTTIOperationContext* context)
 {
 	if(auto otherObj = B3DRTTICast<ManagedSerializableFieldDataDictionary>(other))
 	{

@@ -153,7 +153,7 @@ namespace bs
 			AddPlainField("mValue", 0, &ManagedSerializableFieldDataCharRTTI::GetValue, &ManagedSerializableFieldDataCharRTTI::SetValue);
 		}
 
-		void OnDeserializationEnded(IReflectable* object, SerializationContext* context) override
+		void OnDeserializationEnded(IReflectable* object, RTTIOperationContext* context) override
 		{
 			ManagedSerializableFieldDataChar* const fieldData = static_cast<ManagedSerializableFieldDataChar*>(object);
 			fieldData->Value = (wchar_t)fieldData->Value32;
@@ -489,7 +489,7 @@ namespace bs
 			AddPlainField("mValue", 0, &ManagedSerializableFieldDataStringRTTI::GetValue, &ManagedSerializableFieldDataStringRTTI::SetValue);
 		}
 
-		void OnDeserializationEnded(IReflectable* object, SerializationContext* context) override
+		void OnDeserializationEnded(IReflectable* object, RTTIOperationContext* context) override
 		{
 			ManagedSerializableFieldDataString* const fieldData = static_cast<ManagedSerializableFieldDataString*>(object);
 

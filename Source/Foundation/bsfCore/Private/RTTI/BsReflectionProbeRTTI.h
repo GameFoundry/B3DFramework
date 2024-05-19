@@ -29,7 +29,7 @@ namespace bs
 			B3D_RTTI_MEMBER_REFLPTR(mFilteredTexture, 8)
 		B3D_RTTI_END_MEMBERS
 	public:
-		void OnSerializationStarted(IReflectable* obj, SerializationContext* context)
+		void OnSerializationStarted(IReflectable* obj, RTTIOperationContext* context)
 		{
 			ReflectionProbe* probe = static_cast<ReflectionProbe*>(obj);
 
@@ -38,7 +38,7 @@ namespace bs
 				probe->mRendererTask->Wait();
 		}
 
-		void OnDeserializationEnded(IReflectable* obj, SerializationContext* context)
+		void OnDeserializationEnded(IReflectable* obj, RTTIOperationContext* context)
 		{
 			// Note: Since this is a CoreObject I should call Initialize() right after deserialization,
 			// but since this specific type is used in Components we delay initialization until Component

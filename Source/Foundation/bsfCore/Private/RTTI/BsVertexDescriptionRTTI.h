@@ -24,7 +24,7 @@ namespace bs
 		B3D_RTTI_END_MEMBERS
 
 	public:
-		void OnDeserializationEnded(IReflectable* obj, SerializationContext* context) override
+		void OnDeserializationEnded(IReflectable* obj, RTTIOperationContext* context) override
 		{
 			// TODO - This can be removed after I re-import the builtin assets (after the render backend refactor is done, and the import tool runs again)
 			VertexDescription* vertexDescription = static_cast<VertexDescription*>(obj);

@@ -38,7 +38,7 @@ namespace bs
 			AddDataBlockField("mCookedData", 0, &FPhysXMeshRTTI::GetCookedData, &FPhysXMeshRTTI::SetCookedData);
 		}
 
-		void OnDeserializationEnded(IReflectable* obj, SerializationContext* context)
+		void OnDeserializationEnded(IReflectable* obj, RTTIOperationContext* context)
 		{
 			FPhysXMesh* mesh = static_cast<FPhysXMesh*>(obj);
 			mesh->Initialize();

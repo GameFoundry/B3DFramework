@@ -27,7 +27,7 @@ namespace bs
 		B3D_RTTI_END_MEMBERS
 
 	public:
-		void OnDeserializationEnded(IReflectable* obj, SerializationContext* context) override
+		void OnDeserializationEnded(IReflectable* obj, RTTIOperationContext* context) override
 		{
 			Technique* technique = static_cast<Technique*>(obj);
 			technique->Initialize();
@@ -61,7 +61,7 @@ namespace bs
 		B3D_RTTI_END_MEMBERS
 
 	public:
-		void OnDeserializationEnded(IReflectable* obj, SerializationContext* context) override
+		void OnDeserializationEnded(IReflectable* obj, RTTIOperationContext* context) override
 		{
 			ct::Technique* technique = static_cast<ct::Technique*>(obj);
 			technique->Initialize();

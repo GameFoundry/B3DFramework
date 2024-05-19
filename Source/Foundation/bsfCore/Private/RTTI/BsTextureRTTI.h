@@ -84,7 +84,7 @@ namespace bs
 			AddReflectablePtrArrayField("mPixelData", 12, &TextureRTTI::GetPixelData, &TextureRTTI::GetPixelDataArraySize, &TextureRTTI::SetPixelData, &TextureRTTI::SetPixelDataArraySize, RTTIFieldInfo(RTTIFieldFlag::SkipInReferenceSearch));
 		}
 
-		void OnDeserializationEnded(IReflectable* obj, SerializationContext* context) override
+		void OnDeserializationEnded(IReflectable* obj, RTTIOperationContext* context) override
 		{
 			Texture* texture = static_cast<Texture*>(obj);
 			TextureProperties& texProps = texture->mProperties;

@@ -32,7 +32,7 @@ namespace bs
 		B3D_RTTI_END_MEMBERS
 
 	public:
-		void OnSerializationStarted(IReflectable* object, SerializationContext* context) override
+		void OnSerializationStarted(IReflectable* object, RTTIOperationContext* context) override
 		{
 			Mesh* const mesh = static_cast<Mesh*>(object);
 			mMeshData = mesh->AllocBuffer();
@@ -41,7 +41,7 @@ namespace bs
 			GetRenderThread().PostCommand([] {}, "MeshRTTI::GetMeshData", true, mesh->GetName());
 		}
 
-		void OnDeserializationEnded(IReflectable* object, SerializationContext* context) override
+		void OnDeserializationEnded(IReflectable* object, RTTIOperationContext* context) override
 		{
 			Mesh* const mesh = static_cast<Mesh*>(object);
 			mesh->mCPUData = mMeshData;

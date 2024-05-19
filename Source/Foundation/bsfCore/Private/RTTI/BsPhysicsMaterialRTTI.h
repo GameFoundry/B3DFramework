@@ -46,7 +46,7 @@ namespace bs
 			AddPlainField("restitutionCoefficient", 2, &PhysicsMaterialRTTI::GetRestitutionCoefficient, &PhysicsMaterialRTTI::SetRestitutionCoefficient);
 		}
 
-		void OnSerializationStarted(IReflectable* obj, SerializationContext* context)
+		void OnSerializationStarted(IReflectable* obj, RTTIOperationContext* context)
 		{
 			PhysicsMaterial* material = static_cast<PhysicsMaterial*>(obj);
 

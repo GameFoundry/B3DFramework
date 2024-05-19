@@ -103,7 +103,7 @@ namespace bs
 			AddReflectableField("mLocalTfrm", 12, &SceneObjectRTTI::GetLocalTransform, &SceneObjectRTTI::SetLocalTransform);
 		}
 
-		void OnDeserializationStarted(IReflectable* object, SerializationContext* context) override
+		void OnDeserializationStarted(IReflectable* object, RTTIOperationContext* context) override
 		{
 			// If this is the root scene object we're deserializing, activate game object deserialization so the system
 			// can resolve deserialized handles to the newly created objects
@@ -114,21 +114,20 @@ namespace bs
 			if(sceneObject->mRTTIData.Empty())
 				return;
 
-			CoreSerializationContext* const serializationContext = B3DRTTICast<CoreSerializationContext>(context);
-			if(serializationContext == nullptr)
-				return;
-
-			if(!serializationContext->IsGameObjectDeserializationActive)
+			if(auto* serializationContext = B3DRTTICast<RTTIOperationEngineContext>(context))
 			{
-				mIsDeserializationParent = true;
-				serializationContext->IsGameObjectDeserializationActive = true;
+				if(!serializationContext->IsGameObjectDeserializationActive)
+				{
+					mIsDeserializationParent = true;
+					serializationContext->IsGameObjectDeserializationActive = true;
 
-				if(serializationContext->GameObjectCollection != nullptr)
-					serializationContext->GameObjectCollection->BeginHandleResolve();
+					if(serializationContext->GameObjectCollection != nullptr)
+						serializationContext->GameObjectCollection->BeginHandleResolve();
+				}
 			}
 		}
 
-		void OnDeserializationEnded(IReflectable* obj, SerializationContext* context) override
+		void OnDeserializationEnded(IReflectable* obj, RTTIOperationContext* context) override
 		{
 			SceneObject* sceneObject = static_cast<SceneObject*>(obj);
 
@@ -137,9 +136,7 @@ namespace bs
 			if(sceneObject->mRTTIData.Empty())
 				return;
 
-			CoreSerializationContext* serializationContext = B3DRTTICast<CoreSerializationContext>(context);
-			B3D_ASSERT(serializationContext != nullptr);
-
+			auto* serializationContext = B3DRTTICast<RTTIOperationEngineContext>(context);
 			GODeserializationData& goDeserializationData = AnyCastRef<GODeserializationData>(sceneObject->mRTTIData);
 
 			// Register the newly created SO with the GameObjectManager and provide it with the original ID so that

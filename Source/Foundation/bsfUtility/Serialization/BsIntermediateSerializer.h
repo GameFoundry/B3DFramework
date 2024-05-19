@@ -10,7 +10,7 @@ namespace bs
 {
 	class IRTTIIterator;
 	struct RTTIIteratorField;
-	struct SerializationContext;
+	struct RTTIOperationContext;
 
 	/** @addtogroup Serialization
 	 *  @{
@@ -20,7 +20,7 @@ namespace bs
 	class B3D_UTILITY_EXPORT IntermediateSerializer
 	{
 	public:
-		IntermediateSerializer(FrameAllocator* allocator, SerializationContext* context = nullptr);
+		IntermediateSerializer(FrameAllocator* allocator, RTTIOperationContext* context = nullptr);
 
 		/** Encodes an IReflectable object into an intermediate representation. */
 		SPtr<SerializedObject> Encode(IReflectable* object, SerializedObjectEncodeFlags flags);
@@ -120,7 +120,7 @@ namespace bs
 
 		UnorderedMap<const SerializedObject*, ObjectDeserializationData> mDeserializedObjectMap;
 		UnorderedMap<const IReflectable*, SPtr<SerializedObject>> mSerializedObjectMap;
-		SerializationContext* mContext = nullptr;
+		RTTIOperationContext* mContext = nullptr;
 		FrameAllocator* mAllocator = nullptr;
 	};
 

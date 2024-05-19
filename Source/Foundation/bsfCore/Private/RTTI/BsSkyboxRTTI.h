@@ -24,7 +24,7 @@ namespace bs
 			B3D_RTTI_MEMBER_REFLPTR(mIrradiance, 3)
 		B3D_RTTI_END_MEMBERS
 	public:
-		void OnSerializationStarted(IReflectable* obj, SerializationContext* context)
+		void OnSerializationStarted(IReflectable* obj, RTTIOperationContext* context)
 		{
 			Skybox* skybox = static_cast<Skybox*>(obj);
 
@@ -33,7 +33,7 @@ namespace bs
 				skybox->mRendererTask->Wait();
 		}
 
-		void OnDeserializationEnded(IReflectable* obj, SerializationContext* context)
+		void OnDeserializationEnded(IReflectable* obj, RTTIOperationContext* context)
 		{
 			// Note: Since this is a CoreObject I should call Initialize() right after deserialization,
 			// but since this specific type is used in Components we delay initialization until Component

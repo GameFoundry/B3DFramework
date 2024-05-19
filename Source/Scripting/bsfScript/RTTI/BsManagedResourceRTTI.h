@@ -36,13 +36,13 @@ namespace bs
 			AddReflectablePtrField("mObjectData", 0, &ManagedResourceRTTI::GetObjectData, &ManagedResourceRTTI::SetObjectData);
 		}
 
-		void OnSerializationStarted(IReflectable* obj, SerializationContext* context)
+		void OnSerializationStarted(IReflectable* obj, RTTIOperationContext* context)
 		{
 			ManagedResource* mr = static_cast<ManagedResource*>(obj);
 			mSerializableObject = ManagedSerializableObject::CreateFromExisting(mr->GetManagedInstance());
 		}
 
-		void OnDeserializationEnded(IReflectable* obj, SerializationContext* context)
+		void OnDeserializationEnded(IReflectable* obj, RTTIOperationContext* context)
 		{
 			ManagedResource* mr = static_cast<ManagedResource*>(obj);
 

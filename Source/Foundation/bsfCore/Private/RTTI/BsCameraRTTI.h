@@ -65,7 +65,7 @@ namespace bs
 			AddPlainField("mCameraFlags", 25, &CameraRTTI::GetCameraFlags, &CameraRTTI::SetCameraFlags);
 		}
 
-		void OnDeserializationEnded(IReflectable* obj, SerializationContext* context) override
+		void OnDeserializationEnded(IReflectable* obj, RTTIOperationContext* context) override
 		{
 			// Note: Since this is a CoreObject I should call Initialize() right after deserialization,
 			// but since this specific type is used in Components we delay initialization until Component

@@ -22,13 +22,13 @@ namespace bs
 	}
 } // namespace bs
 
-SPtr<SerializedObject> SerializedObject::Create(IReflectable& object, SerializedObjectEncodeFlags flags, SerializationContext* context)
+SPtr<SerializedObject> SerializedObject::Create(IReflectable& object, SerializedObjectEncodeFlags flags, RTTIOperationContext* context)
 {
 	IntermediateSerializer is(&GetFrameAllocator(), context);
 	return is.Encode(&object, flags);
 }
 
-SPtr<IReflectable> SerializedObject::Decode(SerializationContext* context) const
+SPtr<IReflectable> SerializedObject::Decode(RTTIOperationContext* context) const
 {
 	IntermediateSerializer is(&GetFrameAllocator(), context);
 	return is.Decode(this);

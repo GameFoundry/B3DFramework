@@ -112,14 +112,14 @@ namespace bs::RTTIObjectWrapper
 		 * Notifies the RTTI object that we're about to begin an operation on the sub-object fields. Should be called
 		 * before writing or reading any field values from the sub-object. Must be called once for each sub-object.
 		 */
-		void NotifyBeginOperation(SubObject<false>& subObject, SerializationContext* context);
+		void NotifyBeginOperation(SubObject<false>& subObject, RTTIOperationContext* context);
 
 		/**
 		 * Notifies the RTTI object that we have completed an operation on its fields. Must be called after
 		 * NotifyBeginOperation(), after we have finished reading or writing field values from the object.
 		 * Should be called just once, after all field operations for all sub-objects end.
 		 */
-		void NotifyEndOperation(SerializationContext* context);
+		void NotifyEndOperation(RTTIOperationContext* context);
 
 	private:
 		SerializedObject* mObject = nullptr;
@@ -148,14 +148,14 @@ namespace bs::RTTIObjectWrapper
 		 * Notifies the RTTI object that we're about to begin an operation on the sub-object fields. Should be called
 		 * before writing or reading any field values from the sub-object. Must be called once for each sub-object.
 		 */
-		void NotifyBeginOperation(SubObject<true>& subObject, SerializationContext* context);
+		void NotifyBeginOperation(SubObject<true>& subObject, RTTIOperationContext* context);
 
 		/**
 		 * Notifies the RTTI object that we have completed an operation on its fields. Must be called after
 		 * NotifyBeginOperation(), after we have finished reading or writing field values from the object.
 		 * Should be called just once, after all field operations for all sub-objects end.
 		 */
-		void NotifyEndOperation(SerializationContext* context);
+		void NotifyEndOperation(RTTIOperationContext* context);
 
 	private:
 		IReflectable* mObject = nullptr;
@@ -225,7 +225,7 @@ namespace bs::RTTIObjectWrapper
 		ValueIterator<false> GetValueIterator() const;
 
 		/** Clones the contents of this field and returns them as intermediate serialized data. */
-		SPtr<ISerialized> Clone(SerializedObjectEncodeFlags flags, SerializationContext* context) const;
+		SPtr<ISerialized> Clone(SerializedObjectEncodeFlags flags, RTTIOperationContext* context) const;
 
 	private:
 		friend struct Field<true>;
@@ -251,7 +251,7 @@ namespace bs::RTTIObjectWrapper
 		ValueIterator<true> GetValueIterator() const;
 
 		/** Clones the contents of this field and returns them as intermediate serialized data. */
-		SPtr<ISerialized> Clone(SerializedObjectEncodeFlags flags, SerializationContext* context) const;
+		SPtr<ISerialized> Clone(SerializedObjectEncodeFlags flags, RTTIOperationContext* context) const;
 
 	private:
 		friend struct Field<false>;
@@ -441,7 +441,7 @@ namespace bs::RTTIObjectWrapper
 		bool ComparePlain(const Value<true>& other) const;
 
 		/** Clones the contents of this value and returns them as intermediate serialized data. */
-		SPtr<ISerialized> Clone(SerializedObjectEncodeFlags flags, SerializationContext* context) const;
+		SPtr<ISerialized> Clone(SerializedObjectEncodeFlags flags, RTTIOperationContext* context) const;
 
 	private:
 		friend struct Value<true>;
@@ -499,7 +499,7 @@ namespace bs::RTTIObjectWrapper
 		bool ComparePlain(const Value<true>& other) const;
 
 		/** Clones the contents of this value and returns them as intermediate serialized data. */
-		SPtr<ISerialized> Clone(SerializedObjectEncodeFlags flags, SerializationContext* context) const;
+		SPtr<ISerialized> Clone(SerializedObjectEncodeFlags flags, RTTIOperationContext* context) const;
 
 	private:
 		friend struct Value<false>;

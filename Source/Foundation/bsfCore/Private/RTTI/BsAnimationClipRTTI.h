@@ -86,7 +86,7 @@ namespace bs
 			B3D_RTTI_MEMBER_PLAIN_NAMED(rootMotionRot, mRootMotion->Rotation, 9)
 		B3D_RTTI_END_MEMBERS
 	public:
-		void OnDeserializationEnded(IReflectable* obj, SerializationContext* context)
+		void OnDeserializationEnded(IReflectable* obj, RTTIOperationContext* context)
 		{
 			AnimationClip* clip = static_cast<AnimationClip*>(obj);
 			clip->Initialize();

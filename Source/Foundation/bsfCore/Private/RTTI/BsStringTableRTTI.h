@@ -44,7 +44,7 @@ namespace bs
 			AddPlainField("mIdentifiers", 2, &StringTableRTTI::GetIdentifiers, &StringTableRTTI::SetIdentifiers);
 		}
 
-		void OnDeserializationEnded(IReflectable* obj, SerializationContext* context)
+		void OnDeserializationEnded(IReflectable* obj, RTTIOperationContext* context)
 		{
 			StringTable* stringTable = static_cast<StringTable*>(obj);
 			stringTable->SetActiveLanguage(stringTable->mActiveLanguage);

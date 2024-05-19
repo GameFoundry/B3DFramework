@@ -61,7 +61,7 @@ namespace bs
 			AddReflectablePtrArrayField("mFieldEntries", 1, &ManagedSerializableObjectRTTI::GetFieldEntry, &ManagedSerializableObjectRTTI::GetNumFieldEntries, &ManagedSerializableObjectRTTI::SetFieldsEntry, &ManagedSerializableObjectRTTI::SetNumFieldEntries);
 		}
 
-		void OnSerializationStarted(IReflectable* obj, SerializationContext* context)
+		void OnSerializationStarted(IReflectable* obj, RTTIOperationContext* context)
 		{
 			ManagedSerializableObject* castObj = static_cast<ManagedSerializableObject*>(obj);
 

@@ -43,7 +43,7 @@ namespace bs
 		}
 
 	protected:
-		void OnDeserializationEnded(IReflectable* obj, SerializationContext* context) override
+		void OnDeserializationEnded(IReflectable* obj, RTTIOperationContext* context) override
 		{
 			VectorField* vectorField = static_cast<VectorField*>(obj);
 			vectorField->Initialize();

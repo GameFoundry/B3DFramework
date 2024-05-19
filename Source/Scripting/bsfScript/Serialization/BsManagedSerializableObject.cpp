@@ -178,7 +178,7 @@ void ManagedSerializableObject::Deserialize(MonoObject* instance, const SPtr<Man
 	}
 }
 
-bool ManagedSerializableObject::Equals(ManagedSerializableObject& other, SerializationContext* context)
+bool ManagedSerializableObject::Equals(ManagedSerializableObject& other, RTTIOperationContext* context)
 {
 	SPtr<ManagedSerializableObjectInfo> otherObjInfo = other.GetObjectInfo();
 

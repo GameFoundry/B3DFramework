@@ -10,7 +10,7 @@ namespace bs
 	 *  @{
 	 */
 
-	struct SerializationContext;
+	struct RTTIOperationContext;
 
 	/** Encodes the provided object to the specified file using the RTTI system. */
 	class B3D_UTILITY_EXPORT FileEncoder
@@ -29,7 +29,7 @@ namespace bs
 		 *							maintaining state or sharing information between objects during
 		 *							serialization.
 		 */
-		void Encode(IReflectable* object, SerializationContext* context = nullptr);
+		void Encode(IReflectable* object, RTTIOperationContext* context = nullptr);
 
 	private:
 		SPtr<DataStream> mOutputStream;
@@ -50,7 +50,7 @@ namespace bs
 		 *							maintaining state or sharing information between objects during
 		 *							deserialization.
 		 */
-		SPtr<IReflectable> Decode(SerializationContext* context = nullptr);
+		SPtr<IReflectable> Decode(RTTIOperationContext* context = nullptr);
 
 		/** Gets the size in bytes of the next object in the file. Returns 0 if no next object. */
 		u32 GetSize() const;

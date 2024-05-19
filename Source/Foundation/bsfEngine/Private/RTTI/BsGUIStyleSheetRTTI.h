@@ -144,7 +144,7 @@ namespace bs
 			B3D_RTTI_MEMBER_CONTAINER(mRulesets, 0)
 		B3D_RTTI_END_MEMBERS
 	public:
-		void OnDeserializationEnded(IReflectable* obj, SerializationContext* context) override
+		void OnDeserializationEnded(IReflectable* obj, RTTIOperationContext* context) override
 		{
 			GUIStyleSheet* const styleSheet = static_cast<GUIStyleSheet*>(obj);
 			styleSheet->Initialize();

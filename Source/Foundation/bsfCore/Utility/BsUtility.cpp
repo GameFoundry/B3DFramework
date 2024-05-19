@@ -153,17 +153,17 @@ Vector<HComponent> Utility::FindComponents(const HSceneObject& object, u32 typeI
 	return output;
 }
 
-class CoreSerializationContextRTTI : public RTTIType<CoreSerializationContext, SerializationContext, CoreSerializationContextRTTI>
+class RTTIOperationEngineContextRTTI : public RTTIType<RTTIOperationEngineContext, RTTIOperationContext, RTTIOperationEngineContextRTTI>
 {
 	const String& GetRttiName() override
 	{
-		static String name = "CoreSerializationContext";
+		static String name = "RTTIOperationEngineContext";
 		return name;
 	}
 
 	u32 GetRttiId() const override
 	{
-		return TID_CoreSerializationContext;
+		return TID_RTTIOperationEngineContext;
 	}
 
 	SPtr<IReflectable> NewRttiObject() override
@@ -173,12 +173,12 @@ class CoreSerializationContextRTTI : public RTTIType<CoreSerializationContext, S
 	}
 };
 
-RTTITypeBase* CoreSerializationContext::GetRttiStatic()
+RTTITypeBase* RTTIOperationEngineContext::GetRttiStatic()
 {
-	return CoreSerializationContextRTTI::Instance();
+	return RTTIOperationEngineContextRTTI::Instance();
 }
 
-RTTITypeBase* CoreSerializationContext::GetRtti() const
+RTTITypeBase* RTTIOperationEngineContext::GetRtti() const
 {
 	return GetRttiStatic();
 }

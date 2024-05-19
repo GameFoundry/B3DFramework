@@ -43,7 +43,7 @@ namespace bs
 			AddReflectablePtrField("mObjectData", 2, &ManagedComponentRTTI::GetObjectData, &ManagedComponentRTTI::SetObjectData);
 		}
 
-		void OnSerializationStarted(IReflectable* obj, SerializationContext* context) override
+		void OnSerializationStarted(IReflectable* obj, RTTIOperationContext* context) override
 		{
 			ManagedComponent* mc = static_cast<ManagedComponent*>(obj);
 			MonoObject* managedInstance = mc->GetManagedInstance();

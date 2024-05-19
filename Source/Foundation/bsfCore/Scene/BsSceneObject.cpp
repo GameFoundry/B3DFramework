@@ -852,7 +852,7 @@ HSceneObject SceneObject::Clone(const SPtr<GameObjectCollection>& cloneOwnerColl
 
 	B3D_ENSURE(!preserveIds || cloneOwnerCollection != mOwnerCollection.lock());
 
-	CoreSerializationContext serializationContext;
+	RTTIOperationEngineContext serializationContext;
 	serializationContext.PreserveGameObjectIds = preserveIds;
 	serializationContext.GameObjectCollection = cloneOwnerCollection;
 
@@ -873,7 +873,7 @@ HSceneObject SceneObject::Clone(const SPtr<SceneInstance>& cloneSceneInstance, b
 
 	B3D_ENSURE(!preserveIds || cloneSceneInstance->GetGameObjectCollection() != mOwnerCollection.lock());
 
-	CoreSerializationContext serializationContext;
+	RTTIOperationEngineContext serializationContext;
 	serializationContext.PreserveGameObjectIds = preserveIds;
 	serializationContext.GameObjectCollection = cloneSceneInstance->GetGameObjectCollection();
 

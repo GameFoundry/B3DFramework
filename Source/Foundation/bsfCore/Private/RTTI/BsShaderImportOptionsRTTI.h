@@ -45,7 +45,7 @@ namespace bs
 			AddPlainArrayField("mDefines", 0, &ShaderImportOptionsRTTI::GetDefinePair, &ShaderImportOptionsRTTI::GetNumDefines, &ShaderImportOptionsRTTI::SetDefinePair, &ShaderImportOptionsRTTI::SetNumDefines);
 		}
 
-		void OnSerializationStarted(IReflectable* obj, SerializationContext* context) override
+		void OnSerializationStarted(IReflectable* obj, RTTIOperationContext* context) override
 		{
 			ShaderImportOptions* importOptions = static_cast<ShaderImportOptions*>(obj);
 

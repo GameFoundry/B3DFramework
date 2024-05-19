@@ -40,7 +40,7 @@ namespace bs
 		}
 
 	private:
-		void OnDeserializationEnded(IReflectable* obj, SerializationContext* context)
+		void OnDeserializationEnded(IReflectable* obj, RTTIOperationContext* context)
 		{
 			SpriteTexture* texture = static_cast<SpriteTexture*>(obj);
 			texture->Initialize();

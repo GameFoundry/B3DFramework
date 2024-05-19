@@ -19,7 +19,7 @@ namespace bs
 	class B3D_CORE_EXPORT ComponentRTTI : public RTTIType<Component, GameObject, ComponentRTTI>
 	{
 	public:
-		void OnDeserializationEnded(IReflectable* object, SerializationContext* context) override
+		void OnDeserializationEnded(IReflectable* object, RTTIOperationContext* context) override
 		{
 			Component* const component = static_cast<Component*>(object);
 
@@ -28,7 +28,7 @@ namespace bs
 			if(component->mRTTIData.Empty())
 				return;
 
-			CoreSerializationContext* const serializationContext = B3DRTTICast<CoreSerializationContext>(context);
+			auto* const serializationContext = B3DRTTICast<RTTIOperationEngineContext>(context);
 			B3D_ASSERT(serializationContext != nullptr);
 
 			if(component->mId.Empty() || !serializationContext->PreserveGameObjectIds)

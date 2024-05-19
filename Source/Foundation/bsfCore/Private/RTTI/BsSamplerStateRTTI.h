@@ -30,7 +30,7 @@ namespace bs
 			AddPlainField("mData", 0, &SamplerStateRTTI::GetData, &SamplerStateRTTI::SetData);
 		}
 
-		void OnDeserializationEnded(IReflectable* obj, SerializationContext* context)
+		void OnDeserializationEnded(IReflectable* obj, RTTIOperationContext* context)
 		{
 			SamplerState* samplerState = static_cast<SamplerState*>(obj);
 			samplerState->Initialize();

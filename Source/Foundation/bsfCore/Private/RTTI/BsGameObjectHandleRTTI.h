@@ -22,10 +22,10 @@ namespace bs
 	class B3D_UTILITY_EXPORT GameObjectHandleDeltaHandler : public BinaryDeltaHandler
 	{
 	protected:
-		SPtr<SerializedObject> GenerateDeltaRecursive(IReflectable* original, IReflectable* modified, ObjectMap& objectMap, SerializationContext* context, bool replicableOnly) override;
+		SPtr<SerializedObject> GenerateDeltaRecursive(IReflectable* original, IReflectable* modified, ObjectMap& objectMap, RTTIOperationContext* context, bool replicableOnly) override;
 	};
 
-	inline SPtr<SerializedObject> GameObjectHandleDeltaHandler::GenerateDeltaRecursive(IReflectable* original, IReflectable* modified, ObjectMap& objectMap, SerializationContext* context, bool replicableOnly)
+	inline SPtr<SerializedObject> GameObjectHandleDeltaHandler::GenerateDeltaRecursive(IReflectable* original, IReflectable* modified, ObjectMap& objectMap, RTTIOperationContext* context, bool replicableOnly)
 	{
 		if(B3D_ENSURE(original == nullptr && modified != nullptr))
 			return nullptr;
@@ -58,9 +58,8 @@ namespace bs
 		UUID originalId = originalHandle->GetId();
 		UUID modifiedId = modifiedHandle->GetId();
 
-		if(context != nullptr)
+		if(auto* serializationContext = B3DRTTICast<RTTIOperationEngineContext>(context))
 		{
-			CoreSerializationContext* const serializationContext = static_cast<CoreSerializationContext*>(context);
 			if(auto found = serializationContext->GameObjectIdRemapping.find(originalId); found != serializationContext->GameObjectIdRemapping.end())
 				originalId = found->second;
 
@@ -109,26 +108,24 @@ namespace bs
 			return kDeltaHandler;
 		}
 
-		void OnDeserializationEnded(IReflectable* object, SerializationContext* context)
+		void OnDeserializationEnded(IReflectable* object, RTTIOperationContext* context)
 		{
-			CoreSerializationContext* const serializationContext = B3DRTTICast<CoreSerializationContext>(context);
-			if(serializationContext == nullptr)
-				return;
-
-			GameObjectHandleBase* gameObjectHandle = static_cast<GameObjectHandleBase*>(object);
-			if(serializationContext->GameObjectCollection != nullptr)
-				serializationContext->GameObjectCollection->RegisterUnresolvedHandle(*gameObjectHandle);
+			if(auto* serializationContext = B3DRTTICast<RTTIOperationEngineContext>(context))
+			{
+				GameObjectHandleBase* gameObjectHandle = static_cast<GameObjectHandleBase*>(object);
+				if(serializationContext->GameObjectCollection != nullptr)
+					serializationContext->GameObjectCollection->RegisterUnresolvedHandle(*gameObjectHandle);
+			}
 		}
 
-		void OnSerializationStarted(IReflectable* object, SerializationContext* context) override
+		void OnSerializationStarted(IReflectable* object, RTTIOperationContext* context) override
 		{
-			CoreSerializationContext* const serializationContext = B3DRTTICast<CoreSerializationContext>(context);
-			if(serializationContext == nullptr)
-				return;
-
-			GameObjectHandleBase* gameObjectHandle = static_cast<GameObjectHandleBase*>(object);
-			if(auto found = serializationContext->GameObjectIdRemapping.find(gameObjectHandle->GetId()); found != serializationContext->GameObjectIdRemapping.end())
-				mRemappedId = found->second;
+			if(auto* serializationContext = B3DRTTICast<RTTIOperationEngineContext>(context))
+			{
+				GameObjectHandleBase* gameObjectHandle = static_cast<GameObjectHandleBase*>(object);
+				if(auto found = serializationContext->GameObjectIdRemapping.find(gameObjectHandle->GetId()); found != serializationContext->GameObjectIdRemapping.end())
+					mRemappedId = found->second;
+			}
 		}
 
 		const String& GetRttiName()

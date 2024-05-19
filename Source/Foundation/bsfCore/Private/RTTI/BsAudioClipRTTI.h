@@ -56,7 +56,7 @@ namespace bs
 			AddDataBlockField("mData", 6, &AudioClipRTTI::GetData, &AudioClipRTTI::SetData);
 		}
 
-		void OnDeserializationEnded(IReflectable* obj, SerializationContext* context)
+		void OnDeserializationEnded(IReflectable* obj, RTTIOperationContext* context)
 		{
 			AudioClip* clip = static_cast<AudioClip*>(obj);
 			clip->Initialize();

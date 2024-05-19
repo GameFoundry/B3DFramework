@@ -838,7 +838,7 @@ SPtr<Resource> Package::LoadAndDeserializeResource(const UUID& id, size_t offset
 		return nullptr;
 	}
 
-	CoreSerializationContext serializationContext;
+	RTTIOperationEngineContext serializationContext;
 
 	// Read resource data
 	SPtr<IReflectable> loadedData;

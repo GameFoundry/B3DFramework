@@ -43,7 +43,7 @@ namespace bs
 		}
 
 	private:
-		void OnDeserializationEnded(IReflectable* obj, SerializationContext* context)
+		void OnDeserializationEnded(IReflectable* obj, RTTIOperationContext* context)
 		{
 			SpriteGlyph* glyph = static_cast<SpriteGlyph*>(obj);
 			glyph->Initialize();

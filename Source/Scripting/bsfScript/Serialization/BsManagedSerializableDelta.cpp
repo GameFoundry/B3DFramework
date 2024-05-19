@@ -132,7 +132,7 @@ ManagedSerializableDelta::ManagedSerializableDelta()
 {
 }
 
-SPtr<ManagedSerializableDelta> ManagedSerializableDelta::Create(const ManagedSerializableObject* original, const ManagedSerializableObject* modified, SerializationContext* context)
+SPtr<ManagedSerializableDelta> ManagedSerializableDelta::Create(const ManagedSerializableObject* original, const ManagedSerializableObject* modified, RTTIOperationContext* context)
 {
 	B3D_ASSERT(original != nullptr && modified != nullptr);
 
@@ -154,7 +154,7 @@ SPtr<ManagedSerializableDelta> ManagedSerializableDelta::Create(const ManagedSer
 	return nullptr;
 }
 
-SPtr<ManagedSerializableDelta::ModifiedObject> ManagedSerializableDelta::GenerateObjectDelta(const ManagedSerializableObject* original, const ManagedSerializableObject* modified, SerializationContext* context)
+SPtr<ManagedSerializableDelta::ModifiedObject> ManagedSerializableDelta::GenerateObjectDelta(const ManagedSerializableObject* original, const ManagedSerializableObject* modified, RTTIOperationContext* context)
 {
 	SPtr<ModifiedObject> output = nullptr;
 
@@ -187,7 +187,7 @@ SPtr<ManagedSerializableDelta::ModifiedObject> ManagedSerializableDelta::Generat
 	return output;
 }
 
-SPtr<ManagedSerializableDelta::Modification> ManagedSerializableDelta::GenerateFieldDelta(const SPtr<ManagedSerializableFieldData>& original, const SPtr<ManagedSerializableFieldData>& modified, u32 entryTypeId, SerializationContext* context)
+SPtr<ManagedSerializableDelta::Modification> ManagedSerializableDelta::GenerateFieldDelta(const SPtr<ManagedSerializableFieldData>& original, const SPtr<ManagedSerializableFieldData>& modified, u32 entryTypeId, RTTIOperationContext* context)
 {
 	bool isPrimitive = entryTypeId == TID_SerializableTypeInfoPrimitive ||
 		entryTypeId == TID_SerializableTypeInfoRef ||

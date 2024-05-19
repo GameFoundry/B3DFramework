@@ -659,7 +659,7 @@ namespace bs
 		TID_ParticleDepthCollisionSettings = 1183,
 		TID_BloomSettings = 1184,
 		TID_ParticleBurst = 1185,
-		TID_CoreSerializationContext = 1186,
+		TID_RTTIOperationEngineContext = 1186,
 		TID_ParticleForce = 1187,
 		TID_ParticleSize = 1188,
 		TID_ParticleColor = 1189,

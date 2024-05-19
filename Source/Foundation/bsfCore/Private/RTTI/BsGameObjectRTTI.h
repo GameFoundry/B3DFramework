@@ -41,7 +41,7 @@ namespace bs
 			//AddPlainField("mInstanceID", 0, &GameObjectRTTI::GetInstanceId, &GameObjectRTTI::SetInstanceId);
 		}
 
-		void OnDeserializationStarted(IReflectable* obj, SerializationContext* context)
+		void OnDeserializationStarted(IReflectable* obj, RTTIOperationContext* context)
 		{
 			GameObject* gameObject = static_cast<GameObject*>(obj);
 

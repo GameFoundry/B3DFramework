@@ -20,7 +20,7 @@ namespace bs
 	class BufferedBitstreamWriter;
 	struct RTTIReflectableFieldBase;
 	struct RTTIReflectablePtrFieldBase;
-	struct SerializationContext;
+	struct RTTIOperationContext;
 
 	/** Flags used for controlling BinarySerializer encoding and decoding. */
 	enum class BinarySerializerFlag
@@ -81,7 +81,7 @@ namespace bs
 		 *										maintaining state or sharing information between objects during
 		 *										serialization.
 		 */
-		void Encode(IReflectable* object, const SPtr<DataStream>& stream, BinarySerializerFlags flags = BinarySerializerFlag::None, SerializationContext* rttiContext = nullptr);
+		void Encode(IReflectable* object, const SPtr<DataStream>& stream, BinarySerializerFlags flags = BinarySerializerFlag::None, RTTIOperationContext* rttiContext = nullptr);
 
 		/**
 		 * Decodes an object from binary data.
@@ -100,7 +100,7 @@ namespace bs
 		 * @note
 		 * Child elements are guaranteed to be fully deserialized before their parents, except for fields marked with WeakRef flag.
 		 */
-		SPtr<IReflectable> Decode(const SPtr<DataStream>& stream, u32 dataLength, BinarySerializerFlags flags = BinarySerializerFlag::None, SerializationContext* context = nullptr, std::function<void(float)> progress = nullptr, SPtr<RTTISchema> schema = nullptr);
+		SPtr<IReflectable> Decode(const SPtr<DataStream>& stream, u32 dataLength, BinarySerializerFlags flags = BinarySerializerFlag::None, RTTIOperationContext* context = nullptr, std::function<void(float)> progress = nullptr, SPtr<RTTISchema> schema = nullptr);
 
 	private:
 		/** Determines how many bytes need to be read before the progress report callback is triggered. */
@@ -120,7 +120,7 @@ namespace bs
 		FrameAllocator* mAlloc = nullptr;
 		Bitstream mBuffer;
 
-		SerializationContext* mContext = nullptr;
+		RTTIOperationContext* mContext = nullptr;
 		std::function<void(float)> mReportProgress = nullptr;
 	};
 

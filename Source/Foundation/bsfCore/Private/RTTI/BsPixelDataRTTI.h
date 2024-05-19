@@ -55,7 +55,7 @@ namespace bs
 			AddPlainField("version", 10, &PixelDataRTTI::GetVersion, &PixelDataRTTI::SetVersion);
 		}
 
-		void OnDeserializationEnded(IReflectable* obj, SerializationContext* context)
+		void OnDeserializationEnded(IReflectable* obj, RTTIOperationContext* context)
 		{
 			PixelData* pixelData = static_cast<PixelData*>(obj);
 

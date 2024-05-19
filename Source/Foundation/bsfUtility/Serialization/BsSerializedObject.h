@@ -7,8 +7,11 @@
 
 namespace bs
 {
-	struct SerializationContext;
+	struct RTTIOperationContext;
+}
 
+namespace bs
+{
 	/** @addtogroup Serialization
 	 *  @{
 	 */
@@ -174,7 +177,7 @@ namespace bs
 		 *								maintaining state or sharing information between objects during
 		 *								serialization.
 		 */
-		SPtr<IReflectable> Decode(SerializationContext* context = nullptr) const;
+		SPtr<IReflectable> Decode(RTTIOperationContext* context = nullptr) const;
 
 		/**
 		 * Serializes the provided object and returns its SerializedObject representation.
@@ -187,7 +190,7 @@ namespace bs
 		 *							deserialization.
 		 * @return					Serialized version of @p obj.
 		 */
-		static SPtr<SerializedObject> Create(IReflectable& object, SerializedObjectEncodeFlags flags = SerializedObjectEncodeFlags(), SerializationContext* context = nullptr);
+		static SPtr<SerializedObject> Create(IReflectable& object, SerializedObjectEncodeFlags flags = SerializedObjectEncodeFlags(), RTTIOperationContext* context = nullptr);
 
 		Vector<SerializedSubObject> SubObjects;
 

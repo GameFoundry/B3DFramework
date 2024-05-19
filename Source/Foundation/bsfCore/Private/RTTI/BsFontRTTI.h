@@ -162,7 +162,7 @@ namespace bs
 		}
 
 	protected:
-		void OnSerializationStarted(IReflectable* obj, SerializationContext* context) override
+		void OnSerializationStarted(IReflectable* obj, RTTIOperationContext* context) override
 		{
 			FontBitmapInformation* bitmapInformation = static_cast<FontBitmapInformation*>(obj);
 
@@ -232,7 +232,7 @@ namespace bs
 		}
 
 	protected:
-		void OnDeserializationEnded(IReflectable* obj, SerializationContext* context) override
+		void OnDeserializationEnded(IReflectable* obj, RTTIOperationContext* context) override
 		{
 			Font* font = static_cast<Font*>(obj);
 			font->Initialize();

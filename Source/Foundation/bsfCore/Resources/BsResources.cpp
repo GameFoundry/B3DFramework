@@ -440,7 +440,7 @@ SPtr<Resource> Resources::LoadFromDiskAndDeserialize(const Path& filePath, bool 
 		B3D_EXCEPT(InternalErrorException, "File size is larger that u32 can hold. Ask a programmer to use a bigger data type.");
 	}
 
-	CoreSerializationContext serzContext;
+	RTTIOperationEngineContext serzContext;
 	serzContext.Flags = loadWithSaveData ? SF_KeepResourceSourceData : 0;
 
 	// Read meta-data

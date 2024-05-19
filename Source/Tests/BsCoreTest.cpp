@@ -262,7 +262,7 @@ void CoreTestSuite::TestSceneSaveLoad()
 		serializedScene0Stream->Seek(0);
 
 		BinarySerializer serializer;
-		CoreSerializationContext serializationContext;
+		RTTIOperationEngineContext serializationContext;
 		scene0Prefab = B3DRTTICast<Prefab>(serializer.Decode(serializedScene0Stream, (u32)serializedScene0Stream->Size(), BinarySerializerFlag::None, &serializationContext));
 
 		UnitTestSceneA scene0Wrapper(scene0Prefab->GetRoot());
@@ -338,7 +338,7 @@ void CoreTestSuite::TestSceneSaveLoad()
 		serializedScene1Stream->Seek(0);
 
 		BinarySerializer serializer;
-		CoreSerializationContext serializationContext;
+		RTTIOperationEngineContext serializationContext;
 		scene1Prefab = B3DRTTICast<Prefab>(serializer.Decode(serializedScene1Stream, (u32)serializedScene1Stream->Size(), BinarySerializerFlag::None, &serializationContext));
 
 		UnitTestSceneB scene1Wrapper(scene1Prefab->GetRoot());

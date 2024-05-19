@@ -105,7 +105,7 @@ void ManagedComponent::Restore(const RawBackupData& data, bool missingType)
 	{
 		BinarySerializer bs;
 
-		CoreSerializationContext serzContext;
+		RTTIOperationEngineContext serzContext;
 		serzContext.GameObjectCollection = SO()->GetOwnerCollection().lock();
 		serzContext.GameObjectCollection->BeginHandleResolve();
 

@@ -31,7 +31,7 @@ namespace bs
 			AddReflectablePtrField("mMaterialParams", 2, &MaterialRTTI::GetMaterialParams, &MaterialRTTI::SetMaterialParams);
 		}
 
-		void OnDeserializationEnded(IReflectable* obj, SerializationContext* context) override;
+		void OnDeserializationEnded(IReflectable* obj, RTTIOperationContext* context) override;
 
 		const String& GetRttiName() override
 		{

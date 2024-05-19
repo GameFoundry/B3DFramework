@@ -5,7 +5,7 @@
 
 using namespace bs;
 
-void MaterialRTTI::OnDeserializationEnded(IReflectable* obj, SerializationContext* context)
+void MaterialRTTI::OnDeserializationEnded(IReflectable* obj, RTTIOperationContext* context)
 {
 	Material* material = static_cast<Material*>(obj);
 	material->Initialize();

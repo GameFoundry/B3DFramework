@@ -9,9 +9,9 @@
 #include "Scene/BsSceneObject.h"
 
 using namespace bs;
-SPtr<SerializedObject> ManagedDeltaHandler::GenerateDeltaRecursive(IReflectable* original, IReflectable* modified, ObjectMap& objectMap, SerializationContext* context, bool reflectableOnly)
+SPtr<SerializedObject> ManagedDeltaHandler::GenerateDeltaRecursive(IReflectable* original, IReflectable* modified, ObjectMap& objectMap, RTTIOperationContext* context, bool reflectableOnly)
 {
-	CoreSerializationContext defaultContext;
+	RTTIOperationEngineContext defaultContext;
 	if(context == nullptr)
 		context = &defaultContext;
 
@@ -64,7 +64,7 @@ SPtr<SerializedObject> ManagedDeltaHandler::GenerateDeltaRecursive(IReflectable*
 	return output;
 }
 
-void ManagedDeltaHandler::GenerateDeltaApplyCommands(const SPtr<IReflectable>& object, const SPtr<SerializedObject>& delta, FrameAllocator& allocator, DeltaObjectMap& objectMap, FrameVector<DeltaCommand>& inOutDeltaCommands, SerializationContext* context)
+void ManagedDeltaHandler::GenerateDeltaApplyCommands(const SPtr<IReflectable>& object, const SPtr<SerializedObject>& delta, FrameAllocator& allocator, DeltaObjectMap& objectMap, FrameVector<DeltaCommand>& inOutDeltaCommands, RTTIOperationContext* context)
 {
 	SPtr<SerializedObject> diffObj = std::static_pointer_cast<SerializedObject>(delta->SubObjects[0].FieldEntries[0].Value);
 

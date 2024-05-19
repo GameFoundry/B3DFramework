@@ -105,7 +105,7 @@ namespace bs
 		void Deserialize(MonoObject* instance, const SPtr<ManagedSerializableObjectInfo>& objInfo);
 
 		/** Checks if this object has the same contents as the provided object. */
-		bool Equals(ManagedSerializableObject& other, SerializationContext* context = nullptr);
+		bool Equals(ManagedSerializableObject& other, RTTIOperationContext* context = nullptr);
 
 		/**
 		 * Creates a managed serializable object that references an existing managed object. Created object will be in

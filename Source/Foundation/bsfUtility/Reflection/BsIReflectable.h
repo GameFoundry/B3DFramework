@@ -45,6 +45,26 @@ namespace bs
 		 */
 		const String& GetTypeName() const;
 
+		/** Casts this to T. Returns null if unable to cast. */
+		template<class T>
+		T* As()
+		{
+			if(IsDerivedFrom(T::GetRttiStatic()))
+				return (T*)this;
+
+			return nullptr;
+		}
+
+		/** Casts this to T. Returns null if unable to cast. */
+		template<class T>
+		const T* As() const
+		{
+			if(IsDerivedFrom(T::GetRttiStatic()))
+				return (const T*)this;
+
+			return nullptr;
+		}
+
 		/** Creates an empty instance of a class from a type identifier. */
 		static SPtr<IReflectable> CreateInstanceFromTypeId(u32 rttiTypeId);
 

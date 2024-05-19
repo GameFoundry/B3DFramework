@@ -7,7 +7,7 @@
 
 using namespace bs;
 
-IntermediateSerializer::IntermediateSerializer(FrameAllocator* allocator, SerializationContext* context)
+IntermediateSerializer::IntermediateSerializer(FrameAllocator* allocator, RTTIOperationContext* context)
 	: mAllocator(allocator), mContext(context)
 {}
 

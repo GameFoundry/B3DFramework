@@ -84,17 +84,17 @@ RTTITypeBase* RTTISchema::GetRtti() const
 	return GetRttiStatic();
 }
 
-class SerializationContextRTTI : public RTTIType<SerializationContext, IReflectable, SerializationContextRTTI>
+class RTTIOperationContextRTTI : public RTTIType<RTTIOperationContext, IReflectable, RTTIOperationContextRTTI>
 {
 	const String& GetRttiName() override
 	{
-		static String name = "SerializationContext";
+		static String name = "RTTIOperationContext";
 		return name;
 	}
 
 	u32 GetRttiId() const override
 	{
-		return TID_SerializationContext;
+		return TID_RTTIOperationContext;
 	}
 
 	SPtr<IReflectable> NewRttiObject()
@@ -104,12 +104,12 @@ class SerializationContextRTTI : public RTTIType<SerializationContext, IReflecta
 	}
 };
 
-RTTITypeBase* SerializationContext::GetRttiStatic()
+RTTITypeBase* RTTIOperationContext::GetRttiStatic()
 {
-	return SerializationContextRTTI::Instance();
+	return RTTIOperationContextRTTI::Instance();
 }
 
-RTTITypeBase* SerializationContext::GetRtti() const
+RTTITypeBase* RTTIOperationContext::GetRtti() const
 {
 	return GetRttiStatic();
 }

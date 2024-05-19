@@ -65,7 +65,7 @@ SPtr<SceneObjectHierarchyDelta> SceneObjectHierarchyDelta::Create(const HSceneOb
 
 	const bool isPrefabDelta = flags.IsSet(SceneObjectHierarchyDeltaFlag::PrefabDelta);
 
-	CoreSerializationContext serializationContext;
+	RTTIOperationEngineContext serializationContext;
 	if(isPrefabDelta && modified.IsValid())
 	{
 		UnorderedMap<UUID, PrefabLinkInformation> instanceIdToPrefabLink = PrefabUtility::GetInstanceToPrefabLinkInformationMap(modified, true);
@@ -87,7 +87,7 @@ void SceneObjectHierarchyDelta::Apply(const HSceneObject& original, SceneObjectH
 
 	const bool isPrefabDelta = flags.IsSet(SceneObjectHierarchyDeltaFlag::PrefabDelta);
 
-	CoreSerializationContext serializationContext;
+	RTTIOperationEngineContext serializationContext;
 	serializationContext.IsGameObjectDeserializationActive = true;
 	serializationContext.PreserveGameObjectIds = !isPrefabDelta;
 	serializationContext.GameObjectCollection = gameObjectCollection;
@@ -276,7 +276,7 @@ void SceneObjectHierarchyDelta::Apply(const HSceneObject& original, SceneObjectH
 	serializationContext.GameObjectCollection->EndHandleResolve();
 }
 
-void SceneObjectHierarchyDelta::GenerateHierarchyDelta(const HSceneObject& original, const HSceneObject& modified, SerializationContext* context, SceneObjectHierarchyDeltaFlags flags, SPtr<SceneObjectHierarchyDelta>& outDelta)
+void SceneObjectHierarchyDelta::GenerateHierarchyDelta(const HSceneObject& original, const HSceneObject& modified, RTTIOperationContext* context, SceneObjectHierarchyDeltaFlags flags, SPtr<SceneObjectHierarchyDelta>& outDelta)
 {
 	const bool isPrefabDelta = flags.IsSet(SceneObjectHierarchyDeltaFlag::PrefabDelta);
 
@@ -337,7 +337,7 @@ void SceneObjectHierarchyDelta::GenerateHierarchyDelta(const HSceneObject& origi
 	fnFindAddedChildren(modified, fnFindAddedChildren);
 }
 
-bool SceneObjectHierarchyDelta::GenerateSceneObjectDelta(const HSceneObject& original, const HSceneObject& modified, SerializationContext* context, SceneObjectHierarchyDeltaFlags flags, bool ignoreParent, SPtr<SceneObjectHierarchyDelta>& outDelta)
+bool SceneObjectHierarchyDelta::GenerateSceneObjectDelta(const HSceneObject& original, const HSceneObject& modified, RTTIOperationContext* context, SceneObjectHierarchyDeltaFlags flags, bool ignoreParent, SPtr<SceneObjectHierarchyDelta>& outDelta)
 {
 	const bool isPrefabDelta = flags.IsSet(SceneObjectHierarchyDeltaFlag::PrefabDelta);
 	const bool isOriginalValid = original.IsValid();
@@ -419,7 +419,7 @@ bool SceneObjectHierarchyDelta::GenerateSceneObjectDelta(const HSceneObject& ori
 	return true;
 }
 
-void SceneObjectHierarchyDelta::GenerateComponentDelta(const HSceneObject& original, const HSceneObject& modified, SerializationContext* context, SceneObjectHierarchyDeltaFlags flags, SPtr<SceneObjectHierarchyDelta>& outDelta)
+void SceneObjectHierarchyDelta::GenerateComponentDelta(const HSceneObject& original, const HSceneObject& modified, RTTIOperationContext* context, SceneObjectHierarchyDeltaFlags flags, SPtr<SceneObjectHierarchyDelta>& outDelta)
 {
 	if(!B3D_ENSURE(modified.IsValid()))
 		return;

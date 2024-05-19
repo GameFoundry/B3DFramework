@@ -22,12 +22,12 @@ namespace bs::RTTIObjectWrapper
 		return SubObjectIterator<false>(mObject, mFrameAllocator);
 	}
 
-	inline void Object<false>::NotifyBeginOperation(SubObject<false>& subObject, SerializationContext* context)
+	inline void Object<false>::NotifyBeginOperation(SubObject<false>& subObject, RTTIOperationContext* context)
 	{
 		// Do nothing
 	}
 
-	inline void Object<false>::NotifyEndOperation(SerializationContext* context)
+	inline void Object<false>::NotifyEndOperation(RTTIOperationContext* context)
 	{
 		// Do nothing
 	}
@@ -44,7 +44,7 @@ namespace bs::RTTIObjectWrapper
 		return mObject->GetTypeId();
 	}
 
-	inline void Object<true>::NotifyBeginOperation(SubObject<true>& subObject, SerializationContext* context)
+	inline void Object<true>::NotifyBeginOperation(SubObject<true>& subObject, RTTIOperationContext* context)
 	{
 		B3D_ASSERT(subObject.mRTTIType != nullptr);
 		B3D_ASSERT(subObject.mRTTITypeInstance == nullptr);
@@ -56,7 +56,7 @@ namespace bs::RTTIObjectWrapper
 		subObject.mRTTITypeInstance = rttiTypeInstance;
 	}
 
-	inline void Object<true>::NotifyEndOperation(SerializationContext* context)
+	inline void Object<true>::NotifyEndOperation(RTTIOperationContext* context)
 	{
 		// Note: It would make sense to finish deserializing derived classes before base classes, but some code
 		// depends on the old functionality, so we'll keep it this way
@@ -191,7 +191,7 @@ namespace bs::RTTIObjectWrapper
 		return ValueIterator<false>(mValue, mFrameAllocator);
 	}
 
-	inline SPtr<ISerialized> Field<false>::Clone(SerializedObjectEncodeFlags flags, SerializationContext* context) const
+	inline SPtr<ISerialized> Field<false>::Clone(SerializedObjectEncodeFlags flags, RTTIOperationContext* context) const
 	{
 		return mValue != nullptr ? mValue->Clone() : nullptr;
 	}
@@ -231,7 +231,7 @@ namespace bs::RTTIObjectWrapper
 		}
 	}
 
-	inline SPtr<ISerialized> Field<true>::Clone(SerializedObjectEncodeFlags flags, SerializationContext* context) const
+	inline SPtr<ISerialized> Field<true>::Clone(SerializedObjectEncodeFlags flags, RTTIOperationContext* context) const
 	{
 		IntermediateSerializer intermediateSerializer(mFrameAllocator, context);
 
@@ -572,7 +572,7 @@ namespace bs::RTTIObjectWrapper
 		return isModified;
 	}
 
-	inline SPtr<ISerialized> Value<false>::Clone(SerializedObjectEncodeFlags flags, SerializationContext* context) const
+	inline SPtr<ISerialized> Value<false>::Clone(SerializedObjectEncodeFlags flags, RTTIOperationContext* context) const
 	{
 		if(mValue != nullptr)
 			return mValue->Clone();
@@ -789,7 +789,7 @@ namespace bs::RTTIObjectWrapper
 		return isModified;
 	}
 
-	inline SPtr<ISerialized> Value<true>::Clone(SerializedObjectEncodeFlags flags, SerializationContext* context) const
+	inline SPtr<ISerialized> Value<true>::Clone(SerializedObjectEncodeFlags flags, RTTIOperationContext* context) const
 	{
 		auto* field = static_cast<RTTIIteratorField*>(mField);
 

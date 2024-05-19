@@ -47,8 +47,8 @@ namespace bs
 		static u32 GetSceneObjectDepth(const HSceneObject& so);
 	};
 
-	/** Provides extra information and maintains state during serialization of various RTTI types in the core. */
-	struct B3D_CORE_EXPORT CoreSerializationContext : SerializationContext
+	/** Extended version of RTTIOperationContext for various operations performed on classes in the engine layer. */
+	struct B3D_CORE_EXPORT RTTIOperationEngineContext : RTTIOperationContext
 	{
 		/**
 		 * By default deserialization will persist existing IDs for game objects. Setting this to false will generate brand new IDs on deserialization.

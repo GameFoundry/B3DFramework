@@ -23,7 +23,7 @@ namespace bs
 		B3D_RTTI_END_MEMBERS
 
 	public:
-		void OnDeserializationEnded(IReflectable* obj, SerializationContext* context)
+		void OnDeserializationEnded(IReflectable* obj, RTTIOperationContext* context)
 		{
 			PhysicsMesh* mesh = static_cast<PhysicsMesh*>(obj);
 			mesh->Initialize();

@@ -43,7 +43,7 @@ namespace bs
 		}
 
 	private:
-		void OnDeserializationEnded(IReflectable* obj, SerializationContext* context)
+		void OnDeserializationEnded(IReflectable* obj, RTTIOperationContext* context)
 		{
 			SpriteVectorPath* spriteVectorPath = static_cast<SpriteVectorPath*>(obj);
 			spriteVectorPath->Initialize();

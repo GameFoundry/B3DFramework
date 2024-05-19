@@ -99,7 +99,7 @@ namespace bs
 		 * Checks if the internal value stored in this object matches the value stored in another. Does shallow comparison
 		 * for complex objects.
 		 */
-		virtual bool Equals(const SPtr<ManagedSerializableFieldData>& other, SerializationContext* context = nullptr) = 0;
+		virtual bool Equals(const SPtr<ManagedSerializableFieldData>& other, RTTIOperationContext* context = nullptr) = 0;
 
 		/**	Returns a hash value for the internally stored value. */
 		virtual size_t GetHash() = 0;
@@ -169,7 +169,7 @@ namespace bs
 
 		void* GetValue(const SPtr<ManagedSerializableTypeInfo>& typeInfo) override;
 		MonoObject* GetValueBoxed(const SPtr<ManagedSerializableTypeInfo>& typeInfo) override;
-		bool Equals(const SPtr<ManagedSerializableFieldData>& other, SerializationContext* context = nullptr) override;
+		bool Equals(const SPtr<ManagedSerializableFieldData>& other, RTTIOperationContext* context = nullptr) override;
 		size_t GetHash() override;
 
 		bool Value = false;
@@ -196,7 +196,7 @@ namespace bs
 
 		void* GetValue(const SPtr<ManagedSerializableTypeInfo>& typeInfo) override;
 		MonoObject* GetValueBoxed(const SPtr<ManagedSerializableTypeInfo>& typeInfo) override;
-		bool Equals(const SPtr<ManagedSerializableFieldData>& other, SerializationContext* context = nullptr) override;
+		bool Equals(const SPtr<ManagedSerializableFieldData>& other, RTTIOperationContext* context = nullptr) override;
 		size_t GetHash() override;
 
 		wchar_t Value = 0;
@@ -224,7 +224,7 @@ namespace bs
 
 		void* GetValue(const SPtr<ManagedSerializableTypeInfo>& typeInfo) override;
 		MonoObject* GetValueBoxed(const SPtr<ManagedSerializableTypeInfo>& typeInfo) override;
-		bool Equals(const SPtr<ManagedSerializableFieldData>& other, SerializationContext* context = nullptr) override;
+		bool Equals(const SPtr<ManagedSerializableFieldData>& other, RTTIOperationContext* context = nullptr) override;
 		size_t GetHash() override;
 
 		i8 Value = 0;
@@ -251,7 +251,7 @@ namespace bs
 
 		void* GetValue(const SPtr<ManagedSerializableTypeInfo>& typeInfo) override;
 		MonoObject* GetValueBoxed(const SPtr<ManagedSerializableTypeInfo>& typeInfo) override;
-		bool Equals(const SPtr<ManagedSerializableFieldData>& other, SerializationContext* context = nullptr) override;
+		bool Equals(const SPtr<ManagedSerializableFieldData>& other, RTTIOperationContext* context = nullptr) override;
 		size_t GetHash() override;
 
 		u8 Value = 0;
@@ -278,7 +278,7 @@ namespace bs
 
 		void* GetValue(const SPtr<ManagedSerializableTypeInfo>& typeInfo) override;
 		MonoObject* GetValueBoxed(const SPtr<ManagedSerializableTypeInfo>& typeInfo) override;
-		bool Equals(const SPtr<ManagedSerializableFieldData>& other, SerializationContext* context = nullptr) override;
+		bool Equals(const SPtr<ManagedSerializableFieldData>& other, RTTIOperationContext* context = nullptr) override;
 		size_t GetHash() override;
 
 		i16 Value = 0;
@@ -305,7 +305,7 @@ namespace bs
 
 		void* GetValue(const SPtr<ManagedSerializableTypeInfo>& typeInfo) override;
 		MonoObject* GetValueBoxed(const SPtr<ManagedSerializableTypeInfo>& typeInfo) override;
-		bool Equals(const SPtr<ManagedSerializableFieldData>& other, SerializationContext* context = nullptr) override;
+		bool Equals(const SPtr<ManagedSerializableFieldData>& other, RTTIOperationContext* context = nullptr) override;
 		size_t GetHash() override;
 
 		u16 Value = 0;
@@ -332,7 +332,7 @@ namespace bs
 
 		void* GetValue(const SPtr<ManagedSerializableTypeInfo>& typeInfo) override;
 		MonoObject* GetValueBoxed(const SPtr<ManagedSerializableTypeInfo>& typeInfo) override;
-		bool Equals(const SPtr<ManagedSerializableFieldData>& other, SerializationContext* context = nullptr) override;
+		bool Equals(const SPtr<ManagedSerializableFieldData>& other, RTTIOperationContext* context = nullptr) override;
 		size_t GetHash() override;
 
 		i32 Value = 0;
@@ -359,7 +359,7 @@ namespace bs
 
 		void* GetValue(const SPtr<ManagedSerializableTypeInfo>& typeInfo) override;
 		MonoObject* GetValueBoxed(const SPtr<ManagedSerializableTypeInfo>& typeInfo) override;
-		bool Equals(const SPtr<ManagedSerializableFieldData>& other, SerializationContext* context = nullptr) override;
+		bool Equals(const SPtr<ManagedSerializableFieldData>& other, RTTIOperationContext* context = nullptr) override;
 		size_t GetHash() override;
 
 		u32 Value = 0;
@@ -386,7 +386,7 @@ namespace bs
 
 		void* GetValue(const SPtr<ManagedSerializableTypeInfo>& typeInfo) override;
 		MonoObject* GetValueBoxed(const SPtr<ManagedSerializableTypeInfo>& typeInfo) override;
-		bool Equals(const SPtr<ManagedSerializableFieldData>& other, SerializationContext* context = nullptr) override;
+		bool Equals(const SPtr<ManagedSerializableFieldData>& other, RTTIOperationContext* context = nullptr) override;
 		size_t GetHash() override;
 
 		i64 Value = 0;
@@ -413,7 +413,7 @@ namespace bs
 
 		void* GetValue(const SPtr<ManagedSerializableTypeInfo>& typeInfo) override;
 		MonoObject* GetValueBoxed(const SPtr<ManagedSerializableTypeInfo>& typeInfo) override;
-		bool Equals(const SPtr<ManagedSerializableFieldData>& other, SerializationContext* context = nullptr) override;
+		bool Equals(const SPtr<ManagedSerializableFieldData>& other, RTTIOperationContext* context = nullptr) override;
 		size_t GetHash() override;
 
 		u64 Value = 0;
@@ -440,7 +440,7 @@ namespace bs
 
 		void* GetValue(const SPtr<ManagedSerializableTypeInfo>& typeInfo) override;
 		MonoObject* GetValueBoxed(const SPtr<ManagedSerializableTypeInfo>& typeInfo) override;
-		bool Equals(const SPtr<ManagedSerializableFieldData>& other, SerializationContext* context = nullptr) override;
+		bool Equals(const SPtr<ManagedSerializableFieldData>& other, RTTIOperationContext* context = nullptr) override;
 		size_t GetHash() override;
 
 		float Value = 0.0f;
@@ -467,7 +467,7 @@ namespace bs
 
 		void* GetValue(const SPtr<ManagedSerializableTypeInfo>& typeInfo) override;
 		MonoObject* GetValueBoxed(const SPtr<ManagedSerializableTypeInfo>& typeInfo) override;
-		bool Equals(const SPtr<ManagedSerializableFieldData>& other, SerializationContext* context = nullptr) override;
+		bool Equals(const SPtr<ManagedSerializableFieldData>& other, RTTIOperationContext* context = nullptr) override;
 		size_t GetHash() override;
 
 		double Value = 0.0;
@@ -494,7 +494,7 @@ namespace bs
 
 		void* GetValue(const SPtr<ManagedSerializableTypeInfo>& typeInfo) override;
 		MonoObject* GetValueBoxed(const SPtr<ManagedSerializableTypeInfo>& typeInfo) override;
-		bool Equals(const SPtr<ManagedSerializableFieldData>& other, SerializationContext* context = nullptr) override;
+		bool Equals(const SPtr<ManagedSerializableFieldData>& other, RTTIOperationContext* context = nullptr) override;
 		size_t GetHash() override;
 
 		WString Value;
@@ -521,7 +521,7 @@ namespace bs
 	public:
 		void* GetValue(const SPtr<ManagedSerializableTypeInfo>& typeInfo) override;
 		MonoObject* GetValueBoxed(const SPtr<ManagedSerializableTypeInfo>& typeInfo) override;
-		bool Equals(const SPtr<ManagedSerializableFieldData>& other, SerializationContext* context = nullptr) override;
+		bool Equals(const SPtr<ManagedSerializableFieldData>& other, RTTIOperationContext* context = nullptr) override;
 		size_t GetHash() override;
 
 		HResource Value;
@@ -546,7 +546,7 @@ namespace bs
 	public:
 		void* GetValue(const SPtr<ManagedSerializableTypeInfo>& typeInfo) override;
 		MonoObject* GetValueBoxed(const SPtr<ManagedSerializableTypeInfo>& typeInfo) override;
-		bool Equals(const SPtr<ManagedSerializableFieldData>& other, SerializationContext* context = nullptr) override;
+		bool Equals(const SPtr<ManagedSerializableFieldData>& other, RTTIOperationContext* context = nullptr) override;
 		size_t GetHash() override;
 
 		HGameObject Value;
@@ -571,7 +571,7 @@ namespace bs
 	public:
 		void* GetValue(const SPtr<ManagedSerializableTypeInfo>& typeInfo) override;
 		MonoObject* GetValueBoxed(const SPtr<ManagedSerializableTypeInfo>& typeInfo) override;
-		bool Equals(const SPtr<ManagedSerializableFieldData>& other, SerializationContext* context = nullptr) override;
+		bool Equals(const SPtr<ManagedSerializableFieldData>& other, RTTIOperationContext* context = nullptr) override;
 		size_t GetHash() override;
 
 		SPtr<IReflectable> Value;
@@ -596,7 +596,7 @@ namespace bs
 	public:
 		void* GetValue(const SPtr<ManagedSerializableTypeInfo>& typeInfo) override;
 		MonoObject* GetValueBoxed(const SPtr<ManagedSerializableTypeInfo>& typeInfo) override;
-		bool Equals(const SPtr<ManagedSerializableFieldData>& other, SerializationContext* context = nullptr) override;
+		bool Equals(const SPtr<ManagedSerializableFieldData>& other, RTTIOperationContext* context = nullptr) override;
 		size_t GetHash() override;
 		void Serialize() override;
 		void Deserialize() override;
@@ -623,7 +623,7 @@ namespace bs
 	public:
 		void* GetValue(const SPtr<ManagedSerializableTypeInfo>& typeInfo) override;
 		MonoObject* GetValueBoxed(const SPtr<ManagedSerializableTypeInfo>& typeInfo) override;
-		bool Equals(const SPtr<ManagedSerializableFieldData>& other, SerializationContext* context = nullptr) override;
+		bool Equals(const SPtr<ManagedSerializableFieldData>& other, RTTIOperationContext* context = nullptr) override;
 		size_t GetHash() override;
 		void Serialize() override;
 		void Deserialize() override;
@@ -650,7 +650,7 @@ namespace bs
 	public:
 		void* GetValue(const SPtr<ManagedSerializableTypeInfo>& typeInfo) override;
 		MonoObject* GetValueBoxed(const SPtr<ManagedSerializableTypeInfo>& typeInfo) override;
-		bool Equals(const SPtr<ManagedSerializableFieldData>& other, SerializationContext* context = nullptr) override;
+		bool Equals(const SPtr<ManagedSerializableFieldData>& other, RTTIOperationContext* context = nullptr) override;
 		size_t GetHash() override;
 		void Serialize() override;
 		void Deserialize() override;
@@ -677,7 +677,7 @@ namespace bs
 	public:
 		void* GetValue(const SPtr<ManagedSerializableTypeInfo>& typeInfo) override;
 		MonoObject* GetValueBoxed(const SPtr<ManagedSerializableTypeInfo>& typeInfo) override;
-		bool Equals(const SPtr<ManagedSerializableFieldData>& other, SerializationContext* context = nullptr) override;
+		bool Equals(const SPtr<ManagedSerializableFieldData>& other, RTTIOperationContext* context = nullptr) override;
 		size_t GetHash() override;
 		void Serialize() override;
 		void Deserialize() override;

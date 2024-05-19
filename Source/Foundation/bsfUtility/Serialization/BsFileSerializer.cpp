@@ -28,7 +28,7 @@ FileEncoder::FileEncoder(const SPtr<DataStream>& stream)
 { }
 
 
-void FileEncoder::Encode(IReflectable* object, SerializationContext* context)
+void FileEncoder::Encode(IReflectable* object, RTTIOperationContext* context)
 {
 	if(object == nullptr)
 		return;
@@ -64,7 +64,7 @@ FileDecoder::FileDecoder(const SPtr<DataStream>& stream)
 	: mInputStream(stream)
 { }
 
-SPtr<IReflectable> FileDecoder::Decode(SerializationContext* context)
+SPtr<IReflectable> FileDecoder::Decode(RTTIOperationContext* context)
 {
 	if(mInputStream->Eof())
 		return nullptr;

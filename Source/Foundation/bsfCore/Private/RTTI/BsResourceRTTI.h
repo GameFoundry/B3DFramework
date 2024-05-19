@@ -26,7 +26,7 @@ namespace bs
 		B3D_RTTI_END_MEMBERS
 
 	public:
-		void OnDeserializationStarted(IReflectable* obj, SerializationContext* context)
+		void OnDeserializationStarted(IReflectable* obj, RTTIOperationContext* context)
 		{
 			Resource* resource = static_cast<Resource*>(obj);
 
