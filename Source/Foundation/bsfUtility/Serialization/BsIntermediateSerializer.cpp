@@ -78,6 +78,7 @@ void IntermediateSerializer::DeserializeReflectableObject(const SPtr<IReflectabl
 
 		RTTITypeBase* rttiInstance = rtti->CloneInternal(*mAllocator);
 		rttiInstance->OnDeserializationStarted(object.get(), &mContext);
+		rttiInstance->OnOperationStarted(*object, RTTIOperationType::Deserialization, mContext);
 		rttiInstances.push(rttiInstance);
 
 		const u32 fieldCount = rtti->GetFieldCount();
@@ -303,6 +304,7 @@ void IntermediateSerializer::DeserializeReflectableObject(const SPtr<IReflectabl
 	{
 		RTTITypeBase* rttiInstance = rttiInstances.top();
 		rttiInstance->OnDeserializationEnded(object.get(), &mContext);
+		rttiInstance->OnOperationEnded(*object, RTTIOperationType::Deserialization, mContext);
 		mAllocator->Destruct(rttiInstance);
 
 		rttiInstances.pop();
@@ -425,6 +427,7 @@ SPtr<SerializedObject> IntermediateSerializer::SerializeReflectableObject(const 
 		{
 			RTTITypeBase* rttiInstance = rttiInstances.top();
 			rttiInstance->OnSerializationEnded(const_cast<IReflectable*>(&object), &mContext);
+			rttiInstance->OnOperationEnded(const_cast<IReflectable&>(object), RTTIOperationType::Serialization, mContext);
 			mAllocator->Destruct(rttiInstance);
 
 			rttiInstances.pop();
@@ -443,6 +446,7 @@ SPtr<SerializedObject> IntermediateSerializer::SerializeReflectableObject(const 
 		rttiInstances.push(rttiInstance);
 
 		rttiInstance->OnSerializationStarted(const_cast<IReflectable*>(&object), &mContext);
+		rttiInstance->OnOperationStarted(const_cast<IReflectable&>(object), RTTIOperationType::Serialization, mContext);
 
 		output->SubObjects.push_back(SerializedSubObject());
 		SerializedSubObject& subObject = output->SubObjects.back();

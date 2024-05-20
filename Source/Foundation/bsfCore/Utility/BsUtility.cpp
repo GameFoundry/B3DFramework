@@ -82,14 +82,14 @@ static void FindResourceDependenciesRecursive(IReflectable& object, FrameAllocat
 			if(fieldTypeSchema.Type == SerializableFT_Reflectable || fieldTypeSchema.Type == SerializableFT_ReflectablePtr)
 			{
 				RTTIObjectWrapper::Object<true> wrappedChildObject = value.GetObject();
-				RTTIObjectWrapper::IterateFieldTupleValues(wrappedChildObject, fnProcessFieldTupleValue, fnFieldFilter);
+				RTTIObjectWrapper::IterateFieldTupleValues(wrappedChildObject, RTTIOperationType::GatherReferences, fnProcessFieldTupleValue, fnFieldFilter);
 			}
 		}
 	};
 
 	RTTITypeBase* const rtti = object.GetRtti();
 	RTTIObjectWrapper::Object<true> wrappedObject(&object, rtti, &allocator);
-	RTTIObjectWrapper::IterateFieldTupleValues(wrappedObject, fnProcessFieldTupleValue, fnFieldFilter);
+	RTTIObjectWrapper::IterateFieldTupleValues(wrappedObject, RTTIOperationType::GatherReferences, fnProcessFieldTupleValue, fnFieldFilter);
 }
 
 Vector<ResourceDependency> Utility::FindResourceDependencies(IReflectable& obj, bool recursive)

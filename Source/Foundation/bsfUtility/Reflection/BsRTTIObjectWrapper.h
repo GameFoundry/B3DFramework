@@ -112,14 +112,14 @@ namespace bs::RTTIObjectWrapper
 		 * Notifies the RTTI object that we're about to begin an operation on the sub-object fields. Should be called
 		 * before writing or reading any field values from the sub-object. Must be called once for each sub-object.
 		 */
-		void NotifyBeginOperation(SubObject<false>& subObject, RTTIOperationContext* context);
+		void NotifyBeginOperation(SubObject<false>& subObject, RTTIOperationType operationType, RTTIOperationContext& context);
 
 		/**
 		 * Notifies the RTTI object that we have completed an operation on its fields. Must be called after
 		 * NotifyBeginOperation(), after we have finished reading or writing field values from the object.
 		 * Should be called just once, after all field operations for all sub-objects end.
 		 */
-		void NotifyEndOperation(RTTIOperationContext* context);
+		void NotifyEndOperation(RTTIOperationType operationType, RTTIOperationContext& context);
 
 	private:
 		SerializedObject* mObject = nullptr;
@@ -148,14 +148,14 @@ namespace bs::RTTIObjectWrapper
 		 * Notifies the RTTI object that we're about to begin an operation on the sub-object fields. Should be called
 		 * before writing or reading any field values from the sub-object. Must be called once for each sub-object.
 		 */
-		void NotifyBeginOperation(SubObject<true>& subObject, RTTIOperationContext* context);
+		void NotifyBeginOperation(SubObject<true>& subObject, RTTIOperationType operationType, RTTIOperationContext& context);
 
 		/**
 		 * Notifies the RTTI object that we have completed an operation on its fields. Must be called after
 		 * NotifyBeginOperation(), after we have finished reading or writing field values from the object.
 		 * Should be called just once, after all field operations for all sub-objects end.
 		 */
-		void NotifyEndOperation(RTTIOperationContext* context);
+		void NotifyEndOperation(RTTIOperationType operationType, RTTIOperationContext& context);
 
 	private:
 		IReflectable* mObject = nullptr;
@@ -521,7 +521,7 @@ namespace bs::RTTIObjectWrapper
 	 * Predicate signature must be void(const RTTIField& rttiField, Field<IsIReflectable>& field).
 	 */
 	template<bool IsIReflectable, typename Predicate>
-	void IterateFields(Object<IsIReflectable> object, Predicate&& fnPredicate);
+	void IterateFields(Object<IsIReflectable> object, RTTIOperationType operationType, Predicate&& fnPredicate);
 
 	/**
 	 * Iterates over all field values in the provided object and triggers @p fnPredicate. This will trigger
@@ -530,7 +530,7 @@ namespace bs::RTTIObjectWrapper
 	 * Predicate signature must be void(const RTTIFieldSchema& fieldSchema, Value<IsIReflectable>& value).
 	 */
 	template<bool IsIReflectable, typename Predicate, typename FieldFilterPredicate>
-	void IterateFieldValues(Object<IsIReflectable> object, Predicate&& fnPredicate, FieldFilterPredicate&& fnFieldFilterPredicate = nullptr);
+	void IterateFieldValues(Object<IsIReflectable> object, RTTIOperationType operationType, Predicate&& fnPredicate, FieldFilterPredicate&& fnFieldFilterPredicate = nullptr);
 
 	/**
 	 * Iterates over all field value tuple entries in the provided object and triggers @p fnPredicate. This is similar
@@ -540,7 +540,7 @@ namespace bs::RTTIObjectWrapper
 	 * Predicate signature must be void(const RTTIFieldTypeSchema& fieldTypeSchema, Value<IsIReflectable>& value).
 	 */
 	template<bool IsIReflectable, typename Predicate, typename FieldFilterPredicate>
-	void IterateFieldTupleValues(Object<IsIReflectable> object, Predicate&& fnPredicate, FieldFilterPredicate&& fnFieldFilterPredicate = nullptr);
+	void IterateFieldTupleValues(Object<IsIReflectable> object, RTTIOperationType operationType, Predicate&& fnPredicate, FieldFilterPredicate&& fnFieldFilterPredicate = nullptr);
 }
 
 #include "BsRTTIObjectWrapper.inl"

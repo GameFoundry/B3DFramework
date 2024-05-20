@@ -39,34 +39,70 @@ namespace bs
 	/** List of operations that may be performed on a RTTIType object, to be used with RTTITypeOnOperationStarted/Ended notifies. */
 	enum class RTTIOperationType
 	{
-		Unknown,
+		Unknown = 0,
+
+		////////////////////////////////
+		// Flags that added to type
+		////////////////////////////////
+
+		/** Operation performs a read on the RTTI fields. Exclusive with WriteBit. */
+		ReadBit = 1 << 0,
+
+		/** Operation performs a write on the RTTI fields. Exclusive with ReadBit. */
+		WriteBit = 1 << 1,
+
+		/**
+		 * Set when performing writes on an existing object (i.e. object was not created by the RTTI operation itself).
+		 * Only relevant for operations that write to fields.
+		 */
+		PreExistingObjectBit = 1 << 2,
+
+		/** First bit at which operation types start. Not to be used externally. */
+		TypeBitStart = 1 << 30,
+
+		////////////////////////////////
+		// Operation types
+		////////////////////////////////
+
 		/**
 		 * Serializing an object to a binary stream or some other format that may be deserialized later. If the object is part of a
 		 * class hierarchy, the start notify will first be called on the most-derived child, followed by its parent, and so on.
 		 * End notify will be called in the reverse order.
-		 */ 
-		Serialization,
+		 */
+		Serialization = (TypeBitStart + 0) | ReadBit,
 		/**
 		 * Deserializing a brand new object from a binary stream or some other format. If the object is part of a class hierarchy,
 		 * the start notify will first be called on the base class, followed by its child, and so on. End notify will be called in
 		 * the reverse order.
-		 */ 
-		Deserialization,
-		DeltaGenerate, /**< Generating a delta between two objects. */
+		 */
+		Deserialization = (TypeBitStart + 1) | WriteBit,
+		DeltaGenerate = (TypeBitStart + 2) | ReadBit, /**< Generating a delta between two objects. */
+		DeltaRead = (TypeBitStart + 3) | ReadBit, /**< Decodes objects encoded in a delta to object instances.  */
+		/**
+		 * Some or all fields on a pre-existing object will be updated with new data. Object initialization should be skipped as the
+		 * object is pre-existing, but some kind of refresh/update might be required. If the object is part of a class hierarchy,
+		 * start notify will be fired on the entire class hierarchy, starting with base class and followed by each child, after which
+		 * field data will be applied, and finally end notify will be called on the entire class hierarchy in reverse order (from
+		 * most-derived child to base).
+		 */
+		DeltaApply = (TypeBitStart + 4) | WriteBit | PreExistingObjectBit,
 		/**
 		 * Some or all fields on a pre-existing object will be updated with new data. Object initialization should be skipped as the
 		 * object is pre-existing, but some kind of refresh/update might be required. If the object is part of a class hierarchy,
 		 * start notify will be fired on the exact class whose fields are being updated, followed by the end notify after all fields
 		 * have been updated. This process will start with the base class, followed by its child class, and so on.
 		 */
-		Patch,
+		Patch = (TypeBitStart + 5) | WriteBit | PreExistingObjectBit,
 		/**
 		 * Searching the RTTI fields for references to certain IReflectable object instances or types. If the object is part of
 		 * a class hierarchy, the start notify will first be called on the most-derived child, followed by its parent, and so on.
 		 * End notify will be called in the reverse order.
 		 */
-		GatherReferences,
+		GatherReferences = (TypeBitStart + 6) | ReadBit,
 	};
+
+	using RTTIOperationTypeFlags = Flags<RTTIOperationType>;
+	B3D_FLAGS_OPERATORS(RTTIOperationType);
 
 	/** @} */
 
@@ -118,10 +154,10 @@ namespace bs
 		virtual u32 GetRttiId() const = 0;
 
 		/** Called before any operation that is iterating over the type's fields starts. */
-		virtual void OnOperationStarted(IReflectable& object, RTTIOperationType operationType, RTTIOperationContext& context) {}
+		virtual void OnOperationStarted(IReflectable& object, RTTIOperationTypeFlags operationType, RTTIOperationContext& context) {}
 
 		/** Called after any operation that is iterating over the type's fields ends. */
-		virtual void OnOperationEnded(IReflectable& object, RTTIOperationType operationType, RTTIOperationContext& context) {}
+		virtual void OnOperationEnded(IReflectable& object, RTTIOperationTypeFlags operationType, RTTIOperationContext& context) {}
 
 		/**
 		 * Called by the serializers when serialization for this object has started. Use this to do any preprocessing on
