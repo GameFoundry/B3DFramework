@@ -6,6 +6,11 @@
 
 namespace bs
 {
+	struct RTTIOperationContext;
+}
+
+namespace bs
+{
 	/** @addtogroup Serialization
 	 *  @{
 	 */
@@ -61,13 +66,13 @@ namespace bs
 		};
 
 		/** Iterates over the provided object hierarchy and retrieves all object references which are returned in a hierarchical format for easier parsing. */
-		static ObjectExternalReferences GatherExternalReferences(IReflectable* object, FrameAllocator& allocator);
+		static ObjectExternalReferences GatherExternalReferences(IReflectable* object, FrameAllocator& allocator, RTTIOperationContext& rttiOperationContext);
 
 		/**
 		 * Restores a set of references retrieved by GatherExternalReferences() and applies them to a specific object. Type of the
 		 * object must be the same as the type that was used when calling GatherExternalReferences().
 		 */
-		static void RestoreExternalReferences(IReflectable* object, FrameAllocator& allocator, const ObjectExternalReferences& externalReferences);
+		static void RestoreExternalReferences(IReflectable* object, FrameAllocator& allocator, const ObjectExternalReferences& externalReferences, RTTIOperationContext& rttiOperationContext);
 	};
 
 	/**

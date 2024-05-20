@@ -35,13 +35,13 @@ namespace bs
 		 *
 		 * Will return null if there is no difference.
 		 */
-		SPtr<SerializedObject> GenerateDelta(const SPtr<IReflectable>& original, const SPtr<IReflectable>& modified, RTTIOperationContext* context = nullptr, bool replicableOnly = false);
+		SPtr<SerializedObject> GenerateDelta(const SPtr<IReflectable>& original, const SPtr<IReflectable>& modified, RTTIOperationContext& context, bool replicableOnly = false);
 
 		/**
 		 * Applies a previously generated delta to the provided object. This will essentially transform the
 		 * original object the differences were generated for into the modified version.
 		 */
-		void ApplyDelta(const SPtr<IReflectable>& object, const SPtr<SerializedObject>& delta, RTTIOperationContext* context);
+		void ApplyDelta(const SPtr<IReflectable>& object, const SPtr<SerializedObject>& delta, RTTIOperationContext& context);
 
 		/**
 		 * @name Internal
@@ -55,7 +55,7 @@ namespace bs
 		 *
 		 * @see		GenerateDelta(const SPtr<IReflectable>&, const SPtr<IReflectable>&, SerializationContext*, bool)
 		 */
-		virtual SPtr<SerializedObject> GenerateDeltaRecursive(IReflectable* original, IReflectable* modified, ObjectMap& objectMap, RTTIOperationContext* context, bool replicableOnly) = 0;
+		virtual SPtr<SerializedObject> GenerateDeltaRecursive(IReflectable* original, IReflectable* modified, ObjectMap& objectMap, RTTIOperationContext& context, bool replicableOnly) = 0;
 
 		/** @} */
 
@@ -107,10 +107,10 @@ namespace bs
 		 * Generates a set of commands that determine operations that need to be performed on @p object in order to apply all the changes from @p delta. Commands
 		 * are output in @p inOutDeltaCommands.
 		 */
-		virtual void GenerateDeltaApplyCommands(const SPtr<IReflectable>& object, const SPtr<SerializedObject>& delta, FrameAllocator& allocator, DeltaObjectMap& objectMap, FrameVector<DeltaCommand>& inOutDeltaCommands, RTTIOperationContext* context) = 0;
+		virtual void GenerateDeltaApplyCommands(const SPtr<IReflectable>& object, const SPtr<SerializedObject>& delta, FrameAllocator& allocator, DeltaObjectMap& objectMap, FrameVector<DeltaCommand>& inOutDeltaCommands, RTTIOperationContext& context) = 0;
 
 		/** Retrieves the appropriate IDeltaHandler from the provided object and calls the other GenerateDeltaApplyCommands overload. */
-		void GenerateDeltaApplyCommands(RTTITypeBase* rtti, const SPtr<IReflectable>& object, const SPtr<SerializedObject>& delta, FrameAllocator& allocator, DeltaObjectMap& objectMap, FrameVector<DeltaCommand>& inOutDeltaCommands, RTTIOperationContext* context);
+		void GenerateDeltaApplyCommands(RTTITypeBase* rtti, const SPtr<IReflectable>& object, const SPtr<SerializedObject>& delta, FrameAllocator& allocator, DeltaObjectMap& objectMap, FrameVector<DeltaCommand>& inOutDeltaCommands, RTTIOperationContext& context);
 	};
 
 	/**
@@ -122,8 +122,8 @@ namespace bs
 	class B3D_UTILITY_EXPORT BinaryDeltaHandler : public IDeltaHandler
 	{
 	protected:
-		SPtr<SerializedObject> GenerateDeltaRecursive(IReflectable* original, IReflectable* modified, ObjectMap& objectMap, RTTIOperationContext* context, bool replicableOnly) override;
-		void GenerateDeltaApplyCommands(const SPtr<IReflectable>& object, const SPtr<SerializedObject>& delta, FrameAllocator& allocator, DeltaObjectMap& objectMap, FrameVector<DeltaCommand>& inOutDeltaCommands, RTTIOperationContext* context) override;
+		SPtr<SerializedObject> GenerateDeltaRecursive(IReflectable* original, IReflectable* modified, ObjectMap& objectMap, RTTIOperationContext& context, bool replicableOnly) override;
+		void GenerateDeltaApplyCommands(const SPtr<IReflectable>& object, const SPtr<SerializedObject>& delta, FrameAllocator& allocator, DeltaObjectMap& objectMap, FrameVector<DeltaCommand>& inOutDeltaCommands, RTTIOperationContext& context) override;
 
 		/**
 		 * Generates delta commands for a single field entry (e.g. a single array or map entry, or the entire field if not a container).
@@ -139,7 +139,7 @@ namespace bs
 		 * @param context			Serialization context.
 		 * @param allocator			Allocator to perform temporary allocations with.
 		 */
-		void GenerateDeltaCommandForEntry(RTTITypeBase* rttiInstance, const SPtr<IReflectable>& object, RTTIIteratorField& field, const SPtr<ISerialized>& entryDelta, u32 arrayIndex, void* mapKey, DeltaObjectMap& inOutObjectMap, FrameVector<DeltaCommand>& outCommands, RTTIOperationContext* context, FrameAllocator& allocator);
+		void GenerateDeltaCommandForEntry(RTTITypeBase* rttiInstance, const SPtr<IReflectable>& object, RTTIIteratorField& field, const SPtr<ISerialized>& entryDelta, u32 arrayIndex, void* mapKey, DeltaObjectMap& inOutObjectMap, FrameVector<DeltaCommand>& outCommands, RTTIOperationContext& context, FrameAllocator& allocator);
 
 		/**
 		 * Generates delta commands for a single field entry (e.g. a single array entry, or the entire field if not an array).
@@ -154,7 +154,7 @@ namespace bs
 		 * @param context			Serialization context.
 		 * @param allocator			Allocator to perform temporary allocations with.
 		 */
-		void GenerateDeltaCommandForEntry(RTTITypeBase* rttiInstance, const SPtr<IReflectable>& object, RTTIField& field, const SPtr<ISerialized>& entryDelta, u32 arrayIndex, DeltaObjectMap& inOutObjectMap, FrameVector<DeltaCommand>& outCommands, RTTIOperationContext* context, FrameAllocator& allocator); // DEPRECATED - Except the DataBlock case
+		void GenerateDeltaCommandForEntry(RTTITypeBase* rttiInstance, const SPtr<IReflectable>& object, RTTIField& field, const SPtr<ISerialized>& entryDelta, u32 arrayIndex, DeltaObjectMap& inOutObjectMap, FrameVector<DeltaCommand>& outCommands, RTTIOperationContext& context, FrameAllocator& allocator); // DEPRECATED - Except the DataBlock case
 	};
 
 	/** Holds a single tuple element entry in SerializedTupleDelta. */

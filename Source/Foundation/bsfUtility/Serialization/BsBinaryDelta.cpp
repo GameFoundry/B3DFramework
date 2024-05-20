@@ -264,7 +264,7 @@ using namespace RTTIObjectWrapper;
 typedef UnorderedMap<IReflectable*, SPtr<SerializedObject>> ObjectMap;
 
 template <bool IsLHSIReflectable, bool IsRHSIReflectable>
-SPtr<SerializedObject> GenerateObjectDelta(Optional<Object<IsLHSIReflectable>> maybeLhs, Object<IsRHSIReflectable> rhs, ObjectMap& inOutObjectMap, RTTIOperationContext* context, bool replicableOnly);
+SPtr<SerializedObject> GenerateObjectDelta(Optional<Object<IsLHSIReflectable>> maybeLhs, Object<IsRHSIReflectable> rhs, ObjectMap& inOutObjectMap, RTTIOperationContext& context, bool replicableOnly);
 
 /**
  * Compares two values and creates an object that contains differences between them (if any).
@@ -281,7 +281,7 @@ SPtr<SerializedObject> GenerateObjectDelta(Optional<Object<IsLHSIReflectable>> m
  * @return						Object containing changes present in RHS compared to LHS. Will be empty if RHS and LHS are identical.
  */
 template <bool IsLHSIReflectable, bool IsRHSIReflectable>
-Optional<SPtr<ISerialized>> GenerateValueDelta(const RTTIFieldSchema& fieldSchema, const Optional<Value<IsLHSIReflectable>>& maybeLhs, const Value<IsRHSIReflectable> rhs, ObjectMap& objectMap, RTTIOperationContext* context, bool replicableOnly)
+Optional<SPtr<ISerialized>> GenerateValueDelta(const RTTIFieldSchema& fieldSchema, const Optional<Value<IsLHSIReflectable>>& maybeLhs, const Value<IsRHSIReflectable> rhs, ObjectMap& objectMap, RTTIOperationContext& context, bool replicableOnly)
 {
 	SerializedObjectEncodeFlags flags = replicableOnly ? SerializedObjectEncodeFlag::ReplicableOnly : SerializedObjectEncodeFlags();
 
@@ -357,7 +357,7 @@ Optional<SPtr<ISerialized>> GenerateValueDelta(const RTTIFieldSchema& fieldSchem
 		case SerializableFT_Plain:
 			{
 				if(isLhsMissing || maybeLhsTupleElement->ComparePlain(rhsTupleElement))
-					tupleElementModification = rhsTupleElement.Clone(flags, context);
+					tupleElementModification = rhsTupleElement.Clone(flags, &context);
 			}
 			break;
 		case SerializableFT_DataBlock:
@@ -413,7 +413,7 @@ Optional<SPtr<ISerialized>> GenerateValueDelta(const RTTIFieldSchema& fieldSchem
 				}
 
 				if(isDataBlockModified)
-					tupleElementModification = rhs.Clone(flags, context);
+					tupleElementModification = rhs.Clone(flags, &context);
 			}
 			break;
 		}
@@ -427,7 +427,7 @@ Optional<SPtr<ISerialized>> GenerateValueDelta(const RTTIFieldSchema& fieldSchem
 					serializedTupleDelta = B3DMakeShared<SerializedTupleDelta>();
 
 					const Value<IsRHSIReflectable>& rhsTupleKeyElement = rhs.GetTupleElement(0);
-					serializedTupleDelta->Key = rhsTupleKeyElement.Clone(flags, context);
+					serializedTupleDelta->Key = rhsTupleKeyElement.Clone(flags, &context);
 
 					modification = serializedTupleDelta;
 				}
@@ -447,7 +447,7 @@ Optional<SPtr<ISerialized>> GenerateValueDelta(const RTTIFieldSchema& fieldSchem
 }
 
 template <bool IsLHSIReflectable, bool IsRHSIReflectable>
-SPtr<SerializedObject> GenerateObjectDelta(Optional<Object<IsLHSIReflectable>> maybeLhs, Object<IsRHSIReflectable> rhs, ObjectMap& inOutObjectMap, RTTIOperationContext* context, bool replicableOnly)
+SPtr<SerializedObject> GenerateObjectDelta(Optional<Object<IsLHSIReflectable>> maybeLhs, Object<IsRHSIReflectable> rhs, ObjectMap& inOutObjectMap, RTTIOperationContext& context, bool replicableOnly)
 {
 	SubObjectIterator<IsRHSIReflectable> rhsSubObjectIterator = rhs.GetSubObjectIterator();
 
@@ -476,10 +476,10 @@ SPtr<SerializedObject> GenerateObjectDelta(Optional<Object<IsLHSIReflectable>> m
 			}
 		}
 
-		rhs.NotifyBeginOperation(rhsSubObject, context);
+		rhs.NotifyBeginOperation(rhsSubObject, &context);
 
 		if(maybeLhsSubObject.has_value())
-			maybeLhs->NotifyBeginOperation(*maybeLhsSubObject, context);
+			maybeLhs->NotifyBeginOperation(*maybeLhsSubObject, &context);
 
 		FieldIterator<IsRHSIReflectable> rhsFieldIterator = rhsSubObject.GetFieldIterator();
 
@@ -633,20 +633,20 @@ SPtr<SerializedObject> GenerateObjectDelta(Optional<Object<IsLHSIReflectable>> m
 		}
 
 		if(maybeLhs.has_value())
-			maybeLhs->NotifyEndOperation(context);
-		rhs.NotifyEndOperation(context);
+			maybeLhs->NotifyEndOperation(&context);
+		rhs.NotifyEndOperation(&context);
 	}
 
 	return output;
 }
 
-SPtr<SerializedObject> IDeltaHandler::GenerateDelta(const SPtr<IReflectable>& original, const SPtr<IReflectable>& modified, RTTIOperationContext* context, bool replicableOnly)
+SPtr<SerializedObject> IDeltaHandler::GenerateDelta(const SPtr<IReflectable>& original, const SPtr<IReflectable>& modified, RTTIOperationContext& context, bool replicableOnly)
 {
 	ObjectMap objectMap;
 	return GenerateDeltaRecursive(original.get(), modified.get(), objectMap, context, replicableOnly);
 }
 
-void IDeltaHandler::ApplyDelta(const SPtr<IReflectable>& object, const SPtr<SerializedObject>& delta, RTTIOperationContext* context)
+void IDeltaHandler::ApplyDelta(const SPtr<IReflectable>& object, const SPtr<SerializedObject>& delta, RTTIOperationContext& context)
 {
 	FrameAllocator& allocator = GetFrameAllocator();
 	allocator.MarkFrame();
@@ -744,7 +744,7 @@ void IDeltaHandler::ApplyDelta(const SPtr<IReflectable>& object, const SPtr<Seri
 					RTTITypeBase* rttiInstance = curRtti->CloneInternal(allocator);
 
 					rttiInstances.push_back(std::make_pair(rttiInstance, destinationObject));
-					rttiInstance->OnDeserializationStarted(destinationObject, context);
+					rttiInstance->OnDeserializationStarted(destinationObject, &context);
 
 					rttiTypes.pop();
 				}
@@ -775,7 +775,7 @@ void IDeltaHandler::ApplyDelta(const SPtr<IReflectable>& object, const SPtr<Seri
 
 					RTTITypeBase* rttiInstance = rttiInstances.back().first;
 
-					rttiInstance->OnDeserializationEnded(destinationObject, context);
+					rttiInstance->OnDeserializationEnded(destinationObject, &context);
 					allocator.Destruct(rttiInstance);
 
 					rttiInstances.erase(rttiInstances.end() - 1);
@@ -990,13 +990,13 @@ void IDeltaHandler::ApplyDelta(const SPtr<IReflectable>& object, const SPtr<Seri
 	allocator.Clear();
 }
 
-void IDeltaHandler::GenerateDeltaApplyCommands(RTTITypeBase* rtti, const SPtr<IReflectable>& object, const SPtr<SerializedObject>& delta, FrameAllocator& allocator, DeltaObjectMap& objectMap, FrameVector<DeltaCommand>& inOutDeltaCommands, RTTIOperationContext* context)
+void IDeltaHandler::GenerateDeltaApplyCommands(RTTITypeBase* rtti, const SPtr<IReflectable>& object, const SPtr<SerializedObject>& delta, FrameAllocator& allocator, DeltaObjectMap& objectMap, FrameVector<DeltaCommand>& inOutDeltaCommands, RTTIOperationContext& context)
 {
 	IDeltaHandler& deltaHandler = rtti->GetDeltaHandler();
 	deltaHandler.GenerateDeltaApplyCommands(object, delta, allocator, objectMap, inOutDeltaCommands, context);
 }
 
-SPtr<SerializedObject> BinaryDeltaHandler::GenerateDeltaRecursive(IReflectable* original, IReflectable* modified, ObjectMap& objectMap, RTTIOperationContext* context, bool replicableOnly)
+SPtr<SerializedObject> BinaryDeltaHandler::GenerateDeltaRecursive(IReflectable* original, IReflectable* modified, ObjectMap& objectMap, RTTIOperationContext& context, bool replicableOnly)
 {
 	FrameAllocator& frameAllocator = GetFrameAllocator();
 
@@ -1028,7 +1028,7 @@ SPtr<SerializedObject> BinaryDeltaHandler::GenerateDeltaRecursive(IReflectable* 
 	}
 }
 
-void BinaryDeltaHandler::GenerateDeltaApplyCommands(const SPtr<IReflectable>& object, const SPtr<SerializedObject>& delta, FrameAllocator& allocator, DeltaObjectMap& objectMap, FrameVector<DeltaCommand>& inOutDeltaCommands, RTTIOperationContext* context)
+void BinaryDeltaHandler::GenerateDeltaApplyCommands(const SPtr<IReflectable>& object, const SPtr<SerializedObject>& delta, FrameAllocator& allocator, DeltaObjectMap& objectMap, FrameVector<DeltaCommand>& inOutDeltaCommands, RTTIOperationContext& context)
 {
 	if(object == nullptr || delta == nullptr)
 		return;
@@ -1169,7 +1169,7 @@ void BinaryDeltaHandler::GenerateDeltaApplyCommands(const SPtr<IReflectable>& ob
 	}
 }
 
-void BinaryDeltaHandler::GenerateDeltaCommandForEntry(RTTITypeBase* rttiInstance, const SPtr<IReflectable>& object, RTTIIteratorField& field, const SPtr<ISerialized>& entryDelta, u32 arrayIndex, void* mapKey, DeltaObjectMap& inOutObjectMap, FrameVector<DeltaCommand>& outCommands, RTTIOperationContext* context, FrameAllocator& allocator)
+void BinaryDeltaHandler::GenerateDeltaCommandForEntry(RTTITypeBase* rttiInstance, const SPtr<IReflectable>& object, RTTIIteratorField& field, const SPtr<ISerialized>& entryDelta, u32 arrayIndex, void* mapKey, DeltaObjectMap& inOutObjectMap, FrameVector<DeltaCommand>& outCommands, RTTIOperationContext& context, FrameAllocator& allocator)
 {
 	const SPtr<SerializedTupleDelta> serializedTupleDelta = B3DRTTICast<SerializedTupleDelta>(entryDelta);
 	if(!B3D_ENSURE(field.Schema.FieldTypes.Size() == 1 || serializedTupleDelta != nullptr))
@@ -1344,7 +1344,7 @@ void BinaryDeltaHandler::GenerateDeltaCommandForEntry(RTTITypeBase* rttiInstance
 	outCommands.push_back(iteratorEndCommand);
 }
 
-void BinaryDeltaHandler::GenerateDeltaCommandForEntry(RTTITypeBase* rttiInstance, const SPtr<IReflectable>& object, RTTIField& field, const SPtr<ISerialized>& entryDelta, u32 arrayIndex, DeltaObjectMap& inOutObjectMap, FrameVector<DeltaCommand>& outCommands, RTTIOperationContext* context, FrameAllocator& allocator)
+void BinaryDeltaHandler::GenerateDeltaCommandForEntry(RTTITypeBase* rttiInstance, const SPtr<IReflectable>& object, RTTIField& field, const SPtr<ISerialized>& entryDelta, u32 arrayIndex, DeltaObjectMap& inOutObjectMap, FrameVector<DeltaCommand>& outCommands, RTTIOperationContext& context, FrameAllocator& allocator)
 {
 	const SPtr<SerializedTupleDelta> serializedTupleDelta = B3DRTTICast<SerializedTupleDelta>(entryDelta);
 	if(!B3D_ENSURE(field.Schema.FieldTypes.Size() == 1 || serializedTupleDelta != nullptr))

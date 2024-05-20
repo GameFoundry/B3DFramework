@@ -65,16 +65,16 @@ SPtr<SceneObjectHierarchyDelta> SceneObjectHierarchyDelta::Create(const HSceneOb
 
 	const bool isPrefabDelta = flags.IsSet(SceneObjectHierarchyDeltaFlag::PrefabDelta);
 
-	RTTIOperationEngineContext serializationContext;
+	RTTIOperationEngineContext rttiOperationContext;
 	if(isPrefabDelta && modified.IsValid())
 	{
 		UnorderedMap<UUID, PrefabLinkInformation> instanceIdToPrefabLink = PrefabUtility::GetInstanceToPrefabLinkInformationMap(modified, true);
 		for(const auto& pair : instanceIdToPrefabLink)
-			serializationContext.GameObjectIdRemapping[pair.first] = pair.second.PrefabObjectId;
+			rttiOperationContext.GameObjectIdRemapping[pair.first] = pair.second.PrefabObjectId;
 	}
 
 	SPtr<SceneObjectHierarchyDelta> output = B3DMakeShared<SceneObjectHierarchyDelta>();
-	GenerateHierarchyDelta(original, modified, &serializationContext, flags, output);
+	GenerateHierarchyDelta(original, modified, rttiOperationContext, flags, output);
 
 	return output;
 }
@@ -87,13 +87,13 @@ void SceneObjectHierarchyDelta::Apply(const HSceneObject& original, SceneObjectH
 
 	const bool isPrefabDelta = flags.IsSet(SceneObjectHierarchyDeltaFlag::PrefabDelta);
 
-	RTTIOperationEngineContext serializationContext;
-	serializationContext.IsGameObjectDeserializationActive = true;
-	serializationContext.PreserveGameObjectIds = !isPrefabDelta;
-	serializationContext.GameObjectCollection = gameObjectCollection;
+	RTTIOperationEngineContext rttiOperationContext;
+	rttiOperationContext.IsGameObjectDeserializationActive = true;
+	rttiOperationContext.PreserveGameObjectIds = !isPrefabDelta;
+	rttiOperationContext.GameObjectCollection = gameObjectCollection;
 	// TODO - Should pass a flag to the RTTI system here, so individual RTTIType implementations can gracefully handle delta apply (rather than thinking it is deserialization)
 
-	serializationContext.GameObjectCollection->BeginHandleResolve();
+	rttiOperationContext.GameObjectCollection->BeginHandleResolve();
 
 	FrameScope frameScope;
 
@@ -126,7 +126,7 @@ void SceneObjectHierarchyDelta::Apply(const HSceneObject& original, SceneObjectH
 		if(!B3D_ENSURE(deltaObject->Data != nullptr))
 			continue;
 
-		const SPtr<SceneObject> newSceneObject = B3DRTTICast<SceneObject>(deltaObject->Data->Decode(&serializationContext));
+		const SPtr<SceneObject> newSceneObject = B3DRTTICast<SceneObject>(deltaObject->Data->Decode(&rttiOperationContext));
 		if(!B3D_ENSURE(newSceneObject != nullptr))
 			continue;
 
@@ -164,7 +164,7 @@ void SceneObjectHierarchyDelta::Apply(const HSceneObject& original, SceneObjectH
 		if(!B3D_ENSURE(parentSceneObject.IsValid()))
 			continue;
 
-		const SPtr<Component> newComponent = B3DRTTICast<Component>(deltaObject->Data->Decode(&serializationContext));
+		const SPtr<Component> newComponent = B3DRTTICast<Component>(deltaObject->Data->Decode(&rttiOperationContext));
 		if(!B3D_ENSURE(newComponent != nullptr))
 			continue;
 
@@ -198,7 +198,7 @@ void SceneObjectHierarchyDelta::Apply(const HSceneObject& original, SceneObjectH
 			if(!isNewObject && deltaObject->Data != nullptr)
 			{
 				IDeltaHandler& deltaHandler = sceneObject->GetRtti()->GetDeltaHandler();
-				deltaHandler.ApplyDelta(sceneObject.GetShared(), deltaObject->Data, &serializationContext);
+				deltaHandler.ApplyDelta(sceneObject.GetShared(), deltaObject->Data, rttiOperationContext);
 			}
 		}
 		else if(deltaObject->Flags.IsSet(GameObjectDeltaFlag::ComponentDelta))
@@ -214,7 +214,7 @@ void SceneObjectHierarchyDelta::Apply(const HSceneObject& original, SceneObjectH
 			if(deltaObject->Data != nullptr)
 			{
 				IDeltaHandler& deltaHandler = component->GetRtti()->GetDeltaHandler();
-				deltaHandler.ApplyDelta(component.GetShared(), deltaObject->Data, &serializationContext);
+				deltaHandler.ApplyDelta(component.GetShared(), deltaObject->Data, rttiOperationContext);
 			}
 		}
 		else
@@ -273,10 +273,10 @@ void SceneObjectHierarchyDelta::Apply(const HSceneObject& original, SceneObjectH
 		sceneObject->Destroy(true);
 	}
 
-	serializationContext.GameObjectCollection->EndHandleResolve();
+	rttiOperationContext.GameObjectCollection->EndHandleResolve();
 }
 
-void SceneObjectHierarchyDelta::GenerateHierarchyDelta(const HSceneObject& original, const HSceneObject& modified, RTTIOperationContext* context, SceneObjectHierarchyDeltaFlags flags, SPtr<SceneObjectHierarchyDelta>& outDelta)
+void SceneObjectHierarchyDelta::GenerateHierarchyDelta(const HSceneObject& original, const HSceneObject& modified, RTTIOperationContext& context, SceneObjectHierarchyDeltaFlags flags, SPtr<SceneObjectHierarchyDelta>& outDelta)
 {
 	const bool isPrefabDelta = flags.IsSet(SceneObjectHierarchyDeltaFlag::PrefabDelta);
 
@@ -337,7 +337,7 @@ void SceneObjectHierarchyDelta::GenerateHierarchyDelta(const HSceneObject& origi
 	fnFindAddedChildren(modified, fnFindAddedChildren);
 }
 
-bool SceneObjectHierarchyDelta::GenerateSceneObjectDelta(const HSceneObject& original, const HSceneObject& modified, RTTIOperationContext* context, SceneObjectHierarchyDeltaFlags flags, bool ignoreParent, SPtr<SceneObjectHierarchyDelta>& outDelta)
+bool SceneObjectHierarchyDelta::GenerateSceneObjectDelta(const HSceneObject& original, const HSceneObject& modified, RTTIOperationContext& context, SceneObjectHierarchyDeltaFlags flags, bool ignoreParent, SPtr<SceneObjectHierarchyDelta>& outDelta)
 {
 	const bool isPrefabDelta = flags.IsSet(SceneObjectHierarchyDeltaFlag::PrefabDelta);
 	const bool isOriginalValid = original.IsValid();
@@ -419,7 +419,7 @@ bool SceneObjectHierarchyDelta::GenerateSceneObjectDelta(const HSceneObject& ori
 	return true;
 }
 
-void SceneObjectHierarchyDelta::GenerateComponentDelta(const HSceneObject& original, const HSceneObject& modified, RTTIOperationContext* context, SceneObjectHierarchyDeltaFlags flags, SPtr<SceneObjectHierarchyDelta>& outDelta)
+void SceneObjectHierarchyDelta::GenerateComponentDelta(const HSceneObject& original, const HSceneObject& modified, RTTIOperationContext& context, SceneObjectHierarchyDeltaFlags flags, SPtr<SceneObjectHierarchyDelta>& outDelta)
 {
 	if(!B3D_ENSURE(modified.IsValid()))
 		return;

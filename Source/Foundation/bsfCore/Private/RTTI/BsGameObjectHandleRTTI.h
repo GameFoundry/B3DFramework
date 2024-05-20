@@ -22,15 +22,15 @@ namespace bs
 	class B3D_UTILITY_EXPORT GameObjectHandleDeltaHandler : public BinaryDeltaHandler
 	{
 	protected:
-		SPtr<SerializedObject> GenerateDeltaRecursive(IReflectable* original, IReflectable* modified, ObjectMap& objectMap, RTTIOperationContext* context, bool replicableOnly) override;
+		SPtr<SerializedObject> GenerateDeltaRecursive(IReflectable* original, IReflectable* modified, ObjectMap& objectMap, RTTIOperationContext& context, bool replicableOnly) override;
 	};
 
-	inline SPtr<SerializedObject> GameObjectHandleDeltaHandler::GenerateDeltaRecursive(IReflectable* original, IReflectable* modified, ObjectMap& objectMap, RTTIOperationContext* context, bool replicableOnly)
+	inline SPtr<SerializedObject> GameObjectHandleDeltaHandler::GenerateDeltaRecursive(IReflectable* original, IReflectable* modified, ObjectMap& objectMap, RTTIOperationContext& context, bool replicableOnly)
 	{
 		if(B3D_ENSURE(original == nullptr && modified != nullptr))
 			return nullptr;
 
-		auto fnGetOrDecodeHandle = [context](IReflectable* object, SPtr<GameObjectHandleBase>& outDecodedHandle) -> GameObjectHandleBase*
+		auto fnGetOrDecodeHandle = [&context](IReflectable* object, SPtr<GameObjectHandleBase>& outDecodedHandle) -> GameObjectHandleBase*
 		{
 			if(object->GetTypeId() == TID_SerializedObject)
 			{
@@ -38,7 +38,7 @@ namespace bs
 				if(!B3D_ENSURE(serializedObject->GetRootTypeId() == TID_GameObjectHandleBase))
 					return nullptr;
 
-				outDecodedHandle = B3DRTTICast<GameObjectHandleBase>(serializedObject->Decode(context));
+				outDecodedHandle = B3DRTTICast<GameObjectHandleBase>(serializedObject->Decode(&context));
 				return outDecodedHandle.get();
 			}
 
@@ -58,7 +58,7 @@ namespace bs
 		UUID originalId = originalHandle->GetId();
 		UUID modifiedId = modifiedHandle->GetId();
 
-		if(auto* serializationContext = B3DRTTICast<RTTIOperationEngineContext>(context))
+		if(auto* serializationContext = context.As<RTTIOperationEngineContext>())
 		{
 			if(auto found = serializationContext->GameObjectIdRemapping.find(originalId); found != serializationContext->GameObjectIdRemapping.end())
 				originalId = found->second;

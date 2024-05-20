@@ -83,21 +83,21 @@ namespace bs
 
 	private:
 		/** Recursively generates differences between original and the modified version, for every scene object in the hierarchy. */
-		static void GenerateHierarchyDelta(const HSceneObject& original, const HSceneObject& modified, RTTIOperationContext* context, SceneObjectHierarchyDeltaFlags flags, SPtr<SceneObjectHierarchyDelta>& outDelta);
+		static void GenerateHierarchyDelta(const HSceneObject& original, const HSceneObject& modified, RTTIOperationContext& context, SceneObjectHierarchyDeltaFlags flags, SPtr<SceneObjectHierarchyDelta>& outDelta);
 
 		/**
 		 * Generates differences between the two provided scene objects. If the object IDs match, a delta of their properties is recorded.
 		 * If one of the scene objects is not valid, we record the relevant ID in the added or removed scene object list. Note this
 		 * does not iterate over the child hierarchy. @p outDelta will be created if changes are found if not already created.
 		 */
-		static bool GenerateSceneObjectDelta(const HSceneObject& original, const HSceneObject& modified, RTTIOperationContext* context, SceneObjectHierarchyDeltaFlags flags, bool ignoreParent, SPtr<SceneObjectHierarchyDelta>& outDelta);
+		static bool GenerateSceneObjectDelta(const HSceneObject& original, const HSceneObject& modified, RTTIOperationContext& context, SceneObjectHierarchyDeltaFlags flags, bool ignoreParent, SPtr<SceneObjectHierarchyDelta>& outDelta);
 
 		/**
 		 * Generates differences between components of the two provided scene objects. If components with matching ids are found, a delta
 		 * of their properties is recorded. Otherwise a component is registered in either the added or removed component list. @p outDelta
 		 * will be created if changes are found, if not already created.
 		 */
-		static void GenerateComponentDelta(const HSceneObject& original, const HSceneObject& modified, RTTIOperationContext* context, SceneObjectHierarchyDeltaFlags flags, SPtr<SceneObjectHierarchyDelta>& outDelta);
+		static void GenerateComponentDelta(const HSceneObject& original, const HSceneObject& modified, RTTIOperationContext& context, SceneObjectHierarchyDeltaFlags flags, SPtr<SceneObjectHierarchyDelta>& outDelta);
 
 		UnorderedMap<UUID, SPtr<SceneObjectHierarchyDeltaObject>> Objects;
 

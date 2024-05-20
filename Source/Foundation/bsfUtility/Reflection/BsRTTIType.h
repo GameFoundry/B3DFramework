@@ -41,22 +41,31 @@ namespace bs
 	{
 		Unknown,
 		/**
-		 * Serializing an object to a binary stream. If the object is part of a class hierarchy, the start 
-		 * notify will first be called on the most-derived child, followed by its parent, and so on. End notify
-		 * will be called in the reverse order.
+		 * Serializing an object to a binary stream or some other format that may be deserialized later. If the object is part of a
+		 * class hierarchy, the start notify will first be called on the most-derived child, followed by its parent, and so on.
+		 * End notify will be called in the reverse order.
 		 */ 
 		Serialization,
 		/**
-		 * Serializing an object from a binary stream. If the object is part of a class hierarchy, the start 
-		 * notify will first be called on the base class, followed by its child, and so on. End notify
-		 * will be called in the reverse order.
+		 * Deserializing a brand new object from a binary stream or some other format. If the object is part of a class hierarchy,
+		 * the start notify will first be called on the base class, followed by its child, and so on. End notify will be called in
+		 * the reverse order.
 		 */ 
 		Deserialization,
 		DeltaGenerate, /**< Generating a delta between two objects. */
-		DeltaApply, /**< Applying a delta to an object. */
-		SerializedObjectCreate, /**< Converting an IReflectable object to SerializedObject. */
-		SerializedObjectDecode, /**< Decoding a SerializedObject into IReflectable object. */
-		GatherReferences, /**< Searching the RTTI fields for references to certain object or object type. */
+		/**
+		 * Some or all fields on a pre-existing object will be updated with new data. Object initialization should be skipped as the
+		 * object is pre-existing, but some kind of refresh/update might be required. If the object is part of a class hierarchy,
+		 * start notify will be fired on the exact class whose fields are being updated, followed by the end notify after all fields
+		 * have been updated. This process will start with the base class, followed by its child class, and so on.
+		 */
+		Patch,
+		/**
+		 * Searching the RTTI fields for references to certain IReflectable object instances or types. If the object is part of
+		 * a class hierarchy, the start notify will first be called on the most-derived child, followed by its parent, and so on.
+		 * End notify will be called in the reverse order.
+		 */
+		GatherReferences,
 	};
 
 	/** @} */
