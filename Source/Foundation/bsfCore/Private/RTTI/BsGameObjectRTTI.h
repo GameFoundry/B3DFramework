@@ -41,23 +41,24 @@ namespace bs
 			//AddPlainField("mInstanceID", 0, &GameObjectRTTI::GetInstanceId, &GameObjectRTTI::SetInstanceId);
 		}
 
-		void OnDeserializationStarted(IReflectable* obj, RTTIOperationContext* context)
+		void OnOperationStarted(GameObject& object, RTTIOperationTypeFlags operationType, RTTIOperationContext& context) override
 		{
-			GameObject* gameObject = static_cast<GameObject*>(obj);
+			if(operationType.IsSet(RTTIOperationType::WriteBit))
+			{
+				// It's possible we're just accessing the game object fields, in which case the process below is not needed
+				// (it's only required for new game objects).
+				if(object.mRTTIData.Empty())
+					return;
 
-			// It's possible we're just accessing the game object fields, in which case the process below is not needed
-			// (it's only required for new game objects).
-			if(gameObject->mRTTIData.Empty())
-				return;
+				SPtr<GameObject> gameObjectPtr = AnyCast<SPtr<GameObject>>(object.mRTTIData);
 
-			SPtr<GameObject> gameObjectPtr = AnyCast<SPtr<GameObject>>(gameObject->mRTTIData);
+				// Every GameObject must store GODeserializationData in its RTTI data field during deserialization
+				object.mRTTIData = GODeserializationData();
+				GODeserializationData& deserializationData = AnyCastRef<GODeserializationData>(object.mRTTIData);
 
-			// Every GameObject must store GODeserializationData in its RTTI data field during deserialization
-			gameObject->mRTTIData = GODeserializationData();
-			GODeserializationData& deserializationData = AnyCastRef<GODeserializationData>(gameObject->mRTTIData);
-
-			// Store shared pointer since the system only provides us with raw ones
-			deserializationData.Ptr = gameObjectPtr;
+				// Store shared pointer since the system only provides us with raw ones
+				deserializationData.Ptr = gameObjectPtr;
+			}
 		}
 
 		const String& GetRttiName()

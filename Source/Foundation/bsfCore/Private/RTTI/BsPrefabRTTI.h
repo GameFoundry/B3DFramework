@@ -36,13 +36,14 @@ namespace bs
 			AddReflectablePtrField("mRoot", 0, &PrefabRTTI::GetSceneObject, &PrefabRTTI::SetSceneObject);
 		}
 
-		void OnDeserializationStarted(IReflectable* object, RTTIOperationContext* context) override
+		void OnOperationStarted(Prefab& object, RTTIOperationTypeFlags operationType, RTTIOperationContext& context) override
 		{
-			Prefab* const prefab = static_cast<Prefab*>(object);
-
-			RTTIOperationEngineContext* const serializationContext = B3DRTTICast<RTTIOperationEngineContext>(context);
-			if(B3D_ENSURE(serializationContext != nullptr))
-				serializationContext->GameObjectCollection = prefab->mGameObjectCollection;
+			if(operationType.IsSet(RTTIOperationType::WriteBit))
+			{
+				RTTIOperationEngineContext* const serializationContext = context.As<RTTIOperationEngineContext>();
+				if(serializationContext != nullptr)
+					serializationContext->GameObjectCollection = object.mGameObjectCollection;
+			}
 		}
 
 		void OnDeserializationEnded(IReflectable* object, RTTIOperationContext* context) override

@@ -103,26 +103,28 @@ namespace bs
 			AddReflectableField("mLocalTfrm", 12, &SceneObjectRTTI::GetLocalTransform, &SceneObjectRTTI::SetLocalTransform);
 		}
 
-		void OnDeserializationStarted(IReflectable* object, RTTIOperationContext* context) override
+		void OnOperationStarted(SceneObject& object, RTTIOperationTypeFlags operationType, RTTIOperationContext& context) override
 		{
-			// If this is the root scene object we're deserializing, activate game object deserialization so the system
-			// can resolve deserialized handles to the newly created objects
-			SceneObject* const sceneObject = static_cast<SceneObject*>(object);
-
-			// It's possible we're just accessing the game object fields, in which case the process below is not needed
-			// (it's only required for new scene objects).
-			if(sceneObject->mRTTIData.Empty())
-				return;
-
-			if(auto* serializationContext = B3DRTTICast<RTTIOperationEngineContext>(context))
+			if(operationType.IsSet(RTTIOperationType::WriteBit))
 			{
-				if(!serializationContext->IsGameObjectDeserializationActive)
-				{
-					mIsDeserializationParent = true;
-					serializationContext->IsGameObjectDeserializationActive = true;
+				// If this is the root scene object we're deserializing, activate game object deserialization so the system
+				// can resolve deserialized handles to the newly created objects
 
-					if(serializationContext->GameObjectCollection != nullptr)
-						serializationContext->GameObjectCollection->BeginHandleResolve();
+				// It's possible we're just accessing the game object fields, in which case the process below is not needed
+				// (it's only required for new scene objects).
+				if(object.mRTTIData.Empty())
+					return;
+
+				if(auto* serializationContext = context.As<RTTIOperationEngineContext>())
+				{
+					if(!serializationContext->IsGameObjectDeserializationActive)
+					{
+						mIsDeserializationParent = true;
+						serializationContext->IsGameObjectDeserializationActive = true;
+
+						if(serializationContext->GameObjectCollection != nullptr)
+							serializationContext->GameObjectCollection->BeginHandleResolve();
+					}
 				}
 			}
 		}

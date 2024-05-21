@@ -227,7 +227,6 @@ void BinaryCloner::RestoreExternalReferences(IReflectable* object, FrameAllocato
 		if(!subObject.References.empty())
 		{
 			RTTITypeBase* rttiInstance = subObject.Rtti->CloneInternal(allocator);
-			rttiInstance->OnDeserializationStarted(object, nullptr);
 			rttiInstance->NotifyOperationStarted(*object, RTTIOperationType::Patch, rttiOperationContext);
 
 			for(auto& reference : subObject.References)

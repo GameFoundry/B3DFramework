@@ -381,7 +381,6 @@ bool BinaryDeserializationContext::DeserializeReflectableObject(SPtr<RTTISchema>
 	// Iterate in reverse to notify base classes before derived classes
 	for(auto iter = rttiInstances.rbegin(); iter != rttiInstances.rend(); ++iter)
 	{
-		(*iter)->OnDeserializationStarted(output.get(), &mRTTIContext);
 		(*iter)->NotifyOperationStarted(*output.get(), RTTIOperationType::Deserialization, mRTTIContext);
 	}
 

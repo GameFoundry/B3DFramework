@@ -746,7 +746,6 @@ void IDeltaHandler::ApplyDelta(const SPtr<IReflectable>& object, const SPtr<Seri
 					RTTITypeBase* rttiInstance = curRtti->CloneInternal(allocator);
 
 					rttiInstances.push_back(std::make_pair(rttiInstance, destinationObject));
-					rttiInstance->OnDeserializationStarted(destinationObject, &context);
 					rttiInstance->NotifyOperationStarted(*destinationObject, RTTIOperationType::DeltaApply, context);
 
 					rttiTypes.pop();

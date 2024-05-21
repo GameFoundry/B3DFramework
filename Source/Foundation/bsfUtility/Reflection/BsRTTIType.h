@@ -160,12 +160,6 @@ namespace bs
 		virtual void NotifyOperationEnded(IReflectable& object, RTTIOperationTypeFlags operationType, RTTIOperationContext& context) = 0;
 
 		/**
-		 * Called by the serializers when deserialization for this object has started. Use this to do any preprocessing
-		 * on data you might need during deserialization itself.
-		 */
-		virtual void OnDeserializationStarted(IReflectable* obj, RTTIOperationContext* context) {}
-
-		/**
 		 * Called by the serializers when deserialization for this object has ended. At this point you can be sure the
 		 * instance has been fully deserialized and you may safely use it.
 		 *

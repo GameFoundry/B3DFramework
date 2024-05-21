@@ -26,14 +26,12 @@ namespace bs
 		B3D_RTTI_END_MEMBERS
 
 	public:
-		void OnDeserializationStarted(IReflectable* obj, RTTIOperationContext* context)
+		void OnOperationStarted(Resource& object, RTTIOperationTypeFlags operationType, RTTIOperationContext& context) override
 		{
-			Resource* resource = static_cast<Resource*>(obj);
-
-			if(context)
-				resource->mKeepSourceData = (context->Flags & SF_KeepResourceSourceData) != 0;
-			else
-				resource->mKeepSourceData = false;
+			if(operationType.IsSet(RTTIOperationType::WriteBit))
+			{
+				object.mKeepSourceData = (context.Flags & SF_KeepResourceSourceData) != 0;
+			}
 		}
 
 		const String& GetRttiName()

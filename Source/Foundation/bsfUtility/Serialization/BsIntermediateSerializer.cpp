@@ -77,7 +77,6 @@ void IntermediateSerializer::DeserializeReflectableObject(const SPtr<IReflectabl
 			continue;
 
 		RTTITypeBase* rttiInstance = rtti->CloneInternal(*mAllocator);
-		rttiInstance->OnDeserializationStarted(object.get(), &mContext);
 		rttiInstance->NotifyOperationStarted(*object, RTTIOperationType::Deserialization, mContext);
 		rttiInstances.push(rttiInstance);
 
