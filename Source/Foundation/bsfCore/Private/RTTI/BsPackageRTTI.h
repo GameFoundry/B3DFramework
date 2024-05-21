@@ -117,12 +117,13 @@ namespace bs
 			AddReflectablePtrArrayField("mResourceMetaData", 3, &PackageRTTI::GetResourceMetaData, &PackageRTTI::GetResourceMetaDataCount, &PackageRTTI::SetResourceMetaData, &PackageRTTI::SetResourceMetaDataCount);
 		}
 
-		void OnSerializationStarted(IReflectable* object, RTTIOperationContext* context) override
+		void OnOperationStarted(Package& object, RTTIOperationTypeFlags operationType, RTTIOperationContext& context) override
 		{
-			const Package* const package = static_cast<Package*>(object);
-
-			for (const auto& entry : package->mResourceInformationByUUID)
-				mResourceMetaData.push_back(entry.second->MetaData);
+			if(operationType.IsSet(RTTIOperationType::ReadBit))
+			{
+				for (const auto& entry : object.mResourceInformationByUUID)
+					mResourceMetaData.push_back(entry.second->MetaData);
+			}
 		}
 
 		void OnDeserializationEnded(IReflectable* object, RTTIOperationContext* context) override

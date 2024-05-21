@@ -223,14 +223,15 @@ namespace bs
 			AddPlainArrayField("dataParams", 6, &MaterialParamsRTTI::GetDataParam, &MaterialParamsRTTI::GetDataParamArraySize, &MaterialParamsRTTI::SetDataParam, &MaterialParamsRTTI::SetDataParamArraySize);
 		}
 
-		void OnSerializationStarted(IReflectable* obj, RTTIOperationContext* context) override
+		void OnOperationStarted(MaterialParams& object, RTTIOperationTypeFlags operationType, RTTIOperationContext& context) override
 		{
-			MaterialParams* paramsObj = static_cast<MaterialParams*>(obj);
-
-			for(auto& entry : paramsObj->mParamLookup)
+			if(operationType.IsSet(RTTIOperationType::ReadBit))
 			{
-				u32 paramIdx = entry.second;
-				mMatParams.push_back({ entry.first, paramIdx, paramsObj->mParams[paramIdx] });
+				for(auto& entry : object.mParamLookup)
+				{
+					u32 paramIdx = entry.second;
+					mMatParams.push_back({ entry.first, paramIdx, object.mParams[paramIdx] });
+				}
 			}
 		}
 

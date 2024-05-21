@@ -46,13 +46,14 @@ namespace bs
 			AddPlainField("restitutionCoefficient", 2, &PhysicsMaterialRTTI::GetRestitutionCoefficient, &PhysicsMaterialRTTI::SetRestitutionCoefficient);
 		}
 
-		void OnSerializationStarted(IReflectable* obj, RTTIOperationContext* context)
+		void OnOperationStarted(PhysicsMaterial& object, RTTIOperationTypeFlags operationType, RTTIOperationContext& context) override
 		{
-			PhysicsMaterial* material = static_cast<PhysicsMaterial*>(obj);
-
-			mStaticFriction = material->GetStaticFriction();
-			mDynamicFriction = material->GetDynamicFriction();
-			mRestitutionCoefficient = material->GetRestitutionCoefficient();
+			if(operationType.IsSet(RTTIOperationType::ReadBit))
+			{
+				mStaticFriction = object.GetStaticFriction();
+				mDynamicFriction = object.GetDynamicFriction();
+				mRestitutionCoefficient = object.GetRestitutionCoefficient();
+			}
 		}
 
 		const String& GetRttiName()

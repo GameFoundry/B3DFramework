@@ -58,7 +58,6 @@ BinaryCloner::ObjectExternalReferences BinaryCloner::GatherExternalReferences(IR
 	{
 		RTTITypeBase* rttiInstance = rtti->CloneInternal(allocator);
 
-		rttiInstance->OnSerializationStarted(object, nullptr);
 		rttiInstance->NotifyOnOperationStarted(*object, RTTIOperationType::GatherReferences, rttiOperationContext);
 		SubObjectExternalReferences* subObjectReferences = nullptr;
 
@@ -289,7 +288,6 @@ void BinaryCloner::RestoreExternalReferences(IReflectable* object, FrameAllocato
 		if(!subObject.ChildObjects.empty())
 		{
 			RTTITypeBase* rttiInstance = subObject.Rtti->CloneInternal(allocator);
-			rttiInstance->OnSerializationStarted(object, nullptr);
 			rttiInstance->NotifyOnOperationStarted(*object, RTTIOperationType::GatherReferences, rttiOperationContext);
 
 			for(auto& childObjectReferences : subObject.ChildObjects)

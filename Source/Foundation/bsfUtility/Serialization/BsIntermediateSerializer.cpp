@@ -445,7 +445,6 @@ SPtr<SerializedObject> IntermediateSerializer::SerializeReflectableObject(const 
 		RTTITypeBase* rttiInstance = rtti->CloneInternal(*mAllocator);
 		rttiInstances.push(rttiInstance);
 
-		rttiInstance->OnSerializationStarted(const_cast<IReflectable*>(&object), &mContext);
 		rttiInstance->NotifyOnOperationStarted(const_cast<IReflectable&>(object), RTTIOperationType::Serialization, mContext);
 
 		output->SubObjects.push_back(SerializedSubObject());

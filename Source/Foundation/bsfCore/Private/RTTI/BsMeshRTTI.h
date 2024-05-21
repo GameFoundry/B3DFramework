@@ -32,13 +32,15 @@ namespace bs
 		B3D_RTTI_END_MEMBERS
 
 	public:
-		void OnSerializationStarted(IReflectable* object, RTTIOperationContext* context) override
+		void OnOperationStarted(Mesh& object, RTTIOperationTypeFlags operationType, RTTIOperationContext& context) override
 		{
-			Mesh* const mesh = static_cast<Mesh*>(object);
-			mMeshData = mesh->AllocBuffer();
+			if(operationType.IsSet(RTTIOperationType::ReadBit))
+			{
+				mMeshData = object.AllocBuffer();
 
-			mesh->ReadData(mMeshData);
-			GetRenderThread().PostCommand([] {}, "MeshRTTI::GetMeshData", true, mesh->GetName());
+				object.ReadData(mMeshData);
+				GetRenderThread().PostCommand([] {}, "MeshRTTI::GetMeshData", true, object.GetName());
+			}
 		}
 
 		void OnDeserializationEnded(IReflectable* object, RTTIOperationContext* context) override

@@ -108,23 +108,27 @@ namespace bs
 			return kDeltaHandler;
 		}
 
-		void OnDeserializationEnded(IReflectable* object, RTTIOperationContext* context)
+		void OnOperationStarted(GameObjectHandleBase& object, RTTIOperationTypeFlags operationType, RTTIOperationContext& context) override
 		{
-			if(auto* serializationContext = B3DRTTICast<RTTIOperationEngineContext>(context))
+			if(operationType.IsSet(RTTIOperationType::ReadBit))
 			{
-				GameObjectHandleBase* gameObjectHandle = static_cast<GameObjectHandleBase*>(object);
-				if(serializationContext->GameObjectCollection != nullptr)
-					serializationContext->GameObjectCollection->RegisterUnresolvedHandle(*gameObjectHandle);
+				if(auto* serializationContext = context.As<RTTIOperationEngineContext>())
+				{
+					if(auto found = serializationContext->GameObjectIdRemapping.find(object.GetId()); found != serializationContext->GameObjectIdRemapping.end())
+						mRemappedId = found->second;
+				}
 			}
 		}
 
-		void OnSerializationStarted(IReflectable* object, RTTIOperationContext* context) override
+		void OnOperationEnded(GameObjectHandleBase& object, RTTIOperationTypeFlags operationType, RTTIOperationContext& context) override
 		{
-			if(auto* serializationContext = B3DRTTICast<RTTIOperationEngineContext>(context))
+			if(operationType.IsSet(RTTIOperationType::WriteBit))
 			{
-				GameObjectHandleBase* gameObjectHandle = static_cast<GameObjectHandleBase*>(object);
-				if(auto found = serializationContext->GameObjectIdRemapping.find(gameObjectHandle->GetId()); found != serializationContext->GameObjectIdRemapping.end())
-					mRemappedId = found->second;
+				if(auto* serializationContext = context.As<RTTIOperationEngineContext>())
+				{
+					if(serializationContext->GameObjectCollection != nullptr)
+						serializationContext->GameObjectCollection->RegisterUnresolvedHandle(object);
+				}
 			}
 		}
 

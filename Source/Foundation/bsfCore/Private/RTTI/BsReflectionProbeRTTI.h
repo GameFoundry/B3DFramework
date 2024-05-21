@@ -29,13 +29,14 @@ namespace bs
 			B3D_RTTI_MEMBER_REFLPTR(mFilteredTexture, 8)
 		B3D_RTTI_END_MEMBERS
 	public:
-		void OnSerializationStarted(IReflectable* obj, RTTIOperationContext* context)
+		void OnOperationStarted(ReflectionProbe& object, RTTIOperationTypeFlags operationType, RTTIOperationContext& context) override
 		{
-			ReflectionProbe* probe = static_cast<ReflectionProbe*>(obj);
-
-			// Force the renderer task to complete, so the filtered texture is up to date
-			if(probe->mRendererTask != nullptr)
-				probe->mRendererTask->Wait();
+			if(operationType.IsSet(RTTIOperationType::ReadBit))
+			{
+				// Force the renderer task to complete, so the filtered texture is up to date
+				if(object.mRendererTask != nullptr)
+					object.mRendererTask->Wait();
+			}
 		}
 
 		void OnDeserializationEnded(IReflectable* obj, RTTIOperationContext* context)

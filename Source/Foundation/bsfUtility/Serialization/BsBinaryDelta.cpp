@@ -1052,7 +1052,6 @@ void BinaryDeltaHandler::GenerateDeltaApplyCommands(const SPtr<IReflectable>& ob
 			continue;
 
 		RTTITypeBase* rttiInstance = rtti->CloneInternal(allocator);
-		rttiInstance->OnSerializationStarted(object.get(), &rttiOperationContext);
 		rttiInstance->NotifyOnOperationStarted(*object, RTTIOperationType::DeltaRead, rttiOperationContext);
 		rttiInstances.push(rttiInstance);
 

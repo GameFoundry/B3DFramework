@@ -94,13 +94,15 @@ namespace bs
 			AddReflectableArrayField("mEntries", 1, &ManagedSerializableDictionaryRTTI::GetEntry, &ManagedSerializableDictionaryRTTI::GetNumEntries, &ManagedSerializableDictionaryRTTI::SetEntry, &ManagedSerializableDictionaryRTTI::SetNumEntries);
 		}
 
-		void OnSerializationStarted(IReflectable* obj, RTTIOperationContext* context)
+		void OnOperationStarted(ManagedSerializableDictionary& object, RTTIOperationTypeFlags operationType, RTTIOperationContext& context) override
 		{
-			ManagedSerializableDictionary* serializableObject = static_cast<ManagedSerializableDictionary*>(obj);
-
-			auto enumerator = serializableObject->GetEnumerator();
-			while(enumerator.MoveNext())
-				mSequentialData.push_back(ManagedSerializableDictionaryKeyValue(enumerator.GetKey(), enumerator.GetValue()));
+			if(operationType.IsSet(RTTIOperationType::ReadBit))
+			{
+				auto enumerator = object.GetEnumerator();
+				while(enumerator.MoveNext())
+					mSequentialData.push_back(ManagedSerializableDictionaryKeyValue(enumerator.GetKey(), enumerator.GetValue()));
+				
+			}
 		}
 
 		const String& GetRttiName()

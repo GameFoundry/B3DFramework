@@ -45,13 +45,14 @@ namespace bs
 			AddPlainArrayField("mDefines", 0, &ShaderImportOptionsRTTI::GetDefinePair, &ShaderImportOptionsRTTI::GetNumDefines, &ShaderImportOptionsRTTI::SetDefinePair, &ShaderImportOptionsRTTI::SetNumDefines);
 		}
 
-		void OnSerializationStarted(IReflectable* obj, RTTIOperationContext* context) override
+		void OnOperationStarted(ShaderImportOptions& object, RTTIOperationTypeFlags operationType, RTTIOperationContext& context) override
 		{
-			ShaderImportOptions* importOptions = static_cast<ShaderImportOptions*>(obj);
-
-			UnorderedMap<String, String>& defines = importOptions->mDefines;
-			for(auto& entry : defines)
-				mDefinePairs.push_back(entry);
+			if(operationType.IsSet(RTTIOperationType::ReadBit))
+			{
+				UnorderedMap<String, String>& defines = object.mDefines;
+				for(auto& entry : defines)
+					mDefinePairs.push_back(entry);
+			}
 		}
 
 		const String& GetRttiName() override

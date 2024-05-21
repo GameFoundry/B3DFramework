@@ -1277,7 +1277,6 @@ bool BinarySerializationContext::SerializeReflectableObject(IReflectable* object
 		rttiInstances.push(rttiInstance);
 
 		rttiInstance->NotifyOnOperationStarted(*object, RTTIOperationType::Serialization, mRTTIContext);
-		rttiInstance->OnSerializationStarted(object, &mRTTIContext);
 
 		if(writeMeta)
 		{

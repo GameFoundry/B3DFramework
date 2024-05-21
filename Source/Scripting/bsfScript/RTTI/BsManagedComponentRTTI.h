@@ -43,15 +43,18 @@ namespace bs
 			AddReflectablePtrField("mObjectData", 2, &ManagedComponentRTTI::GetObjectData, &ManagedComponentRTTI::SetObjectData);
 		}
 
-		void OnSerializationStarted(IReflectable* obj, RTTIOperationContext* context) override
+		void OnOperationStarted(ManagedComponent& object, RTTIOperationTypeFlags operationType, RTTIOperationContext& context) override
 		{
-			ManagedComponent* mc = static_cast<ManagedComponent*>(obj);
-			MonoObject* managedInstance = mc->GetManagedInstance();
+			if(operationType.IsSet(RTTIOperationType::ReadBit))
+			{
+				MonoObject* managedInstance = object.GetManagedInstance();
 
-			if(managedInstance != nullptr)
-				mSerializedObjectData = ManagedSerializableObject::CreateFromExisting(managedInstance);
-			else
-				mSerializedObjectData = mc->mSerializedObjectData;
+				if(managedInstance != nullptr)
+					mSerializedObjectData = ManagedSerializableObject::CreateFromExisting(managedInstance);
+				else
+					mSerializedObjectData = object.mSerializedObjectData;
+				
+			}
 		}
 
 		const String& GetRttiName() override

@@ -24,13 +24,14 @@ namespace bs
 			B3D_RTTI_MEMBER_REFLPTR(mIrradiance, 3)
 		B3D_RTTI_END_MEMBERS
 	public:
-		void OnSerializationStarted(IReflectable* obj, RTTIOperationContext* context)
+		void OnOperationStarted(Skybox& object, RTTIOperationTypeFlags operationType, RTTIOperationContext& context) override
 		{
-			Skybox* skybox = static_cast<Skybox*>(obj);
-
-			// Make sure that the renderer finishes generating filtered radiance and irradiance before saving
-			if(skybox->mRendererTask)
-				skybox->mRendererTask->Wait();
+			if(operationType.IsSet(RTTIOperationType::ReadBit))
+			{
+				// Make sure that the renderer finishes generating filtered radiance and irradiance before saving
+				if(object.mRendererTask)
+					object.mRendererTask->Wait();
+			}
 		}
 
 		void OnDeserializationEnded(IReflectable* obj, RTTIOperationContext* context)

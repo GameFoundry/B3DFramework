@@ -160,12 +160,6 @@ namespace bs
 		virtual void NotifyOnOperationEnded(IReflectable& object, RTTIOperationTypeFlags operationType, RTTIOperationContext& context) = 0;
 
 		/**
-		 * Called by the serializers when serialization for this object has started. Use this to do any preprocessing on
-		 * data you might need during serialization itself.
-		 */
-		virtual void OnSerializationStarted(IReflectable* obj, RTTIOperationContext* context) {}
-
-		/**
 		 * Called by the serializers when serialization for this object has ended. After serialization has ended you can
 		 * be sure that the type has been fully serialized, and you may clean up any temporary data.
 		 */

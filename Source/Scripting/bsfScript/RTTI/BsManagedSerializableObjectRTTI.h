@@ -61,20 +61,21 @@ namespace bs
 			AddReflectablePtrArrayField("mFieldEntries", 1, &ManagedSerializableObjectRTTI::GetFieldEntry, &ManagedSerializableObjectRTTI::GetNumFieldEntries, &ManagedSerializableObjectRTTI::SetFieldsEntry, &ManagedSerializableObjectRTTI::SetNumFieldEntries);
 		}
 
-		void OnSerializationStarted(IReflectable* obj, RTTIOperationContext* context)
+		void OnOperationStarted(ManagedSerializableObject& object, RTTIOperationTypeFlags operationType, RTTIOperationContext& context) override
 		{
-			ManagedSerializableObject* castObj = static_cast<ManagedSerializableObject*>(obj);
-
-			SPtr<ManagedSerializableObjectInfo> curType = castObj->mObjInfo;
-			while(curType != nullptr)
+			if(operationType.IsSet(RTTIOperationType::ReadBit))
 			{
-				for(auto& field : curType->MFields)
+				SPtr<ManagedSerializableObjectInfo> currentTypeObjectInfo = object.mObjInfo;
+				while(currentTypeObjectInfo != nullptr)
 				{
-					if(field.second->IsSerializable())
-						mSequentialFields.push_back(field.second);
-				}
+					for(auto& field : currentTypeObjectInfo->MFields)
+					{
+						if(field.second->IsSerializable())
+							mSequentialFields.push_back(field.second);
+					}
 
-				curType = curType->MBaseClass;
+					currentTypeObjectInfo = currentTypeObjectInfo->MBaseClass;
+				}
 			}
 		}
 
