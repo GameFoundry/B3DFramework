@@ -17,16 +17,11 @@ namespace bs
 	class B3D_CORE_EXPORT CCameraRTTI : public RTTIType<CCamera, Component, CCameraRTTI>
 	{
 	private:
-		SPtr<Camera> GetInternal(CCamera* obj) { return obj->mInternal; }
-
-		void SetInternal(CCamera* obj, SPtr<Camera> val) { obj->mInternal = val; }
+		B3D_RTTI_BEGIN_MEMBERS
+			B3D_RTTI_MEMBER(mInternal, 0)
+		B3D_RTTI_END_MEMBERS
 
 	public:
-		CCameraRTTI()
-		{
-			AddReflectablePtrField("mInternal", 0, &CCameraRTTI::GetInternal, &CCameraRTTI::SetInternal);
-		}
-
 		const String& GetRttiName() override
 		{
 			static String name = "CCamera";

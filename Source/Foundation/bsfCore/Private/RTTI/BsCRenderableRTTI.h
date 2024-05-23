@@ -17,16 +17,11 @@ namespace bs
 	class B3D_CORE_EXPORT CRenderableRTTI : public RTTIType<CRenderable, Component, CRenderableRTTI>
 	{
 	private:
-		SPtr<Renderable> GetInternal(CRenderable* obj) { return obj->mInternal; }
-
-		void SetInternal(CRenderable* obj, SPtr<Renderable> val) { obj->mInternal = val; }
+		B3D_RTTI_BEGIN_MEMBERS
+			B3D_RTTI_MEMBER(mInternal, 0)
+		B3D_RTTI_END_MEMBERS
 
 	public:
-		CRenderableRTTI()
-		{
-			AddReflectablePtrField("mInternal", 0, &CRenderableRTTI::GetInternal, &CRenderableRTTI::SetInternal);
-		}
-
 		const String& GetRttiName() override
 		{
 			static String name = "CRenderable";

@@ -19,20 +19,20 @@ namespace bs
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
-			B3D_RTTI_MEMBER_PLAIN(mPositionSolverCount, 0)
-			B3D_RTTI_MEMBER_PLAIN(mVelocitySolverCount, 1)
-			B3D_RTTI_MEMBER_PLAIN(mFlags, 2)
-			B3D_RTTI_MEMBER_PLAIN(mCMassPosition, 3)
-			B3D_RTTI_MEMBER_PLAIN(mCMassRotation, 4)
-			B3D_RTTI_MEMBER_PLAIN(mInertiaTensor, 5)
-			B3D_RTTI_MEMBER_PLAIN(mMass, 6)
-			B3D_RTTI_MEMBER_PLAIN(mMaxAngularVelocity, 7)
-			B3D_RTTI_MEMBER_PLAIN(mLinearDrag, 8)
-			B3D_RTTI_MEMBER_PLAIN(mAngularDrag, 9)
-			B3D_RTTI_MEMBER_PLAIN(mSleepThreshold, 10)
-			B3D_RTTI_MEMBER_PLAIN(mUseGravity, 11)
-			B3D_RTTI_MEMBER_PLAIN(mIsKinematic, 12)
-			B3D_RTTI_MEMBER_PLAIN(mCollisionReportMode, 14)
+			B3D_RTTI_MEMBER(mPositionSolverCount, 0)
+			B3D_RTTI_MEMBER(mVelocitySolverCount, 1)
+			B3D_RTTI_MEMBER(mFlags, 2)
+			B3D_RTTI_MEMBER(mCMassPosition, 3)
+			B3D_RTTI_MEMBER(mCMassRotation, 4)
+			B3D_RTTI_MEMBER(mInertiaTensor, 5)
+			B3D_RTTI_MEMBER(mMass, 6)
+			B3D_RTTI_MEMBER(mMaxAngularVelocity, 7)
+			B3D_RTTI_MEMBER(mLinearDrag, 8)
+			B3D_RTTI_MEMBER(mAngularDrag, 9)
+			B3D_RTTI_MEMBER(mSleepThreshold, 10)
+			B3D_RTTI_MEMBER(mUseGravity, 11)
+			B3D_RTTI_MEMBER(mIsKinematic, 12)
+			B3D_RTTI_MEMBER(mCollisionReportMode, 14)
 		B3D_RTTI_END_MEMBERS
 	public:
 		const String& GetRttiName() override

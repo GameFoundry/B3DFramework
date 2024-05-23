@@ -346,12 +346,12 @@ namespace bs
 #define B3D_RTTI_MEMBER_IMPL(name, field, id, info, container)                                                                                                      \
 	META_Entry_##name;                                                                                                                                              \
                                                                                                                                                                     \
-	using __TRTTIIterator##name##Type = TRTTIIterator<decltype(OwnerType::field), container>;                                                                       \
-	using __TRTTIIteratorDeleter##name##Type = TRTTIIteratorDeleter<decltype(OwnerType::field), container>;                                                         \
+	using __TRTTIIterator##name##Type = TRTTIIterator<std::remove_reference_t<decltype(OwnerType::field)>, container>;                                              \
+	using __TRTTIIteratorDeleter##name##Type = TRTTIIteratorDeleter<std::remove_reference_t<decltype(OwnerType::field)>, container>;                                \
                                                                                                                                                                     \
 	UPtr<__TRTTIIterator##name##Type, DefaultAllocatorTag, __TRTTIIteratorDeleter##name##Type> GetIterator##name(OwnerType& object, FrameAllocator& allocator)      \
 	{                                                                                                                                                               \
-		return CreateRTTIIterator<decltype(OwnerType::field), container>(allocator, object.field);                                                                  \
+		return CreateRTTIIterator<std::remove_reference_t<decltype(OwnerType::field)>, container>(allocator, object.field);                                         \
 	}                                                                                                                                                               \
 	const __TRTTIIterator##name##Type::ElementType& GetValue##name(OwnerType& object, FrameAllocator& allocator, __TRTTIIterator##name##Type& iterator)             \
 	{                                                                                                                                                               \
@@ -413,12 +413,12 @@ namespace bs
 #define B3D_RTTI_GENERATED_MEMBER_IMPL(name, field, id, info, container)                                                                                            \
 	META_Entry_##name;                                                                                                                                              \
                                                                                                                                                                     \
-	using __TRTTIIterator##name##Type = TRTTIIterator<decltype(MyType::field), container>;                                                                          \
-	using __TRTTIIteratorDeleter##name##Type = TRTTIIteratorDeleter<decltype(MyType::field), container>;                                                            \
+	using __TRTTIIterator##name##Type = TRTTIIterator<std::remove_reference_t<decltype(MyType::field)>, container>;                                                 \
+	using __TRTTIIteratorDeleter##name##Type = TRTTIIteratorDeleter<std::remove_reference_t<decltype(MyType::field)>, container>;                                   \
                                                                                                                                                                     \
 	UPtr<__TRTTIIterator##name##Type, DefaultAllocatorTag, __TRTTIIteratorDeleter##name##Type> GetIterator##name(OwnerType& object, FrameAllocator& allocator)      \
 	{                                                                                                                                                               \
-		return CreateRTTIIterator<decltype(field), container>(allocator, field);                                                                                    \
+		return CreateRTTIIterator<std::remove_reference_t<decltype(field)>, container>(allocator, field);                                                           \
 	}                                                                                                                                                               \
 	const __TRTTIIterator##name##Type::ElementType& GetValue##name(OwnerType& object, FrameAllocator& allocator, __TRTTIIterator##name##Type& iterator)             \
 	{                                                                                                                                                               \

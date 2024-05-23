@@ -724,6 +724,7 @@ namespace bs
 		TID_UnitTestSerializationObjectB = 1248,
 		TID_UnitTestComponentA = 1249,
 		TID_UnitTestComponentB = 1250,
+		TID_D6JointDrive = 1251,
 
 		// Moved from Engine layer
 		TID_CCamera = 30000,

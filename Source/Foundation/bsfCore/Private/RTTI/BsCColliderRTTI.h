@@ -18,15 +18,15 @@ namespace bs
 	class B3D_CORE_EXPORT CColliderRTTI : public RTTIType<CCollider, Component, CColliderRTTI>
 	{
 		B3D_RTTI_BEGIN_MEMBERS
-			B3D_RTTI_MEMBER_PLAIN(mLayer, 0)
-			B3D_RTTI_MEMBER_PLAIN(mRestOffset, 1)
-			B3D_RTTI_MEMBER_PLAIN(mContactOffset, 2)
-			B3D_RTTI_MEMBER_REFL(mMaterial, 3)
-			B3D_RTTI_MEMBER_PLAIN(mMass, 4)
-			B3D_RTTI_MEMBER_PLAIN(mIsTrigger, 5)
-			B3D_RTTI_MEMBER_PLAIN(mLocalPosition, 6)
-			B3D_RTTI_MEMBER_PLAIN(mLocalRotation, 7)
-			B3D_RTTI_MEMBER_PLAIN(mCollisionReportMode, 8)
+			B3D_RTTI_MEMBER(mLayer, 0)
+			B3D_RTTI_MEMBER(mRestOffset, 1)
+			B3D_RTTI_MEMBER(mContactOffset, 2)
+			B3D_RTTI_MEMBER(mMaterial, 3)
+			B3D_RTTI_MEMBER(mMass, 4)
+			B3D_RTTI_MEMBER(mIsTrigger, 5)
+			B3D_RTTI_MEMBER(mLocalPosition, 6)
+			B3D_RTTI_MEMBER(mLocalRotation, 7)
+			B3D_RTTI_MEMBER(mCollisionReportMode, 8)
 		B3D_RTTI_END_MEMBERS
 	public:
 		const String& GetRttiName()

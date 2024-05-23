@@ -16,10 +16,7 @@ namespace bs
 
 	class B3D_EXPORT CGUIWidgetRTTI : public RTTIType<CGUIWidget, Component, CGUIWidgetRTTI>
 	{
-	private:
 	public:
-		CGUIWidgetRTTI() = default;
-
 		const String& GetRttiName() override
 		{
 			static String name = "CGUIWidget";

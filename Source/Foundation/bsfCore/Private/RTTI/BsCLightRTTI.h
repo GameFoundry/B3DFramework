@@ -17,16 +17,11 @@ namespace bs
 	class B3D_CORE_EXPORT CLightRTTI : public RTTIType<CLight, Component, CLightRTTI>
 	{
 	private:
-		SPtr<Light> GetInternal(CLight* obj) { return obj->mInternal; }
-
-		void SetInternal(CLight* obj, SPtr<Light> val) { obj->mInternal = val; }
+		B3D_RTTI_BEGIN_MEMBERS
+			B3D_RTTI_MEMBER(mInternal, 0)
+		B3D_RTTI_END_MEMBERS
 
 	public:
-		CLightRTTI()
-		{
-			AddReflectablePtrField("mInternal", 0, &CLightRTTI::GetInternal, &CLightRTTI::SetInternal);
-		}
-
 		const String& GetRttiName() override
 		{
 			static String name = "CLight";

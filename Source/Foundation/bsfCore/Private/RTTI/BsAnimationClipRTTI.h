@@ -74,16 +74,16 @@ namespace bs
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
-			B3D_RTTI_MEMBER_PLAIN_NAMED(positionCurves, mCurves->Position, 0)
-			B3D_RTTI_MEMBER_PLAIN_NAMED(rotationCurves, mCurves->Rotation, 1)
-			B3D_RTTI_MEMBER_PLAIN_NAMED(scaleCurves, mCurves->Scale, 2)
-			B3D_RTTI_MEMBER_PLAIN_NAMED(genericCurves, mCurves->Generic, 3)
-			B3D_RTTI_MEMBER_PLAIN(mIsAdditive, 4)
-			B3D_RTTI_MEMBER_PLAIN(mLength, 5)
-			B3D_RTTI_MEMBER_PLAIN(mEvents, 6)
-			B3D_RTTI_MEMBER_PLAIN(mSampleRate, 7)
-			B3D_RTTI_MEMBER_PLAIN_NAMED(rootMotionPos, mRootMotion->Position, 8)
-			B3D_RTTI_MEMBER_PLAIN_NAMED(rootMotionRot, mRootMotion->Rotation, 9)
+			B3D_RTTI_MEMBER_NAMED(positionCurves, mCurves->Position, 0)
+			B3D_RTTI_MEMBER_NAMED(rotationCurves, mCurves->Rotation, 1)
+			B3D_RTTI_MEMBER_NAMED(scaleCurves, mCurves->Scale, 2)
+			B3D_RTTI_MEMBER_NAMED(genericCurves, mCurves->Generic, 3)
+			B3D_RTTI_MEMBER(mIsAdditive, 4)
+			B3D_RTTI_MEMBER(mLength, 5)
+			B3D_RTTI_MEMBER(mEvents, 6)
+			B3D_RTTI_MEMBER(mSampleRate, 7)
+			B3D_RTTI_MEMBER_NAMED(rootMotionPos, mRootMotion->Position, 8)
+			B3D_RTTI_MEMBER_NAMED(rootMotionRot, mRootMotion->Rotation, 9)
 		B3D_RTTI_END_MEMBERS
 	public:
 		void OnOperationEnded(AnimationClip& object, RTTIOperationTypeFlags operationType, RTTIOperationContext& context) override

@@ -19,16 +19,16 @@ namespace bs
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
-			B3D_RTTI_MEMBER_PLAIN_NAMED(readMode, mDesc.ReadMode, 0)
-			B3D_RTTI_MEMBER_PLAIN_NAMED(format, mDesc.Format, 1)
-			B3D_RTTI_MEMBER_PLAIN_NAMED(frequency, mDesc.Frequency, 2)
-			B3D_RTTI_MEMBER_PLAIN_NAMED(bitDepth, mDesc.BitDepth, 3)
-			B3D_RTTI_MEMBER_PLAIN_NAMED(numChannels, mDesc.NumChannels, 4)
-			B3D_RTTI_MEMBER_PLAIN(mNumSamples, 5)
-			B3D_RTTI_MEMBER_PLAIN(mStreamSize, 7)
-			B3D_RTTI_MEMBER_PLAIN(mStreamOffset, 8)
-			B3D_RTTI_MEMBER_PLAIN_NAMED(is3D, mDesc.Is3D, 9)
-			B3D_RTTI_MEMBER_PLAIN(mLength, 10)
+			B3D_RTTI_MEMBER_NAMED(readMode, mDesc.ReadMode, 0)
+			B3D_RTTI_MEMBER_NAMED(format, mDesc.Format, 1)
+			B3D_RTTI_MEMBER_NAMED(frequency, mDesc.Frequency, 2)
+			B3D_RTTI_MEMBER_NAMED(bitDepth, mDesc.BitDepth, 3)
+			B3D_RTTI_MEMBER_NAMED(numChannels, mDesc.NumChannels, 4)
+			B3D_RTTI_MEMBER(mNumSamples, 5)
+			B3D_RTTI_MEMBER(mStreamSize, 7)
+			B3D_RTTI_MEMBER(mStreamOffset, 8)
+			B3D_RTTI_MEMBER_NAMED(is3D, mDesc.Is3D, 9)
+			B3D_RTTI_MEMBER(mLength, 10)
 		B3D_RTTI_END_MEMBERS
 
 		SPtr<DataStream> GetData(AudioClip* obj, u32& size)

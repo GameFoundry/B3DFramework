@@ -17,16 +17,11 @@ namespace bs
 	class B3D_CORE_EXPORT CReflectionProbeRTTI : public RTTIType<CReflectionProbe, Component, CReflectionProbeRTTI>
 	{
 	private:
-		SPtr<ReflectionProbe> GetInternal(CReflectionProbe* obj) { return obj->mInternal; }
-
-		void SetInternal(CReflectionProbe* obj, SPtr<ReflectionProbe> val) { obj->mInternal = val; }
+		B3D_RTTI_BEGIN_MEMBERS
+			B3D_RTTI_MEMBER(mInternal, 0)
+		B3D_RTTI_END_MEMBERS
 
 	public:
-		CReflectionProbeRTTI()
-		{
-			AddReflectablePtrField("mInternal", 0, &CReflectionProbeRTTI::GetInternal, &CReflectionProbeRTTI::SetInternal);
-		}
-
 		const String& GetRttiName() override
 		{
 			static String name = "CReflectionProbe";

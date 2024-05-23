@@ -17,16 +17,11 @@ namespace bs
 	class B3D_CORE_EXPORT CSkyboxRTTI : public RTTIType<CSkybox, Component, CSkyboxRTTI>
 	{
 	private:
-		SPtr<Skybox> GetInternal(CSkybox* obj) { return obj->mInternal; }
-
-		void SetInternal(CSkybox* obj, SPtr<Skybox> val) { obj->mInternal = val; }
+		B3D_RTTI_BEGIN_MEMBERS
+			B3D_RTTI_MEMBER(mInternal, 0)
+		B3D_RTTI_END_MEMBERS
 
 	public:
-		CSkyboxRTTI()
-		{
-			AddReflectablePtrField("mInternal", 0, &CSkyboxRTTI::GetInternal, &CSkyboxRTTI::SetInternal);
-		}
-
 		const String& GetRttiName() override
 		{
 			static String name = "CSkybox";

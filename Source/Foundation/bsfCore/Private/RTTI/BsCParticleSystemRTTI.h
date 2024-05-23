@@ -18,11 +18,11 @@ namespace bs
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
-			B3D_RTTI_MEMBER_REFL(mSettings, 0)
-			B3D_RTTI_MEMBER_REFLPTR_ARRAY(mEmitters, 1)
-			B3D_RTTI_MEMBER_REFLPTR_ARRAY(mEvolvers, 2)
-			B3D_RTTI_MEMBER_REFL(mGpuSimulationSettings, 3)
-			B3D_RTTI_MEMBER_PLAIN(mLayer, 4)
+			B3D_RTTI_MEMBER(mSettings, 0)
+			B3D_RTTI_MEMBER_CONTAINER(mEmitters, 1)
+			B3D_RTTI_MEMBER_CONTAINER(mEvolvers, 2)
+			B3D_RTTI_MEMBER(mGpuSimulationSettings, 3)
+			B3D_RTTI_MEMBER(mLayer, 4)
 		B3D_RTTI_END_MEMBERS
 
 	public:

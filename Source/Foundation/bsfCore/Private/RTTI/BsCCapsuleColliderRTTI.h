@@ -19,9 +19,9 @@ namespace bs
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
-			B3D_RTTI_MEMBER_PLAIN(mNormal, 0)
-			B3D_RTTI_MEMBER_PLAIN(mRadius, 1)
-			B3D_RTTI_MEMBER_PLAIN(mHalfHeight, 2)
+			B3D_RTTI_MEMBER(mNormal, 0)
+			B3D_RTTI_MEMBER(mRadius, 1)
+			B3D_RTTI_MEMBER(mHalfHeight, 2)
 		B3D_RTTI_END_MEMBERS
 	public:
 		const String& GetRttiName() override

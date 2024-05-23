@@ -18,12 +18,12 @@ namespace bs
 	class B3D_CORE_EXPORT CAnimationRTTI : public RTTIType<CAnimation, Component, CAnimationRTTI>
 	{
 		B3D_RTTI_BEGIN_MEMBERS
-			B3D_RTTI_MEMBER_REFL(mDefaultClip, 0)
-			B3D_RTTI_MEMBER_PLAIN(mWrapMode, 1)
-			B3D_RTTI_MEMBER_PLAIN(mSpeed, 2)
-			B3D_RTTI_MEMBER_PLAIN(mEnableCull, 3)
-			B3D_RTTI_MEMBER_PLAIN(mUseBounds, 4)
-			B3D_RTTI_MEMBER_PLAIN(mBounds, 5)
+			B3D_RTTI_MEMBER(mDefaultClip, 0)
+			B3D_RTTI_MEMBER(mWrapMode, 1)
+			B3D_RTTI_MEMBER(mSpeed, 2)
+			B3D_RTTI_MEMBER(mEnableCull, 3)
+			B3D_RTTI_MEMBER(mUseBounds, 4)
+			B3D_RTTI_MEMBER(mBounds, 5)
 		B3D_RTTI_END_MEMBERS
 	public:
 		const String& GetRttiName() override

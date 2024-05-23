@@ -20,36 +20,41 @@ namespace bs
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
-			B3D_RTTI_MEMBER_REFLPTR(mViewport, 0)
-			B3D_RTTI_MEMBER_PLAIN(mLayers, 1)
-			B3D_RTTI_MEMBER_REFL(mTransform, 2)
-			B3D_RTTI_MEMBER_PLAIN(mActive, 3)
-			B3D_RTTI_MEMBER_PLAIN(mMobility, 4)
-			B3D_RTTI_MEMBER_PLAIN(mProjType, 5)
-			B3D_RTTI_MEMBER_PLAIN(mHorzFOV, 6)
-			B3D_RTTI_MEMBER_PLAIN(mFarDist, 7)
-			B3D_RTTI_MEMBER_PLAIN(mNearDist, 8)
-			B3D_RTTI_MEMBER_PLAIN(mAspect, 9)
-			B3D_RTTI_MEMBER_PLAIN(mOrthoHeight, 10)
-			B3D_RTTI_MEMBER_PLAIN(mPriority, 11)
-			B3D_RTTI_MEMBER_PLAIN(mCustomViewMatrix, 12)
-			B3D_RTTI_MEMBER_PLAIN(mCustomProjMatrix, 13)
-			B3D_RTTI_MEMBER_PLAIN(mFrustumExtentsManuallySet, 14)
-			B3D_RTTI_MEMBER_PLAIN(mProjMatrixRS, 15)
-			B3D_RTTI_MEMBER_PLAIN(mProjMatrix, 16)
-			B3D_RTTI_MEMBER_PLAIN(mViewMatrix, 17)
-			B3D_RTTI_MEMBER_PLAIN(mLeft, 18)
-			B3D_RTTI_MEMBER_PLAIN(mRight, 19)
-			B3D_RTTI_MEMBER_PLAIN(mTop, 20)
-			B3D_RTTI_MEMBER_PLAIN(mBottom, 21)
-			B3D_RTTI_MEMBER_PLAIN(mMSAA, 22)
-			B3D_RTTI_MEMBER_REFLPTR(mRenderSettings, 23)
-			B3D_RTTI_MEMBER_PLAIN(mMain, 24)
+			B3D_RTTI_MEMBER(mViewport, 0)
+			B3D_RTTI_MEMBER(mLayers, 1)
+			B3D_RTTI_MEMBER(mTransform, 2)
+			B3D_RTTI_MEMBER(mActive, 3)
+			B3D_RTTI_MEMBER(mMobility, 4)
+			B3D_RTTI_MEMBER(mProjType, 5)
+			B3D_RTTI_MEMBER(mHorzFOV, 6)
+			B3D_RTTI_MEMBER(mFarDist, 7)
+			B3D_RTTI_MEMBER(mNearDist, 8)
+			B3D_RTTI_MEMBER(mAspect, 9)
+			B3D_RTTI_MEMBER(mOrthoHeight, 10)
+			B3D_RTTI_MEMBER(mPriority, 11)
+			B3D_RTTI_MEMBER(mCustomViewMatrix, 12)
+			B3D_RTTI_MEMBER(mCustomProjMatrix, 13)
+			B3D_RTTI_MEMBER(mFrustumExtentsManuallySet, 14)
+			B3D_RTTI_MEMBER(mProjMatrixRS, 15)
+			B3D_RTTI_MEMBER(mProjMatrix, 16)
+			B3D_RTTI_MEMBER(mViewMatrix, 17)
+			B3D_RTTI_MEMBER(mLeft, 18)
+			B3D_RTTI_MEMBER(mRight, 19)
+			B3D_RTTI_MEMBER(mTop, 20)
+			B3D_RTTI_MEMBER(mBottom, 21)
+			B3D_RTTI_MEMBER(mMSAA, 22)
+			B3D_RTTI_MEMBER(mRenderSettings, 23)
+			B3D_RTTI_MEMBER(mMain, 24)
 		B3D_RTTI_END_MEMBERS
 
-		CameraFlags& GetCameraFlags(Camera* obj)
+		UPtrRTTIIterator<CameraFlags, false> GetCameraFlagsIterator(Camera& object, FrameAllocator& frameAllocator)
 		{
-			mFlags = obj->GetFlags();
+			return CreateRTTIIterator<CameraFlags, false>(frameAllocator, object.mCameraFlags);
+		}
+
+		const CameraFlags& GetCameraFlags(Camera& object, FrameAllocator& frameAllocator, TRTTIIterator<CameraFlags, false>& iterator)
+		{
+			mFlags = *iterator;
 
 			// OnDemand flag is transient and shouldn't be saved
 			// (Primarily because we set it in editor on user's cameras and we don't want that to persist)
@@ -57,12 +62,15 @@ namespace bs
 			return mFlags;
 		}
 
-		void SetCameraFlags(Camera* obj, CameraFlags& val) { obj->mCameraFlags = val; }
+		void SetCameraFlags(Camera& object, FrameAllocator& frameAllocator, TRTTIIterator<CameraFlags, false>& iterator, const CameraFlags& value)
+		{
+			iterator = value;
+		}
 
 	public:
 		CameraRTTI()
 		{
-			AddPlainField("mCameraFlags", 25, &CameraRTTI::GetCameraFlags, &CameraRTTI::SetCameraFlags);
+			AddField("mCameraFlags", 25, &CameraRTTI::GetCameraFlagsIterator, &CameraRTTI::GetCameraFlags, &CameraRTTI::SetCameraFlags);
 		}
 
 		const String& GetRttiName() override

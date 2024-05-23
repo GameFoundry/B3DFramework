@@ -55,8 +55,8 @@ namespace bs
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
-			B3D_RTTI_MEMBER_PLAIN(Name, 0)
-			B3D_RTTI_MEMBER_PLAIN(Events, 1)
+			B3D_RTTI_MEMBER(Name, 0)
+			B3D_RTTI_MEMBER(Events, 1)
 		B3D_RTTI_END_MEMBERS
 	public:
 		const String& GetRttiName() override
@@ -80,10 +80,10 @@ namespace bs
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
-			B3D_RTTI_MEMBER_PLAIN(Name, 0)
-			B3D_RTTI_MEMBER_PLAIN(StartFrame, 1)
-			B3D_RTTI_MEMBER_PLAIN(EndFrame, 2)
-			B3D_RTTI_MEMBER_PLAIN(IsAdditive, 3)
+			B3D_RTTI_MEMBER(Name, 0)
+			B3D_RTTI_MEMBER(StartFrame, 1)
+			B3D_RTTI_MEMBER(EndFrame, 2)
+			B3D_RTTI_MEMBER(IsAdditive, 3)
 		B3D_RTTI_END_MEMBERS
 	public:
 		const String& GetRttiName() override

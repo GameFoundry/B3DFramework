@@ -19,10 +19,10 @@ namespace bs
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
-			B3D_RTTI_MEMBER_REFL(mTransform, 0)
-			B3D_RTTI_MEMBER_PLAIN(mActive, 1)
-			B3D_RTTI_MEMBER_PLAIN(mMobility, 2)
-			B3D_RTTI_MEMBER_PLAIN(mVelocity, 3)
+			B3D_RTTI_MEMBER(mTransform, 0)
+			B3D_RTTI_MEMBER(mActive, 1)
+			B3D_RTTI_MEMBER(mMobility, 2)
+			B3D_RTTI_MEMBER(mVelocity, 3)
 		B3D_RTTI_END_MEMBERS
 
 	public:

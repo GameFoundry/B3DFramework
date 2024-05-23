@@ -19,17 +19,17 @@ namespace bs
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
-			B3D_RTTI_MEMBER_REFL(mTransform, 0)
-			B3D_RTTI_MEMBER_PLAIN(mActive, 1)
-			B3D_RTTI_MEMBER_PLAIN(mMobility, 2)
-			B3D_RTTI_MEMBER_PLAIN(mVelocity, 3)
-			B3D_RTTI_MEMBER_REFL(mAudioClip, 4)
-			B3D_RTTI_MEMBER_PLAIN(mVolume, 5)
-			B3D_RTTI_MEMBER_PLAIN(mPitch, 6)
-			B3D_RTTI_MEMBER_PLAIN(mLoop, 7)
-			B3D_RTTI_MEMBER_PLAIN(mPriority, 8)
-			B3D_RTTI_MEMBER_PLAIN(mMinDistance, 9)
-			B3D_RTTI_MEMBER_PLAIN(mAttenuation, 10)
+			B3D_RTTI_MEMBER(mTransform, 0)
+			B3D_RTTI_MEMBER(mActive, 1)
+			B3D_RTTI_MEMBER(mMobility, 2)
+			B3D_RTTI_MEMBER(mVelocity, 3)
+			B3D_RTTI_MEMBER(mAudioClip, 4)
+			B3D_RTTI_MEMBER(mVolume, 5)
+			B3D_RTTI_MEMBER(mPitch, 6)
+			B3D_RTTI_MEMBER(mLoop, 7)
+			B3D_RTTI_MEMBER(mPriority, 8)
+			B3D_RTTI_MEMBER(mMinDistance, 9)
+			B3D_RTTI_MEMBER(mAttenuation, 10)
 		B3D_RTTI_END_MEMBERS
 	public:
 		const String& GetRttiName()

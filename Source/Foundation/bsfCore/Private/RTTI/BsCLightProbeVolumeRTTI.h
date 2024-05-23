@@ -18,7 +18,7 @@ namespace bs
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
-			B3D_RTTI_MEMBER_REFLPTR(mInternal, 0)
+			B3D_RTTI_MEMBER(mInternal, 0)
 		B3D_RTTI_END_MEMBERS
 
 	public:

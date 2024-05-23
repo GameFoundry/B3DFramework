@@ -64,7 +64,7 @@ namespace bs
 	 * Specifies parameters for a drive that will attempt to move the joint bodies to the specified drive position and
 	 * velocity.
 	 */
-	struct B3D_SCRIPT_EXPORT(DocumentationGroup(Physics), ExportAsStruct(true)) D6JointDrive
+	struct B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Physics), ExportAsStruct(true)) D6JointDrive : public IReflectable
 	{
 		bool operator==(const D6JointDrive& other) const
 		{
@@ -86,6 +86,14 @@ namespace bs
 		 * they account for the masses of the actors to which the joint is attached.
 		 */
 		bool Acceleration = false;
+
+		/************************************************************************/
+		/* 								RTTI		                     		*/
+		/************************************************************************/
+	public:
+		friend class D6JointDriveRTTI;
+		static RTTITypeBase* GetRttiStatic();
+		RTTITypeBase* GetRtti() const override;
 	};
 
 	/**
@@ -193,10 +201,14 @@ namespace bs
 	/** Structure used for initializing a new D6Joint. */
 	struct D6_JOINT_DESC : JOINT_DESC
 	{
-		D6_JOINT_DESC() {}
+		D6_JOINT_DESC()
+		{
+			Motion.Resize((u32)D6JointAxis::Count);
+			Drive.Resize((u32)D6JointDriveType::Count);
+		}
 
-		D6JointMotion Motion[(u32)D6JointAxis::Count] = { D6JointMotion::Locked };
-		D6JointDrive Drive[(u32)D6JointDriveType::Count];
+		TInlineArray<D6JointMotion, (u32)D6JointAxis::Count> Motion;
+		TInlineArray<D6JointDrive, (u32)D6JointDriveType::Count> Drive;
 		LimitLinear LimitLinear;
 		LimitAngularRange LimitTwist;
 		LimitConeRange LimitSwing;
