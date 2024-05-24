@@ -16,9 +16,6 @@ namespace bs
 	class B3D_CORE_EXPORT ImportOptionsRTTI : public RTTIType<ImportOptions, IReflectable, ImportOptionsRTTI>
 	{
 	public:
-		ImportOptionsRTTI()
-		{}
-
 		const String& GetRttiName()
 		{
 			static String name = "ImportOptions";

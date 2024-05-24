@@ -69,7 +69,7 @@ namespace bs
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
-			B3D_RTTI_MEMBER_PLAIN(mRawRenderData, 0)
+			B3D_RTTI_MEMBER(mRawRenderData, 0)
 		B3D_RTTI_END_MEMBERS
 
 	public:

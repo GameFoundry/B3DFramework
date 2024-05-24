@@ -16,9 +16,6 @@ namespace bs
 	class B3D_CORE_EXPORT GpuResourceDataRTTI : public RTTIType<GpuResourceData, IReflectable, GpuResourceDataRTTI>
 	{
 	public:
-		GpuResourceDataRTTI()
-		{}
-
 		const String& GetRttiName()
 		{
 			static String name = "GpuResourceData";

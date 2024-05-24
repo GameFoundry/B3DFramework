@@ -20,18 +20,18 @@ namespace bs
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
-			B3D_RTTI_MEMBER_PLAIN(CpuCached, 0)
-			B3D_RTTI_MEMBER_PLAIN(ImportNormals, 1)
-			B3D_RTTI_MEMBER_PLAIN(ImportTangents, 2)
-			B3D_RTTI_MEMBER_PLAIN(ImportBlendShapes, 3)
-			B3D_RTTI_MEMBER_PLAIN(ImportSkin, 4)
-			B3D_RTTI_MEMBER_PLAIN(ImportAnimation, 5)
-			B3D_RTTI_MEMBER_PLAIN(ImportScale, 6)
-			B3D_RTTI_MEMBER_PLAIN(CollisionMeshType, 7)
-			B3D_RTTI_MEMBER_REFL_ARRAY(AnimationSplits, 8)
-			B3D_RTTI_MEMBER_PLAIN(ReduceKeyFrames, 9)
-			B3D_RTTI_MEMBER_REFL_ARRAY(AnimationEvents, 10)
-			B3D_RTTI_MEMBER_PLAIN(ImportRootMotion, 11)
+			B3D_RTTI_MEMBER(CpuCached, 0)
+			B3D_RTTI_MEMBER(ImportNormals, 1)
+			B3D_RTTI_MEMBER(ImportTangents, 2)
+			B3D_RTTI_MEMBER(ImportBlendShapes, 3)
+			B3D_RTTI_MEMBER(ImportSkin, 4)
+			B3D_RTTI_MEMBER(ImportAnimation, 5)
+			B3D_RTTI_MEMBER(ImportScale, 6)
+			B3D_RTTI_MEMBER(CollisionMeshType, 7)
+			B3D_RTTI_MEMBER_CONTAINER(AnimationSplits, 8)
+			B3D_RTTI_MEMBER(ReduceKeyFrames, 9)
+			B3D_RTTI_MEMBER_CONTAINER(AnimationEvents, 10)
+			B3D_RTTI_MEMBER(ImportRootMotion, 11)
 		B3D_RTTI_END_MEMBERS
 	public:
 		const String& GetRttiName() override

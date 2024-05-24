@@ -75,33 +75,13 @@ namespace bs
 
 	class B3D_CORE_EXPORT GameObjectHandleRTTI : public RTTIType<GameObjectHandleBase, IReflectable, GameObjectHandleRTTI>
 	{
-	private:
-		UUID& GetId(GameObjectHandleBase* object)
-		{
-			if(!mRemappedId.Empty())
-				return mRemappedId;
+		UUID mId;
 
-			if(object->mSharedHandleData == nullptr)
-				return const_cast<UUID&>(UUID::kEmpty);
-
-			return object->mSharedHandleData->Id;
-		}
-
-		void SetId(GameObjectHandleBase* object, UUID& value)
-		{
-			if(object->mSharedHandleData == nullptr)
-				return;
-
-			object->mSharedHandleData->Id = value;
-		}
+		B3D_RTTI_BEGIN_MEMBERS
+			B3D_RTTI_GENERATED_MEMBER(mId, 0)
+		B3D_RTTI_END_MEMBERS
 
 	public:
-		GameObjectHandleRTTI()
-		{
-			//AddPlainField("mInstanceID", 0, &GameObjectHandleRTTI::GetInstanceId, &GameObjectHandleRTTI::SetInstanceId);
-			AddPlainField("mId", 1, &GameObjectHandleRTTI::GetId, &GameObjectHandleRTTI::SetId);
-		}
-
 		IDeltaHandler& GetDeltaHandler() const override
 		{
 			static GameObjectHandleDeltaHandler kDeltaHandler;
@@ -112,11 +92,22 @@ namespace bs
 		{
 			if(operationType.IsSet(RTTIOperationType::ReadBit))
 			{
-				if(auto* serializationContext = context.As<RTTIOperationEngineContext>())
+				if(object.mSharedHandleData != nullptr)
 				{
-					if(auto found = serializationContext->GameObjectIdRemapping.find(object.GetId()); found != serializationContext->GameObjectIdRemapping.end())
-						mRemappedId = found->second;
+					const UUID& id = object.mSharedHandleData->Id;
+
+					if(auto* serializationContext = context.As<RTTIOperationEngineContext>())
+					{
+						if(auto found = serializationContext->GameObjectIdRemapping.find(id); found != serializationContext->GameObjectIdRemapping.end())
+							mId = found->second;
+						else
+							mId = id;
+					}
+					else
+						mId = id;
 				}
+				else
+					mId = UUID::kEmpty;
 			}
 		}
 
@@ -124,6 +115,9 @@ namespace bs
 		{
 			if(operationType.IsSet(RTTIOperationType::WriteBit))
 			{
+				if(object.mSharedHandleData != nullptr)
+					object.mSharedHandleData->Id = mId;
+
 				if(auto* serializationContext = context.As<RTTIOperationEngineContext>())
 				{
 					if(serializationContext->GameObjectCollection != nullptr)
@@ -147,8 +141,6 @@ namespace bs
 		{
 			return B3DMakeSharedFromExisting<GameObjectHandleBase>(new(B3DAllocate<GameObjectHandleBase>()) GameObjectHandleBase());
 		}
-
-		UUID mRemappedId;
 	};
 
 	/** @} */

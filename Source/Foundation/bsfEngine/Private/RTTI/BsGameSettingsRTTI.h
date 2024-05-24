@@ -19,12 +19,12 @@ namespace bs
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
-			B3D_RTTI_MEMBER_PLAIN(MainSceneUuid, 0)
-			B3D_RTTI_MEMBER_PLAIN(Fullscreen, 1)
-			B3D_RTTI_MEMBER_PLAIN(UseDesktopResolution, 2)
-			B3D_RTTI_MEMBER_PLAIN(ResolutionWidth, 3)
-			B3D_RTTI_MEMBER_PLAIN(ResolutionHeight, 4)
-			B3D_RTTI_MEMBER_PLAIN(TitleBarText, 5)
+			B3D_RTTI_MEMBER(MainSceneUuid, 0)
+			B3D_RTTI_MEMBER(Fullscreen, 1)
+			B3D_RTTI_MEMBER(UseDesktopResolution, 2)
+			B3D_RTTI_MEMBER(ResolutionWidth, 3)
+			B3D_RTTI_MEMBER(ResolutionHeight, 4)
+			B3D_RTTI_MEMBER(TitleBarText, 5)
 		B3D_RTTI_END_MEMBERS
 
 	public:

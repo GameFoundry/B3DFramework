@@ -28,19 +28,13 @@ namespace bs
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
-			B3D_RTTI_MEMBER_PLAIN(mName, 1)
-			// B3D_RTTI_MEMBER_PLAIN(mLinkId, 2)
-			B3D_RTTI_MEMBER_PLAIN_INFO(mId, 3, RTTIFieldInfo(RTTIFieldFlag::SkipInDeltaCompare))
-			B3D_RTTI_MEMBER_PLAIN_INFO(mPrefabObjectId, 4, RTTIFieldInfo(RTTIFieldFlag::SkipInDeltaCompare))
-			B3D_RTTI_MEMBER_PLAIN(mPersistentGameObjectFlags, 5)
+			B3D_RTTI_MEMBER(mName, 1)
+			B3D_RTTI_MEMBER_INFO(mId, 3, RTTIFieldInfo(RTTIFieldFlag::SkipInDeltaCompare))
+			B3D_RTTI_MEMBER_INFO(mPrefabObjectId, 4, RTTIFieldInfo(RTTIFieldFlag::SkipInDeltaCompare))
+			B3D_RTTI_MEMBER(mPersistentGameObjectFlags, 5)
 		B3D_RTTI_END_MEMBERS
 
 	public:
-		GameObjectRTTI()
-		{
-			//AddPlainField("mInstanceID", 0, &GameObjectRTTI::GetInstanceId, &GameObjectRTTI::SetInstanceId);
-		}
-
 		void OnOperationStarted(GameObject& object, RTTIOperationTypeFlags operationType, RTTIOperationContext& context) override
 		{
 			if(operationType.IsSet(RTTIOperationType::WriteBit))

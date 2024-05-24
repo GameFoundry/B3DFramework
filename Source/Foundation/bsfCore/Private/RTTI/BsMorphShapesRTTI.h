@@ -18,9 +18,9 @@ namespace bs
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
-			B3D_RTTI_MEMBER_PLAIN(mName, 0)
-			B3D_RTTI_MEMBER_PLAIN(mWeight, 1)
-			B3D_RTTI_MEMBER_PLAIN_ARRAY(mVertices, 2)
+			B3D_RTTI_MEMBER(mName, 0)
+			B3D_RTTI_MEMBER(mWeight, 1)
+			B3D_RTTI_MEMBER_CONTAINER(mVertices, 2)
 		B3D_RTTI_END_MEMBERS
 
 	public:
@@ -45,8 +45,8 @@ namespace bs
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
-			B3D_RTTI_MEMBER_PLAIN(mName, 0)
-			B3D_RTTI_MEMBER_REFLPTR_ARRAY(mShapes, 1)
+			B3D_RTTI_MEMBER(mName, 0)
+			B3D_RTTI_MEMBER_CONTAINER(mShapes, 1)
 		B3D_RTTI_END_MEMBERS
 
 	public:
@@ -71,8 +71,8 @@ namespace bs
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
-			B3D_RTTI_MEMBER_REFLPTR_ARRAY(mChannels, 0)
-			B3D_RTTI_MEMBER_PLAIN(mNumVertices, 1)
+			B3D_RTTI_MEMBER_CONTAINER(mChannels, 0)
+			B3D_RTTI_MEMBER(mNumVertices, 1)
 		B3D_RTTI_END_MEMBERS
 
 	public:

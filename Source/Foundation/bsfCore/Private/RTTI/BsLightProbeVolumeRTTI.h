@@ -90,57 +90,58 @@ namespace bs
 
 	class B3D_CORE_EXPORT LightProbeVolumeRTTI : public RTTIType<LightProbeVolume, IReflectable, LightProbeVolumeRTTI>
 	{
-	private:
+		SavedLightProbeInfo mSavedLightProbeInfo;
+
 		B3D_RTTI_BEGIN_MEMBERS
-			B3D_RTTI_MEMBER_REFL(mTransform, 0)
-			B3D_RTTI_MEMBER_PLAIN(mActive, 1)
-			B3D_RTTI_MEMBER_PLAIN(mMobility, 2)
-			B3D_RTTI_MEMBER_PLAIN(mVolume, 3)
-			B3D_RTTI_MEMBER_PLAIN(mCellCount, 4)
+			B3D_RTTI_MEMBER(mTransform, 0)
+			B3D_RTTI_MEMBER(mActive, 1)
+			B3D_RTTI_MEMBER(mMobility, 2)
+			B3D_RTTI_MEMBER(mVolume, 3)
+			B3D_RTTI_MEMBER(mCellCount, 4)
+			B3D_RTTI_GENERATED_MEMBER(mSavedLightProbeInfo, 5)
 		B3D_RTTI_END_MEMBERS
 
-		SavedLightProbeInfo& GetProbeInfo(LightProbeVolume* obj)
-		{
-			obj->UpdateCoefficients();
-
-			u32 numProbes = (u32)obj->mProbes.size();
-			mSavedLightProbeInfo.Coefficients.resize(numProbes);
-			mSavedLightProbeInfo.Positions.resize(numProbes);
-
-			u32 idx = 0;
-			for(auto& entry : obj->mProbes)
-			{
-				mSavedLightProbeInfo.Positions[idx] = entry.second.Position;
-				mSavedLightProbeInfo.Coefficients[idx] = entry.second.Coefficients;
-
-				idx++;
-			}
-
-			return mSavedLightProbeInfo;
-		}
-
-		void SetProbeInfo(LightProbeVolume* obj, SavedLightProbeInfo& data)
-		{
-			obj->mProbes.clear();
-
-			u32 numProbes = (u32)data.Positions.size();
-			for(u32 i = 0; i < numProbes; ++i)
-			{
-				u32 handle = obj->mNextProbeId++;
-
-				LightProbeVolume::ProbeInfo probeInfo;
-				probeInfo.Flags = LightProbeFlags::Clean;
-				probeInfo.Position = data.Positions[i];
-				probeInfo.Coefficients = data.Coefficients[i];
-
-				obj->mProbes[handle] = probeInfo;
-			}
-		}
-
 	public:
-		LightProbeVolumeRTTI()
+		void OnOperationStarted(LightProbeVolume& object, RTTIOperationTypeFlags operationType, RTTIOperationContext& context) override
 		{
-			AddPlainField("mProbeInfo", 5, &LightProbeVolumeRTTI::GetProbeInfo, &LightProbeVolumeRTTI::SetProbeInfo, RTTIFieldInfo(RTTIFieldFlag::SkipInReferenceSearch));
+			if(operationType.IsSet(RTTIOperationType::ReadBit))
+			{
+				object.UpdateCoefficients();
+
+				u32 numProbes = (u32)object.mProbes.size();
+				mSavedLightProbeInfo.Coefficients.resize(numProbes);
+				mSavedLightProbeInfo.Positions.resize(numProbes);
+
+				u32 idx = 0;
+				for(auto& entry : object.mProbes)
+				{
+					mSavedLightProbeInfo.Positions[idx] = entry.second.Position;
+					mSavedLightProbeInfo.Coefficients[idx] = entry.second.Coefficients;
+
+					idx++;
+				}
+			}
+		}
+
+		void OnOperationEnded(LightProbeVolume& object, RTTIOperationTypeFlags operationType, RTTIOperationContext& context) override
+		{
+			if(operationType.IsSet(RTTIOperationType::WriteBit))
+			{
+				object.mProbes.clear();
+
+				u32 numProbes = (u32)mSavedLightProbeInfo.Positions.size();
+				for(u32 i = 0; i < numProbes; ++i)
+				{
+					u32 handle = object.mNextProbeId++;
+
+					LightProbeVolume::ProbeInfo probeInfo;
+					probeInfo.Flags = LightProbeFlags::Clean;
+					probeInfo.Position = mSavedLightProbeInfo.Positions[i];
+					probeInfo.Coefficients = mSavedLightProbeInfo.Coefficients[i];
+
+					object.mProbes[handle] = probeInfo;
+				}
+			}
 		}
 
 		const String& GetRttiName() override
@@ -158,9 +159,6 @@ namespace bs
 		{
 			return LightProbeVolume::CreateEmpty();
 		}
-
-	private:
-		SavedLightProbeInfo mSavedLightProbeInfo;
 	};
 
 	/** @} */
