@@ -15,34 +15,12 @@ namespace bs
 
 	class B3D_SCRIPT_INTEROP_EXPORT ManagedSerializableDictionaryKeyValueRTTI : public RTTIType<ManagedSerializableDictionaryKeyValue, IReflectable, ManagedSerializableDictionaryKeyValueRTTI>
 	{
-	private:
-		SPtr<ManagedSerializableFieldData> GetKey(ManagedSerializableDictionaryKeyValue* obj)
-		{
-			return obj->Key;
-		}
-
-		void SetKey(ManagedSerializableDictionaryKeyValue* obj, SPtr<ManagedSerializableFieldData> val)
-		{
-			obj->Key = val;
-		}
-
-		SPtr<ManagedSerializableFieldData> GetValue(ManagedSerializableDictionaryKeyValue* obj)
-		{
-			return obj->Value;
-		}
-
-		void SetValue(ManagedSerializableDictionaryKeyValue* obj, SPtr<ManagedSerializableFieldData> val)
-		{
-			obj->Value = val;
-		}
+		B3D_RTTI_BEGIN_MEMBERS
+			B3D_RTTI_MEMBER(Key, 0)
+			B3D_RTTI_MEMBER(Value, 1)
+		B3D_RTTI_END_MEMBERS
 
 	public:
-		ManagedSerializableDictionaryKeyValueRTTI()
-		{
-			AddReflectablePtrField("key", 0, &ManagedSerializableDictionaryKeyValueRTTI::GetKey, &ManagedSerializableDictionaryKeyValueRTTI::SetKey);
-			AddReflectablePtrField("value", 1, &ManagedSerializableDictionaryKeyValueRTTI::GetValue, &ManagedSerializableDictionaryKeyValueRTTI::SetValue);
-		}
-
 		const String& GetRttiName()
 		{
 			static String name = "ManagedSerializableDictionaryKeyValue";
@@ -62,38 +40,14 @@ namespace bs
 
 	class B3D_SCRIPT_INTEROP_EXPORT ManagedSerializableDictionaryRTTI : public RTTIType<ManagedSerializableDictionary, IReflectable, ManagedSerializableDictionaryRTTI>
 	{
-	private:
-		SPtr<ManagedSerializableTypeInfoDictionary> GetTypeInfo(ManagedSerializableDictionary* obj) { return obj->mDictionaryTypeInfo; }
+		Vector<ManagedSerializableDictionaryKeyValue> mSequentialData;
 
-		void SetTypeInfo(ManagedSerializableDictionary* obj, SPtr<ManagedSerializableTypeInfoDictionary> val) { obj->mDictionaryTypeInfo = val; }
-
-		ManagedSerializableDictionaryKeyValue& GetEntry(ManagedSerializableDictionary* obj, u32 arrayIdx)
-		{
-			return mSequentialData[arrayIdx];
-		}
-
-		void SetEntry(ManagedSerializableDictionary* obj, u32 arrayIdx, ManagedSerializableDictionaryKeyValue& val)
-		{
-			obj->SetFieldData(val.Key, val.Value);
-		}
-
-		u32 GetNumEntries(ManagedSerializableDictionary* obj)
-		{
-			return (u32)mSequentialData.size();
-		}
-
-		void SetNumEntries(ManagedSerializableDictionary* obj, u32 numEntries)
-		{
-			// Do nothing
-		}
+		B3D_RTTI_BEGIN_MEMBERS
+			B3D_RTTI_MEMBER(mDictionaryTypeInfo, 0)
+			B3D_RTTI_GENERATED_MEMBER_CONTAINER(mSequentialData, 1)
+		B3D_RTTI_END_MEMBERS
 
 	public:
-		ManagedSerializableDictionaryRTTI()
-		{
-			AddReflectablePtrField("mListTypeInfo", 0, &ManagedSerializableDictionaryRTTI::GetTypeInfo, &ManagedSerializableDictionaryRTTI::SetTypeInfo);
-			AddReflectableArrayField("mEntries", 1, &ManagedSerializableDictionaryRTTI::GetEntry, &ManagedSerializableDictionaryRTTI::GetNumEntries, &ManagedSerializableDictionaryRTTI::SetEntry, &ManagedSerializableDictionaryRTTI::SetNumEntries);
-		}
-
 		void OnOperationStarted(ManagedSerializableDictionary& object, RTTIOperationTypeFlags operationType, RTTIOperationContext& context) override
 		{
 			if(operationType.IsSet(RTTIOperationType::ReadBit))
@@ -101,7 +55,15 @@ namespace bs
 				auto enumerator = object.GetEnumerator();
 				while(enumerator.MoveNext())
 					mSequentialData.push_back(ManagedSerializableDictionaryKeyValue(enumerator.GetKey(), enumerator.GetValue()));
-				
+			}
+		}
+
+		void OnOperationEnded(ManagedSerializableDictionary& object, RTTIOperationTypeFlags operationType, RTTIOperationContext& context) override
+		{
+			if(operationType.IsSet(RTTIOperationType::WriteBit))
+			{
+				for(const auto& entry : mSequentialData)
+					object.SetFieldData(entry.Key, entry.Value);
 			}
 		}
 
@@ -120,9 +82,6 @@ namespace bs
 		{
 			return ManagedSerializableDictionary::CreateEmpty();
 		}
-
-	private:
-		Vector<ManagedSerializableDictionaryKeyValue> mSequentialData;
 	};
 
 	/** @} */

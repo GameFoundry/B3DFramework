@@ -17,33 +17,12 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ManagedResourceMetaDataRTTI : public RTTIType<ManagedResourceMetaData, ResourceMetaData, ManagedResourceMetaDataRTTI>
 	{
 	private:
-		String& GetNamespace(ManagedResourceMetaData* obj)
-		{
-			return obj->TypeNamespace;
-		}
-
-		void SetNamespace(ManagedResourceMetaData* obj, String& val)
-		{
-			obj->TypeNamespace = val;
-		}
-
-		String& GetTypename(ManagedResourceMetaData* obj)
-		{
-			return obj->TypeName;
-		}
-
-		void SetTypename(ManagedResourceMetaData* obj, String& val)
-		{
-			obj->TypeName = val;
-		}
+		B3D_RTTI_BEGIN_MEMBERS
+			B3D_RTTI_MEMBER(TypeNamespace, 0)
+			B3D_RTTI_MEMBER(TypeName, 1)
+		B3D_RTTI_END_MEMBERS
 
 	public:
-		ManagedResourceMetaDataRTTI()
-		{
-			AddPlainField("mTypeNamespace", 0, &ManagedResourceMetaDataRTTI::GetNamespace, &ManagedResourceMetaDataRTTI::SetNamespace);
-			AddPlainField("mTypeName", 1, &ManagedResourceMetaDataRTTI::GetTypename, &ManagedResourceMetaDataRTTI::SetTypename);
-		}
-
 		const String& GetRttiName()
 		{
 			static String name = "ManagedResourceMetaData";

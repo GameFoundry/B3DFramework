@@ -20,74 +20,40 @@ namespace bs
 
 	class B3D_SCRIPT_INTEROP_EXPORT ManagedSerializableArrayRTTI : public RTTIType<ManagedSerializableArray, IReflectable, ManagedSerializableArrayRTTI>
 	{
-	private:
-		SPtr<ManagedSerializableTypeInfoArray> GetTypeInfo(ManagedSerializableArray* obj)
-		{
-			return obj->mArrayTypeInfo;
-		}
+		Vector<SPtr<ManagedSerializableFieldData>> mArrayEntries;
 
-		void SetTypeInfo(ManagedSerializableArray* obj, SPtr<ManagedSerializableTypeInfoArray> val)
-		{
-			obj->mArrayTypeInfo = val;
-		}
-
-		u32& GetElementSize(ManagedSerializableArray* obj)
-		{
-			return (u32&)obj->mElemSize;
-		}
-
-		void SetElementSize(ManagedSerializableArray* obj, u32& numElements)
-		{
-			obj->mElemSize = numElements;
-		}
-
-		u32& GetNumElements(ManagedSerializableArray* obj, u32 arrayIdx)
-		{
-			return (u32&)obj->mNumElements[arrayIdx];
-		}
-
-		void SetNumElements(ManagedSerializableArray* obj, u32 arrayIdx, u32& numElements)
-		{
-			obj->mNumElements[arrayIdx] = numElements;
-		}
-
-		u32 GetNumElementsNumEntries(ManagedSerializableArray* obj)
-		{
-			return (u32)obj->mNumElements.size();
-		}
-
-		void SetNumElementsNumEntries(ManagedSerializableArray* obj, u32 numEntries)
-		{
-			obj->mNumElements.resize(numEntries);
-		}
-
-		SPtr<ManagedSerializableFieldData> GetArrayEntry(ManagedSerializableArray* obj, u32 arrayIdx)
-		{
-			return obj->GetFieldData(arrayIdx);
-		}
-
-		void SetArrayEntry(ManagedSerializableArray* obj, u32 arrayIdx, SPtr<ManagedSerializableFieldData> val)
-		{
-			obj->SetFieldData(arrayIdx, val);
-		}
-
-		u32 GetNumArrayEntries(ManagedSerializableArray* obj)
-		{
-			return obj->GetTotalLength();
-		}
-
-		void SetNumArrayEntries(ManagedSerializableArray* obj, u32 numEntries)
-		{
-			obj->mCachedEntries = Vector<SPtr<ManagedSerializableFieldData>>(numEntries);
-		}
+		B3D_RTTI_BEGIN_MEMBERS
+			B3D_RTTI_MEMBER(mArrayTypeInfo, 0)
+			B3D_RTTI_MEMBER(mElemSize, 1)
+			B3D_RTTI_MEMBER_CONTAINER(mNumElements, 2)
+			B3D_RTTI_GENERATED_MEMBER_CONTAINER(mArrayEntries, 3)
+		B3D_RTTI_END_MEMBERS
 
 	public:
-		ManagedSerializableArrayRTTI()
+		void OnOperationStarted(ManagedSerializableArray& object, RTTIOperationTypeFlags operationType, RTTIOperationContext& context) override
 		{
-			AddReflectablePtrField("mArrayTypeInfo", 0, &ManagedSerializableArrayRTTI::GetTypeInfo, &ManagedSerializableArrayRTTI::SetTypeInfo);
-			AddPlainField("mElementSize", 1, &ManagedSerializableArrayRTTI::GetElementSize, &ManagedSerializableArrayRTTI::SetElementSize);
-			AddPlainArrayField("mNumElements", 2, &ManagedSerializableArrayRTTI::GetNumElements, &ManagedSerializableArrayRTTI::GetNumElementsNumEntries, &ManagedSerializableArrayRTTI::SetNumElements, &ManagedSerializableArrayRTTI::SetNumElementsNumEntries);
-			AddReflectablePtrArrayField("mArrayEntries", 3, &ManagedSerializableArrayRTTI::GetArrayEntry, &ManagedSerializableArrayRTTI::GetNumArrayEntries, &ManagedSerializableArrayRTTI::SetArrayEntry, &ManagedSerializableArrayRTTI::SetNumArrayEntries);
+			if(operationType.IsSet(RTTIOperationType::ReadBit))
+			{
+				const u32 arrayLength = object.GetTotalLength();
+				mArrayEntries.reserve(arrayLength);
+
+				for(u32 arrayElementIndex = 0; arrayElementIndex < arrayLength; ++arrayElementIndex)
+				{
+					mArrayEntries.emplace_back(object.GetFieldData(arrayElementIndex));
+				}
+			}
+		}
+
+		void OnOperationEnded(ManagedSerializableArray& object, RTTIOperationTypeFlags operationType, RTTIOperationContext& context) override
+		{
+			if(operationType.IsSet(RTTIOperationType::WriteBit))
+			{
+				const u32 arrayLength = (u32)mArrayEntries.size();
+				object.mCachedEntries.resize(arrayLength);
+
+				for(u32 arrayElementIndex = 0; arrayElementIndex < arrayLength; ++arrayElementIndex)
+					object.SetFieldData(arrayElementIndex, mArrayEntries[arrayElementIndex]);
+			}
 		}
 
 		const String& GetRttiName()

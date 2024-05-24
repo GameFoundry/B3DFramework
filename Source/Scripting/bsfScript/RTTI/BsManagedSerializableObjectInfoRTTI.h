@@ -163,11 +163,7 @@ namespace bs
 
 	class B3D_SCRIPT_INTEROP_EXPORT ManagedSerializablePropertyInfoRTTI : public RTTIType<ManagedSerializablePropertyInfo, ManagedSerializableMemberInfo, ManagedSerializablePropertyInfoRTTI>
 	{
-	private:
 	public:
-		ManagedSerializablePropertyInfoRTTI()
-		{}
-
 		const String& GetRttiName() override
 		{
 			static String name = "ScriptSerializablePropertyInfo";
@@ -187,11 +183,7 @@ namespace bs
 
 	class B3D_SCRIPT_INTEROP_EXPORT ManagedSerializableTypeInfoRTTI : public RTTIType<ManagedSerializableTypeInfo, IReflectable, ManagedSerializableTypeInfoRTTI>
 	{
-	private:
 	public:
-		ManagedSerializableTypeInfoRTTI()
-		{}
-
 		const String& GetRttiName() override
 		{
 			static String name = "ScriptSerializableTypeInfo";

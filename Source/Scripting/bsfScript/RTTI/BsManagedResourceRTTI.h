@@ -19,23 +19,13 @@ namespace bs
 
 	class B3D_SCRIPT_INTEROP_EXPORT ManagedResourceRTTI : public RTTIType<ManagedResource, Resource, ManagedResourceRTTI>
 	{
-	private:
-		SPtr<ManagedSerializableObject> GetObjectData(ManagedResource* obj)
-		{
-			return AnyCast<SPtr<ManagedSerializableObject>>(mSerializableObject);
-		}
+		SPtr<ManagedSerializableObject> mSerializableObject;
 
-		void SetObjectData(ManagedResource* obj, SPtr<ManagedSerializableObject> val)
-		{
-			mSerializableObject = val;
-		}
+		B3D_RTTI_BEGIN_MEMBERS
+			B3D_RTTI_GENERATED_MEMBER(mSerializableObject, 0)
+		B3D_RTTI_END_MEMBERS
 
 	public:
-		ManagedResourceRTTI()
-		{
-			AddReflectablePtrField("mObjectData", 0, &ManagedResourceRTTI::GetObjectData, &ManagedResourceRTTI::SetObjectData);
-		}
-
 		void OnOperationStarted(ManagedResource& object, RTTIOperationTypeFlags operationType, RTTIOperationContext& context) override
 		{
 			if(operationType.IsSet(RTTIOperationType::ReadBit))
@@ -69,9 +59,6 @@ namespace bs
 		{
 			return ManagedResource::CreateEmpty();
 		}
-
-	private:
-		SPtr<ManagedSerializableObject> mSerializableObject;
 	};
 
 	/** @} */
