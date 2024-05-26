@@ -7,10 +7,6 @@
 #include "Reflection/BsIReflectable.h"
 #include "Reflection/BsRTTIType.h"
 #include "Reflection/BsRTTIField.h"
-#include "Reflection/BsRTTIPlainField.h"
-#include "Reflection/BsRTTIReflectableField.h"
-#include "Reflection/BsRTTIReflectablePtrField.h"
-#include "Reflection/BsRTTIManagedDataBlockField.h"
 #include "FileSystem/BsDataStream.h"
 #include "Reflection/BsRTTIIteratorField.h"
 #include "Utility/BsBufferedBitstream.h"
@@ -652,7 +648,7 @@ bool BinaryDeserializationContext::DeserializeReflectableObject(SPtr<RTTISchema>
 		{
 			if(B3D_ENSURE(!decodedFieldSchema.IsContainer && decodedFieldSchema.FieldTypes.Size() == 1 && decodedFieldSchema.FieldTypes[0].Type == RTTIFieldDataType::DataBlock))
 			{
-				auto* curField = static_cast<RTTIManagedDataBlockFieldBase*>(field);
+				auto* curField = static_cast<RTTIDataBlockFieldBase*>(field);
 
 				// Data block size
 				u32 dataBlockSize = 0;
@@ -1148,7 +1144,7 @@ bool BinarySerializationContext::SerializeReflectableObject(IReflectable* object
 			{
 				if(B3D_ENSURE(!field->Schema.IsContainer && field->Schema.FieldTypes.Size() == 1 && field->Schema.FieldTypes[0].Type == RTTIFieldDataType::DataBlock))
 				{
-					auto* curField = static_cast<RTTIManagedDataBlockFieldBase*>(field);
+					auto* curField = static_cast<RTTIDataBlockFieldBase*>(field);
 
 					u32 dataBlockSize = 0;
 					SPtr<DataStream> blockStream = curField->GetValue(rttiInstance, object, dataBlockSize);

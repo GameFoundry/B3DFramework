@@ -16,24 +16,25 @@ namespace bs
 	 */
 
 	/**
-	 * Base class containing common functionality for a managed data block class field.
+	 * Base class containing common functionality for a data block class field.
 	 *
-	 * @note
-	 * Managed data blocks are just blocks of memory that may, or may not be released automatically when they are no longer
-	 * referenced. They are useful when wanting to return some temporary data only for serialization purposes.
+	 * Data block fields contain blocks of memory that may, or may not be released automatically when they are no longer
+	 * referenced. When such fields are being deserialized, the stream will point directly to the location we're deserializing
+	 * from (e.g. a file). This allows the caller either to immediately read the data, or store the stream pointer for a streaming
+	 * read later.
 	 */
-	struct RTTIManagedDataBlockFieldBase : public RTTIField
+	struct RTTIDataBlockFieldBase : public RTTIField
 	{
-		/** Retrieves a managed data block from the specified instance. */
+		/** Retrieves a data block from the specified instance. */
 		virtual SPtr<DataStream> GetValue(RTTITypeBase* rtti, void* object, u32& size) = 0;
 
-		/** Sets a managed data block on the specified instance. */
+		/** Sets a data block on the specified instance. */
 		virtual void SetValue(RTTITypeBase* rtti, void* object, const SPtr<DataStream>& data, u32 size) = 0;
 	};
 
-	/** Class containing a managed data block field containing a specific type. */
+	/** Class containing a data block field containing a specific type. */
 	template <class InterfaceType, class DataType, class ObjectType>
-	struct RTTIManagedDataBlockField : public RTTIManagedDataBlockFieldBase
+	struct RTTIDataBlockField : public RTTIDataBlockFieldBase
 	{
 		typedef SPtr<DataStream> (InterfaceType::*GetterType)(ObjectType*, u32&);
 		typedef void (InterfaceType::*SetterType)(ObjectType*, const SPtr<DataStream>&, u32);
@@ -68,18 +69,6 @@ namespace bs
 			fieldTypeSchema.HasDynamicSize = Schema.HasDynamicSize;
 
 			Schema.FieldTypes.Add(fieldTypeSchema);
-		}
-
-		u32 GetArraySize(RTTITypeBase* rtti, void* object) override
-		{
-			B3D_EXCEPT(InternalErrorException, "Data block types don't support arrays.");
-
-			return 0;
-		}
-
-		void SetArraySize(RTTITypeBase* rtti, void* object, u32 size) override
-		{
-			B3D_EXCEPT(InternalErrorException, "Data block types don't support arrays.");
 		}
 
 		SPtr<DataStream> GetValue(RTTITypeBase* rtti, void* object, u32& size) override

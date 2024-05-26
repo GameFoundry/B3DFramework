@@ -698,7 +698,7 @@ void IDeltaHandler::ApplyDelta(const SPtr<IReflectable>& object, const SPtr<Seri
 		{
 		case Diff_ArraySize:
 			{
-				if(command.Field->Schema.IsIterator)
+				if(B3D_ENSURE(command.Field->Schema.IsIterator))
 				{
 					auto& field = *static_cast<RTTIIteratorField*>(command.Field);
 					SPtr<IRTTIIterator> iterator = field.GetIterator(rttiInstance, destinationObject, allocator);
@@ -729,10 +729,6 @@ void IDeltaHandler::ApplyDelta(const SPtr<IReflectable>& object, const SPtr<Seri
 							}
 						}
 					}
-				}
-				else
-				{
-					command.Field->SetArraySize(rttiInstance, destinationObject, command.ArraySize);
 				}
 			}
 			break;
@@ -948,7 +944,7 @@ void IDeltaHandler::ApplyDelta(const SPtr<IReflectable>& object, const SPtr<Seri
 			{
 				if(B3D_ENSURE(!isArray) && B3D_ENSURE(type == Diff_DataBlock))
 				{
-					auto* field = static_cast<RTTIManagedDataBlockFieldBase*>(command.Field);
+					auto* field = static_cast<RTTIDataBlockFieldBase*>(command.Field);
 					field->SetValue(rttiInstance, destinationObject, command.StreamValue, command.Size);
 				}
 			}

@@ -221,12 +221,7 @@ namespace bs::RTTIObjectWrapper
 		}
 		else
 		{
-			if(mField->Schema.IsContainer)
-			{
-				const u32 arraySize = mField->GetArraySize(mRTTITypeInstance, mObject);
-				return ValueIterator<true>(mField, mRTTITypeInstance, mObject, arraySize, mFrameAllocator);
-			}
-			else
+			if(B3D_ENSURE(!mField->Schema.IsContainer))
 				return ValueIterator<true>(mField, mRTTITypeInstance, mObject, ~0u, mFrameAllocator);
 		}
 	}
@@ -654,7 +649,7 @@ namespace bs::RTTIObjectWrapper
 
 	inline SPtr<DataStream> Value<true>::GetDataStream(u32& size, u32& offset) const
 	{
-		auto* field = static_cast<RTTIManagedDataBlockFieldBase*>(mField);
+		auto* field = static_cast<RTTIDataBlockFieldBase*>(mField);
 
 		SPtr<DataStream> stream = field->GetValue(mRTTITypeInstance, mObject, size);
 		offset = (u32)stream->Tell();

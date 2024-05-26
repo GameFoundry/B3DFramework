@@ -407,7 +407,7 @@ namespace bs
 		template <class InterfaceType, class ObjectType>
 		void AddDataBlockField(const String& name, u32 uniqueId, SPtr<DataStream> (InterfaceType::*getter)(ObjectType*, u32&), void (InterfaceType::*setter)(ObjectType*, const SPtr<DataStream>&, u32), const RTTIFieldInfo& info = RTTIFieldInfo::DEFAULT)
 		{
-			auto newField = B3DNew<RTTIManagedDataBlockField<InterfaceType, u8*, ObjectType>>();
+			auto newField = B3DNew<RTTIDataBlockField<InterfaceType, u8*, ObjectType>>();
 			newField->InitSingle(name, uniqueId, getter, setter, info);
 			AddNewField(newField);
 		}

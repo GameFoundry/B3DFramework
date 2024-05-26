@@ -2,7 +2,6 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "Serialization/BsIntermediateSerializer.h"
 #include "FileSystem/BsDataStream.h"
-#include "Reflection/BsRTTIReflectablePtrField.h"
 #include "Reflection/BsRTTIType.h"
 
 using namespace bs;
@@ -139,7 +138,7 @@ void IntermediateSerializer::DeserializeReflectableObject(const SPtr<IReflectabl
 				if(!B3D_ENSURE(curGenericField->Schema.FieldTypes[0].Type == RTTIFieldDataType::DataBlock))
 					continue;
 
-				auto* curField = static_cast<RTTIManagedDataBlockFieldBase*>(curGenericField);
+				auto* curField = static_cast<RTTIDataBlockFieldBase*>(curGenericField);
 
 				SPtr<SerializedDataBlock> serializedDataBlock = std::static_pointer_cast<SerializedDataBlock>(serializedFieldValue);
 				if(serializedDataBlock != nullptr)
@@ -344,7 +343,7 @@ SPtr<ISerialized> IntermediateSerializer::SerializeDataBlockField(IReflectable* 
 	if(!B3D_ENSURE(field->Schema.FieldTypes[0].Type == RTTIFieldDataType::DataBlock))
 		return nullptr;
 
-	auto curField = static_cast<RTTIManagedDataBlockFieldBase*>(field);
+	auto curField = static_cast<RTTIDataBlockFieldBase*>(field);
 
 	u32 dataBlockSize = 0;
 	SPtr<DataStream> blockStream = curField->GetValue(rtti, object, dataBlockSize);
