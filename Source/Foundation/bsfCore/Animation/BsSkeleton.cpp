@@ -73,8 +73,12 @@ LocalSkeletonPose& LocalSkeletonPose::operator=(LocalSkeletonPose&& other)
 }
 
 Skeleton::Skeleton(BONE_DESC* bones, u32 numBones)
-	: mNumBones(numBones), mBoneTransforms(B3DNewMultiple<Transform>(numBones)), mInvBindPoses(B3DNewMultiple<Matrix4>(numBones)), mBoneInfo(B3DNewMultiple<SkeletonBoneInfo>(numBones))
+	: mNumBones(numBones)
 {
+	mBoneTransforms.Resize(numBones);
+	mInvBindPoses.Resize(numBones);
+	mBoneInfo.Resize(numBones);
+
 	for(u32 i = 0; i < numBones; i++)
 	{
 		mBoneTransforms[i] = bones[i].LocalTfrm;
@@ -82,18 +86,6 @@ Skeleton::Skeleton(BONE_DESC* bones, u32 numBones)
 		mBoneInfo[i].Name = bones[i].Name;
 		mBoneInfo[i].Parent = bones[i].Parent;
 	}
-}
-
-Skeleton::~Skeleton()
-{
-	if(mBoneTransforms != nullptr)
-		B3DDeleteMultiple(mBoneTransforms, mNumBones);
-
-	if(mInvBindPoses != nullptr)
-		B3DDeleteMultiple(mInvBindPoses, mNumBones);
-
-	if(mBoneInfo != nullptr)
-		B3DDeleteMultiple(mBoneInfo, mNumBones);
 }
 
 SPtr<Skeleton> Skeleton::Create(BONE_DESC* bones, u32 numBones)

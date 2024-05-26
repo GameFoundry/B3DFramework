@@ -17,33 +17,13 @@ namespace bs
 
 	class B3D_CORE_EXPORT StringTableRTTI : public RTTIType<StringTable, Resource, StringTableRTTI>
 	{
-	private:
-		Language& GetActiveLanguage(StringTable* obj) { return obj->mActiveLanguage; }
-
-		void SetActiveLanguage(StringTable* obj, Language& val) { obj->mActiveLanguage = val; }
-
-		LanguageData& GetLanguageData(StringTable* obj, u32 idx) { return obj->mAllLanguages[idx]; }
-
-		void SetLanguageData(StringTable* obj, u32 idx, LanguageData& val) { obj->mAllLanguages[idx] = val; }
-
-		u32 GetNumLanguages(StringTable* obj) { return (u32)Language::Count; }
-
-		void SetNumLanguages(StringTable* obj, u32 val)
-		{ /* Do nothing */
-		}
-
-		UnorderedSet<String>& GetIdentifiers(StringTable* obj) { return obj->mIdentifiers; }
-
-		void SetIdentifiers(StringTable* obj, UnorderedSet<String>& val) { obj->mIdentifiers = val; }
+		B3D_RTTI_BEGIN_MEMBERS
+			B3D_RTTI_MEMBER(mActiveLanguage, 0)
+			B3D_RTTI_MEMBER_CONTAINER(mAllLanguages, 1)
+			B3D_RTTI_MEMBER_CONTAINER(mIdentifiers, 2)
+		B3D_RTTI_END_MEMBERS
 
 	public:
-		StringTableRTTI()
-		{
-			AddPlainField("mActiveLanguage", 0, &StringTableRTTI::GetActiveLanguage, &StringTableRTTI::SetActiveLanguage);
-			AddPlainArrayField("mLanguageData", 1, &StringTableRTTI::GetLanguageData, &StringTableRTTI::GetNumLanguages, &StringTableRTTI::SetLanguageData, &StringTableRTTI::SetNumLanguages);
-			AddPlainField("mIdentifiers", 2, &StringTableRTTI::GetIdentifiers, &StringTableRTTI::SetIdentifiers);
-		}
-
 		void OnOperationEnded(StringTable& object, RTTIOperationTypeFlags operationType, RTTIOperationContext& context) override
 		{
 			if(operationType.IsSet(RTTIOperationType::WriteBit))

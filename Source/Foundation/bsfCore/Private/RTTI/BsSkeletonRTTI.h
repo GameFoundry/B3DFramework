@@ -17,53 +17,14 @@ namespace bs
 
 	class B3D_CORE_EXPORT SkeletonRTTI : public RTTIType<Skeleton, IReflectable, SkeletonRTTI>
 	{
-	private:
-		Matrix4& GetBindPose(Skeleton* obj, u32 idx) { return obj->mInvBindPoses[idx]; }
-
-		void SetBindPose(Skeleton* obj, u32 idx, Matrix4& value) { obj->mInvBindPoses[idx] = value; }
-
-		void SetNumBindPoses(Skeleton* obj, u32 size)
-		{
-			obj->mNumBones = size;
-
-			B3D_ASSERT(obj->mInvBindPoses == nullptr);
-			obj->mInvBindPoses = B3DNewMultiple<Matrix4>(size);
-		}
-
-		SkeletonBoneInfo& GetBoneInfo(Skeleton* obj, u32 idx) { return obj->mBoneInfo[idx]; }
-
-		void SetBoneInfo(Skeleton* obj, u32 idx, SkeletonBoneInfo& value) { obj->mBoneInfo[idx] = value; }
-
-		void SetNumBoneInfos(Skeleton* obj, u32 size)
-		{
-			obj->mNumBones = size;
-
-			B3D_ASSERT(obj->mBoneInfo == nullptr);
-			obj->mBoneInfo = B3DNewMultiple<SkeletonBoneInfo>(size);
-		}
-
-		Transform& GetBoneTransform(Skeleton* obj, u32 idx) { return obj->mBoneTransforms[idx]; }
-
-		void SetBoneTransform(Skeleton* obj, u32 idx, Transform& value) { obj->mBoneTransforms[idx] = value; }
-
-		void SetNumBoneTransforms(Skeleton* obj, u32 size)
-		{
-			obj->mNumBones = size;
-
-			B3D_ASSERT(obj->mBoneTransforms == nullptr);
-			obj->mBoneTransforms = B3DNewMultiple<Transform>(size);
-		}
-
-		u32 GetNumBones(Skeleton* obj) { return obj->mNumBones; }
+		B3D_RTTI_BEGIN_MEMBERS
+			B3D_RTTI_MEMBER(mNumBones, 0)
+			B3D_RTTI_MEMBER_CONTAINER(mInvBindPoses, 1)
+			B3D_RTTI_MEMBER_CONTAINER(mBoneTransforms, 2)
+			B3D_RTTI_MEMBER_CONTAINER(mBoneInfo, 3)
+		B3D_RTTI_END_MEMBERS
 
 	public:
-		SkeletonRTTI()
-		{
-			AddPlainArrayField("bindPoses", 0, &SkeletonRTTI::GetBindPose, &SkeletonRTTI::GetNumBones, &SkeletonRTTI::SetBindPose, &SkeletonRTTI::SetNumBindPoses);
-			AddPlainArrayField("boneInfo", 1, &SkeletonRTTI::GetBoneInfo, &SkeletonRTTI::GetNumBones, &SkeletonRTTI::SetBoneInfo, &SkeletonRTTI::SetNumBoneInfos);
-			AddReflectableArrayField("boneTransforms", 3, &SkeletonRTTI::GetBoneTransform, &SkeletonRTTI::GetNumBones, &SkeletonRTTI::SetBoneTransform, &SkeletonRTTI::SetNumBoneTransforms);
-		}
-
 		const String& GetRttiName()
 		{
 			static String name = "Skeleton";

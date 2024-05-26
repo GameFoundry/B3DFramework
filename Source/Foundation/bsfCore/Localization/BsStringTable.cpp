@@ -159,18 +159,13 @@ void LocalizedStringData::UpdateString(const bs::String& _string)
 }
 
 StringTable::StringTable()
-	: Resource(false), mActiveLanguageData(nullptr), mDefaultLanguageData(nullptr), mAllLanguages(nullptr)
+	: Resource(false), mActiveLanguageData(nullptr), mDefaultLanguageData(nullptr)
 {
-	mAllLanguages = B3DNewMultiple<LanguageData>((u32)Language::Count);
+	mAllLanguages.Resize((u32)Language::Count);
 
 	mDefaultLanguageData = &(mAllLanguages[(u32)kDefaultLanguage]);
 	mActiveLanguageData = mDefaultLanguageData;
 	mActiveLanguage = kDefaultLanguage;
-}
-
-StringTable::~StringTable()
-{
-	B3DDeleteMultiple(mAllLanguages, (u32)Language::Count);
 }
 
 void StringTable::SetActiveLanguage(Language language)

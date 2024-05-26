@@ -157,10 +157,10 @@ namespace bs
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
-			B3D_RTTI_MEMBER_PLAIN(mCurrentState, 0)
-			B3D_RTTI_MEMBER_PLAIN(mCommands, 1)
-			B3D_RTTI_MEMBER_PLAIN(mCommandStates, 2)
-			B3D_RTTI_MEMBER_PLAIN(mCanvasSize, 3)
+			B3D_RTTI_MEMBER(mCurrentState, 0)
+			B3D_RTTI_MEMBER(mCommands, 1)
+			B3D_RTTI_MEMBER(mCommandStates, 2)
+			B3D_RTTI_MEMBER(mCanvasSize, 3)
 		B3D_RTTI_END_MEMBERS
 
 	public:
@@ -185,7 +185,7 @@ namespace bs
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
-			B3D_RTTI_MEMBER_PLAIN(mSettings, 0)
+			B3D_RTTI_MEMBER(mSettings, 0)
 		B3D_RTTI_END_MEMBERS
 
 	public:

@@ -20,11 +20,11 @@ namespace bs
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
-			B3D_RTTI_MEMBER_PLAIN(mNormArea, 0)
-			B3D_RTTI_MEMBER_PLAIN(mClearColorValue, 1)
-			B3D_RTTI_MEMBER_PLAIN(mClearDepthValue, 2)
-			B3D_RTTI_MEMBER_PLAIN(mClearStencilValue, 3)
-			B3D_RTTI_MEMBER_PLAIN(mClearFlags, 4)
+			B3D_RTTI_MEMBER(mNormArea, 0)
+			B3D_RTTI_MEMBER(mClearColorValue, 1)
+			B3D_RTTI_MEMBER(mClearDepthValue, 2)
+			B3D_RTTI_MEMBER(mClearStencilValue, 3)
+			B3D_RTTI_MEMBER(mClearFlags, 4)
 		B3D_RTTI_END_MEMBERS
 	public:
 		void OnOperationEnded(Viewport& object, RTTIOperationTypeFlags operationType, RTTIOperationContext& context) override

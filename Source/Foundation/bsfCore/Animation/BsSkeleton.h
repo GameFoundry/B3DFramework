@@ -117,8 +117,6 @@ namespace bs
 	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Animation)) Skeleton : public IReflectable // Note: Must be immutable in order to be usable on multiple threads
 	{
 	public:
-		~Skeleton();
-
 		/**
 		 * Outputs a skeleton pose containing required transforms for transforming the skeleton to the values specified by
 		 * the provided animation clip evaluated at the specified time.
@@ -181,9 +179,9 @@ namespace bs
 		Skeleton(BONE_DESC* bones, u32 numBones);
 
 		u32 mNumBones = 0;
-		Transform* mBoneTransforms = nullptr;
-		Matrix4* mInvBindPoses = nullptr;
-		SkeletonBoneInfo* mBoneInfo = nullptr;
+		TArray<Transform> mBoneTransforms;
+		TArray<Matrix4> mInvBindPoses;
+		TArray<SkeletonBoneInfo> mBoneInfo;
 
 		/************************************************************************/
 		/* 								SERIALIZATION                      		*/

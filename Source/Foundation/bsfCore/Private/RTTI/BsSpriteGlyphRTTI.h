@@ -19,10 +19,10 @@ namespace bs
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
-			B3D_RTTI_MEMBER_REFL(mAtlasTexture, 0)
-			B3D_RTTI_MEMBER_REFL(mFont, 1)
-			B3D_RTTI_MEMBER_PLAIN(mGlyph, 2)
-			B3D_RTTI_MEMBER_PLAIN(mGlyphSize, 3)
+			B3D_RTTI_MEMBER(mAtlasTexture, 0)
+			B3D_RTTI_MEMBER(mFont, 1)
+			B3D_RTTI_MEMBER(mGlyph, 2)
+			B3D_RTTI_MEMBER(mGlyphSize, 3)
 		B3D_RTTI_END_MEMBERS
 
 	public:

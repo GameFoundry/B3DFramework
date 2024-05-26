@@ -257,7 +257,6 @@ namespace bs
 
 	public:
 		StringTable();
-		~StringTable();
 
 		/**
 		 * Checks does the string table contain the provided identifier.
@@ -345,7 +344,7 @@ namespace bs
 		LanguageData* mActiveLanguageData;
 		LanguageData* mDefaultLanguageData;
 
-		LanguageData* mAllLanguages;
+		TArray<LanguageData> mAllLanguages;
 
 		UnorderedSet<String> mIdentifiers;
 

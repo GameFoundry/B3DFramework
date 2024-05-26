@@ -16,17 +16,11 @@ namespace bs
 
 	class B3D_CORE_EXPORT ShaderIncludeRTTI : public RTTIType<ShaderInclude, Resource, ShaderIncludeRTTI>
 	{
-	private:
-		String& GetString(ShaderInclude* obj) { return obj->mString; }
-
-		void SetString(ShaderInclude* obj, String& val) { obj->mString = val; }
+		B3D_RTTI_BEGIN_MEMBERS
+			B3D_RTTI_MEMBER(mString, 0)
+		B3D_RTTI_END_MEMBERS
 
 	public:
-		ShaderIncludeRTTI()
-		{
-			AddPlainField("mString", 0, &ShaderIncludeRTTI::GetString, &ShaderIncludeRTTI::SetString);
-		}
-
 		const String& GetRttiName()
 		{
 			static String name = "ShaderInclude";

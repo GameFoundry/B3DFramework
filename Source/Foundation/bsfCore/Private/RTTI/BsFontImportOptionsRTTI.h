@@ -20,12 +20,12 @@ namespace bs
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
-			B3D_RTTI_MEMBER_PLAIN(FontSizes, 0)
-			B3D_RTTI_MEMBER_PLAIN(Dpi, 2)
-			B3D_RTTI_MEMBER_PLAIN(RenderMode, 3)
-			B3D_RTTI_MEMBER_PLAIN(Bold, 4)
-			B3D_RTTI_MEMBER_PLAIN(Italic, 5)
-			B3D_RTTI_MEMBER_PLAIN(CharIndexRanges, 6)
+			B3D_RTTI_MEMBER(FontSizes, 0)
+			B3D_RTTI_MEMBER(Dpi, 2)
+			B3D_RTTI_MEMBER(RenderMode, 3)
+			B3D_RTTI_MEMBER(Bold, 4)
+			B3D_RTTI_MEMBER(Italic, 5)
+			B3D_RTTI_MEMBER(CharIndexRanges, 6)
 		B3D_RTTI_END_MEMBERS
 
 		// For compability with old version

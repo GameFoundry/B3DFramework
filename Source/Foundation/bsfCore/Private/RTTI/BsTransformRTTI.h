@@ -19,9 +19,9 @@ namespace bs
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
-			B3D_RTTI_MEMBER_PLAIN(mPosition, 0)
-			B3D_RTTI_MEMBER_PLAIN(mRotation, 1)
-			B3D_RTTI_MEMBER_PLAIN(mScale, 2)
+			B3D_RTTI_MEMBER(mPosition, 0)
+			B3D_RTTI_MEMBER(mRotation, 1)
+			B3D_RTTI_MEMBER(mScale, 2)
 		B3D_RTTI_END_MEMBERS
 
 	public:

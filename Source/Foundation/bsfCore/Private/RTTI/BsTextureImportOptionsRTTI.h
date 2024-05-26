@@ -18,13 +18,13 @@ namespace bs
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
-			B3D_RTTI_MEMBER_PLAIN(Format, 0)
-			B3D_RTTI_MEMBER_PLAIN(GenerateMips, 1)
-			B3D_RTTI_MEMBER_PLAIN(MaxMip, 2)
-			B3D_RTTI_MEMBER_PLAIN(CpuCached, 3)
-			B3D_RTTI_MEMBER_PLAIN(SRgb, 4)
-			B3D_RTTI_MEMBER_PLAIN(Cubemap, 5)
-			B3D_RTTI_MEMBER_PLAIN(CubemapSourceType, 6)
+			B3D_RTTI_MEMBER(Format, 0)
+			B3D_RTTI_MEMBER(GenerateMips, 1)
+			B3D_RTTI_MEMBER(MaxMip, 2)
+			B3D_RTTI_MEMBER(CpuCached, 3)
+			B3D_RTTI_MEMBER(SRgb, 4)
+			B3D_RTTI_MEMBER(Cubemap, 5)
+			B3D_RTTI_MEMBER(CubemapSourceType, 6)
 		B3D_RTTI_END_MEMBERS
 
 	public:

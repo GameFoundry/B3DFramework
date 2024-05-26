@@ -18,11 +18,11 @@ namespace bs
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
-			B3D_RTTI_MEMBER_PLAIN_NAMED(countX, mDesc.CountX, 0)
-			B3D_RTTI_MEMBER_PLAIN_NAMED(countY, mDesc.CountY, 1)
-			B3D_RTTI_MEMBER_PLAIN_NAMED(countZ, mDesc.CountZ, 2)
-			B3D_RTTI_MEMBER_PLAIN_NAMED(bounds, mDesc.Bounds, 3)
-			B3D_RTTI_MEMBER_REFLPTR(mTexture, 4)
+			B3D_RTTI_MEMBER_NAMED(countX, mDesc.CountX, 0)
+			B3D_RTTI_MEMBER_NAMED(countY, mDesc.CountY, 1)
+			B3D_RTTI_MEMBER_NAMED(countZ, mDesc.CountZ, 2)
+			B3D_RTTI_MEMBER_NAMED(bounds, mDesc.Bounds, 3)
+			B3D_RTTI_MEMBER(mTexture, 4)
 		B3D_RTTI_END_MEMBERS
 
 	public:
