@@ -22,89 +22,37 @@ namespace bs
 
 	class B3D_CORE_EXPORT SceneObjectRTTI : public RTTIType<SceneObject, GameObject, SceneObjectRTTI>
 	{
-	private:
-		Transform& GetTransform(SceneObject* obj) { return obj->mWorldTfrm; }
-
-		void SetTransform(SceneObject* obj, Transform& value) { obj->mWorldTfrm = value; }
-
-		Transform& GetLocalTransform(SceneObject* obj) { return obj->mLocalTfrm; }
-
-		void SetLocalTransform(SceneObject* obj, Transform& value) { obj->mLocalTfrm = value; }
-
-		SPtr<SceneObject> GetChild(SceneObject* obj, u32 idx) { return obj->mChildren[idx].GetShared(); }
-
-		void SetChild(SceneObject* obj, u32 idx, SPtr<SceneObject> param)
-		{
-			// It's important that child indices remain the same after deserialization, as some systems (like SO
-			// record/restore) depend on it
-			if(idx >= mChildren.size())
-				mChildren.resize(idx + 1);
-
-			mChildren[idx] = param;
-		}
-
-		u32 GetNumChildren(SceneObject* obj) { return (u32)obj->mChildren.size(); }
-
-		void SetNumChildren(SceneObject* obj, u32 size)
-		{ /* DO NOTHING */
-		}
-
-		// NOTE - These can only be set sequentially, specific array index is ignored
-		SPtr<Component> GetComponent(SceneObject* obj, u32 idx) { return obj->mComponents[idx].GetShared(); }
-
-		void SetComponent(SceneObject* obj, u32 idx, SPtr<Component> param)
-		{
-			// It's important that child indices remain the same after deserialization, as some systems (like SO
-			// record/restore) depend on it
-			if(idx >= mComponents.size())
-				mComponents.resize(idx + 1);
-
-			mComponents[idx] = param;
-		}
-
-		u32 GetNumComponents(SceneObject* obj) { return (u32)obj->mComponents.size(); }
-
-		void SetNumComponents(SceneObject* obj, u32 size)
-		{ /* DO NOTHING */
-		}
-
-		SPtr<SceneObjectHierarchyDelta> GetPrefabDelta(SceneObject* obj) { return obj->mPrefabDelta; }
-
-		void SetPrefabDelta(SceneObject* obj, SPtr<SceneObjectHierarchyDelta> value) { obj->mPrefabDelta = value; }
-
-		u32& GetFlags(SceneObject* obj) { return obj->mFlags; }
-
-		void SetFlags(SceneObject* obj, u32& value) { obj->mFlags = value; }
-
-		UUID& GetPrefabVersion(SceneObject* obj) { return obj->mPrefabVersion; }
-
-		void SetPrefabVersion(SceneObject* obj, UUID& value) { obj->mPrefabVersion = value; }
-
-		ObjectMobility& GetMobility(SceneObject* obj) { return obj->mMobility; }
-
-		void SetMobility(SceneObject* obj, ObjectMobility& value) { obj->mMobility = value; }
+		Vector<SPtr<SceneObject>> mChildren;
+		Vector<SPtr<Component>> mComponents;
 
 		B3D_RTTI_BEGIN_MEMBERS
-			B3D_RTTI_MEMBER_PLAIN_INFO(mPrefabResourceId, 13, RTTIFieldInfo(RTTIFieldFlag::SkipInDeltaCompare | RTTIFieldFlag::SkipInDeltaCopy))
+			B3D_RTTI_GENERATED_MEMBER_CONTAINER(mChildren, 0)
+			B3D_RTTI_GENERATED_MEMBER_CONTAINER(mComponents, 1)
+			B3D_RTTI_MEMBER(mFlags, 3)
+			B3D_RTTI_MEMBER(mPrefabDelta, 4)
+			B3D_RTTI_MEMBER(mPrefabVersion, 5)
+			B3D_RTTI_MEMBER(mMobility, 10)
+			B3D_RTTI_MEMBER(mWorldTfrm, 11)
+			B3D_RTTI_MEMBER(mLocalTfrm, 12)
+			B3D_RTTI_MEMBER_INFO(mPrefabResourceId, 13, RTTIFieldInfo(RTTIFieldFlag::SkipInDeltaCompare | RTTIFieldFlag::SkipInDeltaCopy))
 		B3D_RTTI_END_MEMBERS
 
 	public:
-		SceneObjectRTTI()
-		{
-			AddReflectablePtrArrayField("mChildren", 0, &SceneObjectRTTI::GetChild, &SceneObjectRTTI::GetNumChildren, &SceneObjectRTTI::SetChild, &SceneObjectRTTI::SetNumChildren, RTTIFieldInfo(RTTIFieldFlag::SkipInDeltaCompare | RTTIFieldFlag::SkipInDeltaCopy));
-			AddReflectablePtrArrayField("mComponents", 1, &SceneObjectRTTI::GetComponent, &SceneObjectRTTI::GetNumComponents, &SceneObjectRTTI::SetComponent, &SceneObjectRTTI::SetNumComponents, RTTIFieldInfo(RTTIFieldFlag::SkipInDeltaCompare | RTTIFieldFlag::SkipInDeltaCopy));
-			//AddPlainField("mPrefabLink", 2, &SceneObjectRTTI::GetPrefabLink, &SceneObjectRTTI::SetPrefabLink);
-			AddPlainField("mFlags", 3, &SceneObjectRTTI::GetFlags, &SceneObjectRTTI::SetFlags);
-			AddReflectablePtrField("mPrefabDelta", 4, &SceneObjectRTTI::GetPrefabDelta, &SceneObjectRTTI::SetPrefabDelta, RTTIFieldInfo(RTTIFieldFlag::SkipInDeltaCompare | RTTIFieldFlag::SkipInDeltaCopy));
-			AddPlainField("mPrefabVersion", 5, &SceneObjectRTTI::GetPrefabVersion, &SceneObjectRTTI::SetPrefabVersion, RTTIFieldInfo(RTTIFieldFlag::SkipInDeltaCompare | RTTIFieldFlag::SkipInDeltaCopy));
-			AddPlainField("mMobility", 10, &SceneObjectRTTI::GetMobility, &SceneObjectRTTI::SetMobility);
-
-			AddReflectableField("mWorldTfrm", 11, &SceneObjectRTTI::GetTransform, &SceneObjectRTTI::SetTransform);
-			AddReflectableField("mLocalTfrm", 12, &SceneObjectRTTI::GetLocalTransform, &SceneObjectRTTI::SetLocalTransform);
-		}
-
 		void OnOperationStarted(SceneObject& object, RTTIOperationTypeFlags operationType, RTTIOperationContext& context) override
 		{
+			if(operationType.IsSet(RTTIOperationType::ReadBit))
+			{
+				mChildren.clear();
+				mChildren.reserve(object.mChildren.size());
+				for(const auto& entry : object.mChildren)
+					mChildren.push_back(entry.GetShared());
+
+				mComponents.clear();
+				mComponents.reserve(object.mComponents.size());
+				for(const auto& entry : object.mComponents)
+					mComponents.push_back(entry.GetShared());
+			}
+
 			if(operationType.IsSet(RTTIOperationType::WriteBit))
 			{
 				// If this is the root scene object we're deserializing, activate game object deserialization so the system
@@ -214,8 +162,6 @@ namespace bs
 
 	private:
 		bool mIsDeserializationParent = false;
-		Vector<SPtr<SceneObject>> mChildren;
-		Vector<SPtr<Component>> mComponents;
 	};
 
 	/** @} */

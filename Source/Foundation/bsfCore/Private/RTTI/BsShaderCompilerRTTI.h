@@ -21,13 +21,13 @@ namespace bs
 	class B3D_CORE_EXPORT ShaderCompilerMetaDataRTTI : public RTTIType<ShaderCompilerMetaData, IReflectable, ShaderCompilerMetaDataRTTI>
 	{
 		B3D_RTTI_BEGIN_MEMBERS
-			B3D_RTTI_MEMBER_PLAIN(Source, 0)
-			B3D_RTTI_MEMBER_PLAIN(NameInCache, 1)
-			B3D_RTTI_MEMBER_PLAIN(ShaderHash, 2)
-			B3D_RTTI_MEMBER_PLAIN(GPUProgramTypes, 3)
-			B3D_RTTI_MEMBER_REFL_ARRAY(Variations, 4)
-			B3D_RTTI_MEMBER_PLAIN(Defines, 5)
-			B3D_RTTI_MEMBER_PLAIN(IncludeHashes, 6)
+			B3D_RTTI_MEMBER(Source, 0)
+			B3D_RTTI_MEMBER(NameInCache, 1)
+			B3D_RTTI_MEMBER(ShaderHash, 2)
+			B3D_RTTI_MEMBER(GPUProgramTypes, 3)
+			B3D_RTTI_MEMBER_CONTAINER(Variations, 4)
+			B3D_RTTI_MEMBER(Defines, 5)
+			B3D_RTTI_MEMBER(IncludeHashes, 6)
 		B3D_RTTI_END_MEMBERS
 
 	public:

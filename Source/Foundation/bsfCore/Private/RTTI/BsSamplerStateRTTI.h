@@ -20,16 +20,11 @@ namespace bs
 
 	class B3D_CORE_EXPORT SamplerStateRTTI : public RTTIType<SamplerState, IReflectable, SamplerStateRTTI>
 	{
-	private:
-		SamplerStateInformation& GetData(SamplerState* obj) { return obj->mInformation; }
-		void SetData(SamplerState* obj, SamplerStateInformation& val) { obj->mInformation = val; }
+		B3D_RTTI_BEGIN_MEMBERS
+			B3D_RTTI_MEMBER(mInformation, 0)
+		B3D_RTTI_END_MEMBERS
 
 	public:
-		SamplerStateRTTI()
-		{
-			AddPlainField("mData", 0, &SamplerStateRTTI::GetData, &SamplerStateRTTI::SetData);
-		}
-
 		void OnOperationEnded(SamplerState& object, RTTIOperationTypeFlags operationType, RTTIOperationContext& context) override
 		{
 			if(operationType.IsSet(RTTIOperationType::WriteBit) && !operationType.IsSet(RTTIOperationType::PreExistingObjectBit))

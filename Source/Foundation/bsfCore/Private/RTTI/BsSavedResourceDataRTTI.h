@@ -19,9 +19,9 @@ namespace bs
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
-			B3D_RTTI_MEMBER_PLAIN_ARRAY(mDependencies, 0)
-			B3D_RTTI_MEMBER_PLAIN(mAllowAsync, 1)
-			B3D_RTTI_MEMBER_PLAIN(mCompressionMethod, 2)
+			B3D_RTTI_MEMBER_CONTAINER(mDependencies, 0)
+			B3D_RTTI_MEMBER(mAllowAsync, 1)
+			B3D_RTTI_MEMBER(mCompressionMethod, 2)
 		B3D_RTTI_END_MEMBERS
 
 	public:

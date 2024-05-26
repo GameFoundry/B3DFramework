@@ -26,9 +26,9 @@ namespace bs
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
 			B3D_RTTI_MEMBER(Id, 0)
-			B3D_RTTI_MEMBER_PLAIN(ParentId, 1)
-			B3D_RTTI_MEMBER_PLAIN(PrefabObjectId, 2)
-			B3D_RTTI_MEMBER_PLAIN(PrefabResourceId, 3)
+			B3D_RTTI_MEMBER(ParentId, 1)
+			B3D_RTTI_MEMBER(PrefabObjectId, 2)
+			B3D_RTTI_MEMBER(PrefabResourceId, 3)
 			B3D_RTTI_MEMBER(Data, 4)
 			B3D_RTTI_MEMBER(Flags, 5)
 		B3D_RTTI_END_MEMBERS
