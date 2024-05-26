@@ -375,85 +375,6 @@ namespace bs
 		template<typename DataType, bool IsContainer>
 		using UPtrRTTIIterator = UPtr<TRTTIIterator<DataType, IsContainer>, DefaultAllocatorTag, TRTTIIteratorDeleter<DataType, IsContainer>>;
 
-		/** Registers a field referencing a plain type. */
-		template <class InterfaceType, class ObjectType, class DataType>
-		void AddPlainField(const String& name, u32 uniqueId, DataType& (InterfaceType::*getter)(ObjectType*), void (InterfaceType::*setter)(ObjectType*, DataType&), const RTTIFieldInfo& info = RTTIFieldInfo::DEFAULT)
-		{
-			static_assert((std::is_base_of<bs::RTTIType<Type, BaseType, MyRTTIType>, InterfaceType>::value), "Class with the get/set methods must derive from bs::RTTIType.");
-			static_assert(!(std::is_base_of<bs::IReflectable, DataType>::value), "Data type derives from IReflectable but it is being added as a plain field.");
-			static_assert(B3DHasRTTIPlainTypeSpecialization<DataType>::value, "Data type must provide a RTTIPlainType specialization.");
-
-			auto newField = B3DNew<RTTIPlainField<InterfaceType, DataType, ObjectType>>();
-			newField->InitSingle(name, uniqueId, getter, setter, info);
-			AddNewField(newField);
-		}
-
-		/** Registers a field referencing an IReflectable type passed by value. */
-		template <class InterfaceType, class ObjectType, class DataType>
-		void AddReflectableField(const String& name, u32 uniqueId, DataType& (InterfaceType::*getter)(ObjectType*), void (InterfaceType::*setter)(ObjectType*, DataType&), const RTTIFieldInfo& info = RTTIFieldInfo::DEFAULT)
-		{
-			static_assert((std::is_base_of<bs::IReflectable, DataType>::value), "Invalid data type for complex field. It needs to derive from bs::IReflectable.");
-
-			auto newField = B3DNew<RTTIReflectableField<InterfaceType, DataType, ObjectType>>();
-			newField->InitSingle(name, uniqueId, getter, setter, info);
-			AddNewField(newField);
-		}
-
-		/** Registers a field referencing an IReflectable type passed by pointer. */
-		template <class InterfaceType, class ObjectType, class DataType>
-		void AddReflectablePtrField(const String& name, u32 uniqueId, SPtr<DataType> (InterfaceType::*getter)(ObjectType*), void (InterfaceType::*setter)(ObjectType*, SPtr<DataType>), const RTTIFieldInfo& info = RTTIFieldInfo::DEFAULT)
-		{
-			static_assert((std::is_base_of<bs::IReflectable, DataType>::value), "Invalid data type for complex field. It needs to derive from bs::IReflectable.");
-
-			auto newField = B3DNew<RTTIReflectablePtrField<InterfaceType, DataType, ObjectType>>();
-			newField->InitSingle(name, uniqueId, getter, setter, info);
-			AddNewField(newField);
-		}
-
-		/** Registers a field referencing an array of plain types. */
-		template <class InterfaceType, class ObjectType, class DataType>
-		void AddPlainArrayField(const String& name, u32 uniqueId, DataType& (InterfaceType::*getter)(ObjectType*, u32), u32 (InterfaceType::*getSize)(ObjectType*), void (InterfaceType::*setter)(ObjectType*, u32, DataType&), void (InterfaceType::*setSize)(ObjectType*, u32), const RTTIFieldInfo& info = RTTIFieldInfo::DEFAULT)
-		{
-			static_assert((std::is_base_of<bs::RTTIType<Type, BaseType, MyRTTIType>, InterfaceType>::value), "Class with the get/set methods must derive from bs::RTTIType.");
-			static_assert(!(std::is_base_of<bs::IReflectable, DataType>::value), "Data type derives from IReflectable but it is being added as a plain field.");
-			static_assert(B3DHasRTTIPlainTypeSpecialization<DataType>::value, "Data type must provide a RTTIPlainType specialization.");
-
-			auto newField = B3DNew<RTTIPlainField<InterfaceType, DataType, ObjectType>>();
-			newField->InitArray(name, uniqueId, getter, getSize, setter, setSize, info);
-			AddNewField(newField);
-		}
-
-		/** Registers a field referencing an array of IReflectable objects. */
-		template <class InterfaceType, class ObjectType, class DataType>
-		void AddReflectableArrayField(const String& name, u32 uniqueId, DataType& (InterfaceType::*getter)(ObjectType*, u32), u32 (InterfaceType::*getSize)(ObjectType*), void (InterfaceType::*setter)(ObjectType*, u32, DataType&), void (InterfaceType::*setSize)(ObjectType*, u32), const RTTIFieldInfo& info = RTTIFieldInfo::DEFAULT)
-		{
-			static_assert((std::is_base_of<bs::IReflectable, DataType>::value), "Invalid data type for complex field. It needs to derive from bs::IReflectable.");
-
-			auto newField = B3DNew<RTTIReflectableField<InterfaceType, DataType, ObjectType>>();
-			newField->InitArray(name, uniqueId, getter, getSize, setter, setSize, info);
-			AddNewField(newField);
-		}
-
-		/** Registers a field referencing an array of IReflectable pointers. */
-		template <class InterfaceType, class ObjectType, class DataType>
-		void AddReflectablePtrArrayField(const String& name, u32 uniqueId, SPtr<DataType> (InterfaceType::*getter)(ObjectType*, u32), u32 (InterfaceType::*getSize)(ObjectType*), void (InterfaceType::*setter)(ObjectType*, u32, SPtr<DataType>), void (InterfaceType::*setSize)(ObjectType*, u32), const RTTIFieldInfo& info = RTTIFieldInfo::DEFAULT)
-		{
-			static_assert((std::is_base_of<bs::IReflectable, DataType>::value), "Invalid data type for complex field. It needs to derive from bs::IReflectable.");
-
-			auto newField = B3DNew<RTTIReflectablePtrField<InterfaceType, DataType, ObjectType>>();
-			newField->InitArray(name, uniqueId, getter, getSize, setter, setSize, info);
-			AddNewField(newField);
-		}
-
-		/** Registers a field referencing a blob of memory. */
-		template <class InterfaceType, class ObjectType>
-		void AddDataBlockField(const String& name, u32 uniqueId, SPtr<DataStream> (InterfaceType::*getter)(ObjectType*, u32&), void (InterfaceType::*setter)(ObjectType*, const SPtr<DataStream>&, u32), const RTTIFieldInfo& info = RTTIFieldInfo::DEFAULT)
-		{
-			auto newField = B3DNew<RTTIManagedDataBlockField<InterfaceType, u8*, ObjectType>>();
-			newField->InitSingle(name, uniqueId, getter, setter, info);
-			AddNewField(newField);
-		}
-
 		/**
 		 * Registers a field containing a type derived from IReflectable, shared pointer to IReflectable, or a type implementing
 		 * RTTIPlainType<T> specialization. Containers (vectors, map) containing plain types are also supported, but if the container
@@ -483,6 +404,15 @@ namespace bs
 		{
 			auto field = B3DNew<TRTTIIteratorField<InterfaceType, DataType, true, ObjectType>>(name, uniqueId, getIteratorCallback, getValueCallback, setValueCallback, info);
 			AddNewField(field);
+		}
+
+		/** Registers a field referencing a blob of memory. */
+		template <class InterfaceType, class ObjectType>
+		void AddDataBlockField(const String& name, u32 uniqueId, SPtr<DataStream> (InterfaceType::*getter)(ObjectType*, u32&), void (InterfaceType::*setter)(ObjectType*, const SPtr<DataStream>&, u32), const RTTIFieldInfo& info = RTTIFieldInfo::DEFAULT)
+		{
+			auto newField = B3DNew<RTTIManagedDataBlockField<InterfaceType, u8*, ObjectType>>();
+			newField->InitSingle(name, uniqueId, getter, setter, info);
+			AddNewField(newField);
 		}
 
 		/**

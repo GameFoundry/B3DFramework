@@ -28,29 +28,7 @@ namespace bs
 			B3D_RTTI_MEMBER(CharIndexRanges, 6)
 		B3D_RTTI_END_MEMBERS
 
-		// For compability with old version
-		Vector<std::pair<u32, u32>>& GetCharIndexRangesOld(FontImportOptions* obj)
-		{
-			static Vector<std::pair<u32, u32>> dummy;
-			return dummy;
-		}
-
-		void SetCharIndexRangesOld(FontImportOptions* obj, Vector<std::pair<u32, u32>>& value)
-		{
-			// If already set it's assumed the new version already populated it
-			if(!obj->CharIndexRanges.empty())
-				return;
-
-			for(auto& entry : value)
-				obj->CharIndexRanges.push_back(CharRange(entry.first, entry.second));
-		}
-
 	public:
-		FontImportOptionsRTTI()
-		{
-			AddPlainField("mCharIndexRangesOld", 1, &FontImportOptionsRTTI::GetCharIndexRangesOld, &FontImportOptionsRTTI::SetCharIndexRangesOld);
-		}
-
 		const String& GetRttiName()
 		{
 			static String name = "FontImportOptions";
