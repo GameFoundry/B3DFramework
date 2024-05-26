@@ -238,10 +238,10 @@ namespace bs::RTTIObjectWrapper
 		if(mField->Schema.IsIterator)
 		{
 			auto* const field = static_cast<RTTIIteratorField*>(mField);
-			return intermediateSerializer.SerializeField(*mObject, *mRTTITypeInstance, *field, flags);
+			return intermediateSerializer.SerializeIterableField(*mObject, *mRTTITypeInstance, *field, flags);
 		}
 
-		return intermediateSerializer.SerializeField(mObject, mRTTITypeInstance, mField, ~0u, flags);
+		return intermediateSerializer.SerializeDataBlockField(mObject, mRTTITypeInstance, mField, flags);
 	}
 
 	inline ValueIterator<false>::ValueIterator(const SPtr<ISerialized>& value, FrameAllocator* frameAllocator)
@@ -746,7 +746,7 @@ namespace bs::RTTIObjectWrapper
 			return intermediateSerializer.SerializeElement(*mObject, *mRTTITypeInstance, *field, *mIterator, flags);
 		}
 
-		return intermediateSerializer.SerializeField(mObject, mRTTITypeInstance, mField, mArrayIndex, flags);
+		return intermediateSerializer.SerializeDataBlockField(mObject, mRTTITypeInstance, mField, flags);
 	}
 
 	inline FieldIterator<false>::FieldIterator(SerializedObject* value, u32 subObjectIndex, FrameAllocator* frameAllocator)

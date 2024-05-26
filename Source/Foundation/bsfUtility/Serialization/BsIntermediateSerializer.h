@@ -34,14 +34,7 @@ namespace bs
 		 */
 
 		/**
-		 * Serializes a single field entry from a reflectable object into a SerializedInstance. If a field is an array and
-		 * @p arrayIdx is -1 then the entire array will be encoded, otherwise just a single array field will. If the
-		 * field is not array the value of @p arrayIdx is not relevant.
-		 */
-		SPtr<ISerialized> SerializeField(IReflectable* object, RTTITypeBase* rtti, RTTIField* field, u32 arrayIdx, SerializedObjectEncodeFlags flags); // DEPRECATED
-
-		/**
-		 * Serializes a the entire field from the provided reflectable object.
+		 * Serializes an entire field from the provided reflectable object. Field must support RTTI iterators.
 		 *
 		 * @param object				Object that contains the field to serialize.
 		 * @param rttiInstance			Type information describing @p object.
@@ -49,7 +42,10 @@ namespace bs
 		 * @param flags					Flags controlling the serialization process.
 		 * @return						Serialized field, or null if the field data is null.
 		 */
-		SPtr<ISerialized> SerializeField(IReflectable& object, RTTITypeBase& rttiInstance, RTTIIteratorField& field, SerializedObjectEncodeFlags flags);
+		SPtr<ISerialized> SerializeIterableField(IReflectable& object, RTTITypeBase& rttiInstance, RTTIIteratorField& field, SerializedObjectEncodeFlags flags);
+
+		/** Serializes a data block field entry from a reflectable object into a SerializedInstance. */
+		SPtr<ISerialized> SerializeDataBlockField(IReflectable* object, RTTITypeBase* rtti, RTTIField* field, SerializedObjectEncodeFlags flags);
 
 		/**
 		 * Serializes an element at the provided iterator location. 
@@ -59,7 +55,6 @@ namespace bs
 		 * @param field					Field from which the element is being serialized.
 		 * @param iterator				Iterator pointing to the location of the element to serialize.
 		 * @param flags					Flags controlling the serialization process.
-		 * @param context				Context that gives more information about the serialization process, and allows the user to store his own.
 		 * @return						Serialized element, or null if the source element is null.
 		 */
 		SPtr<ISerialized> SerializeElement(IReflectable& object, RTTITypeBase& rttiInstance, RTTIIteratorField& field, IRTTIIterator& iterator, SerializedObjectEncodeFlags flags);
@@ -73,7 +68,6 @@ namespace bs
 		 * @param iterator				Iterator pointing to the location of the element to serialize.
 		 * @param tupleElementIndex		Tuple index to serialize. e.g. if element is of std::pair<K, V> type, index 0 would represent K and index 1 would represent V. Should be 0 if the iterator element is not a tuple type.
 		 * @param flags					Flags controlling the serialization process.
-		 * @param context				Context that gives more information about the serialization process, and allows the user to store his own.
 		 * @return						Serialized tuple element, or null if the source element is null.
 		 */
 		SPtr<ISerialized> SerializeTupleElement(IReflectable& object, RTTITypeBase& rttiInstance, RTTIIteratorField& field, IRTTIIterator& iterator, u32 tupleElementIndex, SerializedObjectEncodeFlags flags);

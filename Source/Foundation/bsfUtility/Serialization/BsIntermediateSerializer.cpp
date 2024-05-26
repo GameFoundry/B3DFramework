@@ -128,172 +128,24 @@ void IntermediateSerializer::DeserializeReflectableObject(const SPtr<IReflectabl
 					DeserializeElement(*rttiInstance, object, *iteratorField, iterator, serializedFieldValue);
 				}
 			}
-			else if(curGenericField->Schema.IsContainer) // DEPRECATED
+			else // Data block field
 			{
-				SPtr<SerializedArray> serializedArray = std::static_pointer_cast<SerializedArray>(serializedFieldValue);
+				if(!B3D_ENSURE(!curGenericField->Schema.IsContainer))
+					continue;
 
-				const u32 elementCount = (u32)serializedArray->Entries.Size();
-				curGenericField->SetArraySize(rttiInstance, object.get(), elementCount);
+				if(!B3D_ENSURE(curGenericField->Schema.FieldTypes.Size() == 1))
+					continue;
 
-				for(u32 elementIndex = 0; elementIndex < elementCount; ++elementIndex)
+				if(!B3D_ENSURE(curGenericField->Schema.FieldTypes[0].Type == SerializableFT_DataBlock))
+					continue;
+
+				auto* curField = static_cast<RTTIManagedDataBlockFieldBase*>(curGenericField);
+
+				SPtr<SerializedDataBlock> serializedDataBlock = std::static_pointer_cast<SerializedDataBlock>(serializedFieldValue);
+				if(serializedDataBlock != nullptr)
 				{
-					SPtr<ISerialized> serializedArrayEntry = serializedArray->Entries[elementIndex];
-					SPtr<SerializedTuple> serializedTuple;
-
-					const bool isTuple = curGenericField->Schema.FieldTypes.Size() > 1;
-					if(isTuple)
-						serializedTuple = std::static_pointer_cast<SerializedTuple>(serializedArrayEntry);
-
-					for(u32 fieldTypeIndex = 0; fieldTypeIndex < (u32)curGenericField->Schema.FieldTypes.Size(); ++fieldTypeIndex)
-					{
-						RTTIFieldTypeSchema& tupleSchema = curGenericField->Schema.FieldTypes[fieldTypeIndex];
-
-						SPtr<ISerialized> serializedTupleValue;
-						if(isTuple)
-						{
-							if(B3D_ENSURE(serializedTuple != nullptr && fieldTypeIndex > serializedTuple->Values.Size()))
-								serializedTupleValue = serializedTuple->Values[fieldTypeIndex];
-						}
-						else
-						{
-							serializedTupleValue = serializedArrayEntry;
-						}
-
-						switch(tupleSchema.Type)
-						{
-						case SerializableFT_ReflectablePtr:
-							{
-								SPtr<SerializedObject> referencedSerializedObject = std::static_pointer_cast<SerializedObject>(serializedTupleValue);
-
-								SPtr<IReflectable> referencedObject;
-								if(curGenericField->Schema.Info.Flags.IsSet(RTTIFieldFlag::WeakRef))
-									referencedObject = GetReflectableObject(referencedSerializedObject);
-								else
-									referencedObject = GetOrDeserializeReflectableObject(referencedSerializedObject);
-
-								auto* curField = static_cast<RTTIReflectablePtrFieldBase*>(curGenericField);
-								curField->SetArrayValue(rttiInstance, object.get(), elementIndex, referencedObject);
-							}
-							break;
-						case SerializableFT_Reflectable:
-							{
-								SPtr<SerializedObject> referencedSerializedObject = std::static_pointer_cast<SerializedObject>(serializedTupleValue);
-								RTTITypeBase* childRtti = nullptr;
-
-								if(referencedSerializedObject != nullptr)
-									childRtti = IReflectable::GetRTTITypeFromTypeId(referencedSerializedObject->GetRootTypeId());
-
-								if(childRtti != nullptr)
-								{
-									SPtr<IReflectable> newObject = childRtti->NewRttiObject();
-									DeserializeReflectableObject(newObject, referencedSerializedObject.get());
-
-									auto* curField = static_cast<RTTIReflectableFieldBase*>(curGenericField);
-									curField->SetArrayValue(rttiInstance, object.get(), elementIndex, *newObject);
-								}
-								break;
-							}
-						case SerializableFT_Plain:
-							{
-								SPtr<SerializedPlainData> serializedPlainData = std::static_pointer_cast<SerializedPlainData>(serializedTupleValue);
-								if(serializedPlainData != nullptr)
-								{
-									Bitstream tempStream(serializedPlainData->Value, serializedPlainData->Size);
-
-									auto* curField = static_cast<RTTIPlainFieldBase*>(curGenericField);
-									curField->ArrayElemFromBuffer(rttiInstance, object.get(), elementIndex, tempStream);
-								}
-							}
-							break;
-						default:
-							break;
-						}
-					}
-				}
-			}
-			else // All except DataBlock case DEPRECATED
-			{
-				SPtr<SerializedTuple> serializedTuple;
-
-				const bool isTuple = curGenericField->Schema.FieldTypes.Size() > 1;
-				if(isTuple)
-					serializedTuple = std::static_pointer_cast<SerializedTuple>(serializedFieldValue);
-
-				for(u32 fieldTypeIndex = 0; fieldTypeIndex < (u32)curGenericField->Schema.FieldTypes.Size(); ++fieldTypeIndex)
-				{
-					RTTIFieldTypeSchema& tupleSchema = curGenericField->Schema.FieldTypes[fieldTypeIndex];
-
-					SPtr<ISerialized> serializedTupleValue;
-					if(isTuple)
-					{
-						if(B3D_ENSURE(serializedTuple != nullptr && fieldTypeIndex > serializedTuple->Values.Size()))
-							serializedTupleValue = serializedTuple->Values[fieldTypeIndex];
-					}
-					else
-					{
-						serializedTupleValue = serializedFieldValue;
-					}
-
-					switch(tupleSchema.Type)
-					{
-					case SerializableFT_ReflectablePtr:
-						{
-							SPtr<SerializedObject> referencedSerializedObject = std::static_pointer_cast<SerializedObject>(serializedTupleValue);
-
-							SPtr<IReflectable> referencedObject;
-							if(curGenericField->Schema.Info.Flags.IsSet(RTTIFieldFlag::WeakRef))
-								referencedObject = GetReflectableObject(referencedSerializedObject);
-							else
-								referencedObject = GetOrDeserializeReflectableObject(referencedSerializedObject);
-
-							auto* curField = static_cast<RTTIReflectablePtrFieldBase*>(curGenericField);
-							curField->SetValue(rttiInstance, object.get(), referencedObject);
-						}
-						break;
-					case SerializableFT_Reflectable:
-						{
-							SPtr<SerializedObject> referencedSerializedObject = std::static_pointer_cast<SerializedObject>(serializedTupleValue);
-							RTTITypeBase* childRtti = nullptr;
-
-							if(referencedSerializedObject != nullptr)
-								childRtti = IReflectable::GetRTTITypeFromTypeId(referencedSerializedObject->GetRootTypeId());
-
-							if(childRtti != nullptr)
-							{
-								SPtr<IReflectable> newObject = childRtti->NewRttiObject();
-								DeserializeReflectableObject(newObject, referencedSerializedObject.get());
-
-								auto* curField = static_cast<RTTIReflectableFieldBase*>(curGenericField);
-								curField->SetValue(rttiInstance, object.get(), *newObject);
-							}
-							break;
-						}
-					case SerializableFT_Plain:
-						{
-							SPtr<SerializedPlainData> serializedPlainData = std::static_pointer_cast<SerializedPlainData>(serializedTupleValue);
-							if(serializedPlainData != nullptr)
-							{
-								Bitstream tempStream(serializedPlainData->Value, serializedPlainData->Size);
-
-								auto* curField = static_cast<RTTIPlainFieldBase*>(curGenericField);
-								curField->FromBuffer(rttiInstance, object.get(), tempStream);
-							}
-						}
-						break;
-					case SerializableFT_DataBlock:
-						{
-							auto* curField = static_cast<RTTIManagedDataBlockFieldBase*>(curGenericField);
-
-							SPtr<SerializedDataBlock> serializedDataBlock = std::static_pointer_cast<SerializedDataBlock>(serializedTupleValue);
-							if(serializedDataBlock != nullptr)
-							{
-								serializedDataBlock->Stream->Seek(serializedDataBlock->Offset);
-								curField->SetValue(rttiInstance, object.get(), serializedDataBlock->Stream, serializedDataBlock->Size);
-							}
-
-							break;
-						}
-					}
+					serializedDataBlock->Stream->Seek(serializedDataBlock->Offset);
+					curField->SetValue(rttiInstance, object.get(), serializedDataBlock->Stream, serializedDataBlock->Size);
 				}
 			}
 		}
@@ -461,9 +313,9 @@ SPtr<SerializedObject> IntermediateSerializer::SerializeReflectableObject(const 
 
 			SPtr<ISerialized> serializedEntry;
 			if(field->Schema.IsIterator)
-				serializedEntry = SerializeField(const_cast<IReflectable&>(object), *rttiInstance, static_cast<RTTIIteratorField&>(*field), flags);
+				serializedEntry = SerializeIterableField(const_cast<IReflectable&>(object), *rttiInstance, static_cast<RTTIIteratorField&>(*field), flags);
 			else
-				serializedEntry = SerializeField(const_cast<IReflectable*>(&object), rttiInstance, field, (u32)-1, flags);
+				serializedEntry = SerializeDataBlockField(const_cast<IReflectable*>(&object), rttiInstance, field, flags);
 
 			SerializedField entry;
 			entry.FieldId = field->Schema.Id;
@@ -481,244 +333,87 @@ SPtr<SerializedObject> IntermediateSerializer::SerializeReflectableObject(const 
 	return output;
 }
 
-SPtr<ISerialized> IntermediateSerializer::SerializeField(IReflectable* object, RTTITypeBase* rtti, RTTIField* field, u32 arrayIdx, SerializedObjectEncodeFlags flags)
+SPtr<ISerialized> IntermediateSerializer::SerializeDataBlockField(IReflectable* object, RTTITypeBase* rtti, RTTIField* field, SerializedObjectEncodeFlags flags)
 {
-	bool shallow = flags.IsSet(SerializedObjectEncodeFlag::Shallow);
+	if(!B3D_ENSURE(!field->Schema.IsContainer))
+		return nullptr;
 
-	SPtr<ISerialized> output;
-	if(field->Schema.IsContainer)
-	{
-		const u32 arrayElementCount = field->GetArraySize(rtti, object);
-		bool wholeArray = arrayIdx == ~0u;
+	if(!B3D_ENSURE(field->Schema.FieldTypes.Size() == 1))
+		return nullptr;
 
-		u32 arrayEndIdx;
-		if(wholeArray)
-		{
-			arrayIdx = 0;
-			arrayEndIdx = arrayElementCount;
-		}
-		else
-			arrayEndIdx = arrayIdx + 1;
+	if(!B3D_ENSURE(field->Schema.FieldTypes[0].Type == SerializableFT_DataBlock))
+		return nullptr;
 
-		SPtr<SerializedArray> serializedArray;
-		if(wholeArray)
-		{
-			serializedArray = B3DMakeShared<SerializedArray>();
-			serializedArray->Entries.Reserve(arrayElementCount);
+	auto curField = static_cast<RTTIManagedDataBlockFieldBase*>(field);
 
-			output = serializedArray;
-		}
+	u32 dataBlockSize = 0;
+	SPtr<DataStream> blockStream = curField->GetValue(rtti, object, dataBlockSize);
 
-		switch(field->Schema.Type) // TODO - Not handling tuples
-		{
-		case SerializableFT_ReflectablePtr:
-			{
-				auto curField = static_cast<RTTIReflectablePtrFieldBase*>(field);
+	SPtr<MemoryDataStream> stream = B3DMakeShared<MemoryDataStream>(dataBlockSize);
+	blockStream->Read(stream->Data(), dataBlockSize);
 
-				for(u32 arrIdx = arrayIdx; arrIdx < arrayEndIdx; arrIdx++)
-				{
-					SPtr<SerializedObject> serializedChildObject = nullptr;
+	SPtr<SerializedDataBlock> serializedDataBlock = B3DMakeShared<SerializedDataBlock>();
+	serializedDataBlock->Stream = stream;
+	serializedDataBlock->Offset = 0;
 
-					if(!shallow)
-					{
-						SPtr<IReflectable> childObject = curField->GetArrayValue(rtti, object, arrIdx);
+	serializedDataBlock->Size = dataBlockSize;
 
-						if(childObject)
-							serializedChildObject = GetOrSerializeReflectableObject(*childObject, flags);
-					}
-
-					if(wholeArray)
-						serializedArray->Entries.Add(serializedChildObject);
-					else
-						output = serializedChildObject;
-				}
-
-				break;
-			}
-		case SerializableFT_Reflectable:
-			{
-				auto curField = static_cast<RTTIReflectableFieldBase*>(field);
-
-				for(u32 arrIdx = arrayIdx; arrIdx < arrayEndIdx; arrIdx++)
-				{
-					IReflectable& childObject = curField->GetArrayValue(rtti, object, arrIdx);
-
-					const SPtr<SerializedObject> serializedChildObject = SerializeReflectableObject(childObject, flags);
-
-					if(wholeArray)
-						serializedArray->Entries.Add(serializedChildObject);
-					else
-						output = serializedChildObject;
-				}
-
-				break;
-			}
-		case SerializableFT_Plain:
-			{
-				auto curField = static_cast<RTTIPlainFieldBase*>(field);
-
-				for(u32 arrIdx = arrayIdx; arrIdx < arrayEndIdx; arrIdx++)
-				{
-					u32 typeSize = 0;
-					if(curField->Schema.HasDynamicSize)
-						typeSize = curField->GetArrayElemDynamicSize(rtti, object, arrIdx, false).Bytes;
-					else
-						typeSize = curField->Schema.Size.Bytes;
-
-					const auto serializedPlainData = B3DMakeShared<SerializedPlainData>();
-					serializedPlainData->Value = (u8*)B3DAllocate(typeSize);
-					serializedPlainData->OwnsMemory = true;
-					serializedPlainData->Size = typeSize;
-
-					Bitstream tempStream(serializedPlainData->Value, typeSize);
-					curField->ArrayElemToStream(rtti, object, arrIdx, tempStream);
-
-					if(wholeArray)
-						serializedArray->Entries.Add(serializedPlainData);
-					else
-						output = serializedPlainData;
-				}
-
-				break;
-			}
-		default:
-			B3D_EXCEPT(InternalErrorException, "Error encoding data. Encountered a type I don't know how to encode. Type: " + ToString(u32(field->Schema.Type)) + ", Is array: " + ToString(field->Schema.IsContainer));
-		}
-	}
-	else
-	{
-		switch(field->Schema.Type) // TODO - Not handling tuples
-		{
-		case SerializableFT_ReflectablePtr:
-			{
-				auto curField = static_cast<RTTIReflectablePtrFieldBase*>(field);
-
-				if(!shallow)
-				{
-					SPtr<IReflectable> childObject = curField->GetValue(rtti, object);
-
-					if(childObject)
-						output = GetOrSerializeReflectableObject(*childObject, flags);
-				}
-
-				break;
-			}
-		case SerializableFT_Reflectable:
-			{
-				auto curField = static_cast<RTTIReflectableFieldBase*>(field);
-				IReflectable& childObject = curField->GetValue(rtti, object);
-
-				output = SerializeReflectableObject(childObject, flags);
-
-				break;
-			}
-		case SerializableFT_Plain:
-			{
-				auto curField = static_cast<RTTIPlainFieldBase*>(field);
-
-				u32 typeSize = 0;
-				if(curField->Schema.HasDynamicSize)
-					typeSize = curField->GetDynamicSize(rtti, object, false).Bytes;
-				else
-					typeSize = curField->Schema.Size.Bytes;
-
-				const auto serializedField = B3DMakeShared<SerializedPlainData>();
-				serializedField->Value = (u8*)B3DAllocate(typeSize);
-				serializedField->OwnsMemory = true;
-				serializedField->Size = typeSize;
-
-				Bitstream tempStream(serializedField->Value, typeSize);
-				curField->ToStream(rtti, object, tempStream);
-
-				output = serializedField;
-
-				break;
-			}
-		case SerializableFT_DataBlock:
-			{
-				auto curField = static_cast<RTTIManagedDataBlockFieldBase*>(field);
-
-				u32 dataBlockSize = 0;
-				SPtr<DataStream> blockStream = curField->GetValue(rtti, object, dataBlockSize);
-
-				SPtr<MemoryDataStream> stream = B3DMakeShared<MemoryDataStream>(dataBlockSize);
-				blockStream->Read(stream->Data(), dataBlockSize);
-
-				SPtr<SerializedDataBlock> serializedDataBlock = B3DMakeShared<SerializedDataBlock>();
-				serializedDataBlock->Stream = stream;
-				serializedDataBlock->Offset = 0;
-
-				serializedDataBlock->Size = dataBlockSize;
-				output = serializedDataBlock;
-
-				break;
-			}
-		default:
-			B3D_EXCEPT(InternalErrorException, "Error encoding data. Encountered a type I don't know how to encode. Type: " + ToString(u32(field->Schema.Type)) + ", Is array: " + ToString(field->Schema.IsContainer));
-		}
-	}
-
-	return output;
+	return serializedDataBlock;
 }
 
-SPtr<ISerialized> IntermediateSerializer::SerializeField(IReflectable& object, RTTITypeBase& rttiInstance, RTTIIteratorField& field, SerializedObjectEncodeFlags flags)
+SPtr<ISerialized> IntermediateSerializer::SerializeIterableField(IReflectable& object, RTTITypeBase& rttiInstance, RTTIIteratorField& field, SerializedObjectEncodeFlags flags)
 {
+	if(!B3D_ENSURE(field.Schema.IsIterator))
+		return nullptr;
+
 	SPtr<ISerialized> output;
-	if(field.Schema.IsIterator)
+	const SPtr<IRTTIIterator> iterator = field.GetIterator(&rttiInstance, &object, *mAllocator);
+
+	if(iterator == nullptr)
+		return nullptr;
+
+	const bool encodeAsArray = field.Schema.IsContainer && field.IteratorSupportsSeekToIndex();
+	const bool encodeAsMap = field.Schema.IsContainer && field.IteratorSupportsSeekToKey();
+
+	SPtr<SerializedArray> serializedArray;
+	SPtr<SerializedMap> serializedMap;
+	if(encodeAsArray)
 	{
-		const SPtr<IRTTIIterator> iterator = field.GetIterator(&rttiInstance, &object, *mAllocator);
+		serializedArray = B3DMakeShared<SerializedArray>();
+		serializedArray->Entries.Reserve(iterator->GetElementCount());
 
-		if(iterator == nullptr)
-			return nullptr;
+		output = serializedArray;
+	}
+	else if(encodeAsMap)
+	{
+		serializedMap = B3DMakeShared<SerializedMap>();
+		output = serializedMap;
+	}
 
-		const bool encodeAsArray = field.Schema.IsContainer && field.IteratorSupportsSeekToIndex();
-		const bool encodeAsMap = field.Schema.IsContainer && field.IteratorSupportsSeekToKey();
+	for(u32 arrayIndex = 0; iterator->IsValid(); iterator->Increment(), arrayIndex++)
+	{
+		SPtr<ISerialized> serializedEntry = SerializeElement(object, rttiInstance, field, *iterator, flags);
 
-		SPtr<SerializedArray> serializedArray;
-		SPtr<SerializedMap> serializedMap;
 		if(encodeAsArray)
 		{
-			serializedArray = B3DMakeShared<SerializedArray>();
-			serializedArray->Entries.Reserve(iterator->GetElementCount());
-
-			output = serializedArray;
+			serializedArray->Entries.Add(std::move(serializedEntry));
 		}
 		else if(encodeAsMap)
 		{
-			serializedMap = B3DMakeShared<SerializedMap>();
-			output = serializedMap;
-		}
-
-		for(u32 arrayIndex = 0; iterator->IsValid(); iterator->Increment(), arrayIndex++)
-		{
-			SPtr<ISerialized> serializedEntry = SerializeElement(object, rttiInstance, field, *iterator, flags);
-
-			if(encodeAsArray)
+			if(const SPtr<SerializedTuple>& serializedTuple = B3DRTTICast<SerializedTuple>(serializedEntry))
 			{
-				serializedArray->Entries.Add(std::move(serializedEntry));
-			}
-			else if(encodeAsMap)
-			{
-				if(const SPtr<SerializedTuple>& serializedTuple = B3DRTTICast<SerializedTuple>(serializedEntry))
-				{
-					if(B3D_ENSURE(!serializedTuple->Values.Empty()))
-						serializedMap->Entries[serializedTuple->Values[0]] = serializedEntry;
-				}
-				else
-				{
-					serializedMap->Entries[serializedEntry] = serializedEntry;
-				}
+				if(B3D_ENSURE(!serializedTuple->Values.Empty()))
+					serializedMap->Entries[serializedTuple->Values[0]] = serializedEntry;
 			}
 			else
 			{
-				output = serializedEntry;
+				serializedMap->Entries[serializedEntry] = serializedEntry;
 			}
 		}
-	}
-	else
-	{
-		// TODO - Handle DataBlock field here
-		B3D_ASSERT(false);
+		else
+		{
+			output = serializedEntry;
+		}
 	}
 
 	return output;
