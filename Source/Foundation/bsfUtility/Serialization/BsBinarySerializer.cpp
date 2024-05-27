@@ -379,7 +379,6 @@ bool BinaryDeserializationContext::DeserializeReflectableObject(SPtr<RTTISchema>
 	while(mStream.Tell() < mDataEnd)
 	{
 		RTTIFieldSchema decodedFieldSchema;
-		SPtr<RTTISchema> fieldTypeSchema;
 		bool terminator = false;
 
 		u32 baseObjId = 0;
@@ -433,7 +432,6 @@ bool BinaryDeserializationContext::DeserializeReflectableObject(SPtr<RTTISchema>
 			else
 			{
 				decodedFieldSchema = *fieldSchemaIter;
-				fieldTypeSchema = decodedFieldSchema.FieldTypeSchema;
 
 				++fieldSchemaIter;
 			}
@@ -548,7 +546,7 @@ bool BinaryDeserializationContext::DeserializeReflectableObject(SPtr<RTTISchema>
 
 							// If reading from schema we need to create object here as we don't know its type during the normal pass
 							if(outputObjectSchema != nullptr)
-								EnsureReflectableObjectExists(referencedObjectId, fieldTypeSchema);
+								EnsureReflectableObjectExists(referencedObjectId, decodedFieldTypeSchema.FieldTypeSchema);
 
 							if(iteratorField != nullptr)
 							{
@@ -556,7 +554,7 @@ bool BinaryDeserializationContext::DeserializeReflectableObject(SPtr<RTTISchema>
 								if(iteratorField->Schema.Info.Flags.IsSet(RTTIFieldFlag::WeakRef))
 									referencedObject = GetReflectableObject(referencedObjectId);
 								else
-									referencedObject = GetOrDeserializeReflectableObject(referencedObjectId, fieldTypeSchema);
+									referencedObject = GetOrDeserializeReflectableObject(referencedObjectId, decodedFieldTypeSchema.FieldTypeSchema);
 
 								iteratorField->SetReflectablePointer(fieldValue, typeIndex, referencedObject);
 							}
@@ -568,7 +566,7 @@ bool BinaryDeserializationContext::DeserializeReflectableObject(SPtr<RTTISchema>
 							if(iteratorField != nullptr)
 								referencedObject = IReflectable::CreateInstanceFromTypeId(iteratorField->Schema.FieldTypes[typeIndex].FieldTypeId);
 
-							DeserializeReflectableObject(fieldTypeSchema, referencedObject);
+							DeserializeReflectableObject(decodedFieldTypeSchema.FieldTypeSchema, referencedObject);
 
 							if(iteratorField != nullptr)
 							{

@@ -76,7 +76,6 @@ namespace bs
 		u16 Id = 0;
 		bool IsContainer = false;
 		bool IsIterator = false; // DEPRECATED - Replace to GetFieldType() method that either returns Iterator or DataBlock
-		SPtr<RTTISchema> FieldTypeSchema; // DEPRECATED - Stored in FieldTypes now
 		RTTIFieldInfo Info;
 		TInlineArray<RTTIFieldTypeSchema, 2> FieldTypes; /**< Types references by the field. In 99% of the cases this is a single type, but in case of e.g. a map it will be two types (key/value pair). */
 
