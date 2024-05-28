@@ -228,6 +228,13 @@ namespace bs
 		/** Creates an object containing the folder hierarchy of all the resources within the package. */
 		PackageHierarchy CreateHierarchy() const;
 
+		/**
+		 * Breaks a combined path to a package and a resource in that package into a separate path pointing
+		 * to the package, and a separate path for the resource. e.g. 'D:/path/to/package.b3d/path/to/resource' will
+		 * be broken into 'D:/path/to/package.b3d' and '/path/to/resource'.
+		 */
+		static bool BreakCombinedPackagePath(const Path& combinedPath, Path& outPathToPackage, Path& outPathToResource);
+
 		/** @} */
 
 		/**

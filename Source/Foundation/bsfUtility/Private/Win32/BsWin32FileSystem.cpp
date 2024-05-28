@@ -533,6 +533,17 @@ Path FileSystem::GetTempDirectoryPath()
 	return Path(utf8dir);
 }
 
+Path FileSystem::GetUniqueTemporaryFilePath()
+{
+	Path output = GetTempDirectoryPath();
+	output.SetFilename(UUIDGenerator::GenerateRandom().ToString());
+
+	while(Exists(output))
+		output.SetFilename(UUIDGenerator::GenerateRandom().ToString());
+
+	return output;
+}
+
 Path FileSystem::GetApplicationDataFolder()
 {
 	wchar_t appDataPath[MAX_PATH];

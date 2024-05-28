@@ -205,6 +205,40 @@ PackageHierarchy Package::CreateHierarchy() const
 	return output;
 }
 
+bool Package::BreakCombinedPackagePath(const Path& combinedPath, Path& outPathToPackage, Path& outPathToResource)
+{
+	outPathToPackage.Clear();
+	outPathToResource.Clear();
+
+	const u32 directoryCount = combinedPath.GetDirectoryCount();
+
+	for(u32 directoryIndex = 0; directoryIndex < directoryCount; directoryIndex++)
+	{
+		const String& directory = combinedPath.GetDirectory(directoryIndex);
+
+		if(StringUtil::EndsWith(directory, kPackageExtension))
+		{
+			outPathToPackage = combinedPath.GetSubPath(directoryIndex);
+			outPathToPackage.SetFilename(directory);
+
+			continue;
+		}
+
+		if(!outPathToPackage.IsEmpty())
+			outPathToResource.PushDirectory(directory);
+	}
+
+	if(combinedPath.IsFile())
+	{
+		if(!outPathToPackage.IsEmpty())
+		{
+			outPathToResource.SetFilename(combinedPath.GetFilename());
+		}
+	}
+
+	return !outPathToResource.IsEmpty();
+}
+
 bool Package::Contains(const UUID& id) const
 {
 	Lock lock(mMetaDataMutex);

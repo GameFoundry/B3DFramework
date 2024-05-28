@@ -180,7 +180,6 @@ namespace bs
 		 * @param[in]	resource	Handle of the resource to release.
 		 */
 		B3D_SCRIPT_EXPORT()
-
 		void Release(const HResource& resource) { Release((ResourceHandleBase&)resource); }
 
 		/** @copydoc Release(const HResource&) */

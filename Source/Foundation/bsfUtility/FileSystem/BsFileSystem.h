@@ -130,6 +130,9 @@ namespace bs
 		/** Returns the path to a directory where temporary files may be stored. */
 		static Path GetTempDirectoryPath();
 
+		/** Returns a path to a file in the temporary directory. The path is guaranteed not to exist currently in the directory. */
+		static Path GetUniqueTemporaryFilePath();
+
 		/** Returns the application data folder for the current user. */
 		static Path GetApplicationDataFolder();
 

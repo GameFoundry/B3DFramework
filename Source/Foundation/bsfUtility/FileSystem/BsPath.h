@@ -256,6 +256,9 @@ namespace bs
 		/** Returns the portion of the path containing the first @p directoryCount directories. */
 		Path GetSubPath(u32 directoryCount) const;
 
+		/** Add new directory to the end of the path. */
+		void PushDirectory(const String& dir);
+
 		/** Clears the path to nothing. */
 		void Clear();
 
@@ -447,9 +450,6 @@ namespace bs
 
 		/** Build a Unix path string from internal path data. */
 		String BuildUnix() const;
-
-		/** Add new directory to the end of the path. */
-		void PushDirectory(const String& dir);
 
 		/** Helper method that throws invalid path exception. */
 		void ThrowInvalidPathException(const String& path) const;
