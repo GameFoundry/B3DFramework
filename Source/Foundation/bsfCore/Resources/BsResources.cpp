@@ -55,6 +55,65 @@ HResource Resources::Load(const Path& filePath, ResourceLoadFlags loadFlags)
 	return LoadInternal(uuid, physicalFilePath, true, loadFlags).Resource;
 }
 
+HResource Resources::Load(const Path& resourcePath, const ResourceLoadOptions& loadOptions)
+{
+	PackageManager& packageManager = GetPackageManager();
+
+	Optional<ResourcePackagePath> maybeResourcePackagePath = packageManager.TryResolvePhysicalResourcePath(resourcePath);
+	if(!maybeResourcePackagePath.has_value()) // Maybe it's a virtual path
+		maybeResourcePackagePath = packageManager.TryResolveVirtualResourcePath(resourcePath);
+
+	if(!maybeResourcePackagePath.has_value())
+	{
+		B3D_LOG(Warning, Resources, "Cannot load resource. File at path '{0}' doesn't exist.", resourcePath);
+		return nullptr;
+	}
+
+	const ResourcePackagePath& resourcePackagePath = *maybeResourcePackagePath;
+
+	AcquirePackageReadLockOptions readLockOptions(true, true, "Load resource");
+	UPtr<PackageReadLock> packageReadLock;
+	const AcquirePackageLockResult lockResult = packageManager.AcquireReadLock(resourcePackagePath.PhysicalPackagePath, readLockOptions, packageReadLock);
+	if(!B3D_ENSURE(lockResult == AcquirePackageLockResult::Acquired && packageReadLock == nullptr))
+		return nullptr;
+
+	const SPtr<Package>& package = packageReadLock->GetPackage();
+	if(!B3D_ENSURE(package != nullptr))
+		return nullptr;
+
+	const SPtr<const PackageResourceMetaData>& resourceMetaData = package->GetResourceMetaData(resourcePackagePath.ResourcePathWithinPackage);
+	if(resourceMetaData == nullptr)
+	{
+		B3D_LOG(Warning, Resources, "Cannot load resource. Resource with path '{0}' cannot be found in package '{1}'.", resourcePackagePath.ResourcePathWithinPackage, resourcePackagePath.PhysicalPackagePath);
+	}
+
+	const UUID& resourceId = resourceMetaData->Id;
+
+	return Load(std::move(packageReadLock), resourceId, loadOptions);
+}
+
+HResource Resources::Load(const UUID& resourceId, const ResourceLoadOptions& loadOptions)
+{
+	PackageManager& packageManager = GetPackageManager();
+
+	const Optional<Path> maybePackagePath = packageManager.TryGetGackagePathForResource(resourceId);
+	if(!maybePackagePath.has_value())
+	{
+		B3D_LOG(Warning, Resources, "Cannot load resource. Resource with ID '{0}' doesn't exist.", resourceId);
+		return nullptr;
+	}
+
+	const Path& packagePath = *maybePackagePath;
+
+	AcquirePackageReadLockOptions readLockOptions(true, true, "Load resource");
+	UPtr<PackageReadLock> packageReadLock;
+	const AcquirePackageLockResult lockResult = packageManager.AcquireReadLock(packagePath, readLockOptions, packageReadLock);
+	if(!B3D_ENSURE(lockResult == AcquirePackageLockResult::Acquired && packageReadLock == nullptr))
+		return nullptr;
+
+	return Load(std::move(packageReadLock), resourceId, loadOptions);
+}
+
 HResource Resources::Load(const WeakResourceHandle<Resource>& handle, ResourceLoadFlags loadFlags)
 {
 	if(handle.mData == nullptr)
@@ -427,6 +486,219 @@ Resources::LoadInfo Resources::LoadInternal(const UUID& uuid, const Path& filePa
 
 	output.State = LoadInfo::Loading;
 	return output;
+}
+
+HResource Resources::Load(UPtr<PackageReadLock> packageReadLock, const UUID& resourceId, const ResourceLoadOptions& loadOptions)
+{
+	const SPtr<Package>& package = packageReadLock->GetPackage();
+	const SPtr<const PackageResourceMetaData>& metaData = package->GetResourceMetaData(resourceId);
+
+	if(metaData == nullptr)
+	{
+		B3D_LOG(Warning, Resources, "Cannot load resource. Resource with ID: {0} cannot be found in the package.", resourceId);
+		return HResource();
+	}
+
+	HResource resourceHandle = GetOrCreateResourceHandle(resourceId);
+
+	SPtr<InProgressLoadInformation> inProgressLoadInformation;
+	{
+		Lock lock(mResourceLoadMutex);
+
+		// Is the resource and (optionally) its dependencies already loaded?
+		if(const auto found = mLoadedResourceInformation.find(resourceId); found != mLoadedResourceInformation.end())
+		{
+			LoadedResourceInformation* const loadedResourceInformation = found->second.get();
+			if(!B3D_ENSURE(loadedResourceInformation != nullptr))
+				return HResource();
+
+			if(!loadOptions.LoadDependencies || loadedResourceInformation->DependenciesLoaded)
+			{
+				if(loadOptions.KeepInternalReference)
+				{
+					loadedResourceInformation->InternalReferenceCount++;
+					loadedResourceInformation->ResourceHandle.AddInternalRef();
+				}
+
+				return loadedResourceInformation->ResourceHandle.Lock();
+			}
+		}
+
+		// If not already loaded, create structure to track in progress load for the resource and all dependencies
+		inProgressLoadInformation = B3DMakeShared<InProgressLoadInformation>();
+		inProgressLoadInformation->PackageReadLock = std::move(packageReadLock);
+		inProgressLoadInformation->ResourceHandle = resourceHandle;
+		inProgressLoadInformation->LoadOptions = loadOptions;
+		inProgressLoadInformation->RemainingResourcesToLoadCount = 1;
+
+		if(loadOptions.LoadDependencies)
+		{
+			const u32 dependencyCount = (u32)metaData->Dependencies.size();
+			inProgressLoadInformation->DependencyResourceHandles.reserve(dependencyCount);
+			
+			for(const UUID& dependencyId : metaData->Dependencies)
+			{
+				if(dependencyId == resourceId)
+					continue;
+
+				HResource dependencyResourceHandle = GetOrCreateResourceHandle(dependencyId);
+				inProgressLoadInformation->DependencyResourceHandles.push_back(dependencyResourceHandle);
+
+				const bool isDependencyLoaded = mLoadedResourceInformation.find(dependencyId) != mLoadedResourceInformation.end();
+				if(isDependencyLoaded)
+					continue;
+
+				mDependantResourceLoads[dependencyId].Add(inProgressLoadInformation);
+				inProgressLoadInformation->RemainingResourcesToLoadCount++;
+			}
+		}
+
+		mInProgressLoadInformation[resourceId].Add(inProgressLoadInformation);
+	}
+
+	// Issue load request for all dependencies
+	if(loadOptions.LoadDependencies)
+	{
+		ResourceLoadOptions dependencyLoadOptions;
+		dependencyLoadOptions.LoadDependencies = false;
+		dependencyLoadOptions.AsynchronousLoad = loadOptions.AsynchronousLoad;
+
+		for(const UUID& dependencyId : metaData->Dependencies)
+		{
+			if(dependencyId == resourceId)
+				continue;
+
+			HResource dependency = Load(dependencyId, dependencyLoadOptions);
+			(void)dependency;
+		}
+	}
+
+	auto fnLoadFromPackageAndFinalize = [this, inProgressLoadInformationWeak = WeakSPtr<InProgressLoadInformation>(inProgressLoadInformation), package, resourceId]()
+	{
+		const SPtr<InProgressLoadInformation> inProgressLoadInformation = inProgressLoadInformationWeak.lock();
+		if(!B3D_ENSURE(inProgressLoadInformation != nullptr))
+			return;
+
+		const SPtr<Resource> resource = package->DeserializeResource(resourceId);
+
+		{
+			Lock lock(mLoadedResourceMutex);
+			inProgressLoadInformation->ResourceHandle.SetHandleData(resource, resourceId);
+
+			if(B3D_ENSURE(inProgressLoadInformation->RemainingResourcesToLoadCount > 0))
+				inProgressLoadInformation->RemainingResourcesToLoadCount--;
+
+			if(resource != nullptr)
+				resource->SetHandle(inProgressLoadInformation->ResourceHandle.GetWeak());
+		}
+
+		TryFinalizeLoad(inProgressLoadInformation);
+		inProgressLoadInformation->LoadingEvent.Signal();
+	};
+
+	bool asyncLoad = loadOptions.AsynchronousLoad;
+	//if(!Resources::SupportsAsyncLoad(metaData->TypeId)) // TODO - Implement this by reading the value from a RTTI default object
+	//	asyncLoad = false;
+
+	if(asyncLoad)
+	{
+		const String resourceFileName = metaData->Path.GetFilename();
+		GetCoreApplication().GetTaskScheduler().Post(SchedulerTask(fnLoadFromPackageAndFinalize, "Load resource", SchedulerTaskFlag::None, resourceFileName));
+	}
+	else 
+	{
+		fnLoadFromPackageAndFinalize();
+	}
+
+	return resourceHandle;
+}
+
+void Resources::TryFinalizeLoad(const SPtr<InProgressLoadInformation>& inProgressLoadInformation)
+{
+	const UUID& resourceId = inProgressLoadInformation->ResourceHandle.GetId();
+
+	TInlineArray<SPtr<InProgressLoadInformation>, 4> dependantLoads;
+	{
+		Lock lock(mLoadedResourceMutex);
+
+		bool isReadyToFinalizeLoad = inProgressLoadInformation->RemainingResourcesToLoadCount == 0 && !inProgressLoadInformation->LoadFinished;
+		if(!isReadyToFinalizeLoad)
+			return;
+
+		// Mark the load as complete so we could have multiple in-progress loads for the same resource, so we don't finalize twice
+		inProgressLoadInformation->LoadFinished = true;
+
+		// Remove from in-progress map
+		if(auto found = mInProgressLoadInformation.find(resourceId); B3D_ENSURE(found != mInProgressLoadInformation.end()))
+		{
+			TInlineArray<SPtr<InProgressLoadInformation>, 1>& loadsPerResource = found->second;
+			for(auto it = loadsPerResource.begin(); it != loadsPerResource.end(); ++it)
+			{
+				if((*it) == inProgressLoadInformation)
+				{
+					loadsPerResource.erase(it);
+					break;
+				}
+			}
+
+			if(loadsPerResource.Empty())
+				mInProgressLoadInformation.erase(found);
+		}
+
+		// Add or update the loaded resource map
+		LoadedResourceInformation* loadedResourceInformation;
+		if(const auto foundLoadedResource = mLoadedResourceInformation.find(resourceId); foundLoadedResource != mLoadedResourceInformation.end())
+		{
+			loadedResourceInformation = foundLoadedResource->second.get();
+
+			if(loadedResourceInformation->ResourceHandle == nullptr)
+				loadedResourceInformation->ResourceHandle = inProgressLoadInformation->ResourceHandle.GetWeak();
+		}
+		else
+		{
+			UPtr<LoadedResourceInformation> newLoadedResourceInformation = B3DMakeUnique<LoadedResourceInformation>();
+			newLoadedResourceInformation->ResourceHandle = inProgressLoadInformation->ResourceHandle.GetWeak();
+
+			loadedResourceInformation = newLoadedResourceInformation.get();
+
+			mLoadedResourceInformation[resourceId] = std::move(newLoadedResourceInformation);
+		}
+
+		if(inProgressLoadInformation->LoadOptions.LoadDependencies)
+			loadedResourceInformation->DependenciesLoaded = true;
+
+		if(inProgressLoadInformation->LoadOptions.KeepInternalReference)
+		{
+			loadedResourceInformation->InternalReferenceCount = 1;
+			loadedResourceInformation->ResourceHandle.AddInternalRef();
+		}
+
+		inProgressLoadInformation->ResourceHandle.NotifyLoadComplete();
+
+		// Record any dependants we need to notify, and decrement their load counts
+		if(const auto found = mDependantResourceLoads.find(resourceId); found != mDependantResourceLoads.end())
+		{
+			dependantLoads = found->second;
+			mDependantResourceLoads.erase(found);
+		}
+
+		for(const auto& dependantLoad : dependantLoads)
+		{
+			if(B3D_ENSURE(dependantLoad->RemainingResourcesToLoadCount > 0))
+				dependantLoad->RemainingResourcesToLoadCount--;
+		}
+	}
+
+	// Notify external code
+	if(inProgressLoadInformation->ResourceHandle.IsLoaded(false))
+		OnResourceLoaded(inProgressLoadInformation->ResourceHandle); // TODO - Should probably ensure this triggers on main thread
+
+	if(!inProgressLoadInformation->LoadOptions.AsynchronousLoad && GetCoreApplication().GetMainThreadId() == B3D_CURRENT_THREAD_ID)
+		ResourceListenerManager::Instance().NotifyListeners(resourceId);
+
+	// See if any dependant load's remaining resource count reached 0, and try to finalize them
+	for(const auto& dependantLoad : dependantLoads)
+		TryFinalizeLoad(dependantLoad);
 }
 
 SPtr<Resource> Resources::LoadFromDiskAndDeserialize(const Path& filePath, bool loadWithSaveData, std::atomic<float>& progress)
@@ -929,6 +1201,89 @@ float Resources::GetLoadProgress(const HResource& resource, bool includeDependen
 	return std::min(1.0f, totalBytesLoaded / totalBytesToLoad);
 }
 
+float Resources::GetLoadProgress2(const HResource& resource)
+{
+	UnorderedMap<UUID, LoadProgress> loadProgressMap;
+	GetLoadProgressRecursive(resource, loadProgressMap);
+
+	u64 totalSize = 0;
+	u64 loadedSize = 0;
+	for(const auto& entry : loadProgressMap)
+	{
+		totalSize += entry.second.TotalSize;
+		loadedSize += (u64)((double)entry.second.TotalSize * entry.second.Progress);
+	}
+
+	return totalSize != 0 ? (float)((double)loadedSize / (double)totalSize) : 0.0f;
+}
+
+void Resources::GetLoadProgressRecursive(const HResource& resource, UnorderedMap<UUID, LoadProgress>& loadProgressMap)
+{
+	const UUID& resourceId = resource.GetId();
+	if(resourceId.Empty())
+		return;
+
+	auto fnGetLoadProgress = [](const UUID& resourceId) -> LoadProgress
+	{
+		PackageManager& packageManager = GetPackageManager();
+
+		Optional<Path> maybePackagePath = packageManager.TryGetGackagePathForResource(resourceId);
+		if(!maybePackagePath.has_value())
+			return LoadProgress();
+
+		const Path& packagePath = *maybePackagePath;
+
+		AcquirePackageReadLockOptions readLockOptions(false, true, "GetLoadProgress");
+		UPtr<PackageReadLock> packageReadLock;
+		const AcquirePackageLockResult lockResult = packageManager.AcquireReadLock(packagePath, readLockOptions, packageReadLock);
+		if(lockResult != AcquirePackageLockResult::Acquired || packageReadLock == nullptr)
+			return LoadProgress();
+
+		const SPtr<Package>& package = packageReadLock->GetPackage();
+		if(!B3D_ENSURE(package != nullptr))
+			return LoadProgress();
+
+		const float progress = package->GetResourceLoadProgress(resourceId);
+		const u64 size = package->GetResourceSizeInDataStream(resourceId);
+
+		return LoadProgress(size, progress);
+	};
+
+	LoadProgress selfLoadProgress = fnGetLoadProgress(resourceId);
+
+	UnorderedMap<UUID, HResource> uniqueDependencies;
+
+	{
+		Lock lock(mLoadedResourceMutex);
+
+		if(const auto found = mInProgressLoadInformation.find(resourceId); found != mInProgressLoadInformation.end())
+		{
+			const TInlineArray<SPtr<InProgressLoadInformation>, 1>& inProgressLoadsPerResource = found->second;
+			for(const SPtr<InProgressLoadInformation>& entry : inProgressLoadsPerResource)
+			{
+				if(!B3D_ENSURE(entry != nullptr))
+					continue;
+
+				for(const auto& dependency : entry->DependencyResourceHandles)
+					uniqueDependencies[dependency.GetId()] = dependency;
+			}
+		}
+		else
+		{
+			// Either fully loaded or not being loaded at all, we don't even care about dependencies
+			if(const auto foundLoaded = mLoadedResourceInformation.find(resourceId); foundLoaded != mLoadedResourceInformation.end())
+				selfLoadProgress.Progress = 1.0f;
+			else
+				selfLoadProgress.Progress = 0.0f;
+		}
+	}
+
+	for(const auto& dependency : uniqueDependencies)
+		GetLoadProgressRecursive(dependency.second, loadProgressMap);
+
+	loadProgressMap[resourceId] = selfLoadProgress;
+}
+
 HResource Resources::CreateResourceHandle(const SPtr<Resource>& resource)
 {
 	if(resource == nullptr)
@@ -938,39 +1293,36 @@ HResource Resources::CreateResourceHandle(const SPtr<Resource>& resource)
 	return CreateResourceHandle(resource, uuid);
 }
 
-HResource Resources::CreateResourceHandle(const SPtr<Resource>& obj, const UUID& UUID)
+HResource Resources::CreateResourceHandle(const SPtr<Resource>& resource, const UUID& resourceId)
 {
-	HResource newHandle(obj, UUID);
+	HResource newHandle(resource, resourceId);
 
 	{
 		Lock lock(mLoadedResourceMutex);
 
-		if(obj)
+		if(resource)
 		{
-			obj->SetHandle(newHandle.GetWeak());
+			resource->SetHandle(newHandle.GetWeak());
 
-			LoadedResourceData& resData = mLoadedResources[UUID];
+			LoadedResourceData& resData = mLoadedResources[resourceId];
 			resData.Resource = newHandle.GetWeak();
 		}
 
-		mHandles[UUID] = newHandle.GetWeak();
+		mHandles[resourceId] = newHandle.GetWeak();
 	}
 
 	return newHandle;
 }
 
-HResource Resources::GetResourceHandleInternal(const UUID& uuid)
+HResource Resources::GetOrCreateResourceHandle(const UUID& resourceId)
 {
 	Lock lock(mLoadedResourceMutex);
-	auto iterFind3 = mHandles.find(uuid);
-	if(iterFind3 != mHandles.end()) // Not loaded, but handle does exist
-	{
-		return iterFind3->second.Lock();
-	}
+	if(auto found = mHandles.find(resourceId); found != mHandles.end()) // Not loaded, but handle does exist
+		return found->second.Lock();
 
 	// Create new handle
-	HResource handle(uuid);
-	mHandles[uuid] = handle.GetWeak();
+	HResource handle(resourceId);
+	mHandles[resourceId] = handle.GetWeak();
 
 	return handle;
 }
@@ -1021,7 +1373,7 @@ Path Resources::EnsurePhysicalPath(const Path& path) const
 	return path;
 }
 
-void Resources::LoadComplete(HResource& resource, bool notifyProgress)
+void Resources::LoadComplete(HResource& resource, bool notifyProgress) // TODO - Deprecated
 {
 	UUID uuid = resource.GetId();
 
@@ -1089,7 +1441,7 @@ void Resources::LoadComplete(HResource& resource, bool notifyProgress)
 	}
 }
 
-void Resources::LoadCallback(const Path& filePath, HResource& resource, bool loadWithSaveData)
+void Resources::LoadCallback(const Path& filePath, HResource& resource, bool loadWithSaveData) // TODO - Deprecated
 {
 	ResourceLoadData* myLoadData;
 	{

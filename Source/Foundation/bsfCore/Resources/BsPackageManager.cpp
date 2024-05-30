@@ -283,6 +283,18 @@ Optional<ResourcePackagePath> PackageManager::TryResolveVirtualResourcePath(cons
 	return {};
 }
 
+Optional<Path> PackageManager::TryGetGackagePathForResource(const UUID& resourceId)
+{
+	Lock lock(mMutex);
+	if(auto foundResource = mResourceIdToPackageId.find(resourceId); foundResource != mResourceIdToPackageId.end())
+	{
+		if(auto foundPackage = mPackagesById.find(foundResource->second); foundPackage != mPackagesById.end())
+			return foundPackage->second->PhysicalPath;
+	}
+
+	return {};
+}
+
 AcquirePackageLockResult PackageManager::AcquireReadLock(const Path& physicalPackagePath, const AcquirePackageReadLockOptions& options, UPtr<PackageReadLock>& outLock)
 {
 	if(!physicalPackagePath.IsAbsolute())
@@ -499,3 +511,11 @@ void PackageManager::ClearPackageResourceInformation(Package& package, const Pat
 		}
 	}
 }
+
+namespace bs
+{
+B3D_CORE_EXPORT PackageManager& GetPackageManager()
+{
+	return PackageManager::Instance();
+}
+} // namespace bs

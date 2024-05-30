@@ -43,7 +43,7 @@ namespace bs
 
 					if(!object.mData->MUuid.Empty())
 					{
-						HResource loadedResource = GetResources().GetResourceHandleInternal(object.mData->MUuid);
+						HResource loadedResource = GetResources().GetOrCreateResourceHandle(object.mData->MUuid);
 
 						object.ReleaseRef();
 						object.mData = loadedResource.mData;
@@ -100,7 +100,7 @@ namespace bs
 
 					if(!object.mData->MUuid.Empty())
 					{
-						HResource loadedResource = GetResources().GetResourceHandleInternal(object.mData->MUuid);
+						HResource loadedResource = GetResources().GetOrCreateResourceHandle(object.mData->MUuid);
 						object.mData = loadedResource.mData;
 					}
 				}

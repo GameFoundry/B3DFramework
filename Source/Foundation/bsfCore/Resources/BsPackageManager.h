@@ -214,6 +214,9 @@ namespace bs
 		//    on package load, and removed on unload, and updated on save.
 		Optional<ResourcePackagePath> TryResolveVirtualResourcePath(const Path& virtualResourcePath) const;
 
+		// TODO - Doc
+		Optional<Path> TryGetGackagePathForResource(const UUID& resourceId);
+
 		// TODO - Physical resource path -> package path and resource ID
 		// - Break the requested path, do direct lookup
 		// TODO - Virtual resource path -> package path and resource ID

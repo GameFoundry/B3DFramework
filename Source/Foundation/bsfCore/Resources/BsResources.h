@@ -3,8 +3,14 @@
 #pragma once
 
 #include "BsCorePrerequisites.h"
+#include "Resources/BsPackageManager.h"
 #include "Threading/BsSignalEvent.h"
 #include "Utility/BsModule.h"
+
+namespace bs
+{
+	struct PackageReadLock;
+}
 
 namespace bs
 {
@@ -40,6 +46,18 @@ namespace bs
 	typedef Flags<ResourceLoadFlag> ResourceLoadFlags;
 	B3D_FLAGS_OPERATORS(ResourceLoadFlag);
 
+	/** Options that may be used to customize resource load operation. */
+	struct ResourceLoadOptions
+	{
+		ResourceLoadOptions()
+			: LoadDependencies(true), KeepInternalReference(true), AsynchronousLoad(true)
+		{ }
+
+		u8 LoadDependencies : 1;
+		u8 KeepInternalReference : 1;
+		u8 AsynchronousLoad : 1;
+	};
+
 	/**
 	 * Manager for dealing with all engine resources. It allows you to save new resources and load existing ones.
 	 *
@@ -48,7 +66,7 @@ namespace bs
 	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Resources), API(Framework)) Resources : public Module<Resources>
 	{
 		/** Information about a loaded resource. */
-		struct LoadedResourceData
+		struct LoadedResourceData // TODO - Deprecated
 		{
 			LoadedResourceData() = default;
 
@@ -62,7 +80,7 @@ namespace bs
 		};
 
 		/** Information about a resource that's currently being loaded. */
-		struct ResourceLoadData
+		struct ResourceLoadData // TODO - Deprecated
 		{
 			ResourceLoadData(const WeakResourceHandle<Resource>& resource, u32 numDependencies, u32 size)
 				: ResData(resource, size), RemainingDependencies(numDependencies)
@@ -82,8 +100,34 @@ namespace bs
 			std::atomic<float> Progress;
 		};
 
+		/** Information about a loaded resource. */
+		struct LoadedResourceInformation
+		{
+			WeakResourceHandle<Resource> ResourceHandle;
+			u32 InternalReferenceCount = 0;
+			bool DependenciesLoaded = false;
+		};
+
+		/** Information about an in-progress resource load. */
+		struct InProgressLoadInformation
+		{
+			InProgressLoadInformation()
+				:LoadFinished(false)
+			{ }
+
+			ResourceLoadOptions LoadOptions;
+			UPtr<PackageReadLock> PackageReadLock;
+
+			HResource ResourceHandle;
+			Vector<HResource> DependencyResourceHandles;
+
+			u32 RemainingResourcesToLoadCount = 0;
+			u8 LoadFinished : 1;
+			SignalEvent LoadingEvent;
+		};
+
 		/** Information about an issued resource load. */
-		struct LoadInfo
+		struct LoadInfo // TODO - Deprecated
 		{
 			enum State
 			{
@@ -168,6 +212,10 @@ namespace bs
 		 */
 		B3D_SCRIPT_EXPORT()
 		HResource LoadFromUuid(const UUID& uuid, bool async = false, ResourceLoadFlags loadFlags = ResourceLoadFlag::Default);
+
+		// TODO - Doc
+		HResource Load(const Path& resourcePath, const ResourceLoadOptions& loadOptions);
+		HResource Load(const UUID& resourceId, const ResourceLoadOptions& loadOptions);
 
 		/**
 		 * Releases an internal reference to the resource held by the resources system. This allows the resource to be
@@ -276,7 +324,27 @@ namespace bs
 		 * @return								Load progress in range [0, 1].
 		 */
 		B3D_SCRIPT_EXPORT()
-		float GetLoadProgress(const HResource& resource, bool includeDependencies = true);
+		float GetLoadProgress(const HResource& resource, bool includeDependencies = true); // TODO - Deprecated
+		
+		/**
+		 * Returns the loading progress of a resource that's being loaded
+		 *
+		 * @param	resource	Resource whose load progress to check.
+		 * @return				Load progress in range [0, 1].
+		 */
+		B3D_SCRIPT_EXPORT()
+		float GetLoadProgress2(const HResource& resource);
+
+		struct LoadProgress
+		{
+			LoadProgress(u64 totalSize = 0, float progress = 0.0f)
+				:TotalSize(totalSize), Progress(progress)
+			{ }
+
+			u64 TotalSize;
+			float Progress;
+		};
+		void GetLoadProgressRecursive(const HResource& resource, UnorderedMap<UUID, LoadProgress>& loadProgressMap);
 
 		/**
 		 *Allows you to set a resource manifest containing UUID <-> file path mapping that is used when resolving
@@ -288,11 +356,11 @@ namespace bs
 		 * upon startup. Otherwise resources will be assigned brand new UUIDs and references will be broken.
 		 */
 		B3D_SCRIPT_EXPORT()
-		void RegisterResourceManifest(const SPtr<ResourceManifest>& manifest);
+		void RegisterResourceManifest(const SPtr<ResourceManifest>& manifest); // TODO - Deprecated
 
 		/**	Unregisters a resource manifest previously registered with registerResourceManifest(). */
 		B3D_SCRIPT_EXPORT()
-		void UnregisterResourceManifest(const SPtr<ResourceManifest>& manifest);
+		void UnregisterResourceManifest(const SPtr<ResourceManifest>& manifest); // TODO - Deprecated
 
 		/**
 		 * Allows you to retrieve resource manifest containing UUID <-> file path mapping that is used when resolving
@@ -304,7 +372,7 @@ namespace bs
 		 * @see		registerResourceManifest
 		 */
 		B3D_SCRIPT_EXPORT()
-		SPtr<ResourceManifest> GetResourceManifest(const String& name) const;
+		SPtr<ResourceManifest> GetResourceManifest(const String& name) const; // TODO - Deprecated
 
 		/** Attempts to retrieve file path from the provided UUID. Returns true if successful, false otherwise. */
 		B3D_SCRIPT_EXPORT()
@@ -361,10 +429,10 @@ namespace bs
 		 *
 		 * @note	Internal method used primarily be resource factory methods.
 		 */
-		HResource CreateResourceHandle(const SPtr<Resource>& obj, const UUID& UUID);
+		HResource CreateResourceHandle(const SPtr<Resource>& resource, const UUID& resourceId);
 
 		/** Returns an existing handle for the specified UUID if one exists, or creates a new one. */
-		HResource GetResourceHandleInternal(const UUID& uuid);
+		HResource GetOrCreateResourceHandle(const UUID& resourceId);
 
 		/**
 		 * Same as save() except it saves the resource without registering it in the default manifest, requiring a handle,
@@ -381,33 +449,50 @@ namespace bs
 		 * resource, although you may provide an empty path in which case the resource will be retrieved from memory if its
 		 * currently loaded.
 		 */
-		LoadInfo LoadInternal(const UUID& UUID, const Path& filePath, bool synchronous, ResourceLoadFlags loadFlags);
+		LoadInfo LoadInternal(const UUID& UUID, const Path& filePath, bool synchronous, ResourceLoadFlags loadFlags); // TODO - Deprecated
+
+		// TODO
+		HResource Load(UPtr<PackageReadLock> packageReadLock, const UUID& resourceId, const ResourceLoadOptions& loadOptions);
 
 		/** Performs actually reading and deserializing of the resource file. Called from various worker threads. */
-		SPtr<Resource> LoadFromDiskAndDeserialize(const Path& filePath, bool loadWithSaveData, std::atomic<float>& progress);
+		SPtr<Resource> LoadFromDiskAndDeserialize(const Path& filePath, bool loadWithSaveData, std::atomic<float>& progress); // TODO - Deprecated
 
 		/**	Triggered when individual resource has finished loading. */
-		void LoadComplete(HResource& resource, bool notifyProgress);
+		void LoadComplete(HResource& resource, bool notifyProgress); // TODO - Deprecated
 
 		/**	Callback triggered when the task manager is ready to process the loading task. */
-		void LoadCallback(const Path& filePath, HResource& resource, bool loadWithSaveData);
+		void LoadCallback(const Path& filePath, HResource& resource, bool loadWithSaveData); // TODO - Deprecated
+
+		/**
+		 * Checks if the provided in-progress load has completed any finalizes the operation. Operation is deemed complete once its primary resource and
+		 * all dependencies (and their dependencies) have finished loading. At that point we will clear the in-progress load map and add the resource
+		 * into the loaded resource map. External code will be notified that load completed, and if any other resource is waiting on this resource to
+		 * finish loading, they will be notified so they may try to finalize their operations as well.
+		 */
+		void TryFinalizeLoad(const SPtr<InProgressLoadInformation>& inProgressLoadInformation);
 
 		/**	Destroys a resource, freeing its memory. */
 		void Destroy(ResourceHandleBase& resource);
 
 	private:
-		Vector<SPtr<ResourceManifest>> mResourceManifests;
-		SPtr<ResourceManifest> mDefaultResourceManifest;
+		Vector<SPtr<ResourceManifest>> mResourceManifests; // TODO - Deprecated
+		SPtr<ResourceManifest> mDefaultResourceManifest; // TODO - Deprecated
 
-		Mutex mInProgressResourcesMutex;
-		Mutex mLoadedResourceMutex;
-		Mutex mDefaultManifestMutex;
+		Mutex mInProgressResourcesMutex; // TODO - Deprecated
+		Mutex mLoadedResourceMutex; // TODO - Deprecated
+		Mutex mDefaultManifestMutex; // TODO - Deprecated
 		RecursiveMutex mDestroyMutex;
 
 		UnorderedMap<UUID, WeakResourceHandle<Resource>> mHandles;
-		UnorderedMap<UUID, LoadedResourceData> mLoadedResources;
-		UnorderedMap<UUID, ResourceLoadData*> mInProgressResources; // Resources that are being asynchronously loaded
-		UnorderedMap<UUID, Vector<ResourceLoadData*>> mDependantLoads; // Allows dependency to be notified when a dependant is loaded
+		UnorderedMap<UUID, LoadedResourceData> mLoadedResources; // TODO - Deprecated
+		UnorderedMap<UUID, ResourceLoadData*> mInProgressResources; // Resources that are being asynchronously loaded // TODO - Deprecated
+		UnorderedMap<UUID, Vector<ResourceLoadData*>> mDependantLoads; // Allows dependency to be notified when a dependant is loaded // TODO - Deprecated
+
+		// New package based code
+		Mutex mResourceLoadMutex;
+		UnorderedMap<UUID, UPtr<LoadedResourceInformation>> mLoadedResourceInformation;
+		UnorderedMap<UUID, TInlineArray<SPtr<InProgressLoadInformation>, 1>> mInProgressLoadInformation;
+		UnorderedMap<UUID, TInlineArray<SPtr<InProgressLoadInformation>, 4>> mDependantResourceLoads;
 	};
 
 	/** Provides easier access to Resources manager. */
