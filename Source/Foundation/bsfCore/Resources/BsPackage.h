@@ -223,7 +223,7 @@ namespace bs
 		bool IsEmpty() const;
 
 		/** Creates a list of unique identifiers for all resources within the package. */
-		Vector<UUID> CreateResourceUUIDList() const;
+		Vector<UUID> CreateResourceIdList() const;
 
 		/** Creates an object containing the folder hierarchy of all the resources within the package. */
 		PackageHierarchy CreateHierarchy() const;

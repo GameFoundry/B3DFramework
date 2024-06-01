@@ -57,7 +57,7 @@ void ResourceHandleBase::BlockUntilLoaded(bool waitForDependencies) const
 
 void ResourceHandleBase::Release()
 {
-	GetResources().Release(*this);
+	GetResources().ReleaseInternalReference(*this);
 }
 
 void ResourceHandleBase::Destroy()

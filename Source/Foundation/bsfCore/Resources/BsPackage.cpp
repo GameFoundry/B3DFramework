@@ -134,7 +134,7 @@ bool Package::IsEmpty() const
 	return mResourceInformationByUUID.empty();
 }
 
-Vector<UUID> Package::CreateResourceUUIDList() const
+Vector<UUID> Package::CreateResourceIdList() const
 {
 	Vector<UUID> output;
 

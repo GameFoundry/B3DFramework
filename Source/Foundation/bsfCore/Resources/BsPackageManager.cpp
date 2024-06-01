@@ -461,7 +461,7 @@ AcquirePackageLockResult PackageManager::AcquireWriteLock(const Path& physicalPa
 
 void PackageManager::LoadPackageResourceInformation(Package& package, const Path& physicalPackagePath, const Path& virtualPathPrefix)
 {
-	const Vector<UUID>& resourceIds = package.CreateResourceUUIDList();
+	const Vector<UUID>& resourceIds = package.CreateResourceIdList();
 	for(const auto& resourceId : resourceIds)
 	{
 		mResourceIdToPackageId[resourceId] = package.GetPackageId();
@@ -495,7 +495,7 @@ void PackageManager::LoadPackageResourceInformation(Package& package, const Path
 
 void PackageManager::ClearPackageResourceInformation(Package& package, const Path& virtualPathPrefix)
 {
-	const Vector<UUID>& resourceIds = package.CreateResourceUUIDList();
+	const Vector<UUID>& resourceIds = package.CreateResourceIdList();
 	for(const auto& resourceId : resourceIds)
 	{
 		mResourceIdToPackageId.erase(resourceId);

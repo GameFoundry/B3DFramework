@@ -503,7 +503,7 @@ HResource Resources::Load(UPtr<PackageReadLock> packageReadLock, const UUID& res
 
 	SPtr<InProgressLoadInformation> inProgressLoadInformation;
 	{
-		Lock lock(mResourceLoadMutex);
+		Lock lock(mLoadedResourceMutex);
 
 		// Is the resource and (optionally) its dependencies already loaded?
 		if(const auto found = mLoadedResourceInformation.find(resourceId); found != mLoadedResourceInformation.end())
@@ -691,7 +691,7 @@ void Resources::TryFinalizeLoad(const SPtr<InProgressLoadInformation>& inProgres
 
 	// Notify external code
 	if(inProgressLoadInformation->ResourceHandle.IsLoaded(false))
-		OnResourceLoaded(inProgressLoadInformation->ResourceHandle); // TODO - Should probably ensure this triggers on main thread
+		OnResourceLoaded(inProgressLoadInformation->ResourceHandle);
 
 	if(!inProgressLoadInformation->LoadOptions.AsynchronousLoad && GetCoreApplication().GetMainThreadId() == B3D_CURRENT_THREAD_ID)
 		ResourceListenerManager::Instance().NotifyListeners(resourceId);
@@ -769,7 +769,7 @@ SPtr<Resource> Resources::LoadFromDiskAndDeserialize(const Path& filePath, bool 
 	return resource;
 }
 
-void Resources::Release(ResourceHandleBase& resource)
+void Resources::ReleaseInternalReference(ResourceHandleBase& resource)
 {
 	const UUID& uuid = resource.GetId();
 
@@ -835,7 +835,7 @@ void Resources::UnloadAllUnused()
 	// handles gracefully.
 	for(auto iter = resourcesToUnload.begin(); iter != resourcesToUnload.end(); ++iter)
 	{
-		Release(*iter);
+		ReleaseInternalReference(*iter);
 	}
 }
 
@@ -858,16 +858,17 @@ void Resources::Destroy(ResourceHandleBase& resource)
 	if(resource.mData == nullptr)
 		return;
 
+	// TODO - Begin deprecated
 	RecursiveLock lock(mDestroyMutex);
 
 	// If load in progress, first wait until it completes
-	const UUID& uuid = resource.GetId();
+	const UUID& resourceId = resource.GetId();
 	if(!resource.IsLoaded(false))
 	{
 		bool loadInProgress = false;
 		{
 			Lock lock(mInProgressResourcesMutex);
-			auto iterFind2 = mInProgressResources.find(uuid);
+			auto iterFind2 = mInProgressResources.find(resourceId);
 			if(iterFind2 != mInProgressResources.end())
 				loadInProgress = true;
 		}
@@ -880,14 +881,14 @@ void Resources::Destroy(ResourceHandleBase& resource)
 
 	// At this point resource is guaranteed to be loaded and this state cannot change by some other thread because of
 	// the mDestroyMutex lock
+	// TODO - End deprecated
 
 	// Notify external systems before we actually destroy it
-	OnResourceDestroyed(uuid);
-	resource.mData->MPtr->Destroy();
+	OnResourceDestroyed(resourceId);
 
 	{
 		Lock lock(mLoadedResourceMutex);
-		auto iterFind = mLoadedResources.find(uuid);
+		auto iterFind = mLoadedResources.find(resourceId);
 		if(iterFind != mLoadedResources.end())
 		{
 			LoadedResourceData& resData = iterFind->second;
@@ -903,8 +904,42 @@ void Resources::Destroy(ResourceHandleBase& resource)
 		{
 			B3D_ASSERT(false); // This should never happen but in case it does fail silently in release mode
 		}
+
+		// TODO - Do I need to wait for in-progress loads to finish above?
+		UPtr<LoadedResourceInformation> loadedResourceInformation;
+		if(auto found = mLoadedResourceInformation.find(resourceId); found != mLoadedResourceInformation.end())
+		{
+			loadedResourceInformation = std::move(found->second);
+			mLoadedResourceInformation.erase(found);
+		}
+
+		if(loadedResourceInformation != nullptr)
+		{
+			while(loadedResourceInformation->InternalReferenceCount > 0)
+			{
+				loadedResourceInformation->InternalReferenceCount--;
+				loadedResourceInformation->ResourceHandle.RemoveInternalRef();
+			}
+		}
+
+		PackageManager& packageManager = GetPackageManager();
+		if(const auto& packagePath = packageManager.TryGetGackagePathForResource(resourceId); packagePath.has_value())
+		{
+			AcquirePackageReadLockOptions readLockOptions(false, true, "Destroy resource");
+			UPtr<PackageReadLock> packageReadLock;
+			const AcquirePackageLockResult lockResult = packageManager.AcquireReadLock(*packagePath, readLockOptions, packageReadLock);
+			if(lockResult != AcquirePackageLockResult::Acquired || packageReadLock == nullptr)
+				return;
+
+			const SPtr<Package>& package = packageReadLock->GetPackage();
+			if(!B3D_ENSURE(package != nullptr))
+				return;
+
+			package->UnloadResource(resourceId);
+		}
 	}
 
+	resource.mData->MPtr->Destroy();
 	resource.ClearHandleData();
 }
 
@@ -952,6 +987,47 @@ void Resources::Save(const HResource& resource, bool compress)
 	Path path;
 	if(GetFilePathFromUuid(resource.GetId(), path))
 		Save(resource, path, true, compress);
+}
+
+void Resources::SaveAsSinglePackage(const HResource& resource, const Path& folder, const String& name, const ResourceSaveOptions& saveOptions)
+{
+	if(folder.IsEmpty())
+	{
+		B3D_LOG(Warning, Resources, "Cannot save resource. Provided folder is empty.");
+		return;
+	}
+
+	if(name.empty())
+	{
+		B3D_LOG(Warning, Resources, "Cannot save resource. Provided name is empty.");
+		return;
+	}
+
+	if(!folder.IsAbsolute())
+	{
+		B3D_LOG(Warning, Resources, "Cannot save resource. Provided folder is not absolute.");
+		return;
+	}
+
+	if(!resource.IsLoaded(false))
+	{
+		B3D_LOG(Warning, Resources, "Cannot save resource at path {0}/{1}.b3d. Provided resource is null or not loaded.", folder, name);
+		return;
+	}
+
+	const String& packageFilename = name + Package::kPackageExtension;
+	const Path packagePath = Path::Combine(folder, packageFilename);
+
+	const SPtr<Package> package = Package::Create(name);
+	package->AddResource(name, resource);
+
+	SavePackageOptions packageSaveOptions;
+	packageSaveOptions.Compress = saveOptions.Compress;
+	packageSaveOptions.Overwrite = saveOptions.Overwrite;
+	packageSaveOptions.VirtualPathPrefix = saveOptions.VirtualPathPrefix;
+
+	PackageManager& packageManager = GetPackageManager();
+	packageManager.SavePackage(package, packagePath, packageSaveOptions);
 }
 
 void Resources::SaveInternal(const SPtr<Resource>& resource, const Path& filePath, bool compress)
@@ -1085,8 +1161,67 @@ void Resources::Update(HResource& handle, const SPtr<Resource>& resource)
 
 	OnResourceModified(handle);
 
-	// This method is not thread safe due to this call (callable from main thread only)
-	ResourceListenerManager::Instance().NotifyListeners(uuid);
+	// Notify listeners immediately if on main thread
+	if(GetCoreApplication().GetMainThreadId() == B3D_CURRENT_THREAD_ID)
+		ResourceListenerManager::Instance().NotifyListeners(uuid);
+}
+
+void Resources::UpdateHandle(HResource& handle, const SPtr<Resource>& resource)
+{
+	const UUID& uuid = handle.GetId();
+	handle.SetHandleData(resource, uuid);
+	handle.NotifyLoadComplete();
+
+	OnResourceModified(handle);
+
+	// Notify listeners immediately if on main thread
+	if(GetCoreApplication().GetMainThreadId() == B3D_CURRENT_THREAD_ID)
+		ResourceListenerManager::Instance().NotifyListeners(uuid);
+}
+
+void Resources::UpdateResourcesFromPackage(const UPtr<PackageWriteLock>& packageWriteLock)
+{
+	if(!B3D_ENSURE(packageWriteLock != nullptr))
+		return;
+
+	const SPtr<Package>& package = packageWriteLock->GetPackage();
+	if(package == nullptr)
+		return;
+
+	const Vector<UUID> packageResourceIds = package->CreateResourceIdList();
+	for(const auto& resourceId : packageResourceIds)
+	{
+		HResource resourceHandle;
+		{
+			Lock lock(mLoadedResourceMutex);
+
+			if(const auto found = mLoadedResourceInformation.find(resourceId); found != mLoadedResourceInformation.end())
+				resourceHandle = found->second->ResourceHandle.Lock();
+		}
+
+		if(resourceHandle == nullptr)
+		{
+#if B3D_BUILD_TYPE == B3D_BUILD_TYPE_DEVELOPMENT
+			if(package->GetResourceLoadState(resourceId) != PackageResourceLoadState::Unloaded)
+			{
+				B3D_LOG(Warning, Resources, "Updating resource system with a package that contains an loaded resource that's not registered as "
+								"loaded in the resource system. This resource might leak unless explicitly freed from the package.");
+			}
+#endif
+
+			continue;
+		}
+
+		const SPtr<Resource> resource = package->LoadResource(resourceId);
+		if(resource == nullptr)
+		{
+			B3D_LOG(Warning, Resources, "Failed to update resource '{0}' with new data from the package. Unknown error.", resourceId);
+			continue;
+		}
+
+		if(resourceHandle.GetShared() != resource)
+			UpdateHandle(resourceHandle, resource);
+	}
 }
 
 Vector<UUID> Resources::GetDependencies(const Path& filePath)
@@ -1433,7 +1568,7 @@ void Resources::LoadComplete(HResource& resource, bool notifyProgress) // TODO -
 	{
 		OnResourceLoaded(resource);
 
-		// This should only ever be true on the main thread
+		// Notify listeners immediately if on main thread during synchronous load
 		if(myLoadData->NotifyImmediately)
 			ResourceListenerManager::Instance().NotifyListeners(uuid);
 

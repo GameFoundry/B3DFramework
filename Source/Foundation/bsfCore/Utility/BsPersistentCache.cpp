@@ -118,7 +118,7 @@ void PersistentCache::Initialize(const Path& cacheFolder)
 					return true;
 
 				bool isPackageOutOfDate = false;
-				for(const auto& resourceUUID : package->CreateResourceUUIDList())
+				for(const auto& resourceUUID : package->CreateResourceIdList())
 				{
 					const SPtr<const PackageResourceMetaData> resourceMetaData = package->GetResourceMetaData(resourceUUID);
 					if(!B3D_ENSURE(resourceMetaData != nullptr))
@@ -302,7 +302,7 @@ void PersistentCache::WriteDirtyMetaData()
 		if(!B3D_ENSURE(package != nullptr))
 			continue;
 
-		for(const auto& resourceUUID : package->CreateResourceUUIDList())
+		for(const auto& resourceUUID : package->CreateResourceIdList())
 		{
 			const SPtr<const PackageResourceMetaData> resourceMetaData = package->GetResourceMetaData(resourceUUID);
 			if(!B3D_ENSURE(resourceMetaData != nullptr))

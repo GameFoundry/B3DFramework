@@ -58,6 +58,18 @@ namespace bs
 		u8 AsynchronousLoad : 1;
 	};
 
+	/** Options that control resource save operation. */
+	struct ResourceSaveOptions
+	{
+		bool Overwrite = true; /**< If set, save operation will overwrite any existing resource at the provided path. */
+		bool Compress = true; /**< If set, compression will be used on resource data when saving. */
+		/**
+		 * If non-empty, this path can be used for loading the resource. (e.g. "/Game/Textures/" prefix path will allow loading of a
+		 * resource named "BrickAlbedo" via "/Game/Textures/BrickAlbedo" path). 
+		 */
+		Path VirtualPathPrefix;
+	};
+
 	/**
 	 * Manager for dealing with all engine resources. It allows you to save new resources and load existing ones.
 	 *
@@ -219,24 +231,22 @@ namespace bs
 
 		/**
 		 * Releases an internal reference to the resource held by the resources system. This allows the resource to be
-		 * unloaded when it goes out of scope, if the resource was loaded with @p keepInternalReference parameter.
+		 * unloaded when it goes out of scope, if the resource was loaded with @p KeepInternalReference option.
 		 *
-		 * Alternatively you can also skip manually calling release() and call unloadAllUnused() which will unload all
+		 * Alternatively you can also skip manually calling ReleaseInternalReference() and call UnloadAllUnused() which will unload all
 		 * resources that do not have any external references, but you lose the fine grained control of what will be
 		 * unloaded.
-		 *
-		 * @param[in]	resource	Handle of the resource to release.
 		 */
 		B3D_SCRIPT_EXPORT()
-		void Release(const HResource& resource) { Release((ResourceHandleBase&)resource); }
+		void ReleaseInternalReference(const HResource& resource) { ReleaseInternalReference((ResourceHandleBase&)resource); }
 
-		/** @copydoc Release(const HResource&) */
-		void Release(ResourceHandleBase& resource);
+		/** @copydoc ReleaseInternalReference(const HResource&) */
+		void ReleaseInternalReference(ResourceHandleBase& resource);
 
 		/**
 		 * Finds all resources that aren't being referenced outside of the resources system and unloads them.
 		 *
-		 * @see		release(const HResource&)
+		 * @see		ReleaseInternalReference(const HResource&)
 		 */
 		B3D_SCRIPT_EXPORT()
 		void UnloadAllUnused();
@@ -286,6 +296,18 @@ namespace bs
 		 */
 		B3D_SCRIPT_EXPORT()
 		void Save(B3D_NO_RREF const HResource& resource, bool compress = false);
+
+		/**
+		 * Saves a resource into its own package. The package will be created in @p folder, with @p name as the package name. There will
+		 * be a single resource in the package, also named @p name.
+		 *
+		 * @param	resource		Resource to save.
+		 * @param	folder			Absolute path to a folder in which to create the package.
+		 * @param	name			Name of the package to create, as well as the name of the resource within the package.
+		 * @param	saveOptions		Options to control the save operation.
+		 */
+		B3D_SCRIPT_EXPORT()
+		void SaveAsSinglePackage(const HResource& resource, const Path& folder, const String& name, const ResourceSaveOptions& saveOptions);
 
 		/**
 		 * Updates an existing resource handle with a new resource. Caller must ensure that new resource type matches the
@@ -440,6 +462,16 @@ namespace bs
 		 */
 		void SaveInternal(const SPtr<Resource>& resource, const Path& filePath, bool compress);
 
+		/**
+		 * Updates all resources from the resource data in the package locked by the provided write lock. This means if a resource is already loaded by the resource system, the
+		 * resource will be retrieved from the package and handle to the resource updated with the new resource. This may involve loading the resource, if the new package doesn't
+		 * have the resource loaded.
+		 */
+		void UpdateResourcesFromPackage(const UPtr<PackageWriteLock>& packageWriteLock);
+
+		/** Updates an existing resource handle with a new resource. Caller must ensure that new resource type matches the original resource type. */
+		void UpdateHandle(HResource& handle, const SPtr<Resource>& resource);
+
 		/** @} */
 	private:
 		friend class ResourceHandleBase;
@@ -484,12 +516,11 @@ namespace bs
 		RecursiveMutex mDestroyMutex;
 
 		UnorderedMap<UUID, WeakResourceHandle<Resource>> mHandles;
-		UnorderedMap<UUID, LoadedResourceData> mLoadedResources; // TODO - Deprecated
+		UnorderedMap<UUID, LoadedResourceData> mLoadedResources;
 		UnorderedMap<UUID, ResourceLoadData*> mInProgressResources; // Resources that are being asynchronously loaded // TODO - Deprecated
 		UnorderedMap<UUID, Vector<ResourceLoadData*>> mDependantLoads; // Allows dependency to be notified when a dependant is loaded // TODO - Deprecated
 
 		// New package based code
-		Mutex mResourceLoadMutex;
 		UnorderedMap<UUID, UPtr<LoadedResourceInformation>> mLoadedResourceInformation;
 		UnorderedMap<UUID, TInlineArray<SPtr<InProgressLoadInformation>, 1>> mInProgressLoadInformation;
 		UnorderedMap<UUID, TInlineArray<SPtr<InProgressLoadInformation>, 4>> mDependantResourceLoads;

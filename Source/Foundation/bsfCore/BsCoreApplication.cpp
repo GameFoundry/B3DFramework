@@ -99,6 +99,7 @@ CoreApplication::~CoreApplication()
 	ct::GpuDataParameterBlockManager::ShutDown();
 	StringTableManager::ShutDown();
 	Resources::ShutDown();
+	PackageManager::ShutDown();
 	GameObjectManager::ShutDown();
 
 	// Audio manager must be released before the ResourceListenerManager, as any one-shot audio sources need to be
@@ -179,6 +180,7 @@ void CoreApplication::OnStartUp()
 	DynamicLibraryManager::StartUp();
 	CoreObjectManager::StartUp();
 	GameObjectManager::StartUp();
+	PackageManager::StartUp();
 	Resources::StartUp();
 	ResourceListenerManager::StartUp();
 

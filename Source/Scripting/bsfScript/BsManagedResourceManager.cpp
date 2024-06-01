@@ -15,7 +15,7 @@ void ManagedResourceManager::Clear()
 	for(auto& resourcePair : resourceCopy)
 	{
 		WeakResourceHandle<ManagedResource> resource = resourcePair.second;
-		GetResources().Release((WeakResourceHandle<Resource>&)resource);
+		GetResources().ReleaseInternalReference((WeakResourceHandle<Resource>&)resource);
 	}
 
 	mResources.clear();
