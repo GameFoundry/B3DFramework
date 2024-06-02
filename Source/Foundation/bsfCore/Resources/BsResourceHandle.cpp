@@ -115,22 +115,22 @@ void ResourceHandleBase::ThrowIfNotLoaded() const
 #endif
 }
 
-RTTIType* TResourceHandleBase<true>::GetRttiStatic()
+RTTIType* WeakResourceHandle2::GetRttiStatic()
 {
 	return WeakResourceHandleRTTI::Instance();
 }
 
-RTTIType* TResourceHandleBase<true>::GetRtti() const
+RTTIType* WeakResourceHandle2::GetRtti() const
 {
 	return GetRttiStatic();
 }
 
-RTTIType* TResourceHandleBase<false>::GetRttiStatic()
+RTTIType* StrongResourceHandle::GetRttiStatic()
 {
-	return ResourceHandleRTTI::Instance();
+	return StrongResourceHandleRTTI::Instance();
 }
 
-RTTIType* TResourceHandleBase<false>::GetRtti() const
+RTTIType* StrongResourceHandle::GetRtti() const
 {
 	return GetRttiStatic();
 }

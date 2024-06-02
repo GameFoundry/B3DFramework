@@ -63,7 +63,7 @@ namespace bs
 
 		void Destroy() override;
 
-		WeakResourceHandle<ManagedResource> mMyHandle;
+		TWeakResourceHandle<ManagedResource> mMyHandle;
 		ScriptManagedResource* mOwner = nullptr;
 
 		/************************************************************************/

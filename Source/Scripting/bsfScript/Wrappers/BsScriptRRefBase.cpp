@@ -11,7 +11,7 @@
 #include "Serialization/BsScriptAssemblyManager.h"
 
 using namespace bs;
-ScriptRRefBase::ScriptRRefBase(MonoObject* instance, ResourceHandle<Resource> resource)
+ScriptRRefBase::ScriptRRefBase(MonoObject* instance, TResourceHandle<Resource> resource)
 	: ScriptObject(instance), mResource(std::move(resource)), mGCHandle(MonoUtil::NewGcHandle(instance))
 {}
 
@@ -28,7 +28,7 @@ void ScriptRRefBase::InitRuntimeData()
 	metaData.ScriptClass->AddInternalCall("Internal_CastAs", (void*)&ScriptRRefBase::InternalCastAs);
 }
 
-ScriptRRefBase* ScriptRRefBase::CreateInternal(const ResourceHandle<Resource>& handle, ::MonoClass* rawType)
+ScriptRRefBase* ScriptRRefBase::CreateInternal(const TResourceHandle<Resource>& handle, ::MonoClass* rawType)
 {
 	MonoClass* type = nullptr;
 	if(rawType == nullptr)

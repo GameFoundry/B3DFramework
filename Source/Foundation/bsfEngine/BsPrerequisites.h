@@ -200,9 +200,9 @@ namespace bs
 	typedef GameObjectHandle<CGUIWidget> HGUIWidget;
 	typedef GameObjectHandle<CProfilerOverlay> HProfilerOverlay;
 
-	typedef ResourceHandle<PlainText> HPlainText;
-	typedef ResourceHandle<ScriptCode> HScriptCode;
-	typedef ResourceHandle<GUIStyleSheet> HGUIStyleSheet;
+	typedef TResourceHandle<PlainText> HPlainText;
+	typedef TResourceHandle<ScriptCode> HScriptCode;
+	typedef TResourceHandle<GUIStyleSheet> HGUIStyleSheet;
 
 	/**	RTTI types. */
 	enum TypeID_Engine

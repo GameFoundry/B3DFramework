@@ -21,7 +21,7 @@ namespace bs
 	{};
 
 	template <typename T>
-	struct B3DIsResourceHandle<ResourceHandle<T>> : std::true_type
+	struct B3DIsResourceHandle<TResourceHandle<T>> : std::true_type
 	{};
 
 	// Returns the underlying type if the provided type is a resource handle, or itself otherwise
@@ -32,7 +32,7 @@ namespace bs
 	};
 
 	template <typename T>
-	struct B3DDecayResourceHandle<ResourceHandle<T>>
+	struct B3DDecayResourceHandle<TResourceHandle<T>>
 	{
 		using value = T;
 	};

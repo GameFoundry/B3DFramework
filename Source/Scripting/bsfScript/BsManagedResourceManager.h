@@ -22,13 +22,13 @@ namespace bs
 		void Clear();
 
 		/**	Register a newly created managed resource. */
-		void RegisterManagedResource(const WeakResourceHandle<ManagedResource>& resource);
+		void RegisterManagedResource(const TWeakResourceHandle<ManagedResource>& resource);
 
 		/**	Unregister a managed resource that's about to be destroyed. */
-		void UnregisterManagedResource(const WeakResourceHandle<ManagedResource>& resource);
+		void UnregisterManagedResource(const TWeakResourceHandle<ManagedResource>& resource);
 
 	private:
-		UnorderedMap<UUID, WeakResourceHandle<ManagedResource>> mResources;
+		UnorderedMap<UUID, TWeakResourceHandle<ManagedResource>> mResources;
 	};
 
 	/** @} */

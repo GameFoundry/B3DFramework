@@ -28,7 +28,7 @@ namespace bs
 	 */
 
 	class PersistentCacheObject;
-	typedef ResourceHandle<PersistentCacheObject> HPersistentCacheObject;
+	typedef TResourceHandle<PersistentCacheObject> HPersistentCacheObject;
 
 	/** Resource used for storing data within a PersistentCache. */
 	class PersistentCacheObject : public Resource

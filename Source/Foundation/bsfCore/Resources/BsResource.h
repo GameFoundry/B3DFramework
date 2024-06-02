@@ -29,7 +29,7 @@ namespace bs
 		const UUID& GetId() const { return mId; }
 
 		/** Get a handle to this resource, if there is any associated. */
-		ResourceHandle<Resource> GetHandle() const { return mSelfHandle.Lock(); }
+		TResourceHandle<Resource> GetHandle() const { return mSelfHandle.Lock(); }
 
 		/**	Retrieves meta-data containing various information describing a resource. */
 		SPtr<ResourceMetaData> GetMetaData() const { return mMetaData; }
@@ -43,7 +43,7 @@ namespace bs
 		 */
 
 		/** Associates a handle with the resource. Should be called right after the handle for the resource is created, or right after resource load completes. */
-		void SetHandle(const WeakResourceHandle<Resource>& handle)
+		void SetHandle(const TWeakResourceHandle<Resource>& handle)
 		{
 			mSelfHandle = handle;
 			SetId(mSelfHandle.GetId());
@@ -95,7 +95,7 @@ namespace bs
 		virtual bool IsCompressible() const { return true; }
 
 		UUID mId;
-		WeakResourceHandle<Resource> mSelfHandle;
+		TWeakResourceHandle<Resource> mSelfHandle;
 
 		u32 mSize;
 		SPtr<ResourceMetaData> mMetaData;
@@ -108,7 +108,7 @@ namespace bs
 		bool mKeepSourceData;
 
 		/** A list of all other resources this resource depends on. */
-		Vector<WeakResourceHandle<Resource>> mDependencies;
+		Vector<TWeakResourceHandle<Resource>> mDependencies;
 
 		/** Mutex ensuring dependencies list updates and queries are thread safe. */
 		mutable Mutex mDependenciesMutex;

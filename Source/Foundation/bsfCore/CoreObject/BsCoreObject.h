@@ -225,7 +225,7 @@ namespace bs
 
 	/** Returns associated render proxy object, or null if the object is null or has no render proxy. */
 	template<class Type>
-	SPtr<CoreVariantType<Type, true>> B3DGetRenderProxy(const ResourceHandle<Type>& object)
+	SPtr<CoreVariantType<Type, true>> B3DGetRenderProxy(const TResourceHandle<Type>& object)
 	{
 		return !object.IsLoaded(false) ? nullptr : std::static_pointer_cast<CoreVariantType<Type, true>>(object->GetRenderProxy());
 	}

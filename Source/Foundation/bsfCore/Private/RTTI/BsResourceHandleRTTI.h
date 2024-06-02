@@ -16,7 +16,7 @@ namespace bs
 	 *  @{
 	 */
 
-	class B3D_CORE_EXPORT ResourceHandleRTTI : public TRTTIType<TResourceHandleBase<false>, IReflectable, ResourceHandleRTTI>
+	class B3D_CORE_EXPORT StrongResourceHandleRTTI : public TRTTIType<StrongResourceHandle, IReflectable, StrongResourceHandleRTTI>
 	{
 		UUID mId;
 
@@ -25,7 +25,7 @@ namespace bs
 		B3D_RTTI_END_MEMBERS
 
 	public:
-		void OnOperationStarted(TResourceHandleBase<false>& object, RTTIOperationTypeFlags operationType, RTTIOperationContext& context) override
+		void OnOperationStarted(StrongResourceHandle& object, RTTIOperationTypeFlags operationType, RTTIOperationContext& context) override
 		{
 			if(operationType.IsSet(RTTIOperationType::ReadBit))
 			{
@@ -33,7 +33,7 @@ namespace bs
 			}
 		}
 
-		void OnOperationEnded(TResourceHandleBase<false>& object, RTTIOperationTypeFlags operationType, RTTIOperationContext& context) override
+		void OnOperationEnded(StrongResourceHandle& object, RTTIOperationTypeFlags operationType, RTTIOperationContext& context) override
 		{
 			if(operationType.IsSet(RTTIOperationType::WriteBit))
 			{
@@ -55,18 +55,18 @@ namespace bs
 
 		const String& GetRttiName()
 		{
-			static String name = "ResourceHandleBase";
+			static String name = "StrongResourceHandle";
 			return name;
 		}
 
 		u32 GetRttiId() const override
 		{
-			return TID_ResourceHandle;
+			return TID_StrongResourceHandle;
 		}
 
 		SPtr<IReflectable> NewRttiObject()
 		{
-			SPtr<TResourceHandleBase<false>> obj = B3DMakeSharedFromExisting<TResourceHandleBase<false>>(new(B3DAllocate<TResourceHandleBase<false>>()) TResourceHandleBase<false>());
+			SPtr<StrongResourceHandle> obj = B3DMakeSharedFromExisting<StrongResourceHandle>(new(B3DAllocate<StrongResourceHandle>()) StrongResourceHandle());
 			obj->mData = B3DMakeShared<ResourceHandleData>();
 			obj->mData->ReferenceCount.fetch_add(1, std::memory_order_relaxed);
 
@@ -74,7 +74,7 @@ namespace bs
 		}
 	};
 
-	class B3D_CORE_EXPORT WeakResourceHandleRTTI : public TRTTIType<TResourceHandleBase<true>, IReflectable, WeakResourceHandleRTTI>
+	class B3D_CORE_EXPORT WeakResourceHandleRTTI : public TRTTIType<WeakResourceHandle2, IReflectable, WeakResourceHandleRTTI>
 	{
 		UUID mId;
 
@@ -82,7 +82,7 @@ namespace bs
 			B3D_RTTI_GENERATED_MEMBER(mId, 0)
 		B3D_RTTI_END_MEMBERS
 	public:
-		void OnOperationStarted(TResourceHandleBase<true>& object, RTTIOperationTypeFlags operationType, RTTIOperationContext& context) override
+		void OnOperationStarted(WeakResourceHandle2& object, RTTIOperationTypeFlags operationType, RTTIOperationContext& context) override
 		{
 			if(operationType.IsSet(RTTIOperationType::ReadBit))
 			{
@@ -90,7 +90,7 @@ namespace bs
 			}
 		}
 
-		void OnOperationEnded(TResourceHandleBase<true>& object, RTTIOperationTypeFlags operationType, RTTIOperationContext& context) override
+		void OnOperationEnded(WeakResourceHandle2& object, RTTIOperationTypeFlags operationType, RTTIOperationContext& context) override
 		{
 			if(operationType.IsSet(RTTIOperationType::WriteBit))
 			{
@@ -109,7 +109,7 @@ namespace bs
 
 		const String& GetRttiName() override
 		{
-			static String name = "WeakResourceHandleBase";
+			static String name = "WeakResourceHandle";
 			return name;
 		}
 
@@ -120,7 +120,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject()
 		{
-			SPtr<TResourceHandleBase<true>> obj = B3DMakeSharedFromExisting<TResourceHandleBase<true>>(new(B3DAllocate<TResourceHandleBase<true>>()) TResourceHandleBase<true>());
+			SPtr<WeakResourceHandle2> obj = B3DMakeSharedFromExisting<WeakResourceHandle2>(new(B3DAllocate<WeakResourceHandle2>()) WeakResourceHandle2());
 			obj->mData = B3DMakeShared<ResourceHandleData>();
 
 			return obj;

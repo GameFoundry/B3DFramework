@@ -82,11 +82,11 @@ namespace bs
 		{
 			LoadedResourceData() = default;
 
-			LoadedResourceData(const WeakResourceHandle<Resource>& resource, u32 size)
+			LoadedResourceData(const TWeakResourceHandle<Resource>& resource, u32 size)
 				: Resource(resource), Size(size)
 			{}
 
-			WeakResourceHandle<Resource> Resource;
+			TWeakResourceHandle<Resource> Resource;
 			u32 NumInternalRefs = 0;
 			u32 Size = 0;
 		};
@@ -94,7 +94,7 @@ namespace bs
 		/** Information about a resource that's currently being loaded. */
 		struct ResourceLoadData // TODO - Deprecated
 		{
-			ResourceLoadData(const WeakResourceHandle<Resource>& resource, u32 numDependencies, u32 size)
+			ResourceLoadData(const TWeakResourceHandle<Resource>& resource, u32 numDependencies, u32 size)
 				: ResData(resource, size), RemainingDependencies(numDependencies)
 			{}
 
@@ -115,7 +115,7 @@ namespace bs
 		/** Information about a loaded resource. */
 		struct LoadedResourceInformation
 		{
-			WeakResourceHandle<Resource> ResourceHandle;
+			TWeakResourceHandle<Resource> ResourceHandle;
 			u32 InternalReferenceCount = 0;
 			bool DependenciesLoaded = false;
 		};
@@ -173,7 +173,7 @@ namespace bs
 
 		/** @copydoc Load(const Path&, ResourceLoadFlags) */
 		template <class T>
-		ResourceHandle<T> Load(const Path& filePath, ResourceLoadFlags loadFlags = ResourceLoadFlag::Default)
+		TResourceHandle<T> Load(const Path& filePath, ResourceLoadFlags loadFlags = ResourceLoadFlag::Default)
 		{
 			return B3DStaticResourceCast<T>(Load(filePath, loadFlags));
 		}
@@ -183,13 +183,13 @@ namespace bs
 		 *
 		 * @see		Load(const Path&, ResourceLoadFlags)
 		 */
-		HResource Load(const WeakResourceHandle<Resource>& handle, ResourceLoadFlags loadFlags = ResourceLoadFlag::Default);
+		HResource Load(const TWeakResourceHandle<Resource>& handle, ResourceLoadFlags loadFlags = ResourceLoadFlag::Default);
 
 		/** @copydoc Load(const WeakResourceHandle<Resource>&, ResourceLoadFlags) */
 		template <class T>
-		ResourceHandle<T> Load(const WeakResourceHandle<T>& handle, ResourceLoadFlags loadFlags = ResourceLoadFlag::Default)
+		TResourceHandle<T> Load(const TWeakResourceHandle<T>& handle, ResourceLoadFlags loadFlags = ResourceLoadFlag::Default)
 		{
-			return static_resource_cast<T>(Load((const WeakResourceHandle<Resource>&)handle, loadFlags));
+			return static_resource_cast<T>(Load((const TWeakResourceHandle<Resource>&)handle, loadFlags));
 		}
 
 		/**
@@ -207,7 +207,7 @@ namespace bs
 
 		/** @copydoc LoadAsync */
 		template <class T>
-		ResourceHandle<T> LoadAsync(const Path& filePath, ResourceLoadFlags loadFlags = ResourceLoadFlag::Default)
+		TResourceHandle<T> LoadAsync(const Path& filePath, ResourceLoadFlags loadFlags = ResourceLoadFlag::Default)
 		{
 			return static_resource_cast<T>(LoadAsync(filePath, loadFlags));
 		}
@@ -515,7 +515,7 @@ namespace bs
 		Mutex mDefaultManifestMutex; // TODO - Deprecated
 		RecursiveMutex mDestroyMutex;
 
-		UnorderedMap<UUID, WeakResourceHandle<Resource>> mHandles;
+		UnorderedMap<UUID, TWeakResourceHandle<Resource>> mHandles;
 		UnorderedMap<UUID, LoadedResourceData> mLoadedResources;
 		UnorderedMap<UUID, ResourceLoadData*> mInProgressResources; // Resources that are being asynchronously loaded // TODO - Deprecated
 		UnorderedMap<UUID, Vector<ResourceLoadData*>> mDependantLoads; // Allows dependency to be notified when a dependant is loaded // TODO - Deprecated

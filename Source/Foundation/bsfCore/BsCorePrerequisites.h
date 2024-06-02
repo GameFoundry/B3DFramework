@@ -511,7 +511,7 @@ namespace bs
 		TID_VertexDeclaration = 1004,
 		TID_VertexElementData = 1005,
 		TID_Component = 1006,
-		TID_ResourceHandle = 1009,
+		TID_StrongResourceHandle = 1009,
 		TID_GpuProgram = 1010,
 		TID_ResourceHandleData = 1011,
 		TID_CgProgram = 1012,
@@ -751,25 +751,25 @@ namespace bs
 	 *  @{
 	 */
 
-	typedef ResourceHandle<Resource> HResource;
-	typedef ResourceHandle<Texture> HTexture;
-	typedef ResourceHandle<Mesh> HMesh;
-	typedef ResourceHandle<Material> HMaterial;
-	typedef ResourceHandle<ShaderInclude> HShaderInclude;
-	typedef ResourceHandle<Font> HFont;
-	typedef ResourceHandle<Shader> HShader;
-	typedef ResourceHandle<Prefab> HPrefab;
-	typedef ResourceHandle<StringTable> HStringTable;
-	typedef ResourceHandle<PhysicsMaterial> HPhysicsMaterial;
-	typedef ResourceHandle<PhysicsMesh> HPhysicsMesh;
-	typedef ResourceHandle<AudioClip> HAudioClip;
-	typedef ResourceHandle<AnimationClip> HAnimationClip;
-	typedef ResourceHandle<SpriteTexture> HSpriteTexture;
-	typedef ResourceHandle<SpriteGlyph> HSpriteGlyph;
-	typedef ResourceHandle<SpriteVectorPath> HSpriteVectorPath;
-	typedef ResourceHandle<SpriteImage> HSpriteImage;
-	typedef ResourceHandle<VectorField> HVectorField;
-	typedef ResourceHandle<VectorPath> HVectorPath;
+	typedef TResourceHandle<Resource> HResource;
+	typedef TResourceHandle<Texture> HTexture;
+	typedef TResourceHandle<Mesh> HMesh;
+	typedef TResourceHandle<Material> HMaterial;
+	typedef TResourceHandle<ShaderInclude> HShaderInclude;
+	typedef TResourceHandle<Font> HFont;
+	typedef TResourceHandle<Shader> HShader;
+	typedef TResourceHandle<Prefab> HPrefab;
+	typedef TResourceHandle<StringTable> HStringTable;
+	typedef TResourceHandle<PhysicsMaterial> HPhysicsMaterial;
+	typedef TResourceHandle<PhysicsMesh> HPhysicsMesh;
+	typedef TResourceHandle<AudioClip> HAudioClip;
+	typedef TResourceHandle<AnimationClip> HAnimationClip;
+	typedef TResourceHandle<SpriteTexture> HSpriteTexture;
+	typedef TResourceHandle<SpriteGlyph> HSpriteGlyph;
+	typedef TResourceHandle<SpriteVectorPath> HSpriteVectorPath;
+	typedef TResourceHandle<SpriteImage> HSpriteImage;
+	typedef TResourceHandle<VectorField> HVectorField;
+	typedef TResourceHandle<VectorPath> HVectorPath;
 
 	/** @} */
 } // namespace bs
@@ -892,7 +892,7 @@ namespace bs
 	template <class T>
 	struct CoreVariantHandle<T, false>
 	{
-		typedef ResourceHandle<T> Type;
+		typedef TResourceHandle<T> Type;
 	};
 
 	template <class T>

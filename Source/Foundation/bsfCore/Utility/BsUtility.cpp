@@ -61,7 +61,7 @@ static void FindResourceDependenciesRecursive(IReflectable& object, FrameAllocat
 	{
 		if(fieldTypeSchema.Type == RTTIFieldDataType::Reflectable)
 		{
-			if(fieldTypeSchema.FieldTypeId == TID_ResourceHandle)
+			if(fieldTypeSchema.FieldTypeId == TID_StrongResourceHandle)
 			{
 				const RTTIObjectWrapper::Object<true>& handleObject = value.GetObject();
 				HResource* const resource = B3DRTTICast<HResource>(handleObject.GetWrappedObject());

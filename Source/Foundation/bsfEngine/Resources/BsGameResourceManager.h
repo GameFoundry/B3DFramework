@@ -84,7 +84,7 @@ namespace bs
 
 		/** @copydoc load */
 		template <class T>
-		ResourceHandle<T> Load(const Path& filePath, ResourceLoadFlags flags, bool async)
+		TResourceHandle<T> Load(const Path& filePath, ResourceLoadFlags flags, bool async)
 		{
 			return static_resource_cast<T>(load(filePath, flags, async));
 		}

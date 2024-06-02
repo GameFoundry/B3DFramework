@@ -115,18 +115,8 @@ namespace bs
 		void ThrowIfNotLoaded() const;
 	};
 
-	/**
-	 * @copydoc	ResourceHandleBase
-	 *
-	 * Handles differences in reference counting depending if the handle is normal or weak.
-	 */
-	template <bool WeakHandle>
-	class B3D_CORE_EXPORT TResourceHandleBase : public ResourceHandleBase
-	{};
-
-	/**	Specialization of TResourceHandleBase for weak handles. Weak handles do no reference counting. */
-	template <>
-	class B3D_CORE_EXPORT TResourceHandleBase<true> : public ResourceHandleBase
+	/**	Implementation of ResourceHandle for weak handles. Weak handles do no reference counting. */
+	class B3D_CORE_EXPORT WeakResourceHandle2 : public ResourceHandleBase
 	{
 	protected:
 		void IncrementReferenceCount(){}
@@ -141,9 +131,8 @@ namespace bs
 		RTTIType* GetRtti() const override;
 	};
 
-	/**	Specialization of TResourceHandleBase for normal (non-weak) handles. */
-	template <>
-	class B3D_CORE_EXPORT TResourceHandleBase<false> : public ResourceHandleBase
+	/**	Implementation of ResourceHandle for strong (non-weak) handles. */
+	class B3D_CORE_EXPORT StrongResourceHandle : public ResourceHandleBase
 	{
 	protected:
 		void IncrementReferenceCount()
@@ -171,14 +160,14 @@ namespace bs
 		/************************************************************************/
 	public:
 		friend class WeakResourceHandleRTTI;
-		friend class ResourceHandleRTTI;
+		friend class StrongResourceHandleRTTI;
 		static RTTIType* GetRttiStatic();
 		RTTIType* GetRtti() const override;
 	};
 
 	/** @copydoc ResourceHandleBase */
-	template <typename ResourceType, bool WeakHandle>
-	class TResourceHandle : public TResourceHandleBase<WeakHandle>
+	template <typename ResourceType, bool IsWeakHandle = false>
+	class TResourceHandle : public std::conditional_t<IsWeakHandle, WeakResourceHandle2, StrongResourceHandle>
 	{
 	public:
 		TResourceHandle() = default;
@@ -201,9 +190,9 @@ namespace bs
 		}
 
 		/**	Converts a specific handle to generic Resource handle. */
-		operator TResourceHandle<Resource, WeakHandle>() const
+		operator TResourceHandle<Resource, IsWeakHandle>() const
 		{
-			TResourceHandle<Resource, WeakHandle> handle;
+			TResourceHandle<Resource, IsWeakHandle> handle;
 			handle.SetHandleData(this->GetHandleData());
 
 			return handle;
@@ -211,9 +200,9 @@ namespace bs
 
 		/**	Converts a specific handle to Resource handle of the resource's base class. */
 		template<class BaseResourceType, std::enable_if_t<std::is_base_of_v<BaseResourceType, ResourceType>, int> = 0>
-		operator TResourceHandle<BaseResourceType, WeakHandle>() const
+		operator TResourceHandle<BaseResourceType, IsWeakHandle>() const
 		{
-			TResourceHandle<BaseResourceType, WeakHandle> handle;
+			TResourceHandle<BaseResourceType, IsWeakHandle> handle;
 			handle.SetHandleData(this->GetHandleData());
 
 			return handle;
@@ -234,7 +223,7 @@ namespace bs
 		ResourceType& operator*() const { return *Get(); }
 
 		/** Clears the handle making it invalid and releases any references held to the resource. */
-		TResourceHandle<ResourceType, WeakHandle>& operator=(std::nullptr_t rhs)
+		TResourceHandle<ResourceType, IsWeakHandle>& operator=(std::nullptr_t rhs)
 		{
 			this->DecrementReferenceCount();
 			this->mData = nullptr;
@@ -243,7 +232,7 @@ namespace bs
 		}
 
 		/**	Copy assignment. */
-		TResourceHandle<ResourceType, WeakHandle>& operator=(const TResourceHandle<ResourceType, WeakHandle>& rhs)
+		TResourceHandle<ResourceType, IsWeakHandle>& operator=(const TResourceHandle<ResourceType, IsWeakHandle>& rhs)
 		{
 			SetHandleData(rhs.GetHandleData());
 			return *this;
@@ -333,7 +322,6 @@ namespace bs
 		 * @note	Handle will take ownership of the provided resource pointer, so make sure you don't delete it elsewhere.
 		 */
 		explicit TResourceHandle(ResourceType* object, const UUID& uuid)
-			: TResourceHandleBase<WeakHandle>()
 		{
 			this->mData = B3DMakeShared<ResourceHandleData>();
 			this->IncrementReferenceCount();
@@ -406,7 +394,7 @@ namespace bs
 
 	/** @copydoc ResourceHandleBase */
 	template <typename T>
-	using ResourceHandle = TResourceHandle<T, false>;
+	using ResourceHandle = TResourceHandle<T>;
 
 	/**
 	 * @copydoc ResourceHandleBase
@@ -414,7 +402,7 @@ namespace bs
 	 * Weak handles don't prevent the resource from being unloaded.
 	 */
 	template <typename T>
-	using WeakResourceHandle = TResourceHandle<T, true>;
+	using TWeakResourceHandle = TResourceHandle<T, true>;
 
 	/**	Casts one resource handle to another. */
 	template <class ResourceTypeLhs, class ResourceTypeRhs, bool IsWeakHandleLhs, bool IsWeakHandleRhs>
@@ -427,8 +415,8 @@ namespace bs
 	}
 
 	/**	Casts one resource handle to another. */
-	template <class ResourceTypeLhs, class ResourceTypeRhs, bool IsWeakHandle>
-	TResourceHandle<ResourceTypeLhs, false> B3DStaticResourceCast(const TResourceHandle<ResourceTypeRhs, IsWeakHandle>& other)
+	template <class ResourceTypeLhs, class ResourceTypeRhs, bool IsWeakHandleRhs>
+	TResourceHandle<ResourceTypeLhs, false> B3DStaticResourceCast(const TResourceHandle<ResourceTypeRhs, IsWeakHandleRhs>& other)
 	{
 		TResourceHandle<ResourceTypeLhs, false> handle;
 		handle.SetHandleData(other.GetHandleData());

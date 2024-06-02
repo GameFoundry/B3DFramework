@@ -114,7 +114,7 @@ HResource Resources::Load(const UUID& resourceId, const ResourceLoadOptions& loa
 	return Load(std::move(packageReadLock), resourceId, loadOptions);
 }
 
-HResource Resources::Load(const WeakResourceHandle<Resource>& handle, ResourceLoadFlags loadFlags)
+HResource Resources::Load(const TWeakResourceHandle<Resource>& handle, ResourceLoadFlags loadFlags)
 {
 	if(handle.mData == nullptr)
 		return HResource();

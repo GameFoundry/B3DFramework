@@ -76,7 +76,7 @@ namespace bs
 			float Size = 8.0f;
 		};
 
-		mutable TUnorderedMap<StockIconKey, WeakResourceHandle<SpriteImage>> mCache;
+		mutable TUnorderedMap<StockIconKey, TWeakResourceHandle<SpriteImage>> mCache;
 		UnorderedMap<String, StockIcon> mNameLookup;
 	};
 

@@ -73,7 +73,7 @@ namespace bs
 			else                                                                                               \
 				managedInstance = ScriptType::CreateInstance();                                                \
                                                                                                                \
-			ResourceHandle<ResourceType> castHandle = B3DStaticResourceCast<ResourceType>(resource);            \
+			TResourceHandle<ResourceType> castHandle = B3DStaticResourceCast<ResourceType>(resource);            \
 			ScriptType* scriptResource = new(B3DAllocate<ScriptType>()) ScriptType(managedInstance, castHandle);  \
                                                                                                                \
 			return scriptResource;                                                                             \

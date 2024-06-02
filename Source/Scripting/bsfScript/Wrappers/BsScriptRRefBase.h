@@ -22,7 +22,7 @@ namespace bs
 		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "RRefBase")
 
 		/**	Returns a weak handle to the resource referenced by this object. */
-		ResourceHandle<Resource> GetHandle() const { return mResource; }
+		TResourceHandle<Resource> GetHandle() const { return mResource; }
 
 		/** Returns the managed version of this object. */
 		MonoObject* GetManagedInstance() const;
@@ -37,7 +37,7 @@ namespace bs
 		 *						template parameter of RRef matches the actual resource type.
 		 */
 		template <class T>
-		static ScriptRRefBase* Create(const ResourceHandle<T>& handle, ::MonoClass* rawType = nullptr)
+		static ScriptRRefBase* Create(const TResourceHandle<T>& handle, ::MonoClass* rawType = nullptr)
 		{
 			return CreateInternal(handle, rawType);
 		}
@@ -48,7 +48,7 @@ namespace bs
 	private:
 		friend class ScriptResourceManager;
 
-		ScriptRRefBase(MonoObject* instance, ResourceHandle<Resource> handle);
+		ScriptRRefBase(MonoObject* instance, TResourceHandle<Resource> handle);
 		~ScriptRRefBase();
 
 		void ClearManagedInstanceInternal() override;
@@ -58,9 +58,9 @@ namespace bs
 		void ClearResource() { mScriptResource = nullptr; }
 
 		/** @copydoc Create() */
-		static ScriptRRefBase* CreateInternal(const ResourceHandle<Resource>& handle, ::MonoClass* rawType = nullptr);
+		static ScriptRRefBase* CreateInternal(const TResourceHandle<Resource>& handle, ::MonoClass* rawType = nullptr);
 
-		ResourceHandle<Resource> mResource;
+		TResourceHandle<Resource> mResource;
 		ScriptResourceBase* mScriptResource = nullptr;
 		u32 mGCHandle;
 

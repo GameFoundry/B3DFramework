@@ -90,7 +90,7 @@ namespace bs
 		void SetResource(const HResource& resource) { mResource = B3DStaticResourceCast<ResType>(resource); }
 
 		/**	Returns a handle to the internal wrapped resource. */
-		const ResourceHandle<ResType>& GetHandle() const { return mResource; }
+		const TResourceHandle<ResType>& GetHandle() const { return mResource; }
 
 		/** Returns a reference wrapper for this resource. */
 		MonoObject* GetRRef() const
@@ -101,7 +101,7 @@ namespace bs
 	protected:
 		friend class ScriptResourceManager;
 
-		TScriptResource(MonoObject* instance, const ResourceHandle<ResType>& resource)
+		TScriptResource(MonoObject* instance, const TResourceHandle<ResType>& resource)
 			: ScriptObject<ScriptClass, BaseType>(instance), mResource(resource)
 		{
 			this->SetManagedInstance(instance);
@@ -136,7 +136,7 @@ namespace bs
 			this->Destroy();
 		}
 
-		ResourceHandle<ResType> mResource;
+		TResourceHandle<ResType> mResource;
 	};
 
 	/**	Interop class between C++ & CLR for Resource. */

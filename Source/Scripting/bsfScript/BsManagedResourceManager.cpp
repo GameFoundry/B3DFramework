@@ -11,22 +11,22 @@ ManagedResourceManager::~ManagedResourceManager()
 
 void ManagedResourceManager::Clear()
 {
-	UnorderedMap<UUID, WeakResourceHandle<ManagedResource>> resourceCopy = mResources;
+	UnorderedMap<UUID, TWeakResourceHandle<ManagedResource>> resourceCopy = mResources;
 	for(auto& resourcePair : resourceCopy)
 	{
-		WeakResourceHandle<ManagedResource> resource = resourcePair.second;
-		GetResources().ReleaseInternalReference((WeakResourceHandle<Resource>&)resource);
+		TWeakResourceHandle<ManagedResource> resource = resourcePair.second;
+		GetResources().ReleaseInternalReference((TWeakResourceHandle<Resource>&)resource);
 	}
 
 	mResources.clear();
 }
 
-void ManagedResourceManager::RegisterManagedResource(const WeakResourceHandle<ManagedResource>& resource)
+void ManagedResourceManager::RegisterManagedResource(const TWeakResourceHandle<ManagedResource>& resource)
 {
 	mResources.insert(std::make_pair(resource.GetId(), resource));
 }
 
-void ManagedResourceManager::UnregisterManagedResource(const WeakResourceHandle<ManagedResource>& resource)
+void ManagedResourceManager::UnregisterManagedResource(const TWeakResourceHandle<ManagedResource>& resource)
 {
 	mResources.erase(resource.GetId());
 }

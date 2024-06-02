@@ -129,7 +129,7 @@ namespace bs
 	struct ScriptMeta;
 
 	typedef GameObjectHandle<ManagedComponent> HManagedComponent;
-	typedef ResourceHandle<ManagedResource> HManagedResource;
+	typedef TResourceHandle<ManagedResource> HManagedResource;
 
 	enum TypeID_bsfScript
 	{

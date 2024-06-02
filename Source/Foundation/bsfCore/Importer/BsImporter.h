@@ -67,7 +67,7 @@ namespace bs
 
 		/** @copydoc Import */
 		template <class T>
-		ResourceHandle<T> Import(const Path& inputFilePath, SPtr<const ImportOptions> importOptions = nullptr, const UUID& UUID = UUID::kEmpty)
+		TResourceHandle<T> Import(const Path& inputFilePath, SPtr<const ImportOptions> importOptions = nullptr, const UUID& UUID = UUID::kEmpty)
 		{
 			return B3DStaticResourceCast<T>(Import(inputFilePath, importOptions, UUID));
 		}

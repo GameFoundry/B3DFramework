@@ -79,7 +79,7 @@ namespace bs
 		 * the provided template parameter.
 		 */
 		template <class T>
-		ScriptRRefBase* GetScriptRRef(const ResourceHandle<T>& resource)
+		ScriptRRefBase* GetScriptRRef(const TResourceHandle<T>& resource)
 		{
 			::MonoClass* rrefClass = ScriptResourceBase::GetRRefClass(T::GetRttiStatic()->GetRttiId());
 			return GetScriptRRef(resource, rrefClass);
