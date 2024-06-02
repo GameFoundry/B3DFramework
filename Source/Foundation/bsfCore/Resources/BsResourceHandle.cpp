@@ -15,10 +15,10 @@ Mutex ResourceHandleBase::mResourceCreatedMutex;
 
 bool ResourceHandleBase::IsLoaded(bool checkDependencies) const
 {
-	bool isLoaded = (mData != nullptr && mData->MIsCreated && mData->MPtr != nullptr);
+	bool isLoaded = (mData != nullptr && mData->IsCreated && mData->Object != nullptr);
 
 	if(checkDependencies && isLoaded)
-		isLoaded = mData->MPtr->AreDependenciesLoaded();
+		isLoaded = mData->Object->AreDependenciesLoaded();
 
 	return isLoaded;
 }
@@ -28,15 +28,15 @@ void ResourceHandleBase::BlockUntilLoaded(bool waitForDependencies) const
 	if(mData == nullptr)
 		return;
 
-	if(!mData->MIsCreated)
+	if(!mData->IsCreated)
 	{
 		Lock lock(mResourceCreatedMutex);
-		mResourceCreatedCondition.Wait(lock, [this] { return mData->MIsCreated; });
+		mResourceCreatedCondition.Wait(lock, [this] { return mData->IsCreated; });
 
 		// Send out ResourceListener events right away, as whatever called this method probably also expects the
 		// listener events to trigger immediately as well
 		if(B3D_CURRENT_THREAD_ID == GetCoreApplication().GetMainThreadId())
-			ResourceListenerManager::Instance().NotifyListeners(mData->MUuid);
+			ResourceListenerManager::Instance().NotifyListeners(mData->Id);
 	}
 
 	if(waitForDependencies)
@@ -45,7 +45,7 @@ void ResourceHandleBase::BlockUntilLoaded(bool waitForDependencies) const
 
 		{
 			FrameVector<HResource> dependencies;
-			mData->MPtr->GetResourceDependencies(dependencies);
+			mData->Object->GetResourceDependencies(dependencies);
 
 			for(auto& dependency : dependencies)
 				dependency.BlockUntilLoaded(waitForDependencies);
@@ -62,25 +62,25 @@ void ResourceHandleBase::Release()
 
 void ResourceHandleBase::Destroy()
 {
-	if(mData->MPtr)
+	if(mData->Object)
 		GetResources().Destroy(*this);
 }
 
 void ResourceHandleBase::SetHandleData(const SPtr<Resource>& ptr, const UUID& uuid)
 {
-	mData->MPtr = ptr;
+	mData->Object = ptr;
 
-	if(mData->MPtr)
-		mData->MUuid = uuid;
+	if(mData->Object)
+		mData->Id = uuid;
 }
 
 void ResourceHandleBase::NotifyLoadComplete()
 {
-	if(!mData->MIsCreated)
+	if(!mData->IsCreated)
 	{
 		Lock lock(mResourceCreatedMutex);
 		{
-			mData->MIsCreated = true;
+			mData->IsCreated = true;
 		}
 
 		mResourceCreatedCondition.NotifyAll();
@@ -89,20 +89,20 @@ void ResourceHandleBase::NotifyLoadComplete()
 
 void ResourceHandleBase::ClearHandleData()
 {
-	mData->MPtr = nullptr;
+	mData->Object = nullptr;
 
 	Lock lock(mResourceCreatedMutex);
-	mData->MIsCreated = false;
+	mData->IsCreated = false;
 }
 
 void ResourceHandleBase::AddInternalRef()
 {
-	mData->MRefCount.fetch_add(1, std::memory_order_relaxed);
+	mData->ReferenceCount.fetch_add(1, std::memory_order_relaxed);
 }
 
 void ResourceHandleBase::RemoveInternalRef()
 {
-	mData->MRefCount.fetch_sub(1, std::memory_order_relaxed);
+	mData->ReferenceCount.fetch_sub(1, std::memory_order_relaxed);
 }
 
 void ResourceHandleBase::ThrowIfNotLoaded() const

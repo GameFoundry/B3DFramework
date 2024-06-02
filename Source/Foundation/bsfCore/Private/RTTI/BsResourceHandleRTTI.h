@@ -29,7 +29,7 @@ namespace bs
 		{
 			if(operationType.IsSet(RTTIOperationType::ReadBit))
 			{
-				mId = object.mData != nullptr ? object.mData->MUuid : UUID::kEmpty;
+				mId = object.mData != nullptr ? object.mData->Id : UUID::kEmpty;
 			}
 		}
 
@@ -39,11 +39,11 @@ namespace bs
 			{
 				if(object.mData != nullptr)
 				{
-					object.mData->MUuid = mId;
+					object.mData->Id = mId;
 
-					if(!object.mData->MUuid.Empty())
+					if(!object.mData->Id.Empty())
 					{
-						HResource loadedResource = GetResources().GetOrCreateResourceHandle(object.mData->MUuid);
+						HResource loadedResource = GetResources().GetOrCreateResourceHandle(object.mData->Id);
 
 						object.ReleaseRef();
 						object.mData = loadedResource.mData;
@@ -68,7 +68,7 @@ namespace bs
 		{
 			SPtr<TResourceHandleBase<false>> obj = B3DMakeSharedFromExisting<TResourceHandleBase<false>>(new(B3DAllocate<TResourceHandleBase<false>>()) TResourceHandleBase<false>());
 			obj->mData = B3DMakeShared<ResourceHandleData>();
-			obj->mData->MRefCount.fetch_add(1, std::memory_order_relaxed);
+			obj->mData->ReferenceCount.fetch_add(1, std::memory_order_relaxed);
 
 			return obj;
 		}
@@ -86,7 +86,7 @@ namespace bs
 		{
 			if(operationType.IsSet(RTTIOperationType::ReadBit))
 			{
-				mId = object.mData != nullptr ? object.mData->MUuid : UUID::kEmpty;
+				mId = object.mData != nullptr ? object.mData->Id : UUID::kEmpty;
 			}
 		}
 
@@ -96,11 +96,11 @@ namespace bs
 			{
 				if(object.mData != nullptr)
 				{
-					object.mData->MUuid = mId;
+					object.mData->Id = mId;
 
-					if(!object.mData->MUuid.Empty())
+					if(!object.mData->Id.Empty())
 					{
-						HResource loadedResource = GetResources().GetOrCreateResourceHandle(object.mData->MUuid);
+						HResource loadedResource = GetResources().GetOrCreateResourceHandle(object.mData->Id);
 						object.mData = loadedResource.mData;
 					}
 				}

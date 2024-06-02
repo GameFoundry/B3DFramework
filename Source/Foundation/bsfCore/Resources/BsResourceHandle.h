@@ -15,10 +15,10 @@ namespace bs
 	/**	Data that is shared between all resource handles. */
 	struct B3D_CORE_EXPORT ResourceHandleData
 	{
-		SPtr<Resource> MPtr;
-		UUID MUuid;
-		bool MIsCreated = false;
-		std::atomic<std::uint32_t> MRefCount{ 0 };
+		SPtr<Resource> Object;
+		UUID Id;
+		bool IsCreated = false;
+		std::atomic<std::uint32_t> ReferenceCount{ 0 };
 	};
 
 	/**
@@ -54,7 +54,7 @@ namespace bs
 		void Release();
 
 		/** Returns the UUID of the resource the handle is referring to. */
-		const UUID& GetId() const { return mData != nullptr ? mData->MUuid : UUID::kEmpty; }
+		const UUID& GetId() const { return mData != nullptr ? mData->Id : UUID::kEmpty; }
 
 	public: // ***** INTERNAL ******
 		/** @name Internal
@@ -149,14 +149,14 @@ namespace bs
 		void AddRef()
 		{
 			if(mData)
-				mData->MRefCount.fetch_add(1, std::memory_order_relaxed);
+				mData->ReferenceCount.fetch_add(1, std::memory_order_relaxed);
 		};
 
 		void ReleaseRef()
 		{
 			if(mData)
 			{
-				std::uint32_t refCount = mData->MRefCount.fetch_sub(1, std::memory_order_release);
+				std::uint32_t refCount = mData->ReferenceCount.fetch_sub(1, std::memory_order_release);
 
 				if(refCount == 1)
 				{
@@ -177,7 +177,7 @@ namespace bs
 	};
 
 	/** @copydoc ResourceHandleBase */
-	template <typename T, bool WeakHandle>
+	template <typename ResourceType, bool WeakHandle>
 	class TResourceHandle : public TResourceHandleBase<WeakHandle>
 	{
 	public:
@@ -210,10 +210,10 @@ namespace bs
 		}
 
 		/**	Converts a specific handle to Resource handle of the resource's base class. */
-		template<class U, std::enable_if_t<std::is_base_of_v<U, T>, int> = 0>
-		operator TResourceHandle<U, WeakHandle>() const
+		template<class BaseResourceType, std::enable_if_t<std::is_base_of_v<BaseResourceType, ResourceType>, int> = 0>
+		operator TResourceHandle<BaseResourceType, WeakHandle>() const
 		{
-			TResourceHandle<U, WeakHandle> handle;
+			TResourceHandle<BaseResourceType, WeakHandle> handle;
 			handle.SetHandleData(this->GetHandleData());
 
 			return handle;
@@ -224,17 +224,17 @@ namespace bs
 		 *
 		 * @note	Throws exception if handle is invalid.
 		 */
-		T* operator->() const { return Get(); }
+		ResourceType* operator->() const { return Get(); }
 
 		/**
 		 * Returns internal resource pointer and dereferences it.
 		 *
 		 * @note	Throws exception if handle is invalid.
 		 */
-		T& operator*() const { return *Get(); }
+		ResourceType& operator*() const { return *Get(); }
 
 		/** Clears the handle making it invalid and releases any references held to the resource. */
-		TResourceHandle<T, WeakHandle>& operator=(std::nullptr_t ptr)
+		TResourceHandle<ResourceType, WeakHandle>& operator=(std::nullptr_t rhs)
 		{
 			this->ReleaseRef();
 			this->mData = nullptr;
@@ -243,7 +243,7 @@ namespace bs
 		}
 
 		/**	Copy assignment. */
-		TResourceHandle<T, WeakHandle>& operator=(const TResourceHandle<T, WeakHandle>& rhs)
+		TResourceHandle<ResourceType, WeakHandle>& operator=(const TResourceHandle<ResourceType, WeakHandle>& rhs)
 		{
 			SetHandleData(rhs.GetHandleData());
 			return *this;
@@ -267,15 +267,10 @@ namespace bs
 			int Member;
 		};
 
-		/**
-		 * Allows direct conversion of handle to bool.
-		 *
-		 * @note	This is needed because we can't directly convert to bool since then we can assign pointer to bool and
-		 *			that's weird.
-		 */
-		operator int Bool_struct<T>::*() const
+		/** Allows direct conversion of handle to bool. */
+		operator int Bool_struct<ResourceType>::*() const
 		{
-			return ((this->mData != nullptr && !this->mData->MUuid.Empty()) ? &Bool_struct<T>::Member : 0);
+			return ((this->mData != nullptr && !this->mData->Id.Empty()) ? &Bool_struct<ResourceType>::Member : 0);
 		}
 
 		/**
@@ -283,11 +278,11 @@ namespace bs
 		 *
 		 * @note	Throws exception if handle is invalid.
 		 */
-		T* Get() const
+		ResourceType* Get() const
 		{
 			this->ThrowIfNotLoaded();
 
-			return reinterpret_cast<T*>(this->mData->MPtr.get());
+			return reinterpret_cast<ResourceType*>(this->mData->Object.get());
 		}
 
 		/**
@@ -295,26 +290,26 @@ namespace bs
 		 *
 		 * @note	Throws exception if handle is invalid.
 		 */
-		SPtr<T> GetShared() const
+		SPtr<ResourceType> GetShared() const
 		{
 			this->ThrowIfNotLoaded();
 
-			return std::static_pointer_cast<T>(this->mData->MPtr);
+			return std::static_pointer_cast<ResourceType>(this->mData->Object);
 		}
 
 		/** Converts a handle into a weak handle. */
-		TResourceHandle<T, true> GetWeak() const
+		TResourceHandle<ResourceType, true> GetWeak() const
 		{
-			TResourceHandle<T, true> handle;
+			TResourceHandle<ResourceType, true> handle;
 			handle.SetHandleData(this->GetHandleData());
 
 			return handle;
 		}
 
 		/**	Converts a weak handle into a normal handle. */
-		TResourceHandle<T, false> Lock() const
+		TResourceHandle<ResourceType, false> Lock() const
 		{
-			TResourceHandle<T, false> handle;
+			TResourceHandle<ResourceType, false> handle;
 			handle.SetHandleData(this->GetHandleData());
 
 			return handle;
@@ -322,19 +317,22 @@ namespace bs
 
 	protected:
 		friend Resources;
-		template <class _T, bool _Weak>
+
+		template <class ResourceType, bool IsWeakHandle>
 		friend class TResourceHandle;
-		template <class _Ty1, class _Ty2, bool _Weak2, bool _Weak1>
-		friend TResourceHandle<_Ty1, _Weak1> B3DStaticResourceCast(const TResourceHandle<_Ty2, _Weak2>& other);
-		template <class _Ty1, class _Ty2, bool _Weak2>
-		friend TResourceHandle<_Ty1, false> B3DStaticResourceCast(const TResourceHandle<_Ty2, _Weak2>& other);
+
+		template <class ResourceType1, class ResourceType2, bool IsWeakHandle1, bool IsWeakHandle2>
+		friend TResourceHandle<ResourceType1, IsWeakHandle1> B3DStaticResourceCast(const TResourceHandle<ResourceType2, IsWeakHandle2>& other);
+
+		template <class ResourceType1, class ResourceType2, bool IsWeakHandle>
+		friend TResourceHandle<ResourceType1, false> B3DStaticResourceCast(const TResourceHandle<ResourceType2, IsWeakHandle>& other);
 
 		/**
 		 * Constructs a new valid handle for the provided resource with the provided UUID.
 		 *
 		 * @note	Handle will take ownership of the provided resource pointer, so make sure you don't delete it elsewhere.
 		 */
-		explicit TResourceHandle(T* ptr, const UUID& uuid)
+		explicit TResourceHandle(ResourceType* ptr, const UUID& uuid)
 			: TResourceHandleBase<WeakHandle>()
 		{
 			this->mData = B3DMakeShared<ResourceHandleData>();
@@ -351,19 +349,19 @@ namespace bs
 		TResourceHandle(const UUID& uuid)
 		{
 			this->mData = B3DMakeShared<ResourceHandleData>();
-			this->mData->MUuid = uuid;
+			this->mData->Id = uuid;
 
 			this->AddRef();
 		}
 
 		/**	Constructs a new valid handle for the provided resource with the provided UUID. */
-		TResourceHandle(const SPtr<T> ptr, const UUID& uuid)
+		TResourceHandle(const SPtr<ResourceType> ptr, const UUID& uuid)
 		{
 			this->mData = B3DMakeShared<ResourceHandleData>();
 			this->AddRef();
 
 			this->SetHandleData(ptr, uuid);
-			this->mData->MIsCreated = true;
+			this->mData->IsCreated = true;
 		}
 
 		/**	Replaces the internal handle data pointer, effectively transforming the handle into a different handle. */
@@ -378,26 +376,26 @@ namespace bs
 	};
 
 	/**	Checks if two handles point to the same resource. */
-	template <class _Ty1, bool _Weak1, class _Ty2, bool _Weak2>
-	bool operator==(const TResourceHandle<_Ty1, _Weak1>& _Left, const TResourceHandle<_Ty2, _Weak2>& _Right)
+	template <class ResourceTypeLhs, bool IsWeakHandleLhs, class ResourceTypeRhs, bool IsWeakHandleRhs>
+	bool operator==(const TResourceHandle<ResourceTypeLhs, IsWeakHandleLhs>& lhs, const TResourceHandle<ResourceTypeRhs, IsWeakHandleRhs>& rhs)
 	{
-		if(_Left.GetHandleData() != nullptr && _Right.GetHandleData() != nullptr)
-			return _Left.GetHandleData()->MPtr == _Right.GetHandleData()->MPtr;
+		if(lhs.GetHandleData() != nullptr && rhs.GetHandleData() != nullptr)
+			return lhs.GetHandleData()->Object == rhs.GetHandleData()->Object;
 
-		return _Left.GetHandleData() == _Right.GetHandleData();
+		return lhs.GetHandleData() == rhs.GetHandleData();
 	}
 
 	/**	Checks if a handle is null. */
-	template <class _Ty1, bool _Weak1, class _Ty2, bool _Weak2>
-	bool operator==(const TResourceHandle<_Ty1, _Weak1>& _Left, std::nullptr_t _Right)
+	template <class ResourceType, bool IsWeakHandle>
+	bool operator==(const TResourceHandle<ResourceType, IsWeakHandle>& lhs, std::nullptr_t rhs)
 	{
-		return _Left.GetHandleData() == nullptr || _Left.GetHandleData()->mId.empty();
+		return lhs.GetHandleData() == nullptr || lhs.GetHandleData()->Id.Empty();
 	}
 
-	template <class _Ty1, bool _Weak1, class _Ty2, bool _Weak2>
-	bool operator!=(const TResourceHandle<_Ty1, _Weak1>& _Left, const TResourceHandle<_Ty2, _Weak2>& _Right)
+	template <class ResourceTypeLhs, bool IsWeakHandleLhs, class ResourceTypeRhs, bool IsWeakHandleRhs>
+	bool operator!=(const TResourceHandle<ResourceTypeLhs, IsWeakHandleLhs>& lhs, const TResourceHandle<ResourceTypeRhs, IsWeakHandleRhs>& rhs)
 	{
-		return (!(_Left == _Right));
+		return (!(lhs == rhs));
 	}
 
 	/** @} */
@@ -419,20 +417,20 @@ namespace bs
 	using WeakResourceHandle = TResourceHandle<T, true>;
 
 	/**	Casts one resource handle to another. */
-	template <class _Ty1, class _Ty2, bool _Weak2, bool _Weak1>
-	TResourceHandle<_Ty1, _Weak1> B3DStaticResourceCast(const TResourceHandle<_Ty2, _Weak2>& other)
+	template <class ResourceTypeLhs, class ResourceTypeRhs, bool IsWeakHandleLhs, bool IsWeakHandleRhs>
+	TResourceHandle<ResourceTypeLhs, IsWeakHandleLhs> B3DStaticResourceCast(const TResourceHandle<ResourceTypeRhs, IsWeakHandleRhs>& other)
 	{
-		TResourceHandle<_Ty1, _Weak1> handle;
+		TResourceHandle<ResourceTypeLhs, IsWeakHandleLhs> handle;
 		handle.SetHandleData(other.GetHandleData());
 
 		return handle;
 	}
 
 	/**	Casts one resource handle to another. */
-	template <class _Ty1, class _Ty2, bool _Weak2>
-	TResourceHandle<_Ty1, false> B3DStaticResourceCast(const TResourceHandle<_Ty2, _Weak2>& other)
+	template <class ResourceTypeLhs, class ResourceTypeRhs, bool IsWeakHandle>
+	TResourceHandle<ResourceTypeLhs, false> B3DStaticResourceCast(const TResourceHandle<ResourceTypeRhs, IsWeakHandle>& other)
 	{
-		TResourceHandle<_Ty1, false> handle;
+		TResourceHandle<ResourceTypeLhs, false> handle;
 		handle.SetHandleData(other.GetHandleData());
 
 		return handle;

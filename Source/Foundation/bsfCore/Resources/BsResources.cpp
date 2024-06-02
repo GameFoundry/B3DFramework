@@ -802,7 +802,7 @@ void Resources::ReleaseInternalReference(ResourceHandleBase& resource)
 				resData.NumInternalRefs--;
 				resource.RemoveInternalRef();
 
-				std::uint32_t refCount = resource.GetHandleData()->MRefCount.load(std::memory_order_relaxed);
+				std::uint32_t refCount = resource.GetHandleData()->ReferenceCount.load(std::memory_order_relaxed);
 				lostLastRef = refCount == 0;
 			}
 		}
@@ -822,7 +822,7 @@ void Resources::UnloadAllUnused()
 		{
 			const LoadedResourceData& resData = iter->second;
 
-			std::uint32_t refCount = resData.Resource.mData->MRefCount.load(std::memory_order_relaxed);
+			std::uint32_t refCount = resData.Resource.mData->ReferenceCount.load(std::memory_order_relaxed);
 			B3D_ASSERT(refCount > 0); // No references but kept in mLoadedResources list?
 
 			if(refCount == resData.NumInternalRefs) // Only internal references exist, free it
@@ -939,7 +939,7 @@ void Resources::Destroy(ResourceHandleBase& resource)
 		}
 	}
 
-	resource.mData->MPtr->Destroy();
+	resource.mData->Object->Destroy();
 	resource.ClearHandleData();
 }
 
