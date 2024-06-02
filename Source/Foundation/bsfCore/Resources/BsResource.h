@@ -60,7 +60,7 @@ namespace bs
 
 	protected:
 		friend class Resources;
-		friend class ResourceHandleBase;
+		friend class ResourceHandle;
 
 		/**
 		 * Retrieves a list of all resources that this resource depends on.

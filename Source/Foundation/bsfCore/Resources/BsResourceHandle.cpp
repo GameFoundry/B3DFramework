@@ -10,10 +10,10 @@
 
 using namespace bs;
 
-Signal ResourceHandleBase::mResourceCreatedCondition;
-Mutex ResourceHandleBase::mResourceCreatedMutex;
+Signal ResourceHandle::mResourceCreatedCondition;
+Mutex ResourceHandle::mResourceCreatedMutex;
 
-bool ResourceHandleBase::IsLoaded(bool checkDependencies) const
+bool ResourceHandle::IsLoaded(bool checkDependencies) const
 {
 	bool isLoaded = (mData != nullptr && mData->IsCreated && mData->Object != nullptr);
 
@@ -23,7 +23,7 @@ bool ResourceHandleBase::IsLoaded(bool checkDependencies) const
 	return isLoaded;
 }
 
-void ResourceHandleBase::BlockUntilLoaded(bool waitForDependencies) const
+void ResourceHandle::BlockUntilLoaded(bool waitForDependencies) const
 {
 	if(mData == nullptr)
 		return;
@@ -55,18 +55,18 @@ void ResourceHandleBase::BlockUntilLoaded(bool waitForDependencies) const
 	}
 }
 
-void ResourceHandleBase::ReleaseInternalReference()
+void ResourceHandle::ReleaseInternalReference()
 {
 	GetResources().ReleaseInternalReference(*this);
 }
 
-void ResourceHandleBase::Destroy()
+void ResourceHandle::Destroy()
 {
 	if(mData->Object)
 		GetResources().Destroy(*this);
 }
 
-void ResourceHandleBase::SetHandleData(const SPtr<Resource>& ptr, const UUID& uuid)
+void ResourceHandle::SetHandleData(const SPtr<Resource>& ptr, const UUID& uuid)
 {
 	mData->Object = ptr;
 
@@ -74,7 +74,7 @@ void ResourceHandleBase::SetHandleData(const SPtr<Resource>& ptr, const UUID& uu
 		mData->Id = uuid;
 }
 
-void ResourceHandleBase::NotifyLoadComplete()
+void ResourceHandle::NotifyLoadComplete()
 {
 	if(!mData->IsCreated)
 	{
@@ -87,7 +87,7 @@ void ResourceHandleBase::NotifyLoadComplete()
 	}
 }
 
-void ResourceHandleBase::ClearHandleData()
+void ResourceHandle::ClearHandleData()
 {
 	mData->Object = nullptr;
 
@@ -95,17 +95,17 @@ void ResourceHandleBase::ClearHandleData()
 	mData->IsCreated = false;
 }
 
-void ResourceHandleBase::IncrementInternalReferenceCount()
+void ResourceHandle::IncrementInternalReferenceCount()
 {
 	mData->ReferenceCount.fetch_add(1, std::memory_order_relaxed);
 }
 
-void ResourceHandleBase::DecrementInternalReferenceCount()
+void ResourceHandle::DecrementInternalReferenceCount()
 {
 	mData->ReferenceCount.fetch_sub(1, std::memory_order_relaxed);
 }
 
-void ResourceHandleBase::ThrowIfNotLoaded() const
+void ResourceHandle::ThrowIfNotLoaded() const
 {
 #if B3D_DEBUG
 	if(!IsLoaded(false))

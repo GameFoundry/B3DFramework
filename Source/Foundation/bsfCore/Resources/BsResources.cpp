@@ -769,7 +769,7 @@ SPtr<Resource> Resources::LoadFromDiskAndDeserialize(const Path& filePath, bool 
 	return resource;
 }
 
-void Resources::ReleaseInternalReference(ResourceHandleBase& resource)
+void Resources::ReleaseInternalReference(ResourceHandle& resource)
 {
 	const UUID& uuid = resource.GetId();
 
@@ -853,7 +853,7 @@ void Resources::UnloadAll()
 		Destroy(loadedResourcePair.second.Resource);
 }
 
-void Resources::Destroy(ResourceHandleBase& resource)
+void Resources::Destroy(ResourceHandle& resource)
 {
 	if(resource.mData == nullptr)
 		return;

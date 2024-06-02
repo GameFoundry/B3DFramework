@@ -166,7 +166,7 @@ namespace bs
 		 *							folder.
 		 * @param[in]	loadFlags	Flags used to control the load process.
 		 *
-		 * @see		release(ResourceHandleBase&), unloadAllUnused()
+		 * @see		ReleaseInternalReference(ResourceHandle&), UnloadAllUnused()
 		 */
 		B3D_SCRIPT_EXPORT()
 		B3D_NO_RREF HResource Load(const Path& filePath, ResourceLoadFlags loadFlags = ResourceLoadFlag::Default);
@@ -238,10 +238,10 @@ namespace bs
 		 * unloaded.
 		 */
 		B3D_SCRIPT_EXPORT()
-		void ReleaseInternalReference(const HResource& resource) { ReleaseInternalReference((ResourceHandleBase&)resource); }
+		void ReleaseInternalReference(const HResource& resource) { ReleaseInternalReference((ResourceHandle&)resource); }
 
 		/** @copydoc ReleaseInternalReference(const HResource&) */
-		void ReleaseInternalReference(ResourceHandleBase& resource);
+		void ReleaseInternalReference(ResourceHandle& resource);
 
 		/**
 		 * Finds all resources that aren't being referenced outside of the resources system and unloads them.
@@ -474,7 +474,7 @@ namespace bs
 
 		/** @} */
 	private:
-		friend class ResourceHandleBase;
+		friend class ResourceHandle;
 
 		/**
 		 * Starts resource loading or returns an already loaded resource. Both UUID and filePath must match the	same
@@ -504,7 +504,7 @@ namespace bs
 		void TryFinalizeLoad(const SPtr<InProgressLoadInformation>& inProgressLoadInformation);
 
 		/**	Destroys a resource, freeing its memory. */
-		void Destroy(ResourceHandleBase& resource);
+		void Destroy(ResourceHandle& resource);
 
 	private:
 		Vector<SPtr<ResourceManifest>> mResourceManifests; // TODO - Deprecated

@@ -27,7 +27,7 @@ namespace bs
 	 *    the engine. The handle will be made valid as soon as the resource is loaded.
 	 *	- Handles can be serialized and deserialized, therefore saving/restoring references to their original resource.
 	 */
-	class B3D_CORE_EXPORT ResourceHandleBase : public IReflectable
+	class B3D_CORE_EXPORT ResourceHandle : public IReflectable
 	{
 	public:
 		/**
@@ -49,7 +49,7 @@ namespace bs
 		/**
 		 * Releases an internal reference to this resource held by the resources system, if there is one.
 		 *
-		 * @see		Resources::ReleaseInternalReference(ResourceHandleBase&)
+		 * @see		Resources::ReleaseInternalReference(ResourceHandle&)
 		 */
 		void ReleaseInternalReference();
 
@@ -116,7 +116,7 @@ namespace bs
 	};
 
 	/**	Implementation of ResourceHandle for weak handles. Weak handles do no reference counting. */
-	class B3D_CORE_EXPORT WeakResourceHandle : public ResourceHandleBase
+	class B3D_CORE_EXPORT WeakResourceHandle : public ResourceHandle
 	{
 	protected:
 		void IncrementReferenceCount(){}
@@ -132,7 +132,7 @@ namespace bs
 	};
 
 	/**	Implementation of ResourceHandle for strong (non-weak) handles. */
-	class B3D_CORE_EXPORT StrongResourceHandle : public ResourceHandleBase
+	class B3D_CORE_EXPORT StrongResourceHandle : public ResourceHandle
 	{
 	protected:
 		void IncrementReferenceCount()
@@ -165,7 +165,7 @@ namespace bs
 		RTTIType* GetRtti() const override;
 	};
 
-	/** @copydoc ResourceHandleBase */
+	/** @copydoc ResourceHandle */
 	template <typename ResourceType, bool IsWeakHandle = false>
 	class TResourceHandle : public std::conditional_t<IsWeakHandle, WeakResourceHandle, StrongResourceHandle>
 	{
@@ -360,7 +360,7 @@ namespace bs
 			this->IncrementReferenceCount();
 		}
 
-		using ResourceHandleBase::SetHandleData;
+		using ResourceHandle::SetHandleData;
 	};
 
 	/**	Checks if two handles point to the same resource. */
@@ -392,12 +392,8 @@ namespace bs
 	 *  @{
 	 */
 
-	/** @copydoc ResourceHandleBase */
-	template <typename T>
-	using ResourceHandle = TResourceHandle<T>;
-
 	/**
-	 * @copydoc ResourceHandleBase
+	 * @copydoc ResourceHandle
 	 *
 	 * Weak handles don't prevent the resource from being unloaded.
 	 */
