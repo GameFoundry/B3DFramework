@@ -39,6 +39,9 @@ namespace bs
 		 */
 		bool IsLoaded(bool checkDependencies = true) const;
 
+		/** Checks if the resource handle is not null and resource is loaded. */
+		bool IsValid() const { return IsLoaded(false); }
+
 		/**
 		 * Blocks the current thread until the resource is fully loaded.
 		 *
