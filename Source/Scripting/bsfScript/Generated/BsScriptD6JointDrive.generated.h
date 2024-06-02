@@ -8,13 +8,23 @@
 
 namespace bs
 {
+	struct __D6JointDriveInterop
+	{
+		float Stiffness;
+		float Damping;
+		float ForceLimit;
+		bool Acceleration;
+	};
+
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptD6JointDrive : public ScriptObject<ScriptD6JointDrive>
 	{
 	public:
 		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "D6JointDrive")
 
-		static MonoObject* Box(const D6JointDrive& value);
-		static D6JointDrive Unbox(MonoObject* value);
+		static MonoObject* Box(const __D6JointDriveInterop& value);
+		static __D6JointDriveInterop Unbox(MonoObject* value);
+		static D6JointDrive FromInterop(const __D6JointDriveInterop& value);
+		static __D6JointDriveInterop ToInterop(const D6JointDrive& value);
 
 	private:
 		ScriptD6JointDrive(MonoObject* managedInstance);

@@ -13,7 +13,7 @@ namespace bs
 	public:
 		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "Font")
 
-		ScriptFont(MonoObject* managedInstance, const ResourceHandle<Font>& value);
+		ScriptFont(MonoObject* managedInstance, const TResourceHandle<Font>& value);
 
 		static MonoObject* CreateInstance();
 

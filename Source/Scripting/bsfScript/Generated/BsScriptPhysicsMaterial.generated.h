@@ -13,7 +13,7 @@ namespace bs
 	public:
 		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "PhysicsMaterial")
 
-		ScriptPhysicsMaterial(MonoObject* managedInstance, const ResourceHandle<PhysicsMaterial>& value);
+		ScriptPhysicsMaterial(MonoObject* managedInstance, const TResourceHandle<PhysicsMaterial>& value);
 
 		static MonoObject* CreateInstance();
 

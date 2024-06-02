@@ -25,7 +25,7 @@ namespace bs
 
 	void ScriptMeshCollider::InternalSetMesh(ScriptMeshCollider* thisPtr, MonoObject* mesh)
 	{
-		ResourceHandle<PhysicsMesh> tmpmesh;
+		TResourceHandle<PhysicsMesh> tmpmesh;
 		ScriptRRefBase* scriptmesh;
 		scriptmesh = ScriptRRefBase::ToNative(mesh);
 		if(scriptmesh != nullptr)
@@ -35,7 +35,7 @@ namespace bs
 
 	MonoObject* ScriptMeshCollider::InternalGetMesh(ScriptMeshCollider* thisPtr)
 	{
-		ResourceHandle<PhysicsMesh> tmp__output;
+		TResourceHandle<PhysicsMesh> tmp__output;
 		tmp__output = thisPtr->GetHandle()->GetMesh();
 
 		MonoObject* __output;

@@ -25,5 +25,8 @@ namespace bs
 		static MonoObject* InternalGetRoot(ScriptSceneInstance* thisPtr);
 		static bool InternalIsActive(ScriptSceneInstance* thisPtr);
 		static MonoObject* InternalGetPhysicsScene(ScriptSceneInstance* thisPtr);
+		static MonoObject* InternalCreateSceneObject(ScriptSceneInstance* thisPtr, MonoString* name);
+		static void InternalCreate(MonoObject* managedInstance, MonoString* name);
+		static void InternalCreate0(MonoObject* managedInstance, MonoString* name, MonoObject* root);
 	};
 }

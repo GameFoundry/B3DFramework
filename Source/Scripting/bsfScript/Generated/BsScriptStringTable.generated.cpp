@@ -11,7 +11,7 @@
 
 namespace bs
 {
-	ScriptStringTable::ScriptStringTable(MonoObject* managedInstance, const ResourceHandle<StringTable>& value)
+	ScriptStringTable::ScriptStringTable(MonoObject* managedInstance, const TResourceHandle<StringTable>& value)
 		:TScriptResource(managedInstance, value)
 	{
 	}
@@ -113,7 +113,7 @@ namespace bs
 
 	void ScriptStringTable::InternalCreate(MonoObject* managedInstance)
 	{
-		ResourceHandle<StringTable> instance = StringTable::Create();
+		TResourceHandle<StringTable> instance = StringTable::Create();
 		ScriptResourceManager::Instance().CreateBuiltinScriptResource(instance, managedInstance);
 	}
 }

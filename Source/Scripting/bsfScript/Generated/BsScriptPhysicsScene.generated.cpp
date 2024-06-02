@@ -146,7 +146,7 @@ namespace bs
 	bool ScriptPhysicsScene::InternalConvexCast(ScriptPhysicsScene* thisPtr, MonoObject* mesh, TVector3<float>* position, Quaternion* rotation, TVector3<float>* unitDir, __PhysicsQueryHitInterop* hit, uint64_t layer, float max)
 	{
 		bool tmp__output;
-		ResourceHandle<PhysicsMesh> tmpmesh;
+		TResourceHandle<PhysicsMesh> tmpmesh;
 		ScriptRRefBase* scriptmesh;
 		scriptmesh = ScriptRRefBase::ToNative(mesh);
 		if(scriptmesh != nullptr)
@@ -251,7 +251,7 @@ namespace bs
 	MonoArray* ScriptPhysicsScene::InternalConvexCastAll(ScriptPhysicsScene* thisPtr, MonoObject* mesh, TVector3<float>* position, Quaternion* rotation, TVector3<float>* unitDir, uint64_t layer, float max)
 	{
 		Vector<PhysicsQueryHit> vec__output;
-		ResourceHandle<PhysicsMesh> tmpmesh;
+		TResourceHandle<PhysicsMesh> tmpmesh;
 		ScriptRRefBase* scriptmesh;
 		scriptmesh = ScriptRRefBase::ToNative(mesh);
 		if(scriptmesh != nullptr)
@@ -328,7 +328,7 @@ namespace bs
 	bool ScriptPhysicsScene::InternalConvexCastAny(ScriptPhysicsScene* thisPtr, MonoObject* mesh, TVector3<float>* position, Quaternion* rotation, TVector3<float>* unitDir, uint64_t layer, float max)
 	{
 		bool tmp__output;
-		ResourceHandle<PhysicsMesh> tmpmesh;
+		TResourceHandle<PhysicsMesh> tmpmesh;
 		ScriptRRefBase* scriptmesh;
 		scriptmesh = ScriptRRefBase::ToNative(mesh);
 		if(scriptmesh != nullptr)
@@ -413,7 +413,7 @@ namespace bs
 	MonoArray* ScriptPhysicsScene::InternalConvexOverlap(ScriptPhysicsScene* thisPtr, MonoObject* mesh, TVector3<float>* position, Quaternion* rotation, uint64_t layer)
 	{
 		Vector<GameObjectHandle<CCollider>> vec__output;
-		ResourceHandle<PhysicsMesh> tmpmesh;
+		TResourceHandle<PhysicsMesh> tmpmesh;
 		ScriptRRefBase* scriptmesh;
 		scriptmesh = ScriptRRefBase::ToNative(mesh);
 		if(scriptmesh != nullptr)
@@ -474,7 +474,7 @@ namespace bs
 	bool ScriptPhysicsScene::InternalConvexOverlapAny(ScriptPhysicsScene* thisPtr, MonoObject* mesh, TVector3<float>* position, Quaternion* rotation, uint64_t layer)
 	{
 		bool tmp__output;
-		ResourceHandle<PhysicsMesh> tmpmesh;
+		TResourceHandle<PhysicsMesh> tmpmesh;
 		ScriptRRefBase* scriptmesh;
 		scriptmesh = ScriptRRefBase::ToNative(mesh);
 		if(scriptmesh != nullptr)

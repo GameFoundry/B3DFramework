@@ -134,6 +134,58 @@
 			<doc>Returns the total number of bones in the skeleton.</doc>
 		</property>
 	</class>
+	<class native="MotionBlurSettings" script="MotionBlurSettings">
+		<doc>Settings that control the motion blur effect.</doc>
+		<ctor>
+		</ctor>
+		<property name="Enabled" type="bool" getter="GetEnabled" setter="SetEnabled" static="false">
+			<doc>Enables or disables the motion blur effect.</doc>
+		</property>
+		<property name="Domain" type="MotionBlurDomain" getter="GetDomain" setter="SetDomain" static="false">
+			<doc>Determines which parts of the scene will trigger motion blur.</doc>
+		</property>
+		<property name="Filter" type="MotionBlurFilter" getter="GetFilter" setter="SetFilter" static="false">
+			<doc>Type of filter to use when filtering samples contributing to a blurred pixel.</doc>
+		</property>
+		<property name="Quality" type="MotionBlurQuality" getter="GetQuality" setter="SetQuality" static="false">
+			<doc>Determines the number of samples to take during motion blur filtering. Increasing this value will yield higher quality blur at the cost of the performance.</doc>
+		</property>
+		<property name="MaximumRadius" type="float" getter="GetMaximumRadius" setter="SetMaximumRadius" static="false">
+			<doc>Determines the maximum radius over which the blur samples are allowed to be taken, in percent of the screen width (e.g. with 1% radius, on 1920x1028 resolution the maximum radius in pixels will be 1920 * 0.01 = 20px). This clamps the maximum velocity that can affect the blur, as higher velocities require higher radius. Very high values can adversely affect performance as cache accesses become more random.</doc>
+		</property>
+	</class>
+	<struct native="START_UP_DESC" script="StartUpDesc">
+		<doc>Structure containing parameters for starting the application.</doc>
+		<ctor>
+		</ctor>
+		<field name="RenderApi" type="string">
+			<doc>Name of the render system plugin to use.</doc>
+		</field>
+		<field name="Renderer" type="string">
+			<doc>Name of the renderer plugin to use.</doc>
+		</field>
+		<field name="Physics" type="string">
+			<doc>Name of physics plugin to use.</doc>
+		</field>
+		<field name="Audio" type="string">
+			<doc>Name of the audio plugin to use.</doc>
+		</field>
+		<field name="Input" type="string">
+			<doc>Name of the input plugin to use.</doc>
+		</field>
+		<field name="PhysicsCooking" type="bool">
+			<doc>True if physics cooking library should be loaded. Cooking is useful for creating collision meshes during development type, but might be unnecessary in the final application. When turned off you can save on space by not shipping the cooking library.</doc>
+		</field>
+		<field name="AsyncAnimation" type="bool">
+			<doc>True if animation should be evaluated at the same time while rendering is happening. This introduces a one frame delay to all animations but can result in better performance. If false the animation will be forced to finish evaluating before rendering starts, ensuring up-to-date frame but potentially blocking the rendering thread from moving forward until the animation finishes.</doc>
+		</field>
+		<field name="PrimaryWindowDesc" type="RenderWindowDesc">
+			<doc>Describes the window to create during start-up.</doc>
+		</field>
+		<field name="Importers" type="string">
+			<doc>A list of importer plugins to load.</doc>
+		</field>
+	</struct>
 	<struct native="ColorGradientKey" script="ColorGradientKey">
 		<doc>Single key in a ColorGradient.</doc>
 		<ctor>
@@ -147,6 +199,52 @@
 		<field name="Color" type="Color">
 		</field>
 		<field name="Time" type="float">
+		</field>
+	</struct>
+	<struct native="TVector3I&lt;int32_t&gt;" script="Vector3I">
+		<doc>A three dimensional vector with integer coordinates.</doc>
+		<ctor>
+		</ctor>
+		<ctor>
+			<param name="x" type="int">
+			</param>
+			<param name="y" type="int">
+			</param>
+			<param name="z" type="int">
+			</param>
+		</ctor>
+		<ctor>
+			<param name="value" type="int">
+			</param>
+		</ctor>
+		<field name="X" type="int">
+		</field>
+		<field name="Y" type="int">
+		</field>
+		<field name="Z" type="int">
+		</field>
+	</struct>
+	<struct native="TVector3I&lt;uint32_t&gt;" script="Vector3UI">
+		<doc>A three dimensional vector with integer coordinates.</doc>
+		<ctor>
+		</ctor>
+		<ctor>
+			<param name="x" type="int">
+			</param>
+			<param name="y" type="int">
+			</param>
+			<param name="z" type="int">
+			</param>
+		</ctor>
+		<ctor>
+			<param name="value" type="int">
+			</param>
+		</ctor>
+		<field name="X" type="int">
+		</field>
+		<field name="Y" type="int">
+		</field>
+		<field name="Z" type="int">
 		</field>
 	</struct>
 	<class native="CAnimation" script="Animation">
@@ -236,52 +334,6 @@
 			<doc>Enables or disables culling of the animation when out of view. Culled animation will not be evaluated.</doc>
 		</property>
 	</class>
-	<struct native="TVector3I&lt;int32_t&gt;" script="Vector3I">
-		<doc>A three dimensional vector with integer coordinates.</doc>
-		<ctor>
-		</ctor>
-		<ctor>
-			<param name="x" type="int">
-			</param>
-			<param name="y" type="int">
-			</param>
-			<param name="z" type="int">
-			</param>
-		</ctor>
-		<ctor>
-			<param name="value" type="int">
-			</param>
-		</ctor>
-		<field name="X" type="int">
-		</field>
-		<field name="Y" type="int">
-		</field>
-		<field name="Z" type="int">
-		</field>
-	</struct>
-	<struct native="TVector3I&lt;uint32_t&gt;" script="Vector3UI">
-		<doc>A three dimensional vector with integer coordinates.</doc>
-		<ctor>
-		</ctor>
-		<ctor>
-			<param name="x" type="int">
-			</param>
-			<param name="y" type="int">
-			</param>
-			<param name="z" type="int">
-			</param>
-		</ctor>
-		<ctor>
-			<param name="value" type="int">
-			</param>
-		</ctor>
-		<field name="X" type="int">
-		</field>
-		<field name="Y" type="int">
-		</field>
-		<field name="Z" type="int">
-		</field>
-	</struct>
 	<class native="ApplicationEx" script="Application">
 		<doc>Script-exported API for Application.</doc>
 		<method native="StartUp" script="StartUp" static="true">
@@ -1504,67 +1556,6 @@ Use {0}, {1}, etc. in the string value for values that might change dynamically.
 			<doc>Returns a list of all morph channels in the morph animation.</doc>
 		</property>
 	</class>
-	<class native="ParticleEmitterSkinnedMeshShape" script="ParticleEmitterSkinnedMeshShape">
-		<doc>Particle emitter shape that emits particles from a surface of a skinned (animated) mesh. Particles can be emitted from mesh vertices, edges or triangles. If information about normals exists, particles will also inherit the normals.</doc>
-		<ctor>
-			<doc>Creates a new particle emitter skinned mesh shape.</doc>
-			<param name="desc" type="ParticleSkinnedMeshShapeOptions">
-			</param>
-		</ctor>
-		<ctor>
-			<doc>Creates a new particle emitter skinned mesh shape.</doc>
-		</ctor>
-		<property name="Options" type="ParticleSkinnedMeshShapeOptions" getter="GetOptions" setter="SetOptions" static="false">
-			<doc>Options describing the shape.</doc>
-		</property>
-	</class>
-	<enum native="TextureScaleMode" script="TextureScaleMode">
-		<doc>Type of scaling modes for GUI images.</doc>
-		<enumentry native="StretchToFit" script="StretchToFit">
-			<doc>Image will stretch non-uniformly in all dimensions in order to cover the assigned area fully.</doc>
-		</enumentry>
-		<enumentry native="ScaleToFit" script="ScaleToFit">
-			<doc>Image will scale uniformly until one dimension is aligned with the assigned area. Remaining dimension might have empty space.</doc>
-		</enumentry>
-		<enumentry native="CropToFit" script="CropToFit">
-			<doc>Image will scale uniformly until both dimensions are larger or aligned with the assigned area. Remaining dimension might be cropped.</doc>
-		</enumentry>
-		<enumentry native="RepeatToFit" script="RepeatToFit">
-			<doc>Image will keep its original size, but will repeat in order to fill the assigned area.</doc>
-		</enumentry>
-	</enum>
-	<enum native="ParticleRenderMode" script="ParticleRenderMode">
-		<doc>Determines how are particles represented on the screen.</doc>
-		<enumentry native="Billboard" script="Billboard">
-			<doc>Particle is represented using a 2D quad.</doc>
-		</enumentry>
-		<enumentry native="Mesh" script="Mesh">
-			<doc>Particle is represented using a 3D mesh.</doc>
-		</enumentry>
-	</enum>
-	<struct native="RectOffset" script="RectOffset">
-		<doc>Rectangle represented in the form of offsets from some parent rectangle.</doc>
-		<ctor>
-		</ctor>
-		<ctor>
-			<param name="left" type="int">
-			</param>
-			<param name="right" type="int">
-			</param>
-			<param name="top" type="int">
-			</param>
-			<param name="bottom" type="int">
-			</param>
-		</ctor>
-		<field name="Left" type="int">
-		</field>
-		<field name="Right" type="int">
-		</field>
-		<field name="Top" type="int">
-		</field>
-		<field name="Bottom" type="int">
-		</field>
-	</struct>
 	<struct native="AnimationClipState" script="AnimationClipState">
 		<doc>Contains information about a currently playing animation clip.</doc>
 		<ctor>
@@ -2548,58 +2539,6 @@ Use {0}, {1}, etc. in the string value for values that might change dynamically.
 		<property name="SampleCount" type="int" getter="GetSampleCount" setter="" static="false">
 		</property>
 	</class>
-	<class native="MotionBlurSettings" script="MotionBlurSettings">
-		<doc>Settings that control the motion blur effect.</doc>
-		<ctor>
-		</ctor>
-		<property name="Enabled" type="bool" getter="GetEnabled" setter="SetEnabled" static="false">
-			<doc>Enables or disables the motion blur effect.</doc>
-		</property>
-		<property name="Domain" type="MotionBlurDomain" getter="GetDomain" setter="SetDomain" static="false">
-			<doc>Determines which parts of the scene will trigger motion blur.</doc>
-		</property>
-		<property name="Filter" type="MotionBlurFilter" getter="GetFilter" setter="SetFilter" static="false">
-			<doc>Type of filter to use when filtering samples contributing to a blurred pixel.</doc>
-		</property>
-		<property name="Quality" type="MotionBlurQuality" getter="GetQuality" setter="SetQuality" static="false">
-			<doc>Determines the number of samples to take during motion blur filtering. Increasing this value will yield higher quality blur at the cost of the performance.</doc>
-		</property>
-		<property name="MaximumRadius" type="float" getter="GetMaximumRadius" setter="SetMaximumRadius" static="false">
-			<doc>Determines the maximum radius over which the blur samples are allowed to be taken, in percent of the screen width (e.g. with 1% radius, on 1920x1028 resolution the maximum radius in pixels will be 1920 * 0.01 = 20px). This clamps the maximum velocity that can affect the blur, as higher velocities require higher radius. Very high values can adversely affect performance as cache accesses become more random.</doc>
-		</property>
-	</class>
-	<struct native="START_UP_DESC" script="StartUpDesc">
-		<doc>Structure containing parameters for starting the application.</doc>
-		<ctor>
-		</ctor>
-		<field name="RenderApi" type="string">
-			<doc>Name of the render system plugin to use.</doc>
-		</field>
-		<field name="Renderer" type="string">
-			<doc>Name of the renderer plugin to use.</doc>
-		</field>
-		<field name="Physics" type="string">
-			<doc>Name of physics plugin to use.</doc>
-		</field>
-		<field name="Audio" type="string">
-			<doc>Name of the audio plugin to use.</doc>
-		</field>
-		<field name="Input" type="string">
-			<doc>Name of the input plugin to use.</doc>
-		</field>
-		<field name="PhysicsCooking" type="bool">
-			<doc>True if physics cooking library should be loaded. Cooking is useful for creating collision meshes during development type, but might be unnecessary in the final application. When turned off you can save on space by not shipping the cooking library.</doc>
-		</field>
-		<field name="AsyncAnimation" type="bool">
-			<doc>True if animation should be evaluated at the same time while rendering is happening. This introduces a one frame delay to all animations but can result in better performance. If false the animation will be forced to finish evaluating before rendering starts, ensuring up-to-date frame but potentially blocking the rendering thread from moving forward until the animation finishes.</doc>
-		</field>
-		<field name="PrimaryWindowDesc" type="RenderWindowDesc">
-			<doc>Describes the window to create during start-up.</doc>
-		</field>
-		<field name="Importers" type="string">
-			<doc>A list of importer plugins to load.</doc>
-		</field>
-	</struct>
 	<class native="CAudioListener" script="AudioListener">
 	</class>
 	<class native="CAudioSource" script="AudioSource">
@@ -4831,6 +4770,25 @@ Sprite images also allow you to specify sprite sheet animation by varying which 
 	</class>
 	<class native="SceneInstance" script="SceneInstance">
 		<doc>Contains information about an instantiated scene.</doc>
+		<method native="CreateSceneObject" script="CreateSceneObject" static="false">
+			<doc>Creates a new scene object in the scene instance.</doc>
+			<param name="name" type="string">
+			</param>
+			<returns type="SceneObject">
+			</returns>
+		</method>
+		<ctor>
+			<doc>Creates a new empty scene instance.</doc>
+			<param name="name" type="string">
+			</param>
+		</ctor>
+		<ctor>
+			<doc>Creates a new scene instance with an existing hierarchy.</doc>
+			<param name="name" type="string">
+			</param>
+			<param name="root" type="SceneObject">
+			</param>
+		</ctor>
 		<property name="Name" type="string" getter="GetName" setter="" static="false">
 			<doc>Name of the scene.</doc>
 		</property>
@@ -5466,6 +5424,35 @@ Sprite images also allow you to specify sprite sheet animation by varying which 
 			<doc>Renderable object containing a mesh to spawn particles on, as well as the attached Animation object resposible for performing skinned animation. Mesh must at least contain per-vertex position data encoded as 3D float vectors, blend indices encoded in 4-byte format, and blend weights encoded a 4D float vectors. Can optionally contain per-vertex normals encoded as 3D float vectors or as 4-byte unsigned-normalized format.</doc>
 		</field>
 	</struct>
+	<enum native="TextureScaleMode" script="TextureScaleMode">
+		<doc>Type of scaling modes for GUI images.</doc>
+		<enumentry native="StretchToFit" script="StretchToFit">
+			<doc>Image will stretch non-uniformly in all dimensions in order to cover the assigned area fully.</doc>
+		</enumentry>
+		<enumentry native="ScaleToFit" script="ScaleToFit">
+			<doc>Image will scale uniformly until one dimension is aligned with the assigned area. Remaining dimension might have empty space.</doc>
+		</enumentry>
+		<enumentry native="CropToFit" script="CropToFit">
+			<doc>Image will scale uniformly until both dimensions are larger or aligned with the assigned area. Remaining dimension might be cropped.</doc>
+		</enumentry>
+		<enumentry native="RepeatToFit" script="RepeatToFit">
+			<doc>Image will keep its original size, but will repeat in order to fill the assigned area.</doc>
+		</enumentry>
+	</enum>
+	<class native="ParticleEmitterSkinnedMeshShape" script="ParticleEmitterSkinnedMeshShape">
+		<doc>Particle emitter shape that emits particles from a surface of a skinned (animated) mesh. Particles can be emitted from mesh vertices, edges or triangles. If information about normals exists, particles will also inherit the normals.</doc>
+		<ctor>
+			<doc>Creates a new particle emitter skinned mesh shape.</doc>
+			<param name="desc" type="ParticleSkinnedMeshShapeOptions">
+			</param>
+		</ctor>
+		<ctor>
+			<doc>Creates a new particle emitter skinned mesh shape.</doc>
+		</ctor>
+		<property name="Options" type="ParticleSkinnedMeshShapeOptions" getter="GetOptions" setter="SetOptions" static="false">
+			<doc>Options describing the shape.</doc>
+		</property>
+	</class>
 	<struct native="ParticleBurst" script="ParticleBurst">
 		<doc>Specifies a burst of particles that occurs at a certain time point.</doc>
 		<ctor>
@@ -5578,6 +5565,38 @@ Sprite images also allow you to specify sprite sheet animation by varying which 
 		</enumentry>
 		<enumentry native="YoungToOld" script="YoungToOld">
 			<doc>Sort by age, youngest to oldest.</doc>
+		</enumentry>
+	</enum>
+	<struct native="RectOffset" script="RectOffset">
+		<doc>Rectangle represented in the form of offsets from some parent rectangle.</doc>
+		<ctor>
+		</ctor>
+		<ctor>
+			<param name="left" type="int">
+			</param>
+			<param name="right" type="int">
+			</param>
+			<param name="top" type="int">
+			</param>
+			<param name="bottom" type="int">
+			</param>
+		</ctor>
+		<field name="Left" type="int">
+		</field>
+		<field name="Right" type="int">
+		</field>
+		<field name="Top" type="int">
+		</field>
+		<field name="Bottom" type="int">
+		</field>
+	</struct>
+	<enum native="ParticleRenderMode" script="ParticleRenderMode">
+		<doc>Determines how are particles represented on the screen.</doc>
+		<enumentry native="Billboard" script="Billboard">
+			<doc>Particle is represented using a 2D quad.</doc>
+		</enumentry>
+		<enumentry native="Mesh" script="Mesh">
+			<doc>Particle is represented using a 3D mesh.</doc>
 		</enumentry>
 	</enum>
 	<class native="ParticleDepthCollisionSettings" script="ParticleDepthCollisionSettings">
@@ -6476,6 +6495,15 @@ Sprite images also allow you to specify sprite sheet animation by varying which 
 			<returns type="bool">
 			</returns>
 		</method>
+		<method native="VirtualToPhysicalPath" script="VirtualToPhysicalPath" static="false">
+			<doc>Converts a virtual path to a physical one. Note the existance of the path in the manifest will not be checked, the only requirement is that the virtual path begins with virtual path prefix. This means you can use this method for translating virtual -&gt; physical paths before they are added to the manifest. Returns false if <paramref name="virtualPath"/> doesn&apos;t start with the manifest&apos;s virtual path prefix.</doc>
+			<param name="virtualPath" type="string">
+			</param>
+			<param name="outPhysicalPath" type="string">
+			</param>
+			<returns type="bool">
+			</returns>
+		</method>
 		<method native="Save" script="Save" static="true">
 			<doc>Saves the resource manifest to the specified location.</doc>
 			<param name="manifest" type="ResourceManifest">
@@ -6484,7 +6512,7 @@ Sprite images also allow you to specify sprite sheet animation by varying which 
 			<param name="path" type="string">
 				<doc>Full pathname of the file to save the manifest in.</doc>
 			</param>
-			<param name="relativePath" type="string">
+			<param name="physicalPathPrefix" type="string">
 				<doc>If not empty, all pathnames in the manifest will be stored as if relative to this path.</doc>
 			</param>
 		</method>
@@ -6493,10 +6521,10 @@ Sprite images also allow you to specify sprite sheet animation by varying which 
 			<param name="path" type="string">
 				<doc>Full pathname of the file to load the manifest from.</doc>
 			</param>
-			<param name="relativePath" type="string">
-				<doc>If not empty, all loaded pathnames will have this path prepended.</doc>
+			<param name="physicalPathPrefix" type="string">
+				<doc>If not empty, all loaded path names will have this path prepended.</doc>
 			</param>
-			<param name="virtualRelativePath" type="string">
+			<param name="virtualPathPrefix" type="string">
 				<doc>If not empty, adds an additional set of paths that the resource can be referenced from.</doc>
 			</param>
 			<returns type="ResourceManifest">
@@ -7839,11 +7867,10 @@ Optionally if the parameter is an array you may provide an array index you which
 			<returns type="RRefBase">
 			</returns>
 		</method>
-		<method native="Release" script="Release" static="false">
-			<doc>Releases an internal reference to the resource held by the resources system. This allows the resource to be unloaded when it goes out of scope, if the resource was loaded with <see cref="keepInternalReference"/> parameter.
-Alternatively you can also skip manually calling release() and call unloadAllUnused() which will unload all resources that do not have any external references, but you lose the fine grained control of what will be unloaded.</doc>
+		<method native="ReleaseInternalReference" script="ReleaseInternalReference" static="false">
+			<doc>Releases an internal reference to the resource held by the resources system. This allows the resource to be unloaded when it goes out of scope, if the resource was loaded with <see cref="KeepInternalReference"/> option.
+Alternatively you can also skip manually calling ReleaseInternalReference() and call UnloadAllUnused() which will unload all resources that do not have any external references, but you lose the fine grained control of what will be unloaded.</doc>
 			<param name="resource" type="RRefBase">
-				<doc>Handle of the resource to release.</doc>
 			</param>
 		</method>
 		<method native="UnloadAllUnused" script="UnloadAllUnused" static="false">
@@ -7909,6 +7936,15 @@ Alternatively you can also skip manually calling release() and call unloadAllUnu
 				<doc>Load progress in range [0, 1].</doc>
 			</returns>
 		</method>
+		<method native="GetLoadProgress2" script="GetLoadProgress2" static="false">
+			<doc>Returns the loading progress of a resource that&apos;s being loaded</doc>
+			<param name="resource" type="RRefBase">
+				<doc>Resource whose load progress to check.</doc>
+			</param>
+			<returns type="float">
+				<doc>Load progress in range [0, 1].</doc>
+			</returns>
+		</method>
 		<method native="RegisterResourceManifest" script="RegisterResourceManifest" static="false">
 			<doc>Allows you to set a resource manifest containing UUID &lt;-&gt; file path mapping that is used when resolving resource references.</doc>
 			<param name="manifest" type="ResourceManifest">
@@ -7935,15 +7971,20 @@ Alternatively you can also skip manually calling release() and call unloadAllUnu
 			<returns type="bool">
 			</returns>
 		</method>
-		<method native="GetUUUIDAndPhysicalPathFromFilePath" script="GetUUUIDAndPhysicalPathFromFilePath" static="false">
-			<doc>Attempts to retrieve UUID and physical file path from the provided file path. Provided path can be physical or virtual. Returns true if successful, false otherwise.</doc>
+		<method native="GetUUIDFromFilePath" script="GetUUIDFromFilePath" static="false">
+			<doc>Attempts to retrieve UUID from the provided physical file path. Returns true if successful, false otherwise.</doc>
 			<param name="path" type="string">
 			</param>
 			<param name="outUUID" type="UUID">
 			</param>
-			<param name="outPhysicalFilePath" type="string">
-			</param>
 			<returns type="bool">
+			</returns>
+		</method>
+		<method native="EnsurePhysicalPath" script="EnsurePhysicalPath" static="false">
+			<doc>Converts a potentially virtual path into a physical one. If the path is not virtual, returns the path as-is.</doc>
+			<param name="path" type="string">
+			</param>
+			<returns type="string">
 			</returns>
 		</method>
 		<event native="OnResourceLoaded" script="OnResourceLoaded" static="false">
@@ -12168,22 +12209,6 @@ Alternatively you can also skip manually calling release() and call unloadAllUnu
 		<enumentry native="FontAwesomeYoast" script="FontAwesomeYoast">
 		</enumentry>
 	</enum>
-	<enum native="GUIVerticalTextAlignment" script="GUIVerticalTextAlignment">
-		<doc>Determines how is text vertically aligned in a GUI element.</doc>
-		<enumentry native="Top" script="Top">
-		</enumentry>
-		<enumentry native="Middle" script="Middle">
-		</enumentry>
-		<enumentry native="Bottom" script="Bottom">
-		</enumentry>
-	</enum>
-	<enum native="GUIImagePosition" script="GUIImagePosition">
-		<doc>Possible positions used for positioning content image within a GUI element.</doc>
-		<enumentry native="Left" script="Left">
-		</enumentry>
-		<enumentry native="Right" script="Right">
-		</enumentry>
-	</enum>
 	<enum native="BuiltinShader" script="BuiltinShader">
 		<doc>Types of builtin shaders that are always available.</doc>
 		<enumentry native="Custom" script="Custom">
@@ -12207,6 +12232,15 @@ Alternatively you can also skip manually calling release() and call unloadAllUnu
 			<doc>Special shader used for rendering decals that project onto other geometry.</doc>
 		</enumentry>
 	</enum>
+	<enum native="GUIVerticalTextAlignment" script="GUIVerticalTextAlignment">
+		<doc>Determines how is text vertically aligned in a GUI element.</doc>
+		<enumentry native="Top" script="Top">
+		</enumentry>
+		<enumentry native="Middle" script="Middle">
+		</enumentry>
+		<enumentry native="Bottom" script="Bottom">
+		</enumentry>
+	</enum>
 	<struct native="GUIOption" script="GUIOption">
 		<doc>Controls GUI element layout options, possibly by overriding the default options specified in GUI element style. These options control GUI element placement and size in a GUI layout.</doc>
 		<ctor>
@@ -12218,6 +12252,13 @@ Alternatively you can also skip manually calling release() and call unloadAllUnu
 		<field name="type" type="GUIOptionType">
 		</field>
 	</struct>
+	<enum native="GUIImagePosition" script="GUIImagePosition">
+		<doc>Possible positions used for positioning content image within a GUI element.</doc>
+		<enumentry native="Left" script="Left">
+		</enumentry>
+		<enumentry native="Right" script="Right">
+		</enumentry>
+	</enum>
 	<enum native="GUIElementState" script="GUIElementState">
 		<doc>Type of GUI element states.</doc>
 		<enumentry native="HoverOn" script="HoverOn">

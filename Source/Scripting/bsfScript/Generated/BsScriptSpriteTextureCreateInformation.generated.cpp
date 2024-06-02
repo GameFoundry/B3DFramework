@@ -33,7 +33,7 @@ namespace bs
 	SpriteTextureCreateInformation ScriptSpriteTextureCreateInformation::FromInterop(const __SpriteTextureCreateInformationInterop& value)
 	{
 		SpriteTextureCreateInformation output;
-		ResourceHandle<Texture> tmpAtlasTexture;
+		TResourceHandle<Texture> tmpAtlasTexture;
 		ScriptRRefBase* scriptAtlasTexture;
 		scriptAtlasTexture = ScriptRRefBase::ToNative(value.AtlasTexture);
 		if(scriptAtlasTexture != nullptr)

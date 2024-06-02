@@ -67,7 +67,7 @@ namespace bs
 	}
 	MonoObject* ScriptParticleSystemSettings::InternalGetMaterial(ScriptParticleSystemSettings* thisPtr)
 	{
-		ResourceHandle<Material> tmp__output;
+		TResourceHandle<Material> tmp__output;
 		tmp__output = thisPtr->GetInternal()->Material;
 
 		MonoObject* __output;
@@ -83,7 +83,7 @@ namespace bs
 
 	void ScriptParticleSystemSettings::InternalSetMaterial(ScriptParticleSystemSettings* thisPtr, MonoObject* value)
 	{
-		ResourceHandle<Material> tmpvalue;
+		TResourceHandle<Material> tmpvalue;
 		ScriptRRefBase* scriptvalue;
 		scriptvalue = ScriptRRefBase::ToNative(value);
 		if(scriptvalue != nullptr)
@@ -93,7 +93,7 @@ namespace bs
 
 	MonoObject* ScriptParticleSystemSettings::InternalGetMesh(ScriptParticleSystemSettings* thisPtr)
 	{
-		ResourceHandle<Mesh> tmp__output;
+		TResourceHandle<Mesh> tmp__output;
 		tmp__output = thisPtr->GetInternal()->Mesh;
 
 		MonoObject* __output;
@@ -109,7 +109,7 @@ namespace bs
 
 	void ScriptParticleSystemSettings::InternalSetMesh(ScriptParticleSystemSettings* thisPtr, MonoObject* value)
 	{
-		ResourceHandle<Mesh> tmpvalue;
+		TResourceHandle<Mesh> tmpvalue;
 		ScriptRRefBase* scriptvalue;
 		scriptvalue = ScriptRRefBase::ToNative(value);
 		if(scriptvalue != nullptr)

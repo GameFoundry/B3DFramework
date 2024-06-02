@@ -49,7 +49,7 @@ namespace bs
 
 	void ScriptRenderTexture::InternalCreate0(MonoObject* managedInstance, MonoObject* colorSurface)
 	{
-		ResourceHandle<Texture> tmpcolorSurface;
+		TResourceHandle<Texture> tmpcolorSurface;
 		ScriptTexture* scriptcolorSurface;
 		scriptcolorSurface = ScriptTexture::ToNative(colorSurface);
 		if(scriptcolorSurface != nullptr)
@@ -60,12 +60,12 @@ namespace bs
 
 	void ScriptRenderTexture::InternalCreate1(MonoObject* managedInstance, MonoObject* colorSurface, MonoObject* depthStencilSurface)
 	{
-		ResourceHandle<Texture> tmpcolorSurface;
+		TResourceHandle<Texture> tmpcolorSurface;
 		ScriptTexture* scriptcolorSurface;
 		scriptcolorSurface = ScriptTexture::ToNative(colorSurface);
 		if(scriptcolorSurface != nullptr)
 			tmpcolorSurface = scriptcolorSurface->GetHandle();
-		ResourceHandle<Texture> tmpdepthStencilSurface;
+		TResourceHandle<Texture> tmpdepthStencilSurface;
 		ScriptTexture* scriptdepthStencilSurface;
 		scriptdepthStencilSurface = ScriptTexture::ToNative(depthStencilSurface);
 		if(scriptdepthStencilSurface != nullptr)
@@ -76,7 +76,7 @@ namespace bs
 
 	void ScriptRenderTexture::InternalCreate2(MonoObject* managedInstance, MonoArray* colorSurface)
 	{
-		Vector<ResourceHandle<Texture>> veccolorSurface;
+		Vector<TResourceHandle<Texture>> veccolorSurface;
 		if(colorSurface != nullptr)
 		{
 			ScriptArray arraycolorSurface(colorSurface);
@@ -87,7 +87,7 @@ namespace bs
 				scriptcolorSurface = ScriptTexture::ToNative(arraycolorSurface.Get<MonoObject*>(i));
 				if(scriptcolorSurface != nullptr)
 				{
-					ResourceHandle<Texture> arrayElemPtrcolorSurface = scriptcolorSurface->GetHandle();
+					TResourceHandle<Texture> arrayElemPtrcolorSurface = scriptcolorSurface->GetHandle();
 					veccolorSurface[i] = arrayElemPtrcolorSurface;
 				}
 			}
@@ -98,7 +98,7 @@ namespace bs
 
 	void ScriptRenderTexture::InternalCreate3(MonoObject* managedInstance, MonoArray* colorSurface, MonoObject* depthStencilSurface)
 	{
-		Vector<ResourceHandle<Texture>> veccolorSurface;
+		Vector<TResourceHandle<Texture>> veccolorSurface;
 		if(colorSurface != nullptr)
 		{
 			ScriptArray arraycolorSurface(colorSurface);
@@ -109,13 +109,13 @@ namespace bs
 				scriptcolorSurface = ScriptTexture::ToNative(arraycolorSurface.Get<MonoObject*>(i));
 				if(scriptcolorSurface != nullptr)
 				{
-					ResourceHandle<Texture> arrayElemPtrcolorSurface = scriptcolorSurface->GetHandle();
+					TResourceHandle<Texture> arrayElemPtrcolorSurface = scriptcolorSurface->GetHandle();
 					veccolorSurface[i] = arrayElemPtrcolorSurface;
 				}
 			}
 
 		}
-		ResourceHandle<Texture> tmpdepthStencilSurface;
+		TResourceHandle<Texture> tmpdepthStencilSurface;
 		ScriptTexture* scriptdepthStencilSurface;
 		scriptdepthStencilSurface = ScriptTexture::ToNative(depthStencilSurface);
 		if(scriptdepthStencilSurface != nullptr)
@@ -126,7 +126,7 @@ namespace bs
 
 	MonoObject* ScriptRenderTexture::InternalGetColorSurface(ScriptRenderTexture* thisPtr)
 	{
-		ResourceHandle<Texture> tmp__output;
+		TResourceHandle<Texture> tmp__output;
 		tmp__output = RenderTextureEx::GetColorSurface(thisPtr->GetInternal());
 
 		MonoObject* __output;
@@ -142,7 +142,7 @@ namespace bs
 
 	MonoArray* ScriptRenderTexture::InternalGetColorSurfaces(ScriptRenderTexture* thisPtr)
 	{
-		Vector<ResourceHandle<Texture>> vec__output;
+		Vector<TResourceHandle<Texture>> vec__output;
 		vec__output = RenderTextureEx::GetColorSurfaces(thisPtr->GetInternal());
 
 		MonoArray* __output;
@@ -164,7 +164,7 @@ namespace bs
 
 	MonoObject* ScriptRenderTexture::InternalGetDepthStencilSurface(ScriptRenderTexture* thisPtr)
 	{
-		ResourceHandle<Texture> tmp__output;
+		TResourceHandle<Texture> tmp__output;
 		tmp__output = RenderTextureEx::GetDepthStencilSurface(thisPtr->GetInternal());
 
 		MonoObject* __output;

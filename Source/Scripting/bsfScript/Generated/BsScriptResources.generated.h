@@ -24,9 +24,9 @@ namespace bs
 	private:
 		uint32_t mGCHandle = 0;
 
-		static void OnResourceLoaded(const ResourceHandle<Resource>& p0);
+		static void OnResourceLoaded(const TResourceHandle<Resource>& p0);
 		static void OnResourceDestroyed(const UUID& p0);
-		static void OnResourceModified(const ResourceHandle<Resource>& p0);
+		static void OnResourceModified(const TResourceHandle<Resource>& p0);
 
 		typedef void(B3D_THUNKCALL *OnResourceLoadedThunkDef) (MonoObject* p0, MonoException**);
 		static OnResourceLoadedThunkDef OnResourceLoadedThunk;
@@ -42,7 +42,7 @@ namespace bs
 		static MonoObject* InternalLoad(MonoString* filePath, ResourceLoadFlag loadFlags);
 		static MonoObject* InternalLoadAsync(MonoString* filePath, ResourceLoadFlag loadFlags);
 		static MonoObject* InternalLoadFromUuid(UUID* uuid, bool async, ResourceLoadFlag loadFlags);
-		static void InternalRelease(MonoObject* resource);
+		static void InternalReleaseInternalReference(MonoObject* resource);
 		static void InternalUnloadAllUnused();
 		static void InternalUnloadAll();
 		static void InternalSave(MonoObject* resource, MonoString* filePath, bool overwrite, bool compress);
@@ -50,11 +50,13 @@ namespace bs
 		static MonoArray* InternalGetDependencies(MonoString* filePath);
 		static bool InternalIsLoaded(UUID* uuid, bool checkInProgress);
 		static float InternalGetLoadProgress(MonoObject* resource, bool includeDependencies);
+		static float InternalGetLoadProgress2(MonoObject* resource);
 		static void InternalRegisterResourceManifest(MonoObject* manifest);
 		static void InternalUnregisterResourceManifest(MonoObject* manifest);
 		static MonoObject* InternalGetResourceManifest(MonoString* name);
 		static bool InternalGetFilePathFromUuid(UUID* uuid, MonoString** filePath);
-		static bool InternalGetUUUIDAndPhysicalPathFromFilePath(MonoString* path, UUID* outUUID, MonoString** outPhysicalFilePath);
+		static bool InternalGetUUIDFromFilePath(MonoString* path, UUID* outUUID);
+		static MonoString* InternalEnsurePhysicalPath(MonoString* path);
 	};
 #endif
 }

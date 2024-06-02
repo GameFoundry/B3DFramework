@@ -44,7 +44,7 @@ namespace bs
 
 	MonoObject* ScriptStringTables::InternalGetTable(uint32_t id)
 	{
-		ResourceHandle<StringTable> tmp__output;
+		TResourceHandle<StringTable> tmp__output;
 		tmp__output = StringTableManager::Instance().GetTable(id);
 
 		MonoObject* __output;
@@ -65,7 +65,7 @@ namespace bs
 
 	void ScriptStringTables::InternalSetTable(uint32_t id, MonoObject* table)
 	{
-		ResourceHandle<StringTable> tmptable;
+		TResourceHandle<StringTable> tmptable;
 		ScriptRRefBase* scripttable;
 		scripttable = ScriptRRefBase::ToNative(table);
 		if(scripttable != nullptr)

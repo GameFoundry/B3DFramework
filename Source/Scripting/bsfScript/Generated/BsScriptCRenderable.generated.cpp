@@ -38,7 +38,7 @@ namespace bs
 
 	void ScriptRenderable::InternalSetMesh(ScriptRenderable* thisPtr, MonoObject* mesh)
 	{
-		ResourceHandle<Mesh> tmpmesh;
+		TResourceHandle<Mesh> tmpmesh;
 		ScriptRRefBase* scriptmesh;
 		scriptmesh = ScriptRRefBase::ToNative(mesh);
 		if(scriptmesh != nullptr)
@@ -48,7 +48,7 @@ namespace bs
 
 	MonoObject* ScriptRenderable::InternalGetMesh(ScriptRenderable* thisPtr)
 	{
-		ResourceHandle<Mesh> tmp__output;
+		TResourceHandle<Mesh> tmp__output;
 		tmp__output = thisPtr->GetHandle()->GetMesh();
 
 		MonoObject* __output;
@@ -64,7 +64,7 @@ namespace bs
 
 	void ScriptRenderable::InternalSetMaterial(ScriptRenderable* thisPtr, uint32_t idx, MonoObject* material)
 	{
-		ResourceHandle<Material> tmpmaterial;
+		TResourceHandle<Material> tmpmaterial;
 		ScriptRRefBase* scriptmaterial;
 		scriptmaterial = ScriptRRefBase::ToNative(material);
 		if(scriptmaterial != nullptr)
@@ -74,7 +74,7 @@ namespace bs
 
 	void ScriptRenderable::InternalSetMaterial0(ScriptRenderable* thisPtr, MonoObject* material)
 	{
-		ResourceHandle<Material> tmpmaterial;
+		TResourceHandle<Material> tmpmaterial;
 		ScriptRRefBase* scriptmaterial;
 		scriptmaterial = ScriptRRefBase::ToNative(material);
 		if(scriptmaterial != nullptr)
@@ -84,7 +84,7 @@ namespace bs
 
 	MonoObject* ScriptRenderable::InternalGetMaterial(ScriptRenderable* thisPtr, uint32_t idx)
 	{
-		ResourceHandle<Material> tmp__output;
+		TResourceHandle<Material> tmp__output;
 		tmp__output = thisPtr->GetHandle()->GetMaterial(idx);
 
 		MonoObject* __output;
@@ -100,7 +100,7 @@ namespace bs
 
 	void ScriptRenderable::InternalSetMaterials(ScriptRenderable* thisPtr, MonoArray* materials)
 	{
-		Vector<ResourceHandle<Material>> vecmaterials;
+		Vector<TResourceHandle<Material>> vecmaterials;
 		if(materials != nullptr)
 		{
 			ScriptArray arraymaterials(materials);
@@ -111,7 +111,7 @@ namespace bs
 				scriptmaterials = ScriptRRefBase::ToNative(arraymaterials.Get<MonoObject*>(i));
 				if(scriptmaterials != nullptr)
 				{
-					ResourceHandle<Material> arrayElemPtrmaterials = B3DStaticResourceCast<Material>(scriptmaterials->GetHandle());
+					TResourceHandle<Material> arrayElemPtrmaterials = B3DStaticResourceCast<Material>(scriptmaterials->GetHandle());
 					vecmaterials[i] = arrayElemPtrmaterials;
 				}
 			}
@@ -121,7 +121,7 @@ namespace bs
 
 	MonoArray* ScriptRenderable::InternalGetMaterials(ScriptRenderable* thisPtr)
 	{
-		Vector<ResourceHandle<Material>> vec__output;
+		Vector<TResourceHandle<Material>> vec__output;
 		vec__output = thisPtr->GetHandle()->GetMaterials();
 
 		MonoArray* __output;

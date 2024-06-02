@@ -16,7 +16,7 @@ namespace bs
 	public:
 		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "VectorField")
 
-		ScriptVectorField(MonoObject* managedInstance, const ResourceHandle<VectorField>& value);
+		ScriptVectorField(MonoObject* managedInstance, const TResourceHandle<VectorField>& value);
 
 		static MonoObject* CreateInstance();
 

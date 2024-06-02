@@ -8,7 +8,7 @@
 
 namespace bs
 {
-	ScriptVectorPath::ScriptVectorPath(MonoObject* managedInstance, const ResourceHandle<VectorPath>& value)
+	ScriptVectorPath::ScriptVectorPath(MonoObject* managedInstance, const TResourceHandle<VectorPath>& value)
 		:TScriptResource(managedInstance, value)
 	{
 	}

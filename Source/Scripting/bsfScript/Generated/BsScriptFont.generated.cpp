@@ -9,7 +9,7 @@
 
 namespace bs
 {
-	ScriptFont::ScriptFont(MonoObject* managedInstance, const ResourceHandle<Font>& value)
+	ScriptFont::ScriptFont(MonoObject* managedInstance, const TResourceHandle<Font>& value)
 		:TScriptResource(managedInstance, value)
 	{
 	}

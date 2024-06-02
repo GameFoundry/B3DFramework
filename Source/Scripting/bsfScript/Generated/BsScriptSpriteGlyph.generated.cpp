@@ -13,7 +13,7 @@
 
 namespace bs
 {
-	ScriptSpriteGlyph::ScriptSpriteGlyph(MonoObject* managedInstance, const ResourceHandle<SpriteGlyph>& value)
+	ScriptSpriteGlyph::ScriptSpriteGlyph(MonoObject* managedInstance, const TResourceHandle<SpriteGlyph>& value)
 		:TScriptResource(managedInstance, value)
 	{
 	}
@@ -43,7 +43,7 @@ namespace bs
 
 	void ScriptSpriteGlyph::InternalSetFont(ScriptSpriteGlyph* thisPtr, MonoObject* font)
 	{
-		ResourceHandle<Font> tmpfont;
+		TResourceHandle<Font> tmpfont;
 		ScriptRRefBase* scriptfont;
 		scriptfont = ScriptRRefBase::ToNative(font);
 		if(scriptfont != nullptr)
@@ -63,12 +63,12 @@ namespace bs
 
 	void ScriptSpriteGlyph::InternalCreate(MonoObject* managedInstance, MonoObject* font, uint32_t glyph, float size)
 	{
-		ResourceHandle<Font> tmpfont;
+		TResourceHandle<Font> tmpfont;
 		ScriptRRefBase* scriptfont;
 		scriptfont = ScriptRRefBase::ToNative(font);
 		if(scriptfont != nullptr)
 			tmpfont = B3DStaticResourceCast<Font>(scriptfont->GetHandle());
-		ResourceHandle<SpriteGlyph> instance = SpriteGlyph::Create(tmpfont, glyph, size);
+		TResourceHandle<SpriteGlyph> instance = SpriteGlyph::Create(tmpfont, glyph, size);
 		ScriptResourceManager::Instance().CreateBuiltinScriptResource(instance, managedInstance);
 	}
 
@@ -76,7 +76,7 @@ namespace bs
 	{
 		SpriteGlyphCreateInformation tmpcreateInformation;
 		tmpcreateInformation = ScriptSpriteGlyphCreateInformation::FromInterop(*createInformation);
-		ResourceHandle<SpriteGlyph> instance = SpriteGlyph::Create(tmpcreateInformation);
+		TResourceHandle<SpriteGlyph> instance = SpriteGlyph::Create(tmpcreateInformation);
 		ScriptResourceManager::Instance().CreateBuiltinScriptResource(instance, managedInstance);
 	}
 }

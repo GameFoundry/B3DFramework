@@ -27,7 +27,7 @@ namespace bs
 
 	MonoObject* ScriptSkybox::InternalGetTexture(ScriptSkybox* thisPtr)
 	{
-		ResourceHandle<Texture> tmp__output;
+		TResourceHandle<Texture> tmp__output;
 		tmp__output = thisPtr->GetHandle()->GetTexture();
 
 		MonoObject* __output;
@@ -43,7 +43,7 @@ namespace bs
 
 	void ScriptSkybox::InternalSetTexture(ScriptSkybox* thisPtr, MonoObject* texture)
 	{
-		ResourceHandle<Texture> tmptexture;
+		TResourceHandle<Texture> tmptexture;
 		ScriptRRefBase* scripttexture;
 		scripttexture = ScriptRRefBase::ToNative(texture);
 		if(scripttexture != nullptr)

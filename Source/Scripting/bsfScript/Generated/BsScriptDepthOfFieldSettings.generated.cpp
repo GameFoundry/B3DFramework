@@ -75,7 +75,7 @@ namespace bs
 
 	MonoObject* ScriptDepthOfFieldSettings::InternalGetBokehShape(ScriptDepthOfFieldSettings* thisPtr)
 	{
-		ResourceHandle<Texture> tmp__output;
+		TResourceHandle<Texture> tmp__output;
 		tmp__output = thisPtr->GetInternal()->BokehShape;
 
 		MonoObject* __output;
@@ -91,7 +91,7 @@ namespace bs
 
 	void ScriptDepthOfFieldSettings::InternalSetBokehShape(ScriptDepthOfFieldSettings* thisPtr, MonoObject* value)
 	{
-		ResourceHandle<Texture> tmpvalue;
+		TResourceHandle<Texture> tmpvalue;
 		ScriptRRefBase* scriptvalue;
 		scriptvalue = ScriptRRefBase::ToNative(value);
 		if(scriptvalue != nullptr)

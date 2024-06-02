@@ -18,7 +18,7 @@ namespace bs
 	public:
 		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "Shader")
 
-		ScriptShader(MonoObject* managedInstance, const ResourceHandle<Shader>& value);
+		ScriptShader(MonoObject* managedInstance, const TResourceHandle<Shader>& value);
 
 		static MonoObject* CreateInstance();
 

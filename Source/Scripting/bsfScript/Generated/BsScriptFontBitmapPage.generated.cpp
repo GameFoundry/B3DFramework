@@ -31,7 +31,7 @@ namespace bs
 	FontBitmapPage ScriptFontBitmapPage::FromInterop(const __FontBitmapPageInterop& value)
 	{
 		FontBitmapPage output;
-		ResourceHandle<Texture> tmpTexture;
+		TResourceHandle<Texture> tmpTexture;
 		ScriptRRefBase* scriptTexture;
 		scriptTexture = ScriptRRefBase::ToNative(value.Texture);
 		if(scriptTexture != nullptr)

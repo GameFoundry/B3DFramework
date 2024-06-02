@@ -23,7 +23,7 @@ namespace bs
 	public:
 		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "Material")
 
-		ScriptMaterial(MonoObject* managedInstance, const ResourceHandle<Material>& value);
+		ScriptMaterial(MonoObject* managedInstance, const TResourceHandle<Material>& value);
 
 		static MonoObject* CreateInstance();
 

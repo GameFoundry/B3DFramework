@@ -64,7 +64,7 @@ namespace bs
 		ScriptOnEventTriggeredInternalThunk = (ScriptOnEventTriggeredInternalThunkDef)metaData.ScriptClass->GetMethodExact("Internal_ScriptOnEventTriggeredInternal", "RRef`1<AnimationClip>,string")->GetThunk();
 	}
 
-	void ScriptAnimation::ScriptRebuildFloatPropertiesInternal(const ResourceHandle<AnimationClip>& p0)
+	void ScriptAnimation::ScriptRebuildFloatPropertiesInternal(const TResourceHandle<AnimationClip>& p0)
 	{
 		MonoObject* tmpp0;
 		ScriptRRefBase* scriptp0;
@@ -81,7 +81,7 @@ namespace bs
 		MonoUtil::InvokeThunk(ScriptUpdateFloatPropertiesInternalThunk, GetManagedInstance());
 	}
 
-	void ScriptAnimation::ScriptOnEventTriggeredInternal(const ResourceHandle<AnimationClip>& p0, const String& p1)
+	void ScriptAnimation::ScriptOnEventTriggeredInternal(const TResourceHandle<AnimationClip>& p0, const String& p1)
 	{
 		MonoObject* tmpp0;
 		ScriptRRefBase* scriptp0;
@@ -97,7 +97,7 @@ namespace bs
 
 	void ScriptAnimation::InternalSetDefaultClip(ScriptAnimation* thisPtr, MonoObject* clip)
 	{
-		ResourceHandle<AnimationClip> tmpclip;
+		TResourceHandle<AnimationClip> tmpclip;
 		ScriptRRefBase* scriptclip;
 		scriptclip = ScriptRRefBase::ToNative(clip);
 		if(scriptclip != nullptr)
@@ -107,7 +107,7 @@ namespace bs
 
 	MonoObject* ScriptAnimation::InternalGetDefaultClip(ScriptAnimation* thisPtr)
 	{
-		ResourceHandle<AnimationClip> tmp__output;
+		TResourceHandle<AnimationClip> tmp__output;
 		tmp__output = thisPtr->GetHandle()->GetDefaultClip();
 
 		MonoObject* __output;
@@ -155,7 +155,7 @@ namespace bs
 
 	void ScriptAnimation::InternalPlay(ScriptAnimation* thisPtr, MonoObject* clip)
 	{
-		ResourceHandle<AnimationClip> tmpclip;
+		TResourceHandle<AnimationClip> tmpclip;
 		ScriptRRefBase* scriptclip;
 		scriptclip = ScriptRRefBase::ToNative(clip);
 		if(scriptclip != nullptr)
@@ -165,7 +165,7 @@ namespace bs
 
 	void ScriptAnimation::InternalBlendAdditive(ScriptAnimation* thisPtr, MonoObject* clip, float weight, float fadeLength, uint32_t layer)
 	{
-		ResourceHandle<AnimationClip> tmpclip;
+		TResourceHandle<AnimationClip> tmpclip;
 		ScriptRRefBase* scriptclip;
 		scriptclip = ScriptRRefBase::ToNative(clip);
 		if(scriptclip != nullptr)
@@ -189,7 +189,7 @@ namespace bs
 
 	void ScriptAnimation::InternalCrossFade(ScriptAnimation* thisPtr, MonoObject* clip, float fadeLength)
 	{
-		ResourceHandle<AnimationClip> tmpclip;
+		TResourceHandle<AnimationClip> tmpclip;
 		ScriptRRefBase* scriptclip;
 		scriptclip = ScriptRRefBase::ToNative(clip);
 		if(scriptclip != nullptr)
@@ -199,7 +199,7 @@ namespace bs
 
 	void ScriptAnimation::InternalSample(ScriptAnimation* thisPtr, MonoObject* clip, float time)
 	{
-		ResourceHandle<AnimationClip> tmpclip;
+		TResourceHandle<AnimationClip> tmpclip;
 		ScriptRRefBase* scriptclip;
 		scriptclip = ScriptRRefBase::ToNative(clip);
 		if(scriptclip != nullptr)
@@ -231,7 +231,7 @@ namespace bs
 	bool ScriptAnimation::InternalGetState(ScriptAnimation* thisPtr, MonoObject* clip, AnimationClipState* state)
 	{
 		bool tmp__output;
-		ResourceHandle<AnimationClip> tmpclip;
+		TResourceHandle<AnimationClip> tmpclip;
 		ScriptRRefBase* scriptclip;
 		scriptclip = ScriptRRefBase::ToNative(clip);
 		if(scriptclip != nullptr)
@@ -246,7 +246,7 @@ namespace bs
 
 	void ScriptAnimation::InternalSetState(ScriptAnimation* thisPtr, MonoObject* clip, AnimationClipState* state)
 	{
-		ResourceHandle<AnimationClip> tmpclip;
+		TResourceHandle<AnimationClip> tmpclip;
 		ScriptRRefBase* scriptclip;
 		scriptclip = ScriptRRefBase::ToNative(clip);
 		if(scriptclip != nullptr)
@@ -319,7 +319,7 @@ namespace bs
 
 	MonoObject* ScriptAnimation::InternalGetClip(ScriptAnimation* thisPtr, uint32_t idx)
 	{
-		ResourceHandle<AnimationClip> tmp__output;
+		TResourceHandle<AnimationClip> tmp__output;
 		tmp__output = thisPtr->GetHandle()->GetClip(idx);
 
 		MonoObject* __output;

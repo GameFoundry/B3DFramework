@@ -32,7 +32,7 @@ namespace bs
 
 	void ScriptGUITexture::InternalSetImage(ScriptGUITexture* thisPtr, MonoObject* image)
 	{
-		ResourceHandle<SpriteImage> tmpimage;
+		TResourceHandle<SpriteImage> tmpimage;
 		ScriptRRefBase* scriptimage;
 		scriptimage = ScriptRRefBase::ToNative(image);
 		if(scriptimage != nullptr)

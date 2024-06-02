@@ -22,7 +22,7 @@
 
 namespace bs
 {
-	ScriptMaterial::ScriptMaterial(MonoObject* managedInstance, const ResourceHandle<Material>& value)
+	ScriptMaterial::ScriptMaterial(MonoObject* managedInstance, const TResourceHandle<Material>& value)
 		:TScriptResource(managedInstance, value)
 	{
 	}
@@ -77,7 +77,7 @@ namespace bs
 
 	void ScriptMaterial::InternalSetShader(ScriptMaterial* thisPtr, MonoObject* shader)
 	{
-		ResourceHandle<Shader> tmpshader;
+		TResourceHandle<Shader> tmpshader;
 		ScriptRRefBase* scriptshader;
 		scriptshader = ScriptRRefBase::ToNative(shader);
 		if(scriptshader != nullptr)
@@ -97,7 +97,7 @@ namespace bs
 
 	MonoObject* ScriptMaterial::InternalClone(ScriptMaterial* thisPtr)
 	{
-		ResourceHandle<Material> tmp__output;
+		TResourceHandle<Material> tmp__output;
 		tmp__output = thisPtr->GetHandle()->Clone();
 
 		MonoObject* __output;
@@ -113,7 +113,7 @@ namespace bs
 
 	MonoObject* ScriptMaterial::InternalGetShader(ScriptMaterial* thisPtr)
 	{
-		ResourceHandle<Shader> tmp__output;
+		TResourceHandle<Shader> tmp__output;
 		tmp__output = thisPtr->GetHandle()->GetShader();
 
 		MonoObject* __output;
@@ -325,18 +325,18 @@ namespace bs
 
 	void ScriptMaterial::InternalCreate(MonoObject* managedInstance)
 	{
-		ResourceHandle<Material> instance = Material::Create();
+		TResourceHandle<Material> instance = Material::Create();
 		ScriptResourceManager::Instance().CreateBuiltinScriptResource(instance, managedInstance);
 	}
 
 	void ScriptMaterial::InternalCreate0(MonoObject* managedInstance, MonoObject* shader)
 	{
-		ResourceHandle<Shader> tmpshader;
+		TResourceHandle<Shader> tmpshader;
 		ScriptRRefBase* scriptshader;
 		scriptshader = ScriptRRefBase::ToNative(shader);
 		if(scriptshader != nullptr)
 			tmpshader = B3DStaticResourceCast<Shader>(scriptshader->GetHandle());
-		ResourceHandle<Material> instance = Material::Create(tmpshader);
+		TResourceHandle<Material> instance = Material::Create(tmpshader);
 		ScriptResourceManager::Instance().CreateBuiltinScriptResource(instance, managedInstance);
 	}
 
@@ -344,7 +344,7 @@ namespace bs
 	{
 		String tmpname;
 		tmpname = MonoUtil::MonoToString(name);
-		ResourceHandle<Texture> tmpvalue;
+		TResourceHandle<Texture> tmpvalue;
 		ScriptRRefBase* scriptvalue;
 		scriptvalue = ScriptRRefBase::ToNative(value);
 		if(scriptvalue != nullptr)
@@ -354,7 +354,7 @@ namespace bs
 
 	MonoObject* ScriptMaterial::InternalGetTexture(ScriptMaterial* thisPtr, MonoString* name)
 	{
-		ResourceHandle<Texture> tmp__output;
+		TResourceHandle<Texture> tmp__output;
 		String tmpname;
 		tmpname = MonoUtil::MonoToString(name);
 		tmp__output = MaterialEx::GetTexture(thisPtr->GetHandle(), tmpname);
@@ -374,7 +374,7 @@ namespace bs
 	{
 		String tmpname;
 		tmpname = MonoUtil::MonoToString(name);
-		ResourceHandle<SpriteImage> tmpvalue;
+		TResourceHandle<SpriteImage> tmpvalue;
 		ScriptRRefBase* scriptvalue;
 		scriptvalue = ScriptRRefBase::ToNative(value);
 		if(scriptvalue != nullptr)
@@ -384,7 +384,7 @@ namespace bs
 
 	MonoObject* ScriptMaterial::InternalGetSpriteImage(ScriptMaterial* thisPtr, MonoString* name)
 	{
-		ResourceHandle<SpriteImage> tmp__output;
+		TResourceHandle<SpriteImage> tmp__output;
 		String tmpname;
 		tmpname = MonoUtil::MonoToString(name);
 		tmp__output = MaterialEx::GetSpriteImage(thisPtr->GetHandle(), tmpname);

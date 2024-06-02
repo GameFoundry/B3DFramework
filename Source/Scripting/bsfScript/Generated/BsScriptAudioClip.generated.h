@@ -15,7 +15,7 @@ namespace bs
 	public:
 		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "AudioClip")
 
-		ScriptAudioClip(MonoObject* managedInstance, const ResourceHandle<AudioClip>& value);
+		ScriptAudioClip(MonoObject* managedInstance, const TResourceHandle<AudioClip>& value);
 
 		static MonoObject* CreateInstance();
 

@@ -15,7 +15,7 @@ namespace bs
 	public:
 		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "PhysicsMesh")
 
-		ScriptPhysicsMesh(MonoObject* managedInstance, const ResourceHandle<PhysicsMesh>& value);
+		ScriptPhysicsMesh(MonoObject* managedInstance, const TResourceHandle<PhysicsMesh>& value);
 
 		static MonoObject* CreateInstance();
 

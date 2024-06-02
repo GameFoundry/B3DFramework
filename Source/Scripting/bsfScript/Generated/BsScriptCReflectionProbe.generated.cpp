@@ -78,7 +78,7 @@ namespace bs
 
 	MonoObject* ScriptReflectionProbe::InternalGetCustomTexture(ScriptReflectionProbe* thisPtr)
 	{
-		ResourceHandle<Texture> tmp__output;
+		TResourceHandle<Texture> tmp__output;
 		tmp__output = thisPtr->GetHandle()->GetCustomTexture();
 
 		MonoObject* __output;
@@ -94,7 +94,7 @@ namespace bs
 
 	void ScriptReflectionProbe::InternalSetCustomTexture(ScriptReflectionProbe* thisPtr, MonoObject* texture)
 	{
-		ResourceHandle<Texture> tmptexture;
+		TResourceHandle<Texture> tmptexture;
 		ScriptRRefBase* scripttexture;
 		scripttexture = ScriptRRefBase::ToNative(texture);
 		if(scripttexture != nullptr)

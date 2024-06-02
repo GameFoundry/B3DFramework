@@ -56,7 +56,7 @@ namespace bs
 	}
 	MonoObject* ScriptParticleVectorFieldSettings::InternalGetVectorField(ScriptParticleVectorFieldSettings* thisPtr)
 	{
-		ResourceHandle<VectorField> tmp__output;
+		TResourceHandle<VectorField> tmp__output;
 		tmp__output = thisPtr->GetInternal()->VectorField;
 
 		MonoObject* __output;
@@ -72,7 +72,7 @@ namespace bs
 
 	void ScriptParticleVectorFieldSettings::InternalSetVectorField(ScriptParticleVectorFieldSettings* thisPtr, MonoObject* value)
 	{
-		ResourceHandle<VectorField> tmpvalue;
+		TResourceHandle<VectorField> tmpvalue;
 		ScriptRRefBase* scriptvalue;
 		scriptvalue = ScriptRRefBase::ToNative(value);
 		if(scriptvalue != nullptr)

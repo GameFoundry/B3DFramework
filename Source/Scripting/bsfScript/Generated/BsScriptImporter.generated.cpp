@@ -44,7 +44,7 @@ namespace bs
 
 	MonoObject* ScriptImporter::InternalImport(MonoString* inputFilePath, MonoObject* importOptions, UUID* UUID)
 	{
-		ResourceHandle<Resource> tmp__output;
+		TResourceHandle<Resource> tmp__output;
 		Path tmpinputFilePath;
 		tmpinputFilePath = MonoUtil::MonoToString(inputFilePath);
 		SPtr<ImportOptions> tmpimportOptions;
@@ -67,7 +67,7 @@ namespace bs
 
 	MonoObject* ScriptImporter::InternalImportAsync(MonoString* inputFilePath, MonoObject* importOptions, UUID* UUID)
 	{
-		TAsyncOp<ResourceHandle<Resource>> tmp__output;
+		TAsyncOp<TResourceHandle<Resource>> tmp__output;
 		Path tmpinputFilePath;
 		tmpinputFilePath = MonoUtil::MonoToString(inputFilePath);
 		SPtr<ImportOptions> tmpimportOptions;
@@ -80,7 +80,7 @@ namespace bs
 		MonoObject* __output;
 		auto convertCallback = [](const Any& returnVal)
 		{
-			ResourceHandle<Resource> nativeObj = AnyCast<ResourceHandle<Resource>>(returnVal);
+			TResourceHandle<Resource> nativeObj = AnyCast<TResourceHandle<Resource>>(returnVal);
 			MonoObject* monoObj;
 			ScriptRRefBase* scriptObj;
 			scriptObj = ScriptResourceManager::Instance().GetScriptRRef(nativeObj);

@@ -506,7 +506,7 @@ namespace bs
 		template<class T>
 		static constexpr bool IsReflectableShared()
 		{
-			return B3DIsSharedPointer<std::remove_reference_t<std::remove_cv_t<T>>>::value && IsReflectable<B3DDecaySharedPointer<std::remove_reference_t<std::remove_cv_t<T>>>::value>();
+			return B3DIsSharedPointer<std::remove_reference_t<std::remove_cv_t<T>>>::value && IsReflectable<typename B3DDecaySharedPointer<std::remove_reference_t<std::remove_cv_t<T>>>::value>();
 		}
 
 		/** Checks is the provided type a plain type (implements the RTTIPlainType<T> specialization). */

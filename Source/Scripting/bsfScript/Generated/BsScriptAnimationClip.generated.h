@@ -15,7 +15,7 @@ namespace bs
 	public:
 		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "AnimationClip")
 
-		ScriptAnimationClip(MonoObject* managedInstance, const ResourceHandle<AnimationClip>& value);
+		ScriptAnimationClip(MonoObject* managedInstance, const TResourceHandle<AnimationClip>& value);
 
 		static MonoObject* CreateInstance();
 

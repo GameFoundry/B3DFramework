@@ -104,8 +104,6 @@ namespace bs
 		{
 			if(B3DRTTIIsOfType<ParticleEmitterStaticMeshShape>(tmp__output))
 				__output = ScriptParticleEmitterStaticMeshShape::Create(std::static_pointer_cast<ParticleEmitterStaticMeshShape>(tmp__output));
-			else if(B3DRTTIIsOfType<ParticleEmitterSkinnedMeshShape>(tmp__output))
-				__output = ScriptParticleEmitterSkinnedMeshShape::Create(std::static_pointer_cast<ParticleEmitterSkinnedMeshShape>(tmp__output));
 			else if(B3DRTTIIsOfType<ParticleEmitterCircleShape>(tmp__output))
 				__output = ScriptParticleEmitterCircleShape::Create(std::static_pointer_cast<ParticleEmitterCircleShape>(tmp__output));
 			else if(B3DRTTIIsOfType<ParticleEmitterConeShape>(tmp__output))
@@ -120,6 +118,8 @@ namespace bs
 				__output = ScriptParticleEmitterLineShape::Create(std::static_pointer_cast<ParticleEmitterLineShape>(tmp__output));
 			else if(B3DRTTIIsOfType<ParticleEmitterRectShape>(tmp__output))
 				__output = ScriptParticleEmitterRectShape::Create(std::static_pointer_cast<ParticleEmitterRectShape>(tmp__output));
+			else if(B3DRTTIIsOfType<ParticleEmitterSkinnedMeshShape>(tmp__output))
+				__output = ScriptParticleEmitterSkinnedMeshShape::Create(std::static_pointer_cast<ParticleEmitterSkinnedMeshShape>(tmp__output));
 			else
 				__output = ScriptParticleEmitterShape::Create(tmp__output);
 		}

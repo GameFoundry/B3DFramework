@@ -27,7 +27,7 @@ namespace bs
 
 	MonoObject* ScriptStockIcons::InternalGetIcon(StockIcon icon, float size)
 	{
-		ResourceHandle<SpriteImage> tmp__output;
+		TResourceHandle<SpriteImage> tmp__output;
 		tmp__output = StockIcons::Instance().GetIcon(icon, size);
 
 		MonoObject* __output;
@@ -54,7 +54,7 @@ namespace bs
 
 	MonoObject* ScriptStockIcons::InternalGetFont(StockIcon icon)
 	{
-		ResourceHandle<Font> tmp__output;
+		TResourceHandle<Font> tmp__output;
 		tmp__output = StockIcons::Instance().GetFont(icon);
 
 		MonoObject* __output;

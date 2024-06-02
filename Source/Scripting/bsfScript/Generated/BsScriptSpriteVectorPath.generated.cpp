@@ -14,7 +14,7 @@
 
 namespace bs
 {
-	ScriptSpriteVectorPath::ScriptSpriteVectorPath(MonoObject* managedInstance, const ResourceHandle<SpriteVectorPath>& value)
+	ScriptSpriteVectorPath::ScriptSpriteVectorPath(MonoObject* managedInstance, const TResourceHandle<SpriteVectorPath>& value)
 		:TScriptResource(managedInstance, value)
 	{
 	}
@@ -42,7 +42,7 @@ namespace bs
 
 	void ScriptSpriteVectorPath::InternalSetVectorPath(ScriptSpriteVectorPath* thisPtr, MonoObject* vectorPath)
 	{
-		ResourceHandle<VectorPath> tmpvectorPath;
+		TResourceHandle<VectorPath> tmpvectorPath;
 		ScriptRRefBase* scriptvectorPath;
 		scriptvectorPath = ScriptRRefBase::ToNative(vectorPath);
 		if(scriptvectorPath != nullptr)
@@ -52,12 +52,12 @@ namespace bs
 
 	void ScriptSpriteVectorPath::InternalCreate(MonoObject* managedInstance, MonoObject* vectorPath, TSize2<uint32_t>* size)
 	{
-		ResourceHandle<VectorPath> tmpvectorPath;
+		TResourceHandle<VectorPath> tmpvectorPath;
 		ScriptRRefBase* scriptvectorPath;
 		scriptvectorPath = ScriptRRefBase::ToNative(vectorPath);
 		if(scriptvectorPath != nullptr)
 			tmpvectorPath = B3DStaticResourceCast<VectorPath>(scriptvectorPath->GetHandle());
-		ResourceHandle<SpriteVectorPath> instance = SpriteVectorPath::Create(tmpvectorPath, *size);
+		TResourceHandle<SpriteVectorPath> instance = SpriteVectorPath::Create(tmpvectorPath, *size);
 		ScriptResourceManager::Instance().CreateBuiltinScriptResource(instance, managedInstance);
 	}
 
@@ -65,7 +65,7 @@ namespace bs
 	{
 		SpriteVectorPathCreateInformation tmpcreateInformation;
 		tmpcreateInformation = ScriptSpriteVectorPathCreateInformation::FromInterop(*createInformation);
-		ResourceHandle<SpriteVectorPath> instance = SpriteVectorPath::Create(tmpcreateInformation);
+		TResourceHandle<SpriteVectorPath> instance = SpriteVectorPath::Create(tmpcreateInformation);
 		ScriptResourceManager::Instance().CreateBuiltinScriptResource(instance, managedInstance);
 	}
 }

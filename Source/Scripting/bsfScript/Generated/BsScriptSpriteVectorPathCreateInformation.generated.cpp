@@ -35,7 +35,7 @@ namespace bs
 	SpriteVectorPathCreateInformation ScriptSpriteVectorPathCreateInformation::FromInterop(const __SpriteVectorPathCreateInformationInterop& value)
 	{
 		SpriteVectorPathCreateInformation output;
-		ResourceHandle<VectorPath> tmpVectorPath;
+		TResourceHandle<VectorPath> tmpVectorPath;
 		ScriptRRefBase* scriptVectorPath;
 		scriptVectorPath = ScriptRRefBase::ToNative(value.VectorPath);
 		if(scriptVectorPath != nullptr)

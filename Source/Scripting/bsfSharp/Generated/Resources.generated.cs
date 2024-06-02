@@ -68,15 +68,15 @@ namespace bs
 
 		/// <summary>
 		/// Releases an internal reference to the resource held by the resources system. This allows the resource to be unloaded 
-		/// when it goes out of scope, if the resource was loaded with <see cref="keepInternalReference"/> parameter.
+		/// when it goes out of scope, if the resource was loaded with <see cref="KeepInternalReference"/> option.
 		///
-		/// Alternatively you can also skip manually calling release() and call unloadAllUnused() which will unload all resources 
-		/// that do not have any external references, but you lose the fine grained control of what will be unloaded.
+		/// Alternatively you can also skip manually calling ReleaseInternalReference() and call UnloadAllUnused() which will 
+		/// unload all resources that do not have any external references, but you lose the fine grained control of what will be 
+		/// unloaded.
 		/// </summary>
-		/// <param name="resource">Handle of the resource to release.</param>
-		public static void Release(RRefBase resource)
+		public static void ReleaseInternalReference(RRefBase resource)
 		{
-			Internal_Release(resource);
+			Internal_ReleaseInternalReference(resource);
 		}
 
 		/// <summary>Finds all resources that aren&apos;t being referenced outside of the resources system and unloads them.</summary>
@@ -149,6 +149,14 @@ namespace bs
 			return Internal_GetLoadProgress(resource, includeDependencies);
 		}
 
+		/// <summary>Returns the loading progress of a resource that&apos;s being loaded</summary>
+		/// <param name="resource">Resource whose load progress to check.</param>
+		/// <returns>Load progress in range [0, 1].</returns>
+		public static float GetLoadProgress2(RRefBase resource)
+		{
+			return Internal_GetLoadProgress2(resource);
+		}
+
 		/// <summary>
 		/// Allows you to set a resource manifest containing UUID &lt;-&gt; file path mapping that is used when resolving 
 		/// resource references.
@@ -182,12 +190,19 @@ namespace bs
 		}
 
 		/// <summary>
-		/// Attempts to retrieve UUID and physical file path from the provided file path. Provided path can be physical or 
-		/// virtual. Returns true if successful, false otherwise.
+		/// Attempts to retrieve UUID from the provided physical file path. Returns true if successful, false otherwise.
 		/// </summary>
-		public static bool GetUUUIDAndPhysicalPathFromFilePath(string path, out UUID outUUID, out string outPhysicalFilePath)
+		public static bool GetUUIDFromFilePath(string path, out UUID outUUID)
 		{
-			return Internal_GetUUUIDAndPhysicalPathFromFilePath(path, out outUUID, out outPhysicalFilePath);
+			return Internal_GetUUIDFromFilePath(path, out outUUID);
+		}
+
+		/// <summary>
+		/// Converts a potentially virtual path into a physical one. If the path is not virtual, returns the path as-is.
+		/// </summary>
+		public static string EnsurePhysicalPath(string path)
+		{
+			return Internal_EnsurePhysicalPath(path);
 		}
 
 		[MethodImpl(MethodImplOptions.InternalCall)]
@@ -197,7 +212,7 @@ namespace bs
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern RRefBase Internal_LoadFromUuid(ref UUID uuid, bool async, ResourceLoadFlag loadFlags);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_Release(RRefBase resource);
+		private static extern void Internal_ReleaseInternalReference(RRefBase resource);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_UnloadAllUnused();
 		[MethodImpl(MethodImplOptions.InternalCall)]
@@ -213,6 +228,8 @@ namespace bs
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern float Internal_GetLoadProgress(RRefBase resource, bool includeDependencies);
 		[MethodImpl(MethodImplOptions.InternalCall)]
+		private static extern float Internal_GetLoadProgress2(RRefBase resource);
+		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_RegisterResourceManifest(ResourceManifest manifest);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_UnregisterResourceManifest(ResourceManifest manifest);
@@ -221,7 +238,9 @@ namespace bs
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern bool Internal_GetFilePathFromUuid(ref UUID uuid, out string filePath);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern bool Internal_GetUUUIDAndPhysicalPathFromFilePath(string path, out UUID outUUID, out string outPhysicalFilePath);
+		private static extern bool Internal_GetUUIDFromFilePath(string path, out UUID outUUID);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		private static extern string Internal_EnsurePhysicalPath(string path);
 		private static void Internal_OnResourceLoaded(RRefBase p0)
 		{
 			OnResourceLoaded?.Invoke(p0);

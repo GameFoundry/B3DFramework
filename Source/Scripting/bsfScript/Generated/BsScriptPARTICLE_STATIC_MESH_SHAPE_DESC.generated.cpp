@@ -33,7 +33,7 @@ namespace bs
 		PARTICLE_STATIC_MESH_SHAPE_DESC output;
 		output.Type = value.Type;
 		output.Sequential = value.Sequential;
-		ResourceHandle<Mesh> tmpMesh;
+		TResourceHandle<Mesh> tmpMesh;
 		ScriptRRefBase* scriptMesh;
 		scriptMesh = ScriptRRefBase::ToNative(value.Mesh);
 		if(scriptMesh != nullptr)

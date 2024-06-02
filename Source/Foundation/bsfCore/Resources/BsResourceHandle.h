@@ -116,7 +116,7 @@ namespace bs
 	};
 
 	/**	Implementation of ResourceHandle for weak handles. Weak handles do no reference counting. */
-	class B3D_CORE_EXPORT WeakResourceHandle2 : public ResourceHandleBase
+	class B3D_CORE_EXPORT WeakResourceHandle : public ResourceHandleBase
 	{
 	protected:
 		void IncrementReferenceCount(){}
@@ -167,7 +167,7 @@ namespace bs
 
 	/** @copydoc ResourceHandleBase */
 	template <typename ResourceType, bool IsWeakHandle = false>
-	class TResourceHandle : public std::conditional_t<IsWeakHandle, WeakResourceHandle2, StrongResourceHandle>
+	class TResourceHandle : public std::conditional_t<IsWeakHandle, WeakResourceHandle, StrongResourceHandle>
 	{
 	public:
 		TResourceHandle() = default;

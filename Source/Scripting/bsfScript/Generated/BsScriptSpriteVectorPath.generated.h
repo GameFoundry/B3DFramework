@@ -17,7 +17,7 @@ namespace bs
 	public:
 		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "SpriteVectorPath")
 
-		ScriptSpriteVectorPath(MonoObject* managedInstance, const ResourceHandle<SpriteVectorPath>& value);
+		ScriptSpriteVectorPath(MonoObject* managedInstance, const TResourceHandle<SpriteVectorPath>& value);
 
 		static MonoObject* CreateInstance();
 

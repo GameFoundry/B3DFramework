@@ -16,7 +16,7 @@
 
 namespace bs
 {
-	ScriptMesh::ScriptMesh(MonoObject* managedInstance, const ResourceHandle<Mesh>& value)
+	ScriptMesh::ScriptMesh(MonoObject* managedInstance, const TResourceHandle<Mesh>& value)
 		:TScriptResource(managedInstance, value)
 	{
 	}
@@ -74,7 +74,7 @@ namespace bs
 
 	void ScriptMesh::InternalCreate(MonoObject* managedInstance, int32_t numVertices, int32_t numIndices, DrawOperationType topology, MeshUsage usage, VertexLayout vertex, IndexType index)
 	{
-		ResourceHandle<Mesh> instance = MeshEx::Create(numVertices, numIndices, topology, usage, vertex, index);
+		TResourceHandle<Mesh> instance = MeshEx::Create(numVertices, numIndices, topology, usage, vertex, index);
 		ScriptResourceManager::Instance().CreateBuiltinScriptResource(instance, managedInstance);
 	}
 
@@ -91,7 +91,7 @@ namespace bs
 			}
 
 		}
-		ResourceHandle<Mesh> instance = MeshEx::Create(numVertices, numIndices, vecsubMeshes, usage, vertex, index);
+		TResourceHandle<Mesh> instance = MeshEx::Create(numVertices, numIndices, vecsubMeshes, usage, vertex, index);
 		ScriptResourceManager::Instance().CreateBuiltinScriptResource(instance, managedInstance);
 	}
 
@@ -102,7 +102,7 @@ namespace bs
 		scriptdata = ScriptMeshData::ToNative(data);
 		if(scriptdata != nullptr)
 			tmpdata = scriptdata->GetInternal();
-		ResourceHandle<Mesh> instance = MeshEx::Create(tmpdata, topology, usage);
+		TResourceHandle<Mesh> instance = MeshEx::Create(tmpdata, topology, usage);
 		ScriptResourceManager::Instance().CreateBuiltinScriptResource(instance, managedInstance);
 	}
 
@@ -124,7 +124,7 @@ namespace bs
 			}
 
 		}
-		ResourceHandle<Mesh> instance = MeshEx::Create(tmpdata, vecsubMeshes, usage);
+		TResourceHandle<Mesh> instance = MeshEx::Create(tmpdata, vecsubMeshes, usage);
 		ScriptResourceManager::Instance().CreateBuiltinScriptResource(instance, managedInstance);
 	}
 

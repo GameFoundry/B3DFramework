@@ -31,7 +31,7 @@ namespace bs
 	BlendClipInfo ScriptBlendClipInfo::FromInterop(const __BlendClipInfoInterop& value)
 	{
 		BlendClipInfo output;
-		ResourceHandle<AnimationClip> tmpClip;
+		TResourceHandle<AnimationClip> tmpClip;
 		ScriptRRefBase* scriptClip;
 		scriptClip = ScriptRRefBase::ToNative(value.Clip);
 		if(scriptClip != nullptr)

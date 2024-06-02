@@ -134,17 +134,21 @@ namespace bs
 		thisPtr->GetHandle()->SetLimitSwing(tmplimit);
 	}
 
-	void ScriptD6Joint::InternalGetDrive(ScriptD6Joint* thisPtr, D6JointDriveType type, D6JointDrive* __output)
+	void ScriptD6Joint::InternalGetDrive(ScriptD6Joint* thisPtr, D6JointDriveType type, __D6JointDriveInterop* __output)
 	{
 		D6JointDrive tmp__output;
 		tmp__output = thisPtr->GetHandle()->GetDrive(type);
 
-		*__output = tmp__output;
+		__D6JointDriveInterop interop__output;
+		interop__output = ScriptD6JointDrive::ToInterop(tmp__output);
+		MonoUtil::ValueCopy(__output, &interop__output, ScriptD6JointDrive::GetMetaData()->ScriptClass->GetInternalClassInternal());
 	}
 
-	void ScriptD6Joint::InternalSetDrive(ScriptD6Joint* thisPtr, D6JointDriveType type, D6JointDrive* drive)
+	void ScriptD6Joint::InternalSetDrive(ScriptD6Joint* thisPtr, D6JointDriveType type, __D6JointDriveInterop* drive)
 	{
-		thisPtr->GetHandle()->SetDrive(type, *drive);
+		D6JointDrive tmpdrive;
+		tmpdrive = ScriptD6JointDrive::FromInterop(*drive);
+		thisPtr->GetHandle()->SetDrive(type, tmpdrive);
 	}
 
 	void ScriptD6Joint::InternalGetDrivePosition(ScriptD6Joint* thisPtr, TVector3<float>* __output)

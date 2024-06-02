@@ -111,7 +111,7 @@ namespace bs
 
 	void ScriptCollider::InternalSetMaterial(ScriptColliderBase* thisPtr, MonoObject* material)
 	{
-		ResourceHandle<PhysicsMaterial> tmpmaterial;
+		TResourceHandle<PhysicsMaterial> tmpmaterial;
 		ScriptRRefBase* scriptmaterial;
 		scriptmaterial = ScriptRRefBase::ToNative(material);
 		if(scriptmaterial != nullptr)
@@ -121,7 +121,7 @@ namespace bs
 
 	MonoObject* ScriptCollider::InternalGetMaterial(ScriptColliderBase* thisPtr)
 	{
-		ResourceHandle<PhysicsMaterial> tmp__output;
+		TResourceHandle<PhysicsMaterial> tmp__output;
 		tmp__output = B3DStaticGameObjectCast<CCollider>(thisPtr->GetComponent())->GetMaterial();
 
 		MonoObject* __output;

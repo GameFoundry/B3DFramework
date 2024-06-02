@@ -14,7 +14,7 @@
 
 namespace bs
 {
-	ScriptAnimationClip::ScriptAnimationClip(MonoObject* managedInstance, const ResourceHandle<AnimationClip>& value)
+	ScriptAnimationClip::ScriptAnimationClip(MonoObject* managedInstance, const TResourceHandle<AnimationClip>& value)
 		:TScriptResource(managedInstance, value)
 	{
 	}
@@ -164,7 +164,7 @@ namespace bs
 
 	void ScriptAnimationClip::InternalCreate(MonoObject* managedInstance, bool isAdditive)
 	{
-		ResourceHandle<AnimationClip> instance = AnimationClip::Create(isAdditive);
+		TResourceHandle<AnimationClip> instance = AnimationClip::Create(isAdditive);
 		ScriptResourceManager::Instance().CreateBuiltinScriptResource(instance, managedInstance);
 	}
 
@@ -180,7 +180,7 @@ namespace bs
 		scriptrootMotion = ScriptRootMotion::ToNative(rootMotion);
 		if(scriptrootMotion != nullptr)
 			tmprootMotion = scriptrootMotion->GetInternal();
-		ResourceHandle<AnimationClip> instance = AnimationClip::Create(tmpcurves, isAdditive, sampleRate, tmprootMotion);
+		TResourceHandle<AnimationClip> instance = AnimationClip::Create(tmpcurves, isAdditive, sampleRate, tmprootMotion);
 		ScriptResourceManager::Instance().CreateBuiltinScriptResource(instance, managedInstance);
 	}
 }

@@ -17,6 +17,18 @@ namespace bs
 		private SceneInstance(bool __dummy0) { }
 		protected SceneInstance() { }
 
+		/// <summary>Creates a new empty scene instance.</summary>
+		public SceneInstance(string name)
+		{
+			Internal_Create(this, name);
+		}
+
+		/// <summary>Creates a new scene instance with an existing hierarchy.</summary>
+		public SceneInstance(string name, SceneObject root)
+		{
+			Internal_Create0(this, name, root);
+		}
+
 		/// <summary>Name of the scene.</summary>
 		[NativeWrapper]
 		public string Name
@@ -50,6 +62,12 @@ namespace bs
 			get { return Internal_GetPhysicsScene(mCachedPtr); }
 		}
 
+		/// <summary>Creates a new scene object in the scene instance.</summary>
+		public SceneObject CreateSceneObject(string name)
+		{
+			return Internal_CreateSceneObject(mCachedPtr, name);
+		}
+
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern string Internal_GetName(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
@@ -58,6 +76,12 @@ namespace bs
 		private static extern bool Internal_IsActive(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern PhysicsScene Internal_GetPhysicsScene(IntPtr thisPtr);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		private static extern SceneObject Internal_CreateSceneObject(IntPtr thisPtr, string name);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		private static extern void Internal_Create(SceneInstance managedInstance, string name);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		private static extern void Internal_Create0(SceneInstance managedInstance, string name, SceneObject root);
 	}
 
 	/** @} */

@@ -13,7 +13,7 @@
 
 namespace bs
 {
-	ScriptVectorField::ScriptVectorField(MonoObject* managedInstance, const ResourceHandle<VectorField>& value)
+	ScriptVectorField::ScriptVectorField(MonoObject* managedInstance, const TResourceHandle<VectorField>& value)
 		:TScriptResource(managedInstance, value)
 	{
 	}
@@ -51,7 +51,7 @@ namespace bs
 				vecvalues[i] = arrayvalues.Get<TVector3<float>>(i);
 			}
 		}
-		ResourceHandle<VectorField> instance = VectorField::Create(tmpdesc, vecvalues);
+		TResourceHandle<VectorField> instance = VectorField::Create(tmpdesc, vecvalues);
 		ScriptResourceManager::Instance().CreateBuiltinScriptResource(instance, managedInstance);
 	}
 }

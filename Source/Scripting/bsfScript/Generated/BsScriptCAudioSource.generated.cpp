@@ -45,7 +45,7 @@ namespace bs
 
 	void ScriptAudioSource::InternalSetClip(ScriptAudioSource* thisPtr, MonoObject* clip)
 	{
-		ResourceHandle<AudioClip> tmpclip;
+		TResourceHandle<AudioClip> tmpclip;
 		ScriptRRefBase* scriptclip;
 		scriptclip = ScriptRRefBase::ToNative(clip);
 		if(scriptclip != nullptr)
@@ -55,7 +55,7 @@ namespace bs
 
 	MonoObject* ScriptAudioSource::InternalGetClip(ScriptAudioSource* thisPtr)
 	{
-		ResourceHandle<AudioClip> tmp__output;
+		TResourceHandle<AudioClip> tmp__output;
 		tmp__output = thisPtr->GetHandle()->GetClip();
 
 		MonoObject* __output;

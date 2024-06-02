@@ -14,14 +14,36 @@ namespace bs
 	void ScriptD6JointDrive::InitRuntimeData()
 	{ }
 
-	MonoObject*ScriptD6JointDrive::Box(const D6JointDrive& value)
+	MonoObject*ScriptD6JointDrive::Box(const __D6JointDriveInterop& value)
 	{
 		return MonoUtil::Box(metaData.ScriptClass->GetInternalClassInternal(), (void*)&value);
 	}
 
-	D6JointDrive ScriptD6JointDrive::Unbox(MonoObject* value)
+	__D6JointDriveInterop ScriptD6JointDrive::Unbox(MonoObject* value)
 	{
-		return *(D6JointDrive*)MonoUtil::Unbox(value);
+		return *(__D6JointDriveInterop*)MonoUtil::Unbox(value);
+	}
+
+	D6JointDrive ScriptD6JointDrive::FromInterop(const __D6JointDriveInterop& value)
+	{
+		D6JointDrive output;
+		output.Stiffness = value.Stiffness;
+		output.Damping = value.Damping;
+		output.ForceLimit = value.ForceLimit;
+		output.Acceleration = value.Acceleration;
+
+		return output;
+	}
+
+	__D6JointDriveInterop ScriptD6JointDrive::ToInterop(const D6JointDrive& value)
+	{
+		__D6JointDriveInterop output;
+		output.Stiffness = value.Stiffness;
+		output.Damping = value.Damping;
+		output.ForceLimit = value.ForceLimit;
+		output.Acceleration = value.Acceleration;
+
+		return output;
 	}
 
 }

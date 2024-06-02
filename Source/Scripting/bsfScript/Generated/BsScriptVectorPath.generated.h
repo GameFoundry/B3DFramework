@@ -13,7 +13,7 @@ namespace bs
 	public:
 		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "VectorPath")
 
-		ScriptVectorPath(MonoObject* managedInstance, const ResourceHandle<VectorPath>& value);
+		ScriptVectorPath(MonoObject* managedInstance, const TResourceHandle<VectorPath>& value);
 
 		static MonoObject* CreateInstance();
 

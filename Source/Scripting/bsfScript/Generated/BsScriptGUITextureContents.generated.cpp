@@ -30,7 +30,7 @@ namespace bs
 	GUITextureContents ScriptGUITextureContents::FromInterop(const __GUITextureContentsInterop& value)
 	{
 		GUITextureContents output;
-		ResourceHandle<SpriteImage> tmpImage;
+		TResourceHandle<SpriteImage> tmpImage;
 		ScriptSpriteImageBase* scriptImage;
 		scriptImage = (ScriptSpriteImageBase*)ScriptSpriteImage::ToNative(value.Image);
 		if(scriptImage != nullptr)

@@ -20,6 +20,7 @@ namespace bs { struct __LimitConeRangeInterop; }
 namespace bs { struct __LimitAngularRangeInterop; }
 namespace bs { class CD6Joint; }
 namespace bs { struct __LimitLinearInterop; }
+namespace bs { struct __D6JointDriveInterop; }
 namespace bs
 {
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptD6Joint : public TScriptComponent<ScriptD6Joint, CD6Joint, ScriptJointBase>
@@ -41,8 +42,8 @@ namespace bs
 		static void InternalSetLimitTwist(ScriptD6Joint* thisPtr, __LimitAngularRangeInterop* limit);
 		static void InternalGetLimitSwing(ScriptD6Joint* thisPtr, __LimitConeRangeInterop* __output);
 		static void InternalSetLimitSwing(ScriptD6Joint* thisPtr, __LimitConeRangeInterop* limit);
-		static void InternalGetDrive(ScriptD6Joint* thisPtr, D6JointDriveType type, D6JointDrive* __output);
-		static void InternalSetDrive(ScriptD6Joint* thisPtr, D6JointDriveType type, D6JointDrive* drive);
+		static void InternalGetDrive(ScriptD6Joint* thisPtr, D6JointDriveType type, __D6JointDriveInterop* __output);
+		static void InternalSetDrive(ScriptD6Joint* thisPtr, D6JointDriveType type, __D6JointDriveInterop* drive);
 		static void InternalGetDrivePosition(ScriptD6Joint* thisPtr, TVector3<float>* __output);
 		static void InternalGetDriveRotation(ScriptD6Joint* thisPtr, Quaternion* __output);
 		static void InternalSetDriveTransform(ScriptD6Joint* thisPtr, TVector3<float>* position, Quaternion* rotation);

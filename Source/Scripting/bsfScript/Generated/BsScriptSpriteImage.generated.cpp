@@ -17,7 +17,7 @@ namespace bs
 		:ScriptResourceBase(managedInstance)
 	 { }
 
-	ScriptSpriteImage::ScriptSpriteImage(MonoObject* managedInstance, const ResourceHandle<SpriteImage>& value)
+	ScriptSpriteImage::ScriptSpriteImage(MonoObject* managedInstance, const TResourceHandle<SpriteImage>& value)
 		:TScriptResource(managedInstance, value)
 	{
 	}
@@ -67,7 +67,7 @@ namespace bs
 
 	MonoObject* ScriptSpriteImage::InternalGetAtlasTexture(ScriptSpriteImageBase* thisPtr)
 	{
-		ResourceHandle<Texture> tmp__output;
+		TResourceHandle<Texture> tmp__output;
 		tmp__output = B3DStaticResourceCast<SpriteImage>(thisPtr->GetGenericHandle())->GetAtlasTexture();
 
 		MonoObject* __output;

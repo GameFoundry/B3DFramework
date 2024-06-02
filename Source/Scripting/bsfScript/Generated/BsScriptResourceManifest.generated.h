@@ -29,8 +29,9 @@ namespace bs
 		static bool InternalVirtualFilePathToUUID(ScriptResourceManifest* thisPtr, MonoString* filePath, UUID* outUUID);
 		static bool InternalUuidExists(ScriptResourceManifest* thisPtr, UUID* uuid);
 		static bool InternalFilePathExists(ScriptResourceManifest* thisPtr, MonoString* filePath);
-		static void InternalSave(MonoObject* manifest, MonoString* path, MonoString* relativePath);
-		static MonoObject* InternalLoad(MonoString* path, MonoString* relativePath, MonoString* virtualRelativePath);
+		static bool InternalVirtualToPhysicalPath(ScriptResourceManifest* thisPtr, MonoString* virtualPath, MonoString** outPhysicalPath);
+		static void InternalSave(MonoObject* manifest, MonoString* path, MonoString* physicalPathPrefix);
+		static MonoObject* InternalLoad(MonoString* path, MonoString* physicalPathPrefix, MonoString* virtualPathPrefix);
 		static void InternalCreate(MonoObject* managedInstance, MonoString* name);
 	};
 #endif

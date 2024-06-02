@@ -16,7 +16,7 @@ namespace bs
 	public:
 		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "SpriteGlyph")
 
-		ScriptSpriteGlyph(MonoObject* managedInstance, const ResourceHandle<SpriteGlyph>& value);
+		ScriptSpriteGlyph(MonoObject* managedInstance, const TResourceHandle<SpriteGlyph>& value);
 
 		static MonoObject* CreateInstance();
 

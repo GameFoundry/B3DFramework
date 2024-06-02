@@ -34,7 +34,7 @@ namespace bs
 
 	void ScriptDecal::InternalSetMaterial(ScriptDecal* thisPtr, MonoObject* material)
 	{
-		ResourceHandle<Material> tmpmaterial;
+		TResourceHandle<Material> tmpmaterial;
 		ScriptRRefBase* scriptmaterial;
 		scriptmaterial = ScriptRRefBase::ToNative(material);
 		if(scriptmaterial != nullptr)
@@ -44,7 +44,7 @@ namespace bs
 
 	MonoObject* ScriptDecal::InternalGetMaterial(ScriptDecal* thisPtr)
 	{
-		ResourceHandle<Material> tmp__output;
+		TResourceHandle<Material> tmp__output;
 		tmp__output = thisPtr->GetHandle()->GetMaterial();
 
 		MonoObject* __output;

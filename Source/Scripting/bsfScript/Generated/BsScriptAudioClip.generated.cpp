@@ -8,7 +8,7 @@
 
 namespace bs
 {
-	ScriptAudioClip::ScriptAudioClip(MonoObject* managedInstance, const ResourceHandle<AudioClip>& value)
+	ScriptAudioClip::ScriptAudioClip(MonoObject* managedInstance, const TResourceHandle<AudioClip>& value)
 		:TScriptResource(managedInstance, value)
 	{
 	}

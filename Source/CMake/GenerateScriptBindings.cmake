@@ -8,7 +8,7 @@ function(B3DRegisterIncludeFolderForCodeGen path)
 	
 	set(publicHeaderFiles "")
 	foreach(headerFile ${allHeaderFiles})
-		if("${headerFile}" MATCHES ".*\\.h" AND NOT "${headerFile}" MATCHES "Private|ThirdParty|Generated")
+		if("${headerFile}" MATCHES ".*\\.h" AND NOT "${headerFile}" MATCHES "Private|ThirdParty|Generated|RTTI")
 			list(APPEND publicHeaderFiles ${headerFile})
 		endif()
 	endforeach(headerFile)

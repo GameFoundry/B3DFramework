@@ -16,7 +16,7 @@ namespace bs
 	public:
 		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "SpriteTexture")
 
-		ScriptSpriteTexture(MonoObject* managedInstance, const ResourceHandle<SpriteTexture>& value);
+		ScriptSpriteTexture(MonoObject* managedInstance, const TResourceHandle<SpriteTexture>& value);
 
 		static MonoObject* CreateInstance();
 

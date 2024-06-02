@@ -30,49 +30,49 @@ namespace bs
 	GUIContentImages ScriptGUIContentImages::FromInterop(const __GUIContentImagesInterop& value)
 	{
 		GUIContentImages output;
-		ResourceHandle<SpriteImage> tmpNormal;
+		TResourceHandle<SpriteImage> tmpNormal;
 		ScriptSpriteImageBase* scriptNormal;
 		scriptNormal = (ScriptSpriteImageBase*)ScriptSpriteImage::ToNative(value.Normal);
 		if(scriptNormal != nullptr)
 			tmpNormal = B3DStaticResourceCast<SpriteImage>(scriptNormal->GetGenericHandle());
 		output.Normal = tmpNormal;
-		ResourceHandle<SpriteImage> tmpHover;
+		TResourceHandle<SpriteImage> tmpHover;
 		ScriptSpriteImageBase* scriptHover;
 		scriptHover = (ScriptSpriteImageBase*)ScriptSpriteImage::ToNative(value.Hover);
 		if(scriptHover != nullptr)
 			tmpHover = B3DStaticResourceCast<SpriteImage>(scriptHover->GetGenericHandle());
 		output.Hover = tmpHover;
-		ResourceHandle<SpriteImage> tmpActive;
+		TResourceHandle<SpriteImage> tmpActive;
 		ScriptSpriteImageBase* scriptActive;
 		scriptActive = (ScriptSpriteImageBase*)ScriptSpriteImage::ToNative(value.Active);
 		if(scriptActive != nullptr)
 			tmpActive = B3DStaticResourceCast<SpriteImage>(scriptActive->GetGenericHandle());
 		output.Active = tmpActive;
-		ResourceHandle<SpriteImage> tmpFocused;
+		TResourceHandle<SpriteImage> tmpFocused;
 		ScriptSpriteImageBase* scriptFocused;
 		scriptFocused = (ScriptSpriteImageBase*)ScriptSpriteImage::ToNative(value.Focused);
 		if(scriptFocused != nullptr)
 			tmpFocused = B3DStaticResourceCast<SpriteImage>(scriptFocused->GetGenericHandle());
 		output.Focused = tmpFocused;
-		ResourceHandle<SpriteImage> tmpNormalOn;
+		TResourceHandle<SpriteImage> tmpNormalOn;
 		ScriptSpriteImageBase* scriptNormalOn;
 		scriptNormalOn = (ScriptSpriteImageBase*)ScriptSpriteImage::ToNative(value.NormalOn);
 		if(scriptNormalOn != nullptr)
 			tmpNormalOn = B3DStaticResourceCast<SpriteImage>(scriptNormalOn->GetGenericHandle());
 		output.NormalOn = tmpNormalOn;
-		ResourceHandle<SpriteImage> tmpHoverOn;
+		TResourceHandle<SpriteImage> tmpHoverOn;
 		ScriptSpriteImageBase* scriptHoverOn;
 		scriptHoverOn = (ScriptSpriteImageBase*)ScriptSpriteImage::ToNative(value.HoverOn);
 		if(scriptHoverOn != nullptr)
 			tmpHoverOn = B3DStaticResourceCast<SpriteImage>(scriptHoverOn->GetGenericHandle());
 		output.HoverOn = tmpHoverOn;
-		ResourceHandle<SpriteImage> tmpActiveOn;
+		TResourceHandle<SpriteImage> tmpActiveOn;
 		ScriptSpriteImageBase* scriptActiveOn;
 		scriptActiveOn = (ScriptSpriteImageBase*)ScriptSpriteImage::ToNative(value.ActiveOn);
 		if(scriptActiveOn != nullptr)
 			tmpActiveOn = B3DStaticResourceCast<SpriteImage>(scriptActiveOn->GetGenericHandle());
 		output.ActiveOn = tmpActiveOn;
-		ResourceHandle<SpriteImage> tmpFocusedOn;
+		TResourceHandle<SpriteImage> tmpFocusedOn;
 		ScriptSpriteImageBase* scriptFocusedOn;
 		scriptFocusedOn = (ScriptSpriteImageBase*)ScriptSpriteImage::ToNative(value.FocusedOn);
 		if(scriptFocusedOn != nullptr)

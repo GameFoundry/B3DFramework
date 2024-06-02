@@ -14,7 +14,7 @@ namespace bs
 	public:
 		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "StringTable")
 
-		ScriptStringTable(MonoObject* managedInstance, const ResourceHandle<StringTable>& value);
+		ScriptStringTable(MonoObject* managedInstance, const TResourceHandle<StringTable>& value);
 
 		static MonoObject* CreateInstance();
 

@@ -82,26 +82,37 @@ namespace bs
 			return Internal_FilePathExists(mCachedPtr, filePath);
 		}
 
+		/// <summary>
+		/// Converts a virtual path to a physical one. Note the existance of the path in the manifest will not be checked, the 
+		/// only requirement is that the virtual path begins with virtual path prefix. This means you can use this method for 
+		/// translating virtual -&gt; physical paths before they are added to the manifest. Returns false if <paramref 
+		/// name="virtualPath"/> doesn&apos;t start with the manifest&apos;s virtual path prefix.
+		/// </summary>
+		public bool VirtualToPhysicalPath(string virtualPath, out string outPhysicalPath)
+		{
+			return Internal_VirtualToPhysicalPath(mCachedPtr, virtualPath, out outPhysicalPath);
+		}
+
 		/// <summary>Saves the resource manifest to the specified location.</summary>
 		/// <param name="manifest">Manifest to save.</param>
 		/// <param name="path">Full pathname of the file to save the manifest in.</param>
-		/// <param name="relativePath">
+		/// <param name="physicalPathPrefix">
 		/// If not empty, all pathnames in the manifest will be stored as if relative to this path.
 		/// </param>
-		public static void Save(ResourceManifest manifest, string path, string relativePath)
+		public static void Save(ResourceManifest manifest, string path, string physicalPathPrefix)
 		{
-			Internal_Save(manifest, path, relativePath);
+			Internal_Save(manifest, path, physicalPathPrefix);
 		}
 
 		/// <summary>Loads the resource manifest from the specified location.</summary>
 		/// <param name="path">Full pathname of the file to load the manifest from.</param>
-		/// <param name="relativePath">If not empty, all loaded pathnames will have this path prepended.</param>
-		/// <param name="virtualRelativePath">
+		/// <param name="physicalPathPrefix">If not empty, all loaded path names will have this path prepended.</param>
+		/// <param name="virtualPathPrefix">
 		/// If not empty, adds an additional set of paths that the resource can be referenced from.
 		/// </param>
-		public static ResourceManifest Load(string path, string relativePath, string virtualRelativePath)
+		public static ResourceManifest Load(string path, string physicalPathPrefix, string virtualPathPrefix)
 		{
-			return Internal_Load(path, relativePath, virtualRelativePath);
+			return Internal_Load(path, physicalPathPrefix, virtualPathPrefix);
 		}
 
 		[MethodImpl(MethodImplOptions.InternalCall)]
@@ -121,9 +132,11 @@ namespace bs
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern bool Internal_FilePathExists(IntPtr thisPtr, string filePath);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_Save(ResourceManifest manifest, string path, string relativePath);
+		private static extern bool Internal_VirtualToPhysicalPath(IntPtr thisPtr, string virtualPath, out string outPhysicalPath);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern ResourceManifest Internal_Load(string path, string relativePath, string virtualRelativePath);
+		private static extern void Internal_Save(ResourceManifest manifest, string path, string physicalPathPrefix);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		private static extern ResourceManifest Internal_Load(string path, string physicalPathPrefix, string virtualPathPrefix);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_Create(ResourceManifest managedInstance, string name);
 	}

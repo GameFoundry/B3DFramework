@@ -48,7 +48,7 @@ namespace bs
 
 	MonoObject* ScriptChromaticAberrationSettings::InternalGetFringeTexture(ScriptChromaticAberrationSettings* thisPtr)
 	{
-		ResourceHandle<Texture> tmp__output;
+		TResourceHandle<Texture> tmp__output;
 		tmp__output = thisPtr->GetInternal()->FringeTexture;
 
 		MonoObject* __output;
@@ -64,7 +64,7 @@ namespace bs
 
 	void ScriptChromaticAberrationSettings::InternalSetFringeTexture(ScriptChromaticAberrationSettings* thisPtr, MonoObject* value)
 	{
-		ResourceHandle<Texture> tmpvalue;
+		TResourceHandle<Texture> tmpvalue;
 		ScriptRRefBase* scriptvalue;
 		scriptvalue = ScriptRRefBase::ToNative(value);
 		if(scriptvalue != nullptr)

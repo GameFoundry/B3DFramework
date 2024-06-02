@@ -11,7 +11,7 @@
 
 namespace bs
 {
-	ScriptShader::ScriptShader(MonoObject* managedInstance, const ResourceHandle<Shader>& value)
+	ScriptShader::ScriptShader(MonoObject* managedInstance, const TResourceHandle<Shader>& value)
 		:TScriptResource(managedInstance, value)
 	{
 	}

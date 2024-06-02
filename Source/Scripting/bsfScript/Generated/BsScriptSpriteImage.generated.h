@@ -24,7 +24,7 @@ namespace bs
 	public:
 		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "SpriteImage")
 
-		ScriptSpriteImage(MonoObject* managedInstance, const ResourceHandle<SpriteImage>& value);
+		ScriptSpriteImage(MonoObject* managedInstance, const TResourceHandle<SpriteImage>& value);
 
 		static MonoObject* CreateInstance();
 

@@ -21,7 +21,7 @@ namespace bs
 	public:
 		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "Mesh")
 
-		ScriptMesh(MonoObject* managedInstance, const ResourceHandle<Mesh>& value);
+		ScriptMesh(MonoObject* managedInstance, const TResourceHandle<Mesh>& value);
 
 		static MonoObject* CreateInstance();
 

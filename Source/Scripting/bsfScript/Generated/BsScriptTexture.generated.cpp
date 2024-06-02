@@ -15,7 +15,7 @@
 
 namespace bs
 {
-	ScriptTexture::ScriptTexture(MonoObject* managedInstance, const ResourceHandle<Texture>& value)
+	ScriptTexture::ScriptTexture(MonoObject* managedInstance, const TResourceHandle<Texture>& value)
 		:TScriptResource(managedInstance, value)
 	{
 	}
@@ -73,7 +73,7 @@ namespace bs
 
 	void ScriptTexture::InternalCreate(MonoObject* managedInstance, PixelFormat format, uint32_t width, uint32_t height, uint32_t depth, TextureType texType, TextureUsage usage, uint32_t numSamples, bool hasMipmaps, bool gammaCorrection)
 	{
-		ResourceHandle<Texture> instance = TextureEx::Create(format, width, height, depth, texType, usage, numSamples, hasMipmaps, gammaCorrection);
+		TResourceHandle<Texture> instance = TextureEx::Create(format, width, height, depth, texType, usage, numSamples, hasMipmaps, gammaCorrection);
 		ScriptResourceManager::Instance().CreateBuiltinScriptResource(instance, managedInstance);
 	}
 

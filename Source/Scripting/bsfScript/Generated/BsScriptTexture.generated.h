@@ -18,7 +18,7 @@ namespace bs
 	public:
 		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "Texture")
 
-		ScriptTexture(MonoObject* managedInstance, const ResourceHandle<Texture>& value);
+		ScriptTexture(MonoObject* managedInstance, const TResourceHandle<Texture>& value);
 
 		static MonoObject* CreateInstance();
 

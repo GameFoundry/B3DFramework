@@ -24,6 +24,7 @@ namespace bs
 		metaData.ScriptClass->AddInternalCall("Internal_VirtualFilePathToUUID", (void*)&ScriptResourceManifest::InternalVirtualFilePathToUUID);
 		metaData.ScriptClass->AddInternalCall("Internal_UuidExists", (void*)&ScriptResourceManifest::InternalUuidExists);
 		metaData.ScriptClass->AddInternalCall("Internal_FilePathExists", (void*)&ScriptResourceManifest::InternalFilePathExists);
+		metaData.ScriptClass->AddInternalCall("Internal_VirtualToPhysicalPath", (void*)&ScriptResourceManifest::InternalVirtualToPhysicalPath);
 		metaData.ScriptClass->AddInternalCall("Internal_Save", (void*)&ScriptResourceManifest::InternalSave);
 		metaData.ScriptClass->AddInternalCall("Internal_Load", (void*)&ScriptResourceManifest::InternalLoad);
 		metaData.ScriptClass->AddInternalCall("Internal_Create", (void*)&ScriptResourceManifest::InternalCreate);
@@ -127,7 +128,22 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptResourceManifest::InternalSave(MonoObject* manifest, MonoString* path, MonoString* relativePath)
+	bool ScriptResourceManifest::InternalVirtualToPhysicalPath(ScriptResourceManifest* thisPtr, MonoString* virtualPath, MonoString** outPhysicalPath)
+	{
+		bool tmp__output;
+		Path tmpvirtualPath;
+		tmpvirtualPath = MonoUtil::MonoToString(virtualPath);
+		Path tmpoutPhysicalPath;
+		tmp__output = thisPtr->GetInternal()->VirtualToPhysicalPath(tmpvirtualPath, tmpoutPhysicalPath);
+
+		bool __output;
+		__output = tmp__output;
+		MonoUtil::ReferenceCopy(outPhysicalPath,  (MonoObject*)MonoUtil::StringToMono(tmpoutPhysicalPath.ToString()));
+
+		return __output;
+	}
+
+	void ScriptResourceManifest::InternalSave(MonoObject* manifest, MonoString* path, MonoString* physicalPathPrefix)
 	{
 		SPtr<ResourceManifest> tmpmanifest;
 		ScriptResourceManifest* scriptmanifest;
@@ -136,21 +152,21 @@ namespace bs
 			tmpmanifest = scriptmanifest->GetInternal();
 		Path tmppath;
 		tmppath = MonoUtil::MonoToString(path);
-		Path tmprelativePath;
-		tmprelativePath = MonoUtil::MonoToString(relativePath);
-		ResourceManifest::Save(tmpmanifest, tmppath, tmprelativePath);
+		Path tmpphysicalPathPrefix;
+		tmpphysicalPathPrefix = MonoUtil::MonoToString(physicalPathPrefix);
+		ResourceManifest::Save(tmpmanifest, tmppath, tmpphysicalPathPrefix);
 	}
 
-	MonoObject* ScriptResourceManifest::InternalLoad(MonoString* path, MonoString* relativePath, MonoString* virtualRelativePath)
+	MonoObject* ScriptResourceManifest::InternalLoad(MonoString* path, MonoString* physicalPathPrefix, MonoString* virtualPathPrefix)
 	{
 		SPtr<ResourceManifest> tmp__output;
 		Path tmppath;
 		tmppath = MonoUtil::MonoToString(path);
-		Path tmprelativePath;
-		tmprelativePath = MonoUtil::MonoToString(relativePath);
-		Path tmpvirtualRelativePath;
-		tmpvirtualRelativePath = MonoUtil::MonoToString(virtualRelativePath);
-		tmp__output = ResourceManifest::Load(tmppath, tmprelativePath, tmpvirtualRelativePath);
+		Path tmpphysicalPathPrefix;
+		tmpphysicalPathPrefix = MonoUtil::MonoToString(physicalPathPrefix);
+		Path tmpvirtualPathPrefix;
+		tmpvirtualPathPrefix = MonoUtil::MonoToString(virtualPathPrefix);
+		tmp__output = ResourceManifest::Load(tmppath, tmpphysicalPathPrefix, tmpvirtualPathPrefix);
 
 		MonoObject* __output;
 		__output = ScriptResourceManifest::Create(tmp__output);

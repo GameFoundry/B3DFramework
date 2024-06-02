@@ -13,7 +13,7 @@
 
 namespace bs
 {
-	ScriptSpriteTexture::ScriptSpriteTexture(MonoObject* managedInstance, const ResourceHandle<SpriteTexture>& value)
+	ScriptSpriteTexture::ScriptSpriteTexture(MonoObject* managedInstance, const TResourceHandle<SpriteTexture>& value)
 		:TScriptResource(managedInstance, value)
 	{
 	}
@@ -41,7 +41,7 @@ namespace bs
 
 	void ScriptSpriteTexture::InternalSetAtlasTexture(ScriptSpriteTexture* thisPtr, MonoObject* texture)
 	{
-		ResourceHandle<Texture> tmptexture;
+		TResourceHandle<Texture> tmptexture;
 		ScriptRRefBase* scripttexture;
 		scripttexture = ScriptRRefBase::ToNative(texture);
 		if(scripttexture != nullptr)
@@ -51,12 +51,12 @@ namespace bs
 
 	void ScriptSpriteTexture::InternalCreate(MonoObject* managedInstance, MonoObject* texture)
 	{
-		ResourceHandle<Texture> tmptexture;
+		TResourceHandle<Texture> tmptexture;
 		ScriptRRefBase* scripttexture;
 		scripttexture = ScriptRRefBase::ToNative(texture);
 		if(scripttexture != nullptr)
 			tmptexture = B3DStaticResourceCast<Texture>(scripttexture->GetHandle());
-		ResourceHandle<SpriteTexture> instance = SpriteTexture::Create(tmptexture);
+		TResourceHandle<SpriteTexture> instance = SpriteTexture::Create(tmptexture);
 		ScriptResourceManager::Instance().CreateBuiltinScriptResource(instance, managedInstance);
 	}
 
@@ -64,7 +64,7 @@ namespace bs
 	{
 		SpriteTextureCreateInformation tmpcreateInformation;
 		tmpcreateInformation = ScriptSpriteTextureCreateInformation::FromInterop(*createInformation);
-		ResourceHandle<SpriteTexture> instance = SpriteTexture::Create(tmpcreateInformation);
+		TResourceHandle<SpriteTexture> instance = SpriteTexture::Create(tmpcreateInformation);
 		ScriptResourceManager::Instance().CreateBuiltinScriptResource(instance, managedInstance);
 	}
 }

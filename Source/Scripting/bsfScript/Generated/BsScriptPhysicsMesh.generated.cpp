@@ -13,7 +13,7 @@
 
 namespace bs
 {
-	ScriptPhysicsMesh::ScriptPhysicsMesh(MonoObject* managedInstance, const ResourceHandle<PhysicsMesh>& value)
+	ScriptPhysicsMesh::ScriptPhysicsMesh(MonoObject* managedInstance, const TResourceHandle<PhysicsMesh>& value)
 		:TScriptResource(managedInstance, value)
 	{
 	}
@@ -57,7 +57,7 @@ namespace bs
 		scriptmeshData = ScriptMeshData::ToNative(meshData);
 		if(scriptmeshData != nullptr)
 			tmpmeshData = scriptmeshData->GetInternal();
-		ResourceHandle<PhysicsMesh> instance = PhysicsMeshEx::Create(tmpmeshData, type);
+		TResourceHandle<PhysicsMesh> instance = PhysicsMeshEx::Create(tmpmeshData, type);
 		ScriptResourceManager::Instance().CreateBuiltinScriptResource(instance, managedInstance);
 	}
 

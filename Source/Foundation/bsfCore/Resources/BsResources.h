@@ -306,7 +306,7 @@ namespace bs
 		 * @param	name			Name of the package to create, as well as the name of the resource within the package.
 		 * @param	saveOptions		Options to control the save operation.
 		 */
-		B3D_SCRIPT_EXPORT()
+		//B3D_SCRIPT_EXPORT()
 		void SaveAsSinglePackage(const HResource& resource, const Path& folder, const String& name, const ResourceSaveOptions& saveOptions);
 
 		/**

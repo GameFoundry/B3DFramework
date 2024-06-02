@@ -121,6 +121,32 @@ namespace bs
 		}
 	};
 
+	class B3D_UTILITY_EXPORT SerializedSubObjectRTTI : public TRTTIType<SerializedSubObject, IReflectable, SerializedSubObjectRTTI>
+	{
+	private:
+		B3D_RTTI_BEGIN_MEMBERS
+			B3D_RTTI_MEMBER(TypeId, 0)
+			B3D_RTTI_MEMBER_CONTAINER(FieldEntries, 1)
+		B3D_RTTI_END_MEMBERS
+
+	public:
+		const String& GetRttiName() override
+		{
+			static String name = "SerializedSubObject";
+			return name;
+		}
+
+		u32 GetRttiId() const override
+		{
+			return TID_SerializedSubObject;
+		}
+
+		SPtr<IReflectable> NewRttiObject() override
+		{
+			return B3DMakeShared<SerializedSubObject>();
+		}
+	};
+
 	class B3D_UTILITY_EXPORT SerializedObjectRTTI : public TRTTIType<SerializedObject, ISerialized, SerializedObjectRTTI>
 	{
 	private:
@@ -193,32 +219,6 @@ namespace bs
 		SPtr<IReflectable> NewRttiObject() override
 		{
 			return B3DMakeShared<SerializedMap>();
-		}
-	};
-
-	class B3D_UTILITY_EXPORT SerializedSubObjectRTTI : public TRTTIType<SerializedSubObject, IReflectable, SerializedSubObjectRTTI>
-	{
-	private:
-		B3D_RTTI_BEGIN_MEMBERS
-			B3D_RTTI_MEMBER(TypeId, 0)
-			B3D_RTTI_MEMBER_CONTAINER(FieldEntries, 1)
-		B3D_RTTI_END_MEMBERS
-
-	public:
-		const String& GetRttiName() override
-		{
-			static String name = "SerializedSubObject";
-			return name;
-		}
-
-		u32 GetRttiId() const override
-		{
-			return TID_SerializedSubObject;
-		}
-
-		SPtr<IReflectable> NewRttiObject() override
-		{
-			return B3DMakeShared<SerializedSubObject>();
 		}
 	};
 

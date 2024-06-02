@@ -33,7 +33,7 @@ namespace bs
 	SpriteGlyphCreateInformation ScriptSpriteGlyphCreateInformation::FromInterop(const __SpriteGlyphCreateInformationInterop& value)
 	{
 		SpriteGlyphCreateInformation output;
-		ResourceHandle<Font> tmpFont;
+		TResourceHandle<Font> tmpFont;
 		ScriptRRefBase* scriptFont;
 		scriptFont = ScriptRRefBase::ToNative(value.Font);
 		if(scriptFont != nullptr)

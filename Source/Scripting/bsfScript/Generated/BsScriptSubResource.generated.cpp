@@ -34,7 +34,7 @@ namespace bs
 		String tmpName;
 		tmpName = MonoUtil::MonoToString(value.Name);
 		output.Name = tmpName;
-		ResourceHandle<Resource> tmpValue;
+		TResourceHandle<Resource> tmpValue;
 		ScriptResource* scriptValue;
 		scriptValue = ScriptResource::ToNative(value.Value);
 		if(scriptValue != nullptr)
