@@ -178,7 +178,7 @@ Resources::LoadInfo Resources::LoadInternal(const UUID& uuid, const Path& filePa
 			if(loadFlags.IsSet(ResourceLoadFlag::KeepInternalRef))
 			{
 				resData.NumInternalRefs++;
-				output.Resource.AddInternalRef();
+				output.Resource.IncrementInternalReferenceCount();
 			}
 
 			loadInProgress = true;
@@ -198,7 +198,7 @@ Resources::LoadInfo Resources::LoadInternal(const UUID& uuid, const Path& filePa
 			if(loadFlags.IsSet(ResourceLoadFlag::KeepInternalRef))
 			{
 				resData.NumInternalRefs++;
-				output.Resource.AddInternalRef();
+				output.Resource.IncrementInternalReferenceCount();
 			}
 
 			alreadyLoading = true;
@@ -262,7 +262,7 @@ Resources::LoadInfo Resources::LoadInternal(const UUID& uuid, const Path& filePa
 				if(loadFlags.IsSet(ResourceLoadFlag::KeepInternalRef))
 				{
 					loadData->ResData.NumInternalRefs++;
-					output.Resource.AddInternalRef();
+					output.Resource.IncrementInternalReferenceCount();
 				}
 
 				loadData->RemainingDependencies = 1; // Self
@@ -517,7 +517,7 @@ HResource Resources::Load(UPtr<PackageReadLock> packageReadLock, const UUID& res
 				if(loadOptions.KeepInternalReference)
 				{
 					loadedResourceInformation->InternalReferenceCount++;
-					loadedResourceInformation->ResourceHandle.AddInternalRef();
+					loadedResourceInformation->ResourceHandle.IncrementInternalReferenceCount();
 				}
 
 				return loadedResourceInformation->ResourceHandle.Lock();
@@ -670,7 +670,7 @@ void Resources::TryFinalizeLoad(const SPtr<InProgressLoadInformation>& inProgres
 		if(inProgressLoadInformation->LoadOptions.KeepInternalReference)
 		{
 			loadedResourceInformation->InternalReferenceCount = 1;
-			loadedResourceInformation->ResourceHandle.AddInternalRef();
+			loadedResourceInformation->ResourceHandle.IncrementInternalReferenceCount();
 		}
 
 		inProgressLoadInformation->ResourceHandle.NotifyLoadComplete();
@@ -800,7 +800,7 @@ void Resources::ReleaseInternalReference(ResourceHandleBase& resource)
 
 				B3D_ASSERT(resData.NumInternalRefs > 0);
 				resData.NumInternalRefs--;
-				resource.RemoveInternalRef();
+				resource.DecrementInternalReferenceCount();
 
 				std::uint32_t refCount = resource.GetHandleData()->ReferenceCount.load(std::memory_order_relaxed);
 				lostLastRef = refCount == 0;
@@ -895,7 +895,7 @@ void Resources::Destroy(ResourceHandleBase& resource)
 			while(resData.NumInternalRefs > 0)
 			{
 				resData.NumInternalRefs--;
-				resData.Resource.RemoveInternalRef();
+				resData.Resource.DecrementInternalReferenceCount();
 			}
 
 			mLoadedResources.erase(iterFind);
@@ -918,7 +918,7 @@ void Resources::Destroy(ResourceHandleBase& resource)
 			while(loadedResourceInformation->InternalReferenceCount > 0)
 			{
 				loadedResourceInformation->InternalReferenceCount--;
-				loadedResourceInformation->ResourceHandle.RemoveInternalRef();
+				loadedResourceInformation->ResourceHandle.DecrementInternalReferenceCount();
 			}
 		}
 

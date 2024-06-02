@@ -105,12 +105,12 @@ float ScriptResources::InternalGetLoadProgress(ScriptRRefBase* resource, bool lo
 
 void ScriptResources::InternalRelease(ScriptResourceBase* resource)
 {
-	resource->GetGenericHandle().Release();
+	resource->GetGenericHandle().ReleaseInternalReference();
 }
 
 void ScriptResources::InternalReleaseRef(ScriptRRefBase* resourceRef)
 {
-	resourceRef->GetHandle().Release();
+	resourceRef->GetHandle().ReleaseInternalReference();
 }
 
 void ScriptResources::InternalUnloadUnused()

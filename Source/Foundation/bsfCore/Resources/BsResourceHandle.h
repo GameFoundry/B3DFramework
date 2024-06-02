@@ -49,9 +49,9 @@ namespace bs
 		/**
 		 * Releases an internal reference to this resource held by the resources system, if there is one.
 		 *
-		 * @see		Resources::release(ResourceHandleBase&)
+		 * @see		Resources::ReleaseInternalReference(ResourceHandleBase&)
 		 */
-		void Release();
+		void ReleaseInternalReference();
 
 		/** Returns the UUID of the resource the handle is referring to. */
 		const UUID& GetId() const { return mData != nullptr ? mData->Id : UUID::kEmpty; }
@@ -88,10 +88,10 @@ namespace bs
 		void ClearHandleData();
 
 		/** Increments the reference count of the handle. Only to be used by Resources for keeping internal references. */
-		void AddInternalRef();
+		void IncrementInternalReferenceCount();
 
 		/** Decrements the reference count of the handle. Only to be used by Resources for keeping internal references. */
-		void RemoveInternalRef();
+		void DecrementInternalReferenceCount();
 
 		/**
 		 * Notification sent by the resource system when the resource is done with the loading process. This will trigger
@@ -129,8 +129,8 @@ namespace bs
 	class B3D_CORE_EXPORT TResourceHandleBase<true> : public ResourceHandleBase
 	{
 	protected:
-		void AddRef(){};
-		void ReleaseRef(){};
+		void IncrementReferenceCount(){}
+		void DecrementReferenceCount(){}
 
 		/************************************************************************/
 		/* 								RTTI		                     		*/
@@ -146,13 +146,13 @@ namespace bs
 	class B3D_CORE_EXPORT TResourceHandleBase<false> : public ResourceHandleBase
 	{
 	protected:
-		void AddRef()
+		void IncrementReferenceCount()
 		{
 			if(mData)
 				mData->ReferenceCount.fetch_add(1, std::memory_order_relaxed);
-		};
+		}
 
-		void ReleaseRef()
+		void DecrementReferenceCount()
 		{
 			if(mData)
 			{
@@ -164,7 +164,7 @@ namespace bs
 					Destroy();
 				}
 			}
-		};
+		}
 
 		/************************************************************************/
 		/* 								RTTI		                     		*/
@@ -189,7 +189,7 @@ namespace bs
 		TResourceHandle(const TResourceHandle& other)
 		{
 			this->mData = other.GetHandleData();
-			this->AddRef();
+			this->IncrementReferenceCount();
 		}
 
 		/** Move constructor. */
@@ -197,7 +197,7 @@ namespace bs
 
 		~TResourceHandle()
 		{
-			this->ReleaseRef();
+			this->DecrementReferenceCount();
 		}
 
 		/**	Converts a specific handle to generic Resource handle. */
@@ -236,7 +236,7 @@ namespace bs
 		/** Clears the handle making it invalid and releases any references held to the resource. */
 		TResourceHandle<ResourceType, WeakHandle>& operator=(std::nullptr_t rhs)
 		{
-			this->ReleaseRef();
+			this->DecrementReferenceCount();
 			this->mData = nullptr;
 
 			return *this;
@@ -255,7 +255,7 @@ namespace bs
 			if(this == &other)
 				return *this;
 
-			this->ReleaseRef();
+			this->DecrementReferenceCount();
 			this->mData = std::exchange(other.mData, nullptr);
 
 			return *this;
@@ -318,27 +318,27 @@ namespace bs
 	protected:
 		friend Resources;
 
-		template <class ResourceType, bool IsWeakHandle>
+		template <class ResourceTypeOther, bool IsWeakHandleOther>
 		friend class TResourceHandle;
 
-		template <class ResourceType1, class ResourceType2, bool IsWeakHandle1, bool IsWeakHandle2>
-		friend TResourceHandle<ResourceType1, IsWeakHandle1> B3DStaticResourceCast(const TResourceHandle<ResourceType2, IsWeakHandle2>& other);
+		template <class ResourceTypeLhs, class ResourceTypeRhs, bool IsWeakHandleLhs, bool IsWeakHandleRhs>
+		friend TResourceHandle<ResourceTypeLhs, IsWeakHandleLhs> B3DStaticResourceCast(const TResourceHandle<ResourceTypeRhs, IsWeakHandleRhs>& other);
 
-		template <class ResourceType1, class ResourceType2, bool IsWeakHandle>
-		friend TResourceHandle<ResourceType1, false> B3DStaticResourceCast(const TResourceHandle<ResourceType2, IsWeakHandle>& other);
+		template <class ResourceTypeLhs, class ResourceTypeRhs, bool IsWeakHandleRhs>
+		friend TResourceHandle<ResourceTypeLhs, false> B3DStaticResourceCast(const TResourceHandle<ResourceTypeRhs, IsWeakHandleRhs>& other);
 
 		/**
 		 * Constructs a new valid handle for the provided resource with the provided UUID.
 		 *
 		 * @note	Handle will take ownership of the provided resource pointer, so make sure you don't delete it elsewhere.
 		 */
-		explicit TResourceHandle(ResourceType* ptr, const UUID& uuid)
+		explicit TResourceHandle(ResourceType* object, const UUID& uuid)
 			: TResourceHandleBase<WeakHandle>()
 		{
 			this->mData = B3DMakeShared<ResourceHandleData>();
-			this->AddRef();
+			this->IncrementReferenceCount();
 
-			this->SetHandleData(SPtr<Resource>(ptr), uuid);
+			this->SetHandleData(SPtr<Resource>(object), uuid);
 			this->mIsCreated = true;
 		}
 
@@ -351,25 +351,25 @@ namespace bs
 			this->mData = B3DMakeShared<ResourceHandleData>();
 			this->mData->Id = uuid;
 
-			this->AddRef();
+			this->IncrementReferenceCount();
 		}
 
 		/**	Constructs a new valid handle for the provided resource with the provided UUID. */
-		TResourceHandle(const SPtr<ResourceType> ptr, const UUID& uuid)
+		TResourceHandle(const SPtr<ResourceType> object, const UUID& uuid)
 		{
 			this->mData = B3DMakeShared<ResourceHandleData>();
-			this->AddRef();
+			this->IncrementReferenceCount();
 
-			this->SetHandleData(ptr, uuid);
+			this->SetHandleData(object, uuid);
 			this->mData->IsCreated = true;
 		}
 
 		/**	Replaces the internal handle data pointer, effectively transforming the handle into a different handle. */
 		void SetHandleData(const SPtr<ResourceHandleData>& data)
 		{
-			this->ReleaseRef();
+			this->DecrementReferenceCount();
 			this->mData = data;
-			this->AddRef();
+			this->IncrementReferenceCount();
 		}
 
 		using ResourceHandleBase::SetHandleData;

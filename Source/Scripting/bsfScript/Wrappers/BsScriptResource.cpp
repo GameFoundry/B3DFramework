@@ -102,7 +102,7 @@ void ScriptResource::InternalGetUuid(ScriptResourceBase* nativeInstance, UUID* u
 
 void ScriptResource::InternalRelease(ScriptResourceBase* nativeInstance)
 {
-	nativeInstance->GetGenericHandle().Release();
+	nativeInstance->GetGenericHandle().ReleaseInternalReference();
 }
 
 ScriptUUID::ScriptUUID(MonoObject* instance)

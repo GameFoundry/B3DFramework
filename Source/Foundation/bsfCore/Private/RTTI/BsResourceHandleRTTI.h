@@ -45,9 +45,9 @@ namespace bs
 					{
 						HResource loadedResource = GetResources().GetOrCreateResourceHandle(object.mData->Id);
 
-						object.ReleaseRef();
+						object.DecrementReferenceCount();
 						object.mData = loadedResource.mData;
-						object.AddRef();
+						object.IncrementReferenceCount();
 					}
 				}
 			}

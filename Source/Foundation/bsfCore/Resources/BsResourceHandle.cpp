@@ -55,7 +55,7 @@ void ResourceHandleBase::BlockUntilLoaded(bool waitForDependencies) const
 	}
 }
 
-void ResourceHandleBase::Release()
+void ResourceHandleBase::ReleaseInternalReference()
 {
 	GetResources().ReleaseInternalReference(*this);
 }
@@ -95,12 +95,12 @@ void ResourceHandleBase::ClearHandleData()
 	mData->IsCreated = false;
 }
 
-void ResourceHandleBase::AddInternalRef()
+void ResourceHandleBase::IncrementInternalReferenceCount()
 {
 	mData->ReferenceCount.fetch_add(1, std::memory_order_relaxed);
 }
 
-void ResourceHandleBase::RemoveInternalRef()
+void ResourceHandleBase::DecrementInternalReferenceCount()
 {
 	mData->ReferenceCount.fetch_sub(1, std::memory_order_relaxed);
 }
