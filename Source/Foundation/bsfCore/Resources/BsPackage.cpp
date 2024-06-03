@@ -1126,7 +1126,7 @@ void Package::Save(const SPtr<DataStream>& stream, bool compressResources, bool 
 		}
 
 		entry.second->OffsetInDataStream = resourceHeaders[resourceIndex].OffsetInDataStream;
-		entry.second->OffsetInDataStream = resourceHeaders[resourceIndex].SizeInDataStream;
+		entry.second->SizeInDataStream = resourceHeaders[resourceIndex].SizeInDataStream;
 		entry.second->IsLoadedResourceDirty = false;
 
 		resourceIndex++;

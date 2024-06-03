@@ -407,7 +407,7 @@ AcquirePackageLockResult PackageManager::AcquireWriteLock(const Path& physicalPa
 				runtimePackageInformation->PhysicalPath = physicalPackagePath;
 				runtimePackageInformation->VirtualPathPrefix = options.VirtualPathPrefix;
 
-				mPackagesByPath[physicalPackagePath] = std::move(runtimePackageInformation);
+				mPackagesByPath[physicalPackagePath] = runtimePackageInformation;
 
 				outLock = B3DMakeUnique<PackageWriteLock>(runtimePackageInformation.get(), mMutex, options.LockReason);
 				return AcquirePackageLockResult::Acquired;
