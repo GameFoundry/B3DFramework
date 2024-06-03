@@ -25,7 +25,7 @@ using json = nlohmann::json;
 
 using namespace bs;
 
-void BuiltinResourcesHelper::ImportAssets(const nlohmann::json& entries, const Vector<bool>& importFlags, const Path& inputFolder, const Path& outputFolder, const SPtr<ResourceManifest>& manifest, AssetType mode, nlohmann::json* dependencies, bool compress, bool mipmap)
+void BuiltinResourcesHelper::ImportAssets(const nlohmann::json& entries, const Vector<bool>& importFlags, const Path& inputFolder, const Path& outputFolder, const SPtr<ResourceManifest>& manifest, AssetType mode, bool compress, bool mipmap)
 {
 	if(!FileSystem::Exists(inputFolder))
 		return;
@@ -40,12 +40,13 @@ void BuiltinResourcesHelper::ImportAssets(const nlohmann::json& entries, const V
 
 	struct QueuedImportOp
 	{
-		QueuedImportOp(const TAsyncOp<HResource>& op, const Path& outputPath, const nlohmann::json& jsonEntry)
-			: Op(op), OutputPath(outputPath), JsonEntry(jsonEntry)
+		QueuedImportOp(const TAsyncOp<HResource>& op, const Path& outputFolder, const String& outputName, const nlohmann::json& jsonEntry)
+			: Op(op), OutputFolder(outputFolder), OutputName(outputName), JsonEntry(jsonEntry)
 		{}
 
 		TAsyncOp<HResource> Op;
-		Path OutputPath;
+		Path OutputFolder;
+		String OutputName;
 		const nlohmann::json& JsonEntry;
 	};
 
@@ -67,7 +68,7 @@ void BuiltinResourcesHelper::ImportAssets(const nlohmann::json& entries, const V
 
 		Path relativePath = fileName;
 		Path relativeAssetPath = fileName;
-		relativeAssetPath.SetFilename(relativeAssetPath.GetFilename() + u8".asset");
+		relativeAssetPath.SetFilename(fileName + u8".asset");
 
 		SPtr<ImportOptions> importOptions = GetImporter().CreateImportOptions(filePath);
 		if(importOptions != nullptr)
@@ -92,42 +93,45 @@ void BuiltinResourcesHelper::ImportAssets(const nlohmann::json& entries, const V
 			}
 		}
 
-		Path outputPath = outputFolder + relativeAssetPath;
-
 		TAsyncOp<HResource> op = GetImporter().ImportAsync(filePath, importOptions, UUID);
-		queuedOps.emplace_back(op, outputPath, entry);
+		queuedOps.emplace_back(op, outputFolder, fileName, entry);
 	};
 
-	auto generateSprite = [&](const HTexture& texture, const String& fileName, const UUID& UUID)
+	auto fnGenerateAndSaveSprite = [&spriteOutputFolder, &manifest, compress](const HTexture& texture, const String& fileName, const UUID& UUID)
 	{
+		const String spriteName = String("sprite_" + fileName);
+
 		Path relativePath = fileName;
-		Path outputPath = spriteOutputFolder + relativePath;
+		Path fullPath = spriteOutputFolder + relativePath;
+		fullPath.SetFilename(spriteName + ".asset");
 
-		outputPath.SetFilename("sprite_" + fileName + ".asset");
+		HResource spriteTexture = GetResources().CreateResourceHandle(SpriteTexture::CreateShared(texture), UUID);
 
-		SPtr<SpriteTexture> spriteTexPtr = SpriteTexture::CreateShared(texture);
-		HResource spriteTex = GetResources().CreateResourceHandle(spriteTexPtr, UUID);
+		Resources::Instance().Save(spriteTexture, fullPath, true, compress);
+		manifest->RegisterResource(spriteTexture.GetId(), fullPath);
 
-		Resources::Instance().Save(spriteTex, outputPath, true, compress);
-		manifest->RegisterResource(spriteTex.GetId(), outputPath);
+		GetResources().SaveAsSinglePackage(spriteTexture, spriteOutputFolder, spriteName, ResourceSaveOptions(true, compress));
 	};
 
-	auto generateAnimatedSprite = [&](const HTexture& texture, const String& fileName, const UUID& UUID,
+	auto fnGenerateAndSaveAnimatedSprite = [&spriteOutputFolder, &manifest, compress](const HTexture& texture, const String& fileName, const UUID& UUID,
 									  SpriteAnimationPlayback playback, const SpriteSheetGridAnimation& animation)
 	{
+		const String spriteName = String("sprite_" + fileName);
+
 		Path relativePath = fileName;
 		Path outputPath = spriteOutputFolder + relativePath;
+		outputPath.SetFilename(spriteName + ".asset");
 
-		outputPath.SetFilename("sprite_" + fileName + ".asset");
+		SPtr<SpriteTexture> spriteTextureShared = SpriteTexture::CreateShared(texture);
+		spriteTextureShared->SetAnimation(animation);
+		spriteTextureShared->SetAnimationPlayback(playback);
 
-		SPtr<SpriteTexture> spriteTexPtr = SpriteTexture::CreateShared(texture);
-		spriteTexPtr->SetAnimation(animation);
-		spriteTexPtr->SetAnimationPlayback(playback);
+		HResource spriteTexture = GetResources().CreateResourceHandle(spriteTextureShared, UUID);
 
-		HResource spriteTex = GetResources().CreateResourceHandle(spriteTexPtr, UUID);
+		Resources::Instance().Save(spriteTexture, outputPath, true, compress);
+		manifest->RegisterResource(spriteTexture.GetId(), outputPath);
 
-		Resources::Instance().Save(spriteTex, outputPath, true, compress);
-		manifest->RegisterResource(spriteTex.GetId(), outputPath);
+		GetResources().SaveAsSinglePackage(spriteTexture, spriteOutputFolder, spriteName, ResourceSaveOptions(true, compress));
 	};
 
 	// Start async import for all resources
@@ -168,8 +172,11 @@ void BuiltinResourcesHelper::ImportAssets(const nlohmann::json& entries, const V
 			HResource outputRes = importOp.Op.GetReturnValue();
 			if(outputRes != nullptr)
 			{
-				Resources::Instance().Save(outputRes, importOp.OutputPath, true, compress);
-				manifest->RegisterResource(outputRes.GetId(), importOp.OutputPath);
+				const Path& fullOutputPath = importOp.OutputFolder + (importOp.OutputName + ".asset");
+				Resources::Instance().Save(outputRes, fullOutputPath, true, compress);
+				manifest->RegisterResource(outputRes.GetId(), fullOutputPath);
+
+				GetResources().SaveAsSinglePackage(outputRes, importOp.OutputFolder, importOp.OutputName, ResourceSaveOptions(true, compress));
 
 				const nlohmann::json& entry = importOp.JsonEntry;
 
@@ -180,43 +187,6 @@ void BuiltinResourcesHelper::ImportAssets(const nlohmann::json& entries, const V
 					isIcon = entry.find("UUID16") != entry.end();
 				else if(mode == AssetType::Sprite)
 					isIcon = entry.find("TextureUUID16") != entry.end();
-
-				if(B3DRTTIIsOfType<Shader>(outputRes.Get()))
-				{
-					HShader shader = B3DStaticResourceCast<Shader>(outputRes);
-					if(!VerifyAndReportShader(shader))
-					{
-						iter = queuedOps.erase(iter);
-						continue;
-					}
-
-					if(dependencies != nullptr)
-					{
-						SPtr<ShaderMetaData> shaderMetaData = std::static_pointer_cast<ShaderMetaData>(shader->GetMetaData());
-
-						nlohmann::json dependencyEntries;
-						if(shaderMetaData != nullptr && shaderMetaData->Includes.size() > 0)
-						{
-							for(auto& include : shaderMetaData->Includes)
-							{
-								Path includePath = include.c_str();
-								if(include.substr(0, 8) == "$ENGINE$" || include.substr(0, 8) == "$EDITOR$")
-								{
-									if(include.size() > 8)
-										includePath = include.substr(9, include.size() - 9);
-								}
-
-								nlohmann::json newDependencyEntry = {
-									{ "Path", includePath.ToString().c_str() }
-								};
-
-								dependencyEntries.push_back(newDependencyEntry);
-							}
-						}
-
-						(*dependencies)[name] = dependencyEntries;
-					}
-				}
 
 				if(mode == AssetType::Sprite)
 				{
@@ -234,10 +204,10 @@ void BuiltinResourcesHelper::ImportAssets(const nlohmann::json& entries, const V
 						animation.FrameCount = jsonAnimation["Count"].get<u32>();
 						animation.FramesPerSecond = jsonAnimation["FPS"].get<u32>();
 
-						generateAnimatedSprite(tex, name.c_str(), UUID(spriteUUID.c_str()), SpriteAnimationPlayback::Loop, animation);
+						fnGenerateAndSaveAnimatedSprite(tex, name.c_str(), UUID(spriteUUID.c_str()), SpriteAnimationPlayback::Loop, animation);
 					}
 					else
-						generateSprite(tex, name.c_str(), UUID(spriteUUID.c_str()));
+						fnGenerateAndSaveSprite(tex, name.c_str(), UUID(spriteUUID.c_str()));
 				}
 
 				if(isIcon)
@@ -281,13 +251,16 @@ void BuiltinResourcesHelper::ImportAssets(const nlohmann::json& entries, const V
 
 	GetRenderThread().PostCommand([] {}, "Reading back generated icon data", true);
 
-	auto saveTexture = [&](auto& pixelData, auto& path, std::string& uuid)
+	auto fnSaveTexture = [&manifest, compress](const SPtr<PixelData>& pixelData, const Path& folder, const String& name, std::string& uuid)
 	{
 		SPtr<Texture> texturePtr = Texture::CreateShared(pixelData);
 		HResource texture = GetResources().CreateResourceHandle(texturePtr, UUID(uuid.c_str()));
 
-		Resources::Instance().Save(texture, path, true, compress);
-		manifest->RegisterResource(texture.GetId(), path);
+		const Path& fullPath = folder + (name + ".asset");
+		Resources::Instance().Save(texture, fullPath, true, compress);
+		manifest->RegisterResource(texture.GetId(), fullPath);
+
+		GetResources().SaveAsSinglePackage(texture, folder, name, ResourceSaveOptions(true, compress));
 
 		return B3DStaticResourceCast<Texture>(texture);
 	};
@@ -305,19 +278,19 @@ void BuiltinResourcesHelper::ImportAssets(const nlohmann::json& entries, const V
 		SPtr<PixelData> scaled16 = PixelData::Create(16, 16, 1, src->GetFormat());
 		PixelUtil::Scale(*scaled32, *scaled16);
 
-		Path outputPath48 = outputFolder + (iconsToGenerate[i].Name + "48.asset");
-		Path outputPath32 = outputFolder + (iconsToGenerate[i].Name + "32.asset");
-		Path outputPath16 = outputFolder + (iconsToGenerate[i].Name + "16.asset");
+		const String iconName48 = iconsToGenerate[i].Name + "48";
+		const String iconName32 = iconsToGenerate[i].Name + "32";
+		const String iconName16 = iconsToGenerate[i].Name + "16";
 
-		HTexture tex48 = saveTexture(scaled48, outputPath48, iconsToGenerate[i].TextureUUIDs[0]);
-		HTexture tex32 = saveTexture(scaled32, outputPath32, iconsToGenerate[i].TextureUUIDs[1]);
-		HTexture tex16 = saveTexture(scaled16, outputPath16, iconsToGenerate[i].TextureUUIDs[2]);
+		HTexture tex48 = fnSaveTexture(scaled48, outputFolder, iconName48, iconsToGenerate[i].TextureUUIDs[0]);
+		HTexture tex32 = fnSaveTexture(scaled32, outputFolder, iconName32, iconsToGenerate[i].TextureUUIDs[1]);
+		HTexture tex16 = fnSaveTexture(scaled16, outputFolder, iconName16, iconsToGenerate[i].TextureUUIDs[2]);
 
 		if(mode == AssetType::Sprite)
 		{
-			generateSprite(tex48, iconsToGenerate[i].Name + "48", UUID(iconsToGenerate[i].SpriteUUIDs[0].c_str()));
-			generateSprite(tex32, iconsToGenerate[i].Name + "32", UUID(iconsToGenerate[i].SpriteUUIDs[1].c_str()));
-			generateSprite(tex16, iconsToGenerate[i].Name + "16", UUID(iconsToGenerate[i].SpriteUUIDs[2].c_str()));
+			fnGenerateAndSaveSprite(tex48, iconName48, UUID(iconsToGenerate[i].SpriteUUIDs[0].c_str()));
+			fnGenerateAndSaveSprite(tex32, iconName32, UUID(iconsToGenerate[i].SpriteUUIDs[1].c_str()));
+			fnGenerateAndSaveSprite(tex16, iconName16, UUID(iconsToGenerate[i].SpriteUUIDs[2].c_str()));
 		}
 	}
 }
@@ -344,7 +317,10 @@ void BuiltinResourcesHelper::ImportFont(const Path& inputFile, const String& out
 	Resources::Instance().Save(font, outputPath, true);
 	manifest->RegisterResource(font.GetId(), outputPath);
 
-	// Save font texture pages as well. TODO - Later maybe figure out a more automatic way to do this
+	const SPtr<Package> package = Package::Create(outputName);
+	package->AddResource(outputName, font);
+
+	// Save font texture pages as well
 	for(auto& size : fontSizes)
 	{
 		SPtr<const FontBitmapInformation> fontData = font->GetBitmap(size);
@@ -359,9 +335,18 @@ void BuiltinResourcesHelper::ImportFont(const Path& inputFile, const String& out
 			Resources::Instance().Save(page.Texture, texPageOutputPath, true);
 			manifest->RegisterResource(page.Texture.GetId(), texPageOutputPath);
 
+			const String& texturePageName = StringUtil::Format("{0}FontPage{1}", fontName, pageIdx);
+			package->AddResource(texturePageName, page.Texture);
+
 			pageIdx++;
 		}
 	}
+
+	const String& packageFilename = outputName + Package::kPackageExtension;
+	const Path packagePath = Path::Combine(outputFolder, packageFilename);
+
+	PackageManager& packageManager = GetPackageManager();
+	packageManager.SavePackage(package, packagePath, SavePackageOptions());
 }
 
 Vector<bool> BuiltinResourcesHelper::GenerateImportFlags(const nlohmann::json& entries, const Path& inputFolder, time_t lastUpdateTime, bool forceImport, const nlohmann::json* dependencies, const Path& dependencyFolder)
@@ -607,110 +592,4 @@ u32 BuiltinResourcesHelper::CheckForModifications(const Path& folder, const Path
 		return 1;
 
 	return 0;
-}
-
-bool BuiltinResourcesHelper::VerifyAndReportShader(const HShader& shader)
-{
-	if(!shader.IsLoaded(false) || shader->GetTechniqueCount() == 0)
-	{
-#if B3D_DEBUG
-		B3D_EXCEPT(InvalidStateException, "Error occured while compiling a shader. Check earlier log messages for exact error.");
-#else
-		B3D_LOG(Error, Importer, "Error occured while compiling a shader. Check earlier log messages for exact error.");
-#endif
-		return false;
-	}
-
-	Vector<SPtr<Technique>> techniques = shader->GetCompatibleTechniques();
-	for(auto& technique : techniques)
-	{
-		technique->Compile();
-
-		u32 numPasses = technique->GetPassCount();
-		for(u32 i = 0; i < numPasses; i++)
-		{
-			SPtr<Pass> pass = technique->GetPass(i);
-
-			std::array<SPtr<GpuProgram>, 6> gpuPrograms;
-
-			const SPtr<GpuGraphicsPipelineState>& graphicsPipeline = pass->GetGraphicsPipelineState();
-			if(graphicsPipeline)
-			{
-				gpuPrograms[0] = graphicsPipeline->GetVertexProgram();
-				gpuPrograms[1] = graphicsPipeline->GetFragmentProgram();
-				gpuPrograms[2] = graphicsPipeline->GetGeometryProgram();
-				gpuPrograms[3] = graphicsPipeline->GetHullProgram();
-				gpuPrograms[4] = graphicsPipeline->GetDomainProgram();
-			}
-
-			const SPtr<GpuComputePipelineState>& computePipeline = pass->GetComputePipelineState();
-			if(computePipeline)
-				gpuPrograms[5] = computePipeline->GetProgram();
-
-			for(auto& program : gpuPrograms)
-			{
-				if(program == nullptr)
-					continue;
-
-				if(!program->IsCompiled())
-				{
-					String errMsg = "Error occured while compiling a shader \"" + shader->GetName() + "\". Error message: " + program->GetCompileErrorMessage();
-
-#if B3D_DEBUG
-					B3D_EXCEPT(InvalidStateException, errMsg);
-#else
-					B3D_LOG(Error, Importer, "{0}", errMsg);
-#endif
-					return false;
-				}
-			}
-		}
-	}
-
-	return true;
-}
-
-void BuiltinResourcesHelper::UpdateShaderBytecode(const Path& path)
-{
-	HShader shader = GetResources().Load<Shader>(path, ResourceLoadFlag::KeepSourceData);
-	if(!shader)
-		return;
-
-	Vector<SPtr<Technique>> techniques = shader->GetCompatibleTechniques();
-	bool hasBytecode = true;
-	for(auto& technique : techniques)
-	{
-		u32 numPasses = technique->GetPassCount();
-		for(u32 i = 0; i < numPasses; i++)
-		{
-			SPtr<Pass> pass = technique->GetPass(i);
-
-			for(u32 j = 0; j < GPT_COUNT; j++)
-			{
-				const GpuProgramCreateInformation& desc = pass->GetGpuProgramCreateInformation((GpuProgramType)j);
-				if(desc.Source.empty())
-					continue;
-
-				if(!desc.Bytecode)
-				{
-					hasBytecode = false;
-					break;
-				}
-			}
-
-			if(!hasBytecode)
-				break;
-		}
-
-		if(!hasBytecode)
-			break;
-	}
-
-	if(hasBytecode)
-		return;
-
-	for(auto& technique : techniques)
-		technique->Compile();
-
-	GetResources().Save(shader, path, true, true);
 }

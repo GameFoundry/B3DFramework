@@ -394,25 +394,27 @@ HMesh BuiltinResources::GetMesh(BuiltinMesh mesh) const
 {
 	Path meshPath = mEngineMeshFolder;
 
+	static const String kAssetExtension = ".asset";
+
 	switch(mesh)
 	{
 	case BuiltinMesh::Box:
-		meshPath.Append(kMeshBoxFile);
+		meshPath.Append(kMeshBoxFile + kAssetExtension);
 		break;
 	case BuiltinMesh::Sphere:
-		meshPath.Append(kMeshSphereFile);
+		meshPath.Append(kMeshSphereFile + kAssetExtension);
 		break;
 	case BuiltinMesh::Cone:
-		meshPath.Append(kMeshConeFile);
+		meshPath.Append(kMeshConeFile + kAssetExtension);
 		break;
 	case BuiltinMesh::Cylinder:
-		meshPath.Append(kMeshCylinderFile);
+		meshPath.Append(kMeshCylinderFile + kAssetExtension);
 		break;
 	case BuiltinMesh::Quad:
-		meshPath.Append(kMeshQuadFile);
+		meshPath.Append(kMeshQuadFile + kAssetExtension);
 		break;
 	case BuiltinMesh::Disc:
-		meshPath.Append(kMeshDiscFile);
+		meshPath.Append(kMeshDiscFile + kAssetExtension);
 		break;
 	}
 
@@ -447,25 +449,27 @@ HTexture BuiltinResources::GetTexture(BuiltinTexture type)
 	Path texturePath = Paths::GetDataPath();
 	texturePath.Append(kTextureFolder);
 
+	static const String kAssetExtension = ".asset";
+
 	switch(type)
 	{
 	case BuiltinTexture::Black:
-		texturePath.Append(kTextureBlackFile);
+		texturePath.Append(kTextureBlackFile + kAssetExtension);
 		break;
 	case BuiltinTexture::White:
-		texturePath.Append(kTextureWhiteFile);
+		texturePath.Append(kTextureWhiteFile + kAssetExtension);
 		break;
 	case BuiltinTexture::Normal:
-		texturePath.Append(kTextureNormalFile);
+		texturePath.Append(kTextureNormalFile + kAssetExtension);
 		break;
 	case BuiltinTexture::BokehFlare:
 		texturePath.Append(u8"BokehHex.png.asset");
 		break;
 	case BuiltinTexture::Black3D:
-		texturePath.Append(kTextureBlack3DFile);
+		texturePath.Append(kTextureBlack3DFile + kAssetExtension);
 		break;
 	case BuiltinTexture::White3D:
-		texturePath.Append(kTextureWhite3DFile);
+		texturePath.Append(kTextureWhite3DFile + kAssetExtension);
 		break;
 	}
 

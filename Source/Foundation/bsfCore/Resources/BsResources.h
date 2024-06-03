@@ -61,6 +61,10 @@ namespace bs
 	/** Options that control resource save operation. */
 	struct ResourceSaveOptions
 	{
+		ResourceSaveOptions(bool overwrite = true, bool compress = true, const Path& virtualPathPrefix = Path::kBlank)
+			:Overwrite(overwrite), Compress(compress), VirtualPathPrefix(virtualPathPrefix)
+		{ }
+
 		bool Overwrite = true; /**< If set, save operation will overwrite any existing resource at the provided path. */
 		bool Compress = true; /**< If set, compression will be used on resource data when saving. */
 		/**
@@ -307,7 +311,7 @@ namespace bs
 		 * @param	saveOptions		Options to control the save operation.
 		 */
 		//B3D_SCRIPT_EXPORT()
-		void SaveAsSinglePackage(const HResource& resource, const Path& folder, const String& name, const ResourceSaveOptions& saveOptions);
+		void SaveAsSinglePackage(const HResource& resource, const Path& folder, const String& name, const ResourceSaveOptions& saveOptions = ResourceSaveOptions());
 
 		/**
 		 * Updates an existing resource handle with a new resource. Caller must ensure that new resource type matches the

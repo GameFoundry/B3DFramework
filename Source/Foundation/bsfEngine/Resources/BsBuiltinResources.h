@@ -190,18 +190,18 @@ namespace bs
 		static constexpr const char* kSpriteFolder = "Sprites/";
 		static constexpr const char* kFontsFolder = "Fonts/";
 
-		static constexpr const char* kMeshSphereFile = u8"Sphere.asset";
-		static constexpr const char* kMeshBoxFile = u8"Box.asset";
-		static constexpr const char* kMeshConeFile = u8"Cone.asset";
-		static constexpr const char* kMeshCylinderFile = u8"Cylinder.asset";
-		static constexpr const char* kMeshQuadFile = u8"Quad.asset";
-		static constexpr const char* kMeshDiscFile = u8"Disc.asset";
+		static constexpr const char* kMeshSphereFile = u8"Sphere";
+		static constexpr const char* kMeshBoxFile = u8"Box";
+		static constexpr const char* kMeshConeFile = u8"Cone";
+		static constexpr const char* kMeshCylinderFile = u8"Cylinder";
+		static constexpr const char* kMeshQuadFile = u8"Quad";
+		static constexpr const char* kMeshDiscFile = u8"Disc";
 
-		static constexpr const char* kTextureWhiteFile = u8"White.asset";
-		static constexpr const char* kTextureBlackFile = u8"Black.asset";
-		static constexpr const char* kTextureNormalFile = u8"Normal.asset";
-		static constexpr const char* kTextureWhite3DFile = u8"White3D.asset";
-		static constexpr const char* kTextureBlack3DFile = u8"Black3D.asset";
+		static constexpr const char* kTextureWhiteFile = u8"White";
+		static constexpr const char* kTextureBlackFile = u8"Black";
+		static constexpr const char* kTextureNormalFile = u8"Normal";
+		static constexpr const char* kTextureWhite3DFile = u8"White3D";
+		static constexpr const char* kTextureBlack3DFile = u8"Black3D";
 
 		static constexpr const char* kDefaultFontName = u8"arial.ttf";
 		static constexpr const u32 kDefaultFontSize = 8;

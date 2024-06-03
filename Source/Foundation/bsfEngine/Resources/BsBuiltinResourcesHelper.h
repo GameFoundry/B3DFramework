@@ -39,11 +39,10 @@ namespace bs
 		 * @param[in]	outputFolder	Folder in which to store the imported resources.
 		 * @param[in]	manifest		Manifest in which to register the imported resources in.
 		 * @param[in]	mode			Mode that controls how are files imported.
-		 * @param[in]	dependencies	Optional map that be updated with any dependencies the imported assets depend on.
 		 * @param[in]	compress		True if the imported asset should be compressed when saved to the disk.
 		 * @param[in]	mipmap			True if mipmaps should be generated.
 		 */
-		static void ImportAssets(const nlohmann::json& entries, const Vector<bool>& importFlags, const Path& inputFolder, const Path& outputFolder, const SPtr<ResourceManifest>& manifest, AssetType mode = AssetType::Normal, nlohmann::json* dependencies = nullptr, bool compress = false, bool mipmap = false);
+		static void ImportAssets(const nlohmann::json& entries, const Vector<bool>& importFlags, const Path& inputFolder, const Path& outputFolder, const SPtr<ResourceManifest>& manifest, AssetType mode = AssetType::Normal, bool compress = false, bool mipmap = false);
 
 		/**
 		 * Imports a font from the specified file. Imported font assets are saved in the output folder. All saved resources
@@ -99,12 +98,6 @@ namespace bs
 		 * or 2 if timestamp doesn't exist. @p lastUpdateTime will contain the time stored in the timestamp, if it exist.
 		 */
 		static u32 CheckForModifications(const Path& folder, const Path& timeStampFile, time_t& lastUpdateTime);
-
-		/** Checks if the shader compiled properly and reports the problem if it hasn't. Returns true if shader is valid. */
-		static bool VerifyAndReportShader(const HShader& shader);
-
-		/** Loads the shader at the specified path, updates its bytecode if required, and re-saves the shader file. */
-		static void UpdateShaderBytecode(const Path& path);
 	};
 
 	/** @} */
