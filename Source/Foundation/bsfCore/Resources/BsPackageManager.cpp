@@ -89,13 +89,22 @@ UPtr<PackageReadLock> PackageManager::LoadOrGetPackage(const Path& packagePhysic
 	return nullptr;
 }
 
-void PackageManager::LoadPackages(const Path& folderPath, bool recursive, const Path& virtualPathPrefix)
+void PackageManager::LoadPackages(const Path& folderPath, bool recursive, const Path& virtualPathPrefix, bool addSubFoldersToVirtualPath)
 {
-	auto fnOnFileFound = [this, &virtualPathPrefix](const Path& path) -> bool
+	auto fnOnFileFound = [this, &folderPath, &virtualPathPrefix, addSubFoldersToVirtualPath](const Path& path) -> bool
 	{
 		if(path.GetExtension() == Package::kPackageExtension)
 		{
-			UPtr<PackageReadLock> readLock = LoadOrGetPackage(path, virtualPathPrefix);
+			Path virtualPath = virtualPathPrefix;
+			if(!virtualPathPrefix.IsEmpty() && addSubFoldersToVirtualPath)
+			{
+				const Path& relativePath = path.GetRelative(folderPath);
+
+				if(relativePath.GetDirectoryCount() > 0)
+					virtualPath = Path::Combine(virtualPathPrefix, relativePath.GetDirectory());
+			}
+
+			UPtr<PackageReadLock> readLock = LoadOrGetPackage(path, virtualPath);
 			(void)readLock;
 		}
 
@@ -283,7 +292,7 @@ Optional<ResourcePackagePath> PackageManager::TryResolveVirtualResourcePath(cons
 	return {};
 }
 
-Optional<Path> PackageManager::TryGetGackagePathForResource(const UUID& resourceId)
+Optional<Path> PackageManager::TryGetPackagePathForResource(const UUID& resourceId)
 {
 	Lock lock(mMutex);
 	if(auto foundResource = mResourceIdToPackageId.find(resourceId); foundResource != mResourceIdToPackageId.end())

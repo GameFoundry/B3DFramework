@@ -149,13 +149,16 @@ namespace bs
 		 * Loads all packages within the folder. All loaded packages will remain loaded until explicitly unloaded via a call to Unload(). If a package is already
 		 * loaded, no operation will be performed for that package.
 		 *
-		 * @param	folderPath				Path to the folder which to search for packages.
-		 * @param	recursive				If true, child folders of @p folderPath will also be searched for packages to load.
-		 * @param	virtualPathPrefix		If non-empty, this path will be added as a prefix to all resources within the package, so they may be loaded using
-		 *									this path. (e.g. "/Game/Textures/" prefix path will allow loading of a resource within the package named "BrickAlbedo"
-		 *									via "/Game/Textures/BrickAlbedo" path). Provided virtual prefix path is ignored if the package is previously loaded.
+		 * @param	folderPath					Path to the folder which to search for packages.
+		 * @param	recursive					If true, child folders of @p folderPath will also be searched for packages to load.
+		 * @param	virtualPathPrefix			If non-empty, this path will be added as a prefix to all resources within the package, so they may be loaded using
+		 *										this path. (e.g. "/Game/Textures/" prefix path will allow loading of a resource within the package named "BrickAlbedo"
+		 *										via "/Game/Textures/BrickAlbedo" path). Provided virtual prefix path is ignored if the package is previously loaded.
+		 * @param	addSubFoldersToVirtualPath	If this is true, then any sub-folders found in @p folderPath will be appended to @p virtualPathPrefix, for any
+		 *										resources in those folders. If false, all resources will be registered directly with @p virtualPathPrefix
+		 *										virtual path, provided it is not empty.
 		 */
-		void LoadPackages(const Path& folderPath, bool recursive = true, const Path& virtualPathPrefix = Path::kBlank);
+		void LoadPackages(const Path& folderPath, bool recursive = true, const Path& virtualPathPrefix = Path::kBlank, bool addSubFoldersToVirtualPath = true);
 
 		/**
 		 * Saves a package to a provided location on disk.
@@ -205,24 +208,31 @@ namespace bs
 		 */
 		AcquirePackageLockResult AcquireWriteLock(const Path& physicalPackagePath, const AcquirePackageWriteLockOptions& options, UPtr<PackageWriteLock>& outLock);
 
-		// TODO - Resolves e.g. D:/path/to/package.b3d/path/to/resource
-		// - Break the requested path, do direct lookup
+		/**
+		 * Resolves a physical path to a resource into a physical path to the package, and a path to the resource within the package.
+		 *
+		 * @param physicalResourcePath		Physical path to the resource in the package, e.g. 'D:/path/to/package.b3d/path/to/resource'. Must be absolute.
+		 * @return							If the provided path is valid, returns a structure with a physical path to the package, and path to the resource
+		 *									within that package. Returns null otherwise.
+		 */
 		Optional<ResourcePackagePath> TryResolvePhysicalResourcePath(const Path& physicalResourcePath) const;
 
-		// TODO - Resolves e.g. /game/textures/path/to/resource
-		//  - For this, need to maintain a lookup of all resource paths to their packages and paths within package. This is to be added
-		//    on package load, and removed on unload, and updated on save.
+		/**
+		 * Resolves a virtual path to a resource into a physical path to the package, and a path to the resource within the package.
+		 *
+		 * @param virtualResourcePath		Virtual path to the resource, e.g. '/game/textures/path/to/resource'.
+		 * @return							If provided path can be resolved, returns a structure with a physical path to the package, and path to the resource
+		 *									within that package. Returns null otherwise.
+		 */
 		Optional<ResourcePackagePath> TryResolveVirtualResourcePath(const Path& virtualResourcePath) const;
 
-		// TODO - Doc
-		Optional<Path> TryGetGackagePathForResource(const UUID& resourceId);
-
-		// TODO - Physical resource path -> package path and resource ID
-		// - Break the requested path, do direct lookup
-		// TODO - Virtual resource path -> package path and resource ID
-		// - Similar to second case, but also look up ID from package based on path
-		// TODO - Resource ID -> package and path within package
-		// - Use the resource ID -> package ID map to find package, the look within the package
+		/**
+		 * Attempts to retrieve a path to the package the resource is located in.
+		 *
+		 * @param resourceId		ID of the resource.
+		 * @return					Path to the package if the resource was located, or null otherwise.
+		 */
+		Optional<Path> TryGetPackagePathForResource(const UUID& resourceId);
 
 	private:
 		/**

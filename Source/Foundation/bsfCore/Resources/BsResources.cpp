@@ -98,7 +98,7 @@ HResource Resources::Load(const UUID& resourceId, const ResourceLoadOptions& loa
 {
 	PackageManager& packageManager = GetPackageManager();
 
-	const Optional<Path> maybePackagePath = packageManager.TryGetGackagePathForResource(resourceId);
+	const Optional<Path> maybePackagePath = packageManager.TryGetPackagePathForResource(resourceId);
 	if(!maybePackagePath.has_value())
 	{
 		B3D_LOG(Warning, Resources, "Cannot load resource. Resource with ID '{0}' doesn't exist.", resourceId);
@@ -925,7 +925,7 @@ void Resources::Destroy(ResourceHandle& resource)
 		}
 
 		PackageManager& packageManager = GetPackageManager();
-		if(const auto& packagePath = packageManager.TryGetGackagePathForResource(resourceId); packagePath.has_value())
+		if(const auto& packagePath = packageManager.TryGetPackagePathForResource(resourceId); packagePath.has_value())
 		{
 			AcquirePackageReadLockOptions readLockOptions(false, true, "Destroy resource");
 			UPtr<PackageReadLock> packageReadLock;
@@ -1364,7 +1364,7 @@ void Resources::GetLoadProgressRecursive(const HResource& resource, UnorderedMap
 	{
 		PackageManager& packageManager = GetPackageManager();
 
-		Optional<Path> maybePackagePath = packageManager.TryGetGackagePathForResource(resourceId);
+		Optional<Path> maybePackagePath = packageManager.TryGetPackagePathForResource(resourceId);
 		if(!maybePackagePath.has_value())
 			return LoadProgress();
 

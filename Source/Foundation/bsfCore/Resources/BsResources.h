@@ -49,13 +49,13 @@ namespace bs
 	/** Options that may be used to customize resource load operation. */
 	struct B3D_CORE_EXPORT ResourceLoadOptions
 	{
-		ResourceLoadOptions()
-			: LoadDependencies(true), KeepInternalReference(true), AsynchronousLoad(true)
+		ResourceLoadOptions(bool asynchronousLoad = true, bool loadDependencies = true, bool keepInternalReference = true)
+			: AsynchronousLoad(asynchronousLoad), LoadDependencies(loadDependencies), KeepInternalReference(keepInternalReference)
 		{ }
 
+		u8 AsynchronousLoad : 1;
 		u8 LoadDependencies : 1;
 		u8 KeepInternalReference : 1;
-		u8 AsynchronousLoad : 1;
 
 		static const ResourceLoadOptions kDefault;
 	};
@@ -231,9 +231,41 @@ namespace bs
 		B3D_SCRIPT_EXPORT()
 		HResource LoadFromUuid(const UUID& uuid, bool async = false, ResourceLoadFlags loadFlags = ResourceLoadFlag::Default);
 
-		// TODO - Doc
+		/**
+		 * Loads a resource at the specified path.
+		 *
+		 * @param resourcePath			Path to the resource. This may be a virtual or physical path. e.g.:
+		 *									Virtual path: '/game/textures/path/to/resource'
+		 *									Physical path: 'D:/path/to/package.b3d/path/to/resource'
+		 * @param loadOptions			Options to control the loading process.
+		 * @return						Handle to the resource. Note if performing async loading this method will return immediately, but
+		 *								the resource may not yet be loaded. Returns null if resource cannot be loaded, and logs why it failed.
+		 */
 		HResource Load(const Path& resourcePath, const ResourceLoadOptions& loadOptions);
+
+		/**
+		 * Loads a resource with the specified ID.
+		 *
+		 * @param resourceId			ID of the resource.
+		 * @param loadOptions			Options to control the loading process.
+		 * @return						Handle to the resource. Note if performing async loading this method will return immediately, but
+		 *								the resource may not yet be loaded. Returns null if resource cannot be loaded, and logs why it failed.
+		 */
 		HResource Load(const UUID& resourceId, const ResourceLoadOptions& loadOptions);
+
+		/** @copydoc Load(const Path&, const ResourceLoadOptions&) */
+		template <class T>
+		TResourceHandle<T> Load(const Path& resourcePath, const ResourceLoadOptions& loadOptions)
+		{
+			return B3DStaticResourceCast<T>(Load(resourcePath), loadOptions);
+		}
+
+		/** @copydoc Load(const UUID&, const ResourceLoadOptions&) */
+		template <class T>
+		TResourceHandle<T> Load(const UUID& resourceId, const ResourceLoadOptions& loadOptions)
+		{
+			return B3DStaticResourceCast<T>(Load(resourceId), loadOptions);
+		}
 
 		/**
 		 * Releases an internal reference to the resource held by the resources system. This allows the resource to be
