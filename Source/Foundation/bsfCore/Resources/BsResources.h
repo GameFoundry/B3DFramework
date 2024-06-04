@@ -47,7 +47,7 @@ namespace bs
 	B3D_FLAGS_OPERATORS(ResourceLoadFlag);
 
 	/** Options that may be used to customize resource load operation. */
-	struct ResourceLoadOptions
+	struct B3D_CORE_EXPORT ResourceLoadOptions
 	{
 		ResourceLoadOptions()
 			: LoadDependencies(true), KeepInternalReference(true), AsynchronousLoad(true)
@@ -56,6 +56,8 @@ namespace bs
 		u8 LoadDependencies : 1;
 		u8 KeepInternalReference : 1;
 		u8 AsynchronousLoad : 1;
+
+		static const ResourceLoadOptions kDefault;
 	};
 
 	/** Options that control resource save operation. */

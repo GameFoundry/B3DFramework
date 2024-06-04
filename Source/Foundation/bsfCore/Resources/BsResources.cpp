@@ -22,6 +22,8 @@
 
 using namespace bs;
 
+const ResourceLoadOptions ResourceLoadOptions::kDefault;
+
 Resources::Resources()
 {
 	{
