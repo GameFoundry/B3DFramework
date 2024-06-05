@@ -136,9 +136,8 @@ void BuiltinResources::OnStartUp()
 	const Path& fontsFolderVirtualPath = Path::Combine(kVirtualPathPrefix, kFontsFolder);
 	const Path& defaultFontVirtualPath = Path::Combine(fontsFolderVirtualPath, kDefaultFontName);
 
-	mFont = GetResources().Load<Font>(Path::Combine(mBuiltinDataFolder, kFontsFolder) + (String(kDefaultFontName) + u8".asset")); // DEBUG ONLY
+	mFont = GetResources().Load<Font>(defaultFontVirtualPath, ResourceLoadOptions(false));
 
-	//mFont = GetResources().Load<Font>(defaultFontVirtualPath, ResourceLoadOptions(false));
 	mDefaultGUIStyleSheet = GUIStyleSheet::Parse(mBuiltinRawDataFolder + "GUI.css");
 	mDefaultGUIStyleSheetCascade = B3DMakeShared<GUIStyleSheetCascade>();
 	mDefaultGUIStyleSheetCascade->RegisterStyleSheet(mDefaultGUIStyleSheet, GUIStyleSheet::kBuiltinImportance);
@@ -261,8 +260,7 @@ HFont BuiltinResources::GetFont(const String& font) const
 	// - Other alternative is to integrate ProjectLibrary into the framework, but in my mind that should remain editor only functionality. We can perhaps pull some generic
 	// package manipulation in a helper library, for use in the framework.
 
-	return GetResources().Load<Font>(Path::Combine(mBuiltinDataFolder, kFontsFolder) + (fontVirtualFilePath.GetTail() + u8".asset")); // DEBUG ONLY
-	//return GetResources().Load<Font>(fontVirtualFilePath, ResourceLoadOptions(false));
+	return GetResources().Load<Font>(fontVirtualFilePath, ResourceLoadOptions(false));
 }
 
 HShader BuiltinResources::GetOrCompileShader(const Path& path) const

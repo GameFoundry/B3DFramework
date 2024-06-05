@@ -1454,10 +1454,10 @@ HResource Resources::CreateResourceHandle(const SPtr<Resource>& resource, const 
 			LoadedResourceData& resData = mLoadedResources[resourceId];
 			resData.Resource = newHandle.GetWeak();
 
-			// TODO - A
+			// TODO - Add to mLoadedResourceInformation. Update other usages of mLoadedResources
 		}
 
-		mHandles[resourceId] = newHandle.GetWeak();
+		mHandles[resourceId] = newHandle.GetWeak(); // TODO - Need to free entry from this map if the handle data goes out of scope
 	}
 
 	return newHandle;
