@@ -36,6 +36,8 @@
 #	define B3D_FORCEINLINE inline __attribute__((always_inline))
 #	define B3D_LIKELY(x) __builtin_expect(!!(x), 1)
 #	define B3D_UNLIKELY(x) __builtin_expect(!!(x), 0)
+#	define _B3D_DISABLE_OPTIMIZATION __pragma(clang optimize off)
+#	define _B3D_ENABLE_OPTIMIZATION __pragma(clang optimize on)
 #elif defined(__GNUC__) // Check after Clang, as Clang defines this too
 #	define B3D_COMPILER B3D_COMPILER_ID_GCC
 #	define B3D_COMPILER_VERSION (((__GNUC__)*100) + (__GNUC_MINOR__ * 10) + __GNUC_PATCHLEVEL__)
@@ -47,12 +49,16 @@
 #	define B3D_FORCEINLINE inline __attribute__((always_inline))
 #	define B3D_LIKELY(x) __builtin_expect(!!(x), 1)
 #	define B3D_UNLIKELY(x) __builtin_expect(!!(x), 0)
+#	define _B3D_DISABLE_OPTIMIZATION _Pragma("GCC optimize \"O0\"")
+#	define _B3D_ENABLE_OPTIMIZATION _Pragma("GCC reset_options")
 #elif defined(__INTEL_COMPILER)
 #	define B3D_COMPILER B3D_COMPILER_ID_INTEL
 #	define B3D_COMPILER_VERSION __INTEL_COMPILER
 #	define B3D_STDCALL __stdcall
 #	define B3D_CDECL __cdecl
 #	define B3D_FALLTHROUGH
+#	define _B3D_DISABLE_OPTIMIZATION __pragma(optimize("", off))
+#	define _B3D_ENABLE_OPTIMIZATION __pragma(optimize("", on))
 #	define B3D_LIKELY(x) (x)
 #	define B3D_UNLIKELY(x) (x)
 // B3D_THREADLOCAL define is down below because Intel compiler defines it differently based on platform
@@ -67,10 +73,20 @@
 #	define B3D_FORCEINLINE __forceinline
 #	define B3D_LIKELY(x) (x)
 #	define B3D_UNLIKELY(x) (x)
+#	define _B3D_DISABLE_OPTIMIZATION __pragma(optimize("", off))
+#	define _B3D_ENABLE_OPTIMIZATION __pragma(optimize("", on))
 #	undef __PRETTY_FUNCTION__
 #	define __PRETTY_FUNCTION__ __FUNCSIG__
 #else
 #	pragma error "No known compiler. "
+#endif
+
+#if B3D_BUILD_TYPE != B3D_BUILD_TYPE_SHIPPING
+#	define B3D_DISABLE_OPTIMIZATION _B3D_DISABLE_OPTIMIZATION
+#	define B3D_ENABLE_OPTIMIZATION _B3D_ENABLE_OPTIMIZATION
+#else
+#	define B3D_DISABLE_OPTIMIZATION
+#	define B3D_ENABLE_OPTIMIZATION
 #endif
 
 // Finds the current platform
