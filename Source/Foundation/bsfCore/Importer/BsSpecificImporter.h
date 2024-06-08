@@ -18,6 +18,8 @@ namespace bs
 	{
 		String Name; /**< Unique name of the sub-resource. */
 		SPtr<Resource> Value; /**< Contents of the sub-resource. */
+
+		static constexpr const char* kPrimaryResourceName = "primary";
 	};
 
 	/** Modes signififying the level of asynchronous functionality provided by a SpecificImporter. */

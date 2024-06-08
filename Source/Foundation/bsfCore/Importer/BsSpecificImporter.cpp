@@ -12,7 +12,7 @@ Vector<SubResourceRaw> SpecificImporter::ImportAll(const Path& filePath, SPtr<co
 	if(resource == nullptr)
 		return Vector<SubResourceRaw>();
 
-	return { { u8"primary", resource } };
+	return { { SubResourceRaw::kPrimaryResourceName, resource } };
 	;
 }
 

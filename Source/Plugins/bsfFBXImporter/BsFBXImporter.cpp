@@ -139,7 +139,7 @@ Vector<SubResourceRaw> FBXImporter::ImportAll(const Path& filePath, SPtr<const I
 	Vector<SubResourceRaw> output;
 	if(mesh != nullptr)
 	{
-		output.push_back({ u8"primary", mesh });
+		output.push_back({ SubResourceRaw::kPrimaryResourceName, mesh });
 
 		CollisionMeshType collisionMeshType = meshImportOptions->CollisionMeshType;
 		if(collisionMeshType != CollisionMeshType::None)
