@@ -16,9 +16,9 @@ namespace bs
 
 #if BS_INCLUDE_B3D_PATHS
 	constexpr const char* kGameResourcesFolderName = "Resources/";
+	constexpr const char* kGameResourcePackageName = "GameResources";
+	constexpr const char* kGameResourcesVirtualPathPrefix = "/Game/";
 	constexpr const char* kGameSettingsName = "GameSettings.asset";
-	constexpr const char* kGameResourceManifestName = "ResourceManifest.asset";
-	constexpr const char* kGameResourceMappingName = "ResourceMapping.asset";
 #endif
 
 	/** Contains common engine paths and utility method for searching for paths. */

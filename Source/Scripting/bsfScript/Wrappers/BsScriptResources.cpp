@@ -5,7 +5,6 @@
 #include "BsMonoClass.h"
 #include "BsMonoMethod.h"
 #include "BsMonoUtil.h"
-#include "Resources/BsGameResourceManager.h"
 #include "BsScriptResourceManager.h"
 #include "Wrappers/BsScriptResource.h"
 #include "BsApplication.h"
@@ -34,10 +33,12 @@ MonoObject* ScriptResources::InternalLoad(MonoString* path, ResourceLoadFlag fla
 
 	ResourceLoadFlags loadFlags = flags;
 
-	if(GetApplication().IsEditor())
-		loadFlags |= ResourceLoadFlag::KeepSourceData;
+	ResourceLoadOptions loadOptions;
+	loadOptions.LoadDependencies = loadFlags.IsSet(ResourceLoadFlag::LoadDependencies);
+	loadOptions.KeepInternalReference = loadFlags.IsSet(ResourceLoadFlag::KeepInternalRef);
+	loadOptions.AsynchronousLoad = false;
 
-	HResource resource = GameResourceManager::Instance().Load(nativePath, loadFlags, false);
+	HResource resource = GetResources().Load(nativePath, loadOptions);
 	if(!resource.IsLoaded(false))
 		return nullptr;
 
@@ -66,10 +67,12 @@ MonoObject* ScriptResources::InternalLoadAsync(MonoString* path, ResourceLoadFla
 
 	ResourceLoadFlags loadFlags = flags;
 
-	if(GetApplication().IsEditor())
-		loadFlags |= ResourceLoadFlag::KeepSourceData;
+	ResourceLoadOptions loadOptions;
+	loadOptions.LoadDependencies = loadFlags.IsSet(ResourceLoadFlag::LoadDependencies);
+	loadOptions.KeepInternalReference = loadFlags.IsSet(ResourceLoadFlag::KeepInternalRef);
+	loadOptions.AsynchronousLoad = true;
 
-	HResource resource = GameResourceManager::Instance().Load(nativePath, loadFlags, true);
+	HResource resource = GetResources().Load(nativePath, loadOptions);
 	if(resource == nullptr)
 		return nullptr;
 

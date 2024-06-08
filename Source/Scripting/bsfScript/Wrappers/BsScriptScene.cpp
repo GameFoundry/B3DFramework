@@ -12,7 +12,6 @@
 #include "Scene/BsSceneObject.h"
 #include "Renderer/BsCamera.h"
 #include "BsScriptGameObjectManager.h"
-#include "Resources/BsGameResourceManager.h"
 #include "BsScriptResourceManager.h"
 #include "Wrappers/BsScriptPrefab.h"
 #include "Wrappers/BsScriptSceneObject.h"

@@ -16,7 +16,7 @@ namespace bs
 	 */
 
 	/**	Interop class between C++ & CLR for Resources & GameResourceManager. */
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptResources : public ScriptObject<ScriptResources>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptResources : public ScriptObject<ScriptResources> // TODO - This class is deprecated. Just export native Resources class directly. This was needed before we had virtual paths.
 	{
 	public:
 		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "Resources")

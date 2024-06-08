@@ -11,7 +11,6 @@
 #include "Wrappers/BsScriptInput.h"
 #include "Wrappers/BsScriptVirtualInput.h"
 #include "BsScriptObjectManager.h"
-#include "Resources/BsGameResourceManager.h"
 #include "BsApplication.h"
 #include "FileSystem/BsFileSystem.h"
 #include "Wrappers/BsScriptDebug.h"
@@ -37,7 +36,6 @@ void EngineScriptLibrary::Initialize()
 
 	PlayInEditor::StartUp();
 	ScriptDebug::StartUp();
-	GameResourceManager::StartUp();
 	ScriptObjectManager::StartUp();
 	ManagedResourceManager::StartUp();
 	ScriptAssemblyManager::StartUp();
@@ -129,7 +127,6 @@ void EngineScriptLibrary::ShutdownModules()
 	ScriptResourceManager::ShutDown();
 	ScriptAssemblyManager::ShutDown();
 	ScriptObjectManager::ShutDown();
-	GameResourceManager::ShutDown();
 	ScriptDebug::ShutDown();
 	PlayInEditor::ShutDown();
 
