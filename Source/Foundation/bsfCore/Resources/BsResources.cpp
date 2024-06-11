@@ -88,25 +88,6 @@ Resources::~Resources()
 	UnloadAll();
 }
 
-HResource Resources::Load(const Path& filePath, ResourceLoadFlags loadFlags)
-{
-	UUID uuid;
-	Path physicalFilePath = EnsurePhysicalPath(filePath);
-
-	if(!FileSystem::IsFile(physicalFilePath))
-	{
-		B3D_LOG(Warning, Resources, "Cannot load resource. Specified file: {0} doesn't exist.", filePath);
-		return HResource();
-	}
-
-	bool foundUUID = GetUUIDFromFilePath(physicalFilePath, uuid);
-
-	if(!foundUUID)
-		uuid = UUIDGenerator::GenerateRandom();
-
-	return LoadInternal(uuid, physicalFilePath, true, loadFlags).Resource;
-}
-
 HResource Resources::Load(const Path& resourcePath, const ResourceLoadOptions& loadOptions)
 {
 	UPtr<PackageReadLock> packageReadLock;
@@ -950,42 +931,6 @@ void Resources::Destroy(ResourceHandle& resource)
 	resource.ClearHandleData();
 }
 
-void Resources::Save(const HResource& resource, const Path& filePath, bool overwrite, bool compress)
-{
-	if(resource == nullptr)
-		return;
-
-	if(!resource.IsLoaded(false))
-	{
-		bool loadInProgress = false;
-		{
-			Lock lock(mInProgressResourcesMutex);
-			auto iterFind2 = mInProgressResources.find(resource.GetId());
-			if(iterFind2 != mInProgressResources.end())
-				loadInProgress = true;
-		}
-
-		if(loadInProgress) // If it's still loading wait until that finishes
-			resource.BlockUntilLoaded();
-		else
-			return; // Nothing to save
-	}
-
-	const bool fileExists = FileSystem::IsFile(filePath);
-	if(fileExists && !overwrite)
-	{
-		B3D_LOG(Error, Resources, "Another file exists at the specified location. Not saving.");
-		return;
-	}
-
-	{
-		Lock lock(mDefaultManifestMutex);
-		mDefaultResourceManifest->RegisterResource(resource.GetId(), filePath);
-	}
-
-	SaveInternal(resource.GetShared(), filePath, compress);
-}
-
 void Resources::SaveAsSinglePackage(const HResource& resource, const Path& folder, const String& name, const ResourceSaveOptions& saveOptions)
 {
 	if(folder.IsEmpty())
@@ -1027,142 +972,6 @@ void Resources::SaveAsSinglePackage(const HResource& resource, const Path& folde
 	packageManager.SavePackage(package, packagePath, packageSaveOptions);
 }
 
-void Resources::SaveInternal(const SPtr<Resource>& resource, const Path& filePath, bool compress)
-{
-	if(!resource->mKeepSourceData)
-	{
-		B3D_LOG(Warning, Resources, "Saving a resource that was created/loaded without KeepSourceData flag."
-								   "Some data might not be available for saving. File path: {0}",
-			   filePath);
-	}
-
-	Vector<ResourceDependency> dependencyList = Utility::FindResourceDependencies(*resource);
-	Vector<UUID> dependencyUUIDs(dependencyList.size());
-	for(u32 i = 0; i < (u32)dependencyList.size(); i++)
-		dependencyUUIDs[i] = dependencyList[i].Resource.GetId();
-
-	u32 compressionMethod = (compress && resource->IsCompressible()) ? 1 : 0;
-	SPtr<SavedResourceData> resourceData = B3DMakeShared<SavedResourceData>(dependencyUUIDs, resource->AllowAsyncLoading(), compressionMethod);
-
-	Path parentDir = filePath.GetDirectory();
-	if(!FileSystem::Exists(parentDir))
-		FileSystem::CreateDir(parentDir);
-
-	Path savePath;
-	const bool fileExists = FileSystem::IsFile(filePath);
-	if(fileExists)
-	{
-		// If a file exists, save to a temporary location, then copy over only after a save was successful. This guards
-		// against data loss in case the save process fails.
-
-		// TODO: Temp directory should always be on this drive, as files moved from one drive to another will in fact
-		// be copied
-		savePath = FileSystem::GetTempDirectoryPath();
-		savePath.SetFilename(UUIDGenerator::GenerateRandom().ToString());
-
-		u32 safetyCounter = 0;
-		while(FileSystem::Exists(savePath))
-		{
-			if(safetyCounter > 10)
-			{
-				B3D_LOG(Error, Resources, "Internal error. Unable to save resource due to not being able to find a unique filename.");
-				return;
-			}
-
-			savePath.SetFilename(UUIDGenerator::GenerateRandom().ToString());
-			safetyCounter++;
-		}
-	}
-	else
-		savePath = filePath;
-
-	SPtr<DataStream> stream = FileSystem::CreateAndOpenFile(savePath);
-
-	// Write meta-data
-	{
-		size_t sizePos = stream->Tell();
-		stream->Skip(sizeof(u32));
-
-		BinarySerializer bs;
-		bs.Encode(resourceData.get(), stream);
-
-		size_t curPos = stream->Tell();
-		stream->Seek(sizePos);
-
-		u32 size = (u32)(curPos - sizePos - sizeof(u32));
-		stream->Write(&size, sizeof(size));
-		stream->Seek(curPos);
-	}
-
-	// Write object data
-	{
-		size_t sizePos = stream->Tell();
-		stream->Skip(sizeof(u32));
-
-		BinarySerializer bs;
-		uint32_t size = 0;
-		if(compressionMethod != 0)
-		{
-			SPtr<MemoryDataStream> tempStream = B3DMakeShared<MemoryDataStream>();
-			bs.Encode(resource.get(), tempStream);
-
-			size = (uint32_t)tempStream->Size();
-			tempStream->Seek(0);
-
-			// Note: We should refactor Compression::compress() so it can write straight to the file stream
-			SPtr<DataStream> srcStream = std::static_pointer_cast<DataStream>(tempStream);
-			SPtr<MemoryDataStream> compressedStream = B3DMakeShared<MemoryDataStream>();
-
-			Compression::Compress(*srcStream, *compressedStream);
-
-			stream->Write(compressedStream->Data(), compressedStream->Size());
-		}
-		else
-		{
-			bs.Encode(resource.get(), stream);
-			size = (uint32_t)(stream->Tell() - sizePos - sizeof(u32));
-		}
-
-		size_t curPos = stream->Tell();
-		stream->Seek(sizePos);
-		stream->Write(&size, sizeof(size));
-		stream->Seek(curPos);
-	}
-
-	stream->Close();
-	stream = nullptr;
-
-	if(fileExists)
-	{
-		FileSystem::Remove(filePath);
-		FileSystem::Move(savePath, filePath);
-	}
-}
-
-void Resources::Update(HResource& handle, const SPtr<Resource>& resource)
-{
-	const UUID& uuid = handle.GetId();
-	handle.SetHandleData(resource, uuid);
-	handle.NotifyLoadComplete();
-
-	if(resource)
-	{
-		Lock lock(mLoadedResourceMutex);
-		auto iterFind = mLoadedResources.find(uuid);
-		if(iterFind == mLoadedResources.end())
-		{
-			LoadedResourceData& resData = mLoadedResources[uuid];
-			resData.Resource = handle.GetWeak();
-		}
-	}
-
-	OnResourceModified(handle);
-
-	// Notify listeners immediately if on main thread
-	if(GetCoreApplication().GetMainThreadId() == B3D_CURRENT_THREAD_ID)
-		ResourceListenerManager::Instance().NotifyListeners(uuid);
-}
-
 void Resources::UpdateHandle(HResource& handle, const SPtr<Resource>& resource)
 {
 	const UUID& uuid = handle.GetId();
@@ -1198,14 +1007,7 @@ void Resources::UpdateResourcesFromPackage(const UPtr<PackageWriteLock>& package
 
 		if(resourceHandle == nullptr)
 		{
-#if B3D_BUILD_TYPE == B3D_BUILD_TYPE_DEVELOPMENT
-			if(package->GetResourceLoadState(resourceId) != PackageResourceLoadState::Unloaded)
-			{
-				B3D_LOG(Warning, Resources, "Updating resource system with a package that contains an loaded resource that's not registered as "
-								"loaded in the resource system. This resource might leak unless explicitly freed from the package.");
-			}
-#endif
-
+			package->UnloadResource(resourceId);
 			continue;
 		}
 

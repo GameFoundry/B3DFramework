@@ -14,10 +14,11 @@ namespace bs
 #	define BS_INCLUDE_B3D_PATHS 0
 #endif
 
+	constexpr const char* kGameResourcesVirtualPathPrefix = "/Game/";
+
 #if BS_INCLUDE_B3D_PATHS
 	constexpr const char* kGameResourcesFolderName = "Resources/";
 	constexpr const char* kGameResourcePackageName = "GameResources";
-	constexpr const char* kGameResourcesVirtualPathPrefix = "/Game/";
 	constexpr const char* kGameSettingsName = "GameSettings.asset";
 #endif
 
@@ -60,7 +61,6 @@ namespace bs
 
 		/** Path where the debug configuration managed assemblies are located at, relative to the working directory. */
 		static const Path kDebugAssemblyPath;
-		;
 
 #if BS_INCLUDE_B3D_PATHS
 		/** Path to the root editor data directory. Relative to working directory, or RAW_APP_ROOT. */

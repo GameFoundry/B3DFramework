@@ -165,19 +165,6 @@ namespace bs
 		~Resources();
 
 		/**
-		 * Loads the resource from a given path. Returns an empty handle if resource can't be loaded. Resource is loaded
-		 * synchronously.
-		 *
-		 * @param[in]	filePath	File path to the resource to load. This can be absolute or relative to the working
-		 *							folder.
-		 * @param[in]	loadFlags	Flags used to control the load process.
-		 *
-		 * @see		ReleaseInternalReference(ResourceHandle&), UnloadAllUnused()
-		 */
-		B3D_SCRIPT_EXPORT()
-		B3D_NO_RREF HResource Load(const Path& filePath, ResourceLoadFlags loadFlags = ResourceLoadFlag::Default);
-
-		/**
 		 * Loads the resource with the given UUID. Returns an empty handle if resource can't be loaded.
 		 *
 		 * @param[in]	uuid		UUID of the resource to load.
@@ -273,28 +260,6 @@ namespace bs
 		void UnloadAll();
 
 		/**
-		 * Saves the resource at the specified location.
-		 *
-		 * @param[in]	resource 	Handle to the resource.
-		 * @param[in]	filePath 	Full pathname of the file to save as.
-		 * @param[in]	overwrite	If true, any existing resource at the specified location will be overwritten.
-		 * @param[in]	compress	Should the resource be compressed before saving. Some resources have data that is
-		 *							already	compressed and this option will be ignored for such resources.
-		 *
-		 * @note
-		 * If the resource is used on the GPU and you are in some way modifying it from the render thread, make sure all
-		 * render thread commands are submitted and executed before you call this method. Otherwise an obsolete version of
-		 * the resource might get saved.
-		 * @note
-		 * If saving a render thread resource this is a potentially very slow operation as we must wait on the render thread
-		 * and the GPU in order to read the resource.
-		 * @note
-		 * Thread safe if you guarantee the resource isn't being written to from another thread.
-		 */
-		B3D_SCRIPT_EXPORT()
-		void Save(B3D_NO_RREF const HResource& resource, const Path& filePath, bool overwrite, bool compress = false);
-
-		/**
 		 * Saves a resource into its own package. The package will be created in @p folder, with @p name as the package name. There will
 		 * be a single resource in the package, also named @p name.
 		 *
@@ -305,12 +270,6 @@ namespace bs
 		 */
 		//B3D_SCRIPT_EXPORT()
 		void SaveAsSinglePackage(const HResource& resource, const Path& folder, const String& name, const ResourceSaveOptions& saveOptions = ResourceSaveOptions());
-
-		/**
-		 * Updates an existing resource handle with a new resource. Caller must ensure that new resource type matches the
-		 * original resource type.
-		 */
-		void Update(HResource& handle, const SPtr<Resource>& resource);
 
 		/**
 		 * Returns a list of dependencies from the resources at the specified path. Resource will not be loaded or parsed,
@@ -354,6 +313,7 @@ namespace bs
 		B3D_SCRIPT_EXPORT()
 		float GetLoadProgress2(const HResource& resource);
 
+		// TODO - Doc
 		struct LoadProgress
 		{
 			LoadProgress(u64 totalSize = 0, float progress = 0.0f)
@@ -454,15 +414,9 @@ namespace bs
 		HResource GetOrCreateResourceHandle(const UUID& resourceId);
 
 		/**
-		 * Same as save() except it saves the resource without registering it in the default manifest, requiring a handle,
-		 * or checking for overwrite.
-		 */
-		void SaveInternal(const SPtr<Resource>& resource, const Path& filePath, bool compress);
-
-		/**
 		 * Updates all resources from the resource data in the package locked by the provided write lock. This means if a resource is already loaded by the resource system, the
 		 * resource will be retrieved from the package and handle to the resource updated with the new resource. This may involve loading the resource, if the new package doesn't
-		 * have the resource loaded.
+		 * have the resource loaded. If the resource is loaded in the package, but not marked as loaded by the resource system, it will be unloaded from the package.
 		 */
 		void UpdateResourcesFromPackage(const UPtr<PackageWriteLock>& packageWriteLock);
 
