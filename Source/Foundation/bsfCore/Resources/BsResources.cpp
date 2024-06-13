@@ -4,17 +4,12 @@
 
 #include "BsApplication.h"
 #include "Resources/BsResource.h"
-#include "Resources/BsResourceManifest.h"
-#include "Error/BsException.h"
 #include "Serialization/BsFileSerializer.h"
 #include "FileSystem/BsFileSystem.h"
 #include "Utility/BsUUID.h"
 #include "Debug/BsDebug.h"
 #include "Utility/BsUtility.h"
-#include "Resources/BsSavedResourceData.h"
 #include "Managers/BsResourceListenerManager.h"
-#include "Utility/BsCompression.h"
-#include "FileSystem/BsDataStream.h"
 #include "Serialization/BsBinarySerializer.h"
 #include "Reflection/BsRTTIType.h"
 #include "BsCoreApplication.h"
@@ -24,7 +19,10 @@ using namespace bs;
 
 const ResourceLoadOptions ResourceLoadOptions::kDefault;
 
-// TODO - Doc
+/**
+ * Attempts to acquire a read lock on the package containing the resource at the provided virtual/physical path. Returns true if the lock
+ * was acquired, in which case also outputs the lock and the ID of the locked resource. Also see PackageManager::AcquireReadLock().
+ */
 static bool TryAcquirePackageLockForResourceLoad(const Path& resourcePath, const char* lockReason, UPtr<PackageReadLock>& outReadLock, UUID& outResourceId)
 {
 	PackageManager& packageManager = GetPackageManager();
@@ -55,7 +53,10 @@ static bool TryAcquirePackageLockForResourceLoad(const Path& resourcePath, const
 	return true;
 }
 
-// TODO - Doc
+/**
+ * Attempts to acquire a write lock on the package containing the resource with the provided ID. Returns true if the lock was acquired, in which case also
+ * outputs the lock and the physical path of the package containing the resource . Also see PackageManager::AcquireWriteLock().
+ */
 static bool TryAcquirePackageLockForResourceLoad(const UUID& resourceId, const char* lockReason, UPtr<PackageReadLock>& outReadLock, Path& outPackagePath)
 {
 	PackageManager& packageManager = GetPackageManager();
@@ -544,48 +545,6 @@ void Resources::UpdateResourcesFromPackage(const UPtr<PackageWriteLock>& package
 	}
 }
 
-Vector<UUID> Resources::GetDependencies(const Path& filePath)
-{
-	SPtr<SavedResourceData> savedResourceData;
-	if(!filePath.IsEmpty())
-	{
-		FileDecoder fs(filePath);
-		savedResourceData = std::static_pointer_cast<SavedResourceData>(fs.Decode());
-	}
-
-	return savedResourceData->GetDependencies();
-}
-
-void Resources::RegisterResourceManifest(const SPtr<ResourceManifest>& manifest)
-{
-	auto findIter = std::find(mResourceManifests.begin(), mResourceManifests.end(), manifest);
-	if(findIter == mResourceManifests.end())
-		mResourceManifests.push_back(manifest);
-	else
-		*findIter = manifest;
-}
-
-void Resources::UnregisterResourceManifest(const SPtr<ResourceManifest>& manifest)
-{
-	if(manifest->GetName() == "Default")
-		return;
-
-	auto findIter = std::find(mResourceManifests.begin(), mResourceManifests.end(), manifest);
-	if(findIter != mResourceManifests.end())
-		mResourceManifests.erase(findIter);
-}
-
-SPtr<ResourceManifest> Resources::GetResourceManifest(const String& name) const
-{
-	for(auto iter = mResourceManifests.rbegin(); iter != mResourceManifests.rend(); ++iter)
-	{
-		if(name == (*iter)->GetName())
-			return (*iter);
-	}
-
-	return nullptr;
-}
-
 bool Resources::IsLoaded(const UUID& uuid, bool checkInProgress)
 {
 	{
@@ -729,52 +688,6 @@ HResource Resources::GetOrCreateResourceHandle(const UUID& resourceId)
 	mHandles[resourceId] = handle.GetWeak();
 
 	return handle;
-}
-
-bool Resources::GetFilePathFromUuid(const UUID& uuid, Path& filePath) const
-{
-	// Default manifest is at 0th index but all other take priority since Default manifest could
-	// contain obsolete data.
-	for(auto iter = mResourceManifests.rbegin(); iter != mResourceManifests.rend(); ++iter)
-	{
-		if((*iter)->UUIDToPhysicalFilePath(uuid, filePath))
-			return true;
-	}
-
-	return false;
-}
-
-bool Resources::GetUUIDFromFilePath(const Path& path, UUID& outUUID) const
-{
-	Path absolutePhysicalPath = path;
-	if(!absolutePhysicalPath.IsAbsolute())
-		absolutePhysicalPath.MakeAbsolute(FileSystem::GetWorkingDirectoryPath());
-
-	for(auto iter = mResourceManifests.rbegin(); iter != mResourceManifests.rend(); ++iter)
-	{
-		const ResourceManifest& manifest = *iter->get();
-
-		if(manifest.PhysicalFilePathToUUID(path, outUUID))
-			return true;
-	}
-
-	return false;
-}
-
-Path Resources::EnsurePhysicalPath(const Path& path) const
-{
-	// Check if a virtual file path first
-	for(auto iter = mResourceManifests.rbegin(); iter != mResourceManifests.rend(); ++iter)
-	{
-		const ResourceManifest& manifest = *iter->get();
-
-		Path physicalPath;
-		if(manifest.VirtualToPhysicalPath(path, physicalPath))
-			return physicalPath;
-	}
-
-	// Not a virtual path? Returns the path as-is.
-	return path;
 }
 
 namespace bs

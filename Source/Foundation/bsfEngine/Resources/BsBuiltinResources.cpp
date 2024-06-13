@@ -8,7 +8,6 @@
 #include "Importer/BsImporter.h"
 #include "Resources/BsResources.h"
 #include "Resources/BsBuiltinResourcesHelper.h"
-#include "Resources/BsResourceManifest.h"
 #include "Material/BsShader.h"
 #include "Material/BsMaterial.h"
 #include "Reflection/BsRTTIType.h"
@@ -98,16 +97,6 @@ void BuiltinResources::OnStartUp()
 	mBuiltinDataFolder = Paths::GetDataPath();
 	mEngineShaderFolder = mBuiltinDataFolder + kShaderFolder;
 
-	ResourceManifestPath = mBuiltinDataFolder + "ResourceManifest.asset";
-
-	// Load manifest
-	if(FileSystem::Exists(ResourceManifestPath))
-		mResourceManifest = ResourceManifest::Load(ResourceManifestPath, mBuiltinDataFolder, kVirtualPathPrefix);
-
-	if(mResourceManifest == nullptr)
-		mResourceManifest = ResourceManifest::Create("BuiltinResources");
-
-	GetResources().RegisterResourceManifest(mResourceManifest);
 	GetPackageManager().LoadPackages(mBuiltinDataFolder, true, kVirtualPathPrefix);
 	ShaderCompilers::Instance().RegisterSearchPath(GetRawShaderFolder());
 

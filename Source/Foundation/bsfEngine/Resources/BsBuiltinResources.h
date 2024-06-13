@@ -250,14 +250,11 @@ namespace bs
 		HShader mShaderParticlesLitOpaque;
 		HShader mShaderDecal;
 
-		SPtr<ResourceManifest> mResourceManifest;
 		mutable UnorderedMap<Path, HShader> mCompiledShaders;
 
 		Path mBuiltinRawDataFolder;
 		Path mBuiltinDataFolder;
 		Path mEngineShaderFolder;
-
-		Path ResourceManifestPath;
 
 		static const String kWhiteTex;
 

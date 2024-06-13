@@ -304,6 +304,26 @@ Optional<Path> PackageManager::TryGetPackagePathForResource(const UUID& resource
 	return {};
 }
 
+SPtr<const PackageResourceMetaData> PackageManager::GetResourceMetaData(const UUID& resourceId)
+{
+	if(auto packagePath = TryGetPackagePathForResource(resourceId); packagePath.has_value())
+	{
+		UPtr<PackageReadLock> readLock;
+		AcquirePackageReadLockOptions readLockOptions(false, true, "Read meta-data");
+		const AcquirePackageLockResult lockResult = AcquireReadLock(*packagePath, readLockOptions, readLock);
+		if(!B3D_ENSURE(lockResult == AcquirePackageLockResult::Acquired && readLock != nullptr))
+			return nullptr;
+
+		const SPtr<Package>& package = readLock->GetPackage();
+		if(!B3D_ENSURE(package != nullptr))
+			return nullptr;
+
+		return package->GetResourceMetaData(resourceId);
+	}
+
+	return nullptr;
+}
+
 AcquirePackageLockResult PackageManager::AcquireReadLock(const Path& physicalPackagePath, const AcquirePackageReadLockOptions& options, UPtr<PackageReadLock>& outLock)
 {
 	if(!physicalPackagePath.IsAbsolute())

@@ -208,16 +208,6 @@ namespace bs
 		void SaveAsSinglePackage(const HResource& resource, const Path& folder, const String& name, const ResourceSaveOptions& saveOptions = ResourceSaveOptions());
 
 		/**
-		 * Returns a list of dependencies from the resources at the specified path. Resource will not be loaded or parsed,
-		 * but instead the saved list of dependencies will be read from the file and returned.
-		 *
-		 * @param[in]	filePath	Full path to the resource to get dependencies for.
-		 * @return					List of dependencies represented as UUIDs.
-		 */
-		B3D_SCRIPT_EXPORT()
-		Vector<UUID> GetDependencies(const Path& filePath);
-
-		/**
 		 * Checks is the resource with the specified UUID loaded.
 		 *
 		 * @param[in]	uuid			UUID of the resource to check.
@@ -236,46 +226,6 @@ namespace bs
 		 */
 		B3D_SCRIPT_EXPORT()
 		float GetLoadProgress(const HResource& resource);
-
-		/**
-		 *Allows you to set a resource manifest containing UUID <-> file path mapping that is used when resolving
-		 * resource references.
-		 *
-		 * @note
-		 * If you want objects that reference resources (using ResourceHandles) to be able to find that resource even after
-		 * application restart, then you must save the resource manifest before closing the application and restore it
-		 * upon startup. Otherwise resources will be assigned brand new UUIDs and references will be broken.
-		 */
-		B3D_SCRIPT_EXPORT()
-		void RegisterResourceManifest(const SPtr<ResourceManifest>& manifest); // TODO - Deprecated
-
-		/**	Unregisters a resource manifest previously registered with registerResourceManifest(). */
-		B3D_SCRIPT_EXPORT()
-		void UnregisterResourceManifest(const SPtr<ResourceManifest>& manifest); // TODO - Deprecated
-
-		/**
-		 * Allows you to retrieve resource manifest containing UUID <-> file path mapping that is used when resolving
-		 * resource references.
-		 *
-		 * @note
-		 * Resources module internally holds a "Default" manifest that it automatically updated whenever a resource is saved.
-		 *
-		 * @see		registerResourceManifest
-		 */
-		B3D_SCRIPT_EXPORT()
-		SPtr<ResourceManifest> GetResourceManifest(const String& name) const; // TODO - Deprecated
-
-		/** Attempts to retrieve file path from the provided UUID. Returns true if successful, false otherwise. */
-		B3D_SCRIPT_EXPORT()
-		bool GetFilePathFromUuid(const UUID& uuid, Path& filePath) const;
-
-		/** Attempts to retrieve UUID from the provided physical file path. Returns true if successful, false otherwise. */
-		B3D_SCRIPT_EXPORT()
-		bool GetUUIDFromFilePath(const Path& path, UUID& outUUID) const;
-
-		/** Converts a potentially virtual path into a physical one. If the path is not virtual, returns the path as-is. */
-		B3D_SCRIPT_EXPORT()
-		Path EnsurePhysicalPath(const Path& path) const;
 
 		/**
 		 * Called when the resource has been successfully loaded.
@@ -339,21 +289,30 @@ namespace bs
 	private:
 		friend class ResourceHandle;
 
-		// TODO - Doc
+		/** Stores load progress for a single resource. */
 		struct LoadProgress
 		{
 			LoadProgress(u64 totalSize = 0, float progress = 0.0f)
 				:TotalSize(totalSize), Progress(progress)
 			{ }
 
-			u64 TotalSize;
-			float Progress;
+			u64 TotalSize; /**< Total size of the resource, in bytes. Excludes dependencies (only self size). */
+			float Progress; /**< Current loading progress, in range [0, 1]. */
 		};
 
-		// TODO - Doc
+		/**
+		 * Calculates the load progress of the provided resource and appends the progress information to the @p loadProgressMap.
+		 * Then calls this method recursively for any in-progress dependency loads. If the resource is already fully loaded, or
+		 * not being loaded at all the LoadProgress structure will not contain a valid size value.
+		 */
 		void GetLoadProgressRecursive(const HResource& resource, UnorderedMap<UUID, LoadProgress>& loadProgressMap);
 
-		// TODO - Doc
+		/**
+		 * Performs a load of the provided resource from the package locked by the write lock. If requested this will also trigger a load
+		 * of all dependencies of the resource. Triggers TryFinalizeLoad() when a resource or any of its dependencies complete loading.
+		 *
+		 * This is an internal method to be shared by public Load() overloads.
+		 */
 		HResource Load(UPtr<PackageReadLock> packageReadLock, const UUID& resourceId, const ResourceLoadOptions& loadOptions);
 
 		/**
@@ -368,12 +327,8 @@ namespace bs
 		void Destroy(ResourceHandle& resource);
 
 	private:
-		Vector<SPtr<ResourceManifest>> mResourceManifests; // TODO - Deprecated
-		SPtr<ResourceManifest> mDefaultResourceManifest; // TODO - Deprecated
-
 		Mutex mLoadedResourceMutex;
 		Mutex mResourceHandleMutex;
-		Mutex mDefaultManifestMutex; // TODO - Deprecated
 
 		UnorderedMap<UUID, TWeakResourceHandle<Resource>> mHandles;
 		UnorderedMap<UUID, UPtr<LoadedResourceInformation>> mLoadedResourceInformation;

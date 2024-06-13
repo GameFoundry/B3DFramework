@@ -7,6 +7,7 @@
 
 namespace bs
 {
+	class PackageResourceMetaData;
 	class Package;
 
 	/** @addtogroup Resources-Internal
@@ -134,7 +135,7 @@ namespace bs
 	public:
 		/**
 		 * Loads a package from the provided @p packagePhysicalPath on disk. The package will remain loaded until explicitly unloaded via a call to Unload().
-		 * If you request a package that was previously loaded, the existing package will* be returned.
+		 * If you request a package that was previously loaded, the existing package will be returned.
 		 *
 		 * @param	packagePhysicalPath		Path on disk from where to load the package.
 		 * @param	virtualPathPrefix		If non-empty, this path will be added as a prefix to all resources within the package, so they may be loaded using
@@ -233,6 +234,9 @@ namespace bs
 		 * @return					Path to the package if the resource was located, or null otherwise.
 		 */
 		Optional<Path> TryGetPackagePathForResource(const UUID& resourceId);
+
+		/** Retrieves resource meta-data from the associated (previously loaded) package. Returns null if resource cannot be found. */
+		SPtr<const PackageResourceMetaData> GetResourceMetaData(const UUID& resourceId);
 
 	private:
 		/**

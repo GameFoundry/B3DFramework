@@ -6,7 +6,6 @@
 #include "FileSystem/BsFileSystem.h"
 #include "FileSystem/BsPath.h"
 #include "FileSystem/BsDataStream.h"
-#include "Resources/BsResourceManifest.h"
 #include "ThirdParty/json.hpp"
 #include "Utility/BsShapeMeshes3D.h"
 #include "Mesh/BsMesh.h"
@@ -33,7 +32,6 @@ static constexpr const char* kDataListJson = u8"DataList.json";
 static Path sInputFolder;
 static Path sOutputFolder;
 static Path sManifestPath;
-static SPtr<ResourceManifest> sManifest;
 
 void ProcessAssets(bool, bool, time_t);
 
@@ -103,13 +101,8 @@ int main(int argc, char* argv[])
 		{
 			const bool fullReimport = modifications == 2;
 
-			sManifest = ResourceManifest::Create("BuiltinResources");
-			GetResources().RegisterResourceManifest(sManifest);
-
 			ProcessAssets(generateGenerated, fullReimport, lastUpdateTime);
 			BuiltinResourcesHelper::WriteTimestamp(sOutputFolder + kTimestampName);
-
-			ResourceManifest::Save(sManifest, sManifestPath, sOutputFolder);
 
 			Application::ShutDown();
 			return 1;
@@ -451,12 +444,6 @@ void ProcessAssets(bool generateGenerated, bool forceImport, time_t lastUpdateTi
 	// Import cursors
 	if(!cursorsJSON.is_null())
 	{
-		BuiltinResourcesHelper::UpdateManifest(
-			cursorFolder,
-			cursorsJSON,
-			sManifest,
-			BuiltinResourcesHelper::AssetType::Normal);
-
 		Vector<bool> importFlags = BuiltinResourcesHelper::GenerateImportFlags(
 			cursorsJSON,
 			rawCursorFolder,
@@ -468,19 +455,12 @@ void ProcessAssets(bool generateGenerated, bool forceImport, time_t lastUpdateTi
 			importFlags,
 			rawCursorFolder,
 			cursorFolder,
-			sManifest,
 			BuiltinResourcesHelper::AssetType::Normal);
 	}
 
 	// Import icons
 	if(!iconsJSON.is_null())
 	{
-		BuiltinResourcesHelper::UpdateManifest(
-			iconFolder,
-			iconsJSON,
-			sManifest,
-			BuiltinResourcesHelper::AssetType::Normal);
-
 		Vector<bool> importFlags = BuiltinResourcesHelper::GenerateImportFlags(
 			iconsJSON,
 			rawIconFolder,
@@ -492,19 +472,12 @@ void ProcessAssets(bool generateGenerated, bool forceImport, time_t lastUpdateTi
 			importFlags,
 			rawIconFolder,
 			iconFolder,
-			sManifest,
 			BuiltinResourcesHelper::AssetType::Normal);
 	}
 
 	// Import sprite icons
 	if(!spriteIconsJSON.is_null())
 	{
-		BuiltinResourcesHelper::UpdateManifest(
-			iconFolder,
-			spriteIconsJSON,
-			sManifest,
-			BuiltinResourcesHelper::AssetType::Sprite);
-
 		Vector<bool> importFlags = BuiltinResourcesHelper::GenerateImportFlags(
 			spriteIconsJSON,
 			rawIconFolder,
@@ -516,19 +489,12 @@ void ProcessAssets(bool generateGenerated, bool forceImport, time_t lastUpdateTi
 			importFlags,
 			rawIconFolder,
 			iconFolder,
-			sManifest,
 			BuiltinResourcesHelper::AssetType::Sprite);
 	}
 
 	// Import 3D sprite icons
 	if(!spriteIcons3DJSON.is_null())
 	{
-		BuiltinResourcesHelper::UpdateManifest(
-			icon3DFolder,
-			spriteIcons3DJSON,
-			sManifest,
-			BuiltinResourcesHelper::AssetType::Sprite);
-
 		Vector<bool> importFlags = BuiltinResourcesHelper::GenerateImportFlags(
 			spriteIcons3DJSON,
 			rawIcon3DFolder,
@@ -540,7 +506,6 @@ void ProcessAssets(bool generateGenerated, bool forceImport, time_t lastUpdateTi
 			importFlags,
 			rawIcon3DFolder,
 			icon3DFolder,
-			sManifest,
 			BuiltinResourcesHelper::AssetType::Sprite,
 			false, true);
 	}
@@ -548,12 +513,6 @@ void ProcessAssets(bool generateGenerated, bool forceImport, time_t lastUpdateTi
 	// Import GUI sprites
 	if(!skinJSON.is_null())
 	{
-		BuiltinResourcesHelper::UpdateManifest(
-			skinFolder,
-			skinJSON,
-			sManifest,
-			BuiltinResourcesHelper::AssetType::Sprite);
-
 		Vector<bool> skinImportFlags = BuiltinResourcesHelper::GenerateImportFlags(
 			skinJSON,
 			rawSkinFolder,
@@ -565,19 +524,12 @@ void ProcessAssets(bool generateGenerated, bool forceImport, time_t lastUpdateTi
 			skinImportFlags,
 			rawSkinFolder,
 			skinFolder,
-			sManifest,
 			BuiltinResourcesHelper::AssetType::Sprite);
 	}
 
 	// Import animated sprites
 	if(!animatedSpritesJSON.is_null())
 	{
-		BuiltinResourcesHelper::UpdateManifest(
-			animatedSpriteFolder,
-			animatedSpritesJSON,
-			sManifest,
-			BuiltinResourcesHelper::AssetType::Sprite);
-
 		Vector<bool> importFlags = BuiltinResourcesHelper::GenerateImportFlags(
 			animatedSpritesJSON,
 			rawAnimatedSpritesFolder,
@@ -589,19 +541,12 @@ void ProcessAssets(bool generateGenerated, bool forceImport, time_t lastUpdateTi
 			importFlags,
 			rawAnimatedSpritesFolder,
 			animatedSpriteFolder,
-			sManifest,
 			BuiltinResourcesHelper::AssetType::Sprite);
 	}
 
 	// Import textures
 	if(!texturesJSON.is_null())
 	{
-		BuiltinResourcesHelper::UpdateManifest(
-			texturesFolder,
-			texturesJSON,
-			sManifest,
-			BuiltinResourcesHelper::AssetType::Normal);
-
 		Vector<bool> importFlags = BuiltinResourcesHelper::GenerateImportFlags(
 			texturesJSON,
 			rawTexturesFolder,
@@ -613,7 +558,6 @@ void ProcessAssets(bool generateGenerated, bool forceImport, time_t lastUpdateTi
 			importFlags,
 			rawTexturesFolder,
 			texturesFolder,
-			sManifest,
 			BuiltinResourcesHelper::AssetType::Normal,
 			false, true);
 	}
@@ -648,7 +592,7 @@ void ProcessAssets(bool generateGenerated, bool forceImport, time_t lastUpdateTi
 
 				const Path fontSourcePath = rawFontsFolder + inputName;
 
-				BuiltinResourcesHelper::ImportFont(fontSourcePath, fontSourcePath.GetFilename(), fontsFolder, fontSizes, antialiasing, UUID, sManifest);
+				BuiltinResourcesHelper::ImportFont(fontSourcePath, fontSourcePath.GetFilename(), fontsFolder, fontSizes, antialiasing, UUID);
 			}
 		}
 	}

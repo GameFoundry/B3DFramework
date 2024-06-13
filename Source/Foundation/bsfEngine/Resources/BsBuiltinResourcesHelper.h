@@ -37,18 +37,17 @@ namespace bs
 		 *								imported.
 		 * @param[in]	inputFolder		Folder in which to look for the input files.
 		 * @param[in]	outputFolder	Folder in which to store the imported resources.
-		 * @param[in]	manifest		Manifest in which to register the imported resources in.
 		 * @param[in]	mode			Mode that controls how are files imported.
 		 * @param[in]	compress		True if the imported asset should be compressed when saved to the disk.
 		 * @param[in]	mipmap			True if mipmaps should be generated.
 		 */
-		static void ImportAssets(const nlohmann::json& entries, const Vector<bool>& importFlags, const Path& inputFolder, const Path& outputFolder, const SPtr<ResourceManifest>& manifest, AssetType mode = AssetType::Normal, bool compress = false, bool mipmap = false);
+		static void ImportAssets(const nlohmann::json& entries, const Vector<bool>& importFlags, const Path& inputFolder, const Path& outputFolder, AssetType mode = AssetType::Normal, bool compress = false, bool mipmap = false);
 
 		/**
 		 * Imports a font from the specified file. Imported font assets are saved in the output folder. All saved resources
 		 * are registered in the provided resource manifest.
 		 */
-		static void ImportFont(const Path& inputFile, const String& outputName, const Path& outputFolder, const Vector<float>& fontSizes, bool antialiasing, const UUID& UUID, const SPtr<ResourceManifest>& manifest);
+		static void ImportFont(const Path& inputFile, const String& outputName, const Path& outputFolder, const Vector<float>& fontSizes, bool antialiasing, const UUID& UUID);
 
 		/**
 		 * Iterates over all the provided entries and generates a list of flags that determine should the asset be imported
@@ -78,16 +77,6 @@ namespace bs
 		 * @param[in, out]	entries		Current data file entries.
 		 */
 		static bool UpdateJson(const Path& folder, AssetType type, nlohmann::json& entries);
-
-		/**
-		 * Updates the resource manifest from the UUID's and paths provided in the JSON.
-		 *
-		 * @param[in]		folder		Folder containing the imported assets the manifest will point to.
-		 * @param[in]		entries		JSON entries detailing each asset.
-		 * @param[in]		manifest	Manifest in which to register the assets in.
-		 * @param[in]		type		Type of assets we're registering.
-		 */
-		static void UpdateManifest(const Path& folder, const nlohmann::json& entries, const SPtr<ResourceManifest>& manifest, AssetType type);
 
 		/** Writes a timestamp with the current date and time in the specified file. */
 		static void WriteTimestamp(const Path& file);

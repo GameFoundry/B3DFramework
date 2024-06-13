@@ -8,7 +8,6 @@
 #include "BsScriptResourceManager.h"
 #include "Wrappers/BsScriptRRefBase.h"
 #include "Wrappers/BsScriptResource.h"
-#include "BsScriptResourceManifest.generated.h"
 
 namespace bs
 {

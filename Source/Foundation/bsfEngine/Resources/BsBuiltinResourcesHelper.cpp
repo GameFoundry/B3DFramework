@@ -13,7 +13,6 @@
 #include "Image/BsTexture.h"
 #include "Reflection/BsRTTIType.h"
 #include "FileSystem/BsDataStream.h"
-#include "Resources/BsResourceManifest.h"
 #include "FileSystem/BsFileSystem.h"
 #include "CoreObject/BsRenderThread.h"
 #include "Utility/BsUUID.h"
@@ -25,7 +24,7 @@ using json = nlohmann::json;
 
 using namespace bs;
 
-void BuiltinResourcesHelper::ImportAssets(const nlohmann::json& entries, const Vector<bool>& importFlags, const Path& inputFolder, const Path& outputFolder, const SPtr<ResourceManifest>& manifest, AssetType mode, bool compress, bool mipmap)
+void BuiltinResourcesHelper::ImportAssets(const nlohmann::json& entries, const Vector<bool>& importFlags, const Path& inputFolder, const Path& outputFolder, AssetType mode, bool compress, bool mipmap)
 {
 	if(!FileSystem::Exists(inputFolder))
 		return;
@@ -67,8 +66,6 @@ void BuiltinResourcesHelper::ImportAssets(const nlohmann::json& entries, const V
 		Path filePath = inputFolder + fileName;
 
 		Path relativePath = fileName;
-		Path relativeAssetPath = fileName;
-		relativeAssetPath.SetFilename(fileName + u8".asset");
 
 		SPtr<ImportOptions> importOptions = GetImporter().CreateImportOptions(filePath);
 		if(importOptions != nullptr)
@@ -97,7 +94,7 @@ void BuiltinResourcesHelper::ImportAssets(const nlohmann::json& entries, const V
 		queuedOps.emplace_back(op, outputFolder, fileName, entry);
 	};
 
-	auto fnGenerateAndSaveSprite = [&spriteOutputFolder, &manifest, compress](const HTexture& texture, const String& fileName, const UUID& UUID)
+	auto fnGenerateAndSaveSprite = [&spriteOutputFolder, compress](const HTexture& texture, const String& fileName, const UUID& UUID)
 	{
 		const String spriteName = String("sprite_" + fileName);
 
@@ -105,7 +102,7 @@ void BuiltinResourcesHelper::ImportAssets(const nlohmann::json& entries, const V
 		GetResources().SaveAsSinglePackage(spriteTexture, spriteOutputFolder, spriteName, ResourceSaveOptions(true, compress));
 	};
 
-	auto fnGenerateAndSaveAnimatedSprite = [&spriteOutputFolder, &manifest, compress](const HTexture& texture, const String& fileName, const UUID& UUID,
+	auto fnGenerateAndSaveAnimatedSprite = [&spriteOutputFolder, compress](const HTexture& texture, const String& fileName, const UUID& UUID,
 									  SpriteAnimationPlayback playback, const SpriteSheetGridAnimation& animation)
 	{
 		const String spriteName = String("sprite_" + fileName);
@@ -231,7 +228,7 @@ void BuiltinResourcesHelper::ImportAssets(const nlohmann::json& entries, const V
 
 	GetRenderThread().PostCommand([] {}, "Reading back generated icon data", true);
 
-	auto fnSaveTexture = [&manifest, compress](const SPtr<PixelData>& pixelData, const Path& folder, const String& name, std::string& uuid)
+	auto fnSaveTexture = [compress](const SPtr<PixelData>& pixelData, const Path& folder, const String& name, std::string& uuid)
 	{
 		SPtr<Texture> texturePtr = Texture::CreateShared(pixelData);
 		HResource texture = GetResources().CreateResourceHandle(texturePtr, UUID(uuid.c_str()));
@@ -270,7 +267,7 @@ void BuiltinResourcesHelper::ImportAssets(const nlohmann::json& entries, const V
 	}
 }
 
-void BuiltinResourcesHelper::ImportFont(const Path& inputFile, const String& outputName, const Path& outputFolder, const Vector<float>& fontSizes, bool antialiasing, const UUID& UUID, const SPtr<ResourceManifest>& manifest)
+void BuiltinResourcesHelper::ImportFont(const Path& inputFile, const String& outputName, const Path& outputFolder, const Vector<float>& fontSizes, bool antialiasing, const UUID& UUID)
 {
 	SPtr<ImportOptions> fontImportOptions = Importer::Instance().CreateImportOptions(inputFile);
 	if(B3DRTTIIsOfType<FontImportOptions>(fontImportOptions))
@@ -434,91 +431,6 @@ bool BuiltinResourcesHelper::UpdateJson(const Path& folder, AssetType type, nloh
 	}
 
 	return foundChanges;
-}
-
-void BuiltinResourcesHelper::UpdateManifest(const Path& folder, const nlohmann::json& entries, const SPtr<ResourceManifest>& manifest, AssetType type)
-{
-	for(auto& entry : entries)
-	{
-		std::string name = entry["Path"];
-		std::string uuid;
-
-		bool isIcon = false;
-		if(type == AssetType::Normal)
-		{
-			uuid = entry["UUID"].get<std::string>();
-			isIcon = entry.find("UUID16") != entry.end();
-		}
-		else if(type == AssetType::Sprite)
-		{
-			uuid = entry["TextureUUID"].get<std::string>();
-			isIcon = entry.find("TextureUUID16") != entry.end();
-		}
-
-		Path path = folder + name.c_str();
-		path.SetFilename(path.GetFilename() + u8".asset");
-
-		manifest->RegisterResource(UUID(uuid.c_str()), path);
-
-		if(type == AssetType::Sprite)
-		{
-			std::string spriteUUID = entry["SpriteUUID"];
-
-			Path spritePath = folder + "/Sprites/";
-			spritePath.SetFilename(String("sprite_") + name.c_str() + ".asset");
-
-			manifest->RegisterResource(UUID(spriteUUID.c_str()), spritePath);
-		}
-
-		if(isIcon)
-		{
-			std::string texUUIDs[3];
-
-			if(type == AssetType::Normal)
-			{
-				texUUIDs[0] = entry["UUID48"].get<std::string>();
-				texUUIDs[1] = entry["UUID32"].get<std::string>();
-				texUUIDs[2] = entry["UUID16"].get<std::string>();
-			}
-			else if(type == AssetType::Sprite)
-			{
-				texUUIDs[0] = entry["TextureUUID48"].get<std::string>();
-				texUUIDs[1] = entry["TextureUUID32"].get<std::string>();
-				texUUIDs[2] = entry["TextureUUID16"].get<std::string>();
-			}
-
-			Path texPath = folder + name.c_str();
-
-			texPath.SetFilename(texPath.GetFilename() + u8"48.asset");
-			manifest->RegisterResource(UUID(texUUIDs[0].c_str()), texPath);
-
-			texPath.SetFilename(texPath.GetFilename() + u8"32.asset");
-			manifest->RegisterResource(UUID(texUUIDs[1].c_str()), texPath);
-
-			texPath.SetFilename(texPath.GetFilename() + u8"16.asset");
-			manifest->RegisterResource(UUID(texUUIDs[2].c_str()), texPath);
-
-			if(type == AssetType::Sprite)
-			{
-				std::string spriteUUIDs[3];
-
-				spriteUUIDs[0] = entry["SpriteUUID48"].get<std::string>();
-				spriteUUIDs[1] = entry["SpriteUUID32"].get<std::string>();
-				spriteUUIDs[2] = entry["SpriteUUID16"].get<std::string>();
-
-				Path spritePath = folder + "/Sprites/";
-
-				spritePath.SetFilename(String("sprite_") + name.c_str() + "48.asset");
-				manifest->RegisterResource(UUID(spriteUUIDs[0].c_str()), spritePath);
-
-				spritePath.SetFilename(String("sprite_") + name.c_str() + "32.asset");
-				manifest->RegisterResource(UUID(spriteUUIDs[1].c_str()), spritePath);
-
-				spritePath.SetFilename(String("sprite_") + name.c_str() + "16.asset");
-				manifest->RegisterResource(UUID(spriteUUIDs[2].c_str()), spritePath);
-			}
-		}
-	}
 }
 
 void BuiltinResourcesHelper::WriteTimestamp(const Path& file)
