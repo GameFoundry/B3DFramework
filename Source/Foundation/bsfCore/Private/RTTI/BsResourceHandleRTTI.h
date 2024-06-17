@@ -44,10 +44,7 @@ namespace bs
 					if(!object.mData->Id.Empty())
 					{
 						HResource loadedResource = GetResources().GetOrCreateResourceHandle(object.mData->Id);
-
-						object.DecrementReferenceCount();
 						object.mData = loadedResource.mData;
-						object.IncrementReferenceCount();
 					}
 				}
 			}
@@ -68,7 +65,6 @@ namespace bs
 		{
 			SPtr<StrongResourceHandle> obj = B3DMakeSharedFromExisting<StrongResourceHandle>(new(B3DAllocate<StrongResourceHandle>()) StrongResourceHandle());
 			obj->mData = B3DMakeShared<ResourceHandleData>();
-			obj->mData->ReferenceCount.fetch_add(1, std::memory_order_relaxed);
 
 			return obj;
 		}

@@ -149,7 +149,7 @@ HResource Resources::Load(UPtr<PackageReadLock> packageReadLock, const UUID& res
 				if(loadOptions.KeepInternalReference)
 				{
 					loadedResourceInformation->InternalReferenceCount++;
-					loadedResourceInformation->ResourceHandle.IncrementInternalReferenceCount();
+					loadedResourceInformation->ResourceHandle.IncrementStrongReferenceCount();
 				}
 
 				return loadedResourceInformation->ResourceHandle.Lock();
@@ -215,7 +215,7 @@ HResource Resources::Load(UPtr<PackageReadLock> packageReadLock, const UUID& res
 
 		{
 			Lock lock(mLoadedResourceMutex);
-			inProgressLoadInformation->ResourceHandle.SetHandleData(resource, resourceId);
+			inProgressLoadInformation->ResourceHandle.AssociateResourceWithHandle(resource, resourceId);
 
 			if(B3D_ENSURE(inProgressLoadInformation->RemainingResourcesToLoadCount > 0))
 				inProgressLoadInformation->RemainingResourcesToLoadCount--;
@@ -302,7 +302,7 @@ void Resources::TryFinalizeLoad(const SPtr<InProgressLoadInformation>& inProgres
 		if(inProgressLoadInformation->LoadOptions.KeepInternalReference)
 		{
 			loadedResourceInformation->InternalReferenceCount = 1;
-			loadedResourceInformation->ResourceHandle.IncrementInternalReferenceCount();
+			loadedResourceInformation->ResourceHandle.IncrementStrongReferenceCount();
 		}
 
 		inProgressLoadInformation->ResourceHandle.NotifyLoadComplete();
@@ -337,24 +337,22 @@ void Resources::ReleaseInternalReference(ResourceHandle& resource)
 {
 	const UUID& resourceId = resource.GetId();
 
-	bool lostLastReference = false;
+	HResource resourceToDestroy;
 	{
 		Lock lock(mLoadedResourceMutex);
 		if(auto found = mLoadedResourceInformation.find(resourceId); found != mLoadedResourceInformation.end())
 		{
 			LoadedResourceInformation& loadedResourceInformation = *found->second;
+			resourceToDestroy = loadedResourceInformation.ResourceHandle.Lock(); // Make sure resource goes out of scope outside of the mutex
 
 			B3D_ASSERT(loadedResourceInformation.InternalReferenceCount > 0);
 			loadedResourceInformation.InternalReferenceCount--;
-			resource.DecrementInternalReferenceCount();
 
-			const std::uint32_t referenceCount = resource.GetHandleData()->ReferenceCount.load(std::memory_order_relaxed);
-			lostLastReference = referenceCount == 0;
+			resource.DecrementStrongReferenceCount();
 		}
 	}
 
-	if(lostLastReference)
-		Destroy(resource);
+	resourceToDestroy = nullptr;
 }
 
 void Resources::UnloadAllUnused()
@@ -368,7 +366,7 @@ void Resources::UnloadAllUnused()
 		{
 			const LoadedResourceInformation& loadedResourceInformation = *it->second;
 
-			const std::uint32_t referenceCount = loadedResourceInformation.ResourceHandle.mData->ReferenceCount.load(std::memory_order_relaxed);
+			const std::uint32_t referenceCount = loadedResourceInformation.ResourceHandle.mData->StrongReferenceCount.load(std::memory_order_relaxed);
 			B3D_ASSERT(referenceCount > 0); // No references but kept in loaded resource map?
 
 			if(referenceCount == loadedResourceInformation.InternalReferenceCount) // Only internal references exist, free it
@@ -380,7 +378,13 @@ void Resources::UnloadAllUnused()
 	// another resource in "resourcesToUnload". This is fine because "unload" deals with invalid
 	// handles gracefully.
 	for(auto& resource : resourcesToUnload)
-		Destroy(resource);
+	{
+		const SPtr<ResourceHandleData>& handleData = resource.GetHandleData();
+		if(handleData == nullptr)
+			continue;
+
+		Destroy(*handleData);
+	}
 }
 
 void Resources::UnloadAll()
@@ -399,15 +403,18 @@ void Resources::UnloadAll()
 	}
 
 	for(auto& resource : resourcesToUnload)
-		Destroy(resource);
+	{
+		const SPtr<ResourceHandleData>& handleData = resource.GetHandleData();
+		if(handleData == nullptr)
+			continue;
+
+		Destroy(*handleData);
+	}
 }
 
-void Resources::Destroy(ResourceHandle& resource)
+void Resources::Destroy(ResourceHandleData& handleData)
 {
-	if(resource.mData == nullptr)
-		return;
-
-	const UUID& resourceId = resource.GetId();
+	const UUID& resourceId = handleData.Id;
 
 	// Notify external systems before we actually destroy it
 	OnResourceDestroyed(resourceId);
@@ -428,7 +435,7 @@ void Resources::Destroy(ResourceHandle& resource)
 			while(loadedResourceInformation->InternalReferenceCount > 0)
 			{
 				loadedResourceInformation->InternalReferenceCount--;
-				loadedResourceInformation->ResourceHandle.DecrementInternalReferenceCount();
+				loadedResourceInformation->ResourceHandle.DecrementStrongReferenceCount();
 			}
 		}
 
@@ -449,8 +456,11 @@ void Resources::Destroy(ResourceHandle& resource)
 		}
 	}
 
-	resource.mData->Object->Destroy();
-	resource.ClearHandleData();
+	if(handleData.Object != nullptr)
+		handleData.Object->Destroy();
+
+	handleData.Object = nullptr;
+	handleData.IsCreated = false;
 }
 
 void Resources::SaveAsSinglePackage(const HResource& resource, const Path& folder, const String& name, const ResourceSaveOptions& saveOptions)
@@ -497,7 +507,7 @@ void Resources::SaveAsSinglePackage(const HResource& resource, const Path& folde
 void Resources::UpdateHandle(HResource& handle, const SPtr<Resource>& resource)
 {
 	const UUID& uuid = handle.GetId();
-	handle.SetHandleData(resource, uuid);
+	handle.AssociateResourceWithHandle(resource, uuid);
 	handle.NotifyLoadComplete();
 
 	OnResourceModified(handle);
@@ -505,6 +515,14 @@ void Resources::UpdateHandle(HResource& handle, const SPtr<Resource>& resource)
 	// Notify listeners immediately if on main thread
 	if(GetCoreApplication().GetMainThreadId() == B3D_CURRENT_THREAD_ID)
 		ResourceListenerManager::Instance().NotifyListeners(uuid);
+}
+
+void Resources::DestroyHandleData(ResourceHandleData& handleData)
+{
+	Lock lock(mResourceHandleMutex);
+
+	if(const auto found = mHandles.find(handleData.Id); found != mHandles.end())
+		mHandles.erase(found);
 }
 
 void Resources::UpdateResourcesFromPackage(const UPtr<PackageWriteLock>& packageWriteLock)
@@ -671,7 +689,7 @@ HResource Resources::CreateResourceHandle(const SPtr<Resource>& resource, const 
 			mLoadedResourceInformation[resourceId] = std::move(loadedResourceInformation);
 		}
 
-		mHandles[resourceId] = newHandle.GetWeak(); // TODO - Need to free entry from this map if the handle data goes out of scope
+		mHandles[resourceId] = newHandle.GetHandleData();
 	}
 
 	return newHandle;
@@ -681,11 +699,11 @@ HResource Resources::GetOrCreateResourceHandle(const UUID& resourceId)
 {
 	Lock handleLock(mResourceHandleMutex);
 	if(auto found = mHandles.find(resourceId); found != mHandles.end()) // Not loaded, but handle does exist
-		return found->second.Lock();
+		return TResourceHandle<Resource>(found->second);
 
 	// Create new handle
 	HResource handle(resourceId);
-	mHandles[resourceId] = handle.GetWeak();
+	mHandles[resourceId] = handle.GetHandleData();
 
 	return handle;
 }

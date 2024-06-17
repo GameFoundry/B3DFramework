@@ -62,13 +62,13 @@ void GUIRenderTexture::SetRenderTexture(const SPtr<RenderTexture>& texture)
 			mDesc.UvScale = Vector2(1.0f, -1.0f);
 		}
 
-		SetImage(SpriteTexture::Create(texture->GetColorTexture(0)));
+		SetImage((HSpriteImage)SpriteTexture::Create(texture->GetColorTexture(0)));
 
 		GUIManager::Instance().SetInputBridge(mSourceTexture, this);
 	}
 	else
 	{
-		SetImage(SpriteTexture::Create(HTexture()));
+		SetImage((HSpriteImage)SpriteTexture::Create(HTexture()));
 	}
 
 	MarkLayoutAsDirty();

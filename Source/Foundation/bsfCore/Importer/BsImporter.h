@@ -6,6 +6,7 @@
 #include "Utility/BsModule.h"
 #include "Importer/BsSpecificImporter.h"
 #include "Threading/BsAsyncOp.h"
+#include "Resources/BsResource.h"
 
 namespace bs
 {

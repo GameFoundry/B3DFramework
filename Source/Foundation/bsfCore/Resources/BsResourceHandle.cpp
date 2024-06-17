@@ -60,18 +60,24 @@ void ResourceHandle::ReleaseInternalReference()
 	GetResources().ReleaseInternalReference(*this);
 }
 
-void ResourceHandle::Destroy()
+void ResourceHandle::Destroy() const
 {
-	if(mData->Object)
-		GetResources().Destroy(*this);
+	if(mData != nullptr)
+		GetResources().Destroy(*mData);
 }
 
-void ResourceHandle::SetHandleData(const SPtr<Resource>& ptr, const UUID& uuid)
+void ResourceHandle::DestroyHandleData() const
 {
-	mData->Object = ptr;
+	if(mData != nullptr)
+		GetResources().DestroyHandleData(*mData);
+}
+
+void ResourceHandle::AssociateResourceWithHandle(const SPtr<Resource>& resource, const UUID& resourceId)
+{
+	mData->Object = resource;
 
 	if(mData->Object)
-		mData->Id = uuid;
+		mData->Id = resourceId;
 }
 
 void ResourceHandle::NotifyLoadComplete()
@@ -87,22 +93,12 @@ void ResourceHandle::NotifyLoadComplete()
 	}
 }
 
-void ResourceHandle::ClearHandleData()
+void ResourceHandle::DisassociateHandleResource()
 {
 	mData->Object = nullptr;
 
 	Lock lock(mResourceCreatedMutex);
 	mData->IsCreated = false;
-}
-
-void ResourceHandle::IncrementInternalReferenceCount()
-{
-	mData->ReferenceCount.fetch_add(1, std::memory_order_relaxed);
-}
-
-void ResourceHandle::DecrementInternalReferenceCount()
-{
-	mData->ReferenceCount.fetch_sub(1, std::memory_order_relaxed);
 }
 
 void ResourceHandle::ThrowIfNotLoaded() const

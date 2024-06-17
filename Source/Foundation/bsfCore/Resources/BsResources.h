@@ -285,6 +285,9 @@ namespace bs
 		/** Updates an existing resource handle with a new resource. Caller must ensure that new resource type matches the original resource type. */
 		void UpdateHandle(HResource& handle, const SPtr<Resource>& resource);
 
+		/** Triggered when the last resource handle for a particular resource goes out of scope. */
+		void DestroyHandleData(ResourceHandleData& handleData);
+
 		/** @} */
 	private:
 		friend class ResourceHandle;
@@ -324,13 +327,13 @@ namespace bs
 		void TryFinalizeLoad(const SPtr<InProgressLoadInformation>& inProgressLoadInformation);
 
 		/**	Destroys a resource, freeing its memory. */
-		void Destroy(ResourceHandle& resource);
+		void Destroy(ResourceHandleData& handleData);
 
 	private:
 		Mutex mLoadedResourceMutex;
 		Mutex mResourceHandleMutex;
 
-		UnorderedMap<UUID, TWeakResourceHandle<Resource>> mHandles;
+		UnorderedMap<UUID, SPtr<ResourceHandleData>> mHandles;
 		UnorderedMap<UUID, UPtr<LoadedResourceInformation>> mLoadedResourceInformation;
 		UnorderedMap<UUID, TInlineArray<SPtr<InProgressLoadInformation>, 1>> mInProgressLoadInformation;
 		UnorderedMap<UUID, TInlineArray<SPtr<InProgressLoadInformation>, 4>> mDependantResourceLoads;
