@@ -379,7 +379,7 @@ void Resources::UnloadAllUnused()
 	// handles gracefully.
 	for(auto& resource : resourcesToUnload)
 	{
-		const SPtr<ResourceHandleData>& handleData = resource.GetHandleData();
+		ResourceHandleData* handleData = resource.GetHandleData();
 		if(handleData == nullptr)
 			continue;
 
@@ -404,7 +404,7 @@ void Resources::UnloadAll()
 
 	for(auto& resource : resourcesToUnload)
 	{
-		const SPtr<ResourceHandleData>& handleData = resource.GetHandleData();
+		ResourceHandleData* handleData = resource.GetHandleData();
 		if(handleData == nullptr)
 			continue;
 

@@ -37,15 +37,13 @@ namespace bs
 		{
 			if(operationType.IsSet(RTTIOperationType::WriteBit))
 			{
-				if(object.mData != nullptr)
+				if(!mId.Empty())
 				{
-					object.mData->Id = mId;
+					B3D_ENSURE(object.mData == nullptr); // Has to be empty, otherwise we'll leak the handle data
 
-					if(!object.mData->Id.Empty())
-					{
-						HResource loadedResource = GetResources().GetOrCreateResourceHandle(object.mData->Id);
-						object.mData = loadedResource.mData;
-					}
+					HResource loadedResource = GetResources().GetOrCreateResourceHandle(mId);
+					object.mData = loadedResource.mData;
+					object.IncrementReferenceCount();
 				}
 			}
 		}
@@ -63,10 +61,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject()
 		{
-			SPtr<StrongResourceHandle> obj = B3DMakeSharedFromExisting<StrongResourceHandle>(new(B3DAllocate<StrongResourceHandle>()) StrongResourceHandle());
-			obj->mData = B3DMakeShared<ResourceHandleData>();
-
-			return obj;
+			return B3DMakeSharedFromExisting<StrongResourceHandle>(new(B3DAllocate<StrongResourceHandle>()) StrongResourceHandle());
 		}
 	};
 
@@ -90,15 +85,13 @@ namespace bs
 		{
 			if(operationType.IsSet(RTTIOperationType::WriteBit))
 			{
-				if(object.mData != nullptr)
+				if(!mId.Empty())
 				{
-					object.mData->Id = mId;
+					B3D_ENSURE(object.mData == nullptr); // Has to be empty, otherwise we'll leak the handle data
 
-					if(!object.mData->Id.Empty())
-					{
-						HResource loadedResource = GetResources().GetOrCreateResourceHandle(object.mData->Id);
-						object.mData = loadedResource.mData;
-					}
+					HResource loadedResource = GetResources().GetOrCreateResourceHandle(mId);
+					object.mData = loadedResource.mData;
+					object.IncrementReferenceCount();
 				}
 			}
 		}
@@ -116,10 +109,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject()
 		{
-			SPtr<WeakResourceHandle> obj = B3DMakeSharedFromExisting<WeakResourceHandle>(new(B3DAllocate<WeakResourceHandle>()) WeakResourceHandle());
-			obj->mData = B3DMakeShared<ResourceHandleData>();
-
-			return obj;
+			return B3DMakeSharedFromExisting<WeakResourceHandle>(new(B3DAllocate<WeakResourceHandle>()) WeakResourceHandle());
 		}
 	};
 

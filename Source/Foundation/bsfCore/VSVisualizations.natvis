@@ -10,10 +10,10 @@
 	</Type>
 
 	<Type Name="bs::TResourceHandle&lt;*&gt;">
-		<DisplayString Condition="mData._Ptr == 0 || mData._Ptr->Object._Ptr == 0">Empty</DisplayString>
-		<DisplayString>Name = Unknown, Id = {mData._Ptr->Id}</DisplayString>
+		<DisplayString Condition="mData == 0 || mData->Object._Ptr == 0">Empty</DisplayString>
+		<DisplayString>Name = Unknown, Id = {mData->Id}</DisplayString>
 		<Expand>
-			<ExpandedItem Condition="mData._Ptr != 0 &amp;&amp; mData._Ptr->Object._Ptr != 0">($T1*)mData._Ptr->Object._Ptr</ExpandedItem>
+			<ExpandedItem Condition="mData != 0 &amp;&amp; mData->Object._Ptr != 0">($T1*)mData->Object._Ptr</ExpandedItem>
 		</Expand>
 	</Type>
 	

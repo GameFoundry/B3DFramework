@@ -18,6 +18,7 @@ void ResourceHandleData::DestroyManagedResource()
 void ResourceHandleData::DestroySelf()
 {
 	GetResources().DestroyHandleData(*this);
+	B3DDelete(this);
 }
 
 Signal ResourceHandle::mResourceCreatedCondition;

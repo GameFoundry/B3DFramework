@@ -158,7 +158,7 @@ void ResourceListenerManager::OnResourceModified(const HResource& resource)
 
 void ResourceListenerManager::SendResourceLoaded(const HResource& resource)
 {
-	u64 handleId = (u64)resource.GetHandleData().get();
+	u64 handleId = (u64)resource.GetHandleData();
 
 	auto iterFind = mResourceToListenerMap.find(handleId);
 	if(iterFind == mResourceToListenerMap.end())
@@ -177,7 +177,7 @@ void ResourceListenerManager::SendResourceLoaded(const HResource& resource)
 
 void ResourceListenerManager::SendResourceModified(const HResource& resource)
 {
-	u64 handleId = (u64)resource.GetHandleData().get();
+	u64 handleId = (u64)resource.GetHandleData();
 
 	auto iterFind = mResourceToListenerMap.find(handleId);
 	if(iterFind == mResourceToListenerMap.end())
@@ -230,7 +230,7 @@ void ResourceListenerManager::AddDependencies(IResourceListener* listener)
 		u32 idx = 0;
 		for(auto& resource : mTempResourceBuffer)
 		{
-			u64 handleId = (u64)resource.GetHandleData().get();
+			u64 handleId = (u64)resource.GetHandleData();
 			resourceHandleIds[idx] = handleId;
 			mResourceToListenerMap[handleId].push_back(listener);
 

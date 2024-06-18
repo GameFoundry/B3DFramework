@@ -334,7 +334,7 @@ namespace bs
 		Mutex mLoadedResourceMutex;
 		Mutex mResourceHandleMutex;
 
-		UnorderedMap<UUID, SPtr<ResourceHandleData>> mHandles;
+		UnorderedMap<UUID, ResourceHandleData*> mHandles;
 		UnorderedMap<UUID, UPtr<LoadedResourceInformation>> mLoadedResourceInformation;
 		UnorderedMap<UUID, TInlineArray<SPtr<InProgressLoadInformation>, 1>> mInProgressLoadInformation;
 		UnorderedMap<UUID, TInlineArray<SPtr<InProgressLoadInformation>, 4>> mDependantResourceLoads;

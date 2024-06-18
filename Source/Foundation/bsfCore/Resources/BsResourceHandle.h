@@ -130,7 +130,7 @@ namespace bs
 		 */
 
 		/**	Gets the handle data. For internal use only. */
-		const SPtr<ResourceHandleData>& GetHandleData() const { return mData; }
+		ResourceHandleData* GetHandleData() const { return mData; }
 
 		/** @} */
 	protected:
@@ -191,7 +191,7 @@ namespace bs
 		 * All handles to the same source must share this same handle data. Otherwise things like counting number of
 		 * references or replacing pointed to resource become impossible without additional logic.
 		 */
-		SPtr<ResourceHandleData> mData; // TODO - No need for shared_ptr as we already do reference counting for this
+		ResourceHandleData* mData = nullptr;
 
 	private:
 		friend class Resources;
@@ -393,17 +393,17 @@ namespace bs
 		 */
 		TResourceHandle(const UUID& resourceId)
 		{
-			this->mData = B3DMakeShared<ResourceHandleData>(resourceId);
+			this->mData = B3DNew<ResourceHandleData>(resourceId);
 		}
 
 		/**	Constructs a new valid handle for the provided resource with the provided ID. */
 		TResourceHandle(const SPtr<ResourceType> object, const UUID& resourceId)
 		{
-			this->mData = B3DMakeShared<ResourceHandleData>(object, resourceId);
+			this->mData = B3DNew<ResourceHandleData>(object, resourceId);
 		}
 
 		/**	Constructs a new handle from existing handle data. */
-		TResourceHandle(const SPtr<ResourceHandleData> handleData)
+		TResourceHandle(ResourceHandleData* handleData)
 		{
 			if(handleData != nullptr)
 			{
