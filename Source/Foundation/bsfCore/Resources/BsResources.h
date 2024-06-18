@@ -291,6 +291,7 @@ namespace bs
 		/** @} */
 	private:
 		friend class ResourceHandle;
+		friend struct ResourceHandleData;
 
 		/** Stores load progress for a single resource. */
 		struct LoadProgress

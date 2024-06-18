@@ -4,6 +4,7 @@
 
 #include "BsScriptEnginePrerequisites.h"
 #include "Wrappers/BsScriptResource.h"
+#include "BsManagedResource.h"
 #include "BsScriptObject.h"
 
 namespace bs

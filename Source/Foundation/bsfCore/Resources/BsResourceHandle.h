@@ -25,6 +25,60 @@ namespace bs
 			: Object(object), Id(id), IsCreated(true)
 		{ }
 
+		/** Increments the strong reference count. As long as strong reference count is non-zero the handle will keep the managed resource alive. */
+		void IncrementStrongReferenceCount()
+		{
+			StrongReferenceCount.fetch_add(1, std::memory_order_relaxed);
+		}
+
+		/**
+		 * Decrements the strong reference count. If the strong reference count reaches zero the managed resource will be destroyed. Additionally
+		 * if there are no weak resource handles alive either, resource handle data will also be destroyed. 
+		 */
+		void DecrementStrongReferenceCount()
+		{
+			if(StrongReferenceCount.fetch_sub(1, std::memory_order_acq_rel) == 0)
+			{
+				DestroyManagedResource();
+				DecrementWeakReferenceCount();
+			}
+		}
+
+		/** Increments the weak reference count. This keeps the resource handle data alive, but not the managed resource itself. */
+		void IncrementWeakReferenceCount()
+		{
+			WeakReferenceCount.fetch_add(1, std::memory_order_relaxed);
+		}
+
+		/**
+		 * Decrements the weak reference count. If this was the last weak reference and there are no strong references either, handle data
+		 * will be destroyed.
+		 */
+		void DecrementWeakReferenceCount()
+		{
+			if(WeakReferenceCount.fetch_sub(1, std::memory_order_acq_rel) == 0)
+				DestroySelf();
+		}
+
+		// TODO - Doc
+		bool IncrementStrongReferenceCountIfNonZero()
+		{
+			std::uint32_t referenceCount = StrongReferenceCount.load(std::memory_order_acquire);
+			while(referenceCount != 0)
+			{
+				if(StrongReferenceCount.compare_exchange_weak(referenceCount, referenceCount + 1, std::memory_order_release, std::memory_order_relaxed))
+					return true;
+			}
+
+			return false;
+		}
+
+		/**	Destroys the resource the handle is pointing to. */
+		void DestroyManagedResource();
+
+		/** Destroys the handle data. */
+		void DestroySelf();
+
 		SPtr<Resource> Object;
 		UUID Id;
 		bool IsCreated = false;
@@ -80,12 +134,6 @@ namespace bs
 
 		/** @} */
 	protected:
-		/**	Destroys the resource the handle is pointing to. */
-		void Destroy() const;
-
-		/** Destroys the handle data owned by this handle. */
-		void DestroyHandleData() const;
-
 		/**
 		 * Sets the created flag to true and assigns the resource pointer. Called by the constructors, or if you
 		 * constructed just using a UUID, then you need to call this manually before you can access the resource from
@@ -98,17 +146,11 @@ namespace bs
 		 */
 		void AssociateResourceWithHandle(const SPtr<Resource>& resource, const UUID& resourceId);
 
-		/**
-		 * Clears the created flag and the resource pointer, making the handle invalid until the resource is loaded again
-		 * and assigned through AssociateResourceWithHandle().
-		 */
-		void DisassociateHandleResource();
-
 		/** Increments the strong reference count. As long as strong reference count is non-zero the handle will keep the managed resource alive. */
 		void IncrementStrongReferenceCount() const
 		{
 			if(mData != nullptr)
-				mData->StrongReferenceCount.fetch_add(1, std::memory_order_relaxed);
+				mData->IncrementStrongReferenceCount();
 		}
 
 		/**
@@ -117,20 +159,15 @@ namespace bs
 		 */
 		void DecrementStrongReferenceCount() const
 		{
-			if(mData != nullptr && mData->StrongReferenceCount.fetch_sub(1, std::memory_order_acq_rel) == 0)
-			{
-				Destroy();
-
-				if(mData->WeakReferenceCount.fetch_sub(1, std::memory_order_acq_rel) == 0)
-					DestroyHandleData();
-			}
+			if(mData != nullptr)
+				mData->DecrementStrongReferenceCount();
 		}
 
 		/** Increments the weak reference count. This keeps the resource handle data alive, but not the managed resource itself. */
 		void IncrementWeakReferenceCount() const
 		{
 			if(mData != nullptr)
-				mData->WeakReferenceCount.fetch_add(1, std::memory_order_relaxed);
+				mData->IncrementWeakReferenceCount();
 		}
 
 		/**
@@ -139,8 +176,8 @@ namespace bs
 		 */
 		void DecrementWeakReferenceCount() const
 		{
-			if(mData != nullptr && mData->WeakReferenceCount.fetch_sub(1, std::memory_order_acq_rel) == 0)
-				DestroyHandleData();
+			if(mData != nullptr)
+				mData->DecrementWeakReferenceCount();
 		}
 
 		/**
@@ -215,16 +252,16 @@ namespace bs
 			this->mData = other.GetHandleData();
 		}
 
-		/**	Copy constructor. */
-		template<typename ResourceType2>
-		TResourceHandle(const TResourceHandle<ResourceType2, IsWeakHandle>& other)
+		/**	Copy constructor allowing conversion from derived to base type. */
+		template<class DerivedResourceType, std::enable_if_t<std::is_base_of_v<ResourceType, DerivedResourceType>, int> = 0>
+		TResourceHandle(const TResourceHandle<DerivedResourceType, IsWeakHandle>& other)
 		{
 			other.IncrementReferenceCount();
 			this->mData = other.GetHandleData();
 		}
 
 		/** Move constructor. */
-		TResourceHandle(TResourceHandle&& other)
+		TResourceHandle(TResourceHandle&& other) noexcept
 		{
 			this->mData = std::exchange(other.mData, nullptr);
 		}
@@ -325,12 +362,14 @@ namespace bs
 		}
 
 		/** Converts a handle into a weak handle. */
+		template <bool IsWeakHandleAlias = IsWeakHandle, std::enable_if_t<!IsWeakHandleAlias, int> = 0>
 		TResourceHandle<ResourceType, true> GetWeak() const
 		{
 			return TResourceHandle<ResourceType, true>(*this);
 		}
 
 		/**	Converts a weak handle into a normal handle. */
+		template <bool IsWeakHandleAlias = IsWeakHandle, std::enable_if_t<IsWeakHandleAlias, int> = 0>
 		TResourceHandle<ResourceType, false> Lock() const
 		{
 			return TResourceHandle<ResourceType, false>(*this);
@@ -366,15 +405,36 @@ namespace bs
 		/**	Constructs a new handle from existing handle data. */
 		TResourceHandle(const SPtr<ResourceHandleData> handleData)
 		{
-			// TODO - Should increment reference count before assignment?
+			if(handleData != nullptr)
+			{
+				if constexpr(IsWeakHandle)
+					handleData->IncrementWeakReferenceCount();
+				else
+					handleData->IncrementStrongReferenceCount();
+			}
 
 			this->mData = handleData;
-			this->IncrementReferenceCount(); 
 		}
 
-		/**	Copy constructor allowing weak <-> strong handle change. */
-		template<typename ResourceType2, bool IsWeakHandle2>
-		TResourceHandle(const TResourceHandle<ResourceType2, IsWeakHandle2>& other)
+		/**	Copy constructor allowing weak -> strong handle change. */
+		template <bool IsWeakHandleAlias = IsWeakHandle, std::enable_if_t<!IsWeakHandleAlias, int> = 0>
+		TResourceHandle(const TResourceHandle<ResourceType, true>& other)
+		{
+			if(other.mData != nullptr && other.mData->IncrementStrongReferenceCountIfNonZero())
+				this->mData = other.GetHandleData();
+		}
+
+		/**	Copy constructor allowing strong -> weak handle change. */
+		template <bool IsWeakHandleAlias = IsWeakHandle, std::enable_if_t<IsWeakHandleAlias, int> = 0>
+		TResourceHandle(const TResourceHandle<ResourceType, false>& other)
+		{
+			other.IncrementWeakReferenceCount();
+			this->mData = other.GetHandleData();
+		}
+
+		/**	Copy constructor allowing conversion from base to derived type, for casts. */
+		template<class DerivedResourceType, std::enable_if_t<!std::is_base_of_v<ResourceType, DerivedResourceType>, int> = 0>
+		TResourceHandle(const TResourceHandle<DerivedResourceType, IsWeakHandle>& other)
 		{
 			other.IncrementReferenceCount();
 			this->mData = other.GetHandleData();

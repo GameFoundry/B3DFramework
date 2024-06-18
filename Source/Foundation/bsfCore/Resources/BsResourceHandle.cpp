@@ -10,6 +10,16 @@
 
 using namespace bs;
 
+void ResourceHandleData::DestroyManagedResource()
+{
+	GetResources().Destroy(*this);
+}
+
+void ResourceHandleData::DestroySelf()
+{
+	GetResources().DestroyHandleData(*this);
+}
+
 Signal ResourceHandle::mResourceCreatedCondition;
 Mutex ResourceHandle::mResourceCreatedMutex;
 
@@ -60,18 +70,6 @@ void ResourceHandle::ReleaseInternalReference()
 	GetResources().ReleaseInternalReference(*this);
 }
 
-void ResourceHandle::Destroy() const
-{
-	if(mData != nullptr)
-		GetResources().Destroy(*mData);
-}
-
-void ResourceHandle::DestroyHandleData() const
-{
-	if(mData != nullptr)
-		GetResources().DestroyHandleData(*mData);
-}
-
 void ResourceHandle::AssociateResourceWithHandle(const SPtr<Resource>& resource, const UUID& resourceId)
 {
 	mData->Object = resource;
@@ -91,14 +89,6 @@ void ResourceHandle::NotifyLoadComplete()
 
 		mResourceCreatedCondition.NotifyAll();
 	}
-}
-
-void ResourceHandle::DisassociateHandleResource()
-{
-	mData->Object = nullptr;
-
-	Lock lock(mResourceCreatedMutex);
-	mData->IsCreated = false;
 }
 
 void ResourceHandle::ThrowIfNotLoaded() const

@@ -2,6 +2,7 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "Physics/BsMeshCollider.h"
 #include "Physics/BsPhysics.h"
+#include "BsPhysicsMesh.h"
 
 using namespace bs;
 

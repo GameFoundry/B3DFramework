@@ -2,6 +2,7 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "Audio/BsAudioSource.h"
 #include "Audio/BsAudio.h"
+#include "Audio/BsAudioClip.h"
 #include "Math/BsMath.h"
 #include "Private/RTTI/BsAudioSourceRTTI.h"
 

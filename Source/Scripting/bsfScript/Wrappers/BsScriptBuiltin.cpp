@@ -7,6 +7,9 @@
 #include "BsMonoUtil.h"
 #include "Resources/BsBuiltinResources.h"
 #include "BsScriptResourceManager.h"
+#include "Text/BsFont.h"
+#include "Material/BsShader.h"
+#include "Mesh/BsMesh.h"
 
 #include "Generated/BsScriptFont.generated.h"
 #include "Generated/BsScriptSpriteTexture.generated.h"
