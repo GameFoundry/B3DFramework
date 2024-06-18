@@ -37,7 +37,7 @@ namespace bs
 		 */
 		void DecrementStrongReferenceCount()
 		{
-			if(StrongReferenceCount.fetch_sub(1, std::memory_order_acq_rel) == 0)
+			if(StrongReferenceCount.fetch_sub(1, std::memory_order_acq_rel) == 1)
 			{
 				DestroyManagedResource();
 				DecrementWeakReferenceCount();
@@ -56,11 +56,11 @@ namespace bs
 		 */
 		void DecrementWeakReferenceCount()
 		{
-			if(WeakReferenceCount.fetch_sub(1, std::memory_order_acq_rel) == 0)
+			if(WeakReferenceCount.fetch_sub(1, std::memory_order_acq_rel) == 1)
 				DestroySelf();
 		}
 
-		// TODO - Doc
+		/** Increments the strong reference count, but only if it is not already at zero. Returns true if incremented. */
 		bool IncrementStrongReferenceCountIfNonZero()
 		{
 			std::uint32_t referenceCount = StrongReferenceCount.load(std::memory_order_acquire);
