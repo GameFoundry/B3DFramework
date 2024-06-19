@@ -274,15 +274,17 @@ namespace bs
 		}
 
 		/**	Converts a specific handle to generic Resource handle. */
-		operator TResourceHandle<Resource, IsWeakHandle>() const
+		operator TResourceHandle<Resource, IsWeakHandle>()
 		{
 			return TResourceHandle<Resource, IsWeakHandle>(*this);
 		}
 
 		/**	Converts a specific handle to Resource handle of the resource's base class. */
-		template<class BaseResourceType, std::enable_if_t<std::is_base_of_v<BaseResourceType, ResourceType>, int> = 0>
-		operator TResourceHandle<BaseResourceType, IsWeakHandle>() const
+		template<class BaseResourceType, std::enable_if_t<std::conjunction_v<std::negation<std::is_same<BaseResourceType, Resource>>, std::is_base_of<BaseResourceType, ResourceType>>, int> = 0>
+		operator TResourceHandle<BaseResourceType, IsWeakHandle>()
 		{
+			// Above enable_if purposefully ignores is_base_of<> check if base is Resource. This is because is_base_of<> requires a fully defined type, requiring excessive #includes.
+
 			return TResourceHandle<BaseResourceType, IsWeakHandle>(*this);
 		}
 
