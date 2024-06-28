@@ -180,12 +180,20 @@ namespace bs
 		void UnloadPackage(const UUID& packageId);
 
 		/**
-		 * Moves or renames an existing package to a new location while keeping all the package references intact.
+		 * Moves or renames an existing package to a new physical location while keeping all the package references intact.
 		 *
-		 * @param	packageId			ID of the existing package or move or rename.
-		 * @param	destinationPath		New location of the package.
+		 * @param	packageWriteLock	Write lock for the package to update the physical path for.
+		 * @param	newPath				New physical path for the package.
 		 */
-		void MovePackage(const UUID& packageId, const Path& destinationPath);
+		void ChangePhysicalPackagePath(const PackageWriteLock& packageWriteLock, const Path& newPath);
+
+		/**
+		 * Changes the virtual paths for all the resources in the provided package.
+		 *
+		 * @param	packageWriteLock		Write lock for the package to update the virtual path for.
+		 * @param	newVirtualPathPrefix	New virtual path for the package.
+		 */
+		void ChangeVirtualPackagePath(PackageWriteLock& packageWriteLock, const Path& newVirtualPathPrefix);
 
 		/**
 		 * Attempts to lock a package for reading. Locking the package before performing read operations ensures that the

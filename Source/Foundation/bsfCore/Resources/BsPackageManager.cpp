@@ -214,41 +214,16 @@ void PackageManager::UnloadPackage(const UUID& packageId)
 	}
 }
 
-void PackageManager::MovePackage(const UUID& packageId, const Path& destinationPath)
+void PackageManager::ChangePhysicalPackagePath(const PackageWriteLock& packageWriteLock, const Path& newPath)
 {
-	if(!destinationPath.IsAbsolute())
+	if(!newPath.IsAbsolute())
 	{
-		B3D_LOG(Warning, Resources, "Cannot move package. Provided path '{0}' is not absolute.", destinationPath);
+		B3D_LOG(Warning, Resources, "Cannot change physical package path. Provided path '{0}' is not absolute.", newPath);
 		return;
 	}
 
-	// Find package path
-	Path physicalPackagePath;
-	{
-		Lock lock(mMutex);
-
-		auto foundSourcePackage = mPackagesById.find(packageId);
-		if(foundSourcePackage == mPackagesById.end())
-		{
-			B3D_LOG(Warning, Resources, "Cannot move package. Package with ID '{0}' not found.", packageId);
-			return;
-		}
-
-		physicalPackagePath = foundSourcePackage->second->PhysicalPath;
-		if(physicalPackagePath == destinationPath)
-			return;
-	}
-
-	UPtr<PackageWriteLock> packageWriteLock;
-	const AcquirePackageLockResult acquireLockResult = AcquireWriteLock(physicalPackagePath, AcquirePackageWriteLockOptions(), packageWriteLock);
-
-	if(acquireLockResult != AcquirePackageLockResult::Acquired)
-		return;
-
-	if(!B3D_ENSURE(packageWriteLock != nullptr))
-		return;
-
-	const SPtr<Package>& package = packageWriteLock->GetPackage();
+	const Path& physicalPackagePath = packageWriteLock.RuntimePackageInformation->PhysicalPath;
+	const SPtr<Package>& package = packageWriteLock.GetPackage();
 	{
 		Lock lock(mMutex);
 
@@ -256,18 +231,54 @@ void PackageManager::MovePackage(const UUID& packageId, const Path& destinationP
 		if(!B3D_ENSURE(foundSourcePackage != mPackagesByPath.end()))
 			return;
 
-		if(auto foundDestinationPackage = mPackagesByPath.find(destinationPath); foundDestinationPackage != mPackagesByPath.end())
+		if(auto foundDestinationPackage = mPackagesByPath.find(newPath); foundDestinationPackage != mPackagesByPath.end())
 		{
-			B3D_LOG(Warning, Resources, "Cannot move package. Another package already exists at location '{0}'.", destinationPath);
+			B3D_LOG(Warning, Resources, "Cannot change physical package path. Another package already exists at location '{0}'.", newPath);
 			return;
 		}
 
 		SPtr<RuntimePackageInformation> runtimePackageInformation = foundSourcePackage->second;
 		mPackagesByPath.erase(foundSourcePackage);
-		mPackagesByPath.insert(std::make_pair(destinationPath, runtimePackageInformation));
+		mPackagesByPath.insert(std::make_pair(newPath, runtimePackageInformation));
 
-		runtimePackageInformation->PhysicalPath = destinationPath;
-		package->AssociateFileWithPackage(destinationPath);
+		runtimePackageInformation->PhysicalPath = newPath;
+		package->AssociateFileWithPackage(newPath);
+	}
+}
+
+void PackageManager::ChangeVirtualPackagePath(PackageWriteLock& packageWriteLock, const Path& newVirtualPathPrefix)
+{
+	if(newVirtualPathPrefix.IsAbsolute())
+	{
+		B3D_LOG(Warning, Resources, "Cannot change virtual package path. Provided path '{0}' is not relative.", newVirtualPathPrefix);
+		return;
+	}
+
+	const SPtr<Package>& package = packageWriteLock.GetPackage();
+	const Path& oldVirtualPathPrefix = packageWriteLock.RuntimePackageInformation->VirtualPathPrefix;
+	{
+		Lock lock(mMutex);
+
+		const Vector<UUID>& resourceIds = package->CreateResourceIdList();
+		for(const auto& resourceId : resourceIds)
+		{
+			const SPtr<const PackageResourceMetaData>& resourceMetaData = package->GetResourceMetaData(resourceId);
+			if(!B3D_ENSURE(resourceMetaData))
+				continue;
+
+			if(!oldVirtualPathPrefix.IsEmpty())
+			{
+				const Path& oldVirtualResourcePath = Path::Combine(oldVirtualPathPrefix, resourceMetaData->Path);
+				mVirtualPathToResourcePackagePath.erase(oldVirtualResourcePath);
+			}
+
+			ResourcePackagePath resourcePackagePath;
+			resourcePackagePath.PhysicalPackagePath = packageWriteLock.RuntimePackageInformation->PhysicalPath;
+			resourcePackagePath.ResourcePathWithinPackage = resourceMetaData->Path;
+
+			const Path& newVirtualResourcePath = Path::Combine(newVirtualPathPrefix, resourceMetaData->Path);
+			mVirtualPathToResourcePackagePath.insert(std::make_pair(newVirtualResourcePath, resourcePackagePath));
+		}
 	}
 }
 
