@@ -247,17 +247,20 @@ namespace bs
 		/** Returns path node (for example network name) if one exists in the path. */
 		const String& GetNode() const { return mNode; }
 
-		/**
-		 * Gets last element in the path, filename if it exists, otherwise the last directory. If no directories exist
-		 * returns device or node.
-		 */
+		/** Gets last element in the path, filename if it exists, otherwise the last directory. */
 		const String& GetTail() const;
+
+		/** Removes the last element in the path: filename if it exists, otherwise the last directory. Returns the removed value. */
+		String PopTail();
 
 		/** Returns the portion of the path containing the first @p directoryCount directories. */
 		Path GetSubPath(u32 directoryCount) const;
 
 		/** Add new directory to the end of the path. */
 		void PushDirectory(const String& dir);
+
+		/** Removes the last directory from the end of the path. */
+		void PopDirectory();
 
 		/** Clears the path to nothing. */
 		void Clear();

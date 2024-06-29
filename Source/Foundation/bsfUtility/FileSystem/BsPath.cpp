@@ -396,6 +396,24 @@ const String& Path::GetTail() const
 		return StringUtil::kBlank;
 }
 
+String Path::PopTail()
+{
+	if(IsFile())
+	{
+		String filename = mFilename;
+		mFilename = StringUtil::kBlank;
+		return filename;
+	}
+	else if(!mDirectories.empty())
+	{
+		String directory = mDirectories.back();
+		mDirectories.pop_back();
+		return directory;
+	}
+	else
+		return StringUtil::kBlank;
+}
+
 Path Path::GetSubPath(u32 directoryCount) const
 {
 	Path output;
@@ -549,6 +567,14 @@ void Path::PushDirectory(const String& dir)
 		else
 			mDirectories.push_back(dir);
 	}
+}
+
+void Path::PopDirectory()
+{
+	if(mDirectories.empty())
+		return;
+
+	mDirectories.pop_back();
 }
 
 size_t PathHashFunction<true>::operator()(const Path& path) const
