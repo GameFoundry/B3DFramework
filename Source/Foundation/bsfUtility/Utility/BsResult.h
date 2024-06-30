@@ -169,11 +169,5 @@ namespace bs
 		return Result(status, errorMessage, std::move(additionalErrorMessage));
 	}
 
-	struct ProjectLibraryAsyncOperation
-	{
-		Function<void()> OperationCallback; /**< Callback to trigger on the async worker. */
-		Function<void()> FinalizeCallback; /**< Callback to trigger on the main thread after async operation completes. */
-	};
-
 	/** @} */
 } // namespace bs
