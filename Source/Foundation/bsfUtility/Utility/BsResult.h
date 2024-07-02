@@ -45,6 +45,15 @@ namespace bs
 		static TResult Success(const T& output, ResultStatus status = ResultStatus::Succeeded);
 
 		/**
+		 * Creates the success result object.
+		 *
+		 * @param	output		Object to return from the function/method.
+		 * @param	status		One of the successful result status code.
+		 * @return				Newly created TResult object.
+		 */
+		static TResult Success(T&& output, ResultStatus status = ResultStatus::Succeeded);
+
+		/**
 		 * Creates the fail result object.
 		 *
 		 * @param	errorMessage			Error message describing the failure.
@@ -62,6 +71,7 @@ namespace bs
 	private:
 		TResult(ResultStatus status, const char* errorMessage, String additionalErrorMessage = StringUtil::kBlank);
 		TResult(ResultStatus status, const T& output);
+		TResult(ResultStatus status, T&& output);
 	};
 
 	/** Same as TResult, but with no output object. */
@@ -115,6 +125,11 @@ namespace bs
 	{ }
 
 	template<typename T>
+	TResult<T>::TResult(ResultStatus status, T&& output)
+		: Status(status), Output(std::move(output))
+	{ }
+
+	template<typename T>
 	TResult<T>::TResult(const Result& other)
 		: Status(other.Status), ErrorMessage(other.ErrorMessage), AdditionalErrorMessage(other.AdditionalErrorMessage)
 	{ }
@@ -131,6 +146,12 @@ namespace bs
 	TResult<T> TResult<T>::Success(const T& output, ResultStatus status)
 	{
 		return TResult(status, output);
+	}
+
+	template<typename T>
+	TResult<T> TResult<T>::Success(T&& output, ResultStatus status)
+	{
+		return TResult(status, std::move(output));
 	}
 
 	template<typename T>
