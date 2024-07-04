@@ -188,12 +188,13 @@ namespace bs
 		void ChangePhysicalPackagePath(const PackageWriteLock& packageWriteLock, const Path& newPath);
 
 		/**
-		 * Changes the virtual paths for all the resources in the provided package.
+		 * Changes the virtual paths for all the resources in the provided package. You should call this if you want to change the virtual path prefix
+		 * for a package, but also if any of the resource paths within the package change.
 		 *
 		 * @param	packageWriteLock		Write lock for the package to update the virtual path for.
 		 * @param	newVirtualPathPrefix	New virtual path for the package.
 		 */
-		void ChangeVirtualPackagePath(PackageWriteLock& packageWriteLock, const Path& newVirtualPathPrefix);
+		void ChangeVirtualPackagePath(const PackageWriteLock& packageWriteLock, const Path& newVirtualPathPrefix);
 
 		/**
 		 * Attempts to lock a package for reading. Locking the package before performing read operations ensures that the

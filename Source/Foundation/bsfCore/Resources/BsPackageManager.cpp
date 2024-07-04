@@ -246,7 +246,7 @@ void PackageManager::ChangePhysicalPackagePath(const PackageWriteLock& packageWr
 	}
 }
 
-void PackageManager::ChangeVirtualPackagePath(PackageWriteLock& packageWriteLock, const Path& newVirtualPathPrefix)
+void PackageManager::ChangeVirtualPackagePath(const PackageWriteLock& packageWriteLock, const Path& newVirtualPathPrefix)
 {
 	if(newVirtualPathPrefix.IsAbsolute())
 	{
