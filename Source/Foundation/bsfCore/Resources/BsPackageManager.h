@@ -176,8 +176,12 @@ namespace bs
 		 */
 		UPtr<PackageWriteLock> SavePackage(const SPtr<Package>& package, const Path& destinationPath, const SavePackageOptions& options);
 
-		/** Unloads a package with the specified ID. */
-		void UnloadPackage(const UUID& packageId);
+		/**
+		 * Unloads a package at the specified path.
+		 *
+		 * @param	packagePath		Physical path to the package to unload.
+		 */
+		void UnloadPackage(const Path& packagePath);
 
 		/**
 		 * Moves or renames an existing package to a new physical location while keeping all the package references intact.

@@ -177,22 +177,16 @@ UPtr<PackageWriteLock> PackageManager::SavePackage(const SPtr<Package>& package,
 	return packageWriteLock;
 }
 
-void PackageManager::UnloadPackage(const UUID& packageId)
+void PackageManager::UnloadPackage(const Path& packagePath)
 {
-	// Find package path
-	Path physicalPackagePath;
+	if(!packagePath.IsAbsolute())
 	{
-		Lock lock(mMutex);
-
-		auto found = mPackagesById.find(packageId);
-		if(found == mPackagesById.end())
-			return;
-
-		physicalPackagePath = found->second->PhysicalPath;
+		B3D_LOG(Warning, Resources, "Cannot delete package. Provided path '{0}' is not absolute.", packagePath);
+		return;
 	}
 
 	UPtr<PackageWriteLock> packageWriteLock;
-	const AcquirePackageLockResult acquireLockResult = AcquireWriteLock(physicalPackagePath, AcquirePackageWriteLockOptions(), packageWriteLock);
+	const AcquirePackageLockResult acquireLockResult = AcquireWriteLock(packagePath, AcquirePackageWriteLockOptions(), packageWriteLock);
 
 	if(acquireLockResult != AcquirePackageLockResult::Acquired)
 		return;
@@ -208,7 +202,7 @@ void PackageManager::UnloadPackage(const UUID& packageId)
 		ClearPackageResourceInformation(*package, packageWriteLock->RuntimePackageInformation->VirtualPathPrefix);
 
 		package->AssociateFileWithPackage(Path::kBlank);
-		mPackagesByPath.erase(physicalPackagePath);
+		mPackagesByPath.erase(packagePath);
 
 		packageWriteLock->ClearPackageInformation();
 	}
