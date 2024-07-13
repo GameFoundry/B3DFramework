@@ -80,6 +80,13 @@ namespace bs
 			return nullptr;
 		}
 
+		/** Checks if the type can be cast to T. */
+		template<class T>
+		bool Is() const
+		{
+			return IsDerivedFrom(T::GetRttiStatic());
+		}
+
 		/** Creates an empty instance of a class from a type identifier. */
 		static SPtr<IReflectable> CreateInstanceFromTypeId(u32 rttiTypeId);
 
