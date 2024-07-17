@@ -73,6 +73,7 @@ namespace bs
 	{
 		bool Overwrite = true; /**< If set, save operation will overwrite any existing package at the provided path. */
 		bool Compress = true; /**< If set, compression will be used on package data when saving. */
+		bool CopyLoadStatesOnOverwrite = false; /**< If overwriting a package and this is true, load states will be copied from the original package into the package we're saving. */
 		Path VirtualPathPrefix; /**< @see AcquirePackageReadLockOptions::VirtualPathPrefix. */
 	};
 

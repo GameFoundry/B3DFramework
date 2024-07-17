@@ -172,6 +172,9 @@ UPtr<PackageWriteLock> PackageManager::SavePackage(const SPtr<Package>& package,
 			ClearPackageResourceInformation(*originalPackage, packageWriteLock->RuntimePackageInformation->VirtualPathPrefix);
 		}
 
+		if(options.CopyLoadStatesOnOverwrite)
+			package->CopyResourceLoadStatesFromClone(*originalPackage);
+
 		mPackagesById[package->GetPackageId()] = packageWriteLock->RuntimePackageInformation;
 		LoadPackageResourceInformation(*package, destinationPath, options.VirtualPathPrefix);
 
