@@ -95,6 +95,8 @@ HResource Resources::Load(const Path& resourcePath, const ResourceLoadOptions& l
 
 HResource Resources::Load(const UUID& resourceId, const ResourceLoadOptions& loadOptions)
 {
+	// TODO - Consider doing a lookup for loaded resources, as that might be a common case. To skip expensive operations if resource is already loaded.
+
 	UPtr<PackageReadLock> packageReadLock;
 	Path packagePath;
 	if(!TryAcquirePackageLockForResourceLoad(resourceId, "Load resource", packageReadLock, packagePath))
