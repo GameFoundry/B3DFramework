@@ -157,6 +157,9 @@ namespace bs
 		/**	Returns absolute path to the builtin shader folder where raw shader files are located. */
 		static Path GetRawShaderFolder();
 
+		/** Returns the folder holding unit test resources. */
+		static Path GetUnitTestDataFolder();
+
 		/**	Returns absolute path to the builtin shader folder where raw shader include files are located. */
 		static Path GetRawShaderIncludeFolder();
 
@@ -192,6 +195,7 @@ namespace bs
 		static constexpr const char* kTextureFolder = "Textures/";
 		static constexpr const char* kSpriteFolder = "Sprites/";
 		static constexpr const char* kFontsFolder = "Fonts/";
+		static constexpr const char* kUnitTestDataFolder = "UnitTestData/";
 
 		static constexpr const char* kMeshSphereFile = u8"Sphere";
 		static constexpr const char* kMeshBoxFile = u8"Box";

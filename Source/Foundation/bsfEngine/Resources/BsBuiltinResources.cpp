@@ -356,6 +356,11 @@ Path BuiltinResources::GetRawShaderFolder()
 	return Paths::GetDataPath() + "Raw/" + kShaderFolder;
 }
 
+Path BuiltinResources::GetUnitTestDataFolder()
+{
+	return Paths::GetDataPath() + "Raw/" + kUnitTestDataFolder;
+}
+
 Path BuiltinResources::GetRawShaderIncludeFolder()
 {
 	return Paths::GetDataPath() + "Raw/" + kShaderIncludeFolder;
