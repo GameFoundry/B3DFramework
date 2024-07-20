@@ -7,6 +7,7 @@
 #include "Importer/BsSpecificImporter.h"
 #include "Threading/BsAsyncOp.h"
 #include "Resources/BsResource.h"
+#include "Threading/BsSchedulerTicket.h"
 
 namespace bs
 {
@@ -196,7 +197,8 @@ namespace bs
 		void WaitForAsync(SpecificImporter* importer);
 
 		Vector<SpecificImporter*> mAssetImporters;
-		UnorderedMap<SpecificImporter*, SingleConsumerQueue> mPerImporterQueues; /**< Queues for importers having to run sequential tasks. */
+		UnorderedMap<SpecificImporter*, UPtr<SchedulerTicketQueue>> mPerImporterQueues; /**< Queues for importers having to run sequential tasks. */
+		Mutex mPerImporterQueueMutex;
 	};
 
 	/** Provides easier access to Importer. */

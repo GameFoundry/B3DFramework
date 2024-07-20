@@ -179,11 +179,22 @@ void Importer::WaitForAsync(SpecificImporter* importer)
 	if (asyncMode != ImporterAsyncMode::Single)
 		return;
 
-	auto found = mPerImporterQueues.find(importer);
-	if (found == mPerImporterQueues.end())
-		return;
+	SchedulerTicketQueue* perImporterQueue = nullptr;
+	{
+		Lock lock(mPerImporterQueueMutex);
 
-	found->second.PostCommand([] {}, "Wait until completion", true);
+		auto found = mPerImporterQueues.find(importer);
+		if(found == mPerImporterQueues.end())
+			return;
+
+		perImporterQueue = found->second.get();
+
+		if(!B3D_ENSURE(perImporterQueue != nullptr))
+			return;
+	}
+
+	SchedulerTicket waitTicket =  perImporterQueue->TakeTicket();
+	waitTicket.WaitUntilCalled();
 }
 
 template <class ReturnType>
@@ -232,19 +243,42 @@ void DoImport(TAsyncOp<Vector<SubResourceRaw>> op, SpecificImporter* importer, c
 template <class ReturnType>
 void Importer::QueueForImport(SpecificImporter* importer, const Path& inputFilePath, const SPtr<const ImportOptions>& importOptions, const UUID& uuid, TAsyncOp<ReturnType>& op)
 {
-	auto fnDoImport = [this, importer, inputFilePath, importOptions, uuid, op]
-	{
-		DoImport(op, importer, inputFilePath, uuid, importOptions);
-	};
-
 	ImporterAsyncMode asyncMode = importer->GetAsyncMode();
 	if (asyncMode == ImporterAsyncMode::Multi)
 	{
+		auto fnDoImport = [this, importer, inputFilePath, importOptions, uuid, op]
+		{
+			DoImport(op, importer, inputFilePath, uuid, importOptions);
+		};
+
 		GetCoreApplication().GetTaskScheduler().Post(SchedulerTask(std::move(fnDoImport), "ImportWorker", SchedulerTaskFlag::None, inputFilePath.ToString()));
 	}
 	else
 	{
-		mPerImporterQueues[importer].PostCommand(std::move(fnDoImport), "ImportWorker", false, inputFilePath.ToString());
+		SchedulerTicketQueue* perImporterQueue;
+		{
+			Lock lock(mPerImporterQueueMutex);
+
+			if(const auto& found = mPerImporterQueues.find(importer); found != mPerImporterQueues.end())
+				perImporterQueue = found->second.get();
+			else
+			{
+				UPtr<SchedulerTicketQueue> newQueue = B3DMakeUnique<SchedulerTicketQueue>(GetCoreApplication().GetTaskScheduler());
+				perImporterQueue = newQueue.get();
+
+				mPerImporterQueues[importer] = std::move(newQueue);
+			}
+		}
+
+		SchedulerTicket ticket = perImporterQueue->TakeTicket();
+		auto fnWaitForPreviousAndDoImport = [this, importer, inputFilePath, importOptions, uuid, op, ticket]
+		{
+			ticket.WaitUntilCalled();
+
+			DoImport(op, importer, inputFilePath, uuid, importOptions);
+		};
+
+		GetCoreApplication().GetTaskScheduler().Post(SchedulerTask(std::move(fnWaitForPreviousAndDoImport), "ImportWorker", SchedulerTaskFlag::None, inputFilePath.ToString()));
 	}
 }
 
