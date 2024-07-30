@@ -520,7 +520,10 @@ void PackageManager::LoadPackageResourceInformation(Package& package, const Path
 				const Path existingPhysicalPath = Path::Combine(foundVirtualPath->second.PhysicalPackagePath, foundVirtualPath->second.ResourcePathWithinPackage);
 				const Path newPhysicalPath = Path::Combine(physicalPackagePath, resourceMetaData->Path);
 
-				B3D_LOG(Warning, Resources, "Same virtual path '{0}' used for multiple resources: '{1}' and '{2}'. This will result in undefined behaviour when looking up the resources via virtual path.", virtualResourcePath, existingPhysicalPath, newPhysicalPath);
+				if(existingPhysicalPath != newPhysicalPath)
+				{
+					B3D_LOG(Warning, Resources, "Same virtual path '{0}' used for multiple resources: '{1}' and '{2}'. This will result in undefined behaviour when looking up the resources via virtual path.", virtualResourcePath, existingPhysicalPath, newPhysicalPath);
+				}
 			}
 #endif
 
