@@ -58,8 +58,8 @@ namespace bs
 
 /**
  * Registers a new member field in the RTTI type. The field references the @p name member in the owner class.
- * The type of the member must be a valid container type (e.g. vector or map). The container is allowed to contain
- * plain, reflectable and reflectable pointer types alike. Each field must specify a unique ID for @p id.
+ * The type of the member must be a plain, reflectable and reflectable pointer type. Each field must specify
+ * a unique ID for @p id.
  */
 #define B3D_RTTI_MEMBER(name, id) B3D_RTTI_MEMBER_FULL(name, name, id, bs::RTTIFieldInfo::DEFAULT)
 
