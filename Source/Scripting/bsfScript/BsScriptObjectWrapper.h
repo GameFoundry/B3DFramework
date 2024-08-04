@@ -128,6 +128,7 @@ namespace bs
 		 * // from script or not. Then at certain intervals we can iterate over all script object wrappers and check objects that have their reference count at 1 with the
 		 * // script reference flag set. In such situation we can release the script object strong handle.
 		 * // - Actually this approach can be extended in the general case and we can keep strong handles in all cases, and don't need this method at all
+		 * // - And I don't need a special flag, I can just check if the wrapper is assigned to IScriptExportable
 		 * // - TODO - What when the object gets referenced from native code again? e.g. a weak resource handle gets converted into a strong one. Then the
 		 * //   script object might get killed, but the native object is still alive. But in that case we might be okay to just re-create the script object?
 		 */
@@ -198,6 +199,8 @@ namespace bs
 	class TScriptObjectWrapper : public ScriptWrapperObjectBaseClass 
 	{
 	public:
+		/** Constructor for wrappers that are expected to be instantiated (non-abstract types). */
+		template<typename Condition = NativeTypeContainerType, std::enable_if_t<!std::is_same_v<Condition, nullptr_t>, int> = 0>
 		TScriptObjectWrapper(NativeTypeContainerType nativeObject, MonoObject* scriptObject)
 			: ScriptWrapperObjectBaseClass(ScriptExportedNativeObjectStorage<NativeTypeContainerType>::GetRawPointer(nativeObject), scriptObject), mNativeObjectStorage(std::move(nativeObject))
 		{
@@ -205,8 +208,33 @@ namespace bs
 
 			SelfType* self = (SelfType*)(ScriptWrapperObjectBaseClass*)this; // Needed due to multiple inheritance. Safe since SelfType must point to an class derived from this one.
 
-			if(sInteropMetaData.ThisPtrField != nullptr)
-				sInteropMetaData.ThisPtrField->Set(scriptObject, &self);
+			if(sInteropMetaData.ScriptObjectWrapperPointerField != nullptr)
+				sInteropMetaData.ScriptObjectWrapperPointerField->Set(scriptObject, &self);
+
+			if(sInteropMetaData.IsUsingNewScriptObjectManagerField != nullptr)
+			{
+				i32 value = 1;
+				sInteropMetaData.IsUsingNewScriptObjectManagerField->Set(scriptObject, &value);
+			}
+		}
+
+		/** Constructors for wrappers that won't be instantiated (abstract types). Those wrappers only provide interop bindings and don't do lifetime tracking. */
+		template<typename Condition = NativeTypeContainerType, std::enable_if_t<std::is_same_v<Condition, nullptr_t>, int> = 0>
+		TScriptObjectWrapper(MonoObject* scriptObject)
+			: ScriptWrapperObjectBaseClass(nullptr, scriptObject)
+		{
+			sInitializeOnLoadTime.MakeSureIAmInstantiated();
+
+			SelfType* self = (SelfType*)(ScriptWrapperObjectBaseClass*)this; // Needed due to multiple inheritance. Safe since SelfType must point to an class derived from this one.
+
+			if(sInteropMetaData.ScriptObjectWrapperPointerField != nullptr)
+				sInteropMetaData.ScriptObjectWrapperPointerField->Set(scriptObject, &self);
+
+			if(sInteropMetaData.IsUsingNewScriptObjectManagerField != nullptr)
+			{
+				i32 value = 1;
+				sInteropMetaData.IsUsingNewScriptObjectManagerField->Set(scriptObject, &value);
+			}
 		}
 
 		virtual ~TScriptObjectWrapper() = default;
@@ -226,11 +254,18 @@ namespace bs
 
 			SelfType* self = (SelfType*)(ScriptWrapperObjectBaseClass*)this; // Needed due to multiple inheritance. Safe since SelfType must point to an class derived from this one.
 
-			if(sInteropMetaData.ThisPtrField != nullptr)
-				sInteropMetaData.ThisPtrField->Set(scriptObject, &self);
+			if(sInteropMetaData.ScriptObjectWrapperPointerField != nullptr)
+				sInteropMetaData.ScriptObjectWrapperPointerField->Set(scriptObject, &self);
+
+			if(sInteropMetaData.IsUsingNewScriptObjectManagerField != nullptr)
+			{
+				i32 value = 1;
+				sInteropMetaData.IsUsingNewScriptObjectManagerField->Set(scriptObject, &value);
+			}
 		}
 
 		// TODO - Doc
+		template<typename Condition = NativeTypeContainerType, std::enable_if_t<!std::is_same_v<Condition, nullptr_t>, int> = 0>
 		static MonoObject* GetOrCreateScriptObjectWrapper(NativeTypeContainerType nativeObject)
 		{
 			if(ScriptObjectWrapper* const scriptObjectWrapper = (ScriptObjectWrapper*)nativeObject->GetScriptObjectWrapper())
@@ -247,8 +282,8 @@ namespace bs
 		{
 			SelfType* scriptObjectWrapper = nullptr;
 
-			if(sInteropMetaData.ThisPtrField != nullptr && scriptObject != nullptr)
-				sInteropMetaData.ThisPtrField->Get(scriptObject, &scriptObjectWrapper);
+			if(sInteropMetaData.ScriptObjectWrapperPointerField != nullptr && scriptObject != nullptr)
+				sInteropMetaData.ScriptObjectWrapperPointerField->Get(scriptObject, &scriptObjectWrapper);
 
 			return scriptObjectWrapper;
 		}
@@ -300,6 +335,21 @@ namespace bs
 		return Name;                          \
 	}                                         \
 	static void InitRuntimeData();
+
+	/**	Script object wrapper for ScriptObject. (Script prefix used as standard for script object wrappers, wrapping ScriptObject. Therefore ScriptScriptObject.) */
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptScriptObject : public TScriptObjectWrapper<nullptr_t, ScriptScriptObject>
+	{
+	public:
+		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "ScriptObject")
+
+	private:
+		ScriptScriptObject(MonoObject* instance);
+
+		/************************************************************************/
+		/* 								CLR HOOKS						   		*/
+		/************************************************************************/
+		static void Internal_ScriptObjectFinalizerCalled(ScriptObjectWrapper* scriptObjectWrapper);
+	};
 
 	/** @} */
 } // namespace bs

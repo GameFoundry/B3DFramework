@@ -125,8 +125,15 @@ void ScriptObjectManager::NotifyObjectFinalized(ScriptObjectBase* instance)
 
 	Lock lock(mMutex);
 	mFinalizedObjects[mFinalizedQueueIdx].push_back(instance);
+}
 
-	// TODO - Need to handle ScriptObjectWrapper types
+void ScriptObjectManager::NotifyObjectFinalized(ScriptObjectWrapper* scriptObjectWrapper)
+{
+	if(B3D_ENSURE(scriptObjectWrapper != nullptr))
+		return;
+
+	Lock lock(mMutex);
+	mFinalizedScriptObjectWrappers[mFinalizedQueueIdx].push_back(scriptObjectWrapper);
 }
 
 void ScriptObjectManager::Update()

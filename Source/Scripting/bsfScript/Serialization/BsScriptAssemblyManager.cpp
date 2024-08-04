@@ -908,7 +908,7 @@ SPtr<IReflectable> ScriptAssemblyManager::GetReflectableFromManagedObject(MonoOb
 			if(monoClass->IsSubClassOf(managedResourceMeta->ScriptClass))
 			{
 				ScriptManagedResource* scriptResource = nullptr;
-				managedResourceMeta->ThisPtrField->Get(value, &scriptResource);
+				managedResourceMeta->ScriptObjectWrapperPointerField->Get(value, &scriptResource);
 
 				HManagedResource resource = scriptResource->GetHandle();
 				if(!resource.IsLoaded(false))
@@ -933,7 +933,7 @@ SPtr<IReflectable> ScriptAssemblyManager::GetReflectableFromManagedObject(MonoOb
 				}
 
 				ScriptResourceBase* scriptResource = nullptr;
-				builtinInfo->MetaData->ThisPtrField->Get(value, &scriptResource);
+				builtinInfo->MetaData->ScriptObjectWrapperPointerField->Get(value, &scriptResource);
 
 				HResource handle = scriptResource->GetGenericHandle();
 				if(!handle.IsLoaded(false))
@@ -953,7 +953,7 @@ SPtr<IReflectable> ScriptAssemblyManager::GetReflectableFromManagedObject(MonoOb
 			if(monoClass->IsSubClassOf(mBuiltin.ManagedComponentClass))
 			{
 				ScriptManagedComponent* scriptComponent = nullptr;
-				managedComponentMeta->ThisPtrField->Get(value, &scriptComponent);
+				managedComponentMeta->ScriptObjectWrapperPointerField->Get(value, &scriptComponent);
 
 				HManagedComponent component = scriptComponent->GetHandle();
 				if(component.IsDestroyed())
@@ -978,7 +978,7 @@ SPtr<IReflectable> ScriptAssemblyManager::GetReflectableFromManagedObject(MonoOb
 				}
 
 				ScriptComponentBase* scriptComponent = nullptr;
-				builtinInfo->MetaData->ThisPtrField->Get(value, &scriptComponent);
+				builtinInfo->MetaData->ScriptObjectWrapperPointerField->Get(value, &scriptComponent);
 
 				HComponent handle = scriptComponent->GetComponent();
 				if(handle.IsDestroyed())
@@ -1010,8 +1010,8 @@ SPtr<IReflectable> ScriptAssemblyManager::GetReflectableFromManagedObject(MonoOb
 
 			ScriptReflectableBase* scriptReflectable = nullptr;
 
-			if(reflTypeInfo->MetaData->ThisPtrField != nullptr)
-				reflTypeInfo->MetaData->ThisPtrField->Get(value, &scriptReflectable);
+			if(reflTypeInfo->MetaData->ScriptObjectWrapperPointerField != nullptr)
+				reflTypeInfo->MetaData->ScriptObjectWrapperPointerField->Get(value, &scriptReflectable);
 
 			return scriptReflectable->GetReflectable();
 		}

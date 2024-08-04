@@ -112,8 +112,8 @@ namespace bs
 
 			Type* param = (Type*)(Base*)this; // Needed due to multiple inheritance. Safe since Type must point to an class derived from this one.
 
-			if(metaData.ThisPtrField != nullptr)
-				metaData.ThisPtrField->Set(instance, &param);
+			if(metaData.ScriptObjectWrapperPointerField != nullptr)
+				metaData.ScriptObjectWrapperPointerField->Set(instance, &param);
 		}
 
 		virtual ~ScriptObject()
@@ -126,8 +126,8 @@ namespace bs
 
 			Type* param = (Type*)(Base*)this; // Needed due to multiple inheritance. Safe since Type must point to an class derived from this one.
 
-			if(metaData.ThisPtrField != nullptr && instance != nullptr)
-				metaData.ThisPtrField->Set(instance, &param);
+			if(metaData.ScriptObjectWrapperPointerField != nullptr && instance != nullptr)
+				metaData.ScriptObjectWrapperPointerField->Set(instance, &param);
 		}
 
 		/**	Creates a new managed instance of the type wrapped by this interop object. */
@@ -144,8 +144,8 @@ namespace bs
 		{
 			Type* nativeInstance = nullptr;
 
-			if(metaData.ThisPtrField != nullptr && managedInstance != nullptr)
-				metaData.ThisPtrField->Get(managedInstance, &nativeInstance);
+			if(metaData.ScriptObjectWrapperPointerField != nullptr && managedInstance != nullptr)
+				metaData.ScriptObjectWrapperPointerField->Get(managedInstance, &nativeInstance);
 
 			return nativeInstance;
 		}

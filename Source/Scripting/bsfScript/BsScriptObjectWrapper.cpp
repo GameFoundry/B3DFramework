@@ -55,3 +55,19 @@ void ScriptObjectWrapper::ReleaseStrongHandlesBeforeScriptReload()
 		mStrongScriptObjectHandle = ~0u;
 	}
 }
+
+ScriptScriptObject::ScriptScriptObject(MonoObject* instance)
+	: TScriptObjectWrapper(instance)
+{}
+
+void ScriptScriptObject::InitRuntimeData()
+{
+	sInteropMetaData.ScriptClass->AddInternalCall("Internal_ScriptObjectFinalizerCalled", (void*)&ScriptScriptObject::Internal_ScriptObjectFinalizerCalled);
+}
+
+void ScriptScriptObject::Internal_ScriptObjectFinalizerCalled(ScriptObjectWrapper* scriptObjectWrapper)
+{
+	// This method gets called on the finalizer thread, but so that we don't need to deal
+	// with multi-threading issues we just delay it and execute it on the main thread.
+	ScriptObjectManager::Instance().NotifyObjectFinalized(scriptObjectWrapper);
+}

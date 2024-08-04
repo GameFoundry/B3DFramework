@@ -68,6 +68,14 @@ namespace bs
 		void NotifyObjectFinalized(ScriptObjectBase* instance);
 
 		/**
+		 * Call this when object finalizer is triggered. At the end of the frame all objects queued with this method will
+		 * have their NotifyScriptObjectDestroyed() methods triggered.
+		 *
+		 * @note	Thread safe.
+		 */
+		void NotifyObjectFinalized(ScriptObjectWrapper* instance);
+
+		/**
 		 * Triggers _onManagedInstanceDeleted deleted callbacks on all objects that were finalized this frame. This allows
 		 * the native portions of those objects to properly clean up any resources. @p assemblyRefresh lets the
 		 * script objects know if finalization is happening due to assembly refresh.

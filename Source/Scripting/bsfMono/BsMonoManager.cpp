@@ -198,11 +198,16 @@ void MonoManager::InitializeScriptTypes(MonoAssembly& assembly)
 		}
 
 		if(meta->ScriptClass->HasField("mCachedPtr"))
-			meta->ThisPtrField = meta->ScriptClass->GetField("mCachedPtr");
+			meta->ScriptObjectWrapperPointerField = meta->ScriptClass->GetField("mCachedPtr");
 		else
-			meta->ThisPtrField = nullptr;
+			meta->ScriptObjectWrapperPointerField = nullptr;
 
-		meta->InitCallback();
+		if(meta->ScriptClass->HasField("mIsUsingNewScriptObjectWrapper"))
+			meta->IsUsingNewScriptObjectManagerField = meta->ScriptClass->GetField("mIsUsingNewScriptObjectWrapper");
+		else
+			meta->IsUsingNewScriptObjectManagerField = nullptr;
+
+		meta->InitializeBindingsCallback();
 	}
 }
 
@@ -299,7 +304,8 @@ void MonoManager::UnloadScriptDomain()
 		for(auto& entry : typeMetas)
 		{
 			entry.MetaData->ScriptClass = nullptr;
-			entry.MetaData->ThisPtrField = nullptr;
+			entry.MetaData->ScriptObjectWrapperPointerField = nullptr;
+			entry.MetaData->IsUsingNewScriptObjectManagerField = nullptr;
 		}
 	}
 

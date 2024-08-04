@@ -8,9 +8,7 @@ using namespace bs;
 
 IScriptObjectWrapper::IScriptObjectWrapper(IScriptExportable* nativeObject)
 	:mNativeObject(nativeObject)
-{
-	B3D_ENSURE(nativeObject != nullptr);
-}
+{ }
 
 void IScriptObjectWrapper::NotifyScriptObjectDestroyed()
 {
