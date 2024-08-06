@@ -296,7 +296,7 @@ namespace bs
 		{
 			// Need to delay init of sInteropMetaData since it's also a static, and we can't guarantee the order
 			// (if it gets initialized after this, it will just overwrite the data)
-			ScriptMeta localMetaData = ScriptMeta(SelfType::GetAssemblyName(), SelfType::GetNamespace(), SelfType::GetTypeName(), &SelfType::InitRuntimeData);
+			ScriptMeta localMetaData = ScriptMeta(SelfType::GetAssemblyName(), SelfType::GetNamespace(), SelfType::GetTypeName(), &SelfType::SetupScriptBindings);
 
 			MonoManager::RegisterScriptType(&sInteropMetaData, localMetaData);
 		}
@@ -320,6 +320,17 @@ namespace bs
 	template <typename NativeTypeContainerType, typename SelfType, typename ScriptWrapperObjectBaseClass>
 	ScriptMeta TScriptObjectWrapper<NativeTypeContainerType, SelfType, ScriptWrapperObjectBaseClass>::sInteropMetaData;
 
+	/**	Specialized version of TScriptObjectWrapper that should be used for types that are never going to be explicitly instantiated (e.g. singletons, static-only classes and base classes). */
+	template <typename SelfType, typename ScriptWrapperObjectBaseClass = ScriptObjectWrapper>
+	class TNonInstantiableScriptObjectWrapper : public TScriptObjectWrapper<nullptr_t, SelfType, ScriptWrapperObjectBaseClass>
+	{
+	public:
+		TNonInstantiableScriptObjectWrapper(MonoObject* scriptObject)
+			:TScriptObjectWrapper<nullptr_t, SelfType, ScriptWrapperObjectBaseClass>(scriptObject)
+		{ }
+	};
+
+
 	// TODO - Doc
 #define B3D_SCRIPT_OBJECT_WRAPPER(Assembly, Namespace, Name) \
 	static const char* GetAssemblyName()      \
@@ -334,16 +345,16 @@ namespace bs
 	{                                         \
 		return Name;                          \
 	}                                         \
-	static void InitRuntimeData();
+	static void SetupScriptBindings();
 
 	/**	Script object wrapper for ScriptObject. (Script prefix used as standard for script object wrappers, wrapping ScriptObject. Therefore ScriptScriptObject.) */
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptScriptObject : public TScriptObjectWrapper<nullptr_t, ScriptScriptObject>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptScriptObject : public TNonInstantiableScriptObjectWrapper<ScriptScriptObject>
 	{
 	public:
 		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "ScriptObject")
 
 	private:
-		ScriptScriptObject(MonoObject* instance);
+		ScriptScriptObject(MonoObject* scriptObject);
 
 		/************************************************************************/
 		/* 								CLR HOOKS						   		*/

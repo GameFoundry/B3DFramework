@@ -56,11 +56,11 @@ void ScriptObjectWrapper::ReleaseStrongHandlesBeforeScriptReload()
 	}
 }
 
-ScriptScriptObject::ScriptScriptObject(MonoObject* instance)
-	: TScriptObjectWrapper(instance)
+ScriptScriptObject::ScriptScriptObject(MonoObject* scriptObject)
+	: TNonInstantiableScriptObjectWrapper(scriptObject)
 {}
 
-void ScriptScriptObject::InitRuntimeData()
+void ScriptScriptObject::SetupScriptBindings()
 {
 	sInteropMetaData.ScriptClass->AddInternalCall("Internal_ScriptObjectFinalizerCalled", (void*)&ScriptScriptObject::Internal_ScriptObjectFinalizerCalled);
 }
