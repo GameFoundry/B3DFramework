@@ -32,17 +32,17 @@ namespace bs
 		tmpcontents = ScriptGUIContent::FromInterop(*contents);
 		String tmpstyleClass;
 		tmpstyleClass = MonoUtil::MonoToString(styleClass);
-		TInlineArray<GUIOption, 4> vecoptions;
+		TInlineArray<GUIOption, 4> nativeArrayoptions;
 		if(options != nullptr)
 		{
-			ScriptArray arrayoptions(options);
-			vecoptions.resize(arrayoptions.Size());
-			for(int i = 0; i < (int)arrayoptions.Size(); i++)
+			ScriptArray scriptArrayoptions(options);
+			nativeArrayoptions.resize(scriptArrayoptions.Size());
+			for(int elementIndex = 0; elementIndex < (int)scriptArrayoptions.Size(); elementIndex++)
 			{
-				vecoptions[i] = arrayoptions.Get<GUIOption>(i);
+				nativeArrayoptions[elementIndex] = scriptArrayoptions.Get<GUIOption>(elementIndex);
 			}
 		}
-		GUIButton* instance = GUIButton::Create(tmpcontents, tmpstyleClass, vecoptions);
+		GUIButton* instance = GUIButton::Create(tmpcontents, tmpstyleClass, nativeArrayoptions);
 		new (B3DAllocate<ScriptGUIButton>())ScriptGUIButton(managedInstance, instance);
 	}
 
@@ -50,17 +50,17 @@ namespace bs
 	{
 		GUIContent tmpcontents;
 		tmpcontents = ScriptGUIContent::FromInterop(*contents);
-		TInlineArray<GUIOption, 4> vecoptions;
+		TInlineArray<GUIOption, 4> nativeArrayoptions;
 		if(options != nullptr)
 		{
-			ScriptArray arrayoptions(options);
-			vecoptions.resize(arrayoptions.Size());
-			for(int i = 0; i < (int)arrayoptions.Size(); i++)
+			ScriptArray scriptArrayoptions(options);
+			nativeArrayoptions.resize(scriptArrayoptions.Size());
+			for(int elementIndex = 0; elementIndex < (int)scriptArrayoptions.Size(); elementIndex++)
 			{
-				vecoptions[i] = arrayoptions.Get<GUIOption>(i);
+				nativeArrayoptions[elementIndex] = scriptArrayoptions.Get<GUIOption>(elementIndex);
 			}
 		}
-		GUIButton* instance = GUIButton::Create(tmpcontents, vecoptions);
+		GUIButton* instance = GUIButton::Create(tmpcontents, nativeArrayoptions);
 		new (B3DAllocate<ScriptGUIButton>())ScriptGUIButton(managedInstance, instance);
 	}
 
@@ -68,33 +68,33 @@ namespace bs
 	{
 		String tmpstyleClass;
 		tmpstyleClass = MonoUtil::MonoToString(styleClass);
-		TInlineArray<GUIOption, 4> vecoptions;
+		TInlineArray<GUIOption, 4> nativeArrayoptions;
 		if(options != nullptr)
 		{
-			ScriptArray arrayoptions(options);
-			vecoptions.resize(arrayoptions.Size());
-			for(int i = 0; i < (int)arrayoptions.Size(); i++)
+			ScriptArray scriptArrayoptions(options);
+			nativeArrayoptions.resize(scriptArrayoptions.Size());
+			for(int elementIndex = 0; elementIndex < (int)scriptArrayoptions.Size(); elementIndex++)
 			{
-				vecoptions[i] = arrayoptions.Get<GUIOption>(i);
+				nativeArrayoptions[elementIndex] = scriptArrayoptions.Get<GUIOption>(elementIndex);
 			}
 		}
-		GUIButton* instance = GUIButton::Create(tmpstyleClass, vecoptions);
+		GUIButton* instance = GUIButton::Create(tmpstyleClass, nativeArrayoptions);
 		new (B3DAllocate<ScriptGUIButton>())ScriptGUIButton(managedInstance, instance);
 	}
 
 	void ScriptGUIButton::InternalCreate2(MonoObject* managedInstance, MonoArray* options)
 	{
-		TInlineArray<GUIOption, 4> vecoptions;
+		TInlineArray<GUIOption, 4> nativeArrayoptions;
 		if(options != nullptr)
 		{
-			ScriptArray arrayoptions(options);
-			vecoptions.resize(arrayoptions.Size());
-			for(int i = 0; i < (int)arrayoptions.Size(); i++)
+			ScriptArray scriptArrayoptions(options);
+			nativeArrayoptions.resize(scriptArrayoptions.Size());
+			for(int elementIndex = 0; elementIndex < (int)scriptArrayoptions.Size(); elementIndex++)
 			{
-				vecoptions[i] = arrayoptions.Get<GUIOption>(i);
+				nativeArrayoptions[elementIndex] = scriptArrayoptions.Get<GUIOption>(elementIndex);
 			}
 		}
-		GUIButton* instance = GUIButton::Create(vecoptions);
+		GUIButton* instance = GUIButton::Create(nativeArrayoptions);
 		new (B3DAllocate<ScriptGUIButton>())ScriptGUIButton(managedInstance, instance);
 	}
 }

@@ -44,76 +44,76 @@ namespace bs
 	}
 	void ScriptParticleCollisions::InternalSetPlanes(ScriptParticleCollisions* thisPtr, MonoArray* planes)
 	{
-		Vector<Plane> vecplanes;
+		Vector<Plane> nativeArrayplanes;
 		if(planes != nullptr)
 		{
-			ScriptArray arrayplanes(planes);
-			vecplanes.resize(arrayplanes.Size());
-			for(int i = 0; i < (int)arrayplanes.Size(); i++)
+			ScriptArray scriptArrayplanes(planes);
+			nativeArrayplanes.resize(scriptArrayplanes.Size());
+			for(int elementIndex = 0; elementIndex < (int)scriptArrayplanes.Size(); elementIndex++)
 			{
-				vecplanes[i] = arrayplanes.Get<Plane>(i);
+				nativeArrayplanes[elementIndex] = scriptArrayplanes.Get<Plane>(elementIndex);
 			}
 		}
-		thisPtr->GetInternal()->SetPlanes(vecplanes);
+		thisPtr->GetInternal()->SetPlanes(nativeArrayplanes);
 	}
 
 	MonoArray* ScriptParticleCollisions::InternalGetPlanes(ScriptParticleCollisions* thisPtr)
 	{
-		Vector<Plane> vec__output;
-		vec__output = thisPtr->GetInternal()->GetPlanes();
+		Vector<Plane> nativeArray__output;
+		nativeArray__output = thisPtr->GetInternal()->GetPlanes();
 
 		MonoArray* __output;
-		int arraySize__output = (int)vec__output.size();
-		ScriptArray array__output = ScriptArray::Create<ScriptPlane>(arraySize__output);
-		for(int i = 0; i < arraySize__output; i++)
+		int elementCount__output = (int)nativeArray__output.size();
+		ScriptArray scriptArray__output = ScriptArray::Create<ScriptPlane>(elementCount__output);
+		for(int elementIndex = 0; elementIndex < elementCount__output; elementIndex++)
 		{
-			array__output.Set(i, vec__output[i]);
+			scriptArray__output.Set(elementIndex, nativeArray__output[elementIndex]);
 		}
-		__output = array__output.GetInternal();
+		__output = scriptArray__output.GetInternal();
 
 		return __output;
 	}
 
 	void ScriptParticleCollisions::InternalSetPlaneObjects(ScriptParticleCollisions* thisPtr, MonoArray* objects)
 	{
-		Vector<GameObjectHandle<SceneObject>> vecobjects;
+		Vector<GameObjectHandle<SceneObject>> nativeArrayobjects;
 		if(objects != nullptr)
 		{
-			ScriptArray arrayobjects(objects);
-			vecobjects.resize(arrayobjects.Size());
-			for(int i = 0; i < (int)arrayobjects.Size(); i++)
+			ScriptArray scriptArrayobjects(objects);
+			nativeArrayobjects.resize(scriptArrayobjects.Size());
+			for(int elementIndex = 0; elementIndex < (int)scriptArrayobjects.Size(); elementIndex++)
 			{
-				ScriptSceneObject* scriptobjects;
-				scriptobjects = ScriptSceneObject::ToNative(arrayobjects.Get<MonoObject*>(i));
-				if(scriptobjects != nullptr)
+				ScriptSceneObject* scriptObjectWrapperobjects;
+				scriptObjectWrapperobjects = ScriptSceneObject::ToNative(scriptArrayobjects.Get<MonoObject*>(elementIndex));
+				if(scriptObjectWrapperobjects != nullptr)
 				{
-					GameObjectHandle<SceneObject> arrayElemPtrobjects = scriptobjects->GetHandle();
-					vecobjects[i] = arrayElemPtrobjects;
+					GameObjectHandle<SceneObject> arrayElementPointerobjects = scriptObjectWrapperobjects->GetHandle();
+					nativeArrayobjects[elementIndex] = arrayElementPointerobjects;
 				}
 			}
 		}
-		thisPtr->GetInternal()->SetPlaneObjects(vecobjects);
+		thisPtr->GetInternal()->SetPlaneObjects(nativeArrayobjects);
 	}
 
 	MonoArray* ScriptParticleCollisions::InternalGetPlaneObjects(ScriptParticleCollisions* thisPtr)
 	{
-		Vector<GameObjectHandle<SceneObject>> vec__output;
-		vec__output = thisPtr->GetInternal()->GetPlaneObjects();
+		Vector<GameObjectHandle<SceneObject>> nativeArray__output;
+		nativeArray__output = thisPtr->GetInternal()->GetPlaneObjects();
 
 		MonoArray* __output;
-		int arraySize__output = (int)vec__output.size();
-		ScriptArray array__output = ScriptArray::Create<ScriptSceneObject>(arraySize__output);
-		for(int i = 0; i < arraySize__output; i++)
+		int elementCount__output = (int)nativeArray__output.size();
+		ScriptArray scriptArray__output = ScriptArray::Create<ScriptSceneObject>(elementCount__output);
+		for(int elementIndex = 0; elementIndex < elementCount__output; elementIndex++)
 		{
-			ScriptSceneObject* script__output = nullptr;
-			if(vec__output[i])
-			script__output = ScriptGameObjectManager::Instance().GetOrCreateScriptSceneObject(vec__output[i]);
-			if(script__output != nullptr)
-				array__output.Set(i, script__output->GetManagedInstance());
+			ScriptSceneObject* scriptObjectWrapper__output = nullptr;
+			if(nativeArray__output[elementIndex])
+			scriptObjectWrapper__output = ScriptGameObjectManager::Instance().GetOrCreateScriptSceneObject(nativeArray__output[elementIndex]);
+			if(scriptObjectWrapper__output != nullptr)
+				scriptArray__output.Set(elementIndex, scriptObjectWrapper__output->GetManagedInstance());
 			else
-				array__output.Set(i, nullptr);
+				scriptArray__output.Set(elementIndex, nullptr);
 		}
-		__output = array__output.GetInternal();
+		__output = scriptArray__output.GetInternal();
 
 		return __output;
 	}

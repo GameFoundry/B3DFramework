@@ -33,10 +33,10 @@ namespace bs
 	void ScriptGUITexture::InternalSetImage(ScriptGUITexture* thisPtr, MonoObject* image)
 	{
 		TResourceHandle<SpriteImage> tmpimage;
-		ScriptRRefBase* scriptimage;
-		scriptimage = ScriptRRefBase::ToNative(image);
-		if(scriptimage != nullptr)
-			tmpimage = B3DStaticResourceCast<SpriteImage>(scriptimage->GetHandle());
+		ScriptRRefBase* scriptObjectWrapperimage;
+		scriptObjectWrapperimage = ScriptRRefBase::ToNative(image);
+		if(scriptObjectWrapperimage != nullptr)
+			tmpimage = B3DStaticResourceCast<SpriteImage>(scriptObjectWrapperimage->GetHandle());
 		static_cast<GUITexture*>(thisPtr->GetGuiElement())->SetImage(tmpimage);
 	}
 
@@ -46,17 +46,17 @@ namespace bs
 		tmpcontents = ScriptGUITextureContents::FromInterop(*contents);
 		String tmpstyleClass;
 		tmpstyleClass = MonoUtil::MonoToString(styleClass);
-		TInlineArray<GUIOption, 4> vecoptions;
+		TInlineArray<GUIOption, 4> nativeArrayoptions;
 		if(options != nullptr)
 		{
-			ScriptArray arrayoptions(options);
-			vecoptions.resize(arrayoptions.Size());
-			for(int i = 0; i < (int)arrayoptions.Size(); i++)
+			ScriptArray scriptArrayoptions(options);
+			nativeArrayoptions.resize(scriptArrayoptions.Size());
+			for(int elementIndex = 0; elementIndex < (int)scriptArrayoptions.Size(); elementIndex++)
 			{
-				vecoptions[i] = arrayoptions.Get<GUIOption>(i);
+				nativeArrayoptions[elementIndex] = scriptArrayoptions.Get<GUIOption>(elementIndex);
 			}
 		}
-		GUITexture* instance = GUITexture::Create(tmpcontents, tmpstyleClass, vecoptions);
+		GUITexture* instance = GUITexture::Create(tmpcontents, tmpstyleClass, nativeArrayoptions);
 		new (B3DAllocate<ScriptGUITexture>())ScriptGUITexture(managedInstance, instance);
 	}
 
@@ -64,17 +64,17 @@ namespace bs
 	{
 		GUITextureContents tmpcontents;
 		tmpcontents = ScriptGUITextureContents::FromInterop(*contents);
-		TInlineArray<GUIOption, 4> vecoptions;
+		TInlineArray<GUIOption, 4> nativeArrayoptions;
 		if(options != nullptr)
 		{
-			ScriptArray arrayoptions(options);
-			vecoptions.resize(arrayoptions.Size());
-			for(int i = 0; i < (int)arrayoptions.Size(); i++)
+			ScriptArray scriptArrayoptions(options);
+			nativeArrayoptions.resize(scriptArrayoptions.Size());
+			for(int elementIndex = 0; elementIndex < (int)scriptArrayoptions.Size(); elementIndex++)
 			{
-				vecoptions[i] = arrayoptions.Get<GUIOption>(i);
+				nativeArrayoptions[elementIndex] = scriptArrayoptions.Get<GUIOption>(elementIndex);
 			}
 		}
-		GUITexture* instance = GUITexture::Create(tmpcontents, vecoptions);
+		GUITexture* instance = GUITexture::Create(tmpcontents, nativeArrayoptions);
 		new (B3DAllocate<ScriptGUITexture>())ScriptGUITexture(managedInstance, instance);
 	}
 
@@ -82,33 +82,33 @@ namespace bs
 	{
 		String tmpstyleClass;
 		tmpstyleClass = MonoUtil::MonoToString(styleClass);
-		TInlineArray<GUIOption, 4> vecoptions;
+		TInlineArray<GUIOption, 4> nativeArrayoptions;
 		if(options != nullptr)
 		{
-			ScriptArray arrayoptions(options);
-			vecoptions.resize(arrayoptions.Size());
-			for(int i = 0; i < (int)arrayoptions.Size(); i++)
+			ScriptArray scriptArrayoptions(options);
+			nativeArrayoptions.resize(scriptArrayoptions.Size());
+			for(int elementIndex = 0; elementIndex < (int)scriptArrayoptions.Size(); elementIndex++)
 			{
-				vecoptions[i] = arrayoptions.Get<GUIOption>(i);
+				nativeArrayoptions[elementIndex] = scriptArrayoptions.Get<GUIOption>(elementIndex);
 			}
 		}
-		GUITexture* instance = GUITexture::Create(tmpstyleClass, vecoptions);
+		GUITexture* instance = GUITexture::Create(tmpstyleClass, nativeArrayoptions);
 		new (B3DAllocate<ScriptGUITexture>())ScriptGUITexture(managedInstance, instance);
 	}
 
 	void ScriptGUITexture::InternalCreate2(MonoObject* managedInstance, MonoArray* options)
 	{
-		TInlineArray<GUIOption, 4> vecoptions;
+		TInlineArray<GUIOption, 4> nativeArrayoptions;
 		if(options != nullptr)
 		{
-			ScriptArray arrayoptions(options);
-			vecoptions.resize(arrayoptions.Size());
-			for(int i = 0; i < (int)arrayoptions.Size(); i++)
+			ScriptArray scriptArrayoptions(options);
+			nativeArrayoptions.resize(scriptArrayoptions.Size());
+			for(int elementIndex = 0; elementIndex < (int)scriptArrayoptions.Size(); elementIndex++)
 			{
-				vecoptions[i] = arrayoptions.Get<GUIOption>(i);
+				nativeArrayoptions[elementIndex] = scriptArrayoptions.Get<GUIOption>(elementIndex);
 			}
 		}
-		GUITexture* instance = GUITexture::Create(vecoptions);
+		GUITexture* instance = GUITexture::Create(nativeArrayoptions);
 		new (B3DAllocate<ScriptGUITexture>())ScriptGUITexture(managedInstance, instance);
 	}
 }

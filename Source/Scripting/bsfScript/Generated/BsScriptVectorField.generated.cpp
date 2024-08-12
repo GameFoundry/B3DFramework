@@ -41,17 +41,17 @@ namespace bs
 	{
 		VECTOR_FIELD_DESC tmpdesc;
 		tmpdesc = ScriptVectorFieldOptions::FromInterop(*desc);
-		Vector<TVector3<float>> vecvalues;
+		Vector<TVector3<float>> nativeArrayvalues;
 		if(values != nullptr)
 		{
-			ScriptArray arrayvalues(values);
-			vecvalues.resize(arrayvalues.Size());
-			for(int i = 0; i < (int)arrayvalues.Size(); i++)
+			ScriptArray scriptArrayvalues(values);
+			nativeArrayvalues.resize(scriptArrayvalues.Size());
+			for(int elementIndex = 0; elementIndex < (int)scriptArrayvalues.Size(); elementIndex++)
 			{
-				vecvalues[i] = arrayvalues.Get<TVector3<float>>(i);
+				nativeArrayvalues[elementIndex] = scriptArrayvalues.Get<TVector3<float>>(elementIndex);
 			}
 		}
-		TResourceHandle<VectorField> instance = VectorField::Create(tmpdesc, vecvalues);
+		TResourceHandle<VectorField> instance = VectorField::Create(tmpdesc, nativeArrayvalues);
 		ScriptResourceManager::Instance().CreateBuiltinScriptResource(instance, managedInstance);
 	}
 }

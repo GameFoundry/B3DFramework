@@ -98,10 +98,10 @@ namespace bs
 	void ScriptAnimation::InternalSetDefaultClip(ScriptAnimation* thisPtr, MonoObject* clip)
 	{
 		TResourceHandle<AnimationClip> tmpclip;
-		ScriptRRefBase* scriptclip;
-		scriptclip = ScriptRRefBase::ToNative(clip);
-		if(scriptclip != nullptr)
-			tmpclip = B3DStaticResourceCast<AnimationClip>(scriptclip->GetHandle());
+		ScriptRRefBase* scriptObjectWrapperclip;
+		scriptObjectWrapperclip = ScriptRRefBase::ToNative(clip);
+		if(scriptObjectWrapperclip != nullptr)
+			tmpclip = B3DStaticResourceCast<AnimationClip>(scriptObjectWrapperclip->GetHandle());
 		thisPtr->GetHandle()->SetDefaultClip(tmpclip);
 	}
 
@@ -156,20 +156,20 @@ namespace bs
 	void ScriptAnimation::InternalPlay(ScriptAnimation* thisPtr, MonoObject* clip)
 	{
 		TResourceHandle<AnimationClip> tmpclip;
-		ScriptRRefBase* scriptclip;
-		scriptclip = ScriptRRefBase::ToNative(clip);
-		if(scriptclip != nullptr)
-			tmpclip = B3DStaticResourceCast<AnimationClip>(scriptclip->GetHandle());
+		ScriptRRefBase* scriptObjectWrapperclip;
+		scriptObjectWrapperclip = ScriptRRefBase::ToNative(clip);
+		if(scriptObjectWrapperclip != nullptr)
+			tmpclip = B3DStaticResourceCast<AnimationClip>(scriptObjectWrapperclip->GetHandle());
 		thisPtr->GetHandle()->Play(tmpclip);
 	}
 
 	void ScriptAnimation::InternalBlendAdditive(ScriptAnimation* thisPtr, MonoObject* clip, float weight, float fadeLength, uint32_t layer)
 	{
 		TResourceHandle<AnimationClip> tmpclip;
-		ScriptRRefBase* scriptclip;
-		scriptclip = ScriptRRefBase::ToNative(clip);
-		if(scriptclip != nullptr)
-			tmpclip = B3DStaticResourceCast<AnimationClip>(scriptclip->GetHandle());
+		ScriptRRefBase* scriptObjectWrapperclip;
+		scriptObjectWrapperclip = ScriptRRefBase::ToNative(clip);
+		if(scriptObjectWrapperclip != nullptr)
+			tmpclip = B3DStaticResourceCast<AnimationClip>(scriptObjectWrapperclip->GetHandle());
 		thisPtr->GetHandle()->BlendAdditive(tmpclip, weight, fadeLength, layer);
 	}
 
@@ -190,20 +190,20 @@ namespace bs
 	void ScriptAnimation::InternalCrossFade(ScriptAnimation* thisPtr, MonoObject* clip, float fadeLength)
 	{
 		TResourceHandle<AnimationClip> tmpclip;
-		ScriptRRefBase* scriptclip;
-		scriptclip = ScriptRRefBase::ToNative(clip);
-		if(scriptclip != nullptr)
-			tmpclip = B3DStaticResourceCast<AnimationClip>(scriptclip->GetHandle());
+		ScriptRRefBase* scriptObjectWrapperclip;
+		scriptObjectWrapperclip = ScriptRRefBase::ToNative(clip);
+		if(scriptObjectWrapperclip != nullptr)
+			tmpclip = B3DStaticResourceCast<AnimationClip>(scriptObjectWrapperclip->GetHandle());
 		thisPtr->GetHandle()->CrossFade(tmpclip, fadeLength);
 	}
 
 	void ScriptAnimation::InternalSample(ScriptAnimation* thisPtr, MonoObject* clip, float time)
 	{
 		TResourceHandle<AnimationClip> tmpclip;
-		ScriptRRefBase* scriptclip;
-		scriptclip = ScriptRRefBase::ToNative(clip);
-		if(scriptclip != nullptr)
-			tmpclip = B3DStaticResourceCast<AnimationClip>(scriptclip->GetHandle());
+		ScriptRRefBase* scriptObjectWrapperclip;
+		scriptObjectWrapperclip = ScriptRRefBase::ToNative(clip);
+		if(scriptObjectWrapperclip != nullptr)
+			tmpclip = B3DStaticResourceCast<AnimationClip>(scriptObjectWrapperclip->GetHandle());
 		thisPtr->GetHandle()->Sample(tmpclip, time);
 	}
 
@@ -232,10 +232,10 @@ namespace bs
 	{
 		bool tmp__output;
 		TResourceHandle<AnimationClip> tmpclip;
-		ScriptRRefBase* scriptclip;
-		scriptclip = ScriptRRefBase::ToNative(clip);
-		if(scriptclip != nullptr)
-			tmpclip = B3DStaticResourceCast<AnimationClip>(scriptclip->GetHandle());
+		ScriptRRefBase* scriptObjectWrapperclip;
+		scriptObjectWrapperclip = ScriptRRefBase::ToNative(clip);
+		if(scriptObjectWrapperclip != nullptr)
+			tmpclip = B3DStaticResourceCast<AnimationClip>(scriptObjectWrapperclip->GetHandle());
 		tmp__output = thisPtr->GetHandle()->GetState(tmpclip, *state);
 
 		bool __output;
@@ -247,10 +247,10 @@ namespace bs
 	void ScriptAnimation::InternalSetState(ScriptAnimation* thisPtr, MonoObject* clip, AnimationClipState* state)
 	{
 		TResourceHandle<AnimationClip> tmpclip;
-		ScriptRRefBase* scriptclip;
-		scriptclip = ScriptRRefBase::ToNative(clip);
-		if(scriptclip != nullptr)
-			tmpclip = B3DStaticResourceCast<AnimationClip>(scriptclip->GetHandle());
+		ScriptRRefBase* scriptObjectWrapperclip;
+		scriptObjectWrapperclip = ScriptRRefBase::ToNative(clip);
+		if(scriptObjectWrapperclip != nullptr)
+			tmpclip = B3DStaticResourceCast<AnimationClip>(scriptObjectWrapperclip->GetHandle());
 		thisPtr->GetHandle()->SetState(tmpclip, *state);
 	}
 

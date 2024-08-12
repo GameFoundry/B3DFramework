@@ -86,10 +86,10 @@ namespace bs
 	void ScriptResources::InternalReleaseInternalReference(MonoObject* resource)
 	{
 		TResourceHandle<Resource> tmpresource;
-		ScriptRRefBase* scriptresource;
-		scriptresource = ScriptRRefBase::ToNative(resource);
-		if(scriptresource != nullptr)
-			tmpresource = B3DStaticResourceCast<Resource>(scriptresource->GetHandle());
+		ScriptRRefBase* scriptObjectWrapperresource;
+		scriptObjectWrapperresource = ScriptRRefBase::ToNative(resource);
+		if(scriptObjectWrapperresource != nullptr)
+			tmpresource = B3DStaticResourceCast<Resource>(scriptObjectWrapperresource->GetHandle());
 		Resources::Instance().ReleaseInternalReference(tmpresource);
 	}
 
@@ -118,10 +118,10 @@ namespace bs
 	{
 		float tmp__output;
 		TResourceHandle<Resource> tmpresource;
-		ScriptRRefBase* scriptresource;
-		scriptresource = ScriptRRefBase::ToNative(resource);
-		if(scriptresource != nullptr)
-			tmpresource = B3DStaticResourceCast<Resource>(scriptresource->GetHandle());
+		ScriptRRefBase* scriptObjectWrapperresource;
+		scriptObjectWrapperresource = ScriptRRefBase::ToNative(resource);
+		if(scriptObjectWrapperresource != nullptr)
+			tmpresource = B3DStaticResourceCast<Resource>(scriptObjectWrapperresource->GetHandle());
 		tmp__output = Resources::Instance().GetLoadProgress(tmpresource);
 
 		float __output;

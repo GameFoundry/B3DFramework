@@ -271,10 +271,10 @@ namespace bs
 	void ScriptCamera::InternalSetRenderSettings(ScriptCamera* thisPtr, MonoObject* settings)
 	{
 		SPtr<RenderSettings> tmpsettings;
-		ScriptRenderSettings* scriptsettings;
-		scriptsettings = ScriptRenderSettings::ToNative(settings);
-		if(scriptsettings != nullptr)
-			tmpsettings = scriptsettings->GetInternal();
+		ScriptRenderSettings* scriptObjectWrappersettings;
+		scriptObjectWrappersettings = ScriptRenderSettings::ToNative(settings);
+		if(scriptObjectWrappersettings != nullptr)
+			tmpsettings = scriptObjectWrappersettings->GetInternal();
 		thisPtr->GetHandle()->SetRenderSettings(tmpsettings);
 	}
 

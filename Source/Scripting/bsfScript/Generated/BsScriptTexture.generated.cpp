@@ -190,26 +190,26 @@ namespace bs
 	void ScriptTexture::InternalSetPixels(ScriptTexture* thisPtr, MonoObject* data, uint32_t face, uint32_t mipLevel)
 	{
 		SPtr<PixelData> tmpdata;
-		ScriptPixelData* scriptdata;
-		scriptdata = ScriptPixelData::ToNative(data);
-		if(scriptdata != nullptr)
-			tmpdata = scriptdata->GetInternal();
+		ScriptPixelData* scriptObjectWrapperdata;
+		scriptObjectWrapperdata = ScriptPixelData::ToNative(data);
+		if(scriptObjectWrapperdata != nullptr)
+			tmpdata = scriptObjectWrapperdata->GetInternal();
 		TextureEx::SetPixels(thisPtr->GetHandle(), tmpdata, face, mipLevel);
 	}
 
 	void ScriptTexture::InternalSetPixelsArray(ScriptTexture* thisPtr, MonoArray* colors, uint32_t face, uint32_t mipLevel)
 	{
-		Vector<Color> veccolors;
+		Vector<Color> nativeArraycolors;
 		if(colors != nullptr)
 		{
-			ScriptArray arraycolors(colors);
-			veccolors.resize(arraycolors.Size());
-			for(int i = 0; i < (int)arraycolors.Size(); i++)
+			ScriptArray scriptArraycolors(colors);
+			nativeArraycolors.resize(scriptArraycolors.Size());
+			for(int elementIndex = 0; elementIndex < (int)scriptArraycolors.Size(); elementIndex++)
 			{
-				veccolors[i] = arraycolors.Get<Color>(i);
+				nativeArraycolors[elementIndex] = scriptArraycolors.Get<Color>(elementIndex);
 			}
 
 		}
-		TextureEx::SetPixelsArray(thisPtr->GetHandle(), veccolors, face, mipLevel);
+		TextureEx::SetPixelsArray(thisPtr->GetHandle(), nativeArraycolors, face, mipLevel);
 	}
 }

@@ -117,10 +117,10 @@ namespace bs
 	void ScriptRenderSettings::InternalSetDepthOfField(ScriptRenderSettings* thisPtr, MonoObject* value)
 	{
 		SPtr<DepthOfFieldSettings> tmpvalue;
-		ScriptDepthOfFieldSettings* scriptvalue;
-		scriptvalue = ScriptDepthOfFieldSettings::ToNative(value);
-		if(scriptvalue != nullptr)
-			tmpvalue = scriptvalue->GetInternal();
+		ScriptDepthOfFieldSettings* scriptObjectWrappervalue;
+		scriptObjectWrappervalue = ScriptDepthOfFieldSettings::ToNative(value);
+		if(scriptObjectWrappervalue != nullptr)
+			tmpvalue = scriptObjectWrappervalue->GetInternal();
 		thisPtr->GetInternal()->DepthOfField = *tmpvalue;
 	}
 
@@ -138,10 +138,10 @@ namespace bs
 	void ScriptRenderSettings::InternalSetChromaticAberration(ScriptRenderSettings* thisPtr, MonoObject* value)
 	{
 		SPtr<ChromaticAberrationSettings> tmpvalue;
-		ScriptChromaticAberrationSettings* scriptvalue;
-		scriptvalue = ScriptChromaticAberrationSettings::ToNative(value);
-		if(scriptvalue != nullptr)
-			tmpvalue = scriptvalue->GetInternal();
+		ScriptChromaticAberrationSettings* scriptObjectWrappervalue;
+		scriptObjectWrappervalue = ScriptChromaticAberrationSettings::ToNative(value);
+		if(scriptObjectWrappervalue != nullptr)
+			tmpvalue = scriptObjectWrappervalue->GetInternal();
 		thisPtr->GetInternal()->ChromaticAberration = *tmpvalue;
 	}
 
@@ -175,10 +175,10 @@ namespace bs
 	void ScriptRenderSettings::InternalSetAutoExposure(ScriptRenderSettings* thisPtr, MonoObject* value)
 	{
 		SPtr<AutoExposureSettings> tmpvalue;
-		ScriptAutoExposureSettings* scriptvalue;
-		scriptvalue = ScriptAutoExposureSettings::ToNative(value);
-		if(scriptvalue != nullptr)
-			tmpvalue = scriptvalue->GetInternal();
+		ScriptAutoExposureSettings* scriptObjectWrappervalue;
+		scriptObjectWrappervalue = ScriptAutoExposureSettings::ToNative(value);
+		if(scriptObjectWrappervalue != nullptr)
+			tmpvalue = scriptObjectWrappervalue->GetInternal();
 		thisPtr->GetInternal()->AutoExposure = *tmpvalue;
 	}
 
@@ -212,10 +212,10 @@ namespace bs
 	void ScriptRenderSettings::InternalSetTonemapping(ScriptRenderSettings* thisPtr, MonoObject* value)
 	{
 		SPtr<TonemappingSettings> tmpvalue;
-		ScriptTonemappingSettings* scriptvalue;
-		scriptvalue = ScriptTonemappingSettings::ToNative(value);
-		if(scriptvalue != nullptr)
-			tmpvalue = scriptvalue->GetInternal();
+		ScriptTonemappingSettings* scriptObjectWrappervalue;
+		scriptObjectWrappervalue = ScriptTonemappingSettings::ToNative(value);
+		if(scriptObjectWrappervalue != nullptr)
+			tmpvalue = scriptObjectWrappervalue->GetInternal();
 		thisPtr->GetInternal()->Tonemapping = *tmpvalue;
 	}
 
@@ -233,10 +233,10 @@ namespace bs
 	void ScriptRenderSettings::InternalSetWhiteBalance(ScriptRenderSettings* thisPtr, MonoObject* value)
 	{
 		SPtr<WhiteBalanceSettings> tmpvalue;
-		ScriptWhiteBalanceSettings* scriptvalue;
-		scriptvalue = ScriptWhiteBalanceSettings::ToNative(value);
-		if(scriptvalue != nullptr)
-			tmpvalue = scriptvalue->GetInternal();
+		ScriptWhiteBalanceSettings* scriptObjectWrappervalue;
+		scriptObjectWrappervalue = ScriptWhiteBalanceSettings::ToNative(value);
+		if(scriptObjectWrappervalue != nullptr)
+			tmpvalue = scriptObjectWrappervalue->GetInternal();
 		thisPtr->GetInternal()->WhiteBalance = *tmpvalue;
 	}
 
@@ -254,10 +254,10 @@ namespace bs
 	void ScriptRenderSettings::InternalSetColorGrading(ScriptRenderSettings* thisPtr, MonoObject* value)
 	{
 		SPtr<ColorGradingSettings> tmpvalue;
-		ScriptColorGradingSettings* scriptvalue;
-		scriptvalue = ScriptColorGradingSettings::ToNative(value);
-		if(scriptvalue != nullptr)
-			tmpvalue = scriptvalue->GetInternal();
+		ScriptColorGradingSettings* scriptObjectWrappervalue;
+		scriptObjectWrappervalue = ScriptColorGradingSettings::ToNative(value);
+		if(scriptObjectWrappervalue != nullptr)
+			tmpvalue = scriptObjectWrappervalue->GetInternal();
 		thisPtr->GetInternal()->ColorGrading = *tmpvalue;
 	}
 
@@ -275,10 +275,10 @@ namespace bs
 	void ScriptRenderSettings::InternalSetAmbientOcclusion(ScriptRenderSettings* thisPtr, MonoObject* value)
 	{
 		SPtr<AmbientOcclusionSettings> tmpvalue;
-		ScriptAmbientOcclusionSettings* scriptvalue;
-		scriptvalue = ScriptAmbientOcclusionSettings::ToNative(value);
-		if(scriptvalue != nullptr)
-			tmpvalue = scriptvalue->GetInternal();
+		ScriptAmbientOcclusionSettings* scriptObjectWrappervalue;
+		scriptObjectWrappervalue = ScriptAmbientOcclusionSettings::ToNative(value);
+		if(scriptObjectWrappervalue != nullptr)
+			tmpvalue = scriptObjectWrappervalue->GetInternal();
 		thisPtr->GetInternal()->AmbientOcclusion = *tmpvalue;
 	}
 
@@ -296,10 +296,10 @@ namespace bs
 	void ScriptRenderSettings::InternalSetScreenSpaceReflections(ScriptRenderSettings* thisPtr, MonoObject* value)
 	{
 		SPtr<ScreenSpaceReflectionsSettings> tmpvalue;
-		ScriptScreenSpaceReflectionsSettings* scriptvalue;
-		scriptvalue = ScriptScreenSpaceReflectionsSettings::ToNative(value);
-		if(scriptvalue != nullptr)
-			tmpvalue = scriptvalue->GetInternal();
+		ScriptScreenSpaceReflectionsSettings* scriptObjectWrappervalue;
+		scriptObjectWrappervalue = ScriptScreenSpaceReflectionsSettings::ToNative(value);
+		if(scriptObjectWrappervalue != nullptr)
+			tmpvalue = scriptObjectWrappervalue->GetInternal();
 		thisPtr->GetInternal()->ScreenSpaceReflections = *tmpvalue;
 	}
 
@@ -317,10 +317,10 @@ namespace bs
 	void ScriptRenderSettings::InternalSetBloom(ScriptRenderSettings* thisPtr, MonoObject* value)
 	{
 		SPtr<BloomSettings> tmpvalue;
-		ScriptBloomSettings* scriptvalue;
-		scriptvalue = ScriptBloomSettings::ToNative(value);
-		if(scriptvalue != nullptr)
-			tmpvalue = scriptvalue->GetInternal();
+		ScriptBloomSettings* scriptObjectWrappervalue;
+		scriptObjectWrappervalue = ScriptBloomSettings::ToNative(value);
+		if(scriptObjectWrappervalue != nullptr)
+			tmpvalue = scriptObjectWrappervalue->GetInternal();
 		thisPtr->GetInternal()->Bloom = *tmpvalue;
 	}
 
@@ -338,10 +338,10 @@ namespace bs
 	void ScriptRenderSettings::InternalSetScreenSpaceLensFlare(ScriptRenderSettings* thisPtr, MonoObject* value)
 	{
 		SPtr<ScreenSpaceLensFlareSettings> tmpvalue;
-		ScriptScreenSpaceLensFlareSettings* scriptvalue;
-		scriptvalue = ScriptScreenSpaceLensFlareSettings::ToNative(value);
-		if(scriptvalue != nullptr)
-			tmpvalue = scriptvalue->GetInternal();
+		ScriptScreenSpaceLensFlareSettings* scriptObjectWrappervalue;
+		scriptObjectWrappervalue = ScriptScreenSpaceLensFlareSettings::ToNative(value);
+		if(scriptObjectWrappervalue != nullptr)
+			tmpvalue = scriptObjectWrappervalue->GetInternal();
 		thisPtr->GetInternal()->ScreenSpaceLensFlare = *tmpvalue;
 	}
 
@@ -359,10 +359,10 @@ namespace bs
 	void ScriptRenderSettings::InternalSetFilmGrain(ScriptRenderSettings* thisPtr, MonoObject* value)
 	{
 		SPtr<FilmGrainSettings> tmpvalue;
-		ScriptFilmGrainSettings* scriptvalue;
-		scriptvalue = ScriptFilmGrainSettings::ToNative(value);
-		if(scriptvalue != nullptr)
-			tmpvalue = scriptvalue->GetInternal();
+		ScriptFilmGrainSettings* scriptObjectWrappervalue;
+		scriptObjectWrappervalue = ScriptFilmGrainSettings::ToNative(value);
+		if(scriptObjectWrappervalue != nullptr)
+			tmpvalue = scriptObjectWrappervalue->GetInternal();
 		thisPtr->GetInternal()->FilmGrain = *tmpvalue;
 	}
 
@@ -380,10 +380,10 @@ namespace bs
 	void ScriptRenderSettings::InternalSetMotionBlur(ScriptRenderSettings* thisPtr, MonoObject* value)
 	{
 		SPtr<MotionBlurSettings> tmpvalue;
-		ScriptMotionBlurSettings* scriptvalue;
-		scriptvalue = ScriptMotionBlurSettings::ToNative(value);
-		if(scriptvalue != nullptr)
-			tmpvalue = scriptvalue->GetInternal();
+		ScriptMotionBlurSettings* scriptObjectWrappervalue;
+		scriptObjectWrappervalue = ScriptMotionBlurSettings::ToNative(value);
+		if(scriptObjectWrappervalue != nullptr)
+			tmpvalue = scriptObjectWrappervalue->GetInternal();
 		thisPtr->GetInternal()->MotionBlur = *tmpvalue;
 	}
 
@@ -401,10 +401,10 @@ namespace bs
 	void ScriptRenderSettings::InternalSetTemporalAa(ScriptRenderSettings* thisPtr, MonoObject* value)
 	{
 		SPtr<TemporalAASettings> tmpvalue;
-		ScriptTemporalAASettings* scriptvalue;
-		scriptvalue = ScriptTemporalAASettings::ToNative(value);
-		if(scriptvalue != nullptr)
-			tmpvalue = scriptvalue->GetInternal();
+		ScriptTemporalAASettings* scriptObjectWrappervalue;
+		scriptObjectWrappervalue = ScriptTemporalAASettings::ToNative(value);
+		if(scriptObjectWrappervalue != nullptr)
+			tmpvalue = scriptObjectWrappervalue->GetInternal();
 		thisPtr->GetInternal()->TemporalAa = *tmpvalue;
 	}
 
@@ -534,10 +534,10 @@ namespace bs
 	void ScriptRenderSettings::InternalSetShadowSettings(ScriptRenderSettings* thisPtr, MonoObject* value)
 	{
 		SPtr<ShadowSettings> tmpvalue;
-		ScriptShadowSettings* scriptvalue;
-		scriptvalue = ScriptShadowSettings::ToNative(value);
-		if(scriptvalue != nullptr)
-			tmpvalue = scriptvalue->GetInternal();
+		ScriptShadowSettings* scriptObjectWrappervalue;
+		scriptObjectWrappervalue = ScriptShadowSettings::ToNative(value);
+		if(scriptObjectWrappervalue != nullptr)
+			tmpvalue = scriptObjectWrappervalue->GetInternal();
 		thisPtr->GetInternal()->ShadowSettings = *tmpvalue;
 	}
 

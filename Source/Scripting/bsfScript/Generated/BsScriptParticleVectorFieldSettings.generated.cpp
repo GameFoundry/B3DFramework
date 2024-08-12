@@ -73,10 +73,10 @@ namespace bs
 	void ScriptParticleVectorFieldSettings::InternalSetVectorField(ScriptParticleVectorFieldSettings* thisPtr, MonoObject* value)
 	{
 		TResourceHandle<VectorField> tmpvalue;
-		ScriptRRefBase* scriptvalue;
-		scriptvalue = ScriptRRefBase::ToNative(value);
-		if(scriptvalue != nullptr)
-			tmpvalue = B3DStaticResourceCast<VectorField>(scriptvalue->GetHandle());
+		ScriptRRefBase* scriptObjectWrappervalue;
+		scriptObjectWrappervalue = ScriptRRefBase::ToNative(value);
+		if(scriptObjectWrappervalue != nullptr)
+			tmpvalue = B3DStaticResourceCast<VectorField>(scriptObjectWrappervalue->GetHandle());
 		thisPtr->GetInternal()->VectorField = tmpvalue;
 	}
 
@@ -171,10 +171,10 @@ namespace bs
 	void ScriptParticleVectorFieldSettings::InternalSetRotationRate(ScriptParticleVectorFieldSettings* thisPtr, MonoObject* value)
 	{
 		SPtr<TDistribution<TVector3<float>>> tmpvalue;
-		ScriptVector3Distribution* scriptvalue;
-		scriptvalue = ScriptVector3Distribution::ToNative(value);
-		if(scriptvalue != nullptr)
-			tmpvalue = scriptvalue->GetInternal();
+		ScriptVector3Distribution* scriptObjectWrappervalue;
+		scriptObjectWrappervalue = ScriptVector3Distribution::ToNative(value);
+		if(scriptObjectWrappervalue != nullptr)
+			tmpvalue = scriptObjectWrappervalue->GetInternal();
 		thisPtr->GetInternal()->RotationRate = *tmpvalue;
 	}
 

@@ -88,17 +88,17 @@ namespace bs
 
 	MonoArray* ScriptAudio::InternalGetAllDevices()
 	{
-		Vector<AudioDevice> vec__output;
-		vec__output = Audio::Instance().GetAllDevices();
+		Vector<AudioDevice> nativeArray__output;
+		nativeArray__output = Audio::Instance().GetAllDevices();
 
 		MonoArray* __output;
-		int arraySize__output = (int)vec__output.size();
-		ScriptArray array__output = ScriptArray::Create<ScriptAudioDevice>(arraySize__output);
-		for(int i = 0; i < arraySize__output; i++)
+		int elementCount__output = (int)nativeArray__output.size();
+		ScriptArray scriptArray__output = ScriptArray::Create<ScriptAudioDevice>(elementCount__output);
+		for(int elementIndex = 0; elementIndex < elementCount__output; elementIndex++)
 		{
-			array__output.Set(i, ScriptAudioDevice::ToInterop(vec__output[i]));
+			scriptArray__output.Set(elementIndex, ScriptAudioDevice::ToInterop(nativeArray__output[elementIndex]));
 		}
-		__output = array__output.GetInternal();
+		__output = scriptArray__output.GetInternal();
 
 		return __output;
 	}

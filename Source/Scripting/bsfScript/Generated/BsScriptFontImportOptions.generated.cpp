@@ -52,68 +52,68 @@ namespace bs
 	}
 	MonoArray* ScriptFontImportOptions::InternalGetFontSizes(ScriptFontImportOptions* thisPtr)
 	{
-		Vector<float> vec__output;
-		vec__output = thisPtr->GetInternal()->FontSizes;
+		Vector<float> nativeArray__output;
+		nativeArray__output = thisPtr->GetInternal()->FontSizes;
 
 		MonoArray* __output;
-		int arraySize__output = (int)vec__output.size();
-		ScriptArray array__output = ScriptArray::Create<float>(arraySize__output);
-		for(int i = 0; i < arraySize__output; i++)
+		int elementCount__output = (int)nativeArray__output.size();
+		ScriptArray scriptArray__output = ScriptArray::Create<float>(elementCount__output);
+		for(int elementIndex = 0; elementIndex < elementCount__output; elementIndex++)
 		{
-			array__output.Set(i, vec__output[i]);
+			scriptArray__output.Set(elementIndex, nativeArray__output[elementIndex]);
 		}
-		__output = array__output.GetInternal();
+		__output = scriptArray__output.GetInternal();
 
 		return __output;
 	}
 
 	void ScriptFontImportOptions::InternalSetFontSizes(ScriptFontImportOptions* thisPtr, MonoArray* value)
 	{
-		Vector<float> vecvalue;
+		Vector<float> nativeArrayvalue;
 		if(value != nullptr)
 		{
-			ScriptArray arrayvalue(value);
-			vecvalue.resize(arrayvalue.Size());
-			for(int i = 0; i < (int)arrayvalue.Size(); i++)
+			ScriptArray scriptArrayvalue(value);
+			nativeArrayvalue.resize(scriptArrayvalue.Size());
+			for(int elementIndex = 0; elementIndex < (int)scriptArrayvalue.Size(); elementIndex++)
 			{
-				vecvalue[i] = arrayvalue.Get<float>(i);
+				nativeArrayvalue[elementIndex] = scriptArrayvalue.Get<float>(elementIndex);
 			}
 
 		}
-		thisPtr->GetInternal()->FontSizes = vecvalue;
+		thisPtr->GetInternal()->FontSizes = nativeArrayvalue;
 	}
 
 	MonoArray* ScriptFontImportOptions::InternalGetCharIndexRanges(ScriptFontImportOptions* thisPtr)
 	{
-		Vector<CharRange> vec__output;
-		vec__output = thisPtr->GetInternal()->CharIndexRanges;
+		Vector<CharRange> nativeArray__output;
+		nativeArray__output = thisPtr->GetInternal()->CharIndexRanges;
 
 		MonoArray* __output;
-		int arraySize__output = (int)vec__output.size();
-		ScriptArray array__output = ScriptArray::Create<ScriptCharRange>(arraySize__output);
-		for(int i = 0; i < arraySize__output; i++)
+		int elementCount__output = (int)nativeArray__output.size();
+		ScriptArray scriptArray__output = ScriptArray::Create<ScriptCharRange>(elementCount__output);
+		for(int elementIndex = 0; elementIndex < elementCount__output; elementIndex++)
 		{
-			array__output.Set(i, vec__output[i]);
+			scriptArray__output.Set(elementIndex, nativeArray__output[elementIndex]);
 		}
-		__output = array__output.GetInternal();
+		__output = scriptArray__output.GetInternal();
 
 		return __output;
 	}
 
 	void ScriptFontImportOptions::InternalSetCharIndexRanges(ScriptFontImportOptions* thisPtr, MonoArray* value)
 	{
-		Vector<CharRange> vecvalue;
+		Vector<CharRange> nativeArrayvalue;
 		if(value != nullptr)
 		{
-			ScriptArray arrayvalue(value);
-			vecvalue.resize(arrayvalue.Size());
-			for(int i = 0; i < (int)arrayvalue.Size(); i++)
+			ScriptArray scriptArrayvalue(value);
+			nativeArrayvalue.resize(scriptArrayvalue.Size());
+			for(int elementIndex = 0; elementIndex < (int)scriptArrayvalue.Size(); elementIndex++)
 			{
-				vecvalue[i] = arrayvalue.Get<CharRange>(i);
+				nativeArrayvalue[elementIndex] = scriptArrayvalue.Get<CharRange>(elementIndex);
 			}
 
 		}
-		thisPtr->GetInternal()->CharIndexRanges = vecvalue;
+		thisPtr->GetInternal()->CharIndexRanges = nativeArrayvalue;
 	}
 
 	uint32_t ScriptFontImportOptions::InternalGetDpi(ScriptFontImportOptions* thisPtr)

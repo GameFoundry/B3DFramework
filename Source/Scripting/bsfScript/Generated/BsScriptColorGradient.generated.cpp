@@ -55,49 +55,49 @@ namespace bs
 
 	void ScriptColorGradient::InternalColorGradient1(MonoObject* managedInstance, MonoArray* keys)
 	{
-		Vector<ColorGradientKey> veckeys;
+		Vector<ColorGradientKey> nativeArraykeys;
 		if(keys != nullptr)
 		{
-			ScriptArray arraykeys(keys);
-			veckeys.resize(arraykeys.Size());
-			for(int i = 0; i < (int)arraykeys.Size(); i++)
+			ScriptArray scriptArraykeys(keys);
+			nativeArraykeys.resize(scriptArraykeys.Size());
+			for(int elementIndex = 0; elementIndex < (int)scriptArraykeys.Size(); elementIndex++)
 			{
-				veckeys[i] = ScriptColorGradientKey::FromInterop(arraykeys.Get<__ColorGradientKeyInterop>(i));
+				nativeArraykeys[elementIndex] = ScriptColorGradientKey::FromInterop(scriptArraykeys.Get<__ColorGradientKeyInterop>(elementIndex));
 			}
 		}
-		SPtr<ColorGradient> instance = B3DMakeShared<ColorGradient>(veckeys);
+		SPtr<ColorGradient> instance = B3DMakeShared<ColorGradient>(nativeArraykeys);
 		new (B3DAllocate<ScriptColorGradient>())ScriptColorGradient(managedInstance, instance);
 	}
 
 	void ScriptColorGradient::InternalSetKeys(ScriptColorGradient* thisPtr, MonoArray* keys, float duration)
 	{
-		Vector<ColorGradientKey> veckeys;
+		Vector<ColorGradientKey> nativeArraykeys;
 		if(keys != nullptr)
 		{
-			ScriptArray arraykeys(keys);
-			veckeys.resize(arraykeys.Size());
-			for(int i = 0; i < (int)arraykeys.Size(); i++)
+			ScriptArray scriptArraykeys(keys);
+			nativeArraykeys.resize(scriptArraykeys.Size());
+			for(int elementIndex = 0; elementIndex < (int)scriptArraykeys.Size(); elementIndex++)
 			{
-				veckeys[i] = ScriptColorGradientKey::FromInterop(arraykeys.Get<__ColorGradientKeyInterop>(i));
+				nativeArraykeys[elementIndex] = ScriptColorGradientKey::FromInterop(scriptArraykeys.Get<__ColorGradientKeyInterop>(elementIndex));
 			}
 
 		}
-		thisPtr->GetInternal()->SetKeys(veckeys, duration);
+		thisPtr->GetInternal()->SetKeys(nativeArraykeys, duration);
 	}
 
 	MonoArray* ScriptColorGradient::InternalGetKeys(ScriptColorGradient* thisPtr)
 	{
-		Vector<ColorGradientKey> vec__output;
-		vec__output = thisPtr->GetInternal()->GetKeys();
+		Vector<ColorGradientKey> nativeArray__output;
+		nativeArray__output = thisPtr->GetInternal()->GetKeys();
 
 		MonoArray* __output;
-		int arraySize__output = (int)vec__output.size();
-		ScriptArray array__output = ScriptArray::Create<ScriptColorGradientKey>(arraySize__output);
-		for(int i = 0; i < arraySize__output; i++)
+		int elementCount__output = (int)nativeArray__output.size();
+		ScriptArray scriptArray__output = ScriptArray::Create<ScriptColorGradientKey>(elementCount__output);
+		for(int elementIndex = 0; elementIndex < elementCount__output; elementIndex++)
 		{
-			array__output.Set(i, ScriptColorGradientKey::ToInterop(vec__output[i]));
+			scriptArray__output.Set(elementIndex, ScriptColorGradientKey::ToInterop(nativeArray__output[elementIndex]));
 		}
-		__output = array__output.GetInternal();
+		__output = scriptArray__output.GetInternal();
 
 		return __output;
 	}

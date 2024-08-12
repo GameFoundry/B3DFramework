@@ -154,17 +154,17 @@ namespace bs
 
 	MonoArray* ScriptShaderVariationParameters::InternalGetParamNames(ScriptShaderVariationParameters* thisPtr)
 	{
-		Vector<String> vec__output;
-		vec__output = thisPtr->GetInternal()->GetParamNames();
+		Vector<String> nativeArray__output;
+		nativeArray__output = thisPtr->GetInternal()->GetParamNames();
 
 		MonoArray* __output;
-		int arraySize__output = (int)vec__output.size();
-		ScriptArray array__output = ScriptArray::Create<String>(arraySize__output);
-		for(int i = 0; i < arraySize__output; i++)
+		int elementCount__output = (int)nativeArray__output.size();
+		ScriptArray scriptArray__output = ScriptArray::Create<String>(elementCount__output);
+		for(int elementIndex = 0; elementIndex < elementCount__output; elementIndex++)
 		{
-			array__output.Set(i, vec__output[i]);
+			scriptArray__output.Set(elementIndex, nativeArray__output[elementIndex]);
 		}
-		__output = array__output.GetInternal();
+		__output = scriptArray__output.GetInternal();
 
 		return __output;
 	}

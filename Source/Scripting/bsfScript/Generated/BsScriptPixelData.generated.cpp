@@ -136,65 +136,65 @@ namespace bs
 
 	MonoArray* ScriptPixelData::InternalGetPixels(ScriptPixelData* thisPtr)
 	{
-		Vector<Color> vec__output;
-		vec__output = PixelDataEx::GetPixels(thisPtr->GetInternal());
+		Vector<Color> nativeArray__output;
+		nativeArray__output = PixelDataEx::GetPixels(thisPtr->GetInternal());
 
 		MonoArray* __output;
-		int arraySize__output = (int)vec__output.size();
-		ScriptArray array__output = ScriptArray::Create<ScriptColor>(arraySize__output);
-		for(int i = 0; i < arraySize__output; i++)
+		int elementCount__output = (int)nativeArray__output.size();
+		ScriptArray scriptArray__output = ScriptArray::Create<ScriptColor>(elementCount__output);
+		for(int elementIndex = 0; elementIndex < elementCount__output; elementIndex++)
 		{
-			array__output.Set(i, vec__output[i]);
+			scriptArray__output.Set(elementIndex, nativeArray__output[elementIndex]);
 		}
-		__output = array__output.GetInternal();
+		__output = scriptArray__output.GetInternal();
 
 		return __output;
 	}
 
 	void ScriptPixelData::InternalSetPixels(ScriptPixelData* thisPtr, MonoArray* value)
 	{
-		Vector<Color> vecvalue;
+		Vector<Color> nativeArrayvalue;
 		if(value != nullptr)
 		{
-			ScriptArray arrayvalue(value);
-			vecvalue.resize(arrayvalue.Size());
-			for(int i = 0; i < (int)arrayvalue.Size(); i++)
+			ScriptArray scriptArrayvalue(value);
+			nativeArrayvalue.resize(scriptArrayvalue.Size());
+			for(int elementIndex = 0; elementIndex < (int)scriptArrayvalue.Size(); elementIndex++)
 			{
-				vecvalue[i] = arrayvalue.Get<Color>(i);
+				nativeArrayvalue[elementIndex] = scriptArrayvalue.Get<Color>(elementIndex);
 			}
 		}
-		PixelDataEx::SetPixels(thisPtr->GetInternal(), vecvalue);
+		PixelDataEx::SetPixels(thisPtr->GetInternal(), nativeArrayvalue);
 	}
 
 	MonoArray* ScriptPixelData::InternalGetRawPixels(ScriptPixelData* thisPtr)
 	{
-		Vector<char> vec__output;
-		vec__output = PixelDataEx::GetRawPixels(thisPtr->GetInternal());
+		Vector<char> nativeArray__output;
+		nativeArray__output = PixelDataEx::GetRawPixels(thisPtr->GetInternal());
 
 		MonoArray* __output;
-		int arraySize__output = (int)vec__output.size();
-		ScriptArray array__output = ScriptArray::Create<char>(arraySize__output);
-		for(int i = 0; i < arraySize__output; i++)
+		int elementCount__output = (int)nativeArray__output.size();
+		ScriptArray scriptArray__output = ScriptArray::Create<char>(elementCount__output);
+		for(int elementIndex = 0; elementIndex < elementCount__output; elementIndex++)
 		{
-			array__output.Set(i, vec__output[i]);
+			scriptArray__output.Set(elementIndex, nativeArray__output[elementIndex]);
 		}
-		__output = array__output.GetInternal();
+		__output = scriptArray__output.GetInternal();
 
 		return __output;
 	}
 
 	void ScriptPixelData::InternalSetRawPixels(ScriptPixelData* thisPtr, MonoArray* value)
 	{
-		Vector<char> vecvalue;
+		Vector<char> nativeArrayvalue;
 		if(value != nullptr)
 		{
-			ScriptArray arrayvalue(value);
-			vecvalue.resize(arrayvalue.Size());
-			for(int i = 0; i < (int)arrayvalue.Size(); i++)
+			ScriptArray scriptArrayvalue(value);
+			nativeArrayvalue.resize(scriptArrayvalue.Size());
+			for(int elementIndex = 0; elementIndex < (int)scriptArrayvalue.Size(); elementIndex++)
 			{
-				vecvalue[i] = arrayvalue.Get<char>(i);
+				nativeArrayvalue[elementIndex] = scriptArrayvalue.Get<char>(elementIndex);
 			}
 		}
-		PixelDataEx::SetRawPixels(thisPtr->GetInternal(), vecvalue);
+		PixelDataEx::SetRawPixels(thisPtr->GetInternal(), nativeArrayvalue);
 	}
 }

@@ -40,17 +40,17 @@ namespace bs
 		tmpcontents = ScriptGUIContent::FromInterop(*contents);
 		String tmpstyleClass;
 		tmpstyleClass = MonoUtil::MonoToString(styleClass);
-		TInlineArray<GUIOption, 4> vecoptions;
+		TInlineArray<GUIOption, 4> nativeArrayoptions;
 		if(options != nullptr)
 		{
-			ScriptArray arrayoptions(options);
-			vecoptions.resize(arrayoptions.Size());
-			for(int i = 0; i < (int)arrayoptions.Size(); i++)
+			ScriptArray scriptArrayoptions(options);
+			nativeArrayoptions.resize(scriptArrayoptions.Size());
+			for(int elementIndex = 0; elementIndex < (int)scriptArrayoptions.Size(); elementIndex++)
 			{
-				vecoptions[i] = arrayoptions.Get<GUIOption>(i);
+				nativeArrayoptions[elementIndex] = scriptArrayoptions.Get<GUIOption>(elementIndex);
 			}
 		}
-		GUILabel* instance = GUILabel::Create(tmpcontents, tmpstyleClass, vecoptions);
+		GUILabel* instance = GUILabel::Create(tmpcontents, tmpstyleClass, nativeArrayoptions);
 		new (B3DAllocate<ScriptGUILabel>())ScriptGUILabel(managedInstance, instance);
 	}
 
@@ -58,17 +58,17 @@ namespace bs
 	{
 		GUIContent tmpcontents;
 		tmpcontents = ScriptGUIContent::FromInterop(*contents);
-		TInlineArray<GUIOption, 4> vecoptions;
+		TInlineArray<GUIOption, 4> nativeArrayoptions;
 		if(options != nullptr)
 		{
-			ScriptArray arrayoptions(options);
-			vecoptions.resize(arrayoptions.Size());
-			for(int i = 0; i < (int)arrayoptions.Size(); i++)
+			ScriptArray scriptArrayoptions(options);
+			nativeArrayoptions.resize(scriptArrayoptions.Size());
+			for(int elementIndex = 0; elementIndex < (int)scriptArrayoptions.Size(); elementIndex++)
 			{
-				vecoptions[i] = arrayoptions.Get<GUIOption>(i);
+				nativeArrayoptions[elementIndex] = scriptArrayoptions.Get<GUIOption>(elementIndex);
 			}
 		}
-		GUILabel* instance = GUILabel::Create(tmpcontents, vecoptions);
+		GUILabel* instance = GUILabel::Create(tmpcontents, nativeArrayoptions);
 		new (B3DAllocate<ScriptGUILabel>())ScriptGUILabel(managedInstance, instance);
 	}
 
@@ -76,33 +76,33 @@ namespace bs
 	{
 		String tmpstyleClass;
 		tmpstyleClass = MonoUtil::MonoToString(styleClass);
-		TInlineArray<GUIOption, 4> vecoptions;
+		TInlineArray<GUIOption, 4> nativeArrayoptions;
 		if(options != nullptr)
 		{
-			ScriptArray arrayoptions(options);
-			vecoptions.resize(arrayoptions.Size());
-			for(int i = 0; i < (int)arrayoptions.Size(); i++)
+			ScriptArray scriptArrayoptions(options);
+			nativeArrayoptions.resize(scriptArrayoptions.Size());
+			for(int elementIndex = 0; elementIndex < (int)scriptArrayoptions.Size(); elementIndex++)
 			{
-				vecoptions[i] = arrayoptions.Get<GUIOption>(i);
+				nativeArrayoptions[elementIndex] = scriptArrayoptions.Get<GUIOption>(elementIndex);
 			}
 		}
-		GUILabel* instance = GUILabel::Create(tmpstyleClass, vecoptions);
+		GUILabel* instance = GUILabel::Create(tmpstyleClass, nativeArrayoptions);
 		new (B3DAllocate<ScriptGUILabel>())ScriptGUILabel(managedInstance, instance);
 	}
 
 	void ScriptGUILabel::InternalCreate2(MonoObject* managedInstance, MonoArray* options)
 	{
-		TInlineArray<GUIOption, 4> vecoptions;
+		TInlineArray<GUIOption, 4> nativeArrayoptions;
 		if(options != nullptr)
 		{
-			ScriptArray arrayoptions(options);
-			vecoptions.resize(arrayoptions.Size());
-			for(int i = 0; i < (int)arrayoptions.Size(); i++)
+			ScriptArray scriptArrayoptions(options);
+			nativeArrayoptions.resize(scriptArrayoptions.Size());
+			for(int elementIndex = 0; elementIndex < (int)scriptArrayoptions.Size(); elementIndex++)
 			{
-				vecoptions[i] = arrayoptions.Get<GUIOption>(i);
+				nativeArrayoptions[elementIndex] = scriptArrayoptions.Get<GUIOption>(elementIndex);
 			}
 		}
-		GUILabel* instance = GUILabel::Create(vecoptions);
+		GUILabel* instance = GUILabel::Create(nativeArrayoptions);
 		new (B3DAllocate<ScriptGUILabel>())ScriptGUILabel(managedInstance, instance);
 	}
 }

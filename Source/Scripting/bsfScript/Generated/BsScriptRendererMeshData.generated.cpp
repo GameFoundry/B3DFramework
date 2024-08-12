@@ -63,258 +63,258 @@ namespace bs
 
 	MonoArray* ScriptMeshData::InternalGetPositions(ScriptMeshData* thisPtr)
 	{
-		Vector<TVector3<float>> vec__output;
-		vec__output = MeshDataEx::GetPositions(thisPtr->GetInternal());
+		Vector<TVector3<float>> nativeArray__output;
+		nativeArray__output = MeshDataEx::GetPositions(thisPtr->GetInternal());
 
 		MonoArray* __output;
-		int arraySize__output = (int)vec__output.size();
-		ScriptArray array__output = ScriptArray::Create<ScriptVector3>(arraySize__output);
-		for(int i = 0; i < arraySize__output; i++)
+		int elementCount__output = (int)nativeArray__output.size();
+		ScriptArray scriptArray__output = ScriptArray::Create<ScriptVector3>(elementCount__output);
+		for(int elementIndex = 0; elementIndex < elementCount__output; elementIndex++)
 		{
-			array__output.Set(i, vec__output[i]);
+			scriptArray__output.Set(elementIndex, nativeArray__output[elementIndex]);
 		}
-		__output = array__output.GetInternal();
+		__output = scriptArray__output.GetInternal();
 
 		return __output;
 	}
 
 	void ScriptMeshData::InternalSetPositions(ScriptMeshData* thisPtr, MonoArray* value)
 	{
-		Vector<TVector3<float>> vecvalue;
+		Vector<TVector3<float>> nativeArrayvalue;
 		if(value != nullptr)
 		{
-			ScriptArray arrayvalue(value);
-			vecvalue.resize(arrayvalue.Size());
-			for(int i = 0; i < (int)arrayvalue.Size(); i++)
+			ScriptArray scriptArrayvalue(value);
+			nativeArrayvalue.resize(scriptArrayvalue.Size());
+			for(int elementIndex = 0; elementIndex < (int)scriptArrayvalue.Size(); elementIndex++)
 			{
-				vecvalue[i] = arrayvalue.Get<TVector3<float>>(i);
+				nativeArrayvalue[elementIndex] = scriptArrayvalue.Get<TVector3<float>>(elementIndex);
 			}
 		}
-		MeshDataEx::SetPositions(thisPtr->GetInternal(), vecvalue);
+		MeshDataEx::SetPositions(thisPtr->GetInternal(), nativeArrayvalue);
 	}
 
 	MonoArray* ScriptMeshData::InternalGetNormals(ScriptMeshData* thisPtr)
 	{
-		Vector<TVector3<float>> vec__output;
-		vec__output = MeshDataEx::GetNormals(thisPtr->GetInternal());
+		Vector<TVector3<float>> nativeArray__output;
+		nativeArray__output = MeshDataEx::GetNormals(thisPtr->GetInternal());
 
 		MonoArray* __output;
-		int arraySize__output = (int)vec__output.size();
-		ScriptArray array__output = ScriptArray::Create<ScriptVector3>(arraySize__output);
-		for(int i = 0; i < arraySize__output; i++)
+		int elementCount__output = (int)nativeArray__output.size();
+		ScriptArray scriptArray__output = ScriptArray::Create<ScriptVector3>(elementCount__output);
+		for(int elementIndex = 0; elementIndex < elementCount__output; elementIndex++)
 		{
-			array__output.Set(i, vec__output[i]);
+			scriptArray__output.Set(elementIndex, nativeArray__output[elementIndex]);
 		}
-		__output = array__output.GetInternal();
+		__output = scriptArray__output.GetInternal();
 
 		return __output;
 	}
 
 	void ScriptMeshData::InternalSetNormals(ScriptMeshData* thisPtr, MonoArray* value)
 	{
-		Vector<TVector3<float>> vecvalue;
+		Vector<TVector3<float>> nativeArrayvalue;
 		if(value != nullptr)
 		{
-			ScriptArray arrayvalue(value);
-			vecvalue.resize(arrayvalue.Size());
-			for(int i = 0; i < (int)arrayvalue.Size(); i++)
+			ScriptArray scriptArrayvalue(value);
+			nativeArrayvalue.resize(scriptArrayvalue.Size());
+			for(int elementIndex = 0; elementIndex < (int)scriptArrayvalue.Size(); elementIndex++)
 			{
-				vecvalue[i] = arrayvalue.Get<TVector3<float>>(i);
+				nativeArrayvalue[elementIndex] = scriptArrayvalue.Get<TVector3<float>>(elementIndex);
 			}
 		}
-		MeshDataEx::SetNormals(thisPtr->GetInternal(), vecvalue);
+		MeshDataEx::SetNormals(thisPtr->GetInternal(), nativeArrayvalue);
 	}
 
 	MonoArray* ScriptMeshData::InternalGetTangents(ScriptMeshData* thisPtr)
 	{
-		Vector<TVector4<float>> vec__output;
-		vec__output = MeshDataEx::GetTangents(thisPtr->GetInternal());
+		Vector<TVector4<float>> nativeArray__output;
+		nativeArray__output = MeshDataEx::GetTangents(thisPtr->GetInternal());
 
 		MonoArray* __output;
-		int arraySize__output = (int)vec__output.size();
-		ScriptArray array__output = ScriptArray::Create<ScriptVector4>(arraySize__output);
-		for(int i = 0; i < arraySize__output; i++)
+		int elementCount__output = (int)nativeArray__output.size();
+		ScriptArray scriptArray__output = ScriptArray::Create<ScriptVector4>(elementCount__output);
+		for(int elementIndex = 0; elementIndex < elementCount__output; elementIndex++)
 		{
-			array__output.Set(i, vec__output[i]);
+			scriptArray__output.Set(elementIndex, nativeArray__output[elementIndex]);
 		}
-		__output = array__output.GetInternal();
+		__output = scriptArray__output.GetInternal();
 
 		return __output;
 	}
 
 	void ScriptMeshData::InternalSetTangents(ScriptMeshData* thisPtr, MonoArray* value)
 	{
-		Vector<TVector4<float>> vecvalue;
+		Vector<TVector4<float>> nativeArrayvalue;
 		if(value != nullptr)
 		{
-			ScriptArray arrayvalue(value);
-			vecvalue.resize(arrayvalue.Size());
-			for(int i = 0; i < (int)arrayvalue.Size(); i++)
+			ScriptArray scriptArrayvalue(value);
+			nativeArrayvalue.resize(scriptArrayvalue.Size());
+			for(int elementIndex = 0; elementIndex < (int)scriptArrayvalue.Size(); elementIndex++)
 			{
-				vecvalue[i] = arrayvalue.Get<TVector4<float>>(i);
+				nativeArrayvalue[elementIndex] = scriptArrayvalue.Get<TVector4<float>>(elementIndex);
 			}
 		}
-		MeshDataEx::SetTangents(thisPtr->GetInternal(), vecvalue);
+		MeshDataEx::SetTangents(thisPtr->GetInternal(), nativeArrayvalue);
 	}
 
 	MonoArray* ScriptMeshData::InternalGetColors(ScriptMeshData* thisPtr)
 	{
-		Vector<Color> vec__output;
-		vec__output = MeshDataEx::GetColors(thisPtr->GetInternal());
+		Vector<Color> nativeArray__output;
+		nativeArray__output = MeshDataEx::GetColors(thisPtr->GetInternal());
 
 		MonoArray* __output;
-		int arraySize__output = (int)vec__output.size();
-		ScriptArray array__output = ScriptArray::Create<ScriptColor>(arraySize__output);
-		for(int i = 0; i < arraySize__output; i++)
+		int elementCount__output = (int)nativeArray__output.size();
+		ScriptArray scriptArray__output = ScriptArray::Create<ScriptColor>(elementCount__output);
+		for(int elementIndex = 0; elementIndex < elementCount__output; elementIndex++)
 		{
-			array__output.Set(i, vec__output[i]);
+			scriptArray__output.Set(elementIndex, nativeArray__output[elementIndex]);
 		}
-		__output = array__output.GetInternal();
+		__output = scriptArray__output.GetInternal();
 
 		return __output;
 	}
 
 	void ScriptMeshData::InternalSetColors(ScriptMeshData* thisPtr, MonoArray* value)
 	{
-		Vector<Color> vecvalue;
+		Vector<Color> nativeArrayvalue;
 		if(value != nullptr)
 		{
-			ScriptArray arrayvalue(value);
-			vecvalue.resize(arrayvalue.Size());
-			for(int i = 0; i < (int)arrayvalue.Size(); i++)
+			ScriptArray scriptArrayvalue(value);
+			nativeArrayvalue.resize(scriptArrayvalue.Size());
+			for(int elementIndex = 0; elementIndex < (int)scriptArrayvalue.Size(); elementIndex++)
 			{
-				vecvalue[i] = arrayvalue.Get<Color>(i);
+				nativeArrayvalue[elementIndex] = scriptArrayvalue.Get<Color>(elementIndex);
 			}
 		}
-		MeshDataEx::SetColors(thisPtr->GetInternal(), vecvalue);
+		MeshDataEx::SetColors(thisPtr->GetInternal(), nativeArrayvalue);
 	}
 
 	MonoArray* ScriptMeshData::InternalGetUV0(ScriptMeshData* thisPtr)
 	{
-		Vector<TVector2<float>> vec__output;
-		vec__output = MeshDataEx::GetUV0(thisPtr->GetInternal());
+		Vector<TVector2<float>> nativeArray__output;
+		nativeArray__output = MeshDataEx::GetUV0(thisPtr->GetInternal());
 
 		MonoArray* __output;
-		int arraySize__output = (int)vec__output.size();
-		ScriptArray array__output = ScriptArray::Create<ScriptVector2>(arraySize__output);
-		for(int i = 0; i < arraySize__output; i++)
+		int elementCount__output = (int)nativeArray__output.size();
+		ScriptArray scriptArray__output = ScriptArray::Create<ScriptVector2>(elementCount__output);
+		for(int elementIndex = 0; elementIndex < elementCount__output; elementIndex++)
 		{
-			array__output.Set(i, vec__output[i]);
+			scriptArray__output.Set(elementIndex, nativeArray__output[elementIndex]);
 		}
-		__output = array__output.GetInternal();
+		__output = scriptArray__output.GetInternal();
 
 		return __output;
 	}
 
 	void ScriptMeshData::InternalSetUV0(ScriptMeshData* thisPtr, MonoArray* value)
 	{
-		Vector<TVector2<float>> vecvalue;
+		Vector<TVector2<float>> nativeArrayvalue;
 		if(value != nullptr)
 		{
-			ScriptArray arrayvalue(value);
-			vecvalue.resize(arrayvalue.Size());
-			for(int i = 0; i < (int)arrayvalue.Size(); i++)
+			ScriptArray scriptArrayvalue(value);
+			nativeArrayvalue.resize(scriptArrayvalue.Size());
+			for(int elementIndex = 0; elementIndex < (int)scriptArrayvalue.Size(); elementIndex++)
 			{
-				vecvalue[i] = arrayvalue.Get<TVector2<float>>(i);
+				nativeArrayvalue[elementIndex] = scriptArrayvalue.Get<TVector2<float>>(elementIndex);
 			}
 		}
-		MeshDataEx::SetUV0(thisPtr->GetInternal(), vecvalue);
+		MeshDataEx::SetUV0(thisPtr->GetInternal(), nativeArrayvalue);
 	}
 
 	MonoArray* ScriptMeshData::InternalGetUV1(ScriptMeshData* thisPtr)
 	{
-		Vector<TVector2<float>> vec__output;
-		vec__output = MeshDataEx::GetUV1(thisPtr->GetInternal());
+		Vector<TVector2<float>> nativeArray__output;
+		nativeArray__output = MeshDataEx::GetUV1(thisPtr->GetInternal());
 
 		MonoArray* __output;
-		int arraySize__output = (int)vec__output.size();
-		ScriptArray array__output = ScriptArray::Create<ScriptVector2>(arraySize__output);
-		for(int i = 0; i < arraySize__output; i++)
+		int elementCount__output = (int)nativeArray__output.size();
+		ScriptArray scriptArray__output = ScriptArray::Create<ScriptVector2>(elementCount__output);
+		for(int elementIndex = 0; elementIndex < elementCount__output; elementIndex++)
 		{
-			array__output.Set(i, vec__output[i]);
+			scriptArray__output.Set(elementIndex, nativeArray__output[elementIndex]);
 		}
-		__output = array__output.GetInternal();
+		__output = scriptArray__output.GetInternal();
 
 		return __output;
 	}
 
 	void ScriptMeshData::InternalSetUV1(ScriptMeshData* thisPtr, MonoArray* value)
 	{
-		Vector<TVector2<float>> vecvalue;
+		Vector<TVector2<float>> nativeArrayvalue;
 		if(value != nullptr)
 		{
-			ScriptArray arrayvalue(value);
-			vecvalue.resize(arrayvalue.Size());
-			for(int i = 0; i < (int)arrayvalue.Size(); i++)
+			ScriptArray scriptArrayvalue(value);
+			nativeArrayvalue.resize(scriptArrayvalue.Size());
+			for(int elementIndex = 0; elementIndex < (int)scriptArrayvalue.Size(); elementIndex++)
 			{
-				vecvalue[i] = arrayvalue.Get<TVector2<float>>(i);
+				nativeArrayvalue[elementIndex] = scriptArrayvalue.Get<TVector2<float>>(elementIndex);
 			}
 		}
-		MeshDataEx::SetUV1(thisPtr->GetInternal(), vecvalue);
+		MeshDataEx::SetUV1(thisPtr->GetInternal(), nativeArrayvalue);
 	}
 
 	MonoArray* ScriptMeshData::InternalGetBoneWeights(ScriptMeshData* thisPtr)
 	{
-		Vector<BoneWeight> vec__output;
-		vec__output = MeshDataEx::GetBoneWeights(thisPtr->GetInternal());
+		Vector<BoneWeight> nativeArray__output;
+		nativeArray__output = MeshDataEx::GetBoneWeights(thisPtr->GetInternal());
 
 		MonoArray* __output;
-		int arraySize__output = (int)vec__output.size();
-		ScriptArray array__output = ScriptArray::Create<ScriptBoneWeight>(arraySize__output);
-		for(int i = 0; i < arraySize__output; i++)
+		int elementCount__output = (int)nativeArray__output.size();
+		ScriptArray scriptArray__output = ScriptArray::Create<ScriptBoneWeight>(elementCount__output);
+		for(int elementIndex = 0; elementIndex < elementCount__output; elementIndex++)
 		{
-			array__output.Set(i, vec__output[i]);
+			scriptArray__output.Set(elementIndex, nativeArray__output[elementIndex]);
 		}
-		__output = array__output.GetInternal();
+		__output = scriptArray__output.GetInternal();
 
 		return __output;
 	}
 
 	void ScriptMeshData::InternalSetBoneWeights(ScriptMeshData* thisPtr, MonoArray* value)
 	{
-		Vector<BoneWeight> vecvalue;
+		Vector<BoneWeight> nativeArrayvalue;
 		if(value != nullptr)
 		{
-			ScriptArray arrayvalue(value);
-			vecvalue.resize(arrayvalue.Size());
-			for(int i = 0; i < (int)arrayvalue.Size(); i++)
+			ScriptArray scriptArrayvalue(value);
+			nativeArrayvalue.resize(scriptArrayvalue.Size());
+			for(int elementIndex = 0; elementIndex < (int)scriptArrayvalue.Size(); elementIndex++)
 			{
-				vecvalue[i] = arrayvalue.Get<BoneWeight>(i);
+				nativeArrayvalue[elementIndex] = scriptArrayvalue.Get<BoneWeight>(elementIndex);
 			}
 		}
-		MeshDataEx::SetBoneWeights(thisPtr->GetInternal(), vecvalue);
+		MeshDataEx::SetBoneWeights(thisPtr->GetInternal(), nativeArrayvalue);
 	}
 
 	MonoArray* ScriptMeshData::InternalGetIndices(ScriptMeshData* thisPtr)
 	{
-		Vector<uint32_t> vec__output;
-		vec__output = MeshDataEx::GetIndices(thisPtr->GetInternal());
+		Vector<uint32_t> nativeArray__output;
+		nativeArray__output = MeshDataEx::GetIndices(thisPtr->GetInternal());
 
 		MonoArray* __output;
-		int arraySize__output = (int)vec__output.size();
-		ScriptArray array__output = ScriptArray::Create<uint32_t>(arraySize__output);
-		for(int i = 0; i < arraySize__output; i++)
+		int elementCount__output = (int)nativeArray__output.size();
+		ScriptArray scriptArray__output = ScriptArray::Create<uint32_t>(elementCount__output);
+		for(int elementIndex = 0; elementIndex < elementCount__output; elementIndex++)
 		{
-			array__output.Set(i, vec__output[i]);
+			scriptArray__output.Set(elementIndex, nativeArray__output[elementIndex]);
 		}
-		__output = array__output.GetInternal();
+		__output = scriptArray__output.GetInternal();
 
 		return __output;
 	}
 
 	void ScriptMeshData::InternalSetIndices(ScriptMeshData* thisPtr, MonoArray* value)
 	{
-		Vector<uint32_t> vecvalue;
+		Vector<uint32_t> nativeArrayvalue;
 		if(value != nullptr)
 		{
-			ScriptArray arrayvalue(value);
-			vecvalue.resize(arrayvalue.Size());
-			for(int i = 0; i < (int)arrayvalue.Size(); i++)
+			ScriptArray scriptArrayvalue(value);
+			nativeArrayvalue.resize(scriptArrayvalue.Size());
+			for(int elementIndex = 0; elementIndex < (int)scriptArrayvalue.Size(); elementIndex++)
 			{
-				vecvalue[i] = arrayvalue.Get<uint32_t>(i);
+				nativeArrayvalue[elementIndex] = scriptArrayvalue.Get<uint32_t>(elementIndex);
 			}
 		}
-		MeshDataEx::SetIndices(thisPtr->GetInternal(), vecvalue);
+		MeshDataEx::SetIndices(thisPtr->GetInternal(), nativeArrayvalue);
 	}
 
 	int32_t ScriptMeshData::InternalGetVertexCount(ScriptMeshData* thisPtr)

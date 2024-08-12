@@ -44,10 +44,10 @@ namespace bs
 	void ScriptSpriteGlyph::InternalSetFont(ScriptSpriteGlyph* thisPtr, MonoObject* font)
 	{
 		TResourceHandle<Font> tmpfont;
-		ScriptRRefBase* scriptfont;
-		scriptfont = ScriptRRefBase::ToNative(font);
-		if(scriptfont != nullptr)
-			tmpfont = B3DStaticResourceCast<Font>(scriptfont->GetHandle());
+		ScriptRRefBase* scriptObjectWrapperfont;
+		scriptObjectWrapperfont = ScriptRRefBase::ToNative(font);
+		if(scriptObjectWrapperfont != nullptr)
+			tmpfont = B3DStaticResourceCast<Font>(scriptObjectWrapperfont->GetHandle());
 		thisPtr->GetHandle()->SetFont(tmpfont);
 	}
 
@@ -64,10 +64,10 @@ namespace bs
 	void ScriptSpriteGlyph::InternalCreate(MonoObject* managedInstance, MonoObject* font, uint32_t glyph, float size)
 	{
 		TResourceHandle<Font> tmpfont;
-		ScriptRRefBase* scriptfont;
-		scriptfont = ScriptRRefBase::ToNative(font);
-		if(scriptfont != nullptr)
-			tmpfont = B3DStaticResourceCast<Font>(scriptfont->GetHandle());
+		ScriptRRefBase* scriptObjectWrapperfont;
+		scriptObjectWrapperfont = ScriptRRefBase::ToNative(font);
+		if(scriptObjectWrapperfont != nullptr)
+			tmpfont = B3DStaticResourceCast<Font>(scriptObjectWrapperfont->GetHandle());
 		TResourceHandle<SpriteGlyph> instance = SpriteGlyph::Create(tmpfont, glyph, size);
 		ScriptResourceManager::Instance().CreateBuiltinScriptResource(instance, managedInstance);
 	}

@@ -64,17 +64,17 @@ namespace bs
 
 	MonoArray* ScriptLightProbeVolume::InternalGetProbes(ScriptLightProbeVolume* thisPtr)
 	{
-		Vector<LightProbeInfo> vec__output;
-		vec__output = thisPtr->GetHandle()->GetProbes();
+		Vector<LightProbeInfo> nativeArray__output;
+		nativeArray__output = thisPtr->GetHandle()->GetProbes();
 
 		MonoArray* __output;
-		int arraySize__output = (int)vec__output.size();
-		ScriptArray array__output = ScriptArray::Create<ScriptLightProbeInfo>(arraySize__output);
-		for(int i = 0; i < arraySize__output; i++)
+		int elementCount__output = (int)nativeArray__output.size();
+		ScriptArray scriptArray__output = ScriptArray::Create<ScriptLightProbeInfo>(elementCount__output);
+		for(int elementIndex = 0; elementIndex < elementCount__output; elementIndex++)
 		{
-			array__output.Set(i, ScriptLightProbeInfo::ToInterop(vec__output[i]));
+			scriptArray__output.Set(elementIndex, ScriptLightProbeInfo::ToInterop(nativeArray__output[elementIndex]));
 		}
-		__output = array__output.GetInternal();
+		__output = scriptArray__output.GetInternal();
 
 		return __output;
 	}

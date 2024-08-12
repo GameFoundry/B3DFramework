@@ -41,17 +41,17 @@ namespace bs
 	}
 	void ScriptAnimationCurve::InternalTAnimationCurve(MonoObject* managedInstance, MonoArray* keyframes)
 	{
-		Vector<TKeyframe<float>> veckeyframes;
+		Vector<TKeyframe<float>> nativeArraykeyframes;
 		if(keyframes != nullptr)
 		{
-			ScriptArray arraykeyframes(keyframes);
-			veckeyframes.resize(arraykeyframes.Size());
-			for(int i = 0; i < (int)arraykeyframes.Size(); i++)
+			ScriptArray scriptArraykeyframes(keyframes);
+			nativeArraykeyframes.resize(scriptArraykeyframes.Size());
+			for(int elementIndex = 0; elementIndex < (int)scriptArraykeyframes.Size(); elementIndex++)
 			{
-				veckeyframes[i] = arraykeyframes.Get<TKeyframe<float>>(i);
+				nativeArraykeyframes[elementIndex] = scriptArraykeyframes.Get<TKeyframe<float>>(elementIndex);
 			}
 		}
-		SPtr<TAnimationCurve<float>> instance = B3DMakeShared<TAnimationCurve<float>>(veckeyframes);
+		SPtr<TAnimationCurve<float>> instance = B3DMakeShared<TAnimationCurve<float>>(nativeArraykeyframes);
 		new (B3DAllocate<ScriptAnimationCurve>())ScriptAnimationCurve(managedInstance, instance);
 	}
 
@@ -68,17 +68,17 @@ namespace bs
 
 	MonoArray* ScriptAnimationCurve::InternalGetKeyFrames(ScriptAnimationCurve* thisPtr)
 	{
-		Vector<TKeyframe<float>> vec__output;
-		vec__output = thisPtr->GetInternal()->GetKeyFrames();
+		Vector<TKeyframe<float>> nativeArray__output;
+		nativeArray__output = thisPtr->GetInternal()->GetKeyFrames();
 
 		MonoArray* __output;
-		int arraySize__output = (int)vec__output.size();
-		ScriptArray array__output = ScriptArray::Create<ScriptKeyFrame>(arraySize__output);
-		for(int i = 0; i < arraySize__output; i++)
+		int elementCount__output = (int)nativeArray__output.size();
+		ScriptArray scriptArray__output = ScriptArray::Create<ScriptKeyFrame>(elementCount__output);
+		for(int elementIndex = 0; elementIndex < elementCount__output; elementIndex++)
 		{
-			array__output.Set(i, vec__output[i]);
+			scriptArray__output.Set(elementIndex, nativeArray__output[elementIndex]);
 		}
-		__output = array__output.GetInternal();
+		__output = scriptArray__output.GetInternal();
 
 		return __output;
 	}
@@ -109,17 +109,17 @@ namespace bs
 	}
 	void ScriptVector3Curve::InternalTAnimationCurve(MonoObject* managedInstance, MonoArray* keyframes)
 	{
-		Vector<TKeyframe<TVector3<float>>> veckeyframes;
+		Vector<TKeyframe<TVector3<float>>> nativeArraykeyframes;
 		if(keyframes != nullptr)
 		{
-			ScriptArray arraykeyframes(keyframes);
-			veckeyframes.resize(arraykeyframes.Size());
-			for(int i = 0; i < (int)arraykeyframes.Size(); i++)
+			ScriptArray scriptArraykeyframes(keyframes);
+			nativeArraykeyframes.resize(scriptArraykeyframes.Size());
+			for(int elementIndex = 0; elementIndex < (int)scriptArraykeyframes.Size(); elementIndex++)
 			{
-				veckeyframes[i] = ScriptKeyFrameVec3::FromInterop(arraykeyframes.Get<__TKeyframe_TVector3_float__Interop>(i));
+				nativeArraykeyframes[elementIndex] = ScriptKeyFrameVec3::FromInterop(scriptArraykeyframes.Get<__TKeyframe_TVector3_float__Interop>(elementIndex));
 			}
 		}
-		SPtr<TAnimationCurve<TVector3<float>>> instance = B3DMakeShared<TAnimationCurve<TVector3<float>>>(veckeyframes);
+		SPtr<TAnimationCurve<TVector3<float>>> instance = B3DMakeShared<TAnimationCurve<TVector3<float>>>(nativeArraykeyframes);
 		new (B3DAllocate<ScriptVector3Curve>())ScriptVector3Curve(managedInstance, instance);
 	}
 
@@ -133,17 +133,17 @@ namespace bs
 
 	MonoArray* ScriptVector3Curve::InternalGetKeyFrames(ScriptVector3Curve* thisPtr)
 	{
-		Vector<TKeyframe<TVector3<float>>> vec__output;
-		vec__output = thisPtr->GetInternal()->GetKeyFrames();
+		Vector<TKeyframe<TVector3<float>>> nativeArray__output;
+		nativeArray__output = thisPtr->GetInternal()->GetKeyFrames();
 
 		MonoArray* __output;
-		int arraySize__output = (int)vec__output.size();
-		ScriptArray array__output = ScriptArray::Create<ScriptKeyFrameVec3>(arraySize__output);
-		for(int i = 0; i < arraySize__output; i++)
+		int elementCount__output = (int)nativeArray__output.size();
+		ScriptArray scriptArray__output = ScriptArray::Create<ScriptKeyFrameVec3>(elementCount__output);
+		for(int elementIndex = 0; elementIndex < elementCount__output; elementIndex++)
 		{
-			array__output.Set(i, ScriptKeyFrameVec3::ToInterop(vec__output[i]));
+			scriptArray__output.Set(elementIndex, ScriptKeyFrameVec3::ToInterop(nativeArray__output[elementIndex]));
 		}
-		__output = array__output.GetInternal();
+		__output = scriptArray__output.GetInternal();
 
 		return __output;
 	}
@@ -174,17 +174,17 @@ namespace bs
 	}
 	void ScriptVector2Curve::InternalTAnimationCurve(MonoObject* managedInstance, MonoArray* keyframes)
 	{
-		Vector<TKeyframe<TVector2<float>>> veckeyframes;
+		Vector<TKeyframe<TVector2<float>>> nativeArraykeyframes;
 		if(keyframes != nullptr)
 		{
-			ScriptArray arraykeyframes(keyframes);
-			veckeyframes.resize(arraykeyframes.Size());
-			for(int i = 0; i < (int)arraykeyframes.Size(); i++)
+			ScriptArray scriptArraykeyframes(keyframes);
+			nativeArraykeyframes.resize(scriptArraykeyframes.Size());
+			for(int elementIndex = 0; elementIndex < (int)scriptArraykeyframes.Size(); elementIndex++)
 			{
-				veckeyframes[i] = ScriptKeyFrameVec2::FromInterop(arraykeyframes.Get<__TKeyframe_TVector2_float__Interop>(i));
+				nativeArraykeyframes[elementIndex] = ScriptKeyFrameVec2::FromInterop(scriptArraykeyframes.Get<__TKeyframe_TVector2_float__Interop>(elementIndex));
 			}
 		}
-		SPtr<TAnimationCurve<TVector2<float>>> instance = B3DMakeShared<TAnimationCurve<TVector2<float>>>(veckeyframes);
+		SPtr<TAnimationCurve<TVector2<float>>> instance = B3DMakeShared<TAnimationCurve<TVector2<float>>>(nativeArraykeyframes);
 		new (B3DAllocate<ScriptVector2Curve>())ScriptVector2Curve(managedInstance, instance);
 	}
 
@@ -198,17 +198,17 @@ namespace bs
 
 	MonoArray* ScriptVector2Curve::InternalGetKeyFrames(ScriptVector2Curve* thisPtr)
 	{
-		Vector<TKeyframe<TVector2<float>>> vec__output;
-		vec__output = thisPtr->GetInternal()->GetKeyFrames();
+		Vector<TKeyframe<TVector2<float>>> nativeArray__output;
+		nativeArray__output = thisPtr->GetInternal()->GetKeyFrames();
 
 		MonoArray* __output;
-		int arraySize__output = (int)vec__output.size();
-		ScriptArray array__output = ScriptArray::Create<ScriptKeyFrameVec2>(arraySize__output);
-		for(int i = 0; i < arraySize__output; i++)
+		int elementCount__output = (int)nativeArray__output.size();
+		ScriptArray scriptArray__output = ScriptArray::Create<ScriptKeyFrameVec2>(elementCount__output);
+		for(int elementIndex = 0; elementIndex < elementCount__output; elementIndex++)
 		{
-			array__output.Set(i, ScriptKeyFrameVec2::ToInterop(vec__output[i]));
+			scriptArray__output.Set(elementIndex, ScriptKeyFrameVec2::ToInterop(nativeArray__output[elementIndex]));
 		}
-		__output = array__output.GetInternal();
+		__output = scriptArray__output.GetInternal();
 
 		return __output;
 	}
@@ -239,17 +239,17 @@ namespace bs
 	}
 	void ScriptQuaternionCurve::InternalTAnimationCurve(MonoObject* managedInstance, MonoArray* keyframes)
 	{
-		Vector<TKeyframe<Quaternion>> veckeyframes;
+		Vector<TKeyframe<Quaternion>> nativeArraykeyframes;
 		if(keyframes != nullptr)
 		{
-			ScriptArray arraykeyframes(keyframes);
-			veckeyframes.resize(arraykeyframes.Size());
-			for(int i = 0; i < (int)arraykeyframes.Size(); i++)
+			ScriptArray scriptArraykeyframes(keyframes);
+			nativeArraykeyframes.resize(scriptArraykeyframes.Size());
+			for(int elementIndex = 0; elementIndex < (int)scriptArraykeyframes.Size(); elementIndex++)
 			{
-				veckeyframes[i] = ScriptKeyFrameQuat::FromInterop(arraykeyframes.Get<__TKeyframe_Quaternion_Interop>(i));
+				nativeArraykeyframes[elementIndex] = ScriptKeyFrameQuat::FromInterop(scriptArraykeyframes.Get<__TKeyframe_Quaternion_Interop>(elementIndex));
 			}
 		}
-		SPtr<TAnimationCurve<Quaternion>> instance = B3DMakeShared<TAnimationCurve<Quaternion>>(veckeyframes);
+		SPtr<TAnimationCurve<Quaternion>> instance = B3DMakeShared<TAnimationCurve<Quaternion>>(nativeArraykeyframes);
 		new (B3DAllocate<ScriptQuaternionCurve>())ScriptQuaternionCurve(managedInstance, instance);
 	}
 
@@ -263,17 +263,17 @@ namespace bs
 
 	MonoArray* ScriptQuaternionCurve::InternalGetKeyFrames(ScriptQuaternionCurve* thisPtr)
 	{
-		Vector<TKeyframe<Quaternion>> vec__output;
-		vec__output = thisPtr->GetInternal()->GetKeyFrames();
+		Vector<TKeyframe<Quaternion>> nativeArray__output;
+		nativeArray__output = thisPtr->GetInternal()->GetKeyFrames();
 
 		MonoArray* __output;
-		int arraySize__output = (int)vec__output.size();
-		ScriptArray array__output = ScriptArray::Create<ScriptKeyFrameQuat>(arraySize__output);
-		for(int i = 0; i < arraySize__output; i++)
+		int elementCount__output = (int)nativeArray__output.size();
+		ScriptArray scriptArray__output = ScriptArray::Create<ScriptKeyFrameQuat>(elementCount__output);
+		for(int elementIndex = 0; elementIndex < elementCount__output; elementIndex++)
 		{
-			array__output.Set(i, ScriptKeyFrameQuat::ToInterop(vec__output[i]));
+			scriptArray__output.Set(elementIndex, ScriptKeyFrameQuat::ToInterop(nativeArray__output[elementIndex]));
 		}
-		__output = array__output.GetInternal();
+		__output = scriptArray__output.GetInternal();
 
 		return __output;
 	}
@@ -304,17 +304,17 @@ namespace bs
 	}
 	void ScriptIntegerCurve::InternalTAnimationCurve(MonoObject* managedInstance, MonoArray* keyframes)
 	{
-		Vector<TKeyframe<int32_t>> veckeyframes;
+		Vector<TKeyframe<int32_t>> nativeArraykeyframes;
 		if(keyframes != nullptr)
 		{
-			ScriptArray arraykeyframes(keyframes);
-			veckeyframes.resize(arraykeyframes.Size());
-			for(int i = 0; i < (int)arraykeyframes.Size(); i++)
+			ScriptArray scriptArraykeyframes(keyframes);
+			nativeArraykeyframes.resize(scriptArraykeyframes.Size());
+			for(int elementIndex = 0; elementIndex < (int)scriptArraykeyframes.Size(); elementIndex++)
 			{
-				veckeyframes[i] = arraykeyframes.Get<TKeyframe<int32_t>>(i);
+				nativeArraykeyframes[elementIndex] = scriptArraykeyframes.Get<TKeyframe<int32_t>>(elementIndex);
 			}
 		}
-		SPtr<TAnimationCurve<int32_t>> instance = B3DMakeShared<TAnimationCurve<int32_t>>(veckeyframes);
+		SPtr<TAnimationCurve<int32_t>> instance = B3DMakeShared<TAnimationCurve<int32_t>>(nativeArraykeyframes);
 		new (B3DAllocate<ScriptIntegerCurve>())ScriptIntegerCurve(managedInstance, instance);
 	}
 
@@ -331,17 +331,17 @@ namespace bs
 
 	MonoArray* ScriptIntegerCurve::InternalGetKeyFrames(ScriptIntegerCurve* thisPtr)
 	{
-		Vector<TKeyframe<int32_t>> vec__output;
-		vec__output = thisPtr->GetInternal()->GetKeyFrames();
+		Vector<TKeyframe<int32_t>> nativeArray__output;
+		nativeArray__output = thisPtr->GetInternal()->GetKeyFrames();
 
 		MonoArray* __output;
-		int arraySize__output = (int)vec__output.size();
-		ScriptArray array__output = ScriptArray::Create<ScriptKeyFrameInt>(arraySize__output);
-		for(int i = 0; i < arraySize__output; i++)
+		int elementCount__output = (int)nativeArray__output.size();
+		ScriptArray scriptArray__output = ScriptArray::Create<ScriptKeyFrameInt>(elementCount__output);
+		for(int elementIndex = 0; elementIndex < elementCount__output; elementIndex++)
 		{
-			array__output.Set(i, vec__output[i]);
+			scriptArray__output.Set(elementIndex, nativeArray__output[elementIndex]);
 		}
-		__output = array__output.GetInternal();
+		__output = scriptArray__output.GetInternal();
 
 		return __output;
 	}

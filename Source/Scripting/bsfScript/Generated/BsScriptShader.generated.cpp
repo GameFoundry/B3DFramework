@@ -38,34 +38,34 @@ namespace bs
 
 	MonoArray* ScriptShader::InternalGetVariationParams(ScriptShader* thisPtr)
 	{
-		Vector<ShaderVariationParameterInformation> vec__output;
-		vec__output = thisPtr->GetHandle()->GetVariationParams();
+		Vector<ShaderVariationParameterInformation> nativeArray__output;
+		nativeArray__output = thisPtr->GetHandle()->GetVariationParams();
 
 		MonoArray* __output;
-		int arraySize__output = (int)vec__output.size();
-		ScriptArray array__output = ScriptArray::Create<ScriptShaderVariationParameterInformation>(arraySize__output);
-		for(int i = 0; i < arraySize__output; i++)
+		int elementCount__output = (int)nativeArray__output.size();
+		ScriptArray scriptArray__output = ScriptArray::Create<ScriptShaderVariationParameterInformation>(elementCount__output);
+		for(int elementIndex = 0; elementIndex < elementCount__output; elementIndex++)
 		{
-			array__output.Set(i, ScriptShaderVariationParameterInformation::ToInterop(vec__output[i]));
+			scriptArray__output.Set(elementIndex, ScriptShaderVariationParameterInformation::ToInterop(nativeArray__output[elementIndex]));
 		}
-		__output = array__output.GetInternal();
+		__output = scriptArray__output.GetInternal();
 
 		return __output;
 	}
 
 	MonoArray* ScriptShader::InternalGetParameters(ScriptShader* thisPtr)
 	{
-		Vector<ShaderParameter> vec__output;
-		vec__output = ShaderEx::GetParameters(thisPtr->GetHandle());
+		Vector<ShaderParameter> nativeArray__output;
+		nativeArray__output = ShaderEx::GetParameters(thisPtr->GetHandle());
 
 		MonoArray* __output;
-		int arraySize__output = (int)vec__output.size();
-		ScriptArray array__output = ScriptArray::Create<ScriptShaderParameter>(arraySize__output);
-		for(int i = 0; i < arraySize__output; i++)
+		int elementCount__output = (int)nativeArray__output.size();
+		ScriptArray scriptArray__output = ScriptArray::Create<ScriptShaderParameter>(elementCount__output);
+		for(int elementIndex = 0; elementIndex < elementCount__output; elementIndex++)
 		{
-			array__output.Set(i, ScriptShaderParameter::ToInterop(vec__output[i]));
+			scriptArray__output.Set(elementIndex, ScriptShaderParameter::ToInterop(nativeArray__output[elementIndex]));
 		}
-		__output = array__output.GetInternal();
+		__output = scriptArray__output.GetInternal();
 
 		return __output;
 	}

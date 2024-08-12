@@ -51,10 +51,10 @@ namespace bs
 	void ScriptViewport::InternalSetTarget(ScriptViewport* thisPtr, MonoObject* target)
 	{
 		SPtr<RenderTarget> tmptarget;
-		ScriptRenderTargetBase* scripttarget;
-		scripttarget = (ScriptRenderTargetBase*)ScriptRenderTarget::ToNative(target);
-		if(scripttarget != nullptr)
-			tmptarget = scripttarget->GetInternal();
+		ScriptRenderTargetBase* scriptObjectWrappertarget;
+		scriptObjectWrappertarget = (ScriptRenderTargetBase*)ScriptRenderTarget::ToNative(target);
+		if(scriptObjectWrappertarget != nullptr)
+			tmptarget = scriptObjectWrappertarget->GetInternal();
 		thisPtr->GetInternal()->SetTarget(tmptarget);
 	}
 
@@ -162,10 +162,10 @@ namespace bs
 	void ScriptViewport::InternalCreate(MonoObject* managedInstance, MonoObject* target, float x, float y, float width, float height)
 	{
 		SPtr<RenderTarget> tmptarget;
-		ScriptRenderTargetBase* scripttarget;
-		scripttarget = (ScriptRenderTargetBase*)ScriptRenderTarget::ToNative(target);
-		if(scripttarget != nullptr)
-			tmptarget = scripttarget->GetInternal();
+		ScriptRenderTargetBase* scriptObjectWrappertarget;
+		scriptObjectWrappertarget = (ScriptRenderTargetBase*)ScriptRenderTarget::ToNative(target);
+		if(scriptObjectWrappertarget != nullptr)
+			tmptarget = scriptObjectWrappertarget->GetInternal();
 		SPtr<Viewport> instance = Viewport::Create(tmptarget, x, y, width, height);
 		new (B3DAllocate<ScriptViewport>())ScriptViewport(managedInstance, instance);
 	}

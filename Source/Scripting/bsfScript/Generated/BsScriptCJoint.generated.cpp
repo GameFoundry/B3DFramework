@@ -66,10 +66,10 @@ namespace bs
 	void ScriptJoint::InternalSetBody(ScriptJointBase* thisPtr, JointBody body, MonoObject* value)
 	{
 		GameObjectHandle<CRigidbody> tmpvalue;
-		ScriptRigidbody* scriptvalue;
-		scriptvalue = ScriptRigidbody::ToNative(value);
-		if(scriptvalue != nullptr)
-			tmpvalue = scriptvalue->GetHandle();
+		ScriptRigidbody* scriptObjectWrappervalue;
+		scriptObjectWrappervalue = ScriptRigidbody::ToNative(value);
+		if(scriptObjectWrappervalue != nullptr)
+			tmpvalue = scriptObjectWrappervalue->GetHandle();
 		B3DStaticGameObjectCast<CJoint>(thisPtr->GetComponent())->SetBody(body, tmpvalue);
 	}
 

@@ -66,10 +66,10 @@ namespace bs
 	void ScriptStringTables::InternalSetTable(uint32_t id, MonoObject* table)
 	{
 		TResourceHandle<StringTable> tmptable;
-		ScriptRRefBase* scripttable;
-		scripttable = ScriptRRefBase::ToNative(table);
-		if(scripttable != nullptr)
-			tmptable = B3DStaticResourceCast<StringTable>(scripttable->GetHandle());
+		ScriptRRefBase* scriptObjectWrappertable;
+		scriptObjectWrappertable = ScriptRRefBase::ToNative(table);
+		if(scriptObjectWrappertable != nullptr)
+			tmptable = B3DStaticResourceCast<StringTable>(scriptObjectWrappertable->GetHandle());
 		StringTableManager::Instance().SetTable(id, tmptable);
 	}
 }

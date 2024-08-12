@@ -147,10 +147,10 @@ namespace bs
 	{
 		bool tmp__output;
 		TResourceHandle<PhysicsMesh> tmpmesh;
-		ScriptRRefBase* scriptmesh;
-		scriptmesh = ScriptRRefBase::ToNative(mesh);
-		if(scriptmesh != nullptr)
-			tmpmesh = B3DStaticResourceCast<PhysicsMesh>(scriptmesh->GetHandle());
+		ScriptRRefBase* scriptObjectWrappermesh;
+		scriptObjectWrappermesh = ScriptRRefBase::ToNative(mesh);
+		if(scriptObjectWrappermesh != nullptr)
+			tmpmesh = B3DStaticResourceCast<PhysicsMesh>(scriptObjectWrappermesh->GetHandle());
 		PhysicsQueryHit tmphit;
 		tmp__output = thisPtr->GetInternal()->ConvexCast(tmpmesh, *position, *rotation, *unitDir, tmphit, layer, max);
 
@@ -165,107 +165,107 @@ namespace bs
 
 	MonoArray* ScriptPhysicsScene::InternalRayCastAll(ScriptPhysicsScene* thisPtr, Ray* ray, uint64_t layer, float max)
 	{
-		Vector<PhysicsQueryHit> vec__output;
-		vec__output = thisPtr->GetInternal()->RayCastAll(*ray, layer, max);
+		Vector<PhysicsQueryHit> nativeArray__output;
+		nativeArray__output = thisPtr->GetInternal()->RayCastAll(*ray, layer, max);
 
 		MonoArray* __output;
-		int arraySize__output = (int)vec__output.size();
-		ScriptArray array__output = ScriptArray::Create<ScriptPhysicsQueryHit>(arraySize__output);
-		for(int i = 0; i < arraySize__output; i++)
+		int elementCount__output = (int)nativeArray__output.size();
+		ScriptArray scriptArray__output = ScriptArray::Create<ScriptPhysicsQueryHit>(elementCount__output);
+		for(int elementIndex = 0; elementIndex < elementCount__output; elementIndex++)
 		{
-			array__output.Set(i, ScriptPhysicsQueryHit::ToInterop(vec__output[i]));
+			scriptArray__output.Set(elementIndex, ScriptPhysicsQueryHit::ToInterop(nativeArray__output[elementIndex]));
 		}
-		__output = array__output.GetInternal();
+		__output = scriptArray__output.GetInternal();
 
 		return __output;
 	}
 
 	MonoArray* ScriptPhysicsScene::InternalRayCastAll0(ScriptPhysicsScene* thisPtr, TVector3<float>* origin, TVector3<float>* unitDir, uint64_t layer, float max)
 	{
-		Vector<PhysicsQueryHit> vec__output;
-		vec__output = thisPtr->GetInternal()->RayCastAll(*origin, *unitDir, layer, max);
+		Vector<PhysicsQueryHit> nativeArray__output;
+		nativeArray__output = thisPtr->GetInternal()->RayCastAll(*origin, *unitDir, layer, max);
 
 		MonoArray* __output;
-		int arraySize__output = (int)vec__output.size();
-		ScriptArray array__output = ScriptArray::Create<ScriptPhysicsQueryHit>(arraySize__output);
-		for(int i = 0; i < arraySize__output; i++)
+		int elementCount__output = (int)nativeArray__output.size();
+		ScriptArray scriptArray__output = ScriptArray::Create<ScriptPhysicsQueryHit>(elementCount__output);
+		for(int elementIndex = 0; elementIndex < elementCount__output; elementIndex++)
 		{
-			array__output.Set(i, ScriptPhysicsQueryHit::ToInterop(vec__output[i]));
+			scriptArray__output.Set(elementIndex, ScriptPhysicsQueryHit::ToInterop(nativeArray__output[elementIndex]));
 		}
-		__output = array__output.GetInternal();
+		__output = scriptArray__output.GetInternal();
 
 		return __output;
 	}
 
 	MonoArray* ScriptPhysicsScene::InternalBoxCastAll(ScriptPhysicsScene* thisPtr, AABox* box, Quaternion* rotation, TVector3<float>* unitDir, uint64_t layer, float max)
 	{
-		Vector<PhysicsQueryHit> vec__output;
-		vec__output = thisPtr->GetInternal()->BoxCastAll(*box, *rotation, *unitDir, layer, max);
+		Vector<PhysicsQueryHit> nativeArray__output;
+		nativeArray__output = thisPtr->GetInternal()->BoxCastAll(*box, *rotation, *unitDir, layer, max);
 
 		MonoArray* __output;
-		int arraySize__output = (int)vec__output.size();
-		ScriptArray array__output = ScriptArray::Create<ScriptPhysicsQueryHit>(arraySize__output);
-		for(int i = 0; i < arraySize__output; i++)
+		int elementCount__output = (int)nativeArray__output.size();
+		ScriptArray scriptArray__output = ScriptArray::Create<ScriptPhysicsQueryHit>(elementCount__output);
+		for(int elementIndex = 0; elementIndex < elementCount__output; elementIndex++)
 		{
-			array__output.Set(i, ScriptPhysicsQueryHit::ToInterop(vec__output[i]));
+			scriptArray__output.Set(elementIndex, ScriptPhysicsQueryHit::ToInterop(nativeArray__output[elementIndex]));
 		}
-		__output = array__output.GetInternal();
+		__output = scriptArray__output.GetInternal();
 
 		return __output;
 	}
 
 	MonoArray* ScriptPhysicsScene::InternalSphereCastAll(ScriptPhysicsScene* thisPtr, Sphere* sphere, TVector3<float>* unitDir, uint64_t layer, float max)
 	{
-		Vector<PhysicsQueryHit> vec__output;
-		vec__output = thisPtr->GetInternal()->SphereCastAll(*sphere, *unitDir, layer, max);
+		Vector<PhysicsQueryHit> nativeArray__output;
+		nativeArray__output = thisPtr->GetInternal()->SphereCastAll(*sphere, *unitDir, layer, max);
 
 		MonoArray* __output;
-		int arraySize__output = (int)vec__output.size();
-		ScriptArray array__output = ScriptArray::Create<ScriptPhysicsQueryHit>(arraySize__output);
-		for(int i = 0; i < arraySize__output; i++)
+		int elementCount__output = (int)nativeArray__output.size();
+		ScriptArray scriptArray__output = ScriptArray::Create<ScriptPhysicsQueryHit>(elementCount__output);
+		for(int elementIndex = 0; elementIndex < elementCount__output; elementIndex++)
 		{
-			array__output.Set(i, ScriptPhysicsQueryHit::ToInterop(vec__output[i]));
+			scriptArray__output.Set(elementIndex, ScriptPhysicsQueryHit::ToInterop(nativeArray__output[elementIndex]));
 		}
-		__output = array__output.GetInternal();
+		__output = scriptArray__output.GetInternal();
 
 		return __output;
 	}
 
 	MonoArray* ScriptPhysicsScene::InternalCapsuleCastAll(ScriptPhysicsScene* thisPtr, Capsule* capsule, Quaternion* rotation, TVector3<float>* unitDir, uint64_t layer, float max)
 	{
-		Vector<PhysicsQueryHit> vec__output;
-		vec__output = thisPtr->GetInternal()->CapsuleCastAll(*capsule, *rotation, *unitDir, layer, max);
+		Vector<PhysicsQueryHit> nativeArray__output;
+		nativeArray__output = thisPtr->GetInternal()->CapsuleCastAll(*capsule, *rotation, *unitDir, layer, max);
 
 		MonoArray* __output;
-		int arraySize__output = (int)vec__output.size();
-		ScriptArray array__output = ScriptArray::Create<ScriptPhysicsQueryHit>(arraySize__output);
-		for(int i = 0; i < arraySize__output; i++)
+		int elementCount__output = (int)nativeArray__output.size();
+		ScriptArray scriptArray__output = ScriptArray::Create<ScriptPhysicsQueryHit>(elementCount__output);
+		for(int elementIndex = 0; elementIndex < elementCount__output; elementIndex++)
 		{
-			array__output.Set(i, ScriptPhysicsQueryHit::ToInterop(vec__output[i]));
+			scriptArray__output.Set(elementIndex, ScriptPhysicsQueryHit::ToInterop(nativeArray__output[elementIndex]));
 		}
-		__output = array__output.GetInternal();
+		__output = scriptArray__output.GetInternal();
 
 		return __output;
 	}
 
 	MonoArray* ScriptPhysicsScene::InternalConvexCastAll(ScriptPhysicsScene* thisPtr, MonoObject* mesh, TVector3<float>* position, Quaternion* rotation, TVector3<float>* unitDir, uint64_t layer, float max)
 	{
-		Vector<PhysicsQueryHit> vec__output;
+		Vector<PhysicsQueryHit> nativeArray__output;
 		TResourceHandle<PhysicsMesh> tmpmesh;
-		ScriptRRefBase* scriptmesh;
-		scriptmesh = ScriptRRefBase::ToNative(mesh);
-		if(scriptmesh != nullptr)
-			tmpmesh = B3DStaticResourceCast<PhysicsMesh>(scriptmesh->GetHandle());
-		vec__output = thisPtr->GetInternal()->ConvexCastAll(tmpmesh, *position, *rotation, *unitDir, layer, max);
+		ScriptRRefBase* scriptObjectWrappermesh;
+		scriptObjectWrappermesh = ScriptRRefBase::ToNative(mesh);
+		if(scriptObjectWrappermesh != nullptr)
+			tmpmesh = B3DStaticResourceCast<PhysicsMesh>(scriptObjectWrappermesh->GetHandle());
+		nativeArray__output = thisPtr->GetInternal()->ConvexCastAll(tmpmesh, *position, *rotation, *unitDir, layer, max);
 
 		MonoArray* __output;
-		int arraySize__output = (int)vec__output.size();
-		ScriptArray array__output = ScriptArray::Create<ScriptPhysicsQueryHit>(arraySize__output);
-		for(int i = 0; i < arraySize__output; i++)
+		int elementCount__output = (int)nativeArray__output.size();
+		ScriptArray scriptArray__output = ScriptArray::Create<ScriptPhysicsQueryHit>(elementCount__output);
+		for(int elementIndex = 0; elementIndex < elementCount__output; elementIndex++)
 		{
-			array__output.Set(i, ScriptPhysicsQueryHit::ToInterop(vec__output[i]));
+			scriptArray__output.Set(elementIndex, ScriptPhysicsQueryHit::ToInterop(nativeArray__output[elementIndex]));
 		}
-		__output = array__output.GetInternal();
+		__output = scriptArray__output.GetInternal();
 
 		return __output;
 	}
@@ -329,10 +329,10 @@ namespace bs
 	{
 		bool tmp__output;
 		TResourceHandle<PhysicsMesh> tmpmesh;
-		ScriptRRefBase* scriptmesh;
-		scriptmesh = ScriptRRefBase::ToNative(mesh);
-		if(scriptmesh != nullptr)
-			tmpmesh = B3DStaticResourceCast<PhysicsMesh>(scriptmesh->GetHandle());
+		ScriptRRefBase* scriptObjectWrappermesh;
+		scriptObjectWrappermesh = ScriptRRefBase::ToNative(mesh);
+		if(scriptObjectWrappermesh != nullptr)
+			tmpmesh = B3DStaticResourceCast<PhysicsMesh>(scriptObjectWrappermesh->GetHandle());
 		tmp__output = thisPtr->GetInternal()->ConvexCastAny(tmpmesh, *position, *rotation, *unitDir, layer, max);
 
 		bool __output;
@@ -343,97 +343,97 @@ namespace bs
 
 	MonoArray* ScriptPhysicsScene::InternalBoxOverlap(ScriptPhysicsScene* thisPtr, AABox* box, Quaternion* rotation, uint64_t layer)
 	{
-		Vector<GameObjectHandle<CCollider>> vec__output;
-		vec__output = thisPtr->GetInternal()->BoxOverlap(*box, *rotation, layer);
+		Vector<GameObjectHandle<CCollider>> nativeArray__output;
+		nativeArray__output = thisPtr->GetInternal()->BoxOverlap(*box, *rotation, layer);
 
 		MonoArray* __output;
-		int arraySize__output = (int)vec__output.size();
-		ScriptArray array__output = ScriptArray::Create<ScriptCollider>(arraySize__output);
-		for(int i = 0; i < arraySize__output; i++)
+		int elementCount__output = (int)nativeArray__output.size();
+		ScriptArray scriptArray__output = ScriptArray::Create<ScriptCollider>(elementCount__output);
+		for(int elementIndex = 0; elementIndex < elementCount__output; elementIndex++)
 		{
-			ScriptComponentBase* script__output = nullptr;
-			if(vec__output[i])
-				script__output = ScriptGameObjectManager::Instance().GetBuiltinScriptComponent(B3DStaticGameObjectCast<Component>(vec__output[i]));
-			if(script__output != nullptr)
-				array__output.Set(i, script__output->GetManagedInstance());
+			ScriptComponentBase* scriptObjectWrapper__output = nullptr;
+			if(nativeArray__output[elementIndex])
+				scriptObjectWrapper__output = ScriptGameObjectManager::Instance().GetBuiltinScriptComponent(B3DStaticGameObjectCast<Component>(nativeArray__output[elementIndex]));
+			if(scriptObjectWrapper__output != nullptr)
+				scriptArray__output.Set(elementIndex, scriptObjectWrapper__output->GetManagedInstance());
 			else
-				array__output.Set(i, nullptr);
+				scriptArray__output.Set(elementIndex, nullptr);
 		}
-		__output = array__output.GetInternal();
+		__output = scriptArray__output.GetInternal();
 
 		return __output;
 	}
 
 	MonoArray* ScriptPhysicsScene::InternalSphereOverlap(ScriptPhysicsScene* thisPtr, Sphere* sphere, uint64_t layer)
 	{
-		Vector<GameObjectHandle<CCollider>> vec__output;
-		vec__output = thisPtr->GetInternal()->SphereOverlap(*sphere, layer);
+		Vector<GameObjectHandle<CCollider>> nativeArray__output;
+		nativeArray__output = thisPtr->GetInternal()->SphereOverlap(*sphere, layer);
 
 		MonoArray* __output;
-		int arraySize__output = (int)vec__output.size();
-		ScriptArray array__output = ScriptArray::Create<ScriptCollider>(arraySize__output);
-		for(int i = 0; i < arraySize__output; i++)
+		int elementCount__output = (int)nativeArray__output.size();
+		ScriptArray scriptArray__output = ScriptArray::Create<ScriptCollider>(elementCount__output);
+		for(int elementIndex = 0; elementIndex < elementCount__output; elementIndex++)
 		{
-			ScriptComponentBase* script__output = nullptr;
-			if(vec__output[i])
-				script__output = ScriptGameObjectManager::Instance().GetBuiltinScriptComponent(B3DStaticGameObjectCast<Component>(vec__output[i]));
-			if(script__output != nullptr)
-				array__output.Set(i, script__output->GetManagedInstance());
+			ScriptComponentBase* scriptObjectWrapper__output = nullptr;
+			if(nativeArray__output[elementIndex])
+				scriptObjectWrapper__output = ScriptGameObjectManager::Instance().GetBuiltinScriptComponent(B3DStaticGameObjectCast<Component>(nativeArray__output[elementIndex]));
+			if(scriptObjectWrapper__output != nullptr)
+				scriptArray__output.Set(elementIndex, scriptObjectWrapper__output->GetManagedInstance());
 			else
-				array__output.Set(i, nullptr);
+				scriptArray__output.Set(elementIndex, nullptr);
 		}
-		__output = array__output.GetInternal();
+		__output = scriptArray__output.GetInternal();
 
 		return __output;
 	}
 
 	MonoArray* ScriptPhysicsScene::InternalCapsuleOverlap(ScriptPhysicsScene* thisPtr, Capsule* capsule, Quaternion* rotation, uint64_t layer)
 	{
-		Vector<GameObjectHandle<CCollider>> vec__output;
-		vec__output = thisPtr->GetInternal()->CapsuleOverlap(*capsule, *rotation, layer);
+		Vector<GameObjectHandle<CCollider>> nativeArray__output;
+		nativeArray__output = thisPtr->GetInternal()->CapsuleOverlap(*capsule, *rotation, layer);
 
 		MonoArray* __output;
-		int arraySize__output = (int)vec__output.size();
-		ScriptArray array__output = ScriptArray::Create<ScriptCollider>(arraySize__output);
-		for(int i = 0; i < arraySize__output; i++)
+		int elementCount__output = (int)nativeArray__output.size();
+		ScriptArray scriptArray__output = ScriptArray::Create<ScriptCollider>(elementCount__output);
+		for(int elementIndex = 0; elementIndex < elementCount__output; elementIndex++)
 		{
-			ScriptComponentBase* script__output = nullptr;
-			if(vec__output[i])
-				script__output = ScriptGameObjectManager::Instance().GetBuiltinScriptComponent(B3DStaticGameObjectCast<Component>(vec__output[i]));
-			if(script__output != nullptr)
-				array__output.Set(i, script__output->GetManagedInstance());
+			ScriptComponentBase* scriptObjectWrapper__output = nullptr;
+			if(nativeArray__output[elementIndex])
+				scriptObjectWrapper__output = ScriptGameObjectManager::Instance().GetBuiltinScriptComponent(B3DStaticGameObjectCast<Component>(nativeArray__output[elementIndex]));
+			if(scriptObjectWrapper__output != nullptr)
+				scriptArray__output.Set(elementIndex, scriptObjectWrapper__output->GetManagedInstance());
 			else
-				array__output.Set(i, nullptr);
+				scriptArray__output.Set(elementIndex, nullptr);
 		}
-		__output = array__output.GetInternal();
+		__output = scriptArray__output.GetInternal();
 
 		return __output;
 	}
 
 	MonoArray* ScriptPhysicsScene::InternalConvexOverlap(ScriptPhysicsScene* thisPtr, MonoObject* mesh, TVector3<float>* position, Quaternion* rotation, uint64_t layer)
 	{
-		Vector<GameObjectHandle<CCollider>> vec__output;
+		Vector<GameObjectHandle<CCollider>> nativeArray__output;
 		TResourceHandle<PhysicsMesh> tmpmesh;
-		ScriptRRefBase* scriptmesh;
-		scriptmesh = ScriptRRefBase::ToNative(mesh);
-		if(scriptmesh != nullptr)
-			tmpmesh = B3DStaticResourceCast<PhysicsMesh>(scriptmesh->GetHandle());
-		vec__output = thisPtr->GetInternal()->ConvexOverlap(tmpmesh, *position, *rotation, layer);
+		ScriptRRefBase* scriptObjectWrappermesh;
+		scriptObjectWrappermesh = ScriptRRefBase::ToNative(mesh);
+		if(scriptObjectWrappermesh != nullptr)
+			tmpmesh = B3DStaticResourceCast<PhysicsMesh>(scriptObjectWrappermesh->GetHandle());
+		nativeArray__output = thisPtr->GetInternal()->ConvexOverlap(tmpmesh, *position, *rotation, layer);
 
 		MonoArray* __output;
-		int arraySize__output = (int)vec__output.size();
-		ScriptArray array__output = ScriptArray::Create<ScriptCollider>(arraySize__output);
-		for(int i = 0; i < arraySize__output; i++)
+		int elementCount__output = (int)nativeArray__output.size();
+		ScriptArray scriptArray__output = ScriptArray::Create<ScriptCollider>(elementCount__output);
+		for(int elementIndex = 0; elementIndex < elementCount__output; elementIndex++)
 		{
-			ScriptComponentBase* script__output = nullptr;
-			if(vec__output[i])
-				script__output = ScriptGameObjectManager::Instance().GetBuiltinScriptComponent(B3DStaticGameObjectCast<Component>(vec__output[i]));
-			if(script__output != nullptr)
-				array__output.Set(i, script__output->GetManagedInstance());
+			ScriptComponentBase* scriptObjectWrapper__output = nullptr;
+			if(nativeArray__output[elementIndex])
+				scriptObjectWrapper__output = ScriptGameObjectManager::Instance().GetBuiltinScriptComponent(B3DStaticGameObjectCast<Component>(nativeArray__output[elementIndex]));
+			if(scriptObjectWrapper__output != nullptr)
+				scriptArray__output.Set(elementIndex, scriptObjectWrapper__output->GetManagedInstance());
 			else
-				array__output.Set(i, nullptr);
+				scriptArray__output.Set(elementIndex, nullptr);
 		}
-		__output = array__output.GetInternal();
+		__output = scriptArray__output.GetInternal();
 
 		return __output;
 	}
@@ -475,10 +475,10 @@ namespace bs
 	{
 		bool tmp__output;
 		TResourceHandle<PhysicsMesh> tmpmesh;
-		ScriptRRefBase* scriptmesh;
-		scriptmesh = ScriptRRefBase::ToNative(mesh);
-		if(scriptmesh != nullptr)
-			tmpmesh = B3DStaticResourceCast<PhysicsMesh>(scriptmesh->GetHandle());
+		ScriptRRefBase* scriptObjectWrappermesh;
+		scriptObjectWrappermesh = ScriptRRefBase::ToNative(mesh);
+		if(scriptObjectWrappermesh != nullptr)
+			tmpmesh = B3DStaticResourceCast<PhysicsMesh>(scriptObjectWrappermesh->GetHandle());
 		tmp__output = thisPtr->GetInternal()->ConvexOverlapAny(tmpmesh, *position, *rotation, layer);
 
 		bool __output;

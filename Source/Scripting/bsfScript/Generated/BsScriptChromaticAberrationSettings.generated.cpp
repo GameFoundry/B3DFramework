@@ -65,10 +65,10 @@ namespace bs
 	void ScriptChromaticAberrationSettings::InternalSetFringeTexture(ScriptChromaticAberrationSettings* thisPtr, MonoObject* value)
 	{
 		TResourceHandle<Texture> tmpvalue;
-		ScriptRRefBase* scriptvalue;
-		scriptvalue = ScriptRRefBase::ToNative(value);
-		if(scriptvalue != nullptr)
-			tmpvalue = B3DStaticResourceCast<Texture>(scriptvalue->GetHandle());
+		ScriptRRefBase* scriptObjectWrappervalue;
+		scriptObjectWrappervalue = ScriptRRefBase::ToNative(value);
+		if(scriptObjectWrappervalue != nullptr)
+			tmpvalue = B3DStaticResourceCast<Texture>(scriptObjectWrappervalue->GetHandle());
 		thisPtr->GetInternal()->FringeTexture = tmpvalue;
 	}
 

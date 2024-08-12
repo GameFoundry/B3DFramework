@@ -60,24 +60,24 @@ namespace bs
 
 	void ScriptGUIListBox::InternalSetElements(ScriptGUIListBox* thisPtr, MonoArray* elements)
 	{
-		Vector<HString> vecelements;
+		Vector<HString> nativeArrayelements;
 		if(elements != nullptr)
 		{
-			ScriptArray arrayelements(elements);
-			vecelements.resize(arrayelements.Size());
-			for(int i = 0; i < (int)arrayelements.Size(); i++)
+			ScriptArray scriptArrayelements(elements);
+			nativeArrayelements.resize(scriptArrayelements.Size());
+			for(int elementIndex = 0; elementIndex < (int)scriptArrayelements.Size(); elementIndex++)
 			{
-				ScriptLocString* scriptelements;
-				scriptelements = ScriptLocString::ToNative(arrayelements.Get<MonoObject*>(i));
-				if(scriptelements != nullptr)
+				ScriptLocString* scriptObjectWrapperelements;
+				scriptObjectWrapperelements = ScriptLocString::ToNative(scriptArrayelements.Get<MonoObject*>(elementIndex));
+				if(scriptObjectWrapperelements != nullptr)
 				{
-					SPtr<HString> arrayElemPtrelements = scriptelements->GetInternal();
-					if(arrayElemPtrelements)
-						vecelements[i] = *arrayElemPtrelements;
+					SPtr<HString> arrayElementPointerelements = scriptObjectWrapperelements->GetInternal();
+					if(arrayElementPointerelements)
+						nativeArrayelements[elementIndex] = *arrayElementPointerelements;
 				}
 			}
 		}
-		static_cast<GUIListBox*>(thisPtr->GetGuiElement())->SetElements(vecelements);
+		static_cast<GUIListBox*>(thisPtr->GetGuiElement())->SetElements(nativeArrayelements);
 	}
 
 	void ScriptGUIListBox::InternalSelectElement(ScriptGUIListBox* thisPtr, uint32_t index)
@@ -103,34 +103,34 @@ namespace bs
 
 	MonoArray* ScriptGUIListBox::InternalGetElementStates(ScriptGUIListBox* thisPtr)
 	{
-		Vector<bool> vec__output;
-		vec__output = static_cast<GUIListBox*>(thisPtr->GetGuiElement())->GetElementStates();
+		Vector<bool> nativeArray__output;
+		nativeArray__output = static_cast<GUIListBox*>(thisPtr->GetGuiElement())->GetElementStates();
 
 		MonoArray* __output;
-		int arraySize__output = (int)vec__output.size();
-		ScriptArray array__output = ScriptArray::Create<bool>(arraySize__output);
-		for(int i = 0; i < arraySize__output; i++)
+		int elementCount__output = (int)nativeArray__output.size();
+		ScriptArray scriptArray__output = ScriptArray::Create<bool>(elementCount__output);
+		for(int elementIndex = 0; elementIndex < elementCount__output; elementIndex++)
 		{
-			array__output.Set(i, vec__output[i]);
+			scriptArray__output.Set(elementIndex, nativeArray__output[elementIndex]);
 		}
-		__output = array__output.GetInternal();
+		__output = scriptArray__output.GetInternal();
 
 		return __output;
 	}
 
 	void ScriptGUIListBox::InternalSetElementStates(ScriptGUIListBox* thisPtr, MonoArray* states)
 	{
-		Vector<bool> vecstates;
+		Vector<bool> nativeArraystates;
 		if(states != nullptr)
 		{
-			ScriptArray arraystates(states);
-			vecstates.resize(arraystates.Size());
-			for(int i = 0; i < (int)arraystates.Size(); i++)
+			ScriptArray scriptArraystates(states);
+			nativeArraystates.resize(scriptArraystates.Size());
+			for(int elementIndex = 0; elementIndex < (int)scriptArraystates.Size(); elementIndex++)
 			{
-				vecstates[i] = arraystates.Get<bool>(i);
+				nativeArraystates[elementIndex] = scriptArraystates.Get<bool>(elementIndex);
 			}
 		}
-		static_cast<GUIListBox*>(thisPtr->GetGuiElement())->SetElementStates(vecstates);
+		static_cast<GUIListBox*>(thisPtr->GetGuiElement())->SetElementStates(nativeArraystates);
 	}
 
 	void ScriptGUIListBox::InternalCreate(MonoObject* managedInstance, __GUIListBoxContentInterop* contents, MonoString* styleClass, MonoArray* options)
@@ -139,17 +139,17 @@ namespace bs
 		tmpcontents = ScriptGUIListBoxContent::FromInterop(*contents);
 		String tmpstyleClass;
 		tmpstyleClass = MonoUtil::MonoToString(styleClass);
-		TInlineArray<GUIOption, 4> vecoptions;
+		TInlineArray<GUIOption, 4> nativeArrayoptions;
 		if(options != nullptr)
 		{
-			ScriptArray arrayoptions(options);
-			vecoptions.resize(arrayoptions.Size());
-			for(int i = 0; i < (int)arrayoptions.Size(); i++)
+			ScriptArray scriptArrayoptions(options);
+			nativeArrayoptions.resize(scriptArrayoptions.Size());
+			for(int elementIndex = 0; elementIndex < (int)scriptArrayoptions.Size(); elementIndex++)
 			{
-				vecoptions[i] = arrayoptions.Get<GUIOption>(i);
+				nativeArrayoptions[elementIndex] = scriptArrayoptions.Get<GUIOption>(elementIndex);
 			}
 		}
-		GUIListBox* instance = GUIListBox::Create(tmpcontents, tmpstyleClass, vecoptions);
+		GUIListBox* instance = GUIListBox::Create(tmpcontents, tmpstyleClass, nativeArrayoptions);
 		new (B3DAllocate<ScriptGUIListBox>())ScriptGUIListBox(managedInstance, instance);
 	}
 
@@ -157,17 +157,17 @@ namespace bs
 	{
 		GUIListBoxContent tmpcontents;
 		tmpcontents = ScriptGUIListBoxContent::FromInterop(*contents);
-		TInlineArray<GUIOption, 4> vecoptions;
+		TInlineArray<GUIOption, 4> nativeArrayoptions;
 		if(options != nullptr)
 		{
-			ScriptArray arrayoptions(options);
-			vecoptions.resize(arrayoptions.Size());
-			for(int i = 0; i < (int)arrayoptions.Size(); i++)
+			ScriptArray scriptArrayoptions(options);
+			nativeArrayoptions.resize(scriptArrayoptions.Size());
+			for(int elementIndex = 0; elementIndex < (int)scriptArrayoptions.Size(); elementIndex++)
 			{
-				vecoptions[i] = arrayoptions.Get<GUIOption>(i);
+				nativeArrayoptions[elementIndex] = scriptArrayoptions.Get<GUIOption>(elementIndex);
 			}
 		}
-		GUIListBox* instance = GUIListBox::Create(tmpcontents, vecoptions);
+		GUIListBox* instance = GUIListBox::Create(tmpcontents, nativeArrayoptions);
 		new (B3DAllocate<ScriptGUIListBox>())ScriptGUIListBox(managedInstance, instance);
 	}
 
@@ -175,33 +175,33 @@ namespace bs
 	{
 		String tmpstyleClass;
 		tmpstyleClass = MonoUtil::MonoToString(styleClass);
-		TInlineArray<GUIOption, 4> vecoptions;
+		TInlineArray<GUIOption, 4> nativeArrayoptions;
 		if(options != nullptr)
 		{
-			ScriptArray arrayoptions(options);
-			vecoptions.resize(arrayoptions.Size());
-			for(int i = 0; i < (int)arrayoptions.Size(); i++)
+			ScriptArray scriptArrayoptions(options);
+			nativeArrayoptions.resize(scriptArrayoptions.Size());
+			for(int elementIndex = 0; elementIndex < (int)scriptArrayoptions.Size(); elementIndex++)
 			{
-				vecoptions[i] = arrayoptions.Get<GUIOption>(i);
+				nativeArrayoptions[elementIndex] = scriptArrayoptions.Get<GUIOption>(elementIndex);
 			}
 		}
-		GUIListBox* instance = GUIListBox::Create(tmpstyleClass, vecoptions);
+		GUIListBox* instance = GUIListBox::Create(tmpstyleClass, nativeArrayoptions);
 		new (B3DAllocate<ScriptGUIListBox>())ScriptGUIListBox(managedInstance, instance);
 	}
 
 	void ScriptGUIListBox::InternalCreate2(MonoObject* managedInstance, MonoArray* options)
 	{
-		TInlineArray<GUIOption, 4> vecoptions;
+		TInlineArray<GUIOption, 4> nativeArrayoptions;
 		if(options != nullptr)
 		{
-			ScriptArray arrayoptions(options);
-			vecoptions.resize(arrayoptions.Size());
-			for(int i = 0; i < (int)arrayoptions.Size(); i++)
+			ScriptArray scriptArrayoptions(options);
+			nativeArrayoptions.resize(scriptArrayoptions.Size());
+			for(int elementIndex = 0; elementIndex < (int)scriptArrayoptions.Size(); elementIndex++)
 			{
-				vecoptions[i] = arrayoptions.Get<GUIOption>(i);
+				nativeArrayoptions[elementIndex] = scriptArrayoptions.Get<GUIOption>(elementIndex);
 			}
 		}
-		GUIListBox* instance = GUIListBox::Create(vecoptions);
+		GUIListBox* instance = GUIListBox::Create(nativeArrayoptions);
 		new (B3DAllocate<ScriptGUIListBox>())ScriptGUIListBox(managedInstance, instance);
 	}
 }

@@ -61,35 +61,35 @@ namespace bs
 
 	MonoArray* ScriptImportedAnimationEvents::InternalGetEvents(ScriptImportedAnimationEvents* thisPtr)
 	{
-		Vector<AnimationEvent> vec__output;
-		vec__output = thisPtr->GetInternal()->Events;
+		Vector<AnimationEvent> nativeArray__output;
+		nativeArray__output = thisPtr->GetInternal()->Events;
 
 		MonoArray* __output;
-		int arraySize__output = (int)vec__output.size();
-		ScriptArray array__output = ScriptArray::Create<ScriptAnimationEvent>(arraySize__output);
-		for(int i = 0; i < arraySize__output; i++)
+		int elementCount__output = (int)nativeArray__output.size();
+		ScriptArray scriptArray__output = ScriptArray::Create<ScriptAnimationEvent>(elementCount__output);
+		for(int elementIndex = 0; elementIndex < elementCount__output; elementIndex++)
 		{
-			array__output.Set(i, ScriptAnimationEvent::ToInterop(vec__output[i]));
+			scriptArray__output.Set(elementIndex, ScriptAnimationEvent::ToInterop(nativeArray__output[elementIndex]));
 		}
-		__output = array__output.GetInternal();
+		__output = scriptArray__output.GetInternal();
 
 		return __output;
 	}
 
 	void ScriptImportedAnimationEvents::InternalSetEvents(ScriptImportedAnimationEvents* thisPtr, MonoArray* value)
 	{
-		Vector<AnimationEvent> vecvalue;
+		Vector<AnimationEvent> nativeArrayvalue;
 		if(value != nullptr)
 		{
-			ScriptArray arrayvalue(value);
-			vecvalue.resize(arrayvalue.Size());
-			for(int i = 0; i < (int)arrayvalue.Size(); i++)
+			ScriptArray scriptArrayvalue(value);
+			nativeArrayvalue.resize(scriptArrayvalue.Size());
+			for(int elementIndex = 0; elementIndex < (int)scriptArrayvalue.Size(); elementIndex++)
 			{
-				vecvalue[i] = ScriptAnimationEvent::FromInterop(arrayvalue.Get<__AnimationEventInterop>(i));
+				nativeArrayvalue[elementIndex] = ScriptAnimationEvent::FromInterop(scriptArrayvalue.Get<__AnimationEventInterop>(elementIndex));
 			}
 
 		}
-		thisPtr->GetInternal()->Events = vecvalue;
+		thisPtr->GetInternal()->Events = nativeArrayvalue;
 	}
 #endif
 }

@@ -46,10 +46,10 @@ namespace bs
 	void ScriptAudioSource::InternalSetClip(ScriptAudioSource* thisPtr, MonoObject* clip)
 	{
 		TResourceHandle<AudioClip> tmpclip;
-		ScriptRRefBase* scriptclip;
-		scriptclip = ScriptRRefBase::ToNative(clip);
-		if(scriptclip != nullptr)
-			tmpclip = B3DStaticResourceCast<AudioClip>(scriptclip->GetHandle());
+		ScriptRRefBase* scriptObjectWrapperclip;
+		scriptObjectWrapperclip = ScriptRRefBase::ToNative(clip);
+		if(scriptObjectWrapperclip != nullptr)
+			tmpclip = B3DStaticResourceCast<AudioClip>(scriptObjectWrapperclip->GetHandle());
 		thisPtr->GetHandle()->SetClip(tmpclip);
 	}
 

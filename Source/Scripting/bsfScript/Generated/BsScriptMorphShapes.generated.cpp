@@ -32,20 +32,20 @@ namespace bs
 	}
 	MonoArray* ScriptMorphShapes::InternalGetChannels(ScriptMorphShapes* thisPtr)
 	{
-		Vector<SPtr<MorphChannel>> vec__output;
-		vec__output = thisPtr->GetInternal()->GetChannels();
+		Vector<SPtr<MorphChannel>> nativeArray__output;
+		nativeArray__output = thisPtr->GetInternal()->GetChannels();
 
 		MonoArray* __output;
-		int arraySize__output = (int)vec__output.size();
-		ScriptArray array__output = ScriptArray::Create<ScriptMorphChannel>(arraySize__output);
-		for(int i = 0; i < arraySize__output; i++)
+		int elementCount__output = (int)nativeArray__output.size();
+		ScriptArray scriptArray__output = ScriptArray::Create<ScriptMorphChannel>(elementCount__output);
+		for(int elementIndex = 0; elementIndex < elementCount__output; elementIndex++)
 		{
-			SPtr<MorphChannel> arrayElemPtr__output = vec__output[i];
-			MonoObject* arrayElem__output;
-			arrayElem__output = ScriptMorphChannel::Create(arrayElemPtr__output);
-			array__output.Set(i, arrayElem__output);
+			SPtr<MorphChannel> arrayElementPointer__output = nativeArray__output[elementIndex];
+			MonoObject* arrayElement__output;
+			arrayElement__output = ScriptMorphChannel::Create(arrayElementPointer__output);
+			scriptArray__output.Set(elementIndex, arrayElement__output);
 		}
-		__output = array__output.GetInternal();
+		__output = scriptArray__output.GetInternal();
 
 		return __output;
 	}

@@ -43,51 +43,51 @@ namespace bs
 
 	void ScriptMultiResource::InternalMultiResource0(MonoObject* managedInstance, MonoArray* entries)
 	{
-		Vector<SubResource> vecentries;
+		Vector<SubResource> nativeArrayentries;
 		if(entries != nullptr)
 		{
-			ScriptArray arrayentries(entries);
-			vecentries.resize(arrayentries.Size());
-			for(int i = 0; i < (int)arrayentries.Size(); i++)
+			ScriptArray scriptArrayentries(entries);
+			nativeArrayentries.resize(scriptArrayentries.Size());
+			for(int elementIndex = 0; elementIndex < (int)scriptArrayentries.Size(); elementIndex++)
 			{
-				vecentries[i] = ScriptSubResource::FromInterop(arrayentries.Get<__SubResourceInterop>(i));
+				nativeArrayentries[elementIndex] = ScriptSubResource::FromInterop(scriptArrayentries.Get<__SubResourceInterop>(elementIndex));
 			}
 		}
-		SPtr<MultiResource> instance = B3DMakeShared<MultiResource>(vecentries);
+		SPtr<MultiResource> instance = B3DMakeShared<MultiResource>(nativeArrayentries);
 		new (B3DAllocate<ScriptMultiResource>())ScriptMultiResource(managedInstance, instance);
 	}
 
 	MonoArray* ScriptMultiResource::InternalGetEntries(ScriptMultiResource* thisPtr)
 	{
-		Vector<SubResource> vec__output;
-		vec__output = thisPtr->GetInternal()->Entries;
+		Vector<SubResource> nativeArray__output;
+		nativeArray__output = thisPtr->GetInternal()->Entries;
 
 		MonoArray* __output;
-		int arraySize__output = (int)vec__output.size();
-		ScriptArray array__output = ScriptArray::Create<ScriptSubResource>(arraySize__output);
-		for(int i = 0; i < arraySize__output; i++)
+		int elementCount__output = (int)nativeArray__output.size();
+		ScriptArray scriptArray__output = ScriptArray::Create<ScriptSubResource>(elementCount__output);
+		for(int elementIndex = 0; elementIndex < elementCount__output; elementIndex++)
 		{
-			array__output.Set(i, ScriptSubResource::ToInterop(vec__output[i]));
+			scriptArray__output.Set(elementIndex, ScriptSubResource::ToInterop(nativeArray__output[elementIndex]));
 		}
-		__output = array__output.GetInternal();
+		__output = scriptArray__output.GetInternal();
 
 		return __output;
 	}
 
 	void ScriptMultiResource::InternalSetEntries(ScriptMultiResource* thisPtr, MonoArray* value)
 	{
-		Vector<SubResource> vecvalue;
+		Vector<SubResource> nativeArrayvalue;
 		if(value != nullptr)
 		{
-			ScriptArray arrayvalue(value);
-			vecvalue.resize(arrayvalue.Size());
-			for(int i = 0; i < (int)arrayvalue.Size(); i++)
+			ScriptArray scriptArrayvalue(value);
+			nativeArrayvalue.resize(scriptArrayvalue.Size());
+			for(int elementIndex = 0; elementIndex < (int)scriptArrayvalue.Size(); elementIndex++)
 			{
-				vecvalue[i] = ScriptSubResource::FromInterop(arrayvalue.Get<__SubResourceInterop>(i));
+				nativeArrayvalue[elementIndex] = ScriptSubResource::FromInterop(scriptArrayvalue.Get<__SubResourceInterop>(elementIndex));
 			}
 
 		}
-		thisPtr->GetInternal()->Entries = vecvalue;
+		thisPtr->GetInternal()->Entries = nativeArrayvalue;
 	}
 #endif
 }

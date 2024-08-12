@@ -35,10 +35,10 @@ namespace bs
 	void ScriptDecal::InternalSetMaterial(ScriptDecal* thisPtr, MonoObject* material)
 	{
 		TResourceHandle<Material> tmpmaterial;
-		ScriptRRefBase* scriptmaterial;
-		scriptmaterial = ScriptRRefBase::ToNative(material);
-		if(scriptmaterial != nullptr)
-			tmpmaterial = B3DStaticResourceCast<Material>(scriptmaterial->GetHandle());
+		ScriptRRefBase* scriptObjectWrappermaterial;
+		scriptObjectWrappermaterial = ScriptRRefBase::ToNative(material);
+		if(scriptObjectWrappermaterial != nullptr)
+			tmpmaterial = B3DStaticResourceCast<Material>(scriptObjectWrappermaterial->GetHandle());
 		thisPtr->GetHandle()->SetMaterial(tmpmaterial);
 	}
 

@@ -78,20 +78,20 @@ namespace bs
 	void ScriptMaterial::InternalSetShader(ScriptMaterial* thisPtr, MonoObject* shader)
 	{
 		TResourceHandle<Shader> tmpshader;
-		ScriptRRefBase* scriptshader;
-		scriptshader = ScriptRRefBase::ToNative(shader);
-		if(scriptshader != nullptr)
-			tmpshader = B3DStaticResourceCast<Shader>(scriptshader->GetHandle());
+		ScriptRRefBase* scriptObjectWrappershader;
+		scriptObjectWrappershader = ScriptRRefBase::ToNative(shader);
+		if(scriptObjectWrappershader != nullptr)
+			tmpshader = B3DStaticResourceCast<Shader>(scriptObjectWrappershader->GetHandle());
 		thisPtr->GetHandle()->SetShader(tmpshader);
 	}
 
 	void ScriptMaterial::InternalSetVariation(ScriptMaterial* thisPtr, MonoObject* variation)
 	{
 		SPtr<ShaderVariationParameters> tmpvariation;
-		ScriptShaderVariationParameters* scriptvariation;
-		scriptvariation = ScriptShaderVariationParameters::ToNative(variation);
-		if(scriptvariation != nullptr)
-			tmpvariation = scriptvariation->GetInternal();
+		ScriptShaderVariationParameters* scriptObjectWrappervariation;
+		scriptObjectWrappervariation = ScriptShaderVariationParameters::ToNative(variation);
+		if(scriptObjectWrappervariation != nullptr)
+			tmpvariation = scriptObjectWrappervariation->GetInternal();
 		thisPtr->GetHandle()->SetVariation(*tmpvariation);
 	}
 
@@ -150,10 +150,10 @@ namespace bs
 		String tmpname;
 		tmpname = MonoUtil::MonoToString(name);
 		SPtr<TAnimationCurve<float>> tmpvalue;
-		ScriptAnimationCurve* scriptvalue;
-		scriptvalue = ScriptAnimationCurve::ToNative(value);
-		if(scriptvalue != nullptr)
-			tmpvalue = scriptvalue->GetInternal();
+		ScriptAnimationCurve* scriptObjectWrappervalue;
+		scriptObjectWrappervalue = ScriptAnimationCurve::ToNative(value);
+		if(scriptObjectWrappervalue != nullptr)
+			tmpvalue = scriptObjectWrappervalue->GetInternal();
 		thisPtr->GetHandle()->SetFloatCurve(tmpname, *tmpvalue, arrayIdx);
 	}
 
@@ -169,10 +169,10 @@ namespace bs
 		String tmpname;
 		tmpname = MonoUtil::MonoToString(name);
 		SPtr<ColorGradientHDR> tmpvalue;
-		ScriptColorGradientHDR* scriptvalue;
-		scriptvalue = ScriptColorGradientHDR::ToNative(value);
-		if(scriptvalue != nullptr)
-			tmpvalue = scriptvalue->GetInternal();
+		ScriptColorGradientHDR* scriptObjectWrappervalue;
+		scriptObjectWrappervalue = ScriptColorGradientHDR::ToNative(value);
+		if(scriptObjectWrappervalue != nullptr)
+			tmpvalue = scriptObjectWrappervalue->GetInternal();
 		thisPtr->GetHandle()->SetColorGradient(tmpname, *tmpvalue, arrayIdx);
 	}
 
@@ -332,10 +332,10 @@ namespace bs
 	void ScriptMaterial::InternalCreate0(MonoObject* managedInstance, MonoObject* shader)
 	{
 		TResourceHandle<Shader> tmpshader;
-		ScriptRRefBase* scriptshader;
-		scriptshader = ScriptRRefBase::ToNative(shader);
-		if(scriptshader != nullptr)
-			tmpshader = B3DStaticResourceCast<Shader>(scriptshader->GetHandle());
+		ScriptRRefBase* scriptObjectWrappershader;
+		scriptObjectWrappershader = ScriptRRefBase::ToNative(shader);
+		if(scriptObjectWrappershader != nullptr)
+			tmpshader = B3DStaticResourceCast<Shader>(scriptObjectWrappershader->GetHandle());
 		TResourceHandle<Material> instance = Material::Create(tmpshader);
 		ScriptResourceManager::Instance().CreateBuiltinScriptResource(instance, managedInstance);
 	}
@@ -345,10 +345,10 @@ namespace bs
 		String tmpname;
 		tmpname = MonoUtil::MonoToString(name);
 		TResourceHandle<Texture> tmpvalue;
-		ScriptRRefBase* scriptvalue;
-		scriptvalue = ScriptRRefBase::ToNative(value);
-		if(scriptvalue != nullptr)
-			tmpvalue = B3DStaticResourceCast<Texture>(scriptvalue->GetHandle());
+		ScriptRRefBase* scriptObjectWrappervalue;
+		scriptObjectWrappervalue = ScriptRRefBase::ToNative(value);
+		if(scriptObjectWrappervalue != nullptr)
+			tmpvalue = B3DStaticResourceCast<Texture>(scriptObjectWrappervalue->GetHandle());
 		MaterialEx::SetTexture(thisPtr->GetHandle(), tmpname, tmpvalue, mipLevel, numMipLevels, arraySlice, numArraySlices);
 	}
 
@@ -375,10 +375,10 @@ namespace bs
 		String tmpname;
 		tmpname = MonoUtil::MonoToString(name);
 		TResourceHandle<SpriteImage> tmpvalue;
-		ScriptRRefBase* scriptvalue;
-		scriptvalue = ScriptRRefBase::ToNative(value);
-		if(scriptvalue != nullptr)
-			tmpvalue = B3DStaticResourceCast<SpriteImage>(scriptvalue->GetHandle());
+		ScriptRRefBase* scriptObjectWrappervalue;
+		scriptObjectWrappervalue = ScriptRRefBase::ToNative(value);
+		if(scriptObjectWrappervalue != nullptr)
+			tmpvalue = B3DStaticResourceCast<SpriteImage>(scriptObjectWrappervalue->GetHandle());
 		MaterialEx::SetSpriteImage(thisPtr->GetHandle(), tmpname, tmpvalue);
 	}
 

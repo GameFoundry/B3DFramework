@@ -55,10 +55,10 @@ namespace bs
 	void ScriptParticleSystem::InternalSetSettings(ScriptParticleSystem* thisPtr, MonoObject* settings)
 	{
 		SPtr<ParticleSystemSettings> tmpsettings;
-		ScriptParticleSystemSettings* scriptsettings;
-		scriptsettings = ScriptParticleSystemSettings::ToNative(settings);
-		if(scriptsettings != nullptr)
-			tmpsettings = scriptsettings->GetInternal();
+		ScriptParticleSystemSettings* scriptObjectWrappersettings;
+		scriptObjectWrappersettings = ScriptParticleSystemSettings::ToNative(settings);
+		if(scriptObjectWrappersettings != nullptr)
+			tmpsettings = scriptObjectWrappersettings->GetInternal();
 		thisPtr->GetHandle()->SetSettings(*tmpsettings);
 	}
 
@@ -76,10 +76,10 @@ namespace bs
 	void ScriptParticleSystem::InternalSetGpuSimulationSettings(ScriptParticleSystem* thisPtr, MonoObject* settings)
 	{
 		SPtr<ParticleGpuSimulationSettings> tmpsettings;
-		ScriptParticleGpuSimulationSettings* scriptsettings;
-		scriptsettings = ScriptParticleGpuSimulationSettings::ToNative(settings);
-		if(scriptsettings != nullptr)
-			tmpsettings = scriptsettings->GetInternal();
+		ScriptParticleGpuSimulationSettings* scriptObjectWrappersettings;
+		scriptObjectWrappersettings = ScriptParticleGpuSimulationSettings::ToNative(settings);
+		if(scriptObjectWrappersettings != nullptr)
+			tmpsettings = scriptObjectWrappersettings->GetInternal();
 		thisPtr->GetHandle()->SetGpuSimulationSettings(*tmpsettings);
 	}
 
@@ -96,106 +96,106 @@ namespace bs
 
 	void ScriptParticleSystem::InternalSetEmitters(ScriptParticleSystem* thisPtr, MonoArray* emitters)
 	{
-		Vector<SPtr<ParticleEmitter>> vecemitters;
+		Vector<SPtr<ParticleEmitter>> nativeArrayemitters;
 		if(emitters != nullptr)
 		{
-			ScriptArray arrayemitters(emitters);
-			vecemitters.resize(arrayemitters.Size());
-			for(int i = 0; i < (int)arrayemitters.Size(); i++)
+			ScriptArray scriptArrayemitters(emitters);
+			nativeArrayemitters.resize(scriptArrayemitters.Size());
+			for(int elementIndex = 0; elementIndex < (int)scriptArrayemitters.Size(); elementIndex++)
 			{
-				ScriptParticleEmitter* scriptemitters;
-				scriptemitters = ScriptParticleEmitter::ToNative(arrayemitters.Get<MonoObject*>(i));
-				if(scriptemitters != nullptr)
+				ScriptParticleEmitter* scriptObjectWrapperemitters;
+				scriptObjectWrapperemitters = ScriptParticleEmitter::ToNative(scriptArrayemitters.Get<MonoObject*>(elementIndex));
+				if(scriptObjectWrapperemitters != nullptr)
 				{
-					SPtr<ParticleEmitter> arrayElemPtremitters = scriptemitters->GetInternal();
-					vecemitters[i] = arrayElemPtremitters;
+					SPtr<ParticleEmitter> arrayElementPointeremitters = scriptObjectWrapperemitters->GetInternal();
+					nativeArrayemitters[elementIndex] = arrayElementPointeremitters;
 				}
 			}
 		}
-		thisPtr->GetHandle()->SetEmitters(vecemitters);
+		thisPtr->GetHandle()->SetEmitters(nativeArrayemitters);
 	}
 
 	MonoArray* ScriptParticleSystem::InternalGetEmitters(ScriptParticleSystem* thisPtr)
 	{
-		Vector<SPtr<ParticleEmitter>> vec__output;
-		vec__output = thisPtr->GetHandle()->GetEmitters();
+		Vector<SPtr<ParticleEmitter>> nativeArray__output;
+		nativeArray__output = thisPtr->GetHandle()->GetEmitters();
 
 		MonoArray* __output;
-		int arraySize__output = (int)vec__output.size();
-		ScriptArray array__output = ScriptArray::Create<ScriptParticleEmitter>(arraySize__output);
-		for(int i = 0; i < arraySize__output; i++)
+		int elementCount__output = (int)nativeArray__output.size();
+		ScriptArray scriptArray__output = ScriptArray::Create<ScriptParticleEmitter>(elementCount__output);
+		for(int elementIndex = 0; elementIndex < elementCount__output; elementIndex++)
 		{
-			SPtr<ParticleEmitter> arrayElemPtr__output = vec__output[i];
-			MonoObject* arrayElem__output;
-			arrayElem__output = ScriptParticleEmitter::Create(arrayElemPtr__output);
-			array__output.Set(i, arrayElem__output);
+			SPtr<ParticleEmitter> arrayElementPointer__output = nativeArray__output[elementIndex];
+			MonoObject* arrayElement__output;
+			arrayElement__output = ScriptParticleEmitter::Create(arrayElementPointer__output);
+			scriptArray__output.Set(elementIndex, arrayElement__output);
 		}
-		__output = array__output.GetInternal();
+		__output = scriptArray__output.GetInternal();
 
 		return __output;
 	}
 
 	void ScriptParticleSystem::InternalSetEvolvers(ScriptParticleSystem* thisPtr, MonoArray* evolvers)
 	{
-		Vector<SPtr<ParticleEvolver>> vecevolvers;
+		Vector<SPtr<ParticleEvolver>> nativeArrayevolvers;
 		if(evolvers != nullptr)
 		{
-			ScriptArray arrayevolvers(evolvers);
-			vecevolvers.resize(arrayevolvers.Size());
-			for(int i = 0; i < (int)arrayevolvers.Size(); i++)
+			ScriptArray scriptArrayevolvers(evolvers);
+			nativeArrayevolvers.resize(scriptArrayevolvers.Size());
+			for(int elementIndex = 0; elementIndex < (int)scriptArrayevolvers.Size(); elementIndex++)
 			{
-				ScriptParticleEvolverBase* scriptevolvers;
-				scriptevolvers = (ScriptParticleEvolverBase*)ScriptParticleEvolver::ToNative(arrayevolvers.Get<MonoObject*>(i));
-				if(scriptevolvers != nullptr)
+				ScriptParticleEvolverBase* scriptObjectWrapperevolvers;
+				scriptObjectWrapperevolvers = (ScriptParticleEvolverBase*)ScriptParticleEvolver::ToNative(scriptArrayevolvers.Get<MonoObject*>(elementIndex));
+				if(scriptObjectWrapperevolvers != nullptr)
 				{
-					SPtr<ParticleEvolver> arrayElemPtrevolvers = scriptevolvers->GetInternal();
-					vecevolvers[i] = arrayElemPtrevolvers;
+					SPtr<ParticleEvolver> arrayElementPointerevolvers = scriptObjectWrapperevolvers->GetInternal();
+					nativeArrayevolvers[elementIndex] = arrayElementPointerevolvers;
 				}
 			}
 		}
-		thisPtr->GetHandle()->SetEvolvers(vecevolvers);
+		thisPtr->GetHandle()->SetEvolvers(nativeArrayevolvers);
 	}
 
 	MonoArray* ScriptParticleSystem::InternalGetEvolvers(ScriptParticleSystem* thisPtr)
 	{
-		Vector<SPtr<ParticleEvolver>> vec__output;
-		vec__output = thisPtr->GetHandle()->GetEvolvers();
+		Vector<SPtr<ParticleEvolver>> nativeArray__output;
+		nativeArray__output = thisPtr->GetHandle()->GetEvolvers();
 
 		MonoArray* __output;
-		int arraySize__output = (int)vec__output.size();
-		ScriptArray array__output = ScriptArray::Create<ScriptParticleEvolver>(arraySize__output);
-		for(int i = 0; i < arraySize__output; i++)
+		int elementCount__output = (int)nativeArray__output.size();
+		ScriptArray scriptArray__output = ScriptArray::Create<ScriptParticleEvolver>(elementCount__output);
+		for(int elementIndex = 0; elementIndex < elementCount__output; elementIndex++)
 		{
-			SPtr<ParticleEvolver> arrayElemPtr__output = vec__output[i];
-			MonoObject* arrayElem__output;
-			if(arrayElemPtr__output)
+			SPtr<ParticleEvolver> arrayElementPointer__output = nativeArray__output[elementIndex];
+			MonoObject* arrayElement__output;
+			if(arrayElementPointer__output)
 			{
-				if(B3DRTTIIsOfType<ParticleGravity>(arrayElemPtr__output))
-					arrayElem__output = ScriptParticleGravity::Create(std::static_pointer_cast<ParticleGravity>(arrayElemPtr__output));
-				else if(B3DRTTIIsOfType<ParticleForce>(arrayElemPtr__output))
-					arrayElem__output = ScriptParticleForce::Create(std::static_pointer_cast<ParticleForce>(arrayElemPtr__output));
-				else if(B3DRTTIIsOfType<ParticleVelocity>(arrayElemPtr__output))
-					arrayElem__output = ScriptParticleVelocity::Create(std::static_pointer_cast<ParticleVelocity>(arrayElemPtr__output));
-				else if(B3DRTTIIsOfType<ParticleTextureAnimation>(arrayElemPtr__output))
-					arrayElem__output = ScriptParticleTextureAnimation::Create(std::static_pointer_cast<ParticleTextureAnimation>(arrayElemPtr__output));
-				else if(B3DRTTIIsOfType<ParticleOrbit>(arrayElemPtr__output))
-					arrayElem__output = ScriptParticleOrbit::Create(std::static_pointer_cast<ParticleOrbit>(arrayElemPtr__output));
-				else if(B3DRTTIIsOfType<ParticleColor>(arrayElemPtr__output))
-					arrayElem__output = ScriptParticleColor::Create(std::static_pointer_cast<ParticleColor>(arrayElemPtr__output));
-				else if(B3DRTTIIsOfType<ParticleSize>(arrayElemPtr__output))
-					arrayElem__output = ScriptParticleSize::Create(std::static_pointer_cast<ParticleSize>(arrayElemPtr__output));
-				else if(B3DRTTIIsOfType<ParticleRotation>(arrayElemPtr__output))
-					arrayElem__output = ScriptParticleRotation::Create(std::static_pointer_cast<ParticleRotation>(arrayElemPtr__output));
-				else if(B3DRTTIIsOfType<ParticleCollisions>(arrayElemPtr__output))
-					arrayElem__output = ScriptParticleCollisions::Create(std::static_pointer_cast<ParticleCollisions>(arrayElemPtr__output));
+				if(B3DRTTIIsOfType<ParticleGravity>(arrayElementPointer__output))
+					arrayElement__output = ScriptParticleGravity::Create(std::static_pointer_cast<ParticleGravity>(arrayElementPointer__output));
+				else if(B3DRTTIIsOfType<ParticleForce>(arrayElementPointer__output))
+					arrayElement__output = ScriptParticleForce::Create(std::static_pointer_cast<ParticleForce>(arrayElementPointer__output));
+				else if(B3DRTTIIsOfType<ParticleVelocity>(arrayElementPointer__output))
+					arrayElement__output = ScriptParticleVelocity::Create(std::static_pointer_cast<ParticleVelocity>(arrayElementPointer__output));
+				else if(B3DRTTIIsOfType<ParticleTextureAnimation>(arrayElementPointer__output))
+					arrayElement__output = ScriptParticleTextureAnimation::Create(std::static_pointer_cast<ParticleTextureAnimation>(arrayElementPointer__output));
+				else if(B3DRTTIIsOfType<ParticleOrbit>(arrayElementPointer__output))
+					arrayElement__output = ScriptParticleOrbit::Create(std::static_pointer_cast<ParticleOrbit>(arrayElementPointer__output));
+				else if(B3DRTTIIsOfType<ParticleColor>(arrayElementPointer__output))
+					arrayElement__output = ScriptParticleColor::Create(std::static_pointer_cast<ParticleColor>(arrayElementPointer__output));
+				else if(B3DRTTIIsOfType<ParticleSize>(arrayElementPointer__output))
+					arrayElement__output = ScriptParticleSize::Create(std::static_pointer_cast<ParticleSize>(arrayElementPointer__output));
+				else if(B3DRTTIIsOfType<ParticleRotation>(arrayElementPointer__output))
+					arrayElement__output = ScriptParticleRotation::Create(std::static_pointer_cast<ParticleRotation>(arrayElementPointer__output));
+				else if(B3DRTTIIsOfType<ParticleCollisions>(arrayElementPointer__output))
+					arrayElement__output = ScriptParticleCollisions::Create(std::static_pointer_cast<ParticleCollisions>(arrayElementPointer__output));
 				else
-					arrayElem__output = ScriptParticleEvolver::Create(arrayElemPtr__output);
+					arrayElement__output = ScriptParticleEvolver::Create(arrayElementPointer__output);
 			}
 			else
-				arrayElem__output = ScriptParticleEvolver::Create(arrayElemPtr__output);
-			array__output.Set(i, arrayElem__output);
+				arrayElement__output = ScriptParticleEvolver::Create(arrayElementPointer__output);
+			scriptArray__output.Set(elementIndex, arrayElement__output);
 		}
-		__output = array__output.GetInternal();
+		__output = scriptArray__output.GetInternal();
 
 		return __output;
 	}

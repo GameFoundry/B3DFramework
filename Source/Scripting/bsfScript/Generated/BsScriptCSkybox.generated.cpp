@@ -44,10 +44,10 @@ namespace bs
 	void ScriptSkybox::InternalSetTexture(ScriptSkybox* thisPtr, MonoObject* texture)
 	{
 		TResourceHandle<Texture> tmptexture;
-		ScriptRRefBase* scripttexture;
-		scripttexture = ScriptRRefBase::ToNative(texture);
-		if(scripttexture != nullptr)
-			tmptexture = B3DStaticResourceCast<Texture>(scripttexture->GetHandle());
+		ScriptRRefBase* scriptObjectWrappertexture;
+		scriptObjectWrappertexture = ScriptRRefBase::ToNative(texture);
+		if(scriptObjectWrappertexture != nullptr)
+			tmptexture = B3DStaticResourceCast<Texture>(scriptObjectWrappertexture->GetHandle());
 		thisPtr->GetHandle()->SetTexture(tmptexture);
 	}
 

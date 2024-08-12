@@ -122,10 +122,10 @@ namespace bs
 		String tmpname;
 		tmpname = MonoUtil::MonoToString(name);
 		GameObjectHandle<SceneObject> tmproot;
-		ScriptSceneObject* scriptroot;
-		scriptroot = ScriptSceneObject::ToNative(root);
-		if(scriptroot != nullptr)
-			tmproot = scriptroot->GetHandle();
+		ScriptSceneObject* scriptObjectWrapperroot;
+		scriptObjectWrapperroot = ScriptSceneObject::ToNative(root);
+		if(scriptObjectWrapperroot != nullptr)
+			tmproot = scriptObjectWrapperroot->GetHandle();
 		SPtr<SceneInstance> instance = SceneInstance::Create(tmpname, tmproot);
 		new (B3DAllocate<ScriptSceneInstance>())ScriptSceneInstance(managedInstance, instance);
 	}

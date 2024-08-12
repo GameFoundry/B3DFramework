@@ -225,90 +225,90 @@ namespace bs
 
 	MonoArray* ScriptMeshImportOptions::InternalGetAnimationSplits(ScriptMeshImportOptions* thisPtr)
 	{
-		Vector<AnimationSplitInfo> vec__output;
-		vec__output = thisPtr->GetInternal()->AnimationSplits;
+		Vector<AnimationSplitInfo> nativeArray__output;
+		nativeArray__output = thisPtr->GetInternal()->AnimationSplits;
 
 		MonoArray* __output;
-		int arraySize__output = (int)vec__output.size();
-		ScriptArray array__output = ScriptArray::Create<ScriptAnimationSplitInfo>(arraySize__output);
-		for(int i = 0; i < arraySize__output; i++)
+		int elementCount__output = (int)nativeArray__output.size();
+		ScriptArray scriptArray__output = ScriptArray::Create<ScriptAnimationSplitInfo>(elementCount__output);
+		for(int elementIndex = 0; elementIndex < elementCount__output; elementIndex++)
 		{
-			SPtr<AnimationSplitInfo> arrayElemPtr__output = B3DMakeShared<AnimationSplitInfo>();
-			*arrayElemPtr__output = vec__output[i];
-			MonoObject* arrayElem__output;
-			arrayElem__output = ScriptAnimationSplitInfo::Create(arrayElemPtr__output);
-			array__output.Set(i, arrayElem__output);
+			SPtr<AnimationSplitInfo> arrayElementPointer__output = B3DMakeShared<AnimationSplitInfo>();
+			*arrayElementPointer__output = nativeArray__output[elementIndex];
+			MonoObject* arrayElement__output;
+			arrayElement__output = ScriptAnimationSplitInfo::Create(arrayElementPointer__output);
+			scriptArray__output.Set(elementIndex, arrayElement__output);
 		}
-		__output = array__output.GetInternal();
+		__output = scriptArray__output.GetInternal();
 
 		return __output;
 	}
 
 	void ScriptMeshImportOptions::InternalSetAnimationSplits(ScriptMeshImportOptions* thisPtr, MonoArray* value)
 	{
-		Vector<AnimationSplitInfo> vecvalue;
+		Vector<AnimationSplitInfo> nativeArrayvalue;
 		if(value != nullptr)
 		{
-			ScriptArray arrayvalue(value);
-			vecvalue.resize(arrayvalue.Size());
-			for(int i = 0; i < (int)arrayvalue.Size(); i++)
+			ScriptArray scriptArrayvalue(value);
+			nativeArrayvalue.resize(scriptArrayvalue.Size());
+			for(int elementIndex = 0; elementIndex < (int)scriptArrayvalue.Size(); elementIndex++)
 			{
-				ScriptAnimationSplitInfo* scriptvalue;
-				scriptvalue = ScriptAnimationSplitInfo::ToNative(arrayvalue.Get<MonoObject*>(i));
-				if(scriptvalue != nullptr)
+				ScriptAnimationSplitInfo* scriptObjectWrappervalue;
+				scriptObjectWrappervalue = ScriptAnimationSplitInfo::ToNative(scriptArrayvalue.Get<MonoObject*>(elementIndex));
+				if(scriptObjectWrappervalue != nullptr)
 				{
-					SPtr<AnimationSplitInfo> arrayElemPtrvalue = scriptvalue->GetInternal();
-					if(arrayElemPtrvalue)
-						vecvalue[i] = *arrayElemPtrvalue;
+					SPtr<AnimationSplitInfo> arrayElementPointervalue = scriptObjectWrappervalue->GetInternal();
+					if(arrayElementPointervalue)
+						nativeArrayvalue[elementIndex] = *arrayElementPointervalue;
 				}
 			}
 
 		}
-		thisPtr->GetInternal()->AnimationSplits = vecvalue;
+		thisPtr->GetInternal()->AnimationSplits = nativeArrayvalue;
 	}
 
 	MonoArray* ScriptMeshImportOptions::InternalGetAnimationEvents(ScriptMeshImportOptions* thisPtr)
 	{
-		Vector<ImportedAnimationEvents> vec__output;
-		vec__output = thisPtr->GetInternal()->AnimationEvents;
+		Vector<ImportedAnimationEvents> nativeArray__output;
+		nativeArray__output = thisPtr->GetInternal()->AnimationEvents;
 
 		MonoArray* __output;
-		int arraySize__output = (int)vec__output.size();
-		ScriptArray array__output = ScriptArray::Create<ScriptImportedAnimationEvents>(arraySize__output);
-		for(int i = 0; i < arraySize__output; i++)
+		int elementCount__output = (int)nativeArray__output.size();
+		ScriptArray scriptArray__output = ScriptArray::Create<ScriptImportedAnimationEvents>(elementCount__output);
+		for(int elementIndex = 0; elementIndex < elementCount__output; elementIndex++)
 		{
-			SPtr<ImportedAnimationEvents> arrayElemPtr__output = B3DMakeShared<ImportedAnimationEvents>();
-			*arrayElemPtr__output = vec__output[i];
-			MonoObject* arrayElem__output;
-			arrayElem__output = ScriptImportedAnimationEvents::Create(arrayElemPtr__output);
-			array__output.Set(i, arrayElem__output);
+			SPtr<ImportedAnimationEvents> arrayElementPointer__output = B3DMakeShared<ImportedAnimationEvents>();
+			*arrayElementPointer__output = nativeArray__output[elementIndex];
+			MonoObject* arrayElement__output;
+			arrayElement__output = ScriptImportedAnimationEvents::Create(arrayElementPointer__output);
+			scriptArray__output.Set(elementIndex, arrayElement__output);
 		}
-		__output = array__output.GetInternal();
+		__output = scriptArray__output.GetInternal();
 
 		return __output;
 	}
 
 	void ScriptMeshImportOptions::InternalSetAnimationEvents(ScriptMeshImportOptions* thisPtr, MonoArray* value)
 	{
-		Vector<ImportedAnimationEvents> vecvalue;
+		Vector<ImportedAnimationEvents> nativeArrayvalue;
 		if(value != nullptr)
 		{
-			ScriptArray arrayvalue(value);
-			vecvalue.resize(arrayvalue.Size());
-			for(int i = 0; i < (int)arrayvalue.Size(); i++)
+			ScriptArray scriptArrayvalue(value);
+			nativeArrayvalue.resize(scriptArrayvalue.Size());
+			for(int elementIndex = 0; elementIndex < (int)scriptArrayvalue.Size(); elementIndex++)
 			{
-				ScriptImportedAnimationEvents* scriptvalue;
-				scriptvalue = ScriptImportedAnimationEvents::ToNative(arrayvalue.Get<MonoObject*>(i));
-				if(scriptvalue != nullptr)
+				ScriptImportedAnimationEvents* scriptObjectWrappervalue;
+				scriptObjectWrappervalue = ScriptImportedAnimationEvents::ToNative(scriptArrayvalue.Get<MonoObject*>(elementIndex));
+				if(scriptObjectWrappervalue != nullptr)
 				{
-					SPtr<ImportedAnimationEvents> arrayElemPtrvalue = scriptvalue->GetInternal();
-					if(arrayElemPtrvalue)
-						vecvalue[i] = *arrayElemPtrvalue;
+					SPtr<ImportedAnimationEvents> arrayElementPointervalue = scriptObjectWrappervalue->GetInternal();
+					if(arrayElementPointervalue)
+						nativeArrayvalue[elementIndex] = *arrayElementPointervalue;
 				}
 			}
 
 		}
-		thisPtr->GetInternal()->AnimationEvents = vecvalue;
+		thisPtr->GetInternal()->AnimationEvents = nativeArrayvalue;
 	}
 #endif
 }

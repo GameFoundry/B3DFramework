@@ -39,10 +39,10 @@ namespace bs
 	void ScriptRenderable::InternalSetMesh(ScriptRenderable* thisPtr, MonoObject* mesh)
 	{
 		TResourceHandle<Mesh> tmpmesh;
-		ScriptRRefBase* scriptmesh;
-		scriptmesh = ScriptRRefBase::ToNative(mesh);
-		if(scriptmesh != nullptr)
-			tmpmesh = B3DStaticResourceCast<Mesh>(scriptmesh->GetHandle());
+		ScriptRRefBase* scriptObjectWrappermesh;
+		scriptObjectWrappermesh = ScriptRRefBase::ToNative(mesh);
+		if(scriptObjectWrappermesh != nullptr)
+			tmpmesh = B3DStaticResourceCast<Mesh>(scriptObjectWrappermesh->GetHandle());
 		thisPtr->GetHandle()->SetMesh(tmpmesh);
 	}
 
@@ -65,20 +65,20 @@ namespace bs
 	void ScriptRenderable::InternalSetMaterial(ScriptRenderable* thisPtr, uint32_t idx, MonoObject* material)
 	{
 		TResourceHandle<Material> tmpmaterial;
-		ScriptRRefBase* scriptmaterial;
-		scriptmaterial = ScriptRRefBase::ToNative(material);
-		if(scriptmaterial != nullptr)
-			tmpmaterial = B3DStaticResourceCast<Material>(scriptmaterial->GetHandle());
+		ScriptRRefBase* scriptObjectWrappermaterial;
+		scriptObjectWrappermaterial = ScriptRRefBase::ToNative(material);
+		if(scriptObjectWrappermaterial != nullptr)
+			tmpmaterial = B3DStaticResourceCast<Material>(scriptObjectWrappermaterial->GetHandle());
 		thisPtr->GetHandle()->SetMaterial(idx, tmpmaterial);
 	}
 
 	void ScriptRenderable::InternalSetMaterial0(ScriptRenderable* thisPtr, MonoObject* material)
 	{
 		TResourceHandle<Material> tmpmaterial;
-		ScriptRRefBase* scriptmaterial;
-		scriptmaterial = ScriptRRefBase::ToNative(material);
-		if(scriptmaterial != nullptr)
-			tmpmaterial = B3DStaticResourceCast<Material>(scriptmaterial->GetHandle());
+		ScriptRRefBase* scriptObjectWrappermaterial;
+		scriptObjectWrappermaterial = ScriptRRefBase::ToNative(material);
+		if(scriptObjectWrappermaterial != nullptr)
+			tmpmaterial = B3DStaticResourceCast<Material>(scriptObjectWrappermaterial->GetHandle());
 		thisPtr->GetHandle()->SetMaterial(tmpmaterial);
 	}
 
@@ -100,43 +100,43 @@ namespace bs
 
 	void ScriptRenderable::InternalSetMaterials(ScriptRenderable* thisPtr, MonoArray* materials)
 	{
-		Vector<TResourceHandle<Material>> vecmaterials;
+		Vector<TResourceHandle<Material>> nativeArraymaterials;
 		if(materials != nullptr)
 		{
-			ScriptArray arraymaterials(materials);
-			vecmaterials.resize(arraymaterials.Size());
-			for(int i = 0; i < (int)arraymaterials.Size(); i++)
+			ScriptArray scriptArraymaterials(materials);
+			nativeArraymaterials.resize(scriptArraymaterials.Size());
+			for(int elementIndex = 0; elementIndex < (int)scriptArraymaterials.Size(); elementIndex++)
 			{
-				ScriptRRefBase* scriptmaterials;
-				scriptmaterials = ScriptRRefBase::ToNative(arraymaterials.Get<MonoObject*>(i));
-				if(scriptmaterials != nullptr)
+				ScriptRRefBase* scriptObjectWrappermaterials;
+				scriptObjectWrappermaterials = ScriptRRefBase::ToNative(scriptArraymaterials.Get<MonoObject*>(elementIndex));
+				if(scriptObjectWrappermaterials != nullptr)
 				{
-					TResourceHandle<Material> arrayElemPtrmaterials = B3DStaticResourceCast<Material>(scriptmaterials->GetHandle());
-					vecmaterials[i] = arrayElemPtrmaterials;
+					TResourceHandle<Material> arrayElementPointermaterials = B3DStaticResourceCast<Material>(scriptObjectWrappermaterials->GetHandle());
+					nativeArraymaterials[elementIndex] = arrayElementPointermaterials;
 				}
 			}
 		}
-		thisPtr->GetHandle()->SetMaterials(vecmaterials);
+		thisPtr->GetHandle()->SetMaterials(nativeArraymaterials);
 	}
 
 	MonoArray* ScriptRenderable::InternalGetMaterials(ScriptRenderable* thisPtr)
 	{
-		Vector<TResourceHandle<Material>> vec__output;
-		vec__output = thisPtr->GetHandle()->GetMaterials();
+		Vector<TResourceHandle<Material>> nativeArray__output;
+		nativeArray__output = thisPtr->GetHandle()->GetMaterials();
 
 		MonoArray* __output;
-		int arraySize__output = (int)vec__output.size();
-		ScriptArray array__output = ScriptArray::Create<ScriptRRefBase>(arraySize__output);
-		for(int i = 0; i < arraySize__output; i++)
+		int elementCount__output = (int)nativeArray__output.size();
+		ScriptArray scriptArray__output = ScriptArray::Create<ScriptRRefBase>(elementCount__output);
+		for(int elementIndex = 0; elementIndex < elementCount__output; elementIndex++)
 		{
-			ScriptRRefBase* script__output;
-			script__output = ScriptResourceManager::Instance().GetScriptRRef(vec__output[i]);
-			if(script__output != nullptr)
-				array__output.Set(i, script__output->GetManagedInstance());
+			ScriptRRefBase* scriptObjectWrapper__output;
+			scriptObjectWrapper__output = ScriptResourceManager::Instance().GetScriptRRef(nativeArray__output[elementIndex]);
+			if(scriptObjectWrapper__output != nullptr)
+				scriptArray__output.Set(elementIndex, scriptObjectWrapper__output->GetManagedInstance());
 			else
-				array__output.Set(i, nullptr);
+				scriptArray__output.Set(elementIndex, nullptr);
 		}
-		__output = array__output.GetInternal();
+		__output = scriptArray__output.GetInternal();
 
 		return __output;
 	}

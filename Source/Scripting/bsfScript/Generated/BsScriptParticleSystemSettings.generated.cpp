@@ -84,10 +84,10 @@ namespace bs
 	void ScriptParticleSystemSettings::InternalSetMaterial(ScriptParticleSystemSettings* thisPtr, MonoObject* value)
 	{
 		TResourceHandle<Material> tmpvalue;
-		ScriptRRefBase* scriptvalue;
-		scriptvalue = ScriptRRefBase::ToNative(value);
-		if(scriptvalue != nullptr)
-			tmpvalue = B3DStaticResourceCast<Material>(scriptvalue->GetHandle());
+		ScriptRRefBase* scriptObjectWrappervalue;
+		scriptObjectWrappervalue = ScriptRRefBase::ToNative(value);
+		if(scriptObjectWrappervalue != nullptr)
+			tmpvalue = B3DStaticResourceCast<Material>(scriptObjectWrappervalue->GetHandle());
 		thisPtr->GetInternal()->Material = tmpvalue;
 	}
 
@@ -110,10 +110,10 @@ namespace bs
 	void ScriptParticleSystemSettings::InternalSetMesh(ScriptParticleSystemSettings* thisPtr, MonoObject* value)
 	{
 		TResourceHandle<Mesh> tmpvalue;
-		ScriptRRefBase* scriptvalue;
-		scriptvalue = ScriptRRefBase::ToNative(value);
-		if(scriptvalue != nullptr)
-			tmpvalue = B3DStaticResourceCast<Mesh>(scriptvalue->GetHandle());
+		ScriptRRefBase* scriptObjectWrappervalue;
+		scriptObjectWrappervalue = ScriptRRefBase::ToNative(value);
+		if(scriptObjectWrappervalue != nullptr)
+			tmpvalue = B3DStaticResourceCast<Mesh>(scriptObjectWrappervalue->GetHandle());
 		thisPtr->GetInternal()->Mesh = tmpvalue;
 	}
 

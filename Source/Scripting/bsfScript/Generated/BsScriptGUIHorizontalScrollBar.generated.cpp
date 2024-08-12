@@ -27,33 +27,33 @@ namespace bs
 	{
 		String tmpstyleClass;
 		tmpstyleClass = MonoUtil::MonoToString(styleClass);
-		TInlineArray<GUIOption, 4> vecoptions;
+		TInlineArray<GUIOption, 4> nativeArrayoptions;
 		if(options != nullptr)
 		{
-			ScriptArray arrayoptions(options);
-			vecoptions.resize(arrayoptions.Size());
-			for(int i = 0; i < (int)arrayoptions.Size(); i++)
+			ScriptArray scriptArrayoptions(options);
+			nativeArrayoptions.resize(scriptArrayoptions.Size());
+			for(int elementIndex = 0; elementIndex < (int)scriptArrayoptions.Size(); elementIndex++)
 			{
-				vecoptions[i] = arrayoptions.Get<GUIOption>(i);
+				nativeArrayoptions[elementIndex] = scriptArrayoptions.Get<GUIOption>(elementIndex);
 			}
 		}
-		GUIHorizontalScrollBar* instance = GUIHorizontalScrollBar::Create(tmpstyleClass, vecoptions);
+		GUIHorizontalScrollBar* instance = GUIHorizontalScrollBar::Create(tmpstyleClass, nativeArrayoptions);
 		new (B3DAllocate<ScriptGUIHorizontalScrollBar>())ScriptGUIHorizontalScrollBar(managedInstance, instance);
 	}
 
 	void ScriptGUIHorizontalScrollBar::InternalCreate0(MonoObject* managedInstance, MonoArray* options)
 	{
-		TInlineArray<GUIOption, 4> vecoptions;
+		TInlineArray<GUIOption, 4> nativeArrayoptions;
 		if(options != nullptr)
 		{
-			ScriptArray arrayoptions(options);
-			vecoptions.resize(arrayoptions.Size());
-			for(int i = 0; i < (int)arrayoptions.Size(); i++)
+			ScriptArray scriptArrayoptions(options);
+			nativeArrayoptions.resize(scriptArrayoptions.Size());
+			for(int elementIndex = 0; elementIndex < (int)scriptArrayoptions.Size(); elementIndex++)
 			{
-				vecoptions[i] = arrayoptions.Get<GUIOption>(i);
+				nativeArrayoptions[elementIndex] = scriptArrayoptions.Get<GUIOption>(elementIndex);
 			}
 		}
-		GUIHorizontalScrollBar* instance = GUIHorizontalScrollBar::Create(vecoptions);
+		GUIHorizontalScrollBar* instance = GUIHorizontalScrollBar::Create(nativeArrayoptions);
 		new (B3DAllocate<ScriptGUIHorizontalScrollBar>())ScriptGUIHorizontalScrollBar(managedInstance, instance);
 	}
 }

@@ -63,43 +63,43 @@ namespace bs
 	void ScriptAnimationClip::InternalSetCurves(ScriptAnimationClip* thisPtr, MonoObject* curves)
 	{
 		SPtr<AnimationCurves> tmpcurves;
-		ScriptAnimationCurves* scriptcurves;
-		scriptcurves = ScriptAnimationCurves::ToNative(curves);
-		if(scriptcurves != nullptr)
-			tmpcurves = scriptcurves->GetInternal();
+		ScriptAnimationCurves* scriptObjectWrappercurves;
+		scriptObjectWrappercurves = ScriptAnimationCurves::ToNative(curves);
+		if(scriptObjectWrappercurves != nullptr)
+			tmpcurves = scriptObjectWrappercurves->GetInternal();
 		thisPtr->GetHandle()->SetCurves(*tmpcurves);
 	}
 
 	MonoArray* ScriptAnimationClip::InternalGetEvents(ScriptAnimationClip* thisPtr)
 	{
-		Vector<AnimationEvent> vec__output;
-		vec__output = thisPtr->GetHandle()->GetEvents();
+		Vector<AnimationEvent> nativeArray__output;
+		nativeArray__output = thisPtr->GetHandle()->GetEvents();
 
 		MonoArray* __output;
-		int arraySize__output = (int)vec__output.size();
-		ScriptArray array__output = ScriptArray::Create<ScriptAnimationEvent>(arraySize__output);
-		for(int i = 0; i < arraySize__output; i++)
+		int elementCount__output = (int)nativeArray__output.size();
+		ScriptArray scriptArray__output = ScriptArray::Create<ScriptAnimationEvent>(elementCount__output);
+		for(int elementIndex = 0; elementIndex < elementCount__output; elementIndex++)
 		{
-			array__output.Set(i, ScriptAnimationEvent::ToInterop(vec__output[i]));
+			scriptArray__output.Set(elementIndex, ScriptAnimationEvent::ToInterop(nativeArray__output[elementIndex]));
 		}
-		__output = array__output.GetInternal();
+		__output = scriptArray__output.GetInternal();
 
 		return __output;
 	}
 
 	void ScriptAnimationClip::InternalSetEvents(ScriptAnimationClip* thisPtr, MonoArray* events)
 	{
-		Vector<AnimationEvent> vecevents;
+		Vector<AnimationEvent> nativeArrayevents;
 		if(events != nullptr)
 		{
-			ScriptArray arrayevents(events);
-			vecevents.resize(arrayevents.Size());
-			for(int i = 0; i < (int)arrayevents.Size(); i++)
+			ScriptArray scriptArrayevents(events);
+			nativeArrayevents.resize(scriptArrayevents.Size());
+			for(int elementIndex = 0; elementIndex < (int)scriptArrayevents.Size(); elementIndex++)
 			{
-				vecevents[i] = ScriptAnimationEvent::FromInterop(arrayevents.Get<__AnimationEventInterop>(i));
+				nativeArrayevents[elementIndex] = ScriptAnimationEvent::FromInterop(scriptArrayevents.Get<__AnimationEventInterop>(elementIndex));
 			}
 		}
-		thisPtr->GetHandle()->SetEvents(vecevents);
+		thisPtr->GetHandle()->SetEvents(nativeArrayevents);
 	}
 
 	MonoObject* ScriptAnimationClip::InternalGetRootMotion(ScriptAnimationClip* thisPtr)
@@ -171,15 +171,15 @@ namespace bs
 	void ScriptAnimationClip::InternalCreate0(MonoObject* managedInstance, MonoObject* curves, bool isAdditive, uint32_t sampleRate, MonoObject* rootMotion)
 	{
 		SPtr<AnimationCurves> tmpcurves;
-		ScriptAnimationCurves* scriptcurves;
-		scriptcurves = ScriptAnimationCurves::ToNative(curves);
-		if(scriptcurves != nullptr)
-			tmpcurves = scriptcurves->GetInternal();
+		ScriptAnimationCurves* scriptObjectWrappercurves;
+		scriptObjectWrappercurves = ScriptAnimationCurves::ToNative(curves);
+		if(scriptObjectWrappercurves != nullptr)
+			tmpcurves = scriptObjectWrappercurves->GetInternal();
 		SPtr<RootMotion> tmprootMotion;
-		ScriptRootMotion* scriptrootMotion;
-		scriptrootMotion = ScriptRootMotion::ToNative(rootMotion);
-		if(scriptrootMotion != nullptr)
-			tmprootMotion = scriptrootMotion->GetInternal();
+		ScriptRootMotion* scriptObjectWrapperrootMotion;
+		scriptObjectWrapperrootMotion = ScriptRootMotion::ToNative(rootMotion);
+		if(scriptObjectWrapperrootMotion != nullptr)
+			tmprootMotion = scriptObjectWrapperrootMotion->GetInternal();
 		TResourceHandle<AnimationClip> instance = AnimationClip::Create(tmpcurves, isAdditive, sampleRate, tmprootMotion);
 		ScriptResourceManager::Instance().CreateBuiltinScriptResource(instance, managedInstance);
 	}
