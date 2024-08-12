@@ -58,15 +58,15 @@ namespace bs
 		tmp__output = thisPtr->GetHandle()->ReadData(face, mipLevel);
 
 		MonoObject* __output;
-		auto convertCallback = [](const Any& returnVal)
+		auto fnConvertCallback = [](const Any& returnValue)
 		{
-			SPtr<PixelData> nativeObj = AnyCast<SPtr<PixelData>>(returnVal);
-			MonoObject* monoObj;
-			monoObj = ScriptPixelData::Create(nativeObj);
-			return monoObj;
+			SPtr<PixelData> nativeObject = AnyCast<SPtr<PixelData>>(returnValue);
+			MonoObject* scriptObject;
+			scriptObject = ScriptPixelData::Create(nativeObject);
+			return scriptObject;
 		};
 
-;		__output = ScriptAsyncOpBase::Create(tmp__output, convertCallback, ScriptPixelData::GetMetaData()->ScriptClass);
+;		__output = ScriptAsyncOpBase::Create(tmp__output, fnConvertCallback, ScriptPixelData::GetMetaData()->ScriptClass);
 
 		return __output;
 	}

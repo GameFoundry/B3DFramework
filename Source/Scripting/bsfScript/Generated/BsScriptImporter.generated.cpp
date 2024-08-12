@@ -78,20 +78,20 @@ namespace bs
 		tmp__output = Importer::Instance().ImportAsync(tmpinputFilePath, tmpimportOptions, *UUID);
 
 		MonoObject* __output;
-		auto convertCallback = [](const Any& returnVal)
+		auto fnConvertCallback = [](const Any& returnValue)
 		{
-			TResourceHandle<Resource> nativeObj = AnyCast<TResourceHandle<Resource>>(returnVal);
-			MonoObject* monoObj;
-			ScriptRRefBase* scriptObj;
-			scriptObj = ScriptResourceManager::Instance().GetScriptRRef(nativeObj);
-			if(scriptObj != nullptr)
-				monoObj = scriptObj->GetManagedInstance();
+			TResourceHandle<Resource> nativeObject = AnyCast<TResourceHandle<Resource>>(returnValue);
+			MonoObject* scriptObject;
+			ScriptRRefBase* scriptWrapperObject;
+			scriptWrapperObject = ScriptResourceManager::Instance().GetScriptRRef(nativeObject);
+			if(scriptWrapperObject != nullptr)
+				scriptObject = scriptWrapperObject->GetManagedInstance();
 			else
-				monoObj = nullptr;
-			return monoObj;
+				scriptObject = nullptr;
+			return scriptObject;
 		};
 
-;		__output = ScriptAsyncOpBase::Create(tmp__output, convertCallback, ScriptRRefBase::GetMetaData()->ScriptClass);
+;		__output = ScriptAsyncOpBase::Create(tmp__output, fnConvertCallback, ScriptRRefBase::GetMetaData()->ScriptClass);
 
 		return __output;
 	}
@@ -127,15 +127,15 @@ namespace bs
 		tmp__output = Importer::Instance().ImportAllAsync(tmpinputFilePath, tmpimportOptions);
 
 		MonoObject* __output;
-		auto convertCallback = [](const Any& returnVal)
+		auto fnConvertCallback = [](const Any& returnValue)
 		{
-			SPtr<MultiResource> nativeObj = AnyCast<SPtr<MultiResource>>(returnVal);
-			MonoObject* monoObj;
-			monoObj = ScriptMultiResource::Create(nativeObj);
-			return monoObj;
+			SPtr<MultiResource> nativeObject = AnyCast<SPtr<MultiResource>>(returnValue);
+			MonoObject* scriptObject;
+			scriptObject = ScriptMultiResource::Create(nativeObject);
+			return scriptObject;
 		};
 
-;		__output = ScriptAsyncOpBase::Create(tmp__output, convertCallback, ScriptMultiResource::GetMetaData()->ScriptClass);
+;		__output = ScriptAsyncOpBase::Create(tmp__output, fnConvertCallback, ScriptMultiResource::GetMetaData()->ScriptClass);
 
 		return __output;
 	}
