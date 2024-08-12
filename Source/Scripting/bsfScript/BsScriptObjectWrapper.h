@@ -15,6 +15,20 @@ namespace bs
 	 *  @{
 	 */
 
+	/** Checks if the class @p T has a GetShared() method that accepts no parameters. */
+	template <typename T, typename = void>
+	struct B3DHasGetShared : std::false_type {};
+
+	template <typename T>
+	struct B3DHasGetShared<T, std::void_t<decltype(std::declval<T>().GetShared())>> : std::true_type {};
+
+	/** Checks if the class @p T has a GetHandle() method that accepts no parameters. */
+	template <typename T, typename = void>
+	struct B3DHasGetHandle : std::false_type {};
+
+	template <typename T>
+	struct B3DHasGetHandle<T, std::void_t<decltype(std::declval<T>().GetHandle())>> : std::true_type {};
+
 	// TODO - Doc
 	struct ScriptObjectReloadPersistentData
 	{
@@ -30,12 +44,18 @@ namespace bs
 	// TODO - Doc
 	template<typename NativeObjectType>
 	class ScriptExportedNativeObjectStorage
-	{ };
+	{
+	public:
+		using NativeType = void;
+	};
 
 	// TODO - Doc
 	template<typename NativeObjectType>
 	class ScriptExportedNativeObjectStorage<SPtr<NativeObjectType>>
 	{
+	public:
+		using NativeType = NativeObjectType;
+
 		ScriptExportedNativeObjectStorage(SPtr<NativeObjectType> nativeObject)
 			:mNativeObject(std::move(nativeObject))
 		{ }
@@ -59,6 +79,8 @@ namespace bs
 	template<typename NativeObjectType>
 	class ScriptExportedNativeObjectStorage<TResourceHandle<NativeObjectType>>
 	{
+		using NativeType = NativeObjectType;
+
 		ScriptExportedNativeObjectStorage(TResourceHandle<NativeObjectType> nativeObject)
 			:mNativeObject(std::move(nativeObject))
 		{ }
@@ -85,6 +107,8 @@ namespace bs
 	template<typename NativeObjectType>
 	class ScriptExportedNativeObjectStorage<GameObjectHandle<NativeObjectType>>
 	{
+		using NativeType = NativeObjectType;
+
 		ScriptExportedNativeObjectStorage(GameObjectHandle<NativeObjectType> nativeObject)
 			:mNativeObject(std::move(nativeObject))
 		{ }
@@ -199,6 +223,8 @@ namespace bs
 	class TScriptObjectWrapper : public ScriptWrapperObjectBaseClass 
 	{
 	public:
+		using NativeType = typename ScriptExportedNativeObjectStorage<NativeTypeContainerType>::NativeType;
+
 		/** Constructor for wrappers that are expected to be instantiated (non-abstract types). */
 		template<typename Condition = NativeTypeContainerType, std::enable_if_t<!std::is_same_v<Condition, nullptr_t>, int> = 0>
 		TScriptObjectWrapper(NativeTypeContainerType nativeObject, MonoObject* scriptObject)
@@ -241,6 +267,14 @@ namespace bs
 
 		/** Returns the storage object that is responsible for holding a strong reference to the native object. */
 		const ScriptExportedNativeObjectStorage<NativeTypeContainerType>& GetNativeObjectStorage() const { return mNativeObjectStorage; }
+
+		/** Returns the wrapped native object as a shared pointer. */
+		template <typename NativeTypeLocal = NativeType, std::enable_if_t<B3DHasGetShared<NativeTypeLocal>::value, int> = 0>
+		const SPtr<NativeType>& GetNativeObjectAsShared() const { return mNativeObjectStorage.GetShared(); }
+
+		/** Returns the wrapped native object as a handle. */
+		template <typename NativeTypeLocal = NativeType, std::enable_if_t<B3DHasGetHandle<NativeTypeLocal>::value, int> = 0>
+		const SPtr<NativeType>& GetNativeObjectAsHandle() const { return mNativeObjectStorage.GetHandle(); }
 
 		// TODO - Doc
 		virtual MonoObject* CreateScriptObject(bool construct)
