@@ -21,17 +21,17 @@ namespace bs
 
 	private:
 		static void InternalBloomSettings(MonoObject* managedInstance);
-		static bool InternalGetEnabled(ScriptBloomSettings* thisPtr);
-		static void InternalSetEnabled(ScriptBloomSettings* thisPtr, bool value);
-		static uint32_t InternalGetQuality(ScriptBloomSettings* thisPtr);
-		static void InternalSetQuality(ScriptBloomSettings* thisPtr, uint32_t value);
-		static float InternalGetThreshold(ScriptBloomSettings* thisPtr);
-		static void InternalSetThreshold(ScriptBloomSettings* thisPtr, float value);
-		static float InternalGetIntensity(ScriptBloomSettings* thisPtr);
-		static void InternalSetIntensity(ScriptBloomSettings* thisPtr, float value);
-		static void InternalGetTint(ScriptBloomSettings* thisPtr, Color* __output);
-		static void InternalSetTint(ScriptBloomSettings* thisPtr, Color* value);
-		static float InternalGetFilterSize(ScriptBloomSettings* thisPtr);
-		static void InternalSetFilterSize(ScriptBloomSettings* thisPtr, float value);
+		static bool InternalGetEnabled(ScriptBloomSettings* self);
+		static void InternalSetEnabled(ScriptBloomSettings* self, bool value);
+		static uint32_t InternalGetQuality(ScriptBloomSettings* self);
+		static void InternalSetQuality(ScriptBloomSettings* self, uint32_t value);
+		static float InternalGetThreshold(ScriptBloomSettings* self);
+		static void InternalSetThreshold(ScriptBloomSettings* self, float value);
+		static float InternalGetIntensity(ScriptBloomSettings* self);
+		static void InternalSetIntensity(ScriptBloomSettings* self, float value);
+		static void InternalGetTint(ScriptBloomSettings* self, Color* __output);
+		static void InternalSetTint(ScriptBloomSettings* self, Color* value);
+		static float InternalGetFilterSize(ScriptBloomSettings* self);
+		static void InternalSetFilterSize(ScriptBloomSettings* self, float value);
 	};
 }

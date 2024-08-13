@@ -22,8 +22,8 @@ namespace bs
 		static MonoObject* Create(const SPtr<ParticleEmitterConeShape>& value);
 
 	private:
-		static void InternalSetOptions(ScriptParticleEmitterConeShape* thisPtr, __PARTICLE_CONE_SHAPE_DESCInterop* options);
-		static void InternalGetOptions(ScriptParticleEmitterConeShape* thisPtr, __PARTICLE_CONE_SHAPE_DESCInterop* __output);
+		static void InternalSetOptions(ScriptParticleEmitterConeShape* self, __PARTICLE_CONE_SHAPE_DESCInterop* options);
+		static void InternalGetOptions(ScriptParticleEmitterConeShape* self, __PARTICLE_CONE_SHAPE_DESCInterop* __output);
 		static void InternalCreate(MonoObject* managedInstance, __PARTICLE_CONE_SHAPE_DESCInterop* desc);
 		static void InternalCreate0(MonoObject* managedInstance);
 	};

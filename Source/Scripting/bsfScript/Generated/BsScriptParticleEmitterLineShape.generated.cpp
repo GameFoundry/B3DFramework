@@ -35,17 +35,17 @@ namespace bs
 		new (B3DAllocate<ScriptParticleEmitterLineShape>()) ScriptParticleEmitterLineShape(managedInstance, value);
 		return managedInstance;
 	}
-	void ScriptParticleEmitterLineShape::InternalSetOptions(ScriptParticleEmitterLineShape* thisPtr, __PARTICLE_LINE_SHAPE_DESCInterop* options)
+	void ScriptParticleEmitterLineShape::InternalSetOptions(ScriptParticleEmitterLineShape* self, __PARTICLE_LINE_SHAPE_DESCInterop* options)
 	{
 		PARTICLE_LINE_SHAPE_DESC tmpoptions;
 		tmpoptions = ScriptParticleLineShapeOptions::FromInterop(*options);
-		thisPtr->GetInternal()->SetOptions(tmpoptions);
+		self->GetInternal()->SetOptions(tmpoptions);
 	}
 
-	void ScriptParticleEmitterLineShape::InternalGetOptions(ScriptParticleEmitterLineShape* thisPtr, __PARTICLE_LINE_SHAPE_DESCInterop* __output)
+	void ScriptParticleEmitterLineShape::InternalGetOptions(ScriptParticleEmitterLineShape* self, __PARTICLE_LINE_SHAPE_DESCInterop* __output)
 	{
 		PARTICLE_LINE_SHAPE_DESC tmp__output;
-		tmp__output = thisPtr->GetInternal()->GetOptions();
+		tmp__output = self->GetInternal()->GetOptions();
 
 		__PARTICLE_LINE_SHAPE_DESCInterop interop__output;
 		interop__output = ScriptParticleLineShapeOptions::ToInterop(tmp__output);
@@ -56,13 +56,13 @@ namespace bs
 	{
 		PARTICLE_LINE_SHAPE_DESC tmpdesc;
 		tmpdesc = ScriptParticleLineShapeOptions::FromInterop(*desc);
-		SPtr<ParticleEmitterLineShape> instance = ParticleEmitterLineShape::Create(tmpdesc);
-		new (B3DAllocate<ScriptParticleEmitterLineShape>())ScriptParticleEmitterLineShape(managedInstance, instance);
+		SPtr<ParticleEmitterLineShape> nativeObject = ParticleEmitterLineShape::Create(tmpdesc);
+		new (B3DAllocate<ScriptParticleEmitterLineShape>())ScriptParticleEmitterLineShape(managedInstance, nativeObject);
 	}
 
 	void ScriptParticleEmitterLineShape::InternalCreate0(MonoObject* managedInstance)
 	{
-		SPtr<ParticleEmitterLineShape> instance = ParticleEmitterLineShape::Create();
-		new (B3DAllocate<ScriptParticleEmitterLineShape>())ScriptParticleEmitterLineShape(managedInstance, instance);
+		SPtr<ParticleEmitterLineShape> nativeObject = ParticleEmitterLineShape::Create();
+		new (B3DAllocate<ScriptParticleEmitterLineShape>())ScriptParticleEmitterLineShape(managedInstance, nativeObject);
 	}
 }

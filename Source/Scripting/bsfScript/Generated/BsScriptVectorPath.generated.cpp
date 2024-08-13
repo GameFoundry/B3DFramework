@@ -26,9 +26,9 @@ namespace bs
 
 		return metaData.ScriptClass->CreateInstance("bool", ctorParams);
 	}
-	MonoObject* ScriptVectorPath::InternalGetRef(ScriptVectorPath* thisPtr)
+	MonoObject* ScriptVectorPath::InternalGetRef(ScriptVectorPath* self)
 	{
-		return thisPtr->GetRRef();
+		return self->GetRRef();
 	}
 
 }

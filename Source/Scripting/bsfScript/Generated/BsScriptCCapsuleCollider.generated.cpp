@@ -27,41 +27,41 @@ namespace bs
 
 	}
 
-	void ScriptCapsuleCollider::InternalSetNormal(ScriptCapsuleCollider* thisPtr, TVector3<float>* normal)
+	void ScriptCapsuleCollider::InternalSetNormal(ScriptCapsuleCollider* self, TVector3<float>* normal)
 	{
-		thisPtr->GetHandle()->SetNormal(*normal);
+		self->GetHandle()->SetNormal(*normal);
 	}
 
-	void ScriptCapsuleCollider::InternalGetNormal(ScriptCapsuleCollider* thisPtr, TVector3<float>* __output)
+	void ScriptCapsuleCollider::InternalGetNormal(ScriptCapsuleCollider* self, TVector3<float>* __output)
 	{
 		TVector3<float> tmp__output;
-		tmp__output = thisPtr->GetHandle()->GetNormal();
+		tmp__output = self->GetHandle()->GetNormal();
 
 		*__output = tmp__output;
 	}
 
-	void ScriptCapsuleCollider::InternalSetCenter(ScriptCapsuleCollider* thisPtr, TVector3<float>* center)
+	void ScriptCapsuleCollider::InternalSetCenter(ScriptCapsuleCollider* self, TVector3<float>* center)
 	{
-		thisPtr->GetHandle()->SetCenter(*center);
+		self->GetHandle()->SetCenter(*center);
 	}
 
-	void ScriptCapsuleCollider::InternalGetCenter(ScriptCapsuleCollider* thisPtr, TVector3<float>* __output)
+	void ScriptCapsuleCollider::InternalGetCenter(ScriptCapsuleCollider* self, TVector3<float>* __output)
 	{
 		TVector3<float> tmp__output;
-		tmp__output = thisPtr->GetHandle()->GetCenter();
+		tmp__output = self->GetHandle()->GetCenter();
 
 		*__output = tmp__output;
 	}
 
-	void ScriptCapsuleCollider::InternalSetHalfHeight(ScriptCapsuleCollider* thisPtr, float halfHeight)
+	void ScriptCapsuleCollider::InternalSetHalfHeight(ScriptCapsuleCollider* self, float halfHeight)
 	{
-		thisPtr->GetHandle()->SetHalfHeight(halfHeight);
+		self->GetHandle()->SetHalfHeight(halfHeight);
 	}
 
-	float ScriptCapsuleCollider::InternalGetHalfHeight(ScriptCapsuleCollider* thisPtr)
+	float ScriptCapsuleCollider::InternalGetHalfHeight(ScriptCapsuleCollider* self)
 	{
 		float tmp__output;
-		tmp__output = thisPtr->GetHandle()->GetHalfHeight();
+		tmp__output = self->GetHandle()->GetHalfHeight();
 
 		float __output;
 		__output = tmp__output;
@@ -69,15 +69,15 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptCapsuleCollider::InternalSetRadius(ScriptCapsuleCollider* thisPtr, float radius)
+	void ScriptCapsuleCollider::InternalSetRadius(ScriptCapsuleCollider* self, float radius)
 	{
-		thisPtr->GetHandle()->SetRadius(radius);
+		self->GetHandle()->SetRadius(radius);
 	}
 
-	float ScriptCapsuleCollider::InternalGetRadius(ScriptCapsuleCollider* thisPtr)
+	float ScriptCapsuleCollider::InternalGetRadius(ScriptCapsuleCollider* self)
 	{
 		float tmp__output;
-		tmp__output = thisPtr->GetHandle()->GetRadius();
+		tmp__output = self->GetHandle()->GetRadius();
 
 		float __output;
 		__output = tmp__output;

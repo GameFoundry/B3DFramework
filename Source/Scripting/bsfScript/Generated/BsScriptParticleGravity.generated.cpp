@@ -35,28 +35,28 @@ namespace bs
 		new (B3DAllocate<ScriptParticleGravity>()) ScriptParticleGravity(managedInstance, value);
 		return managedInstance;
 	}
-	void ScriptParticleGravity::InternalSetOptions(ScriptParticleGravity* thisPtr, PARTICLE_GRAVITY_DESC* options)
+	void ScriptParticleGravity::InternalSetOptions(ScriptParticleGravity* self, PARTICLE_GRAVITY_DESC* options)
 	{
-		thisPtr->GetInternal()->SetOptions(*options);
+		self->GetInternal()->SetOptions(*options);
 	}
 
-	void ScriptParticleGravity::InternalGetOptions(ScriptParticleGravity* thisPtr, PARTICLE_GRAVITY_DESC* __output)
+	void ScriptParticleGravity::InternalGetOptions(ScriptParticleGravity* self, PARTICLE_GRAVITY_DESC* __output)
 	{
 		PARTICLE_GRAVITY_DESC tmp__output;
-		tmp__output = thisPtr->GetInternal()->GetOptions();
+		tmp__output = self->GetInternal()->GetOptions();
 
 		*__output = tmp__output;
 	}
 
 	void ScriptParticleGravity::InternalCreate(MonoObject* managedInstance, PARTICLE_GRAVITY_DESC* desc)
 	{
-		SPtr<ParticleGravity> instance = ParticleGravity::Create(*desc);
-		new (B3DAllocate<ScriptParticleGravity>())ScriptParticleGravity(managedInstance, instance);
+		SPtr<ParticleGravity> nativeObject = ParticleGravity::Create(*desc);
+		new (B3DAllocate<ScriptParticleGravity>())ScriptParticleGravity(managedInstance, nativeObject);
 	}
 
 	void ScriptParticleGravity::InternalCreate0(MonoObject* managedInstance)
 	{
-		SPtr<ParticleGravity> instance = ParticleGravity::Create();
-		new (B3DAllocate<ScriptParticleGravity>())ScriptParticleGravity(managedInstance, instance);
+		SPtr<ParticleGravity> nativeObject = ParticleGravity::Create();
+		new (B3DAllocate<ScriptParticleGravity>())ScriptParticleGravity(managedInstance, nativeObject);
 	}
 }

@@ -47,10 +47,10 @@ namespace bs
 		static_cast<GUIListBox*>(value)->OnSelectionToggled.Connect(std::bind(&ScriptGUIListBox::OnSelectionToggled, this, std::placeholders::_1, std::placeholders::_2));
 		ScriptGUIClickableBase::RegisterEvents(value);
 	}
-	bool ScriptGUIListBox::InternalIsMultiselect(ScriptGUIListBox* thisPtr)
+	bool ScriptGUIListBox::InternalIsMultiselect(ScriptGUIListBox* self)
 	{
 		bool tmp__output;
-		tmp__output = static_cast<GUIListBox*>(thisPtr->GetGuiElement())->IsMultiselect();
+		tmp__output = static_cast<GUIListBox*>(self->GetGuiElement())->IsMultiselect();
 
 		bool __output;
 		__output = tmp__output;
@@ -58,7 +58,7 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptGUIListBox::InternalSetElements(ScriptGUIListBox* thisPtr, MonoArray* elements)
+	void ScriptGUIListBox::InternalSetElements(ScriptGUIListBox* self, MonoArray* elements)
 	{
 		Vector<HString> nativeArrayelements;
 		if(elements != nullptr)
@@ -77,23 +77,23 @@ namespace bs
 				}
 			}
 		}
-		static_cast<GUIListBox*>(thisPtr->GetGuiElement())->SetElements(nativeArrayelements);
+		static_cast<GUIListBox*>(self->GetGuiElement())->SetElements(nativeArrayelements);
 	}
 
-	void ScriptGUIListBox::InternalSelectElement(ScriptGUIListBox* thisPtr, uint32_t index)
+	void ScriptGUIListBox::InternalSelectElement(ScriptGUIListBox* self, uint32_t index)
 	{
-		static_cast<GUIListBox*>(thisPtr->GetGuiElement())->SelectElement(index);
+		static_cast<GUIListBox*>(self->GetGuiElement())->SelectElement(index);
 	}
 
-	void ScriptGUIListBox::InternalDeselectElement(ScriptGUIListBox* thisPtr, uint32_t index)
+	void ScriptGUIListBox::InternalDeselectElement(ScriptGUIListBox* self, uint32_t index)
 	{
-		static_cast<GUIListBox*>(thisPtr->GetGuiElement())->DeselectElement(index);
+		static_cast<GUIListBox*>(self->GetGuiElement())->DeselectElement(index);
 	}
 
-	uint32_t ScriptGUIListBox::InternalGetSelectedElementIndex(ScriptGUIListBox* thisPtr)
+	uint32_t ScriptGUIListBox::InternalGetSelectedElementIndex(ScriptGUIListBox* self)
 	{
 		uint32_t tmp__output;
-		tmp__output = static_cast<GUIListBox*>(thisPtr->GetGuiElement())->GetSelectedElementIndex();
+		tmp__output = static_cast<GUIListBox*>(self->GetGuiElement())->GetSelectedElementIndex();
 
 		uint32_t __output;
 		__output = tmp__output;
@@ -101,10 +101,10 @@ namespace bs
 		return __output;
 	}
 
-	MonoArray* ScriptGUIListBox::InternalGetElementStates(ScriptGUIListBox* thisPtr)
+	MonoArray* ScriptGUIListBox::InternalGetElementStates(ScriptGUIListBox* self)
 	{
 		Vector<bool> nativeArray__output;
-		nativeArray__output = static_cast<GUIListBox*>(thisPtr->GetGuiElement())->GetElementStates();
+		nativeArray__output = static_cast<GUIListBox*>(self->GetGuiElement())->GetElementStates();
 
 		MonoArray* __output;
 		int elementCount__output = (int)nativeArray__output.size();
@@ -118,7 +118,7 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptGUIListBox::InternalSetElementStates(ScriptGUIListBox* thisPtr, MonoArray* states)
+	void ScriptGUIListBox::InternalSetElementStates(ScriptGUIListBox* self, MonoArray* states)
 	{
 		Vector<bool> nativeArraystates;
 		if(states != nullptr)
@@ -130,7 +130,7 @@ namespace bs
 				nativeArraystates[elementIndex] = scriptArraystates.Get<bool>(elementIndex);
 			}
 		}
-		static_cast<GUIListBox*>(thisPtr->GetGuiElement())->SetElementStates(nativeArraystates);
+		static_cast<GUIListBox*>(self->GetGuiElement())->SetElementStates(nativeArraystates);
 	}
 
 	void ScriptGUIListBox::InternalCreate(MonoObject* managedInstance, __GUIListBoxContentInterop* contents, MonoString* styleClass, MonoArray* options)
@@ -149,8 +149,8 @@ namespace bs
 				nativeArrayoptions[elementIndex] = scriptArrayoptions.Get<GUIOption>(elementIndex);
 			}
 		}
-		GUIListBox* instance = GUIListBox::Create(tmpcontents, tmpstyleClass, nativeArrayoptions);
-		new (B3DAllocate<ScriptGUIListBox>())ScriptGUIListBox(managedInstance, instance);
+		GUIListBox* nativeObject = GUIListBox::Create(tmpcontents, tmpstyleClass, nativeArrayoptions);
+		new (B3DAllocate<ScriptGUIListBox>())ScriptGUIListBox(managedInstance, nativeObject);
 	}
 
 	void ScriptGUIListBox::InternalCreate0(MonoObject* managedInstance, __GUIListBoxContentInterop* contents, MonoArray* options)
@@ -167,8 +167,8 @@ namespace bs
 				nativeArrayoptions[elementIndex] = scriptArrayoptions.Get<GUIOption>(elementIndex);
 			}
 		}
-		GUIListBox* instance = GUIListBox::Create(tmpcontents, nativeArrayoptions);
-		new (B3DAllocate<ScriptGUIListBox>())ScriptGUIListBox(managedInstance, instance);
+		GUIListBox* nativeObject = GUIListBox::Create(tmpcontents, nativeArrayoptions);
+		new (B3DAllocate<ScriptGUIListBox>())ScriptGUIListBox(managedInstance, nativeObject);
 	}
 
 	void ScriptGUIListBox::InternalCreate1(MonoObject* managedInstance, MonoString* styleClass, MonoArray* options)
@@ -185,8 +185,8 @@ namespace bs
 				nativeArrayoptions[elementIndex] = scriptArrayoptions.Get<GUIOption>(elementIndex);
 			}
 		}
-		GUIListBox* instance = GUIListBox::Create(tmpstyleClass, nativeArrayoptions);
-		new (B3DAllocate<ScriptGUIListBox>())ScriptGUIListBox(managedInstance, instance);
+		GUIListBox* nativeObject = GUIListBox::Create(tmpstyleClass, nativeArrayoptions);
+		new (B3DAllocate<ScriptGUIListBox>())ScriptGUIListBox(managedInstance, nativeObject);
 	}
 
 	void ScriptGUIListBox::InternalCreate2(MonoObject* managedInstance, MonoArray* options)
@@ -201,7 +201,7 @@ namespace bs
 				nativeArrayoptions[elementIndex] = scriptArrayoptions.Get<GUIOption>(elementIndex);
 			}
 		}
-		GUIListBox* instance = GUIListBox::Create(nativeArrayoptions);
-		new (B3DAllocate<ScriptGUIListBox>())ScriptGUIListBox(managedInstance, instance);
+		GUIListBox* nativeObject = GUIListBox::Create(nativeArrayoptions);
+		new (B3DAllocate<ScriptGUIListBox>())ScriptGUIListBox(managedInstance, nativeObject);
 	}
 }

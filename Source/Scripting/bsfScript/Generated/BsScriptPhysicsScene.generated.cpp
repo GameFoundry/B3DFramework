@@ -68,11 +68,11 @@ namespace bs
 		new (B3DAllocate<ScriptPhysicsScene>()) ScriptPhysicsScene(managedInstance, value);
 		return managedInstance;
 	}
-	bool ScriptPhysicsScene::InternalRayCast(ScriptPhysicsScene* thisPtr, Ray* ray, __PhysicsQueryHitInterop* hit, uint64_t layer, float max)
+	bool ScriptPhysicsScene::InternalRayCast(ScriptPhysicsScene* self, Ray* ray, __PhysicsQueryHitInterop* hit, uint64_t layer, float max)
 	{
 		bool tmp__output;
 		PhysicsQueryHit tmphit;
-		tmp__output = thisPtr->GetInternal()->RayCast(*ray, tmphit, layer, max);
+		tmp__output = self->GetInternal()->RayCast(*ray, tmphit, layer, max);
 
 		bool __output;
 		__output = tmp__output;
@@ -83,11 +83,11 @@ namespace bs
 		return __output;
 	}
 
-	bool ScriptPhysicsScene::InternalRayCast0(ScriptPhysicsScene* thisPtr, TVector3<float>* origin, TVector3<float>* unitDir, __PhysicsQueryHitInterop* hit, uint64_t layer, float max)
+	bool ScriptPhysicsScene::InternalRayCast0(ScriptPhysicsScene* self, TVector3<float>* origin, TVector3<float>* unitDir, __PhysicsQueryHitInterop* hit, uint64_t layer, float max)
 	{
 		bool tmp__output;
 		PhysicsQueryHit tmphit;
-		tmp__output = thisPtr->GetInternal()->RayCast(*origin, *unitDir, tmphit, layer, max);
+		tmp__output = self->GetInternal()->RayCast(*origin, *unitDir, tmphit, layer, max);
 
 		bool __output;
 		__output = tmp__output;
@@ -98,11 +98,11 @@ namespace bs
 		return __output;
 	}
 
-	bool ScriptPhysicsScene::InternalBoxCast(ScriptPhysicsScene* thisPtr, AABox* box, Quaternion* rotation, TVector3<float>* unitDir, __PhysicsQueryHitInterop* hit, uint64_t layer, float max)
+	bool ScriptPhysicsScene::InternalBoxCast(ScriptPhysicsScene* self, AABox* box, Quaternion* rotation, TVector3<float>* unitDir, __PhysicsQueryHitInterop* hit, uint64_t layer, float max)
 	{
 		bool tmp__output;
 		PhysicsQueryHit tmphit;
-		tmp__output = thisPtr->GetInternal()->BoxCast(*box, *rotation, *unitDir, tmphit, layer, max);
+		tmp__output = self->GetInternal()->BoxCast(*box, *rotation, *unitDir, tmphit, layer, max);
 
 		bool __output;
 		__output = tmp__output;
@@ -113,11 +113,11 @@ namespace bs
 		return __output;
 	}
 
-	bool ScriptPhysicsScene::InternalSphereCast(ScriptPhysicsScene* thisPtr, Sphere* sphere, TVector3<float>* unitDir, __PhysicsQueryHitInterop* hit, uint64_t layer, float max)
+	bool ScriptPhysicsScene::InternalSphereCast(ScriptPhysicsScene* self, Sphere* sphere, TVector3<float>* unitDir, __PhysicsQueryHitInterop* hit, uint64_t layer, float max)
 	{
 		bool tmp__output;
 		PhysicsQueryHit tmphit;
-		tmp__output = thisPtr->GetInternal()->SphereCast(*sphere, *unitDir, tmphit, layer, max);
+		tmp__output = self->GetInternal()->SphereCast(*sphere, *unitDir, tmphit, layer, max);
 
 		bool __output;
 		__output = tmp__output;
@@ -128,11 +128,11 @@ namespace bs
 		return __output;
 	}
 
-	bool ScriptPhysicsScene::InternalCapsuleCast(ScriptPhysicsScene* thisPtr, Capsule* capsule, Quaternion* rotation, TVector3<float>* unitDir, __PhysicsQueryHitInterop* hit, uint64_t layer, float max)
+	bool ScriptPhysicsScene::InternalCapsuleCast(ScriptPhysicsScene* self, Capsule* capsule, Quaternion* rotation, TVector3<float>* unitDir, __PhysicsQueryHitInterop* hit, uint64_t layer, float max)
 	{
 		bool tmp__output;
 		PhysicsQueryHit tmphit;
-		tmp__output = thisPtr->GetInternal()->CapsuleCast(*capsule, *rotation, *unitDir, tmphit, layer, max);
+		tmp__output = self->GetInternal()->CapsuleCast(*capsule, *rotation, *unitDir, tmphit, layer, max);
 
 		bool __output;
 		__output = tmp__output;
@@ -143,7 +143,7 @@ namespace bs
 		return __output;
 	}
 
-	bool ScriptPhysicsScene::InternalConvexCast(ScriptPhysicsScene* thisPtr, MonoObject* mesh, TVector3<float>* position, Quaternion* rotation, TVector3<float>* unitDir, __PhysicsQueryHitInterop* hit, uint64_t layer, float max)
+	bool ScriptPhysicsScene::InternalConvexCast(ScriptPhysicsScene* self, MonoObject* mesh, TVector3<float>* position, Quaternion* rotation, TVector3<float>* unitDir, __PhysicsQueryHitInterop* hit, uint64_t layer, float max)
 	{
 		bool tmp__output;
 		TResourceHandle<PhysicsMesh> tmpmesh;
@@ -152,7 +152,7 @@ namespace bs
 		if(scriptObjectWrappermesh != nullptr)
 			tmpmesh = B3DStaticResourceCast<PhysicsMesh>(scriptObjectWrappermesh->GetHandle());
 		PhysicsQueryHit tmphit;
-		tmp__output = thisPtr->GetInternal()->ConvexCast(tmpmesh, *position, *rotation, *unitDir, tmphit, layer, max);
+		tmp__output = self->GetInternal()->ConvexCast(tmpmesh, *position, *rotation, *unitDir, tmphit, layer, max);
 
 		bool __output;
 		__output = tmp__output;
@@ -163,10 +163,10 @@ namespace bs
 		return __output;
 	}
 
-	MonoArray* ScriptPhysicsScene::InternalRayCastAll(ScriptPhysicsScene* thisPtr, Ray* ray, uint64_t layer, float max)
+	MonoArray* ScriptPhysicsScene::InternalRayCastAll(ScriptPhysicsScene* self, Ray* ray, uint64_t layer, float max)
 	{
 		Vector<PhysicsQueryHit> nativeArray__output;
-		nativeArray__output = thisPtr->GetInternal()->RayCastAll(*ray, layer, max);
+		nativeArray__output = self->GetInternal()->RayCastAll(*ray, layer, max);
 
 		MonoArray* __output;
 		int elementCount__output = (int)nativeArray__output.size();
@@ -180,10 +180,10 @@ namespace bs
 		return __output;
 	}
 
-	MonoArray* ScriptPhysicsScene::InternalRayCastAll0(ScriptPhysicsScene* thisPtr, TVector3<float>* origin, TVector3<float>* unitDir, uint64_t layer, float max)
+	MonoArray* ScriptPhysicsScene::InternalRayCastAll0(ScriptPhysicsScene* self, TVector3<float>* origin, TVector3<float>* unitDir, uint64_t layer, float max)
 	{
 		Vector<PhysicsQueryHit> nativeArray__output;
-		nativeArray__output = thisPtr->GetInternal()->RayCastAll(*origin, *unitDir, layer, max);
+		nativeArray__output = self->GetInternal()->RayCastAll(*origin, *unitDir, layer, max);
 
 		MonoArray* __output;
 		int elementCount__output = (int)nativeArray__output.size();
@@ -197,10 +197,10 @@ namespace bs
 		return __output;
 	}
 
-	MonoArray* ScriptPhysicsScene::InternalBoxCastAll(ScriptPhysicsScene* thisPtr, AABox* box, Quaternion* rotation, TVector3<float>* unitDir, uint64_t layer, float max)
+	MonoArray* ScriptPhysicsScene::InternalBoxCastAll(ScriptPhysicsScene* self, AABox* box, Quaternion* rotation, TVector3<float>* unitDir, uint64_t layer, float max)
 	{
 		Vector<PhysicsQueryHit> nativeArray__output;
-		nativeArray__output = thisPtr->GetInternal()->BoxCastAll(*box, *rotation, *unitDir, layer, max);
+		nativeArray__output = self->GetInternal()->BoxCastAll(*box, *rotation, *unitDir, layer, max);
 
 		MonoArray* __output;
 		int elementCount__output = (int)nativeArray__output.size();
@@ -214,10 +214,10 @@ namespace bs
 		return __output;
 	}
 
-	MonoArray* ScriptPhysicsScene::InternalSphereCastAll(ScriptPhysicsScene* thisPtr, Sphere* sphere, TVector3<float>* unitDir, uint64_t layer, float max)
+	MonoArray* ScriptPhysicsScene::InternalSphereCastAll(ScriptPhysicsScene* self, Sphere* sphere, TVector3<float>* unitDir, uint64_t layer, float max)
 	{
 		Vector<PhysicsQueryHit> nativeArray__output;
-		nativeArray__output = thisPtr->GetInternal()->SphereCastAll(*sphere, *unitDir, layer, max);
+		nativeArray__output = self->GetInternal()->SphereCastAll(*sphere, *unitDir, layer, max);
 
 		MonoArray* __output;
 		int elementCount__output = (int)nativeArray__output.size();
@@ -231,10 +231,10 @@ namespace bs
 		return __output;
 	}
 
-	MonoArray* ScriptPhysicsScene::InternalCapsuleCastAll(ScriptPhysicsScene* thisPtr, Capsule* capsule, Quaternion* rotation, TVector3<float>* unitDir, uint64_t layer, float max)
+	MonoArray* ScriptPhysicsScene::InternalCapsuleCastAll(ScriptPhysicsScene* self, Capsule* capsule, Quaternion* rotation, TVector3<float>* unitDir, uint64_t layer, float max)
 	{
 		Vector<PhysicsQueryHit> nativeArray__output;
-		nativeArray__output = thisPtr->GetInternal()->CapsuleCastAll(*capsule, *rotation, *unitDir, layer, max);
+		nativeArray__output = self->GetInternal()->CapsuleCastAll(*capsule, *rotation, *unitDir, layer, max);
 
 		MonoArray* __output;
 		int elementCount__output = (int)nativeArray__output.size();
@@ -248,7 +248,7 @@ namespace bs
 		return __output;
 	}
 
-	MonoArray* ScriptPhysicsScene::InternalConvexCastAll(ScriptPhysicsScene* thisPtr, MonoObject* mesh, TVector3<float>* position, Quaternion* rotation, TVector3<float>* unitDir, uint64_t layer, float max)
+	MonoArray* ScriptPhysicsScene::InternalConvexCastAll(ScriptPhysicsScene* self, MonoObject* mesh, TVector3<float>* position, Quaternion* rotation, TVector3<float>* unitDir, uint64_t layer, float max)
 	{
 		Vector<PhysicsQueryHit> nativeArray__output;
 		TResourceHandle<PhysicsMesh> tmpmesh;
@@ -256,7 +256,7 @@ namespace bs
 		scriptObjectWrappermesh = ScriptRRefBase::ToNative(mesh);
 		if(scriptObjectWrappermesh != nullptr)
 			tmpmesh = B3DStaticResourceCast<PhysicsMesh>(scriptObjectWrappermesh->GetHandle());
-		nativeArray__output = thisPtr->GetInternal()->ConvexCastAll(tmpmesh, *position, *rotation, *unitDir, layer, max);
+		nativeArray__output = self->GetInternal()->ConvexCastAll(tmpmesh, *position, *rotation, *unitDir, layer, max);
 
 		MonoArray* __output;
 		int elementCount__output = (int)nativeArray__output.size();
@@ -270,10 +270,10 @@ namespace bs
 		return __output;
 	}
 
-	bool ScriptPhysicsScene::InternalRayCastAny(ScriptPhysicsScene* thisPtr, Ray* ray, uint64_t layer, float max)
+	bool ScriptPhysicsScene::InternalRayCastAny(ScriptPhysicsScene* self, Ray* ray, uint64_t layer, float max)
 	{
 		bool tmp__output;
-		tmp__output = thisPtr->GetInternal()->RayCastAny(*ray, layer, max);
+		tmp__output = self->GetInternal()->RayCastAny(*ray, layer, max);
 
 		bool __output;
 		__output = tmp__output;
@@ -281,10 +281,10 @@ namespace bs
 		return __output;
 	}
 
-	bool ScriptPhysicsScene::InternalRayCastAny0(ScriptPhysicsScene* thisPtr, TVector3<float>* origin, TVector3<float>* unitDir, uint64_t layer, float max)
+	bool ScriptPhysicsScene::InternalRayCastAny0(ScriptPhysicsScene* self, TVector3<float>* origin, TVector3<float>* unitDir, uint64_t layer, float max)
 	{
 		bool tmp__output;
-		tmp__output = thisPtr->GetInternal()->RayCastAny(*origin, *unitDir, layer, max);
+		tmp__output = self->GetInternal()->RayCastAny(*origin, *unitDir, layer, max);
 
 		bool __output;
 		__output = tmp__output;
@@ -292,10 +292,10 @@ namespace bs
 		return __output;
 	}
 
-	bool ScriptPhysicsScene::InternalBoxCastAny(ScriptPhysicsScene* thisPtr, AABox* box, Quaternion* rotation, TVector3<float>* unitDir, uint64_t layer, float max)
+	bool ScriptPhysicsScene::InternalBoxCastAny(ScriptPhysicsScene* self, AABox* box, Quaternion* rotation, TVector3<float>* unitDir, uint64_t layer, float max)
 	{
 		bool tmp__output;
-		tmp__output = thisPtr->GetInternal()->BoxCastAny(*box, *rotation, *unitDir, layer, max);
+		tmp__output = self->GetInternal()->BoxCastAny(*box, *rotation, *unitDir, layer, max);
 
 		bool __output;
 		__output = tmp__output;
@@ -303,10 +303,10 @@ namespace bs
 		return __output;
 	}
 
-	bool ScriptPhysicsScene::InternalSphereCastAny(ScriptPhysicsScene* thisPtr, Sphere* sphere, TVector3<float>* unitDir, uint64_t layer, float max)
+	bool ScriptPhysicsScene::InternalSphereCastAny(ScriptPhysicsScene* self, Sphere* sphere, TVector3<float>* unitDir, uint64_t layer, float max)
 	{
 		bool tmp__output;
-		tmp__output = thisPtr->GetInternal()->SphereCastAny(*sphere, *unitDir, layer, max);
+		tmp__output = self->GetInternal()->SphereCastAny(*sphere, *unitDir, layer, max);
 
 		bool __output;
 		__output = tmp__output;
@@ -314,10 +314,10 @@ namespace bs
 		return __output;
 	}
 
-	bool ScriptPhysicsScene::InternalCapsuleCastAny(ScriptPhysicsScene* thisPtr, Capsule* capsule, Quaternion* rotation, TVector3<float>* unitDir, uint64_t layer, float max)
+	bool ScriptPhysicsScene::InternalCapsuleCastAny(ScriptPhysicsScene* self, Capsule* capsule, Quaternion* rotation, TVector3<float>* unitDir, uint64_t layer, float max)
 	{
 		bool tmp__output;
-		tmp__output = thisPtr->GetInternal()->CapsuleCastAny(*capsule, *rotation, *unitDir, layer, max);
+		tmp__output = self->GetInternal()->CapsuleCastAny(*capsule, *rotation, *unitDir, layer, max);
 
 		bool __output;
 		__output = tmp__output;
@@ -325,7 +325,7 @@ namespace bs
 		return __output;
 	}
 
-	bool ScriptPhysicsScene::InternalConvexCastAny(ScriptPhysicsScene* thisPtr, MonoObject* mesh, TVector3<float>* position, Quaternion* rotation, TVector3<float>* unitDir, uint64_t layer, float max)
+	bool ScriptPhysicsScene::InternalConvexCastAny(ScriptPhysicsScene* self, MonoObject* mesh, TVector3<float>* position, Quaternion* rotation, TVector3<float>* unitDir, uint64_t layer, float max)
 	{
 		bool tmp__output;
 		TResourceHandle<PhysicsMesh> tmpmesh;
@@ -333,7 +333,7 @@ namespace bs
 		scriptObjectWrappermesh = ScriptRRefBase::ToNative(mesh);
 		if(scriptObjectWrappermesh != nullptr)
 			tmpmesh = B3DStaticResourceCast<PhysicsMesh>(scriptObjectWrappermesh->GetHandle());
-		tmp__output = thisPtr->GetInternal()->ConvexCastAny(tmpmesh, *position, *rotation, *unitDir, layer, max);
+		tmp__output = self->GetInternal()->ConvexCastAny(tmpmesh, *position, *rotation, *unitDir, layer, max);
 
 		bool __output;
 		__output = tmp__output;
@@ -341,10 +341,10 @@ namespace bs
 		return __output;
 	}
 
-	MonoArray* ScriptPhysicsScene::InternalBoxOverlap(ScriptPhysicsScene* thisPtr, AABox* box, Quaternion* rotation, uint64_t layer)
+	MonoArray* ScriptPhysicsScene::InternalBoxOverlap(ScriptPhysicsScene* self, AABox* box, Quaternion* rotation, uint64_t layer)
 	{
 		Vector<GameObjectHandle<CCollider>> nativeArray__output;
-		nativeArray__output = thisPtr->GetInternal()->BoxOverlap(*box, *rotation, layer);
+		nativeArray__output = self->GetInternal()->BoxOverlap(*box, *rotation, layer);
 
 		MonoArray* __output;
 		int elementCount__output = (int)nativeArray__output.size();
@@ -364,10 +364,10 @@ namespace bs
 		return __output;
 	}
 
-	MonoArray* ScriptPhysicsScene::InternalSphereOverlap(ScriptPhysicsScene* thisPtr, Sphere* sphere, uint64_t layer)
+	MonoArray* ScriptPhysicsScene::InternalSphereOverlap(ScriptPhysicsScene* self, Sphere* sphere, uint64_t layer)
 	{
 		Vector<GameObjectHandle<CCollider>> nativeArray__output;
-		nativeArray__output = thisPtr->GetInternal()->SphereOverlap(*sphere, layer);
+		nativeArray__output = self->GetInternal()->SphereOverlap(*sphere, layer);
 
 		MonoArray* __output;
 		int elementCount__output = (int)nativeArray__output.size();
@@ -387,10 +387,10 @@ namespace bs
 		return __output;
 	}
 
-	MonoArray* ScriptPhysicsScene::InternalCapsuleOverlap(ScriptPhysicsScene* thisPtr, Capsule* capsule, Quaternion* rotation, uint64_t layer)
+	MonoArray* ScriptPhysicsScene::InternalCapsuleOverlap(ScriptPhysicsScene* self, Capsule* capsule, Quaternion* rotation, uint64_t layer)
 	{
 		Vector<GameObjectHandle<CCollider>> nativeArray__output;
-		nativeArray__output = thisPtr->GetInternal()->CapsuleOverlap(*capsule, *rotation, layer);
+		nativeArray__output = self->GetInternal()->CapsuleOverlap(*capsule, *rotation, layer);
 
 		MonoArray* __output;
 		int elementCount__output = (int)nativeArray__output.size();
@@ -410,7 +410,7 @@ namespace bs
 		return __output;
 	}
 
-	MonoArray* ScriptPhysicsScene::InternalConvexOverlap(ScriptPhysicsScene* thisPtr, MonoObject* mesh, TVector3<float>* position, Quaternion* rotation, uint64_t layer)
+	MonoArray* ScriptPhysicsScene::InternalConvexOverlap(ScriptPhysicsScene* self, MonoObject* mesh, TVector3<float>* position, Quaternion* rotation, uint64_t layer)
 	{
 		Vector<GameObjectHandle<CCollider>> nativeArray__output;
 		TResourceHandle<PhysicsMesh> tmpmesh;
@@ -418,7 +418,7 @@ namespace bs
 		scriptObjectWrappermesh = ScriptRRefBase::ToNative(mesh);
 		if(scriptObjectWrappermesh != nullptr)
 			tmpmesh = B3DStaticResourceCast<PhysicsMesh>(scriptObjectWrappermesh->GetHandle());
-		nativeArray__output = thisPtr->GetInternal()->ConvexOverlap(tmpmesh, *position, *rotation, layer);
+		nativeArray__output = self->GetInternal()->ConvexOverlap(tmpmesh, *position, *rotation, layer);
 
 		MonoArray* __output;
 		int elementCount__output = (int)nativeArray__output.size();
@@ -438,10 +438,10 @@ namespace bs
 		return __output;
 	}
 
-	bool ScriptPhysicsScene::InternalBoxOverlapAny(ScriptPhysicsScene* thisPtr, AABox* box, Quaternion* rotation, uint64_t layer)
+	bool ScriptPhysicsScene::InternalBoxOverlapAny(ScriptPhysicsScene* self, AABox* box, Quaternion* rotation, uint64_t layer)
 	{
 		bool tmp__output;
-		tmp__output = thisPtr->GetInternal()->BoxOverlapAny(*box, *rotation, layer);
+		tmp__output = self->GetInternal()->BoxOverlapAny(*box, *rotation, layer);
 
 		bool __output;
 		__output = tmp__output;
@@ -449,10 +449,10 @@ namespace bs
 		return __output;
 	}
 
-	bool ScriptPhysicsScene::InternalSphereOverlapAny(ScriptPhysicsScene* thisPtr, Sphere* sphere, uint64_t layer)
+	bool ScriptPhysicsScene::InternalSphereOverlapAny(ScriptPhysicsScene* self, Sphere* sphere, uint64_t layer)
 	{
 		bool tmp__output;
-		tmp__output = thisPtr->GetInternal()->SphereOverlapAny(*sphere, layer);
+		tmp__output = self->GetInternal()->SphereOverlapAny(*sphere, layer);
 
 		bool __output;
 		__output = tmp__output;
@@ -460,10 +460,10 @@ namespace bs
 		return __output;
 	}
 
-	bool ScriptPhysicsScene::InternalCapsuleOverlapAny(ScriptPhysicsScene* thisPtr, Capsule* capsule, Quaternion* rotation, uint64_t layer)
+	bool ScriptPhysicsScene::InternalCapsuleOverlapAny(ScriptPhysicsScene* self, Capsule* capsule, Quaternion* rotation, uint64_t layer)
 	{
 		bool tmp__output;
-		tmp__output = thisPtr->GetInternal()->CapsuleOverlapAny(*capsule, *rotation, layer);
+		tmp__output = self->GetInternal()->CapsuleOverlapAny(*capsule, *rotation, layer);
 
 		bool __output;
 		__output = tmp__output;
@@ -471,7 +471,7 @@ namespace bs
 		return __output;
 	}
 
-	bool ScriptPhysicsScene::InternalConvexOverlapAny(ScriptPhysicsScene* thisPtr, MonoObject* mesh, TVector3<float>* position, Quaternion* rotation, uint64_t layer)
+	bool ScriptPhysicsScene::InternalConvexOverlapAny(ScriptPhysicsScene* self, MonoObject* mesh, TVector3<float>* position, Quaternion* rotation, uint64_t layer)
 	{
 		bool tmp__output;
 		TResourceHandle<PhysicsMesh> tmpmesh;
@@ -479,7 +479,7 @@ namespace bs
 		scriptObjectWrappermesh = ScriptRRefBase::ToNative(mesh);
 		if(scriptObjectWrappermesh != nullptr)
 			tmpmesh = B3DStaticResourceCast<PhysicsMesh>(scriptObjectWrappermesh->GetHandle());
-		tmp__output = thisPtr->GetInternal()->ConvexOverlapAny(tmpmesh, *position, *rotation, layer);
+		tmp__output = self->GetInternal()->ConvexOverlapAny(tmpmesh, *position, *rotation, layer);
 
 		bool __output;
 		__output = tmp__output;
@@ -487,23 +487,23 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptPhysicsScene::InternalGetGravity(ScriptPhysicsScene* thisPtr, TVector3<float>* __output)
+	void ScriptPhysicsScene::InternalGetGravity(ScriptPhysicsScene* self, TVector3<float>* __output)
 	{
 		TVector3<float> tmp__output;
-		tmp__output = thisPtr->GetInternal()->GetGravity();
+		tmp__output = self->GetInternal()->GetGravity();
 
 		*__output = tmp__output;
 	}
 
-	void ScriptPhysicsScene::InternalSetGravity(ScriptPhysicsScene* thisPtr, TVector3<float>* gravity)
+	void ScriptPhysicsScene::InternalSetGravity(ScriptPhysicsScene* self, TVector3<float>* gravity)
 	{
-		thisPtr->GetInternal()->SetGravity(*gravity);
+		self->GetInternal()->SetGravity(*gravity);
 	}
 
-	uint32_t ScriptPhysicsScene::InternalAddBroadPhaseRegion(ScriptPhysicsScene* thisPtr, AABox* region)
+	uint32_t ScriptPhysicsScene::InternalAddBroadPhaseRegion(ScriptPhysicsScene* self, AABox* region)
 	{
 		uint32_t tmp__output;
-		tmp__output = thisPtr->GetInternal()->AddBroadPhaseRegion(*region);
+		tmp__output = self->GetInternal()->AddBroadPhaseRegion(*region);
 
 		uint32_t __output;
 		__output = tmp__output;
@@ -511,13 +511,13 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptPhysicsScene::InternalRemoveBroadPhaseRegion(ScriptPhysicsScene* thisPtr, uint32_t handle)
+	void ScriptPhysicsScene::InternalRemoveBroadPhaseRegion(ScriptPhysicsScene* self, uint32_t handle)
 	{
-		thisPtr->GetInternal()->RemoveBroadPhaseRegion(handle);
+		self->GetInternal()->RemoveBroadPhaseRegion(handle);
 	}
 
-	void ScriptPhysicsScene::InternalClearBroadPhaseRegions(ScriptPhysicsScene* thisPtr)
+	void ScriptPhysicsScene::InternalClearBroadPhaseRegions(ScriptPhysicsScene* self)
 	{
-		thisPtr->GetInternal()->ClearBroadPhaseRegions();
+		self->GetInternal()->ClearBroadPhaseRegions();
 	}
 }

@@ -22,12 +22,12 @@ namespace bs
 		static MonoObject* Create(const SPtr<ShaderImportOptions>& value);
 
 	private:
-		static void InternalSetDefine(ScriptShaderImportOptions* thisPtr, MonoString* define, MonoString* value);
-		static bool InternalGetDefine(ScriptShaderImportOptions* thisPtr, MonoString* define, MonoString** value);
-		static bool InternalHasDefine(ScriptShaderImportOptions* thisPtr, MonoString* define);
-		static void InternalRemoveDefine(ScriptShaderImportOptions* thisPtr, MonoString* define);
-		static ShadingLanguageFlag InternalGetLanguages(ScriptShaderImportOptions* thisPtr);
-		static void InternalSetLanguages(ScriptShaderImportOptions* thisPtr, ShadingLanguageFlag value);
+		static void InternalSetDefine(ScriptShaderImportOptions* self, MonoString* define, MonoString* value);
+		static bool InternalGetDefine(ScriptShaderImportOptions* self, MonoString* define, MonoString** value);
+		static bool InternalHasDefine(ScriptShaderImportOptions* self, MonoString* define);
+		static void InternalRemoveDefine(ScriptShaderImportOptions* self, MonoString* define);
+		static ShadingLanguageFlag InternalGetLanguages(ScriptShaderImportOptions* self);
+		static void InternalSetLanguages(ScriptShaderImportOptions* self, ShadingLanguageFlag value);
 		static void InternalCreate(MonoObject* managedInstance);
 	};
 #endif

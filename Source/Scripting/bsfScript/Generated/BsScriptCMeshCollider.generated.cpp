@@ -23,20 +23,20 @@ namespace bs
 
 	}
 
-	void ScriptMeshCollider::InternalSetMesh(ScriptMeshCollider* thisPtr, MonoObject* mesh)
+	void ScriptMeshCollider::InternalSetMesh(ScriptMeshCollider* self, MonoObject* mesh)
 	{
 		TResourceHandle<PhysicsMesh> tmpmesh;
 		ScriptRRefBase* scriptObjectWrappermesh;
 		scriptObjectWrappermesh = ScriptRRefBase::ToNative(mesh);
 		if(scriptObjectWrappermesh != nullptr)
 			tmpmesh = B3DStaticResourceCast<PhysicsMesh>(scriptObjectWrappermesh->GetHandle());
-		thisPtr->GetHandle()->SetMesh(tmpmesh);
+		self->GetHandle()->SetMesh(tmpmesh);
 	}
 
-	MonoObject* ScriptMeshCollider::InternalGetMesh(ScriptMeshCollider* thisPtr)
+	MonoObject* ScriptMeshCollider::InternalGetMesh(ScriptMeshCollider* self)
 	{
 		TResourceHandle<PhysicsMesh> tmp__output;
-		tmp__output = thisPtr->GetHandle()->GetMesh();
+		tmp__output = self->GetHandle()->GetMesh();
 
 		MonoObject* __output;
 		ScriptRRefBase* script__output;

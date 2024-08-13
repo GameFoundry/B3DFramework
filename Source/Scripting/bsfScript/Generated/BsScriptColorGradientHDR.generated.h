@@ -28,11 +28,11 @@ namespace bs
 		static void InternalColorGradientHDR(MonoObject* managedInstance);
 		static void InternalColorGradientHDR0(MonoObject* managedInstance, Color* color);
 		static void InternalColorGradientHDR1(MonoObject* managedInstance, MonoArray* keys);
-		static void InternalSetKeys(ScriptColorGradientHDR* thisPtr, MonoArray* keys, float duration);
-		static MonoArray* InternalGetKeys(ScriptColorGradientHDR* thisPtr);
-		static uint32_t InternalGetNumKeys(ScriptColorGradientHDR* thisPtr);
-		static void InternalGetKey(ScriptColorGradientHDR* thisPtr, uint32_t idx, __ColorGradientKeyInterop* __output);
-		static void InternalSetConstant(ScriptColorGradientHDR* thisPtr, Color* color);
-		static void InternalEvaluate(ScriptColorGradientHDR* thisPtr, float t, Color* __output);
+		static void InternalSetKeys(ScriptColorGradientHDR* self, MonoArray* keys, float duration);
+		static MonoArray* InternalGetKeys(ScriptColorGradientHDR* self);
+		static uint32_t InternalGetNumKeys(ScriptColorGradientHDR* self);
+		static void InternalGetKey(ScriptColorGradientHDR* self, uint32_t idx, __ColorGradientKeyInterop* __output);
+		static void InternalSetConstant(ScriptColorGradientHDR* self, Color* color);
+		static void InternalEvaluate(ScriptColorGradientHDR* self, float t, Color* __output);
 	};
 }

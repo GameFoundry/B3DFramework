@@ -22,9 +22,9 @@ namespace bs
 		static MonoObject* CreateInstance();
 
 	private:
-		static MonoObject* InternalGetRef(ScriptSpriteVectorPath* thisPtr);
+		static MonoObject* InternalGetRef(ScriptSpriteVectorPath* self);
 
-		static void InternalSetVectorPath(ScriptSpriteVectorPath* thisPtr, MonoObject* vectorPath);
+		static void InternalSetVectorPath(ScriptSpriteVectorPath* self, MonoObject* vectorPath);
 		static void InternalCreate(MonoObject* managedInstance, MonoObject* vectorPath, TSize2<uint32_t>* size);
 		static void InternalCreate0(MonoObject* managedInstance, __SpriteVectorPathCreateInformationInterop* createInformation);
 	};

@@ -22,7 +22,7 @@ namespace bs
 		static MonoObject* Create(const SPtr<Skeleton>& value);
 
 	private:
-		static uint32_t InternalGetNumBones(ScriptSkeleton* thisPtr);
-		static void InternalGetBoneInfo(ScriptSkeleton* thisPtr, int32_t boneIdx, __SkeletonBoneInfoExInterop* __output);
+		static uint32_t InternalGetNumBones(ScriptSkeleton* self);
+		static void InternalGetBoneInfo(ScriptSkeleton* self, int32_t boneIdx, __SkeletonBoneInfoExInterop* __output);
 	};
 }

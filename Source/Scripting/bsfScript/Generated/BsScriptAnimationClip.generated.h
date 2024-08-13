@@ -20,18 +20,18 @@ namespace bs
 		static MonoObject* CreateInstance();
 
 	private:
-		static MonoObject* InternalGetRef(ScriptAnimationClip* thisPtr);
+		static MonoObject* InternalGetRef(ScriptAnimationClip* self);
 
-		static MonoObject* InternalGetCurves(ScriptAnimationClip* thisPtr);
-		static void InternalSetCurves(ScriptAnimationClip* thisPtr, MonoObject* curves);
-		static MonoArray* InternalGetEvents(ScriptAnimationClip* thisPtr);
-		static void InternalSetEvents(ScriptAnimationClip* thisPtr, MonoArray* events);
-		static MonoObject* InternalGetRootMotion(ScriptAnimationClip* thisPtr);
-		static bool InternalHasRootMotion(ScriptAnimationClip* thisPtr);
-		static bool InternalIsAdditive(ScriptAnimationClip* thisPtr);
-		static float InternalGetLength(ScriptAnimationClip* thisPtr);
-		static uint32_t InternalGetSampleRate(ScriptAnimationClip* thisPtr);
-		static void InternalSetSampleRate(ScriptAnimationClip* thisPtr, uint32_t sampleRate);
+		static MonoObject* InternalGetCurves(ScriptAnimationClip* self);
+		static void InternalSetCurves(ScriptAnimationClip* self, MonoObject* curves);
+		static MonoArray* InternalGetEvents(ScriptAnimationClip* self);
+		static void InternalSetEvents(ScriptAnimationClip* self, MonoArray* events);
+		static MonoObject* InternalGetRootMotion(ScriptAnimationClip* self);
+		static bool InternalHasRootMotion(ScriptAnimationClip* self);
+		static bool InternalIsAdditive(ScriptAnimationClip* self);
+		static float InternalGetLength(ScriptAnimationClip* self);
+		static uint32_t InternalGetSampleRate(ScriptAnimationClip* self);
+		static void InternalSetSampleRate(ScriptAnimationClip* self, uint32_t sampleRate);
 		static void InternalCreate(MonoObject* managedInstance, bool isAdditive);
 		static void InternalCreate0(MonoObject* managedInstance, MonoObject* curves, bool isAdditive, uint32_t sampleRate, MonoObject* rootMotion);
 	};

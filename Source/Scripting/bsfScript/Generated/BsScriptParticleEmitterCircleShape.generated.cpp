@@ -35,17 +35,17 @@ namespace bs
 		new (B3DAllocate<ScriptParticleEmitterCircleShape>()) ScriptParticleEmitterCircleShape(managedInstance, value);
 		return managedInstance;
 	}
-	void ScriptParticleEmitterCircleShape::InternalSetOptions(ScriptParticleEmitterCircleShape* thisPtr, __PARTICLE_CIRCLE_SHAPE_DESCInterop* options)
+	void ScriptParticleEmitterCircleShape::InternalSetOptions(ScriptParticleEmitterCircleShape* self, __PARTICLE_CIRCLE_SHAPE_DESCInterop* options)
 	{
 		PARTICLE_CIRCLE_SHAPE_DESC tmpoptions;
 		tmpoptions = ScriptParticleCircleShapeOptions::FromInterop(*options);
-		thisPtr->GetInternal()->SetOptions(tmpoptions);
+		self->GetInternal()->SetOptions(tmpoptions);
 	}
 
-	void ScriptParticleEmitterCircleShape::InternalGetOptions(ScriptParticleEmitterCircleShape* thisPtr, __PARTICLE_CIRCLE_SHAPE_DESCInterop* __output)
+	void ScriptParticleEmitterCircleShape::InternalGetOptions(ScriptParticleEmitterCircleShape* self, __PARTICLE_CIRCLE_SHAPE_DESCInterop* __output)
 	{
 		PARTICLE_CIRCLE_SHAPE_DESC tmp__output;
-		tmp__output = thisPtr->GetInternal()->GetOptions();
+		tmp__output = self->GetInternal()->GetOptions();
 
 		__PARTICLE_CIRCLE_SHAPE_DESCInterop interop__output;
 		interop__output = ScriptParticleCircleShapeOptions::ToInterop(tmp__output);
@@ -56,13 +56,13 @@ namespace bs
 	{
 		PARTICLE_CIRCLE_SHAPE_DESC tmpdesc;
 		tmpdesc = ScriptParticleCircleShapeOptions::FromInterop(*desc);
-		SPtr<ParticleEmitterCircleShape> instance = ParticleEmitterCircleShape::Create(tmpdesc);
-		new (B3DAllocate<ScriptParticleEmitterCircleShape>())ScriptParticleEmitterCircleShape(managedInstance, instance);
+		SPtr<ParticleEmitterCircleShape> nativeObject = ParticleEmitterCircleShape::Create(tmpdesc);
+		new (B3DAllocate<ScriptParticleEmitterCircleShape>())ScriptParticleEmitterCircleShape(managedInstance, nativeObject);
 	}
 
 	void ScriptParticleEmitterCircleShape::InternalCreate0(MonoObject* managedInstance)
 	{
-		SPtr<ParticleEmitterCircleShape> instance = ParticleEmitterCircleShape::Create();
-		new (B3DAllocate<ScriptParticleEmitterCircleShape>())ScriptParticleEmitterCircleShape(managedInstance, instance);
+		SPtr<ParticleEmitterCircleShape> nativeObject = ParticleEmitterCircleShape::Create();
+		new (B3DAllocate<ScriptParticleEmitterCircleShape>())ScriptParticleEmitterCircleShape(managedInstance, nativeObject);
 	}
 }

@@ -22,25 +22,25 @@ namespace bs
 		static MonoObject* Create(const SPtr<ParticleVectorFieldSettings>& value);
 
 	private:
-		static MonoObject* InternalGetVectorField(ScriptParticleVectorFieldSettings* thisPtr);
-		static void InternalSetVectorField(ScriptParticleVectorFieldSettings* thisPtr, MonoObject* value);
-		static float InternalGetIntensity(ScriptParticleVectorFieldSettings* thisPtr);
-		static void InternalSetIntensity(ScriptParticleVectorFieldSettings* thisPtr, float value);
-		static float InternalGetTightness(ScriptParticleVectorFieldSettings* thisPtr);
-		static void InternalSetTightness(ScriptParticleVectorFieldSettings* thisPtr, float value);
-		static void InternalGetScale(ScriptParticleVectorFieldSettings* thisPtr, TVector3<float>* __output);
-		static void InternalSetScale(ScriptParticleVectorFieldSettings* thisPtr, TVector3<float>* value);
-		static void InternalGetOffset(ScriptParticleVectorFieldSettings* thisPtr, TVector3<float>* __output);
-		static void InternalSetOffset(ScriptParticleVectorFieldSettings* thisPtr, TVector3<float>* value);
-		static void InternalGetRotation(ScriptParticleVectorFieldSettings* thisPtr, Quaternion* __output);
-		static void InternalSetRotation(ScriptParticleVectorFieldSettings* thisPtr, Quaternion* value);
-		static MonoObject* InternalGetRotationRate(ScriptParticleVectorFieldSettings* thisPtr);
-		static void InternalSetRotationRate(ScriptParticleVectorFieldSettings* thisPtr, MonoObject* value);
-		static bool InternalGetTilingX(ScriptParticleVectorFieldSettings* thisPtr);
-		static void InternalSetTilingX(ScriptParticleVectorFieldSettings* thisPtr, bool value);
-		static bool InternalGetTilingY(ScriptParticleVectorFieldSettings* thisPtr);
-		static void InternalSetTilingY(ScriptParticleVectorFieldSettings* thisPtr, bool value);
-		static bool InternalGetTilingZ(ScriptParticleVectorFieldSettings* thisPtr);
-		static void InternalSetTilingZ(ScriptParticleVectorFieldSettings* thisPtr, bool value);
+		static MonoObject* InternalGetVectorField(ScriptParticleVectorFieldSettings* self);
+		static void InternalSetVectorField(ScriptParticleVectorFieldSettings* self, MonoObject* value);
+		static float InternalGetIntensity(ScriptParticleVectorFieldSettings* self);
+		static void InternalSetIntensity(ScriptParticleVectorFieldSettings* self, float value);
+		static float InternalGetTightness(ScriptParticleVectorFieldSettings* self);
+		static void InternalSetTightness(ScriptParticleVectorFieldSettings* self, float value);
+		static void InternalGetScale(ScriptParticleVectorFieldSettings* self, TVector3<float>* __output);
+		static void InternalSetScale(ScriptParticleVectorFieldSettings* self, TVector3<float>* value);
+		static void InternalGetOffset(ScriptParticleVectorFieldSettings* self, TVector3<float>* __output);
+		static void InternalSetOffset(ScriptParticleVectorFieldSettings* self, TVector3<float>* value);
+		static void InternalGetRotation(ScriptParticleVectorFieldSettings* self, Quaternion* __output);
+		static void InternalSetRotation(ScriptParticleVectorFieldSettings* self, Quaternion* value);
+		static MonoObject* InternalGetRotationRate(ScriptParticleVectorFieldSettings* self);
+		static void InternalSetRotationRate(ScriptParticleVectorFieldSettings* self, MonoObject* value);
+		static bool InternalGetTilingX(ScriptParticleVectorFieldSettings* self);
+		static void InternalSetTilingX(ScriptParticleVectorFieldSettings* self, bool value);
+		static bool InternalGetTilingY(ScriptParticleVectorFieldSettings* self);
+		static void InternalSetTilingY(ScriptParticleVectorFieldSettings* self, bool value);
+		static bool InternalGetTilingZ(ScriptParticleVectorFieldSettings* self);
+		static void InternalSetTilingZ(ScriptParticleVectorFieldSettings* self, bool value);
 	};
 }

@@ -21,8 +21,8 @@ namespace bs
 		static MonoObject* Create(const SPtr<ParticleGravity>& value);
 
 	private:
-		static void InternalSetOptions(ScriptParticleGravity* thisPtr, PARTICLE_GRAVITY_DESC* options);
-		static void InternalGetOptions(ScriptParticleGravity* thisPtr, PARTICLE_GRAVITY_DESC* __output);
+		static void InternalSetOptions(ScriptParticleGravity* self, PARTICLE_GRAVITY_DESC* options);
+		static void InternalGetOptions(ScriptParticleGravity* self, PARTICLE_GRAVITY_DESC* __output);
 		static void InternalCreate(MonoObject* managedInstance, PARTICLE_GRAVITY_DESC* desc);
 		static void InternalCreate0(MonoObject* managedInstance);
 	};

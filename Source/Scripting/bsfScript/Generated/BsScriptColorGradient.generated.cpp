@@ -43,14 +43,14 @@ namespace bs
 	}
 	void ScriptColorGradient::InternalColorGradient(MonoObject* managedInstance)
 	{
-		SPtr<ColorGradient> instance = B3DMakeShared<ColorGradient>();
-		new (B3DAllocate<ScriptColorGradient>())ScriptColorGradient(managedInstance, instance);
+		SPtr<ColorGradient> nativeObject = B3DMakeShared<ColorGradient>();
+		new (B3DAllocate<ScriptColorGradient>())ScriptColorGradient(managedInstance, nativeObject);
 	}
 
 	void ScriptColorGradient::InternalColorGradient0(MonoObject* managedInstance, Color* color)
 	{
-		SPtr<ColorGradient> instance = B3DMakeShared<ColorGradient>(*color);
-		new (B3DAllocate<ScriptColorGradient>())ScriptColorGradient(managedInstance, instance);
+		SPtr<ColorGradient> nativeObject = B3DMakeShared<ColorGradient>(*color);
+		new (B3DAllocate<ScriptColorGradient>())ScriptColorGradient(managedInstance, nativeObject);
 	}
 
 	void ScriptColorGradient::InternalColorGradient1(MonoObject* managedInstance, MonoArray* keys)
@@ -65,11 +65,11 @@ namespace bs
 				nativeArraykeys[elementIndex] = ScriptColorGradientKey::FromInterop(scriptArraykeys.Get<__ColorGradientKeyInterop>(elementIndex));
 			}
 		}
-		SPtr<ColorGradient> instance = B3DMakeShared<ColorGradient>(nativeArraykeys);
-		new (B3DAllocate<ScriptColorGradient>())ScriptColorGradient(managedInstance, instance);
+		SPtr<ColorGradient> nativeObject = B3DMakeShared<ColorGradient>(nativeArraykeys);
+		new (B3DAllocate<ScriptColorGradient>())ScriptColorGradient(managedInstance, nativeObject);
 	}
 
-	void ScriptColorGradient::InternalSetKeys(ScriptColorGradient* thisPtr, MonoArray* keys, float duration)
+	void ScriptColorGradient::InternalSetKeys(ScriptColorGradient* self, MonoArray* keys, float duration)
 	{
 		Vector<ColorGradientKey> nativeArraykeys;
 		if(keys != nullptr)
@@ -82,13 +82,13 @@ namespace bs
 			}
 
 		}
-		thisPtr->GetInternal()->SetKeys(nativeArraykeys, duration);
+		self->GetInternal()->SetKeys(nativeArraykeys, duration);
 	}
 
-	MonoArray* ScriptColorGradient::InternalGetKeys(ScriptColorGradient* thisPtr)
+	MonoArray* ScriptColorGradient::InternalGetKeys(ScriptColorGradient* self)
 	{
 		Vector<ColorGradientKey> nativeArray__output;
-		nativeArray__output = thisPtr->GetInternal()->GetKeys();
+		nativeArray__output = self->GetInternal()->GetKeys();
 
 		MonoArray* __output;
 		int elementCount__output = (int)nativeArray__output.size();
@@ -102,10 +102,10 @@ namespace bs
 		return __output;
 	}
 
-	uint32_t ScriptColorGradient::InternalGetNumKeys(ScriptColorGradient* thisPtr)
+	uint32_t ScriptColorGradient::InternalGetNumKeys(ScriptColorGradient* self)
 	{
 		uint32_t tmp__output;
-		tmp__output = thisPtr->GetInternal()->GetNumKeys();
+		tmp__output = self->GetInternal()->GetNumKeys();
 
 		uint32_t __output;
 		__output = tmp__output;
@@ -113,25 +113,25 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptColorGradient::InternalGetKey(ScriptColorGradient* thisPtr, uint32_t idx, __ColorGradientKeyInterop* __output)
+	void ScriptColorGradient::InternalGetKey(ScriptColorGradient* self, uint32_t idx, __ColorGradientKeyInterop* __output)
 	{
 		ColorGradientKey tmp__output;
-		tmp__output = thisPtr->GetInternal()->GetKey(idx);
+		tmp__output = self->GetInternal()->GetKey(idx);
 
 		__ColorGradientKeyInterop interop__output;
 		interop__output = ScriptColorGradientKey::ToInterop(tmp__output);
 		MonoUtil::ValueCopy(__output, &interop__output, ScriptColorGradientKey::GetMetaData()->ScriptClass->GetInternalClassInternal());
 	}
 
-	void ScriptColorGradient::InternalSetConstant(ScriptColorGradient* thisPtr, Color* color)
+	void ScriptColorGradient::InternalSetConstant(ScriptColorGradient* self, Color* color)
 	{
-		thisPtr->GetInternal()->SetConstant(*color);
+		self->GetInternal()->SetConstant(*color);
 	}
 
-	void ScriptColorGradient::InternalEvaluate(ScriptColorGradient* thisPtr, float t, Color* __output)
+	void ScriptColorGradient::InternalEvaluate(ScriptColorGradient* self, float t, Color* __output)
 	{
 		Color tmp__output;
-		tmp__output = ColorGradientEx::Evaluate(thisPtr->GetInternal(), t);
+		tmp__output = ColorGradientEx::Evaluate(self->GetInternal(), t);
 
 		*__output = tmp__output;
 	}

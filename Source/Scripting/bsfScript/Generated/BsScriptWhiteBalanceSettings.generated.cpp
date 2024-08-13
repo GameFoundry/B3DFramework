@@ -35,14 +35,14 @@ namespace bs
 	}
 	void ScriptWhiteBalanceSettings::InternalWhiteBalanceSettings(MonoObject* managedInstance)
 	{
-		SPtr<WhiteBalanceSettings> instance = B3DMakeShared<WhiteBalanceSettings>();
-		new (B3DAllocate<ScriptWhiteBalanceSettings>())ScriptWhiteBalanceSettings(managedInstance, instance);
+		SPtr<WhiteBalanceSettings> nativeObject = B3DMakeShared<WhiteBalanceSettings>();
+		new (B3DAllocate<ScriptWhiteBalanceSettings>())ScriptWhiteBalanceSettings(managedInstance, nativeObject);
 	}
 
-	float ScriptWhiteBalanceSettings::InternalGetTemperature(ScriptWhiteBalanceSettings* thisPtr)
+	float ScriptWhiteBalanceSettings::InternalGetTemperature(ScriptWhiteBalanceSettings* self)
 	{
 		float tmp__output;
-		tmp__output = thisPtr->GetInternal()->Temperature;
+		tmp__output = self->GetInternal()->Temperature;
 
 		float __output;
 		__output = tmp__output;
@@ -50,15 +50,15 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptWhiteBalanceSettings::InternalSetTemperature(ScriptWhiteBalanceSettings* thisPtr, float value)
+	void ScriptWhiteBalanceSettings::InternalSetTemperature(ScriptWhiteBalanceSettings* self, float value)
 	{
-		thisPtr->GetInternal()->Temperature = value;
+		self->GetInternal()->Temperature = value;
 	}
 
-	float ScriptWhiteBalanceSettings::InternalGetTint(ScriptWhiteBalanceSettings* thisPtr)
+	float ScriptWhiteBalanceSettings::InternalGetTint(ScriptWhiteBalanceSettings* self)
 	{
 		float tmp__output;
-		tmp__output = thisPtr->GetInternal()->Tint;
+		tmp__output = self->GetInternal()->Tint;
 
 		float __output;
 		__output = tmp__output;
@@ -66,8 +66,8 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptWhiteBalanceSettings::InternalSetTint(ScriptWhiteBalanceSettings* thisPtr, float value)
+	void ScriptWhiteBalanceSettings::InternalSetTint(ScriptWhiteBalanceSettings* self, float value)
 	{
-		thisPtr->GetInternal()->Tint = value;
+		self->GetInternal()->Tint = value;
 	}
 }

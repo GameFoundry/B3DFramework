@@ -37,19 +37,19 @@ namespace bs
 		ScriptCollider(MonoObject* managedInstance, const GameObjectHandle<CCollider>& value);
 
 	private:
-		static void InternalSetIsTrigger(ScriptColliderBase* thisPtr, bool value);
-		static bool InternalGetIsTrigger(ScriptColliderBase* thisPtr);
-		static void InternalSetMass(ScriptColliderBase* thisPtr, float mass);
-		static float InternalGetMass(ScriptColliderBase* thisPtr);
-		static void InternalSetMaterial(ScriptColliderBase* thisPtr, MonoObject* material);
-		static MonoObject* InternalGetMaterial(ScriptColliderBase* thisPtr);
-		static void InternalSetContactOffset(ScriptColliderBase* thisPtr, float value);
-		static float InternalGetContactOffset(ScriptColliderBase* thisPtr);
-		static void InternalSetRestOffset(ScriptColliderBase* thisPtr, float value);
-		static float InternalGetRestOffset(ScriptColliderBase* thisPtr);
-		static void InternalSetLayer(ScriptColliderBase* thisPtr, uint64_t layer);
-		static uint64_t InternalGetLayer(ScriptColliderBase* thisPtr);
-		static void InternalSetCollisionReportMode(ScriptColliderBase* thisPtr, CollisionReportMode mode);
-		static CollisionReportMode InternalGetCollisionReportMode(ScriptColliderBase* thisPtr);
+		static void InternalSetIsTrigger(ScriptColliderBase* self, bool value);
+		static bool InternalGetIsTrigger(ScriptColliderBase* self);
+		static void InternalSetMass(ScriptColliderBase* self, float mass);
+		static float InternalGetMass(ScriptColliderBase* self);
+		static void InternalSetMaterial(ScriptColliderBase* self, MonoObject* material);
+		static MonoObject* InternalGetMaterial(ScriptColliderBase* self);
+		static void InternalSetContactOffset(ScriptColliderBase* self, float value);
+		static float InternalGetContactOffset(ScriptColliderBase* self);
+		static void InternalSetRestOffset(ScriptColliderBase* self, float value);
+		static float InternalGetRestOffset(ScriptColliderBase* self);
+		static void InternalSetLayer(ScriptColliderBase* self, uint64_t layer);
+		static uint64_t InternalGetLayer(ScriptColliderBase* self);
+		static void InternalSetCollisionReportMode(ScriptColliderBase* self, CollisionReportMode mode);
+		static CollisionReportMode InternalGetCollisionReportMode(ScriptColliderBase* self);
 	};
 }

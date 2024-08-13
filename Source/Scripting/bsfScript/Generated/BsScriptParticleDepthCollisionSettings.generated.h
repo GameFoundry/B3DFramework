@@ -20,13 +20,13 @@ namespace bs
 
 	private:
 		static void InternalParticleDepthCollisionSettings(MonoObject* managedInstance);
-		static bool InternalGetEnabled(ScriptParticleDepthCollisionSettings* thisPtr);
-		static void InternalSetEnabled(ScriptParticleDepthCollisionSettings* thisPtr, bool value);
-		static float InternalGetRestitution(ScriptParticleDepthCollisionSettings* thisPtr);
-		static void InternalSetRestitution(ScriptParticleDepthCollisionSettings* thisPtr, float value);
-		static float InternalGetDampening(ScriptParticleDepthCollisionSettings* thisPtr);
-		static void InternalSetDampening(ScriptParticleDepthCollisionSettings* thisPtr, float value);
-		static float InternalGetRadiusScale(ScriptParticleDepthCollisionSettings* thisPtr);
-		static void InternalSetRadiusScale(ScriptParticleDepthCollisionSettings* thisPtr, float value);
+		static bool InternalGetEnabled(ScriptParticleDepthCollisionSettings* self);
+		static void InternalSetEnabled(ScriptParticleDepthCollisionSettings* self, bool value);
+		static float InternalGetRestitution(ScriptParticleDepthCollisionSettings* self);
+		static void InternalSetRestitution(ScriptParticleDepthCollisionSettings* self, float value);
+		static float InternalGetDampening(ScriptParticleDepthCollisionSettings* self);
+		static void InternalSetDampening(ScriptParticleDepthCollisionSettings* self, float value);
+		static float InternalGetRadiusScale(ScriptParticleDepthCollisionSettings* self);
+		static void InternalSetRadiusScale(ScriptParticleDepthCollisionSettings* self, float value);
 	};
 }

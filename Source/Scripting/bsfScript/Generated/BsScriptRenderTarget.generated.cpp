@@ -44,10 +44,10 @@ namespace bs
 		new (B3DAllocate<ScriptRenderTarget>()) ScriptRenderTarget(managedInstance, value);
 		return managedInstance;
 	}
-	uint32_t ScriptRenderTarget::InternalGetWidth(ScriptRenderTargetBase* thisPtr)
+	uint32_t ScriptRenderTarget::InternalGetWidth(ScriptRenderTargetBase* self)
 	{
 		uint32_t tmp__output;
-		tmp__output = RenderTargetEx::GetWidth(thisPtr->GetInternal());
+		tmp__output = RenderTargetEx::GetWidth(self->GetInternal());
 
 		uint32_t __output;
 		__output = tmp__output;
@@ -55,10 +55,10 @@ namespace bs
 		return __output;
 	}
 
-	uint32_t ScriptRenderTarget::InternalGetHeight(ScriptRenderTargetBase* thisPtr)
+	uint32_t ScriptRenderTarget::InternalGetHeight(ScriptRenderTargetBase* self)
 	{
 		uint32_t tmp__output;
-		tmp__output = RenderTargetEx::GetHeight(thisPtr->GetInternal());
+		tmp__output = RenderTargetEx::GetHeight(self->GetInternal());
 
 		uint32_t __output;
 		__output = tmp__output;
@@ -66,10 +66,10 @@ namespace bs
 		return __output;
 	}
 
-	bool ScriptRenderTarget::InternalGetGammaCorrection(ScriptRenderTargetBase* thisPtr)
+	bool ScriptRenderTarget::InternalGetGammaCorrection(ScriptRenderTargetBase* self)
 	{
 		bool tmp__output;
-		tmp__output = RenderTargetEx::GetGammaCorrection(thisPtr->GetInternal());
+		tmp__output = RenderTargetEx::GetGammaCorrection(self->GetInternal());
 
 		bool __output;
 		__output = tmp__output;
@@ -77,10 +77,10 @@ namespace bs
 		return __output;
 	}
 
-	int32_t ScriptRenderTarget::InternalGetPriority(ScriptRenderTargetBase* thisPtr)
+	int32_t ScriptRenderTarget::InternalGetPriority(ScriptRenderTargetBase* self)
 	{
 		int32_t tmp__output;
-		tmp__output = RenderTargetEx::GetPriority(thisPtr->GetInternal());
+		tmp__output = RenderTargetEx::GetPriority(self->GetInternal());
 
 		int32_t __output;
 		__output = tmp__output;
@@ -88,15 +88,15 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptRenderTarget::InternalSetPriority(ScriptRenderTargetBase* thisPtr, int32_t priority)
+	void ScriptRenderTarget::InternalSetPriority(ScriptRenderTargetBase* self, int32_t priority)
 	{
-		RenderTargetEx::SetPriority(thisPtr->GetInternal(), priority);
+		RenderTargetEx::SetPriority(self->GetInternal(), priority);
 	}
 
-	uint32_t ScriptRenderTarget::InternalGetSampleCount(ScriptRenderTargetBase* thisPtr)
+	uint32_t ScriptRenderTarget::InternalGetSampleCount(ScriptRenderTargetBase* self)
 	{
 		uint32_t tmp__output;
-		tmp__output = RenderTargetEx::GetSampleCount(thisPtr->GetInternal());
+		tmp__output = RenderTargetEx::GetSampleCount(self->GetInternal());
 
 		uint32_t __output;
 		__output = tmp__output;

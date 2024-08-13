@@ -26,8 +26,8 @@ namespace bs
 
 		static void InternalMultiResource(MonoObject* managedInstance);
 		static void InternalMultiResource0(MonoObject* managedInstance, MonoArray* entries);
-		static MonoArray* InternalGetEntries(ScriptMultiResource* thisPtr);
-		static void InternalSetEntries(ScriptMultiResource* thisPtr, MonoArray* value);
+		static MonoArray* InternalGetEntries(ScriptMultiResource* self);
+		static void InternalSetEntries(ScriptMultiResource* self, MonoArray* value);
 	};
 #endif
 }

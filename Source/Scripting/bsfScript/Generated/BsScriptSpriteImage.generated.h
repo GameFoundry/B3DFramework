@@ -29,16 +29,16 @@ namespace bs
 		static MonoObject* CreateInstance();
 
 	private:
-		static MonoObject* InternalGetRef(ScriptSpriteImageBase* thisPtr);
+		static MonoObject* InternalGetRef(ScriptSpriteImageBase* self);
 
-		static void InternalGetSize(ScriptSpriteImageBase* thisPtr, TSize2<uint32_t>* __output);
-		static void InternalGetAnimationFrameSize(ScriptSpriteImageBase* thisPtr, TSize2<uint32_t>* __output);
-		static MonoObject* InternalGetAtlasTexture(ScriptSpriteImageBase* thisPtr);
-		static void InternalSetUVRange(ScriptSpriteImageBase* thisPtr, Rect2* uvRange);
-		static void InternalGetUVRange(ScriptSpriteImageBase* thisPtr, Rect2* __output);
-		static void InternalSetAnimation(ScriptSpriteImageBase* thisPtr, SpriteSheetGridAnimation* animation);
-		static void InternalGetAnimation(ScriptSpriteImageBase* thisPtr, SpriteSheetGridAnimation* __output);
-		static void InternalSetAnimationPlayback(ScriptSpriteImageBase* thisPtr, SpriteAnimationPlayback playback);
-		static SpriteAnimationPlayback InternalGetAnimationPlayback(ScriptSpriteImageBase* thisPtr);
+		static void InternalGetSize(ScriptSpriteImageBase* self, TSize2<uint32_t>* __output);
+		static void InternalGetAnimationFrameSize(ScriptSpriteImageBase* self, TSize2<uint32_t>* __output);
+		static MonoObject* InternalGetAtlasTexture(ScriptSpriteImageBase* self);
+		static void InternalSetUVRange(ScriptSpriteImageBase* self, Rect2* uvRange);
+		static void InternalGetUVRange(ScriptSpriteImageBase* self, Rect2* __output);
+		static void InternalSetAnimation(ScriptSpriteImageBase* self, SpriteSheetGridAnimation* animation);
+		static void InternalGetAnimation(ScriptSpriteImageBase* self, SpriteSheetGridAnimation* __output);
+		static void InternalSetAnimationPlayback(ScriptSpriteImageBase* self, SpriteAnimationPlayback playback);
+		static SpriteAnimationPlayback InternalGetAnimationPlayback(ScriptSpriteImageBase* self);
 	};
 }

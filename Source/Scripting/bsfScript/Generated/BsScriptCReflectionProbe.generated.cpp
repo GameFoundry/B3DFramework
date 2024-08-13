@@ -31,10 +31,10 @@ namespace bs
 
 	}
 
-	ReflectionProbeType ScriptReflectionProbe::InternalGetType(ScriptReflectionProbe* thisPtr)
+	ReflectionProbeType ScriptReflectionProbe::InternalGetType(ScriptReflectionProbe* self)
 	{
 		ReflectionProbeType tmp__output;
-		tmp__output = thisPtr->GetHandle()->GetType();
+		tmp__output = self->GetHandle()->GetType();
 
 		ReflectionProbeType __output;
 		__output = tmp__output;
@@ -42,15 +42,15 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptReflectionProbe::InternalSetType(ScriptReflectionProbe* thisPtr, ReflectionProbeType type)
+	void ScriptReflectionProbe::InternalSetType(ScriptReflectionProbe* self, ReflectionProbeType type)
 	{
-		thisPtr->GetHandle()->SetType(type);
+		self->GetHandle()->SetType(type);
 	}
 
-	float ScriptReflectionProbe::InternalGetRadius(ScriptReflectionProbe* thisPtr)
+	float ScriptReflectionProbe::InternalGetRadius(ScriptReflectionProbe* self)
 	{
 		float tmp__output;
-		tmp__output = thisPtr->GetHandle()->GetRadius();
+		tmp__output = self->GetHandle()->GetRadius();
 
 		float __output;
 		__output = tmp__output;
@@ -58,28 +58,28 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptReflectionProbe::InternalSetRadius(ScriptReflectionProbe* thisPtr, float radius)
+	void ScriptReflectionProbe::InternalSetRadius(ScriptReflectionProbe* self, float radius)
 	{
-		thisPtr->GetHandle()->SetRadius(radius);
+		self->GetHandle()->SetRadius(radius);
 	}
 
-	void ScriptReflectionProbe::InternalGetExtents(ScriptReflectionProbe* thisPtr, TVector3<float>* __output)
+	void ScriptReflectionProbe::InternalGetExtents(ScriptReflectionProbe* self, TVector3<float>* __output)
 	{
 		TVector3<float> tmp__output;
-		tmp__output = thisPtr->GetHandle()->GetExtents();
+		tmp__output = self->GetHandle()->GetExtents();
 
 		*__output = tmp__output;
 	}
 
-	void ScriptReflectionProbe::InternalSetExtents(ScriptReflectionProbe* thisPtr, TVector3<float>* extents)
+	void ScriptReflectionProbe::InternalSetExtents(ScriptReflectionProbe* self, TVector3<float>* extents)
 	{
-		thisPtr->GetHandle()->SetExtents(*extents);
+		self->GetHandle()->SetExtents(*extents);
 	}
 
-	MonoObject* ScriptReflectionProbe::InternalGetCustomTexture(ScriptReflectionProbe* thisPtr)
+	MonoObject* ScriptReflectionProbe::InternalGetCustomTexture(ScriptReflectionProbe* self)
 	{
 		TResourceHandle<Texture> tmp__output;
-		tmp__output = thisPtr->GetHandle()->GetCustomTexture();
+		tmp__output = self->GetHandle()->GetCustomTexture();
 
 		MonoObject* __output;
 		ScriptRRefBase* script__output;
@@ -92,18 +92,18 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptReflectionProbe::InternalSetCustomTexture(ScriptReflectionProbe* thisPtr, MonoObject* texture)
+	void ScriptReflectionProbe::InternalSetCustomTexture(ScriptReflectionProbe* self, MonoObject* texture)
 	{
 		TResourceHandle<Texture> tmptexture;
 		ScriptRRefBase* scriptObjectWrappertexture;
 		scriptObjectWrappertexture = ScriptRRefBase::ToNative(texture);
 		if(scriptObjectWrappertexture != nullptr)
 			tmptexture = B3DStaticResourceCast<Texture>(scriptObjectWrappertexture->GetHandle());
-		thisPtr->GetHandle()->SetCustomTexture(tmptexture);
+		self->GetHandle()->SetCustomTexture(tmptexture);
 	}
 
-	void ScriptReflectionProbe::InternalCapture(ScriptReflectionProbe* thisPtr)
+	void ScriptReflectionProbe::InternalCapture(ScriptReflectionProbe* self)
 	{
-		thisPtr->GetHandle()->Capture();
+		self->GetHandle()->Capture();
 	}
 }

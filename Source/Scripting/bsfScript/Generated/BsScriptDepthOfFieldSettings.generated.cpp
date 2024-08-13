@@ -69,14 +69,14 @@ namespace bs
 	}
 	void ScriptDepthOfFieldSettings::InternalDepthOfFieldSettings(MonoObject* managedInstance)
 	{
-		SPtr<DepthOfFieldSettings> instance = B3DMakeShared<DepthOfFieldSettings>();
-		new (B3DAllocate<ScriptDepthOfFieldSettings>())ScriptDepthOfFieldSettings(managedInstance, instance);
+		SPtr<DepthOfFieldSettings> nativeObject = B3DMakeShared<DepthOfFieldSettings>();
+		new (B3DAllocate<ScriptDepthOfFieldSettings>())ScriptDepthOfFieldSettings(managedInstance, nativeObject);
 	}
 
-	MonoObject* ScriptDepthOfFieldSettings::InternalGetBokehShape(ScriptDepthOfFieldSettings* thisPtr)
+	MonoObject* ScriptDepthOfFieldSettings::InternalGetBokehShape(ScriptDepthOfFieldSettings* self)
 	{
 		TResourceHandle<Texture> tmp__output;
-		tmp__output = thisPtr->GetInternal()->BokehShape;
+		tmp__output = self->GetInternal()->BokehShape;
 
 		MonoObject* __output;
 		ScriptRRefBase* script__output;
@@ -89,20 +89,20 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptDepthOfFieldSettings::InternalSetBokehShape(ScriptDepthOfFieldSettings* thisPtr, MonoObject* value)
+	void ScriptDepthOfFieldSettings::InternalSetBokehShape(ScriptDepthOfFieldSettings* self, MonoObject* value)
 	{
 		TResourceHandle<Texture> tmpvalue;
 		ScriptRRefBase* scriptObjectWrappervalue;
 		scriptObjectWrappervalue = ScriptRRefBase::ToNative(value);
 		if(scriptObjectWrappervalue != nullptr)
 			tmpvalue = B3DStaticResourceCast<Texture>(scriptObjectWrappervalue->GetHandle());
-		thisPtr->GetInternal()->BokehShape = tmpvalue;
+		self->GetInternal()->BokehShape = tmpvalue;
 	}
 
-	bool ScriptDepthOfFieldSettings::InternalGetEnabled(ScriptDepthOfFieldSettings* thisPtr)
+	bool ScriptDepthOfFieldSettings::InternalGetEnabled(ScriptDepthOfFieldSettings* self)
 	{
 		bool tmp__output;
-		tmp__output = thisPtr->GetInternal()->Enabled;
+		tmp__output = self->GetInternal()->Enabled;
 
 		bool __output;
 		__output = tmp__output;
@@ -110,15 +110,15 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptDepthOfFieldSettings::InternalSetEnabled(ScriptDepthOfFieldSettings* thisPtr, bool value)
+	void ScriptDepthOfFieldSettings::InternalSetEnabled(ScriptDepthOfFieldSettings* self, bool value)
 	{
-		thisPtr->GetInternal()->Enabled = value;
+		self->GetInternal()->Enabled = value;
 	}
 
-	DepthOfFieldType ScriptDepthOfFieldSettings::InternalGetType(ScriptDepthOfFieldSettings* thisPtr)
+	DepthOfFieldType ScriptDepthOfFieldSettings::InternalGetType(ScriptDepthOfFieldSettings* self)
 	{
 		DepthOfFieldType tmp__output;
-		tmp__output = thisPtr->GetInternal()->Type;
+		tmp__output = self->GetInternal()->Type;
 
 		DepthOfFieldType __output;
 		__output = tmp__output;
@@ -126,15 +126,15 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptDepthOfFieldSettings::InternalSetType(ScriptDepthOfFieldSettings* thisPtr, DepthOfFieldType value)
+	void ScriptDepthOfFieldSettings::InternalSetType(ScriptDepthOfFieldSettings* self, DepthOfFieldType value)
 	{
-		thisPtr->GetInternal()->Type = value;
+		self->GetInternal()->Type = value;
 	}
 
-	float ScriptDepthOfFieldSettings::InternalGetFocalDistance(ScriptDepthOfFieldSettings* thisPtr)
+	float ScriptDepthOfFieldSettings::InternalGetFocalDistance(ScriptDepthOfFieldSettings* self)
 	{
 		float tmp__output;
-		tmp__output = thisPtr->GetInternal()->FocalDistance;
+		tmp__output = self->GetInternal()->FocalDistance;
 
 		float __output;
 		__output = tmp__output;
@@ -142,15 +142,15 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptDepthOfFieldSettings::InternalSetFocalDistance(ScriptDepthOfFieldSettings* thisPtr, float value)
+	void ScriptDepthOfFieldSettings::InternalSetFocalDistance(ScriptDepthOfFieldSettings* self, float value)
 	{
-		thisPtr->GetInternal()->FocalDistance = value;
+		self->GetInternal()->FocalDistance = value;
 	}
 
-	float ScriptDepthOfFieldSettings::InternalGetFocalRange(ScriptDepthOfFieldSettings* thisPtr)
+	float ScriptDepthOfFieldSettings::InternalGetFocalRange(ScriptDepthOfFieldSettings* self)
 	{
 		float tmp__output;
-		tmp__output = thisPtr->GetInternal()->FocalRange;
+		tmp__output = self->GetInternal()->FocalRange;
 
 		float __output;
 		__output = tmp__output;
@@ -158,15 +158,15 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptDepthOfFieldSettings::InternalSetFocalRange(ScriptDepthOfFieldSettings* thisPtr, float value)
+	void ScriptDepthOfFieldSettings::InternalSetFocalRange(ScriptDepthOfFieldSettings* self, float value)
 	{
-		thisPtr->GetInternal()->FocalRange = value;
+		self->GetInternal()->FocalRange = value;
 	}
 
-	float ScriptDepthOfFieldSettings::InternalGetNearTransitionRange(ScriptDepthOfFieldSettings* thisPtr)
+	float ScriptDepthOfFieldSettings::InternalGetNearTransitionRange(ScriptDepthOfFieldSettings* self)
 	{
 		float tmp__output;
-		tmp__output = thisPtr->GetInternal()->NearTransitionRange;
+		tmp__output = self->GetInternal()->NearTransitionRange;
 
 		float __output;
 		__output = tmp__output;
@@ -174,15 +174,15 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptDepthOfFieldSettings::InternalSetNearTransitionRange(ScriptDepthOfFieldSettings* thisPtr, float value)
+	void ScriptDepthOfFieldSettings::InternalSetNearTransitionRange(ScriptDepthOfFieldSettings* self, float value)
 	{
-		thisPtr->GetInternal()->NearTransitionRange = value;
+		self->GetInternal()->NearTransitionRange = value;
 	}
 
-	float ScriptDepthOfFieldSettings::InternalGetFarTransitionRange(ScriptDepthOfFieldSettings* thisPtr)
+	float ScriptDepthOfFieldSettings::InternalGetFarTransitionRange(ScriptDepthOfFieldSettings* self)
 	{
 		float tmp__output;
-		tmp__output = thisPtr->GetInternal()->FarTransitionRange;
+		tmp__output = self->GetInternal()->FarTransitionRange;
 
 		float __output;
 		__output = tmp__output;
@@ -190,15 +190,15 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptDepthOfFieldSettings::InternalSetFarTransitionRange(ScriptDepthOfFieldSettings* thisPtr, float value)
+	void ScriptDepthOfFieldSettings::InternalSetFarTransitionRange(ScriptDepthOfFieldSettings* self, float value)
 	{
-		thisPtr->GetInternal()->FarTransitionRange = value;
+		self->GetInternal()->FarTransitionRange = value;
 	}
 
-	float ScriptDepthOfFieldSettings::InternalGetNearBlurAmount(ScriptDepthOfFieldSettings* thisPtr)
+	float ScriptDepthOfFieldSettings::InternalGetNearBlurAmount(ScriptDepthOfFieldSettings* self)
 	{
 		float tmp__output;
-		tmp__output = thisPtr->GetInternal()->NearBlurAmount;
+		tmp__output = self->GetInternal()->NearBlurAmount;
 
 		float __output;
 		__output = tmp__output;
@@ -206,15 +206,15 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptDepthOfFieldSettings::InternalSetNearBlurAmount(ScriptDepthOfFieldSettings* thisPtr, float value)
+	void ScriptDepthOfFieldSettings::InternalSetNearBlurAmount(ScriptDepthOfFieldSettings* self, float value)
 	{
-		thisPtr->GetInternal()->NearBlurAmount = value;
+		self->GetInternal()->NearBlurAmount = value;
 	}
 
-	float ScriptDepthOfFieldSettings::InternalGetFarBlurAmount(ScriptDepthOfFieldSettings* thisPtr)
+	float ScriptDepthOfFieldSettings::InternalGetFarBlurAmount(ScriptDepthOfFieldSettings* self)
 	{
 		float tmp__output;
-		tmp__output = thisPtr->GetInternal()->FarBlurAmount;
+		tmp__output = self->GetInternal()->FarBlurAmount;
 
 		float __output;
 		__output = tmp__output;
@@ -222,15 +222,15 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptDepthOfFieldSettings::InternalSetFarBlurAmount(ScriptDepthOfFieldSettings* thisPtr, float value)
+	void ScriptDepthOfFieldSettings::InternalSetFarBlurAmount(ScriptDepthOfFieldSettings* self, float value)
 	{
-		thisPtr->GetInternal()->FarBlurAmount = value;
+		self->GetInternal()->FarBlurAmount = value;
 	}
 
-	float ScriptDepthOfFieldSettings::InternalGetMaxBokehSize(ScriptDepthOfFieldSettings* thisPtr)
+	float ScriptDepthOfFieldSettings::InternalGetMaxBokehSize(ScriptDepthOfFieldSettings* self)
 	{
 		float tmp__output;
-		tmp__output = thisPtr->GetInternal()->MaxBokehSize;
+		tmp__output = self->GetInternal()->MaxBokehSize;
 
 		float __output;
 		__output = tmp__output;
@@ -238,15 +238,15 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptDepthOfFieldSettings::InternalSetMaxBokehSize(ScriptDepthOfFieldSettings* thisPtr, float value)
+	void ScriptDepthOfFieldSettings::InternalSetMaxBokehSize(ScriptDepthOfFieldSettings* self, float value)
 	{
-		thisPtr->GetInternal()->MaxBokehSize = value;
+		self->GetInternal()->MaxBokehSize = value;
 	}
 
-	float ScriptDepthOfFieldSettings::InternalGetAdaptiveColorThreshold(ScriptDepthOfFieldSettings* thisPtr)
+	float ScriptDepthOfFieldSettings::InternalGetAdaptiveColorThreshold(ScriptDepthOfFieldSettings* self)
 	{
 		float tmp__output;
-		tmp__output = thisPtr->GetInternal()->AdaptiveColorThreshold;
+		tmp__output = self->GetInternal()->AdaptiveColorThreshold;
 
 		float __output;
 		__output = tmp__output;
@@ -254,15 +254,15 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptDepthOfFieldSettings::InternalSetAdaptiveColorThreshold(ScriptDepthOfFieldSettings* thisPtr, float value)
+	void ScriptDepthOfFieldSettings::InternalSetAdaptiveColorThreshold(ScriptDepthOfFieldSettings* self, float value)
 	{
-		thisPtr->GetInternal()->AdaptiveColorThreshold = value;
+		self->GetInternal()->AdaptiveColorThreshold = value;
 	}
 
-	float ScriptDepthOfFieldSettings::InternalGetAdaptiveRadiusThreshold(ScriptDepthOfFieldSettings* thisPtr)
+	float ScriptDepthOfFieldSettings::InternalGetAdaptiveRadiusThreshold(ScriptDepthOfFieldSettings* self)
 	{
 		float tmp__output;
-		tmp__output = thisPtr->GetInternal()->AdaptiveRadiusThreshold;
+		tmp__output = self->GetInternal()->AdaptiveRadiusThreshold;
 
 		float __output;
 		__output = tmp__output;
@@ -270,15 +270,15 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptDepthOfFieldSettings::InternalSetAdaptiveRadiusThreshold(ScriptDepthOfFieldSettings* thisPtr, float value)
+	void ScriptDepthOfFieldSettings::InternalSetAdaptiveRadiusThreshold(ScriptDepthOfFieldSettings* self, float value)
 	{
-		thisPtr->GetInternal()->AdaptiveRadiusThreshold = value;
+		self->GetInternal()->AdaptiveRadiusThreshold = value;
 	}
 
-	float ScriptDepthOfFieldSettings::InternalGetApertureSize(ScriptDepthOfFieldSettings* thisPtr)
+	float ScriptDepthOfFieldSettings::InternalGetApertureSize(ScriptDepthOfFieldSettings* self)
 	{
 		float tmp__output;
-		tmp__output = thisPtr->GetInternal()->ApertureSize;
+		tmp__output = self->GetInternal()->ApertureSize;
 
 		float __output;
 		__output = tmp__output;
@@ -286,15 +286,15 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptDepthOfFieldSettings::InternalSetApertureSize(ScriptDepthOfFieldSettings* thisPtr, float value)
+	void ScriptDepthOfFieldSettings::InternalSetApertureSize(ScriptDepthOfFieldSettings* self, float value)
 	{
-		thisPtr->GetInternal()->ApertureSize = value;
+		self->GetInternal()->ApertureSize = value;
 	}
 
-	float ScriptDepthOfFieldSettings::InternalGetFocalLength(ScriptDepthOfFieldSettings* thisPtr)
+	float ScriptDepthOfFieldSettings::InternalGetFocalLength(ScriptDepthOfFieldSettings* self)
 	{
 		float tmp__output;
-		tmp__output = thisPtr->GetInternal()->FocalLength;
+		tmp__output = self->GetInternal()->FocalLength;
 
 		float __output;
 		__output = tmp__output;
@@ -302,30 +302,30 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptDepthOfFieldSettings::InternalSetFocalLength(ScriptDepthOfFieldSettings* thisPtr, float value)
+	void ScriptDepthOfFieldSettings::InternalSetFocalLength(ScriptDepthOfFieldSettings* self, float value)
 	{
-		thisPtr->GetInternal()->FocalLength = value;
+		self->GetInternal()->FocalLength = value;
 	}
 
-	void ScriptDepthOfFieldSettings::InternalGetSensorSize(ScriptDepthOfFieldSettings* thisPtr, TVector2<float>* __output)
+	void ScriptDepthOfFieldSettings::InternalGetSensorSize(ScriptDepthOfFieldSettings* self, TVector2<float>* __output)
 	{
 		TVector2<float> tmp__output;
-		tmp__output = thisPtr->GetInternal()->SensorSize;
+		tmp__output = self->GetInternal()->SensorSize;
 
 		*__output = tmp__output;
 
 
 	}
 
-	void ScriptDepthOfFieldSettings::InternalSetSensorSize(ScriptDepthOfFieldSettings* thisPtr, TVector2<float>* value)
+	void ScriptDepthOfFieldSettings::InternalSetSensorSize(ScriptDepthOfFieldSettings* self, TVector2<float>* value)
 	{
-		thisPtr->GetInternal()->SensorSize = *value;
+		self->GetInternal()->SensorSize = *value;
 	}
 
-	bool ScriptDepthOfFieldSettings::InternalGetBokehOcclusion(ScriptDepthOfFieldSettings* thisPtr)
+	bool ScriptDepthOfFieldSettings::InternalGetBokehOcclusion(ScriptDepthOfFieldSettings* self)
 	{
 		bool tmp__output;
-		tmp__output = thisPtr->GetInternal()->BokehOcclusion;
+		tmp__output = self->GetInternal()->BokehOcclusion;
 
 		bool __output;
 		__output = tmp__output;
@@ -333,15 +333,15 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptDepthOfFieldSettings::InternalSetBokehOcclusion(ScriptDepthOfFieldSettings* thisPtr, bool value)
+	void ScriptDepthOfFieldSettings::InternalSetBokehOcclusion(ScriptDepthOfFieldSettings* self, bool value)
 	{
-		thisPtr->GetInternal()->BokehOcclusion = value;
+		self->GetInternal()->BokehOcclusion = value;
 	}
 
-	float ScriptDepthOfFieldSettings::InternalGetOcclusionDepthRange(ScriptDepthOfFieldSettings* thisPtr)
+	float ScriptDepthOfFieldSettings::InternalGetOcclusionDepthRange(ScriptDepthOfFieldSettings* self)
 	{
 		float tmp__output;
-		tmp__output = thisPtr->GetInternal()->OcclusionDepthRange;
+		tmp__output = self->GetInternal()->OcclusionDepthRange;
 
 		float __output;
 		__output = tmp__output;
@@ -349,8 +349,8 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptDepthOfFieldSettings::InternalSetOcclusionDepthRange(ScriptDepthOfFieldSettings* thisPtr, float value)
+	void ScriptDepthOfFieldSettings::InternalSetOcclusionDepthRange(ScriptDepthOfFieldSettings* self, float value)
 	{
-		thisPtr->GetInternal()->OcclusionDepthRange = value;
+		self->GetInternal()->OcclusionDepthRange = value;
 	}
 }

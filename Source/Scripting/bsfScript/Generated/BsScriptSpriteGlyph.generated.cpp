@@ -36,29 +36,29 @@ namespace bs
 
 		return metaData.ScriptClass->CreateInstance("bool", ctorParams);
 	}
-	MonoObject* ScriptSpriteGlyph::InternalGetRef(ScriptSpriteGlyph* thisPtr)
+	MonoObject* ScriptSpriteGlyph::InternalGetRef(ScriptSpriteGlyph* self)
 	{
-		return thisPtr->GetRRef();
+		return self->GetRRef();
 	}
 
-	void ScriptSpriteGlyph::InternalSetFont(ScriptSpriteGlyph* thisPtr, MonoObject* font)
+	void ScriptSpriteGlyph::InternalSetFont(ScriptSpriteGlyph* self, MonoObject* font)
 	{
 		TResourceHandle<Font> tmpfont;
 		ScriptRRefBase* scriptObjectWrapperfont;
 		scriptObjectWrapperfont = ScriptRRefBase::ToNative(font);
 		if(scriptObjectWrapperfont != nullptr)
 			tmpfont = B3DStaticResourceCast<Font>(scriptObjectWrapperfont->GetHandle());
-		thisPtr->GetHandle()->SetFont(tmpfont);
+		self->GetHandle()->SetFont(tmpfont);
 	}
 
-	void ScriptSpriteGlyph::InternalSetGlyph(ScriptSpriteGlyph* thisPtr, uint32_t glyph)
+	void ScriptSpriteGlyph::InternalSetGlyph(ScriptSpriteGlyph* self, uint32_t glyph)
 	{
-		thisPtr->GetHandle()->SetGlyph(glyph);
+		self->GetHandle()->SetGlyph(glyph);
 	}
 
-	void ScriptSpriteGlyph::InternalSetGlyphSize(ScriptSpriteGlyph* thisPtr, float size)
+	void ScriptSpriteGlyph::InternalSetGlyphSize(ScriptSpriteGlyph* self, float size)
 	{
-		thisPtr->GetHandle()->SetGlyphSize(size);
+		self->GetHandle()->SetGlyphSize(size);
 	}
 
 	void ScriptSpriteGlyph::InternalCreate(MonoObject* managedInstance, MonoObject* font, uint32_t glyph, float size)
@@ -68,15 +68,15 @@ namespace bs
 		scriptObjectWrapperfont = ScriptRRefBase::ToNative(font);
 		if(scriptObjectWrapperfont != nullptr)
 			tmpfont = B3DStaticResourceCast<Font>(scriptObjectWrapperfont->GetHandle());
-		TResourceHandle<SpriteGlyph> instance = SpriteGlyph::Create(tmpfont, glyph, size);
-		ScriptResourceManager::Instance().CreateBuiltinScriptResource(instance, managedInstance);
+		TResourceHandle<SpriteGlyph> nativeObject = SpriteGlyph::Create(tmpfont, glyph, size);
+		ScriptResourceManager::Instance().CreateBuiltinScriptResource(nativeObject, managedInstance);
 	}
 
 	void ScriptSpriteGlyph::InternalCreate0(MonoObject* managedInstance, __SpriteGlyphCreateInformationInterop* createInformation)
 	{
 		SpriteGlyphCreateInformation tmpcreateInformation;
 		tmpcreateInformation = ScriptSpriteGlyphCreateInformation::FromInterop(*createInformation);
-		TResourceHandle<SpriteGlyph> instance = SpriteGlyph::Create(tmpcreateInformation);
-		ScriptResourceManager::Instance().CreateBuiltinScriptResource(instance, managedInstance);
+		TResourceHandle<SpriteGlyph> nativeObject = SpriteGlyph::Create(tmpcreateInformation);
+		ScriptResourceManager::Instance().CreateBuiltinScriptResource(nativeObject, managedInstance);
 	}
 }

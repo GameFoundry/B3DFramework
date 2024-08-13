@@ -25,10 +25,10 @@ namespace bs
 
 	}
 
-	MonoObject* ScriptSkybox::InternalGetTexture(ScriptSkybox* thisPtr)
+	MonoObject* ScriptSkybox::InternalGetTexture(ScriptSkybox* self)
 	{
 		TResourceHandle<Texture> tmp__output;
-		tmp__output = thisPtr->GetHandle()->GetTexture();
+		tmp__output = self->GetHandle()->GetTexture();
 
 		MonoObject* __output;
 		ScriptRRefBase* script__output;
@@ -41,25 +41,25 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptSkybox::InternalSetTexture(ScriptSkybox* thisPtr, MonoObject* texture)
+	void ScriptSkybox::InternalSetTexture(ScriptSkybox* self, MonoObject* texture)
 	{
 		TResourceHandle<Texture> tmptexture;
 		ScriptRRefBase* scriptObjectWrappertexture;
 		scriptObjectWrappertexture = ScriptRRefBase::ToNative(texture);
 		if(scriptObjectWrappertexture != nullptr)
 			tmptexture = B3DStaticResourceCast<Texture>(scriptObjectWrappertexture->GetHandle());
-		thisPtr->GetHandle()->SetTexture(tmptexture);
+		self->GetHandle()->SetTexture(tmptexture);
 	}
 
-	void ScriptSkybox::InternalSetBrightness(ScriptSkybox* thisPtr, float brightness)
+	void ScriptSkybox::InternalSetBrightness(ScriptSkybox* self, float brightness)
 	{
-		thisPtr->GetHandle()->SetBrightness(brightness);
+		self->GetHandle()->SetBrightness(brightness);
 	}
 
-	float ScriptSkybox::InternalGetBrightness(ScriptSkybox* thisPtr)
+	float ScriptSkybox::InternalGetBrightness(ScriptSkybox* self)
 	{
 		float tmp__output;
-		tmp__output = thisPtr->GetHandle()->GetBrightness();
+		tmp__output = self->GetHandle()->GetBrightness();
 
 		float __output;
 		__output = tmp__output;

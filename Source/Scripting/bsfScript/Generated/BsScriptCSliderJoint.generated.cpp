@@ -25,10 +25,10 @@ namespace bs
 
 	}
 
-	float ScriptSliderJoint::InternalGetPosition(ScriptSliderJoint* thisPtr)
+	float ScriptSliderJoint::InternalGetPosition(ScriptSliderJoint* self)
 	{
 		float tmp__output;
-		tmp__output = thisPtr->GetHandle()->GetPosition();
+		tmp__output = self->GetHandle()->GetPosition();
 
 		float __output;
 		__output = tmp__output;
@@ -36,10 +36,10 @@ namespace bs
 		return __output;
 	}
 
-	float ScriptSliderJoint::InternalGetSpeed(ScriptSliderJoint* thisPtr)
+	float ScriptSliderJoint::InternalGetSpeed(ScriptSliderJoint* self)
 	{
 		float tmp__output;
-		tmp__output = thisPtr->GetHandle()->GetSpeed();
+		tmp__output = self->GetHandle()->GetSpeed();
 
 		float __output;
 		__output = tmp__output;
@@ -47,32 +47,32 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptSliderJoint::InternalGetLimit(ScriptSliderJoint* thisPtr, __LimitLinearRangeInterop* __output)
+	void ScriptSliderJoint::InternalGetLimit(ScriptSliderJoint* self, __LimitLinearRangeInterop* __output)
 	{
 		LimitLinearRange tmp__output;
-		tmp__output = thisPtr->GetHandle()->GetLimit();
+		tmp__output = self->GetHandle()->GetLimit();
 
 		__LimitLinearRangeInterop interop__output;
 		interop__output = ScriptLimitLinearRange::ToInterop(tmp__output);
 		MonoUtil::ValueCopy(__output, &interop__output, ScriptLimitLinearRange::GetMetaData()->ScriptClass->GetInternalClassInternal());
 	}
 
-	void ScriptSliderJoint::InternalSetLimit(ScriptSliderJoint* thisPtr, __LimitLinearRangeInterop* limit)
+	void ScriptSliderJoint::InternalSetLimit(ScriptSliderJoint* self, __LimitLinearRangeInterop* limit)
 	{
 		LimitLinearRange tmplimit;
 		tmplimit = ScriptLimitLinearRange::FromInterop(*limit);
-		thisPtr->GetHandle()->SetLimit(tmplimit);
+		self->GetHandle()->SetLimit(tmplimit);
 	}
 
-	void ScriptSliderJoint::InternalSetFlag(ScriptSliderJoint* thisPtr, SliderJointFlag flag, bool enabled)
+	void ScriptSliderJoint::InternalSetFlag(ScriptSliderJoint* self, SliderJointFlag flag, bool enabled)
 	{
-		thisPtr->GetHandle()->SetFlag(flag, enabled);
+		self->GetHandle()->SetFlag(flag, enabled);
 	}
 
-	bool ScriptSliderJoint::InternalHasFlag(ScriptSliderJoint* thisPtr, SliderJointFlag flag)
+	bool ScriptSliderJoint::InternalHasFlag(ScriptSliderJoint* self, SliderJointFlag flag)
 	{
 		bool tmp__output;
-		tmp__output = thisPtr->GetHandle()->HasFlag(flag);
+		tmp__output = self->GetHandle()->HasFlag(flag);
 
 		bool __output;
 		__output = tmp__output;

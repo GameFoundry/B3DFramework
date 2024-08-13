@@ -25,19 +25,19 @@ namespace bs
 		SPtr<Random> mInternal;
 
 		static void InternalRandom(MonoObject* managedInstance, uint32_t seed);
-		static void InternalSetSeed(ScriptRandom* thisPtr, uint32_t seed);
-		static uint32_t InternalGet(ScriptRandom* thisPtr);
-		static int32_t InternalGetRange(ScriptRandom* thisPtr, int32_t min, int32_t max);
-		static float InternalGetUNorm(ScriptRandom* thisPtr);
-		static float InternalGetSNorm(ScriptRandom* thisPtr);
-		static void InternalGetUnitVector(ScriptRandom* thisPtr, TVector3<float>* __output);
-		static void InternalGetUnitVector2D(ScriptRandom* thisPtr, TVector2<float>* __output);
-		static void InternalGetPointInSphere(ScriptRandom* thisPtr, TVector3<float>* __output);
-		static void InternalGetPointInSphereShell(ScriptRandom* thisPtr, float thickness, TVector3<float>* __output);
-		static void InternalGetPointInCircle(ScriptRandom* thisPtr, TVector2<float>* __output);
-		static void InternalGetPointInCircleShell(ScriptRandom* thisPtr, float thickness, TVector2<float>* __output);
-		static void InternalGetPointInArc(ScriptRandom* thisPtr, TDegree<float>* angle, TVector2<float>* __output);
-		static void InternalGetPointInArcShell(ScriptRandom* thisPtr, TDegree<float>* angle, float thickness, TVector2<float>* __output);
-		static void InternalGetBarycentric(ScriptRandom* thisPtr, TVector3<float>* __output);
+		static void InternalSetSeed(ScriptRandom* self, uint32_t seed);
+		static uint32_t InternalGet(ScriptRandom* self);
+		static int32_t InternalGetRange(ScriptRandom* self, int32_t min, int32_t max);
+		static float InternalGetUNorm(ScriptRandom* self);
+		static float InternalGetSNorm(ScriptRandom* self);
+		static void InternalGetUnitVector(ScriptRandom* self, TVector3<float>* __output);
+		static void InternalGetUnitVector2D(ScriptRandom* self, TVector2<float>* __output);
+		static void InternalGetPointInSphere(ScriptRandom* self, TVector3<float>* __output);
+		static void InternalGetPointInSphereShell(ScriptRandom* self, float thickness, TVector3<float>* __output);
+		static void InternalGetPointInCircle(ScriptRandom* self, TVector2<float>* __output);
+		static void InternalGetPointInCircleShell(ScriptRandom* self, float thickness, TVector2<float>* __output);
+		static void InternalGetPointInArc(ScriptRandom* self, TDegree<float>* angle, TVector2<float>* __output);
+		static void InternalGetPointInArcShell(ScriptRandom* self, TDegree<float>* angle, float thickness, TVector2<float>* __output);
+		static void InternalGetBarycentric(ScriptRandom* self, TVector3<float>* __output);
 	};
 }

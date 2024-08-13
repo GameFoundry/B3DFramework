@@ -23,15 +23,15 @@ namespace bs
 
 	}
 
-	void ScriptSphereCollider::InternalSetRadius(ScriptSphereCollider* thisPtr, float radius)
+	void ScriptSphereCollider::InternalSetRadius(ScriptSphereCollider* self, float radius)
 	{
-		thisPtr->GetHandle()->SetRadius(radius);
+		self->GetHandle()->SetRadius(radius);
 	}
 
-	float ScriptSphereCollider::InternalGetRadius(ScriptSphereCollider* thisPtr)
+	float ScriptSphereCollider::InternalGetRadius(ScriptSphereCollider* self)
 	{
 		float tmp__output;
-		tmp__output = thisPtr->GetHandle()->GetRadius();
+		tmp__output = self->GetHandle()->GetRadius();
 
 		float __output;
 		__output = tmp__output;
@@ -39,15 +39,15 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptSphereCollider::InternalSetCenter(ScriptSphereCollider* thisPtr, TVector3<float>* center)
+	void ScriptSphereCollider::InternalSetCenter(ScriptSphereCollider* self, TVector3<float>* center)
 	{
-		thisPtr->GetHandle()->SetCenter(*center);
+		self->GetHandle()->SetCenter(*center);
 	}
 
-	void ScriptSphereCollider::InternalGetCenter(ScriptSphereCollider* thisPtr, TVector3<float>* __output)
+	void ScriptSphereCollider::InternalGetCenter(ScriptSphereCollider* self, TVector3<float>* __output)
 	{
 		TVector3<float> tmp__output;
-		tmp__output = thisPtr->GetHandle()->GetCenter();
+		tmp__output = self->GetHandle()->GetCenter();
 
 		*__output = tmp__output;
 	}

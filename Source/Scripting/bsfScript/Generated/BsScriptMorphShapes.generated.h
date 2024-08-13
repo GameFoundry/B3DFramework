@@ -19,6 +19,6 @@ namespace bs
 		static MonoObject* Create(const SPtr<MorphShapes>& value);
 
 	private:
-		static MonoArray* InternalGetChannels(ScriptMorphShapes* thisPtr);
+		static MonoArray* InternalGetChannels(ScriptMorphShapes* self);
 	};
 }

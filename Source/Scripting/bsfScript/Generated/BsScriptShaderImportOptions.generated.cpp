@@ -38,22 +38,22 @@ namespace bs
 		new (B3DAllocate<ScriptShaderImportOptions>()) ScriptShaderImportOptions(managedInstance, value);
 		return managedInstance;
 	}
-	void ScriptShaderImportOptions::InternalSetDefine(ScriptShaderImportOptions* thisPtr, MonoString* define, MonoString* value)
+	void ScriptShaderImportOptions::InternalSetDefine(ScriptShaderImportOptions* self, MonoString* define, MonoString* value)
 	{
 		String tmpdefine;
 		tmpdefine = MonoUtil::MonoToString(define);
 		String tmpvalue;
 		tmpvalue = MonoUtil::MonoToString(value);
-		thisPtr->GetInternal()->SetDefine(tmpdefine, tmpvalue);
+		self->GetInternal()->SetDefine(tmpdefine, tmpvalue);
 	}
 
-	bool ScriptShaderImportOptions::InternalGetDefine(ScriptShaderImportOptions* thisPtr, MonoString* define, MonoString** value)
+	bool ScriptShaderImportOptions::InternalGetDefine(ScriptShaderImportOptions* self, MonoString* define, MonoString** value)
 	{
 		bool tmp__output;
 		String tmpdefine;
 		tmpdefine = MonoUtil::MonoToString(define);
 		String tmpvalue;
-		tmp__output = thisPtr->GetInternal()->GetDefine(tmpdefine, tmpvalue);
+		tmp__output = self->GetInternal()->GetDefine(tmpdefine, tmpvalue);
 
 		bool __output;
 		__output = tmp__output;
@@ -62,12 +62,12 @@ namespace bs
 		return __output;
 	}
 
-	bool ScriptShaderImportOptions::InternalHasDefine(ScriptShaderImportOptions* thisPtr, MonoString* define)
+	bool ScriptShaderImportOptions::InternalHasDefine(ScriptShaderImportOptions* self, MonoString* define)
 	{
 		bool tmp__output;
 		String tmpdefine;
 		tmpdefine = MonoUtil::MonoToString(define);
-		tmp__output = thisPtr->GetInternal()->HasDefine(tmpdefine);
+		tmp__output = self->GetInternal()->HasDefine(tmpdefine);
 
 		bool __output;
 		__output = tmp__output;
@@ -75,22 +75,22 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptShaderImportOptions::InternalRemoveDefine(ScriptShaderImportOptions* thisPtr, MonoString* define)
+	void ScriptShaderImportOptions::InternalRemoveDefine(ScriptShaderImportOptions* self, MonoString* define)
 	{
 		String tmpdefine;
 		tmpdefine = MonoUtil::MonoToString(define);
-		thisPtr->GetInternal()->RemoveDefine(tmpdefine);
+		self->GetInternal()->RemoveDefine(tmpdefine);
 	}
 
 	void ScriptShaderImportOptions::InternalCreate(MonoObject* managedInstance)
 	{
-		SPtr<ShaderImportOptions> instance = ShaderImportOptions::Create();
-		new (B3DAllocate<ScriptShaderImportOptions>())ScriptShaderImportOptions(managedInstance, instance);
+		SPtr<ShaderImportOptions> nativeObject = ShaderImportOptions::Create();
+		new (B3DAllocate<ScriptShaderImportOptions>())ScriptShaderImportOptions(managedInstance, nativeObject);
 	}
-	ShadingLanguageFlag ScriptShaderImportOptions::InternalGetLanguages(ScriptShaderImportOptions* thisPtr)
+	ShadingLanguageFlag ScriptShaderImportOptions::InternalGetLanguages(ScriptShaderImportOptions* self)
 	{
 		Flags<ShadingLanguageFlag> tmp__output;
-		tmp__output = thisPtr->GetInternal()->Languages;
+		tmp__output = self->GetInternal()->Languages;
 
 		ShadingLanguageFlag __output;
 		__output = (ShadingLanguageFlag)(uint32_t)tmp__output;
@@ -98,9 +98,9 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptShaderImportOptions::InternalSetLanguages(ScriptShaderImportOptions* thisPtr, ShadingLanguageFlag value)
+	void ScriptShaderImportOptions::InternalSetLanguages(ScriptShaderImportOptions* self, ShadingLanguageFlag value)
 	{
-		thisPtr->GetInternal()->Languages = value;
+		self->GetInternal()->Languages = value;
 	}
 #endif
 }

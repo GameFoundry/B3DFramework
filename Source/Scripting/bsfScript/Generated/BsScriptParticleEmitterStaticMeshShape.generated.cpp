@@ -35,17 +35,17 @@ namespace bs
 		new (B3DAllocate<ScriptParticleEmitterStaticMeshShape>()) ScriptParticleEmitterStaticMeshShape(managedInstance, value);
 		return managedInstance;
 	}
-	void ScriptParticleEmitterStaticMeshShape::InternalSetOptions(ScriptParticleEmitterStaticMeshShape* thisPtr, __PARTICLE_STATIC_MESH_SHAPE_DESCInterop* options)
+	void ScriptParticleEmitterStaticMeshShape::InternalSetOptions(ScriptParticleEmitterStaticMeshShape* self, __PARTICLE_STATIC_MESH_SHAPE_DESCInterop* options)
 	{
 		PARTICLE_STATIC_MESH_SHAPE_DESC tmpoptions;
 		tmpoptions = ScriptParticleStaticMeshShapeOptions::FromInterop(*options);
-		thisPtr->GetInternal()->SetOptions(tmpoptions);
+		self->GetInternal()->SetOptions(tmpoptions);
 	}
 
-	void ScriptParticleEmitterStaticMeshShape::InternalGetOptions(ScriptParticleEmitterStaticMeshShape* thisPtr, __PARTICLE_STATIC_MESH_SHAPE_DESCInterop* __output)
+	void ScriptParticleEmitterStaticMeshShape::InternalGetOptions(ScriptParticleEmitterStaticMeshShape* self, __PARTICLE_STATIC_MESH_SHAPE_DESCInterop* __output)
 	{
 		PARTICLE_STATIC_MESH_SHAPE_DESC tmp__output;
-		tmp__output = thisPtr->GetInternal()->GetOptions();
+		tmp__output = self->GetInternal()->GetOptions();
 
 		__PARTICLE_STATIC_MESH_SHAPE_DESCInterop interop__output;
 		interop__output = ScriptParticleStaticMeshShapeOptions::ToInterop(tmp__output);
@@ -56,13 +56,13 @@ namespace bs
 	{
 		PARTICLE_STATIC_MESH_SHAPE_DESC tmpdesc;
 		tmpdesc = ScriptParticleStaticMeshShapeOptions::FromInterop(*desc);
-		SPtr<ParticleEmitterStaticMeshShape> instance = ParticleEmitterStaticMeshShape::Create(tmpdesc);
-		new (B3DAllocate<ScriptParticleEmitterStaticMeshShape>())ScriptParticleEmitterStaticMeshShape(managedInstance, instance);
+		SPtr<ParticleEmitterStaticMeshShape> nativeObject = ParticleEmitterStaticMeshShape::Create(tmpdesc);
+		new (B3DAllocate<ScriptParticleEmitterStaticMeshShape>())ScriptParticleEmitterStaticMeshShape(managedInstance, nativeObject);
 	}
 
 	void ScriptParticleEmitterStaticMeshShape::InternalCreate0(MonoObject* managedInstance)
 	{
-		SPtr<ParticleEmitterStaticMeshShape> instance = ParticleEmitterStaticMeshShape::Create();
-		new (B3DAllocate<ScriptParticleEmitterStaticMeshShape>())ScriptParticleEmitterStaticMeshShape(managedInstance, instance);
+		SPtr<ParticleEmitterStaticMeshShape> nativeObject = ParticleEmitterStaticMeshShape::Create();
+		new (B3DAllocate<ScriptParticleEmitterStaticMeshShape>())ScriptParticleEmitterStaticMeshShape(managedInstance, nativeObject);
 	}
 }

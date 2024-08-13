@@ -21,11 +21,11 @@ namespace bs
 		static MonoObject* CreateInstance();
 
 	private:
-		static MonoObject* InternalGetRef(ScriptSpriteGlyph* thisPtr);
+		static MonoObject* InternalGetRef(ScriptSpriteGlyph* self);
 
-		static void InternalSetFont(ScriptSpriteGlyph* thisPtr, MonoObject* font);
-		static void InternalSetGlyph(ScriptSpriteGlyph* thisPtr, uint32_t glyph);
-		static void InternalSetGlyphSize(ScriptSpriteGlyph* thisPtr, float size);
+		static void InternalSetFont(ScriptSpriteGlyph* self, MonoObject* font);
+		static void InternalSetGlyph(ScriptSpriteGlyph* self, uint32_t glyph);
+		static void InternalSetGlyphSize(ScriptSpriteGlyph* self, float size);
 		static void InternalCreate(MonoObject* managedInstance, MonoObject* font, uint32_t glyph, float size);
 		static void InternalCreate0(MonoObject* managedInstance, __SpriteGlyphCreateInformationInterop* createInformation);
 	};

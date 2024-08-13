@@ -20,17 +20,17 @@ namespace bs
 
 	}
 
-	void ScriptBone::InternalSetBoneName(ScriptBone* thisPtr, MonoString* name)
+	void ScriptBone::InternalSetBoneName(ScriptBone* self, MonoString* name)
 	{
 		String tmpname;
 		tmpname = MonoUtil::MonoToString(name);
-		thisPtr->GetHandle()->SetBoneName(tmpname);
+		self->GetHandle()->SetBoneName(tmpname);
 	}
 
-	MonoString* ScriptBone::InternalGetBoneName(ScriptBone* thisPtr)
+	MonoString* ScriptBone::InternalGetBoneName(ScriptBone* self)
 	{
 		String tmp__output;
-		tmp__output = thisPtr->GetHandle()->GetBoneName();
+		tmp__output = self->GetHandle()->GetBoneName();
 
 		MonoString* __output;
 		__output = MonoUtil::StringToMono(tmp__output);

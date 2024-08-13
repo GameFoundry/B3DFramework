@@ -33,11 +33,11 @@ namespace bs
 		static void InternalTColorDistribution1(MonoObject* managedInstance, Color* minColor, Color* maxColor);
 		static void InternalTColorDistribution2(MonoObject* managedInstance, MonoObject* gradient);
 		static void InternalTColorDistribution3(MonoObject* managedInstance, MonoObject* minGradient, MonoObject* maxGradient);
-		static PropertyDistributionType InternalGetType(ScriptColorDistribution* thisPtr);
-		static void InternalGetMinConstant(ScriptColorDistribution* thisPtr, Color* __output);
-		static void InternalGetMaxConstant(ScriptColorDistribution* thisPtr, Color* __output);
-		static MonoObject* InternalGetMinGradient(ScriptColorDistribution* thisPtr);
-		static MonoObject* InternalGetMaxGradient(ScriptColorDistribution* thisPtr);
+		static PropertyDistributionType InternalGetType(ScriptColorDistribution* self);
+		static void InternalGetMinConstant(ScriptColorDistribution* self, Color* __output);
+		static void InternalGetMaxConstant(ScriptColorDistribution* self, Color* __output);
+		static MonoObject* InternalGetMinGradient(ScriptColorDistribution* self);
+		static MonoObject* InternalGetMaxGradient(ScriptColorDistribution* self);
 	};
 
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptColorHDRDistribution : public ScriptObject<ScriptColorHDRDistribution>
@@ -58,10 +58,10 @@ namespace bs
 		static void InternalTColorDistribution1(MonoObject* managedInstance, Color* minColor, Color* maxColor);
 		static void InternalTColorDistribution2(MonoObject* managedInstance, MonoObject* gradient);
 		static void InternalTColorDistribution3(MonoObject* managedInstance, MonoObject* minGradient, MonoObject* maxGradient);
-		static PropertyDistributionType InternalGetType(ScriptColorHDRDistribution* thisPtr);
-		static void InternalGetMinConstant(ScriptColorHDRDistribution* thisPtr, Color* __output);
-		static void InternalGetMaxConstant(ScriptColorHDRDistribution* thisPtr, Color* __output);
-		static MonoObject* InternalGetMinGradient(ScriptColorHDRDistribution* thisPtr);
-		static MonoObject* InternalGetMaxGradient(ScriptColorHDRDistribution* thisPtr);
+		static PropertyDistributionType InternalGetType(ScriptColorHDRDistribution* self);
+		static void InternalGetMinConstant(ScriptColorHDRDistribution* self, Color* __output);
+		static void InternalGetMaxConstant(ScriptColorHDRDistribution* self, Color* __output);
+		static MonoObject* InternalGetMinGradient(ScriptColorHDRDistribution* self);
+		static MonoObject* InternalGetMaxGradient(ScriptColorHDRDistribution* self);
 	};
 }

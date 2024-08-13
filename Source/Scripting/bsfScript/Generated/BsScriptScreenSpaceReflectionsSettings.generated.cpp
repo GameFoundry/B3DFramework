@@ -39,14 +39,14 @@ namespace bs
 	}
 	void ScriptScreenSpaceReflectionsSettings::InternalScreenSpaceReflectionsSettings(MonoObject* managedInstance)
 	{
-		SPtr<ScreenSpaceReflectionsSettings> instance = B3DMakeShared<ScreenSpaceReflectionsSettings>();
-		new (B3DAllocate<ScriptScreenSpaceReflectionsSettings>())ScriptScreenSpaceReflectionsSettings(managedInstance, instance);
+		SPtr<ScreenSpaceReflectionsSettings> nativeObject = B3DMakeShared<ScreenSpaceReflectionsSettings>();
+		new (B3DAllocate<ScriptScreenSpaceReflectionsSettings>())ScriptScreenSpaceReflectionsSettings(managedInstance, nativeObject);
 	}
 
-	bool ScriptScreenSpaceReflectionsSettings::InternalGetEnabled(ScriptScreenSpaceReflectionsSettings* thisPtr)
+	bool ScriptScreenSpaceReflectionsSettings::InternalGetEnabled(ScriptScreenSpaceReflectionsSettings* self)
 	{
 		bool tmp__output;
-		tmp__output = thisPtr->GetInternal()->Enabled;
+		tmp__output = self->GetInternal()->Enabled;
 
 		bool __output;
 		__output = tmp__output;
@@ -54,15 +54,15 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptScreenSpaceReflectionsSettings::InternalSetEnabled(ScriptScreenSpaceReflectionsSettings* thisPtr, bool value)
+	void ScriptScreenSpaceReflectionsSettings::InternalSetEnabled(ScriptScreenSpaceReflectionsSettings* self, bool value)
 	{
-		thisPtr->GetInternal()->Enabled = value;
+		self->GetInternal()->Enabled = value;
 	}
 
-	uint32_t ScriptScreenSpaceReflectionsSettings::InternalGetQuality(ScriptScreenSpaceReflectionsSettings* thisPtr)
+	uint32_t ScriptScreenSpaceReflectionsSettings::InternalGetQuality(ScriptScreenSpaceReflectionsSettings* self)
 	{
 		uint32_t tmp__output;
-		tmp__output = thisPtr->GetInternal()->Quality;
+		tmp__output = self->GetInternal()->Quality;
 
 		uint32_t __output;
 		__output = tmp__output;
@@ -70,15 +70,15 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptScreenSpaceReflectionsSettings::InternalSetQuality(ScriptScreenSpaceReflectionsSettings* thisPtr, uint32_t value)
+	void ScriptScreenSpaceReflectionsSettings::InternalSetQuality(ScriptScreenSpaceReflectionsSettings* self, uint32_t value)
 	{
-		thisPtr->GetInternal()->Quality = value;
+		self->GetInternal()->Quality = value;
 	}
 
-	float ScriptScreenSpaceReflectionsSettings::InternalGetIntensity(ScriptScreenSpaceReflectionsSettings* thisPtr)
+	float ScriptScreenSpaceReflectionsSettings::InternalGetIntensity(ScriptScreenSpaceReflectionsSettings* self)
 	{
 		float tmp__output;
-		tmp__output = thisPtr->GetInternal()->Intensity;
+		tmp__output = self->GetInternal()->Intensity;
 
 		float __output;
 		__output = tmp__output;
@@ -86,15 +86,15 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptScreenSpaceReflectionsSettings::InternalSetIntensity(ScriptScreenSpaceReflectionsSettings* thisPtr, float value)
+	void ScriptScreenSpaceReflectionsSettings::InternalSetIntensity(ScriptScreenSpaceReflectionsSettings* self, float value)
 	{
-		thisPtr->GetInternal()->Intensity = value;
+		self->GetInternal()->Intensity = value;
 	}
 
-	float ScriptScreenSpaceReflectionsSettings::InternalGetMaxRoughness(ScriptScreenSpaceReflectionsSettings* thisPtr)
+	float ScriptScreenSpaceReflectionsSettings::InternalGetMaxRoughness(ScriptScreenSpaceReflectionsSettings* self)
 	{
 		float tmp__output;
-		tmp__output = thisPtr->GetInternal()->MaxRoughness;
+		tmp__output = self->GetInternal()->MaxRoughness;
 
 		float __output;
 		__output = tmp__output;
@@ -102,8 +102,8 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptScreenSpaceReflectionsSettings::InternalSetMaxRoughness(ScriptScreenSpaceReflectionsSettings* thisPtr, float value)
+	void ScriptScreenSpaceReflectionsSettings::InternalSetMaxRoughness(ScriptScreenSpaceReflectionsSettings* self, float value)
 	{
-		thisPtr->GetInternal()->MaxRoughness = value;
+		self->GetInternal()->MaxRoughness = value;
 	}
 }

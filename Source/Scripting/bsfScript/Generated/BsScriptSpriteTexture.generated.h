@@ -21,9 +21,9 @@ namespace bs
 		static MonoObject* CreateInstance();
 
 	private:
-		static MonoObject* InternalGetRef(ScriptSpriteTexture* thisPtr);
+		static MonoObject* InternalGetRef(ScriptSpriteTexture* self);
 
-		static void InternalSetAtlasTexture(ScriptSpriteTexture* thisPtr, MonoObject* texture);
+		static void InternalSetAtlasTexture(ScriptSpriteTexture* self, MonoObject* texture);
 		static void InternalCreate(MonoObject* managedInstance, MonoObject* texture);
 		static void InternalCreate0(MonoObject* managedInstance, __SpriteTextureCreateInformationInterop* createInformation);
 	};

@@ -19,7 +19,7 @@ namespace bs
 		static MonoObject* Create(const SPtr<MorphShape>& value);
 
 	private:
-		static MonoString* InternalGetName(ScriptMorphShape* thisPtr);
-		static float InternalGetWeight(ScriptMorphShape* thisPtr);
+		static MonoString* InternalGetName(ScriptMorphShape* self);
+		static float InternalGetWeight(ScriptMorphShape* self);
 	};
 }

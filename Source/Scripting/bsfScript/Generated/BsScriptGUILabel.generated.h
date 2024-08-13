@@ -19,7 +19,7 @@ namespace bs
 		ScriptGUILabel(MonoObject* managedInstance, GUILabel* value);
 
 	private:
-		static void InternalSetContent(ScriptGUILabel* thisPtr, __GUIContentInterop* content);
+		static void InternalSetContent(ScriptGUILabel* self, __GUIContentInterop* content);
 		static void InternalCreate(MonoObject* managedInstance, __GUIContentInterop* contents, MonoString* styleClass, MonoArray* options);
 		static void InternalCreate0(MonoObject* managedInstance, __GUIContentInterop* contents, MonoArray* options);
 		static void InternalCreate1(MonoObject* managedInstance, MonoString* styleClass, MonoArray* options);

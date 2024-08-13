@@ -42,14 +42,14 @@ namespace bs
 	}
 	void ScriptChromaticAberrationSettings::InternalChromaticAberrationSettings(MonoObject* managedInstance)
 	{
-		SPtr<ChromaticAberrationSettings> instance = B3DMakeShared<ChromaticAberrationSettings>();
-		new (B3DAllocate<ScriptChromaticAberrationSettings>())ScriptChromaticAberrationSettings(managedInstance, instance);
+		SPtr<ChromaticAberrationSettings> nativeObject = B3DMakeShared<ChromaticAberrationSettings>();
+		new (B3DAllocate<ScriptChromaticAberrationSettings>())ScriptChromaticAberrationSettings(managedInstance, nativeObject);
 	}
 
-	MonoObject* ScriptChromaticAberrationSettings::InternalGetFringeTexture(ScriptChromaticAberrationSettings* thisPtr)
+	MonoObject* ScriptChromaticAberrationSettings::InternalGetFringeTexture(ScriptChromaticAberrationSettings* self)
 	{
 		TResourceHandle<Texture> tmp__output;
-		tmp__output = thisPtr->GetInternal()->FringeTexture;
+		tmp__output = self->GetInternal()->FringeTexture;
 
 		MonoObject* __output;
 		ScriptRRefBase* script__output;
@@ -62,20 +62,20 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptChromaticAberrationSettings::InternalSetFringeTexture(ScriptChromaticAberrationSettings* thisPtr, MonoObject* value)
+	void ScriptChromaticAberrationSettings::InternalSetFringeTexture(ScriptChromaticAberrationSettings* self, MonoObject* value)
 	{
 		TResourceHandle<Texture> tmpvalue;
 		ScriptRRefBase* scriptObjectWrappervalue;
 		scriptObjectWrappervalue = ScriptRRefBase::ToNative(value);
 		if(scriptObjectWrappervalue != nullptr)
 			tmpvalue = B3DStaticResourceCast<Texture>(scriptObjectWrappervalue->GetHandle());
-		thisPtr->GetInternal()->FringeTexture = tmpvalue;
+		self->GetInternal()->FringeTexture = tmpvalue;
 	}
 
-	bool ScriptChromaticAberrationSettings::InternalGetEnabled(ScriptChromaticAberrationSettings* thisPtr)
+	bool ScriptChromaticAberrationSettings::InternalGetEnabled(ScriptChromaticAberrationSettings* self)
 	{
 		bool tmp__output;
-		tmp__output = thisPtr->GetInternal()->Enabled;
+		tmp__output = self->GetInternal()->Enabled;
 
 		bool __output;
 		__output = tmp__output;
@@ -83,15 +83,15 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptChromaticAberrationSettings::InternalSetEnabled(ScriptChromaticAberrationSettings* thisPtr, bool value)
+	void ScriptChromaticAberrationSettings::InternalSetEnabled(ScriptChromaticAberrationSettings* self, bool value)
 	{
-		thisPtr->GetInternal()->Enabled = value;
+		self->GetInternal()->Enabled = value;
 	}
 
-	ChromaticAberrationType ScriptChromaticAberrationSettings::InternalGetType(ScriptChromaticAberrationSettings* thisPtr)
+	ChromaticAberrationType ScriptChromaticAberrationSettings::InternalGetType(ScriptChromaticAberrationSettings* self)
 	{
 		ChromaticAberrationType tmp__output;
-		tmp__output = thisPtr->GetInternal()->Type;
+		tmp__output = self->GetInternal()->Type;
 
 		ChromaticAberrationType __output;
 		__output = tmp__output;
@@ -99,15 +99,15 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptChromaticAberrationSettings::InternalSetType(ScriptChromaticAberrationSettings* thisPtr, ChromaticAberrationType value)
+	void ScriptChromaticAberrationSettings::InternalSetType(ScriptChromaticAberrationSettings* self, ChromaticAberrationType value)
 	{
-		thisPtr->GetInternal()->Type = value;
+		self->GetInternal()->Type = value;
 	}
 
-	float ScriptChromaticAberrationSettings::InternalGetShiftAmount(ScriptChromaticAberrationSettings* thisPtr)
+	float ScriptChromaticAberrationSettings::InternalGetShiftAmount(ScriptChromaticAberrationSettings* self)
 	{
 		float tmp__output;
-		tmp__output = thisPtr->GetInternal()->ShiftAmount;
+		tmp__output = self->GetInternal()->ShiftAmount;
 
 		float __output;
 		__output = tmp__output;
@@ -115,8 +115,8 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptChromaticAberrationSettings::InternalSetShiftAmount(ScriptChromaticAberrationSettings* thisPtr, float value)
+	void ScriptChromaticAberrationSettings::InternalSetShiftAmount(ScriptChromaticAberrationSettings* self, float value)
 	{
-		thisPtr->GetInternal()->ShiftAmount = value;
+		self->GetInternal()->ShiftAmount = value;
 	}
 }

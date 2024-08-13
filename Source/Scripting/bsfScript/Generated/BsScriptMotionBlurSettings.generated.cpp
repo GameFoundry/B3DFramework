@@ -41,14 +41,14 @@ namespace bs
 	}
 	void ScriptMotionBlurSettings::InternalMotionBlurSettings(MonoObject* managedInstance)
 	{
-		SPtr<MotionBlurSettings> instance = B3DMakeShared<MotionBlurSettings>();
-		new (B3DAllocate<ScriptMotionBlurSettings>())ScriptMotionBlurSettings(managedInstance, instance);
+		SPtr<MotionBlurSettings> nativeObject = B3DMakeShared<MotionBlurSettings>();
+		new (B3DAllocate<ScriptMotionBlurSettings>())ScriptMotionBlurSettings(managedInstance, nativeObject);
 	}
 
-	bool ScriptMotionBlurSettings::InternalGetEnabled(ScriptMotionBlurSettings* thisPtr)
+	bool ScriptMotionBlurSettings::InternalGetEnabled(ScriptMotionBlurSettings* self)
 	{
 		bool tmp__output;
-		tmp__output = thisPtr->GetInternal()->Enabled;
+		tmp__output = self->GetInternal()->Enabled;
 
 		bool __output;
 		__output = tmp__output;
@@ -56,15 +56,15 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptMotionBlurSettings::InternalSetEnabled(ScriptMotionBlurSettings* thisPtr, bool value)
+	void ScriptMotionBlurSettings::InternalSetEnabled(ScriptMotionBlurSettings* self, bool value)
 	{
-		thisPtr->GetInternal()->Enabled = value;
+		self->GetInternal()->Enabled = value;
 	}
 
-	MotionBlurDomain ScriptMotionBlurSettings::InternalGetDomain(ScriptMotionBlurSettings* thisPtr)
+	MotionBlurDomain ScriptMotionBlurSettings::InternalGetDomain(ScriptMotionBlurSettings* self)
 	{
 		MotionBlurDomain tmp__output;
-		tmp__output = thisPtr->GetInternal()->Domain;
+		tmp__output = self->GetInternal()->Domain;
 
 		MotionBlurDomain __output;
 		__output = tmp__output;
@@ -72,15 +72,15 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptMotionBlurSettings::InternalSetDomain(ScriptMotionBlurSettings* thisPtr, MotionBlurDomain value)
+	void ScriptMotionBlurSettings::InternalSetDomain(ScriptMotionBlurSettings* self, MotionBlurDomain value)
 	{
-		thisPtr->GetInternal()->Domain = value;
+		self->GetInternal()->Domain = value;
 	}
 
-	MotionBlurFilter ScriptMotionBlurSettings::InternalGetFilter(ScriptMotionBlurSettings* thisPtr)
+	MotionBlurFilter ScriptMotionBlurSettings::InternalGetFilter(ScriptMotionBlurSettings* self)
 	{
 		MotionBlurFilter tmp__output;
-		tmp__output = thisPtr->GetInternal()->Filter;
+		tmp__output = self->GetInternal()->Filter;
 
 		MotionBlurFilter __output;
 		__output = tmp__output;
@@ -88,15 +88,15 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptMotionBlurSettings::InternalSetFilter(ScriptMotionBlurSettings* thisPtr, MotionBlurFilter value)
+	void ScriptMotionBlurSettings::InternalSetFilter(ScriptMotionBlurSettings* self, MotionBlurFilter value)
 	{
-		thisPtr->GetInternal()->Filter = value;
+		self->GetInternal()->Filter = value;
 	}
 
-	MotionBlurQuality ScriptMotionBlurSettings::InternalGetQuality(ScriptMotionBlurSettings* thisPtr)
+	MotionBlurQuality ScriptMotionBlurSettings::InternalGetQuality(ScriptMotionBlurSettings* self)
 	{
 		MotionBlurQuality tmp__output;
-		tmp__output = thisPtr->GetInternal()->Quality;
+		tmp__output = self->GetInternal()->Quality;
 
 		MotionBlurQuality __output;
 		__output = tmp__output;
@@ -104,15 +104,15 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptMotionBlurSettings::InternalSetQuality(ScriptMotionBlurSettings* thisPtr, MotionBlurQuality value)
+	void ScriptMotionBlurSettings::InternalSetQuality(ScriptMotionBlurSettings* self, MotionBlurQuality value)
 	{
-		thisPtr->GetInternal()->Quality = value;
+		self->GetInternal()->Quality = value;
 	}
 
-	float ScriptMotionBlurSettings::InternalGetMaximumRadius(ScriptMotionBlurSettings* thisPtr)
+	float ScriptMotionBlurSettings::InternalGetMaximumRadius(ScriptMotionBlurSettings* self)
 	{
 		float tmp__output;
-		tmp__output = thisPtr->GetInternal()->MaximumRadius;
+		tmp__output = self->GetInternal()->MaximumRadius;
 
 		float __output;
 		__output = tmp__output;
@@ -120,8 +120,8 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptMotionBlurSettings::InternalSetMaximumRadius(ScriptMotionBlurSettings* thisPtr, float value)
+	void ScriptMotionBlurSettings::InternalSetMaximumRadius(ScriptMotionBlurSettings* self, float value)
 	{
-		thisPtr->GetInternal()->MaximumRadius = value;
+		self->GetInternal()->MaximumRadius = value;
 	}
 }

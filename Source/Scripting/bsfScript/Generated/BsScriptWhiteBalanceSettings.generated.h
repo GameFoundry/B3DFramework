@@ -20,9 +20,9 @@ namespace bs
 
 	private:
 		static void InternalWhiteBalanceSettings(MonoObject* managedInstance);
-		static float InternalGetTemperature(ScriptWhiteBalanceSettings* thisPtr);
-		static void InternalSetTemperature(ScriptWhiteBalanceSettings* thisPtr, float value);
-		static float InternalGetTint(ScriptWhiteBalanceSettings* thisPtr);
-		static void InternalSetTint(ScriptWhiteBalanceSettings* thisPtr, float value);
+		static float InternalGetTemperature(ScriptWhiteBalanceSettings* self);
+		static void InternalSetTemperature(ScriptWhiteBalanceSettings* self, float value);
+		static float InternalGetTint(ScriptWhiteBalanceSettings* self);
+		static void InternalSetTint(ScriptWhiteBalanceSettings* self, float value);
 	};
 }

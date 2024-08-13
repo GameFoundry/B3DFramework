@@ -29,9 +29,9 @@ namespace bs
 		ScriptGUIScrollBar(MonoObject* managedInstance, GUIScrollBar* value);
 
 	private:
-		static void InternalSetScrollHandlePosition(ScriptGUIElementBase* thisPtr, float pct);
-		static float InternalGetScrollHandlePosition(ScriptGUIElementBase* thisPtr);
-		static void InternalSetScrollHandleSize(ScriptGUIElementBase* thisPtr, float pct);
-		static float InternalGetScrollHandleSize(ScriptGUIElementBase* thisPtr);
+		static void InternalSetScrollHandlePosition(ScriptGUIElementBase* self, float pct);
+		static float InternalGetScrollHandlePosition(ScriptGUIElementBase* self);
+		static void InternalSetScrollHandleSize(ScriptGUIElementBase* self, float pct);
+		static float InternalGetScrollHandleSize(ScriptGUIElementBase* self);
 	};
 }

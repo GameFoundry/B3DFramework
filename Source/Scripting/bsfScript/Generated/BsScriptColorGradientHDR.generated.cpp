@@ -43,14 +43,14 @@ namespace bs
 	}
 	void ScriptColorGradientHDR::InternalColorGradientHDR(MonoObject* managedInstance)
 	{
-		SPtr<ColorGradientHDR> instance = B3DMakeShared<ColorGradientHDR>();
-		new (B3DAllocate<ScriptColorGradientHDR>())ScriptColorGradientHDR(managedInstance, instance);
+		SPtr<ColorGradientHDR> nativeObject = B3DMakeShared<ColorGradientHDR>();
+		new (B3DAllocate<ScriptColorGradientHDR>())ScriptColorGradientHDR(managedInstance, nativeObject);
 	}
 
 	void ScriptColorGradientHDR::InternalColorGradientHDR0(MonoObject* managedInstance, Color* color)
 	{
-		SPtr<ColorGradientHDR> instance = B3DMakeShared<ColorGradientHDR>(*color);
-		new (B3DAllocate<ScriptColorGradientHDR>())ScriptColorGradientHDR(managedInstance, instance);
+		SPtr<ColorGradientHDR> nativeObject = B3DMakeShared<ColorGradientHDR>(*color);
+		new (B3DAllocate<ScriptColorGradientHDR>())ScriptColorGradientHDR(managedInstance, nativeObject);
 	}
 
 	void ScriptColorGradientHDR::InternalColorGradientHDR1(MonoObject* managedInstance, MonoArray* keys)
@@ -65,11 +65,11 @@ namespace bs
 				nativeArraykeys[elementIndex] = ScriptColorGradientKey::FromInterop(scriptArraykeys.Get<__ColorGradientKeyInterop>(elementIndex));
 			}
 		}
-		SPtr<ColorGradientHDR> instance = B3DMakeShared<ColorGradientHDR>(nativeArraykeys);
-		new (B3DAllocate<ScriptColorGradientHDR>())ScriptColorGradientHDR(managedInstance, instance);
+		SPtr<ColorGradientHDR> nativeObject = B3DMakeShared<ColorGradientHDR>(nativeArraykeys);
+		new (B3DAllocate<ScriptColorGradientHDR>())ScriptColorGradientHDR(managedInstance, nativeObject);
 	}
 
-	void ScriptColorGradientHDR::InternalSetKeys(ScriptColorGradientHDR* thisPtr, MonoArray* keys, float duration)
+	void ScriptColorGradientHDR::InternalSetKeys(ScriptColorGradientHDR* self, MonoArray* keys, float duration)
 	{
 		Vector<ColorGradientKey> nativeArraykeys;
 		if(keys != nullptr)
@@ -82,13 +82,13 @@ namespace bs
 			}
 
 		}
-		thisPtr->GetInternal()->SetKeys(nativeArraykeys, duration);
+		self->GetInternal()->SetKeys(nativeArraykeys, duration);
 	}
 
-	MonoArray* ScriptColorGradientHDR::InternalGetKeys(ScriptColorGradientHDR* thisPtr)
+	MonoArray* ScriptColorGradientHDR::InternalGetKeys(ScriptColorGradientHDR* self)
 	{
 		Vector<ColorGradientKey> nativeArray__output;
-		nativeArray__output = thisPtr->GetInternal()->GetKeys();
+		nativeArray__output = self->GetInternal()->GetKeys();
 
 		MonoArray* __output;
 		int elementCount__output = (int)nativeArray__output.size();
@@ -102,10 +102,10 @@ namespace bs
 		return __output;
 	}
 
-	uint32_t ScriptColorGradientHDR::InternalGetNumKeys(ScriptColorGradientHDR* thisPtr)
+	uint32_t ScriptColorGradientHDR::InternalGetNumKeys(ScriptColorGradientHDR* self)
 	{
 		uint32_t tmp__output;
-		tmp__output = thisPtr->GetInternal()->GetNumKeys();
+		tmp__output = self->GetInternal()->GetNumKeys();
 
 		uint32_t __output;
 		__output = tmp__output;
@@ -113,25 +113,25 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptColorGradientHDR::InternalGetKey(ScriptColorGradientHDR* thisPtr, uint32_t idx, __ColorGradientKeyInterop* __output)
+	void ScriptColorGradientHDR::InternalGetKey(ScriptColorGradientHDR* self, uint32_t idx, __ColorGradientKeyInterop* __output)
 	{
 		ColorGradientKey tmp__output;
-		tmp__output = thisPtr->GetInternal()->GetKey(idx);
+		tmp__output = self->GetInternal()->GetKey(idx);
 
 		__ColorGradientKeyInterop interop__output;
 		interop__output = ScriptColorGradientKey::ToInterop(tmp__output);
 		MonoUtil::ValueCopy(__output, &interop__output, ScriptColorGradientKey::GetMetaData()->ScriptClass->GetInternalClassInternal());
 	}
 
-	void ScriptColorGradientHDR::InternalSetConstant(ScriptColorGradientHDR* thisPtr, Color* color)
+	void ScriptColorGradientHDR::InternalSetConstant(ScriptColorGradientHDR* self, Color* color)
 	{
-		thisPtr->GetInternal()->SetConstant(*color);
+		self->GetInternal()->SetConstant(*color);
 	}
 
-	void ScriptColorGradientHDR::InternalEvaluate(ScriptColorGradientHDR* thisPtr, float t, Color* __output)
+	void ScriptColorGradientHDR::InternalEvaluate(ScriptColorGradientHDR* self, float t, Color* __output)
 	{
 		Color tmp__output;
-		tmp__output = ColorGradientHDREx::Evaluate(thisPtr->GetInternal(), t);
+		tmp__output = ColorGradientHDREx::Evaluate(self->GetInternal(), t);
 
 		*__output = tmp__output;
 	}

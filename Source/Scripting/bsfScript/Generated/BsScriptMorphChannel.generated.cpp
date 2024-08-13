@@ -31,10 +31,10 @@ namespace bs
 		new (B3DAllocate<ScriptMorphChannel>()) ScriptMorphChannel(managedInstance, value);
 		return managedInstance;
 	}
-	MonoString* ScriptMorphChannel::InternalGetName(ScriptMorphChannel* thisPtr)
+	MonoString* ScriptMorphChannel::InternalGetName(ScriptMorphChannel* self)
 	{
 		String tmp__output;
-		tmp__output = thisPtr->GetInternal()->GetName();
+		tmp__output = self->GetInternal()->GetName();
 
 		MonoString* __output;
 		__output = MonoUtil::StringToMono(tmp__output);
@@ -42,10 +42,10 @@ namespace bs
 		return __output;
 	}
 
-	MonoArray* ScriptMorphChannel::InternalGetShapes(ScriptMorphChannel* thisPtr)
+	MonoArray* ScriptMorphChannel::InternalGetShapes(ScriptMorphChannel* self)
 	{
 		Vector<SPtr<MorphShape>> nativeArray__output;
-		nativeArray__output = thisPtr->GetInternal()->GetShapes();
+		nativeArray__output = self->GetInternal()->GetShapes();
 
 		MonoArray* __output;
 		int elementCount__output = (int)nativeArray__output.size();

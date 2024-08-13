@@ -17,8 +17,8 @@ namespace bs
 		ScriptGUIProgressBar(MonoObject* managedInstance, GUIProgressBar* value);
 
 	private:
-		static void InternalSetPercent(ScriptGUIProgressBar* thisPtr, float percent);
-		static float InternalGetPercent(ScriptGUIProgressBar* thisPtr);
+		static void InternalSetPercent(ScriptGUIProgressBar* self, float percent);
+		static float InternalGetPercent(ScriptGUIProgressBar* self);
 		static void InternalCreate(MonoObject* managedInstance, MonoString* styleClass, MonoArray* options);
 		static void InternalCreate0(MonoObject* managedInstance, MonoArray* options);
 	};

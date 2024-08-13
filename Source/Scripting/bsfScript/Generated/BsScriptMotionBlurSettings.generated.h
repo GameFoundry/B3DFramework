@@ -23,15 +23,15 @@ namespace bs
 
 	private:
 		static void InternalMotionBlurSettings(MonoObject* managedInstance);
-		static bool InternalGetEnabled(ScriptMotionBlurSettings* thisPtr);
-		static void InternalSetEnabled(ScriptMotionBlurSettings* thisPtr, bool value);
-		static MotionBlurDomain InternalGetDomain(ScriptMotionBlurSettings* thisPtr);
-		static void InternalSetDomain(ScriptMotionBlurSettings* thisPtr, MotionBlurDomain value);
-		static MotionBlurFilter InternalGetFilter(ScriptMotionBlurSettings* thisPtr);
-		static void InternalSetFilter(ScriptMotionBlurSettings* thisPtr, MotionBlurFilter value);
-		static MotionBlurQuality InternalGetQuality(ScriptMotionBlurSettings* thisPtr);
-		static void InternalSetQuality(ScriptMotionBlurSettings* thisPtr, MotionBlurQuality value);
-		static float InternalGetMaximumRadius(ScriptMotionBlurSettings* thisPtr);
-		static void InternalSetMaximumRadius(ScriptMotionBlurSettings* thisPtr, float value);
+		static bool InternalGetEnabled(ScriptMotionBlurSettings* self);
+		static void InternalSetEnabled(ScriptMotionBlurSettings* self, bool value);
+		static MotionBlurDomain InternalGetDomain(ScriptMotionBlurSettings* self);
+		static void InternalSetDomain(ScriptMotionBlurSettings* self, MotionBlurDomain value);
+		static MotionBlurFilter InternalGetFilter(ScriptMotionBlurSettings* self);
+		static void InternalSetFilter(ScriptMotionBlurSettings* self, MotionBlurFilter value);
+		static MotionBlurQuality InternalGetQuality(ScriptMotionBlurSettings* self);
+		static void InternalSetQuality(ScriptMotionBlurSettings* self, MotionBlurQuality value);
+		static float InternalGetMaximumRadius(ScriptMotionBlurSettings* self);
+		static void InternalSetMaximumRadius(ScriptMotionBlurSettings* self, float value);
 	};
 }

@@ -21,7 +21,7 @@ namespace bs
 		static MonoObject* CreateInstance();
 
 	private:
-		static MonoObject* InternalGetRef(ScriptVectorField* thisPtr);
+		static MonoObject* InternalGetRef(ScriptVectorField* self);
 
 		static void InternalCreate(MonoObject* managedInstance, __VECTOR_FIELD_DESCInterop* desc, MonoArray* values);
 	};

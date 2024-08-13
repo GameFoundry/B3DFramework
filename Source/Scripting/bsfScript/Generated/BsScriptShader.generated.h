@@ -23,9 +23,9 @@ namespace bs
 		static MonoObject* CreateInstance();
 
 	private:
-		static MonoObject* InternalGetRef(ScriptShader* thisPtr);
+		static MonoObject* InternalGetRef(ScriptShader* self);
 
-		static MonoArray* InternalGetVariationParams(ScriptShader* thisPtr);
-		static MonoArray* InternalGetParameters(ScriptShader* thisPtr);
+		static MonoArray* InternalGetVariationParams(ScriptShader* self);
+		static MonoArray* InternalGetParameters(ScriptShader* self);
 	};
 }

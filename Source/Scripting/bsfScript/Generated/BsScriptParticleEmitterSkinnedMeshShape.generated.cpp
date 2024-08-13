@@ -35,17 +35,17 @@ namespace bs
 		new (B3DAllocate<ScriptParticleEmitterSkinnedMeshShape>()) ScriptParticleEmitterSkinnedMeshShape(managedInstance, value);
 		return managedInstance;
 	}
-	void ScriptParticleEmitterSkinnedMeshShape::InternalSetOptions(ScriptParticleEmitterSkinnedMeshShape* thisPtr, __PARTICLE_SKINNED_MESH_SHAPE_DESCInterop* options)
+	void ScriptParticleEmitterSkinnedMeshShape::InternalSetOptions(ScriptParticleEmitterSkinnedMeshShape* self, __PARTICLE_SKINNED_MESH_SHAPE_DESCInterop* options)
 	{
 		PARTICLE_SKINNED_MESH_SHAPE_DESC tmpoptions;
 		tmpoptions = ScriptParticleSkinnedMeshShapeOptions::FromInterop(*options);
-		thisPtr->GetInternal()->SetOptions(tmpoptions);
+		self->GetInternal()->SetOptions(tmpoptions);
 	}
 
-	void ScriptParticleEmitterSkinnedMeshShape::InternalGetOptions(ScriptParticleEmitterSkinnedMeshShape* thisPtr, __PARTICLE_SKINNED_MESH_SHAPE_DESCInterop* __output)
+	void ScriptParticleEmitterSkinnedMeshShape::InternalGetOptions(ScriptParticleEmitterSkinnedMeshShape* self, __PARTICLE_SKINNED_MESH_SHAPE_DESCInterop* __output)
 	{
 		PARTICLE_SKINNED_MESH_SHAPE_DESC tmp__output;
-		tmp__output = thisPtr->GetInternal()->GetOptions();
+		tmp__output = self->GetInternal()->GetOptions();
 
 		__PARTICLE_SKINNED_MESH_SHAPE_DESCInterop interop__output;
 		interop__output = ScriptParticleSkinnedMeshShapeOptions::ToInterop(tmp__output);
@@ -56,13 +56,13 @@ namespace bs
 	{
 		PARTICLE_SKINNED_MESH_SHAPE_DESC tmpdesc;
 		tmpdesc = ScriptParticleSkinnedMeshShapeOptions::FromInterop(*desc);
-		SPtr<ParticleEmitterSkinnedMeshShape> instance = ParticleEmitterSkinnedMeshShape::Create(tmpdesc);
-		new (B3DAllocate<ScriptParticleEmitterSkinnedMeshShape>())ScriptParticleEmitterSkinnedMeshShape(managedInstance, instance);
+		SPtr<ParticleEmitterSkinnedMeshShape> nativeObject = ParticleEmitterSkinnedMeshShape::Create(tmpdesc);
+		new (B3DAllocate<ScriptParticleEmitterSkinnedMeshShape>())ScriptParticleEmitterSkinnedMeshShape(managedInstance, nativeObject);
 	}
 
 	void ScriptParticleEmitterSkinnedMeshShape::InternalCreate0(MonoObject* managedInstance)
 	{
-		SPtr<ParticleEmitterSkinnedMeshShape> instance = ParticleEmitterSkinnedMeshShape::Create();
-		new (B3DAllocate<ScriptParticleEmitterSkinnedMeshShape>())ScriptParticleEmitterSkinnedMeshShape(managedInstance, instance);
+		SPtr<ParticleEmitterSkinnedMeshShape> nativeObject = ParticleEmitterSkinnedMeshShape::Create();
+		new (B3DAllocate<ScriptParticleEmitterSkinnedMeshShape>())ScriptParticleEmitterSkinnedMeshShape(managedInstance, nativeObject);
 	}
 }

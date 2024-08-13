@@ -35,28 +35,28 @@ namespace bs
 		new (B3DAllocate<ScriptParticleTextureAnimation>()) ScriptParticleTextureAnimation(managedInstance, value);
 		return managedInstance;
 	}
-	void ScriptParticleTextureAnimation::InternalSetOptions(ScriptParticleTextureAnimation* thisPtr, PARTICLE_TEXTURE_ANIMATION_DESC* options)
+	void ScriptParticleTextureAnimation::InternalSetOptions(ScriptParticleTextureAnimation* self, PARTICLE_TEXTURE_ANIMATION_DESC* options)
 	{
-		thisPtr->GetInternal()->SetOptions(*options);
+		self->GetInternal()->SetOptions(*options);
 	}
 
-	void ScriptParticleTextureAnimation::InternalGetOptions(ScriptParticleTextureAnimation* thisPtr, PARTICLE_TEXTURE_ANIMATION_DESC* __output)
+	void ScriptParticleTextureAnimation::InternalGetOptions(ScriptParticleTextureAnimation* self, PARTICLE_TEXTURE_ANIMATION_DESC* __output)
 	{
 		PARTICLE_TEXTURE_ANIMATION_DESC tmp__output;
-		tmp__output = thisPtr->GetInternal()->GetOptions();
+		tmp__output = self->GetInternal()->GetOptions();
 
 		*__output = tmp__output;
 	}
 
 	void ScriptParticleTextureAnimation::InternalCreate(MonoObject* managedInstance, PARTICLE_TEXTURE_ANIMATION_DESC* desc)
 	{
-		SPtr<ParticleTextureAnimation> instance = ParticleTextureAnimation::Create(*desc);
-		new (B3DAllocate<ScriptParticleTextureAnimation>())ScriptParticleTextureAnimation(managedInstance, instance);
+		SPtr<ParticleTextureAnimation> nativeObject = ParticleTextureAnimation::Create(*desc);
+		new (B3DAllocate<ScriptParticleTextureAnimation>())ScriptParticleTextureAnimation(managedInstance, nativeObject);
 	}
 
 	void ScriptParticleTextureAnimation::InternalCreate0(MonoObject* managedInstance)
 	{
-		SPtr<ParticleTextureAnimation> instance = ParticleTextureAnimation::Create();
-		new (B3DAllocate<ScriptParticleTextureAnimation>())ScriptParticleTextureAnimation(managedInstance, instance);
+		SPtr<ParticleTextureAnimation> nativeObject = ParticleTextureAnimation::Create();
+		new (B3DAllocate<ScriptParticleTextureAnimation>())ScriptParticleTextureAnimation(managedInstance, nativeObject);
 	}
 }

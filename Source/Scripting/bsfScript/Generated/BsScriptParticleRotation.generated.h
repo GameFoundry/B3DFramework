@@ -22,8 +22,8 @@ namespace bs
 		static MonoObject* Create(const SPtr<ParticleRotation>& value);
 
 	private:
-		static void InternalSetOptions(ScriptParticleRotation* thisPtr, __PARTICLE_ROTATION_DESCInterop* options);
-		static void InternalGetOptions(ScriptParticleRotation* thisPtr, __PARTICLE_ROTATION_DESCInterop* __output);
+		static void InternalSetOptions(ScriptParticleRotation* self, __PARTICLE_ROTATION_DESCInterop* options);
+		static void InternalGetOptions(ScriptParticleRotation* self, __PARTICLE_ROTATION_DESCInterop* __output);
 		static void InternalCreate(MonoObject* managedInstance, __PARTICLE_ROTATION_DESCInterop* desc);
 		static void InternalCreate0(MonoObject* managedInstance);
 	};

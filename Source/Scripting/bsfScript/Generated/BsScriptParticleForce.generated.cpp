@@ -35,17 +35,17 @@ namespace bs
 		new (B3DAllocate<ScriptParticleForce>()) ScriptParticleForce(managedInstance, value);
 		return managedInstance;
 	}
-	void ScriptParticleForce::InternalSetOptions(ScriptParticleForce* thisPtr, __PARTICLE_FORCE_DESCInterop* options)
+	void ScriptParticleForce::InternalSetOptions(ScriptParticleForce* self, __PARTICLE_FORCE_DESCInterop* options)
 	{
 		PARTICLE_FORCE_DESC tmpoptions;
 		tmpoptions = ScriptParticleForceOptions::FromInterop(*options);
-		thisPtr->GetInternal()->SetOptions(tmpoptions);
+		self->GetInternal()->SetOptions(tmpoptions);
 	}
 
-	void ScriptParticleForce::InternalGetOptions(ScriptParticleForce* thisPtr, __PARTICLE_FORCE_DESCInterop* __output)
+	void ScriptParticleForce::InternalGetOptions(ScriptParticleForce* self, __PARTICLE_FORCE_DESCInterop* __output)
 	{
 		PARTICLE_FORCE_DESC tmp__output;
-		tmp__output = thisPtr->GetInternal()->GetOptions();
+		tmp__output = self->GetInternal()->GetOptions();
 
 		__PARTICLE_FORCE_DESCInterop interop__output;
 		interop__output = ScriptParticleForceOptions::ToInterop(tmp__output);
@@ -56,13 +56,13 @@ namespace bs
 	{
 		PARTICLE_FORCE_DESC tmpdesc;
 		tmpdesc = ScriptParticleForceOptions::FromInterop(*desc);
-		SPtr<ParticleForce> instance = ParticleForce::Create(tmpdesc);
-		new (B3DAllocate<ScriptParticleForce>())ScriptParticleForce(managedInstance, instance);
+		SPtr<ParticleForce> nativeObject = ParticleForce::Create(tmpdesc);
+		new (B3DAllocate<ScriptParticleForce>())ScriptParticleForce(managedInstance, nativeObject);
 	}
 
 	void ScriptParticleForce::InternalCreate0(MonoObject* managedInstance)
 	{
-		SPtr<ParticleForce> instance = ParticleForce::Create();
-		new (B3DAllocate<ScriptParticleForce>())ScriptParticleForce(managedInstance, instance);
+		SPtr<ParticleForce> nativeObject = ParticleForce::Create();
+		new (B3DAllocate<ScriptParticleForce>())ScriptParticleForce(managedInstance, nativeObject);
 	}
 }

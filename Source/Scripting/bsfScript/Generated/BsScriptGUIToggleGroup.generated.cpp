@@ -33,7 +33,7 @@ namespace bs
 	}
 	void ScriptGUIToggleGroup::InternalCreate(MonoObject* managedInstance, bool allowAllOff)
 	{
-		SPtr<GUIToggleGroup> instance = GUIToggleGroup::Create(allowAllOff);
-		new (B3DAllocate<ScriptGUIToggleGroup>())ScriptGUIToggleGroup(managedInstance, instance);
+		SPtr<GUIToggleGroup> nativeObject = GUIToggleGroup::Create(allowAllOff);
+		new (B3DAllocate<ScriptGUIToggleGroup>())ScriptGUIToggleGroup(managedInstance, nativeObject);
 	}
 }

@@ -32,20 +32,20 @@ namespace bs
 
 	}
 
-	void ScriptDecal::InternalSetMaterial(ScriptDecal* thisPtr, MonoObject* material)
+	void ScriptDecal::InternalSetMaterial(ScriptDecal* self, MonoObject* material)
 	{
 		TResourceHandle<Material> tmpmaterial;
 		ScriptRRefBase* scriptObjectWrappermaterial;
 		scriptObjectWrappermaterial = ScriptRRefBase::ToNative(material);
 		if(scriptObjectWrappermaterial != nullptr)
 			tmpmaterial = B3DStaticResourceCast<Material>(scriptObjectWrappermaterial->GetHandle());
-		thisPtr->GetHandle()->SetMaterial(tmpmaterial);
+		self->GetHandle()->SetMaterial(tmpmaterial);
 	}
 
-	MonoObject* ScriptDecal::InternalGetMaterial(ScriptDecal* thisPtr)
+	MonoObject* ScriptDecal::InternalGetMaterial(ScriptDecal* self)
 	{
 		TResourceHandle<Material> tmp__output;
-		tmp__output = thisPtr->GetHandle()->GetMaterial();
+		tmp__output = self->GetHandle()->GetMaterial();
 
 		MonoObject* __output;
 		ScriptRRefBase* script__output;
@@ -58,28 +58,28 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptDecal::InternalSetSize(ScriptDecal* thisPtr, TVector2<float>* size)
+	void ScriptDecal::InternalSetSize(ScriptDecal* self, TVector2<float>* size)
 	{
-		thisPtr->GetHandle()->SetSize(*size);
+		self->GetHandle()->SetSize(*size);
 	}
 
-	void ScriptDecal::InternalGetSize(ScriptDecal* thisPtr, TVector2<float>* __output)
+	void ScriptDecal::InternalGetSize(ScriptDecal* self, TVector2<float>* __output)
 	{
 		TVector2<float> tmp__output;
-		tmp__output = thisPtr->GetHandle()->GetSize();
+		tmp__output = self->GetHandle()->GetSize();
 
 		*__output = tmp__output;
 	}
 
-	void ScriptDecal::InternalSetMaxDistance(ScriptDecal* thisPtr, float distance)
+	void ScriptDecal::InternalSetMaxDistance(ScriptDecal* self, float distance)
 	{
-		thisPtr->GetHandle()->SetMaxDistance(distance);
+		self->GetHandle()->SetMaxDistance(distance);
 	}
 
-	float ScriptDecal::InternalGetMaxDistance(ScriptDecal* thisPtr)
+	float ScriptDecal::InternalGetMaxDistance(ScriptDecal* self)
 	{
 		float tmp__output;
-		tmp__output = thisPtr->GetHandle()->GetMaxDistance();
+		tmp__output = self->GetHandle()->GetMaxDistance();
 
 		float __output;
 		__output = tmp__output;
@@ -87,15 +87,15 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptDecal::InternalSetLayer(ScriptDecal* thisPtr, uint64_t layer)
+	void ScriptDecal::InternalSetLayer(ScriptDecal* self, uint64_t layer)
 	{
-		thisPtr->GetHandle()->SetLayer(layer);
+		self->GetHandle()->SetLayer(layer);
 	}
 
-	uint64_t ScriptDecal::InternalGetLayer(ScriptDecal* thisPtr)
+	uint64_t ScriptDecal::InternalGetLayer(ScriptDecal* self)
 	{
 		uint64_t tmp__output;
-		tmp__output = thisPtr->GetHandle()->GetLayer();
+		tmp__output = self->GetHandle()->GetLayer();
 
 		uint64_t __output;
 		__output = tmp__output;
@@ -103,15 +103,15 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptDecal::InternalSetLayerMask(ScriptDecal* thisPtr, uint32_t mask)
+	void ScriptDecal::InternalSetLayerMask(ScriptDecal* self, uint32_t mask)
 	{
-		thisPtr->GetHandle()->SetLayerMask(mask);
+		self->GetHandle()->SetLayerMask(mask);
 	}
 
-	uint32_t ScriptDecal::InternalGetLayerMask(ScriptDecal* thisPtr)
+	uint32_t ScriptDecal::InternalGetLayerMask(ScriptDecal* self)
 	{
 		uint32_t tmp__output;
-		tmp__output = thisPtr->GetHandle()->GetLayerMask();
+		tmp__output = self->GetHandle()->GetLayerMask();
 
 		uint32_t __output;
 		__output = tmp__output;

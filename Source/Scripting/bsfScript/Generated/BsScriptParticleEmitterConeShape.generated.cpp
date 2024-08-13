@@ -35,17 +35,17 @@ namespace bs
 		new (B3DAllocate<ScriptParticleEmitterConeShape>()) ScriptParticleEmitterConeShape(managedInstance, value);
 		return managedInstance;
 	}
-	void ScriptParticleEmitterConeShape::InternalSetOptions(ScriptParticleEmitterConeShape* thisPtr, __PARTICLE_CONE_SHAPE_DESCInterop* options)
+	void ScriptParticleEmitterConeShape::InternalSetOptions(ScriptParticleEmitterConeShape* self, __PARTICLE_CONE_SHAPE_DESCInterop* options)
 	{
 		PARTICLE_CONE_SHAPE_DESC tmpoptions;
 		tmpoptions = ScriptParticleConeShapeOptions::FromInterop(*options);
-		thisPtr->GetInternal()->SetOptions(tmpoptions);
+		self->GetInternal()->SetOptions(tmpoptions);
 	}
 
-	void ScriptParticleEmitterConeShape::InternalGetOptions(ScriptParticleEmitterConeShape* thisPtr, __PARTICLE_CONE_SHAPE_DESCInterop* __output)
+	void ScriptParticleEmitterConeShape::InternalGetOptions(ScriptParticleEmitterConeShape* self, __PARTICLE_CONE_SHAPE_DESCInterop* __output)
 	{
 		PARTICLE_CONE_SHAPE_DESC tmp__output;
-		tmp__output = thisPtr->GetInternal()->GetOptions();
+		tmp__output = self->GetInternal()->GetOptions();
 
 		__PARTICLE_CONE_SHAPE_DESCInterop interop__output;
 		interop__output = ScriptParticleConeShapeOptions::ToInterop(tmp__output);
@@ -56,13 +56,13 @@ namespace bs
 	{
 		PARTICLE_CONE_SHAPE_DESC tmpdesc;
 		tmpdesc = ScriptParticleConeShapeOptions::FromInterop(*desc);
-		SPtr<ParticleEmitterConeShape> instance = ParticleEmitterConeShape::Create(tmpdesc);
-		new (B3DAllocate<ScriptParticleEmitterConeShape>())ScriptParticleEmitterConeShape(managedInstance, instance);
+		SPtr<ParticleEmitterConeShape> nativeObject = ParticleEmitterConeShape::Create(tmpdesc);
+		new (B3DAllocate<ScriptParticleEmitterConeShape>())ScriptParticleEmitterConeShape(managedInstance, nativeObject);
 	}
 
 	void ScriptParticleEmitterConeShape::InternalCreate0(MonoObject* managedInstance)
 	{
-		SPtr<ParticleEmitterConeShape> instance = ParticleEmitterConeShape::Create();
-		new (B3DAllocate<ScriptParticleEmitterConeShape>())ScriptParticleEmitterConeShape(managedInstance, instance);
+		SPtr<ParticleEmitterConeShape> nativeObject = ParticleEmitterConeShape::Create();
+		new (B3DAllocate<ScriptParticleEmitterConeShape>())ScriptParticleEmitterConeShape(managedInstance, nativeObject);
 	}
 }

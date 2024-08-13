@@ -37,15 +37,15 @@ namespace bs
 		OnToggledThunk = (OnToggledThunkDef)metaData.ScriptClass->GetMethodExact("Internal_OnToggled", "bool")->GetThunk();
 	}
 
-	void ScriptGUIToggleable::InternalSetIsToggled(ScriptGUIElementBase* thisPtr, bool isToggled)
+	void ScriptGUIToggleable::InternalSetIsToggled(ScriptGUIElementBase* self, bool isToggled)
 	{
-		static_cast<GUIToggleable*>(thisPtr->GetGuiElement())->SetIsToggled(isToggled);
+		static_cast<GUIToggleable*>(self->GetGuiElement())->SetIsToggled(isToggled);
 	}
 
-	bool ScriptGUIToggleable::InternalIsToggled(ScriptGUIElementBase* thisPtr)
+	bool ScriptGUIToggleable::InternalIsToggled(ScriptGUIElementBase* self)
 	{
 		bool tmp__output;
-		tmp__output = static_cast<GUIToggleable*>(thisPtr->GetGuiElement())->IsToggled();
+		tmp__output = static_cast<GUIToggleable*>(self->GetGuiElement())->IsToggled();
 
 		bool __output;
 		__output = tmp__output;

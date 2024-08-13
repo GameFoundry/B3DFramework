@@ -20,15 +20,15 @@ namespace bs
 		static MonoObject* CreateInstance();
 
 	private:
-		static MonoObject* InternalGetRef(ScriptAudioClip* thisPtr);
+		static MonoObject* InternalGetRef(ScriptAudioClip* self);
 
-		static uint32_t InternalGetBitDepth(ScriptAudioClip* thisPtr);
-		static uint32_t InternalGetFrequency(ScriptAudioClip* thisPtr);
-		static uint32_t InternalGetNumChannels(ScriptAudioClip* thisPtr);
-		static AudioFormat InternalGetFormat(ScriptAudioClip* thisPtr);
-		static AudioReadMode InternalGetReadMode(ScriptAudioClip* thisPtr);
-		static float InternalGetLength(ScriptAudioClip* thisPtr);
-		static uint32_t InternalGetNumSamples(ScriptAudioClip* thisPtr);
-		static bool InternalIs3D(ScriptAudioClip* thisPtr);
+		static uint32_t InternalGetBitDepth(ScriptAudioClip* self);
+		static uint32_t InternalGetFrequency(ScriptAudioClip* self);
+		static uint32_t InternalGetNumChannels(ScriptAudioClip* self);
+		static AudioFormat InternalGetFormat(ScriptAudioClip* self);
+		static AudioReadMode InternalGetReadMode(ScriptAudioClip* self);
+		static float InternalGetLength(ScriptAudioClip* self);
+		static uint32_t InternalGetNumSamples(ScriptAudioClip* self);
+		static bool InternalIs3D(ScriptAudioClip* self);
 	};
 }

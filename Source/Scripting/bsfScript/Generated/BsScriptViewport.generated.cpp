@@ -48,20 +48,20 @@ namespace bs
 		new (B3DAllocate<ScriptViewport>()) ScriptViewport(managedInstance, value);
 		return managedInstance;
 	}
-	void ScriptViewport::InternalSetTarget(ScriptViewport* thisPtr, MonoObject* target)
+	void ScriptViewport::InternalSetTarget(ScriptViewport* self, MonoObject* target)
 	{
 		SPtr<RenderTarget> tmptarget;
 		ScriptRenderTargetBase* scriptObjectWrappertarget;
 		scriptObjectWrappertarget = (ScriptRenderTargetBase*)ScriptRenderTarget::ToNative(target);
 		if(scriptObjectWrappertarget != nullptr)
 			tmptarget = scriptObjectWrappertarget->GetInternal();
-		thisPtr->GetInternal()->SetTarget(tmptarget);
+		self->GetInternal()->SetTarget(tmptarget);
 	}
 
-	MonoObject* ScriptViewport::InternalGetTarget(ScriptViewport* thisPtr)
+	MonoObject* ScriptViewport::InternalGetTarget(ScriptViewport* self)
 	{
 		SPtr<RenderTarget> tmp__output;
-		tmp__output = thisPtr->GetInternal()->GetTarget();
+		tmp__output = self->GetInternal()->GetTarget();
 
 		MonoObject* __output;
 		if(tmp__output)
@@ -77,36 +77,36 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptViewport::InternalSetArea(ScriptViewport* thisPtr, Rect2* area)
+	void ScriptViewport::InternalSetArea(ScriptViewport* self, Rect2* area)
 	{
-		thisPtr->GetInternal()->SetArea(*area);
+		self->GetInternal()->SetArea(*area);
 	}
 
-	void ScriptViewport::InternalGetArea(ScriptViewport* thisPtr, Rect2* __output)
+	void ScriptViewport::InternalGetArea(ScriptViewport* self, Rect2* __output)
 	{
 		Rect2 tmp__output;
-		tmp__output = thisPtr->GetInternal()->GetArea();
+		tmp__output = self->GetInternal()->GetArea();
 
 		*__output = tmp__output;
 	}
 
-	void ScriptViewport::InternalGetPixelArea(ScriptViewport* thisPtr, Rect2I* __output)
+	void ScriptViewport::InternalGetPixelArea(ScriptViewport* self, Rect2I* __output)
 	{
 		Rect2I tmp__output;
-		tmp__output = thisPtr->GetInternal()->GetPixelArea();
+		tmp__output = self->GetInternal()->GetPixelArea();
 
 		*__output = tmp__output;
 	}
 
-	void ScriptViewport::InternalSetClearFlags(ScriptViewport* thisPtr, ClearFlagBits flags)
+	void ScriptViewport::InternalSetClearFlags(ScriptViewport* self, ClearFlagBits flags)
 	{
-		thisPtr->GetInternal()->SetClearFlags(flags);
+		self->GetInternal()->SetClearFlags(flags);
 	}
 
-	ClearFlagBits ScriptViewport::InternalGetClearFlags(ScriptViewport* thisPtr)
+	ClearFlagBits ScriptViewport::InternalGetClearFlags(ScriptViewport* self)
 	{
 		Flags<ClearFlagBits> tmp__output;
-		tmp__output = thisPtr->GetInternal()->GetClearFlags();
+		tmp__output = self->GetInternal()->GetClearFlags();
 
 		ClearFlagBits __output;
 		__output = (ClearFlagBits)(uint32_t)tmp__output;
@@ -114,28 +114,28 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptViewport::InternalSetClearColorValue(ScriptViewport* thisPtr, Color* color)
+	void ScriptViewport::InternalSetClearColorValue(ScriptViewport* self, Color* color)
 	{
-		thisPtr->GetInternal()->SetClearColorValue(*color);
+		self->GetInternal()->SetClearColorValue(*color);
 	}
 
-	void ScriptViewport::InternalGetClearColorValue(ScriptViewport* thisPtr, Color* __output)
+	void ScriptViewport::InternalGetClearColorValue(ScriptViewport* self, Color* __output)
 	{
 		Color tmp__output;
-		tmp__output = thisPtr->GetInternal()->GetClearColorValue();
+		tmp__output = self->GetInternal()->GetClearColorValue();
 
 		*__output = tmp__output;
 	}
 
-	void ScriptViewport::InternalSetClearDepthValue(ScriptViewport* thisPtr, float depth)
+	void ScriptViewport::InternalSetClearDepthValue(ScriptViewport* self, float depth)
 	{
-		thisPtr->GetInternal()->SetClearDepthValue(depth);
+		self->GetInternal()->SetClearDepthValue(depth);
 	}
 
-	float ScriptViewport::InternalGetClearDepthValue(ScriptViewport* thisPtr)
+	float ScriptViewport::InternalGetClearDepthValue(ScriptViewport* self)
 	{
 		float tmp__output;
-		tmp__output = thisPtr->GetInternal()->GetClearDepthValue();
+		tmp__output = self->GetInternal()->GetClearDepthValue();
 
 		float __output;
 		__output = tmp__output;
@@ -143,15 +143,15 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptViewport::InternalSetClearStencilValue(ScriptViewport* thisPtr, uint16_t value)
+	void ScriptViewport::InternalSetClearStencilValue(ScriptViewport* self, uint16_t value)
 	{
-		thisPtr->GetInternal()->SetClearStencilValue(value);
+		self->GetInternal()->SetClearStencilValue(value);
 	}
 
-	uint16_t ScriptViewport::InternalGetClearStencilValue(ScriptViewport* thisPtr)
+	uint16_t ScriptViewport::InternalGetClearStencilValue(ScriptViewport* self)
 	{
 		uint16_t tmp__output;
-		tmp__output = thisPtr->GetInternal()->GetClearStencilValue();
+		tmp__output = self->GetInternal()->GetClearStencilValue();
 
 		uint16_t __output;
 		__output = tmp__output;
@@ -166,7 +166,7 @@ namespace bs
 		scriptObjectWrappertarget = (ScriptRenderTargetBase*)ScriptRenderTarget::ToNative(target);
 		if(scriptObjectWrappertarget != nullptr)
 			tmptarget = scriptObjectWrappertarget->GetInternal();
-		SPtr<Viewport> instance = Viewport::Create(tmptarget, x, y, width, height);
-		new (B3DAllocate<ScriptViewport>())ScriptViewport(managedInstance, instance);
+		SPtr<Viewport> nativeObject = Viewport::Create(tmptarget, x, y, width, height);
+		new (B3DAllocate<ScriptViewport>())ScriptViewport(managedInstance, nativeObject);
 	}
 }

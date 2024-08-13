@@ -33,10 +33,10 @@ namespace bs
 
 	}
 
-	uint32_t ScriptLightProbeVolume::InternalAddProbe(ScriptLightProbeVolume* thisPtr, TVector3<float>* position)
+	uint32_t ScriptLightProbeVolume::InternalAddProbe(ScriptLightProbeVolume* self, TVector3<float>* position)
 	{
 		uint32_t tmp__output;
-		tmp__output = thisPtr->GetHandle()->AddProbe(*position);
+		tmp__output = self->GetHandle()->AddProbe(*position);
 
 		uint32_t __output;
 		__output = tmp__output;
@@ -44,28 +44,28 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptLightProbeVolume::InternalSetProbePosition(ScriptLightProbeVolume* thisPtr, uint32_t handle, TVector3<float>* position)
+	void ScriptLightProbeVolume::InternalSetProbePosition(ScriptLightProbeVolume* self, uint32_t handle, TVector3<float>* position)
 	{
-		thisPtr->GetHandle()->SetProbePosition(handle, *position);
+		self->GetHandle()->SetProbePosition(handle, *position);
 	}
 
-	void ScriptLightProbeVolume::InternalGetProbePosition(ScriptLightProbeVolume* thisPtr, uint32_t handle, TVector3<float>* __output)
+	void ScriptLightProbeVolume::InternalGetProbePosition(ScriptLightProbeVolume* self, uint32_t handle, TVector3<float>* __output)
 	{
 		TVector3<float> tmp__output;
-		tmp__output = thisPtr->GetHandle()->GetProbePosition(handle);
+		tmp__output = self->GetHandle()->GetProbePosition(handle);
 
 		*__output = tmp__output;
 	}
 
-	void ScriptLightProbeVolume::InternalRemoveProbe(ScriptLightProbeVolume* thisPtr, uint32_t handle)
+	void ScriptLightProbeVolume::InternalRemoveProbe(ScriptLightProbeVolume* self, uint32_t handle)
 	{
-		thisPtr->GetHandle()->RemoveProbe(handle);
+		self->GetHandle()->RemoveProbe(handle);
 	}
 
-	MonoArray* ScriptLightProbeVolume::InternalGetProbes(ScriptLightProbeVolume* thisPtr)
+	MonoArray* ScriptLightProbeVolume::InternalGetProbes(ScriptLightProbeVolume* self)
 	{
 		Vector<LightProbeInfo> nativeArray__output;
-		nativeArray__output = thisPtr->GetHandle()->GetProbes();
+		nativeArray__output = self->GetHandle()->GetProbes();
 
 		MonoArray* __output;
 		int elementCount__output = (int)nativeArray__output.size();
@@ -79,43 +79,43 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptLightProbeVolume::InternalRenderProbe(ScriptLightProbeVolume* thisPtr, uint32_t handle)
+	void ScriptLightProbeVolume::InternalRenderProbe(ScriptLightProbeVolume* self, uint32_t handle)
 	{
-		thisPtr->GetHandle()->RenderProbe(handle);
+		self->GetHandle()->RenderProbe(handle);
 	}
 
-	void ScriptLightProbeVolume::InternalRenderProbes(ScriptLightProbeVolume* thisPtr)
+	void ScriptLightProbeVolume::InternalRenderProbes(ScriptLightProbeVolume* self)
 	{
-		thisPtr->GetHandle()->RenderProbes();
+		self->GetHandle()->RenderProbes();
 	}
 
-	void ScriptLightProbeVolume::InternalResize(ScriptLightProbeVolume* thisPtr, AABox* volume, TVector3I<int32_t>* cellCount)
+	void ScriptLightProbeVolume::InternalResize(ScriptLightProbeVolume* self, AABox* volume, TVector3I<int32_t>* cellCount)
 	{
-		thisPtr->GetHandle()->Resize(*volume, *cellCount);
+		self->GetHandle()->Resize(*volume, *cellCount);
 	}
 
-	void ScriptLightProbeVolume::InternalClip(ScriptLightProbeVolume* thisPtr)
+	void ScriptLightProbeVolume::InternalClip(ScriptLightProbeVolume* self)
 	{
-		thisPtr->GetHandle()->Clip();
+		self->GetHandle()->Clip();
 	}
 
-	void ScriptLightProbeVolume::InternalReset(ScriptLightProbeVolume* thisPtr)
+	void ScriptLightProbeVolume::InternalReset(ScriptLightProbeVolume* self)
 	{
-		thisPtr->GetHandle()->Reset();
+		self->GetHandle()->Reset();
 	}
 
-	void ScriptLightProbeVolume::InternalGetGridVolume(ScriptLightProbeVolume* thisPtr, AABox* __output)
+	void ScriptLightProbeVolume::InternalGetGridVolume(ScriptLightProbeVolume* self, AABox* __output)
 	{
 		AABox tmp__output;
-		tmp__output = thisPtr->GetHandle()->GetGridVolume();
+		tmp__output = self->GetHandle()->GetGridVolume();
 
 		*__output = tmp__output;
 	}
 
-	void ScriptLightProbeVolume::InternalGetCellCount(ScriptLightProbeVolume* thisPtr, TVector3I<int32_t>* __output)
+	void ScriptLightProbeVolume::InternalGetCellCount(ScriptLightProbeVolume* self, TVector3I<int32_t>* __output)
 	{
 		TVector3I<int32_t> tmp__output;
-		tmp__output = thisPtr->GetHandle()->GetCellCount();
+		tmp__output = self->GetHandle()->GetCellCount();
 
 		*__output = tmp__output;
 	}

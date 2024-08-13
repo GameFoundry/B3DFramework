@@ -34,19 +34,19 @@ namespace bs
 
 		return metaData.ScriptClass->CreateInstance("bool", ctorParams);
 	}
-	MonoObject* ScriptSpriteTexture::InternalGetRef(ScriptSpriteTexture* thisPtr)
+	MonoObject* ScriptSpriteTexture::InternalGetRef(ScriptSpriteTexture* self)
 	{
-		return thisPtr->GetRRef();
+		return self->GetRRef();
 	}
 
-	void ScriptSpriteTexture::InternalSetAtlasTexture(ScriptSpriteTexture* thisPtr, MonoObject* texture)
+	void ScriptSpriteTexture::InternalSetAtlasTexture(ScriptSpriteTexture* self, MonoObject* texture)
 	{
 		TResourceHandle<Texture> tmptexture;
 		ScriptRRefBase* scriptObjectWrappertexture;
 		scriptObjectWrappertexture = ScriptRRefBase::ToNative(texture);
 		if(scriptObjectWrappertexture != nullptr)
 			tmptexture = B3DStaticResourceCast<Texture>(scriptObjectWrappertexture->GetHandle());
-		thisPtr->GetHandle()->SetAtlasTexture(tmptexture);
+		self->GetHandle()->SetAtlasTexture(tmptexture);
 	}
 
 	void ScriptSpriteTexture::InternalCreate(MonoObject* managedInstance, MonoObject* texture)
@@ -56,15 +56,15 @@ namespace bs
 		scriptObjectWrappertexture = ScriptRRefBase::ToNative(texture);
 		if(scriptObjectWrappertexture != nullptr)
 			tmptexture = B3DStaticResourceCast<Texture>(scriptObjectWrappertexture->GetHandle());
-		TResourceHandle<SpriteTexture> instance = SpriteTexture::Create(tmptexture);
-		ScriptResourceManager::Instance().CreateBuiltinScriptResource(instance, managedInstance);
+		TResourceHandle<SpriteTexture> nativeObject = SpriteTexture::Create(tmptexture);
+		ScriptResourceManager::Instance().CreateBuiltinScriptResource(nativeObject, managedInstance);
 	}
 
 	void ScriptSpriteTexture::InternalCreate0(MonoObject* managedInstance, __SpriteTextureCreateInformationInterop* createInformation)
 	{
 		SpriteTextureCreateInformation tmpcreateInformation;
 		tmpcreateInformation = ScriptSpriteTextureCreateInformation::FromInterop(*createInformation);
-		TResourceHandle<SpriteTexture> instance = SpriteTexture::Create(tmpcreateInformation);
-		ScriptResourceManager::Instance().CreateBuiltinScriptResource(instance, managedInstance);
+		TResourceHandle<SpriteTexture> nativeObject = SpriteTexture::Create(tmpcreateInformation);
+		ScriptResourceManager::Instance().CreateBuiltinScriptResource(nativeObject, managedInstance);
 	}
 }

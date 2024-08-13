@@ -30,10 +30,10 @@ namespace bs
 
 	}
 
-	float ScriptDistanceJoint::InternalGetDistance(ScriptDistanceJoint* thisPtr)
+	float ScriptDistanceJoint::InternalGetDistance(ScriptDistanceJoint* self)
 	{
 		float tmp__output;
-		tmp__output = thisPtr->GetHandle()->GetDistance();
+		tmp__output = self->GetHandle()->GetDistance();
 
 		float __output;
 		__output = tmp__output;
@@ -41,10 +41,10 @@ namespace bs
 		return __output;
 	}
 
-	float ScriptDistanceJoint::InternalGetMinDistance(ScriptDistanceJoint* thisPtr)
+	float ScriptDistanceJoint::InternalGetMinDistance(ScriptDistanceJoint* self)
 	{
 		float tmp__output;
-		tmp__output = thisPtr->GetHandle()->GetMinDistance();
+		tmp__output = self->GetHandle()->GetMinDistance();
 
 		float __output;
 		__output = tmp__output;
@@ -52,15 +52,15 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptDistanceJoint::InternalSetMinDistance(ScriptDistanceJoint* thisPtr, float value)
+	void ScriptDistanceJoint::InternalSetMinDistance(ScriptDistanceJoint* self, float value)
 	{
-		thisPtr->GetHandle()->SetMinDistance(value);
+		self->GetHandle()->SetMinDistance(value);
 	}
 
-	float ScriptDistanceJoint::InternalGetMaxDistance(ScriptDistanceJoint* thisPtr)
+	float ScriptDistanceJoint::InternalGetMaxDistance(ScriptDistanceJoint* self)
 	{
 		float tmp__output;
-		tmp__output = thisPtr->GetHandle()->GetMaxDistance();
+		tmp__output = self->GetHandle()->GetMaxDistance();
 
 		float __output;
 		__output = tmp__output;
@@ -68,15 +68,15 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptDistanceJoint::InternalSetMaxDistance(ScriptDistanceJoint* thisPtr, float value)
+	void ScriptDistanceJoint::InternalSetMaxDistance(ScriptDistanceJoint* self, float value)
 	{
-		thisPtr->GetHandle()->SetMaxDistance(value);
+		self->GetHandle()->SetMaxDistance(value);
 	}
 
-	float ScriptDistanceJoint::InternalGetTolerance(ScriptDistanceJoint* thisPtr)
+	float ScriptDistanceJoint::InternalGetTolerance(ScriptDistanceJoint* self)
 	{
 		float tmp__output;
-		tmp__output = thisPtr->GetHandle()->GetTolerance();
+		tmp__output = self->GetHandle()->GetTolerance();
 
 		float __output;
 		__output = tmp__output;
@@ -84,33 +84,33 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptDistanceJoint::InternalSetTolerance(ScriptDistanceJoint* thisPtr, float value)
+	void ScriptDistanceJoint::InternalSetTolerance(ScriptDistanceJoint* self, float value)
 	{
-		thisPtr->GetHandle()->SetTolerance(value);
+		self->GetHandle()->SetTolerance(value);
 	}
 
-	void ScriptDistanceJoint::InternalGetSpring(ScriptDistanceJoint* thisPtr, Spring* __output)
+	void ScriptDistanceJoint::InternalGetSpring(ScriptDistanceJoint* self, Spring* __output)
 	{
 		Spring tmp__output;
-		tmp__output = thisPtr->GetHandle()->GetSpring();
+		tmp__output = self->GetHandle()->GetSpring();
 
 		*__output = tmp__output;
 	}
 
-	void ScriptDistanceJoint::InternalSetSpring(ScriptDistanceJoint* thisPtr, Spring* value)
+	void ScriptDistanceJoint::InternalSetSpring(ScriptDistanceJoint* self, Spring* value)
 	{
-		thisPtr->GetHandle()->SetSpring(*value);
+		self->GetHandle()->SetSpring(*value);
 	}
 
-	void ScriptDistanceJoint::InternalSetFlag(ScriptDistanceJoint* thisPtr, DistanceJointFlag flag, bool enabled)
+	void ScriptDistanceJoint::InternalSetFlag(ScriptDistanceJoint* self, DistanceJointFlag flag, bool enabled)
 	{
-		thisPtr->GetHandle()->SetFlag(flag, enabled);
+		self->GetHandle()->SetFlag(flag, enabled);
 	}
 
-	bool ScriptDistanceJoint::InternalHasFlag(ScriptDistanceJoint* thisPtr, DistanceJointFlag flag)
+	bool ScriptDistanceJoint::InternalHasFlag(ScriptDistanceJoint* self, DistanceJointFlag flag)
 	{
 		bool tmp__output;
-		tmp__output = thisPtr->GetHandle()->HasFlag(flag);
+		tmp__output = self->GetHandle()->HasFlag(flag);
 
 		bool __output;
 		__output = tmp__output;

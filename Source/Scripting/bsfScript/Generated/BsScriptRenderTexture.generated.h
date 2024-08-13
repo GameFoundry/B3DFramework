@@ -27,8 +27,8 @@ namespace bs
 		static void InternalCreate1(MonoObject* managedInstance, MonoObject* colorSurface, MonoObject* depthStencilSurface);
 		static void InternalCreate2(MonoObject* managedInstance, MonoArray* colorSurface);
 		static void InternalCreate3(MonoObject* managedInstance, MonoArray* colorSurface, MonoObject* depthStencilSurface);
-		static MonoObject* InternalGetColorSurface(ScriptRenderTexture* thisPtr);
-		static MonoArray* InternalGetColorSurfaces(ScriptRenderTexture* thisPtr);
-		static MonoObject* InternalGetDepthStencilSurface(ScriptRenderTexture* thisPtr);
+		static MonoObject* InternalGetColorSurface(ScriptRenderTexture* self);
+		static MonoArray* InternalGetColorSurfaces(ScriptRenderTexture* self);
+		static MonoObject* InternalGetDepthStencilSurface(ScriptRenderTexture* self);
 	};
 }

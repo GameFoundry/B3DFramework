@@ -42,8 +42,8 @@ namespace bs
 				nativeArrayoptions[elementIndex] = scriptArrayoptions.Get<GUIOption>(elementIndex);
 			}
 		}
-		GUIButton* instance = GUIButton::Create(tmpcontents, tmpstyleClass, nativeArrayoptions);
-		new (B3DAllocate<ScriptGUIButton>())ScriptGUIButton(managedInstance, instance);
+		GUIButton* nativeObject = GUIButton::Create(tmpcontents, tmpstyleClass, nativeArrayoptions);
+		new (B3DAllocate<ScriptGUIButton>())ScriptGUIButton(managedInstance, nativeObject);
 	}
 
 	void ScriptGUIButton::InternalCreate0(MonoObject* managedInstance, __GUIContentInterop* contents, MonoArray* options)
@@ -60,8 +60,8 @@ namespace bs
 				nativeArrayoptions[elementIndex] = scriptArrayoptions.Get<GUIOption>(elementIndex);
 			}
 		}
-		GUIButton* instance = GUIButton::Create(tmpcontents, nativeArrayoptions);
-		new (B3DAllocate<ScriptGUIButton>())ScriptGUIButton(managedInstance, instance);
+		GUIButton* nativeObject = GUIButton::Create(tmpcontents, nativeArrayoptions);
+		new (B3DAllocate<ScriptGUIButton>())ScriptGUIButton(managedInstance, nativeObject);
 	}
 
 	void ScriptGUIButton::InternalCreate1(MonoObject* managedInstance, MonoString* styleClass, MonoArray* options)
@@ -78,8 +78,8 @@ namespace bs
 				nativeArrayoptions[elementIndex] = scriptArrayoptions.Get<GUIOption>(elementIndex);
 			}
 		}
-		GUIButton* instance = GUIButton::Create(tmpstyleClass, nativeArrayoptions);
-		new (B3DAllocate<ScriptGUIButton>())ScriptGUIButton(managedInstance, instance);
+		GUIButton* nativeObject = GUIButton::Create(tmpstyleClass, nativeArrayoptions);
+		new (B3DAllocate<ScriptGUIButton>())ScriptGUIButton(managedInstance, nativeObject);
 	}
 
 	void ScriptGUIButton::InternalCreate2(MonoObject* managedInstance, MonoArray* options)
@@ -94,7 +94,7 @@ namespace bs
 				nativeArrayoptions[elementIndex] = scriptArrayoptions.Get<GUIOption>(elementIndex);
 			}
 		}
-		GUIButton* instance = GUIButton::Create(nativeArrayoptions);
-		new (B3DAllocate<ScriptGUIButton>())ScriptGUIButton(managedInstance, instance);
+		GUIButton* nativeObject = GUIButton::Create(nativeArrayoptions);
+		new (B3DAllocate<ScriptGUIButton>())ScriptGUIButton(managedInstance, nativeObject);
 	}
 }

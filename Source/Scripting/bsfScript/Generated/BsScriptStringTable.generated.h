@@ -19,14 +19,14 @@ namespace bs
 		static MonoObject* CreateInstance();
 
 	private:
-		static MonoObject* InternalGetRef(ScriptStringTable* thisPtr);
+		static MonoObject* InternalGetRef(ScriptStringTable* self);
 
-		static bool InternalContains(ScriptStringTable* thisPtr, MonoString* identifier);
-		static uint32_t InternalGetNumStrings(ScriptStringTable* thisPtr);
-		static MonoArray* InternalGetIdentifiers(ScriptStringTable* thisPtr);
-		static void InternalSetString(ScriptStringTable* thisPtr, MonoString* identifier, Language language, MonoString* value);
-		static MonoString* InternalGetString(ScriptStringTable* thisPtr, MonoString* identifier, Language language);
-		static void InternalRemoveString(ScriptStringTable* thisPtr, MonoString* identifier);
+		static bool InternalContains(ScriptStringTable* self, MonoString* identifier);
+		static uint32_t InternalGetNumStrings(ScriptStringTable* self);
+		static MonoArray* InternalGetIdentifiers(ScriptStringTable* self);
+		static void InternalSetString(ScriptStringTable* self, MonoString* identifier, Language language, MonoString* value);
+		static MonoString* InternalGetString(ScriptStringTable* self, MonoString* identifier, Language language);
+		static void InternalRemoveString(ScriptStringTable* self, MonoString* identifier);
 		static void InternalCreate(MonoObject* managedInstance);
 	};
 }

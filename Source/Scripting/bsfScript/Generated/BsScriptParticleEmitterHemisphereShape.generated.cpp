@@ -35,28 +35,28 @@ namespace bs
 		new (B3DAllocate<ScriptParticleEmitterHemisphereShape>()) ScriptParticleEmitterHemisphereShape(managedInstance, value);
 		return managedInstance;
 	}
-	void ScriptParticleEmitterHemisphereShape::InternalSetOptions(ScriptParticleEmitterHemisphereShape* thisPtr, PARTICLE_HEMISPHERE_SHAPE_DESC* options)
+	void ScriptParticleEmitterHemisphereShape::InternalSetOptions(ScriptParticleEmitterHemisphereShape* self, PARTICLE_HEMISPHERE_SHAPE_DESC* options)
 	{
-		thisPtr->GetInternal()->SetOptions(*options);
+		self->GetInternal()->SetOptions(*options);
 	}
 
-	void ScriptParticleEmitterHemisphereShape::InternalGetOptions(ScriptParticleEmitterHemisphereShape* thisPtr, PARTICLE_HEMISPHERE_SHAPE_DESC* __output)
+	void ScriptParticleEmitterHemisphereShape::InternalGetOptions(ScriptParticleEmitterHemisphereShape* self, PARTICLE_HEMISPHERE_SHAPE_DESC* __output)
 	{
 		PARTICLE_HEMISPHERE_SHAPE_DESC tmp__output;
-		tmp__output = thisPtr->GetInternal()->GetOptions();
+		tmp__output = self->GetInternal()->GetOptions();
 
 		*__output = tmp__output;
 	}
 
 	void ScriptParticleEmitterHemisphereShape::InternalCreate(MonoObject* managedInstance, PARTICLE_HEMISPHERE_SHAPE_DESC* desc)
 	{
-		SPtr<ParticleEmitterHemisphereShape> instance = ParticleEmitterHemisphereShape::Create(*desc);
-		new (B3DAllocate<ScriptParticleEmitterHemisphereShape>())ScriptParticleEmitterHemisphereShape(managedInstance, instance);
+		SPtr<ParticleEmitterHemisphereShape> nativeObject = ParticleEmitterHemisphereShape::Create(*desc);
+		new (B3DAllocate<ScriptParticleEmitterHemisphereShape>())ScriptParticleEmitterHemisphereShape(managedInstance, nativeObject);
 	}
 
 	void ScriptParticleEmitterHemisphereShape::InternalCreate0(MonoObject* managedInstance)
 	{
-		SPtr<ParticleEmitterHemisphereShape> instance = ParticleEmitterHemisphereShape::Create();
-		new (B3DAllocate<ScriptParticleEmitterHemisphereShape>())ScriptParticleEmitterHemisphereShape(managedInstance, instance);
+		SPtr<ParticleEmitterHemisphereShape> nativeObject = ParticleEmitterHemisphereShape::Create();
+		new (B3DAllocate<ScriptParticleEmitterHemisphereShape>())ScriptParticleEmitterHemisphereShape(managedInstance, nativeObject);
 	}
 }

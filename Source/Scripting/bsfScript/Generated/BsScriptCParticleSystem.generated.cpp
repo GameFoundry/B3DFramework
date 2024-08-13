@@ -52,20 +52,20 @@ namespace bs
 
 	}
 
-	void ScriptParticleSystem::InternalSetSettings(ScriptParticleSystem* thisPtr, MonoObject* settings)
+	void ScriptParticleSystem::InternalSetSettings(ScriptParticleSystem* self, MonoObject* settings)
 	{
 		SPtr<ParticleSystemSettings> tmpsettings;
 		ScriptParticleSystemSettings* scriptObjectWrappersettings;
 		scriptObjectWrappersettings = ScriptParticleSystemSettings::ToNative(settings);
 		if(scriptObjectWrappersettings != nullptr)
 			tmpsettings = scriptObjectWrappersettings->GetInternal();
-		thisPtr->GetHandle()->SetSettings(*tmpsettings);
+		self->GetHandle()->SetSettings(*tmpsettings);
 	}
 
-	MonoObject* ScriptParticleSystem::InternalGetSettings(ScriptParticleSystem* thisPtr)
+	MonoObject* ScriptParticleSystem::InternalGetSettings(ScriptParticleSystem* self)
 	{
 		SPtr<ParticleSystemSettings> tmp__output = B3DMakeShared<ParticleSystemSettings>();
-		*tmp__output = thisPtr->GetHandle()->GetSettings();
+		*tmp__output = self->GetHandle()->GetSettings();
 
 		MonoObject* __output;
 		__output = ScriptParticleSystemSettings::Create(tmp__output);
@@ -73,20 +73,20 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptParticleSystem::InternalSetGpuSimulationSettings(ScriptParticleSystem* thisPtr, MonoObject* settings)
+	void ScriptParticleSystem::InternalSetGpuSimulationSettings(ScriptParticleSystem* self, MonoObject* settings)
 	{
 		SPtr<ParticleGpuSimulationSettings> tmpsettings;
 		ScriptParticleGpuSimulationSettings* scriptObjectWrappersettings;
 		scriptObjectWrappersettings = ScriptParticleGpuSimulationSettings::ToNative(settings);
 		if(scriptObjectWrappersettings != nullptr)
 			tmpsettings = scriptObjectWrappersettings->GetInternal();
-		thisPtr->GetHandle()->SetGpuSimulationSettings(*tmpsettings);
+		self->GetHandle()->SetGpuSimulationSettings(*tmpsettings);
 	}
 
-	MonoObject* ScriptParticleSystem::InternalGetGpuSimulationSettings(ScriptParticleSystem* thisPtr)
+	MonoObject* ScriptParticleSystem::InternalGetGpuSimulationSettings(ScriptParticleSystem* self)
 	{
 		SPtr<ParticleGpuSimulationSettings> tmp__output = B3DMakeShared<ParticleGpuSimulationSettings>();
-		*tmp__output = thisPtr->GetHandle()->GetGpuSimulationSettings();
+		*tmp__output = self->GetHandle()->GetGpuSimulationSettings();
 
 		MonoObject* __output;
 		__output = ScriptParticleGpuSimulationSettings::Create(tmp__output);
@@ -94,7 +94,7 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptParticleSystem::InternalSetEmitters(ScriptParticleSystem* thisPtr, MonoArray* emitters)
+	void ScriptParticleSystem::InternalSetEmitters(ScriptParticleSystem* self, MonoArray* emitters)
 	{
 		Vector<SPtr<ParticleEmitter>> nativeArrayemitters;
 		if(emitters != nullptr)
@@ -112,13 +112,13 @@ namespace bs
 				}
 			}
 		}
-		thisPtr->GetHandle()->SetEmitters(nativeArrayemitters);
+		self->GetHandle()->SetEmitters(nativeArrayemitters);
 	}
 
-	MonoArray* ScriptParticleSystem::InternalGetEmitters(ScriptParticleSystem* thisPtr)
+	MonoArray* ScriptParticleSystem::InternalGetEmitters(ScriptParticleSystem* self)
 	{
 		Vector<SPtr<ParticleEmitter>> nativeArray__output;
-		nativeArray__output = thisPtr->GetHandle()->GetEmitters();
+		nativeArray__output = self->GetHandle()->GetEmitters();
 
 		MonoArray* __output;
 		int elementCount__output = (int)nativeArray__output.size();
@@ -135,7 +135,7 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptParticleSystem::InternalSetEvolvers(ScriptParticleSystem* thisPtr, MonoArray* evolvers)
+	void ScriptParticleSystem::InternalSetEvolvers(ScriptParticleSystem* self, MonoArray* evolvers)
 	{
 		Vector<SPtr<ParticleEvolver>> nativeArrayevolvers;
 		if(evolvers != nullptr)
@@ -153,13 +153,13 @@ namespace bs
 				}
 			}
 		}
-		thisPtr->GetHandle()->SetEvolvers(nativeArrayevolvers);
+		self->GetHandle()->SetEvolvers(nativeArrayevolvers);
 	}
 
-	MonoArray* ScriptParticleSystem::InternalGetEvolvers(ScriptParticleSystem* thisPtr)
+	MonoArray* ScriptParticleSystem::InternalGetEvolvers(ScriptParticleSystem* self)
 	{
 		Vector<SPtr<ParticleEvolver>> nativeArray__output;
-		nativeArray__output = thisPtr->GetHandle()->GetEvolvers();
+		nativeArray__output = self->GetHandle()->GetEvolvers();
 
 		MonoArray* __output;
 		int elementCount__output = (int)nativeArray__output.size();
@@ -200,15 +200,15 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptParticleSystem::InternalSetLayer(ScriptParticleSystem* thisPtr, uint64_t layer)
+	void ScriptParticleSystem::InternalSetLayer(ScriptParticleSystem* self, uint64_t layer)
 	{
-		thisPtr->GetHandle()->SetLayer(layer);
+		self->GetHandle()->SetLayer(layer);
 	}
 
-	uint64_t ScriptParticleSystem::InternalGetLayer(ScriptParticleSystem* thisPtr)
+	uint64_t ScriptParticleSystem::InternalGetLayer(ScriptParticleSystem* self)
 	{
 		uint64_t tmp__output;
-		tmp__output = thisPtr->GetHandle()->GetLayer();
+		tmp__output = self->GetHandle()->GetLayer();
 
 		uint64_t __output;
 		__output = tmp__output;
@@ -216,10 +216,10 @@ namespace bs
 		return __output;
 	}
 
-	bool ScriptParticleSystem::InternalTogglePreviewModeInternal(ScriptParticleSystem* thisPtr, bool enabled)
+	bool ScriptParticleSystem::InternalTogglePreviewModeInternal(ScriptParticleSystem* self, bool enabled)
 	{
 		bool tmp__output;
-		tmp__output = thisPtr->GetHandle()->TogglePreviewModeInternal(enabled);
+		tmp__output = self->GetHandle()->TogglePreviewModeInternal(enabled);
 
 		bool __output;
 		__output = tmp__output;

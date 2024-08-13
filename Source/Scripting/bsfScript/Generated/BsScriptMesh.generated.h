@@ -26,18 +26,18 @@ namespace bs
 		static MonoObject* CreateInstance();
 
 	private:
-		static MonoObject* InternalGetRef(ScriptMesh* thisPtr);
+		static MonoObject* InternalGetRef(ScriptMesh* self);
 
-		static MonoObject* InternalGetSkeleton(ScriptMesh* thisPtr);
-		static MonoObject* InternalGetMorphShapes(ScriptMesh* thisPtr);
+		static MonoObject* InternalGetSkeleton(ScriptMesh* self);
+		static MonoObject* InternalGetMorphShapes(ScriptMesh* self);
 		static void InternalCreate(MonoObject* managedInstance, int32_t numVertices, int32_t numIndices, DrawOperationType topology, MeshUsage usage, VertexLayout vertex, IndexType index);
 		static void InternalCreate0(MonoObject* managedInstance, int32_t numVertices, int32_t numIndices, MonoArray* subMeshes, MeshUsage usage, VertexLayout vertex, IndexType index);
 		static void InternalCreate1(MonoObject* managedInstance, MonoObject* data, DrawOperationType topology, MeshUsage usage);
 		static void InternalCreate2(MonoObject* managedInstance, MonoObject* data, MonoArray* subMeshes, MeshUsage usage);
-		static MonoArray* InternalGetSubMeshes(ScriptMesh* thisPtr);
-		static uint32_t InternalGetSubMeshCount(ScriptMesh* thisPtr);
-		static void InternalGetBounds(ScriptMesh* thisPtr, AABox* box, Sphere* sphere);
-		static MonoObject* InternalGetMeshData(ScriptMesh* thisPtr);
-		static void InternalSetMeshData(ScriptMesh* thisPtr, MonoObject* value);
+		static MonoArray* InternalGetSubMeshes(ScriptMesh* self);
+		static uint32_t InternalGetSubMeshCount(ScriptMesh* self);
+		static void InternalGetBounds(ScriptMesh* self, AABox* box, Sphere* sphere);
+		static MonoObject* InternalGetMeshData(ScriptMesh* self);
+		static void InternalSetMeshData(ScriptMesh* self, MonoObject* value);
 	};
 }

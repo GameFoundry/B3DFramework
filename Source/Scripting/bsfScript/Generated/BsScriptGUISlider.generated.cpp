@@ -44,15 +44,15 @@ namespace bs
 		OnChangedThunk = (OnChangedThunkDef)metaData.ScriptClass->GetMethodExact("Internal_OnChanged", "single")->GetThunk();
 	}
 
-	void ScriptGUISlider::InternalSetHandlePositionInPercent(ScriptGUIElementBase* thisPtr, float percent)
+	void ScriptGUISlider::InternalSetHandlePositionInPercent(ScriptGUIElementBase* self, float percent)
 	{
-		static_cast<GUISlider*>(thisPtr->GetGuiElement())->SetHandlePositionInPercent(percent);
+		static_cast<GUISlider*>(self->GetGuiElement())->SetHandlePositionInPercent(percent);
 	}
 
-	float ScriptGUISlider::InternalGetHandlePositionInPercent(ScriptGUIElementBase* thisPtr)
+	float ScriptGUISlider::InternalGetHandlePositionInPercent(ScriptGUIElementBase* self)
 	{
 		float tmp__output;
-		tmp__output = static_cast<GUISlider*>(thisPtr->GetGuiElement())->GetHandlePositionInPercent();
+		tmp__output = static_cast<GUISlider*>(self->GetGuiElement())->GetHandlePositionInPercent();
 
 		float __output;
 		__output = tmp__output;
@@ -60,15 +60,15 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptGUISlider::InternalSetHandlePositionInRange(ScriptGUIElementBase* thisPtr, float value)
+	void ScriptGUISlider::InternalSetHandlePositionInRange(ScriptGUIElementBase* self, float value)
 	{
-		static_cast<GUISlider*>(thisPtr->GetGuiElement())->SetHandlePositionInRange(value);
+		static_cast<GUISlider*>(self->GetGuiElement())->SetHandlePositionInRange(value);
 	}
 
-	float ScriptGUISlider::InternalGetHandlePositionInRange(ScriptGUIElementBase* thisPtr)
+	float ScriptGUISlider::InternalGetHandlePositionInRange(ScriptGUIElementBase* self)
 	{
 		float tmp__output;
-		tmp__output = static_cast<GUISlider*>(thisPtr->GetGuiElement())->GetHandlePositionInRange();
+		tmp__output = static_cast<GUISlider*>(self->GetGuiElement())->GetHandlePositionInRange();
 
 		float __output;
 		__output = tmp__output;
@@ -76,15 +76,15 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptGUISlider::InternalSetRange(ScriptGUIElementBase* thisPtr, float min, float max)
+	void ScriptGUISlider::InternalSetRange(ScriptGUIElementBase* self, float min, float max)
 	{
-		static_cast<GUISlider*>(thisPtr->GetGuiElement())->SetRange(min, max);
+		static_cast<GUISlider*>(self->GetGuiElement())->SetRange(min, max);
 	}
 
-	float ScriptGUISlider::InternalGetRangeMinimum(ScriptGUIElementBase* thisPtr)
+	float ScriptGUISlider::InternalGetRangeMinimum(ScriptGUIElementBase* self)
 	{
 		float tmp__output;
-		tmp__output = static_cast<GUISlider*>(thisPtr->GetGuiElement())->GetRangeMinimum();
+		tmp__output = static_cast<GUISlider*>(self->GetGuiElement())->GetRangeMinimum();
 
 		float __output;
 		__output = tmp__output;
@@ -92,10 +92,10 @@ namespace bs
 		return __output;
 	}
 
-	float ScriptGUISlider::InternalGetRangeMaximum(ScriptGUIElementBase* thisPtr)
+	float ScriptGUISlider::InternalGetRangeMaximum(ScriptGUIElementBase* self)
 	{
 		float tmp__output;
-		tmp__output = static_cast<GUISlider*>(thisPtr->GetGuiElement())->GetRangeMaximum();
+		tmp__output = static_cast<GUISlider*>(self->GetGuiElement())->GetRangeMaximum();
 
 		float __output;
 		__output = tmp__output;
@@ -103,15 +103,15 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptGUISlider::InternalSetStep(ScriptGUIElementBase* thisPtr, float step)
+	void ScriptGUISlider::InternalSetStep(ScriptGUIElementBase* self, float step)
 	{
-		static_cast<GUISlider*>(thisPtr->GetGuiElement())->SetStep(step);
+		static_cast<GUISlider*>(self->GetGuiElement())->SetStep(step);
 	}
 
-	float ScriptGUISlider::InternalGetStep(ScriptGUIElementBase* thisPtr)
+	float ScriptGUISlider::InternalGetStep(ScriptGUIElementBase* self)
 	{
 		float tmp__output;
-		tmp__output = static_cast<GUISlider*>(thisPtr->GetGuiElement())->GetStep();
+		tmp__output = static_cast<GUISlider*>(self->GetGuiElement())->GetStep();
 
 		float __output;
 		__output = tmp__output;

@@ -37,8 +37,8 @@ namespace bs
 				nativeArrayoptions[elementIndex] = scriptArrayoptions.Get<GUIOption>(elementIndex);
 			}
 		}
-		GUIResizableVerticalScrollBar* instance = GUIResizableVerticalScrollBar::Create(tmpstyleClass, nativeArrayoptions);
-		new (B3DAllocate<ScriptGUIResizableVerticalScrollBar>())ScriptGUIResizableVerticalScrollBar(managedInstance, instance);
+		GUIResizableVerticalScrollBar* nativeObject = GUIResizableVerticalScrollBar::Create(tmpstyleClass, nativeArrayoptions);
+		new (B3DAllocate<ScriptGUIResizableVerticalScrollBar>())ScriptGUIResizableVerticalScrollBar(managedInstance, nativeObject);
 	}
 
 	void ScriptGUIResizableVerticalScrollBar::InternalCreate0(MonoObject* managedInstance, MonoArray* options)
@@ -53,7 +53,7 @@ namespace bs
 				nativeArrayoptions[elementIndex] = scriptArrayoptions.Get<GUIOption>(elementIndex);
 			}
 		}
-		GUIResizableVerticalScrollBar* instance = GUIResizableVerticalScrollBar::Create(nativeArrayoptions);
-		new (B3DAllocate<ScriptGUIResizableVerticalScrollBar>())ScriptGUIResizableVerticalScrollBar(managedInstance, instance);
+		GUIResizableVerticalScrollBar* nativeObject = GUIResizableVerticalScrollBar::Create(nativeArrayoptions);
+		new (B3DAllocate<ScriptGUIResizableVerticalScrollBar>())ScriptGUIResizableVerticalScrollBar(managedInstance, nativeObject);
 	}
 }

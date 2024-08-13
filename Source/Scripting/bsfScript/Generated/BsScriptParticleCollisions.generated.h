@@ -22,12 +22,12 @@ namespace bs
 		static MonoObject* Create(const SPtr<ParticleCollisions>& value);
 
 	private:
-		static void InternalSetPlanes(ScriptParticleCollisions* thisPtr, MonoArray* planes);
-		static MonoArray* InternalGetPlanes(ScriptParticleCollisions* thisPtr);
-		static void InternalSetPlaneObjects(ScriptParticleCollisions* thisPtr, MonoArray* objects);
-		static MonoArray* InternalGetPlaneObjects(ScriptParticleCollisions* thisPtr);
-		static void InternalSetOptions(ScriptParticleCollisions* thisPtr, PARTICLE_COLLISIONS_DESC* options);
-		static void InternalGetOptions(ScriptParticleCollisions* thisPtr, PARTICLE_COLLISIONS_DESC* __output);
+		static void InternalSetPlanes(ScriptParticleCollisions* self, MonoArray* planes);
+		static MonoArray* InternalGetPlanes(ScriptParticleCollisions* self);
+		static void InternalSetPlaneObjects(ScriptParticleCollisions* self, MonoArray* objects);
+		static MonoArray* InternalGetPlaneObjects(ScriptParticleCollisions* self);
+		static void InternalSetOptions(ScriptParticleCollisions* self, PARTICLE_COLLISIONS_DESC* options);
+		static void InternalGetOptions(ScriptParticleCollisions* self, PARTICLE_COLLISIONS_DESC* __output);
 		static void InternalCreate(MonoObject* managedInstance, PARTICLE_COLLISIONS_DESC* desc);
 		static void InternalCreate0(MonoObject* managedInstance);
 	};

@@ -29,11 +29,11 @@ namespace bs
 		static MonoObject* Create(const SPtr<RenderTarget>& value);
 
 	private:
-		static uint32_t InternalGetWidth(ScriptRenderTargetBase* thisPtr);
-		static uint32_t InternalGetHeight(ScriptRenderTargetBase* thisPtr);
-		static bool InternalGetGammaCorrection(ScriptRenderTargetBase* thisPtr);
-		static int32_t InternalGetPriority(ScriptRenderTargetBase* thisPtr);
-		static void InternalSetPriority(ScriptRenderTargetBase* thisPtr, int32_t priority);
-		static uint32_t InternalGetSampleCount(ScriptRenderTargetBase* thisPtr);
+		static uint32_t InternalGetWidth(ScriptRenderTargetBase* self);
+		static uint32_t InternalGetHeight(ScriptRenderTargetBase* self);
+		static bool InternalGetGammaCorrection(ScriptRenderTargetBase* self);
+		static int32_t InternalGetPriority(ScriptRenderTargetBase* self);
+		static void InternalSetPriority(ScriptRenderTargetBase* self, int32_t priority);
+		static uint32_t InternalGetSampleCount(ScriptRenderTargetBase* self);
 	};
 }

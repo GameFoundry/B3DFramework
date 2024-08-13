@@ -46,10 +46,10 @@ namespace bs
 		new (B3DAllocate<ScriptPixelData>()) ScriptPixelData(managedInstance, value);
 		return managedInstance;
 	}
-	uint32_t ScriptPixelData::InternalGetRowPitch(ScriptPixelData* thisPtr)
+	uint32_t ScriptPixelData::InternalGetRowPitch(ScriptPixelData* self)
 	{
 		uint32_t tmp__output;
-		tmp__output = thisPtr->GetInternal()->GetRowPitch();
+		tmp__output = self->GetInternal()->GetRowPitch();
 
 		uint32_t __output;
 		__output = tmp__output;
@@ -57,10 +57,10 @@ namespace bs
 		return __output;
 	}
 
-	uint32_t ScriptPixelData::InternalGetSlicePitch(ScriptPixelData* thisPtr)
+	uint32_t ScriptPixelData::InternalGetSlicePitch(ScriptPixelData* self)
 	{
 		uint32_t tmp__output;
-		tmp__output = thisPtr->GetInternal()->GetSlicePitch();
+		tmp__output = self->GetInternal()->GetSlicePitch();
 
 		uint32_t __output;
 		__output = tmp__output;
@@ -68,10 +68,10 @@ namespace bs
 		return __output;
 	}
 
-	PixelFormat ScriptPixelData::InternalGetFormat(ScriptPixelData* thisPtr)
+	PixelFormat ScriptPixelData::InternalGetFormat(ScriptPixelData* self)
 	{
 		PixelFormat tmp__output;
-		tmp__output = thisPtr->GetInternal()->GetFormat();
+		tmp__output = self->GetInternal()->GetFormat();
 
 		PixelFormat __output;
 		__output = tmp__output;
@@ -79,18 +79,18 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptPixelData::InternalGetExtents(ScriptPixelData* thisPtr, PixelVolume* __output)
+	void ScriptPixelData::InternalGetExtents(ScriptPixelData* self, PixelVolume* __output)
 	{
 		PixelVolume tmp__output;
-		tmp__output = thisPtr->GetInternal()->GetExtents();
+		tmp__output = self->GetInternal()->GetExtents();
 
 		*__output = tmp__output;
 	}
 
-	bool ScriptPixelData::InternalIsConsecutive(ScriptPixelData* thisPtr)
+	bool ScriptPixelData::InternalIsConsecutive(ScriptPixelData* self)
 	{
 		bool tmp__output;
-		tmp__output = thisPtr->GetInternal()->IsConsecutive();
+		tmp__output = self->GetInternal()->IsConsecutive();
 
 		bool __output;
 		__output = tmp__output;
@@ -98,10 +98,10 @@ namespace bs
 		return __output;
 	}
 
-	uint32_t ScriptPixelData::InternalGetSize(ScriptPixelData* thisPtr)
+	uint32_t ScriptPixelData::InternalGetSize(ScriptPixelData* self)
 	{
 		uint32_t tmp__output;
-		tmp__output = thisPtr->GetInternal()->GetSize();
+		tmp__output = self->GetInternal()->GetSize();
 
 		uint32_t __output;
 		__output = tmp__output;
@@ -111,33 +111,33 @@ namespace bs
 
 	void ScriptPixelData::InternalCreate(MonoObject* managedInstance, PixelVolume* volume, PixelFormat format)
 	{
-		SPtr<PixelData> instance = PixelDataEx::Create(*volume, format);
-		new (B3DAllocate<ScriptPixelData>())ScriptPixelData(managedInstance, instance);
+		SPtr<PixelData> nativeObject = PixelDataEx::Create(*volume, format);
+		new (B3DAllocate<ScriptPixelData>())ScriptPixelData(managedInstance, nativeObject);
 	}
 
 	void ScriptPixelData::InternalCreate0(MonoObject* managedInstance, uint32_t width, uint32_t height, uint32_t depth, PixelFormat pixelFormat)
 	{
-		SPtr<PixelData> instance = PixelDataEx::Create(width, height, depth, pixelFormat);
-		new (B3DAllocate<ScriptPixelData>())ScriptPixelData(managedInstance, instance);
+		SPtr<PixelData> nativeObject = PixelDataEx::Create(width, height, depth, pixelFormat);
+		new (B3DAllocate<ScriptPixelData>())ScriptPixelData(managedInstance, nativeObject);
 	}
 
-	void ScriptPixelData::InternalGetPixel(ScriptPixelData* thisPtr, int32_t x, int32_t y, int32_t z, Color* __output)
+	void ScriptPixelData::InternalGetPixel(ScriptPixelData* self, int32_t x, int32_t y, int32_t z, Color* __output)
 	{
 		Color tmp__output;
-		tmp__output = PixelDataEx::GetPixel(thisPtr->GetInternal(), x, y, z);
+		tmp__output = PixelDataEx::GetPixel(self->GetInternal(), x, y, z);
 
 		*__output = tmp__output;
 	}
 
-	void ScriptPixelData::InternalSetPixel(ScriptPixelData* thisPtr, Color* value, int32_t x, int32_t y, int32_t z)
+	void ScriptPixelData::InternalSetPixel(ScriptPixelData* self, Color* value, int32_t x, int32_t y, int32_t z)
 	{
-		PixelDataEx::SetPixel(thisPtr->GetInternal(), *value, x, y, z);
+		PixelDataEx::SetPixel(self->GetInternal(), *value, x, y, z);
 	}
 
-	MonoArray* ScriptPixelData::InternalGetPixels(ScriptPixelData* thisPtr)
+	MonoArray* ScriptPixelData::InternalGetPixels(ScriptPixelData* self)
 	{
 		Vector<Color> nativeArray__output;
-		nativeArray__output = PixelDataEx::GetPixels(thisPtr->GetInternal());
+		nativeArray__output = PixelDataEx::GetPixels(self->GetInternal());
 
 		MonoArray* __output;
 		int elementCount__output = (int)nativeArray__output.size();
@@ -151,7 +151,7 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptPixelData::InternalSetPixels(ScriptPixelData* thisPtr, MonoArray* value)
+	void ScriptPixelData::InternalSetPixels(ScriptPixelData* self, MonoArray* value)
 	{
 		Vector<Color> nativeArrayvalue;
 		if(value != nullptr)
@@ -163,13 +163,13 @@ namespace bs
 				nativeArrayvalue[elementIndex] = scriptArrayvalue.Get<Color>(elementIndex);
 			}
 		}
-		PixelDataEx::SetPixels(thisPtr->GetInternal(), nativeArrayvalue);
+		PixelDataEx::SetPixels(self->GetInternal(), nativeArrayvalue);
 	}
 
-	MonoArray* ScriptPixelData::InternalGetRawPixels(ScriptPixelData* thisPtr)
+	MonoArray* ScriptPixelData::InternalGetRawPixels(ScriptPixelData* self)
 	{
 		Vector<char> nativeArray__output;
-		nativeArray__output = PixelDataEx::GetRawPixels(thisPtr->GetInternal());
+		nativeArray__output = PixelDataEx::GetRawPixels(self->GetInternal());
 
 		MonoArray* __output;
 		int elementCount__output = (int)nativeArray__output.size();
@@ -183,7 +183,7 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptPixelData::InternalSetRawPixels(ScriptPixelData* thisPtr, MonoArray* value)
+	void ScriptPixelData::InternalSetRawPixels(ScriptPixelData* self, MonoArray* value)
 	{
 		Vector<char> nativeArrayvalue;
 		if(value != nullptr)
@@ -195,6 +195,6 @@ namespace bs
 				nativeArrayvalue[elementIndex] = scriptArrayvalue.Get<char>(elementIndex);
 			}
 		}
-		PixelDataEx::SetRawPixels(thisPtr->GetInternal(), nativeArrayvalue);
+		PixelDataEx::SetRawPixels(self->GetInternal(), nativeArrayvalue);
 	}
 }

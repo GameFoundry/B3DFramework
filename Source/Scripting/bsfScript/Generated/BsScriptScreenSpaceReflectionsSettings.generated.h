@@ -20,13 +20,13 @@ namespace bs
 
 	private:
 		static void InternalScreenSpaceReflectionsSettings(MonoObject* managedInstance);
-		static bool InternalGetEnabled(ScriptScreenSpaceReflectionsSettings* thisPtr);
-		static void InternalSetEnabled(ScriptScreenSpaceReflectionsSettings* thisPtr, bool value);
-		static uint32_t InternalGetQuality(ScriptScreenSpaceReflectionsSettings* thisPtr);
-		static void InternalSetQuality(ScriptScreenSpaceReflectionsSettings* thisPtr, uint32_t value);
-		static float InternalGetIntensity(ScriptScreenSpaceReflectionsSettings* thisPtr);
-		static void InternalSetIntensity(ScriptScreenSpaceReflectionsSettings* thisPtr, float value);
-		static float InternalGetMaxRoughness(ScriptScreenSpaceReflectionsSettings* thisPtr);
-		static void InternalSetMaxRoughness(ScriptScreenSpaceReflectionsSettings* thisPtr, float value);
+		static bool InternalGetEnabled(ScriptScreenSpaceReflectionsSettings* self);
+		static void InternalSetEnabled(ScriptScreenSpaceReflectionsSettings* self, bool value);
+		static uint32_t InternalGetQuality(ScriptScreenSpaceReflectionsSettings* self);
+		static void InternalSetQuality(ScriptScreenSpaceReflectionsSettings* self, uint32_t value);
+		static float InternalGetIntensity(ScriptScreenSpaceReflectionsSettings* self);
+		static void InternalSetIntensity(ScriptScreenSpaceReflectionsSettings* self, float value);
+		static float InternalGetMaxRoughness(ScriptScreenSpaceReflectionsSettings* self);
+		static void InternalSetMaxRoughness(ScriptScreenSpaceReflectionsSettings* self, float value);
 	};
 }

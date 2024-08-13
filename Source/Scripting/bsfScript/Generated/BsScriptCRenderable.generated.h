@@ -17,19 +17,19 @@ namespace bs
 		ScriptRenderable(MonoObject* managedInstance, const GameObjectHandle<CRenderable>& value);
 
 	private:
-		static void InternalSetMesh(ScriptRenderable* thisPtr, MonoObject* mesh);
-		static MonoObject* InternalGetMesh(ScriptRenderable* thisPtr);
-		static void InternalSetMaterial(ScriptRenderable* thisPtr, uint32_t idx, MonoObject* material);
-		static void InternalSetMaterial0(ScriptRenderable* thisPtr, MonoObject* material);
-		static MonoObject* InternalGetMaterial(ScriptRenderable* thisPtr, uint32_t idx);
-		static void InternalSetMaterials(ScriptRenderable* thisPtr, MonoArray* materials);
-		static MonoArray* InternalGetMaterials(ScriptRenderable* thisPtr);
-		static void InternalSetCullDistanceFactor(ScriptRenderable* thisPtr, float factor);
-		static float InternalGetCullDistanceFactor(ScriptRenderable* thisPtr);
-		static void InternalSetWriteVelocity(ScriptRenderable* thisPtr, bool enable);
-		static bool InternalGetWriteVelocity(ScriptRenderable* thisPtr);
-		static void InternalSetLayer(ScriptRenderable* thisPtr, uint64_t layer);
-		static uint64_t InternalGetLayer(ScriptRenderable* thisPtr);
-		static void InternalGetBounds(ScriptRenderable* thisPtr, Bounds* __output);
+		static void InternalSetMesh(ScriptRenderable* self, MonoObject* mesh);
+		static MonoObject* InternalGetMesh(ScriptRenderable* self);
+		static void InternalSetMaterial(ScriptRenderable* self, uint32_t idx, MonoObject* material);
+		static void InternalSetMaterial0(ScriptRenderable* self, MonoObject* material);
+		static MonoObject* InternalGetMaterial(ScriptRenderable* self, uint32_t idx);
+		static void InternalSetMaterials(ScriptRenderable* self, MonoArray* materials);
+		static MonoArray* InternalGetMaterials(ScriptRenderable* self);
+		static void InternalSetCullDistanceFactor(ScriptRenderable* self, float factor);
+		static float InternalGetCullDistanceFactor(ScriptRenderable* self);
+		static void InternalSetWriteVelocity(ScriptRenderable* self, bool enable);
+		static bool InternalGetWriteVelocity(ScriptRenderable* self);
+		static void InternalSetLayer(ScriptRenderable* self, uint64_t layer);
+		static uint64_t InternalGetLayer(ScriptRenderable* self);
+		static void InternalGetBounds(ScriptRenderable* self, Bounds* __output);
 	};
 }

@@ -69,10 +69,10 @@ namespace bs
 		MonoUtil::InvokeThunk(OnControllerHitThunk, GetManagedInstance(), tmpp0);
 	}
 
-	CharacterCollisionFlag ScriptCharacterController::InternalMove(ScriptCharacterController* thisPtr, TVector3<float>* displacement)
+	CharacterCollisionFlag ScriptCharacterController::InternalMove(ScriptCharacterController* self, TVector3<float>* displacement)
 	{
 		Flags<CharacterCollisionFlag> tmp__output;
-		tmp__output = thisPtr->GetHandle()->Move(*displacement);
+		tmp__output = self->GetHandle()->Move(*displacement);
 
 		CharacterCollisionFlag __output;
 		__output = (CharacterCollisionFlag)(uint32_t)tmp__output;
@@ -80,23 +80,23 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptCharacterController::InternalGetFootPosition(ScriptCharacterController* thisPtr, TVector3<float>* __output)
+	void ScriptCharacterController::InternalGetFootPosition(ScriptCharacterController* self, TVector3<float>* __output)
 	{
 		TVector3<float> tmp__output;
-		tmp__output = thisPtr->GetHandle()->GetFootPosition();
+		tmp__output = self->GetHandle()->GetFootPosition();
 
 		*__output = tmp__output;
 	}
 
-	void ScriptCharacterController::InternalSetFootPosition(ScriptCharacterController* thisPtr, TVector3<float>* position)
+	void ScriptCharacterController::InternalSetFootPosition(ScriptCharacterController* self, TVector3<float>* position)
 	{
-		thisPtr->GetHandle()->SetFootPosition(*position);
+		self->GetHandle()->SetFootPosition(*position);
 	}
 
-	float ScriptCharacterController::InternalGetRadius(ScriptCharacterController* thisPtr)
+	float ScriptCharacterController::InternalGetRadius(ScriptCharacterController* self)
 	{
 		float tmp__output;
-		tmp__output = thisPtr->GetHandle()->GetRadius();
+		tmp__output = self->GetHandle()->GetRadius();
 
 		float __output;
 		__output = tmp__output;
@@ -104,15 +104,15 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptCharacterController::InternalSetRadius(ScriptCharacterController* thisPtr, float radius)
+	void ScriptCharacterController::InternalSetRadius(ScriptCharacterController* self, float radius)
 	{
-		thisPtr->GetHandle()->SetRadius(radius);
+		self->GetHandle()->SetRadius(radius);
 	}
 
-	float ScriptCharacterController::InternalGetHeight(ScriptCharacterController* thisPtr)
+	float ScriptCharacterController::InternalGetHeight(ScriptCharacterController* self)
 	{
 		float tmp__output;
-		tmp__output = thisPtr->GetHandle()->GetHeight();
+		tmp__output = self->GetHandle()->GetHeight();
 
 		float __output;
 		__output = tmp__output;
@@ -120,28 +120,28 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptCharacterController::InternalSetHeight(ScriptCharacterController* thisPtr, float height)
+	void ScriptCharacterController::InternalSetHeight(ScriptCharacterController* self, float height)
 	{
-		thisPtr->GetHandle()->SetHeight(height);
+		self->GetHandle()->SetHeight(height);
 	}
 
-	void ScriptCharacterController::InternalGetUp(ScriptCharacterController* thisPtr, TVector3<float>* __output)
+	void ScriptCharacterController::InternalGetUp(ScriptCharacterController* self, TVector3<float>* __output)
 	{
 		TVector3<float> tmp__output;
-		tmp__output = thisPtr->GetHandle()->GetUp();
+		tmp__output = self->GetHandle()->GetUp();
 
 		*__output = tmp__output;
 	}
 
-	void ScriptCharacterController::InternalSetUp(ScriptCharacterController* thisPtr, TVector3<float>* up)
+	void ScriptCharacterController::InternalSetUp(ScriptCharacterController* self, TVector3<float>* up)
 	{
-		thisPtr->GetHandle()->SetUp(*up);
+		self->GetHandle()->SetUp(*up);
 	}
 
-	CharacterClimbingMode ScriptCharacterController::InternalGetClimbingMode(ScriptCharacterController* thisPtr)
+	CharacterClimbingMode ScriptCharacterController::InternalGetClimbingMode(ScriptCharacterController* self)
 	{
 		CharacterClimbingMode tmp__output;
-		tmp__output = thisPtr->GetHandle()->GetClimbingMode();
+		tmp__output = self->GetHandle()->GetClimbingMode();
 
 		CharacterClimbingMode __output;
 		__output = tmp__output;
@@ -149,15 +149,15 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptCharacterController::InternalSetClimbingMode(ScriptCharacterController* thisPtr, CharacterClimbingMode mode)
+	void ScriptCharacterController::InternalSetClimbingMode(ScriptCharacterController* self, CharacterClimbingMode mode)
 	{
-		thisPtr->GetHandle()->SetClimbingMode(mode);
+		self->GetHandle()->SetClimbingMode(mode);
 	}
 
-	CharacterNonWalkableMode ScriptCharacterController::InternalGetNonWalkableMode(ScriptCharacterController* thisPtr)
+	CharacterNonWalkableMode ScriptCharacterController::InternalGetNonWalkableMode(ScriptCharacterController* self)
 	{
 		CharacterNonWalkableMode tmp__output;
-		tmp__output = thisPtr->GetHandle()->GetNonWalkableMode();
+		tmp__output = self->GetHandle()->GetNonWalkableMode();
 
 		CharacterNonWalkableMode __output;
 		__output = tmp__output;
@@ -165,15 +165,15 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptCharacterController::InternalSetNonWalkableMode(ScriptCharacterController* thisPtr, CharacterNonWalkableMode mode)
+	void ScriptCharacterController::InternalSetNonWalkableMode(ScriptCharacterController* self, CharacterNonWalkableMode mode)
 	{
-		thisPtr->GetHandle()->SetNonWalkableMode(mode);
+		self->GetHandle()->SetNonWalkableMode(mode);
 	}
 
-	float ScriptCharacterController::InternalGetMinMoveDistance(ScriptCharacterController* thisPtr)
+	float ScriptCharacterController::InternalGetMinMoveDistance(ScriptCharacterController* self)
 	{
 		float tmp__output;
-		tmp__output = thisPtr->GetHandle()->GetMinMoveDistance();
+		tmp__output = self->GetHandle()->GetMinMoveDistance();
 
 		float __output;
 		__output = tmp__output;
@@ -181,15 +181,15 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptCharacterController::InternalSetMinMoveDistance(ScriptCharacterController* thisPtr, float value)
+	void ScriptCharacterController::InternalSetMinMoveDistance(ScriptCharacterController* self, float value)
 	{
-		thisPtr->GetHandle()->SetMinMoveDistance(value);
+		self->GetHandle()->SetMinMoveDistance(value);
 	}
 
-	float ScriptCharacterController::InternalGetContactOffset(ScriptCharacterController* thisPtr)
+	float ScriptCharacterController::InternalGetContactOffset(ScriptCharacterController* self)
 	{
 		float tmp__output;
-		tmp__output = thisPtr->GetHandle()->GetContactOffset();
+		tmp__output = self->GetHandle()->GetContactOffset();
 
 		float __output;
 		__output = tmp__output;
@@ -197,15 +197,15 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptCharacterController::InternalSetContactOffset(ScriptCharacterController* thisPtr, float value)
+	void ScriptCharacterController::InternalSetContactOffset(ScriptCharacterController* self, float value)
 	{
-		thisPtr->GetHandle()->SetContactOffset(value);
+		self->GetHandle()->SetContactOffset(value);
 	}
 
-	float ScriptCharacterController::InternalGetStepOffset(ScriptCharacterController* thisPtr)
+	float ScriptCharacterController::InternalGetStepOffset(ScriptCharacterController* self)
 	{
 		float tmp__output;
-		tmp__output = thisPtr->GetHandle()->GetStepOffset();
+		tmp__output = self->GetHandle()->GetStepOffset();
 
 		float __output;
 		__output = tmp__output;
@@ -213,28 +213,28 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptCharacterController::InternalSetStepOffset(ScriptCharacterController* thisPtr, float value)
+	void ScriptCharacterController::InternalSetStepOffset(ScriptCharacterController* self, float value)
 	{
-		thisPtr->GetHandle()->SetStepOffset(value);
+		self->GetHandle()->SetStepOffset(value);
 	}
 
-	void ScriptCharacterController::InternalGetSlopeLimit(ScriptCharacterController* thisPtr, TRadian<float>* __output)
+	void ScriptCharacterController::InternalGetSlopeLimit(ScriptCharacterController* self, TRadian<float>* __output)
 	{
 		TRadian<float> tmp__output;
-		tmp__output = thisPtr->GetHandle()->GetSlopeLimit();
+		tmp__output = self->GetHandle()->GetSlopeLimit();
 
 		*__output = tmp__output;
 	}
 
-	void ScriptCharacterController::InternalSetSlopeLimit(ScriptCharacterController* thisPtr, TRadian<float>* value)
+	void ScriptCharacterController::InternalSetSlopeLimit(ScriptCharacterController* self, TRadian<float>* value)
 	{
-		thisPtr->GetHandle()->SetSlopeLimit(*value);
+		self->GetHandle()->SetSlopeLimit(*value);
 	}
 
-	uint64_t ScriptCharacterController::InternalGetLayer(ScriptCharacterController* thisPtr)
+	uint64_t ScriptCharacterController::InternalGetLayer(ScriptCharacterController* self)
 	{
 		uint64_t tmp__output;
-		tmp__output = thisPtr->GetHandle()->GetLayer();
+		tmp__output = self->GetHandle()->GetLayer();
 
 		uint64_t __output;
 		__output = tmp__output;
@@ -242,8 +242,8 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptCharacterController::InternalSetLayer(ScriptCharacterController* thisPtr, uint64_t layer)
+	void ScriptCharacterController::InternalSetLayer(ScriptCharacterController* self, uint64_t layer)
 	{
-		thisPtr->GetHandle()->SetLayer(layer);
+		self->GetHandle()->SetLayer(layer);
 	}
 }

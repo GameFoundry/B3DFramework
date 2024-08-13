@@ -18,13 +18,13 @@ namespace bs
 		ScriptCapsuleCollider(MonoObject* managedInstance, const GameObjectHandle<CCapsuleCollider>& value);
 
 	private:
-		static void InternalSetNormal(ScriptCapsuleCollider* thisPtr, TVector3<float>* normal);
-		static void InternalGetNormal(ScriptCapsuleCollider* thisPtr, TVector3<float>* __output);
-		static void InternalSetCenter(ScriptCapsuleCollider* thisPtr, TVector3<float>* center);
-		static void InternalGetCenter(ScriptCapsuleCollider* thisPtr, TVector3<float>* __output);
-		static void InternalSetHalfHeight(ScriptCapsuleCollider* thisPtr, float halfHeight);
-		static float InternalGetHalfHeight(ScriptCapsuleCollider* thisPtr);
-		static void InternalSetRadius(ScriptCapsuleCollider* thisPtr, float radius);
-		static float InternalGetRadius(ScriptCapsuleCollider* thisPtr);
+		static void InternalSetNormal(ScriptCapsuleCollider* self, TVector3<float>* normal);
+		static void InternalGetNormal(ScriptCapsuleCollider* self, TVector3<float>* __output);
+		static void InternalSetCenter(ScriptCapsuleCollider* self, TVector3<float>* center);
+		static void InternalGetCenter(ScriptCapsuleCollider* self, TVector3<float>* __output);
+		static void InternalSetHalfHeight(ScriptCapsuleCollider* self, float halfHeight);
+		static float InternalGetHalfHeight(ScriptCapsuleCollider* self);
+		static void InternalSetRadius(ScriptCapsuleCollider* self, float radius);
+		static float InternalGetRadius(ScriptCapsuleCollider* self);
 	};
 }

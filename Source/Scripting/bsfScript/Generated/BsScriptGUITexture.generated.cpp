@@ -30,14 +30,14 @@ namespace bs
 
 	}
 
-	void ScriptGUITexture::InternalSetImage(ScriptGUITexture* thisPtr, MonoObject* image)
+	void ScriptGUITexture::InternalSetImage(ScriptGUITexture* self, MonoObject* image)
 	{
 		TResourceHandle<SpriteImage> tmpimage;
 		ScriptRRefBase* scriptObjectWrapperimage;
 		scriptObjectWrapperimage = ScriptRRefBase::ToNative(image);
 		if(scriptObjectWrapperimage != nullptr)
 			tmpimage = B3DStaticResourceCast<SpriteImage>(scriptObjectWrapperimage->GetHandle());
-		static_cast<GUITexture*>(thisPtr->GetGuiElement())->SetImage(tmpimage);
+		static_cast<GUITexture*>(self->GetGuiElement())->SetImage(tmpimage);
 	}
 
 	void ScriptGUITexture::InternalCreate(MonoObject* managedInstance, __GUITextureContentsInterop* contents, MonoString* styleClass, MonoArray* options)
@@ -56,8 +56,8 @@ namespace bs
 				nativeArrayoptions[elementIndex] = scriptArrayoptions.Get<GUIOption>(elementIndex);
 			}
 		}
-		GUITexture* instance = GUITexture::Create(tmpcontents, tmpstyleClass, nativeArrayoptions);
-		new (B3DAllocate<ScriptGUITexture>())ScriptGUITexture(managedInstance, instance);
+		GUITexture* nativeObject = GUITexture::Create(tmpcontents, tmpstyleClass, nativeArrayoptions);
+		new (B3DAllocate<ScriptGUITexture>())ScriptGUITexture(managedInstance, nativeObject);
 	}
 
 	void ScriptGUITexture::InternalCreate0(MonoObject* managedInstance, __GUITextureContentsInterop* contents, MonoArray* options)
@@ -74,8 +74,8 @@ namespace bs
 				nativeArrayoptions[elementIndex] = scriptArrayoptions.Get<GUIOption>(elementIndex);
 			}
 		}
-		GUITexture* instance = GUITexture::Create(tmpcontents, nativeArrayoptions);
-		new (B3DAllocate<ScriptGUITexture>())ScriptGUITexture(managedInstance, instance);
+		GUITexture* nativeObject = GUITexture::Create(tmpcontents, nativeArrayoptions);
+		new (B3DAllocate<ScriptGUITexture>())ScriptGUITexture(managedInstance, nativeObject);
 	}
 
 	void ScriptGUITexture::InternalCreate1(MonoObject* managedInstance, MonoString* styleClass, MonoArray* options)
@@ -92,8 +92,8 @@ namespace bs
 				nativeArrayoptions[elementIndex] = scriptArrayoptions.Get<GUIOption>(elementIndex);
 			}
 		}
-		GUITexture* instance = GUITexture::Create(tmpstyleClass, nativeArrayoptions);
-		new (B3DAllocate<ScriptGUITexture>())ScriptGUITexture(managedInstance, instance);
+		GUITexture* nativeObject = GUITexture::Create(tmpstyleClass, nativeArrayoptions);
+		new (B3DAllocate<ScriptGUITexture>())ScriptGUITexture(managedInstance, nativeObject);
 	}
 
 	void ScriptGUITexture::InternalCreate2(MonoObject* managedInstance, MonoArray* options)
@@ -108,7 +108,7 @@ namespace bs
 				nativeArrayoptions[elementIndex] = scriptArrayoptions.Get<GUIOption>(elementIndex);
 			}
 		}
-		GUITexture* instance = GUITexture::Create(nativeArrayoptions);
-		new (B3DAllocate<ScriptGUITexture>())ScriptGUITexture(managedInstance, instance);
+		GUITexture* nativeObject = GUITexture::Create(nativeArrayoptions);
+		new (B3DAllocate<ScriptGUITexture>())ScriptGUITexture(managedInstance, nativeObject);
 	}
 }

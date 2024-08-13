@@ -18,14 +18,14 @@ namespace bs
 		ScriptReflectionProbe(MonoObject* managedInstance, const GameObjectHandle<CReflectionProbe>& value);
 
 	private:
-		static ReflectionProbeType InternalGetType(ScriptReflectionProbe* thisPtr);
-		static void InternalSetType(ScriptReflectionProbe* thisPtr, ReflectionProbeType type);
-		static float InternalGetRadius(ScriptReflectionProbe* thisPtr);
-		static void InternalSetRadius(ScriptReflectionProbe* thisPtr, float radius);
-		static void InternalGetExtents(ScriptReflectionProbe* thisPtr, TVector3<float>* __output);
-		static void InternalSetExtents(ScriptReflectionProbe* thisPtr, TVector3<float>* extents);
-		static MonoObject* InternalGetCustomTexture(ScriptReflectionProbe* thisPtr);
-		static void InternalSetCustomTexture(ScriptReflectionProbe* thisPtr, MonoObject* texture);
-		static void InternalCapture(ScriptReflectionProbe* thisPtr);
+		static ReflectionProbeType InternalGetType(ScriptReflectionProbe* self);
+		static void InternalSetType(ScriptReflectionProbe* self, ReflectionProbeType type);
+		static float InternalGetRadius(ScriptReflectionProbe* self);
+		static void InternalSetRadius(ScriptReflectionProbe* self, float radius);
+		static void InternalGetExtents(ScriptReflectionProbe* self, TVector3<float>* __output);
+		static void InternalSetExtents(ScriptReflectionProbe* self, TVector3<float>* extents);
+		static MonoObject* InternalGetCustomTexture(ScriptReflectionProbe* self);
+		static void InternalSetCustomTexture(ScriptReflectionProbe* self, MonoObject* texture);
+		static void InternalCapture(ScriptReflectionProbe* self);
 	};
 }

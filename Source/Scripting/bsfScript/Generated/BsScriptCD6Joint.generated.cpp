@@ -43,10 +43,10 @@ namespace bs
 
 	}
 
-	D6JointMotion ScriptD6Joint::InternalGetMotion(ScriptD6Joint* thisPtr, D6JointAxis axis)
+	D6JointMotion ScriptD6Joint::InternalGetMotion(ScriptD6Joint* self, D6JointAxis axis)
 	{
 		D6JointMotion tmp__output;
-		tmp__output = thisPtr->GetHandle()->GetMotion(axis);
+		tmp__output = self->GetHandle()->GetMotion(axis);
 
 		D6JointMotion __output;
 		__output = tmp__output;
@@ -54,142 +54,142 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptD6Joint::InternalSetMotion(ScriptD6Joint* thisPtr, D6JointAxis axis, D6JointMotion motion)
+	void ScriptD6Joint::InternalSetMotion(ScriptD6Joint* self, D6JointAxis axis, D6JointMotion motion)
 	{
-		thisPtr->GetHandle()->SetMotion(axis, motion);
+		self->GetHandle()->SetMotion(axis, motion);
 	}
 
-	void ScriptD6Joint::InternalGetTwist(ScriptD6Joint* thisPtr, TRadian<float>* __output)
+	void ScriptD6Joint::InternalGetTwist(ScriptD6Joint* self, TRadian<float>* __output)
 	{
 		TRadian<float> tmp__output;
-		tmp__output = thisPtr->GetHandle()->GetTwist();
+		tmp__output = self->GetHandle()->GetTwist();
 
 		*__output = tmp__output;
 	}
 
-	void ScriptD6Joint::InternalGetSwingY(ScriptD6Joint* thisPtr, TRadian<float>* __output)
+	void ScriptD6Joint::InternalGetSwingY(ScriptD6Joint* self, TRadian<float>* __output)
 	{
 		TRadian<float> tmp__output;
-		tmp__output = thisPtr->GetHandle()->GetSwingY();
+		tmp__output = self->GetHandle()->GetSwingY();
 
 		*__output = tmp__output;
 	}
 
-	void ScriptD6Joint::InternalGetSwingZ(ScriptD6Joint* thisPtr, TRadian<float>* __output)
+	void ScriptD6Joint::InternalGetSwingZ(ScriptD6Joint* self, TRadian<float>* __output)
 	{
 		TRadian<float> tmp__output;
-		tmp__output = thisPtr->GetHandle()->GetSwingZ();
+		tmp__output = self->GetHandle()->GetSwingZ();
 
 		*__output = tmp__output;
 	}
 
-	void ScriptD6Joint::InternalGetLimitLinear(ScriptD6Joint* thisPtr, __LimitLinearInterop* __output)
+	void ScriptD6Joint::InternalGetLimitLinear(ScriptD6Joint* self, __LimitLinearInterop* __output)
 	{
 		LimitLinear tmp__output;
-		tmp__output = thisPtr->GetHandle()->GetLimitLinear();
+		tmp__output = self->GetHandle()->GetLimitLinear();
 
 		__LimitLinearInterop interop__output;
 		interop__output = ScriptLimitLinear::ToInterop(tmp__output);
 		MonoUtil::ValueCopy(__output, &interop__output, ScriptLimitLinear::GetMetaData()->ScriptClass->GetInternalClassInternal());
 	}
 
-	void ScriptD6Joint::InternalSetLimitLinear(ScriptD6Joint* thisPtr, __LimitLinearInterop* limit)
+	void ScriptD6Joint::InternalSetLimitLinear(ScriptD6Joint* self, __LimitLinearInterop* limit)
 	{
 		LimitLinear tmplimit;
 		tmplimit = ScriptLimitLinear::FromInterop(*limit);
-		thisPtr->GetHandle()->SetLimitLinear(tmplimit);
+		self->GetHandle()->SetLimitLinear(tmplimit);
 	}
 
-	void ScriptD6Joint::InternalGetLimitTwist(ScriptD6Joint* thisPtr, __LimitAngularRangeInterop* __output)
+	void ScriptD6Joint::InternalGetLimitTwist(ScriptD6Joint* self, __LimitAngularRangeInterop* __output)
 	{
 		LimitAngularRange tmp__output;
-		tmp__output = thisPtr->GetHandle()->GetLimitTwist();
+		tmp__output = self->GetHandle()->GetLimitTwist();
 
 		__LimitAngularRangeInterop interop__output;
 		interop__output = ScriptLimitAngularRange::ToInterop(tmp__output);
 		MonoUtil::ValueCopy(__output, &interop__output, ScriptLimitAngularRange::GetMetaData()->ScriptClass->GetInternalClassInternal());
 	}
 
-	void ScriptD6Joint::InternalSetLimitTwist(ScriptD6Joint* thisPtr, __LimitAngularRangeInterop* limit)
+	void ScriptD6Joint::InternalSetLimitTwist(ScriptD6Joint* self, __LimitAngularRangeInterop* limit)
 	{
 		LimitAngularRange tmplimit;
 		tmplimit = ScriptLimitAngularRange::FromInterop(*limit);
-		thisPtr->GetHandle()->SetLimitTwist(tmplimit);
+		self->GetHandle()->SetLimitTwist(tmplimit);
 	}
 
-	void ScriptD6Joint::InternalGetLimitSwing(ScriptD6Joint* thisPtr, __LimitConeRangeInterop* __output)
+	void ScriptD6Joint::InternalGetLimitSwing(ScriptD6Joint* self, __LimitConeRangeInterop* __output)
 	{
 		LimitConeRange tmp__output;
-		tmp__output = thisPtr->GetHandle()->GetLimitSwing();
+		tmp__output = self->GetHandle()->GetLimitSwing();
 
 		__LimitConeRangeInterop interop__output;
 		interop__output = ScriptLimitConeRange::ToInterop(tmp__output);
 		MonoUtil::ValueCopy(__output, &interop__output, ScriptLimitConeRange::GetMetaData()->ScriptClass->GetInternalClassInternal());
 	}
 
-	void ScriptD6Joint::InternalSetLimitSwing(ScriptD6Joint* thisPtr, __LimitConeRangeInterop* limit)
+	void ScriptD6Joint::InternalSetLimitSwing(ScriptD6Joint* self, __LimitConeRangeInterop* limit)
 	{
 		LimitConeRange tmplimit;
 		tmplimit = ScriptLimitConeRange::FromInterop(*limit);
-		thisPtr->GetHandle()->SetLimitSwing(tmplimit);
+		self->GetHandle()->SetLimitSwing(tmplimit);
 	}
 
-	void ScriptD6Joint::InternalGetDrive(ScriptD6Joint* thisPtr, D6JointDriveType type, __D6JointDriveInterop* __output)
+	void ScriptD6Joint::InternalGetDrive(ScriptD6Joint* self, D6JointDriveType type, __D6JointDriveInterop* __output)
 	{
 		D6JointDrive tmp__output;
-		tmp__output = thisPtr->GetHandle()->GetDrive(type);
+		tmp__output = self->GetHandle()->GetDrive(type);
 
 		__D6JointDriveInterop interop__output;
 		interop__output = ScriptD6JointDrive::ToInterop(tmp__output);
 		MonoUtil::ValueCopy(__output, &interop__output, ScriptD6JointDrive::GetMetaData()->ScriptClass->GetInternalClassInternal());
 	}
 
-	void ScriptD6Joint::InternalSetDrive(ScriptD6Joint* thisPtr, D6JointDriveType type, __D6JointDriveInterop* drive)
+	void ScriptD6Joint::InternalSetDrive(ScriptD6Joint* self, D6JointDriveType type, __D6JointDriveInterop* drive)
 	{
 		D6JointDrive tmpdrive;
 		tmpdrive = ScriptD6JointDrive::FromInterop(*drive);
-		thisPtr->GetHandle()->SetDrive(type, tmpdrive);
+		self->GetHandle()->SetDrive(type, tmpdrive);
 	}
 
-	void ScriptD6Joint::InternalGetDrivePosition(ScriptD6Joint* thisPtr, TVector3<float>* __output)
+	void ScriptD6Joint::InternalGetDrivePosition(ScriptD6Joint* self, TVector3<float>* __output)
 	{
 		TVector3<float> tmp__output;
-		tmp__output = thisPtr->GetHandle()->GetDrivePosition();
+		tmp__output = self->GetHandle()->GetDrivePosition();
 
 		*__output = tmp__output;
 	}
 
-	void ScriptD6Joint::InternalGetDriveRotation(ScriptD6Joint* thisPtr, Quaternion* __output)
+	void ScriptD6Joint::InternalGetDriveRotation(ScriptD6Joint* self, Quaternion* __output)
 	{
 		Quaternion tmp__output;
-		tmp__output = thisPtr->GetHandle()->GetDriveRotation();
+		tmp__output = self->GetHandle()->GetDriveRotation();
 
 		*__output = tmp__output;
 	}
 
-	void ScriptD6Joint::InternalSetDriveTransform(ScriptD6Joint* thisPtr, TVector3<float>* position, Quaternion* rotation)
+	void ScriptD6Joint::InternalSetDriveTransform(ScriptD6Joint* self, TVector3<float>* position, Quaternion* rotation)
 	{
-		thisPtr->GetHandle()->SetDriveTransform(*position, *rotation);
+		self->GetHandle()->SetDriveTransform(*position, *rotation);
 	}
 
-	void ScriptD6Joint::InternalGetDriveLinearVelocity(ScriptD6Joint* thisPtr, TVector3<float>* __output)
+	void ScriptD6Joint::InternalGetDriveLinearVelocity(ScriptD6Joint* self, TVector3<float>* __output)
 	{
 		TVector3<float> tmp__output;
-		tmp__output = thisPtr->GetHandle()->GetDriveLinearVelocity();
+		tmp__output = self->GetHandle()->GetDriveLinearVelocity();
 
 		*__output = tmp__output;
 	}
 
-	void ScriptD6Joint::InternalGetDriveAngularVelocity(ScriptD6Joint* thisPtr, TVector3<float>* __output)
+	void ScriptD6Joint::InternalGetDriveAngularVelocity(ScriptD6Joint* self, TVector3<float>* __output)
 	{
 		TVector3<float> tmp__output;
-		tmp__output = thisPtr->GetHandle()->GetDriveAngularVelocity();
+		tmp__output = self->GetHandle()->GetDriveAngularVelocity();
 
 		*__output = tmp__output;
 	}
 
-	void ScriptD6Joint::InternalSetDriveVelocity(ScriptD6Joint* thisPtr, TVector3<float>* linear, TVector3<float>* angular)
+	void ScriptD6Joint::InternalSetDriveVelocity(ScriptD6Joint* self, TVector3<float>* linear, TVector3<float>* angular)
 	{
-		thisPtr->GetHandle()->SetDriveVelocity(*linear, *angular);
+		self->GetHandle()->SetDriveVelocity(*linear, *angular);
 	}
 }

@@ -30,7 +30,7 @@ namespace bs
 		ScriptGUIToggleable(MonoObject* managedInstance, GUIToggleable* value);
 
 	private:
-		static void InternalSetIsToggled(ScriptGUIElementBase* thisPtr, bool isToggled);
-		static bool InternalIsToggled(ScriptGUIElementBase* thisPtr);
+		static void InternalSetIsToggled(ScriptGUIElementBase* self, bool isToggled);
+		static bool InternalIsToggled(ScriptGUIElementBase* self);
 	};
 }

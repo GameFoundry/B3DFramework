@@ -35,17 +35,17 @@ namespace bs
 		new (B3DAllocate<ScriptParticleSize>()) ScriptParticleSize(managedInstance, value);
 		return managedInstance;
 	}
-	void ScriptParticleSize::InternalSetOptions(ScriptParticleSize* thisPtr, __PARTICLE_SIZE_DESCInterop* options)
+	void ScriptParticleSize::InternalSetOptions(ScriptParticleSize* self, __PARTICLE_SIZE_DESCInterop* options)
 	{
 		PARTICLE_SIZE_DESC tmpoptions;
 		tmpoptions = ScriptParticleSizeOptions::FromInterop(*options);
-		thisPtr->GetInternal()->SetOptions(tmpoptions);
+		self->GetInternal()->SetOptions(tmpoptions);
 	}
 
-	void ScriptParticleSize::InternalGetOptions(ScriptParticleSize* thisPtr, __PARTICLE_SIZE_DESCInterop* __output)
+	void ScriptParticleSize::InternalGetOptions(ScriptParticleSize* self, __PARTICLE_SIZE_DESCInterop* __output)
 	{
 		PARTICLE_SIZE_DESC tmp__output;
-		tmp__output = thisPtr->GetInternal()->GetOptions();
+		tmp__output = self->GetInternal()->GetOptions();
 
 		__PARTICLE_SIZE_DESCInterop interop__output;
 		interop__output = ScriptParticleSizeOptions::ToInterop(tmp__output);
@@ -56,13 +56,13 @@ namespace bs
 	{
 		PARTICLE_SIZE_DESC tmpdesc;
 		tmpdesc = ScriptParticleSizeOptions::FromInterop(*desc);
-		SPtr<ParticleSize> instance = ParticleSize::Create(tmpdesc);
-		new (B3DAllocate<ScriptParticleSize>())ScriptParticleSize(managedInstance, instance);
+		SPtr<ParticleSize> nativeObject = ParticleSize::Create(tmpdesc);
+		new (B3DAllocate<ScriptParticleSize>())ScriptParticleSize(managedInstance, nativeObject);
 	}
 
 	void ScriptParticleSize::InternalCreate0(MonoObject* managedInstance)
 	{
-		SPtr<ParticleSize> instance = ParticleSize::Create();
-		new (B3DAllocate<ScriptParticleSize>())ScriptParticleSize(managedInstance, instance);
+		SPtr<ParticleSize> nativeObject = ParticleSize::Create();
+		new (B3DAllocate<ScriptParticleSize>())ScriptParticleSize(managedInstance, nativeObject);
 	}
 }

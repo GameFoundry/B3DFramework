@@ -95,20 +95,20 @@ namespace bs
 		MonoUtil::InvokeThunk(ScriptOnEventTriggeredInternalThunk, GetManagedInstance(), tmpp0, tmpp1);
 	}
 
-	void ScriptAnimation::InternalSetDefaultClip(ScriptAnimation* thisPtr, MonoObject* clip)
+	void ScriptAnimation::InternalSetDefaultClip(ScriptAnimation* self, MonoObject* clip)
 	{
 		TResourceHandle<AnimationClip> tmpclip;
 		ScriptRRefBase* scriptObjectWrapperclip;
 		scriptObjectWrapperclip = ScriptRRefBase::ToNative(clip);
 		if(scriptObjectWrapperclip != nullptr)
 			tmpclip = B3DStaticResourceCast<AnimationClip>(scriptObjectWrapperclip->GetHandle());
-		thisPtr->GetHandle()->SetDefaultClip(tmpclip);
+		self->GetHandle()->SetDefaultClip(tmpclip);
 	}
 
-	MonoObject* ScriptAnimation::InternalGetDefaultClip(ScriptAnimation* thisPtr)
+	MonoObject* ScriptAnimation::InternalGetDefaultClip(ScriptAnimation* self)
 	{
 		TResourceHandle<AnimationClip> tmp__output;
-		tmp__output = thisPtr->GetHandle()->GetDefaultClip();
+		tmp__output = self->GetHandle()->GetDefaultClip();
 
 		MonoObject* __output;
 		ScriptRRefBase* script__output;
@@ -121,15 +121,15 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptAnimation::InternalSetWrapMode(ScriptAnimation* thisPtr, AnimWrapMode wrapMode)
+	void ScriptAnimation::InternalSetWrapMode(ScriptAnimation* self, AnimWrapMode wrapMode)
 	{
-		thisPtr->GetHandle()->SetWrapMode(wrapMode);
+		self->GetHandle()->SetWrapMode(wrapMode);
 	}
 
-	AnimWrapMode ScriptAnimation::InternalGetWrapMode(ScriptAnimation* thisPtr)
+	AnimWrapMode ScriptAnimation::InternalGetWrapMode(ScriptAnimation* self)
 	{
 		AnimWrapMode tmp__output;
-		tmp__output = thisPtr->GetHandle()->GetWrapMode();
+		tmp__output = self->GetHandle()->GetWrapMode();
 
 		AnimWrapMode __output;
 		__output = tmp__output;
@@ -137,15 +137,15 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptAnimation::InternalSetSpeed(ScriptAnimation* thisPtr, float speed)
+	void ScriptAnimation::InternalSetSpeed(ScriptAnimation* self, float speed)
 	{
-		thisPtr->GetHandle()->SetSpeed(speed);
+		self->GetHandle()->SetSpeed(speed);
 	}
 
-	float ScriptAnimation::InternalGetSpeed(ScriptAnimation* thisPtr)
+	float ScriptAnimation::InternalGetSpeed(ScriptAnimation* self)
 	{
 		float tmp__output;
-		tmp__output = thisPtr->GetHandle()->GetSpeed();
+		tmp__output = self->GetHandle()->GetSpeed();
 
 		float __output;
 		__output = tmp__output;
@@ -153,74 +153,74 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptAnimation::InternalPlay(ScriptAnimation* thisPtr, MonoObject* clip)
+	void ScriptAnimation::InternalPlay(ScriptAnimation* self, MonoObject* clip)
 	{
 		TResourceHandle<AnimationClip> tmpclip;
 		ScriptRRefBase* scriptObjectWrapperclip;
 		scriptObjectWrapperclip = ScriptRRefBase::ToNative(clip);
 		if(scriptObjectWrapperclip != nullptr)
 			tmpclip = B3DStaticResourceCast<AnimationClip>(scriptObjectWrapperclip->GetHandle());
-		thisPtr->GetHandle()->Play(tmpclip);
+		self->GetHandle()->Play(tmpclip);
 	}
 
-	void ScriptAnimation::InternalBlendAdditive(ScriptAnimation* thisPtr, MonoObject* clip, float weight, float fadeLength, uint32_t layer)
+	void ScriptAnimation::InternalBlendAdditive(ScriptAnimation* self, MonoObject* clip, float weight, float fadeLength, uint32_t layer)
 	{
 		TResourceHandle<AnimationClip> tmpclip;
 		ScriptRRefBase* scriptObjectWrapperclip;
 		scriptObjectWrapperclip = ScriptRRefBase::ToNative(clip);
 		if(scriptObjectWrapperclip != nullptr)
 			tmpclip = B3DStaticResourceCast<AnimationClip>(scriptObjectWrapperclip->GetHandle());
-		thisPtr->GetHandle()->BlendAdditive(tmpclip, weight, fadeLength, layer);
+		self->GetHandle()->BlendAdditive(tmpclip, weight, fadeLength, layer);
 	}
 
-	void ScriptAnimation::InternalBlend1D(ScriptAnimation* thisPtr, __Blend1DInfoInterop* info, float t)
+	void ScriptAnimation::InternalBlend1D(ScriptAnimation* self, __Blend1DInfoInterop* info, float t)
 	{
 		Blend1DInfo tmpinfo;
 		tmpinfo = ScriptBlend1DInfo::FromInterop(*info);
-		thisPtr->GetHandle()->Blend1D(tmpinfo, t);
+		self->GetHandle()->Blend1D(tmpinfo, t);
 	}
 
-	void ScriptAnimation::InternalBlend2D(ScriptAnimation* thisPtr, __Blend2DInfoInterop* info, TVector2<float>* t)
+	void ScriptAnimation::InternalBlend2D(ScriptAnimation* self, __Blend2DInfoInterop* info, TVector2<float>* t)
 	{
 		Blend2DInfo tmpinfo;
 		tmpinfo = ScriptBlend2DInfo::FromInterop(*info);
-		thisPtr->GetHandle()->Blend2D(tmpinfo, *t);
+		self->GetHandle()->Blend2D(tmpinfo, *t);
 	}
 
-	void ScriptAnimation::InternalCrossFade(ScriptAnimation* thisPtr, MonoObject* clip, float fadeLength)
+	void ScriptAnimation::InternalCrossFade(ScriptAnimation* self, MonoObject* clip, float fadeLength)
 	{
 		TResourceHandle<AnimationClip> tmpclip;
 		ScriptRRefBase* scriptObjectWrapperclip;
 		scriptObjectWrapperclip = ScriptRRefBase::ToNative(clip);
 		if(scriptObjectWrapperclip != nullptr)
 			tmpclip = B3DStaticResourceCast<AnimationClip>(scriptObjectWrapperclip->GetHandle());
-		thisPtr->GetHandle()->CrossFade(tmpclip, fadeLength);
+		self->GetHandle()->CrossFade(tmpclip, fadeLength);
 	}
 
-	void ScriptAnimation::InternalSample(ScriptAnimation* thisPtr, MonoObject* clip, float time)
+	void ScriptAnimation::InternalSample(ScriptAnimation* self, MonoObject* clip, float time)
 	{
 		TResourceHandle<AnimationClip> tmpclip;
 		ScriptRRefBase* scriptObjectWrapperclip;
 		scriptObjectWrapperclip = ScriptRRefBase::ToNative(clip);
 		if(scriptObjectWrapperclip != nullptr)
 			tmpclip = B3DStaticResourceCast<AnimationClip>(scriptObjectWrapperclip->GetHandle());
-		thisPtr->GetHandle()->Sample(tmpclip, time);
+		self->GetHandle()->Sample(tmpclip, time);
 	}
 
-	void ScriptAnimation::InternalStop(ScriptAnimation* thisPtr, uint32_t layer)
+	void ScriptAnimation::InternalStop(ScriptAnimation* self, uint32_t layer)
 	{
-		thisPtr->GetHandle()->Stop(layer);
+		self->GetHandle()->Stop(layer);
 	}
 
-	void ScriptAnimation::InternalStopAll(ScriptAnimation* thisPtr)
+	void ScriptAnimation::InternalStopAll(ScriptAnimation* self)
 	{
-		thisPtr->GetHandle()->StopAll();
+		self->GetHandle()->StopAll();
 	}
 
-	bool ScriptAnimation::InternalIsPlaying(ScriptAnimation* thisPtr)
+	bool ScriptAnimation::InternalIsPlaying(ScriptAnimation* self)
 	{
 		bool tmp__output;
-		tmp__output = thisPtr->GetHandle()->IsPlaying();
+		tmp__output = self->GetHandle()->IsPlaying();
 
 		bool __output;
 		__output = tmp__output;
@@ -228,7 +228,7 @@ namespace bs
 		return __output;
 	}
 
-	bool ScriptAnimation::InternalGetState(ScriptAnimation* thisPtr, MonoObject* clip, AnimationClipState* state)
+	bool ScriptAnimation::InternalGetState(ScriptAnimation* self, MonoObject* clip, AnimationClipState* state)
 	{
 		bool tmp__output;
 		TResourceHandle<AnimationClip> tmpclip;
@@ -236,7 +236,7 @@ namespace bs
 		scriptObjectWrapperclip = ScriptRRefBase::ToNative(clip);
 		if(scriptObjectWrapperclip != nullptr)
 			tmpclip = B3DStaticResourceCast<AnimationClip>(scriptObjectWrapperclip->GetHandle());
-		tmp__output = thisPtr->GetHandle()->GetState(tmpclip, *state);
+		tmp__output = self->GetHandle()->GetState(tmpclip, *state);
 
 		bool __output;
 		__output = tmp__output;
@@ -244,45 +244,45 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptAnimation::InternalSetState(ScriptAnimation* thisPtr, MonoObject* clip, AnimationClipState* state)
+	void ScriptAnimation::InternalSetState(ScriptAnimation* self, MonoObject* clip, AnimationClipState* state)
 	{
 		TResourceHandle<AnimationClip> tmpclip;
 		ScriptRRefBase* scriptObjectWrapperclip;
 		scriptObjectWrapperclip = ScriptRRefBase::ToNative(clip);
 		if(scriptObjectWrapperclip != nullptr)
 			tmpclip = B3DStaticResourceCast<AnimationClip>(scriptObjectWrapperclip->GetHandle());
-		thisPtr->GetHandle()->SetState(tmpclip, *state);
+		self->GetHandle()->SetState(tmpclip, *state);
 	}
 
-	void ScriptAnimation::InternalSetMorphChannelWeight(ScriptAnimation* thisPtr, MonoString* name, float weight)
+	void ScriptAnimation::InternalSetMorphChannelWeight(ScriptAnimation* self, MonoString* name, float weight)
 	{
 		String tmpname;
 		tmpname = MonoUtil::MonoToString(name);
-		thisPtr->GetHandle()->SetMorphChannelWeight(tmpname, weight);
+		self->GetHandle()->SetMorphChannelWeight(tmpname, weight);
 	}
 
-	void ScriptAnimation::InternalSetBounds(ScriptAnimation* thisPtr, AABox* bounds)
+	void ScriptAnimation::InternalSetBounds(ScriptAnimation* self, AABox* bounds)
 	{
-		thisPtr->GetHandle()->SetBounds(*bounds);
+		self->GetHandle()->SetBounds(*bounds);
 	}
 
-	void ScriptAnimation::InternalGetBounds(ScriptAnimation* thisPtr, AABox* __output)
+	void ScriptAnimation::InternalGetBounds(ScriptAnimation* self, AABox* __output)
 	{
 		AABox tmp__output;
-		tmp__output = thisPtr->GetHandle()->GetBounds();
+		tmp__output = self->GetHandle()->GetBounds();
 
 		*__output = tmp__output;
 	}
 
-	void ScriptAnimation::InternalSetUseBounds(ScriptAnimation* thisPtr, bool enable)
+	void ScriptAnimation::InternalSetUseBounds(ScriptAnimation* self, bool enable)
 	{
-		thisPtr->GetHandle()->SetUseBounds(enable);
+		self->GetHandle()->SetUseBounds(enable);
 	}
 
-	bool ScriptAnimation::InternalGetUseBounds(ScriptAnimation* thisPtr)
+	bool ScriptAnimation::InternalGetUseBounds(ScriptAnimation* self)
 	{
 		bool tmp__output;
-		tmp__output = thisPtr->GetHandle()->GetUseBounds();
+		tmp__output = self->GetHandle()->GetUseBounds();
 
 		bool __output;
 		__output = tmp__output;
@@ -290,15 +290,15 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptAnimation::InternalSetEnableCull(ScriptAnimation* thisPtr, bool enable)
+	void ScriptAnimation::InternalSetEnableCull(ScriptAnimation* self, bool enable)
 	{
-		thisPtr->GetHandle()->SetEnableCull(enable);
+		self->GetHandle()->SetEnableCull(enable);
 	}
 
-	bool ScriptAnimation::InternalGetEnableCull(ScriptAnimation* thisPtr)
+	bool ScriptAnimation::InternalGetEnableCull(ScriptAnimation* self)
 	{
 		bool tmp__output;
-		tmp__output = thisPtr->GetHandle()->GetEnableCull();
+		tmp__output = self->GetHandle()->GetEnableCull();
 
 		bool __output;
 		__output = tmp__output;
@@ -306,10 +306,10 @@ namespace bs
 		return __output;
 	}
 
-	uint32_t ScriptAnimation::InternalGetNumClips(ScriptAnimation* thisPtr)
+	uint32_t ScriptAnimation::InternalGetNumClips(ScriptAnimation* self)
 	{
 		uint32_t tmp__output;
-		tmp__output = thisPtr->GetHandle()->GetNumClips();
+		tmp__output = self->GetHandle()->GetNumClips();
 
 		uint32_t __output;
 		__output = tmp__output;
@@ -317,10 +317,10 @@ namespace bs
 		return __output;
 	}
 
-	MonoObject* ScriptAnimation::InternalGetClip(ScriptAnimation* thisPtr, uint32_t idx)
+	MonoObject* ScriptAnimation::InternalGetClip(ScriptAnimation* self, uint32_t idx)
 	{
 		TResourceHandle<AnimationClip> tmp__output;
-		tmp__output = thisPtr->GetHandle()->GetClip(idx);
+		tmp__output = self->GetHandle()->GetClip(idx);
 
 		MonoObject* __output;
 		ScriptRRefBase* script__output;
@@ -333,15 +333,15 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptAnimation::InternalRefreshClipMappingsInternal(ScriptAnimation* thisPtr)
+	void ScriptAnimation::InternalRefreshClipMappingsInternal(ScriptAnimation* self)
 	{
-		thisPtr->GetHandle()->RefreshClipMappingsInternal();
+		self->GetHandle()->RefreshClipMappingsInternal();
 	}
 
-	bool ScriptAnimation::InternalGetGenericCurveValueInternal(ScriptAnimation* thisPtr, uint32_t curveIdx, float* value)
+	bool ScriptAnimation::InternalGetGenericCurveValueInternal(ScriptAnimation* self, uint32_t curveIdx, float* value)
 	{
 		bool tmp__output;
-		tmp__output = thisPtr->GetHandle()->GetGenericCurveValueInternal(curveIdx, *value);
+		tmp__output = self->GetHandle()->GetGenericCurveValueInternal(curveIdx, *value);
 
 		bool __output;
 		__output = tmp__output;
@@ -349,10 +349,10 @@ namespace bs
 		return __output;
 	}
 
-	bool ScriptAnimation::InternalTogglePreviewModeInternal(ScriptAnimation* thisPtr, bool enabled)
+	bool ScriptAnimation::InternalTogglePreviewModeInternal(ScriptAnimation* self, bool enabled)
 	{
 		bool tmp__output;
-		tmp__output = thisPtr->GetHandle()->TogglePreviewModeInternal(enabled);
+		tmp__output = self->GetHandle()->TogglePreviewModeInternal(enabled);
 
 		bool __output;
 		__output = tmp__output;

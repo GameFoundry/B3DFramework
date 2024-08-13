@@ -20,13 +20,13 @@ namespace bs
 
 	private:
 		static void InternalShadowSettings(MonoObject* managedInstance);
-		static float InternalGetDirectionalShadowDistance(ScriptShadowSettings* thisPtr);
-		static void InternalSetDirectionalShadowDistance(ScriptShadowSettings* thisPtr, float value);
-		static uint32_t InternalGetNumCascades(ScriptShadowSettings* thisPtr);
-		static void InternalSetNumCascades(ScriptShadowSettings* thisPtr, uint32_t value);
-		static float InternalGetCascadeDistributionExponent(ScriptShadowSettings* thisPtr);
-		static void InternalSetCascadeDistributionExponent(ScriptShadowSettings* thisPtr, float value);
-		static uint32_t InternalGetShadowFilteringQuality(ScriptShadowSettings* thisPtr);
-		static void InternalSetShadowFilteringQuality(ScriptShadowSettings* thisPtr, uint32_t value);
+		static float InternalGetDirectionalShadowDistance(ScriptShadowSettings* self);
+		static void InternalSetDirectionalShadowDistance(ScriptShadowSettings* self, float value);
+		static uint32_t InternalGetNumCascades(ScriptShadowSettings* self);
+		static void InternalSetNumCascades(ScriptShadowSettings* self, uint32_t value);
+		static float InternalGetCascadeDistributionExponent(ScriptShadowSettings* self);
+		static void InternalSetCascadeDistributionExponent(ScriptShadowSettings* self, float value);
+		static uint32_t InternalGetShadowFilteringQuality(ScriptShadowSettings* self);
+		static void InternalSetShadowFilteringQuality(ScriptShadowSettings* self, uint32_t value);
 	};
 }

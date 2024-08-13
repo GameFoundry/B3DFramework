@@ -35,17 +35,17 @@ namespace bs
 		new (B3DAllocate<ScriptParticleOrbit>()) ScriptParticleOrbit(managedInstance, value);
 		return managedInstance;
 	}
-	void ScriptParticleOrbit::InternalSetOptions(ScriptParticleOrbit* thisPtr, __PARTICLE_ORBIT_DESCInterop* options)
+	void ScriptParticleOrbit::InternalSetOptions(ScriptParticleOrbit* self, __PARTICLE_ORBIT_DESCInterop* options)
 	{
 		PARTICLE_ORBIT_DESC tmpoptions;
 		tmpoptions = ScriptParticleOrbitOptions::FromInterop(*options);
-		thisPtr->GetInternal()->SetOptions(tmpoptions);
+		self->GetInternal()->SetOptions(tmpoptions);
 	}
 
-	void ScriptParticleOrbit::InternalGetOptions(ScriptParticleOrbit* thisPtr, __PARTICLE_ORBIT_DESCInterop* __output)
+	void ScriptParticleOrbit::InternalGetOptions(ScriptParticleOrbit* self, __PARTICLE_ORBIT_DESCInterop* __output)
 	{
 		PARTICLE_ORBIT_DESC tmp__output;
-		tmp__output = thisPtr->GetInternal()->GetOptions();
+		tmp__output = self->GetInternal()->GetOptions();
 
 		__PARTICLE_ORBIT_DESCInterop interop__output;
 		interop__output = ScriptParticleOrbitOptions::ToInterop(tmp__output);
@@ -56,13 +56,13 @@ namespace bs
 	{
 		PARTICLE_ORBIT_DESC tmpdesc;
 		tmpdesc = ScriptParticleOrbitOptions::FromInterop(*desc);
-		SPtr<ParticleOrbit> instance = ParticleOrbit::Create(tmpdesc);
-		new (B3DAllocate<ScriptParticleOrbit>())ScriptParticleOrbit(managedInstance, instance);
+		SPtr<ParticleOrbit> nativeObject = ParticleOrbit::Create(tmpdesc);
+		new (B3DAllocate<ScriptParticleOrbit>())ScriptParticleOrbit(managedInstance, nativeObject);
 	}
 
 	void ScriptParticleOrbit::InternalCreate0(MonoObject* managedInstance)
 	{
-		SPtr<ParticleOrbit> instance = ParticleOrbit::Create();
-		new (B3DAllocate<ScriptParticleOrbit>())ScriptParticleOrbit(managedInstance, instance);
+		SPtr<ParticleOrbit> nativeObject = ParticleOrbit::Create();
+		new (B3DAllocate<ScriptParticleOrbit>())ScriptParticleOrbit(managedInstance, nativeObject);
 	}
 }

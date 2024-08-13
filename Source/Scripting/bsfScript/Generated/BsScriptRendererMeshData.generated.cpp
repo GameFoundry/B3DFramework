@@ -57,14 +57,14 @@ namespace bs
 	}
 	void ScriptMeshData::InternalCreate(MonoObject* managedInstance, uint32_t numVertices, uint32_t numIndices, VertexLayout layout, IndexType indexType)
 	{
-		SPtr<RendererMeshData> instance = MeshDataEx::Create(numVertices, numIndices, layout, indexType);
-		new (B3DAllocate<ScriptMeshData>())ScriptMeshData(managedInstance, instance);
+		SPtr<RendererMeshData> nativeObject = MeshDataEx::Create(numVertices, numIndices, layout, indexType);
+		new (B3DAllocate<ScriptMeshData>())ScriptMeshData(managedInstance, nativeObject);
 	}
 
-	MonoArray* ScriptMeshData::InternalGetPositions(ScriptMeshData* thisPtr)
+	MonoArray* ScriptMeshData::InternalGetPositions(ScriptMeshData* self)
 	{
 		Vector<TVector3<float>> nativeArray__output;
-		nativeArray__output = MeshDataEx::GetPositions(thisPtr->GetInternal());
+		nativeArray__output = MeshDataEx::GetPositions(self->GetInternal());
 
 		MonoArray* __output;
 		int elementCount__output = (int)nativeArray__output.size();
@@ -78,7 +78,7 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptMeshData::InternalSetPositions(ScriptMeshData* thisPtr, MonoArray* value)
+	void ScriptMeshData::InternalSetPositions(ScriptMeshData* self, MonoArray* value)
 	{
 		Vector<TVector3<float>> nativeArrayvalue;
 		if(value != nullptr)
@@ -90,13 +90,13 @@ namespace bs
 				nativeArrayvalue[elementIndex] = scriptArrayvalue.Get<TVector3<float>>(elementIndex);
 			}
 		}
-		MeshDataEx::SetPositions(thisPtr->GetInternal(), nativeArrayvalue);
+		MeshDataEx::SetPositions(self->GetInternal(), nativeArrayvalue);
 	}
 
-	MonoArray* ScriptMeshData::InternalGetNormals(ScriptMeshData* thisPtr)
+	MonoArray* ScriptMeshData::InternalGetNormals(ScriptMeshData* self)
 	{
 		Vector<TVector3<float>> nativeArray__output;
-		nativeArray__output = MeshDataEx::GetNormals(thisPtr->GetInternal());
+		nativeArray__output = MeshDataEx::GetNormals(self->GetInternal());
 
 		MonoArray* __output;
 		int elementCount__output = (int)nativeArray__output.size();
@@ -110,7 +110,7 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptMeshData::InternalSetNormals(ScriptMeshData* thisPtr, MonoArray* value)
+	void ScriptMeshData::InternalSetNormals(ScriptMeshData* self, MonoArray* value)
 	{
 		Vector<TVector3<float>> nativeArrayvalue;
 		if(value != nullptr)
@@ -122,13 +122,13 @@ namespace bs
 				nativeArrayvalue[elementIndex] = scriptArrayvalue.Get<TVector3<float>>(elementIndex);
 			}
 		}
-		MeshDataEx::SetNormals(thisPtr->GetInternal(), nativeArrayvalue);
+		MeshDataEx::SetNormals(self->GetInternal(), nativeArrayvalue);
 	}
 
-	MonoArray* ScriptMeshData::InternalGetTangents(ScriptMeshData* thisPtr)
+	MonoArray* ScriptMeshData::InternalGetTangents(ScriptMeshData* self)
 	{
 		Vector<TVector4<float>> nativeArray__output;
-		nativeArray__output = MeshDataEx::GetTangents(thisPtr->GetInternal());
+		nativeArray__output = MeshDataEx::GetTangents(self->GetInternal());
 
 		MonoArray* __output;
 		int elementCount__output = (int)nativeArray__output.size();
@@ -142,7 +142,7 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptMeshData::InternalSetTangents(ScriptMeshData* thisPtr, MonoArray* value)
+	void ScriptMeshData::InternalSetTangents(ScriptMeshData* self, MonoArray* value)
 	{
 		Vector<TVector4<float>> nativeArrayvalue;
 		if(value != nullptr)
@@ -154,13 +154,13 @@ namespace bs
 				nativeArrayvalue[elementIndex] = scriptArrayvalue.Get<TVector4<float>>(elementIndex);
 			}
 		}
-		MeshDataEx::SetTangents(thisPtr->GetInternal(), nativeArrayvalue);
+		MeshDataEx::SetTangents(self->GetInternal(), nativeArrayvalue);
 	}
 
-	MonoArray* ScriptMeshData::InternalGetColors(ScriptMeshData* thisPtr)
+	MonoArray* ScriptMeshData::InternalGetColors(ScriptMeshData* self)
 	{
 		Vector<Color> nativeArray__output;
-		nativeArray__output = MeshDataEx::GetColors(thisPtr->GetInternal());
+		nativeArray__output = MeshDataEx::GetColors(self->GetInternal());
 
 		MonoArray* __output;
 		int elementCount__output = (int)nativeArray__output.size();
@@ -174,7 +174,7 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptMeshData::InternalSetColors(ScriptMeshData* thisPtr, MonoArray* value)
+	void ScriptMeshData::InternalSetColors(ScriptMeshData* self, MonoArray* value)
 	{
 		Vector<Color> nativeArrayvalue;
 		if(value != nullptr)
@@ -186,13 +186,13 @@ namespace bs
 				nativeArrayvalue[elementIndex] = scriptArrayvalue.Get<Color>(elementIndex);
 			}
 		}
-		MeshDataEx::SetColors(thisPtr->GetInternal(), nativeArrayvalue);
+		MeshDataEx::SetColors(self->GetInternal(), nativeArrayvalue);
 	}
 
-	MonoArray* ScriptMeshData::InternalGetUV0(ScriptMeshData* thisPtr)
+	MonoArray* ScriptMeshData::InternalGetUV0(ScriptMeshData* self)
 	{
 		Vector<TVector2<float>> nativeArray__output;
-		nativeArray__output = MeshDataEx::GetUV0(thisPtr->GetInternal());
+		nativeArray__output = MeshDataEx::GetUV0(self->GetInternal());
 
 		MonoArray* __output;
 		int elementCount__output = (int)nativeArray__output.size();
@@ -206,7 +206,7 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptMeshData::InternalSetUV0(ScriptMeshData* thisPtr, MonoArray* value)
+	void ScriptMeshData::InternalSetUV0(ScriptMeshData* self, MonoArray* value)
 	{
 		Vector<TVector2<float>> nativeArrayvalue;
 		if(value != nullptr)
@@ -218,13 +218,13 @@ namespace bs
 				nativeArrayvalue[elementIndex] = scriptArrayvalue.Get<TVector2<float>>(elementIndex);
 			}
 		}
-		MeshDataEx::SetUV0(thisPtr->GetInternal(), nativeArrayvalue);
+		MeshDataEx::SetUV0(self->GetInternal(), nativeArrayvalue);
 	}
 
-	MonoArray* ScriptMeshData::InternalGetUV1(ScriptMeshData* thisPtr)
+	MonoArray* ScriptMeshData::InternalGetUV1(ScriptMeshData* self)
 	{
 		Vector<TVector2<float>> nativeArray__output;
-		nativeArray__output = MeshDataEx::GetUV1(thisPtr->GetInternal());
+		nativeArray__output = MeshDataEx::GetUV1(self->GetInternal());
 
 		MonoArray* __output;
 		int elementCount__output = (int)nativeArray__output.size();
@@ -238,7 +238,7 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptMeshData::InternalSetUV1(ScriptMeshData* thisPtr, MonoArray* value)
+	void ScriptMeshData::InternalSetUV1(ScriptMeshData* self, MonoArray* value)
 	{
 		Vector<TVector2<float>> nativeArrayvalue;
 		if(value != nullptr)
@@ -250,13 +250,13 @@ namespace bs
 				nativeArrayvalue[elementIndex] = scriptArrayvalue.Get<TVector2<float>>(elementIndex);
 			}
 		}
-		MeshDataEx::SetUV1(thisPtr->GetInternal(), nativeArrayvalue);
+		MeshDataEx::SetUV1(self->GetInternal(), nativeArrayvalue);
 	}
 
-	MonoArray* ScriptMeshData::InternalGetBoneWeights(ScriptMeshData* thisPtr)
+	MonoArray* ScriptMeshData::InternalGetBoneWeights(ScriptMeshData* self)
 	{
 		Vector<BoneWeight> nativeArray__output;
-		nativeArray__output = MeshDataEx::GetBoneWeights(thisPtr->GetInternal());
+		nativeArray__output = MeshDataEx::GetBoneWeights(self->GetInternal());
 
 		MonoArray* __output;
 		int elementCount__output = (int)nativeArray__output.size();
@@ -270,7 +270,7 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptMeshData::InternalSetBoneWeights(ScriptMeshData* thisPtr, MonoArray* value)
+	void ScriptMeshData::InternalSetBoneWeights(ScriptMeshData* self, MonoArray* value)
 	{
 		Vector<BoneWeight> nativeArrayvalue;
 		if(value != nullptr)
@@ -282,13 +282,13 @@ namespace bs
 				nativeArrayvalue[elementIndex] = scriptArrayvalue.Get<BoneWeight>(elementIndex);
 			}
 		}
-		MeshDataEx::SetBoneWeights(thisPtr->GetInternal(), nativeArrayvalue);
+		MeshDataEx::SetBoneWeights(self->GetInternal(), nativeArrayvalue);
 	}
 
-	MonoArray* ScriptMeshData::InternalGetIndices(ScriptMeshData* thisPtr)
+	MonoArray* ScriptMeshData::InternalGetIndices(ScriptMeshData* self)
 	{
 		Vector<uint32_t> nativeArray__output;
-		nativeArray__output = MeshDataEx::GetIndices(thisPtr->GetInternal());
+		nativeArray__output = MeshDataEx::GetIndices(self->GetInternal());
 
 		MonoArray* __output;
 		int elementCount__output = (int)nativeArray__output.size();
@@ -302,7 +302,7 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptMeshData::InternalSetIndices(ScriptMeshData* thisPtr, MonoArray* value)
+	void ScriptMeshData::InternalSetIndices(ScriptMeshData* self, MonoArray* value)
 	{
 		Vector<uint32_t> nativeArrayvalue;
 		if(value != nullptr)
@@ -314,13 +314,13 @@ namespace bs
 				nativeArrayvalue[elementIndex] = scriptArrayvalue.Get<uint32_t>(elementIndex);
 			}
 		}
-		MeshDataEx::SetIndices(thisPtr->GetInternal(), nativeArrayvalue);
+		MeshDataEx::SetIndices(self->GetInternal(), nativeArrayvalue);
 	}
 
-	int32_t ScriptMeshData::InternalGetVertexCount(ScriptMeshData* thisPtr)
+	int32_t ScriptMeshData::InternalGetVertexCount(ScriptMeshData* self)
 	{
 		int32_t tmp__output;
-		tmp__output = MeshDataEx::GetVertexCount(thisPtr->GetInternal());
+		tmp__output = MeshDataEx::GetVertexCount(self->GetInternal());
 
 		int32_t __output;
 		__output = tmp__output;
@@ -328,10 +328,10 @@ namespace bs
 		return __output;
 	}
 
-	int32_t ScriptMeshData::InternalGetIndexCount(ScriptMeshData* thisPtr)
+	int32_t ScriptMeshData::InternalGetIndexCount(ScriptMeshData* self)
 	{
 		int32_t tmp__output;
-		tmp__output = MeshDataEx::GetIndexCount(thisPtr->GetInternal());
+		tmp__output = MeshDataEx::GetIndexCount(self->GetInternal());
 
 		int32_t __output;
 		__output = tmp__output;

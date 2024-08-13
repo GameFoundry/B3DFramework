@@ -48,19 +48,19 @@ namespace bs
 	}
 	void ScriptRandom::InternalRandom(MonoObject* managedInstance, uint32_t seed)
 	{
-		SPtr<Random> instance = B3DMakeShared<Random>(seed);
-		new (B3DAllocate<ScriptRandom>())ScriptRandom(managedInstance, instance);
+		SPtr<Random> nativeObject = B3DMakeShared<Random>(seed);
+		new (B3DAllocate<ScriptRandom>())ScriptRandom(managedInstance, nativeObject);
 	}
 
-	void ScriptRandom::InternalSetSeed(ScriptRandom* thisPtr, uint32_t seed)
+	void ScriptRandom::InternalSetSeed(ScriptRandom* self, uint32_t seed)
 	{
-		thisPtr->GetInternal()->SetSeed(seed);
+		self->GetInternal()->SetSeed(seed);
 	}
 
-	uint32_t ScriptRandom::InternalGet(ScriptRandom* thisPtr)
+	uint32_t ScriptRandom::InternalGet(ScriptRandom* self)
 	{
 		uint32_t tmp__output;
-		tmp__output = thisPtr->GetInternal()->Get();
+		tmp__output = self->GetInternal()->Get();
 
 		uint32_t __output;
 		__output = tmp__output;
@@ -68,10 +68,10 @@ namespace bs
 		return __output;
 	}
 
-	int32_t ScriptRandom::InternalGetRange(ScriptRandom* thisPtr, int32_t min, int32_t max)
+	int32_t ScriptRandom::InternalGetRange(ScriptRandom* self, int32_t min, int32_t max)
 	{
 		int32_t tmp__output;
-		tmp__output = thisPtr->GetInternal()->GetRange(min, max);
+		tmp__output = self->GetInternal()->GetRange(min, max);
 
 		int32_t __output;
 		__output = tmp__output;
@@ -79,10 +79,10 @@ namespace bs
 		return __output;
 	}
 
-	float ScriptRandom::InternalGetUNorm(ScriptRandom* thisPtr)
+	float ScriptRandom::InternalGetUNorm(ScriptRandom* self)
 	{
 		float tmp__output;
-		tmp__output = thisPtr->GetInternal()->GetUNorm();
+		tmp__output = self->GetInternal()->GetUNorm();
 
 		float __output;
 		__output = tmp__output;
@@ -90,10 +90,10 @@ namespace bs
 		return __output;
 	}
 
-	float ScriptRandom::InternalGetSNorm(ScriptRandom* thisPtr)
+	float ScriptRandom::InternalGetSNorm(ScriptRandom* self)
 	{
 		float tmp__output;
-		tmp__output = thisPtr->GetInternal()->GetSNorm();
+		tmp__output = self->GetInternal()->GetSNorm();
 
 		float __output;
 		__output = tmp__output;
@@ -101,74 +101,74 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptRandom::InternalGetUnitVector(ScriptRandom* thisPtr, TVector3<float>* __output)
+	void ScriptRandom::InternalGetUnitVector(ScriptRandom* self, TVector3<float>* __output)
 	{
 		TVector3<float> tmp__output;
-		tmp__output = thisPtr->GetInternal()->GetUnitVector();
+		tmp__output = self->GetInternal()->GetUnitVector();
 
 		*__output = tmp__output;
 	}
 
-	void ScriptRandom::InternalGetUnitVector2D(ScriptRandom* thisPtr, TVector2<float>* __output)
+	void ScriptRandom::InternalGetUnitVector2D(ScriptRandom* self, TVector2<float>* __output)
 	{
 		TVector2<float> tmp__output;
-		tmp__output = thisPtr->GetInternal()->GetUnitVector2D();
+		tmp__output = self->GetInternal()->GetUnitVector2D();
 
 		*__output = tmp__output;
 	}
 
-	void ScriptRandom::InternalGetPointInSphere(ScriptRandom* thisPtr, TVector3<float>* __output)
+	void ScriptRandom::InternalGetPointInSphere(ScriptRandom* self, TVector3<float>* __output)
 	{
 		TVector3<float> tmp__output;
-		tmp__output = thisPtr->GetInternal()->GetPointInSphere();
+		tmp__output = self->GetInternal()->GetPointInSphere();
 
 		*__output = tmp__output;
 	}
 
-	void ScriptRandom::InternalGetPointInSphereShell(ScriptRandom* thisPtr, float thickness, TVector3<float>* __output)
+	void ScriptRandom::InternalGetPointInSphereShell(ScriptRandom* self, float thickness, TVector3<float>* __output)
 	{
 		TVector3<float> tmp__output;
-		tmp__output = thisPtr->GetInternal()->GetPointInSphereShell(thickness);
+		tmp__output = self->GetInternal()->GetPointInSphereShell(thickness);
 
 		*__output = tmp__output;
 	}
 
-	void ScriptRandom::InternalGetPointInCircle(ScriptRandom* thisPtr, TVector2<float>* __output)
+	void ScriptRandom::InternalGetPointInCircle(ScriptRandom* self, TVector2<float>* __output)
 	{
 		TVector2<float> tmp__output;
-		tmp__output = thisPtr->GetInternal()->GetPointInCircle();
+		tmp__output = self->GetInternal()->GetPointInCircle();
 
 		*__output = tmp__output;
 	}
 
-	void ScriptRandom::InternalGetPointInCircleShell(ScriptRandom* thisPtr, float thickness, TVector2<float>* __output)
+	void ScriptRandom::InternalGetPointInCircleShell(ScriptRandom* self, float thickness, TVector2<float>* __output)
 	{
 		TVector2<float> tmp__output;
-		tmp__output = thisPtr->GetInternal()->GetPointInCircleShell(thickness);
+		tmp__output = self->GetInternal()->GetPointInCircleShell(thickness);
 
 		*__output = tmp__output;
 	}
 
-	void ScriptRandom::InternalGetPointInArc(ScriptRandom* thisPtr, TDegree<float>* angle, TVector2<float>* __output)
+	void ScriptRandom::InternalGetPointInArc(ScriptRandom* self, TDegree<float>* angle, TVector2<float>* __output)
 	{
 		TVector2<float> tmp__output;
-		tmp__output = thisPtr->GetInternal()->GetPointInArc(*angle);
+		tmp__output = self->GetInternal()->GetPointInArc(*angle);
 
 		*__output = tmp__output;
 	}
 
-	void ScriptRandom::InternalGetPointInArcShell(ScriptRandom* thisPtr, TDegree<float>* angle, float thickness, TVector2<float>* __output)
+	void ScriptRandom::InternalGetPointInArcShell(ScriptRandom* self, TDegree<float>* angle, float thickness, TVector2<float>* __output)
 	{
 		TVector2<float> tmp__output;
-		tmp__output = thisPtr->GetInternal()->GetPointInArcShell(*angle, thickness);
+		tmp__output = self->GetInternal()->GetPointInArcShell(*angle, thickness);
 
 		*__output = tmp__output;
 	}
 
-	void ScriptRandom::InternalGetBarycentric(ScriptRandom* thisPtr, TVector3<float>* __output)
+	void ScriptRandom::InternalGetBarycentric(ScriptRandom* self, TVector3<float>* __output)
 	{
 		TVector3<float> tmp__output;
-		tmp__output = thisPtr->GetInternal()->GetBarycentric();
+		tmp__output = self->GetInternal()->GetBarycentric();
 
 		*__output = tmp__output;
 	}

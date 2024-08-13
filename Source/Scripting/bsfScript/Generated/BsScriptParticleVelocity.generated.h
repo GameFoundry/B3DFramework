@@ -22,8 +22,8 @@ namespace bs
 		static MonoObject* Create(const SPtr<ParticleVelocity>& value);
 
 	private:
-		static void InternalSetOptions(ScriptParticleVelocity* thisPtr, __PARTICLE_VELOCITY_DESCInterop* options);
-		static void InternalGetOptions(ScriptParticleVelocity* thisPtr, __PARTICLE_VELOCITY_DESCInterop* __output);
+		static void InternalSetOptions(ScriptParticleVelocity* self, __PARTICLE_VELOCITY_DESCInterop* options);
+		static void InternalGetOptions(ScriptParticleVelocity* self, __PARTICLE_VELOCITY_DESCInterop* __output);
 		static void InternalCreate(MonoObject* managedInstance, __PARTICLE_VELOCITY_DESCInterop* desc);
 		static void InternalCreate0(MonoObject* managedInstance);
 	};

@@ -24,7 +24,7 @@ namespace bs
 	private:
 		SPtr<RootMotion> mInternal;
 
-		static MonoObject* InternalGetPositionCurves(ScriptRootMotion* thisPtr);
-		static MonoObject* InternalGetRotationCurves(ScriptRootMotion* thisPtr);
+		static MonoObject* InternalGetPositionCurves(ScriptRootMotion* self);
+		static MonoObject* InternalGetRotationCurves(ScriptRootMotion* self);
 	};
 }

@@ -42,7 +42,7 @@ namespace bs
 		new (B3DAllocate<ScriptParticleCollisions>()) ScriptParticleCollisions(managedInstance, value);
 		return managedInstance;
 	}
-	void ScriptParticleCollisions::InternalSetPlanes(ScriptParticleCollisions* thisPtr, MonoArray* planes)
+	void ScriptParticleCollisions::InternalSetPlanes(ScriptParticleCollisions* self, MonoArray* planes)
 	{
 		Vector<Plane> nativeArrayplanes;
 		if(planes != nullptr)
@@ -54,13 +54,13 @@ namespace bs
 				nativeArrayplanes[elementIndex] = scriptArrayplanes.Get<Plane>(elementIndex);
 			}
 		}
-		thisPtr->GetInternal()->SetPlanes(nativeArrayplanes);
+		self->GetInternal()->SetPlanes(nativeArrayplanes);
 	}
 
-	MonoArray* ScriptParticleCollisions::InternalGetPlanes(ScriptParticleCollisions* thisPtr)
+	MonoArray* ScriptParticleCollisions::InternalGetPlanes(ScriptParticleCollisions* self)
 	{
 		Vector<Plane> nativeArray__output;
-		nativeArray__output = thisPtr->GetInternal()->GetPlanes();
+		nativeArray__output = self->GetInternal()->GetPlanes();
 
 		MonoArray* __output;
 		int elementCount__output = (int)nativeArray__output.size();
@@ -74,7 +74,7 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptParticleCollisions::InternalSetPlaneObjects(ScriptParticleCollisions* thisPtr, MonoArray* objects)
+	void ScriptParticleCollisions::InternalSetPlaneObjects(ScriptParticleCollisions* self, MonoArray* objects)
 	{
 		Vector<GameObjectHandle<SceneObject>> nativeArrayobjects;
 		if(objects != nullptr)
@@ -92,13 +92,13 @@ namespace bs
 				}
 			}
 		}
-		thisPtr->GetInternal()->SetPlaneObjects(nativeArrayobjects);
+		self->GetInternal()->SetPlaneObjects(nativeArrayobjects);
 	}
 
-	MonoArray* ScriptParticleCollisions::InternalGetPlaneObjects(ScriptParticleCollisions* thisPtr)
+	MonoArray* ScriptParticleCollisions::InternalGetPlaneObjects(ScriptParticleCollisions* self)
 	{
 		Vector<GameObjectHandle<SceneObject>> nativeArray__output;
-		nativeArray__output = thisPtr->GetInternal()->GetPlaneObjects();
+		nativeArray__output = self->GetInternal()->GetPlaneObjects();
 
 		MonoArray* __output;
 		int elementCount__output = (int)nativeArray__output.size();
@@ -118,28 +118,28 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptParticleCollisions::InternalSetOptions(ScriptParticleCollisions* thisPtr, PARTICLE_COLLISIONS_DESC* options)
+	void ScriptParticleCollisions::InternalSetOptions(ScriptParticleCollisions* self, PARTICLE_COLLISIONS_DESC* options)
 	{
-		thisPtr->GetInternal()->SetOptions(*options);
+		self->GetInternal()->SetOptions(*options);
 	}
 
-	void ScriptParticleCollisions::InternalGetOptions(ScriptParticleCollisions* thisPtr, PARTICLE_COLLISIONS_DESC* __output)
+	void ScriptParticleCollisions::InternalGetOptions(ScriptParticleCollisions* self, PARTICLE_COLLISIONS_DESC* __output)
 	{
 		PARTICLE_COLLISIONS_DESC tmp__output;
-		tmp__output = thisPtr->GetInternal()->GetOptions();
+		tmp__output = self->GetInternal()->GetOptions();
 
 		*__output = tmp__output;
 	}
 
 	void ScriptParticleCollisions::InternalCreate(MonoObject* managedInstance, PARTICLE_COLLISIONS_DESC* desc)
 	{
-		SPtr<ParticleCollisions> instance = ParticleCollisions::Create(*desc);
-		new (B3DAllocate<ScriptParticleCollisions>())ScriptParticleCollisions(managedInstance, instance);
+		SPtr<ParticleCollisions> nativeObject = ParticleCollisions::Create(*desc);
+		new (B3DAllocate<ScriptParticleCollisions>())ScriptParticleCollisions(managedInstance, nativeObject);
 	}
 
 	void ScriptParticleCollisions::InternalCreate0(MonoObject* managedInstance)
 	{
-		SPtr<ParticleCollisions> instance = ParticleCollisions::Create();
-		new (B3DAllocate<ScriptParticleCollisions>())ScriptParticleCollisions(managedInstance, instance);
+		SPtr<ParticleCollisions> nativeObject = ParticleCollisions::Create();
+		new (B3DAllocate<ScriptParticleCollisions>())ScriptParticleCollisions(managedInstance, nativeObject);
 	}
 }

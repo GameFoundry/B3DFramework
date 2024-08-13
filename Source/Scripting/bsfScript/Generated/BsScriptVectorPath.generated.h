@@ -18,7 +18,7 @@ namespace bs
 		static MonoObject* CreateInstance();
 
 	private:
-		static MonoObject* InternalGetRef(ScriptVectorPath* thisPtr);
+		static MonoObject* InternalGetRef(ScriptVectorPath* self);
 
 	};
 }

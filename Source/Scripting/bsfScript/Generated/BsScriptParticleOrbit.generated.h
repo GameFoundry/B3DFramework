@@ -22,8 +22,8 @@ namespace bs
 		static MonoObject* Create(const SPtr<ParticleOrbit>& value);
 
 	private:
-		static void InternalSetOptions(ScriptParticleOrbit* thisPtr, __PARTICLE_ORBIT_DESCInterop* options);
-		static void InternalGetOptions(ScriptParticleOrbit* thisPtr, __PARTICLE_ORBIT_DESCInterop* __output);
+		static void InternalSetOptions(ScriptParticleOrbit* self, __PARTICLE_ORBIT_DESCInterop* options);
+		static void InternalGetOptions(ScriptParticleOrbit* self, __PARTICLE_ORBIT_DESCInterop* __output);
 		static void InternalCreate(MonoObject* managedInstance, __PARTICLE_ORBIT_DESCInterop* desc);
 		static void InternalCreate0(MonoObject* managedInstance);
 	};

@@ -34,10 +34,10 @@ namespace bs
 		new (B3DAllocate<ScriptRootMotion>()) ScriptRootMotion(managedInstance, value);
 		return managedInstance;
 	}
-	MonoObject* ScriptRootMotion::InternalGetPositionCurves(ScriptRootMotion* thisPtr)
+	MonoObject* ScriptRootMotion::InternalGetPositionCurves(ScriptRootMotion* self)
 	{
 		SPtr<TAnimationCurve<TVector3<float>>> tmp__output = B3DMakeShared<TAnimationCurve<TVector3<float>>>();
-		*tmp__output = RootMotionEx::GetPositionCurves(thisPtr->GetInternal());
+		*tmp__output = RootMotionEx::GetPositionCurves(self->GetInternal());
 
 		MonoObject* __output;
 		__output = ScriptVector3Curve::Create(tmp__output);
@@ -45,10 +45,10 @@ namespace bs
 		return __output;
 	}
 
-	MonoObject* ScriptRootMotion::InternalGetRotationCurves(ScriptRootMotion* thisPtr)
+	MonoObject* ScriptRootMotion::InternalGetRotationCurves(ScriptRootMotion* self)
 	{
 		SPtr<TAnimationCurve<Quaternion>> tmp__output = B3DMakeShared<TAnimationCurve<Quaternion>>();
-		*tmp__output = RootMotionEx::GetRotationCurves(thisPtr->GetInternal());
+		*tmp__output = RootMotionEx::GetRotationCurves(self->GetInternal());
 
 		MonoObject* __output;
 		__output = ScriptQuaternionCurve::Create(tmp__output);

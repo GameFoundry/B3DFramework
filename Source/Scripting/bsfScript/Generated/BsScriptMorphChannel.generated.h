@@ -19,7 +19,7 @@ namespace bs
 		static MonoObject* Create(const SPtr<MorphChannel>& value);
 
 	private:
-		static MonoString* InternalGetName(ScriptMorphChannel* thisPtr);
-		static MonoArray* InternalGetShapes(ScriptMorphChannel* thisPtr);
+		static MonoString* InternalGetName(ScriptMorphChannel* self);
+		static MonoArray* InternalGetShapes(ScriptMorphChannel* self);
 	};
 }

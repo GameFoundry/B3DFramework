@@ -19,7 +19,7 @@ namespace bs
 		ScriptGUITexture(MonoObject* managedInstance, GUITexture* value);
 
 	private:
-		static void InternalSetImage(ScriptGUITexture* thisPtr, MonoObject* image);
+		static void InternalSetImage(ScriptGUITexture* self, MonoObject* image);
 		static void InternalCreate(MonoObject* managedInstance, __GUITextureContentsInterop* contents, MonoString* styleClass, MonoArray* options);
 		static void InternalCreate0(MonoObject* managedInstance, __GUITextureContentsInterop* contents, MonoArray* options);
 		static void InternalCreate1(MonoObject* managedInstance, MonoString* styleClass, MonoArray* options);

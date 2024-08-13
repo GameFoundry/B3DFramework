@@ -41,22 +41,22 @@ namespace bs
 	}
 	void ScriptAnimationSplitInfo::InternalAnimationSplitInfo(MonoObject* managedInstance)
 	{
-		SPtr<AnimationSplitInfo> instance = B3DMakeShared<AnimationSplitInfo>();
-		new (B3DAllocate<ScriptAnimationSplitInfo>())ScriptAnimationSplitInfo(managedInstance, instance);
+		SPtr<AnimationSplitInfo> nativeObject = B3DMakeShared<AnimationSplitInfo>();
+		new (B3DAllocate<ScriptAnimationSplitInfo>())ScriptAnimationSplitInfo(managedInstance, nativeObject);
 	}
 
 	void ScriptAnimationSplitInfo::InternalAnimationSplitInfo0(MonoObject* managedInstance, MonoString* name, uint32_t startFrame, uint32_t endFrame, bool isAdditive)
 	{
 		String tmpname;
 		tmpname = MonoUtil::MonoToString(name);
-		SPtr<AnimationSplitInfo> instance = B3DMakeShared<AnimationSplitInfo>(tmpname, startFrame, endFrame, isAdditive);
-		new (B3DAllocate<ScriptAnimationSplitInfo>())ScriptAnimationSplitInfo(managedInstance, instance);
+		SPtr<AnimationSplitInfo> nativeObject = B3DMakeShared<AnimationSplitInfo>(tmpname, startFrame, endFrame, isAdditive);
+		new (B3DAllocate<ScriptAnimationSplitInfo>())ScriptAnimationSplitInfo(managedInstance, nativeObject);
 	}
 
-	MonoString* ScriptAnimationSplitInfo::InternalGetName(ScriptAnimationSplitInfo* thisPtr)
+	MonoString* ScriptAnimationSplitInfo::InternalGetName(ScriptAnimationSplitInfo* self)
 	{
 		String tmp__output;
-		tmp__output = thisPtr->GetInternal()->Name;
+		tmp__output = self->GetInternal()->Name;
 
 		MonoString* __output;
 		__output = MonoUtil::StringToMono(tmp__output);
@@ -64,17 +64,17 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptAnimationSplitInfo::InternalSetName(ScriptAnimationSplitInfo* thisPtr, MonoString* value)
+	void ScriptAnimationSplitInfo::InternalSetName(ScriptAnimationSplitInfo* self, MonoString* value)
 	{
 		String tmpvalue;
 		tmpvalue = MonoUtil::MonoToString(value);
-		thisPtr->GetInternal()->Name = tmpvalue;
+		self->GetInternal()->Name = tmpvalue;
 	}
 
-	uint32_t ScriptAnimationSplitInfo::InternalGetStartFrame(ScriptAnimationSplitInfo* thisPtr)
+	uint32_t ScriptAnimationSplitInfo::InternalGetStartFrame(ScriptAnimationSplitInfo* self)
 	{
 		uint32_t tmp__output;
-		tmp__output = thisPtr->GetInternal()->StartFrame;
+		tmp__output = self->GetInternal()->StartFrame;
 
 		uint32_t __output;
 		__output = tmp__output;
@@ -82,15 +82,15 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptAnimationSplitInfo::InternalSetStartFrame(ScriptAnimationSplitInfo* thisPtr, uint32_t value)
+	void ScriptAnimationSplitInfo::InternalSetStartFrame(ScriptAnimationSplitInfo* self, uint32_t value)
 	{
-		thisPtr->GetInternal()->StartFrame = value;
+		self->GetInternal()->StartFrame = value;
 	}
 
-	uint32_t ScriptAnimationSplitInfo::InternalGetEndFrame(ScriptAnimationSplitInfo* thisPtr)
+	uint32_t ScriptAnimationSplitInfo::InternalGetEndFrame(ScriptAnimationSplitInfo* self)
 	{
 		uint32_t tmp__output;
-		tmp__output = thisPtr->GetInternal()->EndFrame;
+		tmp__output = self->GetInternal()->EndFrame;
 
 		uint32_t __output;
 		__output = tmp__output;
@@ -98,15 +98,15 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptAnimationSplitInfo::InternalSetEndFrame(ScriptAnimationSplitInfo* thisPtr, uint32_t value)
+	void ScriptAnimationSplitInfo::InternalSetEndFrame(ScriptAnimationSplitInfo* self, uint32_t value)
 	{
-		thisPtr->GetInternal()->EndFrame = value;
+		self->GetInternal()->EndFrame = value;
 	}
 
-	bool ScriptAnimationSplitInfo::InternalGetIsAdditive(ScriptAnimationSplitInfo* thisPtr)
+	bool ScriptAnimationSplitInfo::InternalGetIsAdditive(ScriptAnimationSplitInfo* self)
 	{
 		bool tmp__output;
-		tmp__output = thisPtr->GetInternal()->IsAdditive;
+		tmp__output = self->GetInternal()->IsAdditive;
 
 		bool __output;
 		__output = tmp__output;
@@ -114,9 +114,9 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptAnimationSplitInfo::InternalSetIsAdditive(ScriptAnimationSplitInfo* thisPtr, bool value)
+	void ScriptAnimationSplitInfo::InternalSetIsAdditive(ScriptAnimationSplitInfo* self, bool value)
 	{
-		thisPtr->GetInternal()->IsAdditive = value;
+		self->GetInternal()->IsAdditive = value;
 	}
 #endif
 }

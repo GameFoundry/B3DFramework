@@ -29,14 +29,14 @@ namespace bs
 		ScriptGUISlider(MonoObject* managedInstance, GUISlider* value);
 
 	private:
-		static void InternalSetHandlePositionInPercent(ScriptGUIElementBase* thisPtr, float percent);
-		static float InternalGetHandlePositionInPercent(ScriptGUIElementBase* thisPtr);
-		static void InternalSetHandlePositionInRange(ScriptGUIElementBase* thisPtr, float value);
-		static float InternalGetHandlePositionInRange(ScriptGUIElementBase* thisPtr);
-		static void InternalSetRange(ScriptGUIElementBase* thisPtr, float min, float max);
-		static float InternalGetRangeMinimum(ScriptGUIElementBase* thisPtr);
-		static float InternalGetRangeMaximum(ScriptGUIElementBase* thisPtr);
-		static void InternalSetStep(ScriptGUIElementBase* thisPtr, float step);
-		static float InternalGetStep(ScriptGUIElementBase* thisPtr);
+		static void InternalSetHandlePositionInPercent(ScriptGUIElementBase* self, float percent);
+		static float InternalGetHandlePositionInPercent(ScriptGUIElementBase* self);
+		static void InternalSetHandlePositionInRange(ScriptGUIElementBase* self, float value);
+		static float InternalGetHandlePositionInRange(ScriptGUIElementBase* self);
+		static void InternalSetRange(ScriptGUIElementBase* self, float min, float max);
+		static float InternalGetRangeMinimum(ScriptGUIElementBase* self);
+		static float InternalGetRangeMaximum(ScriptGUIElementBase* self);
+		static void InternalSetStep(ScriptGUIElementBase* self, float step);
+		static float InternalGetStep(ScriptGUIElementBase* self);
 	};
 }

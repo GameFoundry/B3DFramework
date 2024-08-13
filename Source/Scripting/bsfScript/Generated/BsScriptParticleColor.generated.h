@@ -22,8 +22,8 @@ namespace bs
 		static MonoObject* Create(const SPtr<ParticleColor>& value);
 
 	private:
-		static void InternalSetOptions(ScriptParticleColor* thisPtr, __PARTICLE_COLOR_DESCInterop* options);
-		static void InternalGetOptions(ScriptParticleColor* thisPtr, __PARTICLE_COLOR_DESCInterop* __output);
+		static void InternalSetOptions(ScriptParticleColor* self, __PARTICLE_COLOR_DESCInterop* options);
+		static void InternalGetOptions(ScriptParticleColor* self, __PARTICLE_COLOR_DESCInterop* __output);
 		static void InternalCreate(MonoObject* managedInstance, __PARTICLE_COLOR_DESCInterop* desc);
 		static void InternalCreate0(MonoObject* managedInstance);
 	};

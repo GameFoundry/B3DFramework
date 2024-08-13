@@ -51,17 +51,17 @@ namespace bs
 		static_cast<GUIInputBox*>(value)->OnConfirm.Connect(std::bind(&ScriptGUIInputBox::OnConfirm, this));
 		ScriptGUIElementBase::RegisterEvents(value);
 	}
-	void ScriptGUIInputBox::InternalSetText(ScriptGUIInputBox* thisPtr, MonoString* text)
+	void ScriptGUIInputBox::InternalSetText(ScriptGUIInputBox* self, MonoString* text)
 	{
 		String tmptext;
 		tmptext = MonoUtil::MonoToString(text);
-		static_cast<GUIInputBox*>(thisPtr->GetGuiElement())->SetText(tmptext);
+		static_cast<GUIInputBox*>(self->GetGuiElement())->SetText(tmptext);
 	}
 
-	MonoString* ScriptGUIInputBox::InternalGetText(ScriptGUIInputBox* thisPtr)
+	MonoString* ScriptGUIInputBox::InternalGetText(ScriptGUIInputBox* self)
 	{
 		String tmp__output;
-		tmp__output = static_cast<GUIInputBox*>(thisPtr->GetGuiElement())->GetText();
+		tmp__output = static_cast<GUIInputBox*>(self->GetGuiElement())->GetText();
 
 		MonoString* __output;
 		__output = MonoUtil::StringToMono(tmp__output);
@@ -83,8 +83,8 @@ namespace bs
 				nativeArrayoptions[elementIndex] = scriptArrayoptions.Get<GUIOption>(elementIndex);
 			}
 		}
-		GUIInputBox* instance = GUIInputBox::Create(*contents, tmpstyleClass, nativeArrayoptions);
-		new (B3DAllocate<ScriptGUIInputBox>())ScriptGUIInputBox(managedInstance, instance);
+		GUIInputBox* nativeObject = GUIInputBox::Create(*contents, tmpstyleClass, nativeArrayoptions);
+		new (B3DAllocate<ScriptGUIInputBox>())ScriptGUIInputBox(managedInstance, nativeObject);
 	}
 
 	void ScriptGUIInputBox::InternalCreate0(MonoObject* managedInstance, GUIInputBoxContent* contents, MonoArray* options)
@@ -99,8 +99,8 @@ namespace bs
 				nativeArrayoptions[elementIndex] = scriptArrayoptions.Get<GUIOption>(elementIndex);
 			}
 		}
-		GUIInputBox* instance = GUIInputBox::Create(*contents, nativeArrayoptions);
-		new (B3DAllocate<ScriptGUIInputBox>())ScriptGUIInputBox(managedInstance, instance);
+		GUIInputBox* nativeObject = GUIInputBox::Create(*contents, nativeArrayoptions);
+		new (B3DAllocate<ScriptGUIInputBox>())ScriptGUIInputBox(managedInstance, nativeObject);
 	}
 
 	void ScriptGUIInputBox::InternalCreate1(MonoObject* managedInstance, MonoString* styleClass, MonoArray* options)
@@ -117,8 +117,8 @@ namespace bs
 				nativeArrayoptions[elementIndex] = scriptArrayoptions.Get<GUIOption>(elementIndex);
 			}
 		}
-		GUIInputBox* instance = GUIInputBox::Create(tmpstyleClass, nativeArrayoptions);
-		new (B3DAllocate<ScriptGUIInputBox>())ScriptGUIInputBox(managedInstance, instance);
+		GUIInputBox* nativeObject = GUIInputBox::Create(tmpstyleClass, nativeArrayoptions);
+		new (B3DAllocate<ScriptGUIInputBox>())ScriptGUIInputBox(managedInstance, nativeObject);
 	}
 
 	void ScriptGUIInputBox::InternalCreate2(MonoObject* managedInstance, MonoArray* options)
@@ -133,7 +133,7 @@ namespace bs
 				nativeArrayoptions[elementIndex] = scriptArrayoptions.Get<GUIOption>(elementIndex);
 			}
 		}
-		GUIInputBox* instance = GUIInputBox::Create(nativeArrayoptions);
-		new (B3DAllocate<ScriptGUIInputBox>())ScriptGUIInputBox(managedInstance, instance);
+		GUIInputBox* nativeObject = GUIInputBox::Create(nativeArrayoptions);
+		new (B3DAllocate<ScriptGUIInputBox>())ScriptGUIInputBox(managedInstance, nativeObject);
 	}
 }

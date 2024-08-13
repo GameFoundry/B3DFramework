@@ -40,15 +40,15 @@ namespace bs
 
 	}
 
-	void ScriptLight::InternalSetType(ScriptLight* thisPtr, LightType type)
+	void ScriptLight::InternalSetType(ScriptLight* self, LightType type)
 	{
-		thisPtr->GetHandle()->SetType(type);
+		self->GetHandle()->SetType(type);
 	}
 
-	LightType ScriptLight::InternalGetType(ScriptLight* thisPtr)
+	LightType ScriptLight::InternalGetType(ScriptLight* self)
 	{
 		LightType tmp__output;
-		tmp__output = thisPtr->GetHandle()->GetType();
+		tmp__output = self->GetHandle()->GetType();
 
 		LightType __output;
 		__output = tmp__output;
@@ -56,28 +56,28 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptLight::InternalSetColor(ScriptLight* thisPtr, Color* color)
+	void ScriptLight::InternalSetColor(ScriptLight* self, Color* color)
 	{
-		thisPtr->GetHandle()->SetColor(*color);
+		self->GetHandle()->SetColor(*color);
 	}
 
-	void ScriptLight::InternalGetColor(ScriptLight* thisPtr, Color* __output)
+	void ScriptLight::InternalGetColor(ScriptLight* self, Color* __output)
 	{
 		Color tmp__output;
-		tmp__output = thisPtr->GetHandle()->GetColor();
+		tmp__output = self->GetHandle()->GetColor();
 
 		*__output = tmp__output;
 	}
 
-	void ScriptLight::InternalSetIntensity(ScriptLight* thisPtr, float intensity)
+	void ScriptLight::InternalSetIntensity(ScriptLight* self, float intensity)
 	{
-		thisPtr->GetHandle()->SetIntensity(intensity);
+		self->GetHandle()->SetIntensity(intensity);
 	}
 
-	float ScriptLight::InternalGetIntensity(ScriptLight* thisPtr)
+	float ScriptLight::InternalGetIntensity(ScriptLight* self)
 	{
 		float tmp__output;
-		tmp__output = thisPtr->GetHandle()->GetIntensity();
+		tmp__output = self->GetHandle()->GetIntensity();
 
 		float __output;
 		__output = tmp__output;
@@ -85,15 +85,15 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptLight::InternalSetUseAutoAttenuation(ScriptLight* thisPtr, bool enabled)
+	void ScriptLight::InternalSetUseAutoAttenuation(ScriptLight* self, bool enabled)
 	{
-		thisPtr->GetHandle()->SetUseAutoAttenuation(enabled);
+		self->GetHandle()->SetUseAutoAttenuation(enabled);
 	}
 
-	bool ScriptLight::InternalGetUseAutoAttenuation(ScriptLight* thisPtr)
+	bool ScriptLight::InternalGetUseAutoAttenuation(ScriptLight* self)
 	{
 		bool tmp__output;
-		tmp__output = thisPtr->GetHandle()->GetUseAutoAttenuation();
+		tmp__output = self->GetHandle()->GetUseAutoAttenuation();
 
 		bool __output;
 		__output = tmp__output;
@@ -101,15 +101,15 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptLight::InternalSetAttenuationRadius(ScriptLight* thisPtr, float radius)
+	void ScriptLight::InternalSetAttenuationRadius(ScriptLight* self, float radius)
 	{
-		thisPtr->GetHandle()->SetAttenuationRadius(radius);
+		self->GetHandle()->SetAttenuationRadius(radius);
 	}
 
-	float ScriptLight::InternalGetAttenuationRadius(ScriptLight* thisPtr)
+	float ScriptLight::InternalGetAttenuationRadius(ScriptLight* self)
 	{
 		float tmp__output;
-		tmp__output = thisPtr->GetHandle()->GetAttenuationRadius();
+		tmp__output = self->GetHandle()->GetAttenuationRadius();
 
 		float __output;
 		__output = tmp__output;
@@ -117,15 +117,15 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptLight::InternalSetSourceRadius(ScriptLight* thisPtr, float radius)
+	void ScriptLight::InternalSetSourceRadius(ScriptLight* self, float radius)
 	{
-		thisPtr->GetHandle()->SetSourceRadius(radius);
+		self->GetHandle()->SetSourceRadius(radius);
 	}
 
-	float ScriptLight::InternalGetSourceRadius(ScriptLight* thisPtr)
+	float ScriptLight::InternalGetSourceRadius(ScriptLight* self)
 	{
 		float tmp__output;
-		tmp__output = thisPtr->GetHandle()->GetSourceRadius();
+		tmp__output = self->GetHandle()->GetSourceRadius();
 
 		float __output;
 		__output = tmp__output;
@@ -133,41 +133,41 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptLight::InternalSetSpotAngle(ScriptLight* thisPtr, TDegree<float>* spotAngle)
+	void ScriptLight::InternalSetSpotAngle(ScriptLight* self, TDegree<float>* spotAngle)
 	{
-		thisPtr->GetHandle()->SetSpotAngle(*spotAngle);
+		self->GetHandle()->SetSpotAngle(*spotAngle);
 	}
 
-	void ScriptLight::InternalGetSpotAngle(ScriptLight* thisPtr, TDegree<float>* __output)
+	void ScriptLight::InternalGetSpotAngle(ScriptLight* self, TDegree<float>* __output)
 	{
 		TDegree<float> tmp__output;
-		tmp__output = thisPtr->GetHandle()->GetSpotAngle();
+		tmp__output = self->GetHandle()->GetSpotAngle();
 
 		*__output = tmp__output;
 	}
 
-	void ScriptLight::InternalSetSpotFalloffAngle(ScriptLight* thisPtr, TDegree<float>* spotAngle)
+	void ScriptLight::InternalSetSpotFalloffAngle(ScriptLight* self, TDegree<float>* spotAngle)
 	{
-		thisPtr->GetHandle()->SetSpotFalloffAngle(*spotAngle);
+		self->GetHandle()->SetSpotFalloffAngle(*spotAngle);
 	}
 
-	void ScriptLight::InternalGetSpotFalloffAngle(ScriptLight* thisPtr, TDegree<float>* __output)
+	void ScriptLight::InternalGetSpotFalloffAngle(ScriptLight* self, TDegree<float>* __output)
 	{
 		TDegree<float> tmp__output;
-		tmp__output = thisPtr->GetHandle()->GetSpotFalloffAngle();
+		tmp__output = self->GetHandle()->GetSpotFalloffAngle();
 
 		*__output = tmp__output;
 	}
 
-	void ScriptLight::InternalSetCastsShadow(ScriptLight* thisPtr, bool castsShadow)
+	void ScriptLight::InternalSetCastsShadow(ScriptLight* self, bool castsShadow)
 	{
-		thisPtr->GetHandle()->SetCastsShadow(castsShadow);
+		self->GetHandle()->SetCastsShadow(castsShadow);
 	}
 
-	bool ScriptLight::InternalGetCastsShadow(ScriptLight* thisPtr)
+	bool ScriptLight::InternalGetCastsShadow(ScriptLight* self)
 	{
 		bool tmp__output;
-		tmp__output = thisPtr->GetHandle()->GetCastsShadow();
+		tmp__output = self->GetHandle()->GetCastsShadow();
 
 		bool __output;
 		__output = tmp__output;
@@ -175,15 +175,15 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptLight::InternalSetShadowBias(ScriptLight* thisPtr, float bias)
+	void ScriptLight::InternalSetShadowBias(ScriptLight* self, float bias)
 	{
-		thisPtr->GetHandle()->SetShadowBias(bias);
+		self->GetHandle()->SetShadowBias(bias);
 	}
 
-	float ScriptLight::InternalGetShadowBias(ScriptLight* thisPtr)
+	float ScriptLight::InternalGetShadowBias(ScriptLight* self)
 	{
 		float tmp__output;
-		tmp__output = thisPtr->GetHandle()->GetShadowBias();
+		tmp__output = self->GetHandle()->GetShadowBias();
 
 		float __output;
 		__output = tmp__output;
@@ -191,10 +191,10 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptLight::InternalGetBounds(ScriptLight* thisPtr, Sphere* __output)
+	void ScriptLight::InternalGetBounds(ScriptLight* self, Sphere* __output)
 	{
 		Sphere tmp__output;
-		tmp__output = thisPtr->GetHandle()->GetBounds();
+		tmp__output = self->GetHandle()->GetBounds();
 
 		*__output = tmp__output;
 	}

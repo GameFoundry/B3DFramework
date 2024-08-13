@@ -22,8 +22,8 @@ namespace bs
 		static MonoObject* Create(const SPtr<ParticleForce>& value);
 
 	private:
-		static void InternalSetOptions(ScriptParticleForce* thisPtr, __PARTICLE_FORCE_DESCInterop* options);
-		static void InternalGetOptions(ScriptParticleForce* thisPtr, __PARTICLE_FORCE_DESCInterop* __output);
+		static void InternalSetOptions(ScriptParticleForce* self, __PARTICLE_FORCE_DESCInterop* options);
+		static void InternalGetOptions(ScriptParticleForce* self, __PARTICLE_FORCE_DESCInterop* __output);
 		static void InternalCreate(MonoObject* managedInstance, __PARTICLE_FORCE_DESCInterop* desc);
 		static void InternalCreate0(MonoObject* managedInstance);
 	};

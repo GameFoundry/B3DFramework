@@ -39,8 +39,8 @@ namespace bs
 	{
 		String tmpidentifier;
 		tmpidentifier = MonoUtil::MonoToString(identifier);
-		SPtr<HString> instance = B3DMakeShared<HString>(tmpidentifier, stringTableId);
-		new (B3DAllocate<ScriptLocString>())ScriptLocString(managedInstance, instance);
+		SPtr<HString> nativeObject = B3DMakeShared<HString>(tmpidentifier, stringTableId);
+		new (B3DAllocate<ScriptLocString>())ScriptLocString(managedInstance, nativeObject);
 	}
 
 	void ScriptLocString::InternalHString0(MonoObject* managedInstance, MonoString* identifier, MonoString* defaultString, uint32_t stringTableId)
@@ -49,26 +49,26 @@ namespace bs
 		tmpidentifier = MonoUtil::MonoToString(identifier);
 		String tmpdefaultString;
 		tmpdefaultString = MonoUtil::MonoToString(defaultString);
-		SPtr<HString> instance = B3DMakeShared<HString>(tmpidentifier, tmpdefaultString, stringTableId);
-		new (B3DAllocate<ScriptLocString>())ScriptLocString(managedInstance, instance);
+		SPtr<HString> nativeObject = B3DMakeShared<HString>(tmpidentifier, tmpdefaultString, stringTableId);
+		new (B3DAllocate<ScriptLocString>())ScriptLocString(managedInstance, nativeObject);
 	}
 
 	void ScriptLocString::InternalHString1(MonoObject* managedInstance, uint32_t stringTableId)
 	{
-		SPtr<HString> instance = B3DMakeShared<HString>(stringTableId);
-		new (B3DAllocate<ScriptLocString>())ScriptLocString(managedInstance, instance);
+		SPtr<HString> nativeObject = B3DMakeShared<HString>(stringTableId);
+		new (B3DAllocate<ScriptLocString>())ScriptLocString(managedInstance, nativeObject);
 	}
 
 	void ScriptLocString::InternalHString2(MonoObject* managedInstance)
 	{
-		SPtr<HString> instance = B3DMakeShared<HString>();
-		new (B3DAllocate<ScriptLocString>())ScriptLocString(managedInstance, instance);
+		SPtr<HString> nativeObject = B3DMakeShared<HString>();
+		new (B3DAllocate<ScriptLocString>())ScriptLocString(managedInstance, nativeObject);
 	}
 
-	MonoString* ScriptLocString::InternalGetValue(ScriptLocString* thisPtr)
+	MonoString* ScriptLocString::InternalGetValue(ScriptLocString* self)
 	{
 		String tmp__output;
-		tmp__output = thisPtr->GetInternal()->GetValue();
+		tmp__output = self->GetInternal()->GetValue();
 
 		MonoString* __output;
 		__output = MonoUtil::StringToMono(tmp__output);
@@ -76,10 +76,10 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptLocString::InternalSetParameter(ScriptLocString* thisPtr, uint32_t idx, MonoString* value)
+	void ScriptLocString::InternalSetParameter(ScriptLocString* self, uint32_t idx, MonoString* value)
 	{
 		String tmpvalue;
 		tmpvalue = MonoUtil::MonoToString(value);
-		thisPtr->GetInternal()->SetParameter(idx, tmpvalue);
+		self->GetInternal()->SetParameter(idx, tmpvalue);
 	}
 }

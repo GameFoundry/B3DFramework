@@ -42,8 +42,8 @@ namespace bs
 				nativeArrayoptions[elementIndex] = scriptArrayoptions.Get<GUIOption>(elementIndex);
 			}
 		}
-		GUIToggle* instance = GUIToggle::Create(tmpcontents, tmpstyleClass, nativeArrayoptions);
-		new (B3DAllocate<ScriptGUIToggle>())ScriptGUIToggle(managedInstance, instance);
+		GUIToggle* nativeObject = GUIToggle::Create(tmpcontents, tmpstyleClass, nativeArrayoptions);
+		new (B3DAllocate<ScriptGUIToggle>())ScriptGUIToggle(managedInstance, nativeObject);
 	}
 
 	void ScriptGUIToggle::InternalCreate0(MonoObject* managedInstance, __GUIToggleContentInterop* contents, MonoArray* options)
@@ -60,8 +60,8 @@ namespace bs
 				nativeArrayoptions[elementIndex] = scriptArrayoptions.Get<GUIOption>(elementIndex);
 			}
 		}
-		GUIToggle* instance = GUIToggle::Create(tmpcontents, nativeArrayoptions);
-		new (B3DAllocate<ScriptGUIToggle>())ScriptGUIToggle(managedInstance, instance);
+		GUIToggle* nativeObject = GUIToggle::Create(tmpcontents, nativeArrayoptions);
+		new (B3DAllocate<ScriptGUIToggle>())ScriptGUIToggle(managedInstance, nativeObject);
 	}
 
 	void ScriptGUIToggle::InternalCreate1(MonoObject* managedInstance, MonoString* styleClass, MonoArray* options)
@@ -78,8 +78,8 @@ namespace bs
 				nativeArrayoptions[elementIndex] = scriptArrayoptions.Get<GUIOption>(elementIndex);
 			}
 		}
-		GUIToggle* instance = GUIToggle::Create(tmpstyleClass, nativeArrayoptions);
-		new (B3DAllocate<ScriptGUIToggle>())ScriptGUIToggle(managedInstance, instance);
+		GUIToggle* nativeObject = GUIToggle::Create(tmpstyleClass, nativeArrayoptions);
+		new (B3DAllocate<ScriptGUIToggle>())ScriptGUIToggle(managedInstance, nativeObject);
 	}
 
 	void ScriptGUIToggle::InternalCreate2(MonoObject* managedInstance, MonoArray* options)
@@ -94,7 +94,7 @@ namespace bs
 				nativeArrayoptions[elementIndex] = scriptArrayoptions.Get<GUIOption>(elementIndex);
 			}
 		}
-		GUIToggle* instance = GUIToggle::Create(nativeArrayoptions);
-		new (B3DAllocate<ScriptGUIToggle>())ScriptGUIToggle(managedInstance, instance);
+		GUIToggle* nativeObject = GUIToggle::Create(nativeArrayoptions);
+		new (B3DAllocate<ScriptGUIToggle>())ScriptGUIToggle(managedInstance, nativeObject);
 	}
 }

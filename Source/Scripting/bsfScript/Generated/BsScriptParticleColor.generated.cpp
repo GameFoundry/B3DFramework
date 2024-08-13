@@ -35,17 +35,17 @@ namespace bs
 		new (B3DAllocate<ScriptParticleColor>()) ScriptParticleColor(managedInstance, value);
 		return managedInstance;
 	}
-	void ScriptParticleColor::InternalSetOptions(ScriptParticleColor* thisPtr, __PARTICLE_COLOR_DESCInterop* options)
+	void ScriptParticleColor::InternalSetOptions(ScriptParticleColor* self, __PARTICLE_COLOR_DESCInterop* options)
 	{
 		PARTICLE_COLOR_DESC tmpoptions;
 		tmpoptions = ScriptParticleColorOptions::FromInterop(*options);
-		thisPtr->GetInternal()->SetOptions(tmpoptions);
+		self->GetInternal()->SetOptions(tmpoptions);
 	}
 
-	void ScriptParticleColor::InternalGetOptions(ScriptParticleColor* thisPtr, __PARTICLE_COLOR_DESCInterop* __output)
+	void ScriptParticleColor::InternalGetOptions(ScriptParticleColor* self, __PARTICLE_COLOR_DESCInterop* __output)
 	{
 		PARTICLE_COLOR_DESC tmp__output;
-		tmp__output = thisPtr->GetInternal()->GetOptions();
+		tmp__output = self->GetInternal()->GetOptions();
 
 		__PARTICLE_COLOR_DESCInterop interop__output;
 		interop__output = ScriptParticleColorOptions::ToInterop(tmp__output);
@@ -56,13 +56,13 @@ namespace bs
 	{
 		PARTICLE_COLOR_DESC tmpdesc;
 		tmpdesc = ScriptParticleColorOptions::FromInterop(*desc);
-		SPtr<ParticleColor> instance = ParticleColor::Create(tmpdesc);
-		new (B3DAllocate<ScriptParticleColor>())ScriptParticleColor(managedInstance, instance);
+		SPtr<ParticleColor> nativeObject = ParticleColor::Create(tmpdesc);
+		new (B3DAllocate<ScriptParticleColor>())ScriptParticleColor(managedInstance, nativeObject);
 	}
 
 	void ScriptParticleColor::InternalCreate0(MonoObject* managedInstance)
 	{
-		SPtr<ParticleColor> instance = ParticleColor::Create();
-		new (B3DAllocate<ScriptParticleColor>())ScriptParticleColor(managedInstance, instance);
+		SPtr<ParticleColor> nativeObject = ParticleColor::Create();
+		new (B3DAllocate<ScriptParticleColor>())ScriptParticleColor(managedInstance, nativeObject);
 	}
 }

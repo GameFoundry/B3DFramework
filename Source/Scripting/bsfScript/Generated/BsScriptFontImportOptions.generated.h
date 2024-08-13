@@ -23,18 +23,18 @@ namespace bs
 		static MonoObject* Create(const SPtr<FontImportOptions>& value);
 
 	private:
-		static MonoArray* InternalGetFontSizes(ScriptFontImportOptions* thisPtr);
-		static void InternalSetFontSizes(ScriptFontImportOptions* thisPtr, MonoArray* value);
-		static MonoArray* InternalGetCharIndexRanges(ScriptFontImportOptions* thisPtr);
-		static void InternalSetCharIndexRanges(ScriptFontImportOptions* thisPtr, MonoArray* value);
-		static uint32_t InternalGetDpi(ScriptFontImportOptions* thisPtr);
-		static void InternalSetDpi(ScriptFontImportOptions* thisPtr, uint32_t value);
-		static FontRenderMode InternalGetRenderMode(ScriptFontImportOptions* thisPtr);
-		static void InternalSetRenderMode(ScriptFontImportOptions* thisPtr, FontRenderMode value);
-		static bool InternalGetBold(ScriptFontImportOptions* thisPtr);
-		static void InternalSetBold(ScriptFontImportOptions* thisPtr, bool value);
-		static bool InternalGetItalic(ScriptFontImportOptions* thisPtr);
-		static void InternalSetItalic(ScriptFontImportOptions* thisPtr, bool value);
+		static MonoArray* InternalGetFontSizes(ScriptFontImportOptions* self);
+		static void InternalSetFontSizes(ScriptFontImportOptions* self, MonoArray* value);
+		static MonoArray* InternalGetCharIndexRanges(ScriptFontImportOptions* self);
+		static void InternalSetCharIndexRanges(ScriptFontImportOptions* self, MonoArray* value);
+		static uint32_t InternalGetDpi(ScriptFontImportOptions* self);
+		static void InternalSetDpi(ScriptFontImportOptions* self, uint32_t value);
+		static FontRenderMode InternalGetRenderMode(ScriptFontImportOptions* self);
+		static void InternalSetRenderMode(ScriptFontImportOptions* self, FontRenderMode value);
+		static bool InternalGetBold(ScriptFontImportOptions* self);
+		static void InternalSetBold(ScriptFontImportOptions* self, bool value);
+		static bool InternalGetItalic(ScriptFontImportOptions* self);
+		static void InternalSetItalic(ScriptFontImportOptions* self, bool value);
 		static void InternalCreate(MonoObject* managedInstance);
 	};
 #endif

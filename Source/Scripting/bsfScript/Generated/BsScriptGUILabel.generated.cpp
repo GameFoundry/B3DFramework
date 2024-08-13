@@ -27,11 +27,11 @@ namespace bs
 
 	}
 
-	void ScriptGUILabel::InternalSetContent(ScriptGUILabel* thisPtr, __GUIContentInterop* content)
+	void ScriptGUILabel::InternalSetContent(ScriptGUILabel* self, __GUIContentInterop* content)
 	{
 		GUIContent tmpcontent;
 		tmpcontent = ScriptGUIContent::FromInterop(*content);
-		static_cast<GUILabel*>(thisPtr->GetGuiElement())->SetContent(tmpcontent);
+		static_cast<GUILabel*>(self->GetGuiElement())->SetContent(tmpcontent);
 	}
 
 	void ScriptGUILabel::InternalCreate(MonoObject* managedInstance, __GUIContentInterop* contents, MonoString* styleClass, MonoArray* options)
@@ -50,8 +50,8 @@ namespace bs
 				nativeArrayoptions[elementIndex] = scriptArrayoptions.Get<GUIOption>(elementIndex);
 			}
 		}
-		GUILabel* instance = GUILabel::Create(tmpcontents, tmpstyleClass, nativeArrayoptions);
-		new (B3DAllocate<ScriptGUILabel>())ScriptGUILabel(managedInstance, instance);
+		GUILabel* nativeObject = GUILabel::Create(tmpcontents, tmpstyleClass, nativeArrayoptions);
+		new (B3DAllocate<ScriptGUILabel>())ScriptGUILabel(managedInstance, nativeObject);
 	}
 
 	void ScriptGUILabel::InternalCreate0(MonoObject* managedInstance, __GUIContentInterop* contents, MonoArray* options)
@@ -68,8 +68,8 @@ namespace bs
 				nativeArrayoptions[elementIndex] = scriptArrayoptions.Get<GUIOption>(elementIndex);
 			}
 		}
-		GUILabel* instance = GUILabel::Create(tmpcontents, nativeArrayoptions);
-		new (B3DAllocate<ScriptGUILabel>())ScriptGUILabel(managedInstance, instance);
+		GUILabel* nativeObject = GUILabel::Create(tmpcontents, nativeArrayoptions);
+		new (B3DAllocate<ScriptGUILabel>())ScriptGUILabel(managedInstance, nativeObject);
 	}
 
 	void ScriptGUILabel::InternalCreate1(MonoObject* managedInstance, MonoString* styleClass, MonoArray* options)
@@ -86,8 +86,8 @@ namespace bs
 				nativeArrayoptions[elementIndex] = scriptArrayoptions.Get<GUIOption>(elementIndex);
 			}
 		}
-		GUILabel* instance = GUILabel::Create(tmpstyleClass, nativeArrayoptions);
-		new (B3DAllocate<ScriptGUILabel>())ScriptGUILabel(managedInstance, instance);
+		GUILabel* nativeObject = GUILabel::Create(tmpstyleClass, nativeArrayoptions);
+		new (B3DAllocate<ScriptGUILabel>())ScriptGUILabel(managedInstance, nativeObject);
 	}
 
 	void ScriptGUILabel::InternalCreate2(MonoObject* managedInstance, MonoArray* options)
@@ -102,7 +102,7 @@ namespace bs
 				nativeArrayoptions[elementIndex] = scriptArrayoptions.Get<GUIOption>(elementIndex);
 			}
 		}
-		GUILabel* instance = GUILabel::Create(nativeArrayoptions);
-		new (B3DAllocate<ScriptGUILabel>())ScriptGUILabel(managedInstance, instance);
+		GUILabel* nativeObject = GUILabel::Create(nativeArrayoptions);
+		new (B3DAllocate<ScriptGUILabel>())ScriptGUILabel(managedInstance, nativeObject);
 	}
 }

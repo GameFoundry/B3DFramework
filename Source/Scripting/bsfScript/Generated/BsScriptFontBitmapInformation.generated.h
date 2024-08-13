@@ -23,18 +23,18 @@ namespace bs
 		static MonoObject* Create(const SPtr<FontBitmapInformation>& value);
 
 	private:
-		static void InternalGetCharacterInformation(ScriptFontBitmapInformation* thisPtr, uint32_t characterId, __CharacterInformationInterop* __output);
-		static float InternalGetSize(ScriptFontBitmapInformation* thisPtr);
-		static void InternalSetSize(ScriptFontBitmapInformation* thisPtr, float value);
-		static float InternalGetBaselineOffset(ScriptFontBitmapInformation* thisPtr);
-		static void InternalSetBaselineOffset(ScriptFontBitmapInformation* thisPtr, float value);
-		static float InternalGetLineHeight(ScriptFontBitmapInformation* thisPtr);
-		static void InternalSetLineHeight(ScriptFontBitmapInformation* thisPtr, float value);
-		static void InternalGetMissingGlyph(ScriptFontBitmapInformation* thisPtr, __CharacterInformationInterop* __output);
-		static void InternalSetMissingGlyph(ScriptFontBitmapInformation* thisPtr, __CharacterInformationInterop* value);
-		static float InternalGetSpaceWidth(ScriptFontBitmapInformation* thisPtr);
-		static void InternalSetSpaceWidth(ScriptFontBitmapInformation* thisPtr, float value);
-		static MonoArray* InternalGetTexturePages(ScriptFontBitmapInformation* thisPtr);
-		static void InternalSetTexturePages(ScriptFontBitmapInformation* thisPtr, MonoArray* value);
+		static void InternalGetCharacterInformation(ScriptFontBitmapInformation* self, uint32_t characterId, __CharacterInformationInterop* __output);
+		static float InternalGetSize(ScriptFontBitmapInformation* self);
+		static void InternalSetSize(ScriptFontBitmapInformation* self, float value);
+		static float InternalGetBaselineOffset(ScriptFontBitmapInformation* self);
+		static void InternalSetBaselineOffset(ScriptFontBitmapInformation* self, float value);
+		static float InternalGetLineHeight(ScriptFontBitmapInformation* self);
+		static void InternalSetLineHeight(ScriptFontBitmapInformation* self, float value);
+		static void InternalGetMissingGlyph(ScriptFontBitmapInformation* self, __CharacterInformationInterop* __output);
+		static void InternalSetMissingGlyph(ScriptFontBitmapInformation* self, __CharacterInformationInterop* value);
+		static float InternalGetSpaceWidth(ScriptFontBitmapInformation* self);
+		static void InternalSetSpaceWidth(ScriptFontBitmapInformation* self, float value);
+		static MonoArray* InternalGetTexturePages(ScriptFontBitmapInformation* self);
+		static void InternalSetTexturePages(ScriptFontBitmapInformation* self, MonoArray* value);
 	};
 }

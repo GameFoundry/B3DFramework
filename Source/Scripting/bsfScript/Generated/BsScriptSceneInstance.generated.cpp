@@ -40,10 +40,10 @@ namespace bs
 		new (B3DAllocate<ScriptSceneInstance>()) ScriptSceneInstance(managedInstance, value);
 		return managedInstance;
 	}
-	MonoString* ScriptSceneInstance::InternalGetName(ScriptSceneInstance* thisPtr)
+	MonoString* ScriptSceneInstance::InternalGetName(ScriptSceneInstance* self)
 	{
 		String tmp__output;
-		tmp__output = thisPtr->GetInternal()->GetName();
+		tmp__output = self->GetInternal()->GetName();
 
 		MonoString* __output;
 		__output = MonoUtil::StringToMono(tmp__output);
@@ -51,10 +51,10 @@ namespace bs
 		return __output;
 	}
 
-	MonoObject* ScriptSceneInstance::InternalGetRoot(ScriptSceneInstance* thisPtr)
+	MonoObject* ScriptSceneInstance::InternalGetRoot(ScriptSceneInstance* self)
 	{
 		GameObjectHandle<SceneObject> tmp__output;
-		tmp__output = thisPtr->GetInternal()->GetRoot();
+		tmp__output = self->GetInternal()->GetRoot();
 
 		MonoObject* __output;
 		ScriptSceneObject* script__output = nullptr;
@@ -68,10 +68,10 @@ namespace bs
 		return __output;
 	}
 
-	bool ScriptSceneInstance::InternalIsActive(ScriptSceneInstance* thisPtr)
+	bool ScriptSceneInstance::InternalIsActive(ScriptSceneInstance* self)
 	{
 		bool tmp__output;
-		tmp__output = thisPtr->GetInternal()->IsActive();
+		tmp__output = self->GetInternal()->IsActive();
 
 		bool __output;
 		__output = tmp__output;
@@ -79,10 +79,10 @@ namespace bs
 		return __output;
 	}
 
-	MonoObject* ScriptSceneInstance::InternalGetPhysicsScene(ScriptSceneInstance* thisPtr)
+	MonoObject* ScriptSceneInstance::InternalGetPhysicsScene(ScriptSceneInstance* self)
 	{
 		SPtr<PhysicsScene> tmp__output;
-		tmp__output = thisPtr->GetInternal()->GetPhysicsScene();
+		tmp__output = self->GetInternal()->GetPhysicsScene();
 
 		MonoObject* __output;
 		__output = ScriptPhysicsScene::Create(tmp__output);
@@ -90,12 +90,12 @@ namespace bs
 		return __output;
 	}
 
-	MonoObject* ScriptSceneInstance::InternalCreateSceneObject(ScriptSceneInstance* thisPtr, MonoString* name)
+	MonoObject* ScriptSceneInstance::InternalCreateSceneObject(ScriptSceneInstance* self, MonoString* name)
 	{
 		GameObjectHandle<SceneObject> tmp__output;
 		String tmpname;
 		tmpname = MonoUtil::MonoToString(name);
-		tmp__output = thisPtr->GetInternal()->CreateSceneObject(tmpname);
+		tmp__output = self->GetInternal()->CreateSceneObject(tmpname);
 
 		MonoObject* __output;
 		ScriptSceneObject* script__output = nullptr;
@@ -113,8 +113,8 @@ namespace bs
 	{
 		String tmpname;
 		tmpname = MonoUtil::MonoToString(name);
-		SPtr<SceneInstance> instance = SceneInstance::Create(tmpname);
-		new (B3DAllocate<ScriptSceneInstance>())ScriptSceneInstance(managedInstance, instance);
+		SPtr<SceneInstance> nativeObject = SceneInstance::Create(tmpname);
+		new (B3DAllocate<ScriptSceneInstance>())ScriptSceneInstance(managedInstance, nativeObject);
 	}
 
 	void ScriptSceneInstance::InternalCreate0(MonoObject* managedInstance, MonoString* name, MonoObject* root)
@@ -126,7 +126,7 @@ namespace bs
 		scriptObjectWrapperroot = ScriptSceneObject::ToNative(root);
 		if(scriptObjectWrapperroot != nullptr)
 			tmproot = scriptObjectWrapperroot->GetHandle();
-		SPtr<SceneInstance> instance = SceneInstance::Create(tmpname, tmproot);
-		new (B3DAllocate<ScriptSceneInstance>())ScriptSceneInstance(managedInstance, instance);
+		SPtr<SceneInstance> nativeObject = SceneInstance::Create(tmpname, tmproot);
+		new (B3DAllocate<ScriptSceneInstance>())ScriptSceneInstance(managedInstance, nativeObject);
 	}
 }

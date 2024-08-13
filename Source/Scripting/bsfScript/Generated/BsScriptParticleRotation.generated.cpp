@@ -35,17 +35,17 @@ namespace bs
 		new (B3DAllocate<ScriptParticleRotation>()) ScriptParticleRotation(managedInstance, value);
 		return managedInstance;
 	}
-	void ScriptParticleRotation::InternalSetOptions(ScriptParticleRotation* thisPtr, __PARTICLE_ROTATION_DESCInterop* options)
+	void ScriptParticleRotation::InternalSetOptions(ScriptParticleRotation* self, __PARTICLE_ROTATION_DESCInterop* options)
 	{
 		PARTICLE_ROTATION_DESC tmpoptions;
 		tmpoptions = ScriptParticleRotationOptions::FromInterop(*options);
-		thisPtr->GetInternal()->SetOptions(tmpoptions);
+		self->GetInternal()->SetOptions(tmpoptions);
 	}
 
-	void ScriptParticleRotation::InternalGetOptions(ScriptParticleRotation* thisPtr, __PARTICLE_ROTATION_DESCInterop* __output)
+	void ScriptParticleRotation::InternalGetOptions(ScriptParticleRotation* self, __PARTICLE_ROTATION_DESCInterop* __output)
 	{
 		PARTICLE_ROTATION_DESC tmp__output;
-		tmp__output = thisPtr->GetInternal()->GetOptions();
+		tmp__output = self->GetInternal()->GetOptions();
 
 		__PARTICLE_ROTATION_DESCInterop interop__output;
 		interop__output = ScriptParticleRotationOptions::ToInterop(tmp__output);
@@ -56,13 +56,13 @@ namespace bs
 	{
 		PARTICLE_ROTATION_DESC tmpdesc;
 		tmpdesc = ScriptParticleRotationOptions::FromInterop(*desc);
-		SPtr<ParticleRotation> instance = ParticleRotation::Create(tmpdesc);
-		new (B3DAllocate<ScriptParticleRotation>())ScriptParticleRotation(managedInstance, instance);
+		SPtr<ParticleRotation> nativeObject = ParticleRotation::Create(tmpdesc);
+		new (B3DAllocate<ScriptParticleRotation>())ScriptParticleRotation(managedInstance, nativeObject);
 	}
 
 	void ScriptParticleRotation::InternalCreate0(MonoObject* managedInstance)
 	{
-		SPtr<ParticleRotation> instance = ParticleRotation::Create();
-		new (B3DAllocate<ScriptParticleRotation>())ScriptParticleRotation(managedInstance, instance);
+		SPtr<ParticleRotation> nativeObject = ParticleRotation::Create();
+		new (B3DAllocate<ScriptParticleRotation>())ScriptParticleRotation(managedInstance, nativeObject);
 	}
 }

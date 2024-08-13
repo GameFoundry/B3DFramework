@@ -44,31 +44,31 @@ namespace bs
 
 		return metaData.ScriptClass->CreateInstance("bool", ctorParams);
 	}
-	MonoObject* ScriptSpriteImage::InternalGetRef(ScriptSpriteImageBase* thisPtr)
+	MonoObject* ScriptSpriteImage::InternalGetRef(ScriptSpriteImageBase* self)
 	{
-		return thisPtr->GetRRef(thisPtr->GetGenericHandle(), SpriteImage::GetRttiStatic()->GetRttiId());
+		return self->GetRRef(self->GetGenericHandle(), SpriteImage::GetRttiStatic()->GetRttiId());
 	}
 
-	void ScriptSpriteImage::InternalGetSize(ScriptSpriteImageBase* thisPtr, TSize2<uint32_t>* __output)
+	void ScriptSpriteImage::InternalGetSize(ScriptSpriteImageBase* self, TSize2<uint32_t>* __output)
 	{
 		TSize2<uint32_t> tmp__output;
-		tmp__output = B3DStaticResourceCast<SpriteImage>(thisPtr->GetGenericHandle())->GetSize();
+		tmp__output = B3DStaticResourceCast<SpriteImage>(self->GetGenericHandle())->GetSize();
 
 		*__output = tmp__output;
 	}
 
-	void ScriptSpriteImage::InternalGetAnimationFrameSize(ScriptSpriteImageBase* thisPtr, TSize2<uint32_t>* __output)
+	void ScriptSpriteImage::InternalGetAnimationFrameSize(ScriptSpriteImageBase* self, TSize2<uint32_t>* __output)
 	{
 		TSize2<uint32_t> tmp__output;
-		tmp__output = B3DStaticResourceCast<SpriteImage>(thisPtr->GetGenericHandle())->GetAnimationFrameSize();
+		tmp__output = B3DStaticResourceCast<SpriteImage>(self->GetGenericHandle())->GetAnimationFrameSize();
 
 		*__output = tmp__output;
 	}
 
-	MonoObject* ScriptSpriteImage::InternalGetAtlasTexture(ScriptSpriteImageBase* thisPtr)
+	MonoObject* ScriptSpriteImage::InternalGetAtlasTexture(ScriptSpriteImageBase* self)
 	{
 		TResourceHandle<Texture> tmp__output;
-		tmp__output = B3DStaticResourceCast<SpriteImage>(thisPtr->GetGenericHandle())->GetAtlasTexture();
+		tmp__output = B3DStaticResourceCast<SpriteImage>(self->GetGenericHandle())->GetAtlasTexture();
 
 		MonoObject* __output;
 		ScriptRRefBase* script__output;
@@ -81,41 +81,41 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptSpriteImage::InternalSetUVRange(ScriptSpriteImageBase* thisPtr, Rect2* uvRange)
+	void ScriptSpriteImage::InternalSetUVRange(ScriptSpriteImageBase* self, Rect2* uvRange)
 	{
-		B3DStaticResourceCast<SpriteImage>(thisPtr->GetGenericHandle())->SetUVRange(*uvRange);
+		B3DStaticResourceCast<SpriteImage>(self->GetGenericHandle())->SetUVRange(*uvRange);
 	}
 
-	void ScriptSpriteImage::InternalGetUVRange(ScriptSpriteImageBase* thisPtr, Rect2* __output)
+	void ScriptSpriteImage::InternalGetUVRange(ScriptSpriteImageBase* self, Rect2* __output)
 	{
 		Rect2 tmp__output;
-		tmp__output = B3DStaticResourceCast<SpriteImage>(thisPtr->GetGenericHandle())->GetUVRange();
+		tmp__output = B3DStaticResourceCast<SpriteImage>(self->GetGenericHandle())->GetUVRange();
 
 		*__output = tmp__output;
 	}
 
-	void ScriptSpriteImage::InternalSetAnimation(ScriptSpriteImageBase* thisPtr, SpriteSheetGridAnimation* animation)
+	void ScriptSpriteImage::InternalSetAnimation(ScriptSpriteImageBase* self, SpriteSheetGridAnimation* animation)
 	{
-		B3DStaticResourceCast<SpriteImage>(thisPtr->GetGenericHandle())->SetAnimation(*animation);
+		B3DStaticResourceCast<SpriteImage>(self->GetGenericHandle())->SetAnimation(*animation);
 	}
 
-	void ScriptSpriteImage::InternalGetAnimation(ScriptSpriteImageBase* thisPtr, SpriteSheetGridAnimation* __output)
+	void ScriptSpriteImage::InternalGetAnimation(ScriptSpriteImageBase* self, SpriteSheetGridAnimation* __output)
 	{
 		SpriteSheetGridAnimation tmp__output;
-		tmp__output = B3DStaticResourceCast<SpriteImage>(thisPtr->GetGenericHandle())->GetAnimation();
+		tmp__output = B3DStaticResourceCast<SpriteImage>(self->GetGenericHandle())->GetAnimation();
 
 		*__output = tmp__output;
 	}
 
-	void ScriptSpriteImage::InternalSetAnimationPlayback(ScriptSpriteImageBase* thisPtr, SpriteAnimationPlayback playback)
+	void ScriptSpriteImage::InternalSetAnimationPlayback(ScriptSpriteImageBase* self, SpriteAnimationPlayback playback)
 	{
-		B3DStaticResourceCast<SpriteImage>(thisPtr->GetGenericHandle())->SetAnimationPlayback(playback);
+		B3DStaticResourceCast<SpriteImage>(self->GetGenericHandle())->SetAnimationPlayback(playback);
 	}
 
-	SpriteAnimationPlayback ScriptSpriteImage::InternalGetAnimationPlayback(ScriptSpriteImageBase* thisPtr)
+	SpriteAnimationPlayback ScriptSpriteImage::InternalGetAnimationPlayback(ScriptSpriteImageBase* self)
 	{
 		SpriteAnimationPlayback tmp__output;
-		tmp__output = B3DStaticResourceCast<SpriteImage>(thisPtr->GetGenericHandle())->GetAnimationPlayback();
+		tmp__output = B3DStaticResourceCast<SpriteImage>(self->GetGenericHandle())->GetAnimationPlayback();
 
 		SpriteAnimationPlayback __output;
 		__output = tmp__output;

@@ -21,8 +21,8 @@ namespace bs
 		static MonoObject* Create(const SPtr<ParticleTextureAnimation>& value);
 
 	private:
-		static void InternalSetOptions(ScriptParticleTextureAnimation* thisPtr, PARTICLE_TEXTURE_ANIMATION_DESC* options);
-		static void InternalGetOptions(ScriptParticleTextureAnimation* thisPtr, PARTICLE_TEXTURE_ANIMATION_DESC* __output);
+		static void InternalSetOptions(ScriptParticleTextureAnimation* self, PARTICLE_TEXTURE_ANIMATION_DESC* options);
+		static void InternalGetOptions(ScriptParticleTextureAnimation* self, PARTICLE_TEXTURE_ANIMATION_DESC* __output);
 		static void InternalCreate(MonoObject* managedInstance, PARTICLE_TEXTURE_ANIMATION_DESC* desc);
 		static void InternalCreate0(MonoObject* managedInstance);
 	};

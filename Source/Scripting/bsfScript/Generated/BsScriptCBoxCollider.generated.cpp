@@ -23,28 +23,28 @@ namespace bs
 
 	}
 
-	void ScriptBoxCollider::InternalSetExtents(ScriptBoxCollider* thisPtr, TVector3<float>* extents)
+	void ScriptBoxCollider::InternalSetExtents(ScriptBoxCollider* self, TVector3<float>* extents)
 	{
-		thisPtr->GetHandle()->SetExtents(*extents);
+		self->GetHandle()->SetExtents(*extents);
 	}
 
-	void ScriptBoxCollider::InternalGetExtents(ScriptBoxCollider* thisPtr, TVector3<float>* __output)
+	void ScriptBoxCollider::InternalGetExtents(ScriptBoxCollider* self, TVector3<float>* __output)
 	{
 		TVector3<float> tmp__output;
-		tmp__output = thisPtr->GetHandle()->GetExtents();
+		tmp__output = self->GetHandle()->GetExtents();
 
 		*__output = tmp__output;
 	}
 
-	void ScriptBoxCollider::InternalSetCenter(ScriptBoxCollider* thisPtr, TVector3<float>* center)
+	void ScriptBoxCollider::InternalSetCenter(ScriptBoxCollider* self, TVector3<float>* center)
 	{
-		thisPtr->GetHandle()->SetCenter(*center);
+		self->GetHandle()->SetCenter(*center);
 	}
 
-	void ScriptBoxCollider::InternalGetCenter(ScriptBoxCollider* thisPtr, TVector3<float>* __output)
+	void ScriptBoxCollider::InternalGetCenter(ScriptBoxCollider* self, TVector3<float>* __output)
 	{
 		TVector3<float> tmp__output;
-		tmp__output = thisPtr->GetHandle()->GetCenter();
+		tmp__output = self->GetHandle()->GetCenter();
 
 		*__output = tmp__output;
 	}

@@ -29,15 +29,15 @@ namespace bs
 
 		return metaData.ScriptClass->CreateInstance("bool", ctorParams);
 	}
-	MonoObject* ScriptFont::InternalGetRef(ScriptFont* thisPtr)
+	MonoObject* ScriptFont::InternalGetRef(ScriptFont* self)
 	{
-		return thisPtr->GetRRef();
+		return self->GetRRef();
 	}
 
-	MonoObject* ScriptFont::InternalGetBitmap(ScriptFont* thisPtr, float size)
+	MonoObject* ScriptFont::InternalGetBitmap(ScriptFont* self, float size)
 	{
 		SPtr<FontBitmapInformation> tmp__output;
-		tmp__output = thisPtr->GetHandle()->GetBitmap(size);
+		tmp__output = self->GetHandle()->GetBitmap(size);
 
 		MonoObject* __output;
 		__output = ScriptFontBitmapInformation::Create(tmp__output);
@@ -45,10 +45,10 @@ namespace bs
 		return __output;
 	}
 
-	float ScriptFont::InternalGetClosestSize(ScriptFont* thisPtr, float size)
+	float ScriptFont::InternalGetClosestSize(ScriptFont* self, float size)
 	{
 		float tmp__output;
-		tmp__output = thisPtr->GetHandle()->GetClosestSize(size);
+		tmp__output = self->GetHandle()->GetClosestSize(size);
 
 		float __output;
 		__output = tmp__output;

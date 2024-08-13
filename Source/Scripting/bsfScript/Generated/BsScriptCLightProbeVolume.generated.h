@@ -21,17 +21,17 @@ namespace bs
 		ScriptLightProbeVolume(MonoObject* managedInstance, const GameObjectHandle<CLightProbeVolume>& value);
 
 	private:
-		static uint32_t InternalAddProbe(ScriptLightProbeVolume* thisPtr, TVector3<float>* position);
-		static void InternalSetProbePosition(ScriptLightProbeVolume* thisPtr, uint32_t handle, TVector3<float>* position);
-		static void InternalGetProbePosition(ScriptLightProbeVolume* thisPtr, uint32_t handle, TVector3<float>* __output);
-		static void InternalRemoveProbe(ScriptLightProbeVolume* thisPtr, uint32_t handle);
-		static MonoArray* InternalGetProbes(ScriptLightProbeVolume* thisPtr);
-		static void InternalRenderProbe(ScriptLightProbeVolume* thisPtr, uint32_t handle);
-		static void InternalRenderProbes(ScriptLightProbeVolume* thisPtr);
-		static void InternalResize(ScriptLightProbeVolume* thisPtr, AABox* volume, TVector3I<int32_t>* cellCount);
-		static void InternalClip(ScriptLightProbeVolume* thisPtr);
-		static void InternalReset(ScriptLightProbeVolume* thisPtr);
-		static void InternalGetGridVolume(ScriptLightProbeVolume* thisPtr, AABox* __output);
-		static void InternalGetCellCount(ScriptLightProbeVolume* thisPtr, TVector3I<int32_t>* __output);
+		static uint32_t InternalAddProbe(ScriptLightProbeVolume* self, TVector3<float>* position);
+		static void InternalSetProbePosition(ScriptLightProbeVolume* self, uint32_t handle, TVector3<float>* position);
+		static void InternalGetProbePosition(ScriptLightProbeVolume* self, uint32_t handle, TVector3<float>* __output);
+		static void InternalRemoveProbe(ScriptLightProbeVolume* self, uint32_t handle);
+		static MonoArray* InternalGetProbes(ScriptLightProbeVolume* self);
+		static void InternalRenderProbe(ScriptLightProbeVolume* self, uint32_t handle);
+		static void InternalRenderProbes(ScriptLightProbeVolume* self);
+		static void InternalResize(ScriptLightProbeVolume* self, AABox* volume, TVector3I<int32_t>* cellCount);
+		static void InternalClip(ScriptLightProbeVolume* self);
+		static void InternalReset(ScriptLightProbeVolume* self);
+		static void InternalGetGridVolume(ScriptLightProbeVolume* self, AABox* __output);
+		static void InternalGetCellCount(ScriptLightProbeVolume* self, TVector3I<int32_t>* __output);
 	};
 }

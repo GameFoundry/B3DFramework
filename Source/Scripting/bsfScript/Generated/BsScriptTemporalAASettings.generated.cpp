@@ -37,14 +37,14 @@ namespace bs
 	}
 	void ScriptTemporalAASettings::InternalTemporalAASettings(MonoObject* managedInstance)
 	{
-		SPtr<TemporalAASettings> instance = B3DMakeShared<TemporalAASettings>();
-		new (B3DAllocate<ScriptTemporalAASettings>())ScriptTemporalAASettings(managedInstance, instance);
+		SPtr<TemporalAASettings> nativeObject = B3DMakeShared<TemporalAASettings>();
+		new (B3DAllocate<ScriptTemporalAASettings>())ScriptTemporalAASettings(managedInstance, nativeObject);
 	}
 
-	bool ScriptTemporalAASettings::InternalGetEnabled(ScriptTemporalAASettings* thisPtr)
+	bool ScriptTemporalAASettings::InternalGetEnabled(ScriptTemporalAASettings* self)
 	{
 		bool tmp__output;
-		tmp__output = thisPtr->GetInternal()->Enabled;
+		tmp__output = self->GetInternal()->Enabled;
 
 		bool __output;
 		__output = tmp__output;
@@ -52,15 +52,15 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptTemporalAASettings::InternalSetEnabled(ScriptTemporalAASettings* thisPtr, bool value)
+	void ScriptTemporalAASettings::InternalSetEnabled(ScriptTemporalAASettings* self, bool value)
 	{
-		thisPtr->GetInternal()->Enabled = value;
+		self->GetInternal()->Enabled = value;
 	}
 
-	uint32_t ScriptTemporalAASettings::InternalGetJitteredPositionCount(ScriptTemporalAASettings* thisPtr)
+	uint32_t ScriptTemporalAASettings::InternalGetJitteredPositionCount(ScriptTemporalAASettings* self)
 	{
 		uint32_t tmp__output;
-		tmp__output = thisPtr->GetInternal()->JitteredPositionCount;
+		tmp__output = self->GetInternal()->JitteredPositionCount;
 
 		uint32_t __output;
 		__output = tmp__output;
@@ -68,15 +68,15 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptTemporalAASettings::InternalSetJitteredPositionCount(ScriptTemporalAASettings* thisPtr, uint32_t value)
+	void ScriptTemporalAASettings::InternalSetJitteredPositionCount(ScriptTemporalAASettings* self, uint32_t value)
 	{
-		thisPtr->GetInternal()->JitteredPositionCount = value;
+		self->GetInternal()->JitteredPositionCount = value;
 	}
 
-	float ScriptTemporalAASettings::InternalGetSharpness(ScriptTemporalAASettings* thisPtr)
+	float ScriptTemporalAASettings::InternalGetSharpness(ScriptTemporalAASettings* self)
 	{
 		float tmp__output;
-		tmp__output = thisPtr->GetInternal()->Sharpness;
+		tmp__output = self->GetInternal()->Sharpness;
 
 		float __output;
 		__output = tmp__output;
@@ -84,8 +84,8 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptTemporalAASettings::InternalSetSharpness(ScriptTemporalAASettings* thisPtr, float value)
+	void ScriptTemporalAASettings::InternalSetSharpness(ScriptTemporalAASettings* self, float value)
 	{
-		thisPtr->GetInternal()->Sharpness = value;
+		self->GetInternal()->Sharpness = value;
 	}
 }

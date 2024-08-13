@@ -17,7 +17,7 @@ namespace bs
 		ScriptMeshCollider(MonoObject* managedInstance, const GameObjectHandle<CMeshCollider>& value);
 
 	private:
-		static void InternalSetMesh(ScriptMeshCollider* thisPtr, MonoObject* mesh);
-		static MonoObject* InternalGetMesh(ScriptMeshCollider* thisPtr);
+		static void InternalSetMesh(ScriptMeshCollider* self, MonoObject* mesh);
+		static MonoObject* InternalGetMesh(ScriptMeshCollider* self);
 	};
 }

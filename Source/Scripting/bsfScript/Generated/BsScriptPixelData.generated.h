@@ -23,19 +23,19 @@ namespace bs
 		static MonoObject* Create(const SPtr<PixelData>& value);
 
 	private:
-		static uint32_t InternalGetRowPitch(ScriptPixelData* thisPtr);
-		static uint32_t InternalGetSlicePitch(ScriptPixelData* thisPtr);
-		static PixelFormat InternalGetFormat(ScriptPixelData* thisPtr);
-		static void InternalGetExtents(ScriptPixelData* thisPtr, PixelVolume* __output);
-		static bool InternalIsConsecutive(ScriptPixelData* thisPtr);
-		static uint32_t InternalGetSize(ScriptPixelData* thisPtr);
+		static uint32_t InternalGetRowPitch(ScriptPixelData* self);
+		static uint32_t InternalGetSlicePitch(ScriptPixelData* self);
+		static PixelFormat InternalGetFormat(ScriptPixelData* self);
+		static void InternalGetExtents(ScriptPixelData* self, PixelVolume* __output);
+		static bool InternalIsConsecutive(ScriptPixelData* self);
+		static uint32_t InternalGetSize(ScriptPixelData* self);
 		static void InternalCreate(MonoObject* managedInstance, PixelVolume* volume, PixelFormat format);
 		static void InternalCreate0(MonoObject* managedInstance, uint32_t width, uint32_t height, uint32_t depth, PixelFormat pixelFormat);
-		static void InternalGetPixel(ScriptPixelData* thisPtr, int32_t x, int32_t y, int32_t z, Color* __output);
-		static void InternalSetPixel(ScriptPixelData* thisPtr, Color* value, int32_t x, int32_t y, int32_t z);
-		static MonoArray* InternalGetPixels(ScriptPixelData* thisPtr);
-		static void InternalSetPixels(ScriptPixelData* thisPtr, MonoArray* value);
-		static MonoArray* InternalGetRawPixels(ScriptPixelData* thisPtr);
-		static void InternalSetRawPixels(ScriptPixelData* thisPtr, MonoArray* value);
+		static void InternalGetPixel(ScriptPixelData* self, int32_t x, int32_t y, int32_t z, Color* __output);
+		static void InternalSetPixel(ScriptPixelData* self, Color* value, int32_t x, int32_t y, int32_t z);
+		static MonoArray* InternalGetPixels(ScriptPixelData* self);
+		static void InternalSetPixels(ScriptPixelData* self, MonoArray* value);
+		static MonoArray* InternalGetRawPixels(ScriptPixelData* self);
+		static void InternalSetRawPixels(ScriptPixelData* self, MonoArray* value);
 	};
 }

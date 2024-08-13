@@ -17,15 +17,15 @@ namespace bs
 		ScriptDecal(MonoObject* managedInstance, const GameObjectHandle<CDecal>& value);
 
 	private:
-		static void InternalSetMaterial(ScriptDecal* thisPtr, MonoObject* material);
-		static MonoObject* InternalGetMaterial(ScriptDecal* thisPtr);
-		static void InternalSetSize(ScriptDecal* thisPtr, TVector2<float>* size);
-		static void InternalGetSize(ScriptDecal* thisPtr, TVector2<float>* __output);
-		static void InternalSetMaxDistance(ScriptDecal* thisPtr, float distance);
-		static float InternalGetMaxDistance(ScriptDecal* thisPtr);
-		static void InternalSetLayer(ScriptDecal* thisPtr, uint64_t layer);
-		static uint64_t InternalGetLayer(ScriptDecal* thisPtr);
-		static void InternalSetLayerMask(ScriptDecal* thisPtr, uint32_t mask);
-		static uint32_t InternalGetLayerMask(ScriptDecal* thisPtr);
+		static void InternalSetMaterial(ScriptDecal* self, MonoObject* material);
+		static MonoObject* InternalGetMaterial(ScriptDecal* self);
+		static void InternalSetSize(ScriptDecal* self, TVector2<float>* size);
+		static void InternalGetSize(ScriptDecal* self, TVector2<float>* __output);
+		static void InternalSetMaxDistance(ScriptDecal* self, float distance);
+		static float InternalGetMaxDistance(ScriptDecal* self);
+		static void InternalSetLayer(ScriptDecal* self, uint64_t layer);
+		static uint64_t InternalGetLayer(ScriptDecal* self);
+		static void InternalSetLayerMask(ScriptDecal* self, uint32_t mask);
+		static uint32_t InternalGetLayerMask(ScriptDecal* self);
 	};
 }

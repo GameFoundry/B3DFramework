@@ -35,28 +35,28 @@ namespace bs
 		new (B3DAllocate<ScriptParticleEmitterSphereShape>()) ScriptParticleEmitterSphereShape(managedInstance, value);
 		return managedInstance;
 	}
-	void ScriptParticleEmitterSphereShape::InternalSetOptions(ScriptParticleEmitterSphereShape* thisPtr, PARTICLE_SPHERE_SHAPE_DESC* options)
+	void ScriptParticleEmitterSphereShape::InternalSetOptions(ScriptParticleEmitterSphereShape* self, PARTICLE_SPHERE_SHAPE_DESC* options)
 	{
-		thisPtr->GetInternal()->SetOptions(*options);
+		self->GetInternal()->SetOptions(*options);
 	}
 
-	void ScriptParticleEmitterSphereShape::InternalGetOptions(ScriptParticleEmitterSphereShape* thisPtr, PARTICLE_SPHERE_SHAPE_DESC* __output)
+	void ScriptParticleEmitterSphereShape::InternalGetOptions(ScriptParticleEmitterSphereShape* self, PARTICLE_SPHERE_SHAPE_DESC* __output)
 	{
 		PARTICLE_SPHERE_SHAPE_DESC tmp__output;
-		tmp__output = thisPtr->GetInternal()->GetOptions();
+		tmp__output = self->GetInternal()->GetOptions();
 
 		*__output = tmp__output;
 	}
 
 	void ScriptParticleEmitterSphereShape::InternalCreate(MonoObject* managedInstance, PARTICLE_SPHERE_SHAPE_DESC* desc)
 	{
-		SPtr<ParticleEmitterSphereShape> instance = ParticleEmitterSphereShape::Create(*desc);
-		new (B3DAllocate<ScriptParticleEmitterSphereShape>())ScriptParticleEmitterSphereShape(managedInstance, instance);
+		SPtr<ParticleEmitterSphereShape> nativeObject = ParticleEmitterSphereShape::Create(*desc);
+		new (B3DAllocate<ScriptParticleEmitterSphereShape>())ScriptParticleEmitterSphereShape(managedInstance, nativeObject);
 	}
 
 	void ScriptParticleEmitterSphereShape::InternalCreate0(MonoObject* managedInstance)
 	{
-		SPtr<ParticleEmitterSphereShape> instance = ParticleEmitterSphereShape::Create();
-		new (B3DAllocate<ScriptParticleEmitterSphereShape>())ScriptParticleEmitterSphereShape(managedInstance, instance);
+		SPtr<ParticleEmitterSphereShape> nativeObject = ParticleEmitterSphereShape::Create();
+		new (B3DAllocate<ScriptParticleEmitterSphereShape>())ScriptParticleEmitterSphereShape(managedInstance, nativeObject);
 	}
 }

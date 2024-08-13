@@ -18,14 +18,14 @@ namespace bs
 		static MonoObject* CreateInstance();
 
 	private:
-		static MonoObject* InternalGetRef(ScriptPhysicsMaterial* thisPtr);
+		static MonoObject* InternalGetRef(ScriptPhysicsMaterial* self);
 
-		static void InternalSetStaticFriction(ScriptPhysicsMaterial* thisPtr, float value);
-		static float InternalGetStaticFriction(ScriptPhysicsMaterial* thisPtr);
-		static void InternalSetDynamicFriction(ScriptPhysicsMaterial* thisPtr, float value);
-		static float InternalGetDynamicFriction(ScriptPhysicsMaterial* thisPtr);
-		static void InternalSetRestitutionCoefficient(ScriptPhysicsMaterial* thisPtr, float value);
-		static float InternalGetRestitutionCoefficient(ScriptPhysicsMaterial* thisPtr);
+		static void InternalSetStaticFriction(ScriptPhysicsMaterial* self, float value);
+		static float InternalGetStaticFriction(ScriptPhysicsMaterial* self);
+		static void InternalSetDynamicFriction(ScriptPhysicsMaterial* self, float value);
+		static float InternalGetDynamicFriction(ScriptPhysicsMaterial* self);
+		static void InternalSetRestitutionCoefficient(ScriptPhysicsMaterial* self, float value);
+		static float InternalGetRestitutionCoefficient(ScriptPhysicsMaterial* self);
 		static void InternalCreate(MonoObject* managedInstance, float staticFriction, float dynamicFriction, float restitution);
 	};
 }

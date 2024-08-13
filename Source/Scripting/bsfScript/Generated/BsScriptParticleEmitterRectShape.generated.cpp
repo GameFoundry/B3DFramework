@@ -35,17 +35,17 @@ namespace bs
 		new (B3DAllocate<ScriptParticleEmitterRectShape>()) ScriptParticleEmitterRectShape(managedInstance, value);
 		return managedInstance;
 	}
-	void ScriptParticleEmitterRectShape::InternalSetOptions(ScriptParticleEmitterRectShape* thisPtr, __PARTICLE_RECT_SHAPE_DESCInterop* options)
+	void ScriptParticleEmitterRectShape::InternalSetOptions(ScriptParticleEmitterRectShape* self, __PARTICLE_RECT_SHAPE_DESCInterop* options)
 	{
 		PARTICLE_RECT_SHAPE_DESC tmpoptions;
 		tmpoptions = ScriptParticleRectShapeOptions::FromInterop(*options);
-		thisPtr->GetInternal()->SetOptions(tmpoptions);
+		self->GetInternal()->SetOptions(tmpoptions);
 	}
 
-	void ScriptParticleEmitterRectShape::InternalGetOptions(ScriptParticleEmitterRectShape* thisPtr, __PARTICLE_RECT_SHAPE_DESCInterop* __output)
+	void ScriptParticleEmitterRectShape::InternalGetOptions(ScriptParticleEmitterRectShape* self, __PARTICLE_RECT_SHAPE_DESCInterop* __output)
 	{
 		PARTICLE_RECT_SHAPE_DESC tmp__output;
-		tmp__output = thisPtr->GetInternal()->GetOptions();
+		tmp__output = self->GetInternal()->GetOptions();
 
 		__PARTICLE_RECT_SHAPE_DESCInterop interop__output;
 		interop__output = ScriptParticleRectShapeOptions::ToInterop(tmp__output);
@@ -56,13 +56,13 @@ namespace bs
 	{
 		PARTICLE_RECT_SHAPE_DESC tmpdesc;
 		tmpdesc = ScriptParticleRectShapeOptions::FromInterop(*desc);
-		SPtr<ParticleEmitterRectShape> instance = ParticleEmitterRectShape::Create(tmpdesc);
-		new (B3DAllocate<ScriptParticleEmitterRectShape>())ScriptParticleEmitterRectShape(managedInstance, instance);
+		SPtr<ParticleEmitterRectShape> nativeObject = ParticleEmitterRectShape::Create(tmpdesc);
+		new (B3DAllocate<ScriptParticleEmitterRectShape>())ScriptParticleEmitterRectShape(managedInstance, nativeObject);
 	}
 
 	void ScriptParticleEmitterRectShape::InternalCreate0(MonoObject* managedInstance)
 	{
-		SPtr<ParticleEmitterRectShape> instance = ParticleEmitterRectShape::Create();
-		new (B3DAllocate<ScriptParticleEmitterRectShape>())ScriptParticleEmitterRectShape(managedInstance, instance);
+		SPtr<ParticleEmitterRectShape> nativeObject = ParticleEmitterRectShape::Create();
+		new (B3DAllocate<ScriptParticleEmitterRectShape>())ScriptParticleEmitterRectShape(managedInstance, nativeObject);
 	}
 }

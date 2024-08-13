@@ -32,10 +32,10 @@ namespace bs
 		new (B3DAllocate<ScriptSkeleton>()) ScriptSkeleton(managedInstance, value);
 		return managedInstance;
 	}
-	uint32_t ScriptSkeleton::InternalGetNumBones(ScriptSkeleton* thisPtr)
+	uint32_t ScriptSkeleton::InternalGetNumBones(ScriptSkeleton* self)
 	{
 		uint32_t tmp__output;
-		tmp__output = thisPtr->GetInternal()->GetNumBones();
+		tmp__output = self->GetInternal()->GetNumBones();
 
 		uint32_t __output;
 		__output = tmp__output;
@@ -43,10 +43,10 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptSkeleton::InternalGetBoneInfo(ScriptSkeleton* thisPtr, int32_t boneIdx, __SkeletonBoneInfoExInterop* __output)
+	void ScriptSkeleton::InternalGetBoneInfo(ScriptSkeleton* self, int32_t boneIdx, __SkeletonBoneInfoExInterop* __output)
 	{
 		SkeletonBoneInfoEx tmp__output;
-		tmp__output = SkeletonEx::GetBoneInfo(thisPtr->GetInternal(), boneIdx);
+		tmp__output = SkeletonEx::GetBoneInfo(self->GetInternal(), boneIdx);
 
 		__SkeletonBoneInfoExInterop interop__output;
 		interop__output = ScriptBoneInfo::ToInterop(tmp__output);

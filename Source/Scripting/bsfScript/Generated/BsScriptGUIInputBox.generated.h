@@ -27,8 +27,8 @@ namespace bs
 		typedef void(B3D_THUNKCALL *OnConfirmThunkDef) (MonoObject*, MonoException**);
 		static OnConfirmThunkDef OnConfirmThunk;
 
-		static void InternalSetText(ScriptGUIInputBox* thisPtr, MonoString* text);
-		static MonoString* InternalGetText(ScriptGUIInputBox* thisPtr);
+		static void InternalSetText(ScriptGUIInputBox* self, MonoString* text);
+		static MonoString* InternalGetText(ScriptGUIInputBox* self);
 		static void InternalCreate(MonoObject* managedInstance, GUIInputBoxContent* contents, MonoString* styleClass, MonoArray* options);
 		static void InternalCreate0(MonoObject* managedInstance, GUIInputBoxContent* contents, MonoArray* options);
 		static void InternalCreate1(MonoObject* managedInstance, MonoString* styleClass, MonoArray* options);

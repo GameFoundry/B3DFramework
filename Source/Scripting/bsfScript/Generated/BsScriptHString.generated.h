@@ -25,7 +25,7 @@ namespace bs
 		static void InternalHString0(MonoObject* managedInstance, MonoString* identifier, MonoString* defaultString, uint32_t stringTableId);
 		static void InternalHString1(MonoObject* managedInstance, uint32_t stringTableId);
 		static void InternalHString2(MonoObject* managedInstance);
-		static MonoString* InternalGetValue(ScriptLocString* thisPtr);
-		static void InternalSetParameter(ScriptLocString* thisPtr, uint32_t idx, MonoString* value);
+		static MonoString* InternalGetValue(ScriptLocString* self);
+		static void InternalSetParameter(ScriptLocString* self, uint32_t idx, MonoString* value);
 	};
 }

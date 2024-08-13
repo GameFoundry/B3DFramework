@@ -42,8 +42,8 @@ namespace bs
 		SPtr<TAnimationCurve<float>> mInternal;
 
 		static void InternalTAnimationCurve(MonoObject* managedInstance, MonoArray* keyframes);
-		static float InternalEvaluate(ScriptAnimationCurve* thisPtr, float time, bool loop);
-		static MonoArray* InternalGetKeyFrames(ScriptAnimationCurve* thisPtr);
+		static float InternalEvaluate(ScriptAnimationCurve* self, float time, bool loop);
+		static MonoArray* InternalGetKeyFrames(ScriptAnimationCurve* self);
 	};
 
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptVector3Curve : public ScriptObject<ScriptVector3Curve>
@@ -60,8 +60,8 @@ namespace bs
 		SPtr<TAnimationCurve<TVector3<float>>> mInternal;
 
 		static void InternalTAnimationCurve(MonoObject* managedInstance, MonoArray* keyframes);
-		static void InternalEvaluate(ScriptVector3Curve* thisPtr, float time, bool loop, TVector3<float>* __output);
-		static MonoArray* InternalGetKeyFrames(ScriptVector3Curve* thisPtr);
+		static void InternalEvaluate(ScriptVector3Curve* self, float time, bool loop, TVector3<float>* __output);
+		static MonoArray* InternalGetKeyFrames(ScriptVector3Curve* self);
 	};
 
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptVector2Curve : public ScriptObject<ScriptVector2Curve>
@@ -78,8 +78,8 @@ namespace bs
 		SPtr<TAnimationCurve<TVector2<float>>> mInternal;
 
 		static void InternalTAnimationCurve(MonoObject* managedInstance, MonoArray* keyframes);
-		static void InternalEvaluate(ScriptVector2Curve* thisPtr, float time, bool loop, TVector2<float>* __output);
-		static MonoArray* InternalGetKeyFrames(ScriptVector2Curve* thisPtr);
+		static void InternalEvaluate(ScriptVector2Curve* self, float time, bool loop, TVector2<float>* __output);
+		static MonoArray* InternalGetKeyFrames(ScriptVector2Curve* self);
 	};
 
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptQuaternionCurve : public ScriptObject<ScriptQuaternionCurve>
@@ -96,8 +96,8 @@ namespace bs
 		SPtr<TAnimationCurve<Quaternion>> mInternal;
 
 		static void InternalTAnimationCurve(MonoObject* managedInstance, MonoArray* keyframes);
-		static void InternalEvaluate(ScriptQuaternionCurve* thisPtr, float time, bool loop, Quaternion* __output);
-		static MonoArray* InternalGetKeyFrames(ScriptQuaternionCurve* thisPtr);
+		static void InternalEvaluate(ScriptQuaternionCurve* self, float time, bool loop, Quaternion* __output);
+		static MonoArray* InternalGetKeyFrames(ScriptQuaternionCurve* self);
 	};
 
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptIntegerCurve : public ScriptObject<ScriptIntegerCurve>
@@ -114,7 +114,7 @@ namespace bs
 		SPtr<TAnimationCurve<int32_t>> mInternal;
 
 		static void InternalTAnimationCurve(MonoObject* managedInstance, MonoArray* keyframes);
-		static int32_t InternalEvaluate(ScriptIntegerCurve* thisPtr, float time, bool loop);
-		static MonoArray* InternalGetKeyFrames(ScriptIntegerCurve* thisPtr);
+		static int32_t InternalEvaluate(ScriptIntegerCurve* self, float time, bool loop);
+		static MonoArray* InternalGetKeyFrames(ScriptIntegerCurve* self);
 	};
 }

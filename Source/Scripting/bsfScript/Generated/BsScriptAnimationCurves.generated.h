@@ -32,21 +32,21 @@ namespace bs
 		SPtr<AnimationCurves> mInternal;
 
 		static void InternalAnimationCurves(MonoObject* managedInstance);
-		static void InternalAddPositionCurve(ScriptAnimationCurves* thisPtr, MonoString* name, MonoObject* curve);
-		static void InternalAddRotationCurve(ScriptAnimationCurves* thisPtr, MonoString* name, MonoObject* curve);
-		static void InternalAddScaleCurve(ScriptAnimationCurves* thisPtr, MonoString* name, MonoObject* curve);
-		static void InternalAddGenericCurve(ScriptAnimationCurves* thisPtr, MonoString* name, MonoObject* curve);
-		static void InternalRemovePositionCurve(ScriptAnimationCurves* thisPtr, MonoString* name);
-		static void InternalRemoveRotationCurve(ScriptAnimationCurves* thisPtr, MonoString* name);
-		static void InternalRemoveScaleCurve(ScriptAnimationCurves* thisPtr, MonoString* name);
-		static void InternalRemoveGenericCurve(ScriptAnimationCurves* thisPtr, MonoString* name);
-		static MonoArray* InternalGetPositionCurves(ScriptAnimationCurves* thisPtr);
-		static void InternalSetPositionCurves(ScriptAnimationCurves* thisPtr, MonoArray* value);
-		static MonoArray* InternalGetRotationCurves(ScriptAnimationCurves* thisPtr);
-		static void InternalSetRotationCurves(ScriptAnimationCurves* thisPtr, MonoArray* value);
-		static MonoArray* InternalGetScaleCurves(ScriptAnimationCurves* thisPtr);
-		static void InternalSetScaleCurves(ScriptAnimationCurves* thisPtr, MonoArray* value);
-		static MonoArray* InternalGetGenericCurves(ScriptAnimationCurves* thisPtr);
-		static void InternalSetGenericCurves(ScriptAnimationCurves* thisPtr, MonoArray* value);
+		static void InternalAddPositionCurve(ScriptAnimationCurves* self, MonoString* name, MonoObject* curve);
+		static void InternalAddRotationCurve(ScriptAnimationCurves* self, MonoString* name, MonoObject* curve);
+		static void InternalAddScaleCurve(ScriptAnimationCurves* self, MonoString* name, MonoObject* curve);
+		static void InternalAddGenericCurve(ScriptAnimationCurves* self, MonoString* name, MonoObject* curve);
+		static void InternalRemovePositionCurve(ScriptAnimationCurves* self, MonoString* name);
+		static void InternalRemoveRotationCurve(ScriptAnimationCurves* self, MonoString* name);
+		static void InternalRemoveScaleCurve(ScriptAnimationCurves* self, MonoString* name);
+		static void InternalRemoveGenericCurve(ScriptAnimationCurves* self, MonoString* name);
+		static MonoArray* InternalGetPositionCurves(ScriptAnimationCurves* self);
+		static void InternalSetPositionCurves(ScriptAnimationCurves* self, MonoArray* value);
+		static MonoArray* InternalGetRotationCurves(ScriptAnimationCurves* self);
+		static void InternalSetRotationCurves(ScriptAnimationCurves* self, MonoArray* value);
+		static MonoArray* InternalGetScaleCurves(ScriptAnimationCurves* self);
+		static void InternalSetScaleCurves(ScriptAnimationCurves* self, MonoArray* value);
+		static MonoArray* InternalGetGenericCurves(ScriptAnimationCurves* self);
+		static void InternalSetGenericCurves(ScriptAnimationCurves* self, MonoArray* value);
 	};
 }

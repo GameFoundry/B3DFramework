@@ -22,14 +22,14 @@ namespace bs
 	private:
 		static void InternalAnimationSplitInfo(MonoObject* managedInstance);
 		static void InternalAnimationSplitInfo0(MonoObject* managedInstance, MonoString* name, uint32_t startFrame, uint32_t endFrame, bool isAdditive);
-		static MonoString* InternalGetName(ScriptAnimationSplitInfo* thisPtr);
-		static void InternalSetName(ScriptAnimationSplitInfo* thisPtr, MonoString* value);
-		static uint32_t InternalGetStartFrame(ScriptAnimationSplitInfo* thisPtr);
-		static void InternalSetStartFrame(ScriptAnimationSplitInfo* thisPtr, uint32_t value);
-		static uint32_t InternalGetEndFrame(ScriptAnimationSplitInfo* thisPtr);
-		static void InternalSetEndFrame(ScriptAnimationSplitInfo* thisPtr, uint32_t value);
-		static bool InternalGetIsAdditive(ScriptAnimationSplitInfo* thisPtr);
-		static void InternalSetIsAdditive(ScriptAnimationSplitInfo* thisPtr, bool value);
+		static MonoString* InternalGetName(ScriptAnimationSplitInfo* self);
+		static void InternalSetName(ScriptAnimationSplitInfo* self, MonoString* value);
+		static uint32_t InternalGetStartFrame(ScriptAnimationSplitInfo* self);
+		static void InternalSetStartFrame(ScriptAnimationSplitInfo* self, uint32_t value);
+		static uint32_t InternalGetEndFrame(ScriptAnimationSplitInfo* self);
+		static void InternalSetEndFrame(ScriptAnimationSplitInfo* self, uint32_t value);
+		static bool InternalGetIsAdditive(ScriptAnimationSplitInfo* self);
+		static void InternalSetIsAdditive(ScriptAnimationSplitInfo* self, bool value);
 	};
 #endif
 }

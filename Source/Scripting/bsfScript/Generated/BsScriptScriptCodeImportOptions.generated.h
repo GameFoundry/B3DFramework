@@ -21,8 +21,8 @@ namespace bs
 		static MonoObject* Create(const SPtr<ScriptCodeImportOptions>& value);
 
 	private:
-		static bool InternalGetEditorScript(ScriptScriptCodeImportOptions* thisPtr);
-		static void InternalSetEditorScript(ScriptScriptCodeImportOptions* thisPtr, bool value);
+		static bool InternalGetEditorScript(ScriptScriptCodeImportOptions* self);
+		static void InternalSetEditorScript(ScriptScriptCodeImportOptions* self, bool value);
 		static void InternalCreate(MonoObject* managedInstance);
 	};
 #endif

@@ -18,9 +18,9 @@ namespace bs
 		static MonoObject* CreateInstance();
 
 	private:
-		static MonoObject* InternalGetRef(ScriptFont* thisPtr);
+		static MonoObject* InternalGetRef(ScriptFont* self);
 
-		static MonoObject* InternalGetBitmap(ScriptFont* thisPtr, float size);
-		static float InternalGetClosestSize(ScriptFont* thisPtr, float size);
+		static MonoObject* InternalGetBitmap(ScriptFont* self, float size);
+		static float InternalGetClosestSize(ScriptFont* self, float size);
 	};
 }

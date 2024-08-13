@@ -27,13 +27,13 @@ namespace bs
 		typedef void(B3D_THUNKCALL *OnSelectionToggledThunkDef) (MonoObject*, uint32_t p0, bool p1, MonoException**);
 		static OnSelectionToggledThunkDef OnSelectionToggledThunk;
 
-		static bool InternalIsMultiselect(ScriptGUIListBox* thisPtr);
-		static void InternalSetElements(ScriptGUIListBox* thisPtr, MonoArray* elements);
-		static void InternalSelectElement(ScriptGUIListBox* thisPtr, uint32_t index);
-		static void InternalDeselectElement(ScriptGUIListBox* thisPtr, uint32_t index);
-		static uint32_t InternalGetSelectedElementIndex(ScriptGUIListBox* thisPtr);
-		static MonoArray* InternalGetElementStates(ScriptGUIListBox* thisPtr);
-		static void InternalSetElementStates(ScriptGUIListBox* thisPtr, MonoArray* states);
+		static bool InternalIsMultiselect(ScriptGUIListBox* self);
+		static void InternalSetElements(ScriptGUIListBox* self, MonoArray* elements);
+		static void InternalSelectElement(ScriptGUIListBox* self, uint32_t index);
+		static void InternalDeselectElement(ScriptGUIListBox* self, uint32_t index);
+		static uint32_t InternalGetSelectedElementIndex(ScriptGUIListBox* self);
+		static MonoArray* InternalGetElementStates(ScriptGUIListBox* self);
+		static void InternalSetElementStates(ScriptGUIListBox* self, MonoArray* states);
 		static void InternalCreate(MonoObject* managedInstance, __GUIListBoxContentInterop* contents, MonoString* styleClass, MonoArray* options);
 		static void InternalCreate0(MonoObject* managedInstance, __GUIListBoxContentInterop* contents, MonoArray* options);
 		static void InternalCreate1(MonoObject* managedInstance, MonoString* styleClass, MonoArray* options);

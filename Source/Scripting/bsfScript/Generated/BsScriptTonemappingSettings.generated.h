@@ -20,19 +20,19 @@ namespace bs
 
 	private:
 		static void InternalTonemappingSettings(MonoObject* managedInstance);
-		static float InternalGetFilmicCurveShoulderStrength(ScriptTonemappingSettings* thisPtr);
-		static void InternalSetFilmicCurveShoulderStrength(ScriptTonemappingSettings* thisPtr, float value);
-		static float InternalGetFilmicCurveLinearStrength(ScriptTonemappingSettings* thisPtr);
-		static void InternalSetFilmicCurveLinearStrength(ScriptTonemappingSettings* thisPtr, float value);
-		static float InternalGetFilmicCurveLinearAngle(ScriptTonemappingSettings* thisPtr);
-		static void InternalSetFilmicCurveLinearAngle(ScriptTonemappingSettings* thisPtr, float value);
-		static float InternalGetFilmicCurveToeStrength(ScriptTonemappingSettings* thisPtr);
-		static void InternalSetFilmicCurveToeStrength(ScriptTonemappingSettings* thisPtr, float value);
-		static float InternalGetFilmicCurveToeNumerator(ScriptTonemappingSettings* thisPtr);
-		static void InternalSetFilmicCurveToeNumerator(ScriptTonemappingSettings* thisPtr, float value);
-		static float InternalGetFilmicCurveToeDenominator(ScriptTonemappingSettings* thisPtr);
-		static void InternalSetFilmicCurveToeDenominator(ScriptTonemappingSettings* thisPtr, float value);
-		static float InternalGetFilmicCurveLinearWhitePoint(ScriptTonemappingSettings* thisPtr);
-		static void InternalSetFilmicCurveLinearWhitePoint(ScriptTonemappingSettings* thisPtr, float value);
+		static float InternalGetFilmicCurveShoulderStrength(ScriptTonemappingSettings* self);
+		static void InternalSetFilmicCurveShoulderStrength(ScriptTonemappingSettings* self, float value);
+		static float InternalGetFilmicCurveLinearStrength(ScriptTonemappingSettings* self);
+		static void InternalSetFilmicCurveLinearStrength(ScriptTonemappingSettings* self, float value);
+		static float InternalGetFilmicCurveLinearAngle(ScriptTonemappingSettings* self);
+		static void InternalSetFilmicCurveLinearAngle(ScriptTonemappingSettings* self, float value);
+		static float InternalGetFilmicCurveToeStrength(ScriptTonemappingSettings* self);
+		static void InternalSetFilmicCurveToeStrength(ScriptTonemappingSettings* self, float value);
+		static float InternalGetFilmicCurveToeNumerator(ScriptTonemappingSettings* self);
+		static void InternalSetFilmicCurveToeNumerator(ScriptTonemappingSettings* self, float value);
+		static float InternalGetFilmicCurveToeDenominator(ScriptTonemappingSettings* self);
+		static void InternalSetFilmicCurveToeDenominator(ScriptTonemappingSettings* self, float value);
+		static float InternalGetFilmicCurveLinearWhitePoint(ScriptTonemappingSettings* self);
+		static void InternalSetFilmicCurveLinearWhitePoint(ScriptTonemappingSettings* self, float value);
 	};
 }

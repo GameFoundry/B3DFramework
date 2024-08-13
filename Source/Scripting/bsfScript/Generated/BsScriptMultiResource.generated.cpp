@@ -37,8 +37,8 @@ namespace bs
 	}
 	void ScriptMultiResource::InternalMultiResource(MonoObject* managedInstance)
 	{
-		SPtr<MultiResource> instance = B3DMakeShared<MultiResource>();
-		new (B3DAllocate<ScriptMultiResource>())ScriptMultiResource(managedInstance, instance);
+		SPtr<MultiResource> nativeObject = B3DMakeShared<MultiResource>();
+		new (B3DAllocate<ScriptMultiResource>())ScriptMultiResource(managedInstance, nativeObject);
 	}
 
 	void ScriptMultiResource::InternalMultiResource0(MonoObject* managedInstance, MonoArray* entries)
@@ -53,14 +53,14 @@ namespace bs
 				nativeArrayentries[elementIndex] = ScriptSubResource::FromInterop(scriptArrayentries.Get<__SubResourceInterop>(elementIndex));
 			}
 		}
-		SPtr<MultiResource> instance = B3DMakeShared<MultiResource>(nativeArrayentries);
-		new (B3DAllocate<ScriptMultiResource>())ScriptMultiResource(managedInstance, instance);
+		SPtr<MultiResource> nativeObject = B3DMakeShared<MultiResource>(nativeArrayentries);
+		new (B3DAllocate<ScriptMultiResource>())ScriptMultiResource(managedInstance, nativeObject);
 	}
 
-	MonoArray* ScriptMultiResource::InternalGetEntries(ScriptMultiResource* thisPtr)
+	MonoArray* ScriptMultiResource::InternalGetEntries(ScriptMultiResource* self)
 	{
 		Vector<SubResource> nativeArray__output;
-		nativeArray__output = thisPtr->GetInternal()->Entries;
+		nativeArray__output = self->GetInternal()->Entries;
 
 		MonoArray* __output;
 		int elementCount__output = (int)nativeArray__output.size();
@@ -74,7 +74,7 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptMultiResource::InternalSetEntries(ScriptMultiResource* thisPtr, MonoArray* value)
+	void ScriptMultiResource::InternalSetEntries(ScriptMultiResource* self, MonoArray* value)
 	{
 		Vector<SubResource> nativeArrayvalue;
 		if(value != nullptr)
@@ -87,7 +87,7 @@ namespace bs
 			}
 
 		}
-		thisPtr->GetInternal()->Entries = nativeArrayvalue;
+		self->GetInternal()->Entries = nativeArrayvalue;
 	}
 #endif
 }

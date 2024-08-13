@@ -35,19 +35,19 @@ namespace bs
 
 		return metaData.ScriptClass->CreateInstance("bool", ctorParams);
 	}
-	MonoObject* ScriptSpriteVectorPath::InternalGetRef(ScriptSpriteVectorPath* thisPtr)
+	MonoObject* ScriptSpriteVectorPath::InternalGetRef(ScriptSpriteVectorPath* self)
 	{
-		return thisPtr->GetRRef();
+		return self->GetRRef();
 	}
 
-	void ScriptSpriteVectorPath::InternalSetVectorPath(ScriptSpriteVectorPath* thisPtr, MonoObject* vectorPath)
+	void ScriptSpriteVectorPath::InternalSetVectorPath(ScriptSpriteVectorPath* self, MonoObject* vectorPath)
 	{
 		TResourceHandle<VectorPath> tmpvectorPath;
 		ScriptRRefBase* scriptObjectWrappervectorPath;
 		scriptObjectWrappervectorPath = ScriptRRefBase::ToNative(vectorPath);
 		if(scriptObjectWrappervectorPath != nullptr)
 			tmpvectorPath = B3DStaticResourceCast<VectorPath>(scriptObjectWrappervectorPath->GetHandle());
-		thisPtr->GetHandle()->SetVectorPath(tmpvectorPath);
+		self->GetHandle()->SetVectorPath(tmpvectorPath);
 	}
 
 	void ScriptSpriteVectorPath::InternalCreate(MonoObject* managedInstance, MonoObject* vectorPath, TSize2<uint32_t>* size)
@@ -57,15 +57,15 @@ namespace bs
 		scriptObjectWrappervectorPath = ScriptRRefBase::ToNative(vectorPath);
 		if(scriptObjectWrappervectorPath != nullptr)
 			tmpvectorPath = B3DStaticResourceCast<VectorPath>(scriptObjectWrappervectorPath->GetHandle());
-		TResourceHandle<SpriteVectorPath> instance = SpriteVectorPath::Create(tmpvectorPath, *size);
-		ScriptResourceManager::Instance().CreateBuiltinScriptResource(instance, managedInstance);
+		TResourceHandle<SpriteVectorPath> nativeObject = SpriteVectorPath::Create(tmpvectorPath, *size);
+		ScriptResourceManager::Instance().CreateBuiltinScriptResource(nativeObject, managedInstance);
 	}
 
 	void ScriptSpriteVectorPath::InternalCreate0(MonoObject* managedInstance, __SpriteVectorPathCreateInformationInterop* createInformation)
 	{
 		SpriteVectorPathCreateInformation tmpcreateInformation;
 		tmpcreateInformation = ScriptSpriteVectorPathCreateInformation::FromInterop(*createInformation);
-		TResourceHandle<SpriteVectorPath> instance = SpriteVectorPath::Create(tmpcreateInformation);
-		ScriptResourceManager::Instance().CreateBuiltinScriptResource(instance, managedInstance);
+		TResourceHandle<SpriteVectorPath> nativeObject = SpriteVectorPath::Create(tmpcreateInformation);
+		ScriptResourceManager::Instance().CreateBuiltinScriptResource(nativeObject, managedInstance);
 	}
 }

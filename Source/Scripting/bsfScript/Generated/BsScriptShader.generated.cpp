@@ -31,15 +31,15 @@ namespace bs
 
 		return metaData.ScriptClass->CreateInstance("bool", ctorParams);
 	}
-	MonoObject* ScriptShader::InternalGetRef(ScriptShader* thisPtr)
+	MonoObject* ScriptShader::InternalGetRef(ScriptShader* self)
 	{
-		return thisPtr->GetRRef();
+		return self->GetRRef();
 	}
 
-	MonoArray* ScriptShader::InternalGetVariationParams(ScriptShader* thisPtr)
+	MonoArray* ScriptShader::InternalGetVariationParams(ScriptShader* self)
 	{
 		Vector<ShaderVariationParameterInformation> nativeArray__output;
-		nativeArray__output = thisPtr->GetHandle()->GetVariationParams();
+		nativeArray__output = self->GetHandle()->GetVariationParams();
 
 		MonoArray* __output;
 		int elementCount__output = (int)nativeArray__output.size();
@@ -53,10 +53,10 @@ namespace bs
 		return __output;
 	}
 
-	MonoArray* ScriptShader::InternalGetParameters(ScriptShader* thisPtr)
+	MonoArray* ScriptShader::InternalGetParameters(ScriptShader* self)
 	{
 		Vector<ShaderParameter> nativeArray__output;
-		nativeArray__output = ShaderEx::GetParameters(thisPtr->GetHandle());
+		nativeArray__output = ShaderEx::GetParameters(self->GetHandle());
 
 		MonoArray* __output;
 		int elementCount__output = (int)nativeArray__output.size();

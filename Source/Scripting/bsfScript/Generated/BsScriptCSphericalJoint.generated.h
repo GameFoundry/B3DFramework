@@ -20,9 +20,9 @@ namespace bs
 		ScriptSphericalJoint(MonoObject* managedInstance, const GameObjectHandle<CSphericalJoint>& value);
 
 	private:
-		static void InternalGetLimit(ScriptSphericalJoint* thisPtr, __LimitConeRangeInterop* __output);
-		static void InternalSetLimit(ScriptSphericalJoint* thisPtr, __LimitConeRangeInterop* limit);
-		static void InternalSetFlag(ScriptSphericalJoint* thisPtr, SphericalJointFlag flag, bool enabled);
-		static bool InternalHasFlag(ScriptSphericalJoint* thisPtr, SphericalJointFlag flag);
+		static void InternalGetLimit(ScriptSphericalJoint* self, __LimitConeRangeInterop* __output);
+		static void InternalSetLimit(ScriptSphericalJoint* self, __LimitConeRangeInterop* limit);
+		static void InternalSetFlag(ScriptSphericalJoint* self, SphericalJointFlag flag, bool enabled);
+		static bool InternalHasFlag(ScriptSphericalJoint* self, SphericalJointFlag flag);
 	};
 }

@@ -23,19 +23,19 @@ namespace bs
 		static MonoObject* Create(const SPtr<Viewport>& value);
 
 	private:
-		static void InternalSetTarget(ScriptViewport* thisPtr, MonoObject* target);
-		static MonoObject* InternalGetTarget(ScriptViewport* thisPtr);
-		static void InternalSetArea(ScriptViewport* thisPtr, Rect2* area);
-		static void InternalGetArea(ScriptViewport* thisPtr, Rect2* __output);
-		static void InternalGetPixelArea(ScriptViewport* thisPtr, Rect2I* __output);
-		static void InternalSetClearFlags(ScriptViewport* thisPtr, ClearFlagBits flags);
-		static ClearFlagBits InternalGetClearFlags(ScriptViewport* thisPtr);
-		static void InternalSetClearColorValue(ScriptViewport* thisPtr, Color* color);
-		static void InternalGetClearColorValue(ScriptViewport* thisPtr, Color* __output);
-		static void InternalSetClearDepthValue(ScriptViewport* thisPtr, float depth);
-		static float InternalGetClearDepthValue(ScriptViewport* thisPtr);
-		static void InternalSetClearStencilValue(ScriptViewport* thisPtr, uint16_t value);
-		static uint16_t InternalGetClearStencilValue(ScriptViewport* thisPtr);
+		static void InternalSetTarget(ScriptViewport* self, MonoObject* target);
+		static MonoObject* InternalGetTarget(ScriptViewport* self);
+		static void InternalSetArea(ScriptViewport* self, Rect2* area);
+		static void InternalGetArea(ScriptViewport* self, Rect2* __output);
+		static void InternalGetPixelArea(ScriptViewport* self, Rect2I* __output);
+		static void InternalSetClearFlags(ScriptViewport* self, ClearFlagBits flags);
+		static ClearFlagBits InternalGetClearFlags(ScriptViewport* self);
+		static void InternalSetClearColorValue(ScriptViewport* self, Color* color);
+		static void InternalGetClearColorValue(ScriptViewport* self, Color* __output);
+		static void InternalSetClearDepthValue(ScriptViewport* self, float depth);
+		static float InternalGetClearDepthValue(ScriptViewport* self);
+		static void InternalSetClearStencilValue(ScriptViewport* self, uint16_t value);
+		static uint16_t InternalGetClearStencilValue(ScriptViewport* self);
 		static void InternalCreate(MonoObject* managedInstance, MonoObject* target, float x, float y, float width, float height);
 	};
 }

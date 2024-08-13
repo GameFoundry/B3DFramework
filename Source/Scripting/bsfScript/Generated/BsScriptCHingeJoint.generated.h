@@ -22,13 +22,13 @@ namespace bs
 		ScriptHingeJoint(MonoObject* managedInstance, const GameObjectHandle<CHingeJoint>& value);
 
 	private:
-		static void InternalGetAngle(ScriptHingeJoint* thisPtr, TRadian<float>* __output);
-		static float InternalGetSpeed(ScriptHingeJoint* thisPtr);
-		static void InternalGetLimit(ScriptHingeJoint* thisPtr, __LimitAngularRangeInterop* __output);
-		static void InternalSetLimit(ScriptHingeJoint* thisPtr, __LimitAngularRangeInterop* limit);
-		static void InternalGetDrive(ScriptHingeJoint* thisPtr, HingeJointDrive* __output);
-		static void InternalSetDrive(ScriptHingeJoint* thisPtr, HingeJointDrive* drive);
-		static void InternalSetFlag(ScriptHingeJoint* thisPtr, HingeJointFlag flag, bool enabled);
-		static bool InternalHasFlag(ScriptHingeJoint* thisPtr, HingeJointFlag flag);
+		static void InternalGetAngle(ScriptHingeJoint* self, TRadian<float>* __output);
+		static float InternalGetSpeed(ScriptHingeJoint* self);
+		static void InternalGetLimit(ScriptHingeJoint* self, __LimitAngularRangeInterop* __output);
+		static void InternalSetLimit(ScriptHingeJoint* self, __LimitAngularRangeInterop* limit);
+		static void InternalGetDrive(ScriptHingeJoint* self, HingeJointDrive* __output);
+		static void InternalSetDrive(ScriptHingeJoint* self, HingeJointDrive* drive);
+		static void InternalSetFlag(ScriptHingeJoint* self, HingeJointFlag flag, bool enabled);
+		static bool InternalHasFlag(ScriptHingeJoint* self, HingeJointFlag flag);
 	};
 }

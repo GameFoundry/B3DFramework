@@ -47,15 +47,15 @@ namespace bs
 
 		return metaData.ScriptClass->CreateInstance("bool", ctorParams);
 	}
-	MonoObject* ScriptTexture::InternalGetRef(ScriptTexture* thisPtr)
+	MonoObject* ScriptTexture::InternalGetRef(ScriptTexture* self)
 	{
-		return thisPtr->GetRRef();
+		return self->GetRRef();
 	}
 
-	MonoObject* ScriptTexture::InternalReadData(ScriptTexture* thisPtr, uint32_t face, uint32_t mipLevel)
+	MonoObject* ScriptTexture::InternalReadData(ScriptTexture* self, uint32_t face, uint32_t mipLevel)
 	{
 		TAsyncOp<SPtr<PixelData>> tmp__output;
-		tmp__output = thisPtr->GetHandle()->ReadData(face, mipLevel);
+		tmp__output = self->GetHandle()->ReadData(face, mipLevel);
 
 		MonoObject* __output;
 		auto fnConvertCallback = [](const Any& returnValue)
@@ -73,14 +73,14 @@ namespace bs
 
 	void ScriptTexture::InternalCreate(MonoObject* managedInstance, PixelFormat format, uint32_t width, uint32_t height, uint32_t depth, TextureType texType, TextureUsage usage, uint32_t numSamples, bool hasMipmaps, bool gammaCorrection)
 	{
-		TResourceHandle<Texture> instance = TextureEx::Create(format, width, height, depth, texType, usage, numSamples, hasMipmaps, gammaCorrection);
-		ScriptResourceManager::Instance().CreateBuiltinScriptResource(instance, managedInstance);
+		TResourceHandle<Texture> nativeObject = TextureEx::Create(format, width, height, depth, texType, usage, numSamples, hasMipmaps, gammaCorrection);
+		ScriptResourceManager::Instance().CreateBuiltinScriptResource(nativeObject, managedInstance);
 	}
 
-	PixelFormat ScriptTexture::InternalGetPixelFormat(ScriptTexture* thisPtr)
+	PixelFormat ScriptTexture::InternalGetPixelFormat(ScriptTexture* self)
 	{
 		PixelFormat tmp__output;
-		tmp__output = TextureEx::GetPixelFormat(thisPtr->GetHandle());
+		tmp__output = TextureEx::GetPixelFormat(self->GetHandle());
 
 		PixelFormat __output;
 		__output = tmp__output;
@@ -88,10 +88,10 @@ namespace bs
 		return __output;
 	}
 
-	TextureUsage ScriptTexture::InternalGetUsage(ScriptTexture* thisPtr)
+	TextureUsage ScriptTexture::InternalGetUsage(ScriptTexture* self)
 	{
 		TextureUsage tmp__output;
-		tmp__output = TextureEx::GetUsage(thisPtr->GetHandle());
+		tmp__output = TextureEx::GetUsage(self->GetHandle());
 
 		TextureUsage __output;
 		__output = tmp__output;
@@ -99,10 +99,10 @@ namespace bs
 		return __output;
 	}
 
-	TextureType ScriptTexture::InternalGetType(ScriptTexture* thisPtr)
+	TextureType ScriptTexture::InternalGetType(ScriptTexture* self)
 	{
 		TextureType tmp__output;
-		tmp__output = TextureEx::GetType(thisPtr->GetHandle());
+		tmp__output = TextureEx::GetType(self->GetHandle());
 
 		TextureType __output;
 		__output = tmp__output;
@@ -110,10 +110,10 @@ namespace bs
 		return __output;
 	}
 
-	uint32_t ScriptTexture::InternalGetWidth(ScriptTexture* thisPtr)
+	uint32_t ScriptTexture::InternalGetWidth(ScriptTexture* self)
 	{
 		uint32_t tmp__output;
-		tmp__output = TextureEx::GetWidth(thisPtr->GetHandle());
+		tmp__output = TextureEx::GetWidth(self->GetHandle());
 
 		uint32_t __output;
 		__output = tmp__output;
@@ -121,10 +121,10 @@ namespace bs
 		return __output;
 	}
 
-	uint32_t ScriptTexture::InternalGetHeight(ScriptTexture* thisPtr)
+	uint32_t ScriptTexture::InternalGetHeight(ScriptTexture* self)
 	{
 		uint32_t tmp__output;
-		tmp__output = TextureEx::GetHeight(thisPtr->GetHandle());
+		tmp__output = TextureEx::GetHeight(self->GetHandle());
 
 		uint32_t __output;
 		__output = tmp__output;
@@ -132,10 +132,10 @@ namespace bs
 		return __output;
 	}
 
-	uint32_t ScriptTexture::InternalGetDepth(ScriptTexture* thisPtr)
+	uint32_t ScriptTexture::InternalGetDepth(ScriptTexture* self)
 	{
 		uint32_t tmp__output;
-		tmp__output = TextureEx::GetDepth(thisPtr->GetHandle());
+		tmp__output = TextureEx::GetDepth(self->GetHandle());
 
 		uint32_t __output;
 		__output = tmp__output;
@@ -143,10 +143,10 @@ namespace bs
 		return __output;
 	}
 
-	bool ScriptTexture::InternalGetGammaCorrection(ScriptTexture* thisPtr)
+	bool ScriptTexture::InternalGetGammaCorrection(ScriptTexture* self)
 	{
 		bool tmp__output;
-		tmp__output = TextureEx::GetGammaCorrection(thisPtr->GetHandle());
+		tmp__output = TextureEx::GetGammaCorrection(self->GetHandle());
 
 		bool __output;
 		__output = tmp__output;
@@ -154,10 +154,10 @@ namespace bs
 		return __output;
 	}
 
-	uint32_t ScriptTexture::InternalGetSampleCount(ScriptTexture* thisPtr)
+	uint32_t ScriptTexture::InternalGetSampleCount(ScriptTexture* self)
 	{
 		uint32_t tmp__output;
-		tmp__output = TextureEx::GetSampleCount(thisPtr->GetHandle());
+		tmp__output = TextureEx::GetSampleCount(self->GetHandle());
 
 		uint32_t __output;
 		__output = tmp__output;
@@ -165,10 +165,10 @@ namespace bs
 		return __output;
 	}
 
-	uint32_t ScriptTexture::InternalGetMipmapCount(ScriptTexture* thisPtr)
+	uint32_t ScriptTexture::InternalGetMipmapCount(ScriptTexture* self)
 	{
 		uint32_t tmp__output;
-		tmp__output = TextureEx::GetMipmapCount(thisPtr->GetHandle());
+		tmp__output = TextureEx::GetMipmapCount(self->GetHandle());
 
 		uint32_t __output;
 		__output = tmp__output;
@@ -176,10 +176,10 @@ namespace bs
 		return __output;
 	}
 
-	MonoObject* ScriptTexture::InternalGetPixels(ScriptTexture* thisPtr, uint32_t face, uint32_t mipLevel)
+	MonoObject* ScriptTexture::InternalGetPixels(ScriptTexture* self, uint32_t face, uint32_t mipLevel)
 	{
 		SPtr<PixelData> tmp__output;
-		tmp__output = TextureEx::GetPixels(thisPtr->GetHandle(), face, mipLevel);
+		tmp__output = TextureEx::GetPixels(self->GetHandle(), face, mipLevel);
 
 		MonoObject* __output;
 		__output = ScriptPixelData::Create(tmp__output);
@@ -187,17 +187,17 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptTexture::InternalSetPixels(ScriptTexture* thisPtr, MonoObject* data, uint32_t face, uint32_t mipLevel)
+	void ScriptTexture::InternalSetPixels(ScriptTexture* self, MonoObject* data, uint32_t face, uint32_t mipLevel)
 	{
 		SPtr<PixelData> tmpdata;
 		ScriptPixelData* scriptObjectWrapperdata;
 		scriptObjectWrapperdata = ScriptPixelData::ToNative(data);
 		if(scriptObjectWrapperdata != nullptr)
 			tmpdata = scriptObjectWrapperdata->GetInternal();
-		TextureEx::SetPixels(thisPtr->GetHandle(), tmpdata, face, mipLevel);
+		TextureEx::SetPixels(self->GetHandle(), tmpdata, face, mipLevel);
 	}
 
-	void ScriptTexture::InternalSetPixelsArray(ScriptTexture* thisPtr, MonoArray* colors, uint32_t face, uint32_t mipLevel)
+	void ScriptTexture::InternalSetPixelsArray(ScriptTexture* self, MonoArray* colors, uint32_t face, uint32_t mipLevel)
 	{
 		Vector<Color> nativeArraycolors;
 		if(colors != nullptr)
@@ -210,6 +210,6 @@ namespace bs
 			}
 
 		}
-		TextureEx::SetPixelsArray(thisPtr->GetHandle(), nativeArraycolors, face, mipLevel);
+		TextureEx::SetPixelsArray(self->GetHandle(), nativeArraycolors, face, mipLevel);
 	}
 }

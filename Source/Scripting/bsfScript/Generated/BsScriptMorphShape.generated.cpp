@@ -30,10 +30,10 @@ namespace bs
 		new (B3DAllocate<ScriptMorphShape>()) ScriptMorphShape(managedInstance, value);
 		return managedInstance;
 	}
-	MonoString* ScriptMorphShape::InternalGetName(ScriptMorphShape* thisPtr)
+	MonoString* ScriptMorphShape::InternalGetName(ScriptMorphShape* self)
 	{
 		String tmp__output;
-		tmp__output = thisPtr->GetInternal()->GetName();
+		tmp__output = self->GetInternal()->GetName();
 
 		MonoString* __output;
 		__output = MonoUtil::StringToMono(tmp__output);
@@ -41,10 +41,10 @@ namespace bs
 		return __output;
 	}
 
-	float ScriptMorphShape::InternalGetWeight(ScriptMorphShape* thisPtr)
+	float ScriptMorphShape::InternalGetWeight(ScriptMorphShape* self)
 	{
 		float tmp__output;
-		tmp__output = thisPtr->GetInternal()->GetWeight();
+		tmp__output = self->GetInternal()->GetWeight();
 
 		float __output;
 		__output = tmp__output;

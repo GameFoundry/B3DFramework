@@ -20,11 +20,11 @@ namespace bs
 
 	private:
 		static void InternalTemporalAASettings(MonoObject* managedInstance);
-		static bool InternalGetEnabled(ScriptTemporalAASettings* thisPtr);
-		static void InternalSetEnabled(ScriptTemporalAASettings* thisPtr, bool value);
-		static uint32_t InternalGetJitteredPositionCount(ScriptTemporalAASettings* thisPtr);
-		static void InternalSetJitteredPositionCount(ScriptTemporalAASettings* thisPtr, uint32_t value);
-		static float InternalGetSharpness(ScriptTemporalAASettings* thisPtr);
-		static void InternalSetSharpness(ScriptTemporalAASettings* thisPtr, float value);
+		static bool InternalGetEnabled(ScriptTemporalAASettings* self);
+		static void InternalSetEnabled(ScriptTemporalAASettings* self, bool value);
+		static uint32_t InternalGetJitteredPositionCount(ScriptTemporalAASettings* self);
+		static void InternalSetJitteredPositionCount(ScriptTemporalAASettings* self, uint32_t value);
+		static float InternalGetSharpness(ScriptTemporalAASettings* self);
+		static void InternalSetSharpness(ScriptTemporalAASettings* self, float value);
 	};
 }

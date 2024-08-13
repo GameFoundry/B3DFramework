@@ -36,20 +36,20 @@ namespace bs
 
 	}
 
-	void ScriptRenderable::InternalSetMesh(ScriptRenderable* thisPtr, MonoObject* mesh)
+	void ScriptRenderable::InternalSetMesh(ScriptRenderable* self, MonoObject* mesh)
 	{
 		TResourceHandle<Mesh> tmpmesh;
 		ScriptRRefBase* scriptObjectWrappermesh;
 		scriptObjectWrappermesh = ScriptRRefBase::ToNative(mesh);
 		if(scriptObjectWrappermesh != nullptr)
 			tmpmesh = B3DStaticResourceCast<Mesh>(scriptObjectWrappermesh->GetHandle());
-		thisPtr->GetHandle()->SetMesh(tmpmesh);
+		self->GetHandle()->SetMesh(tmpmesh);
 	}
 
-	MonoObject* ScriptRenderable::InternalGetMesh(ScriptRenderable* thisPtr)
+	MonoObject* ScriptRenderable::InternalGetMesh(ScriptRenderable* self)
 	{
 		TResourceHandle<Mesh> tmp__output;
-		tmp__output = thisPtr->GetHandle()->GetMesh();
+		tmp__output = self->GetHandle()->GetMesh();
 
 		MonoObject* __output;
 		ScriptRRefBase* script__output;
@@ -62,30 +62,30 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptRenderable::InternalSetMaterial(ScriptRenderable* thisPtr, uint32_t idx, MonoObject* material)
+	void ScriptRenderable::InternalSetMaterial(ScriptRenderable* self, uint32_t idx, MonoObject* material)
 	{
 		TResourceHandle<Material> tmpmaterial;
 		ScriptRRefBase* scriptObjectWrappermaterial;
 		scriptObjectWrappermaterial = ScriptRRefBase::ToNative(material);
 		if(scriptObjectWrappermaterial != nullptr)
 			tmpmaterial = B3DStaticResourceCast<Material>(scriptObjectWrappermaterial->GetHandle());
-		thisPtr->GetHandle()->SetMaterial(idx, tmpmaterial);
+		self->GetHandle()->SetMaterial(idx, tmpmaterial);
 	}
 
-	void ScriptRenderable::InternalSetMaterial0(ScriptRenderable* thisPtr, MonoObject* material)
+	void ScriptRenderable::InternalSetMaterial0(ScriptRenderable* self, MonoObject* material)
 	{
 		TResourceHandle<Material> tmpmaterial;
 		ScriptRRefBase* scriptObjectWrappermaterial;
 		scriptObjectWrappermaterial = ScriptRRefBase::ToNative(material);
 		if(scriptObjectWrappermaterial != nullptr)
 			tmpmaterial = B3DStaticResourceCast<Material>(scriptObjectWrappermaterial->GetHandle());
-		thisPtr->GetHandle()->SetMaterial(tmpmaterial);
+		self->GetHandle()->SetMaterial(tmpmaterial);
 	}
 
-	MonoObject* ScriptRenderable::InternalGetMaterial(ScriptRenderable* thisPtr, uint32_t idx)
+	MonoObject* ScriptRenderable::InternalGetMaterial(ScriptRenderable* self, uint32_t idx)
 	{
 		TResourceHandle<Material> tmp__output;
-		tmp__output = thisPtr->GetHandle()->GetMaterial(idx);
+		tmp__output = self->GetHandle()->GetMaterial(idx);
 
 		MonoObject* __output;
 		ScriptRRefBase* script__output;
@@ -98,7 +98,7 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptRenderable::InternalSetMaterials(ScriptRenderable* thisPtr, MonoArray* materials)
+	void ScriptRenderable::InternalSetMaterials(ScriptRenderable* self, MonoArray* materials)
 	{
 		Vector<TResourceHandle<Material>> nativeArraymaterials;
 		if(materials != nullptr)
@@ -116,13 +116,13 @@ namespace bs
 				}
 			}
 		}
-		thisPtr->GetHandle()->SetMaterials(nativeArraymaterials);
+		self->GetHandle()->SetMaterials(nativeArraymaterials);
 	}
 
-	MonoArray* ScriptRenderable::InternalGetMaterials(ScriptRenderable* thisPtr)
+	MonoArray* ScriptRenderable::InternalGetMaterials(ScriptRenderable* self)
 	{
 		Vector<TResourceHandle<Material>> nativeArray__output;
-		nativeArray__output = thisPtr->GetHandle()->GetMaterials();
+		nativeArray__output = self->GetHandle()->GetMaterials();
 
 		MonoArray* __output;
 		int elementCount__output = (int)nativeArray__output.size();
@@ -141,15 +141,15 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptRenderable::InternalSetCullDistanceFactor(ScriptRenderable* thisPtr, float factor)
+	void ScriptRenderable::InternalSetCullDistanceFactor(ScriptRenderable* self, float factor)
 	{
-		thisPtr->GetHandle()->SetCullDistanceFactor(factor);
+		self->GetHandle()->SetCullDistanceFactor(factor);
 	}
 
-	float ScriptRenderable::InternalGetCullDistanceFactor(ScriptRenderable* thisPtr)
+	float ScriptRenderable::InternalGetCullDistanceFactor(ScriptRenderable* self)
 	{
 		float tmp__output;
-		tmp__output = thisPtr->GetHandle()->GetCullDistanceFactor();
+		tmp__output = self->GetHandle()->GetCullDistanceFactor();
 
 		float __output;
 		__output = tmp__output;
@@ -157,15 +157,15 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptRenderable::InternalSetWriteVelocity(ScriptRenderable* thisPtr, bool enable)
+	void ScriptRenderable::InternalSetWriteVelocity(ScriptRenderable* self, bool enable)
 	{
-		thisPtr->GetHandle()->SetWriteVelocity(enable);
+		self->GetHandle()->SetWriteVelocity(enable);
 	}
 
-	bool ScriptRenderable::InternalGetWriteVelocity(ScriptRenderable* thisPtr)
+	bool ScriptRenderable::InternalGetWriteVelocity(ScriptRenderable* self)
 	{
 		bool tmp__output;
-		tmp__output = thisPtr->GetHandle()->GetWriteVelocity();
+		tmp__output = self->GetHandle()->GetWriteVelocity();
 
 		bool __output;
 		__output = tmp__output;
@@ -173,15 +173,15 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptRenderable::InternalSetLayer(ScriptRenderable* thisPtr, uint64_t layer)
+	void ScriptRenderable::InternalSetLayer(ScriptRenderable* self, uint64_t layer)
 	{
-		thisPtr->GetHandle()->SetLayer(layer);
+		self->GetHandle()->SetLayer(layer);
 	}
 
-	uint64_t ScriptRenderable::InternalGetLayer(ScriptRenderable* thisPtr)
+	uint64_t ScriptRenderable::InternalGetLayer(ScriptRenderable* self)
 	{
 		uint64_t tmp__output;
-		tmp__output = thisPtr->GetHandle()->GetLayer();
+		tmp__output = self->GetHandle()->GetLayer();
 
 		uint64_t __output;
 		__output = tmp__output;
@@ -189,10 +189,10 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptRenderable::InternalGetBounds(ScriptRenderable* thisPtr, Bounds* __output)
+	void ScriptRenderable::InternalGetBounds(ScriptRenderable* self, Bounds* __output)
 	{
 		Bounds tmp__output;
-		tmp__output = thisPtr->GetHandle()->GetBounds();
+		tmp__output = self->GetHandle()->GetBounds();
 
 		*__output = tmp__output;
 	}

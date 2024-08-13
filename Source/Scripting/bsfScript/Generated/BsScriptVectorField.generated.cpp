@@ -32,9 +32,9 @@ namespace bs
 
 		return metaData.ScriptClass->CreateInstance("bool", ctorParams);
 	}
-	MonoObject* ScriptVectorField::InternalGetRef(ScriptVectorField* thisPtr)
+	MonoObject* ScriptVectorField::InternalGetRef(ScriptVectorField* self)
 	{
-		return thisPtr->GetRRef();
+		return self->GetRRef();
 	}
 
 	void ScriptVectorField::InternalCreate(MonoObject* managedInstance, __VECTOR_FIELD_DESCInterop* desc, MonoArray* values)
@@ -51,7 +51,7 @@ namespace bs
 				nativeArrayvalues[elementIndex] = scriptArrayvalues.Get<TVector3<float>>(elementIndex);
 			}
 		}
-		TResourceHandle<VectorField> instance = VectorField::Create(tmpdesc, nativeArrayvalues);
-		ScriptResourceManager::Instance().CreateBuiltinScriptResource(instance, managedInstance);
+		TResourceHandle<VectorField> nativeObject = VectorField::Create(tmpdesc, nativeArrayvalues);
+		ScriptResourceManager::Instance().CreateBuiltinScriptResource(nativeObject, managedInstance);
 	}
 }

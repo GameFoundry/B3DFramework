@@ -61,10 +61,10 @@ namespace bs
 		OnDoubleClickThunk = (OnDoubleClickThunkDef)metaData.ScriptClass->GetMethodExact("Internal_OnDoubleClick", "")->GetThunk();
 	}
 
-	void ScriptGUIClickable::InternalSetContent(ScriptGUIElementBase* thisPtr, __GUIContentInterop* content)
+	void ScriptGUIClickable::InternalSetContent(ScriptGUIElementBase* self, __GUIContentInterop* content)
 	{
 		GUIContent tmpcontent;
 		tmpcontent = ScriptGUIContent::FromInterop(*content);
-		static_cast<GUIClickable*>(thisPtr->GetGuiElement())->SetContent(tmpcontent);
+		static_cast<GUIClickable*>(self->GetGuiElement())->SetContent(tmpcontent);
 	}
 }

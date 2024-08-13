@@ -39,15 +39,15 @@ namespace bs
 		OnScrollOrResizeThunk = (OnScrollOrResizeThunkDef)metaData.ScriptClass->GetMethodExact("Internal_OnScrollOrResize", "single,single")->GetThunk();
 	}
 
-	void ScriptGUIScrollBar::InternalSetScrollHandlePosition(ScriptGUIElementBase* thisPtr, float pct)
+	void ScriptGUIScrollBar::InternalSetScrollHandlePosition(ScriptGUIElementBase* self, float pct)
 	{
-		static_cast<GUIScrollBar*>(thisPtr->GetGuiElement())->SetScrollHandlePosition(pct);
+		static_cast<GUIScrollBar*>(self->GetGuiElement())->SetScrollHandlePosition(pct);
 	}
 
-	float ScriptGUIScrollBar::InternalGetScrollHandlePosition(ScriptGUIElementBase* thisPtr)
+	float ScriptGUIScrollBar::InternalGetScrollHandlePosition(ScriptGUIElementBase* self)
 	{
 		float tmp__output;
-		tmp__output = static_cast<GUIScrollBar*>(thisPtr->GetGuiElement())->GetScrollHandlePosition();
+		tmp__output = static_cast<GUIScrollBar*>(self->GetGuiElement())->GetScrollHandlePosition();
 
 		float __output;
 		__output = tmp__output;
@@ -55,15 +55,15 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptGUIScrollBar::InternalSetScrollHandleSize(ScriptGUIElementBase* thisPtr, float pct)
+	void ScriptGUIScrollBar::InternalSetScrollHandleSize(ScriptGUIElementBase* self, float pct)
 	{
-		static_cast<GUIScrollBar*>(thisPtr->GetGuiElement())->SetScrollHandleSize(pct);
+		static_cast<GUIScrollBar*>(self->GetGuiElement())->SetScrollHandleSize(pct);
 	}
 
-	float ScriptGUIScrollBar::InternalGetScrollHandleSize(ScriptGUIElementBase* thisPtr)
+	float ScriptGUIScrollBar::InternalGetScrollHandleSize(ScriptGUIElementBase* self)
 	{
 		float tmp__output;
-		tmp__output = static_cast<GUIScrollBar*>(thisPtr->GetGuiElement())->GetScrollHandleSize();
+		tmp__output = static_cast<GUIScrollBar*>(self->GetGuiElement())->GetScrollHandleSize();
 
 		float __output;
 		__output = tmp__output;

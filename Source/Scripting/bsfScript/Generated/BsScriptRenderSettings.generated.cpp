@@ -99,14 +99,14 @@ namespace bs
 	}
 	void ScriptRenderSettings::InternalRenderSettings(MonoObject* managedInstance)
 	{
-		SPtr<RenderSettings> instance = B3DMakeShared<RenderSettings>();
-		new (B3DAllocate<ScriptRenderSettings>())ScriptRenderSettings(managedInstance, instance);
+		SPtr<RenderSettings> nativeObject = B3DMakeShared<RenderSettings>();
+		new (B3DAllocate<ScriptRenderSettings>())ScriptRenderSettings(managedInstance, nativeObject);
 	}
 
-	MonoObject* ScriptRenderSettings::InternalGetDepthOfField(ScriptRenderSettings* thisPtr)
+	MonoObject* ScriptRenderSettings::InternalGetDepthOfField(ScriptRenderSettings* self)
 	{
 		SPtr<DepthOfFieldSettings> tmp__output = B3DMakeShared<DepthOfFieldSettings>();
-		*tmp__output = thisPtr->GetInternal()->DepthOfField;
+		*tmp__output = self->GetInternal()->DepthOfField;
 
 		MonoObject* __output;
 		__output = ScriptDepthOfFieldSettings::Create(tmp__output);
@@ -114,20 +114,20 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptRenderSettings::InternalSetDepthOfField(ScriptRenderSettings* thisPtr, MonoObject* value)
+	void ScriptRenderSettings::InternalSetDepthOfField(ScriptRenderSettings* self, MonoObject* value)
 	{
 		SPtr<DepthOfFieldSettings> tmpvalue;
 		ScriptDepthOfFieldSettings* scriptObjectWrappervalue;
 		scriptObjectWrappervalue = ScriptDepthOfFieldSettings::ToNative(value);
 		if(scriptObjectWrappervalue != nullptr)
 			tmpvalue = scriptObjectWrappervalue->GetInternal();
-		thisPtr->GetInternal()->DepthOfField = *tmpvalue;
+		self->GetInternal()->DepthOfField = *tmpvalue;
 	}
 
-	MonoObject* ScriptRenderSettings::InternalGetChromaticAberration(ScriptRenderSettings* thisPtr)
+	MonoObject* ScriptRenderSettings::InternalGetChromaticAberration(ScriptRenderSettings* self)
 	{
 		SPtr<ChromaticAberrationSettings> tmp__output = B3DMakeShared<ChromaticAberrationSettings>();
-		*tmp__output = thisPtr->GetInternal()->ChromaticAberration;
+		*tmp__output = self->GetInternal()->ChromaticAberration;
 
 		MonoObject* __output;
 		__output = ScriptChromaticAberrationSettings::Create(tmp__output);
@@ -135,20 +135,20 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptRenderSettings::InternalSetChromaticAberration(ScriptRenderSettings* thisPtr, MonoObject* value)
+	void ScriptRenderSettings::InternalSetChromaticAberration(ScriptRenderSettings* self, MonoObject* value)
 	{
 		SPtr<ChromaticAberrationSettings> tmpvalue;
 		ScriptChromaticAberrationSettings* scriptObjectWrappervalue;
 		scriptObjectWrappervalue = ScriptChromaticAberrationSettings::ToNative(value);
 		if(scriptObjectWrappervalue != nullptr)
 			tmpvalue = scriptObjectWrappervalue->GetInternal();
-		thisPtr->GetInternal()->ChromaticAberration = *tmpvalue;
+		self->GetInternal()->ChromaticAberration = *tmpvalue;
 	}
 
-	bool ScriptRenderSettings::InternalGetEnableAutoExposure(ScriptRenderSettings* thisPtr)
+	bool ScriptRenderSettings::InternalGetEnableAutoExposure(ScriptRenderSettings* self)
 	{
 		bool tmp__output;
-		tmp__output = thisPtr->GetInternal()->EnableAutoExposure;
+		tmp__output = self->GetInternal()->EnableAutoExposure;
 
 		bool __output;
 		__output = tmp__output;
@@ -156,15 +156,15 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptRenderSettings::InternalSetEnableAutoExposure(ScriptRenderSettings* thisPtr, bool value)
+	void ScriptRenderSettings::InternalSetEnableAutoExposure(ScriptRenderSettings* self, bool value)
 	{
-		thisPtr->GetInternal()->EnableAutoExposure = value;
+		self->GetInternal()->EnableAutoExposure = value;
 	}
 
-	MonoObject* ScriptRenderSettings::InternalGetAutoExposure(ScriptRenderSettings* thisPtr)
+	MonoObject* ScriptRenderSettings::InternalGetAutoExposure(ScriptRenderSettings* self)
 	{
 		SPtr<AutoExposureSettings> tmp__output = B3DMakeShared<AutoExposureSettings>();
-		*tmp__output = thisPtr->GetInternal()->AutoExposure;
+		*tmp__output = self->GetInternal()->AutoExposure;
 
 		MonoObject* __output;
 		__output = ScriptAutoExposureSettings::Create(tmp__output);
@@ -172,20 +172,20 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptRenderSettings::InternalSetAutoExposure(ScriptRenderSettings* thisPtr, MonoObject* value)
+	void ScriptRenderSettings::InternalSetAutoExposure(ScriptRenderSettings* self, MonoObject* value)
 	{
 		SPtr<AutoExposureSettings> tmpvalue;
 		ScriptAutoExposureSettings* scriptObjectWrappervalue;
 		scriptObjectWrappervalue = ScriptAutoExposureSettings::ToNative(value);
 		if(scriptObjectWrappervalue != nullptr)
 			tmpvalue = scriptObjectWrappervalue->GetInternal();
-		thisPtr->GetInternal()->AutoExposure = *tmpvalue;
+		self->GetInternal()->AutoExposure = *tmpvalue;
 	}
 
-	bool ScriptRenderSettings::InternalGetEnableTonemapping(ScriptRenderSettings* thisPtr)
+	bool ScriptRenderSettings::InternalGetEnableTonemapping(ScriptRenderSettings* self)
 	{
 		bool tmp__output;
-		tmp__output = thisPtr->GetInternal()->EnableTonemapping;
+		tmp__output = self->GetInternal()->EnableTonemapping;
 
 		bool __output;
 		__output = tmp__output;
@@ -193,15 +193,15 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptRenderSettings::InternalSetEnableTonemapping(ScriptRenderSettings* thisPtr, bool value)
+	void ScriptRenderSettings::InternalSetEnableTonemapping(ScriptRenderSettings* self, bool value)
 	{
-		thisPtr->GetInternal()->EnableTonemapping = value;
+		self->GetInternal()->EnableTonemapping = value;
 	}
 
-	MonoObject* ScriptRenderSettings::InternalGetTonemapping(ScriptRenderSettings* thisPtr)
+	MonoObject* ScriptRenderSettings::InternalGetTonemapping(ScriptRenderSettings* self)
 	{
 		SPtr<TonemappingSettings> tmp__output = B3DMakeShared<TonemappingSettings>();
-		*tmp__output = thisPtr->GetInternal()->Tonemapping;
+		*tmp__output = self->GetInternal()->Tonemapping;
 
 		MonoObject* __output;
 		__output = ScriptTonemappingSettings::Create(tmp__output);
@@ -209,20 +209,20 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptRenderSettings::InternalSetTonemapping(ScriptRenderSettings* thisPtr, MonoObject* value)
+	void ScriptRenderSettings::InternalSetTonemapping(ScriptRenderSettings* self, MonoObject* value)
 	{
 		SPtr<TonemappingSettings> tmpvalue;
 		ScriptTonemappingSettings* scriptObjectWrappervalue;
 		scriptObjectWrappervalue = ScriptTonemappingSettings::ToNative(value);
 		if(scriptObjectWrappervalue != nullptr)
 			tmpvalue = scriptObjectWrappervalue->GetInternal();
-		thisPtr->GetInternal()->Tonemapping = *tmpvalue;
+		self->GetInternal()->Tonemapping = *tmpvalue;
 	}
 
-	MonoObject* ScriptRenderSettings::InternalGetWhiteBalance(ScriptRenderSettings* thisPtr)
+	MonoObject* ScriptRenderSettings::InternalGetWhiteBalance(ScriptRenderSettings* self)
 	{
 		SPtr<WhiteBalanceSettings> tmp__output = B3DMakeShared<WhiteBalanceSettings>();
-		*tmp__output = thisPtr->GetInternal()->WhiteBalance;
+		*tmp__output = self->GetInternal()->WhiteBalance;
 
 		MonoObject* __output;
 		__output = ScriptWhiteBalanceSettings::Create(tmp__output);
@@ -230,20 +230,20 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptRenderSettings::InternalSetWhiteBalance(ScriptRenderSettings* thisPtr, MonoObject* value)
+	void ScriptRenderSettings::InternalSetWhiteBalance(ScriptRenderSettings* self, MonoObject* value)
 	{
 		SPtr<WhiteBalanceSettings> tmpvalue;
 		ScriptWhiteBalanceSettings* scriptObjectWrappervalue;
 		scriptObjectWrappervalue = ScriptWhiteBalanceSettings::ToNative(value);
 		if(scriptObjectWrappervalue != nullptr)
 			tmpvalue = scriptObjectWrappervalue->GetInternal();
-		thisPtr->GetInternal()->WhiteBalance = *tmpvalue;
+		self->GetInternal()->WhiteBalance = *tmpvalue;
 	}
 
-	MonoObject* ScriptRenderSettings::InternalGetColorGrading(ScriptRenderSettings* thisPtr)
+	MonoObject* ScriptRenderSettings::InternalGetColorGrading(ScriptRenderSettings* self)
 	{
 		SPtr<ColorGradingSettings> tmp__output = B3DMakeShared<ColorGradingSettings>();
-		*tmp__output = thisPtr->GetInternal()->ColorGrading;
+		*tmp__output = self->GetInternal()->ColorGrading;
 
 		MonoObject* __output;
 		__output = ScriptColorGradingSettings::Create(tmp__output);
@@ -251,20 +251,20 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptRenderSettings::InternalSetColorGrading(ScriptRenderSettings* thisPtr, MonoObject* value)
+	void ScriptRenderSettings::InternalSetColorGrading(ScriptRenderSettings* self, MonoObject* value)
 	{
 		SPtr<ColorGradingSettings> tmpvalue;
 		ScriptColorGradingSettings* scriptObjectWrappervalue;
 		scriptObjectWrappervalue = ScriptColorGradingSettings::ToNative(value);
 		if(scriptObjectWrappervalue != nullptr)
 			tmpvalue = scriptObjectWrappervalue->GetInternal();
-		thisPtr->GetInternal()->ColorGrading = *tmpvalue;
+		self->GetInternal()->ColorGrading = *tmpvalue;
 	}
 
-	MonoObject* ScriptRenderSettings::InternalGetAmbientOcclusion(ScriptRenderSettings* thisPtr)
+	MonoObject* ScriptRenderSettings::InternalGetAmbientOcclusion(ScriptRenderSettings* self)
 	{
 		SPtr<AmbientOcclusionSettings> tmp__output = B3DMakeShared<AmbientOcclusionSettings>();
-		*tmp__output = thisPtr->GetInternal()->AmbientOcclusion;
+		*tmp__output = self->GetInternal()->AmbientOcclusion;
 
 		MonoObject* __output;
 		__output = ScriptAmbientOcclusionSettings::Create(tmp__output);
@@ -272,20 +272,20 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptRenderSettings::InternalSetAmbientOcclusion(ScriptRenderSettings* thisPtr, MonoObject* value)
+	void ScriptRenderSettings::InternalSetAmbientOcclusion(ScriptRenderSettings* self, MonoObject* value)
 	{
 		SPtr<AmbientOcclusionSettings> tmpvalue;
 		ScriptAmbientOcclusionSettings* scriptObjectWrappervalue;
 		scriptObjectWrappervalue = ScriptAmbientOcclusionSettings::ToNative(value);
 		if(scriptObjectWrappervalue != nullptr)
 			tmpvalue = scriptObjectWrappervalue->GetInternal();
-		thisPtr->GetInternal()->AmbientOcclusion = *tmpvalue;
+		self->GetInternal()->AmbientOcclusion = *tmpvalue;
 	}
 
-	MonoObject* ScriptRenderSettings::InternalGetScreenSpaceReflections(ScriptRenderSettings* thisPtr)
+	MonoObject* ScriptRenderSettings::InternalGetScreenSpaceReflections(ScriptRenderSettings* self)
 	{
 		SPtr<ScreenSpaceReflectionsSettings> tmp__output = B3DMakeShared<ScreenSpaceReflectionsSettings>();
-		*tmp__output = thisPtr->GetInternal()->ScreenSpaceReflections;
+		*tmp__output = self->GetInternal()->ScreenSpaceReflections;
 
 		MonoObject* __output;
 		__output = ScriptScreenSpaceReflectionsSettings::Create(tmp__output);
@@ -293,20 +293,20 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptRenderSettings::InternalSetScreenSpaceReflections(ScriptRenderSettings* thisPtr, MonoObject* value)
+	void ScriptRenderSettings::InternalSetScreenSpaceReflections(ScriptRenderSettings* self, MonoObject* value)
 	{
 		SPtr<ScreenSpaceReflectionsSettings> tmpvalue;
 		ScriptScreenSpaceReflectionsSettings* scriptObjectWrappervalue;
 		scriptObjectWrappervalue = ScriptScreenSpaceReflectionsSettings::ToNative(value);
 		if(scriptObjectWrappervalue != nullptr)
 			tmpvalue = scriptObjectWrappervalue->GetInternal();
-		thisPtr->GetInternal()->ScreenSpaceReflections = *tmpvalue;
+		self->GetInternal()->ScreenSpaceReflections = *tmpvalue;
 	}
 
-	MonoObject* ScriptRenderSettings::InternalGetBloom(ScriptRenderSettings* thisPtr)
+	MonoObject* ScriptRenderSettings::InternalGetBloom(ScriptRenderSettings* self)
 	{
 		SPtr<BloomSettings> tmp__output = B3DMakeShared<BloomSettings>();
-		*tmp__output = thisPtr->GetInternal()->Bloom;
+		*tmp__output = self->GetInternal()->Bloom;
 
 		MonoObject* __output;
 		__output = ScriptBloomSettings::Create(tmp__output);
@@ -314,20 +314,20 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptRenderSettings::InternalSetBloom(ScriptRenderSettings* thisPtr, MonoObject* value)
+	void ScriptRenderSettings::InternalSetBloom(ScriptRenderSettings* self, MonoObject* value)
 	{
 		SPtr<BloomSettings> tmpvalue;
 		ScriptBloomSettings* scriptObjectWrappervalue;
 		scriptObjectWrappervalue = ScriptBloomSettings::ToNative(value);
 		if(scriptObjectWrappervalue != nullptr)
 			tmpvalue = scriptObjectWrappervalue->GetInternal();
-		thisPtr->GetInternal()->Bloom = *tmpvalue;
+		self->GetInternal()->Bloom = *tmpvalue;
 	}
 
-	MonoObject* ScriptRenderSettings::InternalGetScreenSpaceLensFlare(ScriptRenderSettings* thisPtr)
+	MonoObject* ScriptRenderSettings::InternalGetScreenSpaceLensFlare(ScriptRenderSettings* self)
 	{
 		SPtr<ScreenSpaceLensFlareSettings> tmp__output = B3DMakeShared<ScreenSpaceLensFlareSettings>();
-		*tmp__output = thisPtr->GetInternal()->ScreenSpaceLensFlare;
+		*tmp__output = self->GetInternal()->ScreenSpaceLensFlare;
 
 		MonoObject* __output;
 		__output = ScriptScreenSpaceLensFlareSettings::Create(tmp__output);
@@ -335,20 +335,20 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptRenderSettings::InternalSetScreenSpaceLensFlare(ScriptRenderSettings* thisPtr, MonoObject* value)
+	void ScriptRenderSettings::InternalSetScreenSpaceLensFlare(ScriptRenderSettings* self, MonoObject* value)
 	{
 		SPtr<ScreenSpaceLensFlareSettings> tmpvalue;
 		ScriptScreenSpaceLensFlareSettings* scriptObjectWrappervalue;
 		scriptObjectWrappervalue = ScriptScreenSpaceLensFlareSettings::ToNative(value);
 		if(scriptObjectWrappervalue != nullptr)
 			tmpvalue = scriptObjectWrappervalue->GetInternal();
-		thisPtr->GetInternal()->ScreenSpaceLensFlare = *tmpvalue;
+		self->GetInternal()->ScreenSpaceLensFlare = *tmpvalue;
 	}
 
-	MonoObject* ScriptRenderSettings::InternalGetFilmGrain(ScriptRenderSettings* thisPtr)
+	MonoObject* ScriptRenderSettings::InternalGetFilmGrain(ScriptRenderSettings* self)
 	{
 		SPtr<FilmGrainSettings> tmp__output = B3DMakeShared<FilmGrainSettings>();
-		*tmp__output = thisPtr->GetInternal()->FilmGrain;
+		*tmp__output = self->GetInternal()->FilmGrain;
 
 		MonoObject* __output;
 		__output = ScriptFilmGrainSettings::Create(tmp__output);
@@ -356,20 +356,20 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptRenderSettings::InternalSetFilmGrain(ScriptRenderSettings* thisPtr, MonoObject* value)
+	void ScriptRenderSettings::InternalSetFilmGrain(ScriptRenderSettings* self, MonoObject* value)
 	{
 		SPtr<FilmGrainSettings> tmpvalue;
 		ScriptFilmGrainSettings* scriptObjectWrappervalue;
 		scriptObjectWrappervalue = ScriptFilmGrainSettings::ToNative(value);
 		if(scriptObjectWrappervalue != nullptr)
 			tmpvalue = scriptObjectWrappervalue->GetInternal();
-		thisPtr->GetInternal()->FilmGrain = *tmpvalue;
+		self->GetInternal()->FilmGrain = *tmpvalue;
 	}
 
-	MonoObject* ScriptRenderSettings::InternalGetMotionBlur(ScriptRenderSettings* thisPtr)
+	MonoObject* ScriptRenderSettings::InternalGetMotionBlur(ScriptRenderSettings* self)
 	{
 		SPtr<MotionBlurSettings> tmp__output = B3DMakeShared<MotionBlurSettings>();
-		*tmp__output = thisPtr->GetInternal()->MotionBlur;
+		*tmp__output = self->GetInternal()->MotionBlur;
 
 		MonoObject* __output;
 		__output = ScriptMotionBlurSettings::Create(tmp__output);
@@ -377,20 +377,20 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptRenderSettings::InternalSetMotionBlur(ScriptRenderSettings* thisPtr, MonoObject* value)
+	void ScriptRenderSettings::InternalSetMotionBlur(ScriptRenderSettings* self, MonoObject* value)
 	{
 		SPtr<MotionBlurSettings> tmpvalue;
 		ScriptMotionBlurSettings* scriptObjectWrappervalue;
 		scriptObjectWrappervalue = ScriptMotionBlurSettings::ToNative(value);
 		if(scriptObjectWrappervalue != nullptr)
 			tmpvalue = scriptObjectWrappervalue->GetInternal();
-		thisPtr->GetInternal()->MotionBlur = *tmpvalue;
+		self->GetInternal()->MotionBlur = *tmpvalue;
 	}
 
-	MonoObject* ScriptRenderSettings::InternalGetTemporalAa(ScriptRenderSettings* thisPtr)
+	MonoObject* ScriptRenderSettings::InternalGetTemporalAa(ScriptRenderSettings* self)
 	{
 		SPtr<TemporalAASettings> tmp__output = B3DMakeShared<TemporalAASettings>();
-		*tmp__output = thisPtr->GetInternal()->TemporalAa;
+		*tmp__output = self->GetInternal()->TemporalAa;
 
 		MonoObject* __output;
 		__output = ScriptTemporalAASettings::Create(tmp__output);
@@ -398,20 +398,20 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptRenderSettings::InternalSetTemporalAa(ScriptRenderSettings* thisPtr, MonoObject* value)
+	void ScriptRenderSettings::InternalSetTemporalAa(ScriptRenderSettings* self, MonoObject* value)
 	{
 		SPtr<TemporalAASettings> tmpvalue;
 		ScriptTemporalAASettings* scriptObjectWrappervalue;
 		scriptObjectWrappervalue = ScriptTemporalAASettings::ToNative(value);
 		if(scriptObjectWrappervalue != nullptr)
 			tmpvalue = scriptObjectWrappervalue->GetInternal();
-		thisPtr->GetInternal()->TemporalAa = *tmpvalue;
+		self->GetInternal()->TemporalAa = *tmpvalue;
 	}
 
-	bool ScriptRenderSettings::InternalGetEnableFxaa(ScriptRenderSettings* thisPtr)
+	bool ScriptRenderSettings::InternalGetEnableFxaa(ScriptRenderSettings* self)
 	{
 		bool tmp__output;
-		tmp__output = thisPtr->GetInternal()->EnableFxaa;
+		tmp__output = self->GetInternal()->EnableFxaa;
 
 		bool __output;
 		__output = tmp__output;
@@ -419,15 +419,15 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptRenderSettings::InternalSetEnableFxaa(ScriptRenderSettings* thisPtr, bool value)
+	void ScriptRenderSettings::InternalSetEnableFxaa(ScriptRenderSettings* self, bool value)
 	{
-		thisPtr->GetInternal()->EnableFxaa = value;
+		self->GetInternal()->EnableFxaa = value;
 	}
 
-	float ScriptRenderSettings::InternalGetExposureScale(ScriptRenderSettings* thisPtr)
+	float ScriptRenderSettings::InternalGetExposureScale(ScriptRenderSettings* self)
 	{
 		float tmp__output;
-		tmp__output = thisPtr->GetInternal()->ExposureScale;
+		tmp__output = self->GetInternal()->ExposureScale;
 
 		float __output;
 		__output = tmp__output;
@@ -435,15 +435,15 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptRenderSettings::InternalSetExposureScale(ScriptRenderSettings* thisPtr, float value)
+	void ScriptRenderSettings::InternalSetExposureScale(ScriptRenderSettings* self, float value)
 	{
-		thisPtr->GetInternal()->ExposureScale = value;
+		self->GetInternal()->ExposureScale = value;
 	}
 
-	float ScriptRenderSettings::InternalGetGamma(ScriptRenderSettings* thisPtr)
+	float ScriptRenderSettings::InternalGetGamma(ScriptRenderSettings* self)
 	{
 		float tmp__output;
-		tmp__output = thisPtr->GetInternal()->Gamma;
+		tmp__output = self->GetInternal()->Gamma;
 
 		float __output;
 		__output = tmp__output;
@@ -451,15 +451,15 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptRenderSettings::InternalSetGamma(ScriptRenderSettings* thisPtr, float value)
+	void ScriptRenderSettings::InternalSetGamma(ScriptRenderSettings* self, float value)
 	{
-		thisPtr->GetInternal()->Gamma = value;
+		self->GetInternal()->Gamma = value;
 	}
 
-	bool ScriptRenderSettings::InternalGetEnableHdr(ScriptRenderSettings* thisPtr)
+	bool ScriptRenderSettings::InternalGetEnableHdr(ScriptRenderSettings* self)
 	{
 		bool tmp__output;
-		tmp__output = thisPtr->GetInternal()->EnableHdr;
+		tmp__output = self->GetInternal()->EnableHdr;
 
 		bool __output;
 		__output = tmp__output;
@@ -467,15 +467,15 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptRenderSettings::InternalSetEnableHdr(ScriptRenderSettings* thisPtr, bool value)
+	void ScriptRenderSettings::InternalSetEnableHdr(ScriptRenderSettings* self, bool value)
 	{
-		thisPtr->GetInternal()->EnableHdr = value;
+		self->GetInternal()->EnableHdr = value;
 	}
 
-	bool ScriptRenderSettings::InternalGetEnableLighting(ScriptRenderSettings* thisPtr)
+	bool ScriptRenderSettings::InternalGetEnableLighting(ScriptRenderSettings* self)
 	{
 		bool tmp__output;
-		tmp__output = thisPtr->GetInternal()->EnableLighting;
+		tmp__output = self->GetInternal()->EnableLighting;
 
 		bool __output;
 		__output = tmp__output;
@@ -483,15 +483,15 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptRenderSettings::InternalSetEnableLighting(ScriptRenderSettings* thisPtr, bool value)
+	void ScriptRenderSettings::InternalSetEnableLighting(ScriptRenderSettings* self, bool value)
 	{
-		thisPtr->GetInternal()->EnableLighting = value;
+		self->GetInternal()->EnableLighting = value;
 	}
 
-	bool ScriptRenderSettings::InternalGetEnableShadows(ScriptRenderSettings* thisPtr)
+	bool ScriptRenderSettings::InternalGetEnableShadows(ScriptRenderSettings* self)
 	{
 		bool tmp__output;
-		tmp__output = thisPtr->GetInternal()->EnableShadows;
+		tmp__output = self->GetInternal()->EnableShadows;
 
 		bool __output;
 		__output = tmp__output;
@@ -499,15 +499,15 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptRenderSettings::InternalSetEnableShadows(ScriptRenderSettings* thisPtr, bool value)
+	void ScriptRenderSettings::InternalSetEnableShadows(ScriptRenderSettings* self, bool value)
 	{
-		thisPtr->GetInternal()->EnableShadows = value;
+		self->GetInternal()->EnableShadows = value;
 	}
 
-	bool ScriptRenderSettings::InternalGetEnableVelocityBuffer(ScriptRenderSettings* thisPtr)
+	bool ScriptRenderSettings::InternalGetEnableVelocityBuffer(ScriptRenderSettings* self)
 	{
 		bool tmp__output;
-		tmp__output = thisPtr->GetInternal()->EnableVelocityBuffer;
+		tmp__output = self->GetInternal()->EnableVelocityBuffer;
 
 		bool __output;
 		__output = tmp__output;
@@ -515,15 +515,15 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptRenderSettings::InternalSetEnableVelocityBuffer(ScriptRenderSettings* thisPtr, bool value)
+	void ScriptRenderSettings::InternalSetEnableVelocityBuffer(ScriptRenderSettings* self, bool value)
 	{
-		thisPtr->GetInternal()->EnableVelocityBuffer = value;
+		self->GetInternal()->EnableVelocityBuffer = value;
 	}
 
-	MonoObject* ScriptRenderSettings::InternalGetShadowSettings(ScriptRenderSettings* thisPtr)
+	MonoObject* ScriptRenderSettings::InternalGetShadowSettings(ScriptRenderSettings* self)
 	{
 		SPtr<ShadowSettings> tmp__output = B3DMakeShared<ShadowSettings>();
-		*tmp__output = thisPtr->GetInternal()->ShadowSettings;
+		*tmp__output = self->GetInternal()->ShadowSettings;
 
 		MonoObject* __output;
 		__output = ScriptShadowSettings::Create(tmp__output);
@@ -531,20 +531,20 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptRenderSettings::InternalSetShadowSettings(ScriptRenderSettings* thisPtr, MonoObject* value)
+	void ScriptRenderSettings::InternalSetShadowSettings(ScriptRenderSettings* self, MonoObject* value)
 	{
 		SPtr<ShadowSettings> tmpvalue;
 		ScriptShadowSettings* scriptObjectWrappervalue;
 		scriptObjectWrappervalue = ScriptShadowSettings::ToNative(value);
 		if(scriptObjectWrappervalue != nullptr)
 			tmpvalue = scriptObjectWrappervalue->GetInternal();
-		thisPtr->GetInternal()->ShadowSettings = *tmpvalue;
+		self->GetInternal()->ShadowSettings = *tmpvalue;
 	}
 
-	bool ScriptRenderSettings::InternalGetEnableIndirectLighting(ScriptRenderSettings* thisPtr)
+	bool ScriptRenderSettings::InternalGetEnableIndirectLighting(ScriptRenderSettings* self)
 	{
 		bool tmp__output;
-		tmp__output = thisPtr->GetInternal()->EnableIndirectLighting;
+		tmp__output = self->GetInternal()->EnableIndirectLighting;
 
 		bool __output;
 		__output = tmp__output;
@@ -552,15 +552,15 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptRenderSettings::InternalSetEnableIndirectLighting(ScriptRenderSettings* thisPtr, bool value)
+	void ScriptRenderSettings::InternalSetEnableIndirectLighting(ScriptRenderSettings* self, bool value)
 	{
-		thisPtr->GetInternal()->EnableIndirectLighting = value;
+		self->GetInternal()->EnableIndirectLighting = value;
 	}
 
-	bool ScriptRenderSettings::InternalGetOverlayOnly(ScriptRenderSettings* thisPtr)
+	bool ScriptRenderSettings::InternalGetOverlayOnly(ScriptRenderSettings* self)
 	{
 		bool tmp__output;
-		tmp__output = thisPtr->GetInternal()->OverlayOnly;
+		tmp__output = self->GetInternal()->OverlayOnly;
 
 		bool __output;
 		__output = tmp__output;
@@ -568,15 +568,15 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptRenderSettings::InternalSetOverlayOnly(ScriptRenderSettings* thisPtr, bool value)
+	void ScriptRenderSettings::InternalSetOverlayOnly(ScriptRenderSettings* self, bool value)
 	{
-		thisPtr->GetInternal()->OverlayOnly = value;
+		self->GetInternal()->OverlayOnly = value;
 	}
 
-	bool ScriptRenderSettings::InternalGetEnableSkybox(ScriptRenderSettings* thisPtr)
+	bool ScriptRenderSettings::InternalGetEnableSkybox(ScriptRenderSettings* self)
 	{
 		bool tmp__output;
-		tmp__output = thisPtr->GetInternal()->EnableSkybox;
+		tmp__output = self->GetInternal()->EnableSkybox;
 
 		bool __output;
 		__output = tmp__output;
@@ -584,15 +584,15 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptRenderSettings::InternalSetEnableSkybox(ScriptRenderSettings* thisPtr, bool value)
+	void ScriptRenderSettings::InternalSetEnableSkybox(ScriptRenderSettings* self, bool value)
 	{
-		thisPtr->GetInternal()->EnableSkybox = value;
+		self->GetInternal()->EnableSkybox = value;
 	}
 
-	float ScriptRenderSettings::InternalGetCullDistance(ScriptRenderSettings* thisPtr)
+	float ScriptRenderSettings::InternalGetCullDistance(ScriptRenderSettings* self)
 	{
 		float tmp__output;
-		tmp__output = thisPtr->GetInternal()->CullDistance;
+		tmp__output = self->GetInternal()->CullDistance;
 
 		float __output;
 		__output = tmp__output;
@@ -600,8 +600,8 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptRenderSettings::InternalSetCullDistance(ScriptRenderSettings* thisPtr, float value)
+	void ScriptRenderSettings::InternalSetCullDistance(ScriptRenderSettings* self, float value)
 	{
-		thisPtr->GetInternal()->CullDistance = value;
+		self->GetInternal()->CullDistance = value;
 	}
 }

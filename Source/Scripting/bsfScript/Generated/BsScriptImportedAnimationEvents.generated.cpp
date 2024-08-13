@@ -37,14 +37,14 @@ namespace bs
 	}
 	void ScriptImportedAnimationEvents::InternalImportedAnimationEvents(MonoObject* managedInstance)
 	{
-		SPtr<ImportedAnimationEvents> instance = B3DMakeShared<ImportedAnimationEvents>();
-		new (B3DAllocate<ScriptImportedAnimationEvents>())ScriptImportedAnimationEvents(managedInstance, instance);
+		SPtr<ImportedAnimationEvents> nativeObject = B3DMakeShared<ImportedAnimationEvents>();
+		new (B3DAllocate<ScriptImportedAnimationEvents>())ScriptImportedAnimationEvents(managedInstance, nativeObject);
 	}
 
-	MonoString* ScriptImportedAnimationEvents::InternalGetName(ScriptImportedAnimationEvents* thisPtr)
+	MonoString* ScriptImportedAnimationEvents::InternalGetName(ScriptImportedAnimationEvents* self)
 	{
 		String tmp__output;
-		tmp__output = thisPtr->GetInternal()->Name;
+		tmp__output = self->GetInternal()->Name;
 
 		MonoString* __output;
 		__output = MonoUtil::StringToMono(tmp__output);
@@ -52,17 +52,17 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptImportedAnimationEvents::InternalSetName(ScriptImportedAnimationEvents* thisPtr, MonoString* value)
+	void ScriptImportedAnimationEvents::InternalSetName(ScriptImportedAnimationEvents* self, MonoString* value)
 	{
 		String tmpvalue;
 		tmpvalue = MonoUtil::MonoToString(value);
-		thisPtr->GetInternal()->Name = tmpvalue;
+		self->GetInternal()->Name = tmpvalue;
 	}
 
-	MonoArray* ScriptImportedAnimationEvents::InternalGetEvents(ScriptImportedAnimationEvents* thisPtr)
+	MonoArray* ScriptImportedAnimationEvents::InternalGetEvents(ScriptImportedAnimationEvents* self)
 	{
 		Vector<AnimationEvent> nativeArray__output;
-		nativeArray__output = thisPtr->GetInternal()->Events;
+		nativeArray__output = self->GetInternal()->Events;
 
 		MonoArray* __output;
 		int elementCount__output = (int)nativeArray__output.size();
@@ -76,7 +76,7 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptImportedAnimationEvents::InternalSetEvents(ScriptImportedAnimationEvents* thisPtr, MonoArray* value)
+	void ScriptImportedAnimationEvents::InternalSetEvents(ScriptImportedAnimationEvents* self, MonoArray* value)
 	{
 		Vector<AnimationEvent> nativeArrayvalue;
 		if(value != nullptr)
@@ -89,7 +89,7 @@ namespace bs
 			}
 
 		}
-		thisPtr->GetInternal()->Events = nativeArrayvalue;
+		self->GetInternal()->Events = nativeArrayvalue;
 	}
 #endif
 }

@@ -23,28 +23,28 @@ namespace bs
 
 	}
 
-	void ScriptPlaneCollider::InternalSetNormal(ScriptPlaneCollider* thisPtr, TVector3<float>* normal)
+	void ScriptPlaneCollider::InternalSetNormal(ScriptPlaneCollider* self, TVector3<float>* normal)
 	{
-		thisPtr->GetHandle()->SetNormal(*normal);
+		self->GetHandle()->SetNormal(*normal);
 	}
 
-	void ScriptPlaneCollider::InternalGetNormal(ScriptPlaneCollider* thisPtr, TVector3<float>* __output)
+	void ScriptPlaneCollider::InternalGetNormal(ScriptPlaneCollider* self, TVector3<float>* __output)
 	{
 		TVector3<float> tmp__output;
-		tmp__output = thisPtr->GetHandle()->GetNormal();
+		tmp__output = self->GetHandle()->GetNormal();
 
 		*__output = tmp__output;
 	}
 
-	void ScriptPlaneCollider::InternalSetDistance(ScriptPlaneCollider* thisPtr, float distance)
+	void ScriptPlaneCollider::InternalSetDistance(ScriptPlaneCollider* self, float distance)
 	{
-		thisPtr->GetHandle()->SetDistance(distance);
+		self->GetHandle()->SetDistance(distance);
 	}
 
-	float ScriptPlaneCollider::InternalGetDistance(ScriptPlaneCollider* thisPtr)
+	float ScriptPlaneCollider::InternalGetDistance(ScriptPlaneCollider* self)
 	{
 		float tmp__output;
-		tmp__output = thisPtr->GetHandle()->GetDistance();
+		tmp__output = self->GetHandle()->GetDistance();
 
 		float __output;
 		__output = tmp__output;

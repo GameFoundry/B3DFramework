@@ -37,8 +37,8 @@ namespace bs
 				nativeArrayoptions[elementIndex] = scriptArrayoptions.Get<GUIOption>(elementIndex);
 			}
 		}
-		GUIHorizontalSlider* instance = GUIHorizontalSlider::Create(tmpstyleClass, nativeArrayoptions);
-		new (B3DAllocate<ScriptGUIHorizontalSlider>())ScriptGUIHorizontalSlider(managedInstance, instance);
+		GUIHorizontalSlider* nativeObject = GUIHorizontalSlider::Create(tmpstyleClass, nativeArrayoptions);
+		new (B3DAllocate<ScriptGUIHorizontalSlider>())ScriptGUIHorizontalSlider(managedInstance, nativeObject);
 	}
 
 	void ScriptGUIHorizontalSlider::InternalCreate0(MonoObject* managedInstance, MonoArray* options)
@@ -53,7 +53,7 @@ namespace bs
 				nativeArrayoptions[elementIndex] = scriptArrayoptions.Get<GUIOption>(elementIndex);
 			}
 		}
-		GUIHorizontalSlider* instance = GUIHorizontalSlider::Create(nativeArrayoptions);
-		new (B3DAllocate<ScriptGUIHorizontalSlider>())ScriptGUIHorizontalSlider(managedInstance, instance);
+		GUIHorizontalSlider* nativeObject = GUIHorizontalSlider::Create(nativeArrayoptions);
+		new (B3DAllocate<ScriptGUIHorizontalSlider>())ScriptGUIHorizontalSlider(managedInstance, nativeObject);
 	}
 }

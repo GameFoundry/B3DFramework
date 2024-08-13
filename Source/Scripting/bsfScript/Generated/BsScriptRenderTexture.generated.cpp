@@ -43,8 +43,8 @@ namespace bs
 	}
 	void ScriptRenderTexture::InternalCreate(MonoObject* managedInstance, PixelFormat format, int32_t width, int32_t height, int32_t numSamples, bool gammaCorrection, bool createDepth, PixelFormat depthStencilFormat)
 	{
-		SPtr<RenderTexture> instance = RenderTextureEx::Create(format, width, height, numSamples, gammaCorrection, createDepth, depthStencilFormat);
-		new (B3DAllocate<ScriptRenderTexture>())ScriptRenderTexture(managedInstance, instance);
+		SPtr<RenderTexture> nativeObject = RenderTextureEx::Create(format, width, height, numSamples, gammaCorrection, createDepth, depthStencilFormat);
+		new (B3DAllocate<ScriptRenderTexture>())ScriptRenderTexture(managedInstance, nativeObject);
 	}
 
 	void ScriptRenderTexture::InternalCreate0(MonoObject* managedInstance, MonoObject* colorSurface)
@@ -54,8 +54,8 @@ namespace bs
 		scriptObjectWrappercolorSurface = ScriptTexture::ToNative(colorSurface);
 		if(scriptObjectWrappercolorSurface != nullptr)
 			tmpcolorSurface = scriptObjectWrappercolorSurface->GetHandle();
-		SPtr<RenderTexture> instance = RenderTextureEx::Create(tmpcolorSurface);
-		new (B3DAllocate<ScriptRenderTexture>())ScriptRenderTexture(managedInstance, instance);
+		SPtr<RenderTexture> nativeObject = RenderTextureEx::Create(tmpcolorSurface);
+		new (B3DAllocate<ScriptRenderTexture>())ScriptRenderTexture(managedInstance, nativeObject);
 	}
 
 	void ScriptRenderTexture::InternalCreate1(MonoObject* managedInstance, MonoObject* colorSurface, MonoObject* depthStencilSurface)
@@ -70,8 +70,8 @@ namespace bs
 		scriptObjectWrapperdepthStencilSurface = ScriptTexture::ToNative(depthStencilSurface);
 		if(scriptObjectWrapperdepthStencilSurface != nullptr)
 			tmpdepthStencilSurface = scriptObjectWrapperdepthStencilSurface->GetHandle();
-		SPtr<RenderTexture> instance = RenderTextureEx::Create(tmpcolorSurface, tmpdepthStencilSurface);
-		new (B3DAllocate<ScriptRenderTexture>())ScriptRenderTexture(managedInstance, instance);
+		SPtr<RenderTexture> nativeObject = RenderTextureEx::Create(tmpcolorSurface, tmpdepthStencilSurface);
+		new (B3DAllocate<ScriptRenderTexture>())ScriptRenderTexture(managedInstance, nativeObject);
 	}
 
 	void ScriptRenderTexture::InternalCreate2(MonoObject* managedInstance, MonoArray* colorSurface)
@@ -92,8 +92,8 @@ namespace bs
 				}
 			}
 		}
-		SPtr<RenderTexture> instance = RenderTextureEx::Create(nativeArraycolorSurface);
-		new (B3DAllocate<ScriptRenderTexture>())ScriptRenderTexture(managedInstance, instance);
+		SPtr<RenderTexture> nativeObject = RenderTextureEx::Create(nativeArraycolorSurface);
+		new (B3DAllocate<ScriptRenderTexture>())ScriptRenderTexture(managedInstance, nativeObject);
 	}
 
 	void ScriptRenderTexture::InternalCreate3(MonoObject* managedInstance, MonoArray* colorSurface, MonoObject* depthStencilSurface)
@@ -120,14 +120,14 @@ namespace bs
 		scriptObjectWrapperdepthStencilSurface = ScriptTexture::ToNative(depthStencilSurface);
 		if(scriptObjectWrapperdepthStencilSurface != nullptr)
 			tmpdepthStencilSurface = scriptObjectWrapperdepthStencilSurface->GetHandle();
-		SPtr<RenderTexture> instance = RenderTextureEx::Create(nativeArraycolorSurface, tmpdepthStencilSurface);
-		new (B3DAllocate<ScriptRenderTexture>())ScriptRenderTexture(managedInstance, instance);
+		SPtr<RenderTexture> nativeObject = RenderTextureEx::Create(nativeArraycolorSurface, tmpdepthStencilSurface);
+		new (B3DAllocate<ScriptRenderTexture>())ScriptRenderTexture(managedInstance, nativeObject);
 	}
 
-	MonoObject* ScriptRenderTexture::InternalGetColorSurface(ScriptRenderTexture* thisPtr)
+	MonoObject* ScriptRenderTexture::InternalGetColorSurface(ScriptRenderTexture* self)
 	{
 		TResourceHandle<Texture> tmp__output;
-		tmp__output = RenderTextureEx::GetColorSurface(thisPtr->GetInternal());
+		tmp__output = RenderTextureEx::GetColorSurface(self->GetInternal());
 
 		MonoObject* __output;
 		ScriptResourceBase* script__output;
@@ -140,10 +140,10 @@ namespace bs
 		return __output;
 	}
 
-	MonoArray* ScriptRenderTexture::InternalGetColorSurfaces(ScriptRenderTexture* thisPtr)
+	MonoArray* ScriptRenderTexture::InternalGetColorSurfaces(ScriptRenderTexture* self)
 	{
 		Vector<TResourceHandle<Texture>> nativeArray__output;
-		nativeArray__output = RenderTextureEx::GetColorSurfaces(thisPtr->GetInternal());
+		nativeArray__output = RenderTextureEx::GetColorSurfaces(self->GetInternal());
 
 		MonoArray* __output;
 		int elementCount__output = (int)nativeArray__output.size();
@@ -162,10 +162,10 @@ namespace bs
 		return __output;
 	}
 
-	MonoObject* ScriptRenderTexture::InternalGetDepthStencilSurface(ScriptRenderTexture* thisPtr)
+	MonoObject* ScriptRenderTexture::InternalGetDepthStencilSurface(ScriptRenderTexture* self)
 	{
 		TResourceHandle<Texture> tmp__output;
-		tmp__output = RenderTextureEx::GetDepthStencilSurface(thisPtr->GetInternal());
+		tmp__output = RenderTextureEx::GetDepthStencilSurface(self->GetInternal());
 
 		MonoObject* __output;
 		ScriptResourceBase* script__output;

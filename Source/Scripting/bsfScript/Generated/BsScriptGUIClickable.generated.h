@@ -40,6 +40,6 @@ namespace bs
 		ScriptGUIClickable(MonoObject* managedInstance, GUIClickable* value);
 
 	private:
-		static void InternalSetContent(ScriptGUIElementBase* thisPtr, __GUIContentInterop* content);
+		static void InternalSetContent(ScriptGUIElementBase* self, __GUIContentInterop* content);
 	};
 }

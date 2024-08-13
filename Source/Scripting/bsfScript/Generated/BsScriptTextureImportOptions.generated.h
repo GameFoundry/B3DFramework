@@ -23,20 +23,20 @@ namespace bs
 		static MonoObject* Create(const SPtr<TextureImportOptions>& value);
 
 	private:
-		static PixelFormat InternalGetFormat(ScriptTextureImportOptions* thisPtr);
-		static void InternalSetFormat(ScriptTextureImportOptions* thisPtr, PixelFormat value);
-		static bool InternalGetGenerateMips(ScriptTextureImportOptions* thisPtr);
-		static void InternalSetGenerateMips(ScriptTextureImportOptions* thisPtr, bool value);
-		static uint32_t InternalGetMaxMip(ScriptTextureImportOptions* thisPtr);
-		static void InternalSetMaxMip(ScriptTextureImportOptions* thisPtr, uint32_t value);
-		static bool InternalGetCpuCached(ScriptTextureImportOptions* thisPtr);
-		static void InternalSetCpuCached(ScriptTextureImportOptions* thisPtr, bool value);
-		static bool InternalGetSRgb(ScriptTextureImportOptions* thisPtr);
-		static void InternalSetSRgb(ScriptTextureImportOptions* thisPtr, bool value);
-		static bool InternalGetCubemap(ScriptTextureImportOptions* thisPtr);
-		static void InternalSetCubemap(ScriptTextureImportOptions* thisPtr, bool value);
-		static CubemapSourceType InternalGetCubemapSourceType(ScriptTextureImportOptions* thisPtr);
-		static void InternalSetCubemapSourceType(ScriptTextureImportOptions* thisPtr, CubemapSourceType value);
+		static PixelFormat InternalGetFormat(ScriptTextureImportOptions* self);
+		static void InternalSetFormat(ScriptTextureImportOptions* self, PixelFormat value);
+		static bool InternalGetGenerateMips(ScriptTextureImportOptions* self);
+		static void InternalSetGenerateMips(ScriptTextureImportOptions* self, bool value);
+		static uint32_t InternalGetMaxMip(ScriptTextureImportOptions* self);
+		static void InternalSetMaxMip(ScriptTextureImportOptions* self, uint32_t value);
+		static bool InternalGetCpuCached(ScriptTextureImportOptions* self);
+		static void InternalSetCpuCached(ScriptTextureImportOptions* self, bool value);
+		static bool InternalGetSRgb(ScriptTextureImportOptions* self);
+		static void InternalSetSRgb(ScriptTextureImportOptions* self, bool value);
+		static bool InternalGetCubemap(ScriptTextureImportOptions* self);
+		static void InternalSetCubemap(ScriptTextureImportOptions* self, bool value);
+		static CubemapSourceType InternalGetCubemapSourceType(ScriptTextureImportOptions* self);
+		static void InternalSetCubemapSourceType(ScriptTextureImportOptions* self, CubemapSourceType value);
 		static void InternalCreate(MonoObject* managedInstance);
 	};
 #endif

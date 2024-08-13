@@ -37,8 +37,8 @@ namespace bs
 				nativeArrayoptions[elementIndex] = scriptArrayoptions.Get<GUIOption>(elementIndex);
 			}
 		}
-		GUIHorizontalScrollBar* instance = GUIHorizontalScrollBar::Create(tmpstyleClass, nativeArrayoptions);
-		new (B3DAllocate<ScriptGUIHorizontalScrollBar>())ScriptGUIHorizontalScrollBar(managedInstance, instance);
+		GUIHorizontalScrollBar* nativeObject = GUIHorizontalScrollBar::Create(tmpstyleClass, nativeArrayoptions);
+		new (B3DAllocate<ScriptGUIHorizontalScrollBar>())ScriptGUIHorizontalScrollBar(managedInstance, nativeObject);
 	}
 
 	void ScriptGUIHorizontalScrollBar::InternalCreate0(MonoObject* managedInstance, MonoArray* options)
@@ -53,7 +53,7 @@ namespace bs
 				nativeArrayoptions[elementIndex] = scriptArrayoptions.Get<GUIOption>(elementIndex);
 			}
 		}
-		GUIHorizontalScrollBar* instance = GUIHorizontalScrollBar::Create(nativeArrayoptions);
-		new (B3DAllocate<ScriptGUIHorizontalScrollBar>())ScriptGUIHorizontalScrollBar(managedInstance, instance);
+		GUIHorizontalScrollBar* nativeObject = GUIHorizontalScrollBar::Create(nativeArrayoptions);
+		new (B3DAllocate<ScriptGUIHorizontalScrollBar>())ScriptGUIHorizontalScrollBar(managedInstance, nativeObject);
 	}
 }
