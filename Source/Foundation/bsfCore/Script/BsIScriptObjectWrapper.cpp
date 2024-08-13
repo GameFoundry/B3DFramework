@@ -8,7 +8,10 @@ using namespace bs;
 
 IScriptObjectWrapper::IScriptObjectWrapper(IScriptExportable* nativeObject)
 	:mNativeObject(nativeObject)
-{ }
+{
+	if(nativeObject)
+		nativeObject->AssociateWithScriptObjectWrapper(this);
+}
 
 void IScriptObjectWrapper::NotifyScriptObjectDestroyed()
 {
