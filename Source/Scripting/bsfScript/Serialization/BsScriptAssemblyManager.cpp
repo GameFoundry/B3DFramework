@@ -745,7 +745,7 @@ void ScriptAssemblyManager::LoadTypeMappings(MonoAssembly& assembly, const Built
 	for(auto& entry : mapping.Components)
 	{
 		BuiltinComponentInfo info = entry;
-		info.MonoClass = assembly.GetClass(entry.MetaData->Ns, entry.MetaData->Name);
+		info.MonoClass = assembly.GetClass(entry.MetaData->Namespace, entry.MetaData->Name);
 
 		::MonoReflectionType* type = MonoUtil::GetType(info.MonoClass->GetInternalClassInternal());
 
@@ -756,7 +756,7 @@ void ScriptAssemblyManager::LoadTypeMappings(MonoAssembly& assembly, const Built
 	for(auto& entry : mapping.Resources)
 	{
 		BuiltinResourceInfo info = entry;
-		info.MonoClass = assembly.GetClass(entry.MetaData->Ns, entry.MetaData->Name);
+		info.MonoClass = assembly.GetClass(entry.MetaData->Namespace, entry.MetaData->Name);
 
 		::MonoReflectionType* type = MonoUtil::GetType(info.MonoClass->GetInternalClassInternal());
 
@@ -768,7 +768,7 @@ void ScriptAssemblyManager::LoadTypeMappings(MonoAssembly& assembly, const Built
 	for(auto& entry : mapping.ReflectableObjects)
 	{
 		ReflectableTypeInfo info = entry;
-		info.MonoClass = assembly.GetClass(entry.MetaData->Ns, entry.MetaData->Name);
+		info.MonoClass = assembly.GetClass(entry.MetaData->Namespace, entry.MetaData->Name);
 
 		::MonoReflectionType* type = MonoUtil::GetType(info.MonoClass->GetInternalClassInternal());
 

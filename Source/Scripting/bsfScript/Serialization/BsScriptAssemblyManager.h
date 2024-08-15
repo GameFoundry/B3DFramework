@@ -67,8 +67,8 @@ namespace bs
 	public:
 		/**
 		 * Loads all information about managed serializable objects in an assembly with the specified name. Assembly must be
-		 * currently loaded. Once the data has been loaded you will be able to call getSerializableObjectInfo() and
-		 * hasSerializableObjectInfo() to retrieve information about those objects. If an assembly already had data loaded
+		 * currently loaded. Once the data has been loaded you will be able to call GetSerializableObjectInfo() and
+		 * HasSerializableObjectInfo() to retrieve information about those objects. If an assembly already had data loaded
 		 * it will be rebuilt.
 		 *
 		 * @param[in]	assemblyName		Name of the assembly to load the information about.

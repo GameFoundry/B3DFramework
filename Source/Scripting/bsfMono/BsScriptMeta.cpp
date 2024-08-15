@@ -10,7 +10,7 @@ ScriptMeta::ScriptMeta()
 {
 }
 
-ScriptMeta::ScriptMeta(const String& assembly, const String& ns, const String& name, std::function<void()> initializeBindingsCallback)
-	: Ns(ns), Name(name), Assembly(assembly), InitializeBindingsCallback(std::move(initializeBindingsCallback))
+ScriptMeta::ScriptMeta(const String& assembly, const String& nameSpace, const String& name, std::function<void()> setupScriptBindingsCallback)
+	: Namespace(nameSpace), Name(name), Assembly(assembly), SetupScriptBindingsCallback(std::move(setupScriptBindingsCallback))
 {
 }

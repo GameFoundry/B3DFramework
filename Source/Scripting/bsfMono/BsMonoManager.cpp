@@ -191,10 +191,10 @@ void MonoManager::InitializeScriptTypes(MonoAssembly& assembly)
 		ScriptMeta* meta = entry.MetaData;
 		*meta = entry.LocalMetaData;
 
-		meta->ScriptClass = assembly.GetClass(meta->Ns, meta->Name);
+		meta->ScriptClass = assembly.GetClass(meta->Namespace, meta->Name);
 		if(meta->ScriptClass == nullptr)
 		{
-			B3D_EXCEPT(InvalidParametersException, "Unable to find class of type: \"" + meta->Ns + "::" + meta->Name + "\"");
+			B3D_EXCEPT(InvalidParametersException, "Unable to find class of type: \"" + meta->Namespace + "::" + meta->Name + "\"");
 		}
 
 		if(meta->ScriptClass->HasField("mCachedPtr"))
@@ -207,7 +207,7 @@ void MonoManager::InitializeScriptTypes(MonoAssembly& assembly)
 		else
 			meta->IsUsingNewScriptObjectManagerField = nullptr;
 
-		meta->InitializeBindingsCallback();
+		meta->SetupScriptBindingsCallback();
 	}
 }
 
