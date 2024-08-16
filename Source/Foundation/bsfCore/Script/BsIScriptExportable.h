@@ -12,13 +12,19 @@ namespace bs
 
 	class IScriptObjectWrapper;
 
-	// TODO - Doc
+	/**
+	 * Interface to be implemented by types that are exported to scripting. Such types should also be decorated with B3D_SCRIPT_EXPORT() macro, along
+	 * with any fields or methods that should be exported.
+	 */
 	class B3D_CORE_EXPORT IScriptExportable
 	{
 	public:
 		virtual ~IScriptExportable();
 
-		// TODO - Doc
+		/**
+		 * Returns the script object wrapper associated with this object. This will be null if the object was never passed to script world, or if was passed
+		 * but has gone out of scope.
+		 */
 		IScriptObjectWrapper* GetScriptObjectWrapper() const { return mScriptObjectWrapper; }
 
 	private:

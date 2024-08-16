@@ -30,7 +30,7 @@ namespace bs
 	template <typename T>
 	struct B3DHasGetHandle<T, std::void_t<decltype(std::declval<T>().GetHandle())>> : std::true_type {};
 
-	// TODO - Doc
+	/** Structure to persist object data during script reload. Objects will store their data before reload happens, and then restore the data after it happens. */
 	struct ScriptObjectReloadPersistentData
 	{
 		ScriptObjectReloadPersistentData() {}
@@ -42,7 +42,10 @@ namespace bs
 		Any Data; // TODO - Don't use Any
 	};
 
-	// TODO - Doc
+	/**
+	 * Extends IScriptObjectWrapper by keeping a strong reference to the script object, and releasing it as needed.
+	 * As well as providing an interface for script reload functionality.. See IScriptObjectWrapper.
+	 */
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptObjectWrapper : public IScriptObjectWrapper
 	{
 	public:
@@ -101,7 +104,7 @@ namespace bs
 	template <typename SelfType>
 	class TScriptObjectWrapper;
 
-	// TODO - Doc
+	/** Ensures that ScriptObjectWrapper types are initialized on application load. */
 	template <typename SelfType>
 	struct InitializeScriptObjectWrapperOnLoadTime
 	{
@@ -114,7 +117,10 @@ namespace bs
 		void MakeSureIAmInstantiated() {}
 	};
 
-	/**	Template version of ScriptObjectBase populates the object meta-data on library load. */
+	/**
+	 * Provides common functionality required by specializations of ScriptObjectWrapper, including a meta-data object to store information about the type, ability to
+	 * bind the script object wrapper to the script object, and retrieve the wrapper from the script object
+	 */
 	template <typename SelfType>
 	class TScriptObjectWrapper : public ScriptObjectWrapper 
 	{
@@ -128,7 +134,6 @@ namespace bs
 
 		virtual ~TScriptObjectWrapper() = default;
 
-		// TODO - Doc
 		void RecreateScriptObjectAfterScriptReload() override
 		{
 			MonoObject* const scriptObject = SelfType::CreateScriptObject(true);
@@ -146,10 +151,13 @@ namespace bs
 			return scriptObjectWrapper;
 		}
 
-		// TODO - Doc
+		/** Returns the meta-data storing information about the script exported type. */
 		static const ScriptWrapperObjectMetaData* GetMetaData() { return &sInteropMetaData; }
 
-		// TODO - Doc
+		/**
+		 * Takes care of initializing the meta-data when the application first load. The meta-data will be registered with a global manager that will ensure
+		 * it is kept up-to-date after operations such as assembly (re)load.
+		 */
 		static void InitializeMetaDataAtLoadTime()
 		{
 			// Need to delay init of sInteropMetaData since it's also a static, and we can't guarantee the order
@@ -161,7 +169,7 @@ namespace bs
 		}
 
 	protected:
-		// TODO - Doc
+		/** Stores a pointer to itself in the script object. This ensures that calls to GetScriptObjectWrapper() can return the script object wrapper associated with the script object. */
 		void BindSelfToScriptObject(MonoObject* scriptObject)
 		{
 			SelfType* self = (SelfType*)(ScriptObjectWrapper*)this; // Needed due to multiple inheritance. Safe since SelfType must point to an class derived from this one.
@@ -195,7 +203,7 @@ namespace bs
 			:TScriptObjectWrapper<SelfType>(nullptr, scriptObject)
 		{ }
 
-		// TODO - Doc
+		/** Dummy method to create the script object. Not needed for non-instantiable types. */
 		static MonoObject* CreateScriptObject(bool construct)
 		{
 			return nullptr;
@@ -204,14 +212,14 @@ namespace bs
 	protected:
 		friend class TScriptObjectWrapper<SelfType>;
 
-		// TODO - Doc
+		/** Dummy method to initialize additional meta-data. Not needed for non-instantiable types. */
 		static void InitializeAdditionalMetaData(ScriptWrapperObjectMetaData& metaData)
 		{
 			// Do nothing
 		}
 	};
 
-	// TODO - Doc
+	/** Extends TScriptObjectWrapper by providing functionality required for types that may be passed along as an IReflectable shared pointer. */
 	template<typename NativeType, typename SelfType>
 	class TScriptReflectableWrapper : public TScriptObjectWrapper<SelfType> // TODO - Move to own file
 	{
@@ -223,7 +231,10 @@ namespace bs
 		/** Returns the wrapped native object as a shared pointer. */
 		const SPtr<NativeType>& GetNativeObjectAsShared() const { return mNativeObjectStrongHandle; }
 
-		// TODO - Doc
+		/**
+		 * Creates a new script object and a script object wrapper of @p SelfType, and associates them with the provided native object. Should not be called if @p nativeObject
+		 * already has an associated script object.
+		 */
 		static MonoObject* CreateScriptObjectAndWrapper(const SPtr<IReflectable>& nativeObject)
 		{
 			MonoObject* const scriptObject = SelfType::CreateScriptObject(false);
@@ -232,7 +243,10 @@ namespace bs
 			return scriptObject;
 		}
 
-		// TODO - Doc
+		/**
+		 * Attempts to retrieve an existing associated script object from the provided native object. If one doesn't exist, a new script
+		 * object and the associated script wrapper will be created.
+		 */
 		static MonoObject* GetOrCreateScriptObject(const SPtr<NativeType>& nativeObject)
 		{
 			if(nativeObject == nullptr)
@@ -253,7 +267,7 @@ namespace bs
 	protected:
 		friend class TScriptObjectWrapper<SelfType>;
 
-		// TODO - Doc
+		/** Initialize RTTI type ID and callback used to create the script object/script object wrapper. */
 		static void InitializeAdditionalMetaData(ScriptWrapperObjectMetaData& metaData)
 		{
 			metaData.TypeId = NativeType::GetRttiStatic()->GetRttiId();
@@ -263,7 +277,7 @@ namespace bs
 		SPtr<NativeType> mNativeObjectStrongHandle;
 	};
 
-	// TODO - Doc
+	/** Extends TScriptObjectWrapper by providing functionality required for types that may be passed along as a GameObject handle. */
 	template<typename NativeType, typename SelfType>
 	class TScriptGameObjectWrapper : public TScriptObjectWrapper<SelfType> // TODO - Move to own file
 	{
@@ -278,7 +292,10 @@ namespace bs
 		/** Returns the wrapped native object as a handle. */
 		const GameObjectHandle<NativeType>& GetNativeObjectAsHandle() const { return mNativeObjectStrongHandle; }
 
-		// TODO - Doc
+		/**
+		 * Creates a new script object and a script object wrapper of @p SelfType, and associates them with the provided native object. Should not be called if @p nativeObject
+		 * already has an associated script object.
+		 */
 		static MonoObject* CreateScriptObjectAndWrapper(const HGameObject& nativeObject)
 		{
 			MonoObject* const scriptObject = SelfType::CreateScriptObject(false);
@@ -287,7 +304,10 @@ namespace bs
 			return scriptObject;
 		}
 
-		// TODO - Doc
+		/**
+		 * Attempts to retrieve an existing associated script object from the provided native object. If one doesn't exist, a new script
+		 * object and the associated script wrapper will be created.
+		 */
 		static MonoObject* GetOrCreateScriptObject(const GameObjectHandle<NativeType>& nativeObject)
 		{
 			if(!nativeObject.IsValid())
@@ -308,7 +328,7 @@ namespace bs
 	protected:
 		friend class TScriptObjectWrapper<SelfType>;
 
-		// TODO - Doc
+		/** Initialize RTTI type ID and callback used to create the script object/script object wrapper. */
 		static void InitializeAdditionalMetaData(ScriptWrapperObjectMetaData& metaData)
 		{
 			metaData.TypeId = NativeType::GetRttiStatic()->GetRttiId();
@@ -318,7 +338,7 @@ namespace bs
 		GameObjectHandle<NativeType> mNativeObjectStrongHandle;
 	};
 
-	// TODO - Doc
+	/** Extends TScriptObjectWrapper by providing functionality required for types that may be passed along as a Resource handle. */
 	template<typename NativeType, typename SelfType>
 	class TScriptResourceWrapper : public TScriptObjectWrapper<SelfType> // TODO - Move to own file
 	{
@@ -333,7 +353,10 @@ namespace bs
 		/** Returns the wrapped native object as a handle. */
 		const TResourceHandle<NativeType>& GetNativeObjectAsHandle() const { return mNativeObjectStrongHandle; }
 
-		// TODO - Doc
+		/**
+		 * Creates a new script object and a script object wrapper of @p SelfType, and associates them with the provided native object. Should not be called if @p nativeObject
+		 * already has an associated script object.
+		 */
 		static MonoObject* CreateScriptObjectAndWrapper(const HResource& nativeObject)
 		{
 			MonoObject* const scriptObject = SelfType::CreateScriptObject(false);
@@ -342,7 +365,10 @@ namespace bs
 			return scriptObject;
 		}
 
-		// TODO - Doc
+		/**
+		 * Attempts to retrieve an existing associated script object from the provided native object. If one doesn't exist, a new script
+		 * object and the associated script wrapper will be created.
+		 */
 		static MonoObject* GetOrCreateScriptObject(const TResourceHandle<NativeType>& nativeObject)
 		{
 			if(!nativeObject.IsValid())
@@ -363,7 +389,7 @@ namespace bs
 	protected:
 		friend class TScriptObjectWrapper<SelfType>;
 
-		// TODO - Doc
+		/** Initialize RTTI type ID and callback used to create the script object/script object wrapper. */
 		static void InitializeAdditionalMetaData(ScriptWrapperObjectMetaData& metaData)
 		{
 			metaData.TypeId = NativeType::GetRttiStatic()->GetRttiId();
@@ -375,7 +401,7 @@ namespace bs
 
 	// TODO - Add wrapper for GUI elements and non-reflectable classes
 
-	// TODO - Doc
+	/** Implements default methods required by script object wrapper implementations. */
 #define B3D_SCRIPT_OBJECT_WRAPPER(Assembly, Namespace, Name) \
 	static const char* GetAssemblyName()      \
 	{                                         \
