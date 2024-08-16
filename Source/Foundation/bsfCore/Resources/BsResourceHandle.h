@@ -121,6 +121,9 @@ namespace bs
 		 */
 		void ReleaseInternalReference();
 
+		/** Returns the number of strong references on the resource pointed by the handle. */
+		u32 GetReferenceCount() const { return mData != nullptr ? mData->StrongReferenceCount.load(std::memory_order_relaxed) : 0; }
+
 		/** Returns the UUID of the resource the handle is referring to. */
 		const UUID& GetId() const { return mData != nullptr ? mData->Id : UUID::kEmpty; }
 

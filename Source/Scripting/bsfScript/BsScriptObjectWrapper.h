@@ -57,6 +57,13 @@ namespace bs
 		/** Called when the script system is notified that the script object has been destroyed. */
 		virtual void NotifyScriptObjectDestroyed(bool isDestroyedDueToScriptReload);
 
+		/** Returns the number of strong references on the underlying native object. */
+		virtual u32 GetNativeObjectReferenceCount() const
+		{
+			// Default to 1, as with no reference tracking we assume the native resource is destroyed explicitly (i.e. Destroy() method), and will notify the wrapper when that happens.
+			return 1;
+		}
+
 		void NotifyNativeObjectDestroyed() override;
 
 		/**
