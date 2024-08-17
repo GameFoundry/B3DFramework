@@ -11,9 +11,23 @@ namespace bs
 	 *  @{
 	 */
 
+	/** Provides a base class for all script object wrappers that wrap a GameObject object that may be passed as a shared pointer. */
+	class ScriptGameObjectWrapper : public ScriptObjectWrapper
+	{
+	public:
+		using ScriptObjectWrapper::ScriptObjectWrapper;
+
+	private:
+		/** Returns the root base class of the wrapped native object as a shared pointer. */
+		virtual SPtr<GameObject> GetBaseNativeObjectAsShared() const = 0;
+
+		/** Returns the root base class of the wrapped native object as a handle. */
+		virtual HGameObject GetBaseNativeObjectAsHandle() const = 0;
+	};
+
 	/** Extends TScriptObjectWrapper by providing functionality required for types that may be passed along as a GameObject handle. */
 	template<typename NativeType, typename SelfType>
-	class TScriptGameObjectWrapper : public TScriptObjectWrapper<SelfType>
+	class TScriptGameObjectWrapper : public TScriptObjectWrapper<SelfType, ScriptGameObjectWrapper>
 	{
 	public:
 		TScriptGameObjectWrapper(const GameObjectHandle<NativeType>& nativeObject, MonoObject* scriptObject)
@@ -25,6 +39,9 @@ namespace bs
 
 		/** Returns the wrapped native object as a handle. */
 		const GameObjectHandle<NativeType>& GetNativeObjectAsHandle() const { return mNativeObjectStrongHandle; }
+
+		SPtr<GameObject> GetBaseNativeObjectAsShared() const override { return GetNativeObjectAsShared(); }
+		HGameObject GetBaseNativeObjectAsHandle() const override { return GetNativeObjectAsHandle(); }
 
 		/**
 		 * Creates a new script object and a script object wrapper of @p SelfType, and associates them with the provided native object. Should not be called if @p nativeObject
@@ -69,7 +86,7 @@ namespace bs
 			metaData.GameObjectCreateCallback = &CreateScriptObjectAndWrapper;
 		}
 
-		GameObjectHandle<NativeType> mNativeObjectStrongHandle;
+		GameObjectHandle<NativeType> mNativeObjectStrongHandle; // TODO - Needs to be pulled out in a common base class
 	};
 
 	/** @} */

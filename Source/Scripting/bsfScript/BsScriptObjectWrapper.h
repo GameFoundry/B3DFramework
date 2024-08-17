@@ -108,17 +108,17 @@ namespace bs
 		u32 mStrongScriptObjectHandle = ~0u;
 	};
 
-	template <typename SelfType>
+	template <typename SelfType, typename BaseType>
 	class TScriptObjectWrapper;
 
 	/** Ensures that ScriptObjectWrapper types are initialized on application load. */
-	template <typename SelfType>
+	template <typename SelfType, typename BaseType>
 	struct InitializeScriptObjectWrapperOnLoadTime
 	{
 	public:
 		InitializeScriptObjectWrapperOnLoadTime()
 		{
-			TScriptObjectWrapper<SelfType>::InitializeMetaDataAtLoadTime();
+			TScriptObjectWrapper<SelfType, BaseType>::InitializeMetaDataAtLoadTime();
 		}
 
 		void MakeSureIAmInstantiated() {}
@@ -127,9 +127,12 @@ namespace bs
 	/**
 	 * Provides common functionality required by specializations of ScriptObjectWrapper, including a meta-data object to store information about the type, ability to
 	 * bind the script object wrapper to the script object, and retrieve the wrapper from the script object
+	 *
+	 * @tparam SelfType		Type that is deriving from TScriptObjectWrapper.
+	 * @tparam BaseType		Type that TScriptObjectWrapper should inherit from. This type must be ScriptObjectWrapper, or a type deriving from it.
 	 */
-	template <typename SelfType>
-	class TScriptObjectWrapper : public ScriptObjectWrapper 
+	template <typename SelfType, typename BaseType = ScriptObjectWrapper>
+	class TScriptObjectWrapper : public BaseType 
 	{
 	public:
 		TScriptObjectWrapper(IScriptExportable* nativeObject, MonoObject* scriptObject)
@@ -192,14 +195,14 @@ namespace bs
 		}
 
 		static ScriptWrapperObjectMetaData sInteropMetaData;
-		static InitializeScriptObjectWrapperOnLoadTime<SelfType> sInitializeOnLoadTime;
+		static InitializeScriptObjectWrapperOnLoadTime<SelfType, BaseType> sInitializeOnLoadTime;
 	};
 
-	template <typename SelfType>
-	InitializeScriptObjectWrapperOnLoadTime<SelfType> TScriptObjectWrapper<SelfType>::sInitializeOnLoadTime;
+	template <typename SelfType, typename BaseType>
+	InitializeScriptObjectWrapperOnLoadTime<SelfType, BaseType> TScriptObjectWrapper<SelfType, BaseType>::sInitializeOnLoadTime;
 
-	template <typename SelfType>
-	ScriptWrapperObjectMetaData TScriptObjectWrapper<SelfType>::sInteropMetaData;
+	template <typename SelfType, typename BaseType>
+	ScriptWrapperObjectMetaData TScriptObjectWrapper<SelfType, BaseType>::sInteropMetaData;
 
 	/**	Specialized version of TScriptObjectWrapper that should be used for types that are never going to be explicitly instantiated (e.g. singletons, static-only classes and base classes). */
 	template <typename SelfType>

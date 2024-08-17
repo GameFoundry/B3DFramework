@@ -11,9 +11,20 @@ namespace bs
 	 *  @{
 	 */
 
-	/** Extends TScriptObjectWrapper by providing functionality required for types that may be passed along as an IReflectable shared pointer. */
+	/** Provides a base class for all script object wrappers that wrap an IReflectable object that may be passed as a shared pointer. */
+	class ScriptReflectableWrapper : public ScriptObjectWrapper
+	{
+	public:
+		using ScriptObjectWrapper::ScriptObjectWrapper;
+
+	private:
+		/** Returns the root base class of the wrapped native object as a shared pointer. */
+		virtual SPtr<IReflectable> GetBaseNativeObjectAsShared() const = 0;
+	};
+
+	/** Extends TScriptObjectWrapper by providing functionality required for wrapped native types that may be passed along as an IReflectable shared pointer. */
 	template<typename NativeType, typename SelfType>
-	class TScriptReflectableWrapper : public TScriptObjectWrapper<SelfType>
+	class TScriptReflectableWrapper : public TScriptObjectWrapper<SelfType, ScriptReflectableWrapper>
 	{
 	public:
 		TScriptReflectableWrapper(const SPtr<NativeType>& nativeObject, MonoObject* scriptObject)
@@ -23,10 +34,8 @@ namespace bs
 		/** Returns the wrapped native object as a shared pointer. */
 		const SPtr<NativeType>& GetNativeObjectAsShared() const { return mNativeObjectStrongHandle; }
 
-		u32 GetNativeObjectReferenceCount() const override
-		{
-			return (u32)mNativeObjectStrongHandle.use_count();
-		}
+		SPtr<IReflectable> GetBaseNativeObjectAsShared() const override { return GetNativeObjectAsShared(); }
+		u32 GetNativeObjectReferenceCount() const override { return (u32)mNativeObjectStrongHandle.use_count(); }
 
 		/**
 		 * Creates a new script object and a script object wrapper of @p SelfType, and associates them with the provided native object. Should not be called if @p nativeObject
