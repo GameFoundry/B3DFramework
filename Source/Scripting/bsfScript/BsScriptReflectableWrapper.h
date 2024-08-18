@@ -23,12 +23,12 @@ namespace bs
 	};
 
 	/** Extends TScriptObjectWrapper by providing functionality required for wrapped native types that may be passed along as an IReflectable shared pointer. */
-	template<typename NativeType, typename SelfType>
-	class TScriptReflectableWrapper : public TScriptObjectWrapper<SelfType, ScriptReflectableWrapper>
+	template<typename NativeType, typename SelfType, typename BaseType = ScriptReflectableWrapper>
+	class TScriptReflectableWrapper : public TScriptObjectWrapper<SelfType, BaseType>
 	{
 	public:
 		TScriptReflectableWrapper(const SPtr<NativeType>& nativeObject, MonoObject* scriptObject)
-			: TScriptObjectWrapper<SelfType, ScriptReflectableWrapper>(nativeObject.get(), scriptObject), mNativeObjectStrongHandle(nativeObject)
+			: TScriptObjectWrapper<SelfType, BaseType>(nativeObject.get(), scriptObject), mNativeObjectStrongHandle(nativeObject)
 		{ }
 
 		/** Returns the wrapped native object as a shared pointer. */
@@ -71,7 +71,7 @@ namespace bs
 		}
 
 	protected:
-		friend class TScriptObjectWrapper<SelfType, ScriptReflectableWrapper>;
+		friend class TScriptObjectWrapper<SelfType, BaseType>;
 
 		/** Initialize RTTI type ID and callback used to create the script object/script object wrapper. */
 		static void InitializeAdditionalMetaData(ScriptWrapperObjectMetaData& metaData)

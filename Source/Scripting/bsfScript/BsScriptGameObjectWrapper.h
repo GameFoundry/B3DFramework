@@ -26,12 +26,12 @@ namespace bs
 	};
 
 	/** Extends TScriptObjectWrapper by providing functionality required for types that may be passed along as a GameObject handle. */
-	template<typename NativeType, typename SelfType>
-	class TScriptGameObjectWrapper : public TScriptObjectWrapper<SelfType, ScriptGameObjectWrapper>
+	template<typename NativeType, typename SelfType, typename BaseType = ScriptGameObjectWrapper>
+	class TScriptGameObjectWrapper : public TScriptObjectWrapper<SelfType, BaseType>
 	{
 	public:
 		TScriptGameObjectWrapper(const GameObjectHandle<NativeType>& nativeObject, MonoObject* scriptObject)
-			: TScriptObjectWrapper<SelfType, ScriptGameObjectWrapper>(nativeObject.Get(), scriptObject), mNativeObjectStrongHandle(nativeObject)
+			: TScriptObjectWrapper<SelfType, BaseType>(nativeObject.Get(), scriptObject), mNativeObjectStrongHandle(nativeObject)
 		{ }
 
 		/** Returns the wrapped native object as a shared pointer. */
@@ -77,7 +77,7 @@ namespace bs
 		}
 
 	protected:
-		friend class TScriptObjectWrapper<SelfType, ScriptGameObjectWrapper>;
+		friend class TScriptObjectWrapper<SelfType, BaseType>;
 
 		/** Initialize RTTI type ID and callback used to create the script object/script object wrapper. */
 		static void InitializeAdditionalMetaData(ScriptWrapperObjectMetaData& metaData)
@@ -86,7 +86,7 @@ namespace bs
 			metaData.GameObjectCreateCallback = &CreateScriptObjectAndWrapper;
 		}
 
-		GameObjectHandle<NativeType> mNativeObjectStrongHandle; // TODO - Needs to be pulled out in a common base class
+		GameObjectHandle<NativeType> mNativeObjectStrongHandle;
 	};
 
 	/** @} */
