@@ -28,12 +28,12 @@ namespace bs
 		void ScriptUpdateFloatPropertiesInternal();
 		void ScriptOnEventTriggeredInternal(const TResourceHandle<AnimationClip>& p0, const String& p1);
 
-		typedef void(B3D_THUNKCALL *ScriptRebuildFloatPropertiesInternalThunkDef) (MonoObject*, MonoObject* p0, MonoException**);
-		static ScriptRebuildFloatPropertiesInternalThunkDef ScriptRebuildFloatPropertiesInternalThunk;
-		typedef void(B3D_THUNKCALL *ScriptUpdateFloatPropertiesInternalThunkDef) (MonoObject*, MonoException**);
-		static ScriptUpdateFloatPropertiesInternalThunkDef ScriptUpdateFloatPropertiesInternalThunk;
-		typedef void(B3D_THUNKCALL *ScriptOnEventTriggeredInternalThunkDef) (MonoObject*, MonoObject* p0, MonoString* p1, MonoException**);
-		static ScriptOnEventTriggeredInternalThunkDef ScriptOnEventTriggeredInternalThunk;
+		typedef void(B3D_THUNKCALL *ScriptRebuildFloatPropertiesInternalThunkDefinition) (MonoObject*, MonoObject* p0, MonoException**);
+		static ScriptRebuildFloatPropertiesInternalThunkDefinition ScriptRebuildFloatPropertiesInternalThunk;
+		typedef void(B3D_THUNKCALL *ScriptUpdateFloatPropertiesInternalThunkDefinition) (MonoObject*, MonoException**);
+		static ScriptUpdateFloatPropertiesInternalThunkDefinition ScriptUpdateFloatPropertiesInternalThunk;
+		typedef void(B3D_THUNKCALL *ScriptOnEventTriggeredInternalThunkDefinition) (MonoObject*, MonoObject* p0, MonoString* p1, MonoException**);
+		static ScriptOnEventTriggeredInternalThunkDefinition ScriptOnEventTriggeredInternalThunk;
 
 		static void InternalSetDefaultClip(ScriptAnimation* self, MonoObject* clip);
 		static MonoObject* InternalGetDefaultClip(ScriptAnimation* self);

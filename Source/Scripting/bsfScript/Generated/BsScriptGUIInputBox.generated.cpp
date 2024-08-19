@@ -11,8 +11,8 @@
 
 namespace bs
 {
-	ScriptGUIInputBox::OnValueChangedThunkDef ScriptGUIInputBox::OnValueChangedThunk; 
-	ScriptGUIInputBox::OnConfirmThunkDef ScriptGUIInputBox::OnConfirmThunk; 
+	ScriptGUIInputBox::OnValueChangedThunkDefinition ScriptGUIInputBox::OnValueChangedThunk; 
+	ScriptGUIInputBox::OnConfirmThunkDefinition ScriptGUIInputBox::OnConfirmThunk; 
 
 	ScriptGUIInputBox::ScriptGUIInputBox(MonoObject* managedInstance, GUIInputBox* value)
 		:TScriptGUIInteractable(managedInstance, value)
@@ -29,8 +29,8 @@ namespace bs
 		metaData.ScriptClass->AddInternalCall("Internal_Create1", (void*)&ScriptGUIInputBox::InternalCreate1);
 		metaData.ScriptClass->AddInternalCall("Internal_Create2", (void*)&ScriptGUIInputBox::InternalCreate2);
 
-		OnValueChangedThunk = (OnValueChangedThunkDef)metaData.ScriptClass->GetMethodExact("Internal_OnValueChanged", "string")->GetThunk();
-		OnConfirmThunk = (OnConfirmThunkDef)metaData.ScriptClass->GetMethodExact("Internal_OnConfirm", "")->GetThunk();
+		OnValueChangedThunk = (OnValueChangedThunkDefinition)metaData.ScriptClass->GetMethodExact("Internal_OnValueChanged", "string")->GetThunk();
+		OnConfirmThunk = (OnConfirmThunkDefinition)metaData.ScriptClass->GetMethodExact("Internal_OnConfirm", "")->GetThunk();
 	}
 
 	void ScriptGUIInputBox::OnValueChanged(const String& p0)

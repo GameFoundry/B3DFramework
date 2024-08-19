@@ -20,12 +20,12 @@ namespace bs
 		void OnCollisionStay(const CollisionData& p0);
 		void OnCollisionEnd(const CollisionData& p0);
 
-		typedef void(B3D_THUNKCALL *OnCollisionBeginThunkDef) (MonoObject*, MonoObject* p0, MonoException**);
-		static OnCollisionBeginThunkDef OnCollisionBeginThunk;
-		typedef void(B3D_THUNKCALL *OnCollisionStayThunkDef) (MonoObject*, MonoObject* p0, MonoException**);
-		static OnCollisionStayThunkDef OnCollisionStayThunk;
-		typedef void(B3D_THUNKCALL *OnCollisionEndThunkDef) (MonoObject*, MonoObject* p0, MonoException**);
-		static OnCollisionEndThunkDef OnCollisionEndThunk;
+		typedef void(B3D_THUNKCALL *OnCollisionBeginThunkDefinition) (MonoObject*, MonoObject* p0, MonoException**);
+		static OnCollisionBeginThunkDefinition OnCollisionBeginThunk;
+		typedef void(B3D_THUNKCALL *OnCollisionStayThunkDefinition) (MonoObject*, MonoObject* p0, MonoException**);
+		static OnCollisionStayThunkDefinition OnCollisionStayThunk;
+		typedef void(B3D_THUNKCALL *OnCollisionEndThunkDefinition) (MonoObject*, MonoObject* p0, MonoException**);
+		static OnCollisionEndThunkDefinition OnCollisionEndThunk;
 
 	};
 

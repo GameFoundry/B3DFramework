@@ -9,10 +9,10 @@
 
 namespace bs
 {
-	ScriptGUIClickableBase::OnClickThunkDef ScriptGUIClickableBase::OnClickThunk; 
-	ScriptGUIClickableBase::OnHoverThunkDef ScriptGUIClickableBase::OnHoverThunk; 
-	ScriptGUIClickableBase::OnOutThunkDef ScriptGUIClickableBase::OnOutThunk; 
-	ScriptGUIClickableBase::OnDoubleClickThunkDef ScriptGUIClickableBase::OnDoubleClickThunk; 
+	ScriptGUIClickableBase::OnClickThunkDefinition ScriptGUIClickableBase::OnClickThunk; 
+	ScriptGUIClickableBase::OnHoverThunkDefinition ScriptGUIClickableBase::OnHoverThunk; 
+	ScriptGUIClickableBase::OnOutThunkDefinition ScriptGUIClickableBase::OnOutThunk; 
+	ScriptGUIClickableBase::OnDoubleClickThunkDefinition ScriptGUIClickableBase::OnDoubleClickThunk; 
 
 	ScriptGUIClickableBase::ScriptGUIClickableBase(MonoObject* managedInstance)
 		:ScriptGUIInteractableBase(managedInstance)
@@ -55,10 +55,10 @@ namespace bs
 	{
 		metaData.ScriptClass->AddInternalCall("Internal_SetContent", (void*)&ScriptGUIClickable::InternalSetContent);
 
-		OnClickThunk = (OnClickThunkDef)metaData.ScriptClass->GetMethodExact("Internal_OnClick", "")->GetThunk();
-		OnHoverThunk = (OnHoverThunkDef)metaData.ScriptClass->GetMethodExact("Internal_OnHover", "")->GetThunk();
-		OnOutThunk = (OnOutThunkDef)metaData.ScriptClass->GetMethodExact("Internal_OnOut", "")->GetThunk();
-		OnDoubleClickThunk = (OnDoubleClickThunkDef)metaData.ScriptClass->GetMethodExact("Internal_OnDoubleClick", "")->GetThunk();
+		OnClickThunk = (OnClickThunkDefinition)metaData.ScriptClass->GetMethodExact("Internal_OnClick", "")->GetThunk();
+		OnHoverThunk = (OnHoverThunkDefinition)metaData.ScriptClass->GetMethodExact("Internal_OnHover", "")->GetThunk();
+		OnOutThunk = (OnOutThunkDefinition)metaData.ScriptClass->GetMethodExact("Internal_OnOut", "")->GetThunk();
+		OnDoubleClickThunk = (OnDoubleClickThunkDefinition)metaData.ScriptClass->GetMethodExact("Internal_OnDoubleClick", "")->GetThunk();
 	}
 
 	void ScriptGUIClickable::InternalSetContent(ScriptGUIElementBase* self, __GUIContentInterop* content)

@@ -16,8 +16,8 @@ namespace bs
 		void RegisterEvents(GUIElement* value) override;
 		void OnScrollOrResize(float p0, float p1);
 
-		typedef void(B3D_THUNKCALL *OnScrollOrResizeThunkDef) (MonoObject*, float p0, float p1, MonoException**);
-		static OnScrollOrResizeThunkDef OnScrollOrResizeThunk;
+		typedef void(B3D_THUNKCALL *OnScrollOrResizeThunkDefinition) (MonoObject*, float p0, float p1, MonoException**);
+		static OnScrollOrResizeThunkDefinition OnScrollOrResizeThunk;
 
 	};
 

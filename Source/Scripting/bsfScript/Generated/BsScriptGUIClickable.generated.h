@@ -21,14 +21,14 @@ namespace bs
 		void OnOut();
 		void OnDoubleClick();
 
-		typedef void(B3D_THUNKCALL *OnClickThunkDef) (MonoObject*, MonoException**);
-		static OnClickThunkDef OnClickThunk;
-		typedef void(B3D_THUNKCALL *OnHoverThunkDef) (MonoObject*, MonoException**);
-		static OnHoverThunkDef OnHoverThunk;
-		typedef void(B3D_THUNKCALL *OnOutThunkDef) (MonoObject*, MonoException**);
-		static OnOutThunkDef OnOutThunk;
-		typedef void(B3D_THUNKCALL *OnDoubleClickThunkDef) (MonoObject*, MonoException**);
-		static OnDoubleClickThunkDef OnDoubleClickThunk;
+		typedef void(B3D_THUNKCALL *OnClickThunkDefinition) (MonoObject*, MonoException**);
+		static OnClickThunkDefinition OnClickThunk;
+		typedef void(B3D_THUNKCALL *OnHoverThunkDefinition) (MonoObject*, MonoException**);
+		static OnHoverThunkDefinition OnHoverThunk;
+		typedef void(B3D_THUNKCALL *OnOutThunkDefinition) (MonoObject*, MonoException**);
+		static OnOutThunkDefinition OnOutThunk;
+		typedef void(B3D_THUNKCALL *OnDoubleClickThunkDefinition) (MonoObject*, MonoException**);
+		static OnDoubleClickThunkDefinition OnDoubleClickThunk;
 
 	};
 

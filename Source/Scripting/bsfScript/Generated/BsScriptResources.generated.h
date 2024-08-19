@@ -27,12 +27,12 @@ namespace bs
 		static void OnResourceDestroyed(const UUID& p0);
 		static void OnResourceModified(const TResourceHandle<Resource>& p0);
 
-		typedef void(B3D_THUNKCALL *OnResourceLoadedThunkDef) (MonoObject* p0, MonoException**);
-		static OnResourceLoadedThunkDef OnResourceLoadedThunk;
-		typedef void(B3D_THUNKCALL *OnResourceDestroyedThunkDef) (MonoObject* p0, MonoException**);
-		static OnResourceDestroyedThunkDef OnResourceDestroyedThunk;
-		typedef void(B3D_THUNKCALL *OnResourceModifiedThunkDef) (MonoObject* p0, MonoException**);
-		static OnResourceModifiedThunkDef OnResourceModifiedThunk;
+		typedef void(B3D_THUNKCALL *OnResourceLoadedThunkDefinition) (MonoObject* p0, MonoException**);
+		static OnResourceLoadedThunkDefinition OnResourceLoadedThunk;
+		typedef void(B3D_THUNKCALL *OnResourceDestroyedThunkDefinition) (MonoObject* p0, MonoException**);
+		static OnResourceDestroyedThunkDefinition OnResourceDestroyedThunk;
+		typedef void(B3D_THUNKCALL *OnResourceModifiedThunkDefinition) (MonoObject* p0, MonoException**);
+		static OnResourceModifiedThunkDefinition OnResourceModifiedThunk;
 
 		static HEvent OnResourceLoadedConn;
 		static HEvent OnResourceDestroyedConn;

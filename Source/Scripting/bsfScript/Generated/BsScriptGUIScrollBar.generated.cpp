@@ -8,7 +8,7 @@
 
 namespace bs
 {
-	ScriptGUIScrollBarBase::OnScrollOrResizeThunkDef ScriptGUIScrollBarBase::OnScrollOrResizeThunk; 
+	ScriptGUIScrollBarBase::OnScrollOrResizeThunkDefinition ScriptGUIScrollBarBase::OnScrollOrResizeThunk; 
 
 	ScriptGUIScrollBarBase::ScriptGUIScrollBarBase(MonoObject* managedInstance)
 		:ScriptGUIInteractableBase(managedInstance)
@@ -36,7 +36,7 @@ namespace bs
 		metaData.ScriptClass->AddInternalCall("Internal_SetScrollHandleSize", (void*)&ScriptGUIScrollBar::InternalSetScrollHandleSize);
 		metaData.ScriptClass->AddInternalCall("Internal_GetScrollHandleSize", (void*)&ScriptGUIScrollBar::InternalGetScrollHandleSize);
 
-		OnScrollOrResizeThunk = (OnScrollOrResizeThunkDef)metaData.ScriptClass->GetMethodExact("Internal_OnScrollOrResize", "single,single")->GetThunk();
+		OnScrollOrResizeThunk = (OnScrollOrResizeThunkDefinition)metaData.ScriptClass->GetMethodExact("Internal_OnScrollOrResize", "single,single")->GetThunk();
 	}
 
 	void ScriptGUIScrollBar::InternalSetScrollHandlePosition(ScriptGUIElementBase* self, float pct)

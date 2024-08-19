@@ -12,7 +12,7 @@
 
 namespace bs
 {
-	ScriptJointBase::OnJointBreakThunkDef ScriptJointBase::OnJointBreakThunk; 
+	ScriptJointBase::OnJointBreakThunkDefinition ScriptJointBase::OnJointBreakThunk; 
 
 	ScriptJointBase::ScriptJointBase(MonoObject* managedInstance)
 		:ScriptComponentBase(managedInstance)
@@ -43,7 +43,7 @@ namespace bs
 		metaData.ScriptClass->AddInternalCall("Internal_GetEnableCollision", (void*)&ScriptJoint::InternalGetEnableCollision);
 		metaData.ScriptClass->AddInternalCall("Internal_SetEnableCollision", (void*)&ScriptJoint::InternalSetEnableCollision);
 
-		OnJointBreakThunk = (OnJointBreakThunkDef)metaData.ScriptClass->GetMethodExact("Internal_OnJointBreak", "")->GetThunk();
+		OnJointBreakThunk = (OnJointBreakThunkDefinition)metaData.ScriptClass->GetMethodExact("Internal_OnJointBreak", "")->GetThunk();
 	}
 
 	MonoObject* ScriptJoint::InternalGetBody(ScriptJointBase* self, JointBody body)

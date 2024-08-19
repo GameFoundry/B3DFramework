@@ -22,10 +22,10 @@ namespace bs
 		void OnValueChanged(const String& p0);
 		void OnConfirm();
 
-		typedef void(B3D_THUNKCALL *OnValueChangedThunkDef) (MonoObject*, MonoString* p0, MonoException**);
-		static OnValueChangedThunkDef OnValueChangedThunk;
-		typedef void(B3D_THUNKCALL *OnConfirmThunkDef) (MonoObject*, MonoException**);
-		static OnConfirmThunkDef OnConfirmThunk;
+		typedef void(B3D_THUNKCALL *OnValueChangedThunkDefinition) (MonoObject*, MonoString* p0, MonoException**);
+		static OnValueChangedThunkDefinition OnValueChangedThunk;
+		typedef void(B3D_THUNKCALL *OnConfirmThunkDefinition) (MonoObject*, MonoException**);
+		static OnConfirmThunkDefinition OnConfirmThunk;
 
 		static void InternalSetText(ScriptGUIInputBox* self, MonoString* text);
 		static MonoString* InternalGetText(ScriptGUIInputBox* self);

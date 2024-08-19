@@ -28,10 +28,10 @@ namespace bs
 		void OnColliderHit(const ControllerColliderCollision& p0);
 		void OnControllerHit(const ControllerControllerCollision& p0);
 
-		typedef void(B3D_THUNKCALL *OnColliderHitThunkDef) (MonoObject*, MonoObject* p0, MonoException**);
-		static OnColliderHitThunkDef OnColliderHitThunk;
-		typedef void(B3D_THUNKCALL *OnControllerHitThunkDef) (MonoObject*, MonoObject* p0, MonoException**);
-		static OnControllerHitThunkDef OnControllerHitThunk;
+		typedef void(B3D_THUNKCALL *OnColliderHitThunkDefinition) (MonoObject*, MonoObject* p0, MonoException**);
+		static OnColliderHitThunkDefinition OnColliderHitThunk;
+		typedef void(B3D_THUNKCALL *OnControllerHitThunkDefinition) (MonoObject*, MonoObject* p0, MonoException**);
+		static OnControllerHitThunkDefinition OnControllerHitThunk;
 
 		static CharacterCollisionFlag InternalMove(ScriptCharacterController* self, TVector3<float>* displacement);
 		static void InternalGetFootPosition(ScriptCharacterController* self, TVector3<float>* __output);

@@ -309,7 +309,7 @@ namespace bs
 		*tmp__output = self->GetInternal()->Bloom;
 
 		MonoObject* __output;
-		__output = ScriptBloomSettings::Create(tmp__output);
+		__output = ScriptBloomSettings::GetOrCreateScriptObject(tmp__output);
 
 		return __output;
 	}
@@ -318,9 +318,9 @@ namespace bs
 	{
 		SPtr<BloomSettings> tmpvalue;
 		ScriptBloomSettings* scriptObjectWrappervalue;
-		scriptObjectWrappervalue = ScriptBloomSettings::ToNative(value);
+		scriptObjectWrappervalue = ScriptBloomSettings::GetScriptObjectWrapper(value);
 		if(scriptObjectWrappervalue != nullptr)
-			tmpvalue = scriptObjectWrappervalue->GetInternal();
+			tmpvalue = std::static_pointer_cast<BloomSettings>(scriptObjectWrappervalue->GetBaseNativeObjectAsShared());
 		self->GetInternal()->Bloom = *tmpvalue;
 	}
 

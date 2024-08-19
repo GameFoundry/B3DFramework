@@ -12,9 +12,9 @@
 namespace bs
 {
 #if !B3D_IS_ENGINE
-	ScriptResources::OnResourceLoadedThunkDef ScriptResources::OnResourceLoadedThunk; 
-	ScriptResources::OnResourceDestroyedThunkDef ScriptResources::OnResourceDestroyedThunk; 
-	ScriptResources::OnResourceModifiedThunkDef ScriptResources::OnResourceModifiedThunk; 
+	ScriptResources::OnResourceLoadedThunkDefinition ScriptResources::OnResourceLoadedThunk; 
+	ScriptResources::OnResourceDestroyedThunkDefinition ScriptResources::OnResourceDestroyedThunk; 
+	ScriptResources::OnResourceModifiedThunkDefinition ScriptResources::OnResourceModifiedThunk; 
 
 	HEvent ScriptResources::OnResourceLoadedConn;
 	HEvent ScriptResources::OnResourceDestroyedConn;
@@ -34,9 +34,9 @@ namespace bs
 		metaData.ScriptClass->AddInternalCall("Internal_IsLoaded", (void*)&ScriptResources::InternalIsLoaded);
 		metaData.ScriptClass->AddInternalCall("Internal_GetLoadProgress", (void*)&ScriptResources::InternalGetLoadProgress);
 
-		OnResourceLoadedThunk = (OnResourceLoadedThunkDef)metaData.ScriptClass->GetMethodExact("Internal_OnResourceLoaded", "RRefBase")->GetThunk();
-		OnResourceDestroyedThunk = (OnResourceDestroyedThunkDef)metaData.ScriptClass->GetMethodExact("Internal_OnResourceDestroyed", "UUID&")->GetThunk();
-		OnResourceModifiedThunk = (OnResourceModifiedThunkDef)metaData.ScriptClass->GetMethodExact("Internal_OnResourceModified", "RRefBase")->GetThunk();
+		OnResourceLoadedThunk = (OnResourceLoadedThunkDefinition)metaData.ScriptClass->GetMethodExact("Internal_OnResourceLoaded", "RRefBase")->GetThunk();
+		OnResourceDestroyedThunk = (OnResourceDestroyedThunkDefinition)metaData.ScriptClass->GetMethodExact("Internal_OnResourceDestroyed", "UUID&")->GetThunk();
+		OnResourceModifiedThunk = (OnResourceModifiedThunkDefinition)metaData.ScriptClass->GetMethodExact("Internal_OnResourceModified", "RRefBase")->GetThunk();
 	}
 
 	void ScriptResources::StartUp()

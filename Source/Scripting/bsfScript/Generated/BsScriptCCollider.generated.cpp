@@ -12,9 +12,9 @@
 
 namespace bs
 {
-	ScriptColliderBase::OnCollisionBeginThunkDef ScriptColliderBase::OnCollisionBeginThunk; 
-	ScriptColliderBase::OnCollisionStayThunkDef ScriptColliderBase::OnCollisionStayThunk; 
-	ScriptColliderBase::OnCollisionEndThunkDef ScriptColliderBase::OnCollisionEndThunk; 
+	ScriptColliderBase::OnCollisionBeginThunkDefinition ScriptColliderBase::OnCollisionBeginThunk; 
+	ScriptColliderBase::OnCollisionStayThunkDefinition ScriptColliderBase::OnCollisionStayThunk; 
+	ScriptColliderBase::OnCollisionEndThunkDefinition ScriptColliderBase::OnCollisionEndThunk; 
 
 	ScriptColliderBase::ScriptColliderBase(MonoObject* managedInstance)
 		:ScriptComponentBase(managedInstance)
@@ -72,9 +72,9 @@ namespace bs
 		metaData.ScriptClass->AddInternalCall("Internal_SetCollisionReportMode", (void*)&ScriptCollider::InternalSetCollisionReportMode);
 		metaData.ScriptClass->AddInternalCall("Internal_GetCollisionReportMode", (void*)&ScriptCollider::InternalGetCollisionReportMode);
 
-		OnCollisionBeginThunk = (OnCollisionBeginThunkDef)metaData.ScriptClass->GetMethodExact("Internal_OnCollisionBegin", "CollisionData&")->GetThunk();
-		OnCollisionStayThunk = (OnCollisionStayThunkDef)metaData.ScriptClass->GetMethodExact("Internal_OnCollisionStay", "CollisionData&")->GetThunk();
-		OnCollisionEndThunk = (OnCollisionEndThunkDef)metaData.ScriptClass->GetMethodExact("Internal_OnCollisionEnd", "CollisionData&")->GetThunk();
+		OnCollisionBeginThunk = (OnCollisionBeginThunkDefinition)metaData.ScriptClass->GetMethodExact("Internal_OnCollisionBegin", "CollisionData&")->GetThunk();
+		OnCollisionStayThunk = (OnCollisionStayThunkDefinition)metaData.ScriptClass->GetMethodExact("Internal_OnCollisionStay", "CollisionData&")->GetThunk();
+		OnCollisionEndThunk = (OnCollisionEndThunkDefinition)metaData.ScriptClass->GetMethodExact("Internal_OnCollisionEnd", "CollisionData&")->GetThunk();
 	}
 
 	void ScriptCollider::InternalSetIsTrigger(ScriptColliderBase* self, bool value)

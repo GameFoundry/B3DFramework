@@ -16,8 +16,8 @@ namespace bs
 		void RegisterEvents(GUIElement* value) override;
 		void OnChanged(float p0);
 
-		typedef void(B3D_THUNKCALL *OnChangedThunkDef) (MonoObject*, float p0, MonoException**);
-		static OnChangedThunkDef OnChangedThunk;
+		typedef void(B3D_THUNKCALL *OnChangedThunkDefinition) (MonoObject*, float p0, MonoException**);
+		static OnChangedThunkDefinition OnChangedThunk;
 
 	};
 

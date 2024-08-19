@@ -12,7 +12,7 @@
 
 namespace bs
 {
-	ScriptGUIListBox::OnSelectionToggledThunkDef ScriptGUIListBox::OnSelectionToggledThunk; 
+	ScriptGUIListBox::OnSelectionToggledThunkDefinition ScriptGUIListBox::OnSelectionToggledThunk; 
 
 	ScriptGUIListBox::ScriptGUIListBox(MonoObject* managedInstance, GUIListBox* value)
 		:TScriptGUIInteractable(managedInstance, value)
@@ -34,7 +34,7 @@ namespace bs
 		metaData.ScriptClass->AddInternalCall("Internal_Create1", (void*)&ScriptGUIListBox::InternalCreate1);
 		metaData.ScriptClass->AddInternalCall("Internal_Create2", (void*)&ScriptGUIListBox::InternalCreate2);
 
-		OnSelectionToggledThunk = (OnSelectionToggledThunkDef)metaData.ScriptClass->GetMethodExact("Internal_OnSelectionToggled", "int,bool")->GetThunk();
+		OnSelectionToggledThunk = (OnSelectionToggledThunkDefinition)metaData.ScriptClass->GetMethodExact("Internal_OnSelectionToggled", "int,bool")->GetThunk();
 	}
 
 	void ScriptGUIListBox::OnSelectionToggled(uint32_t p0, bool p1)

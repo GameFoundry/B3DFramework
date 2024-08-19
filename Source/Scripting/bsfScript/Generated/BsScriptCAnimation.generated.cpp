@@ -15,9 +15,9 @@
 
 namespace bs
 {
-	ScriptAnimation::ScriptRebuildFloatPropertiesInternalThunkDef ScriptAnimation::ScriptRebuildFloatPropertiesInternalThunk; 
-	ScriptAnimation::ScriptUpdateFloatPropertiesInternalThunkDef ScriptAnimation::ScriptUpdateFloatPropertiesInternalThunk; 
-	ScriptAnimation::ScriptOnEventTriggeredInternalThunkDef ScriptAnimation::ScriptOnEventTriggeredInternalThunk; 
+	ScriptAnimation::ScriptRebuildFloatPropertiesInternalThunkDefinition ScriptAnimation::ScriptRebuildFloatPropertiesInternalThunk; 
+	ScriptAnimation::ScriptUpdateFloatPropertiesInternalThunkDefinition ScriptAnimation::ScriptUpdateFloatPropertiesInternalThunk; 
+	ScriptAnimation::ScriptOnEventTriggeredInternalThunkDefinition ScriptAnimation::ScriptOnEventTriggeredInternalThunk; 
 
 	ScriptAnimation::ScriptAnimation(MonoObject* managedInstance, const GameObjectHandle<CAnimation>& value)
 		:TScriptComponent(managedInstance, value)
@@ -59,9 +59,9 @@ namespace bs
 		metaData.ScriptClass->AddInternalCall("Internal_GetGenericCurveValueInternal", (void*)&ScriptAnimation::InternalGetGenericCurveValueInternal);
 		metaData.ScriptClass->AddInternalCall("Internal_TogglePreviewModeInternal", (void*)&ScriptAnimation::InternalTogglePreviewModeInternal);
 
-		ScriptRebuildFloatPropertiesInternalThunk = (ScriptRebuildFloatPropertiesInternalThunkDef)metaData.ScriptClass->GetMethodExact("Internal_ScriptRebuildFloatPropertiesInternal", "RRef`1<AnimationClip>")->GetThunk();
-		ScriptUpdateFloatPropertiesInternalThunk = (ScriptUpdateFloatPropertiesInternalThunkDef)metaData.ScriptClass->GetMethodExact("Internal_ScriptUpdateFloatPropertiesInternal", "")->GetThunk();
-		ScriptOnEventTriggeredInternalThunk = (ScriptOnEventTriggeredInternalThunkDef)metaData.ScriptClass->GetMethodExact("Internal_ScriptOnEventTriggeredInternal", "RRef`1<AnimationClip>,string")->GetThunk();
+		ScriptRebuildFloatPropertiesInternalThunk = (ScriptRebuildFloatPropertiesInternalThunkDefinition)metaData.ScriptClass->GetMethodExact("Internal_ScriptRebuildFloatPropertiesInternal", "RRef`1<AnimationClip>")->GetThunk();
+		ScriptUpdateFloatPropertiesInternalThunk = (ScriptUpdateFloatPropertiesInternalThunkDefinition)metaData.ScriptClass->GetMethodExact("Internal_ScriptUpdateFloatPropertiesInternal", "")->GetThunk();
+		ScriptOnEventTriggeredInternalThunk = (ScriptOnEventTriggeredInternalThunkDefinition)metaData.ScriptClass->GetMethodExact("Internal_ScriptOnEventTriggeredInternal", "RRef`1<AnimationClip>,string")->GetThunk();
 	}
 
 	void ScriptAnimation::ScriptRebuildFloatPropertiesInternal(const TResourceHandle<AnimationClip>& p0)

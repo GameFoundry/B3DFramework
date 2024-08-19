@@ -8,50 +8,49 @@
 
 namespace bs
 {
-	ScriptBloomSettings::ScriptBloomSettings(MonoObject* managedInstance, const SPtr<BloomSettings>& value)
-		:TScriptReflectable(managedInstance, value)
+	ScriptBloomSettings::ScriptBloomSettings(const SPtr<BloomSettings>& nativeObject, MonoObject* scriptObject)
+		:TScriptReflectableWrapper(nativeObject, scriptObject)
 	{
 	}
 
-	void ScriptBloomSettings::InitRuntimeData()
+	void ScriptBloomSettings::SetupScriptBindings()
 	{
-		metaData.ScriptClass->AddInternalCall("Internal_BloomSettings", (void*)&ScriptBloomSettings::InternalBloomSettings);
-		metaData.ScriptClass->AddInternalCall("Internal_GetEnabled", (void*)&ScriptBloomSettings::InternalGetEnabled);
-		metaData.ScriptClass->AddInternalCall("Internal_SetEnabled", (void*)&ScriptBloomSettings::InternalSetEnabled);
-		metaData.ScriptClass->AddInternalCall("Internal_GetQuality", (void*)&ScriptBloomSettings::InternalGetQuality);
-		metaData.ScriptClass->AddInternalCall("Internal_SetQuality", (void*)&ScriptBloomSettings::InternalSetQuality);
-		metaData.ScriptClass->AddInternalCall("Internal_GetThreshold", (void*)&ScriptBloomSettings::InternalGetThreshold);
-		metaData.ScriptClass->AddInternalCall("Internal_SetThreshold", (void*)&ScriptBloomSettings::InternalSetThreshold);
-		metaData.ScriptClass->AddInternalCall("Internal_GetIntensity", (void*)&ScriptBloomSettings::InternalGetIntensity);
-		metaData.ScriptClass->AddInternalCall("Internal_SetIntensity", (void*)&ScriptBloomSettings::InternalSetIntensity);
-		metaData.ScriptClass->AddInternalCall("Internal_GetTint", (void*)&ScriptBloomSettings::InternalGetTint);
-		metaData.ScriptClass->AddInternalCall("Internal_SetTint", (void*)&ScriptBloomSettings::InternalSetTint);
-		metaData.ScriptClass->AddInternalCall("Internal_GetFilterSize", (void*)&ScriptBloomSettings::InternalGetFilterSize);
-		metaData.ScriptClass->AddInternalCall("Internal_SetFilterSize", (void*)&ScriptBloomSettings::InternalSetFilterSize);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_BloomSettings", (void*)&ScriptBloomSettings::InternalBloomSettings);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetEnabled", (void*)&ScriptBloomSettings::InternalGetEnabled);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetEnabled", (void*)&ScriptBloomSettings::InternalSetEnabled);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetQuality", (void*)&ScriptBloomSettings::InternalGetQuality);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetQuality", (void*)&ScriptBloomSettings::InternalSetQuality);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetThreshold", (void*)&ScriptBloomSettings::InternalGetThreshold);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetThreshold", (void*)&ScriptBloomSettings::InternalSetThreshold);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetIntensity", (void*)&ScriptBloomSettings::InternalGetIntensity);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetIntensity", (void*)&ScriptBloomSettings::InternalSetIntensity);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetTint", (void*)&ScriptBloomSettings::InternalGetTint);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetTint", (void*)&ScriptBloomSettings::InternalSetTint);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetFilterSize", (void*)&ScriptBloomSettings::InternalGetFilterSize);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetFilterSize", (void*)&ScriptBloomSettings::InternalSetFilterSize);
 
 	}
 
-	MonoObject* ScriptBloomSettings::Create(const SPtr<BloomSettings>& value)
+	MonoObject* ScriptBloomSettings::CreateScriptObject(bool construct)
 	{
-		if(value == nullptr) return nullptr; 
-
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
 
-		MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-		new (B3DAllocate<ScriptBloomSettings>()) ScriptBloomSettings(managedInstance, value);
-		return managedInstance;
+		if(construct)
+			return sInteropMetaData.ScriptClass->CreateInstance("bool", ctorParams);
+
+		return sInteropMetaData.ScriptClass->CreateInstance(false);
 	}
-	void ScriptBloomSettings::InternalBloomSettings(MonoObject* managedInstance)
+	void ScriptBloomSettings::InternalBloomSettings(MonoObject* scriptObject)
 	{
 		SPtr<BloomSettings> nativeObject = B3DMakeShared<BloomSettings>();
-		new (B3DAllocate<ScriptBloomSettings>())ScriptBloomSettings(managedInstance, nativeObject);
+		B3DNew<ScriptBloomSettings>(nativeObject, scriptObject);
 	}
 
 	bool ScriptBloomSettings::InternalGetEnabled(ScriptBloomSettings* self)
 	{
 		bool tmp__output;
-		tmp__output = self->GetInternal()->Enabled;
+		tmp__output = std::static_pointer_cast<BloomSettings>(self->GetBaseNativeObjectAsShared())->Enabled;
 
 		bool __output;
 		__output = tmp__output;
@@ -61,13 +60,13 @@ namespace bs
 
 	void ScriptBloomSettings::InternalSetEnabled(ScriptBloomSettings* self, bool value)
 	{
-		self->GetInternal()->Enabled = value;
+		std::static_pointer_cast<BloomSettings>(self->GetBaseNativeObjectAsShared())->Enabled = value;
 	}
 
 	uint32_t ScriptBloomSettings::InternalGetQuality(ScriptBloomSettings* self)
 	{
 		uint32_t tmp__output;
-		tmp__output = self->GetInternal()->Quality;
+		tmp__output = std::static_pointer_cast<BloomSettings>(self->GetBaseNativeObjectAsShared())->Quality;
 
 		uint32_t __output;
 		__output = tmp__output;
@@ -77,13 +76,13 @@ namespace bs
 
 	void ScriptBloomSettings::InternalSetQuality(ScriptBloomSettings* self, uint32_t value)
 	{
-		self->GetInternal()->Quality = value;
+		std::static_pointer_cast<BloomSettings>(self->GetBaseNativeObjectAsShared())->Quality = value;
 	}
 
 	float ScriptBloomSettings::InternalGetThreshold(ScriptBloomSettings* self)
 	{
 		float tmp__output;
-		tmp__output = self->GetInternal()->Threshold;
+		tmp__output = std::static_pointer_cast<BloomSettings>(self->GetBaseNativeObjectAsShared())->Threshold;
 
 		float __output;
 		__output = tmp__output;
@@ -93,13 +92,13 @@ namespace bs
 
 	void ScriptBloomSettings::InternalSetThreshold(ScriptBloomSettings* self, float value)
 	{
-		self->GetInternal()->Threshold = value;
+		std::static_pointer_cast<BloomSettings>(self->GetBaseNativeObjectAsShared())->Threshold = value;
 	}
 
 	float ScriptBloomSettings::InternalGetIntensity(ScriptBloomSettings* self)
 	{
 		float tmp__output;
-		tmp__output = self->GetInternal()->Intensity;
+		tmp__output = std::static_pointer_cast<BloomSettings>(self->GetBaseNativeObjectAsShared())->Intensity;
 
 		float __output;
 		__output = tmp__output;
@@ -109,13 +108,13 @@ namespace bs
 
 	void ScriptBloomSettings::InternalSetIntensity(ScriptBloomSettings* self, float value)
 	{
-		self->GetInternal()->Intensity = value;
+		std::static_pointer_cast<BloomSettings>(self->GetBaseNativeObjectAsShared())->Intensity = value;
 	}
 
 	void ScriptBloomSettings::InternalGetTint(ScriptBloomSettings* self, Color* __output)
 	{
 		Color tmp__output;
-		tmp__output = self->GetInternal()->Tint;
+		tmp__output = std::static_pointer_cast<BloomSettings>(self->GetBaseNativeObjectAsShared())->Tint;
 
 		*__output = tmp__output;
 
@@ -124,13 +123,13 @@ namespace bs
 
 	void ScriptBloomSettings::InternalSetTint(ScriptBloomSettings* self, Color* value)
 	{
-		self->GetInternal()->Tint = *value;
+		std::static_pointer_cast<BloomSettings>(self->GetBaseNativeObjectAsShared())->Tint = *value;
 	}
 
 	float ScriptBloomSettings::InternalGetFilterSize(ScriptBloomSettings* self)
 	{
 		float tmp__output;
-		tmp__output = self->GetInternal()->FilterSize;
+		tmp__output = std::static_pointer_cast<BloomSettings>(self->GetBaseNativeObjectAsShared())->FilterSize;
 
 		float __output;
 		__output = tmp__output;
@@ -140,6 +139,6 @@ namespace bs
 
 	void ScriptBloomSettings::InternalSetFilterSize(ScriptBloomSettings* self, float value)
 	{
-		self->GetInternal()->FilterSize = value;
+		std::static_pointer_cast<BloomSettings>(self->GetBaseNativeObjectAsShared())->FilterSize = value;
 	}
 }

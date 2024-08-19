@@ -11,9 +11,9 @@
 
 namespace bs
 {
-	ScriptRigidbody::OnCollisionBeginThunkDef ScriptRigidbody::OnCollisionBeginThunk; 
-	ScriptRigidbody::OnCollisionStayThunkDef ScriptRigidbody::OnCollisionStayThunk; 
-	ScriptRigidbody::OnCollisionEndThunkDef ScriptRigidbody::OnCollisionEndThunk; 
+	ScriptRigidbody::OnCollisionBeginThunkDefinition ScriptRigidbody::OnCollisionBeginThunk; 
+	ScriptRigidbody::OnCollisionStayThunkDefinition ScriptRigidbody::OnCollisionStayThunk; 
+	ScriptRigidbody::OnCollisionEndThunkDefinition ScriptRigidbody::OnCollisionEndThunk; 
 
 	ScriptRigidbody::ScriptRigidbody(MonoObject* managedInstance, const GameObjectHandle<CRigidbody>& value)
 		:TScriptComponent(managedInstance, value)
@@ -67,9 +67,9 @@ namespace bs
 		metaData.ScriptClass->AddInternalCall("Internal_AddForceAtPoint", (void*)&ScriptRigidbody::InternalAddForceAtPoint);
 		metaData.ScriptClass->AddInternalCall("Internal_GetVelocityAtPoint", (void*)&ScriptRigidbody::InternalGetVelocityAtPoint);
 
-		OnCollisionBeginThunk = (OnCollisionBeginThunkDef)metaData.ScriptClass->GetMethodExact("Internal_OnCollisionBegin", "CollisionData&")->GetThunk();
-		OnCollisionStayThunk = (OnCollisionStayThunkDef)metaData.ScriptClass->GetMethodExact("Internal_OnCollisionStay", "CollisionData&")->GetThunk();
-		OnCollisionEndThunk = (OnCollisionEndThunkDef)metaData.ScriptClass->GetMethodExact("Internal_OnCollisionEnd", "CollisionData&")->GetThunk();
+		OnCollisionBeginThunk = (OnCollisionBeginThunkDefinition)metaData.ScriptClass->GetMethodExact("Internal_OnCollisionBegin", "CollisionData&")->GetThunk();
+		OnCollisionStayThunk = (OnCollisionStayThunkDefinition)metaData.ScriptClass->GetMethodExact("Internal_OnCollisionStay", "CollisionData&")->GetThunk();
+		OnCollisionEndThunk = (OnCollisionEndThunkDefinition)metaData.ScriptClass->GetMethodExact("Internal_OnCollisionEnd", "CollisionData&")->GetThunk();
 	}
 
 	void ScriptRigidbody::OnCollisionBegin(const CollisionData& p0)

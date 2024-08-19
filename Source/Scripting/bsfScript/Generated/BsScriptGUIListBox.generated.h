@@ -24,8 +24,8 @@ namespace bs
 	private:
 		void OnSelectionToggled(uint32_t p0, bool p1);
 
-		typedef void(B3D_THUNKCALL *OnSelectionToggledThunkDef) (MonoObject*, uint32_t p0, bool p1, MonoException**);
-		static OnSelectionToggledThunkDef OnSelectionToggledThunk;
+		typedef void(B3D_THUNKCALL *OnSelectionToggledThunkDefinition) (MonoObject*, uint32_t p0, bool p1, MonoException**);
+		static OnSelectionToggledThunkDefinition OnSelectionToggledThunk;
 
 		static bool InternalIsMultiselect(ScriptGUIListBox* self);
 		static void InternalSetElements(ScriptGUIListBox* self, MonoArray* elements);

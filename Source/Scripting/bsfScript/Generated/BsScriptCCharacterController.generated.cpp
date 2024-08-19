@@ -11,8 +11,8 @@
 
 namespace bs
 {
-	ScriptCharacterController::OnColliderHitThunkDef ScriptCharacterController::OnColliderHitThunk; 
-	ScriptCharacterController::OnControllerHitThunkDef ScriptCharacterController::OnControllerHitThunk; 
+	ScriptCharacterController::OnColliderHitThunkDefinition ScriptCharacterController::OnColliderHitThunk; 
+	ScriptCharacterController::OnControllerHitThunkDefinition ScriptCharacterController::OnControllerHitThunk; 
 
 	ScriptCharacterController::ScriptCharacterController(MonoObject* managedInstance, const GameObjectHandle<CCharacterController>& value)
 		:TScriptComponent(managedInstance, value)
@@ -47,8 +47,8 @@ namespace bs
 		metaData.ScriptClass->AddInternalCall("Internal_GetLayer", (void*)&ScriptCharacterController::InternalGetLayer);
 		metaData.ScriptClass->AddInternalCall("Internal_SetLayer", (void*)&ScriptCharacterController::InternalSetLayer);
 
-		OnColliderHitThunk = (OnColliderHitThunkDef)metaData.ScriptClass->GetMethodExact("Internal_OnColliderHit", "ControllerColliderCollision&")->GetThunk();
-		OnControllerHitThunk = (OnControllerHitThunkDef)metaData.ScriptClass->GetMethodExact("Internal_OnControllerHit", "ControllerControllerCollision&")->GetThunk();
+		OnColliderHitThunk = (OnColliderHitThunkDefinition)metaData.ScriptClass->GetMethodExact("Internal_OnColliderHit", "ControllerColliderCollision&")->GetThunk();
+		OnControllerHitThunk = (OnControllerHitThunkDefinition)metaData.ScriptClass->GetMethodExact("Internal_OnControllerHit", "ControllerControllerCollision&")->GetThunk();
 	}
 
 	void ScriptCharacterController::OnColliderHit(const ControllerColliderCollision& p0)

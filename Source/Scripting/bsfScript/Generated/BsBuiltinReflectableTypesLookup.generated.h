@@ -18,8 +18,6 @@
 #include "BsScriptImportOptions.generated.h"
 #include "../../../Foundation/bsfCore/Particles/BsParticleEmitter.h"
 #include "BsScriptParticleEmitterStaticMeshShape.generated.h"
-#include "../../../Foundation/bsfCore/Renderer/BsRenderSettings.h"
-#include "BsScriptBloomSettings.generated.h"
 #include "../../../Foundation/bsfCore/Animation/BsMorphShapes.h"
 #include "BsScriptMorphShapes.generated.h"
 #include "../../../Foundation/bsfCore/Animation/BsMorphShapes.h"
@@ -152,7 +150,6 @@ namespace bs
 		ADD_ENTRY(ImportOptions, ScriptImportOptions)
 #endif
 		ADD_ENTRY(ParticleEmitterStaticMeshShape, ScriptParticleEmitterStaticMeshShape)
-		ADD_ENTRY(BloomSettings, ScriptBloomSettings)
 		ADD_ENTRY(MorphShapes, ScriptMorphShapes)
 		ADD_ENTRY(MorphShape, ScriptMorphShape)
 		ADD_ENTRY(MorphChannel, ScriptMorphChannel)

@@ -18,8 +18,8 @@ namespace bs
 		virtual ~ScriptJointBase() {}
 		void OnJointBreak();
 
-		typedef void(B3D_THUNKCALL *OnJointBreakThunkDef) (MonoObject*, MonoException**);
-		static OnJointBreakThunkDef OnJointBreakThunk;
+		typedef void(B3D_THUNKCALL *OnJointBreakThunkDefinition) (MonoObject*, MonoException**);
+		static OnJointBreakThunkDefinition OnJointBreakThunk;
 
 	};
 

@@ -8,7 +8,7 @@
 
 namespace bs
 {
-	ScriptGUIToggleableBase::OnToggledThunkDef ScriptGUIToggleableBase::OnToggledThunk; 
+	ScriptGUIToggleableBase::OnToggledThunkDefinition ScriptGUIToggleableBase::OnToggledThunk; 
 
 	ScriptGUIToggleableBase::ScriptGUIToggleableBase(MonoObject* managedInstance)
 		:ScriptGUIClickableBase(managedInstance)
@@ -34,7 +34,7 @@ namespace bs
 		metaData.ScriptClass->AddInternalCall("Internal_SetIsToggled", (void*)&ScriptGUIToggleable::InternalSetIsToggled);
 		metaData.ScriptClass->AddInternalCall("Internal_IsToggled", (void*)&ScriptGUIToggleable::InternalIsToggled);
 
-		OnToggledThunk = (OnToggledThunkDef)metaData.ScriptClass->GetMethodExact("Internal_OnToggled", "bool")->GetThunk();
+		OnToggledThunk = (OnToggledThunkDefinition)metaData.ScriptClass->GetMethodExact("Internal_OnToggled", "bool")->GetThunk();
 	}
 
 	void ScriptGUIToggleable::InternalSetIsToggled(ScriptGUIElementBase* self, bool isToggled)

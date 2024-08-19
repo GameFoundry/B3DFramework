@@ -8,7 +8,7 @@
 
 namespace bs
 {
-	ScriptGUISliderBase::OnChangedThunkDef ScriptGUISliderBase::OnChangedThunk; 
+	ScriptGUISliderBase::OnChangedThunkDefinition ScriptGUISliderBase::OnChangedThunk; 
 
 	ScriptGUISliderBase::ScriptGUISliderBase(MonoObject* managedInstance)
 		:ScriptGUIInteractableBase(managedInstance)
@@ -41,7 +41,7 @@ namespace bs
 		metaData.ScriptClass->AddInternalCall("Internal_SetStep", (void*)&ScriptGUISlider::InternalSetStep);
 		metaData.ScriptClass->AddInternalCall("Internal_GetStep", (void*)&ScriptGUISlider::InternalGetStep);
 
-		OnChangedThunk = (OnChangedThunkDef)metaData.ScriptClass->GetMethodExact("Internal_OnChanged", "single")->GetThunk();
+		OnChangedThunk = (OnChangedThunkDefinition)metaData.ScriptClass->GetMethodExact("Internal_OnChanged", "single")->GetThunk();
 	}
 
 	void ScriptGUISlider::InternalSetHandlePositionInPercent(ScriptGUIElementBase* self, float percent)

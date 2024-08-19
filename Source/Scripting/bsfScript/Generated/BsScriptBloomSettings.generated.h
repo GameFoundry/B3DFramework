@@ -3,24 +3,24 @@
 #pragma once
 
 #include "BsScriptEnginePrerequisites.h"
-#include "Wrappers/BsScriptReflectable.h"
+#include "BsScriptReflectableWrapper.h"
 #include "../../../Foundation/bsfCore/Renderer/BsRenderSettings.h"
 #include "Image/BsColor.h"
 
 namespace bs { struct BloomSettings; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptBloomSettings : public TScriptReflectable<ScriptBloomSettings, BloomSettings>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptBloomSettings : public TScriptReflectableWrapper<BloomSettings, ScriptBloomSettings>
 	{
 	public:
-		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "BloomSettings")
+		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "BloomSettings")
 
-		ScriptBloomSettings(MonoObject* managedInstance, const SPtr<BloomSettings>& value);
+		ScriptBloomSettings(const SPtr<BloomSettings>& nativeObject, MonoObject* scriptObject);
 
-		static MonoObject* Create(const SPtr<BloomSettings>& value);
+		static MonoObject* CreateScriptObject(bool construct);
 
 	private:
-		static void InternalBloomSettings(MonoObject* managedInstance);
+		static void InternalBloomSettings(MonoObject* scriptObject);
 		static bool InternalGetEnabled(ScriptBloomSettings* self);
 		static void InternalSetEnabled(ScriptBloomSettings* self, bool value);
 		static uint32_t InternalGetQuality(ScriptBloomSettings* self);
