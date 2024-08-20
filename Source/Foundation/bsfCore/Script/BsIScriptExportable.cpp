@@ -6,6 +6,31 @@
 
 using namespace bs;
 
+IScriptExportable::IScriptExportable(const IScriptExportable& other)
+{
+	// Do nothing
+}
+
+IScriptExportable::IScriptExportable(IScriptExportable&& other)
+{
+	mScriptObjectWrapper = std::exchange(other.mScriptObjectWrapper, nullptr);
+}
+
+IScriptExportable& IScriptExportable::operator=(const IScriptExportable& other)
+{
+	if(this == &other)
+		return *this;
+
+	mScriptObjectWrapper = nullptr;
+	return *this;
+}
+
+IScriptExportable& IScriptExportable::operator=(IScriptExportable&& other)
+{
+	mScriptObjectWrapper = std::exchange(other.mScriptObjectWrapper, nullptr);
+	return *this;
+}
+
 IScriptExportable::~IScriptExportable()
 {
 	if(mScriptObjectWrapper != nullptr)

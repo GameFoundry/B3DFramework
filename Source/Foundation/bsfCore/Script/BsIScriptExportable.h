@@ -19,7 +19,15 @@ namespace bs
 	class B3D_CORE_EXPORT IScriptExportable
 	{
 	public:
+		IScriptExportable() = default;
+
+		IScriptExportable(const IScriptExportable& other);
+		IScriptExportable(IScriptExportable&& other);
+
 		virtual ~IScriptExportable();
+
+		IScriptExportable& operator=(const IScriptExportable& other);
+		IScriptExportable& operator=(IScriptExportable&& other);
 
 		/**
 		 * Returns the script object wrapper associated with this object. This will be null if the object was never passed to script world, or if was passed
