@@ -4,6 +4,7 @@
 
 #include "BsCorePrerequisites.h"
 #include "Animation/BsAnimationCurve.h"
+#include "Script/BsIScriptExportable.h"
 
 namespace bs
 {
@@ -88,7 +89,7 @@ namespace bs
 	};
 
 	/** Helper class for dealing with animations, animation clips and curves. */
-	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Animation)) AnimationUtility
+	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Animation)) AnimationUtility : public IScriptExportable
 	{
 	public:
 		/**

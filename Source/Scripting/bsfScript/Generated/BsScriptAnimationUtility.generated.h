@@ -3,25 +3,22 @@
 #pragma once
 
 #include "BsScriptEnginePrerequisites.h"
-#include "BsScriptObject.h"
+#include "BsScriptNonReflectableWrapper.h"
 #include "../../../Foundation/bsfUtility/Prerequisites/BsFwdDeclUtil.h"
 
 namespace bs { class AnimationUtility; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptAnimationUtility : public ScriptObject<ScriptAnimationUtility>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptAnimationUtility : public TScriptNonReflectableWrapper<AnimationUtility, ScriptAnimationUtility>
 	{
 	public:
-		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "AnimationUtility")
+		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "AnimationUtility")
 
-		ScriptAnimationUtility(MonoObject* managedInstance, const SPtr<AnimationUtility>& value);
+		ScriptAnimationUtility(const SPtr<AnimationUtility>& nativeObject, MonoObject* scriptObject);
 
-		SPtr<AnimationUtility> GetInternal() const { return mInternal; }
-		static MonoObject* Create(const SPtr<AnimationUtility>& value);
+		static MonoObject* CreateScriptObject(bool construct);
 
 	private:
-		SPtr<AnimationUtility> mInternal;
-
 		static MonoObject* InternalEulerToQuaternionCurve(MonoObject* eulerCurve, EulerAngleOrder order);
 		static MonoObject* InternalQuaternionToEulerCurve(MonoObject* quatCurve);
 		static MonoArray* InternalSplitCurve3D(MonoObject* compoundCurve);

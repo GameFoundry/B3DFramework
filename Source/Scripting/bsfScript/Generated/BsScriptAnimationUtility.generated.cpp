@@ -12,33 +12,32 @@
 
 namespace bs
 {
-	ScriptAnimationUtility::ScriptAnimationUtility(MonoObject* managedInstance, const SPtr<AnimationUtility>& value)
-		:ScriptObject(managedInstance), mInternal(value)
+	ScriptAnimationUtility::ScriptAnimationUtility(const SPtr<AnimationUtility>& nativeObject, MonoObject* scriptObject)
+		:TScriptNonReflectableWrapper(nativeObject, scriptObject)
 	{
 	}
 
-	void ScriptAnimationUtility::InitRuntimeData()
+	void ScriptAnimationUtility::SetupScriptBindings()
 	{
-		metaData.ScriptClass->AddInternalCall("Internal_EulerToQuaternionCurve", (void*)&ScriptAnimationUtility::InternalEulerToQuaternionCurve);
-		metaData.ScriptClass->AddInternalCall("Internal_QuaternionToEulerCurve", (void*)&ScriptAnimationUtility::InternalQuaternionToEulerCurve);
-		metaData.ScriptClass->AddInternalCall("Internal_SplitCurve3D", (void*)&ScriptAnimationUtility::InternalSplitCurve3D);
-		metaData.ScriptClass->AddInternalCall("Internal_CombineCurve3D", (void*)&ScriptAnimationUtility::InternalCombineCurve3D);
-		metaData.ScriptClass->AddInternalCall("Internal_SplitCurve2D", (void*)&ScriptAnimationUtility::InternalSplitCurve2D);
-		metaData.ScriptClass->AddInternalCall("Internal_CombineCurve2D", (void*)&ScriptAnimationUtility::InternalCombineCurve2D);
-		metaData.ScriptClass->AddInternalCall("Internal_CalculateRange", (void*)&ScriptAnimationUtility::InternalCalculateRange);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_EulerToQuaternionCurve", (void*)&ScriptAnimationUtility::InternalEulerToQuaternionCurve);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_QuaternionToEulerCurve", (void*)&ScriptAnimationUtility::InternalQuaternionToEulerCurve);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SplitCurve3D", (void*)&ScriptAnimationUtility::InternalSplitCurve3D);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_CombineCurve3D", (void*)&ScriptAnimationUtility::InternalCombineCurve3D);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SplitCurve2D", (void*)&ScriptAnimationUtility::InternalSplitCurve2D);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_CombineCurve2D", (void*)&ScriptAnimationUtility::InternalCombineCurve2D);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_CalculateRange", (void*)&ScriptAnimationUtility::InternalCalculateRange);
 
 	}
 
-	MonoObject* ScriptAnimationUtility::Create(const SPtr<AnimationUtility>& value)
+	MonoObject* ScriptAnimationUtility::CreateScriptObject(bool construct)
 	{
-		if(value == nullptr) return nullptr; 
-
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
 
-		MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-		new (B3DAllocate<ScriptAnimationUtility>()) ScriptAnimationUtility(managedInstance, value);
-		return managedInstance;
+		if(construct)
+			return sInteropMetaData.ScriptClass->CreateInstance("bool", ctorParams);
+
+		return sInteropMetaData.ScriptClass->CreateInstance(false);
 	}
 	MonoObject* ScriptAnimationUtility::InternalEulerToQuaternionCurve(MonoObject* eulerCurve, EulerAngleOrder order)
 	{
