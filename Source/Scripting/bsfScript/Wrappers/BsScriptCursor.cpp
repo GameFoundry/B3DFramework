@@ -73,11 +73,11 @@ void ScriptCursor::InternalSetCursorIconStr(MonoString* name, MonoObject* iconDa
 {
 	String nameStr = MonoUtil::MonoToString(name);
 
-	ScriptPixelData* scriptPixelData = ScriptPixelData::ToNative(iconData);
+	ScriptPixelData* scriptPixelData = ScriptPixelData::GetScriptObjectWrapper(iconData);
 
 	if(scriptPixelData != nullptr)
 	{
-		SPtr<PixelData> pixelData = scriptPixelData->GetInternal();
+		SPtr<PixelData> pixelData = scriptPixelData->GetNativeObjectAsShared();
 		Cursor::Instance().SetCursorIcon(nameStr, *pixelData, *hotspot);
 	}
 	else
@@ -86,11 +86,11 @@ void ScriptCursor::InternalSetCursorIconStr(MonoString* name, MonoObject* iconDa
 
 void ScriptCursor::InternalSetCursorIcon(CursorType cursor, MonoObject* iconData, Vector2I* hotspot)
 {
-	ScriptPixelData* scriptPixelData = ScriptPixelData::ToNative(iconData);
+	ScriptPixelData* scriptPixelData = ScriptPixelData::GetScriptObjectWrapper(iconData);
 
 	if(scriptPixelData != nullptr)
 	{
-		SPtr<PixelData> pixelData = scriptPixelData->GetInternal();
+		SPtr<PixelData> pixelData = scriptPixelData->GetNativeObjectAsShared();
 		Cursor::Instance().SetCursorIcon(cursor, *pixelData, *hotspot);
 	}
 	else

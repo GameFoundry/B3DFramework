@@ -62,7 +62,7 @@ namespace bs
 		{
 			SPtr<PixelData> nativeObject = AnyCast<SPtr<PixelData>>(returnValue);
 			MonoObject* scriptObject;
-			scriptObject = ScriptPixelData::Create(nativeObject);
+			scriptObject = ScriptPixelData::GetOrCreateScriptObject(nativeObject);
 			return scriptObject;
 		};
 
@@ -182,7 +182,7 @@ namespace bs
 		tmp__output = TextureEx::GetPixels(self->GetHandle(), face, mipLevel);
 
 		MonoObject* __output;
-		__output = ScriptPixelData::Create(tmp__output);
+		__output = ScriptPixelData::GetOrCreateScriptObject(tmp__output);
 
 		return __output;
 	}
@@ -191,9 +191,9 @@ namespace bs
 	{
 		SPtr<PixelData> tmpdata;
 		ScriptPixelData* scriptObjectWrapperdata;
-		scriptObjectWrapperdata = ScriptPixelData::ToNative(data);
+		scriptObjectWrapperdata = ScriptPixelData::GetScriptObjectWrapper(data);
 		if(scriptObjectWrapperdata != nullptr)
-			tmpdata = scriptObjectWrapperdata->GetInternal();
+			tmpdata = std::static_pointer_cast<PixelData>(scriptObjectWrapperdata->GetBaseNativeObjectAsShared());
 		TextureEx::SetPixels(self->GetHandle(), tmpdata, face, mipLevel);
 	}
 

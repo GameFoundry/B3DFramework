@@ -4,13 +4,10 @@
 
 #include "Serialization/BsBuiltinReflectableTypesLookup.h"
 #include "Reflection/BsRTTIType.h"
-#include "../../../Foundation/bsfCore/Image/BsPixelData.h"
-#include "BsScriptPixelData.generated.h"
 
 namespace bs
 {
 	LOOKUP_BEGIN(BuiltinReflectableTypes)
-		ADD_ENTRY(PixelData, ScriptPixelData)
 	LOOKUP_END
 }
 #undef LOOKUP_BEGIN
