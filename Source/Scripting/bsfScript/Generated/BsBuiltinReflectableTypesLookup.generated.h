@@ -8,8 +8,6 @@
 #include "BsScriptSkeleton.generated.h"
 #include "../../../Foundation/bsfCore/Renderer/BsRenderSettings.h"
 #include "BsScriptMotionBlurSettings.generated.h"
-#include "../../../Foundation/bsfCore/Particles/BsParticleEvolver.h"
-#include "BsScriptParticleEvolver.generated.h"
 #include "../../../Foundation/bsfCore/RenderAPI/BsRenderTexture.h"
 #include "BsScriptRenderTexture.generated.h"
 #if !B3D_IS_ENGINE
@@ -34,8 +32,6 @@
 #include "BsScriptPixelData.generated.h"
 #include "../../../Foundation/bsfCore/RenderAPI/BsRenderTarget.h"
 #include "BsScriptRenderTarget.generated.h"
-#include "../../../Foundation/bsfCore/Particles/BsParticleEvolver.h"
-#include "BsScriptParticleGravity.generated.h"
 #include "../../../Foundation/bsfCore/Renderer/BsRenderSettings.h"
 #include "BsScriptScreenSpaceLensFlareSettings.generated.h"
 #include "../../../Foundation/bsfCore/Renderer/BsRenderSettings.h"
@@ -72,24 +68,8 @@
 #include "BsScriptShadowSettings.generated.h"
 #include "../../../Foundation/bsfCore/Renderer/BsRenderSettings.h"
 #include "BsScriptRenderSettings.generated.h"
-#include "../../../Foundation/bsfCore/Particles/BsParticleEvolver.h"
-#include "BsScriptParticleForce.generated.h"
 #include "../../../Foundation/bsfCore/Particles/BsParticleEmitter.h"
 #include "BsScriptParticleEmitterCircleShape.generated.h"
-#include "../../../Foundation/bsfCore/Particles/BsParticleEvolver.h"
-#include "BsScriptParticleVelocity.generated.h"
-#include "../../../Foundation/bsfCore/Particles/BsParticleEvolver.h"
-#include "BsScriptParticleTextureAnimation.generated.h"
-#include "../../../Foundation/bsfCore/Particles/BsParticleEvolver.h"
-#include "BsScriptParticleOrbit.generated.h"
-#include "../../../Foundation/bsfCore/Particles/BsParticleEvolver.h"
-#include "BsScriptParticleColor.generated.h"
-#include "../../../Foundation/bsfCore/Particles/BsParticleEvolver.h"
-#include "BsScriptParticleSize.generated.h"
-#include "../../../Foundation/bsfCore/Particles/BsParticleEvolver.h"
-#include "BsScriptParticleRotation.generated.h"
-#include "../../../Foundation/bsfCore/Particles/BsParticleEvolver.h"
-#include "BsScriptParticleCollisions.generated.h"
 #include "../../../Foundation/bsfCore/Particles/BsParticleEmitter.h"
 #include "BsScriptParticleEmitterShape.generated.h"
 #include "../../../Foundation/bsfCore/Particles/BsParticleEmitter.h"
@@ -106,8 +86,6 @@
 #include "BsScriptParticleEmitterRectShape.generated.h"
 #include "../../../Foundation/bsfCore/Particles/BsParticleEmitter.h"
 #include "BsScriptParticleEmitterSkinnedMeshShape.generated.h"
-#include "../../../Foundation/bsfCore/Particles/BsParticleEmitter.h"
-#include "BsScriptParticleEmitter.generated.h"
 #include "../../../Foundation/bsfCore/Particles/BsParticleSystem.h"
 #include "BsScriptParticleDepthCollisionSettings.generated.h"
 #include "../../../Foundation/bsfCore/Particles/BsParticleSystem.h"
@@ -142,7 +120,6 @@ namespace bs
 	LOOKUP_BEGIN(BuiltinReflectableTypes)
 		ADD_ENTRY(Skeleton, ScriptSkeleton)
 		ADD_ENTRY(MotionBlurSettings, ScriptMotionBlurSettings)
-		ADD_ENTRY(ParticleEvolver, ScriptParticleEvolver)
 		ADD_ENTRY(RenderTexture, ScriptRenderTexture)
 #if !B3D_IS_ENGINE
 		ADD_ENTRY(ImportOptions, ScriptImportOptions)
@@ -157,7 +134,6 @@ namespace bs
 #endif
 		ADD_ENTRY(PixelData, ScriptPixelData)
 		ADD_ENTRY(RenderTarget, ScriptRenderTarget)
-		ADD_ENTRY(ParticleGravity, ScriptParticleGravity)
 		ADD_ENTRY(ScreenSpaceLensFlareSettings, ScriptScreenSpaceLensFlareSettings)
 		ADD_ENTRY(AutoExposureSettings, ScriptAutoExposureSettings)
 		ADD_ENTRY(TonemappingSettings, ScriptTonemappingSettings)
@@ -179,15 +155,7 @@ namespace bs
 		ADD_ENTRY(FilmGrainSettings, ScriptFilmGrainSettings)
 		ADD_ENTRY(ShadowSettings, ScriptShadowSettings)
 		ADD_ENTRY(RenderSettings, ScriptRenderSettings)
-		ADD_ENTRY(ParticleForce, ScriptParticleForce)
 		ADD_ENTRY(ParticleEmitterCircleShape, ScriptParticleEmitterCircleShape)
-		ADD_ENTRY(ParticleVelocity, ScriptParticleVelocity)
-		ADD_ENTRY(ParticleTextureAnimation, ScriptParticleTextureAnimation)
-		ADD_ENTRY(ParticleOrbit, ScriptParticleOrbit)
-		ADD_ENTRY(ParticleColor, ScriptParticleColor)
-		ADD_ENTRY(ParticleSize, ScriptParticleSize)
-		ADD_ENTRY(ParticleRotation, ScriptParticleRotation)
-		ADD_ENTRY(ParticleCollisions, ScriptParticleCollisions)
 		ADD_ENTRY(ParticleEmitterShape, ScriptParticleEmitterShape)
 		ADD_ENTRY(ParticleEmitterConeShape, ScriptParticleEmitterConeShape)
 		ADD_ENTRY(ParticleEmitterSphereShape, ScriptParticleEmitterSphereShape)
@@ -196,7 +164,6 @@ namespace bs
 		ADD_ENTRY(ParticleEmitterLineShape, ScriptParticleEmitterLineShape)
 		ADD_ENTRY(ParticleEmitterRectShape, ScriptParticleEmitterRectShape)
 		ADD_ENTRY(ParticleEmitterSkinnedMeshShape, ScriptParticleEmitterSkinnedMeshShape)
-		ADD_ENTRY(ParticleEmitter, ScriptParticleEmitter)
 		ADD_ENTRY(ParticleDepthCollisionSettings, ScriptParticleDepthCollisionSettings)
 		ADD_ENTRY(ParticleVectorFieldSettings, ScriptParticleVectorFieldSettings)
 		ADD_ENTRY(ParticleSystemSettings, ScriptParticleSystemSettings)

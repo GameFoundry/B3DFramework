@@ -3,7 +3,7 @@
 #pragma once
 
 #include "BsScriptEnginePrerequisites.h"
-#include "Wrappers/BsScriptReflectable.h"
+#include "BsScriptReflectableWrapper.h"
 #include "BsScriptParticleEvolver.generated.h"
 #include "../../../Foundation/bsfCore/Particles/BsParticleEvolver.h"
 #include "../../../Foundation/bsfCore/Particles/BsParticleEvolver.h"
@@ -12,19 +12,19 @@ namespace bs { class ParticleVelocity; }
 namespace bs { struct __PARTICLE_VELOCITY_DESCInterop; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleVelocity : public TScriptReflectable<ScriptParticleVelocity, ParticleVelocity, ScriptParticleEvolverBase>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleVelocity : public TScriptReflectableWrapper<ParticleVelocity, ScriptParticleVelocity>
 	{
 	public:
-		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "ParticleVelocity")
+		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "ParticleVelocity")
 
-		ScriptParticleVelocity(MonoObject* managedInstance, const SPtr<ParticleVelocity>& value);
+		ScriptParticleVelocity(const SPtr<ParticleVelocity>& nativeObject, MonoObject* scriptObject);
 
-		static MonoObject* Create(const SPtr<ParticleVelocity>& value);
+		static MonoObject* CreateScriptObject(bool construct);
 
 	private:
 		static void InternalSetOptions(ScriptParticleVelocity* self, __PARTICLE_VELOCITY_DESCInterop* options);
 		static void InternalGetOptions(ScriptParticleVelocity* self, __PARTICLE_VELOCITY_DESCInterop* __output);
-		static void InternalCreate(MonoObject* managedInstance, __PARTICLE_VELOCITY_DESCInterop* desc);
-		static void InternalCreate0(MonoObject* managedInstance);
+		static void InternalCreate(MonoObject* scriptObject, __PARTICLE_VELOCITY_DESCInterop* desc);
+		static void InternalCreate0(MonoObject* scriptObject);
 	};
 }

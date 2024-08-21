@@ -17,7 +17,6 @@ namespace bs
 	public:
 		using ScriptObjectWrapper::ScriptObjectWrapper;
 
-	private:
 		/** Returns the root base class of the wrapped native object as a shared pointer. */
 		virtual SPtr<GameObject> GetBaseNativeObjectAsShared() const = 0;
 

@@ -9,60 +9,58 @@
 
 namespace bs
 {
-	ScriptParticleVelocity::ScriptParticleVelocity(MonoObject* managedInstance, const SPtr<ParticleVelocity>& value)
-		:TScriptReflectable(managedInstance, value)
+	ScriptParticleVelocity::ScriptParticleVelocity(const SPtr<ParticleVelocity>& nativeObject, MonoObject* scriptObject)
+		:TScriptReflectableWrapper(nativeObject, scriptObject)
 	{
-		mInternal = value;
 	}
 
-	void ScriptParticleVelocity::InitRuntimeData()
+	void ScriptParticleVelocity::SetupScriptBindings()
 	{
-		metaData.ScriptClass->AddInternalCall("Internal_SetOptions", (void*)&ScriptParticleVelocity::InternalSetOptions);
-		metaData.ScriptClass->AddInternalCall("Internal_GetOptions", (void*)&ScriptParticleVelocity::InternalGetOptions);
-		metaData.ScriptClass->AddInternalCall("Internal_Create", (void*)&ScriptParticleVelocity::InternalCreate);
-		metaData.ScriptClass->AddInternalCall("Internal_Create0", (void*)&ScriptParticleVelocity::InternalCreate0);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetOptions", (void*)&ScriptParticleVelocity::InternalSetOptions);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetOptions", (void*)&ScriptParticleVelocity::InternalGetOptions);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_Create", (void*)&ScriptParticleVelocity::InternalCreate);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_Create0", (void*)&ScriptParticleVelocity::InternalCreate0);
 
 	}
 
-	MonoObject* ScriptParticleVelocity::Create(const SPtr<ParticleVelocity>& value)
+	MonoObject* ScriptParticleVelocity::CreateScriptObject(bool construct)
 	{
-		if(value == nullptr) return nullptr; 
-
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
 
-		MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-		new (B3DAllocate<ScriptParticleVelocity>()) ScriptParticleVelocity(managedInstance, value);
-		return managedInstance;
+		if(construct)
+			return sInteropMetaData.ScriptClass->CreateInstance("bool", ctorParams);
+
+		return sInteropMetaData.ScriptClass->CreateInstance(false);
 	}
 	void ScriptParticleVelocity::InternalSetOptions(ScriptParticleVelocity* self, __PARTICLE_VELOCITY_DESCInterop* options)
 	{
 		PARTICLE_VELOCITY_DESC tmpoptions;
 		tmpoptions = ScriptParticleVelocityOptions::FromInterop(*options);
-		self->GetInternal()->SetOptions(tmpoptions);
+		static_cast<ParticleVelocity*>(self->GetNativeObject())->SetOptions(tmpoptions);
 	}
 
 	void ScriptParticleVelocity::InternalGetOptions(ScriptParticleVelocity* self, __PARTICLE_VELOCITY_DESCInterop* __output)
 	{
 		PARTICLE_VELOCITY_DESC tmp__output;
-		tmp__output = self->GetInternal()->GetOptions();
+		tmp__output = static_cast<ParticleVelocity*>(self->GetNativeObject())->GetOptions();
 
 		__PARTICLE_VELOCITY_DESCInterop interop__output;
 		interop__output = ScriptParticleVelocityOptions::ToInterop(tmp__output);
 		MonoUtil::ValueCopy(__output, &interop__output, ScriptParticleVelocityOptions::GetMetaData()->ScriptClass->GetInternalClass());
 	}
 
-	void ScriptParticleVelocity::InternalCreate(MonoObject* managedInstance, __PARTICLE_VELOCITY_DESCInterop* desc)
+	void ScriptParticleVelocity::InternalCreate(MonoObject* scriptObject, __PARTICLE_VELOCITY_DESCInterop* desc)
 	{
 		PARTICLE_VELOCITY_DESC tmpdesc;
 		tmpdesc = ScriptParticleVelocityOptions::FromInterop(*desc);
 		SPtr<ParticleVelocity> nativeObject = ParticleVelocity::Create(tmpdesc);
-		new (B3DAllocate<ScriptParticleVelocity>())ScriptParticleVelocity(managedInstance, nativeObject);
+		B3DNew<ScriptParticleVelocity>(nativeObject, scriptObject);
 	}
 
-	void ScriptParticleVelocity::InternalCreate0(MonoObject* managedInstance)
+	void ScriptParticleVelocity::InternalCreate0(MonoObject* scriptObject)
 	{
 		SPtr<ParticleVelocity> nativeObject = ParticleVelocity::Create();
-		new (B3DAllocate<ScriptParticleVelocity>())ScriptParticleVelocity(managedInstance, nativeObject);
+		B3DNew<ScriptParticleVelocity>(nativeObject, scriptObject);
 	}
 }

@@ -104,10 +104,10 @@ namespace bs
 			for(int elementIndex = 0; elementIndex < (int)scriptArrayemitters.Size(); elementIndex++)
 			{
 				ScriptParticleEmitter* scriptObjectWrapperemitters;
-				scriptObjectWrapperemitters = ScriptParticleEmitter::ToNative(scriptArrayemitters.Get<MonoObject*>(elementIndex));
+				scriptObjectWrapperemitters = ScriptParticleEmitter::GetScriptObjectWrapper(scriptArrayemitters.Get<MonoObject*>(elementIndex));
 				if(scriptObjectWrapperemitters != nullptr)
 				{
-					SPtr<ParticleEmitter> arrayElementPointeremitters = scriptObjectWrapperemitters->GetInternal();
+					SPtr<ParticleEmitter> arrayElementPointeremitters = std::static_pointer_cast<ParticleEmitter>(scriptObjectWrapperemitters->GetBaseNativeObjectAsShared());
 					nativeArrayemitters[elementIndex] = arrayElementPointeremitters;
 				}
 			}
@@ -127,7 +127,7 @@ namespace bs
 		{
 			SPtr<ParticleEmitter> arrayElementPointer__output = nativeArray__output[elementIndex];
 			MonoObject* arrayElement__output;
-			arrayElement__output = ScriptParticleEmitter::Create(arrayElementPointer__output);
+			arrayElement__output = ScriptParticleEmitter::GetOrCreateScriptObject(arrayElementPointer__output);
 			scriptArray__output.Set(elementIndex, arrayElement__output);
 		}
 		__output = scriptArray__output.GetInternal();
@@ -144,11 +144,11 @@ namespace bs
 			nativeArrayevolvers.resize(scriptArrayevolvers.Size());
 			for(int elementIndex = 0; elementIndex < (int)scriptArrayevolvers.Size(); elementIndex++)
 			{
-				ScriptParticleEvolverBase* scriptObjectWrapperevolvers;
-				scriptObjectWrapperevolvers = (ScriptParticleEvolverBase*)ScriptParticleEvolver::ToNative(scriptArrayevolvers.Get<MonoObject*>(elementIndex));
+				ScriptParticleEvolverWrapperBase* scriptObjectWrapperevolvers;
+				scriptObjectWrapperevolvers = (ScriptParticleEvolverWrapperBase*)ScriptParticleEvolver::GetScriptObjectWrapper(scriptArrayevolvers.Get<MonoObject*>(elementIndex));
 				if(scriptObjectWrapperevolvers != nullptr)
 				{
-					SPtr<ParticleEvolver> arrayElementPointerevolvers = scriptObjectWrapperevolvers->GetInternal();
+					SPtr<ParticleEvolver> arrayElementPointerevolvers = std::static_pointer_cast<ParticleEvolver>(scriptObjectWrapperevolvers->GetBaseNativeObjectAsShared());
 					nativeArrayevolvers[elementIndex] = arrayElementPointerevolvers;
 				}
 			}
@@ -171,28 +171,28 @@ namespace bs
 			if(arrayElementPointer__output)
 			{
 				if(B3DRTTIIsOfType<ParticleGravity>(arrayElementPointer__output))
-					arrayElement__output = ScriptParticleGravity::Create(std::static_pointer_cast<ParticleGravity>(arrayElementPointer__output));
+					arrayElement__output = ScriptParticleGravity::GetOrCreateScriptObject(std::static_pointer_cast<ParticleGravity>(arrayElementPointer__output));
 				else if(B3DRTTIIsOfType<ParticleForce>(arrayElementPointer__output))
-					arrayElement__output = ScriptParticleForce::Create(std::static_pointer_cast<ParticleForce>(arrayElementPointer__output));
+					arrayElement__output = ScriptParticleForce::GetOrCreateScriptObject(std::static_pointer_cast<ParticleForce>(arrayElementPointer__output));
 				else if(B3DRTTIIsOfType<ParticleVelocity>(arrayElementPointer__output))
-					arrayElement__output = ScriptParticleVelocity::Create(std::static_pointer_cast<ParticleVelocity>(arrayElementPointer__output));
+					arrayElement__output = ScriptParticleVelocity::GetOrCreateScriptObject(std::static_pointer_cast<ParticleVelocity>(arrayElementPointer__output));
 				else if(B3DRTTIIsOfType<ParticleTextureAnimation>(arrayElementPointer__output))
-					arrayElement__output = ScriptParticleTextureAnimation::Create(std::static_pointer_cast<ParticleTextureAnimation>(arrayElementPointer__output));
+					arrayElement__output = ScriptParticleTextureAnimation::GetOrCreateScriptObject(std::static_pointer_cast<ParticleTextureAnimation>(arrayElementPointer__output));
 				else if(B3DRTTIIsOfType<ParticleOrbit>(arrayElementPointer__output))
-					arrayElement__output = ScriptParticleOrbit::Create(std::static_pointer_cast<ParticleOrbit>(arrayElementPointer__output));
+					arrayElement__output = ScriptParticleOrbit::GetOrCreateScriptObject(std::static_pointer_cast<ParticleOrbit>(arrayElementPointer__output));
 				else if(B3DRTTIIsOfType<ParticleColor>(arrayElementPointer__output))
-					arrayElement__output = ScriptParticleColor::Create(std::static_pointer_cast<ParticleColor>(arrayElementPointer__output));
+					arrayElement__output = ScriptParticleColor::GetOrCreateScriptObject(std::static_pointer_cast<ParticleColor>(arrayElementPointer__output));
 				else if(B3DRTTIIsOfType<ParticleSize>(arrayElementPointer__output))
-					arrayElement__output = ScriptParticleSize::Create(std::static_pointer_cast<ParticleSize>(arrayElementPointer__output));
+					arrayElement__output = ScriptParticleSize::GetOrCreateScriptObject(std::static_pointer_cast<ParticleSize>(arrayElementPointer__output));
 				else if(B3DRTTIIsOfType<ParticleRotation>(arrayElementPointer__output))
-					arrayElement__output = ScriptParticleRotation::Create(std::static_pointer_cast<ParticleRotation>(arrayElementPointer__output));
+					arrayElement__output = ScriptParticleRotation::GetOrCreateScriptObject(std::static_pointer_cast<ParticleRotation>(arrayElementPointer__output));
 				else if(B3DRTTIIsOfType<ParticleCollisions>(arrayElementPointer__output))
-					arrayElement__output = ScriptParticleCollisions::Create(std::static_pointer_cast<ParticleCollisions>(arrayElementPointer__output));
+					arrayElement__output = ScriptParticleCollisions::GetOrCreateScriptObject(std::static_pointer_cast<ParticleCollisions>(arrayElementPointer__output));
 				else
-					arrayElement__output = ScriptParticleEvolver::Create(arrayElementPointer__output);
+					arrayElement__output = ScriptParticleEvolver::GetOrCreateScriptObject(arrayElementPointer__output);
 			}
 			else
-				arrayElement__output = ScriptParticleEvolver::Create(arrayElementPointer__output);
+				arrayElement__output = ScriptParticleEvolver::GetOrCreateScriptObject(arrayElementPointer__output);
 			scriptArray__output.Set(elementIndex, arrayElement__output);
 		}
 		__output = scriptArray__output.GetInternal();

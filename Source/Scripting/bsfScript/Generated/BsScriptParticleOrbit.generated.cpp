@@ -9,60 +9,58 @@
 
 namespace bs
 {
-	ScriptParticleOrbit::ScriptParticleOrbit(MonoObject* managedInstance, const SPtr<ParticleOrbit>& value)
-		:TScriptReflectable(managedInstance, value)
+	ScriptParticleOrbit::ScriptParticleOrbit(const SPtr<ParticleOrbit>& nativeObject, MonoObject* scriptObject)
+		:TScriptReflectableWrapper(nativeObject, scriptObject)
 	{
-		mInternal = value;
 	}
 
-	void ScriptParticleOrbit::InitRuntimeData()
+	void ScriptParticleOrbit::SetupScriptBindings()
 	{
-		metaData.ScriptClass->AddInternalCall("Internal_SetOptions", (void*)&ScriptParticleOrbit::InternalSetOptions);
-		metaData.ScriptClass->AddInternalCall("Internal_GetOptions", (void*)&ScriptParticleOrbit::InternalGetOptions);
-		metaData.ScriptClass->AddInternalCall("Internal_Create", (void*)&ScriptParticleOrbit::InternalCreate);
-		metaData.ScriptClass->AddInternalCall("Internal_Create0", (void*)&ScriptParticleOrbit::InternalCreate0);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetOptions", (void*)&ScriptParticleOrbit::InternalSetOptions);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetOptions", (void*)&ScriptParticleOrbit::InternalGetOptions);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_Create", (void*)&ScriptParticleOrbit::InternalCreate);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_Create0", (void*)&ScriptParticleOrbit::InternalCreate0);
 
 	}
 
-	MonoObject* ScriptParticleOrbit::Create(const SPtr<ParticleOrbit>& value)
+	MonoObject* ScriptParticleOrbit::CreateScriptObject(bool construct)
 	{
-		if(value == nullptr) return nullptr; 
-
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
 
-		MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-		new (B3DAllocate<ScriptParticleOrbit>()) ScriptParticleOrbit(managedInstance, value);
-		return managedInstance;
+		if(construct)
+			return sInteropMetaData.ScriptClass->CreateInstance("bool", ctorParams);
+
+		return sInteropMetaData.ScriptClass->CreateInstance(false);
 	}
 	void ScriptParticleOrbit::InternalSetOptions(ScriptParticleOrbit* self, __PARTICLE_ORBIT_DESCInterop* options)
 	{
 		PARTICLE_ORBIT_DESC tmpoptions;
 		tmpoptions = ScriptParticleOrbitOptions::FromInterop(*options);
-		self->GetInternal()->SetOptions(tmpoptions);
+		static_cast<ParticleOrbit*>(self->GetNativeObject())->SetOptions(tmpoptions);
 	}
 
 	void ScriptParticleOrbit::InternalGetOptions(ScriptParticleOrbit* self, __PARTICLE_ORBIT_DESCInterop* __output)
 	{
 		PARTICLE_ORBIT_DESC tmp__output;
-		tmp__output = self->GetInternal()->GetOptions();
+		tmp__output = static_cast<ParticleOrbit*>(self->GetNativeObject())->GetOptions();
 
 		__PARTICLE_ORBIT_DESCInterop interop__output;
 		interop__output = ScriptParticleOrbitOptions::ToInterop(tmp__output);
 		MonoUtil::ValueCopy(__output, &interop__output, ScriptParticleOrbitOptions::GetMetaData()->ScriptClass->GetInternalClass());
 	}
 
-	void ScriptParticleOrbit::InternalCreate(MonoObject* managedInstance, __PARTICLE_ORBIT_DESCInterop* desc)
+	void ScriptParticleOrbit::InternalCreate(MonoObject* scriptObject, __PARTICLE_ORBIT_DESCInterop* desc)
 	{
 		PARTICLE_ORBIT_DESC tmpdesc;
 		tmpdesc = ScriptParticleOrbitOptions::FromInterop(*desc);
 		SPtr<ParticleOrbit> nativeObject = ParticleOrbit::Create(tmpdesc);
-		new (B3DAllocate<ScriptParticleOrbit>())ScriptParticleOrbit(managedInstance, nativeObject);
+		B3DNew<ScriptParticleOrbit>(nativeObject, scriptObject);
 	}
 
-	void ScriptParticleOrbit::InternalCreate0(MonoObject* managedInstance)
+	void ScriptParticleOrbit::InternalCreate0(MonoObject* scriptObject)
 	{
 		SPtr<ParticleOrbit> nativeObject = ParticleOrbit::Create();
-		new (B3DAllocate<ScriptParticleOrbit>())ScriptParticleOrbit(managedInstance, nativeObject);
+		B3DNew<ScriptParticleOrbit>(nativeObject, scriptObject);
 	}
 }

@@ -3,7 +3,7 @@
 #pragma once
 
 #include "BsScriptEnginePrerequisites.h"
-#include "Wrappers/BsScriptReflectable.h"
+#include "BsScriptReflectableWrapper.h"
 #include "BsScriptParticleEvolver.generated.h"
 #include "../../../Foundation/bsfCore/Particles/BsParticleEvolver.h"
 #include "../../../Foundation/bsfCore/Particles/BsParticleEvolver.h"
@@ -12,19 +12,19 @@ namespace bs { class ParticleColor; }
 namespace bs { struct __PARTICLE_COLOR_DESCInterop; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleColor : public TScriptReflectable<ScriptParticleColor, ParticleColor, ScriptParticleEvolverBase>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleColor : public TScriptReflectableWrapper<ParticleColor, ScriptParticleColor>
 	{
 	public:
-		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "ParticleColor")
+		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "ParticleColor")
 
-		ScriptParticleColor(MonoObject* managedInstance, const SPtr<ParticleColor>& value);
+		ScriptParticleColor(const SPtr<ParticleColor>& nativeObject, MonoObject* scriptObject);
 
-		static MonoObject* Create(const SPtr<ParticleColor>& value);
+		static MonoObject* CreateScriptObject(bool construct);
 
 	private:
 		static void InternalSetOptions(ScriptParticleColor* self, __PARTICLE_COLOR_DESCInterop* options);
 		static void InternalGetOptions(ScriptParticleColor* self, __PARTICLE_COLOR_DESCInterop* __output);
-		static void InternalCreate(MonoObject* managedInstance, __PARTICLE_COLOR_DESCInterop* desc);
-		static void InternalCreate0(MonoObject* managedInstance);
+		static void InternalCreate(MonoObject* scriptObject, __PARTICLE_COLOR_DESCInterop* desc);
+		static void InternalCreate0(MonoObject* scriptObject);
 	};
 }

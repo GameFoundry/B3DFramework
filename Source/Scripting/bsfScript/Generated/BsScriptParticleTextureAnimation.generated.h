@@ -3,7 +3,7 @@
 #pragma once
 
 #include "BsScriptEnginePrerequisites.h"
-#include "Wrappers/BsScriptReflectable.h"
+#include "BsScriptReflectableWrapper.h"
 #include "BsScriptParticleEvolver.generated.h"
 #include "../../../Foundation/bsfCore/Particles/BsParticleEvolver.h"
 #include "../../../Foundation/bsfCore/Particles/BsParticleEvolver.h"
@@ -11,19 +11,19 @@
 namespace bs { class ParticleTextureAnimation; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleTextureAnimation : public TScriptReflectable<ScriptParticleTextureAnimation, ParticleTextureAnimation, ScriptParticleEvolverBase>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleTextureAnimation : public TScriptReflectableWrapper<ParticleTextureAnimation, ScriptParticleTextureAnimation>
 	{
 	public:
-		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "ParticleTextureAnimation")
+		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "ParticleTextureAnimation")
 
-		ScriptParticleTextureAnimation(MonoObject* managedInstance, const SPtr<ParticleTextureAnimation>& value);
+		ScriptParticleTextureAnimation(const SPtr<ParticleTextureAnimation>& nativeObject, MonoObject* scriptObject);
 
-		static MonoObject* Create(const SPtr<ParticleTextureAnimation>& value);
+		static MonoObject* CreateScriptObject(bool construct);
 
 	private:
 		static void InternalSetOptions(ScriptParticleTextureAnimation* self, PARTICLE_TEXTURE_ANIMATION_DESC* options);
 		static void InternalGetOptions(ScriptParticleTextureAnimation* self, PARTICLE_TEXTURE_ANIMATION_DESC* __output);
-		static void InternalCreate(MonoObject* managedInstance, PARTICLE_TEXTURE_ANIMATION_DESC* desc);
-		static void InternalCreate0(MonoObject* managedInstance);
+		static void InternalCreate(MonoObject* scriptObject, PARTICLE_TEXTURE_ANIMATION_DESC* desc);
+		static void InternalCreate0(MonoObject* scriptObject);
 	};
 }

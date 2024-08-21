@@ -3,7 +3,7 @@
 #pragma once
 
 #include "BsScriptEnginePrerequisites.h"
-#include "Wrappers/BsScriptReflectable.h"
+#include "BsScriptReflectableWrapper.h"
 #include "../../../Foundation/bsfCore/Particles/BsParticleEmitter.h"
 #include "../../../Foundation/bsfCore/Particles/BsParticleDistribution.h"
 #include "../../../Foundation/bsfCore/Particles/BsParticleEmitter.h"
@@ -14,14 +14,14 @@ namespace bs { class ParticleEmitter; }
 namespace bs { struct __ParticleBurstInterop; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleEmitter : public TScriptReflectable<ScriptParticleEmitter, ParticleEmitter>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleEmitter : public TScriptReflectableWrapper<ParticleEmitter, ScriptParticleEmitter>
 	{
 	public:
-		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "ParticleEmitter")
+		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "ParticleEmitter")
 
-		ScriptParticleEmitter(MonoObject* managedInstance, const SPtr<ParticleEmitter>& value);
+		ScriptParticleEmitter(const SPtr<ParticleEmitter>& nativeObject, MonoObject* scriptObject);
 
-		static MonoObject* Create(const SPtr<ParticleEmitter>& value);
+		static MonoObject* CreateScriptObject(bool construct);
 
 	private:
 		static void InternalSetShape(ScriptParticleEmitter* self, MonoObject* shape);
@@ -54,6 +54,6 @@ namespace bs
 		static float InternalGetFlipU(ScriptParticleEmitter* self);
 		static void InternalSetFlipV(ScriptParticleEmitter* self, float value);
 		static float InternalGetFlipV(ScriptParticleEmitter* self);
-		static void InternalCreate(MonoObject* managedInstance);
+		static void InternalCreate(MonoObject* scriptObject);
 	};
 }

@@ -3,7 +3,7 @@
 #pragma once
 
 #include "BsScriptEnginePrerequisites.h"
-#include "Wrappers/BsScriptReflectable.h"
+#include "BsScriptReflectableWrapper.h"
 #include "BsScriptParticleEvolver.generated.h"
 #include "../../../Foundation/bsfCore/Particles/BsParticleEvolver.h"
 #include "../../../Foundation/bsfCore/Particles/BsParticleEvolver.h"
@@ -12,19 +12,19 @@ namespace bs { struct __PARTICLE_SIZE_DESCInterop; }
 namespace bs { class ParticleSize; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleSize : public TScriptReflectable<ScriptParticleSize, ParticleSize, ScriptParticleEvolverBase>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleSize : public TScriptReflectableWrapper<ParticleSize, ScriptParticleSize>
 	{
 	public:
-		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "ParticleSize")
+		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "ParticleSize")
 
-		ScriptParticleSize(MonoObject* managedInstance, const SPtr<ParticleSize>& value);
+		ScriptParticleSize(const SPtr<ParticleSize>& nativeObject, MonoObject* scriptObject);
 
-		static MonoObject* Create(const SPtr<ParticleSize>& value);
+		static MonoObject* CreateScriptObject(bool construct);
 
 	private:
 		static void InternalSetOptions(ScriptParticleSize* self, __PARTICLE_SIZE_DESCInterop* options);
 		static void InternalGetOptions(ScriptParticleSize* self, __PARTICLE_SIZE_DESCInterop* __output);
-		static void InternalCreate(MonoObject* managedInstance, __PARTICLE_SIZE_DESCInterop* desc);
-		static void InternalCreate0(MonoObject* managedInstance);
+		static void InternalCreate(MonoObject* scriptObject, __PARTICLE_SIZE_DESCInterop* desc);
+		static void InternalCreate0(MonoObject* scriptObject);
 	};
 }

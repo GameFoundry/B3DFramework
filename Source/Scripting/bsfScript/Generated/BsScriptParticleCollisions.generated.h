@@ -3,7 +3,7 @@
 #pragma once
 
 #include "BsScriptEnginePrerequisites.h"
-#include "Wrappers/BsScriptReflectable.h"
+#include "BsScriptReflectableWrapper.h"
 #include "BsScriptParticleEvolver.generated.h"
 #include "../../../Foundation/bsfCore/Particles/BsParticleEvolver.h"
 #include "Math/BsPlane.h"
@@ -12,14 +12,14 @@
 namespace bs { class ParticleCollisions; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleCollisions : public TScriptReflectable<ScriptParticleCollisions, ParticleCollisions, ScriptParticleEvolverBase>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleCollisions : public TScriptReflectableWrapper<ParticleCollisions, ScriptParticleCollisions>
 	{
 	public:
-		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "ParticleCollisions")
+		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "ParticleCollisions")
 
-		ScriptParticleCollisions(MonoObject* managedInstance, const SPtr<ParticleCollisions>& value);
+		ScriptParticleCollisions(const SPtr<ParticleCollisions>& nativeObject, MonoObject* scriptObject);
 
-		static MonoObject* Create(const SPtr<ParticleCollisions>& value);
+		static MonoObject* CreateScriptObject(bool construct);
 
 	private:
 		static void InternalSetPlanes(ScriptParticleCollisions* self, MonoArray* planes);
@@ -28,7 +28,7 @@ namespace bs
 		static MonoArray* InternalGetPlaneObjects(ScriptParticleCollisions* self);
 		static void InternalSetOptions(ScriptParticleCollisions* self, PARTICLE_COLLISIONS_DESC* options);
 		static void InternalGetOptions(ScriptParticleCollisions* self, PARTICLE_COLLISIONS_DESC* __output);
-		static void InternalCreate(MonoObject* managedInstance, PARTICLE_COLLISIONS_DESC* desc);
-		static void InternalCreate0(MonoObject* managedInstance);
+		static void InternalCreate(MonoObject* scriptObject, PARTICLE_COLLISIONS_DESC* desc);
+		static void InternalCreate0(MonoObject* scriptObject);
 	};
 }

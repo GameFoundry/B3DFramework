@@ -9,60 +9,58 @@
 
 namespace bs
 {
-	ScriptParticleColor::ScriptParticleColor(MonoObject* managedInstance, const SPtr<ParticleColor>& value)
-		:TScriptReflectable(managedInstance, value)
+	ScriptParticleColor::ScriptParticleColor(const SPtr<ParticleColor>& nativeObject, MonoObject* scriptObject)
+		:TScriptReflectableWrapper(nativeObject, scriptObject)
 	{
-		mInternal = value;
 	}
 
-	void ScriptParticleColor::InitRuntimeData()
+	void ScriptParticleColor::SetupScriptBindings()
 	{
-		metaData.ScriptClass->AddInternalCall("Internal_SetOptions", (void*)&ScriptParticleColor::InternalSetOptions);
-		metaData.ScriptClass->AddInternalCall("Internal_GetOptions", (void*)&ScriptParticleColor::InternalGetOptions);
-		metaData.ScriptClass->AddInternalCall("Internal_Create", (void*)&ScriptParticleColor::InternalCreate);
-		metaData.ScriptClass->AddInternalCall("Internal_Create0", (void*)&ScriptParticleColor::InternalCreate0);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetOptions", (void*)&ScriptParticleColor::InternalSetOptions);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetOptions", (void*)&ScriptParticleColor::InternalGetOptions);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_Create", (void*)&ScriptParticleColor::InternalCreate);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_Create0", (void*)&ScriptParticleColor::InternalCreate0);
 
 	}
 
-	MonoObject* ScriptParticleColor::Create(const SPtr<ParticleColor>& value)
+	MonoObject* ScriptParticleColor::CreateScriptObject(bool construct)
 	{
-		if(value == nullptr) return nullptr; 
-
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
 
-		MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-		new (B3DAllocate<ScriptParticleColor>()) ScriptParticleColor(managedInstance, value);
-		return managedInstance;
+		if(construct)
+			return sInteropMetaData.ScriptClass->CreateInstance("bool", ctorParams);
+
+		return sInteropMetaData.ScriptClass->CreateInstance(false);
 	}
 	void ScriptParticleColor::InternalSetOptions(ScriptParticleColor* self, __PARTICLE_COLOR_DESCInterop* options)
 	{
 		PARTICLE_COLOR_DESC tmpoptions;
 		tmpoptions = ScriptParticleColorOptions::FromInterop(*options);
-		self->GetInternal()->SetOptions(tmpoptions);
+		static_cast<ParticleColor*>(self->GetNativeObject())->SetOptions(tmpoptions);
 	}
 
 	void ScriptParticleColor::InternalGetOptions(ScriptParticleColor* self, __PARTICLE_COLOR_DESCInterop* __output)
 	{
 		PARTICLE_COLOR_DESC tmp__output;
-		tmp__output = self->GetInternal()->GetOptions();
+		tmp__output = static_cast<ParticleColor*>(self->GetNativeObject())->GetOptions();
 
 		__PARTICLE_COLOR_DESCInterop interop__output;
 		interop__output = ScriptParticleColorOptions::ToInterop(tmp__output);
 		MonoUtil::ValueCopy(__output, &interop__output, ScriptParticleColorOptions::GetMetaData()->ScriptClass->GetInternalClass());
 	}
 
-	void ScriptParticleColor::InternalCreate(MonoObject* managedInstance, __PARTICLE_COLOR_DESCInterop* desc)
+	void ScriptParticleColor::InternalCreate(MonoObject* scriptObject, __PARTICLE_COLOR_DESCInterop* desc)
 	{
 		PARTICLE_COLOR_DESC tmpdesc;
 		tmpdesc = ScriptParticleColorOptions::FromInterop(*desc);
 		SPtr<ParticleColor> nativeObject = ParticleColor::Create(tmpdesc);
-		new (B3DAllocate<ScriptParticleColor>())ScriptParticleColor(managedInstance, nativeObject);
+		B3DNew<ScriptParticleColor>(nativeObject, scriptObject);
 	}
 
-	void ScriptParticleColor::InternalCreate0(MonoObject* managedInstance)
+	void ScriptParticleColor::InternalCreate0(MonoObject* scriptObject)
 	{
 		SPtr<ParticleColor> nativeObject = ParticleColor::Create();
-		new (B3DAllocate<ScriptParticleColor>())ScriptParticleColor(managedInstance, nativeObject);
+		B3DNew<ScriptParticleColor>(nativeObject, scriptObject);
 	}
 }

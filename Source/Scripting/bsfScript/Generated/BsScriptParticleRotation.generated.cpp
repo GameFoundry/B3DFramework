@@ -9,60 +9,58 @@
 
 namespace bs
 {
-	ScriptParticleRotation::ScriptParticleRotation(MonoObject* managedInstance, const SPtr<ParticleRotation>& value)
-		:TScriptReflectable(managedInstance, value)
+	ScriptParticleRotation::ScriptParticleRotation(const SPtr<ParticleRotation>& nativeObject, MonoObject* scriptObject)
+		:TScriptReflectableWrapper(nativeObject, scriptObject)
 	{
-		mInternal = value;
 	}
 
-	void ScriptParticleRotation::InitRuntimeData()
+	void ScriptParticleRotation::SetupScriptBindings()
 	{
-		metaData.ScriptClass->AddInternalCall("Internal_SetOptions", (void*)&ScriptParticleRotation::InternalSetOptions);
-		metaData.ScriptClass->AddInternalCall("Internal_GetOptions", (void*)&ScriptParticleRotation::InternalGetOptions);
-		metaData.ScriptClass->AddInternalCall("Internal_Create", (void*)&ScriptParticleRotation::InternalCreate);
-		metaData.ScriptClass->AddInternalCall("Internal_Create0", (void*)&ScriptParticleRotation::InternalCreate0);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetOptions", (void*)&ScriptParticleRotation::InternalSetOptions);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetOptions", (void*)&ScriptParticleRotation::InternalGetOptions);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_Create", (void*)&ScriptParticleRotation::InternalCreate);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_Create0", (void*)&ScriptParticleRotation::InternalCreate0);
 
 	}
 
-	MonoObject* ScriptParticleRotation::Create(const SPtr<ParticleRotation>& value)
+	MonoObject* ScriptParticleRotation::CreateScriptObject(bool construct)
 	{
-		if(value == nullptr) return nullptr; 
-
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
 
-		MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-		new (B3DAllocate<ScriptParticleRotation>()) ScriptParticleRotation(managedInstance, value);
-		return managedInstance;
+		if(construct)
+			return sInteropMetaData.ScriptClass->CreateInstance("bool", ctorParams);
+
+		return sInteropMetaData.ScriptClass->CreateInstance(false);
 	}
 	void ScriptParticleRotation::InternalSetOptions(ScriptParticleRotation* self, __PARTICLE_ROTATION_DESCInterop* options)
 	{
 		PARTICLE_ROTATION_DESC tmpoptions;
 		tmpoptions = ScriptParticleRotationOptions::FromInterop(*options);
-		self->GetInternal()->SetOptions(tmpoptions);
+		static_cast<ParticleRotation*>(self->GetNativeObject())->SetOptions(tmpoptions);
 	}
 
 	void ScriptParticleRotation::InternalGetOptions(ScriptParticleRotation* self, __PARTICLE_ROTATION_DESCInterop* __output)
 	{
 		PARTICLE_ROTATION_DESC tmp__output;
-		tmp__output = self->GetInternal()->GetOptions();
+		tmp__output = static_cast<ParticleRotation*>(self->GetNativeObject())->GetOptions();
 
 		__PARTICLE_ROTATION_DESCInterop interop__output;
 		interop__output = ScriptParticleRotationOptions::ToInterop(tmp__output);
 		MonoUtil::ValueCopy(__output, &interop__output, ScriptParticleRotationOptions::GetMetaData()->ScriptClass->GetInternalClass());
 	}
 
-	void ScriptParticleRotation::InternalCreate(MonoObject* managedInstance, __PARTICLE_ROTATION_DESCInterop* desc)
+	void ScriptParticleRotation::InternalCreate(MonoObject* scriptObject, __PARTICLE_ROTATION_DESCInterop* desc)
 	{
 		PARTICLE_ROTATION_DESC tmpdesc;
 		tmpdesc = ScriptParticleRotationOptions::FromInterop(*desc);
 		SPtr<ParticleRotation> nativeObject = ParticleRotation::Create(tmpdesc);
-		new (B3DAllocate<ScriptParticleRotation>())ScriptParticleRotation(managedInstance, nativeObject);
+		B3DNew<ScriptParticleRotation>(nativeObject, scriptObject);
 	}
 
-	void ScriptParticleRotation::InternalCreate0(MonoObject* managedInstance)
+	void ScriptParticleRotation::InternalCreate0(MonoObject* scriptObject)
 	{
 		SPtr<ParticleRotation> nativeObject = ParticleRotation::Create();
-		new (B3DAllocate<ScriptParticleRotation>())ScriptParticleRotation(managedInstance, nativeObject);
+		B3DNew<ScriptParticleRotation>(nativeObject, scriptObject);
 	}
 }

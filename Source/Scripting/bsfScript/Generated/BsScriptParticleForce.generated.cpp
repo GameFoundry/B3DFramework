@@ -9,60 +9,58 @@
 
 namespace bs
 {
-	ScriptParticleForce::ScriptParticleForce(MonoObject* managedInstance, const SPtr<ParticleForce>& value)
-		:TScriptReflectable(managedInstance, value)
+	ScriptParticleForce::ScriptParticleForce(const SPtr<ParticleForce>& nativeObject, MonoObject* scriptObject)
+		:TScriptReflectableWrapper(nativeObject, scriptObject)
 	{
-		mInternal = value;
 	}
 
-	void ScriptParticleForce::InitRuntimeData()
+	void ScriptParticleForce::SetupScriptBindings()
 	{
-		metaData.ScriptClass->AddInternalCall("Internal_SetOptions", (void*)&ScriptParticleForce::InternalSetOptions);
-		metaData.ScriptClass->AddInternalCall("Internal_GetOptions", (void*)&ScriptParticleForce::InternalGetOptions);
-		metaData.ScriptClass->AddInternalCall("Internal_Create", (void*)&ScriptParticleForce::InternalCreate);
-		metaData.ScriptClass->AddInternalCall("Internal_Create0", (void*)&ScriptParticleForce::InternalCreate0);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetOptions", (void*)&ScriptParticleForce::InternalSetOptions);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetOptions", (void*)&ScriptParticleForce::InternalGetOptions);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_Create", (void*)&ScriptParticleForce::InternalCreate);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_Create0", (void*)&ScriptParticleForce::InternalCreate0);
 
 	}
 
-	MonoObject* ScriptParticleForce::Create(const SPtr<ParticleForce>& value)
+	MonoObject* ScriptParticleForce::CreateScriptObject(bool construct)
 	{
-		if(value == nullptr) return nullptr; 
-
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
 
-		MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-		new (B3DAllocate<ScriptParticleForce>()) ScriptParticleForce(managedInstance, value);
-		return managedInstance;
+		if(construct)
+			return sInteropMetaData.ScriptClass->CreateInstance("bool", ctorParams);
+
+		return sInteropMetaData.ScriptClass->CreateInstance(false);
 	}
 	void ScriptParticleForce::InternalSetOptions(ScriptParticleForce* self, __PARTICLE_FORCE_DESCInterop* options)
 	{
 		PARTICLE_FORCE_DESC tmpoptions;
 		tmpoptions = ScriptParticleForceOptions::FromInterop(*options);
-		self->GetInternal()->SetOptions(tmpoptions);
+		static_cast<ParticleForce*>(self->GetNativeObject())->SetOptions(tmpoptions);
 	}
 
 	void ScriptParticleForce::InternalGetOptions(ScriptParticleForce* self, __PARTICLE_FORCE_DESCInterop* __output)
 	{
 		PARTICLE_FORCE_DESC tmp__output;
-		tmp__output = self->GetInternal()->GetOptions();
+		tmp__output = static_cast<ParticleForce*>(self->GetNativeObject())->GetOptions();
 
 		__PARTICLE_FORCE_DESCInterop interop__output;
 		interop__output = ScriptParticleForceOptions::ToInterop(tmp__output);
 		MonoUtil::ValueCopy(__output, &interop__output, ScriptParticleForceOptions::GetMetaData()->ScriptClass->GetInternalClass());
 	}
 
-	void ScriptParticleForce::InternalCreate(MonoObject* managedInstance, __PARTICLE_FORCE_DESCInterop* desc)
+	void ScriptParticleForce::InternalCreate(MonoObject* scriptObject, __PARTICLE_FORCE_DESCInterop* desc)
 	{
 		PARTICLE_FORCE_DESC tmpdesc;
 		tmpdesc = ScriptParticleForceOptions::FromInterop(*desc);
 		SPtr<ParticleForce> nativeObject = ParticleForce::Create(tmpdesc);
-		new (B3DAllocate<ScriptParticleForce>())ScriptParticleForce(managedInstance, nativeObject);
+		B3DNew<ScriptParticleForce>(nativeObject, scriptObject);
 	}
 
-	void ScriptParticleForce::InternalCreate0(MonoObject* managedInstance)
+	void ScriptParticleForce::InternalCreate0(MonoObject* scriptObject)
 	{
 		SPtr<ParticleForce> nativeObject = ParticleForce::Create();
-		new (B3DAllocate<ScriptParticleForce>())ScriptParticleForce(managedInstance, nativeObject);
+		B3DNew<ScriptParticleForce>(nativeObject, scriptObject);
 	}
 }

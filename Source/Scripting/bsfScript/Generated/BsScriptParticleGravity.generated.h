@@ -3,7 +3,7 @@
 #pragma once
 
 #include "BsScriptEnginePrerequisites.h"
-#include "Wrappers/BsScriptReflectable.h"
+#include "BsScriptReflectableWrapper.h"
 #include "BsScriptParticleEvolver.generated.h"
 #include "../../../Foundation/bsfCore/Particles/BsParticleEvolver.h"
 #include "../../../Foundation/bsfCore/Particles/BsParticleEvolver.h"
@@ -11,19 +11,19 @@
 namespace bs { class ParticleGravity; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleGravity : public TScriptReflectable<ScriptParticleGravity, ParticleGravity, ScriptParticleEvolverBase>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleGravity : public TScriptReflectableWrapper<ParticleGravity, ScriptParticleGravity>
 	{
 	public:
-		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "ParticleGravity")
+		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "ParticleGravity")
 
-		ScriptParticleGravity(MonoObject* managedInstance, const SPtr<ParticleGravity>& value);
+		ScriptParticleGravity(const SPtr<ParticleGravity>& nativeObject, MonoObject* scriptObject);
 
-		static MonoObject* Create(const SPtr<ParticleGravity>& value);
+		static MonoObject* CreateScriptObject(bool construct);
 
 	private:
 		static void InternalSetOptions(ScriptParticleGravity* self, PARTICLE_GRAVITY_DESC* options);
 		static void InternalGetOptions(ScriptParticleGravity* self, PARTICLE_GRAVITY_DESC* __output);
-		static void InternalCreate(MonoObject* managedInstance, PARTICLE_GRAVITY_DESC* desc);
-		static void InternalCreate0(MonoObject* managedInstance);
+		static void InternalCreate(MonoObject* scriptObject, PARTICLE_GRAVITY_DESC* desc);
+		static void InternalCreate0(MonoObject* scriptObject);
 	};
 }

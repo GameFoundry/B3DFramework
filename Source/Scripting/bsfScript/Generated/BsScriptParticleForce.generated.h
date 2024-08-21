@@ -3,7 +3,7 @@
 #pragma once
 
 #include "BsScriptEnginePrerequisites.h"
-#include "Wrappers/BsScriptReflectable.h"
+#include "BsScriptReflectableWrapper.h"
 #include "BsScriptParticleEvolver.generated.h"
 #include "../../../Foundation/bsfCore/Particles/BsParticleEvolver.h"
 #include "../../../Foundation/bsfCore/Particles/BsParticleEvolver.h"
@@ -12,19 +12,19 @@ namespace bs { class ParticleForce; }
 namespace bs { struct __PARTICLE_FORCE_DESCInterop; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleForce : public TScriptReflectable<ScriptParticleForce, ParticleForce, ScriptParticleEvolverBase>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleForce : public TScriptReflectableWrapper<ParticleForce, ScriptParticleForce>
 	{
 	public:
-		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "ParticleForce")
+		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "ParticleForce")
 
-		ScriptParticleForce(MonoObject* managedInstance, const SPtr<ParticleForce>& value);
+		ScriptParticleForce(const SPtr<ParticleForce>& nativeObject, MonoObject* scriptObject);
 
-		static MonoObject* Create(const SPtr<ParticleForce>& value);
+		static MonoObject* CreateScriptObject(bool construct);
 
 	private:
 		static void InternalSetOptions(ScriptParticleForce* self, __PARTICLE_FORCE_DESCInterop* options);
 		static void InternalGetOptions(ScriptParticleForce* self, __PARTICLE_FORCE_DESCInterop* __output);
-		static void InternalCreate(MonoObject* managedInstance, __PARTICLE_FORCE_DESCInterop* desc);
-		static void InternalCreate0(MonoObject* managedInstance);
+		static void InternalCreate(MonoObject* scriptObject, __PARTICLE_FORCE_DESCInterop* desc);
+		static void InternalCreate0(MonoObject* scriptObject);
 	};
 }

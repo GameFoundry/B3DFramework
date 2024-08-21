@@ -3,29 +3,27 @@
 #pragma once
 
 #include "BsScriptEnginePrerequisites.h"
-#include "Wrappers/BsScriptReflectable.h"
+#include "BsScriptReflectableWrapper.h"
 #include "../../../Foundation/bsfCore/Particles/BsParticleEvolver.h"
 
 namespace bs { class ParticleEvolver; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleEvolverBase : public ScriptReflectableBase
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleEvolverWrapperBase : public ScriptReflectableWrapper
 	{
 	public:
-		ScriptParticleEvolverBase(MonoObject* instance);
-		virtual ~ScriptParticleEvolverBase() {}
+		using ScriptReflectableWrapper::ScriptReflectableWrapper;
 
-		SPtr<ParticleEvolver> GetInternal() const;
 	};
 
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleEvolver : public TScriptReflectable<ScriptParticleEvolver, ParticleEvolver, ScriptParticleEvolverBase>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleEvolver : public TScriptReflectableWrapper<ParticleEvolver, ScriptParticleEvolver, ScriptParticleEvolverWrapperBase>
 	{
 	public:
-		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "ParticleEvolver")
+		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "ParticleEvolver")
 
-		ScriptParticleEvolver(MonoObject* managedInstance, const SPtr<ParticleEvolver>& value);
+		ScriptParticleEvolver(const SPtr<ParticleEvolver>& nativeObject, MonoObject* scriptObject);
 
-		static MonoObject* Create(const SPtr<ParticleEvolver>& value);
+		static MonoObject* CreateScriptObject(bool construct);
 
 	private:
 	};

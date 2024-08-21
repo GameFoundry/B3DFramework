@@ -9,54 +9,52 @@
 
 namespace bs
 {
-	ScriptParticleGravity::ScriptParticleGravity(MonoObject* managedInstance, const SPtr<ParticleGravity>& value)
-		:TScriptReflectable(managedInstance, value)
+	ScriptParticleGravity::ScriptParticleGravity(const SPtr<ParticleGravity>& nativeObject, MonoObject* scriptObject)
+		:TScriptReflectableWrapper(nativeObject, scriptObject)
 	{
-		mInternal = value;
 	}
 
-	void ScriptParticleGravity::InitRuntimeData()
+	void ScriptParticleGravity::SetupScriptBindings()
 	{
-		metaData.ScriptClass->AddInternalCall("Internal_SetOptions", (void*)&ScriptParticleGravity::InternalSetOptions);
-		metaData.ScriptClass->AddInternalCall("Internal_GetOptions", (void*)&ScriptParticleGravity::InternalGetOptions);
-		metaData.ScriptClass->AddInternalCall("Internal_Create", (void*)&ScriptParticleGravity::InternalCreate);
-		metaData.ScriptClass->AddInternalCall("Internal_Create0", (void*)&ScriptParticleGravity::InternalCreate0);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetOptions", (void*)&ScriptParticleGravity::InternalSetOptions);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetOptions", (void*)&ScriptParticleGravity::InternalGetOptions);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_Create", (void*)&ScriptParticleGravity::InternalCreate);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_Create0", (void*)&ScriptParticleGravity::InternalCreate0);
 
 	}
 
-	MonoObject* ScriptParticleGravity::Create(const SPtr<ParticleGravity>& value)
+	MonoObject* ScriptParticleGravity::CreateScriptObject(bool construct)
 	{
-		if(value == nullptr) return nullptr; 
-
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
 
-		MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-		new (B3DAllocate<ScriptParticleGravity>()) ScriptParticleGravity(managedInstance, value);
-		return managedInstance;
+		if(construct)
+			return sInteropMetaData.ScriptClass->CreateInstance("bool", ctorParams);
+
+		return sInteropMetaData.ScriptClass->CreateInstance(false);
 	}
 	void ScriptParticleGravity::InternalSetOptions(ScriptParticleGravity* self, PARTICLE_GRAVITY_DESC* options)
 	{
-		self->GetInternal()->SetOptions(*options);
+		static_cast<ParticleGravity*>(self->GetNativeObject())->SetOptions(*options);
 	}
 
 	void ScriptParticleGravity::InternalGetOptions(ScriptParticleGravity* self, PARTICLE_GRAVITY_DESC* __output)
 	{
 		PARTICLE_GRAVITY_DESC tmp__output;
-		tmp__output = self->GetInternal()->GetOptions();
+		tmp__output = static_cast<ParticleGravity*>(self->GetNativeObject())->GetOptions();
 
 		*__output = tmp__output;
 	}
 
-	void ScriptParticleGravity::InternalCreate(MonoObject* managedInstance, PARTICLE_GRAVITY_DESC* desc)
+	void ScriptParticleGravity::InternalCreate(MonoObject* scriptObject, PARTICLE_GRAVITY_DESC* desc)
 	{
 		SPtr<ParticleGravity> nativeObject = ParticleGravity::Create(*desc);
-		new (B3DAllocate<ScriptParticleGravity>())ScriptParticleGravity(managedInstance, nativeObject);
+		B3DNew<ScriptParticleGravity>(nativeObject, scriptObject);
 	}
 
-	void ScriptParticleGravity::InternalCreate0(MonoObject* managedInstance)
+	void ScriptParticleGravity::InternalCreate0(MonoObject* scriptObject)
 	{
 		SPtr<ParticleGravity> nativeObject = ParticleGravity::Create();
-		new (B3DAllocate<ScriptParticleGravity>())ScriptParticleGravity(managedInstance, nativeObject);
+		B3DNew<ScriptParticleGravity>(nativeObject, scriptObject);
 	}
 }
