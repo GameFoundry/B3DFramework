@@ -7,42 +7,41 @@
 
 namespace bs
 {
-	ScriptWhiteBalanceSettings::ScriptWhiteBalanceSettings(MonoObject* managedInstance, const SPtr<WhiteBalanceSettings>& value)
-		:TScriptReflectable(managedInstance, value)
+	ScriptWhiteBalanceSettings::ScriptWhiteBalanceSettings(const SPtr<WhiteBalanceSettings>& nativeObject, MonoObject* scriptObject)
+		:TScriptReflectableWrapper(nativeObject, scriptObject)
 	{
 	}
 
-	void ScriptWhiteBalanceSettings::InitRuntimeData()
+	void ScriptWhiteBalanceSettings::SetupScriptBindings()
 	{
-		metaData.ScriptClass->AddInternalCall("Internal_WhiteBalanceSettings", (void*)&ScriptWhiteBalanceSettings::InternalWhiteBalanceSettings);
-		metaData.ScriptClass->AddInternalCall("Internal_GetTemperature", (void*)&ScriptWhiteBalanceSettings::InternalGetTemperature);
-		metaData.ScriptClass->AddInternalCall("Internal_SetTemperature", (void*)&ScriptWhiteBalanceSettings::InternalSetTemperature);
-		metaData.ScriptClass->AddInternalCall("Internal_GetTint", (void*)&ScriptWhiteBalanceSettings::InternalGetTint);
-		metaData.ScriptClass->AddInternalCall("Internal_SetTint", (void*)&ScriptWhiteBalanceSettings::InternalSetTint);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_WhiteBalanceSettings", (void*)&ScriptWhiteBalanceSettings::InternalWhiteBalanceSettings);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetTemperature", (void*)&ScriptWhiteBalanceSettings::InternalGetTemperature);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetTemperature", (void*)&ScriptWhiteBalanceSettings::InternalSetTemperature);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetTint", (void*)&ScriptWhiteBalanceSettings::InternalGetTint);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetTint", (void*)&ScriptWhiteBalanceSettings::InternalSetTint);
 
 	}
 
-	MonoObject* ScriptWhiteBalanceSettings::Create(const SPtr<WhiteBalanceSettings>& value)
+	MonoObject* ScriptWhiteBalanceSettings::CreateScriptObject(bool construct)
 	{
-		if(value == nullptr) return nullptr; 
-
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
 
-		MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-		new (B3DAllocate<ScriptWhiteBalanceSettings>()) ScriptWhiteBalanceSettings(managedInstance, value);
-		return managedInstance;
+		if(construct)
+			return sInteropMetaData.ScriptClass->CreateInstance("bool", ctorParams);
+
+		return sInteropMetaData.ScriptClass->CreateInstance(false);
 	}
-	void ScriptWhiteBalanceSettings::InternalWhiteBalanceSettings(MonoObject* managedInstance)
+	void ScriptWhiteBalanceSettings::InternalWhiteBalanceSettings(MonoObject* scriptObject)
 	{
 		SPtr<WhiteBalanceSettings> nativeObject = B3DMakeShared<WhiteBalanceSettings>();
-		new (B3DAllocate<ScriptWhiteBalanceSettings>())ScriptWhiteBalanceSettings(managedInstance, nativeObject);
+		B3DNew<ScriptWhiteBalanceSettings>(nativeObject, scriptObject);
 	}
 
 	float ScriptWhiteBalanceSettings::InternalGetTemperature(ScriptWhiteBalanceSettings* self)
 	{
 		float tmp__output;
-		tmp__output = self->GetInternal()->Temperature;
+		tmp__output = static_cast<WhiteBalanceSettings*>(self->GetNativeObject())->Temperature;
 
 		float __output;
 		__output = tmp__output;
@@ -52,13 +51,13 @@ namespace bs
 
 	void ScriptWhiteBalanceSettings::InternalSetTemperature(ScriptWhiteBalanceSettings* self, float value)
 	{
-		self->GetInternal()->Temperature = value;
+		static_cast<WhiteBalanceSettings*>(self->GetNativeObject())->Temperature = value;
 	}
 
 	float ScriptWhiteBalanceSettings::InternalGetTint(ScriptWhiteBalanceSettings* self)
 	{
 		float tmp__output;
-		tmp__output = self->GetInternal()->Tint;
+		tmp__output = static_cast<WhiteBalanceSettings*>(self->GetNativeObject())->Tint;
 
 		float __output;
 		__output = tmp__output;
@@ -68,6 +67,6 @@ namespace bs
 
 	void ScriptWhiteBalanceSettings::InternalSetTint(ScriptWhiteBalanceSettings* self, float value)
 	{
-		self->GetInternal()->Tint = value;
+		static_cast<WhiteBalanceSettings*>(self->GetNativeObject())->Tint = value;
 	}
 }

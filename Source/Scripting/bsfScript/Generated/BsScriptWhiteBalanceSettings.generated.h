@@ -3,23 +3,23 @@
 #pragma once
 
 #include "BsScriptEnginePrerequisites.h"
-#include "Wrappers/BsScriptReflectable.h"
+#include "BsScriptReflectableWrapper.h"
 #include "../../../Foundation/bsfCore/Renderer/BsRenderSettings.h"
 
 namespace bs { struct WhiteBalanceSettings; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptWhiteBalanceSettings : public TScriptReflectable<ScriptWhiteBalanceSettings, WhiteBalanceSettings>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptWhiteBalanceSettings : public TScriptReflectableWrapper<WhiteBalanceSettings, ScriptWhiteBalanceSettings>
 	{
 	public:
-		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "WhiteBalanceSettings")
+		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "WhiteBalanceSettings")
 
-		ScriptWhiteBalanceSettings(MonoObject* managedInstance, const SPtr<WhiteBalanceSettings>& value);
+		ScriptWhiteBalanceSettings(const SPtr<WhiteBalanceSettings>& nativeObject, MonoObject* scriptObject);
 
-		static MonoObject* Create(const SPtr<WhiteBalanceSettings>& value);
+		static MonoObject* CreateScriptObject(bool construct);
 
 	private:
-		static void InternalWhiteBalanceSettings(MonoObject* managedInstance);
+		static void InternalWhiteBalanceSettings(MonoObject* scriptObject);
 		static float InternalGetTemperature(ScriptWhiteBalanceSettings* self);
 		static void InternalSetTemperature(ScriptWhiteBalanceSettings* self, float value);
 		static float InternalGetTint(ScriptWhiteBalanceSettings* self);

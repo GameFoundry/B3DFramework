@@ -272,9 +272,9 @@ namespace bs
 	{
 		SPtr<RenderSettings> tmpsettings;
 		ScriptRenderSettings* scriptObjectWrappersettings;
-		scriptObjectWrappersettings = ScriptRenderSettings::ToNative(settings);
+		scriptObjectWrappersettings = ScriptRenderSettings::GetScriptObjectWrapper(settings);
 		if(scriptObjectWrappersettings != nullptr)
-			tmpsettings = scriptObjectWrappersettings->GetInternal();
+			tmpsettings = std::static_pointer_cast<RenderSettings>(scriptObjectWrappersettings->GetBaseNativeObjectAsShared());
 		self->GetHandle()->SetRenderSettings(tmpsettings);
 	}
 
@@ -284,7 +284,7 @@ namespace bs
 		tmp__output = self->GetHandle()->GetRenderSettings();
 
 		MonoObject* __output;
-		__output = ScriptRenderSettings::Create(tmp__output);
+		__output = ScriptRenderSettings::GetOrCreateScriptObject(tmp__output);
 
 		return __output;
 	}

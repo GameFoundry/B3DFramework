@@ -3,7 +3,7 @@
 #pragma once
 
 #include "BsScriptEnginePrerequisites.h"
-#include "Wrappers/BsScriptReflectable.h"
+#include "BsScriptReflectableWrapper.h"
 #include "../../../Foundation/bsfCore/Renderer/BsRenderSettings.h"
 #include "../../../Foundation/bsfCore/Renderer/BsRenderSettings.h"
 #include "Math/BsVector2.h"
@@ -11,17 +11,17 @@
 namespace bs { struct DepthOfFieldSettings; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptDepthOfFieldSettings : public TScriptReflectable<ScriptDepthOfFieldSettings, DepthOfFieldSettings>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptDepthOfFieldSettings : public TScriptReflectableWrapper<DepthOfFieldSettings, ScriptDepthOfFieldSettings>
 	{
 	public:
-		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "DepthOfFieldSettings")
+		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "DepthOfFieldSettings")
 
-		ScriptDepthOfFieldSettings(MonoObject* managedInstance, const SPtr<DepthOfFieldSettings>& value);
+		ScriptDepthOfFieldSettings(const SPtr<DepthOfFieldSettings>& nativeObject, MonoObject* scriptObject);
 
-		static MonoObject* Create(const SPtr<DepthOfFieldSettings>& value);
+		static MonoObject* CreateScriptObject(bool construct);
 
 	private:
-		static void InternalDepthOfFieldSettings(MonoObject* managedInstance);
+		static void InternalDepthOfFieldSettings(MonoObject* scriptObject);
 		static MonoObject* InternalGetBokehShape(ScriptDepthOfFieldSettings* self);
 		static void InternalSetBokehShape(ScriptDepthOfFieldSettings* self, MonoObject* value);
 		static bool InternalGetEnabled(ScriptDepthOfFieldSettings* self);

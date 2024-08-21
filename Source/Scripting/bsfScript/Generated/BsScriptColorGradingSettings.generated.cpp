@@ -8,39 +8,38 @@
 
 namespace bs
 {
-	ScriptColorGradingSettings::ScriptColorGradingSettings(MonoObject* managedInstance, const SPtr<ColorGradingSettings>& value)
-		:TScriptReflectable(managedInstance, value)
+	ScriptColorGradingSettings::ScriptColorGradingSettings(const SPtr<ColorGradingSettings>& nativeObject, MonoObject* scriptObject)
+		:TScriptReflectableWrapper(nativeObject, scriptObject)
 	{
 	}
 
-	void ScriptColorGradingSettings::InitRuntimeData()
+	void ScriptColorGradingSettings::SetupScriptBindings()
 	{
-		metaData.ScriptClass->AddInternalCall("Internal_GetSaturation", (void*)&ScriptColorGradingSettings::InternalGetSaturation);
-		metaData.ScriptClass->AddInternalCall("Internal_SetSaturation", (void*)&ScriptColorGradingSettings::InternalSetSaturation);
-		metaData.ScriptClass->AddInternalCall("Internal_GetContrast", (void*)&ScriptColorGradingSettings::InternalGetContrast);
-		metaData.ScriptClass->AddInternalCall("Internal_SetContrast", (void*)&ScriptColorGradingSettings::InternalSetContrast);
-		metaData.ScriptClass->AddInternalCall("Internal_GetGain", (void*)&ScriptColorGradingSettings::InternalGetGain);
-		metaData.ScriptClass->AddInternalCall("Internal_SetGain", (void*)&ScriptColorGradingSettings::InternalSetGain);
-		metaData.ScriptClass->AddInternalCall("Internal_GetOffset", (void*)&ScriptColorGradingSettings::InternalGetOffset);
-		metaData.ScriptClass->AddInternalCall("Internal_SetOffset", (void*)&ScriptColorGradingSettings::InternalSetOffset);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetSaturation", (void*)&ScriptColorGradingSettings::InternalGetSaturation);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetSaturation", (void*)&ScriptColorGradingSettings::InternalSetSaturation);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetContrast", (void*)&ScriptColorGradingSettings::InternalGetContrast);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetContrast", (void*)&ScriptColorGradingSettings::InternalSetContrast);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetGain", (void*)&ScriptColorGradingSettings::InternalGetGain);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetGain", (void*)&ScriptColorGradingSettings::InternalSetGain);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetOffset", (void*)&ScriptColorGradingSettings::InternalGetOffset);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetOffset", (void*)&ScriptColorGradingSettings::InternalSetOffset);
 
 	}
 
-	MonoObject* ScriptColorGradingSettings::Create(const SPtr<ColorGradingSettings>& value)
+	MonoObject* ScriptColorGradingSettings::CreateScriptObject(bool construct)
 	{
-		if(value == nullptr) return nullptr; 
-
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
 
-		MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-		new (B3DAllocate<ScriptColorGradingSettings>()) ScriptColorGradingSettings(managedInstance, value);
-		return managedInstance;
+		if(construct)
+			return sInteropMetaData.ScriptClass->CreateInstance("bool", ctorParams);
+
+		return sInteropMetaData.ScriptClass->CreateInstance(false);
 	}
 	void ScriptColorGradingSettings::InternalGetSaturation(ScriptColorGradingSettings* self, TVector3<float>* __output)
 	{
 		TVector3<float> tmp__output;
-		tmp__output = self->GetInternal()->Saturation;
+		tmp__output = static_cast<ColorGradingSettings*>(self->GetNativeObject())->Saturation;
 
 		*__output = tmp__output;
 
@@ -49,13 +48,13 @@ namespace bs
 
 	void ScriptColorGradingSettings::InternalSetSaturation(ScriptColorGradingSettings* self, TVector3<float>* value)
 	{
-		self->GetInternal()->Saturation = *value;
+		static_cast<ColorGradingSettings*>(self->GetNativeObject())->Saturation = *value;
 	}
 
 	void ScriptColorGradingSettings::InternalGetContrast(ScriptColorGradingSettings* self, TVector3<float>* __output)
 	{
 		TVector3<float> tmp__output;
-		tmp__output = self->GetInternal()->Contrast;
+		tmp__output = static_cast<ColorGradingSettings*>(self->GetNativeObject())->Contrast;
 
 		*__output = tmp__output;
 
@@ -64,13 +63,13 @@ namespace bs
 
 	void ScriptColorGradingSettings::InternalSetContrast(ScriptColorGradingSettings* self, TVector3<float>* value)
 	{
-		self->GetInternal()->Contrast = *value;
+		static_cast<ColorGradingSettings*>(self->GetNativeObject())->Contrast = *value;
 	}
 
 	void ScriptColorGradingSettings::InternalGetGain(ScriptColorGradingSettings* self, TVector3<float>* __output)
 	{
 		TVector3<float> tmp__output;
-		tmp__output = self->GetInternal()->Gain;
+		tmp__output = static_cast<ColorGradingSettings*>(self->GetNativeObject())->Gain;
 
 		*__output = tmp__output;
 
@@ -79,13 +78,13 @@ namespace bs
 
 	void ScriptColorGradingSettings::InternalSetGain(ScriptColorGradingSettings* self, TVector3<float>* value)
 	{
-		self->GetInternal()->Gain = *value;
+		static_cast<ColorGradingSettings*>(self->GetNativeObject())->Gain = *value;
 	}
 
 	void ScriptColorGradingSettings::InternalGetOffset(ScriptColorGradingSettings* self, TVector3<float>* __output)
 	{
 		TVector3<float> tmp__output;
-		tmp__output = self->GetInternal()->Offset;
+		tmp__output = static_cast<ColorGradingSettings*>(self->GetNativeObject())->Offset;
 
 		*__output = tmp__output;
 
@@ -94,6 +93,6 @@ namespace bs
 
 	void ScriptColorGradingSettings::InternalSetOffset(ScriptColorGradingSettings* self, TVector3<float>* value)
 	{
-		self->GetInternal()->Offset = *value;
+		static_cast<ColorGradingSettings*>(self->GetNativeObject())->Offset = *value;
 	}
 }

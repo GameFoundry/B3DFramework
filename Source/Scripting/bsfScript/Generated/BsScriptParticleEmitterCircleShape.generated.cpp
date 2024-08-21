@@ -9,60 +9,58 @@
 
 namespace bs
 {
-	ScriptParticleEmitterCircleShape::ScriptParticleEmitterCircleShape(MonoObject* managedInstance, const SPtr<ParticleEmitterCircleShape>& value)
-		:TScriptReflectable(managedInstance, value)
+	ScriptParticleEmitterCircleShape::ScriptParticleEmitterCircleShape(const SPtr<ParticleEmitterCircleShape>& nativeObject, MonoObject* scriptObject)
+		:TScriptReflectableWrapper(nativeObject, scriptObject)
 	{
-		mInternal = value;
 	}
 
-	void ScriptParticleEmitterCircleShape::InitRuntimeData()
+	void ScriptParticleEmitterCircleShape::SetupScriptBindings()
 	{
-		metaData.ScriptClass->AddInternalCall("Internal_SetOptions", (void*)&ScriptParticleEmitterCircleShape::InternalSetOptions);
-		metaData.ScriptClass->AddInternalCall("Internal_GetOptions", (void*)&ScriptParticleEmitterCircleShape::InternalGetOptions);
-		metaData.ScriptClass->AddInternalCall("Internal_Create", (void*)&ScriptParticleEmitterCircleShape::InternalCreate);
-		metaData.ScriptClass->AddInternalCall("Internal_Create0", (void*)&ScriptParticleEmitterCircleShape::InternalCreate0);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetOptions", (void*)&ScriptParticleEmitterCircleShape::InternalSetOptions);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetOptions", (void*)&ScriptParticleEmitterCircleShape::InternalGetOptions);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_Create", (void*)&ScriptParticleEmitterCircleShape::InternalCreate);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_Create0", (void*)&ScriptParticleEmitterCircleShape::InternalCreate0);
 
 	}
 
-	MonoObject* ScriptParticleEmitterCircleShape::Create(const SPtr<ParticleEmitterCircleShape>& value)
+	MonoObject* ScriptParticleEmitterCircleShape::CreateScriptObject(bool construct)
 	{
-		if(value == nullptr) return nullptr; 
-
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
 
-		MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-		new (B3DAllocate<ScriptParticleEmitterCircleShape>()) ScriptParticleEmitterCircleShape(managedInstance, value);
-		return managedInstance;
+		if(construct)
+			return sInteropMetaData.ScriptClass->CreateInstance("bool", ctorParams);
+
+		return sInteropMetaData.ScriptClass->CreateInstance(false);
 	}
 	void ScriptParticleEmitterCircleShape::InternalSetOptions(ScriptParticleEmitterCircleShape* self, __PARTICLE_CIRCLE_SHAPE_DESCInterop* options)
 	{
 		PARTICLE_CIRCLE_SHAPE_DESC tmpoptions;
 		tmpoptions = ScriptParticleCircleShapeOptions::FromInterop(*options);
-		self->GetInternal()->SetOptions(tmpoptions);
+		static_cast<ParticleEmitterCircleShape*>(self->GetNativeObject())->SetOptions(tmpoptions);
 	}
 
 	void ScriptParticleEmitterCircleShape::InternalGetOptions(ScriptParticleEmitterCircleShape* self, __PARTICLE_CIRCLE_SHAPE_DESCInterop* __output)
 	{
 		PARTICLE_CIRCLE_SHAPE_DESC tmp__output;
-		tmp__output = self->GetInternal()->GetOptions();
+		tmp__output = static_cast<ParticleEmitterCircleShape*>(self->GetNativeObject())->GetOptions();
 
 		__PARTICLE_CIRCLE_SHAPE_DESCInterop interop__output;
 		interop__output = ScriptParticleCircleShapeOptions::ToInterop(tmp__output);
 		MonoUtil::ValueCopy(__output, &interop__output, ScriptParticleCircleShapeOptions::GetMetaData()->ScriptClass->GetInternalClass());
 	}
 
-	void ScriptParticleEmitterCircleShape::InternalCreate(MonoObject* managedInstance, __PARTICLE_CIRCLE_SHAPE_DESCInterop* desc)
+	void ScriptParticleEmitterCircleShape::InternalCreate(MonoObject* scriptObject, __PARTICLE_CIRCLE_SHAPE_DESCInterop* desc)
 	{
 		PARTICLE_CIRCLE_SHAPE_DESC tmpdesc;
 		tmpdesc = ScriptParticleCircleShapeOptions::FromInterop(*desc);
 		SPtr<ParticleEmitterCircleShape> nativeObject = ParticleEmitterCircleShape::Create(tmpdesc);
-		new (B3DAllocate<ScriptParticleEmitterCircleShape>())ScriptParticleEmitterCircleShape(managedInstance, nativeObject);
+		B3DNew<ScriptParticleEmitterCircleShape>(nativeObject, scriptObject);
 	}
 
-	void ScriptParticleEmitterCircleShape::InternalCreate0(MonoObject* managedInstance)
+	void ScriptParticleEmitterCircleShape::InternalCreate0(MonoObject* scriptObject)
 	{
 		SPtr<ParticleEmitterCircleShape> nativeObject = ParticleEmitterCircleShape::Create();
-		new (B3DAllocate<ScriptParticleEmitterCircleShape>())ScriptParticleEmitterCircleShape(managedInstance, nativeObject);
+		B3DNew<ScriptParticleEmitterCircleShape>(nativeObject, scriptObject);
 	}
 }

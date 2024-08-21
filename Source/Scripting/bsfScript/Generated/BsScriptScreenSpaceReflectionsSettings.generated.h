@@ -3,23 +3,23 @@
 #pragma once
 
 #include "BsScriptEnginePrerequisites.h"
-#include "Wrappers/BsScriptReflectable.h"
+#include "BsScriptReflectableWrapper.h"
 #include "../../../Foundation/bsfCore/Renderer/BsRenderSettings.h"
 
 namespace bs { struct ScreenSpaceReflectionsSettings; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptScreenSpaceReflectionsSettings : public TScriptReflectable<ScriptScreenSpaceReflectionsSettings, ScreenSpaceReflectionsSettings>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptScreenSpaceReflectionsSettings : public TScriptReflectableWrapper<ScreenSpaceReflectionsSettings, ScriptScreenSpaceReflectionsSettings>
 	{
 	public:
-		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "ScreenSpaceReflectionsSettings")
+		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "ScreenSpaceReflectionsSettings")
 
-		ScriptScreenSpaceReflectionsSettings(MonoObject* managedInstance, const SPtr<ScreenSpaceReflectionsSettings>& value);
+		ScriptScreenSpaceReflectionsSettings(const SPtr<ScreenSpaceReflectionsSettings>& nativeObject, MonoObject* scriptObject);
 
-		static MonoObject* Create(const SPtr<ScreenSpaceReflectionsSettings>& value);
+		static MonoObject* CreateScriptObject(bool construct);
 
 	private:
-		static void InternalScreenSpaceReflectionsSettings(MonoObject* managedInstance);
+		static void InternalScreenSpaceReflectionsSettings(MonoObject* scriptObject);
 		static bool InternalGetEnabled(ScriptScreenSpaceReflectionsSettings* self);
 		static void InternalSetEnabled(ScriptScreenSpaceReflectionsSettings* self, bool value);
 		static uint32_t InternalGetQuality(ScriptScreenSpaceReflectionsSettings* self);

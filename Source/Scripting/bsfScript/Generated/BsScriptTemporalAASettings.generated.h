@@ -3,23 +3,23 @@
 #pragma once
 
 #include "BsScriptEnginePrerequisites.h"
-#include "Wrappers/BsScriptReflectable.h"
+#include "BsScriptReflectableWrapper.h"
 #include "../../../Foundation/bsfCore/Renderer/BsRenderSettings.h"
 
 namespace bs { struct TemporalAASettings; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptTemporalAASettings : public TScriptReflectable<ScriptTemporalAASettings, TemporalAASettings>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptTemporalAASettings : public TScriptReflectableWrapper<TemporalAASettings, ScriptTemporalAASettings>
 	{
 	public:
-		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "TemporalAASettings")
+		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "TemporalAASettings")
 
-		ScriptTemporalAASettings(MonoObject* managedInstance, const SPtr<TemporalAASettings>& value);
+		ScriptTemporalAASettings(const SPtr<TemporalAASettings>& nativeObject, MonoObject* scriptObject);
 
-		static MonoObject* Create(const SPtr<TemporalAASettings>& value);
+		static MonoObject* CreateScriptObject(bool construct);
 
 	private:
-		static void InternalTemporalAASettings(MonoObject* managedInstance);
+		static void InternalTemporalAASettings(MonoObject* scriptObject);
 		static bool InternalGetEnabled(ScriptTemporalAASettings* self);
 		static void InternalSetEnabled(ScriptTemporalAASettings* self, bool value);
 		static uint32_t InternalGetJitteredPositionCount(ScriptTemporalAASettings* self);

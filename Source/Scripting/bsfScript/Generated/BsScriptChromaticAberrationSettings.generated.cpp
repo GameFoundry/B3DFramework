@@ -10,46 +10,45 @@
 
 namespace bs
 {
-	ScriptChromaticAberrationSettings::ScriptChromaticAberrationSettings(MonoObject* managedInstance, const SPtr<ChromaticAberrationSettings>& value)
-		:TScriptReflectable(managedInstance, value)
+	ScriptChromaticAberrationSettings::ScriptChromaticAberrationSettings(const SPtr<ChromaticAberrationSettings>& nativeObject, MonoObject* scriptObject)
+		:TScriptReflectableWrapper(nativeObject, scriptObject)
 	{
 	}
 
-	void ScriptChromaticAberrationSettings::InitRuntimeData()
+	void ScriptChromaticAberrationSettings::SetupScriptBindings()
 	{
-		metaData.ScriptClass->AddInternalCall("Internal_ChromaticAberrationSettings", (void*)&ScriptChromaticAberrationSettings::InternalChromaticAberrationSettings);
-		metaData.ScriptClass->AddInternalCall("Internal_GetFringeTexture", (void*)&ScriptChromaticAberrationSettings::InternalGetFringeTexture);
-		metaData.ScriptClass->AddInternalCall("Internal_SetFringeTexture", (void*)&ScriptChromaticAberrationSettings::InternalSetFringeTexture);
-		metaData.ScriptClass->AddInternalCall("Internal_GetEnabled", (void*)&ScriptChromaticAberrationSettings::InternalGetEnabled);
-		metaData.ScriptClass->AddInternalCall("Internal_SetEnabled", (void*)&ScriptChromaticAberrationSettings::InternalSetEnabled);
-		metaData.ScriptClass->AddInternalCall("Internal_GetType", (void*)&ScriptChromaticAberrationSettings::InternalGetType);
-		metaData.ScriptClass->AddInternalCall("Internal_SetType", (void*)&ScriptChromaticAberrationSettings::InternalSetType);
-		metaData.ScriptClass->AddInternalCall("Internal_GetShiftAmount", (void*)&ScriptChromaticAberrationSettings::InternalGetShiftAmount);
-		metaData.ScriptClass->AddInternalCall("Internal_SetShiftAmount", (void*)&ScriptChromaticAberrationSettings::InternalSetShiftAmount);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_ChromaticAberrationSettings", (void*)&ScriptChromaticAberrationSettings::InternalChromaticAberrationSettings);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetFringeTexture", (void*)&ScriptChromaticAberrationSettings::InternalGetFringeTexture);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetFringeTexture", (void*)&ScriptChromaticAberrationSettings::InternalSetFringeTexture);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetEnabled", (void*)&ScriptChromaticAberrationSettings::InternalGetEnabled);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetEnabled", (void*)&ScriptChromaticAberrationSettings::InternalSetEnabled);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetType", (void*)&ScriptChromaticAberrationSettings::InternalGetType);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetType", (void*)&ScriptChromaticAberrationSettings::InternalSetType);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetShiftAmount", (void*)&ScriptChromaticAberrationSettings::InternalGetShiftAmount);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetShiftAmount", (void*)&ScriptChromaticAberrationSettings::InternalSetShiftAmount);
 
 	}
 
-	MonoObject* ScriptChromaticAberrationSettings::Create(const SPtr<ChromaticAberrationSettings>& value)
+	MonoObject* ScriptChromaticAberrationSettings::CreateScriptObject(bool construct)
 	{
-		if(value == nullptr) return nullptr; 
-
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
 
-		MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-		new (B3DAllocate<ScriptChromaticAberrationSettings>()) ScriptChromaticAberrationSettings(managedInstance, value);
-		return managedInstance;
+		if(construct)
+			return sInteropMetaData.ScriptClass->CreateInstance("bool", ctorParams);
+
+		return sInteropMetaData.ScriptClass->CreateInstance(false);
 	}
-	void ScriptChromaticAberrationSettings::InternalChromaticAberrationSettings(MonoObject* managedInstance)
+	void ScriptChromaticAberrationSettings::InternalChromaticAberrationSettings(MonoObject* scriptObject)
 	{
 		SPtr<ChromaticAberrationSettings> nativeObject = B3DMakeShared<ChromaticAberrationSettings>();
-		new (B3DAllocate<ScriptChromaticAberrationSettings>())ScriptChromaticAberrationSettings(managedInstance, nativeObject);
+		B3DNew<ScriptChromaticAberrationSettings>(nativeObject, scriptObject);
 	}
 
 	MonoObject* ScriptChromaticAberrationSettings::InternalGetFringeTexture(ScriptChromaticAberrationSettings* self)
 	{
 		TResourceHandle<Texture> tmp__output;
-		tmp__output = self->GetInternal()->FringeTexture;
+		tmp__output = static_cast<ChromaticAberrationSettings*>(self->GetNativeObject())->FringeTexture;
 
 		MonoObject* __output;
 		ScriptRRefBase* script__output;
@@ -69,13 +68,13 @@ namespace bs
 		scriptObjectWrappervalue = ScriptRRefBase::ToNative(value);
 		if(scriptObjectWrappervalue != nullptr)
 			tmpvalue = B3DStaticResourceCast<Texture>(scriptObjectWrappervalue->GetHandle());
-		self->GetInternal()->FringeTexture = tmpvalue;
+		static_cast<ChromaticAberrationSettings*>(self->GetNativeObject())->FringeTexture = tmpvalue;
 	}
 
 	bool ScriptChromaticAberrationSettings::InternalGetEnabled(ScriptChromaticAberrationSettings* self)
 	{
 		bool tmp__output;
-		tmp__output = self->GetInternal()->Enabled;
+		tmp__output = static_cast<ChromaticAberrationSettings*>(self->GetNativeObject())->Enabled;
 
 		bool __output;
 		__output = tmp__output;
@@ -85,13 +84,13 @@ namespace bs
 
 	void ScriptChromaticAberrationSettings::InternalSetEnabled(ScriptChromaticAberrationSettings* self, bool value)
 	{
-		self->GetInternal()->Enabled = value;
+		static_cast<ChromaticAberrationSettings*>(self->GetNativeObject())->Enabled = value;
 	}
 
 	ChromaticAberrationType ScriptChromaticAberrationSettings::InternalGetType(ScriptChromaticAberrationSettings* self)
 	{
 		ChromaticAberrationType tmp__output;
-		tmp__output = self->GetInternal()->Type;
+		tmp__output = static_cast<ChromaticAberrationSettings*>(self->GetNativeObject())->Type;
 
 		ChromaticAberrationType __output;
 		__output = tmp__output;
@@ -101,13 +100,13 @@ namespace bs
 
 	void ScriptChromaticAberrationSettings::InternalSetType(ScriptChromaticAberrationSettings* self, ChromaticAberrationType value)
 	{
-		self->GetInternal()->Type = value;
+		static_cast<ChromaticAberrationSettings*>(self->GetNativeObject())->Type = value;
 	}
 
 	float ScriptChromaticAberrationSettings::InternalGetShiftAmount(ScriptChromaticAberrationSettings* self)
 	{
 		float tmp__output;
-		tmp__output = self->GetInternal()->ShiftAmount;
+		tmp__output = static_cast<ChromaticAberrationSettings*>(self->GetNativeObject())->ShiftAmount;
 
 		float __output;
 		__output = tmp__output;
@@ -117,6 +116,6 @@ namespace bs
 
 	void ScriptChromaticAberrationSettings::InternalSetShiftAmount(ScriptChromaticAberrationSettings* self, float value)
 	{
-		self->GetInternal()->ShiftAmount = value;
+		static_cast<ChromaticAberrationSettings*>(self->GetNativeObject())->ShiftAmount = value;
 	}
 }

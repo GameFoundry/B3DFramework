@@ -3,29 +3,27 @@
 #pragma once
 
 #include "BsScriptEnginePrerequisites.h"
-#include "Wrappers/BsScriptReflectable.h"
+#include "BsScriptReflectableWrapper.h"
 #include "../../../Foundation/bsfCore/Particles/BsParticleEmitter.h"
 
 namespace bs { class ParticleEmitterShape; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleEmitterShapeBase : public ScriptReflectableBase
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleEmitterShapeWrapperBase : public ScriptReflectableWrapper
 	{
 	public:
-		ScriptParticleEmitterShapeBase(MonoObject* instance);
-		virtual ~ScriptParticleEmitterShapeBase() {}
+		using ScriptReflectableWrapper::ScriptReflectableWrapper;
 
-		SPtr<ParticleEmitterShape> GetInternal() const;
 	};
 
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleEmitterShape : public TScriptReflectable<ScriptParticleEmitterShape, ParticleEmitterShape, ScriptParticleEmitterShapeBase>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleEmitterShape : public TScriptReflectableWrapper<ParticleEmitterShape, ScriptParticleEmitterShape, ScriptParticleEmitterShapeWrapperBase>
 	{
 	public:
-		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "ParticleEmitterShape")
+		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "ParticleEmitterShape")
 
-		ScriptParticleEmitterShape(MonoObject* managedInstance, const SPtr<ParticleEmitterShape>& value);
+		ScriptParticleEmitterShape(const SPtr<ParticleEmitterShape>& nativeObject, MonoObject* scriptObject);
 
-		static MonoObject* Create(const SPtr<ParticleEmitterShape>& value);
+		static MonoObject* CreateScriptObject(bool construct);
 
 	private:
 	};

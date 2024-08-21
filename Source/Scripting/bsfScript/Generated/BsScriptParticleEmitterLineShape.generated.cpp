@@ -9,60 +9,58 @@
 
 namespace bs
 {
-	ScriptParticleEmitterLineShape::ScriptParticleEmitterLineShape(MonoObject* managedInstance, const SPtr<ParticleEmitterLineShape>& value)
-		:TScriptReflectable(managedInstance, value)
+	ScriptParticleEmitterLineShape::ScriptParticleEmitterLineShape(const SPtr<ParticleEmitterLineShape>& nativeObject, MonoObject* scriptObject)
+		:TScriptReflectableWrapper(nativeObject, scriptObject)
 	{
-		mInternal = value;
 	}
 
-	void ScriptParticleEmitterLineShape::InitRuntimeData()
+	void ScriptParticleEmitterLineShape::SetupScriptBindings()
 	{
-		metaData.ScriptClass->AddInternalCall("Internal_SetOptions", (void*)&ScriptParticleEmitterLineShape::InternalSetOptions);
-		metaData.ScriptClass->AddInternalCall("Internal_GetOptions", (void*)&ScriptParticleEmitterLineShape::InternalGetOptions);
-		metaData.ScriptClass->AddInternalCall("Internal_Create", (void*)&ScriptParticleEmitterLineShape::InternalCreate);
-		metaData.ScriptClass->AddInternalCall("Internal_Create0", (void*)&ScriptParticleEmitterLineShape::InternalCreate0);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetOptions", (void*)&ScriptParticleEmitterLineShape::InternalSetOptions);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetOptions", (void*)&ScriptParticleEmitterLineShape::InternalGetOptions);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_Create", (void*)&ScriptParticleEmitterLineShape::InternalCreate);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_Create0", (void*)&ScriptParticleEmitterLineShape::InternalCreate0);
 
 	}
 
-	MonoObject* ScriptParticleEmitterLineShape::Create(const SPtr<ParticleEmitterLineShape>& value)
+	MonoObject* ScriptParticleEmitterLineShape::CreateScriptObject(bool construct)
 	{
-		if(value == nullptr) return nullptr; 
-
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
 
-		MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-		new (B3DAllocate<ScriptParticleEmitterLineShape>()) ScriptParticleEmitterLineShape(managedInstance, value);
-		return managedInstance;
+		if(construct)
+			return sInteropMetaData.ScriptClass->CreateInstance("bool", ctorParams);
+
+		return sInteropMetaData.ScriptClass->CreateInstance(false);
 	}
 	void ScriptParticleEmitterLineShape::InternalSetOptions(ScriptParticleEmitterLineShape* self, __PARTICLE_LINE_SHAPE_DESCInterop* options)
 	{
 		PARTICLE_LINE_SHAPE_DESC tmpoptions;
 		tmpoptions = ScriptParticleLineShapeOptions::FromInterop(*options);
-		self->GetInternal()->SetOptions(tmpoptions);
+		static_cast<ParticleEmitterLineShape*>(self->GetNativeObject())->SetOptions(tmpoptions);
 	}
 
 	void ScriptParticleEmitterLineShape::InternalGetOptions(ScriptParticleEmitterLineShape* self, __PARTICLE_LINE_SHAPE_DESCInterop* __output)
 	{
 		PARTICLE_LINE_SHAPE_DESC tmp__output;
-		tmp__output = self->GetInternal()->GetOptions();
+		tmp__output = static_cast<ParticleEmitterLineShape*>(self->GetNativeObject())->GetOptions();
 
 		__PARTICLE_LINE_SHAPE_DESCInterop interop__output;
 		interop__output = ScriptParticleLineShapeOptions::ToInterop(tmp__output);
 		MonoUtil::ValueCopy(__output, &interop__output, ScriptParticleLineShapeOptions::GetMetaData()->ScriptClass->GetInternalClass());
 	}
 
-	void ScriptParticleEmitterLineShape::InternalCreate(MonoObject* managedInstance, __PARTICLE_LINE_SHAPE_DESCInterop* desc)
+	void ScriptParticleEmitterLineShape::InternalCreate(MonoObject* scriptObject, __PARTICLE_LINE_SHAPE_DESCInterop* desc)
 	{
 		PARTICLE_LINE_SHAPE_DESC tmpdesc;
 		tmpdesc = ScriptParticleLineShapeOptions::FromInterop(*desc);
 		SPtr<ParticleEmitterLineShape> nativeObject = ParticleEmitterLineShape::Create(tmpdesc);
-		new (B3DAllocate<ScriptParticleEmitterLineShape>())ScriptParticleEmitterLineShape(managedInstance, nativeObject);
+		B3DNew<ScriptParticleEmitterLineShape>(nativeObject, scriptObject);
 	}
 
-	void ScriptParticleEmitterLineShape::InternalCreate0(MonoObject* managedInstance)
+	void ScriptParticleEmitterLineShape::InternalCreate0(MonoObject* scriptObject)
 	{
 		SPtr<ParticleEmitterLineShape> nativeObject = ParticleEmitterLineShape::Create();
-		new (B3DAllocate<ScriptParticleEmitterLineShape>())ScriptParticleEmitterLineShape(managedInstance, nativeObject);
+		B3DNew<ScriptParticleEmitterLineShape>(nativeObject, scriptObject);
 	}
 }

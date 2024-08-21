@@ -3,23 +3,23 @@
 #pragma once
 
 #include "BsScriptEnginePrerequisites.h"
-#include "Wrappers/BsScriptReflectable.h"
+#include "BsScriptReflectableWrapper.h"
 #include "../../../Foundation/bsfCore/Renderer/BsRenderSettings.h"
 
 namespace bs { struct ShadowSettings; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptShadowSettings : public TScriptReflectable<ScriptShadowSettings, ShadowSettings>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptShadowSettings : public TScriptReflectableWrapper<ShadowSettings, ScriptShadowSettings>
 	{
 	public:
-		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "ShadowSettings")
+		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "ShadowSettings")
 
-		ScriptShadowSettings(MonoObject* managedInstance, const SPtr<ShadowSettings>& value);
+		ScriptShadowSettings(const SPtr<ShadowSettings>& nativeObject, MonoObject* scriptObject);
 
-		static MonoObject* Create(const SPtr<ShadowSettings>& value);
+		static MonoObject* CreateScriptObject(bool construct);
 
 	private:
-		static void InternalShadowSettings(MonoObject* managedInstance);
+		static void InternalShadowSettings(MonoObject* scriptObject);
 		static float InternalGetDirectionalShadowDistance(ScriptShadowSettings* self);
 		static void InternalSetDirectionalShadowDistance(ScriptShadowSettings* self, float value);
 		static uint32_t InternalGetNumCascades(ScriptShadowSettings* self);

@@ -7,44 +7,43 @@
 
 namespace bs
 {
-	ScriptFilmGrainSettings::ScriptFilmGrainSettings(MonoObject* managedInstance, const SPtr<FilmGrainSettings>& value)
-		:TScriptReflectable(managedInstance, value)
+	ScriptFilmGrainSettings::ScriptFilmGrainSettings(const SPtr<FilmGrainSettings>& nativeObject, MonoObject* scriptObject)
+		:TScriptReflectableWrapper(nativeObject, scriptObject)
 	{
 	}
 
-	void ScriptFilmGrainSettings::InitRuntimeData()
+	void ScriptFilmGrainSettings::SetupScriptBindings()
 	{
-		metaData.ScriptClass->AddInternalCall("Internal_FilmGrainSettings", (void*)&ScriptFilmGrainSettings::InternalFilmGrainSettings);
-		metaData.ScriptClass->AddInternalCall("Internal_GetEnabled", (void*)&ScriptFilmGrainSettings::InternalGetEnabled);
-		metaData.ScriptClass->AddInternalCall("Internal_SetEnabled", (void*)&ScriptFilmGrainSettings::InternalSetEnabled);
-		metaData.ScriptClass->AddInternalCall("Internal_GetIntensity", (void*)&ScriptFilmGrainSettings::InternalGetIntensity);
-		metaData.ScriptClass->AddInternalCall("Internal_SetIntensity", (void*)&ScriptFilmGrainSettings::InternalSetIntensity);
-		metaData.ScriptClass->AddInternalCall("Internal_GetSpeed", (void*)&ScriptFilmGrainSettings::InternalGetSpeed);
-		metaData.ScriptClass->AddInternalCall("Internal_SetSpeed", (void*)&ScriptFilmGrainSettings::InternalSetSpeed);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_FilmGrainSettings", (void*)&ScriptFilmGrainSettings::InternalFilmGrainSettings);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetEnabled", (void*)&ScriptFilmGrainSettings::InternalGetEnabled);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetEnabled", (void*)&ScriptFilmGrainSettings::InternalSetEnabled);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetIntensity", (void*)&ScriptFilmGrainSettings::InternalGetIntensity);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetIntensity", (void*)&ScriptFilmGrainSettings::InternalSetIntensity);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetSpeed", (void*)&ScriptFilmGrainSettings::InternalGetSpeed);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetSpeed", (void*)&ScriptFilmGrainSettings::InternalSetSpeed);
 
 	}
 
-	MonoObject* ScriptFilmGrainSettings::Create(const SPtr<FilmGrainSettings>& value)
+	MonoObject* ScriptFilmGrainSettings::CreateScriptObject(bool construct)
 	{
-		if(value == nullptr) return nullptr; 
-
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
 
-		MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-		new (B3DAllocate<ScriptFilmGrainSettings>()) ScriptFilmGrainSettings(managedInstance, value);
-		return managedInstance;
+		if(construct)
+			return sInteropMetaData.ScriptClass->CreateInstance("bool", ctorParams);
+
+		return sInteropMetaData.ScriptClass->CreateInstance(false);
 	}
-	void ScriptFilmGrainSettings::InternalFilmGrainSettings(MonoObject* managedInstance)
+	void ScriptFilmGrainSettings::InternalFilmGrainSettings(MonoObject* scriptObject)
 	{
 		SPtr<FilmGrainSettings> nativeObject = B3DMakeShared<FilmGrainSettings>();
-		new (B3DAllocate<ScriptFilmGrainSettings>())ScriptFilmGrainSettings(managedInstance, nativeObject);
+		B3DNew<ScriptFilmGrainSettings>(nativeObject, scriptObject);
 	}
 
 	bool ScriptFilmGrainSettings::InternalGetEnabled(ScriptFilmGrainSettings* self)
 	{
 		bool tmp__output;
-		tmp__output = self->GetInternal()->Enabled;
+		tmp__output = static_cast<FilmGrainSettings*>(self->GetNativeObject())->Enabled;
 
 		bool __output;
 		__output = tmp__output;
@@ -54,13 +53,13 @@ namespace bs
 
 	void ScriptFilmGrainSettings::InternalSetEnabled(ScriptFilmGrainSettings* self, bool value)
 	{
-		self->GetInternal()->Enabled = value;
+		static_cast<FilmGrainSettings*>(self->GetNativeObject())->Enabled = value;
 	}
 
 	float ScriptFilmGrainSettings::InternalGetIntensity(ScriptFilmGrainSettings* self)
 	{
 		float tmp__output;
-		tmp__output = self->GetInternal()->Intensity;
+		tmp__output = static_cast<FilmGrainSettings*>(self->GetNativeObject())->Intensity;
 
 		float __output;
 		__output = tmp__output;
@@ -70,13 +69,13 @@ namespace bs
 
 	void ScriptFilmGrainSettings::InternalSetIntensity(ScriptFilmGrainSettings* self, float value)
 	{
-		self->GetInternal()->Intensity = value;
+		static_cast<FilmGrainSettings*>(self->GetNativeObject())->Intensity = value;
 	}
 
 	float ScriptFilmGrainSettings::InternalGetSpeed(ScriptFilmGrainSettings* self)
 	{
 		float tmp__output;
-		tmp__output = self->GetInternal()->Speed;
+		tmp__output = static_cast<FilmGrainSettings*>(self->GetNativeObject())->Speed;
 
 		float __output;
 		__output = tmp__output;
@@ -86,6 +85,6 @@ namespace bs
 
 	void ScriptFilmGrainSettings::InternalSetSpeed(ScriptFilmGrainSettings* self, float value)
 	{
-		self->GetInternal()->Speed = value;
+		static_cast<FilmGrainSettings*>(self->GetNativeObject())->Speed = value;
 	}
 }

@@ -3,23 +3,23 @@
 #pragma once
 
 #include "BsScriptEnginePrerequisites.h"
-#include "Wrappers/BsScriptReflectable.h"
+#include "BsScriptReflectableWrapper.h"
 #include "../../../Foundation/bsfCore/Renderer/BsRenderSettings.h"
 
 namespace bs { struct FilmGrainSettings; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptFilmGrainSettings : public TScriptReflectable<ScriptFilmGrainSettings, FilmGrainSettings>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptFilmGrainSettings : public TScriptReflectableWrapper<FilmGrainSettings, ScriptFilmGrainSettings>
 	{
 	public:
-		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "FilmGrainSettings")
+		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "FilmGrainSettings")
 
-		ScriptFilmGrainSettings(MonoObject* managedInstance, const SPtr<FilmGrainSettings>& value);
+		ScriptFilmGrainSettings(const SPtr<FilmGrainSettings>& nativeObject, MonoObject* scriptObject);
 
-		static MonoObject* Create(const SPtr<FilmGrainSettings>& value);
+		static MonoObject* CreateScriptObject(bool construct);
 
 	private:
-		static void InternalFilmGrainSettings(MonoObject* managedInstance);
+		static void InternalFilmGrainSettings(MonoObject* scriptObject);
 		static bool InternalGetEnabled(ScriptFilmGrainSettings* self);
 		static void InternalSetEnabled(ScriptFilmGrainSettings* self, bool value);
 		static float InternalGetIntensity(ScriptFilmGrainSettings* self);

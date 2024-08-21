@@ -3,24 +3,24 @@
 #pragma once
 
 #include "BsScriptEnginePrerequisites.h"
-#include "Wrappers/BsScriptReflectable.h"
+#include "BsScriptReflectableWrapper.h"
 #include "../../../Foundation/bsfCore/Renderer/BsRenderSettings.h"
 #include "../../../Foundation/bsfCore/Renderer/BsRenderSettings.h"
 
 namespace bs { struct ChromaticAberrationSettings; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptChromaticAberrationSettings : public TScriptReflectable<ScriptChromaticAberrationSettings, ChromaticAberrationSettings>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptChromaticAberrationSettings : public TScriptReflectableWrapper<ChromaticAberrationSettings, ScriptChromaticAberrationSettings>
 	{
 	public:
-		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "ChromaticAberrationSettings")
+		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "ChromaticAberrationSettings")
 
-		ScriptChromaticAberrationSettings(MonoObject* managedInstance, const SPtr<ChromaticAberrationSettings>& value);
+		ScriptChromaticAberrationSettings(const SPtr<ChromaticAberrationSettings>& nativeObject, MonoObject* scriptObject);
 
-		static MonoObject* Create(const SPtr<ChromaticAberrationSettings>& value);
+		static MonoObject* CreateScriptObject(bool construct);
 
 	private:
-		static void InternalChromaticAberrationSettings(MonoObject* managedInstance);
+		static void InternalChromaticAberrationSettings(MonoObject* scriptObject);
 		static MonoObject* InternalGetFringeTexture(ScriptChromaticAberrationSettings* self);
 		static void InternalSetFringeTexture(ScriptChromaticAberrationSettings* self, MonoObject* value);
 		static bool InternalGetEnabled(ScriptChromaticAberrationSettings* self);

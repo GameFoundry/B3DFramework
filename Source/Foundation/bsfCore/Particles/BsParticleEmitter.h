@@ -59,7 +59,7 @@ namespace bs
 	/**
 	 * Base class from all emitter shapes. Emitter shapes determine the position and direction of newly created particles.
 	 */
-	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Particles)) ParticleEmitterShape : public IReflectable
+	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Particles)) ParticleEmitterShape : public IReflectable, public IScriptExportable
 	{
 	public:
 		virtual ~ParticleEmitterShape() = default;

@@ -3,23 +3,23 @@
 #pragma once
 
 #include "BsScriptEnginePrerequisites.h"
-#include "Wrappers/BsScriptReflectable.h"
+#include "BsScriptReflectableWrapper.h"
 #include "../../../Foundation/bsfCore/Renderer/BsRenderSettings.h"
 
 namespace bs { struct TonemappingSettings; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptTonemappingSettings : public TScriptReflectable<ScriptTonemappingSettings, TonemappingSettings>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptTonemappingSettings : public TScriptReflectableWrapper<TonemappingSettings, ScriptTonemappingSettings>
 	{
 	public:
-		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "TonemappingSettings")
+		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "TonemappingSettings")
 
-		ScriptTonemappingSettings(MonoObject* managedInstance, const SPtr<TonemappingSettings>& value);
+		ScriptTonemappingSettings(const SPtr<TonemappingSettings>& nativeObject, MonoObject* scriptObject);
 
-		static MonoObject* Create(const SPtr<TonemappingSettings>& value);
+		static MonoObject* CreateScriptObject(bool construct);
 
 	private:
-		static void InternalTonemappingSettings(MonoObject* managedInstance);
+		static void InternalTonemappingSettings(MonoObject* scriptObject);
 		static float InternalGetFilmicCurveShoulderStrength(ScriptTonemappingSettings* self);
 		static void InternalSetFilmicCurveShoulderStrength(ScriptTonemappingSettings* self, float value);
 		static float InternalGetFilmicCurveLinearStrength(ScriptTonemappingSettings* self);

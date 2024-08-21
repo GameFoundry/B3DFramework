@@ -3,23 +3,23 @@
 #pragma once
 
 #include "BsScriptEnginePrerequisites.h"
-#include "Wrappers/BsScriptReflectable.h"
+#include "BsScriptReflectableWrapper.h"
 #include "../../../Foundation/bsfCore/Renderer/BsRenderSettings.h"
 
 namespace bs { struct AutoExposureSettings; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptAutoExposureSettings : public TScriptReflectable<ScriptAutoExposureSettings, AutoExposureSettings>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptAutoExposureSettings : public TScriptReflectableWrapper<AutoExposureSettings, ScriptAutoExposureSettings>
 	{
 	public:
-		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "AutoExposureSettings")
+		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "AutoExposureSettings")
 
-		ScriptAutoExposureSettings(MonoObject* managedInstance, const SPtr<AutoExposureSettings>& value);
+		ScriptAutoExposureSettings(const SPtr<AutoExposureSettings>& nativeObject, MonoObject* scriptObject);
 
-		static MonoObject* Create(const SPtr<AutoExposureSettings>& value);
+		static MonoObject* CreateScriptObject(bool construct);
 
 	private:
-		static void InternalAutoExposureSettings(MonoObject* managedInstance);
+		static void InternalAutoExposureSettings(MonoObject* scriptObject);
 		static float InternalGetHistogramLog2Min(ScriptAutoExposureSettings* self);
 		static void InternalSetHistogramLog2Min(ScriptAutoExposureSettings* self, float value);
 		static float InternalGetHistogramLog2Max(ScriptAutoExposureSettings* self);

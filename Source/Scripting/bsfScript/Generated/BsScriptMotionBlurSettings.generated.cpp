@@ -7,48 +7,47 @@
 
 namespace bs
 {
-	ScriptMotionBlurSettings::ScriptMotionBlurSettings(MonoObject* managedInstance, const SPtr<MotionBlurSettings>& value)
-		:TScriptReflectable(managedInstance, value)
+	ScriptMotionBlurSettings::ScriptMotionBlurSettings(const SPtr<MotionBlurSettings>& nativeObject, MonoObject* scriptObject)
+		:TScriptReflectableWrapper(nativeObject, scriptObject)
 	{
 	}
 
-	void ScriptMotionBlurSettings::InitRuntimeData()
+	void ScriptMotionBlurSettings::SetupScriptBindings()
 	{
-		metaData.ScriptClass->AddInternalCall("Internal_MotionBlurSettings", (void*)&ScriptMotionBlurSettings::InternalMotionBlurSettings);
-		metaData.ScriptClass->AddInternalCall("Internal_GetEnabled", (void*)&ScriptMotionBlurSettings::InternalGetEnabled);
-		metaData.ScriptClass->AddInternalCall("Internal_SetEnabled", (void*)&ScriptMotionBlurSettings::InternalSetEnabled);
-		metaData.ScriptClass->AddInternalCall("Internal_GetDomain", (void*)&ScriptMotionBlurSettings::InternalGetDomain);
-		metaData.ScriptClass->AddInternalCall("Internal_SetDomain", (void*)&ScriptMotionBlurSettings::InternalSetDomain);
-		metaData.ScriptClass->AddInternalCall("Internal_GetFilter", (void*)&ScriptMotionBlurSettings::InternalGetFilter);
-		metaData.ScriptClass->AddInternalCall("Internal_SetFilter", (void*)&ScriptMotionBlurSettings::InternalSetFilter);
-		metaData.ScriptClass->AddInternalCall("Internal_GetQuality", (void*)&ScriptMotionBlurSettings::InternalGetQuality);
-		metaData.ScriptClass->AddInternalCall("Internal_SetQuality", (void*)&ScriptMotionBlurSettings::InternalSetQuality);
-		metaData.ScriptClass->AddInternalCall("Internal_GetMaximumRadius", (void*)&ScriptMotionBlurSettings::InternalGetMaximumRadius);
-		metaData.ScriptClass->AddInternalCall("Internal_SetMaximumRadius", (void*)&ScriptMotionBlurSettings::InternalSetMaximumRadius);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_MotionBlurSettings", (void*)&ScriptMotionBlurSettings::InternalMotionBlurSettings);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetEnabled", (void*)&ScriptMotionBlurSettings::InternalGetEnabled);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetEnabled", (void*)&ScriptMotionBlurSettings::InternalSetEnabled);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetDomain", (void*)&ScriptMotionBlurSettings::InternalGetDomain);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetDomain", (void*)&ScriptMotionBlurSettings::InternalSetDomain);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetFilter", (void*)&ScriptMotionBlurSettings::InternalGetFilter);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetFilter", (void*)&ScriptMotionBlurSettings::InternalSetFilter);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetQuality", (void*)&ScriptMotionBlurSettings::InternalGetQuality);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetQuality", (void*)&ScriptMotionBlurSettings::InternalSetQuality);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetMaximumRadius", (void*)&ScriptMotionBlurSettings::InternalGetMaximumRadius);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetMaximumRadius", (void*)&ScriptMotionBlurSettings::InternalSetMaximumRadius);
 
 	}
 
-	MonoObject* ScriptMotionBlurSettings::Create(const SPtr<MotionBlurSettings>& value)
+	MonoObject* ScriptMotionBlurSettings::CreateScriptObject(bool construct)
 	{
-		if(value == nullptr) return nullptr; 
-
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
 
-		MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-		new (B3DAllocate<ScriptMotionBlurSettings>()) ScriptMotionBlurSettings(managedInstance, value);
-		return managedInstance;
+		if(construct)
+			return sInteropMetaData.ScriptClass->CreateInstance("bool", ctorParams);
+
+		return sInteropMetaData.ScriptClass->CreateInstance(false);
 	}
-	void ScriptMotionBlurSettings::InternalMotionBlurSettings(MonoObject* managedInstance)
+	void ScriptMotionBlurSettings::InternalMotionBlurSettings(MonoObject* scriptObject)
 	{
 		SPtr<MotionBlurSettings> nativeObject = B3DMakeShared<MotionBlurSettings>();
-		new (B3DAllocate<ScriptMotionBlurSettings>())ScriptMotionBlurSettings(managedInstance, nativeObject);
+		B3DNew<ScriptMotionBlurSettings>(nativeObject, scriptObject);
 	}
 
 	bool ScriptMotionBlurSettings::InternalGetEnabled(ScriptMotionBlurSettings* self)
 	{
 		bool tmp__output;
-		tmp__output = self->GetInternal()->Enabled;
+		tmp__output = static_cast<MotionBlurSettings*>(self->GetNativeObject())->Enabled;
 
 		bool __output;
 		__output = tmp__output;
@@ -58,13 +57,13 @@ namespace bs
 
 	void ScriptMotionBlurSettings::InternalSetEnabled(ScriptMotionBlurSettings* self, bool value)
 	{
-		self->GetInternal()->Enabled = value;
+		static_cast<MotionBlurSettings*>(self->GetNativeObject())->Enabled = value;
 	}
 
 	MotionBlurDomain ScriptMotionBlurSettings::InternalGetDomain(ScriptMotionBlurSettings* self)
 	{
 		MotionBlurDomain tmp__output;
-		tmp__output = self->GetInternal()->Domain;
+		tmp__output = static_cast<MotionBlurSettings*>(self->GetNativeObject())->Domain;
 
 		MotionBlurDomain __output;
 		__output = tmp__output;
@@ -74,13 +73,13 @@ namespace bs
 
 	void ScriptMotionBlurSettings::InternalSetDomain(ScriptMotionBlurSettings* self, MotionBlurDomain value)
 	{
-		self->GetInternal()->Domain = value;
+		static_cast<MotionBlurSettings*>(self->GetNativeObject())->Domain = value;
 	}
 
 	MotionBlurFilter ScriptMotionBlurSettings::InternalGetFilter(ScriptMotionBlurSettings* self)
 	{
 		MotionBlurFilter tmp__output;
-		tmp__output = self->GetInternal()->Filter;
+		tmp__output = static_cast<MotionBlurSettings*>(self->GetNativeObject())->Filter;
 
 		MotionBlurFilter __output;
 		__output = tmp__output;
@@ -90,13 +89,13 @@ namespace bs
 
 	void ScriptMotionBlurSettings::InternalSetFilter(ScriptMotionBlurSettings* self, MotionBlurFilter value)
 	{
-		self->GetInternal()->Filter = value;
+		static_cast<MotionBlurSettings*>(self->GetNativeObject())->Filter = value;
 	}
 
 	MotionBlurQuality ScriptMotionBlurSettings::InternalGetQuality(ScriptMotionBlurSettings* self)
 	{
 		MotionBlurQuality tmp__output;
-		tmp__output = self->GetInternal()->Quality;
+		tmp__output = static_cast<MotionBlurSettings*>(self->GetNativeObject())->Quality;
 
 		MotionBlurQuality __output;
 		__output = tmp__output;
@@ -106,13 +105,13 @@ namespace bs
 
 	void ScriptMotionBlurSettings::InternalSetQuality(ScriptMotionBlurSettings* self, MotionBlurQuality value)
 	{
-		self->GetInternal()->Quality = value;
+		static_cast<MotionBlurSettings*>(self->GetNativeObject())->Quality = value;
 	}
 
 	float ScriptMotionBlurSettings::InternalGetMaximumRadius(ScriptMotionBlurSettings* self)
 	{
 		float tmp__output;
-		tmp__output = self->GetInternal()->MaximumRadius;
+		tmp__output = static_cast<MotionBlurSettings*>(self->GetNativeObject())->MaximumRadius;
 
 		float __output;
 		__output = tmp__output;
@@ -122,6 +121,6 @@ namespace bs
 
 	void ScriptMotionBlurSettings::InternalSetMaximumRadius(ScriptMotionBlurSettings* self, float value)
 	{
-		self->GetInternal()->MaximumRadius = value;
+		static_cast<MotionBlurSettings*>(self->GetNativeObject())->MaximumRadius = value;
 	}
 }

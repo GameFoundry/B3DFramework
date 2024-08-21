@@ -7,34 +7,24 @@
 
 namespace bs
 {
-	ScriptParticleEmitterShapeBase::ScriptParticleEmitterShapeBase(MonoObject* managedInstance)
-		:ScriptReflectableBase(managedInstance)
-	 { }
-
-	SPtr<ParticleEmitterShape> ScriptParticleEmitterShapeBase::GetInternal() const
+	ScriptParticleEmitterShape::ScriptParticleEmitterShape(const SPtr<ParticleEmitterShape>& nativeObject, MonoObject* scriptObject)
+		:TScriptReflectableWrapper(nativeObject, scriptObject)
 	{
-		return std::static_pointer_cast<ParticleEmitterShape>(mInternal);
-	}
-	ScriptParticleEmitterShape::ScriptParticleEmitterShape(MonoObject* managedInstance, const SPtr<ParticleEmitterShape>& value)
-		:TScriptReflectable(managedInstance, value)
-	{
-		mInternal = value;
 	}
 
-	void ScriptParticleEmitterShape::InitRuntimeData()
+	void ScriptParticleEmitterShape::SetupScriptBindings()
 	{
 
 	}
 
-	MonoObject* ScriptParticleEmitterShape::Create(const SPtr<ParticleEmitterShape>& value)
+	MonoObject* ScriptParticleEmitterShape::CreateScriptObject(bool construct)
 	{
-		if(value == nullptr) return nullptr; 
-
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
 
-		MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-		new (B3DAllocate<ScriptParticleEmitterShape>()) ScriptParticleEmitterShape(managedInstance, value);
-		return managedInstance;
+		if(construct)
+			return sInteropMetaData.ScriptClass->CreateInstance("bool", ctorParams);
+
+		return sInteropMetaData.ScriptClass->CreateInstance(false);
 	}
 }

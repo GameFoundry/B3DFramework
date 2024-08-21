@@ -3,23 +3,23 @@
 #pragma once
 
 #include "BsScriptEnginePrerequisites.h"
-#include "Wrappers/BsScriptReflectable.h"
+#include "BsScriptReflectableWrapper.h"
 #include "../../../Foundation/bsfCore/Renderer/BsRenderSettings.h"
 
 namespace bs { struct AmbientOcclusionSettings; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptAmbientOcclusionSettings : public TScriptReflectable<ScriptAmbientOcclusionSettings, AmbientOcclusionSettings>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptAmbientOcclusionSettings : public TScriptReflectableWrapper<AmbientOcclusionSettings, ScriptAmbientOcclusionSettings>
 	{
 	public:
-		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "AmbientOcclusionSettings")
+		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "AmbientOcclusionSettings")
 
-		ScriptAmbientOcclusionSettings(MonoObject* managedInstance, const SPtr<AmbientOcclusionSettings>& value);
+		ScriptAmbientOcclusionSettings(const SPtr<AmbientOcclusionSettings>& nativeObject, MonoObject* scriptObject);
 
-		static MonoObject* Create(const SPtr<AmbientOcclusionSettings>& value);
+		static MonoObject* CreateScriptObject(bool construct);
 
 	private:
-		static void InternalAmbientOcclusionSettings(MonoObject* managedInstance);
+		static void InternalAmbientOcclusionSettings(MonoObject* scriptObject);
 		static bool InternalGetEnabled(ScriptAmbientOcclusionSettings* self);
 		static void InternalSetEnabled(ScriptAmbientOcclusionSettings* self, bool value);
 		static float InternalGetRadius(ScriptAmbientOcclusionSettings* self);

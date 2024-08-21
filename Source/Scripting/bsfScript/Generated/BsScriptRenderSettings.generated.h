@@ -3,7 +3,7 @@
 #pragma once
 
 #include "BsScriptEnginePrerequisites.h"
-#include "Wrappers/BsScriptReflectable.h"
+#include "BsScriptReflectableWrapper.h"
 #include "../../../Foundation/bsfCore/Renderer/BsRenderSettings.h"
 #include "../../../Foundation/bsfCore/Renderer/BsRenderSettings.h"
 #include "../../../Foundation/bsfCore/Renderer/BsRenderSettings.h"
@@ -23,17 +23,17 @@
 namespace bs { struct RenderSettings; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptRenderSettings : public TScriptReflectable<ScriptRenderSettings, RenderSettings>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptRenderSettings : public TScriptReflectableWrapper<RenderSettings, ScriptRenderSettings>
 	{
 	public:
-		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "RenderSettings")
+		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "RenderSettings")
 
-		ScriptRenderSettings(MonoObject* managedInstance, const SPtr<RenderSettings>& value);
+		ScriptRenderSettings(const SPtr<RenderSettings>& nativeObject, MonoObject* scriptObject);
 
-		static MonoObject* Create(const SPtr<RenderSettings>& value);
+		static MonoObject* CreateScriptObject(bool construct);
 
 	private:
-		static void InternalRenderSettings(MonoObject* managedInstance);
+		static void InternalRenderSettings(MonoObject* scriptObject);
 		static MonoObject* InternalGetDepthOfField(ScriptRenderSettings* self);
 		static void InternalSetDepthOfField(ScriptRenderSettings* self, MonoObject* value);
 		static MonoObject* InternalGetChromaticAberration(ScriptRenderSettings* self);

@@ -3,23 +3,23 @@
 #pragma once
 
 #include "BsScriptEnginePrerequisites.h"
-#include "Wrappers/BsScriptReflectable.h"
+#include "BsScriptReflectableWrapper.h"
 #include "../../../Foundation/bsfCore/Renderer/BsRenderSettings.h"
 
 namespace bs { struct ScreenSpaceLensFlareSettings; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptScreenSpaceLensFlareSettings : public TScriptReflectable<ScriptScreenSpaceLensFlareSettings, ScreenSpaceLensFlareSettings>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptScreenSpaceLensFlareSettings : public TScriptReflectableWrapper<ScreenSpaceLensFlareSettings, ScriptScreenSpaceLensFlareSettings>
 	{
 	public:
-		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "ScreenSpaceLensFlareSettings")
+		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "ScreenSpaceLensFlareSettings")
 
-		ScriptScreenSpaceLensFlareSettings(MonoObject* managedInstance, const SPtr<ScreenSpaceLensFlareSettings>& value);
+		ScriptScreenSpaceLensFlareSettings(const SPtr<ScreenSpaceLensFlareSettings>& nativeObject, MonoObject* scriptObject);
 
-		static MonoObject* Create(const SPtr<ScreenSpaceLensFlareSettings>& value);
+		static MonoObject* CreateScriptObject(bool construct);
 
 	private:
-		static void InternalScreenSpaceLensFlareSettings(MonoObject* managedInstance);
+		static void InternalScreenSpaceLensFlareSettings(MonoObject* scriptObject);
 		static bool InternalGetEnabled(ScriptScreenSpaceLensFlareSettings* self);
 		static void InternalSetEnabled(ScriptScreenSpaceLensFlareSettings* self, bool value);
 		static uint32_t InternalGetDownsampleCount(ScriptScreenSpaceLensFlareSettings* self);
