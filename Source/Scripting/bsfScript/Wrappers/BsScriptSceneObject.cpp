@@ -1,8 +1,6 @@
 //********************************* bs::framework - Copyright 2018-2019 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "Wrappers/BsScriptSceneObject.h"
-#include "BsScriptGameObjectManager.h"
-#include "BsScriptResourceManager.h"
 #include "BsScriptMeta.h"
 #include "BsMonoField.h"
 #include "BsMonoClass.h"
@@ -13,438 +11,391 @@
 #include "Generated/BsScriptSceneInstance.generated.h"
 
 using namespace bs;
-ScriptSceneObject::ScriptSceneObject(MonoObject* instance, const HSceneObject& sceneObject)
-	: ScriptObject(instance), mSceneObject(sceneObject)
+ScriptSceneObject::ScriptSceneObject(const HSceneObject& nativeObject, MonoObject* scriptObject)
+	: TScriptGameObjectWrapper(nativeObject, scriptObject)
+{ }
+
+void ScriptSceneObject::SetupScriptBindings()
 {
-	SetManagedInstance(instance);
+	sInteropMetaData.ScriptClass->AddInternalCall("Internal_CreateInstance", (void*)&ScriptSceneObject::InternalCreateInstance);
+	sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetName", (void*)&ScriptSceneObject::InternalGetName);
+	sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetName", (void*)&ScriptSceneObject::InternalSetName);
+	sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetActive", (void*)&ScriptSceneObject::InternalGetActive);
+	sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetActive", (void*)&ScriptSceneObject::InternalSetActive);
+	sInteropMetaData.ScriptClass->AddInternalCall("Internal_HasFlag", (void*)&ScriptSceneObject::InternalHasFlag);
+
+	sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetMobility", (void*)&ScriptSceneObject::InternalGetMobility);
+	sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetMobility", (void*)&ScriptSceneObject::InternalSetMobility);
+	sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetParent", (void*)&ScriptSceneObject::InternalGetParent);
+	sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetParent", (void*)&ScriptSceneObject::InternalGetParent);
+	sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetParent", (void*)&ScriptSceneObject::InternalSetParent);
+	sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetScene", (void*)&ScriptSceneObject::InternalGetScene);
+	sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetNumChildren", (void*)&ScriptSceneObject::InternalGetNumChildren);
+	sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetChild", (void*)&ScriptSceneObject::InternalGetChild);
+	sInteropMetaData.ScriptClass->AddInternalCall("Internal_FindChild", (void*)&ScriptSceneObject::InternalFindChild);
+	sInteropMetaData.ScriptClass->AddInternalCall("Internal_FindChildren", (void*)&ScriptSceneObject::InternalFindChildren);
+
+	sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetPosition", (void*)&ScriptSceneObject::InternalGetPosition);
+	sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetLocalPosition", (void*)&ScriptSceneObject::InternalGetLocalPosition);
+	sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetRotation", (void*)&ScriptSceneObject::InternalGetRotation);
+	sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetLocalRotation", (void*)&ScriptSceneObject::InternalGetLocalRotation);
+	sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetScale", (void*)&ScriptSceneObject::InternalGetScale);
+	sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetLocalScale", (void*)&ScriptSceneObject::InternalGetLocalScale);
+
+	sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetPosition", (void*)&ScriptSceneObject::InternalSetPosition);
+	sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetLocalPosition", (void*)&ScriptSceneObject::InternalSetLocalPosition);
+	sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetRotation", (void*)&ScriptSceneObject::InternalSetRotation);
+	sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetLocalRotation", (void*)&ScriptSceneObject::InternalSetLocalRotation);
+	sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetLocalScale", (void*)&ScriptSceneObject::InternalSetLocalScale);
+
+	sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetLocalTransform", (void*)&ScriptSceneObject::InternalGetLocalTransform);
+	sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetWorldTransform", (void*)&ScriptSceneObject::InternalGetWorldTransform);
+	sInteropMetaData.ScriptClass->AddInternalCall("Internal_LookAt", (void*)&ScriptSceneObject::InternalLookAt);
+	sInteropMetaData.ScriptClass->AddInternalCall("Internal_Move", (void*)&ScriptSceneObject::InternalMove);
+	sInteropMetaData.ScriptClass->AddInternalCall("Internal_MoveLocal", (void*)&ScriptSceneObject::InternalMoveLocal);
+	sInteropMetaData.ScriptClass->AddInternalCall("Internal_Rotate", (void*)&ScriptSceneObject::InternalRotate);
+	sInteropMetaData.ScriptClass->AddInternalCall("Internal_Roll", (void*)&ScriptSceneObject::InternalRoll);
+	sInteropMetaData.ScriptClass->AddInternalCall("Internal_Yaw", (void*)&ScriptSceneObject::InternalYaw);
+	sInteropMetaData.ScriptClass->AddInternalCall("Internal_Pitch", (void*)&ScriptSceneObject::InternalPitch);
+	sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetForward", (void*)&ScriptSceneObject::InternalSetForward);
+	sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetForward", (void*)&ScriptSceneObject::InternalGetForward);
+	sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetUp", (void*)&ScriptSceneObject::InternalGetUp);
+	sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetRight", (void*)&ScriptSceneObject::InternalGetRight);
+
+	sInteropMetaData.ScriptClass->AddInternalCall("Internal_Destroy", (void*)&ScriptSceneObject::InternalDestroy);
 }
 
-void ScriptSceneObject::InitRuntimeData()
+SceneObject* ScriptSceneObject::GetNativeObject() const
 {
-	metaData.ScriptClass->AddInternalCall("Internal_CreateInstance", (void*)&ScriptSceneObject::InternalCreateInstance);
-	metaData.ScriptClass->AddInternalCall("Internal_GetName", (void*)&ScriptSceneObject::InternalGetName);
-	metaData.ScriptClass->AddInternalCall("Internal_SetName", (void*)&ScriptSceneObject::InternalSetName);
-	metaData.ScriptClass->AddInternalCall("Internal_GetActive", (void*)&ScriptSceneObject::InternalGetActive);
-	metaData.ScriptClass->AddInternalCall("Internal_SetActive", (void*)&ScriptSceneObject::InternalSetActive);
-	metaData.ScriptClass->AddInternalCall("Internal_HasFlag", (void*)&ScriptSceneObject::InternalHasFlag);
-
-	metaData.ScriptClass->AddInternalCall("Internal_GetMobility", (void*)&ScriptSceneObject::InternalGetMobility);
-	metaData.ScriptClass->AddInternalCall("Internal_SetMobility", (void*)&ScriptSceneObject::InternalSetMobility);
-	metaData.ScriptClass->AddInternalCall("Internal_GetParent", (void*)&ScriptSceneObject::InternalGetParent);
-	metaData.ScriptClass->AddInternalCall("Internal_GetParent", (void*)&ScriptSceneObject::InternalGetParent);
-	metaData.ScriptClass->AddInternalCall("Internal_SetParent", (void*)&ScriptSceneObject::InternalSetParent);
-	metaData.ScriptClass->AddInternalCall("Internal_GetScene", (void*)&ScriptSceneObject::InternalGetScene);
-	metaData.ScriptClass->AddInternalCall("Internal_GetNumChildren", (void*)&ScriptSceneObject::InternalGetNumChildren);
-	metaData.ScriptClass->AddInternalCall("Internal_GetChild", (void*)&ScriptSceneObject::InternalGetChild);
-	metaData.ScriptClass->AddInternalCall("Internal_FindChild", (void*)&ScriptSceneObject::InternalFindChild);
-	metaData.ScriptClass->AddInternalCall("Internal_FindChildren", (void*)&ScriptSceneObject::InternalFindChildren);
-
-	metaData.ScriptClass->AddInternalCall("Internal_GetPosition", (void*)&ScriptSceneObject::InternalGetPosition);
-	metaData.ScriptClass->AddInternalCall("Internal_GetLocalPosition", (void*)&ScriptSceneObject::InternalGetLocalPosition);
-	metaData.ScriptClass->AddInternalCall("Internal_GetRotation", (void*)&ScriptSceneObject::InternalGetRotation);
-	metaData.ScriptClass->AddInternalCall("Internal_GetLocalRotation", (void*)&ScriptSceneObject::InternalGetLocalRotation);
-	metaData.ScriptClass->AddInternalCall("Internal_GetScale", (void*)&ScriptSceneObject::InternalGetScale);
-	metaData.ScriptClass->AddInternalCall("Internal_GetLocalScale", (void*)&ScriptSceneObject::InternalGetLocalScale);
-
-	metaData.ScriptClass->AddInternalCall("Internal_SetPosition", (void*)&ScriptSceneObject::InternalSetPosition);
-	metaData.ScriptClass->AddInternalCall("Internal_SetLocalPosition", (void*)&ScriptSceneObject::InternalSetLocalPosition);
-	metaData.ScriptClass->AddInternalCall("Internal_SetRotation", (void*)&ScriptSceneObject::InternalSetRotation);
-	metaData.ScriptClass->AddInternalCall("Internal_SetLocalRotation", (void*)&ScriptSceneObject::InternalSetLocalRotation);
-	metaData.ScriptClass->AddInternalCall("Internal_SetLocalScale", (void*)&ScriptSceneObject::InternalSetLocalScale);
-
-	metaData.ScriptClass->AddInternalCall("Internal_GetLocalTransform", (void*)&ScriptSceneObject::InternalGetLocalTransform);
-	metaData.ScriptClass->AddInternalCall("Internal_GetWorldTransform", (void*)&ScriptSceneObject::InternalGetWorldTransform);
-	metaData.ScriptClass->AddInternalCall("Internal_LookAt", (void*)&ScriptSceneObject::InternalLookAt);
-	metaData.ScriptClass->AddInternalCall("Internal_Move", (void*)&ScriptSceneObject::InternalMove);
-	metaData.ScriptClass->AddInternalCall("Internal_MoveLocal", (void*)&ScriptSceneObject::InternalMoveLocal);
-	metaData.ScriptClass->AddInternalCall("Internal_Rotate", (void*)&ScriptSceneObject::InternalRotate);
-	metaData.ScriptClass->AddInternalCall("Internal_Roll", (void*)&ScriptSceneObject::InternalRoll);
-	metaData.ScriptClass->AddInternalCall("Internal_Yaw", (void*)&ScriptSceneObject::InternalYaw);
-	metaData.ScriptClass->AddInternalCall("Internal_Pitch", (void*)&ScriptSceneObject::InternalPitch);
-	metaData.ScriptClass->AddInternalCall("Internal_SetForward", (void*)&ScriptSceneObject::InternalSetForward);
-	metaData.ScriptClass->AddInternalCall("Internal_GetForward", (void*)&ScriptSceneObject::InternalGetForward);
-	metaData.ScriptClass->AddInternalCall("Internal_GetUp", (void*)&ScriptSceneObject::InternalGetUp);
-	metaData.ScriptClass->AddInternalCall("Internal_GetRight", (void*)&ScriptSceneObject::InternalGetRight);
-
-	metaData.ScriptClass->AddInternalCall("Internal_Destroy", (void*)&ScriptSceneObject::InternalDestroy);
+	return static_cast<SceneObject*>(TScriptGameObjectWrapper::GetNativeObject());
 }
 
-void ScriptSceneObject::InternalCreateInstance(MonoObject* instance, MonoString* name, u32 flags)
+MonoObject* ScriptSceneObject::CreateScriptObject(bool construct)
+{
+	return sInteropMetaData.ScriptClass->CreateInstance(construct);
+}
+
+void ScriptSceneObject::InternalCreateInstance(MonoObject* scriptObject, MonoString* name, u32 flags)
 {
 	HSceneObject sceneObject = SceneObject::Create(MonoUtil::MonoToString(name), flags);
-
-	ScriptGameObjectManager::Instance().CreateScriptSceneObject(instance, sceneObject);
+	B3DNew<ScriptSceneObject>(sceneObject, scriptObject);
 }
 
-void ScriptSceneObject::InternalSetName(ScriptSceneObject* nativeInstance, MonoString* name)
+void ScriptSceneObject::InternalSetName(ScriptSceneObject* self, MonoString* name)
 {
-	if(CheckIfDestroyed(nativeInstance))
+	if(!self->IsNativeObjectValid())
 		return;
 
-	nativeInstance->mSceneObject->SetName(MonoUtil::MonoToString(name));
+	self->GetNativeObject()->SetName(MonoUtil::MonoToString(name));
 }
 
-MonoString* ScriptSceneObject::InternalGetName(ScriptSceneObject* nativeInstance)
+MonoString* ScriptSceneObject::InternalGetName(ScriptSceneObject* self)
 {
-	if(CheckIfDestroyed(nativeInstance))
+	if(!self->IsNativeObjectValid())
 		return nullptr;
 
-	String name = nativeInstance->mSceneObject->GetName();
+	const String& name = self->GetNativeObject()->GetName();
 	return MonoUtil::StringToMono(name);
 }
 
-void ScriptSceneObject::InternalSetActive(ScriptSceneObject* nativeInstance, bool value)
+void ScriptSceneObject::InternalSetActive(ScriptSceneObject* self, bool value)
 {
-	if(CheckIfDestroyed(nativeInstance))
+	if(!self->IsNativeObjectValid())
 		return;
 
-	nativeInstance->mSceneObject->SetActive(value);
+	self->GetNativeObject()->SetActive(value);
 }
 
-bool ScriptSceneObject::InternalGetActive(ScriptSceneObject* nativeInstance)
+bool ScriptSceneObject::InternalGetActive(ScriptSceneObject* self)
 {
-	if(CheckIfDestroyed(nativeInstance))
+	if(!self->IsNativeObjectValid())
 		return false;
 
-	return nativeInstance->mSceneObject->GetActive(true);
+	return self->GetNativeObject()->GetActive(true);
 }
 
-bool ScriptSceneObject::InternalHasFlag(ScriptSceneObject* nativeInstance, bs::u32 flag)
+bool ScriptSceneObject::InternalHasFlag(ScriptSceneObject* self, bs::u32 flag)
 {
-	if(CheckIfDestroyed(nativeInstance))
+	if(!self->IsNativeObjectValid())
 		return false;
 
-	return nativeInstance->mSceneObject->HasFlag(flag);
+	return self->GetNativeObject()->HasFlag(flag);
 }
 
-void ScriptSceneObject::InternalSetMobility(ScriptSceneObject* nativeInstance, int value)
+void ScriptSceneObject::InternalSetMobility(ScriptSceneObject* self, int value)
 {
-	if(CheckIfDestroyed(nativeInstance))
+	if(!self->IsNativeObjectValid())
 		return;
 
-	nativeInstance->mSceneObject->SetMobility((ObjectMobility)value);
+	self->GetNativeObject()->SetMobility((ObjectMobility)value);
 }
 
-int ScriptSceneObject::InternalGetMobility(ScriptSceneObject* nativeInstance)
+int ScriptSceneObject::InternalGetMobility(ScriptSceneObject* self)
 {
-	if(CheckIfDestroyed(nativeInstance))
+	if(!self->IsNativeObjectValid())
 		return false;
 
-	return (int)nativeInstance->mSceneObject->GetMobility();
+	return (int)self->GetNativeObject()->GetMobility();
 }
 
-void ScriptSceneObject::InternalSetParent(ScriptSceneObject* nativeInstance, MonoObject* parent)
+void ScriptSceneObject::InternalSetParent(ScriptSceneObject* self, MonoObject* parent)
 {
-	if(CheckIfDestroyed(nativeInstance))
+	if(!self->IsNativeObjectValid())
 		return;
 
-	ScriptSceneObject* parentScriptSO = ScriptSceneObject::ToNative(parent);
-
-	nativeInstance->mSceneObject->SetParent(parentScriptSO->mSceneObject);
+	ScriptSceneObject* const parentScriptSceneObject = GetScriptObjectWrapper(parent);
+	self->GetNativeObject()->SetParent(parentScriptSceneObject->GetNativeObjectAsHandle());
 }
 
-MonoObject* ScriptSceneObject::InternalGetParent(ScriptSceneObject* nativeInstance)
+MonoObject* ScriptSceneObject::InternalGetParent(ScriptSceneObject* self)
 {
-	if(CheckIfDestroyed(nativeInstance))
+	if(!self->IsNativeObjectValid())
 		return nullptr;
 
-	HSceneObject parent = nativeInstance->mSceneObject->GetParent();
+	HSceneObject parent = self->GetNativeObject()->GetParent();
 	if(parent != nullptr)
-	{
-		ScriptSceneObject* parentScriptSO = ScriptGameObjectManager::Instance().GetOrCreateScriptSceneObject(parent);
-
-		return parentScriptSO->GetManagedInstance();
-	}
+		return GetOrCreateScriptObject(parent);
 
 	return nullptr;
 }
 
-MonoObject* ScriptSceneObject::InternalGetScene(ScriptSceneObject* nativeInstance)
+MonoObject* ScriptSceneObject::InternalGetScene(ScriptSceneObject* self)
 {
-	if(CheckIfDestroyed(nativeInstance))
+	if(!self->IsNativeObjectValid())
 		return nullptr;
 
-	return ScriptSceneInstance::Create(nativeInstance->mSceneObject->GetScene());
+	return ScriptSceneInstance::Create(self->GetNativeObject()->GetScene());
 }
 
-void ScriptSceneObject::InternalGetNumChildren(ScriptSceneObject* nativeInstance, u32* value)
+void ScriptSceneObject::InternalGetNumChildren(ScriptSceneObject* self, u32* value)
 {
-	if(!CheckIfDestroyed(nativeInstance))
-		*value = nativeInstance->mSceneObject->GetChildCount();
+	if(self->IsNativeObjectValid())
+		*value = self->GetNativeObject()->GetChildCount();
 	else
 		*value = 0;
 }
 
-MonoObject* ScriptSceneObject::InternalGetChild(ScriptSceneObject* nativeInstance, u32 idx)
+MonoObject* ScriptSceneObject::InternalGetChild(ScriptSceneObject* self, u32 childIndex)
 {
-	if(CheckIfDestroyed(nativeInstance))
+	if(!self->IsNativeObjectValid())
 		return nullptr;
 
-	u32 numChildren = nativeInstance->mSceneObject->GetChildCount();
-	if(idx >= numChildren)
+	const u32 childCount = self->GetNativeObject()->GetChildCount();
+	if(childIndex >= childCount)
 	{
-		B3D_LOG(Warning, Scene, "Attempting to access an out of range SceneObject child. Provided index: \"{0}\". "
-							   "Valid range: [0, {1})",
-			   idx, numChildren);
+		B3D_LOG(Warning, Scene, "Attempting to access an out of range SceneObject child. Provided index: \"{0}\". Valid range: [0, {1})", childIndex, childCount);
 		return nullptr;
 	}
 
-	HSceneObject childSO = nativeInstance->mSceneObject->GetChild(idx);
-	ScriptSceneObject* childScriptSO = ScriptGameObjectManager::Instance().GetOrCreateScriptSceneObject(childSO);
-
-	return childScriptSO->GetManagedInstance();
+	HSceneObject childSceneObject = self->GetNativeObject()->GetChild(childIndex);
+	return GetOrCreateScriptObject(childSceneObject);
 }
 
-MonoObject* ScriptSceneObject::InternalFindChild(ScriptSceneObject* nativeInstance, MonoString* name, bool recursive)
+MonoObject* ScriptSceneObject::InternalFindChild(ScriptSceneObject* self, MonoString* name, bool recursive)
 {
-	if(CheckIfDestroyed(nativeInstance))
+	if(!self->IsNativeObjectValid())
 		return nullptr;
 
 	String nativeName = MonoUtil::MonoToString(name);
-	HSceneObject child = nativeInstance->GetHandle()->FindChild(nativeName, recursive);
+	HSceneObject child = self->GetNativeObject()->FindChild(nativeName, recursive);
 
 	if(child == nullptr)
 		return nullptr;
 
-	ScriptSceneObject* scriptChild = ScriptGameObjectManager::Instance().GetOrCreateScriptSceneObject(child);
-	return scriptChild->GetManagedInstance();
+	return GetOrCreateScriptObject(child);
 }
 
-MonoArray* ScriptSceneObject::InternalFindChildren(ScriptSceneObject* nativeInstance, MonoString* name, bool recursive)
+MonoArray* ScriptSceneObject::InternalFindChildren(ScriptSceneObject* self, MonoString* name, bool recursive)
 {
-	if(CheckIfDestroyed(nativeInstance))
+	if(!self->IsNativeObjectValid())
 	{
 		ScriptArray emptyArray = ScriptArray::Create<ScriptSceneObject>(0);
 		return emptyArray.GetInternal();
 	}
 
 	String nativeName = MonoUtil::MonoToString(name);
-	Vector<HSceneObject> children = nativeInstance->GetHandle()->FindChildren(nativeName, recursive);
+	Vector<HSceneObject> children = self->GetNativeObject()->FindChildren(nativeName, recursive);
 
-	u32 numChildren = (u32)children.size();
-	ScriptArray output = ScriptArray::Create<ScriptSceneObject>(numChildren);
+	const u32 childCount = (u32)children.size();
+	ScriptArray output = ScriptArray::Create<ScriptSceneObject>(childCount);
 
-	for(u32 i = 0; i < numChildren; i++)
+	for(u32 childIndex = 0; childIndex < childCount; childIndex++)
 	{
-		HSceneObject child = children[i];
-		ScriptSceneObject* scriptChild = ScriptGameObjectManager::Instance().GetOrCreateScriptSceneObject(child);
-
-		output.Set(i, scriptChild->GetManagedInstance());
+		HSceneObject child = children[childIndex];
+		output.Set(childIndex, GetOrCreateScriptObject(child));
 	}
 
 	return output.GetInternal();
 }
 
-void ScriptSceneObject::InternalGetPosition(ScriptSceneObject* nativeInstance, Vector3* value)
+void ScriptSceneObject::InternalGetPosition(ScriptSceneObject* self, Vector3* value)
 {
-	if(!CheckIfDestroyed(nativeInstance))
-		*value = nativeInstance->mSceneObject->GetTransform().GetPosition();
+	if(self->IsNativeObjectValid())
+		*value = self->GetNativeObject()->GetTransform().GetPosition();
 	else
 		*value = Vector3(BsZero);
 }
 
-void ScriptSceneObject::InternalGetLocalPosition(ScriptSceneObject* nativeInstance, Vector3* value)
+void ScriptSceneObject::InternalGetLocalPosition(ScriptSceneObject* self, Vector3* value)
 {
-	if(!CheckIfDestroyed(nativeInstance))
-		*value = nativeInstance->mSceneObject->GetLocalTransform().GetPosition();
+	if(self->IsNativeObjectValid())
+		*value = self->GetNativeObject()->GetLocalTransform().GetPosition();
 	else
 		*value = Vector3(BsZero);
 }
 
-void ScriptSceneObject::InternalGetRotation(ScriptSceneObject* nativeInstance, Quaternion* value)
+void ScriptSceneObject::InternalGetRotation(ScriptSceneObject* self, Quaternion* value)
 {
-	if(!CheckIfDestroyed(nativeInstance))
-		*value = nativeInstance->mSceneObject->GetTransform().GetRotation();
+	if(self->IsNativeObjectValid())
+		*value = self->GetNativeObject()->GetTransform().GetRotation();
 	else
 		*value = Quaternion(BsIdentity);
 }
 
-void ScriptSceneObject::InternalGetLocalRotation(ScriptSceneObject* nativeInstance, Quaternion* value)
+void ScriptSceneObject::InternalGetLocalRotation(ScriptSceneObject* self, Quaternion* value)
 {
-	if(!CheckIfDestroyed(nativeInstance))
-		*value = nativeInstance->mSceneObject->GetLocalTransform().GetRotation();
+	if(self->IsNativeObjectValid())
+		*value = self->GetNativeObject()->GetLocalTransform().GetRotation();
 	else
 		*value = Quaternion(BsIdentity);
 }
 
-void ScriptSceneObject::InternalGetScale(ScriptSceneObject* nativeInstance, Vector3* value)
+void ScriptSceneObject::InternalGetScale(ScriptSceneObject* self, Vector3* value)
 {
-	if(!CheckIfDestroyed(nativeInstance))
-		*value = nativeInstance->mSceneObject->GetTransform().GetScale();
+	if(self->IsNativeObjectValid())
+		*value = self->GetNativeObject()->GetTransform().GetScale();
 	else
 		*value = Vector3(Vector3::kOne);
 }
 
-void ScriptSceneObject::InternalGetLocalScale(ScriptSceneObject* nativeInstance, Vector3* value)
+void ScriptSceneObject::InternalGetLocalScale(ScriptSceneObject* self, Vector3* value)
 {
-	if(!CheckIfDestroyed(nativeInstance))
-		*value = nativeInstance->mSceneObject->GetLocalTransform().GetScale();
+	if(self->IsNativeObjectValid())
+		*value = self->GetNativeObject()->GetLocalTransform().GetScale();
 	else
 		*value = Vector3(Vector3::kOne);
 }
 
-void ScriptSceneObject::InternalSetPosition(ScriptSceneObject* nativeInstance, Vector3* value)
+void ScriptSceneObject::InternalSetPosition(ScriptSceneObject* self, Vector3* value)
 {
-	if(!CheckIfDestroyed(nativeInstance))
-		nativeInstance->mSceneObject->SetWorldPosition(*value);
+	if(self->IsNativeObjectValid())
+		self->GetNativeObject()->SetWorldPosition(*value);
 }
 
-void ScriptSceneObject::InternalSetLocalPosition(ScriptSceneObject* nativeInstance, Vector3* value)
+void ScriptSceneObject::InternalSetLocalPosition(ScriptSceneObject* self, Vector3* value)
 {
-	if(!CheckIfDestroyed(nativeInstance))
-		nativeInstance->mSceneObject->SetPosition(*value);
+	if(self->IsNativeObjectValid())
+		self->GetNativeObject()->SetPosition(*value);
 }
 
-void ScriptSceneObject::InternalSetRotation(ScriptSceneObject* nativeInstance, Quaternion* value)
+void ScriptSceneObject::InternalSetRotation(ScriptSceneObject* self, Quaternion* value)
 {
-	if(!CheckIfDestroyed(nativeInstance))
-		nativeInstance->mSceneObject->SetWorldRotation(*value);
+	if(self->IsNativeObjectValid())
+		self->GetNativeObject()->SetWorldRotation(*value);
 }
 
-void ScriptSceneObject::InternalSetLocalRotation(ScriptSceneObject* nativeInstance, Quaternion* value)
+void ScriptSceneObject::InternalSetLocalRotation(ScriptSceneObject* self, Quaternion* value)
 {
-	if(!CheckIfDestroyed(nativeInstance))
-		nativeInstance->mSceneObject->SetRotation(*value);
+	if(self->IsNativeObjectValid())
+		self->GetNativeObject()->SetRotation(*value);
 }
 
-void ScriptSceneObject::InternalSetLocalScale(ScriptSceneObject* nativeInstance, Vector3* value)
+void ScriptSceneObject::InternalSetLocalScale(ScriptSceneObject* self, Vector3* value)
 {
-	if(!CheckIfDestroyed(nativeInstance))
-		nativeInstance->mSceneObject->SetScale(*value);
+	if(self->IsNativeObjectValid())
+		self->GetNativeObject()->SetScale(*value);
 }
 
-void ScriptSceneObject::InternalGetLocalTransform(ScriptSceneObject* nativeInstance, Matrix4* value)
+void ScriptSceneObject::InternalGetLocalTransform(ScriptSceneObject* self, Matrix4* value)
 {
-	if(!CheckIfDestroyed(nativeInstance))
-		*value = nativeInstance->mSceneObject->GetLocalMatrix();
+	if(self->IsNativeObjectValid())
+		*value = self->GetNativeObject()->GetLocalMatrix();
 	else
 		*value = Matrix4(BsIdentity);
 }
 
-void ScriptSceneObject::InternalGetWorldTransform(ScriptSceneObject* nativeInstance, Matrix4* value)
+void ScriptSceneObject::InternalGetWorldTransform(ScriptSceneObject* self, Matrix4* value)
 {
-	if(!CheckIfDestroyed(nativeInstance))
-		*value = nativeInstance->mSceneObject->GetWorldMatrix();
+	if(self->IsNativeObjectValid())
+		*value = self->GetNativeObject()->GetWorldMatrix();
 	else
 		*value = Matrix4(BsIdentity);
 }
 
-void ScriptSceneObject::InternalLookAt(ScriptSceneObject* nativeInstance, Vector3* direction, Vector3* up)
+void ScriptSceneObject::InternalLookAt(ScriptSceneObject* self, Vector3* direction, Vector3* up)
 {
-	if(!CheckIfDestroyed(nativeInstance))
-		nativeInstance->mSceneObject->LookAt(*direction, *up);
+	if(self->IsNativeObjectValid())
+		self->GetNativeObject()->LookAt(*direction, *up);
 }
 
-void ScriptSceneObject::InternalMove(ScriptSceneObject* nativeInstance, Vector3* value)
+void ScriptSceneObject::InternalMove(ScriptSceneObject* self, Vector3* value)
 {
-	if(!CheckIfDestroyed(nativeInstance))
-		nativeInstance->mSceneObject->Move(*value);
+	if(self->IsNativeObjectValid())
+		self->GetNativeObject()->Move(*value);
 }
 
-void ScriptSceneObject::InternalMoveLocal(ScriptSceneObject* nativeInstance, Vector3* value)
+void ScriptSceneObject::InternalMoveLocal(ScriptSceneObject* self, Vector3* value)
 {
-	if(!CheckIfDestroyed(nativeInstance))
-		nativeInstance->mSceneObject->MoveRelative(*value);
+	if(self->IsNativeObjectValid())
+		self->GetNativeObject()->MoveRelative(*value);
 }
 
-void ScriptSceneObject::InternalRotate(ScriptSceneObject* nativeInstance, Quaternion* value)
+void ScriptSceneObject::InternalRotate(ScriptSceneObject* self, Quaternion* value)
 {
-	if(!CheckIfDestroyed(nativeInstance))
-		nativeInstance->mSceneObject->Rotate(*value);
+	if(self->IsNativeObjectValid())
+		self->GetNativeObject()->Rotate(*value);
 }
 
-void ScriptSceneObject::InternalRoll(ScriptSceneObject* nativeInstance, Radian* value)
+void ScriptSceneObject::InternalRoll(ScriptSceneObject* self, Radian* value)
 {
-	if(!CheckIfDestroyed(nativeInstance))
-		nativeInstance->mSceneObject->Roll(*value);
+	if(self->IsNativeObjectValid())
+		self->GetNativeObject()->Roll(*value);
 }
 
-void ScriptSceneObject::InternalYaw(ScriptSceneObject* nativeInstance, Radian* value)
+void ScriptSceneObject::InternalYaw(ScriptSceneObject* self, Radian* value)
 {
-	if(!CheckIfDestroyed(nativeInstance))
-		nativeInstance->mSceneObject->Yaw(*value);
+	if(self->IsNativeObjectValid())
+		self->GetNativeObject()->Yaw(*value);
 }
 
-void ScriptSceneObject::InternalPitch(ScriptSceneObject* nativeInstance, Radian* value)
+void ScriptSceneObject::InternalPitch(ScriptSceneObject* self, Radian* value)
 {
-	if(!CheckIfDestroyed(nativeInstance))
-		nativeInstance->mSceneObject->Pitch(*value);
+	if(self->IsNativeObjectValid())
+		self->GetNativeObject()->Pitch(*value);
 }
 
-void ScriptSceneObject::InternalSetForward(ScriptSceneObject* nativeInstance, Vector3* value)
+void ScriptSceneObject::InternalSetForward(ScriptSceneObject* self, Vector3* value)
 {
-	if(!CheckIfDestroyed(nativeInstance))
-		nativeInstance->mSceneObject->SetForward(*value);
+	if(self->IsNativeObjectValid())
+		self->GetNativeObject()->SetForward(*value);
 }
 
-void ScriptSceneObject::InternalGetForward(ScriptSceneObject* nativeInstance, Vector3* value)
+void ScriptSceneObject::InternalGetForward(ScriptSceneObject* self, Vector3* value)
 {
-	if(!CheckIfDestroyed(nativeInstance))
-		*value = nativeInstance->mSceneObject->GetTransform().GetForward();
+	if(self->IsNativeObjectValid())
+		*value = self->GetNativeObject()->GetTransform().GetForward();
 	else
 		*value = Vector3(-Vector3::kUnitZ);
 }
 
-void ScriptSceneObject::InternalGetUp(ScriptSceneObject* nativeInstance, Vector3* value)
+void ScriptSceneObject::InternalGetUp(ScriptSceneObject* self, Vector3* value)
 {
-	if(!CheckIfDestroyed(nativeInstance))
-		*value = nativeInstance->mSceneObject->GetTransform().GetUp();
+	if(self->IsNativeObjectValid())
+		*value = self->GetNativeObject()->GetTransform().GetUp();
 	else
 		*value = Vector3(Vector3::kUnitY);
 }
 
-void ScriptSceneObject::InternalGetRight(ScriptSceneObject* nativeInstance, Vector3* value)
+void ScriptSceneObject::InternalGetRight(ScriptSceneObject* self, Vector3* value)
 {
-	if(!CheckIfDestroyed(nativeInstance))
-		*value = nativeInstance->mSceneObject->GetTransform().GetRight();
+	if(self->IsNativeObjectValid())
+		*value = self->GetNativeObject()->GetTransform().GetRight();
 	else
 		*value = Vector3(Vector3::kUnitX);
 }
 
-void ScriptSceneObject::InternalDestroy(ScriptSceneObject* nativeInstance, bool immediate)
+void ScriptSceneObject::InternalDestroy(ScriptSceneObject* self, bool immediate)
 {
-	if(!CheckIfDestroyed(nativeInstance))
-		nativeInstance->mSceneObject->Destroy(immediate);
-}
-
-bool ScriptSceneObject::CheckIfDestroyed(ScriptSceneObject* nativeInstance)
-{
-	if(nativeInstance->mSceneObject.IsDestroyed())
-	{
-		B3D_LOG(Warning, Scene, "Trying to access a destroyed SceneObject with ID: {0}", nativeInstance->mSceneObject.GetId());
-		return true;
-	}
-
-	return false;
-}
-
-void ScriptSceneObject::OnManagedInstanceDeletedInternal(bool assemblyRefresh)
-{
-	if(!assemblyRefresh || mSceneObject.IsDestroyed(true))
-		ScriptGameObjectManager::Instance().DestroyScriptSceneObject(this);
-	else
-		FreeManagedInstance();
-}
-
-MonoObject* ScriptSceneObject::CreateManagedInstanceInternal(bool construct)
-{
-	MonoObject* managedInstance = metaData.ScriptClass->CreateInstance(construct);
-	SetManagedInstance(managedInstance);
-
-	return managedInstance;
-}
-
-void ScriptSceneObject::ClearManagedInstanceInternal()
-{
-	FreeManagedInstance();
-}
-
-void ScriptSceneObject::NotifyDestroyedInternal()
-{
-	FreeManagedInstance();
-}
-
-void ScriptSceneObject::SetNativeHandle(const HGameObject& gameObject)
-{
-	mSceneObject = B3DStaticGameObjectCast<SceneObject>(gameObject);
+	if(self->IsNativeObjectValid())
+		self->GetNativeObject()->Destroy(immediate);
 }

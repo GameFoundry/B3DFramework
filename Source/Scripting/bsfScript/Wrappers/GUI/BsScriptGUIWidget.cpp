@@ -50,7 +50,7 @@ void ScriptGUIWidget::InternalCreate(MonoObject* managedInstance)
 
 void ScriptGUIWidget::InternalUpdateTransform(ScriptGUIWidget* thisPtr, ScriptSceneObject* parent)
 {
-	HSceneObject parentSO = parent->GetHandle();
+	HSceneObject parentSO = parent->GetNativeObjectAsHandle();
 
 	SPtr<GUIWidget> widget = thisPtr->GetInternal();
 	if(!parentSO.IsDestroyed() && widget != nullptr)

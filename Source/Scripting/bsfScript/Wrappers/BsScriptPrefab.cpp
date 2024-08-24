@@ -23,7 +23,7 @@ void ScriptPrefab::InitRuntimeData()
 
 void ScriptPrefab::InternalCreateInstance(MonoObject* instance, ScriptSceneObject* so, bool isScene)
 {
-	HPrefab prefab = Prefab::Create(so->GetHandle(), isScene);
+	HPrefab prefab = Prefab::Create(so->GetNativeObjectAsHandle(), isScene);
 	ScriptResourceManager::Instance().CreateBuiltinScriptResource(prefab, instance);
 }
 
@@ -32,9 +32,7 @@ MonoObject* ScriptPrefab::InternalInstantiate(ScriptPrefab* thisPtr)
 	HPrefab prefab = thisPtr->GetHandle();
 
 	HSceneObject instance = prefab->Instantiate(GetSceneManager().GetMainScene());
-	ScriptSceneObject* scriptInstance = ScriptGameObjectManager::Instance().GetOrCreateScriptSceneObject(instance);
-
-	return scriptInstance->GetManagedInstance();
+	return ScriptSceneObject::GetOrCreateScriptObject(instance);
 }
 
 bool ScriptPrefab::InternalIsScene(ScriptPrefab* thisPtr)

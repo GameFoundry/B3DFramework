@@ -231,8 +231,8 @@ SPtr<ManagedSerializableFieldData> ManagedSerializableFieldData::Create(const SP
 
 				if(value != nullptr)
 				{
-					ScriptSceneObject* scriptSceneObject = ScriptSceneObject::ToNative(value);
-					fieldData->Value = scriptSceneObject->GetNativeHandle();
+					ScriptSceneObject* scriptSceneObject = ScriptSceneObject::GetScriptObjectWrapper(value);
+					fieldData->Value = scriptSceneObject->GetNativeObjectAsHandle();
 				}
 
 				return fieldData;
@@ -577,11 +577,7 @@ void* ManagedSerializableFieldDataGameObjectRef::GetValue(const SPtr<ManagedSeri
 		if(refTypeInfo->Type == ScriptReferenceType::SceneObject)
 		{
 			if(Value)
-			{
-				ScriptSceneObject* scriptSceneObject =
-					ScriptGameObjectManager::Instance().GetOrCreateScriptSceneObject(B3DStaticGameObjectCast<SceneObject>(Value));
-				return scriptSceneObject->GetManagedInstance();
-			}
+				return ScriptSceneObject::GetOrCreateScriptObject(B3DStaticGameObjectCast<SceneObject>(Value));
 			else
 				return nullptr;
 		}

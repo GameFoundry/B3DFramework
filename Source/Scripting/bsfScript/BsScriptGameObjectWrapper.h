@@ -93,7 +93,7 @@ namespace bs
 		SPtr<NativeType> GetNativeObjectAsShared() const { return std::static_pointer_cast<NativeType>(mNativeObjectStrongHandle.GetShared()); }
 
 		/** Returns the wrapped native object as a handle. */
-		const GameObjectHandle<NativeType>& GetNativeObjectAsHandle() const { return B3DStaticGameObjectCast<NativeType>(mNativeObjectStrongHandle); }
+		GameObjectHandle<NativeType> GetNativeObjectAsHandle() const { return B3DStaticGameObjectCast<NativeType>(mNativeObjectStrongHandle); }
 
 		/**
 		 * Creates a new script object and a script object wrapper of @p SelfType, and associates them with the provided native object. Should not be called if @p nativeObject

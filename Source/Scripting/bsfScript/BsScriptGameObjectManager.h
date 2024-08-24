@@ -46,15 +46,6 @@ namespace bs
 		 */
 		ScriptSceneObject* GetOrCreateScriptSceneObject(const HSceneObject& sceneObject);
 
-		/** Creates a new interop object for the specified SceneObject. Throws an exception if one already exists. */
-		ScriptSceneObject* CreateScriptSceneObject(const HSceneObject& sceneObject);
-
-		/**
-		 * Connects an existing managed SceneObject instance with the native SceneObject by creating the interop object.
-		 * Throws an exception if the interop object already exists.
-		 */
-		ScriptSceneObject* CreateScriptSceneObject(MonoObject* existingInstance, const HSceneObject& sceneObject);
-
 		/**
 		 * Connects an existing instance of a ManagedComponent instance with the native ManagedComponent class by creating
 		 * the interop object. Throws an exception if the interop object already exists.
@@ -79,18 +70,6 @@ namespace bs
 
 		/** Attempts to find the interop object for a component with the specified ID. If one cannot be found null is returned. */
 		ScriptComponentBase* GetScriptComponent(const UUID& id) const;
-
-		/** Attempts to find the interop object for the specified SceneObject. If one cannot be found null is returned. */
-		ScriptSceneObject* GetScriptSceneObject(const HSceneObject& sceneObject) const;
-
-		/** Attempts to find the interop object for a managed scene object with the instance ID. If one cannot be found null is returned. */
-		ScriptSceneObject* GetScriptSceneObject(const UUID& id) const;
-
-		/** Attempts to find the interop object for a GameObject with the specified instance ID. If one cannot be found null is returned. */
-		ScriptGameObjectBase* GetScriptGameObject(const UUID& id) const;
-
-		/**	Destroys and unregisters the specified SceneObject interop object. */
-		void DestroyScriptSceneObject(ScriptSceneObject* scriptSceneObject);
 
 		/**	Destroys and unregisters the specified ManagedComponent interop object. */
 		void DestroyScriptComponent(ScriptComponentBase* scriptComponent);

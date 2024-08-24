@@ -51,35 +51,6 @@ ScriptGameObjectBase* ScriptGameObjectManager::GetOrCreateScriptGameObject(const
 	return GetBuiltinScriptComponent(component);
 }
 
-ScriptSceneObject* ScriptGameObjectManager::GetOrCreateScriptSceneObject(const HSceneObject& sceneObject)
-{
-	ScriptSceneObject* const scriptSceneObject = GetScriptSceneObject(sceneObject);
-	if(scriptSceneObject != nullptr)
-		return scriptSceneObject;
-
-	return CreateScriptSceneObject(sceneObject);
-}
-
-ScriptSceneObject* ScriptGameObjectManager::CreateScriptSceneObject(const HSceneObject& sceneObject)
-{
-	MonoClass* sceneObjectClass = ScriptAssemblyManager::Instance().GetBuiltinClasses().SceneObjectClass;
-	MonoObject* instance = sceneObjectClass->CreateInstance();
-
-	return CreateScriptSceneObject(instance, sceneObject);
-}
-
-ScriptSceneObject* ScriptGameObjectManager::CreateScriptSceneObject(MonoObject* existingInstance, const HSceneObject& sceneObject)
-{
-	ScriptSceneObject* const scriptSceneObject = GetScriptSceneObject(sceneObject);
-	if(scriptSceneObject != nullptr)
-		B3D_EXCEPT(InvalidStateException, "Script object for this SceneObject already exists.");
-
-	ScriptSceneObject* const nativeInstance = new(B3DAllocate<ScriptSceneObject>()) ScriptSceneObject(existingInstance, sceneObject);
-	mScriptSceneObjects[sceneObject.GetId()] = nativeInstance;
-
-	return nativeInstance;
-}
-
 ScriptManagedComponent* ScriptGameObjectManager::CreateManagedScriptComponent(MonoObject* existingInstance, const HManagedComponent& component)
 {
 	ScriptManagedComponent* const nativeInstance = new(B3DAllocate<ScriptManagedComponent>())
@@ -138,45 +109,6 @@ ScriptComponentBase* ScriptGameObjectManager::GetScriptComponent(const UUID& id)
 	return nullptr;
 }
 
-ScriptSceneObject* ScriptGameObjectManager::GetScriptSceneObject(const HSceneObject& sceneObject) const
-{
-	auto findIter = mScriptSceneObjects.find(sceneObject.GetId());
-	if(findIter != mScriptSceneObjects.end())
-		return findIter->second;
-
-	return nullptr;
-}
-
-ScriptSceneObject* ScriptGameObjectManager::GetScriptSceneObject(const UUID& id) const
-{
-	auto findIter = mScriptSceneObjects.find(id);
-	if(findIter != mScriptSceneObjects.end())
-		return findIter->second;
-
-	return nullptr;
-}
-
-ScriptGameObjectBase* ScriptGameObjectManager::GetScriptGameObject(const UUID& id) const
-{
-	auto findIter = mScriptSceneObjects.find(id);
-	if(findIter != mScriptSceneObjects.end())
-		return findIter->second;
-
-	auto findIter2 = mScriptComponents.find(id);
-	if(findIter2 != mScriptComponents.end())
-		return findIter2->second;
-
-	return nullptr;
-}
-
-void ScriptGameObjectManager::DestroyScriptSceneObject(ScriptSceneObject* scriptSceneObject)
-{
-	const UUID& id = scriptSceneObject->GetNativeHandle().GetId();
-	mScriptSceneObjects.erase(id);
-
-	B3DDelete(scriptSceneObject);
-}
-
 void ScriptGameObjectManager::DestroyScriptComponent(ScriptComponentBase* scriptComponent)
 {
 	const UUID& id = scriptComponent->GetNativeHandle().GetId();
@@ -204,13 +136,6 @@ void ScriptGameObjectManager::SendComponentResetEvents()
 void ScriptGameObjectManager::OnGameObjectDestroyed(const HGameObject& go)
 {
 	const UUID& id = go.GetId();
-
-	ScriptSceneObject* so = GetScriptSceneObject(id);
-	if(so != nullptr)
-	{
-		so->NotifyDestroyedInternal();
-		mScriptSceneObjects.erase(id);
-	}
 
 	ScriptComponentBase* component = GetScriptComponent(id);
 	if(component != nullptr)

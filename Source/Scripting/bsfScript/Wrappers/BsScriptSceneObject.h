@@ -3,9 +3,8 @@
 #pragma once
 
 #include "BsScriptEnginePrerequisites.h"
-#include "Wrappers/BsScriptGameObject.h"
-#include "BsScriptObject.h"
-#include "Text/BsFont.h"
+#include "BsScriptGameObjectWrapper.h"
+#include "Scene/BsSceneObject.h"
 
 namespace bs
 {
@@ -14,85 +13,70 @@ namespace bs
 	 */
 
 	/**	Interop class between C++ & CLR for SceneObject. */
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptSceneObject : public ScriptObject<ScriptSceneObject, ScriptGameObjectBase>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptSceneObject : public TScriptGameObjectWrapper<SceneObject, ScriptSceneObject>
 	{
 	public:
-		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "SceneObject")
+		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "SceneObject")
 
-		HGameObject GetNativeHandle() const override { return B3DStaticGameObjectCast<GameObject>(mSceneObject); }
-		void SetNativeHandle(const HGameObject& gameObject) override;
+		ScriptSceneObject(const HSceneObject& nativeObject, MonoObject* scriptObject);
 
-		/**	Returns the native internal scene object. */
-		HSceneObject GetHandle() const { return mSceneObject; }
+		/** Retrieves the underlying native object cast to the correct type. */
+		SceneObject* GetNativeObject() const;
 
-		/**	Checks is the scene object wrapped by the provided interop object destroyed. */
-		static bool CheckIfDestroyed(ScriptSceneObject* nativeInstance);
+		static MonoObject* CreateScriptObject(bool construct);
 
 	private:
-		friend class ScriptGameObjectManager;
-
-		ScriptSceneObject(MonoObject* instance, const HSceneObject& sceneObject);
-
-		void OnManagedInstanceDeletedInternal(bool assemblyRefresh) override;
-		MonoObject* CreateManagedInstanceInternal(bool construct) override;
-		void ClearManagedInstanceInternal() override;
-
-		/**	Triggered by the script game object manager when the handle this object is referencing is destroyed. */
-		void NotifyDestroyedInternal();
-
-		HSceneObject mSceneObject;
-
 		/************************************************************************/
 		/* 								CLR HOOKS						   		*/
 		/************************************************************************/
-		static void InternalCreateInstance(MonoObject* instance, MonoString* name, u32 flags);
+		static void InternalCreateInstance(MonoObject* scriptObject, MonoString* name, u32 flags);
 
-		static void InternalSetName(ScriptSceneObject* nativeInstance, MonoString* name);
-		static MonoString* InternalGetName(ScriptSceneObject* nativeInstance);
-		static void InternalSetActive(ScriptSceneObject* nativeInstance, bool value);
-		static bool InternalGetActive(ScriptSceneObject* nativeInstance);
-		static bool InternalHasFlag(ScriptSceneObject* nativeInstance, u32 flag);
+		static void InternalSetName(ScriptSceneObject* self, MonoString* name);
+		static MonoString* InternalGetName(ScriptSceneObject* self);
+		static void InternalSetActive(ScriptSceneObject* self, bool value);
+		static bool InternalGetActive(ScriptSceneObject* self);
+		static bool InternalHasFlag(ScriptSceneObject* self, u32 flag);
 
-		static void InternalSetMobility(ScriptSceneObject* nativeInstance, int value);
-		static int InternalGetMobility(ScriptSceneObject* nativeInstance);
+		static void InternalSetMobility(ScriptSceneObject* self, int value);
+		static int InternalGetMobility(ScriptSceneObject* self);
 
-		static void InternalSetParent(ScriptSceneObject* nativeInstance, MonoObject* parent);
-		static MonoObject* InternalGetParent(ScriptSceneObject* nativeInstance);
-		static MonoObject* InternalGetScene(ScriptSceneObject* nativeInstance);
+		static void InternalSetParent(ScriptSceneObject* self, MonoObject* parent);
+		static MonoObject* InternalGetParent(ScriptSceneObject* self);
+		static MonoObject* InternalGetScene(ScriptSceneObject* self);
 
-		static void InternalGetNumChildren(ScriptSceneObject* nativeInstance, u32* value);
-		static MonoObject* InternalGetChild(ScriptSceneObject* nativeInstance, u32 idx);
-		static MonoObject* InternalFindChild(ScriptSceneObject* nativeInstance, MonoString* name, bool recursive);
-		static MonoArray* InternalFindChildren(ScriptSceneObject* nativeInstance, MonoString* name, bool recursive);
+		static void InternalGetNumChildren(ScriptSceneObject* self, u32* value);
+		static MonoObject* InternalGetChild(ScriptSceneObject* self, u32 childIndex);
+		static MonoObject* InternalFindChild(ScriptSceneObject* self, MonoString* name, bool recursive);
+		static MonoArray* InternalFindChildren(ScriptSceneObject* self, MonoString* name, bool recursive);
 
-		static void InternalGetPosition(ScriptSceneObject* nativeInstance, Vector3* value);
-		static void InternalGetLocalPosition(ScriptSceneObject* nativeInstance, Vector3* value);
-		static void InternalGetRotation(ScriptSceneObject* nativeInstance, Quaternion* value);
-		static void InternalGetLocalRotation(ScriptSceneObject* nativeInstance, Quaternion* value);
-		static void InternalGetScale(ScriptSceneObject* nativeInstance, Vector3* value);
-		static void InternalGetLocalScale(ScriptSceneObject* nativeInstance, Vector3* value);
+		static void InternalGetPosition(ScriptSceneObject* self, Vector3* value);
+		static void InternalGetLocalPosition(ScriptSceneObject* self, Vector3* value);
+		static void InternalGetRotation(ScriptSceneObject* self, Quaternion* value);
+		static void InternalGetLocalRotation(ScriptSceneObject* self, Quaternion* value);
+		static void InternalGetScale(ScriptSceneObject* self, Vector3* value);
+		static void InternalGetLocalScale(ScriptSceneObject* self, Vector3* value);
 
-		static void InternalSetPosition(ScriptSceneObject* nativeInstance, Vector3* value);
-		static void InternalSetLocalPosition(ScriptSceneObject* nativeInstance, Vector3* value);
-		static void InternalSetRotation(ScriptSceneObject* nativeInstance, Quaternion* value);
-		static void InternalSetLocalRotation(ScriptSceneObject* nativeInstance, Quaternion* value);
-		static void InternalSetLocalScale(ScriptSceneObject* nativeInstance, Vector3* value);
+		static void InternalSetPosition(ScriptSceneObject* self, Vector3* value);
+		static void InternalSetLocalPosition(ScriptSceneObject* self, Vector3* value);
+		static void InternalSetRotation(ScriptSceneObject* self, Quaternion* value);
+		static void InternalSetLocalRotation(ScriptSceneObject* self, Quaternion* value);
+		static void InternalSetLocalScale(ScriptSceneObject* self, Vector3* value);
 
-		static void InternalGetLocalTransform(ScriptSceneObject* nativeInstance, Matrix4* value);
-		static void InternalGetWorldTransform(ScriptSceneObject* nativeInstance, Matrix4* value);
-		static void InternalLookAt(ScriptSceneObject* nativeInstance, Vector3* direction, Vector3* up);
-		static void InternalMove(ScriptSceneObject* nativeInstance, Vector3* value);
-		static void InternalMoveLocal(ScriptSceneObject* nativeInstance, Vector3* value);
-		static void InternalRotate(ScriptSceneObject* nativeInstance, Quaternion* value);
-		static void InternalRoll(ScriptSceneObject* nativeInstance, Radian* value);
-		static void InternalYaw(ScriptSceneObject* nativeInstance, Radian* value);
-		static void InternalPitch(ScriptSceneObject* nativeInstance, Radian* value);
-		static void InternalSetForward(ScriptSceneObject* nativeInstance, Vector3* value);
-		static void InternalGetForward(ScriptSceneObject* nativeInstance, Vector3* value);
-		static void InternalGetUp(ScriptSceneObject* nativeInstance, Vector3* value);
-		static void InternalGetRight(ScriptSceneObject* nativeInstance, Vector3* value);
+		static void InternalGetLocalTransform(ScriptSceneObject* self, Matrix4* value);
+		static void InternalGetWorldTransform(ScriptSceneObject* self, Matrix4* value);
+		static void InternalLookAt(ScriptSceneObject* self, Vector3* direction, Vector3* up);
+		static void InternalMove(ScriptSceneObject* self, Vector3* value);
+		static void InternalMoveLocal(ScriptSceneObject* self, Vector3* value);
+		static void InternalRotate(ScriptSceneObject* self, Quaternion* value);
+		static void InternalRoll(ScriptSceneObject* self, Radian* value);
+		static void InternalYaw(ScriptSceneObject* self, Radian* value);
+		static void InternalPitch(ScriptSceneObject* self, Radian* value);
+		static void InternalSetForward(ScriptSceneObject* self, Vector3* value);
+		static void InternalGetForward(ScriptSceneObject* self, Vector3* value);
+		static void InternalGetUp(ScriptSceneObject* self, Vector3* value);
+		static void InternalGetRight(ScriptSceneObject* self, Vector3* value);
 
-		static void InternalDestroy(ScriptSceneObject* nativeInstance, bool immediate);
+		static void InternalDestroy(ScriptSceneObject* self, bool immediate);
 	};
 
 	/** @} */

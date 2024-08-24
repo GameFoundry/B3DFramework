@@ -131,9 +131,7 @@ void ScriptScene::OnRefreshDomainLoaded()
 MonoObject* ScriptScene::InternalGetRoot()
 {
 	HSceneObject root = SceneManager::Instance().GetMainScene()->GetRoot();
-
-	ScriptSceneObject* scriptRoot = ScriptGameObjectManager::Instance().GetOrCreateScriptSceneObject(root);
-	return scriptRoot->GetManagedInstance();
+	return ScriptSceneObject::GetOrCreateScriptObject(root);
 }
 
 MonoObject* ScriptScene::InternalGetMainCameraSo()
@@ -143,8 +141,7 @@ MonoObject* ScriptScene::InternalGetMainCameraSo()
 	if(so == nullptr)
 		return nullptr;
 
-	ScriptSceneObject* cameraSo = ScriptGameObjectManager::Instance().GetOrCreateScriptSceneObject(so);
-	return cameraSo->GetManagedInstance();
+	return ScriptSceneObject::GetOrCreateScriptObject(so);
 }
 
 #if B3D_IS_ENGINE
