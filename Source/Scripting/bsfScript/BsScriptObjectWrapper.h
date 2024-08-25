@@ -8,7 +8,6 @@
 #include "BsMonoField.h"
 #include "BsMonoClass.h"
 #include "Script/BsIScriptObjectWrapper.h"
-#include "Serialization/BsScriptAssemblyManager.h"
 
 namespace bs
 {
@@ -88,7 +87,7 @@ namespace bs
 		 * Called on all script object wrappers when script reload is about to happen, after BackupDataBeforeScriptReload() is called. Allows the wrapper to
 		 * release any explicit strong handles it may be holding, so the object gets released correctly.
 		 */
-		virtual void ReleaseStrongHandlesBeforeScriptReload();
+		virtual void ReleaseStrongHandlesBeforeScriptReload() { ReleaseStrongScriptObjectHandle(); }
 
 		/**
 		 * Called after script reload completes. This needs to recreate the internal script object, as the old one will have been destroyed during the reload.
@@ -105,6 +104,12 @@ namespace bs
 		/** @} */
 
 	protected:
+		/** Creates a new handle to the provided script object. Previous handle must be released. */
+		void CreateStrongScriptObjectHandle(MonoObject* scriptObject);
+
+		/** Releases the currently held script object strong handle, if any. */ 
+		void ReleaseStrongScriptObjectHandle();
+
 		u32 mStrongScriptObjectHandle = ~0u;
 	};
 
@@ -147,7 +152,12 @@ namespace bs
 		void RecreateScriptObjectAfterScriptReload() override
 		{
 			MonoObject* const scriptObject = SelfType::CreateScriptObject(true);
-			BindSelfToScriptObject(scriptObject);
+
+			if(B3D_ENSURE(scriptObject != nullptr))
+			{
+				CreateStrongScriptObjectHandle(scriptObject);
+				BindSelfToScriptObject(scriptObject);
+			}
 		}
 
 		/** Returns the script object wrapper associated with the provided script object. */

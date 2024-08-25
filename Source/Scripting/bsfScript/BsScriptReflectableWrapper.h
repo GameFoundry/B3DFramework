@@ -1,10 +1,11 @@
-//********************************* bs::framework - Copyright 2024 Marko Pintera ************************************//
+//*********************************** bs::framework - Copyright 2024 Marko Pintera ***************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
 #include "BsScriptEnginePrerequisites.h"
 #include "BsScriptObjectWrapper.h"
 #include "Script/BsIScriptExportable.h"
+#include "Serialization/BsScriptAssemblyManager.h"
 
 namespace bs
 {
@@ -13,7 +14,7 @@ namespace bs
 	 */
 
 	/** Provides a base class for all script object wrappers that wrap an IReflectable object that may be passed as a shared pointer. */
-	class ScriptReflectableWrapper : public ScriptObjectWrapper
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptReflectableWrapper : public ScriptObjectWrapper
 	{
 	public:
 		using ScriptObjectWrapper::ScriptObjectWrapper;
@@ -28,45 +29,10 @@ namespace bs
 		 * Unlike GetOrCreateScriptObject implemented on TScriptReflectableWrapper, this always accepts the object as an IReflectable, and
 		 * needs to perform type lookup to get the exact script wrapper type.
 		 */
-		static MonoObject* GetOrCreateScriptObject(const SPtr<IReflectable>& nativeObject)
-		{
-			if(nativeObject == nullptr)
-				return nullptr;
-
-			const u32 rttiId = nativeObject->GetTypeId();
-			const ScriptWrapperObjectMetaData* const scriptWrapperObjectMetaData = ScriptAssemblyManager::Instance().GetScriptWrapperMetaData(rttiId);
-			if(scriptWrapperObjectMetaData == nullptr)
-			{
-				B3D_LOG(Error, Script, "Cannot retrieve script object. Mapping between a reflectable object and a managed type is missing for type \"{0}\"", rttiId);
-				return nullptr;
-			}
-
-			if(scriptWrapperObjectMetaData->CreateCallbackType != ScriptWrapperCreateCallbackType::Reflectable)
-			{
-				B3D_LOG(Error, Script, "Cannot retrieve script object. Script wrapper for type \"{0}\" does not support creation of an IReflectable shared pointer.", rttiId);
-				return nullptr;
-			}
-
-			if(!B3D_ENSURE(scriptWrapperObjectMetaData->GetScriptExportable != nullptr))
-				return nullptr;
-
-			IScriptExportable* const scriptExportableObject = scriptWrapperObjectMetaData->GetScriptExportable(nativeObject.get());
-			if(ScriptObjectWrapper* const scriptObjectWrapper = (ScriptObjectWrapper*)scriptExportableObject->GetScriptObjectWrapper())
-				return scriptObjectWrapper->GetScriptObject();
-
-			return scriptWrapperObjectMetaData->ReflectableCreateCallback(nativeObject);
-		}
+		static MonoObject* GetOrCreateScriptObject(const SPtr<IReflectable>& nativeObject);
 
 		/** Returns the script object wrapper associated with the provided script object, and wrapped by a wrapper that owns the provided meta-data. */
-		static ScriptReflectableWrapper* GetScriptObjectWrapper(const ScriptWrapperObjectMetaData& wrapperMetaData, MonoObject* scriptObject)
-		{
-			ScriptReflectableWrapper* scriptObjectWrapper = nullptr;
-
-			if(wrapperMetaData.ScriptObjectWrapperPointerField != nullptr && scriptObject != nullptr)
-				wrapperMetaData.ScriptObjectWrapperPointerField->Get(scriptObject, &scriptObjectWrapper);
-
-			return scriptObjectWrapper;
-		}
+		static ScriptReflectableWrapper* GetScriptObjectWrapper(const ScriptWrapperObjectMetaData& wrapperMetaData, MonoObject* scriptObject);
 
 	protected:
 		SPtr<IReflectable> mNativeObjectStrongHandle;

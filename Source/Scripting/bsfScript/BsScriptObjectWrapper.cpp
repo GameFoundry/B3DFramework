@@ -13,8 +13,7 @@ ScriptObjectWrapper::ScriptObjectWrapper(IScriptExportable* nativeObject, MonoOb
 {
 	ScriptObjectManager::Instance().RegisterScriptObjectWrapper(this);
 
-	if(B3D_ENSURE(scriptObject != nullptr))
-		mStrongScriptObjectHandle = MonoUtil::NewGcHandle(scriptObject, false);
+	CreateStrongScriptObjectHandle(scriptObject);
 }
 
 ScriptObjectWrapper::~ScriptObjectWrapper()
@@ -38,16 +37,21 @@ void ScriptObjectWrapper::NotifyScriptObjectDestroyed(bool isDestroyedDueToScrip
 
 void ScriptObjectWrapper::NotifyNativeObjectDestroyed()
 {
-	if(mStrongScriptObjectHandle != ~0u)
-	{
-		MonoUtil::FreeGcHandle(mStrongScriptObjectHandle);
-		mStrongScriptObjectHandle = ~0u;
-	}
+	ReleaseStrongScriptObjectHandle();
 
 	IScriptObjectWrapper::NotifyNativeObjectDestroyed();
 }
 
-void ScriptObjectWrapper::ReleaseStrongHandlesBeforeScriptReload()
+void ScriptObjectWrapper::CreateStrongScriptObjectHandle(MonoObject* scriptObject)
+{
+	if(B3D_ENSURE(scriptObject != nullptr))
+	{
+		B3D_ENSURE(mStrongScriptObjectHandle == ~0u);
+		mStrongScriptObjectHandle = MonoUtil::NewGcHandle(scriptObject, false);
+	}
+}
+
+void ScriptObjectWrapper::ReleaseStrongScriptObjectHandle()
 {
 	if(mStrongScriptObjectHandle != ~0u)
 	{
@@ -55,6 +59,7 @@ void ScriptObjectWrapper::ReleaseStrongHandlesBeforeScriptReload()
 		mStrongScriptObjectHandle = ~0u;
 	}
 }
+
 
 ScriptScriptObject::ScriptScriptObject(MonoObject* scriptObject)
 	: TNonInstantiableScriptObjectWrapper(scriptObject)

@@ -5,6 +5,7 @@
 #include "BsScriptEnginePrerequisites.h"
 #include "BsScriptObjectWrapper.h"
 #include "Script/BsIScriptExportable.h"
+#include "Serialization/BsScriptAssemblyManager.h"
 
 namespace bs
 {
@@ -13,7 +14,7 @@ namespace bs
 	 */
 
 	/** Provides a base class for all script object wrappers that wrap a GameObject object that may be passed as a shared pointer. */
-	class ScriptGameObjectWrapper : public ScriptObjectWrapper
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptGameObjectWrapper : public ScriptObjectWrapper
 	{
 	public:
 		using ScriptObjectWrapper::ScriptObjectWrapper;
@@ -34,45 +35,10 @@ namespace bs
 		 * Unlike GetOrCreateScriptObject implemented on TScriptGameObjectWrapper, this always accepts the object as a GameObject, and
 		 * needs to perform type lookup to get the exact script wrapper type.
 		 */
-		static MonoObject* GetOrCreateScriptObject(const HGameObject& nativeObject)
-		{
-			if(!nativeObject.IsValid())
-				return nullptr;
-
-			const u32 rttiId = nativeObject->GetTypeId();
-			const ScriptWrapperObjectMetaData* const scriptWrapperObjectMetaData = ScriptAssemblyManager::Instance().GetScriptWrapperMetaData(rttiId);
-			if(scriptWrapperObjectMetaData == nullptr)
-			{
-				B3D_LOG(Error, Script, "Cannot retrieve script object. Mapping between a game object and a managed type is missing for type \"{0}\"", rttiId);
-				return nullptr;
-			}
-
-			if(scriptWrapperObjectMetaData->CreateCallbackType != ScriptWrapperCreateCallbackType::GameObject)
-			{
-				B3D_LOG(Error, Script, "Cannot retrieve script object. Script wrapper for type \"{0}\" does not support creation of a GameObject handle.", rttiId);
-				return nullptr;
-			}
-
-			if(!B3D_ENSURE(scriptWrapperObjectMetaData->GetScriptExportable != nullptr))
-				return nullptr;
-
-			IScriptExportable* const scriptExportableObject = scriptWrapperObjectMetaData->GetScriptExportable(nativeObject.Get());
-			if(ScriptObjectWrapper* const scriptObjectWrapper = (ScriptObjectWrapper*)scriptExportableObject->GetScriptObjectWrapper())
-				return scriptObjectWrapper->GetScriptObject();
-
-			return scriptWrapperObjectMetaData->GameObjectCreateCallback(nativeObject);
-		}
+		static MonoObject* GetOrCreateScriptObject(const HGameObject& nativeObject);
 
 		/** Returns the script object wrapper associated with the provided script object, and wrapped by a wrapper that owns the provided meta-data. */
-		static ScriptGameObjectWrapper* GetScriptObjectWrapper(const ScriptWrapperObjectMetaData& wrapperMetaData, MonoObject* scriptObject)
-		{
-			ScriptGameObjectWrapper* scriptObjectWrapper = nullptr;
-
-			if(wrapperMetaData.ScriptObjectWrapperPointerField != nullptr && scriptObject != nullptr)
-				wrapperMetaData.ScriptObjectWrapperPointerField->Get(scriptObject, &scriptObjectWrapper);
-
-			return scriptObjectWrapper;
-		}
+		static ScriptGameObjectWrapper* GetScriptObjectWrapper(const ScriptWrapperObjectMetaData& wrapperMetaData, MonoObject* scriptObject);
 
 	protected:
 		HGameObject mNativeObjectStrongHandle;
@@ -87,6 +53,20 @@ namespace bs
 			: TScriptObjectWrapper<SelfType, BaseType>(nativeObject.Get(), scriptObject)
 		{
 			mNativeObjectStrongHandle = nativeObject;
+		}
+
+		bool ShouldPersistScriptReload() const override { return true; }
+		void NotifyScriptObjectDestroyed(bool isDestroyedDueToScriptReload) override
+		{
+			// Keep the wrapper alive if script reload and the native object is still valid
+			if(!isDestroyedDueToScriptReload || !IsNativeObjectValid())
+			{
+				TScriptObjectWrapper<SelfType, BaseType>::NotifyScriptObjectDestroyed(isDestroyedDueToScriptReload);
+				return;
+			}
+
+			// Handle should have been cleared already
+			B3D_ENSURE(mStrongScriptObjectHandle == ~0u);
 		}
 
 		/** Returns the wrapped native object as a shared pointer. */

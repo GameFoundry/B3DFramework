@@ -32,45 +32,10 @@ namespace bs
 		 * Unlike GetOrCreateScriptObject implemented on TScriptResourceWrapper, this always accepts the object as a Resource, and
 		 * needs to perform type lookup to get the exact script wrapper type.
 		 */
-		static MonoObject* GetOrCreateScriptObject(const HResource& nativeObject)
-		{
-			if(!nativeObject.IsValid())
-				return nullptr;
-
-			const u32 rttiId = nativeObject->GetTypeId();
-			const ScriptWrapperObjectMetaData* const scriptWrapperObjectMetaData = ScriptAssemblyManager::Instance().GetScriptWrapperMetaData(rttiId);
-			if(scriptWrapperObjectMetaData == nullptr)
-			{
-				B3D_LOG(Error, Script, "Cannot retrieve script object. Mapping between a resource and a managed type is missing for type \"{0}\"", rttiId);
-				return nullptr;
-			}
-
-			if(scriptWrapperObjectMetaData->CreateCallbackType != ScriptWrapperCreateCallbackType::Resource)
-			{
-				B3D_LOG(Error, Script, "Cannot retrieve script object. Script wrapper for type \"{0}\" does not support creation of a Resource handle.", rttiId);
-				return nullptr;
-			}
-
-			if(!B3D_ENSURE(scriptWrapperObjectMetaData->GetScriptExportable != nullptr))
-				return nullptr;
-
-			IScriptExportable* const scriptExportableObject = scriptWrapperObjectMetaData->GetScriptExportable(nativeObject.Get());
-			if(ScriptObjectWrapper* const scriptObjectWrapper = (ScriptObjectWrapper*)scriptExportableObject->GetScriptObjectWrapper())
-				return scriptObjectWrapper->GetScriptObject();
-
-			return scriptWrapperObjectMetaData->ResourceCreateCallback(nativeObject);
-		}
+		static MonoObject* GetOrCreateScriptObject(const HResource& nativeObject);
 
 		/** Returns the script object wrapper associated with the provided script object, and wrapped by a wrapper that owns the provided meta-data. */
-		static ScriptResourceWrapper* GetScriptObjectWrapper(const ScriptWrapperObjectMetaData& wrapperMetaData, MonoObject* scriptObject)
-		{
-			ScriptResourceWrapper* scriptObjectWrapper = nullptr;
-
-			if(wrapperMetaData.ScriptObjectWrapperPointerField != nullptr && scriptObject != nullptr)
-				wrapperMetaData.ScriptObjectWrapperPointerField->Get(scriptObject, &scriptObjectWrapper);
-
-			return scriptObjectWrapper;
-		}
+		static ScriptResourceWrapper* GetScriptObjectWrapper(const ScriptWrapperObjectMetaData& wrapperMetaData, MonoObject* scriptObject);
 
 	protected:
 		HResource mNativeObjectStrongHandle;
