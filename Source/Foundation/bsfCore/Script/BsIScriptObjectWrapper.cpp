@@ -16,7 +16,7 @@ IScriptObjectWrapper::IScriptObjectWrapper(IScriptExportable* nativeObject)
 void IScriptObjectWrapper::NotifyScriptObjectDestroyed()
 {
 	IScriptExportable* nativeObject = GetNativeObject();
-	if(B3D_ENSURE(nativeObject))
+	if(nativeObject != nullptr)
 		nativeObject->ClearAssociatedScriptObjectWrapper();
 }
 
