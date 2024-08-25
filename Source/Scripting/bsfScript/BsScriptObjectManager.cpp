@@ -129,7 +129,7 @@ void ScriptObjectManager::NotifyObjectFinalized(ScriptObjectBase* instance)
 
 void ScriptObjectManager::NotifyObjectFinalized(ScriptObjectWrapper* scriptObjectWrapper)
 {
-	if(B3D_ENSURE(scriptObjectWrapper != nullptr))
+	if(!B3D_ENSURE(scriptObjectWrapper != nullptr))
 		return;
 
 	Lock lock(mMutex);
