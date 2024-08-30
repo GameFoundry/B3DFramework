@@ -68,12 +68,10 @@ namespace bs
 		friend class ScriptManagedComponent;
 
 		/**
-		 * Finalizes construction of the object. Must be called before use or when the managed component instance changes.
-		 *
-		 * @param[in]	owner		Script class that handles interop between the native and managed code for this
-		 *							component.
+		 * Binds the managed component to the currently assigned script object. This involves setting up bindings and resolving
+		 * the exact managed component class.
 		 */
-		void Initialize(ScriptManagedComponent* owner);
+		void BindToScriptObject();
 
 		typedef void(B3D_THUNKCALL* OnCreatedThunkDef)(MonoObject*, MonoException**);
 		typedef void(B3D_THUNKCALL* OnInitializedThunkDef)(MonoObject*, MonoException**);
@@ -86,7 +84,6 @@ namespace bs
 
 		MonoClass* mManagedClass = nullptr;
 		MonoReflectionType* mRuntimeType = nullptr;
-		ScriptManagedComponent* mOwner = nullptr;
 
 		String mNamespace;
 		String mTypeName;

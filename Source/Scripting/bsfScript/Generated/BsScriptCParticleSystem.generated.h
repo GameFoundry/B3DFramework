@@ -10,12 +10,14 @@
 namespace bs { class CParticleSystem; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleSystem : public TScriptComponent<ScriptParticleSystem, CParticleSystem>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleSystem : public TScriptGameObjectWrapper<CParticleSystem, ScriptParticleSystem>
 	{
 	public:
-		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "ParticleSystem")
+		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "ParticleSystem")
 
-		ScriptParticleSystem(MonoObject* managedInstance, const GameObjectHandle<CParticleSystem>& value);
+		ScriptParticleSystem(const GameObjectHandle<CParticleSystem>& nativeObject, MonoObject* scriptObject);
+
+		static MonoObject* CreateScriptObject(bool construct);
 
 	private:
 		static void InternalSetSettings(ScriptParticleSystem* self, MonoObject* settings);

@@ -11,18 +11,29 @@
 
 namespace bs
 {
-	ScriptMeshCollider::ScriptMeshCollider(MonoObject* managedInstance, const GameObjectHandle<CMeshCollider>& value)
-		:TScriptComponent(managedInstance, value)
+	ScriptMeshCollider::ScriptMeshCollider(const GameObjectHandle<CMeshCollider>& nativeObject, MonoObject* scriptObject)
+		:TScriptGameObjectWrapper(nativeObject, scriptObject)
 	{
+		RegisterEvents();
 	}
 
-	void ScriptMeshCollider::InitRuntimeData()
+	void ScriptMeshCollider::SetupScriptBindings()
 	{
-		metaData.ScriptClass->AddInternalCall("Internal_SetMesh", (void*)&ScriptMeshCollider::InternalSetMesh);
-		metaData.ScriptClass->AddInternalCall("Internal_GetMesh", (void*)&ScriptMeshCollider::InternalGetMesh);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetMesh", (void*)&ScriptMeshCollider::InternalSetMesh);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetMesh", (void*)&ScriptMeshCollider::InternalGetMesh);
 
 	}
 
+	MonoObject* ScriptMeshCollider::CreateScriptObject(bool construct)
+	{
+		bool dummy = false;
+		void* ctorParams[1] = { &dummy };
+
+		if(construct)
+			return sInteropMetaData.ScriptClass->CreateInstance("bool", ctorParams);
+
+		return sInteropMetaData.ScriptClass->CreateInstance(false);
+	}
 	void ScriptMeshCollider::InternalSetMesh(ScriptMeshCollider* self, MonoObject* mesh)
 	{
 		TResourceHandle<PhysicsMesh> tmpmesh;
@@ -30,13 +41,13 @@ namespace bs
 		scriptObjectWrappermesh = ScriptRRefBase::ToNative(mesh);
 		if(scriptObjectWrappermesh != nullptr)
 			tmpmesh = B3DStaticResourceCast<PhysicsMesh>(scriptObjectWrappermesh->GetHandle());
-		self->GetHandle()->SetMesh(tmpmesh);
+		static_cast<CMeshCollider*>(self->GetNativeObject())->SetMesh(tmpmesh);
 	}
 
 	MonoObject* ScriptMeshCollider::InternalGetMesh(ScriptMeshCollider* self)
 	{
 		TResourceHandle<PhysicsMesh> tmp__output;
-		tmp__output = self->GetHandle()->GetMesh();
+		tmp__output = static_cast<CMeshCollider*>(self->GetNativeObject())->GetMesh();
 
 		MonoObject* __output;
 		ScriptRRefBase* script__output;

@@ -10,6 +10,7 @@ namespace bs
 	ScriptParticleEvolver::ScriptParticleEvolver(const SPtr<ParticleEvolver>& nativeObject, MonoObject* scriptObject)
 		:TScriptReflectableWrapper(nativeObject, scriptObject)
 	{
+		RegisterEvents();
 	}
 
 	void ScriptParticleEvolver::SetupScriptBindings()

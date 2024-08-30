@@ -8,14 +8,25 @@
 
 namespace bs
 {
-	ScriptAudioListener::ScriptAudioListener(MonoObject* managedInstance, const GameObjectHandle<CAudioListener>& value)
-		:TScriptComponent(managedInstance, value)
+	ScriptAudioListener::ScriptAudioListener(const GameObjectHandle<CAudioListener>& nativeObject, MonoObject* scriptObject)
+		:TScriptGameObjectWrapper(nativeObject, scriptObject)
 	{
+		RegisterEvents();
 	}
 
-	void ScriptAudioListener::InitRuntimeData()
+	void ScriptAudioListener::SetupScriptBindings()
 	{
 
 	}
 
+	MonoObject* ScriptAudioListener::CreateScriptObject(bool construct)
+	{
+		bool dummy = false;
+		void* ctorParams[1] = { &dummy };
+
+		if(construct)
+			return sInteropMetaData.ScriptClass->CreateInstance("bool", ctorParams);
+
+		return sInteropMetaData.ScriptClass->CreateInstance(false);
+	}
 }

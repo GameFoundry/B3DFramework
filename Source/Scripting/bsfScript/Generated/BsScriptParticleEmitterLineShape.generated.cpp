@@ -12,6 +12,7 @@ namespace bs
 	ScriptParticleEmitterLineShape::ScriptParticleEmitterLineShape(const SPtr<ParticleEmitterLineShape>& nativeObject, MonoObject* scriptObject)
 		:TScriptReflectableWrapper(nativeObject, scriptObject)
 	{
+		RegisterEvents();
 	}
 
 	void ScriptParticleEmitterLineShape::SetupScriptBindings()

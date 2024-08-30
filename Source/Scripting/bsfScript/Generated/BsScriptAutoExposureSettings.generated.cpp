@@ -10,6 +10,7 @@ namespace bs
 	ScriptAutoExposureSettings::ScriptAutoExposureSettings(const SPtr<AutoExposureSettings>& nativeObject, MonoObject* scriptObject)
 		:TScriptReflectableWrapper(nativeObject, scriptObject)
 	{
+		RegisterEvents();
 	}
 
 	void ScriptAutoExposureSettings::SetupScriptBindings()

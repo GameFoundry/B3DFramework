@@ -17,12 +17,15 @@ namespace bs { struct __ControllerColliderCollisionInterop; }
 namespace bs { struct __ControllerControllerCollisionInterop; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptCharacterController : public TScriptComponent<ScriptCharacterController, CCharacterController>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptCharacterController : public TScriptGameObjectWrapper<CCharacterController, ScriptCharacterController>
 	{
 	public:
-		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "CharacterController")
+		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "CharacterController")
 
-		ScriptCharacterController(MonoObject* managedInstance, const GameObjectHandle<CCharacterController>& value);
+		ScriptCharacterController(const GameObjectHandle<CCharacterController>& nativeObject, MonoObject* scriptObject);
+
+		virtual void RegisterEvents();
+		static MonoObject* CreateScriptObject(bool construct);
 
 	private:
 		void OnColliderHit(const ControllerColliderCollision& p0);

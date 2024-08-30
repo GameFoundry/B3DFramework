@@ -20,7 +20,6 @@
 #include "GUI/BsGUIManager.h"
 
 #include "Serialization/BsBuiltinResourceLookup.h"
-#include "Generated/BsBuiltinComponentLookup.generated.h"
 
 using namespace bs;
 void EngineScriptLibrary::Initialize()
@@ -46,7 +45,6 @@ void EngineScriptLibrary::Initialize()
 	ScriptGUI::StartUp();
 
 	mEngineTypeMappings.Resources = BuiltinResourceTypes::GetEntries();
-	mEngineTypeMappings.Components = BuiltinComponent::GetEntries();
 
 	ScriptAssemblyManager::Instance().LoadAssemblyInfo(kEngineAssembly, mEngineTypeMappings);
 

@@ -10,6 +10,7 @@ namespace bs
 	ScriptFilmGrainSettings::ScriptFilmGrainSettings(const SPtr<FilmGrainSettings>& nativeObject, MonoObject* scriptObject)
 		:TScriptReflectableWrapper(nativeObject, scriptObject)
 	{
+		RegisterEvents();
 	}
 
 	void ScriptFilmGrainSettings::SetupScriptBindings()

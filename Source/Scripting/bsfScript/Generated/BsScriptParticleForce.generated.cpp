@@ -12,6 +12,7 @@ namespace bs
 	ScriptParticleForce::ScriptParticleForce(const SPtr<ParticleForce>& nativeObject, MonoObject* scriptObject)
 		:TScriptReflectableWrapper(nativeObject, scriptObject)
 	{
+		RegisterEvents();
 	}
 
 	void ScriptParticleForce::SetupScriptBindings()

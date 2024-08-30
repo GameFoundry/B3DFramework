@@ -10,6 +10,7 @@ namespace bs
 	ScriptScreenSpaceLensFlareSettings::ScriptScreenSpaceLensFlareSettings(const SPtr<ScreenSpaceLensFlareSettings>& nativeObject, MonoObject* scriptObject)
 		:TScriptReflectableWrapper(nativeObject, scriptObject)
 	{
+		RegisterEvents();
 	}
 
 	void ScriptScreenSpaceLensFlareSettings::SetupScriptBindings()

@@ -12,12 +12,14 @@ namespace bs { struct __LimitConeRangeInterop; }
 namespace bs { class CSphericalJoint; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptSphericalJoint : public TScriptComponent<ScriptSphericalJoint, CSphericalJoint, ScriptJointBase>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptSphericalJoint : public TScriptGameObjectWrapper<CSphericalJoint, ScriptSphericalJoint>
 	{
 	public:
-		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "SphericalJoint")
+		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "SphericalJoint")
 
-		ScriptSphericalJoint(MonoObject* managedInstance, const GameObjectHandle<CSphericalJoint>& value);
+		ScriptSphericalJoint(const GameObjectHandle<CSphericalJoint>& nativeObject, MonoObject* scriptObject);
+
+		static MonoObject* CreateScriptObject(bool construct);
 
 	private:
 		static void InternalGetLimit(ScriptSphericalJoint* self, __LimitConeRangeInterop* __output);

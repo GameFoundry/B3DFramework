@@ -12,80 +12,91 @@
 
 namespace bs
 {
-	ScriptColliderBase::OnCollisionBeginThunkDefinition ScriptColliderBase::OnCollisionBeginThunk; 
-	ScriptColliderBase::OnCollisionStayThunkDefinition ScriptColliderBase::OnCollisionStayThunk; 
-	ScriptColliderBase::OnCollisionEndThunkDefinition ScriptColliderBase::OnCollisionEndThunk; 
+	ScriptColliderWrapperBase::OnCollisionBeginThunkDefinition ScriptColliderWrapperBase::OnCollisionBeginThunk; 
+	ScriptColliderWrapperBase::OnCollisionStayThunkDefinition ScriptColliderWrapperBase::OnCollisionStayThunk; 
+	ScriptColliderWrapperBase::OnCollisionEndThunkDefinition ScriptColliderWrapperBase::OnCollisionEndThunk; 
 
-	ScriptColliderBase::ScriptColliderBase(MonoObject* managedInstance)
-		:ScriptComponentBase(managedInstance)
-	 { }
-
-	void ScriptColliderBase::OnCollisionBegin(const CollisionData& p0)
+	void ScriptColliderWrapperBase::OnCollisionBegin(const CollisionData& p0)
 	{
 		MonoObject* tmpp0;
 		__CollisionDataInterop interopp0;
 		interopp0 = ScriptCollisionData::ToInterop(p0);
 		tmpp0 = ScriptCollisionData::Box(interopp0);
-		MonoUtil::InvokeThunk(OnCollisionBeginThunk, GetManagedInstance(), tmpp0);
+		MonoUtil::InvokeThunk(OnCollisionBeginThunk, GetScriptObject(), tmpp0);
 	}
 
-	void ScriptColliderBase::OnCollisionStay(const CollisionData& p0)
+	void ScriptColliderWrapperBase::OnCollisionStay(const CollisionData& p0)
 	{
 		MonoObject* tmpp0;
 		__CollisionDataInterop interopp0;
 		interopp0 = ScriptCollisionData::ToInterop(p0);
 		tmpp0 = ScriptCollisionData::Box(interopp0);
-		MonoUtil::InvokeThunk(OnCollisionStayThunk, GetManagedInstance(), tmpp0);
+		MonoUtil::InvokeThunk(OnCollisionStayThunk, GetScriptObject(), tmpp0);
 	}
 
-	void ScriptColliderBase::OnCollisionEnd(const CollisionData& p0)
+	void ScriptColliderWrapperBase::OnCollisionEnd(const CollisionData& p0)
 	{
 		MonoObject* tmpp0;
 		__CollisionDataInterop interopp0;
 		interopp0 = ScriptCollisionData::ToInterop(p0);
 		tmpp0 = ScriptCollisionData::Box(interopp0);
-		MonoUtil::InvokeThunk(OnCollisionEndThunk, GetManagedInstance(), tmpp0);
+		MonoUtil::InvokeThunk(OnCollisionEndThunk, GetScriptObject(), tmpp0);
 	}
 
-	ScriptCollider::ScriptCollider(MonoObject* managedInstance, const GameObjectHandle<CCollider>& value)
-		:TScriptComponent(managedInstance, value)
+	void ScriptColliderWrapperBase::RegisterEvents()
 	{
-		static_cast<GameObjectHandle<CCollider>>(value)->OnCollisionBegin.Connect(std::bind(&ScriptCollider::OnCollisionBegin, this, std::placeholders::_1));
-		static_cast<GameObjectHandle<CCollider>>(value)->OnCollisionStay.Connect(std::bind(&ScriptCollider::OnCollisionStay, this, std::placeholders::_1));
-		static_cast<GameObjectHandle<CCollider>>(value)->OnCollisionEnd.Connect(std::bind(&ScriptCollider::OnCollisionEnd, this, std::placeholders::_1));
+		static_cast<CCollider*>(GetNativeObject())->OnCollisionBegin.Connect(std::bind(&ScriptColliderWrapperBase::OnCollisionBegin, this, std::placeholders::_1));
+		static_cast<CCollider*>(GetNativeObject())->OnCollisionStay.Connect(std::bind(&ScriptColliderWrapperBase::OnCollisionStay, this, std::placeholders::_1));
+		static_cast<CCollider*>(GetNativeObject())->OnCollisionEnd.Connect(std::bind(&ScriptColliderWrapperBase::OnCollisionEnd, this, std::placeholders::_1));
+		ScriptGameObjectWrapper::RegisterEvents();
 	}
-
-	void ScriptCollider::InitRuntimeData()
+	ScriptCollider::ScriptCollider(const GameObjectHandle<CCollider>& nativeObject, MonoObject* scriptObject)
+		:TScriptGameObjectWrapper(nativeObject, scriptObject)
 	{
-		metaData.ScriptClass->AddInternalCall("Internal_SetIsTrigger", (void*)&ScriptCollider::InternalSetIsTrigger);
-		metaData.ScriptClass->AddInternalCall("Internal_GetIsTrigger", (void*)&ScriptCollider::InternalGetIsTrigger);
-		metaData.ScriptClass->AddInternalCall("Internal_SetMass", (void*)&ScriptCollider::InternalSetMass);
-		metaData.ScriptClass->AddInternalCall("Internal_GetMass", (void*)&ScriptCollider::InternalGetMass);
-		metaData.ScriptClass->AddInternalCall("Internal_SetMaterial", (void*)&ScriptCollider::InternalSetMaterial);
-		metaData.ScriptClass->AddInternalCall("Internal_GetMaterial", (void*)&ScriptCollider::InternalGetMaterial);
-		metaData.ScriptClass->AddInternalCall("Internal_SetContactOffset", (void*)&ScriptCollider::InternalSetContactOffset);
-		metaData.ScriptClass->AddInternalCall("Internal_GetContactOffset", (void*)&ScriptCollider::InternalGetContactOffset);
-		metaData.ScriptClass->AddInternalCall("Internal_SetRestOffset", (void*)&ScriptCollider::InternalSetRestOffset);
-		metaData.ScriptClass->AddInternalCall("Internal_GetRestOffset", (void*)&ScriptCollider::InternalGetRestOffset);
-		metaData.ScriptClass->AddInternalCall("Internal_SetLayer", (void*)&ScriptCollider::InternalSetLayer);
-		metaData.ScriptClass->AddInternalCall("Internal_GetLayer", (void*)&ScriptCollider::InternalGetLayer);
-		metaData.ScriptClass->AddInternalCall("Internal_SetCollisionReportMode", (void*)&ScriptCollider::InternalSetCollisionReportMode);
-		metaData.ScriptClass->AddInternalCall("Internal_GetCollisionReportMode", (void*)&ScriptCollider::InternalGetCollisionReportMode);
-
-		OnCollisionBeginThunk = (OnCollisionBeginThunkDefinition)metaData.ScriptClass->GetMethodExact("Internal_OnCollisionBegin", "CollisionData&")->GetThunk();
-		OnCollisionStayThunk = (OnCollisionStayThunkDefinition)metaData.ScriptClass->GetMethodExact("Internal_OnCollisionStay", "CollisionData&")->GetThunk();
-		OnCollisionEndThunk = (OnCollisionEndThunkDefinition)metaData.ScriptClass->GetMethodExact("Internal_OnCollisionEnd", "CollisionData&")->GetThunk();
+		RegisterEvents();
 	}
 
-	void ScriptCollider::InternalSetIsTrigger(ScriptColliderBase* self, bool value)
+	void ScriptCollider::SetupScriptBindings()
 	{
-		B3DStaticGameObjectCast<CCollider>(self->GetComponent())->SetIsTrigger(value);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetIsTrigger", (void*)&ScriptCollider::InternalSetIsTrigger);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetIsTrigger", (void*)&ScriptCollider::InternalGetIsTrigger);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetMass", (void*)&ScriptCollider::InternalSetMass);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetMass", (void*)&ScriptCollider::InternalGetMass);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetMaterial", (void*)&ScriptCollider::InternalSetMaterial);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetMaterial", (void*)&ScriptCollider::InternalGetMaterial);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetContactOffset", (void*)&ScriptCollider::InternalSetContactOffset);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetContactOffset", (void*)&ScriptCollider::InternalGetContactOffset);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetRestOffset", (void*)&ScriptCollider::InternalSetRestOffset);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetRestOffset", (void*)&ScriptCollider::InternalGetRestOffset);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetLayer", (void*)&ScriptCollider::InternalSetLayer);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetLayer", (void*)&ScriptCollider::InternalGetLayer);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetCollisionReportMode", (void*)&ScriptCollider::InternalSetCollisionReportMode);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetCollisionReportMode", (void*)&ScriptCollider::InternalGetCollisionReportMode);
+
+		OnCollisionBeginThunk = (OnCollisionBeginThunkDefinition)sInteropMetaData.ScriptClass->GetMethodExact("Internal_OnCollisionBegin", "CollisionData&")->GetThunk();
+		OnCollisionStayThunk = (OnCollisionStayThunkDefinition)sInteropMetaData.ScriptClass->GetMethodExact("Internal_OnCollisionStay", "CollisionData&")->GetThunk();
+		OnCollisionEndThunk = (OnCollisionEndThunkDefinition)sInteropMetaData.ScriptClass->GetMethodExact("Internal_OnCollisionEnd", "CollisionData&")->GetThunk();
 	}
 
-	bool ScriptCollider::InternalGetIsTrigger(ScriptColliderBase* self)
+	MonoObject* ScriptCollider::CreateScriptObject(bool construct)
+	{
+		bool dummy = false;
+		void* ctorParams[1] = { &dummy };
+
+		if(construct)
+			return sInteropMetaData.ScriptClass->CreateInstance("bool", ctorParams);
+
+		return sInteropMetaData.ScriptClass->CreateInstance(false);
+	}
+	void ScriptCollider::InternalSetIsTrigger(ScriptColliderWrapperBase* self, bool value)
+	{
+		static_cast<CCollider*>(self->GetNativeObject())->SetIsTrigger(value);
+	}
+
+	bool ScriptCollider::InternalGetIsTrigger(ScriptColliderWrapperBase* self)
 	{
 		bool tmp__output;
-		tmp__output = B3DStaticGameObjectCast<CCollider>(self->GetComponent())->GetIsTrigger();
+		tmp__output = static_cast<CCollider*>(self->GetNativeObject())->GetIsTrigger();
 
 		bool __output;
 		__output = tmp__output;
@@ -93,15 +104,15 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptCollider::InternalSetMass(ScriptColliderBase* self, float mass)
+	void ScriptCollider::InternalSetMass(ScriptColliderWrapperBase* self, float mass)
 	{
-		B3DStaticGameObjectCast<CCollider>(self->GetComponent())->SetMass(mass);
+		static_cast<CCollider*>(self->GetNativeObject())->SetMass(mass);
 	}
 
-	float ScriptCollider::InternalGetMass(ScriptColliderBase* self)
+	float ScriptCollider::InternalGetMass(ScriptColliderWrapperBase* self)
 	{
 		float tmp__output;
-		tmp__output = B3DStaticGameObjectCast<CCollider>(self->GetComponent())->GetMass();
+		tmp__output = static_cast<CCollider*>(self->GetNativeObject())->GetMass();
 
 		float __output;
 		__output = tmp__output;
@@ -109,20 +120,20 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptCollider::InternalSetMaterial(ScriptColliderBase* self, MonoObject* material)
+	void ScriptCollider::InternalSetMaterial(ScriptColliderWrapperBase* self, MonoObject* material)
 	{
 		TResourceHandle<PhysicsMaterial> tmpmaterial;
 		ScriptRRefBase* scriptObjectWrappermaterial;
 		scriptObjectWrappermaterial = ScriptRRefBase::ToNative(material);
 		if(scriptObjectWrappermaterial != nullptr)
 			tmpmaterial = B3DStaticResourceCast<PhysicsMaterial>(scriptObjectWrappermaterial->GetHandle());
-		B3DStaticGameObjectCast<CCollider>(self->GetComponent())->SetMaterial(tmpmaterial);
+		static_cast<CCollider*>(self->GetNativeObject())->SetMaterial(tmpmaterial);
 	}
 
-	MonoObject* ScriptCollider::InternalGetMaterial(ScriptColliderBase* self)
+	MonoObject* ScriptCollider::InternalGetMaterial(ScriptColliderWrapperBase* self)
 	{
 		TResourceHandle<PhysicsMaterial> tmp__output;
-		tmp__output = B3DStaticGameObjectCast<CCollider>(self->GetComponent())->GetMaterial();
+		tmp__output = static_cast<CCollider*>(self->GetNativeObject())->GetMaterial();
 
 		MonoObject* __output;
 		ScriptRRefBase* script__output;
@@ -135,15 +146,15 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptCollider::InternalSetContactOffset(ScriptColliderBase* self, float value)
+	void ScriptCollider::InternalSetContactOffset(ScriptColliderWrapperBase* self, float value)
 	{
-		B3DStaticGameObjectCast<CCollider>(self->GetComponent())->SetContactOffset(value);
+		static_cast<CCollider*>(self->GetNativeObject())->SetContactOffset(value);
 	}
 
-	float ScriptCollider::InternalGetContactOffset(ScriptColliderBase* self)
+	float ScriptCollider::InternalGetContactOffset(ScriptColliderWrapperBase* self)
 	{
 		float tmp__output;
-		tmp__output = B3DStaticGameObjectCast<CCollider>(self->GetComponent())->GetContactOffset();
+		tmp__output = static_cast<CCollider*>(self->GetNativeObject())->GetContactOffset();
 
 		float __output;
 		__output = tmp__output;
@@ -151,15 +162,15 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptCollider::InternalSetRestOffset(ScriptColliderBase* self, float value)
+	void ScriptCollider::InternalSetRestOffset(ScriptColliderWrapperBase* self, float value)
 	{
-		B3DStaticGameObjectCast<CCollider>(self->GetComponent())->SetRestOffset(value);
+		static_cast<CCollider*>(self->GetNativeObject())->SetRestOffset(value);
 	}
 
-	float ScriptCollider::InternalGetRestOffset(ScriptColliderBase* self)
+	float ScriptCollider::InternalGetRestOffset(ScriptColliderWrapperBase* self)
 	{
 		float tmp__output;
-		tmp__output = B3DStaticGameObjectCast<CCollider>(self->GetComponent())->GetRestOffset();
+		tmp__output = static_cast<CCollider*>(self->GetNativeObject())->GetRestOffset();
 
 		float __output;
 		__output = tmp__output;
@@ -167,15 +178,15 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptCollider::InternalSetLayer(ScriptColliderBase* self, uint64_t layer)
+	void ScriptCollider::InternalSetLayer(ScriptColliderWrapperBase* self, uint64_t layer)
 	{
-		B3DStaticGameObjectCast<CCollider>(self->GetComponent())->SetLayer(layer);
+		static_cast<CCollider*>(self->GetNativeObject())->SetLayer(layer);
 	}
 
-	uint64_t ScriptCollider::InternalGetLayer(ScriptColliderBase* self)
+	uint64_t ScriptCollider::InternalGetLayer(ScriptColliderWrapperBase* self)
 	{
 		uint64_t tmp__output;
-		tmp__output = B3DStaticGameObjectCast<CCollider>(self->GetComponent())->GetLayer();
+		tmp__output = static_cast<CCollider*>(self->GetNativeObject())->GetLayer();
 
 		uint64_t __output;
 		__output = tmp__output;
@@ -183,15 +194,15 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptCollider::InternalSetCollisionReportMode(ScriptColliderBase* self, CollisionReportMode mode)
+	void ScriptCollider::InternalSetCollisionReportMode(ScriptColliderWrapperBase* self, CollisionReportMode mode)
 	{
-		B3DStaticGameObjectCast<CCollider>(self->GetComponent())->SetCollisionReportMode(mode);
+		static_cast<CCollider*>(self->GetNativeObject())->SetCollisionReportMode(mode);
 	}
 
-	CollisionReportMode ScriptCollider::InternalGetCollisionReportMode(ScriptColliderBase* self)
+	CollisionReportMode ScriptCollider::InternalGetCollisionReportMode(ScriptColliderWrapperBase* self)
 	{
 		CollisionReportMode tmp__output;
-		tmp__output = B3DStaticGameObjectCast<CCollider>(self->GetComponent())->GetCollisionReportMode();
+		tmp__output = static_cast<CCollider*>(self->GetNativeObject())->GetCollisionReportMode();
 
 		CollisionReportMode __output;
 		__output = tmp__output;

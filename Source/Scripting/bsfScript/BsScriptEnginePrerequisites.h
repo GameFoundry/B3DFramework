@@ -85,9 +85,7 @@ namespace bs
 	class ScriptGUILabel;
 	class ScriptGUIScrollArea;
 	class ScriptGUIScrollAreaLayout;
-	class ScriptGameObjectBase;
 	class ScriptSceneObject;
-	class ScriptComponentBase;
 	class ScriptComponent;
 	class ScriptManagedComponent;
 	class ScriptManagedResource;
@@ -188,15 +186,6 @@ namespace bs
 		TID_SerializableTypeInfoRRef = 50053,
 		TID_SerializableTypeInfoEnum = 50054,
 		TID_SerializableFieldDataReflectableRef = 50055,
-	};
-
-	/** Information about a builtin component wrapped as a script object. */
-	struct BuiltinComponentInfo
-	{
-		const ScriptWrapperObjectMetaData* MetaData;
-		u32 TypeId;
-		MonoClass* MonoClass;
-		std::function<ScriptComponentBase*(const HComponent&)> CreateCallback;
 	};
 
 	/**	Types of resources accessible from script code. */

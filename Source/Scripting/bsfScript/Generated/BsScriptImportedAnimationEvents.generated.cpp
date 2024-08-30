@@ -12,6 +12,7 @@ namespace bs
 	ScriptImportedAnimationEvents::ScriptImportedAnimationEvents(const SPtr<ImportedAnimationEvents>& nativeObject, MonoObject* scriptObject)
 		:TScriptReflectableWrapper(nativeObject, scriptObject)
 	{
+		RegisterEvents();
 	}
 
 	void ScriptImportedAnimationEvents::SetupScriptBindings()

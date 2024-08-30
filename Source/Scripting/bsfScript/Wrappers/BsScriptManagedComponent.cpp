@@ -2,42 +2,36 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "Wrappers/BsScriptManagedComponent.h"
 #include "BsScriptGameObjectManager.h"
-#include "BsScriptObjectManager.h"
 #include "Serialization/BsScriptAssemblyManager.h"
 #include "BsScriptMeta.h"
-#include "BsMonoField.h"
 #include "BsMonoClass.h"
 #include "BsMonoMethod.h"
-#include "BsMonoManager.h"
 #include "BsMonoUtil.h"
 #include "Wrappers/BsScriptSceneObject.h"
-#include "Serialization/BsScriptAssemblyManager.h"
 #include "BsManagedComponent.h"
 #include "Scene/BsSceneObject.h"
 #include "BsMonoUtil.h"
 
 using namespace bs;
-ScriptManagedComponent::ScriptManagedComponent(MonoObject* instance, const HManagedComponent& component)
-	: ScriptObject(instance), mComponent(component), mTypeMissing(false)
+ScriptManagedComponent::ScriptManagedComponent(const HManagedComponent& nativeObject, MonoObject* scriptObject)
+	: TScriptGameObjectWrapper(nativeObject, scriptObject)
 {
-	B3D_ASSERT(instance != nullptr);
+	MonoUtil::GetClassName(scriptObject, mNamespace, mType);
 
-	MonoUtil::GetClassName(instance, mNamespace, mType);
-	mGCHandle = MonoUtil::NewGcHandle(instance, false);
-
-	component->Initialize(this);
+	nativeObject->BindToScriptObject();
 }
 
-void ScriptManagedComponent::InitRuntimeData()
+void ScriptManagedComponent::SetupScriptBindings()
 {
-	metaData.ScriptClass->AddInternalCall("Internal_Invoke", (void*)&ScriptManagedComponent::InternalInvoke);
+	sInteropMetaData.ScriptClass->AddInternalCall("Internal_Invoke", (void*)&ScriptManagedComponent::InternalInvoke);
 }
 
-void ScriptManagedComponent::InternalInvoke(ScriptManagedComponent* nativeInstance, MonoString* name)
+void ScriptManagedComponent::InternalInvoke(ScriptManagedComponent* self, MonoString* name)
 {
-	HManagedComponent comp = nativeInstance->mComponent;
-	if(CheckIfDestroyed(nativeInstance->mComponent))
+	if(!self->IsNativeObjectValid())
 		return;
+
+	HManagedComponent comp = self->GetNativeObjectAsHandle();
 
 	MonoObject* compObj = comp->GetManagedInstance();
 	MonoClass* compClass = comp->GetClass();
@@ -56,7 +50,7 @@ void ScriptManagedComponent::InternalInvoke(ScriptManagedComponent* nativeInstan
 
 		// Search for methods on base class if there is one
 		MonoClass* baseClass = compClass->GetBaseClass();
-		if(baseClass != metaData.ScriptClass)
+		if(baseClass != sInteropMetaData.ScriptClass)
 			compClass = baseClass;
 		else
 			break;
@@ -68,65 +62,51 @@ void ScriptManagedComponent::InternalInvoke(ScriptManagedComponent* nativeInstan
 	}
 }
 
-MonoObject* ScriptManagedComponent::CreateManagedInstanceInternal(bool construct)
+void ScriptManagedComponent::RecreateScriptObjectAfterScriptReload()
 {
 	SPtr<ManagedSerializableObjectInfo> currentObjInfo = nullptr;
 
 	// See if this type even still exists
-	MonoObject* instance;
+	MonoObject* scriptObject;
 	if(!ScriptAssemblyManager::Instance().GetSerializableObjectInfo(mNamespace, mType, currentObjInfo))
 	{
 		mTypeMissing = true;
-		instance = ScriptAssemblyManager::Instance().GetBuiltinClasses().MissingComponentClass->CreateInstance(true);
+		scriptObject = ScriptAssemblyManager::Instance().GetBuiltinClasses().MissingComponentClass->CreateInstance(true);
 	}
 	else
 	{
 		mTypeMissing = false;
-		instance = currentObjInfo->ScriptClass->CreateInstance(construct);
+		scriptObject = currentObjInfo->ScriptClass->CreateInstance(true);
 	}
 
-	mGCHandle = MonoUtil::NewGcHandle(instance, false);
-	return instance;
+	if(scriptObject != nullptr)
+	{
+		CreateStrongScriptObjectHandle(scriptObject);
+		BindSelfToScriptObject(scriptObject);
+	}
 }
 
-void ScriptManagedComponent::ClearManagedInstanceInternal()
+Optional<ScriptObjectReloadPersistentData> ScriptManagedComponent::BackupDataBeforeScriptReload()
 {
-	FreeManagedInstance();
-}
-
-ScriptObjectBackup ScriptManagedComponent::BeginRefresh()
-{
-	HManagedComponent managedComponent = B3DStaticGameObjectCast<ManagedComponent>(mComponent);
-	ScriptObjectBackup backupData;
+	HManagedComponent managedComponent = GetNativeObjectAsHandle();
 
 	// It's possible that managed component is destroyed but a reference to it
 	// is still kept. Don't backup such components.
 	if(!managedComponent.IsDestroyed(true))
+	{
+		ScriptObjectReloadPersistentData backupData;
 		backupData.Data = managedComponent->Backup(true);
 
-	return backupData;
+		return backupData;
+	}
+
+	return {};
 }
 
-void ScriptManagedComponent::EndRefresh(const ScriptObjectBackup& backupData)
+void ScriptManagedComponent::RestoreDataAfterScriptReload(const ScriptObjectReloadPersistentData& data)
 {
-	HManagedComponent managedComponent = B3DStaticGameObjectCast<ManagedComponent>(mComponent);
+	HManagedComponent managedComponent = GetNativeObjectAsHandle();
 
-	RawBackupData componentBackup = AnyCast<RawBackupData>(backupData.Data);
+	RawBackupData componentBackup = AnyCast<RawBackupData>(data.Data);
 	managedComponent->Restore(componentBackup, mTypeMissing);
-}
-
-void ScriptManagedComponent::OnManagedInstanceDeletedInternal(bool assemblyRefresh)
-{
-	mGCHandle = 0;
-
-	// It's possible that managed component is destroyed but a reference to it
-	// is still kept during assembly refresh. Such components shouldn't be restored
-	// so we delete them.
-	if(!assemblyRefresh || mComponent.IsDestroyed(true))
-		ScriptGameObjectManager::Instance().DestroyScriptComponent(this);
-}
-
-void ScriptManagedComponent::NotifyDestroyedInternal()
-{
-	FreeManagedInstance();
 }

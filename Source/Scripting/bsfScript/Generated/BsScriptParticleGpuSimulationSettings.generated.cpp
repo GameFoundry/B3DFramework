@@ -15,6 +15,7 @@ namespace bs
 	ScriptParticleGpuSimulationSettings::ScriptParticleGpuSimulationSettings(const SPtr<ParticleGpuSimulationSettings>& nativeObject, MonoObject* scriptObject)
 		:TScriptReflectableWrapper(nativeObject, scriptObject)
 	{
+		RegisterEvents();
 	}
 
 	void ScriptParticleGpuSimulationSettings::SetupScriptBindings()

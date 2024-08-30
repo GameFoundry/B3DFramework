@@ -3,9 +3,9 @@
 #pragma once
 
 #include "BsScriptEnginePrerequisites.h"
-#include "Wrappers/BsScriptGameObject.h"
 #include "BsScriptObject.h"
 #include "BsMonoUtil.h"
+#include "BsScriptGameObjectWrapper.h"
 
 namespace bs
 {
@@ -13,92 +13,19 @@ namespace bs
 	 *  @{
 	 */
 
-	/**	Base class for all Component interop classes. */
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptComponentBase : public ScriptGameObjectBase
-	{
-	public:
-		ScriptComponentBase(MonoObject* instance);
-		virtual ~ScriptComponentBase() = default;
-
-		/** Returns the component wrapped by this object. */
-		HComponent GetComponent() const { return B3DStaticGameObjectCast<Component>(GetNativeHandle()); }
-
-	protected:
-		friend class ScriptGameObjectManager;
-
-		/** Destroys the interop object, unless refresh is in progress in which case it is just prepared for re-creation. */
-		void Destroy(bool assemblyRefresh);
-
-		/**	Triggered by the script game object manager when the handle this object is referencing is destroyed. */
-		virtual void NotifyDestroyedInternal() {}
-
-		/** Checks if the provided game object is destroyed and logs a warning if it is. */
-		static bool CheckIfDestroyed(const GameObjectHandleBase& handle);
-	};
-
-	/**	Base class for a specific builtin component's interop object. */
-	template <class ScriptClass, class CompType, class BaseType = ScriptComponentBase>
-	class B3D_SCRIPT_INTEROP_EXPORT TScriptComponent : public ScriptObject<ScriptClass, BaseType>
-	{
-	public:
-		/**	Returns a generic handle to the internal wrapped component. */
-		HGameObject GetNativeHandle() const { return B3DStaticGameObjectCast<GameObject>(mComponent); }
-
-		/**	Sets the internal component this object wraps. */
-		void SetNativeHandle(const HGameObject& gameObject) { mComponent = B3DStaticGameObjectCast<CompType>(gameObject); }
-
-		/**	Returns a handle to the internal wrapped component. */
-		const GameObjectHandle<CompType>& GetHandle() const { return mComponent; }
-
-	protected:
-		friend class ScriptGameObjectManager;
-
-		TScriptComponent(MonoObject* instance, const GameObjectHandle<CompType>& component)
-			: ScriptObject<ScriptClass, BaseType>(instance), mComponent(component)
-		{
-			this->SetManagedInstance(instance);
-		}
-
-		virtual ~TScriptComponent() {}
-
-		MonoObject* CreateManagedInstanceInternal(bool construct) override
-		{
-			MonoObject* managedInstance = ScriptClass::metaData.ScriptClass->CreateInstance(construct);
-			this->SetManagedInstance(managedInstance);
-
-			return managedInstance;
-		}
-
-		void ClearManagedInstanceInternal() override
-		{
-			this->FreeManagedInstance();
-		}
-
-		void NotifyDestroyedInternal() override
-		{
-			this->FreeManagedInstance();
-		}
-
-		void OnManagedInstanceDeletedInternal(bool assemblyRefresh) override
-		{
-			this->FreeManagedInstance();
-
-			this->Destroy(assemblyRefresh);
-		}
-
-		GameObjectHandle<CompType> mComponent;
-	};
-
 	/**	Interop class between C++ & CLR for Component. */
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptComponent : public ScriptObject<ScriptComponent, ScriptComponentBase>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptComponent : public TScriptGameObjectWrapper<Component, ScriptComponent>
 	{
 	public:
-		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "Component")
+		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "Component")
 
-	private:
-		friend class ScriptGameObjectManager;
+		ScriptComponent(const HComponent& nativeObject, MonoObject* scriptObject);
 
-		ScriptComponent(MonoObject* instance);
+		/** Dummy method to create the script object. Not used as components are always just base classes, not created directly. */
+		static MonoObject* CreateScriptObject(bool construct)
+		{
+			return nullptr;
+		}
 
 		/************************************************************************/
 		/* 								CLR HOOKS						   		*/
@@ -108,10 +35,10 @@ namespace bs
 		static MonoArray* InternalGetComponents(MonoObject* parentSceneObject);
 		static MonoArray* InternalGetComponentsPerType(MonoObject* parentSceneObject, MonoReflectionType* type);
 		static void InternalRemoveComponent(MonoObject* parentSceneObject, MonoReflectionType* type);
-		static MonoObject* InternalGetSceneObject(ScriptComponentBase* nativeInstance);
-		static TransformChangedFlags InternalGetNotifyFlags(ScriptComponentBase* nativeInstance);
-		static void InternalSetNotifyFlags(ScriptComponentBase* nativeInstance, TransformChangedFlags flags);
-		static void InternalDestroy(ScriptComponentBase* nativeInstance, bool immediate);
+		static MonoObject* InternalGetSceneObject(ScriptGameObjectWrapper* self);
+		static TransformChangedFlags InternalGetNotifyFlags(ScriptGameObjectWrapper* self);
+		static void InternalSetNotifyFlags(ScriptGameObjectWrapper* self, TransformChangedFlags flags);
+		static void InternalDestroy(ScriptGameObjectWrapper* self, bool immediate);
 	};
 
 	/** @} */

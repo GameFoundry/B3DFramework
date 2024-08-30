@@ -12,6 +12,7 @@ namespace bs
 	ScriptParticleOrbit::ScriptParticleOrbit(const SPtr<ParticleOrbit>& nativeObject, MonoObject* scriptObject)
 		:TScriptReflectableWrapper(nativeObject, scriptObject)
 	{
+		RegisterEvents();
 	}
 
 	void ScriptParticleOrbit::SetupScriptBindings()

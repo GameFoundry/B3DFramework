@@ -9,12 +9,14 @@
 namespace bs { class CFixedJoint; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptFixedJoint : public TScriptComponent<ScriptFixedJoint, CFixedJoint, ScriptJointBase>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptFixedJoint : public TScriptGameObjectWrapper<CFixedJoint, ScriptFixedJoint>
 	{
 	public:
-		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "FixedJoint")
+		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "FixedJoint")
 
-		ScriptFixedJoint(MonoObject* managedInstance, const GameObjectHandle<CFixedJoint>& value);
+		ScriptFixedJoint(const GameObjectHandle<CFixedJoint>& nativeObject, MonoObject* scriptObject);
+
+		static MonoObject* CreateScriptObject(bool construct);
 
 	private:
 	};

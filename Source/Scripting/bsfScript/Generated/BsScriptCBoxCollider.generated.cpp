@@ -9,42 +9,53 @@
 
 namespace bs
 {
-	ScriptBoxCollider::ScriptBoxCollider(MonoObject* managedInstance, const GameObjectHandle<CBoxCollider>& value)
-		:TScriptComponent(managedInstance, value)
+	ScriptBoxCollider::ScriptBoxCollider(const GameObjectHandle<CBoxCollider>& nativeObject, MonoObject* scriptObject)
+		:TScriptGameObjectWrapper(nativeObject, scriptObject)
 	{
+		RegisterEvents();
 	}
 
-	void ScriptBoxCollider::InitRuntimeData()
+	void ScriptBoxCollider::SetupScriptBindings()
 	{
-		metaData.ScriptClass->AddInternalCall("Internal_SetExtents", (void*)&ScriptBoxCollider::InternalSetExtents);
-		metaData.ScriptClass->AddInternalCall("Internal_GetExtents", (void*)&ScriptBoxCollider::InternalGetExtents);
-		metaData.ScriptClass->AddInternalCall("Internal_SetCenter", (void*)&ScriptBoxCollider::InternalSetCenter);
-		metaData.ScriptClass->AddInternalCall("Internal_GetCenter", (void*)&ScriptBoxCollider::InternalGetCenter);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetExtents", (void*)&ScriptBoxCollider::InternalSetExtents);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetExtents", (void*)&ScriptBoxCollider::InternalGetExtents);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetCenter", (void*)&ScriptBoxCollider::InternalSetCenter);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetCenter", (void*)&ScriptBoxCollider::InternalGetCenter);
 
 	}
 
+	MonoObject* ScriptBoxCollider::CreateScriptObject(bool construct)
+	{
+		bool dummy = false;
+		void* ctorParams[1] = { &dummy };
+
+		if(construct)
+			return sInteropMetaData.ScriptClass->CreateInstance("bool", ctorParams);
+
+		return sInteropMetaData.ScriptClass->CreateInstance(false);
+	}
 	void ScriptBoxCollider::InternalSetExtents(ScriptBoxCollider* self, TVector3<float>* extents)
 	{
-		self->GetHandle()->SetExtents(*extents);
+		static_cast<CBoxCollider*>(self->GetNativeObject())->SetExtents(*extents);
 	}
 
 	void ScriptBoxCollider::InternalGetExtents(ScriptBoxCollider* self, TVector3<float>* __output)
 	{
 		TVector3<float> tmp__output;
-		tmp__output = self->GetHandle()->GetExtents();
+		tmp__output = static_cast<CBoxCollider*>(self->GetNativeObject())->GetExtents();
 
 		*__output = tmp__output;
 	}
 
 	void ScriptBoxCollider::InternalSetCenter(ScriptBoxCollider* self, TVector3<float>* center)
 	{
-		self->GetHandle()->SetCenter(*center);
+		static_cast<CBoxCollider*>(self->GetNativeObject())->SetCenter(*center);
 	}
 
 	void ScriptBoxCollider::InternalGetCenter(ScriptBoxCollider* self, TVector3<float>* __output)
 	{
 		TVector3<float> tmp__output;
-		tmp__output = self->GetHandle()->GetCenter();
+		tmp__output = static_cast<CBoxCollider*>(self->GetNativeObject())->GetCenter();
 
 		*__output = tmp__output;
 	}

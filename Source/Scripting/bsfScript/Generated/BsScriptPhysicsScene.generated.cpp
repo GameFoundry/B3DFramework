@@ -7,7 +7,6 @@
 #include "../../../Foundation/bsfCore/Physics/BsPhysics.h"
 #include "BsScriptResourceManager.h"
 #include "Wrappers/BsScriptRRefBase.h"
-#include "BsScriptGameObjectManager.h"
 #include "Wrappers/BsScriptVector.h"
 #include "BsScriptPhysicsQueryHit.generated.h"
 #include "Wrappers/BsScriptQuaternion.h"
@@ -351,13 +350,10 @@ namespace bs
 		ScriptArray scriptArray__output = ScriptArray::Create<ScriptCollider>(elementCount__output);
 		for(int elementIndex = 0; elementIndex < elementCount__output; elementIndex++)
 		{
-			ScriptComponentBase* scriptObjectWrapper__output = nullptr;
+			MonoObject* tempscriptArray__output = nullptr;
 			if(nativeArray__output[elementIndex])
-				scriptObjectWrapper__output = ScriptGameObjectManager::Instance().GetBuiltinScriptComponent(B3DStaticGameObjectCast<Component>(nativeArray__output[elementIndex]));
-			if(scriptObjectWrapper__output != nullptr)
-				scriptArray__output.Set(elementIndex, scriptObjectWrapper__output->GetManagedInstance());
-			else
-				scriptArray__output.Set(elementIndex, nullptr);
+				tempscriptArray__output = ScriptComponent::GetOrCreateScriptObject(nativeArray__output[elementIndex]);
+			scriptArray__output.Set(elementIndex, tempscriptArray__output);
 		}
 		__output = scriptArray__output.GetInternal();
 
@@ -374,13 +370,10 @@ namespace bs
 		ScriptArray scriptArray__output = ScriptArray::Create<ScriptCollider>(elementCount__output);
 		for(int elementIndex = 0; elementIndex < elementCount__output; elementIndex++)
 		{
-			ScriptComponentBase* scriptObjectWrapper__output = nullptr;
+			MonoObject* tempscriptArray__output = nullptr;
 			if(nativeArray__output[elementIndex])
-				scriptObjectWrapper__output = ScriptGameObjectManager::Instance().GetBuiltinScriptComponent(B3DStaticGameObjectCast<Component>(nativeArray__output[elementIndex]));
-			if(scriptObjectWrapper__output != nullptr)
-				scriptArray__output.Set(elementIndex, scriptObjectWrapper__output->GetManagedInstance());
-			else
-				scriptArray__output.Set(elementIndex, nullptr);
+				tempscriptArray__output = ScriptComponent::GetOrCreateScriptObject(nativeArray__output[elementIndex]);
+			scriptArray__output.Set(elementIndex, tempscriptArray__output);
 		}
 		__output = scriptArray__output.GetInternal();
 
@@ -397,13 +390,10 @@ namespace bs
 		ScriptArray scriptArray__output = ScriptArray::Create<ScriptCollider>(elementCount__output);
 		for(int elementIndex = 0; elementIndex < elementCount__output; elementIndex++)
 		{
-			ScriptComponentBase* scriptObjectWrapper__output = nullptr;
+			MonoObject* tempscriptArray__output = nullptr;
 			if(nativeArray__output[elementIndex])
-				scriptObjectWrapper__output = ScriptGameObjectManager::Instance().GetBuiltinScriptComponent(B3DStaticGameObjectCast<Component>(nativeArray__output[elementIndex]));
-			if(scriptObjectWrapper__output != nullptr)
-				scriptArray__output.Set(elementIndex, scriptObjectWrapper__output->GetManagedInstance());
-			else
-				scriptArray__output.Set(elementIndex, nullptr);
+				tempscriptArray__output = ScriptComponent::GetOrCreateScriptObject(nativeArray__output[elementIndex]);
+			scriptArray__output.Set(elementIndex, tempscriptArray__output);
 		}
 		__output = scriptArray__output.GetInternal();
 
@@ -425,13 +415,10 @@ namespace bs
 		ScriptArray scriptArray__output = ScriptArray::Create<ScriptCollider>(elementCount__output);
 		for(int elementIndex = 0; elementIndex < elementCount__output; elementIndex++)
 		{
-			ScriptComponentBase* scriptObjectWrapper__output = nullptr;
+			MonoObject* tempscriptArray__output = nullptr;
 			if(nativeArray__output[elementIndex])
-				scriptObjectWrapper__output = ScriptGameObjectManager::Instance().GetBuiltinScriptComponent(B3DStaticGameObjectCast<Component>(nativeArray__output[elementIndex]));
-			if(scriptObjectWrapper__output != nullptr)
-				scriptArray__output.Set(elementIndex, scriptObjectWrapper__output->GetManagedInstance());
-			else
-				scriptArray__output.Set(elementIndex, nullptr);
+				tempscriptArray__output = ScriptComponent::GetOrCreateScriptObject(nativeArray__output[elementIndex]);
+			scriptArray__output.Set(elementIndex, tempscriptArray__output);
 		}
 		__output = scriptArray__output.GetInternal();
 

@@ -14,6 +14,7 @@ namespace bs
 	ScriptPixelData::ScriptPixelData(const SPtr<PixelData>& nativeObject, MonoObject* scriptObject)
 		:TScriptReflectableWrapper(nativeObject, scriptObject)
 	{
+		RegisterEvents();
 	}
 
 	void ScriptPixelData::SetupScriptBindings()

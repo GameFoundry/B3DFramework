@@ -12,12 +12,14 @@
 namespace bs { class CLight; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptLight : public TScriptComponent<ScriptLight, CLight>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptLight : public TScriptGameObjectWrapper<CLight, ScriptLight>
 	{
 	public:
-		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "Light")
+		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "Light")
 
-		ScriptLight(MonoObject* managedInstance, const GameObjectHandle<CLight>& value);
+		ScriptLight(const GameObjectHandle<CLight>& nativeObject, MonoObject* scriptObject);
+
+		static MonoObject* CreateScriptObject(bool construct);
 
 	private:
 		static void InternalSetType(ScriptLight* self, LightType type);

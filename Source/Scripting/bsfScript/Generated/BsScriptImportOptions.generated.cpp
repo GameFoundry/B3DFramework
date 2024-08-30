@@ -11,6 +11,7 @@ namespace bs
 	ScriptImportOptions::ScriptImportOptions(const SPtr<ImportOptions>& nativeObject, MonoObject* scriptObject)
 		:TScriptReflectableWrapper(nativeObject, scriptObject)
 	{
+		RegisterEvents();
 	}
 
 	void ScriptImportOptions::SetupScriptBindings()

@@ -12,12 +12,14 @@ namespace bs { struct __LimitLinearRangeInterop; }
 namespace bs { class CSliderJoint; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptSliderJoint : public TScriptComponent<ScriptSliderJoint, CSliderJoint, ScriptJointBase>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptSliderJoint : public TScriptGameObjectWrapper<CSliderJoint, ScriptSliderJoint>
 	{
 	public:
-		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "SliderJoint")
+		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "SliderJoint")
 
-		ScriptSliderJoint(MonoObject* managedInstance, const GameObjectHandle<CSliderJoint>& value);
+		ScriptSliderJoint(const GameObjectHandle<CSliderJoint>& nativeObject, MonoObject* scriptObject);
+
+		static MonoObject* CreateScriptObject(bool construct);
 
 	private:
 		static float InternalGetPosition(ScriptSliderJoint* self);

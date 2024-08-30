@@ -10,12 +10,14 @@
 namespace bs { class CSphereCollider; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptSphereCollider : public TScriptComponent<ScriptSphereCollider, CSphereCollider, ScriptColliderBase>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptSphereCollider : public TScriptGameObjectWrapper<CSphereCollider, ScriptSphereCollider>
 	{
 	public:
-		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "SphereCollider")
+		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "SphereCollider")
 
-		ScriptSphereCollider(MonoObject* managedInstance, const GameObjectHandle<CSphereCollider>& value);
+		ScriptSphereCollider(const GameObjectHandle<CSphereCollider>& nativeObject, MonoObject* scriptObject);
+
+		static MonoObject* CreateScriptObject(bool construct);
 
 	private:
 		static void InternalSetRadius(ScriptSphereCollider* self, float radius);

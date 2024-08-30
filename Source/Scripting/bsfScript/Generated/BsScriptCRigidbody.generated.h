@@ -16,12 +16,15 @@ namespace bs { class CRigidbody; }
 namespace bs { struct __CollisionDataInterop; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptRigidbody : public TScriptComponent<ScriptRigidbody, CRigidbody>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptRigidbody : public TScriptGameObjectWrapper<CRigidbody, ScriptRigidbody>
 	{
 	public:
-		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "Rigidbody")
+		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "Rigidbody")
 
-		ScriptRigidbody(MonoObject* managedInstance, const GameObjectHandle<CRigidbody>& value);
+		ScriptRigidbody(const GameObjectHandle<CRigidbody>& nativeObject, MonoObject* scriptObject);
+
+		virtual void RegisterEvents();
+		static MonoObject* CreateScriptObject(bool construct);
 
 	private:
 		void OnCollisionBegin(const CollisionData& p0);

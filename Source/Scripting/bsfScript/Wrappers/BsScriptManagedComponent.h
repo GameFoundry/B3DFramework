@@ -13,43 +13,33 @@ namespace bs
 	 */
 
 	/**	Interop class between C++ & CLR for ManagedComponent. */
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptManagedComponent : public ScriptObject<ScriptManagedComponent, ScriptComponentBase>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptManagedComponent : public TScriptGameObjectWrapper<ManagedComponent, ScriptManagedComponent>
 	{
 	public:
-		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "ManagedComponent")
+		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "ManagedComponent")
 
-		/**	Returns a generic handle to the internal wrapped component. */
-		HGameObject GetNativeHandle() const { return B3DStaticGameObjectCast<GameObject>(mComponent); }
+		ScriptManagedComponent(const HManagedComponent& nativeObject, MonoObject* scriptObject);
 
-		/**	Sets the internal component this object wraps. */
-		void SetNativeHandle(const HGameObject& gameObject) { mComponent = B3DStaticGameObjectCast<ManagedComponent>(gameObject); }
-
-		/**	Returns a handle to the internal wrapped component. */
-		const HManagedComponent& GetHandle() const { return mComponent; }
+		static MonoObject* CreateScriptObject(bool construct)
+		{
+			return nullptr;
+		}
 
 	private:
-		friend class ScriptGameObjectManager;
 		friend class ManagedComponent;
 
-		ScriptManagedComponent(MonoObject* instance, const HManagedComponent& component);
+		void RecreateScriptObjectAfterScriptReload() override;
+		Optional<ScriptObjectReloadPersistentData> BackupDataBeforeScriptReload() override;
+		void RestoreDataAfterScriptReload(const ScriptObjectReloadPersistentData& data) override;
 
-		ScriptObjectBackup BeginRefresh() override;
-		void EndRefresh(const ScriptObjectBackup& backupData) override;
-
-		MonoObject* CreateManagedInstanceInternal(bool construct) override;
-		void ClearManagedInstanceInternal() override;
-		void OnManagedInstanceDeletedInternal(bool assemblyRefresh) override;
-		void NotifyDestroyedInternal() override;
-
-		HManagedComponent mComponent;
 		String mNamespace;
 		String mType;
-		bool mTypeMissing;
+		bool mTypeMissing = false;
 
 		/************************************************************************/
 		/* 								CLR HOOKS						   		*/
 		/************************************************************************/
-		static void InternalInvoke(ScriptManagedComponent* nativeInstance, MonoString* name);
+		static void InternalInvoke(ScriptManagedComponent* self, MonoString* name);
 	};
 
 	/** @} */

@@ -11,38 +11,49 @@
 
 namespace bs
 {
-	ScriptAudioSource::ScriptAudioSource(MonoObject* managedInstance, const GameObjectHandle<CAudioSource>& value)
-		:TScriptComponent(managedInstance, value)
+	ScriptAudioSource::ScriptAudioSource(const GameObjectHandle<CAudioSource>& nativeObject, MonoObject* scriptObject)
+		:TScriptGameObjectWrapper(nativeObject, scriptObject)
 	{
+		RegisterEvents();
 	}
 
-	void ScriptAudioSource::InitRuntimeData()
+	void ScriptAudioSource::SetupScriptBindings()
 	{
-		metaData.ScriptClass->AddInternalCall("Internal_SetClip", (void*)&ScriptAudioSource::InternalSetClip);
-		metaData.ScriptClass->AddInternalCall("Internal_GetClip", (void*)&ScriptAudioSource::InternalGetClip);
-		metaData.ScriptClass->AddInternalCall("Internal_SetVolume", (void*)&ScriptAudioSource::InternalSetVolume);
-		metaData.ScriptClass->AddInternalCall("Internal_GetVolume", (void*)&ScriptAudioSource::InternalGetVolume);
-		metaData.ScriptClass->AddInternalCall("Internal_SetPitch", (void*)&ScriptAudioSource::InternalSetPitch);
-		metaData.ScriptClass->AddInternalCall("Internal_GetPitch", (void*)&ScriptAudioSource::InternalGetPitch);
-		metaData.ScriptClass->AddInternalCall("Internal_SetIsLooping", (void*)&ScriptAudioSource::InternalSetIsLooping);
-		metaData.ScriptClass->AddInternalCall("Internal_GetIsLooping", (void*)&ScriptAudioSource::InternalGetIsLooping);
-		metaData.ScriptClass->AddInternalCall("Internal_SetPriority", (void*)&ScriptAudioSource::InternalSetPriority);
-		metaData.ScriptClass->AddInternalCall("Internal_GetPriority", (void*)&ScriptAudioSource::InternalGetPriority);
-		metaData.ScriptClass->AddInternalCall("Internal_SetMinDistance", (void*)&ScriptAudioSource::InternalSetMinDistance);
-		metaData.ScriptClass->AddInternalCall("Internal_GetMinDistance", (void*)&ScriptAudioSource::InternalGetMinDistance);
-		metaData.ScriptClass->AddInternalCall("Internal_SetAttenuation", (void*)&ScriptAudioSource::InternalSetAttenuation);
-		metaData.ScriptClass->AddInternalCall("Internal_GetAttenuation", (void*)&ScriptAudioSource::InternalGetAttenuation);
-		metaData.ScriptClass->AddInternalCall("Internal_SetTime", (void*)&ScriptAudioSource::InternalSetTime);
-		metaData.ScriptClass->AddInternalCall("Internal_GetTime", (void*)&ScriptAudioSource::InternalGetTime);
-		metaData.ScriptClass->AddInternalCall("Internal_SetPlayOnStart", (void*)&ScriptAudioSource::InternalSetPlayOnStart);
-		metaData.ScriptClass->AddInternalCall("Internal_GetPlayOnStart", (void*)&ScriptAudioSource::InternalGetPlayOnStart);
-		metaData.ScriptClass->AddInternalCall("Internal_Play", (void*)&ScriptAudioSource::InternalPlay);
-		metaData.ScriptClass->AddInternalCall("Internal_Pause", (void*)&ScriptAudioSource::InternalPause);
-		metaData.ScriptClass->AddInternalCall("Internal_Stop", (void*)&ScriptAudioSource::InternalStop);
-		metaData.ScriptClass->AddInternalCall("Internal_GetState", (void*)&ScriptAudioSource::InternalGetState);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetClip", (void*)&ScriptAudioSource::InternalSetClip);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetClip", (void*)&ScriptAudioSource::InternalGetClip);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetVolume", (void*)&ScriptAudioSource::InternalSetVolume);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetVolume", (void*)&ScriptAudioSource::InternalGetVolume);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetPitch", (void*)&ScriptAudioSource::InternalSetPitch);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetPitch", (void*)&ScriptAudioSource::InternalGetPitch);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetIsLooping", (void*)&ScriptAudioSource::InternalSetIsLooping);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetIsLooping", (void*)&ScriptAudioSource::InternalGetIsLooping);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetPriority", (void*)&ScriptAudioSource::InternalSetPriority);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetPriority", (void*)&ScriptAudioSource::InternalGetPriority);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetMinDistance", (void*)&ScriptAudioSource::InternalSetMinDistance);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetMinDistance", (void*)&ScriptAudioSource::InternalGetMinDistance);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetAttenuation", (void*)&ScriptAudioSource::InternalSetAttenuation);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetAttenuation", (void*)&ScriptAudioSource::InternalGetAttenuation);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetTime", (void*)&ScriptAudioSource::InternalSetTime);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetTime", (void*)&ScriptAudioSource::InternalGetTime);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetPlayOnStart", (void*)&ScriptAudioSource::InternalSetPlayOnStart);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetPlayOnStart", (void*)&ScriptAudioSource::InternalGetPlayOnStart);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_Play", (void*)&ScriptAudioSource::InternalPlay);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_Pause", (void*)&ScriptAudioSource::InternalPause);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_Stop", (void*)&ScriptAudioSource::InternalStop);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetState", (void*)&ScriptAudioSource::InternalGetState);
 
 	}
 
+	MonoObject* ScriptAudioSource::CreateScriptObject(bool construct)
+	{
+		bool dummy = false;
+		void* ctorParams[1] = { &dummy };
+
+		if(construct)
+			return sInteropMetaData.ScriptClass->CreateInstance("bool", ctorParams);
+
+		return sInteropMetaData.ScriptClass->CreateInstance(false);
+	}
 	void ScriptAudioSource::InternalSetClip(ScriptAudioSource* self, MonoObject* clip)
 	{
 		TResourceHandle<AudioClip> tmpclip;
@@ -50,13 +61,13 @@ namespace bs
 		scriptObjectWrapperclip = ScriptRRefBase::ToNative(clip);
 		if(scriptObjectWrapperclip != nullptr)
 			tmpclip = B3DStaticResourceCast<AudioClip>(scriptObjectWrapperclip->GetHandle());
-		self->GetHandle()->SetClip(tmpclip);
+		static_cast<CAudioSource*>(self->GetNativeObject())->SetClip(tmpclip);
 	}
 
 	MonoObject* ScriptAudioSource::InternalGetClip(ScriptAudioSource* self)
 	{
 		TResourceHandle<AudioClip> tmp__output;
-		tmp__output = self->GetHandle()->GetClip();
+		tmp__output = static_cast<CAudioSource*>(self->GetNativeObject())->GetClip();
 
 		MonoObject* __output;
 		ScriptRRefBase* script__output;
@@ -71,13 +82,13 @@ namespace bs
 
 	void ScriptAudioSource::InternalSetVolume(ScriptAudioSource* self, float volume)
 	{
-		self->GetHandle()->SetVolume(volume);
+		static_cast<CAudioSource*>(self->GetNativeObject())->SetVolume(volume);
 	}
 
 	float ScriptAudioSource::InternalGetVolume(ScriptAudioSource* self)
 	{
 		float tmp__output;
-		tmp__output = self->GetHandle()->GetVolume();
+		tmp__output = static_cast<CAudioSource*>(self->GetNativeObject())->GetVolume();
 
 		float __output;
 		__output = tmp__output;
@@ -87,13 +98,13 @@ namespace bs
 
 	void ScriptAudioSource::InternalSetPitch(ScriptAudioSource* self, float pitch)
 	{
-		self->GetHandle()->SetPitch(pitch);
+		static_cast<CAudioSource*>(self->GetNativeObject())->SetPitch(pitch);
 	}
 
 	float ScriptAudioSource::InternalGetPitch(ScriptAudioSource* self)
 	{
 		float tmp__output;
-		tmp__output = self->GetHandle()->GetPitch();
+		tmp__output = static_cast<CAudioSource*>(self->GetNativeObject())->GetPitch();
 
 		float __output;
 		__output = tmp__output;
@@ -103,13 +114,13 @@ namespace bs
 
 	void ScriptAudioSource::InternalSetIsLooping(ScriptAudioSource* self, bool loop)
 	{
-		self->GetHandle()->SetIsLooping(loop);
+		static_cast<CAudioSource*>(self->GetNativeObject())->SetIsLooping(loop);
 	}
 
 	bool ScriptAudioSource::InternalGetIsLooping(ScriptAudioSource* self)
 	{
 		bool tmp__output;
-		tmp__output = self->GetHandle()->GetIsLooping();
+		tmp__output = static_cast<CAudioSource*>(self->GetNativeObject())->GetIsLooping();
 
 		bool __output;
 		__output = tmp__output;
@@ -119,13 +130,13 @@ namespace bs
 
 	void ScriptAudioSource::InternalSetPriority(ScriptAudioSource* self, uint32_t priority)
 	{
-		self->GetHandle()->SetPriority(priority);
+		static_cast<CAudioSource*>(self->GetNativeObject())->SetPriority(priority);
 	}
 
 	uint32_t ScriptAudioSource::InternalGetPriority(ScriptAudioSource* self)
 	{
 		uint32_t tmp__output;
-		tmp__output = self->GetHandle()->GetPriority();
+		tmp__output = static_cast<CAudioSource*>(self->GetNativeObject())->GetPriority();
 
 		uint32_t __output;
 		__output = tmp__output;
@@ -135,13 +146,13 @@ namespace bs
 
 	void ScriptAudioSource::InternalSetMinDistance(ScriptAudioSource* self, float distance)
 	{
-		self->GetHandle()->SetMinDistance(distance);
+		static_cast<CAudioSource*>(self->GetNativeObject())->SetMinDistance(distance);
 	}
 
 	float ScriptAudioSource::InternalGetMinDistance(ScriptAudioSource* self)
 	{
 		float tmp__output;
-		tmp__output = self->GetHandle()->GetMinDistance();
+		tmp__output = static_cast<CAudioSource*>(self->GetNativeObject())->GetMinDistance();
 
 		float __output;
 		__output = tmp__output;
@@ -151,13 +162,13 @@ namespace bs
 
 	void ScriptAudioSource::InternalSetAttenuation(ScriptAudioSource* self, float attenuation)
 	{
-		self->GetHandle()->SetAttenuation(attenuation);
+		static_cast<CAudioSource*>(self->GetNativeObject())->SetAttenuation(attenuation);
 	}
 
 	float ScriptAudioSource::InternalGetAttenuation(ScriptAudioSource* self)
 	{
 		float tmp__output;
-		tmp__output = self->GetHandle()->GetAttenuation();
+		tmp__output = static_cast<CAudioSource*>(self->GetNativeObject())->GetAttenuation();
 
 		float __output;
 		__output = tmp__output;
@@ -167,13 +178,13 @@ namespace bs
 
 	void ScriptAudioSource::InternalSetTime(ScriptAudioSource* self, float time)
 	{
-		self->GetHandle()->SetTime(time);
+		static_cast<CAudioSource*>(self->GetNativeObject())->SetTime(time);
 	}
 
 	float ScriptAudioSource::InternalGetTime(ScriptAudioSource* self)
 	{
 		float tmp__output;
-		tmp__output = self->GetHandle()->GetTime();
+		tmp__output = static_cast<CAudioSource*>(self->GetNativeObject())->GetTime();
 
 		float __output;
 		__output = tmp__output;
@@ -183,13 +194,13 @@ namespace bs
 
 	void ScriptAudioSource::InternalSetPlayOnStart(ScriptAudioSource* self, bool enable)
 	{
-		self->GetHandle()->SetPlayOnStart(enable);
+		static_cast<CAudioSource*>(self->GetNativeObject())->SetPlayOnStart(enable);
 	}
 
 	bool ScriptAudioSource::InternalGetPlayOnStart(ScriptAudioSource* self)
 	{
 		bool tmp__output;
-		tmp__output = self->GetHandle()->GetPlayOnStart();
+		tmp__output = static_cast<CAudioSource*>(self->GetNativeObject())->GetPlayOnStart();
 
 		bool __output;
 		__output = tmp__output;
@@ -199,23 +210,23 @@ namespace bs
 
 	void ScriptAudioSource::InternalPlay(ScriptAudioSource* self)
 	{
-		self->GetHandle()->Play();
+		static_cast<CAudioSource*>(self->GetNativeObject())->Play();
 	}
 
 	void ScriptAudioSource::InternalPause(ScriptAudioSource* self)
 	{
-		self->GetHandle()->Pause();
+		static_cast<CAudioSource*>(self->GetNativeObject())->Pause();
 	}
 
 	void ScriptAudioSource::InternalStop(ScriptAudioSource* self)
 	{
-		self->GetHandle()->Stop();
+		static_cast<CAudioSource*>(self->GetNativeObject())->Stop();
 	}
 
 	AudioSourceState ScriptAudioSource::InternalGetState(ScriptAudioSource* self)
 	{
 		AudioSourceState tmp__output;
-		tmp__output = self->GetHandle()->GetState();
+		tmp__output = static_cast<CAudioSource*>(self->GetNativeObject())->GetState();
 
 		AudioSourceState __output;
 		__output = tmp__output;

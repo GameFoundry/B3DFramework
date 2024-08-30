@@ -317,9 +317,6 @@ void ScriptAssemblyManager::ClearAssemblyInfo()
 	ClearScriptObjects();
 	mAssemblyInfos.clear();
 
-	mBuiltinComponentInfos.clear();
-	mBuiltinComponentInfosByTID.clear();
-
 	mBuiltinResourceInfos.clear();
 	mBuiltinResourceInfosByTID.clear();
 	mBuiltinResourceInfosByType.clear();
@@ -476,14 +473,14 @@ SPtr<ManagedSerializableTypeInfo> ScriptAssemblyManager::GetTypeInfo(MonoClass* 
 				typeInfo->Type = ScriptReferenceType::BuiltinComponent;
 
 				::MonoReflectionType* type = MonoUtil::GetType(monoClass->GetInternalClass());
-				BuiltinComponentInfo* builtinInfo = GetBuiltinComponentInfo(type);
-				if(builtinInfo == nullptr)
+				const ScriptWrapperObjectMetaData* const scriptWrapperObjectMetaData = GetScriptWrapperMetaData(type);
+				if(scriptWrapperObjectMetaData == nullptr)
 				{
-					B3D_ASSERT(false && "Unable to find information about a built-in component. Did you update BuiltinComponents list?");
+					B3D_ASSERT(false && "Unable to find information about a built-in component. Is it script exported?");
 					return nullptr;
 				}
 
-				typeInfo->RtiiTypeId = builtinInfo->TypeId;
+				typeInfo->RtiiTypeId = scriptWrapperObjectMetaData->TypeId;
 			}
 
 			return typeInfo;
@@ -744,17 +741,6 @@ void ScriptAssemblyManager::InitializeBaseTypes()
 
 void ScriptAssemblyManager::LoadTypeMappings(MonoAssembly& assembly, const BuiltinTypeMappings& mapping)
 {
-	for(auto& entry : mapping.Components)
-	{
-		BuiltinComponentInfo info = entry;
-		info.MonoClass = assembly.GetClass(entry.MetaData->Namespace, entry.MetaData->Name);
-
-		::MonoReflectionType* type = MonoUtil::GetType(info.MonoClass->GetInternalClass());
-
-		mBuiltinComponentInfos[type] = info;
-		mBuiltinComponentInfosByTID[info.TypeId] = info;
-	}
-
 	for(auto& entry : mapping.Resources)
 	{
 		BuiltinResourceInfo info = entry;
@@ -786,24 +772,6 @@ void ScriptAssemblyManager::InitializeScriptWrapperMetaDataLookup(MonoAssembly& 
 		if(entry.MetaData->TypeId != ~0u)
 			mScriptWrapperMetaDataByTypeId[entry.MetaData->TypeId] = entry.MetaData;
 	}
-}
-
-BuiltinComponentInfo* ScriptAssemblyManager::GetBuiltinComponentInfo(::MonoReflectionType* type)
-{
-	auto iterFind = mBuiltinComponentInfos.find(type);
-	if(iterFind == mBuiltinComponentInfos.end())
-		return nullptr;
-
-	return &(iterFind->second);
-}
-
-BuiltinComponentInfo* ScriptAssemblyManager::GetBuiltinComponentInfo(u32 rttiTypeId)
-{
-	auto iterFind = mBuiltinComponentInfosByTID.find(rttiTypeId);
-	if(iterFind == mBuiltinComponentInfosByTID.end())
-		return nullptr;
-
-	return &(iterFind->second);
 }
 
 BuiltinResourceInfo* ScriptAssemblyManager::GetBuiltinResourceInfo(::MonoReflectionType* type)
@@ -961,10 +929,9 @@ SPtr<IReflectable> ScriptAssemblyManager::GetReflectableFromManagedObject(MonoOb
 
 			if(monoClass->IsSubClassOf(mBuiltin.ManagedComponentClass))
 			{
-				ScriptManagedComponent* scriptComponent = nullptr;
-				managedComponentMeta->ScriptObjectWrapperPointerField->Get(value, &scriptComponent);
+				ScriptManagedComponent* scriptComponent = ScriptManagedComponent::GetScriptObjectWrapper(value);
 
-				HManagedComponent component = scriptComponent->GetHandle();
+				HManagedComponent component = scriptComponent->GetNativeObjectAsHandle();
 				if(component.IsDestroyed())
 					return nullptr;
 
@@ -979,17 +946,16 @@ SPtr<IReflectable> ScriptAssemblyManager::GetReflectableFromManagedObject(MonoOb
 			else
 			{
 				::MonoReflectionType* type = MonoUtil::GetType(klass);
-				BuiltinComponentInfo* builtinInfo = GetBuiltinComponentInfo(type);
-				if(builtinInfo == nullptr)
+				const ScriptWrapperObjectMetaData* const scriptWrapperObjectMetaData = GetScriptWrapperMetaData(type);
+				if(scriptWrapperObjectMetaData == nullptr)
 				{
-					B3D_ASSERT(false && "Unable to find information about a built-in component. Did you update BuiltinComponents list?");
+					B3D_ASSERT(false && "Unable to find information about a built-in component. Is it script exported?");
 					return nullptr;
 				}
 
-				ScriptComponentBase* scriptComponent = nullptr;
-				builtinInfo->MetaData->ScriptObjectWrapperPointerField->Get(value, &scriptComponent);
+				ScriptGameObjectWrapper* const scriptGameObjectWrapper = ScriptGameObjectWrapper::GetScriptObjectWrapper(*scriptWrapperObjectMetaData, value);
 
-				HComponent handle = scriptComponent->GetComponent();
+				HComponent handle = B3DStaticGameObjectCast<Component>(scriptGameObjectWrapper->GetBaseNativeObjectAsHandle());
 				if(handle.IsDestroyed())
 					return nullptr;
 

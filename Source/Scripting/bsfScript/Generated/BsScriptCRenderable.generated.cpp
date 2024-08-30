@@ -12,30 +12,41 @@
 
 namespace bs
 {
-	ScriptRenderable::ScriptRenderable(MonoObject* managedInstance, const GameObjectHandle<CRenderable>& value)
-		:TScriptComponent(managedInstance, value)
+	ScriptRenderable::ScriptRenderable(const GameObjectHandle<CRenderable>& nativeObject, MonoObject* scriptObject)
+		:TScriptGameObjectWrapper(nativeObject, scriptObject)
 	{
+		RegisterEvents();
 	}
 
-	void ScriptRenderable::InitRuntimeData()
+	void ScriptRenderable::SetupScriptBindings()
 	{
-		metaData.ScriptClass->AddInternalCall("Internal_SetMesh", (void*)&ScriptRenderable::InternalSetMesh);
-		metaData.ScriptClass->AddInternalCall("Internal_GetMesh", (void*)&ScriptRenderable::InternalGetMesh);
-		metaData.ScriptClass->AddInternalCall("Internal_SetMaterial", (void*)&ScriptRenderable::InternalSetMaterial);
-		metaData.ScriptClass->AddInternalCall("Internal_SetMaterial0", (void*)&ScriptRenderable::InternalSetMaterial0);
-		metaData.ScriptClass->AddInternalCall("Internal_GetMaterial", (void*)&ScriptRenderable::InternalGetMaterial);
-		metaData.ScriptClass->AddInternalCall("Internal_SetMaterials", (void*)&ScriptRenderable::InternalSetMaterials);
-		metaData.ScriptClass->AddInternalCall("Internal_GetMaterials", (void*)&ScriptRenderable::InternalGetMaterials);
-		metaData.ScriptClass->AddInternalCall("Internal_SetCullDistanceFactor", (void*)&ScriptRenderable::InternalSetCullDistanceFactor);
-		metaData.ScriptClass->AddInternalCall("Internal_GetCullDistanceFactor", (void*)&ScriptRenderable::InternalGetCullDistanceFactor);
-		metaData.ScriptClass->AddInternalCall("Internal_SetWriteVelocity", (void*)&ScriptRenderable::InternalSetWriteVelocity);
-		metaData.ScriptClass->AddInternalCall("Internal_GetWriteVelocity", (void*)&ScriptRenderable::InternalGetWriteVelocity);
-		metaData.ScriptClass->AddInternalCall("Internal_SetLayer", (void*)&ScriptRenderable::InternalSetLayer);
-		metaData.ScriptClass->AddInternalCall("Internal_GetLayer", (void*)&ScriptRenderable::InternalGetLayer);
-		metaData.ScriptClass->AddInternalCall("Internal_GetBounds", (void*)&ScriptRenderable::InternalGetBounds);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetMesh", (void*)&ScriptRenderable::InternalSetMesh);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetMesh", (void*)&ScriptRenderable::InternalGetMesh);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetMaterial", (void*)&ScriptRenderable::InternalSetMaterial);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetMaterial0", (void*)&ScriptRenderable::InternalSetMaterial0);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetMaterial", (void*)&ScriptRenderable::InternalGetMaterial);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetMaterials", (void*)&ScriptRenderable::InternalSetMaterials);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetMaterials", (void*)&ScriptRenderable::InternalGetMaterials);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetCullDistanceFactor", (void*)&ScriptRenderable::InternalSetCullDistanceFactor);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetCullDistanceFactor", (void*)&ScriptRenderable::InternalGetCullDistanceFactor);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetWriteVelocity", (void*)&ScriptRenderable::InternalSetWriteVelocity);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetWriteVelocity", (void*)&ScriptRenderable::InternalGetWriteVelocity);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetLayer", (void*)&ScriptRenderable::InternalSetLayer);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetLayer", (void*)&ScriptRenderable::InternalGetLayer);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetBounds", (void*)&ScriptRenderable::InternalGetBounds);
 
 	}
 
+	MonoObject* ScriptRenderable::CreateScriptObject(bool construct)
+	{
+		bool dummy = false;
+		void* ctorParams[1] = { &dummy };
+
+		if(construct)
+			return sInteropMetaData.ScriptClass->CreateInstance("bool", ctorParams);
+
+		return sInteropMetaData.ScriptClass->CreateInstance(false);
+	}
 	void ScriptRenderable::InternalSetMesh(ScriptRenderable* self, MonoObject* mesh)
 	{
 		TResourceHandle<Mesh> tmpmesh;
@@ -43,13 +54,13 @@ namespace bs
 		scriptObjectWrappermesh = ScriptRRefBase::ToNative(mesh);
 		if(scriptObjectWrappermesh != nullptr)
 			tmpmesh = B3DStaticResourceCast<Mesh>(scriptObjectWrappermesh->GetHandle());
-		self->GetHandle()->SetMesh(tmpmesh);
+		static_cast<CRenderable*>(self->GetNativeObject())->SetMesh(tmpmesh);
 	}
 
 	MonoObject* ScriptRenderable::InternalGetMesh(ScriptRenderable* self)
 	{
 		TResourceHandle<Mesh> tmp__output;
-		tmp__output = self->GetHandle()->GetMesh();
+		tmp__output = static_cast<CRenderable*>(self->GetNativeObject())->GetMesh();
 
 		MonoObject* __output;
 		ScriptRRefBase* script__output;
@@ -69,7 +80,7 @@ namespace bs
 		scriptObjectWrappermaterial = ScriptRRefBase::ToNative(material);
 		if(scriptObjectWrappermaterial != nullptr)
 			tmpmaterial = B3DStaticResourceCast<Material>(scriptObjectWrappermaterial->GetHandle());
-		self->GetHandle()->SetMaterial(idx, tmpmaterial);
+		static_cast<CRenderable*>(self->GetNativeObject())->SetMaterial(idx, tmpmaterial);
 	}
 
 	void ScriptRenderable::InternalSetMaterial0(ScriptRenderable* self, MonoObject* material)
@@ -79,13 +90,13 @@ namespace bs
 		scriptObjectWrappermaterial = ScriptRRefBase::ToNative(material);
 		if(scriptObjectWrappermaterial != nullptr)
 			tmpmaterial = B3DStaticResourceCast<Material>(scriptObjectWrappermaterial->GetHandle());
-		self->GetHandle()->SetMaterial(tmpmaterial);
+		static_cast<CRenderable*>(self->GetNativeObject())->SetMaterial(tmpmaterial);
 	}
 
 	MonoObject* ScriptRenderable::InternalGetMaterial(ScriptRenderable* self, uint32_t idx)
 	{
 		TResourceHandle<Material> tmp__output;
-		tmp__output = self->GetHandle()->GetMaterial(idx);
+		tmp__output = static_cast<CRenderable*>(self->GetNativeObject())->GetMaterial(idx);
 
 		MonoObject* __output;
 		ScriptRRefBase* script__output;
@@ -116,13 +127,13 @@ namespace bs
 				}
 			}
 		}
-		self->GetHandle()->SetMaterials(nativeArraymaterials);
+		static_cast<CRenderable*>(self->GetNativeObject())->SetMaterials(nativeArraymaterials);
 	}
 
 	MonoArray* ScriptRenderable::InternalGetMaterials(ScriptRenderable* self)
 	{
 		Vector<TResourceHandle<Material>> nativeArray__output;
-		nativeArray__output = self->GetHandle()->GetMaterials();
+		nativeArray__output = static_cast<CRenderable*>(self->GetNativeObject())->GetMaterials();
 
 		MonoArray* __output;
 		int elementCount__output = (int)nativeArray__output.size();
@@ -143,13 +154,13 @@ namespace bs
 
 	void ScriptRenderable::InternalSetCullDistanceFactor(ScriptRenderable* self, float factor)
 	{
-		self->GetHandle()->SetCullDistanceFactor(factor);
+		static_cast<CRenderable*>(self->GetNativeObject())->SetCullDistanceFactor(factor);
 	}
 
 	float ScriptRenderable::InternalGetCullDistanceFactor(ScriptRenderable* self)
 	{
 		float tmp__output;
-		tmp__output = self->GetHandle()->GetCullDistanceFactor();
+		tmp__output = static_cast<CRenderable*>(self->GetNativeObject())->GetCullDistanceFactor();
 
 		float __output;
 		__output = tmp__output;
@@ -159,13 +170,13 @@ namespace bs
 
 	void ScriptRenderable::InternalSetWriteVelocity(ScriptRenderable* self, bool enable)
 	{
-		self->GetHandle()->SetWriteVelocity(enable);
+		static_cast<CRenderable*>(self->GetNativeObject())->SetWriteVelocity(enable);
 	}
 
 	bool ScriptRenderable::InternalGetWriteVelocity(ScriptRenderable* self)
 	{
 		bool tmp__output;
-		tmp__output = self->GetHandle()->GetWriteVelocity();
+		tmp__output = static_cast<CRenderable*>(self->GetNativeObject())->GetWriteVelocity();
 
 		bool __output;
 		__output = tmp__output;
@@ -175,13 +186,13 @@ namespace bs
 
 	void ScriptRenderable::InternalSetLayer(ScriptRenderable* self, uint64_t layer)
 	{
-		self->GetHandle()->SetLayer(layer);
+		static_cast<CRenderable*>(self->GetNativeObject())->SetLayer(layer);
 	}
 
 	uint64_t ScriptRenderable::InternalGetLayer(ScriptRenderable* self)
 	{
 		uint64_t tmp__output;
-		tmp__output = self->GetHandle()->GetLayer();
+		tmp__output = static_cast<CRenderable*>(self->GetNativeObject())->GetLayer();
 
 		uint64_t __output;
 		__output = tmp__output;
@@ -192,7 +203,7 @@ namespace bs
 	void ScriptRenderable::InternalGetBounds(ScriptRenderable* self, Bounds* __output)
 	{
 		Bounds tmp__output;
-		tmp__output = self->GetHandle()->GetBounds();
+		tmp__output = static_cast<CRenderable*>(self->GetNativeObject())->GetBounds();
 
 		*__output = tmp__output;
 	}

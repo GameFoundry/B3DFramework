@@ -12,6 +12,7 @@ namespace bs
 	ScriptParticleSize::ScriptParticleSize(const SPtr<ParticleSize>& nativeObject, MonoObject* scriptObject)
 		:TScriptReflectableWrapper(nativeObject, scriptObject)
 	{
+		RegisterEvents();
 	}
 
 	void ScriptParticleSize::SetupScriptBindings()

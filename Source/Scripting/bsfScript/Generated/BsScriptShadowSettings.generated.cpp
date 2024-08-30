@@ -10,6 +10,7 @@ namespace bs
 	ScriptShadowSettings::ScriptShadowSettings(const SPtr<ShadowSettings>& nativeObject, MonoObject* scriptObject)
 		:TScriptReflectableWrapper(nativeObject, scriptObject)
 	{
+		RegisterEvents();
 	}
 
 	void ScriptShadowSettings::SetupScriptBindings()

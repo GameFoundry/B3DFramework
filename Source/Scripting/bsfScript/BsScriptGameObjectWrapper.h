@@ -128,12 +128,12 @@ namespace bs
 	};
 
 	/**	Interop class between C++ & CLR for GameObject. */
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptGameObject2 : public TScriptGameObjectWrapper<GameObject, ScriptGameObject2>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptGameObject : public TScriptGameObjectWrapper<GameObject, ScriptGameObject>
 	{
 	public:
 		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "GameObject")
 
-		ScriptGameObject2(const HGameObject& nativeObject, MonoObject* scriptObject);
+		ScriptGameObject(const HGameObject& nativeObject, MonoObject* scriptObject);
 
 		/** Dummy method to create the script object. Not used as game objects are always just base classes, not created directly. */
 		static MonoObject* CreateScriptObject(bool construct)
@@ -145,8 +145,8 @@ namespace bs
 		/************************************************************************/
 		/* 								CLR HOOKS						   		*/
 		/************************************************************************/
-		static void Internal_GetId(ScriptGameObject2* nativeInstance, UUID* outId);
-		static bool Internal_IsDestroyed(ScriptGameObject2* nativeInstance);
+		static void Internal_GetId(ScriptGameObject* nativeInstance, UUID* outId);
+		static bool Internal_IsDestroyed(ScriptGameObject* nativeInstance);
 	};
 
 	/** @} */

@@ -10,6 +10,7 @@ namespace bs
 	ScriptTonemappingSettings::ScriptTonemappingSettings(const SPtr<TonemappingSettings>& nativeObject, MonoObject* scriptObject)
 		:TScriptReflectableWrapper(nativeObject, scriptObject)
 	{
+		RegisterEvents();
 	}
 
 	void ScriptTonemappingSettings::SetupScriptBindings()

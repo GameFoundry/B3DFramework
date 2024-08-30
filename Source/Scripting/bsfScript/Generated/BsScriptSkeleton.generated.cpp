@@ -12,6 +12,7 @@ namespace bs
 	ScriptSkeleton::ScriptSkeleton(const SPtr<Skeleton>& nativeObject, MonoObject* scriptObject)
 		:TScriptReflectableWrapper(nativeObject, scriptObject)
 	{
+		RegisterEvents();
 	}
 
 	void ScriptSkeleton::SetupScriptBindings()

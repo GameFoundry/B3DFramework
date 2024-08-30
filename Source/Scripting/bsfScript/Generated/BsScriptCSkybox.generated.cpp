@@ -11,24 +11,35 @@
 
 namespace bs
 {
-	ScriptSkybox::ScriptSkybox(MonoObject* managedInstance, const GameObjectHandle<CSkybox>& value)
-		:TScriptComponent(managedInstance, value)
+	ScriptSkybox::ScriptSkybox(const GameObjectHandle<CSkybox>& nativeObject, MonoObject* scriptObject)
+		:TScriptGameObjectWrapper(nativeObject, scriptObject)
 	{
+		RegisterEvents();
 	}
 
-	void ScriptSkybox::InitRuntimeData()
+	void ScriptSkybox::SetupScriptBindings()
 	{
-		metaData.ScriptClass->AddInternalCall("Internal_GetTexture", (void*)&ScriptSkybox::InternalGetTexture);
-		metaData.ScriptClass->AddInternalCall("Internal_SetTexture", (void*)&ScriptSkybox::InternalSetTexture);
-		metaData.ScriptClass->AddInternalCall("Internal_SetBrightness", (void*)&ScriptSkybox::InternalSetBrightness);
-		metaData.ScriptClass->AddInternalCall("Internal_GetBrightness", (void*)&ScriptSkybox::InternalGetBrightness);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetTexture", (void*)&ScriptSkybox::InternalGetTexture);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetTexture", (void*)&ScriptSkybox::InternalSetTexture);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetBrightness", (void*)&ScriptSkybox::InternalSetBrightness);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetBrightness", (void*)&ScriptSkybox::InternalGetBrightness);
 
 	}
 
+	MonoObject* ScriptSkybox::CreateScriptObject(bool construct)
+	{
+		bool dummy = false;
+		void* ctorParams[1] = { &dummy };
+
+		if(construct)
+			return sInteropMetaData.ScriptClass->CreateInstance("bool", ctorParams);
+
+		return sInteropMetaData.ScriptClass->CreateInstance(false);
+	}
 	MonoObject* ScriptSkybox::InternalGetTexture(ScriptSkybox* self)
 	{
 		TResourceHandle<Texture> tmp__output;
-		tmp__output = self->GetHandle()->GetTexture();
+		tmp__output = static_cast<CSkybox*>(self->GetNativeObject())->GetTexture();
 
 		MonoObject* __output;
 		ScriptRRefBase* script__output;
@@ -48,18 +59,18 @@ namespace bs
 		scriptObjectWrappertexture = ScriptRRefBase::ToNative(texture);
 		if(scriptObjectWrappertexture != nullptr)
 			tmptexture = B3DStaticResourceCast<Texture>(scriptObjectWrappertexture->GetHandle());
-		self->GetHandle()->SetTexture(tmptexture);
+		static_cast<CSkybox*>(self->GetNativeObject())->SetTexture(tmptexture);
 	}
 
 	void ScriptSkybox::InternalSetBrightness(ScriptSkybox* self, float brightness)
 	{
-		self->GetHandle()->SetBrightness(brightness);
+		static_cast<CSkybox*>(self->GetNativeObject())->SetBrightness(brightness);
 	}
 
 	float ScriptSkybox::InternalGetBrightness(ScriptSkybox* self)
 	{
 		float tmp__output;
-		tmp__output = self->GetHandle()->GetBrightness();
+		tmp__output = static_cast<CSkybox*>(self->GetNativeObject())->GetBrightness();
 
 		float __output;
 		__output = tmp__output;

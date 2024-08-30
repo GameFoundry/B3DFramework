@@ -71,7 +71,7 @@ void ScriptGUIWidget::InternalUpdateMainCamera(ScriptGUIWidget* instance, Script
 	{
 		SPtr<Camera> nativeCamera;
 		if(camera != nullptr)
-			nativeCamera = camera->GetHandle()->GetCameraInternal();
+			nativeCamera = camera->GetNativeObjectAsHandle()->GetCameraInternal();
 
 		widget->SetCamera(nativeCamera);
 	}
@@ -81,7 +81,7 @@ void ScriptGUIWidget::InternalSetCamera(ScriptGUIWidget* instance, ScriptCamera*
 {
 	SPtr<Camera> nativeCamera;
 	if(camera != nullptr)
-		nativeCamera = camera->GetHandle()->GetCameraInternal();
+		nativeCamera = camera->GetNativeObjectAsHandle()->GetCameraInternal();
 
 	if(nativeCamera == nullptr)
 		nativeCamera = GetSceneManager().GetMainCamera();

@@ -10,6 +10,7 @@ namespace bs
 	ScriptWhiteBalanceSettings::ScriptWhiteBalanceSettings(const SPtr<WhiteBalanceSettings>& nativeObject, MonoObject* scriptObject)
 		:TScriptReflectableWrapper(nativeObject, scriptObject)
 	{
+		RegisterEvents();
 	}
 
 	void ScriptWhiteBalanceSettings::SetupScriptBindings()

@@ -16,6 +16,7 @@ namespace bs
 	ScriptParticleVectorFieldSettings::ScriptParticleVectorFieldSettings(const SPtr<ParticleVectorFieldSettings>& nativeObject, MonoObject* scriptObject)
 		:TScriptReflectableWrapper(nativeObject, scriptObject)
 	{
+		RegisterEvents();
 	}
 
 	void ScriptParticleVectorFieldSettings::SetupScriptBindings()

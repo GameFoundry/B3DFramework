@@ -11,6 +11,7 @@ namespace bs
 	ScriptMorphShapes::ScriptMorphShapes(const SPtr<MorphShapes>& nativeObject, MonoObject* scriptObject)
 		:TScriptReflectableWrapper(nativeObject, scriptObject)
 	{
+		RegisterEvents();
 	}
 
 	void ScriptMorphShapes::SetupScriptBindings()

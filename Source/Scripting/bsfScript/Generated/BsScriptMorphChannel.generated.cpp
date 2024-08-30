@@ -11,6 +11,7 @@ namespace bs
 	ScriptMorphChannel::ScriptMorphChannel(const SPtr<MorphChannel>& nativeObject, MonoObject* scriptObject)
 		:TScriptReflectableWrapper(nativeObject, scriptObject)
 	{
+		RegisterEvents();
 	}
 
 	void ScriptMorphChannel::SetupScriptBindings()

@@ -45,17 +45,17 @@ ScriptGameObjectWrapper* ScriptGameObjectWrapper::GetScriptObjectWrapper(const S
 	return scriptObjectWrapper;
 }
 
-ScriptGameObject2::ScriptGameObject2(const HGameObject& nativeObject, MonoObject* scriptObject)
+ScriptGameObject::ScriptGameObject(const HGameObject& nativeObject, MonoObject* scriptObject)
 	: TScriptGameObjectWrapper(nativeObject, scriptObject)
 {}
 
-void ScriptGameObject2::SetupScriptBindings()
+void ScriptGameObject::SetupScriptBindings()
 {
-	sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetId", (void*)&ScriptGameObject2::Internal_GetId);
-	sInteropMetaData.ScriptClass->AddInternalCall("Internal_IsDestroyed", (void*)&ScriptGameObject2::Internal_IsDestroyed);
+	sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetId", (void*)&ScriptGameObject::Internal_GetId);
+	sInteropMetaData.ScriptClass->AddInternalCall("Internal_IsDestroyed", (void*)&ScriptGameObject::Internal_IsDestroyed);
 }
 
-void ScriptGameObject2::Internal_GetId(ScriptGameObject2* nativeInstance, UUID* outId)
+void ScriptGameObject::Internal_GetId(ScriptGameObject* nativeInstance, UUID* outId)
 {
 	if(!nativeInstance->IsNativeObjectValid())
 	{
@@ -66,7 +66,7 @@ void ScriptGameObject2::Internal_GetId(ScriptGameObject2* nativeInstance, UUID* 
 	*outId = nativeInstance->GetNativeObjectAsHandle()->GetId();
 }
 
-bool ScriptGameObject2::Internal_IsDestroyed(ScriptGameObject2* nativeInstance)
+bool ScriptGameObject::Internal_IsDestroyed(ScriptGameObject* nativeInstance)
 {
 	return nativeInstance->GetNativeObjectAsHandle().IsDestroyed(true);
 }

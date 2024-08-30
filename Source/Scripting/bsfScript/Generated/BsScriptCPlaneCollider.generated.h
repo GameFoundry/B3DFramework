@@ -10,12 +10,14 @@
 namespace bs { class CPlaneCollider; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptPlaneCollider : public TScriptComponent<ScriptPlaneCollider, CPlaneCollider, ScriptColliderBase>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptPlaneCollider : public TScriptGameObjectWrapper<CPlaneCollider, ScriptPlaneCollider>
 	{
 	public:
-		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "PlaneCollider")
+		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "PlaneCollider")
 
-		ScriptPlaneCollider(MonoObject* managedInstance, const GameObjectHandle<CPlaneCollider>& value);
+		ScriptPlaneCollider(const GameObjectHandle<CPlaneCollider>& nativeObject, MonoObject* scriptObject);
+
+		static MonoObject* CreateScriptObject(bool construct);
 
 	private:
 		static void InternalSetNormal(ScriptPlaneCollider* self, TVector3<float>* normal);

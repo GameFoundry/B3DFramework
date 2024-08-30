@@ -4,7 +4,6 @@
 #include "BsMonoMethod.h"
 #include "BsMonoClass.h"
 #include "BsMonoUtil.h"
-#include "BsScriptGameObjectManager.h"
 #include "../../../Foundation/bsfCore/Components/BsCRenderable.h"
 #include "BsScriptCRenderable.generated.h"
 
@@ -34,9 +33,9 @@ namespace bs
 		output.Sequential = value.Sequential;
 		GameObjectHandle<CRenderable> tmpRenderable;
 		ScriptRenderable* scriptWrapperObjectRenderable;
-		scriptWrapperObjectRenderable = ScriptRenderable::ToNative(value.Renderable);
+		scriptWrapperObjectRenderable = ScriptRenderable::GetScriptObjectWrapper(value.Renderable);
 		if(scriptWrapperObjectRenderable != nullptr)
-			tmpRenderable = scriptWrapperObjectRenderable->GetHandle();
+			tmpRenderable = B3DStaticGameObjectCast<CRenderable>(scriptWrapperObjectRenderable->GetBaseNativeObjectAsHandle());
 		output.Renderable = tmpRenderable;
 
 		return output;
@@ -48,13 +47,10 @@ namespace bs
 		output.Type = value.Type;
 		output.Sequential = value.Sequential;
 		MonoObject* tmpRenderable;
-		ScriptComponentBase* scriptWrapperObjectRenderable = nullptr;
+		MonoObject* temptmpRenderable = nullptr;
 		if(value.Renderable.GetComponent())
-			scriptWrapperObjectRenderable = ScriptGameObjectManager::Instance().GetBuiltinScriptComponent(B3DStaticGameObjectCast<Component>(value.Renderable.GetComponent()));
-		if(scriptWrapperObjectRenderable != nullptr)
-			tmpRenderable = scriptWrapperObjectRenderable->GetManagedInstance();
-		else
-			tmpRenderable = nullptr;
+			temptmpRenderable = ScriptComponent::GetOrCreateScriptObject(value.Renderable.GetComponent());
+		tmpRenderable = temptmpRenderable;
 		output.Renderable = tmpRenderable;
 
 		return output;

@@ -244,8 +244,8 @@ SPtr<ManagedSerializableFieldData> ManagedSerializableFieldData::Create(const SP
 
 				if(value != nullptr)
 				{
-					ScriptManagedComponent* scriptComponent = ScriptManagedComponent::ToNative(value);
-					fieldData->Value = scriptComponent->GetNativeHandle();
+					ScriptManagedComponent* scriptComponent = ScriptManagedComponent::GetScriptObjectWrapper(value);
+					fieldData->Value = scriptComponent->GetBaseNativeObjectAsHandle();
 				}
 
 				return fieldData;
@@ -253,16 +253,16 @@ SPtr<ManagedSerializableFieldData> ManagedSerializableFieldData::Create(const SP
 		case ScriptReferenceType::BuiltinComponentBase:
 		case ScriptReferenceType::BuiltinComponent:
 			{
-				BuiltinComponentInfo* info = ScriptAssemblyManager::Instance().GetBuiltinComponentInfo(refTypeInfo->RtiiTypeId);
-				if(info == nullptr)
+				const ScriptWrapperObjectMetaData* const scriptWrapperObjectMetaData = ScriptAssemblyManager::Instance().GetScriptWrapperMetaData(refTypeInfo->RtiiTypeId);
+				if(scriptWrapperObjectMetaData == nullptr)
 					return nullptr;
 
 				auto fieldData = B3DMakeShared<ManagedSerializableFieldDataGameObjectRef>();
 
 				if(value != nullptr)
 				{
-					ScriptComponentBase* scriptComponent = ScriptComponent::ToNative(value);
-					fieldData->Value = B3DStaticGameObjectCast<GameObject>(scriptComponent->GetComponent());
+					ScriptGameObjectWrapper* const scriptGameObjectWrapper = ScriptGameObjectWrapper::GetScriptObjectWrapper(*scriptWrapperObjectMetaData, value);
+					fieldData->Value = scriptGameObjectWrapper->GetBaseNativeObjectAsHandle();
 				}
 
 				return fieldData;
@@ -572,41 +572,10 @@ void* ManagedSerializableFieldDataGameObjectRef::GetValue(const SPtr<ManagedSeri
 {
 	if(typeInfo->GetTypeId() == TID_SerializableTypeInfoRef)
 	{
-		auto refTypeInfo = std::static_pointer_cast<ManagedSerializableTypeInfoRef>(typeInfo);
+		if(Value)
+			return ScriptGameObject::GetOrCreateScriptObject(Value);
 
-		if(refTypeInfo->Type == ScriptReferenceType::SceneObject)
-		{
-			if(Value)
-				return ScriptSceneObject::GetOrCreateScriptObject(B3DStaticGameObjectCast<SceneObject>(Value));
-			else
-				return nullptr;
-		}
-		else if(refTypeInfo->Type == ScriptReferenceType::ManagedComponentBase || refTypeInfo->Type == ScriptReferenceType::ManagedComponent)
-		{
-			if(Value)
-			{
-				ScriptManagedComponent* scriptComponent =
-					ScriptGameObjectManager::Instance().GetManagedScriptComponent(B3DStaticGameObjectCast<ManagedComponent>(Value));
-				B3D_ASSERT(scriptComponent != nullptr);
-
-				return scriptComponent->GetManagedInstance();
-			}
-			else
-				return nullptr;
-		}
-		else if(refTypeInfo->Type == ScriptReferenceType::BuiltinComponentBase || refTypeInfo->Type == ScriptReferenceType::BuiltinComponent)
-		{
-			if(Value)
-			{
-				ScriptComponentBase* scriptComponent =
-					ScriptGameObjectManager::Instance().GetBuiltinScriptComponent(B3DStaticGameObjectCast<Component>(Value));
-				B3D_ASSERT(scriptComponent != nullptr);
-
-				return scriptComponent->GetManagedInstance();
-			}
-			else
-				return nullptr;
-		}
+		return nullptr;
 	}
 
 	B3D_EXCEPT(InvalidParametersException, "Requesting an invalid type in serializable field.");

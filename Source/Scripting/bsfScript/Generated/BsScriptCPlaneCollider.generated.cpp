@@ -9,42 +9,53 @@
 
 namespace bs
 {
-	ScriptPlaneCollider::ScriptPlaneCollider(MonoObject* managedInstance, const GameObjectHandle<CPlaneCollider>& value)
-		:TScriptComponent(managedInstance, value)
+	ScriptPlaneCollider::ScriptPlaneCollider(const GameObjectHandle<CPlaneCollider>& nativeObject, MonoObject* scriptObject)
+		:TScriptGameObjectWrapper(nativeObject, scriptObject)
 	{
+		RegisterEvents();
 	}
 
-	void ScriptPlaneCollider::InitRuntimeData()
+	void ScriptPlaneCollider::SetupScriptBindings()
 	{
-		metaData.ScriptClass->AddInternalCall("Internal_SetNormal", (void*)&ScriptPlaneCollider::InternalSetNormal);
-		metaData.ScriptClass->AddInternalCall("Internal_GetNormal", (void*)&ScriptPlaneCollider::InternalGetNormal);
-		metaData.ScriptClass->AddInternalCall("Internal_SetDistance", (void*)&ScriptPlaneCollider::InternalSetDistance);
-		metaData.ScriptClass->AddInternalCall("Internal_GetDistance", (void*)&ScriptPlaneCollider::InternalGetDistance);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetNormal", (void*)&ScriptPlaneCollider::InternalSetNormal);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetNormal", (void*)&ScriptPlaneCollider::InternalGetNormal);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetDistance", (void*)&ScriptPlaneCollider::InternalSetDistance);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetDistance", (void*)&ScriptPlaneCollider::InternalGetDistance);
 
 	}
 
+	MonoObject* ScriptPlaneCollider::CreateScriptObject(bool construct)
+	{
+		bool dummy = false;
+		void* ctorParams[1] = { &dummy };
+
+		if(construct)
+			return sInteropMetaData.ScriptClass->CreateInstance("bool", ctorParams);
+
+		return sInteropMetaData.ScriptClass->CreateInstance(false);
+	}
 	void ScriptPlaneCollider::InternalSetNormal(ScriptPlaneCollider* self, TVector3<float>* normal)
 	{
-		self->GetHandle()->SetNormal(*normal);
+		static_cast<CPlaneCollider*>(self->GetNativeObject())->SetNormal(*normal);
 	}
 
 	void ScriptPlaneCollider::InternalGetNormal(ScriptPlaneCollider* self, TVector3<float>* __output)
 	{
 		TVector3<float> tmp__output;
-		tmp__output = self->GetHandle()->GetNormal();
+		tmp__output = static_cast<CPlaneCollider*>(self->GetNativeObject())->GetNormal();
 
 		*__output = tmp__output;
 	}
 
 	void ScriptPlaneCollider::InternalSetDistance(ScriptPlaneCollider* self, float distance)
 	{
-		self->GetHandle()->SetDistance(distance);
+		static_cast<CPlaneCollider*>(self->GetNativeObject())->SetDistance(distance);
 	}
 
 	float ScriptPlaneCollider::InternalGetDistance(ScriptPlaneCollider* self)
 	{
 		float tmp__output;
-		tmp__output = self->GetHandle()->GetDistance();
+		tmp__output = static_cast<CPlaneCollider*>(self->GetNativeObject())->GetDistance();
 
 		float __output;
 		__output = tmp__output;

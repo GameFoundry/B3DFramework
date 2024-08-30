@@ -11,6 +11,7 @@ namespace bs
 	ScriptAnimationSplitInfo::ScriptAnimationSplitInfo(const SPtr<AnimationSplitInfo>& nativeObject, MonoObject* scriptObject)
 		:TScriptReflectableWrapper(nativeObject, scriptObject)
 	{
+		RegisterEvents();
 	}
 
 	void ScriptAnimationSplitInfo::SetupScriptBindings()

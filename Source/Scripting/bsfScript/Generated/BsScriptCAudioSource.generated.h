@@ -9,12 +9,14 @@
 namespace bs { class CAudioSource; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptAudioSource : public TScriptComponent<ScriptAudioSource, CAudioSource>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptAudioSource : public TScriptGameObjectWrapper<CAudioSource, ScriptAudioSource>
 	{
 	public:
-		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "AudioSource")
+		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "AudioSource")
 
-		ScriptAudioSource(MonoObject* managedInstance, const GameObjectHandle<CAudioSource>& value);
+		ScriptAudioSource(const GameObjectHandle<CAudioSource>& nativeObject, MonoObject* scriptObject);
+
+		static MonoObject* CreateScriptObject(bool construct);
 
 	private:
 		static void InternalSetClip(ScriptAudioSource* self, MonoObject* clip);

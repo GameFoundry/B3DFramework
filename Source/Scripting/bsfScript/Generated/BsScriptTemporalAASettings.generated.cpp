@@ -10,6 +10,7 @@ namespace bs
 	ScriptTemporalAASettings::ScriptTemporalAASettings(const SPtr<TemporalAASettings>& nativeObject, MonoObject* scriptObject)
 		:TScriptReflectableWrapper(nativeObject, scriptObject)
 	{
+		RegisterEvents();
 	}
 
 	void ScriptTemporalAASettings::SetupScriptBindings()

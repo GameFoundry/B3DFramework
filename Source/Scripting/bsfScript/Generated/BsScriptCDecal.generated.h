@@ -9,12 +9,14 @@
 namespace bs { class CDecal; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptDecal : public TScriptComponent<ScriptDecal, CDecal>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptDecal : public TScriptGameObjectWrapper<CDecal, ScriptDecal>
 	{
 	public:
-		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "Decal")
+		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "Decal")
 
-		ScriptDecal(MonoObject* managedInstance, const GameObjectHandle<CDecal>& value);
+		ScriptDecal(const GameObjectHandle<CDecal>& nativeObject, MonoObject* scriptObject);
+
+		static MonoObject* CreateScriptObject(bool construct);
 
 	private:
 		static void InternalSetMaterial(ScriptDecal* self, MonoObject* material);

@@ -12,6 +12,7 @@ namespace bs
 	ScriptParticleColor::ScriptParticleColor(const SPtr<ParticleColor>& nativeObject, MonoObject* scriptObject)
 		:TScriptReflectableWrapper(nativeObject, scriptObject)
 	{
+		RegisterEvents();
 	}
 
 	void ScriptParticleColor::SetupScriptBindings()

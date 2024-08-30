@@ -10,6 +10,7 @@ namespace bs
 	ScriptScreenSpaceReflectionsSettings::ScriptScreenSpaceReflectionsSettings(const SPtr<ScreenSpaceReflectionsSettings>& nativeObject, MonoObject* scriptObject)
 		:TScriptReflectableWrapper(nativeObject, scriptObject)
 	{
+		RegisterEvents();
 	}
 
 	void ScriptScreenSpaceReflectionsSettings::SetupScriptBindings()

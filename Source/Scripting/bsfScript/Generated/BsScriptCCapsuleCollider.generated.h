@@ -10,12 +10,14 @@
 namespace bs { class CCapsuleCollider; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptCapsuleCollider : public TScriptComponent<ScriptCapsuleCollider, CCapsuleCollider, ScriptColliderBase>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptCapsuleCollider : public TScriptGameObjectWrapper<CCapsuleCollider, ScriptCapsuleCollider>
 	{
 	public:
-		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "CapsuleCollider")
+		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "CapsuleCollider")
 
-		ScriptCapsuleCollider(MonoObject* managedInstance, const GameObjectHandle<CCapsuleCollider>& value);
+		ScriptCapsuleCollider(const GameObjectHandle<CCapsuleCollider>& nativeObject, MonoObject* scriptObject);
+
+		static MonoObject* CreateScriptObject(bool construct);
 
 	private:
 		static void InternalSetNormal(ScriptCapsuleCollider* self, TVector3<float>* normal);

@@ -12,6 +12,7 @@ namespace bs
 	ScriptAudioClipImportOptions::ScriptAudioClipImportOptions(const SPtr<AudioClipImportOptions>& nativeObject, MonoObject* scriptObject)
 		:TScriptReflectableWrapper(nativeObject, scriptObject)
 	{
+		RegisterEvents();
 	}
 
 	void ScriptAudioClipImportOptions::SetupScriptBindings()

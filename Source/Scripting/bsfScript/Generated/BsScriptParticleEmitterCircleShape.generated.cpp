@@ -12,6 +12,7 @@ namespace bs
 	ScriptParticleEmitterCircleShape::ScriptParticleEmitterCircleShape(const SPtr<ParticleEmitterCircleShape>& nativeObject, MonoObject* scriptObject)
 		:TScriptReflectableWrapper(nativeObject, scriptObject)
 	{
+		RegisterEvents();
 	}
 
 	void ScriptParticleEmitterCircleShape::SetupScriptBindings()

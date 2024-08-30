@@ -13,6 +13,7 @@ namespace bs
 	ScriptChromaticAberrationSettings::ScriptChromaticAberrationSettings(const SPtr<ChromaticAberrationSettings>& nativeObject, MonoObject* scriptObject)
 		:TScriptReflectableWrapper(nativeObject, scriptObject)
 	{
+		RegisterEvents();
 	}
 
 	void ScriptChromaticAberrationSettings::SetupScriptBindings()

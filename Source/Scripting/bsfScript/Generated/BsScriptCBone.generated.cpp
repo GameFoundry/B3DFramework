@@ -8,29 +8,40 @@
 
 namespace bs
 {
-	ScriptBone::ScriptBone(MonoObject* managedInstance, const GameObjectHandle<CBone>& value)
-		:TScriptComponent(managedInstance, value)
+	ScriptBone::ScriptBone(const GameObjectHandle<CBone>& nativeObject, MonoObject* scriptObject)
+		:TScriptGameObjectWrapper(nativeObject, scriptObject)
 	{
+		RegisterEvents();
 	}
 
-	void ScriptBone::InitRuntimeData()
+	void ScriptBone::SetupScriptBindings()
 	{
-		metaData.ScriptClass->AddInternalCall("Internal_SetBoneName", (void*)&ScriptBone::InternalSetBoneName);
-		metaData.ScriptClass->AddInternalCall("Internal_GetBoneName", (void*)&ScriptBone::InternalGetBoneName);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetBoneName", (void*)&ScriptBone::InternalSetBoneName);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetBoneName", (void*)&ScriptBone::InternalGetBoneName);
 
 	}
 
+	MonoObject* ScriptBone::CreateScriptObject(bool construct)
+	{
+		bool dummy = false;
+		void* ctorParams[1] = { &dummy };
+
+		if(construct)
+			return sInteropMetaData.ScriptClass->CreateInstance("bool", ctorParams);
+
+		return sInteropMetaData.ScriptClass->CreateInstance(false);
+	}
 	void ScriptBone::InternalSetBoneName(ScriptBone* self, MonoString* name)
 	{
 		String tmpname;
 		tmpname = MonoUtil::MonoToString(name);
-		self->GetHandle()->SetBoneName(tmpname);
+		static_cast<CBone*>(self->GetNativeObject())->SetBoneName(tmpname);
 	}
 
 	MonoString* ScriptBone::InternalGetBoneName(ScriptBone* self)
 	{
 		String tmp__output;
-		tmp__output = self->GetHandle()->GetBoneName();
+		tmp__output = static_cast<CBone*>(self->GetNativeObject())->GetBoneName();
 
 		MonoString* __output;
 		__output = MonoUtil::StringToMono(tmp__output);

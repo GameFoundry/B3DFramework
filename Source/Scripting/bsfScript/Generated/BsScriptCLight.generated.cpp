@@ -9,46 +9,57 @@
 
 namespace bs
 {
-	ScriptLight::ScriptLight(MonoObject* managedInstance, const GameObjectHandle<CLight>& value)
-		:TScriptComponent(managedInstance, value)
+	ScriptLight::ScriptLight(const GameObjectHandle<CLight>& nativeObject, MonoObject* scriptObject)
+		:TScriptGameObjectWrapper(nativeObject, scriptObject)
 	{
+		RegisterEvents();
 	}
 
-	void ScriptLight::InitRuntimeData()
+	void ScriptLight::SetupScriptBindings()
 	{
-		metaData.ScriptClass->AddInternalCall("Internal_SetType", (void*)&ScriptLight::InternalSetType);
-		metaData.ScriptClass->AddInternalCall("Internal_GetType", (void*)&ScriptLight::InternalGetType);
-		metaData.ScriptClass->AddInternalCall("Internal_SetColor", (void*)&ScriptLight::InternalSetColor);
-		metaData.ScriptClass->AddInternalCall("Internal_GetColor", (void*)&ScriptLight::InternalGetColor);
-		metaData.ScriptClass->AddInternalCall("Internal_SetIntensity", (void*)&ScriptLight::InternalSetIntensity);
-		metaData.ScriptClass->AddInternalCall("Internal_GetIntensity", (void*)&ScriptLight::InternalGetIntensity);
-		metaData.ScriptClass->AddInternalCall("Internal_SetUseAutoAttenuation", (void*)&ScriptLight::InternalSetUseAutoAttenuation);
-		metaData.ScriptClass->AddInternalCall("Internal_GetUseAutoAttenuation", (void*)&ScriptLight::InternalGetUseAutoAttenuation);
-		metaData.ScriptClass->AddInternalCall("Internal_SetAttenuationRadius", (void*)&ScriptLight::InternalSetAttenuationRadius);
-		metaData.ScriptClass->AddInternalCall("Internal_GetAttenuationRadius", (void*)&ScriptLight::InternalGetAttenuationRadius);
-		metaData.ScriptClass->AddInternalCall("Internal_SetSourceRadius", (void*)&ScriptLight::InternalSetSourceRadius);
-		metaData.ScriptClass->AddInternalCall("Internal_GetSourceRadius", (void*)&ScriptLight::InternalGetSourceRadius);
-		metaData.ScriptClass->AddInternalCall("Internal_SetSpotAngle", (void*)&ScriptLight::InternalSetSpotAngle);
-		metaData.ScriptClass->AddInternalCall("Internal_GetSpotAngle", (void*)&ScriptLight::InternalGetSpotAngle);
-		metaData.ScriptClass->AddInternalCall("Internal_SetSpotFalloffAngle", (void*)&ScriptLight::InternalSetSpotFalloffAngle);
-		metaData.ScriptClass->AddInternalCall("Internal_GetSpotFalloffAngle", (void*)&ScriptLight::InternalGetSpotFalloffAngle);
-		metaData.ScriptClass->AddInternalCall("Internal_SetCastsShadow", (void*)&ScriptLight::InternalSetCastsShadow);
-		metaData.ScriptClass->AddInternalCall("Internal_GetCastsShadow", (void*)&ScriptLight::InternalGetCastsShadow);
-		metaData.ScriptClass->AddInternalCall("Internal_SetShadowBias", (void*)&ScriptLight::InternalSetShadowBias);
-		metaData.ScriptClass->AddInternalCall("Internal_GetShadowBias", (void*)&ScriptLight::InternalGetShadowBias);
-		metaData.ScriptClass->AddInternalCall("Internal_GetBounds", (void*)&ScriptLight::InternalGetBounds);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetType", (void*)&ScriptLight::InternalSetType);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetType", (void*)&ScriptLight::InternalGetType);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetColor", (void*)&ScriptLight::InternalSetColor);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetColor", (void*)&ScriptLight::InternalGetColor);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetIntensity", (void*)&ScriptLight::InternalSetIntensity);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetIntensity", (void*)&ScriptLight::InternalGetIntensity);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetUseAutoAttenuation", (void*)&ScriptLight::InternalSetUseAutoAttenuation);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetUseAutoAttenuation", (void*)&ScriptLight::InternalGetUseAutoAttenuation);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetAttenuationRadius", (void*)&ScriptLight::InternalSetAttenuationRadius);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetAttenuationRadius", (void*)&ScriptLight::InternalGetAttenuationRadius);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetSourceRadius", (void*)&ScriptLight::InternalSetSourceRadius);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetSourceRadius", (void*)&ScriptLight::InternalGetSourceRadius);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetSpotAngle", (void*)&ScriptLight::InternalSetSpotAngle);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetSpotAngle", (void*)&ScriptLight::InternalGetSpotAngle);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetSpotFalloffAngle", (void*)&ScriptLight::InternalSetSpotFalloffAngle);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetSpotFalloffAngle", (void*)&ScriptLight::InternalGetSpotFalloffAngle);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetCastsShadow", (void*)&ScriptLight::InternalSetCastsShadow);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetCastsShadow", (void*)&ScriptLight::InternalGetCastsShadow);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetShadowBias", (void*)&ScriptLight::InternalSetShadowBias);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetShadowBias", (void*)&ScriptLight::InternalGetShadowBias);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetBounds", (void*)&ScriptLight::InternalGetBounds);
 
 	}
 
+	MonoObject* ScriptLight::CreateScriptObject(bool construct)
+	{
+		bool dummy = false;
+		void* ctorParams[1] = { &dummy };
+
+		if(construct)
+			return sInteropMetaData.ScriptClass->CreateInstance("bool", ctorParams);
+
+		return sInteropMetaData.ScriptClass->CreateInstance(false);
+	}
 	void ScriptLight::InternalSetType(ScriptLight* self, LightType type)
 	{
-		self->GetHandle()->SetType(type);
+		static_cast<CLight*>(self->GetNativeObject())->SetType(type);
 	}
 
 	LightType ScriptLight::InternalGetType(ScriptLight* self)
 	{
 		LightType tmp__output;
-		tmp__output = self->GetHandle()->GetType();
+		tmp__output = static_cast<CLight*>(self->GetNativeObject())->GetType();
 
 		LightType __output;
 		__output = tmp__output;
@@ -58,26 +69,26 @@ namespace bs
 
 	void ScriptLight::InternalSetColor(ScriptLight* self, Color* color)
 	{
-		self->GetHandle()->SetColor(*color);
+		static_cast<CLight*>(self->GetNativeObject())->SetColor(*color);
 	}
 
 	void ScriptLight::InternalGetColor(ScriptLight* self, Color* __output)
 	{
 		Color tmp__output;
-		tmp__output = self->GetHandle()->GetColor();
+		tmp__output = static_cast<CLight*>(self->GetNativeObject())->GetColor();
 
 		*__output = tmp__output;
 	}
 
 	void ScriptLight::InternalSetIntensity(ScriptLight* self, float intensity)
 	{
-		self->GetHandle()->SetIntensity(intensity);
+		static_cast<CLight*>(self->GetNativeObject())->SetIntensity(intensity);
 	}
 
 	float ScriptLight::InternalGetIntensity(ScriptLight* self)
 	{
 		float tmp__output;
-		tmp__output = self->GetHandle()->GetIntensity();
+		tmp__output = static_cast<CLight*>(self->GetNativeObject())->GetIntensity();
 
 		float __output;
 		__output = tmp__output;
@@ -87,13 +98,13 @@ namespace bs
 
 	void ScriptLight::InternalSetUseAutoAttenuation(ScriptLight* self, bool enabled)
 	{
-		self->GetHandle()->SetUseAutoAttenuation(enabled);
+		static_cast<CLight*>(self->GetNativeObject())->SetUseAutoAttenuation(enabled);
 	}
 
 	bool ScriptLight::InternalGetUseAutoAttenuation(ScriptLight* self)
 	{
 		bool tmp__output;
-		tmp__output = self->GetHandle()->GetUseAutoAttenuation();
+		tmp__output = static_cast<CLight*>(self->GetNativeObject())->GetUseAutoAttenuation();
 
 		bool __output;
 		__output = tmp__output;
@@ -103,13 +114,13 @@ namespace bs
 
 	void ScriptLight::InternalSetAttenuationRadius(ScriptLight* self, float radius)
 	{
-		self->GetHandle()->SetAttenuationRadius(radius);
+		static_cast<CLight*>(self->GetNativeObject())->SetAttenuationRadius(radius);
 	}
 
 	float ScriptLight::InternalGetAttenuationRadius(ScriptLight* self)
 	{
 		float tmp__output;
-		tmp__output = self->GetHandle()->GetAttenuationRadius();
+		tmp__output = static_cast<CLight*>(self->GetNativeObject())->GetAttenuationRadius();
 
 		float __output;
 		__output = tmp__output;
@@ -119,13 +130,13 @@ namespace bs
 
 	void ScriptLight::InternalSetSourceRadius(ScriptLight* self, float radius)
 	{
-		self->GetHandle()->SetSourceRadius(radius);
+		static_cast<CLight*>(self->GetNativeObject())->SetSourceRadius(radius);
 	}
 
 	float ScriptLight::InternalGetSourceRadius(ScriptLight* self)
 	{
 		float tmp__output;
-		tmp__output = self->GetHandle()->GetSourceRadius();
+		tmp__output = static_cast<CLight*>(self->GetNativeObject())->GetSourceRadius();
 
 		float __output;
 		__output = tmp__output;
@@ -135,39 +146,39 @@ namespace bs
 
 	void ScriptLight::InternalSetSpotAngle(ScriptLight* self, TDegree<float>* spotAngle)
 	{
-		self->GetHandle()->SetSpotAngle(*spotAngle);
+		static_cast<CLight*>(self->GetNativeObject())->SetSpotAngle(*spotAngle);
 	}
 
 	void ScriptLight::InternalGetSpotAngle(ScriptLight* self, TDegree<float>* __output)
 	{
 		TDegree<float> tmp__output;
-		tmp__output = self->GetHandle()->GetSpotAngle();
+		tmp__output = static_cast<CLight*>(self->GetNativeObject())->GetSpotAngle();
 
 		*__output = tmp__output;
 	}
 
 	void ScriptLight::InternalSetSpotFalloffAngle(ScriptLight* self, TDegree<float>* spotAngle)
 	{
-		self->GetHandle()->SetSpotFalloffAngle(*spotAngle);
+		static_cast<CLight*>(self->GetNativeObject())->SetSpotFalloffAngle(*spotAngle);
 	}
 
 	void ScriptLight::InternalGetSpotFalloffAngle(ScriptLight* self, TDegree<float>* __output)
 	{
 		TDegree<float> tmp__output;
-		tmp__output = self->GetHandle()->GetSpotFalloffAngle();
+		tmp__output = static_cast<CLight*>(self->GetNativeObject())->GetSpotFalloffAngle();
 
 		*__output = tmp__output;
 	}
 
 	void ScriptLight::InternalSetCastsShadow(ScriptLight* self, bool castsShadow)
 	{
-		self->GetHandle()->SetCastsShadow(castsShadow);
+		static_cast<CLight*>(self->GetNativeObject())->SetCastsShadow(castsShadow);
 	}
 
 	bool ScriptLight::InternalGetCastsShadow(ScriptLight* self)
 	{
 		bool tmp__output;
-		tmp__output = self->GetHandle()->GetCastsShadow();
+		tmp__output = static_cast<CLight*>(self->GetNativeObject())->GetCastsShadow();
 
 		bool __output;
 		__output = tmp__output;
@@ -177,13 +188,13 @@ namespace bs
 
 	void ScriptLight::InternalSetShadowBias(ScriptLight* self, float bias)
 	{
-		self->GetHandle()->SetShadowBias(bias);
+		static_cast<CLight*>(self->GetNativeObject())->SetShadowBias(bias);
 	}
 
 	float ScriptLight::InternalGetShadowBias(ScriptLight* self)
 	{
 		float tmp__output;
-		tmp__output = self->GetHandle()->GetShadowBias();
+		tmp__output = static_cast<CLight*>(self->GetNativeObject())->GetShadowBias();
 
 		float __output;
 		__output = tmp__output;
@@ -194,7 +205,7 @@ namespace bs
 	void ScriptLight::InternalGetBounds(ScriptLight* self, Sphere* __output)
 	{
 		Sphere tmp__output;
-		tmp__output = self->GetHandle()->GetBounds();
+		tmp__output = static_cast<CLight*>(self->GetNativeObject())->GetBounds();
 
 		*__output = tmp__output;
 	}

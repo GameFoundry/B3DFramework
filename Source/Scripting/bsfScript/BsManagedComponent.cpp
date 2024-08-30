@@ -27,10 +27,11 @@ ManagedComponent::ManagedComponent(const HSceneObject& parent, MonoReflectionTyp
 
 MonoObject* ManagedComponent::GetManagedInstance() const
 {
-	if(mOwner)
-		return mOwner->GetManagedInstance();
+	ScriptObjectWrapper* const scriptObjectWrapper = (ScriptObjectWrapper*)GetScriptObjectWrapper();
+	if(scriptObjectWrapper == nullptr)
+		return nullptr;
 
-	return nullptr;
+	return scriptObjectWrapper->GetScriptObject();
 }
 
 RawBackupData ManagedComponent::Backup(bool clearExisting)
@@ -41,8 +42,12 @@ RawBackupData ManagedComponent::Backup(bool clearExisting)
 	// return the data we backed up before the type was lost
 	if(!mMissingType)
 	{
-		MonoObject* instance = mOwner->GetManagedInstance();
-		SPtr<ManagedSerializableObject> serializableObject = ManagedSerializableObject::CreateFromExisting(instance);
+		MonoObject* scriptObject = nullptr;
+		ScriptObjectWrapper* const scriptObjectWrapper = (ScriptObjectWrapper*)GetScriptObjectWrapper();
+		if(scriptObjectWrapper != nullptr)
+			scriptObject = scriptObjectWrapper->GetScriptObject();
+
+		SPtr<ManagedSerializableObject> serializableObject = ManagedSerializableObject::CreateFromExisting(scriptObject);
 
 		// Serialize the object information and its fields. We cannot just serialize the entire object because
 		// the managed instance had to be created in a previous step. So we handle creation of the top level object manually.
@@ -97,11 +102,15 @@ RawBackupData ManagedComponent::Backup(bool clearExisting)
 
 void ManagedComponent::Restore(const RawBackupData& data, bool missingType)
 {
-	Initialize(mOwner);
+	ScriptObjectWrapper* const scriptObjectWrapper = (ScriptObjectWrapper*)GetScriptObjectWrapper();
+	if(!B3D_ENSURE(scriptObjectWrapper == nullptr))
+		return;
+
+	BindToScriptObject();
 	mObjInfo = nullptr;
 
-	MonoObject* instance = mOwner->GetManagedInstance();
-	if(instance != nullptr && data.Data != nullptr)
+	MonoObject* const scriptObject = scriptObjectWrapper->GetScriptObject();
+	if(scriptObject != nullptr && data.Data != nullptr)
 	{
 		BinarySerializer bs;
 
@@ -118,7 +127,7 @@ void ManagedComponent::Restore(const RawBackupData& data, bool missingType)
 		{
 			ScriptAssemblyManager::Instance().GetSerializableObjectInfo(mNamespace, mTypeName, mObjInfo);
 
-			serializableObject->Deserialize(instance, mObjInfo);
+			serializableObject->Deserialize(scriptObject, mObjInfo);
 		}
 		else
 			mSerializedObjectData = serializableObject;
@@ -131,16 +140,19 @@ void ManagedComponent::Restore(const RawBackupData& data, bool missingType)
 	mRequiresReset = true;
 }
 
-void ManagedComponent::Initialize(ScriptManagedComponent* owner)
+void ManagedComponent::BindToScriptObject()
 {
-	mOwner = owner;
+	ScriptObjectWrapper* const scriptObjectWrapper = (ScriptObjectWrapper*)GetScriptObjectWrapper();
+	if(!B3D_ENSURE(scriptObjectWrapper == nullptr))
+		return;
+
 	mFullTypeName = mNamespace + "." + mTypeName;
 
-	MonoObject* instance = owner->GetManagedInstance();
+	MonoObject* const scriptObject = scriptObjectWrapper->GetScriptObject();
 	mManagedClass = nullptr;
-	if(instance != nullptr)
+	if(scriptObject != nullptr)
 	{
-		::MonoClass* monoClass = MonoUtil::GetClass(instance);
+		::MonoClass* monoClass = MonoUtil::GetClass(scriptObject);
 		mRuntimeType = MonoUtil::GetType(monoClass);
 
 		mManagedClass = MonoManager::Instance().FindClass(monoClass);
@@ -256,12 +268,13 @@ bool ManagedComponent::TypeEquals(const Component& other)
 
 bool ManagedComponent::CalculateBounds(Bounds& bounds)
 {
-	MonoObject* instance = nullptr;
+	MonoObject* scriptObject = nullptr;
 
-	if(mOwner)
-		instance = mOwner->GetManagedInstance();
+	ScriptObjectWrapper* const scriptObjectWrapper = (ScriptObjectWrapper*)GetScriptObjectWrapper();
+	if(scriptObjectWrapper != nullptr)
+		scriptObject = scriptObjectWrapper->GetScriptObject();
 
-	if(instance != nullptr && mCalculateBoundsMethod != nullptr)
+	if(scriptObject != nullptr && mCalculateBoundsMethod != nullptr)
 	{
 		AABox box;
 		Sphere sphere;
@@ -270,7 +283,7 @@ bool ManagedComponent::CalculateBounds(Bounds& bounds)
 		params[0] = &box;
 		params[1] = &sphere;
 
-		MonoObject* areBoundsValidObj = mCalculateBoundsMethod->InvokeVirtual(instance, params);
+		MonoObject* areBoundsValidObj = mCalculateBoundsMethod->InvokeVirtual(scriptObject, params);
 
 		bool areBoundsValid;
 		areBoundsValid = *(bool*)MonoUtil::Unbox(areBoundsValidObj);
@@ -284,25 +297,33 @@ bool ManagedComponent::CalculateBounds(Bounds& bounds)
 
 void ManagedComponent::Update()
 {
+	ScriptObjectWrapper* const scriptObjectWrapper = (ScriptObjectWrapper*)GetScriptObjectWrapper();
+	if(!B3D_ENSURE(scriptObjectWrapper == nullptr))
+		return;
+
 	if(mOnUpdateThunk != nullptr)
 	{
-		MonoObject* instance = mOwner->GetManagedInstance();
+		MonoObject* const scriptObject = scriptObjectWrapper->GetScriptObject();
 
 		// Note: Not calling virtual methods. Can be easily done if needed but for now doing this
 		// for some extra speed.
-		MonoUtil::InvokeThunk(mOnUpdateThunk, instance);
+		MonoUtil::InvokeThunk(mOnUpdateThunk, scriptObject);
 	}
 }
 
 void ManagedComponent::TriggerOnReset()
 {
+	ScriptObjectWrapper* const scriptObjectWrapper = (ScriptObjectWrapper*)GetScriptObjectWrapper();
+	if(!B3D_ENSURE(scriptObjectWrapper == nullptr))
+		return;
+
 	if(mRequiresReset && mOnResetThunk != nullptr)
 	{
-		MonoObject* instance = mOwner->GetManagedInstance();
+		MonoObject* const scriptObject = scriptObjectWrapper->GetScriptObject();
 
 		// Note: Not calling virtual methods. Can be easily done if needed but for now doing this
 		// for some extra speed.
-		MonoUtil::InvokeThunk(mOnResetThunk, instance);
+		MonoUtil::InvokeThunk(mOnResetThunk, scriptObject);
 	}
 
 	mRequiresReset = false;
@@ -326,32 +347,30 @@ void ManagedComponent::Initialize()
 		mMissingType = false;
 	}
 
-	// Find handle to self
-	HManagedComponent componentHandle;
-	if(SO() != nullptr)
+	ScriptObjectWrapper* const scriptObjectWrapper = (ScriptObjectWrapper*)GetScriptObjectWrapper();
+	if(B3D_ENSURE(scriptObjectWrapper == nullptr))
 	{
-		const Vector<HComponent>& components = SO()->GetComponents();
-		for(auto& component : components)
-		{
-			if(component.Get() == this)
-			{
-				componentHandle = B3DStaticGameObjectCast<ManagedComponent>(component);
-				break;
-			}
-		}
+		
 	}
 
-	B3D_ASSERT(componentHandle != nullptr);
-	ScriptGameObjectManager::Instance().CreateManagedScriptComponent(instance, componentHandle);
+	ScriptManagedComponent::GetOrCreateScriptObject(componentHandle);
+
+	ScriptManagedComponent* const nativeInstance = new(B3DAllocate<ScriptManagedComponent>())
+		ScriptManagedComponent(existingInstance, component);
+	ScriptGameObjectManager::Instance().CreateManagedScriptComponent(instance, componentHandle); TODO
 }
 
 void ManagedComponent::OnCreated()
 {
-	MonoObject* instance = mOwner->GetManagedInstance();
+	ScriptObjectWrapper* const scriptObjectWrapper = (ScriptObjectWrapper*)GetScriptObjectWrapper();
+	if(!B3D_ENSURE(scriptObjectWrapper == nullptr))
+		return;
+
+	MonoObject* const scriptObject = scriptObjectWrapper->GetScriptObject();
 
 	if(mSerializedObjectData != nullptr && !mMissingType)
 	{
-		mSerializedObjectData->Deserialize(instance, mObjInfo);
+		mSerializedObjectData->Deserialize(scriptObject, mObjInfo);
 		mSerializedObjectData = nullptr;
 	}
 
@@ -359,7 +378,7 @@ void ManagedComponent::OnCreated()
 	{
 		// Note: Not calling virtual methods. Can be easily done if needed but for now doing this
 		// for some extra speed.
-		MonoUtil::InvokeThunk(mOnCreatedThunk, instance);
+		MonoUtil::InvokeThunk(mOnCreatedThunk, scriptObject);
 	}
 
 	TriggerOnReset();
@@ -367,13 +386,17 @@ void ManagedComponent::OnCreated()
 
 void ManagedComponent::OnBeginPlay()
 {
+	ScriptObjectWrapper* const scriptObjectWrapper = (ScriptObjectWrapper*)GetScriptObjectWrapper();
+	if(!B3D_ENSURE(scriptObjectWrapper == nullptr))
+		return;
+
 	if(mOnInitializedThunk != nullptr)
 	{
-		MonoObject* instance = mOwner->GetManagedInstance();
+		MonoObject* const scriptObject = scriptObjectWrapper->GetScriptObject();
 
 		// Note: Not calling virtual methods. Can be easily done if needed but for now doing this
 		// for some extra speed.
-		MonoUtil::InvokeThunk(mOnInitializedThunk, instance);
+		MonoUtil::InvokeThunk(mOnInitializedThunk, scriptObject);
 	}
 
 	TriggerOnReset();
@@ -381,49 +404,65 @@ void ManagedComponent::OnBeginPlay()
 
 void ManagedComponent::OnDestroyed()
 {
+	ScriptObjectWrapper* const scriptObjectWrapper = (ScriptObjectWrapper*)GetScriptObjectWrapper();
+	if(!B3D_ENSURE(scriptObjectWrapper == nullptr))
+		return;
+
 	if(mOnDestroyThunk != nullptr)
 	{
-		MonoObject* instance = mOwner->GetManagedInstance();
+		MonoObject* const scriptObject = scriptObjectWrapper->GetScriptObject();
 
 		// Note: Not calling virtual methods. Can be easily done if needed but for now doing this
 		// for some extra speed.
-		MonoUtil::InvokeThunk(mOnDestroyThunk, instance);
+		MonoUtil::InvokeThunk(mOnDestroyThunk, scriptObject);
 	}
 }
 
 void ManagedComponent::OnEnabled()
 {
+	ScriptObjectWrapper* const scriptObjectWrapper = (ScriptObjectWrapper*)GetScriptObjectWrapper();
+	if(!B3D_ENSURE(scriptObjectWrapper == nullptr))
+		return;
+
 	if(mOnEnabledThunk != nullptr)
 	{
-		MonoObject* instance = mOwner->GetManagedInstance();
+		MonoObject* const scriptObject = scriptObjectWrapper->GetScriptObject();
 
 		// Note: Not calling virtual methods. Can be easily done if needed but for now doing this
 		// for some extra speed.
-		MonoUtil::InvokeThunk(mOnEnabledThunk, instance);
+		MonoUtil::InvokeThunk(mOnEnabledThunk, scriptObject);
 	}
 }
 
 void ManagedComponent::OnDisabled()
 {
+	ScriptObjectWrapper* const scriptObjectWrapper = (ScriptObjectWrapper*)GetScriptObjectWrapper();
+	if(!B3D_ENSURE(scriptObjectWrapper == nullptr))
+		return;
+
 	if(mOnDisabledThunk != nullptr)
 	{
-		MonoObject* instance = mOwner->GetManagedInstance();
+		MonoObject* const scriptObject = scriptObjectWrapper->GetScriptObject();
 
 		// Note: Not calling virtual methods. Can be easily done if needed but for now doing this
 		// for some extra speed.
-		MonoUtil::InvokeThunk(mOnDisabledThunk, instance);
+		MonoUtil::InvokeThunk(mOnDisabledThunk, scriptObject);
 	}
 }
 
 void ManagedComponent::OnTransformChanged(TransformChangedFlags flags)
 {
+	ScriptObjectWrapper* const scriptObjectWrapper = (ScriptObjectWrapper*)GetScriptObjectWrapper();
+	if(!B3D_ENSURE(scriptObjectWrapper == nullptr))
+		return;
+
 	if(mOnTransformChangedThunk != nullptr)
 	{
-		MonoObject* instance = mOwner->GetManagedInstance();
+		MonoObject* const scriptObject = scriptObjectWrapper->GetScriptObject();
 
 		// Note: Not calling virtual methods. Can be easily done if needed but for now doing this
 		// for some extra speed.
-		MonoUtil::InvokeThunk(mOnTransformChangedThunk, instance, flags);
+		MonoUtil::InvokeThunk(mOnTransformChangedThunk, scriptObject, flags);
 	}
 }
 

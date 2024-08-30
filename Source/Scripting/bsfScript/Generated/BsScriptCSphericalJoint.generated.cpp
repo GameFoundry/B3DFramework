@@ -9,24 +9,35 @@
 
 namespace bs
 {
-	ScriptSphericalJoint::ScriptSphericalJoint(MonoObject* managedInstance, const GameObjectHandle<CSphericalJoint>& value)
-		:TScriptComponent(managedInstance, value)
+	ScriptSphericalJoint::ScriptSphericalJoint(const GameObjectHandle<CSphericalJoint>& nativeObject, MonoObject* scriptObject)
+		:TScriptGameObjectWrapper(nativeObject, scriptObject)
 	{
+		RegisterEvents();
 	}
 
-	void ScriptSphericalJoint::InitRuntimeData()
+	void ScriptSphericalJoint::SetupScriptBindings()
 	{
-		metaData.ScriptClass->AddInternalCall("Internal_GetLimit", (void*)&ScriptSphericalJoint::InternalGetLimit);
-		metaData.ScriptClass->AddInternalCall("Internal_SetLimit", (void*)&ScriptSphericalJoint::InternalSetLimit);
-		metaData.ScriptClass->AddInternalCall("Internal_SetFlag", (void*)&ScriptSphericalJoint::InternalSetFlag);
-		metaData.ScriptClass->AddInternalCall("Internal_HasFlag", (void*)&ScriptSphericalJoint::InternalHasFlag);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetLimit", (void*)&ScriptSphericalJoint::InternalGetLimit);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetLimit", (void*)&ScriptSphericalJoint::InternalSetLimit);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetFlag", (void*)&ScriptSphericalJoint::InternalSetFlag);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_HasFlag", (void*)&ScriptSphericalJoint::InternalHasFlag);
 
 	}
 
+	MonoObject* ScriptSphericalJoint::CreateScriptObject(bool construct)
+	{
+		bool dummy = false;
+		void* ctorParams[1] = { &dummy };
+
+		if(construct)
+			return sInteropMetaData.ScriptClass->CreateInstance("bool", ctorParams);
+
+		return sInteropMetaData.ScriptClass->CreateInstance(false);
+	}
 	void ScriptSphericalJoint::InternalGetLimit(ScriptSphericalJoint* self, __LimitConeRangeInterop* __output)
 	{
 		LimitConeRange tmp__output;
-		tmp__output = self->GetHandle()->GetLimit();
+		tmp__output = static_cast<CSphericalJoint*>(self->GetNativeObject())->GetLimit();
 
 		__LimitConeRangeInterop interop__output;
 		interop__output = ScriptLimitConeRange::ToInterop(tmp__output);
@@ -37,18 +48,18 @@ namespace bs
 	{
 		LimitConeRange tmplimit;
 		tmplimit = ScriptLimitConeRange::FromInterop(*limit);
-		self->GetHandle()->SetLimit(tmplimit);
+		static_cast<CSphericalJoint*>(self->GetNativeObject())->SetLimit(tmplimit);
 	}
 
 	void ScriptSphericalJoint::InternalSetFlag(ScriptSphericalJoint* self, SphericalJointFlag flag, bool enabled)
 	{
-		self->GetHandle()->SetFlag(flag, enabled);
+		static_cast<CSphericalJoint*>(self->GetNativeObject())->SetFlag(flag, enabled);
 	}
 
 	bool ScriptSphericalJoint::InternalHasFlag(ScriptSphericalJoint* self, SphericalJointFlag flag)
 	{
 		bool tmp__output;
-		tmp__output = self->GetHandle()->HasFlag(flag);
+		tmp__output = static_cast<CSphericalJoint*>(self->GetNativeObject())->HasFlag(flag);
 
 		bool __output;
 		__output = tmp__output;

@@ -11,6 +11,7 @@ namespace bs
 	ScriptBloomSettings::ScriptBloomSettings(const SPtr<BloomSettings>& nativeObject, MonoObject* scriptObject)
 		:TScriptReflectableWrapper(nativeObject, scriptObject)
 	{
+		RegisterEvents();
 	}
 
 	void ScriptBloomSettings::SetupScriptBindings()

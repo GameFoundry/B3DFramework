@@ -12,6 +12,7 @@ namespace bs
 	ScriptParticleRotation::ScriptParticleRotation(const SPtr<ParticleRotation>& nativeObject, MonoObject* scriptObject)
 		:TScriptReflectableWrapper(nativeObject, scriptObject)
 	{
+		RegisterEvents();
 	}
 
 	void ScriptParticleRotation::SetupScriptBindings()

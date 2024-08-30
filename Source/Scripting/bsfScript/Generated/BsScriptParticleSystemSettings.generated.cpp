@@ -15,6 +15,7 @@ namespace bs
 	ScriptParticleSystemSettings::ScriptParticleSystemSettings(const SPtr<ParticleSystemSettings>& nativeObject, MonoObject* scriptObject)
 		:TScriptReflectableWrapper(nativeObject, scriptObject)
 	{
+		RegisterEvents();
 	}
 
 	void ScriptParticleSystemSettings::SetupScriptBindings()

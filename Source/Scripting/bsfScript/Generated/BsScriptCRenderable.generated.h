@@ -9,12 +9,14 @@
 namespace bs { class CRenderable; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptRenderable : public TScriptComponent<ScriptRenderable, CRenderable>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptRenderable : public TScriptGameObjectWrapper<CRenderable, ScriptRenderable>
 	{
 	public:
-		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "Renderable")
+		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "Renderable")
 
-		ScriptRenderable(MonoObject* managedInstance, const GameObjectHandle<CRenderable>& value);
+		ScriptRenderable(const GameObjectHandle<CRenderable>& nativeObject, MonoObject* scriptObject);
+
+		static MonoObject* CreateScriptObject(bool construct);
 
 	private:
 		static void InternalSetMesh(ScriptRenderable* self, MonoObject* mesh);

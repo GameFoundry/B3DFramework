@@ -14,6 +14,7 @@ namespace bs
 	ScriptMeshImportOptions::ScriptMeshImportOptions(const SPtr<MeshImportOptions>& nativeObject, MonoObject* scriptObject)
 		:TScriptReflectableWrapper(nativeObject, scriptObject)
 	{
+		RegisterEvents();
 	}
 
 	void ScriptMeshImportOptions::SetupScriptBindings()

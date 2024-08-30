@@ -4,7 +4,6 @@
 #include "BsMonoMethod.h"
 #include "BsMonoClass.h"
 #include "BsMonoUtil.h"
-#include "BsScriptGameObjectManager.h"
 #include "Wrappers/BsScriptPlane.h"
 #include "Wrappers/BsScriptSceneObject.h"
 #include "BsScriptPARTICLE_COLLISIONS_DESC.generated.h"
@@ -15,6 +14,7 @@ namespace bs
 	ScriptParticleCollisions::ScriptParticleCollisions(const SPtr<ParticleCollisions>& nativeObject, MonoObject* scriptObject)
 		:TScriptReflectableWrapper(nativeObject, scriptObject)
 	{
+		RegisterEvents();
 	}
 
 	void ScriptParticleCollisions::SetupScriptBindings()

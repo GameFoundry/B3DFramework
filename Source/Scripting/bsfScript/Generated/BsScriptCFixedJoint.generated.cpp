@@ -8,14 +8,25 @@
 
 namespace bs
 {
-	ScriptFixedJoint::ScriptFixedJoint(MonoObject* managedInstance, const GameObjectHandle<CFixedJoint>& value)
-		:TScriptComponent(managedInstance, value)
+	ScriptFixedJoint::ScriptFixedJoint(const GameObjectHandle<CFixedJoint>& nativeObject, MonoObject* scriptObject)
+		:TScriptGameObjectWrapper(nativeObject, scriptObject)
 	{
+		RegisterEvents();
 	}
 
-	void ScriptFixedJoint::InitRuntimeData()
+	void ScriptFixedJoint::SetupScriptBindings()
 	{
 
 	}
 
+	MonoObject* ScriptFixedJoint::CreateScriptObject(bool construct)
+	{
+		bool dummy = false;
+		void* ctorParams[1] = { &dummy };
+
+		if(construct)
+			return sInteropMetaData.ScriptClass->CreateInstance("bool", ctorParams);
+
+		return sInteropMetaData.ScriptClass->CreateInstance(false);
+	}
 }

@@ -4,7 +4,6 @@
 #include "BsMonoMethod.h"
 #include "BsMonoClass.h"
 #include "BsMonoUtil.h"
-#include "BsScriptGameObjectManager.h"
 #include "../../../Foundation/bsfCore/Components/BsCCollider.h"
 #include "BsScriptCCollider.generated.h"
 #include "../../../Foundation/bsfCore/Physics/BsPhysicsCommon.h"
@@ -38,11 +37,11 @@ namespace bs
 			ScriptArray scriptArrayCollider(value.Collider);
 			for(int elementIndex = 0; elementIndex < (int)scriptArrayCollider.Size(); elementIndex++)
 			{
-				ScriptColliderBase* scriptWrapperObjectCollider;
-				scriptWrapperObjectCollider = (ScriptColliderBase*)ScriptCollider::ToNative(scriptArrayCollider.Get<MonoObject*>(elementIndex));
+				ScriptColliderWrapperBase* scriptWrapperObjectCollider;
+				scriptWrapperObjectCollider = (ScriptColliderWrapperBase*)ScriptCollider::GetScriptObjectWrapper(scriptArrayCollider.Get<MonoObject*>(elementIndex));
 				if(scriptWrapperObjectCollider != nullptr)
 				{
-					GameObjectHandle<CCollider> arrayElementPointerCollider = B3DStaticGameObjectCast<CCollider>(scriptWrapperObjectCollider->GetComponent());
+					GameObjectHandle<CCollider> arrayElementPointerCollider = B3DStaticGameObjectCast<CCollider>(scriptWrapperObjectCollider->GetBaseNativeObjectAsHandle());
 					vecCollider[elementIndex] = arrayElementPointerCollider;
 				}
 			}
@@ -73,13 +72,10 @@ namespace bs
 		ScriptArray scriptArrayCollider = ScriptArray::Create<ScriptCollider>(elementCountCollider);
 		for(int elementIndex = 0; elementIndex < elementCountCollider; elementIndex++)
 		{
-			ScriptComponentBase* scriptObjectWrapperCollider = nullptr;
+			MonoObject* tempscriptArrayCollider = nullptr;
 			if(value.Collider[elementIndex])
-				scriptObjectWrapperCollider = ScriptGameObjectManager::Instance().GetBuiltinScriptComponent(B3DStaticGameObjectCast<Component>(value.Collider[elementIndex]));
-			if(scriptObjectWrapperCollider != nullptr)
-				scriptArrayCollider.Set(elementIndex, scriptObjectWrapperCollider->GetManagedInstance());
-			else
-				scriptArrayCollider.Set(elementIndex, nullptr);
+				tempscriptArrayCollider = ScriptComponent::GetOrCreateScriptObject(value.Collider[elementIndex]);
+			scriptArrayCollider.Set(elementIndex, tempscriptArrayCollider);
 		}
 		vecCollider = scriptArrayCollider.GetInternal();
 		output.Collider = vecCollider;

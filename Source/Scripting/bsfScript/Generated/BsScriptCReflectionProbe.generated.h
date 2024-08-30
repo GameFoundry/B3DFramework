@@ -10,12 +10,14 @@
 namespace bs { class CReflectionProbe; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptReflectionProbe : public TScriptComponent<ScriptReflectionProbe, CReflectionProbe>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptReflectionProbe : public TScriptGameObjectWrapper<CReflectionProbe, ScriptReflectionProbe>
 	{
 	public:
-		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "ReflectionProbe")
+		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "ReflectionProbe")
 
-		ScriptReflectionProbe(MonoObject* managedInstance, const GameObjectHandle<CReflectionProbe>& value);
+		ScriptReflectionProbe(const GameObjectHandle<CReflectionProbe>& nativeObject, MonoObject* scriptObject);
+
+		static MonoObject* CreateScriptObject(bool construct);
 
 	private:
 		static ReflectionProbeType InternalGetType(ScriptReflectionProbe* self);

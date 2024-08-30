@@ -14,6 +14,7 @@ namespace bs
 	ScriptDepthOfFieldSettings::ScriptDepthOfFieldSettings(const SPtr<DepthOfFieldSettings>& nativeObject, MonoObject* scriptObject)
 		:TScriptReflectableWrapper(nativeObject, scriptObject)
 	{
+		RegisterEvents();
 	}
 
 	void ScriptDepthOfFieldSettings::SetupScriptBindings()

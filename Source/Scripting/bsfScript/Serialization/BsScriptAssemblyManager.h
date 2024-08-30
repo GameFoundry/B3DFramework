@@ -8,8 +8,6 @@
 
 namespace bs
 {
-	struct BuiltinComponentInfo;
-
 	/** @addtogroup bsfScript
 	 *  @{
 	 */
@@ -54,7 +52,6 @@ namespace bs
 	/** Contains mapping between managed objects and their native wrappers for various types. */
 	struct BuiltinTypeMappings
 	{
-		Vector<BuiltinComponentInfo> Components;
 		Vector<BuiltinResourceInfo> Resources;
 
 		static const BuiltinTypeMappings kEmpty;
@@ -91,18 +88,6 @@ namespace bs
 
 		/**	Generates or retrieves a type info object for the specified managed class, if the class is serializable. */
 		SPtr<ManagedSerializableTypeInfo> GetTypeInfo(MonoClass* monoClass);
-
-		/**
-		 * Maps a mono type to information about a wrapped built-in component. Returns null if type doesn't correspond to
-		 * a builtin component.
-		 */
-		BuiltinComponentInfo* GetBuiltinComponentInfo(::MonoReflectionType* type);
-
-		/**
-		 * Maps a type id to information about a wrapped built-in component. Returns null if type id doesn't correspond to
-		 * a builtin component.
-		 */
-		BuiltinComponentInfo* GetBuiltinComponentInfo(u32 rttiTypeId);
 
 		/**
 		 * Maps a mono type to information about a wrapped built-in resource. Returns null if type doesn't correspond to
@@ -174,8 +159,6 @@ namespace bs
 		void InitializeScriptWrapperMetaDataLookup(MonoAssembly& assembly);
 
 		UnorderedMap<String, SPtr<ManagedSerializableAssemblyInfo>> mAssemblyInfos;
-		UnorderedMap<::MonoReflectionType*, BuiltinComponentInfo> mBuiltinComponentInfos; // TODO - To be deprecated
-		UnorderedMap<u32, BuiltinComponentInfo> mBuiltinComponentInfosByTID; // TODO - To be deprecated
 		UnorderedMap<::MonoReflectionType*, BuiltinResourceInfo> mBuiltinResourceInfos; // TODO - To be deprecated
 		UnorderedMap<u32, BuiltinResourceInfo> mBuiltinResourceInfosByTID; // TODO - To be deprecated
 		UnorderedMap<u32, BuiltinResourceInfo> mBuiltinResourceInfosByType; // TODO - To be deprecated

@@ -9,26 +9,37 @@
 
 namespace bs
 {
-	ScriptSliderJoint::ScriptSliderJoint(MonoObject* managedInstance, const GameObjectHandle<CSliderJoint>& value)
-		:TScriptComponent(managedInstance, value)
+	ScriptSliderJoint::ScriptSliderJoint(const GameObjectHandle<CSliderJoint>& nativeObject, MonoObject* scriptObject)
+		:TScriptGameObjectWrapper(nativeObject, scriptObject)
 	{
+		RegisterEvents();
 	}
 
-	void ScriptSliderJoint::InitRuntimeData()
+	void ScriptSliderJoint::SetupScriptBindings()
 	{
-		metaData.ScriptClass->AddInternalCall("Internal_GetPosition", (void*)&ScriptSliderJoint::InternalGetPosition);
-		metaData.ScriptClass->AddInternalCall("Internal_GetSpeed", (void*)&ScriptSliderJoint::InternalGetSpeed);
-		metaData.ScriptClass->AddInternalCall("Internal_GetLimit", (void*)&ScriptSliderJoint::InternalGetLimit);
-		metaData.ScriptClass->AddInternalCall("Internal_SetLimit", (void*)&ScriptSliderJoint::InternalSetLimit);
-		metaData.ScriptClass->AddInternalCall("Internal_SetFlag", (void*)&ScriptSliderJoint::InternalSetFlag);
-		metaData.ScriptClass->AddInternalCall("Internal_HasFlag", (void*)&ScriptSliderJoint::InternalHasFlag);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetPosition", (void*)&ScriptSliderJoint::InternalGetPosition);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetSpeed", (void*)&ScriptSliderJoint::InternalGetSpeed);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetLimit", (void*)&ScriptSliderJoint::InternalGetLimit);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetLimit", (void*)&ScriptSliderJoint::InternalSetLimit);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetFlag", (void*)&ScriptSliderJoint::InternalSetFlag);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_HasFlag", (void*)&ScriptSliderJoint::InternalHasFlag);
 
 	}
 
+	MonoObject* ScriptSliderJoint::CreateScriptObject(bool construct)
+	{
+		bool dummy = false;
+		void* ctorParams[1] = { &dummy };
+
+		if(construct)
+			return sInteropMetaData.ScriptClass->CreateInstance("bool", ctorParams);
+
+		return sInteropMetaData.ScriptClass->CreateInstance(false);
+	}
 	float ScriptSliderJoint::InternalGetPosition(ScriptSliderJoint* self)
 	{
 		float tmp__output;
-		tmp__output = self->GetHandle()->GetPosition();
+		tmp__output = static_cast<CSliderJoint*>(self->GetNativeObject())->GetPosition();
 
 		float __output;
 		__output = tmp__output;
@@ -39,7 +50,7 @@ namespace bs
 	float ScriptSliderJoint::InternalGetSpeed(ScriptSliderJoint* self)
 	{
 		float tmp__output;
-		tmp__output = self->GetHandle()->GetSpeed();
+		tmp__output = static_cast<CSliderJoint*>(self->GetNativeObject())->GetSpeed();
 
 		float __output;
 		__output = tmp__output;
@@ -50,7 +61,7 @@ namespace bs
 	void ScriptSliderJoint::InternalGetLimit(ScriptSliderJoint* self, __LimitLinearRangeInterop* __output)
 	{
 		LimitLinearRange tmp__output;
-		tmp__output = self->GetHandle()->GetLimit();
+		tmp__output = static_cast<CSliderJoint*>(self->GetNativeObject())->GetLimit();
 
 		__LimitLinearRangeInterop interop__output;
 		interop__output = ScriptLimitLinearRange::ToInterop(tmp__output);
@@ -61,18 +72,18 @@ namespace bs
 	{
 		LimitLinearRange tmplimit;
 		tmplimit = ScriptLimitLinearRange::FromInterop(*limit);
-		self->GetHandle()->SetLimit(tmplimit);
+		static_cast<CSliderJoint*>(self->GetNativeObject())->SetLimit(tmplimit);
 	}
 
 	void ScriptSliderJoint::InternalSetFlag(ScriptSliderJoint* self, SliderJointFlag flag, bool enabled)
 	{
-		self->GetHandle()->SetFlag(flag, enabled);
+		static_cast<CSliderJoint*>(self->GetNativeObject())->SetFlag(flag, enabled);
 	}
 
 	bool ScriptSliderJoint::InternalHasFlag(ScriptSliderJoint* self, SliderJointFlag flag)
 	{
 		bool tmp__output;
-		tmp__output = self->GetHandle()->HasFlag(flag);
+		tmp__output = static_cast<CSliderJoint*>(self->GetNativeObject())->HasFlag(flag);
 
 		bool __output;
 		__output = tmp__output;

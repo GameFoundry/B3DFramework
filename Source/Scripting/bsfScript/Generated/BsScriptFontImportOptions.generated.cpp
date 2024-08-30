@@ -13,6 +13,7 @@ namespace bs
 	ScriptFontImportOptions::ScriptFontImportOptions(const SPtr<FontImportOptions>& nativeObject, MonoObject* scriptObject)
 		:TScriptReflectableWrapper(nativeObject, scriptObject)
 	{
+		RegisterEvents();
 	}
 
 	void ScriptFontImportOptions::SetupScriptBindings()

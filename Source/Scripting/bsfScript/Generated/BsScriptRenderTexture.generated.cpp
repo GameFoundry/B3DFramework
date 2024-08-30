@@ -14,6 +14,7 @@ namespace bs
 	ScriptRenderTexture::ScriptRenderTexture(const SPtr<RenderTexture>& nativeObject, MonoObject* scriptObject)
 		:TScriptReflectableWrapper(nativeObject, scriptObject)
 	{
+		RegisterEvents();
 	}
 
 	void ScriptRenderTexture::SetupScriptBindings()

@@ -11,12 +11,14 @@
 namespace bs { class CDistanceJoint; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptDistanceJoint : public TScriptComponent<ScriptDistanceJoint, CDistanceJoint, ScriptJointBase>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptDistanceJoint : public TScriptGameObjectWrapper<CDistanceJoint, ScriptDistanceJoint>
 	{
 	public:
-		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "DistanceJoint")
+		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "DistanceJoint")
 
-		ScriptDistanceJoint(MonoObject* managedInstance, const GameObjectHandle<CDistanceJoint>& value);
+		ScriptDistanceJoint(const GameObjectHandle<CDistanceJoint>& nativeObject, MonoObject* scriptObject);
+
+		static MonoObject* CreateScriptObject(bool construct);
 
 	private:
 		static float InternalGetDistance(ScriptDistanceJoint* self);

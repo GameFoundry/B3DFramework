@@ -9,12 +9,14 @@
 namespace bs { class CMeshCollider; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptMeshCollider : public TScriptComponent<ScriptMeshCollider, CMeshCollider, ScriptColliderBase>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptMeshCollider : public TScriptGameObjectWrapper<CMeshCollider, ScriptMeshCollider>
 	{
 	public:
-		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "MeshCollider")
+		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "MeshCollider")
 
-		ScriptMeshCollider(MonoObject* managedInstance, const GameObjectHandle<CMeshCollider>& value);
+		ScriptMeshCollider(const GameObjectHandle<CMeshCollider>& nativeObject, MonoObject* scriptObject);
+
+		static MonoObject* CreateScriptObject(bool construct);
 
 	private:
 		static void InternalSetMesh(ScriptMeshCollider* self, MonoObject* mesh);

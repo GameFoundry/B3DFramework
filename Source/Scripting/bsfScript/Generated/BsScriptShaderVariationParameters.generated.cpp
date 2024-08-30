@@ -10,6 +10,7 @@ namespace bs
 	ScriptShaderVariationParameters::ScriptShaderVariationParameters(const SPtr<ShaderVariationParameters>& nativeObject, MonoObject* scriptObject)
 		:TScriptReflectableWrapper(nativeObject, scriptObject)
 	{
+		RegisterEvents();
 	}
 
 	void ScriptShaderVariationParameters::SetupScriptBindings()

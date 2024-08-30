@@ -11,6 +11,7 @@ namespace bs
 	ScriptColorGradingSettings::ScriptColorGradingSettings(const SPtr<ColorGradingSettings>& nativeObject, MonoObject* scriptObject)
 		:TScriptReflectableWrapper(nativeObject, scriptObject)
 	{
+		RegisterEvents();
 	}
 
 	void ScriptColorGradingSettings::SetupScriptBindings()

@@ -8,12 +8,14 @@
 namespace bs { class CBone; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptBone : public TScriptComponent<ScriptBone, CBone>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptBone : public TScriptGameObjectWrapper<CBone, ScriptBone>
 	{
 	public:
-		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "Bone")
+		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "Bone")
 
-		ScriptBone(MonoObject* managedInstance, const GameObjectHandle<CBone>& value);
+		ScriptBone(const GameObjectHandle<CBone>& nativeObject, MonoObject* scriptObject);
+
+		static MonoObject* CreateScriptObject(bool construct);
 
 	private:
 		static void InternalSetBoneName(ScriptBone* self, MonoString* name);

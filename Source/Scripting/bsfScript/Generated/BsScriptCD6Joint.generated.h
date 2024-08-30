@@ -23,12 +23,14 @@ namespace bs { struct __LimitLinearInterop; }
 namespace bs { struct __D6JointDriveInterop; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptD6Joint : public TScriptComponent<ScriptD6Joint, CD6Joint, ScriptJointBase>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptD6Joint : public TScriptGameObjectWrapper<CD6Joint, ScriptD6Joint>
 	{
 	public:
-		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "D6Joint")
+		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "D6Joint")
 
-		ScriptD6Joint(MonoObject* managedInstance, const GameObjectHandle<CD6Joint>& value);
+		ScriptD6Joint(const GameObjectHandle<CD6Joint>& nativeObject, MonoObject* scriptObject);
+
+		static MonoObject* CreateScriptObject(bool construct);
 
 	private:
 		static D6JointMotion InternalGetMotion(ScriptD6Joint* self, D6JointAxis axis);

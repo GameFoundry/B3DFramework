@@ -16,6 +16,7 @@ namespace bs
 	ScriptViewport::ScriptViewport(const SPtr<Viewport>& nativeObject, MonoObject* scriptObject)
 		:TScriptReflectableWrapper(nativeObject, scriptObject)
 	{
+		RegisterEvents();
 	}
 
 	void ScriptViewport::SetupScriptBindings()

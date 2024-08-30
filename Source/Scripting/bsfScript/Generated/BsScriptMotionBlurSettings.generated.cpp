@@ -10,6 +10,7 @@ namespace bs
 	ScriptMotionBlurSettings::ScriptMotionBlurSettings(const SPtr<MotionBlurSettings>& nativeObject, MonoObject* scriptObject)
 		:TScriptReflectableWrapper(nativeObject, scriptObject)
 	{
+		RegisterEvents();
 	}
 
 	void ScriptMotionBlurSettings::SetupScriptBindings()

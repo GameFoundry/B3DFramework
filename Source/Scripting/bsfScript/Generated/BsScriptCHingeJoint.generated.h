@@ -14,12 +14,14 @@ namespace bs { class CHingeJoint; }
 namespace bs { struct __LimitAngularRangeInterop; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptHingeJoint : public TScriptComponent<ScriptHingeJoint, CHingeJoint, ScriptJointBase>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptHingeJoint : public TScriptGameObjectWrapper<CHingeJoint, ScriptHingeJoint>
 	{
 	public:
-		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "HingeJoint")
+		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "HingeJoint")
 
-		ScriptHingeJoint(MonoObject* managedInstance, const GameObjectHandle<CHingeJoint>& value);
+		ScriptHingeJoint(const GameObjectHandle<CHingeJoint>& nativeObject, MonoObject* scriptObject);
+
+		static MonoObject* CreateScriptObject(bool construct);
 
 	private:
 		static void InternalGetAngle(ScriptHingeJoint* self, TRadian<float>* __output);

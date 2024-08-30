@@ -4,7 +4,6 @@
 #include "BsMonoMethod.h"
 #include "BsMonoClass.h"
 #include "BsMonoUtil.h"
-#include "BsScriptGameObjectManager.h"
 #include "../../../Foundation/bsfCore/Components/BsCCollider.h"
 #include "BsScriptCCollider.generated.h"
 #include "Math/BsVector3.h"
@@ -33,10 +32,10 @@ namespace bs
 	{
 		ControllerColliderCollision output;
 		GameObjectHandle<CCollider> tmpCollider;
-		ScriptColliderBase* scriptWrapperObjectCollider;
-		scriptWrapperObjectCollider = (ScriptColliderBase*)ScriptCollider::ToNative(value.Collider);
+		ScriptColliderWrapperBase* scriptWrapperObjectCollider;
+		scriptWrapperObjectCollider = (ScriptColliderWrapperBase*)ScriptCollider::GetScriptObjectWrapper(value.Collider);
 		if(scriptWrapperObjectCollider != nullptr)
-			tmpCollider = B3DStaticGameObjectCast<CCollider>(scriptWrapperObjectCollider->GetComponent());
+			tmpCollider = B3DStaticGameObjectCast<CCollider>(scriptWrapperObjectCollider->GetBaseNativeObjectAsHandle());
 		output.Collider = tmpCollider;
 		output.TriangleIndex = value.TriangleIndex;
 		output.Position = value.Position;
@@ -51,13 +50,10 @@ namespace bs
 	{
 		__ControllerColliderCollisionInterop output;
 		MonoObject* tmpCollider;
-		ScriptComponentBase* scriptWrapperObjectCollider = nullptr;
+		MonoObject* temptmpCollider = nullptr;
 		if(value.Collider)
-			scriptWrapperObjectCollider = ScriptGameObjectManager::Instance().GetBuiltinScriptComponent(B3DStaticGameObjectCast<Component>(value.Collider));
-		if(scriptWrapperObjectCollider != nullptr)
-			tmpCollider = scriptWrapperObjectCollider->GetManagedInstance();
-		else
-			tmpCollider = nullptr;
+			temptmpCollider = ScriptComponent::GetOrCreateScriptObject(value.Collider);
+		tmpCollider = temptmpCollider;
 		output.Collider = tmpCollider;
 		output.TriangleIndex = value.TriangleIndex;
 		output.Position = value.Position;

@@ -12,6 +12,7 @@ namespace bs
 	ScriptParticleGravity::ScriptParticleGravity(const SPtr<ParticleGravity>& nativeObject, MonoObject* scriptObject)
 		:TScriptReflectableWrapper(nativeObject, scriptObject)
 	{
+		RegisterEvents();
 	}
 
 	void ScriptParticleGravity::SetupScriptBindings()

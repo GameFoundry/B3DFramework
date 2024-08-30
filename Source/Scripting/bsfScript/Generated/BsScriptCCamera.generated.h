@@ -16,12 +16,14 @@
 namespace bs { class CCamera; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptCamera : public TScriptComponent<ScriptCamera, CCamera>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptCamera : public TScriptGameObjectWrapper<CCamera, ScriptCamera>
 	{
 	public:
-		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "Camera")
+		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "Camera")
 
-		ScriptCamera(MonoObject* managedInstance, const GameObjectHandle<CCamera>& value);
+		ScriptCamera(const GameObjectHandle<CCamera>& nativeObject, MonoObject* scriptObject);
+
+		static MonoObject* CreateScriptObject(bool construct);
 
 	private:
 		static void InternalSetFlags(ScriptCamera* self, CameraFlag flags);

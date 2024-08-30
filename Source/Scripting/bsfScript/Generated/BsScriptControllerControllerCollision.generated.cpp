@@ -4,7 +4,6 @@
 #include "BsMonoMethod.h"
 #include "BsMonoClass.h"
 #include "BsMonoUtil.h"
-#include "BsScriptGameObjectManager.h"
 #include "../../../Foundation/bsfCore/Components/BsCCharacterController.h"
 #include "BsScriptCCharacterController.generated.h"
 #include "Math/BsVector3.h"
@@ -34,9 +33,9 @@ namespace bs
 		ControllerControllerCollision output;
 		GameObjectHandle<CCharacterController> tmpController;
 		ScriptCharacterController* scriptWrapperObjectController;
-		scriptWrapperObjectController = ScriptCharacterController::ToNative(value.Controller);
+		scriptWrapperObjectController = ScriptCharacterController::GetScriptObjectWrapper(value.Controller);
 		if(scriptWrapperObjectController != nullptr)
-			tmpController = scriptWrapperObjectController->GetHandle();
+			tmpController = B3DStaticGameObjectCast<CCharacterController>(scriptWrapperObjectController->GetBaseNativeObjectAsHandle());
 		output.Controller = tmpController;
 		output.Position = value.Position;
 		output.Normal = value.Normal;
@@ -50,13 +49,10 @@ namespace bs
 	{
 		__ControllerControllerCollisionInterop output;
 		MonoObject* tmpController;
-		ScriptComponentBase* scriptWrapperObjectController = nullptr;
+		MonoObject* temptmpController = nullptr;
 		if(value.Controller)
-			scriptWrapperObjectController = ScriptGameObjectManager::Instance().GetBuiltinScriptComponent(B3DStaticGameObjectCast<Component>(value.Controller));
-		if(scriptWrapperObjectController != nullptr)
-			tmpController = scriptWrapperObjectController->GetManagedInstance();
-		else
-			tmpController = nullptr;
+			temptmpController = ScriptComponent::GetOrCreateScriptObject(value.Controller);
+		tmpController = temptmpController;
 		output.Controller = tmpController;
 		output.Position = value.Position;
 		output.Normal = value.Normal;

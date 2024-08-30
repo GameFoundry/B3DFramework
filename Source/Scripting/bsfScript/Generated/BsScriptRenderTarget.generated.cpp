@@ -11,6 +11,7 @@ namespace bs
 	ScriptRenderTarget::ScriptRenderTarget(const SPtr<RenderTarget>& nativeObject, MonoObject* scriptObject)
 		:TScriptReflectableWrapper(nativeObject, scriptObject)
 	{
+		RegisterEvents();
 	}
 
 	void ScriptRenderTarget::SetupScriptBindings()

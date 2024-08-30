@@ -5,7 +5,6 @@
 #include "BsMonoClass.h"
 #include "BsMonoUtil.h"
 #include "../../../Foundation/bsfCore/Scene/BsSceneManager.h"
-#include "BsScriptGameObjectManager.h"
 #include "BsScriptSceneInstance.generated.h"
 #include "Wrappers/BsScriptSceneObject.h"
 #include "BsScriptPhysicsScene.generated.h"

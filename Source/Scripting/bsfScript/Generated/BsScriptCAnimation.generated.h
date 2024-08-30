@@ -16,12 +16,15 @@ namespace bs { class CAnimation; }
 namespace bs { struct __Blend1DInfoInterop; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptAnimation : public TScriptComponent<ScriptAnimation, CAnimation>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptAnimation : public TScriptGameObjectWrapper<CAnimation, ScriptAnimation>
 	{
 	public:
-		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "Animation")
+		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "Animation")
 
-		ScriptAnimation(MonoObject* managedInstance, const GameObjectHandle<CAnimation>& value);
+		ScriptAnimation(const GameObjectHandle<CAnimation>& nativeObject, MonoObject* scriptObject);
+
+		virtual void RegisterEvents();
+		static MonoObject* CreateScriptObject(bool construct);
 
 	private:
 		void ScriptRebuildFloatPropertiesInternal(const TResourceHandle<AnimationClip>& p0);

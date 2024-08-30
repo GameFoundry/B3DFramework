@@ -12,6 +12,7 @@ namespace bs
 	ScriptTextureImportOptions::ScriptTextureImportOptions(const SPtr<TextureImportOptions>& nativeObject, MonoObject* scriptObject)
 		:TScriptReflectableWrapper(nativeObject, scriptObject)
 	{
+		RegisterEvents();
 	}
 
 	void ScriptTextureImportOptions::SetupScriptBindings()

@@ -15,6 +15,7 @@ namespace bs
 	ScriptAnimationUtility::ScriptAnimationUtility(const SPtr<AnimationUtility>& nativeObject, MonoObject* scriptObject)
 		:TScriptNonReflectableWrapper(nativeObject, scriptObject)
 	{
+		RegisterEvents();
 	}
 
 	void ScriptAnimationUtility::SetupScriptBindings()

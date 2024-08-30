@@ -10,6 +10,7 @@ namespace bs
 	ScriptAmbientOcclusionSettings::ScriptAmbientOcclusionSettings(const SPtr<AmbientOcclusionSettings>& nativeObject, MonoObject* scriptObject)
 		:TScriptReflectableWrapper(nativeObject, scriptObject)
 	{
+		RegisterEvents();
 	}
 
 	void ScriptAmbientOcclusionSettings::SetupScriptBindings()

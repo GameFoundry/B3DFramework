@@ -63,6 +63,9 @@ namespace bs
 			return 1;
 		}
 
+		/** Used by derived classes to connect callbacks to native object events. */
+		virtual void RegisterEvents() const;
+
 		void NotifyNativeObjectDestroyed() override;
 
 		/**

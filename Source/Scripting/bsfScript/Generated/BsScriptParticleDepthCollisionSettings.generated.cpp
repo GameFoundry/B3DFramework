@@ -10,6 +10,7 @@ namespace bs
 	ScriptParticleDepthCollisionSettings::ScriptParticleDepthCollisionSettings(const SPtr<ParticleDepthCollisionSettings>& nativeObject, MonoObject* scriptObject)
 		:TScriptReflectableWrapper(nativeObject, scriptObject)
 	{
+		RegisterEvents();
 	}
 
 	void ScriptParticleDepthCollisionSettings::SetupScriptBindings()

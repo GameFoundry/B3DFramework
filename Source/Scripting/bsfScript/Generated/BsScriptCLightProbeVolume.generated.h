@@ -13,12 +13,14 @@ namespace bs { class CLightProbeVolume; }
 namespace bs { struct __LightProbeInfoInterop; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptLightProbeVolume : public TScriptComponent<ScriptLightProbeVolume, CLightProbeVolume>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptLightProbeVolume : public TScriptGameObjectWrapper<CLightProbeVolume, ScriptLightProbeVolume>
 	{
 	public:
-		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "LightProbeVolume")
+		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "LightProbeVolume")
 
-		ScriptLightProbeVolume(MonoObject* managedInstance, const GameObjectHandle<CLightProbeVolume>& value);
+		ScriptLightProbeVolume(const GameObjectHandle<CLightProbeVolume>& nativeObject, MonoObject* scriptObject);
+
+		static MonoObject* CreateScriptObject(bool construct);
 
 	private:
 		static uint32_t InternalAddProbe(ScriptLightProbeVolume* self, TVector3<float>* position);
