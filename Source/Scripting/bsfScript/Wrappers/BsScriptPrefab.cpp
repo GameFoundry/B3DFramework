@@ -8,39 +8,48 @@
 #include "Wrappers/BsScriptSceneObject.h"
 
 using namespace bs;
-ScriptPrefab::ScriptPrefab(MonoObject* instance, const HPrefab& prefab)
-	: TScriptResource(instance, prefab)
+ScriptPrefab::ScriptPrefab(const HPrefab& nativeObject, MonoObject* scriptObject)
+	: TScriptResourceWrapper(nativeObject, scriptObject)
 {
+	RegisterEvents();
 }
 
-void ScriptPrefab::InitRuntimeData()
+void ScriptPrefab::SetupScriptBindings()
 {
-	metaData.ScriptClass->AddInternalCall("Internal_CreateInstance", (void*)&ScriptPrefab::InternalCreateInstance);
-	metaData.ScriptClass->AddInternalCall("Internal_Instantiate", (void*)&ScriptPrefab::InternalInstantiate);
-	metaData.ScriptClass->AddInternalCall("Internal_IsScene", (void*)&ScriptPrefab::InternalIsScene);
+	sInteropMetaData.ScriptClass->AddInternalCall("Internal_CreateInstance", (void*)&ScriptPrefab::InternalCreateInstance);
+	sInteropMetaData.ScriptClass->AddInternalCall("Internal_Instantiate", (void*)&ScriptPrefab::InternalInstantiate);
+	sInteropMetaData.ScriptClass->AddInternalCall("Internal_IsScene", (void*)&ScriptPrefab::InternalIsScene);
 }
 
-void ScriptPrefab::InternalCreateInstance(MonoObject* instance, ScriptSceneObject* so, bool isScene)
+MonoObject* ScriptPrefab::CreateScriptObject(bool construct)
+{
+	return sInteropMetaData.ScriptClass->CreateInstance(construct);
+}
+
+Prefab* ScriptPrefab::GetNativeObject() const
+{
+	return static_cast<Prefab*>(TScriptResourceWrapper::GetNativeObject());
+}
+
+void ScriptPrefab::InternalCreateInstance(MonoObject* scriptObject, ScriptSceneObject* so, bool isScene)
 {
 	HPrefab prefab = Prefab::Create(so->GetNativeObjectAsHandle(), isScene);
-	ScriptResourceManager::Instance().CreateBuiltinScriptResource(prefab, instance);
+	B3DNew<ScriptPrefab>(prefab, scriptObject);
 }
 
-MonoObject* ScriptPrefab::InternalInstantiate(ScriptPrefab* thisPtr)
+MonoObject* ScriptPrefab::InternalInstantiate(ScriptPrefab* self)
 {
-	HPrefab prefab = thisPtr->GetHandle();
+	if(!self->IsNativeObjectValid())
+		return nullptr;
 
-	HSceneObject instance = prefab->Instantiate(GetSceneManager().GetMainScene());
+	HSceneObject instance = self->GetNativeObject()->Instantiate(GetSceneManager().GetMainScene());
 	return ScriptSceneObject::GetOrCreateScriptObject(instance);
 }
 
-bool ScriptPrefab::InternalIsScene(ScriptPrefab* thisPtr)
+bool ScriptPrefab::InternalIsScene(ScriptPrefab* self)
 {
-	HPrefab prefab = thisPtr->GetHandle();
-	return prefab->IsScene();
-}
+	if(!self->IsNativeObjectValid())
+		return false;
 
-MonoObject* ScriptPrefab::CreateInstance()
-{
-	return metaData.ScriptClass->CreateInstance();
+	return self->GetNativeObject()->IsScene();
 }

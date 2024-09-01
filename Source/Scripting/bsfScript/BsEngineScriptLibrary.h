@@ -56,8 +56,6 @@ namespace bs
 		/** Shuts down all script engine modules. */
 		void ShutdownModules();
 
-		BuiltinTypeMappings mEngineTypeMappings;
-
 	private:
 		bool mScriptAssembliesLoaded = false;
 	};

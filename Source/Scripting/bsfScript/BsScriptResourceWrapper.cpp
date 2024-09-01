@@ -1,8 +1,13 @@
 //*********************************** bs::framework - Copyright 2024 Marko Pintera ***************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "BsScriptResourceWrapper.h"
+
+#include "BsManagedResource.h"
 #include "BsMonoUtil.h"
+#include "BsScriptResourceManager.h"
 #include "Serialization/BsScriptAssemblyManager.h"
+#include "Wrappers/BsScriptManagedResource.h"
+#include "Wrappers/BsScriptResource.h"
 
 using namespace bs;
 
@@ -43,4 +48,89 @@ ScriptResourceWrapper* ScriptResourceWrapper::GetScriptObjectWrapper(const Scrip
 		wrapperMetaData.ScriptObjectWrapperPointerField->Get(scriptObject, &scriptObjectWrapper);
 
 	return scriptObjectWrapper;
+}
+
+MonoObject* ScriptResourceWrapper::GetOrCreateResourceReference(const HResource& resource, u32 rttiId)
+{
+	::MonoClass* const resourceReferenceScriptClass = GetResourceReferenceScriptClass(rttiId);
+	if(!resourceReferenceScriptClass)
+		return nullptr;
+
+	ScriptRRefBase* resourceReferenceScriptObject = ScriptResourceManager::Instance().GetScriptRRef(resource, resourceReferenceScriptClass);
+	if(!resourceReferenceScriptObject)
+		return nullptr;
+
+	return resourceReferenceScriptObject->GetManagedInstance();
+}
+
+::MonoClass* ScriptResourceWrapper::GetResourceScriptClass(u32 rttiId)
+{
+	if(rttiId == Resource::GetRttiStatic()->GetRttiId())
+		return ScriptResource::GetMetaData()->ScriptClass->GetInternalClass();
+	else if(rttiId == ManagedResource::GetRttiStatic()->GetRttiId())
+		return ScriptManagedResource::GetMetaData()->ScriptClass->GetInternalClass();
+	else
+	{
+		const ScriptWrapperObjectMetaData* const metaData = ScriptAssemblyManager::Instance().GetScriptWrapperMetaData(rttiId);
+
+		if(metaData == nullptr)
+			return nullptr;
+
+		return metaData->ScriptClass->GetInternalClass();
+	}
+}
+
+::MonoClass* ScriptResourceWrapper::GetResourceReferenceScriptClass(u32 rttiId)
+{
+	::MonoClass* const resourceScriptClass = GetResourceScriptClass(rttiId);
+	if(!resourceScriptClass)
+		return nullptr;
+
+	return ScriptRRefBase::BindGenericParam(resourceScriptClass);
+}
+
+void ScriptResource::SetupScriptBindings()
+{
+	sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetName", (void*)&ScriptResource::InternalGetName);
+	sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetUUID", (void*)&ScriptResource::InternalGetUuid);
+	sInteropMetaData.ScriptClass->AddInternalCall("Internal_Release", (void*)&ScriptResource::InternalRelease);
+}
+
+Resource* ScriptResource::GetNativeObject() const
+{
+	return static_cast<Resource*>(TScriptResourceWrapper::GetNativeObject());
+}
+
+MonoString* ScriptResource::InternalGetName(ScriptResourceWrapper* self)
+{
+	return MonoUtil::StringToMono(static_cast<Resource*>(self->GetNativeObject())->GetName());
+}
+
+void ScriptResource::InternalGetUuid(ScriptResourceWrapper* self, UUID* uuid)
+{
+	*uuid = self->GetBaseNativeObjectAsHandle().GetId();
+}
+
+void ScriptResource::InternalRelease(ScriptResourceWrapper* self)
+{
+	HResource mutableResourceHandle = self->GetBaseNativeObjectAsHandle();
+	mutableResourceHandle.ReleaseInternalReference();
+}
+
+ScriptUUID::ScriptUUID(MonoObject* instance)
+	: ScriptObject(instance)
+{}
+
+void ScriptUUID::InitRuntimeData()
+{}
+
+MonoObject* ScriptUUID::Box(const UUID& value)
+{
+	// We're casting away const but it's fine since structs are passed by value anyway
+	return MonoUtil::Box(metaData.ScriptClass->GetInternalClass(), (void*)&value);
+}
+
+UUID ScriptUUID::Unbox(MonoObject* obj)
+{
+	return *(UUID*)MonoUtil::Unbox(obj);
 }

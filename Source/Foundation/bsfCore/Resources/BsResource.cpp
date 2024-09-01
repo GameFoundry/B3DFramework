@@ -3,6 +3,7 @@
 #include "Resources/BsResource.h"
 #include "Private/RTTI/BsResourceRTTI.h"
 #include "Resources/BsResourceMetaData.h"
+#include "Script/BsIScriptObjectWrapper.h"
 
 using namespace bs;
 
@@ -21,6 +22,15 @@ const String& Resource::GetName() const
 void Resource::SetName(const String& name)
 {
 	mMetaData->DisplayName = name;
+}
+
+void Resource::Destroy()
+{
+	IScriptObjectWrapper* const scriptObjectWrapper = GetScriptObjectWrapper();
+	if(scriptObjectWrapper != nullptr)
+		scriptObjectWrapper->NotifyNativeObjectDestroyed();
+
+	CoreObject::Destroy();
 }
 
 void Resource::GetResourceDependencies(FrameVector<HResource>& dependencies) const

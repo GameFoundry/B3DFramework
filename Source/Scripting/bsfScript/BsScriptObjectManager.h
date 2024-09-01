@@ -19,13 +19,12 @@ namespace bs
 	{
 		AssemblyRefreshInfo() = default;
 
-		AssemblyRefreshInfo(const char* name, const Path* path, const BuiltinTypeMappings* typeMapping)
-			: Name(name), Path(path), TypeMapping(typeMapping)
+		AssemblyRefreshInfo(const char* name, const Path* path)
+			: Name(name), Path(path)
 		{}
 
 		const char* Name = nullptr;
 		const Path* Path = nullptr;
-		const BuiltinTypeMappings* TypeMapping = nullptr;
 	};
 
 	/**	Keeps track of all script interop objects and handles assembly refresh. */

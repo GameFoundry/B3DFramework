@@ -4,8 +4,6 @@
 #include "BsScriptMeta.h"
 #include "BsMonoClass.h"
 #include "BsMonoUtil.h"
-#include "Wrappers/BsScriptResource.h"
-#include "BsScriptResourceManager.h"
 #include "BsApplication.h"
 #include "Serialization/BsScriptAssemblyManager.h"
 
@@ -24,9 +22,6 @@ void ScriptAsyncOpBase::InitRuntimeData()
 MonoObject* ScriptAsyncOpBase::CreateInternal(const AsyncOpBase& op, const std::function<MonoObject*(const Any&)>& convertCallback, u32 rttiId)
 {
 	MonoClass* returnTypeClass = nullptr;
-	BuiltinResourceInfo* resInfo = ScriptAssemblyManager::Instance().GetBuiltinResourceInfo(rttiId);
-	if(resInfo)
-		returnTypeClass = resInfo->MonoClass;
 
 	const ScriptWrapperObjectMetaData* const scriptWrapperObjectMetaData = ScriptAssemblyManager::Instance().GetScriptWrapperMetaData(rttiId);
 	if(scriptWrapperObjectMetaData != nullptr)

@@ -49,14 +49,6 @@ namespace bs
 		MonoClass* HdrAttribute = nullptr;
 	};
 
-	/** Contains mapping between managed objects and their native wrappers for various types. */
-	struct BuiltinTypeMappings
-	{
-		Vector<BuiltinResourceInfo> Resources;
-
-		static const BuiltinTypeMappings kEmpty;
-	};
-
 	/**	Stores data about managed serializable objects in specified assemblies. */
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptAssemblyManager : public Module<ScriptAssemblyManager>
 	{
@@ -70,7 +62,7 @@ namespace bs
 		 * @param[in]	assemblyName		Name of the assembly to load the information about.
 		 * @param[in]	typeMappings		Contains information about managed objects that wrap native objects.
 		 */
-		void LoadAssemblyInfo(const String& assemblyName, const BuiltinTypeMappings& typeMappings);
+		void LoadAssemblyInfo(const String& assemblyName);
 
 		/**	Clears any assembly data previously loaded with loadAssemblyInfo(). */
 		void ClearAssemblyInfo();
@@ -88,24 +80,6 @@ namespace bs
 
 		/**	Generates or retrieves a type info object for the specified managed class, if the class is serializable. */
 		SPtr<ManagedSerializableTypeInfo> GetTypeInfo(MonoClass* monoClass);
-
-		/**
-		 * Maps a mono type to information about a wrapped built-in resource. Returns null if type doesn't correspond to
-		 * a builtin resource.
-		 */
-		BuiltinResourceInfo* GetBuiltinResourceInfo(::MonoReflectionType* type);
-
-		/**
-		 * Maps a type id to information about a wrapped built-in resource. Returns null if type id doesn't correspond to
-		 * a builtin resource.
-		 */
-		BuiltinResourceInfo* GetBuiltinResourceInfo(u32 rttiTypeId);
-
-		/**
-		 * Maps a resource type to information about a wrapped built-in resource. Returns null if type id doesn't correspond to
-		 * a builtin resource.
-		 */
-		BuiltinResourceInfo* GetBuiltinResourceInfo(ScriptResourceType type);
 
 		/** Returns script wrapper object meta-data for the type as specified by the provided RTTI type ID. */
 		const ScriptWrapperObjectMetaData* GetScriptWrapperMetaData(u32 typeId) const;
@@ -147,21 +121,12 @@ namespace bs
 		void InitializeBaseTypes();
 
 		/**
-		 * Adds mappings between managed objects and their native wrappers to their respective lookup tables and
-		 * initializes any assembly specific data.
-		 */
-		void LoadTypeMappings(MonoAssembly& assembly, const BuiltinTypeMappings& mapping); // TODO - Will be deprecated in favor of the method below
-
-		/**
 		 * Creates a lookup that allows you to find script object wrapper type based on RTTI type ID or script type. Should be called after
 		 * an assembly is loaded or reloaded.
 		 */
 		void InitializeScriptWrapperMetaDataLookup(MonoAssembly& assembly);
 
 		UnorderedMap<String, SPtr<ManagedSerializableAssemblyInfo>> mAssemblyInfos;
-		UnorderedMap<::MonoReflectionType*, BuiltinResourceInfo> mBuiltinResourceInfos; // TODO - To be deprecated
-		UnorderedMap<u32, BuiltinResourceInfo> mBuiltinResourceInfosByTID; // TODO - To be deprecated
-		UnorderedMap<u32, BuiltinResourceInfo> mBuiltinResourceInfosByType; // TODO - To be deprecated
 
 		UnorderedMap<u32, ScriptWrapperObjectMetaData*> mScriptWrapperMetaDataByTypeId;
 		UnorderedMap<::MonoReflectionType*, ScriptWrapperObjectMetaData*> mScriptWrapperMetaDataByScriptClass;

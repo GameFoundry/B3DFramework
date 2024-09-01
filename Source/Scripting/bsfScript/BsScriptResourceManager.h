@@ -25,47 +25,6 @@ namespace bs
 		~ScriptResourceManager();
 
 		/**
-		 * Creates a new interop object for the specified builtin resource.
-		 *
-		 * @param[in]	resource			Native resource to link to the managed instance.
-		 * @param[in]	existingInstance	Existing managed instance. Caller must ensure the managed instance matches the
-		 *									native resource type. If not provided new object instance will be created
-		 *									internally.
-		 * @return							Interop object corresponding to the managed instance.
-		 *
-		 * @note	Throws an exception if a managed instance for the provided resource already exists.
-		 */
-		ScriptResourceBase* CreateBuiltinScriptResource(const HResource& resource, MonoObject* existingInstance = nullptr);
-
-		/**
-		 * Creates a new interop object for the specified custom managed resource.
-		 *
-		 * @param[in]	resource			Native resource to link to the managed instance.
-		 * @param[in]	existingInstance	Existing managed instance of the resource.
-		 * @return							Interop object corresponding to the managed instance.
-		 *
-		 * @note	Throws an exception if a managed instance for the provided resource already exists.
-		 */
-		ScriptManagedResource* CreateManagedScriptResource(const HManagedResource& resource, MonoObject* existingInstance);
-
-		/**
-		 * Attempts to find an existing interop object for the specified resource, and optionally creates a new one if one
-		 * cannot be found.
-		 *
-		 * @param[in]	resource		Resource to search for.
-		 * @param[in]	create			If a resource cannot be found new one will be created when this is true. If false
-		 *								and the resource doesn't exist it will be null.
-		 * @return						Found or created interop object containing the resource.
-		 */
-		ScriptResourceBase* GetScriptResource(const HResource& resource, bool create = false);
-
-		/**
-		 * Attempts to find a resource interop object for a resource with the specified UUID. Returns null if the object
-		 * cannot be found.
-		 */
-		ScriptResourceBase* GetScriptResource(const UUID& uuid);
-
-		/**
 		 * Attempts to find an existing interop object for the specified resource reference, or creates a new object if one
 		 * cannot be found.
 		 *
@@ -85,14 +44,6 @@ namespace bs
 			return GetScriptRRef(resource, rrefClass);
 		}
 
-		/**
-		 * Deletes the provided resource interop objects. All resource interop objects should be deleted using this method.
-		 */
-		void DestroyScriptResource(ScriptResourceBase* resource);
-
-		/**	Throws an exception if the provided UUID already exists in the interop object lookup table. */
-		void ThrowExceptionIfInvalidOrDuplicateInternal(const UUID& uuid) const;
-
 	private:
 		/**	Triggered when the native resource has been unloaded and therefore destroyed. */
 		void OnResourceDestroyed(const UUID& UUID);
@@ -103,7 +54,6 @@ namespace bs
 		 */
 		void ClearRRefs();
 
-		UnorderedMap<UUID, ScriptResourceBase*> mScriptResources;
 		UnorderedMap<::MonoClass*, UnorderedMap<UUID, ScriptRRefBase*>> mScriptRRefsPerType;
 
 		HEvent mResourceDestroyedConn;

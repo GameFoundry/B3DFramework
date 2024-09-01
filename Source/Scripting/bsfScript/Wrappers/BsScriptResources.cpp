@@ -6,8 +6,9 @@
 #include "BsMonoMethod.h"
 #include "BsMonoUtil.h"
 #include "BsScriptResourceManager.h"
-#include "Wrappers/BsScriptResource.h"
 #include "BsApplication.h"
+#include "BsScriptResourceWrapper.h"
+#include "BsScriptRRefBase.h"
 
 using namespace bs;
 #if B3D_IS_ENGINE
@@ -42,8 +43,7 @@ MonoObject* ScriptResources::InternalLoad(MonoString* path, ResourceLoadFlag fla
 	if(!resource.IsLoaded(false))
 		return nullptr;
 
-	ScriptResourceBase* scriptResource = ScriptResourceManager::Instance().GetScriptResource(resource, true);
-	return scriptResource->GetManagedInstance();
+	return ScriptResourceWrapper::GetOrCreateScriptObject(resource);
 }
 
 MonoObject* ScriptResources::InternalLoadFromUuid(UUID* uuid, ResourceLoadFlag flags)
@@ -59,8 +59,7 @@ MonoObject* ScriptResources::InternalLoadFromUuid(UUID* uuid, ResourceLoadFlag f
 	if(!resource.IsLoaded(false))
 		return nullptr;
 
-	ScriptResourceBase* scriptResource = ScriptResourceManager::Instance().GetScriptResource(resource, true);
-	return scriptResource->GetManagedInstance();
+	return ScriptResourceWrapper::GetOrCreateScriptObject(resource);
 }
 
 MonoObject* ScriptResources::InternalLoadAsync(MonoString* path, ResourceLoadFlag flags)
@@ -78,9 +77,9 @@ MonoObject* ScriptResources::InternalLoadAsync(MonoString* path, ResourceLoadFla
 	if(resource == nullptr)
 		return nullptr;
 
-	ScriptRRefBase* scriptResource = ScriptResourceManager::Instance().GetScriptRRef(resource);
-	if(scriptResource != nullptr)
-		return scriptResource->GetManagedInstance();
+	ScriptRRefBase* scriptResourceReference = ScriptResourceManager::Instance().GetScriptRRef(resource);
+	if(scriptResourceReference != nullptr)
+		return scriptResourceReference->GetManagedInstance();
 
 	return nullptr;
 }
@@ -109,9 +108,10 @@ float ScriptResources::InternalGetLoadProgress(ScriptRRefBase* resource)
 	return GetResources().GetLoadProgress(resource->GetHandle());
 }
 
-void ScriptResources::InternalRelease(ScriptResourceBase* resource)
+void ScriptResources::InternalRelease(ScriptResourceWrapper* resource)
 {
-	resource->GetGenericHandle().ReleaseInternalReference();
+	HResource mutableResourceHandle = resource->GetBaseNativeObjectAsHandle();
+	mutableResourceHandle.ReleaseInternalReference();
 }
 
 void ScriptResources::InternalReleaseRef(ScriptRRefBase* resourceRef)

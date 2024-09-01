@@ -14,72 +14,78 @@
 using namespace std::placeholders;
 
 using namespace bs;
-ScriptScriptCode::ScriptScriptCode(MonoObject* instance, const HScriptCode& scriptCode)
-	: TScriptResource(instance, scriptCode)
+ScriptScriptCode::ScriptScriptCode(const HScriptCode& nativeObject, MonoObject* scriptObject)
+	: TScriptResourceWrapper(nativeObject, scriptObject)
 {
+	RegisterEvents();
 }
 
-void ScriptScriptCode::InitRuntimeData()
+void ScriptScriptCode::SetupScriptBindings()
 {
-	metaData.ScriptClass->AddInternalCall("Internal_CreateInstance", (void*)&ScriptScriptCode::InternalCreateInstance);
-	metaData.ScriptClass->AddInternalCall("Internal_GetText", (void*)&ScriptScriptCode::InternalGetText);
-	metaData.ScriptClass->AddInternalCall("Internal_SetText", (void*)&ScriptScriptCode::InternalSetText);
-	metaData.ScriptClass->AddInternalCall("Internal_IsEditorScript", (void*)&ScriptScriptCode::InternalIsEditorScript);
-	metaData.ScriptClass->AddInternalCall("Internal_SetEditorScript", (void*)&ScriptScriptCode::InternalSetEditorScript);
-	metaData.ScriptClass->AddInternalCall("Internal_GetTypes", (void*)&ScriptScriptCode::InternalGetTypes);
+	sInteropMetaData.ScriptClass->AddInternalCall("Internal_CreateInstance", (void*)&ScriptScriptCode::InternalCreateInstance);
+	sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetText", (void*)&ScriptScriptCode::InternalGetText);
+	sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetText", (void*)&ScriptScriptCode::InternalSetText);
+	sInteropMetaData.ScriptClass->AddInternalCall("Internal_IsEditorScript", (void*)&ScriptScriptCode::InternalIsEditorScript);
+	sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetEditorScript", (void*)&ScriptScriptCode::InternalSetEditorScript);
+	sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetTypes", (void*)&ScriptScriptCode::InternalGetTypes);
 }
 
-void ScriptScriptCode::InternalCreateInstance(MonoObject* instance, MonoString* text)
+MonoObject* ScriptScriptCode::CreateScriptObject(bool construct)
+{
+	return sInteropMetaData.ScriptClass->CreateInstance(construct);
+}
+
+ScriptCode* ScriptScriptCode::GetNativeObject() const
+{
+	return static_cast<ScriptCode*>(TScriptResourceWrapper::GetNativeObject());
+}
+
+
+void ScriptScriptCode::InternalCreateInstance(MonoObject* scriptObject, MonoString* text)
 {
 	WString strText = MonoUtil::MonoToWString(text);
 	HScriptCode scriptCode = ScriptCode::Create(strText);
 
-	ScriptResourceManager::Instance().CreateBuiltinScriptResource(scriptCode, instance);
+	B3DNew<ScriptPlainText>(scriptCode, scriptObject);
 }
 
-MonoString* ScriptScriptCode::InternalGetText(ScriptScriptCode* thisPtr)
+MonoString* ScriptScriptCode::InternalGetText(ScriptScriptCode* self)
 {
-	HScriptCode scriptCode = thisPtr->GetHandle();
-	if(!scriptCode.IsLoaded())
+	if(!self->IsNativeObjectValid())
 		MonoUtil::WstringToMono(L"");
 
-	return MonoUtil::WstringToMono(scriptCode->GetString());
+	return MonoUtil::WstringToMono(self->GetNativeObject()->GetString());
 }
 
-void ScriptScriptCode::InternalSetText(ScriptScriptCode* thisPtr, MonoString* text)
+void ScriptScriptCode::InternalSetText(ScriptScriptCode* self, MonoString* text)
 {
-	HScriptCode scriptCode = thisPtr->GetHandle();
-	if(!scriptCode.IsLoaded())
+	if(!self->IsNativeObjectValid())
 		return;
 
-	scriptCode->SetString(MonoUtil::MonoToWString(text));
+	self->GetNativeObject()->SetString(MonoUtil::MonoToWString(text));
 }
 
-bool ScriptScriptCode::InternalIsEditorScript(ScriptScriptCode* thisPtr)
+bool ScriptScriptCode::InternalIsEditorScript(ScriptScriptCode* self)
 {
-	HScriptCode scriptCode = thisPtr->GetHandle();
-	if(!scriptCode.IsLoaded())
+	if(!self->IsNativeObjectValid())
 		return false;
 
-	return scriptCode->GetIsEditorScript();
+	return self->GetNativeObject()->GetIsEditorScript();
 }
 
-void ScriptScriptCode::InternalSetEditorScript(ScriptScriptCode* thisPtr, bool value)
+void ScriptScriptCode::InternalSetEditorScript(ScriptScriptCode* self, bool value)
 {
-	HScriptCode scriptCode = thisPtr->GetHandle();
-	if(!scriptCode.IsLoaded())
+	if(!self->IsNativeObjectValid())
 		return;
 
-	scriptCode->SetIsEditorScript(value);
+	self->GetNativeObject()->SetIsEditorScript(value);
 }
 
-MonoArray* ScriptScriptCode::InternalGetTypes(ScriptScriptCode* thisPtr)
+MonoArray* ScriptScriptCode::InternalGetTypes(ScriptScriptCode* self)
 {
-	HScriptCode scriptCode = thisPtr->GetHandle();
-
 	Vector<FullTypeName> types;
-	if(scriptCode.IsLoaded())
-		types = ParseTypes(scriptCode->GetString());
+	if(self->IsNativeObjectValid())
+		types = ParseTypes(self->GetNativeObject()->GetString());
 
 	Vector<MonoReflectionType*> validTypes;
 	for(auto& type : types)
@@ -97,11 +103,6 @@ MonoArray* ScriptScriptCode::InternalGetTypes(ScriptScriptCode* thisPtr)
 		scriptArray.Set(i, validTypes[i]);
 
 	return scriptArray.GetInternal();
-}
-
-MonoObject* ScriptScriptCode::CreateInstance()
-{
-	return metaData.ScriptClass->CreateInstance();
 }
 
 Vector<ScriptScriptCode::FullTypeName> ScriptScriptCode::ParseTypes(const WString& code)

@@ -22,7 +22,6 @@ namespace bs
 		ScriptManagedResource(MonoObject* instance, const HManagedResource& resource);
 
 		HResource GetGenericHandle() const override { return mResource; }
-		void SetResource(const HResource& resource) override;
 
 		/**	Returns a handle to the internal wrapped resource. */
 		const HManagedResource& GetHandle() const { return mResource; }

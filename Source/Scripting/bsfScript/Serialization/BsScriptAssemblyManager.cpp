@@ -16,9 +16,10 @@
 #include "Wrappers/BsScriptManagedComponent.h"
 #include "BsManagedComponent.h"
 #include "BsScriptReflectableWrapper.h"
+#include "BsScriptResourceWrapper.h"
+#include "Wrappers/BsScriptRRefBase.h"
 
 using namespace bs;
-const BuiltinTypeMappings BuiltinTypeMappings::kEmpty;
 
 Vector<String> ScriptAssemblyManager::GetScriptAssemblies() const
 {
@@ -29,7 +30,7 @@ Vector<String> ScriptAssemblyManager::GetScriptAssemblies() const
 	return initializedAssemblies;
 }
 
-void ScriptAssemblyManager::LoadAssemblyInfo(const String& assemblyName, const BuiltinTypeMappings& typeMappings)
+void ScriptAssemblyManager::LoadAssemblyInfo(const String& assemblyName)
 {
 	if(!mBaseTypesInitialized)
 		InitializeBaseTypes();
@@ -41,7 +42,6 @@ void ScriptAssemblyManager::LoadAssemblyInfo(const String& assemblyName, const B
 	if(curAssembly == nullptr)
 		return;
 
-	LoadTypeMappings(*curAssembly, typeMappings);
 	InitializeScriptWrapperMetaDataLookup(*curAssembly);
 
 	SPtr<ManagedSerializableAssemblyInfo> assemblyInfo = B3DMakeShared<ManagedSerializableAssemblyInfo>();
@@ -317,10 +317,6 @@ void ScriptAssemblyManager::ClearAssemblyInfo()
 	ClearScriptObjects();
 	mAssemblyInfos.clear();
 
-	mBuiltinResourceInfos.clear();
-	mBuiltinResourceInfosByTID.clear();
-	mBuiltinResourceInfosByType.clear();
-
 	mScriptWrapperMetaDataByTypeId.clear();
 	mScriptWrapperMetaDataByScriptClass.clear();
 }
@@ -439,14 +435,14 @@ SPtr<ManagedSerializableTypeInfo> ScriptAssemblyManager::GetTypeInfo(MonoClass* 
 				typeInfo->Type = ScriptReferenceType::BuiltinResource;
 
 				::MonoReflectionType* type = MonoUtil::GetType(monoClass->GetInternalClass());
-				BuiltinResourceInfo* builtinInfo = GetBuiltinResourceInfo(type);
-				if(builtinInfo == nullptr)
+				const ScriptWrapperObjectMetaData* const scriptWrapperObjectMetaData = GetScriptWrapperMetaData(type);
+				if(scriptWrapperObjectMetaData == nullptr)
 				{
-					B3D_ASSERT(false && "Unable to find information about a built-in resource. Did you update BuiltinResourceTypes list?");
+					B3D_ASSERT(false && "Unable to find information about a built-in resource. Is it script exported?");
 					return nullptr;
 				}
 
-				typeInfo->RtiiTypeId = builtinInfo->TypeId;
+				typeInfo->RtiiTypeId = scriptWrapperObjectMetaData->TypeId;
 			}
 
 			return typeInfo;
@@ -739,21 +735,6 @@ void ScriptAssemblyManager::InitializeBaseTypes()
 	mBaseTypesInitialized = true;
 }
 
-void ScriptAssemblyManager::LoadTypeMappings(MonoAssembly& assembly, const BuiltinTypeMappings& mapping)
-{
-	for(auto& entry : mapping.Resources)
-	{
-		BuiltinResourceInfo info = entry;
-		info.MonoClass = assembly.GetClass(entry.MetaData->Namespace, entry.MetaData->Name);
-
-		::MonoReflectionType* type = MonoUtil::GetType(info.MonoClass->GetInternalClass());
-
-		mBuiltinResourceInfos[type] = info;
-		mBuiltinResourceInfosByTID[info.TypeId] = info;
-		mBuiltinResourceInfosByType[(u32)info.ResType] = info;
-	}
-}
-
 void ScriptAssemblyManager::InitializeScriptWrapperMetaDataLookup(MonoAssembly& assembly)
 {
 	const UnorderedMap<String, Vector<RegisteredScriptWrapperTypeInformation>> scriptWrapperTypeInformationMap = MonoManager::GetScriptWrapperTypeInformation();
@@ -772,33 +753,6 @@ void ScriptAssemblyManager::InitializeScriptWrapperMetaDataLookup(MonoAssembly& 
 		if(entry.MetaData->TypeId != ~0u)
 			mScriptWrapperMetaDataByTypeId[entry.MetaData->TypeId] = entry.MetaData;
 	}
-}
-
-BuiltinResourceInfo* ScriptAssemblyManager::GetBuiltinResourceInfo(::MonoReflectionType* type)
-{
-	auto iterFind = mBuiltinResourceInfos.find(type);
-	if(iterFind == mBuiltinResourceInfos.end())
-		return nullptr;
-
-	return &(iterFind->second);
-}
-
-BuiltinResourceInfo* ScriptAssemblyManager::GetBuiltinResourceInfo(u32 rttiTypeId)
-{
-	auto iterFind = mBuiltinResourceInfosByTID.find(rttiTypeId);
-	if(iterFind == mBuiltinResourceInfosByTID.end())
-		return nullptr;
-
-	return &(iterFind->second);
-}
-
-BuiltinResourceInfo* ScriptAssemblyManager::GetBuiltinResourceInfo(ScriptResourceType type)
-{
-	auto iterFind = mBuiltinResourceInfosByType.find((u32)type);
-	if(iterFind == mBuiltinResourceInfosByType.end())
-		return nullptr;
-
-	return &(iterFind->second);
 }
 
 const ScriptWrapperObjectMetaData* ScriptAssemblyManager::GetScriptWrapperMetaData(u32 typeId) const
@@ -902,17 +856,16 @@ SPtr<IReflectable> ScriptAssemblyManager::GetReflectableFromManagedObject(MonoOb
 			else
 			{
 				::MonoReflectionType* type = MonoUtil::GetType(klass);
-				BuiltinResourceInfo* builtinInfo = GetBuiltinResourceInfo(type);
-				if(builtinInfo == nullptr)
+				const ScriptWrapperObjectMetaData* const scriptWrapperObjectMetaData = GetScriptWrapperMetaData(type);
+				if(scriptWrapperObjectMetaData == nullptr)
 				{
-					B3D_ASSERT(false && "Unable to find information about a built-in resource. Did you update BuiltinResourceTypes list?");
+					B3D_ASSERT(false && "Unable to find information about a built-in resource. Is it script exported?");
 					return nullptr;
 				}
 
-				ScriptResourceBase* scriptResource = nullptr;
-				builtinInfo->MetaData->ScriptObjectWrapperPointerField->Get(value, &scriptResource);
+				ScriptResourceWrapper* const scriptResourceWrapper = ScriptResourceWrapper::GetScriptObjectWrapper(*scriptWrapperObjectMetaData, value);
 
-				HResource handle = scriptResource->GetGenericHandle();
+				HResource handle = scriptResourceWrapper->GetBaseNativeObjectAsHandle();
 				if(!handle.IsLoaded(false))
 					return nullptr;
 

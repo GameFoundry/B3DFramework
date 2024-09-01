@@ -3,8 +3,8 @@
 #pragma once
 
 #include "BsScriptEnginePrerequisites.h"
-#include "Wrappers/BsScriptResource.h"
 #include "BsScriptObject.h"
+#include "BsScriptResourceWrapper.h"
 #include "Resources/BsScriptCode.h"
 
 namespace bs
@@ -14,20 +14,20 @@ namespace bs
 	 */
 
 	/**	Interop class between C++ & CLR for ScriptCode. */
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptScriptCode : public TScriptResource<ScriptScriptCode, ScriptCode>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptScriptCode : public TScriptResourceWrapper<ScriptCode, ScriptScriptCode>
 	{
 	public:
-		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "ScriptCode")
+		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "ScriptCode")
 
-		/**	Creates an empty, uninitialized managed instance of the resource interop object. */
-		static MonoObject* CreateInstance();
+		ScriptScriptCode(const HScriptCode& nativeObject, MonoObject* scriptObject);
+
+		/** Retrieves the underlying native object cast to the correct type. */
+		ScriptCode* GetNativeObject() const;
+
+		static MonoObject* CreateScriptObject(bool construct);
 
 	private:
-		friend class ScriptResourceManager;
-		friend class BuiltinResourceTypes;
 		typedef std::pair<WString, WString> FullTypeName;
-
-		ScriptScriptCode(MonoObject* instance, const HScriptCode& scriptCode);
 
 		/** Parses the provided C# code and finds a list of all classes and their namespaces. Nested classes are ignored. */
 		static Vector<FullTypeName> ParseTypes(const WString& code);
@@ -35,12 +35,12 @@ namespace bs
 		/************************************************************************/
 		/* 								CLR HOOKS						   		*/
 		/************************************************************************/
-		static void InternalCreateInstance(MonoObject* instance, MonoString* text);
-		static MonoString* InternalGetText(ScriptScriptCode* thisPtr);
-		static void InternalSetText(ScriptScriptCode* thisPtr, MonoString* text);
-		static bool InternalIsEditorScript(ScriptScriptCode* thisPtr);
-		static void InternalSetEditorScript(ScriptScriptCode* thisPtr, bool value);
-		static MonoArray* InternalGetTypes(ScriptScriptCode* thisPtr);
+		static void InternalCreateInstance(MonoObject* scriptObject, MonoString* text);
+		static MonoString* InternalGetText(ScriptScriptCode* self);
+		static void InternalSetText(ScriptScriptCode* self, MonoString* text);
+		static bool InternalIsEditorScript(ScriptScriptCode* self);
+		static void InternalSetEditorScript(ScriptScriptCode* self, bool value);
+		static MonoArray* InternalGetTypes(ScriptScriptCode* self);
 	};
 
 	/** @} */

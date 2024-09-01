@@ -18,8 +18,6 @@
 #include "Wrappers/BsScriptScene.h"
 #include "GUI/BsGUIManager.h"
 
-#include "Serialization/BsBuiltinResourceLookup.h"
-
 using namespace bs;
 void EngineScriptLibrary::Initialize()
 {
@@ -42,9 +40,7 @@ void EngineScriptLibrary::Initialize()
 	ScriptVirtualInput::StartUp();
 	ScriptGUI::StartUp();
 
-	mEngineTypeMappings.Resources = BuiltinResourceTypes::GetEntries();
-
-	ScriptAssemblyManager::Instance().LoadAssemblyInfo(kEngineAssembly, mEngineTypeMappings);
+	ScriptAssemblyManager::Instance().LoadAssemblyInfo(kEngineAssembly);
 
 #if B3D_IS_ENGINE
 	engineAssembly.Invoke(ASSEMBLY_ENTRY_POINT);
@@ -68,11 +64,11 @@ void EngineScriptLibrary::Reload()
 	if(mScriptAssembliesLoaded)
 	{
 		Vector<AssemblyRefreshInfo> assemblies;
-		assemblies.push_back(AssemblyRefreshInfo(kEngineAssembly, &engineAssemblyPath, &mEngineTypeMappings));
+		assemblies.push_back(AssemblyRefreshInfo(kEngineAssembly, &engineAssemblyPath));
 
 		Path gameAssemblyPath = GetGameAssemblyPath();
 		if(FileSystem::Exists(gameAssemblyPath))
-			assemblies.push_back(AssemblyRefreshInfo(kScriptGameAssembly, &gameAssemblyPath, &BuiltinTypeMappings::kEmpty));
+			assemblies.push_back(AssemblyRefreshInfo(kScriptGameAssembly, &gameAssemblyPath));
 
 		ScriptObjectManager::Instance().RefreshAssemblies(assemblies);
 	}
@@ -82,7 +78,7 @@ void EngineScriptLibrary::Reload()
 		if(FileSystem::Exists(gameAssemblyPath))
 		{
 			MonoManager::Instance().LoadAssembly(gameAssemblyPath.ToString(), kScriptGameAssembly);
-			ScriptAssemblyManager::Instance().LoadAssemblyInfo(kScriptGameAssembly, BuiltinTypeMappings());
+			ScriptAssemblyManager::Instance().LoadAssemblyInfo(kScriptGameAssembly);
 		}
 
 		mScriptAssembliesLoaded = true;

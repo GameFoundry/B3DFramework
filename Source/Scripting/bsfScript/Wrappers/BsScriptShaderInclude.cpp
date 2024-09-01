@@ -4,16 +4,22 @@
 #include "BsMonoManager.h"
 
 using namespace bs;
-ScriptShaderInclude::ScriptShaderInclude(MonoObject* instance, const HShaderInclude& shaderInclude)
-	: TScriptResource(instance, shaderInclude)
+ScriptShaderInclude::ScriptShaderInclude(const HShaderInclude& nativeObject, MonoObject* scriptObject)
+	: TScriptResourceWrapper(nativeObject, scriptObject)
+{
+	RegisterEvents();
+}
+
+void ScriptShaderInclude::SetupScriptBindings()
 {
 }
 
-void ScriptShaderInclude::InitRuntimeData()
+MonoObject* ScriptShaderInclude::CreateScriptObject(bool construct)
 {
+	return sInteropMetaData.ScriptClass->CreateInstance(construct);
 }
 
-MonoObject* ScriptShaderInclude::CreateInstance()
+ShaderInclude* ScriptShaderInclude::GetNativeObject() const
 {
-	return metaData.ScriptClass->CreateInstance();
+	return static_cast<ShaderInclude*>(TScriptResourceWrapper::GetNativeObject());
 }

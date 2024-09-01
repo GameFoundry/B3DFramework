@@ -92,8 +92,3 @@ void ScriptManagedResource::NotifyDestroyedInternal()
 {
 	FreeManagedInstance();
 }
-
-void ScriptManagedResource::SetResource(const HResource& resource)
-{
-	mResource = B3DStaticResourceCast<ManagedResource>(resource);
-}

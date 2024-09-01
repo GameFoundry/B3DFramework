@@ -5,6 +5,7 @@
 #include "BsCorePrerequisites.h"
 #include "Reflection/BsIReflectable.h"
 #include "CoreObject/BsCoreObject.h"
+#include "Script/BsIScriptExportable.h"
 
 namespace bs
 {
@@ -13,7 +14,7 @@ namespace bs
 	 */
 
 	/**	Base class for all resources. */
-	class B3D_CORE_EXPORT Resource : public IReflectable, public CoreObject
+	class B3D_CORE_EXPORT Resource : public IReflectable, public IScriptExportable, public CoreObject
 	{
 	public:
 		Resource(bool createRenderProxy = true, const String& name = StringUtil::kBlank);
@@ -36,6 +37,8 @@ namespace bs
 
 		/**	Returns whether or not this resource is allowed to be asynchronously loaded. */
 		virtual bool AllowAsyncLoading() const { return true; }
+
+		void Destroy() override;
 
 		/**
 		 * @name Internal

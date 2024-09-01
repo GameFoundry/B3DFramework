@@ -67,7 +67,6 @@ namespace bs
 
 	class ScriptObjectBase;
 	class ScriptResourceManager;
-	class ScriptResourceBase;
 	class ScriptFont;
 	class ScriptSpriteTexture;
 	class ScriptShaderInclude;
@@ -191,38 +190,27 @@ namespace bs
 	/**	Types of resources accessible from script code. */
 	enum class ScriptResourceType // Note: Must be the same as C# enum ResourceType
 	{
-		Texture,
-		SpriteTexture,
-		Mesh,
-		Font,
-		Shader,
-		ShaderInclude,
-		Material,
-		Prefab,
-		PlainText,
-		ScriptCode,
-		StringTable,
-		GUISkin,
-		PhysicsMaterial,
-		PhysicsMesh,
-		AudioClip,
-		AnimationClip,
-		VectorField,
-		SpriteImage,
-		SpriteGlyph,
-		SpriteVectorPath,
-		VectorPath,
-		Undefined
-	};
-
-	/** Information about a builtin resource wrapped as a script object. */
-	struct BuiltinResourceInfo
-	{
-		const ScriptWrapperObjectMetaData* MetaData;
-		u32 TypeId;
-		MonoClass* MonoClass;
-		ScriptResourceType ResType;
-		std::function<ScriptResourceBase*(const HResource&, MonoObject*)> CreateCallback;
+		Texture = TID_Texture,
+		SpriteTexture = TID_SpriteTexture,
+		Mesh = TID_Mesh,
+		Font = TID_Font,
+		Shader = TID_Shader,
+		ShaderInclude = TID_ShaderInclude,
+		Material = TID_Material,
+		Prefab = TID_Prefab,
+		PlainText = TID_PlainText,
+		ScriptCode = TID_ScriptCode,
+		StringTable = TID_StringTable,
+		PhysicsMaterial = TID_PhysicsMaterial,
+		PhysicsMesh = TID_PhysicsMesh,
+		AudioClip = TID_AudioClip,
+		AnimationClip = TID_AnimationClip,
+		VectorField = TID_VectorField,
+		SpriteImage = TID_SpriteImage,
+		SpriteGlyph = TID_SpriteGlyph,
+		SpriteVectorPath = TID_SpriteVectorPath,
+		VectorPath = TID_VectorPath,
+		Undefined = 0
 	};
 
 } // namespace bs

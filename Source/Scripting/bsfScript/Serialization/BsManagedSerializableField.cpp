@@ -8,6 +8,7 @@
 #include "BsScriptResourceManager.h"
 #include "BsScriptObjectWrapper.h"
 #include "BsScriptReflectableWrapper.h"
+#include "BsScriptResourceWrapper.h"
 #include "Wrappers/BsScriptManagedResource.h"
 #include "Wrappers/BsScriptSceneObject.h"
 #include "Wrappers/BsScriptComponent.h"
@@ -19,6 +20,7 @@
 #include "Serialization/BsScriptAssemblyManager.h"
 #include "Utility/BsUtility.h"
 #include "Wrappers/BsScriptReflectable.h"
+#include "Wrappers/BsScriptRRefBase.h"
 
 using namespace bs;
 template <class T>
@@ -282,16 +284,16 @@ SPtr<ManagedSerializableFieldData> ManagedSerializableFieldData::Create(const SP
 		case ScriptReferenceType::BuiltinResourceBase:
 		case ScriptReferenceType::BuiltinResource:
 			{
-				BuiltinResourceInfo* info = ScriptAssemblyManager::Instance().GetBuiltinResourceInfo(refTypeInfo->RtiiTypeId);
-				if(info == nullptr)
+				const ScriptWrapperObjectMetaData* const scriptWrapperObjectMetaData = ScriptAssemblyManager::Instance().GetScriptWrapperMetaData(refTypeInfo->RtiiTypeId);
+				if(scriptWrapperObjectMetaData == nullptr)
 					return nullptr;
 
 				auto fieldData = B3DMakeShared<ManagedSerializableFieldDataResourceRef>();
 
 				if(value != nullptr)
 				{
-					ScriptResourceBase* scriptResource = ScriptResource::ToNative(value);
-					fieldData->Value = scriptResource->GetGenericHandle();
+					ScriptResourceWrapper* scriptResource = ScriptResourceWrapper::GetScriptObjectWrapper(*scriptWrapperObjectMetaData, value);
+					fieldData->Value = scriptResource->GetBaseNativeObjectAsHandle();
 				}
 
 				return fieldData;
@@ -527,20 +529,7 @@ void* ManagedSerializableFieldDataResourceRef::GetValue(const SPtr<ManagedSerial
 		if(!Value.IsLoaded())
 			return nullptr;
 
-		if(refTypeInfo->Type == ScriptReferenceType::ManagedResourceBase ||
-		   refTypeInfo->Type == ScriptReferenceType::ManagedResource)
-		{
-			ScriptResourceBase* scriptResource = ScriptResourceManager::Instance().GetScriptResource(Value, false);
-			B3D_ASSERT(scriptResource != nullptr);
-
-			return scriptResource->GetManagedInstance();
-		}
-		else if(refTypeInfo->Type == ScriptReferenceType::BuiltinResourceBase || refTypeInfo->Type == ScriptReferenceType::BuiltinResource)
-		{
-			ScriptResourceBase* scriptResource = ScriptResourceManager::Instance().GetScriptResource(Value, true);
-
-			return scriptResource->GetManagedInstance();
-		}
+		return ScriptResourceWrapper::GetOrCreateScriptObject(Value);
 	}
 	else if(typeInfo->GetTypeId() == TID_SerializableTypeInfoRRef)
 	{

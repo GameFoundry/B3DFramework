@@ -4,6 +4,7 @@
 
 #include "BsScriptEnginePrerequisites.h"
 #include "BsScriptObjectWrapper.h"
+#include "BsScriptResourceManager.h"
 #include "Resources/BsResource.h"
 #include "Script/BsIScriptExportable.h"
 
@@ -25,6 +26,9 @@ namespace bs
 		/** Returns the root base class of the wrapped native object as a handle. */
 		const HResource& GetBaseNativeObjectAsHandle() const { return mNativeObjectStrongHandle; }
 
+		/** Checks is the native object alive and valid. */
+		bool IsNativeObjectValid() const { return GetBaseNativeObjectAsHandle().IsValid(); }
+
 		/**
 		 * Attempts to retrieve an existing associated script object from the provided native object. If one doesn't exist, a new script
 		 * object and the associated script wrapper will be created.
@@ -36,6 +40,21 @@ namespace bs
 
 		/** Returns the script object wrapper associated with the provided script object, and wrapped by a wrapper that owns the provided meta-data. */
 		static ScriptResourceWrapper* GetScriptObjectWrapper(const ScriptWrapperObjectMetaData& wrapperMetaData, MonoObject* scriptObject);
+
+		/**
+		 * Returns a resource reference script object, that is wrapping the provided resource.
+		 *
+		 * @param	resource	Handle to the resource to retrieve the reference for.
+		 * @param	rttiId		Type ID for the resource type to create a reference for.
+		 * @return				Script object representing the resource reference.
+		 */
+		static MonoObject* GetOrCreateResourceReference(const HResource& resource, u32 rttiId);
+
+		/** Maps a RTTI ID to a class representing the specified resource type in script code. Returns null if the ID cannot be mapped to a script resource class. */
+		static ::MonoClass* GetResourceScriptClass(u32 rttiId);
+
+		/** Returns a RRef<T> type that can be used for wrapping a resource of the type represented by the provided RTTI ID. */
+		static ::MonoClass* GetResourceReferenceScriptClass(u32 rttiId);
 
 	protected:
 		HResource mNativeObjectStrongHandle;
@@ -59,6 +78,26 @@ namespace bs
 		TResourceHandle<NativeType> GetNativeObjectAsHandle() const { return B3DStaticResourceCast<NativeType>(mNativeObjectStrongHandle); }
 
 		u32 GetNativeObjectReferenceCount() const override { return (u32)mNativeObjectStrongHandle.GetReferenceCount(); }
+
+		/** Returns a resource reference script object, that is wrapping the provided resource. */
+		MonoObject* GetOrCreateResourceReference() const
+		{
+			return ScriptResourceWrapper::GetOrCreateResourceReference(mNativeObjectStrongHandle, NativeType::GetRttiStatic()->GetRttiId());
+		}
+
+		bool ShouldPersistScriptReload() const override { return true; }
+		void NotifyScriptObjectDestroyed(bool isDestroyedDueToScriptReload) override
+		{
+			// Keep the wrapper alive if script reload and the native object is still valid
+			if(!isDestroyedDueToScriptReload || !IsNativeObjectValid())
+			{
+				TScriptObjectWrapper<SelfType, BaseType>::NotifyScriptObjectDestroyed(isDestroyedDueToScriptReload);
+				return;
+			}
+
+			// Handle should have been cleared already
+			B3D_ENSURE(mStrongScriptObjectHandle == ~0u);
+		}
 
 		/**
 		 * Creates a new script object and a script object wrapper of @p SelfType, and associates them with the provided native object. Should not be called if @p nativeObject
@@ -111,6 +150,43 @@ namespace bs
 			metaData.GetScriptExportable = &GetScriptExportable;
 		}
 	};
+
+	/**	Interop class between C++ & CLR for Resource. */
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptResource : public TScriptResourceWrapper<Resource, ScriptResource>
+	{
+	public:
+		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "Resource")
+
+	private:
+		ScriptResource(const HResource& nativeObject, MonoObject* scriptObject);
+
+		/** Retrieves the underlying native object cast to the correct type. */
+		Resource* GetNativeObject() const;
+
+		/************************************************************************/
+		/* 								CLR HOOKS						   		*/
+		/************************************************************************/
+		static MonoString* InternalGetName(ScriptResourceWrapper* self);
+		static void InternalGetUuid(ScriptResourceWrapper* self, UUID* uuid);
+		static void InternalRelease(ScriptResourceWrapper* self);
+	};
+
+	/**	Interop class between C++ & CLR for UUID. */
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptUUID : public ScriptObject<ScriptUUID>
+	{
+	public:
+		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "UUID")
+
+		/**	Unboxes a boxed managed UUID struct and returns the native version of the structure. */
+		static UUID Unbox(MonoObject* obj);
+
+		/**	Boxes a native UUID struct and returns a managed object containing it. */
+		static MonoObject* Box(const UUID& value);
+
+	private:
+		ScriptUUID(MonoObject* instance);
+	};
+
 
 	/** @} */
 } // namespace bs

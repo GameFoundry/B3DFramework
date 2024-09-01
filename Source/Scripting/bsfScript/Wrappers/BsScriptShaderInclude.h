@@ -3,7 +3,7 @@
 #pragma once
 
 #include "BsScriptEnginePrerequisites.h"
-#include "Wrappers/BsScriptResource.h"
+#include "BsScriptResourceWrapper.h"
 #include "Material/BsShaderInclude.h"
 
 namespace bs
@@ -13,19 +13,17 @@ namespace bs
 	 */
 
 	/**	Interop class between C++ & CLR for ShaderInclude. */
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptShaderInclude : public TScriptResource<ScriptShaderInclude, ShaderInclude>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptShaderInclude : public TScriptResourceWrapper<ShaderInclude, ScriptShaderInclude>
 	{
 	public:
-		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "ShaderInclude")
+		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "ShaderInclude")
 
-		/**	Creates an empty, uninitialized managed instance of the resource interop object. */
-		static MonoObject* CreateInstance();
+		ScriptShaderInclude(const HShaderInclude& nativeObject, MonoObject* scriptObject);
 
-	private:
-		friend class ScriptResourceManager;
-		friend class BuiltinResourceTypes;
+		/** Retrieves the underlying native object cast to the correct type. */
+		ShaderInclude* GetNativeObject() const;
 
-		ScriptShaderInclude(MonoObject* instance, const HShaderInclude& shaderInclude);
+		static MonoObject* CreateScriptObject(bool construct);
 	};
 
 	/** @} */

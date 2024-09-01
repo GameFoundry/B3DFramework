@@ -8,9 +8,10 @@
 
 namespace bs
 {
-#if B3D_IS_ENGINE
+	class ScriptResourceWrapper;
 	class ScriptRRefBase;
 
+#if B3D_IS_ENGINE
 	/** @addtogroup ScriptInteropEngine
 	 *  @{
 	 */
@@ -31,7 +32,7 @@ namespace bs
 		static MonoObject* InternalLoadFromUuid(UUID* uuid, ResourceLoadFlag flags);
 		static MonoObject* InternalLoadAsync(MonoString* path, ResourceLoadFlag flags);
 		static MonoObject* InternalLoadAsyncFromUuid(UUID* uuid, ResourceLoadFlag flags);
-		static void InternalRelease(ScriptResourceBase* resource);
+		static void InternalRelease(ScriptResourceWrapper* resource);
 		static void InternalReleaseRef(ScriptRRefBase* resource);
 		static void InternalUnloadUnused();
 		static float InternalGetLoadProgress(ScriptRRefBase* resource);

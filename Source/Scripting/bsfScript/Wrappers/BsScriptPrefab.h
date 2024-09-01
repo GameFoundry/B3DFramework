@@ -3,7 +3,7 @@
 #pragma once
 
 #include "BsScriptEnginePrerequisites.h"
-#include "Wrappers/BsScriptResource.h"
+#include "BsScriptResourceWrapper.h"
 #include "Scene/BsPrefab.h"
 
 namespace bs
@@ -13,26 +13,25 @@ namespace bs
 	 */
 
 	/**	Interop class between C++ & CLR for Prefab. */
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptPrefab : public TScriptResource<ScriptPrefab, Prefab>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptPrefab : public TScriptResourceWrapper<Prefab, ScriptPrefab>
 	{
 	public:
-		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "Prefab")
+		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "Prefab")
 
-		/**	Creates an empty, uninitialized managed instance of the resource interop object. */
-		static MonoObject* CreateInstance();
+		ScriptPrefab(const HPrefab& nativeObject, MonoObject* scriptObject);
+
+		/** Retrieves the underlying native object cast to the correct type. */
+		Prefab* GetNativeObject() const;
+
+		static MonoObject* CreateScriptObject(bool construct);
 
 	private:
-		friend class ScriptResourceManager;
-		friend class BuiltinResourceTypes;
-
-		ScriptPrefab(MonoObject* instance, const HPrefab& prefab);
-
 		/************************************************************************/
 		/* 								CLR HOOKS						   		*/
 		/************************************************************************/
-		static void InternalCreateInstance(MonoObject* instance, ScriptSceneObject* so, bool isScene);
-		static MonoObject* InternalInstantiate(ScriptPrefab* instance);
-		static bool InternalIsScene(ScriptPrefab* instance);
+		static void InternalCreateInstance(MonoObject* scriptObject, ScriptSceneObject* so, bool isScene);
+		static MonoObject* InternalInstantiate(ScriptPrefab* self);
+		static bool InternalIsScene(ScriptPrefab* self);
 	};
 
 	/** @} */

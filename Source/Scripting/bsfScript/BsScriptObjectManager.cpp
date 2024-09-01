@@ -82,7 +82,7 @@ void ScriptObjectManager::RefreshAssemblies(const Vector<AssemblyRefreshInfo>& a
 	for(auto& entry : assemblies)
 	{
 		MonoManager::Instance().LoadAssembly(*entry.Path, entry.Name);
-		ScriptAssemblyManager::Instance().LoadAssemblyInfo(entry.Name, *entry.TypeMapping);
+		ScriptAssemblyManager::Instance().LoadAssemblyInfo(entry.Name);
 	}
 
 	Vector<ScriptObjectBase*> scriptObjCopy(mScriptObjects.size()); // Store originals as we could add new objects during the next iteration

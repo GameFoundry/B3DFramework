@@ -12,41 +12,49 @@
 using namespace std::placeholders;
 
 using namespace bs;
-ScriptPlainText::ScriptPlainText(MonoObject* instance, const HPlainText& plainText)
-	: TScriptResource(instance, plainText)
+ScriptPlainText::ScriptPlainText(const HPlainText& nativeObject, MonoObject* scriptObject)
+	: TScriptResourceWrapper(nativeObject, scriptObject)
 {
+	RegisterEvents();
 }
 
-void ScriptPlainText::InitRuntimeData()
+void ScriptPlainText::SetupScriptBindings()
 {
-	metaData.ScriptClass->AddInternalCall("Internal_CreateInstance", (void*)&ScriptPlainText::InternalCreateInstance);
-	metaData.ScriptClass->AddInternalCall("Internal_GetText", (void*)&ScriptPlainText::InternalGetText);
-	metaData.ScriptClass->AddInternalCall("Internal_SetText", (void*)&ScriptPlainText::InternalSetText);
+	sInteropMetaData.ScriptClass->AddInternalCall("Internal_CreateInstance", (void*)&ScriptPlainText::InternalCreateInstance);
+	sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetText", (void*)&ScriptPlainText::InternalGetText);
+	sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetText", (void*)&ScriptPlainText::InternalSetText);
 }
 
-void ScriptPlainText::InternalCreateInstance(MonoObject* instance, MonoString* text)
+MonoObject* ScriptPlainText::CreateScriptObject(bool construct)
 {
-	WString strText = MonoUtil::MonoToWString(text);
-	HPlainText plainText = PlainText::Create(strText);
-
-	ScriptResourceManager::Instance().CreateBuiltinScriptResource(plainText, instance);
+	return sInteropMetaData.ScriptClass->CreateInstance(construct);
 }
 
-MonoString* ScriptPlainText::InternalGetText(ScriptPlainText* thisPtr)
+PlainText* ScriptPlainText::GetNativeObject() const
 {
-	HPlainText plainText = thisPtr->GetHandle();
-
-	return MonoUtil::WstringToMono(plainText->GetString());
+	return static_cast<PlainText*>(TScriptResourceWrapper::GetNativeObject());
 }
 
-void ScriptPlainText::InternalSetText(ScriptPlainText* thisPtr, MonoString* text)
+void ScriptPlainText::InternalCreateInstance(MonoObject* scriptObject, MonoString* text)
 {
-	HPlainText plainText = thisPtr->GetHandle();
+	WString wideString = MonoUtil::MonoToWString(text);
+	HPlainText plainText = PlainText::Create(wideString);
 
-	plainText->SetString(MonoUtil::MonoToWString(text));
+	B3DNew<ScriptPlainText>(plainText, scriptObject);
 }
 
-MonoObject* ScriptPlainText::CreateInstance()
+MonoString* ScriptPlainText::InternalGetText(ScriptPlainText* self)
 {
-	return metaData.ScriptClass->CreateInstance();
+	if(!self->IsNativeObjectValid())
+		return nullptr;
+
+	return MonoUtil::WstringToMono(self->GetNativeObject()->GetString());
+}
+
+void ScriptPlainText::InternalSetText(ScriptPlainText* self, MonoString* text)
+{
+	if(!self->IsNativeObjectValid())
+		return;
+
+	self->GetNativeObject()->SetString(MonoUtil::MonoToWString(text));
 }

@@ -11,6 +11,7 @@
 
 namespace bs
 {
+	class ScriptResourceWrapper;
 	/** @addtogroup ScriptInteropEngine
 	 *  @{
 	 */
@@ -61,7 +62,7 @@ namespace bs
 		static ScriptRRefBase* CreateInternal(const TResourceHandle<Resource>& handle, ::MonoClass* rawType = nullptr);
 
 		TResourceHandle<Resource> mResource;
-		ScriptResourceBase* mScriptResource = nullptr;
+		ScriptResourceWrapper* mScriptResource = nullptr;
 		u32 mGCHandle;
 
 		/************************************************************************/

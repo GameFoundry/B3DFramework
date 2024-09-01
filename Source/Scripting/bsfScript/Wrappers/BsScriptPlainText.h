@@ -3,8 +3,8 @@
 #pragma once
 
 #include "BsScriptEnginePrerequisites.h"
-#include "Wrappers/BsScriptResource.h"
 #include "BsScriptObject.h"
+#include "BsScriptResourceWrapper.h"
 #include "Resources/BsPlainText.h"
 
 namespace bs
@@ -14,26 +14,25 @@ namespace bs
 	 */
 
 	/**	Interop class between C++ & CLR for PlainText. */
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptPlainText : public TScriptResource<ScriptPlainText, PlainText>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptPlainText : public TScriptResourceWrapper<PlainText, ScriptPlainText>
 	{
 	public:
-		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "PlainText")
+		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "PlainText")
 
-		/**	Creates an empty, uninitialized managed instance of the resource interop object. */
-		static MonoObject* CreateInstance();
+		/** Retrieves the underlying native object cast to the correct type. */
+		PlainText* GetNativeObject() const;
+
+		static MonoObject* CreateScriptObject(bool construct);
 
 	private:
-		friend class ScriptResourceManager;
-		friend class BuiltinResourceTypes;
-
-		ScriptPlainText(MonoObject* instance, const HPlainText& plainText);
+		ScriptPlainText(const HPlainText& nativeObject, MonoObject* scriptObject);
 
 		/************************************************************************/
 		/* 								CLR HOOKS						   		*/
 		/************************************************************************/
-		static void InternalCreateInstance(MonoObject* instance, MonoString* text);
-		static MonoString* InternalGetText(ScriptPlainText* thisPtr);
-		static void InternalSetText(ScriptPlainText* thisPtr, MonoString* text);
+		static void InternalCreateInstance(MonoObject* scriptObject, MonoString* text);
+		static MonoString* InternalGetText(ScriptPlainText* self);
+		static void InternalSetText(ScriptPlainText* self, MonoString* text);
 	};
 
 	/** @} */
