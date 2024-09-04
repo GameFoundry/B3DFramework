@@ -3,9 +3,8 @@
 #pragma once
 
 #include "BsScriptEnginePrerequisites.h"
-#include "BsScriptObject.h"
 #include "Image/BsTexture.h"
-#include "BsMonoClass.h"
+#include "BsScriptResourceWrapper.h"
 #include "Reflection/BsRTTIType.h"
 
 namespace bs
@@ -16,31 +15,31 @@ namespace bs
 	 */
 
 	/**	Interop class between C++ & CLR for RRefBase and RRef<T>. */
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptRRefBase : public ScriptObject<ScriptRRefBase>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptRRefBase : public TScriptResourceWrapper<Resource, ScriptRRefBase>
 	{
 	public:
-		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "RRefBase")
+		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "RRefBase")
 
-		/**	Returns a weak handle to the resource referenced by this object. */
-		TResourceHandle<Resource> GetHandle() const { return mResource; }
-
-		/** Returns the managed version of this object. */
-		MonoObject* GetManagedInstance() const;
+		ScriptRRefBase(const TResourceHandle<Resource>& nativeObject, MonoObject* scriptObject);
 
 		/**
-		 * Creates a new managed RRefBase for the provided resource.
+		 * Returns null as resource references cannot be created statically. Their script object type is mutable depending on the resource type they are referencing. Use CreateScriptObject() that accepts
+		 * a resource handle instead.
+		 */
+		static MonoObject* CreateScriptObject(bool construct)
+		{
+			return nullptr;
+		}
+		/**
+		 * Creates a new resource reference script object for the provided resource.
 		 *
-		 * @param[in]	handle	Handle to the resource to wrap.
-		 * @param[in]	rawType	Class of the RRef type to use for wrapping the resource. If null then the resource
+		 * @param	handle		Handle to the resource to wrap.
+		 * @param	rawType		Class of the RRef type to use for wrapping the resource. If null then the resource
 		 *						will be wrapped in a non-specific RRefBase object. Otherwise it will be wrapped in a
 		 *						templated RRef<T> object. In the latter case caller is responsible for ensuring the
 		 *						template parameter of RRef matches the actual resource type.
 		 */
-		template <class T>
-		static ScriptRRefBase* Create(const TResourceHandle<T>& handle, ::MonoClass* rawType = nullptr)
-		{
-			return CreateInternal(handle, rawType);
-		}
+		static MonoObject* CreateScriptObject(const HResource& handle, ::MonoClass* rawType = nullptr);
 
 		/** Creates a RRef type with the provided class bound as its template parameter. */
 		static ::MonoClass* BindGenericParam(::MonoClass* param);
@@ -48,29 +47,13 @@ namespace bs
 	private:
 		friend class ScriptResourceManager;
 
-		ScriptRRefBase(MonoObject* instance, TResourceHandle<Resource> handle);
-		~ScriptRRefBase();
-
-		void ClearManagedInstanceInternal() override;
-		void OnManagedInstanceDeletedInternal(bool assemblyRefresh) override;
-
-		/** Clears the internal cached ScriptResource reference. Should be called if the resource got destroyed. */
-		void ClearResource() { mScriptResource = nullptr; }
-
-		/** @copydoc Create() */
-		static ScriptRRefBase* CreateInternal(const TResourceHandle<Resource>& handle, ::MonoClass* rawType = nullptr);
-
-		TResourceHandle<Resource> mResource;
-		ScriptResourceWrapper* mScriptResource = nullptr;
-		u32 mGCHandle;
-
 		/************************************************************************/
 		/* 								CLR HOOKS						   		*/
 		/************************************************************************/
-		static bool InternalIsLoaded(ScriptRRefBase* thisPtr);
-		static MonoObject* InternalGetResource(ScriptRRefBase* thisPtr);
-		static void InternalGetUuid(ScriptRRefBase* thisPtr, UUID* uuid);
-		static MonoObject* InternalCastAs(ScriptRRefBase* thisPtr, MonoReflectionType* type);
+		static bool InternalIsLoaded(ScriptRRefBase* self);
+		static MonoObject* InternalGetResource(ScriptRRefBase* self);
+		static void InternalGetUuid(ScriptRRefBase* self, UUID* uuid);
+		static MonoObject* InternalCastAs(ScriptRRefBase* self, MonoReflectionType* type);
 	};
 
 	/** @} */

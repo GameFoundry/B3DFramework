@@ -60,7 +60,7 @@ MonoObject* ScriptResourceWrapper::GetOrCreateResourceReference(const HResource&
 	if(!resourceReferenceScriptObject)
 		return nullptr;
 
-	return resourceReferenceScriptObject->GetManagedInstance();
+	return resourceReferenceScriptObject->GetScriptObject();
 }
 
 ::MonoClass* ScriptResourceWrapper::GetResourceScriptClass(u32 rttiId)

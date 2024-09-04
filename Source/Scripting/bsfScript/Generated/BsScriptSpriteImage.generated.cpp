@@ -46,7 +46,7 @@ namespace bs
 	}
 	MonoObject* ScriptSpriteImage::InternalGetRef(ScriptSpriteImageWrapperBase* self)
 	{
-		return self->GetOrCreateResourceReference(self->GetNativeObjectAsHandle(), SpriteImage::GetRttiStatic()->GetRttiId());
+		return self->GetOrCreateResourceReference(self->GetBaseNativeObjectAsHandle(), SpriteImage::GetRttiStatic()->GetRttiId());
 	}
 
 	void ScriptSpriteImage::InternalGetSize(ScriptSpriteImageWrapperBase* self, TSize2<uint32_t>* __output)

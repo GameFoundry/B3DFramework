@@ -79,7 +79,7 @@ MonoObject* ScriptResources::InternalLoadAsync(MonoString* path, ResourceLoadFla
 
 	ScriptRRefBase* scriptResourceReference = ScriptResourceManager::Instance().GetScriptRRef(resource);
 	if(scriptResourceReference != nullptr)
-		return scriptResourceReference->GetManagedInstance();
+		return scriptResourceReference->GetScriptObject();
 
 	return nullptr;
 }
@@ -98,14 +98,14 @@ MonoObject* ScriptResources::InternalLoadAsyncFromUuid(UUID* uuid, ResourceLoadF
 
 	ScriptRRefBase* scriptResource = ScriptResourceManager::Instance().GetScriptRRef(resource);
 	if(scriptResource != nullptr)
-		return scriptResource->GetManagedInstance();
+		return scriptResource->GetScriptObject();
 
 	return nullptr;
 }
 
 float ScriptResources::InternalGetLoadProgress(ScriptRRefBase* resource)
 {
-	return GetResources().GetLoadProgress(resource->GetHandle());
+	return GetResources().GetLoadProgress(resource->GetNativeObjectAsHandle());
 }
 
 void ScriptResources::InternalRelease(ScriptResourceWrapper* resource)
@@ -116,7 +116,8 @@ void ScriptResources::InternalRelease(ScriptResourceWrapper* resource)
 
 void ScriptResources::InternalReleaseRef(ScriptRRefBase* resourceRef)
 {
-	resourceRef->GetHandle().ReleaseInternalReference();
+	HResource mutableResourceHandle = resourceRef->GetBaseNativeObjectAsHandle();
+	mutableResourceHandle.ReleaseInternalReference();
 }
 
 void ScriptResources::InternalUnloadUnused()

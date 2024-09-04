@@ -35,9 +35,9 @@ namespace bs
 		output.Name = tmpName;
 		TResourceHandle<Resource> tmpValue;
 		ScriptResource* scriptWrapperObjectValue;
-		scriptWrapperObjectValue = ScriptResource::ToNative(value.Value);
+		scriptWrapperObjectValue = ScriptResource::GetScriptObjectWrapper(value.Value);
 		if(scriptWrapperObjectValue != nullptr)
-			tmpValue = B3DStaticResourceCast<Resource>(scriptWrapperObjectValue->GetGenericHandle());
+			tmpValue = B3DStaticResourceCast<Resource>(scriptWrapperObjectValue->GetBaseNativeObjectAsHandle());
 		output.Value = tmpValue;
 
 		return output;

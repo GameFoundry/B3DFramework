@@ -58,7 +58,7 @@ namespace bs
 		ScriptRRefBase* scriptp0;
 		scriptp0 = ScriptResourceManager::Instance().GetScriptRRef(p0);
 		if(scriptp0 != nullptr)
-			tmpp0 = scriptp0->GetManagedInstance();
+			tmpp0 = scriptp0->GetScriptObject();
 		else
 			tmpp0 = nullptr;
 		MonoUtil::InvokeThunk(OnResourceLoadedThunk, tmpp0);
@@ -77,7 +77,7 @@ namespace bs
 		ScriptRRefBase* scriptp0;
 		scriptp0 = ScriptResourceManager::Instance().GetScriptRRef(p0);
 		if(scriptp0 != nullptr)
-			tmpp0 = scriptp0->GetManagedInstance();
+			tmpp0 = scriptp0->GetScriptObject();
 		else
 			tmpp0 = nullptr;
 		MonoUtil::InvokeThunk(OnResourceModifiedThunk, tmpp0);
@@ -87,9 +87,9 @@ namespace bs
 	{
 		TResourceHandle<Resource> tmpresource;
 		ScriptRRefBase* scriptObjectWrapperresource;
-		scriptObjectWrapperresource = ScriptRRefBase::ToNative(resource);
+		scriptObjectWrapperresource = ScriptRRefBase::GetScriptObjectWrapper(resource);
 		if(scriptObjectWrapperresource != nullptr)
-			tmpresource = B3DStaticResourceCast<Resource>(scriptObjectWrapperresource->GetHandle());
+			tmpresource = B3DStaticResourceCast<Resource>(scriptObjectWrapperresource->GetBaseNativeObjectAsHandle());
 		Resources::Instance().ReleaseInternalReference(tmpresource);
 	}
 
@@ -119,9 +119,9 @@ namespace bs
 		float tmp__output;
 		TResourceHandle<Resource> tmpresource;
 		ScriptRRefBase* scriptObjectWrapperresource;
-		scriptObjectWrapperresource = ScriptRRefBase::ToNative(resource);
+		scriptObjectWrapperresource = ScriptRRefBase::GetScriptObjectWrapper(resource);
 		if(scriptObjectWrapperresource != nullptr)
-			tmpresource = B3DStaticResourceCast<Resource>(scriptObjectWrapperresource->GetHandle());
+			tmpresource = B3DStaticResourceCast<Resource>(scriptObjectWrapperresource->GetBaseNativeObjectAsHandle());
 		tmp__output = Resources::Instance().GetLoadProgress(tmpresource);
 
 		float __output;

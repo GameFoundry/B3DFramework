@@ -31,30 +31,26 @@ MonoObject* ScriptBuiltin::InternalGetWhiteTexture()
 {
 	HSpriteTexture whiteTexture = BuiltinResources::Instance().GetWhiteSpriteTexture();
 
-	ScriptResourceBase* scriptSpriteTex = ScriptResourceManager::Instance().GetScriptResource(whiteTexture, true);
-	return scriptSpriteTex->GetManagedInstance();
+	return ScriptResourceWrapper::GetOrCreateScriptObject(whiteTexture);
 }
 
 MonoObject* ScriptBuiltin::InternalGetBuiltinShader(BuiltinShader type)
 {
 	HShader diffuseShader = BuiltinResources::Instance().GetBuiltinShader(type);
 
-	ScriptResourceBase* scriptShader = ScriptResourceManager::Instance().GetScriptResource(diffuseShader, true);
-	return scriptShader->GetManagedInstance();
+	return ScriptResourceWrapper::GetOrCreateScriptObject(diffuseShader);
 }
 
 MonoObject* ScriptBuiltin::InternalGetMesh(BuiltinMesh meshType)
 {
 	HMesh mesh = BuiltinResources::Instance().GetMesh(meshType);
 
-	ScriptResourceBase* scriptMesh = ScriptResourceManager::Instance().GetScriptResource(mesh, true);
-	return scriptMesh->GetManagedInstance();
+	return ScriptResourceWrapper::GetOrCreateScriptObject(mesh);
 }
 
 MonoObject* ScriptBuiltin::InternalGetDefaultFont()
 {
 	HFont font = BuiltinResources::Instance().GetDefaultFont();
 
-	ScriptResourceBase* scriptFont = ScriptResourceManager::Instance().GetScriptResource(font, true);
-	return scriptFont->GetManagedInstance();
+	return ScriptResourceWrapper::GetOrCreateScriptObject(font);
 }

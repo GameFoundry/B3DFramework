@@ -39,16 +39,21 @@ ManagedResource::ManagedResource(MonoObject* managedInstance)
 
 MonoObject* ManagedResource::GetManagedInstance() const
 {
-	if(mOwner)
-		return mOwner->GetManagedInstance();
+	ScriptObjectWrapper* const scriptObjectWrapper = (ScriptObjectWrapper*)GetScriptObjectWrapper();
+	if(scriptObjectWrapper == nullptr)
+		return nullptr;
 
-	return nullptr;
+	return scriptObjectWrapper->GetScriptObject();
 }
 
 ResourceBackupData ManagedResource::Backup()
 {
-	MonoObject* instance = mOwner->GetManagedInstance();
-	SPtr<ManagedSerializableObject> serializableObject = ManagedSerializableObject::CreateFromExisting(instance);
+	MonoObject* scriptObject = nullptr;
+	ScriptObjectWrapper* const scriptObjectWrapper = (ScriptObjectWrapper*)GetScriptObjectWrapper();
+	if(scriptObjectWrapper != nullptr)
+		scriptObject = scriptObjectWrapper->GetScriptObject();
+
+	SPtr<ManagedSerializableObject> serializableObject = ManagedSerializableObject::CreateFromExisting(scriptObject);
 
 	ResourceBackupData backupData;
 	if(serializableObject != nullptr)
@@ -72,8 +77,12 @@ ResourceBackupData ManagedResource::Backup()
 
 void ManagedResource::Restore(const ResourceBackupData& data)
 {
-	MonoObject* instance = mOwner->GetManagedInstance();
-	if(instance != nullptr)
+	ScriptObjectWrapper* const scriptObjectWrapper = (ScriptObjectWrapper*)GetScriptObjectWrapper();
+	if(!B3D_ENSURE(scriptObjectWrapper != nullptr))
+		return;
+
+	MonoObject* const scriptObject = scriptObjectWrapper->GetScriptObject();
+	if(scriptObject != nullptr)
 	{
 		if(data.Data != nullptr)
 		{
@@ -85,13 +94,13 @@ void ManagedResource::Restore(const ResourceBackupData& data)
 			SPtr<ManagedSerializableObjectInfo> currentObjInfo = nullptr;
 
 			if(ScriptAssemblyManager::Instance().GetSerializableObjectInfo(managedResMetaData->TypeNamespace, managedResMetaData->TypeName, currentObjInfo))
-				serializableObject->Deserialize(instance, currentObjInfo);
+				serializableObject->Deserialize(scriptObject, currentObjInfo);
 		}
 	}
 	else
 	{
 		// Could not restore resource
-		ManagedResourceManager::Instance().UnregisterManagedResource(mMyHandle);
+		ManagedResourceManager::Instance().UnregisterManagedResource(B3DStaticResourceCast<ManagedResource>(GetHandle()));
 	}
 }
 
@@ -118,7 +127,7 @@ SPtr<ManagedResource> ManagedResource::CreateEmpty()
 
 void ManagedResource::SetHandle(MonoObject* object, const HManagedResource& myHandle)
 {
-	mMyHandle = myHandle.GetWeak();
+	mMyHandle = myHandle.GetWeak(); // TODO - I'm holding a strong handle here. Is that fine? If so, do I still need ManagedResourceManager?
 
 	mOwner = ScriptResourceManager::Instance().CreateManagedScriptResource(myHandle, object);
 	ManagedResourceManager::Instance().RegisterManagedResource(mMyHandle);

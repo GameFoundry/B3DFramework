@@ -54,6 +54,20 @@ namespace bs
 		ManagedResource(MonoObject* managedInstance);
 
 		/**
+		 * Binds the managed resource to the currently assigned script object. This involves setting up bindings and resolving
+		 * the exact managed resource class.
+		 */
+		void BindToScriptObject(const SPtr<ManagedSerializableObjectInfo>& objectInformation);
+
+		/**
+		 * Creates the script object of the correct type.
+		 *
+		 * @param	outObjectInfo		Information about the resource type. Can be null in case the type does no longer exist.
+		 * @return						Creates script object of the correct resource type, or if type cannot be found, script object of missing type.
+		 */
+		MonoObject* CreateScriptObject(SPtr<ManagedSerializableObjectInfo>& outObjectInfo) const;
+
+		/**
 		 * Finalizes construction of the object. Must be called before use or when the managed resource instance changes.
 		 *
 		 * @param[in]	object		Managed resource instance.
@@ -62,9 +76,6 @@ namespace bs
 		void SetHandle(MonoObject* object, const HManagedResource& myHandle);
 
 		void Destroy() override;
-
-		TWeakResourceHandle<ManagedResource> mMyHandle;
-		ScriptManagedResource* mOwner = nullptr;
 
 		/************************************************************************/
 		/* 								RTTI		                     		*/

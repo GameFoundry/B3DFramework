@@ -146,7 +146,7 @@ MonoObject* ScriptScene::InternalGetMainCameraSo()
 #if B3D_IS_ENGINE
 void ScriptScene::InternalSetActiveScene(ScriptPrefab* scriptPrefab)
 {
-	HPrefab prefab = scriptPrefab->GetHandle();
+	HPrefab prefab = scriptPrefab->GetNativeObjectAsHandle();
 	SetActiveScene(prefab);
 }
 

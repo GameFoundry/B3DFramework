@@ -841,7 +841,7 @@ SPtr<IReflectable> ScriptAssemblyManager::GetReflectableFromManagedObject(MonoOb
 				ScriptManagedResource* scriptResource = nullptr;
 				managedResourceMeta->ScriptObjectWrapperPointerField->Get(value, &scriptResource);
 
-				HManagedResource resource = scriptResource->GetHandle();
+				HManagedResource resource = scriptResource->GetNativeObjectAsHandle();
 				if(!resource.IsLoaded(false))
 					return nullptr;
 

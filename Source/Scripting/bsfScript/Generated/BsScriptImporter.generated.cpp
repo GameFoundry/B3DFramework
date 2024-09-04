@@ -82,7 +82,7 @@ namespace bs
 			ScriptRRefBase* scriptWrapperObject;
 			scriptWrapperObject = ScriptResourceManager::Instance().GetScriptRRef(nativeObject);
 			if(scriptWrapperObject != nullptr)
-				scriptObject = scriptWrapperObject->GetManagedInstance();
+				scriptObject = scriptWrapperObject->GetScriptObject();
 			else
 				scriptObject = nullptr;
 			return scriptObject;

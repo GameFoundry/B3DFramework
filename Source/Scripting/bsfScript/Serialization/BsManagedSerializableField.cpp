@@ -275,8 +275,8 @@ SPtr<ManagedSerializableFieldData> ManagedSerializableFieldData::Create(const SP
 
 				if(value != nullptr)
 				{
-					ScriptResourceBase* scriptResource = ScriptManagedResource::ToNative(value);
-					fieldData->Value = scriptResource->GetGenericHandle();
+					ScriptResourceWrapper* const scriptResource = ScriptManagedResource::GetScriptObjectWrapper(value);
+					fieldData->Value = scriptResource->GetBaseNativeObjectAsHandle();
 				}
 
 				return fieldData;
@@ -327,8 +327,8 @@ SPtr<ManagedSerializableFieldData> ManagedSerializableFieldData::Create(const SP
 
 		if(value != nullptr)
 		{
-			ScriptRRefBase* scriptRRefBase = ScriptRRefBase::ToNative(value);
-			fieldData->Value = scriptRRefBase->GetHandle();
+			ScriptRRefBase* scriptRRefBase = ScriptRRefBase::GetScriptObjectWrapper(value);
+			fieldData->Value = scriptRRefBase->GetNativeObjectAsHandle();
 		}
 
 		return fieldData;
@@ -549,7 +549,7 @@ void* ManagedSerializableFieldDataResourceRef::GetValue(const SPtr<ManagedSerial
 		// Note: Each reference ref ends up creating its own object instance. Perhaps share the same instance between
 		// all references to the same resource?
 
-		return ScriptRRefBase::Create(Value, resourceRRefClass);
+		return ScriptRRefBase::CreateScriptObject(Value, resourceRRefClass);
 	}
 
 	B3D_EXCEPT(InvalidParametersException, "Requesting an invalid type in serializable field.");

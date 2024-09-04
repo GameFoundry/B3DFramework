@@ -5,76 +5,41 @@
 #include "BsMonoClass.h"
 #include "BsMonoUtil.h"
 #include "Resources/BsResources.h"
-#include "Wrappers/BsScriptResource.h"
-#include "BsScriptResourceManager.h"
-#include "BsApplication.h"
 #include "Serialization/BsScriptAssemblyManager.h"
 
 using namespace bs;
-ScriptRRefBase::ScriptRRefBase(MonoObject* instance, TResourceHandle<Resource> resource)
-	: ScriptObject(instance), mResource(std::move(resource)), mGCHandle(MonoUtil::NewGcHandle(instance))
+ScriptRRefBase::ScriptRRefBase(const TResourceHandle<Resource>& nativeObject, MonoObject* scriptObject)
+	: TScriptResourceWrapper(nativeObject, scriptObject)
 {}
 
-ScriptRRefBase::~ScriptRRefBase()
+void ScriptRRefBase::SetupScriptBindings()
 {
-	B3D_ASSERT(mGCHandle == 0 && "Object being destroyed without its managed instance being freed first.");
+	sInteropMetaData.ScriptClass->AddInternalCall("Internal_IsLoaded", (void*)&ScriptRRefBase::InternalIsLoaded);
+	sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetResource", (void*)&ScriptRRefBase::InternalGetResource);
+	sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetUUID", (void*)&ScriptRRefBase::InternalGetUuid);
+	sInteropMetaData.ScriptClass->AddInternalCall("Internal_CastAs", (void*)&ScriptRRefBase::InternalCastAs);
 }
 
-void ScriptRRefBase::InitRuntimeData()
-{
-	metaData.ScriptClass->AddInternalCall("Internal_IsLoaded", (void*)&ScriptRRefBase::InternalIsLoaded);
-	metaData.ScriptClass->AddInternalCall("Internal_GetResource", (void*)&ScriptRRefBase::InternalGetResource);
-	metaData.ScriptClass->AddInternalCall("Internal_GetUUID", (void*)&ScriptRRefBase::InternalGetUuid);
-	metaData.ScriptClass->AddInternalCall("Internal_CastAs", (void*)&ScriptRRefBase::InternalCastAs);
-}
-
-ScriptRRefBase* ScriptRRefBase::CreateInternal(const TResourceHandle<Resource>& handle, ::MonoClass* rawType)
+MonoObject* ScriptRRefBase::CreateScriptObject(const HResource& handle, ::MonoClass* rawType)
 {
 	MonoClass* type = nullptr;
 	if(rawType == nullptr)
-		type = metaData.ScriptClass;
+		type = sInteropMetaData.ScriptClass;
 	else
 	{
 		type = MonoManager::Instance().FindClass(rawType);
 		if(type == nullptr)
-			type = metaData.ScriptClass;
+			type = sInteropMetaData.ScriptClass;
 		else
 		{
-			B3D_ASSERT(type->IsSubClassOf(metaData.ScriptClass));
+			B3D_ASSERT(type->IsSubClassOf(sInteropMetaData.ScriptClass));
 		}
 	}
 
-	MonoObject* obj = type->CreateInstance();
-	ScriptRRefBase* output = new(B3DAllocate<ScriptRRefBase>()) ScriptRRefBase(obj, handle);
+	MonoObject* scriptObject = type->CreateInstance();
+	B3DNew<ScriptRRefBase>(handle, scriptObject);
 
-	// Note: It's important this method never returns null, handles should always be created to avoid extensive null
-	// checks
-	return output;
-}
-
-MonoObject* ScriptRRefBase::GetManagedInstance() const
-{
-	return MonoUtil::GetObjectFromGcHandle(mGCHandle);
-}
-
-void ScriptRRefBase::ClearManagedInstanceInternal()
-{
-	if(mGCHandle != 0)
-	{
-		MonoUtil::FreeGcHandle(mGCHandle);
-		mGCHandle = 0;
-	}
-}
-
-void ScriptRRefBase::OnManagedInstanceDeletedInternal(bool assemblyRefresh)
-{
-	if(mGCHandle != 0)
-	{
-		MonoUtil::FreeGcHandle(mGCHandle);
-		mGCHandle = 0;
-	}
-
-	ScriptObjectBase::OnManagedInstanceDeletedInternal(assemblyRefresh);
+	return scriptObject;
 }
 
 ::MonoClass* ScriptRRefBase::BindGenericParam(::MonoClass* param)
@@ -85,45 +50,47 @@ void ScriptRRefBase::OnManagedInstanceDeletedInternal(bool assemblyRefresh)
 	return MonoUtil::BindGenericParameters(rrefClass->GetInternalClass(), params, 1);
 }
 
-bool ScriptRRefBase::InternalIsLoaded(ScriptRRefBase* thisPtr)
+bool ScriptRRefBase::InternalIsLoaded(ScriptRRefBase* self)
 {
-	return thisPtr->mResource.IsLoaded(false);
+	if(!self->IsNativeObjectValid())
+		return false;
+
+	return self->GetNativeObjectAsHandle().IsLoaded(false);
 }
 
-MonoObject* ScriptRRefBase::InternalGetResource(ScriptRRefBase* thisPtr)
+MonoObject* ScriptRRefBase::InternalGetResource(ScriptRRefBase* self)
 {
-	if(thisPtr->mScriptResource)
-		return thisPtr->mScriptResource->GetManagedInstance();
+	if(!self->IsNativeObjectValid())
+		return nullptr;
 
-	const HResource resource = thisPtr->GetHandle();
+	const HResource resource = self->GetNativeObjectAsHandle();
 	if(resource == nullptr)
 		return nullptr;
 
 	if(resource.IsLoaded(false))
-		thisPtr->mScriptResource = ScriptResourceManager::Instance().GetScriptResource(resource, true);
-	else
-	{
-		ResourceLoadOptions loadOptions;
-		loadOptions.AsynchronousLoad = false;
-		loadOptions.LoadDependencies = true;
+		return ScriptResourceWrapper::GetOrCreateScriptObject(resource);
 
-		const HResource loadedResource = GetResources().Load(thisPtr->GetHandle().GetId(), loadOptions);
-		thisPtr->mScriptResource = ScriptResourceManager::Instance().GetScriptResource(loadedResource, true);
-	}
+	ResourceLoadOptions loadOptions;
+	loadOptions.AsynchronousLoad = false;
+	loadOptions.LoadDependencies = true;
 
-	if(thisPtr->mScriptResource)
-		return thisPtr->mScriptResource->GetManagedInstance();
-
-	return nullptr;
+	const HResource loadedResource = GetResources().Load(resource.GetId(), loadOptions);
+	return ScriptResourceWrapper::GetOrCreateScriptObject(loadedResource);
 }
 
-void ScriptRRefBase::InternalGetUuid(ScriptRRefBase* thisPtr, UUID* uuid)
+void ScriptRRefBase::InternalGetUuid(ScriptRRefBase* self, UUID* uuid)
 {
-	*uuid = thisPtr->GetHandle().GetId();
+	if(!self->IsNativeObjectValid())
+		*uuid = UUID::kEmpty;
+
+	*uuid = self->GetNativeObjectAsHandle().GetId();
 }
 
-MonoObject* ScriptRRefBase::InternalCastAs(ScriptRRefBase* thisPtr, MonoReflectionType* type)
+MonoObject* ScriptRRefBase::InternalCastAs(ScriptRRefBase* self, MonoReflectionType* type)
 {
+	if(!self->IsNativeObjectValid())
+		return nullptr;
+
 	::MonoClass* rawResType = MonoUtil::GetClass(type);
 
 	MonoClass* resType = MonoManager::Instance().FindClass(rawResType);
@@ -131,13 +98,8 @@ MonoObject* ScriptRRefBase::InternalCastAs(ScriptRRefBase* thisPtr, MonoReflecti
 		return nullptr; // Not a valid type
 
 	::MonoClass* rrefType = nullptr;
-	if(resType == ScriptResource::GetMetaData()->ScriptClass ||
-	   resType->IsSubClassOf(ScriptResource::GetMetaData()->ScriptClass))
+	if(resType == ScriptResource::GetMetaData()->ScriptClass || resType->IsSubClassOf(ScriptResource::GetMetaData()->ScriptClass))
 		rrefType = BindGenericParam(rawResType);
 
-	ScriptRRefBase* castRRefBase = Create(thisPtr->mResource, rrefType);
-	if(castRRefBase)
-		return castRRefBase->GetManagedInstance();
-
-	return nullptr;
+	return CreateScriptObject(self->GetNativeObjectAsHandle(), rrefType);
 }

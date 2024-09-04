@@ -67,7 +67,7 @@ void ScriptGUICanvas::InternalDrawImage(ScriptGUICanvas* nativeInstance, ScriptS
 
 	HSpriteImage nativeTexture;
 	if(texture != nullptr)
-		nativeTexture = texture->GetHandle();
+		nativeTexture = texture->GetNativeObjectAsHandle();
 
 	canvas->DrawImage(nativeTexture, *area, scaleMode, *color, depth);
 }
@@ -105,7 +105,7 @@ void ScriptGUICanvas::InternalDrawText(ScriptGUICanvas* nativeInstance, MonoStri
 
 	HFont nativeFont;
 	if(font != nullptr)
-		nativeFont = font->GetHandle();
+		nativeFont = font->GetNativeObjectAsHandle();
 
 	canvas->DrawText(nativeText, *position, nativeFont, size, *color, depth);
 }

@@ -51,7 +51,7 @@ void ScriptGUILayoutUtility::InternalCalculateBounds(ScriptGUIElementBase* guiEl
 void ScriptGUILayoutUtility::InternalCalculateTextBounds(MonoString* text, ScriptFont* fontPtr, float fontSize, Vector2I* output)
 {
 	String nativeText = MonoUtil::MonoToString(text);
-	HFont nativeFont = fontPtr->GetHandle();
+	HFont nativeFont = fontPtr->GetNativeObjectAsHandle();
 
 	*output = GUIHelper::CalculateTextBounds(nativeText, nativeFont, fontSize);
 }

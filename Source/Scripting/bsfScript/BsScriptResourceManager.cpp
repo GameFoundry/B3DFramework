@@ -8,8 +8,6 @@
 #include "Reflection/BsRTTIType.h"
 #include "Resources/BsResource.h"
 #include "Wrappers/BsScriptManagedResource.h"
-#include "Serialization/BsScriptAssemblyManager.h"
-#include "BsManagedResource.h"
 #include "Wrappers/BsScriptRRefBase.h"
 
 using namespace std::placeholders;
@@ -27,68 +25,6 @@ ScriptResourceManager::~ScriptResourceManager()
 	mResourceDestroyedConn.Disconnect();
 }
 
-ScriptManagedResource* ScriptResourceManager::CreateManagedScriptResource(const HManagedResource& resource, MonoObject* instance)
-{
-	const UUID& uuid = resource.GetId();
-#if B3D_DEBUG
-	ThrowExceptionIfInvalidOrDuplicateInternal(uuid);
-#endif
-
-	ScriptManagedResource* scriptResource = new(B3DAllocate<ScriptManagedResource>()) ScriptManagedResource(instance, resource);
-	mScriptResources[uuid] = scriptResource;
-
-	return scriptResource;
-}
-
-ScriptResourceBase* ScriptResourceManager::CreateBuiltinScriptResource(const HResource& resource, MonoObject* instance)
-{
-	const UUID& uuid = resource.GetId();
-#if B3D_DEBUG
-	ThrowExceptionIfInvalidOrDuplicateInternal(uuid);
-#endif
-
-	if(!resource.IsLoaded(false))
-		return nullptr;
-
-	u32 rttiId = resource->GetRtti()->GetRttiId();
-	BuiltinResourceInfo* info = ScriptAssemblyManager::Instance().GetBuiltinResourceInfo(rttiId);
-
-	if(info == nullptr)
-		return nullptr;
-
-	ScriptResourceBase* scriptResource = info->CreateCallback(resource, instance);
-	mScriptResources[uuid] = scriptResource;
-
-	return scriptResource;
-}
-
-ScriptResourceBase* ScriptResourceManager::GetScriptResource(const HResource& resource, bool create)
-{
-	const UUID& uuid = resource.GetId();
-
-	if(uuid.Empty())
-		return nullptr;
-
-	ScriptResourceBase* output = GetScriptResource(uuid);
-
-	if(output == nullptr && create)
-		return CreateBuiltinScriptResource(resource);
-
-	return output;
-}
-
-ScriptResourceBase* ScriptResourceManager::GetScriptResource(const UUID& uuid)
-{
-	if(uuid.Empty())
-		return nullptr;
-
-	auto findIter = mScriptResources.find(uuid);
-	if(findIter != mScriptResources.end())
-		return findIter->second;
-
-	return nullptr;
-}
-
 ScriptRRefBase* ScriptResourceManager::GetScriptRRef(const HResource& resource, ::MonoClass* rrefClass)
 {
 	UnorderedMap<UUID, ScriptRRefBase*>& rrefs = mScriptRRefsPerType[rrefClass];
@@ -96,72 +32,32 @@ ScriptRRefBase* ScriptResourceManager::GetScriptRRef(const HResource& resource, 
 	if(iterFind != rrefs.end())
 		return iterFind->second;
 
-	ScriptRRefBase* newRRef = ScriptRRefBase::Create(resource, rrefClass);
-	rrefs[resource.GetId()] = newRRef;
+	MonoObject* const referenceScriptObject = ScriptRRefBase::CreateScriptObject(resource, rrefClass);
+	ScriptRRefBase* const referenceScriptWrapper = ScriptRRefBase::GetScriptObjectWrapper(referenceScriptObject);
 
-	return newRRef;
-}
+	rrefs[resource.GetId()] = referenceScriptWrapper;
 
-void ScriptResourceManager::DestroyScriptResource(ScriptResourceBase* resource)
-{
-	HResource resourceHandle = resource->GetGenericHandle();
-	const UUID& uuid = resourceHandle.GetId();
-
-	if(uuid.Empty())
-		B3D_EXCEPT(InvalidParametersException, "Provided resource handle has an undefined resource UUID.");
-
-#if B3D_DEBUG
-	for(auto& kvp : mScriptRRefsPerType)
-	{
-		UnorderedMap<UUID, ScriptRRefBase*>& rrefs = kvp.second;
-
-		// No handles should exist at this point because we only manually free the ScriptResourceBase object if the
-		// native resource is destroyed, which we handle in onResourceDestroyed. And only other destruction should
-		// happen during assembly refresh, which we handled in clearRRefs().
-		const auto iterFind = rrefs.find(uuid);
-		B3D_ASSERT(iterFind == rrefs.end());
-	}
-#endif
-
-	(resource)->~ScriptResourceBase();
-	MemoryAllocator<DefaultAllocatorTag>::Free(resource);
-
-	mScriptResources.erase(uuid);
+	return referenceScriptWrapper;
 }
 
 void ScriptResourceManager::OnResourceDestroyed(const UUID& uuid)
 {
-	for(auto& kvp : mScriptRRefsPerType)
+	for(auto& entry : mScriptRRefsPerType)
 	{
-		UnorderedMap<UUID, ScriptRRefBase*>& rrefs = kvp.second;
+		UnorderedMap<UUID, ScriptRRefBase*>& resourceReferencesById = entry.second;
 
-		const auto iterFind = rrefs.find(uuid);
-		if(iterFind != rrefs.end())
-			iterFind->second->ClearResource();
-	}
+		const auto found = resourceReferencesById.find(uuid);
+		if(found != resourceReferencesById.end())
+		{
+			ScriptRRefBase* const scriptReferenceWrapper = found->second;
+			scriptReferenceWrapper->NotifyNativeObjectDestroyed();
 
-	auto findIter = mScriptResources.find(uuid);
-	if(findIter != mScriptResources.end())
-	{
-		findIter->second->NotifyResourceDestroyed();
-		mScriptResources.erase(findIter);
+			resourceReferencesById.erase(found);
+		}
 	}
 }
 
 void ScriptResourceManager::ClearRRefs()
 {
 	mScriptRRefsPerType.clear();
-}
-
-void ScriptResourceManager::ThrowExceptionIfInvalidOrDuplicateInternal(const UUID& uuid) const
-{
-	if(uuid.Empty())
-		B3D_EXCEPT(InvalidParametersException, "Provided resource handle has an undefined resource UUID.");
-
-	auto findIter = mScriptResources.find(uuid);
-	if(findIter != mScriptResources.end())
-	{
-		B3D_EXCEPT(InvalidStateException, "Provided resource handle already has a script resource. \
-											 Retrieve the existing instance instead of creating a new one.");
-	}
 }
