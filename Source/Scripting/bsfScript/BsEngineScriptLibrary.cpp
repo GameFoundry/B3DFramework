@@ -5,7 +5,6 @@
 #include "BsMonoAssembly.h"
 #include "Serialization/BsScriptAssemblyManager.h"
 #include "BsScriptResourceManager.h"
-#include "BsManagedResourceManager.h"
 #include "Script/BsScriptManager.h"
 #include "Wrappers/BsScriptInput.h"
 #include "Wrappers/BsScriptVirtualInput.h"
@@ -32,7 +31,6 @@ void EngineScriptLibrary::Initialize()
 	PlayInEditor::StartUp();
 	ScriptDebug::StartUp();
 	ScriptObjectManager::StartUp();
-	ManagedResourceManager::StartUp();
 	ScriptAssemblyManager::StartUp();
 	ScriptResourceManager::StartUp();
 	ScriptScene::StartUp();
@@ -94,7 +92,6 @@ void EngineScriptLibrary::Destroy()
 
 void EngineScriptLibrary::UnloadAssemblies()
 {
-	ManagedResourceManager::Instance().Clear();
 	MonoManager::Instance().UnloadScriptDomain();
 	ScriptObjectManager::Instance().ProcessFinalizedObjects();
 }
@@ -105,7 +102,6 @@ void EngineScriptLibrary::ShutdownModules()
 	ScriptVirtualInput::ShutDown();
 	ScriptInput::ShutDown();
 	ScriptScene::ShutDown();
-	ManagedResourceManager::ShutDown();
 
 #if B3D_IS_ENGINE
 	MonoManager::ShutDown();

@@ -6,7 +6,6 @@
 #include "BsMonoManager.h"
 #include "BsMonoClass.h"
 #include "Resources/BsResources.h"
-#include "BsManagedResourceManager.h"
 #include "Serialization/BsManagedSerializableObject.h"
 #include "Wrappers/BsScriptManagedResource.h"
 #include "BsScriptResourceManager.h"
@@ -21,22 +20,6 @@ ManagedResource::ManagedResource()
 	: Resource(false)
 {}
 
-ManagedResource::ManagedResource(MonoObject* managedInstance)
-	: Resource(false)
-{
-	SPtr<ManagedResourceMetaData> metaData = B3DMakeShared<ManagedResourceMetaData>();
-	mMetaData = metaData;
-
-	MonoUtil::GetClassName(managedInstance, metaData->TypeNamespace, metaData->TypeName);
-
-	MonoClass* managedClass = MonoManager::Instance().FindClass(metaData->TypeNamespace, metaData->TypeName);
-	if(managedClass == nullptr)
-	{
-		B3D_LOG(Warning, Script, "Cannot create managed component: {0}.{1} because that type doesn't exist.", metaData->TypeNamespace, metaData->TypeName);
-		return;
-	}
-}
-
 MonoObject* ManagedResource::GetManagedInstance() const
 {
 	ScriptObjectWrapper* const scriptObjectWrapper = (ScriptObjectWrapper*)GetScriptObjectWrapper();
@@ -48,28 +31,46 @@ MonoObject* ManagedResource::GetManagedInstance() const
 
 ResourceBackupData ManagedResource::Backup()
 {
-	MonoObject* scriptObject = nullptr;
-	ScriptObjectWrapper* const scriptObjectWrapper = (ScriptObjectWrapper*)GetScriptObjectWrapper();
-	if(scriptObjectWrapper != nullptr)
-		scriptObject = scriptObjectWrapper->GetScriptObject();
-
-	SPtr<ManagedSerializableObject> serializableObject = ManagedSerializableObject::CreateFromExisting(scriptObject);
-
 	ResourceBackupData backupData;
-	if(serializableObject != nullptr)
+
+	if(mObjectInformation != nullptr)
 	{
-		SPtr<MemoryDataStream> stream = B3DMakeShared<MemoryDataStream>();
-		BinarySerializer bs;
+		MonoObject* scriptObject = nullptr;
+		ScriptObjectWrapper* const scriptObjectWrapper = (ScriptObjectWrapper*)GetScriptObjectWrapper();
+		if(scriptObjectWrapper != nullptr)
+			scriptObject = scriptObjectWrapper->GetScriptObject();
 
-		bs.Encode(serializableObject.get(), stream);
+		SPtr<ManagedSerializableObject> serializableObject = ManagedSerializableObject::CreateFromExisting(scriptObject);
 
-		backupData.Size = (u32)stream->Size();
-		backupData.Data = stream->DisownMemory();
+		if(serializableObject != nullptr)
+		{
+			SPtr<MemoryDataStream> stream = B3DMakeShared<MemoryDataStream>();
+			BinarySerializer bs;
+
+			bs.Encode(serializableObject.get(), stream);
+
+			backupData.Size = (u32)stream->Size();
+			backupData.Data = stream->DisownMemory();
+		}
+		else
+		{
+			backupData.Size = 0;
+			backupData.Data = nullptr;
+		}
 	}
 	else
 	{
-		backupData.Size = 0;
-		backupData.Data = nullptr;
+		SPtr<MemoryDataStream> stream = B3DMakeShared<MemoryDataStream>();
+
+		if(mSerializedObjectData != nullptr)
+		{
+			BinarySerializer bs;
+			bs.Encode(mSerializedObjectData.get(), stream);
+		}
+
+		backupData.Size = (u32)stream->Size();
+		backupData.Data = stream->DisownMemory();
+		
 	}
 
 	return backupData;
@@ -82,63 +83,86 @@ void ManagedResource::Restore(const ResourceBackupData& data)
 		return;
 
 	MonoObject* const scriptObject = scriptObjectWrapper->GetScriptObject();
-	if(scriptObject != nullptr)
+	if(scriptObject != nullptr && data.Data != nullptr)
 	{
-		if(data.Data != nullptr)
-		{
-			BinarySerializer bs;
-			SPtr<ManagedSerializableObject> serializableObject = std::static_pointer_cast<ManagedSerializableObject>(
-				bs.Decode(B3DMakeShared<MemoryDataStream>(data.Data, data.Size), data.Size));
+		BinarySerializer bs;
+		SPtr<ManagedSerializableObject> serializableObject = std::static_pointer_cast<ManagedSerializableObject>(
+			bs.Decode(B3DMakeShared<MemoryDataStream>(data.Data, data.Size), data.Size));
 
-			SPtr<ManagedResourceMetaData> managedResMetaData = std::static_pointer_cast<ManagedResourceMetaData>(mMetaData);
-			SPtr<ManagedSerializableObjectInfo> currentObjInfo = nullptr;
-
-			if(ScriptAssemblyManager::Instance().GetSerializableObjectInfo(managedResMetaData->TypeNamespace, managedResMetaData->TypeName, currentObjInfo))
-				serializableObject->Deserialize(scriptObject, currentObjInfo);
-		}
+		if(mObjectInformation != nullptr)
+			serializableObject->Deserialize(scriptObject, mObjectInformation);
+		else
+			mSerializedObjectData = serializableObject;
 	}
+
+	if(mObjectInformation != nullptr)
+		mSerializedObjectData = nullptr;
+}
+
+HManagedResource ManagedResource::CreateUninitialized()
+{
+	SPtr<ManagedResource> managedResourceShared = CreateUninitializedAsShared();
+	HManagedResource managedResource = B3DStaticResourceCast<ManagedResource>(GetResources().CreateResourceHandle(managedResourceShared));
+
+	return managedResource;
+}
+
+SPtr<ManagedResource> ManagedResource::CreateUninitializedAsShared()
+{
+	SPtr<ManagedResource> managedResource = B3DMakeSharedFromExisting<ManagedResource>(new(B3DAllocate<ManagedResource>()) ManagedResource());
+	managedResource->SetShared(managedResource);
+
+	return managedResource;
+}
+
+void ManagedResource::Initialize()
+{
+	ScriptObjectWrapper* const scriptObjectWrapper = (ScriptObjectWrapper*)GetScriptObjectWrapper();
+
+	// Script object could already be assigned, if this was a new resource created from script code.
+	if(scriptObjectWrapper != nullptr)
+	{
+		MonoObject* const scriptObject = scriptObjectWrapper->GetScriptObject();
+		if(!B3D_ENSURE(scriptObject != nullptr))
+			return;
+
+		SPtr<ManagedResourceMetaData> metaData = B3DMakeShared<ManagedResourceMetaData>();
+		mMetaData = metaData;
+
+		MonoUtil::GetClassName(scriptObject, metaData->TypeNamespace, metaData->TypeName);
+	}
+	// If not, we need to create the script object (e.g. if the resource is being deserialized)
 	else
 	{
-		// Could not restore resource
-		ManagedResourceManager::Instance().UnregisterManagedResource(B3DStaticResourceCast<ManagedResource>(GetHandle()));
+		SPtr<ManagedSerializableObjectInfo> objectInformation;
+		MonoObject* const scriptObject = CreateScriptObject(objectInformation);
+
+		B3DNew<ScriptManagedResource>(B3DStaticResourceCast<ManagedResource>(GetHandle()), scriptObject);
+		BindToScriptObject(objectInformation);
+
+		if(mSerializedObjectData != nullptr && mObjectInformation != nullptr)
+		{
+			mSerializedObjectData->Deserialize(scriptObject, mObjectInformation);
+			mSerializedObjectData = nullptr;
+		}
 	}
 }
 
-HManagedResource ManagedResource::Create(MonoObject* managedResource)
+MonoObject* ManagedResource::CreateScriptObject(SPtr<ManagedSerializableObjectInfo>& outObjectInformation) const
 {
-	SPtr<ManagedResource> newRes = B3DMakeSharedFromExisting<ManagedResource>(new(B3DAllocate<ManagedResource>()) ManagedResource(managedResource));
-	newRes->SetShared(newRes);
-	newRes->Initialize();
+	auto metaData = B3DRTTICast<ManagedResourceMetaData>(mMetaData);
+	if(B3D_ENSURE(metaData != nullptr))
+	{
+		if(ScriptAssemblyManager::Instance().GetSerializableObjectInfo(metaData->TypeNamespace, metaData->TypeName, outObjectInformation))
+			return outObjectInformation->ScriptClass->CreateInstance(true);
+	}
 
-	HManagedResource handle = B3DStaticResourceCast<ManagedResource>(GetResources().CreateResourceHandle(newRes));
-	newRes->SetHandle(managedResource, handle);
-
-	return handle;
+	return ScriptAssemblyManager::Instance().GetBuiltinClasses().MissingResourceClass->CreateInstance(true);
 }
 
-SPtr<ManagedResource> ManagedResource::CreateEmpty()
+void ManagedResource::BindToScriptObject(const SPtr<ManagedSerializableObjectInfo>& objectInformation)
 {
-	SPtr<ManagedResource> newRes = B3DMakeSharedFromExisting<ManagedResource>(new(B3DAllocate<ManagedResource>()) ManagedResource());
-	newRes->SetShared(newRes);
-	newRes->Initialize();
-
-	return newRes;
-}
-
-void ManagedResource::SetHandle(MonoObject* object, const HManagedResource& myHandle)
-{
-	mMyHandle = myHandle.GetWeak(); // TODO - I'm holding a strong handle here. Is that fine? If so, do I still need ManagedResourceManager?
-
-	mOwner = ScriptResourceManager::Instance().CreateManagedScriptResource(myHandle, object);
-	ManagedResourceManager::Instance().RegisterManagedResource(mMyHandle);
-}
-
-void ManagedResource::Destroy()
-{
-	Resource::Destroy();
-
-	mOwner->NotifyDestroyedInternal();
-	ManagedResourceManager::Instance().UnregisterManagedResource(mMyHandle);
+	mObjectInformation = objectInformation;
 }
 
 RTTIType* ManagedResource::GetRttiStatic()

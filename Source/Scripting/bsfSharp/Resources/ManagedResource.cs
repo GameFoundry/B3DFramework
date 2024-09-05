@@ -37,5 +37,11 @@ namespace bs
         private static extern void Internal_CreateInstance(ManagedResource resource);
     }
 
+    /// <summary>
+    /// Resource type that will be used when a managed resource is deserialized but its type no longer exists.
+    /// </summary>
+    public class MissingResource : ManagedResource
+    { }
+
     /** @} */
 }

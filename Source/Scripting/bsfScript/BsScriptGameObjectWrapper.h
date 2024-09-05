@@ -56,6 +56,7 @@ namespace bs
 		}
 
 		bool ShouldPersistScriptReload() const override { return true; }
+		bool IsNativeObjectExplicitlyDestroyed() const override { return true; }
 		void NotifyScriptObjectDestroyed(bool isDestroyedDueToScriptReload) override
 		{
 			// Keep the wrapper alive if script reload and the native object is still valid

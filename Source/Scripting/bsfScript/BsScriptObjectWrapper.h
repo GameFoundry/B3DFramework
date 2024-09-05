@@ -66,6 +66,12 @@ namespace bs
 		/** Used by derived classes to connect callbacks to native object events. */
 		virtual void RegisterEvents() const { }
 
+		/**
+		 * Returns true if the native object is explicitly destroyed (e.g. by calling a Destroy() method). Return false if the native object is reference counted and destroyed when the
+		 * reference count reaches zero, and the script wrapper is holding a strong reference to the native object. Reference counted objects will be garbage collected at time intervals.
+		 */
+		virtual bool IsNativeObjectExplicitlyDestroyed() const { return false; }
+
 		void NotifyNativeObjectDestroyed() override;
 
 		/**

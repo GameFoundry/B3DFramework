@@ -684,6 +684,10 @@ void ScriptAssemblyManager::InitializeBaseTypes()
 	if(mBuiltin.MissingComponentClass == nullptr)
 		B3D_EXCEPT(InvalidStateException, "Cannot find MissingComponent managed class.");
 
+	mBuiltin.MissingResourceClass = engineAssembly->GetClass(kEngineNs, "MissingResource");
+	if(mBuiltin.MissingResourceClass == nullptr)
+		B3D_EXCEPT(InvalidStateException, "Cannot find MissingResource managed class.");
+
 	mBuiltin.SceneObjectClass = engineAssembly->GetClass(kEngineNs, "SceneObject");
 	if(mBuiltin.SceneObjectClass == nullptr)
 		B3D_EXCEPT(InvalidStateException, "Cannot find SceneObject managed class.");

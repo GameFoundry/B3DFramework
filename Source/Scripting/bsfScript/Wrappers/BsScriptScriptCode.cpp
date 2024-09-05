@@ -46,7 +46,7 @@ void ScriptScriptCode::InternalCreateInstance(MonoObject* scriptObject, MonoStri
 	WString strText = MonoUtil::MonoToWString(text);
 	HScriptCode scriptCode = ScriptCode::Create(strText);
 
-	B3DNew<ScriptPlainText>(scriptCode, scriptObject);
+	B3DNew<ScriptScriptCode>(scriptCode, scriptObject);
 }
 
 MonoString* ScriptScriptCode::InternalGetText(ScriptScriptCode* self)

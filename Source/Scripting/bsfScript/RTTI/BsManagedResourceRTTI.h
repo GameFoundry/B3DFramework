@@ -19,10 +19,11 @@ namespace bs
 
 	class B3D_SCRIPT_INTEROP_EXPORT ManagedResourceRTTI : public TRTTIType<ManagedResource, Resource, ManagedResourceRTTI>
 	{
-		SPtr<ManagedSerializableObject> mSerializableObject;
+		SPtr<ManagedSerializableObject> mSerializedObjectData;
 
 		B3D_RTTI_BEGIN_MEMBERS
-			B3D_RTTI_GENERATED_MEMBER(mSerializableObject, 0)
+			B3D_RTTI_GENERATED_MEMBER(mSerializedObjectData, 0)
+			B3D_RTTI_MEMBER(mMissingType, 1)
 		B3D_RTTI_END_MEMBERS
 
 	public:
@@ -30,17 +31,22 @@ namespace bs
 		{
 			if(operationType.IsSet(RTTIOperationType::ReadBit))
 			{
-				mSerializableObject = ManagedSerializableObject::CreateFromExisting(object.GetManagedInstance());
+				MonoObject* managedInstance = object.GetManagedInstance();
+
+				if(managedInstance != nullptr)
+					mSerializedObjectData = ManagedSerializableObject::CreateFromExisting(managedInstance);
+				else
+					mSerializedObjectData = object.mSerializedObjectData;
 			}
 		}
 
 		void OnOperationEnded(ManagedResource& object, RTTIOperationTypeFlags operationType, RTTIOperationContext& context) override
 		{
-			if(operationType.IsSet(RTTIOperationType::WriteBit))
+			if(operationType.IsSet(RTTIOperationType::WriteBit) && !operationType.IsSet(RTTIOperationType::PreExistingObjectBit))
 			{
-				SPtr<Resource> shared = std::static_pointer_cast<Resource>(object.GetShared());
-				HManagedResource handle = B3DStaticResourceCast<ManagedResource>(GetResources().CreateResourceHandle(shared));
-				object.SetHandle(mSerializableObject->Deserialize(), handle);
+				const SPtr<ManagedResource>& managedResource = std::static_pointer_cast<ManagedResource>(object.GetShared());
+				managedResource->mSerializedObjectData = mSerializedObjectData; 
+				managedResource->Initialize();
 			}
 		}
 
@@ -57,7 +63,7 @@ namespace bs
 
 		SPtr<IReflectable> NewRttiObject()
 		{
-			return ManagedResource::CreateEmpty();
+			return ManagedResource::CreateUninitializedAsShared();
 		}
 	};
 

@@ -20,14 +20,13 @@ namespace bs
 
 		ScriptManagedResource(const HManagedResource& nativeObject, MonoObject* scriptObject);
 
+		bool IsNativeObjectExplicitlyDestroyed() const override { return false; }
+
 		/**
 		 * Returns null as managed resources cannot be created statically. Their script object type is mutable depending on the script type they are referencing. Use non-static CreateAndBindScriptObject()
 		 * member instead.
 		 */
-		static MonoObject* CreateScriptObject(bool construct)
-		{
-			return nullptr;
-		}
+		static MonoObject* CreateScriptObject(bool construct) { return nullptr; }
 
 		/** Creates a new script object of the correct resource type and binds it to the script object wrapper. Script object wrapper must not have a script object assigned. */
 		void CreateAndBindScriptObject();

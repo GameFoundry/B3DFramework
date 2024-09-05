@@ -17,6 +17,8 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ManagedResource : public Resource
 	{
 	public:
+		ManagedResource();
+
 		/**	Returns the internal managed resource object. */
 		MonoObject* GetManagedInstance() const;
 
@@ -36,22 +38,16 @@ namespace bs
 		 */
 		void Restore(const ResourceBackupData& data);
 
-		/**
-		 * Creates a new managed resource wrapper from an actual managed resource object. Caller must ensure the provided
-		 * instance actually derives from Resource class.
-		 */
-		static HManagedResource Create(MonoObject* managedResource);
+		/** Creates an empty managed resource without calling Initialize(), as a resource handle. */
+		static HManagedResource CreateUninitialized();
 
-		/**
-		 * Creates an empty managed resource wrapper pointing to no managed instance. You must call setHandle() before use
-		 * manually.
-		 */
-		static SPtr<ManagedResource> CreateEmpty();
+		/** Creates an empty managed resource without calling Initialize(), as a shared pointer. */
+		static SPtr<ManagedResource> CreateUninitializedAsShared();
 
 	private:
 		friend class ScriptManagedResource;
 
-		ManagedResource(MonoObject* managedInstance);
+		void Initialize() override;
 
 		/**
 		 * Binds the managed resource to the currently assigned script object. This involves setting up bindings and resolving
@@ -62,20 +58,14 @@ namespace bs
 		/**
 		 * Creates the script object of the correct type.
 		 *
-		 * @param	outObjectInfo		Information about the resource type. Can be null in case the type does no longer exist.
-		 * @return						Creates script object of the correct resource type, or if type cannot be found, script object of missing type.
+		 * @param	outObjectInformation	Information about the resource type. Can be null in case the type does no longer exist.
+		 * @return							Creates script object of the correct resource type, or if type cannot be found, script object of missing type.
 		 */
-		MonoObject* CreateScriptObject(SPtr<ManagedSerializableObjectInfo>& outObjectInfo) const;
+		MonoObject* CreateScriptObject(SPtr<ManagedSerializableObjectInfo>& outObjectInformation) const;
 
-		/**
-		 * Finalizes construction of the object. Must be called before use or when the managed resource instance changes.
-		 *
-		 * @param[in]	object		Managed resource instance.
-		 * @param[in]	myHandle	Handle to myself.
-		 */
-		void SetHandle(MonoObject* object, const HManagedResource& myHandle);
-
-		void Destroy() override;
+		bool mMissingType = false;
+		SPtr<ManagedSerializableObject> mSerializedObjectData;
+		SPtr<ManagedSerializableObjectInfo> mObjectInformation; // Transient
 
 		/************************************************************************/
 		/* 								RTTI		                     		*/
@@ -84,9 +74,6 @@ namespace bs
 		friend class ManagedResourceRTTI;
 		static RTTIType* GetRttiStatic();
 		RTTIType* GetRtti() const;
-
-	protected:
-		ManagedResource(); // Serialization only
 	};
 
 	/**	Contains serialized resource data buffer. */

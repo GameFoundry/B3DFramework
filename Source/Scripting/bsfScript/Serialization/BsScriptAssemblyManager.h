@@ -24,6 +24,7 @@ namespace bs
 		MonoClass* ManagedComponentClass = nullptr;
 		MonoClass* SceneObjectClass = nullptr;
 		MonoClass* MissingComponentClass = nullptr;
+		MonoClass* MissingResourceClass = nullptr;
 
 		MonoClass* RrefBaseClass = nullptr;
 		MonoClass* GenericRRefClass = nullptr;

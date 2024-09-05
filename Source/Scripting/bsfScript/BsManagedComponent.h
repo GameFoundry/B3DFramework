@@ -72,10 +72,10 @@ namespace bs
 		/**
 		 * Creates the script object of the correct type.
 		 *
-		 * @param	outObjectInfo		Information about the component type. Can be null in case the type does no longer exist.
-		 * @return						Creates script object of the correct component type, or if type cannot be found, script object of missing type.
+		 * @param	outObjectInformation	Information about the component type. Can be null in case the type does no longer exist.
+		 * @return							Creates script object of the correct component type, or if type cannot be found, script object of missing type.
 		 */
-		MonoObject* CreateScriptObject(SPtr<ManagedSerializableObjectInfo>& outObjectInfo) const;
+		MonoObject* CreateScriptObject(SPtr<ManagedSerializableObjectInfo>& outObjectInformation) const;
 
 		typedef void(B3D_THUNKCALL* OnCreatedThunkDef)(MonoObject*, MonoException**);
 		typedef void(B3D_THUNKCALL* OnInitializedThunkDef)(MonoObject*, MonoException**);
