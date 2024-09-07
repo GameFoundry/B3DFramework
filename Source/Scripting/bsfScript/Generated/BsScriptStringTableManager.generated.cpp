@@ -69,7 +69,7 @@ namespace bs
 		ScriptRRefBase* scriptObjectWrappertable;
 		scriptObjectWrappertable = ScriptRRefBase::GetScriptObjectWrapper(table);
 		if(scriptObjectWrappertable != nullptr)
-			tmptable = B3DStaticResourceCast<StringTable>(scriptObjectWrappertable->GetBaseNativeObjectAsHandle());
+			tmptable = B3DStaticResourceCast<StringTable>(scriptObjectWrappertable->GetNativeObject());
 		StringTableManager::Instance().SetTable(id, tmptable);
 	}
 }

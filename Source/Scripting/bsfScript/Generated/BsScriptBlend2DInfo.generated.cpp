@@ -35,25 +35,25 @@ namespace bs
 		ScriptRRefBase* scriptWrapperObjectTopLeftClip;
 		scriptWrapperObjectTopLeftClip = ScriptRRefBase::GetScriptObjectWrapper(value.TopLeftClip);
 		if(scriptWrapperObjectTopLeftClip != nullptr)
-			tmpTopLeftClip = B3DStaticResourceCast<AnimationClip>(scriptWrapperObjectTopLeftClip->GetBaseNativeObjectAsHandle());
+			tmpTopLeftClip = B3DStaticResourceCast<AnimationClip>(scriptWrapperObjectTopLeftClip->GetNativeObject());
 		output.TopLeftClip = tmpTopLeftClip;
 		TResourceHandle<AnimationClip> tmpTopRightClip;
 		ScriptRRefBase* scriptWrapperObjectTopRightClip;
 		scriptWrapperObjectTopRightClip = ScriptRRefBase::GetScriptObjectWrapper(value.TopRightClip);
 		if(scriptWrapperObjectTopRightClip != nullptr)
-			tmpTopRightClip = B3DStaticResourceCast<AnimationClip>(scriptWrapperObjectTopRightClip->GetBaseNativeObjectAsHandle());
+			tmpTopRightClip = B3DStaticResourceCast<AnimationClip>(scriptWrapperObjectTopRightClip->GetNativeObject());
 		output.TopRightClip = tmpTopRightClip;
 		TResourceHandle<AnimationClip> tmpBotLeftClip;
 		ScriptRRefBase* scriptWrapperObjectBotLeftClip;
 		scriptWrapperObjectBotLeftClip = ScriptRRefBase::GetScriptObjectWrapper(value.BotLeftClip);
 		if(scriptWrapperObjectBotLeftClip != nullptr)
-			tmpBotLeftClip = B3DStaticResourceCast<AnimationClip>(scriptWrapperObjectBotLeftClip->GetBaseNativeObjectAsHandle());
+			tmpBotLeftClip = B3DStaticResourceCast<AnimationClip>(scriptWrapperObjectBotLeftClip->GetNativeObject());
 		output.BotLeftClip = tmpBotLeftClip;
 		TResourceHandle<AnimationClip> tmpBotRightClip;
 		ScriptRRefBase* scriptWrapperObjectBotRightClip;
 		scriptWrapperObjectBotRightClip = ScriptRRefBase::GetScriptObjectWrapper(value.BotRightClip);
 		if(scriptWrapperObjectBotRightClip != nullptr)
-			tmpBotRightClip = B3DStaticResourceCast<AnimationClip>(scriptWrapperObjectBotRightClip->GetBaseNativeObjectAsHandle());
+			tmpBotRightClip = B3DStaticResourceCast<AnimationClip>(scriptWrapperObjectBotRightClip->GetNativeObject());
 		output.BotRightClip = tmpBotRightClip;
 
 		return output;

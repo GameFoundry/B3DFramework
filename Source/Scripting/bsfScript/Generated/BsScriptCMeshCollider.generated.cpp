@@ -40,7 +40,7 @@ namespace bs
 		ScriptRRefBase* scriptObjectWrappermesh;
 		scriptObjectWrappermesh = ScriptRRefBase::GetScriptObjectWrapper(mesh);
 		if(scriptObjectWrappermesh != nullptr)
-			tmpmesh = B3DStaticResourceCast<PhysicsMesh>(scriptObjectWrappermesh->GetBaseNativeObjectAsHandle());
+			tmpmesh = B3DStaticResourceCast<PhysicsMesh>(scriptObjectWrappermesh->GetNativeObject());
 		static_cast<CMeshCollider*>(self->GetNativeObject())->SetMesh(tmpmesh);
 	}
 

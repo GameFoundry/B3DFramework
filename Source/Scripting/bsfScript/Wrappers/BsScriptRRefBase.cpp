@@ -8,9 +8,9 @@
 #include "Serialization/BsScriptAssemblyManager.h"
 
 using namespace bs;
-ScriptRRefBase::ScriptRRefBase(const TResourceHandle<Resource>& nativeObject)
-	: TScriptResourceWrapper(nativeObject)
-{}
+ScriptRRefBase::ScriptRRefBase(const HResource& nativeObject)
+	: TScriptValueTypeWrapper(nativeObject)
+{ }
 
 void ScriptRRefBase::SetupScriptBindings()
 {
@@ -52,18 +52,12 @@ MonoObject* ScriptRRefBase::CreateScriptObject(const HResource& handle, ::MonoCl
 
 bool ScriptRRefBase::InternalIsLoaded(ScriptRRefBase* self)
 {
-	if(!self->IsNativeObjectValid())
-		return false;
-
-	return self->GetNativeObjectAsHandle().IsLoaded(false);
+	return self->GetNativeObject().IsLoaded(false);
 }
 
 MonoObject* ScriptRRefBase::InternalGetResource(ScriptRRefBase* self)
 {
-	if(!self->IsNativeObjectValid())
-		return nullptr;
-
-	const HResource resource = self->GetNativeObjectAsHandle();
+	const HResource resource = self->GetNativeObject();
 	if(resource == nullptr)
 		return nullptr;
 
@@ -80,17 +74,11 @@ MonoObject* ScriptRRefBase::InternalGetResource(ScriptRRefBase* self)
 
 void ScriptRRefBase::InternalGetUuid(ScriptRRefBase* self, UUID* uuid)
 {
-	if(!self->IsNativeObjectValid())
-		*uuid = UUID::kEmpty;
-
-	*uuid = self->GetNativeObjectAsHandle().GetId();
+	*uuid = self->GetNativeObject().GetId();
 }
 
 MonoObject* ScriptRRefBase::InternalCastAs(ScriptRRefBase* self, MonoReflectionType* type)
 {
-	if(!self->IsNativeObjectValid())
-		return nullptr;
-
 	::MonoClass* rawResType = MonoUtil::GetClass(type);
 
 	MonoClass* resType = MonoManager::Instance().FindClass(rawResType);
@@ -101,5 +89,5 @@ MonoObject* ScriptRRefBase::InternalCastAs(ScriptRRefBase* self, MonoReflectionT
 	if(resType == ScriptResource::GetMetaData()->ScriptClass || resType->IsSubClassOf(ScriptResource::GetMetaData()->ScriptClass))
 		rrefType = BindGenericParam(rawResType);
 
-	return CreateScriptObject(self->GetNativeObjectAsHandle(), rrefType);
+	return CreateScriptObject(self->GetNativeObject(), rrefType);
 }

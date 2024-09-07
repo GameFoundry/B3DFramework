@@ -89,7 +89,7 @@ namespace bs
 		ScriptRRefBase* scriptObjectWrapperresource;
 		scriptObjectWrapperresource = ScriptRRefBase::GetScriptObjectWrapper(resource);
 		if(scriptObjectWrapperresource != nullptr)
-			tmpresource = B3DStaticResourceCast<Resource>(scriptObjectWrapperresource->GetBaseNativeObjectAsHandle());
+			tmpresource = B3DStaticResourceCast<Resource>(scriptObjectWrapperresource->GetNativeObject());
 		Resources::Instance().ReleaseInternalReference(tmpresource);
 	}
 
@@ -121,7 +121,7 @@ namespace bs
 		ScriptRRefBase* scriptObjectWrapperresource;
 		scriptObjectWrapperresource = ScriptRRefBase::GetScriptObjectWrapper(resource);
 		if(scriptObjectWrapperresource != nullptr)
-			tmpresource = B3DStaticResourceCast<Resource>(scriptObjectWrapperresource->GetBaseNativeObjectAsHandle());
+			tmpresource = B3DStaticResourceCast<Resource>(scriptObjectWrapperresource->GetNativeObject());
 		tmp__output = Resources::Instance().GetLoadProgress(tmpresource);
 
 		float __output;

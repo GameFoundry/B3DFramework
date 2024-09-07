@@ -53,7 +53,7 @@ namespace bs
 		ScriptRRefBase* scriptObjectWrappermesh;
 		scriptObjectWrappermesh = ScriptRRefBase::GetScriptObjectWrapper(mesh);
 		if(scriptObjectWrappermesh != nullptr)
-			tmpmesh = B3DStaticResourceCast<Mesh>(scriptObjectWrappermesh->GetBaseNativeObjectAsHandle());
+			tmpmesh = B3DStaticResourceCast<Mesh>(scriptObjectWrappermesh->GetNativeObject());
 		static_cast<CRenderable*>(self->GetNativeObject())->SetMesh(tmpmesh);
 	}
 
@@ -79,7 +79,7 @@ namespace bs
 		ScriptRRefBase* scriptObjectWrappermaterial;
 		scriptObjectWrappermaterial = ScriptRRefBase::GetScriptObjectWrapper(material);
 		if(scriptObjectWrappermaterial != nullptr)
-			tmpmaterial = B3DStaticResourceCast<Material>(scriptObjectWrappermaterial->GetBaseNativeObjectAsHandle());
+			tmpmaterial = B3DStaticResourceCast<Material>(scriptObjectWrappermaterial->GetNativeObject());
 		static_cast<CRenderable*>(self->GetNativeObject())->SetMaterial(idx, tmpmaterial);
 	}
 
@@ -89,7 +89,7 @@ namespace bs
 		ScriptRRefBase* scriptObjectWrappermaterial;
 		scriptObjectWrappermaterial = ScriptRRefBase::GetScriptObjectWrapper(material);
 		if(scriptObjectWrappermaterial != nullptr)
-			tmpmaterial = B3DStaticResourceCast<Material>(scriptObjectWrappermaterial->GetBaseNativeObjectAsHandle());
+			tmpmaterial = B3DStaticResourceCast<Material>(scriptObjectWrappermaterial->GetNativeObject());
 		static_cast<CRenderable*>(self->GetNativeObject())->SetMaterial(tmpmaterial);
 	}
 
@@ -122,7 +122,7 @@ namespace bs
 				scriptObjectWrappermaterials = ScriptRRefBase::GetScriptObjectWrapper(scriptArraymaterials.Get<MonoObject*>(elementIndex));
 				if(scriptObjectWrappermaterials != nullptr)
 				{
-					TResourceHandle<Material> arrayElementPointermaterials = B3DStaticResourceCast<Material>(scriptObjectWrappermaterials->GetBaseNativeObjectAsHandle());
+					TResourceHandle<Material> arrayElementPointermaterials = B3DStaticResourceCast<Material>(scriptObjectWrappermaterials->GetNativeObject());
 					nativeArraymaterials[elementIndex] = arrayElementPointermaterials;
 				}
 			}

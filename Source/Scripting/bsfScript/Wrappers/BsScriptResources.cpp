@@ -105,7 +105,7 @@ MonoObject* ScriptResources::InternalLoadAsyncFromUuid(UUID* uuid, ResourceLoadF
 
 float ScriptResources::InternalGetLoadProgress(ScriptRRefBase* resource)
 {
-	return GetResources().GetLoadProgress(resource->GetNativeObjectAsHandle());
+	return GetResources().GetLoadProgress(resource->GetNativeObject());
 }
 
 void ScriptResources::InternalRelease(ScriptResourceWrapper* resource)
@@ -116,7 +116,7 @@ void ScriptResources::InternalRelease(ScriptResourceWrapper* resource)
 
 void ScriptResources::InternalReleaseRef(ScriptRRefBase* resourceRef)
 {
-	HResource mutableResourceHandle = resourceRef->GetBaseNativeObjectAsHandle();
+	HResource mutableResourceHandle = resourceRef->GetNativeObject();
 	mutableResourceHandle.ReleaseInternalReference();
 }
 

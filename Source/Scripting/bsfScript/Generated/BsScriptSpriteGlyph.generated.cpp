@@ -51,7 +51,7 @@ namespace bs
 		ScriptRRefBase* scriptObjectWrapperfont;
 		scriptObjectWrapperfont = ScriptRRefBase::GetScriptObjectWrapper(font);
 		if(scriptObjectWrapperfont != nullptr)
-			tmpfont = B3DStaticResourceCast<Font>(scriptObjectWrapperfont->GetBaseNativeObjectAsHandle());
+			tmpfont = B3DStaticResourceCast<Font>(scriptObjectWrapperfont->GetNativeObject());
 		static_cast<SpriteGlyph*>(self->GetNativeObject())->SetFont(tmpfont);
 	}
 
@@ -71,7 +71,7 @@ namespace bs
 		ScriptRRefBase* scriptObjectWrapperfont;
 		scriptObjectWrapperfont = ScriptRRefBase::GetScriptObjectWrapper(font);
 		if(scriptObjectWrapperfont != nullptr)
-			tmpfont = B3DStaticResourceCast<Font>(scriptObjectWrapperfont->GetBaseNativeObjectAsHandle());
+			tmpfont = B3DStaticResourceCast<Font>(scriptObjectWrapperfont->GetNativeObject());
 		TResourceHandle<SpriteGlyph> nativeObject = SpriteGlyph::Create(tmpfont, glyph, size);
 		ScriptObjectWrapper::Create<ScriptSpriteGlyph>(nativeObject, scriptObject);
 	}

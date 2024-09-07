@@ -50,7 +50,7 @@ namespace bs
 		ScriptRRefBase* scriptObjectWrappervectorPath;
 		scriptObjectWrappervectorPath = ScriptRRefBase::GetScriptObjectWrapper(vectorPath);
 		if(scriptObjectWrappervectorPath != nullptr)
-			tmpvectorPath = B3DStaticResourceCast<VectorPath>(scriptObjectWrappervectorPath->GetBaseNativeObjectAsHandle());
+			tmpvectorPath = B3DStaticResourceCast<VectorPath>(scriptObjectWrappervectorPath->GetNativeObject());
 		static_cast<SpriteVectorPath*>(self->GetNativeObject())->SetVectorPath(tmpvectorPath);
 	}
 
@@ -60,7 +60,7 @@ namespace bs
 		ScriptRRefBase* scriptObjectWrappervectorPath;
 		scriptObjectWrappervectorPath = ScriptRRefBase::GetScriptObjectWrapper(vectorPath);
 		if(scriptObjectWrappervectorPath != nullptr)
-			tmpvectorPath = B3DStaticResourceCast<VectorPath>(scriptObjectWrappervectorPath->GetBaseNativeObjectAsHandle());
+			tmpvectorPath = B3DStaticResourceCast<VectorPath>(scriptObjectWrappervectorPath->GetNativeObject());
 		TResourceHandle<SpriteVectorPath> nativeObject = SpriteVectorPath::Create(tmpvectorPath, *size);
 		ScriptObjectWrapper::Create<ScriptSpriteVectorPath>(nativeObject, scriptObject);
 	}

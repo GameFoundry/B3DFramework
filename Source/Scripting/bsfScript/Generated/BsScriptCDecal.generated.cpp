@@ -49,7 +49,7 @@ namespace bs
 		ScriptRRefBase* scriptObjectWrappermaterial;
 		scriptObjectWrappermaterial = ScriptRRefBase::GetScriptObjectWrapper(material);
 		if(scriptObjectWrappermaterial != nullptr)
-			tmpmaterial = B3DStaticResourceCast<Material>(scriptObjectWrappermaterial->GetBaseNativeObjectAsHandle());
+			tmpmaterial = B3DStaticResourceCast<Material>(scriptObjectWrappermaterial->GetNativeObject());
 		static_cast<CDecal*>(self->GetNativeObject())->SetMaterial(tmpmaterial);
 	}
 

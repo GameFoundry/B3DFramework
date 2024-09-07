@@ -39,7 +39,7 @@ namespace bs
 		ScriptRRefBase* scriptWrapperObjectVectorPath;
 		scriptWrapperObjectVectorPath = ScriptRRefBase::GetScriptObjectWrapper(value.VectorPath);
 		if(scriptWrapperObjectVectorPath != nullptr)
-			tmpVectorPath = B3DStaticResourceCast<VectorPath>(scriptWrapperObjectVectorPath->GetBaseNativeObjectAsHandle());
+			tmpVectorPath = B3DStaticResourceCast<VectorPath>(scriptWrapperObjectVectorPath->GetNativeObject());
 		output.VectorPath = tmpVectorPath;
 		output.Size = value.Size;
 		output.ScalingMode = value.ScalingMode;

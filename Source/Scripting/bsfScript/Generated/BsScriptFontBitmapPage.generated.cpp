@@ -35,7 +35,7 @@ namespace bs
 		ScriptRRefBase* scriptWrapperObjectTexture;
 		scriptWrapperObjectTexture = ScriptRRefBase::GetScriptObjectWrapper(value.Texture);
 		if(scriptWrapperObjectTexture != nullptr)
-			tmpTexture = B3DStaticResourceCast<Texture>(scriptWrapperObjectTexture->GetBaseNativeObjectAsHandle());
+			tmpTexture = B3DStaticResourceCast<Texture>(scriptWrapperObjectTexture->GetNativeObject());
 		output.Texture = tmpTexture;
 		output.IsDynamic = value.IsDynamic;
 

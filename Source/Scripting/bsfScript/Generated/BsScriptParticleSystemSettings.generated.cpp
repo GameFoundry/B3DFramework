@@ -87,7 +87,7 @@ namespace bs
 		ScriptRRefBase* scriptObjectWrappervalue;
 		scriptObjectWrappervalue = ScriptRRefBase::GetScriptObjectWrapper(value);
 		if(scriptObjectWrappervalue != nullptr)
-			tmpvalue = B3DStaticResourceCast<Material>(scriptObjectWrappervalue->GetBaseNativeObjectAsHandle());
+			tmpvalue = B3DStaticResourceCast<Material>(scriptObjectWrappervalue->GetNativeObject());
 		static_cast<ParticleSystemSettings*>(self->GetNativeObject())->Material = tmpvalue;
 	}
 
@@ -113,7 +113,7 @@ namespace bs
 		ScriptRRefBase* scriptObjectWrappervalue;
 		scriptObjectWrappervalue = ScriptRRefBase::GetScriptObjectWrapper(value);
 		if(scriptObjectWrappervalue != nullptr)
-			tmpvalue = B3DStaticResourceCast<Mesh>(scriptObjectWrappervalue->GetBaseNativeObjectAsHandle());
+			tmpvalue = B3DStaticResourceCast<Mesh>(scriptObjectWrappervalue->GetNativeObject());
 		static_cast<ParticleSystemSettings*>(self->GetNativeObject())->Mesh = tmpvalue;
 	}
 

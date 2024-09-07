@@ -37,7 +37,7 @@ namespace bs
 		ScriptRRefBase* scriptWrapperObjectMesh;
 		scriptWrapperObjectMesh = ScriptRRefBase::GetScriptObjectWrapper(value.Mesh);
 		if(scriptWrapperObjectMesh != nullptr)
-			tmpMesh = B3DStaticResourceCast<Mesh>(scriptWrapperObjectMesh->GetBaseNativeObjectAsHandle());
+			tmpMesh = B3DStaticResourceCast<Mesh>(scriptWrapperObjectMesh->GetNativeObject());
 		output.Mesh = tmpMesh;
 
 		return output;

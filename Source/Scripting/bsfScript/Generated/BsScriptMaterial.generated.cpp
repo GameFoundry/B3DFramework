@@ -85,7 +85,7 @@ namespace bs
 		ScriptRRefBase* scriptObjectWrappershader;
 		scriptObjectWrappershader = ScriptRRefBase::GetScriptObjectWrapper(shader);
 		if(scriptObjectWrappershader != nullptr)
-			tmpshader = B3DStaticResourceCast<Shader>(scriptObjectWrappershader->GetBaseNativeObjectAsHandle());
+			tmpshader = B3DStaticResourceCast<Shader>(scriptObjectWrappershader->GetNativeObject());
 		static_cast<Material*>(self->GetNativeObject())->SetShader(tmpshader);
 	}
 
@@ -339,7 +339,7 @@ namespace bs
 		ScriptRRefBase* scriptObjectWrappershader;
 		scriptObjectWrappershader = ScriptRRefBase::GetScriptObjectWrapper(shader);
 		if(scriptObjectWrappershader != nullptr)
-			tmpshader = B3DStaticResourceCast<Shader>(scriptObjectWrappershader->GetBaseNativeObjectAsHandle());
+			tmpshader = B3DStaticResourceCast<Shader>(scriptObjectWrappershader->GetNativeObject());
 		TResourceHandle<Material> nativeObject = Material::Create(tmpshader);
 		ScriptObjectWrapper::Create<ScriptMaterial>(nativeObject, scriptObject);
 	}
@@ -352,7 +352,7 @@ namespace bs
 		ScriptRRefBase* scriptObjectWrappervalue;
 		scriptObjectWrappervalue = ScriptRRefBase::GetScriptObjectWrapper(value);
 		if(scriptObjectWrappervalue != nullptr)
-			tmpvalue = B3DStaticResourceCast<Texture>(scriptObjectWrappervalue->GetBaseNativeObjectAsHandle());
+			tmpvalue = B3DStaticResourceCast<Texture>(scriptObjectWrappervalue->GetNativeObject());
 		MaterialEx::SetTexture(B3DStaticResourceCast<Material>(self->GetBaseNativeObjectAsHandle()), tmpname, tmpvalue, mipLevel, numMipLevels, arraySlice, numArraySlices);
 	}
 
@@ -382,7 +382,7 @@ namespace bs
 		ScriptRRefBase* scriptObjectWrappervalue;
 		scriptObjectWrappervalue = ScriptRRefBase::GetScriptObjectWrapper(value);
 		if(scriptObjectWrappervalue != nullptr)
-			tmpvalue = B3DStaticResourceCast<SpriteImage>(scriptObjectWrappervalue->GetBaseNativeObjectAsHandle());
+			tmpvalue = B3DStaticResourceCast<SpriteImage>(scriptObjectWrappervalue->GetNativeObject());
 		MaterialEx::SetSpriteImage(B3DStaticResourceCast<Material>(self->GetBaseNativeObjectAsHandle()), tmpname, tmpvalue);
 	}
 

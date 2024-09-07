@@ -35,7 +35,7 @@ namespace bs
 		ScriptRRefBase* scriptWrapperObjectClip;
 		scriptWrapperObjectClip = ScriptRRefBase::GetScriptObjectWrapper(value.Clip);
 		if(scriptWrapperObjectClip != nullptr)
-			tmpClip = B3DStaticResourceCast<AnimationClip>(scriptWrapperObjectClip->GetBaseNativeObjectAsHandle());
+			tmpClip = B3DStaticResourceCast<AnimationClip>(scriptWrapperObjectClip->GetNativeObject());
 		output.Clip = tmpClip;
 		output.Position = value.Position;
 

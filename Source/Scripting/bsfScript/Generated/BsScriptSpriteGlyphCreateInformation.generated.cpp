@@ -37,7 +37,7 @@ namespace bs
 		ScriptRRefBase* scriptWrapperObjectFont;
 		scriptWrapperObjectFont = ScriptRRefBase::GetScriptObjectWrapper(value.Font);
 		if(scriptWrapperObjectFont != nullptr)
-			tmpFont = B3DStaticResourceCast<Font>(scriptWrapperObjectFont->GetBaseNativeObjectAsHandle());
+			tmpFont = B3DStaticResourceCast<Font>(scriptWrapperObjectFont->GetNativeObject());
 		output.Font = tmpFont;
 		output.Glyph = value.Glyph;
 		output.Size = value.Size;

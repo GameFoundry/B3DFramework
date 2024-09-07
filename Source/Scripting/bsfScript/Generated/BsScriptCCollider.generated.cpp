@@ -126,7 +126,7 @@ namespace bs
 		ScriptRRefBase* scriptObjectWrappermaterial;
 		scriptObjectWrappermaterial = ScriptRRefBase::GetScriptObjectWrapper(material);
 		if(scriptObjectWrappermaterial != nullptr)
-			tmpmaterial = B3DStaticResourceCast<PhysicsMaterial>(scriptObjectWrappermaterial->GetBaseNativeObjectAsHandle());
+			tmpmaterial = B3DStaticResourceCast<PhysicsMaterial>(scriptObjectWrappermaterial->GetNativeObject());
 		static_cast<CCollider*>(self->GetNativeObject())->SetMaterial(tmpmaterial);
 	}
 

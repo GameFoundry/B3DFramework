@@ -68,7 +68,7 @@ namespace bs
 		ScriptRRefBase* scriptObjectWrappervalue;
 		scriptObjectWrappervalue = ScriptRRefBase::GetScriptObjectWrapper(value);
 		if(scriptObjectWrappervalue != nullptr)
-			tmpvalue = B3DStaticResourceCast<Texture>(scriptObjectWrappervalue->GetBaseNativeObjectAsHandle());
+			tmpvalue = B3DStaticResourceCast<Texture>(scriptObjectWrappervalue->GetNativeObject());
 		static_cast<ChromaticAberrationSettings*>(self->GetNativeObject())->FringeTexture = tmpvalue;
 	}
 

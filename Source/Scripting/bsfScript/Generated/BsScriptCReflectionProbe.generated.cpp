@@ -109,7 +109,7 @@ namespace bs
 		ScriptRRefBase* scriptObjectWrappertexture;
 		scriptObjectWrappertexture = ScriptRRefBase::GetScriptObjectWrapper(texture);
 		if(scriptObjectWrappertexture != nullptr)
-			tmptexture = B3DStaticResourceCast<Texture>(scriptObjectWrappertexture->GetBaseNativeObjectAsHandle());
+			tmptexture = B3DStaticResourceCast<Texture>(scriptObjectWrappertexture->GetNativeObject());
 		static_cast<CReflectionProbe*>(self->GetNativeObject())->SetCustomTexture(tmptexture);
 	}
 

@@ -60,7 +60,7 @@ namespace bs
 		ScriptRRefBase* scriptObjectWrapperclip;
 		scriptObjectWrapperclip = ScriptRRefBase::GetScriptObjectWrapper(clip);
 		if(scriptObjectWrapperclip != nullptr)
-			tmpclip = B3DStaticResourceCast<AudioClip>(scriptObjectWrapperclip->GetBaseNativeObjectAsHandle());
+			tmpclip = B3DStaticResourceCast<AudioClip>(scriptObjectWrapperclip->GetNativeObject());
 		static_cast<CAudioSource*>(self->GetNativeObject())->SetClip(tmpclip);
 	}
 

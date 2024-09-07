@@ -327,7 +327,7 @@ SPtr<ManagedSerializableFieldData> ManagedSerializableFieldData::Create(const SP
 		if(value != nullptr)
 		{
 			ScriptRRefBase* scriptRRefBase = ScriptRRefBase::GetScriptObjectWrapper(value);
-			fieldData->Value = scriptRRefBase->GetNativeObjectAsHandle();
+			fieldData->Value = scriptRRefBase->GetNativeObject();
 		}
 
 		return fieldData;

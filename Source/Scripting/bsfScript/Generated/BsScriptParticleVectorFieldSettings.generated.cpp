@@ -76,7 +76,7 @@ namespace bs
 		ScriptRRefBase* scriptObjectWrappervalue;
 		scriptObjectWrappervalue = ScriptRRefBase::GetScriptObjectWrapper(value);
 		if(scriptObjectWrappervalue != nullptr)
-			tmpvalue = B3DStaticResourceCast<VectorField>(scriptObjectWrappervalue->GetBaseNativeObjectAsHandle());
+			tmpvalue = B3DStaticResourceCast<VectorField>(scriptObjectWrappervalue->GetNativeObject());
 		static_cast<ParticleVectorFieldSettings*>(self->GetNativeObject())->VectorField = tmpvalue;
 	}
 
