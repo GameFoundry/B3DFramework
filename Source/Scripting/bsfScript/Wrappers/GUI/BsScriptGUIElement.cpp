@@ -24,22 +24,6 @@ ScriptGUIElementBase::ScriptGUIElementBase(MonoObject* instance)
 void ScriptGUIElementBase::Initialize(GUIElement* element)
 {
 	mElement = element;
-
-	if(mElement != nullptr && mElement->GetType() == GUIElement::Type::Interactable)
-	{
-		GUIInteractable* guiElem = static_cast<GUIInteractable*>(element);
-		guiElem->OnFocusChanged.Connect(std::bind(&ScriptGUIElementBase::OnFocusChanged, this, _1));
-	}
-}
-
-void ScriptGUIElementBase::OnFocusChanged(ScriptGUIElementBase* thisPtr, bool focus)
-{
-	MonoObject* instance = MonoUtil::GetObjectFromGcHandle(thisPtr->mGCHandle);
-
-	if(focus)
-		MonoUtil::InvokeThunk(ScriptGUIInteractable::onFocusGainedThunk, instance);
-	else
-		MonoUtil::InvokeThunk(ScriptGUIInteractable::onFocusLostThunk, instance);
 }
 
 MonoObject* ScriptGUIElementBase::GetManagedInstance() const
@@ -63,7 +47,24 @@ void ScriptGUIElementBase::ClearManagedInstanceInternal()
 
 ScriptGUIInteractableBase::ScriptGUIInteractableBase(MonoObject* instance)
 	: ScriptGUIElementBase(instance)
+{ }
+
+void ScriptGUIInteractableBase::RegisterEvents(GUIElement* element)
 {
+	GUIInteractable* guiElem = static_cast<GUIInteractable*>(element);
+	guiElem->OnFocusChanged.Connect(std::bind(&ScriptGUIInteractableBase::OnFocusChanged, this, _1));
+	
+	ScriptGUIElementBase::RegisterEvents(element);
+}
+
+void ScriptGUIInteractableBase::OnFocusChanged(ScriptGUIElementBase* thisPtr, bool focus)
+{
+	MonoObject* instance = thisPtr->GetManagedInstance();
+
+	if(focus)
+		MonoUtil::InvokeThunk(ScriptGUIInteractableBase::onFocusGainedThunk, instance);
+	else
+		MonoUtil::InvokeThunk(ScriptGUIInteractableBase::onFocusLostThunk, instance);
 }
 
 void ScriptGUIInteractableBase::Destroy()
@@ -81,7 +82,7 @@ void ScriptGUIInteractableBase::Destroy()
 }
 
 ScriptGUIElement::ScriptGUIElement(MonoObject* instance)
-	: ScriptObject(instance)
+	: TScriptGUIElementBase(instance, nullptr)
 {
 }
 
@@ -265,11 +266,11 @@ void ScriptGUIElement::InternalResetDimensions(ScriptGUIElementBase* nativeInsta
 	nativeInstance->GetGuiElement()->ResetDimensions();
 }
 
-ScriptGUIInteractable::OnFocusChangedThunkDef ScriptGUIInteractable::onFocusGainedThunk;
-ScriptGUIInteractable::OnFocusChangedThunkDef ScriptGUIInteractable::onFocusLostThunk;
+ScriptGUIInteractableBase::OnFocusChangedThunkDef ScriptGUIInteractableBase::onFocusGainedThunk;
+ScriptGUIInteractableBase::OnFocusChangedThunkDef ScriptGUIInteractableBase::onFocusLostThunk;
 
 ScriptGUIInteractable::ScriptGUIInteractable(MonoObject* instance)
-	: ScriptObject(instance)
+	: TScriptGUIInteractable(instance, nullptr)
 {
 }
 

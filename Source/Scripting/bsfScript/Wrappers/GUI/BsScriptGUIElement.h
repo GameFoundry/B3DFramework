@@ -53,9 +53,6 @@ namespace bs
 		void OnManagedInstanceDeletedInternal(bool assemblyRefresh) override;
 		void ClearManagedInstanceInternal() override;
 
-		/**	Triggered when the focus changes for the underlying GUIElementBase. */
-		static void OnFocusChanged(ScriptGUIElementBase* thisPtr, bool focus);
-
 		bool mIsDestroyed = false;
 		GUIElement* mElement = nullptr;
 		ScriptGUILayout* mParent = nullptr;
@@ -91,7 +88,16 @@ namespace bs
 		/**	Returns the underlying GUIElementBase wrapped by this object. */
 		GUIInteractable* GetGuiInteractable() const { return static_cast<GUIInteractable*>(mElement); }
 
+		void RegisterEvents(GUIElement* element) override;
 		void Destroy() override;
+
+		/**	Triggered when the focus changes for the underlying GUIElementBase. */
+		static void OnFocusChanged(ScriptGUIElementBase* thisPtr, bool focus);
+
+		typedef void(B3D_THUNKCALL* OnFocusChangedThunkDef)(MonoObject*, MonoException**);
+
+		static OnFocusChangedThunkDef onFocusGainedThunk;
+		static OnFocusChangedThunkDef onFocusLostThunk;
 	};
 
 	/**
@@ -119,7 +125,7 @@ namespace bs
 	 */
 
 	/** Interop class between C++ & CLR for GUIElement. */
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptGUIElement : public ScriptObject<ScriptGUIElement>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptGUIElement : public TScriptGUIElementBase<ScriptGUIElement>
 	{
 	public:
 		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "GUIElement")
@@ -152,7 +158,7 @@ namespace bs
 
 
 	/** Interop class between C++ & CLR for GUIInteractable. */
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptGUIInteractable : public ScriptObject<ScriptGUIInteractable>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptGUIInteractable : public TScriptGUIInteractable<ScriptGUIInteractable>
 	{
 	public:
 		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "GUIInteractable")
@@ -172,12 +178,6 @@ namespace bs
 		static void InternalSetContextMenu(ScriptGUIInteractableBase* nativeInstance, ScriptContextMenu* contextMenu);
 		static MonoString* InternalGetStyle(ScriptGUIInteractableBase* nativeInstance);
 		static void InternalSetStyle(ScriptGUIInteractableBase* nativeInstance, MonoString* style);
-
-		typedef void(B3D_THUNKCALL* OnFocusChangedThunkDef)(MonoObject*, MonoException**);
-
-	public:
-		static OnFocusChangedThunkDef onFocusGainedThunk;
-		static OnFocusChangedThunkDef onFocusLostThunk;
 	};
 
 	/** @} */
