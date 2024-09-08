@@ -12,7 +12,7 @@ namespace bs { struct __PARTICLE_CIRCLE_SHAPE_DESCInterop; }
 namespace bs { class ParticleEmitterCircleShape; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleEmitterCircleShape : public TScriptReflectableWrapper<ParticleEmitterCircleShape, ScriptParticleEmitterCircleShape>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleEmitterCircleShape : public TScriptReflectableWrapper<ParticleEmitterCircleShape, ScriptParticleEmitterCircleShape, ScriptParticleEmitterShapeWrapperBase>
 	{
 	public:
 		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "ParticleEmitterCircleShape")

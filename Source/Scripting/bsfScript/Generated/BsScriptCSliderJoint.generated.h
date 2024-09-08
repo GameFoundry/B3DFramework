@@ -12,7 +12,7 @@ namespace bs { struct __LimitLinearRangeInterop; }
 namespace bs { class CSliderJoint; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptSliderJoint : public TScriptGameObjectWrapper<CSliderJoint, ScriptSliderJoint>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptSliderJoint : public TScriptGameObjectWrapper<CSliderJoint, ScriptSliderJoint, ScriptJointWrapperBase>
 	{
 	public:
 		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "SliderJoint")

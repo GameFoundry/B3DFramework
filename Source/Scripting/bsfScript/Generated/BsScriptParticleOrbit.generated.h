@@ -12,7 +12,7 @@ namespace bs { class ParticleOrbit; }
 namespace bs { struct __PARTICLE_ORBIT_DESCInterop; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleOrbit : public TScriptReflectableWrapper<ParticleOrbit, ScriptParticleOrbit>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleOrbit : public TScriptReflectableWrapper<ParticleOrbit, ScriptParticleOrbit, ScriptParticleEvolverWrapperBase>
 	{
 	public:
 		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "ParticleOrbit")

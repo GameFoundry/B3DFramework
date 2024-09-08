@@ -12,7 +12,7 @@ namespace bs { class SpriteVectorPath; }
 namespace bs { struct __SpriteVectorPathCreateInformationInterop; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptSpriteVectorPath : public TScriptResourceWrapper<SpriteVectorPath, ScriptSpriteVectorPath>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptSpriteVectorPath : public TScriptResourceWrapper<SpriteVectorPath, ScriptSpriteVectorPath, ScriptSpriteImageWrapperBase>
 	{
 	public:
 		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "SpriteVectorPath")

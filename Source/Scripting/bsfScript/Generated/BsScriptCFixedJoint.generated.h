@@ -9,7 +9,7 @@
 namespace bs { class CFixedJoint; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptFixedJoint : public TScriptGameObjectWrapper<CFixedJoint, ScriptFixedJoint>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptFixedJoint : public TScriptGameObjectWrapper<CFixedJoint, ScriptFixedJoint, ScriptJointWrapperBase>
 	{
 	public:
 		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "FixedJoint")

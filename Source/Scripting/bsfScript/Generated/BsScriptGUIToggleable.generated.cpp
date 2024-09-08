@@ -8,44 +8,51 @@
 
 namespace bs
 {
-	ScriptGUIToggleableBase::OnToggledThunkDefinition ScriptGUIToggleableBase::OnToggledThunk; 
+	ScriptGUIToggleableWrapperBase::OnToggledThunkDefinition ScriptGUIToggleableWrapperBase::OnToggledThunk; 
 
-	ScriptGUIToggleableBase::ScriptGUIToggleableBase(MonoObject* managedInstance)
-		:ScriptGUIClickableBase(managedInstance)
-	 { }
-
-	void ScriptGUIToggleableBase::OnToggled(bool p0)
+	void ScriptGUIToggleableWrapperBase::OnToggled(bool p0)
 	{
-		MonoUtil::InvokeThunk(OnToggledThunk, GetManagedInstance(), p0);
+		MonoUtil::InvokeThunk(OnToggledThunk, GetScriptObject(), p0);
 	}
 
-	void ScriptGUIToggleableBase::RegisterEvents(GUIElement* value)
+	void ScriptGUIToggleableWrapperBase::RegisterEvents()
 	{
-		static_cast<GUIToggleable*>(value)->OnToggled.Connect(std::bind(&ScriptGUIToggleableBase::OnToggled, this, std::placeholders::_1));
-		ScriptGUIClickableBase::RegisterEvents(value);
+		static_cast<GUIToggleable*>(GetNativeObject())->OnToggled.Connect(std::bind(&ScriptGUIToggleableWrapperBase::OnToggled, this, std::placeholders::_1));
+		ScriptGUIClickableWrapperBase::RegisterEvents();
 	}
-	ScriptGUIToggleable::ScriptGUIToggleable(MonoObject* managedInstance, GUIToggleable* value)
-		:TScriptGUIInteractable(managedInstance, value)
+	ScriptGUIToggleable::ScriptGUIToggleable(GUIToggleable* nativeObject)
+		:TScriptGUIElementWrapper(nativeObject)
 	{
-	}
-
-	void ScriptGUIToggleable::InitRuntimeData()
-	{
-		metaData.ScriptClass->AddInternalCall("Internal_SetIsToggled", (void*)&ScriptGUIToggleable::InternalSetIsToggled);
-		metaData.ScriptClass->AddInternalCall("Internal_IsToggled", (void*)&ScriptGUIToggleable::InternalIsToggled);
-
-		OnToggledThunk = (OnToggledThunkDefinition)metaData.ScriptClass->GetMethodExact("Internal_OnToggled", "bool")->GetThunk();
+		RegisterEvents();
 	}
 
-	void ScriptGUIToggleable::InternalSetIsToggled(ScriptGUIElementBase* self, bool isToggled)
+	void ScriptGUIToggleable::SetupScriptBindings()
 	{
-		static_cast<GUIToggleable*>(self->GetGuiElement())->SetIsToggled(isToggled);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetIsToggled", (void*)&ScriptGUIToggleable::InternalSetIsToggled);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_IsToggled", (void*)&ScriptGUIToggleable::InternalIsToggled);
+
+		OnToggledThunk = (OnToggledThunkDefinition)sInteropMetaData.ScriptClass->GetMethodExact("Internal_OnToggled", "bool")->GetThunk();
 	}
 
-	bool ScriptGUIToggleable::InternalIsToggled(ScriptGUIElementBase* self)
+	MonoObject* ScriptGUIToggleable::CreateScriptObject(bool construct)
+	{
+		bool dummy = false;
+		void* ctorParams[1] = { &dummy };
+
+		if(construct)
+			return sInteropMetaData.ScriptClass->CreateInstance("bool", ctorParams);
+
+		return sInteropMetaData.ScriptClass->CreateInstance(false);
+	}
+	void ScriptGUIToggleable::InternalSetIsToggled(ScriptGUIToggleableWrapperBase* self, bool isToggled)
+	{
+		static_cast<GUIToggleable*>(self->GetNativeObject())->SetIsToggled(isToggled);
+	}
+
+	bool ScriptGUIToggleable::InternalIsToggled(ScriptGUIToggleableWrapperBase* self)
 	{
 		bool tmp__output;
-		tmp__output = static_cast<GUIToggleable*>(self->GetGuiElement())->IsToggled();
+		tmp__output = static_cast<GUIToggleable*>(self->GetNativeObject())->IsToggled();
 
 		bool __output;
 		__output = tmp__output;

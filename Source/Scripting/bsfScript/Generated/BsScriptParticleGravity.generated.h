@@ -11,7 +11,7 @@
 namespace bs { class ParticleGravity; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleGravity : public TScriptReflectableWrapper<ParticleGravity, ScriptParticleGravity>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleGravity : public TScriptReflectableWrapper<ParticleGravity, ScriptParticleGravity, ScriptParticleEvolverWrapperBase>
 	{
 	public:
 		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "ParticleGravity")

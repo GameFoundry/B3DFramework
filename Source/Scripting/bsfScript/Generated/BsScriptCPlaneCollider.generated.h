@@ -10,7 +10,7 @@
 namespace bs { class CPlaneCollider; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptPlaneCollider : public TScriptGameObjectWrapper<CPlaneCollider, ScriptPlaneCollider>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptPlaneCollider : public TScriptGameObjectWrapper<CPlaneCollider, ScriptPlaneCollider, ScriptColliderWrapperBase>
 	{
 	public:
 		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "PlaneCollider")

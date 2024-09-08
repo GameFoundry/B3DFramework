@@ -14,22 +14,32 @@
 
 namespace bs
 {
-	ScriptGUITexture::ScriptGUITexture(MonoObject* managedInstance, GUITexture* value)
-		:TScriptGUIInteractable(managedInstance, value)
+	ScriptGUITexture::ScriptGUITexture(GUITexture* nativeObject)
+		:TScriptGUIElementWrapper(nativeObject)
 	{
-		RegisterEvents(value);
+		RegisterEvents();
 	}
 
-	void ScriptGUITexture::InitRuntimeData()
+	void ScriptGUITexture::SetupScriptBindings()
 	{
-		metaData.ScriptClass->AddInternalCall("Internal_SetImage", (void*)&ScriptGUITexture::InternalSetImage);
-		metaData.ScriptClass->AddInternalCall("Internal_Create", (void*)&ScriptGUITexture::InternalCreate);
-		metaData.ScriptClass->AddInternalCall("Internal_Create0", (void*)&ScriptGUITexture::InternalCreate0);
-		metaData.ScriptClass->AddInternalCall("Internal_Create1", (void*)&ScriptGUITexture::InternalCreate1);
-		metaData.ScriptClass->AddInternalCall("Internal_Create2", (void*)&ScriptGUITexture::InternalCreate2);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetImage", (void*)&ScriptGUITexture::InternalSetImage);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_Create", (void*)&ScriptGUITexture::InternalCreate);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_Create0", (void*)&ScriptGUITexture::InternalCreate0);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_Create1", (void*)&ScriptGUITexture::InternalCreate1);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_Create2", (void*)&ScriptGUITexture::InternalCreate2);
 
 	}
 
+	MonoObject* ScriptGUITexture::CreateScriptObject(bool construct)
+	{
+		bool dummy = false;
+		void* ctorParams[1] = { &dummy };
+
+		if(construct)
+			return sInteropMetaData.ScriptClass->CreateInstance("bool", ctorParams);
+
+		return sInteropMetaData.ScriptClass->CreateInstance(false);
+	}
 	void ScriptGUITexture::InternalSetImage(ScriptGUITexture* self, MonoObject* image)
 	{
 		TResourceHandle<SpriteImage> tmpimage;
@@ -37,10 +47,10 @@ namespace bs
 		scriptObjectWrapperimage = ScriptRRefBase::GetScriptObjectWrapper(image);
 		if(scriptObjectWrapperimage != nullptr)
 			tmpimage = B3DStaticResourceCast<SpriteImage>(scriptObjectWrapperimage->GetNativeObject());
-		static_cast<GUITexture*>(self->GetGuiElement())->SetImage(tmpimage);
+		static_cast<GUITexture*>(self->GetNativeObject())->SetImage(tmpimage);
 	}
 
-	void ScriptGUITexture::InternalCreate(MonoObject* managedInstance, __GUITextureContentsInterop* contents, MonoString* styleClass, MonoArray* options)
+	void ScriptGUITexture::InternalCreate(MonoObject* scriptObject, __GUITextureContentsInterop* contents, MonoString* styleClass, MonoArray* options)
 	{
 		GUITextureContents tmpcontents;
 		tmpcontents = ScriptGUITextureContents::FromInterop(*contents);
@@ -57,10 +67,10 @@ namespace bs
 			}
 		}
 		GUITexture* nativeObject = GUITexture::Create(tmpcontents, tmpstyleClass, nativeArrayoptions);
-		new (B3DAllocate<ScriptGUITexture>())ScriptGUITexture(managedInstance, nativeObject);
+		ScriptObjectWrapper::Create<ScriptGUITexture>(nativeObject, scriptObject);
 	}
 
-	void ScriptGUITexture::InternalCreate0(MonoObject* managedInstance, __GUITextureContentsInterop* contents, MonoArray* options)
+	void ScriptGUITexture::InternalCreate0(MonoObject* scriptObject, __GUITextureContentsInterop* contents, MonoArray* options)
 	{
 		GUITextureContents tmpcontents;
 		tmpcontents = ScriptGUITextureContents::FromInterop(*contents);
@@ -75,10 +85,10 @@ namespace bs
 			}
 		}
 		GUITexture* nativeObject = GUITexture::Create(tmpcontents, nativeArrayoptions);
-		new (B3DAllocate<ScriptGUITexture>())ScriptGUITexture(managedInstance, nativeObject);
+		ScriptObjectWrapper::Create<ScriptGUITexture>(nativeObject, scriptObject);
 	}
 
-	void ScriptGUITexture::InternalCreate1(MonoObject* managedInstance, MonoString* styleClass, MonoArray* options)
+	void ScriptGUITexture::InternalCreate1(MonoObject* scriptObject, MonoString* styleClass, MonoArray* options)
 	{
 		String tmpstyleClass;
 		tmpstyleClass = MonoUtil::MonoToString(styleClass);
@@ -93,10 +103,10 @@ namespace bs
 			}
 		}
 		GUITexture* nativeObject = GUITexture::Create(tmpstyleClass, nativeArrayoptions);
-		new (B3DAllocate<ScriptGUITexture>())ScriptGUITexture(managedInstance, nativeObject);
+		ScriptObjectWrapper::Create<ScriptGUITexture>(nativeObject, scriptObject);
 	}
 
-	void ScriptGUITexture::InternalCreate2(MonoObject* managedInstance, MonoArray* options)
+	void ScriptGUITexture::InternalCreate2(MonoObject* scriptObject, MonoArray* options)
 	{
 		TInlineArray<GUIOption, 4> nativeArrayoptions;
 		if(options != nullptr)
@@ -109,6 +119,6 @@ namespace bs
 			}
 		}
 		GUITexture* nativeObject = GUITexture::Create(nativeArrayoptions);
-		new (B3DAllocate<ScriptGUITexture>())ScriptGUITexture(managedInstance, nativeObject);
+		ScriptObjectWrapper::Create<ScriptGUITexture>(nativeObject, scriptObject);
 	}
 }

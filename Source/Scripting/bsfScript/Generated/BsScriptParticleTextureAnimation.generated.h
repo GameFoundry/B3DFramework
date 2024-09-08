@@ -11,7 +11,7 @@
 namespace bs { class ParticleTextureAnimation; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleTextureAnimation : public TScriptReflectableWrapper<ParticleTextureAnimation, ScriptParticleTextureAnimation>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleTextureAnimation : public TScriptReflectableWrapper<ParticleTextureAnimation, ScriptParticleTextureAnimation, ScriptParticleEvolverWrapperBase>
 	{
 	public:
 		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "ParticleTextureAnimation")

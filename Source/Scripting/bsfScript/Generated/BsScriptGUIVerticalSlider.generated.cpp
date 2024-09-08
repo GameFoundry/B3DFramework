@@ -10,20 +10,30 @@
 
 namespace bs
 {
-	ScriptGUIVerticalSlider::ScriptGUIVerticalSlider(MonoObject* managedInstance, GUIVerticalSlider* value)
-		:TScriptGUIInteractable(managedInstance, value)
+	ScriptGUIVerticalSlider::ScriptGUIVerticalSlider(GUIVerticalSlider* nativeObject)
+		:TScriptGUIElementWrapper(nativeObject)
 	{
-		RegisterEvents(value);
+		RegisterEvents();
 	}
 
-	void ScriptGUIVerticalSlider::InitRuntimeData()
+	void ScriptGUIVerticalSlider::SetupScriptBindings()
 	{
-		metaData.ScriptClass->AddInternalCall("Internal_Create", (void*)&ScriptGUIVerticalSlider::InternalCreate);
-		metaData.ScriptClass->AddInternalCall("Internal_Create0", (void*)&ScriptGUIVerticalSlider::InternalCreate0);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_Create", (void*)&ScriptGUIVerticalSlider::InternalCreate);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_Create0", (void*)&ScriptGUIVerticalSlider::InternalCreate0);
 
 	}
 
-	void ScriptGUIVerticalSlider::InternalCreate(MonoObject* managedInstance, MonoString* styleClass, MonoArray* options)
+	MonoObject* ScriptGUIVerticalSlider::CreateScriptObject(bool construct)
+	{
+		bool dummy = false;
+		void* ctorParams[1] = { &dummy };
+
+		if(construct)
+			return sInteropMetaData.ScriptClass->CreateInstance("bool", ctorParams);
+
+		return sInteropMetaData.ScriptClass->CreateInstance(false);
+	}
+	void ScriptGUIVerticalSlider::InternalCreate(MonoObject* scriptObject, MonoString* styleClass, MonoArray* options)
 	{
 		String tmpstyleClass;
 		tmpstyleClass = MonoUtil::MonoToString(styleClass);
@@ -38,10 +48,10 @@ namespace bs
 			}
 		}
 		GUIVerticalSlider* nativeObject = GUIVerticalSlider::Create(tmpstyleClass, nativeArrayoptions);
-		new (B3DAllocate<ScriptGUIVerticalSlider>())ScriptGUIVerticalSlider(managedInstance, nativeObject);
+		ScriptObjectWrapper::Create<ScriptGUIVerticalSlider>(nativeObject, scriptObject);
 	}
 
-	void ScriptGUIVerticalSlider::InternalCreate0(MonoObject* managedInstance, MonoArray* options)
+	void ScriptGUIVerticalSlider::InternalCreate0(MonoObject* scriptObject, MonoArray* options)
 	{
 		TInlineArray<GUIOption, 4> nativeArrayoptions;
 		if(options != nullptr)
@@ -54,6 +64,6 @@ namespace bs
 			}
 		}
 		GUIVerticalSlider* nativeObject = GUIVerticalSlider::Create(nativeArrayoptions);
-		new (B3DAllocate<ScriptGUIVerticalSlider>())ScriptGUIVerticalSlider(managedInstance, nativeObject);
+		ScriptObjectWrapper::Create<ScriptGUIVerticalSlider>(nativeObject, scriptObject);
 	}
 }

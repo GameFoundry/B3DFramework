@@ -3,17 +3,17 @@
 #pragma once
 
 #include "BsScriptEnginePrerequisites.h"
-#include "Wrappers/GUI/BsScriptGUIElement.h"
+#include "BsScriptGUIElementWrapper.h"
 
 namespace bs { class GUIScrollBar; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptGUIScrollBarBase : public ScriptGUIInteractableBase
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptGUIScrollBarWrapperBase : public ScriptGUIElementWrapper
 	{
 	public:
-		ScriptGUIScrollBarBase(MonoObject* instance);
-		virtual ~ScriptGUIScrollBarBase() {}
-		void RegisterEvents(GUIElement* value) override;
+		using ScriptGUIElementWrapper::ScriptGUIElementWrapper;
+
+		virtual void RegisterEvents();
 		void OnScrollOrResize(float p0, float p1);
 
 		typedef void(B3D_THUNKCALL *OnScrollOrResizeThunkDefinition) (MonoObject*, float p0, float p1, MonoException**);
@@ -21,17 +21,19 @@ namespace bs
 
 	};
 
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptGUIScrollBar : public TScriptGUIInteractable<ScriptGUIScrollBar, ScriptGUIScrollBarBase>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptGUIScrollBar : public TScriptGUIElementWrapper<GUIScrollBar, ScriptGUIScrollBar, ScriptGUIScrollBarWrapperBase>
 	{
 	public:
-		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "GUIScrollBar")
+		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "GUIScrollBar")
 
-		ScriptGUIScrollBar(MonoObject* managedInstance, GUIScrollBar* value);
+		ScriptGUIScrollBar(GUIScrollBar* nativeObject);
+
+		static MonoObject* CreateScriptObject(bool construct);
 
 	private:
-		static void InternalSetScrollHandlePosition(ScriptGUIElementBase* self, float pct);
-		static float InternalGetScrollHandlePosition(ScriptGUIElementBase* self);
-		static void InternalSetScrollHandleSize(ScriptGUIElementBase* self, float pct);
-		static float InternalGetScrollHandleSize(ScriptGUIElementBase* self);
+		static void InternalSetScrollHandlePosition(ScriptGUIScrollBarWrapperBase* self, float pct);
+		static float InternalGetScrollHandlePosition(ScriptGUIScrollBarWrapperBase* self);
+		static void InternalSetScrollHandleSize(ScriptGUIScrollBarWrapperBase* self, float pct);
+		static float InternalGetScrollHandleSize(ScriptGUIScrollBarWrapperBase* self);
 	};
 }

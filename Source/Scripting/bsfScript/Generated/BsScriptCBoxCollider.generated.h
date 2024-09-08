@@ -10,7 +10,7 @@
 namespace bs { class CBoxCollider; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptBoxCollider : public TScriptGameObjectWrapper<CBoxCollider, ScriptBoxCollider>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptBoxCollider : public TScriptGameObjectWrapper<CBoxCollider, ScriptBoxCollider, ScriptColliderWrapperBase>
 	{
 	public:
 		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "BoxCollider")

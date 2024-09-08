@@ -10,20 +10,30 @@
 
 namespace bs
 {
-	ScriptGUIHorizontalSlider::ScriptGUIHorizontalSlider(MonoObject* managedInstance, GUIHorizontalSlider* value)
-		:TScriptGUIInteractable(managedInstance, value)
+	ScriptGUIHorizontalSlider::ScriptGUIHorizontalSlider(GUIHorizontalSlider* nativeObject)
+		:TScriptGUIElementWrapper(nativeObject)
 	{
-		RegisterEvents(value);
+		RegisterEvents();
 	}
 
-	void ScriptGUIHorizontalSlider::InitRuntimeData()
+	void ScriptGUIHorizontalSlider::SetupScriptBindings()
 	{
-		metaData.ScriptClass->AddInternalCall("Internal_Create", (void*)&ScriptGUIHorizontalSlider::InternalCreate);
-		metaData.ScriptClass->AddInternalCall("Internal_Create0", (void*)&ScriptGUIHorizontalSlider::InternalCreate0);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_Create", (void*)&ScriptGUIHorizontalSlider::InternalCreate);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_Create0", (void*)&ScriptGUIHorizontalSlider::InternalCreate0);
 
 	}
 
-	void ScriptGUIHorizontalSlider::InternalCreate(MonoObject* managedInstance, MonoString* styleClass, MonoArray* options)
+	MonoObject* ScriptGUIHorizontalSlider::CreateScriptObject(bool construct)
+	{
+		bool dummy = false;
+		void* ctorParams[1] = { &dummy };
+
+		if(construct)
+			return sInteropMetaData.ScriptClass->CreateInstance("bool", ctorParams);
+
+		return sInteropMetaData.ScriptClass->CreateInstance(false);
+	}
+	void ScriptGUIHorizontalSlider::InternalCreate(MonoObject* scriptObject, MonoString* styleClass, MonoArray* options)
 	{
 		String tmpstyleClass;
 		tmpstyleClass = MonoUtil::MonoToString(styleClass);
@@ -38,10 +48,10 @@ namespace bs
 			}
 		}
 		GUIHorizontalSlider* nativeObject = GUIHorizontalSlider::Create(tmpstyleClass, nativeArrayoptions);
-		new (B3DAllocate<ScriptGUIHorizontalSlider>())ScriptGUIHorizontalSlider(managedInstance, nativeObject);
+		ScriptObjectWrapper::Create<ScriptGUIHorizontalSlider>(nativeObject, scriptObject);
 	}
 
-	void ScriptGUIHorizontalSlider::InternalCreate0(MonoObject* managedInstance, MonoArray* options)
+	void ScriptGUIHorizontalSlider::InternalCreate0(MonoObject* scriptObject, MonoArray* options)
 	{
 		TInlineArray<GUIOption, 4> nativeArrayoptions;
 		if(options != nullptr)
@@ -54,6 +64,6 @@ namespace bs
 			}
 		}
 		GUIHorizontalSlider* nativeObject = GUIHorizontalSlider::Create(nativeArrayoptions);
-		new (B3DAllocate<ScriptGUIHorizontalSlider>())ScriptGUIHorizontalSlider(managedInstance, nativeObject);
+		ScriptObjectWrapper::Create<ScriptGUIHorizontalSlider>(nativeObject, scriptObject);
 	}
 }

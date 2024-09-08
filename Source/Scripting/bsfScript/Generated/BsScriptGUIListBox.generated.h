@@ -3,7 +3,7 @@
 #pragma once
 
 #include "BsScriptEnginePrerequisites.h"
-#include "Wrappers/GUI/BsScriptGUIElement.h"
+#include "BsScriptGUIElementWrapper.h"
 #include "BsScriptGUIClickable.generated.h"
 #include "../../../Foundation/bsfCore/Localization/BsHString.h"
 #include "../../../Foundation/bsfEngine/GUI/BsGUIListBox.h"
@@ -13,14 +13,16 @@ namespace bs { class GUIListBox; }
 namespace bs { struct __GUIListBoxContentInterop; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptGUIListBox : public TScriptGUIInteractable<ScriptGUIListBox, ScriptGUIClickableBase>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptGUIListBox : public TScriptGUIElementWrapper<GUIListBox, ScriptGUIListBox, ScriptGUIClickableWrapperBase>
 	{
 	public:
-		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "GUIListBox")
+		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "GUIListBox")
 
-		ScriptGUIListBox(MonoObject* managedInstance, GUIListBox* value);
+		ScriptGUIListBox(GUIListBox* nativeObject);
 
-		void RegisterEvents(GUIElement* value) override;
+		virtual void RegisterEvents();
+		static MonoObject* CreateScriptObject(bool construct);
+
 	private:
 		void OnSelectionToggled(uint32_t p0, bool p1);
 
@@ -34,9 +36,9 @@ namespace bs
 		static uint32_t InternalGetSelectedElementIndex(ScriptGUIListBox* self);
 		static MonoArray* InternalGetElementStates(ScriptGUIListBox* self);
 		static void InternalSetElementStates(ScriptGUIListBox* self, MonoArray* states);
-		static void InternalCreate(MonoObject* managedInstance, __GUIListBoxContentInterop* contents, MonoString* styleClass, MonoArray* options);
-		static void InternalCreate0(MonoObject* managedInstance, __GUIListBoxContentInterop* contents, MonoArray* options);
-		static void InternalCreate1(MonoObject* managedInstance, MonoString* styleClass, MonoArray* options);
-		static void InternalCreate2(MonoObject* managedInstance, MonoArray* options);
+		static void InternalCreate(MonoObject* scriptObject, __GUIListBoxContentInterop* contents, MonoString* styleClass, MonoArray* options);
+		static void InternalCreate0(MonoObject* scriptObject, __GUIListBoxContentInterop* contents, MonoArray* options);
+		static void InternalCreate1(MonoObject* scriptObject, MonoString* styleClass, MonoArray* options);
+		static void InternalCreate2(MonoObject* scriptObject, MonoArray* options);
 	};
 }

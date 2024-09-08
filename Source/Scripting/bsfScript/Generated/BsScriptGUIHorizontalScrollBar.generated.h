@@ -3,22 +3,24 @@
 #pragma once
 
 #include "BsScriptEnginePrerequisites.h"
-#include "Wrappers/GUI/BsScriptGUIElement.h"
+#include "BsScriptGUIElementWrapper.h"
 #include "BsScriptGUIScrollBar.generated.h"
 #include "../../../Foundation/bsfEngine/GUI/BsGUIOptions.h"
 
 namespace bs { class GUIHorizontalScrollBar; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptGUIHorizontalScrollBar : public TScriptGUIInteractable<ScriptGUIHorizontalScrollBar, ScriptGUIScrollBarBase>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptGUIHorizontalScrollBar : public TScriptGUIElementWrapper<GUIHorizontalScrollBar, ScriptGUIHorizontalScrollBar, ScriptGUIScrollBarWrapperBase>
 	{
 	public:
-		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "GUIHorizontalScrollBar")
+		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "GUIHorizontalScrollBar")
 
-		ScriptGUIHorizontalScrollBar(MonoObject* managedInstance, GUIHorizontalScrollBar* value);
+		ScriptGUIHorizontalScrollBar(GUIHorizontalScrollBar* nativeObject);
+
+		static MonoObject* CreateScriptObject(bool construct);
 
 	private:
-		static void InternalCreate(MonoObject* managedInstance, MonoString* styleClass, MonoArray* options);
-		static void InternalCreate0(MonoObject* managedInstance, MonoArray* options);
+		static void InternalCreate(MonoObject* scriptObject, MonoString* styleClass, MonoArray* options);
+		static void InternalCreate0(MonoObject* scriptObject, MonoArray* options);
 	};
 }

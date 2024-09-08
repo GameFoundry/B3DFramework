@@ -12,7 +12,7 @@ namespace bs { class RenderTexture; }
 namespace bs { class RenderTextureEx; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptRenderTexture : public TScriptReflectableWrapper<RenderTexture, ScriptRenderTexture>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptRenderTexture : public TScriptReflectableWrapper<RenderTexture, ScriptRenderTexture, ScriptRenderTargetWrapperBase>
 	{
 	public:
 		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "RenderTexture")

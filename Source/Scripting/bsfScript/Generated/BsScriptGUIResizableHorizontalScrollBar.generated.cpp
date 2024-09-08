@@ -10,20 +10,30 @@
 
 namespace bs
 {
-	ScriptGUIResizableHorizontalScrollBar::ScriptGUIResizableHorizontalScrollBar(MonoObject* managedInstance, GUIResizableHorizontalScrollBar* value)
-		:TScriptGUIInteractable(managedInstance, value)
+	ScriptGUIResizableHorizontalScrollBar::ScriptGUIResizableHorizontalScrollBar(GUIResizableHorizontalScrollBar* nativeObject)
+		:TScriptGUIElementWrapper(nativeObject)
 	{
-		RegisterEvents(value);
+		RegisterEvents();
 	}
 
-	void ScriptGUIResizableHorizontalScrollBar::InitRuntimeData()
+	void ScriptGUIResizableHorizontalScrollBar::SetupScriptBindings()
 	{
-		metaData.ScriptClass->AddInternalCall("Internal_Create", (void*)&ScriptGUIResizableHorizontalScrollBar::InternalCreate);
-		metaData.ScriptClass->AddInternalCall("Internal_Create0", (void*)&ScriptGUIResizableHorizontalScrollBar::InternalCreate0);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_Create", (void*)&ScriptGUIResizableHorizontalScrollBar::InternalCreate);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_Create0", (void*)&ScriptGUIResizableHorizontalScrollBar::InternalCreate0);
 
 	}
 
-	void ScriptGUIResizableHorizontalScrollBar::InternalCreate(MonoObject* managedInstance, MonoString* styleClass, MonoArray* options)
+	MonoObject* ScriptGUIResizableHorizontalScrollBar::CreateScriptObject(bool construct)
+	{
+		bool dummy = false;
+		void* ctorParams[1] = { &dummy };
+
+		if(construct)
+			return sInteropMetaData.ScriptClass->CreateInstance("bool", ctorParams);
+
+		return sInteropMetaData.ScriptClass->CreateInstance(false);
+	}
+	void ScriptGUIResizableHorizontalScrollBar::InternalCreate(MonoObject* scriptObject, MonoString* styleClass, MonoArray* options)
 	{
 		String tmpstyleClass;
 		tmpstyleClass = MonoUtil::MonoToString(styleClass);
@@ -38,10 +48,10 @@ namespace bs
 			}
 		}
 		GUIResizableHorizontalScrollBar* nativeObject = GUIResizableHorizontalScrollBar::Create(tmpstyleClass, nativeArrayoptions);
-		new (B3DAllocate<ScriptGUIResizableHorizontalScrollBar>())ScriptGUIResizableHorizontalScrollBar(managedInstance, nativeObject);
+		ScriptObjectWrapper::Create<ScriptGUIResizableHorizontalScrollBar>(nativeObject, scriptObject);
 	}
 
-	void ScriptGUIResizableHorizontalScrollBar::InternalCreate0(MonoObject* managedInstance, MonoArray* options)
+	void ScriptGUIResizableHorizontalScrollBar::InternalCreate0(MonoObject* scriptObject, MonoArray* options)
 	{
 		TInlineArray<GUIOption, 4> nativeArrayoptions;
 		if(options != nullptr)
@@ -54,6 +64,6 @@ namespace bs
 			}
 		}
 		GUIResizableHorizontalScrollBar* nativeObject = GUIResizableHorizontalScrollBar::Create(nativeArrayoptions);
-		new (B3DAllocate<ScriptGUIResizableHorizontalScrollBar>())ScriptGUIResizableHorizontalScrollBar(managedInstance, nativeObject);
+		ScriptObjectWrapper::Create<ScriptGUIResizableHorizontalScrollBar>(nativeObject, scriptObject);
 	}
 }

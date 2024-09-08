@@ -12,7 +12,7 @@ namespace bs { struct __PARTICLE_ROTATION_DESCInterop; }
 namespace bs { class ParticleRotation; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleRotation : public TScriptReflectableWrapper<ParticleRotation, ScriptParticleRotation>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleRotation : public TScriptReflectableWrapper<ParticleRotation, ScriptParticleRotation, ScriptParticleEvolverWrapperBase>
 	{
 	public:
 		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "ParticleRotation")

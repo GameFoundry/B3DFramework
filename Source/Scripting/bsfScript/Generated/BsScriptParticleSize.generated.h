@@ -12,7 +12,7 @@ namespace bs { struct __PARTICLE_SIZE_DESCInterop; }
 namespace bs { class ParticleSize; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleSize : public TScriptReflectableWrapper<ParticleSize, ScriptParticleSize>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleSize : public TScriptReflectableWrapper<ParticleSize, ScriptParticleSize, ScriptParticleEvolverWrapperBase>
 	{
 	public:
 		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "ParticleSize")

@@ -3,22 +3,24 @@
 #pragma once
 
 #include "BsScriptEnginePrerequisites.h"
-#include "Wrappers/GUI/BsScriptGUIElement.h"
+#include "BsScriptGUIElementWrapper.h"
 #include "BsScriptGUISlider.generated.h"
 #include "../../../Foundation/bsfEngine/GUI/BsGUIOptions.h"
 
 namespace bs { class GUIHorizontalSlider; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptGUIHorizontalSlider : public TScriptGUIInteractable<ScriptGUIHorizontalSlider, ScriptGUISliderBase>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptGUIHorizontalSlider : public TScriptGUIElementWrapper<GUIHorizontalSlider, ScriptGUIHorizontalSlider, ScriptGUISliderWrapperBase>
 	{
 	public:
-		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "GUIHorizontalSlider")
+		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "GUIHorizontalSlider")
 
-		ScriptGUIHorizontalSlider(MonoObject* managedInstance, GUIHorizontalSlider* value);
+		ScriptGUIHorizontalSlider(GUIHorizontalSlider* nativeObject);
+
+		static MonoObject* CreateScriptObject(bool construct);
 
 	private:
-		static void InternalCreate(MonoObject* managedInstance, MonoString* styleClass, MonoArray* options);
-		static void InternalCreate0(MonoObject* managedInstance, MonoArray* options);
+		static void InternalCreate(MonoObject* scriptObject, MonoString* styleClass, MonoArray* options);
+		static void InternalCreate0(MonoObject* scriptObject, MonoArray* options);
 	};
 }

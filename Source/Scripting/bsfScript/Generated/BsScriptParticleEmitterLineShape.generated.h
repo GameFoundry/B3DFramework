@@ -12,7 +12,7 @@ namespace bs { class ParticleEmitterLineShape; }
 namespace bs { struct __PARTICLE_LINE_SHAPE_DESCInterop; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleEmitterLineShape : public TScriptReflectableWrapper<ParticleEmitterLineShape, ScriptParticleEmitterLineShape>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleEmitterLineShape : public TScriptReflectableWrapper<ParticleEmitterLineShape, ScriptParticleEmitterLineShape, ScriptParticleEmitterShapeWrapperBase>
 	{
 	public:
 		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "ParticleEmitterLineShape")

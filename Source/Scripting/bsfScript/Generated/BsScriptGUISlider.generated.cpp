@@ -8,51 +8,58 @@
 
 namespace bs
 {
-	ScriptGUISliderBase::OnChangedThunkDefinition ScriptGUISliderBase::OnChangedThunk; 
+	ScriptGUISliderWrapperBase::OnChangedThunkDefinition ScriptGUISliderWrapperBase::OnChangedThunk; 
 
-	ScriptGUISliderBase::ScriptGUISliderBase(MonoObject* managedInstance)
-		:ScriptGUIInteractableBase(managedInstance)
-	 { }
-
-	void ScriptGUISliderBase::OnChanged(float p0)
+	void ScriptGUISliderWrapperBase::OnChanged(float p0)
 	{
-		MonoUtil::InvokeThunk(OnChangedThunk, GetManagedInstance(), p0);
+		MonoUtil::InvokeThunk(OnChangedThunk, GetScriptObject(), p0);
 	}
 
-	void ScriptGUISliderBase::RegisterEvents(GUIElement* value)
+	void ScriptGUISliderWrapperBase::RegisterEvents()
 	{
-		static_cast<GUISlider*>(value)->OnChanged.Connect(std::bind(&ScriptGUISliderBase::OnChanged, this, std::placeholders::_1));
-		ScriptGUIInteractableBase::RegisterEvents(value);
+		static_cast<GUISlider*>(GetNativeObject())->OnChanged.Connect(std::bind(&ScriptGUISliderWrapperBase::OnChanged, this, std::placeholders::_1));
+		ScriptGUIElementWrapper::RegisterEvents();
 	}
-	ScriptGUISlider::ScriptGUISlider(MonoObject* managedInstance, GUISlider* value)
-		:TScriptGUIInteractable(managedInstance, value)
+	ScriptGUISlider::ScriptGUISlider(GUISlider* nativeObject)
+		:TScriptGUIElementWrapper(nativeObject)
 	{
-	}
-
-	void ScriptGUISlider::InitRuntimeData()
-	{
-		metaData.ScriptClass->AddInternalCall("Internal_SetHandlePositionInPercent", (void*)&ScriptGUISlider::InternalSetHandlePositionInPercent);
-		metaData.ScriptClass->AddInternalCall("Internal_GetHandlePositionInPercent", (void*)&ScriptGUISlider::InternalGetHandlePositionInPercent);
-		metaData.ScriptClass->AddInternalCall("Internal_SetHandlePositionInRange", (void*)&ScriptGUISlider::InternalSetHandlePositionInRange);
-		metaData.ScriptClass->AddInternalCall("Internal_GetHandlePositionInRange", (void*)&ScriptGUISlider::InternalGetHandlePositionInRange);
-		metaData.ScriptClass->AddInternalCall("Internal_SetRange", (void*)&ScriptGUISlider::InternalSetRange);
-		metaData.ScriptClass->AddInternalCall("Internal_GetRangeMinimum", (void*)&ScriptGUISlider::InternalGetRangeMinimum);
-		metaData.ScriptClass->AddInternalCall("Internal_GetRangeMaximum", (void*)&ScriptGUISlider::InternalGetRangeMaximum);
-		metaData.ScriptClass->AddInternalCall("Internal_SetStep", (void*)&ScriptGUISlider::InternalSetStep);
-		metaData.ScriptClass->AddInternalCall("Internal_GetStep", (void*)&ScriptGUISlider::InternalGetStep);
-
-		OnChangedThunk = (OnChangedThunkDefinition)metaData.ScriptClass->GetMethodExact("Internal_OnChanged", "single")->GetThunk();
+		RegisterEvents();
 	}
 
-	void ScriptGUISlider::InternalSetHandlePositionInPercent(ScriptGUIElementBase* self, float percent)
+	void ScriptGUISlider::SetupScriptBindings()
 	{
-		static_cast<GUISlider*>(self->GetGuiElement())->SetHandlePositionInPercent(percent);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetHandlePositionInPercent", (void*)&ScriptGUISlider::InternalSetHandlePositionInPercent);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetHandlePositionInPercent", (void*)&ScriptGUISlider::InternalGetHandlePositionInPercent);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetHandlePositionInRange", (void*)&ScriptGUISlider::InternalSetHandlePositionInRange);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetHandlePositionInRange", (void*)&ScriptGUISlider::InternalGetHandlePositionInRange);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetRange", (void*)&ScriptGUISlider::InternalSetRange);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetRangeMinimum", (void*)&ScriptGUISlider::InternalGetRangeMinimum);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetRangeMaximum", (void*)&ScriptGUISlider::InternalGetRangeMaximum);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetStep", (void*)&ScriptGUISlider::InternalSetStep);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetStep", (void*)&ScriptGUISlider::InternalGetStep);
+
+		OnChangedThunk = (OnChangedThunkDefinition)sInteropMetaData.ScriptClass->GetMethodExact("Internal_OnChanged", "single")->GetThunk();
 	}
 
-	float ScriptGUISlider::InternalGetHandlePositionInPercent(ScriptGUIElementBase* self)
+	MonoObject* ScriptGUISlider::CreateScriptObject(bool construct)
+	{
+		bool dummy = false;
+		void* ctorParams[1] = { &dummy };
+
+		if(construct)
+			return sInteropMetaData.ScriptClass->CreateInstance("bool", ctorParams);
+
+		return sInteropMetaData.ScriptClass->CreateInstance(false);
+	}
+	void ScriptGUISlider::InternalSetHandlePositionInPercent(ScriptGUISliderWrapperBase* self, float percent)
+	{
+		static_cast<GUISlider*>(self->GetNativeObject())->SetHandlePositionInPercent(percent);
+	}
+
+	float ScriptGUISlider::InternalGetHandlePositionInPercent(ScriptGUISliderWrapperBase* self)
 	{
 		float tmp__output;
-		tmp__output = static_cast<GUISlider*>(self->GetGuiElement())->GetHandlePositionInPercent();
+		tmp__output = static_cast<GUISlider*>(self->GetNativeObject())->GetHandlePositionInPercent();
 
 		float __output;
 		__output = tmp__output;
@@ -60,15 +67,15 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptGUISlider::InternalSetHandlePositionInRange(ScriptGUIElementBase* self, float value)
+	void ScriptGUISlider::InternalSetHandlePositionInRange(ScriptGUISliderWrapperBase* self, float value)
 	{
-		static_cast<GUISlider*>(self->GetGuiElement())->SetHandlePositionInRange(value);
+		static_cast<GUISlider*>(self->GetNativeObject())->SetHandlePositionInRange(value);
 	}
 
-	float ScriptGUISlider::InternalGetHandlePositionInRange(ScriptGUIElementBase* self)
+	float ScriptGUISlider::InternalGetHandlePositionInRange(ScriptGUISliderWrapperBase* self)
 	{
 		float tmp__output;
-		tmp__output = static_cast<GUISlider*>(self->GetGuiElement())->GetHandlePositionInRange();
+		tmp__output = static_cast<GUISlider*>(self->GetNativeObject())->GetHandlePositionInRange();
 
 		float __output;
 		__output = tmp__output;
@@ -76,15 +83,15 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptGUISlider::InternalSetRange(ScriptGUIElementBase* self, float min, float max)
+	void ScriptGUISlider::InternalSetRange(ScriptGUISliderWrapperBase* self, float min, float max)
 	{
-		static_cast<GUISlider*>(self->GetGuiElement())->SetRange(min, max);
+		static_cast<GUISlider*>(self->GetNativeObject())->SetRange(min, max);
 	}
 
-	float ScriptGUISlider::InternalGetRangeMinimum(ScriptGUIElementBase* self)
+	float ScriptGUISlider::InternalGetRangeMinimum(ScriptGUISliderWrapperBase* self)
 	{
 		float tmp__output;
-		tmp__output = static_cast<GUISlider*>(self->GetGuiElement())->GetRangeMinimum();
+		tmp__output = static_cast<GUISlider*>(self->GetNativeObject())->GetRangeMinimum();
 
 		float __output;
 		__output = tmp__output;
@@ -92,10 +99,10 @@ namespace bs
 		return __output;
 	}
 
-	float ScriptGUISlider::InternalGetRangeMaximum(ScriptGUIElementBase* self)
+	float ScriptGUISlider::InternalGetRangeMaximum(ScriptGUISliderWrapperBase* self)
 	{
 		float tmp__output;
-		tmp__output = static_cast<GUISlider*>(self->GetGuiElement())->GetRangeMaximum();
+		tmp__output = static_cast<GUISlider*>(self->GetNativeObject())->GetRangeMaximum();
 
 		float __output;
 		__output = tmp__output;
@@ -103,15 +110,15 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptGUISlider::InternalSetStep(ScriptGUIElementBase* self, float step)
+	void ScriptGUISlider::InternalSetStep(ScriptGUISliderWrapperBase* self, float step)
 	{
-		static_cast<GUISlider*>(self->GetGuiElement())->SetStep(step);
+		static_cast<GUISlider*>(self->GetNativeObject())->SetStep(step);
 	}
 
-	float ScriptGUISlider::InternalGetStep(ScriptGUIElementBase* self)
+	float ScriptGUISlider::InternalGetStep(ScriptGUISliderWrapperBase* self)
 	{
 		float tmp__output;
-		tmp__output = static_cast<GUISlider*>(self->GetGuiElement())->GetStep();
+		tmp__output = static_cast<GUISlider*>(self->GetNativeObject())->GetStep();
 
 		float __output;
 		__output = tmp__output;

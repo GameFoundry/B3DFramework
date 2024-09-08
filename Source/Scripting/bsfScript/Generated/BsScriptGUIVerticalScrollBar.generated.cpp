@@ -10,20 +10,30 @@
 
 namespace bs
 {
-	ScriptGUIVerticalScrollBar::ScriptGUIVerticalScrollBar(MonoObject* managedInstance, GUIVerticalScrollBar* value)
-		:TScriptGUIInteractable(managedInstance, value)
+	ScriptGUIVerticalScrollBar::ScriptGUIVerticalScrollBar(GUIVerticalScrollBar* nativeObject)
+		:TScriptGUIElementWrapper(nativeObject)
 	{
-		RegisterEvents(value);
+		RegisterEvents();
 	}
 
-	void ScriptGUIVerticalScrollBar::InitRuntimeData()
+	void ScriptGUIVerticalScrollBar::SetupScriptBindings()
 	{
-		metaData.ScriptClass->AddInternalCall("Internal_Create", (void*)&ScriptGUIVerticalScrollBar::InternalCreate);
-		metaData.ScriptClass->AddInternalCall("Internal_Create0", (void*)&ScriptGUIVerticalScrollBar::InternalCreate0);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_Create", (void*)&ScriptGUIVerticalScrollBar::InternalCreate);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_Create0", (void*)&ScriptGUIVerticalScrollBar::InternalCreate0);
 
 	}
 
-	void ScriptGUIVerticalScrollBar::InternalCreate(MonoObject* managedInstance, MonoString* styleClass, MonoArray* options)
+	MonoObject* ScriptGUIVerticalScrollBar::CreateScriptObject(bool construct)
+	{
+		bool dummy = false;
+		void* ctorParams[1] = { &dummy };
+
+		if(construct)
+			return sInteropMetaData.ScriptClass->CreateInstance("bool", ctorParams);
+
+		return sInteropMetaData.ScriptClass->CreateInstance(false);
+	}
+	void ScriptGUIVerticalScrollBar::InternalCreate(MonoObject* scriptObject, MonoString* styleClass, MonoArray* options)
 	{
 		String tmpstyleClass;
 		tmpstyleClass = MonoUtil::MonoToString(styleClass);
@@ -38,10 +48,10 @@ namespace bs
 			}
 		}
 		GUIVerticalScrollBar* nativeObject = GUIVerticalScrollBar::Create(tmpstyleClass, nativeArrayoptions);
-		new (B3DAllocate<ScriptGUIVerticalScrollBar>())ScriptGUIVerticalScrollBar(managedInstance, nativeObject);
+		ScriptObjectWrapper::Create<ScriptGUIVerticalScrollBar>(nativeObject, scriptObject);
 	}
 
-	void ScriptGUIVerticalScrollBar::InternalCreate0(MonoObject* managedInstance, MonoArray* options)
+	void ScriptGUIVerticalScrollBar::InternalCreate0(MonoObject* scriptObject, MonoArray* options)
 	{
 		TInlineArray<GUIOption, 4> nativeArrayoptions;
 		if(options != nullptr)
@@ -54,6 +64,6 @@ namespace bs
 			}
 		}
 		GUIVerticalScrollBar* nativeObject = GUIVerticalScrollBar::Create(nativeArrayoptions);
-		new (B3DAllocate<ScriptGUIVerticalScrollBar>())ScriptGUIVerticalScrollBar(managedInstance, nativeObject);
+		ScriptObjectWrapper::Create<ScriptGUIVerticalScrollBar>(nativeObject, scriptObject);
 	}
 }

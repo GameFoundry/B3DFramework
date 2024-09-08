@@ -3,21 +3,23 @@
 #pragma once
 
 #include "BsScriptEnginePrerequisites.h"
-#include "Wrappers/GUI/BsScriptGUIElement.h"
+#include "BsScriptGUIElementWrapper.h"
 #include "../../../Foundation/bsfEngine/GUI/BsGUIInputBox.h"
 #include "../../../Foundation/bsfEngine/GUI/BsGUIOptions.h"
 
 namespace bs { class GUIInputBox; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptGUIInputBox : public TScriptGUIInteractable<ScriptGUIInputBox>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptGUIInputBox : public TScriptGUIElementWrapper<GUIInputBox, ScriptGUIInputBox>
 	{
 	public:
-		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "GUIInputBox")
+		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "GUIInputBox")
 
-		ScriptGUIInputBox(MonoObject* managedInstance, GUIInputBox* value);
+		ScriptGUIInputBox(GUIInputBox* nativeObject);
 
-		void RegisterEvents(GUIElement* value) override;
+		virtual void RegisterEvents();
+		static MonoObject* CreateScriptObject(bool construct);
+
 	private:
 		void OnValueChanged(const String& p0);
 		void OnConfirm();
@@ -29,9 +31,9 @@ namespace bs
 
 		static void InternalSetText(ScriptGUIInputBox* self, MonoString* text);
 		static MonoString* InternalGetText(ScriptGUIInputBox* self);
-		static void InternalCreate(MonoObject* managedInstance, GUIInputBoxContent* contents, MonoString* styleClass, MonoArray* options);
-		static void InternalCreate0(MonoObject* managedInstance, GUIInputBoxContent* contents, MonoArray* options);
-		static void InternalCreate1(MonoObject* managedInstance, MonoString* styleClass, MonoArray* options);
-		static void InternalCreate2(MonoObject* managedInstance, MonoArray* options);
+		static void InternalCreate(MonoObject* scriptObject, GUIInputBoxContent* contents, MonoString* styleClass, MonoArray* options);
+		static void InternalCreate0(MonoObject* scriptObject, GUIInputBoxContent* contents, MonoArray* options);
+		static void InternalCreate1(MonoObject* scriptObject, MonoString* styleClass, MonoArray* options);
+		static void InternalCreate2(MonoObject* scriptObject, MonoArray* options);
 	};
 }

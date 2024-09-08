@@ -12,7 +12,7 @@ namespace bs { struct __PARTICLE_CONE_SHAPE_DESCInterop; }
 namespace bs { class ParticleEmitterConeShape; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleEmitterConeShape : public TScriptReflectableWrapper<ParticleEmitterConeShape, ScriptParticleEmitterConeShape>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleEmitterConeShape : public TScriptReflectableWrapper<ParticleEmitterConeShape, ScriptParticleEmitterConeShape, ScriptParticleEmitterShapeWrapperBase>
 	{
 	public:
 		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "ParticleEmitterConeShape")

@@ -3,7 +3,7 @@
 #pragma once
 
 #include "BsScriptEnginePrerequisites.h"
-#include "Wrappers/GUI/BsScriptGUIElement.h"
+#include "BsScriptGUIElementWrapper.h"
 #include "../../../Foundation/bsfEngine/GUI/BsGUIOptions.h"
 #include "../../../Foundation/bsfEngine/GUI/BsGUITexture.h"
 
@@ -11,18 +11,20 @@ namespace bs { class GUITexture; }
 namespace bs { struct __GUITextureContentsInterop; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptGUITexture : public TScriptGUIInteractable<ScriptGUITexture>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptGUITexture : public TScriptGUIElementWrapper<GUITexture, ScriptGUITexture>
 	{
 	public:
-		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "GUITexture")
+		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "GUITexture")
 
-		ScriptGUITexture(MonoObject* managedInstance, GUITexture* value);
+		ScriptGUITexture(GUITexture* nativeObject);
+
+		static MonoObject* CreateScriptObject(bool construct);
 
 	private:
 		static void InternalSetImage(ScriptGUITexture* self, MonoObject* image);
-		static void InternalCreate(MonoObject* managedInstance, __GUITextureContentsInterop* contents, MonoString* styleClass, MonoArray* options);
-		static void InternalCreate0(MonoObject* managedInstance, __GUITextureContentsInterop* contents, MonoArray* options);
-		static void InternalCreate1(MonoObject* managedInstance, MonoString* styleClass, MonoArray* options);
-		static void InternalCreate2(MonoObject* managedInstance, MonoArray* options);
+		static void InternalCreate(MonoObject* scriptObject, __GUITextureContentsInterop* contents, MonoString* styleClass, MonoArray* options);
+		static void InternalCreate0(MonoObject* scriptObject, __GUITextureContentsInterop* contents, MonoArray* options);
+		static void InternalCreate1(MonoObject* scriptObject, MonoString* styleClass, MonoArray* options);
+		static void InternalCreate2(MonoObject* scriptObject, MonoArray* options);
 	};
 }

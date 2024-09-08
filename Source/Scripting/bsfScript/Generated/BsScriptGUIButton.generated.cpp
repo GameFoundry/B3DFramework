@@ -11,22 +11,32 @@
 
 namespace bs
 {
-	ScriptGUIButton::ScriptGUIButton(MonoObject* managedInstance, GUIButton* value)
-		:TScriptGUIInteractable(managedInstance, value)
+	ScriptGUIButton::ScriptGUIButton(GUIButton* nativeObject)
+		:TScriptGUIElementWrapper(nativeObject)
 	{
-		RegisterEvents(value);
+		RegisterEvents();
 	}
 
-	void ScriptGUIButton::InitRuntimeData()
+	void ScriptGUIButton::SetupScriptBindings()
 	{
-		metaData.ScriptClass->AddInternalCall("Internal_Create", (void*)&ScriptGUIButton::InternalCreate);
-		metaData.ScriptClass->AddInternalCall("Internal_Create0", (void*)&ScriptGUIButton::InternalCreate0);
-		metaData.ScriptClass->AddInternalCall("Internal_Create1", (void*)&ScriptGUIButton::InternalCreate1);
-		metaData.ScriptClass->AddInternalCall("Internal_Create2", (void*)&ScriptGUIButton::InternalCreate2);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_Create", (void*)&ScriptGUIButton::InternalCreate);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_Create0", (void*)&ScriptGUIButton::InternalCreate0);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_Create1", (void*)&ScriptGUIButton::InternalCreate1);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_Create2", (void*)&ScriptGUIButton::InternalCreate2);
 
 	}
 
-	void ScriptGUIButton::InternalCreate(MonoObject* managedInstance, __GUIContentInterop* contents, MonoString* styleClass, MonoArray* options)
+	MonoObject* ScriptGUIButton::CreateScriptObject(bool construct)
+	{
+		bool dummy = false;
+		void* ctorParams[1] = { &dummy };
+
+		if(construct)
+			return sInteropMetaData.ScriptClass->CreateInstance("bool", ctorParams);
+
+		return sInteropMetaData.ScriptClass->CreateInstance(false);
+	}
+	void ScriptGUIButton::InternalCreate(MonoObject* scriptObject, __GUIContentInterop* contents, MonoString* styleClass, MonoArray* options)
 	{
 		GUIContent tmpcontents;
 		tmpcontents = ScriptGUIContent::FromInterop(*contents);
@@ -43,10 +53,10 @@ namespace bs
 			}
 		}
 		GUIButton* nativeObject = GUIButton::Create(tmpcontents, tmpstyleClass, nativeArrayoptions);
-		new (B3DAllocate<ScriptGUIButton>())ScriptGUIButton(managedInstance, nativeObject);
+		ScriptObjectWrapper::Create<ScriptGUIButton>(nativeObject, scriptObject);
 	}
 
-	void ScriptGUIButton::InternalCreate0(MonoObject* managedInstance, __GUIContentInterop* contents, MonoArray* options)
+	void ScriptGUIButton::InternalCreate0(MonoObject* scriptObject, __GUIContentInterop* contents, MonoArray* options)
 	{
 		GUIContent tmpcontents;
 		tmpcontents = ScriptGUIContent::FromInterop(*contents);
@@ -61,10 +71,10 @@ namespace bs
 			}
 		}
 		GUIButton* nativeObject = GUIButton::Create(tmpcontents, nativeArrayoptions);
-		new (B3DAllocate<ScriptGUIButton>())ScriptGUIButton(managedInstance, nativeObject);
+		ScriptObjectWrapper::Create<ScriptGUIButton>(nativeObject, scriptObject);
 	}
 
-	void ScriptGUIButton::InternalCreate1(MonoObject* managedInstance, MonoString* styleClass, MonoArray* options)
+	void ScriptGUIButton::InternalCreate1(MonoObject* scriptObject, MonoString* styleClass, MonoArray* options)
 	{
 		String tmpstyleClass;
 		tmpstyleClass = MonoUtil::MonoToString(styleClass);
@@ -79,10 +89,10 @@ namespace bs
 			}
 		}
 		GUIButton* nativeObject = GUIButton::Create(tmpstyleClass, nativeArrayoptions);
-		new (B3DAllocate<ScriptGUIButton>())ScriptGUIButton(managedInstance, nativeObject);
+		ScriptObjectWrapper::Create<ScriptGUIButton>(nativeObject, scriptObject);
 	}
 
-	void ScriptGUIButton::InternalCreate2(MonoObject* managedInstance, MonoArray* options)
+	void ScriptGUIButton::InternalCreate2(MonoObject* scriptObject, MonoArray* options)
 	{
 		TInlineArray<GUIOption, 4> nativeArrayoptions;
 		if(options != nullptr)
@@ -95,6 +105,6 @@ namespace bs
 			}
 		}
 		GUIButton* nativeObject = GUIButton::Create(nativeArrayoptions);
-		new (B3DAllocate<ScriptGUIButton>())ScriptGUIButton(managedInstance, nativeObject);
+		ScriptObjectWrapper::Create<ScriptGUIButton>(nativeObject, scriptObject);
 	}
 }

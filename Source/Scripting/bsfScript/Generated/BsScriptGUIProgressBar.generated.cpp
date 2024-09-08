@@ -10,30 +10,40 @@
 
 namespace bs
 {
-	ScriptGUIProgressBar::ScriptGUIProgressBar(MonoObject* managedInstance, GUIProgressBar* value)
-		:TScriptGUIInteractable(managedInstance, value)
+	ScriptGUIProgressBar::ScriptGUIProgressBar(GUIProgressBar* nativeObject)
+		:TScriptGUIElementWrapper(nativeObject)
 	{
-		RegisterEvents(value);
+		RegisterEvents();
 	}
 
-	void ScriptGUIProgressBar::InitRuntimeData()
+	void ScriptGUIProgressBar::SetupScriptBindings()
 	{
-		metaData.ScriptClass->AddInternalCall("Internal_SetPercent", (void*)&ScriptGUIProgressBar::InternalSetPercent);
-		metaData.ScriptClass->AddInternalCall("Internal_GetPercent", (void*)&ScriptGUIProgressBar::InternalGetPercent);
-		metaData.ScriptClass->AddInternalCall("Internal_Create", (void*)&ScriptGUIProgressBar::InternalCreate);
-		metaData.ScriptClass->AddInternalCall("Internal_Create0", (void*)&ScriptGUIProgressBar::InternalCreate0);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetPercent", (void*)&ScriptGUIProgressBar::InternalSetPercent);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetPercent", (void*)&ScriptGUIProgressBar::InternalGetPercent);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_Create", (void*)&ScriptGUIProgressBar::InternalCreate);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_Create0", (void*)&ScriptGUIProgressBar::InternalCreate0);
 
 	}
 
+	MonoObject* ScriptGUIProgressBar::CreateScriptObject(bool construct)
+	{
+		bool dummy = false;
+		void* ctorParams[1] = { &dummy };
+
+		if(construct)
+			return sInteropMetaData.ScriptClass->CreateInstance("bool", ctorParams);
+
+		return sInteropMetaData.ScriptClass->CreateInstance(false);
+	}
 	void ScriptGUIProgressBar::InternalSetPercent(ScriptGUIProgressBar* self, float percent)
 	{
-		static_cast<GUIProgressBar*>(self->GetGuiElement())->SetPercent(percent);
+		static_cast<GUIProgressBar*>(self->GetNativeObject())->SetPercent(percent);
 	}
 
 	float ScriptGUIProgressBar::InternalGetPercent(ScriptGUIProgressBar* self)
 	{
 		float tmp__output;
-		tmp__output = static_cast<GUIProgressBar*>(self->GetGuiElement())->GetPercent();
+		tmp__output = static_cast<GUIProgressBar*>(self->GetNativeObject())->GetPercent();
 
 		float __output;
 		__output = tmp__output;
@@ -41,7 +51,7 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptGUIProgressBar::InternalCreate(MonoObject* managedInstance, MonoString* styleClass, MonoArray* options)
+	void ScriptGUIProgressBar::InternalCreate(MonoObject* scriptObject, MonoString* styleClass, MonoArray* options)
 	{
 		String tmpstyleClass;
 		tmpstyleClass = MonoUtil::MonoToString(styleClass);
@@ -56,10 +66,10 @@ namespace bs
 			}
 		}
 		GUIProgressBar* nativeObject = GUIProgressBar::Create(tmpstyleClass, nativeArrayoptions);
-		new (B3DAllocate<ScriptGUIProgressBar>())ScriptGUIProgressBar(managedInstance, nativeObject);
+		ScriptObjectWrapper::Create<ScriptGUIProgressBar>(nativeObject, scriptObject);
 	}
 
-	void ScriptGUIProgressBar::InternalCreate0(MonoObject* managedInstance, MonoArray* options)
+	void ScriptGUIProgressBar::InternalCreate0(MonoObject* scriptObject, MonoArray* options)
 	{
 		TInlineArray<GUIOption, 4> nativeArrayoptions;
 		if(options != nullptr)
@@ -72,6 +82,6 @@ namespace bs
 			}
 		}
 		GUIProgressBar* nativeObject = GUIProgressBar::Create(nativeArrayoptions);
-		new (B3DAllocate<ScriptGUIProgressBar>())ScriptGUIProgressBar(managedInstance, nativeObject);
+		ScriptObjectWrapper::Create<ScriptGUIProgressBar>(nativeObject, scriptObject);
 	}
 }

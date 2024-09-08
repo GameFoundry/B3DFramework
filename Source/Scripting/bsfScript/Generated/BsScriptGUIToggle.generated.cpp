@@ -11,22 +11,32 @@
 
 namespace bs
 {
-	ScriptGUIToggle::ScriptGUIToggle(MonoObject* managedInstance, GUIToggle* value)
-		:TScriptGUIInteractable(managedInstance, value)
+	ScriptGUIToggle::ScriptGUIToggle(GUIToggle* nativeObject)
+		:TScriptGUIElementWrapper(nativeObject)
 	{
-		RegisterEvents(value);
+		RegisterEvents();
 	}
 
-	void ScriptGUIToggle::InitRuntimeData()
+	void ScriptGUIToggle::SetupScriptBindings()
 	{
-		metaData.ScriptClass->AddInternalCall("Internal_Create", (void*)&ScriptGUIToggle::InternalCreate);
-		metaData.ScriptClass->AddInternalCall("Internal_Create0", (void*)&ScriptGUIToggle::InternalCreate0);
-		metaData.ScriptClass->AddInternalCall("Internal_Create1", (void*)&ScriptGUIToggle::InternalCreate1);
-		metaData.ScriptClass->AddInternalCall("Internal_Create2", (void*)&ScriptGUIToggle::InternalCreate2);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_Create", (void*)&ScriptGUIToggle::InternalCreate);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_Create0", (void*)&ScriptGUIToggle::InternalCreate0);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_Create1", (void*)&ScriptGUIToggle::InternalCreate1);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_Create2", (void*)&ScriptGUIToggle::InternalCreate2);
 
 	}
 
-	void ScriptGUIToggle::InternalCreate(MonoObject* managedInstance, __GUIToggleContentInterop* contents, MonoString* styleClass, MonoArray* options)
+	MonoObject* ScriptGUIToggle::CreateScriptObject(bool construct)
+	{
+		bool dummy = false;
+		void* ctorParams[1] = { &dummy };
+
+		if(construct)
+			return sInteropMetaData.ScriptClass->CreateInstance("bool", ctorParams);
+
+		return sInteropMetaData.ScriptClass->CreateInstance(false);
+	}
+	void ScriptGUIToggle::InternalCreate(MonoObject* scriptObject, __GUIToggleContentInterop* contents, MonoString* styleClass, MonoArray* options)
 	{
 		GUIToggleContent tmpcontents;
 		tmpcontents = ScriptGUIToggleContent::FromInterop(*contents);
@@ -43,10 +53,10 @@ namespace bs
 			}
 		}
 		GUIToggle* nativeObject = GUIToggle::Create(tmpcontents, tmpstyleClass, nativeArrayoptions);
-		new (B3DAllocate<ScriptGUIToggle>())ScriptGUIToggle(managedInstance, nativeObject);
+		ScriptObjectWrapper::Create<ScriptGUIToggle>(nativeObject, scriptObject);
 	}
 
-	void ScriptGUIToggle::InternalCreate0(MonoObject* managedInstance, __GUIToggleContentInterop* contents, MonoArray* options)
+	void ScriptGUIToggle::InternalCreate0(MonoObject* scriptObject, __GUIToggleContentInterop* contents, MonoArray* options)
 	{
 		GUIToggleContent tmpcontents;
 		tmpcontents = ScriptGUIToggleContent::FromInterop(*contents);
@@ -61,10 +71,10 @@ namespace bs
 			}
 		}
 		GUIToggle* nativeObject = GUIToggle::Create(tmpcontents, nativeArrayoptions);
-		new (B3DAllocate<ScriptGUIToggle>())ScriptGUIToggle(managedInstance, nativeObject);
+		ScriptObjectWrapper::Create<ScriptGUIToggle>(nativeObject, scriptObject);
 	}
 
-	void ScriptGUIToggle::InternalCreate1(MonoObject* managedInstance, MonoString* styleClass, MonoArray* options)
+	void ScriptGUIToggle::InternalCreate1(MonoObject* scriptObject, MonoString* styleClass, MonoArray* options)
 	{
 		String tmpstyleClass;
 		tmpstyleClass = MonoUtil::MonoToString(styleClass);
@@ -79,10 +89,10 @@ namespace bs
 			}
 		}
 		GUIToggle* nativeObject = GUIToggle::Create(tmpstyleClass, nativeArrayoptions);
-		new (B3DAllocate<ScriptGUIToggle>())ScriptGUIToggle(managedInstance, nativeObject);
+		ScriptObjectWrapper::Create<ScriptGUIToggle>(nativeObject, scriptObject);
 	}
 
-	void ScriptGUIToggle::InternalCreate2(MonoObject* managedInstance, MonoArray* options)
+	void ScriptGUIToggle::InternalCreate2(MonoObject* scriptObject, MonoArray* options)
 	{
 		TInlineArray<GUIOption, 4> nativeArrayoptions;
 		if(options != nullptr)
@@ -95,6 +105,6 @@ namespace bs
 			}
 		}
 		GUIToggle* nativeObject = GUIToggle::Create(nativeArrayoptions);
-		new (B3DAllocate<ScriptGUIToggle>())ScriptGUIToggle(managedInstance, nativeObject);
+		ScriptObjectWrapper::Create<ScriptGUIToggle>(nativeObject, scriptObject);
 	}
 }

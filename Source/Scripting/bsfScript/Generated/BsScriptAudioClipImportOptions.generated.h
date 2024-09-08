@@ -13,7 +13,7 @@ namespace bs { class AudioClipImportOptions; }
 namespace bs
 {
 #if !B3D_IS_ENGINE
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptAudioClipImportOptions : public TScriptReflectableWrapper<AudioClipImportOptions, ScriptAudioClipImportOptions>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptAudioClipImportOptions : public TScriptReflectableWrapper<AudioClipImportOptions, ScriptAudioClipImportOptions, ScriptImportOptionsWrapperBase>
 	{
 	public:
 		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "AudioClipImportOptions")

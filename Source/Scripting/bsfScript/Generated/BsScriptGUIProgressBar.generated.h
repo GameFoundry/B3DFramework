@@ -3,23 +3,25 @@
 #pragma once
 
 #include "BsScriptEnginePrerequisites.h"
-#include "Wrappers/GUI/BsScriptGUIElement.h"
+#include "BsScriptGUIElementWrapper.h"
 #include "../../../Foundation/bsfEngine/GUI/BsGUIOptions.h"
 
 namespace bs { class GUIProgressBar; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptGUIProgressBar : public TScriptGUIInteractable<ScriptGUIProgressBar>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptGUIProgressBar : public TScriptGUIElementWrapper<GUIProgressBar, ScriptGUIProgressBar>
 	{
 	public:
-		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "GUIProgressBar")
+		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "GUIProgressBar")
 
-		ScriptGUIProgressBar(MonoObject* managedInstance, GUIProgressBar* value);
+		ScriptGUIProgressBar(GUIProgressBar* nativeObject);
+
+		static MonoObject* CreateScriptObject(bool construct);
 
 	private:
 		static void InternalSetPercent(ScriptGUIProgressBar* self, float percent);
 		static float InternalGetPercent(ScriptGUIProgressBar* self);
-		static void InternalCreate(MonoObject* managedInstance, MonoString* styleClass, MonoArray* options);
-		static void InternalCreate0(MonoObject* managedInstance, MonoArray* options);
+		static void InternalCreate(MonoObject* scriptObject, MonoString* styleClass, MonoArray* options);
+		static void InternalCreate0(MonoObject* scriptObject, MonoArray* options);
 	};
 }

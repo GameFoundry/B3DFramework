@@ -11,7 +11,7 @@ namespace bs { class SpriteGlyph; }
 namespace bs { struct __SpriteGlyphCreateInformationInterop; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptSpriteGlyph : public TScriptResourceWrapper<SpriteGlyph, ScriptSpriteGlyph>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptSpriteGlyph : public TScriptResourceWrapper<SpriteGlyph, ScriptSpriteGlyph, ScriptSpriteImageWrapperBase>
 	{
 	public:
 		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "SpriteGlyph")

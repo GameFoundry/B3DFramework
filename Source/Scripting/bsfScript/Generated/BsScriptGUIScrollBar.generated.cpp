@@ -8,46 +8,53 @@
 
 namespace bs
 {
-	ScriptGUIScrollBarBase::OnScrollOrResizeThunkDefinition ScriptGUIScrollBarBase::OnScrollOrResizeThunk; 
+	ScriptGUIScrollBarWrapperBase::OnScrollOrResizeThunkDefinition ScriptGUIScrollBarWrapperBase::OnScrollOrResizeThunk; 
 
-	ScriptGUIScrollBarBase::ScriptGUIScrollBarBase(MonoObject* managedInstance)
-		:ScriptGUIInteractableBase(managedInstance)
-	 { }
-
-	void ScriptGUIScrollBarBase::OnScrollOrResize(float p0, float p1)
+	void ScriptGUIScrollBarWrapperBase::OnScrollOrResize(float p0, float p1)
 	{
-		MonoUtil::InvokeThunk(OnScrollOrResizeThunk, GetManagedInstance(), p0, p1);
+		MonoUtil::InvokeThunk(OnScrollOrResizeThunk, GetScriptObject(), p0, p1);
 	}
 
-	void ScriptGUIScrollBarBase::RegisterEvents(GUIElement* value)
+	void ScriptGUIScrollBarWrapperBase::RegisterEvents()
 	{
-		static_cast<GUIScrollBar*>(value)->OnScrollOrResize.Connect(std::bind(&ScriptGUIScrollBarBase::OnScrollOrResize, this, std::placeholders::_1, std::placeholders::_2));
-		ScriptGUIInteractableBase::RegisterEvents(value);
+		static_cast<GUIScrollBar*>(GetNativeObject())->OnScrollOrResize.Connect(std::bind(&ScriptGUIScrollBarWrapperBase::OnScrollOrResize, this, std::placeholders::_1, std::placeholders::_2));
+		ScriptGUIElementWrapper::RegisterEvents();
 	}
-	ScriptGUIScrollBar::ScriptGUIScrollBar(MonoObject* managedInstance, GUIScrollBar* value)
-		:TScriptGUIInteractable(managedInstance, value)
+	ScriptGUIScrollBar::ScriptGUIScrollBar(GUIScrollBar* nativeObject)
+		:TScriptGUIElementWrapper(nativeObject)
 	{
-	}
-
-	void ScriptGUIScrollBar::InitRuntimeData()
-	{
-		metaData.ScriptClass->AddInternalCall("Internal_SetScrollHandlePosition", (void*)&ScriptGUIScrollBar::InternalSetScrollHandlePosition);
-		metaData.ScriptClass->AddInternalCall("Internal_GetScrollHandlePosition", (void*)&ScriptGUIScrollBar::InternalGetScrollHandlePosition);
-		metaData.ScriptClass->AddInternalCall("Internal_SetScrollHandleSize", (void*)&ScriptGUIScrollBar::InternalSetScrollHandleSize);
-		metaData.ScriptClass->AddInternalCall("Internal_GetScrollHandleSize", (void*)&ScriptGUIScrollBar::InternalGetScrollHandleSize);
-
-		OnScrollOrResizeThunk = (OnScrollOrResizeThunkDefinition)metaData.ScriptClass->GetMethodExact("Internal_OnScrollOrResize", "single,single")->GetThunk();
+		RegisterEvents();
 	}
 
-	void ScriptGUIScrollBar::InternalSetScrollHandlePosition(ScriptGUIElementBase* self, float pct)
+	void ScriptGUIScrollBar::SetupScriptBindings()
 	{
-		static_cast<GUIScrollBar*>(self->GetGuiElement())->SetScrollHandlePosition(pct);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetScrollHandlePosition", (void*)&ScriptGUIScrollBar::InternalSetScrollHandlePosition);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetScrollHandlePosition", (void*)&ScriptGUIScrollBar::InternalGetScrollHandlePosition);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetScrollHandleSize", (void*)&ScriptGUIScrollBar::InternalSetScrollHandleSize);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetScrollHandleSize", (void*)&ScriptGUIScrollBar::InternalGetScrollHandleSize);
+
+		OnScrollOrResizeThunk = (OnScrollOrResizeThunkDefinition)sInteropMetaData.ScriptClass->GetMethodExact("Internal_OnScrollOrResize", "single,single")->GetThunk();
 	}
 
-	float ScriptGUIScrollBar::InternalGetScrollHandlePosition(ScriptGUIElementBase* self)
+	MonoObject* ScriptGUIScrollBar::CreateScriptObject(bool construct)
+	{
+		bool dummy = false;
+		void* ctorParams[1] = { &dummy };
+
+		if(construct)
+			return sInteropMetaData.ScriptClass->CreateInstance("bool", ctorParams);
+
+		return sInteropMetaData.ScriptClass->CreateInstance(false);
+	}
+	void ScriptGUIScrollBar::InternalSetScrollHandlePosition(ScriptGUIScrollBarWrapperBase* self, float pct)
+	{
+		static_cast<GUIScrollBar*>(self->GetNativeObject())->SetScrollHandlePosition(pct);
+	}
+
+	float ScriptGUIScrollBar::InternalGetScrollHandlePosition(ScriptGUIScrollBarWrapperBase* self)
 	{
 		float tmp__output;
-		tmp__output = static_cast<GUIScrollBar*>(self->GetGuiElement())->GetScrollHandlePosition();
+		tmp__output = static_cast<GUIScrollBar*>(self->GetNativeObject())->GetScrollHandlePosition();
 
 		float __output;
 		__output = tmp__output;
@@ -55,15 +62,15 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptGUIScrollBar::InternalSetScrollHandleSize(ScriptGUIElementBase* self, float pct)
+	void ScriptGUIScrollBar::InternalSetScrollHandleSize(ScriptGUIScrollBarWrapperBase* self, float pct)
 	{
-		static_cast<GUIScrollBar*>(self->GetGuiElement())->SetScrollHandleSize(pct);
+		static_cast<GUIScrollBar*>(self->GetNativeObject())->SetScrollHandleSize(pct);
 	}
 
-	float ScriptGUIScrollBar::InternalGetScrollHandleSize(ScriptGUIElementBase* self)
+	float ScriptGUIScrollBar::InternalGetScrollHandleSize(ScriptGUIScrollBarWrapperBase* self)
 	{
 		float tmp__output;
-		tmp__output = static_cast<GUIScrollBar*>(self->GetGuiElement())->GetScrollHandleSize();
+		tmp__output = static_cast<GUIScrollBar*>(self->GetNativeObject())->GetScrollHandleSize();
 
 		float __output;
 		__output = tmp__output;

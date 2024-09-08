@@ -14,7 +14,7 @@ namespace bs { class CHingeJoint; }
 namespace bs { struct __LimitAngularRangeInterop; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptHingeJoint : public TScriptGameObjectWrapper<CHingeJoint, ScriptHingeJoint>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptHingeJoint : public TScriptGameObjectWrapper<CHingeJoint, ScriptHingeJoint, ScriptJointWrapperBase>
 	{
 	public:
 		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "HingeJoint")

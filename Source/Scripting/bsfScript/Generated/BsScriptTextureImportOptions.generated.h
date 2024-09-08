@@ -13,7 +13,7 @@ namespace bs { class TextureImportOptions; }
 namespace bs
 {
 #if !B3D_IS_ENGINE
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptTextureImportOptions : public TScriptReflectableWrapper<TextureImportOptions, ScriptTextureImportOptions>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptTextureImportOptions : public TScriptReflectableWrapper<TextureImportOptions, ScriptTextureImportOptions, ScriptImportOptionsWrapperBase>
 	{
 	public:
 		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "TextureImportOptions")

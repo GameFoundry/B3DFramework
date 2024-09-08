@@ -10,20 +10,30 @@
 
 namespace bs
 {
-	ScriptGUIHorizontalScrollBar::ScriptGUIHorizontalScrollBar(MonoObject* managedInstance, GUIHorizontalScrollBar* value)
-		:TScriptGUIInteractable(managedInstance, value)
+	ScriptGUIHorizontalScrollBar::ScriptGUIHorizontalScrollBar(GUIHorizontalScrollBar* nativeObject)
+		:TScriptGUIElementWrapper(nativeObject)
 	{
-		RegisterEvents(value);
+		RegisterEvents();
 	}
 
-	void ScriptGUIHorizontalScrollBar::InitRuntimeData()
+	void ScriptGUIHorizontalScrollBar::SetupScriptBindings()
 	{
-		metaData.ScriptClass->AddInternalCall("Internal_Create", (void*)&ScriptGUIHorizontalScrollBar::InternalCreate);
-		metaData.ScriptClass->AddInternalCall("Internal_Create0", (void*)&ScriptGUIHorizontalScrollBar::InternalCreate0);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_Create", (void*)&ScriptGUIHorizontalScrollBar::InternalCreate);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_Create0", (void*)&ScriptGUIHorizontalScrollBar::InternalCreate0);
 
 	}
 
-	void ScriptGUIHorizontalScrollBar::InternalCreate(MonoObject* managedInstance, MonoString* styleClass, MonoArray* options)
+	MonoObject* ScriptGUIHorizontalScrollBar::CreateScriptObject(bool construct)
+	{
+		bool dummy = false;
+		void* ctorParams[1] = { &dummy };
+
+		if(construct)
+			return sInteropMetaData.ScriptClass->CreateInstance("bool", ctorParams);
+
+		return sInteropMetaData.ScriptClass->CreateInstance(false);
+	}
+	void ScriptGUIHorizontalScrollBar::InternalCreate(MonoObject* scriptObject, MonoString* styleClass, MonoArray* options)
 	{
 		String tmpstyleClass;
 		tmpstyleClass = MonoUtil::MonoToString(styleClass);
@@ -38,10 +48,10 @@ namespace bs
 			}
 		}
 		GUIHorizontalScrollBar* nativeObject = GUIHorizontalScrollBar::Create(tmpstyleClass, nativeArrayoptions);
-		new (B3DAllocate<ScriptGUIHorizontalScrollBar>())ScriptGUIHorizontalScrollBar(managedInstance, nativeObject);
+		ScriptObjectWrapper::Create<ScriptGUIHorizontalScrollBar>(nativeObject, scriptObject);
 	}
 
-	void ScriptGUIHorizontalScrollBar::InternalCreate0(MonoObject* managedInstance, MonoArray* options)
+	void ScriptGUIHorizontalScrollBar::InternalCreate0(MonoObject* scriptObject, MonoArray* options)
 	{
 		TInlineArray<GUIOption, 4> nativeArrayoptions;
 		if(options != nullptr)
@@ -54,6 +64,6 @@ namespace bs
 			}
 		}
 		GUIHorizontalScrollBar* nativeObject = GUIHorizontalScrollBar::Create(nativeArrayoptions);
-		new (B3DAllocate<ScriptGUIHorizontalScrollBar>())ScriptGUIHorizontalScrollBar(managedInstance, nativeObject);
+		ScriptObjectWrapper::Create<ScriptGUIHorizontalScrollBar>(nativeObject, scriptObject);
 	}
 }

@@ -12,7 +12,7 @@ namespace bs { class ParticleForce; }
 namespace bs { struct __PARTICLE_FORCE_DESCInterop; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleForce : public TScriptReflectableWrapper<ParticleForce, ScriptParticleForce>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleForce : public TScriptReflectableWrapper<ParticleForce, ScriptParticleForce, ScriptParticleEvolverWrapperBase>
 	{
 	public:
 		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "ParticleForce")

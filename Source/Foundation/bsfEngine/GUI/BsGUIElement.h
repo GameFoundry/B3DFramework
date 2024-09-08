@@ -41,7 +41,7 @@ namespace bs
 
 	 * @note: Does not provide ability to render and interact with GUI elements - those are implemented by derived classes (i.e. GUIRenderable and GUIInteractable).
 	 */
-	class B3D_EXPORT GUIElement : public IReflectable
+	class B3D_EXPORT GUIElement : public IReflectable, public IScriptExportable
 	{
 	public:
 		/**	Valid types of GUI base elements. */

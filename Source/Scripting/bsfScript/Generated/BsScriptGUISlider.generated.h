@@ -3,17 +3,17 @@
 #pragma once
 
 #include "BsScriptEnginePrerequisites.h"
-#include "Wrappers/GUI/BsScriptGUIElement.h"
+#include "BsScriptGUIElementWrapper.h"
 
 namespace bs { class GUISlider; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptGUISliderBase : public ScriptGUIInteractableBase
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptGUISliderWrapperBase : public ScriptGUIElementWrapper
 	{
 	public:
-		ScriptGUISliderBase(MonoObject* instance);
-		virtual ~ScriptGUISliderBase() {}
-		void RegisterEvents(GUIElement* value) override;
+		using ScriptGUIElementWrapper::ScriptGUIElementWrapper;
+
+		virtual void RegisterEvents();
 		void OnChanged(float p0);
 
 		typedef void(B3D_THUNKCALL *OnChangedThunkDefinition) (MonoObject*, float p0, MonoException**);
@@ -21,22 +21,24 @@ namespace bs
 
 	};
 
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptGUISlider : public TScriptGUIInteractable<ScriptGUISlider, ScriptGUISliderBase>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptGUISlider : public TScriptGUIElementWrapper<GUISlider, ScriptGUISlider, ScriptGUISliderWrapperBase>
 	{
 	public:
-		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "GUISlider")
+		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "GUISlider")
 
-		ScriptGUISlider(MonoObject* managedInstance, GUISlider* value);
+		ScriptGUISlider(GUISlider* nativeObject);
+
+		static MonoObject* CreateScriptObject(bool construct);
 
 	private:
-		static void InternalSetHandlePositionInPercent(ScriptGUIElementBase* self, float percent);
-		static float InternalGetHandlePositionInPercent(ScriptGUIElementBase* self);
-		static void InternalSetHandlePositionInRange(ScriptGUIElementBase* self, float value);
-		static float InternalGetHandlePositionInRange(ScriptGUIElementBase* self);
-		static void InternalSetRange(ScriptGUIElementBase* self, float min, float max);
-		static float InternalGetRangeMinimum(ScriptGUIElementBase* self);
-		static float InternalGetRangeMaximum(ScriptGUIElementBase* self);
-		static void InternalSetStep(ScriptGUIElementBase* self, float step);
-		static float InternalGetStep(ScriptGUIElementBase* self);
+		static void InternalSetHandlePositionInPercent(ScriptGUISliderWrapperBase* self, float percent);
+		static float InternalGetHandlePositionInPercent(ScriptGUISliderWrapperBase* self);
+		static void InternalSetHandlePositionInRange(ScriptGUISliderWrapperBase* self, float value);
+		static float InternalGetHandlePositionInRange(ScriptGUISliderWrapperBase* self);
+		static void InternalSetRange(ScriptGUISliderWrapperBase* self, float min, float max);
+		static float InternalGetRangeMinimum(ScriptGUISliderWrapperBase* self);
+		static float InternalGetRangeMaximum(ScriptGUISliderWrapperBase* self);
+		static void InternalSetStep(ScriptGUISliderWrapperBase* self, float step);
+		static float InternalGetStep(ScriptGUISliderWrapperBase* self);
 	};
 }

@@ -11,7 +11,7 @@ namespace bs { class SpriteTexture; }
 namespace bs { struct __SpriteTextureCreateInformationInterop; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptSpriteTexture : public TScriptResourceWrapper<SpriteTexture, ScriptSpriteTexture>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptSpriteTexture : public TScriptResourceWrapper<SpriteTexture, ScriptSpriteTexture, ScriptSpriteImageWrapperBase>
 	{
 	public:
 		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "SpriteTexture")

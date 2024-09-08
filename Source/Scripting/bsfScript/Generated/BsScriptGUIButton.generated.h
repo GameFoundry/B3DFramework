@@ -3,7 +3,7 @@
 #pragma once
 
 #include "BsScriptEnginePrerequisites.h"
-#include "Wrappers/GUI/BsScriptGUIElement.h"
+#include "BsScriptGUIElementWrapper.h"
 #include "BsScriptGUIClickable.generated.h"
 #include "../../../Foundation/bsfEngine/GUI/BsGUIContent.h"
 #include "../../../Foundation/bsfEngine/GUI/BsGUIOptions.h"
@@ -12,17 +12,19 @@ namespace bs { class GUIButton; }
 namespace bs { struct __GUIContentInterop; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptGUIButton : public TScriptGUIInteractable<ScriptGUIButton, ScriptGUIClickableBase>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptGUIButton : public TScriptGUIElementWrapper<GUIButton, ScriptGUIButton, ScriptGUIClickableWrapperBase>
 	{
 	public:
-		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "GUIButton")
+		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "GUIButton")
 
-		ScriptGUIButton(MonoObject* managedInstance, GUIButton* value);
+		ScriptGUIButton(GUIButton* nativeObject);
+
+		static MonoObject* CreateScriptObject(bool construct);
 
 	private:
-		static void InternalCreate(MonoObject* managedInstance, __GUIContentInterop* contents, MonoString* styleClass, MonoArray* options);
-		static void InternalCreate0(MonoObject* managedInstance, __GUIContentInterop* contents, MonoArray* options);
-		static void InternalCreate1(MonoObject* managedInstance, MonoString* styleClass, MonoArray* options);
-		static void InternalCreate2(MonoObject* managedInstance, MonoArray* options);
+		static void InternalCreate(MonoObject* scriptObject, __GUIContentInterop* contents, MonoString* styleClass, MonoArray* options);
+		static void InternalCreate0(MonoObject* scriptObject, __GUIContentInterop* contents, MonoArray* options);
+		static void InternalCreate1(MonoObject* scriptObject, MonoString* styleClass, MonoArray* options);
+		static void InternalCreate2(MonoObject* scriptObject, MonoArray* options);
 	};
 }

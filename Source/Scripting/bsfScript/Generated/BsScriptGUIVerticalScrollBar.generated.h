@@ -3,22 +3,24 @@
 #pragma once
 
 #include "BsScriptEnginePrerequisites.h"
-#include "Wrappers/GUI/BsScriptGUIElement.h"
+#include "BsScriptGUIElementWrapper.h"
 #include "BsScriptGUIScrollBar.generated.h"
 #include "../../../Foundation/bsfEngine/GUI/BsGUIOptions.h"
 
 namespace bs { class GUIVerticalScrollBar; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptGUIVerticalScrollBar : public TScriptGUIInteractable<ScriptGUIVerticalScrollBar, ScriptGUIScrollBarBase>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptGUIVerticalScrollBar : public TScriptGUIElementWrapper<GUIVerticalScrollBar, ScriptGUIVerticalScrollBar, ScriptGUIScrollBarWrapperBase>
 	{
 	public:
-		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "GUIVerticalScrollBar")
+		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "GUIVerticalScrollBar")
 
-		ScriptGUIVerticalScrollBar(MonoObject* managedInstance, GUIVerticalScrollBar* value);
+		ScriptGUIVerticalScrollBar(GUIVerticalScrollBar* nativeObject);
+
+		static MonoObject* CreateScriptObject(bool construct);
 
 	private:
-		static void InternalCreate(MonoObject* managedInstance, MonoString* styleClass, MonoArray* options);
-		static void InternalCreate0(MonoObject* managedInstance, MonoArray* options);
+		static void InternalCreate(MonoObject* scriptObject, MonoString* styleClass, MonoArray* options);
+		static void InternalCreate0(MonoObject* scriptObject, MonoArray* options);
 	};
 }

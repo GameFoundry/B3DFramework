@@ -3,18 +3,18 @@
 #pragma once
 
 #include "BsScriptEnginePrerequisites.h"
-#include "Wrappers/GUI/BsScriptGUIElement.h"
+#include "BsScriptGUIElementWrapper.h"
 #include "BsScriptGUIClickable.generated.h"
 
 namespace bs { class GUIToggleable; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptGUIToggleableBase : public ScriptGUIClickableBase
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptGUIToggleableWrapperBase : public ScriptGUIClickableWrapperBase
 	{
 	public:
-		ScriptGUIToggleableBase(MonoObject* instance);
-		virtual ~ScriptGUIToggleableBase() {}
-		void RegisterEvents(GUIElement* value) override;
+		using ScriptGUIClickableWrapperBase::ScriptGUIClickableWrapperBase;
+
+		virtual void RegisterEvents();
 		void OnToggled(bool p0);
 
 		typedef void(B3D_THUNKCALL *OnToggledThunkDefinition) (MonoObject*, bool p0, MonoException**);
@@ -22,15 +22,17 @@ namespace bs
 
 	};
 
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptGUIToggleable : public TScriptGUIInteractable<ScriptGUIToggleable, ScriptGUIToggleableBase>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptGUIToggleable : public TScriptGUIElementWrapper<GUIToggleable, ScriptGUIToggleable, ScriptGUIToggleableWrapperBase>
 	{
 	public:
-		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "GUIToggleable")
+		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "GUIToggleable")
 
-		ScriptGUIToggleable(MonoObject* managedInstance, GUIToggleable* value);
+		ScriptGUIToggleable(GUIToggleable* nativeObject);
+
+		static MonoObject* CreateScriptObject(bool construct);
 
 	private:
-		static void InternalSetIsToggled(ScriptGUIElementBase* self, bool isToggled);
-		static bool InternalIsToggled(ScriptGUIElementBase* self);
+		static void InternalSetIsToggled(ScriptGUIToggleableWrapperBase* self, bool isToggled);
+		static bool InternalIsToggled(ScriptGUIToggleableWrapperBase* self);
 	};
 }

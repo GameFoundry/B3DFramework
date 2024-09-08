@@ -12,7 +12,7 @@
 namespace bs { class ParticleCollisions; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleCollisions : public TScriptReflectableWrapper<ParticleCollisions, ScriptParticleCollisions>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleCollisions : public TScriptReflectableWrapper<ParticleCollisions, ScriptParticleCollisions, ScriptParticleEvolverWrapperBase>
 	{
 	public:
 		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "ParticleCollisions")

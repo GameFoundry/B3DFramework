@@ -9,62 +9,69 @@
 
 namespace bs
 {
-	ScriptGUIClickableBase::OnClickThunkDefinition ScriptGUIClickableBase::OnClickThunk; 
-	ScriptGUIClickableBase::OnHoverThunkDefinition ScriptGUIClickableBase::OnHoverThunk; 
-	ScriptGUIClickableBase::OnOutThunkDefinition ScriptGUIClickableBase::OnOutThunk; 
-	ScriptGUIClickableBase::OnDoubleClickThunkDefinition ScriptGUIClickableBase::OnDoubleClickThunk; 
+	ScriptGUIClickableWrapperBase::OnClickThunkDefinition ScriptGUIClickableWrapperBase::OnClickThunk; 
+	ScriptGUIClickableWrapperBase::OnHoverThunkDefinition ScriptGUIClickableWrapperBase::OnHoverThunk; 
+	ScriptGUIClickableWrapperBase::OnOutThunkDefinition ScriptGUIClickableWrapperBase::OnOutThunk; 
+	ScriptGUIClickableWrapperBase::OnDoubleClickThunkDefinition ScriptGUIClickableWrapperBase::OnDoubleClickThunk; 
 
-	ScriptGUIClickableBase::ScriptGUIClickableBase(MonoObject* managedInstance)
-		:ScriptGUIInteractableBase(managedInstance)
-	 { }
-
-	void ScriptGUIClickableBase::OnClick()
+	void ScriptGUIClickableWrapperBase::OnClick()
 	{
-		MonoUtil::InvokeThunk(OnClickThunk, GetManagedInstance());
+		MonoUtil::InvokeThunk(OnClickThunk, GetScriptObject());
 	}
 
-	void ScriptGUIClickableBase::OnHover()
+	void ScriptGUIClickableWrapperBase::OnHover()
 	{
-		MonoUtil::InvokeThunk(OnHoverThunk, GetManagedInstance());
+		MonoUtil::InvokeThunk(OnHoverThunk, GetScriptObject());
 	}
 
-	void ScriptGUIClickableBase::OnOut()
+	void ScriptGUIClickableWrapperBase::OnOut()
 	{
-		MonoUtil::InvokeThunk(OnOutThunk, GetManagedInstance());
+		MonoUtil::InvokeThunk(OnOutThunk, GetScriptObject());
 	}
 
-	void ScriptGUIClickableBase::OnDoubleClick()
+	void ScriptGUIClickableWrapperBase::OnDoubleClick()
 	{
-		MonoUtil::InvokeThunk(OnDoubleClickThunk, GetManagedInstance());
+		MonoUtil::InvokeThunk(OnDoubleClickThunk, GetScriptObject());
 	}
 
-	void ScriptGUIClickableBase::RegisterEvents(GUIElement* value)
+	void ScriptGUIClickableWrapperBase::RegisterEvents()
 	{
-		static_cast<GUIClickable*>(value)->OnClick.Connect(std::bind(&ScriptGUIClickableBase::OnClick, this));
-		static_cast<GUIClickable*>(value)->OnHover.Connect(std::bind(&ScriptGUIClickableBase::OnHover, this));
-		static_cast<GUIClickable*>(value)->OnOut.Connect(std::bind(&ScriptGUIClickableBase::OnOut, this));
-		static_cast<GUIClickable*>(value)->OnDoubleClick.Connect(std::bind(&ScriptGUIClickableBase::OnDoubleClick, this));
-		ScriptGUIInteractableBase::RegisterEvents(value);
+		static_cast<GUIClickable*>(GetNativeObject())->OnClick.Connect(std::bind(&ScriptGUIClickableWrapperBase::OnClick, this));
+		static_cast<GUIClickable*>(GetNativeObject())->OnHover.Connect(std::bind(&ScriptGUIClickableWrapperBase::OnHover, this));
+		static_cast<GUIClickable*>(GetNativeObject())->OnOut.Connect(std::bind(&ScriptGUIClickableWrapperBase::OnOut, this));
+		static_cast<GUIClickable*>(GetNativeObject())->OnDoubleClick.Connect(std::bind(&ScriptGUIClickableWrapperBase::OnDoubleClick, this));
+		ScriptGUIElementWrapper::RegisterEvents();
 	}
-	ScriptGUIClickable::ScriptGUIClickable(MonoObject* managedInstance, GUIClickable* value)
-		:TScriptGUIInteractable(managedInstance, value)
+	ScriptGUIClickable::ScriptGUIClickable(GUIClickable* nativeObject)
+		:TScriptGUIElementWrapper(nativeObject)
 	{
-	}
-
-	void ScriptGUIClickable::InitRuntimeData()
-	{
-		metaData.ScriptClass->AddInternalCall("Internal_SetContent", (void*)&ScriptGUIClickable::InternalSetContent);
-
-		OnClickThunk = (OnClickThunkDefinition)metaData.ScriptClass->GetMethodExact("Internal_OnClick", "")->GetThunk();
-		OnHoverThunk = (OnHoverThunkDefinition)metaData.ScriptClass->GetMethodExact("Internal_OnHover", "")->GetThunk();
-		OnOutThunk = (OnOutThunkDefinition)metaData.ScriptClass->GetMethodExact("Internal_OnOut", "")->GetThunk();
-		OnDoubleClickThunk = (OnDoubleClickThunkDefinition)metaData.ScriptClass->GetMethodExact("Internal_OnDoubleClick", "")->GetThunk();
+		RegisterEvents();
 	}
 
-	void ScriptGUIClickable::InternalSetContent(ScriptGUIElementBase* self, __GUIContentInterop* content)
+	void ScriptGUIClickable::SetupScriptBindings()
+	{
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetContent", (void*)&ScriptGUIClickable::InternalSetContent);
+
+		OnClickThunk = (OnClickThunkDefinition)sInteropMetaData.ScriptClass->GetMethodExact("Internal_OnClick", "")->GetThunk();
+		OnHoverThunk = (OnHoverThunkDefinition)sInteropMetaData.ScriptClass->GetMethodExact("Internal_OnHover", "")->GetThunk();
+		OnOutThunk = (OnOutThunkDefinition)sInteropMetaData.ScriptClass->GetMethodExact("Internal_OnOut", "")->GetThunk();
+		OnDoubleClickThunk = (OnDoubleClickThunkDefinition)sInteropMetaData.ScriptClass->GetMethodExact("Internal_OnDoubleClick", "")->GetThunk();
+	}
+
+	MonoObject* ScriptGUIClickable::CreateScriptObject(bool construct)
+	{
+		bool dummy = false;
+		void* ctorParams[1] = { &dummy };
+
+		if(construct)
+			return sInteropMetaData.ScriptClass->CreateInstance("bool", ctorParams);
+
+		return sInteropMetaData.ScriptClass->CreateInstance(false);
+	}
+	void ScriptGUIClickable::InternalSetContent(ScriptGUIClickableWrapperBase* self, __GUIContentInterop* content)
 	{
 		GUIContent tmpcontent;
 		tmpcontent = ScriptGUIContent::FromInterop(*content);
-		static_cast<GUIClickable*>(self->GetGuiElement())->SetContent(tmpcontent);
+		static_cast<GUIClickable*>(self->GetNativeObject())->SetContent(tmpcontent);
 	}
 }

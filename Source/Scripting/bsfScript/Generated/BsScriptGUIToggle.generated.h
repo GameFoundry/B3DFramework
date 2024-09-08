@@ -3,7 +3,7 @@
 #pragma once
 
 #include "BsScriptEnginePrerequisites.h"
-#include "Wrappers/GUI/BsScriptGUIElement.h"
+#include "BsScriptGUIElementWrapper.h"
 #include "BsScriptGUIToggleable.generated.h"
 #include "../../../Foundation/bsfEngine/GUI/BsGUIOptions.h"
 #include "../../../Foundation/bsfEngine/GUI/BsGUIToggleable.h"
@@ -12,17 +12,19 @@ namespace bs { class GUIToggle; }
 namespace bs { struct __GUIToggleContentInterop; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptGUIToggle : public TScriptGUIInteractable<ScriptGUIToggle, ScriptGUIToggleableBase>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptGUIToggle : public TScriptGUIElementWrapper<GUIToggle, ScriptGUIToggle, ScriptGUIToggleableWrapperBase>
 	{
 	public:
-		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "GUIToggle")
+		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "GUIToggle")
 
-		ScriptGUIToggle(MonoObject* managedInstance, GUIToggle* value);
+		ScriptGUIToggle(GUIToggle* nativeObject);
+
+		static MonoObject* CreateScriptObject(bool construct);
 
 	private:
-		static void InternalCreate(MonoObject* managedInstance, __GUIToggleContentInterop* contents, MonoString* styleClass, MonoArray* options);
-		static void InternalCreate0(MonoObject* managedInstance, __GUIToggleContentInterop* contents, MonoArray* options);
-		static void InternalCreate1(MonoObject* managedInstance, MonoString* styleClass, MonoArray* options);
-		static void InternalCreate2(MonoObject* managedInstance, MonoArray* options);
+		static void InternalCreate(MonoObject* scriptObject, __GUIToggleContentInterop* contents, MonoString* styleClass, MonoArray* options);
+		static void InternalCreate0(MonoObject* scriptObject, __GUIToggleContentInterop* contents, MonoArray* options);
+		static void InternalCreate1(MonoObject* scriptObject, MonoString* styleClass, MonoArray* options);
+		static void InternalCreate2(MonoObject* scriptObject, MonoArray* options);
 	};
 }

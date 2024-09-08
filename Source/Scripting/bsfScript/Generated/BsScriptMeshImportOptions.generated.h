@@ -14,7 +14,7 @@ namespace bs { class MeshImportOptions; }
 namespace bs
 {
 #if !B3D_IS_ENGINE
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptMeshImportOptions : public TScriptReflectableWrapper<MeshImportOptions, ScriptMeshImportOptions>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptMeshImportOptions : public TScriptReflectableWrapper<MeshImportOptions, ScriptMeshImportOptions, ScriptImportOptionsWrapperBase>
 	{
 	public:
 		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "MeshImportOptions")

@@ -11,7 +11,7 @@ namespace bs { class ScriptCodeImportOptions; }
 namespace bs
 {
 #if !B3D_IS_ENGINE
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptScriptCodeImportOptions : public TScriptReflectableWrapper<ScriptCodeImportOptions, ScriptScriptCodeImportOptions>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptScriptCodeImportOptions : public TScriptReflectableWrapper<ScriptCodeImportOptions, ScriptScriptCodeImportOptions, ScriptImportOptionsWrapperBase>
 	{
 	public:
 		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "ScriptCodeImportOptions")

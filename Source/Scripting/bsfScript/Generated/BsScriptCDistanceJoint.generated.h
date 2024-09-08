@@ -11,7 +11,7 @@
 namespace bs { class CDistanceJoint; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptDistanceJoint : public TScriptGameObjectWrapper<CDistanceJoint, ScriptDistanceJoint>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptDistanceJoint : public TScriptGameObjectWrapper<CDistanceJoint, ScriptDistanceJoint, ScriptJointWrapperBase>
 	{
 	public:
 		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "DistanceJoint")

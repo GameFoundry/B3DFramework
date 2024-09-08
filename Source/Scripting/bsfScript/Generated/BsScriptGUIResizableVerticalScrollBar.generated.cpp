@@ -10,20 +10,30 @@
 
 namespace bs
 {
-	ScriptGUIResizableVerticalScrollBar::ScriptGUIResizableVerticalScrollBar(MonoObject* managedInstance, GUIResizableVerticalScrollBar* value)
-		:TScriptGUIInteractable(managedInstance, value)
+	ScriptGUIResizableVerticalScrollBar::ScriptGUIResizableVerticalScrollBar(GUIResizableVerticalScrollBar* nativeObject)
+		:TScriptGUIElementWrapper(nativeObject)
 	{
-		RegisterEvents(value);
+		RegisterEvents();
 	}
 
-	void ScriptGUIResizableVerticalScrollBar::InitRuntimeData()
+	void ScriptGUIResizableVerticalScrollBar::SetupScriptBindings()
 	{
-		metaData.ScriptClass->AddInternalCall("Internal_Create", (void*)&ScriptGUIResizableVerticalScrollBar::InternalCreate);
-		metaData.ScriptClass->AddInternalCall("Internal_Create0", (void*)&ScriptGUIResizableVerticalScrollBar::InternalCreate0);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_Create", (void*)&ScriptGUIResizableVerticalScrollBar::InternalCreate);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_Create0", (void*)&ScriptGUIResizableVerticalScrollBar::InternalCreate0);
 
 	}
 
-	void ScriptGUIResizableVerticalScrollBar::InternalCreate(MonoObject* managedInstance, MonoString* styleClass, MonoArray* options)
+	MonoObject* ScriptGUIResizableVerticalScrollBar::CreateScriptObject(bool construct)
+	{
+		bool dummy = false;
+		void* ctorParams[1] = { &dummy };
+
+		if(construct)
+			return sInteropMetaData.ScriptClass->CreateInstance("bool", ctorParams);
+
+		return sInteropMetaData.ScriptClass->CreateInstance(false);
+	}
+	void ScriptGUIResizableVerticalScrollBar::InternalCreate(MonoObject* scriptObject, MonoString* styleClass, MonoArray* options)
 	{
 		String tmpstyleClass;
 		tmpstyleClass = MonoUtil::MonoToString(styleClass);
@@ -38,10 +48,10 @@ namespace bs
 			}
 		}
 		GUIResizableVerticalScrollBar* nativeObject = GUIResizableVerticalScrollBar::Create(tmpstyleClass, nativeArrayoptions);
-		new (B3DAllocate<ScriptGUIResizableVerticalScrollBar>())ScriptGUIResizableVerticalScrollBar(managedInstance, nativeObject);
+		ScriptObjectWrapper::Create<ScriptGUIResizableVerticalScrollBar>(nativeObject, scriptObject);
 	}
 
-	void ScriptGUIResizableVerticalScrollBar::InternalCreate0(MonoObject* managedInstance, MonoArray* options)
+	void ScriptGUIResizableVerticalScrollBar::InternalCreate0(MonoObject* scriptObject, MonoArray* options)
 	{
 		TInlineArray<GUIOption, 4> nativeArrayoptions;
 		if(options != nullptr)
@@ -54,6 +64,6 @@ namespace bs
 			}
 		}
 		GUIResizableVerticalScrollBar* nativeObject = GUIResizableVerticalScrollBar::Create(nativeArrayoptions);
-		new (B3DAllocate<ScriptGUIResizableVerticalScrollBar>())ScriptGUIResizableVerticalScrollBar(managedInstance, nativeObject);
+		ScriptObjectWrapper::Create<ScriptGUIResizableVerticalScrollBar>(nativeObject, scriptObject);
 	}
 }

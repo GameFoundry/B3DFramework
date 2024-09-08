@@ -12,7 +12,7 @@ namespace bs { class ParticleVelocity; }
 namespace bs { struct __PARTICLE_VELOCITY_DESCInterop; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleVelocity : public TScriptReflectableWrapper<ParticleVelocity, ScriptParticleVelocity>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleVelocity : public TScriptReflectableWrapper<ParticleVelocity, ScriptParticleVelocity, ScriptParticleEvolverWrapperBase>
 	{
 	public:
 		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "ParticleVelocity")

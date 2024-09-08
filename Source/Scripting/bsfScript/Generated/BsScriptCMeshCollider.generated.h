@@ -9,7 +9,7 @@
 namespace bs { class CMeshCollider; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptMeshCollider : public TScriptGameObjectWrapper<CMeshCollider, ScriptMeshCollider>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptMeshCollider : public TScriptGameObjectWrapper<CMeshCollider, ScriptMeshCollider, ScriptColliderWrapperBase>
 	{
 	public:
 		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "MeshCollider")

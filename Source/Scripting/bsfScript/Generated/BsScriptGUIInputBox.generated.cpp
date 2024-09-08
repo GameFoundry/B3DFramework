@@ -14,54 +14,63 @@ namespace bs
 	ScriptGUIInputBox::OnValueChangedThunkDefinition ScriptGUIInputBox::OnValueChangedThunk; 
 	ScriptGUIInputBox::OnConfirmThunkDefinition ScriptGUIInputBox::OnConfirmThunk; 
 
-	ScriptGUIInputBox::ScriptGUIInputBox(MonoObject* managedInstance, GUIInputBox* value)
-		:TScriptGUIInteractable(managedInstance, value)
+	ScriptGUIInputBox::ScriptGUIInputBox(GUIInputBox* nativeObject)
+		:TScriptGUIElementWrapper(nativeObject)
 	{
-		RegisterEvents(value);
+		RegisterEvents();
 	}
 
-	void ScriptGUIInputBox::InitRuntimeData()
+	void ScriptGUIInputBox::SetupScriptBindings()
 	{
-		metaData.ScriptClass->AddInternalCall("Internal_SetText", (void*)&ScriptGUIInputBox::InternalSetText);
-		metaData.ScriptClass->AddInternalCall("Internal_GetText", (void*)&ScriptGUIInputBox::InternalGetText);
-		metaData.ScriptClass->AddInternalCall("Internal_Create", (void*)&ScriptGUIInputBox::InternalCreate);
-		metaData.ScriptClass->AddInternalCall("Internal_Create0", (void*)&ScriptGUIInputBox::InternalCreate0);
-		metaData.ScriptClass->AddInternalCall("Internal_Create1", (void*)&ScriptGUIInputBox::InternalCreate1);
-		metaData.ScriptClass->AddInternalCall("Internal_Create2", (void*)&ScriptGUIInputBox::InternalCreate2);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetText", (void*)&ScriptGUIInputBox::InternalSetText);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetText", (void*)&ScriptGUIInputBox::InternalGetText);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_Create", (void*)&ScriptGUIInputBox::InternalCreate);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_Create0", (void*)&ScriptGUIInputBox::InternalCreate0);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_Create1", (void*)&ScriptGUIInputBox::InternalCreate1);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_Create2", (void*)&ScriptGUIInputBox::InternalCreate2);
 
-		OnValueChangedThunk = (OnValueChangedThunkDefinition)metaData.ScriptClass->GetMethodExact("Internal_OnValueChanged", "string")->GetThunk();
-		OnConfirmThunk = (OnConfirmThunkDefinition)metaData.ScriptClass->GetMethodExact("Internal_OnConfirm", "")->GetThunk();
+		OnValueChangedThunk = (OnValueChangedThunkDefinition)sInteropMetaData.ScriptClass->GetMethodExact("Internal_OnValueChanged", "string")->GetThunk();
+		OnConfirmThunk = (OnConfirmThunkDefinition)sInteropMetaData.ScriptClass->GetMethodExact("Internal_OnConfirm", "")->GetThunk();
 	}
 
+	MonoObject* ScriptGUIInputBox::CreateScriptObject(bool construct)
+	{
+		bool dummy = false;
+		void* ctorParams[1] = { &dummy };
+
+		if(construct)
+			return sInteropMetaData.ScriptClass->CreateInstance("bool", ctorParams);
+
+		return sInteropMetaData.ScriptClass->CreateInstance(false);
+	}
 	void ScriptGUIInputBox::OnValueChanged(const String& p0)
 	{
 		MonoString* tmpp0;
 		tmpp0 = MonoUtil::StringToMono(p0);
-		MonoUtil::InvokeThunk(OnValueChangedThunk, GetManagedInstance(), tmpp0);
+		MonoUtil::InvokeThunk(OnValueChangedThunk, GetScriptObject(), tmpp0);
 	}
 
 	void ScriptGUIInputBox::OnConfirm()
 	{
-		MonoUtil::InvokeThunk(OnConfirmThunk, GetManagedInstance());
+		MonoUtil::InvokeThunk(OnConfirmThunk, GetScriptObject());
 	}
 
-	void ScriptGUIInputBox::RegisterEvents(GUIElement* value)
+	void ScriptGUIInputBox::RegisterEvents()
 	{
-		static_cast<GUIInputBox*>(value)->OnValueChanged.Connect(std::bind(&ScriptGUIInputBox::OnValueChanged, this, std::placeholders::_1));
-		static_cast<GUIInputBox*>(value)->OnConfirm.Connect(std::bind(&ScriptGUIInputBox::OnConfirm, this));
-		ScriptGUIElementBase::RegisterEvents(value);
+		static_cast<GUIInputBox*>(GetNativeObject())->OnValueChanged.Connect(std::bind(&ScriptGUIInputBox::OnValueChanged, this, std::placeholders::_1));
+		static_cast<GUIInputBox*>(GetNativeObject())->OnConfirm.Connect(std::bind(&ScriptGUIInputBox::OnConfirm, this));
 	}
 	void ScriptGUIInputBox::InternalSetText(ScriptGUIInputBox* self, MonoString* text)
 	{
 		String tmptext;
 		tmptext = MonoUtil::MonoToString(text);
-		static_cast<GUIInputBox*>(self->GetGuiElement())->SetText(tmptext);
+		static_cast<GUIInputBox*>(self->GetNativeObject())->SetText(tmptext);
 	}
 
 	MonoString* ScriptGUIInputBox::InternalGetText(ScriptGUIInputBox* self)
 	{
 		String tmp__output;
-		tmp__output = static_cast<GUIInputBox*>(self->GetGuiElement())->GetText();
+		tmp__output = static_cast<GUIInputBox*>(self->GetNativeObject())->GetText();
 
 		MonoString* __output;
 		__output = MonoUtil::StringToMono(tmp__output);
@@ -69,7 +78,7 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptGUIInputBox::InternalCreate(MonoObject* managedInstance, GUIInputBoxContent* contents, MonoString* styleClass, MonoArray* options)
+	void ScriptGUIInputBox::InternalCreate(MonoObject* scriptObject, GUIInputBoxContent* contents, MonoString* styleClass, MonoArray* options)
 	{
 		String tmpstyleClass;
 		tmpstyleClass = MonoUtil::MonoToString(styleClass);
@@ -84,10 +93,10 @@ namespace bs
 			}
 		}
 		GUIInputBox* nativeObject = GUIInputBox::Create(*contents, tmpstyleClass, nativeArrayoptions);
-		new (B3DAllocate<ScriptGUIInputBox>())ScriptGUIInputBox(managedInstance, nativeObject);
+		ScriptObjectWrapper::Create<ScriptGUIInputBox>(nativeObject, scriptObject);
 	}
 
-	void ScriptGUIInputBox::InternalCreate0(MonoObject* managedInstance, GUIInputBoxContent* contents, MonoArray* options)
+	void ScriptGUIInputBox::InternalCreate0(MonoObject* scriptObject, GUIInputBoxContent* contents, MonoArray* options)
 	{
 		TInlineArray<GUIOption, 4> nativeArrayoptions;
 		if(options != nullptr)
@@ -100,10 +109,10 @@ namespace bs
 			}
 		}
 		GUIInputBox* nativeObject = GUIInputBox::Create(*contents, nativeArrayoptions);
-		new (B3DAllocate<ScriptGUIInputBox>())ScriptGUIInputBox(managedInstance, nativeObject);
+		ScriptObjectWrapper::Create<ScriptGUIInputBox>(nativeObject, scriptObject);
 	}
 
-	void ScriptGUIInputBox::InternalCreate1(MonoObject* managedInstance, MonoString* styleClass, MonoArray* options)
+	void ScriptGUIInputBox::InternalCreate1(MonoObject* scriptObject, MonoString* styleClass, MonoArray* options)
 	{
 		String tmpstyleClass;
 		tmpstyleClass = MonoUtil::MonoToString(styleClass);
@@ -118,10 +127,10 @@ namespace bs
 			}
 		}
 		GUIInputBox* nativeObject = GUIInputBox::Create(tmpstyleClass, nativeArrayoptions);
-		new (B3DAllocate<ScriptGUIInputBox>())ScriptGUIInputBox(managedInstance, nativeObject);
+		ScriptObjectWrapper::Create<ScriptGUIInputBox>(nativeObject, scriptObject);
 	}
 
-	void ScriptGUIInputBox::InternalCreate2(MonoObject* managedInstance, MonoArray* options)
+	void ScriptGUIInputBox::InternalCreate2(MonoObject* scriptObject, MonoArray* options)
 	{
 		TInlineArray<GUIOption, 4> nativeArrayoptions;
 		if(options != nullptr)
@@ -134,6 +143,6 @@ namespace bs
 			}
 		}
 		GUIInputBox* nativeObject = GUIInputBox::Create(nativeArrayoptions);
-		new (B3DAllocate<ScriptGUIInputBox>())ScriptGUIInputBox(managedInstance, nativeObject);
+		ScriptObjectWrapper::Create<ScriptGUIInputBox>(nativeObject, scriptObject);
 	}
 }

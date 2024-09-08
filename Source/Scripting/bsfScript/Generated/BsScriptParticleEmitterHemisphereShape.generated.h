@@ -11,7 +11,7 @@
 namespace bs { class ParticleEmitterHemisphereShape; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleEmitterHemisphereShape : public TScriptReflectableWrapper<ParticleEmitterHemisphereShape, ScriptParticleEmitterHemisphereShape>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleEmitterHemisphereShape : public TScriptReflectableWrapper<ParticleEmitterHemisphereShape, ScriptParticleEmitterHemisphereShape, ScriptParticleEmitterShapeWrapperBase>
 	{
 	public:
 		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "ParticleEmitterHemisphereShape")

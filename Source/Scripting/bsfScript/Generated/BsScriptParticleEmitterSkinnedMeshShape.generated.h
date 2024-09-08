@@ -12,7 +12,7 @@ namespace bs { class ParticleEmitterSkinnedMeshShape; }
 namespace bs { struct __PARTICLE_SKINNED_MESH_SHAPE_DESCInterop; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleEmitterSkinnedMeshShape : public TScriptReflectableWrapper<ParticleEmitterSkinnedMeshShape, ScriptParticleEmitterSkinnedMeshShape>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleEmitterSkinnedMeshShape : public TScriptReflectableWrapper<ParticleEmitterSkinnedMeshShape, ScriptParticleEmitterSkinnedMeshShape, ScriptParticleEmitterShapeWrapperBase>
 	{
 	public:
 		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "ParticleEmitterSkinnedMeshShape")

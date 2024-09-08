@@ -12,7 +12,7 @@ namespace bs { class ParticleColor; }
 namespace bs { struct __PARTICLE_COLOR_DESCInterop; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleColor : public TScriptReflectableWrapper<ParticleColor, ScriptParticleColor>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleColor : public TScriptReflectableWrapper<ParticleColor, ScriptParticleColor, ScriptParticleEvolverWrapperBase>
 	{
 	public:
 		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "ParticleColor")

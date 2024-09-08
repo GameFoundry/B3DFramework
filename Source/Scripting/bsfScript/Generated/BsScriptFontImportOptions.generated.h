@@ -13,7 +13,7 @@ namespace bs { class FontImportOptions; }
 namespace bs
 {
 #if !B3D_IS_ENGINE
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptFontImportOptions : public TScriptReflectableWrapper<FontImportOptions, ScriptFontImportOptions>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptFontImportOptions : public TScriptReflectableWrapper<FontImportOptions, ScriptFontImportOptions, ScriptImportOptionsWrapperBase>
 	{
 	public:
 		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "FontImportOptions")

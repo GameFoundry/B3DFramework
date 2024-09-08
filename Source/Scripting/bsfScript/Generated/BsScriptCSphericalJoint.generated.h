@@ -12,7 +12,7 @@ namespace bs { struct __LimitConeRangeInterop; }
 namespace bs { class CSphericalJoint; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptSphericalJoint : public TScriptGameObjectWrapper<CSphericalJoint, ScriptSphericalJoint>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptSphericalJoint : public TScriptGameObjectWrapper<CSphericalJoint, ScriptSphericalJoint, ScriptJointWrapperBase>
 	{
 	public:
 		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "SphericalJoint")

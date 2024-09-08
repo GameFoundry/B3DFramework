@@ -3,19 +3,19 @@
 #pragma once
 
 #include "BsScriptEnginePrerequisites.h"
-#include "Wrappers/GUI/BsScriptGUIElement.h"
+#include "BsScriptGUIElementWrapper.h"
 #include "../../../Foundation/bsfEngine/GUI/BsGUIContent.h"
 
 namespace bs { class GUIClickable; }
 namespace bs { struct __GUIContentInterop; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptGUIClickableBase : public ScriptGUIInteractableBase
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptGUIClickableWrapperBase : public ScriptGUIElementWrapper
 	{
 	public:
-		ScriptGUIClickableBase(MonoObject* instance);
-		virtual ~ScriptGUIClickableBase() {}
-		void RegisterEvents(GUIElement* value) override;
+		using ScriptGUIElementWrapper::ScriptGUIElementWrapper;
+
+		virtual void RegisterEvents();
 		void OnClick();
 		void OnHover();
 		void OnOut();
@@ -32,14 +32,16 @@ namespace bs
 
 	};
 
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptGUIClickable : public TScriptGUIInteractable<ScriptGUIClickable, ScriptGUIClickableBase>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptGUIClickable : public TScriptGUIElementWrapper<GUIClickable, ScriptGUIClickable, ScriptGUIClickableWrapperBase>
 	{
 	public:
-		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "GUIClickable")
+		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "GUIClickable")
 
-		ScriptGUIClickable(MonoObject* managedInstance, GUIClickable* value);
+		ScriptGUIClickable(GUIClickable* nativeObject);
+
+		static MonoObject* CreateScriptObject(bool construct);
 
 	private:
-		static void InternalSetContent(ScriptGUIElementBase* self, __GUIContentInterop* content);
+		static void InternalSetContent(ScriptGUIClickableWrapperBase* self, __GUIContentInterop* content);
 	};
 }

@@ -23,7 +23,7 @@ namespace bs { struct __LimitLinearInterop; }
 namespace bs { struct __D6JointDriveInterop; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptD6Joint : public TScriptGameObjectWrapper<CD6Joint, ScriptD6Joint>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptD6Joint : public TScriptGameObjectWrapper<CD6Joint, ScriptD6Joint, ScriptJointWrapperBase>
 	{
 	public:
 		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "D6Joint")
