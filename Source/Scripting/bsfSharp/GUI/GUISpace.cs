@@ -12,7 +12,7 @@ namespace bs
     /// <summary>
     /// GUI element that may be inserted into layouts in order to make a space of a fixed size.
     /// </summary>
-    public sealed class GUIFixedSpace : GUIInteractable
+    public sealed class GUIFixedSpace : GUIElement
     {
         /// <summary>
         /// Creates a new fixed space.
@@ -47,7 +47,7 @@ namespace bs
     /// GUI element that may be inserted into layouts to make a space of a flexible size. The space will expand only if there
     /// is room. If multiple flexible spaces are in a layout, their sizes will be shared equally.
     /// </summary>
-    public sealed class GUIFlexibleSpace : GUIInteractable
+    public sealed class GUIFlexibleSpace : GUIElement
     {
         /// <summary>
         /// Creates a new flexible space.

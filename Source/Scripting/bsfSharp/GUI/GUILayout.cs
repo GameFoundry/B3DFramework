@@ -15,7 +15,7 @@ namespace bs
     /// for GUI elements that position and resize the elements automatically with
     /// respect to layout rules set on the elements.
     /// </summary>
-    public abstract class GUILayout : GUIInteractable
+    public abstract class GUILayout : GUIElement
     {
         /// <summary>
         /// Returns number of child elements in the layout.
@@ -29,7 +29,7 @@ namespace bs
         /// Adds a new element to the layout after all existing elements.
         /// </summary>
         /// <param name="element">GUI element to add.</param>
-        public void AddElement(GUIInteractable element)
+        public void AddElement(GUIElement element)
         {
             if(element != null)
                 Internal_AddElement(mCachedPtr, element.mCachedPtr);
@@ -40,7 +40,7 @@ namespace bs
         /// </summary>
         /// <param name="index">Index to insert the GUI element at. This must be in range [0, GetNumChildren()).</param>
         /// <param name="element">GUI element to insert.</param>
-        public void InsertElement(int index, GUIInteractable element)
+        public void InsertElement(int index, GUIElement element)
         {
             if(index < 0 || index > ChildCount)
                 throw new ArgumentOutOfRangeException("index", index, "Index out of range.");
@@ -54,7 +54,7 @@ namespace bs
         /// </summary>
         /// <param name="index">Index of the element to retrieve. This must be in range [0, GetNumChildren()).</param>
         /// <returns>GUI element at the specified index, or null if the index is invalid.</returns>
-        public GUIInteractable GetChild(int index)
+        public GUIElement GetChild(int index)
         {
             return Internal_GetChild(mCachedPtr, index);
         }
@@ -261,7 +261,7 @@ namespace bs
         protected static extern int Internal_GetChildCount(IntPtr instance);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
-        protected static extern GUIInteractable Internal_GetChild(IntPtr instance, int index);
+        protected static extern GUIElement Internal_GetChild(IntPtr instance, int index);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         protected static extern void Internal_Clear(IntPtr instance);

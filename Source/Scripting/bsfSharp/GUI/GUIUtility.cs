@@ -19,7 +19,7 @@ namespace bs
         /// </summary>
         /// <param name="element">GUI element to calculate the optimal size for.</param>
         /// <returns>Size that allows the GUI element to properly display all of its content.</returns>
-        public static Vector2I CalculateOptimalSize(GUIInteractable element)
+        public static Vector2I CalculateOptimalSize(GUIElement element)
         {
             Vector2I output;
             Internal_CalculateOptimalSize(element.GetCachedPtr(), out output);
@@ -27,7 +27,7 @@ namespace bs
         }
 
         /// <summary>
-        /// Calculates the bounds of a GUI element. This is similar to <see cref="GUIInteractable.Bounds"/> but allows you to
+        /// Calculates the bounds of a GUI element. This is similar to <see cref="GUIElement.Bounds"/> but allows you to
         /// returns bounds relative to a specific parent GUI panel.
         /// </summary>
         /// <param name="element">Elements to calculate the bounds for.</param>
@@ -35,7 +35,7 @@ namespace bs
         ///                          not a parent of the provided GUI element, the returned bounds will be relative to the
         ///                          first GUI panel parent instead.</param>
         /// <returns>Bounds of a GUI element relative to the provided GUI layout.</returns>
-        public static Rect2I CalculateBounds(GUIInteractable element, GUILayout relativeTo = null)
+        public static Rect2I CalculateBounds(GUIElement element, GUILayout relativeTo = null)
         {
             IntPtr relativeToNative = IntPtr.Zero;
             if (relativeTo != null)
