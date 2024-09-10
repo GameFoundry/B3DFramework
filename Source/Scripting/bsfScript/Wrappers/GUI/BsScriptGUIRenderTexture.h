@@ -4,6 +4,7 @@
 
 #include "BsScriptEnginePrerequisites.h"
 #include "Wrappers/GUI/BsScriptGUIElement.h"
+#include "GUI/BsGUIRenderTexture.h"
 
 namespace bs
 {
@@ -12,19 +13,23 @@ namespace bs
 	 */
 
 	/**	Interop class between C++ & CLR for GUIRenderTexture. */
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptGUIRenderTexture : public TScriptGUIInteractable<ScriptGUIRenderTexture>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptGUIRenderTexture : public TScriptGUIElementWrapper<GUIRenderTexture, ScriptGUIRenderTexture, ScriptGUIInteractableWrapperBase>
 	{
 	public:
-		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "GUIRenderTexture")
+		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "GUIRenderTexture")
 
-	private:
-		ScriptGUIRenderTexture(MonoObject* instance, GUIRenderTexture* texture);
+		ScriptGUIRenderTexture(GUIRenderTexture* nativeObject);
+
+		static MonoObject* CreateScriptObject(bool construct);
+
+		/** Returns the native object that is being wrapped. */
+		GUIRenderTexture* GetNativeObject() const { return static_cast<GUIRenderTexture*>(mNativeObject); }
 
 		/************************************************************************/
 		/* 								CLR HOOKS						   		*/
 		/************************************************************************/
 		static void InternalCreateInstance(MonoObject* instance, ScriptRenderTexture* texture, bool transparent, MonoString* style, MonoArray* guiOptions);
-		static void InternalSetTexture(ScriptGUIRenderTexture* nativeInstance, ScriptRenderTexture* texture);
+		static void InternalSetTexture(ScriptGUIRenderTexture* self, ScriptRenderTexture* texture);
 	};
 
 	/** @} */

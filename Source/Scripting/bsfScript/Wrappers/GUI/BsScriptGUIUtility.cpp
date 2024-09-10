@@ -27,25 +27,24 @@ void ScriptGUILayoutUtility::InitRuntimeData()
 	metaData.ScriptClass->AddInternalCall("Internal_CalculateTextBounds", (void*)&ScriptGUILayoutUtility::InternalCalculateTextBounds);
 }
 
-void ScriptGUILayoutUtility::InternalCalculateOptimalSize(ScriptGUIElementBase* guiElement, Vector2I* output)
+void ScriptGUILayoutUtility::InternalCalculateOptimalSize(ScriptGUIElementWrapper* guiElement, Vector2I* output)
 {
-	*output = GUIUtility::CalcOptimalSize(guiElement->GetGuiElement());
-	;
+	*output = GUIUtility::CalcOptimalSize(guiElement->GetNativeObject());
 }
 
-void ScriptGUILayoutUtility::InternalCalculateBounds(ScriptGUIElementBase* guiElement, ScriptGUILayout* relativeTo, Rect2I* output)
+void ScriptGUILayoutUtility::InternalCalculateBounds(ScriptGUIElementWrapper* guiElement, ScriptGUILayoutWrapperBase* relativeTo, Rect2I* output)
 {
-	if(guiElement->IsDestroyed())
+	if(!guiElement->IsNativeObjectValid())
 	{
 		*output = Rect2I();
 		return;
 	}
 
-	GUIPanel* relativeToPanel = nullptr;
-	if(relativeTo != nullptr && !relativeTo->IsDestroyed())
-		relativeToPanel = static_cast<GUIPanel*>(relativeTo->GetGuiElement());
+	GUILayout* relativeToPanel = nullptr;
+	if(relativeTo != nullptr && relativeTo->IsNativeObjectValid())
+		relativeToPanel = relativeTo->GetNativeObject();
 
-	*output = guiElement->GetGuiElement()->GetBoundsRelativeTo(relativeToPanel);
+	*output = guiElement->GetNativeObject()->GetBoundsRelativeTo(relativeToPanel);
 }
 
 void ScriptGUILayoutUtility::InternalCalculateTextBounds(MonoString* text, ScriptFont* fontPtr, float fontSize, Vector2I* output)

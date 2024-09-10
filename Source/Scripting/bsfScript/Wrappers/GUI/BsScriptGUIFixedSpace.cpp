@@ -12,38 +12,31 @@
 #include "Wrappers/GUI/BsScriptGUILayout.h"
 
 using namespace bs;
-ScriptGUIFixedSpace::ScriptGUIFixedSpace(MonoObject* instance, GUIFixedSpace* fixedSpace)
-	: TScriptGUIElementBase(instance, fixedSpace), mFixedSpace(fixedSpace), mIsDestroyed(false)
+ScriptGUIFixedSpace::ScriptGUIFixedSpace(GUIFixedSpace* nativeObject)
+	: TScriptGUIElementWrapper(nativeObject)
 {
 }
 
-void ScriptGUIFixedSpace::InitRuntimeData()
+void ScriptGUIFixedSpace::SetupScriptBindings()
 {
-	metaData.ScriptClass->AddInternalCall("Internal_CreateInstance", (void*)&ScriptGUIFixedSpace::InternalCreateInstance);
-	metaData.ScriptClass->AddInternalCall("Internal_SetSize", (void*)&ScriptGUIFixedSpace::InternalSetSize);
+	sInteropMetaData.ScriptClass->AddInternalCall("Internal_CreateInstance", (void*)&ScriptGUIFixedSpace::InternalCreateInstance);
+	sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetSize", (void*)&ScriptGUIFixedSpace::InternalSetSize);
 }
 
-void ScriptGUIFixedSpace::Destroy()
+MonoObject* ScriptGUIFixedSpace::CreateScriptObject(bool construct)
 {
-	if(!mIsDestroyed)
-	{
-		if(mParent != nullptr)
-			mParent->RemoveChild(this);
-
-		mFixedSpace->Destroy();
-
-		mIsDestroyed = true;
-	}
+	// TODO - Add a ctor in C# we can call if needed
+	return nullptr;
 }
 
 void ScriptGUIFixedSpace::InternalCreateInstance(MonoObject* instance, u32 size)
 {
 	GUIFixedSpace* space = GUIFixedSpace::Create(size);
 
-	new(B3DAllocate<ScriptGUIFixedSpace>()) ScriptGUIFixedSpace(instance, space);
+	ScriptObjectWrapper::Create<ScriptGUIFixedSpace>(space, instance);
 }
 
-void ScriptGUIFixedSpace::InternalSetSize(ScriptGUIFixedSpace* nativeInstance, u32 size)
+void ScriptGUIFixedSpace::InternalSetSize(ScriptGUIFixedSpace* self, u32 size)
 {
-	nativeInstance->mFixedSpace->SetSize(size);
+	self->GetNativeObject()->SetSize(size);
 }

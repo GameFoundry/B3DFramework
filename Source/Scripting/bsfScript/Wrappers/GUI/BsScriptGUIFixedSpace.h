@@ -3,7 +3,8 @@
 #pragma once
 
 #include "BsScriptEnginePrerequisites.h"
-#include "Wrappers/GUI/BsScriptGUIElement.h"
+#include "BsScriptGUIElementWrapper.h"
+#include "GUI/BsGUISpace.h"
 
 namespace bs
 {
@@ -12,24 +13,23 @@ namespace bs
 	 */
 
 	/**	Interop class between C++ & CLR for GUIFixedSpace. */
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptGUIFixedSpace : public TScriptGUIElementBase<ScriptGUIFixedSpace>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptGUIFixedSpace : public TScriptGUIElementWrapper<GUIFixedSpace, ScriptGUIFixedSpace>
 	{
 	public:
-		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "GUIFixedSpace")
+		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "GUIFixedSpace")
 
+		ScriptGUIFixedSpace(GUIFixedSpace* nativeObject);
+
+		/** Returns the native object that is being wrapped. */
+		GUIFixedSpace* GetNativeObject() const { return static_cast<GUIFixedSpace*>(mNativeObject); }
+
+		static MonoObject* CreateScriptObject(bool construct);
 	private:
-		ScriptGUIFixedSpace(MonoObject* instance, GUIFixedSpace* fixedSpace);
-
-		void Destroy() override;
-
-		GUIFixedSpace* mFixedSpace;
-		bool mIsDestroyed;
-
 		/************************************************************************/
 		/* 								CLR HOOKS						   		*/
 		/************************************************************************/
 		static void InternalCreateInstance(MonoObject* instance, u32 size);
-		static void InternalSetSize(ScriptGUIFixedSpace* nativeInstance, u32 size);
+		static void InternalSetSize(ScriptGUIFixedSpace* self, u32 size);
 	};
 
 	/** @} */

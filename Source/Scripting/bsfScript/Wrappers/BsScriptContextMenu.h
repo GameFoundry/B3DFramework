@@ -7,6 +7,8 @@
 
 namespace bs
 {
+	class ScriptGUILayoutWrapperBase;
+
 	/** @addtogroup ScriptInteropEngine
 	 *  @{
 	 */
@@ -40,7 +42,7 @@ namespace bs
 		static OnEntryTriggeredThunkDef onEntryTriggered;
 
 		static void InternalCreateInstance(MonoObject* instance);
-		static void InternalOpen(ScriptContextMenu* instance, Vector2I* position, ScriptGUILayout* layoutPtr);
+		static void InternalOpen(ScriptContextMenu* instance, Vector2I* position, ScriptGUILayoutWrapperBase* layoutPtr);
 		static void InternalAddItem(ScriptContextMenu* instance, MonoString* path, u32 callbackIdx, ShortcutKey* shortcut);
 		static void InternalAddSeparator(ScriptContextMenu* instance, MonoString* path);
 		static void InternalSetLocalizedName(ScriptContextMenu* instance, MonoString* label, ScriptLocString* name);

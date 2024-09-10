@@ -3,7 +3,8 @@
 #pragma once
 
 #include "BsScriptEnginePrerequisites.h"
-#include "Wrappers/GUI/BsScriptGUIElement.h"
+#include "BsScriptGUIElementWrapper.h"
+#include "GUI/BsGUISpace.h"
 
 namespace bs
 {
@@ -12,19 +13,18 @@ namespace bs
 	 */
 
 	/**	Interop class between C++ & CLR for GUIFlexibleSpace. */
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptGUIFlexibleSpace : public TScriptGUIElementBase<ScriptGUIFlexibleSpace>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptGUIFlexibleSpace : public TScriptGUIElementWrapper<GUIFlexibleSpace, ScriptGUIFlexibleSpace>
 	{
 	public:
-		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "GUIFlexibleSpace")
+		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "GUIFlexibleSpace")
 
+		ScriptGUIFlexibleSpace(GUIFlexibleSpace* nativeObject);
+
+		/** Returns the native object that is being wrapped. */
+		GUIFlexibleSpace* GetNativeObject() const { return static_cast<GUIFlexibleSpace*>(mNativeObject); }
+
+		static MonoObject* CreateScriptObject(bool construct);
 	private:
-		ScriptGUIFlexibleSpace(MonoObject* instance, GUIFlexibleSpace* flexibleSpace);
-
-		void Destroy() override;
-
-		GUIFlexibleSpace* mFlexibleSpace;
-		bool mIsDestroyed;
-
 		/************************************************************************/
 		/* 								CLR HOOKS						   		*/
 		/************************************************************************/

@@ -93,7 +93,7 @@ namespace bs
 		}
 
 		/** Used by derived classes to connect callbacks to native object events. */
-		virtual void RegisterEvents() const { }
+		virtual void RegisterEvents() { }
 
 		void NotifyNativeObjectDestroyed() override;
 

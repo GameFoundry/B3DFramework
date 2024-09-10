@@ -21,9 +21,7 @@ ScriptGUIWidget::ScriptGUIWidget(MonoObject* managedInstance)
 
 	mGUIWidget = GUIWidget::Create(mainCamera);
 
-	MonoObject* guiPanel = ScriptGUIPanel::CreateFromExisting(mGUIWidget->GetPanel());
-	mPanel = ScriptGUILayout::ToNative(guiPanel);
-
+	MonoObject* const guiPanel = ScriptGUIPanel::GetOrCreateScriptObject(mGUIWidget->GetPanel());
 	sGUIPanelField->Set(managedInstance, guiPanel);
 }
 
@@ -108,12 +106,6 @@ void ScriptGUIWidget::InternalDestroy(ScriptGUIWidget* instance)
 
 void ScriptGUIWidget::Destroy(bool destroyPanel)
 {
-	if(mPanel != nullptr && destroyPanel)
-	{
-		mPanel->Destroy();
-		mPanel = nullptr;
-	}
-
 	if(mGUIWidget != nullptr)
 	{
 		mGUIWidget->DestroyInternal();

@@ -7,8 +7,10 @@
 
 namespace bs
 {
-class ScriptCamera;
-/** @addtogroup ScriptInteropEngine
+	class ScriptGUIPanel;
+	class ScriptCamera;
+
+	/** @addtogroup ScriptInteropEngine
 	 *  @{
 	 */
 
@@ -31,7 +33,6 @@ class ScriptCamera;
 		void OnManagedInstanceDeletedInternal(bool assemblyRefresh) override;
 
 		SPtr<GUIWidget> mGUIWidget;
-		ScriptGUILayout* mPanel;
 
 		static MonoField* sGUIPanelField;
 

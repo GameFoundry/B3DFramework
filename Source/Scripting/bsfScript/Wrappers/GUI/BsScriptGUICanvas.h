@@ -4,6 +4,7 @@
 
 #include "BsScriptEnginePrerequisites.h"
 #include "Wrappers/GUI/BsScriptGUIElement.h"
+#include "GUI/BsGUICanvas.h"
 
 namespace bs
 {
@@ -13,25 +14,29 @@ namespace bs
 	 */
 
 	/**	Interop class between C++ & CLR for GUICanvas. */
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptGUICanvas : public TScriptGUIInteractable<ScriptGUICanvas>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptGUICanvas : public TScriptGUIElementWrapper<GUICanvas, ScriptGUICanvas, ScriptGUIInteractableWrapperBase>
 	{
 	public:
-		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "GUICanvas")
+		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "GUICanvas")
 
+		ScriptGUICanvas(GUICanvas* nativeObject);
+
+		static MonoObject* CreateScriptObject(bool construct);
+
+		/** Returns the native object that is being wrapped. */
+		GUICanvas* GetNativeObject() const { return static_cast<GUICanvas*>(mNativeObject); }
 	private:
-		ScriptGUICanvas(MonoObject* instance, GUICanvas* canvas);
-
 		/************************************************************************/
 		/* 								CLR HOOKS						   		*/
 		/************************************************************************/
 		static void InternalCreateInstance(MonoObject* instance, MonoString* style, MonoArray* guiOptions);
-		static void InternalDrawLine(ScriptGUICanvas* nativeInstance, Vector2I* a, Vector2I* b, Color* color, u8 depth);
-		static void InternalDrawPolyLine(ScriptGUICanvas* nativeInstance, MonoArray* vertices, Color* color, u8 depth);
-		static void InternalDrawImage(ScriptGUICanvas* nativeInstance, ScriptSpriteImage* texture, Rect2I* area, TextureScaleMode scaleMode, Color* color, u8 depth);
-		static void InternalDrawTriangleStrip(ScriptGUICanvas* nativeInstance, MonoArray* vertices, Color* color, u8 depth);
-		static void InternalDrawTriangleList(ScriptGUICanvas* nativeInstance, MonoArray* vertices, Color* color, u8 depth);
-		static void InternalDrawText(ScriptGUICanvas* nativeInstance, MonoString* text, Vector2I* position, ScriptFont* font, float size, Color* color, u8 depth);
-		static void InternalClear(ScriptGUICanvas* nativeInstance);
+		static void InternalDrawLine(ScriptGUICanvas* self, Vector2I* a, Vector2I* b, Color* color, u8 depth);
+		static void InternalDrawPolyLine(ScriptGUICanvas* self, MonoArray* vertices, Color* color, u8 depth);
+		static void InternalDrawImage(ScriptGUICanvas* self, ScriptSpriteImage* texture, Rect2I* area, TextureScaleMode scaleMode, Color* color, u8 depth);
+		static void InternalDrawTriangleStrip(ScriptGUICanvas* self, MonoArray* vertices, Color* color, u8 depth);
+		static void InternalDrawTriangleList(ScriptGUICanvas* self, MonoArray* vertices, Color* color, u8 depth);
+		static void InternalDrawText(ScriptGUICanvas* self, MonoString* text, Vector2I* position, ScriptFont* font, float size, Color* color, u8 depth);
+		static void InternalClear(ScriptGUICanvas* self);
 	};
 
 	/** @} */

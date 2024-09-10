@@ -12,32 +12,25 @@
 #include "Wrappers/GUI/BsScriptGUILayout.h"
 
 using namespace bs;
-ScriptGUIFlexibleSpace::ScriptGUIFlexibleSpace(MonoObject* instance, GUIFlexibleSpace* flexibleSpace)
-	: TScriptGUIElementBase(instance, flexibleSpace), mFlexibleSpace(flexibleSpace), mIsDestroyed(false)
+
+ScriptGUIFlexibleSpace::ScriptGUIFlexibleSpace(GUIFlexibleSpace* nativeObject)
+	: TScriptGUIElementWrapper(nativeObject)
+{ }
+
+void ScriptGUIFlexibleSpace::SetupScriptBindings()
 {
+	sInteropMetaData.ScriptClass->AddInternalCall("Internal_CreateInstance", (void*)&ScriptGUIFlexibleSpace::InternalCreateInstance);
 }
 
-void ScriptGUIFlexibleSpace::InitRuntimeData()
+MonoObject* ScriptGUIFlexibleSpace::CreateScriptObject(bool construct)
 {
-	metaData.ScriptClass->AddInternalCall("Internal_CreateInstance", (void*)&ScriptGUIFlexibleSpace::InternalCreateInstance);
-}
-
-void ScriptGUIFlexibleSpace::Destroy()
-{
-	if(!mIsDestroyed)
-	{
-		if(mParent != nullptr)
-			mParent->RemoveChild(this);
-
-		mFlexibleSpace->Destroy();
-
-		mIsDestroyed = true;
-	}
+	// TODO - Add a ctor in C# we can call if needed
+	return nullptr;
 }
 
 void ScriptGUIFlexibleSpace::InternalCreateInstance(MonoObject* instance)
 {
 	GUIFlexibleSpace* space = GUIFlexibleSpace::Create();
 
-	new(B3DAllocate<ScriptGUIFlexibleSpace>()) ScriptGUIFlexibleSpace(instance, space);
+	ScriptObjectWrapper::Create<ScriptGUIFlexibleSpace>(space, instance);
 }

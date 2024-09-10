@@ -152,7 +152,7 @@ void GUIElement::ResetDimensions()
 	MarkLayoutAsDirty();
 }
 
-Rect2I GUIElement::GetBoundsRelativeTo(GUIPanel* relativeTo)
+Rect2I GUIElement::GetBoundsRelativeTo(GUIElement* relativeTo)
 {
 	if(relativeTo == nullptr)
 		relativeTo = mPanelParent;

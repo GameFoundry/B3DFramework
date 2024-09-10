@@ -134,7 +134,7 @@ namespace bs
 		 *
 		 * @note	This call can be potentially expensive if the GUI state is dirty, as it can trigger a re-layouting operation.
 		 */
-		Rect2I GetBoundsRelativeTo(GUIPanel* relativeTo = nullptr);
+		Rect2I GetBoundsRelativeTo(GUIElement* relativeTo = nullptr);
 
 		/**
 		 * Returns non-clipped bounds of the GUI element. Relative to a parent GUI widget. The bounds includes the content area,

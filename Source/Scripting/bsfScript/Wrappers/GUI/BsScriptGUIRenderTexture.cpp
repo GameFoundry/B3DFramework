@@ -17,15 +17,21 @@
 #include "Generated/BsScriptRenderTexture.generated.h"
 
 using namespace bs;
-ScriptGUIRenderTexture::ScriptGUIRenderTexture(MonoObject* instance, GUIRenderTexture* texture)
-	: TScriptGUIInteractable(instance, texture)
+ScriptGUIRenderTexture::ScriptGUIRenderTexture(GUIRenderTexture* nativeObject)
+	: TScriptGUIElementWrapper(nativeObject)
 {
 }
 
-void ScriptGUIRenderTexture::InitRuntimeData()
+void ScriptGUIRenderTexture::SetupScriptBindings()
 {
-	metaData.ScriptClass->AddInternalCall("Internal_CreateInstance", (void*)&ScriptGUIRenderTexture::InternalCreateInstance);
-	metaData.ScriptClass->AddInternalCall("Internal_SetTexture", (void*)&ScriptGUIRenderTexture::InternalSetTexture);
+	sInteropMetaData.ScriptClass->AddInternalCall("Internal_CreateInstance", (void*)&ScriptGUIRenderTexture::InternalCreateInstance);
+	sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetTexture", (void*)&ScriptGUIRenderTexture::InternalSetTexture);
+}
+
+MonoObject* ScriptGUIRenderTexture::CreateScriptObject(bool construct)
+{
+	// TODO - Add a ctor in C# we can call if needed
+	return nullptr;
 }
 
 void ScriptGUIRenderTexture::InternalCreateInstance(MonoObject* instance, ScriptRenderTexture* texture, bool transparent, MonoString* style, MonoArray* guiOptions)
@@ -43,15 +49,17 @@ void ScriptGUIRenderTexture::InternalCreateInstance(MonoObject* instance, Script
 
 	GUIRenderTexture* guiTexture = GUIRenderTexture::Create(renderTexture, transparent, options, MonoUtil::MonoToString(style));
 
-	new(B3DAllocate<ScriptGUIRenderTexture>()) ScriptGUIRenderTexture(instance, guiTexture);
+	ScriptObjectWrapper::Create<ScriptGUIRenderTexture>(guiTexture, instance);
 }
 
-void ScriptGUIRenderTexture::InternalSetTexture(ScriptGUIRenderTexture* nativeInstance, ScriptRenderTexture* texture)
+void ScriptGUIRenderTexture::InternalSetTexture(ScriptGUIRenderTexture* self, ScriptRenderTexture* texture)
 {
+	if(!self->IsNativeObjectValid())
+		return;
+
 	SPtr<RenderTexture> renderTexture;
 	if(texture != nullptr)
 		renderTexture = texture->GetNativeObjectAsShared();
 
-	GUIRenderTexture* guiTexture = (GUIRenderTexture*)nativeInstance->GetGuiElement();
-	guiTexture->SetRenderTexture(renderTexture);
+	self->GetNativeObject()->SetRenderTexture(renderTexture);
 }

@@ -21,6 +21,9 @@ namespace bs
 		/** Checks is the native object alive and valid. */
 		bool IsNativeObjectValid() const { return mNativeObject != nullptr; }
 
+		/** Returns the native object that is being wrapped. */
+		GUIElement* GetNativeObject() const { return mNativeObject; }
+
 	protected:
 		void NotifyNativeObjectDestroyed() override
 		{
@@ -50,7 +53,7 @@ namespace bs
 		static MonoObject* CreateScriptObjectAndWrapper(NativeType* nativeObject)
 		{
 			MonoObject* const scriptObject = SelfType::CreateScriptObject(false);
-			ScriptObjectWrapper::Create<SelfType>(static_cast<NativeType>(nativeObject), scriptObject);
+			ScriptObjectWrapper::Create<SelfType>(nativeObject, scriptObject);
 
 			return scriptObject;
 		}

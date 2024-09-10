@@ -41,9 +41,9 @@ void ScriptContextMenu::InternalCreateInstance(MonoObject* instance)
 	new(B3DAllocate<ScriptContextMenu>()) ScriptContextMenu(instance);
 }
 
-void ScriptContextMenu::InternalOpen(ScriptContextMenu* instance, Vector2I* position, ScriptGUILayout* layoutPtr)
+void ScriptContextMenu::InternalOpen(ScriptContextMenu* instance, Vector2I* position, ScriptGUILayoutWrapperBase* layoutPtr)
 {
-	GUIElement* layout = layoutPtr->GetGuiElement();
+	GUIElement* layout = layoutPtr->GetNativeObject();
 
 	GUIWidget* widget = layout->GetParentWidget();
 	if(widget == nullptr)

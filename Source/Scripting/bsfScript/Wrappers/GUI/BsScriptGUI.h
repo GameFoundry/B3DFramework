@@ -7,6 +7,8 @@
 
 namespace bs
 {
+	class ScriptGUIPanel;
+
 	/** @addtogroup ScriptInteropEngine
 	 *  @{
 	 */
@@ -31,9 +33,7 @@ namespace bs
 		~ScriptGUI();
 
 		static SPtr<GUIWidget> sGUIWidget;
-		static ScriptGUILayout* sPanel;
 		static MonoMethod* sGUIPanelMethod;
-		static HEvent sDomainUnloadConn;
 		static HEvent sDomainLoadConn;
 	};
 

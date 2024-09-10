@@ -10,8 +10,6 @@
 
 using namespace bs;
 SPtr<GUIWidget> ScriptGUI::sGUIWidget;
-ScriptGUILayout* ScriptGUI::sPanel = nullptr;
-HEvent ScriptGUI::sDomainUnloadConn;
 HEvent ScriptGUI::sDomainLoadConn;
 bs::MonoMethod* ScriptGUI::sGUIPanelMethod = nullptr;
 
@@ -29,10 +27,7 @@ void ScriptGUI::StartUp()
 
 	auto createPanel = []()
 	{
-		B3D_ASSERT(sPanel == nullptr);
-
-		MonoObject* guiPanel = ScriptGUIPanel::CreateFromExisting(sGUIWidget->GetPanel());
-		sPanel = ScriptGUILayout::ToNative(guiPanel);
+		MonoObject* guiPanel = ScriptGUIPanel::GetOrCreateScriptObject(sGUIWidget->GetPanel());
 
 		void* params[1];
 		params[0] = guiPanel;
@@ -40,15 +35,7 @@ void ScriptGUI::StartUp()
 		sGUIPanelMethod->Invoke(nullptr, params);
 	};
 
-	auto clearPanel = []()
-	{
-		sPanel = nullptr;
-	};
-
-	createPanel();
-
 	sDomainLoadConn = ScriptObjectManager::Instance().OnRefreshDomainLoaded.Connect(createPanel);
-	sDomainUnloadConn = MonoManager::Instance().OnDomainUnload.Connect(clearPanel);
 }
 
 void ScriptGUI::Update()
@@ -66,13 +53,6 @@ void ScriptGUI::Update()
 void ScriptGUI::ShutDown()
 {
 	sDomainLoadConn.Disconnect();
-	sDomainUnloadConn.Disconnect();
-
-	if(sPanel != nullptr)
-	{
-		sPanel->Destroy();
-		sPanel = nullptr;
-	}
 
 	if(sGUIWidget != nullptr)
 	{

@@ -9,83 +9,30 @@
 #include "GUI/BsGUILayout.h"
 #include "GUI/BsGUILayoutX.h"
 #include "GUI/BsGUILayoutY.h"
-#include "GUI/BsGUIPanel.h"
 #include "GUI/BsGUIScrollArea.h"
 #include "BsMonoUtil.h"
 
 using namespace bs;
-ScriptGUILayout::ScriptGUILayout(MonoObject* instance, GUILayout* layout, bool ownsNative)
-	: TScriptGUIElementBase(instance, layout), mLayout(layout), mOwnsNative(ownsNative)
+ScriptGUILayout::ScriptGUILayout(GUILayout* nativeObject)
+	: TScriptGUIElementWrapper(nativeObject)
 {}
 
-void ScriptGUILayout::InitRuntimeData()
+void ScriptGUILayout::SetupScriptBindings()
 {
-	metaData.ScriptClass->AddInternalCall("Internal_CreateInstanceX", (void*)&ScriptGUILayout::InternalCreateInstanceX);
-	metaData.ScriptClass->AddInternalCall("Internal_CreateInstanceY", (void*)&ScriptGUILayout::InternalCreateInstanceY);
-	metaData.ScriptClass->AddInternalCall("Internal_CreateInstancePanel", (void*)&ScriptGUILayout::InternalCreateInstancePanel);
-	metaData.ScriptClass->AddInternalCall("Internal_CreateInstanceYFromScrollArea", (void*)&ScriptGUILayout::InternalCreateInstanceYFromScrollArea);
-	metaData.ScriptClass->AddInternalCall("Internal_AddElement", (void*)&ScriptGUILayout::InternalAddElement);
-	metaData.ScriptClass->AddInternalCall("Internal_InsertElement", (void*)&ScriptGUILayout::InternalInsertElement);
-	metaData.ScriptClass->AddInternalCall("Internal_GetChildCount", (void*)&ScriptGUILayout::InternalGetChildCount);
-	metaData.ScriptClass->AddInternalCall("Internal_GetChild", (void*)&ScriptGUILayout::InternalGetChild);
-	metaData.ScriptClass->AddInternalCall("Internal_Clear", (void*)&ScriptGUILayout::InternalClear);
+	sInteropMetaData.ScriptClass->AddInternalCall("Internal_CreateInstanceX", (void*)&ScriptGUILayout::InternalCreateInstanceX);
+	sInteropMetaData.ScriptClass->AddInternalCall("Internal_CreateInstanceY", (void*)&ScriptGUILayout::InternalCreateInstanceY);
+	sInteropMetaData.ScriptClass->AddInternalCall("Internal_CreateInstancePanel", (void*)&ScriptGUILayout::InternalCreateInstancePanel);
+	sInteropMetaData.ScriptClass->AddInternalCall("Internal_CreateInstanceYFromScrollArea", (void*)&ScriptGUILayout::InternalCreateInstanceYFromScrollArea);
+	sInteropMetaData.ScriptClass->AddInternalCall("Internal_AddElement", (void*)&ScriptGUILayout::InternalAddElement);
+	sInteropMetaData.ScriptClass->AddInternalCall("Internal_InsertElement", (void*)&ScriptGUILayout::InternalInsertElement);
+	sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetChildCount", (void*)&ScriptGUILayout::InternalGetChildCount);
+	sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetChild", (void*)&ScriptGUILayout::InternalGetChild);
+	sInteropMetaData.ScriptClass->AddInternalCall("Internal_Clear", (void*)&ScriptGUILayout::InternalClear);
 }
 
-void ScriptGUILayout::Destroy()
+MonoObject* ScriptGUILayout::CreateScriptObject(bool construct)
 {
-	if(!mIsDestroyed)
-	{
-		if(mParent != nullptr)
-			mParent->RemoveChild(this);
-
-		while(mChildren.size() > 0)
-		{
-			ChildInfo childInfo = mChildren[0];
-			childInfo.Element->Destroy();
-		}
-
-		if(mOwnsNative)
-			mLayout->Destroy();
-
-		mLayout = nullptr;
-		mIsDestroyed = true;
-	}
-}
-
-void ScriptGUILayout::AddChild(ScriptGUIElementBase* element)
-{
-	ChildInfo childInfo;
-
-	childInfo.Element = element;
-	childInfo.GcHandle = MonoUtil::NewGcHandle(element->GetManagedInstance(), false);
-
-	mChildren.push_back(childInfo);
-}
-
-void ScriptGUILayout::InsertChild(u32 idx, ScriptGUIElementBase* element)
-{
-	ChildInfo childInfo;
-
-	childInfo.Element = element;
-	childInfo.GcHandle = MonoUtil::NewGcHandle(element->GetManagedInstance(), false);
-
-	mChildren.insert(mChildren.begin() + idx, childInfo);
-}
-
-void ScriptGUILayout::RemoveChild(ScriptGUIElementBase* element)
-{
-	auto iterFind = std::find_if(mChildren.begin(), mChildren.end(), [&](const ChildInfo& x)
-								 { return x.Element == element; });
-
-	if(iterFind != mChildren.end())
-	{
-		B3D_ASSERT(iterFind->GcHandle != 0);
-
-		MonoUtil::FreeGcHandle(iterFind->GcHandle);
-		iterFind->GcHandle = 0;
-
-		mChildren.erase(iterFind);
-	}
+	return sInteropMetaData.ScriptClass->CreateInstance(construct);
 }
 
 void ScriptGUILayout::InternalCreateInstanceX(MonoObject* instance, MonoArray* guiOptions)
@@ -98,8 +45,7 @@ void ScriptGUILayout::InternalCreateInstanceX(MonoObject* instance, MonoArray* g
 		options.AddOption(scriptArray.Get<GUIOption>(i));
 
 	GUILayout* layout = GUILayoutX::Create(options);
-
-	new(B3DAllocate<ScriptGUILayout>()) ScriptGUILayout(instance, layout);
+	ScriptObjectWrapper::Create<ScriptGUILayout>(layout, instance);
 }
 
 void ScriptGUILayout::InternalCreateInstanceY(MonoObject* instance, MonoArray* guiOptions)
@@ -112,8 +58,7 @@ void ScriptGUILayout::InternalCreateInstanceY(MonoObject* instance, MonoArray* g
 		options.AddOption(scriptArray.Get<GUIOption>(i));
 
 	GUILayout* layout = GUILayoutY::Create(options);
-
-	new(B3DAllocate<ScriptGUILayout>()) ScriptGUILayout(instance, layout);
+	ScriptObjectWrapper::Create<ScriptGUILayout>(layout, instance);
 }
 
 void ScriptGUILayout::InternalCreateInstancePanel(MonoObject* instance, i16 depth, u16 depthRangeMin, u32 depthRangeMax, MonoArray* guiOptions)
@@ -125,9 +70,8 @@ void ScriptGUILayout::InternalCreateInstancePanel(MonoObject* instance, i16 dept
 	for(u32 i = 0; i < arrayLen; i++)
 		options.AddOption(scriptArray.Get<GUIOption>(i));
 
-	GUILayout* layout = GUIPanel::Create(depth, depthRangeMin, depthRangeMax, options);
-
-	new(B3DAllocate<ScriptGUILayout>()) ScriptGUILayout(instance, layout);
+	GUIPanel* panel = GUIPanel::Create(depth, depthRangeMin, depthRangeMax, options);
+	ScriptObjectWrapper::Create<ScriptGUIPanel>(panel, instance);
 }
 
 void ScriptGUILayout::InternalCreateInstanceYFromScrollArea(MonoObject* instance, MonoObject* parentScrollArea)
@@ -137,90 +81,77 @@ void ScriptGUILayout::InternalCreateInstanceYFromScrollArea(MonoObject* instance
 
 	GUILayout* nativeLayout = &scrollArea->GetLayout();
 
-	ScriptGUIScrollAreaLayout* nativeInstance = new(B3DAllocate<ScriptGUIScrollAreaLayout>())
-		ScriptGUIScrollAreaLayout(instance, nativeLayout);
+	ScriptGUIScrollAreaLayout* const layoutWrapper = ScriptObjectWrapper::Create<ScriptGUIScrollAreaLayout>(nativeLayout, instance);
 
 	// This method is expected to be called during GUIScrollArea construction, so we finish its initialization
-	scriptScrollArea->Initialize(nativeInstance);
+	scriptScrollArea->Initialize(layoutWrapper);
 }
 
-void ScriptGUILayout::InternalAddElement(ScriptGUILayout* instance, ScriptGUIElementBase* element)
+void ScriptGUILayout::InternalAddElement(ScriptGUILayoutWrapperBase* self, ScriptGUIElementWrapper* element)
 {
-	if(instance->IsDestroyed() || element->IsDestroyed())
+	if(!self->IsNativeObjectValid() || !element->IsNativeObjectValid())
 		return;
 
-	instance->GetInternalValue()->AddElement(element->GetGuiElement());
-
-	if(element->GetParent() != nullptr)
-		element->GetParent()->RemoveChild(element);
-
-	element->SetParent(instance);
-	instance->AddChild(element);
+	self->GetNativeObject()->AddElement(element->GetNativeObject());
 }
 
-void ScriptGUILayout::InternalInsertElement(ScriptGUILayout* instance, u32 index, ScriptGUIElementBase* element)
+void ScriptGUILayout::InternalInsertElement(ScriptGUILayoutWrapperBase* self, u32 index, ScriptGUIElementWrapper* element)
 {
-	if(instance->IsDestroyed() || element->IsDestroyed())
+	if(!self->IsNativeObjectValid() || !element->IsNativeObjectValid())
 		return;
 
-	instance->GetInternalValue()->InsertElement(index, element->GetGuiElement());
-
-	if(element->GetParent() != nullptr)
-		element->GetParent()->RemoveChild(element);
-
-	element->SetParent(instance);
-	instance->InsertChild(index, element);
+	self->GetNativeObject()->InsertElement(index, element->GetNativeObject());
 }
 
-u32 ScriptGUILayout::InternalGetChildCount(ScriptGUILayout* instance)
+u32 ScriptGUILayout::InternalGetChildCount(ScriptGUILayoutWrapperBase* self)
 {
-	if(instance->IsDestroyed())
+	if(!self->IsNativeObjectValid())
 		return 0;
 
-	return instance->mLayout->GetNumChildren();
+	return self->GetNativeObject()->GetChildCount();
 }
 
-MonoObject* ScriptGUILayout::InternalGetChild(ScriptGUILayout* instance, u32 index)
+MonoObject* ScriptGUILayout::InternalGetChild(ScriptGUILayoutWrapperBase* self, u32 index)
 {
-	if(instance->IsDestroyed() || index >= instance->mChildren.size())
+	if(!self->IsNativeObjectValid())
 		return nullptr;
 
-	return instance->mChildren[index].Element->GetManagedInstance();
+	GUILayout* const nativeObject = self->GetNativeObject();
+	if(index >= nativeObject->GetChildCount())
+		return nullptr;
+
+	GUIElement* const child = nativeObject->GetChild(index);
+	if(!B3D_ENSURE(child != nullptr))
+		return nullptr;
+
+	// Note: This should be calling GetOrCreateScriptObject, but for the time being we don't support ad-hoc script object creation for
+	// GUI elements. Instead script can only access script objects it has itself created. We can easily change this in the future, by
+	// adding RTTI IDs to all GUI elements, and then registering them in a lookup similar to other reflectable types.
+	ScriptGUIElementWrapper* const childScriptObjectWrapper = static_cast<ScriptGUIElementWrapper*>(child->GetScriptObjectWrapper());
+	if(childScriptObjectWrapper == nullptr)
+		return nullptr;
+
+	return childScriptObjectWrapper->GetScriptObject();
 }
 
-void ScriptGUILayout::InternalClear(ScriptGUILayout* instance)
+void ScriptGUILayout::InternalClear(ScriptGUILayoutWrapperBase* self)
 {
-	if(instance->IsDestroyed())
+	if(!self->IsNativeObjectValid())
 		return;
 
-	for(auto& child : instance->mChildren)
-	{
-		instance->GetInternalValue()->RemoveElement(child.Element->GetGuiElement());
-
-		B3D_ASSERT(child.GcHandle != 0);
-
-		MonoUtil::FreeGcHandle(child.GcHandle);
-		child.GcHandle = 0;
-
-		child.Element->SetParent(nullptr);
-	}
-
-	instance->mChildren.clear();
+	self->GetNativeObject()->Clear();
 }
 
-ScriptGUIPanel::ScriptGUIPanel(MonoObject* instance)
-	: ScriptObject(instance)
+ScriptGUIPanel::ScriptGUIPanel(GUIPanel* nativeObject)
+	: ScriptGUIPanel(nativeObject)
 {}
 
-void ScriptGUIPanel::InitRuntimeData()
+void ScriptGUIPanel::SetupScriptBindings()
 {}
 
-MonoObject* ScriptGUIPanel::CreateFromExisting(GUIPanel* panel)
+MonoObject* ScriptGUIPanel::CreateScriptObject(bool construct)
 {
-	MonoObject* managedInstance = metaData.ScriptClass->CreateInstance();
-	new(B3DAllocate<ScriptGUILayout>()) ScriptGUILayout(managedInstance, panel, false);
-
-	return managedInstance;
+	return sInteropMetaData.ScriptClass->CreateInstance(construct);
 }
 
 ScriptGUIScrollAreaLayout::ScriptGUIScrollAreaLayout(MonoObject* instance, GUILayout* layout)

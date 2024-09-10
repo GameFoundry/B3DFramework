@@ -4,12 +4,14 @@
 
 #include "BsScriptEnginePrerequisites.h"
 #include "BsScriptObject.h"
-#include "Wrappers/GUI/BsScriptGUIElement.h"
+#include "BsScriptGUIElementWrapper.h"
 #include "Math/BsVector2I.h"
 #include "Math/BsRect2I.h"
 
 namespace bs
 {
+	class ScriptGUILayoutWrapperBase;
+
 	/** @addtogroup ScriptInteropEngine
 	 *  @{
 	 */
@@ -26,8 +28,8 @@ namespace bs
 		/************************************************************************/
 		/* 								CLR HOOKS						   		*/
 		/************************************************************************/
-		static void InternalCalculateOptimalSize(ScriptGUIElementBase* guiElement, Vector2I* output);
-		static void InternalCalculateBounds(ScriptGUIElementBase* guiElement, ScriptGUILayout* relativeTo, Rect2I* output);
+		static void InternalCalculateOptimalSize(ScriptGUIElementWrapper* guiElement, Vector2I* output);
+		static void InternalCalculateBounds(ScriptGUIElementWrapper* guiElement, ScriptGUILayoutWrapperBase* relativeTo, Rect2I* output);
 		static void InternalCalculateTextBounds(MonoString* text, ScriptFont* fontPtr, float fontSize, Vector2I* output);
 	};
 
