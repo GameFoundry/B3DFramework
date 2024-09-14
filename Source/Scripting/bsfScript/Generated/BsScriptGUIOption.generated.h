@@ -8,7 +8,7 @@
 
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptGUIOption : public TScriptStructWrapper<ScriptGUIOption>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptGUIOption : public TScriptTypeDefinition<ScriptGUIOption>
 	{
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "GUIOption")

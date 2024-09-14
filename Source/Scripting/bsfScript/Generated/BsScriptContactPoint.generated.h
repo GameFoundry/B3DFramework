@@ -17,7 +17,7 @@ namespace bs
 		float Separation;
 	};
 
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptContactPoint : public TScriptStructWrapper<ScriptContactPoint>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptContactPoint : public TScriptTypeDefinition<ScriptContactPoint>
 	{
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "ContactPoint")

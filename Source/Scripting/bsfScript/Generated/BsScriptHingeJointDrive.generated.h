@@ -8,7 +8,7 @@
 
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptHingeJointDrive : public TScriptStructWrapper<ScriptHingeJointDrive>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptHingeJointDrive : public TScriptTypeDefinition<ScriptHingeJointDrive>
 	{
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "HingeJointDrive")

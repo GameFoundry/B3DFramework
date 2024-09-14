@@ -18,7 +18,7 @@ namespace bs
 		MonoArray* Values;
 	};
 
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptShaderVariationParameterInformation : public TScriptStructWrapper<ScriptShaderVariationParameterInformation>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptShaderVariationParameterInformation : public TScriptTypeDefinition<ScriptShaderVariationParameterInformation>
 	{
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "ShaderVariationParameterInformation")

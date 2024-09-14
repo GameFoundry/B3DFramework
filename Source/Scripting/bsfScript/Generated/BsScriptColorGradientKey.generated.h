@@ -15,7 +15,7 @@ namespace bs
 		float Time;
 	};
 
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptColorGradientKey : public TScriptStructWrapper<ScriptColorGradientKey>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptColorGradientKey : public TScriptTypeDefinition<ScriptColorGradientKey>
 	{
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "ColorGradientKey")

@@ -20,7 +20,7 @@ namespace bs
 		MonoObject* FocusedOn;
 	};
 
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptGUIContentImages : public TScriptStructWrapper<ScriptGUIContentImages>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptGUIContentImages : public TScriptTypeDefinition<ScriptGUIContentImages>
 	{
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "GUIContentImages")

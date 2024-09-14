@@ -8,7 +8,7 @@
 
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptPixelVolume : public TScriptStructWrapper<ScriptPixelVolume>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptPixelVolume : public TScriptTypeDefinition<ScriptPixelVolume>
 	{
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "PixelVolume")

@@ -17,7 +17,7 @@ namespace bs
 		bool Use3DRotation;
 	};
 
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleRotationOptions : public TScriptStructWrapper<ScriptParticleRotationOptions>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleRotationOptions : public TScriptTypeDefinition<ScriptParticleRotationOptions>
 	{
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "ParticleRotationOptions")

@@ -8,7 +8,7 @@
 
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptBoneWeight : public TScriptStructWrapper<ScriptBoneWeight>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptBoneWeight : public TScriptTypeDefinition<ScriptBoneWeight>
 	{
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "BoneWeight")

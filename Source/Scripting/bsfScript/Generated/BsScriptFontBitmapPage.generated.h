@@ -14,7 +14,7 @@ namespace bs
 		bool IsDynamic;
 	};
 
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptFontBitmapPage : public TScriptStructWrapper<ScriptFontBitmapPage>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptFontBitmapPage : public TScriptTypeDefinition<ScriptFontBitmapPage>
 	{
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "FontBitmapPage")

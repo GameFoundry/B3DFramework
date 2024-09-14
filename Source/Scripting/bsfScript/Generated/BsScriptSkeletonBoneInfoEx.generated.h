@@ -16,7 +16,7 @@ namespace bs
 		Matrix4 InvBindPose;
 	};
 
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptBoneInfo : public TScriptStructWrapper<ScriptBoneInfo>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptBoneInfo : public TScriptTypeDefinition<ScriptBoneInfo>
 	{
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "BoneInfo")

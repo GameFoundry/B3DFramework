@@ -15,7 +15,7 @@ namespace bs
 		MonoObject* Value;
 	};
 
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptSubResource : public TScriptStructWrapper<ScriptSubResource>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptSubResource : public TScriptTypeDefinition<ScriptSubResource>
 	{
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "SubResource")

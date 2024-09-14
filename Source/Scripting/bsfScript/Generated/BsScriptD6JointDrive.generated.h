@@ -16,7 +16,7 @@ namespace bs
 		bool Acceleration;
 	};
 
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptD6JointDrive : public TScriptStructWrapper<ScriptD6JointDrive>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptD6JointDrive : public TScriptTypeDefinition<ScriptD6JointDrive>
 	{
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "D6JointDrive")

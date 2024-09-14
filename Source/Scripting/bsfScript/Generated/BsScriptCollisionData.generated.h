@@ -16,7 +16,7 @@ namespace bs
 		MonoArray* ContactPoints;
 	};
 
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptCollisionData : public TScriptStructWrapper<ScriptCollisionData>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptCollisionData : public TScriptTypeDefinition<ScriptCollisionData>
 	{
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "CollisionData")

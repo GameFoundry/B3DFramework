@@ -8,7 +8,7 @@
 
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleEmissionMode : public TScriptStructWrapper<ScriptParticleEmissionMode>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleEmissionMode : public TScriptTypeDefinition<ScriptParticleEmissionMode>
 	{
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "ParticleEmissionMode")

@@ -18,7 +18,7 @@ namespace bs
 		Flags<ShaderParameterFlag> Flags;
 	};
 
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptShaderParameter : public TScriptStructWrapper<ScriptShaderParameter>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptShaderParameter : public TScriptTypeDefinition<ScriptShaderParameter>
 	{
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "ShaderParameter")

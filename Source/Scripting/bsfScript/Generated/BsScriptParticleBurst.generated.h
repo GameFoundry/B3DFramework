@@ -17,7 +17,7 @@ namespace bs
 		float Interval;
 	};
 
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleBurst : public TScriptStructWrapper<ScriptParticleBurst>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleBurst : public TScriptTypeDefinition<ScriptParticleBurst>
 	{
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "ParticleBurst")

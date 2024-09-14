@@ -14,7 +14,7 @@ namespace bs
 		TVector2<float> Extents;
 	};
 
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleRectShapeOptions : public TScriptStructWrapper<ScriptParticleRectShapeOptions>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleRectShapeOptions : public TScriptTypeDefinition<ScriptParticleRectShapeOptions>
 	{
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "ParticleRectShapeOptions")

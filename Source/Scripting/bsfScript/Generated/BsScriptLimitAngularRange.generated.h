@@ -19,7 +19,7 @@ namespace bs
 		Spring Spring;
 	};
 
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptLimitAngularRange : public TScriptStructWrapper<ScriptLimitAngularRange>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptLimitAngularRange : public TScriptTypeDefinition<ScriptLimitAngularRange>
 	{
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "LimitAngularRange")

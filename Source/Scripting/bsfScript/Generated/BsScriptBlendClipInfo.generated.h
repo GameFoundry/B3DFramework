@@ -14,7 +14,7 @@ namespace bs
 		float Position;
 	};
 
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptBlendClipInfo : public TScriptStructWrapper<ScriptBlendClipInfo>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptBlendClipInfo : public TScriptTypeDefinition<ScriptBlendClipInfo>
 	{
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "BlendClipInfo")

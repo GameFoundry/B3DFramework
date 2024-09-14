@@ -17,7 +17,7 @@ namespace bs
 		AABox Bounds;
 	};
 
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptVectorFieldOptions : public TScriptStructWrapper<ScriptVectorFieldOptions>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptVectorFieldOptions : public TScriptTypeDefinition<ScriptVectorFieldOptions>
 	{
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "VectorFieldOptions")

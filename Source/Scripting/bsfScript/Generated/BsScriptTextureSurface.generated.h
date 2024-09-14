@@ -8,7 +8,7 @@
 
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptTextureSurface : public TScriptStructWrapper<ScriptTextureSurface>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptTextureSurface : public TScriptTypeDefinition<ScriptTextureSurface>
 	{
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "TextureSurface")

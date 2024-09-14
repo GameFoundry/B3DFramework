@@ -8,7 +8,7 @@
 
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleHemisphereShapeOptions : public TScriptStructWrapper<ScriptParticleHemisphereShapeOptions>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleHemisphereShapeOptions : public TScriptTypeDefinition<ScriptParticleHemisphereShapeOptions>
 	{
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "ParticleHemisphereShapeOptions")

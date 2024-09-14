@@ -8,7 +8,7 @@
 
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleSphereShapeOptions : public TScriptStructWrapper<ScriptParticleSphereShapeOptions>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleSphereShapeOptions : public TScriptTypeDefinition<ScriptParticleSphereShapeOptions>
 	{
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "ParticleSphereShapeOptions")

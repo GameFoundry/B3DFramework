@@ -18,7 +18,7 @@ namespace bs
 		bool IsCustom;
 	};
 
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptVideoMode : public TScriptStructWrapper<ScriptVideoMode>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptVideoMode : public TScriptTypeDefinition<ScriptVideoMode>
 	{
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "VideoMode")

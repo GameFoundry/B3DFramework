@@ -26,7 +26,7 @@ namespace bs
 		MonoArray* KerningPairs;
 	};
 
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptCharacterInformation : public TScriptStructWrapper<ScriptCharacterInformation>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptCharacterInformation : public TScriptTypeDefinition<ScriptCharacterInformation>
 	{
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "CharacterInformation")

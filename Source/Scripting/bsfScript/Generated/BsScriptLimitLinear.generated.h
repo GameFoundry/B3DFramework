@@ -17,7 +17,7 @@ namespace bs
 		Spring Spring;
 	};
 
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptLimitLinear : public TScriptStructWrapper<ScriptLimitLinear>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptLimitLinear : public TScriptTypeDefinition<ScriptLimitLinear>
 	{
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "LimitLinear")

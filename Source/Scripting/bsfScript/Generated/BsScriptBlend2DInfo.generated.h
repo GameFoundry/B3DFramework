@@ -16,7 +16,7 @@ namespace bs
 		MonoObject* BotRightClip;
 	};
 
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptBlend2DInfo : public TScriptStructWrapper<ScriptBlend2DInfo>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptBlend2DInfo : public TScriptTypeDefinition<ScriptBlend2DInfo>
 	{
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "Blend2DInfo")

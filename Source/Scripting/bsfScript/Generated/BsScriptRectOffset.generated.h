@@ -8,7 +8,7 @@
 
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptRectOffset : public TScriptStructWrapper<ScriptRectOffset>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptRectOffset : public TScriptTypeDefinition<ScriptRectOffset>
 	{
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "RectOffset")

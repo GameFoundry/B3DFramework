@@ -16,7 +16,7 @@ namespace bs
 		FontRenderMode RenderMode;
 	};
 
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptFontCreateInformation : public TScriptStructWrapper<ScriptFontCreateInformation>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptFontCreateInformation : public TScriptTypeDefinition<ScriptFontCreateInformation>
 	{
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "FontCreateInformation")

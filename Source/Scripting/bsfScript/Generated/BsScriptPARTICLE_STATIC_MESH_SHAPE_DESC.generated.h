@@ -16,7 +16,7 @@ namespace bs
 		MonoObject* Mesh;
 	};
 
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleStaticMeshShapeOptions : public TScriptStructWrapper<ScriptParticleStaticMeshShapeOptions>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleStaticMeshShapeOptions : public TScriptTypeDefinition<ScriptParticleStaticMeshShapeOptions>
 	{
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "ParticleStaticMeshShapeOptions")

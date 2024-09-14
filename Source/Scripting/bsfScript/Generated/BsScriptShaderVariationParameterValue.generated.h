@@ -14,7 +14,7 @@ namespace bs
 		int32_t Value;
 	};
 
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptShaderVariationParameterValue : public TScriptStructWrapper<ScriptShaderVariationParameterValue>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptShaderVariationParameterValue : public TScriptTypeDefinition<ScriptShaderVariationParameterValue>
 	{
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "ShaderVariationParameterValue")

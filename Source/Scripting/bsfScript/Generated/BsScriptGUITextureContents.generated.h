@@ -16,7 +16,7 @@ namespace bs
 		bool IsTransparent;
 	};
 
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptGUITextureContents : public TScriptStructWrapper<ScriptGUITextureContents>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptGUITextureContents : public TScriptTypeDefinition<ScriptGUITextureContents>
 	{
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "GUITextureContents")

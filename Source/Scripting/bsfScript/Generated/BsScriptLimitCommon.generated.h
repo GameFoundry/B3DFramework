@@ -16,7 +16,7 @@ namespace bs
 		Spring Spring;
 	};
 
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptLimitCommon : public TScriptStructWrapper<ScriptLimitCommon>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptLimitCommon : public TScriptTypeDefinition<ScriptLimitCommon>
 	{
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "LimitCommon")

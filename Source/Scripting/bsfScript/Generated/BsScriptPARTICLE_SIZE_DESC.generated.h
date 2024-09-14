@@ -17,7 +17,7 @@ namespace bs
 		bool Use3DSize;
 	};
 
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleSizeOptions : public TScriptStructWrapper<ScriptParticleSizeOptions>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleSizeOptions : public TScriptTypeDefinition<ScriptParticleSizeOptions>
 	{
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "ParticleSizeOptions")

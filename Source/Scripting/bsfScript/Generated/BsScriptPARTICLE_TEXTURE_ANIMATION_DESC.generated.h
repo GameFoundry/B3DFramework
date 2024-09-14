@@ -8,7 +8,7 @@
 
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleTextureAnimationOptions : public TScriptStructWrapper<ScriptParticleTextureAnimationOptions>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleTextureAnimationOptions : public TScriptTypeDefinition<ScriptParticleTextureAnimationOptions>
 	{
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "ParticleTextureAnimationOptions")

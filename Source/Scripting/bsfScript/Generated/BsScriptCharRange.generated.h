@@ -9,7 +9,7 @@
 namespace bs
 {
 #if !B3D_IS_ENGINE
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptCharRange : public TScriptStructWrapper<ScriptCharRange>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptCharRange : public TScriptTypeDefinition<ScriptCharRange>
 	{
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "CharRange")

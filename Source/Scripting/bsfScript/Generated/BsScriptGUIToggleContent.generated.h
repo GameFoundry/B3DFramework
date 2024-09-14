@@ -16,7 +16,7 @@ namespace bs
 		MonoObject* ToggleGroup;
 	};
 
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptGUIToggleContent : public TScriptStructWrapper<ScriptGUIToggleContent>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptGUIToggleContent : public TScriptTypeDefinition<ScriptGUIToggleContent>
 	{
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "GUIToggleContent")

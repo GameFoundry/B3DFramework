@@ -8,7 +8,7 @@
 
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptGUISliderHandleContent : public TScriptStructWrapper<ScriptGUISliderHandleContent>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptGUISliderHandleContent : public TScriptTypeDefinition<ScriptGUISliderHandleContent>
 	{
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "GUISliderHandleContent")

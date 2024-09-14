@@ -18,7 +18,7 @@ namespace bs
 		float MotionAmount;
 	};
 
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptControllerControllerCollision : public TScriptStructWrapper<ScriptControllerControllerCollision>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptControllerControllerCollision : public TScriptTypeDefinition<ScriptControllerControllerCollision>
 	{
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "ControllerControllerCollision")

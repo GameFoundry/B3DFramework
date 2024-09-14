@@ -10,7 +10,7 @@
 
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptVector4I : public TScriptStructWrapper<ScriptVector4I>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptVector4I : public TScriptTypeDefinition<ScriptVector4I>
 	{
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "Vector4I")
@@ -23,7 +23,7 @@ namespace bs
 
 	};
 
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptVector4UI : public TScriptStructWrapper<ScriptVector4UI>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptVector4UI : public TScriptTypeDefinition<ScriptVector4UI>
 	{
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "Vector4UI")

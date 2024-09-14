@@ -33,7 +33,7 @@ namespace bs
 		bool HideUntilSwap;
 	};
 
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptRenderWindowDesc : public TScriptStructWrapper<ScriptRenderWindowDesc>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptRenderWindowDesc : public TScriptTypeDefinition<ScriptRenderWindowDesc>
 	{
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "RenderWindowDesc")

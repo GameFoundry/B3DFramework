@@ -21,7 +21,7 @@ namespace bs
 		MonoObject* Collider;
 	};
 
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptPhysicsQueryHit : public TScriptStructWrapper<ScriptPhysicsQueryHit>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptPhysicsQueryHit : public TScriptTypeDefinition<ScriptPhysicsQueryHit>
 	{
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "PhysicsQueryHit")

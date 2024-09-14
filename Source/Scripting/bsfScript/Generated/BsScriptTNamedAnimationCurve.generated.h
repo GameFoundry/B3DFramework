@@ -29,7 +29,7 @@ namespace bs
 		MonoObject* Curve;
 	};
 
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptNamedFloatCurve : public TScriptStructWrapper<ScriptNamedFloatCurve>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptNamedFloatCurve : public TScriptTypeDefinition<ScriptNamedFloatCurve>
 	{
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "NamedFloatCurve")
@@ -51,7 +51,7 @@ namespace bs
 		MonoObject* Curve;
 	};
 
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptNamedVector3Curve : public TScriptStructWrapper<ScriptNamedVector3Curve>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptNamedVector3Curve : public TScriptTypeDefinition<ScriptNamedVector3Curve>
 	{
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "NamedVector3Curve")
@@ -73,7 +73,7 @@ namespace bs
 		MonoObject* Curve;
 	};
 
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptNamedVector2Curve : public TScriptStructWrapper<ScriptNamedVector2Curve>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptNamedVector2Curve : public TScriptTypeDefinition<ScriptNamedVector2Curve>
 	{
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "NamedVector2Curve")
@@ -95,7 +95,7 @@ namespace bs
 		MonoObject* Curve;
 	};
 
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptNamedQuaternionCurve : public TScriptStructWrapper<ScriptNamedQuaternionCurve>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptNamedQuaternionCurve : public TScriptTypeDefinition<ScriptNamedQuaternionCurve>
 	{
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "NamedQuaternionCurve")
@@ -117,7 +117,7 @@ namespace bs
 		MonoObject* Curve;
 	};
 
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptNamedIntegerCurve : public TScriptStructWrapper<ScriptNamedIntegerCurve>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptNamedIntegerCurve : public TScriptTypeDefinition<ScriptNamedIntegerCurve>
 	{
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "NamedIntegerCurve")

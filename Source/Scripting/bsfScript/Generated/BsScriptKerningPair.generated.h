@@ -8,7 +8,7 @@
 
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptKerningPair : public TScriptStructWrapper<ScriptKerningPair>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptKerningPair : public TScriptTypeDefinition<ScriptKerningPair>
 	{
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "KerningPair")

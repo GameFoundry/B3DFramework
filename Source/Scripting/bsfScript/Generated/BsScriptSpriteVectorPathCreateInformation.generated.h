@@ -23,7 +23,7 @@ namespace bs
 		SpriteSheetGridAnimation Animation;
 	};
 
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptSpriteVectorPathCreateInformation : public TScriptStructWrapper<ScriptSpriteVectorPathCreateInformation>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptSpriteVectorPathCreateInformation : public TScriptTypeDefinition<ScriptSpriteVectorPathCreateInformation>
 	{
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "SpriteVectorPathCreateInformation")

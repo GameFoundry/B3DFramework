@@ -16,7 +16,7 @@ namespace bs
 		MonoObject* Renderable;
 	};
 
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleSkinnedMeshShapeOptions : public TScriptStructWrapper<ScriptParticleSkinnedMeshShapeOptions>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleSkinnedMeshShapeOptions : public TScriptTypeDefinition<ScriptParticleSkinnedMeshShapeOptions>
 	{
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "ParticleSkinnedMeshShapeOptions")

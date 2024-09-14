@@ -14,7 +14,7 @@ namespace bs
 		MonoObject* Color;
 	};
 
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleColorOptions : public TScriptStructWrapper<ScriptParticleColorOptions>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleColorOptions : public TScriptTypeDefinition<ScriptParticleColorOptions>
 	{
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "ParticleColorOptions")

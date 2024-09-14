@@ -15,7 +15,7 @@ namespace bs
 		MonoArray* Clips;
 	};
 
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptBlend1DInfo : public TScriptStructWrapper<ScriptBlend1DInfo>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptBlend1DInfo : public TScriptTypeDefinition<ScriptBlend1DInfo>
 	{
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "Blend1DInfo")

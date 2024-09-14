@@ -15,7 +15,7 @@ namespace bs
 		bool WorldSpace;
 	};
 
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleForceOptions : public TScriptStructWrapper<ScriptParticleForceOptions>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleForceOptions : public TScriptTypeDefinition<ScriptParticleForceOptions>
 	{
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "ParticleForceOptions")

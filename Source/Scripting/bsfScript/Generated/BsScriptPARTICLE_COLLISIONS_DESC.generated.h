@@ -8,7 +8,7 @@
 
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleCollisionsOptions : public TScriptStructWrapper<ScriptParticleCollisionsOptions>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleCollisionsOptions : public TScriptTypeDefinition<ScriptParticleCollisionsOptions>
 	{
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "ParticleCollisionsOptions")

@@ -8,7 +8,7 @@
 
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptAnimationClipState : public TScriptStructWrapper<ScriptAnimationClipState>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptAnimationClipState : public TScriptTypeDefinition<ScriptAnimationClipState>
 	{
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "AnimationClipState")

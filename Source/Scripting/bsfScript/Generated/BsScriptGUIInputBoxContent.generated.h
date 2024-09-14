@@ -8,7 +8,7 @@
 
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptGUIInputBoxContent : public TScriptStructWrapper<ScriptGUIInputBoxContent>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptGUIInputBoxContent : public TScriptTypeDefinition<ScriptGUIInputBoxContent>
 	{
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "GUIInputBoxContent")

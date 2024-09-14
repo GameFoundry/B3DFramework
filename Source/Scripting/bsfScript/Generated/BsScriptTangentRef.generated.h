@@ -16,7 +16,7 @@ namespace bs
 		TangentType Type;
 	};
 
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptTangentRef : public TScriptStructWrapper<ScriptTangentRef>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptTangentRef : public TScriptTypeDefinition<ScriptTangentRef>
 	{
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "TangentRef")

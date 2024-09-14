@@ -13,7 +13,7 @@ namespace bs
 		MonoString* Name;
 	};
 
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptAudioDevice : public TScriptStructWrapper<ScriptAudioDevice>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptAudioDevice : public TScriptTypeDefinition<ScriptAudioDevice>
 	{
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "AudioDevice")

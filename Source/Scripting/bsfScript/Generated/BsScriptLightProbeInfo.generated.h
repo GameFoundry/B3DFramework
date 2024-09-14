@@ -15,7 +15,7 @@ namespace bs
 		TVector3<float> Position;
 	};
 
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptLightProbeInfo : public TScriptStructWrapper<ScriptLightProbeInfo>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptLightProbeInfo : public TScriptTypeDefinition<ScriptLightProbeInfo>
 	{
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "LightProbeInfo")

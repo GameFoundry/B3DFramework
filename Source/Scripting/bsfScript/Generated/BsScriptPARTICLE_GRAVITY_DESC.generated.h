@@ -8,7 +8,7 @@
 
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleGravityOptions : public TScriptStructWrapper<ScriptParticleGravityOptions>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleGravityOptions : public TScriptTypeDefinition<ScriptParticleGravityOptions>
 	{
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "ParticleGravityOptions")

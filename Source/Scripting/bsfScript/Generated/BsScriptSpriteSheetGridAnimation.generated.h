@@ -8,7 +8,7 @@
 
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptSpriteSheetGridAnimation : public TScriptStructWrapper<ScriptSpriteSheetGridAnimation>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptSpriteSheetGridAnimation : public TScriptTypeDefinition<ScriptSpriteSheetGridAnimation>
 	{
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "SpriteSheetGridAnimation")

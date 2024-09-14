@@ -22,7 +22,7 @@ namespace bs
 		ParticleEmissionMode Mode;
 	};
 
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleConeShapeOptions : public TScriptStructWrapper<ScriptParticleConeShapeOptions>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleConeShapeOptions : public TScriptTypeDefinition<ScriptParticleConeShapeOptions>
 	{
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "ParticleConeShapeOptions")

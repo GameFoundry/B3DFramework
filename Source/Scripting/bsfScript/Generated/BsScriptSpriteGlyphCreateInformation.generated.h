@@ -21,7 +21,7 @@ namespace bs
 		SpriteSheetGridAnimation Animation;
 	};
 
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptSpriteGlyphCreateInformation : public TScriptStructWrapper<ScriptSpriteGlyphCreateInformation>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptSpriteGlyphCreateInformation : public TScriptTypeDefinition<ScriptSpriteGlyphCreateInformation>
 	{
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "SpriteGlyphCreateInformation")

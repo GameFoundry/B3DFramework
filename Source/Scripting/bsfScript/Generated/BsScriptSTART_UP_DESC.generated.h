@@ -24,7 +24,7 @@ namespace bs
 		MonoArray* Importers;
 	};
 
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptStartUpDesc : public TScriptStructWrapper<ScriptStartUpDesc>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptStartUpDesc : public TScriptTypeDefinition<ScriptStartUpDesc>
 	{
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "StartUpDesc")

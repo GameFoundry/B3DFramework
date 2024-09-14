@@ -19,7 +19,7 @@
 
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptKeyFrameInt : public TScriptStructWrapper<ScriptKeyFrameInt>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptKeyFrameInt : public TScriptTypeDefinition<ScriptKeyFrameInt>
 	{
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "KeyFrameInt")
@@ -32,7 +32,7 @@ namespace bs
 
 	};
 
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptKeyFrame : public TScriptStructWrapper<ScriptKeyFrame>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptKeyFrame : public TScriptTypeDefinition<ScriptKeyFrame>
 	{
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "KeyFrame")
@@ -53,7 +53,7 @@ namespace bs
 		float Time;
 	};
 
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptKeyFrameVec3 : public TScriptStructWrapper<ScriptKeyFrameVec3>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptKeyFrameVec3 : public TScriptTypeDefinition<ScriptKeyFrameVec3>
 	{
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "KeyFrameVec3")
@@ -76,7 +76,7 @@ namespace bs
 		float Time;
 	};
 
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptKeyFrameVec2 : public TScriptStructWrapper<ScriptKeyFrameVec2>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptKeyFrameVec2 : public TScriptTypeDefinition<ScriptKeyFrameVec2>
 	{
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "KeyFrameVec2")
@@ -99,7 +99,7 @@ namespace bs
 		float Time;
 	};
 
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptKeyFrameQuat : public TScriptStructWrapper<ScriptKeyFrameQuat>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptKeyFrameQuat : public TScriptTypeDefinition<ScriptKeyFrameQuat>
 	{
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "KeyFrameQuat")

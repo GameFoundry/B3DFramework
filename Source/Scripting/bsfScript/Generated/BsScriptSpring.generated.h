@@ -8,7 +8,7 @@
 
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptSpring : public TScriptStructWrapper<ScriptSpring>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptSpring : public TScriptTypeDefinition<ScriptSpring>
 	{
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "Spring")

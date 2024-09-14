@@ -8,7 +8,7 @@
 
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptKeyframeRef : public TScriptStructWrapper<ScriptKeyframeRef>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptKeyframeRef : public TScriptTypeDefinition<ScriptKeyframeRef>
 	{
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "KeyframeRef")

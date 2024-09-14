@@ -14,7 +14,7 @@ namespace bs
 		float Time;
 	};
 
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptAnimationEvent : public TScriptStructWrapper<ScriptAnimationEvent>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptAnimationEvent : public TScriptTypeDefinition<ScriptAnimationEvent>
 	{
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "AnimationEvent")

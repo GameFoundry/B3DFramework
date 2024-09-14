@@ -15,7 +15,7 @@ namespace bs
 		bool AllowMultiselect;
 	};
 
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptGUIListBoxContent : public TScriptStructWrapper<ScriptGUIListBoxContent>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptGUIListBoxContent : public TScriptTypeDefinition<ScriptGUIListBoxContent>
 	{
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "GUIListBoxContent")
