@@ -39,11 +39,6 @@ namespace bs
 		}
 
 	protected:
-		friend class TScriptObjectWrapper<SelfType, BaseType>;
-
-		static void InitializeAdditionalMetaData(ScriptTypeMetaData& metaData)
-		{ }
-
 		NativeType mNativeObject;
 	};
 

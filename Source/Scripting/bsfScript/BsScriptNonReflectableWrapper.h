@@ -57,16 +57,11 @@ namespace bs
 		}
 
 	protected:
-		friend class TScriptObjectWrapper<SelfType, BaseType>;
-
 		void NotifyNativeObjectDestroyed() override
 		{
 			mNativeObjectStrongHandle = nullptr;
 			Super::NotifyNativeObjectDestroyed();
 		}
-
-		static void InitializeAdditionalMetaData(ScriptTypeMetaData& metaData)
-		{ }
 
 		SPtr<NativeType> mNativeObjectStrongHandle;
 	};

@@ -118,6 +118,7 @@ namespace bs
 
 	protected:
 		friend class TScriptObjectWrapper<SelfType, BaseType>;
+		friend class TScriptTypeDefinition<SelfType>;
 
 		/** Initialize RTTI type ID and callback used to create the script object/script object wrapper. */
 		static void InitializeAdditionalMetaData(ScriptTypeMetaData& metaData)

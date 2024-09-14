@@ -215,14 +215,12 @@ namespace bs
 	 * @tparam BaseType		Type that TScriptObjectWrapper should inherit from. This type must be ScriptObjectWrapper, or a type deriving from it.
 	 */
 	template <typename SelfType, typename BaseType = ScriptObjectWrapper>
-	class TScriptObjectWrapper : public BaseType 
+	class TScriptObjectWrapper : public BaseType, public TScriptTypeDefinition<SelfType>
 	{
 	public:
 		TScriptObjectWrapper(IScriptExportable* nativeObject)
-			: BaseType(nativeObject)
-		{
-			sInitializeOnLoadTime.MakeSureIAmInstantiated();
-		}
+			: BaseType(nativeObject), TScriptTypeDefinition<SelfType>()
+		{ }
 
 		virtual ~TScriptObjectWrapper() = default;
 
@@ -245,23 +243,6 @@ namespace bs
 			return scriptObjectWrapper;
 		}
 
-		/** Returns the meta-data storing information about the script exported type. */
-		static const ScriptTypeMetaData* GetMetaData() { return &sInteropMetaData; }
-
-		/**
-		 * Takes care of initializing the meta-data when the application first load. The meta-data will be registered with a global manager that will ensure
-		 * it is kept up-to-date after operations such as assembly (re)load.
-		 */
-		static void InitializeMetaDataAtLoadTime()
-		{
-			// Need to delay init of sInteropMetaData since it's also a static, and we can't guarantee the order
-			// (if it gets initialized after this, it will just overwrite the data)
-			ScriptTypeMetaData localMetaData = ScriptTypeMetaData(SelfType::GetAssemblyName(), SelfType::GetNamespace(), SelfType::GetTypeName(), &SelfType::SetupScriptBindings);
-
-			SelfType::InitializeAdditionalMetaData(localMetaData);
-			MonoManager::RegisterScriptType(&sInteropMetaData, localMetaData);
-		}
-
 	protected:
 		friend class ScriptObjectWrapper;
 
@@ -281,16 +262,7 @@ namespace bs
 				sInteropMetaData.IsUsingNewScriptObjectManagerField->Set(scriptObject, &value);
 			}
 		}
-
-		static ScriptTypeMetaData sInteropMetaData;
-		static InitializeScriptObjectWrapperOnLoadTime<SelfType, BaseType> sInitializeOnLoadTime;
 	};
-
-	template <typename SelfType, typename BaseType>
-	InitializeScriptObjectWrapperOnLoadTime<SelfType, BaseType> TScriptObjectWrapper<SelfType, BaseType>::sInitializeOnLoadTime;
-
-	template <typename SelfType, typename BaseType>
-	ScriptTypeMetaData TScriptObjectWrapper<SelfType, BaseType>::sInteropMetaData;
 
 	/**	Specialized version of TScriptObjectWrapper that should be used for types that are never going to be explicitly instantiated (e.g. singletons, static-only classes and base classes). */
 	template <typename SelfType>
@@ -305,15 +277,6 @@ namespace bs
 		static MonoObject* CreateScriptObject(bool construct)
 		{
 			return nullptr;
-		}
-
-	protected:
-		friend class TScriptObjectWrapper<SelfType>;
-
-		/** Dummy method to initialize additional meta-data. Not needed for non-instantiable types. */
-		static void InitializeAdditionalMetaData(ScriptTypeMetaData& metaData)
-		{
-			// Do nothing
 		}
 	};
 

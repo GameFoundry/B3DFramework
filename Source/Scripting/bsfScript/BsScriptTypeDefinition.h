@@ -84,7 +84,7 @@ namespace bs
 		{
 			// Need to delay init of sInteropMetaData since it's also a static, and we can't guarantee the order
 			// (if it gets initialized after this, it will just overwrite the data)
-			ScriptTypeMetaData localMetaData = ScriptWrapperObjectMetaData(SelfType::GetAssemblyName(), SelfType::GetNamespace(), SelfType::GetTypeName(), nullptr);
+			ScriptTypeMetaData localMetaData = ScriptTypeMetaData(SelfType::GetAssemblyName(), SelfType::GetNamespace(), SelfType::GetTypeName(), nullptr);
 
 			if constexpr(B3DHasSetupScriptBindingsMethod<SelfType>::value)
 				localMetaData.SetupScriptBindingsCallback = &SelfType::SetupScriptBindings;
