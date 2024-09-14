@@ -3,12 +3,12 @@
 #pragma once
 
 #include "BsScriptEnginePrerequisites.h"
+#include "../../../Foundation/bsfUtility/Math/BsRandom.h"
 #include "BsScriptObject.h"
 #include "Math/BsVector3.h"
 #include "Math/BsVector2.h"
 #include "Math/BsDegree.h"
 
-namespace bs { class Random; }
 namespace bs
 {
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptRandom : public ScriptObject<ScriptRandom>

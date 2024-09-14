@@ -3,10 +3,10 @@
 #pragma once
 
 #include "BsScriptEnginePrerequisites.h"
+#include "../../../Foundation/bsfCore/Resources/BsResources.h"
 #include "BsScriptObject.h"
 #include "Utility/BsUUID.h"
 
-namespace bs { class Resources; }
 namespace bs
 {
 #if !B3D_IS_ENGINE

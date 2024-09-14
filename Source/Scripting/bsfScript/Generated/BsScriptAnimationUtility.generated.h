@@ -3,10 +3,10 @@
 #pragma once
 
 #include "BsScriptEnginePrerequisites.h"
+#include "../../../Foundation/bsfCore/Animation/BsAnimationUtility.h"
 #include "BsScriptNonReflectableWrapper.h"
 #include "../../../Foundation/bsfUtility/Prerequisites/BsFwdDeclUtil.h"
 
-namespace bs { class AnimationUtility; }
 namespace bs
 {
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptAnimationUtility : public TScriptNonReflectableWrapper<AnimationUtility, ScriptAnimationUtility>

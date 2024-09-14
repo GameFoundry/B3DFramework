@@ -3,7 +3,8 @@
 #pragma once
 
 #include "BsScriptEnginePrerequisites.h"
-#include "BsScriptObject.h"
+#include "../../../Foundation/bsfCore/Renderer/BsRendererMeshData.h"
+#include "BsScriptNonReflectableWrapper.h"
 #include "Math/BsVector3.h"
 #include "../../../Foundation/bsfCore/Renderer/BsRendererMeshData.h"
 #include "../../../Foundation/bsfCore/Utility/BsCommonTypes.h"
@@ -12,24 +13,20 @@
 #include "Math/BsVector2.h"
 #include "../../../Foundation/bsfCore/Mesh/BsMeshData.h"
 
-namespace bs { class RendererMeshData; }
 namespace bs { class MeshDataEx; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptMeshData : public ScriptObject<ScriptMeshData>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptMeshData : public TScriptNonReflectableWrapper<RendererMeshData, ScriptMeshData>
 	{
 	public:
-		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "MeshData")
+		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "MeshData")
 
-		ScriptMeshData(MonoObject* managedInstance, const SPtr<RendererMeshData>& value);
+		ScriptMeshData(const SPtr<RendererMeshData>& nativeObject);
 
-		SPtr<RendererMeshData> GetInternal() const { return mInternal; }
-		static MonoObject* Create(const SPtr<RendererMeshData>& value);
+		static MonoObject* CreateScriptObject(bool construct);
 
 	private:
-		SPtr<RendererMeshData> mInternal;
-
-		static void InternalCreate(MonoObject* managedInstance, uint32_t numVertices, uint32_t numIndices, VertexLayout layout, IndexType indexType);
+		static void InternalCreate(MonoObject* scriptObject, uint32_t numVertices, uint32_t numIndices, VertexLayout layout, IndexType indexType);
 		static MonoArray* InternalGetPositions(ScriptMeshData* self);
 		static void InternalSetPositions(ScriptMeshData* self, MonoArray* value);
 		static MonoArray* InternalGetNormals(ScriptMeshData* self);

@@ -29,16 +29,16 @@ namespace bs
 		PARTICLE_SIZE_DESC output;
 		SPtr<TDistribution<float>> tmpSize;
 		ScriptFloatDistribution* scriptWrapperObjectSize;
-		scriptWrapperObjectSize = ScriptFloatDistribution::ToNative(value.Size);
+		scriptWrapperObjectSize = ScriptFloatDistribution::GetScriptObjectWrapper(value.Size);
 		if(scriptWrapperObjectSize != nullptr)
-			tmpSize = scriptWrapperObjectSize->GetInternal();
+			tmpSize = std::static_pointer_cast<TDistribution<float>>(scriptWrapperObjectSize->GetBaseNativeObjectAsShared());
 		if(tmpSize != nullptr)
 		output.Size = *tmpSize;
 		SPtr<TDistribution<TVector3<float>>> tmpSize3D;
 		ScriptVector3Distribution* scriptWrapperObjectSize3D;
-		scriptWrapperObjectSize3D = ScriptVector3Distribution::ToNative(value.Size3D);
+		scriptWrapperObjectSize3D = ScriptVector3Distribution::GetScriptObjectWrapper(value.Size3D);
 		if(scriptWrapperObjectSize3D != nullptr)
-			tmpSize3D = scriptWrapperObjectSize3D->GetInternal();
+			tmpSize3D = std::static_pointer_cast<TDistribution<TVector3<float>>>(scriptWrapperObjectSize3D->GetBaseNativeObjectAsShared());
 		if(tmpSize3D != nullptr)
 		output.Size3D = *tmpSize3D;
 		output.Use3DSize = value.Use3DSize;
@@ -52,12 +52,12 @@ namespace bs
 		MonoObject* tmpSize;
 		SPtr<TDistribution<float>> tmpSizecopy;
 		tmpSizecopy = B3DMakeShared<TDistribution<float>>(value.Size);
-		tmpSize = ScriptFloatDistribution::Create(tmpSizecopy);
+		tmpSize = ScriptFloatDistribution::GetOrCreateScriptObject(tmpSizecopy);
 		output.Size = tmpSize;
 		MonoObject* tmpSize3D;
 		SPtr<TDistribution<TVector3<float>>> tmpSize3Dcopy;
 		tmpSize3Dcopy = B3DMakeShared<TDistribution<TVector3<float>>>(value.Size3D);
-		tmpSize3D = ScriptVector3Distribution::Create(tmpSize3Dcopy);
+		tmpSize3D = ScriptVector3Distribution::GetOrCreateScriptObject(tmpSize3Dcopy);
 		output.Size3D = tmpSize3D;
 		output.Use3DSize = value.Use3DSize;
 

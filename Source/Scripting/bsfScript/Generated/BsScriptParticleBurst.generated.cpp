@@ -28,9 +28,9 @@ namespace bs
 		output.Time = value.Time;
 		SPtr<TDistribution<float>> tmpCount;
 		ScriptFloatDistribution* scriptWrapperObjectCount;
-		scriptWrapperObjectCount = ScriptFloatDistribution::ToNative(value.Count);
+		scriptWrapperObjectCount = ScriptFloatDistribution::GetScriptObjectWrapper(value.Count);
 		if(scriptWrapperObjectCount != nullptr)
-			tmpCount = scriptWrapperObjectCount->GetInternal();
+			tmpCount = std::static_pointer_cast<TDistribution<float>>(scriptWrapperObjectCount->GetBaseNativeObjectAsShared());
 		if(tmpCount != nullptr)
 		output.Count = *tmpCount;
 		output.Cycles = value.Cycles;
@@ -46,7 +46,7 @@ namespace bs
 		MonoObject* tmpCount;
 		SPtr<TDistribution<float>> tmpCountcopy;
 		tmpCountcopy = B3DMakeShared<TDistribution<float>>(value.Count);
-		tmpCount = ScriptFloatDistribution::Create(tmpCountcopy);
+		tmpCount = ScriptFloatDistribution::GetOrCreateScriptObject(tmpCountcopy);
 		output.Count = tmpCount;
 		output.Cycles = value.Cycles;
 		output.Interval = value.Interval;

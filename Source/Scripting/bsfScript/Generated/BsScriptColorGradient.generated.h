@@ -3,13 +3,13 @@
 #pragma once
 
 #include "BsScriptEnginePrerequisites.h"
+#include "../../../Foundation/bsfUtility/Image/BsColorGradient.h"
 #include "BsScriptObject.h"
 #include "Image/BsColor.h"
 #include "../../../Foundation/bsfUtility/Image/BsColorGradient.h"
 
-namespace bs { struct __ColorGradientKeyInterop; }
-namespace bs { class ColorGradient; }
 namespace bs { class ColorGradientEx; }
+namespace bs { struct __ColorGradientKeyInterop; }
 namespace bs
 {
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptColorGradient : public ScriptObject<ScriptColorGradient>

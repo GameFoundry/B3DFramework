@@ -27,9 +27,9 @@ namespace bs
 		PARTICLE_FORCE_DESC output;
 		SPtr<TDistribution<TVector3<float>>> tmpForce;
 		ScriptVector3Distribution* scriptWrapperObjectForce;
-		scriptWrapperObjectForce = ScriptVector3Distribution::ToNative(value.Force);
+		scriptWrapperObjectForce = ScriptVector3Distribution::GetScriptObjectWrapper(value.Force);
 		if(scriptWrapperObjectForce != nullptr)
-			tmpForce = scriptWrapperObjectForce->GetInternal();
+			tmpForce = std::static_pointer_cast<TDistribution<TVector3<float>>>(scriptWrapperObjectForce->GetBaseNativeObjectAsShared());
 		if(tmpForce != nullptr)
 		output.Force = *tmpForce;
 		output.WorldSpace = value.WorldSpace;
@@ -43,7 +43,7 @@ namespace bs
 		MonoObject* tmpForce;
 		SPtr<TDistribution<TVector3<float>>> tmpForcecopy;
 		tmpForcecopy = B3DMakeShared<TDistribution<TVector3<float>>>(value.Force);
-		tmpForce = ScriptVector3Distribution::Create(tmpForcecopy);
+		tmpForce = ScriptVector3Distribution::GetOrCreateScriptObject(tmpForcecopy);
 		output.Force = tmpForce;
 		output.WorldSpace = value.WorldSpace;
 

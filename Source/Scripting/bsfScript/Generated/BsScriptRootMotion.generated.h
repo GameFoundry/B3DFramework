@@ -3,27 +3,24 @@
 #pragma once
 
 #include "BsScriptEnginePrerequisites.h"
-#include "BsScriptObject.h"
+#include "../../../Foundation/bsfCore/Animation/BsAnimationClip.h"
+#include "BsScriptNonReflectableWrapper.h"
 #include "../../../Foundation/bsfCore/Animation/BsAnimationCurve.h"
 #include "../../../Foundation/bsfCore/Animation/BsAnimationCurve.h"
 
-namespace bs { struct RootMotion; }
 namespace bs { class RootMotionEx; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptRootMotion : public ScriptObject<ScriptRootMotion>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptRootMotion : public TScriptNonReflectableWrapper<RootMotion, ScriptRootMotion>
 	{
 	public:
-		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "RootMotion")
+		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "RootMotion")
 
-		ScriptRootMotion(MonoObject* managedInstance, const SPtr<RootMotion>& value);
+		ScriptRootMotion(const SPtr<RootMotion>& nativeObject);
 
-		SPtr<RootMotion> GetInternal() const { return mInternal; }
-		static MonoObject* Create(const SPtr<RootMotion>& value);
+		static MonoObject* CreateScriptObject(bool construct);
 
 	private:
-		SPtr<RootMotion> mInternal;
-
 		static MonoObject* InternalGetPositionCurves(ScriptRootMotion* self);
 		static MonoObject* InternalGetRotationCurves(ScriptRootMotion* self);
 	};

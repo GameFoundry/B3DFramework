@@ -10,6 +10,7 @@
 #include "Math/BsVector3.h"
 #include "Math/BsVector2.h"
 #include "Math/BsQuaternion.h"
+#include "Script/BsIScriptExportable.h"
 
 namespace bs
 {
@@ -157,7 +158,7 @@ namespace bs
 	 * Physical representation of a scene, allowing creation of new physical objects in the scene and queries against
 	 * those objects. Objects created in different scenes cannot physically interact with eachother.
 	 */
-	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Physics)) PhysicsScene
+	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Physics)) PhysicsScene : public IScriptExportable
 	{
 	public:
 		/******************************************************************************************************************/

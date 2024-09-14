@@ -59,7 +59,7 @@ namespace bs
 		tmp__output = static_cast<AnimationClip*>(self->GetNativeObject())->GetCurves();
 
 		MonoObject* __output;
-		__output = ScriptAnimationCurves::Create(tmp__output);
+		__output = ScriptAnimationCurves::GetOrCreateScriptObject(tmp__output);
 
 		return __output;
 	}
@@ -68,9 +68,9 @@ namespace bs
 	{
 		SPtr<AnimationCurves> tmpcurves;
 		ScriptAnimationCurves* scriptObjectWrappercurves;
-		scriptObjectWrappercurves = ScriptAnimationCurves::ToNative(curves);
+		scriptObjectWrappercurves = ScriptAnimationCurves::GetScriptObjectWrapper(curves);
 		if(scriptObjectWrappercurves != nullptr)
-			tmpcurves = scriptObjectWrappercurves->GetInternal();
+			tmpcurves = std::static_pointer_cast<AnimationCurves>(scriptObjectWrappercurves->GetBaseNativeObjectAsShared());
 		static_cast<AnimationClip*>(self->GetNativeObject())->SetCurves(*tmpcurves);
 	}
 
@@ -112,7 +112,7 @@ namespace bs
 		tmp__output = static_cast<AnimationClip*>(self->GetNativeObject())->GetRootMotion();
 
 		MonoObject* __output;
-		__output = ScriptRootMotion::Create(tmp__output);
+		__output = ScriptRootMotion::GetOrCreateScriptObject(tmp__output);
 
 		return __output;
 	}
@@ -176,14 +176,14 @@ namespace bs
 	{
 		SPtr<AnimationCurves> tmpcurves;
 		ScriptAnimationCurves* scriptObjectWrappercurves;
-		scriptObjectWrappercurves = ScriptAnimationCurves::ToNative(curves);
+		scriptObjectWrappercurves = ScriptAnimationCurves::GetScriptObjectWrapper(curves);
 		if(scriptObjectWrappercurves != nullptr)
-			tmpcurves = scriptObjectWrappercurves->GetInternal();
+			tmpcurves = std::static_pointer_cast<AnimationCurves>(scriptObjectWrappercurves->GetBaseNativeObjectAsShared());
 		SPtr<RootMotion> tmprootMotion;
 		ScriptRootMotion* scriptObjectWrapperrootMotion;
-		scriptObjectWrapperrootMotion = ScriptRootMotion::ToNative(rootMotion);
+		scriptObjectWrapperrootMotion = ScriptRootMotion::GetScriptObjectWrapper(rootMotion);
 		if(scriptObjectWrapperrootMotion != nullptr)
-			tmprootMotion = scriptObjectWrapperrootMotion->GetInternal();
+			tmprootMotion = std::static_pointer_cast<RootMotion>(scriptObjectWrapperrootMotion->GetBaseNativeObjectAsShared());
 		TResourceHandle<AnimationClip> nativeObject = AnimationClip::Create(tmpcurves, isAdditive, sampleRate, tmprootMotion);
 		ScriptObjectWrapper::Create<ScriptAnimationClip>(nativeObject, scriptObject);
 	}

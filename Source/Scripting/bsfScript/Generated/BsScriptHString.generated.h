@@ -3,9 +3,9 @@
 #pragma once
 
 #include "BsScriptEnginePrerequisites.h"
+#include "../../../Foundation/bsfCore/Localization/BsHString.h"
 #include "BsScriptObject.h"
 
-namespace bs { class HString; }
 namespace bs
 {
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptLocString : public ScriptObject<ScriptLocString>

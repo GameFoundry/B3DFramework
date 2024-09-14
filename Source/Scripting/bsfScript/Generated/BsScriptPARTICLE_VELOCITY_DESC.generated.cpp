@@ -27,9 +27,9 @@ namespace bs
 		PARTICLE_VELOCITY_DESC output;
 		SPtr<TDistribution<TVector3<float>>> tmpVelocity;
 		ScriptVector3Distribution* scriptWrapperObjectVelocity;
-		scriptWrapperObjectVelocity = ScriptVector3Distribution::ToNative(value.Velocity);
+		scriptWrapperObjectVelocity = ScriptVector3Distribution::GetScriptObjectWrapper(value.Velocity);
 		if(scriptWrapperObjectVelocity != nullptr)
-			tmpVelocity = scriptWrapperObjectVelocity->GetInternal();
+			tmpVelocity = std::static_pointer_cast<TDistribution<TVector3<float>>>(scriptWrapperObjectVelocity->GetBaseNativeObjectAsShared());
 		if(tmpVelocity != nullptr)
 		output.Velocity = *tmpVelocity;
 		output.WorldSpace = value.WorldSpace;
@@ -43,7 +43,7 @@ namespace bs
 		MonoObject* tmpVelocity;
 		SPtr<TDistribution<TVector3<float>>> tmpVelocitycopy;
 		tmpVelocitycopy = B3DMakeShared<TDistribution<TVector3<float>>>(value.Velocity);
-		tmpVelocity = ScriptVector3Distribution::Create(tmpVelocitycopy);
+		tmpVelocity = ScriptVector3Distribution::GetOrCreateScriptObject(tmpVelocitycopy);
 		output.Velocity = tmpVelocity;
 		output.WorldSpace = value.WorldSpace;
 

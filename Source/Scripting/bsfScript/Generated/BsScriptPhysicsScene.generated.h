@@ -3,7 +3,8 @@
 #pragma once
 
 #include "BsScriptEnginePrerequisites.h"
-#include "BsScriptObject.h"
+#include "../../../Foundation/bsfCore/Physics/BsPhysics.h"
+#include "BsScriptNonReflectableWrapper.h"
 #include "Math/BsVector3.h"
 #include "../../../Foundation/bsfCore/Physics/BsPhysicsCommon.h"
 #include "Math/BsRay.h"
@@ -13,22 +14,18 @@
 #include "Math/BsCapsule.h"
 
 namespace bs { struct __PhysicsQueryHitInterop; }
-namespace bs { class PhysicsScene; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptPhysicsScene : public ScriptObject<ScriptPhysicsScene>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptPhysicsScene : public TScriptNonReflectableWrapper<PhysicsScene, ScriptPhysicsScene>
 	{
 	public:
-		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "PhysicsScene")
+		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "PhysicsScene")
 
-		ScriptPhysicsScene(MonoObject* managedInstance, const SPtr<PhysicsScene>& value);
+		ScriptPhysicsScene(const SPtr<PhysicsScene>& nativeObject);
 
-		SPtr<PhysicsScene> GetInternal() const { return mInternal; }
-		static MonoObject* Create(const SPtr<PhysicsScene>& value);
+		static MonoObject* CreateScriptObject(bool construct);
 
 	private:
-		SPtr<PhysicsScene> mInternal;
-
 		static bool InternalRayCast(ScriptPhysicsScene* self, Ray* ray, __PhysicsQueryHitInterop* hit, uint64_t layer, float max);
 		static bool InternalRayCast0(ScriptPhysicsScene* self, TVector3<float>* origin, TVector3<float>* unitDir, __PhysicsQueryHitInterop* hit, uint64_t layer, float max);
 		static bool InternalBoxCast(ScriptPhysicsScene* self, AABox* box, Quaternion* rotation, TVector3<float>* unitDir, __PhysicsQueryHitInterop* hit, uint64_t layer, float max);

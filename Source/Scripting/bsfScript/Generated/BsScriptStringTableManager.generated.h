@@ -3,10 +3,10 @@
 #pragma once
 
 #include "BsScriptEnginePrerequisites.h"
+#include "../../../Foundation/bsfCore/Localization/BsStringTableManager.h"
 #include "BsScriptObject.h"
 #include "../../../Foundation/bsfCore/Localization/BsStringTable.h"
 
-namespace bs { class StringTableManager; }
 namespace bs
 {
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptStringTables : public ScriptObject<ScriptStringTables>

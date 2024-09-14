@@ -3,10 +3,10 @@
 #pragma once
 
 #include "BsScriptEnginePrerequisites.h"
+#include "../../../Foundation/bsfCore/Text/BsStockIcons.h"
 #include "BsScriptObject.h"
 #include "../../../Foundation/bsfCore/Text/BsStockIcons.h"
 
-namespace bs { class StockIcons; }
 namespace bs
 {
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptStockIcons : public ScriptObject<ScriptStockIcons>

@@ -72,7 +72,7 @@ namespace bs
 		*tmp__output = static_cast<ParticleGpuSimulationSettings*>(self->GetNativeObject())->ColorOverLifetime;
 
 		MonoObject* __output;
-		__output = ScriptColorDistribution::Create(tmp__output);
+		__output = ScriptColorDistribution::GetOrCreateScriptObject(tmp__output);
 
 		return __output;
 	}
@@ -81,9 +81,9 @@ namespace bs
 	{
 		SPtr<TColorDistribution<ColorGradient>> tmpvalue;
 		ScriptColorDistribution* scriptObjectWrappervalue;
-		scriptObjectWrappervalue = ScriptColorDistribution::ToNative(value);
+		scriptObjectWrappervalue = ScriptColorDistribution::GetScriptObjectWrapper(value);
 		if(scriptObjectWrappervalue != nullptr)
-			tmpvalue = scriptObjectWrappervalue->GetInternal();
+			tmpvalue = std::static_pointer_cast<TColorDistribution<ColorGradient>>(scriptObjectWrappervalue->GetBaseNativeObjectAsShared());
 		static_cast<ParticleGpuSimulationSettings*>(self->GetNativeObject())->ColorOverLifetime = *tmpvalue;
 	}
 
@@ -93,7 +93,7 @@ namespace bs
 		*tmp__output = static_cast<ParticleGpuSimulationSettings*>(self->GetNativeObject())->SizeScaleOverLifetime;
 
 		MonoObject* __output;
-		__output = ScriptVector2Distribution::Create(tmp__output);
+		__output = ScriptVector2Distribution::GetOrCreateScriptObject(tmp__output);
 
 		return __output;
 	}
@@ -102,9 +102,9 @@ namespace bs
 	{
 		SPtr<TDistribution<TVector2<float>>> tmpvalue;
 		ScriptVector2Distribution* scriptObjectWrappervalue;
-		scriptObjectWrappervalue = ScriptVector2Distribution::ToNative(value);
+		scriptObjectWrappervalue = ScriptVector2Distribution::GetScriptObjectWrapper(value);
 		if(scriptObjectWrappervalue != nullptr)
-			tmpvalue = scriptObjectWrappervalue->GetInternal();
+			tmpvalue = std::static_pointer_cast<TDistribution<TVector2<float>>>(scriptObjectWrappervalue->GetBaseNativeObjectAsShared());
 		static_cast<ParticleGpuSimulationSettings*>(self->GetNativeObject())->SizeScaleOverLifetime = *tmpvalue;
 	}
 

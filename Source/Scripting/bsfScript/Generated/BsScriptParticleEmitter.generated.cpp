@@ -133,9 +133,9 @@ namespace bs
 	{
 		SPtr<TDistribution<float>> tmpvalue;
 		ScriptFloatDistribution* scriptObjectWrappervalue;
-		scriptObjectWrappervalue = ScriptFloatDistribution::ToNative(value);
+		scriptObjectWrappervalue = ScriptFloatDistribution::GetScriptObjectWrapper(value);
 		if(scriptObjectWrappervalue != nullptr)
-			tmpvalue = scriptObjectWrappervalue->GetInternal();
+			tmpvalue = std::static_pointer_cast<TDistribution<float>>(scriptObjectWrappervalue->GetBaseNativeObjectAsShared());
 		static_cast<ParticleEmitter*>(self->GetNativeObject())->SetEmissionRate(*tmpvalue);
 	}
 
@@ -145,7 +145,7 @@ namespace bs
 		*tmp__output = static_cast<ParticleEmitter*>(self->GetNativeObject())->GetEmissionRate();
 
 		MonoObject* __output;
-		__output = ScriptFloatDistribution::Create(tmp__output);
+		__output = ScriptFloatDistribution::GetOrCreateScriptObject(tmp__output);
 
 		return __output;
 	}
@@ -186,9 +186,9 @@ namespace bs
 	{
 		SPtr<TDistribution<float>> tmpvalue;
 		ScriptFloatDistribution* scriptObjectWrappervalue;
-		scriptObjectWrappervalue = ScriptFloatDistribution::ToNative(value);
+		scriptObjectWrappervalue = ScriptFloatDistribution::GetScriptObjectWrapper(value);
 		if(scriptObjectWrappervalue != nullptr)
-			tmpvalue = scriptObjectWrappervalue->GetInternal();
+			tmpvalue = std::static_pointer_cast<TDistribution<float>>(scriptObjectWrappervalue->GetBaseNativeObjectAsShared());
 		static_cast<ParticleEmitter*>(self->GetNativeObject())->SetInitialLifetime(*tmpvalue);
 	}
 
@@ -198,7 +198,7 @@ namespace bs
 		*tmp__output = static_cast<ParticleEmitter*>(self->GetNativeObject())->GetInitialLifetime();
 
 		MonoObject* __output;
-		__output = ScriptFloatDistribution::Create(tmp__output);
+		__output = ScriptFloatDistribution::GetOrCreateScriptObject(tmp__output);
 
 		return __output;
 	}
@@ -207,9 +207,9 @@ namespace bs
 	{
 		SPtr<TDistribution<float>> tmpvalue;
 		ScriptFloatDistribution* scriptObjectWrappervalue;
-		scriptObjectWrappervalue = ScriptFloatDistribution::ToNative(value);
+		scriptObjectWrappervalue = ScriptFloatDistribution::GetScriptObjectWrapper(value);
 		if(scriptObjectWrappervalue != nullptr)
-			tmpvalue = scriptObjectWrappervalue->GetInternal();
+			tmpvalue = std::static_pointer_cast<TDistribution<float>>(scriptObjectWrappervalue->GetBaseNativeObjectAsShared());
 		static_cast<ParticleEmitter*>(self->GetNativeObject())->SetInitialSpeed(*tmpvalue);
 	}
 
@@ -219,7 +219,7 @@ namespace bs
 		*tmp__output = static_cast<ParticleEmitter*>(self->GetNativeObject())->GetInitialSpeed();
 
 		MonoObject* __output;
-		__output = ScriptFloatDistribution::Create(tmp__output);
+		__output = ScriptFloatDistribution::GetOrCreateScriptObject(tmp__output);
 
 		return __output;
 	}
@@ -228,9 +228,9 @@ namespace bs
 	{
 		SPtr<TDistribution<float>> tmpvalue;
 		ScriptFloatDistribution* scriptObjectWrappervalue;
-		scriptObjectWrappervalue = ScriptFloatDistribution::ToNative(value);
+		scriptObjectWrappervalue = ScriptFloatDistribution::GetScriptObjectWrapper(value);
 		if(scriptObjectWrappervalue != nullptr)
-			tmpvalue = scriptObjectWrappervalue->GetInternal();
+			tmpvalue = std::static_pointer_cast<TDistribution<float>>(scriptObjectWrappervalue->GetBaseNativeObjectAsShared());
 		static_cast<ParticleEmitter*>(self->GetNativeObject())->SetInitialSize(*tmpvalue);
 	}
 
@@ -240,7 +240,7 @@ namespace bs
 		*tmp__output = static_cast<ParticleEmitter*>(self->GetNativeObject())->GetInitialSize();
 
 		MonoObject* __output;
-		__output = ScriptFloatDistribution::Create(tmp__output);
+		__output = ScriptFloatDistribution::GetOrCreateScriptObject(tmp__output);
 
 		return __output;
 	}
@@ -249,9 +249,9 @@ namespace bs
 	{
 		SPtr<TDistribution<TVector3<float>>> tmpvalue;
 		ScriptVector3Distribution* scriptObjectWrappervalue;
-		scriptObjectWrappervalue = ScriptVector3Distribution::ToNative(value);
+		scriptObjectWrappervalue = ScriptVector3Distribution::GetScriptObjectWrapper(value);
 		if(scriptObjectWrappervalue != nullptr)
-			tmpvalue = scriptObjectWrappervalue->GetInternal();
+			tmpvalue = std::static_pointer_cast<TDistribution<TVector3<float>>>(scriptObjectWrappervalue->GetBaseNativeObjectAsShared());
 		static_cast<ParticleEmitter*>(self->GetNativeObject())->SetInitialSize3D(*tmpvalue);
 	}
 
@@ -261,7 +261,7 @@ namespace bs
 		*tmp__output = static_cast<ParticleEmitter*>(self->GetNativeObject())->GetInitialSize3D();
 
 		MonoObject* __output;
-		__output = ScriptVector3Distribution::Create(tmp__output);
+		__output = ScriptVector3Distribution::GetOrCreateScriptObject(tmp__output);
 
 		return __output;
 	}
@@ -286,9 +286,9 @@ namespace bs
 	{
 		SPtr<TDistribution<float>> tmpvalue;
 		ScriptFloatDistribution* scriptObjectWrappervalue;
-		scriptObjectWrappervalue = ScriptFloatDistribution::ToNative(value);
+		scriptObjectWrappervalue = ScriptFloatDistribution::GetScriptObjectWrapper(value);
 		if(scriptObjectWrappervalue != nullptr)
-			tmpvalue = scriptObjectWrappervalue->GetInternal();
+			tmpvalue = std::static_pointer_cast<TDistribution<float>>(scriptObjectWrappervalue->GetBaseNativeObjectAsShared());
 		static_cast<ParticleEmitter*>(self->GetNativeObject())->SetInitialRotation(*tmpvalue);
 	}
 
@@ -298,7 +298,7 @@ namespace bs
 		*tmp__output = static_cast<ParticleEmitter*>(self->GetNativeObject())->GetInitialRotation();
 
 		MonoObject* __output;
-		__output = ScriptFloatDistribution::Create(tmp__output);
+		__output = ScriptFloatDistribution::GetOrCreateScriptObject(tmp__output);
 
 		return __output;
 	}
@@ -307,9 +307,9 @@ namespace bs
 	{
 		SPtr<TDistribution<TVector3<float>>> tmpvalue;
 		ScriptVector3Distribution* scriptObjectWrappervalue;
-		scriptObjectWrappervalue = ScriptVector3Distribution::ToNative(value);
+		scriptObjectWrappervalue = ScriptVector3Distribution::GetScriptObjectWrapper(value);
 		if(scriptObjectWrappervalue != nullptr)
-			tmpvalue = scriptObjectWrappervalue->GetInternal();
+			tmpvalue = std::static_pointer_cast<TDistribution<TVector3<float>>>(scriptObjectWrappervalue->GetBaseNativeObjectAsShared());
 		static_cast<ParticleEmitter*>(self->GetNativeObject())->SetInitialRotation3D(*tmpvalue);
 	}
 
@@ -319,7 +319,7 @@ namespace bs
 		*tmp__output = static_cast<ParticleEmitter*>(self->GetNativeObject())->GetInitialRotation3D();
 
 		MonoObject* __output;
-		__output = ScriptVector3Distribution::Create(tmp__output);
+		__output = ScriptVector3Distribution::GetOrCreateScriptObject(tmp__output);
 
 		return __output;
 	}
@@ -344,9 +344,9 @@ namespace bs
 	{
 		SPtr<TColorDistribution<ColorGradient>> tmpvalue;
 		ScriptColorDistribution* scriptObjectWrappervalue;
-		scriptObjectWrappervalue = ScriptColorDistribution::ToNative(value);
+		scriptObjectWrappervalue = ScriptColorDistribution::GetScriptObjectWrapper(value);
 		if(scriptObjectWrappervalue != nullptr)
-			tmpvalue = scriptObjectWrappervalue->GetInternal();
+			tmpvalue = std::static_pointer_cast<TColorDistribution<ColorGradient>>(scriptObjectWrappervalue->GetBaseNativeObjectAsShared());
 		static_cast<ParticleEmitter*>(self->GetNativeObject())->SetInitialColor(*tmpvalue);
 	}
 
@@ -356,7 +356,7 @@ namespace bs
 		*tmp__output = static_cast<ParticleEmitter*>(self->GetNativeObject())->GetInitialColor();
 
 		MonoObject* __output;
-		__output = ScriptColorDistribution::Create(tmp__output);
+		__output = ScriptColorDistribution::GetOrCreateScriptObject(tmp__output);
 
 		return __output;
 	}

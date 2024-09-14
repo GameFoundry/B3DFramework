@@ -3,13 +3,13 @@
 #pragma once
 
 #include "BsScriptEnginePrerequisites.h"
+#include "../Extensions/BsApplicationEx.h"
 #include "BsScriptObject.h"
 #include "../../../Foundation/bsfCore/RenderAPI/BsVideoModeInfo.h"
 #include "../../../Foundation/bsfCore/BsCoreApplication.h"
 
-namespace bs { struct __START_UP_DESCInterop; }
-namespace bs { class ApplicationEx; }
 namespace bs { struct __VideoModeInterop; }
+namespace bs { struct __START_UP_DESCInterop; }
 namespace bs
 {
 #if !B3D_IS_ENGINE

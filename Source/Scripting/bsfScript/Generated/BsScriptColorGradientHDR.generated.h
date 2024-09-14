@@ -3,11 +3,11 @@
 #pragma once
 
 #include "BsScriptEnginePrerequisites.h"
+#include "../../../Foundation/bsfUtility/Image/BsColorGradient.h"
 #include "BsScriptObject.h"
 #include "Image/BsColor.h"
 #include "../../../Foundation/bsfUtility/Image/BsColorGradient.h"
 
-namespace bs { class ColorGradientHDR; }
 namespace bs { class ColorGradientHDREx; }
 namespace bs { struct __ColorGradientKeyInterop; }
 namespace bs

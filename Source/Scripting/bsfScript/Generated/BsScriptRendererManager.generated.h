@@ -3,9 +3,9 @@
 #pragma once
 
 #include "BsScriptEnginePrerequisites.h"
+#include "../../../Foundation/bsfCore/Renderer/BsRendererManager.h"
 #include "BsScriptObject.h"
 
-namespace bs { class RendererManager; }
 namespace bs
 {
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptRendererManager : public ScriptObject<ScriptRendererManager>

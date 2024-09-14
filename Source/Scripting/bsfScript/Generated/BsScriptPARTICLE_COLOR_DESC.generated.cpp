@@ -27,9 +27,9 @@ namespace bs
 		PARTICLE_COLOR_DESC output;
 		SPtr<TColorDistribution<ColorGradient>> tmpColor;
 		ScriptColorDistribution* scriptWrapperObjectColor;
-		scriptWrapperObjectColor = ScriptColorDistribution::ToNative(value.Color);
+		scriptWrapperObjectColor = ScriptColorDistribution::GetScriptObjectWrapper(value.Color);
 		if(scriptWrapperObjectColor != nullptr)
-			tmpColor = scriptWrapperObjectColor->GetInternal();
+			tmpColor = std::static_pointer_cast<TColorDistribution<ColorGradient>>(scriptWrapperObjectColor->GetBaseNativeObjectAsShared());
 		if(tmpColor != nullptr)
 		output.Color = *tmpColor;
 
@@ -42,7 +42,7 @@ namespace bs
 		MonoObject* tmpColor;
 		SPtr<TColorDistribution<ColorGradient>> tmpColorcopy;
 		tmpColorcopy = B3DMakeShared<TColorDistribution<ColorGradient>>(value.Color);
-		tmpColor = ScriptColorDistribution::Create(tmpColorcopy);
+		tmpColor = ScriptColorDistribution::GetOrCreateScriptObject(tmpColorcopy);
 		output.Color = tmpColor;
 
 		return output;

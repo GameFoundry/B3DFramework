@@ -39,9 +39,9 @@ namespace bs
 		output.Flags = value.Flags;
 		SPtr<TAnimationCurve<float>> tmpCurve;
 		ScriptAnimationCurve* scriptWrapperObjectCurve;
-		scriptWrapperObjectCurve = ScriptAnimationCurve::ToNative(value.Curve);
+		scriptWrapperObjectCurve = ScriptAnimationCurve::GetScriptObjectWrapper(value.Curve);
 		if(scriptWrapperObjectCurve != nullptr)
-			tmpCurve = scriptWrapperObjectCurve->GetInternal();
+			tmpCurve = std::static_pointer_cast<TAnimationCurve<float>>(scriptWrapperObjectCurve->GetBaseNativeObjectAsShared());
 		if(tmpCurve != nullptr)
 		output.Curve = *tmpCurve;
 
@@ -58,7 +58,7 @@ namespace bs
 		MonoObject* tmpCurve;
 		SPtr<TAnimationCurve<float>> tmpCurvecopy;
 		tmpCurvecopy = B3DMakeShared<TAnimationCurve<float>>(value.Curve);
-		tmpCurve = ScriptAnimationCurve::Create(tmpCurvecopy);
+		tmpCurve = ScriptAnimationCurve::GetOrCreateScriptObject(tmpCurvecopy);
 		output.Curve = tmpCurve;
 
 		return output;
@@ -87,9 +87,9 @@ namespace bs
 		output.Flags = value.Flags;
 		SPtr<TAnimationCurve<TVector3<float>>> tmpCurve;
 		ScriptVector3Curve* scriptWrapperObjectCurve;
-		scriptWrapperObjectCurve = ScriptVector3Curve::ToNative(value.Curve);
+		scriptWrapperObjectCurve = ScriptVector3Curve::GetScriptObjectWrapper(value.Curve);
 		if(scriptWrapperObjectCurve != nullptr)
-			tmpCurve = scriptWrapperObjectCurve->GetInternal();
+			tmpCurve = std::static_pointer_cast<TAnimationCurve<TVector3<float>>>(scriptWrapperObjectCurve->GetBaseNativeObjectAsShared());
 		if(tmpCurve != nullptr)
 		output.Curve = *tmpCurve;
 
@@ -106,7 +106,7 @@ namespace bs
 		MonoObject* tmpCurve;
 		SPtr<TAnimationCurve<TVector3<float>>> tmpCurvecopy;
 		tmpCurvecopy = B3DMakeShared<TAnimationCurve<TVector3<float>>>(value.Curve);
-		tmpCurve = ScriptVector3Curve::Create(tmpCurvecopy);
+		tmpCurve = ScriptVector3Curve::GetOrCreateScriptObject(tmpCurvecopy);
 		output.Curve = tmpCurve;
 
 		return output;
@@ -135,9 +135,9 @@ namespace bs
 		output.Flags = value.Flags;
 		SPtr<TAnimationCurve<TVector2<float>>> tmpCurve;
 		ScriptVector2Curve* scriptWrapperObjectCurve;
-		scriptWrapperObjectCurve = ScriptVector2Curve::ToNative(value.Curve);
+		scriptWrapperObjectCurve = ScriptVector2Curve::GetScriptObjectWrapper(value.Curve);
 		if(scriptWrapperObjectCurve != nullptr)
-			tmpCurve = scriptWrapperObjectCurve->GetInternal();
+			tmpCurve = std::static_pointer_cast<TAnimationCurve<TVector2<float>>>(scriptWrapperObjectCurve->GetBaseNativeObjectAsShared());
 		if(tmpCurve != nullptr)
 		output.Curve = *tmpCurve;
 
@@ -154,7 +154,7 @@ namespace bs
 		MonoObject* tmpCurve;
 		SPtr<TAnimationCurve<TVector2<float>>> tmpCurvecopy;
 		tmpCurvecopy = B3DMakeShared<TAnimationCurve<TVector2<float>>>(value.Curve);
-		tmpCurve = ScriptVector2Curve::Create(tmpCurvecopy);
+		tmpCurve = ScriptVector2Curve::GetOrCreateScriptObject(tmpCurvecopy);
 		output.Curve = tmpCurve;
 
 		return output;
@@ -183,9 +183,9 @@ namespace bs
 		output.Flags = value.Flags;
 		SPtr<TAnimationCurve<Quaternion>> tmpCurve;
 		ScriptQuaternionCurve* scriptWrapperObjectCurve;
-		scriptWrapperObjectCurve = ScriptQuaternionCurve::ToNative(value.Curve);
+		scriptWrapperObjectCurve = ScriptQuaternionCurve::GetScriptObjectWrapper(value.Curve);
 		if(scriptWrapperObjectCurve != nullptr)
-			tmpCurve = scriptWrapperObjectCurve->GetInternal();
+			tmpCurve = std::static_pointer_cast<TAnimationCurve<Quaternion>>(scriptWrapperObjectCurve->GetBaseNativeObjectAsShared());
 		if(tmpCurve != nullptr)
 		output.Curve = *tmpCurve;
 
@@ -202,7 +202,7 @@ namespace bs
 		MonoObject* tmpCurve;
 		SPtr<TAnimationCurve<Quaternion>> tmpCurvecopy;
 		tmpCurvecopy = B3DMakeShared<TAnimationCurve<Quaternion>>(value.Curve);
-		tmpCurve = ScriptQuaternionCurve::Create(tmpCurvecopy);
+		tmpCurve = ScriptQuaternionCurve::GetOrCreateScriptObject(tmpCurvecopy);
 		output.Curve = tmpCurve;
 
 		return output;
@@ -231,9 +231,9 @@ namespace bs
 		output.Flags = value.Flags;
 		SPtr<TAnimationCurve<int32_t>> tmpCurve;
 		ScriptIntegerCurve* scriptWrapperObjectCurve;
-		scriptWrapperObjectCurve = ScriptIntegerCurve::ToNative(value.Curve);
+		scriptWrapperObjectCurve = ScriptIntegerCurve::GetScriptObjectWrapper(value.Curve);
 		if(scriptWrapperObjectCurve != nullptr)
-			tmpCurve = scriptWrapperObjectCurve->GetInternal();
+			tmpCurve = std::static_pointer_cast<TAnimationCurve<int32_t>>(scriptWrapperObjectCurve->GetBaseNativeObjectAsShared());
 		if(tmpCurve != nullptr)
 		output.Curve = *tmpCurve;
 
@@ -250,7 +250,7 @@ namespace bs
 		MonoObject* tmpCurve;
 		SPtr<TAnimationCurve<int32_t>> tmpCurvecopy;
 		tmpCurvecopy = B3DMakeShared<TAnimationCurve<int32_t>>(value.Curve);
-		tmpCurve = ScriptIntegerCurve::Create(tmpCurvecopy);
+		tmpCurve = ScriptIntegerCurve::GetOrCreateScriptObject(tmpCurvecopy);
 		output.Curve = tmpCurve;
 
 		return output;

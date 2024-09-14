@@ -13,7 +13,7 @@ namespace bs
 	 */
 
 	/** Object that allows you to group multiple GUI toggle buttons. Only one button among the grouped ones can be active. */
-	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(GUI)) GUIToggleGroup
+	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(GUI)) GUIToggleGroup : public IScriptExportable
 	{
 	public:
 		~GUIToggleGroup();

@@ -6,6 +6,8 @@
 #include "BsMonoClass.h"
 #include "BsMonoManager.h"
 #include "Scene/BsSceneObject.h"
+#include "Scene/BsSceneManager.h"
+#include "Physics/BsPhysics.h"
 #include "BsMonoUtil.h"
 
 #include "Generated/BsScriptSceneInstance.generated.h"
@@ -164,7 +166,7 @@ MonoObject* ScriptSceneObject::InternalGetScene(ScriptSceneObject* self)
 	if(!self->IsNativeObjectValid())
 		return nullptr;
 
-	return ScriptSceneInstance::Create(self->GetNativeObject()->GetScene());
+	return ScriptSceneInstance::GetOrCreateScriptObject(self->GetNativeObject()->GetScene());
 }
 
 void ScriptSceneObject::InternalGetNumChildren(ScriptSceneObject* self, u32* value)

@@ -29,23 +29,23 @@ namespace bs
 		PARTICLE_ORBIT_DESC output;
 		SPtr<TDistribution<TVector3<float>>> tmpCenter;
 		ScriptVector3Distribution* scriptWrapperObjectCenter;
-		scriptWrapperObjectCenter = ScriptVector3Distribution::ToNative(value.Center);
+		scriptWrapperObjectCenter = ScriptVector3Distribution::GetScriptObjectWrapper(value.Center);
 		if(scriptWrapperObjectCenter != nullptr)
-			tmpCenter = scriptWrapperObjectCenter->GetInternal();
+			tmpCenter = std::static_pointer_cast<TDistribution<TVector3<float>>>(scriptWrapperObjectCenter->GetBaseNativeObjectAsShared());
 		if(tmpCenter != nullptr)
 		output.Center = *tmpCenter;
 		SPtr<TDistribution<TVector3<float>>> tmpVelocity;
 		ScriptVector3Distribution* scriptWrapperObjectVelocity;
-		scriptWrapperObjectVelocity = ScriptVector3Distribution::ToNative(value.Velocity);
+		scriptWrapperObjectVelocity = ScriptVector3Distribution::GetScriptObjectWrapper(value.Velocity);
 		if(scriptWrapperObjectVelocity != nullptr)
-			tmpVelocity = scriptWrapperObjectVelocity->GetInternal();
+			tmpVelocity = std::static_pointer_cast<TDistribution<TVector3<float>>>(scriptWrapperObjectVelocity->GetBaseNativeObjectAsShared());
 		if(tmpVelocity != nullptr)
 		output.Velocity = *tmpVelocity;
 		SPtr<TDistribution<float>> tmpRadial;
 		ScriptFloatDistribution* scriptWrapperObjectRadial;
-		scriptWrapperObjectRadial = ScriptFloatDistribution::ToNative(value.Radial);
+		scriptWrapperObjectRadial = ScriptFloatDistribution::GetScriptObjectWrapper(value.Radial);
 		if(scriptWrapperObjectRadial != nullptr)
-			tmpRadial = scriptWrapperObjectRadial->GetInternal();
+			tmpRadial = std::static_pointer_cast<TDistribution<float>>(scriptWrapperObjectRadial->GetBaseNativeObjectAsShared());
 		if(tmpRadial != nullptr)
 		output.Radial = *tmpRadial;
 		output.WorldSpace = value.WorldSpace;
@@ -59,17 +59,17 @@ namespace bs
 		MonoObject* tmpCenter;
 		SPtr<TDistribution<TVector3<float>>> tmpCentercopy;
 		tmpCentercopy = B3DMakeShared<TDistribution<TVector3<float>>>(value.Center);
-		tmpCenter = ScriptVector3Distribution::Create(tmpCentercopy);
+		tmpCenter = ScriptVector3Distribution::GetOrCreateScriptObject(tmpCentercopy);
 		output.Center = tmpCenter;
 		MonoObject* tmpVelocity;
 		SPtr<TDistribution<TVector3<float>>> tmpVelocitycopy;
 		tmpVelocitycopy = B3DMakeShared<TDistribution<TVector3<float>>>(value.Velocity);
-		tmpVelocity = ScriptVector3Distribution::Create(tmpVelocitycopy);
+		tmpVelocity = ScriptVector3Distribution::GetOrCreateScriptObject(tmpVelocitycopy);
 		output.Velocity = tmpVelocity;
 		MonoObject* tmpRadial;
 		SPtr<TDistribution<float>> tmpRadialcopy;
 		tmpRadialcopy = B3DMakeShared<TDistribution<float>>(value.Radial);
-		tmpRadial = ScriptFloatDistribution::Create(tmpRadialcopy);
+		tmpRadial = ScriptFloatDistribution::GetOrCreateScriptObject(tmpRadialcopy);
 		output.Radial = tmpRadial;
 		output.WorldSpace = value.WorldSpace;
 

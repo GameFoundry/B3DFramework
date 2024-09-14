@@ -3,10 +3,10 @@
 #pragma once
 
 #include "BsScriptEnginePrerequisites.h"
+#include "../../../Foundation/bsfCore/Importer/BsImporter.h"
 #include "BsScriptObject.h"
 #include "../../../Foundation/bsfCore/Importer/BsImporter.h"
 
-namespace bs { struct MultiResource; }
 namespace bs { struct __SubResourceInterop; }
 namespace bs
 {

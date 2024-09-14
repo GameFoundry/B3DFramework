@@ -29,16 +29,16 @@ namespace bs
 		PARTICLE_ROTATION_DESC output;
 		SPtr<TDistribution<float>> tmpRotation;
 		ScriptFloatDistribution* scriptWrapperObjectRotation;
-		scriptWrapperObjectRotation = ScriptFloatDistribution::ToNative(value.Rotation);
+		scriptWrapperObjectRotation = ScriptFloatDistribution::GetScriptObjectWrapper(value.Rotation);
 		if(scriptWrapperObjectRotation != nullptr)
-			tmpRotation = scriptWrapperObjectRotation->GetInternal();
+			tmpRotation = std::static_pointer_cast<TDistribution<float>>(scriptWrapperObjectRotation->GetBaseNativeObjectAsShared());
 		if(tmpRotation != nullptr)
 		output.Rotation = *tmpRotation;
 		SPtr<TDistribution<TVector3<float>>> tmpRotation3D;
 		ScriptVector3Distribution* scriptWrapperObjectRotation3D;
-		scriptWrapperObjectRotation3D = ScriptVector3Distribution::ToNative(value.Rotation3D);
+		scriptWrapperObjectRotation3D = ScriptVector3Distribution::GetScriptObjectWrapper(value.Rotation3D);
 		if(scriptWrapperObjectRotation3D != nullptr)
-			tmpRotation3D = scriptWrapperObjectRotation3D->GetInternal();
+			tmpRotation3D = std::static_pointer_cast<TDistribution<TVector3<float>>>(scriptWrapperObjectRotation3D->GetBaseNativeObjectAsShared());
 		if(tmpRotation3D != nullptr)
 		output.Rotation3D = *tmpRotation3D;
 		output.Use3DRotation = value.Use3DRotation;
@@ -52,12 +52,12 @@ namespace bs
 		MonoObject* tmpRotation;
 		SPtr<TDistribution<float>> tmpRotationcopy;
 		tmpRotationcopy = B3DMakeShared<TDistribution<float>>(value.Rotation);
-		tmpRotation = ScriptFloatDistribution::Create(tmpRotationcopy);
+		tmpRotation = ScriptFloatDistribution::GetOrCreateScriptObject(tmpRotationcopy);
 		output.Rotation = tmpRotation;
 		MonoObject* tmpRotation3D;
 		SPtr<TDistribution<TVector3<float>>> tmpRotation3Dcopy;
 		tmpRotation3Dcopy = B3DMakeShared<TDistribution<TVector3<float>>>(value.Rotation3D);
-		tmpRotation3D = ScriptVector3Distribution::Create(tmpRotation3Dcopy);
+		tmpRotation3D = ScriptVector3Distribution::GetOrCreateScriptObject(tmpRotation3Dcopy);
 		output.Rotation3D = tmpRotation3D;
 		output.Use3DRotation = value.Use3DRotation;
 

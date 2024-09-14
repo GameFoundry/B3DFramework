@@ -3,7 +3,8 @@
 #pragma once
 
 #include "BsScriptEnginePrerequisites.h"
-#include "BsScriptObject.h"
+#include "../../../Foundation/bsfCore/Animation/BsAnimationClip.h"
+#include "BsScriptNonReflectableWrapper.h"
 #include "../../../Foundation/bsfCore/Animation/BsAnimationCurve.h"
 #include "../../../Foundation/bsfCore/Animation/BsAnimationCurve.h"
 #include "../../../Foundation/bsfCore/Animation/BsAnimationCurve.h"
@@ -11,27 +12,23 @@
 #include "../../../Foundation/bsfCore/Animation/BsAnimationCurve.h"
 #include "../../../Foundation/bsfCore/Animation/BsAnimationCurve.h"
 
-namespace bs { struct AnimationCurves; }
 namespace bs { struct __TNamedAnimationCurve_float_Interop; }
 namespace bs { class AnimationCurvesEx; }
 namespace bs { struct __TNamedAnimationCurve_TVector3_float__Interop; }
 namespace bs { struct __TNamedAnimationCurve_Quaternion_Interop; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptAnimationCurves : public ScriptObject<ScriptAnimationCurves>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptAnimationCurves : public TScriptNonReflectableWrapper<AnimationCurves, ScriptAnimationCurves>
 	{
 	public:
-		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "AnimationCurves")
+		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "AnimationCurves")
 
-		ScriptAnimationCurves(MonoObject* managedInstance, const SPtr<AnimationCurves>& value);
+		ScriptAnimationCurves(const SPtr<AnimationCurves>& nativeObject);
 
-		SPtr<AnimationCurves> GetInternal() const { return mInternal; }
-		static MonoObject* Create(const SPtr<AnimationCurves>& value);
+		static MonoObject* CreateScriptObject(bool construct);
 
 	private:
-		SPtr<AnimationCurves> mInternal;
-
-		static void InternalAnimationCurves(MonoObject* managedInstance);
+		static void InternalAnimationCurves(MonoObject* scriptObject);
 		static void InternalAddPositionCurve(ScriptAnimationCurves* self, MonoString* name, MonoObject* curve);
 		static void InternalAddRotationCurve(ScriptAnimationCurves* self, MonoString* name, MonoObject* curve);
 		static void InternalAddScaleCurve(ScriptAnimationCurves* self, MonoString* name, MonoObject* curve);

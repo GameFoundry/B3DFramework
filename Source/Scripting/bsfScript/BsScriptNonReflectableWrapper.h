@@ -47,7 +47,7 @@ namespace bs
 		 */
 		static MonoObject* GetOrCreateScriptObject(const SPtr<NativeType>& nativeObject)
 		{
-			if(!nativeObject.IsValid())
+			if(nativeObject == nullptr)
 				return nullptr;
 
 			if(ScriptObjectWrapper* const scriptObjectWrapper = (ScriptObjectWrapper*)nativeObject->GetScriptObjectWrapper())

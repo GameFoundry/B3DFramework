@@ -103,9 +103,9 @@ namespace bs
 	{
 		SPtr<RendererMeshData> tmpdata;
 		ScriptMeshData* scriptObjectWrapperdata;
-		scriptObjectWrapperdata = ScriptMeshData::ToNative(data);
+		scriptObjectWrapperdata = ScriptMeshData::GetScriptObjectWrapper(data);
 		if(scriptObjectWrapperdata != nullptr)
-			tmpdata = scriptObjectWrapperdata->GetInternal();
+			tmpdata = std::static_pointer_cast<RendererMeshData>(scriptObjectWrapperdata->GetBaseNativeObjectAsShared());
 		TResourceHandle<Mesh> nativeObject = MeshEx::Create(tmpdata, topology, usage);
 		ScriptObjectWrapper::Create<ScriptMesh>(nativeObject, scriptObject);
 	}
@@ -114,9 +114,9 @@ namespace bs
 	{
 		SPtr<RendererMeshData> tmpdata;
 		ScriptMeshData* scriptObjectWrapperdata;
-		scriptObjectWrapperdata = ScriptMeshData::ToNative(data);
+		scriptObjectWrapperdata = ScriptMeshData::GetScriptObjectWrapper(data);
 		if(scriptObjectWrapperdata != nullptr)
-			tmpdata = scriptObjectWrapperdata->GetInternal();
+			tmpdata = std::static_pointer_cast<RendererMeshData>(scriptObjectWrapperdata->GetBaseNativeObjectAsShared());
 		Vector<SubMesh> nativeArraysubMeshes;
 		if(subMeshes != nullptr)
 		{
@@ -171,7 +171,7 @@ namespace bs
 		tmp__output = MeshEx::GetMeshData(B3DStaticResourceCast<Mesh>(self->GetBaseNativeObjectAsHandle()));
 
 		MonoObject* __output;
-		__output = ScriptMeshData::Create(tmp__output);
+		__output = ScriptMeshData::GetOrCreateScriptObject(tmp__output);
 
 		return __output;
 	}
@@ -180,9 +180,9 @@ namespace bs
 	{
 		SPtr<RendererMeshData> tmpvalue;
 		ScriptMeshData* scriptObjectWrappervalue;
-		scriptObjectWrappervalue = ScriptMeshData::ToNative(value);
+		scriptObjectWrappervalue = ScriptMeshData::GetScriptObjectWrapper(value);
 		if(scriptObjectWrappervalue != nullptr)
-			tmpvalue = scriptObjectWrappervalue->GetInternal();
+			tmpvalue = std::static_pointer_cast<RendererMeshData>(scriptObjectWrappervalue->GetBaseNativeObjectAsShared());
 		MeshEx::SetMeshData(B3DStaticResourceCast<Mesh>(self->GetBaseNativeObjectAsHandle()), tmpvalue);
 	}
 }

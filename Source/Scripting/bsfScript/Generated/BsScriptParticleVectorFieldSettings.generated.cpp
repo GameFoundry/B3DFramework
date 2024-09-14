@@ -163,7 +163,7 @@ namespace bs
 		*tmp__output = static_cast<ParticleVectorFieldSettings*>(self->GetNativeObject())->RotationRate;
 
 		MonoObject* __output;
-		__output = ScriptVector3Distribution::Create(tmp__output);
+		__output = ScriptVector3Distribution::GetOrCreateScriptObject(tmp__output);
 
 		return __output;
 	}
@@ -172,9 +172,9 @@ namespace bs
 	{
 		SPtr<TDistribution<TVector3<float>>> tmpvalue;
 		ScriptVector3Distribution* scriptObjectWrappervalue;
-		scriptObjectWrappervalue = ScriptVector3Distribution::ToNative(value);
+		scriptObjectWrappervalue = ScriptVector3Distribution::GetScriptObjectWrapper(value);
 		if(scriptObjectWrappervalue != nullptr)
-			tmpvalue = scriptObjectWrappervalue->GetInternal();
+			tmpvalue = std::static_pointer_cast<TDistribution<TVector3<float>>>(scriptObjectWrappervalue->GetBaseNativeObjectAsShared());
 		static_cast<ParticleVectorFieldSettings*>(self->GetNativeObject())->RotationRate = *tmpvalue;
 	}
 

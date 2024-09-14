@@ -3,23 +3,20 @@
 #pragma once
 
 #include "BsScriptEnginePrerequisites.h"
-#include "BsScriptObject.h"
+#include "../../../Foundation/bsfCore/VectorGraphics/BsVectorGraphics.h"
+#include "BsScriptNonReflectableWrapper.h"
 
-namespace bs { struct VectorGraphicsSettings; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptVectorGraphicsSettings : public ScriptObject<ScriptVectorGraphicsSettings>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptVectorGraphicsSettings : public TScriptNonReflectableWrapper<VectorGraphicsSettings, ScriptVectorGraphicsSettings>
 	{
 	public:
-		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "VectorGraphicsSettings")
+		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "VectorGraphicsSettings")
 
-		ScriptVectorGraphicsSettings(MonoObject* managedInstance, const SPtr<VectorGraphicsSettings>& value);
+		ScriptVectorGraphicsSettings(const SPtr<VectorGraphicsSettings>& nativeObject);
 
-		SPtr<VectorGraphicsSettings> GetInternal() const { return mInternal; }
-		static MonoObject* Create(const SPtr<VectorGraphicsSettings>& value);
+		static MonoObject* CreateScriptObject(bool construct);
 
 	private:
-		SPtr<VectorGraphicsSettings> mInternal;
-
 	};
 }

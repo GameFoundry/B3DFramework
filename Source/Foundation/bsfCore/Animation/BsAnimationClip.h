@@ -18,7 +18,7 @@ namespace bs
 	struct AnimationCurveMapping;
 
 	/** A set of animation curves representing translation/rotation/scale and generic animation. */
-	struct B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Animation)) AnimationCurves
+	struct B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Animation)) AnimationCurves : public IScriptExportable
 	{
 		B3D_SCRIPT_EXPORT()
 		AnimationCurves() = default;
@@ -93,7 +93,7 @@ namespace bs
 	};
 
 	/** Contains a set of animation curves used for moving and rotating the root bone. */
-	struct B3D_SCRIPT_EXPORT(DocumentationGroup(Animation)) RootMotion
+	struct B3D_SCRIPT_EXPORT(DocumentationGroup(Animation)) RootMotion : public IScriptExportable
 	{
 		RootMotion() = default;
 

@@ -32,7 +32,7 @@ namespace bs
 	};
 
 	/** Settings that control how is a VectorPath drawn. */
-	struct B3D_SCRIPT_EXPORT(DocumentationGroup(VectorGraphics)) VectorGraphicsSettings
+	struct B3D_SCRIPT_EXPORT(DocumentationGroup(VectorGraphics)) VectorGraphicsSettings : public IScriptExportable
 	{
 		Size2 Size = Size2::kZero; /**< Size of the area in which the path is being rasterized to, in pixels. Canvas size will be mapped to this size according to @p ScalingMode. */
 		VectorGraphicsRasterizationScaling ScalingMode = VectorGraphicsRasterizationScaling::ScaleToFit; /**< Determines how is canvas size mapped to @p Size. */

@@ -3,10 +3,10 @@
 #pragma once
 
 #include "BsScriptEnginePrerequisites.h"
+#include "../../../Foundation/bsfCore/Audio/BsAudio.h"
 #include "BsScriptObject.h"
 #include "../../../Foundation/bsfCore/Audio/BsAudio.h"
 
-namespace bs { class Audio; }
 namespace bs { struct __AudioDeviceInterop; }
 namespace bs
 {

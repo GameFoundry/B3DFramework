@@ -9,31 +9,31 @@
 
 namespace bs
 {
-	ScriptGUIToggleGroup::ScriptGUIToggleGroup(MonoObject* managedInstance, const SPtr<GUIToggleGroup>& value)
-		:ScriptObject(managedInstance), mInternal(value)
+	ScriptGUIToggleGroup::ScriptGUIToggleGroup(const SPtr<GUIToggleGroup>& nativeObject)
+		:TScriptNonReflectableWrapper(nativeObject)
 	{
+		RegisterEvents();
 	}
 
-	void ScriptGUIToggleGroup::InitRuntimeData()
+	void ScriptGUIToggleGroup::SetupScriptBindings()
 	{
-		metaData.ScriptClass->AddInternalCall("Internal_Create", (void*)&ScriptGUIToggleGroup::InternalCreate);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_Create", (void*)&ScriptGUIToggleGroup::InternalCreate);
 
 	}
 
-	MonoObject* ScriptGUIToggleGroup::Create(const SPtr<GUIToggleGroup>& value)
+	MonoObject* ScriptGUIToggleGroup::CreateScriptObject(bool construct)
 	{
-		if(value == nullptr) return nullptr; 
-
 		bool dummy = false;
 		void* ctorParams[2] = { &dummy, &dummy };
 
-		MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool,bool", ctorParams);
-		new (B3DAllocate<ScriptGUIToggleGroup>()) ScriptGUIToggleGroup(managedInstance, value);
-		return managedInstance;
+		if(construct)
+			return sInteropMetaData.ScriptClass->CreateInstance("bool,bool", ctorParams);
+
+		return sInteropMetaData.ScriptClass->CreateInstance(false);
 	}
-	void ScriptGUIToggleGroup::InternalCreate(MonoObject* managedInstance, bool allowAllOff)
+	void ScriptGUIToggleGroup::InternalCreate(MonoObject* scriptObject, bool allowAllOff)
 	{
 		SPtr<GUIToggleGroup> nativeObject = GUIToggleGroup::Create(allowAllOff);
-		new (B3DAllocate<ScriptGUIToggleGroup>())ScriptGUIToggleGroup(managedInstance, nativeObject);
+		ScriptObjectWrapper::Create<ScriptGUIToggleGroup>(nativeObject, scriptObject);
 	}
 }

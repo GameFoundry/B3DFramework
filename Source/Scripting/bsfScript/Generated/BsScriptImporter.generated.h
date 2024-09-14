@@ -3,10 +3,10 @@
 #pragma once
 
 #include "BsScriptEnginePrerequisites.h"
+#include "../../../Foundation/bsfCore/Importer/BsImporter.h"
 #include "BsScriptObject.h"
 #include "Utility/BsUUID.h"
 
-namespace bs { class Importer; }
 namespace bs
 {
 #if !B3D_IS_ENGINE

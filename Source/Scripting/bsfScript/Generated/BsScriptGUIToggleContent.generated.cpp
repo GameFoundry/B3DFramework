@@ -32,9 +32,9 @@ namespace bs
 		output.GeneralContent = tmpGeneralContent;
 		SPtr<GUIToggleGroup> tmpToggleGroup;
 		ScriptGUIToggleGroup* scriptWrapperObjectToggleGroup;
-		scriptWrapperObjectToggleGroup = ScriptGUIToggleGroup::ToNative(value.ToggleGroup);
+		scriptWrapperObjectToggleGroup = ScriptGUIToggleGroup::GetScriptObjectWrapper(value.ToggleGroup);
 		if(scriptWrapperObjectToggleGroup != nullptr)
-			tmpToggleGroup = scriptWrapperObjectToggleGroup->GetInternal();
+			tmpToggleGroup = std::static_pointer_cast<GUIToggleGroup>(scriptWrapperObjectToggleGroup->GetBaseNativeObjectAsShared());
 		output.ToggleGroup = tmpToggleGroup;
 
 		return output;
@@ -47,7 +47,7 @@ namespace bs
 		tmpGeneralContent = ScriptGUIContent::ToInterop(value.GeneralContent);
 		output.GeneralContent = tmpGeneralContent;
 		MonoObject* tmpToggleGroup;
-		tmpToggleGroup = ScriptGUIToggleGroup::Create(value.ToggleGroup);
+		tmpToggleGroup = ScriptGUIToggleGroup::GetOrCreateScriptObject(value.ToggleGroup);
 		output.ToggleGroup = tmpToggleGroup;
 
 		return output;

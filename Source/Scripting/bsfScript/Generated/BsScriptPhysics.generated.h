@@ -3,9 +3,9 @@
 #pragma once
 
 #include "BsScriptEnginePrerequisites.h"
+#include "../../../Foundation/bsfCore/Physics/BsPhysics.h"
 #include "BsScriptObject.h"
 
-namespace bs { class Physics; }
 namespace bs
 {
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptPhysics : public ScriptObject<ScriptPhysics>

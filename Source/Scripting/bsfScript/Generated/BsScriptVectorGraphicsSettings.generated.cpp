@@ -8,25 +8,25 @@
 
 namespace bs
 {
-	ScriptVectorGraphicsSettings::ScriptVectorGraphicsSettings(MonoObject* managedInstance, const SPtr<VectorGraphicsSettings>& value)
-		:ScriptObject(managedInstance), mInternal(value)
+	ScriptVectorGraphicsSettings::ScriptVectorGraphicsSettings(const SPtr<VectorGraphicsSettings>& nativeObject)
+		:TScriptNonReflectableWrapper(nativeObject)
 	{
+		RegisterEvents();
 	}
 
-	void ScriptVectorGraphicsSettings::InitRuntimeData()
+	void ScriptVectorGraphicsSettings::SetupScriptBindings()
 	{
 
 	}
 
-	MonoObject* ScriptVectorGraphicsSettings::Create(const SPtr<VectorGraphicsSettings>& value)
+	MonoObject* ScriptVectorGraphicsSettings::CreateScriptObject(bool construct)
 	{
-		if(value == nullptr) return nullptr; 
-
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
 
-		MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-		new (B3DAllocate<ScriptVectorGraphicsSettings>()) ScriptVectorGraphicsSettings(managedInstance, value);
-		return managedInstance;
+		if(construct)
+			return sInteropMetaData.ScriptClass->CreateInstance("bool", ctorParams);
+
+		return sInteropMetaData.ScriptClass->CreateInstance(false);
 	}
 }

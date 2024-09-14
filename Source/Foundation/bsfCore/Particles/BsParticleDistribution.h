@@ -39,7 +39,7 @@ namespace bs
 
 	/** Specifies a color as a distribution, which can include a constant color, random color range or a color gradient. */
 	template <class T>
-	struct TColorDistribution
+	struct TColorDistribution : public IScriptExportable
 	{
 		/** Creates a new empty distribution. */
 		B3D_SCRIPT_EXPORT()
@@ -251,7 +251,7 @@ namespace bs
 
 	/** Specifies a value as a distribution, which can include a constant value, random range or a curve. */
 	template <class T>
-	struct TDistribution
+	struct TDistribution : public IScriptExportable
 	{
 		/** Creates a new empty distribution. */
 		B3D_SCRIPT_EXPORT()

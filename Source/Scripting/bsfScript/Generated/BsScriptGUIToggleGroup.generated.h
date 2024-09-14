@@ -3,24 +3,21 @@
 #pragma once
 
 #include "BsScriptEnginePrerequisites.h"
-#include "BsScriptObject.h"
+#include "../../../Foundation/bsfEngine/GUI/BsGUIToggleGroup.h"
+#include "BsScriptNonReflectableWrapper.h"
 
-namespace bs { class GUIToggleGroup; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptGUIToggleGroup : public ScriptObject<ScriptGUIToggleGroup>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptGUIToggleGroup : public TScriptNonReflectableWrapper<GUIToggleGroup, ScriptGUIToggleGroup>
 	{
 	public:
-		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "GUIToggleGroup")
+		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "GUIToggleGroup")
 
-		ScriptGUIToggleGroup(MonoObject* managedInstance, const SPtr<GUIToggleGroup>& value);
+		ScriptGUIToggleGroup(const SPtr<GUIToggleGroup>& nativeObject);
 
-		SPtr<GUIToggleGroup> GetInternal() const { return mInternal; }
-		static MonoObject* Create(const SPtr<GUIToggleGroup>& value);
+		static MonoObject* CreateScriptObject(bool construct);
 
 	private:
-		SPtr<GUIToggleGroup> mInternal;
-
-		static void InternalCreate(MonoObject* managedInstance, bool allowAllOff);
+		static void InternalCreate(MonoObject* scriptObject, bool allowAllOff);
 	};
 }

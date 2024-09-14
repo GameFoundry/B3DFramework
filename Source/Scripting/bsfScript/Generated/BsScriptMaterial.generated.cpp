@@ -155,9 +155,9 @@ namespace bs
 		tmpname = MonoUtil::MonoToString(name);
 		SPtr<TAnimationCurve<float>> tmpvalue;
 		ScriptAnimationCurve* scriptObjectWrappervalue;
-		scriptObjectWrappervalue = ScriptAnimationCurve::ToNative(value);
+		scriptObjectWrappervalue = ScriptAnimationCurve::GetScriptObjectWrapper(value);
 		if(scriptObjectWrappervalue != nullptr)
-			tmpvalue = scriptObjectWrappervalue->GetInternal();
+			tmpvalue = std::static_pointer_cast<TAnimationCurve<float>>(scriptObjectWrappervalue->GetBaseNativeObjectAsShared());
 		static_cast<Material*>(self->GetNativeObject())->SetFloatCurve(tmpname, *tmpvalue, arrayIdx);
 	}
 
@@ -236,7 +236,7 @@ namespace bs
 		*tmp__output = static_cast<Material*>(self->GetNativeObject())->GetFloatCurve(tmpname, arrayIdx);
 
 		MonoObject* __output;
-		__output = ScriptAnimationCurve::Create(tmp__output);
+		__output = ScriptAnimationCurve::GetOrCreateScriptObject(tmp__output);
 
 		return __output;
 	}

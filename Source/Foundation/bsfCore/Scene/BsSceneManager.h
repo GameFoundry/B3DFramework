@@ -37,7 +37,7 @@ namespace bs
 	};
 
 	/** Contains information about an instantiated scene. */
-	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Scene)) SceneInstance
+	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Scene)) SceneInstance : public IScriptExportable
 	{
 		struct ConstructPrivately
 		{};
