@@ -12,7 +12,7 @@ MonoObject* ScriptReflectableWrapper::GetOrCreateScriptObject(const SPtr<IReflec
 		return nullptr;
 
 	const u32 rttiId = nativeObject->GetTypeId();
-	const ScriptWrapperObjectMetaData* const scriptWrapperObjectMetaData = ScriptAssemblyManager::Instance().GetScriptWrapperMetaData(rttiId);
+	const ScriptTypeMetaData* const scriptWrapperObjectMetaData = ScriptAssemblyManager::Instance().GetScriptWrapperMetaData(rttiId);
 	if(scriptWrapperObjectMetaData == nullptr)
 	{
 		B3D_LOG(Error, Script, "Cannot retrieve script object. Mapping between a reflectable object and a managed type is missing for type \"{0}\"", rttiId);
@@ -35,7 +35,7 @@ MonoObject* ScriptReflectableWrapper::GetOrCreateScriptObject(const SPtr<IReflec
 	return scriptWrapperObjectMetaData->ReflectableCreateCallback(nativeObject);
 }
 
-ScriptReflectableWrapper* ScriptReflectableWrapper::GetScriptObjectWrapper(const ScriptWrapperObjectMetaData& wrapperMetaData, MonoObject* scriptObject)
+ScriptReflectableWrapper* ScriptReflectableWrapper::GetScriptObjectWrapper(const ScriptTypeMetaData& wrapperMetaData, MonoObject* scriptObject)
 {
 	ScriptReflectableWrapper* scriptObjectWrapper = nullptr;
 

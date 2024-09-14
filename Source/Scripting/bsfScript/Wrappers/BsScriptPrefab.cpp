@@ -2,7 +2,6 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "Wrappers/BsScriptPrefab.h"
 #include "BsScriptResourceManager.h"
-#include "BsScriptMeta.h"
 #include "BsMonoClass.h"
 #include "Scene/BsSceneManager.h"
 #include "Wrappers/BsScriptSceneObject.h"

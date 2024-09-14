@@ -3,7 +3,6 @@
 #include "Wrappers/BsScriptManagedResource.h"
 #include "BsScriptResourceManager.h"
 #include "Serialization/BsScriptAssemblyManager.h"
-#include "BsScriptMeta.h"
 #include "BsMonoClass.h"
 #include "BsManagedResource.h"
 #include "Resources/BsResources.h"

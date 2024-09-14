@@ -38,7 +38,7 @@ namespace bs
 		static MonoObject* GetOrCreateScriptObject(const HGameObject& nativeObject);
 
 		/** Returns the script object wrapper associated with the provided script object, and wrapped by a wrapper that owns the provided meta-data. */
-		static ScriptGameObjectWrapper* GetScriptObjectWrapper(const ScriptWrapperObjectMetaData& wrapperMetaData, MonoObject* scriptObject);
+		static ScriptGameObjectWrapper* GetScriptObjectWrapper(const ScriptTypeMetaData& wrapperMetaData, MonoObject* scriptObject);
 
 	protected:
 		HGameObject mNativeObjectStrongHandle;
@@ -109,7 +109,7 @@ namespace bs
 
 			// TODO: Could skip expensive lookup if the type has no derived classes (should be most cases). In that case the code-gen could generate
 			// code that calls a streamlined version of this method, with no lookup.
-			const ScriptWrapperObjectMetaData* metaData = ScriptAssemblyManager::Instance().GetScriptWrapperMetaData(nativeObject->GetTypeId());
+			const ScriptTypeMetaData* metaData = ScriptAssemblyManager::Instance().GetScriptWrapperMetaData(nativeObject->GetTypeId());
 			if(B3D_ENSURE(metaData))
 				return metaData->GameObjectCreateCallback(nativeObject);
 
@@ -120,7 +120,7 @@ namespace bs
 		friend class TScriptObjectWrapper<SelfType, BaseType>;
 
 		/** Initialize RTTI type ID and callback used to create the script object/script object wrapper. */
-		static void InitializeAdditionalMetaData(ScriptWrapperObjectMetaData& metaData)
+		static void InitializeAdditionalMetaData(ScriptTypeMetaData& metaData)
 		{
 			metaData.TypeId = NativeType::GetRttiStatic()->GetRttiId();
 			metaData.GameObjectCreateCallback = &CreateScriptObjectAndWrapper;

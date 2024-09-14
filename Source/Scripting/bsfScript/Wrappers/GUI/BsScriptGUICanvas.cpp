@@ -1,7 +1,6 @@
 //********************************* bs::framework - Copyright 2018-2019 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "Wrappers/GUI/BsScriptGUICanvas.h"
-#include "BsScriptMeta.h"
 #include "BsMonoUtil.h"
 #include "GUI/BsGUILayout.h"
 #include "GUI/BsGUICanvas.h"

@@ -17,7 +17,7 @@ MonoObject* ScriptResourceWrapper::GetOrCreateScriptObject(const HResource& nati
 		return nullptr;
 
 	const u32 rttiId = nativeObject->GetTypeId();
-	const ScriptWrapperObjectMetaData* const scriptWrapperObjectMetaData = ScriptAssemblyManager::Instance().GetScriptWrapperMetaData(rttiId);
+	const ScriptTypeMetaData* const scriptWrapperObjectMetaData = ScriptAssemblyManager::Instance().GetScriptWrapperMetaData(rttiId);
 	if(scriptWrapperObjectMetaData == nullptr)
 	{
 		B3D_LOG(Error, Script, "Cannot retrieve script object. Mapping between a resource and a managed type is missing for type \"{0}\"", rttiId);
@@ -40,7 +40,7 @@ MonoObject* ScriptResourceWrapper::GetOrCreateScriptObject(const HResource& nati
 	return scriptWrapperObjectMetaData->ResourceCreateCallback(nativeObject);
 }
 
-ScriptResourceWrapper* ScriptResourceWrapper::GetScriptObjectWrapper(const ScriptWrapperObjectMetaData& wrapperMetaData, MonoObject* scriptObject)
+ScriptResourceWrapper* ScriptResourceWrapper::GetScriptObjectWrapper(const ScriptTypeMetaData& wrapperMetaData, MonoObject* scriptObject)
 {
 	ScriptResourceWrapper* scriptObjectWrapper = nullptr;
 
@@ -71,7 +71,7 @@ MonoObject* ScriptResourceWrapper::GetOrCreateResourceReference(const HResource&
 		return ScriptManagedResource::GetMetaData()->ScriptClass->GetInternalClass();
 	else
 	{
-		const ScriptWrapperObjectMetaData* const metaData = ScriptAssemblyManager::Instance().GetScriptWrapperMetaData(rttiId);
+		const ScriptTypeMetaData* const metaData = ScriptAssemblyManager::Instance().GetScriptWrapperMetaData(rttiId);
 
 		if(metaData == nullptr)
 			return nullptr;

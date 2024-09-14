@@ -2,7 +2,6 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "Wrappers/BsScriptComponent.h"
 #include "Serialization/BsScriptAssemblyManager.h"
-#include "BsScriptMeta.h"
 #include "BsMonoClass.h"
 #include "BsMonoMethod.h"
 #include "BsMonoUtil.h"
@@ -51,7 +50,7 @@ MonoObject* ScriptComponent::InternalAddComponent(MonoObject* parentSceneObject,
 	}
 	else
 	{
-		const ScriptWrapperObjectMetaData* const scriptWrapperObjectMetaData = scriptAssemblyManager.GetScriptWrapperMetaData(type);
+		const ScriptTypeMetaData* const scriptWrapperObjectMetaData = scriptAssemblyManager.GetScriptWrapperMetaData(type);
 		if(scriptWrapperObjectMetaData == nullptr)
 			return nullptr;
 
@@ -88,7 +87,7 @@ MonoObject* ScriptComponent::InternalGetComponent(MonoObject* parentSceneObject,
 		else
 		{
 			ScriptAssemblyManager& scriptAssemblyManager = ScriptAssemblyManager::Instance();
-			const ScriptWrapperObjectMetaData* const scriptWrapperObjectMetaData = scriptAssemblyManager.GetScriptWrapperMetaData(type);
+			const ScriptTypeMetaData* const scriptWrapperObjectMetaData = scriptAssemblyManager.GetScriptWrapperMetaData(type);
 			if(scriptWrapperObjectMetaData == nullptr)
 				continue;
 
@@ -126,7 +125,7 @@ MonoArray* ScriptComponent::InternalGetComponentsPerType(MonoObject* parentScene
 			else
 			{
 				ScriptAssemblyManager& scriptAssemblyManager = ScriptAssemblyManager::Instance();
-				const ScriptWrapperObjectMetaData* const scriptWrapperObjectMetaData = scriptAssemblyManager.GetScriptWrapperMetaData(type);
+				const ScriptTypeMetaData* const scriptWrapperObjectMetaData = scriptAssemblyManager.GetScriptWrapperMetaData(type);
 				if(scriptWrapperObjectMetaData == nullptr)
 					continue;
 
@@ -207,7 +206,7 @@ void ScriptComponent::InternalRemoveComponent(MonoObject* parentSceneObject, Mon
 		else
 		{
 			ScriptAssemblyManager& scriptAssemblyManager = ScriptAssemblyManager::Instance();
-			const ScriptWrapperObjectMetaData* const scriptWrapperObjectMetaData = scriptAssemblyManager.GetScriptWrapperMetaData(type);
+			const ScriptTypeMetaData* const scriptWrapperObjectMetaData = scriptAssemblyManager.GetScriptWrapperMetaData(type);
 			if(scriptWrapperObjectMetaData == nullptr)
 				continue;
 

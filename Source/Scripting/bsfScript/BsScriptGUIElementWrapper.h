@@ -76,7 +76,7 @@ namespace bs
 	protected:
 		friend class TScriptObjectWrapper<SelfType, BaseType>;
 
-		static void InitializeAdditionalMetaData(ScriptWrapperObjectMetaData& metaData)
+		static void InitializeAdditionalMetaData(ScriptTypeMetaData& metaData)
 		{ }
 	};
 

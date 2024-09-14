@@ -253,7 +253,7 @@ SPtr<ManagedSerializableFieldData> ManagedSerializableFieldData::Create(const SP
 		case ScriptReferenceType::BuiltinComponentBase:
 		case ScriptReferenceType::BuiltinComponent:
 			{
-				const ScriptWrapperObjectMetaData* const scriptWrapperObjectMetaData = ScriptAssemblyManager::Instance().GetScriptWrapperMetaData(refTypeInfo->RtiiTypeId);
+				const ScriptTypeMetaData* const scriptWrapperObjectMetaData = ScriptAssemblyManager::Instance().GetScriptWrapperMetaData(refTypeInfo->RtiiTypeId);
 				if(scriptWrapperObjectMetaData == nullptr)
 					return nullptr;
 
@@ -283,7 +283,7 @@ SPtr<ManagedSerializableFieldData> ManagedSerializableFieldData::Create(const SP
 		case ScriptReferenceType::BuiltinResourceBase:
 		case ScriptReferenceType::BuiltinResource:
 			{
-				const ScriptWrapperObjectMetaData* const scriptWrapperObjectMetaData = ScriptAssemblyManager::Instance().GetScriptWrapperMetaData(refTypeInfo->RtiiTypeId);
+				const ScriptTypeMetaData* const scriptWrapperObjectMetaData = ScriptAssemblyManager::Instance().GetScriptWrapperMetaData(refTypeInfo->RtiiTypeId);
 				if(scriptWrapperObjectMetaData == nullptr)
 					return nullptr;
 
@@ -299,7 +299,7 @@ SPtr<ManagedSerializableFieldData> ManagedSerializableFieldData::Create(const SP
 			}
 		case ScriptReferenceType::ReflectableObject:
 			{
-				const ScriptWrapperObjectMetaData* scriptWrapperMetaData = ScriptAssemblyManager::Instance().GetScriptWrapperMetaData(refTypeInfo->RtiiTypeId);
+				const ScriptTypeMetaData* scriptWrapperMetaData = ScriptAssemblyManager::Instance().GetScriptWrapperMetaData(refTypeInfo->RtiiTypeId);
 				if(scriptWrapperMetaData == nullptr)
 					return nullptr;
 

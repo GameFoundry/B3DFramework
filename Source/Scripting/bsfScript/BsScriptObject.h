@@ -3,7 +3,7 @@
 #pragma once
 
 #include "BsScriptEnginePrerequisites.h"
-#include "BsScriptMeta.h"
+#include "BsScriptTypeMetaData.h"
 #include "Error/BsException.h"
 #include "BsMonoManager.h"
 #include "BsMonoField.h"
@@ -151,7 +151,7 @@ namespace bs
 		}
 
 		/** Returns the meta-data containing class and method information for the managed type. */
-		static const ScriptWrapperObjectMetaData* GetMetaData() { return &metaData; }
+		static const ScriptTypeMetaData* GetMetaData() { return &metaData; }
 
 		/**
 		 * Initializes the meta-data containing class and method information for the managed type. Called on library load
@@ -161,13 +161,13 @@ namespace bs
 		{
 			// Need to delay init of actual metaData since it's also a static, and we can't guarantee the order
 			// (if it gets initialized after this, it will just overwrite the data)
-			ScriptWrapperObjectMetaData localMetaData = ScriptWrapperObjectMetaData(Type::GetAssemblyName(), Type::GetNamespace(), Type::GetTypeName(), &Type::InitRuntimeData);
+			ScriptTypeMetaData localMetaData = ScriptTypeMetaData(Type::GetAssemblyName(), Type::GetNamespace(), Type::GetTypeName(), &Type::InitRuntimeData);
 
 			MonoManager::RegisterScriptType(&metaData, localMetaData);
 		}
 
 	protected:
-		static ScriptWrapperObjectMetaData metaData;
+		static ScriptTypeMetaData metaData;
 
 	private:
 		static InitScriptObjectOnStart<Type, Base> initOnStart;
@@ -177,7 +177,7 @@ namespace bs
 	InitScriptObjectOnStart<Type, Base> ScriptObject<Type, Base>::initOnStart;
 
 	template <typename Type, typename Base>
-	ScriptWrapperObjectMetaData ScriptObject<Type, Base>::metaData;
+	ScriptTypeMetaData ScriptObject<Type, Base>::metaData;
 
 /** Helper macro to use with script interop objects that form a link between C++ and CLR. */
 #define SCRIPT_OBJ(assembly, namespace, name) \

@@ -12,7 +12,7 @@ namespace bs
 	 *  @{
 	 */
 
-	/** Type of create callback specified in ScriptWrapperObjectMetaData. */
+	/** Type of create callback specified in ScriptTypeMetaData. */
 	enum class ScriptWrapperCreateCallbackType
 	{
 		None,
@@ -21,11 +21,11 @@ namespace bs
 		GameObject,
 	};
 
-	/**	Contains information required for initializing and handling a single script class. */
-	struct B3D_MONO_EXPORT ScriptWrapperObjectMetaData
+	/**	Contains information about a class exported to script. */
+	struct B3D_MONO_EXPORT ScriptTypeMetaData
 	{
-		ScriptWrapperObjectMetaData() = default;
-		ScriptWrapperObjectMetaData(const String& assembly, const String& nameSpace, const String& name, std::function<void()> setupScriptBindingsCallback);
+		ScriptTypeMetaData() = default;
+		ScriptTypeMetaData(const String& assembly, const String& nameSpace, const String& name, std::function<void()> setupScriptBindingsCallback);
 
 		// TODO - These should be const char
 		String Namespace; /**< Namespace the script class is located in. */

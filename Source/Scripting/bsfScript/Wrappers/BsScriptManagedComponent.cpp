@@ -2,7 +2,6 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "Wrappers/BsScriptManagedComponent.h"
 #include "Serialization/BsScriptAssemblyManager.h"
-#include "BsScriptMeta.h"
 #include "BsMonoClass.h"
 #include "BsMonoMethod.h"
 #include "BsMonoUtil.h"

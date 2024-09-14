@@ -1,7 +1,7 @@
 //************************************ bs::framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "BsMonoManager.h"
-#include "BsScriptMeta.h"
+#include "BsScriptTypeMetaData.h"
 #include "BsMonoAssembly.h"
 #include "BsMonoClass.h"
 #include "BsMonoUtil.h"
@@ -188,7 +188,7 @@ void MonoManager::RefreshScriptTypeMetaDataAndBindings(MonoAssembly& assembly)
 	Vector<RegisteredScriptWrapperTypeInformation>& typeMetas = GetScriptWrapperTypeInformation()[assembly.mName];
 	for(auto& entry : typeMetas)
 	{
-		ScriptWrapperObjectMetaData* meta = entry.MetaData;
+		ScriptTypeMetaData* meta = entry.MetaData;
 		*meta = entry.LocalMetaData;
 
 		meta->ScriptClass = assembly.GetClass(meta->Namespace, meta->Name);
@@ -242,7 +242,7 @@ bs::MonoAssembly* MonoManager::GetAssembly(const String& name) const
 	return nullptr;
 }
 
-void MonoManager::RegisterScriptType(ScriptWrapperObjectMetaData* metaData, const ScriptWrapperObjectMetaData& localMetaData)
+void MonoManager::RegisterScriptType(ScriptTypeMetaData* metaData, const ScriptTypeMetaData& localMetaData)
 {
 	Vector<RegisteredScriptWrapperTypeInformation>& mMetas = GetScriptWrapperTypeInformation()[localMetaData.Assembly];
 	mMetas.push_back({ metaData, localMetaData });

@@ -40,7 +40,7 @@ namespace bs
 		static MonoObject* GetOrCreateScriptObject(const HResource& nativeObject);
 
 		/** Returns the script object wrapper associated with the provided script object, and wrapped by a wrapper that owns the provided meta-data. */
-		static ScriptResourceWrapper* GetScriptObjectWrapper(const ScriptWrapperObjectMetaData& wrapperMetaData, MonoObject* scriptObject);
+		static ScriptResourceWrapper* GetScriptObjectWrapper(const ScriptTypeMetaData& wrapperMetaData, MonoObject* scriptObject);
 
 		/**
 		 * Returns a resource reference script object, that is wrapping the provided resource.
@@ -134,7 +134,7 @@ namespace bs
 
 			// TODO: Could skip expensive lookup if the type has no derived classes (should be most cases). In that case the code-gen could generate
 			// code that calls a streamlined version of this method, with no lookup.
-			const ScriptWrapperObjectMetaData* metaData = ScriptAssemblyManager::Instance().GetScriptWrapperMetaData(nativeObject->GetTypeId());
+			const ScriptTypeMetaData* metaData = ScriptAssemblyManager::Instance().GetScriptWrapperMetaData(nativeObject->GetTypeId());
 			if(B3D_ENSURE(metaData))
 				return metaData->ResourceCreateCallback(nativeObject);
 
@@ -145,7 +145,7 @@ namespace bs
 		friend class TScriptObjectWrapper<SelfType, BaseType>;
 
 		/** Initialize RTTI type ID and callback used to create the script object/script object wrapper. */
-		static void InitializeAdditionalMetaData(ScriptWrapperObjectMetaData& metaData)
+		static void InitializeAdditionalMetaData(ScriptTypeMetaData& metaData)
 		{
 			metaData.TypeId = NativeType::GetRttiStatic()->GetRttiId();
 			metaData.ResourceCreateCallback = &CreateScriptObjectAndWrapper;

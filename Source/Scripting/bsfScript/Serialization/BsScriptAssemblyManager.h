@@ -83,10 +83,10 @@ namespace bs
 		SPtr<ManagedSerializableTypeInfo> GetTypeInfo(MonoClass* monoClass);
 
 		/** Returns script wrapper object meta-data for the type as specified by the provided RTTI type ID. */
-		const ScriptWrapperObjectMetaData* GetScriptWrapperMetaData(u32 typeId) const;
+		const ScriptTypeMetaData* GetScriptWrapperMetaData(u32 typeId) const;
 
 		/** Returns script wrapper object meta-data for the type as specified by the script type. */
-		const ScriptWrapperObjectMetaData* GetScriptWrapperMetaData(::MonoReflectionType* type) const;
+		const ScriptTypeMetaData* GetScriptWrapperMetaData(::MonoReflectionType* type) const;
 
 		/**
 		 * Checks if the managed serializable object info for the specified type exists.
@@ -129,8 +129,8 @@ namespace bs
 
 		UnorderedMap<String, SPtr<ManagedSerializableAssemblyInfo>> mAssemblyInfos;
 
-		UnorderedMap<u32, ScriptWrapperObjectMetaData*> mScriptWrapperMetaDataByTypeId;
-		UnorderedMap<::MonoReflectionType*, ScriptWrapperObjectMetaData*> mScriptWrapperMetaDataByScriptClass;
+		UnorderedMap<u32, ScriptTypeMetaData*> mScriptWrapperMetaDataByTypeId;
+		UnorderedMap<::MonoReflectionType*, ScriptTypeMetaData*> mScriptWrapperMetaDataByScriptClass;
 
 		bool mBaseTypesInitialized = false;
 

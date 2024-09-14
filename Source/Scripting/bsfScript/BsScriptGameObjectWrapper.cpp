@@ -12,7 +12,7 @@ MonoObject* ScriptGameObjectWrapper::GetOrCreateScriptObject(const HGameObject& 
 		return nullptr;
 
 	const u32 rttiId = nativeObject->GetTypeId();
-	const ScriptWrapperObjectMetaData* const scriptWrapperObjectMetaData = ScriptAssemblyManager::Instance().GetScriptWrapperMetaData(rttiId);
+	const ScriptTypeMetaData* const scriptWrapperObjectMetaData = ScriptAssemblyManager::Instance().GetScriptWrapperMetaData(rttiId);
 	if(scriptWrapperObjectMetaData == nullptr)
 	{
 		B3D_LOG(Error, Script, "Cannot retrieve script object. Mapping between a game object and a managed type is missing for type \"{0}\"", rttiId);
@@ -35,7 +35,7 @@ MonoObject* ScriptGameObjectWrapper::GetOrCreateScriptObject(const HGameObject& 
 	return scriptWrapperObjectMetaData->GameObjectCreateCallback(nativeObject);
 }
 
-ScriptGameObjectWrapper* ScriptGameObjectWrapper::GetScriptObjectWrapper(const ScriptWrapperObjectMetaData& wrapperMetaData, MonoObject* scriptObject)
+ScriptGameObjectWrapper* ScriptGameObjectWrapper::GetScriptObjectWrapper(const ScriptTypeMetaData& wrapperMetaData, MonoObject* scriptObject)
 {
 	ScriptGameObjectWrapper* scriptObjectWrapper = nullptr;
 

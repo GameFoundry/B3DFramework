@@ -1,7 +1,6 @@
 //********************************* bs::framework - Copyright 2018-2019 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "BsScriptAsyncOp.h"
-#include "BsScriptMeta.h"
 #include "BsMonoClass.h"
 #include "BsMonoUtil.h"
 #include "BsApplication.h"
@@ -23,7 +22,7 @@ MonoObject* ScriptAsyncOpBase::CreateInternal(const AsyncOpBase& op, const std::
 {
 	MonoClass* returnTypeClass = nullptr;
 
-	const ScriptWrapperObjectMetaData* const scriptWrapperObjectMetaData = ScriptAssemblyManager::Instance().GetScriptWrapperMetaData(rttiId);
+	const ScriptTypeMetaData* const scriptWrapperObjectMetaData = ScriptAssemblyManager::Instance().GetScriptWrapperMetaData(rttiId);
 	if(scriptWrapperObjectMetaData != nullptr)
 		returnTypeClass = scriptWrapperObjectMetaData->ScriptClass;
 

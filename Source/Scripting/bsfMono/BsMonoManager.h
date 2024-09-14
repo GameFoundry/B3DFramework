@@ -3,7 +3,7 @@
 #pragma once
 
 #include "BsMonoPrerequisites.h"
-#include "BsScriptMeta.h"
+#include "BsScriptTypeMetaData.h"
 #include "Utility/BsModule.h"
 
 namespace bs
@@ -15,8 +15,8 @@ namespace bs
 	// TODO - Doc
 	struct RegisteredScriptWrapperTypeInformation // TODO - This might better belong in ScriptAssemblyManager
 	{
-		ScriptWrapperObjectMetaData* MetaData; /**< Pointer to the meta-data on the associated TScriptObjectWrapper. */
-		ScriptWrapperObjectMetaData LocalMetaData; /**< Local copy of the meta-data that will be used to initialize @p MetaData. */
+		ScriptTypeMetaData* MetaData; /**< Pointer to the meta-data on the associated TScriptObjectWrapper. */
+		ScriptTypeMetaData LocalMetaData; /**< Local copy of the meta-data that will be used to initialize @p MetaData. */
 	};
 
 	/**	Available Mono versions. */
@@ -82,7 +82,7 @@ namespace bs
 		 * @param metaData			Pointer to the meta-data object to initialize, stored statically on the associated TScriptObjectWrapper.
 		 * @param localMetaData		Local copy of the meta-data that will be used to initialize @p metaData.
 		 */
-		static void RegisterScriptType(ScriptWrapperObjectMetaData* metaData, const ScriptWrapperObjectMetaData& localMetaData);
+		static void RegisterScriptType(ScriptTypeMetaData* metaData, const ScriptTypeMetaData& localMetaData);
 
 		/**	Returns a list of all registered script wrapper types, by assembly. */
 		static UnorderedMap<String, Vector<RegisteredScriptWrapperTypeInformation>>& GetScriptWrapperTypeInformation()

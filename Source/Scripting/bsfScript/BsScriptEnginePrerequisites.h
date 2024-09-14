@@ -123,7 +123,7 @@ namespace bs
 	class ScriptColliderBase;
 	class ScriptAudioClip;
 	class ScriptReflectableBase;
-	struct ScriptWrapperObjectMetaData;
+	struct ScriptTypeMetaData;
 
 	typedef GameObjectHandle<ManagedComponent> HManagedComponent;
 	typedef TResourceHandle<ManagedResource> HManagedResource;

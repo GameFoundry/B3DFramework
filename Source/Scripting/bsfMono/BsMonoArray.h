@@ -3,7 +3,7 @@
 #pragma once
 
 #include "BsMonoPrerequisites.h"
-#include "BsScriptMeta.h"
+#include "BsScriptTypeMetaData.h"
 #include "BsMonoUtil.h"
 #include "BsMonoManager.h"
 

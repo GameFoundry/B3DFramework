@@ -3,7 +3,7 @@
 #pragma once
 
 #include "BsScriptEnginePrerequisites.h"
-#include "BsScriptMeta.h"
+#include "BsScriptTypeMetaData.h"
 #include "BsMonoManager.h"
 #include "BsMonoField.h"
 #include "BsMonoClass.h"
@@ -245,7 +245,7 @@ namespace bs
 		}
 
 		/** Returns the meta-data storing information about the script exported type. */
-		static const ScriptWrapperObjectMetaData* GetMetaData() { return &sInteropMetaData; }
+		static const ScriptTypeMetaData* GetMetaData() { return &sInteropMetaData; }
 
 		/**
 		 * Takes care of initializing the meta-data when the application first load. The meta-data will be registered with a global manager that will ensure
@@ -255,7 +255,7 @@ namespace bs
 		{
 			// Need to delay init of sInteropMetaData since it's also a static, and we can't guarantee the order
 			// (if it gets initialized after this, it will just overwrite the data)
-			ScriptWrapperObjectMetaData localMetaData = ScriptWrapperObjectMetaData(SelfType::GetAssemblyName(), SelfType::GetNamespace(), SelfType::GetTypeName(), &SelfType::SetupScriptBindings);
+			ScriptTypeMetaData localMetaData = ScriptTypeMetaData(SelfType::GetAssemblyName(), SelfType::GetNamespace(), SelfType::GetTypeName(), &SelfType::SetupScriptBindings);
 
 			SelfType::InitializeAdditionalMetaData(localMetaData);
 			MonoManager::RegisterScriptType(&sInteropMetaData, localMetaData);
@@ -281,7 +281,7 @@ namespace bs
 			}
 		}
 
-		static ScriptWrapperObjectMetaData sInteropMetaData;
+		static ScriptTypeMetaData sInteropMetaData;
 		static InitializeScriptObjectWrapperOnLoadTime<SelfType, BaseType> sInitializeOnLoadTime;
 	};
 
@@ -289,7 +289,7 @@ namespace bs
 	InitializeScriptObjectWrapperOnLoadTime<SelfType, BaseType> TScriptObjectWrapper<SelfType, BaseType>::sInitializeOnLoadTime;
 
 	template <typename SelfType, typename BaseType>
-	ScriptWrapperObjectMetaData TScriptObjectWrapper<SelfType, BaseType>::sInteropMetaData;
+	ScriptTypeMetaData TScriptObjectWrapper<SelfType, BaseType>::sInteropMetaData;
 
 	/**	Specialized version of TScriptObjectWrapper that should be used for types that are never going to be explicitly instantiated (e.g. singletons, static-only classes and base classes). */
 	template <typename SelfType>
@@ -310,7 +310,7 @@ namespace bs
 		friend class TScriptObjectWrapper<SelfType>;
 
 		/** Dummy method to initialize additional meta-data. Not needed for non-instantiable types. */
-		static void InitializeAdditionalMetaData(ScriptWrapperObjectMetaData& metaData)
+		static void InitializeAdditionalMetaData(ScriptTypeMetaData& metaData)
 		{
 			// Do nothing
 		}
@@ -349,7 +349,7 @@ namespace bs
 		}
 
 		/** Returns the meta-data storing information about the script exported type. */
-		static const ScriptWrapperObjectMetaData* GetMetaData() { return &sInteropMetaData; }
+		static const ScriptTypeMetaData* GetMetaData() { return &sInteropMetaData; }
 
 		/**
 		 * Takes care of initializing the meta-data when the application first load. The meta-data will be registered with a global manager that will ensure
@@ -359,13 +359,13 @@ namespace bs
 		{
 			// Need to delay init of sInteropMetaData since it's also a static, and we can't guarantee the order
 			// (if it gets initialized after this, it will just overwrite the data)
-			ScriptWrapperObjectMetaData localMetaData = ScriptWrapperObjectMetaData(SelfType::GetAssemblyName(), SelfType::GetNamespace(), SelfType::GetTypeName(), nullptr);
+			ScriptTypeMetaData localMetaData = ScriptTypeMetaData(SelfType::GetAssemblyName(), SelfType::GetNamespace(), SelfType::GetTypeName(), nullptr);
 
 			MonoManager::RegisterScriptType(&sInteropMetaData, localMetaData);
 		}
 
 	protected:
-		static ScriptWrapperObjectMetaData sInteropMetaData;
+		static ScriptTypeMetaData sInteropMetaData;
 		static InitializeScriptStructWrapperOnLoadTime<SelfType> sInitializeOnLoadTime;
 	};
 
@@ -373,7 +373,7 @@ namespace bs
 	InitializeScriptStructWrapperOnLoadTime<SelfType> TScriptStructWrapper<SelfType>::sInitializeOnLoadTime;
 
 	template <typename SelfType>
-	ScriptWrapperObjectMetaData TScriptStructWrapper<SelfType>::sInteropMetaData;
+	ScriptTypeMetaData TScriptStructWrapper<SelfType>::sInteropMetaData;
 
 	/** Implements default methods required by script object wrapper implementations. */
 #define B3D_SCRIPT_OBJECT_WRAPPER(Assembly, Namespace, Name) \

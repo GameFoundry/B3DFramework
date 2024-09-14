@@ -88,7 +88,7 @@ void ScriptAssemblyManager::LoadAssemblyInfo(const String& assemblyName)
 			::MonoReflectionType* type = MonoUtil::GetType(curClass->GetInternalClass());
 
 			// Is this a wrapper for some reflectable type?
-			const ScriptWrapperObjectMetaData* const scriptWrapperObjectMetaData = GetScriptWrapperMetaData(type);
+			const ScriptTypeMetaData* const scriptWrapperObjectMetaData = GetScriptWrapperMetaData(type);
 			if(scriptWrapperObjectMetaData != nullptr)
 				typeInfo->RttiTypeId = scriptWrapperObjectMetaData->TypeId;
 			else
@@ -434,7 +434,7 @@ SPtr<ManagedSerializableTypeInfo> ScriptAssemblyManager::GetTypeInfo(MonoClass* 
 				typeInfo->Type = ScriptReferenceType::BuiltinResource;
 
 				::MonoReflectionType* type = MonoUtil::GetType(monoClass->GetInternalClass());
-				const ScriptWrapperObjectMetaData* const scriptWrapperObjectMetaData = GetScriptWrapperMetaData(type);
+				const ScriptTypeMetaData* const scriptWrapperObjectMetaData = GetScriptWrapperMetaData(type);
 				if(scriptWrapperObjectMetaData == nullptr)
 				{
 					B3D_ASSERT(false && "Unable to find information about a built-in resource. Is it script exported?");
@@ -468,7 +468,7 @@ SPtr<ManagedSerializableTypeInfo> ScriptAssemblyManager::GetTypeInfo(MonoClass* 
 				typeInfo->Type = ScriptReferenceType::BuiltinComponent;
 
 				::MonoReflectionType* type = MonoUtil::GetType(monoClass->GetInternalClass());
-				const ScriptWrapperObjectMetaData* const scriptWrapperObjectMetaData = GetScriptWrapperMetaData(type);
+				const ScriptTypeMetaData* const scriptWrapperObjectMetaData = GetScriptWrapperMetaData(type);
 				if(scriptWrapperObjectMetaData == nullptr)
 				{
 					B3D_ASSERT(false && "Unable to find information about a built-in component. Is it script exported?");
@@ -485,7 +485,7 @@ SPtr<ManagedSerializableTypeInfo> ScriptAssemblyManager::GetTypeInfo(MonoClass* 
 			::MonoReflectionType* type = MonoUtil::GetType(monoClass->GetInternalClass());
 
 			// Is this a wrapper for some reflectable type?
-			const ScriptWrapperObjectMetaData* const scriptWrapperObjectMetaData = GetScriptWrapperMetaData(type);
+			const ScriptTypeMetaData* const scriptWrapperObjectMetaData = GetScriptWrapperMetaData(type);
 			if(scriptWrapperObjectMetaData != nullptr && scriptWrapperObjectMetaData->TypeId != ~0u)
 			{
 				SPtr<ManagedSerializableTypeInfoRef> typeInfo = B3DMakeShared<ManagedSerializableTypeInfoRef>();
@@ -758,7 +758,7 @@ void ScriptAssemblyManager::InitializeScriptWrapperMetaDataLookup(MonoAssembly& 
 	}
 }
 
-const ScriptWrapperObjectMetaData* ScriptAssemblyManager::GetScriptWrapperMetaData(u32 typeId) const
+const ScriptTypeMetaData* ScriptAssemblyManager::GetScriptWrapperMetaData(u32 typeId) const
 {
 	if(auto found = mScriptWrapperMetaDataByTypeId.find(typeId); found != mScriptWrapperMetaDataByTypeId.end())
 		return found->second;
@@ -766,7 +766,7 @@ const ScriptWrapperObjectMetaData* ScriptAssemblyManager::GetScriptWrapperMetaDa
 	return nullptr;
 }
 
-const ScriptWrapperObjectMetaData* ScriptAssemblyManager::GetScriptWrapperMetaData(::MonoReflectionType* type) const
+const ScriptTypeMetaData* ScriptAssemblyManager::GetScriptWrapperMetaData(::MonoReflectionType* type) const
 {
 	if(auto found = mScriptWrapperMetaDataByScriptClass.find(type); found != mScriptWrapperMetaDataByScriptClass.end())
 		return found->second;
@@ -827,8 +827,8 @@ SPtr<IReflectable> ScriptAssemblyManager::GetReflectableFromManagedObject(MonoOb
 			return nullptr;
 		}
 
-		const ScriptWrapperObjectMetaData* managedResourceMeta = ScriptManagedResource::GetMetaData();
-		const ScriptWrapperObjectMetaData* managedComponentMeta = ScriptManagedComponent::GetMetaData();
+		const ScriptTypeMetaData* managedResourceMeta = ScriptManagedResource::GetMetaData();
+		const ScriptTypeMetaData* managedComponentMeta = ScriptManagedComponent::GetMetaData();
 
 		if(monoClass->IsSubClassOf(ScriptResource::GetMetaData()->ScriptClass)) // Resource
 		{
@@ -859,7 +859,7 @@ SPtr<IReflectable> ScriptAssemblyManager::GetReflectableFromManagedObject(MonoOb
 			else
 			{
 				::MonoReflectionType* type = MonoUtil::GetType(klass);
-				const ScriptWrapperObjectMetaData* const scriptWrapperObjectMetaData = GetScriptWrapperMetaData(type);
+				const ScriptTypeMetaData* const scriptWrapperObjectMetaData = GetScriptWrapperMetaData(type);
 				if(scriptWrapperObjectMetaData == nullptr)
 				{
 					B3D_ASSERT(false && "Unable to find information about a built-in resource. Is it script exported?");
@@ -902,7 +902,7 @@ SPtr<IReflectable> ScriptAssemblyManager::GetReflectableFromManagedObject(MonoOb
 			else
 			{
 				::MonoReflectionType* type = MonoUtil::GetType(klass);
-				const ScriptWrapperObjectMetaData* const scriptWrapperObjectMetaData = GetScriptWrapperMetaData(type);
+				const ScriptTypeMetaData* const scriptWrapperObjectMetaData = GetScriptWrapperMetaData(type);
 				if(scriptWrapperObjectMetaData == nullptr)
 				{
 					B3D_ASSERT(false && "Unable to find information about a built-in component. Is it script exported?");
@@ -936,7 +936,7 @@ SPtr<IReflectable> ScriptAssemblyManager::GetReflectableFromManagedObject(MonoOb
 			::MonoClass* monoClass = MonoUtil::GetClass(value);
 			::MonoReflectionType* monoType = MonoUtil::GetType(monoClass);
 
-			const ScriptWrapperObjectMetaData* const scriptWrapperObjectMetaData = GetScriptWrapperMetaData(monoType);
+			const ScriptTypeMetaData* const scriptWrapperObjectMetaData = GetScriptWrapperMetaData(monoType);
 			if(!B3D_ENSURE(scriptWrapperObjectMetaData != nullptr))
 				return nullptr;
 

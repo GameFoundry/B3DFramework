@@ -65,7 +65,7 @@ namespace bs
 			Super::NotifyNativeObjectDestroyed();
 		}
 
-		static void InitializeAdditionalMetaData(ScriptWrapperObjectMetaData& metaData)
+		static void InitializeAdditionalMetaData(ScriptTypeMetaData& metaData)
 		{ }
 
 		SPtr<NativeType> mNativeObjectStrongHandle;
