@@ -51,9 +51,11 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptRRefBase : public TScriptValueTypeWrapper<HResource, ScriptRRefBase>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "RRefBase")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "RRefBase")
 
 		ScriptRRefBase(const HResource& nativeObject);
+
+		static void SetupScriptBindings();
 
 		/**
 		 * Returns null as resource references cannot be created statically. Their script object type is mutable depending on the resource type they are referencing. Use CreateScriptObject() that accepts

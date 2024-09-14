@@ -11,7 +11,7 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptSpring : public TScriptStructWrapper<ScriptSpring>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "Spring")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "Spring")
 
 		static MonoObject* Box(const Spring& value);
 		static Spring Unbox(MonoObject* value);

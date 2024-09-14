@@ -13,9 +13,11 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptReflectionProbe : public TScriptGameObjectWrapper<CReflectionProbe, ScriptReflectionProbe>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "ReflectionProbe")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "ReflectionProbe")
 
 		ScriptReflectionProbe(const GameObjectHandle<CReflectionProbe>& nativeObject);
+
+		static void SetupScriptBindings();
 
 		static MonoObject* CreateScriptObject(bool construct);
 

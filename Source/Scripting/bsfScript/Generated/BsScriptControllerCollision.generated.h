@@ -20,7 +20,7 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptControllerCollision : public TScriptStructWrapper<ScriptControllerCollision>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "ControllerCollision")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "ControllerCollision")
 
 		static MonoObject* Box(const __ControllerCollisionInterop& value);
 		static __ControllerCollisionInterop Unbox(MonoObject* value);

@@ -24,7 +24,7 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptPhysicsQueryHit : public TScriptStructWrapper<ScriptPhysicsQueryHit>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "PhysicsQueryHit")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "PhysicsQueryHit")
 
 		static MonoObject* Box(const __PhysicsQueryHitInterop& value);
 		static __PhysicsQueryHitInterop Unbox(MonoObject* value);

@@ -24,9 +24,11 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptGUISlider : public TScriptGUIElementWrapper<GUISlider, ScriptGUISlider, ScriptGUISliderWrapperBase>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "GUISlider")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "GUISlider")
 
 		ScriptGUISlider(GUISlider* nativeObject);
+
+		static void SetupScriptBindings();
 
 		static MonoObject* CreateScriptObject(bool construct);
 

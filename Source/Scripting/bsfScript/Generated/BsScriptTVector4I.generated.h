@@ -13,7 +13,7 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptVector4I : public TScriptStructWrapper<ScriptVector4I>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "Vector4I")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "Vector4I")
 
 		static MonoObject* Box(const TVector4I<int32_t>& value);
 		static TVector4I<int32_t> Unbox(MonoObject* value);
@@ -26,7 +26,7 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptVector4UI : public TScriptStructWrapper<ScriptVector4UI>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "Vector4UI")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "Vector4UI")
 
 		static MonoObject* Box(const TVector4I<uint32_t>& value);
 		static TVector4I<uint32_t> Unbox(MonoObject* value);

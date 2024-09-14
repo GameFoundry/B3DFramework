@@ -12,9 +12,11 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptMorphShapes : public TScriptReflectableWrapper<MorphShapes, ScriptMorphShapes>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "MorphShapes")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "MorphShapes")
 
 		ScriptMorphShapes(const SPtr<MorphShapes>& nativeObject);
+
+		static void SetupScriptBindings();
 
 		static MonoObject* CreateScriptObject(bool construct);
 

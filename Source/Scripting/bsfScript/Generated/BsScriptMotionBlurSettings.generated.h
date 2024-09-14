@@ -15,9 +15,11 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptMotionBlurSettings : public TScriptReflectableWrapper<MotionBlurSettings, ScriptMotionBlurSettings>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "MotionBlurSettings")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "MotionBlurSettings")
 
 		ScriptMotionBlurSettings(const SPtr<MotionBlurSettings>& nativeObject);
+
+		static void SetupScriptBindings();
 
 		static MonoObject* CreateScriptObject(bool construct);
 

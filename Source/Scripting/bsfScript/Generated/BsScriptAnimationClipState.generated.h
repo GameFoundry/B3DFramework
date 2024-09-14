@@ -11,7 +11,7 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptAnimationClipState : public TScriptStructWrapper<ScriptAnimationClipState>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "AnimationClipState")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "AnimationClipState")
 
 		static MonoObject* Box(const AnimationClipState& value);
 		static AnimationClipState Unbox(MonoObject* value);

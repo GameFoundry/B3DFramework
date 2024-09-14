@@ -18,7 +18,7 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptSubResource : public TScriptStructWrapper<ScriptSubResource>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "SubResource")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "SubResource")
 
 		static MonoObject* Box(const __SubResourceInterop& value);
 		static __SubResourceInterop Unbox(MonoObject* value);

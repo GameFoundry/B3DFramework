@@ -14,9 +14,11 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptDepthOfFieldSettings : public TScriptReflectableWrapper<DepthOfFieldSettings, ScriptDepthOfFieldSettings>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "DepthOfFieldSettings")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "DepthOfFieldSettings")
 
 		ScriptDepthOfFieldSettings(const SPtr<DepthOfFieldSettings>& nativeObject);
+
+		static void SetupScriptBindings();
 
 		static MonoObject* CreateScriptObject(bool construct);
 

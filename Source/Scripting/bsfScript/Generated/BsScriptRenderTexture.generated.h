@@ -15,9 +15,11 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptRenderTexture : public TScriptReflectableWrapper<RenderTexture, ScriptRenderTexture, ScriptRenderTargetWrapperBase>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "RenderTexture")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "RenderTexture")
 
 		ScriptRenderTexture(const SPtr<RenderTexture>& nativeObject);
+
+		static void SetupScriptBindings();
 
 		static MonoObject* CreateScriptObject(bool construct);
 

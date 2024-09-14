@@ -27,9 +27,11 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptJoint : public TScriptGameObjectWrapper<CJoint, ScriptJoint, ScriptJointWrapperBase>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "Joint")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "Joint")
 
 		ScriptJoint(const GameObjectHandle<CJoint>& nativeObject);
+
+		static void SetupScriptBindings();
 
 		static MonoObject* CreateScriptObject(bool construct);
 

@@ -14,9 +14,11 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptVectorField : public TScriptResourceWrapper<VectorField, ScriptVectorField>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "VectorField")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "VectorField")
 
 		ScriptVectorField(const TResourceHandle<VectorField>& nativeObject);
+
+		static void SetupScriptBindings();
 
 		static MonoObject* CreateScriptObject(bool construct);
 

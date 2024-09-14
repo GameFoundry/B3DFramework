@@ -21,7 +21,7 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptVideoMode : public TScriptStructWrapper<ScriptVideoMode>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "VideoMode")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "VideoMode")
 
 		static MonoObject* Box(const __VideoModeInterop& value);
 		static __VideoModeInterop Unbox(MonoObject* value);

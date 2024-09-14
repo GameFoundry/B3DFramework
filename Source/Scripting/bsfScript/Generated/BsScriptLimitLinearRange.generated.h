@@ -21,7 +21,7 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptLimitLinearRange : public TScriptStructWrapper<ScriptLimitLinearRange>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "LimitLinearRange")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "LimitLinearRange")
 
 		static MonoObject* Box(const __LimitLinearRangeInterop& value);
 		static __LimitLinearRangeInterop Unbox(MonoObject* value);

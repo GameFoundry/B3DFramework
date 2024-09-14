@@ -17,9 +17,11 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptPlainText : public TScriptResourceWrapper<PlainText, ScriptPlainText>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "PlainText")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "PlainText")
 
 		ScriptPlainText(const HPlainText& nativeObject);
+
+		static void SetupScriptBindings();
 
 		/** Retrieves the underlying native object cast to the correct type. */
 		PlainText* GetNativeObject() const;

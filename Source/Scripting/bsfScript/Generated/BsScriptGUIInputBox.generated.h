@@ -13,9 +13,11 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptGUIInputBox : public TScriptGUIElementWrapper<GUIInputBox, ScriptGUIInputBox>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "GUIInputBox")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "GUIInputBox")
 
 		ScriptGUIInputBox(GUIInputBox* nativeObject);
+
+		static void SetupScriptBindings();
 
 		virtual void RegisterEvents();
 		static MonoObject* CreateScriptObject(bool construct);

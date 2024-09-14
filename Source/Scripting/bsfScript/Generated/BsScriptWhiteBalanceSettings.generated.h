@@ -12,9 +12,11 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptWhiteBalanceSettings : public TScriptReflectableWrapper<WhiteBalanceSettings, ScriptWhiteBalanceSettings>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "WhiteBalanceSettings")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "WhiteBalanceSettings")
 
 		ScriptWhiteBalanceSettings(const SPtr<WhiteBalanceSettings>& nativeObject);
+
+		static void SetupScriptBindings();
 
 		static MonoObject* CreateScriptObject(bool construct);
 

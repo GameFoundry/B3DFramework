@@ -11,7 +11,7 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleEmissionMode : public TScriptStructWrapper<ScriptParticleEmissionMode>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "ParticleEmissionMode")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "ParticleEmissionMode")
 
 		static MonoObject* Box(const ParticleEmissionMode& value);
 		static ParticleEmissionMode Unbox(MonoObject* value);

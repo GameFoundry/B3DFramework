@@ -20,6 +20,8 @@ namespace bs
 
 		ScriptApplication(MonoObject* managedInstance, const SPtr<ApplicationEx>& value);
 
+		static void SetupScriptBindings();
+
 		SPtr<ApplicationEx> GetInternal() const { return mInternal; }
 		static MonoObject* Create(const SPtr<ApplicationEx>& value);
 

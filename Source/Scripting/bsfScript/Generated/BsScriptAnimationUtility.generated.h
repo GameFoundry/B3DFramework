@@ -12,9 +12,11 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptAnimationUtility : public TScriptNonReflectableWrapper<AnimationUtility, ScriptAnimationUtility>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "AnimationUtility")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "AnimationUtility")
 
 		ScriptAnimationUtility(const SPtr<AnimationUtility>& nativeObject);
+
+		static void SetupScriptBindings();
 
 		static MonoObject* CreateScriptObject(bool construct);
 

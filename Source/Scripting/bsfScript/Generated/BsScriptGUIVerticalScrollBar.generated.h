@@ -13,9 +13,11 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptGUIVerticalScrollBar : public TScriptGUIElementWrapper<GUIVerticalScrollBar, ScriptGUIVerticalScrollBar, ScriptGUIScrollBarWrapperBase>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "GUIVerticalScrollBar")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "GUIVerticalScrollBar")
 
 		ScriptGUIVerticalScrollBar(GUIVerticalScrollBar* nativeObject);
+
+		static void SetupScriptBindings();
 
 		static MonoObject* CreateScriptObject(bool construct);
 

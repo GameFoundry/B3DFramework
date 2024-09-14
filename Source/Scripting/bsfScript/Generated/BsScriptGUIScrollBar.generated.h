@@ -24,9 +24,11 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptGUIScrollBar : public TScriptGUIElementWrapper<GUIScrollBar, ScriptGUIScrollBar, ScriptGUIScrollBarWrapperBase>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "GUIScrollBar")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "GUIScrollBar")
 
 		ScriptGUIScrollBar(GUIScrollBar* nativeObject);
+
+		static void SetupScriptBindings();
 
 		static MonoObject* CreateScriptObject(bool construct);
 

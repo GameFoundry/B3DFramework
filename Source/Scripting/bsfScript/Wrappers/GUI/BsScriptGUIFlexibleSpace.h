@@ -16,13 +16,14 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptGUIFlexibleSpace : public TScriptGUIElementWrapper<GUIFlexibleSpace, ScriptGUIFlexibleSpace>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "GUIFlexibleSpace")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "GUIFlexibleSpace")
 
 		ScriptGUIFlexibleSpace(GUIFlexibleSpace* nativeObject);
 
 		/** Returns the native object that is being wrapped. */
 		GUIFlexibleSpace* GetNativeObject() const { return static_cast<GUIFlexibleSpace*>(mNativeObject); }
 
+		static void SetupScriptBindings();
 		static MonoObject* CreateScriptObject(bool construct);
 	private:
 		/************************************************************************/

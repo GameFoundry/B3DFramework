@@ -15,6 +15,8 @@ namespace bs
 
 		ScriptLocString(MonoObject* managedInstance, const SPtr<HString>& value);
 
+		static void SetupScriptBindings();
+
 		SPtr<HString> GetInternal() const { return mInternal; }
 		static MonoObject* Create(const SPtr<HString>& value);
 

@@ -16,6 +16,8 @@ namespace bs
 
 		ScriptStockIcons(MonoObject* managedInstance);
 
+		static void SetupScriptBindings();
+
 	private:
 		static MonoObject* InternalGetIcon(StockIcon icon, float size);
 		static uint32_t InternalGetUnicode(StockIcon icon);

@@ -12,9 +12,11 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptFilmGrainSettings : public TScriptReflectableWrapper<FilmGrainSettings, ScriptFilmGrainSettings>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "FilmGrainSettings")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "FilmGrainSettings")
 
 		ScriptFilmGrainSettings(const SPtr<FilmGrainSettings>& nativeObject);
+
+		static void SetupScriptBindings();
 
 		static MonoObject* CreateScriptObject(bool construct);
 

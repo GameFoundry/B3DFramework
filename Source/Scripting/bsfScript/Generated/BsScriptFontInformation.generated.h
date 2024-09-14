@@ -19,7 +19,7 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptFontInformation : public TScriptStructWrapper<ScriptFontInformation>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "FontInformation")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "FontInformation")
 
 		static MonoObject* Box(const __FontInformationInterop& value);
 		static __FontInformationInterop Unbox(MonoObject* value);

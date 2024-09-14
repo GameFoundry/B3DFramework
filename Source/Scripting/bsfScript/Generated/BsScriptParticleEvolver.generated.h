@@ -19,9 +19,11 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleEvolver : public TScriptReflectableWrapper<ParticleEvolver, ScriptParticleEvolver, ScriptParticleEvolverWrapperBase>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "ParticleEvolver")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "ParticleEvolver")
 
 		ScriptParticleEvolver(const SPtr<ParticleEvolver>& nativeObject);
+
+		static void SetupScriptBindings();
 
 		static MonoObject* CreateScriptObject(bool construct);
 

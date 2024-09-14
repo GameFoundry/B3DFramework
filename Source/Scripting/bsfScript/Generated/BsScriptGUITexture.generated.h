@@ -14,9 +14,11 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptGUITexture : public TScriptGUIElementWrapper<GUITexture, ScriptGUITexture>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "GUITexture")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "GUITexture")
 
 		ScriptGUITexture(GUITexture* nativeObject);
+
+		static void SetupScriptBindings();
 
 		static MonoObject* CreateScriptObject(bool construct);
 

@@ -12,9 +12,11 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptFixedJoint : public TScriptGameObjectWrapper<CFixedJoint, ScriptFixedJoint, ScriptJointWrapperBase>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "FixedJoint")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "FixedJoint")
 
 		ScriptFixedJoint(const GameObjectHandle<CFixedJoint>& nativeObject);
+
+		static void SetupScriptBindings();
 
 		static MonoObject* CreateScriptObject(bool construct);
 

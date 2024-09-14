@@ -19,7 +19,7 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptBoneInfo : public TScriptStructWrapper<ScriptBoneInfo>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "BoneInfo")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "BoneInfo")
 
 		static MonoObject* Box(const __SkeletonBoneInfoExInterop& value);
 		static __SkeletonBoneInfoExInterop Unbox(MonoObject* value);

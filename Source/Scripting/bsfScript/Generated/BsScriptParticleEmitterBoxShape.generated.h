@@ -15,9 +15,11 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleEmitterBoxShape : public TScriptReflectableWrapper<ParticleEmitterBoxShape, ScriptParticleEmitterBoxShape, ScriptParticleEmitterShapeWrapperBase>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "ParticleEmitterBoxShape")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "ParticleEmitterBoxShape")
 
 		ScriptParticleEmitterBoxShape(const SPtr<ParticleEmitterBoxShape>& nativeObject);
+
+		static void SetupScriptBindings();
 
 		static MonoObject* CreateScriptObject(bool construct);
 

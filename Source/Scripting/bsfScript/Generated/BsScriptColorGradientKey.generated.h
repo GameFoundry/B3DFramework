@@ -18,7 +18,7 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptColorGradientKey : public TScriptStructWrapper<ScriptColorGradientKey>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "ColorGradientKey")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "ColorGradientKey")
 
 		static MonoObject* Box(const __ColorGradientKeyInterop& value);
 		static __ColorGradientKeyInterop Unbox(MonoObject* value);

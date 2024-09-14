@@ -19,7 +19,7 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptGUITextureContents : public TScriptStructWrapper<ScriptGUITextureContents>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "GUITextureContents")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "GUITextureContents")
 
 		static MonoObject* Box(const __GUITextureContentsInterop& value);
 		static __GUITextureContentsInterop Unbox(MonoObject* value);

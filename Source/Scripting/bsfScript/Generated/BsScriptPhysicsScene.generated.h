@@ -19,9 +19,11 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptPhysicsScene : public TScriptNonReflectableWrapper<PhysicsScene, ScriptPhysicsScene>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "PhysicsScene")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "PhysicsScene")
 
 		ScriptPhysicsScene(const SPtr<PhysicsScene>& nativeObject);
+
+		static void SetupScriptBindings();
 
 		static MonoObject* CreateScriptObject(bool construct);
 

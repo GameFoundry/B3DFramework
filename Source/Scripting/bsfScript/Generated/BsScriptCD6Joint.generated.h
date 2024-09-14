@@ -26,9 +26,11 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptD6Joint : public TScriptGameObjectWrapper<CD6Joint, ScriptD6Joint, ScriptJointWrapperBase>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "D6Joint")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "D6Joint")
 
 		ScriptD6Joint(const GameObjectHandle<CD6Joint>& nativeObject);
+
+		static void SetupScriptBindings();
 
 		static MonoObject* CreateScriptObject(bool construct);
 

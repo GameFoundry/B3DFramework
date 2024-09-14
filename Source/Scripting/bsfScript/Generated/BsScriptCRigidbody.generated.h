@@ -19,9 +19,11 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptRigidbody : public TScriptGameObjectWrapper<CRigidbody, ScriptRigidbody>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "Rigidbody")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "Rigidbody")
 
 		ScriptRigidbody(const GameObjectHandle<CRigidbody>& nativeObject);
+
+		static void SetupScriptBindings();
 
 		virtual void RegisterEvents();
 		static MonoObject* CreateScriptObject(bool construct);

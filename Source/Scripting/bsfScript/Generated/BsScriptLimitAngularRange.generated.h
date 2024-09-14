@@ -22,7 +22,7 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptLimitAngularRange : public TScriptStructWrapper<ScriptLimitAngularRange>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "LimitAngularRange")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "LimitAngularRange")
 
 		static MonoObject* Box(const __LimitAngularRangeInterop& value);
 		static __LimitAngularRangeInterop Unbox(MonoObject* value);

@@ -18,6 +18,8 @@ namespace bs
 
 		ScriptMultiResource(MonoObject* managedInstance, const SPtr<MultiResource>& value);
 
+		static void SetupScriptBindings();
+
 		SPtr<MultiResource> GetInternal() const { return mInternal; }
 		static MonoObject* Create(const SPtr<MultiResource>& value);
 

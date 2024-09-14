@@ -20,7 +20,7 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleBurst : public TScriptStructWrapper<ScriptParticleBurst>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "ParticleBurst")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "ParticleBurst")
 
 		static MonoObject* Box(const __ParticleBurstInterop& value);
 		static __ParticleBurstInterop Unbox(MonoObject* value);

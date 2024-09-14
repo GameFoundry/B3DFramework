@@ -16,9 +16,11 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptAudioClipImportOptions : public TScriptReflectableWrapper<AudioClipImportOptions, ScriptAudioClipImportOptions, ScriptImportOptionsWrapperBase>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "AudioClipImportOptions")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "AudioClipImportOptions")
 
 		ScriptAudioClipImportOptions(const SPtr<AudioClipImportOptions>& nativeObject);
+
+		static void SetupScriptBindings();
 
 		static MonoObject* CreateScriptObject(bool construct);
 

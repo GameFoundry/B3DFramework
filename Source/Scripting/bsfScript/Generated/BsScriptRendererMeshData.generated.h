@@ -19,9 +19,11 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptMeshData : public TScriptNonReflectableWrapper<RendererMeshData, ScriptMeshData>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "MeshData")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "MeshData")
 
 		ScriptMeshData(const SPtr<RendererMeshData>& nativeObject);
+
+		static void SetupScriptBindings();
 
 		static MonoObject* CreateScriptObject(bool construct);
 

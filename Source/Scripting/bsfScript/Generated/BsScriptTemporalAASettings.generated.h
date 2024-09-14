@@ -12,9 +12,11 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptTemporalAASettings : public TScriptReflectableWrapper<TemporalAASettings, ScriptTemporalAASettings>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "TemporalAASettings")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "TemporalAASettings")
 
 		ScriptTemporalAASettings(const SPtr<TemporalAASettings>& nativeObject);
+
+		static void SetupScriptBindings();
 
 		static MonoObject* CreateScriptObject(bool construct);
 

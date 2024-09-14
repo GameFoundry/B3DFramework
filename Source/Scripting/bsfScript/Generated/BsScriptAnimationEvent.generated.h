@@ -17,7 +17,7 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptAnimationEvent : public TScriptStructWrapper<ScriptAnimationEvent>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "AnimationEvent")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "AnimationEvent")
 
 		static MonoObject* Box(const __AnimationEventInterop& value);
 		static __AnimationEventInterop Unbox(MonoObject* value);

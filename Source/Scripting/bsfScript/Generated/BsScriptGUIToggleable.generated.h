@@ -25,9 +25,11 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptGUIToggleable : public TScriptGUIElementWrapper<GUIToggleable, ScriptGUIToggleable, ScriptGUIToggleableWrapperBase>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "GUIToggleable")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "GUIToggleable")
 
 		ScriptGUIToggleable(GUIToggleable* nativeObject);
+
+		static void SetupScriptBindings();
 
 		static MonoObject* CreateScriptObject(bool construct);
 

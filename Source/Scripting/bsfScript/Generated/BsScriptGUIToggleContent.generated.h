@@ -19,7 +19,7 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptGUIToggleContent : public TScriptStructWrapper<ScriptGUIToggleContent>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "GUIToggleContent")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "GUIToggleContent")
 
 		static MonoObject* Box(const __GUIToggleContentInterop& value);
 		static __GUIToggleContentInterop Unbox(MonoObject* value);

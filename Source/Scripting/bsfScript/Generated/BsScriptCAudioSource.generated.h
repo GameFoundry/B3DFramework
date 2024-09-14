@@ -12,9 +12,11 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptAudioSource : public TScriptGameObjectWrapper<CAudioSource, ScriptAudioSource>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "AudioSource")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "AudioSource")
 
 		ScriptAudioSource(const GameObjectHandle<CAudioSource>& nativeObject);
+
+		static void SetupScriptBindings();
 
 		static MonoObject* CreateScriptObject(bool construct);
 

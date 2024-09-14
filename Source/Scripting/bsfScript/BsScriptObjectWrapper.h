@@ -376,7 +376,7 @@ namespace bs
 	ScriptTypeMetaData TScriptStructWrapper<SelfType>::sInteropMetaData;
 
 	/** Implements default methods required by script object wrapper implementations. */
-#define B3D_SCRIPT_OBJECT_WRAPPER(Assembly, Namespace, Name) \
+#define B3D_SCRIPT_TYPE_DEFINITION(Assembly, Namespace, Name) \
 	static const char* GetAssemblyName()      \
 	{                                         \
 		return Assembly;                      \
@@ -389,14 +389,14 @@ namespace bs
 	{                                         \
 		return Name;                          \
 	}                                         \
-	static void SetupScriptBindings();
 
 	/**	Script object wrapper for ScriptObject. (Script prefix used as standard for script object wrappers, wrapping ScriptObject. Therefore ScriptScriptObject.) */
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptScriptObject : public TNonInstantiableScriptObjectWrapper<ScriptScriptObject>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "ScriptObject")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "ScriptObject")
 
+		static void SetupScriptBindings();
 	private:
 		ScriptScriptObject();
 

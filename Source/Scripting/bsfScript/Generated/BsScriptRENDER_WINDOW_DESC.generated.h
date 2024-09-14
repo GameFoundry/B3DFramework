@@ -36,7 +36,7 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptRenderWindowDesc : public TScriptStructWrapper<ScriptRenderWindowDesc>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "RenderWindowDesc")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "RenderWindowDesc")
 
 		static MonoObject* Box(const __RENDER_WINDOW_DESCInterop& value);
 		static __RENDER_WINDOW_DESCInterop Unbox(MonoObject* value);

@@ -20,7 +20,7 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptLimitLinear : public TScriptStructWrapper<ScriptLimitLinear>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "LimitLinear")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "LimitLinear")
 
 		static MonoObject* Box(const __LimitLinearInterop& value);
 		static __LimitLinearInterop Unbox(MonoObject* value);

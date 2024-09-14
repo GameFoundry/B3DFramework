@@ -13,9 +13,11 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptChromaticAberrationSettings : public TScriptReflectableWrapper<ChromaticAberrationSettings, ScriptChromaticAberrationSettings>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "ChromaticAberrationSettings")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "ChromaticAberrationSettings")
 
 		ScriptChromaticAberrationSettings(const SPtr<ChromaticAberrationSettings>& nativeObject);
+
+		static void SetupScriptBindings();
 
 		static MonoObject* CreateScriptObject(bool construct);
 

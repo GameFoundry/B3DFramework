@@ -16,9 +16,11 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptFontBitmapInformation : public TScriptReflectableWrapper<FontBitmapInformation, ScriptFontBitmapInformation>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "FontBitmapInformation")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "FontBitmapInformation")
 
 		ScriptFontBitmapInformation(const SPtr<FontBitmapInformation>& nativeObject);
+
+		static void SetupScriptBindings();
 
 		static MonoObject* CreateScriptObject(bool construct);
 

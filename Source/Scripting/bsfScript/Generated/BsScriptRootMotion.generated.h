@@ -14,9 +14,11 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptRootMotion : public TScriptNonReflectableWrapper<RootMotion, ScriptRootMotion>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "RootMotion")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "RootMotion")
 
 		ScriptRootMotion(const SPtr<RootMotion>& nativeObject);
+
+		static void SetupScriptBindings();
 
 		static MonoObject* CreateScriptObject(bool construct);
 

@@ -158,12 +158,14 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptResource : public TScriptResourceWrapper<Resource, ScriptResource>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "Resource")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "Resource")
 
 		ScriptResource(const HResource& nativeObject);
 
 		/** Retrieves the underlying native object cast to the correct type. */
 		Resource* GetNativeObject() const;
+
+		static void SetupScriptBindings();
 
 		/** Dummy method to create the script object. Not used as Resources is only used as base class and not created directly. */
 		static MonoObject* CreateScriptObject(bool construct)

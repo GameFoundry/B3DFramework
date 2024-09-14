@@ -15,9 +15,11 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleEmitterCircleShape : public TScriptReflectableWrapper<ParticleEmitterCircleShape, ScriptParticleEmitterCircleShape, ScriptParticleEmitterShapeWrapperBase>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "ParticleEmitterCircleShape")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "ParticleEmitterCircleShape")
 
 		ScriptParticleEmitterCircleShape(const SPtr<ParticleEmitterCircleShape>& nativeObject);
+
+		static void SetupScriptBindings();
 
 		static MonoObject* CreateScriptObject(bool construct);
 

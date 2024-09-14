@@ -19,7 +19,7 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptLimitCommon : public TScriptStructWrapper<ScriptLimitCommon>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "LimitCommon")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "LimitCommon")
 
 		static MonoObject* Box(const __LimitCommonInterop& value);
 		static __LimitCommonInterop Unbox(MonoObject* value);

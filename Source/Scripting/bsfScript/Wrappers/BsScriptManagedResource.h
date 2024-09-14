@@ -16,11 +16,13 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptManagedResource : public TScriptResourceWrapper<ManagedResource, ScriptManagedResource>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "ManagedResource")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "ManagedResource")
 
 		ScriptManagedResource(const HManagedResource& nativeObject);
 
 		ScriptObjectLifetimeTrackingMode GetLifetimeTrackingMode() const override { return ScriptObjectLifetimeTrackingMode::StrongHandleWithExplicitDestroy; }
+
+		static void SetupScriptBindings();
 
 		/**
 		 * Returns null as managed resources cannot be created statically. Their script object type is mutable depending on the script type they are referencing. Use non-static CreateAndBindScriptObject()

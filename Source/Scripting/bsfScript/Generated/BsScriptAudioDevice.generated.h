@@ -16,7 +16,7 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptAudioDevice : public TScriptStructWrapper<ScriptAudioDevice>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "AudioDevice")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "AudioDevice")
 
 		static MonoObject* Box(const __AudioDeviceInterop& value);
 		static __AudioDeviceInterop Unbox(MonoObject* value);

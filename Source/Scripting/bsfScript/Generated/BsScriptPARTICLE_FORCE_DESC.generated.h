@@ -18,7 +18,7 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleForceOptions : public TScriptStructWrapper<ScriptParticleForceOptions>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "ParticleForceOptions")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "ParticleForceOptions")
 
 		static MonoObject* Box(const __PARTICLE_FORCE_DESCInterop& value);
 		static __PARTICLE_FORCE_DESCInterop Unbox(MonoObject* value);

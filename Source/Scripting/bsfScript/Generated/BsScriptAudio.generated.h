@@ -17,6 +17,8 @@ namespace bs
 
 		ScriptAudio(MonoObject* managedInstance);
 
+		static void SetupScriptBindings();
+
 	private:
 		static void InternalSetVolume(float volume);
 		static float InternalGetVolume();

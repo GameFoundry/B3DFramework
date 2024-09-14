@@ -21,7 +21,7 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptShaderParameter : public TScriptStructWrapper<ScriptShaderParameter>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "ShaderParameter")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "ShaderParameter")
 
 		static MonoObject* Box(const __ShaderParameterInterop& value);
 		static __ShaderParameterInterop Unbox(MonoObject* value);

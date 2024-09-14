@@ -27,10 +27,11 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptGUILayout : public TScriptGUIElementWrapper<GUILayout, ScriptGUILayout, ScriptGUILayoutWrapperBase>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "GUILayout")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "GUILayout")
 
 		ScriptGUILayout(GUILayout* nativeObject);
 
+		static void SetupScriptBindings();
 		static MonoObject* CreateScriptObject(bool construct) { return nullptr; }
 
 	protected:
@@ -51,10 +52,11 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptGUIPanel : public TScriptGUIElementWrapper<GUIPanel, ScriptGUIPanel, ScriptGUILayoutWrapperBase>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "GUIPanel")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "GUIPanel")
 
 		ScriptGUIPanel(GUIPanel* nativeObject);
 
+		static void SetupScriptBindings();
 		static MonoObject* CreateScriptObject(bool construct);
 
 	private:
@@ -65,10 +67,11 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptGUILayoutX : public TScriptGUIElementWrapper<GUILayoutX, ScriptGUILayoutX, ScriptGUILayoutWrapperBase>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "GUILayoutX")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "GUILayoutX")
 
 		ScriptGUILayoutX(GUILayoutX* nativeObject);
 
+		static void SetupScriptBindings();
 		static MonoObject* CreateScriptObject(bool construct);
 
 	private:
@@ -79,10 +82,11 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptGUILayoutY : public TScriptGUIElementWrapper<GUILayoutY, ScriptGUILayoutY, ScriptGUILayoutWrapperBase>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "GUILayoutY")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "GUILayoutY")
 
 		ScriptGUILayoutY(GUILayoutY* nativeObject);
 
+		static void SetupScriptBindings();
 		static MonoObject* CreateScriptObject(bool construct);
 
 	private:

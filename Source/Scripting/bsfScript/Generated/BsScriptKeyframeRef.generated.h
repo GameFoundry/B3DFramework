@@ -11,7 +11,7 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptKeyframeRef : public TScriptStructWrapper<ScriptKeyframeRef>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "KeyframeRef")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "KeyframeRef")
 
 		static MonoObject* Box(const KeyframeRef& value);
 		static KeyframeRef Unbox(MonoObject* value);

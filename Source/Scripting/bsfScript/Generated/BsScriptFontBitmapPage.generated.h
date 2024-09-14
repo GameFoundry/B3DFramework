@@ -17,7 +17,7 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptFontBitmapPage : public TScriptStructWrapper<ScriptFontBitmapPage>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "FontBitmapPage")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "FontBitmapPage")
 
 		static MonoObject* Box(const __FontBitmapPageInterop& value);
 		static __FontBitmapPageInterop Unbox(MonoObject* value);

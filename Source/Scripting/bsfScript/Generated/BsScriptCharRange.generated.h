@@ -12,7 +12,7 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptCharRange : public TScriptStructWrapper<ScriptCharRange>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "CharRange")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "CharRange")
 
 		static MonoObject* Box(const CharRange& value);
 		static CharRange Unbox(MonoObject* value);

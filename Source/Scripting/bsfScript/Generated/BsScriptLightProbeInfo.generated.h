@@ -18,7 +18,7 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptLightProbeInfo : public TScriptStructWrapper<ScriptLightProbeInfo>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "LightProbeInfo")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "LightProbeInfo")
 
 		static MonoObject* Box(const __LightProbeInfoInterop& value);
 		static __LightProbeInfoInterop Unbox(MonoObject* value);

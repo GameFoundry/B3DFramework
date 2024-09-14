@@ -11,7 +11,7 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptSubMesh : public TScriptStructWrapper<ScriptSubMesh>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "SubMesh")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "SubMesh")
 
 		static MonoObject* Box(const SubMesh& value);
 		static SubMesh Unbox(MonoObject* value);

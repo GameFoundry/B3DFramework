@@ -22,7 +22,7 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptSpriteTextureCreateInformation : public TScriptStructWrapper<ScriptSpriteTextureCreateInformation>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "SpriteTextureCreateInformation")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "SpriteTextureCreateInformation")
 
 		static MonoObject* Box(const __SpriteTextureCreateInformationInterop& value);
 		static __SpriteTextureCreateInformationInterop Unbox(MonoObject* value);

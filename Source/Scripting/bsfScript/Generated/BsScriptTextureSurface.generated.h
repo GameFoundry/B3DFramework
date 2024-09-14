@@ -11,7 +11,7 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptTextureSurface : public TScriptStructWrapper<ScriptTextureSurface>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "TextureSurface")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "TextureSurface")
 
 		static MonoObject* Box(const TextureSurface& value);
 		static TextureSurface Unbox(MonoObject* value);

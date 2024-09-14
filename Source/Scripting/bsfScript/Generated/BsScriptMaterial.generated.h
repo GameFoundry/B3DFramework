@@ -21,9 +21,11 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptMaterial : public TScriptResourceWrapper<Material, ScriptMaterial>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "Material")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "Material")
 
 		ScriptMaterial(const TResourceHandle<Material>& nativeObject);
+
+		static void SetupScriptBindings();
 
 		static MonoObject* CreateScriptObject(bool construct);
 

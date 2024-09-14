@@ -16,13 +16,14 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptShaderInclude : public TScriptResourceWrapper<ShaderInclude, ScriptShaderInclude>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "ShaderInclude")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "ShaderInclude")
 
 		ScriptShaderInclude(const HShaderInclude& nativeObject);
 
 		/** Retrieves the underlying native object cast to the correct type. */
 		ShaderInclude* GetNativeObject() const;
 
+		static void SetupScriptBindings();
 		static MonoObject* CreateScriptObject(bool construct);
 	};
 

@@ -19,7 +19,7 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleBoxShapeOptions : public TScriptStructWrapper<ScriptParticleBoxShapeOptions>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "ParticleBoxShapeOptions")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "ParticleBoxShapeOptions")
 
 		static MonoObject* Box(const __PARTICLE_BOX_SHAPE_DESCInterop& value);
 		static __PARTICLE_BOX_SHAPE_DESCInterop Unbox(MonoObject* value);

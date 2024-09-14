@@ -22,9 +22,11 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptSpriteImage : public TScriptResourceWrapper<SpriteImage, ScriptSpriteImage, ScriptSpriteImageWrapperBase>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "SpriteImage")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "SpriteImage")
 
 		ScriptSpriteImage(const TResourceHandle<SpriteImage>& nativeObject);
+
+		static void SetupScriptBindings();
 
 		static MonoObject* CreateScriptObject(bool construct);
 

@@ -11,9 +11,11 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptBone : public TScriptGameObjectWrapper<CBone, ScriptBone>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "Bone")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "Bone")
 
 		ScriptBone(const GameObjectHandle<CBone>& nativeObject);
+
+		static void SetupScriptBindings();
 
 		static MonoObject* CreateScriptObject(bool construct);
 

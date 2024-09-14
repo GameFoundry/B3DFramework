@@ -11,7 +11,7 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleCollisionsOptions : public TScriptStructWrapper<ScriptParticleCollisionsOptions>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "ParticleCollisionsOptions")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "ParticleCollisionsOptions")
 
 		static MonoObject* Box(const PARTICLE_COLLISIONS_DESC& value);
 		static PARTICLE_COLLISIONS_DESC Unbox(MonoObject* value);

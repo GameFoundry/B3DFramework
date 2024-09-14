@@ -13,9 +13,11 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptGUIHorizontalSlider : public TScriptGUIElementWrapper<GUIHorizontalSlider, ScriptGUIHorizontalSlider, ScriptGUISliderWrapperBase>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "GUIHorizontalSlider")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "GUIHorizontalSlider")
 
 		ScriptGUIHorizontalSlider(GUIHorizontalSlider* nativeObject);
+
+		static void SetupScriptBindings();
 
 		static MonoObject* CreateScriptObject(bool construct);
 

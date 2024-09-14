@@ -35,9 +35,11 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptAnimationCurve : public TScriptNonReflectableWrapper<TAnimationCurve<float>, ScriptAnimationCurve>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "AnimationCurve")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "AnimationCurve")
 
 		ScriptAnimationCurve(const SPtr<TAnimationCurve<float>>& nativeObject);
+
+		static void SetupScriptBindings();
 
 		static MonoObject* CreateScriptObject(bool construct);
 
@@ -50,9 +52,11 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptVector3Curve : public TScriptNonReflectableWrapper<TAnimationCurve<TVector3<float>>, ScriptVector3Curve>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "Vector3Curve")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "Vector3Curve")
 
 		ScriptVector3Curve(const SPtr<TAnimationCurve<TVector3<float>>>& nativeObject);
+
+		static void SetupScriptBindings();
 
 		static MonoObject* CreateScriptObject(bool construct);
 
@@ -65,9 +69,11 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptVector2Curve : public TScriptNonReflectableWrapper<TAnimationCurve<TVector2<float>>, ScriptVector2Curve>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "Vector2Curve")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "Vector2Curve")
 
 		ScriptVector2Curve(const SPtr<TAnimationCurve<TVector2<float>>>& nativeObject);
+
+		static void SetupScriptBindings();
 
 		static MonoObject* CreateScriptObject(bool construct);
 
@@ -80,9 +86,11 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptQuaternionCurve : public TScriptNonReflectableWrapper<TAnimationCurve<Quaternion>, ScriptQuaternionCurve>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "QuaternionCurve")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "QuaternionCurve")
 
 		ScriptQuaternionCurve(const SPtr<TAnimationCurve<Quaternion>>& nativeObject);
+
+		static void SetupScriptBindings();
 
 		static MonoObject* CreateScriptObject(bool construct);
 
@@ -95,9 +103,11 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptIntegerCurve : public TScriptNonReflectableWrapper<TAnimationCurve<int32_t>, ScriptIntegerCurve>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "IntegerCurve")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "IntegerCurve")
 
 		ScriptIntegerCurve(const SPtr<TAnimationCurve<int32_t>>& nativeObject);
+
+		static void SetupScriptBindings();
 
 		static MonoObject* CreateScriptObject(bool construct);
 

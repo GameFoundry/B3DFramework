@@ -11,7 +11,7 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleGravityOptions : public TScriptStructWrapper<ScriptParticleGravityOptions>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "ParticleGravityOptions")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "ParticleGravityOptions")
 
 		static MonoObject* Box(const PARTICLE_GRAVITY_DESC& value);
 		static PARTICLE_GRAVITY_DESC Unbox(MonoObject* value);

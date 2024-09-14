@@ -23,7 +23,7 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptGUIContentImages : public TScriptStructWrapper<ScriptGUIContentImages>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "GUIContentImages")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "GUIContentImages")
 
 		static MonoObject* Box(const __GUIContentImagesInterop& value);
 		static __GUIContentImagesInterop Unbox(MonoObject* value);

@@ -14,9 +14,11 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptDistanceJoint : public TScriptGameObjectWrapper<CDistanceJoint, ScriptDistanceJoint, ScriptJointWrapperBase>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "DistanceJoint")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "DistanceJoint")
 
 		ScriptDistanceJoint(const GameObjectHandle<CDistanceJoint>& nativeObject);
+
+		static void SetupScriptBindings();
 
 		static MonoObject* CreateScriptObject(bool construct);
 

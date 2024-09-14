@@ -15,9 +15,11 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptImportedAnimationEvents : public TScriptReflectableWrapper<ImportedAnimationEvents, ScriptImportedAnimationEvents>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "ImportedAnimationEvents")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "ImportedAnimationEvents")
 
 		ScriptImportedAnimationEvents(const SPtr<ImportedAnimationEvents>& nativeObject);
+
+		static void SetupScriptBindings();
 
 		static MonoObject* CreateScriptObject(bool construct);
 

@@ -16,9 +16,11 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptFontImportOptions : public TScriptReflectableWrapper<FontImportOptions, ScriptFontImportOptions, ScriptImportOptionsWrapperBase>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "FontImportOptions")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "FontImportOptions")
 
 		ScriptFontImportOptions(const SPtr<FontImportOptions>& nativeObject);
+
+		static void SetupScriptBindings();
 
 		static MonoObject* CreateScriptObject(bool construct);
 

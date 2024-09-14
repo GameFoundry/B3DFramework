@@ -18,10 +18,11 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptGUIElement : public TScriptGUIElementWrapper<GUIElement, ScriptGUIElement>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "GUIElement")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "GUIElement")
 
 		ScriptGUIElement();
 
+		static void SetupScriptBindings();
 		static MonoObject* CreateScriptObject(bool construct) { return nullptr; }
 	private:
 		/************************************************************************/
@@ -70,10 +71,11 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptGUIInteractable : public TScriptGUIElementWrapper<GUIInteractable, ScriptGUIInteractable, ScriptGUIInteractableWrapperBase> // TODO - Move to its own file
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "GUIInteractable")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "GUIInteractable")
 
 		ScriptGUIInteractable();
 
+		static void SetupScriptBindings();
 		static MonoObject* CreateScriptObject(bool construct) { return nullptr; }
 	private:
 		/************************************************************************/

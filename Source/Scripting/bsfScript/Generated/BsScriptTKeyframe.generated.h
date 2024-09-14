@@ -22,7 +22,7 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptKeyFrameInt : public TScriptStructWrapper<ScriptKeyFrameInt>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "KeyFrameInt")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "KeyFrameInt")
 
 		static MonoObject* Box(const TKeyframe<int32_t>& value);
 		static TKeyframe<int32_t> Unbox(MonoObject* value);
@@ -35,7 +35,7 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptKeyFrame : public TScriptStructWrapper<ScriptKeyFrame>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "KeyFrame")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "KeyFrame")
 
 		static MonoObject* Box(const TKeyframe<float>& value);
 		static TKeyframe<float> Unbox(MonoObject* value);
@@ -56,7 +56,7 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptKeyFrameVec3 : public TScriptStructWrapper<ScriptKeyFrameVec3>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "KeyFrameVec3")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "KeyFrameVec3")
 
 		static MonoObject* Box(const __TKeyframe_TVector3_float__Interop& value);
 		static __TKeyframe_TVector3_float__Interop Unbox(MonoObject* value);
@@ -79,7 +79,7 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptKeyFrameVec2 : public TScriptStructWrapper<ScriptKeyFrameVec2>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "KeyFrameVec2")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "KeyFrameVec2")
 
 		static MonoObject* Box(const __TKeyframe_TVector2_float__Interop& value);
 		static __TKeyframe_TVector2_float__Interop Unbox(MonoObject* value);
@@ -102,7 +102,7 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptKeyFrameQuat : public TScriptStructWrapper<ScriptKeyFrameQuat>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "KeyFrameQuat")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "KeyFrameQuat")
 
 		static MonoObject* Box(const __TKeyframe_Quaternion_Interop& value);
 		static __TKeyframe_Quaternion_Interop Unbox(MonoObject* value);

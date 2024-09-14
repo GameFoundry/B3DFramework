@@ -12,9 +12,11 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptMeshCollider : public TScriptGameObjectWrapper<CMeshCollider, ScriptMeshCollider, ScriptColliderWrapperBase>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "MeshCollider")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "MeshCollider")
 
 		ScriptMeshCollider(const GameObjectHandle<CMeshCollider>& nativeObject);
+
+		static void SetupScriptBindings();
 
 		static MonoObject* CreateScriptObject(bool construct);
 

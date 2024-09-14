@@ -25,9 +25,11 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptFloatDistribution : public TScriptNonReflectableWrapper<TDistribution<float>, ScriptFloatDistribution>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "FloatDistribution")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "FloatDistribution")
 
 		ScriptFloatDistribution(const SPtr<TDistribution<float>>& nativeObject);
+
+		static void SetupScriptBindings();
 
 		static MonoObject* CreateScriptObject(bool construct);
 
@@ -49,9 +51,11 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptVector3Distribution : public TScriptNonReflectableWrapper<TDistribution<TVector3<float>>, ScriptVector3Distribution>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "Vector3Distribution")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "Vector3Distribution")
 
 		ScriptVector3Distribution(const SPtr<TDistribution<TVector3<float>>>& nativeObject);
+
+		static void SetupScriptBindings();
 
 		static MonoObject* CreateScriptObject(bool construct);
 
@@ -73,9 +77,11 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptVector2Distribution : public TScriptNonReflectableWrapper<TDistribution<TVector2<float>>, ScriptVector2Distribution>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "Vector2Distribution")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "Vector2Distribution")
 
 		ScriptVector2Distribution(const SPtr<TDistribution<TVector2<float>>>& nativeObject);
+
+		static void SetupScriptBindings();
 
 		static MonoObject* CreateScriptObject(bool construct);
 

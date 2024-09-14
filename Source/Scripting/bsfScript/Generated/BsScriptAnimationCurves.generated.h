@@ -21,9 +21,11 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptAnimationCurves : public TScriptNonReflectableWrapper<AnimationCurves, ScriptAnimationCurves>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "AnimationCurves")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "AnimationCurves")
 
 		ScriptAnimationCurves(const SPtr<AnimationCurves>& nativeObject);
+
+		static void SetupScriptBindings();
 
 		static MonoObject* CreateScriptObject(bool construct);
 

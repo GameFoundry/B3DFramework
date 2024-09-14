@@ -17,6 +17,8 @@ namespace bs
 
 		ScriptImporter(MonoObject* managedInstance);
 
+		static void SetupScriptBindings();
+
 	private:
 		static MonoObject* InternalImport(MonoString* inputFilePath, MonoObject* importOptions, UUID* UUID);
 		static MonoObject* InternalImportAsync(MonoString* inputFilePath, MonoObject* importOptions, UUID* UUID);

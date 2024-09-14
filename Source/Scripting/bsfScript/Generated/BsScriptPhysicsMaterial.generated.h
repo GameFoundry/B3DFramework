@@ -11,9 +11,11 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptPhysicsMaterial : public TScriptResourceWrapper<PhysicsMaterial, ScriptPhysicsMaterial>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "PhysicsMaterial")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "PhysicsMaterial")
 
 		ScriptPhysicsMaterial(const TResourceHandle<PhysicsMaterial>& nativeObject);
+
+		static void SetupScriptBindings();
 
 		static MonoObject* CreateScriptObject(bool construct);
 

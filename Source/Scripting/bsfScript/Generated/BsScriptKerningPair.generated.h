@@ -11,7 +11,7 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptKerningPair : public TScriptStructWrapper<ScriptKerningPair>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "KerningPair")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "KerningPair")
 
 		static MonoObject* Box(const KerningPair& value);
 		static KerningPair Unbox(MonoObject* value);

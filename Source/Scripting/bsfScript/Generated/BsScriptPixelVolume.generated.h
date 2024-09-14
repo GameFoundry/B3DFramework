@@ -11,7 +11,7 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptPixelVolume : public TScriptStructWrapper<ScriptPixelVolume>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "PixelVolume")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "PixelVolume")
 
 		static MonoObject* Box(const PixelVolume& value);
 		static PixelVolume Unbox(MonoObject* value);

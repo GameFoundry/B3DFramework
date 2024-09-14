@@ -16,9 +16,11 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptViewport : public TScriptReflectableWrapper<Viewport, ScriptViewport>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "Viewport")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "Viewport")
 
 		ScriptViewport(const SPtr<Viewport>& nativeObject);
+
+		static void SetupScriptBindings();
 
 		static MonoObject* CreateScriptObject(bool construct);
 

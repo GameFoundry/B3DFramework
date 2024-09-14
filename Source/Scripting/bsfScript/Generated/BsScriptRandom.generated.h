@@ -18,6 +18,8 @@ namespace bs
 
 		ScriptRandom(MonoObject* managedInstance, const SPtr<Random>& value);
 
+		static void SetupScriptBindings();
+
 		SPtr<Random> GetInternal() const { return mInternal; }
 		static MonoObject* Create(const SPtr<Random>& value);
 

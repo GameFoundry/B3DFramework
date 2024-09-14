@@ -16,10 +16,11 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptGUIRenderTexture : public TScriptGUIElementWrapper<GUIRenderTexture, ScriptGUIRenderTexture, ScriptGUIInteractableWrapperBase>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "GUIRenderTexture")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "GUIRenderTexture")
 
 		ScriptGUIRenderTexture(GUIRenderTexture* nativeObject);
 
+		static void SetupScriptBindings();
 		static MonoObject* CreateScriptObject(bool construct);
 
 		/** Returns the native object that is being wrapped. */

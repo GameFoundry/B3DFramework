@@ -17,9 +17,11 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptComponent : public TScriptGameObjectWrapper<Component, ScriptComponent>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "Component")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "Component")
 
 		ScriptComponent(const HComponent& nativeObject);
+
+		static void SetupScriptBindings();
 
 		/** Dummy method to create the script object. Not used as Component is only used as base class and not created directly. */
 		static MonoObject* CreateScriptObject(bool construct)

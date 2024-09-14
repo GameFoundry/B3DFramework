@@ -12,9 +12,11 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptStringTable : public TScriptResourceWrapper<StringTable, ScriptStringTable>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "StringTable")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "StringTable")
 
 		ScriptStringTable(const TResourceHandle<StringTable>& nativeObject);
+
+		static void SetupScriptBindings();
 
 		static MonoObject* CreateScriptObject(bool construct);
 

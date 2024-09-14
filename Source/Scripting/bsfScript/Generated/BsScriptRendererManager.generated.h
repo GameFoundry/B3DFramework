@@ -15,6 +15,8 @@ namespace bs
 
 		ScriptRendererManager(MonoObject* managedInstance);
 
+		static void SetupScriptBindings();
+
 	private:
 		static void InternalRequestFrameCapture();
 	};

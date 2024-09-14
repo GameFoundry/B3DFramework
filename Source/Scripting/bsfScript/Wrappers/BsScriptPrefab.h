@@ -16,13 +16,14 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptPrefab : public TScriptResourceWrapper<Prefab, ScriptPrefab>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "Prefab")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "Prefab")
 
 		ScriptPrefab(const HPrefab& nativeObject);
 
 		/** Retrieves the underlying native object cast to the correct type. */
 		Prefab* GetNativeObject() const;
 
+		static void SetupScriptBindings();
 		static MonoObject* CreateScriptObject(bool construct);
 
 	private:

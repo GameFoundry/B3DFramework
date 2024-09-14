@@ -11,7 +11,7 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptHingeJointDrive : public TScriptStructWrapper<ScriptHingeJointDrive>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "HingeJointDrive")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "HingeJointDrive")
 
 		static MonoObject* Box(const HingeJointDrive& value);
 		static HingeJointDrive Unbox(MonoObject* value);

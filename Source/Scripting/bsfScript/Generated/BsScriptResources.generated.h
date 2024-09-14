@@ -17,6 +17,8 @@ namespace bs
 
 		ScriptResources(MonoObject* managedInstance);
 
+		static void SetupScriptBindings();
+
 		static void StartUp();
 		static void ShutDown();
 

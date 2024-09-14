@@ -13,9 +13,11 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptCapsuleCollider : public TScriptGameObjectWrapper<CCapsuleCollider, ScriptCapsuleCollider, ScriptColliderWrapperBase>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "CapsuleCollider")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "CapsuleCollider")
 
 		ScriptCapsuleCollider(const GameObjectHandle<CCapsuleCollider>& nativeObject);
+
+		static void SetupScriptBindings();
 
 		static MonoObject* CreateScriptObject(bool construct);
 

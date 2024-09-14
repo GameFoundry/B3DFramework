@@ -11,9 +11,11 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptVectorGraphicsSettings : public TScriptNonReflectableWrapper<VectorGraphicsSettings, ScriptVectorGraphicsSettings>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "VectorGraphicsSettings")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "VectorGraphicsSettings")
 
 		ScriptVectorGraphicsSettings(const SPtr<VectorGraphicsSettings>& nativeObject);
+
+		static void SetupScriptBindings();
 
 		static MonoObject* CreateScriptObject(bool construct);
 

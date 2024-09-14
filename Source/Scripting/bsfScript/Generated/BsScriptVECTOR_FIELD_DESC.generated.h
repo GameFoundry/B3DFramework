@@ -20,7 +20,7 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptVectorFieldOptions : public TScriptStructWrapper<ScriptVectorFieldOptions>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "VectorFieldOptions")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "VectorFieldOptions")
 
 		static MonoObject* Box(const __VECTOR_FIELD_DESCInterop& value);
 		static __VECTOR_FIELD_DESCInterop Unbox(MonoObject* value);

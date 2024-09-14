@@ -11,7 +11,7 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleHemisphereShapeOptions : public TScriptStructWrapper<ScriptParticleHemisphereShapeOptions>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "ParticleHemisphereShapeOptions")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "ParticleHemisphereShapeOptions")
 
 		static MonoObject* Box(const PARTICLE_HEMISPHERE_SHAPE_DESC& value);
 		static PARTICLE_HEMISPHERE_SHAPE_DESC Unbox(MonoObject* value);

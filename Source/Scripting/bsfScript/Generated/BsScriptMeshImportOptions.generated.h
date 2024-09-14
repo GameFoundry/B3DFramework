@@ -17,9 +17,11 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptMeshImportOptions : public TScriptReflectableWrapper<MeshImportOptions, ScriptMeshImportOptions, ScriptImportOptionsWrapperBase>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "MeshImportOptions")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "MeshImportOptions")
 
 		ScriptMeshImportOptions(const SPtr<MeshImportOptions>& nativeObject);
+
+		static void SetupScriptBindings();
 
 		static MonoObject* CreateScriptObject(bool construct);
 

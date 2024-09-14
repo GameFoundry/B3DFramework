@@ -11,7 +11,7 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptSpriteSheetGridAnimation : public TScriptStructWrapper<ScriptSpriteSheetGridAnimation>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "SpriteSheetGridAnimation")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "SpriteSheetGridAnimation")
 
 		static MonoObject* Box(const SpriteSheetGridAnimation& value);
 		static SpriteSheetGridAnimation Unbox(MonoObject* value);

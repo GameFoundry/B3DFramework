@@ -27,7 +27,7 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptStartUpDesc : public TScriptStructWrapper<ScriptStartUpDesc>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "StartUpDesc")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "StartUpDesc")
 
 		static MonoObject* Box(const __START_UP_DESCInterop& value);
 		static __START_UP_DESCInterop Unbox(MonoObject* value);

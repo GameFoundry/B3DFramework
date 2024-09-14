@@ -16,13 +16,14 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptGUIScrollArea : public TScriptGUIElementWrapper<GUIScrollArea, ScriptGUIScrollArea, ScriptGUIInteractableWrapperBase>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "GUIScrollArea")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "GUIScrollArea")
 
 		ScriptGUIScrollArea(GUIScrollArea* nativeObject);
 
 		/** Returns the native object that is being wrapped. */
 		GUIScrollArea* GetNativeObject() const { return static_cast<GUIScrollArea*>(mNativeObject); }
 
+		static void SetupScriptBindings();
 		static MonoObject* CreateScriptObject(bool construct);
 	private:
 		/************************************************************************/

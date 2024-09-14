@@ -26,9 +26,11 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptRenderSettings : public TScriptReflectableWrapper<RenderSettings, ScriptRenderSettings>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "RenderSettings")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "RenderSettings")
 
 		ScriptRenderSettings(const SPtr<RenderSettings>& nativeObject);
+
+		static void SetupScriptBindings();
 
 		static MonoObject* CreateScriptObject(bool construct);
 

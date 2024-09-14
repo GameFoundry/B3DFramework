@@ -15,9 +15,11 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptSphericalJoint : public TScriptGameObjectWrapper<CSphericalJoint, ScriptSphericalJoint, ScriptJointWrapperBase>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "SphericalJoint")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "SphericalJoint")
 
 		ScriptSphericalJoint(const GameObjectHandle<CSphericalJoint>& nativeObject);
+
+		static void SetupScriptBindings();
 
 		static MonoObject* CreateScriptObject(bool construct);
 

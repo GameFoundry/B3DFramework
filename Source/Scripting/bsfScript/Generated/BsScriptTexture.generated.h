@@ -16,9 +16,11 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptTexture : public TScriptResourceWrapper<Texture, ScriptTexture>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "Texture")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "Texture")
 
 		ScriptTexture(const TResourceHandle<Texture>& nativeObject);
+
+		static void SetupScriptBindings();
 
 		static MonoObject* CreateScriptObject(bool construct);
 

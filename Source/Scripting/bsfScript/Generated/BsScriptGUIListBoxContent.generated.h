@@ -18,7 +18,7 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptGUIListBoxContent : public TScriptStructWrapper<ScriptGUIListBoxContent>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "GUIListBoxContent")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "GUIListBoxContent")
 
 		static MonoObject* Box(const __GUIListBoxContentInterop& value);
 		static __GUIListBoxContentInterop Unbox(MonoObject* value);

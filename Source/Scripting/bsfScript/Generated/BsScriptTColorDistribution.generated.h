@@ -19,9 +19,11 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptColorDistribution : public TScriptNonReflectableWrapper<TColorDistribution<ColorGradient>, ScriptColorDistribution>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "ColorDistribution")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "ColorDistribution")
 
 		ScriptColorDistribution(const SPtr<TColorDistribution<ColorGradient>>& nativeObject);
+
+		static void SetupScriptBindings();
 
 		static MonoObject* CreateScriptObject(bool construct);
 
@@ -41,9 +43,11 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptColorHDRDistribution : public TScriptNonReflectableWrapper<TColorDistribution<ColorGradientHDR>, ScriptColorHDRDistribution>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "ColorHDRDistribution")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "ColorHDRDistribution")
 
 		ScriptColorHDRDistribution(const SPtr<TColorDistribution<ColorGradientHDR>>& nativeObject);
+
+		static void SetupScriptBindings();
 
 		static MonoObject* CreateScriptObject(bool construct);
 

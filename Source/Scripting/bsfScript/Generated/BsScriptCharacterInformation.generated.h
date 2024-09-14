@@ -29,7 +29,7 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptCharacterInformation : public TScriptStructWrapper<ScriptCharacterInformation>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "CharacterInformation")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "CharacterInformation")
 
 		static MonoObject* Box(const __CharacterInformationInterop& value);
 		static __CharacterInformationInterop Unbox(MonoObject* value);

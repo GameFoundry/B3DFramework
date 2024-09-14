@@ -20,7 +20,7 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleSizeOptions : public TScriptStructWrapper<ScriptParticleSizeOptions>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "ParticleSizeOptions")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "ParticleSizeOptions")
 
 		static MonoObject* Box(const __PARTICLE_SIZE_DESCInterop& value);
 		static __PARTICLE_SIZE_DESCInterop Unbox(MonoObject* value);

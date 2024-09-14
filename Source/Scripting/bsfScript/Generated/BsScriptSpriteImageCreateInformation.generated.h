@@ -21,7 +21,7 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptSpriteImageCreateInformation : public TScriptStructWrapper<ScriptSpriteImageCreateInformation>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "SpriteImageCreateInformation")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "SpriteImageCreateInformation")
 
 		static MonoObject* Box(const __SpriteImageCreateInformationInterop& value);
 		static __SpriteImageCreateInformationInterop Unbox(MonoObject* value);

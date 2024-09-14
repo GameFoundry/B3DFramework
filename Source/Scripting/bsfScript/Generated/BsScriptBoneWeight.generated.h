@@ -11,7 +11,7 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptBoneWeight : public TScriptStructWrapper<ScriptBoneWeight>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "BoneWeight")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "BoneWeight")
 
 		static MonoObject* Box(const BoneWeight& value);
 		static BoneWeight Unbox(MonoObject* value);

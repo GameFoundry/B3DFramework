@@ -13,9 +13,11 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptGUIResizableVerticalScrollBar : public TScriptGUIElementWrapper<GUIResizableVerticalScrollBar, ScriptGUIResizableVerticalScrollBar, ScriptGUIScrollBarWrapperBase>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "GUIResizableVerticalScrollBar")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "GUIResizableVerticalScrollBar")
 
 		ScriptGUIResizableVerticalScrollBar(GUIResizableVerticalScrollBar* nativeObject);
+
+		static void SetupScriptBindings();
 
 		static MonoObject* CreateScriptObject(bool construct);
 

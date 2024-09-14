@@ -19,7 +19,7 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptD6JointDrive : public TScriptStructWrapper<ScriptD6JointDrive>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "D6JointDrive")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "D6JointDrive")
 
 		static MonoObject* Box(const __D6JointDriveInterop& value);
 		static __D6JointDriveInterop Unbox(MonoObject* value);

@@ -17,10 +17,11 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptGUICanvas : public TScriptGUIElementWrapper<GUICanvas, ScriptGUICanvas, ScriptGUIInteractableWrapperBase>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "GUICanvas")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "GUICanvas")
 
 		ScriptGUICanvas(GUICanvas* nativeObject);
 
+		static void SetupScriptBindings();
 		static MonoObject* CreateScriptObject(bool construct);
 
 		/** Returns the native object that is being wrapped. */

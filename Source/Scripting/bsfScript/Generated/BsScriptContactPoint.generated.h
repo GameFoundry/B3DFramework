@@ -20,7 +20,7 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptContactPoint : public TScriptStructWrapper<ScriptContactPoint>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "ContactPoint")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "ContactPoint")
 
 		static MonoObject* Box(const __ContactPointInterop& value);
 		static __ContactPointInterop Unbox(MonoObject* value);

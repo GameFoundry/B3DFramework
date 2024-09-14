@@ -133,9 +133,11 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptGameObject : public TScriptGameObjectWrapper<GameObject, ScriptGameObject>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "GameObject")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "GameObject")
 
 		ScriptGameObject(const HGameObject& nativeObject);
+
+		static void SetupScriptBindings();
 
 		/** Dummy method to create the script object. Not used as game objects are always just base classes, not created directly. */
 		static MonoObject* CreateScriptObject(bool construct)

@@ -13,9 +13,11 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptGUIVerticalSlider : public TScriptGUIElementWrapper<GUIVerticalSlider, ScriptGUIVerticalSlider, ScriptGUISliderWrapperBase>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "GUIVerticalSlider")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "GUIVerticalSlider")
 
 		ScriptGUIVerticalSlider(GUIVerticalSlider* nativeObject);
+
+		static void SetupScriptBindings();
 
 		static MonoObject* CreateScriptObject(bool construct);
 

@@ -12,9 +12,11 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptAmbientOcclusionSettings : public TScriptReflectableWrapper<AmbientOcclusionSettings, ScriptAmbientOcclusionSettings>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "AmbientOcclusionSettings")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "AmbientOcclusionSettings")
 
 		ScriptAmbientOcclusionSettings(const SPtr<AmbientOcclusionSettings>& nativeObject);
+
+		static void SetupScriptBindings();
 
 		static MonoObject* CreateScriptObject(bool construct);
 

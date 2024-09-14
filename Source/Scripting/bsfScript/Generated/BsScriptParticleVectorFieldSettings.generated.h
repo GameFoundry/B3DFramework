@@ -15,9 +15,11 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleVectorFieldSettings : public TScriptReflectableWrapper<ParticleVectorFieldSettings, ScriptParticleVectorFieldSettings>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "ParticleVectorFieldSettings")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "ParticleVectorFieldSettings")
 
 		ScriptParticleVectorFieldSettings(const SPtr<ParticleVectorFieldSettings>& nativeObject);
+
+		static void SetupScriptBindings();
 
 		static MonoObject* CreateScriptObject(bool construct);
 

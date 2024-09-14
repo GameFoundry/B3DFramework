@@ -17,7 +17,7 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleColorOptions : public TScriptStructWrapper<ScriptParticleColorOptions>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "ParticleColorOptions")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "ParticleColorOptions")
 
 		static MonoObject* Box(const __PARTICLE_COLOR_DESCInterop& value);
 		static __PARTICLE_COLOR_DESCInterop Unbox(MonoObject* value);

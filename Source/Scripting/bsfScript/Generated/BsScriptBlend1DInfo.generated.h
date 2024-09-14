@@ -18,7 +18,7 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptBlend1DInfo : public TScriptStructWrapper<ScriptBlend1DInfo>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "Blend1DInfo")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "Blend1DInfo")
 
 		static MonoObject* Box(const __Blend1DInfoInterop& value);
 		static __Blend1DInfoInterop Unbox(MonoObject* value);

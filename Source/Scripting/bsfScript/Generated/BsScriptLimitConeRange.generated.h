@@ -22,7 +22,7 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptLimitConeRange : public TScriptStructWrapper<ScriptLimitConeRange>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "LimitConeRange")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "LimitConeRange")
 
 		static MonoObject* Box(const __LimitConeRangeInterop& value);
 		static __LimitConeRangeInterop Unbox(MonoObject* value);

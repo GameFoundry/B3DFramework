@@ -11,7 +11,7 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptRectOffset : public TScriptStructWrapper<ScriptRectOffset>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "RectOffset")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "RectOffset")
 
 		static MonoObject* Box(const RectOffset& value);
 		static RectOffset Unbox(MonoObject* value);

@@ -19,7 +19,7 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptTangentRef : public TScriptStructWrapper<ScriptTangentRef>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "TangentRef")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "TangentRef")
 
 		static MonoObject* Box(const __TangentRefInterop& value);
 		static __TangentRefInterop Unbox(MonoObject* value);

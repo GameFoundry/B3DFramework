@@ -17,9 +17,11 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptHingeJoint : public TScriptGameObjectWrapper<CHingeJoint, ScriptHingeJoint, ScriptJointWrapperBase>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "HingeJoint")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "HingeJoint")
 
 		ScriptHingeJoint(const GameObjectHandle<CHingeJoint>& nativeObject);
+
+		static void SetupScriptBindings();
 
 		static MonoObject* CreateScriptObject(bool construct);
 

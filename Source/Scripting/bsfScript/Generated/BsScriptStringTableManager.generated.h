@@ -16,6 +16,8 @@ namespace bs
 
 		ScriptStringTables(MonoObject* managedInstance);
 
+		static void SetupScriptBindings();
+
 	private:
 		static void InternalSetActiveLanguage(Language language);
 		static Language InternalGetActiveLanguage();

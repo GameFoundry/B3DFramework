@@ -32,7 +32,7 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptNamedFloatCurve : public TScriptStructWrapper<ScriptNamedFloatCurve>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "NamedFloatCurve")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "NamedFloatCurve")
 
 		static MonoObject* Box(const __TNamedAnimationCurve_float_Interop& value);
 		static __TNamedAnimationCurve_float_Interop Unbox(MonoObject* value);
@@ -54,7 +54,7 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptNamedVector3Curve : public TScriptStructWrapper<ScriptNamedVector3Curve>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "NamedVector3Curve")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "NamedVector3Curve")
 
 		static MonoObject* Box(const __TNamedAnimationCurve_TVector3_float__Interop& value);
 		static __TNamedAnimationCurve_TVector3_float__Interop Unbox(MonoObject* value);
@@ -76,7 +76,7 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptNamedVector2Curve : public TScriptStructWrapper<ScriptNamedVector2Curve>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "NamedVector2Curve")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "NamedVector2Curve")
 
 		static MonoObject* Box(const __TNamedAnimationCurve_TVector2_float__Interop& value);
 		static __TNamedAnimationCurve_TVector2_float__Interop Unbox(MonoObject* value);
@@ -98,7 +98,7 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptNamedQuaternionCurve : public TScriptStructWrapper<ScriptNamedQuaternionCurve>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "NamedQuaternionCurve")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "NamedQuaternionCurve")
 
 		static MonoObject* Box(const __TNamedAnimationCurve_Quaternion_Interop& value);
 		static __TNamedAnimationCurve_Quaternion_Interop Unbox(MonoObject* value);
@@ -120,7 +120,7 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptNamedIntegerCurve : public TScriptStructWrapper<ScriptNamedIntegerCurve>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "NamedIntegerCurve")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "NamedIntegerCurve")
 
 		static MonoObject* Box(const __TNamedAnimationCurve_int32_t_Interop& value);
 		static __TNamedAnimationCurve_int32_t_Interop Unbox(MonoObject* value);

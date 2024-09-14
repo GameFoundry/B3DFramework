@@ -20,9 +20,11 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptCharacterController : public TScriptGameObjectWrapper<CCharacterController, ScriptCharacterController>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "CharacterController")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "CharacterController")
 
 		ScriptCharacterController(const GameObjectHandle<CCharacterController>& nativeObject);
+
+		static void SetupScriptBindings();
 
 		virtual void RegisterEvents();
 		static MonoObject* CreateScriptObject(bool construct);

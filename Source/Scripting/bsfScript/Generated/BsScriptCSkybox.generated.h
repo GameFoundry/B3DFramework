@@ -11,9 +11,11 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptSkybox : public TScriptGameObjectWrapper<CSkybox, ScriptSkybox>
 	{
 	public:
-		B3D_SCRIPT_OBJECT_WRAPPER(kEngineAssembly, kEngineNs, "Skybox")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "Skybox")
 
 		ScriptSkybox(const GameObjectHandle<CSkybox>& nativeObject);
+
+		static void SetupScriptBindings();
 
 		static MonoObject* CreateScriptObject(bool construct);
 
