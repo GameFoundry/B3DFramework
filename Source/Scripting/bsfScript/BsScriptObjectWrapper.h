@@ -8,6 +8,7 @@
 #include "BsMonoField.h"
 #include "BsMonoClass.h"
 #include "Script/BsIScriptObjectWrapper.h"
+#include "BsScriptTypeDefinition.h"
 
 namespace bs
 {
