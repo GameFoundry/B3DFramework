@@ -264,22 +264,6 @@ namespace bs
 		}
 	};
 
-	/**	Specialized version of TScriptObjectWrapper that should be used for types that are never going to be explicitly instantiated (e.g. singletons, static-only classes and base classes). */
-	template <typename SelfType>
-	class TNonInstantiableScriptObjectWrapper : public TScriptObjectWrapper<SelfType>
-	{
-	public:
-		TNonInstantiableScriptObjectWrapper()
-			:TScriptObjectWrapper<SelfType>(nullptr)
-		{ }
-
-		/** Dummy method to create the script object. Not needed for non-instantiable types. */
-		static MonoObject* CreateScriptObject(bool construct)
-		{
-			return nullptr;
-		}
-	};
-
 	/** Implements default methods required by script object wrapper implementations. */
 #define B3D_SCRIPT_TYPE_DEFINITION(Assembly, Namespace, Name) \
 	static const char* GetAssemblyName()      \
@@ -296,7 +280,7 @@ namespace bs
 	}                                         \
 
 	/**	Script object wrapper for ScriptObject. (Script prefix used as standard for script object wrappers, wrapping ScriptObject. Therefore ScriptScriptObject.) */
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptScriptObject : public TNonInstantiableScriptObjectWrapper<ScriptScriptObject>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptScriptObject : public TScriptTypeDefinition<ScriptScriptObject>
 	{
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "ScriptObject")
