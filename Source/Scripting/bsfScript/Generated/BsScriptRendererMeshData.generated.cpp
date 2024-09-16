@@ -8,7 +8,7 @@
 #include "BsScriptTVector3.generated.h"
 #include "BsScriptRendererMeshData.generated.h"
 #include "../Extensions/BsMeshDataEx.h"
-#include "Wrappers/BsScriptVector.h"
+#include "BsScriptTVector4.generated.h"
 #include "Wrappers/BsScriptColor.h"
 #include "BsScriptTVector2.generated.h"
 #include "BsScriptBoneWeight.generated.h"

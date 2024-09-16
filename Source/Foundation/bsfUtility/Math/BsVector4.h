@@ -19,6 +19,7 @@ namespace bs
 
 		TVector4() = default;
 
+		B3D_SCRIPT_EXPORT(Exclude(true))
 		constexpr TVector4(BS_ZERO)
 			: X((T)0.0), Y((T)0.0), Z((T)0.0), W((T)0.0)
 		{}
@@ -27,6 +28,7 @@ namespace bs
 			: X(x), Y(y), Z(z), W(w)
 		{}
 
+		B3D_SCRIPT_EXPORT(Exclude(true))
 		constexpr explicit TVector4(const TVector3<T>& other, T w = (T)0.0)
 			: X(other.X), Y(other.Y), Z(other.Z), W(w)
 		{}
@@ -256,8 +258,8 @@ namespace bs
 	template<> const TVector4<float> TVector4<float>::kZero{BsZero};
 	template<> const TVector4<double> TVector4<double>::kZero{BsZero};
 
-	extern template struct TVector4<float>;
-	extern template struct TVector4<double>;
+	extern template struct B3D_SCRIPT_EXPORT(DocumentationGroup(Math), ExportAsStruct(true), ExportName(Vector4)) TVector4<float>;
+	extern template struct B3D_SCRIPT_EXPORT(DocumentationGroup(Math), ExportAsStruct(true), ExportName(Vector4d)) TVector4<double>;
 
 	/** @} */
 } // namespace bs

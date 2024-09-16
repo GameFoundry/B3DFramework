@@ -12,19 +12,13 @@ namespace bs
     /// <summary>
     /// A four dimensional vector with a homogeneous w coordinate.
     /// </summary>
-    [StructLayout(LayoutKind.Sequential), SerializeObject]
-    public struct Vector4
+    public partial struct Vector4
     {
         public static readonly Vector4 Zero = new Vector4(0.0f, 0.0f, 0.0f, 0.0f);
         public static readonly Vector4 One = new Vector4(1.0f, 1.0f, 1.0f, 1.0f);
         public static readonly Vector4 XAxis = new Vector4(1.0f, 0.0f, 0.0f, 0.0f);
         public static readonly Vector4 YAxis = new Vector4(0.0f, 1.0f, 0.0f, 0.0f);
         public static readonly Vector4 ZAxis = new Vector4(0.0f, 0.0f, 1.0f, 0.0f);
-
-        public float x;
-        public float y;
-        public float z;
-        public float w;
 
         /// <summary>
         /// Accesses a specific component of the vector.
@@ -38,13 +32,13 @@ namespace bs
                 switch (index)
                 {
                     case 0:
-                        return x;
+                        return X;
                     case 1:
-                        return y;
+                        return Y;
                     case 2:
-                        return z;
+                        return Z;
                     case 3:
-                        return w;
+                        return W;
                     default:
                         throw new IndexOutOfRangeException("Invalid Vector4 index.");
                 }
@@ -55,16 +49,16 @@ namespace bs
                 switch (index)
                 {
                     case 0:
-                        x = value;
+                        X = value;
                         break;
                     case 1:
-                        y = value;
+                        Y = value;
                         break;
                     case 2:
-                        z = value;
+                        Z = value;
                         break;
                     case 3:
-                        w = value;
+                        W = value;
                         break;
                     default:
                         throw new IndexOutOfRangeException("Invalid Vector4 index.");
@@ -90,7 +84,7 @@ namespace bs
         {
             get
             {
-                return MathEx.Sqrt(x * x + y * y + z * z + w * w);
+                return MathEx.Sqrt(X * X + Y * Y + Z * Z + W * W);
             }
         }
 
@@ -101,31 +95,8 @@ namespace bs
         {
             get
             {
-                return (x * x + y * y + z * z + w * w);
+                return (X * X + Y * Y + Z * Z + W * W);
             }
-        }
-
-        /// <summary>
-        /// Creates a new default initialized vector value.
-        /// </summary>
-        public static Vector4 Default()
-        {
-            return new Vector4();
-        }
-
-        /// <summary>
-        /// Creates a new four dimensional vector.
-        /// </summary>
-        /// <param name="x">X coordinate.</param>
-        /// <param name="y">Y coordinate.</param>
-        /// <param name="z">Z coordinate.</param>
-        /// <param name="w">Homogeneous W coordinate.</param>
-        public Vector4(float x, float y, float z, float w)
-        {
-            this.x = x;
-            this.y = y;
-            this.z = z;
-            this.w = w;
         }
 
         /// <summary>
@@ -135,47 +106,47 @@ namespace bs
         /// <returns>A new three dimensional vector.</returns>
         public static explicit operator Vector3(Vector4 vec)
         {
-            return new Vector3(vec.x, vec.y, vec.z);
+            return new Vector3(vec.X, vec.Y, vec.Z);
         }
 
         public static Vector4 operator+ (Vector4 a, Vector4 b)
         {
-            return new Vector4(a.x + b.x, a.y + b.y, a.z + b.z, a.w + b.w);
+            return new Vector4(a.X + b.X, a.Y + b.Y, a.Z + b.Z, a.W + b.W);
         }
 
         public static Vector4 operator- (Vector4 a, Vector4 b)
         {
-            return new Vector4(a.x - b.x, a.y - b.y, a.z - b.z, a.w - b.w);
+            return new Vector4(a.X - b.X, a.Y - b.Y, a.Z - b.Z, a.W - b.W);
         }
 
         public static Vector4 operator- (Vector4 v)
         {
-            return new Vector4(-v.x, -v.y, -v.z, -v.w);
+            return new Vector4(-v.X, -v.Y, -v.Z, -v.W);
         }
 
         public static Vector4 operator *(Vector4 a, Vector4 b)
         {
-            return new Vector4(a.x * b.x, a.y * b.y, a.z * b.z, a.w * b.w);
+            return new Vector4(a.X * b.X, a.Y * b.Y, a.Z * b.Z, a.W * b.W);
         }
 
         public static Vector4 operator* (Vector4 v, float d)
         {
-            return new Vector4(v.x * d, v.y * d, v.z * d, v.w * d);
+            return new Vector4(v.X * d, v.Y * d, v.Z * d, v.W * d);
         }
 
         public static Vector4 operator* (float d, Vector4 v)
         {
-            return new Vector4(v.x * d, v.y * d, v.z * d, v.w * d);
+            return new Vector4(v.X * d, v.Y * d, v.Z * d, v.W * d);
         }
 
         public static Vector4 operator /(Vector4 v, float d)
         {
-            return new Vector4(v.x / d, v.y / d, v.z / d, v.w / d);
+            return new Vector4(v.X / d, v.Y / d, v.Z / d, v.W / d);
         }
 
         public static bool operator== (Vector4 lhs, Vector4 rhs)
         {
-            return lhs.x == rhs.x && lhs.y == rhs.y && lhs.z == rhs.z && lhs.w == rhs.w;
+            return lhs.X == rhs.X && lhs.Y == rhs.Y && lhs.Z == rhs.Z && lhs.W == rhs.W;
         }
 
         public static bool operator!= (Vector4 lhs, Vector4 rhs)
@@ -191,7 +162,7 @@ namespace bs
         /// <returns>One vector scaled by another.</returns>
         public static Vector4 Scale(Vector4 a, Vector4 b)
         {
-            return new Vector4(a.x * b.x, a.y * b.y, a.z * b.z, a.w * b.w);
+            return new Vector4(a.X * b.X, a.Y * b.Y, a.Z * b.Z, a.W * b.W);
         }
 
         /// <summary>
@@ -216,7 +187,7 @@ namespace bs
         /// <returns>Inner product between the two vectors.</returns>
         public static float Dot(Vector4 lhs, Vector4 rhs)
         {
-            return lhs.x * rhs.x + lhs.y * rhs.y + lhs.z * rhs.z + lhs.w * rhs.w;
+            return lhs.X * rhs.X + lhs.Y * rhs.Y + lhs.Z * rhs.Z + lhs.W * rhs.W;
         }
 
         /// <summary>
@@ -227,8 +198,8 @@ namespace bs
         /// <returns>Distance between the two points.</returns>
         public static float Distance(Vector4 a, Vector4 b)
         {
-            Vector4 vector4 = new Vector4(a.x - b.x, a.y - b.y, a.z - b.z, a.w - b.w);
-            return MathEx.Sqrt(vector4.x * vector4.x + vector4.y * vector4.y + vector4.z * vector4.z + vector4.w * vector4.w);
+            Vector4 vector4 = new Vector4(a.X - b.X, a.Y - b.Y, a.Z - b.Z, a.W - b.W);
+            return MathEx.Sqrt(vector4.X * vector4.X + vector4.Y * vector4.Y + vector4.Z * vector4.Z + vector4.W * vector4.W);
         }
 
         /// <summary>
@@ -238,7 +209,7 @@ namespace bs
         /// <returns>Magnitude of the vector.</returns>
         public static float Magnitude(Vector4 v)
         {
-            return MathEx.Sqrt(v.x * v.x + v.y * v.y + v.z * v.z + v.w * v.w);
+            return MathEx.Sqrt(v.X * v.X + v.Y * v.Y + v.Z * v.Z + v.W * v.W);
         }
 
         /// <summary>
@@ -248,7 +219,7 @@ namespace bs
         /// <returns>Squared magnitude of the vector.</returns>
         public static float SqrMagnitude(Vector4 v)
         {
-            return (v.x * v.x + v.y * v.y + v.z * v.z + v.w * v.w);
+            return (v.X * v.X + v.Y * v.Y + v.Z * v.Z + v.W * v.W);
         }
 
         /// <summary>
@@ -257,10 +228,10 @@ namespace bs
         /// <param name="scale">Scale factors to multiply components by.</param>
         public void Scale(Vector4 scale)
         {
-            x *= scale.x;
-            y *= scale.y;
-            z *= scale.z;
-            w *= scale.w;
+            X *= scale.X;
+            Y *= scale.Y;
+            Z *= scale.Z;
+            W *= scale.W;
         }
 
         /// <summary>
@@ -276,7 +247,7 @@ namespace bs
         /// <inheritdoc/>
         public override int GetHashCode()
         {
-            return x.GetHashCode() ^ y.GetHashCode() << 2 ^ z.GetHashCode() >> 2 ^ w.GetHashCode() >> 1;
+            return X.GetHashCode() ^ Y.GetHashCode() << 2 ^ Z.GetHashCode() >> 2 ^ W.GetHashCode() >> 1;
         }
 
         /// <inheritdoc/>
@@ -286,7 +257,7 @@ namespace bs
                 return false;
 
             Vector4 vec = (Vector4)other;
-            if (x.Equals(vec.x) && y.Equals(vec.y) && z.Equals(vec.z) && w.Equals(vec.w))
+            if (X.Equals(vec.X) && Y.Equals(vec.Y) && Z.Equals(vec.Z) && W.Equals(vec.W))
                 return true;
 
             return false;
@@ -295,7 +266,7 @@ namespace bs
         /// <inheritdoc/>
         public override string ToString()
         {
-            return "(" + x + ", " + y + ", " + z + ", " + w + ")";
+            return "(" + X + ", " + Y + ", " + Z + ", " + W + ")";
         }
     }
 

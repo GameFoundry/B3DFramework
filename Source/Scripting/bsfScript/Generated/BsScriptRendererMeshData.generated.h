@@ -8,7 +8,7 @@
 #include "../../../Foundation/bsfUtility/Math/BsVector3.h"
 #include "../../../Foundation/bsfCore/Renderer/BsRendererMeshData.h"
 #include "../../../Foundation/bsfCore/Utility/BsCommonTypes.h"
-#include "Math/BsVector4.h"
+#include "../../../Foundation/bsfUtility/Math/BsVector4.h"
 #include "Image/BsColor.h"
 #include "../../../Foundation/bsfUtility/Math/BsVector2.h"
 #include "../../../Foundation/bsfCore/Mesh/BsMeshData.h"

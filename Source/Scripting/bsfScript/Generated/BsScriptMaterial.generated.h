@@ -11,7 +11,7 @@
 #include "../../../Foundation/bsfCore/Animation/BsAnimationCurve.h"
 #include "../../../Foundation/bsfUtility/Math/BsVector2.h"
 #include "../../../Foundation/bsfUtility/Math/BsVector3.h"
-#include "Math/BsVector4.h"
+#include "../../../Foundation/bsfUtility/Math/BsVector4.h"
 #include "Math/BsMatrix3.h"
 
 namespace bs { class Material; }

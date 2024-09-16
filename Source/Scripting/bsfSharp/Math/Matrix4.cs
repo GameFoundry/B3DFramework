@@ -492,10 +492,10 @@ namespace bs
         public Vector4 MultiplyAffine(Vector4 v)
         {
             return new Vector4(
-                m00 * v.x + m01 * v.y + m02 * v.z + m03 * v.w,
-                m10 * v.x + m11 * v.y + m12 * v.z + m13 * v.w,
-                m20 * v.x + m21 * v.y + m22 * v.z + m23 * v.w,
-                v.w);
+                m00 * v.X + m01 * v.Y + m02 * v.Z + m03 * v.W,
+                m10 * v.X + m11 * v.Y + m12 * v.Z + m13 * v.W,
+                m20 * v.X + m21 * v.Y + m22 * v.Z + m23 * v.W,
+                v.W);
         }
 
         /// <summary>
@@ -527,10 +527,10 @@ namespace bs
         public Vector4 Multiply(Vector4 v)
         {
             return new Vector4(
-                m00 * v.x + m01 * v.y + m02 * v.z + m03 * v.w,
-                m10 * v.x + m11 * v.y + m12 * v.z + m13 * v.w,
-                m20 * v.x + m21 * v.y + m22 * v.z + m23 * v.w,
-                m30 * v.x + m31 * v.y + m32 * v.z + m33 * v.w);
+                m00 * v.X + m01 * v.Y + m02 * v.Z + m03 * v.W,
+                m10 * v.X + m11 * v.Y + m12 * v.Z + m13 * v.W,
+                m20 * v.X + m21 * v.Y + m22 * v.Z + m23 * v.W,
+                m30 * v.X + m31 * v.Y + m32 * v.Z + m33 * v.W);
         }
 
         /// <summary>
@@ -540,10 +540,10 @@ namespace bs
         /// <param name="column">Values to set in the column.</param>
         public void SetColumn(int columnIdx, Vector4 column)
         {
-            this[0, columnIdx] = column.x;
-            this[1, columnIdx] = column.y;
-            this[2, columnIdx] = column.z;
-            this[3, columnIdx] = column.w;
+            this[0, columnIdx] = column.X;
+            this[1, columnIdx] = column.Y;
+            this[2, columnIdx] = column.Z;
+            this[3, columnIdx] = column.W;
         }
 
         /// <summary>

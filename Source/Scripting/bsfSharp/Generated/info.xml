@@ -655,6 +655,231 @@
 		<field name="Z" type="double">
 		</field>
 	</struct>
+	<class native="Mesh" script="Mesh">
+		<doc>Primary class for holding geometry. Stores data in the form of vertex buffers and optionally an index buffer, which may be bound to the pipeline for drawing. May contain multiple sub-meshes.</doc>
+		<ctor>
+			<doc>Creates a new mesh with enough space to hold the a number of primitives using the specified layout. All indices will be part of a single sub-mesh.</doc>
+			<param name="numVertices" type="int">
+				<doc>Number of vertices in the mesh.</doc>
+			</param>
+			<param name="numIndices" type="int">
+				<doc>Number of indices in the mesh. Must be a multiple of primitive size as specified by provided topology.</doc>
+			</param>
+			<param name="topology" type="MeshTopology">
+				<doc>Determines how should the provided indices be interpreted by the pipeline. Default option is a triangle list, where three indices represent a single triangle.</doc>
+			</param>
+			<param name="usage" type="MeshUsage">
+				<doc>Optimizes performance depending on planned usage of the mesh.</doc>
+			</param>
+			<param name="vertex" type="VertexLayout">
+				<doc>Controls how are vertices organized in the vertex buffer and what data they contain.</doc>
+			</param>
+			<param name="index" type="IndexType">
+				<doc>Size of indices, use smaller size for better performance, however be careful not to go over the number of vertices limited by the data type size.</doc>
+			</param>
+		</ctor>
+		<ctor>
+			<doc>Creates a new mesh with enough space to hold the a number of primitives using the specified layout. Indices can be referenced by multiple sub-meshes.</doc>
+			<param name="numVertices" type="int">
+				<doc>Number of vertices in the mesh.</doc>
+			</param>
+			<param name="numIndices" type="int">
+				<doc>Number of indices in the mesh. Must be a multiple of primitive size as specified by provided topology.</doc>
+			</param>
+			<param name="subMeshes" type="SubMesh">
+				<doc>Defines how are indices separated into sub-meshes, and how are those sub-meshes rendered. Sub-meshes may be rendered independently, each with a different material.</doc>
+			</param>
+			<param name="usage" type="MeshUsage">
+				<doc>Optimizes performance depending on planned usage of the mesh.</doc>
+			</param>
+			<param name="vertex" type="VertexLayout">
+				<doc>Controls how are vertices organized in the vertex buffer and what data they contain.</doc>
+			</param>
+			<param name="index" type="IndexType">
+				<doc>Size of indices, use smaller size for better performance, however be careful not to go over the number of vertices limited by the data type size.</doc>
+			</param>
+		</ctor>
+		<ctor>
+			<doc>Creates a new mesh from an existing mesh data. Created mesh will match the vertex and index buffers described by the mesh data exactly. Mesh will have no sub-meshes.</doc>
+			<param name="data" type="MeshData">
+				<doc>Vertex and index data to initialize the mesh with.</doc>
+			</param>
+			<param name="topology" type="MeshTopology">
+				<doc>Determines how should the provided indices be interpreted by the pipeline. Default option is a triangle list, where three indices represent a single triangle.</doc>
+			</param>
+			<param name="usage" type="MeshUsage">
+				<doc>Optimizes performance depending on planned usage of the mesh.</doc>
+			</param>
+		</ctor>
+		<ctor>
+			<doc>Creates a new mesh with enough space to hold the a number of primitives using the specified layout. Indices can be referenced by multiple sub-meshes.</doc>
+			<param name="data" type="MeshData">
+				<doc>Vertex and index data to initialize the mesh with.</doc>
+			</param>
+			<param name="subMeshes" type="SubMesh">
+				<doc>Defines how are indices separated into sub-meshes, and how are those sub-meshes rendered. Sub-meshes may be rendered independently, each with a different material.</doc>
+			</param>
+			<param name="usage" type="MeshUsage">
+				<doc>Optimizes performance depending on planned usage of the mesh.</doc>
+			</param>
+		</ctor>
+		<property name="Skeleton" type="Skeleton" getter="GetSkeleton" setter="" static="false">
+			<doc>Gets the skeleton required for animation of this mesh, if any is available.</doc>
+		</property>
+		<property name="MorphShapes" type="MorphShapes" getter="GetMorphShapes" setter="" static="false">
+			<doc>Returns an object containing all shapes used for morph animation, if any are available.</doc>
+		</property>
+		<property name="SubMeshes" type="SubMesh" getter="GetSubMeshes" setter="" static="false">
+			<doc>Returns all sub-meshes contained in the mesh.</doc>
+		</property>
+		<property name="SubMeshCount" type="int" getter="GetSubMeshCount" setter="" static="false">
+			<doc>Returns the number of sub-meshes contained in this mesh.</doc>
+		</property>
+		<property name="MeshData" type="MeshData" getter="GetMeshData" setter="SetMeshData" static="false">
+			<doc>Accesses the vertex and index data of the mesh. If reading, mesh must have been created with the MeshUsage::CPUCached flag. If writing the caller must ensure the data matches mesh&apos;s vertex/index counts, vertex layout and index format.</doc>
+		</property>
+	</class>
+	<class native="ParticleEvolver" script="ParticleEvolver">
+		<doc>Updates properties of all active particles in a particle system in some way.</doc>
+	</class>
+	<enum native="ClearFlagBits" script="ClearFlags">
+		<doc>Flags that determine which portion of the viewport to clear.</doc>
+		<enumentry native="Empty" script="Empty">
+		</enumentry>
+		<enumentry native="Color" script="Color">
+		</enumentry>
+		<enumentry native="Depth" script="Depth">
+		</enumentry>
+		<enumentry native="Stencil" script="Stencil">
+		</enumentry>
+	</enum>
+	<class native="RenderTexture" script="RenderTexture">
+		<doc>Render target specialization that allows you to render into one or multiple textures. Such textures can then be used in other operations as GPU program input.</doc>
+		<ctor>
+			<doc>Creates a new 2D render texture.</doc>
+			<param name="format" type="PixelFormat">
+				<doc>Pixel format of the texture. Format must be a valid uncompressed color format.</doc>
+			</param>
+			<param name="width" type="int">
+				<doc>Width of the texture in pixels.</doc>
+			</param>
+			<param name="height" type="int">
+				<doc>Height of the texture in pixels.</doc>
+			</param>
+			<param name="numSamples" type="int">
+				<doc>Number of samples contained per pixel.</doc>
+			</param>
+			<param name="gammaCorrection" type="bool">
+				<doc>Determines should the pixels written on the texture be gamma corrected.</doc>
+			</param>
+			<param name="createDepth" type="bool">
+				<doc>Should the render texture also contain a depth/stencil buffer.</doc>
+			</param>
+			<param name="depthStencilFormat" type="PixelFormat">
+				<doc>Format of the depth/stencil buffer, if <paramref name="createDepth"/> is enabled. Format must be a valid depth/stencil format.</doc>
+			</param>
+		</ctor>
+		<ctor>
+			<doc>Creates a new 2D render texture using an existing color texture, and no depth-stencil texture.</doc>
+			<param name="colorSurface" type="Texture">
+				<doc>Color texture to render color data to.</doc>
+			</param>
+		</ctor>
+		<ctor>
+			<doc>Creates a new 2D render texture using existing textures as render destinations.</doc>
+			<param name="colorSurface" type="Texture">
+				<doc>Color texture to render color data to.</doc>
+			</param>
+			<param name="depthStencilSurface" type="Texture">
+				<doc>Optional depth/stencil texture to render depth/stencil data to.</doc>
+			</param>
+		</ctor>
+		<ctor>
+			<doc>Creates a new 2D render texture using one or multiple color textures and no depth-stencil texture.</doc>
+			<param name="colorSurface" type="Texture">
+				<doc>Color texture(s) to render color data to.</doc>
+			</param>
+		</ctor>
+		<ctor>
+			<doc>Creates a new 2D render texture using one or multiple color textures and a depth/stencil texture.</doc>
+			<param name="colorSurface" type="Texture">
+				<doc>Color texture(s) to render color data to.</doc>
+			</param>
+			<param name="depthStencilSurface" type="Texture">
+				<doc>Optional depth/stencil texture to render depth/stencil data to.</doc>
+			</param>
+		</ctor>
+		<property name="ColorSurface" type="Texture" getter="GetColorSurface" setter="" static="false">
+			<doc>Returns the primary color surface that contains rendered color data.</doc>
+		</property>
+		<property name="ColorSurfaces" type="Texture" getter="GetColorSurfaces" setter="" static="false">
+			<doc>Returns all the color surfaces.</doc>
+		</property>
+		<property name="DepthStencilSurface" type="Texture" getter="GetDepthStencilSurface" setter="" static="false">
+			<doc>Returns the depth/stencil surface that contains rendered depth and stencil data.</doc>
+		</property>
+	</class>
+	<enum native="TextureType" script="TextureType">
+		<doc>Available texture types.</doc>
+		<enumentry native="TEX_TYPE_1D" script="Texture1D">
+			<doc>One dimensional texture. Just a row of pixels.</doc>
+		</enumentry>
+		<enumentry native="TEX_TYPE_2D" script="Texture2D">
+			<doc>Two dimensional texture.</doc>
+		</enumentry>
+		<enumentry native="TEX_TYPE_3D" script="Texture3D">
+			<doc>Three dimensional texture.</doc>
+		</enumentry>
+		<enumentry native="TEX_TYPE_CUBE_MAP" script="TextureCube">
+			<doc>Texture consisting out of six 2D textures describing an inside of a cube. Allows special sampling.</doc>
+		</enumentry>
+	</enum>
+	<struct native="TVector4&lt;float&gt;" script="Vector4">
+		<doc>A four dimensional vector.</doc>
+		<ctor>
+		</ctor>
+		<ctor>
+			<param name="x" type="float">
+			</param>
+			<param name="y" type="float">
+			</param>
+			<param name="z" type="float">
+			</param>
+			<param name="w" type="float">
+			</param>
+		</ctor>
+		<field name="X" type="float">
+		</field>
+		<field name="Y" type="float">
+		</field>
+		<field name="Z" type="float">
+		</field>
+		<field name="W" type="float">
+		</field>
+	</struct>
+	<struct native="TVector4&lt;double&gt;" script="Vector4d">
+		<doc>A four dimensional vector.</doc>
+		<ctor>
+		</ctor>
+		<ctor>
+			<param name="x" type="double">
+			</param>
+			<param name="y" type="double">
+			</param>
+			<param name="z" type="double">
+			</param>
+			<param name="w" type="double">
+			</param>
+		</ctor>
+		<field name="X" type="double">
+		</field>
+		<field name="Y" type="double">
+		</field>
+		<field name="Z" type="double">
+		</field>
+		<field name="W" type="double">
+		</field>
+	</struct>
 	<class native="Random" script="Random">
 		<doc>Generates pseudo random numbers using the Xorshift128 algorithm. Suitable for high performance requirements.</doc>
 		<ctor>
@@ -880,41 +1105,6 @@
 		<field name="Z" type="int">
 		</field>
 	</struct>
-	<struct native="VideoMode" script="VideoMode">
-		<doc>Video mode contains information about how a render window presents its information to an output device like a monitor.</doc>
-		<ctor>
-		</ctor>
-		<ctor>
-			<doc>Creates a new video mode.</doc>
-			<param name="width" type="int">
-				<doc>Width of the frame buffer in pixels.</doc>
-			</param>
-			<param name="height" type="int">
-				<doc>Height of the frame buffer in pixels.</doc>
-			</param>
-			<param name="refreshRate" type="float">
-				<doc>How often should the output device refresh the output image in hertz.</doc>
-			</param>
-			<param name="outputIdx" type="int">
-				<doc>Output index of the output device. Normally this means output monitor. 0th index always represents the primary device while order of others is undefined.</doc>
-			</param>
-		</ctor>
-		<field name="Width" type="int">
-			<doc>Width of the front/back buffer in pixels.</doc>
-		</field>
-		<field name="Height" type="int">
-			<doc>Height of the front/back buffer in pixels.</doc>
-		</field>
-		<field name="RefreshRate" type="float">
-			<doc>Refresh rate in hertz.</doc>
-		</field>
-		<field name="OutputIdx" type="int">
-			<doc>Index of the parent video output.</doc>
-		</field>
-		<field name="IsCustom" type="bool">
-			<doc>Determines was video mode user created or provided by the API/OS. API/OS created video modes can contain additional information that allows the video mode to be used more accurately and you should use them when possible.</doc>
-		</field>
-	</struct>
 	<enum native="ShaderParameterType" script="ShaderParameterType">
 		<doc>Type of parameters that can be defined by a shader.</doc>
 		<enumentry native="Float" script="Float">
@@ -1081,185 +1271,6 @@ Use {0}, {1}, etc. in the string value for values that might change dynamically.
 		</enumentry>
 		<enumentry native="DOT_TRIANGLE_FAN" script="TriangleFan">
 			<doc>Each vertex (except the first two) form a triangle with the first vertex and previous vertex.</doc>
-		</enumentry>
-	</enum>
-	<class native="Mesh" script="Mesh">
-		<doc>Primary class for holding geometry. Stores data in the form of vertex buffers and optionally an index buffer, which may be bound to the pipeline for drawing. May contain multiple sub-meshes.</doc>
-		<ctor>
-			<doc>Creates a new mesh with enough space to hold the a number of primitives using the specified layout. All indices will be part of a single sub-mesh.</doc>
-			<param name="numVertices" type="int">
-				<doc>Number of vertices in the mesh.</doc>
-			</param>
-			<param name="numIndices" type="int">
-				<doc>Number of indices in the mesh. Must be a multiple of primitive size as specified by provided topology.</doc>
-			</param>
-			<param name="topology" type="MeshTopology">
-				<doc>Determines how should the provided indices be interpreted by the pipeline. Default option is a triangle list, where three indices represent a single triangle.</doc>
-			</param>
-			<param name="usage" type="MeshUsage">
-				<doc>Optimizes performance depending on planned usage of the mesh.</doc>
-			</param>
-			<param name="vertex" type="VertexLayout">
-				<doc>Controls how are vertices organized in the vertex buffer and what data they contain.</doc>
-			</param>
-			<param name="index" type="IndexType">
-				<doc>Size of indices, use smaller size for better performance, however be careful not to go over the number of vertices limited by the data type size.</doc>
-			</param>
-		</ctor>
-		<ctor>
-			<doc>Creates a new mesh with enough space to hold the a number of primitives using the specified layout. Indices can be referenced by multiple sub-meshes.</doc>
-			<param name="numVertices" type="int">
-				<doc>Number of vertices in the mesh.</doc>
-			</param>
-			<param name="numIndices" type="int">
-				<doc>Number of indices in the mesh. Must be a multiple of primitive size as specified by provided topology.</doc>
-			</param>
-			<param name="subMeshes" type="SubMesh">
-				<doc>Defines how are indices separated into sub-meshes, and how are those sub-meshes rendered. Sub-meshes may be rendered independently, each with a different material.</doc>
-			</param>
-			<param name="usage" type="MeshUsage">
-				<doc>Optimizes performance depending on planned usage of the mesh.</doc>
-			</param>
-			<param name="vertex" type="VertexLayout">
-				<doc>Controls how are vertices organized in the vertex buffer and what data they contain.</doc>
-			</param>
-			<param name="index" type="IndexType">
-				<doc>Size of indices, use smaller size for better performance, however be careful not to go over the number of vertices limited by the data type size.</doc>
-			</param>
-		</ctor>
-		<ctor>
-			<doc>Creates a new mesh from an existing mesh data. Created mesh will match the vertex and index buffers described by the mesh data exactly. Mesh will have no sub-meshes.</doc>
-			<param name="data" type="MeshData">
-				<doc>Vertex and index data to initialize the mesh with.</doc>
-			</param>
-			<param name="topology" type="MeshTopology">
-				<doc>Determines how should the provided indices be interpreted by the pipeline. Default option is a triangle list, where three indices represent a single triangle.</doc>
-			</param>
-			<param name="usage" type="MeshUsage">
-				<doc>Optimizes performance depending on planned usage of the mesh.</doc>
-			</param>
-		</ctor>
-		<ctor>
-			<doc>Creates a new mesh with enough space to hold the a number of primitives using the specified layout. Indices can be referenced by multiple sub-meshes.</doc>
-			<param name="data" type="MeshData">
-				<doc>Vertex and index data to initialize the mesh with.</doc>
-			</param>
-			<param name="subMeshes" type="SubMesh">
-				<doc>Defines how are indices separated into sub-meshes, and how are those sub-meshes rendered. Sub-meshes may be rendered independently, each with a different material.</doc>
-			</param>
-			<param name="usage" type="MeshUsage">
-				<doc>Optimizes performance depending on planned usage of the mesh.</doc>
-			</param>
-		</ctor>
-		<property name="Skeleton" type="Skeleton" getter="GetSkeleton" setter="" static="false">
-			<doc>Gets the skeleton required for animation of this mesh, if any is available.</doc>
-		</property>
-		<property name="MorphShapes" type="MorphShapes" getter="GetMorphShapes" setter="" static="false">
-			<doc>Returns an object containing all shapes used for morph animation, if any are available.</doc>
-		</property>
-		<property name="SubMeshes" type="SubMesh" getter="GetSubMeshes" setter="" static="false">
-			<doc>Returns all sub-meshes contained in the mesh.</doc>
-		</property>
-		<property name="SubMeshCount" type="int" getter="GetSubMeshCount" setter="" static="false">
-			<doc>Returns the number of sub-meshes contained in this mesh.</doc>
-		</property>
-		<property name="MeshData" type="MeshData" getter="GetMeshData" setter="SetMeshData" static="false">
-			<doc>Accesses the vertex and index data of the mesh. If reading, mesh must have been created with the MeshUsage::CPUCached flag. If writing the caller must ensure the data matches mesh&apos;s vertex/index counts, vertex layout and index format.</doc>
-		</property>
-	</class>
-	<class native="ParticleEvolver" script="ParticleEvolver">
-		<doc>Updates properties of all active particles in a particle system in some way.</doc>
-	</class>
-	<enum native="ClearFlagBits" script="ClearFlags">
-		<doc>Flags that determine which portion of the viewport to clear.</doc>
-		<enumentry native="Empty" script="Empty">
-		</enumentry>
-		<enumentry native="Color" script="Color">
-		</enumentry>
-		<enumentry native="Depth" script="Depth">
-		</enumentry>
-		<enumentry native="Stencil" script="Stencil">
-		</enumentry>
-	</enum>
-	<class native="RenderTexture" script="RenderTexture">
-		<doc>Render target specialization that allows you to render into one or multiple textures. Such textures can then be used in other operations as GPU program input.</doc>
-		<ctor>
-			<doc>Creates a new 2D render texture.</doc>
-			<param name="format" type="PixelFormat">
-				<doc>Pixel format of the texture. Format must be a valid uncompressed color format.</doc>
-			</param>
-			<param name="width" type="int">
-				<doc>Width of the texture in pixels.</doc>
-			</param>
-			<param name="height" type="int">
-				<doc>Height of the texture in pixels.</doc>
-			</param>
-			<param name="numSamples" type="int">
-				<doc>Number of samples contained per pixel.</doc>
-			</param>
-			<param name="gammaCorrection" type="bool">
-				<doc>Determines should the pixels written on the texture be gamma corrected.</doc>
-			</param>
-			<param name="createDepth" type="bool">
-				<doc>Should the render texture also contain a depth/stencil buffer.</doc>
-			</param>
-			<param name="depthStencilFormat" type="PixelFormat">
-				<doc>Format of the depth/stencil buffer, if <paramref name="createDepth"/> is enabled. Format must be a valid depth/stencil format.</doc>
-			</param>
-		</ctor>
-		<ctor>
-			<doc>Creates a new 2D render texture using an existing color texture, and no depth-stencil texture.</doc>
-			<param name="colorSurface" type="Texture">
-				<doc>Color texture to render color data to.</doc>
-			</param>
-		</ctor>
-		<ctor>
-			<doc>Creates a new 2D render texture using existing textures as render destinations.</doc>
-			<param name="colorSurface" type="Texture">
-				<doc>Color texture to render color data to.</doc>
-			</param>
-			<param name="depthStencilSurface" type="Texture">
-				<doc>Optional depth/stencil texture to render depth/stencil data to.</doc>
-			</param>
-		</ctor>
-		<ctor>
-			<doc>Creates a new 2D render texture using one or multiple color textures and no depth-stencil texture.</doc>
-			<param name="colorSurface" type="Texture">
-				<doc>Color texture(s) to render color data to.</doc>
-			</param>
-		</ctor>
-		<ctor>
-			<doc>Creates a new 2D render texture using one or multiple color textures and a depth/stencil texture.</doc>
-			<param name="colorSurface" type="Texture">
-				<doc>Color texture(s) to render color data to.</doc>
-			</param>
-			<param name="depthStencilSurface" type="Texture">
-				<doc>Optional depth/stencil texture to render depth/stencil data to.</doc>
-			</param>
-		</ctor>
-		<property name="ColorSurface" type="Texture" getter="GetColorSurface" setter="" static="false">
-			<doc>Returns the primary color surface that contains rendered color data.</doc>
-		</property>
-		<property name="ColorSurfaces" type="Texture" getter="GetColorSurfaces" setter="" static="false">
-			<doc>Returns all the color surfaces.</doc>
-		</property>
-		<property name="DepthStencilSurface" type="Texture" getter="GetDepthStencilSurface" setter="" static="false">
-			<doc>Returns the depth/stencil surface that contains rendered depth and stencil data.</doc>
-		</property>
-	</class>
-	<enum native="TextureType" script="TextureType">
-		<doc>Available texture types.</doc>
-		<enumentry native="TEX_TYPE_1D" script="Texture1D">
-			<doc>One dimensional texture. Just a row of pixels.</doc>
-		</enumentry>
-		<enumentry native="TEX_TYPE_2D" script="Texture2D">
-			<doc>Two dimensional texture.</doc>
-		</enumentry>
-		<enumentry native="TEX_TYPE_3D" script="Texture3D">
-			<doc>Three dimensional texture.</doc>
-		</enumentry>
-		<enumentry native="TEX_TYPE_CUBE_MAP" script="TextureCube">
-			<doc>Texture consisting out of six 2D textures describing an inside of a cube. Allows special sampling.</doc>
 		</enumentry>
 	</enum>
 	<enum native="PhysicsMeshType" script="PhysicsMeshType">
@@ -2609,6 +2620,41 @@ Use {0}, {1}, etc. in the string value for values that might change dynamically.
 		<property name="SampleCount" type="int" getter="GetSampleCount" setter="" static="false">
 		</property>
 	</class>
+	<struct native="VideoMode" script="VideoMode">
+		<doc>Video mode contains information about how a render window presents its information to an output device like a monitor.</doc>
+		<ctor>
+		</ctor>
+		<ctor>
+			<doc>Creates a new video mode.</doc>
+			<param name="width" type="int">
+				<doc>Width of the frame buffer in pixels.</doc>
+			</param>
+			<param name="height" type="int">
+				<doc>Height of the frame buffer in pixels.</doc>
+			</param>
+			<param name="refreshRate" type="float">
+				<doc>How often should the output device refresh the output image in hertz.</doc>
+			</param>
+			<param name="outputIdx" type="int">
+				<doc>Output index of the output device. Normally this means output monitor. 0th index always represents the primary device while order of others is undefined.</doc>
+			</param>
+		</ctor>
+		<field name="Width" type="int">
+			<doc>Width of the front/back buffer in pixels.</doc>
+		</field>
+		<field name="Height" type="int">
+			<doc>Height of the front/back buffer in pixels.</doc>
+		</field>
+		<field name="RefreshRate" type="float">
+			<doc>Refresh rate in hertz.</doc>
+		</field>
+		<field name="OutputIdx" type="int">
+			<doc>Index of the parent video output.</doc>
+		</field>
+		<field name="IsCustom" type="bool">
+			<doc>Determines was video mode user created or provided by the API/OS. API/OS created video modes can contain additional information that allows the video mode to be used more accurately and you should use them when possible.</doc>
+		</field>
+	</struct>
 	<class native="MotionBlurSettings" script="MotionBlurSettings">
 		<doc>Settings that control the motion blur effect.</doc>
 		<ctor>
