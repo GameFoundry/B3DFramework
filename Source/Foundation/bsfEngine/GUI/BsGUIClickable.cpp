@@ -13,8 +13,8 @@ using namespace bs;
 GUIClickable::GUIClickable(const String& styleName, const GUIContent& content, const GUISizeConstraints& sizeConstraints, GUIElementOptions options)
 	: GUIInteractable(styleName, sizeConstraints, options), mContent(content)
 {
-	mBackgroundSprite.SetAnimationStartTime(GetTime().GetTime());
-	mContentSprites.SetAnimationStartTime(GetTime().GetTime());
+	mBackgroundSprite.SetAnimationStartTime(GetTime().GetRealTimeInSeconds());
+	mContentSprites.SetAnimationStartTime(GetTime().GetRealTimeInSeconds());
 }
 
 void GUIClickable::SetContent(const GUIContent& content)
@@ -22,7 +22,7 @@ void GUIClickable::SetContent(const GUIContent& content)
 	Vector2I origSize = mSizeConstraints.CalculateConstrainedSize(CalculateUnconstrainedOptimalSize()).Optimal;
 	mContent = content;
 
-	mContentSprites.SetAnimationStartTime(GetTime().GetTime());
+	mContentSprites.SetAnimationStartTime(GetTime().GetRealTimeInSeconds());
 
 	Vector2I newSize = mSizeConstraints.CalculateConstrainedSize(CalculateUnconstrainedOptimalSize()).Optimal;
 
@@ -193,7 +193,7 @@ String GUIClickable::GetTooltip() const
 
 void GUIClickable::NotifyStyleChanged()
 {
-	mBackgroundSprite.SetAnimationStartTime(GetTime().GetTime());
+	mBackgroundSprite.SetAnimationStartTime(GetTime().GetRealTimeInSeconds());
 }
 
 void GUIClickable::SetStateInternal(GUIElementState state)
@@ -201,7 +201,7 @@ void GUIClickable::SetStateInternal(GUIElementState state)
 	Vector2I origSize = mSizeConstraints.CalculateConstrainedSize(CalculateUnconstrainedOptimalSize()).Optimal;
 
 	if(mActiveState != state)
-		mBackgroundSprite.SetAnimationStartTime(GetTime().GetTime());
+		mBackgroundSprite.SetAnimationStartTime(GetTime().GetRealTimeInSeconds());
 
 	mActiveState = state;
 

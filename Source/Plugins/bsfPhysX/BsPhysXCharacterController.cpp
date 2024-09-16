@@ -89,7 +89,7 @@ CharacterCollisionFlags PhysXCharacterController::Move(const Vector3& displaceme
 	filters.mFilterFlags = PxQueryFlag::eANY_HIT | PxQueryFlag::eSTATIC | PxQueryFlag::eDYNAMIC | PxQueryFlag::ePREFILTER;
 	filters.mCCTFilterCallback = this;
 
-	float curTime = GetTime().GetTime();
+	float curTime = GetTime().GetRealTimeInSeconds();
 	float delta = curTime - mLastMoveCall;
 	mLastMoveCall = curTime;
 

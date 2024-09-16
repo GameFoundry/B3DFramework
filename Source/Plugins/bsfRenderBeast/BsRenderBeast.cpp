@@ -318,7 +318,7 @@ void RenderBeast::RenderAll(PerFrameData perFrameData)
 	}
 
 	FrameTimings timings;
-	timings.Time = GetTime().GetTime();
+	timings.Time = GetTime().GetRealTimeInSeconds();
 	timings.TimeDelta = GetTime().GetFrameDelta();
 	timings.FrameIdx = GetTime().GetCurrentFrameIndex();
 

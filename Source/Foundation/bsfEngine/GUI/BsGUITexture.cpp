@@ -20,7 +20,7 @@ GUITexture::GUITexture(PrivatelyConstruct, const GUITextureContents& contents, c
 	: GUIInteractable(styleName, dimensions), mScaleMode(contents.ScaleMode), mTransparent(contents.IsTransparent), mUsingStyleTexture(contents.Image == nullptr)
 {
 	mImageSprite = B3DNew<ImageSprite>();
-	mDesc.AnimationStartTime = GetTime().GetTime();
+	mDesc.AnimationStartTime = GetTime().GetRealTimeInSeconds();
 	mActiveImage = contents.Image;
 
 	if(SpriteImage::CheckIsLoaded(mActiveImage))
@@ -60,7 +60,7 @@ void GUITexture::SetImage(const HSpriteImage& image)
 	}
 
 	mUsingStyleTexture = false;
-	mDesc.AnimationStartTime = GetTime().GetTime();
+	mDesc.AnimationStartTime = GetTime().GetRealTimeInSeconds();
 
 	Vector2I newSize = mSizeConstraints.CalculateConstrainedSize(CalculateUnconstrainedOptimalSize()).Optimal;
 	if(origSize != newSize)
@@ -150,7 +150,7 @@ void GUITexture::NotifyStyleChanged()
 		if(mStyleSheetRuleInformation.CurrentStateRuleset != nullptr)
 			mActiveImage = mStyleSheetRuleInformation.CurrentStateRuleset->Rules.BackgroundImage;
 
-		mDesc.AnimationStartTime = GetTime().GetTime();
+		mDesc.AnimationStartTime = GetTime().GetRealTimeInSeconds();
 
 		if(SpriteImage::CheckIsLoaded(mActiveImage))
 		{

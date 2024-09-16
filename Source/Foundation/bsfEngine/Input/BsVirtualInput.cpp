@@ -136,7 +136,7 @@ void VirtualInput::UpdateInternal()
 
 	bool hasEvents = true;
 	u64 repeatInternal = mInputConfiguration->GetRepeatInterval();
-	u64 currentTime = GetTime().GetTimeMs();
+	u64 currentTime = GetTime().GetRealTimeInMilliseconds();
 
 	// Trigger all events
 	while(hasEvents)

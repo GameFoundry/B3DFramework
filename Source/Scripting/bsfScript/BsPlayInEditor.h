@@ -38,12 +38,6 @@ namespace bs
 		B3D_SCRIPT_EXPORT(InteropOnly(true))
 		void SetState(PlayInEditorState state);
 
-		/**
-		 * Gets the number of seconds that have elapsed since the game was started. This time does not include time passed
-		 * while the game is paused.
-		 */
-		float GetPausableTime() const { return mPausableTime; }
-
 		/**	Runs the game for a single frame and then pauses it. */
 		B3D_SCRIPT_EXPORT()
 		void FrameStep();
@@ -95,7 +89,6 @@ namespace bs
 		bool mFrameStepActive;
 		bool mScheduledStateChange;
 
-		float mPausableTime;
 		SPtr<GameObjectCollection> mSavedSceneGameObjectCollection;
 		HSceneObject mSavedScene;
 	};

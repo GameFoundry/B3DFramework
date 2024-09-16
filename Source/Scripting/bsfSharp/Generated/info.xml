@@ -92,6 +92,61 @@
 		<enumentry native="ZYX" script="ZYX">
 		</enumentry>
 	</enum>
+	<class native="MorphChannel" script="MorphChannel">
+		<doc>A collection of morph shapes that are sequentially blended together. Each shape has a weight in range [0, 1] which determines at what point is that shape blended. As the channel percent moves from 0 to 1, different shapes will be blended with those before or after them, depending on their weight.</doc>
+		<property name="Name" type="string" getter="GetName" setter="" static="false">
+			<doc>Returns the unique name of the channel.</doc>
+		</property>
+		<property name="Shapes" type="MorphShape" getter="GetShapes" setter="" static="false">
+			<doc>Returns all morph shapes within this channel, in order from lowest to highest.</doc>
+		</property>
+	</class>
+	<struct native="PARTICLE_STATIC_MESH_SHAPE_DESC" script="ParticleStaticMeshShapeOptions">
+		<doc>Information describing a ParticleEmitterStaticMeshShape.</doc>
+		<ctor>
+		</ctor>
+		<field name="Type" type="ParticleEmitterMeshType">
+			<doc>Determines from which portion of the mesh are the particles emitted from.</doc>
+		</field>
+		<field name="Sequential" type="bool">
+			<doc>When enabled the particles will be emitted sequentially from mesh vertices in the order they are defined. Only relevant for the Vertex emit mode.</doc>
+		</field>
+		<field name="Mesh" type="RRef&lt;Mesh&gt;">
+			<doc>Mesh to spawn particles on. Must at least contain per-vertex position data encoded as 3D float vectors. Can optionally contain per-vertex normals encoded as 3D float vectors or as 4-byte unsigned-normalized format.</doc>
+		</field>
+	</struct>
+	<class native="Time" script="Time">
+		<doc>Manages all time related functionality.</doc>
+		<method native="ResetSimulationTime" script="ResetSimulationTime" static="false">
+			<doc>Resets the simulation time to zero. Primarily used for editor purposes for resetting the time when ending play in editor.</doc>
+		</method>
+		<method native="SetSimulationTimePaused" script="SetSimulationTimePaused" static="false">
+			<doc>Pauses or unpauses the simulation time. This is equivalent to setting the time scale to 0.</doc>
+			<param name="paused" type="bool">
+			</param>
+		</method>
+		<property name="RealTimeInSeconds" type="float" getter="GetRealTimeInSeconds" setter="" static="false">
+			<doc>Gets the time elapsed since application start. Only gets updated once per frame.</doc>
+		</property>
+		<property name="RealTimeInMilliseconds" type="ulong" getter="GetRealTimeInMilliseconds" setter="" static="false">
+			<doc>Gets the time elapsed since application start. Only gets updated once per frame.</doc>
+		</property>
+		<property name="SimulationTimeInSeconds" type="float" getter="GetSimulationTimeInSeconds" setter="" static="false">
+			<doc>Gets the time since the simulation started playing, multiplied by the time scale factor. In editor this will reset to zero every time you start playing in editor, and in a standalone application this will be similar to GetRealTimeInSeconds(), except simulation time can be sped up/down, or stopped entirely by setting the time scale.</doc>
+		</property>
+		<property name="SimulationTimeScale" type="float" getter="GetSimulationTimeScale" setter="SetSimulationTimeScale" static="false">
+			<doc>Allows you to speed time up or down, or completely pause it by providing zero. Must be zero or larger.</doc>
+		</property>
+		<property name="FrameDelta" type="float" getter="GetFrameDelta" setter="" static="false">
+			<doc>Gets the time since last frame was executed. Only gets updated once per frame.</doc>
+		</property>
+		<property name="CurrentFrameIndex" type="ulong" getter="GetCurrentFrameIndex" setter="" static="false">
+			<doc>Returns the sequential index of the current frame. First frame is 0.</doc>
+		</property>
+		<property name="TimePrecise" type="ulong" getter="GetTimePrecise" setter="" static="false">
+			<doc>Returns the precise time since application start, in microseconds. Unlike other time methods this is not only updated every frame, but will return exact time at the moment it is called.</doc>
+		</property>
+	</class>
 	<enum native="LogVerbosity" script="LogVerbosity">
 		<doc>Represents verbosity level at which a specific log message will be displayed.</doc>
 		<enumentry native="Fatal" script="Fatal">
@@ -201,139 +256,6 @@
 		<field name="Time" type="float">
 		</field>
 	</struct>
-	<struct native="TVector3I&lt;int32_t&gt;" script="Vector3I">
-		<doc>A three dimensional vector with integer coordinates.</doc>
-		<ctor>
-		</ctor>
-		<ctor>
-			<param name="x" type="int">
-			</param>
-			<param name="y" type="int">
-			</param>
-			<param name="z" type="int">
-			</param>
-		</ctor>
-		<ctor>
-			<param name="value" type="int">
-			</param>
-		</ctor>
-		<field name="X" type="int">
-		</field>
-		<field name="Y" type="int">
-		</field>
-		<field name="Z" type="int">
-		</field>
-	</struct>
-	<struct native="TVector3I&lt;uint32_t&gt;" script="Vector3UI">
-		<doc>A three dimensional vector with integer coordinates.</doc>
-		<ctor>
-		</ctor>
-		<ctor>
-			<param name="x" type="int">
-			</param>
-			<param name="y" type="int">
-			</param>
-			<param name="z" type="int">
-			</param>
-		</ctor>
-		<ctor>
-			<param name="value" type="int">
-			</param>
-		</ctor>
-		<field name="X" type="int">
-		</field>
-		<field name="Y" type="int">
-		</field>
-		<field name="Z" type="int">
-		</field>
-	</struct>
-	<class native="CAnimation" script="Animation">
-		<method native="Play" script="Play" static="false">
-			<param name="clip" type="RRef&lt;AnimationClip&gt;">
-			</param>
-		</method>
-		<method native="BlendAdditive" script="BlendAdditive" static="false">
-			<param name="clip" type="RRef&lt;AnimationClip&gt;">
-			</param>
-			<param name="weight" type="float">
-			</param>
-			<param name="fadeLength" type="float">
-			</param>
-			<param name="layer" type="int">
-			</param>
-		</method>
-		<method native="Blend1D" script="Blend1D" static="false">
-			<param name="info" type="Blend1DInfo">
-			</param>
-			<param name="t" type="float">
-			</param>
-		</method>
-		<method native="Blend2D" script="Blend2D" static="false">
-			<param name="info" type="Blend2DInfo">
-			</param>
-			<param name="t" type="Vector2">
-			</param>
-		</method>
-		<method native="CrossFade" script="CrossFade" static="false">
-			<param name="clip" type="RRef&lt;AnimationClip&gt;">
-			</param>
-			<param name="fadeLength" type="float">
-			</param>
-		</method>
-		<method native="Sample" script="Sample" static="false">
-			<param name="clip" type="RRef&lt;AnimationClip&gt;">
-			</param>
-			<param name="time" type="float">
-			</param>
-		</method>
-		<method native="Stop" script="Stop" static="false">
-			<param name="layer" type="int">
-			</param>
-		</method>
-		<method native="StopAll" script="StopAll" static="false">
-		</method>
-		<method native="GetState" script="GetState" static="false">
-			<param name="clip" type="RRef&lt;AnimationClip&gt;">
-			</param>
-			<param name="state" type="AnimationClipState">
-			</param>
-			<returns type="bool">
-			</returns>
-		</method>
-		<method native="SetState" script="SetState" static="false">
-			<param name="clip" type="RRef&lt;AnimationClip&gt;">
-			</param>
-			<param name="state" type="AnimationClipState">
-			</param>
-		</method>
-		<method native="SetMorphChannelWeight" script="SetMorphChannelWeight" static="false">
-			<doc>Changes a weight of a single morph channel, determining how much of it to apply on top of the base mesh.</doc>
-			<param name="name" type="string">
-				<doc>Name of the morph channel to modify. This depends on the mesh the animation is currently animating.</doc>
-			</param>
-			<param name="weight" type="float">
-				<doc>Weight that determines how much of the channel to apply to the mesh, in range [0, 1].</doc>
-			</param>
-		</method>
-		<property name="DefaultClip" type="RRef&lt;AnimationClip&gt;" getter="GetDefaultClip" setter="SetDefaultClip" static="false">
-			<doc>Determines the default clip to play as soon as the component is enabled. If more control over playing clips is needed use the play(), blend() and crossFade() methods to queue clips for playback manually, and setState() method for modify their states individually.</doc>
-		</property>
-		<property name="WrapMode" type="AnimWrapMode" getter="GetWrapMode" setter="SetWrapMode" static="false">
-		</property>
-		<property name="Speed" type="float" getter="GetSpeed" setter="SetSpeed" static="false">
-		</property>
-		<property name="IsPlaying" type="bool" getter="IsPlaying" setter="" static="false">
-		</property>
-		<property name="Bounds" type="AABox" getter="GetBounds" setter="SetBounds" static="false">
-			<doc>Determines bounds that will be used for animation and mesh culling. Only relevant if setUseBounds() is set to true.</doc>
-		</property>
-		<property name="UseBounds" type="bool" getter="GetUseBounds" setter="SetUseBounds" static="false">
-			<doc>Determines should animation bounds be used for visibility determination (culling). If false the bounds of the mesh attached to the relevant CRenderable component will be used instead.</doc>
-		</property>
-		<property name="Cull" type="bool" getter="GetEnableCull" setter="SetEnableCull" static="false">
-			<doc>Enables or disables culling of the animation when out of view. Culled animation will not be evaluated.</doc>
-		</property>
-	</class>
 	<class native="ApplicationEx" script="Application">
 		<doc>Script-exported API for Application.</doc>
 		<method native="StartUp" script="StartUp" static="true">
@@ -790,6 +712,139 @@
 		<field name="X" type="int">
 		</field>
 		<field name="Y" type="int">
+		</field>
+	</struct>
+	<class native="CAnimation" script="Animation">
+		<method native="Play" script="Play" static="false">
+			<param name="clip" type="RRef&lt;AnimationClip&gt;">
+			</param>
+		</method>
+		<method native="BlendAdditive" script="BlendAdditive" static="false">
+			<param name="clip" type="RRef&lt;AnimationClip&gt;">
+			</param>
+			<param name="weight" type="float">
+			</param>
+			<param name="fadeLength" type="float">
+			</param>
+			<param name="layer" type="int">
+			</param>
+		</method>
+		<method native="Blend1D" script="Blend1D" static="false">
+			<param name="info" type="Blend1DInfo">
+			</param>
+			<param name="t" type="float">
+			</param>
+		</method>
+		<method native="Blend2D" script="Blend2D" static="false">
+			<param name="info" type="Blend2DInfo">
+			</param>
+			<param name="t" type="Vector2">
+			</param>
+		</method>
+		<method native="CrossFade" script="CrossFade" static="false">
+			<param name="clip" type="RRef&lt;AnimationClip&gt;">
+			</param>
+			<param name="fadeLength" type="float">
+			</param>
+		</method>
+		<method native="Sample" script="Sample" static="false">
+			<param name="clip" type="RRef&lt;AnimationClip&gt;">
+			</param>
+			<param name="time" type="float">
+			</param>
+		</method>
+		<method native="Stop" script="Stop" static="false">
+			<param name="layer" type="int">
+			</param>
+		</method>
+		<method native="StopAll" script="StopAll" static="false">
+		</method>
+		<method native="GetState" script="GetState" static="false">
+			<param name="clip" type="RRef&lt;AnimationClip&gt;">
+			</param>
+			<param name="state" type="AnimationClipState">
+			</param>
+			<returns type="bool">
+			</returns>
+		</method>
+		<method native="SetState" script="SetState" static="false">
+			<param name="clip" type="RRef&lt;AnimationClip&gt;">
+			</param>
+			<param name="state" type="AnimationClipState">
+			</param>
+		</method>
+		<method native="SetMorphChannelWeight" script="SetMorphChannelWeight" static="false">
+			<doc>Changes a weight of a single morph channel, determining how much of it to apply on top of the base mesh.</doc>
+			<param name="name" type="string">
+				<doc>Name of the morph channel to modify. This depends on the mesh the animation is currently animating.</doc>
+			</param>
+			<param name="weight" type="float">
+				<doc>Weight that determines how much of the channel to apply to the mesh, in range [0, 1].</doc>
+			</param>
+		</method>
+		<property name="DefaultClip" type="RRef&lt;AnimationClip&gt;" getter="GetDefaultClip" setter="SetDefaultClip" static="false">
+			<doc>Determines the default clip to play as soon as the component is enabled. If more control over playing clips is needed use the play(), blend() and crossFade() methods to queue clips for playback manually, and setState() method for modify their states individually.</doc>
+		</property>
+		<property name="WrapMode" type="AnimWrapMode" getter="GetWrapMode" setter="SetWrapMode" static="false">
+		</property>
+		<property name="Speed" type="float" getter="GetSpeed" setter="SetSpeed" static="false">
+		</property>
+		<property name="IsPlaying" type="bool" getter="IsPlaying" setter="" static="false">
+		</property>
+		<property name="Bounds" type="AABox" getter="GetBounds" setter="SetBounds" static="false">
+			<doc>Determines bounds that will be used for animation and mesh culling. Only relevant if setUseBounds() is set to true.</doc>
+		</property>
+		<property name="UseBounds" type="bool" getter="GetUseBounds" setter="SetUseBounds" static="false">
+			<doc>Determines should animation bounds be used for visibility determination (culling). If false the bounds of the mesh attached to the relevant CRenderable component will be used instead.</doc>
+		</property>
+		<property name="Cull" type="bool" getter="GetEnableCull" setter="SetEnableCull" static="false">
+			<doc>Enables or disables culling of the animation when out of view. Culled animation will not be evaluated.</doc>
+		</property>
+	</class>
+	<struct native="TVector3I&lt;int32_t&gt;" script="Vector3I">
+		<doc>A three dimensional vector with integer coordinates.</doc>
+		<ctor>
+		</ctor>
+		<ctor>
+			<param name="x" type="int">
+			</param>
+			<param name="y" type="int">
+			</param>
+			<param name="z" type="int">
+			</param>
+		</ctor>
+		<ctor>
+			<param name="value" type="int">
+			</param>
+		</ctor>
+		<field name="X" type="int">
+		</field>
+		<field name="Y" type="int">
+		</field>
+		<field name="Z" type="int">
+		</field>
+	</struct>
+	<struct native="TVector3I&lt;uint32_t&gt;" script="Vector3UI">
+		<doc>A three dimensional vector with integer coordinates.</doc>
+		<ctor>
+		</ctor>
+		<ctor>
+			<param name="x" type="int">
+			</param>
+			<param name="y" type="int">
+			</param>
+			<param name="z" type="int">
+			</param>
+		</ctor>
+		<ctor>
+			<param name="value" type="int">
+			</param>
+		</ctor>
+		<field name="X" type="int">
+		</field>
+		<field name="Y" type="int">
+		</field>
+		<field name="Z" type="int">
 		</field>
 	</struct>
 	<struct native="VideoMode" script="VideoMode">
@@ -2112,15 +2167,6 @@ Use {0}, {1}, etc. in the string value for values that might change dynamically.
 		</property>
 		<property name="Weight" type="float" getter="GetWeight" setter="" static="false">
 			<doc>Returns the weight of the shape, determining how are different shapes within a channel blended.</doc>
-		</property>
-	</class>
-	<class native="MorphChannel" script="MorphChannel">
-		<doc>A collection of morph shapes that are sequentially blended together. Each shape has a weight in range [0, 1] which determines at what point is that shape blended. As the channel percent moves from 0 to 1, different shapes will be blended with those before or after them, depending on their weight.</doc>
-		<property name="Name" type="string" getter="GetName" setter="" static="false">
-			<doc>Returns the unique name of the channel.</doc>
-		</property>
-		<property name="Shapes" type="MorphShape" getter="GetShapes" setter="" static="false">
-			<doc>Returns all morph shapes within this channel, in order from lowest to highest.</doc>
 		</property>
 	</class>
 	<enum native="AudioSourceState" script="AudioSourceState">
@@ -5409,20 +5455,6 @@ Sprite images also allow you to specify sprite sheet animation by varying which 
 			<doc>Particles will be emitted from mesh triangles.</doc>
 		</enumentry>
 	</enum>
-	<struct native="PARTICLE_STATIC_MESH_SHAPE_DESC" script="ParticleStaticMeshShapeOptions">
-		<doc>Information describing a ParticleEmitterStaticMeshShape.</doc>
-		<ctor>
-		</ctor>
-		<field name="Type" type="ParticleEmitterMeshType">
-			<doc>Determines from which portion of the mesh are the particles emitted from.</doc>
-		</field>
-		<field name="Sequential" type="bool">
-			<doc>When enabled the particles will be emitted sequentially from mesh vertices in the order they are defined. Only relevant for the Vertex emit mode.</doc>
-		</field>
-		<field name="Mesh" type="RRef&lt;Mesh&gt;">
-			<doc>Mesh to spawn particles on. Must at least contain per-vertex position data encoded as 3D float vectors. Can optionally contain per-vertex normals encoded as 3D float vectors or as 4-byte unsigned-normalized format.</doc>
-		</field>
-	</struct>
 	<struct native="PARTICLE_SKINNED_MESH_SHAPE_DESC" script="ParticleSkinnedMeshShapeOptions">
 		<doc>Information describing a ParticleEmitterSkinnedMeshShape.</doc>
 		<ctor>

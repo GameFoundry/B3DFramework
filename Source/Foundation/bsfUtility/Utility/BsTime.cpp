@@ -40,9 +40,17 @@ void Time::UpdateInternal()
 	mTimeSinceStartMs = (u64)(currentFrameTime / 1000);
 	mTimeSinceStart = mTimeSinceStartMs / 1000.0f;
 
+	if(!mIsSimulationTimePaused)
+		mSimulationTimeInSeconds += mFrameDelta * mSimulationTimeScale;
+
 	mLastFrameTime = currentFrameTime;
 
 	mCurrentFrame.fetch_add(1, std::memory_order_relaxed);
+}
+
+void Time::SetSimulationTimeScale(float scale)
+{
+	mSimulationTimeScale = Math::Max(0.0f, scale);
 }
 
 u32 Time::GetFixedUpdateStepInternal(u64& step)

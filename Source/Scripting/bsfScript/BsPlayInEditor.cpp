@@ -12,13 +12,14 @@
 
 using namespace bs;
 PlayInEditor::PlayInEditor()
-	: mState(PlayInEditorState::Stopped), mNextState(PlayInEditorState::Stopped), mFrameStepActive(false), mScheduledStateChange(false), mPausableTime(0.0f)
+	: mState(PlayInEditorState::Stopped), mNextState(PlayInEditorState::Stopped), mFrameStepActive(false), mScheduledStateChange(false)
 {
 	if(!GetApplication().IsEditor())
 		mState = PlayInEditorState::Playing;
 	else
 	{
 		SetSystemsPauseState(true);
+		GetTime().ResetSimulationTime();
 		GetSceneManager().SetComponentState(ComponentState::Stopped);
 	}
 }
@@ -47,9 +48,9 @@ void PlayInEditor::SetStateImmediate(PlayInEditorState state)
 	case PlayInEditorState::Stopped:
 		{
 			mFrameStepActive = false;
-			mPausableTime = 0.0f;
 
 			SetSystemsPauseState(true);
+			GetTime().ResetSimulationTime();
 
 			GetSceneManager().SetComponentState(ComponentState::Stopped);
 			mSavedScene->Initialize();
@@ -116,9 +117,6 @@ void PlayInEditor::FrameStep()
 
 void PlayInEditor::Update()
 {
-	if(mState == PlayInEditorState::Playing)
-		mPausableTime += GetTime().GetFrameDelta();
-
 	if(mScheduledStateChange)
 	{
 		SetStateImmediate(mNextState);
@@ -159,6 +157,7 @@ void PlayInEditor::SaveSceneInMemory()
 
 void PlayInEditor::SetSystemsPauseState(bool paused)
 {
+	GetTime().SetSimulationTimePaused(paused);
 	GetPhysics().SetPaused(paused);
 	GetAudio().SetPaused(paused);
 }

@@ -16,7 +16,7 @@ namespace bs
 	 *
 	 * @note	Main thread only unless where specified otherwise.
 	 */
-	class B3D_UTILITY_EXPORT Time : public Module<Time>
+	class B3D_UTILITY_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(General)) Time : public Module<Time>
 	{
 	public:
 		Time();
@@ -25,22 +25,51 @@ namespace bs
 		/**
 		 * Gets the time elapsed since application start. Only gets updated once per frame.
 		 *
-		 * @return	The time since application start, in seconds.
+		 * @return	The time since application start, in seconds. This is real time, unaffected by simulation time scale.
 		 */
-		float GetTime() const { return mTimeSinceStart; }
+		B3D_SCRIPT_EXPORT(Property(Getter), ExportName(RealTimeInSeconds))
+		float GetRealTimeInSeconds() const { return mTimeSinceStart; }
 
 		/**
 		 * Gets the time elapsed since application start. Only gets updated once per frame.
 		 *
-		 * @return	The time since application start, in miliseconds.
+		 * @return	The time since application start, in miliseconds. This is real time, unaffected by simulation time scale.
 		 */
-		u64 GetTimeMs() const { return mTimeSinceStartMs; }
+		B3D_SCRIPT_EXPORT(Property(Getter), ExportName(RealTimeInMilliseconds))
+		u64 GetRealTimeInMilliseconds() const { return mTimeSinceStartMs; }
+
+		/**
+		 * Gets the time since the simulation started playing, multiplied by the time scale factor. In editor this will reset to zero every time you
+		 * start playing in editor, and in a standalone application this will be similar to GetRealTimeInSeconds(), except simulation time can be
+		 * sped up/down, or stopped entirely by setting the time scale.
+		 *
+		 * @return	Time since game start, affected by simulation time scale.
+		 */
+		B3D_SCRIPT_EXPORT(Property(Getter), ExportName(SimulationTimeInSeconds))
+		float GetSimulationTimeInSeconds() const { return mSimulationTimeInSeconds; }
+
+		/** Allows you to speed time up or down, or completely pause it by providing zero. Must be zero or larger. */
+		B3D_SCRIPT_EXPORT(Property(Setter), ExportName(SimulationTimeScale))
+		void SetSimulationTimeScale(float scale);
+
+		/** Returns the currently applied simulation time scale. */
+		B3D_SCRIPT_EXPORT(Property(Getter), ExportName(SimulationTimeScale))
+		float GetSimulationTimeScale() const { return mSimulationTimeScale; }
+
+		/** Resets the simulation time to zero. Primarily used for editor purposes for resetting the time when ending play in editor. */
+		B3D_SCRIPT_EXPORT()
+		void ResetSimulationTime() { mSimulationTimeInSeconds = 0.0f; }
+
+		/** Pauses or unpauses the simulation time. This is equivalent to setting the time scale to 0. */
+		B3D_SCRIPT_EXPORT()
+		void SetSimulationTimePaused(bool paused) { mIsSimulationTimePaused = paused;}
 
 		/**
 		 * Gets the time since last frame was executed. Only gets updated once per frame.
 		 *
 		 * @return	Time since last frame was executed, in seconds.
 		 */
+		B3D_SCRIPT_EXPORT(Property(Getter), ExportName(FrameDelta))
 		float GetFrameDelta() const { return mFrameDelta; }
 
 		/** Returns the step (in seconds) between fixed frame updates. */
@@ -59,6 +88,7 @@ namespace bs
 		 *
 		 * @note	Thread safe, but only counts main thread frames.
 		 */
+		B3D_SCRIPT_EXPORT(Property(Getter), ExportName(CurrentFrameIndex))
 		u64 GetCurrentFrameIndex() const { return mCurrentFrame.load(); }
 
 		/**
@@ -71,6 +101,7 @@ namespace bs
 		 * You will generally only want to use this for performance measurements and similar. Use non-precise methods in
 		 * majority of code as it is useful to keep the time value equal in all methods during a single frame.
 		 */
+		B3D_SCRIPT_EXPORT(Property(Getter), ExportName(TimePrecise))
 		u64 GetTimePrecise() const;
 
 		/**
@@ -165,6 +196,11 @@ namespace bs
 		u64 mAppStartTime = 0u; /**< Time the application started, in microseconds */
 		u64 mLastFrameTime = 0u; /**< Time since last runOneFrame call, In microseconds */
 		std::atomic<unsigned long> mCurrentFrame{ 0UL };
+
+		// Simulation time
+		float mSimulationTimeInSeconds = 0.0f;
+		float mSimulationTimeScale = 1.0f;
+		bool mIsSimulationTimePaused = false;
 
 		// Fixed update
 		u64 mFixedStep = 16666; // 60 times a second in microseconds

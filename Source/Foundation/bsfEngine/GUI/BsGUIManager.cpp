@@ -186,7 +186,7 @@ void GUIManager::Update()
 	// Show tooltip if needed
 	if(mShowTooltip)
 	{
-		float diff = GetTime().GetTime() - mTooltipElementHoverStart;
+		float diff = GetTime().GetRealTimeInSeconds() - mTooltipElementHoverStart;
 		if(diff >= kTooltipHoverTime || GetInput().IsButtonHeld(BC_LCONTROL) || GetInput().IsButtonHeld(BC_RCONTROL))
 		{
 			for(auto& entry : mElementsUnderPointer)
@@ -326,7 +326,7 @@ void GUIManager::Update()
 	while(ProcessDestroyQueueIteration());
 
 	// Blink caret
-	float curTime = GetTime().GetTime();
+	float curTime = GetTime().GetRealTimeInSeconds();
 
 	if((curTime - mCaretLastBlinkTime) >= mCaretBlinkInterval)
 	{
@@ -366,7 +366,7 @@ void GUIManager::Update()
 	// Note: It's important to call this after GUI elements rebuild their render data, as this will request new vector paths
 	mVectorSpriteAtlas->Update();
 
-	GetRenderThread().PostCommand([renderer = mRenderer.get(), time = GetTime().GetTime()]()
+	GetRenderThread().PostCommand([renderer = mRenderer.get(), time = GetTime().GetRealTimeInSeconds()]()
 							   { renderer->Update(time); }, "GUIRenderer::Update");
 }
 
@@ -1122,7 +1122,7 @@ bool GUIManager::FindElementUnderPointer(const Vector2I& pointerScreenPos, bool 
 	if(mElementsUnderPointer.size() > 0)
 		mShowTooltip = true;
 
-	mTooltipElementHoverStart = GetTime().GetTime();
+	mTooltipElementHoverStart = GetTime().GetRealTimeInSeconds();
 
 	return eventProcessed;
 }
