@@ -1,19 +1,17 @@
 ﻿//********************************* bs::framework - Copyright 2018-2019 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "Wrappers/GUI/BsScriptRange.h"
+#include "BsMonoClass.h"
 
 using namespace bs;
-MonoField* ScriptRange::sliderField = nullptr;
-MonoField* ScriptRange::minRangeField = nullptr;
-MonoField* ScriptRange::maxRangeField = nullptr;
 
-ScriptRange::ScriptRange(MonoObject* instance)
-	: ScriptObject(instance)
-{}
+MonoField* ScriptRange::sSliderField = nullptr;
+MonoField* ScriptRange::sMinRangeField = nullptr;
+MonoField* ScriptRange::sMaxRangeField = nullptr;
 
-void ScriptRange::InitRuntimeData()
+void ScriptRange::SetupScriptBindings()
 {
-	minRangeField = metaData.ScriptClass->GetField("min");
-	maxRangeField = metaData.ScriptClass->GetField("max");
-	sliderField = metaData.ScriptClass->GetField("slider");
+	sMinRangeField = sInteropMetaData.ScriptClass->GetField("min");
+	sMaxRangeField = sInteropMetaData.ScriptClass->GetField("max");
+	sSliderField = sInteropMetaData.ScriptClass->GetField("slider");
 }

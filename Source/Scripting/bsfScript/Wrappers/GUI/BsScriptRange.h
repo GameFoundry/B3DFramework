@@ -3,27 +3,24 @@
 #pragma once
 
 #include "BsScriptEnginePrerequisites.h"
-#include "BsScriptObject.h"
+#include "BsScriptTypeDefinition.h"
 
 namespace bs
 {
 	/**	Interop class between C++ & CLR for the Range attribute. */
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptRange : public ScriptObject<ScriptRange>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptRange : public TScriptTypeDefinition<ScriptRange>
 	{
 	public:
-		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "Range")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "Range")
 
-		static MonoField* GetMinRangeField() { return minRangeField; }
-
-		static MonoField* GetMaxRangeField() { return maxRangeField; }
-
-		static MonoField* GetSliderField() { return sliderField; }
+		static void SetupScriptBindings();
+		static MonoField* GetMinRangeField() { return sMinRangeField; }
+		static MonoField* GetMaxRangeField() { return sMaxRangeField; }
+		static MonoField* GetSliderField() { return sSliderField; }
 
 	private:
-		ScriptRange(MonoObject* instance);
-
-		static MonoField* minRangeField;
-		static MonoField* maxRangeField;
-		static MonoField* sliderField;
+		static MonoField* sMinRangeField;
+		static MonoField* sMaxRangeField;
+		static MonoField* sSliderField;
 	};
 } // namespace bs

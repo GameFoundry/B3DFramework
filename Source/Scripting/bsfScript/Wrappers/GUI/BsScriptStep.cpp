@@ -2,14 +2,14 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "Wrappers/GUI/BsScriptStep.h"
 
+#include "BsMonoClass.h"
+
 using namespace bs;
-MonoField* ScriptStep::stepField = nullptr;
 
-ScriptStep::ScriptStep(MonoObject* instance)
-	: ScriptObject(instance)
-{}
+MonoField* ScriptStep::sStepField = nullptr;
 
-void ScriptStep::InitRuntimeData()
+
+void ScriptStep::SetupScriptBindings()
 {
-	stepField = metaData.ScriptClass->GetField("step");
+	sStepField = sInteropMetaData.ScriptClass->GetField("step");
 }

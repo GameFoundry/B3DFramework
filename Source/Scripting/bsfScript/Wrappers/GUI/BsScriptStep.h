@@ -3,21 +3,20 @@
 #pragma once
 
 #include "BsScriptEnginePrerequisites.h"
-#include "BsScriptObject.h"
+#include "BsScriptTypeDefinition.h"
 
 namespace bs
 {
 	/**	Interop class between C++ & CLR for Step attribute. */
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptStep : public ScriptObject<ScriptStep>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptStep : public TScriptTypeDefinition<ScriptStep>
 	{
 	public:
-		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "Step")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "Step")
 
-		static MonoField* GetStepField() { return stepField; }
+		static void SetupScriptBindings();
+		static MonoField* GetStepField() { return sStepField; }
 
 	private:
-		ScriptStep(MonoObject* instance);
-
-		static MonoField* stepField;
+		static MonoField* sStepField;
 	};
 } // namespace bs
