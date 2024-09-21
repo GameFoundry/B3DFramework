@@ -92,6 +92,9 @@
 		<enumentry native="ZYX" script="ZYX">
 		</enumentry>
 	</enum>
+	<class native="MeshData" script="MeshData">
+		<doc>Contains mesh vertex and index data used for initializing, updating and reading mesh data from Mesh.</doc>
+	</class>
 	<class native="MorphChannel" script="MorphChannel">
 		<doc>A collection of morph shapes that are sequentially blended together. Each shape has a weight in range [0, 1] which determines at what point is that shape blended. As the channel percent moves from 0 to 1, different shapes will be blended with those before or after them, depending on their weight.</doc>
 		<property name="Name" type="string" getter="GetName" setter="" static="false">
@@ -701,7 +704,7 @@
 		</ctor>
 		<ctor>
 			<doc>Creates a new mesh from an existing mesh data. Created mesh will match the vertex and index buffers described by the mesh data exactly. Mesh will have no sub-meshes.</doc>
-			<param name="data" type="MeshData">
+			<param name="data" type="RendererMeshData">
 				<doc>Vertex and index data to initialize the mesh with.</doc>
 			</param>
 			<param name="topology" type="MeshTopology">
@@ -713,7 +716,7 @@
 		</ctor>
 		<ctor>
 			<doc>Creates a new mesh with enough space to hold the a number of primitives using the specified layout. Indices can be referenced by multiple sub-meshes.</doc>
-			<param name="data" type="MeshData">
+			<param name="data" type="RendererMeshData">
 				<doc>Vertex and index data to initialize the mesh with.</doc>
 			</param>
 			<param name="subMeshes" type="SubMesh">
@@ -735,7 +738,7 @@
 		<property name="SubMeshCount" type="int" getter="GetSubMeshCount" setter="" static="false">
 			<doc>Returns the number of sub-meshes contained in this mesh.</doc>
 		</property>
-		<property name="MeshData" type="MeshData" getter="GetMeshData" setter="SetMeshData" static="false">
+		<property name="MeshData" type="RendererMeshData" getter="GetMeshData" setter="SetMeshData" static="false">
 			<doc>Accesses the vertex and index data of the mesh. If reading, mesh must have been created with the MeshUsage::CPUCached flag. If writing the caller must ensure the data matches mesh&apos;s vertex/index counts, vertex layout and index format.</doc>
 		</property>
 	</class>
@@ -3859,7 +3862,7 @@ Sprite images also allow you to specify sprite sheet animation by varying which 
 			<doc>Magnitude of motion after the hit.</doc>
 		</field>
 	</struct>
-	<class native="RendererMeshData" script="MeshData">
+	<class native="RendererMeshData" script="RendererMeshData">
 		<doc>Contains mesh vertex and index data used for initializing, updating and reading mesh data from Mesh.</doc>
 		<ctor>
 			<param name="numVertices" type="int">
@@ -3871,6 +3874,9 @@ Sprite images also allow you to specify sprite sheet animation by varying which 
 			<param name="indexType" type="IndexType">
 			</param>
 		</ctor>
+		<property name="Data" type="MeshData" getter="GetData" setter="" static="false">
+			<doc>Returns the underlying MeshData structure.</doc>
+		</property>
 		<property name="Positions" type="Vector3" getter="GetPositions" setter="SetPositions" static="false">
 			<doc>An array of all vertex positions. Only valid if the vertex layout contains vertex positions.</doc>
 		</property>
@@ -5199,7 +5205,7 @@ Sprite images also allow you to specify sprite sheet animation by varying which 
 	<class native="PhysicsMesh" script="PhysicsMesh">
 		<doc>Represents a physics mesh that can be used with a MeshCollider. Physics mesh can be a generic triangle mesh or a convex mesh. Convex meshes are limited to 255 faces.</doc>
 		<ctor>
-			<param name="meshData" type="MeshData">
+			<param name="meshData" type="RendererMeshData">
 			</param>
 			<param name="type" type="PhysicsMeshType">
 			</param>
@@ -5207,7 +5213,7 @@ Sprite images also allow you to specify sprite sheet animation by varying which 
 		<property name="Type" type="PhysicsMeshType" getter="GetType" setter="" static="false">
 			<doc>Returns the type of the physics mesh.</doc>
 		</property>
-		<property name="MeshData" type="MeshData" getter="GetMeshData" setter="" static="false">
+		<property name="MeshData" type="RendererMeshData" getter="GetMeshData" setter="" static="false">
 		</property>
 	</class>
 	<enum native="ParticleEmissionModeType" script="ParticleEmissionModeType">

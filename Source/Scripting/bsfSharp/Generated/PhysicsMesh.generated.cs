@@ -20,7 +20,7 @@ namespace bs
 		private PhysicsMesh(bool __dummy0) { }
 		protected PhysicsMesh() { }
 
-		public PhysicsMesh(MeshData meshData, PhysicsMeshType type = PhysicsMeshType.Convex)
+		public PhysicsMesh(RendererMeshData meshData, PhysicsMeshType type = PhysicsMeshType.Convex)
 		{
 			Internal_Create(this, meshData, type);
 		}
@@ -39,7 +39,7 @@ namespace bs
 		}
 
 		[NativeWrapper]
-		public MeshData MeshData
+		public RendererMeshData MeshData
 		{
 			get { return Internal_GetMeshData(mCachedPtr); }
 		}
@@ -58,9 +58,9 @@ namespace bs
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern PhysicsMeshType Internal_GetType(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_Create(PhysicsMesh managedInstance, MeshData meshData, PhysicsMeshType type);
+		private static extern void Internal_Create(PhysicsMesh managedInstance, RendererMeshData meshData, PhysicsMeshType type);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern MeshData Internal_GetMeshData(IntPtr thisPtr);
+		private static extern RendererMeshData Internal_GetMeshData(IntPtr thisPtr);
 	}
 
 	/** @} */

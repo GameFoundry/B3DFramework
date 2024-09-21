@@ -4,6 +4,7 @@
 
 #include "BsScriptEnginePrerequisites.h"
 #include "BsScriptTypeMetaData.h"
+#include "BsMonoManager.h"
 
 namespace bs
 {

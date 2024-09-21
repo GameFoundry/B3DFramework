@@ -76,7 +76,7 @@ namespace bs
 		/// three indices represent a single triangle.
 		/// </param>
 		/// <param name="usage">Optimizes performance depending on planned usage of the mesh.</param>
-		public Mesh(MeshData data, MeshTopology topology = MeshTopology.TriangleList, MeshUsage usage = MeshUsage.Static)
+		public Mesh(RendererMeshData data, MeshTopology topology = MeshTopology.TriangleList, MeshUsage usage = MeshUsage.Static)
 		{
 			Internal_Create1(this, data, topology, usage);
 		}
@@ -91,7 +91,7 @@ namespace bs
 		/// independently, each with a different material.
 		/// </param>
 		/// <param name="usage">Optimizes performance depending on planned usage of the mesh.</param>
-		public Mesh(MeshData data, SubMesh[] subMeshes, MeshUsage usage = MeshUsage.Static)
+		public Mesh(RendererMeshData data, SubMesh[] subMeshes, MeshUsage usage = MeshUsage.Static)
 		{
 			Internal_Create2(this, data, subMeshes, usage);
 		}
@@ -137,7 +137,7 @@ namespace bs
 		/// </summary>
 		[ShowInInspector]
 		[NativeWrapper]
-		public MeshData MeshData
+		public RendererMeshData MeshData
 		{
 			get { return Internal_GetMeshData(mCachedPtr); }
 			set { Internal_SetMeshData(mCachedPtr, value); }
@@ -163,9 +163,9 @@ namespace bs
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_Create0(Mesh managedInstance, int numVertices, int numIndices, SubMesh[] subMeshes, MeshUsage usage, VertexLayout vertex, IndexType index);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_Create1(Mesh managedInstance, MeshData data, MeshTopology topology, MeshUsage usage);
+		private static extern void Internal_Create1(Mesh managedInstance, RendererMeshData data, MeshTopology topology, MeshUsage usage);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_Create2(Mesh managedInstance, MeshData data, SubMesh[] subMeshes, MeshUsage usage);
+		private static extern void Internal_Create2(Mesh managedInstance, RendererMeshData data, SubMesh[] subMeshes, MeshUsage usage);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern SubMesh[] Internal_GetSubMeshes(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
@@ -173,9 +173,9 @@ namespace bs
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_GetBounds(IntPtr thisPtr, out AABox box, out Sphere sphere);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern MeshData Internal_GetMeshData(IntPtr thisPtr);
+		private static extern RendererMeshData Internal_GetMeshData(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_SetMeshData(IntPtr thisPtr, MeshData value);
+		private static extern void Internal_SetMeshData(IntPtr thisPtr, RendererMeshData value);
 	}
 
 	/** @} */

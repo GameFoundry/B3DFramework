@@ -102,8 +102,8 @@ namespace bs
 	void ScriptMesh::InternalCreate1(MonoObject* scriptObject, MonoObject* data, DrawOperationType topology, MeshUsage usage)
 	{
 		SPtr<RendererMeshData> tmpdata;
-		ScriptMeshData* scriptObjectWrapperdata;
-		scriptObjectWrapperdata = ScriptMeshData::GetScriptObjectWrapper(data);
+		ScriptRendererMeshData* scriptObjectWrapperdata;
+		scriptObjectWrapperdata = ScriptRendererMeshData::GetScriptObjectWrapper(data);
 		if(scriptObjectWrapperdata != nullptr)
 			tmpdata = std::static_pointer_cast<RendererMeshData>(scriptObjectWrapperdata->GetBaseNativeObjectAsShared());
 		TResourceHandle<Mesh> nativeObject = MeshEx::Create(tmpdata, topology, usage);
@@ -113,8 +113,8 @@ namespace bs
 	void ScriptMesh::InternalCreate2(MonoObject* scriptObject, MonoObject* data, MonoArray* subMeshes, MeshUsage usage)
 	{
 		SPtr<RendererMeshData> tmpdata;
-		ScriptMeshData* scriptObjectWrapperdata;
-		scriptObjectWrapperdata = ScriptMeshData::GetScriptObjectWrapper(data);
+		ScriptRendererMeshData* scriptObjectWrapperdata;
+		scriptObjectWrapperdata = ScriptRendererMeshData::GetScriptObjectWrapper(data);
 		if(scriptObjectWrapperdata != nullptr)
 			tmpdata = std::static_pointer_cast<RendererMeshData>(scriptObjectWrapperdata->GetBaseNativeObjectAsShared());
 		Vector<SubMesh> nativeArraysubMeshes;
@@ -171,7 +171,7 @@ namespace bs
 		tmp__output = MeshEx::GetMeshData(B3DStaticResourceCast<Mesh>(self->GetBaseNativeObjectAsHandle()));
 
 		MonoObject* __output;
-		__output = ScriptMeshData::GetOrCreateScriptObject(tmp__output);
+		__output = ScriptRendererMeshData::GetOrCreateScriptObject(tmp__output);
 
 		return __output;
 	}
@@ -179,8 +179,8 @@ namespace bs
 	void ScriptMesh::InternalSetMeshData(ScriptMesh* self, MonoObject* value)
 	{
 		SPtr<RendererMeshData> tmpvalue;
-		ScriptMeshData* scriptObjectWrappervalue;
-		scriptObjectWrappervalue = ScriptMeshData::GetScriptObjectWrapper(value);
+		ScriptRendererMeshData* scriptObjectWrappervalue;
+		scriptObjectWrappervalue = ScriptRendererMeshData::GetScriptObjectWrapper(value);
 		if(scriptObjectWrappervalue != nullptr)
 			tmpvalue = std::static_pointer_cast<RendererMeshData>(scriptObjectWrappervalue->GetBaseNativeObjectAsShared());
 		MeshEx::SetMeshData(B3DStaticResourceCast<Mesh>(self->GetBaseNativeObjectAsHandle()), tmpvalue);

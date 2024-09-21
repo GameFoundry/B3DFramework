@@ -9,6 +9,11 @@ MonoField* ScriptRange::sSliderField = nullptr;
 MonoField* ScriptRange::sMinRangeField = nullptr;
 MonoField* ScriptRange::sMaxRangeField = nullptr;
 
+ScriptRange::ScriptRange()
+{
+	
+} 
+
 void ScriptRange::SetupScriptBindings()
 {
 	sMinRangeField = sInteropMetaData.ScriptClass->GetField("min");

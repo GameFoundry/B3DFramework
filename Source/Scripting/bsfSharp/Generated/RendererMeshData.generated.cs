@@ -14,14 +14,21 @@ namespace bs
 	/// Contains mesh vertex and index data used for initializing, updating and reading mesh data from Mesh.
 	/// </summary>
 	[ShowInInspector]
-	public partial class MeshData : ScriptObject
+	public partial class RendererMeshData : ScriptObject
 	{
-		private MeshData(bool __dummy0) { }
-		protected MeshData() { }
+		private RendererMeshData(bool __dummy0) { }
+		protected RendererMeshData() { }
 
-		public MeshData(int numVertices, int numIndices, VertexLayout layout, IndexType indexType = IndexType.Index32)
+		public RendererMeshData(int numVertices, int numIndices, VertexLayout layout, IndexType indexType = IndexType.Index32)
 		{
 			Internal_Create(this, numVertices, numIndices, layout, indexType);
+		}
+
+		/// <summary>Returns the underlying MeshData structure.</summary>
+		[NativeWrapper]
+		public MeshData Data
+		{
+			get { return Internal_GetData(mCachedPtr); }
 		}
 
 		/// <summary>An array of all vertex positions. Only valid if the vertex layout contains vertex positions.</summary>
@@ -117,7 +124,9 @@ namespace bs
 		}
 
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_Create(MeshData managedInstance, int numVertices, int numIndices, VertexLayout layout, IndexType indexType);
+		private static extern MeshData Internal_GetData(IntPtr thisPtr);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		private static extern void Internal_Create(RendererMeshData managedInstance, int numVertices, int numIndices, VertexLayout layout, IndexType indexType);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern Vector3[] Internal_GetPositions(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]

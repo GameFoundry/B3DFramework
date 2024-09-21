@@ -57,8 +57,8 @@ namespace bs
 	void ScriptPhysicsMesh::InternalCreate(MonoObject* scriptObject, MonoObject* meshData, PhysicsMeshType type)
 	{
 		SPtr<RendererMeshData> tmpmeshData;
-		ScriptMeshData* scriptObjectWrappermeshData;
-		scriptObjectWrappermeshData = ScriptMeshData::GetScriptObjectWrapper(meshData);
+		ScriptRendererMeshData* scriptObjectWrappermeshData;
+		scriptObjectWrappermeshData = ScriptRendererMeshData::GetScriptObjectWrapper(meshData);
 		if(scriptObjectWrappermeshData != nullptr)
 			tmpmeshData = std::static_pointer_cast<RendererMeshData>(scriptObjectWrappermeshData->GetBaseNativeObjectAsShared());
 		TResourceHandle<PhysicsMesh> nativeObject = PhysicsMeshEx::Create(tmpmeshData, type);
@@ -71,7 +71,7 @@ namespace bs
 		tmp__output = PhysicsMeshEx::GetMeshData(B3DStaticResourceCast<PhysicsMesh>(self->GetBaseNativeObjectAsHandle()));
 
 		MonoObject* __output;
-		__output = ScriptMeshData::GetOrCreateScriptObject(tmp__output);
+		__output = ScriptRendererMeshData::GetOrCreateScriptObject(tmp__output);
 
 		return __output;
 	}

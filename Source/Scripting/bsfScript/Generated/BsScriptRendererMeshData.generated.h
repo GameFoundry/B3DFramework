@@ -5,10 +5,10 @@
 #include "BsScriptEnginePrerequisites.h"
 #include "../../../Foundation/bsfCore/Renderer/BsRendererMeshData.h"
 #include "BsScriptNonReflectableWrapper.h"
+#include "../../../Foundation/bsfUtility/Math/BsVector4.h"
 #include "../../../Foundation/bsfUtility/Math/BsVector3.h"
 #include "../../../Foundation/bsfCore/Renderer/BsRendererMeshData.h"
 #include "../../../Foundation/bsfCore/Utility/BsCommonTypes.h"
-#include "../../../Foundation/bsfUtility/Math/BsVector4.h"
 #include "Image/BsColor.h"
 #include "../../../Foundation/bsfUtility/Math/BsVector2.h"
 #include "../../../Foundation/bsfCore/Mesh/BsMeshData.h"
@@ -16,36 +16,37 @@
 namespace bs { class MeshDataEx; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptMeshData : public TScriptNonReflectableWrapper<RendererMeshData, ScriptMeshData>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptRendererMeshData : public TScriptNonReflectableWrapper<RendererMeshData, ScriptRendererMeshData>
 	{
 	public:
-		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "MeshData")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "RendererMeshData")
 
-		ScriptMeshData(const SPtr<RendererMeshData>& nativeObject);
+		ScriptRendererMeshData(const SPtr<RendererMeshData>& nativeObject);
 
 		static void SetupScriptBindings();
 
 		static MonoObject* CreateScriptObject(bool construct);
 
 	private:
+		static MonoObject* InternalGetData(ScriptRendererMeshData* self);
 		static void InternalCreate(MonoObject* scriptObject, uint32_t numVertices, uint32_t numIndices, VertexLayout layout, IndexType indexType);
-		static MonoArray* InternalGetPositions(ScriptMeshData* self);
-		static void InternalSetPositions(ScriptMeshData* self, MonoArray* value);
-		static MonoArray* InternalGetNormals(ScriptMeshData* self);
-		static void InternalSetNormals(ScriptMeshData* self, MonoArray* value);
-		static MonoArray* InternalGetTangents(ScriptMeshData* self);
-		static void InternalSetTangents(ScriptMeshData* self, MonoArray* value);
-		static MonoArray* InternalGetColors(ScriptMeshData* self);
-		static void InternalSetColors(ScriptMeshData* self, MonoArray* value);
-		static MonoArray* InternalGetUV0(ScriptMeshData* self);
-		static void InternalSetUV0(ScriptMeshData* self, MonoArray* value);
-		static MonoArray* InternalGetUV1(ScriptMeshData* self);
-		static void InternalSetUV1(ScriptMeshData* self, MonoArray* value);
-		static MonoArray* InternalGetBoneWeights(ScriptMeshData* self);
-		static void InternalSetBoneWeights(ScriptMeshData* self, MonoArray* value);
-		static MonoArray* InternalGetIndices(ScriptMeshData* self);
-		static void InternalSetIndices(ScriptMeshData* self, MonoArray* value);
-		static int32_t InternalGetVertexCount(ScriptMeshData* self);
-		static int32_t InternalGetIndexCount(ScriptMeshData* self);
+		static MonoArray* InternalGetPositions(ScriptRendererMeshData* self);
+		static void InternalSetPositions(ScriptRendererMeshData* self, MonoArray* value);
+		static MonoArray* InternalGetNormals(ScriptRendererMeshData* self);
+		static void InternalSetNormals(ScriptRendererMeshData* self, MonoArray* value);
+		static MonoArray* InternalGetTangents(ScriptRendererMeshData* self);
+		static void InternalSetTangents(ScriptRendererMeshData* self, MonoArray* value);
+		static MonoArray* InternalGetColors(ScriptRendererMeshData* self);
+		static void InternalSetColors(ScriptRendererMeshData* self, MonoArray* value);
+		static MonoArray* InternalGetUV0(ScriptRendererMeshData* self);
+		static void InternalSetUV0(ScriptRendererMeshData* self, MonoArray* value);
+		static MonoArray* InternalGetUV1(ScriptRendererMeshData* self);
+		static void InternalSetUV1(ScriptRendererMeshData* self, MonoArray* value);
+		static MonoArray* InternalGetBoneWeights(ScriptRendererMeshData* self);
+		static void InternalSetBoneWeights(ScriptRendererMeshData* self, MonoArray* value);
+		static MonoArray* InternalGetIndices(ScriptRendererMeshData* self);
+		static void InternalSetIndices(ScriptRendererMeshData* self, MonoArray* value);
+		static int32_t InternalGetVertexCount(ScriptRendererMeshData* self);
+		static int32_t InternalGetIndexCount(ScriptRendererMeshData* self);
 	};
 }

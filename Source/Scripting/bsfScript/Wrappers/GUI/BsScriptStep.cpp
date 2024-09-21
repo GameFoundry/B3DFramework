@@ -8,6 +8,10 @@ using namespace bs;
 
 MonoField* ScriptStep::sStepField = nullptr;
 
+ScriptStep::ScriptStep()
+{
+	
+}
 
 void ScriptStep::SetupScriptBindings()
 {

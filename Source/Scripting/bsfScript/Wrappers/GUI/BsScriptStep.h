@@ -13,6 +13,8 @@ namespace bs
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "Step")
 
+		ScriptStep();
+
 		static void SetupScriptBindings();
 		static MonoField* GetStepField() { return sStepField; }
 

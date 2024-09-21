@@ -7,6 +7,7 @@
 #include "RenderAPI/BsVertexDescription.h"
 #include "RenderAPI/BsSubMesh.h"
 #include "Math/BsBounds.h"
+#include "Script/BsIScriptExportable.h"
 
 namespace bs
 {
@@ -92,7 +93,7 @@ namespace bs
 	};
 
 	/** Contains mesh vertex and index data used for initializing, updating and reading mesh data from Mesh. */
-	class B3D_CORE_EXPORT MeshData : public GpuResourceData
+	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT() MeshData : public GpuResourceData, public IScriptExportable
 	{
 	public:
 		/**

@@ -13,6 +13,8 @@ namespace bs
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "Range")
 
+		ScriptRange();
+
 		static void SetupScriptBindings();
 		static MonoField* GetMinRangeField() { return sMinRangeField; }
 		static MonoField* GetMaxRangeField() { return sMaxRangeField; }

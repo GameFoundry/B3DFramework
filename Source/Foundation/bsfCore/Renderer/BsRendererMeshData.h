@@ -40,7 +40,7 @@ namespace bs
 	};
 
 	/** Contains mesh vertex and index data used for initializing, updating and reading mesh data from Mesh. */
-	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Rendering), ExportName(MeshData)) RendererMeshData : public IScriptExportable
+	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Rendering)) RendererMeshData : public IScriptExportable
 	{
 	public:
 		/**
@@ -205,6 +205,7 @@ namespace bs
 		void SetIndices(u32* buffer, u32 size);
 
 		/**	Returns the underlying MeshData structure. */
+		B3D_SCRIPT_EXPORT(Property(Getter), ExportName(Data))
 		SPtr<MeshData> GetData() const { return mMeshData; }
 
 		/**	Creates a new empty mesh data structure. */
