@@ -317,7 +317,7 @@ table td
 	{
 		String channelName;
 
-		LogVerbosity verbosity = entry.GetVerbosity();
+		LogVerbosity verbosity = entry.Verbosity;
 		switch(verbosity)
 		{
 		case LogVerbosity::Fatal:
@@ -346,12 +346,12 @@ table td
 		}
 		stream << R"(			<td>)" << ToString(verbosity) << R"(</td>)" << std::endl;
 
-		stream << R"(			<td>)" << ToString(entry.GetLocalTime(), false, false, TimeToStringConversionType::Time)
+		stream << R"(			<td>)" << ToString(entry.LocalTime, false, false, TimeToStringConversionType::Time)
 			   << "</td>" << std::endl;
 
-		stream << R"(			<td>)" << entry.GetCategoryName() << "</td>" << std::endl;
+		stream << R"(			<td>)" << entry.CategoryName << "</td>" << std::endl;
 
-		String parsedMessage = StringUtil::ReplaceAll(entry.GetMessage(), "\n", "<br>\n");
+		String parsedMessage = StringUtil::ReplaceAll(entry.Message, "\n", "<br>\n");
 
 		stream << R"(			<td>)" << parsedMessage << "</td>" << std::endl;
 		stream << R"(		</tr>)" << std::endl;
@@ -425,10 +425,10 @@ void Debug::SaveTextLog(const Path& path) const
 	for(auto& entry : entries)
 	{
 		String builtMsg;
-		builtMsg.append(ToString(entry.GetLocalTime(), false, true, TimeToStringConversionType::Full));
+		builtMsg.append(ToString(entry.LocalTime, false, true, TimeToStringConversionType::Full));
 		builtMsg.append(" ");
 
-		switch(entry.GetVerbosity())
+		switch(entry.Verbosity)
 		{
 		case LogVerbosity::Fatal:
 			builtMsg.append("[FATAL]");
@@ -454,14 +454,14 @@ void Debug::SaveTextLog(const Path& path) const
 		}
 
 		builtMsg.append(" <");
-		builtMsg.append(entry.GetCategoryName());
+		builtMsg.append(entry.CategoryName);
 		builtMsg.append(">");
 
 		builtMsg.append(" | ");
 
 		String tmpSpaces = GetSpacesIndentationInternal(builtMsg.length());
 
-		String parsedMessage = StringUtil::ReplaceAll(entry.GetMessage(), "\n\t\t", "\n" + tmpSpaces);
+		String parsedMessage = StringUtil::ReplaceAll(entry.Message, "\n\t\t", "\n" + tmpSpaces);
 		builtMsg.append(parsedMessage);
 
 		stream << builtMsg << "\n";

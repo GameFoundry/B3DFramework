@@ -36,17 +36,6 @@ namespace bs
     }
 
     /// <summary>
-    /// Contains data for a single log entry.
-    /// </summary>
-    [StructLayout(LayoutKind.Sequential)]
-    public struct LogEntry // Note: Must match C++ struct ScriptLogEntryData
-    {
-        public string message;
-        public LogVerbosity verbosity;
-        public string categoryName;
-    }
-
-    /// <summary>
     /// Utility class providing various debug functionality.
     /// </summary>
     public sealed class Debug

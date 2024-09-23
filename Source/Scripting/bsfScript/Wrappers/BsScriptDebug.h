@@ -11,6 +11,14 @@ namespace bs
 	 *  @{
 	 */
 
+	/** Script-exportable variant of LogEntry. */
+	struct B3D_SCRIPT_EXPORT(ExportAsStruct(true), ExportName(LogEntry)) ScriptExportableLogEntry
+	{
+		String Message;
+		LogVerbosity Verbosity;
+		String CategoryName;
+	};
+
 	/**	Interop class between C++ & CLR for Debug. */
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptDebug : public ScriptObject<ScriptDebug>
 	{

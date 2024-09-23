@@ -6,19 +6,11 @@
 #include "BsMonoMethod.h"
 #include "BsMonoUtil.h"
 #include "Debug/BsDebug.h"
-#include "Wrappers/BsScriptLogEntry.h"
+#include "Generated/BsScriptScriptExportableLogEntry.generated.h"
 
 using namespace bs;
 HEvent ScriptDebug::mOnLogEntryAddedConn;
 ScriptDebug::OnAddedThunkDef ScriptDebug::onAddedThunk = nullptr;
-
-/**	C++ version of the managed LogEntry structure. */
-struct ScriptLogEntryData
-{
-	MonoString* Message;
-	LogVerbosity Verbosity;
-	MonoString* CategoryName;
-};
 
 ScriptDebug::ScriptDebug(MonoObject* instance)
 	: ScriptObject(instance)
@@ -48,10 +40,10 @@ void ScriptDebug::ShutDown()
 
 void ScriptDebug::OnLogEntryAdded(const LogEntry& entry)
 {
-	MonoString *const message = MonoUtil::StringToMono(entry.GetMessage());
-	MonoString* const categoryName = MonoUtil::StringToMono(entry.GetCategoryName());
+	MonoString *const message = MonoUtil::StringToMono(entry.Message);
+	MonoString* const categoryName = MonoUtil::StringToMono(entry.CategoryName);
 
-	MonoUtil::InvokeThunk(onAddedThunk, message, (i32)entry.GetVerbosity(), categoryName);
+	MonoUtil::InvokeThunk(onAddedThunk, message, (i32)entry.Verbosity, categoryName);
 }
 
 void ScriptDebug::InternalLog(MonoString* message, MonoString* categoryName)
@@ -87,11 +79,8 @@ MonoArray* ScriptDebug::InternalGetMessages()
 	ScriptArray output = ScriptArray::Create<ScriptLogEntry>(numEntries);
 	for(u32 i = 0; i < numEntries; i++)
 	{
-		MonoString* const message = MonoUtil::StringToMono(entries[i].GetMessage());
-		MonoString* const categoryName = MonoUtil::StringToMono(entries[i].GetCategoryName());
-
-		ScriptLogEntryData scriptEntry = { message, entries[i].GetVerbosity(), categoryName };
-		output.Set(i, scriptEntry);
+		ScriptExportableLogEntry logEntry = { entries[i].Message, entries[i].Verbosity, entries[i].CategoryName };
+		output.Set(i, ScriptLogEntry::ToInterop(logEntry));
 	}
 
 	return output.GetInternal();

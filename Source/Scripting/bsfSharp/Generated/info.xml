@@ -8106,6 +8106,15 @@ Alternatively you can also skip manually calling ReleaseInternalReference() and 
 			</returns>
 		</method>
 	</class>
+	<struct native="ScriptExportableLogEntry" script="LogEntry">
+		<doc>Script-exportable variant of LogEntry.</doc>
+		<field name="Message" type="string">
+		</field>
+		<field name="Verbosity" type="LogVerbosity">
+		</field>
+		<field name="CategoryName" type="string">
+		</field>
+	</struct>
 	<struct native="CharRange" script="CharRange">
 		<doc>Represents a range of character code.</doc>
 		<ctor>

@@ -41,27 +41,14 @@ namespace bs
 	public:
 		LogEntry() = default;
 
-		LogEntry(String msg, LogVerbosity verbosity, const char* categoryName)
-			: mMsg(std::move(msg)), mVerbosity(verbosity), mCategoryName(categoryName), mLocalTime(std::time(nullptr))
+		LogEntry(String message, LogVerbosity verbosity, const char* categoryName)
+			: Message(std::move(message)), Verbosity(verbosity), CategoryName(categoryName), LocalTime(std::time(nullptr))
 		{}
 
-		/** Determines how important is the message and when should it be displayed. */
-		LogVerbosity GetVerbosity() const { return mVerbosity; }
-
-		/** Category of the system the message originated from. */
-		const char* GetCategoryName() const { return mCategoryName; }
-
-		/** Text of the message. */
-		const String& GetMessage() const { return mMsg; }
-
-		/** Local time of message */
-		const std::time_t& GetLocalTime() const { return mLocalTime; }
-
-	private:
-		String mMsg;
-		LogVerbosity mVerbosity = LogVerbosity::Info;
-		const char* mCategoryName = nullptr;
-		std::time_t mLocalTime = 0;
+		String Message;
+		LogVerbosity Verbosity = LogVerbosity::Info;
+		const char* CategoryName = nullptr;
+		u64 LocalTime = 0; /**< Local time of message */
 	};
 
 	/** Base class for all log categories. */

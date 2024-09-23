@@ -49,7 +49,7 @@ void Log::Clear(const char* categoryName, LogVerbosity verbosity)
 	Vector<LogEntry> newEntries;
 	for(auto& entry : mEntries)
 	{
-		if(((verbosity == LogVerbosity::Any) || entry.GetVerbosity() == verbosity) && (categoryName == nullptr || entry.GetCategoryName() == categoryName))
+		if(((verbosity == LogVerbosity::Any) || entry.Verbosity == verbosity) && (categoryName == nullptr || entry.CategoryName == categoryName))
 			continue;
 
 		newEntries.push_back(entry);
@@ -63,7 +63,7 @@ void Log::Clear(const char* categoryName, LogVerbosity verbosity)
 		LogEntry entry = mUnreadEntries.front();
 		mUnreadEntries.pop();
 
-		if(((verbosity == LogVerbosity::Any) || entry.GetVerbosity() == verbosity) && (categoryName == nullptr || entry.GetCategoryName() == categoryName))
+		if(((verbosity == LogVerbosity::Any) || entry.Verbosity == verbosity) && (categoryName == nullptr || entry.CategoryName == categoryName))
 			continue;
 
 		newUnreadEntries.push(entry);
