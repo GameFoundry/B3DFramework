@@ -9,6 +9,13 @@ namespace bs
 	/// <summary>Types of builtin shaders that are always available.</summary>
 	public enum BuiltinShader
 	{
+		/// <summary>Special shader used for rendering decals that project onto other geometry.</summary>
+		Decal = 6,
+		/// <summary>
+		/// Special shader used for rendering particles with lighting using the deferred rendering pipeline (no support for 
+		/// transparency).
+		/// </summary>
+		ParticlesLitOpaque = 5,
 		Custom = 0,
 		/// <summary>Physically based shader used for opaque 3D geometry.</summary>
 		Standard = 1,
@@ -20,13 +27,6 @@ namespace bs
 		/// Special shader used for rendering particles with lighting using the forward rendering pipeline (supports 
 		/// transparency).
 		/// </summary>
-		ParticlesLit = 4,
-		/// <summary>
-		/// Special shader used for rendering particles with lighting using the deferred rendering pipeline (no support for 
-		/// transparency).
-		/// </summary>
-		ParticlesLitOpaque = 5,
-		/// <summary>Special shader used for rendering decals that project onto other geometry.</summary>
-		Decal = 6
+		ParticlesLit = 4
 	}
 }

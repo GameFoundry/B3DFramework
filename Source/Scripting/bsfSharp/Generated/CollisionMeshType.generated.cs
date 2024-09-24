@@ -16,10 +16,10 @@ namespace bs
 	{
 		/// <summary>No collision mesh will be imported.</summary>
 		None = 0,
-		/// <summary>Normal triangle mesh will be imported.</summary>
-		Normal = 1,
 		/// <summary>A convex hull will be generated from the source mesh.</summary>
-		Convex = 2
+		Convex = 2,
+		/// <summary>Normal triangle mesh will be imported.</summary>
+		Normal = 1
 	}
 
 	/** @} */

@@ -9,6 +9,7 @@
 #include "Wrappers/BsScriptVirtualButton.h"
 #include "Wrappers/BsScriptInputConfiguration.h"
 #include "BsPlayInEditor.h"
+#include "BsScriptInputConfiguration.generated.h"
 
 using namespace bs;
 ScriptVirtualInput::OnButtonEventThunkDef ScriptVirtualInput::OnButtonUpThunk;
@@ -83,19 +84,14 @@ void ScriptVirtualInput::OnButtonHeld(const VirtualButton& btn, u32 deviceIdx)
 MonoObject* ScriptVirtualInput::InternalGetKeyConfig()
 {
 	SPtr<InputConfiguration> inputConfig = VirtualInput::Instance().GetConfiguration();
-
-	ScriptInputConfiguration* scriptInputConfig = ScriptInputConfiguration::GetScriptInputConfig(inputConfig);
-	if(scriptInputConfig == nullptr)
-		scriptInputConfig = ScriptInputConfiguration::CreateScriptInputConfig(inputConfig);
-
-	return scriptInputConfig->GetManagedInstance();
+	return ScriptInputConfiguration::GetOrCreateScriptObject(inputConfig);
 }
 
 void ScriptVirtualInput::InternalSetKeyConfig(MonoObject* keyConfig)
 {
-	ScriptInputConfiguration* inputConfig = ScriptInputConfiguration::ToNative(keyConfig);
+	ScriptInputConfiguration* inputConfig = ScriptInputConfiguration::GetScriptObjectWrapper(keyConfig);
 
-	VirtualInput::Instance().SetConfiguration(inputConfig->GetInternalValue());
+	VirtualInput::Instance().SetConfiguration(inputConfig->GetNativeObjectAsShared());
 }
 
 bool ScriptVirtualInput::InternalIsButtonHeld(VirtualButton* btn, u32 deviceIdx)

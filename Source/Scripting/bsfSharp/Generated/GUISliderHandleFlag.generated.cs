@@ -13,6 +13,8 @@ namespace bs
 	/// <summary>Flags that control how does a slider handle behave.</summary>
 	public enum GUISliderHandleFlag
 	{
+		/// <summary>Determines should the slider handle provide additional side-handles that allow it to be resized.</summary>
+		Resizeable = 8,
 		/// <summary>Slider handle will move horizontally. Cannot be used with the Vertical option.</summary>
 		Horizontal = 1,
 		/// <summary>Slider handle will move vertically. Cannot be used with the Horizontal option.</summary>
@@ -21,9 +23,7 @@ namespace bs
 		/// If enabled, clicking on a specific slider position will cause the handle to jump to that position. If false the 
 		/// handle will only slightly move in that direction.
 		/// </summary>
-		JumpOnClick = 4,
-		/// <summary>Determines should the slider handle provide additional side-handles that allow it to be resized.</summary>
-		Resizeable = 8
+		JumpOnClick = 4
 	}
 
 	/** @} */

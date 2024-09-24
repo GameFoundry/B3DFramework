@@ -12,54 +12,6 @@ namespace bs
 	 *  @{
 	 */
 
-	/** Interop class between C++ & CLR for InputConfiguration. */
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptInputConfiguration : public ScriptObject<ScriptInputConfiguration>
-	{
-	public:
-		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "InputConfiguration")
-
-		/** Returns the managed version of this object. */
-		MonoObject* GetManagedInstance() const;
-
-		/**	Returns the internal wrapped InputConfiguration object. */
-		SPtr<InputConfiguration> GetInternalValue() const { return mInputConfig; }
-
-		/**
-		 * Attempts to find a existing interop object for the provided input configuration. Returns null if one cannot be
-		 * found.
-		 */
-		static ScriptInputConfiguration* GetScriptInputConfig(const SPtr<InputConfiguration>& inputConfig);
-
-		/**
-		 * Creates a new interop object for the provided input configuration. Caller should first call
-		 * getScriptInputConfig() to ensure one doesn't already exist.
-		 */
-		static ScriptInputConfiguration* CreateScriptInputConfig(const SPtr<InputConfiguration>& inputConfig);
-
-	private:
-		ScriptInputConfiguration(MonoObject* instance, const SPtr<InputConfiguration>& inputConfig);
-
-		void OnManagedInstanceDeletedInternal(bool assemblyRefresh) override;
-
-		SPtr<InputConfiguration> mInputConfig;
-		u32 mGCHandle = 0;
-		static Map<u64, ScriptInputConfiguration*> ScriptInputConfigurations;
-
-		/************************************************************************/
-		/* 								CLR HOOKS						   		*/
-		/************************************************************************/
-		static void InternalCreateInstance(MonoObject* object);
-
-		static void InternalRegisterButton(ScriptInputConfiguration* thisPtr, MonoString* name, ButtonCode buttonCode, ButtonModifier modifiers, bool repeatable);
-		static void InternalUnregisterButton(ScriptInputConfiguration* thisPtr, MonoString* name);
-
-		static void InternalRegisterAxis(ScriptInputConfiguration* thisPtr, MonoString* name, InputAxis type, float deadZone, float sensitivity, bool invert);
-		static void InternalUnregisterAxis(ScriptInputConfiguration* thisPtr, MonoString* name);
-
-		static void InternalSetRepeatInterval(ScriptInputConfiguration* thisPtr, u64 milliseconds);
-		static u64 InternalGetRepeatInterval(ScriptInputConfiguration* thisPtr);
-	};
-
 	/**	Interop class between C++ & CLR for VirtualAxis. */
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptVirtualAxis : public ScriptObject<ScriptVirtualAxis>
 	{

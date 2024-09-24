@@ -15,14 +15,14 @@ namespace bs
 	{
 		/// <summary>Camera movement and rotation will result in full-screen motion blur.</summary>
 		CameraOnly = 0,
+		/// <summary>Both the camera movement and object movement will result in motion blur.</summary>
+		CameraAndObject = 2,
 		/// <summary>
 		/// Object movement and rotation will result in blurring of the moving object. Can be significantly more expensive than 
 		/// just using camera blur due to the requirement to use a velocity buffer (unless some other effect also requires it, in 
 		/// which case it will be re-used).
 		/// </summary>
-		ObjectOnly = 1,
-		/// <summary>Both the camera movement and object movement will result in motion blur.</summary>
-		CameraAndObject = 2
+		ObjectOnly = 1
 	}
 
 	/** @} */

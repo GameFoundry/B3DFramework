@@ -6,13 +6,22 @@ using System.Runtime.InteropServices;
 
 namespace bs
 {
-	/// <summary>Flags that mark which portion of a scene-object is modified.</summary>
-	public enum SceneObjectDiffFlags
+	/** @addtogroup Input
+	 *  @{
+	 */
+
+	/// <summary>Modifiers used with along with keyboard buttons.</summary>
+	public enum ButtonModifier
 	{
-		Name = 1,
-		Position = 2,
-		Active = 16,
-		Rotation = 4,
-		Scale = 8
+		None = 0,
+		CtrlAlt = 6,
+		Shift = 1,
+		Alt = 4,
+		Ctrl = 2,
+		ShiftCtrl = 3,
+		ShiftAlt = 5,
+		ShiftCtrlAlt = 7
 	}
+
+	/** @} */
 }

@@ -13,6 +13,8 @@ namespace bs
 	/// <summary>Type of scaling modes for GUI images.</summary>
 	public enum TextureScaleMode
 	{
+		/// <summary>Image will keep its original size, but will repeat in order to fill the assigned area.</summary>
+		RepeatToFit = 3,
 		/// <summary>Image will stretch non-uniformly in all dimensions in order to cover the assigned area fully.</summary>
 		StretchToFit = 0,
 		/// <summary>
@@ -24,9 +26,7 @@ namespace bs
 		/// Image will scale uniformly until both dimensions are larger or aligned with the assigned area. Remaining dimension 
 		/// might be cropped.
 		/// </summary>
-		CropToFit = 2,
-		/// <summary>Image will keep its original size, but will repeat in order to fill the assigned area.</summary>
-		RepeatToFit = 3
+		CropToFit = 2
 	}
 
 	/** @} */

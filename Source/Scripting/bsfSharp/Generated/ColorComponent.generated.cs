@@ -13,9 +13,9 @@ namespace bs
 	/// <summary>Names of individual components of a color.</summary>
 	public enum ColorComponent
 	{
+		B = 2,
 		R = 0,
 		G = 1,
-		B = 2,
 		A = 3
 	}
 

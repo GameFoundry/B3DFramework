@@ -15,10 +15,10 @@ namespace bs
 	{
 		/// <summary>Particles will be emitted from the entire volume.</summary>
 		Volume = 0,
-		/// <summary>Particles will be emitted only from box surface.</summary>
-		Surface = 1,
 		/// <summary>Particles will be emitted only from box edge.</summary>
-		Edge = 2
+		Edge = 2,
+		/// <summary>Particles will be emitted only from box surface.</summary>
+		Surface = 1
 	}
 
 	/** @} */

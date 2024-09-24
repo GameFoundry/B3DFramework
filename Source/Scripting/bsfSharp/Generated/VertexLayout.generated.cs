@@ -16,13 +16,14 @@ namespace bs
 	/// </summary>
 	public enum VertexLayout
 	{
-		Position = 1,
-		Color = 2,
-		Normal = 4,
-		UV1 = 64,
-		UV0 = 32,
-		BoneWeights = 16,
 		Tangent = 8,
+		PNU = 37,
+		Normal = 4,
+		Position = 1,
+		BoneWeights = 16,
+		Color = 2,
+		UV0 = 32,
+		UV1 = 64,
 		PC = 3,
 		PU = 33,
 		PCU = 35,
@@ -31,7 +32,6 @@ namespace bs
 		PCNT = 15,
 		PCNTU = 47,
 		PN = 5,
-		PNU = 37,
 		PNT = 13,
 		PNTU = 45
 	}

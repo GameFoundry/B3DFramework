@@ -10,10 +10,10 @@ namespace bs
 	public enum EulerAngleOrder
 	{
 		XYZ = 0,
-		XZY = 1,
-		YXZ = 2,
-		YZX = 3,
 		ZXY = 4,
+		YXZ = 2,
+		XZY = 1,
+		YZX = 3,
 		ZYX = 5
 	}
 }

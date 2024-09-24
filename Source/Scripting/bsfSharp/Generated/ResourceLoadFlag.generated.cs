@@ -17,6 +17,8 @@ namespace bs
 		None = 0,
 		/// <summary>If enabled all resources referenced by the root resource will be loaded as well.</summary>
 		LoadDependencies = 1,
+		/// <summary>Default set of flags used for resource loading.</summary>
+		Default = 3,
 		/// <summary>
 		/// If enabled the resource system will keep an internal reference to the resource so it doesn&apos;t get destroyed when 
 		/// it goes out of scope. You can call Resources::release() to release the internal reference. Each call to load will 
@@ -30,9 +32,7 @@ namespace bs
 		/// data. The original data might be required for saving the resource (via Resources::save), but will use up extra 
 		/// memory. Normally you want to keep this enabled if you plan on saving the resource to disk.
 		/// </summary>
-		KeepSourceData = 4,
-		/// <summary>Default set of flags used for resource loading.</summary>
-		Default = 3
+		KeepSourceData = 4
 	}
 
 	/** @} */

@@ -9,15 +9,15 @@ namespace bs
 	/// <summary>Determines the number of samples to take during motion blur filtering.</summary>
 	public enum MotionBlurQuality
 	{
+		/// <summary>16 samples per pixel.</summary>
+		Ultra = 4,
+		/// <summary>12 samples per pixel.</summary>
+		High = 3,
 		/// <summary>4 samples per pixel.</summary>
 		VeryLow = 0,
 		/// <summary>6 samples per pixel.</summary>
 		Low = 1,
 		/// <summary>8 samples per pixel.</summary>
-		Medium = 2,
-		/// <summary>12 samples per pixel.</summary>
-		High = 3,
-		/// <summary>16 samples per pixel.</summary>
-		Ultra = 4
+		Medium = 2
 	}
 }

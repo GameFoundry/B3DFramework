@@ -14,10 +14,10 @@ namespace bs
 	public enum GUIOptionType
 	{
 		FixedWidth = 0,
+		Position = 4,
 		FlexibleWidth = 1,
 		FixedHeight = 2,
-		FlexibleHeight = 3,
-		Position = 4
+		FlexibleHeight = 3
 	}
 
 	/** @} */

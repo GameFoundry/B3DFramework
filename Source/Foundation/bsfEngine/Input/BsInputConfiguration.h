@@ -73,7 +73,7 @@ namespace bs
 	};
 
 	/** Information used for initializing a virtual axis. */
-	struct B3D_EXPORT B3D_SCRIPT_EXPORT() VirtualAxisCreateInformation : VirtualAxisInformation
+	struct B3D_EXPORT B3D_SCRIPT_EXPORT(ExportAsStruct(true), DocumentationGroup(Input)) VirtualAxisCreateInformation : VirtualAxisInformation
 	{
 		using VirtualAxisInformation::VirtualAxisInformation;
 	};

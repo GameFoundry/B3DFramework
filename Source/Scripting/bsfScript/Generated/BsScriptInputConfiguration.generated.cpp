@@ -1,0 +1,89 @@
+//********************************* bs::framework - Copyright 2018-2022 Marko Pintera ************************************//
+//*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
+#include "BsScriptInputConfiguration.generated.h"
+#include "BsMonoMethod.h"
+#include "BsMonoClass.h"
+#include "BsMonoUtil.h"
+#include "../../../Foundation/bsfEngine/Input/BsInputConfiguration.h"
+#include "BsScriptVirtualAxisCreateInformation.generated.h"
+
+namespace bs
+{
+	ScriptInputConfiguration::ScriptInputConfiguration(const SPtr<InputConfiguration>& nativeObject)
+		:TScriptNonReflectableWrapper(nativeObject)
+	{
+		RegisterEvents();
+	}
+
+	void ScriptInputConfiguration::SetupScriptBindings()
+	{
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_InputConfiguration", (void*)&ScriptInputConfiguration::InternalInputConfiguration);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_RegisterButton", (void*)&ScriptInputConfiguration::InternalRegisterButton);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_UnregisterButton", (void*)&ScriptInputConfiguration::InternalUnregisterButton);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_RegisterAxis", (void*)&ScriptInputConfiguration::InternalRegisterAxis);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_UnregisterAxis", (void*)&ScriptInputConfiguration::InternalUnregisterAxis);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetRepeatInterval", (void*)&ScriptInputConfiguration::InternalSetRepeatInterval);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetRepeatInterval", (void*)&ScriptInputConfiguration::InternalGetRepeatInterval);
+
+	}
+
+	MonoObject* ScriptInputConfiguration::CreateScriptObject(bool construct)
+	{
+		bool dummy = false;
+		void* ctorParams[1] = { &dummy };
+
+		if(construct)
+			return sInteropMetaData.ScriptClass->CreateInstance("bool", ctorParams);
+
+		return sInteropMetaData.ScriptClass->CreateInstance(false);
+	}
+	void ScriptInputConfiguration::InternalInputConfiguration(MonoObject* scriptObject)
+	{
+		SPtr<InputConfiguration> nativeObject = B3DMakeShared<InputConfiguration>();
+		ScriptObjectWrapper::Create<ScriptInputConfiguration>(nativeObject, scriptObject);
+	}
+
+	void ScriptInputConfiguration::InternalRegisterButton(ScriptInputConfiguration* self, MonoString* name, ButtonCode buttonCode, ButtonModifier modifiers, bool repeatable)
+	{
+		String tmpname;
+		tmpname = MonoUtil::MonoToString(name);
+		static_cast<InputConfiguration*>(self->GetNativeObject())->RegisterButton(tmpname, buttonCode, modifiers, repeatable);
+	}
+
+	void ScriptInputConfiguration::InternalUnregisterButton(ScriptInputConfiguration* self, MonoString* name)
+	{
+		String tmpname;
+		tmpname = MonoUtil::MonoToString(name);
+		static_cast<InputConfiguration*>(self->GetNativeObject())->UnregisterButton(tmpname);
+	}
+
+	void ScriptInputConfiguration::InternalRegisterAxis(ScriptInputConfiguration* self, MonoString* name, VirtualAxisCreateInformation* createInformation)
+	{
+		String tmpname;
+		tmpname = MonoUtil::MonoToString(name);
+		static_cast<InputConfiguration*>(self->GetNativeObject())->RegisterAxis(tmpname, *createInformation);
+	}
+
+	void ScriptInputConfiguration::InternalUnregisterAxis(ScriptInputConfiguration* self, MonoString* name)
+	{
+		String tmpname;
+		tmpname = MonoUtil::MonoToString(name);
+		static_cast<InputConfiguration*>(self->GetNativeObject())->UnregisterAxis(tmpname);
+	}
+
+	void ScriptInputConfiguration::InternalSetRepeatInterval(ScriptInputConfiguration* self, uint64_t milliseconds)
+	{
+		static_cast<InputConfiguration*>(self->GetNativeObject())->SetRepeatInterval(milliseconds);
+	}
+
+	uint64_t ScriptInputConfiguration::InternalGetRepeatInterval(ScriptInputConfiguration* self)
+	{
+		uint64_t tmp__output;
+		tmp__output = static_cast<InputConfiguration*>(self->GetNativeObject())->GetRepeatInterval();
+
+		uint64_t __output;
+		__output = tmp__output;
+
+		return __output;
+	}
+}

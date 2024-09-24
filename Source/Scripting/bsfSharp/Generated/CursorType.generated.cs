@@ -15,14 +15,14 @@ namespace bs
 	{
 		Arrow = 0,
 		ArrowDrag = 1,
-		ArrowLeftRight = 2,
 		Wait = 3,
-		IBeam = 4,
-		SizeNESW = 5,
-		SizeNS = 6,
 		SizeNWSE = 7,
-		SizeWE = 8,
+		SizeNS = 6,
 		Deny = 9,
+		ArrowLeftRight = 2,
+		SizeNESW = 5,
+		IBeam = 4,
+		SizeWE = 8,
 		Count = 10
 	}
 
