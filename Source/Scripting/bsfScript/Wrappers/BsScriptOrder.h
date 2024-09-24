@@ -3,21 +3,22 @@
 #pragma once
 
 #include "BsScriptEnginePrerequisites.h"
-#include "BsScriptObject.h"
+#include "BsScriptTypeDefinition.h"
 
 namespace bs
 {
 	/**	Interop class between C++ & CLR for the Order attribute. */
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptOrder : public ScriptObject<ScriptOrder>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptOrder : public TScriptTypeDefinition<ScriptOrder>
 	{
 	public:
-		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "Order")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "Order")
 
-		static MonoField* GetIndexField() { return indexField; }
+		ScriptOrder();
+		void SetupScriptBindings();
+
+		static MonoField* GetIndexField() { return sIndexField; }
 
 	private:
-		ScriptOrder(MonoObject* instance);
-
-		static MonoField* indexField;
+		static MonoField* sIndexField;
 	};
 } // namespace bs
