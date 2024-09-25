@@ -95,7 +95,9 @@ namespace bs
 		VirtualButton() = default;
 
 		B3D_SCRIPT_EXPORT(Exclude(true))
-		VirtualButton(const String& name);
+		VirtualButton(u32 buttonIdentifier)
+			: ButtonIdentifier(buttonIdentifier)
+		{ }
 
 		bool operator==(const VirtualButton& rhs) const
 		{
@@ -103,12 +105,6 @@ namespace bs
 		}
 
 		u32 ButtonIdentifier = 0;
-
-	private:
-		/** Returns a static map of all virtual button identifiers and their buttons. */
-		static Map<String, u32>& GetUniqueButtonIds();
-
-		static u32 NextButtonId;
 	};
 
 	/**
@@ -129,7 +125,9 @@ namespace bs
 		VirtualAxis() = default;
 
 		B3D_SCRIPT_EXPORT(Exclude(true))
-		VirtualAxis(const String& name);
+		VirtualAxis(u32 axisIdentifier)
+			: AxisIdentifier(axisIdentifier)
+		{ }
 
 		u32 AxisIdentifier = 0;
 
@@ -137,10 +135,6 @@ namespace bs
 		{
 			return (AxisIdentifier == rhs.AxisIdentifier);
 		}
-
-	private:
-		static Map<String, u32> UniqueAxisIds;
-		static u32 NextAxisId;
 	};
 
 	/**	Contains virtual <-> physical key mappings. */

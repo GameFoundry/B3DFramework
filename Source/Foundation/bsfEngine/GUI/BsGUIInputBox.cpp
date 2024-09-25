@@ -21,10 +21,10 @@
 
 using namespace bs;
 
-VirtualButton GUIInputBox::mCopyVB = VirtualButton("Copy");
-VirtualButton GUIInputBox::mPasteVB = VirtualButton("Paste");
-VirtualButton GUIInputBox::mCutVB = VirtualButton("Cut");
-VirtualButton GUIInputBox::mSelectAllVB = VirtualButton("SelectAll");
+VirtualButton GUIInputBox::mCopyVB = VirtualInput::GetOrCreateVirtualButton("Copy");
+VirtualButton GUIInputBox::mPasteVB = VirtualInput::GetOrCreateVirtualButton("Paste");
+VirtualButton GUIInputBox::mCutVB = VirtualInput::GetOrCreateVirtualButton("Cut");
+VirtualButton GUIInputBox::mSelectAllVB = VirtualInput::GetOrCreateVirtualButton("SelectAll");
 
 const String& GUIInputBox::GetGuiTypeName()
 {

@@ -64,6 +64,12 @@ namespace bs
 		/**	Retrieves the active input configuration that determines how physical keys map to virtual buttons. */
 		SPtr<InputConfiguration> GetConfiguration() const { return mInputConfiguration; }
 
+		/** Creates a new virtual button associated with the name, or returns an existing button if it exists. */
+		static VirtualButton GetOrCreateVirtualButton(const String& name);
+
+		/** Creates a new virtual axis associated with the name, or returns an existing axis if it exists. */
+		static VirtualAxis GetOrCreateVirtualAxis(const String& name);
+
 		/**
 		 * Check is the virtual button just getting pressed. This state is only active for one frame.
 		 *
@@ -132,6 +138,9 @@ namespace bs
 		// Transient
 		Vector<VirtualButton> tempButtons;
 		Vector<VirtualButtonInformation> tempBtnDescs;
+
+		static u32 sNextVirtualButtonId;
+		static u32 sNextVirtualAxisId;
 	};
 
 	/** Provides easier access to VirtualInput. */

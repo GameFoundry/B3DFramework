@@ -9,6 +9,9 @@ using namespace std::placeholders;
 
 using namespace bs;
 
+u32 VirtualInput::sNextVirtualButtonId = 0;
+u32 VirtualInput::sNextVirtualAxisId = 0;
+
 VirtualInput::VirtualInput()
 {
 	mInputConfiguration = CreateConfiguration();
@@ -30,6 +33,30 @@ void VirtualInput::SetConfiguration(const SPtr<InputConfiguration>& input)
 	// "forget" any buttons currently held down, but shouldn't matter much in practice.
 	for(auto& deviceData : mDevices)
 		deviceData.CachedStates.clear();
+}
+
+VirtualButton VirtualInput::GetOrCreateVirtualButton(const String& name)
+{
+	static UnorderedMap<String, u32> sUniqueVirtualButtonIds;
+	if(auto found = sUniqueVirtualButtonIds.find(name); found != sUniqueVirtualButtonIds.end())
+		return VirtualButton(found->second);
+
+	const u32 newId = sNextVirtualButtonId++;
+	sUniqueVirtualButtonIds[name] = newId;
+
+	return VirtualButton(newId);
+}
+
+VirtualAxis VirtualInput::GetOrCreateVirtualAxis(const String& name)
+{
+	static UnorderedMap<String, u32> sUniqueVirtualAxisIds;
+	if(auto found = sUniqueVirtualAxisIds.find(name); found != sUniqueVirtualAxisIds.end())
+		return VirtualAxis(found->second);
+
+	const u32 newId = sNextVirtualAxisId++;
+	sUniqueVirtualAxisIds[name] = newId;
+
+	return VirtualAxis(newId);
 }
 
 bool VirtualInput::IsButtonDown(const VirtualButton& button, u32 deviceIdx) const

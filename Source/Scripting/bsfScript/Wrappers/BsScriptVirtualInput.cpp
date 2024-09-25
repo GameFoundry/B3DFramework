@@ -118,10 +118,10 @@ float ScriptVirtualInput::InternalGetAxisValue(VirtualAxis* axis, u32 deviceIdx)
 
 void ScriptVirtualInput::Internal_GetOrCreateVirtualButton(MonoString* name, VirtualButton* button)
 {
-	*button = VirtualButton(MonoUtil::MonoToString(name));
+	*button = VirtualInput::Instance().GetOrCreateVirtualButton(MonoUtil::MonoToString(name));
 }
 
 void ScriptVirtualInput::Internal_GetOrCreateVirtualAxis(MonoString* name, VirtualAxis* axis)
 {
-	*axis = VirtualAxis(MonoUtil::MonoToString(name));
+	*axis = VirtualInput::Instance().GetOrCreateVirtualAxis(MonoUtil::MonoToString(name));
 }
