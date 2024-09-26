@@ -448,7 +448,7 @@ void GUIManager::OnMouseDragEnded(const PointerEvent& event, DragCallbackInfo& d
 
 void GUIManager::OnPointerMoved(const PointerEvent& event)
 {
-	if(event.IsUsed())
+	if(event.IsUsed)
 		return;
 
 	bool buttonStates[(int)GUIMouseButton::Count];
@@ -457,7 +457,7 @@ void GUIManager::OnPointerMoved(const PointerEvent& event)
 	buttonStates[2] = event.ButtonStates[2];
 
 	if(FindElementUnderPointer(event.ScreenPos, buttonStates, event.Shift, event.Control, event.Alt))
-		event.MarkAsUsed();
+		event.IsUsed = true;
 
 	if(mDragState == DragState::HeldWithoutDrag)
 	{
@@ -472,7 +472,7 @@ void GUIManager::OnPointerMoved(const PointerEvent& event)
 
 				mMouseEvent.SetMouseDragStartData(localPos, localDragStartPos);
 				if(SendMouseEvent(activeElement.Element, mMouseEvent))
-					event.MarkAsUsed();
+					event.IsUsed = true;
 			}
 
 			mDragState = DragState::Dragging;
@@ -491,7 +491,7 @@ void GUIManager::OnPointerMoved(const PointerEvent& event)
 
 				mMouseEvent.SetMouseDragData(localPos, event.ScreenPos - mDragStartPos);
 				if(SendMouseEvent(activeElement.Element, mMouseEvent))
-					event.MarkAsUsed();
+					event.IsUsed = true;
 			}
 		}
 
@@ -516,7 +516,7 @@ void GUIManager::OnPointerMoved(const PointerEvent& event)
 					mMouseEvent.SetDragAndDropDraggedData(localPos, DragAndDropManager::Instance().GetDragTypeId(), DragAndDropManager::Instance().GetDragData());
 					if(SendMouseEvent(elementInfo.Element, mMouseEvent))
 					{
-						event.MarkAsUsed();
+						event.IsUsed = true;
 						break;
 					}
 				}
@@ -557,7 +557,7 @@ void GUIManager::OnPointerMoved(const PointerEvent& event)
 					moveProcessed = SendMouseEvent(elementInfo.Element, mMouseEvent);
 
 					if(moveProcessed)
-						event.MarkAsUsed();
+						event.IsUsed = true;
 				}
 
 				if(mDragState == DragState::NoDrag)
@@ -602,7 +602,7 @@ void GUIManager::OnPointerMoved(const PointerEvent& event)
 				mMouseEvent.SetMouseWheelScrollData(event.MouseWheelScrollAmount);
 				if(SendMouseEvent(elementInfo.Element, mMouseEvent))
 				{
-					event.MarkAsUsed();
+					event.IsUsed = true;
 					break;
 				}
 			}
@@ -612,7 +612,7 @@ void GUIManager::OnPointerMoved(const PointerEvent& event)
 
 void GUIManager::OnPointerReleased(const PointerEvent& event)
 {
-	if(event.IsUsed())
+	if(event.IsUsed)
 		return;
 
 	bool buttonStates[(int)GUIMouseButton::Count];
@@ -621,7 +621,7 @@ void GUIManager::OnPointerReleased(const PointerEvent& event)
 	buttonStates[2] = event.ButtonStates[2];
 
 	if(FindElementUnderPointer(event.ScreenPos, buttonStates, event.Shift, event.Control, event.Alt))
-		event.MarkAsUsed();
+		event.IsUsed = true;
 
 	mMouseEvent = GUIMouseEvent(buttonStates, event.Shift, event.Control, event.Alt);
 
@@ -643,7 +643,7 @@ void GUIManager::OnPointerReleased(const PointerEvent& event)
 
 				if(SendMouseEvent(elementInfo.Element, mMouseEvent))
 				{
-					event.MarkAsUsed();
+					event.IsUsed = true;
 					break;
 				}
 			}
@@ -664,7 +664,7 @@ void GUIManager::OnPointerReleased(const PointerEvent& event)
 
 				mMouseEvent.SetMouseDragEndData(localPos);
 				if(SendMouseEvent(activeElement.Element, mMouseEvent))
-					event.MarkAsUsed();
+					event.IsUsed = true;
 			}
 		}
 
@@ -686,7 +686,7 @@ void GUIManager::OnPointerReleased(const PointerEvent& event)
 
 void GUIManager::OnPointerPressed(const PointerEvent& event)
 {
-	if(event.IsUsed())
+	if(event.IsUsed)
 		return;
 
 	bool buttonStates[(int)GUIMouseButton::Count];
@@ -695,7 +695,7 @@ void GUIManager::OnPointerPressed(const PointerEvent& event)
 	buttonStates[2] = event.ButtonStates[2];
 
 	if(FindElementUnderPointer(event.ScreenPos, buttonStates, event.Shift, event.Control, event.Alt))
-		event.MarkAsUsed();
+		event.IsUsed = true;
 
 	// Determine elements that gained focus
 	mNewElementsInFocus.clear();
@@ -780,7 +780,7 @@ void GUIManager::OnPointerPressed(const PointerEvent& event)
 
 			if(processed)
 			{
-				event.MarkAsUsed();
+				event.IsUsed = true;
 				break;
 			}
 		}
@@ -803,7 +803,7 @@ void GUIManager::OnPointerPressed(const PointerEvent& event)
 					Vector2I windowPos = window->ScreenToWindowPos(event.ScreenPos);
 
 					menu->Open(windowPos, *elementInfo.Widget);
-					event.MarkAsUsed();
+					event.IsUsed = true;
 					break;
 				}
 			}
@@ -813,7 +813,7 @@ void GUIManager::OnPointerPressed(const PointerEvent& event)
 
 void GUIManager::OnPointerDoubleClick(const PointerEvent& event)
 {
-	if(event.IsUsed())
+	if(event.IsUsed)
 		return;
 
 	bool buttonStates[(int)GUIMouseButton::Count];
@@ -822,7 +822,7 @@ void GUIManager::OnPointerDoubleClick(const PointerEvent& event)
 	buttonStates[2] = event.ButtonStates[2];
 
 	if(FindElementUnderPointer(event.ScreenPos, buttonStates, event.Shift, event.Control, event.Alt))
-		event.MarkAsUsed();
+		event.IsUsed = true;
 
 	mMouseEvent = GUIMouseEvent(buttonStates, event.Shift, event.Control, event.Alt);
 
@@ -836,7 +836,7 @@ void GUIManager::OnPointerDoubleClick(const PointerEvent& event)
 		mMouseEvent.SetMouseDoubleClickData(localPos, guiButton);
 		if(SendMouseEvent(elementInfo.Element, mMouseEvent))
 		{
-			event.MarkAsUsed();
+			event.IsUsed = true;
 			break;
 		}
 	}
@@ -1135,7 +1135,7 @@ void GUIManager::OnTextInput(const TextInputEvent& event)
 	for(auto& elementInFocus : mElementsInFocus)
 	{
 		if(SendTextInputEvent(elementInFocus.Element, mTextInputEvent))
-			event.MarkAsUsed();
+			event.IsUsed = true;
 	}
 }
 

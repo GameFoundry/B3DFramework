@@ -8,84 +8,25 @@ namespace bs
      *  @{
      */
 
-    /// <summary>
-    /// Contains data about a button input event.
-    /// </summary>
-	public struct ButtonEvent
-	{
-		internal ButtonCode buttonCode;
-        internal int deviceIdx;
-        internal bool isUsed;
-
+    public partial struct ButtonEvent
+    {
         /// <summary>
         /// Creates a new button input event. For runtime use only.
         /// </summary>
         /// <param name="buttonCode">Button code this event is referring to.</param>
         /// <param name="deviceIdx">Index of the device that the event originated from.</param>
         /// <param name="isUsed">Set to true if the event was handled previously by some internal system (like GUI).</param>
-	    internal ButtonEvent(ButtonCode buttonCode, int deviceIdx, bool isUsed)
-	    {
-	        this.buttonCode = buttonCode;
-	        this.deviceIdx = deviceIdx;
-            this.isUsed = isUsed;
-	    }
+        internal ButtonEvent(ButtonCode buttonCode, int deviceIdx, bool isUsed)
+        {
+            this.ButtonCode = buttonCode;
+            this.DeviceIndex = deviceIdx;
+            this.IsUsed = isUsed;
+            this.Timestamp = 0;
+        }
+    }
 
-        /// <summary>
-        /// Button code this event is referring to.
-        /// </summary>
-        public ButtonCode Button { get { return buttonCode; } }
-
-        /// <summary>
-        /// Index of the device that the event originated from.
-        /// </summary>
-        public int DeviceIndex { get { return deviceIdx; } }
-
-        /// <summary>
-        /// Query is the pressed button a keyboard button.
-        /// </summary>
-		public bool IsKeyboard { get { return ((int)buttonCode & 0xC0000000) == 0; }}
-
-        /// <summary>
-        /// Query is the pressed button a mouse button.
-        /// </summary>
-        public bool IsMouse { get { return ((int)buttonCode & 0x80000000) != 0; } }
-
-        /// <summary>
-        /// Query is the pressed button a gamepad button.
-        /// </summary>
-        public bool IsGamepad { get { return ((int)buttonCode & 0x40000000) != 0; } }
-
-        /// <summary>
-        /// Returns true if the event was handled previously by some internal system (like GUI).
-        /// </summary>
-        public bool IsUsed { get { return isUsed; } }
-    };
-
-    /// <summary>
-    /// Pointer buttons. Generally these correspond to mouse buttons, but may be used in some form for touch input as well.
-    /// </summary>
-    public enum PointerButton // Note: Must match C++ enum PointerEventButton
-	{
-		Left, Middle, Right, Count
-	};
-
-    /// <summary>
-    /// Event that gets sent out when user interacts with the screen in some way, usually by moving the mouse cursor or
-    /// using touch input.
-    /// </summary>
-    public struct PointerEvent
+    public partial struct PointerEvent
     {
-        internal Vector2I screenPos;
-        internal Vector2I delta;
-        internal PointerButton button;
-
-        internal bool shift;
-        internal bool control;
-        internal bool alt;
-
-        internal float mouseWheelScrollAmount;
-        internal bool isUsed;
-
         /// <summary>
         /// Creates a new pointer event. For runtime use only.
         /// </summary>
@@ -99,72 +40,29 @@ namespace bs
         /// <param name="mouseWheelScrollAmount">If mouse wheel is being scrolled, what is the amount. Only relevant for
         ///                                      move events.</param>
         /// <param name="isUsed">Set to true if the event was handled previously by some internal system (like GUI).</param>
-        internal PointerEvent(Vector2I screenPos, Vector2I delta, PointerButton button,
+        internal PointerEvent(Vector2I screenPos, Vector2I delta, PointerEventButton button,
             bool shift, bool control, bool alt, float mouseWheelScrollAmount, bool isUsed)
         {
-            this.screenPos = screenPos;
-            this.delta = delta;
-            this.button = button;
+            this.ScreenPos = screenPos;
+            this.Delta = delta;
+            this.Button = button;
+            this.Type = PointerEventType.CursorMoved;
 
-            this.shift = shift;
-            this.control = control;
-            this.alt = alt;
+            this.Shift = shift;
+            this.Control = control;
+            this.Alt = alt;
 
-            this.mouseWheelScrollAmount = mouseWheelScrollAmount;
-            this.isUsed = isUsed;
+            this.MouseWheelScrollAmount = mouseWheelScrollAmount;
+            this.IsUsed = isUsed;
         }
-
-        /// <summary>
-        /// Screen position where the input event occurred.
-        /// </summary>
-        public Vector2I ScreenPos { get { return screenPos; } }
-
-        /// <summary>
-        /// Change in movement since last sent event.
-        /// </summary>
-        public Vector2I Delta { get { return delta; } }
-
-        /// <summary>
-        /// Button that triggered the pointer event. Might be irrelevant depending on event type.
-        /// (for example move events don't correspond to a button.
-        /// </summary>
-        public PointerButton Button { get { return button; } }
-
-        /// <summary>
-        /// Is shift button on the keyboard being held down.
-        /// </summary>
-        public bool Shift { get { return shift; } }
-
-        /// <summary>
-        /// Is control button on the keyboard being held down.
-        /// </summary>
-        public bool Control { get { return control; } }
-
-        /// <summary>
-        /// Is alt button on the keyboard being held down.
-        /// </summary>
-        public bool Alt { get { return alt; } }
-
-        /// <summary>
-        /// If mouse wheel is being scrolled, what is the amount. Only relevant for move events.
-        /// </summary>
-        public float ScrollAmount { get { return mouseWheelScrollAmount; } }
-
-        /// <summary>
-        /// Returns true if the event was handled previously by some internal system (like GUI).
-        /// </summary>
-        public bool IsUsed { get { return isUsed; } }
     }
 
     /// <summary>
     /// Event that gets sent out when user inputs some text. These events may be preceeded by normal button events if user
     /// is typing on a keyboard.
     /// </summary>
-    public struct TextInputEvent
+    public partial struct TextInputEvent
     {
-        internal int textChar;
-        internal bool isUsed;
-
         /// <summary>
         /// Creates a new text input event. For runtime use only.
         /// </summary>
@@ -172,19 +70,9 @@ namespace bs
         /// <param name="isUsed">Set to true if the event was handled previously by some internal system (like GUI).</param>
         internal TextInputEvent(int textChar, bool isUsed)
         {
-            this.textChar = textChar;
-            this.isUsed = isUsed;
+            this.TextChar = textChar;
+            this.IsUsed = isUsed;
         }
-
-        /// <summary>
-        /// Character the that was input.
-        /// </summary>
-        public int Char { get { return textChar; } }
-
-        /// <summary>
-        /// Returns true if the event was handled previously by some internal system (like GUI).
-        /// </summary>
-        public bool IsUsed { get { return isUsed; } }
     }
 
     /// <summary>
@@ -281,7 +169,7 @@ namespace bs
         /// </summary>
         /// <param name="code">Code of the button to query.</param>
         /// <returns>True if the button is being held.</returns>
-        public static bool IsPointerButtonHeld(PointerButton code)
+        public static bool IsPointerButtonHeld(PointerEventButton code)
         {
             return Internal_IsPointerButtonHeld(code);
         }
@@ -291,7 +179,7 @@ namespace bs
         /// </summary>
         /// <param name="code">Code of the button to query.</param>
         /// <returns>True if the button is being released.</returns>
-        public static bool IsPointerButtonUp(PointerButton code)
+        public static bool IsPointerButtonUp(PointerEventButton code)
         {
             return Internal_IsPointerButtonUp(code);
         }
@@ -301,7 +189,7 @@ namespace bs
         /// </summary>
         /// <param name="code">Code of the button to query.</param>
         /// <returns>True if the button is being pressed.</returns>
-        public static bool IsPointerButtonDown(PointerButton code)
+        public static bool IsPointerButtonDown(PointerEventButton code)
         {
             return Internal_IsPointerButtonDown(code);
         }
@@ -395,7 +283,7 @@ namespace bs
         /// <param name="scrollAmount">If mouse wheel is being scrolled, what is the amount. Only relevant for
         ///                            move events.</param>
         /// <param name="isUsed">Set to true if the event was handled previously by some internal system (like GUI).</param>
-        private static void Internal_TriggerPointerMove(Vector2I screenPos, Vector2I delta, PointerButton button, bool shift,
+        private static void Internal_TriggerPointerMove(Vector2I screenPos, Vector2I delta, PointerEventButton button, bool shift,
             bool ctrl, bool alt, float scrollAmount, bool isUsed)
         {
             PointerEvent ev = new PointerEvent(screenPos, delta, button, shift, ctrl, alt, scrollAmount, isUsed);
@@ -417,7 +305,7 @@ namespace bs
         /// <param name="scrollAmount">If mouse wheel is being scrolled, what is the amount. Only relevant for
         ///                            move events.</param>
         /// <param name="isUsed">Set to true if the event was handled previously by some internal system (like GUI).</param>
-        private static void Internal_TriggerPointerPressed(Vector2I screenPos, Vector2I delta, PointerButton button, bool shift,
+        private static void Internal_TriggerPointerPressed(Vector2I screenPos, Vector2I delta, PointerEventButton button, bool shift,
             bool ctrl, bool alt, float scrollAmount, bool isUsed)
         {
             PointerEvent ev = new PointerEvent(screenPos, delta, button, shift, ctrl, alt, scrollAmount, isUsed);
@@ -439,7 +327,7 @@ namespace bs
         /// <param name="scrollAmount">If mouse wheel is being scrolled, what is the amount. Only relevant for
         ///                            move events.</param>
         /// <param name="isUsed">Set to true if the event was handled previously by some internal system (like GUI).</param>
-        private static void Internal_TriggerPointerReleased(Vector2I screenPos, Vector2I delta, PointerButton button, bool shift,
+        private static void Internal_TriggerPointerReleased(Vector2I screenPos, Vector2I delta, PointerEventButton button, bool shift,
             bool ctrl, bool alt, float scrollAmount, bool isUsed)
         {
             PointerEvent ev = new PointerEvent(screenPos, delta, button, shift, ctrl, alt, scrollAmount, isUsed);
@@ -461,7 +349,7 @@ namespace bs
         /// <param name="scrollAmount">If mouse wheel is being scrolled, what is the amount. Only relevant for
         ///                            move events.</param>
         /// <param name="isUsed">Set to true if the event was handled previously by some internal system (like GUI).</param>
-        private static void Internal_TriggerPointerDoubleClick(Vector2I screenPos, Vector2I delta, PointerButton button, bool shift,
+        private static void Internal_TriggerPointerDoubleClick(Vector2I screenPos, Vector2I delta, PointerEventButton button, bool shift,
             bool ctrl, bool alt, float scrollAmount, bool isUsed)
         {
             PointerEvent ev = new PointerEvent(screenPos, delta, button, shift, ctrl, alt, scrollAmount, isUsed);
@@ -486,13 +374,13 @@ namespace bs
         private static extern bool Internal_IsPointerDoubleClicked();
 
         [MethodImpl(MethodImplOptions.InternalCall)]
-        private static extern bool Internal_IsPointerButtonHeld(PointerButton keyCode);
+        private static extern bool Internal_IsPointerButtonHeld(PointerEventButton keyCode);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
-        private static extern bool Internal_IsPointerButtonUp(PointerButton keyCode);
+        private static extern bool Internal_IsPointerButtonUp(PointerEventButton keyCode);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
-        private static extern bool Internal_IsPointerButtonDown(PointerButton keyCode);
+        private static extern bool Internal_IsPointerButtonDown(PointerEventButton keyCode);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern void Internal_GetPointerPosition(out Vector2I position);

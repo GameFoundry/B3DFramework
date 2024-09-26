@@ -159,6 +159,17 @@
 			<doc>Vorbis compressed audio.</doc>
 		</enumentry>
 	</enum>
+	<enum native="PointerEventType" script="PointerEventType">
+		<doc>Type of pointer event.</doc>
+		<enumentry native="CursorMoved" script="CursorMoved">
+		</enumentry>
+		<enumentry native="ButtonPressed" script="ButtonPressed">
+		</enumentry>
+		<enumentry native="ButtonReleased" script="ButtonReleased">
+		</enumentry>
+		<enumentry native="DoubleClick" script="DoubleClick">
+		</enumentry>
+	</enum>
 	<struct native="TVector2&lt;float&gt;" script="Vector2">
 		<doc>A two dimensional vector.</doc>
 		<ctor>
@@ -7152,6 +7163,91 @@ Primary purpose of this class is to avoid expensive string compare (axis names),
 			<doc>Determines how should the source texture be interpreted when generating a cubemap. Only relevant when <see cref="cubemap"/> is set to true.</doc>
 		</property>
 	</class>
+	<struct native="ButtonEvent" script="ButtonEvent">
+		<doc>Contains data about a button input event.</doc>
+		<ctor>
+		</ctor>
+		<field name="ButtonCode" type="ButtonCode">
+			<doc>Button code this event is referring to.</doc>
+		</field>
+		<field name="Timestamp" type="ulong">
+			<doc>Timestamp in ticks when the event happened.</doc>
+		</field>
+		<field name="DeviceIndex" type="int">
+			<doc>Index of the device that the event originated from.</doc>
+		</field>
+		<field name="IsUsed" type="bool">
+			<doc>This will be set to true if some previous event receiver has marked the event as used.</doc>
+		</field>
+	</struct>
+	<enum native="PointerEventButton" script="PointerEventButton">
+		<doc>Pointer buttons. Generally these correspond to mouse buttons, but may be used in some form for touch input as well.</doc>
+		<enumentry native="Middle" script="Middle">
+		</enumentry>
+		<enumentry native="Left" script="Left">
+		</enumentry>
+		<enumentry native="Right" script="Right">
+		</enumentry>
+		<enumentry native="Count" script="Count">
+		</enumentry>
+	</enum>
+	<struct native="PointerEvent" script="PointerEvent">
+		<doc>Event that gets sent out when user interacts with the screen in some way, usually by moving the mouse cursor or using touch input.</doc>
+		<ctor>
+		</ctor>
+		<field name="ScreenPos" type="Vector2I">
+			<doc>Screen position where the input event occurred.</doc>
+		</field>
+		<field name="Delta" type="Vector2I">
+			<doc>Change in movement since last sent event.</doc>
+		</field>
+		<field name="Button" type="PointerEventButton">
+			<doc>Button that triggered the pointer event. Might be irrelevant depending on event type. (for example move events don&apos;t correspond to a button.</doc>
+		</field>
+		<field name="Type" type="PointerEventType">
+			<doc>Type of the pointer event.</doc>
+		</field>
+		<field name="Shift" type="bool">
+			<doc>Is shift button on the keyboard being held down.</doc>
+		</field>
+		<field name="Control" type="bool">
+			<doc>Is control button on the keyboard being held down.</doc>
+		</field>
+		<field name="Alt" type="bool">
+			<doc>Is alt button on the keyboard being held down.</doc>
+		</field>
+		<field name="MouseWheelScrollAmount" type="float">
+			<doc>If mouse wheel is being scrolled, what is the amount. Only relevant for move events.</doc>
+		</field>
+		<field name="IsUsed" type="bool">
+			<doc>This will be set to true if some previous event receiver has marked the event as used.</doc>
+		</field>
+	</struct>
+	<struct native="FontInformation" script="FontInformation">
+		<doc>Information about a Font.</doc>
+		<ctor>
+		</ctor>
+		<field name="Name" type="string">
+			<doc>Optional name of the font. Used primarily for easier debugging.</doc>
+		</field>
+		<field name="DPI" type="int">
+			<doc>Determines dots per inch scale that will be used when rendering the characters.</doc>
+		</field>
+		<field name="RenderMode" type="FontRenderMode">
+			<doc>Determines the render mode used for rendering the characters into a bitmap.</doc>
+		</field>
+	</struct>
+	<struct native="TextInputEvent" script="TextInputEvent">
+		<doc>Event that gets sent out when user inputs some text. These events may be preceeded by normal button events if user is typing on a keyboard.</doc>
+		<ctor>
+		</ctor>
+		<field name="TextChar" type="int">
+			<doc>Character the that was input.</doc>
+		</field>
+		<field name="IsUsed" type="bool">
+			<doc>This will be set to true if some previous event receiver has marked the event as used.</doc>
+		</field>
+	</struct>
 	<enum native="InputAxis" script="InputAxis">
 		<doc>Common input axis types.</doc>
 		<enumentry native="LeftTrigger" script="LeftTrigger">
@@ -8594,20 +8690,6 @@ Alternatively you can also skip manually calling ReleaseInternalReference() and 
 			<doc>Textures in which the character&apos;s pixels are stored.</doc>
 		</property>
 	</class>
-	<struct native="FontInformation" script="FontInformation">
-		<doc>Information about a Font.</doc>
-		<ctor>
-		</ctor>
-		<field name="Name" type="string">
-			<doc>Optional name of the font. Used primarily for easier debugging.</doc>
-		</field>
-		<field name="DPI" type="int">
-			<doc>Determines dots per inch scale that will be used when rendering the characters.</doc>
-		</field>
-		<field name="RenderMode" type="FontRenderMode">
-			<doc>Determines the render mode used for rendering the characters into a bitmap.</doc>
-		</field>
-	</struct>
 	<class native="Font" script="Font">
 		<doc>Font resource containing data about textual characters and how to render text. Contains one or multiple font bitmaps, each for a specific size.</doc>
 		<method native="GetBitmap" script="GetBitmap" static="false">

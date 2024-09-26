@@ -248,11 +248,11 @@ void VirtualInput::ButtonDown(const ButtonEvent& event)
 
 	if(mInputConfiguration->GetButtonsInternal(event.ButtonCode, mActiveModifiers, tempButtons, tempBtnDescs))
 	{
-		while(event.DeviceIdx >= (u32)mDevices.size())
+		while(event.DeviceIndex >= (u32)mDevices.size())
 			mDevices.push_back(DeviceData());
 
-		Map<u32, ButtonData>& cachedStates = mDevices[event.DeviceIdx].CachedStates;
-		TArray<u32>& heldButtons = mDevices[event.DeviceIdx].HeldButtons;
+		Map<u32, ButtonData>& cachedStates = mDevices[event.DeviceIndex].CachedStates;
+		TArray<u32>& heldButtons = mDevices[event.DeviceIndex].HeldButtons;
 
 		u32 numButtons = (u32)tempButtons.size();
 		for(u32 i = 0; i < numButtons; i++)
@@ -271,7 +271,7 @@ void VirtualInput::ButtonDown(const ButtonEvent& event)
 			VirtualButtonEvent virtualEvent;
 			virtualEvent.Button = btn;
 			virtualEvent.State = ButtonState::On;
-			virtualEvent.DeviceIdx = event.DeviceIdx;
+			virtualEvent.DeviceIdx = event.DeviceIndex;
 
 			mEvents.push(virtualEvent);
 			heldButtons.Add(btn.ButtonIdentifier);
@@ -293,11 +293,11 @@ void VirtualInput::ButtonUp(const ButtonEvent& event)
 
 	if(mInputConfiguration->GetButtonsInternal(event.ButtonCode, mActiveModifiers, tempButtons, tempBtnDescs))
 	{
-		while(event.DeviceIdx >= (u32)mDevices.size())
+		while(event.DeviceIndex >= (u32)mDevices.size())
 			mDevices.push_back(DeviceData());
 
-		Map<u32, ButtonData>& cachedStates = mDevices[event.DeviceIdx].CachedStates;
-		TArray<u32>& heldButtons = mDevices[event.DeviceIdx].HeldButtons;
+		Map<u32, ButtonData>& cachedStates = mDevices[event.DeviceIndex].CachedStates;
+		TArray<u32>& heldButtons = mDevices[event.DeviceIndex].HeldButtons;
 
 		u32 numButtons = (u32)tempButtons.size();
 		for(u32 i = 0; i < numButtons; i++)
@@ -316,7 +316,7 @@ void VirtualInput::ButtonUp(const ButtonEvent& event)
 			VirtualButtonEvent virtualEvent;
 			virtualEvent.Button = btn;
 			virtualEvent.State = ButtonState::Off;
-			virtualEvent.DeviceIdx = event.DeviceIdx;
+			virtualEvent.DeviceIdx = event.DeviceIndex;
 
 			mEvents.push(virtualEvent);
 

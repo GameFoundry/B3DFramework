@@ -250,16 +250,12 @@ namespace bs
 	};
 
 	/**	Contains data about a button input event. */
-	struct ButtonEvent
+	struct B3D_SCRIPT_EXPORT(ExportAsStruct(true), DocumentationGroup(Input)) ButtonEvent
 	{
-	public:
-		ButtonEvent()
-			: mIsUsed(false)
-		{}
-
 		ButtonCode ButtonCode; /**< Button code this event is referring to. */
 		u64 Timestamp; /**< Timestamp in ticks when the event happened. */
-		u32 DeviceIdx; /**< Index of the device that the event originated from. */
+		u32 DeviceIndex; /**< Index of the device that the event originated from. */
+		mutable bool IsUsed = false; /**< This will be set to true if some previous event receiver has marked the event as used. */
 
 		/**	Query is the pressed button a keyboard button. */
 		bool IsKeyboard() const { return ((u32)ButtonCode & 0xC0000000) == 0; }
@@ -269,24 +265,12 @@ namespace bs
 
 		/** Query is the pressed button a gamepad button. */
 		bool IsGamepad() const { return ((u32)ButtonCode & 0x40000000) != 0; }
-
-		/**
-		 * Check if the event has been marked as used. Internally this means nothing but caller might choose to ignore an
-		 * used event.
-		 */
-		bool IsUsed() const { return mIsUsed; }
-
-		/** Mark the event as used. Internally this means nothing but caller might choose to ignore an used event. */
-		void MarkAsUsed() const { mIsUsed = true; }
-
-	private:
-		mutable bool mIsUsed;
 	};
 
 	/**
 	 * Pointer buttons. Generally these correspond to mouse buttons, but may be used in some form for touch input as well.
 	 */
-	enum class PointerEventButton
+	enum class B3D_SCRIPT_EXPORT(DocumentationGroup(Input)) PointerEventButton
 	{
 		Left,
 		Middle,
@@ -295,7 +279,7 @@ namespace bs
 	};
 
 	/**	Type of pointer event.*/
-	enum class PointerEventType
+	enum class B3D_SCRIPT_EXPORT(DocumentationGroup(Input)) PointerEventType
 	{
 		CursorMoved,
 		ButtonPressed,
@@ -307,46 +291,28 @@ namespace bs
 	 * Event that gets sent out when user interacts with the screen in some way, usually by moving the mouse cursor or
 	 * using touch input.
 	 */
-	struct PointerEvent
+	struct B3D_SCRIPT_EXPORT(ExportAsStruct(true), DocumentationGroup(Input)) PointerEvent
 	{
-	public:
-		PointerEvent()
-			: Button(PointerEventButton::Left), Type(PointerEventType::CursorMoved), Shift(false), Control(false), Alt(false), MouseWheelScrollAmount(0.0f), mIsUsed(false)
-		{
-			ButtonStates[0] = false;
-			ButtonStates[1] = false;
-			ButtonStates[2] = false;
-		}
-
 		Vector2I ScreenPos; /**< Screen position where the input event occurred. */
 		Vector2I Delta; /**< Change in movement since last sent event. */
-		/** States of the pointer buttons (for example mouse buttons). */
-		bool ButtonStates[(u32)PointerEventButton::Count];
+
+		B3D_SCRIPT_EXPORT(Exclude(true))
+		bool ButtonStates[(u32)PointerEventButton::Count] = { false, false, false }; /**< States of the pointer buttons (for example mouse buttons). */
+
 		/**
 		 * Button that triggered the pointer event. Might be irrelevant depending on event type. (for example move events
 		 * don't correspond to a button.
 		 */
-		PointerEventButton Button;
-		PointerEventType Type; /**< Type of the pointer event. */
+		PointerEventButton Button = PointerEventButton::Left;
+		PointerEventType Type = PointerEventType::CursorMoved; /**< Type of the pointer event. */
 
-		bool Shift; /**< Is shift button on the keyboard being held down. */
-		bool Control; /**< Is control button on the keyboard being held down. */
-		bool Alt; /**< Is alt button on the keyboard being held down. */
+		bool Shift = false; /**< Is shift button on the keyboard being held down. */
+		bool Control = false; /**< Is control button on the keyboard being held down. */
+		bool Alt = false; /**< Is alt button on the keyboard being held down. */
 
-		/** If mouse wheel is being scrolled, what is the amount. Only relevant for move events. */
-		float MouseWheelScrollAmount;
+		float MouseWheelScrollAmount = 0.0f; /**< If mouse wheel is being scrolled, what is the amount. Only relevant for move events. */
 
-		/**
-		 * Check if the event has been marked as used. Internally this means nothing but caller might choose to ignore an
-		 * used event.
-		 */
-		bool IsUsed() const { return mIsUsed; }
-
-		/** Mark the event as used. Internally this means nothing but caller might choose to ignore an used event. */
-		void MarkAsUsed() const { mIsUsed = true; }
-
-	private:
-		mutable bool mIsUsed;
+		mutable bool IsUsed = false; /**< This will be set to true if some previous event receiver has marked the event as used. */
 	};
 
 	/**	Types of special input commands. */
@@ -372,26 +338,10 @@ namespace bs
 	 * Event that gets sent out when user inputs some text. These events may be preceeded by normal button events if user
 	 * is typing on a keyboard.
 	 */
-	struct TextInputEvent
+	struct B3D_SCRIPT_EXPORT(ExportAsStruct(true), DocumentationGroup(Input)) TextInputEvent
 	{
-	public:
-		TextInputEvent()
-			: mIsUsed(false)
-		{}
-
 		u32 TextChar; /**< Character the that was input. */
-
-		/**
-		 * Check if the event has been marked as used. Internally this means nothing but caller might choose to ignore an
-		 * used event.
-		 */
-		bool IsUsed() const { return mIsUsed; }
-
-		/** Mark the event as used. Internally this means nothing but caller might choose to ignore an used event. */
-		void MarkAsUsed() const { mIsUsed = true; }
-
-	private:
-		mutable bool mIsUsed;
+		mutable bool IsUsed = false; /**< This will be set to true if some previous event receiver has marked the event as used. */
 	};
 
 	/**	Types of input devices. */

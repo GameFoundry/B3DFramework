@@ -202,7 +202,7 @@ void Input::TriggerCallbacksInternal()
 			{
 				const ButtonEvent& eventData = mButtonDownEvents[1][event.Idx];
 
-				mDevices[eventData.DeviceIdx].KeyStates[(u32)eventData.ButtonCode & 0x0000FFFF] = ButtonState::ToggledOn;
+				mDevices[eventData.DeviceIndex].KeyStates[(u32)eventData.ButtonCode & 0x0000FFFF] = ButtonState::ToggledOn;
 				OnButtonDown(mButtonDownEvents[1][event.Idx]);
 			}
 			break;
@@ -210,13 +210,13 @@ void Input::TriggerCallbacksInternal()
 			{
 				const ButtonEvent& eventData = mButtonUpEvents[1][event.Idx];
 
-				while(eventData.DeviceIdx >= (u32)mDevices.size())
+				while(eventData.DeviceIndex >= (u32)mDevices.size())
 					mDevices.push_back(DeviceData());
 
-				if(mDevices[eventData.DeviceIdx].KeyStates[(u32)eventData.ButtonCode & 0x0000FFFF] == ButtonState::ToggledOn)
-					mDevices[eventData.DeviceIdx].KeyStates[(u32)eventData.ButtonCode & 0x0000FFFF] = ButtonState::ToggledOnOff;
+				if(mDevices[eventData.DeviceIndex].KeyStates[(u32)eventData.ButtonCode & 0x0000FFFF] == ButtonState::ToggledOn)
+					mDevices[eventData.DeviceIndex].KeyStates[(u32)eventData.ButtonCode & 0x0000FFFF] = ButtonState::ToggledOnOff;
 				else
-					mDevices[eventData.DeviceIdx].KeyStates[(u32)eventData.ButtonCode & 0x0000FFFF] = ButtonState::ToggledOff;
+					mDevices[eventData.DeviceIndex].KeyStates[(u32)eventData.ButtonCode & 0x0000FFFF] = ButtonState::ToggledOff;
 
 				OnButtonUp(mButtonUpEvents[1][event.Idx]);
 			}
@@ -346,7 +346,7 @@ void Input::ButtonDown(u32 deviceIdx, ButtonCode code, u64 timestamp)
 	ButtonEvent btnEvent;
 	btnEvent.ButtonCode = code;
 	btnEvent.Timestamp = timestamp;
-	btnEvent.DeviceIdx = deviceIdx;
+	btnEvent.DeviceIndex = deviceIdx;
 
 	mQueuedEvents[0].push_back(QueuedEvent(EventType::ButtonDown, (u32)mButtonDownEvents[0].size()));
 	mButtonDownEvents[0].push_back(btnEvent);
@@ -359,7 +359,7 @@ void Input::ButtonUp(u32 deviceIdx, ButtonCode code, u64 timestamp)
 	ButtonEvent btnEvent;
 	btnEvent.ButtonCode = code;
 	btnEvent.Timestamp = timestamp;
-	btnEvent.DeviceIdx = deviceIdx;
+	btnEvent.DeviceIndex = deviceIdx;
 
 	mQueuedEvents[0].push_back(QueuedEvent(EventType::ButtonUp, (u32)mButtonUpEvents[0].size()));
 	mButtonUpEvents[0].push_back(btnEvent);
