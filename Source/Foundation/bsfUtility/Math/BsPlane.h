@@ -11,47 +11,67 @@ namespace bs
 	 *  @{
 	 */
 
-	/** A plane represented by a normal and a distance. */
-	class B3D_UTILITY_EXPORT Plane
+	/**
+	 * The "positive side" of the plane is the half space to which the plane normal points. The "negative side" is the
+	 * other half space. The flag "no side" indicates the plane itself.
+	 */
+	enum class B3D_SCRIPT_EXPORT(DocumentationGroup(Math)) PlaneSide
 	{
-	public:
-		/**
-		 * The "positive side" of the plane is the half space to which the plane normal points. The "negative side" is the
-		 * other half space. The flag "no side" indicates the plane itself.
-		 */
-		enum Side
-		{
-			NO_SIDE,
-			POSITIVE_SIDE,
-			NEGATIVE_SIDE,
-			BOTH_SIDE
-		};
+		None,
+		Positive,
+		Negative,
+		Both
+	};
 
-	public:
-		Plane() = default;
-		Plane(const Plane& copy) = default;
-		Plane(const Vector3& normal, float d);
-		Plane(float a, float b, float c, float d);
-		Plane(const Vector3& normal, const Vector3& point);
-		Plane(const Vector3& point0, const Vector3& point1, const Vector3& point2);
+	/** A plane represented by a normal and a distance. */
+	template<typename T>
+	struct TPlane
+	{
+		B3D_SCRIPT_EXPORT(Exclude(true))
+		TPlane()
+			: Normal(BsZero), D((T)0.0)
+		{ }
 
-		Plane& operator=(const Plane& rhs) = default;
+		B3D_SCRIPT_EXPORT(Exclude(true))
+		TPlane(const TPlane<T>& copy) = default;
+
+		B3D_SCRIPT_EXPORT(Exclude(true))
+		TPlane(const TVector3<T>& normal, T d)
+			: Normal(normal), D(d)
+		{ }
+
+		B3D_SCRIPT_EXPORT(Exclude(true))
+		TPlane(T a, T b, T c, T d)
+			:Normal(a, b, c), D(d)
+		{ }
+
+		B3D_SCRIPT_EXPORT(Exclude(true))
+		TPlane(const TVector3<T>& normal, const TVector3<T>& point)
+			:Normal(normal), D(normal.Dot(point))
+		{ }
+
+		B3D_SCRIPT_EXPORT(Exclude(true))
+		TPlane(const TVector3<T>& point0, const TVector3<T>& point1, const TVector3<T>& point2);
+
+		TPlane& operator=(const TPlane& rhs) = default;
 
 		/**
 		 * Returns the side of the plane where the point is located on.
 		 *
 		 * @note	NO_SIDE signifies the point is on the plane.
 		 */
-		Side GetSide(const Vector3& point, float epsilon = 0.0f) const;
+		PlaneSide GetSide(const TVector3<T>& point, T epsilon = (T)0.0) const;
 
 		/**
 		 * Returns the side where the alignedBox is. The flag BOTH_SIDE indicates an intersecting box.
 		 * One corner ON the plane is sufficient to consider the box and the plane intersecting.
 		 */
-		Side GetSide(const AABox& box) const;
+		template<typename Condition = T, std::enable_if_t<std::is_same_v<Condition, float>, int> = 0> // TODO - Temporarily enabled for float only, until we get TMatrix3<T>
+		PlaneSide GetSide(const AABox& box) const;
 
 		/** Returns the side where the sphere is. The flag BOTH_SIDE indicates an intersecting sphere. */
-		Side GetSide(const Sphere& sphere) const;
+		template<typename Condition = T, std::enable_if_t<std::is_same_v<Condition, float>, int> = 0> // TODO - Temporarily enabled for float only, until we get TMatrix3<T>
+		PlaneSide GetSide(const Sphere& sphere) const;
 
 		/**
 		 * Returns a distance from point to plane.
@@ -60,37 +80,43 @@ namespace bs
 		 * 			positive side of the plane, negative if the point is on the negative
 		 * 			side, and zero if the point is on the plane.
 		 */
-		float GetDistance(const Vector3& point) const;
+		T GetDistance(const TVector3<T>& point) const;
 
 		/** Project a vector onto the plane. */
-		Vector3 ProjectVector(const Vector3& v) const;
+		template<typename Condition = T, std::enable_if_t<std::is_same_v<Condition, float>, int> = 0> // TODO - Temporarily enabled for float only, until we get TMatrix3<T>
+		TVector3<T> ProjectVector(const TVector3<T>& v) const;
 
 		/** Normalizes the plane's normal and the length scale of d. */
-		float Normalize();
+		T Normalize();
 
 		/** Box/plane intersection. */
+		template<typename Condition = T, std::enable_if_t<std::is_same_v<Condition, float>, int> = 0> // TODO - Temporarily enabled for float only, until we get TMatrix3<T>
 		bool Intersects(const AABox& box) const;
 
 		/** Sphere/plane intersection. */
+		template<typename Condition = T, std::enable_if_t<std::is_same_v<Condition, float>, int> = 0> // TODO - Temporarily enabled for float only, until we get TMatrix3<T>
 		bool Intersects(const Sphere& sphere) const;
 
 		/** Ray/plane intersection, returns boolean result and distance to intersection point. */
-		std::pair<bool, float> Intersects(const Ray& ray) const;
+		template<typename Condition = T, std::enable_if_t<std::is_same_v<Condition, float>, int> = 0> // TODO - Temporarily enabled for float only, until we get TMatrix3<T>
+		std::pair<bool, T> Intersects(const Ray& ray) const;
 
-		bool operator==(const Plane& rhs) const
+		bool operator==(const TPlane& rhs) const
 		{
 			return (rhs.D == D && rhs.Normal == Normal);
 		}
 
-		bool operator!=(const Plane& rhs) const
+		bool operator!=(const TPlane& rhs) const
 		{
 			return (rhs.D != D || rhs.Normal != Normal);
 		}
 
-	public:
-		Vector3 Normal{ BsZero };
-		float D = 0.0f;
+		TVector3<T> Normal;
+		T D;
 	};
+
+	extern template struct B3D_SCRIPT_EXPORT(DocumentationGroup(Math), ExportAsStruct(true), ExportName(Plane)) TPlane<float>;
+	extern template struct B3D_SCRIPT_EXPORT(DocumentationGroup(Math), ExportAsStruct(true), ExportName(PlaneD)) TPlane<double>;
 
 	/** @} */
 } // namespace bs

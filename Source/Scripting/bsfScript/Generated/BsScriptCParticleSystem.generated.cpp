@@ -11,17 +11,17 @@
 #include "../../../Foundation/bsfCore/Particles/BsParticleEvolver.h"
 #include "BsScriptParticleGravity.generated.h"
 #include "BsScriptParticleEmitter.generated.h"
-#include "../../../Foundation/bsfCore/Particles/BsParticleEvolver.h"
-#include "BsScriptParticleTextureAnimation.generated.h"
 #include "BsScriptParticleEvolver.generated.h"
+#include "../../../Foundation/bsfCore/Particles/BsParticleEvolver.h"
+#include "BsScriptParticleColor.generated.h"
 #include "../../../Foundation/bsfCore/Particles/BsParticleEvolver.h"
 #include "BsScriptParticleForce.generated.h"
 #include "../../../Foundation/bsfCore/Particles/BsParticleEvolver.h"
 #include "BsScriptParticleVelocity.generated.h"
 #include "../../../Foundation/bsfCore/Particles/BsParticleEvolver.h"
-#include "BsScriptParticleOrbit.generated.h"
+#include "BsScriptParticleTextureAnimation.generated.h"
 #include "../../../Foundation/bsfCore/Particles/BsParticleEvolver.h"
-#include "BsScriptParticleColor.generated.h"
+#include "BsScriptParticleOrbit.generated.h"
 #include "../../../Foundation/bsfCore/Particles/BsParticleEvolver.h"
 #include "BsScriptParticleSize.generated.h"
 #include "../../../Foundation/bsfCore/Particles/BsParticleEvolver.h"
@@ -181,7 +181,9 @@ namespace bs
 			MonoObject* arrayElement__output;
 			if(arrayElementPointer__output)
 			{
-				if(B3DRTTIIsOfType<ParticleGravity>(arrayElementPointer__output))
+				if(B3DRTTIIsOfType<ParticleColor>(arrayElementPointer__output))
+					arrayElement__output = ScriptParticleColor::GetOrCreateScriptObject(std::static_pointer_cast<ParticleColor>(arrayElementPointer__output));
+				else if(B3DRTTIIsOfType<ParticleGravity>(arrayElementPointer__output))
 					arrayElement__output = ScriptParticleGravity::GetOrCreateScriptObject(std::static_pointer_cast<ParticleGravity>(arrayElementPointer__output));
 				else if(B3DRTTIIsOfType<ParticleForce>(arrayElementPointer__output))
 					arrayElement__output = ScriptParticleForce::GetOrCreateScriptObject(std::static_pointer_cast<ParticleForce>(arrayElementPointer__output));
@@ -191,8 +193,6 @@ namespace bs
 					arrayElement__output = ScriptParticleTextureAnimation::GetOrCreateScriptObject(std::static_pointer_cast<ParticleTextureAnimation>(arrayElementPointer__output));
 				else if(B3DRTTIIsOfType<ParticleOrbit>(arrayElementPointer__output))
 					arrayElement__output = ScriptParticleOrbit::GetOrCreateScriptObject(std::static_pointer_cast<ParticleOrbit>(arrayElementPointer__output));
-				else if(B3DRTTIIsOfType<ParticleColor>(arrayElementPointer__output))
-					arrayElement__output = ScriptParticleColor::GetOrCreateScriptObject(std::static_pointer_cast<ParticleColor>(arrayElementPointer__output));
 				else if(B3DRTTIIsOfType<ParticleSize>(arrayElementPointer__output))
 					arrayElement__output = ScriptParticleSize::GetOrCreateScriptObject(std::static_pointer_cast<ParticleSize>(arrayElementPointer__output));
 				else if(B3DRTTIIsOfType<ParticleRotation>(arrayElementPointer__output))

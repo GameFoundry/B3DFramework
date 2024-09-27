@@ -141,6 +141,11 @@ namespace bs
 	using DegreeF = TDegree<float>;
 	using DegreeD = TDegree<double>;
 
+	template<typename T> struct TPlane;
+	using Plane = TPlane<float>;
+	using PlaneF = TPlane<float>;
+	using PlaneD = TPlane<double>;
+
 	/** @} */
 
 	/** @addtogroup Platform-Utility
@@ -162,7 +167,6 @@ namespace bs
 	class Math;
 	class Matrix3;
 	class Matrix4;
-	class Plane;
 	class Quaternion;
 	class Ray;
 	class Capsule;

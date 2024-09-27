@@ -4,7 +4,7 @@
 #include "BsMonoMethod.h"
 #include "BsMonoClass.h"
 #include "BsMonoUtil.h"
-#include "Wrappers/BsScriptPlane.h"
+#include "BsScriptTPlane.generated.h"
 #include "Wrappers/BsScriptSceneObject.h"
 #include "BsScriptPARTICLE_COLLISIONS_DESC.generated.h"
 #include "BsScriptParticleCollisions.generated.h"
@@ -42,14 +42,14 @@ namespace bs
 	}
 	void ScriptParticleCollisions::InternalSetPlanes(ScriptParticleCollisions* self, MonoArray* planes)
 	{
-		Vector<Plane> nativeArrayplanes;
+		Vector<TPlane<float>> nativeArrayplanes;
 		if(planes != nullptr)
 		{
 			ScriptArray scriptArrayplanes(planes);
 			nativeArrayplanes.resize(scriptArrayplanes.Size());
 			for(int elementIndex = 0; elementIndex < (int)scriptArrayplanes.Size(); elementIndex++)
 			{
-				nativeArrayplanes[elementIndex] = scriptArrayplanes.Get<Plane>(elementIndex);
+				nativeArrayplanes[elementIndex] = ScriptPlane::FromInterop(scriptArrayplanes.Get<__TPlane_float_Interop>(elementIndex));
 			}
 		}
 		static_cast<ParticleCollisions*>(self->GetNativeObject())->SetPlanes(nativeArrayplanes);
@@ -57,7 +57,7 @@ namespace bs
 
 	MonoArray* ScriptParticleCollisions::InternalGetPlanes(ScriptParticleCollisions* self)
 	{
-		Vector<Plane> nativeArray__output;
+		Vector<TPlane<float>> nativeArray__output;
 		nativeArray__output = static_cast<ParticleCollisions*>(self->GetNativeObject())->GetPlanes();
 
 		MonoArray* __output;
@@ -65,7 +65,7 @@ namespace bs
 		ScriptArray scriptArray__output = ScriptArray::Create<ScriptPlane>(elementCount__output);
 		for(int elementIndex = 0; elementIndex < elementCount__output; elementIndex++)
 		{
-			scriptArray__output.Set(elementIndex, nativeArray__output[elementIndex]);
+			scriptArray__output.Set(elementIndex, ScriptPlane::ToInterop(nativeArray__output[elementIndex]));
 		}
 		__output = scriptArray__output.GetInternal();
 

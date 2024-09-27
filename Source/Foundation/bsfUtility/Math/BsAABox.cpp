@@ -238,7 +238,7 @@ bool AABox::Intersects(const Sphere& sphere) const
 
 bool AABox::Intersects(const Plane& p) const
 {
-	return (p.GetSide(*this) == Plane::BOTH_SIDE);
+	return (p.GetSide(*this) == PlaneSide::Both);
 }
 
 std::pair<bool, float> AABox::Intersects(const Ray& ray) const

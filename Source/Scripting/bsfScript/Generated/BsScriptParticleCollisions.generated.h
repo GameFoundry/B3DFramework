@@ -6,10 +6,11 @@
 #include "BsScriptReflectableWrapper.h"
 #include "BsScriptParticleEvolver.generated.h"
 #include "../../../Foundation/bsfCore/Particles/BsParticleEvolver.h"
-#include "Math/BsPlane.h"
+#include "../../../Foundation/bsfUtility/Math/BsPlane.h"
 #include "../../../Foundation/bsfCore/Particles/BsParticleEvolver.h"
 
 namespace bs { class ParticleCollisions; }
+namespace bs { struct __TPlane_float_Interop; }
 namespace bs
 {
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleCollisions : public TScriptReflectableWrapper<ParticleCollisions, ScriptParticleCollisions, ScriptParticleEvolverWrapperBase>

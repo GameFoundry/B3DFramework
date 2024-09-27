@@ -9,80 +9,81 @@
 
 using namespace bs;
 
-Plane::Plane(const Vector3& normal, float d)
-	: Normal(normal), D(d)
-{}
-
-Plane::Plane(float a, float b, float c, float _d)
-	: Normal(a, b, c), D(_d)
-{}
-
-Plane::Plane(const Vector3& normal, const Vector3& point)
-	: Normal(normal), D(normal.Dot(point))
-{}
-
-Plane::Plane(const Vector3& point0, const Vector3& point1, const Vector3& point2)
+template<typename T>
+TPlane<T>::TPlane(const TVector3<T>& point0, const TVector3<T>& point1, const TVector3<T>& point2)
 {
-	Vector3 kEdge1 = point1 - point0;
-	Vector3 kEdge2 = point2 - point0;
+	TVector3<T> kEdge1 = point1 - point0;
+	TVector3<T> kEdge2 = point2 - point0;
 	Normal = kEdge1.Cross(kEdge2);
 	Normal.Normalize();
 	D = Normal.Dot(point0);
 }
 
-float Plane::GetDistance(const Vector3& point) const
+template<typename T>
+T TPlane<T>::GetDistance(const TVector3<T>& point) const
 {
 	return Normal.Dot(point) - D;
 }
 
-Plane::Side Plane::GetSide(const Vector3& point, float epsilon) const
+template<typename T>
+PlaneSide TPlane<T>::GetSide(const TVector3<T>& point, T epsilon) const
 {
-	float dist = GetDistance(point);
+	T dist = GetDistance(point);
 
 	if(dist > epsilon)
-		return Plane::POSITIVE_SIDE;
+		return PlaneSide::Positive;
 
 	if(dist < -epsilon)
-		return Plane::NEGATIVE_SIDE;
+		return PlaneSide::Negative;
 
-	return Plane::NO_SIDE;
+	return PlaneSide::None;
 }
 
-Plane::Side Plane::GetSide(const AABox& box) const
+template<>
+template<>
+PlaneSide TPlane<float>::GetSide(const AABox& box) const
 {
+	using T = float;
+
 	// Calculate the distance between box centre and the plane
-	float dist = GetDistance(box.GetCenter());
+	T dist = GetDistance(box.GetCenter());
 
 	// Calculate the maximize allows absolute distance for
 	// the distance between box centre and plane
-	Vector3 halfSize = box.GetHalfSize();
-	float maxAbsDist = abs(Normal.X * halfSize.X) + abs(Normal.Y * halfSize.Y) + abs(Normal.Z * halfSize.Z);
+	TVector3<T> halfSize = box.GetHalfSize();
+	T maxAbsDist = abs(Normal.X * halfSize.X) + abs(Normal.Y * halfSize.Y) + abs(Normal.Z * halfSize.Z);
 
 	if(dist < -maxAbsDist)
-		return Plane::NEGATIVE_SIDE;
+		return PlaneSide::Negative;
 
 	if(dist > +maxAbsDist)
-		return Plane::POSITIVE_SIDE;
+		return PlaneSide::Positive;
 
-	return Plane::BOTH_SIDE;
+	return PlaneSide::Both;
 }
 
-Plane::Side Plane::GetSide(const Sphere& sphere) const
+template<>
+template<>
+PlaneSide TPlane<float>::GetSide(const Sphere& sphere) const
 {
+	using T = float;
+
 	// Calculate the distance between box centre and the plane
-	float dist = GetDistance(sphere.GetCenter());
-	float radius = sphere.GetRadius();
+	T dist = GetDistance(sphere.GetCenter());
+	T radius = sphere.GetRadius();
 
 	if(dist < -radius)
-		return Plane::NEGATIVE_SIDE;
+		return PlaneSide::Negative;
 
 	if(dist > +radius)
-		return Plane::POSITIVE_SIDE;
+		return PlaneSide::Positive;
 
-	return Plane::BOTH_SIDE;
+	return PlaneSide::Both;
 }
 
-Vector3 Plane::ProjectVector(const Vector3& point) const
+template<>
+template<>
+TVector3<float> TPlane<float>::ProjectVector<float, 0>(const TVector3<float>& point) const
 {
 	// We know plane normal is unit length, so use simple method
 	Matrix3 xform;
@@ -98,14 +99,15 @@ Vector3 Plane::ProjectVector(const Vector3& point) const
 	return xform.Multiply(point);
 }
 
-float Plane::Normalize()
+template<typename T>
+T TPlane<T>::Normalize()
 {
-	float fLength = Normal.Length();
+	T fLength = Normal.Length();
 
 	// Will also work for zero-sized vectors, but will change nothing
-	if(fLength > 1e-08f)
+	if(fLength > (T)1e-08)
 	{
-		float fInvLength = 1.0f / fLength;
+		T fInvLength = (T)1.0 / fLength;
 		Normal *= fInvLength;
 		D *= fInvLength;
 	}
@@ -113,28 +115,39 @@ float Plane::Normalize()
 	return fLength;
 }
 
-bool Plane::Intersects(const AABox& box) const
+template<>
+template<>
+bool TPlane<float>::Intersects(const AABox& box) const
 {
 	return box.Intersects(*this);
 }
 
-bool Plane::Intersects(const Sphere& sphere) const
+template<>
+template<>
+bool TPlane<float>::Intersects(const Sphere& sphere) const
 {
 	return sphere.Intersects(*this);
 }
 
-std::pair<bool, float> Plane::Intersects(const Ray& ray) const
+template<>
+template<>
+B3D_UTILITY_EXPORT std::pair<bool, float> TPlane<float>::Intersects(const Ray& ray) const
 {
-	float denom = Normal.Dot(ray.GetDirection());
-	if(abs(denom) < std::numeric_limits<float>::epsilon())
+	using T = float;
+
+	T denom = Normal.Dot(ray.GetDirection());
+	if(abs(denom) < std::numeric_limits<T>::epsilon())
 	{
 		// Parallel
-		return std::pair<bool, float>(false, 0.0f);
+		return std::pair<bool, T>(false, (T)0.0);
 	}
 	else
 	{
-		float nom = Normal.Dot(ray.GetOrigin()) - D;
-		float t = -(nom / denom);
-		return std::pair<bool, float>(t >= 0.0f, t);
+		T nom = Normal.Dot(ray.GetOrigin()) - D;
+		T t = -(nom / denom);
+		return std::pair<bool, T>(t >= (T)0.0, t);
 	}
 }
+
+template struct B3D_UTILITY_EXPORT TPlane<float>;
+template struct B3D_UTILITY_EXPORT TPlane<double>;

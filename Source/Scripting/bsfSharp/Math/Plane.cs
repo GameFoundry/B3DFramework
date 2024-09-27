@@ -9,27 +9,8 @@ namespace bs
      *  @{
      */
 
-    /// <summary>
-    /// A plane represented by a normal and a distance.
-    /// </summary>
-    [StructLayout(LayoutKind.Sequential), SerializeObject]
-    public struct Plane // Note: Must match C++ class Plane
+    public partial struct Plane // Note: Must match C++ class Plane
     {
-        /// <summary>
-        /// The "positive side" of the plane is the half space to which the plane normal points. The "negative side" is the
-        /// other half space. The flag "no side" indicates the plane itself.
-        /// </summary>
-        public enum Side
-        {
-            None,
-            Positive,
-            Negative,
-            Both
-        };
-
-        public Vector3 normal;
-        public float d;
-
         /// <summary>
         /// Creates a plane from a normal and a distance from the plane.
         /// </summary>
@@ -37,8 +18,8 @@ namespace bs
         /// <param name="d">Distance of the plane from the origin, along the normal.</param>
         public Plane(Vector3 normal, float d)
         {
-            this.normal = normal;
-            this.d = d;
+            this.Normal = normal;
+            this.D = d;
         }
 
         /// <summary>
@@ -51,10 +32,10 @@ namespace bs
         {
             Vector3 e0 = b - a;
             Vector3 e1 = c - a;
-            normal = Vector3.Cross(e0, e1);
-            normal.Normalize();
+            Normal = Vector3.Cross(e0, e1);
+            Normal.Normalize();
 
-            d = Vector3.Dot(normal, a);
+            D = Vector3.Dot(Normal, a);
         }
 
         /// <summary>
@@ -67,7 +48,7 @@ namespace bs
         /// </returns>
         float GetDistance(Vector3 point)
         {
-            return Vector3.Dot(normal, point) - d;
+            return Vector3.Dot(Normal, point) - D;
         }
 
         /// <summary>
@@ -76,17 +57,17 @@ namespace bs
         /// <param name="point">Point to test.</param>
         /// <param name="epsilon">Extra depth of the plane to help with precision issues.</param>
         /// <returns>Side on the plane the point is located on.</returns>
-        public Side GetSide(Vector3 point, float epsilon = 0.0f)
+        public PlaneSide GetSide(Vector3 point, float epsilon = 0.0f)
         {
             float dist = GetDistance(point);
 
             if (dist > epsilon)
-                return Side.Positive;
+                return PlaneSide.Positive;
 
             if (dist < -epsilon)
-                return Side.Negative;
+                return PlaneSide.Negative;
 
-            return Side.None;
+            return PlaneSide.None;
         }
     }
 

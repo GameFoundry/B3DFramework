@@ -242,6 +242,31 @@
 			<doc>Returns the total number of bones in the skeleton.</doc>
 		</property>
 	</class>
+	<class native="ParticleColor" script="ParticleColor">
+		<doc>Changes the color of the particles over the particle lifetime.</doc>
+		<ctor>
+			<doc>Creates a new particle color evolver.</doc>
+			<param name="desc" type="ParticleColorOptions">
+			</param>
+		</ctor>
+		<ctor>
+			<doc>Creates a new particle color evolver.</doc>
+		</ctor>
+		<property name="Options" type="ParticleColorOptions" getter="GetOptions" setter="SetOptions" static="false">
+			<doc>Options describing the evolver.</doc>
+		</property>
+	</class>
+	<enum native="PlaneSide" script="PlaneSide">
+		<doc>The &quot;positive side&quot; of the plane is the half space to which the plane normal points. The &quot;negative side&quot; is the other half space. The flag &quot;no side&quot; indicates the plane itself.</doc>
+		<enumentry native="None" script="None">
+		</enumentry>
+		<enumentry native="Both" script="Both">
+		</enumentry>
+		<enumentry native="Negative" script="Negative">
+		</enumentry>
+		<enumentry native="Positive" script="Positive">
+		</enumentry>
+	</enum>
 	<struct native="ColorGradientKey" script="ColorGradientKey">
 		<doc>Single key in a ColorGradient.</doc>
 		<ctor>
@@ -892,6 +917,20 @@
 		<field name="Z" type="double">
 		</field>
 		<field name="W" type="double">
+		</field>
+	</struct>
+	<struct native="TPlane&lt;float&gt;" script="Plane">
+		<doc>A plane represented by a normal and a distance.</doc>
+		<field name="Normal" type="Vector3">
+		</field>
+		<field name="D" type="float">
+		</field>
+	</struct>
+	<struct native="TPlane&lt;double&gt;" script="PlaneD">
+		<doc>A plane represented by a normal and a distance.</doc>
+		<field name="Normal" type="Vector3d">
+		</field>
+		<field name="D" type="double">
 		</field>
 	</struct>
 	<class native="Random" script="Random">
@@ -5397,20 +5436,6 @@ Sprite images also allow you to specify sprite sheet animation by varying which 
 			<doc>Determines the color of the particles evaluated over particle lifetime.</doc>
 		</field>
 	</struct>
-	<class native="ParticleColor" script="ParticleColor">
-		<doc>Changes the color of the particles over the particle lifetime.</doc>
-		<ctor>
-			<doc>Creates a new particle color evolver.</doc>
-			<param name="desc" type="ParticleColorOptions">
-			</param>
-		</ctor>
-		<ctor>
-			<doc>Creates a new particle color evolver.</doc>
-		</ctor>
-		<property name="Options" type="ParticleColorOptions" getter="GetOptions" setter="SetOptions" static="false">
-			<doc>Options describing the evolver.</doc>
-		</property>
-	</class>
 	<class native="ParticleSize" script="ParticleSize">
 		<doc>Changes the size of the particles over the particle lifetime.</doc>
 		<ctor>
