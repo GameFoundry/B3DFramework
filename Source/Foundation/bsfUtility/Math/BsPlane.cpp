@@ -39,12 +39,9 @@ PlaneSide TPlane<T>::GetSide(const TVector3<T>& point, T epsilon) const
 	return PlaneSide::None;
 }
 
-template<>
-template<>
-PlaneSide TPlane<float>::GetSide(const AABox& box) const
+template<typename T>
+PlaneSide TPlane<T>::GetSide(const TAABox<T>& box) const
 {
-	using T = float;
-
 	// Calculate the distance between box centre and the plane
 	T dist = GetDistance(box.GetCenter());
 
@@ -62,15 +59,12 @@ PlaneSide TPlane<float>::GetSide(const AABox& box) const
 	return PlaneSide::Both;
 }
 
-template<>
-template<>
-PlaneSide TPlane<float>::GetSide(const Sphere& sphere) const
+template<typename T>
+PlaneSide TPlane<T>::GetSide(const TSphere<T>& sphere) const
 {
-	using T = float;
-
 	// Calculate the distance between box centre and the plane
-	T dist = GetDistance(sphere.GetCenter());
-	T radius = sphere.GetRadius();
+	T dist = GetDistance(sphere.Center);
+	T radius = sphere.Radius;
 
 	if(dist < -radius)
 		return PlaneSide::Negative;
@@ -115,27 +109,22 @@ T TPlane<T>::Normalize()
 	return fLength;
 }
 
-template<>
-template<>
-bool TPlane<float>::Intersects(const AABox& box) const
+template<typename T>
+bool TPlane<T>::Intersects(const TAABox<T>& box) const
 {
 	return box.Intersects(*this);
 }
 
-template<>
-template<>
-bool TPlane<float>::Intersects(const Sphere& sphere) const
+template<typename T>
+bool TPlane<T>::Intersects(const TSphere<T>& sphere) const
 {
 	return sphere.Intersects(*this);
 }
 
-template<>
-template<>
-B3D_UTILITY_EXPORT std::pair<bool, float> TPlane<float>::Intersects(const Ray& ray) const
+template<typename T>
+std::pair<bool, T> TPlane<T>::Intersects(const TRay<T>& ray) const
 {
-	using T = float;
-
-	T denom = Normal.Dot(ray.GetDirection());
+	T denom = Normal.Dot(ray.Direction);
 	if(abs(denom) < std::numeric_limits<T>::epsilon())
 	{
 		// Parallel
@@ -143,7 +132,7 @@ B3D_UTILITY_EXPORT std::pair<bool, float> TPlane<float>::Intersects(const Ray& r
 	}
 	else
 	{
-		T nom = Normal.Dot(ray.GetOrigin()) - D;
+		T nom = Normal.Dot(ray.Origin) - D;
 		T t = -(nom / denom);
 		return std::pair<bool, T>(t >= (T)0.0, t);
 	}

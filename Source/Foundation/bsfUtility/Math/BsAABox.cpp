@@ -8,119 +8,84 @@
 
 using namespace bs;
 
-const AABox AABox::kBoxEmpty = AABox(Vector3(0.0f, 0.0f, 0.0f), Vector3(0.0f, 0.0f, 0.0f));
-const AABox AABox::kUnitBox = AABox(Vector3(-0.5f, -0.5f, -0.5f), Vector3(0.5f, 0.5f, 0.5f));
-const AABox AABox::kInfBox = AABox(
-	Vector3(
-		std::numeric_limits<float>::infinity(),
-		std::numeric_limits<float>::infinity(),
-		std::numeric_limits<float>::infinity()),
-	Vector3(
-		-std::numeric_limits<float>::infinity(),
-		-std::numeric_limits<float>::infinity(),
-		-std::numeric_limits<float>::infinity()));
-
-const u32 AABox::kCubeIndices[36] = {
-	// Near
-	NEAR_LEFT_BOTTOM, NEAR_LEFT_TOP, NEAR_RIGHT_TOP,
-	NEAR_LEFT_BOTTOM, NEAR_RIGHT_TOP, NEAR_RIGHT_BOTTOM,
-
-	// Far
-	FAR_RIGHT_BOTTOM, FAR_RIGHT_TOP, FAR_LEFT_TOP,
-	FAR_RIGHT_BOTTOM, FAR_LEFT_TOP, FAR_LEFT_BOTTOM,
-
-	// Left
-	FAR_LEFT_BOTTOM, FAR_LEFT_TOP, NEAR_LEFT_TOP,
-	FAR_LEFT_BOTTOM, NEAR_LEFT_TOP, NEAR_LEFT_BOTTOM,
-
-	// Right
-	NEAR_RIGHT_BOTTOM, NEAR_RIGHT_TOP, FAR_RIGHT_TOP,
-	NEAR_RIGHT_BOTTOM, FAR_RIGHT_TOP, FAR_RIGHT_BOTTOM,
-
-	// Top
-	FAR_LEFT_TOP, FAR_RIGHT_TOP, NEAR_RIGHT_TOP,
-	FAR_LEFT_TOP, NEAR_RIGHT_TOP, NEAR_LEFT_TOP,
-
-	// Bottom
-	NEAR_LEFT_BOTTOM, NEAR_RIGHT_BOTTOM, FAR_RIGHT_BOTTOM,
-	NEAR_LEFT_BOTTOM, FAR_RIGHT_BOTTOM, FAR_LEFT_BOTTOM
-};
-
-AABox::AABox()
-{
-	// Default to a unit box
-	SetMin(Vector3(-0.5f, -0.5f, -0.5f));
-	SetMax(Vector3(0.5f, 0.5f, 0.5f));
-}
-
-AABox::AABox(const Vector3& min, const Vector3& max)
+template<typename T>
+TAABox<T>::TAABox(const TVector3<T>& min, const TVector3<T>& max)
 {
 	SetExtents(min, max);
 }
 
-void AABox::SetExtents(const Vector3& min, const Vector3& max)
+template<typename T>
+void TAABox<T>::SetExtents(const TVector3<T>& min, const TVector3<T>& max)
 {
-	mMinimum = min;
-	mMaximum = max;
+	Minimum = min;
+	Maximum = max;
 }
 
-void AABox::Scale(const Vector3& s)
+template<typename T>
+void TAABox<T>::Scale(const TVector3<T>& s)
 {
-	Vector3 center = GetCenter();
-	Vector3 min = center + (mMinimum - center) * s;
-	Vector3 max = center + (mMaximum - center) * s;
+	TVector3<T> center = GetCenter();
+	TVector3<T> min = center + (Minimum - center) * s;
+	TVector3<T> max = center + (Maximum - center) * s;
 
 	SetExtents(min, max);
 }
 
-Vector3 AABox::GetCorner(Corner cornerToGet) const
+template<typename T>
+TVector3<T> TAABox<T>::GetCorner(Corner cornerToGet) const
 {
 	switch(cornerToGet)
 	{
 	case FAR_LEFT_BOTTOM:
-		return mMinimum;
+		return Minimum;
 	case FAR_LEFT_TOP:
-		return Vector3(mMinimum.X, mMaximum.Y, mMinimum.Z);
+		return TVector3<T>(Minimum.X, Maximum.Y, Minimum.Z);
 	case FAR_RIGHT_TOP:
-		return Vector3(mMaximum.X, mMaximum.Y, mMinimum.Z);
+		return TVector3<T>(Maximum.X, Maximum.Y, Minimum.Z);
 	case FAR_RIGHT_BOTTOM:
-		return Vector3(mMaximum.X, mMinimum.Y, mMinimum.Z);
+		return TVector3<T>(Maximum.X, Minimum.Y, Minimum.Z);
 	case NEAR_RIGHT_BOTTOM:
-		return Vector3(mMaximum.X, mMinimum.Y, mMaximum.Z);
+		return TVector3<T>(Maximum.X, Minimum.Y, Maximum.Z);
 	case NEAR_LEFT_BOTTOM:
-		return Vector3(mMinimum.X, mMinimum.Y, mMaximum.Z);
+		return TVector3<T>(Minimum.X, Minimum.Y, Maximum.Z);
 	case NEAR_LEFT_TOP:
-		return Vector3(mMinimum.X, mMaximum.Y, mMaximum.Z);
+		return TVector3<T>(Minimum.X, Maximum.Y, Maximum.Z);
 	case NEAR_RIGHT_TOP:
-		return mMaximum;
+		return Maximum;
 	default:
-		return Vector3(BsZero);
+		return TVector3<T>(BsZero);
 	}
 }
 
-void AABox::Merge(const AABox& rhs)
+template<typename T>
+void TAABox<T>::Merge(const TAABox<T>& rhs)
 {
-	Vector3 min = mMinimum;
-	Vector3 max = mMaximum;
-	max.Max(rhs.mMaximum);
-	min.Min(rhs.mMinimum);
+	TVector3<T> min = Minimum;
+	TVector3<T> max = Maximum;
+	max.Max(rhs.Maximum);
+	min.Min(rhs.Minimum);
 
 	SetExtents(min, max);
 }
 
-void AABox::Merge(const Vector3& point)
+template<typename T>
+void TAABox<T>::Merge(const TVector3<T>& point)
 {
-	mMaximum.Max(point);
-	mMinimum.Min(point);
+	Maximum.Max(point);
+	Minimum.Min(point);
 }
 
-void AABox::Transform(const Matrix4& matrix)
+template<>
+template<>
+B3D_UTILITY_EXPORT void AABox::Transform(const Matrix4& matrix)
 {
-	// Getting the old values so that we can use the existing merge method.
-	Vector3 oldMin = mMinimum;
-	Vector3 oldMax = mMaximum;
+	using T = float;
 
-	Vector3 currentCorner;
+	// Getting the old values so that we can use the existing merge method.
+	TVector3<T> oldMin = Minimum;
+	TVector3<T> oldMax = Maximum;
+
+	TVector3<T> currentCorner;
 	// We sequentially compute the corners in the following order :
 	// 0, 6, 5, 1, 2, 4, 7, 3
 	// This sequence allows us to only change one member at a time to get at all corners.
@@ -162,16 +127,20 @@ void AABox::Transform(const Matrix4& matrix)
 	Merge(matrix.MultiplyAffine(currentCorner));
 }
 
-void AABox::TransformAffine(const Matrix4& m)
+template<>
+template<>
+B3D_UTILITY_EXPORT void TAABox<float>::TransformAffine<float, 0>(const Matrix4& m)
 {
-	Vector3 min = m.GetTranslation();
-	Vector3 max = m.GetTranslation();
+	using T = float;
+
+	TVector3<T> min = m.GetTranslation();
+	TVector3<T> max = m.GetTranslation();
 	for(u32 i = 0; i < 3; i++)
 	{
 		for(u32 j = 0; j < 3; j++)
 		{
-			float e = m[i][j] * mMinimum[j];
-			float f = m[i][j] * mMaximum[j];
+			T e = m[i][j] * Minimum[j];
+			T f = m[i][j] * Maximum[j];
 
 			if(e < f)
 			{
@@ -189,37 +158,39 @@ void AABox::TransformAffine(const Matrix4& m)
 	SetExtents(min, max);
 }
 
-bool AABox::Intersects(const AABox& b2) const
+template<typename T>
+bool TAABox<T>::Intersects(const TAABox<T>& b2) const
 {
 	// Use up to 6 separating planes
-	if(mMaximum.X < b2.mMinimum.X)
+	if(Maximum.X < b2.Minimum.X)
 		return false;
-	if(mMaximum.Y < b2.mMinimum.Y)
+	if(Maximum.Y < b2.Minimum.Y)
 		return false;
-	if(mMaximum.Z < b2.mMinimum.Z)
+	if(Maximum.Z < b2.Minimum.Z)
 		return false;
 
-	if(mMinimum.X > b2.mMaximum.X)
+	if(Minimum.X > b2.Maximum.X)
 		return false;
-	if(mMinimum.Y > b2.mMaximum.Y)
+	if(Minimum.Y > b2.Maximum.Y)
 		return false;
-	if(mMinimum.Z > b2.mMaximum.Z)
+	if(Minimum.Z > b2.Maximum.Z)
 		return false;
 
 	// Otherwise, must be intersecting
 	return true;
 }
 
-bool AABox::Intersects(const Sphere& sphere) const
+template<typename T>
+bool TAABox<T>::Intersects(const TSphere<T>& sphere) const
 {
 	// Use splitting planes
-	const Vector3& center = sphere.GetCenter();
-	float radius = sphere.GetRadius();
-	const Vector3& min = GetMin();
-	const Vector3& max = GetMax();
+	const TVector3<T>& center = sphere.Center;
+	T radius = sphere.Radius;
+	const TVector3<T>& min = Minimum;
+	const TVector3<T>& max = Maximum;
 
 	// Arvo's algorithm
-	float s, d = 0;
+	T s, d = (T)0.0;
 	for(int i = 0; i < 3; ++i)
 	{
 		if(center[i] < min[i])
@@ -236,34 +207,36 @@ bool AABox::Intersects(const Sphere& sphere) const
 	return d <= radius * radius;
 }
 
-bool AABox::Intersects(const Plane& p) const
+template<typename T>
+bool TAABox<T>::Intersects(const TPlane<T>& p) const
 {
 	return (p.GetSide(*this) == PlaneSide::Both);
 }
 
-std::pair<bool, float> AABox::Intersects(const Ray& ray) const
+template<typename T>
+std::pair<bool, T> TAABox<T>::Intersects(const TRay<T>& ray) const
 {
-	float lowt = 0.0f;
-	float t;
+	T lowt = (T)0.0;
+	T t;
 	bool hit = false;
-	Vector3 hitpoint(BsZero);
-	const Vector3& min = GetMin();
-	const Vector3& max = GetMax();
-	const Vector3& rayorig = ray.GetOrigin();
-	const Vector3& raydir = ray.GetDirection();
+	TVector3<T> hitpoint(BsZero);
+	const TVector3<T>& min = Minimum;
+	const TVector3<T>& max = Maximum;
+	const TVector3<T>& rayorig = ray.Origin;
+	const TVector3<T>& raydir = ray.Direction;
 
 	// Check origin inside first
 	if((rayorig.X > min.X && rayorig.Y > min.Y && rayorig.Z > min.Z) && (rayorig.X < max.X && rayorig.Y < max.Y && rayorig.Z < max.Z))
 	{
-		return std::pair<bool, float>(true, 0.0f);
+		return std::pair<bool, T>(true, (T)0.0);
 	}
 
 	// Check each face in turn, only check closest 3
 	// Min x
-	if(rayorig.X <= min.X && raydir.X > 0)
+	if(rayorig.X <= min.X && raydir.X > (T)0.0)
 	{
 		t = (min.X - rayorig.X) / raydir.X;
-		if(t >= 0)
+		if(t >= (T)0.0)
 		{
 			// Substitute t back into ray and check bounds and dist
 			hitpoint = rayorig + raydir * t;
@@ -277,10 +250,10 @@ std::pair<bool, float> AABox::Intersects(const Ray& ray) const
 		}
 	}
 	// Max x
-	if(rayorig.X >= max.X && raydir.X < 0)
+	if(rayorig.X >= max.X && raydir.X < (T)0.0)
 	{
 		t = (max.X - rayorig.X) / raydir.X;
-		if(t >= 0)
+		if(t >= (T)0.0)
 		{
 			// Substitute t back into ray and check bounds and dist
 			hitpoint = rayorig + raydir * t;
@@ -294,10 +267,10 @@ std::pair<bool, float> AABox::Intersects(const Ray& ray) const
 		}
 	}
 	// Min y
-	if(rayorig.Y <= min.Y && raydir.Y > 0)
+	if(rayorig.Y <= min.Y && raydir.Y > (T)0.0)
 	{
 		t = (min.Y - rayorig.Y) / raydir.Y;
-		if(t >= 0)
+		if(t >= (T)0.0)
 		{
 			// Substitute t back into ray and check bounds and dist
 			hitpoint = rayorig + raydir * t;
@@ -311,10 +284,10 @@ std::pair<bool, float> AABox::Intersects(const Ray& ray) const
 		}
 	}
 	// Max y
-	if(rayorig.Y >= max.Y && raydir.Y < 0)
+	if(rayorig.Y >= max.Y && raydir.Y < (T)0.0)
 	{
 		t = (max.Y - rayorig.Y) / raydir.Y;
-		if(t >= 0)
+		if(t >= (T)0.0)
 		{
 			// Substitute t back into ray and check bounds and dist
 			hitpoint = rayorig + raydir * t;
@@ -328,10 +301,10 @@ std::pair<bool, float> AABox::Intersects(const Ray& ray) const
 		}
 	}
 	// Min z
-	if(rayorig.Z <= min.Z && raydir.Z > 0)
+	if(rayorig.Z <= min.Z && raydir.Z > (T)0.0)
 	{
 		t = (min.Z - rayorig.Z) / raydir.Z;
-		if(t >= 0)
+		if(t >= (T)0.0)
 		{
 			// Substitute t back into ray and check bounds and dist
 			hitpoint = rayorig + raydir * t;
@@ -345,10 +318,10 @@ std::pair<bool, float> AABox::Intersects(const Ray& ray) const
 		}
 	}
 	// Max z
-	if(rayorig.Z >= max.Z && raydir.Z < 0)
+	if(rayorig.Z >= max.Z && raydir.Z < (T)0.0)
 	{
 		t = (max.Z - rayorig.Z) / raydir.Z;
-		if(t >= 0)
+		if(t >= (T)0.0)
 		{
 			// Substitute t back into ray and check bounds and dist
 			hitpoint = rayorig + raydir * t;
@@ -362,17 +335,18 @@ std::pair<bool, float> AABox::Intersects(const Ray& ray) const
 		}
 	}
 
-	return std::pair<bool, float>(hit, lowt);
+	return std::pair<bool, T>(hit, lowt);
 }
 
-bool AABox::Intersects(const Ray& ray, float& d1, float& d2) const
+template<typename T>
+bool TAABox<T>::Intersects(const TRay<T>& ray, T& d1, T& d2) const
 {
-	const Vector3& min = GetMin();
-	const Vector3& max = GetMax();
-	const Vector3& rayorig = ray.GetOrigin();
-	const Vector3& raydir = ray.GetDirection();
+	const TVector3<T>& min = Minimum;
+	const TVector3<T>& max = Maximum;
+	const TVector3<T>& rayorig = ray.Origin;
+	const TVector3<T>& raydir = ray.Direction;
 
-	Vector3 absDir;
+	TVector3<T> absDir;
 	absDir[0] = abs(raydir[0]);
 	absDir[1] = abs(raydir[1]);
 	absDir[2] = abs(raydir[2]);
@@ -395,14 +369,14 @@ bool AABox::Intersects(const Ray& ray, float& d1, float& d2) const
 		imax = 1;
 	}
 
-	float start = 0, end = Math::kPosInfinity;
+	T start = (T)0.0, end = std::numeric_limits<T>::infinity();
 
 #define _CALC_AXIS(i)                                      \
 	do                                                     \
 	{                                                      \
-		float denom = 1 / raydir[i];                       \
-		float newstart = (min[i] - rayorig[i]) * denom;    \
-		float newend = (max[i] - rayorig[i]) * denom;      \
+		T denom = (T)1.0 / raydir[i];                      \
+		T newstart = (min[i] - rayorig[i]) * denom;        \
+		T newend = (max[i] - rayorig[i]) * denom;          \
 		if(newstart > newend) std::swap(newstart, newend); \
 		if(newstart > end || newend < start) return false; \
 		if(newstart > start) start = newstart;             \
@@ -414,7 +388,7 @@ bool AABox::Intersects(const Ray& ray, float& d1, float& d2) const
 
 	_CALC_AXIS(imax);
 
-	if(absDir[imid] < std::numeric_limits<float>::epsilon())
+	if(absDir[imid] < std::numeric_limits<T>::epsilon())
 	{
 		// Parallel with middle and minimise axis, check bounds only
 		if(rayorig[imid] < min[imid] || rayorig[imid] > max[imid] ||
@@ -425,7 +399,7 @@ bool AABox::Intersects(const Ray& ray, float& d1, float& d2) const
 	{
 		_CALC_AXIS(imid);
 
-		if(absDir[imin] < std::numeric_limits<float>::epsilon())
+		if(absDir[imin] < std::numeric_limits<T>::epsilon())
 		{
 			// Parallel with minimise axis, check bounds only
 			if(rayorig[imin] < min[imin] || rayorig[imin] > max[imin])
@@ -444,66 +418,78 @@ bool AABox::Intersects(const Ray& ray, float& d1, float& d2) const
 	return true;
 }
 
-Vector3 AABox::GetCenter() const
+template<typename T>
+TVector3<T> TAABox<T>::GetCenter() const
 {
-	return Vector3(
-		(mMaximum.X + mMinimum.X) * 0.5f,
-		(mMaximum.Y + mMinimum.Y) * 0.5f,
-		(mMaximum.Z + mMinimum.Z) * 0.5f);
+	return TVector3<T>(
+		(Maximum.X + Minimum.X) * (T)0.5,
+		(Maximum.Y + Minimum.Y) * (T)0.5,
+		(Maximum.Z + Minimum.Z) * (T)0.5);
 }
 
-Vector3 AABox::GetSize() const
+template<typename T>
+TVector3<T> TAABox<T>::GetSize() const
 {
-	return mMaximum - mMinimum;
+	return Maximum - Minimum;
 }
 
-Vector3 AABox::GetHalfSize() const
+template<typename T>
+TVector3<T> TAABox<T>::GetHalfSize() const
 {
-	return (mMaximum - mMinimum) * 0.5;
+	return (Maximum - Minimum) * (T)0.5;
 }
 
-float AABox::GetRadius() const
+template<typename T>
+T TAABox<T>::GetRadius() const
 {
-	return ((mMaximum - mMinimum) * 0.5).Length();
+	return ((Maximum - Minimum) * (T)0.5).Length();
 }
 
-float AABox::GetVolume() const
+template<typename T>
+T TAABox<T>::GetVolume() const
 {
-	Vector3 diff = mMaximum - mMinimum;
+	TVector3<T> diff = Maximum - Minimum;
 	return diff.X * diff.Y * diff.Z;
 }
 
-bool AABox::Contains(const Vector3& v) const
+template<typename T>
+bool TAABox<T>::Contains(const TVector3<T>& v) const
 {
-	return mMinimum.X <= v.X && v.X <= mMaximum.X &&
-		mMinimum.Y <= v.Y && v.Y <= mMaximum.Y &&
-		mMinimum.Z <= v.Z && v.Z <= mMaximum.Z;
+	return Minimum.X <= v.X && v.X <= Maximum.X &&
+		Minimum.Y <= v.Y && v.Y <= Maximum.Y &&
+		Minimum.Z <= v.Z && v.Z <= Maximum.Z;
 }
 
-bool AABox::Contains(const Vector3& v, float extra) const
+template<typename T>
+bool TAABox<T>::Contains(const TVector3<T>& v, T extra) const
 {
-	return (mMinimum.X - extra) <= v.X && v.X <= (mMaximum.X + extra) &&
-		(mMinimum.Y - extra) <= v.Y && v.Y <= (mMaximum.Y + extra) &&
-		(mMinimum.Z - extra) <= v.Z && v.Z <= (mMaximum.Z + extra);
+	return (Minimum.X - extra) <= v.X && v.X <= (Maximum.X + extra) &&
+		(Minimum.Y - extra) <= v.Y && v.Y <= (Maximum.Y + extra) &&
+		(Minimum.Z - extra) <= v.Z && v.Z <= (Maximum.Z + extra);
 }
 
-bool AABox::Contains(const AABox& other) const
+template<typename T>
+bool TAABox<T>::Contains(const TAABox<T>& other) const
 {
-	return this->mMinimum.X <= other.mMinimum.X &&
-		this->mMinimum.Y <= other.mMinimum.Y &&
-		this->mMinimum.Z <= other.mMinimum.Z &&
-		other.mMaximum.X <= this->mMaximum.X &&
-		other.mMaximum.Y <= this->mMaximum.Y &&
-		other.mMaximum.Z <= this->mMaximum.Z;
+	return this->Minimum.X <= other.Minimum.X &&
+		this->Minimum.Y <= other.Minimum.Y &&
+		this->Minimum.Z <= other.Minimum.Z &&
+		other.Maximum.X <= this->Maximum.X &&
+		other.Maximum.Y <= this->Maximum.Y &&
+		other.Maximum.Z <= this->Maximum.Z;
 }
 
-bool AABox::operator==(const AABox& rhs) const
+template<typename T>
+bool TAABox<T>::operator==(const TAABox<T>& rhs) const
 {
-	return this->mMinimum == rhs.mMinimum &&
-		this->mMaximum == rhs.mMaximum;
+	return this->Minimum == rhs.Minimum && this->Maximum == rhs.Maximum;
 }
 
-bool AABox::operator!=(const AABox& rhs) const
+template<typename T>
+bool TAABox<T>::operator!=(const TAABox<T>& rhs) const
 {
 	return !(*this == rhs);
 }
+
+template struct B3D_UTILITY_EXPORT TAABox<float>;
+template struct B3D_UTILITY_EXPORT TAABox<double>;

@@ -116,8 +116,8 @@ bool ConvexVolume::Intersects(const AABox& box) const
 
 bool ConvexVolume::Intersects(const Sphere& sphere) const
 {
-	Vector3 center = sphere.GetCenter();
-	float radius = sphere.GetRadius();
+	Vector3 center = sphere.Center;
+	float radius = sphere.Radius;
 
 	for(auto& plane : mPlanes)
 	{

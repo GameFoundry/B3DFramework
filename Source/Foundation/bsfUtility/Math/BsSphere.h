@@ -12,48 +12,42 @@ namespace bs
 	 */
 
 	/** A sphere represented by a center point and a radius. */
-	class B3D_UTILITY_EXPORT Sphere
+	template<typename T>
+	struct TSphere
 	{
-	public:
+		T Radius;
+		TVector3<T> Center;
+
 		/** Default constructor. Creates a unit sphere around the origin. */
-		Sphere() = default;
+		TSphere()
+			: Radius((T)1.0), Center(TVector3<T>::kZero)
+		{ }
 
-		Sphere(const Vector3& center, float radius)
-			: mRadius(radius), mCenter(center)
-		{}
-
-		/** Returns the radius of the sphere. */
-		float GetRadius() const { return mRadius; }
-
-		/** Sets the radius of the sphere. */
-		void SetRadius(float radius) { mRadius = radius; }
-
-		/** Returns the center point of the sphere. */
-		const Vector3& GetCenter() const { return mCenter; }
-
-		/** Sets the center point of the sphere. */
-		void SetCenter(const Vector3& center) { mCenter = center; }
+		TSphere(const TVector3<T>& center, T radius)
+			: Radius(radius), Center(center)
+		{ }
 
 		/** Merges the two spheres, creating a new sphere that encapsulates them both. */
-		void Merge(const Sphere& rhs);
+		void Merge(const TSphere<T>& rhs);
 
 		/** Expands the sphere so it includes the provided point. */
-		void Merge(const Vector3& point);
+		void Merge(const TVector3<T>& point);
 
 		/** Transforms the sphere by the given matrix. */
+		template<typename Condition = T, std::enable_if_t<std::is_same_v<Condition, float>, int> = 0> // TODO - Temporarily enabled for float only, until we get TMatrix3<T>
 		void Transform(const Matrix4& matrix);
 
 		/** Returns whether or not this sphere contains the provided point. */
-		inline bool Contains(const Vector3& v) const;
+		bool Contains(const TVector3<T>& v) const;
 
 		/** Returns whether or not this sphere intersects another sphere. */
-		bool Intersects(const Sphere& s) const;
+		bool Intersects(const TSphere<T>& s) const;
 
 		/** Returns whether or not this sphere intersects a box. */
-		bool Intersects(const AABox& box) const;
+		bool Intersects(const TAABox<T>& box) const;
 
 		/** Returns whether or not this sphere intersects a plane. */
-		bool Intersects(const Plane& plane) const;
+		bool Intersects(const TPlane<T>& plane) const;
 
 		/**
 		 * Ray/sphere intersection, returns boolean result and distance to nearest intersection.
@@ -62,11 +56,7 @@ namespace bs
 		 * @param[in]	discardInside	(optional) If true the intersection will be discarded if ray origin
 		 * 								is located within the sphere.
 		 */
-		std::pair<bool, float> Intersects(const Ray& ray, bool discardInside = true) const;
-
-	private:
-		float mRadius = 1.0f;
-		Vector3 mCenter{ Vector3::kZero };
+		std::pair<bool, T> Intersects(const TRay<T>& ray, bool discardInside = true) const;
 	};
 
 	/** @} */

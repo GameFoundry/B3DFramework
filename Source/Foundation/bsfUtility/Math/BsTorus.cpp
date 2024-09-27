@@ -9,8 +9,8 @@ using namespace bs;
 
 std::pair<bool, float> Torus::Intersects(const Ray& ray) const
 {
-	const Vector3& org = ray.GetOrigin();
-	const Vector3& dir = ray.GetDirection();
+	const Vector3& org = ray.Origin;
+	const Vector3& dir = ray.Direction;
 
 	float u = Normal.Dot(org);
 	float v = Normal.Dot(dir);

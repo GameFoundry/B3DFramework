@@ -11,8 +11,8 @@ Capsule::Capsule(const LineSegment3& segment, float radius)
 
 std::pair<bool, float> Capsule::Intersects(const Ray& ray) const
 {
-	const Vector3& org = ray.GetOrigin();
-	const Vector3& dir = ray.GetDirection();
+	const Vector3& org = ray.Origin;
+	const Vector3& dir = ray.Direction;
 
 	Vector3 segDir = mSegment.End - mSegment.Start;
 	float segExtent = segDir.Normalize() * 0.5f;

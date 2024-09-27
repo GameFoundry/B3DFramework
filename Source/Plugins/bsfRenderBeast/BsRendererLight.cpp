@@ -26,7 +26,7 @@ void RendererLight::GetParameters(LightData& output) const
 
 	const Transform& tfrm = Internal->GetTransform();
 	output.Position = tfrm.GetPosition();
-	output.BoundsRadius = Internal->GetBounds().GetRadius();
+	output.BoundsRadius = Internal->GetBounds().Radius;
 	output.SrcRadius = Internal->GetSourceRadius();
 	output.Direction = -tfrm.GetRotation().ZAxis();
 	output.Luminance = Internal->GetLuminance();
@@ -73,7 +73,7 @@ void RendererLight::GetParameters(SPtr<GpuBuffer>& buffer) const
 	Vector4 lightGeometry;
 	lightGeometry.X = Internal->GetType() == LightType::Spot ? (float)Light::kLightConeNumSides : 0;
 	lightGeometry.Y = (float)Light::kLightConeNumSlices;
-	lightGeometry.Z = Internal->GetBounds().GetRadius();
+	lightGeometry.Z = Internal->GetBounds().Radius;
 
 	float extraRadius = lightData.SrcRadius / Math::Tan(lightData.SpotAngles.X * 0.5f);
 	float coneRadius = Math::Sin(lightData.SpotAngles.X) * (Internal->GetAttenuationRadius() + extraRadius);
@@ -310,7 +310,7 @@ void VisibleLightData::GatherInfluencingLights(const Bounds& bounds, const Light
 		Sphere lightSphere(lightData->Position, lightData->BoundsRadius);
 		if(bounds.GetSphere().Intersects(lightSphere))
 		{
-			float distance = bounds.GetSphere().GetCenter().SquaredDistance(lightData->Position);
+			float distance = bounds.GetSphere().Center.SquaredDistance(lightData->Position);
 
 			// See where in the array can we fit the light
 			if(numInfluencingLights < kStandardForwardMaxNumLights)

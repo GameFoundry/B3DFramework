@@ -66,12 +66,10 @@ namespace bs
 		 * Returns the side where the alignedBox is. The flag BOTH_SIDE indicates an intersecting box.
 		 * One corner ON the plane is sufficient to consider the box and the plane intersecting.
 		 */
-		template<typename Condition = T, std::enable_if_t<std::is_same_v<Condition, float>, int> = 0> // TODO - Temporarily enabled for float only, until we get TMatrix3<T>
-		PlaneSide GetSide(const AABox& box) const;
+		PlaneSide GetSide(const TAABox<T>& box) const;
 
 		/** Returns the side where the sphere is. The flag BOTH_SIDE indicates an intersecting sphere. */
-		template<typename Condition = T, std::enable_if_t<std::is_same_v<Condition, float>, int> = 0> // TODO - Temporarily enabled for float only, until we get TMatrix3<T>
-		PlaneSide GetSide(const Sphere& sphere) const;
+		PlaneSide GetSide(const TSphere<T>& sphere) const;
 
 		/**
 		 * Returns a distance from point to plane.
@@ -90,16 +88,13 @@ namespace bs
 		T Normalize();
 
 		/** Box/plane intersection. */
-		template<typename Condition = T, std::enable_if_t<std::is_same_v<Condition, float>, int> = 0> // TODO - Temporarily enabled for float only, until we get TMatrix3<T>
-		bool Intersects(const AABox& box) const;
+		bool Intersects(const TAABox<T>& box) const;
 
 		/** Sphere/plane intersection. */
-		template<typename Condition = T, std::enable_if_t<std::is_same_v<Condition, float>, int> = 0> // TODO - Temporarily enabled for float only, until we get TMatrix3<T>
-		bool Intersects(const Sphere& sphere) const;
+		bool Intersects(const TSphere<T>& sphere) const;
 
 		/** Ray/plane intersection, returns boolean result and distance to intersection point. */
-		template<typename Condition = T, std::enable_if_t<std::is_same_v<Condition, float>, int> = 0> // TODO - Temporarily enabled for float only, until we get TMatrix3<T>
-		std::pair<bool, T> Intersects(const Ray& ray) const;
+		std::pair<bool, T> Intersects(const TRay<T>& ray) const;
 
 		bool operator==(const TPlane& rhs) const
 		{

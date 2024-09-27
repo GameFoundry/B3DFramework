@@ -1119,7 +1119,7 @@ void ShadowRendering::RenderShadowOcclusion(GpuCommandBuffer& commandBuffer, con
 			auto shadowMapProps = shadowMap->GetProperties();
 
 			Vector2 shadowMapSize((float)shadowMapProps.Width, (float)shadowMapProps.Height);
-			float transitionScale = GetFadeTransition(*light, shadowInfo->SubjectBounds.GetRadius(), shadowInfo->DepthRange, shadowInfo->Area.Width);
+			float transitionScale = GetFadeTransition(*light, shadowInfo->SubjectBounds.Radius, shadowInfo->DepthRange, shadowInfo->Area.Width);
 
 			gShadowProjectParamsDef.gFadePlaneDepth.Set(shadowParamBuffer, shadowInfo->DepthFade);
 			gShadowProjectParamsDef.gMixedToShadowSpace.Set(shadowParamBuffer, mixedToShadowUV);
@@ -1255,13 +1255,13 @@ void ShadowRendering::RenderCascadedShadowMaps(GpuCommandBuffer& commandBuffer, 
 		ConvexVolume cascadeCullVolume = GetCsmSplitFrustum(view, lightDir, i, numCascades, frustumBounds);
 
 		// Make sure the size of the projected area is in multiples of shadow map pixel size (for stability)
-		float worldUnitsPerTexel = frustumBounds.GetRadius() * 2.0f / shadowMap.GetSize();
+		float worldUnitsPerTexel = frustumBounds.Radius * 2.0f / shadowMap.GetSize();
 
-		float orthoSize = floor(frustumBounds.GetRadius() * 2.0f / worldUnitsPerTexel) * worldUnitsPerTexel * 0.5f;
+		float orthoSize = floor(frustumBounds.Radius * 2.0f / worldUnitsPerTexel) * worldUnitsPerTexel * 0.5f;
 		worldUnitsPerTexel = orthoSize * 2.0f / shadowMap.GetSize();
 
 		// Snap caster origin to the shadow map pixel grid, to ensure shadow map stability
-		Vector3 casterOrigin = frustumBounds.GetCenter();
+		Vector3 casterOrigin = frustumBounds.Center;
 		Matrix4 shadowView = Matrix4::View(Vector3::kZero, lightRotation);
 		Vector3 shadowSpaceOrigin = shadowView.MultiplyAffine(casterOrigin);
 
@@ -1273,9 +1273,9 @@ void ShadowRendering::RenderCascadedShadowMaps(GpuCommandBuffer& commandBuffer, 
 		casterOrigin = shadowViewInv.MultiplyAffine(shadowSpaceOrigin);
 
 		// Move the light so it is centered at the subject frustum, with depth range covering the frustum bounds
-		shadowInfo.DepthRange = frustumBounds.GetRadius() * 2.0f;
+		shadowInfo.DepthRange = frustumBounds.Radius * 2.0f;
 
-		Vector3 offsetLightPos = casterOrigin - lightDir * frustumBounds.GetRadius();
+		Vector3 offsetLightPos = casterOrigin - lightDir * frustumBounds.Radius;
 		Matrix4 offsetViewMat = Matrix4::View(offsetLightPos, lightRotation);
 
 		Matrix4 proj = Matrix4::ProjectionOrthographic(-orthoSize, orthoSize, orthoSize, -orthoSize, 0.0f, shadowInfo.DepthRange);
@@ -1300,7 +1300,7 @@ void ShadowRendering::RenderCascadedShadowMaps(GpuCommandBuffer& commandBuffer, 
 			shadowInfo.FadeRange = 0.0f;
 
 		shadowInfo.DepthFar = shadowInfo.DepthFade + shadowInfo.FadeRange;
-		shadowInfo.DepthBias = GetDepthBias(*light, frustumBounds.GetRadius(), shadowInfo.DepthRange, mapSize);
+		shadowInfo.DepthBias = GetDepthBias(*light, frustumBounds.Radius, shadowInfo.DepthRange, mapSize);
 
 		gShadowParamsDef.gDepthBias.Set(shadowParamsBuffer, shadowInfo.DepthBias);
 		gShadowParamsDef.gInvDepthRange.Set(shadowParamsBuffer, 1.0f / shadowInfo.DepthRange);
@@ -1375,7 +1375,7 @@ void ShadowRendering::RenderSpotShadowMap(GpuCommandBuffer& commandBuffer, const
 	mapInfo.DepthFade = mapInfo.DepthFar;
 	mapInfo.FadeRange = 0.0f;
 	mapInfo.DepthRange = mapInfo.DepthFar - mapInfo.DepthNear;
-	mapInfo.DepthBias = GetDepthBias(*light, light->GetBounds().GetRadius(), mapInfo.DepthRange, options.MapSize);
+	mapInfo.DepthBias = GetDepthBias(*light, light->GetBounds().Radius, mapInfo.DepthRange, options.MapSize);
 	mapInfo.SubjectBounds = light->GetBounds();
 
 	Quaternion lightRotation = light->GetTransform().GetRotation();
@@ -1467,7 +1467,7 @@ void ShadowRendering::RenderRadialShadowMap(GpuCommandBuffer& commandBuffer, con
 	mapInfo.DepthFade = mapInfo.DepthFar;
 	mapInfo.FadeRange = 0.0f;
 	mapInfo.DepthRange = mapInfo.DepthFar - mapInfo.DepthNear;
-	mapInfo.DepthBias = GetDepthBias(*light, light->GetBounds().GetRadius(), mapInfo.DepthRange, options.MapSize);
+	mapInfo.DepthBias = GetDepthBias(*light, light->GetBounds().Radius, mapInfo.DepthRange, options.MapSize);
 	mapInfo.SubjectBounds = light->GetBounds();
 
 	// Note: Projecting on positive Z axis, because cubemaps use a left-handed coordinate system
@@ -1655,7 +1655,7 @@ void ShadowRendering::CalcShadowMapProperties(const RendererLight& light, const 
 			float screenScale = std::max(screenScaleX, screenScaleY);
 
 			//// Calc radius (clamp if too close to avoid massive numbers)
-			float radiusNDC = light.Internal->GetBounds().GetRadius() / std::max(depth, 1.0f);
+			float radiusNDC = light.Internal->GetBounds().Radius / std::max(depth, 1.0f);
 
 			//// Radius of light bounds in percent of the view surface, multiplied by screen size in pixels
 			float radiusScreen = radiusNDC * screenScale;

@@ -9,8 +9,8 @@ using namespace bs;
 
 std::pair<std::array<Vector3, 2>, float> Rect3::GetNearestPoint(const Ray& ray) const
 {
-	const Vector3& org = ray.GetOrigin();
-	const Vector3& dir = ray.GetDirection();
+	const Vector3& org = ray.Origin;
+	const Vector3& dir = ray.Direction;
 
 	bool foundNearest = false;
 	float t = 0.0f;
@@ -109,8 +109,8 @@ std::pair<Vector3, float> Rect3::GetNearestPoint(const Vector3& point) const
 
 std::pair<bool, float> Rect3::Intersects(const Ray& ray) const
 {
-	const Vector3& org = ray.GetOrigin();
-	const Vector3& dir = ray.GetDirection();
+	const Vector3& org = ray.Origin;
+	const Vector3& dir = ray.Direction;
 
 	Vector3 normal = mAxisHorz.Cross(mAxisVert);
 	float NdotD = normal.Dot(dir);

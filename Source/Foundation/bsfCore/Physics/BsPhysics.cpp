@@ -37,17 +37,17 @@ bool Physics::IsCollisionEnabled(u64 groupA, u64 groupB) const
 
 bool PhysicsScene::RayCast(const Ray& ray, PhysicsQueryHit& hit, u64 layer, float max) const
 {
-	return RayCast(ray.GetOrigin(), ray.GetDirection(), hit, layer, max);
+	return RayCast(ray.Origin, ray.Direction, hit, layer, max);
 }
 
 Vector<PhysicsQueryHit> PhysicsScene::RayCastAll(const Ray& ray, u64 layer, float max) const
 {
-	return RayCastAll(ray.GetOrigin(), ray.GetDirection(), layer, max);
+	return RayCastAll(ray.Origin, ray.Direction, layer, max);
 }
 
 bool PhysicsScene::RayCastAny(const Ray& ray, u64 layer, float max) const
 {
-	return RayCastAny(ray.GetOrigin(), ray.GetDirection(), layer, max);
+	return RayCastAny(ray.Origin, ray.Direction, layer, max);
 }
 
 Vector<HCollider> RawToComponent(const Vector<Collider*>& raw)

@@ -99,7 +99,7 @@ void LightProbeVolume::Resize(const AABox& volume, const Vector3I& cellCount)
 		{
 			for(u32 x = 0; x < numProbesX; ++x)
 			{
-				Vector3 position = mVolume.GetMin();
+				Vector3 position = mVolume.Minimum;
 				position.X += size.X * (x / (float)numProbesX);
 				position.Y += size.Y * (y / (float)numProbesY);
 				position.Z += size.Z * (z / (float)numProbesZ);
@@ -143,7 +143,7 @@ void LightProbeVolume::Reset()
 		u32 y = (idx / rowPitch) % numProbesY;
 		u32 z = (idx / slicePitch);
 
-		Vector3 position = mVolume.GetMin();
+		Vector3 position = mVolume.Minimum;
 		position.X += size.X * (x / (float)(numProbesX - 1));
 		position.Y += size.Y * (y / (float)(numProbesY - 1));
 		position.Z += size.Z * (z / (float)(numProbesZ - 1));

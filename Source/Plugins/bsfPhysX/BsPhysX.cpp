@@ -896,8 +896,8 @@ bool PhysXScene::BoxCast(const AABox& box, const Quaternion& rotation, const Vec
 
 bool PhysXScene::SphereCast(const Sphere& sphere, const Vector3& unitDir, PhysicsQueryHit& hit, u64 layer, float max) const
 {
-	PxSphereGeometry geometry(sphere.GetRadius());
-	PxTransform transform = ToPxTransform(sphere.GetCenter(), Quaternion::kIdentity);
+	PxSphereGeometry geometry(sphere.Radius);
+	PxTransform transform = ToPxTransform(sphere.Center, Quaternion::kIdentity);
 
 	return Sweep(geometry, transform, unitDir, hit, layer, max);
 }
@@ -947,8 +947,8 @@ Vector<PhysicsQueryHit> PhysXScene::BoxCastAll(const AABox& box, const Quaternio
 
 Vector<PhysicsQueryHit> PhysXScene::SphereCastAll(const Sphere& sphere, const Vector3& unitDir, u64 layer, float max) const
 {
-	PxSphereGeometry geometry(sphere.GetRadius());
-	PxTransform transform = ToPxTransform(sphere.GetCenter(), Quaternion::kIdentity);
+	PxSphereGeometry geometry(sphere.Radius);
+	PxTransform transform = ToPxTransform(sphere.Center, Quaternion::kIdentity);
 
 	return SweepAll(geometry, transform, unitDir, layer, max);
 }
@@ -997,8 +997,8 @@ bool PhysXScene::BoxCastAny(const AABox& box, const Quaternion& rotation, const 
 
 bool PhysXScene::SphereCastAny(const Sphere& sphere, const Vector3& unitDir, u64 layer, float max) const
 {
-	PxSphereGeometry geometry(sphere.GetRadius());
-	PxTransform transform = ToPxTransform(sphere.GetCenter(), Quaternion::kIdentity);
+	PxSphereGeometry geometry(sphere.Radius);
+	PxTransform transform = ToPxTransform(sphere.Center, Quaternion::kIdentity);
 
 	return SweepAny(geometry, transform, unitDir, layer, max);
 }
@@ -1036,8 +1036,8 @@ Vector<Collider*> PhysXScene::BoxOverlapInternal(const AABox& box, const Quatern
 
 Vector<Collider*> PhysXScene::SphereOverlapInternal(const Sphere& sphere, u64 layer) const
 {
-	PxSphereGeometry geometry(sphere.GetRadius());
-	PxTransform transform = ToPxTransform(sphere.GetCenter(), Quaternion::kIdentity);
+	PxSphereGeometry geometry(sphere.Radius);
+	PxTransform transform = ToPxTransform(sphere.Center, Quaternion::kIdentity);
 
 	return Overlap(geometry, transform, layer);
 }
@@ -1075,8 +1075,8 @@ bool PhysXScene::BoxOverlapAny(const AABox& box, const Quaternion& rotation, u64
 
 bool PhysXScene::SphereOverlapAny(const Sphere& sphere, u64 layer) const
 {
-	PxSphereGeometry geometry(sphere.GetRadius());
-	PxTransform transform = ToPxTransform(sphere.GetCenter(), Quaternion::kIdentity);
+	PxSphereGeometry geometry(sphere.Radius);
+	PxTransform transform = ToPxTransform(sphere.Center, Quaternion::kIdentity);
 
 	return OverlapAny(geometry, transform, layer);
 }
@@ -1172,7 +1172,7 @@ u32 PhysXScene::AddBroadPhaseRegion(const AABox& region)
 	u32 id = mNextRegionIdx++;
 
 	PxBroadPhaseRegion pxRegion;
-	pxRegion.bounds = PxBounds3(ToPxVector(region.GetMin()), ToPxVector(region.GetMax()));
+	pxRegion.bounds = PxBounds3(ToPxVector(region.Minimum), ToPxVector(region.Maximum));
 	pxRegion.userData = (void*)(u64)id;
 
 	u32 handle = mScene->addBroadPhaseRegion(pxRegion, true);

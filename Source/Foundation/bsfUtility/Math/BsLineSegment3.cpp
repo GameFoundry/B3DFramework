@@ -12,8 +12,8 @@ LineSegment3::LineSegment3(const Vector3& start, const Vector3& end)
 
 std::pair<std::array<Vector3, 2>, float> LineSegment3::GetNearestPoint(const Ray& ray) const
 {
-	const Vector3& org = ray.GetOrigin();
-	const Vector3& dir = ray.GetDirection();
+	const Vector3& org = ray.Origin;
+	const Vector3& dir = ray.Direction;
 
 	Vector3 segDir = End - Start;
 	float segExtent = segDir.Normalize() * 0.5f;

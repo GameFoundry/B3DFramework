@@ -146,6 +146,21 @@ namespace bs
 	using PlaneF = TPlane<float>;
 	using PlaneD = TPlane<double>;
 
+	template<typename T> struct TAABox;
+	using AABox = TAABox<float>;
+	using AABoxF = TAABox<float>;
+	using AABoxD = TAABox<double>;
+
+	template<typename T> struct TSphere;
+	using Sphere = TSphere<float>;
+	using SphereF = TSphere<float>;
+	using SphereD = TSphere<double>;
+
+	template<typename T> struct TRay;
+	using Ray = TRay<float>;
+	using RayF = TRay<float>;
+	using RayD = TRay<double>;
+
 	/** @} */
 
 	/** @addtogroup Platform-Utility
@@ -163,14 +178,11 @@ namespace bs
 	/** @} */
 
 	class Angle;
-	class AABox;
 	class Math;
 	class Matrix3;
 	class Matrix4;
 	class Quaternion;
-	class Ray;
 	class Capsule;
-	class Sphere;
 	class Rect2I;
 	class Rect2;
 	class Rect3;

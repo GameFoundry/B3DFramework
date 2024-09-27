@@ -78,11 +78,11 @@ void ShapeMeshes3D::WireSphere(const Sphere& sphere, const SPtr<MeshData>& meshD
 	u32 verticesPerArc = (quality + 1) * 5;
 	u32 indicesPerArc = (verticesPerArc - 1) * 2;
 
-	WireDisc(sphere.GetCenter(), sphere.GetRadius(), Vector3::kUnitX, meshData, vertexOffset, indexOffset, quality);
+	WireDisc(sphere.Center, sphere.Radius, Vector3::kUnitX, meshData, vertexOffset, indexOffset, quality);
 
-	WireDisc(sphere.GetCenter(), sphere.GetRadius(), Vector3::kUnitY, meshData, vertexOffset + verticesPerArc, indexOffset + indicesPerArc, quality);
+	WireDisc(sphere.Center, sphere.Radius, Vector3::kUnitY, meshData, vertexOffset + verticesPerArc, indexOffset + indicesPerArc, quality);
 
-	WireDisc(sphere.GetCenter(), sphere.GetRadius(), Vector3::kUnitZ, meshData, vertexOffset + verticesPerArc * 2, indexOffset + indicesPerArc * 2, quality);
+	WireDisc(sphere.Center, sphere.Radius, Vector3::kUnitZ, meshData, vertexOffset + verticesPerArc * 2, indexOffset + indicesPerArc * 2, quality);
 }
 
 void ShapeMeshes3D::WireHemisphere(const Sphere& sphere, const SPtr<MeshData>& meshData, u32 vertexOffset, u32 indexOffset, u32 quality)
@@ -96,11 +96,11 @@ void ShapeMeshes3D::WireHemisphere(const Sphere& sphere, const SPtr<MeshData>& m
 	u32 verticesPerArc = (quality + 1) * 5;
 	u32 indicesPerArc = (verticesPerArc - 1) * 2;
 
-	WireArc(sphere.GetCenter(), sphere.GetRadius(), Vector3::kUnitX, Degree(0.0f), Degree(180.0f), meshData, vertexOffset, indexOffset, quality);
+	WireArc(sphere.Center, sphere.Radius, Vector3::kUnitX, Degree(0.0f), Degree(180.0f), meshData, vertexOffset, indexOffset, quality);
 
-	WireArc(sphere.GetCenter(), sphere.GetRadius(), Vector3::kUnitY, Degree(0.0f), Degree(180.0f), meshData, vertexOffset + verticesPerArc, indexOffset + indicesPerArc, quality);
+	WireArc(sphere.Center, sphere.Radius, Vector3::kUnitY, Degree(0.0f), Degree(180.0f), meshData, vertexOffset + verticesPerArc, indexOffset + indicesPerArc, quality);
 
-	WireDisc(sphere.GetCenter(), sphere.GetRadius(), Vector3::kUnitZ, meshData, vertexOffset + verticesPerArc * 2, indexOffset + indicesPerArc * 2, quality);
+	WireDisc(sphere.Center, sphere.Radius, Vector3::kUnitZ, meshData, vertexOffset + verticesPerArc * 2, indexOffset + indicesPerArc * 2, quality);
 }
 
 void ShapeMeshes3D::SolidSphere(const Sphere& sphere, const SPtr<MeshData>& meshData, u32 vertexOffset, u32 indexOffset, u32 quality)
@@ -660,7 +660,7 @@ void ShapeMeshes3D::SolidSphere(const Sphere& sphere, u8* outVertices, u8* outNo
 	u32 curVertOffset = vertexOffset;
 	for(int i = 0; i < 20; ++i)
 	{
-		curVertOffset += SubdivideTriangleOnSphere(sphere.GetCenter(), sphere.GetRadius(), quality, kVertices[kTriangles[i][2]], kVertices[kTriangles[i][1]], kVertices[kTriangles[i][0]], outVertices, outNormals, curVertOffset, vertexStride);
+		curVertOffset += SubdivideTriangleOnSphere(sphere.Center, sphere.Radius, quality, kVertices[kTriangles[i][2]], kVertices[kTriangles[i][1]], kVertices[kTriangles[i][0]], outVertices, outNormals, curVertOffset, vertexStride);
 	}
 
 	// Create UV if required
@@ -853,7 +853,7 @@ void ShapeMeshes3D::SolidSphere(const Sphere& sphere, u8* outVertices, u8* outNo
 	// Fill out the remaining extra vertices, just so they aren't uninitialized
 	for(; extraVertIdx < maxExtraVerts; extraVertIdx++)
 	{
-		extraPositions = WriteVector3(extraPositions, vertexStride, sphere.GetCenter());
+		extraPositions = WriteVector3(extraPositions, vertexStride, sphere.Center);
 
 		if(extraNormals)
 			extraNormals = WriteVector3(extraNormals, vertexStride, Vector3::kUnitZ);

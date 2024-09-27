@@ -287,20 +287,20 @@ void ParticleEmitterConeShape::CalcBounds(AABox& shape, AABox& velocity) const
 
 	if(mInfo.Type == ParticleEmitterConeType::Base)
 	{
-		shape.SetMin(Vector3(-mInfo.Radius, -mInfo.Radius, 0.0f));
-		shape.SetMax(Vector3(mInfo.Radius, mInfo.Radius, 0.0f));
+		shape.Minimum = Vector3(-mInfo.Radius, -mInfo.Radius, 0.0f);
+		shape.Maximum = Vector3(mInfo.Radius, mInfo.Radius, 0.0f);
 	}
 	else
 	{
 		const float topRadius = mInfo.Radius + mInfo.Length * sinAngle;
 		const float length = mInfo.Length * cosAngle;
 
-		shape.SetMin(Vector3(-topRadius, -topRadius, 0.0f));
-		shape.SetMax(Vector3(topRadius, topRadius, length));
+		shape.Minimum = Vector3(-topRadius, -topRadius, 0.0f);
+		shape.Maximum = Vector3(topRadius, topRadius, length);
 	}
 
-	velocity.SetMin(Vector3(-sinAngle, -sinAngle, 0.0f));
-	velocity.SetMax(Vector3(sinAngle, sinAngle, 1.0f));
+	velocity.Minimum = Vector3(-sinAngle, -sinAngle, 0.0f);
+	velocity.Maximum = Vector3(sinAngle, sinAngle, 1.0f);
 }
 
 RTTIType* ParticleEmitterConeShape::GetRttiStatic()
@@ -332,11 +332,11 @@ void ParticleEmitterSphereShape::SpawnInternal(const Random& random, Vector3& po
 
 void ParticleEmitterSphereShape::CalcBounds(AABox& shape, AABox& velocity) const
 {
-	shape.SetMin(Vector3::kOne * -mInfo.Radius);
-	shape.SetMax(Vector3::kOne * mInfo.Radius);
+	shape.Minimum = Vector3::kOne * -mInfo.Radius;
+	shape.Maximum = Vector3::kOne * mInfo.Radius;
 
-	velocity.SetMin(-Vector3::kOne);
-	velocity.SetMax(Vector3::kOne);
+	velocity.Minimum = -Vector3::kOne;
+	velocity.Maximum = Vector3::kOne;
 }
 
 SPtr<ParticleEmitterSphereShape> ParticleEmitterSphereShape::Create(const PARTICLE_SPHERE_SHAPE_DESC& desc)
@@ -380,11 +380,11 @@ void ParticleEmitterHemisphereShape::SpawnInternal(const Random& random, Vector3
 
 void ParticleEmitterHemisphereShape::CalcBounds(AABox& shape, AABox& velocity) const
 {
-	shape.SetMin(Vector3(-mInfo.Radius, -mInfo.Radius, 0.0f));
-	shape.SetMax(Vector3::kOne * mInfo.Radius);
+	shape.Minimum = Vector3(-mInfo.Radius, -mInfo.Radius, 0.0f);
+	shape.Maximum = Vector3::kOne * mInfo.Radius;
 
-	velocity.SetMin(Vector3(-1.0f, -1.0f, 0.0f));
-	velocity.SetMax(Vector3::kOne);
+	velocity.Minimum = Vector3(-1.0f, -1.0f, 0.0f);
+	velocity.Maximum = Vector3::kOne;
 }
 
 SPtr<ParticleEmitterHemisphereShape> ParticleEmitterHemisphereShape::Create(const PARTICLE_HEMISPHERE_SHAPE_DESC& desc)
@@ -553,11 +553,11 @@ void ParticleEmitterBoxShape::SpawnInternal(const Random& random, Vector3& posit
 
 void ParticleEmitterBoxShape::CalcBounds(AABox& shape, AABox& velocity) const
 {
-	shape.SetMin(-mInfo.Extents);
-	shape.SetMax(mInfo.Extents);
+	shape.Minimum = -mInfo.Extents;
+	shape.Maximum = mInfo.Extents;
 
-	velocity.SetMin(Vector3::kZero);
-	velocity.SetMax(Vector3::kUnitZ);
+	velocity.Minimum = Vector3::kZero;
+	velocity.Maximum = Vector3::kUnitZ;
 }
 
 SPtr<ParticleEmitterBoxShape> ParticleEmitterBoxShape::Create(const PARTICLE_BOX_SHAPE_DESC& desc)
@@ -603,11 +603,11 @@ void ParticleEmitterLineShape::SpawnInternal(float t, Vector3& position, Vector3
 
 void ParticleEmitterLineShape::CalcBounds(AABox& shape, AABox& velocity) const
 {
-	shape.SetMin(Vector3(-mInfo.Length * 0.5f, 0.0f, 0.0f));
-	shape.SetMax(Vector3(mInfo.Length * 0.5f, 0.0f, 0.0f));
+	shape.Minimum = Vector3(-mInfo.Length * 0.5f, 0.0f, 0.0f);
+	shape.Maximum = Vector3(mInfo.Length * 0.5f, 0.0f, 0.0f);
 
-	velocity.SetMin(Vector3::kZero);
-	velocity.SetMax(Vector3::kUnitZ);
+	velocity.Minimum = Vector3::kZero;
+	velocity.Maximum = Vector3::kUnitZ;
 }
 
 SPtr<ParticleEmitterLineShape> ParticleEmitterLineShape::Create(const PARTICLE_LINE_SHAPE_DESC& desc)
@@ -661,11 +661,11 @@ void ParticleEmitterCircleShape::SpawnInternal(float t, Vector3& position, Vecto
 
 void ParticleEmitterCircleShape::CalcBounds(AABox& shape, AABox& velocity) const
 {
-	shape.SetMin(Vector3(-mInfo.Radius, -mInfo.Radius, 0.0f));
-	shape.SetMax(Vector3(mInfo.Radius, mInfo.Radius, 0.0f));
+	shape.Minimum = Vector3(-mInfo.Radius, -mInfo.Radius, 0.0f);
+	shape.Maximum = Vector3(mInfo.Radius, mInfo.Radius, 0.0f);
 
-	velocity.SetMin(Vector3::kZero);
-	velocity.SetMax(Vector3::kUnitZ);
+	velocity.Minimum = Vector3::kZero;
+	velocity.Maximum = Vector3::kUnitZ;
 }
 
 SPtr<ParticleEmitterCircleShape> ParticleEmitterCircleShape::Create(const PARTICLE_CIRCLE_SHAPE_DESC& desc)
@@ -708,11 +708,11 @@ void ParticleEmitterRectShape::SpawnInternal(const Random& random, Vector3& posi
 
 void ParticleEmitterRectShape::CalcBounds(AABox& shape, AABox& velocity) const
 {
-	shape.SetMin(Vector3(-mInfo.Extents.X, -mInfo.Extents.Y, 0.0f));
-	shape.SetMax(Vector3(mInfo.Extents.X, mInfo.Extents.Y, 0.0f));
+	shape.Minimum = Vector3(-mInfo.Extents.X, -mInfo.Extents.Y, 0.0f);
+	shape.Maximum = Vector3(mInfo.Extents.X, mInfo.Extents.Y, 0.0f);
 
-	velocity.SetMin(Vector3::kZero);
-	velocity.SetMax(Vector3::kUnitZ);
+	velocity.Minimum = Vector3::kZero;
+	velocity.Maximum = Vector3::kUnitZ;
 }
 
 SPtr<ParticleEmitterRectShape> ParticleEmitterRectShape::Create(const PARTICLE_RECT_SHAPE_DESC& desc)
@@ -1035,8 +1035,8 @@ void ParticleEmitterStaticMeshShape::CalcBounds(AABox& shape, AABox& velocity) c
 	else
 		shape = AABox::kBoxEmpty;
 
-	velocity.SetMin(-Vector3::kOne);
-	velocity.SetMax(Vector3::kOne);
+	velocity.Minimum = -Vector3::kOne;
+	velocity.Maximum = Vector3::kOne;
 }
 
 SPtr<ParticleEmitterStaticMeshShape> ParticleEmitterStaticMeshShape::Create(const PARTICLE_STATIC_MESH_SHAPE_DESC& desc)
@@ -1207,8 +1207,8 @@ void ParticleEmitterSkinnedMeshShape::CalcBounds(AABox& shape, AABox& velocity) 
 	else
 		shape = AABox::kBoxEmpty;
 
-	velocity.SetMin(-Vector3::kOne);
-	velocity.SetMax(Vector3::kOne);
+	velocity.Minimum = -Vector3::kOne;
+	velocity.Maximum = Vector3::kOne;
 }
 
 SPtr<ParticleEmitterSkinnedMeshShape> ParticleEmitterSkinnedMeshShape::Create(const PARTICLE_SKINNED_MESH_SHAPE_DESC& desc)

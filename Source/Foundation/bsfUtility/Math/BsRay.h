@@ -12,36 +12,35 @@ namespace bs
 	 */
 
 	/** A ray in 3D space represented with an origin and direction. */
-	class B3D_UTILITY_EXPORT Ray
+	template<typename T>
+	struct TRay
 	{
-	public:
-		Ray() = default;
+		TVector3<T> Origin;
+		TVector3<T> Direction;
 
-		Ray(const Vector3& origin, const Vector3& direction)
-			: mOrigin(origin), mDirection(direction)
+		TRay()
+			: Origin(TVector3<T>::kZero), Direction(TVector3<T>::kUnitZ)
+		{ }
+
+		B3D_SCRIPT_EXPORT(Exclude(true))
+		TRay(const TVector3<T>& origin, const TVector3<T>& direction)
+			: Origin(origin), Direction(direction)
 		{}
 
-		void SetOrigin(const Vector3& origin) { mOrigin = origin; }
-
-		const Vector3& GetOrigin() const { return mOrigin; }
-
-		void SetDirection(const Vector3& dir) { mDirection = dir; }
-
-		const Vector3& GetDirection() const { return mDirection; }
-
 		/** Gets the position of a point t units along the ray. */
-		Vector3 GetPoint(float t) const
+		TVector3<T> GetPoint(T t) const
 		{
-			return Vector3(mOrigin + (mDirection * t));
+			return TVector3<T>(Origin + (Direction * t));
 		}
 
 		/** Gets the position of a point t units along the ray. */
-		Vector3 operator*(float t) const
+		TVector3<T> operator*(T t) const
 		{
 			return GetPoint(t);
 		}
 
 		/** Transforms the ray by the given matrix. */
+		template<typename Condition = T, std::enable_if_t<std::is_same_v<Condition, float>, int> = 0> // TODO - Temporarily enabled for float only, until we get TMatrix3<T>
 		void Transform(const Matrix4& matrix);
 
 		/**
@@ -49,16 +48,17 @@ namespace bs
 		 *
 		 * @note	Provided matrix must be affine.
 		 */
+		template<typename Condition = T, std::enable_if_t<std::is_same_v<Condition, float>, int> = 0> // TODO - Temporarily enabled for float only, until we get TMatrix3<T>
 		void TransformAffine(const Matrix4& matrix);
 
 		/** Ray/plane intersection, returns boolean result and distance to intersection point. */
-		std::pair<bool, float> Intersects(const Plane& p) const;
+		std::pair<bool, T> Intersects(const TPlane<T>& p) const;
 
 		/** Ray/sphere intersection, returns boolean result and distance to nearest intersection point. */
-		std::pair<bool, float> Intersects(const Sphere& s) const;
+		std::pair<bool, T> Intersects(const TSphere<T>& s) const;
 
 		/** Ray/axis aligned box intersection, returns boolean result and distance to nearest intersection point. */
-		std::pair<bool, float> Intersects(const AABox& box) const;
+		std::pair<bool, T> Intersects(const TAABox<T>& box) const;
 
 		/**
 		 * Ray/triangle intersection, returns boolean result and distance to intersection point.
@@ -71,12 +71,11 @@ namespace bs
 		 * @param[in]	negativeSide	(optional) Should intersections with the negative side (opposite of normal facing) count.
 		 * @return						Boolean result if intersection happened and distance to intersection point.
 		 */
-		std::pair<bool, float> Intersects(const Vector3& a, const Vector3& b, const Vector3& c, const Vector3& normal, bool positiveSide = true, bool negativeSide = true) const;
-
-	protected:
-		Vector3 mOrigin{ Vector3::kZero };
-		Vector3 mDirection{ Vector3::kUnitZ };
+		std::pair<bool, T> Intersects(const TVector3<T>& a, const TVector3<T>& b, const TVector3<T>& c, const TVector3<T>& normal, bool positiveSide = true, bool negativeSide = true) const;
 	};
+
+	//extern template struct B3D_SCRIPT_EXPORT(DocumentationGroup(Math), ExportAsStruct(true), ExportName(Ray)) TRay<float>;
+	//extern template struct B3D_SCRIPT_EXPORT(DocumentationGroup(Math), ExportAsStruct(true), ExportName(RayD)) TRay<double>;
 
 	/** @} */
 } // namespace bs

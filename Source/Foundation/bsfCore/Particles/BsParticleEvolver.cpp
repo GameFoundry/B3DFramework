@@ -568,8 +568,8 @@ u32 GroupRaycast(const PhysicsScene& physicsScene, LineSegment3* segments, Parti
 			continue;
 
 		Ray ray;
-		ray.SetOrigin(segments[i].Start);
-		ray.SetDirection(diff / length);
+		ray.Origin = segments[i].Start;
+		ray.Direction = diff / length;
 
 		for(auto& collider : hitColliders)
 		{

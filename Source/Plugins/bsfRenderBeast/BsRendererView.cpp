@@ -476,11 +476,11 @@ void RendererView::CalculateVisibility(const Vector<CullInfo>& cullInfos, Vector
 
 		// Do distance culling
 		const Sphere& boundingSphere = cullInfos[i].Bounds.GetSphere();
-		const Vector3& worldRenderablePosition = boundingSphere.GetCenter();
+		const Vector3& worldRenderablePosition = boundingSphere.Center;
 
 		float distanceToCameraSq = worldCameraPosition.SquaredDistance(worldRenderablePosition);
 		float correctedCullDistance = cullInfos[i].CullDistanceFactor * baseCullDistance;
-		float maxDistanceToCamera = correctedCullDistance + boundingSphere.GetRadius();
+		float maxDistanceToCamera = correctedCullDistance + boundingSphere.Radius;
 
 		if(distanceToCameraSq > maxDistanceToCamera * maxDistanceToCamera)
 			continue;

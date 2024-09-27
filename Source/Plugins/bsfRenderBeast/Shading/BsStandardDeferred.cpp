@@ -291,12 +291,12 @@ void StandardDeferred::RenderLight(GpuCommandBuffer& commandBuffer, LightType li
 	else // Radial or spot
 	{
 		// Check if viewer is inside the light volume
-		float distSqrd = (light.Internal->GetBounds().GetCenter() - viewProps.ViewOrigin).SquaredLength();
+		float distSqrd = (light.Internal->GetBounds().Center - viewProps.ViewOrigin).SquaredLength();
 
 		// Extend the bounds slighty to cover the case when the viewer is outside, but the near plane is intersecting
 		// the light bounds. We need to be conservative since the material for rendering outside will not properly
 		// render the inside of the light volume.
-		float boundRadius = light.Internal->GetBounds().GetRadius() + viewProps.NearPlane * 3.0f;
+		float boundRadius = light.Internal->GetBounds().Radius + viewProps.NearPlane * 3.0f;
 
 		bool isInside = distSqrd < (boundRadius * boundRadius);
 

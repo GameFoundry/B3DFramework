@@ -8,81 +8,93 @@
 
 using namespace bs;
 
-void Ray::Transform(const Matrix4& matrix)
+template<>
+template<>
+B3D_UTILITY_EXPORT void TRay<float>::Transform<float, 0>(const Matrix4& matrix)
 {
-	Vector3 end = GetPoint(1.0f);
+	using T = float;
 
-	mOrigin = matrix.Multiply(mOrigin);
+	TVector3<T> end = GetPoint((T)1.0);
+
+	Origin = matrix.Multiply(Origin);
 	end = matrix.Multiply(end);
 
-	mDirection = Vector3::Normalize(end - mOrigin);
+	Direction = TVector3<T>::Normalize(end - Origin);
 }
 
-void Ray::TransformAffine(const Matrix4& matrix)
+template<>
+template<>
+B3D_UTILITY_EXPORT void TRay<float>::TransformAffine(const Matrix4& matrix)
 {
-	Vector3 end = GetPoint(1.0f);
+	using T = float;
 
-	mOrigin = matrix.MultiplyAffine(mOrigin);
+	TVector3<T> end = GetPoint((T)1.0);
+
+	Origin = matrix.MultiplyAffine(Origin);
 	end = matrix.MultiplyAffine(end);
 
-	mDirection = Vector3::Normalize(end - mOrigin);
+	Direction = Vector3::Normalize(end - Origin);
 }
 
-std::pair<bool, float> Ray::Intersects(const Plane& p) const
+template<typename T>
+std::pair<bool, T> TRay<T>::Intersects(const TPlane<T>& p) const
 {
 	return p.Intersects(*this);
 }
 
-std::pair<bool, float> Ray::Intersects(const Sphere& s) const
+template<typename T>
+std::pair<bool, T> TRay<T>::Intersects(const TSphere<T>& s) const
 {
 	return s.Intersects(*this);
 }
 
-std::pair<bool, float> Ray::Intersects(const AABox& box) const
+template<typename T>
+std::pair<bool, T> TRay<T>::Intersects(const TAABox<T>& box) const
 {
 	return box.Intersects(*this);
 }
 
-std::pair<bool, float> Ray::Intersects(const Vector3& a, const Vector3& b, const Vector3& c, const Vector3& normal, bool positiveSide, bool negativeSide) const
+template<typename T>
+std::pair<bool, T> TRay<T>::Intersects(const TVector3<T>& a, const TVector3<T>& b, const TVector3<T>& c, const TVector3<T>& normal, bool positiveSide, bool negativeSide) const
 {
 	// Calculate intersection with plane.
-	float t;
+	T t;
 	{
-		float denom = normal.Dot(GetDirection());
+		T denom = normal.Dot(Direction);
 
 		// Check intersect side
-		if(denom > +std::numeric_limits<float>::epsilon())
+		if(denom > +std::numeric_limits<T>::epsilon())
 		{
 			if(!negativeSide)
-				return std::pair<bool, float>(false, 0.0f);
+				return std::pair<bool, T>(false, (T)0.0);
 		}
-		else if(denom < -std::numeric_limits<float>::epsilon())
+		else if(denom < -std::numeric_limits<T>::epsilon())
 		{
 			if(!positiveSide)
-				return std::pair<bool, float>(false, 0.0f);
+				return std::pair<bool, float>(false, (T)0.0);
 		}
 		else
 		{
 			// Parallel or triangle area is close to zero when
 			// the plane normal not normalized.
-			return std::pair<bool, float>(false, 0.0f);
+			return std::pair<bool, float>(false, (T)0.0);
 		}
 
-		t = normal.Dot(a - GetOrigin()) / denom;
+		t = normal.Dot(a - Origin) / denom;
 
-		if(t < 0)
+		if(t < (T)0.0)
 		{
 			// Intersection is behind origin
-			return std::pair<bool, float>(false, 0.0f);
+			return std::pair<bool, T>(false, (T)0.0);
 		}
 	}
 
 	// Calculate the largest area projection plane in X, Y or Z.
 	u32 i0, i1;
 	{
-		float n0 = Math::Abs(normal[0]);
-		float n1 = Math::Abs(normal[1]);
-		float n2 = Math::Abs(normal[2]);
+		T n0 = Math::Abs(normal[0]);
+		T n1 = Math::Abs(normal[1]);
+		T n2 = Math::Abs(normal[2]);
 
 		i0 = 1;
 		i1 = 2;
@@ -98,33 +110,36 @@ std::pair<bool, float> Ray::Intersects(const Vector3& a, const Vector3& b, const
 
 	// Check the intersection point is inside the triangle.
 	{
-		float u1 = b[i0] - a[i0];
-		float v1 = b[i1] - a[i1];
-		float u2 = c[i0] - a[i0];
-		float v2 = c[i1] - a[i1];
-		float u0 = t * GetDirection()[i0] + GetOrigin()[i0] - a[i0];
-		float v0 = t * GetDirection()[i1] + GetOrigin()[i1] - a[i1];
+		T u1 = b[i0] - a[i0];
+		T v1 = b[i1] - a[i1];
+		T u2 = c[i0] - a[i0];
+		T v2 = c[i1] - a[i1];
+		T u0 = t * Direction[i0] + Origin[i0] - a[i0];
+		T v0 = t * Direction[i1] + Origin[i1] - a[i1];
 
-		float alpha = u0 * v2 - u2 * v0;
-		float beta = u1 * v0 - u0 * v1;
-		float area = u1 * v2 - u2 * v1;
+		T alpha = u0 * v2 - u2 * v0;
+		T beta = u1 * v0 - u0 * v1;
+		T area = u1 * v2 - u2 * v1;
 
 		// Epsilon to avoid float precision errors.
-		const float EPSILON = 1e-6f;
+		const T EPSILON = (T)1e-6;
 
-		float tolerance = -EPSILON * area;
+		T tolerance = -EPSILON * area;
 
 		if(area > 0)
 		{
 			if(alpha < tolerance || beta < tolerance || alpha + beta > area - tolerance)
-				return std::pair<bool, float>(false, 0.0f);
+				return std::pair<bool, T>(false, (T)0.0);
 		}
 		else
 		{
 			if(alpha > tolerance || beta > tolerance || alpha + beta < area - tolerance)
-				return std::pair<bool, float>(false, 0.0f);
+				return std::pair<bool, T>(false, (T)0.0);
 		}
 	}
 
-	return std::pair<bool, float>(true, t);
+	return std::pair<bool, T>(true, t);
 }
+
+template struct B3D_UTILITY_EXPORT TRay<float>;
+template struct B3D_UTILITY_EXPORT TRay<double>;

@@ -942,7 +942,7 @@ Vector<DrawHelper::ShapeMeshData> DrawHelper::BuildMeshes(SortType sorting, cons
 				case ShapeType::Sphere:
 					{
 						SphereData& sphereData = mSolidSphereData[shapeData.Idx];
-						class Sphere sphere(sphereData.Position, sphereData.Radius);
+						TSphere<float> sphere(sphereData.Position, sphereData.Radius);
 						ShapeMeshes3D::SolidSphere(sphere, meshData[typeIdx], vertexOffset[typeIdx], indexOffset[typeIdx], sphereData.Quality);
 
 						transform = &sphereData.Transform;
@@ -1088,7 +1088,7 @@ Vector<DrawHelper::ShapeMeshData> DrawHelper::BuildMeshes(SortType sorting, cons
 					{
 						SphereData& sphereData = mWireSphereData[shapeData.Idx];
 
-						class Sphere sphere(sphereData.Position, sphereData.Radius);
+						TSphere<float> sphere(sphereData.Position, sphereData.Radius);
 						ShapeMeshes3D::WireSphere(sphere, meshData[typeIdx], vertexOffset[typeIdx], indexOffset[typeIdx], sphereData.Quality);
 
 						transform = &sphereData.Transform;
@@ -1099,7 +1099,7 @@ Vector<DrawHelper::ShapeMeshData> DrawHelper::BuildMeshes(SortType sorting, cons
 					{
 						SphereData& sphereData = mWireHemisphereData[shapeData.Idx];
 
-						class Sphere sphere(sphereData.Position, sphereData.Radius);
+						TSphere<float> sphere(sphereData.Position, sphereData.Radius);
 						ShapeMeshes3D::WireHemisphere(sphere, meshData[typeIdx], vertexOffset[typeIdx], indexOffset[typeIdx], sphereData.Quality);
 
 						transform = &sphereData.Transform;

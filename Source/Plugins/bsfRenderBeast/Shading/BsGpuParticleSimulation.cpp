@@ -939,7 +939,7 @@ void GpuParticleSimulation::PrepareBuffers(const GpuParticleSystem* system, cons
 		const Vector3 rotationRate = simSettings.VectorField.RotationRate.Evaluate(nrmTime, random) * time;
 		const Quaternion addedRotation(Degree(rotationRate.X), Degree(rotationRate.Y), Degree(rotationRate.Z));
 
-		const Vector3 offset = vfDesc.Bounds.GetMin() + simSettings.VectorField.Offset;
+		const Vector3 offset = vfDesc.Bounds.Minimum + simSettings.VectorField.Offset;
 		const Quaternion rotation = simSettings.VectorField.Rotation * addedRotation;
 		const Vector3 scale = vfDesc.Bounds.GetSize() * simSettings.VectorField.Scale;
 
