@@ -1,15 +1,18 @@
 //********************************* bs::framework - Copyright 2018-2019 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "Wrappers/BsScriptCategory.h"
+#include "BsMonoClass.h"
 
 using namespace bs;
-MonoField* ScriptCategory::nameField = nullptr;
 
-ScriptCategory::ScriptCategory(MonoObject* instance)
-	: ScriptObject(instance)
-{}
+MonoField* ScriptCategory::sNameField = nullptr;
 
-void ScriptCategory::InitRuntimeData()
+ScriptCategory::ScriptCategory()
 {
-	nameField = metaData.ScriptClass->GetField("name");
+	
+}
+
+void ScriptCategory::SetupScriptBindings()
+{
+	sNameField = sInteropMetaData.ScriptClass->GetField("name");
 }

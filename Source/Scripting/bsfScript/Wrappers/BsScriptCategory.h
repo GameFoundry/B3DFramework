@@ -3,21 +3,23 @@
 #pragma once
 
 #include "BsScriptEnginePrerequisites.h"
-#include "BsScriptObject.h"
+#include "BsScriptTypeDefinition.h"
 
 namespace bs
 {
 	/**	Interop class between C++ & CLR for the Category attribute. */
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptCategory : public ScriptObject<ScriptCategory>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptCategory : public TScriptTypeDefinition<ScriptCategory>
 	{
 	public:
-		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "Category")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "Category")
 
-		static MonoField* GetNameField() { return nameField; }
+		ScriptCategory();
+
+		static void SetupScriptBindings();
+
+		static MonoField* GetNameField() { return sNameField; }
 
 	private:
-		ScriptCategory(MonoObject* instance);
-
-		static MonoField* nameField;
+		static MonoField* sNameField;
 	};
 } // namespace bs
