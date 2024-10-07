@@ -15,7 +15,7 @@ namespace bs
 	 */
 
 	/** Helper class that performs various operations related to GUI. */
-	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(GUI)) GUIUtility
+	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(GUI), Static) GUIUtility
 	{
 	public:
 		/**
