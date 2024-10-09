@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 
 namespace bs
 {
-	/// <summary>Information about a single or multiple dragged scene objects.</summary>
+	/// <summary>Information about a single or multiple dragged resources, represented as paths.</summary>
 	[ShowInInspector]
 	public partial class ResourceDragAndDropData : DragAndDropData
 	{

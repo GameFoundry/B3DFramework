@@ -67,17 +67,7 @@ namespace bs
 		tmp__output = DragAndDrop::Instance().GetDragData();
 
 		MonoObject* __output;
-		if(tmp__output)
-		{
-			if(B3DRTTIIsOfType<SceneObjectDragAndDropData>(tmp__output))
-				__output = ScriptSceneObjectDragAndDropData::GetOrCreateScriptObject(std::static_pointer_cast<SceneObjectDragAndDropData>(tmp__output));
-			else if(B3DRTTIIsOfType<ResourceDragAndDropData>(tmp__output))
-				__output = ScriptResourceDragAndDropData::GetOrCreateScriptObject(std::static_pointer_cast<ResourceDragAndDropData>(tmp__output));
-			else
-				__output = ScriptDragAndDropData::GetOrCreateScriptObject(tmp__output);
-		}
-		else
-			__output = ScriptDragAndDropData::GetOrCreateScriptObject(tmp__output);
+		__output = ScriptDragAndDropData::GetOrCreateScriptObject(tmp__output);
 
 		return __output;
 	}
@@ -88,17 +78,7 @@ namespace bs
 		tmp__output = DragAndDrop::Instance().GetDropData();
 
 		MonoObject* __output;
-		if(tmp__output)
-		{
-			if(B3DRTTIIsOfType<SceneObjectDragAndDropData>(tmp__output))
-				__output = ScriptSceneObjectDragAndDropData::GetOrCreateScriptObject(std::static_pointer_cast<SceneObjectDragAndDropData>(tmp__output));
-			else if(B3DRTTIIsOfType<ResourceDragAndDropData>(tmp__output))
-				__output = ScriptResourceDragAndDropData::GetOrCreateScriptObject(std::static_pointer_cast<ResourceDragAndDropData>(tmp__output));
-			else
-				__output = ScriptDragAndDropData::GetOrCreateScriptObject(tmp__output);
-		}
-		else
-			__output = ScriptDragAndDropData::GetOrCreateScriptObject(tmp__output);
+		__output = ScriptDragAndDropData::GetOrCreateScriptObject(tmp__output);
 
 		return __output;
 	}

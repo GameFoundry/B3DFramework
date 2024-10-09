@@ -13325,7 +13325,7 @@ Alternatively you can also skip manually calling ReleaseInternalReference() and 
 		</enumentry>
 	</enum>
 	<class native="ResourceDragAndDropData" script="ResourceDragAndDropData">
-		<doc>Information about a single or multiple dragged scene objects.</doc>
+		<doc>Information about a single or multiple dragged resources, represented as paths.</doc>
 		<ctor>
 		</ctor>
 		<ctor>

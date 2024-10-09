@@ -100,31 +100,7 @@ namespace bs
 		tmp__output = static_cast<ParticleEmitter*>(self->GetNativeObject())->GetShape();
 
 		MonoObject* __output;
-		if(tmp__output)
-		{
-			if(B3DRTTIIsOfType<ParticleEmitterStaticMeshShape>(tmp__output))
-				__output = ScriptParticleEmitterStaticMeshShape::GetOrCreateScriptObject(std::static_pointer_cast<ParticleEmitterStaticMeshShape>(tmp__output));
-			else if(B3DRTTIIsOfType<ParticleEmitterCircleShape>(tmp__output))
-				__output = ScriptParticleEmitterCircleShape::GetOrCreateScriptObject(std::static_pointer_cast<ParticleEmitterCircleShape>(tmp__output));
-			else if(B3DRTTIIsOfType<ParticleEmitterConeShape>(tmp__output))
-				__output = ScriptParticleEmitterConeShape::GetOrCreateScriptObject(std::static_pointer_cast<ParticleEmitterConeShape>(tmp__output));
-			else if(B3DRTTIIsOfType<ParticleEmitterSphereShape>(tmp__output))
-				__output = ScriptParticleEmitterSphereShape::GetOrCreateScriptObject(std::static_pointer_cast<ParticleEmitterSphereShape>(tmp__output));
-			else if(B3DRTTIIsOfType<ParticleEmitterHemisphereShape>(tmp__output))
-				__output = ScriptParticleEmitterHemisphereShape::GetOrCreateScriptObject(std::static_pointer_cast<ParticleEmitterHemisphereShape>(tmp__output));
-			else if(B3DRTTIIsOfType<ParticleEmitterBoxShape>(tmp__output))
-				__output = ScriptParticleEmitterBoxShape::GetOrCreateScriptObject(std::static_pointer_cast<ParticleEmitterBoxShape>(tmp__output));
-			else if(B3DRTTIIsOfType<ParticleEmitterLineShape>(tmp__output))
-				__output = ScriptParticleEmitterLineShape::GetOrCreateScriptObject(std::static_pointer_cast<ParticleEmitterLineShape>(tmp__output));
-			else if(B3DRTTIIsOfType<ParticleEmitterRectShape>(tmp__output))
-				__output = ScriptParticleEmitterRectShape::GetOrCreateScriptObject(std::static_pointer_cast<ParticleEmitterRectShape>(tmp__output));
-			else if(B3DRTTIIsOfType<ParticleEmitterSkinnedMeshShape>(tmp__output))
-				__output = ScriptParticleEmitterSkinnedMeshShape::GetOrCreateScriptObject(std::static_pointer_cast<ParticleEmitterSkinnedMeshShape>(tmp__output));
-			else
-				__output = ScriptParticleEmitterShape::GetOrCreateScriptObject(tmp__output);
-		}
-		else
-			__output = ScriptParticleEmitterShape::GetOrCreateScriptObject(tmp__output);
+		__output = ScriptParticleEmitterShape::GetOrCreateScriptObject(tmp__output);
 
 		return __output;
 	}
