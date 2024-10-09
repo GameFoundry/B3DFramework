@@ -97,7 +97,10 @@ namespace bs
 			// TODO: Could skip expensive lookup if the type has no derived classes (should be most cases). In that case the code-gen could generate
 			// code that calls a streamlined version of this method, with no lookup.
 			const ScriptTypeMetaData* metaData = ScriptAssemblyManager::Instance().GetScriptWrapperMetaData(nativeObject->GetTypeId());
-			if(B3D_ENSURE(metaData != nullptr))
+
+			// Meta-data must be present for native object of type NativeType, but derived classes might not have it as they might not be script exported
+			B3D_ENSURE(metaData != nullptr || (NativeType::GetRttiStatic()->GetRttiId() != nativeObject->GetTypeId()));
+			if(metaData != nullptr)
 				return metaData->ReflectableCreateCallback(nativeObject);
 
 			return CreateScriptObjectAndWrapper(nativeObject);
