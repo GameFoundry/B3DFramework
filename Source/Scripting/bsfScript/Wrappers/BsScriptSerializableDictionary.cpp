@@ -10,7 +10,7 @@
 #include "Wrappers/BsScriptSerializableProperty.h"
 
 using namespace bs;
-ScriptSerializableDictionary::ScriptSerializableDictionary(MonoObject* instance, const SPtr<ManagedSerializableTypeInfoDictionary>& typeInfo)
+ScriptSerializableDictionary::ScriptSerializableDictionary(MonoObject* instance, const SPtr<ManagedTypeInfoDictionary>& typeInfo)
 	: ScriptObject(instance), mTypeInfo(typeInfo)
 {
 }
@@ -23,8 +23,8 @@ void ScriptSerializableDictionary::InitRuntimeData()
 
 MonoObject* ScriptSerializableDictionary::Create(const ScriptSerializableProperty* native, MonoObject* managed)
 {
-	SPtr<ManagedSerializableTypeInfoDictionary> dictTypeInfo =
-		std::static_pointer_cast<ManagedSerializableTypeInfoDictionary>(native->GetTypeInfo());
+	SPtr<ManagedTypeInfoDictionary> dictTypeInfo =
+		std::static_pointer_cast<ManagedTypeInfoDictionary>(native->GetTypeInfo());
 
 	MonoReflectionType* internalKeyType = MonoUtil::GetType(dictTypeInfo->KeyType->GetMonoClass());
 	MonoReflectionType* internalValueType = MonoUtil::GetType(dictTypeInfo->ValueType->GetMonoClass());

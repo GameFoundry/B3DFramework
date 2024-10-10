@@ -77,10 +77,10 @@ namespace bs
 		 *							otherwise.
 		 * @return					True if the type was found, false otherwise.
 		 */
-		bool GetSerializableObjectInfo(const String& ns, const String& typeName, SPtr<ManagedSerializableObjectInfo>& outInfo);
+		bool GetSerializableObjectInfo(const String& ns, const String& typeName, SPtr<ManagedObjectInfo>& outInfo);
 
 		/**	Generates or retrieves a type info object for the specified managed class, if the class is serializable. */
-		SPtr<ManagedSerializableTypeInfo> GetTypeInfo(MonoClass* monoClass);
+		SPtr<ManagedTypeInfo> GetTypeInfo(MonoClass* monoClass);
 
 		/** Returns script wrapper object meta-data for the type as specified by the provided RTTI type ID. */
 		const ScriptTypeMetaData* GetScriptWrapperMetaData(u32 typeId) const;
@@ -127,7 +127,7 @@ namespace bs
 		 */
 		void InitializeScriptWrapperMetaDataLookup(MonoAssembly& assembly);
 
-		UnorderedMap<String, SPtr<ManagedSerializableAssemblyInfo>> mAssemblyInfos;
+		UnorderedMap<String, SPtr<ManagedAssemblyInfo>> mAssemblyInfos;
 
 		UnorderedMap<u32, ScriptTypeMetaData*> mScriptWrapperMetaDataByTypeId;
 		UnorderedMap<::MonoReflectionType*, ScriptTypeMetaData*> mScriptWrapperMetaDataByScriptClass;

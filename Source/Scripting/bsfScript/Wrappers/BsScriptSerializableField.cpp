@@ -15,7 +15,7 @@
 
 using namespace bs;
 
-ScriptSerializableField::ScriptSerializableField(MonoObject* instance, const SPtr<ManagedSerializableMemberInfo>& fieldInfo)
+ScriptSerializableField::ScriptSerializableField(MonoObject* instance, const SPtr<ManagedMemberInfo>& fieldInfo)
 	: ScriptObject(instance), mFieldInfo(fieldInfo)
 {
 }
@@ -28,7 +28,7 @@ void ScriptSerializableField::InitRuntimeData()
 	metaData.ScriptClass->AddInternalCall("Internal_GetStyle", (void*)&ScriptSerializableField::InternalGetStyle);
 }
 
-MonoObject* ScriptSerializableField::Create(MonoObject* parentObject, const SPtr<ManagedSerializableMemberInfo>& fieldInfo)
+MonoObject* ScriptSerializableField::Create(MonoObject* parentObject, const SPtr<ManagedMemberInfo>& fieldInfo)
 {
 	MonoString* monoStrName = MonoUtil::WstringToMono(ToWString(fieldInfo->Name));
 	MonoReflectionType* internalType = MonoUtil::GetType(fieldInfo->TypeInfo->GetMonoClass());
@@ -64,7 +64,7 @@ void ScriptSerializableField::InternalSetValue(ScriptSerializableField* nativeIn
 
 void ScriptSerializableField::InternalGetStyle(ScriptSerializableField* nativeInstance, SerializableMemberStyle* style)
 {
-	SPtr<ManagedSerializableMemberInfo> fieldInfo = nativeInstance->mFieldInfo;
+	SPtr<ManagedMemberInfo> fieldInfo = nativeInstance->mFieldInfo;
 	SerializableMemberStyle interopStyle;
 
 	ScriptFieldFlags fieldFlags = fieldInfo->Flags;

@@ -111,7 +111,7 @@ namespace bs
 		};
 
 	public:
-		ManagedSerializableDictionary(const ConstructPrivately& dummy, const SPtr<ManagedSerializableTypeInfoDictionary>& typeInfo, MonoObject* managedInstance);
+		ManagedSerializableDictionary(const ConstructPrivately& dummy, const SPtr<ManagedTypeInfoDictionary>& typeInfo, MonoObject* managedInstance);
 		ManagedSerializableDictionary(const ConstructPrivately& dummy);
 		~ManagedSerializableDictionary();
 
@@ -122,7 +122,7 @@ namespace bs
 		MonoObject* GetManagedInstance() const;
 
 		/**	Returns the type information for the internal dictionary. */
-		SPtr<ManagedSerializableTypeInfoDictionary> GetTypeInfo() const { return mDictionaryTypeInfo; }
+		SPtr<ManagedTypeInfoDictionary> GetTypeInfo() const { return mDictionaryTypeInfo; }
 
 		/**
 		 * Returns the dictionary value at the specified key. If the key doesn't exist the default value for the type is
@@ -184,21 +184,21 @@ namespace bs
 		 *									correspond with the provided type info.
 		 * @param[in]	typeInfo			Type information for the dictionary and its key/value pair.
 		 */
-		static SPtr<ManagedSerializableDictionary> CreateFromExisting(MonoObject* managedInstance, const SPtr<ManagedSerializableTypeInfoDictionary>& typeInfo);
+		static SPtr<ManagedSerializableDictionary> CreateFromExisting(MonoObject* managedInstance, const SPtr<ManagedTypeInfoDictionary>& typeInfo);
 
 		/**
 		 * Creates a managed serializable dictionary that creates and references a brand new managed dictionary instance.
 		 *
 		 * @param[in]	typeInfo	Type of the dictionary to create.
 		 */
-		static SPtr<ManagedSerializableDictionary> CreateNew(const SPtr<ManagedSerializableTypeInfoDictionary>& typeInfo);
+		static SPtr<ManagedSerializableDictionary> CreateNew(const SPtr<ManagedTypeInfoDictionary>& typeInfo);
 
 		/**
 		 * Creates a managed dictionary instance.
 		 *
 		 * @param[in]	typeInfo	Type of the dictionary to create.
 		 */
-		static MonoObject* CreateManagedInstance(const SPtr<ManagedSerializableTypeInfoDictionary>& typeInfo);
+		static MonoObject* CreateManagedInstance(const SPtr<ManagedTypeInfoDictionary>& typeInfo);
 
 	protected:
 		/**
@@ -228,7 +228,7 @@ namespace bs
 		MonoProperty* mValuesProp = nullptr;
 		MonoMethod* mValuesCopyTo = nullptr;
 
-		SPtr<ManagedSerializableTypeInfoDictionary> mDictionaryTypeInfo;
+		SPtr<ManagedTypeInfoDictionary> mDictionaryTypeInfo;
 		CachedEntriesMap mCachedEntries;
 
 		/************************************************************************/

@@ -34,7 +34,7 @@ namespace bs
 		{};
 
 	public:
-		ManagedSerializableList(const ConstructPrivately& dummy, const SPtr<ManagedSerializableTypeInfoList>& typeInfo, MonoObject* managedInstance);
+		ManagedSerializableList(const ConstructPrivately& dummy, const SPtr<ManagedTypeInfoList>& typeInfo, MonoObject* managedInstance);
 		ManagedSerializableList(const ConstructPrivately& dummy);
 		~ManagedSerializableList();
 
@@ -42,7 +42,7 @@ namespace bs
 		MonoObject* GetManagedInstance() const;
 
 		/**	Returns the type information for the internal list. */
-		SPtr<ManagedSerializableTypeInfoList> GetTypeInfo() const { return mListTypeInfo; }
+		SPtr<ManagedTypeInfoList> GetTypeInfo() const { return mListTypeInfo; }
 
 		/** Changes the size of the list. Operates on managed object if in linked state, or on cached data otherwise. */
 		void Resize(u32 newSize);
@@ -91,7 +91,7 @@ namespace bs
 		 *								the provided type info.
 		 * @param[in]	typeInfo		Type information for the list and its elements.
 		 */
-		static SPtr<ManagedSerializableList> CreateFromExisting(MonoObject* managedInstance, const SPtr<ManagedSerializableTypeInfoList>& typeInfo);
+		static SPtr<ManagedSerializableList> CreateFromExisting(MonoObject* managedInstance, const SPtr<ManagedTypeInfoList>& typeInfo);
 
 		/**
 		 * Creates a managed serializable list that creates and references a brand new managed list instance.
@@ -99,7 +99,7 @@ namespace bs
 		 * @param[in]	typeInfo	Type of the list to create.
 		 * @param[in]	size		Initial size of the list.
 		 */
-		static SPtr<ManagedSerializableList> CreateNew(const SPtr<ManagedSerializableTypeInfoList>& typeInfo, u32 size);
+		static SPtr<ManagedSerializableList> CreateNew(const SPtr<ManagedTypeInfoList>& typeInfo, u32 size);
 
 		/**
 		 * Creates a managed list instance.
@@ -107,7 +107,7 @@ namespace bs
 		 * @param[in]	typeInfo	Type of the list to create.
 		 * @param[in]	size		Initial size of the list.
 		 */
-		static MonoObject* CreateManagedInstance(const SPtr<ManagedSerializableTypeInfoList>& typeInfo, u32 size);
+		static MonoObject* CreateManagedInstance(const SPtr<ManagedTypeInfoList>& typeInfo, u32 size);
 
 	protected:
 		/**
@@ -140,7 +140,7 @@ namespace bs
 		MonoProperty* mItemProp = nullptr;
 		MonoProperty* mCountProp = nullptr;
 
-		SPtr<ManagedSerializableTypeInfoList> mListTypeInfo;
+		SPtr<ManagedTypeInfoList> mListTypeInfo;
 		Vector<SPtr<ManagedSerializableFieldData>> mCachedEntries;
 		u32 mNumElements = 0;
 

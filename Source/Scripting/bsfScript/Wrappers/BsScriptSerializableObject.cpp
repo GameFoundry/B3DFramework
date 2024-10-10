@@ -12,7 +12,7 @@
 using namespace bs;
 MonoField* ScriptSerializableObject::FieldsField = nullptr;
 
-ScriptSerializableObject::ScriptSerializableObject(MonoObject* instance, const SPtr<ManagedSerializableObjectInfo>& objInfo)
+ScriptSerializableObject::ScriptSerializableObject(MonoObject* instance, const SPtr<ManagedObjectInfo>& objInfo)
 	: ScriptObject(instance), mObjInfo(objInfo)
 {
 }
@@ -49,7 +49,7 @@ void ScriptSerializableObject::InternalCreateInstance(MonoObject* instance, Mono
 	String elementTypeName;
 	MonoUtil::GetClassName(monoClass, elementNs, elementTypeName);
 
-	SPtr<ManagedSerializableObjectInfo> objInfo;
+	SPtr<ManagedObjectInfo> objInfo;
 	ScriptAssemblyManager::Instance().GetSerializableObjectInfo(elementNs, elementTypeName, objInfo);
 
 	CreateInternal(instance, objInfo);
@@ -64,11 +64,11 @@ MonoObject* ScriptSerializableObject::InternalGetBaseClass(ScriptSerializableObj
 	return Create(owningObject, reflType);
 }
 
-ScriptSerializableObject* ScriptSerializableObject::CreateInternal(MonoObject* instance, const SPtr<ManagedSerializableObjectInfo>& objInfo)
+ScriptSerializableObject* ScriptSerializableObject::CreateInternal(MonoObject* instance, const SPtr<ManagedObjectInfo>& objInfo)
 {
 	ScriptSerializableObject* nativeInstance = new(B3DAllocate<ScriptSerializableObject>()) ScriptSerializableObject(instance, objInfo);
 
-	Vector<SPtr<ManagedSerializableMemberInfo>> sortedFields;
+	Vector<SPtr<ManagedMemberInfo>> sortedFields;
 
 	if(objInfo != nullptr)
 	{
@@ -81,7 +81,7 @@ ScriptSerializableObject* ScriptSerializableObject::CreateInternal(MonoObject* i
 		}
 	}
 
-	std::sort(sortedFields.begin(), sortedFields.end(), [&](const SPtr<ManagedSerializableMemberInfo>& x, const SPtr<ManagedSerializableMemberInfo>& y)
+	std::sort(sortedFields.begin(), sortedFields.end(), [&](const SPtr<ManagedMemberInfo>& x, const SPtr<ManagedMemberInfo>& y)
 			  { return x->FieldId < y->FieldId; });
 
 	::MonoClass* serializableFieldClass = ScriptSerializableField::GetMetaData()->ScriptClass->GetInternalClass();

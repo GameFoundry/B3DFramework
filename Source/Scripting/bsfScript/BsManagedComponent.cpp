@@ -131,7 +131,7 @@ void ManagedComponent::Restore(const RawBackupData& data)
 	mRequiresReset = true;
 }
 
-MonoObject* ManagedComponent::CreateScriptObject(SPtr<ManagedSerializableObjectInfo>& outObjectInformation) const
+MonoObject* ManagedComponent::CreateScriptObject(SPtr<ManagedObjectInfo>& outObjectInformation) const
 {
 	// See if this type even still exists
 	MonoObject* scriptObject;
@@ -143,7 +143,7 @@ MonoObject* ManagedComponent::CreateScriptObject(SPtr<ManagedSerializableObjectI
 	return scriptObject;
 }
 
-void ManagedComponent::SetupScriptBindings(const SPtr<ManagedSerializableObjectInfo>& objectInformation)
+void ManagedComponent::SetupScriptBindings(const SPtr<ManagedObjectInfo>& objectInformation)
 {
 	mObjInfo = objectInformation;
 
@@ -338,7 +338,7 @@ void ManagedComponent::Initialize()
 {
 	Component::Initialize();
 
-	SPtr<ManagedSerializableObjectInfo> objectInformation;
+	SPtr<ManagedObjectInfo> objectInformation;
 	MonoObject* const scriptObject = CreateScriptObject(objectInformation);
 
 	ScriptObjectWrapper::Create<ScriptManagedComponent>(B3DStaticGameObjectCast<ManagedComponent>(mThisHandle), scriptObject);

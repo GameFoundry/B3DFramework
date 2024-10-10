@@ -218,7 +218,7 @@ bool ManagedSerializableDictionary::Enumerator::MoveNext()
 ManagedSerializableDictionary::ManagedSerializableDictionary(const ConstructPrivately& dummy)
 {}
 
-ManagedSerializableDictionary::ManagedSerializableDictionary(const ConstructPrivately& dummy, const SPtr<ManagedSerializableTypeInfoDictionary>& typeInfo, MonoObject* managedInstance)
+ManagedSerializableDictionary::ManagedSerializableDictionary(const ConstructPrivately& dummy, const SPtr<ManagedTypeInfoDictionary>& typeInfo, MonoObject* managedInstance)
 	: mDictionaryTypeInfo(typeInfo)
 {
 	mGCHandle = MonoUtil::NewGcHandle(managedInstance, false);
@@ -239,7 +239,7 @@ ManagedSerializableDictionary::~ManagedSerializableDictionary()
 	}
 }
 
-SPtr<ManagedSerializableDictionary> ManagedSerializableDictionary::CreateFromExisting(MonoObject* managedInstance, const SPtr<ManagedSerializableTypeInfoDictionary>& typeInfo)
+SPtr<ManagedSerializableDictionary> ManagedSerializableDictionary::CreateFromExisting(MonoObject* managedInstance, const SPtr<ManagedTypeInfoDictionary>& typeInfo)
 {
 	if(managedInstance == nullptr)
 		return nullptr;
@@ -256,12 +256,12 @@ SPtr<ManagedSerializableDictionary> ManagedSerializableDictionary::CreateFromExi
 	return B3DMakeShared<ManagedSerializableDictionary>(ConstructPrivately(), typeInfo, managedInstance);
 }
 
-SPtr<ManagedSerializableDictionary> ManagedSerializableDictionary::CreateNew(const SPtr<ManagedSerializableTypeInfoDictionary>& typeInfo)
+SPtr<ManagedSerializableDictionary> ManagedSerializableDictionary::CreateNew(const SPtr<ManagedTypeInfoDictionary>& typeInfo)
 {
 	return B3DMakeShared<ManagedSerializableDictionary>(ConstructPrivately(), typeInfo, CreateManagedInstance(typeInfo));
 }
 
-MonoObject* ManagedSerializableDictionary::CreateManagedInstance(const SPtr<ManagedSerializableTypeInfoDictionary>& typeInfo)
+MonoObject* ManagedSerializableDictionary::CreateManagedInstance(const SPtr<ManagedTypeInfoDictionary>& typeInfo)
 {
 	if(!typeInfo->IsTypeLoaded())
 		return nullptr;

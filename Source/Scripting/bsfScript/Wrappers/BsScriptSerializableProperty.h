@@ -26,17 +26,17 @@ namespace bs
 		 *
 		 * @param[in]	typeInfo	Data about the type the property references.
 		 */
-		static MonoObject* Create(const SPtr<ManagedSerializableTypeInfo>& typeInfo);
+		static MonoObject* Create(const SPtr<ManagedTypeInfo>& typeInfo);
 
 		/**	Returns the data about the type the property is referencing. */
-		SPtr<ManagedSerializableTypeInfo> GetTypeInfo() const { return mTypeInfo; }
+		SPtr<ManagedTypeInfo> GetTypeInfo() const { return mTypeInfo; }
 
 		~ScriptSerializableProperty() = default;
 
 	private:
-		ScriptSerializableProperty(MonoObject* instance, const SPtr<ManagedSerializableTypeInfo>& typeInfo);
+		ScriptSerializableProperty(MonoObject* instance, const SPtr<ManagedTypeInfo>& typeInfo);
 
-		SPtr<ManagedSerializableTypeInfo> mTypeInfo;
+		SPtr<ManagedTypeInfo> mTypeInfo;
 
 		/************************************************************************/
 		/* 								CLR HOOKS						   		*/

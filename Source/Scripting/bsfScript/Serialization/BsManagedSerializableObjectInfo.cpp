@@ -14,19 +14,19 @@
 #include "Wrappers/BsScriptRRefBase.h"
 
 using namespace bs;
-RTTIType* ManagedSerializableAssemblyInfo::GetRttiStatic()
+RTTIType* ManagedAssemblyInfo::GetRttiStatic()
 {
-	return ManagedSerializableAssemblyInfoRTTI::Instance();
+	return ManagedAssemblyInfoRTTI::Instance();
 }
 
-RTTIType* ManagedSerializableAssemblyInfo::GetRtti() const
+RTTIType* ManagedAssemblyInfo::GetRtti() const
 {
-	return ManagedSerializableAssemblyInfo::GetRttiStatic();
+	return ManagedAssemblyInfo::GetRttiStatic();
 }
 
-SPtr<ManagedSerializableMemberInfo> ManagedSerializableObjectInfo::FindMatchingField(const SPtr<ManagedSerializableMemberInfo>& fieldInfo, const SPtr<ManagedSerializableTypeInfo>& fieldTypeInfo) const
+SPtr<ManagedMemberInfo> ManagedObjectInfo::FindMatchingField(const SPtr<ManagedMemberInfo>& fieldInfo, const SPtr<ManagedTypeInfo>& fieldTypeInfo) const
 {
-	const ManagedSerializableObjectInfo* objInfo = this;
+	const ManagedObjectInfo* objInfo = this;
 	while(objInfo != nullptr)
 	{
 		if(objInfo->TypeInfo->Matches(fieldTypeInfo))
@@ -37,7 +37,7 @@ SPtr<ManagedSerializableMemberInfo> ManagedSerializableObjectInfo::FindMatchingF
 				auto iterFind2 = objInfo->Fields.find(iterFind->second);
 				if(iterFind2 != objInfo->Fields.end())
 				{
-					SPtr<ManagedSerializableMemberInfo> foundField = iterFind2->second;
+					SPtr<ManagedMemberInfo> foundField = iterFind2->second;
 					if(foundField->IsSerializable())
 					{
 						if(fieldInfo->TypeInfo->Matches(foundField->TypeInfo))
@@ -58,102 +58,102 @@ SPtr<ManagedSerializableMemberInfo> ManagedSerializableObjectInfo::FindMatchingF
 	return nullptr;
 }
 
-RTTIType* ManagedSerializableObjectInfo::GetRttiStatic()
+RTTIType* ManagedObjectInfo::GetRttiStatic()
 {
-	return ManagedSerializableObjectInfoRTTI::Instance();
+	return ManagedObjectInfoRTTI::Instance();
 }
 
-RTTIType* ManagedSerializableObjectInfo::GetRtti() const
+RTTIType* ManagedObjectInfo::GetRtti() const
 {
-	return ManagedSerializableObjectInfo::GetRttiStatic();
+	return ManagedObjectInfo::GetRttiStatic();
 }
 
-RTTIType* ManagedSerializableMemberInfo::GetRttiStatic()
+RTTIType* ManagedMemberInfo::GetRttiStatic()
 {
-	return ManagedSerializableMemberInfoRTTI::Instance();
+	return ManagedMemberInfoRTTI::Instance();
 }
 
-RTTIType* ManagedSerializableMemberInfo::GetRtti() const
+RTTIType* ManagedMemberInfo::GetRtti() const
 {
-	return ManagedSerializableMemberInfo::GetRttiStatic();
+	return ManagedMemberInfo::GetRttiStatic();
 }
 
-::MonoObject* ManagedSerializableFieldInfo::GetAttribute(MonoClass* monoClass)
+::MonoObject* ManagedFieldInfo::GetAttribute(MonoClass* monoClass)
 {
 	return ScriptField->GetAttribute(monoClass);
 }
 
-MonoObject* ManagedSerializableFieldInfo::GetValue(MonoObject* instance) const
+MonoObject* ManagedFieldInfo::GetValue(MonoObject* instance) const
 {
 	return ScriptField->GetBoxed(instance);
 }
 
-void ManagedSerializableFieldInfo::SetValue(MonoObject* instance, void* value) const
+void ManagedFieldInfo::SetValue(MonoObject* instance, void* value) const
 {
 	ScriptField->Set(instance, value);
 }
 
-RTTIType* ManagedSerializableFieldInfo::GetRttiStatic()
+RTTIType* ManagedFieldInfo::GetRttiStatic()
 {
-	return ManagedSerializableFieldInfoRTTI::Instance();
+	return ManagedFieldInfoRTTI::Instance();
 }
 
-RTTIType* ManagedSerializableFieldInfo::GetRtti() const
+RTTIType* ManagedFieldInfo::GetRtti() const
 {
-	return ManagedSerializableFieldInfo::GetRttiStatic();
+	return ManagedFieldInfo::GetRttiStatic();
 }
 
-::MonoObject* ManagedSerializablePropertyInfo::GetAttribute(MonoClass* monoClass)
+::MonoObject* ManagedPropertyInfo::GetAttribute(MonoClass* monoClass)
 {
 	return ScriptProperty->GetAttribute(monoClass);
 }
 
-MonoObject* ManagedSerializablePropertyInfo::GetValue(MonoObject* instance) const
+MonoObject* ManagedPropertyInfo::GetValue(MonoObject* instance) const
 {
 	return ScriptProperty->Get(instance);
 }
 
-void ManagedSerializablePropertyInfo::SetValue(MonoObject* instance, void* value) const
+void ManagedPropertyInfo::SetValue(MonoObject* instance, void* value) const
 {
 	ScriptProperty->Set(instance, value);
 }
 
-RTTIType* ManagedSerializablePropertyInfo::GetRttiStatic()
+RTTIType* ManagedPropertyInfo::GetRttiStatic()
 {
-	return ManagedSerializablePropertyInfoRTTI::Instance();
+	return ManagedPropertyInfoRTTI::Instance();
 }
 
-RTTIType* ManagedSerializablePropertyInfo::GetRtti() const
+RTTIType* ManagedPropertyInfo::GetRtti() const
 {
-	return ManagedSerializablePropertyInfo::GetRttiStatic();
+	return ManagedPropertyInfo::GetRttiStatic();
 }
 
-RTTIType* ManagedSerializableTypeInfo::GetRttiStatic()
+RTTIType* ManagedTypeInfo::GetRttiStatic()
 {
-	return ManagedSerializableTypeInfoRTTI::Instance();
+	return ManagedTypeInfoRTTI::Instance();
 }
 
-RTTIType* ManagedSerializableTypeInfo::GetRtti() const
+RTTIType* ManagedTypeInfo::GetRtti() const
 {
-	return ManagedSerializableTypeInfo::GetRttiStatic();
+	return ManagedTypeInfo::GetRttiStatic();
 }
 
-bool ManagedSerializableTypeInfoPrimitive::Matches(const SPtr<ManagedSerializableTypeInfo>& typeInfo) const
+bool ManagedTypeInfoPrimitive::Matches(const SPtr<ManagedTypeInfo>& typeInfo) const
 {
-	if(!B3DRTTIIsOfType<ManagedSerializableTypeInfoPrimitive>(typeInfo))
+	if(!B3DRTTIIsOfType<ManagedTypeInfoPrimitive>(typeInfo))
 		return false;
 
-	auto primTypeInfo = std::static_pointer_cast<ManagedSerializableTypeInfoPrimitive>(typeInfo);
+	auto primTypeInfo = std::static_pointer_cast<ManagedTypeInfoPrimitive>(typeInfo);
 
 	return primTypeInfo->Type == Type;
 }
 
-bool ManagedSerializableTypeInfoPrimitive::IsTypeLoaded() const
+bool ManagedTypeInfoPrimitive::IsTypeLoaded() const
 {
 	return Type < ScriptPrimitiveType::Count; // Ignoring some removed types
 }
 
-::MonoClass* ManagedSerializableTypeInfoPrimitive::GetMonoClass() const
+::MonoClass* ManagedTypeInfoPrimitive::GetMonoClass() const
 {
 	switch(Type)
 	{
@@ -190,19 +190,19 @@ bool ManagedSerializableTypeInfoPrimitive::IsTypeLoaded() const
 	return nullptr;
 }
 
-RTTIType* ManagedSerializableTypeInfoPrimitive::GetRttiStatic()
+RTTIType* ManagedTypeInfoPrimitive::GetRttiStatic()
 {
-	return ManagedSerializableTypeInfoPrimitiveRTTI::Instance();
+	return ManagedTypeInfoPrimitiveRTTI::Instance();
 }
 
-RTTIType* ManagedSerializableTypeInfoPrimitive::GetRtti() const
+RTTIType* ManagedTypeInfoPrimitive::GetRtti() const
 {
-	return ManagedSerializableTypeInfoPrimitive::GetRttiStatic();
+	return ManagedTypeInfoPrimitive::GetRttiStatic();
 }
 
-bool ManagedSerializableTypeInfoEnum::Matches(const SPtr<ManagedSerializableTypeInfo>& typeInfo) const
+bool ManagedTypeInfoEnum::Matches(const SPtr<ManagedTypeInfo>& typeInfo) const
 {
-	if(const auto enumTypeInfo = B3DRTTICast<ManagedSerializableTypeInfoEnum>(typeInfo.get()))
+	if(const auto enumTypeInfo = B3DRTTICast<ManagedTypeInfoEnum>(typeInfo.get()))
 	{
 		return enumTypeInfo->TypeNamespace == TypeNamespace &&
 			enumTypeInfo->TypeName == TypeName &&
@@ -212,13 +212,13 @@ bool ManagedSerializableTypeInfoEnum::Matches(const SPtr<ManagedSerializableType
 	return false;
 }
 
-bool ManagedSerializableTypeInfoEnum::IsTypeLoaded() const
+bool ManagedTypeInfoEnum::IsTypeLoaded() const
 {
 	MonoClass* klass = MonoManager::Instance().FindClass(TypeNamespace, TypeName);
 	return klass != nullptr;
 }
 
-::MonoClass* ManagedSerializableTypeInfoEnum::GetMonoClass() const
+::MonoClass* ManagedTypeInfoEnum::GetMonoClass() const
 {
 	MonoClass* klass = MonoManager::Instance().FindClass(TypeNamespace, TypeName);
 
@@ -228,27 +228,27 @@ bool ManagedSerializableTypeInfoEnum::IsTypeLoaded() const
 	return nullptr;
 }
 
-RTTIType* ManagedSerializableTypeInfoEnum::GetRttiStatic()
+RTTIType* ManagedTypeInfoEnum::GetRttiStatic()
 {
-	return ManagedSerializableTypeInfoEnumRTTI::Instance();
+	return ManagedTypeInfoEnumRTTI::Instance();
 }
 
-RTTIType* ManagedSerializableTypeInfoEnum::GetRtti() const
+RTTIType* ManagedTypeInfoEnum::GetRtti() const
 {
-	return ManagedSerializableTypeInfoEnum::GetRttiStatic();
+	return ManagedTypeInfoEnum::GetRttiStatic();
 }
 
-bool ManagedSerializableTypeInfoRef::Matches(const SPtr<ManagedSerializableTypeInfo>& typeInfo) const
+bool ManagedTypeInfoReference::Matches(const SPtr<ManagedTypeInfo>& typeInfo) const
 {
-	if(!B3DRTTIIsOfType<ManagedSerializableTypeInfoRef>(typeInfo))
+	if(!B3DRTTIIsOfType<ManagedTypeInfoReference>(typeInfo))
 		return false;
 
-	auto objTypeInfo = std::static_pointer_cast<ManagedSerializableTypeInfoRef>(typeInfo);
+	auto objTypeInfo = std::static_pointer_cast<ManagedTypeInfoReference>(typeInfo);
 
 	return objTypeInfo->TypeNamespace == TypeNamespace && objTypeInfo->TypeName == TypeName;
 }
 
-bool ManagedSerializableTypeInfoRef::IsTypeLoaded() const
+bool ManagedTypeInfoReference::IsTypeLoaded() const
 {
 	switch(Type)
 	{
@@ -268,7 +268,7 @@ bool ManagedSerializableTypeInfoRef::IsTypeLoaded() const
 	return ScriptAssemblyManager::Instance().HasSerializableObjectInfo(TypeNamespace, TypeName);
 }
 
-::MonoClass* ManagedSerializableTypeInfoRef::GetMonoClass() const
+::MonoClass* ManagedTypeInfoReference::GetMonoClass() const
 {
 	switch(Type)
 	{
@@ -287,29 +287,29 @@ bool ManagedSerializableTypeInfoRef::IsTypeLoaded() const
 	}
 
 	// Specific component or resource (either builtin or custom)
-	SPtr<ManagedSerializableObjectInfo> objInfo;
+	SPtr<ManagedObjectInfo> objInfo;
 	if(!ScriptAssemblyManager::Instance().GetSerializableObjectInfo(TypeNamespace, TypeName, objInfo))
 		return nullptr;
 
 	return objInfo->ScriptClass->GetInternalClass();
 }
 
-RTTIType* ManagedSerializableTypeInfoRef::GetRttiStatic()
+RTTIType* ManagedTypeInfoReference::GetRttiStatic()
 {
-	return ManagedSerializableTypeInfoRefRTTI::Instance();
+	return ManagedTypeInfoReferenceRTTI::Instance();
 }
 
-RTTIType* ManagedSerializableTypeInfoRef::GetRtti() const
+RTTIType* ManagedTypeInfoReference::GetRtti() const
 {
-	return ManagedSerializableTypeInfoRef::GetRttiStatic();
+	return ManagedTypeInfoReference::GetRttiStatic();
 }
 
-bool ManagedSerializableTypeInfoRRef::Matches(const SPtr<ManagedSerializableTypeInfo>& typeInfo) const
+bool ManagedTypeInfoResourceReference::Matches(const SPtr<ManagedTypeInfo>& typeInfo) const
 {
-	if(!B3DRTTIIsOfType<ManagedSerializableTypeInfoRRef>(typeInfo))
+	if(!B3DRTTIIsOfType<ManagedTypeInfoResourceReference>(typeInfo))
 		return false;
 
-	auto resourceTypeInfo = std::static_pointer_cast<ManagedSerializableTypeInfoRRef>(typeInfo);
+	auto resourceTypeInfo = std::static_pointer_cast<ManagedTypeInfoResourceReference>(typeInfo);
 
 	if(ResourceType == nullptr)
 		return resourceTypeInfo->ResourceType == nullptr;
@@ -317,12 +317,12 @@ bool ManagedSerializableTypeInfoRRef::Matches(const SPtr<ManagedSerializableType
 	return ResourceType->Matches(resourceTypeInfo->ResourceType);
 }
 
-bool ManagedSerializableTypeInfoRRef::IsTypeLoaded() const
+bool ManagedTypeInfoResourceReference::IsTypeLoaded() const
 {
 	return ResourceType == nullptr || ResourceType->IsTypeLoaded();
 }
 
-::MonoClass* ManagedSerializableTypeInfoRRef::GetMonoClass() const
+::MonoClass* ManagedTypeInfoResourceReference::GetMonoClass() const
 {
 	// If non-null, this is a templated (i.e. C# generic) RRef type
 	if(ResourceType)
@@ -338,67 +338,67 @@ bool ManagedSerializableTypeInfoRRef::IsTypeLoaded() const
 		return ScriptAssemblyManager::Instance().GetBuiltinClasses().RrefBaseClass->GetInternalClass();
 }
 
-RTTIType* ManagedSerializableTypeInfoRRef::GetRttiStatic()
+RTTIType* ManagedTypeInfoResourceReference::GetRttiStatic()
 {
-	return ManagedSerializableTypeInfoRRefRTTI::Instance();
+	return ManagedTypeInfoResourceReferenceRTTI::Instance();
 }
 
-RTTIType* ManagedSerializableTypeInfoRRef::GetRtti() const
+RTTIType* ManagedTypeInfoResourceReference::GetRtti() const
 {
-	return ManagedSerializableTypeInfoRRef::GetRttiStatic();
+	return ManagedTypeInfoResourceReference::GetRttiStatic();
 }
 
-bool ManagedSerializableTypeInfoObject::Matches(const SPtr<ManagedSerializableTypeInfo>& typeInfo) const
+bool ManagedTypeInfoObject::Matches(const SPtr<ManagedTypeInfo>& typeInfo) const
 {
-	if(!B3DRTTIIsOfType<ManagedSerializableTypeInfoObject>(typeInfo))
+	if(!B3DRTTIIsOfType<ManagedTypeInfoObject>(typeInfo))
 		return false;
 
-	auto objTypeInfo = std::static_pointer_cast<ManagedSerializableTypeInfoObject>(typeInfo);
+	auto objTypeInfo = std::static_pointer_cast<ManagedTypeInfoObject>(typeInfo);
 
 	return objTypeInfo->TypeNamespace == TypeNamespace && objTypeInfo->TypeName == TypeName &&
 		objTypeInfo->ValueType == ValueType && objTypeInfo->RttiTypeId == RttiTypeId;
 }
 
-bool ManagedSerializableTypeInfoObject::IsTypeLoaded() const
+bool ManagedTypeInfoObject::IsTypeLoaded() const
 {
 	return ScriptAssemblyManager::Instance().HasSerializableObjectInfo(TypeNamespace, TypeName);
 }
 
-::MonoClass* ManagedSerializableTypeInfoObject::GetMonoClass() const
+::MonoClass* ManagedTypeInfoObject::GetMonoClass() const
 {
-	SPtr<ManagedSerializableObjectInfo> objInfo;
+	SPtr<ManagedObjectInfo> objInfo;
 	if(!ScriptAssemblyManager::Instance().GetSerializableObjectInfo(TypeNamespace, TypeName, objInfo))
 		return nullptr;
 
 	return objInfo->ScriptClass->GetInternalClass();
 }
 
-RTTIType* ManagedSerializableTypeInfoObject::GetRttiStatic()
+RTTIType* ManagedTypeInfoObject::GetRttiStatic()
 {
-	return ManagedSerializableTypeInfoObjectRTTI::Instance();
+	return ManagedTypeInfoObjectRTTI::Instance();
 }
 
-RTTIType* ManagedSerializableTypeInfoObject::GetRtti() const
+RTTIType* ManagedTypeInfoObject::GetRtti() const
 {
-	return ManagedSerializableTypeInfoObject::GetRttiStatic();
+	return ManagedTypeInfoObject::GetRttiStatic();
 }
 
-bool ManagedSerializableTypeInfoArray::Matches(const SPtr<ManagedSerializableTypeInfo>& typeInfo) const
+bool ManagedTypeInfoArray::Matches(const SPtr<ManagedTypeInfo>& typeInfo) const
 {
-	if(!B3DRTTIIsOfType<ManagedSerializableTypeInfoArray>(typeInfo))
+	if(!B3DRTTIIsOfType<ManagedTypeInfoArray>(typeInfo))
 		return false;
 
-	auto arrayTypeInfo = std::static_pointer_cast<ManagedSerializableTypeInfoArray>(typeInfo);
+	auto arrayTypeInfo = std::static_pointer_cast<ManagedTypeInfoArray>(typeInfo);
 
 	return arrayTypeInfo->Rank == Rank && arrayTypeInfo->ElementType->Matches(ElementType);
 }
 
-bool ManagedSerializableTypeInfoArray::IsTypeLoaded() const
+bool ManagedTypeInfoArray::IsTypeLoaded() const
 {
 	return ElementType->IsTypeLoaded();
 }
 
-::MonoClass* ManagedSerializableTypeInfoArray::GetMonoClass() const
+::MonoClass* ManagedTypeInfoArray::GetMonoClass() const
 {
 	::MonoClass* elementClass = ElementType->GetMonoClass();
 	if(elementClass == nullptr)
@@ -407,32 +407,32 @@ bool ManagedSerializableTypeInfoArray::IsTypeLoaded() const
 	return ScriptArray::BuildArrayClass(ElementType->GetMonoClass(), Rank);
 }
 
-RTTIType* ManagedSerializableTypeInfoArray::GetRttiStatic()
+RTTIType* ManagedTypeInfoArray::GetRttiStatic()
 {
-	return ManagedSerializableTypeInfoArrayRTTI::Instance();
+	return ManagedTypeInfoArrayRTTI::Instance();
 }
 
-RTTIType* ManagedSerializableTypeInfoArray::GetRtti() const
+RTTIType* ManagedTypeInfoArray::GetRtti() const
 {
-	return ManagedSerializableTypeInfoArray::GetRttiStatic();
+	return ManagedTypeInfoArray::GetRttiStatic();
 }
 
-bool ManagedSerializableTypeInfoList::Matches(const SPtr<ManagedSerializableTypeInfo>& typeInfo) const
+bool ManagedTypeInfoList::Matches(const SPtr<ManagedTypeInfo>& typeInfo) const
 {
-	if(!B3DRTTIIsOfType<ManagedSerializableTypeInfoList>(typeInfo))
+	if(!B3DRTTIIsOfType<ManagedTypeInfoList>(typeInfo))
 		return false;
 
-	auto listTypeInfo = std::static_pointer_cast<ManagedSerializableTypeInfoList>(typeInfo);
+	auto listTypeInfo = std::static_pointer_cast<ManagedTypeInfoList>(typeInfo);
 
 	return listTypeInfo->ElementType->Matches(ElementType);
 }
 
-bool ManagedSerializableTypeInfoList::IsTypeLoaded() const
+bool ManagedTypeInfoList::IsTypeLoaded() const
 {
 	return ElementType->IsTypeLoaded();
 }
 
-::MonoClass* ManagedSerializableTypeInfoList::GetMonoClass() const
+::MonoClass* ManagedTypeInfoList::GetMonoClass() const
 {
 	::MonoClass* elementClass = ElementType->GetMonoClass();
 	if(elementClass == nullptr)
@@ -444,32 +444,32 @@ bool ManagedSerializableTypeInfoList::IsTypeLoaded() const
 	return MonoUtil::BindGenericParameters(genericListClass->GetInternalClass(), genParams, 1);
 }
 
-RTTIType* ManagedSerializableTypeInfoList::GetRttiStatic()
+RTTIType* ManagedTypeInfoList::GetRttiStatic()
 {
-	return ManagedSerializableTypeInfoListRTTI::Instance();
+	return ManagedTypeInfoListRTTI::Instance();
 }
 
-RTTIType* ManagedSerializableTypeInfoList::GetRtti() const
+RTTIType* ManagedTypeInfoList::GetRtti() const
 {
-	return ManagedSerializableTypeInfoList::GetRttiStatic();
+	return ManagedTypeInfoList::GetRttiStatic();
 }
 
-bool ManagedSerializableTypeInfoDictionary::Matches(const SPtr<ManagedSerializableTypeInfo>& typeInfo) const
+bool ManagedTypeInfoDictionary::Matches(const SPtr<ManagedTypeInfo>& typeInfo) const
 {
-	if(!B3DRTTIIsOfType<ManagedSerializableTypeInfoDictionary>(typeInfo))
+	if(!B3DRTTIIsOfType<ManagedTypeInfoDictionary>(typeInfo))
 		return false;
 
-	auto dictTypeInfo = std::static_pointer_cast<ManagedSerializableTypeInfoDictionary>(typeInfo);
+	auto dictTypeInfo = std::static_pointer_cast<ManagedTypeInfoDictionary>(typeInfo);
 
 	return dictTypeInfo->KeyType->Matches(KeyType) && dictTypeInfo->ValueType->Matches(ValueType);
 }
 
-bool ManagedSerializableTypeInfoDictionary::IsTypeLoaded() const
+bool ManagedTypeInfoDictionary::IsTypeLoaded() const
 {
 	return KeyType->IsTypeLoaded() && ValueType->IsTypeLoaded();
 }
 
-::MonoClass* ManagedSerializableTypeInfoDictionary::GetMonoClass() const
+::MonoClass* ManagedTypeInfoDictionary::GetMonoClass() const
 {
 	::MonoClass* keyClass = KeyType->GetMonoClass();
 	::MonoClass* valueClass = ValueType->GetMonoClass();
@@ -483,12 +483,12 @@ bool ManagedSerializableTypeInfoDictionary::IsTypeLoaded() const
 	return MonoUtil::BindGenericParameters(genericDictionaryClass->GetInternalClass(), params, 2);
 }
 
-RTTIType* ManagedSerializableTypeInfoDictionary::GetRttiStatic()
+RTTIType* ManagedTypeInfoDictionary::GetRttiStatic()
 {
-	return ManagedSerializableTypeInfoDictionaryRTTI::Instance();
+	return ManagedTypeInfoDictionaryRTTI::Instance();
 }
 
-RTTIType* ManagedSerializableTypeInfoDictionary::GetRtti() const
+RTTIType* ManagedTypeInfoDictionary::GetRtti() const
 {
-	return ManagedSerializableTypeInfoDictionary::GetRttiStatic();
+	return ManagedTypeInfoDictionary::GetRttiStatic();
 }

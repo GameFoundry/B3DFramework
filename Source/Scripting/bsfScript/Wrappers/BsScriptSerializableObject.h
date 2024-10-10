@@ -24,7 +24,7 @@ namespace bs
 		static MonoObject* Create(MonoObject* managed, MonoReflectionType* reflType);
 
 	private:
-		ScriptSerializableObject(MonoObject* instance, const SPtr<ManagedSerializableObjectInfo>& objInfo);
+		ScriptSerializableObject(MonoObject* instance, const SPtr<ManagedObjectInfo>& objInfo);
 
 		/**
 		 * Creates a new interop object for a serializable object from an existing managed instance and an object info
@@ -33,9 +33,9 @@ namespace bs
 		 * @param[in]	instance	Managed instance the interop object will reference.
 		 * @param[in]	objInfo		Data about the type of the provided managed instance.
 		 */
-		static ScriptSerializableObject* CreateInternal(MonoObject* instance, const SPtr<ManagedSerializableObjectInfo>& objInfo);
+		static ScriptSerializableObject* CreateInternal(MonoObject* instance, const SPtr<ManagedObjectInfo>& objInfo);
 
-		SPtr<ManagedSerializableObjectInfo> mObjInfo;
+		SPtr<ManagedObjectInfo> mObjInfo;
 		static MonoField* FieldsField;
 
 		/************************************************************************/

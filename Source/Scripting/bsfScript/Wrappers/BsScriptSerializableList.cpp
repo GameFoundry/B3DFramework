@@ -10,7 +10,7 @@
 #include "BsMonoUtil.h"
 
 using namespace bs;
-ScriptSerializableList::ScriptSerializableList(MonoObject* instance, const SPtr<ManagedSerializableTypeInfoList>& typeInfo)
+ScriptSerializableList::ScriptSerializableList(MonoObject* instance, const SPtr<ManagedTypeInfoList>& typeInfo)
 	: ScriptObject(instance), mTypeInfo(typeInfo)
 {
 }
@@ -22,8 +22,8 @@ void ScriptSerializableList::InitRuntimeData()
 
 MonoObject* ScriptSerializableList::Create(const ScriptSerializableProperty* native, MonoObject* managed)
 {
-	SPtr<ManagedSerializableTypeInfoList> listTypeInfo =
-		std::static_pointer_cast<ManagedSerializableTypeInfoList>(native->GetTypeInfo());
+	SPtr<ManagedTypeInfoList> listTypeInfo =
+		std::static_pointer_cast<ManagedTypeInfoList>(native->GetTypeInfo());
 	MonoReflectionType* internalElementType = MonoUtil::GetType(listTypeInfo->ElementType->GetMonoClass());
 
 	void* params[2] = { internalElementType, managed };

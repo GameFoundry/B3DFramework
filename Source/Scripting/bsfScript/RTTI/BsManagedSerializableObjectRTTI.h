@@ -30,12 +30,12 @@ namespace bs
 		{
 			if(operationType.IsSet(RTTIOperationType::ReadBit))
 			{
-				SPtr<ManagedSerializableObjectInfo> currentTypeObjectInfo = object.mObjInfo;
+				SPtr<ManagedObjectInfo> currentTypeObjectInfo = object.mObjInfo;
 				while(currentTypeObjectInfo != nullptr)
 				{
 					for(const auto& pair : currentTypeObjectInfo->Fields)
 					{
-						const SPtr<ManagedSerializableMemberInfo>& memberInfo = pair.second;
+						const SPtr<ManagedMemberInfo>& memberInfo = pair.second;
 
 						if(memberInfo->IsSerializable())
 						{

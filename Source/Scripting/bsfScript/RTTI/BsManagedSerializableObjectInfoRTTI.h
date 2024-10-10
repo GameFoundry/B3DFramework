@@ -16,7 +16,7 @@ namespace bs
 	 *  @{
 	 */
 
-	class B3D_SCRIPT_INTEROP_EXPORT ManagedSerializableAssemblyInfoRTTI : public TRTTIType<ManagedSerializableAssemblyInfo, IReflectable, ManagedSerializableAssemblyInfoRTTI>
+	class B3D_SCRIPT_INTEROP_EXPORT ManagedAssemblyInfoRTTI : public TRTTIType<ManagedAssemblyInfo, IReflectable, ManagedAssemblyInfoRTTI>
 	{
 		B3D_RTTI_BEGIN_MEMBERS
 			B3D_RTTI_MEMBER(Name, 0)
@@ -24,7 +24,7 @@ namespace bs
 		B3D_RTTI_END_MEMBERS
 
 	public:
-		void OnOperationEnded(ManagedSerializableAssemblyInfo& object, RTTIOperationTypeFlags operationType, RTTIOperationContext& context) override
+		void OnOperationEnded(ManagedAssemblyInfo& object, RTTIOperationTypeFlags operationType, RTTIOperationContext& context) override
 		{
 			if(operationType.IsSet(RTTIOperationType::WriteBit))
 			{
@@ -42,25 +42,25 @@ namespace bs
 
 		const String& GetRttiName()
 		{
-			static String name = "ScriptSerializableAssemblyInfo";
+			static String name = "ManagedAssemblyInfo";
 			return name;
 		}
 
 		u32 GetRttiId() const override
 		{
-			return TID_SerializableAssemblyInfo;
+			return TID_ManagedAssemblyInfo;
 		}
 
 		SPtr<IReflectable> NewRttiObject()
 		{
-			return B3DMakeShared<ManagedSerializableAssemblyInfo>();
+			return B3DMakeShared<ManagedAssemblyInfo>();
 		}
 	};
 
-	class B3D_SCRIPT_INTEROP_EXPORT ManagedSerializableObjectInfoRTTI : public TRTTIType<ManagedSerializableObjectInfo, IReflectable, ManagedSerializableObjectInfoRTTI>
+	class B3D_SCRIPT_INTEROP_EXPORT ManagedObjectInfoRTTI : public TRTTIType<ManagedObjectInfo, IReflectable, ManagedObjectInfoRTTI>
 	{
 	private:
-		using TRTTIType<ManagedSerializableObjectInfo, IReflectable, ManagedSerializableObjectInfoRTTI>::GetBaseClass;
+		using TRTTIType<ManagedObjectInfo, IReflectable, ManagedObjectInfoRTTI>::GetBaseClass;
 
 		B3D_RTTI_BEGIN_MEMBERS
 			B3D_RTTI_MEMBER(TypeInfo, 0)
@@ -69,7 +69,7 @@ namespace bs
 		B3D_RTTI_END_MEMBERS
 
 	public:
-		void OnOperationEnded(ManagedSerializableObjectInfo& object, RTTIOperationTypeFlags operationType, RTTIOperationContext& context) override
+		void OnOperationEnded(ManagedObjectInfo& object, RTTIOperationTypeFlags operationType, RTTIOperationContext& context) override
 		{
 			if(operationType.IsSet(RTTIOperationType::WriteBit))
 			{
@@ -87,22 +87,22 @@ namespace bs
 
 		const String& GetRttiName() override
 		{
-			static String name = "ScriptSerializableObjectInfo";
+			static String name = "ManagedObjectInfo";
 			return name;
 		}
 
 		u32 GetRttiId() const override
 		{
-			return TID_SerializableObjectInfo;
+			return TID_ManagedObjectInfo;
 		}
 
 		SPtr<IReflectable> NewRttiObject() override
 		{
-			return B3DMakeShared<ManagedSerializableObjectInfo>();
+			return B3DMakeShared<ManagedObjectInfo>();
 		}
 	};
 
-	class B3D_SCRIPT_INTEROP_EXPORT ManagedSerializableMemberInfoRTTI : public TRTTIType<ManagedSerializableMemberInfo, IReflectable, ManagedSerializableMemberInfoRTTI>
+	class B3D_SCRIPT_INTEROP_EXPORT ManagedMemberInfoRTTI : public TRTTIType<ManagedMemberInfo, IReflectable, ManagedMemberInfoRTTI>
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
@@ -114,81 +114,77 @@ namespace bs
 		B3D_RTTI_END_MEMBERS
 
 	public:
-		ManagedSerializableMemberInfoRTTI()
-			: mInitMembers(this)
-		{}
-
 		const String& GetRttiName() override
 		{
-			static String name = "ScriptSerializableMemberInfo";
+			static String name = "ManagedMemberInfo";
 			return name;
 		}
 
 		u32 GetRttiId() const override
 		{
-			return TID_SerializableMemberInfo;
+			return TID_ManagedMemberInfo;
 		}
 
 		SPtr<IReflectable> NewRttiObject() override
 		{
 			// This is an abstract class, but it wasn't always. For compatibility sake we return an object instance so old
 			// data can still be properly read.
-			return B3DMakeShared<ManagedSerializableFieldInfo>();
+			return B3DMakeShared<ManagedFieldInfo>();
 		}
 	};
 
-	class B3D_SCRIPT_INTEROP_EXPORT ManagedSerializableFieldInfoRTTI : public TRTTIType<ManagedSerializableFieldInfo, ManagedSerializableMemberInfo, ManagedSerializableFieldInfoRTTI>
+	class B3D_SCRIPT_INTEROP_EXPORT ManagedFieldInfoRTTI : public TRTTIType<ManagedFieldInfo, ManagedMemberInfo, ManagedFieldInfoRTTI>
 	{
 	public:
 		const String& GetRttiName() override
 		{
-			static String name = "ScriptSerializableFieldInfo";
+			static String name = "ManagedFieldInfo";
 			return name;
 		}
 
 		u32 GetRttiId() const override
 		{
-			return TID_SerializableFieldInfo;
+			return TID_ManagedFieldInfo;
 		}
 
 		SPtr<IReflectable> NewRttiObject() override
 		{
-			return B3DMakeShared<ManagedSerializableFieldInfo>();
+			return B3DMakeShared<ManagedFieldInfo>();
 		}
 	};
 
-	class B3D_SCRIPT_INTEROP_EXPORT ManagedSerializablePropertyInfoRTTI : public TRTTIType<ManagedSerializablePropertyInfo, ManagedSerializableMemberInfo, ManagedSerializablePropertyInfoRTTI>
+	class B3D_SCRIPT_INTEROP_EXPORT ManagedPropertyInfoRTTI : public TRTTIType<ManagedPropertyInfo, ManagedMemberInfo, ManagedPropertyInfoRTTI>
 	{
 	public:
 		const String& GetRttiName() override
 		{
-			static String name = "ScriptSerializablePropertyInfo";
+			static String name = "ManagedPropertyInfo";
 			return name;
 		}
 
 		u32 GetRttiId() const override
 		{
-			return TID_SerializablePropertyInfo;
+			return TID_ManagedPropertyInfo;
 		}
 
 		SPtr<IReflectable> NewRttiObject() override
 		{
-			return B3DMakeShared<ManagedSerializablePropertyInfo>();
+			return B3DMakeShared<ManagedPropertyInfo>();
 		}
 	};
 
-	class B3D_SCRIPT_INTEROP_EXPORT ManagedSerializableTypeInfoRTTI : public TRTTIType<ManagedSerializableTypeInfo, IReflectable, ManagedSerializableTypeInfoRTTI>
+	class B3D_SCRIPT_INTEROP_EXPORT ManagedTypeInfoRTTI : public TRTTIType<ManagedTypeInfo, IReflectable, ManagedTypeInfoRTTI>
 	{
 	public:
 		const String& GetRttiName() override
 		{
-			static String name = "ScriptSerializableTypeInfo";
+			static String name = "ManagedTypeInfo";
 			return name;
 		}
 
 		u32 GetRttiId() const override
 		{
-			return TID_SerializableTypeInfo;
+			return TID_ManagedTypeInfo;
 		}
 
 		SPtr<IReflectable> NewRttiObject() override
@@ -198,7 +194,7 @@ namespace bs
 		}
 	};
 
-	class B3D_SCRIPT_INTEROP_EXPORT ManagedSerializableTypeInfoPrimitiveRTTI : public TRTTIType<ManagedSerializableTypeInfoPrimitive, ManagedSerializableTypeInfo, ManagedSerializableTypeInfoPrimitiveRTTI>
+	class B3D_SCRIPT_INTEROP_EXPORT ManagedTypeInfoPrimitiveRTTI : public TRTTIType<ManagedTypeInfoPrimitive, ManagedTypeInfo, ManagedTypeInfoPrimitiveRTTI>
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
@@ -206,28 +202,24 @@ namespace bs
 		B3D_RTTI_END_MEMBERS
 
 	public:
-		ManagedSerializableTypeInfoPrimitiveRTTI()
-			: mInitMembers(this)
-		{}
-
 		const String& GetRttiName() override
 		{
-			static String name = "ScriptSerializableTypeInfoPrimitive";
+			static String name = "ManagedTypeInfoPrimitive";
 			return name;
 		}
 
 		u32 GetRttiId() const override
 		{
-			return TID_SerializableTypeInfoPrimitive;
+			return TID_ManagedTypeInfoPrimitive;
 		}
 
 		SPtr<IReflectable> NewRttiObject() override
 		{
-			return B3DMakeShared<ManagedSerializableTypeInfoPrimitive>();
+			return B3DMakeShared<ManagedTypeInfoPrimitive>();
 		}
 	};
 
-	class B3D_SCRIPT_INTEROP_EXPORT ManagedSerializableTypeInfoEnumRTTI : public TRTTIType<ManagedSerializableTypeInfoEnum, ManagedSerializableTypeInfo, ManagedSerializableTypeInfoEnumRTTI>
+	class B3D_SCRIPT_INTEROP_EXPORT ManagedTypeInfoEnumRTTI : public TRTTIType<ManagedTypeInfoEnum, ManagedTypeInfo, ManagedTypeInfoEnumRTTI>
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
@@ -237,28 +229,24 @@ namespace bs
 		B3D_RTTI_END_MEMBERS
 
 	public:
-		ManagedSerializableTypeInfoEnumRTTI()
-			: mInitMembers(this)
-		{}
-
 		const String& GetRttiName() override
 		{
-			static String name = "ScriptSerializableTypeInfoEnum";
+			static String name = "ManagedTypeInfoEnum";
 			return name;
 		}
 
 		u32 GetRttiId() const override
 		{
-			return TID_SerializableTypeInfoEnum;
+			return TID_ManagedTypeInfoEnum;
 		}
 
 		SPtr<IReflectable> NewRttiObject() override
 		{
-			return B3DMakeShared<ManagedSerializableTypeInfoEnum>();
+			return B3DMakeShared<ManagedTypeInfoEnum>();
 		}
 	};
 
-	class B3D_SCRIPT_INTEROP_EXPORT ManagedSerializableTypeInfoRefRTTI : public TRTTIType<ManagedSerializableTypeInfoRef, ManagedSerializableTypeInfo, ManagedSerializableTypeInfoRefRTTI>
+	class B3D_SCRIPT_INTEROP_EXPORT ManagedTypeInfoReferenceRTTI : public TRTTIType<ManagedTypeInfoReference, ManagedTypeInfo, ManagedTypeInfoReferenceRTTI>
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
@@ -269,28 +257,24 @@ namespace bs
 		B3D_RTTI_END_MEMBERS
 
 	public:
-		ManagedSerializableTypeInfoRefRTTI()
-			: mInitMembers(this)
-		{}
-
 		const String& GetRttiName() override
 		{
-			static String name = "ScriptSerializableTypeInfoRef";
+			static String name = "ManagedTypeInfoReference";
 			return name;
 		}
 
 		u32 GetRttiId() const override
 		{
-			return TID_SerializableTypeInfoRef;
+			return TID_ManagedTypeInfoReference;
 		}
 
 		SPtr<IReflectable> NewRttiObject() override
 		{
-			return B3DMakeShared<ManagedSerializableTypeInfoRef>();
+			return B3DMakeShared<ManagedTypeInfoReference>();
 		}
 	};
 
-	class B3D_SCRIPT_INTEROP_EXPORT ManagedSerializableTypeInfoRRefRTTI : public TRTTIType<ManagedSerializableTypeInfoRRef, ManagedSerializableTypeInfo, ManagedSerializableTypeInfoRRefRTTI>
+	class B3D_SCRIPT_INTEROP_EXPORT ManagedTypeInfoResourceReferenceRTTI : public TRTTIType<ManagedTypeInfoResourceReference, ManagedTypeInfo, ManagedTypeInfoResourceReferenceRTTI>
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
@@ -298,28 +282,24 @@ namespace bs
 		B3D_RTTI_END_MEMBERS
 
 	public:
-		ManagedSerializableTypeInfoRRefRTTI()
-			: mInitMembers(this)
-		{}
-
 		const String& GetRttiName() override
 		{
-			static String name = "ScriptSerializableTypeInfoRRef";
+			static String name = "ManagedTypeInfoResourceReference";
 			return name;
 		}
 
 		u32 GetRttiId() const override
 		{
-			return TID_SerializableTypeInfoRRef;
+			return TID_ManagedTypeInfoResourceReference;
 		}
 
 		SPtr<IReflectable> NewRttiObject() override
 		{
-			return B3DMakeShared<ManagedSerializableTypeInfoRRef>();
+			return B3DMakeShared<ManagedTypeInfoResourceReference>();
 		}
 	};
 
-	class B3D_SCRIPT_INTEROP_EXPORT ManagedSerializableTypeInfoObjectRTTI : public TRTTIType<ManagedSerializableTypeInfoObject, ManagedSerializableTypeInfo, ManagedSerializableTypeInfoObjectRTTI>
+	class B3D_SCRIPT_INTEROP_EXPORT ManagedTypeInfoObjectRTTI : public TRTTIType<ManagedTypeInfoObject, ManagedTypeInfo, ManagedTypeInfoObjectRTTI>
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
@@ -332,28 +312,24 @@ namespace bs
 		B3D_RTTI_END_MEMBERS
 
 	public:
-		ManagedSerializableTypeInfoObjectRTTI()
-			: mInitMembers(this)
-		{}
-
 		const String& GetRttiName() override
 		{
-			static String name = "ScriptSerializableTypeInfoObject";
+			static String name = "ManagedTypeInfoObject";
 			return name;
 		}
 
 		u32 GetRttiId() const override
 		{
-			return TID_SerializableTypeInfoObject;
+			return TID_ManagedTypeInfoObject;
 		}
 
 		SPtr<IReflectable> NewRttiObject() override
 		{
-			return B3DMakeShared<ManagedSerializableTypeInfoObject>();
+			return B3DMakeShared<ManagedTypeInfoObject>();
 		}
 	};
 
-	class B3D_SCRIPT_INTEROP_EXPORT ManagedSerializableTypeInfoArrayRTTI : public TRTTIType<ManagedSerializableTypeInfoArray, ManagedSerializableTypeInfo, ManagedSerializableTypeInfoArrayRTTI>
+	class B3D_SCRIPT_INTEROP_EXPORT ManagedTypeInfoArrayRTTI : public TRTTIType<ManagedTypeInfoArray, ManagedTypeInfo, ManagedTypeInfoArrayRTTI>
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
@@ -362,28 +338,28 @@ namespace bs
 		B3D_RTTI_END_MEMBERS
 
 	public:
-		ManagedSerializableTypeInfoArrayRTTI()
+		ManagedTypeInfoArrayRTTI()
 			: mInitMembers(this)
 		{}
 
 		const String& GetRttiName() override
 		{
-			static String name = "ScriptSerializableTypeInfoArray";
+			static String name = "ManagedTypeInfoArray";
 			return name;
 		}
 
 		u32 GetRttiId() const override
 		{
-			return TID_SerializableTypeInfoArray;
+			return TID_ManagedTypeInfoArray;
 		}
 
 		SPtr<IReflectable> NewRttiObject() override
 		{
-			return B3DMakeShared<ManagedSerializableTypeInfoArray>();
+			return B3DMakeShared<ManagedTypeInfoArray>();
 		}
 	};
 
-	class B3D_SCRIPT_INTEROP_EXPORT ManagedSerializableTypeInfoListRTTI : public TRTTIType<ManagedSerializableTypeInfoList, ManagedSerializableTypeInfo, ManagedSerializableTypeInfoListRTTI>
+	class B3D_SCRIPT_INTEROP_EXPORT ManagedTypeInfoListRTTI : public TRTTIType<ManagedTypeInfoList, ManagedTypeInfo, ManagedTypeInfoListRTTI>
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
@@ -391,28 +367,28 @@ namespace bs
 		B3D_RTTI_END_MEMBERS
 
 	public:
-		ManagedSerializableTypeInfoListRTTI()
+		ManagedTypeInfoListRTTI()
 			: mInitMembers(this)
 		{}
 
 		const String& GetRttiName() override
 		{
-			static String name = "ScriptSerializableTypeInfoList";
+			static String name = "ManagedTypeInfoList";
 			return name;
 		}
 
 		u32 GetRttiId() const override
 		{
-			return TID_SerializableTypeInfoList;
+			return TID_ManagedTypeInfoList;
 		}
 
 		SPtr<IReflectable> NewRttiObject() override
 		{
-			return B3DMakeShared<ManagedSerializableTypeInfoList>();
+			return B3DMakeShared<ManagedTypeInfoList>();
 		}
 	};
 
-	class B3D_SCRIPT_INTEROP_EXPORT ManagedSerializableTypeInfoDictionaryRTTI : public TRTTIType<ManagedSerializableTypeInfoDictionary, ManagedSerializableTypeInfo, ManagedSerializableTypeInfoDictionaryRTTI>
+	class B3D_SCRIPT_INTEROP_EXPORT ManagedTypeInfoDictionaryRTTI : public TRTTIType<ManagedTypeInfoDictionary, ManagedTypeInfo, ManagedTypeInfoDictionaryRTTI>
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
@@ -421,24 +397,24 @@ namespace bs
 		B3D_RTTI_END_MEMBERS
 
 	public:
-		ManagedSerializableTypeInfoDictionaryRTTI()
+		ManagedTypeInfoDictionaryRTTI()
 			: mInitMembers(this)
 		{}
 
 		const String& GetRttiName() override
 		{
-			static String name = "ScriptSerializableTypeInfoDictionary";
+			static String name = "ManagedTypeInfoDictionary";
 			return name;
 		}
 
 		u32 GetRttiId() const override
 		{
-			return TID_SerializableTypeInfoDictionary;
+			return TID_ManagedTypeInfoDictionary;
 		}
 
 		SPtr<IReflectable> NewRttiObject() override
 		{
-			return B3DMakeShared<ManagedSerializableTypeInfoDictionary>();
+			return B3DMakeShared<ManagedTypeInfoDictionary>();
 		}
 	};
 

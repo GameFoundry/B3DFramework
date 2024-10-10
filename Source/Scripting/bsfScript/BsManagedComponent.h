@@ -64,7 +64,7 @@ namespace bs
 		friend class ScriptManagedComponent;
 
 		/** Sets up script bindings between native and managed class. Must be called after creating the script object wrapper, or after assembly is reloaded. */
-		void SetupScriptBindings(const SPtr<ManagedSerializableObjectInfo>& objectInformation);
+		void SetupScriptBindings(const SPtr<ManagedObjectInfo>& objectInformation);
 
 		/**
 		 * Creates the script object of the correct type.
@@ -72,7 +72,7 @@ namespace bs
 		 * @param	outObjectInformation	Information about the component type. Can be null in case the type does no longer exist.
 		 * @return							Creates script object of the correct component type, or if type cannot be found, script object of missing type.
 		 */
-		MonoObject* CreateScriptObject(SPtr<ManagedSerializableObjectInfo>& outObjectInformation) const;
+		MonoObject* CreateScriptObject(SPtr<ManagedObjectInfo>& outObjectInformation) const;
 
 		typedef void(B3D_THUNKCALL* OnCreatedThunkDef)(MonoObject*, MonoException**);
 		typedef void(B3D_THUNKCALL* OnInitializedThunkDef)(MonoObject*, MonoException**);
@@ -93,7 +93,7 @@ namespace bs
 
 		bool mMissingType = false;
 		SPtr<ManagedSerializableObject> mSerializedObjectData;
-		SPtr<ManagedSerializableObjectInfo> mObjInfo; // Transient
+		SPtr<ManagedObjectInfo> mObjInfo; // Transient
 
 		OnCreatedThunkDef mOnCreatedThunk = nullptr;
 		OnInitializedThunkDef mOnInitializedThunk = nullptr;

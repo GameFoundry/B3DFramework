@@ -46,12 +46,12 @@ namespace bs
 		 * @param[in]	fieldInfo		Information about the field. Caller must ensure the type matches the type of the
 		 *								provided parent object.
 		 */
-		static MonoObject* Create(MonoObject* parentObject, const SPtr<ManagedSerializableMemberInfo>& fieldInfo);
+		static MonoObject* Create(MonoObject* parentObject, const SPtr<ManagedMemberInfo>& fieldInfo);
 
 	private:
-		ScriptSerializableField(MonoObject* instance, const SPtr<ManagedSerializableMemberInfo>& fieldInfo);
+		ScriptSerializableField(MonoObject* instance, const SPtr<ManagedMemberInfo>& fieldInfo);
 
-		SPtr<ManagedSerializableMemberInfo> mFieldInfo;
+		SPtr<ManagedMemberInfo> mFieldInfo;
 
 		/************************************************************************/
 		/* 								CLR HOOKS						   		*/

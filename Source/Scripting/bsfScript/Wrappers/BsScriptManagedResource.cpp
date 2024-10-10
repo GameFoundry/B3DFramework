@@ -35,7 +35,7 @@ void ScriptManagedResource::CreateAndBindScriptObject()
 		return;
 
 	HManagedResource resource = GetNativeObjectAsHandle();
-	SPtr<ManagedSerializableObjectInfo> objectInformation;
+	SPtr<ManagedObjectInfo> objectInformation;
 	MonoObject* const scriptObject = resource->CreateScriptObject(objectInformation);
 
 	if(scriptObject != nullptr)

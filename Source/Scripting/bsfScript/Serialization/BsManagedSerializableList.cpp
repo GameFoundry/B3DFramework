@@ -15,7 +15,7 @@ ManagedSerializableList::ManagedSerializableList(const ConstructPrivately& dummy
 {
 }
 
-ManagedSerializableList::ManagedSerializableList(const ConstructPrivately& dummy, const SPtr<ManagedSerializableTypeInfoList>& typeInfo, MonoObject* managedInstance)
+ManagedSerializableList::ManagedSerializableList(const ConstructPrivately& dummy, const SPtr<ManagedTypeInfoList>& typeInfo, MonoObject* managedInstance)
 	: mListTypeInfo(typeInfo)
 {
 	mGCHandle = MonoUtil::NewGcHandle(managedInstance, false);
@@ -38,7 +38,7 @@ ManagedSerializableList::~ManagedSerializableList()
 	}
 }
 
-SPtr<ManagedSerializableList> ManagedSerializableList::CreateFromExisting(MonoObject* managedInstance, const SPtr<ManagedSerializableTypeInfoList>& typeInfo)
+SPtr<ManagedSerializableList> ManagedSerializableList::CreateFromExisting(MonoObject* managedInstance, const SPtr<ManagedTypeInfoList>& typeInfo)
 {
 	if(managedInstance == nullptr)
 		return nullptr;
@@ -55,12 +55,12 @@ SPtr<ManagedSerializableList> ManagedSerializableList::CreateFromExisting(MonoOb
 	return B3DMakeShared<ManagedSerializableList>(ConstructPrivately(), typeInfo, managedInstance);
 }
 
-SPtr<ManagedSerializableList> ManagedSerializableList::CreateNew(const SPtr<ManagedSerializableTypeInfoList>& typeInfo, u32 size)
+SPtr<ManagedSerializableList> ManagedSerializableList::CreateNew(const SPtr<ManagedTypeInfoList>& typeInfo, u32 size)
 {
 	return B3DMakeShared<ManagedSerializableList>(ConstructPrivately(), typeInfo, CreateManagedInstance(typeInfo, size));
 }
 
-MonoObject* ManagedSerializableList::CreateManagedInstance(const SPtr<ManagedSerializableTypeInfoList>& typeInfo, u32 size)
+MonoObject* ManagedSerializableList::CreateManagedInstance(const SPtr<ManagedTypeInfoList>& typeInfo, u32 size)
 {
 	if(!typeInfo->IsTypeLoaded())
 		return nullptr;

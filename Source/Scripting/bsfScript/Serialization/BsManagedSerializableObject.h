@@ -48,7 +48,7 @@ namespace bs
 		};
 
 	public:
-		ManagedSerializableObject(const ConstructPrivately& dummy, SPtr<ManagedSerializableObjectInfo> objInfo, MonoObject* managedInstance);
+		ManagedSerializableObject(const ConstructPrivately& dummy, SPtr<ManagedObjectInfo> objInfo, MonoObject* managedInstance);
 		ManagedSerializableObject(const ConstructPrivately& dummy);
 		~ManagedSerializableObject();
 
@@ -58,7 +58,7 @@ namespace bs
 		MonoObject* GetManagedInstance() const;
 
 		/**	Returns the type information for the internal object. */
-		SPtr<ManagedSerializableObjectInfo> GetObjectInfo() const { return mObjInfo; }
+		SPtr<ManagedObjectInfo> GetObjectInfo() const { return mObjInfo; }
 
 		/**
 		 * Sets a new value of the specified field. Operates on managed object if in linked state, or on cached data
@@ -68,7 +68,7 @@ namespace bs
 		 *							type this object is initialized with.
 		 * @param[in]	val			Wrapper around the value to store in the field.
 		 */
-		void SetFieldData(const SPtr<ManagedSerializableMemberInfo>& fieldInfo, const SPtr<ManagedSerializableFieldData>& val);
+		void SetFieldData(const SPtr<ManagedMemberInfo>& fieldInfo, const SPtr<ManagedSerializableFieldData>& val);
 
 		/**
 		 * Returns the value of the specified field. Operates on managed object if in linked state, or on cached data
@@ -78,7 +78,7 @@ namespace bs
 		 *							type this object is initialized with.
 		 * @return					A wrapper around the value of the field.
 		 */
-		SPtr<ManagedSerializableFieldData> GetFieldData(const SPtr<ManagedSerializableMemberInfo>& fieldInfo) const;
+		SPtr<ManagedSerializableFieldData> GetFieldData(const SPtr<ManagedMemberInfo>& fieldInfo) const;
 
 		/**
 		 * Serializes the internal managed object into a set of cached data that can be saved in memory/disk and can be
@@ -102,7 +102,7 @@ namespace bs
 		 * @param[in]	instance	Existing managed instance of the same type this serializable object represents.
 		 * @param[in]	objInfo		Serializable object info for the managed object type.
 		 */
-		void Deserialize(MonoObject* instance, const SPtr<ManagedSerializableObjectInfo>& objInfo);
+		void Deserialize(MonoObject* instance, const SPtr<ManagedObjectInfo>& objInfo);
 
 		/** Checks if this object has the same contents as the provided object. */
 		bool Equals(ManagedSerializableObject& other, RTTIOperationContext* context = nullptr);
@@ -120,18 +120,18 @@ namespace bs
 		 *
 		 * @param[in]	type	Type of the object to create.
 		 */
-		static SPtr<ManagedSerializableObject> CreateNew(const SPtr<ManagedSerializableTypeInfoObject>& type);
+		static SPtr<ManagedSerializableObject> CreateNew(const SPtr<ManagedTypeInfoObject>& type);
 
 		/**
 		 * Creates a managed object instance.
 		 *
 		 * @param[in]	type	Type of the object to create.
 		 */
-		static MonoObject* CreateManagedInstance(const SPtr<ManagedSerializableTypeInfoObject>& type);
+		static MonoObject* CreateManagedInstance(const SPtr<ManagedTypeInfoObject>& type);
 
 	protected:
 		uint32_t mGCHandle = 0;
-		SPtr<ManagedSerializableObjectInfo> mObjInfo;
+		SPtr<ManagedObjectInfo> mObjInfo;
 		UnorderedMap<ManagedSerializableFieldKey, SPtr<ManagedSerializableFieldData>, Hash, struct Equals> mCachedData;
 
 		/************************************************************************/

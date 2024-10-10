@@ -94,19 +94,19 @@ namespace bs
 	class ManagedSerializableFieldData;
 	class ManagedSerializableFieldKey;
 	class ManagedSerializableFieldDataEntry;
-	class ManagedSerializableTypeInfo;
-	class ManagedSerializableTypeInfoPrimitive;
-	class ManagedSerializableTypeInfoObject;
-	class ManagedSerializableTypeInfoArray;
-	class ManagedSerializableTypeInfoList;
-	class ManagedSerializableTypeInfoDictionary;
+	class ManagedTypeInfo;
+	class ManagedTypeInfoPrimitive;
+	class ManagedTypeInfoObject;
+	class ManagedTypeInfoArray;
+	class ManagedTypeInfoList;
+	class ManagedTypeInfoDictionary;
 	class ManagedSerializableObject;
 	class ManagedSerializableArray;
 	class ManagedSerializableList;
 	class ManagedSerializableDictionary;
-	class ManagedSerializableAssemblyInfo;
-	class ManagedSerializableObjectInfo;
-	class ManagedSerializableMemberInfo;
+	class ManagedAssemblyInfo;
+	class ManagedObjectInfo;
+	class ManagedMemberInfo;
 	class ManagedSerializableObjectData;
 	class ManagedSerializableDelta;
 	class ManagedResource;
@@ -133,13 +133,13 @@ namespace bs
 		TID_ManagedComponent = 50000,
 		TID_ScriptSerializableObject = 50001,
 		TID_ScriptSerializableArray = 50002,
-		TID_SerializableAssemblyInfo = 50004,
-		TID_SerializableObjectInfo = 50005,
-		TID_SerializableMemberInfo = 50006,
-		TID_SerializableTypeInfo = 50007,
-		TID_SerializableTypeInfoPrimitive = 50008,
-		TID_SerializableTypeInfoObject = 50009,
-		TID_SerializableTypeInfoArray = 50010,
+		TID_ManagedAssemblyInfo = 50004,
+		TID_ManagedObjectInfo = 50005,
+		TID_ManagedMemberInfo = 50006,
+		TID_ManagedTypeInfo = 50007,
+		TID_ManagedTypeInfoPrimitive = 50008,
+		TID_ManagedTypeInfoObject = 50009,
+		TID_ManagedTypeInfoArray = 50010,
 		TID_SerializableFieldData = 50011,
 		TID_SerializableFieldKey = 50012,
 		TID_SerializableFieldDataEntry = 50013,
@@ -162,8 +162,8 @@ namespace bs
 		TID_SerializableFieldDataArray = 50030,
 		TID_SerializableFieldDataList = 50031,
 		TID_SerializableFieldDataDictionary = 50032,
-		TID_SerializableTypeInfoList = 50033,
-		TID_SerializableTypeInfoDictionary = 50034,
+		TID_ManagedTypeInfoList = 50033,
+		TID_ManagedTypeInfoDictionary = 50034,
 		TID_ScriptSerializableList = 50035,
 		TID_ScriptSerializableDictionary = 50036,
 		TID_ManagedResource = 50037,
@@ -179,11 +179,11 @@ namespace bs
 		TID_ScriptModifiedArrayEntry = 50047,
 		TID_ScriptModifiedDictionaryEntry = 50048,
 		TID_ScriptSerializableDictionaryKeyValue = 50049,
-		TID_SerializableTypeInfoRef = 50050,
-		TID_SerializableFieldInfo = 50051,
-		TID_SerializablePropertyInfo = 50052,
-		TID_SerializableTypeInfoRRef = 50053,
-		TID_SerializableTypeInfoEnum = 50054,
+		TID_ManagedTypeInfoReference = 50050,
+		TID_ManagedFieldInfo = 50051,
+		TID_ManagedPropertyInfo = 50052,
+		TID_ManagedTypeInfoResourceReference = 50053,
+		TID_ManagedTypeInfoEnum = 50054,
 		TID_SerializableFieldDataReflectableRef = 50055,
 	};
 

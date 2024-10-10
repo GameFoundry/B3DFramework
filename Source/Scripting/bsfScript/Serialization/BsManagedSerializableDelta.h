@@ -45,10 +45,10 @@ namespace bs
 		struct ModifiedField : IReflectable
 		{
 			ModifiedField() = default;
-			ModifiedField(const SPtr<ManagedSerializableTypeInfo>& parentType, const SPtr<ManagedSerializableMemberInfo>& fieldType, const SPtr<Modification>& modification);
+			ModifiedField(const SPtr<ManagedTypeInfo>& parentType, const SPtr<ManagedMemberInfo>& fieldType, const SPtr<Modification>& modification);
 
-			SPtr<ManagedSerializableTypeInfo> ParentType; /**< Type of the parent object the field belongs to. */
-			SPtr<ManagedSerializableMemberInfo> FieldType; /**< Data type of the field. */
+			SPtr<ManagedTypeInfo> ParentType; /**< Type of the parent object the field belongs to. */
+			SPtr<ManagedMemberInfo> FieldType; /**< Data type of the field. */
 			SPtr<Modification> Modification; /**< Recorded modification(s) on the field. */
 
 			/************************************************************************/
@@ -243,7 +243,7 @@ namespace bs
 		 * @param	fieldData	Original data of the field, to apply the modification to.
 		 * @return				New field data in the case modification needed the field data to be re-created instead of just modified.
 		 */
-		SPtr<ManagedSerializableFieldData> ApplyDiff(const SPtr<Modification>& delta, const SPtr<ManagedSerializableTypeInfo>& fieldType, const SPtr<ManagedSerializableFieldData>& fieldData);
+		SPtr<ManagedSerializableFieldData> ApplyDiff(const SPtr<Modification>& delta, const SPtr<ManagedTypeInfo>& fieldType, const SPtr<ManagedSerializableFieldData>& fieldData);
 
 		SPtr<ModifiedObject> mModificationRoot;
 

@@ -35,7 +35,7 @@ namespace bs
 		{};
 
 	public:
-		ManagedSerializableArray(const ConstructPrivately& dummy, const SPtr<ManagedSerializableTypeInfoArray>& typeInfo, MonoObject* managedInstance);
+		ManagedSerializableArray(const ConstructPrivately& dummy, const SPtr<ManagedTypeInfoArray>& typeInfo, MonoObject* managedInstance);
 		ManagedSerializableArray(const ConstructPrivately& dummy);
 		~ManagedSerializableArray();
 
@@ -45,7 +45,7 @@ namespace bs
 		MonoObject* GetManagedInstance() const;
 
 		/**	Returns the type information for the internal array. */
-		SPtr<ManagedSerializableTypeInfoArray> GetTypeInfo() const { return mArrayTypeInfo; }
+		SPtr<ManagedTypeInfoArray> GetTypeInfo() const { return mArrayTypeInfo; }
 
 		/**
 		 * Changes the size of the array. Operates on managed object if in linked state, or on cached data otherwise. If
@@ -116,7 +116,7 @@ namespace bs
 		 *									with the provided type info.
 		 * @param[in]	typeInfo			Type information for the array and its elements.
 		 */
-		static SPtr<ManagedSerializableArray> CreateFromExisting(MonoObject* managedInstance, const SPtr<ManagedSerializableTypeInfoArray>& typeInfo);
+		static SPtr<ManagedSerializableArray> CreateFromExisting(MonoObject* managedInstance, const SPtr<ManagedTypeInfoArray>& typeInfo);
 
 		/**
 		 * Creates a managed serializable array that creates and references a brand new managed array instance.
@@ -125,7 +125,7 @@ namespace bs
 		 * @param[in]	sizes		Array of sizes, one per array dimension. Number of sizes must match number of array
 		 *							dimensions as specified by its type.
 		 */
-		static SPtr<ManagedSerializableArray> CreateNew(const SPtr<ManagedSerializableTypeInfoArray>& typeInfo, const Vector<u32>& sizes);
+		static SPtr<ManagedSerializableArray> CreateNew(const SPtr<ManagedTypeInfoArray>& typeInfo, const Vector<u32>& sizes);
 
 		/**
 		 * Creates a managed array instance.
@@ -134,7 +134,7 @@ namespace bs
 		 * @param[in]	sizes		Array of sizes, one per array dimension. Number of sizes must match number of array
 		 *							dimensions as specified by its type.
 		 */
-		static MonoObject* CreateManagedInstance(const SPtr<ManagedSerializableTypeInfoArray>& typeInfo, const Vector<u32>& sizes);
+		static MonoObject* CreateManagedInstance(const SPtr<ManagedTypeInfoArray>& typeInfo, const Vector<u32>& sizes);
 
 	protected:
 		/**
@@ -165,7 +165,7 @@ namespace bs
 		::MonoClass* mElementMonoClass = nullptr;
 		MonoMethod* mCopyMethod = nullptr;
 
-		SPtr<ManagedSerializableTypeInfoArray> mArrayTypeInfo;
+		SPtr<ManagedTypeInfoArray> mArrayTypeInfo;
 		Vector<SPtr<ManagedSerializableFieldData>> mCachedEntries;
 		Vector<u32> mNumElements;
 		u32 mElemSize = 0;

@@ -29,7 +29,7 @@ MonoObject* ScriptSerializableUtility::InternalClone(MonoObject* original)
 	::MonoClass* monoClass = MonoUtil::GetClass(original);
 	MonoClass* engineClass = MonoManager::Instance().FindClass(monoClass);
 
-	SPtr<ManagedSerializableTypeInfo> typeInfo = ScriptAssemblyManager::Instance().GetTypeInfo(engineClass);
+	SPtr<ManagedTypeInfo> typeInfo = ScriptAssemblyManager::Instance().GetTypeInfo(engineClass);
 	if(typeInfo == nullptr)
 	{
 		B3D_LOG(Warning, Script, "Cannot clone an instance of type \"{0}\", it is not marked as serializable.", engineClass->GetFullName());
@@ -59,7 +59,7 @@ MonoObject* ScriptSerializableUtility::InternalCreate(MonoReflectionType* reflTy
 	::MonoClass* monoClass = MonoUtil::GetClass(reflType);
 	MonoClass* engineClass = MonoManager::Instance().FindClass(monoClass);
 
-	SPtr<ManagedSerializableTypeInfo> typeInfo = ScriptAssemblyManager::Instance().GetTypeInfo(engineClass);
+	SPtr<ManagedTypeInfo> typeInfo = ScriptAssemblyManager::Instance().GetTypeInfo(engineClass);
 	if(typeInfo == nullptr)
 	{
 		B3D_LOG(Warning, Script, "Cannot create an instance of type \"{0}\", it is not marked as serializable.", engineClass->GetFullName());

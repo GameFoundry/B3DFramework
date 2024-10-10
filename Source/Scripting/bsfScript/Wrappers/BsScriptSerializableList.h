@@ -24,9 +24,9 @@ namespace bs
 		static MonoObject* Create(const ScriptSerializableProperty* native, MonoObject* managed);
 
 	private:
-		ScriptSerializableList(MonoObject* instance, const SPtr<ManagedSerializableTypeInfoList>& typeInfo);
+		ScriptSerializableList(MonoObject* instance, const SPtr<ManagedTypeInfoList>& typeInfo);
 
-		SPtr<ManagedSerializableTypeInfoList> mTypeInfo;
+		SPtr<ManagedTypeInfoList> mTypeInfo;
 
 		/************************************************************************/
 		/* 								CLR HOOKS						   		*/

@@ -134,7 +134,7 @@ void ManagedResource::Initialize()
 	// If not, we need to create the script object (e.g. if the resource is being deserialized)
 	else
 	{
-		SPtr<ManagedSerializableObjectInfo> objectInformation;
+		SPtr<ManagedObjectInfo> objectInformation;
 		MonoObject* const scriptObject = CreateScriptObject(objectInformation);
 
 		ScriptObjectWrapper::Create<ScriptManagedResource>(B3DStaticResourceCast<ManagedResource>(GetHandle()), scriptObject);
@@ -148,7 +148,7 @@ void ManagedResource::Initialize()
 	}
 }
 
-MonoObject* ManagedResource::CreateScriptObject(SPtr<ManagedSerializableObjectInfo>& outObjectInformation) const
+MonoObject* ManagedResource::CreateScriptObject(SPtr<ManagedObjectInfo>& outObjectInformation) const
 {
 	auto metaData = B3DRTTICast<ManagedResourceMetaData>(mMetaData);
 	if(B3D_ENSURE(metaData != nullptr))
@@ -160,7 +160,7 @@ MonoObject* ManagedResource::CreateScriptObject(SPtr<ManagedSerializableObjectIn
 	return ScriptAssemblyManager::Instance().GetBuiltinClasses().MissingResourceClass->CreateInstance(true);
 }
 
-void ManagedResource::SetupScriptBindings(const SPtr<ManagedSerializableObjectInfo>& objectInformation)
+void ManagedResource::SetupScriptBindings(const SPtr<ManagedObjectInfo>& objectInformation)
 {
 	mObjectInformation = objectInformation;
 }

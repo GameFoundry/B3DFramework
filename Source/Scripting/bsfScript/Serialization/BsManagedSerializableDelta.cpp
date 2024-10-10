@@ -10,7 +10,7 @@
 #include "RTTI/BsManagedSerializableDeltaRTTI.h"
 
 using namespace bs;
-ManagedSerializableDelta::ModifiedField::ModifiedField(const SPtr<ManagedSerializableTypeInfo>& parentType, const SPtr<ManagedSerializableMemberInfo>& fieldType, const SPtr<ManagedSerializableDelta::Modification>& modification)
+ManagedSerializableDelta::ModifiedField::ModifiedField(const SPtr<ManagedTypeInfo>& parentType, const SPtr<ManagedMemberInfo>& fieldType, const SPtr<ManagedSerializableDelta::Modification>& modification)
 	: ParentType(parentType), FieldType(fieldType), Modification(modification)
 {}
 
@@ -136,8 +136,8 @@ SPtr<ManagedSerializableDelta> ManagedSerializableDelta::Create(const ManagedSer
 {
 	B3D_ASSERT(original != nullptr && modified != nullptr);
 
-	SPtr<ManagedSerializableObjectInfo> oldObjInfo = original->GetObjectInfo();
-	SPtr<ManagedSerializableObjectInfo> newObjInfo = modified->GetObjectInfo();
+	SPtr<ManagedObjectInfo> oldObjInfo = original->GetObjectInfo();
+	SPtr<ManagedObjectInfo> newObjInfo = modified->GetObjectInfo();
 
 	if(!oldObjInfo->TypeInfo->Matches(newObjInfo->TypeInfo))
 		return nullptr;
@@ -158,7 +158,7 @@ SPtr<ManagedSerializableDelta::ModifiedObject> ManagedSerializableDelta::Generat
 {
 	SPtr<ModifiedObject> output = nullptr;
 
-	SPtr<ManagedSerializableObjectInfo> curObjInfo = modified->GetObjectInfo();
+	SPtr<ManagedObjectInfo> curObjInfo = modified->GetObjectInfo();
 	while(curObjInfo != nullptr)
 	{
 		for(auto& field : curObjInfo->Fields)
@@ -189,10 +189,10 @@ SPtr<ManagedSerializableDelta::ModifiedObject> ManagedSerializableDelta::Generat
 
 SPtr<ManagedSerializableDelta::Modification> ManagedSerializableDelta::GenerateFieldDelta(const SPtr<ManagedSerializableFieldData>& original, const SPtr<ManagedSerializableFieldData>& modified, u32 entryTypeId, RTTIOperationContext* context)
 {
-	bool isPrimitive = entryTypeId == TID_SerializableTypeInfoPrimitive ||
-		entryTypeId == TID_SerializableTypeInfoRef ||
-		entryTypeId == TID_SerializableTypeInfoEnum ||
-		entryTypeId == TID_SerializableTypeInfoRRef;
+	bool isPrimitive = entryTypeId == TID_ManagedTypeInfoPrimitive ||
+		entryTypeId == TID_ManagedTypeInfoReference ||
+		entryTypeId == TID_ManagedTypeInfoEnum ||
+		entryTypeId == TID_ManagedTypeInfoResourceReference;
 
 	// It's possible the field data is null if the class structure changed (i.e. new field was added that is not present
 	// in serialized data). Check for this case first to ensure field data is valid for the remainder of the method.
@@ -219,7 +219,7 @@ SPtr<ManagedSerializableDelta::Modification> ManagedSerializableDelta::GenerateF
 	{
 		switch(entryTypeId)
 		{
-		case TID_SerializableTypeInfoObject:
+		case TID_ManagedTypeInfoObject:
 			{
 				SPtr<ManagedSerializableFieldDataObject> oldObjData =
 					std::static_pointer_cast<ManagedSerializableFieldDataObject>(original);
@@ -240,7 +240,7 @@ SPtr<ManagedSerializableDelta::Modification> ManagedSerializableDelta::GenerateF
 				}
 			}
 			break;
-		case TID_SerializableTypeInfoArray:
+		case TID_ManagedTypeInfoArray:
 			{
 				SPtr<ManagedSerializableFieldDataArray> oldArrayData =
 					std::static_pointer_cast<ManagedSerializableFieldDataArray>(original);
@@ -303,7 +303,7 @@ SPtr<ManagedSerializableDelta::Modification> ManagedSerializableDelta::GenerateF
 				}
 			}
 			break;
-		case TID_SerializableTypeInfoList:
+		case TID_ManagedTypeInfoList:
 			{
 				SPtr<ManagedSerializableFieldDataList> oldListData =
 					std::static_pointer_cast<ManagedSerializableFieldDataList>(original);
@@ -366,7 +366,7 @@ SPtr<ManagedSerializableDelta::Modification> ManagedSerializableDelta::GenerateF
 				}
 			}
 			break;
-		case TID_SerializableTypeInfoDictionary:
+		case TID_ManagedTypeInfoDictionary:
 			{
 				SPtr<ManagedSerializableFieldDataDictionary> oldDictData =
 					std::static_pointer_cast<ManagedSerializableFieldDataDictionary>(original);
@@ -444,13 +444,13 @@ void ManagedSerializableDelta::Apply(const SPtr<ManagedSerializableObject>& obje
 
 SPtr<ManagedSerializableFieldData> ManagedSerializableDelta::ApplyObjectDelta(const SPtr<ModifiedObject>& delta, const SPtr<ManagedSerializableObject>& object)
 {
-	SPtr<ManagedSerializableObjectInfo> objInfo = object->GetObjectInfo();
+	SPtr<ManagedObjectInfo> objInfo = object->GetObjectInfo();
 	for(auto& modEntry : delta->Entries)
 	{
-		SPtr<ManagedSerializableMemberInfo> fieldType = modEntry.FieldType;
-		SPtr<ManagedSerializableTypeInfo> typeInfo = modEntry.ParentType;
+		SPtr<ManagedMemberInfo> fieldType = modEntry.FieldType;
+		SPtr<ManagedTypeInfo> typeInfo = modEntry.ParentType;
 
-		SPtr<ManagedSerializableMemberInfo> matchingFieldInfo = objInfo->FindMatchingField(fieldType, typeInfo);
+		SPtr<ManagedMemberInfo> matchingFieldInfo = objInfo->FindMatchingField(fieldType, typeInfo);
 		if(matchingFieldInfo == nullptr)
 			continue; // Field no longer exists in the type
 
@@ -544,7 +544,7 @@ SPtr<ManagedSerializableFieldData> ManagedSerializableDelta::ApplyDictionaryDelt
 	return nullptr;
 }
 
-SPtr<ManagedSerializableFieldData> ManagedSerializableDelta::ApplyDiff(const SPtr<Modification>& delta, const SPtr<ManagedSerializableTypeInfo>& fieldType, const SPtr<ManagedSerializableFieldData>& fieldData)
+SPtr<ManagedSerializableFieldData> ManagedSerializableDelta::ApplyDiff(const SPtr<Modification>& delta, const SPtr<ManagedTypeInfo>& fieldType, const SPtr<ManagedSerializableFieldData>& fieldData)
 {
 	SPtr<ManagedSerializableFieldData> newData;
 	switch(delta->GetTypeId())
@@ -554,8 +554,8 @@ SPtr<ManagedSerializableFieldData> ManagedSerializableDelta::ApplyDiff(const SPt
 			SPtr<ManagedSerializableFieldDataObject> origObjData = std::static_pointer_cast<ManagedSerializableFieldDataObject>(fieldData);
 			SPtr<ManagedSerializableObject> childObj = origObjData->Value;
 
-			SPtr<ManagedSerializableTypeInfoObject> objTypeInfo =
-				std::static_pointer_cast<ManagedSerializableTypeInfoObject>(fieldType);
+			SPtr<ManagedTypeInfoObject> objTypeInfo =
+				std::static_pointer_cast<ManagedTypeInfoObject>(fieldType);
 
 			if(childObj == nullptr) // Object was deleted in original but we have modifications for it, so we create it
 			{
@@ -569,13 +569,13 @@ SPtr<ManagedSerializableFieldData> ManagedSerializableDelta::ApplyDiff(const SPt
 		break;
 	case TID_ScriptModifiedArray:
 		{
-			if(fieldType->GetTypeId() == TID_SerializableTypeInfoArray)
+			if(fieldType->GetTypeId() == TID_ManagedTypeInfoArray)
 			{
 				SPtr<ManagedSerializableFieldDataArray> origArrayData = std::static_pointer_cast<ManagedSerializableFieldDataArray>(fieldData);
 				SPtr<ManagedSerializableArray> childArray = origArrayData->Value;
 
-				SPtr<ManagedSerializableTypeInfoArray> arrayTypeInfo =
-					std::static_pointer_cast<ManagedSerializableTypeInfoArray>(fieldType);
+				SPtr<ManagedTypeInfoArray> arrayTypeInfo =
+					std::static_pointer_cast<ManagedTypeInfoArray>(fieldType);
 
 				SPtr<ModifiedArray> childMod = std::static_pointer_cast<ModifiedArray>(delta);
 				if(childArray == nullptr) // Object was deleted in original but we have modifications for it, so we create it
@@ -583,13 +583,13 @@ SPtr<ManagedSerializableFieldData> ManagedSerializableDelta::ApplyDiff(const SPt
 
 				newData = ApplyArrayDelta(childMod, childArray);
 			}
-			else if(fieldType->GetTypeId() == TID_SerializableTypeInfoList)
+			else if(fieldType->GetTypeId() == TID_ManagedTypeInfoList)
 			{
 				SPtr<ManagedSerializableFieldDataList> origListData = std::static_pointer_cast<ManagedSerializableFieldDataList>(fieldData);
 				SPtr<ManagedSerializableList> childList = origListData->Value;
 
-				SPtr<ManagedSerializableTypeInfoList> listTypeInfo =
-					std::static_pointer_cast<ManagedSerializableTypeInfoList>(fieldType);
+				SPtr<ManagedTypeInfoList> listTypeInfo =
+					std::static_pointer_cast<ManagedTypeInfoList>(fieldType);
 
 				SPtr<ModifiedArray> childMod = std::static_pointer_cast<ModifiedArray>(delta);
 				if(childList == nullptr) // Object was deleted in original but we have modifications for it, so we create it
@@ -604,8 +604,8 @@ SPtr<ManagedSerializableFieldData> ManagedSerializableDelta::ApplyDiff(const SPt
 			SPtr<ManagedSerializableFieldDataDictionary> origObjData = std::static_pointer_cast<ManagedSerializableFieldDataDictionary>(fieldData);
 			SPtr<ManagedSerializableDictionary> childDict = origObjData->Value;
 
-			SPtr<ManagedSerializableTypeInfoDictionary> dictTypeInfo =
-				std::static_pointer_cast<ManagedSerializableTypeInfoDictionary>(fieldType);
+			SPtr<ManagedTypeInfoDictionary> dictTypeInfo =
+				std::static_pointer_cast<ManagedTypeInfoDictionary>(fieldType);
 
 			if(childDict == nullptr) // Object was deleted in original but we have modifications for it, so we create it
 			{

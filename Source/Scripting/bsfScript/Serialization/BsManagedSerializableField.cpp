@@ -47,11 +47,11 @@ bool CompareFieldData(const SPtr<ManagedSerializableFieldData>& oldData, const S
 	return oldData->Equals(newData, context);
 }
 
-bool IsPrimitiveOrEnumType(const SPtr<ManagedSerializableTypeInfo>& typeInfo, ScriptPrimitiveType underlyingType)
+bool IsPrimitiveOrEnumType(const SPtr<ManagedTypeInfo>& typeInfo, ScriptPrimitiveType underlyingType)
 {
-	if(const auto primitiveTypeInfo = B3DRTTICast<ManagedSerializableTypeInfoPrimitive>(typeInfo.get()))
+	if(const auto primitiveTypeInfo = B3DRTTICast<ManagedTypeInfoPrimitive>(typeInfo.get()))
 		return primitiveTypeInfo->Type == underlyingType;
-	else if(const auto enumTypeInfo = B3DRTTICast<ManagedSerializableTypeInfoEnum>(typeInfo.get()))
+	else if(const auto enumTypeInfo = B3DRTTICast<ManagedTypeInfoEnum>(typeInfo.get()))
 		return enumTypeInfo->UnderlyingType == underlyingType;
 
 	return false;
@@ -76,25 +76,25 @@ SPtr<ManagedSerializableFieldDataEntry> ManagedSerializableFieldDataEntry::Creat
 	return fieldDataEntry;
 }
 
-SPtr<ManagedSerializableFieldData> ManagedSerializableFieldData::Create(const SPtr<ManagedSerializableTypeInfo>& typeInfo, MonoObject* value)
+SPtr<ManagedSerializableFieldData> ManagedSerializableFieldData::Create(const SPtr<ManagedTypeInfo>& typeInfo, MonoObject* value)
 {
 	return Create(typeInfo, value, true);
 }
 
-SPtr<ManagedSerializableFieldData> ManagedSerializableFieldData::CreateDefault(const SPtr<ManagedSerializableTypeInfo>& typeInfo)
+SPtr<ManagedSerializableFieldData> ManagedSerializableFieldData::CreateDefault(const SPtr<ManagedTypeInfo>& typeInfo)
 {
 	return Create(typeInfo, nullptr, false);
 }
 
-SPtr<ManagedSerializableFieldData> ManagedSerializableFieldData::Create(const SPtr<ManagedSerializableTypeInfo>& typeInfo, MonoObject* value, bool allowNull)
+SPtr<ManagedSerializableFieldData> ManagedSerializableFieldData::Create(const SPtr<ManagedTypeInfo>& typeInfo, MonoObject* value, bool allowNull)
 {
-	if(typeInfo->GetTypeId() == TID_SerializableTypeInfoPrimitive || typeInfo->GetTypeId() == TID_SerializableTypeInfoEnum)
+	if(typeInfo->GetTypeId() == TID_ManagedTypeInfoPrimitive || typeInfo->GetTypeId() == TID_ManagedTypeInfoEnum)
 	{
 		ScriptPrimitiveType primitiveType = ScriptPrimitiveType::I32;
 
-		if(auto primitiveTypeInfo = B3DRTTICast<ManagedSerializableTypeInfoPrimitive>(typeInfo.get()))
+		if(auto primitiveTypeInfo = B3DRTTICast<ManagedTypeInfoPrimitive>(typeInfo.get()))
 			primitiveType = primitiveTypeInfo->Type;
-		else if(auto enumTypeInfo = B3DRTTICast<ManagedSerializableTypeInfoEnum>(typeInfo.get()))
+		else if(auto enumTypeInfo = B3DRTTICast<ManagedTypeInfoEnum>(typeInfo.get()))
 			primitiveType = enumTypeInfo->UnderlyingType;
 
 		switch(primitiveType)
@@ -220,9 +220,9 @@ SPtr<ManagedSerializableFieldData> ManagedSerializableFieldData::Create(const SP
 			break;
 		}
 	}
-	else if(typeInfo->GetTypeId() == TID_SerializableTypeInfoRef)
+	else if(typeInfo->GetTypeId() == TID_ManagedTypeInfoReference)
 	{
-		auto refTypeInfo = std::static_pointer_cast<ManagedSerializableTypeInfoRef>(typeInfo);
+		auto refTypeInfo = std::static_pointer_cast<ManagedTypeInfoReference>(typeInfo);
 		switch(refTypeInfo->Type)
 		{
 		case ScriptReferenceType::SceneObject:
@@ -320,7 +320,7 @@ SPtr<ManagedSerializableFieldData> ManagedSerializableFieldData::Create(const SP
 			break;
 		}
 	}
-	else if(typeInfo->GetTypeId() == TID_SerializableTypeInfoRRef)
+	else if(typeInfo->GetTypeId() == TID_ManagedTypeInfoResourceReference)
 	{
 		auto fieldData = B3DMakeShared<ManagedSerializableFieldDataResourceRef>();
 
@@ -332,19 +332,19 @@ SPtr<ManagedSerializableFieldData> ManagedSerializableFieldData::Create(const SP
 
 		return fieldData;
 	}
-	else if(typeInfo->GetTypeId() == TID_SerializableTypeInfoObject)
+	else if(typeInfo->GetTypeId() == TID_ManagedTypeInfoObject)
 	{
 		auto fieldData = B3DMakeShared<ManagedSerializableFieldDataObject>();
 		if(value != nullptr)
 			fieldData->Value = ManagedSerializableObject::CreateFromExisting(value);
 		else if(!allowNull)
-			fieldData->Value = ManagedSerializableObject::CreateNew(std::static_pointer_cast<ManagedSerializableTypeInfoObject>(typeInfo));
+			fieldData->Value = ManagedSerializableObject::CreateNew(std::static_pointer_cast<ManagedTypeInfoObject>(typeInfo));
 
 		return fieldData;
 	}
-	else if(typeInfo->GetTypeId() == TID_SerializableTypeInfoArray)
+	else if(typeInfo->GetTypeId() == TID_ManagedTypeInfoArray)
 	{
-		SPtr<ManagedSerializableTypeInfoArray> arrayTypeInfo = std::static_pointer_cast<ManagedSerializableTypeInfoArray>(typeInfo);
+		SPtr<ManagedTypeInfoArray> arrayTypeInfo = std::static_pointer_cast<ManagedTypeInfoArray>(typeInfo);
 
 		auto fieldData = B3DMakeShared<ManagedSerializableFieldDataArray>();
 		if(value != nullptr)
@@ -357,9 +357,9 @@ SPtr<ManagedSerializableFieldData> ManagedSerializableFieldData::Create(const SP
 
 		return fieldData;
 	}
-	else if(typeInfo->GetTypeId() == TID_SerializableTypeInfoList)
+	else if(typeInfo->GetTypeId() == TID_ManagedTypeInfoList)
 	{
-		SPtr<ManagedSerializableTypeInfoList> listTypeInfo = std::static_pointer_cast<ManagedSerializableTypeInfoList>(typeInfo);
+		SPtr<ManagedTypeInfoList> listTypeInfo = std::static_pointer_cast<ManagedTypeInfoList>(typeInfo);
 
 		auto fieldData = B3DMakeShared<ManagedSerializableFieldDataList>();
 		if(value != nullptr)
@@ -369,9 +369,9 @@ SPtr<ManagedSerializableFieldData> ManagedSerializableFieldData::Create(const SP
 
 		return fieldData;
 	}
-	else if(typeInfo->GetTypeId() == TID_SerializableTypeInfoDictionary)
+	else if(typeInfo->GetTypeId() == TID_ManagedTypeInfoDictionary)
 	{
-		SPtr<ManagedSerializableTypeInfoDictionary> dictTypeInfo = std::static_pointer_cast<ManagedSerializableTypeInfoDictionary>(typeInfo);
+		SPtr<ManagedTypeInfoDictionary> dictTypeInfo = std::static_pointer_cast<ManagedTypeInfoDictionary>(typeInfo);
 
 		auto fieldData = B3DMakeShared<ManagedSerializableFieldDataDictionary>();
 		if(value != nullptr)
@@ -385,7 +385,7 @@ SPtr<ManagedSerializableFieldData> ManagedSerializableFieldData::Create(const SP
 	return nullptr;
 }
 
-void* ManagedSerializableFieldDataBool::GetValue(const SPtr<ManagedSerializableTypeInfo>& typeInfo)
+void* ManagedSerializableFieldDataBool::GetValue(const SPtr<ManagedTypeInfo>& typeInfo)
 {
 	if(IsPrimitiveOrEnumType(typeInfo, ScriptPrimitiveType::Bool))
 		return &Value;
@@ -394,7 +394,7 @@ void* ManagedSerializableFieldDataBool::GetValue(const SPtr<ManagedSerializableT
 	return nullptr;
 }
 
-void* ManagedSerializableFieldDataChar::GetValue(const SPtr<ManagedSerializableTypeInfo>& typeInfo)
+void* ManagedSerializableFieldDataChar::GetValue(const SPtr<ManagedTypeInfo>& typeInfo)
 {
 	if(IsPrimitiveOrEnumType(typeInfo, ScriptPrimitiveType::Char))
 		return &Value;
@@ -403,7 +403,7 @@ void* ManagedSerializableFieldDataChar::GetValue(const SPtr<ManagedSerializableT
 	return nullptr;
 }
 
-void* ManagedSerializableFieldDataI8::GetValue(const SPtr<ManagedSerializableTypeInfo>& typeInfo)
+void* ManagedSerializableFieldDataI8::GetValue(const SPtr<ManagedTypeInfo>& typeInfo)
 {
 	if(IsPrimitiveOrEnumType(typeInfo, ScriptPrimitiveType::I8))
 		return &Value;
@@ -412,7 +412,7 @@ void* ManagedSerializableFieldDataI8::GetValue(const SPtr<ManagedSerializableTyp
 	return nullptr;
 }
 
-void* ManagedSerializableFieldDataU8::GetValue(const SPtr<ManagedSerializableTypeInfo>& typeInfo)
+void* ManagedSerializableFieldDataU8::GetValue(const SPtr<ManagedTypeInfo>& typeInfo)
 {
 	if(IsPrimitiveOrEnumType(typeInfo, ScriptPrimitiveType::U8))
 		return &Value;
@@ -421,7 +421,7 @@ void* ManagedSerializableFieldDataU8::GetValue(const SPtr<ManagedSerializableTyp
 	return nullptr;
 }
 
-void* ManagedSerializableFieldDataI16::GetValue(const SPtr<ManagedSerializableTypeInfo>& typeInfo)
+void* ManagedSerializableFieldDataI16::GetValue(const SPtr<ManagedTypeInfo>& typeInfo)
 {
 	if(IsPrimitiveOrEnumType(typeInfo, ScriptPrimitiveType::I16))
 		return &Value;
@@ -430,7 +430,7 @@ void* ManagedSerializableFieldDataI16::GetValue(const SPtr<ManagedSerializableTy
 	return nullptr;
 }
 
-void* ManagedSerializableFieldDataU16::GetValue(const SPtr<ManagedSerializableTypeInfo>& typeInfo)
+void* ManagedSerializableFieldDataU16::GetValue(const SPtr<ManagedTypeInfo>& typeInfo)
 {
 	if(IsPrimitiveOrEnumType(typeInfo, ScriptPrimitiveType::U16))
 		return &Value;
@@ -439,7 +439,7 @@ void* ManagedSerializableFieldDataU16::GetValue(const SPtr<ManagedSerializableTy
 	return nullptr;
 }
 
-void* ManagedSerializableFieldDataI32::GetValue(const SPtr<ManagedSerializableTypeInfo>& typeInfo)
+void* ManagedSerializableFieldDataI32::GetValue(const SPtr<ManagedTypeInfo>& typeInfo)
 {
 	if(IsPrimitiveOrEnumType(typeInfo, ScriptPrimitiveType::I32))
 		return &Value;
@@ -448,7 +448,7 @@ void* ManagedSerializableFieldDataI32::GetValue(const SPtr<ManagedSerializableTy
 	return nullptr;
 }
 
-void* ManagedSerializableFieldDataU32::GetValue(const SPtr<ManagedSerializableTypeInfo>& typeInfo)
+void* ManagedSerializableFieldDataU32::GetValue(const SPtr<ManagedTypeInfo>& typeInfo)
 {
 	if(IsPrimitiveOrEnumType(typeInfo, ScriptPrimitiveType::U32))
 		return &Value;
@@ -457,7 +457,7 @@ void* ManagedSerializableFieldDataU32::GetValue(const SPtr<ManagedSerializableTy
 	return nullptr;
 }
 
-void* ManagedSerializableFieldDataI64::GetValue(const SPtr<ManagedSerializableTypeInfo>& typeInfo)
+void* ManagedSerializableFieldDataI64::GetValue(const SPtr<ManagedTypeInfo>& typeInfo)
 {
 	if(IsPrimitiveOrEnumType(typeInfo, ScriptPrimitiveType::I64))
 		return &Value;
@@ -466,7 +466,7 @@ void* ManagedSerializableFieldDataI64::GetValue(const SPtr<ManagedSerializableTy
 	return nullptr;
 }
 
-void* ManagedSerializableFieldDataU64::GetValue(const SPtr<ManagedSerializableTypeInfo>& typeInfo)
+void* ManagedSerializableFieldDataU64::GetValue(const SPtr<ManagedTypeInfo>& typeInfo)
 {
 	if(IsPrimitiveOrEnumType(typeInfo, ScriptPrimitiveType::U64))
 		return &Value;
@@ -475,11 +475,11 @@ void* ManagedSerializableFieldDataU64::GetValue(const SPtr<ManagedSerializableTy
 	return nullptr;
 }
 
-void* ManagedSerializableFieldDataFloat::GetValue(const SPtr<ManagedSerializableTypeInfo>& typeInfo)
+void* ManagedSerializableFieldDataFloat::GetValue(const SPtr<ManagedTypeInfo>& typeInfo)
 {
-	if(typeInfo->GetTypeId() == TID_SerializableTypeInfoPrimitive)
+	if(typeInfo->GetTypeId() == TID_ManagedTypeInfoPrimitive)
 	{
-		auto primitiveTypeInfo = std::static_pointer_cast<ManagedSerializableTypeInfoPrimitive>(typeInfo);
+		auto primitiveTypeInfo = std::static_pointer_cast<ManagedTypeInfoPrimitive>(typeInfo);
 		if(primitiveTypeInfo->Type == ScriptPrimitiveType::Float)
 			return &Value;
 	}
@@ -488,11 +488,11 @@ void* ManagedSerializableFieldDataFloat::GetValue(const SPtr<ManagedSerializable
 	return nullptr;
 }
 
-void* ManagedSerializableFieldDataDouble::GetValue(const SPtr<ManagedSerializableTypeInfo>& typeInfo)
+void* ManagedSerializableFieldDataDouble::GetValue(const SPtr<ManagedTypeInfo>& typeInfo)
 {
-	if(typeInfo->GetTypeId() == TID_SerializableTypeInfoPrimitive)
+	if(typeInfo->GetTypeId() == TID_ManagedTypeInfoPrimitive)
 	{
-		auto primitiveTypeInfo = std::static_pointer_cast<ManagedSerializableTypeInfoPrimitive>(typeInfo);
+		auto primitiveTypeInfo = std::static_pointer_cast<ManagedTypeInfoPrimitive>(typeInfo);
 		if(primitiveTypeInfo->Type == ScriptPrimitiveType::Double)
 			return &Value;
 	}
@@ -501,11 +501,11 @@ void* ManagedSerializableFieldDataDouble::GetValue(const SPtr<ManagedSerializabl
 	return nullptr;
 }
 
-void* ManagedSerializableFieldDataString::GetValue(const SPtr<ManagedSerializableTypeInfo>& typeInfo)
+void* ManagedSerializableFieldDataString::GetValue(const SPtr<ManagedTypeInfo>& typeInfo)
 {
-	if(typeInfo->GetTypeId() == TID_SerializableTypeInfoPrimitive)
+	if(typeInfo->GetTypeId() == TID_ManagedTypeInfoPrimitive)
 	{
-		auto primitiveTypeInfo = std::static_pointer_cast<ManagedSerializableTypeInfoPrimitive>(typeInfo);
+		auto primitiveTypeInfo = std::static_pointer_cast<ManagedTypeInfoPrimitive>(typeInfo);
 		if(primitiveTypeInfo->Type == ScriptPrimitiveType::String)
 		{
 			if(!IsNull)
@@ -519,20 +519,20 @@ void* ManagedSerializableFieldDataString::GetValue(const SPtr<ManagedSerializabl
 	return nullptr;
 }
 
-void* ManagedSerializableFieldDataResourceRef::GetValue(const SPtr<ManagedSerializableTypeInfo>& typeInfo)
+void* ManagedSerializableFieldDataResourceRef::GetValue(const SPtr<ManagedTypeInfo>& typeInfo)
 {
-	if(typeInfo->GetTypeId() == TID_SerializableTypeInfoRef)
+	if(typeInfo->GetTypeId() == TID_ManagedTypeInfoReference)
 	{
-		const auto refTypeInfo = std::static_pointer_cast<ManagedSerializableTypeInfoRef>(typeInfo);
+		const auto refTypeInfo = std::static_pointer_cast<ManagedTypeInfoReference>(typeInfo);
 
 		if(!Value.IsLoaded())
 			return nullptr;
 
 		return ScriptResourceWrapper::GetOrCreateScriptObject(Value);
 	}
-	else if(typeInfo->GetTypeId() == TID_SerializableTypeInfoRRef)
+	else if(typeInfo->GetTypeId() == TID_ManagedTypeInfoResourceReference)
 	{
-		const auto refTypeInfo = std::static_pointer_cast<ManagedSerializableTypeInfoRRef>(typeInfo);
+		const auto refTypeInfo = std::static_pointer_cast<ManagedTypeInfoResourceReference>(typeInfo);
 
 		::MonoClass* resourceRRefClass = nullptr;
 		if(refTypeInfo->ResourceType)
@@ -555,9 +555,9 @@ void* ManagedSerializableFieldDataResourceRef::GetValue(const SPtr<ManagedSerial
 	return nullptr;
 }
 
-void* ManagedSerializableFieldDataGameObjectRef::GetValue(const SPtr<ManagedSerializableTypeInfo>& typeInfo)
+void* ManagedSerializableFieldDataGameObjectRef::GetValue(const SPtr<ManagedTypeInfo>& typeInfo)
 {
-	if(typeInfo->GetTypeId() == TID_SerializableTypeInfoRef)
+	if(typeInfo->GetTypeId() == TID_ManagedTypeInfoReference)
 	{
 		if(Value)
 			return ScriptGameObject::GetOrCreateScriptObject(Value);
@@ -569,9 +569,9 @@ void* ManagedSerializableFieldDataGameObjectRef::GetValue(const SPtr<ManagedSeri
 	return nullptr;
 }
 
-void* ManagedSerializableFieldDataReflectableRef::GetValue(const SPtr<ManagedSerializableTypeInfo>& typeInfo)
+void* ManagedSerializableFieldDataReflectableRef::GetValue(const SPtr<ManagedTypeInfo>& typeInfo)
 {
-	if(typeInfo->GetTypeId() == TID_SerializableTypeInfoRef)
+	if(typeInfo->GetTypeId() == TID_ManagedTypeInfoReference)
 	{
 		if(!Value)
 			return nullptr;
@@ -583,11 +583,11 @@ void* ManagedSerializableFieldDataReflectableRef::GetValue(const SPtr<ManagedSer
 	return nullptr;
 }
 
-void* ManagedSerializableFieldDataObject::GetValue(const SPtr<ManagedSerializableTypeInfo>& typeInfo)
+void* ManagedSerializableFieldDataObject::GetValue(const SPtr<ManagedTypeInfo>& typeInfo)
 {
-	if(typeInfo->GetTypeId() == TID_SerializableTypeInfoObject)
+	if(typeInfo->GetTypeId() == TID_ManagedTypeInfoObject)
 	{
-		auto objectTypeInfo = std::static_pointer_cast<ManagedSerializableTypeInfoObject>(typeInfo);
+		auto objectTypeInfo = std::static_pointer_cast<ManagedTypeInfoObject>(typeInfo);
 
 		if(Value != nullptr)
 		{
@@ -609,11 +609,11 @@ void* ManagedSerializableFieldDataObject::GetValue(const SPtr<ManagedSerializabl
 	return nullptr;
 }
 
-void* ManagedSerializableFieldDataArray::GetValue(const SPtr<ManagedSerializableTypeInfo>& typeInfo)
+void* ManagedSerializableFieldDataArray::GetValue(const SPtr<ManagedTypeInfo>& typeInfo)
 {
-	if(typeInfo->GetTypeId() == TID_SerializableTypeInfoArray)
+	if(typeInfo->GetTypeId() == TID_ManagedTypeInfoArray)
 	{
-		auto objectTypeInfo = std::static_pointer_cast<ManagedSerializableTypeInfoArray>(typeInfo);
+		auto objectTypeInfo = std::static_pointer_cast<ManagedTypeInfoArray>(typeInfo);
 
 		if(Value != nullptr)
 			return Value->GetManagedInstance();
@@ -625,11 +625,11 @@ void* ManagedSerializableFieldDataArray::GetValue(const SPtr<ManagedSerializable
 	return nullptr;
 }
 
-void* ManagedSerializableFieldDataList::GetValue(const SPtr<ManagedSerializableTypeInfo>& typeInfo)
+void* ManagedSerializableFieldDataList::GetValue(const SPtr<ManagedTypeInfo>& typeInfo)
 {
-	if(typeInfo->GetTypeId() == TID_SerializableTypeInfoList)
+	if(typeInfo->GetTypeId() == TID_ManagedTypeInfoList)
 	{
-		auto listTypeInfo = std::static_pointer_cast<ManagedSerializableTypeInfoList>(typeInfo);
+		auto listTypeInfo = std::static_pointer_cast<ManagedTypeInfoList>(typeInfo);
 
 		if(Value != nullptr)
 			return Value->GetManagedInstance();
@@ -641,11 +641,11 @@ void* ManagedSerializableFieldDataList::GetValue(const SPtr<ManagedSerializableT
 	return nullptr;
 }
 
-void* ManagedSerializableFieldDataDictionary::GetValue(const SPtr<ManagedSerializableTypeInfo>& typeInfo)
+void* ManagedSerializableFieldDataDictionary::GetValue(const SPtr<ManagedTypeInfo>& typeInfo)
 {
-	if(typeInfo->GetTypeId() == TID_SerializableTypeInfoDictionary)
+	if(typeInfo->GetTypeId() == TID_ManagedTypeInfoDictionary)
 	{
-		auto dictionaryTypeInfo = std::static_pointer_cast<ManagedSerializableTypeInfoDictionary>(typeInfo);
+		auto dictionaryTypeInfo = std::static_pointer_cast<ManagedTypeInfoDictionary>(typeInfo);
 
 		if(Value != nullptr)
 			return Value->GetManagedInstance();
@@ -657,7 +657,7 @@ void* ManagedSerializableFieldDataDictionary::GetValue(const SPtr<ManagedSeriali
 	return nullptr;
 }
 
-MonoObject* ManagedSerializableFieldDataBool::GetValueBoxed(const SPtr<ManagedSerializableTypeInfo>& typeInfo)
+MonoObject* ManagedSerializableFieldDataBool::GetValueBoxed(const SPtr<ManagedTypeInfo>& typeInfo)
 {
 	if(IsPrimitiveOrEnumType(typeInfo, ScriptPrimitiveType::Bool))
 		return MonoUtil::Box(MonoUtil::GetBoolClass(), &Value);
@@ -666,7 +666,7 @@ MonoObject* ManagedSerializableFieldDataBool::GetValueBoxed(const SPtr<ManagedSe
 	return nullptr;
 }
 
-MonoObject* ManagedSerializableFieldDataChar::GetValueBoxed(const SPtr<ManagedSerializableTypeInfo>& typeInfo)
+MonoObject* ManagedSerializableFieldDataChar::GetValueBoxed(const SPtr<ManagedTypeInfo>& typeInfo)
 {
 	if(IsPrimitiveOrEnumType(typeInfo, ScriptPrimitiveType::Char))
 		return MonoUtil::Box(MonoUtil::GetCharClass(), &Value);
@@ -675,7 +675,7 @@ MonoObject* ManagedSerializableFieldDataChar::GetValueBoxed(const SPtr<ManagedSe
 	return nullptr;
 }
 
-MonoObject* ManagedSerializableFieldDataI8::GetValueBoxed(const SPtr<ManagedSerializableTypeInfo>& typeInfo)
+MonoObject* ManagedSerializableFieldDataI8::GetValueBoxed(const SPtr<ManagedTypeInfo>& typeInfo)
 {
 	if(IsPrimitiveOrEnumType(typeInfo, ScriptPrimitiveType::I8))
 		return MonoUtil::Box(MonoUtil::GetSByteClass(), &Value);
@@ -684,7 +684,7 @@ MonoObject* ManagedSerializableFieldDataI8::GetValueBoxed(const SPtr<ManagedSeri
 	return nullptr;
 }
 
-MonoObject* ManagedSerializableFieldDataU8::GetValueBoxed(const SPtr<ManagedSerializableTypeInfo>& typeInfo)
+MonoObject* ManagedSerializableFieldDataU8::GetValueBoxed(const SPtr<ManagedTypeInfo>& typeInfo)
 {
 	if(IsPrimitiveOrEnumType(typeInfo, ScriptPrimitiveType::U8))
 		return MonoUtil::Box(MonoUtil::GetByteClass(), &Value);
@@ -693,7 +693,7 @@ MonoObject* ManagedSerializableFieldDataU8::GetValueBoxed(const SPtr<ManagedSeri
 	return nullptr;
 }
 
-MonoObject* ManagedSerializableFieldDataI16::GetValueBoxed(const SPtr<ManagedSerializableTypeInfo>& typeInfo)
+MonoObject* ManagedSerializableFieldDataI16::GetValueBoxed(const SPtr<ManagedTypeInfo>& typeInfo)
 {
 	if(IsPrimitiveOrEnumType(typeInfo, ScriptPrimitiveType::I16))
 		return MonoUtil::Box(MonoUtil::GetInT16Class(), &Value);
@@ -702,7 +702,7 @@ MonoObject* ManagedSerializableFieldDataI16::GetValueBoxed(const SPtr<ManagedSer
 	return nullptr;
 }
 
-MonoObject* ManagedSerializableFieldDataU16::GetValueBoxed(const SPtr<ManagedSerializableTypeInfo>& typeInfo)
+MonoObject* ManagedSerializableFieldDataU16::GetValueBoxed(const SPtr<ManagedTypeInfo>& typeInfo)
 {
 	if(IsPrimitiveOrEnumType(typeInfo, ScriptPrimitiveType::U16))
 		return MonoUtil::Box(MonoUtil::GetUinT16Class(), &Value);
@@ -711,7 +711,7 @@ MonoObject* ManagedSerializableFieldDataU16::GetValueBoxed(const SPtr<ManagedSer
 	return nullptr;
 }
 
-MonoObject* ManagedSerializableFieldDataI32::GetValueBoxed(const SPtr<ManagedSerializableTypeInfo>& typeInfo)
+MonoObject* ManagedSerializableFieldDataI32::GetValueBoxed(const SPtr<ManagedTypeInfo>& typeInfo)
 {
 	if(IsPrimitiveOrEnumType(typeInfo, ScriptPrimitiveType::I32))
 		return MonoUtil::Box(MonoUtil::GetInT32Class(), &Value);
@@ -720,7 +720,7 @@ MonoObject* ManagedSerializableFieldDataI32::GetValueBoxed(const SPtr<ManagedSer
 	return nullptr;
 }
 
-MonoObject* ManagedSerializableFieldDataU32::GetValueBoxed(const SPtr<ManagedSerializableTypeInfo>& typeInfo)
+MonoObject* ManagedSerializableFieldDataU32::GetValueBoxed(const SPtr<ManagedTypeInfo>& typeInfo)
 {
 	if(IsPrimitiveOrEnumType(typeInfo, ScriptPrimitiveType::U32))
 		return MonoUtil::Box(MonoUtil::GetUinT32Class(), &Value);
@@ -729,7 +729,7 @@ MonoObject* ManagedSerializableFieldDataU32::GetValueBoxed(const SPtr<ManagedSer
 	return nullptr;
 }
 
-MonoObject* ManagedSerializableFieldDataI64::GetValueBoxed(const SPtr<ManagedSerializableTypeInfo>& typeInfo)
+MonoObject* ManagedSerializableFieldDataI64::GetValueBoxed(const SPtr<ManagedTypeInfo>& typeInfo)
 {
 	if(IsPrimitiveOrEnumType(typeInfo, ScriptPrimitiveType::I64))
 		return MonoUtil::Box(MonoUtil::GetInT64Class(), &Value);
@@ -738,7 +738,7 @@ MonoObject* ManagedSerializableFieldDataI64::GetValueBoxed(const SPtr<ManagedSer
 	return nullptr;
 }
 
-MonoObject* ManagedSerializableFieldDataU64::GetValueBoxed(const SPtr<ManagedSerializableTypeInfo>& typeInfo)
+MonoObject* ManagedSerializableFieldDataU64::GetValueBoxed(const SPtr<ManagedTypeInfo>& typeInfo)
 {
 	if(IsPrimitiveOrEnumType(typeInfo, ScriptPrimitiveType::U64))
 		return MonoUtil::Box(MonoUtil::GetUinT64Class(), &Value);
@@ -747,11 +747,11 @@ MonoObject* ManagedSerializableFieldDataU64::GetValueBoxed(const SPtr<ManagedSer
 	return nullptr;
 }
 
-MonoObject* ManagedSerializableFieldDataFloat::GetValueBoxed(const SPtr<ManagedSerializableTypeInfo>& typeInfo)
+MonoObject* ManagedSerializableFieldDataFloat::GetValueBoxed(const SPtr<ManagedTypeInfo>& typeInfo)
 {
-	if(typeInfo->GetTypeId() == TID_SerializableTypeInfoPrimitive)
+	if(typeInfo->GetTypeId() == TID_ManagedTypeInfoPrimitive)
 	{
-		auto primitiveTypeInfo = std::static_pointer_cast<ManagedSerializableTypeInfoPrimitive>(typeInfo);
+		auto primitiveTypeInfo = std::static_pointer_cast<ManagedTypeInfoPrimitive>(typeInfo);
 		if(primitiveTypeInfo->Type == ScriptPrimitiveType::Float)
 			return MonoUtil::Box(MonoUtil::GetFloatClass(), &Value);
 	}
@@ -760,11 +760,11 @@ MonoObject* ManagedSerializableFieldDataFloat::GetValueBoxed(const SPtr<ManagedS
 	return nullptr;
 }
 
-MonoObject* ManagedSerializableFieldDataDouble::GetValueBoxed(const SPtr<ManagedSerializableTypeInfo>& typeInfo)
+MonoObject* ManagedSerializableFieldDataDouble::GetValueBoxed(const SPtr<ManagedTypeInfo>& typeInfo)
 {
-	if(typeInfo->GetTypeId() == TID_SerializableTypeInfoPrimitive)
+	if(typeInfo->GetTypeId() == TID_ManagedTypeInfoPrimitive)
 	{
-		auto primitiveTypeInfo = std::static_pointer_cast<ManagedSerializableTypeInfoPrimitive>(typeInfo);
+		auto primitiveTypeInfo = std::static_pointer_cast<ManagedTypeInfoPrimitive>(typeInfo);
 		if(primitiveTypeInfo->Type == ScriptPrimitiveType::Double)
 			return MonoUtil::Box(MonoUtil::GetDoubleClass(), &Value);
 	}
@@ -773,31 +773,31 @@ MonoObject* ManagedSerializableFieldDataDouble::GetValueBoxed(const SPtr<Managed
 	return nullptr;
 }
 
-MonoObject* ManagedSerializableFieldDataString::GetValueBoxed(const SPtr<ManagedSerializableTypeInfo>& typeInfo)
+MonoObject* ManagedSerializableFieldDataString::GetValueBoxed(const SPtr<ManagedTypeInfo>& typeInfo)
 {
 	return (MonoObject*)GetValue(typeInfo);
 }
 
-MonoObject* ManagedSerializableFieldDataResourceRef::GetValueBoxed(const SPtr<ManagedSerializableTypeInfo>& typeInfo)
+MonoObject* ManagedSerializableFieldDataResourceRef::GetValueBoxed(const SPtr<ManagedTypeInfo>& typeInfo)
 {
 	return (MonoObject*)GetValue(typeInfo);
 }
 
-MonoObject* ManagedSerializableFieldDataGameObjectRef::GetValueBoxed(const SPtr<ManagedSerializableTypeInfo>& typeInfo)
+MonoObject* ManagedSerializableFieldDataGameObjectRef::GetValueBoxed(const SPtr<ManagedTypeInfo>& typeInfo)
 {
 	return (MonoObject*)GetValue(typeInfo);
 }
 
-MonoObject* ManagedSerializableFieldDataReflectableRef::GetValueBoxed(const SPtr<ManagedSerializableTypeInfo>& typeInfo)
+MonoObject* ManagedSerializableFieldDataReflectableRef::GetValueBoxed(const SPtr<ManagedTypeInfo>& typeInfo)
 {
 	return (MonoObject*)GetValue(typeInfo);
 }
 
-MonoObject* ManagedSerializableFieldDataObject::GetValueBoxed(const SPtr<ManagedSerializableTypeInfo>& typeInfo)
+MonoObject* ManagedSerializableFieldDataObject::GetValueBoxed(const SPtr<ManagedTypeInfo>& typeInfo)
 {
-	if(typeInfo->GetTypeId() == TID_SerializableTypeInfoObject)
+	if(typeInfo->GetTypeId() == TID_ManagedTypeInfoObject)
 	{
-		auto objectTypeInfo = std::static_pointer_cast<ManagedSerializableTypeInfoObject>(typeInfo);
+		auto objectTypeInfo = std::static_pointer_cast<ManagedTypeInfoObject>(typeInfo);
 
 		if(Value != nullptr)
 			return Value->GetManagedInstance();
@@ -809,17 +809,17 @@ MonoObject* ManagedSerializableFieldDataObject::GetValueBoxed(const SPtr<Managed
 	return nullptr;
 }
 
-MonoObject* ManagedSerializableFieldDataArray::GetValueBoxed(const SPtr<ManagedSerializableTypeInfo>& typeInfo)
+MonoObject* ManagedSerializableFieldDataArray::GetValueBoxed(const SPtr<ManagedTypeInfo>& typeInfo)
 {
 	return (MonoObject*)GetValue(typeInfo);
 }
 
-MonoObject* ManagedSerializableFieldDataList::GetValueBoxed(const SPtr<ManagedSerializableTypeInfo>& typeInfo)
+MonoObject* ManagedSerializableFieldDataList::GetValueBoxed(const SPtr<ManagedTypeInfo>& typeInfo)
 {
 	return (MonoObject*)GetValue(typeInfo);
 }
 
-MonoObject* ManagedSerializableFieldDataDictionary::GetValueBoxed(const SPtr<ManagedSerializableTypeInfo>& typeInfo)
+MonoObject* ManagedSerializableFieldDataDictionary::GetValueBoxed(const SPtr<ManagedTypeInfo>& typeInfo)
 {
 	return (MonoObject*)GetValue(typeInfo);
 }

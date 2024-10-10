@@ -14,7 +14,7 @@ ManagedSerializableArray::ManagedSerializableArray(const ConstructPrivately& dum
 {
 }
 
-ManagedSerializableArray::ManagedSerializableArray(const ConstructPrivately& dummy, const SPtr<ManagedSerializableTypeInfoArray>& typeInfo, MonoObject* managedInstance)
+ManagedSerializableArray::ManagedSerializableArray(const ConstructPrivately& dummy, const SPtr<ManagedTypeInfoArray>& typeInfo, MonoObject* managedInstance)
 	: mArrayTypeInfo(typeInfo)
 
 {
@@ -39,7 +39,7 @@ ManagedSerializableArray::~ManagedSerializableArray()
 	}
 }
 
-SPtr<ManagedSerializableArray> ManagedSerializableArray::CreateFromExisting(MonoObject* managedInstance, const SPtr<ManagedSerializableTypeInfoArray>& typeInfo)
+SPtr<ManagedSerializableArray> ManagedSerializableArray::CreateFromExisting(MonoObject* managedInstance, const SPtr<ManagedTypeInfoArray>& typeInfo)
 {
 	if(managedInstance == nullptr)
 		return nullptr;
@@ -50,7 +50,7 @@ SPtr<ManagedSerializableArray> ManagedSerializableArray::CreateFromExisting(Mono
 	return B3DMakeShared<ManagedSerializableArray>(ConstructPrivately(), typeInfo, managedInstance);
 }
 
-SPtr<ManagedSerializableArray> ManagedSerializableArray::CreateNew(const SPtr<ManagedSerializableTypeInfoArray>& typeInfo, const Vector<u32>& sizes)
+SPtr<ManagedSerializableArray> ManagedSerializableArray::CreateNew(const SPtr<ManagedTypeInfoArray>& typeInfo, const Vector<u32>& sizes)
 {
 	return B3DMakeShared<ManagedSerializableArray>(ConstructPrivately(), typeInfo, CreateManagedInstance(typeInfo, sizes));
 }
@@ -60,7 +60,7 @@ SPtr<ManagedSerializableArray> ManagedSerializableArray::CreateNew()
 	return B3DMakeShared<ManagedSerializableArray>(ConstructPrivately());
 }
 
-MonoObject* ManagedSerializableArray::CreateManagedInstance(const SPtr<ManagedSerializableTypeInfoArray>& typeInfo, const Vector<u32>& sizes)
+MonoObject* ManagedSerializableArray::CreateManagedInstance(const SPtr<ManagedTypeInfoArray>& typeInfo, const Vector<u32>& sizes)
 {
 	if(!typeInfo->IsTypeLoaded())
 		return nullptr;

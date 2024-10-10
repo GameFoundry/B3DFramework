@@ -80,14 +80,14 @@ namespace bs
 	typedef Flags<ScriptTypeFlag> ScriptTypeFlags;
 	B3D_FLAGS_OPERATORS(ScriptTypeFlag);
 
-	/**	Contains information about a type of a managed serializable object. */
-	class B3D_SCRIPT_INTEROP_EXPORT ManagedSerializableTypeInfo : public IReflectable
+	/**	Contains information about a type of a managed object. */
+	class B3D_SCRIPT_INTEROP_EXPORT ManagedTypeInfo : public IReflectable
 	{
 	public:
-		virtual ~ManagedSerializableTypeInfo() = default;
+		virtual ~ManagedTypeInfo() = default;
 
 		/**	Checks if the current type matches the provided type. */
-		virtual bool Matches(const SPtr<ManagedSerializableTypeInfo>& typeInfo) const = 0;
+		virtual bool Matches(const SPtr<ManagedTypeInfo>& typeInfo) const = 0;
 
 		/**
 		 * Checks does the managed type this object represents still exists.
@@ -105,16 +105,16 @@ namespace bs
 		/* 								RTTI		                     		*/
 		/************************************************************************/
 	public:
-		friend class ManagedSerializableTypeInfoRTTI;
+		friend class ManagedTypeInfoRTTI;
 		static RTTIType* GetRttiStatic();
 		RTTIType* GetRtti() const override;
 	};
 
-	/**	Contains information about a type of a managed serializable primitive (for example int, float, etc.). */
-	class B3D_SCRIPT_INTEROP_EXPORT ManagedSerializableTypeInfoPrimitive : public ManagedSerializableTypeInfo
+	/**	Contains information about a type of a managed primitive (for example int, float, etc.). */
+	class B3D_SCRIPT_INTEROP_EXPORT ManagedTypeInfoPrimitive : public ManagedTypeInfo
 	{
 	public:
-		bool Matches(const SPtr<ManagedSerializableTypeInfo>& typeInfo) const override;
+		bool Matches(const SPtr<ManagedTypeInfo>& typeInfo) const override;
 		bool IsTypeLoaded() const override;
 		::MonoClass* GetMonoClass() const override;
 
@@ -124,16 +124,16 @@ namespace bs
 		/* 								RTTI		                     		*/
 		/************************************************************************/
 	public:
-		friend class ManagedSerializableTypeInfoPrimitiveRTTI;
+		friend class ManagedTypeInfoPrimitiveRTTI;
 		static RTTIType* GetRttiStatic();
 		RTTIType* GetRtti() const override;
 	};
 
-	/**	Contains information about a type of a managed serializable enum. */
-	class B3D_SCRIPT_INTEROP_EXPORT ManagedSerializableTypeInfoEnum : public ManagedSerializableTypeInfo
+	/**	Contains information about a type of a managed enum. */
+	class B3D_SCRIPT_INTEROP_EXPORT ManagedTypeInfoEnum : public ManagedTypeInfo
 	{
 	public:
-		bool Matches(const SPtr<ManagedSerializableTypeInfo>& typeInfo) const override;
+		bool Matches(const SPtr<ManagedTypeInfo>& typeInfo) const override;
 		bool IsTypeLoaded() const override;
 		::MonoClass* GetMonoClass() const override;
 
@@ -145,16 +145,16 @@ namespace bs
 		/* 								RTTI		                     		*/
 		/************************************************************************/
 	public:
-		friend class ManagedSerializableTypeInfoEnumRTTI;
+		friend class ManagedTypeInfoEnumRTTI;
 		static RTTIType* GetRttiStatic();
 		RTTIType* GetRtti() const override;
 	};
 
-	/**	Contains information about a type of a managed serializable game object or resourcee. */
-	class B3D_SCRIPT_INTEROP_EXPORT ManagedSerializableTypeInfoRef : public ManagedSerializableTypeInfo
+	/**	Contains information about a type of a managed game object or resource. */
+	class B3D_SCRIPT_INTEROP_EXPORT ManagedTypeInfoReference : public ManagedTypeInfo
 	{
 	public:
-		bool Matches(const SPtr<ManagedSerializableTypeInfo>& typeInfo) const override;
+		bool Matches(const SPtr<ManagedTypeInfo>& typeInfo) const override;
 		bool IsTypeLoaded() const override;
 		::MonoClass* GetMonoClass() const override;
 
@@ -167,35 +167,35 @@ namespace bs
 		/* 								RTTI		                     		*/
 		/************************************************************************/
 	public:
-		friend class ManagedSerializableTypeInfoRefRTTI;
+		friend class ManagedTypeInfoReferenceRTTI;
 		static RTTIType* GetRttiStatic();
 		RTTIType* GetRtti() const override;
 	};
 
 	/**	Contains information about a type of a reference to a resource. */
-	class B3D_SCRIPT_INTEROP_EXPORT ManagedSerializableTypeInfoRRef : public ManagedSerializableTypeInfo
+	class B3D_SCRIPT_INTEROP_EXPORT ManagedTypeInfoResourceReference : public ManagedTypeInfo
 	{
 	public:
-		bool Matches(const SPtr<ManagedSerializableTypeInfo>& typeInfo) const override;
+		bool Matches(const SPtr<ManagedTypeInfo>& typeInfo) const override;
 		bool IsTypeLoaded() const override;
 		::MonoClass* GetMonoClass() const override;
 
-		SPtr<ManagedSerializableTypeInfo> ResourceType;
+		SPtr<ManagedTypeInfo> ResourceType;
 
 		/************************************************************************/
 		/* 								RTTI		                     		*/
 		/************************************************************************/
 	public:
-		friend class ManagedSerializableTypeInfoRRefRTTI;
+		friend class ManagedTypeInfoResourceReferenceRTTI;
 		static RTTIType* GetRttiStatic();
 		RTTIType* GetRtti() const override;
 	};
 
-	/**	Contains information about a type of a managed serializable complex object (for example struct or class). */
-	class B3D_SCRIPT_INTEROP_EXPORT ManagedSerializableTypeInfoObject : public ManagedSerializableTypeInfo
+	/**	Contains information about a type of a generic managed object (for example struct or class). */
+	class B3D_SCRIPT_INTEROP_EXPORT ManagedTypeInfoObject : public ManagedTypeInfo
 	{
 	public:
-		bool Matches(const SPtr<ManagedSerializableTypeInfo>& typeInfo) const override;
+		bool Matches(const SPtr<ManagedTypeInfo>& typeInfo) const override;
 		bool IsTypeLoaded() const override;
 		::MonoClass* GetMonoClass() const override;
 
@@ -210,76 +210,76 @@ namespace bs
 		/* 								RTTI		                     		*/
 		/************************************************************************/
 	public:
-		friend class ManagedSerializableTypeInfoObjectRTTI;
+		friend class ManagedTypeInfoObjectRTTI;
 		static RTTIType* GetRttiStatic();
 		RTTIType* GetRtti() const override;
 	};
 
-	/**	Contains information about a type of a managed serializable Array. */
-	class B3D_SCRIPT_INTEROP_EXPORT ManagedSerializableTypeInfoArray : public ManagedSerializableTypeInfo
+	/**	Contains information about a type of a managed Array. */
+	class B3D_SCRIPT_INTEROP_EXPORT ManagedTypeInfoArray : public ManagedTypeInfo
 	{
 	public:
-		bool Matches(const SPtr<ManagedSerializableTypeInfo>& typeInfo) const override;
+		bool Matches(const SPtr<ManagedTypeInfo>& typeInfo) const override;
 		bool IsTypeLoaded() const override;
 		::MonoClass* GetMonoClass() const override;
 
-		SPtr<ManagedSerializableTypeInfo> ElementType;
+		SPtr<ManagedTypeInfo> ElementType;
 		u32 Rank;
 
 		/************************************************************************/
 		/* 								RTTI		                     		*/
 		/************************************************************************/
 	public:
-		friend class ManagedSerializableTypeInfoArrayRTTI;
+		friend class ManagedTypeInfoArrayRTTI;
 		static RTTIType* GetRttiStatic();
 		RTTIType* GetRtti() const override;
 	};
 
-	/**	Contains information about a type of a managed serializable List. */
-	class B3D_SCRIPT_INTEROP_EXPORT ManagedSerializableTypeInfoList : public ManagedSerializableTypeInfo
+	/**	Contains information about a type of a managed List. */
+	class B3D_SCRIPT_INTEROP_EXPORT ManagedTypeInfoList : public ManagedTypeInfo
 	{
 	public:
-		bool Matches(const SPtr<ManagedSerializableTypeInfo>& typeInfo) const override;
+		bool Matches(const SPtr<ManagedTypeInfo>& typeInfo) const override;
 		bool IsTypeLoaded() const override;
 		::MonoClass* GetMonoClass() const override;
 
-		SPtr<ManagedSerializableTypeInfo> ElementType;
+		SPtr<ManagedTypeInfo> ElementType;
 
 		/************************************************************************/
 		/* 								RTTI		                     		*/
 		/************************************************************************/
 	public:
-		friend class ManagedSerializableTypeInfoListRTTI;
+		friend class ManagedTypeInfoListRTTI;
 		static RTTIType* GetRttiStatic();
 		RTTIType* GetRtti() const override;
 	};
 
-	/**	Contains information about a type of a managed serializable Dictionary. */
-	class B3D_SCRIPT_INTEROP_EXPORT ManagedSerializableTypeInfoDictionary : public ManagedSerializableTypeInfo
+	/**	Contains information about a type of a managed Dictionary. */
+	class B3D_SCRIPT_INTEROP_EXPORT ManagedTypeInfoDictionary : public ManagedTypeInfo
 	{
 	public:
-		bool Matches(const SPtr<ManagedSerializableTypeInfo>& typeInfo) const override;
+		bool Matches(const SPtr<ManagedTypeInfo>& typeInfo) const override;
 		bool IsTypeLoaded() const override;
 		::MonoClass* GetMonoClass() const override;
 
-		SPtr<ManagedSerializableTypeInfo> KeyType;
-		SPtr<ManagedSerializableTypeInfo> ValueType;
+		SPtr<ManagedTypeInfo> KeyType;
+		SPtr<ManagedTypeInfo> ValueType;
 
 		/************************************************************************/
 		/* 								RTTI		                     		*/
 		/************************************************************************/
 	public:
-		friend class ManagedSerializableTypeInfoDictionaryRTTI;
+		friend class ManagedTypeInfoDictionaryRTTI;
 		static RTTIType* GetRttiStatic();
 		RTTIType* GetRtti() const override;
 	};
 
-	/**	Contains data about a single member in a managed complex object. */
-	class B3D_SCRIPT_INTEROP_EXPORT ManagedSerializableMemberInfo : public IReflectable
+	/**	Contains data about a single member (field or property) in a managed object (class or struct). */
+	class B3D_SCRIPT_INTEROP_EXPORT ManagedMemberInfo : public IReflectable
 	{
 	public:
-		ManagedSerializableMemberInfo() = default;
-		virtual ~ManagedSerializableMemberInfo() = default;
+		ManagedMemberInfo() = default;
+		virtual ~ManagedMemberInfo() = default;
 
 		/**	Determines should the member be serialized when serializing the parent object. */
 		bool IsSerializable() const { return Flags.IsSet(ScriptFieldFlag::Serializable); }
@@ -311,23 +311,23 @@ namespace bs
 		u32 FieldId = 0;
 		u32 ParentTypeId;
 
-		SPtr<ManagedSerializableTypeInfo> TypeInfo;
+		SPtr<ManagedTypeInfo> TypeInfo;
 		ScriptFieldFlags Flags;
 
 		/************************************************************************/
 		/* 								RTTI		                     		*/
 		/************************************************************************/
 	public:
-		friend class ManagedSerializableMemberInfoRTTI;
+		friend class ManagedMemberInfoRTTI;
 		static RTTIType* GetRttiStatic();
 		RTTIType* GetRtti() const override;
 	};
 
-	/**	Contains data about a single field in a managed complex object. */
-	class B3D_SCRIPT_INTEROP_EXPORT ManagedSerializableFieldInfo : public ManagedSerializableMemberInfo
+	/**	Contains data about a single field in a managed object (class or struct). */
+	class B3D_SCRIPT_INTEROP_EXPORT ManagedFieldInfo : public ManagedMemberInfo
 	{
 	public:
-		ManagedSerializableFieldInfo() = default;
+		ManagedFieldInfo() = default;
 
 		MonoObject* GetAttribute(MonoClass* monoClass) override;
 		MonoObject* GetValue(MonoObject* instance) const override;
@@ -339,16 +339,16 @@ namespace bs
 		/* 								RTTI		                     		*/
 		/************************************************************************/
 	public:
-		friend class ManagedSerializableFieldInfoRTTI;
+		friend class ManagedFieldInfoRTTI;
 		static RTTIType* GetRttiStatic();
 		RTTIType* GetRtti() const override;
 	};
 
-	/**	Contains data about a single property in a managed complex object. */
-	class B3D_SCRIPT_INTEROP_EXPORT ManagedSerializablePropertyInfo : public ManagedSerializableMemberInfo
+	/**	Contains data about a single property in a managed object (class or struct). */
+	class B3D_SCRIPT_INTEROP_EXPORT ManagedPropertyInfo : public ManagedMemberInfo
 	{
 	public:
-		ManagedSerializablePropertyInfo() = default;
+		ManagedPropertyInfo() = default;
 
 		MonoObject* GetAttribute(MonoClass* monoClass) override;
 		MonoObject* GetValue(MonoObject* instance) const override;
@@ -360,16 +360,23 @@ namespace bs
 		/* 								RTTI		                     		*/
 		/************************************************************************/
 	public:
-		friend class ManagedSerializablePropertyInfoRTTI;
+		friend class ManagedPropertyInfoRTTI;
 		static RTTIType* GetRttiStatic();
 		RTTIType* GetRtti() const override;
 	};
 
-	/** Contains data about fields of a complex object, and the object's class hierarchy if it belongs to one. */
-	class B3D_SCRIPT_INTEROP_EXPORT ManagedSerializableObjectInfo : public IReflectable
+	/**
+	 * Contains data about serializable fields of a managed object, and the object's class hierarchy if it belongs to one.
+	 * All public fields are by default serializable if their type support serialization. Type is serializable if it has the SerializeObject attribute,
+	 * or is one of the built-in supported serializable types (primitive such as int or bool, game object, resource or resource reference).
+	 * Array/List/Dictionary of serializable types is also considered serializable.
+	 * Public field can be made non-serializable via the DontSerializeField attribute.
+	 * Private/protected/internal field can be made serializable by specifying the SerializeField attribute.
+	 */
+	class B3D_SCRIPT_INTEROP_EXPORT ManagedObjectInfo : public IReflectable
 	{
 	public:
-		ManagedSerializableObjectInfo() = default;
+		ManagedObjectInfo() = default;
 
 		/** Returns the managed type name of the object's type, including the namespace in format "namespace.typename". */
 		String GetFullTypeName() const { return TypeInfo->TypeNamespace + "." + TypeInfo->TypeName; }
@@ -384,40 +391,40 @@ namespace bs
 		 *								ensure the current object's type matches.
 		 * @return						Found field info within this object, or null if not found.
 		 */
-		SPtr<ManagedSerializableMemberInfo> FindMatchingField(const SPtr<ManagedSerializableMemberInfo>& fieldInfo, const SPtr<ManagedSerializableTypeInfo>& fieldTypeInfo) const;
+		SPtr<ManagedMemberInfo> FindMatchingField(const SPtr<ManagedMemberInfo>& fieldInfo, const SPtr<ManagedTypeInfo>& fieldTypeInfo) const;
 
-		SPtr<ManagedSerializableTypeInfoObject> TypeInfo;
+		SPtr<ManagedTypeInfoObject> TypeInfo;
 		MonoClass* ScriptClass = nullptr;
 
 		UnorderedMap<String, u32> FieldNameToId;
-		UnorderedMap<u32, SPtr<ManagedSerializableMemberInfo>> Fields;
+		UnorderedMap<u32, SPtr<ManagedMemberInfo>> Fields;
 
-		SPtr<ManagedSerializableObjectInfo> BaseClass;
-		Vector<std::weak_ptr<ManagedSerializableObjectInfo>> DerivedClasses;
+		SPtr<ManagedObjectInfo> BaseClass;
+		Vector<std::weak_ptr<ManagedObjectInfo>> DerivedClasses;
 
 		/************************************************************************/
 		/* 								RTTI		                     		*/
 		/************************************************************************/
 	public:
-		friend class ManagedSerializableObjectInfoRTTI;
+		friend class ManagedObjectInfoRTTI;
 		static RTTIType* GetRttiStatic();
 		RTTIType* GetRtti() const override;
 	};
 
-	/**	Contains information about all managed serializable objects in a specific managed assembly. */
-	class B3D_SCRIPT_INTEROP_EXPORT ManagedSerializableAssemblyInfo : public IReflectable
+	/**	Contains information about all managed serializable objects in a specific managed assembly. Object is considered serializable if it has the SerializeObject attribute. */
+	class B3D_SCRIPT_INTEROP_EXPORT ManagedAssemblyInfo : public IReflectable
 	{
 	public:
 		String Name;
 
 		UnorderedMap<String, u32> TypeNameToId;
-		UnorderedMap<u32, SPtr<ManagedSerializableObjectInfo>> ObjectInfos;
+		UnorderedMap<u32, SPtr<ManagedObjectInfo>> ObjectInfos;
 
 		/************************************************************************/
 		/* 								RTTI		                     		*/
 		/************************************************************************/
 	public:
-		friend class ManagedSerializableAssemblyInfoRTTI;
+		friend class ManagedAssemblyInfoRTTI;
 		static RTTIType* GetRttiStatic();
 		RTTIType* GetRtti() const override;
 	};

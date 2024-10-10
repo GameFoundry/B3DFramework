@@ -10,7 +10,7 @@
 #include "Wrappers/BsScriptSerializableProperty.h"
 
 using namespace bs;
-ScriptSerializableArray::ScriptSerializableArray(MonoObject* instance, const SPtr<ManagedSerializableTypeInfoArray>& typeInfo)
+ScriptSerializableArray::ScriptSerializableArray(MonoObject* instance, const SPtr<ManagedTypeInfoArray>& typeInfo)
 	: ScriptObject(instance), mTypeInfo(typeInfo)
 {
 }
@@ -22,8 +22,8 @@ void ScriptSerializableArray::InitRuntimeData()
 
 MonoObject* ScriptSerializableArray::Create(const ScriptSerializableProperty* native, MonoObject* managed)
 {
-	SPtr<ManagedSerializableTypeInfoArray> arrayTypeInfo =
-		std::static_pointer_cast<ManagedSerializableTypeInfoArray>(native->GetTypeInfo());
+	SPtr<ManagedTypeInfoArray> arrayTypeInfo =
+		std::static_pointer_cast<ManagedTypeInfoArray>(native->GetTypeInfo());
 
 	MonoReflectionType* internalElementType = MonoUtil::GetType(arrayTypeInfo->ElementType->GetMonoClass());
 
