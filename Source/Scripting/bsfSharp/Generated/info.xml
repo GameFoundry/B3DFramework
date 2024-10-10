@@ -4510,6 +4510,34 @@ Sprite images also allow you to specify sprite sheet animation by varying which 
 			<doc>Spring that controls how are the bodies pulled back towards the limit when they breach it.</doc>
 		</field>
 	</struct>
+	<class native="ManagedTypeUtility" script="ManagedTypeUtility">
+		<doc>Provides various utility methods for reflection-like operations on managed objects.</doc>
+		<method native="GetTypeInfo" script="GetTypeInfo" static="true">
+			<doc>Deduces information about the object&apos;s type. Object must be serializable in order for type information to be present.</doc>
+			<param name="scriptObject" type="object">
+			</param>
+			<returns type="ManagedTypeInfo">
+			</returns>
+		</method>
+		<method native="CloneObject" script="CloneObject" static="true">
+			<doc>Clones the specified object. Non-serializable types and fields are ignored in clone. A deep copy is performed on all serializable elements except for resources or game objects.</doc>
+			<param name="original" type="object">
+				<doc>Non-null reference to the object to clone. Object type must be serializable.</doc>
+			</param>
+			<returns type="object">
+				<doc>Deep copy of the original object</doc>
+			</returns>
+		</method>
+		<method native="CreateObjectOfType" script="CreateObjectOfType" static="true">
+			<doc>Creates an uninitialized object of the specified type.</doc>
+			<param name="type" type="Type">
+				<doc>Type of the object to create. Must be serializable</doc>
+			</param>
+			<returns type="object">
+				<doc>New instance of the specified type, or null if the type is not serializable.</doc>
+			</returns>
+		</method>
+	</class>
 	<struct native="LimitLinearRange" script="LimitLinearRange">
 		<doc>Represents a joint limit between two distance values. Lower value must be less than the upper value.</doc>
 		<ctor>

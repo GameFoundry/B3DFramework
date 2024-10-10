@@ -1,6 +1,6 @@
-//********************************* bs::framework - Copyright 2018-2019 Marko Pintera ************************************//
+//********************************* bs::framework - Copyright 2024 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "Wrappers/BsScriptSerializableUtility.h"
+#include "BsManagedTypeUtility.h"
 #include "BsMonoManager.h"
 #include "BsMonoClass.h"
 #include "BsMonoMethod.h"
@@ -11,17 +11,19 @@
 #include "FileSystem/BsDataStream.h"
 
 using namespace bs;
-ScriptSerializableUtility::ScriptSerializableUtility(MonoObject* instance)
-	: ScriptObject(instance)
-{}
 
-void ScriptSerializableUtility::InitRuntimeData()
+SPtr<ManagedTypeInfo> ManagedTypeUtility::GetTypeInfo(MonoObject* scriptObject)
 {
-	metaData.ScriptClass->AddInternalCall("Internal_Clone", (void*)&ScriptSerializableUtility::InternalClone);
-	metaData.ScriptClass->AddInternalCall("Internal_Create", (void*)&ScriptSerializableUtility::InternalCreate);
+	if(scriptObject == nullptr)
+		return nullptr;
+
+	::MonoClass* monoClass = MonoUtil::GetClass(scriptObject);
+	MonoClass* scriptClass = MonoManager::Instance().FindClass(monoClass);
+
+	return ScriptAssemblyManager::Instance().GetTypeInfo(scriptClass);
 }
 
-MonoObject* ScriptSerializableUtility::InternalClone(MonoObject* original)
+MonoObject* ManagedTypeUtility::CloneObject(MonoObject* original)
 {
 	if(original == nullptr)
 		return nullptr;
@@ -51,7 +53,7 @@ MonoObject* ScriptSerializableUtility::InternalClone(MonoObject* original)
 	return clonedData->GetValueBoxed(typeInfo);
 }
 
-MonoObject* ScriptSerializableUtility::InternalCreate(MonoReflectionType* reflType)
+MonoObject* ManagedTypeUtility::CreateObjectOfType(MonoReflectionType* reflType)
 {
 	if(reflType == nullptr)
 		return nullptr;
