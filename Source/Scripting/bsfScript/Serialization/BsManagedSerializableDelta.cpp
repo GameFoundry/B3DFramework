@@ -2,7 +2,7 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "Serialization/BsManagedSerializableDelta.h"
 #include "Serialization/BsManagedSerializableObject.h"
-#include "Serialization/BsManagedSerializableObjectInfo.h"
+#include "Serialization/BsManagedTypeInfo.h"
 #include "Serialization/BsManagedSerializableField.h"
 #include "Serialization/BsManagedSerializableArray.h"
 #include "Serialization/BsManagedSerializableList.h"

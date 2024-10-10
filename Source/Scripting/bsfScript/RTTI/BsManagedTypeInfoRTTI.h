@@ -198,7 +198,7 @@ namespace bs
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
-			B3D_RTTI_MEMBER(Type, 0)
+			B3D_RTTI_MEMBER(PrimitiveType, 0)
 		B3D_RTTI_END_MEMBERS
 
 	public:
@@ -250,10 +250,10 @@ namespace bs
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
-			B3D_RTTI_MEMBER(Type, 0)
+			B3D_RTTI_MEMBER(ReferenceType, 0)
 			B3D_RTTI_MEMBER(TypeName, 1)
 			B3D_RTTI_MEMBER(TypeNamespace, 2)
-			B3D_RTTI_MEMBER(RtiiTypeId, 3)
+			B3D_RTTI_MEMBER(TypeRTTIId, 3)
 		B3D_RTTI_END_MEMBERS
 
 	public:
@@ -305,10 +305,10 @@ namespace bs
 		B3D_RTTI_BEGIN_MEMBERS
 			B3D_RTTI_MEMBER(TypeName, 0)
 			B3D_RTTI_MEMBER(TypeNamespace, 1)
-			B3D_RTTI_MEMBER(ValueType, 2)
+			B3D_RTTI_MEMBER(IsValueType, 2)
 			B3D_RTTI_MEMBER(TypeId, 4)
-			B3D_RTTI_MEMBER(Flags, 5)
-			B3D_RTTI_MEMBER(RttiTypeId, 6)
+			B3D_RTTI_MEMBER(MetaDataFlags, 5)
+			B3D_RTTI_MEMBER(TypeRTTIId, 6)
 		B3D_RTTI_END_MEMBERS
 
 	public:

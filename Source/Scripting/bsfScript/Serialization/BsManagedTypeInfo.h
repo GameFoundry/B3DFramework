@@ -12,7 +12,7 @@ namespace bs
 	 */
 
 	/**	Valid serializable script types. */
-	enum class ScriptPrimitiveType
+	enum class B3D_SCRIPT_EXPORT() ManagedPrimitiveType
 	{
 		Bool,
 		Char,
@@ -31,7 +31,7 @@ namespace bs
 	};
 
 	/** Valid reference script types. */
-	enum class ScriptReferenceType
+	enum class B3D_SCRIPT_EXPORT() ManagedReferenceType
 	{
 		BuiltinResourceBase,
 		BuiltinResource,
@@ -47,7 +47,7 @@ namespace bs
 	};
 
 	/**	Flags that are used to further define a field in a managed serializable object. */
-	enum class ScriptFieldFlag
+	enum class B3D_SCRIPT_EXPORT() ManagedFieldMetaDataFlag
 	{
 		Serializable = 1 << 0,
 		Inspectable = 1 << 1,
@@ -67,26 +67,27 @@ namespace bs
 		HDR = 1 << 15,
 	};
 
-	typedef Flags<ScriptFieldFlag> ScriptFieldFlags;
-	B3D_FLAGS_OPERATORS(ScriptFieldFlag);
+	typedef Flags<ManagedFieldMetaDataFlag> ManagedFieldMetaDataFlags;
+	B3D_FLAGS_OPERATORS(ManagedFieldMetaDataFlag);
 
 	/** Flags that are used to further desribe a type of a managed serializable object. */
-	enum class ScriptTypeFlag
+	enum class B3D_SCRIPT_EXPORT() ManagedObjectMetaDataFlag
 	{
 		Serializable = 1 << 0,
 		Inspectable = 1 << 1
 	};
 
-	typedef Flags<ScriptTypeFlag> ScriptTypeFlags;
-	B3D_FLAGS_OPERATORS(ScriptTypeFlag);
+	typedef Flags<ManagedObjectMetaDataFlag> ManagedObjectMetaDataFlags;
+	B3D_FLAGS_OPERATORS(ManagedObjectMetaDataFlag);
 
 	/**	Contains information about a type of a managed object. */
-	class B3D_SCRIPT_INTEROP_EXPORT ManagedTypeInfo : public IReflectable
+	class B3D_SCRIPT_INTEROP_EXPORT B3D_SCRIPT_EXPORT() ManagedTypeInfo : public IReflectable, public IScriptExportable
 	{
 	public:
 		virtual ~ManagedTypeInfo() = default;
 
 		/**	Checks if the current type matches the provided type. */
+		B3D_SCRIPT_EXPORT()
 		virtual bool Matches(const SPtr<ManagedTypeInfo>& typeInfo) const = 0;
 
 		/**
@@ -94,6 +95,7 @@ namespace bs
 		 *
 		 * @note	For example if assemblies get refreshed user could have renamed or removed some types.
 		 */
+		B3D_SCRIPT_EXPORT()
 		virtual bool IsTypeLoaded() const = 0;
 
 		/**
@@ -111,14 +113,15 @@ namespace bs
 	};
 
 	/**	Contains information about a type of a managed primitive (for example int, float, etc.). */
-	class B3D_SCRIPT_INTEROP_EXPORT ManagedTypeInfoPrimitive : public ManagedTypeInfo
+	class B3D_SCRIPT_INTEROP_EXPORT B3D_SCRIPT_EXPORT() ManagedTypeInfoPrimitive : public ManagedTypeInfo
 	{
 	public:
 		bool Matches(const SPtr<ManagedTypeInfo>& typeInfo) const override;
 		bool IsTypeLoaded() const override;
 		::MonoClass* GetMonoClass() const override;
 
-		ScriptPrimitiveType Type;
+		B3D_SCRIPT_EXPORT()
+		ManagedPrimitiveType PrimitiveType;
 
 		/************************************************************************/
 		/* 								RTTI		                     		*/
@@ -130,15 +133,20 @@ namespace bs
 	};
 
 	/**	Contains information about a type of a managed enum. */
-	class B3D_SCRIPT_INTEROP_EXPORT ManagedTypeInfoEnum : public ManagedTypeInfo
+	class B3D_SCRIPT_INTEROP_EXPORT B3D_SCRIPT_EXPORT() ManagedTypeInfoEnum : public ManagedTypeInfo
 	{
 	public:
 		bool Matches(const SPtr<ManagedTypeInfo>& typeInfo) const override;
 		bool IsTypeLoaded() const override;
 		::MonoClass* GetMonoClass() const override;
 
-		ScriptPrimitiveType UnderlyingType;
+		B3D_SCRIPT_EXPORT()
+		ManagedPrimitiveType UnderlyingType;
+
+		B3D_SCRIPT_EXPORT()
 		String TypeNamespace;
+
+		B3D_SCRIPT_EXPORT()
 		String TypeName;
 
 		/************************************************************************/
@@ -151,16 +159,23 @@ namespace bs
 	};
 
 	/**	Contains information about a type of a managed game object or resource. */
-	class B3D_SCRIPT_INTEROP_EXPORT ManagedTypeInfoReference : public ManagedTypeInfo
+	class B3D_SCRIPT_INTEROP_EXPORT B3D_SCRIPT_EXPORT() ManagedTypeInfoReference : public ManagedTypeInfo
 	{
 	public:
 		bool Matches(const SPtr<ManagedTypeInfo>& typeInfo) const override;
 		bool IsTypeLoaded() const override;
 		::MonoClass* GetMonoClass() const override;
 
-		ScriptReferenceType Type;
-		u32 RtiiTypeId;
+		B3D_SCRIPT_EXPORT()
+		ManagedReferenceType ReferenceType;
+
+		B3D_SCRIPT_EXPORT()
+		u32 TypeRTTIId;
+
+		B3D_SCRIPT_EXPORT()
 		String TypeNamespace;
+
+		B3D_SCRIPT_EXPORT()
 		String TypeName;
 
 		/************************************************************************/
@@ -173,13 +188,14 @@ namespace bs
 	};
 
 	/**	Contains information about a type of a reference to a resource. */
-	class B3D_SCRIPT_INTEROP_EXPORT ManagedTypeInfoResourceReference : public ManagedTypeInfo
+	class B3D_SCRIPT_INTEROP_EXPORT B3D_SCRIPT_EXPORT() ManagedTypeInfoResourceReference : public ManagedTypeInfo
 	{
 	public:
 		bool Matches(const SPtr<ManagedTypeInfo>& typeInfo) const override;
 		bool IsTypeLoaded() const override;
 		::MonoClass* GetMonoClass() const override;
 
+		B3D_SCRIPT_EXPORT()
 		SPtr<ManagedTypeInfo> ResourceType;
 
 		/************************************************************************/
@@ -192,18 +208,28 @@ namespace bs
 	};
 
 	/**	Contains information about a type of a generic managed object (for example struct or class). */
-	class B3D_SCRIPT_INTEROP_EXPORT ManagedTypeInfoObject : public ManagedTypeInfo
+	class B3D_SCRIPT_INTEROP_EXPORT B3D_SCRIPT_EXPORT() ManagedTypeInfoObject : public ManagedTypeInfo
 	{
 	public:
 		bool Matches(const SPtr<ManagedTypeInfo>& typeInfo) const override;
 		bool IsTypeLoaded() const override;
 		::MonoClass* GetMonoClass() const override;
 
+		B3D_SCRIPT_EXPORT()
 		String TypeNamespace;
+
+		B3D_SCRIPT_EXPORT()
 		String TypeName;
-		bool ValueType;
-		u32 RttiTypeId;
-		ScriptTypeFlags Flags;
+
+		B3D_SCRIPT_EXPORT()
+		bool IsValueType;
+
+		B3D_SCRIPT_EXPORT()
+		u32 TypeRTTIId;
+
+		B3D_SCRIPT_EXPORT()
+		ManagedObjectMetaDataFlags MetaDataFlags;
+
 		u32 TypeId;
 
 		/************************************************************************/
@@ -216,14 +242,17 @@ namespace bs
 	};
 
 	/**	Contains information about a type of a managed Array. */
-	class B3D_SCRIPT_INTEROP_EXPORT ManagedTypeInfoArray : public ManagedTypeInfo
+	class B3D_SCRIPT_INTEROP_EXPORT B3D_SCRIPT_EXPORT() ManagedTypeInfoArray : public ManagedTypeInfo
 	{
 	public:
 		bool Matches(const SPtr<ManagedTypeInfo>& typeInfo) const override;
 		bool IsTypeLoaded() const override;
 		::MonoClass* GetMonoClass() const override;
 
+		B3D_SCRIPT_EXPORT()
 		SPtr<ManagedTypeInfo> ElementType;
+
+		B3D_SCRIPT_EXPORT()
 		u32 Rank;
 
 		/************************************************************************/
@@ -236,13 +265,14 @@ namespace bs
 	};
 
 	/**	Contains information about a type of a managed List. */
-	class B3D_SCRIPT_INTEROP_EXPORT ManagedTypeInfoList : public ManagedTypeInfo
+	class B3D_SCRIPT_INTEROP_EXPORT B3D_SCRIPT_EXPORT() ManagedTypeInfoList : public ManagedTypeInfo
 	{
 	public:
 		bool Matches(const SPtr<ManagedTypeInfo>& typeInfo) const override;
 		bool IsTypeLoaded() const override;
 		::MonoClass* GetMonoClass() const override;
 
+		B3D_SCRIPT_EXPORT()
 		SPtr<ManagedTypeInfo> ElementType;
 
 		/************************************************************************/
@@ -255,14 +285,17 @@ namespace bs
 	};
 
 	/**	Contains information about a type of a managed Dictionary. */
-	class B3D_SCRIPT_INTEROP_EXPORT ManagedTypeInfoDictionary : public ManagedTypeInfo
+	class B3D_SCRIPT_INTEROP_EXPORT B3D_SCRIPT_EXPORT() ManagedTypeInfoDictionary : public ManagedTypeInfo
 	{
 	public:
 		bool Matches(const SPtr<ManagedTypeInfo>& typeInfo) const override;
 		bool IsTypeLoaded() const override;
 		::MonoClass* GetMonoClass() const override;
 
+		B3D_SCRIPT_EXPORT()
 		SPtr<ManagedTypeInfo> KeyType;
+
+		B3D_SCRIPT_EXPORT()
 		SPtr<ManagedTypeInfo> ValueType;
 
 		/************************************************************************/
@@ -282,7 +315,7 @@ namespace bs
 		virtual ~ManagedMemberInfo() = default;
 
 		/**	Determines should the member be serialized when serializing the parent object. */
-		bool IsSerializable() const { return Flags.IsSet(ScriptFieldFlag::Serializable); }
+		bool IsSerializable() const { return Flags.IsSet(ManagedFieldMetaDataFlag::Serializable); }
 
 		/**
 		 * Returns a boxed value contained in the member in the specified object instance.
@@ -312,7 +345,7 @@ namespace bs
 		u32 ParentTypeId;
 
 		SPtr<ManagedTypeInfo> TypeInfo;
-		ScriptFieldFlags Flags;
+		ManagedFieldMetaDataFlags Flags;
 
 		/************************************************************************/
 		/* 								RTTI		                     		*/

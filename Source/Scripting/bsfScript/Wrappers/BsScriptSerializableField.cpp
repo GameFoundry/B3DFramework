@@ -5,7 +5,7 @@
 #include "BsMonoClass.h"
 #include "BsMonoManager.h"
 #include "BsMonoUtil.h"
-#include "Serialization/BsManagedSerializableObjectInfo.h"
+#include "Serialization/BsManagedTypeInfo.h"
 #include "Wrappers/BsScriptSerializableProperty.h"
 #include "GUI/BsScriptRange.h"
 #include "Serialization/BsScriptAssemblyManager.h"
@@ -67,8 +67,8 @@ void ScriptSerializableField::InternalGetStyle(ScriptSerializableField* nativeIn
 	SPtr<ManagedMemberInfo> fieldInfo = nativeInstance->mFieldInfo;
 	SerializableMemberStyle interopStyle;
 
-	ScriptFieldFlags fieldFlags = fieldInfo->Flags;
-	if(fieldFlags.IsSet(ScriptFieldFlag::Range))
+	ManagedFieldMetaDataFlags fieldFlags = fieldInfo->Flags;
+	if(fieldFlags.IsSet(ManagedFieldMetaDataFlag::Range))
 	{
 		MonoClass* range = ScriptAssemblyManager::Instance().GetBuiltinClasses().RangeAttribute;
 		if(range != nullptr)
@@ -81,7 +81,7 @@ void ScriptSerializableField::InternalGetStyle(ScriptSerializableField* nativeIn
 		}
 	}
 
-	if(fieldFlags.IsSet(ScriptFieldFlag::Step))
+	if(fieldFlags.IsSet(ManagedFieldMetaDataFlag::Step))
 	{
 		MonoClass* step = ScriptAssemblyManager::Instance().GetBuiltinClasses().StepAttribute;
 		if(step != nullptr)
@@ -91,7 +91,7 @@ void ScriptSerializableField::InternalGetStyle(ScriptSerializableField* nativeIn
 		}
 	}
 
-	if(fieldFlags.IsSet(ScriptFieldFlag::Category))
+	if(fieldFlags.IsSet(ManagedFieldMetaDataFlag::Category))
 	{
 		MonoClass* category = ScriptAssemblyManager::Instance().GetBuiltinClasses().CategoryAttribute;
 		if(category != nullptr)
@@ -101,7 +101,7 @@ void ScriptSerializableField::InternalGetStyle(ScriptSerializableField* nativeIn
 		}
 	}
 
-	if(fieldFlags.IsSet(ScriptFieldFlag::Order))
+	if(fieldFlags.IsSet(ManagedFieldMetaDataFlag::Order))
 	{
 		MonoClass* order = ScriptAssemblyManager::Instance().GetBuiltinClasses().OrderAttribute;
 		if(order != nullptr)

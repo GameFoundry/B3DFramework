@@ -2452,6 +2452,72 @@ Use {0}, {1}, etc. in the string value for values that might change dynamically.
 			<doc>Size of a single sample in bits. The clip will be converted to this bit depth on import.</doc>
 		</property>
 	</class>
+	<enum native="ManagedPrimitiveType" script="ManagedPrimitiveType">
+		<doc>Valid serializable script types.</doc>
+		<enumentry native="I32" script="I32">
+		</enumentry>
+		<enumentry native="Bool" script="Bool">
+		</enumentry>
+		<enumentry native="Char" script="Char">
+		</enumentry>
+		<enumentry native="I8" script="I8">
+		</enumentry>
+		<enumentry native="String" script="String">
+		</enumentry>
+		<enumentry native="U8" script="U8">
+		</enumentry>
+		<enumentry native="I16" script="I16">
+		</enumentry>
+		<enumentry native="U16" script="U16">
+		</enumentry>
+		<enumentry native="U32" script="U32">
+		</enumentry>
+		<enumentry native="I64" script="I64">
+		</enumentry>
+		<enumentry native="U64" script="U64">
+		</enumentry>
+		<enumentry native="Float" script="Float">
+		</enumentry>
+		<enumentry native="Double" script="Double">
+		</enumentry>
+		<enumentry native="Count" script="Count">
+		</enumentry>
+	</enum>
+	<enum native="ManagedFieldMetaDataFlag" script="ManagedFieldMetaDataFlag">
+		<doc>Flags that are used to further define a field in a managed serializable object.</doc>
+		<enumentry native="Range" script="Range">
+		</enumentry>
+		<enumentry native="Serializable" script="Serializable">
+		</enumentry>
+		<enumentry native="NotNull" script="NotNull">
+		</enumentry>
+		<enumentry native="Inspectable" script="Inspectable">
+		</enumentry>
+		<enumentry native="Step" script="Step">
+		</enumentry>
+		<enumentry native="Animable" script="Animable">
+		</enumentry>
+		<enumentry native="AsLayerMask" script="AsLayerMask">
+		</enumentry>
+		<enumentry native="Inline" script="Inline">
+		</enumentry>
+		<enumentry native="PassByCopy" script="PassByCopy">
+		</enumentry>
+		<enumentry native="NativeWrapper" script="NativeWrapper">
+		</enumentry>
+		<enumentry native="ApplyOnDirty" script="ApplyOnDirty">
+		</enumentry>
+		<enumentry native="LoadOnAssign" script="LoadOnAssign">
+		</enumentry>
+		<enumentry native="AsQuaternion" script="AsQuaternion">
+		</enumentry>
+		<enumentry native="Category" script="Category">
+		</enumentry>
+		<enumentry native="Order" script="Order">
+		</enumentry>
+		<enumentry native="HDR" script="HDR">
+		</enumentry>
+	</enum>
 	<enum native="AudioSourceState" script="AudioSourceState">
 		<doc>Valid states in which AudioSource can be in.</doc>
 		<enumentry native="Playing" script="Playing">
@@ -6055,6 +6121,13 @@ Sprite images also allow you to specify sprite sheet animation by varying which 
 			<doc>Options describing the shape.</doc>
 		</property>
 	</class>
+	<enum native="ManagedObjectMetaDataFlag" script="ManagedObjectMetaDataFlag">
+		<doc>Flags that are used to further desribe a type of a managed serializable object.</doc>
+		<enumentry native="Serializable" script="Serializable">
+		</enumentry>
+		<enumentry native="Inspectable" script="Inspectable">
+		</enumentry>
+	</enum>
 	<struct native="FontCreateInformation" script="FontCreateInformation">
 		<doc>Descriptor structure used for initialization of a Font.</doc>
 		<ctor>
@@ -6570,6 +6643,13 @@ Sprite images also allow you to specify sprite sheet animation by varying which 
 		<property name="Texture" type="RRef&lt;Texture&gt;" getter="GetTexture" setter="SetTexture" static="false">
 		</property>
 		<property name="Brightness" type="float" getter="GetBrightness" setter="SetBrightness" static="false">
+		</property>
+	</class>
+	<class native="ManagedTypeInfoDictionary" script="ManagedTypeInfoDictionary">
+		<doc>Contains information about a type of a managed Dictionary.</doc>
+		<property name="KeyType" type="ManagedTypeInfo" getter="GetKeyType" setter="SetKeyType" static="false">
+		</property>
+		<property name="ValueType" type="ManagedTypeInfo" getter="GetValueType" setter="SetValueType" static="false">
 		</property>
 	</class>
 	<enum native="SliderJointFlag" script="SliderJointFlag">
@@ -14014,5 +14094,100 @@ Primary purpose of this class is to avoid expensive string compare, and instead 
 			<param name="type" type="CursorType">
 			</param>
 		</method>
+	</class>
+	<enum native="ManagedReferenceType" script="ManagedReferenceType">
+		<doc>Valid reference script types.</doc>
+		<enumentry native="BuiltinResourceBase" script="BuiltinResourceBase">
+		</enumentry>
+		<enumentry native="Count" script="Count">
+		</enumentry>
+		<enumentry native="BuiltinResource" script="BuiltinResource">
+		</enumentry>
+		<enumentry native="ManagedResourceBase" script="ManagedResourceBase">
+		</enumentry>
+		<enumentry native="ManagedResource" script="ManagedResource">
+		</enumentry>
+		<enumentry native="BuiltinComponentBase" script="BuiltinComponentBase">
+		</enumentry>
+		<enumentry native="BuiltinComponent" script="BuiltinComponent">
+		</enumentry>
+		<enumentry native="ManagedComponentBase" script="ManagedComponentBase">
+		</enumentry>
+		<enumentry native="ManagedComponent" script="ManagedComponent">
+		</enumentry>
+		<enumentry native="SceneObject" script="SceneObject">
+		</enumentry>
+		<enumentry native="ReflectableObject" script="ReflectableObject">
+		</enumentry>
+	</enum>
+	<class native="ManagedTypeInfo" script="ManagedTypeInfo">
+		<doc>Contains information about a type of a managed object.</doc>
+		<method native="Matches" script="Matches" static="false">
+			<doc>Checks if the current type matches the provided type.</doc>
+			<param name="typeInfo" type="ManagedTypeInfo">
+			</param>
+			<returns type="bool">
+			</returns>
+		</method>
+		<method native="IsTypeLoaded" script="IsTypeLoaded" static="false">
+			<doc>Checks does the managed type this object represents still exists.</doc>
+			<returns type="bool">
+			</returns>
+		</method>
+	</class>
+	<class native="ManagedTypeInfoPrimitive" script="ManagedTypeInfoPrimitive">
+		<doc>Contains information about a type of a managed primitive (for example int, float, etc.).</doc>
+		<property name="PrimitiveType" type="ManagedPrimitiveType" getter="GetPrimitiveType" setter="SetPrimitiveType" static="false">
+		</property>
+	</class>
+	<class native="ManagedTypeInfoEnum" script="ManagedTypeInfoEnum">
+		<doc>Contains information about a type of a managed enum.</doc>
+		<property name="UnderlyingType" type="ManagedPrimitiveType" getter="GetUnderlyingType" setter="SetUnderlyingType" static="false">
+		</property>
+		<property name="TypeNamespace" type="string" getter="GetTypeNamespace" setter="SetTypeNamespace" static="false">
+		</property>
+		<property name="TypeName" type="string" getter="GetTypeName" setter="SetTypeName" static="false">
+		</property>
+	</class>
+	<class native="ManagedTypeInfoReference" script="ManagedTypeInfoReference">
+		<doc>Contains information about a type of a managed game object or resource.</doc>
+		<property name="ReferenceType" type="ManagedReferenceType" getter="GetReferenceType" setter="SetReferenceType" static="false">
+		</property>
+		<property name="TypeRTTIId" type="int" getter="GetTypeRTTIId" setter="SetTypeRTTIId" static="false">
+		</property>
+		<property name="TypeNamespace" type="string" getter="GetTypeNamespace" setter="SetTypeNamespace" static="false">
+		</property>
+		<property name="TypeName" type="string" getter="GetTypeName" setter="SetTypeName" static="false">
+		</property>
+	</class>
+	<class native="ManagedTypeInfoResourceReference" script="ManagedTypeInfoResourceReference">
+		<doc>Contains information about a type of a reference to a resource.</doc>
+		<property name="ResourceType" type="ManagedTypeInfo" getter="GetResourceType" setter="SetResourceType" static="false">
+		</property>
+	</class>
+	<class native="ManagedTypeInfoObject" script="ManagedTypeInfoObject">
+		<doc>Contains information about a type of a generic managed object (for example struct or class).</doc>
+		<property name="TypeNamespace" type="string" getter="GetTypeNamespace" setter="SetTypeNamespace" static="false">
+		</property>
+		<property name="TypeName" type="string" getter="GetTypeName" setter="SetTypeName" static="false">
+		</property>
+		<property name="IsValueType" type="bool" getter="GetIsValueType" setter="SetIsValueType" static="false">
+		</property>
+		<property name="TypeRTTIId" type="int" getter="GetTypeRTTIId" setter="SetTypeRTTIId" static="false">
+		</property>
+		<property name="MetaDataFlags" type="ManagedObjectMetaDataFlag" getter="GetMetaDataFlags" setter="SetMetaDataFlags" static="false">
+		</property>
+	</class>
+	<class native="ManagedTypeInfoArray" script="ManagedTypeInfoArray">
+		<doc>Contains information about a type of a managed Array.</doc>
+		<property name="ElementType" type="ManagedTypeInfo" getter="GetElementType" setter="SetElementType" static="false">
+		</property>
+		<property name="Rank" type="int" getter="GetRank" setter="SetRank" static="false">
+		</property>
+	</class>
+	<class native="ManagedTypeInfoList" script="ManagedTypeInfoList">
+		<doc>Contains information about a type of a managed List.</doc>
+		<property name="ElementType" type="ManagedTypeInfo" getter="GetElementType" setter="SetElementType" static="false">
+		</property>
 	</class>
 </entries>

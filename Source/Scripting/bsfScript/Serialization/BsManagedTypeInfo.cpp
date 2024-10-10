@@ -145,43 +145,43 @@ bool ManagedTypeInfoPrimitive::Matches(const SPtr<ManagedTypeInfo>& typeInfo) co
 
 	auto primTypeInfo = std::static_pointer_cast<ManagedTypeInfoPrimitive>(typeInfo);
 
-	return primTypeInfo->Type == Type;
+	return primTypeInfo->PrimitiveType == PrimitiveType;
 }
 
 bool ManagedTypeInfoPrimitive::IsTypeLoaded() const
 {
-	return Type < ScriptPrimitiveType::Count; // Ignoring some removed types
+	return PrimitiveType < ManagedPrimitiveType::Count; // Ignoring some removed types
 }
 
 ::MonoClass* ManagedTypeInfoPrimitive::GetMonoClass() const
 {
-	switch(Type)
+	switch(PrimitiveType)
 	{
-	case ScriptPrimitiveType::Bool:
+	case ManagedPrimitiveType::Bool:
 		return MonoUtil::GetBoolClass();
-	case ScriptPrimitiveType::Char:
+	case ManagedPrimitiveType::Char:
 		return MonoUtil::GetCharClass();
-	case ScriptPrimitiveType::I8:
+	case ManagedPrimitiveType::I8:
 		return MonoUtil::GetSByteClass();
-	case ScriptPrimitiveType::U8:
+	case ManagedPrimitiveType::U8:
 		return MonoUtil::GetByteClass();
-	case ScriptPrimitiveType::I16:
+	case ManagedPrimitiveType::I16:
 		return MonoUtil::GetInT16Class();
-	case ScriptPrimitiveType::U16:
+	case ManagedPrimitiveType::U16:
 		return MonoUtil::GetUinT16Class();
-	case ScriptPrimitiveType::I32:
+	case ManagedPrimitiveType::I32:
 		return MonoUtil::GetInT32Class();
-	case ScriptPrimitiveType::U32:
+	case ManagedPrimitiveType::U32:
 		return MonoUtil::GetUinT32Class();
-	case ScriptPrimitiveType::I64:
+	case ManagedPrimitiveType::I64:
 		return MonoUtil::GetInT64Class();
-	case ScriptPrimitiveType::U64:
+	case ManagedPrimitiveType::U64:
 		return MonoUtil::GetUinT64Class();
-	case ScriptPrimitiveType::Float:
+	case ManagedPrimitiveType::Float:
 		return MonoUtil::GetFloatClass();
-	case ScriptPrimitiveType::Double:
+	case ManagedPrimitiveType::Double:
 		return MonoUtil::GetDoubleClass();
-	case ScriptPrimitiveType::String:
+	case ManagedPrimitiveType::String:
 		return MonoUtil::GetStringClass();
 	default:
 		break;
@@ -250,16 +250,16 @@ bool ManagedTypeInfoReference::Matches(const SPtr<ManagedTypeInfo>& typeInfo) co
 
 bool ManagedTypeInfoReference::IsTypeLoaded() const
 {
-	switch(Type)
+	switch(ReferenceType)
 	{
-	case ScriptReferenceType::BuiltinResourceBase:
-	case ScriptReferenceType::ManagedResourceBase:
-	case ScriptReferenceType::BuiltinResource:
-	case ScriptReferenceType::BuiltinComponentBase:
-	case ScriptReferenceType::ManagedComponentBase:
-	case ScriptReferenceType::BuiltinComponent:
-	case ScriptReferenceType::SceneObject:
-	case ScriptReferenceType::ReflectableObject:
+	case ManagedReferenceType::BuiltinResourceBase:
+	case ManagedReferenceType::ManagedResourceBase:
+	case ManagedReferenceType::BuiltinResource:
+	case ManagedReferenceType::BuiltinComponentBase:
+	case ManagedReferenceType::ManagedComponentBase:
+	case ManagedReferenceType::BuiltinComponent:
+	case ManagedReferenceType::SceneObject:
+	case ManagedReferenceType::ReflectableObject:
 		return true;
 	default:
 		break;
@@ -270,17 +270,17 @@ bool ManagedTypeInfoReference::IsTypeLoaded() const
 
 ::MonoClass* ManagedTypeInfoReference::GetMonoClass() const
 {
-	switch(Type)
+	switch(ReferenceType)
 	{
-	case ScriptReferenceType::BuiltinResourceBase:
+	case ManagedReferenceType::BuiltinResourceBase:
 		return ScriptResource::GetMetaData()->ScriptClass->GetInternalClass();
-	case ScriptReferenceType::ManagedResourceBase:
+	case ManagedReferenceType::ManagedResourceBase:
 		return ScriptManagedResource::GetMetaData()->ScriptClass->GetInternalClass();
-	case ScriptReferenceType::SceneObject:
+	case ManagedReferenceType::SceneObject:
 		return ScriptAssemblyManager::Instance().GetBuiltinClasses().SceneObjectClass->GetInternalClass();
-	case ScriptReferenceType::BuiltinComponentBase:
+	case ManagedReferenceType::BuiltinComponentBase:
 		return ScriptAssemblyManager::Instance().GetBuiltinClasses().ComponentClass->GetInternalClass();
-	case ScriptReferenceType::ManagedComponentBase:
+	case ManagedReferenceType::ManagedComponentBase:
 		return ScriptAssemblyManager::Instance().GetBuiltinClasses().ManagedComponentClass->GetInternalClass();
 	default:
 		break;
@@ -356,7 +356,7 @@ bool ManagedTypeInfoObject::Matches(const SPtr<ManagedTypeInfo>& typeInfo) const
 	auto objTypeInfo = std::static_pointer_cast<ManagedTypeInfoObject>(typeInfo);
 
 	return objTypeInfo->TypeNamespace == TypeNamespace && objTypeInfo->TypeName == TypeName &&
-		objTypeInfo->ValueType == ValueType && objTypeInfo->RttiTypeId == RttiTypeId;
+		objTypeInfo->IsValueType == IsValueType && objTypeInfo->TypeRTTIId == TypeRTTIId;
 }
 
 bool ManagedTypeInfoObject::IsTypeLoaded() const

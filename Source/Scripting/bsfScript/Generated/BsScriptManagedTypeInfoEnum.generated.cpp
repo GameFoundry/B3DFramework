@@ -1,0 +1,88 @@
+//********************************* bs::framework - Copyright 2018-2022 Marko Pintera ************************************//
+//*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
+#include "BsScriptManagedTypeInfoEnum.generated.h"
+#include "BsMonoMethod.h"
+#include "BsMonoClass.h"
+#include "BsMonoUtil.h"
+
+namespace bs
+{
+	ScriptManagedTypeInfoEnum::ScriptManagedTypeInfoEnum(const SPtr<ManagedTypeInfoEnum>& nativeObject)
+		:TScriptReflectableWrapper(nativeObject)
+	{
+		RegisterEvents();
+	}
+
+	void ScriptManagedTypeInfoEnum::SetupScriptBindings()
+	{
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetUnderlyingType", (void*)&ScriptManagedTypeInfoEnum::InternalGetUnderlyingType);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetUnderlyingType", (void*)&ScriptManagedTypeInfoEnum::InternalSetUnderlyingType);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetTypeNamespace", (void*)&ScriptManagedTypeInfoEnum::InternalGetTypeNamespace);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetTypeNamespace", (void*)&ScriptManagedTypeInfoEnum::InternalSetTypeNamespace);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetTypeName", (void*)&ScriptManagedTypeInfoEnum::InternalGetTypeName);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetTypeName", (void*)&ScriptManagedTypeInfoEnum::InternalSetTypeName);
+
+	}
+
+	MonoObject* ScriptManagedTypeInfoEnum::CreateScriptObject(bool construct)
+	{
+		bool dummy = false;
+		void* ctorParams[1] = { &dummy };
+
+		if(construct)
+			return sInteropMetaData.ScriptClass->CreateInstance("bool", ctorParams);
+
+		return sInteropMetaData.ScriptClass->CreateInstance(false);
+	}
+	ManagedPrimitiveType ScriptManagedTypeInfoEnum::InternalGetUnderlyingType(ScriptManagedTypeInfoEnum* self)
+	{
+		ManagedPrimitiveType tmp__output;
+		tmp__output = static_cast<ManagedTypeInfoEnum*>(self->GetNativeObject())->UnderlyingType;
+
+		ManagedPrimitiveType __output;
+		__output = tmp__output;
+
+		return __output;
+	}
+
+	void ScriptManagedTypeInfoEnum::InternalSetUnderlyingType(ScriptManagedTypeInfoEnum* self, ManagedPrimitiveType value)
+	{
+		static_cast<ManagedTypeInfoEnum*>(self->GetNativeObject())->UnderlyingType = value;
+	}
+
+	MonoString* ScriptManagedTypeInfoEnum::InternalGetTypeNamespace(ScriptManagedTypeInfoEnum* self)
+	{
+		String tmp__output;
+		tmp__output = static_cast<ManagedTypeInfoEnum*>(self->GetNativeObject())->TypeNamespace;
+
+		MonoString* __output;
+		__output = MonoUtil::StringToMono(tmp__output);
+
+		return __output;
+	}
+
+	void ScriptManagedTypeInfoEnum::InternalSetTypeNamespace(ScriptManagedTypeInfoEnum* self, MonoString* value)
+	{
+		String tmpvalue;
+		tmpvalue = MonoUtil::MonoToString(value);
+		static_cast<ManagedTypeInfoEnum*>(self->GetNativeObject())->TypeNamespace = tmpvalue;
+	}
+
+	MonoString* ScriptManagedTypeInfoEnum::InternalGetTypeName(ScriptManagedTypeInfoEnum* self)
+	{
+		String tmp__output;
+		tmp__output = static_cast<ManagedTypeInfoEnum*>(self->GetNativeObject())->TypeName;
+
+		MonoString* __output;
+		__output = MonoUtil::StringToMono(tmp__output);
+
+		return __output;
+	}
+
+	void ScriptManagedTypeInfoEnum::InternalSetTypeName(ScriptManagedTypeInfoEnum* self, MonoString* value)
+	{
+		String tmpvalue;
+		tmpvalue = MonoUtil::MonoToString(value);
+		static_cast<ManagedTypeInfoEnum*>(self->GetNativeObject())->TypeName = tmpvalue;
+	}
+}

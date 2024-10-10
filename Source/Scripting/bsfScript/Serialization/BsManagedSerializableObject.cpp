@@ -2,7 +2,7 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "Serialization/BsManagedSerializableObject.h"
 #include "RTTI/BsManagedSerializableObjectRTTI.h"
-#include "Serialization/BsManagedSerializableObjectInfo.h"
+#include "Serialization/BsManagedTypeInfo.h"
 #include "Serialization/BsManagedSerializableField.h"
 #include "Serialization/BsScriptAssemblyManager.h"
 #include "BsMonoField.h"
@@ -78,7 +78,7 @@ MonoObject* ManagedSerializableObject::CreateManagedInstance(const SPtr<ManagedT
 	if(!ScriptAssemblyManager::Instance().GetSerializableObjectInfo(type->TypeNamespace, type->TypeName, currentObjInfo))
 		return nullptr;
 
-	if(!currentObjInfo->TypeInfo->Flags.IsSet(ScriptTypeFlag::Serializable))
+	if(!currentObjInfo->TypeInfo->MetaDataFlags.IsSet(ManagedObjectMetaDataFlag::Serializable))
 		return nullptr;
 
 	const bool construct = currentObjInfo->ScriptClass->GetMethod(".ctor", 0) != nullptr;

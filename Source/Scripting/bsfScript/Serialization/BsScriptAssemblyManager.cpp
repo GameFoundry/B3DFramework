@@ -73,26 +73,26 @@ void ScriptAssemblyManager::LoadAssemblyInfo(const String& assemblyName)
 			typeInfo->TypeId = mUniqueTypeId++;
 
 			if(isSerializable)
-				typeInfo->Flags |= ScriptTypeFlag::Serializable;
+				typeInfo->MetaDataFlags |= ManagedObjectMetaDataFlag::Serializable;
 
 			if(isSerializable || isInspectable)
-				typeInfo->Flags |= ScriptTypeFlag::Inspectable;
+				typeInfo->MetaDataFlags |= ManagedObjectMetaDataFlag::Inspectable;
 
 			MonoPrimitiveType monoPrimitiveType = MonoUtil::GetPrimitiveType(curClass->GetInternalClass());
 
 			if(monoPrimitiveType == MonoPrimitiveType::ValueType)
-				typeInfo->ValueType = true;
+				typeInfo->IsValueType = true;
 			else
-				typeInfo->ValueType = false;
+				typeInfo->IsValueType = false;
 
 			::MonoReflectionType* type = MonoUtil::GetType(curClass->GetInternalClass());
 
 			// Is this a wrapper for some reflectable type?
 			const ScriptTypeMetaData* const scriptWrapperObjectMetaData = GetScriptWrapperMetaData(type);
 			if(scriptWrapperObjectMetaData != nullptr)
-				typeInfo->RttiTypeId = scriptWrapperObjectMetaData->TypeId;
+				typeInfo->TypeRTTIId = scriptWrapperObjectMetaData->TypeId;
 			else
-				typeInfo->RttiTypeId = 0;
+				typeInfo->TypeRTTIId = 0;
 
 			SPtr<ManagedObjectInfo> objInfo = B3DMakeShared<ManagedObjectInfo>();
 
@@ -126,8 +126,8 @@ void ScriptAssemblyManager::LoadAssemblyInfo(const String& assemblyName)
 
 			if(const auto* objTypeInfo = B3DRTTICast<ManagedTypeInfoObject>(typeInfo.get()))
 			{
-				typeIsSerializable = objTypeInfo->Flags.IsSet(ScriptTypeFlag::Serializable);
-				typeIsInspectable = typeIsSerializable || objTypeInfo->Flags.IsSet(ScriptTypeFlag::Inspectable);
+				typeIsSerializable = objTypeInfo->MetaDataFlags.IsSet(ManagedObjectMetaDataFlag::Serializable);
+				typeIsInspectable = typeIsSerializable || objTypeInfo->MetaDataFlags.IsSet(ManagedObjectMetaDataFlag::Inspectable);
 			}
 
 			SPtr<ManagedFieldInfo> fieldInfo = B3DMakeShared<ManagedFieldInfo>();
@@ -141,61 +141,61 @@ void ScriptAssemblyManager::LoadAssemblyInfo(const String& assemblyName)
 			if(visibility == MonoMemberVisibility::Public)
 			{
 				if(typeIsSerializable && !field->HasAttribute(mBuiltin.DontSerializeFieldAttribute))
-					fieldInfo->Flags |= ScriptFieldFlag::Serializable;
+					fieldInfo->Flags |= ManagedFieldMetaDataFlag::Serializable;
 
 				if(typeIsInspectable && !field->HasAttribute(mBuiltin.HideInInspectorAttribute))
-					fieldInfo->Flags |= ScriptFieldFlag::Inspectable;
+					fieldInfo->Flags |= ManagedFieldMetaDataFlag::Inspectable;
 
-				fieldInfo->Flags |= ScriptFieldFlag::Animable;
+				fieldInfo->Flags |= ManagedFieldMetaDataFlag::Animable;
 			}
 			else
 			{
 				if(typeIsSerializable && field->HasAttribute(mBuiltin.SerializeFieldAttribute))
-					fieldInfo->Flags |= ScriptFieldFlag::Serializable;
+					fieldInfo->Flags |= ManagedFieldMetaDataFlag::Serializable;
 
 				if(typeIsInspectable && field->HasAttribute(mBuiltin.ShowInInspectorAttribute))
-					fieldInfo->Flags |= ScriptFieldFlag::Inspectable;
+					fieldInfo->Flags |= ManagedFieldMetaDataFlag::Inspectable;
 			}
 
 			if(field->HasAttribute(mBuiltin.RangeAttribute))
-				fieldInfo->Flags |= ScriptFieldFlag::Range;
+				fieldInfo->Flags |= ManagedFieldMetaDataFlag::Range;
 
 			if(field->HasAttribute(mBuiltin.StepAttribute))
-				fieldInfo->Flags |= ScriptFieldFlag::Step;
+				fieldInfo->Flags |= ManagedFieldMetaDataFlag::Step;
 
 			if(field->HasAttribute(mBuiltin.LayerMaskAttribute))
 			{
 				// Layout mask attribute is only relevant for 64-bit integer types
 				if(const auto* primTypeInfo = B3DRTTICast<ManagedTypeInfoPrimitive>(typeInfo.get()))
 				{
-					if(primTypeInfo->Type == ScriptPrimitiveType::I64 ||
-					   primTypeInfo->Type == ScriptPrimitiveType::U64)
+					if(primTypeInfo->PrimitiveType == ManagedPrimitiveType::I64 ||
+					   primTypeInfo->PrimitiveType == ManagedPrimitiveType::U64)
 					{
-						fieldInfo->Flags |= ScriptFieldFlag::AsLayerMask;
+						fieldInfo->Flags |= ManagedFieldMetaDataFlag::AsLayerMask;
 					}
 				}
 			}
 
 			if(field->HasAttribute(mBuiltin.AsQuaternionAttribute))
-				fieldInfo->Flags |= ScriptFieldFlag::AsQuaternion;
+				fieldInfo->Flags |= ManagedFieldMetaDataFlag::AsQuaternion;
 
 			if(field->HasAttribute(mBuiltin.NotNullAttribute))
-				fieldInfo->Flags |= ScriptFieldFlag::NotNull;
+				fieldInfo->Flags |= ManagedFieldMetaDataFlag::NotNull;
 
 			if(field->HasAttribute(mBuiltin.CategoryAttribute))
-				fieldInfo->Flags |= ScriptFieldFlag::Category;
+				fieldInfo->Flags |= ManagedFieldMetaDataFlag::Category;
 
 			if(field->HasAttribute(mBuiltin.OrderAttribute))
-				fieldInfo->Flags |= ScriptFieldFlag::Order;
+				fieldInfo->Flags |= ManagedFieldMetaDataFlag::Order;
 
 			if(field->HasAttribute(mBuiltin.InlineAttribute))
-				fieldInfo->Flags |= ScriptFieldFlag::Inline;
+				fieldInfo->Flags |= ManagedFieldMetaDataFlag::Inline;
 
 			if(field->HasAttribute(mBuiltin.LoadOnAssignAttribute))
-				fieldInfo->Flags |= ScriptFieldFlag::LoadOnAssign;
+				fieldInfo->Flags |= ManagedFieldMetaDataFlag::LoadOnAssign;
 
 			if(field->HasAttribute(mBuiltin.HdrAttribute))
-				fieldInfo->Flags |= ScriptFieldFlag::HDR;
+				fieldInfo->Flags |= ManagedFieldMetaDataFlag::HDR;
 
 			objInfo->FieldNameToId[fieldInfo->Name] = fieldInfo->FieldId;
 			objInfo->Fields[fieldInfo->FieldId] = fieldInfo;
@@ -213,8 +213,8 @@ void ScriptAssemblyManager::LoadAssemblyInfo(const String& assemblyName)
 
 			if(const auto* objTypeInfo = B3DRTTICast<ManagedTypeInfoObject>(typeInfo.get()))
 			{
-				typeIsSerializable = objTypeInfo->Flags.IsSet(ScriptTypeFlag::Serializable);
-				typeIsInspectable = typeIsSerializable || objTypeInfo->Flags.IsSet(ScriptTypeFlag::Inspectable);
+				typeIsSerializable = objTypeInfo->MetaDataFlags.IsSet(ManagedObjectMetaDataFlag::Serializable);
+				typeIsInspectable = typeIsSerializable || objTypeInfo->MetaDataFlags.IsSet(ManagedObjectMetaDataFlag::Inspectable);
 			}
 
 			SPtr<ManagedPropertyInfo> propertyInfo = B3DMakeShared<ManagedPropertyInfo>();
@@ -228,62 +228,62 @@ void ScriptAssemblyManager::LoadAssemblyInfo(const String& assemblyName)
 			{
 				MonoMemberVisibility visibility = property->GetVisibility();
 				if(visibility == MonoMemberVisibility::Public)
-					propertyInfo->Flags |= ScriptFieldFlag::Animable;
+					propertyInfo->Flags |= ManagedFieldMetaDataFlag::Animable;
 
 				if(typeIsSerializable && property->HasAttribute(mBuiltin.SerializeFieldAttribute))
-					propertyInfo->Flags |= ScriptFieldFlag::Serializable;
+					propertyInfo->Flags |= ManagedFieldMetaDataFlag::Serializable;
 
 				if(typeIsInspectable && property->HasAttribute(mBuiltin.ShowInInspectorAttribute))
-					propertyInfo->Flags |= ScriptFieldFlag::Inspectable;
+					propertyInfo->Flags |= ManagedFieldMetaDataFlag::Inspectable;
 
 				if(property->HasAttribute(mBuiltin.RangeAttribute))
-					propertyInfo->Flags |= ScriptFieldFlag::Range;
+					propertyInfo->Flags |= ManagedFieldMetaDataFlag::Range;
 
 				if(property->HasAttribute(mBuiltin.StepAttribute))
-					propertyInfo->Flags |= ScriptFieldFlag::Step;
+					propertyInfo->Flags |= ManagedFieldMetaDataFlag::Step;
 
 				if(property->HasAttribute(mBuiltin.LayerMaskAttribute))
 				{
 					// Layout mask attribute is only relevant for 64-bit integer types
 					if(const auto* primTypeInfo = B3DRTTICast<ManagedTypeInfoPrimitive>(typeInfo.get()))
 					{
-						if(primTypeInfo->Type == ScriptPrimitiveType::I64 ||
-						   primTypeInfo->Type == ScriptPrimitiveType::U64)
+						if(primTypeInfo->PrimitiveType == ManagedPrimitiveType::I64 ||
+						   primTypeInfo->PrimitiveType == ManagedPrimitiveType::U64)
 						{
-							propertyInfo->Flags |= ScriptFieldFlag::AsLayerMask;
+							propertyInfo->Flags |= ManagedFieldMetaDataFlag::AsLayerMask;
 						}
 					}
 				}
 
 				if(property->HasAttribute(mBuiltin.AsQuaternionAttribute))
-					propertyInfo->Flags |= ScriptFieldFlag::AsQuaternion;
+					propertyInfo->Flags |= ManagedFieldMetaDataFlag::AsQuaternion;
 
 				if(property->HasAttribute(mBuiltin.NotNullAttribute))
-					propertyInfo->Flags |= ScriptFieldFlag::NotNull;
+					propertyInfo->Flags |= ManagedFieldMetaDataFlag::NotNull;
 
 				if(property->HasAttribute(mBuiltin.PassByCopyAttribute))
-					propertyInfo->Flags |= ScriptFieldFlag::PassByCopy;
+					propertyInfo->Flags |= ManagedFieldMetaDataFlag::PassByCopy;
 
 				if(property->HasAttribute(mBuiltin.ApplyOnDirtyAttribute))
-					propertyInfo->Flags |= ScriptFieldFlag::ApplyOnDirty;
+					propertyInfo->Flags |= ManagedFieldMetaDataFlag::ApplyOnDirty;
 
 				if(property->HasAttribute(mBuiltin.NativeWrapperAttribute))
-					propertyInfo->Flags |= ScriptFieldFlag::NativeWrapper;
+					propertyInfo->Flags |= ManagedFieldMetaDataFlag::NativeWrapper;
 
 				if(property->HasAttribute(mBuiltin.CategoryAttribute))
-					propertyInfo->Flags |= ScriptFieldFlag::Category;
+					propertyInfo->Flags |= ManagedFieldMetaDataFlag::Category;
 
 				if(property->HasAttribute(mBuiltin.OrderAttribute))
-					propertyInfo->Flags |= ScriptFieldFlag::Order;
+					propertyInfo->Flags |= ManagedFieldMetaDataFlag::Order;
 
 				if(property->HasAttribute(mBuiltin.InlineAttribute))
-					propertyInfo->Flags |= ScriptFieldFlag::Inline;
+					propertyInfo->Flags |= ManagedFieldMetaDataFlag::Inline;
 
 				if(property->HasAttribute(mBuiltin.LoadOnAssignAttribute))
-					propertyInfo->Flags |= ScriptFieldFlag::LoadOnAssign;
+					propertyInfo->Flags |= ManagedFieldMetaDataFlag::LoadOnAssign;
 
 				if(property->HasAttribute(mBuiltin.HdrAttribute))
-					propertyInfo->Flags |= ScriptFieldFlag::HDR;
+					propertyInfo->Flags |= ManagedFieldMetaDataFlag::HDR;
 			}
 
 			objInfo->FieldNameToId[propertyInfo->Name] = propertyInfo->FieldId;
@@ -334,60 +334,60 @@ SPtr<ManagedTypeInfo> ScriptAssemblyManager::GetTypeInfo(MonoClass* monoClass)
 
 	//  Determine field type
 	//// Check for simple types or enums first
-	ScriptPrimitiveType scriptPrimitiveType = ScriptPrimitiveType::U32;
+	ManagedPrimitiveType scriptPrimitiveType = ManagedPrimitiveType::U32;
 	bool isSimpleType = false;
 	switch(monoPrimitiveType)
 	{
 	case MonoPrimitiveType::Boolean:
-		scriptPrimitiveType = ScriptPrimitiveType::Bool;
+		scriptPrimitiveType = ManagedPrimitiveType::Bool;
 		isSimpleType = true;
 		break;
 	case MonoPrimitiveType::Char:
-		scriptPrimitiveType = ScriptPrimitiveType::Char;
+		scriptPrimitiveType = ManagedPrimitiveType::Char;
 		isSimpleType = true;
 		break;
 	case MonoPrimitiveType::I8:
-		scriptPrimitiveType = ScriptPrimitiveType::I8;
+		scriptPrimitiveType = ManagedPrimitiveType::I8;
 		isSimpleType = true;
 		break;
 	case MonoPrimitiveType::U8:
-		scriptPrimitiveType = ScriptPrimitiveType::U8;
+		scriptPrimitiveType = ManagedPrimitiveType::U8;
 		isSimpleType = true;
 		break;
 	case MonoPrimitiveType::I16:
-		scriptPrimitiveType = ScriptPrimitiveType::I16;
+		scriptPrimitiveType = ManagedPrimitiveType::I16;
 		isSimpleType = true;
 		break;
 	case MonoPrimitiveType::U16:
-		scriptPrimitiveType = ScriptPrimitiveType::U16;
+		scriptPrimitiveType = ManagedPrimitiveType::U16;
 		isSimpleType = true;
 		break;
 	case MonoPrimitiveType::I32:
-		scriptPrimitiveType = ScriptPrimitiveType::I32;
+		scriptPrimitiveType = ManagedPrimitiveType::I32;
 		isSimpleType = true;
 		break;
 	case MonoPrimitiveType::U32:
-		scriptPrimitiveType = ScriptPrimitiveType::U32;
+		scriptPrimitiveType = ManagedPrimitiveType::U32;
 		isSimpleType = true;
 		break;
 	case MonoPrimitiveType::I64:
-		scriptPrimitiveType = ScriptPrimitiveType::I64;
+		scriptPrimitiveType = ManagedPrimitiveType::I64;
 		isSimpleType = true;
 		break;
 	case MonoPrimitiveType::U64:
-		scriptPrimitiveType = ScriptPrimitiveType::U64;
+		scriptPrimitiveType = ManagedPrimitiveType::U64;
 		isSimpleType = true;
 		break;
 	case MonoPrimitiveType::String:
-		scriptPrimitiveType = ScriptPrimitiveType::String;
+		scriptPrimitiveType = ManagedPrimitiveType::String;
 		isSimpleType = true;
 		break;
 	case MonoPrimitiveType::R32:
-		scriptPrimitiveType = ScriptPrimitiveType::Float;
+		scriptPrimitiveType = ManagedPrimitiveType::Float;
 		isSimpleType = true;
 		break;
 	case MonoPrimitiveType::R64:
-		scriptPrimitiveType = ScriptPrimitiveType::Double;
+		scriptPrimitiveType = ManagedPrimitiveType::Double;
 		isSimpleType = true;
 		break;
 	default:
@@ -399,7 +399,7 @@ SPtr<ManagedTypeInfo> ScriptAssemblyManager::GetTypeInfo(MonoClass* monoClass)
 		if(!isEnum)
 		{
 			SPtr<ManagedTypeInfoPrimitive> typeInfo = B3DMakeShared<ManagedTypeInfoPrimitive>();
-			typeInfo->Type = scriptPrimitiveType;
+			typeInfo->PrimitiveType = scriptPrimitiveType;
 			return typeInfo;
 		}
 		else
@@ -421,17 +421,17 @@ SPtr<ManagedTypeInfo> ScriptAssemblyManager::GetTypeInfo(MonoClass* monoClass)
 			SPtr<ManagedTypeInfoReference> typeInfo = B3DMakeShared<ManagedTypeInfoReference>();
 			typeInfo->TypeNamespace = monoClass->GetNamespace();
 			typeInfo->TypeName = monoClass->GetTypeName();
-			typeInfo->RtiiTypeId = 0;
+			typeInfo->TypeRTTIId = 0;
 
 			if(monoClass == ScriptResource::GetMetaData()->ScriptClass)
-				typeInfo->Type = ScriptReferenceType::BuiltinResourceBase;
+				typeInfo->ReferenceType = ManagedReferenceType::BuiltinResourceBase;
 			else if(monoClass == ScriptManagedResource::GetMetaData()->ScriptClass)
-				typeInfo->Type = ScriptReferenceType::ManagedResourceBase;
+				typeInfo->ReferenceType = ManagedReferenceType::ManagedResourceBase;
 			else if(monoClass->IsSubClassOf(ScriptManagedResource::GetMetaData()->ScriptClass))
-				typeInfo->Type = ScriptReferenceType::ManagedResource;
+				typeInfo->ReferenceType = ManagedReferenceType::ManagedResource;
 			else if(monoClass->IsSubClassOf(ScriptResource::GetMetaData()->ScriptClass))
 			{
-				typeInfo->Type = ScriptReferenceType::BuiltinResource;
+				typeInfo->ReferenceType = ManagedReferenceType::BuiltinResource;
 
 				::MonoReflectionType* type = MonoUtil::GetType(monoClass->GetInternalClass());
 				const ScriptTypeMetaData* const scriptWrapperObjectMetaData = GetScriptWrapperMetaData(type);
@@ -441,7 +441,7 @@ SPtr<ManagedTypeInfo> ScriptAssemblyManager::GetTypeInfo(MonoClass* monoClass)
 					return nullptr;
 				}
 
-				typeInfo->RtiiTypeId = scriptWrapperObjectMetaData->TypeId;
+				typeInfo->TypeRTTIId = scriptWrapperObjectMetaData->TypeId;
 			}
 
 			return typeInfo;
@@ -453,19 +453,19 @@ SPtr<ManagedTypeInfo> ScriptAssemblyManager::GetTypeInfo(MonoClass* monoClass)
 			SPtr<ManagedTypeInfoReference> typeInfo = B3DMakeShared<ManagedTypeInfoReference>();
 			typeInfo->TypeNamespace = monoClass->GetNamespace();
 			typeInfo->TypeName = monoClass->GetTypeName();
-			typeInfo->RtiiTypeId = 0;
+			typeInfo->TypeRTTIId = 0;
 
 			if(monoClass == mBuiltin.ComponentClass)
-				typeInfo->Type = ScriptReferenceType::BuiltinComponentBase;
+				typeInfo->ReferenceType = ManagedReferenceType::BuiltinComponentBase;
 			else if(monoClass == mBuiltin.ManagedComponentClass)
-				typeInfo->Type = ScriptReferenceType::ManagedComponentBase;
+				typeInfo->ReferenceType = ManagedReferenceType::ManagedComponentBase;
 			else if(monoClass->IsSubClassOf(mBuiltin.SceneObjectClass))
-				typeInfo->Type = ScriptReferenceType::SceneObject;
+				typeInfo->ReferenceType = ManagedReferenceType::SceneObject;
 			else if(monoClass->IsSubClassOf(mBuiltin.ManagedComponentClass))
-				typeInfo->Type = ScriptReferenceType::ManagedComponent;
+				typeInfo->ReferenceType = ManagedReferenceType::ManagedComponent;
 			else if(monoClass->IsSubClassOf(mBuiltin.ComponentClass))
 			{
-				typeInfo->Type = ScriptReferenceType::BuiltinComponent;
+				typeInfo->ReferenceType = ManagedReferenceType::BuiltinComponent;
 
 				::MonoReflectionType* type = MonoUtil::GetType(monoClass->GetInternalClass());
 				const ScriptTypeMetaData* const scriptWrapperObjectMetaData = GetScriptWrapperMetaData(type);
@@ -475,7 +475,7 @@ SPtr<ManagedTypeInfo> ScriptAssemblyManager::GetTypeInfo(MonoClass* monoClass)
 					return nullptr;
 				}
 
-				typeInfo->RtiiTypeId = scriptWrapperObjectMetaData->TypeId;
+				typeInfo->TypeRTTIId = scriptWrapperObjectMetaData->TypeId;
 			}
 
 			return typeInfo;
@@ -491,8 +491,8 @@ SPtr<ManagedTypeInfo> ScriptAssemblyManager::GetTypeInfo(MonoClass* monoClass)
 				SPtr<ManagedTypeInfoReference> typeInfo = B3DMakeShared<ManagedTypeInfoReference>();
 				typeInfo->TypeNamespace = monoClass->GetNamespace();
 				typeInfo->TypeName = monoClass->GetTypeName();
-				typeInfo->RtiiTypeId = scriptWrapperObjectMetaData->TypeId;
-				typeInfo->Type = ScriptReferenceType::ReflectableObject;
+				typeInfo->TypeRTTIId = scriptWrapperObjectMetaData->TypeId;
+				typeInfo->ReferenceType = ManagedReferenceType::ReflectableObject;
 
 				return typeInfo;
 			}
@@ -931,7 +931,7 @@ SPtr<IReflectable> ScriptAssemblyManager::GetReflectableFromManagedObject(MonoOb
 			return nullptr;
 		}
 
-		if(objInfo->TypeInfo->RttiTypeId != 0)
+		if(objInfo->TypeInfo->TypeRTTIId != 0)
 		{
 			::MonoClass* monoClass = MonoUtil::GetClass(value);
 			::MonoReflectionType* monoType = MonoUtil::GetType(monoClass);

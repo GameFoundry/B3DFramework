@@ -1,7 +1,7 @@
 //********************************* bs::framework - Copyright 2018-2019 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "Serialization/BsManagedSerializableField.h"
-#include "Serialization/BsManagedSerializableObjectInfo.h"
+#include "Serialization/BsManagedTypeInfo.h"
 #include "RTTI/BsManagedSerializableFieldRTTI.h"
 #include "BsMonoUtil.h"
 #include "BsMonoManager.h"
@@ -47,10 +47,10 @@ bool CompareFieldData(const SPtr<ManagedSerializableFieldData>& oldData, const S
 	return oldData->Equals(newData, context);
 }
 
-bool IsPrimitiveOrEnumType(const SPtr<ManagedTypeInfo>& typeInfo, ScriptPrimitiveType underlyingType)
+bool IsPrimitiveOrEnumType(const SPtr<ManagedTypeInfo>& typeInfo, ManagedPrimitiveType underlyingType)
 {
 	if(const auto primitiveTypeInfo = B3DRTTICast<ManagedTypeInfoPrimitive>(typeInfo.get()))
-		return primitiveTypeInfo->Type == underlyingType;
+		return primitiveTypeInfo->PrimitiveType == underlyingType;
 	else if(const auto enumTypeInfo = B3DRTTICast<ManagedTypeInfoEnum>(typeInfo.get()))
 		return enumTypeInfo->UnderlyingType == underlyingType;
 
@@ -90,16 +90,16 @@ SPtr<ManagedSerializableFieldData> ManagedSerializableFieldData::Create(const SP
 {
 	if(typeInfo->GetTypeId() == TID_ManagedTypeInfoPrimitive || typeInfo->GetTypeId() == TID_ManagedTypeInfoEnum)
 	{
-		ScriptPrimitiveType primitiveType = ScriptPrimitiveType::I32;
+		ManagedPrimitiveType primitiveType = ManagedPrimitiveType::I32;
 
 		if(auto primitiveTypeInfo = B3DRTTICast<ManagedTypeInfoPrimitive>(typeInfo.get()))
-			primitiveType = primitiveTypeInfo->Type;
+			primitiveType = primitiveTypeInfo->PrimitiveType;
 		else if(auto enumTypeInfo = B3DRTTICast<ManagedTypeInfoEnum>(typeInfo.get()))
 			primitiveType = enumTypeInfo->UnderlyingType;
 
 		switch(primitiveType)
 		{
-		case ScriptPrimitiveType::Bool:
+		case ManagedPrimitiveType::Bool:
 			{
 				auto fieldData = B3DMakeShared<ManagedSerializableFieldDataBool>();
 				if(value != nullptr)
@@ -107,7 +107,7 @@ SPtr<ManagedSerializableFieldData> ManagedSerializableFieldData::Create(const SP
 
 				return fieldData;
 			}
-		case ScriptPrimitiveType::Char:
+		case ManagedPrimitiveType::Char:
 			{
 				auto fieldData = B3DMakeShared<ManagedSerializableFieldDataChar>();
 				if(value != nullptr)
@@ -118,7 +118,7 @@ SPtr<ManagedSerializableFieldData> ManagedSerializableFieldData::Create(const SP
 
 				return fieldData;
 			}
-		case ScriptPrimitiveType::I8:
+		case ManagedPrimitiveType::I8:
 			{
 				auto fieldData = B3DMakeShared<ManagedSerializableFieldDataI8>();
 				if(value != nullptr)
@@ -126,7 +126,7 @@ SPtr<ManagedSerializableFieldData> ManagedSerializableFieldData::Create(const SP
 
 				return fieldData;
 			}
-		case ScriptPrimitiveType::U8:
+		case ManagedPrimitiveType::U8:
 			{
 				auto fieldData = B3DMakeShared<ManagedSerializableFieldDataU8>();
 				if(value != nullptr)
@@ -134,7 +134,7 @@ SPtr<ManagedSerializableFieldData> ManagedSerializableFieldData::Create(const SP
 
 				return fieldData;
 			}
-		case ScriptPrimitiveType::I16:
+		case ManagedPrimitiveType::I16:
 			{
 				auto fieldData = B3DMakeShared<ManagedSerializableFieldDataI16>();
 				if(value != nullptr)
@@ -142,7 +142,7 @@ SPtr<ManagedSerializableFieldData> ManagedSerializableFieldData::Create(const SP
 
 				return fieldData;
 			}
-		case ScriptPrimitiveType::U16:
+		case ManagedPrimitiveType::U16:
 			{
 				auto fieldData = B3DMakeShared<ManagedSerializableFieldDataU16>();
 				if(value != nullptr)
@@ -150,7 +150,7 @@ SPtr<ManagedSerializableFieldData> ManagedSerializableFieldData::Create(const SP
 
 				return fieldData;
 			}
-		case ScriptPrimitiveType::I32:
+		case ManagedPrimitiveType::I32:
 			{
 				auto fieldData = B3DMakeShared<ManagedSerializableFieldDataI32>();
 				if(value != nullptr)
@@ -158,7 +158,7 @@ SPtr<ManagedSerializableFieldData> ManagedSerializableFieldData::Create(const SP
 
 				return fieldData;
 			}
-		case ScriptPrimitiveType::U32:
+		case ManagedPrimitiveType::U32:
 			{
 				auto fieldData = B3DMakeShared<ManagedSerializableFieldDataU32>();
 				if(value != nullptr)
@@ -166,7 +166,7 @@ SPtr<ManagedSerializableFieldData> ManagedSerializableFieldData::Create(const SP
 
 				return fieldData;
 			}
-		case ScriptPrimitiveType::I64:
+		case ManagedPrimitiveType::I64:
 			{
 				auto fieldData = B3DMakeShared<ManagedSerializableFieldDataI64>();
 				if(value != nullptr)
@@ -174,7 +174,7 @@ SPtr<ManagedSerializableFieldData> ManagedSerializableFieldData::Create(const SP
 
 				return fieldData;
 			}
-		case ScriptPrimitiveType::U64:
+		case ManagedPrimitiveType::U64:
 			{
 				auto fieldData = B3DMakeShared<ManagedSerializableFieldDataU64>();
 				if(value != nullptr)
@@ -182,7 +182,7 @@ SPtr<ManagedSerializableFieldData> ManagedSerializableFieldData::Create(const SP
 
 				return fieldData;
 			}
-		case ScriptPrimitiveType::Float:
+		case ManagedPrimitiveType::Float:
 			{
 				auto fieldData = B3DMakeShared<ManagedSerializableFieldDataFloat>();
 				if(value != nullptr)
@@ -190,7 +190,7 @@ SPtr<ManagedSerializableFieldData> ManagedSerializableFieldData::Create(const SP
 
 				return fieldData;
 			}
-		case ScriptPrimitiveType::Double:
+		case ManagedPrimitiveType::Double:
 			{
 				auto fieldData = B3DMakeShared<ManagedSerializableFieldDataDouble>();
 				if(value != nullptr)
@@ -198,7 +198,7 @@ SPtr<ManagedSerializableFieldData> ManagedSerializableFieldData::Create(const SP
 
 				return fieldData;
 			}
-		case ScriptPrimitiveType::String:
+		case ManagedPrimitiveType::String:
 			{
 				MonoString* strVal = (MonoString*)(value);
 
@@ -223,9 +223,9 @@ SPtr<ManagedSerializableFieldData> ManagedSerializableFieldData::Create(const SP
 	else if(typeInfo->GetTypeId() == TID_ManagedTypeInfoReference)
 	{
 		auto refTypeInfo = std::static_pointer_cast<ManagedTypeInfoReference>(typeInfo);
-		switch(refTypeInfo->Type)
+		switch(refTypeInfo->ReferenceType)
 		{
-		case ScriptReferenceType::SceneObject:
+		case ManagedReferenceType::SceneObject:
 			{
 				auto fieldData = B3DMakeShared<ManagedSerializableFieldDataGameObjectRef>();
 
@@ -237,8 +237,8 @@ SPtr<ManagedSerializableFieldData> ManagedSerializableFieldData::Create(const SP
 
 				return fieldData;
 			}
-		case ScriptReferenceType::ManagedComponentBase:
-		case ScriptReferenceType::ManagedComponent:
+		case ManagedReferenceType::ManagedComponentBase:
+		case ManagedReferenceType::ManagedComponent:
 			{
 				auto fieldData = B3DMakeShared<ManagedSerializableFieldDataGameObjectRef>();
 
@@ -250,10 +250,10 @@ SPtr<ManagedSerializableFieldData> ManagedSerializableFieldData::Create(const SP
 
 				return fieldData;
 			}
-		case ScriptReferenceType::BuiltinComponentBase:
-		case ScriptReferenceType::BuiltinComponent:
+		case ManagedReferenceType::BuiltinComponentBase:
+		case ManagedReferenceType::BuiltinComponent:
 			{
-				const ScriptTypeMetaData* const scriptWrapperObjectMetaData = ScriptAssemblyManager::Instance().GetScriptWrapperMetaData(refTypeInfo->RtiiTypeId);
+				const ScriptTypeMetaData* const scriptWrapperObjectMetaData = ScriptAssemblyManager::Instance().GetScriptWrapperMetaData(refTypeInfo->TypeRTTIId);
 				if(scriptWrapperObjectMetaData == nullptr)
 					return nullptr;
 
@@ -267,8 +267,8 @@ SPtr<ManagedSerializableFieldData> ManagedSerializableFieldData::Create(const SP
 
 				return fieldData;
 			}
-		case ScriptReferenceType::ManagedResourceBase:
-		case ScriptReferenceType::ManagedResource:
+		case ManagedReferenceType::ManagedResourceBase:
+		case ManagedReferenceType::ManagedResource:
 			{
 				auto fieldData = B3DMakeShared<ManagedSerializableFieldDataResourceRef>();
 
@@ -280,10 +280,10 @@ SPtr<ManagedSerializableFieldData> ManagedSerializableFieldData::Create(const SP
 
 				return fieldData;
 			}
-		case ScriptReferenceType::BuiltinResourceBase:
-		case ScriptReferenceType::BuiltinResource:
+		case ManagedReferenceType::BuiltinResourceBase:
+		case ManagedReferenceType::BuiltinResource:
 			{
-				const ScriptTypeMetaData* const scriptWrapperObjectMetaData = ScriptAssemblyManager::Instance().GetScriptWrapperMetaData(refTypeInfo->RtiiTypeId);
+				const ScriptTypeMetaData* const scriptWrapperObjectMetaData = ScriptAssemblyManager::Instance().GetScriptWrapperMetaData(refTypeInfo->TypeRTTIId);
 				if(scriptWrapperObjectMetaData == nullptr)
 					return nullptr;
 
@@ -297,9 +297,9 @@ SPtr<ManagedSerializableFieldData> ManagedSerializableFieldData::Create(const SP
 
 				return fieldData;
 			}
-		case ScriptReferenceType::ReflectableObject:
+		case ManagedReferenceType::ReflectableObject:
 			{
-				const ScriptTypeMetaData* scriptWrapperMetaData = ScriptAssemblyManager::Instance().GetScriptWrapperMetaData(refTypeInfo->RtiiTypeId);
+				const ScriptTypeMetaData* scriptWrapperMetaData = ScriptAssemblyManager::Instance().GetScriptWrapperMetaData(refTypeInfo->TypeRTTIId);
 				if(scriptWrapperMetaData == nullptr)
 					return nullptr;
 
@@ -387,7 +387,7 @@ SPtr<ManagedSerializableFieldData> ManagedSerializableFieldData::Create(const SP
 
 void* ManagedSerializableFieldDataBool::GetValue(const SPtr<ManagedTypeInfo>& typeInfo)
 {
-	if(IsPrimitiveOrEnumType(typeInfo, ScriptPrimitiveType::Bool))
+	if(IsPrimitiveOrEnumType(typeInfo, ManagedPrimitiveType::Bool))
 		return &Value;
 
 	B3D_EXCEPT(InvalidParametersException, "Requesting an invalid type in serializable field.");
@@ -396,7 +396,7 @@ void* ManagedSerializableFieldDataBool::GetValue(const SPtr<ManagedTypeInfo>& ty
 
 void* ManagedSerializableFieldDataChar::GetValue(const SPtr<ManagedTypeInfo>& typeInfo)
 {
-	if(IsPrimitiveOrEnumType(typeInfo, ScriptPrimitiveType::Char))
+	if(IsPrimitiveOrEnumType(typeInfo, ManagedPrimitiveType::Char))
 		return &Value;
 
 	B3D_EXCEPT(InvalidParametersException, "Requesting an invalid type in serializable field.");
@@ -405,7 +405,7 @@ void* ManagedSerializableFieldDataChar::GetValue(const SPtr<ManagedTypeInfo>& ty
 
 void* ManagedSerializableFieldDataI8::GetValue(const SPtr<ManagedTypeInfo>& typeInfo)
 {
-	if(IsPrimitiveOrEnumType(typeInfo, ScriptPrimitiveType::I8))
+	if(IsPrimitiveOrEnumType(typeInfo, ManagedPrimitiveType::I8))
 		return &Value;
 
 	B3D_EXCEPT(InvalidParametersException, "Requesting an invalid type in serializable field.");
@@ -414,7 +414,7 @@ void* ManagedSerializableFieldDataI8::GetValue(const SPtr<ManagedTypeInfo>& type
 
 void* ManagedSerializableFieldDataU8::GetValue(const SPtr<ManagedTypeInfo>& typeInfo)
 {
-	if(IsPrimitiveOrEnumType(typeInfo, ScriptPrimitiveType::U8))
+	if(IsPrimitiveOrEnumType(typeInfo, ManagedPrimitiveType::U8))
 		return &Value;
 
 	B3D_EXCEPT(InvalidParametersException, "Requesting an invalid type in serializable field.");
@@ -423,7 +423,7 @@ void* ManagedSerializableFieldDataU8::GetValue(const SPtr<ManagedTypeInfo>& type
 
 void* ManagedSerializableFieldDataI16::GetValue(const SPtr<ManagedTypeInfo>& typeInfo)
 {
-	if(IsPrimitiveOrEnumType(typeInfo, ScriptPrimitiveType::I16))
+	if(IsPrimitiveOrEnumType(typeInfo, ManagedPrimitiveType::I16))
 		return &Value;
 
 	B3D_EXCEPT(InvalidParametersException, "Requesting an invalid type in serializable field.");
@@ -432,7 +432,7 @@ void* ManagedSerializableFieldDataI16::GetValue(const SPtr<ManagedTypeInfo>& typ
 
 void* ManagedSerializableFieldDataU16::GetValue(const SPtr<ManagedTypeInfo>& typeInfo)
 {
-	if(IsPrimitiveOrEnumType(typeInfo, ScriptPrimitiveType::U16))
+	if(IsPrimitiveOrEnumType(typeInfo, ManagedPrimitiveType::U16))
 		return &Value;
 
 	B3D_EXCEPT(InvalidParametersException, "Requesting an invalid type in serializable field.");
@@ -441,7 +441,7 @@ void* ManagedSerializableFieldDataU16::GetValue(const SPtr<ManagedTypeInfo>& typ
 
 void* ManagedSerializableFieldDataI32::GetValue(const SPtr<ManagedTypeInfo>& typeInfo)
 {
-	if(IsPrimitiveOrEnumType(typeInfo, ScriptPrimitiveType::I32))
+	if(IsPrimitiveOrEnumType(typeInfo, ManagedPrimitiveType::I32))
 		return &Value;
 
 	B3D_EXCEPT(InvalidParametersException, "Requesting an invalid type in serializable field.");
@@ -450,7 +450,7 @@ void* ManagedSerializableFieldDataI32::GetValue(const SPtr<ManagedTypeInfo>& typ
 
 void* ManagedSerializableFieldDataU32::GetValue(const SPtr<ManagedTypeInfo>& typeInfo)
 {
-	if(IsPrimitiveOrEnumType(typeInfo, ScriptPrimitiveType::U32))
+	if(IsPrimitiveOrEnumType(typeInfo, ManagedPrimitiveType::U32))
 		return &Value;
 
 	B3D_EXCEPT(InvalidParametersException, "Requesting an invalid type in serializable field.");
@@ -459,7 +459,7 @@ void* ManagedSerializableFieldDataU32::GetValue(const SPtr<ManagedTypeInfo>& typ
 
 void* ManagedSerializableFieldDataI64::GetValue(const SPtr<ManagedTypeInfo>& typeInfo)
 {
-	if(IsPrimitiveOrEnumType(typeInfo, ScriptPrimitiveType::I64))
+	if(IsPrimitiveOrEnumType(typeInfo, ManagedPrimitiveType::I64))
 		return &Value;
 
 	B3D_EXCEPT(InvalidParametersException, "Requesting an invalid type in serializable field.");
@@ -468,7 +468,7 @@ void* ManagedSerializableFieldDataI64::GetValue(const SPtr<ManagedTypeInfo>& typ
 
 void* ManagedSerializableFieldDataU64::GetValue(const SPtr<ManagedTypeInfo>& typeInfo)
 {
-	if(IsPrimitiveOrEnumType(typeInfo, ScriptPrimitiveType::U64))
+	if(IsPrimitiveOrEnumType(typeInfo, ManagedPrimitiveType::U64))
 		return &Value;
 
 	B3D_EXCEPT(InvalidParametersException, "Requesting an invalid type in serializable field.");
@@ -480,7 +480,7 @@ void* ManagedSerializableFieldDataFloat::GetValue(const SPtr<ManagedTypeInfo>& t
 	if(typeInfo->GetTypeId() == TID_ManagedTypeInfoPrimitive)
 	{
 		auto primitiveTypeInfo = std::static_pointer_cast<ManagedTypeInfoPrimitive>(typeInfo);
-		if(primitiveTypeInfo->Type == ScriptPrimitiveType::Float)
+		if(primitiveTypeInfo->PrimitiveType == ManagedPrimitiveType::Float)
 			return &Value;
 	}
 
@@ -493,7 +493,7 @@ void* ManagedSerializableFieldDataDouble::GetValue(const SPtr<ManagedTypeInfo>& 
 	if(typeInfo->GetTypeId() == TID_ManagedTypeInfoPrimitive)
 	{
 		auto primitiveTypeInfo = std::static_pointer_cast<ManagedTypeInfoPrimitive>(typeInfo);
-		if(primitiveTypeInfo->Type == ScriptPrimitiveType::Double)
+		if(primitiveTypeInfo->PrimitiveType == ManagedPrimitiveType::Double)
 			return &Value;
 	}
 
@@ -506,7 +506,7 @@ void* ManagedSerializableFieldDataString::GetValue(const SPtr<ManagedTypeInfo>& 
 	if(typeInfo->GetTypeId() == TID_ManagedTypeInfoPrimitive)
 	{
 		auto primitiveTypeInfo = std::static_pointer_cast<ManagedTypeInfoPrimitive>(typeInfo);
-		if(primitiveTypeInfo->Type == ScriptPrimitiveType::String)
+		if(primitiveTypeInfo->PrimitiveType == ManagedPrimitiveType::String)
 		{
 			if(!IsNull)
 				return MonoUtil::WstringToMono(Value);
@@ -591,7 +591,7 @@ void* ManagedSerializableFieldDataObject::GetValue(const SPtr<ManagedTypeInfo>& 
 
 		if(Value != nullptr)
 		{
-			if(objectTypeInfo->ValueType)
+			if(objectTypeInfo->IsValueType)
 			{
 				MonoObject* managedInstance = Value->GetManagedInstance();
 
@@ -659,7 +659,7 @@ void* ManagedSerializableFieldDataDictionary::GetValue(const SPtr<ManagedTypeInf
 
 MonoObject* ManagedSerializableFieldDataBool::GetValueBoxed(const SPtr<ManagedTypeInfo>& typeInfo)
 {
-	if(IsPrimitiveOrEnumType(typeInfo, ScriptPrimitiveType::Bool))
+	if(IsPrimitiveOrEnumType(typeInfo, ManagedPrimitiveType::Bool))
 		return MonoUtil::Box(MonoUtil::GetBoolClass(), &Value);
 
 	B3D_EXCEPT(InvalidParametersException, "Requesting an invalid type in serializable field.");
@@ -668,7 +668,7 @@ MonoObject* ManagedSerializableFieldDataBool::GetValueBoxed(const SPtr<ManagedTy
 
 MonoObject* ManagedSerializableFieldDataChar::GetValueBoxed(const SPtr<ManagedTypeInfo>& typeInfo)
 {
-	if(IsPrimitiveOrEnumType(typeInfo, ScriptPrimitiveType::Char))
+	if(IsPrimitiveOrEnumType(typeInfo, ManagedPrimitiveType::Char))
 		return MonoUtil::Box(MonoUtil::GetCharClass(), &Value);
 
 	B3D_EXCEPT(InvalidParametersException, "Requesting an invalid type in serializable field.");
@@ -677,7 +677,7 @@ MonoObject* ManagedSerializableFieldDataChar::GetValueBoxed(const SPtr<ManagedTy
 
 MonoObject* ManagedSerializableFieldDataI8::GetValueBoxed(const SPtr<ManagedTypeInfo>& typeInfo)
 {
-	if(IsPrimitiveOrEnumType(typeInfo, ScriptPrimitiveType::I8))
+	if(IsPrimitiveOrEnumType(typeInfo, ManagedPrimitiveType::I8))
 		return MonoUtil::Box(MonoUtil::GetSByteClass(), &Value);
 
 	B3D_EXCEPT(InvalidParametersException, "Requesting an invalid type in serializable field.");
@@ -686,7 +686,7 @@ MonoObject* ManagedSerializableFieldDataI8::GetValueBoxed(const SPtr<ManagedType
 
 MonoObject* ManagedSerializableFieldDataU8::GetValueBoxed(const SPtr<ManagedTypeInfo>& typeInfo)
 {
-	if(IsPrimitiveOrEnumType(typeInfo, ScriptPrimitiveType::U8))
+	if(IsPrimitiveOrEnumType(typeInfo, ManagedPrimitiveType::U8))
 		return MonoUtil::Box(MonoUtil::GetByteClass(), &Value);
 
 	B3D_EXCEPT(InvalidParametersException, "Requesting an invalid type in serializable field.");
@@ -695,7 +695,7 @@ MonoObject* ManagedSerializableFieldDataU8::GetValueBoxed(const SPtr<ManagedType
 
 MonoObject* ManagedSerializableFieldDataI16::GetValueBoxed(const SPtr<ManagedTypeInfo>& typeInfo)
 {
-	if(IsPrimitiveOrEnumType(typeInfo, ScriptPrimitiveType::I16))
+	if(IsPrimitiveOrEnumType(typeInfo, ManagedPrimitiveType::I16))
 		return MonoUtil::Box(MonoUtil::GetInT16Class(), &Value);
 
 	B3D_EXCEPT(InvalidParametersException, "Requesting an invalid type in serializable field.");
@@ -704,7 +704,7 @@ MonoObject* ManagedSerializableFieldDataI16::GetValueBoxed(const SPtr<ManagedTyp
 
 MonoObject* ManagedSerializableFieldDataU16::GetValueBoxed(const SPtr<ManagedTypeInfo>& typeInfo)
 {
-	if(IsPrimitiveOrEnumType(typeInfo, ScriptPrimitiveType::U16))
+	if(IsPrimitiveOrEnumType(typeInfo, ManagedPrimitiveType::U16))
 		return MonoUtil::Box(MonoUtil::GetUinT16Class(), &Value);
 
 	B3D_EXCEPT(InvalidParametersException, "Requesting an invalid type in serializable field.");
@@ -713,7 +713,7 @@ MonoObject* ManagedSerializableFieldDataU16::GetValueBoxed(const SPtr<ManagedTyp
 
 MonoObject* ManagedSerializableFieldDataI32::GetValueBoxed(const SPtr<ManagedTypeInfo>& typeInfo)
 {
-	if(IsPrimitiveOrEnumType(typeInfo, ScriptPrimitiveType::I32))
+	if(IsPrimitiveOrEnumType(typeInfo, ManagedPrimitiveType::I32))
 		return MonoUtil::Box(MonoUtil::GetInT32Class(), &Value);
 
 	B3D_EXCEPT(InvalidParametersException, "Requesting an invalid type in serializable field.");
@@ -722,7 +722,7 @@ MonoObject* ManagedSerializableFieldDataI32::GetValueBoxed(const SPtr<ManagedTyp
 
 MonoObject* ManagedSerializableFieldDataU32::GetValueBoxed(const SPtr<ManagedTypeInfo>& typeInfo)
 {
-	if(IsPrimitiveOrEnumType(typeInfo, ScriptPrimitiveType::U32))
+	if(IsPrimitiveOrEnumType(typeInfo, ManagedPrimitiveType::U32))
 		return MonoUtil::Box(MonoUtil::GetUinT32Class(), &Value);
 
 	B3D_EXCEPT(InvalidParametersException, "Requesting an invalid type in serializable field.");
@@ -731,7 +731,7 @@ MonoObject* ManagedSerializableFieldDataU32::GetValueBoxed(const SPtr<ManagedTyp
 
 MonoObject* ManagedSerializableFieldDataI64::GetValueBoxed(const SPtr<ManagedTypeInfo>& typeInfo)
 {
-	if(IsPrimitiveOrEnumType(typeInfo, ScriptPrimitiveType::I64))
+	if(IsPrimitiveOrEnumType(typeInfo, ManagedPrimitiveType::I64))
 		return MonoUtil::Box(MonoUtil::GetInT64Class(), &Value);
 
 	B3D_EXCEPT(InvalidParametersException, "Requesting an invalid type in serializable field.");
@@ -740,7 +740,7 @@ MonoObject* ManagedSerializableFieldDataI64::GetValueBoxed(const SPtr<ManagedTyp
 
 MonoObject* ManagedSerializableFieldDataU64::GetValueBoxed(const SPtr<ManagedTypeInfo>& typeInfo)
 {
-	if(IsPrimitiveOrEnumType(typeInfo, ScriptPrimitiveType::U64))
+	if(IsPrimitiveOrEnumType(typeInfo, ManagedPrimitiveType::U64))
 		return MonoUtil::Box(MonoUtil::GetUinT64Class(), &Value);
 
 	B3D_EXCEPT(InvalidParametersException, "Requesting an invalid type in serializable field.");
@@ -752,7 +752,7 @@ MonoObject* ManagedSerializableFieldDataFloat::GetValueBoxed(const SPtr<ManagedT
 	if(typeInfo->GetTypeId() == TID_ManagedTypeInfoPrimitive)
 	{
 		auto primitiveTypeInfo = std::static_pointer_cast<ManagedTypeInfoPrimitive>(typeInfo);
-		if(primitiveTypeInfo->Type == ScriptPrimitiveType::Float)
+		if(primitiveTypeInfo->PrimitiveType == ManagedPrimitiveType::Float)
 			return MonoUtil::Box(MonoUtil::GetFloatClass(), &Value);
 	}
 
@@ -765,7 +765,7 @@ MonoObject* ManagedSerializableFieldDataDouble::GetValueBoxed(const SPtr<Managed
 	if(typeInfo->GetTypeId() == TID_ManagedTypeInfoPrimitive)
 	{
 		auto primitiveTypeInfo = std::static_pointer_cast<ManagedTypeInfoPrimitive>(typeInfo);
-		if(primitiveTypeInfo->Type == ScriptPrimitiveType::Double)
+		if(primitiveTypeInfo->PrimitiveType == ManagedPrimitiveType::Double)
 			return MonoUtil::Box(MonoUtil::GetDoubleClass(), &Value);
 	}
 
