@@ -4549,10 +4549,17 @@ Sprite images also allow you to specify sprite sheet animation by varying which 
 	<class native="ManagedTypeUtility" script="ManagedTypeUtility">
 		<doc>Provides various utility methods for reflection-like operations on managed objects.</doc>
 		<method native="GetTypeInfo" script="GetTypeInfo" static="true">
-			<doc>Deduces information about the object&apos;s type. Object must be serializable in order for type information to be present.</doc>
+			<doc>Retrieves information about the object&apos;s type. Object must be a primitive type, scene object, component, resource, resource reference type, or a custom type marked with SerializeObject attribute in order for type information to be present. Type information can also be retrieved for arrays, lists or dictionaries of the above types.</doc>
 			<param name="scriptObject" type="object">
 			</param>
 			<returns type="ManagedTypeInfo">
+			</returns>
+		</method>
+		<method native="GetSerializableObjectInfo" script="GetSerializableObjectInfo" static="true">
+			<doc>Retrieves detailed information about a serializable object. Provided object must be marked with a SerializeObject attribute for this information to be available.</doc>
+			<param name="scriptObject" type="object">
+			</param>
+			<returns type="ManagedObjectInfo">
 			</returns>
 		</method>
 		<method native="CloneObject" script="CloneObject" static="true">
@@ -6236,6 +6243,15 @@ Sprite images also allow you to specify sprite sheet animation by varying which 
 			<doc>Renderable object containing a mesh to spawn particles on, as well as the attached Animation object resposible for performing skinned animation. Mesh must at least contain per-vertex position data encoded as 3D float vectors, blend indices encoded in 4-byte format, and blend weights encoded a 4D float vectors. Can optionally contain per-vertex normals encoded as 3D float vectors or as 4-byte unsigned-normalized format.</doc>
 		</field>
 	</struct>
+	<class native="ManagedObjectInfo" script="ManagedObjectInfo">
+		<doc>Contains data about serializable fields of a managed object, and the object&apos;s class hierarchy if it belongs to one. All public fields are by default serializable if their type support serialization. Type is serializable if it has the SerializeObject attribute, or is one of the built-in supported serializable types (primitive such as int or bool, game object, resource or resource reference). Array/List/Dictionary of serializable types is also considered serializable. Public field can be made non-serializable via the DontSerializeField attribute. Private/protected/internal field can be made serializable by specifying the SerializeField attribute.</doc>
+		<property name="TypeInfo" type="ManagedTypeInfoObject" getter="GetTypeInfo" setter="SetTypeInfo" static="false">
+		</property>
+		<property name="Members" type="ManagedMemberInfo" getter="GetMembers" setter="SetMembers" static="false">
+		</property>
+		<property name="BaseClass" type="ManagedObjectInfo" getter="GetBaseClass" setter="SetBaseClass" static="false">
+		</property>
+	</class>
 	<enum native="TextureScaleMode" script="TextureScaleMode">
 		<doc>Type of scaling modes for GUI images.</doc>
 		<enumentry native="RepeatToFit" script="RepeatToFit">

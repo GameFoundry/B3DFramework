@@ -14,12 +14,23 @@ namespace bs
 		protected ManagedTypeUtility() { }
 
 		/// <summary>
-		/// Deduces information about the object&apos;s type. Object must be serializable in order for type information to be 
-		/// present.
+		/// Retrieves information about the object&apos;s type. Object must be a primitive type, scene object, component, 
+		/// resource, resource reference type, or a custom type marked with SerializeObject attribute in order for type 
+		/// information to be present. Type information can also be retrieved for arrays, lists or dictionaries of the above 
+		/// types.
 		/// </summary>
 		public static ManagedTypeInfo GetTypeInfo(object scriptObject)
 		{
 			return Internal_GetTypeInfo(scriptObject);
+		}
+
+		/// <summary>
+		/// Retrieves detailed information about a serializable object. Provided object must be marked with a SerializeObject 
+		/// attribute for this information to be available.
+		/// </summary>
+		public static ManagedObjectInfo GetSerializableObjectInfo(object scriptObject)
+		{
+			return Internal_GetSerializableObjectInfo(scriptObject);
 		}
 
 		/// <summary>
@@ -43,6 +54,8 @@ namespace bs
 
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern ManagedTypeInfo Internal_GetTypeInfo(object scriptObject);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		private static extern ManagedObjectInfo Internal_GetSerializableObjectInfo(object scriptObject);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern object Internal_CloneObject(object original);
 		[MethodImpl(MethodImplOptions.InternalCall)]

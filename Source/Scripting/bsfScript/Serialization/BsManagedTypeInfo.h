@@ -422,7 +422,7 @@ namespace bs
 	 * Public field can be made non-serializable via the DontSerializeField attribute.
 	 * Private/protected/internal field can be made serializable by specifying the SerializeField attribute.
 	 */
-	class B3D_SCRIPT_INTEROP_EXPORT ManagedObjectInfo : public IReflectable
+	class B3D_SCRIPT_INTEROP_EXPORT B3D_SCRIPT_EXPORT() ManagedObjectInfo : public IReflectable, public IScriptExportable
 	{
 	public:
 		ManagedObjectInfo() = default;
@@ -442,12 +442,16 @@ namespace bs
 		 */
 		SPtr<ManagedMemberInfo> FindMatchingField(const SPtr<ManagedMemberInfo>& fieldInfo, const SPtr<ManagedTypeInfo>& fieldTypeInfo) const;
 
+		B3D_SCRIPT_EXPORT()
 		SPtr<ManagedTypeInfoObject> TypeInfo;
 		MonoClass* ScriptClass = nullptr;
 
-		UnorderedMap<String, u32> FieldNameToId;
-		UnorderedMap<u32, SPtr<ManagedMemberInfo>> Fields;
+		UnorderedMap<String, u32> MemberNameToIndex;
 
+		B3D_SCRIPT_EXPORT()
+		Vector<SPtr<ManagedMemberInfo>> Members;
+
+		B3D_SCRIPT_EXPORT()
 		SPtr<ManagedObjectInfo> BaseClass;
 		Vector<std::weak_ptr<ManagedObjectInfo>> DerivedClasses;
 

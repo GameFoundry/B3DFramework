@@ -161,15 +161,15 @@ SPtr<ManagedSerializableDelta::ModifiedObject> ManagedSerializableDelta::Generat
 	SPtr<ManagedObjectInfo> curObjInfo = modified->GetObjectInfo();
 	while(curObjInfo != nullptr)
 	{
-		for(auto& field : curObjInfo->Fields)
+		for(auto& member : curObjInfo->Members)
 		{
-			if(!field.second->IsSerializable())
+			if(!member->IsSerializable())
 				continue;
 
-			u32 fieldTypeId = field.second->TypeInfo->GetTypeId();
+			u32 fieldTypeId = member->TypeInfo->GetTypeId();
 
-			SPtr<ManagedSerializableFieldData> oldData = original->GetFieldData(field.second);
-			SPtr<ManagedSerializableFieldData> newData = modified->GetFieldData(field.second);
+			SPtr<ManagedSerializableFieldData> oldData = original->GetFieldData(member);
+			SPtr<ManagedSerializableFieldData> newData = modified->GetFieldData(member);
 			SPtr<Modification> newMod = GenerateFieldDelta(oldData, newData, fieldTypeId, context);
 
 			if(newMod != nullptr)
@@ -177,7 +177,7 @@ SPtr<ManagedSerializableDelta::ModifiedObject> ManagedSerializableDelta::Generat
 				if(output == nullptr)
 					output = ModifiedObject::Create();
 
-				output->Entries.push_back(ModifiedField(curObjInfo->TypeInfo, field.second, newMod));
+				output->Entries.push_back(ModifiedField(curObjInfo->TypeInfo, member, newMod));
 			}
 		}
 

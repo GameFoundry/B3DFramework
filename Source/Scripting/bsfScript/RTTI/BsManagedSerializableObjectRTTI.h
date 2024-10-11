@@ -33,10 +33,8 @@ namespace bs
 				SPtr<ManagedObjectInfo> currentTypeObjectInfo = object.mObjInfo;
 				while(currentTypeObjectInfo != nullptr)
 				{
-					for(const auto& pair : currentTypeObjectInfo->Fields)
+					for(const auto& memberInfo : currentTypeObjectInfo->Members)
 					{
-						const SPtr<ManagedMemberInfo>& memberInfo = pair.second;
-
 						if(memberInfo->IsSerializable())
 						{
 							const SPtr<ManagedSerializableFieldKey> fieldKey = ManagedSerializableFieldKey::Create((u16)memberInfo->ParentTypeId, (u16)memberInfo->FieldId);

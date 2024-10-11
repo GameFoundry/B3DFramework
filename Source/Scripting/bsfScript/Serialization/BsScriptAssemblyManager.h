@@ -79,6 +79,12 @@ namespace bs
 		 */
 		bool GetSerializableObjectInfo(const String& ns, const String& typeName, SPtr<ManagedObjectInfo>& outInfo);
 
+		/**
+		 * Returns managed serializable object info for a specific managed type. Object must be serializable for this
+		 * information to be present.
+		 */
+		SPtr<ManagedObjectInfo> GetSerializableObjectInfo(MonoObject* scriptObject);
+
 		/**	Generates or retrieves a type info object for the specified managed class, if the class is serializable. */
 		SPtr<ManagedTypeInfo> GetTypeInfo(MonoClass* monoClass);
 

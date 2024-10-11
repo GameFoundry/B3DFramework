@@ -65,7 +65,7 @@ namespace bs
 		B3D_RTTI_BEGIN_MEMBERS
 			B3D_RTTI_MEMBER(TypeInfo, 0)
 			B3D_RTTI_MEMBER(BaseClass, 2)
-			B3D_RTTI_MEMBER_CONTAINER(Fields, 3)
+			B3D_RTTI_MEMBER_CONTAINER(Members, 3)
 		B3D_RTTI_END_MEMBERS
 
 	public:
@@ -73,14 +73,15 @@ namespace bs
 		{
 			if(operationType.IsSet(RTTIOperationType::WriteBit))
 			{
-				object.FieldNameToId.clear();
-				for(const auto& pair : object.Fields)
+				object.MemberNameToIndex.clear();
+
+				for(u32 memberIndex = 0; memberIndex < (u32)object.Members.size(); ++memberIndex)
 				{
-					if(!B3D_ENSURE(pair.second != nullptr))
+					const SPtr<ManagedMemberInfo>& memberInfo = object.Members[memberIndex];
+					if(!B3D_ENSURE(memberInfo != nullptr))
 						continue;
 
-					B3D_ENSURE(pair.first == pair.second->FieldId);
-					object.FieldNameToId[pair.second->Name] = pair.second->FieldId;
+					object.MemberNameToIndex[memberInfo->Name] = memberIndex;
 				}
 			}
 		}

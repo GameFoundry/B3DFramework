@@ -15,9 +15,20 @@ namespace bs
 	class B3D_SCRIPT_INTEROP_EXPORT B3D_SCRIPT_EXPORT(Static) ManagedTypeUtility
 	{
 	public:
-		/** Deduces information about the object's type. Object must be serializable in order for type information to be present. */
+		/**
+		 * Retrieves information about the object's type. Object must be a primitive type, scene object, component, resource, resource reference type, or
+		 * a custom type marked with SerializeObject attribute in order for type information to be present. Type information can also be retrieved for
+		 * arrays, lists or dictionaries of the above types.
+		 */
 		B3D_SCRIPT_EXPORT()
 		static SPtr<ManagedTypeInfo> GetTypeInfo(MonoObject* scriptObject);
+
+		/**
+		 * Retrieves detailed information about a serializable object. Provided object must be marked with a SerializeObject attribute for this information
+		 * to be available.
+		 */
+		B3D_SCRIPT_EXPORT()
+		static SPtr<ManagedObjectInfo> GetSerializableObjectInfo(MonoObject* scriptObject);
 
 		/**
 		 * Clones the specified object. Non-serializable types and fields are ignored in clone. A deep copy is performed

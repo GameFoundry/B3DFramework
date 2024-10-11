@@ -23,6 +23,7 @@
 #include "BsScriptManagedTypeInfoObject.generated.h"
 #include "../Serialization/BsManagedTypeInfo.h"
 #include "BsScriptManagedTypeInfoList.generated.h"
+#include "BsScriptManagedObjectInfo.generated.h"
 
 namespace bs
 {
@@ -34,6 +35,7 @@ namespace bs
 	void ScriptManagedTypeUtility::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetTypeInfo", (void*)&ScriptManagedTypeUtility::InternalGetTypeInfo);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetSerializableObjectInfo", (void*)&ScriptManagedTypeUtility::InternalGetSerializableObjectInfo);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_CloneObject", (void*)&ScriptManagedTypeUtility::InternalCloneObject);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_CreateObjectOfType", (void*)&ScriptManagedTypeUtility::InternalCreateObjectOfType);
 
@@ -48,6 +50,19 @@ namespace bs
 
 		MonoObject* __output;
 		__output = ScriptManagedTypeInfo::GetOrCreateScriptObject(tmp__output);
+
+		return __output;
+	}
+
+	MonoObject* ScriptManagedTypeUtility::InternalGetSerializableObjectInfo(MonoObject* scriptObject)
+	{
+		SPtr<ManagedObjectInfo> tmp__output;
+		_MonoObject* tmpscriptObject;
+		tmpscriptObject = scriptObject;
+		tmp__output = ManagedTypeUtility::GetSerializableObjectInfo(tmpscriptObject);
+
+		MonoObject* __output;
+		__output = ScriptManagedObjectInfo::GetOrCreateScriptObject(tmp__output);
 
 		return __output;
 	}

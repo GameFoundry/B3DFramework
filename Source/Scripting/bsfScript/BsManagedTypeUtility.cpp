@@ -23,6 +23,14 @@ SPtr<ManagedTypeInfo> ManagedTypeUtility::GetTypeInfo(MonoObject* scriptObject)
 	return ScriptAssemblyManager::Instance().GetTypeInfo(scriptClass);
 }
 
+SPtr<ManagedObjectInfo> ManagedTypeUtility::GetSerializableObjectInfo(MonoObject* scriptObject)
+{
+	if(scriptObject == nullptr)
+		return nullptr;
+
+	return ScriptAssemblyManager::Instance().GetSerializableObjectInfo(scriptObject);
+}
+
 MonoObject* ManagedTypeUtility::CloneObject(MonoObject* original)
 {
 	if(original == nullptr)

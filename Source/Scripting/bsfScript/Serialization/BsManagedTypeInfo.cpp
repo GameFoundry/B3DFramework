@@ -31,17 +31,15 @@ SPtr<ManagedMemberInfo> ManagedObjectInfo::FindMatchingField(const SPtr<ManagedM
 	{
 		if(objInfo->TypeInfo->Matches(fieldTypeInfo))
 		{
-			auto iterFind = objInfo->FieldNameToId.find(fieldInfo->Name);
-			if(iterFind != objInfo->FieldNameToId.end())
+			if(auto found = objInfo->MemberNameToIndex.find(fieldInfo->Name); found != objInfo->MemberNameToIndex.end())
 			{
-				auto iterFind2 = objInfo->Fields.find(iterFind->second);
-				if(iterFind2 != objInfo->Fields.end())
+				if(B3D_ENSURE(found->second < (u32)objInfo->Members.size()))
 				{
-					SPtr<ManagedMemberInfo> foundField = iterFind2->second;
-					if(foundField->IsSerializable())
+					SPtr<ManagedMemberInfo> foundMember = objInfo->Members[found->second];
+					if(foundMember->IsSerializable())
 					{
-						if(fieldInfo->TypeInfo->Matches(foundField->TypeInfo))
-							return foundField;
+						if(fieldInfo->TypeInfo->Matches(foundMember->TypeInfo))
+							return foundMember;
 					}
 				}
 			}

@@ -109,7 +109,7 @@ void ScriptAssemblyManager::LoadAssemblyInfo(const String& assemblyName)
 	{
 		SPtr<ManagedObjectInfo> objInfo = curClassInfo.second;
 
-		u32 mUniqueFieldId = 1;
+		u32 nextMemberIndex = 1;
 
 		const Vector<MonoField*>& fields = objInfo->ScriptClass->GetAllFields();
 		for(auto& field : fields)
@@ -131,7 +131,7 @@ void ScriptAssemblyManager::LoadAssemblyInfo(const String& assemblyName)
 			}
 
 			SPtr<ManagedFieldInfo> fieldInfo = B3DMakeShared<ManagedFieldInfo>();
-			fieldInfo->FieldId = mUniqueFieldId++;
+			fieldInfo->FieldId = nextMemberIndex++;
 			fieldInfo->Name = field->GetName();
 			fieldInfo->ScriptField = field;
 			fieldInfo->TypeInfo = typeInfo;
@@ -197,8 +197,8 @@ void ScriptAssemblyManager::LoadAssemblyInfo(const String& assemblyName)
 			if(field->HasAttribute(mBuiltin.HdrAttribute))
 				fieldInfo->MetaDataFlags |= ManagedFieldMetaDataFlag::HDR;
 
-			objInfo->FieldNameToId[fieldInfo->Name] = fieldInfo->FieldId;
-			objInfo->Fields[fieldInfo->FieldId] = fieldInfo;
+			objInfo->MemberNameToIndex[fieldInfo->Name] = (u32)objInfo->Members.size();
+			objInfo->Members.push_back(fieldInfo);
 		}
 
 		const Vector<MonoProperty*>& properties = objInfo->ScriptClass->GetAllProperties();
@@ -218,7 +218,7 @@ void ScriptAssemblyManager::LoadAssemblyInfo(const String& assemblyName)
 			}
 
 			SPtr<ManagedPropertyInfo> propertyInfo = B3DMakeShared<ManagedPropertyInfo>();
-			propertyInfo->FieldId = mUniqueFieldId++;
+			propertyInfo->FieldId = nextMemberIndex++;
 			propertyInfo->Name = property->GetName();
 			propertyInfo->ScriptProperty = property;
 			propertyInfo->TypeInfo = typeInfo;
@@ -286,8 +286,8 @@ void ScriptAssemblyManager::LoadAssemblyInfo(const String& assemblyName)
 					propertyInfo->MetaDataFlags |= ManagedFieldMetaDataFlag::HDR;
 			}
 
-			objInfo->FieldNameToId[propertyInfo->Name] = propertyInfo->FieldId;
-			objInfo->Fields[propertyInfo->FieldId] = propertyInfo;
+			objInfo->MemberNameToIndex[propertyInfo->Name] = (u32)objInfo->Members.size();
+			objInfo->Members.push_back(propertyInfo);
 		}
 	}
 
@@ -792,6 +792,19 @@ bool ScriptAssemblyManager::GetSerializableObjectInfo(const String& ns, const St
 	}
 
 	return false;
+}
+
+SPtr<ManagedObjectInfo> ScriptAssemblyManager::GetSerializableObjectInfo(MonoObject* scriptObject)
+{
+	String objectNamespace;
+	String objectTypeName;
+	MonoUtil::GetClassName(scriptObject, objectNamespace, objectTypeName);
+
+	SPtr<ManagedObjectInfo> objectInfo;
+	if(!GetSerializableObjectInfo(objectNamespace, objectTypeName, objectInfo))
+		return nullptr;
+
+	return objectInfo;
 }
 
 bool ScriptAssemblyManager::HasSerializableObjectInfo(const String& ns, const String& typeName)

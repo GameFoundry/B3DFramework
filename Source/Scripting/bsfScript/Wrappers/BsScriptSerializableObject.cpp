@@ -72,11 +72,11 @@ ScriptSerializableObject* ScriptSerializableObject::CreateInternal(MonoObject* i
 
 	if(objInfo != nullptr)
 	{
-		sortedFields.resize(objInfo->Fields.size());
+		sortedFields.resize(objInfo->Members.size());
 		u32 i = 0;
-		for(auto& fieldPair : objInfo->Fields)
+		for(auto& field : objInfo->Members)
 		{
-			sortedFields[i] = fieldPair.second;
+			sortedFields[i] = field;
 			i++;
 		}
 	}

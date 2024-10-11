@@ -108,12 +108,12 @@ void ManagedSerializableObject::Serialize()
 	SPtr<ManagedObjectInfo> curType = mObjInfo;
 	while(curType != nullptr)
 	{
-		for(auto& field : curType->Fields)
+		for(auto& memberInfo : curType->Members)
 		{
-			if(field.second->IsSerializable())
+			if(memberInfo->IsSerializable())
 			{
-				ManagedSerializableFieldKey key(field.second->ParentTypeId, field.second->FieldId);
-				mCachedData[key] = GetFieldData(field.second);
+				ManagedSerializableFieldKey key(memberInfo->ParentTypeId, memberInfo->FieldId);
+				mCachedData[key] = GetFieldData(memberInfo);
 			}
 		}
 
@@ -157,16 +157,16 @@ void ManagedSerializableObject::Deserialize(MonoObject* instance, const SPtr<Man
 	SPtr<ManagedObjectInfo> curType = mObjInfo;
 	while(curType != nullptr)
 	{
-		for(auto& field : curType->Fields)
+		for(auto& member : curType->Members)
 		{
-			if(field.second->IsSerializable())
+			if(member->IsSerializable())
 			{
-				u32 fieldId = field.second->FieldId;
-				u32 typeID = field.second->ParentTypeId;
+				u32 fieldId = member->FieldId;
+				u32 typeID = member->ParentTypeId;
 
 				ManagedSerializableFieldKey key(typeID, fieldId);
 
-				SPtr<ManagedMemberInfo> matchingFieldInfo = objInfo->FindMatchingField(field.second, curType->TypeInfo);
+				SPtr<ManagedMemberInfo> matchingFieldInfo = objInfo->FindMatchingField(member, curType->TypeInfo);
 				if(matchingFieldInfo != nullptr)
 					matchingFieldInfo->SetUnboxedValue(instance, mCachedData[key]->GetValue(matchingFieldInfo->TypeInfo));
 
@@ -188,13 +188,13 @@ bool ManagedSerializableObject::Equals(ManagedSerializableObject& other, RTTIOpe
 	SPtr<ManagedObjectInfo> curObjInfo = mObjInfo;
 	while(curObjInfo != nullptr)
 	{
-		for(auto& field : curObjInfo->Fields)
+		for(auto& member : curObjInfo->Members)
 		{
-			if(!field.second->IsSerializable())
+			if(!member->IsSerializable())
 				continue;
 
-			SPtr<ManagedSerializableFieldData> oldData = GetFieldData(field.second);
-			SPtr<ManagedSerializableFieldData> newData = other.GetFieldData(field.second);
+			SPtr<ManagedSerializableFieldData> oldData = GetFieldData(member);
+			SPtr<ManagedSerializableFieldData> newData = other.GetFieldData(member);
 
 			if(!oldData)
 				return !newData;

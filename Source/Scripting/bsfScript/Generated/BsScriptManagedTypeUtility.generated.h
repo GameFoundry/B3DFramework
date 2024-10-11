@@ -19,6 +19,7 @@ namespace bs
 
 	private:
 		static MonoObject* InternalGetTypeInfo(MonoObject* scriptObject);
+		static MonoObject* InternalGetSerializableObjectInfo(MonoObject* scriptObject);
 		static MonoObject* InternalCloneObject(MonoObject* original);
 		static MonoObject* InternalCreateObjectOfType(MonoReflectionType* type);
 	};
