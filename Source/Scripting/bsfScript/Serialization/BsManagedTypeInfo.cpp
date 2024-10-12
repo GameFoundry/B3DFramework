@@ -10,7 +10,9 @@
 #include "BsMonoField.h"
 #include "BsMonoProperty.h"
 #include "Serialization/BsScriptAssemblyManager.h"
+#include "Wrappers/BsScriptCategory.h"
 #include "Wrappers/BsScriptManagedResource.h"
+#include "Wrappers/BsScriptOrder.h"
 #include "Wrappers/BsScriptRRefBase.h"
 
 using namespace bs;
@@ -22,6 +24,16 @@ RTTIType* ManagedAssemblyInfo::GetRttiStatic()
 RTTIType* ManagedAssemblyInfo::GetRtti() const
 {
 	return ManagedAssemblyInfo::GetRttiStatic();
+}
+
+MonoReflectionType* ManagedTypeInfo::GetReflectionType() const
+{
+	return MonoUtil::GetType(GetMonoClass());
+}
+
+MonoReflectionType* ManagedObjectInfo::GetReflectionType() const
+{
+	return MonoUtil::GetType(ScriptClass->GetInternalClass());
 }
 
 SPtr<ManagedMemberInfo> ManagedObjectInfo::FindMatchingField(const SPtr<ManagedMemberInfo>& fieldInfo, const SPtr<ManagedTypeInfo>& fieldTypeInfo) const
@@ -87,7 +99,7 @@ RTTIType* ManagedMemberInfo::GetRtti() const
 	return ManagedMemberInfo::GetRttiStatic();
 }
 
-::MonoObject* ManagedFieldInfo::GetAttribute(MonoClass* monoClass)
+::MonoObject* ManagedFieldInfo::GetAttribute(MonoClass* monoClass) const
 {
 	return ScriptField->GetAttribute(monoClass);
 }
@@ -112,7 +124,7 @@ RTTIType* ManagedFieldInfo::GetRtti() const
 	return ManagedFieldInfo::GetRttiStatic();
 }
 
-::MonoObject* ManagedPropertyInfo::GetAttribute(MonoClass* monoClass)
+::MonoObject* ManagedPropertyInfo::GetAttribute(MonoClass* monoClass) const
 {
 	return ScriptProperty->GetAttribute(monoClass);
 }
@@ -501,3 +513,54 @@ RTTIType* ManagedTypeInfoDictionary::GetRtti() const
 {
 	return ManagedTypeInfoDictionary::GetRttiStatic();
 }
+
+ManagedMemberStyle ManagedMemberInfo::ParseStyle() const
+{
+	ManagedMemberStyle memberStyle;
+
+	if(MetaDataFlags.IsSet(ManagedFieldMetaDataFlag::Range))
+	{
+		MonoClass* const rangeAttributeType = ScriptAssemblyManager::Instance().GetBuiltinClasses().RangeAttribute;
+		if(rangeAttributeType != nullptr)
+		{
+			MonoObject* const rangeAttribute = GetAttribute(rangeAttributeType);
+
+			ScriptRange::GetMinRangeField()->Get(rangeAttribute, &memberStyle.RangeMin);
+			ScriptRange::GetMaxRangeField()->Get(rangeAttribute, &memberStyle.RangeMax);
+			ScriptRange::GetSliderField()->Get(rangeAttribute, &memberStyle.DisplayAsSlider);
+		}
+	}
+
+	if(MetaDataFlags.IsSet(ManagedFieldMetaDataFlag::Step))
+	{
+		MonoClass* const stepAttributeType = ScriptAssemblyManager::Instance().GetBuiltinClasses().StepAttribute;
+		if(stepAttributeType != nullptr)
+		{
+			MonoObject* const stepAttribute = GetAttribute(stepAttributeType);
+			ScriptStep::GetStepField()->Get(stepAttribute, &memberStyle.StepIncrement);
+		}
+	}
+
+	if(MetaDataFlags.IsSet(ManagedFieldMetaDataFlag::Category))
+	{
+		MonoClass* const categoryAttributeType = ScriptAssemblyManager::Instance().GetBuiltinClasses().CategoryAttribute;
+		if(categoryAttributeType != nullptr)
+		{
+			MonoObject* const categoryAttribute = GetAttribute(categoryAttributeType);
+			ScriptCategory::GetNameField()->Get(categoryAttribute, &memberStyle.CategoryName);
+		}
+	}
+
+	if(MetaDataFlags.IsSet(ManagedFieldMetaDataFlag::Order))
+	{
+		MonoClass* const orderAttributeType = ScriptAssemblyManager::Instance().GetBuiltinClasses().OrderAttribute;
+		if(orderAttributeType != nullptr)
+		{
+			MonoObject* const orderAttribute = GetAttribute(orderAttributeType);
+			ScriptOrder::GetIndexField()->Get(orderAttribute, &memberStyle.Order);
+		}
+	}
+
+	return memberStyle;
+}
+

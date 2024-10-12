@@ -18,8 +18,12 @@ namespace bs
 		static void SetupScriptBindings();
 
 	private:
-		static MonoObject* InternalGetTypeInfo(MonoObject* scriptObject);
-		static MonoObject* InternalGetSerializableObjectInfo(MonoObject* scriptObject);
+		static MonoObject* InternalGetTypeInfo(MonoReflectionType* objectType);
+		static MonoObject* InternalGetSerializableObjectInfo(MonoReflectionType* objectType);
+		static MonoObject* InternalCreateSerializableObject(MonoObject* typeInfo);
+		static MonoObject* InternalCreateArray(MonoObject* typeInfo, MonoArray* arraySizes);
+		static MonoObject* InternalCreateList(MonoObject* typeInfo, uint32_t size);
+		static MonoObject* InternalCreateDictionary(MonoObject* typeInfo);
 		static MonoObject* InternalCloneObject(MonoObject* original);
 		static MonoObject* InternalCreateObjectOfType(MonoReflectionType* type);
 	};

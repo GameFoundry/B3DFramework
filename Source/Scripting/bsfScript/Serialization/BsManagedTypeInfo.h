@@ -49,21 +49,67 @@ namespace bs
 	/**	Flags that are used to further define a field in a managed serializable object. */
 	enum class B3D_SCRIPT_EXPORT() ManagedFieldMetaDataFlag
 	{
+		/** Field will be automatically serialized. */
 		Serializable = 1 << 0,
+
+		/** Field will be visible in the default inspector. */
 		Inspectable = 1 << 1,
+
+		/** Integer or floating point field with min/max range. */
 		Range = 1 << 2,
+
+		/** Integer or floating point field with a minimum increment/decrement step. */
 		Step = 1 << 3,
+
+		/** Field can be animated through the animation window. */
 		Animable = 1 << 4,
+
+		/** Integer field rendered as a layer selection dropdown. */
 		AsLayerMask = 1 << 5,
+
+		/** Field containing a reference type being passed by copy instead of by reference. */
 		PassByCopy = 1 << 6,
+
+		/** Field containing a reference type that should never be null. */
 		NotNull = 1 << 7,
+
+		/**
+		 * Field represents a property that wraps a native object. Getters and setters of such a property issue calls into native code to
+		 * update the native object.
+		 */
 		NativeWrapper = 1 << 8,
+
+		/**
+		 * When a field changes those changes need to be applied to the parent object by calling the field setter. Only applicable
+		 * to properties containing reference types.
+		 */
 		ApplyOnDirty = 1 << 9,
+
+		/**
+		 * When a quaternion is displayed in the inspector, by default it will be displayed as converted into euler angles. Use this flag to
+		 * force it to be displayed as a quaternion (4D value) with no conversion instead.
+		 */
 		AsQuaternion = 1 << 10,
+
+		/**
+		 * Fields contains information about a category, which is used for grouping fields under a foldout in the inspector. Retrieve the
+		 * category field style for information about the category.
+		 */
 		Category = 1 << 11,
+
+		/** Field contains information about its order relative to other fields. Retrieve the order field style for information about the order. */
 		Order = 1 << 12,
+
+		/**
+		 * Signifies that the field containing a class/struct should display the child fields of that objects as if they were part of the
+		 * parent class in the inspector.
+		 */
 		Inline = 1 << 13,
+
+		/** Signifies that a resource reference should be loaded when assigned to field through the inspector. */
 		LoadOnAssign = 1 << 14,
+
+		/** Field containing a color that supports high dynamic range. */
 		HDR = 1 << 15,
 	};
 
@@ -97,6 +143,9 @@ namespace bs
 		 */
 		B3D_SCRIPT_EXPORT()
 		virtual bool IsTypeLoaded() const = 0;
+
+		B3D_SCRIPT_EXPORT()
+		MonoReflectionType* GetReflectionType() const;
 
 		/**
 		 * Returns the internal managed class of the type this object represents. Returns null if the type doesn't exist.
@@ -307,6 +356,28 @@ namespace bs
 		RTTIType* GetRtti() const override;
 	};
 
+	/** Contains information about a style of a serializable field. */
+	struct B3D_SCRIPT_EXPORT(ExportAsStruct(true)) ManagedMemberStyle
+	{
+		/** Returns the lower bound of the range. Only relevant if @see hasRange is true. */
+		float RangeMin = 0;
+
+		/** Returns the upper bound of the range. Only relevant if @see hasRange is true. */
+		float RangeMax = 0;
+
+		/** Minimum increment the field value can be increment/decremented by. Only relevant if @see hasStep is true. */
+		float StepIncrement = 0;
+
+		/** If true, number fields will be displayed as sliders instead of regular input boxes. */
+		bool DisplayAsSlider = false;
+
+		/** Name of the category to display in inspector, if the member is part of one. */
+		String CategoryName;
+
+		/** Determines ordering in inspector relative to other members. */
+		int Order = 0;
+	};
+
 	/**	Contains data about a single member (field or property) in a managed object (class or struct). */
 	class B3D_SCRIPT_INTEROP_EXPORT B3D_SCRIPT_EXPORT() ManagedMemberInfo : public IReflectable, public IScriptExportable
 	{
@@ -317,6 +388,10 @@ namespace bs
 		/**	Determines should the member be serialized when serializing the parent object. */
 		B3D_SCRIPT_EXPORT(Property(Getter), ExportName(IsSerializable))
 		bool IsSerializable() const { return MetaDataFlags.IsSet(ManagedFieldMetaDataFlag::Serializable); }
+
+		/** Parses style attributes for this members and returns a structure holding all the relevant style information. */
+		B3D_SCRIPT_EXPORT()
+		ManagedMemberStyle ParseStyle() const;
 
 		/**
 		 * Returns a boxed value contained in the member in the specified object instance.
@@ -349,7 +424,7 @@ namespace bs
 		 * Checks if the attribute of the provided type exists on the member and returns it, or returns null if the
 		 * attribute is not present.
 		 */
-		virtual MonoObject* GetAttribute(MonoClass* monoClass) = 0;
+		virtual MonoObject* GetAttribute(MonoClass* monoClass) const = 0;
 
 		B3D_SCRIPT_EXPORT()
 		String Name;
@@ -378,7 +453,7 @@ namespace bs
 	public:
 		ManagedFieldInfo() = default;
 
-		MonoObject* GetAttribute(MonoClass* monoClass) override;
+		MonoObject* GetAttribute(MonoClass* monoClass) const override;
 		MonoObject* GetValue(MonoObject* instance) const override;
 		void SetUnboxedValue(MonoObject* instance, void* value) const override;
 
@@ -399,7 +474,7 @@ namespace bs
 	public:
 		ManagedPropertyInfo() = default;
 
-		MonoObject* GetAttribute(MonoClass* monoClass) override;
+		MonoObject* GetAttribute(MonoClass* monoClass) const override;
 		MonoObject* GetValue(MonoObject* instance) const override;
 		void SetUnboxedValue(MonoObject* instance, void* value) const override;
 
@@ -429,6 +504,9 @@ namespace bs
 
 		/** Returns the managed type name of the object's type, including the namespace in format "namespace.typename". */
 		String GetFullTypeName() const { return TypeInfo->TypeNamespace + "." + TypeInfo->TypeName; }
+
+		B3D_SCRIPT_EXPORT()
+		MonoReflectionType* GetReflectionType() const;
 
 		/**
 		 * Attempts to find a field part of this object that matches the provided parameters.

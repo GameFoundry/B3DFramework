@@ -15,7 +15,7 @@ namespace bs
     /// Allows you to transparently retrieve and set values of an entry, whether that entry is an object field or
     /// an array/list/dictionary entry.
     /// </summary>
-    public sealed class SerializableProperty : ScriptObject
+    public sealed class SerializableProperty
     {
         /// <summary>
         /// Object field types support by the serializable property.
@@ -53,6 +53,7 @@ namespace bs
 
         private FieldType type;
         private Type internalType;
+        private ManagedTypeInfo typeInfo;
         private Getter getter;
         private Setter setter;
         private bool applyOnChildChanges;
@@ -93,12 +94,6 @@ namespace bs
         }
 
         /// <summary>
-        /// Constructor for internal use by the native code.
-        /// </summary>
-        private SerializableProperty()
-        { }
-
-        /// <summary>
         /// Creates a new serializable property.
         /// </summary>
         /// <param name="type">Type of data the property contains.</param>
@@ -118,30 +113,7 @@ namespace bs
             this.getter = getter;
             this.setter = setter;
             this.applyOnChildChanges = applyOnChildChanges;
-
-            Internal_CreateInstance(this, internalType);
-        }
-
-        /// <summary>
-        /// Finalizes construction of the serializable property. Must be called after creation.
-        /// </summary>
-        /// <param name="type">Type of data the property contains.</param>
-        /// <param name="internalType">Type of data the property contains, as C# type.</param>
-        /// <param name="getter">Method that allows you to retrieve contents of the property.</param>
-        /// <param name="setter">Method that allows you to set contents of the property</param>
-        /// <param name="applyOnChildChanges">
-        /// Only relevant if the property represents an object. When true, whenever a child property changes value,
-        /// this property's setter will be called with the new modified version of the object. This is useful for
-        /// value-types, for reference types being passed by copy, or for situations where changes to an object must be
-        /// explicitly applied by re-assigning the object.</param>
-        internal void Construct(FieldType type, Type internalType, Getter getter, Setter setter,
-            bool applyOnChildChanges = false)
-        {
-            this.type = type;
-            this.internalType = internalType;
-            this.getter = getter;
-            this.setter = setter;
-            this.applyOnChildChanges = applyOnChildChanges;
+            this.typeInfo = ManagedTypeUtility.GetTypeInfo(internalType);
         }
 
         /// <summary>
@@ -222,14 +194,17 @@ namespace bs
         /// <returns>Serializable object wrapper around the value contained in the property.</returns>
         public SerializableObject GetObject()
         {
-            if (type != FieldType.Object)
-                throw new Exception("Attempting to retrieve object information from a field that doesn't contain an object.");
+            if(typeInfo == null)
+                throw new Exception("Attempting to retrieve object information from a member whose type is not serializable.");
+
+            if(!(typeInfo is ManagedTypeInfoObject))
+                throw new Exception("Attempting to retrieve object information from a member that does not contain an object.");
 
             // Get the most-derived type so the serializable object lists the exact fields
             object obj = GetValue<object>();
             Type actualType = obj != null ? obj.GetType() : internalType;
 
-            return Internal_CreateObject(mCachedPtr, this, actualType);
+            return new SerializableObject(actualType, this);
         }
 
         /// <summary>
@@ -239,10 +214,14 @@ namespace bs
         /// <returns>Serializable array around the value contained in the property.</returns>
         public SerializableArray GetArray()
         {
-            if (type != FieldType.Array)
-                throw new Exception("Attempting to retrieve array information from a field that doesn't contain an array.");
+            if(typeInfo == null)
+                throw new Exception("Attempting to retrieve object information from a member whose type is not serializable.");
 
-            return Internal_CreateArray(mCachedPtr, this);
+            if(!(typeInfo is ManagedTypeInfoArray))
+                throw new Exception("Attempting to retrieve object information from a member that does not contain an array.");
+
+            ManagedTypeInfoArray arrayTypeInfo = (ManagedTypeInfoArray)typeInfo;
+            return new SerializableArray(arrayTypeInfo.ElementType.GetReflectionType(), this);
         }
 
         /// <summary>
@@ -252,10 +231,14 @@ namespace bs
         /// <returns>Serializable list around the value contained in the property.</returns>
         public SerializableList GetList()
         {
-            if (type != FieldType.List)
-                throw new Exception("Attempting to retrieve array information from a field that doesn't contain a list.");
+            if(typeInfo == null)
+                throw new Exception("Attempting to retrieve object information from a member whose type is not serializable.");
 
-            return Internal_CreateList(mCachedPtr, this);
+            if(!(typeInfo is ManagedTypeInfoList))
+                throw new Exception("Attempting to retrieve object information from a member that does not contain a list.");
+
+            ManagedTypeInfoList listTypeInfo = (ManagedTypeInfoList)typeInfo;
+            return new SerializableList(listTypeInfo.ElementType.GetReflectionType(), this);
         }
 
         /// <summary>
@@ -265,10 +248,14 @@ namespace bs
         /// <returns>Serializable dictionary around the value contained in the property.</returns>
         public SerializableDictionary GetDictionary()
         {
-            if (type != FieldType.Dictionary)
-                throw new Exception("Attempting to retrieve array information from a field that doesn't contain a dictionary.");
+            if(typeInfo == null)
+                throw new Exception("Attempting to retrieve object information from a member whose type is not serializable.");
 
-            return Internal_CreateDictionary(mCachedPtr, this);
+            if(!(typeInfo is ManagedTypeInfoDictionary))
+                throw new Exception("Attempting to retrieve object information from a member that does not contain a dictionary.");
+
+            ManagedTypeInfoDictionary dictionaryTypeInfo = (ManagedTypeInfoDictionary)typeInfo;
+            return new SerializableDictionary(dictionaryTypeInfo.KeyType.GetReflectionType(), dictionaryTypeInfo.ValueType.GetReflectionType(), this);
         }
 
         /// <summary>
@@ -279,10 +266,13 @@ namespace bs
         /// <returns>A new instance of an object of type <typeparamref name="T"/>.</returns>
         public T CreateObjectInstance<T>()
         {
-            if (type != FieldType.Object)
-                throw new Exception("Attempting to retrieve object information from a field that doesn't contain an object.");
+            if(typeInfo == null)
+                throw new Exception("Attempting to create an object from a member whose type is not serializable.");
 
-            return (T)Internal_CreateManagedObjectInstance(mCachedPtr);
+            if(!(typeInfo is ManagedTypeInfoObject))
+                throw new Exception("Attempting to create an object from a member whose type is not a serializable object.");
+
+            return (T)ManagedTypeUtility.CreateSerializableObject((ManagedTypeInfoObject)typeInfo);
         }
 
         /// <summary>
@@ -294,10 +284,13 @@ namespace bs
         ///          <paramref name="lengths"/> sizes.</returns>
         public Array CreateArrayInstance(int[] lengths)
         {
-            if (type != FieldType.Array)
-                throw new Exception("Attempting to retrieve array information from a field that doesn't contain an array.");
+            if(typeInfo == null)
+                throw new Exception("Attempting to create an array from a member whose type is not serializable.");
 
-            return Internal_CreateManagedArrayInstance(mCachedPtr, lengths);
+            if(!(typeInfo is ManagedTypeInfoArray))
+                throw new Exception("Attempting to create an array from a member whose type is not an array.");
+
+            return (Array)ManagedTypeUtility.CreateArray((ManagedTypeInfoArray)typeInfo, lengths);
         }
 
         /// <summary>
@@ -308,10 +301,13 @@ namespace bs
         ///          <paramref name="length"/> size.</returns>
         public IList CreateListInstance(int length)
         {
-            if (type != FieldType.List)
-                throw new Exception("Attempting to retrieve array information from a field that doesn't contain a list.");
+            if(typeInfo == null)
+                throw new Exception("Attempting to create a list from a member whose type is not serializable.");
 
-            return Internal_CreateManagedListInstance(mCachedPtr, length);
+            if(!(typeInfo is ManagedTypeInfoList))
+                throw new Exception("Attempting to create a list from a member whose type is not a list.");
+
+            return (IList)ManagedTypeUtility.CreateList((ManagedTypeInfoList)typeInfo, length);
         }
 
         /// <summary>
@@ -322,10 +318,13 @@ namespace bs
         ///          </returns>
         public IDictionary CreateDictionaryInstance()
         {
-            if (type != FieldType.Dictionary)
-                throw new Exception("Attempting to retrieve array information from a field that doesn't contain a dictionary.");
+            if(typeInfo == null)
+                throw new Exception("Attempting to create a dictionary from a member whose type is not serializable.");
 
-            return Internal_CreateManagedDictionaryInstance(mCachedPtr);
+            if(!(typeInfo is ManagedTypeInfoDictionary))
+                throw new Exception("Attempting to create a dictionary from a member whose type is not a dictionary.");
+
+            return (IDictionary)ManagedTypeUtility.CreateDictionary((ManagedTypeInfoDictionary)typeInfo);
         }
 
         /// <summary>
@@ -368,37 +367,6 @@ namespace bs
 
             return null;
         }
-
-        [MethodImpl(MethodImplOptions.InternalCall)]
-        private static extern void Internal_CreateInstance(SerializableProperty instance, Type type);
-
-        [MethodImpl(MethodImplOptions.InternalCall)]
-        private static extern SerializableObject Internal_CreateObject(IntPtr nativeInstance, object managedInstance,
-            Type actualType);
-
-        [MethodImpl(MethodImplOptions.InternalCall)]
-        private static extern SerializableArray Internal_CreateArray(IntPtr nativeInstance, object managedInstance);
-
-        [MethodImpl(MethodImplOptions.InternalCall)]
-        private static extern SerializableList Internal_CreateList(IntPtr nativeInstance, object managedInstance);
-
-        [MethodImpl(MethodImplOptions.InternalCall)]
-        private static extern SerializableDictionary Internal_CreateDictionary(IntPtr nativeInstance, object managedInstance);
-
-        [MethodImpl(MethodImplOptions.InternalCall)]
-        private static extern object Internal_CreateManagedObjectInstance(IntPtr nativeInstance);
-
-        [MethodImpl(MethodImplOptions.InternalCall)]
-        private static extern Array Internal_CreateManagedArrayInstance(IntPtr nativeInstance, int[] lengths);
-
-        [MethodImpl(MethodImplOptions.InternalCall)]
-        private static extern IList Internal_CreateManagedListInstance(IntPtr nativeInstance, int length);
-
-        [MethodImpl(MethodImplOptions.InternalCall)]
-        private static extern IDictionary Internal_CreateManagedDictionaryInstance(IntPtr nativeInstance);
-
-        [MethodImpl(MethodImplOptions.InternalCall)]
-        private static extern object Internal_CloneManagedInstance(IntPtr nativeInstance, object original);
 
         /// <summary>
         /// Converts a C# type into internal serialization type.

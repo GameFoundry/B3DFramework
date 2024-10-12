@@ -21,6 +21,7 @@ namespace bs
 		static MonoObject* CreateScriptObject(bool construct);
 
 	private:
+		static MonoReflectionType* InternalGetReflectionType(ScriptManagedObjectInfo* self);
 		static MonoObject* InternalGetTypeInfo(ScriptManagedObjectInfo* self);
 		static void InternalSetTypeInfo(ScriptManagedObjectInfo* self, MonoObject* value);
 		static MonoArray* InternalGetMembers(ScriptManagedObjectInfo* self);

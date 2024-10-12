@@ -17,7 +17,7 @@ namespace bs
     /// Allows you to access meta-data about a managed dictionary and its children. Similar to Reflection but simpler and
     /// faster.
     /// </summary>
-    public sealed class SerializableDictionary : ScriptObject
+    public sealed class SerializableDictionary
     {
         private SerializableProperty.FieldType keyPropertyType;
         private SerializableProperty.FieldType valuePropertyType;
@@ -63,7 +63,7 @@ namespace bs
         /// <param name="keyType">C# type of the keys in the dictionary.</param>
         /// <param name="valueType">C# type of the values in the dictionary.</param>
         /// <param name="parentProperty">Property used for retrieving this entry.</param>
-        private SerializableDictionary(Type keyType, Type valueType, SerializableProperty parentProperty)
+        public SerializableDictionary(Type keyType, Type valueType, SerializableProperty parentProperty)
         {
             this.parentProperty = parentProperty;
             this.keyType = keyType;
@@ -89,8 +89,7 @@ namespace bs
                 SerializableProperty.Getter getter = () => key;
                 SerializableProperty.Setter setter = (object value) => {};
 
-                keyProperty = Internal_CreateKeyProperty(mCachedPtr);
-                keyProperty.Construct(KeyPropertyType, keyType, getter, setter);
+                keyProperty = new SerializableProperty(KeyPropertyType, keyType, getter, setter);
             }
 
             SerializableProperty valueProperty;
@@ -113,8 +112,7 @@ namespace bs
                         dict[key] = value;
                 };
 
-                valueProperty = Internal_CreateValueProperty(mCachedPtr);
-                valueProperty.Construct(ValuePropertyType, valueType, getter, setter);
+                valueProperty = new SerializableProperty(ValuePropertyType, valueType, getter, setter);
             }
 
             return new KeyValuePair<SerializableProperty, SerializableProperty>(keyProperty, valueProperty);
@@ -185,12 +183,6 @@ namespace bs
 
             return null;
         }
-
-        [MethodImpl(MethodImplOptions.InternalCall)]
-        private static extern SerializableProperty Internal_CreateKeyProperty(IntPtr nativeInstance);
-
-        [MethodImpl(MethodImplOptions.InternalCall)]
-        private static extern SerializableProperty Internal_CreateValueProperty(IntPtr nativeInstance);
     }
 
     /** @} */

@@ -44,6 +44,16 @@ namespace bs
 			set { Internal_SetMetaDataFlags(mCachedPtr, value); }
 		}
 
+		/// <summary>
+		/// Parses style attributes for this members and returns a structure holding all the relevant style information.
+		/// </summary>
+		public ManagedMemberStyle ParseStyle()
+		{
+			ManagedMemberStyle temp;
+			Internal_ParseStyle(mCachedPtr, out temp);
+			return temp;
+		}
+
 		/// <summary>Returns a boxed value contained in the member in the specified object instance.</summary>
 		/// <param name="instance">Object instance to access the member on.</param>
 		/// <returns>A boxed value of the member.</returns>
@@ -62,6 +72,8 @@ namespace bs
 
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern bool Internal_IsSerializable(IntPtr thisPtr);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		private static extern void Internal_ParseStyle(IntPtr thisPtr, out ManagedMemberStyle __output);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern object Internal_GetValue(IntPtr thisPtr, object instance);
 		[MethodImpl(MethodImplOptions.InternalCall)]

@@ -25,9 +25,16 @@ namespace bs
 			return Internal_IsTypeLoaded(mCachedPtr);
 		}
 
+		public Type GetReflectionType()
+		{
+			return Internal_GetReflectionType(mCachedPtr);
+		}
+
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern bool Internal_Matches(IntPtr thisPtr, ManagedTypeInfo typeInfo);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern bool Internal_IsTypeLoaded(IntPtr thisPtr);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		private static extern Type Internal_GetReflectionType(IntPtr thisPtr);
 	}
 }

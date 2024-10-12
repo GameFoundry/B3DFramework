@@ -35,6 +35,7 @@ namespace bs
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_Matches", (void*)&ScriptManagedTypeInfo::InternalMatches);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_IsTypeLoaded", (void*)&ScriptManagedTypeInfo::InternalIsTypeLoaded);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetReflectionType", (void*)&ScriptManagedTypeInfo::InternalGetReflectionType);
 
 	}
 
@@ -70,6 +71,17 @@ namespace bs
 		tmp__output = static_cast<ManagedTypeInfo*>(self->GetNativeObject())->IsTypeLoaded();
 
 		bool __output;
+		__output = tmp__output;
+
+		return __output;
+	}
+
+	MonoReflectionType* ScriptManagedTypeInfo::InternalGetReflectionType(ScriptManagedTypeInfoWrapperBase* self)
+	{
+		_MonoReflectionType* tmp__output;
+		tmp__output = static_cast<ManagedTypeInfo*>(self->GetNativeObject())->GetReflectionType();
+
+		MonoReflectionType* __output;
 		__output = tmp__output;
 
 		return __output;

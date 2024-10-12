@@ -14,7 +14,7 @@ namespace bs
     /// <summary>
     /// Allows you to access meta-data about a managed array and its children. Similar to Reflection but simpler and faster.
     /// </summary>
-    public sealed class SerializableArray : ScriptObject
+    public sealed class SerializableArray
     {
         private SerializableProperty.FieldType elementPropertyType;
         private Type elementType;
@@ -41,7 +41,7 @@ namespace bs
         /// </summary>
         /// <param name="elementType">C# type of the elements in the array.</param>
         /// <param name="parentProperty">Property used for retrieving this entry.</param>
-        private SerializableArray(Type elementType, SerializableProperty parentProperty)
+        public SerializableArray(Type elementType, SerializableProperty parentProperty)
         {
             this.parentProperty = parentProperty;
             this.elementType = elementType;
@@ -73,10 +73,7 @@ namespace bs
                     array.SetValue(value, elementIdx);
             };
 
-            SerializableProperty property = Internal_CreateProperty(mCachedPtr);
-            property.Construct(ElementPropertyType, elementType, getter, setter);
-
-            return property;
+            return new SerializableProperty(ElementPropertyType, elementType, getter, setter);
         }
 
         /// <summary>
@@ -123,9 +120,6 @@ namespace bs
 
             return property.FindProperty(pathElements, elementIdx + 1);
         }
-
-        [MethodImpl(MethodImplOptions.InternalCall)]
-        private static extern SerializableProperty Internal_CreateProperty(IntPtr nativeInstance);
     }
 
     /** @} */

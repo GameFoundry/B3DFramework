@@ -6,8 +6,10 @@
 #include "BsScriptReflectableWrapper.h"
 #include "../Serialization/BsManagedTypeInfo.h"
 #include "../Serialization/BsManagedTypeInfo.h"
+#include "../Serialization/BsManagedTypeInfo.h"
 
 namespace bs { class ManagedMemberInfo; }
+namespace bs { struct __ManagedMemberStyleInterop; }
 namespace bs
 {
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptManagedMemberInfoWrapperBase : public ScriptReflectableWrapper
@@ -30,6 +32,7 @@ namespace bs
 
 	private:
 		static bool InternalIsSerializable(ScriptManagedMemberInfoWrapperBase* self);
+		static void InternalParseStyle(ScriptManagedMemberInfoWrapperBase* self, __ManagedMemberStyleInterop* __output);
 		static MonoObject* InternalGetValue(ScriptManagedMemberInfoWrapperBase* self, MonoObject* instance);
 		static void InternalSetValue(ScriptManagedMemberInfoWrapperBase* self, MonoObject* instance, MonoObject* value);
 		static MonoString* InternalGetName(ScriptManagedMemberInfoWrapperBase* self);

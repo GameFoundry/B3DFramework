@@ -15,12 +15,13 @@ namespace bs
     /// <summary>
     /// Allows you to access meta-data about a managed object and its fields. Similar to Reflection but simpler and faster.
     /// </summary>
-    public sealed class SerializableObject : ScriptObject
+    public sealed class SerializableObject
     {
         internal SerializableProperty parentProperty;
+        internal ManagedObjectInfo managedObjectInfo;
         internal object parentObject;
-        private SerializableField[] _fields;
         private Type type;
+        private SerializableField[] fields;
 
         /// <summary>
         /// Type of the underlying object.
@@ -35,7 +36,17 @@ namespace bs
         /// <summary>
         /// Returns the serializable object for the base class, if any.
         /// </summary>
-        public SerializableObject Base => Internal_GetBaseClass(mCachedPtr, parentObject);
+        public SerializableObject Base
+        {
+            get
+            {
+                ManagedObjectInfo baseObjectInfo = managedObjectInfo.BaseClass;
+                if (baseObjectInfo == null)
+                    return null;
+
+                return new SerializableObject(baseObjectInfo.GetReflectionType(), parentProperty);
+            }
+        }
 
         /// <summary>
         /// Creates a new serializable object for the specified object type.
@@ -44,11 +55,19 @@ namespace bs
         /// <param name="parentProperty">Property used for retrieving this entry.</param>
         public SerializableObject(Type objectType, SerializableProperty parentProperty)
         {
-            Internal_CreateInstance(this, objectType);
-
+            this.managedObjectInfo = ManagedTypeUtility.GetSerializableObjectInfo(objectType);
             this.parentProperty = parentProperty;
             this.parentObject = null;
             this.type = objectType;
+
+            if (managedObjectInfo != null)
+            {
+                ManagedMemberInfo[] memberInfos = managedObjectInfo.Members;
+
+                fields = new SerializableField[memberInfos.Length];
+                for (int memberIndex = 0; memberIndex < memberInfos.Length; memberIndex++)
+                    fields[memberIndex] = new SerializableField(this, memberInfos[memberIndex]);
+            }
         }
 
         /// <summary>
@@ -58,11 +77,19 @@ namespace bs
         /// <param name="parentObject">Specific instance of the object of <paramref name="objectType"/>.</param>
         public SerializableObject(Type objectType, object parentObject)
         {
-            Internal_CreateInstance(this, objectType);
-
+            this.managedObjectInfo = ManagedTypeUtility.GetSerializableObjectInfo(objectType);
             this.parentProperty = null;
             this.parentObject = parentObject;
             this.type = objectType;
+
+            if (managedObjectInfo != null)
+            {
+                ManagedMemberInfo[] memberInfos = managedObjectInfo.Members;
+
+                fields = new SerializableField[memberInfos.Length];
+                for (int memberIndex = 0; memberIndex < memberInfos.Length; memberIndex++)
+                    fields[memberIndex] = new SerializableField(this, memberInfos[memberIndex]);
+            }
         }
 
         /// <summary>
@@ -71,11 +98,19 @@ namespace bs
         /// <param name="parentObject">Specific instance of the object.</param>
         public SerializableObject(object parentObject)
         {
-            Internal_CreateInstance(this, parentObject.GetType());
-
+            this.managedObjectInfo = ManagedTypeUtility.GetSerializableObjectInfo(parentObject.GetType());
             this.parentProperty = null;
             this.parentObject = parentObject;
             this.type = parentObject.GetType();
+
+            if (managedObjectInfo != null)
+            {
+                ManagedMemberInfo[] memberInfos = managedObjectInfo.Members;
+
+                fields = new SerializableField[memberInfos.Length];
+                for (int memberIndex = 0; memberIndex < memberInfos.Length; memberIndex++)
+                    fields[memberIndex] = new SerializableField(this, memberInfos[memberIndex]);
+            }
         }
 
         /// <summary>
@@ -83,7 +118,7 @@ namespace bs
         /// </summary>
         public SerializableField[] Fields
         {
-            get { return _fields; }
+            get { return fields; }
         }
 
         /// <summary>
@@ -193,7 +228,7 @@ namespace bs
         /// <returns>Object representing the field, if found, null otherwise.</returns>
         public SerializableField FindField(string name)
         {
-            foreach (var field in _fields)
+            foreach (var field in Fields)
             {
                 if (field.Name == name)
                     return field;
@@ -201,12 +236,6 @@ namespace bs
 
             return null;
         }
-
-        [MethodImpl(MethodImplOptions.InternalCall)]
-        private static extern void Internal_CreateInstance(SerializableObject instance, Type objectType);
-
-        [MethodImpl(MethodImplOptions.InternalCall)]
-        private static extern SerializableObject Internal_GetBaseClass(IntPtr nativeInstance, object owningObject);
     }
 
     /// <summary>

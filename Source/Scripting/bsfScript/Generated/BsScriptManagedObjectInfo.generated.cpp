@@ -23,6 +23,7 @@ namespace bs
 
 	void ScriptManagedObjectInfo::SetupScriptBindings()
 	{
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetReflectionType", (void*)&ScriptManagedObjectInfo::InternalGetReflectionType);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetTypeInfo", (void*)&ScriptManagedObjectInfo::InternalGetTypeInfo);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetTypeInfo", (void*)&ScriptManagedObjectInfo::InternalSetTypeInfo);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetMembers", (void*)&ScriptManagedObjectInfo::InternalGetMembers);
@@ -42,6 +43,17 @@ namespace bs
 
 		return sInteropMetaData.ScriptClass->CreateInstance(false);
 	}
+	MonoReflectionType* ScriptManagedObjectInfo::InternalGetReflectionType(ScriptManagedObjectInfo* self)
+	{
+		_MonoReflectionType* tmp__output;
+		tmp__output = static_cast<ManagedObjectInfo*>(self->GetNativeObject())->GetReflectionType();
+
+		MonoReflectionType* __output;
+		__output = tmp__output;
+
+		return __output;
+	}
+
 	MonoObject* ScriptManagedObjectInfo::InternalGetTypeInfo(ScriptManagedObjectInfo* self)
 	{
 		SPtr<ManagedTypeInfoObject> tmp__output;

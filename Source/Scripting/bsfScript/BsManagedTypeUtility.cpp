@@ -9,26 +9,62 @@
 #include "Serialization/BsManagedSerializableField.h"
 #include "Serialization/BsBinarySerializer.h"
 #include "FileSystem/BsDataStream.h"
+#include "Serialization/BsManagedSerializableArray.h"
+#include "Serialization/BsManagedSerializableDictionary.h"
+#include "Serialization/BsManagedSerializableList.h"
+#include "Serialization/BsManagedSerializableObject.h"
 
 using namespace bs;
 
-SPtr<ManagedTypeInfo> ManagedTypeUtility::GetTypeInfo(MonoObject* scriptObject)
+SPtr<ManagedTypeInfo> ManagedTypeUtility::GetTypeInfo(MonoReflectionType* objectType)
 {
-	if(scriptObject == nullptr)
+	if(objectType == nullptr)
 		return nullptr;
 
-	::MonoClass* monoClass = MonoUtil::GetClass(scriptObject);
+	::MonoClass* monoClass = MonoUtil::GetClass(objectType);
 	MonoClass* scriptClass = MonoManager::Instance().FindClass(monoClass);
 
 	return ScriptAssemblyManager::Instance().GetTypeInfo(scriptClass);
 }
 
-SPtr<ManagedObjectInfo> ManagedTypeUtility::GetSerializableObjectInfo(MonoObject* scriptObject)
+SPtr<ManagedObjectInfo> ManagedTypeUtility::GetSerializableObjectInfo(MonoReflectionType* objectType)
 {
-	if(scriptObject == nullptr)
+	if(objectType == nullptr)
 		return nullptr;
 
-	return ScriptAssemblyManager::Instance().GetSerializableObjectInfo(scriptObject);
+	return ScriptAssemblyManager::Instance().GetSerializableObjectInfo(objectType);
+}
+
+MonoObject* ManagedTypeUtility::CreateSerializableObject(const SPtr<ManagedTypeInfoObject>& typeInfo)
+{
+	if(typeInfo == nullptr)
+		return nullptr;
+
+	return ManagedSerializableObject::CreateManagedInstance(typeInfo);
+}
+
+MonoObject* ManagedTypeUtility::CreateArray(const SPtr<ManagedTypeInfoArray>& typeInfo, const Vector<u32>& arraySizes)
+{
+	if(typeInfo == nullptr)
+		return nullptr;
+
+	return ManagedSerializableArray::CreateManagedInstance(typeInfo, arraySizes);
+}
+
+MonoObject* ManagedTypeUtility::CreateList(const SPtr<ManagedTypeInfoList>& typeInfo, u32 size)
+{
+	if(typeInfo == nullptr)
+		return nullptr;
+
+	return ManagedSerializableList::CreateManagedInstance(typeInfo, size);
+}
+
+MonoObject* ManagedTypeUtility::CreateDictionary(const SPtr<ManagedTypeInfoDictionary>& typeInfo)
+{
+	if(typeInfo == nullptr)
+		return nullptr;
+
+	return ManagedSerializableDictionary::CreateManagedInstance(typeInfo);
 }
 
 MonoObject* ManagedTypeUtility::CloneObject(MonoObject* original)

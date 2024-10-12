@@ -44,6 +44,13 @@ namespace bs
 			set { Internal_SetBaseClass(mCachedPtr, value); }
 		}
 
+		public Type GetReflectionType()
+		{
+			return Internal_GetReflectionType(mCachedPtr);
+		}
+
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		private static extern Type Internal_GetReflectionType(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern ManagedTypeInfoObject Internal_GetTypeInfo(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]

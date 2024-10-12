@@ -36,17 +36,21 @@ namespace bs
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetTypeInfo", (void*)&ScriptManagedTypeUtility::InternalGetTypeInfo);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetSerializableObjectInfo", (void*)&ScriptManagedTypeUtility::InternalGetSerializableObjectInfo);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_CreateSerializableObject", (void*)&ScriptManagedTypeUtility::InternalCreateSerializableObject);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_CreateArray", (void*)&ScriptManagedTypeUtility::InternalCreateArray);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_CreateList", (void*)&ScriptManagedTypeUtility::InternalCreateList);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_CreateDictionary", (void*)&ScriptManagedTypeUtility::InternalCreateDictionary);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_CloneObject", (void*)&ScriptManagedTypeUtility::InternalCloneObject);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_CreateObjectOfType", (void*)&ScriptManagedTypeUtility::InternalCreateObjectOfType);
 
 	}
 
-	MonoObject* ScriptManagedTypeUtility::InternalGetTypeInfo(MonoObject* scriptObject)
+	MonoObject* ScriptManagedTypeUtility::InternalGetTypeInfo(MonoReflectionType* objectType)
 	{
 		SPtr<ManagedTypeInfo> tmp__output;
-		_MonoObject* tmpscriptObject;
-		tmpscriptObject = scriptObject;
-		tmp__output = ManagedTypeUtility::GetTypeInfo(tmpscriptObject);
+		_MonoReflectionType* tmpobjectType;
+		tmpobjectType = objectType;
+		tmp__output = ManagedTypeUtility::GetTypeInfo(tmpobjectType);
 
 		MonoObject* __output;
 		__output = ScriptManagedTypeInfo::GetOrCreateScriptObject(tmp__output);
@@ -54,15 +58,89 @@ namespace bs
 		return __output;
 	}
 
-	MonoObject* ScriptManagedTypeUtility::InternalGetSerializableObjectInfo(MonoObject* scriptObject)
+	MonoObject* ScriptManagedTypeUtility::InternalGetSerializableObjectInfo(MonoReflectionType* objectType)
 	{
 		SPtr<ManagedObjectInfo> tmp__output;
-		_MonoObject* tmpscriptObject;
-		tmpscriptObject = scriptObject;
-		tmp__output = ManagedTypeUtility::GetSerializableObjectInfo(tmpscriptObject);
+		_MonoReflectionType* tmpobjectType;
+		tmpobjectType = objectType;
+		tmp__output = ManagedTypeUtility::GetSerializableObjectInfo(tmpobjectType);
 
 		MonoObject* __output;
 		__output = ScriptManagedObjectInfo::GetOrCreateScriptObject(tmp__output);
+
+		return __output;
+	}
+
+	MonoObject* ScriptManagedTypeUtility::InternalCreateSerializableObject(MonoObject* typeInfo)
+	{
+		_MonoObject* tmp__output;
+		SPtr<ManagedTypeInfoObject> tmptypeInfo;
+		ScriptManagedTypeInfoObject* scriptObjectWrappertypeInfo;
+		scriptObjectWrappertypeInfo = ScriptManagedTypeInfoObject::GetScriptObjectWrapper(typeInfo);
+		if(scriptObjectWrappertypeInfo != nullptr)
+			tmptypeInfo = std::static_pointer_cast<ManagedTypeInfoObject>(scriptObjectWrappertypeInfo->GetBaseNativeObjectAsShared());
+		tmp__output = ManagedTypeUtility::CreateSerializableObject(tmptypeInfo);
+
+		MonoObject* __output;
+		__output = tmp__output;
+
+		return __output;
+	}
+
+	MonoObject* ScriptManagedTypeUtility::InternalCreateArray(MonoObject* typeInfo, MonoArray* arraySizes)
+	{
+		_MonoObject* tmp__output;
+		SPtr<ManagedTypeInfoArray> tmptypeInfo;
+		ScriptManagedTypeInfoArray* scriptObjectWrappertypeInfo;
+		scriptObjectWrappertypeInfo = ScriptManagedTypeInfoArray::GetScriptObjectWrapper(typeInfo);
+		if(scriptObjectWrappertypeInfo != nullptr)
+			tmptypeInfo = std::static_pointer_cast<ManagedTypeInfoArray>(scriptObjectWrappertypeInfo->GetBaseNativeObjectAsShared());
+		Vector<uint32_t> nativeArrayarraySizes;
+		if(arraySizes != nullptr)
+		{
+			ScriptArray scriptArrayarraySizes(arraySizes);
+			nativeArrayarraySizes.resize(scriptArrayarraySizes.Size());
+			for(int elementIndex = 0; elementIndex < (int)scriptArrayarraySizes.Size(); elementIndex++)
+			{
+				nativeArrayarraySizes[elementIndex] = scriptArrayarraySizes.Get<uint32_t>(elementIndex);
+			}
+		}
+		tmp__output = ManagedTypeUtility::CreateArray(tmptypeInfo, nativeArrayarraySizes);
+
+		MonoObject* __output;
+		__output = tmp__output;
+
+		return __output;
+	}
+
+	MonoObject* ScriptManagedTypeUtility::InternalCreateList(MonoObject* typeInfo, uint32_t size)
+	{
+		_MonoObject* tmp__output;
+		SPtr<ManagedTypeInfoList> tmptypeInfo;
+		ScriptManagedTypeInfoList* scriptObjectWrappertypeInfo;
+		scriptObjectWrappertypeInfo = ScriptManagedTypeInfoList::GetScriptObjectWrapper(typeInfo);
+		if(scriptObjectWrappertypeInfo != nullptr)
+			tmptypeInfo = std::static_pointer_cast<ManagedTypeInfoList>(scriptObjectWrappertypeInfo->GetBaseNativeObjectAsShared());
+		tmp__output = ManagedTypeUtility::CreateList(tmptypeInfo, size);
+
+		MonoObject* __output;
+		__output = tmp__output;
+
+		return __output;
+	}
+
+	MonoObject* ScriptManagedTypeUtility::InternalCreateDictionary(MonoObject* typeInfo)
+	{
+		_MonoObject* tmp__output;
+		SPtr<ManagedTypeInfoDictionary> tmptypeInfo;
+		ScriptManagedTypeInfoDictionary* scriptObjectWrappertypeInfo;
+		scriptObjectWrappertypeInfo = ScriptManagedTypeInfoDictionary::GetScriptObjectWrapper(typeInfo);
+		if(scriptObjectWrappertypeInfo != nullptr)
+			tmptypeInfo = std::static_pointer_cast<ManagedTypeInfoDictionary>(scriptObjectWrappertypeInfo->GetBaseNativeObjectAsShared());
+		tmp__output = ManagedTypeUtility::CreateDictionary(tmptypeInfo);
+
+		MonoObject* __output;
+		__output = tmp__output;
 
 		return __output;
 	}

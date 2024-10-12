@@ -794,11 +794,11 @@ bool ScriptAssemblyManager::GetSerializableObjectInfo(const String& ns, const St
 	return false;
 }
 
-SPtr<ManagedObjectInfo> ScriptAssemblyManager::GetSerializableObjectInfo(MonoObject* scriptObject)
+SPtr<ManagedObjectInfo> ScriptAssemblyManager::GetSerializableObjectInfo(MonoReflectionType* objectType)
 {
 	String objectNamespace;
 	String objectTypeName;
-	MonoUtil::GetClassName(scriptObject, objectNamespace, objectTypeName);
+	MonoUtil::GetClassName(objectType, objectNamespace, objectTypeName);
 
 	SPtr<ManagedObjectInfo> objectInfo;
 	if(!GetSerializableObjectInfo(objectNamespace, objectTypeName, objectInfo))

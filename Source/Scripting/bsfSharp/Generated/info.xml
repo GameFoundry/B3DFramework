@@ -2492,36 +2492,52 @@ Use {0}, {1}, etc. in the string value for values that might change dynamically.
 	<enum native="ManagedFieldMetaDataFlag" script="ManagedFieldMetaDataFlag">
 		<doc>Flags that are used to further define a field in a managed serializable object.</doc>
 		<enumentry native="Range" script="Range">
+			<doc>Integer or floating point field with min/max range.</doc>
 		</enumentry>
 		<enumentry native="Serializable" script="Serializable">
+			<doc>Field will be automatically serialized.</doc>
 		</enumentry>
 		<enumentry native="NotNull" script="NotNull">
+			<doc>Field containing a reference type that should never be null.</doc>
 		</enumentry>
 		<enumentry native="Inspectable" script="Inspectable">
+			<doc>Field will be visible in the default inspector.</doc>
 		</enumentry>
 		<enumentry native="Step" script="Step">
+			<doc>Integer or floating point field with a minimum increment/decrement step.</doc>
 		</enumentry>
 		<enumentry native="Animable" script="Animable">
+			<doc>Field can be animated through the animation window.</doc>
 		</enumentry>
 		<enumentry native="AsLayerMask" script="AsLayerMask">
+			<doc>Integer field rendered as a layer selection dropdown.</doc>
 		</enumentry>
 		<enumentry native="Inline" script="Inline">
+			<doc>Signifies that the field containing a class/struct should display the child fields of that objects as if they were part of the parent class in the inspector.</doc>
 		</enumentry>
 		<enumentry native="PassByCopy" script="PassByCopy">
+			<doc>Field containing a reference type being passed by copy instead of by reference.</doc>
 		</enumentry>
 		<enumentry native="NativeWrapper" script="NativeWrapper">
+			<doc>Field represents a property that wraps a native object. Getters and setters of such a property issue calls into native code to update the native object.</doc>
 		</enumentry>
 		<enumentry native="ApplyOnDirty" script="ApplyOnDirty">
+			<doc>When a field changes those changes need to be applied to the parent object by calling the field setter. Only applicable to properties containing reference types.</doc>
 		</enumentry>
 		<enumentry native="LoadOnAssign" script="LoadOnAssign">
+			<doc>Signifies that a resource reference should be loaded when assigned to field through the inspector.</doc>
 		</enumentry>
 		<enumentry native="AsQuaternion" script="AsQuaternion">
+			<doc>When a quaternion is displayed in the inspector, by default it will be displayed as converted into euler angles. Use this flag to force it to be displayed as a quaternion (4D value) with no conversion instead.</doc>
 		</enumentry>
 		<enumentry native="Category" script="Category">
+			<doc>Fields contains information about a category, which is used for grouping fields under a foldout in the inspector. Retrieve the category field style for information about the category.</doc>
 		</enumentry>
 		<enumentry native="Order" script="Order">
+			<doc>Field contains information about its order relative to other fields. Retrieve the order field style for information about the order.</doc>
 		</enumentry>
 		<enumentry native="HDR" script="HDR">
+			<doc>Field containing a color that supports high dynamic range.</doc>
 		</enumentry>
 	</enum>
 	<enum native="AudioSourceState" script="AudioSourceState">
@@ -3093,6 +3109,11 @@ Use {0}, {1}, etc. in the string value for values that might change dynamically.
 	</struct>
 	<class native="ManagedMemberInfo" script="ManagedMemberInfo">
 		<doc>Contains data about a single member (field or property) in a managed object (class or struct).</doc>
+		<method native="ParseStyle" script="ParseStyle" static="false">
+			<doc>Parses style attributes for this members and returns a structure holding all the relevant style information.</doc>
+			<returns type="ManagedMemberStyle">
+			</returns>
+		</method>
 		<method native="GetValue" script="GetValue" static="false">
 			<doc>Returns a boxed value contained in the member in the specified object instance.</doc>
 			<param name="instance" type="object">
@@ -4550,16 +4571,48 @@ Sprite images also allow you to specify sprite sheet animation by varying which 
 		<doc>Provides various utility methods for reflection-like operations on managed objects.</doc>
 		<method native="GetTypeInfo" script="GetTypeInfo" static="true">
 			<doc>Retrieves information about the object&apos;s type. Object must be a primitive type, scene object, component, resource, resource reference type, or a custom type marked with SerializeObject attribute in order for type information to be present. Type information can also be retrieved for arrays, lists or dictionaries of the above types.</doc>
-			<param name="scriptObject" type="object">
+			<param name="objectType" type="Type">
 			</param>
 			<returns type="ManagedTypeInfo">
 			</returns>
 		</method>
 		<method native="GetSerializableObjectInfo" script="GetSerializableObjectInfo" static="true">
-			<doc>Retrieves detailed information about a serializable object. Provided object must be marked with a SerializeObject attribute for this information to be available.</doc>
-			<param name="scriptObject" type="object">
+			<doc>Retrieves detailed information about a serializable object. Provided object&apos;s type must be marked with a SerializeObject attribute for this information to be available.</doc>
+			<param name="objectType" type="Type">
 			</param>
 			<returns type="ManagedObjectInfo">
+			</returns>
+		</method>
+		<method native="CreateSerializableObject" script="CreateSerializableObject" static="true">
+			<doc>Creates a new instance of a serialized object of the provided type.</doc>
+			<param name="typeInfo" type="ManagedTypeInfoObject">
+			</param>
+			<returns type="object">
+			</returns>
+		</method>
+		<method native="CreateArray" script="CreateArray" static="true">
+			<doc>Creates a new instance of an array of the provided type and size. Size array must have an element for each rank of the array type.</doc>
+			<param name="typeInfo" type="ManagedTypeInfoArray">
+			</param>
+			<param name="arraySizes" type="int">
+			</param>
+			<returns type="object">
+			</returns>
+		</method>
+		<method native="CreateList" script="CreateList" static="true">
+			<doc>Creates a new instance of a list of the provided type with the provided initial capacity.</doc>
+			<param name="typeInfo" type="ManagedTypeInfoList">
+			</param>
+			<param name="size" type="int">
+			</param>
+			<returns type="object">
+			</returns>
+		</method>
+		<method native="CreateDictionary" script="CreateDictionary" static="true">
+			<doc>Creates a new instance of a dictionary of the provided type.</doc>
+			<param name="typeInfo" type="ManagedTypeInfoDictionary">
+			</param>
+			<returns type="object">
 			</returns>
 		</method>
 		<method native="CloneObject" script="CloneObject" static="true">
@@ -6245,6 +6298,10 @@ Sprite images also allow you to specify sprite sheet animation by varying which 
 	</struct>
 	<class native="ManagedObjectInfo" script="ManagedObjectInfo">
 		<doc>Contains data about serializable fields of a managed object, and the object&apos;s class hierarchy if it belongs to one. All public fields are by default serializable if their type support serialization. Type is serializable if it has the SerializeObject attribute, or is one of the built-in supported serializable types (primitive such as int or bool, game object, resource or resource reference). Array/List/Dictionary of serializable types is also considered serializable. Public field can be made non-serializable via the DontSerializeField attribute. Private/protected/internal field can be made serializable by specifying the SerializeField attribute.</doc>
+		<method native="GetReflectionType" script="GetReflectionType" static="false">
+			<returns type="Type">
+			</returns>
+		</method>
 		<property name="TypeInfo" type="ManagedTypeInfoObject" getter="GetTypeInfo" setter="SetTypeInfo" static="false">
 		</property>
 		<property name="Members" type="ManagedMemberInfo" getter="GetMembers" setter="SetMembers" static="false">
@@ -14214,6 +14271,10 @@ Primary purpose of this class is to avoid expensive string compare, and instead 
 			<returns type="bool">
 			</returns>
 		</method>
+		<method native="GetReflectionType" script="GetReflectionType" static="false">
+			<returns type="Type">
+			</returns>
+		</method>
 	</class>
 	<class native="ManagedTypeInfoPrimitive" script="ManagedTypeInfoPrimitive">
 		<doc>Contains information about a type of a managed primitive (for example int, float, etc.).</doc>
@@ -14270,4 +14331,27 @@ Primary purpose of this class is to avoid expensive string compare, and instead 
 		<property name="ElementType" type="ManagedTypeInfo" getter="GetElementType" setter="SetElementType" static="false">
 		</property>
 	</class>
+	<struct native="ManagedMemberStyle" script="ManagedMemberStyle">
+		<doc>Contains information about a style of a serializable field.</doc>
+		<ctor>
+		</ctor>
+		<field name="RangeMin" type="float">
+			<doc>Returns the lower bound of the range. Only relevant if</doc>
+		</field>
+		<field name="RangeMax" type="float">
+			<doc>Returns the upper bound of the range. Only relevant if</doc>
+		</field>
+		<field name="StepIncrement" type="float">
+			<doc>Minimum increment the field value can be increment/decremented by. Only relevant if</doc>
+		</field>
+		<field name="DisplayAsSlider" type="bool">
+			<doc>If true, number fields will be displayed as sliders instead of regular input boxes.</doc>
+		</field>
+		<field name="CategoryName" type="string">
+			<doc>Name of the category to display in inspector, if the member is part of one.</doc>
+		</field>
+		<field name="Order" type="int">
+			<doc>Determines ordering in inspector relative to other members.</doc>
+		</field>
+	</struct>
 </entries>

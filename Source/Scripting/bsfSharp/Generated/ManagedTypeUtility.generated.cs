@@ -19,18 +19,45 @@ namespace bs
 		/// information to be present. Type information can also be retrieved for arrays, lists or dictionaries of the above 
 		/// types.
 		/// </summary>
-		public static ManagedTypeInfo GetTypeInfo(object scriptObject)
+		public static ManagedTypeInfo GetTypeInfo(Type objectType)
 		{
-			return Internal_GetTypeInfo(scriptObject);
+			return Internal_GetTypeInfo(objectType);
 		}
 
 		/// <summary>
-		/// Retrieves detailed information about a serializable object. Provided object must be marked with a SerializeObject 
-		/// attribute for this information to be available.
+		/// Retrieves detailed information about a serializable object. Provided object&apos;s type must be marked with a 
+		/// SerializeObject attribute for this information to be available.
 		/// </summary>
-		public static ManagedObjectInfo GetSerializableObjectInfo(object scriptObject)
+		public static ManagedObjectInfo GetSerializableObjectInfo(Type objectType)
 		{
-			return Internal_GetSerializableObjectInfo(scriptObject);
+			return Internal_GetSerializableObjectInfo(objectType);
+		}
+
+		/// <summary>Creates a new instance of a serialized object of the provided type.</summary>
+		public static object CreateSerializableObject(ManagedTypeInfoObject typeInfo)
+		{
+			return Internal_CreateSerializableObject(typeInfo);
+		}
+
+		/// <summary>
+		/// Creates a new instance of an array of the provided type and size. Size array must have an element for each rank of 
+		/// the array type.
+		/// </summary>
+		public static object CreateArray(ManagedTypeInfoArray typeInfo, int[] arraySizes)
+		{
+			return Internal_CreateArray(typeInfo, arraySizes);
+		}
+
+		/// <summary>Creates a new instance of a list of the provided type with the provided initial capacity.</summary>
+		public static object CreateList(ManagedTypeInfoList typeInfo, int size)
+		{
+			return Internal_CreateList(typeInfo, size);
+		}
+
+		/// <summary>Creates a new instance of a dictionary of the provided type.</summary>
+		public static object CreateDictionary(ManagedTypeInfoDictionary typeInfo)
+		{
+			return Internal_CreateDictionary(typeInfo);
 		}
 
 		/// <summary>
@@ -53,9 +80,17 @@ namespace bs
 		}
 
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern ManagedTypeInfo Internal_GetTypeInfo(object scriptObject);
+		private static extern ManagedTypeInfo Internal_GetTypeInfo(Type objectType);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern ManagedObjectInfo Internal_GetSerializableObjectInfo(object scriptObject);
+		private static extern ManagedObjectInfo Internal_GetSerializableObjectInfo(Type objectType);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		private static extern object Internal_CreateSerializableObject(ManagedTypeInfoObject typeInfo);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		private static extern object Internal_CreateArray(ManagedTypeInfoArray typeInfo, int[] arraySizes);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		private static extern object Internal_CreateList(ManagedTypeInfoList typeInfo, int size);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		private static extern object Internal_CreateDictionary(ManagedTypeInfoDictionary typeInfo);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern object Internal_CloneObject(object original);
 		[MethodImpl(MethodImplOptions.InternalCall)]

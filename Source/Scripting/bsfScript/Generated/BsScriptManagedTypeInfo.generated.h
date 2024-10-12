@@ -30,5 +30,6 @@ namespace bs
 	private:
 		static bool InternalMatches(ScriptManagedTypeInfoWrapperBase* self, MonoObject* typeInfo);
 		static bool InternalIsTypeLoaded(ScriptManagedTypeInfoWrapperBase* self);
+		static MonoReflectionType* InternalGetReflectionType(ScriptManagedTypeInfoWrapperBase* self);
 	};
 }

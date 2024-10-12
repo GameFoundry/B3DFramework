@@ -5,6 +5,9 @@
 #include "BsMonoClass.h"
 #include "BsMonoUtil.h"
 #include "Reflection/BsRTTIType.h"
+#include "../Serialization/BsManagedTypeInfo.h"
+#include "BsScriptManagedTypeInfoObject.generated.h"
+#include "BsScriptManagedMemberStyle.generated.h"
 #include "BsScriptManagedTypeInfo.generated.h"
 #include "../Serialization/BsManagedTypeInfo.h"
 #include "BsScriptManagedTypeInfoDictionary.generated.h"
@@ -15,11 +18,9 @@
 #include "../Serialization/BsManagedTypeInfo.h"
 #include "BsScriptManagedTypeInfoPrimitive.generated.h"
 #include "../Serialization/BsManagedTypeInfo.h"
-#include "BsScriptManagedTypeInfoArray.generated.h"
-#include "../Serialization/BsManagedTypeInfo.h"
 #include "BsScriptManagedTypeInfoEnum.generated.h"
 #include "../Serialization/BsManagedTypeInfo.h"
-#include "BsScriptManagedTypeInfoObject.generated.h"
+#include "BsScriptManagedTypeInfoArray.generated.h"
 #include "../Serialization/BsManagedTypeInfo.h"
 #include "BsScriptManagedTypeInfoList.generated.h"
 
@@ -34,6 +35,7 @@ namespace bs
 	void ScriptManagedMemberInfo::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_IsSerializable", (void*)&ScriptManagedMemberInfo::InternalIsSerializable);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_ParseStyle", (void*)&ScriptManagedMemberInfo::InternalParseStyle);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetValue", (void*)&ScriptManagedMemberInfo::InternalGetValue);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetValue", (void*)&ScriptManagedMemberInfo::InternalSetValue);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetName", (void*)&ScriptManagedMemberInfo::InternalGetName);
@@ -64,6 +66,16 @@ namespace bs
 		__output = tmp__output;
 
 		return __output;
+	}
+
+	void ScriptManagedMemberInfo::InternalParseStyle(ScriptManagedMemberInfoWrapperBase* self, __ManagedMemberStyleInterop* __output)
+	{
+		ManagedMemberStyle tmp__output;
+		tmp__output = static_cast<ManagedMemberInfo*>(self->GetNativeObject())->ParseStyle();
+
+		__ManagedMemberStyleInterop interop__output;
+		interop__output = ScriptManagedMemberStyle::ToInterop(tmp__output);
+		MonoUtil::ValueCopy(__output, &interop__output, ScriptManagedMemberStyle::GetMetaData()->ScriptClass->GetInternalClass());
 	}
 
 	MonoObject* ScriptManagedMemberInfo::InternalGetValue(ScriptManagedMemberInfoWrapperBase* self, MonoObject* instance)
