@@ -35,6 +35,18 @@ SPtr<ManagedObjectInfo> ManagedTypeUtility::GetSerializableObjectInfo(MonoReflec
 	return ScriptAssemblyManager::Instance().GetSerializableObjectInfo(objectType);
 }
 
+u32 ManagedTypeUtility::GetRTTITypeId(MonoReflectionType* objectType)
+{
+	if(objectType == nullptr)
+		return ~0u;
+
+	const ScriptTypeMetaData* const scriptObjectWrapperMetaData = ScriptAssemblyManager::Instance().GetScriptWrapperMetaData(objectType);
+	if(scriptObjectWrapperMetaData == nullptr)
+		return ~0u;
+
+	return scriptObjectWrapperMetaData->TypeId;
+}
+
 MonoObject* ManagedTypeUtility::CreateSerializableObject(const SPtr<ManagedTypeInfoObject>& typeInfo)
 {
 	if(typeInfo == nullptr)

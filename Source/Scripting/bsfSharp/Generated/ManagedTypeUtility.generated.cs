@@ -33,6 +33,15 @@ namespace bs
 			return Internal_GetSerializableObjectInfo(objectType);
 		}
 
+		/// <summary>
+		/// Deduces the RTTI ID of the native object that is wrapped by the provided object type. Returns ~0u for types that do 
+		/// not wrap native types.
+		/// </summary>
+		public static int GetRTTITypeId(Type objectType)
+		{
+			return Internal_GetRTTITypeId(objectType);
+		}
+
 		/// <summary>Creates a new instance of a serialized object of the provided type.</summary>
 		public static object CreateSerializableObject(ManagedTypeInfoObject typeInfo)
 		{
@@ -83,6 +92,8 @@ namespace bs
 		private static extern ManagedTypeInfo Internal_GetTypeInfo(Type objectType);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern ManagedObjectInfo Internal_GetSerializableObjectInfo(Type objectType);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		private static extern int Internal_GetRTTITypeId(Type objectType);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern object Internal_CreateSerializableObject(ManagedTypeInfoObject typeInfo);
 		[MethodImpl(MethodImplOptions.InternalCall)]

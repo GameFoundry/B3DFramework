@@ -20,6 +20,7 @@ namespace bs
 	private:
 		static MonoObject* InternalGetTypeInfo(MonoReflectionType* objectType);
 		static MonoObject* InternalGetSerializableObjectInfo(MonoReflectionType* objectType);
+		static uint32_t InternalGetRTTITypeId(MonoReflectionType* objectType);
 		static MonoObject* InternalCreateSerializableObject(MonoObject* typeInfo);
 		static MonoObject* InternalCreateArray(MonoObject* typeInfo, MonoArray* arraySizes);
 		static MonoObject* InternalCreateList(MonoObject* typeInfo, uint32_t size);

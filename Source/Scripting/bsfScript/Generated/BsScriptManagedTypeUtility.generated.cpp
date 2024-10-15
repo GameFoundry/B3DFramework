@@ -36,6 +36,7 @@ namespace bs
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetTypeInfo", (void*)&ScriptManagedTypeUtility::InternalGetTypeInfo);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetSerializableObjectInfo", (void*)&ScriptManagedTypeUtility::InternalGetSerializableObjectInfo);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetRTTITypeId", (void*)&ScriptManagedTypeUtility::InternalGetRTTITypeId);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_CreateSerializableObject", (void*)&ScriptManagedTypeUtility::InternalCreateSerializableObject);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_CreateArray", (void*)&ScriptManagedTypeUtility::InternalCreateArray);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_CreateList", (void*)&ScriptManagedTypeUtility::InternalCreateList);
@@ -67,6 +68,19 @@ namespace bs
 
 		MonoObject* __output;
 		__output = ScriptManagedObjectInfo::GetOrCreateScriptObject(tmp__output);
+
+		return __output;
+	}
+
+	uint32_t ScriptManagedTypeUtility::InternalGetRTTITypeId(MonoReflectionType* objectType)
+	{
+		uint32_t tmp__output;
+		_MonoReflectionType* tmpobjectType;
+		tmpobjectType = objectType;
+		tmp__output = ManagedTypeUtility::GetRTTITypeId(tmpobjectType);
+
+		uint32_t __output;
+		__output = tmp__output;
 
 		return __output;
 	}

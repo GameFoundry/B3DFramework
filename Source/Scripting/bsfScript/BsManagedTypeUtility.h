@@ -30,6 +30,10 @@ namespace bs
 		B3D_SCRIPT_EXPORT()
 		static SPtr<ManagedObjectInfo> GetSerializableObjectInfo(MonoReflectionType* objectType);
 
+		/** Deduces the RTTI ID of the native object that is wrapped by the provided object type. Returns ~0u for types that do not wrap native types. */
+		B3D_SCRIPT_EXPORT()
+		static u32 GetRTTITypeId(MonoReflectionType* objectType);
+
 		/** Creates a new instance of a serialized object of the provided type. */
 		B3D_SCRIPT_EXPORT()
 		static MonoObject* CreateSerializableObject(const SPtr<ManagedTypeInfoObject>& typeInfo);

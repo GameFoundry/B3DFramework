@@ -4583,6 +4583,13 @@ Sprite images also allow you to specify sprite sheet animation by varying which 
 			<returns type="ManagedObjectInfo">
 			</returns>
 		</method>
+		<method native="GetRTTITypeId" script="GetRTTITypeId" static="true">
+			<doc>Deduces the RTTI ID of the native object that is wrapped by the provided object type. Returns ~0u for types that do not wrap native types.</doc>
+			<param name="objectType" type="Type">
+			</param>
+			<returns type="int">
+			</returns>
+		</method>
 		<method native="CreateSerializableObject" script="CreateSerializableObject" static="true">
 			<doc>Creates a new instance of a serialized object of the provided type.</doc>
 			<param name="typeInfo" type="ManagedTypeInfoObject">
