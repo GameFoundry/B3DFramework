@@ -2,7 +2,7 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsCorePrerequisites.h"
+#include "Prerequisites/BsPrerequisitesUtil.h"
 
 namespace bs
 {
@@ -20,7 +20,7 @@ namespace bs
 	 * It is expected each native class exported to script will implement its own version of the script object wrapper, which would provide
 	 * methods to create the script object, and allow the script object to call methods and access data on the native object.
 	 */
-	class B3D_CORE_EXPORT IScriptObjectWrapper
+	class B3D_UTILITY_EXPORT IScriptObjectWrapper
 	{
 	public:
 		IScriptObjectWrapper(IScriptExportable* nativeObject);

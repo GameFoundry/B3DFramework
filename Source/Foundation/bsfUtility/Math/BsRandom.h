@@ -3,6 +3,7 @@
 #pragma once
 
 #include "Prerequisites/BsPrerequisitesUtil.h"
+#include "Script/BsIScriptExportable.h"
 #include "BsVector3.h"
 #include "BsVector2.h"
 
@@ -13,7 +14,7 @@ namespace bs
 	 */
 
 	/** Generates pseudo random numbers using the Xorshift128 algorithm. Suitable for high performance requirements. */
-	class B3D_SCRIPT_EXPORT(DocumentationGroup(Math)) Random
+	class B3D_SCRIPT_EXPORT(DocumentationGroup(Math)) Random : public IScriptExportable
 	{
 	public:
 		/** Initializes a new generator using the specified seed. */

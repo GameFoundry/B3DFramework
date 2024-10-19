@@ -2,7 +2,7 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsCorePrerequisites.h"
+#include "Prerequisites/BsPrerequisitesUtil.h"
 
 namespace bs
 {
@@ -16,7 +16,7 @@ namespace bs
 	 * Interface to be implemented by types that are exported to scripting. Such types should also be decorated with B3D_SCRIPT_EXPORT() macro, along
 	 * with any fields or methods that should be exported.
 	 */
-	class B3D_CORE_EXPORT IScriptExportable
+	class B3D_UTILITY_EXPORT IScriptExportable
 	{
 	public:
 		IScriptExportable() = default;
