@@ -4,29 +4,26 @@
 
 #include "BsScriptEnginePrerequisites.h"
 #include "../../../Foundation/bsfUtility/Math/BsRandom.h"
-#include "BsScriptObject.h"
+#include "BsScriptNonReflectableWrapper.h"
 #include "../../../Foundation/bsfUtility/Math/BsVector3.h"
 #include "../../../Foundation/bsfUtility/Math/BsVector2.h"
 #include "Math/BsDegree.h"
 
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptRandom : public ScriptObject<ScriptRandom>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptRandom : public TScriptNonReflectableWrapper<Random, ScriptRandom>
 	{
 	public:
-		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "Random")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "Random")
 
-		ScriptRandom(MonoObject* managedInstance, const SPtr<Random>& value);
+		ScriptRandom(const SPtr<Random>& nativeObject);
 
 		static void SetupScriptBindings();
 
-		SPtr<Random> GetInternal() const { return mInternal; }
-		static MonoObject* Create(const SPtr<Random>& value);
+		static MonoObject* CreateScriptObject(bool construct);
 
 	private:
-		SPtr<Random> mInternal;
-
-		static void InternalRandom(MonoObject* managedInstance, uint32_t seed);
+		static void InternalRandom(MonoObject* scriptObject, uint32_t seed);
 		static void InternalSetSeed(ScriptRandom* self, uint32_t seed);
 		static uint32_t InternalGet(ScriptRandom* self);
 		static int32_t InternalGetRange(ScriptRandom* self, int32_t min, int32_t max);

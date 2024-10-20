@@ -162,9 +162,9 @@ namespace bs
 		float tmp__output;
 		SPtr<Random> tmpfactor;
 		ScriptRandom* scriptObjectWrapperfactor;
-		scriptObjectWrapperfactor = ScriptRandom::ToNative(factor);
+		scriptObjectWrapperfactor = ScriptRandom::GetScriptObjectWrapper(factor);
 		if(scriptObjectWrapperfactor != nullptr)
-			tmpfactor = scriptObjectWrapperfactor->GetInternal();
+			tmpfactor = std::static_pointer_cast<Random>(scriptObjectWrapperfactor->GetBaseNativeObjectAsShared());
 		tmp__output = static_cast<TDistribution<float>*>(self->GetNativeObject())->Evaluate(t, *tmpfactor);
 
 		float __output;
@@ -312,9 +312,9 @@ namespace bs
 	{
 		SPtr<Random> tmpfactor;
 		ScriptRandom* scriptObjectWrapperfactor;
-		scriptObjectWrapperfactor = ScriptRandom::ToNative(factor);
+		scriptObjectWrapperfactor = ScriptRandom::GetScriptObjectWrapper(factor);
 		if(scriptObjectWrapperfactor != nullptr)
-			tmpfactor = scriptObjectWrapperfactor->GetInternal();
+			tmpfactor = std::static_pointer_cast<Random>(scriptObjectWrapperfactor->GetBaseNativeObjectAsShared());
 		TVector3<float> tmp__output;
 		tmp__output = static_cast<TDistribution<TVector3<float>>*>(self->GetNativeObject())->Evaluate(t, *tmpfactor);
 
@@ -460,9 +460,9 @@ namespace bs
 	{
 		SPtr<Random> tmpfactor;
 		ScriptRandom* scriptObjectWrapperfactor;
-		scriptObjectWrapperfactor = ScriptRandom::ToNative(factor);
+		scriptObjectWrapperfactor = ScriptRandom::GetScriptObjectWrapper(factor);
 		if(scriptObjectWrapperfactor != nullptr)
-			tmpfactor = scriptObjectWrapperfactor->GetInternal();
+			tmpfactor = std::static_pointer_cast<Random>(scriptObjectWrapperfactor->GetBaseNativeObjectAsShared());
 		TVector2<float> tmp__output;
 		tmp__output = static_cast<TDistribution<TVector2<float>>*>(self->GetNativeObject())->Evaluate(t, *tmpfactor);
 

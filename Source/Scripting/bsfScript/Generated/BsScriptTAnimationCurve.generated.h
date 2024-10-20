@@ -18,18 +18,18 @@
 #include "../../../Foundation/bsfCore/Animation/BsAnimationCurve.h"
 #include "BsScriptNonReflectableWrapper.h"
 #include "../../../Foundation/bsfCore/Animation/BsAnimationCurve.h"
-#include "../../../Foundation/bsfCore/Animation/BsAnimationCurve.h"
+#include "../../../Foundation/bsfUtility/Math/BsQuaternion.h"
 #include "../../../Foundation/bsfCore/Animation/BsAnimationCurve.h"
 #include "../../../Foundation/bsfCore/Animation/BsAnimationCurve.h"
 #include "../../../Foundation/bsfUtility/Math/BsVector3.h"
 #include "../../../Foundation/bsfCore/Animation/BsAnimationCurve.h"
 #include "../../../Foundation/bsfCore/Animation/BsAnimationCurve.h"
 #include "../../../Foundation/bsfUtility/Math/BsVector2.h"
-#include "Math/BsQuaternion.h"
+#include "../../../Foundation/bsfCore/Animation/BsAnimationCurve.h"
 
 namespace bs { struct __TKeyframe_TVector3_float__Interop; }
 namespace bs { struct __TKeyframe_TVector2_float__Interop; }
-namespace bs { struct __TKeyframe_Quaternion_Interop; }
+namespace bs { struct __TKeyframe_TQuaternion_float__Interop; }
 namespace bs
 {
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptAnimationCurve : public TScriptNonReflectableWrapper<TAnimationCurve<float>, ScriptAnimationCurve>
@@ -83,12 +83,12 @@ namespace bs
 		static MonoArray* InternalGetKeyFrames(ScriptVector2Curve* self);
 	};
 
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptQuaternionCurve : public TScriptNonReflectableWrapper<TAnimationCurve<Quaternion>, ScriptQuaternionCurve>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptQuaternionCurve : public TScriptNonReflectableWrapper<TAnimationCurve<TQuaternion<float>>, ScriptQuaternionCurve>
 	{
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "QuaternionCurve")
 
-		ScriptQuaternionCurve(const SPtr<TAnimationCurve<Quaternion>>& nativeObject);
+		ScriptQuaternionCurve(const SPtr<TAnimationCurve<TQuaternion<float>>>& nativeObject);
 
 		static void SetupScriptBindings();
 
@@ -96,7 +96,7 @@ namespace bs
 
 	private:
 		static void InternalTAnimationCurve(MonoObject* scriptObject, MonoArray* keyframes);
-		static void InternalEvaluate(ScriptQuaternionCurve* self, float time, bool loop, Quaternion* __output);
+		static void InternalEvaluate(ScriptQuaternionCurve* self, float time, bool loop, TQuaternion<float>* __output);
 		static MonoArray* InternalGetKeyFrames(ScriptQuaternionCurve* self);
 	};
 

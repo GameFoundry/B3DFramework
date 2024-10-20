@@ -4,14 +4,14 @@
 #include "BsMonoMethod.h"
 #include "BsMonoClass.h"
 #include "BsMonoUtil.h"
-#include "BsScriptTKeyframe.generated.h"
+#include "BsScriptTQuaternion.generated.h"
 #include "BsScriptTKeyframe.generated.h"
 #include "BsScriptTKeyframe.generated.h"
 #include "BsScriptTVector3.generated.h"
 #include "BsScriptTKeyframe.generated.h"
 #include "BsScriptTKeyframe.generated.h"
 #include "BsScriptTVector2.generated.h"
-#include "Wrappers/BsScriptQuaternion.h"
+#include "BsScriptTKeyframe.generated.h"
 
 namespace bs
 {
@@ -213,7 +213,7 @@ namespace bs
 		return __output;
 	}
 
-	ScriptQuaternionCurve::ScriptQuaternionCurve(const SPtr<TAnimationCurve<Quaternion>>& nativeObject)
+	ScriptQuaternionCurve::ScriptQuaternionCurve(const SPtr<TAnimationCurve<TQuaternion<float>>>& nativeObject)
 		:TScriptNonReflectableWrapper(nativeObject)
 	{
 		RegisterEvents();
@@ -239,32 +239,32 @@ namespace bs
 	}
 	void ScriptQuaternionCurve::InternalTAnimationCurve(MonoObject* scriptObject, MonoArray* keyframes)
 	{
-		Vector<TKeyframe<Quaternion>> nativeArraykeyframes;
+		Vector<TKeyframe<TQuaternion<float>>> nativeArraykeyframes;
 		if(keyframes != nullptr)
 		{
 			ScriptArray scriptArraykeyframes(keyframes);
 			nativeArraykeyframes.resize(scriptArraykeyframes.Size());
 			for(int elementIndex = 0; elementIndex < (int)scriptArraykeyframes.Size(); elementIndex++)
 			{
-				nativeArraykeyframes[elementIndex] = ScriptKeyFrameQuat::FromInterop(scriptArraykeyframes.Get<__TKeyframe_Quaternion_Interop>(elementIndex));
+				nativeArraykeyframes[elementIndex] = ScriptKeyFrameQuat::FromInterop(scriptArraykeyframes.Get<__TKeyframe_TQuaternion_float__Interop>(elementIndex));
 			}
 		}
-		SPtr<TAnimationCurve<Quaternion>> nativeObject = B3DMakeShared<TAnimationCurve<Quaternion>>(nativeArraykeyframes);
+		SPtr<TAnimationCurve<TQuaternion<float>>> nativeObject = B3DMakeShared<TAnimationCurve<TQuaternion<float>>>(nativeArraykeyframes);
 		ScriptObjectWrapper::Create<ScriptQuaternionCurve>(nativeObject, scriptObject);
 	}
 
-	void ScriptQuaternionCurve::InternalEvaluate(ScriptQuaternionCurve* self, float time, bool loop, Quaternion* __output)
+	void ScriptQuaternionCurve::InternalEvaluate(ScriptQuaternionCurve* self, float time, bool loop, TQuaternion<float>* __output)
 	{
-		Quaternion tmp__output;
-		tmp__output = static_cast<TAnimationCurve<Quaternion>*>(self->GetNativeObject())->Evaluate(time, loop);
+		TQuaternion<float> tmp__output;
+		tmp__output = static_cast<TAnimationCurve<TQuaternion<float>>*>(self->GetNativeObject())->Evaluate(time, loop);
 
 		*__output = tmp__output;
 	}
 
 	MonoArray* ScriptQuaternionCurve::InternalGetKeyFrames(ScriptQuaternionCurve* self)
 	{
-		Vector<TKeyframe<Quaternion>> nativeArray__output;
-		nativeArray__output = static_cast<TAnimationCurve<Quaternion>*>(self->GetNativeObject())->GetKeyFrames();
+		Vector<TKeyframe<TQuaternion<float>>> nativeArray__output;
+		nativeArray__output = static_cast<TAnimationCurve<TQuaternion<float>>*>(self->GetNativeObject())->GetKeyFrames();
 
 		MonoArray* __output;
 		int elementCount__output = (int)nativeArray__output.size();

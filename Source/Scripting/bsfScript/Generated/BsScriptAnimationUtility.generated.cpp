@@ -42,7 +42,7 @@ namespace bs
 	}
 	MonoObject* ScriptAnimationUtility::InternalEulerToQuaternionCurve(MonoObject* eulerCurve, EulerAngleOrder order)
 	{
-		SPtr<TAnimationCurve<Quaternion>> tmp__output;
+		SPtr<TAnimationCurve<TQuaternion<float>>> tmp__output;
 		SPtr<TAnimationCurve<TVector3<float>>> tmpeulerCurve;
 		ScriptVector3Curve* scriptObjectWrappereulerCurve;
 		scriptObjectWrappereulerCurve = ScriptVector3Curve::GetScriptObjectWrapper(eulerCurve);
@@ -59,11 +59,11 @@ namespace bs
 	MonoObject* ScriptAnimationUtility::InternalQuaternionToEulerCurve(MonoObject* quatCurve)
 	{
 		SPtr<TAnimationCurve<TVector3<float>>> tmp__output;
-		SPtr<TAnimationCurve<Quaternion>> tmpquatCurve;
+		SPtr<TAnimationCurve<TQuaternion<float>>> tmpquatCurve;
 		ScriptQuaternionCurve* scriptObjectWrapperquatCurve;
 		scriptObjectWrapperquatCurve = ScriptQuaternionCurve::GetScriptObjectWrapper(quatCurve);
 		if(scriptObjectWrapperquatCurve != nullptr)
-			tmpquatCurve = std::static_pointer_cast<TAnimationCurve<Quaternion>>(scriptObjectWrapperquatCurve->GetBaseNativeObjectAsShared());
+			tmpquatCurve = std::static_pointer_cast<TAnimationCurve<TQuaternion<float>>>(scriptObjectWrapperquatCurve->GetBaseNativeObjectAsShared());
 		tmp__output = AnimationUtility::QuaternionToEulerCurve(tmpquatCurve);
 
 		MonoObject* __output;

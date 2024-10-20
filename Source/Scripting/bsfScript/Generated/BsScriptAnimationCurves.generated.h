@@ -15,7 +15,7 @@
 namespace bs { struct __TNamedAnimationCurve_float_Interop; }
 namespace bs { class AnimationCurvesEx; }
 namespace bs { struct __TNamedAnimationCurve_TVector3_float__Interop; }
-namespace bs { struct __TNamedAnimationCurve_Quaternion_Interop; }
+namespace bs { struct __TNamedAnimationCurve_TQuaternion_float__Interop; }
 namespace bs
 {
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptAnimationCurves : public TScriptNonReflectableWrapper<AnimationCurves, ScriptAnimationCurves>

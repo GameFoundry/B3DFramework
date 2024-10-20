@@ -14,8 +14,8 @@
 #include "BsScriptObjectWrapper.h"
 #include "../../../Foundation/bsfCore/Animation/BsAnimationCurve.h"
 #include "../../../Foundation/bsfUtility/Math/BsVector3.h"
+#include "../../../Foundation/bsfUtility/Math/BsQuaternion.h"
 #include "../../../Foundation/bsfUtility/Math/BsVector2.h"
-#include "Math/BsQuaternion.h"
 
 namespace bs
 {
@@ -91,11 +91,11 @@ namespace bs
 
 	};
 
-	struct __TKeyframe_Quaternion_Interop
+	struct __TKeyframe_TQuaternion_float__Interop
 	{
-		Quaternion Value;
-		Quaternion InTangent;
-		Quaternion OutTangent;
+		TQuaternion<float> Value;
+		TQuaternion<float> InTangent;
+		TQuaternion<float> OutTangent;
 		float Time;
 	};
 
@@ -104,10 +104,10 @@ namespace bs
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "KeyFrameQuat")
 
-		static MonoObject* Box(const __TKeyframe_Quaternion_Interop& value);
-		static __TKeyframe_Quaternion_Interop Unbox(MonoObject* value);
-		static TKeyframe<Quaternion> FromInterop(const __TKeyframe_Quaternion_Interop& value);
-		static __TKeyframe_Quaternion_Interop ToInterop(const TKeyframe<Quaternion>& value);
+		static MonoObject* Box(const __TKeyframe_TQuaternion_float__Interop& value);
+		static __TKeyframe_TQuaternion_float__Interop Unbox(MonoObject* value);
+		static TKeyframe<TQuaternion<float>> FromInterop(const __TKeyframe_TQuaternion_float__Interop& value);
+		static __TKeyframe_TQuaternion_float__Interop ToInterop(const TKeyframe<TQuaternion<float>>& value);
 
 	private:
 		ScriptKeyFrameQuat();

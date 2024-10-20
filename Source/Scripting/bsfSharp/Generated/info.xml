@@ -77,6 +77,66 @@
 			<doc>32-bit indices.</doc>
 		</enumentry>
 	</enum>
+	<struct native="ParticleEmissionMode" script="ParticleEmissionMode">
+		<doc>Controls how are particle positions on a shape chosen.</doc>
+		<ctor>
+		</ctor>
+		<field name="Type" type="ParticleEmissionModeType">
+			<doc>Type that determines general behaviour.</doc>
+		</field>
+		<field name="Speed" type="float">
+			<doc>Speed along which particle generation should move around the shape, relevant for Loop and PingPing emission modes.</doc>
+		</field>
+		<field name="Interval" type="float">
+			<doc>Determines the minimum interval allowed between the generated particles. 0 specifies the particles can be generated anywhere on the shape.</doc>
+		</field>
+	</struct>
+	<struct native="TQuaternion&lt;float&gt;" script="Quaternion">
+		<doc>Represents a quaternion used for 3D rotations.</doc>
+		<ctor>
+		</ctor>
+		<ctor>
+			<param name="w" type="float">
+			</param>
+			<param name="x" type="float">
+			</param>
+			<param name="y" type="float">
+			</param>
+			<param name="z" type="float">
+			</param>
+		</ctor>
+		<field name="X" type="float">
+		</field>
+		<field name="Y" type="float">
+		</field>
+		<field name="Z" type="float">
+		</field>
+		<field name="W" type="float">
+		</field>
+	</struct>
+	<struct native="TQuaternion&lt;double&gt;" script="QuaternionD">
+		<doc>Represents a quaternion used for 3D rotations.</doc>
+		<ctor>
+		</ctor>
+		<ctor>
+			<param name="w" type="double">
+			</param>
+			<param name="x" type="double">
+			</param>
+			<param name="y" type="double">
+			</param>
+			<param name="z" type="double">
+			</param>
+		</ctor>
+		<field name="X" type="double">
+		</field>
+		<field name="Y" type="double">
+		</field>
+		<field name="Z" type="double">
+		</field>
+		<field name="W" type="double">
+		</field>
+	</struct>
 	<enum native="EulerAngleOrder" script="EulerAngleOrder">
 		<doc>Values that represent in which order are euler angles applied when used in transformations.</doc>
 		<enumentry native="XYZ" script="XYZ">
@@ -324,6 +384,21 @@
 		<enumentry native="Positive" script="Positive">
 		</enumentry>
 	</enum>
+	<struct native="ColorGradientKey" script="ColorGradientKey">
+		<doc>Single key in a ColorGradient.</doc>
+		<ctor>
+		</ctor>
+		<ctor>
+			<param name="color" type="Color">
+			</param>
+			<param name="time" type="float">
+			</param>
+		</ctor>
+		<field name="Color" type="Color">
+		</field>
+		<field name="Time" type="float">
+		</field>
+	</struct>
 	<struct native="LogEntry" script="LogEntry">
 		<doc>A single log entry, containing a message and a channel the message was recorded on.</doc>
 		<ctor>
@@ -338,120 +413,329 @@
 			<doc>Local time of message</doc>
 		</field>
 	</struct>
-	<struct native="PARTICLE_CIRCLE_SHAPE_DESC" script="ParticleCircleShapeOptions">
-		<doc>Information describing a ParticleEmitterCircleShape.</doc>
-		<ctor>
-		</ctor>
-		<field name="Radius" type="float">
-			<doc>Radius of the circle.</doc>
-		</field>
-		<field name="Thickness" type="float">
-			<doc>Proportion of the surface that can emit particles. Thickness of 0 results in particles being emitted only from the edge of the circle, while thickness of 1 results in particles being emitted from the entire surface. In-between values will use a part of the surface.</doc>
-		</field>
-		<field name="Arc" type="Degree">
-			<doc>Angular portion of the cone from which to emit particles from, in degrees.</doc>
-		</field>
-		<field name="Mode" type="ParticleEmissionMode">
-			<doc>Determines how will particle positions on the shape be generated.</doc>
-		</field>
-	</struct>
-	<enum native="ChromaticAberrationType" script="ChromaticAberrationType">
-		<doc>Types of available chromatic aberration effects.</doc>
-		<enumentry native="Complex" script="Complex">
-			<doc>More complex chromatic aberration effect that takes longer to execute but may yield more visually pleasing results than the simple variant.</doc>
-		</enumentry>
-		<enumentry native="Simple" script="Simple">
-			<doc>Simple chromatic aberration effect that is fast to execute.</doc>
-		</enumentry>
-	</enum>
-	<class native="HString" script="LocString">
-		<doc>String handle. Provides a wrapper around an Unicode string, primarily for localization purposes.
-Actual value for this string is looked up in a global string table based on the provided identifier string and currently active language. If such value doesn&apos;t exist then the identifier is used as is.
-Use {0}, {1}, etc. in the string value for values that might change dynamically.</doc>
-		<ctor>
-			<doc>Creates a new localized string with the specified identifier. If the identifier doesn&apos;t previously exist in the string table, identifier value will also be used for initializing the default language version of the string.</doc>
-			<param name="identifier" type="string">
-				<doc>String you can use for later referencing the localized string.</doc>
-			</param>
-			<param name="stringTableId" type="int">
-				<doc>Unique identifier of the string table to retrieve the string from.</doc>
-			</param>
-		</ctor>
-		<ctor>
-			<doc>Creates a new localized string with the specified identifier and sets the default language version of the string. If a string with that identifier already exists default language string will be updated.</doc>
-			<param name="identifier" type="string">
-				<doc>String you can use for later referencing the localized string.</doc>
-			</param>
-			<param name="defaultString" type="string">
-				<doc>Default string to assign to the specified identifier. Language to which it will be assigned depends on the StringTable::DEFAULT_LANGUAGE value.</doc>
-			</param>
-			<param name="stringTableId" type="int">
-				<doc>Unique identifier of the string table to retrieve the string from.</doc>
-			</param>
-		</ctor>
-		<ctor>
-			<doc>Creates a new empty localized string.</doc>
-			<param name="stringTableId" type="int">
-				<doc>Unique identifier of the string table to retrieve the string from.</doc>
-			</param>
-		</ctor>
-		<ctor>
-			<doc>Creates a new empty localized string.</doc>
-		</ctor>
-		<method native="SetParameter" script="SetParameter" static="false">
-			<doc>Sets a value of a string parameter. Parameters are specified as bracketed values within the string itself (for example {0}, {1}) etc. Use ^ as an escape character.</doc>
-			<param name="idx" type="int">
-			</param>
-			<param name="value" type="string">
+	<class native="ApplicationEx" script="Application">
+		<doc>Script-exported API for Application.</doc>
+		<method native="StartUp" script="StartUp" static="true">
+			<param name="desc" type="StartUpDesc">
 			</param>
 		</method>
+		<method native="StartUp" script="StartUp" static="true">
+			<param name="videoMode" type="VideoMode">
+			</param>
+			<param name="title" type="string">
+			</param>
+			<param name="fullscreen" type="bool">
+			</param>
+		</method>
+		<method native="RunMainLoop" script="RunMainLoop" static="true">
+		</method>
+		<method native="ShutDown" script="ShutDown" static="true">
+		</method>
 	</class>
-	<struct native="TVector3&lt;float&gt;" script="Vector3">
-		<doc>A three dimensional vector.</doc>
+	<enum native="ProjectionType" script="ProjectionType">
+		<doc>Projection type to use by the camera.</doc>
+		<enumentry native="PT_ORTHOGRAPHIC" script="Orthographic">
+			<doc>Projection type where object size remains constant and parallel lines remain parallel.</doc>
+		</enumentry>
+		<enumentry native="PT_PERSPECTIVE" script="Perspective">
+			<doc>Projection type that emulates human vision. Objects farther away appear smaller.</doc>
+		</enumentry>
+	</enum>
+	<class native="ColorGradient" script="ColorGradient">
+		<doc>Represents a range of color values over some parameters, similar to a curve. Internally represented as a set of keys that get interpolated between. Stores colors as 32-bit integers, and is therefor unable to represent a color range outside of [0, 1] - see ColorGradientHDR for an alternative.</doc>
 		<ctor>
 		</ctor>
 		<ctor>
-			<param name="x" type="float">
-			</param>
-			<param name="y" type="float">
-			</param>
-			<param name="z" type="float">
+			<param name="color" type="Color">
 			</param>
 		</ctor>
 		<ctor>
-			<param name="vec" type="Vector4">
+			<param name="keys" type="ColorGradientKey">
 			</param>
 		</ctor>
-		<field name="X" type="float">
+		<method native="SetKeys" script="SetKeys" static="false">
+			<doc>Keys that control the gradient, sorted by time from first to last. Key times should be in range [0, 1].</doc>
+			<param name="keys" type="ColorGradientKey">
+			</param>
+			<param name="duration" type="float">
+			</param>
+		</method>
+		<method native="GetKeys" script="GetKeys" static="false">
+			<returns type="ColorGradientKey">
+			</returns>
+		</method>
+		<method native="GetKey" script="GetKey" static="false">
+			<doc>Returns the color key at the specified index. If out of range an empty key is returned.</doc>
+			<param name="idx" type="int">
+			</param>
+			<returns type="ColorGradientKey">
+			</returns>
+		</method>
+		<method native="SetConstant" script="SetConstant" static="false">
+			<doc>Specify a &quot;gradient&quot; that represents a single color value.</doc>
+			<param name="color" type="Color">
+			</param>
+		</method>
+		<method native="Evaluate" script="Evaluate" static="false">
+			<param name="t" type="float">
+			</param>
+			<returns type="Color">
+			</returns>
+		</method>
+		<property name="NumKeys" type="int" getter="GetNumKeys" setter="" static="false">
+			<doc>Returns the number of color keys in the gradient.</doc>
+		</property>
+	</class>
+	<enum native="PropertyDistributionType" script="PropertyDistributionType">
+		<doc>Determines type of distribution used by distribution properties.</doc>
+		<enumentry native="PDT_Constant" script="Constant">
+			<doc>The distribution is a costant value.</doc>
+		</enumentry>
+		<enumentry native="PDT_RandomRange" script="RandomRange">
+			<doc>The distribution is a random value in a specified constant range.</doc>
+		</enumentry>
+		<enumentry native="PDT_Curve" script="Curve">
+			<doc>The distribution is a time-varying value.</doc>
+		</enumentry>
+		<enumentry native="PDT_RandomCurveRange" script="RandomCurveRange">
+			<doc>The distribution is a random value in a specified time-varying range.</doc>
+		</enumentry>
+	</enum>
+	<class native="TAnimationCurve&lt;float&gt;" script="AnimationCurve">
+		<doc>Animation spline represented by a set of keyframes, each representing an endpoint of a cubic hermite curve. The spline can be evaluated at any time, and uses caching to speed up multiple sequential evaluations.</doc>
+		<ctor>
+			<doc>Creates a new animation curve.</doc>
+			<param name="keyframes" type="KeyFrame">
+				<doc>Keyframes to initialize the curve with. They must be sorted by time.</doc>
+			</param>
+		</ctor>
+		<method native="Evaluate" script="Evaluate" static="false">
+			<doc>Evaluate the animation curve at the specified time. If evaluating multiple values in a sequential order consider using the cached version of evaluate() for better performance.</doc>
+			<param name="time" type="float">
+				<doc>%Time to evaluate the curve at.</doc>
+			</param>
+			<param name="loop" type="bool">
+				<doc>If true the curve will loop when it goes past the end or beggining. Otherwise the curve value will be clamped.</doc>
+			</param>
+			<returns type="float">
+				<doc>Interpolated value from the curve at provided time.</doc>
+			</returns>
+		</method>
+		<property name="KeyFrames" type="KeyFrame" getter="GetKeyFrames" setter="" static="false">
+			<doc>Returns a list of all keyframes in the curve.</doc>
+		</property>
+	</class>
+	<class native="TAnimationCurve&lt;TVector3&lt;float&gt;&gt;" script="Vector3Curve">
+		<doc>Animation spline represented by a set of keyframes, each representing an endpoint of a cubic hermite curve. The spline can be evaluated at any time, and uses caching to speed up multiple sequential evaluations.</doc>
+		<ctor>
+			<doc>Creates a new animation curve.</doc>
+			<param name="keyframes" type="KeyFrameVec3">
+				<doc>Keyframes to initialize the curve with. They must be sorted by time.</doc>
+			</param>
+		</ctor>
+		<method native="Evaluate" script="Evaluate" static="false">
+			<doc>Evaluate the animation curve at the specified time. If evaluating multiple values in a sequential order consider using the cached version of evaluate() for better performance.</doc>
+			<param name="time" type="float">
+				<doc>%Time to evaluate the curve at.</doc>
+			</param>
+			<param name="loop" type="bool">
+				<doc>If true the curve will loop when it goes past the end or beggining. Otherwise the curve value will be clamped.</doc>
+			</param>
+			<returns type="Vector3">
+				<doc>Interpolated value from the curve at provided time.</doc>
+			</returns>
+		</method>
+		<property name="KeyFrames" type="KeyFrameVec3" getter="GetKeyFrames" setter="" static="false">
+			<doc>Returns a list of all keyframes in the curve.</doc>
+		</property>
+	</class>
+	<class native="TAnimationCurve&lt;TVector2&lt;float&gt;&gt;" script="Vector2Curve">
+		<doc>Animation spline represented by a set of keyframes, each representing an endpoint of a cubic hermite curve. The spline can be evaluated at any time, and uses caching to speed up multiple sequential evaluations.</doc>
+		<ctor>
+			<doc>Creates a new animation curve.</doc>
+			<param name="keyframes" type="KeyFrameVec2">
+				<doc>Keyframes to initialize the curve with. They must be sorted by time.</doc>
+			</param>
+		</ctor>
+		<method native="Evaluate" script="Evaluate" static="false">
+			<doc>Evaluate the animation curve at the specified time. If evaluating multiple values in a sequential order consider using the cached version of evaluate() for better performance.</doc>
+			<param name="time" type="float">
+				<doc>%Time to evaluate the curve at.</doc>
+			</param>
+			<param name="loop" type="bool">
+				<doc>If true the curve will loop when it goes past the end or beggining. Otherwise the curve value will be clamped.</doc>
+			</param>
+			<returns type="Vector2">
+				<doc>Interpolated value from the curve at provided time.</doc>
+			</returns>
+		</method>
+		<property name="KeyFrames" type="KeyFrameVec2" getter="GetKeyFrames" setter="" static="false">
+			<doc>Returns a list of all keyframes in the curve.</doc>
+		</property>
+	</class>
+	<class native="TAnimationCurve&lt;TQuaternion&lt;float&gt;&gt;" script="QuaternionCurve">
+		<doc>Animation spline represented by a set of keyframes, each representing an endpoint of a cubic hermite curve. The spline can be evaluated at any time, and uses caching to speed up multiple sequential evaluations.</doc>
+		<ctor>
+			<doc>Creates a new animation curve.</doc>
+			<param name="keyframes" type="KeyFrameQuat">
+				<doc>Keyframes to initialize the curve with. They must be sorted by time.</doc>
+			</param>
+		</ctor>
+		<method native="Evaluate" script="Evaluate" static="false">
+			<doc>Evaluate the animation curve at the specified time. If evaluating multiple values in a sequential order consider using the cached version of evaluate() for better performance.</doc>
+			<param name="time" type="float">
+				<doc>%Time to evaluate the curve at.</doc>
+			</param>
+			<param name="loop" type="bool">
+				<doc>If true the curve will loop when it goes past the end or beggining. Otherwise the curve value will be clamped.</doc>
+			</param>
+			<returns type="Quaternion">
+				<doc>Interpolated value from the curve at provided time.</doc>
+			</returns>
+		</method>
+		<property name="KeyFrames" type="KeyFrameQuat" getter="GetKeyFrames" setter="" static="false">
+			<doc>Returns a list of all keyframes in the curve.</doc>
+		</property>
+	</class>
+	<class native="TAnimationCurve&lt;int32_t&gt;" script="IntegerCurve">
+		<doc>Animation spline represented by a set of keyframes, each representing an endpoint of a cubic hermite curve. The spline can be evaluated at any time, and uses caching to speed up multiple sequential evaluations.</doc>
+		<ctor>
+			<doc>Creates a new animation curve.</doc>
+			<param name="keyframes" type="KeyFrameInt">
+				<doc>Keyframes to initialize the curve with. They must be sorted by time.</doc>
+			</param>
+		</ctor>
+		<method native="Evaluate" script="Evaluate" static="false">
+			<doc>Evaluate the animation curve at the specified time. If evaluating multiple values in a sequential order consider using the cached version of evaluate() for better performance.</doc>
+			<param name="time" type="float">
+				<doc>%Time to evaluate the curve at.</doc>
+			</param>
+			<param name="loop" type="bool">
+				<doc>If true the curve will loop when it goes past the end or beggining. Otherwise the curve value will be clamped.</doc>
+			</param>
+			<returns type="int">
+				<doc>Interpolated value from the curve at provided time.</doc>
+			</returns>
+		</method>
+		<property name="KeyFrames" type="KeyFrameInt" getter="GetKeyFrames" setter="" static="false">
+			<doc>Returns a list of all keyframes in the curve.</doc>
+		</property>
+	</class>
+	<class native="MultiResource" script="MultiResource">
+		<doc>Contains a group of resources imported from a single source file.</doc>
+		<ctor>
+		</ctor>
+		<ctor>
+			<param name="entries" type="SubResource">
+			</param>
+		</ctor>
+		<property name="Entries" type="SubResource" getter="GetEntries" setter="SetEntries" static="false">
+		</property>
+	</class>
+	<struct native="RENDER_WINDOW_DESC" script="RenderWindowDesc">
+		<doc>Structure that is used for initializing a render window.</doc>
+		<ctor>
+		</ctor>
+		<field name="VideoMode" type="VideoMode">
+			<doc>Output monitor, frame buffer resize and refresh rate.</doc>
 		</field>
-		<field name="Y" type="float">
+		<field name="Fullscreen" type="bool">
+			<doc>Should the window be opened in fullscreen mode.</doc>
 		</field>
-		<field name="Z" type="float">
+		<field name="Vsync" type="bool">
+			<doc>Should the window wait for vertical sync before swapping buffers.</doc>
+		</field>
+		<field name="VsyncInterval" type="int">
+			<doc>Determines how many vsync intervals occur per frame. FPS = refreshRate/interval. Usually 1 when vsync active.</doc>
+		</field>
+		<field name="Hidden" type="bool">
+			<doc>Should the window be hidden initially.</doc>
+		</field>
+		<field name="DepthBuffer" type="bool">
+			<doc>Should the window be created with a depth/stencil buffer.</doc>
+		</field>
+		<field name="MultisampleCount" type="int">
+			<doc>If higher than 1, texture containing multiple samples per pixel is created.</doc>
+		</field>
+		<field name="MultisampleHint" type="string">
+			<doc>Hint about what kind of multisampling to use. Render system specific.</doc>
+		</field>
+		<field name="Gamma" type="bool">
+			<doc>Should the written color pixels be gamma corrected before write.</doc>
+		</field>
+		<field name="Left" type="int">
+			<doc>Window origin on X axis in pixels. -1 == screen center. Relative to monitor provided in videoMode.</doc>
+		</field>
+		<field name="Top" type="int">
+			<doc>Window origin on Y axis in pixels. -1 == screen center. Relative to monitor provided in videoMode.</doc>
+		</field>
+		<field name="Title" type="string">
+			<doc>Title of the window.</doc>
+		</field>
+		<field name="ShowTitleBar" type="bool">
+			<doc>Determines if the title-bar should be shown or not.</doc>
+		</field>
+		<field name="ShowBorder" type="bool">
+			<doc>Determines if the window border should be shown or not.</doc>
+		</field>
+		<field name="AllowResize" type="bool">
+			<doc>Determines if the user can resize the window by dragging on the window edges.</doc>
+		</field>
+		<field name="ToolWindow" type="bool">
+			<doc>Tool windows have no task bar entry and always remain on top of their parent window.</doc>
+		</field>
+		<field name="Modal" type="bool">
+			<doc>When a modal window is open all other windows will be locked until modal window is closed.</doc>
+		</field>
+		<field name="HideUntilSwap" type="bool">
+			<doc>Window will be created as hidden and only be shown when the first framebuffer swap happens.</doc>
 		</field>
 	</struct>
-	<struct native="TVector3&lt;double&gt;" script="Vector3D">
-		<doc>A three dimensional vector.</doc>
+	<class native="ColorGradientHDR" script="ColorGradientHDR">
+		<doc>Represents a range of color values over some parameters, similar to a curve. Internally represented as a set of keys that get interpolated between. Capable of representing HDR colors, unlike the normal ColorGradient.</doc>
 		<ctor>
 		</ctor>
 		<ctor>
-			<param name="x" type="double">
-			</param>
-			<param name="y" type="double">
-			</param>
-			<param name="z" type="double">
+			<param name="color" type="Color">
 			</param>
 		</ctor>
 		<ctor>
-			<param name="vec" type="Vector4">
+			<param name="keys" type="ColorGradientKey">
 			</param>
 		</ctor>
-		<field name="X" type="double">
-		</field>
-		<field name="Y" type="double">
-		</field>
-		<field name="Z" type="double">
-		</field>
-	</struct>
+		<method native="SetKeys" script="SetKeys" static="false">
+			<doc>Keys that control the gradient, sorted by time from first to last. Key times should be in range [0, 1].</doc>
+			<param name="keys" type="ColorGradientKey">
+			</param>
+			<param name="duration" type="float">
+			</param>
+		</method>
+		<method native="GetKeys" script="GetKeys" static="false">
+			<returns type="ColorGradientKey">
+			</returns>
+		</method>
+		<method native="GetKey" script="GetKey" static="false">
+			<doc>Returns the color key at the specified index. If out of range an empty key is returned.</doc>
+			<param name="idx" type="int">
+			</param>
+			<returns type="ColorGradientKey">
+			</returns>
+		</method>
+		<method native="SetConstant" script="SetConstant" static="false">
+			<doc>Specify a &quot;gradient&quot; that represents a single color value.</doc>
+			<param name="color" type="Color">
+			</param>
+		</method>
+		<method native="Evaluate" script="Evaluate" static="false">
+			<param name="t" type="float">
+			</param>
+			<returns type="Color">
+			</returns>
+		</method>
+		<property name="NumKeys" type="int" getter="GetNumKeys" setter="" static="false">
+			<doc>Returns the number of color keys in the gradient.</doc>
+		</property>
+	</class>
 	<enum native="AudioFormat" script="AudioFormat">
 		<doc>Valid internal engine audio formats.</doc>
 		<enumentry native="PCM" script="PCM">
@@ -500,6 +784,348 @@ Use {0}, {1}, etc. in the string value for values that might change dynamically.
 		<field name="X" type="double">
 		</field>
 		<field name="Y" type="double">
+		</field>
+	</struct>
+	<struct native="Blend1DInfo" script="Blend1DInfo">
+		<doc>Defines a 1D blend where multiple animation clips are blended between each other using linear interpolation.</doc>
+		<field name="Clips" type="BlendClipInfo">
+		</field>
+	</struct>
+	<struct native="TVector2I&lt;int32_t&gt;" script="Vector2I">
+		<doc>A two dimensional vector with integer coordinates.</doc>
+		<ctor>
+		</ctor>
+		<ctor>
+			<param name="x" type="int">
+			</param>
+			<param name="y" type="int">
+			</param>
+		</ctor>
+		<ctor>
+			<param name="value" type="int">
+			</param>
+		</ctor>
+		<field name="X" type="int">
+		</field>
+		<field name="Y" type="int">
+		</field>
+	</struct>
+	<struct native="TVector2I&lt;uint32_t&gt;" script="Vector2UI">
+		<doc>A two dimensional vector with integer coordinates.</doc>
+		<ctor>
+		</ctor>
+		<ctor>
+			<param name="x" type="int">
+			</param>
+			<param name="y" type="int">
+			</param>
+		</ctor>
+		<ctor>
+			<param name="value" type="int">
+			</param>
+		</ctor>
+		<field name="X" type="int">
+		</field>
+		<field name="Y" type="int">
+		</field>
+	</struct>
+	<struct native="TVector3&lt;float&gt;" script="Vector3">
+		<doc>A three dimensional vector.</doc>
+		<ctor>
+		</ctor>
+		<ctor>
+			<param name="x" type="float">
+			</param>
+			<param name="y" type="float">
+			</param>
+			<param name="z" type="float">
+			</param>
+		</ctor>
+		<ctor>
+			<param name="vec" type="Vector4">
+			</param>
+		</ctor>
+		<field name="X" type="float">
+		</field>
+		<field name="Y" type="float">
+		</field>
+		<field name="Z" type="float">
+		</field>
+	</struct>
+	<struct native="TVector3&lt;double&gt;" script="Vector3D">
+		<doc>A three dimensional vector.</doc>
+		<ctor>
+		</ctor>
+		<ctor>
+			<param name="x" type="double">
+			</param>
+			<param name="y" type="double">
+			</param>
+			<param name="z" type="double">
+			</param>
+		</ctor>
+		<ctor>
+			<param name="vec" type="Vector4">
+			</param>
+		</ctor>
+		<field name="X" type="double">
+		</field>
+		<field name="Y" type="double">
+		</field>
+		<field name="Z" type="double">
+		</field>
+	</struct>
+	<class native="RenderTexture" script="RenderTexture">
+		<doc>Render target specialization that allows you to render into one or multiple textures. Such textures can then be used in other operations as GPU program input.</doc>
+		<ctor>
+			<doc>Creates a new 2D render texture.</doc>
+			<param name="format" type="PixelFormat">
+				<doc>Pixel format of the texture. Format must be a valid uncompressed color format.</doc>
+			</param>
+			<param name="width" type="int">
+				<doc>Width of the texture in pixels.</doc>
+			</param>
+			<param name="height" type="int">
+				<doc>Height of the texture in pixels.</doc>
+			</param>
+			<param name="numSamples" type="int">
+				<doc>Number of samples contained per pixel.</doc>
+			</param>
+			<param name="gammaCorrection" type="bool">
+				<doc>Determines should the pixels written on the texture be gamma corrected.</doc>
+			</param>
+			<param name="createDepth" type="bool">
+				<doc>Should the render texture also contain a depth/stencil buffer.</doc>
+			</param>
+			<param name="depthStencilFormat" type="PixelFormat">
+				<doc>Format of the depth/stencil buffer, if <paramref name="createDepth"/> is enabled. Format must be a valid depth/stencil format.</doc>
+			</param>
+		</ctor>
+		<ctor>
+			<doc>Creates a new 2D render texture using an existing color texture, and no depth-stencil texture.</doc>
+			<param name="colorSurface" type="Texture">
+				<doc>Color texture to render color data to.</doc>
+			</param>
+		</ctor>
+		<ctor>
+			<doc>Creates a new 2D render texture using existing textures as render destinations.</doc>
+			<param name="colorSurface" type="Texture">
+				<doc>Color texture to render color data to.</doc>
+			</param>
+			<param name="depthStencilSurface" type="Texture">
+				<doc>Optional depth/stencil texture to render depth/stencil data to.</doc>
+			</param>
+		</ctor>
+		<ctor>
+			<doc>Creates a new 2D render texture using one or multiple color textures and no depth-stencil texture.</doc>
+			<param name="colorSurface" type="Texture">
+				<doc>Color texture(s) to render color data to.</doc>
+			</param>
+		</ctor>
+		<ctor>
+			<doc>Creates a new 2D render texture using one or multiple color textures and a depth/stencil texture.</doc>
+			<param name="colorSurface" type="Texture">
+				<doc>Color texture(s) to render color data to.</doc>
+			</param>
+			<param name="depthStencilSurface" type="Texture">
+				<doc>Optional depth/stencil texture to render depth/stencil data to.</doc>
+			</param>
+		</ctor>
+		<property name="ColorSurface" type="Texture" getter="GetColorSurface" setter="" static="false">
+			<doc>Returns the primary color surface that contains rendered color data.</doc>
+		</property>
+		<property name="ColorSurfaces" type="Texture" getter="GetColorSurfaces" setter="" static="false">
+			<doc>Returns all the color surfaces.</doc>
+		</property>
+		<property name="DepthStencilSurface" type="Texture" getter="GetDepthStencilSurface" setter="" static="false">
+			<doc>Returns the depth/stencil surface that contains rendered depth and stencil data.</doc>
+		</property>
+	</class>
+	<enum native="TextureType" script="TextureType">
+		<doc>Available texture types.</doc>
+		<enumentry native="TEX_TYPE_CUBE_MAP" script="TextureCube">
+			<doc>Texture consisting out of six 2D textures describing an inside of a cube. Allows special sampling.</doc>
+		</enumentry>
+		<enumentry native="TEX_TYPE_1D" script="Texture1D">
+			<doc>One dimensional texture. Just a row of pixels.</doc>
+		</enumentry>
+		<enumentry native="TEX_TYPE_2D" script="Texture2D">
+			<doc>Two dimensional texture.</doc>
+		</enumentry>
+		<enumentry native="TEX_TYPE_3D" script="Texture3D">
+			<doc>Three dimensional texture.</doc>
+		</enumentry>
+	</enum>
+	<struct native="TVector4&lt;float&gt;" script="Vector4">
+		<doc>A four dimensional vector.</doc>
+		<ctor>
+		</ctor>
+		<ctor>
+			<param name="x" type="float">
+			</param>
+			<param name="y" type="float">
+			</param>
+			<param name="z" type="float">
+			</param>
+			<param name="w" type="float">
+			</param>
+		</ctor>
+		<field name="X" type="float">
+		</field>
+		<field name="Y" type="float">
+		</field>
+		<field name="Z" type="float">
+		</field>
+		<field name="W" type="float">
+		</field>
+	</struct>
+	<struct native="TVector4&lt;double&gt;" script="Vector4D">
+		<doc>A four dimensional vector.</doc>
+		<ctor>
+		</ctor>
+		<ctor>
+			<param name="x" type="double">
+			</param>
+			<param name="y" type="double">
+			</param>
+			<param name="z" type="double">
+			</param>
+			<param name="w" type="double">
+			</param>
+		</ctor>
+		<field name="X" type="double">
+		</field>
+		<field name="Y" type="double">
+		</field>
+		<field name="Z" type="double">
+		</field>
+		<field name="W" type="double">
+		</field>
+	</struct>
+	<struct native="TPlane&lt;float&gt;" script="Plane">
+		<doc>A plane represented by a normal and a distance.</doc>
+		<field name="Normal" type="Vector3">
+		</field>
+		<field name="D" type="float">
+		</field>
+	</struct>
+	<struct native="TPlane&lt;double&gt;" script="PlaneD">
+		<doc>A plane represented by a normal and a distance.</doc>
+		<field name="Normal" type="Vector3D">
+		</field>
+		<field name="D" type="double">
+		</field>
+	</struct>
+	<enum native="TangentType" script="TangentType">
+		<doc>Type of tangent on a keyframe in an animation curve.</doc>
+		<enumentry native="In" script="In">
+		</enumentry>
+		<enumentry native="Out" script="Out">
+		</enumentry>
+	</enum>
+	<struct native="TAABox&lt;float&gt;" script="AABox">
+		<doc>Axis aligned box represented by minimum and maximum point.</doc>
+		<ctor>
+		</ctor>
+		<field name="Minimum" type="Vector3">
+		</field>
+		<field name="Maximum" type="Vector3">
+		</field>
+	</struct>
+	<struct native="TAABox&lt;double&gt;" script="AABoxD">
+		<doc>Axis aligned box represented by minimum and maximum point.</doc>
+		<ctor>
+		</ctor>
+		<field name="Minimum" type="Vector3D">
+		</field>
+		<field name="Maximum" type="Vector3D">
+		</field>
+	</struct>
+	<struct native="BlendClipInfo" script="BlendClipInfo">
+		<doc>Represents an animation clip used in 1D blending. Each clip has a position on the number line.</doc>
+		<ctor>
+		</ctor>
+		<field name="Clip" type="RRef&lt;AnimationClip&gt;">
+		</field>
+		<field name="Position" type="float">
+		</field>
+	</struct>
+	<struct native="KeyframeRef" script="KeyframeRef">
+		<ctor>
+		</ctor>
+		<ctor>
+			<param name="curveIdx" type="int">
+			</param>
+			<param name="keyIdx" type="int">
+			</param>
+		</ctor>
+		<field name="CurveIdx" type="int">
+		</field>
+		<field name="KeyIdx" type="int">
+		</field>
+	</struct>
+	<class native="GUILabel" script="GUILabel">
+		<doc>GUI element that displays text and optionally a content image.</doc>
+		<method native="SetContent" script="SetContent" static="false">
+			<doc>Changes the active content of the label.</doc>
+			<param name="content" type="GUIContent">
+			</param>
+		</method>
+		<ctor>
+			<doc>Creates a new GUI element.</doc>
+			<param name="contents" type="GUIContent">
+				<doc>Structure describing the contents of the GUI element to create.</doc>
+			</param>
+			<param name="styleClass" type="string">
+				<doc>Style class that will be used for determining GUI element visuals from the current style sheet. If no class is provided, default style is determined based on GUI element type.</doc>
+			</param>
+			<param name="options" type="GUIOption">
+				<doc>Additional options that control GUI element size and position. This will override options set in the style sheet.</doc>
+			</param>
+		</ctor>
+		<ctor>
+			<doc>Creates a new GUI element.</doc>
+			<param name="contents" type="GUIContent">
+				<doc>Structure describing the contents of the GUI element to create.</doc>
+			</param>
+			<param name="options" type="GUIOption">
+				<doc>Additional options that control GUI element size and position. This will override options set in the style sheet.</doc>
+			</param>
+		</ctor>
+		<ctor>
+			<doc>Creates a new GUI element.</doc>
+			<param name="styleClass" type="string">
+				<doc>Style class that will be used for determining GUI element visuals from the current style sheet. If no class is provided, default style is determined based on GUI element type.</doc>
+			</param>
+			<param name="options" type="GUIOption">
+				<doc>Additional options that control GUI element size and position. This will override options set in the style sheet.</doc>
+			</param>
+		</ctor>
+		<ctor>
+			<doc>Creates a new GUI element.</doc>
+			<param name="options" type="GUIOption">
+				<doc>Additional options that control GUI element size and position. This will override options set in the style sheet.</doc>
+			</param>
+		</ctor>
+	</class>
+	<struct native="TSphere&lt;float&gt;" script="Sphere">
+		<doc>A sphere represented by a center point and a radius.</doc>
+		<ctor>
+			<doc>Default constructor. Creates a unit sphere around the origin.</doc>
+		</ctor>
+		<field name="Radius" type="float">
+		</field>
+		<field name="Center" type="Vector3">
+		</field>
+	</struct>
+	<struct native="TSphere&lt;double&gt;" script="SphereD">
+		<doc>A sphere represented by a center point and a radius.</doc>
+		<ctor>
+			<doc>Default constructor. Creates a unit sphere around the origin.</doc>
+		</ctor>
+		<field name="Radius" type="double">
+		</field>
+		<field name="Center" type="Vector3D">
 		</field>
 	</struct>
 	<class native="Random" script="Random">
@@ -594,206 +1220,304 @@ Use {0}, {1}, etc. in the string value for values that might change dynamically.
 			</returns>
 		</method>
 	</class>
-	<struct native="TVector4&lt;float&gt;" script="Vector4">
-		<doc>A four dimensional vector.</doc>
+	<struct native="TRay&lt;float&gt;" script="Ray">
+		<doc>A ray in 3D space represented with an origin and direction.</doc>
 		<ctor>
 		</ctor>
-		<ctor>
-			<param name="x" type="float">
-			</param>
-			<param name="y" type="float">
-			</param>
-			<param name="z" type="float">
-			</param>
-			<param name="w" type="float">
-			</param>
-		</ctor>
-		<field name="X" type="float">
+		<field name="Origin" type="Vector3">
 		</field>
-		<field name="Y" type="float">
-		</field>
-		<field name="Z" type="float">
-		</field>
-		<field name="W" type="float">
+		<field name="Direction" type="Vector3">
 		</field>
 	</struct>
-	<struct native="TVector4&lt;double&gt;" script="Vector4D">
-		<doc>A four dimensional vector.</doc>
+	<struct native="TRay&lt;double&gt;" script="RayD">
+		<doc>A ray in 3D space represented with an origin and direction.</doc>
 		<ctor>
 		</ctor>
-		<ctor>
-			<param name="x" type="double">
-			</param>
-			<param name="y" type="double">
-			</param>
-			<param name="z" type="double">
-			</param>
-			<param name="w" type="double">
-			</param>
-		</ctor>
-		<field name="X" type="double">
+		<field name="Origin" type="Vector3D">
 		</field>
-		<field name="Y" type="double">
-		</field>
-		<field name="Z" type="double">
-		</field>
-		<field name="W" type="double">
+		<field name="Direction" type="Vector3D">
 		</field>
 	</struct>
-	<class native="RenderTexture" script="RenderTexture">
-		<doc>Render target specialization that allows you to render into one or multiple textures. Such textures can then be used in other operations as GPU program input.</doc>
-		<ctor>
-			<doc>Creates a new 2D render texture.</doc>
-			<param name="format" type="PixelFormat">
-				<doc>Pixel format of the texture. Format must be a valid uncompressed color format.</doc>
-			</param>
-			<param name="width" type="int">
-				<doc>Width of the texture in pixels.</doc>
-			</param>
-			<param name="height" type="int">
-				<doc>Height of the texture in pixels.</doc>
-			</param>
-			<param name="numSamples" type="int">
-				<doc>Number of samples contained per pixel.</doc>
-			</param>
-			<param name="gammaCorrection" type="bool">
-				<doc>Determines should the pixels written on the texture be gamma corrected.</doc>
-			</param>
-			<param name="createDepth" type="bool">
-				<doc>Should the render texture also contain a depth/stencil buffer.</doc>
-			</param>
-			<param name="depthStencilFormat" type="PixelFormat">
-				<doc>Format of the depth/stencil buffer, if <paramref name="createDepth"/> is enabled. Format must be a valid depth/stencil format.</doc>
-			</param>
-		</ctor>
-		<ctor>
-			<doc>Creates a new 2D render texture using an existing color texture, and no depth-stencil texture.</doc>
-			<param name="colorSurface" type="Texture">
-				<doc>Color texture to render color data to.</doc>
-			</param>
-		</ctor>
-		<ctor>
-			<doc>Creates a new 2D render texture using existing textures as render destinations.</doc>
-			<param name="colorSurface" type="Texture">
-				<doc>Color texture to render color data to.</doc>
-			</param>
-			<param name="depthStencilSurface" type="Texture">
-				<doc>Optional depth/stencil texture to render depth/stencil data to.</doc>
-			</param>
-		</ctor>
-		<ctor>
-			<doc>Creates a new 2D render texture using one or multiple color textures and no depth-stencil texture.</doc>
-			<param name="colorSurface" type="Texture">
-				<doc>Color texture(s) to render color data to.</doc>
-			</param>
-		</ctor>
-		<ctor>
-			<doc>Creates a new 2D render texture using one or multiple color textures and a depth/stencil texture.</doc>
-			<param name="colorSurface" type="Texture">
-				<doc>Color texture(s) to render color data to.</doc>
-			</param>
-			<param name="depthStencilSurface" type="Texture">
-				<doc>Optional depth/stencil texture to render depth/stencil data to.</doc>
-			</param>
-		</ctor>
-		<property name="ColorSurface" type="Texture" getter="GetColorSurface" setter="" static="false">
-			<doc>Returns the primary color surface that contains rendered color data.</doc>
-		</property>
-		<property name="ColorSurfaces" type="Texture" getter="GetColorSurfaces" setter="" static="false">
-			<doc>Returns all the color surfaces.</doc>
-		</property>
-		<property name="DepthStencilSurface" type="Texture" getter="GetDepthStencilSurface" setter="" static="false">
-			<doc>Returns the depth/stencil surface that contains rendered depth and stencil data.</doc>
-		</property>
-	</class>
-	<enum native="TextureType" script="TextureType">
-		<doc>Available texture types.</doc>
-		<enumentry native="TEX_TYPE_CUBE_MAP" script="TextureCube">
-			<doc>Texture consisting out of six 2D textures describing an inside of a cube. Allows special sampling.</doc>
-		</enumentry>
-		<enumentry native="TEX_TYPE_1D" script="Texture1D">
-			<doc>One dimensional texture. Just a row of pixels.</doc>
-		</enumentry>
-		<enumentry native="TEX_TYPE_2D" script="Texture2D">
-			<doc>Two dimensional texture.</doc>
-		</enumentry>
-		<enumentry native="TEX_TYPE_3D" script="Texture3D">
-			<doc>Three dimensional texture.</doc>
-		</enumentry>
-	</enum>
-	<class native="ColorGradient" script="ColorGradient">
-		<doc>Represents a range of color values over some parameters, similar to a curve. Internally represented as a set of keys that get interpolated between. Stores colors as 32-bit integers, and is therefor unable to represent a color range outside of [0, 1] - see ColorGradientHDR for an alternative.</doc>
-		<ctor>
-		</ctor>
-		<ctor>
-			<param name="color" type="Color">
-			</param>
-		</ctor>
-		<ctor>
-			<param name="keys" type="ColorGradientKey">
-			</param>
-		</ctor>
-		<method native="SetKeys" script="SetKeys" static="false">
-			<doc>Keys that control the gradient, sorted by time from first to last. Key times should be in range [0, 1].</doc>
-			<param name="keys" type="ColorGradientKey">
-			</param>
-			<param name="duration" type="float">
+	<class native="CAnimation" script="Animation">
+		<method native="Play" script="Play" static="false">
+			<param name="clip" type="RRef&lt;AnimationClip&gt;">
 			</param>
 		</method>
-		<method native="GetKeys" script="GetKeys" static="false">
-			<returns type="ColorGradientKey">
-			</returns>
-		</method>
-		<method native="GetKey" script="GetKey" static="false">
-			<doc>Returns the color key at the specified index. If out of range an empty key is returned.</doc>
-			<param name="idx" type="int">
+		<method native="BlendAdditive" script="BlendAdditive" static="false">
+			<param name="clip" type="RRef&lt;AnimationClip&gt;">
 			</param>
-			<returns type="ColorGradientKey">
-			</returns>
-		</method>
-		<method native="SetConstant" script="SetConstant" static="false">
-			<doc>Specify a &quot;gradient&quot; that represents a single color value.</doc>
-			<param name="color" type="Color">
+			<param name="weight" type="float">
+			</param>
+			<param name="fadeLength" type="float">
+			</param>
+			<param name="layer" type="int">
 			</param>
 		</method>
-		<method native="Evaluate" script="Evaluate" static="false">
+		<method native="Blend1D" script="Blend1D" static="false">
+			<param name="info" type="Blend1DInfo">
+			</param>
 			<param name="t" type="float">
 			</param>
-			<returns type="Color">
+		</method>
+		<method native="Blend2D" script="Blend2D" static="false">
+			<param name="info" type="Blend2DInfo">
+			</param>
+			<param name="t" type="Vector2">
+			</param>
+		</method>
+		<method native="CrossFade" script="CrossFade" static="false">
+			<param name="clip" type="RRef&lt;AnimationClip&gt;">
+			</param>
+			<param name="fadeLength" type="float">
+			</param>
+		</method>
+		<method native="Sample" script="Sample" static="false">
+			<param name="clip" type="RRef&lt;AnimationClip&gt;">
+			</param>
+			<param name="time" type="float">
+			</param>
+		</method>
+		<method native="Stop" script="Stop" static="false">
+			<param name="layer" type="int">
+			</param>
+		</method>
+		<method native="StopAll" script="StopAll" static="false">
+		</method>
+		<method native="GetState" script="GetState" static="false">
+			<param name="clip" type="RRef&lt;AnimationClip&gt;">
+			</param>
+			<param name="state" type="AnimationClipState">
+			</param>
+			<returns type="bool">
 			</returns>
 		</method>
-		<property name="NumKeys" type="int" getter="GetNumKeys" setter="" static="false">
-			<doc>Returns the number of color keys in the gradient.</doc>
+		<method native="SetState" script="SetState" static="false">
+			<param name="clip" type="RRef&lt;AnimationClip&gt;">
+			</param>
+			<param name="state" type="AnimationClipState">
+			</param>
+		</method>
+		<method native="SetMorphChannelWeight" script="SetMorphChannelWeight" static="false">
+			<doc>Changes a weight of a single morph channel, determining how much of it to apply on top of the base mesh.</doc>
+			<param name="name" type="string">
+				<doc>Name of the morph channel to modify. This depends on the mesh the animation is currently animating.</doc>
+			</param>
+			<param name="weight" type="float">
+				<doc>Weight that determines how much of the channel to apply to the mesh, in range [0, 1].</doc>
+			</param>
+		</method>
+		<property name="DefaultClip" type="RRef&lt;AnimationClip&gt;" getter="GetDefaultClip" setter="SetDefaultClip" static="false">
+			<doc>Determines the default clip to play as soon as the component is enabled. If more control over playing clips is needed use the play(), blend() and crossFade() methods to queue clips for playback manually, and setState() method for modify their states individually.</doc>
+		</property>
+		<property name="WrapMode" type="AnimWrapMode" getter="GetWrapMode" setter="SetWrapMode" static="false">
+		</property>
+		<property name="Speed" type="float" getter="GetSpeed" setter="SetSpeed" static="false">
+		</property>
+		<property name="IsPlaying" type="bool" getter="IsPlaying" setter="" static="false">
+		</property>
+		<property name="Bounds" type="AABox" getter="GetBounds" setter="SetBounds" static="false">
+			<doc>Determines bounds that will be used for animation and mesh culling. Only relevant if setUseBounds() is set to true.</doc>
+		</property>
+		<property name="UseBounds" type="bool" getter="GetUseBounds" setter="SetUseBounds" static="false">
+			<doc>Determines should animation bounds be used for visibility determination (culling). If false the bounds of the mesh attached to the relevant CRenderable component will be used instead.</doc>
+		</property>
+		<property name="Cull" type="bool" getter="GetEnableCull" setter="SetEnableCull" static="false">
+			<doc>Enables or disables culling of the animation when out of view. Culled animation will not be evaluated.</doc>
 		</property>
 	</class>
-	<class native="ApplicationEx" script="Application">
-		<doc>Script-exported API for Application.</doc>
-		<method native="StartUp" script="StartUp" static="true">
-			<param name="desc" type="StartUpDesc">
+	<struct native="TVector3I&lt;int32_t&gt;" script="Vector3I">
+		<doc>A three dimensional vector with integer coordinates.</doc>
+		<ctor>
+		</ctor>
+		<ctor>
+			<param name="x" type="int">
 			</param>
-		</method>
-		<method native="StartUp" script="StartUp" static="true">
-			<param name="videoMode" type="VideoMode">
+			<param name="y" type="int">
 			</param>
-			<param name="title" type="string">
+			<param name="z" type="int">
 			</param>
-			<param name="fullscreen" type="bool">
+		</ctor>
+		<ctor>
+			<param name="value" type="int">
 			</param>
-		</method>
-		<method native="RunMainLoop" script="RunMainLoop" static="true">
-		</method>
-		<method native="ShutDown" script="ShutDown" static="true">
-		</method>
-	</class>
-	<enum native="ProjectionType" script="ProjectionType">
-		<doc>Projection type to use by the camera.</doc>
-		<enumentry native="PT_ORTHOGRAPHIC" script="Orthographic">
-			<doc>Projection type where object size remains constant and parallel lines remain parallel.</doc>
+		</ctor>
+		<field name="X" type="int">
+		</field>
+		<field name="Y" type="int">
+		</field>
+		<field name="Z" type="int">
+		</field>
+	</struct>
+	<struct native="TVector3I&lt;uint32_t&gt;" script="Vector3UI">
+		<doc>A three dimensional vector with integer coordinates.</doc>
+		<ctor>
+		</ctor>
+		<ctor>
+			<param name="x" type="int">
+			</param>
+			<param name="y" type="int">
+			</param>
+			<param name="z" type="int">
+			</param>
+		</ctor>
+		<ctor>
+			<param name="value" type="int">
+			</param>
+		</ctor>
+		<field name="X" type="int">
+		</field>
+		<field name="Y" type="int">
+		</field>
+		<field name="Z" type="int">
+		</field>
+	</struct>
+	<enum native="ShaderParameterType" script="ShaderParameterType">
+		<doc>Type of parameters that can be defined by a shader.</doc>
+		<enumentry native="Matrix3" script="Matrix3">
 		</enumentry>
-		<enumentry native="PT_PERSPECTIVE" script="Perspective">
-			<doc>Projection type that emulates human vision. Objects farther away appear smaller.</doc>
+		<enumentry native="Float" script="Float">
+		</enumentry>
+		<enumentry native="Matrix4" script="Matrix4">
+		</enumentry>
+		<enumentry native="Color" script="Color">
+		</enumentry>
+		<enumentry native="Vector2" script="Vector2">
+		</enumentry>
+		<enumentry native="Vector3" script="Vector3">
+		</enumentry>
+		<enumentry native="Vector4" script="Vector4">
+		</enumentry>
+		<enumentry native="Texture2D" script="Texture2D">
+		</enumentry>
+		<enumentry native="Texture3D" script="Texture3D">
+		</enumentry>
+		<enumentry native="TextureCube" script="TextureCube">
+		</enumentry>
+		<enumentry native="Sampler" script="Sampler">
 		</enumentry>
 	</enum>
+	<struct native="TVector4I&lt;int32_t&gt;" script="Vector4I">
+		<doc>A four dimensional vector with integer coordinates.</doc>
+		<ctor>
+		</ctor>
+		<ctor>
+			<param name="x" type="int">
+			</param>
+			<param name="y" type="int">
+			</param>
+			<param name="z" type="int">
+			</param>
+			<param name="w" type="int">
+			</param>
+		</ctor>
+		<ctor>
+			<param name="value" type="int">
+			</param>
+		</ctor>
+		<field name="X" type="int">
+		</field>
+		<field name="Y" type="int">
+		</field>
+		<field name="Z" type="int">
+		</field>
+		<field name="W" type="int">
+		</field>
+	</struct>
+	<struct native="TVector4I&lt;uint32_t&gt;" script="Vector4UI">
+		<doc>A four dimensional vector with integer coordinates.</doc>
+		<ctor>
+		</ctor>
+		<ctor>
+			<param name="x" type="int">
+			</param>
+			<param name="y" type="int">
+			</param>
+			<param name="z" type="int">
+			</param>
+			<param name="w" type="int">
+			</param>
+		</ctor>
+		<ctor>
+			<param name="value" type="int">
+			</param>
+		</ctor>
+		<field name="X" type="int">
+		</field>
+		<field name="Y" type="int">
+		</field>
+		<field name="Z" type="int">
+		</field>
+		<field name="W" type="int">
+		</field>
+	</struct>
+	<struct native="PARTICLE_CIRCLE_SHAPE_DESC" script="ParticleCircleShapeOptions">
+		<doc>Information describing a ParticleEmitterCircleShape.</doc>
+		<ctor>
+		</ctor>
+		<field name="Radius" type="float">
+			<doc>Radius of the circle.</doc>
+		</field>
+		<field name="Thickness" type="float">
+			<doc>Proportion of the surface that can emit particles. Thickness of 0 results in particles being emitted only from the edge of the circle, while thickness of 1 results in particles being emitted from the entire surface. In-between values will use a part of the surface.</doc>
+		</field>
+		<field name="Arc" type="Degree">
+			<doc>Angular portion of the cone from which to emit particles from, in degrees.</doc>
+		</field>
+		<field name="Mode" type="ParticleEmissionMode">
+			<doc>Determines how will particle positions on the shape be generated.</doc>
+		</field>
+	</struct>
+	<enum native="ChromaticAberrationType" script="ChromaticAberrationType">
+		<doc>Types of available chromatic aberration effects.</doc>
+		<enumentry native="Complex" script="Complex">
+			<doc>More complex chromatic aberration effect that takes longer to execute but may yield more visually pleasing results than the simple variant.</doc>
+		</enumentry>
+		<enumentry native="Simple" script="Simple">
+			<doc>Simple chromatic aberration effect that is fast to execute.</doc>
+		</enumentry>
+	</enum>
+	<class native="HString" script="LocString">
+		<doc>String handle. Provides a wrapper around an Unicode string, primarily for localization purposes.
+Actual value for this string is looked up in a global string table based on the provided identifier string and currently active language. If such value doesn&apos;t exist then the identifier is used as is.
+Use {0}, {1}, etc. in the string value for values that might change dynamically.</doc>
+		<ctor>
+			<doc>Creates a new localized string with the specified identifier. If the identifier doesn&apos;t previously exist in the string table, identifier value will also be used for initializing the default language version of the string.</doc>
+			<param name="identifier" type="string">
+				<doc>String you can use for later referencing the localized string.</doc>
+			</param>
+			<param name="stringTableId" type="int">
+				<doc>Unique identifier of the string table to retrieve the string from.</doc>
+			</param>
+		</ctor>
+		<ctor>
+			<doc>Creates a new localized string with the specified identifier and sets the default language version of the string. If a string with that identifier already exists default language string will be updated.</doc>
+			<param name="identifier" type="string">
+				<doc>String you can use for later referencing the localized string.</doc>
+			</param>
+			<param name="defaultString" type="string">
+				<doc>Default string to assign to the specified identifier. Language to which it will be assigned depends on the StringTable::DEFAULT_LANGUAGE value.</doc>
+			</param>
+			<param name="stringTableId" type="int">
+				<doc>Unique identifier of the string table to retrieve the string from.</doc>
+			</param>
+		</ctor>
+		<ctor>
+			<doc>Creates a new empty localized string.</doc>
+			<param name="stringTableId" type="int">
+				<doc>Unique identifier of the string table to retrieve the string from.</doc>
+			</param>
+		</ctor>
+		<ctor>
+			<doc>Creates a new empty localized string.</doc>
+		</ctor>
+		<method native="SetParameter" script="SetParameter" static="false">
+			<doc>Sets a value of a string parameter. Parameters are specified as bracketed values within the string itself (for example {0}, {1}) etc. Use ^ as an escape character.</doc>
+			<param name="idx" type="int">
+			</param>
+			<param name="value" type="string">
+			</param>
+		</method>
+	</class>
 	<enum native="PhysicsMeshType" script="PhysicsMeshType">
 		<doc>Valid types of a mesh used for physics.</doc>
 		<enumentry native="Triangle" script="Triangle">
@@ -1124,670 +1848,6 @@ Use {0}, {1}, etc. in the string value for values that might change dynamically.
 			<doc>Returns a list of all morph channels in the morph animation.</doc>
 		</property>
 	</class>
-	<struct native="ColorGradientKey" script="ColorGradientKey">
-		<doc>Single key in a ColorGradient.</doc>
-		<ctor>
-		</ctor>
-		<ctor>
-			<param name="color" type="Color">
-			</param>
-			<param name="time" type="float">
-			</param>
-		</ctor>
-		<field name="Color" type="Color">
-		</field>
-		<field name="Time" type="float">
-		</field>
-	</struct>
-	<enum native="PropertyDistributionType" script="PropertyDistributionType">
-		<doc>Determines type of distribution used by distribution properties.</doc>
-		<enumentry native="PDT_Constant" script="Constant">
-			<doc>The distribution is a costant value.</doc>
-		</enumentry>
-		<enumentry native="PDT_RandomRange" script="RandomRange">
-			<doc>The distribution is a random value in a specified constant range.</doc>
-		</enumentry>
-		<enumentry native="PDT_Curve" script="Curve">
-			<doc>The distribution is a time-varying value.</doc>
-		</enumentry>
-		<enumentry native="PDT_RandomCurveRange" script="RandomCurveRange">
-			<doc>The distribution is a random value in a specified time-varying range.</doc>
-		</enumentry>
-	</enum>
-	<class native="TAnimationCurve&lt;float&gt;" script="AnimationCurve">
-		<doc>Animation spline represented by a set of keyframes, each representing an endpoint of a cubic hermite curve. The spline can be evaluated at any time, and uses caching to speed up multiple sequential evaluations.</doc>
-		<ctor>
-			<doc>Creates a new animation curve.</doc>
-			<param name="keyframes" type="KeyFrame">
-				<doc>Keyframes to initialize the curve with. They must be sorted by time.</doc>
-			</param>
-		</ctor>
-		<method native="Evaluate" script="Evaluate" static="false">
-			<doc>Evaluate the animation curve at the specified time. If evaluating multiple values in a sequential order consider using the cached version of evaluate() for better performance.</doc>
-			<param name="time" type="float">
-				<doc>%Time to evaluate the curve at.</doc>
-			</param>
-			<param name="loop" type="bool">
-				<doc>If true the curve will loop when it goes past the end or beggining. Otherwise the curve value will be clamped.</doc>
-			</param>
-			<returns type="float">
-				<doc>Interpolated value from the curve at provided time.</doc>
-			</returns>
-		</method>
-		<property name="KeyFrames" type="KeyFrame" getter="GetKeyFrames" setter="" static="false">
-			<doc>Returns a list of all keyframes in the curve.</doc>
-		</property>
-	</class>
-	<class native="TAnimationCurve&lt;TVector3&lt;float&gt;&gt;" script="Vector3Curve">
-		<doc>Animation spline represented by a set of keyframes, each representing an endpoint of a cubic hermite curve. The spline can be evaluated at any time, and uses caching to speed up multiple sequential evaluations.</doc>
-		<ctor>
-			<doc>Creates a new animation curve.</doc>
-			<param name="keyframes" type="KeyFrameVec3">
-				<doc>Keyframes to initialize the curve with. They must be sorted by time.</doc>
-			</param>
-		</ctor>
-		<method native="Evaluate" script="Evaluate" static="false">
-			<doc>Evaluate the animation curve at the specified time. If evaluating multiple values in a sequential order consider using the cached version of evaluate() for better performance.</doc>
-			<param name="time" type="float">
-				<doc>%Time to evaluate the curve at.</doc>
-			</param>
-			<param name="loop" type="bool">
-				<doc>If true the curve will loop when it goes past the end or beggining. Otherwise the curve value will be clamped.</doc>
-			</param>
-			<returns type="Vector3">
-				<doc>Interpolated value from the curve at provided time.</doc>
-			</returns>
-		</method>
-		<property name="KeyFrames" type="KeyFrameVec3" getter="GetKeyFrames" setter="" static="false">
-			<doc>Returns a list of all keyframes in the curve.</doc>
-		</property>
-	</class>
-	<class native="TAnimationCurve&lt;TVector2&lt;float&gt;&gt;" script="Vector2Curve">
-		<doc>Animation spline represented by a set of keyframes, each representing an endpoint of a cubic hermite curve. The spline can be evaluated at any time, and uses caching to speed up multiple sequential evaluations.</doc>
-		<ctor>
-			<doc>Creates a new animation curve.</doc>
-			<param name="keyframes" type="KeyFrameVec2">
-				<doc>Keyframes to initialize the curve with. They must be sorted by time.</doc>
-			</param>
-		</ctor>
-		<method native="Evaluate" script="Evaluate" static="false">
-			<doc>Evaluate the animation curve at the specified time. If evaluating multiple values in a sequential order consider using the cached version of evaluate() for better performance.</doc>
-			<param name="time" type="float">
-				<doc>%Time to evaluate the curve at.</doc>
-			</param>
-			<param name="loop" type="bool">
-				<doc>If true the curve will loop when it goes past the end or beggining. Otherwise the curve value will be clamped.</doc>
-			</param>
-			<returns type="Vector2">
-				<doc>Interpolated value from the curve at provided time.</doc>
-			</returns>
-		</method>
-		<property name="KeyFrames" type="KeyFrameVec2" getter="GetKeyFrames" setter="" static="false">
-			<doc>Returns a list of all keyframes in the curve.</doc>
-		</property>
-	</class>
-	<class native="TAnimationCurve&lt;Quaternion&gt;" script="QuaternionCurve">
-		<doc>Animation spline represented by a set of keyframes, each representing an endpoint of a cubic hermite curve. The spline can be evaluated at any time, and uses caching to speed up multiple sequential evaluations.</doc>
-		<ctor>
-			<doc>Creates a new animation curve.</doc>
-			<param name="keyframes" type="KeyFrameQuat">
-				<doc>Keyframes to initialize the curve with. They must be sorted by time.</doc>
-			</param>
-		</ctor>
-		<method native="Evaluate" script="Evaluate" static="false">
-			<doc>Evaluate the animation curve at the specified time. If evaluating multiple values in a sequential order consider using the cached version of evaluate() for better performance.</doc>
-			<param name="time" type="float">
-				<doc>%Time to evaluate the curve at.</doc>
-			</param>
-			<param name="loop" type="bool">
-				<doc>If true the curve will loop when it goes past the end or beggining. Otherwise the curve value will be clamped.</doc>
-			</param>
-			<returns type="Quaternion">
-				<doc>Interpolated value from the curve at provided time.</doc>
-			</returns>
-		</method>
-		<property name="KeyFrames" type="KeyFrameQuat" getter="GetKeyFrames" setter="" static="false">
-			<doc>Returns a list of all keyframes in the curve.</doc>
-		</property>
-	</class>
-	<class native="TAnimationCurve&lt;int32_t&gt;" script="IntegerCurve">
-		<doc>Animation spline represented by a set of keyframes, each representing an endpoint of a cubic hermite curve. The spline can be evaluated at any time, and uses caching to speed up multiple sequential evaluations.</doc>
-		<ctor>
-			<doc>Creates a new animation curve.</doc>
-			<param name="keyframes" type="KeyFrameInt">
-				<doc>Keyframes to initialize the curve with. They must be sorted by time.</doc>
-			</param>
-		</ctor>
-		<method native="Evaluate" script="Evaluate" static="false">
-			<doc>Evaluate the animation curve at the specified time. If evaluating multiple values in a sequential order consider using the cached version of evaluate() for better performance.</doc>
-			<param name="time" type="float">
-				<doc>%Time to evaluate the curve at.</doc>
-			</param>
-			<param name="loop" type="bool">
-				<doc>If true the curve will loop when it goes past the end or beggining. Otherwise the curve value will be clamped.</doc>
-			</param>
-			<returns type="int">
-				<doc>Interpolated value from the curve at provided time.</doc>
-			</returns>
-		</method>
-		<property name="KeyFrames" type="KeyFrameInt" getter="GetKeyFrames" setter="" static="false">
-			<doc>Returns a list of all keyframes in the curve.</doc>
-		</property>
-	</class>
-	<class native="MultiResource" script="MultiResource">
-		<doc>Contains a group of resources imported from a single source file.</doc>
-		<ctor>
-		</ctor>
-		<ctor>
-			<param name="entries" type="SubResource">
-			</param>
-		</ctor>
-		<property name="Entries" type="SubResource" getter="GetEntries" setter="SetEntries" static="false">
-		</property>
-	</class>
-	<struct native="RENDER_WINDOW_DESC" script="RenderWindowDesc">
-		<doc>Structure that is used for initializing a render window.</doc>
-		<ctor>
-		</ctor>
-		<field name="VideoMode" type="VideoMode">
-			<doc>Output monitor, frame buffer resize and refresh rate.</doc>
-		</field>
-		<field name="Fullscreen" type="bool">
-			<doc>Should the window be opened in fullscreen mode.</doc>
-		</field>
-		<field name="Vsync" type="bool">
-			<doc>Should the window wait for vertical sync before swapping buffers.</doc>
-		</field>
-		<field name="VsyncInterval" type="int">
-			<doc>Determines how many vsync intervals occur per frame. FPS = refreshRate/interval. Usually 1 when vsync active.</doc>
-		</field>
-		<field name="Hidden" type="bool">
-			<doc>Should the window be hidden initially.</doc>
-		</field>
-		<field name="DepthBuffer" type="bool">
-			<doc>Should the window be created with a depth/stencil buffer.</doc>
-		</field>
-		<field name="MultisampleCount" type="int">
-			<doc>If higher than 1, texture containing multiple samples per pixel is created.</doc>
-		</field>
-		<field name="MultisampleHint" type="string">
-			<doc>Hint about what kind of multisampling to use. Render system specific.</doc>
-		</field>
-		<field name="Gamma" type="bool">
-			<doc>Should the written color pixels be gamma corrected before write.</doc>
-		</field>
-		<field name="Left" type="int">
-			<doc>Window origin on X axis in pixels. -1 == screen center. Relative to monitor provided in videoMode.</doc>
-		</field>
-		<field name="Top" type="int">
-			<doc>Window origin on Y axis in pixels. -1 == screen center. Relative to monitor provided in videoMode.</doc>
-		</field>
-		<field name="Title" type="string">
-			<doc>Title of the window.</doc>
-		</field>
-		<field name="ShowTitleBar" type="bool">
-			<doc>Determines if the title-bar should be shown or not.</doc>
-		</field>
-		<field name="ShowBorder" type="bool">
-			<doc>Determines if the window border should be shown or not.</doc>
-		</field>
-		<field name="AllowResize" type="bool">
-			<doc>Determines if the user can resize the window by dragging on the window edges.</doc>
-		</field>
-		<field name="ToolWindow" type="bool">
-			<doc>Tool windows have no task bar entry and always remain on top of their parent window.</doc>
-		</field>
-		<field name="Modal" type="bool">
-			<doc>When a modal window is open all other windows will be locked until modal window is closed.</doc>
-		</field>
-		<field name="HideUntilSwap" type="bool">
-			<doc>Window will be created as hidden and only be shown when the first framebuffer swap happens.</doc>
-		</field>
-	</struct>
-	<class native="ColorGradientHDR" script="ColorGradientHDR">
-		<doc>Represents a range of color values over some parameters, similar to a curve. Internally represented as a set of keys that get interpolated between. Capable of representing HDR colors, unlike the normal ColorGradient.</doc>
-		<ctor>
-		</ctor>
-		<ctor>
-			<param name="color" type="Color">
-			</param>
-		</ctor>
-		<ctor>
-			<param name="keys" type="ColorGradientKey">
-			</param>
-		</ctor>
-		<method native="SetKeys" script="SetKeys" static="false">
-			<doc>Keys that control the gradient, sorted by time from first to last. Key times should be in range [0, 1].</doc>
-			<param name="keys" type="ColorGradientKey">
-			</param>
-			<param name="duration" type="float">
-			</param>
-		</method>
-		<method native="GetKeys" script="GetKeys" static="false">
-			<returns type="ColorGradientKey">
-			</returns>
-		</method>
-		<method native="GetKey" script="GetKey" static="false">
-			<doc>Returns the color key at the specified index. If out of range an empty key is returned.</doc>
-			<param name="idx" type="int">
-			</param>
-			<returns type="ColorGradientKey">
-			</returns>
-		</method>
-		<method native="SetConstant" script="SetConstant" static="false">
-			<doc>Specify a &quot;gradient&quot; that represents a single color value.</doc>
-			<param name="color" type="Color">
-			</param>
-		</method>
-		<method native="Evaluate" script="Evaluate" static="false">
-			<param name="t" type="float">
-			</param>
-			<returns type="Color">
-			</returns>
-		</method>
-		<property name="NumKeys" type="int" getter="GetNumKeys" setter="" static="false">
-			<doc>Returns the number of color keys in the gradient.</doc>
-		</property>
-	</class>
-	<struct native="Blend1DInfo" script="Blend1DInfo">
-		<doc>Defines a 1D blend where multiple animation clips are blended between each other using linear interpolation.</doc>
-		<field name="Clips" type="BlendClipInfo">
-		</field>
-	</struct>
-	<struct native="TVector2I&lt;int32_t&gt;" script="Vector2I">
-		<doc>A two dimensional vector with integer coordinates.</doc>
-		<ctor>
-		</ctor>
-		<ctor>
-			<param name="x" type="int">
-			</param>
-			<param name="y" type="int">
-			</param>
-		</ctor>
-		<ctor>
-			<param name="value" type="int">
-			</param>
-		</ctor>
-		<field name="X" type="int">
-		</field>
-		<field name="Y" type="int">
-		</field>
-	</struct>
-	<struct native="TVector2I&lt;uint32_t&gt;" script="Vector2UI">
-		<doc>A two dimensional vector with integer coordinates.</doc>
-		<ctor>
-		</ctor>
-		<ctor>
-			<param name="x" type="int">
-			</param>
-			<param name="y" type="int">
-			</param>
-		</ctor>
-		<ctor>
-			<param name="value" type="int">
-			</param>
-		</ctor>
-		<field name="X" type="int">
-		</field>
-		<field name="Y" type="int">
-		</field>
-	</struct>
-	<struct native="TPlane&lt;float&gt;" script="Plane">
-		<doc>A plane represented by a normal and a distance.</doc>
-		<field name="Normal" type="Vector3">
-		</field>
-		<field name="D" type="float">
-		</field>
-	</struct>
-	<struct native="TPlane&lt;double&gt;" script="PlaneD">
-		<doc>A plane represented by a normal and a distance.</doc>
-		<field name="Normal" type="Vector3D">
-		</field>
-		<field name="D" type="double">
-		</field>
-	</struct>
-	<enum native="TangentType" script="TangentType">
-		<doc>Type of tangent on a keyframe in an animation curve.</doc>
-		<enumentry native="In" script="In">
-		</enumentry>
-		<enumentry native="Out" script="Out">
-		</enumentry>
-	</enum>
-	<struct native="TAABox&lt;float&gt;" script="AABox">
-		<doc>Axis aligned box represented by minimum and maximum point.</doc>
-		<ctor>
-		</ctor>
-		<field name="Minimum" type="Vector3">
-		</field>
-		<field name="Maximum" type="Vector3">
-		</field>
-	</struct>
-	<struct native="TAABox&lt;double&gt;" script="AABoxD">
-		<doc>Axis aligned box represented by minimum and maximum point.</doc>
-		<ctor>
-		</ctor>
-		<field name="Minimum" type="Vector3D">
-		</field>
-		<field name="Maximum" type="Vector3D">
-		</field>
-	</struct>
-	<struct native="BlendClipInfo" script="BlendClipInfo">
-		<doc>Represents an animation clip used in 1D blending. Each clip has a position on the number line.</doc>
-		<ctor>
-		</ctor>
-		<field name="Clip" type="RRef&lt;AnimationClip&gt;">
-		</field>
-		<field name="Position" type="float">
-		</field>
-	</struct>
-	<struct native="KeyframeRef" script="KeyframeRef">
-		<ctor>
-		</ctor>
-		<ctor>
-			<param name="curveIdx" type="int">
-			</param>
-			<param name="keyIdx" type="int">
-			</param>
-		</ctor>
-		<field name="CurveIdx" type="int">
-		</field>
-		<field name="KeyIdx" type="int">
-		</field>
-	</struct>
-	<class native="GUILabel" script="GUILabel">
-		<doc>GUI element that displays text and optionally a content image.</doc>
-		<method native="SetContent" script="SetContent" static="false">
-			<doc>Changes the active content of the label.</doc>
-			<param name="content" type="GUIContent">
-			</param>
-		</method>
-		<ctor>
-			<doc>Creates a new GUI element.</doc>
-			<param name="contents" type="GUIContent">
-				<doc>Structure describing the contents of the GUI element to create.</doc>
-			</param>
-			<param name="styleClass" type="string">
-				<doc>Style class that will be used for determining GUI element visuals from the current style sheet. If no class is provided, default style is determined based on GUI element type.</doc>
-			</param>
-			<param name="options" type="GUIOption">
-				<doc>Additional options that control GUI element size and position. This will override options set in the style sheet.</doc>
-			</param>
-		</ctor>
-		<ctor>
-			<doc>Creates a new GUI element.</doc>
-			<param name="contents" type="GUIContent">
-				<doc>Structure describing the contents of the GUI element to create.</doc>
-			</param>
-			<param name="options" type="GUIOption">
-				<doc>Additional options that control GUI element size and position. This will override options set in the style sheet.</doc>
-			</param>
-		</ctor>
-		<ctor>
-			<doc>Creates a new GUI element.</doc>
-			<param name="styleClass" type="string">
-				<doc>Style class that will be used for determining GUI element visuals from the current style sheet. If no class is provided, default style is determined based on GUI element type.</doc>
-			</param>
-			<param name="options" type="GUIOption">
-				<doc>Additional options that control GUI element size and position. This will override options set in the style sheet.</doc>
-			</param>
-		</ctor>
-		<ctor>
-			<doc>Creates a new GUI element.</doc>
-			<param name="options" type="GUIOption">
-				<doc>Additional options that control GUI element size and position. This will override options set in the style sheet.</doc>
-			</param>
-		</ctor>
-	</class>
-	<struct native="TSphere&lt;float&gt;" script="Sphere">
-		<doc>A sphere represented by a center point and a radius.</doc>
-		<ctor>
-			<doc>Default constructor. Creates a unit sphere around the origin.</doc>
-		</ctor>
-		<field name="Radius" type="float">
-		</field>
-		<field name="Center" type="Vector3">
-		</field>
-	</struct>
-	<struct native="TSphere&lt;double&gt;" script="SphereD">
-		<doc>A sphere represented by a center point and a radius.</doc>
-		<ctor>
-			<doc>Default constructor. Creates a unit sphere around the origin.</doc>
-		</ctor>
-		<field name="Radius" type="double">
-		</field>
-		<field name="Center" type="Vector3D">
-		</field>
-	</struct>
-	<struct native="TRay&lt;float&gt;" script="Ray">
-		<doc>A ray in 3D space represented with an origin and direction.</doc>
-		<ctor>
-		</ctor>
-		<field name="Origin" type="Vector3">
-		</field>
-		<field name="Direction" type="Vector3">
-		</field>
-	</struct>
-	<struct native="TRay&lt;double&gt;" script="RayD">
-		<doc>A ray in 3D space represented with an origin and direction.</doc>
-		<ctor>
-		</ctor>
-		<field name="Origin" type="Vector3D">
-		</field>
-		<field name="Direction" type="Vector3D">
-		</field>
-	</struct>
-	<class native="CAnimation" script="Animation">
-		<method native="Play" script="Play" static="false">
-			<param name="clip" type="RRef&lt;AnimationClip&gt;">
-			</param>
-		</method>
-		<method native="BlendAdditive" script="BlendAdditive" static="false">
-			<param name="clip" type="RRef&lt;AnimationClip&gt;">
-			</param>
-			<param name="weight" type="float">
-			</param>
-			<param name="fadeLength" type="float">
-			</param>
-			<param name="layer" type="int">
-			</param>
-		</method>
-		<method native="Blend1D" script="Blend1D" static="false">
-			<param name="info" type="Blend1DInfo">
-			</param>
-			<param name="t" type="float">
-			</param>
-		</method>
-		<method native="Blend2D" script="Blend2D" static="false">
-			<param name="info" type="Blend2DInfo">
-			</param>
-			<param name="t" type="Vector2">
-			</param>
-		</method>
-		<method native="CrossFade" script="CrossFade" static="false">
-			<param name="clip" type="RRef&lt;AnimationClip&gt;">
-			</param>
-			<param name="fadeLength" type="float">
-			</param>
-		</method>
-		<method native="Sample" script="Sample" static="false">
-			<param name="clip" type="RRef&lt;AnimationClip&gt;">
-			</param>
-			<param name="time" type="float">
-			</param>
-		</method>
-		<method native="Stop" script="Stop" static="false">
-			<param name="layer" type="int">
-			</param>
-		</method>
-		<method native="StopAll" script="StopAll" static="false">
-		</method>
-		<method native="GetState" script="GetState" static="false">
-			<param name="clip" type="RRef&lt;AnimationClip&gt;">
-			</param>
-			<param name="state" type="AnimationClipState">
-			</param>
-			<returns type="bool">
-			</returns>
-		</method>
-		<method native="SetState" script="SetState" static="false">
-			<param name="clip" type="RRef&lt;AnimationClip&gt;">
-			</param>
-			<param name="state" type="AnimationClipState">
-			</param>
-		</method>
-		<method native="SetMorphChannelWeight" script="SetMorphChannelWeight" static="false">
-			<doc>Changes a weight of a single morph channel, determining how much of it to apply on top of the base mesh.</doc>
-			<param name="name" type="string">
-				<doc>Name of the morph channel to modify. This depends on the mesh the animation is currently animating.</doc>
-			</param>
-			<param name="weight" type="float">
-				<doc>Weight that determines how much of the channel to apply to the mesh, in range [0, 1].</doc>
-			</param>
-		</method>
-		<property name="DefaultClip" type="RRef&lt;AnimationClip&gt;" getter="GetDefaultClip" setter="SetDefaultClip" static="false">
-			<doc>Determines the default clip to play as soon as the component is enabled. If more control over playing clips is needed use the play(), blend() and crossFade() methods to queue clips for playback manually, and setState() method for modify their states individually.</doc>
-		</property>
-		<property name="WrapMode" type="AnimWrapMode" getter="GetWrapMode" setter="SetWrapMode" static="false">
-		</property>
-		<property name="Speed" type="float" getter="GetSpeed" setter="SetSpeed" static="false">
-		</property>
-		<property name="IsPlaying" type="bool" getter="IsPlaying" setter="" static="false">
-		</property>
-		<property name="Bounds" type="AABox" getter="GetBounds" setter="SetBounds" static="false">
-			<doc>Determines bounds that will be used for animation and mesh culling. Only relevant if setUseBounds() is set to true.</doc>
-		</property>
-		<property name="UseBounds" type="bool" getter="GetUseBounds" setter="SetUseBounds" static="false">
-			<doc>Determines should animation bounds be used for visibility determination (culling). If false the bounds of the mesh attached to the relevant CRenderable component will be used instead.</doc>
-		</property>
-		<property name="Cull" type="bool" getter="GetEnableCull" setter="SetEnableCull" static="false">
-			<doc>Enables or disables culling of the animation when out of view. Culled animation will not be evaluated.</doc>
-		</property>
-	</class>
-	<struct native="TVector3I&lt;int32_t&gt;" script="Vector3I">
-		<doc>A three dimensional vector with integer coordinates.</doc>
-		<ctor>
-		</ctor>
-		<ctor>
-			<param name="x" type="int">
-			</param>
-			<param name="y" type="int">
-			</param>
-			<param name="z" type="int">
-			</param>
-		</ctor>
-		<ctor>
-			<param name="value" type="int">
-			</param>
-		</ctor>
-		<field name="X" type="int">
-		</field>
-		<field name="Y" type="int">
-		</field>
-		<field name="Z" type="int">
-		</field>
-	</struct>
-	<struct native="TVector3I&lt;uint32_t&gt;" script="Vector3UI">
-		<doc>A three dimensional vector with integer coordinates.</doc>
-		<ctor>
-		</ctor>
-		<ctor>
-			<param name="x" type="int">
-			</param>
-			<param name="y" type="int">
-			</param>
-			<param name="z" type="int">
-			</param>
-		</ctor>
-		<ctor>
-			<param name="value" type="int">
-			</param>
-		</ctor>
-		<field name="X" type="int">
-		</field>
-		<field name="Y" type="int">
-		</field>
-		<field name="Z" type="int">
-		</field>
-	</struct>
-	<enum native="ShaderParameterType" script="ShaderParameterType">
-		<doc>Type of parameters that can be defined by a shader.</doc>
-		<enumentry native="Matrix3" script="Matrix3">
-		</enumentry>
-		<enumentry native="Float" script="Float">
-		</enumentry>
-		<enumentry native="Matrix4" script="Matrix4">
-		</enumentry>
-		<enumentry native="Color" script="Color">
-		</enumentry>
-		<enumentry native="Vector2" script="Vector2">
-		</enumentry>
-		<enumentry native="Vector3" script="Vector3">
-		</enumentry>
-		<enumentry native="Vector4" script="Vector4">
-		</enumentry>
-		<enumentry native="Texture2D" script="Texture2D">
-		</enumentry>
-		<enumentry native="Texture3D" script="Texture3D">
-		</enumentry>
-		<enumentry native="TextureCube" script="TextureCube">
-		</enumentry>
-		<enumentry native="Sampler" script="Sampler">
-		</enumentry>
-	</enum>
-	<struct native="TVector4I&lt;int32_t&gt;" script="Vector4I">
-		<doc>A four dimensional vector with integer coordinates.</doc>
-		<ctor>
-		</ctor>
-		<ctor>
-			<param name="x" type="int">
-			</param>
-			<param name="y" type="int">
-			</param>
-			<param name="z" type="int">
-			</param>
-			<param name="w" type="int">
-			</param>
-		</ctor>
-		<ctor>
-			<param name="value" type="int">
-			</param>
-		</ctor>
-		<field name="X" type="int">
-		</field>
-		<field name="Y" type="int">
-		</field>
-		<field name="Z" type="int">
-		</field>
-		<field name="W" type="int">
-		</field>
-	</struct>
-	<struct native="TVector4I&lt;uint32_t&gt;" script="Vector4UI">
-		<doc>A four dimensional vector with integer coordinates.</doc>
-		<ctor>
-		</ctor>
-		<ctor>
-			<param name="x" type="int">
-			</param>
-			<param name="y" type="int">
-			</param>
-			<param name="z" type="int">
-			</param>
-			<param name="w" type="int">
-			</param>
-		</ctor>
-		<ctor>
-			<param name="value" type="int">
-			</param>
-		</ctor>
-		<field name="X" type="int">
-		</field>
-		<field name="Y" type="int">
-		</field>
-		<field name="Z" type="int">
-		</field>
-		<field name="W" type="int">
-		</field>
-	</struct>
 	<struct native="AnimationClipState" script="AnimationClipState">
 		<doc>Contains information about a currently playing animation clip.</doc>
 		<ctor>
@@ -1876,7 +1936,7 @@ Use {0}, {1}, etc. in the string value for values that might change dynamically.
 			<doc>Position of the key along the animation spline.</doc>
 		</field>
 	</struct>
-	<struct native="TKeyframe&lt;Quaternion&gt;" script="KeyFrameQuat">
+	<struct native="TKeyframe&lt;TQuaternion&lt;float&gt;&gt;" script="KeyFrameQuat">
 		<doc>Animation keyframe, represented as an endpoint of a cubic hermite spline.</doc>
 		<field name="Value" type="Quaternion">
 			<doc>Value of the key.</doc>
@@ -2055,7 +2115,7 @@ Use {0}, {1}, etc. in the string value for values that might change dynamically.
 			<doc>Actual curve containing animation data.</doc>
 		</field>
 	</struct>
-	<struct native="TNamedAnimationCurve&lt;Quaternion&gt;" script="NamedQuaternionCurve">
+	<struct native="TNamedAnimationCurve&lt;TQuaternion&lt;float&gt;&gt;" script="NamedQuaternionCurve">
 		<doc>An animation curve and its name.</doc>
 		<ctor>
 		</ctor>
@@ -5960,20 +6020,6 @@ Sprite images also allow you to specify sprite sheet animation by varying which 
 			<doc>All particles spawned on the shape at some instant (usually a frame) will be spread around the shape equally.</doc>
 		</enumentry>
 	</enum>
-	<struct native="ParticleEmissionMode" script="ParticleEmissionMode">
-		<doc>Controls how are particle positions on a shape chosen.</doc>
-		<ctor>
-		</ctor>
-		<field name="Type" type="ParticleEmissionModeType">
-			<doc>Type that determines general behaviour.</doc>
-		</field>
-		<field name="Speed" type="float">
-			<doc>Speed along which particle generation should move around the shape, relevant for Loop and PingPing emission modes.</doc>
-		</field>
-		<field name="Interval" type="float">
-			<doc>Determines the minimum interval allowed between the generated particles. 0 specifies the particles can be generated anywhere on the shape.</doc>
-		</field>
-	</struct>
 	<class native="ParticleEmitterShape" script="ParticleEmitterShape">
 		<doc>Base class from all emitter shapes. Emitter shapes determine the position and direction of newly created particles.</doc>
 	</class>

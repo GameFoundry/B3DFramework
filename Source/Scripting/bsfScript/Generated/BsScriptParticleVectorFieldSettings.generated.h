@@ -6,8 +6,8 @@
 #include "BsScriptReflectableWrapper.h"
 #include "../../../Foundation/bsfCore/Particles/BsParticleSystem.h"
 #include "../../../Foundation/bsfUtility/Math/BsVector3.h"
+#include "../../../Foundation/bsfUtility/Math/BsQuaternion.h"
 #include "../../../Foundation/bsfCore/Particles/BsParticleDistribution.h"
-#include "Math/BsQuaternion.h"
 
 namespace bs { struct ParticleVectorFieldSettings; }
 namespace bs
@@ -34,8 +34,8 @@ namespace bs
 		static void InternalSetScale(ScriptParticleVectorFieldSettings* self, TVector3<float>* value);
 		static void InternalGetOffset(ScriptParticleVectorFieldSettings* self, TVector3<float>* __output);
 		static void InternalSetOffset(ScriptParticleVectorFieldSettings* self, TVector3<float>* value);
-		static void InternalGetRotation(ScriptParticleVectorFieldSettings* self, Quaternion* __output);
-		static void InternalSetRotation(ScriptParticleVectorFieldSettings* self, Quaternion* value);
+		static void InternalGetRotation(ScriptParticleVectorFieldSettings* self, TQuaternion<float>* __output);
+		static void InternalSetRotation(ScriptParticleVectorFieldSettings* self, TQuaternion<float>* value);
 		static MonoObject* InternalGetRotationRate(ScriptParticleVectorFieldSettings* self);
 		static void InternalSetRotationRate(ScriptParticleVectorFieldSettings* self, MonoObject* value);
 		static bool InternalGetTilingX(ScriptParticleVectorFieldSettings* self);

@@ -5,10 +5,10 @@
 #include "BsMonoClass.h"
 #include "BsMonoUtil.h"
 #include "../../../Foundation/bsfCore/Components/BsCJoint.h"
+#include "BsScriptTQuaternion.generated.h"
 #include "../../../Foundation/bsfCore/Components/BsCRigidbody.h"
 #include "BsScriptCRigidbody.generated.h"
 #include "BsScriptTVector3.generated.h"
-#include "Wrappers/BsScriptQuaternion.h"
 
 namespace bs
 {
@@ -89,15 +89,15 @@ namespace bs
 		*__output = tmp__output;
 	}
 
-	void ScriptJoint::InternalGetRotation(ScriptJointWrapperBase* self, JointBody body, Quaternion* __output)
+	void ScriptJoint::InternalGetRotation(ScriptJointWrapperBase* self, JointBody body, TQuaternion<float>* __output)
 	{
-		Quaternion tmp__output;
+		TQuaternion<float> tmp__output;
 		tmp__output = static_cast<CJoint*>(self->GetNativeObject())->GetRotation(body);
 
 		*__output = tmp__output;
 	}
 
-	void ScriptJoint::InternalSetTransform(ScriptJointWrapperBase* self, JointBody body, TVector3<float>* position, Quaternion* rotation)
+	void ScriptJoint::InternalSetTransform(ScriptJointWrapperBase* self, JointBody body, TVector3<float>* position, TQuaternion<float>* rotation)
 	{
 		static_cast<CJoint*>(self->GetNativeObject())->SetTransform(body, *position, *rotation);
 	}

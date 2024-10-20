@@ -24,7 +24,11 @@ namespace bs
 
 	public:
 		TQuaternion() = default;
+
+		B3D_SCRIPT_EXPORT(Exclude(true))
 		constexpr TQuaternion(const TQuaternion&) = default;
+
+		B3D_SCRIPT_EXPORT(Exclude(true))
 		constexpr TQuaternion& operator=(const TQuaternion&) = default;
 
 		B3D_SCRIPT_EXPORT(Exclude(true))
@@ -57,8 +61,8 @@ namespace bs
 		}
 
 		/** Construct a quaternion from 3 orthonormal local axes. */
-		B3D_SCRIPT_EXPORT(Exclude(true))
 		template<typename Condition = T, std::enable_if_t<std::is_same_v<Condition, float>, int> = 0> // TODO - Temporarily enabled for float only, until we get TMatrix3<T>
+		B3D_SCRIPT_EXPORT(Exclude(true))
 		explicit TQuaternion(const TVector3<T>& xaxis, const TVector3<T>& yaxis, const TVector3<T>& zaxis)
 		{
 			FromAxes(xaxis, yaxis, zaxis);

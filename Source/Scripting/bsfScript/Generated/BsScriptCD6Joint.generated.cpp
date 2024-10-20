@@ -10,7 +10,7 @@
 #include "BsScriptLimitAngularRange.generated.h"
 #include "BsScriptLimitConeRange.generated.h"
 #include "BsScriptTVector3.generated.h"
-#include "Wrappers/BsScriptQuaternion.h"
+#include "BsScriptTQuaternion.generated.h"
 
 namespace bs
 {
@@ -170,15 +170,15 @@ namespace bs
 		*__output = tmp__output;
 	}
 
-	void ScriptD6Joint::InternalGetDriveRotation(ScriptD6Joint* self, Quaternion* __output)
+	void ScriptD6Joint::InternalGetDriveRotation(ScriptD6Joint* self, TQuaternion<float>* __output)
 	{
-		Quaternion tmp__output;
+		TQuaternion<float> tmp__output;
 		tmp__output = static_cast<CD6Joint*>(self->GetNativeObject())->GetDriveRotation();
 
 		*__output = tmp__output;
 	}
 
-	void ScriptD6Joint::InternalSetDriveTransform(ScriptD6Joint* self, TVector3<float>* position, Quaternion* rotation)
+	void ScriptD6Joint::InternalSetDriveTransform(ScriptD6Joint* self, TVector3<float>* position, TQuaternion<float>* rotation)
 	{
 		static_cast<CD6Joint*>(self->GetNativeObject())->SetDriveTransform(*position, *rotation);
 	}

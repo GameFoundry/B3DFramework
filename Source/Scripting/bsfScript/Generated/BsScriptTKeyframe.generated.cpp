@@ -8,8 +8,8 @@
 #include "BsScriptTVector3.generated.h"
 #include "../../../Foundation/bsfUtility/Math/BsVector2.h"
 #include "BsScriptTVector2.generated.h"
-#include "Math/BsQuaternion.h"
-#include "Wrappers/BsScriptQuaternion.h"
+#include "../../../Foundation/bsfUtility/Math/BsQuaternion.h"
+#include "BsScriptTQuaternion.generated.h"
 
 namespace bs
 {
@@ -116,19 +116,19 @@ namespace bs
 	ScriptKeyFrameQuat::ScriptKeyFrameQuat()
 	{ }
 
-	MonoObject* ScriptKeyFrameQuat::Box(const __TKeyframe_Quaternion_Interop& value)
+	MonoObject* ScriptKeyFrameQuat::Box(const __TKeyframe_TQuaternion_float__Interop& value)
 	{
 		return MonoUtil::Box(sInteropMetaData.ScriptClass->GetInternalClass(), (void*)&value);
 	}
 
-	__TKeyframe_Quaternion_Interop ScriptKeyFrameQuat::Unbox(MonoObject* value)
+	__TKeyframe_TQuaternion_float__Interop ScriptKeyFrameQuat::Unbox(MonoObject* value)
 	{
-		return *(__TKeyframe_Quaternion_Interop*)MonoUtil::Unbox(value);
+		return *(__TKeyframe_TQuaternion_float__Interop*)MonoUtil::Unbox(value);
 	}
 
-	TKeyframe<Quaternion> ScriptKeyFrameQuat::FromInterop(const __TKeyframe_Quaternion_Interop& value)
+	TKeyframe<TQuaternion<float>> ScriptKeyFrameQuat::FromInterop(const __TKeyframe_TQuaternion_float__Interop& value)
 	{
-		TKeyframe<Quaternion> output;
+		TKeyframe<TQuaternion<float>> output;
 		output.Value = value.Value;
 		output.InTangent = value.InTangent;
 		output.OutTangent = value.OutTangent;
@@ -137,9 +137,9 @@ namespace bs
 		return output;
 	}
 
-	__TKeyframe_Quaternion_Interop ScriptKeyFrameQuat::ToInterop(const TKeyframe<Quaternion>& value)
+	__TKeyframe_TQuaternion_float__Interop ScriptKeyFrameQuat::ToInterop(const TKeyframe<TQuaternion<float>>& value)
 	{
-		__TKeyframe_Quaternion_Interop output;
+		__TKeyframe_TQuaternion_float__Interop output;
 		output.Value = value.Value;
 		output.InTangent = value.InTangent;
 		output.OutTangent = value.OutTangent;

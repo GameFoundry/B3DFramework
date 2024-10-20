@@ -14,7 +14,7 @@
 #include "../../../Foundation/bsfCore/Physics/BsJoint.h"
 #include "../../../Foundation/bsfCore/Physics/BsJoint.h"
 #include "../../../Foundation/bsfUtility/Math/BsVector3.h"
-#include "Math/BsQuaternion.h"
+#include "../../../Foundation/bsfUtility/Math/BsQuaternion.h"
 
 namespace bs { struct __LimitConeRangeInterop; }
 namespace bs { struct __LimitAngularRangeInterop; }
@@ -49,8 +49,8 @@ namespace bs
 		static void InternalGetDrive(ScriptD6Joint* self, D6JointDriveType type, __D6JointDriveInterop* __output);
 		static void InternalSetDrive(ScriptD6Joint* self, D6JointDriveType type, __D6JointDriveInterop* drive);
 		static void InternalGetDrivePosition(ScriptD6Joint* self, TVector3<float>* __output);
-		static void InternalGetDriveRotation(ScriptD6Joint* self, Quaternion* __output);
-		static void InternalSetDriveTransform(ScriptD6Joint* self, TVector3<float>* position, Quaternion* rotation);
+		static void InternalGetDriveRotation(ScriptD6Joint* self, TQuaternion<float>* __output);
+		static void InternalSetDriveTransform(ScriptD6Joint* self, TVector3<float>* position, TQuaternion<float>* rotation);
 		static void InternalGetDriveLinearVelocity(ScriptD6Joint* self, TVector3<float>* __output);
 		static void InternalGetDriveAngularVelocity(ScriptD6Joint* self, TVector3<float>* __output);
 		static void InternalSetDriveVelocity(ScriptD6Joint* self, TVector3<float>* linear, TVector3<float>* angular);

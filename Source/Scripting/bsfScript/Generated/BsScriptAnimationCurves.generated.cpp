@@ -75,11 +75,11 @@ namespace bs
 	{
 		String tmpname;
 		tmpname = MonoUtil::MonoToString(name);
-		SPtr<TAnimationCurve<Quaternion>> tmpcurve;
+		SPtr<TAnimationCurve<TQuaternion<float>>> tmpcurve;
 		ScriptQuaternionCurve* scriptObjectWrappercurve;
 		scriptObjectWrappercurve = ScriptQuaternionCurve::GetScriptObjectWrapper(curve);
 		if(scriptObjectWrappercurve != nullptr)
-			tmpcurve = std::static_pointer_cast<TAnimationCurve<Quaternion>>(scriptObjectWrappercurve->GetBaseNativeObjectAsShared());
+			tmpcurve = std::static_pointer_cast<TAnimationCurve<TQuaternion<float>>>(scriptObjectWrappercurve->GetBaseNativeObjectAsShared());
 		static_cast<AnimationCurves*>(self->GetNativeObject())->AddRotationCurve(tmpname, *tmpcurve);
 	}
 
@@ -169,7 +169,7 @@ namespace bs
 
 	MonoArray* ScriptAnimationCurves::InternalGetRotationCurves(ScriptAnimationCurves* self)
 	{
-		Vector<TNamedAnimationCurve<Quaternion>> nativeArray__output;
+		Vector<TNamedAnimationCurve<TQuaternion<float>>> nativeArray__output;
 		nativeArray__output = AnimationCurvesEx::GetRotationCurves(std::static_pointer_cast<AnimationCurves>(self->GetBaseNativeObjectAsShared()));
 
 		MonoArray* __output;
@@ -186,14 +186,14 @@ namespace bs
 
 	void ScriptAnimationCurves::InternalSetRotationCurves(ScriptAnimationCurves* self, MonoArray* value)
 	{
-		Vector<TNamedAnimationCurve<Quaternion>> nativeArrayvalue;
+		Vector<TNamedAnimationCurve<TQuaternion<float>>> nativeArrayvalue;
 		if(value != nullptr)
 		{
 			ScriptArray scriptArrayvalue(value);
 			nativeArrayvalue.resize(scriptArrayvalue.Size());
 			for(int elementIndex = 0; elementIndex < (int)scriptArrayvalue.Size(); elementIndex++)
 			{
-				nativeArrayvalue[elementIndex] = ScriptNamedQuaternionCurve::FromInterop(scriptArrayvalue.Get<__TNamedAnimationCurve_Quaternion_Interop>(elementIndex));
+				nativeArrayvalue[elementIndex] = ScriptNamedQuaternionCurve::FromInterop(scriptArrayvalue.Get<__TNamedAnimationCurve_TQuaternion_float__Interop>(elementIndex));
 			}
 		}
 		AnimationCurvesEx::SetRotationCurves(std::static_pointer_cast<AnimationCurves>(self->GetBaseNativeObjectAsShared()), nativeArrayvalue);

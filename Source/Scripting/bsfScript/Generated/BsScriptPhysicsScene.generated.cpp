@@ -12,7 +12,7 @@
 #include "BsScriptTVector3.generated.h"
 #include "BsScriptPhysicsQueryHit.generated.h"
 #include "BsScriptTAABox.generated.h"
-#include "Wrappers/BsScriptQuaternion.h"
+#include "BsScriptTQuaternion.generated.h"
 #include "BsScriptTSphere.generated.h"
 #include "../../../Foundation/bsfCore/Components/BsCCollider.h"
 #include "BsScriptCCollider.generated.h"
@@ -103,7 +103,7 @@ namespace bs
 		return __output;
 	}
 
-	bool ScriptPhysicsScene::InternalBoxCast(ScriptPhysicsScene* self, __TAABox_float_Interop* box, Quaternion* rotation, TVector3<float>* unitDir, __PhysicsQueryHitInterop* hit, uint64_t layer, float max)
+	bool ScriptPhysicsScene::InternalBoxCast(ScriptPhysicsScene* self, __TAABox_float_Interop* box, TQuaternion<float>* rotation, TVector3<float>* unitDir, __PhysicsQueryHitInterop* hit, uint64_t layer, float max)
 	{
 		bool tmp__output;
 		TAABox<float> tmpbox;
@@ -137,7 +137,7 @@ namespace bs
 		return __output;
 	}
 
-	bool ScriptPhysicsScene::InternalCapsuleCast(ScriptPhysicsScene* self, Capsule* capsule, Quaternion* rotation, TVector3<float>* unitDir, __PhysicsQueryHitInterop* hit, uint64_t layer, float max)
+	bool ScriptPhysicsScene::InternalCapsuleCast(ScriptPhysicsScene* self, Capsule* capsule, TQuaternion<float>* rotation, TVector3<float>* unitDir, __PhysicsQueryHitInterop* hit, uint64_t layer, float max)
 	{
 		bool tmp__output;
 		PhysicsQueryHit tmphit;
@@ -152,7 +152,7 @@ namespace bs
 		return __output;
 	}
 
-	bool ScriptPhysicsScene::InternalConvexCast(ScriptPhysicsScene* self, MonoObject* mesh, TVector3<float>* position, Quaternion* rotation, TVector3<float>* unitDir, __PhysicsQueryHitInterop* hit, uint64_t layer, float max)
+	bool ScriptPhysicsScene::InternalConvexCast(ScriptPhysicsScene* self, MonoObject* mesh, TVector3<float>* position, TQuaternion<float>* rotation, TVector3<float>* unitDir, __PhysicsQueryHitInterop* hit, uint64_t layer, float max)
 	{
 		bool tmp__output;
 		TResourceHandle<PhysicsMesh> tmpmesh;
@@ -208,7 +208,7 @@ namespace bs
 		return __output;
 	}
 
-	MonoArray* ScriptPhysicsScene::InternalBoxCastAll(ScriptPhysicsScene* self, __TAABox_float_Interop* box, Quaternion* rotation, TVector3<float>* unitDir, uint64_t layer, float max)
+	MonoArray* ScriptPhysicsScene::InternalBoxCastAll(ScriptPhysicsScene* self, __TAABox_float_Interop* box, TQuaternion<float>* rotation, TVector3<float>* unitDir, uint64_t layer, float max)
 	{
 		Vector<PhysicsQueryHit> nativeArray__output;
 		TAABox<float> tmpbox;
@@ -246,7 +246,7 @@ namespace bs
 		return __output;
 	}
 
-	MonoArray* ScriptPhysicsScene::InternalCapsuleCastAll(ScriptPhysicsScene* self, Capsule* capsule, Quaternion* rotation, TVector3<float>* unitDir, uint64_t layer, float max)
+	MonoArray* ScriptPhysicsScene::InternalCapsuleCastAll(ScriptPhysicsScene* self, Capsule* capsule, TQuaternion<float>* rotation, TVector3<float>* unitDir, uint64_t layer, float max)
 	{
 		Vector<PhysicsQueryHit> nativeArray__output;
 		nativeArray__output = static_cast<PhysicsScene*>(self->GetNativeObject())->CapsuleCastAll(*capsule, *rotation, *unitDir, layer, max);
@@ -263,7 +263,7 @@ namespace bs
 		return __output;
 	}
 
-	MonoArray* ScriptPhysicsScene::InternalConvexCastAll(ScriptPhysicsScene* self, MonoObject* mesh, TVector3<float>* position, Quaternion* rotation, TVector3<float>* unitDir, uint64_t layer, float max)
+	MonoArray* ScriptPhysicsScene::InternalConvexCastAll(ScriptPhysicsScene* self, MonoObject* mesh, TVector3<float>* position, TQuaternion<float>* rotation, TVector3<float>* unitDir, uint64_t layer, float max)
 	{
 		Vector<PhysicsQueryHit> nativeArray__output;
 		TResourceHandle<PhysicsMesh> tmpmesh;
@@ -309,7 +309,7 @@ namespace bs
 		return __output;
 	}
 
-	bool ScriptPhysicsScene::InternalBoxCastAny(ScriptPhysicsScene* self, __TAABox_float_Interop* box, Quaternion* rotation, TVector3<float>* unitDir, uint64_t layer, float max)
+	bool ScriptPhysicsScene::InternalBoxCastAny(ScriptPhysicsScene* self, __TAABox_float_Interop* box, TQuaternion<float>* rotation, TVector3<float>* unitDir, uint64_t layer, float max)
 	{
 		bool tmp__output;
 		TAABox<float> tmpbox;
@@ -335,7 +335,7 @@ namespace bs
 		return __output;
 	}
 
-	bool ScriptPhysicsScene::InternalCapsuleCastAny(ScriptPhysicsScene* self, Capsule* capsule, Quaternion* rotation, TVector3<float>* unitDir, uint64_t layer, float max)
+	bool ScriptPhysicsScene::InternalCapsuleCastAny(ScriptPhysicsScene* self, Capsule* capsule, TQuaternion<float>* rotation, TVector3<float>* unitDir, uint64_t layer, float max)
 	{
 		bool tmp__output;
 		tmp__output = static_cast<PhysicsScene*>(self->GetNativeObject())->CapsuleCastAny(*capsule, *rotation, *unitDir, layer, max);
@@ -346,7 +346,7 @@ namespace bs
 		return __output;
 	}
 
-	bool ScriptPhysicsScene::InternalConvexCastAny(ScriptPhysicsScene* self, MonoObject* mesh, TVector3<float>* position, Quaternion* rotation, TVector3<float>* unitDir, uint64_t layer, float max)
+	bool ScriptPhysicsScene::InternalConvexCastAny(ScriptPhysicsScene* self, MonoObject* mesh, TVector3<float>* position, TQuaternion<float>* rotation, TVector3<float>* unitDir, uint64_t layer, float max)
 	{
 		bool tmp__output;
 		TResourceHandle<PhysicsMesh> tmpmesh;
@@ -362,7 +362,7 @@ namespace bs
 		return __output;
 	}
 
-	MonoArray* ScriptPhysicsScene::InternalBoxOverlap(ScriptPhysicsScene* self, __TAABox_float_Interop* box, Quaternion* rotation, uint64_t layer)
+	MonoArray* ScriptPhysicsScene::InternalBoxOverlap(ScriptPhysicsScene* self, __TAABox_float_Interop* box, TQuaternion<float>* rotation, uint64_t layer)
 	{
 		Vector<GameObjectHandle<CCollider>> nativeArray__output;
 		TAABox<float> tmpbox;
@@ -406,7 +406,7 @@ namespace bs
 		return __output;
 	}
 
-	MonoArray* ScriptPhysicsScene::InternalCapsuleOverlap(ScriptPhysicsScene* self, Capsule* capsule, Quaternion* rotation, uint64_t layer)
+	MonoArray* ScriptPhysicsScene::InternalCapsuleOverlap(ScriptPhysicsScene* self, Capsule* capsule, TQuaternion<float>* rotation, uint64_t layer)
 	{
 		Vector<GameObjectHandle<CCollider>> nativeArray__output;
 		nativeArray__output = static_cast<PhysicsScene*>(self->GetNativeObject())->CapsuleOverlap(*capsule, *rotation, layer);
@@ -426,7 +426,7 @@ namespace bs
 		return __output;
 	}
 
-	MonoArray* ScriptPhysicsScene::InternalConvexOverlap(ScriptPhysicsScene* self, MonoObject* mesh, TVector3<float>* position, Quaternion* rotation, uint64_t layer)
+	MonoArray* ScriptPhysicsScene::InternalConvexOverlap(ScriptPhysicsScene* self, MonoObject* mesh, TVector3<float>* position, TQuaternion<float>* rotation, uint64_t layer)
 	{
 		Vector<GameObjectHandle<CCollider>> nativeArray__output;
 		TResourceHandle<PhysicsMesh> tmpmesh;
@@ -451,7 +451,7 @@ namespace bs
 		return __output;
 	}
 
-	bool ScriptPhysicsScene::InternalBoxOverlapAny(ScriptPhysicsScene* self, __TAABox_float_Interop* box, Quaternion* rotation, uint64_t layer)
+	bool ScriptPhysicsScene::InternalBoxOverlapAny(ScriptPhysicsScene* self, __TAABox_float_Interop* box, TQuaternion<float>* rotation, uint64_t layer)
 	{
 		bool tmp__output;
 		TAABox<float> tmpbox;
@@ -477,7 +477,7 @@ namespace bs
 		return __output;
 	}
 
-	bool ScriptPhysicsScene::InternalCapsuleOverlapAny(ScriptPhysicsScene* self, Capsule* capsule, Quaternion* rotation, uint64_t layer)
+	bool ScriptPhysicsScene::InternalCapsuleOverlapAny(ScriptPhysicsScene* self, Capsule* capsule, TQuaternion<float>* rotation, uint64_t layer)
 	{
 		bool tmp__output;
 		tmp__output = static_cast<PhysicsScene*>(self->GetNativeObject())->CapsuleOverlapAny(*capsule, *rotation, layer);
@@ -488,7 +488,7 @@ namespace bs
 		return __output;
 	}
 
-	bool ScriptPhysicsScene::InternalConvexOverlapAny(ScriptPhysicsScene* self, MonoObject* mesh, TVector3<float>* position, Quaternion* rotation, uint64_t layer)
+	bool ScriptPhysicsScene::InternalConvexOverlapAny(ScriptPhysicsScene* self, MonoObject* mesh, TVector3<float>* position, TQuaternion<float>* rotation, uint64_t layer)
 	{
 		bool tmp__output;
 		TResourceHandle<PhysicsMesh> tmpmesh;

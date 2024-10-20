@@ -7,7 +7,7 @@
 #include "../../../Foundation/bsfCore/Components/BsCRigidbody.h"
 #include "BsScriptCollisionData.generated.h"
 #include "BsScriptTVector3.generated.h"
-#include "Wrappers/BsScriptQuaternion.h"
+#include "BsScriptTQuaternion.generated.h"
 
 namespace bs
 {
@@ -118,7 +118,7 @@ namespace bs
 		static_cast<CRigidbody*>(self->GetNativeObject())->Move(*position);
 	}
 
-	void ScriptRigidbody::InternalRotate(ScriptRigidbody* self, Quaternion* rotation)
+	void ScriptRigidbody::InternalRotate(ScriptRigidbody* self, TQuaternion<float>* rotation)
 	{
 		static_cast<CRigidbody*>(self->GetNativeObject())->Rotate(*rotation);
 	}
@@ -308,14 +308,14 @@ namespace bs
 		*__output = tmp__output;
 	}
 
-	void ScriptRigidbody::InternalSetCenterOfMassRotation(ScriptRigidbody* self, Quaternion* rotation)
+	void ScriptRigidbody::InternalSetCenterOfMassRotation(ScriptRigidbody* self, TQuaternion<float>* rotation)
 	{
 		static_cast<CRigidbody*>(self->GetNativeObject())->SetCenterOfMassRotation(*rotation);
 	}
 
-	void ScriptRigidbody::InternalGetCenterOfMassRotation(ScriptRigidbody* self, Quaternion* __output)
+	void ScriptRigidbody::InternalGetCenterOfMassRotation(ScriptRigidbody* self, TQuaternion<float>* __output)
 	{
-		Quaternion tmp__output;
+		TQuaternion<float> tmp__output;
 		tmp__output = static_cast<CRigidbody*>(self->GetNativeObject())->GetCenterOfMassRotation();
 
 		*__output = tmp__output;

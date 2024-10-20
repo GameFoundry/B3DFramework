@@ -7,7 +7,7 @@
 #include "../../../Foundation/bsfCore/Physics/BsPhysicsCommon.h"
 #include "../../../Foundation/bsfCore/Physics/BsRigidbody.h"
 #include "../../../Foundation/bsfUtility/Math/BsVector3.h"
-#include "Math/BsQuaternion.h"
+#include "../../../Foundation/bsfUtility/Math/BsQuaternion.h"
 #include "../../../Foundation/bsfCore/Physics/BsPhysicsCommon.h"
 #include "../../../Foundation/bsfCore/Physics/BsRigidbody.h"
 #include "../../../Foundation/bsfCore/Physics/BsRigidbody.h"
@@ -41,7 +41,7 @@ namespace bs
 		static OnCollisionEndThunkDefinition OnCollisionEndThunk;
 
 		static void InternalMove(ScriptRigidbody* self, TVector3<float>* position);
-		static void InternalRotate(ScriptRigidbody* self, Quaternion* rotation);
+		static void InternalRotate(ScriptRigidbody* self, TQuaternion<float>* rotation);
 		static void InternalSetMass(ScriptRigidbody* self, float mass);
 		static float InternalGetMass(ScriptRigidbody* self);
 		static void InternalSetIsKinematic(ScriptRigidbody* self, bool kinematic);
@@ -67,8 +67,8 @@ namespace bs
 		static float InternalGetMaxAngularVelocity(ScriptRigidbody* self);
 		static void InternalSetCenterOfMassPosition(ScriptRigidbody* self, TVector3<float>* position);
 		static void InternalGetCenterOfMassPosition(ScriptRigidbody* self, TVector3<float>* __output);
-		static void InternalSetCenterOfMassRotation(ScriptRigidbody* self, Quaternion* rotation);
-		static void InternalGetCenterOfMassRotation(ScriptRigidbody* self, Quaternion* __output);
+		static void InternalSetCenterOfMassRotation(ScriptRigidbody* self, TQuaternion<float>* rotation);
+		static void InternalGetCenterOfMassRotation(ScriptRigidbody* self, TQuaternion<float>* __output);
 		static void InternalSetPositionSolverCount(ScriptRigidbody* self, uint32_t count);
 		static uint32_t InternalGetPositionSolverCount(ScriptRigidbody* self);
 		static void InternalSetVelocitySolverCount(ScriptRigidbody* self, uint32_t count);

@@ -47,7 +47,7 @@ namespace bs
 
 	MonoObject* ScriptRootMotion::InternalGetRotationCurves(ScriptRootMotion* self)
 	{
-		SPtr<TAnimationCurve<Quaternion>> tmp__output = B3DMakeShared<TAnimationCurve<Quaternion>>();
+		SPtr<TAnimationCurve<TQuaternion<float>>> tmp__output = B3DMakeShared<TAnimationCurve<TQuaternion<float>>>();
 		*tmp__output = RootMotionEx::GetRotationCurves(std::static_pointer_cast<RootMotion>(self->GetBaseNativeObjectAsShared()));
 
 		MonoObject* __output;

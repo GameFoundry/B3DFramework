@@ -8,8 +8,8 @@
 #include "Wrappers/BsScriptRRefBase.h"
 #include "../../../Foundation/bsfCore/Particles/BsVectorField.h"
 #include "BsScriptTVector3.generated.h"
+#include "BsScriptTQuaternion.generated.h"
 #include "BsScriptTDistribution.generated.h"
-#include "Wrappers/BsScriptQuaternion.h"
 
 namespace bs
 {
@@ -142,9 +142,9 @@ namespace bs
 		static_cast<ParticleVectorFieldSettings*>(self->GetNativeObject())->Offset = *value;
 	}
 
-	void ScriptParticleVectorFieldSettings::InternalGetRotation(ScriptParticleVectorFieldSettings* self, Quaternion* __output)
+	void ScriptParticleVectorFieldSettings::InternalGetRotation(ScriptParticleVectorFieldSettings* self, TQuaternion<float>* __output)
 	{
-		Quaternion tmp__output;
+		TQuaternion<float> tmp__output;
 		tmp__output = static_cast<ParticleVectorFieldSettings*>(self->GetNativeObject())->Rotation;
 
 		*__output = tmp__output;
@@ -152,7 +152,7 @@ namespace bs
 
 	}
 
-	void ScriptParticleVectorFieldSettings::InternalSetRotation(ScriptParticleVectorFieldSettings* self, Quaternion* value)
+	void ScriptParticleVectorFieldSettings::InternalSetRotation(ScriptParticleVectorFieldSettings* self, TQuaternion<float>* value)
 	{
 		static_cast<ParticleVectorFieldSettings*>(self->GetNativeObject())->Rotation = *value;
 	}

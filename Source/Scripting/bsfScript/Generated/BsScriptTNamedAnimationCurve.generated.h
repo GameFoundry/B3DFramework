@@ -88,7 +88,7 @@ namespace bs
 
 	};
 
-	struct __TNamedAnimationCurve_Quaternion_Interop
+	struct __TNamedAnimationCurve_TQuaternion_float__Interop
 	{
 		MonoString* Name;
 		Flags<AnimationCurveFlag> Flags;
@@ -100,10 +100,10 @@ namespace bs
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "NamedQuaternionCurve")
 
-		static MonoObject* Box(const __TNamedAnimationCurve_Quaternion_Interop& value);
-		static __TNamedAnimationCurve_Quaternion_Interop Unbox(MonoObject* value);
-		static TNamedAnimationCurve<Quaternion> FromInterop(const __TNamedAnimationCurve_Quaternion_Interop& value);
-		static __TNamedAnimationCurve_Quaternion_Interop ToInterop(const TNamedAnimationCurve<Quaternion>& value);
+		static MonoObject* Box(const __TNamedAnimationCurve_TQuaternion_float__Interop& value);
+		static __TNamedAnimationCurve_TQuaternion_float__Interop Unbox(MonoObject* value);
+		static TNamedAnimationCurve<TQuaternion<float>> FromInterop(const __TNamedAnimationCurve_TQuaternion_float__Interop& value);
+		static __TNamedAnimationCurve_TQuaternion_float__Interop ToInterop(const TNamedAnimationCurve<TQuaternion<float>>& value);
 
 	private:
 		ScriptNamedQuaternionCurve();

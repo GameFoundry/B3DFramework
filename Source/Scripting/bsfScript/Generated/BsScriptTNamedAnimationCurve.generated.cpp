@@ -164,44 +164,44 @@ namespace bs
 	ScriptNamedQuaternionCurve::ScriptNamedQuaternionCurve()
 	{ }
 
-	MonoObject* ScriptNamedQuaternionCurve::Box(const __TNamedAnimationCurve_Quaternion_Interop& value)
+	MonoObject* ScriptNamedQuaternionCurve::Box(const __TNamedAnimationCurve_TQuaternion_float__Interop& value)
 	{
 		return MonoUtil::Box(sInteropMetaData.ScriptClass->GetInternalClass(), (void*)&value);
 	}
 
-	__TNamedAnimationCurve_Quaternion_Interop ScriptNamedQuaternionCurve::Unbox(MonoObject* value)
+	__TNamedAnimationCurve_TQuaternion_float__Interop ScriptNamedQuaternionCurve::Unbox(MonoObject* value)
 	{
-		return *(__TNamedAnimationCurve_Quaternion_Interop*)MonoUtil::Unbox(value);
+		return *(__TNamedAnimationCurve_TQuaternion_float__Interop*)MonoUtil::Unbox(value);
 	}
 
-	TNamedAnimationCurve<Quaternion> ScriptNamedQuaternionCurve::FromInterop(const __TNamedAnimationCurve_Quaternion_Interop& value)
+	TNamedAnimationCurve<TQuaternion<float>> ScriptNamedQuaternionCurve::FromInterop(const __TNamedAnimationCurve_TQuaternion_float__Interop& value)
 	{
-		TNamedAnimationCurve<Quaternion> output;
+		TNamedAnimationCurve<TQuaternion<float>> output;
 		String tmpName;
 		tmpName = MonoUtil::MonoToString(value.Name);
 		output.Name = tmpName;
 		output.Flags = value.Flags;
-		SPtr<TAnimationCurve<Quaternion>> tmpCurve;
+		SPtr<TAnimationCurve<TQuaternion<float>>> tmpCurve;
 		ScriptQuaternionCurve* scriptWrapperObjectCurve;
 		scriptWrapperObjectCurve = ScriptQuaternionCurve::GetScriptObjectWrapper(value.Curve);
 		if(scriptWrapperObjectCurve != nullptr)
-			tmpCurve = std::static_pointer_cast<TAnimationCurve<Quaternion>>(scriptWrapperObjectCurve->GetBaseNativeObjectAsShared());
+			tmpCurve = std::static_pointer_cast<TAnimationCurve<TQuaternion<float>>>(scriptWrapperObjectCurve->GetBaseNativeObjectAsShared());
 		if(tmpCurve != nullptr)
 		output.Curve = *tmpCurve;
 
 		return output;
 	}
 
-	__TNamedAnimationCurve_Quaternion_Interop ScriptNamedQuaternionCurve::ToInterop(const TNamedAnimationCurve<Quaternion>& value)
+	__TNamedAnimationCurve_TQuaternion_float__Interop ScriptNamedQuaternionCurve::ToInterop(const TNamedAnimationCurve<TQuaternion<float>>& value)
 	{
-		__TNamedAnimationCurve_Quaternion_Interop output;
+		__TNamedAnimationCurve_TQuaternion_float__Interop output;
 		MonoString* tmpName;
 		tmpName = MonoUtil::StringToMono(value.Name);
 		output.Name = tmpName;
 		output.Flags = value.Flags;
 		MonoObject* tmpCurve;
-		SPtr<TAnimationCurve<Quaternion>> tmpCurvecopy;
-		tmpCurvecopy = B3DMakeShared<TAnimationCurve<Quaternion>>(value.Curve);
+		SPtr<TAnimationCurve<TQuaternion<float>>> tmpCurvecopy;
+		tmpCurvecopy = B3DMakeShared<TAnimationCurve<TQuaternion<float>>>(value.Curve);
 		tmpCurve = ScriptQuaternionCurve::GetOrCreateScriptObject(tmpCurvecopy);
 		output.Curve = tmpCurve;
 

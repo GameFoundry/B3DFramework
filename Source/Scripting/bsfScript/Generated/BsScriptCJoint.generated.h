@@ -4,9 +4,9 @@
 
 #include "BsScriptEnginePrerequisites.h"
 #include "Wrappers/BsScriptComponent.h"
+#include "../../../Foundation/bsfUtility/Math/BsQuaternion.h"
 #include "../../../Foundation/bsfUtility/Math/BsVector3.h"
 #include "../../../Foundation/bsfCore/Physics/BsFJoint.h"
-#include "Math/BsQuaternion.h"
 
 namespace bs { class CJoint; }
 namespace bs
@@ -39,8 +39,8 @@ namespace bs
 		static MonoObject* InternalGetBody(ScriptJointWrapperBase* self, JointBody body);
 		static void InternalSetBody(ScriptJointWrapperBase* self, JointBody body, MonoObject* value);
 		static void InternalGetPosition(ScriptJointWrapperBase* self, JointBody body, TVector3<float>* __output);
-		static void InternalGetRotation(ScriptJointWrapperBase* self, JointBody body, Quaternion* __output);
-		static void InternalSetTransform(ScriptJointWrapperBase* self, JointBody body, TVector3<float>* position, Quaternion* rotation);
+		static void InternalGetRotation(ScriptJointWrapperBase* self, JointBody body, TQuaternion<float>* __output);
+		static void InternalSetTransform(ScriptJointWrapperBase* self, JointBody body, TVector3<float>* position, TQuaternion<float>* rotation);
 		static float InternalGetBreakForce(ScriptJointWrapperBase* self);
 		static void InternalSetBreakForce(ScriptJointWrapperBase* self, float force);
 		static float InternalGetBreakTorque(ScriptJointWrapperBase* self);

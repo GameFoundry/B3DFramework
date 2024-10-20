@@ -9,11 +9,7 @@ namespace bs
      *  @{
      */
 
-    /// <summary>
-    /// Quaternion used for representing rotations.
-    /// </summary>
-    [StructLayout(LayoutKind.Sequential), SerializeObject]
-    public struct Quaternion // Note: Must match C++ class Quaternion
+    public partial struct Quaternion
     {
         /// <summary>
         /// Contains constant data that is used when calculating euler angles in a certain order.
@@ -38,18 +34,13 @@ namespace bs
         /// <summary>
         /// Quaternion representing no rotation.
         /// </summary>
-        public static readonly Quaternion Identity = new Quaternion(0.0f, 0.0f, 0.0f, 1.0f);
+        public static readonly Quaternion Identity = new Quaternion(1.0f, 0.0f, 0.0f, 0.0f);
 
         private static readonly float epsilon = 1e-03f;
 
         private static readonly EulerAngleOrderData[] EA_LOOKUP = new EulerAngleOrderData[6]
             { new EulerAngleOrderData(0, 1, 2), new EulerAngleOrderData(0, 2, 1), new EulerAngleOrderData(1, 0, 2),
               new EulerAngleOrderData(1, 2, 0), new EulerAngleOrderData(2, 0, 1), new EulerAngleOrderData(2, 1, 0) };
-
-        public float X;
-        public float Y;
-        public float Z;
-        public float W;
 
         /// <summary>
         /// Accesses a specific component of the quaternion.
@@ -185,43 +176,33 @@ namespace bs
             }
         }
 
-        /// <summary>
-        /// Constructs a new quaternion with the specified components.
-        /// </summary>
-        public Quaternion(float x, float y, float z, float w)
-        {
-            this.X = x;
-            this.Y = y;
-            this.Z = z;
-            this.W = w;
-        }
-
         public static Quaternion operator* (Quaternion lhs, Quaternion rhs)
         {
-            return new Quaternion((lhs.W * rhs.X + lhs.X * rhs.W + lhs.Y * rhs.Z - lhs.Z * rhs.Y),
+            return new Quaternion((lhs.W * rhs.W - lhs.X * rhs.X - lhs.Y * rhs.Y - lhs.Z * rhs.Z),
+                (lhs.W * rhs.X + lhs.X * rhs.W + lhs.Y * rhs.Z - lhs.Z * rhs.Y),
                 (lhs.W * rhs.Y + lhs.Y * rhs.W + lhs.Z * rhs.X - lhs.X * rhs.Z),
-                (lhs.W * rhs.Z + lhs.Z * rhs.W + lhs.X * rhs.Y - lhs.Y * rhs.X),
-                (lhs.W * rhs.W - lhs.X * rhs.X - lhs.Y * rhs.Y - lhs.Z * rhs.Z));
+                (lhs.W * rhs.Z + lhs.Z * rhs.W + lhs.X * rhs.Y - lhs.Y * rhs.X)
+                );
         }
 
         public static Quaternion operator* (float lhs, Quaternion rhs)
         {
-            return new Quaternion(lhs * rhs.X, lhs * rhs.Y, lhs * rhs.Z, lhs * rhs.W);
+            return new Quaternion(lhs * rhs.W, lhs * rhs.X, lhs * rhs.Y, lhs * rhs.Z);
         }
 
         public static Quaternion operator+ (Quaternion lhs, Quaternion rhs)
         {
-            return new Quaternion(lhs.X + rhs.X, lhs.Y + rhs.Y, lhs.Z + rhs.Z, lhs.W + rhs.W);
+            return new Quaternion(lhs.W + rhs.W, lhs.X + rhs.X, lhs.Y + rhs.Y, lhs.Z + rhs.Z);
         }
 
         public static Quaternion operator- (Quaternion lhs, Quaternion rhs)
         {
-            return new Quaternion(lhs.X - rhs.X, lhs.Y - rhs.Y, lhs.Z - rhs.Z, lhs.W - rhs.W);
+            return new Quaternion(lhs.W - rhs.W, lhs.X - rhs.X, lhs.Y - rhs.Y, lhs.Z - rhs.Z);
         }
 
         public static Quaternion operator- (Quaternion quat)
         {
-            return new Quaternion(-quat.X, -quat.Y, -quat.Z, -quat.W);
+            return new Quaternion(-quat.W, -quat.X, -quat.Y, -quat.Z);
         }
 
         public static bool operator== (Quaternion lhs, Quaternion rhs)
@@ -753,9 +734,9 @@ namespace bs
             float sz = MathEx.Sin(halfZAngle);
 
             Quaternion[] quats = new Quaternion[3];
-            quats[0] = new Quaternion(sx, 0.0f, 0.0f, cx);
-            quats[1] = new Quaternion(0.0f, sy, 0.0f, cy);
-            quats[2] = new Quaternion(0.0f, 0.0f, sz, cz);
+            quats[0] = new Quaternion(cx, sx, 0.0f, 0.0f);
+            quats[1] = new Quaternion(cy, 0.0f, sy, 0.0f);
+            quats[2] = new Quaternion(cz, 0.0f, 0.0f, sz);
 
             return (quats[l.a] * quats[l.b]) * quats[l.c];
         }
