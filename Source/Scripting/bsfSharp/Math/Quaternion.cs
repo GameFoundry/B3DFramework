@@ -46,10 +46,10 @@ namespace bs
             { new EulerAngleOrderData(0, 1, 2), new EulerAngleOrderData(0, 2, 1), new EulerAngleOrderData(1, 0, 2),
               new EulerAngleOrderData(1, 2, 0), new EulerAngleOrderData(2, 0, 1), new EulerAngleOrderData(2, 1, 0) };
 
-        public float x;
-        public float y;
-        public float z;
-        public float w;
+        public float X;
+        public float Y;
+        public float Z;
+        public float W;
 
         /// <summary>
         /// Accesses a specific component of the quaternion.
@@ -63,13 +63,13 @@ namespace bs
                 switch (index)
                 {
                     case 0:
-                        return x;
+                        return X;
                     case 1:
-                        return y;
+                        return Y;
                     case 2:
-                        return z;
+                        return Z;
                     case 3:
-                        return w;
+                        return W;
                     default:
                         throw new IndexOutOfRangeException("Invalid Quaternion index.");
                 }
@@ -79,16 +79,16 @@ namespace bs
                 switch (index)
                 {
                     case 0:
-                        x = value;
+                        X = value;
                         break;
                     case 1:
-                        y = value;
+                        Y = value;
                         break;
                     case 2:
-                        z = value;
+                        Z = value;
                         break;
                     case 3:
-                        w = value;
+                        W = value;
                         break;
                     default:
                         throw new IndexOutOfRangeException("Invalid Quaternion index.");
@@ -103,14 +103,14 @@ namespace bs
         {
             get
             {
-                float fTy = 2.0f*y;
-                float fTz = 2.0f*z;
-                float fTwy = fTy*w;
-                float fTwz = fTz*w;
-                float fTxy = fTy*x;
-                float fTxz = fTz*x;
-                float fTyy = fTy*y;
-                float fTzz = fTz*z;
+                float fTy = 2.0f*Y;
+                float fTz = 2.0f*Z;
+                float fTwy = fTy*W;
+                float fTwz = fTz*W;
+                float fTxy = fTy*X;
+                float fTxz = fTz*X;
+                float fTyy = fTy*Y;
+                float fTzz = fTz*Z;
 
                 return new Vector3(1.0f - (fTyy + fTzz), fTxy + fTwz, fTxz - fTwy);
             }
@@ -123,15 +123,15 @@ namespace bs
         {
             get
             {
-                float fTx = 2.0f * x;
-                float fTy = 2.0f * y;
-                float fTz = 2.0f * z;
-                float fTwx = fTx * w;
-                float fTwz = fTz * w;
-                float fTxx = fTx * x;
-                float fTxy = fTy * x;
-                float fTyz = fTz * y;
-                float fTzz = fTz * z;
+                float fTx = 2.0f * X;
+                float fTy = 2.0f * Y;
+                float fTz = 2.0f * Z;
+                float fTwx = fTx * W;
+                float fTwz = fTz * W;
+                float fTxx = fTx * X;
+                float fTxy = fTy * X;
+                float fTyz = fTz * Y;
+                float fTzz = fTz * Z;
 
                 return new Vector3(fTxy - fTwz, 1.0f - (fTxx + fTzz), fTyz + fTwx);
             }
@@ -144,15 +144,15 @@ namespace bs
         {
             get
             {
-                float fTx = 2.0f * x;
-                float fTy = 2.0f * y;
-                float fTz = 2.0f * z;
-                float fTwx = fTx * w;
-                float fTwy = fTy * w;
-                float fTxx = fTx * x;
-                float fTxz = fTz * x;
-                float fTyy = fTy * y;
-                float fTyz = fTz * y;
+                float fTx = 2.0f * X;
+                float fTy = 2.0f * Y;
+                float fTz = 2.0f * Z;
+                float fTwx = fTx * W;
+                float fTwy = fTy * W;
+                float fTxx = fTx * X;
+                float fTxz = fTz * X;
+                float fTyy = fTy * Y;
+                float fTyz = fTz * Y;
 
                 return new Vector3(fTxz + fTwy, fTyz - fTwx, 1.0f - (fTxx + fTyy));
             }
@@ -190,43 +190,43 @@ namespace bs
         /// </summary>
         public Quaternion(float x, float y, float z, float w)
         {
-            this.x = x;
-            this.y = y;
-            this.z = z;
-            this.w = w;
+            this.X = x;
+            this.Y = y;
+            this.Z = z;
+            this.W = w;
         }
 
         public static Quaternion operator* (Quaternion lhs, Quaternion rhs)
         {
-            return new Quaternion((lhs.w * rhs.x + lhs.x * rhs.w + lhs.y * rhs.z - lhs.z * rhs.y),
-                (lhs.w * rhs.y + lhs.y * rhs.w + lhs.z * rhs.x - lhs.x * rhs.z),
-                (lhs.w * rhs.z + lhs.z * rhs.w + lhs.x * rhs.y - lhs.y * rhs.x),
-                (lhs.w * rhs.w - lhs.x * rhs.x - lhs.y * rhs.y - lhs.z * rhs.z));
+            return new Quaternion((lhs.W * rhs.X + lhs.X * rhs.W + lhs.Y * rhs.Z - lhs.Z * rhs.Y),
+                (lhs.W * rhs.Y + lhs.Y * rhs.W + lhs.Z * rhs.X - lhs.X * rhs.Z),
+                (lhs.W * rhs.Z + lhs.Z * rhs.W + lhs.X * rhs.Y - lhs.Y * rhs.X),
+                (lhs.W * rhs.W - lhs.X * rhs.X - lhs.Y * rhs.Y - lhs.Z * rhs.Z));
         }
 
         public static Quaternion operator* (float lhs, Quaternion rhs)
         {
-            return new Quaternion(lhs * rhs.x, lhs * rhs.y, lhs * rhs.z, lhs * rhs.w);
+            return new Quaternion(lhs * rhs.X, lhs * rhs.Y, lhs * rhs.Z, lhs * rhs.W);
         }
 
         public static Quaternion operator+ (Quaternion lhs, Quaternion rhs)
         {
-            return new Quaternion(lhs.x + rhs.x, lhs.y + rhs.y, lhs.z + rhs.z, lhs.w + rhs.w);
+            return new Quaternion(lhs.X + rhs.X, lhs.Y + rhs.Y, lhs.Z + rhs.Z, lhs.W + rhs.W);
         }
 
         public static Quaternion operator- (Quaternion lhs, Quaternion rhs)
         {
-            return new Quaternion(lhs.x - rhs.x, lhs.y - rhs.y, lhs.z - rhs.z, lhs.w - rhs.w);
+            return new Quaternion(lhs.X - rhs.X, lhs.Y - rhs.Y, lhs.Z - rhs.Z, lhs.W - rhs.W);
         }
 
         public static Quaternion operator- (Quaternion quat)
         {
-            return new Quaternion(-quat.x, -quat.y, -quat.z, -quat.w);
+            return new Quaternion(-quat.X, -quat.Y, -quat.Z, -quat.W);
         }
 
         public static bool operator== (Quaternion lhs, Quaternion rhs)
         {
-            return lhs.x == rhs.x && lhs.y == rhs.y && lhs.z == rhs.z && lhs.w == rhs.w;
+            return lhs.X == rhs.X && lhs.Y == rhs.Y && lhs.Z == rhs.Z && lhs.W == rhs.W;
         }
 
         public static bool operator!= (Quaternion lhs, Quaternion rhs)
@@ -242,7 +242,7 @@ namespace bs
         /// <returns>Dot product between the two quaternions.</returns>
         public static float Dot(Quaternion a, Quaternion b)
         {
-            return (a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w);
+            return (a.X * b.X + a.Y * b.Y + a.Z * b.Z + a.W * b.W);
         }
 
         /// <summary>
@@ -310,10 +310,10 @@ namespace bs
 
                 Vector3 c = Vector3.Cross(fromDirection, toDirection);
 
-                x = c.X * invs;
-                y = c.Y * invs;
-                z = c.Z * invs;
-                w = s * 0.5f;
+                X = c.X * invs;
+                Y = c.Y * invs;
+                Z = c.Z * invs;
+                W = s * 0.5f;
                 Normalize();
             }
         }
@@ -324,7 +324,7 @@ namespace bs
         /// <returns>Length of the quaternion prior to normalization.</returns>
         public float Normalize()
         {
-            float len = MathEx.Sqrt(w * w + x * x + y * y + z * z);
+            float len = MathEx.Sqrt(W * W + X * X + Y * Y + Z * Z);
             if (len > 1e-08f)
                 this = (1.0f / len) * this;
 
@@ -336,14 +336,14 @@ namespace bs
         /// </summary>
         public void Invert()
         {
-            float fNorm = w * w + x * x + y * y + z * z;
+            float fNorm = W * W + X * X + Y * Y + Z * Z;
             if (fNorm > 0.0f)
             {
                 float fInvNorm = 1.0f / fNorm;
-                x *= -fInvNorm;
-                y *= -fInvNorm;
-                z *= -fInvNorm;
-                w *= fInvNorm;
+                X *= -fInvNorm;
+                Y *= -fInvNorm;
+                Z *= -fInvNorm;
+                W *= fInvNorm;
             }
             else
             {
@@ -463,14 +463,14 @@ namespace bs
         /// <param name="angle">Amount of rotation.</param>
         public void ToAxisAngle(out Vector3 axis, out Degree angle)
         {
-            float fSqrLength = x*x+y*y+z*z;
+            float fSqrLength = X*X+Y*Y+Z*Z;
             if (fSqrLength > 0.0f)
             {
-                angle = 2.0f * MathEx.Acos(w);
+                angle = 2.0f * MathEx.Acos(W);
                 float fInvLength = MathEx.InvSqrt(fSqrLength);
-                axis.X = x*fInvLength;
-                axis.Y = y*fInvLength;
-                axis.Z = z*fInvLength;
+                axis.X = X*fInvLength;
+                axis.Y = Y*fInvLength;
+                axis.Z = Z*fInvLength;
             }
             else
             {
@@ -523,18 +523,18 @@ namespace bs
         {
             Matrix3 mat = new Matrix3();
 
-            float tx = x + x;
-            float ty = y + y;
-            float tz = z + z;
-            float twx = tx * w;
-            float twy = ty * w;
-            float twz = tz * w;
-            float txx = tx * x;
-            float txy = ty * x;
-            float txz = tz * x;
-            float tyy = ty * y;
-            float tyz = tz * y;
-            float tzz = tz * z;
+            float tx = X + X;
+            float ty = Y + Y;
+            float tz = Z + Z;
+            float twx = tx * W;
+            float twy = ty * W;
+            float twz = tz * W;
+            float txx = tx * X;
+            float txy = ty * X;
+            float txz = tz * X;
+            float tyy = ty * Y;
+            float tyz = tz * Y;
+            float tzz = tz * Z;
 
             mat[0, 0] = 1.0f - (tyy + tzz);
             mat[0, 1] = txy - twz;
@@ -643,11 +643,11 @@ namespace bs
             {
                 // |w| > 1/2, may as well choose w > 1/2
                 root = MathEx.Sqrt(trace + 1.0f);  // 2w
-                quat.w = 0.5f*root;
+                quat.W = 0.5f*root;
                 root = 0.5f/root;  // 1/(4w)
-                quat.x = (rotMatrix.m21 - rotMatrix.m12) * root;
-                quat.y = (rotMatrix.m02 - rotMatrix.m20) * root;
-                quat.z = (rotMatrix.m10 - rotMatrix.m01) * root;
+                quat.X = (rotMatrix.m21 - rotMatrix.m12) * root;
+                quat.Y = (rotMatrix.m02 - rotMatrix.m20) * root;
+                quat.Z = (rotMatrix.m10 - rotMatrix.m01) * root;
             }
             else
             {
@@ -669,7 +669,7 @@ namespace bs
                 quat[i] = 0.5f*root;
                 root = 0.5f/root;
 
-                quat.w = (rotMatrix[k, j] - rotMatrix[j, k]) * root;
+                quat.W = (rotMatrix[k, j] - rotMatrix[j, k]) * root;
                 quat[j] = (rotMatrix[j, i] + rotMatrix[i, j]) * root;
                 quat[k] = (rotMatrix[k, i] + rotMatrix[i, k]) * root;
             }
@@ -691,10 +691,10 @@ namespace bs
 
             float halfAngle = (float)(0.5f*angle.Radians);
             float sin = (float)MathEx.Sin(halfAngle);
-            quat.w = (float)MathEx.Cos(halfAngle);
-            quat.x = sin * axis.X;
-            quat.y = sin * axis.Y;
-            quat.z = sin * axis.Z;
+            quat.W = (float)MathEx.Cos(halfAngle);
+            quat.X = sin * axis.X;
+            quat.Y = sin * axis.Y;
+            quat.Z = sin * axis.Z;
 
             return quat;
         }
@@ -775,7 +775,7 @@ namespace bs
         /// <inheritdoc/>
         public override int GetHashCode()
         {
-            return x.GetHashCode() ^ y.GetHashCode() << 2 ^ z.GetHashCode() >> 2 ^ w.GetHashCode() >> 1;
+            return X.GetHashCode() ^ Y.GetHashCode() << 2 ^ Z.GetHashCode() >> 2 ^ W.GetHashCode() >> 1;
         }
 
         /// <inheritdoc/>
@@ -785,7 +785,7 @@ namespace bs
                 return false;
 
             Quaternion quat = (Quaternion)other;
-            if (x.Equals(quat.x) && y.Equals(quat.y) && z.Equals(quat.z) && w.Equals(quat.w))
+            if (X.Equals(quat.X) && Y.Equals(quat.Y) && Z.Equals(quat.Z) && W.Equals(quat.W))
                 return true;
 
             return false;
@@ -794,7 +794,7 @@ namespace bs
         /// <inheritdoc/>
         public override string ToString()
         {
-            return String.Format("({0}, {1}, {2}, {3})", x, y, z, w);
+            return String.Format("({0}, {1}, {2}, {3})", X, Y, Z, W);
         }
     }
 

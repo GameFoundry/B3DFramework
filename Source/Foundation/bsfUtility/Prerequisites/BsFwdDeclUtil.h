@@ -131,6 +131,11 @@ namespace bs
 	using Vector4F = TVector4<float>;
 	using Vector4D = TVector4<double>;
 
+	template<typename T> struct TQuaternion;
+	using Quaternion = TQuaternion<float>;
+	using QuaternionF = TQuaternion<float>;
+	using QuaternionD = TQuaternion<double>;
+
 	template<typename T> class TRadian;
 	using Radian = TRadian<float>;
 	using RadianF = TRadian<float>;
@@ -181,7 +186,6 @@ namespace bs
 	class Math;
 	class Matrix3;
 	class Matrix4;
-	class Quaternion;
 	class Capsule;
 	class Rect2I;
 	class Rect2;

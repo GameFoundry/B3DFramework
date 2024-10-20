@@ -8,23 +8,24 @@
 
 using namespace bs;
 
-const Quaternion Quaternion::kZero{ BS_ZERO() };
-const Quaternion Quaternion::kIdentity{ BS_IDENTITY() };
-
-void Quaternion::FromRotationMatrix(const Matrix3& mat)
+template<>
+template<>
+B3D_UTILITY_EXPORT void TQuaternion<float>::FromRotationMatrix(const Matrix3& mat)
 {
+	using T = float;
+
 	// Algorithm in Ken Shoemake's article in 1987 SIGGRAPH course notes
 	// article "Quaternion Calculus and Fast Animation".
 
-	float trace = mat[0][0] + mat[1][1] + mat[2][2];
-	float root;
+	T trace = mat[0][0] + mat[1][1] + mat[2][2];
+	T root;
 
 	if(trace > 0.0f)
 	{
 		// |w| > 1/2, may as well choose w > 1/2
-		root = Math::SquareRoot(trace + 1.0f); // 2w
-		W = 0.5f * root;
-		root = 0.5f / root; // 1/(4w)
+		root = Math::SquareRoot(trace + (T)1.0); // 2w
+		W = (T)0.5 * root;
+		root = (T)0.5 / root; // 1/(4w)
 		X = (mat[2][1] - mat[1][2]) * root;
 		Y = (mat[0][2] - mat[2][0]) * root;
 		Z = (mat[1][0] - mat[0][1]) * root;
@@ -44,11 +45,11 @@ void Quaternion::FromRotationMatrix(const Matrix3& mat)
 		u32 j = nextLookup[i];
 		u32 k = nextLookup[j];
 
-		root = Math::SquareRoot(mat[i][i] - mat[j][j] - mat[k][k] + 1.0f);
+		root = Math::SquareRoot(mat[i][i] - mat[j][j] - mat[k][k] + (T)1.0);
 
-		float* cmpntLookup[3] = { &X, &Y, &Z };
-		*cmpntLookup[i] = 0.5f * root;
-		root = 0.5f / root;
+		T* cmpntLookup[3] = { &X, &Y, &Z };
+		*cmpntLookup[i] = (T)0.5 * root;
+		root = (T)0.5 / root;
 
 		W = (mat[k][j] - mat[j][k]) * root;
 		*cmpntLookup[j] = (mat[j][i] + mat[i][j]) * root;
@@ -58,10 +59,11 @@ void Quaternion::FromRotationMatrix(const Matrix3& mat)
 	Normalize();
 }
 
-void Quaternion::FromAxisAngle(const Vector3& axis, const Radian& angle)
+template<typename T>
+void TQuaternion<T>::FromAxisAngle(const TVector3<T>& axis, const TRadian<T>& angle)
 {
-	Radian halfAngle(0.5f * angle);
-	float sin = Math::Sin(halfAngle);
+	TRadian halfAngle((T)0.5 * angle);
+	T sin = Math::Sin(halfAngle);
 
 	W = Math::Cos(halfAngle);
 	X = sin * axis.X;
@@ -69,7 +71,9 @@ void Quaternion::FromAxisAngle(const Vector3& axis, const Radian& angle)
 	Z = sin * axis.Z;
 }
 
-void Quaternion::FromAxes(const Vector3& xaxis, const Vector3& yaxis, const Vector3& zaxis)
+template<>
+template<>
+B3D_UTILITY_EXPORT void TQuaternion<float>::FromAxes(const TVector3<float>& xaxis, const TVector3<float>& yaxis, const TVector3<float>& zaxis)
 {
 	Matrix3 kRot;
 
@@ -88,87 +92,94 @@ void Quaternion::FromAxes(const Vector3& xaxis, const Vector3& yaxis, const Vect
 	FromRotationMatrix(kRot);
 }
 
-void Quaternion::FromEulerAngles(const Radian& xAngle, const Radian& yAngle, const Radian& zAngle)
+template<typename T>
+void TQuaternion<T>::FromEulerAngles(const TRadian<T>& xAngle, const TRadian<T>& yAngle, const TRadian<T>& zAngle)
 {
-	Radian halfXAngle = xAngle * 0.5f;
-	Radian halfYAngle = yAngle * 0.5f;
-	Radian halfZAngle = zAngle * 0.5f;
+	TRadian<T> halfXAngle = xAngle * (T)0.5;
+	TRadian<T> halfYAngle = yAngle * (T)0.5;
+	TRadian<T> halfZAngle = zAngle * (T)0.5;
 
-	float cx = Math::Cos(halfXAngle);
-	float sx = Math::Sin(halfXAngle);
+	T cx = Math::Cos(halfXAngle);
+	T sx = Math::Sin(halfXAngle);
 
-	float cy = Math::Cos(halfYAngle);
-	float sy = Math::Sin(halfYAngle);
+	T cy = Math::Cos(halfYAngle);
+	T sy = Math::Sin(halfYAngle);
 
-	float cz = Math::Cos(halfZAngle);
-	float sz = Math::Sin(halfZAngle);
+	T cz = Math::Cos(halfZAngle);
+	T sz = Math::Sin(halfZAngle);
 
-	Quaternion quatX(cx, sx, 0.0f, 0.0f);
-	Quaternion quatY(cy, 0.0f, sy, 0.0f);
-	Quaternion quatZ(cz, 0.0f, 0.0f, sz);
+	TQuaternion quatX(cx, sx, (T)0.0, (T)0.0);
+	TQuaternion quatY(cy, (T)0.0, sy, (T)0.0);
+	TQuaternion quatZ(cz, (T)0.0, (T)0.0, sz);
 
 	*this = quatZ * (quatX * quatY);
 }
 
-void Quaternion::FromEulerAngles(const Radian& xAngle, const Radian& yAngle, const Radian& zAngle, EulerAngleOrder order)
+template<typename T>
+void TQuaternion<T>::FromEulerAngles(const TRadian<T>& xAngle, const TRadian<T>& yAngle, const TRadian<T>& zAngle, EulerAngleOrder order)
 {
 	static constexpr const EulerAngleOrderData kEaLookup[6] = { { 0, 1, 2 }, { 0, 2, 1 }, { 1, 0, 2 }, { 1, 2, 0 }, { 2, 0, 1 }, { 2, 1, 0 } };
 	const EulerAngleOrderData& l = kEaLookup[(int)order];
 
-	Radian halfXAngle = xAngle * 0.5f;
-	Radian halfYAngle = yAngle * 0.5f;
-	Radian halfZAngle = zAngle * 0.5f;
+	TRadian<T> halfXAngle = xAngle * (T)0.5;
+	TRadian<T> halfYAngle = yAngle * (T)0.5;
+	TRadian<T> halfZAngle = zAngle * (T)0.5;
 
-	float cx = Math::Cos(halfXAngle);
-	float sx = Math::Sin(halfXAngle);
+	T cx = Math::Cos(halfXAngle);
+	T sx = Math::Sin(halfXAngle);
 
-	float cy = Math::Cos(halfYAngle);
-	float sy = Math::Sin(halfYAngle);
+	T cy = Math::Cos(halfYAngle);
+	T sy = Math::Sin(halfYAngle);
 
-	float cz = Math::Cos(halfZAngle);
-	float sz = Math::Sin(halfZAngle);
+	T cz = Math::Cos(halfZAngle);
+	T sz = Math::Sin(halfZAngle);
 
-	Quaternion quats[3];
-	quats[0] = Quaternion(cx, sx, 0.0f, 0.0f);
-	quats[1] = Quaternion(cy, 0.0f, sy, 0.0f);
-	quats[2] = Quaternion(cz, 0.0f, 0.0f, sz);
+	TQuaternion quats[3];
+	quats[0] = TQuaternion(cx, sx, (T)0.0, (T)0.0);
+	quats[1] = TQuaternion(cy, (T)0.0, sy, (T)0.0);
+	quats[2] = TQuaternion(cz, (T)0.0, (T)0.0, sz);
 
 	*this = quats[l.C] * (quats[l.B] * quats[l.A]);
 }
 
-void Quaternion::ToRotationMatrix(Matrix3& mat) const
+template<>
+template<>
+B3D_UTILITY_EXPORT void TQuaternion<float>::ToRotationMatrix(Matrix3& mat) const
 {
-	float tx = X + X;
-	float ty = Y + Y;
-	float tz = Z + Z;
-	float twx = tx * W;
-	float twy = ty * W;
-	float twz = tz * W;
-	float txx = tx * X;
-	float txy = ty * X;
-	float txz = tz * X;
-	float tyy = ty * Y;
-	float tyz = tz * Y;
-	float tzz = tz * Z;
+	using T = float;
 
-	mat[0][0] = 1.0f - (tyy + tzz);
+	T tx = X + X;
+	T ty = Y + Y;
+	T tz = Z + Z;
+	T twx = tx * W;
+	T twy = ty * W;
+	T twz = tz * W;
+	T txx = tx * X;
+	T txy = ty * X;
+	T txz = tz * X;
+	T tyy = ty * Y;
+	T tyz = tz * Y;
+	T tzz = tz * Z;
+
+	mat[0][0] = (T)1.0 - (tyy + tzz);
 	mat[0][1] = txy - twz;
 	mat[0][2] = txz + twy;
 	mat[1][0] = txy + twz;
-	mat[1][1] = 1.0f - (txx + tzz);
+	mat[1][1] = (T)1.0 - (txx + tzz);
 	mat[1][2] = tyz - twx;
 	mat[2][0] = txz - twy;
 	mat[2][1] = tyz + twx;
-	mat[2][2] = 1.0f - (txx + tyy);
+	mat[2][2] = (T)1.0 - (txx + tyy);
 }
 
-void Quaternion::ToAxisAngle(Vector3& axis, Radian& angle) const
+template<typename T>
+void TQuaternion<T>::ToAxisAngle(TVector3<T>& axis, TRadian<T>& angle) const
 {
-	float sqrLength = X * X + Y * Y + Z * Z;
-	if(sqrLength > 0.0)
+	T sqrLength = X * X + Y * Y + Z * Z;
+	if(sqrLength > (T)0.0)
 	{
-		angle = 2.0 * Math::Acos(W);
-		float invLength = Math::InverseSquareRoot(sqrLength);
+		angle = (T)2.0 * Math::Acos(W);
+		T invLength = Math::InverseSquareRoot(sqrLength);
 		axis.X = X * invLength;
 		axis.Y = Y * invLength;
 		axis.Z = Z * invLength;
@@ -176,14 +187,16 @@ void Quaternion::ToAxisAngle(Vector3& axis, Radian& angle) const
 	else
 	{
 		// Angle is 0 (mod 2*pi), so any axis will do
-		angle = Radian(0.0);
-		axis.X = 1.0;
-		axis.Y = 0.0;
-		axis.Z = 0.0;
+		angle = TRadian((T)0.0);
+		axis.X = (T)1.0;
+		axis.Y = (T)0.0;
+		axis.Z = (T)0.0;
 	}
 }
 
-void Quaternion::ToAxes(Vector3& xaxis, Vector3& yaxis, Vector3& zaxis) const
+template<>
+template<>
+B3D_UTILITY_EXPORT void TQuaternion<float>::ToAxes(TVector3<float>& xaxis, TVector3<float>& yaxis, TVector3<float>& zaxis) const
 {
 	Matrix3 matRot;
 	ToRotationMatrix(matRot);
@@ -201,64 +214,70 @@ void Quaternion::ToAxes(Vector3& xaxis, Vector3& yaxis, Vector3& zaxis) const
 	zaxis.Z = matRot[2][2];
 }
 
-bool Quaternion::ToEulerAngles(Radian& xAngle, Radian& yAngle, Radian& zAngle) const
+template<>
+template<>
+B3D_UTILITY_EXPORT bool TQuaternion<float>::ToEulerAngles(TRadian<float>& xAngle, TRadian<float>& yAngle, TRadian<float>& zAngle) const
 {
 	Matrix3 matRot;
 	ToRotationMatrix(matRot);
 	return matRot.ToEulerAngles(xAngle, yAngle, zAngle);
 }
 
-Vector3 Quaternion::XAxis() const
+template<typename T>
+TVector3<T> TQuaternion<T>::XAxis() const
 {
-	float fTy = 2.0f * Y;
-	float fTz = 2.0f * Z;
-	float fTwy = fTy * W;
-	float fTwz = fTz * W;
-	float fTxy = fTy * X;
-	float fTxz = fTz * X;
-	float fTyy = fTy * Y;
-	float fTzz = fTz * Z;
+	T fTy = (T)2.0 * Y;
+	T fTz = (T)2.0 * Z;
+	T fTwy = fTy * W;
+	T fTwz = fTz * W;
+	T fTxy = fTy * X;
+	T fTxz = fTz * X;
+	T fTyy = fTy * Y;
+	T fTzz = fTz * Z;
 
-	return Vector3(1.0f - (fTyy + fTzz), fTxy + fTwz, fTxz - fTwy);
+	return TVector3<T>((T)1.0 - (fTyy + fTzz), fTxy + fTwz, fTxz - fTwy);
 }
 
-Vector3 Quaternion::YAxis() const
+template<typename T>
+TVector3<T> TQuaternion<T>::YAxis() const
 {
-	float fTx = 2.0f * X;
-	float fTy = 2.0f * Y;
-	float fTz = 2.0f * Z;
-	float fTwx = fTx * W;
-	float fTwz = fTz * W;
-	float fTxx = fTx * X;
-	float fTxy = fTy * X;
-	float fTyz = fTz * Y;
-	float fTzz = fTz * Z;
+	T fTx = (T)2.0 * X;
+	T fTy = (T)2.0 * Y;
+	T fTz = (T)2.0 * Z;
+	T fTwx = fTx * W;
+	T fTwz = fTz * W;
+	T fTxx = fTx * X;
+	T fTxy = fTy * X;
+	T fTyz = fTz * Y;
+	T fTzz = fTz * Z;
 
-	return Vector3(fTxy - fTwz, 1.0f - (fTxx + fTzz), fTyz + fTwx);
+	return TVector3<T>(fTxy - fTwz, 1.0f - (fTxx + fTzz), fTyz + fTwx);
 }
 
-Vector3 Quaternion::ZAxis() const
+template<typename T>
+TVector3<T> TQuaternion<T>::ZAxis() const
 {
-	float fTx = 2.0f * X;
-	float fTy = 2.0f * Y;
-	float fTz = 2.0f * Z;
-	float fTwx = fTx * W;
-	float fTwy = fTy * W;
-	float fTxx = fTx * X;
-	float fTxz = fTz * X;
-	float fTyy = fTy * Y;
-	float fTyz = fTz * Y;
+	T fTx = (T)2.0 * X;
+	T fTy = (T)2.0 * Y;
+	T fTz = (T)2.0 * Z;
+	T fTwx = fTx * W;
+	T fTwy = fTy * W;
+	T fTxx = fTx * X;
+	T fTxz = fTz * X;
+	T fTyy = fTy * Y;
+	T fTyz = fTz * Y;
 
-	return Vector3(fTxz + fTwy, fTyz - fTwx, 1.0f - (fTxx + fTyy));
+	return TVector3<T>(fTxz + fTwy, fTyz - fTwx, 1.0f - (fTxx + fTyy));
 }
 
-Quaternion Quaternion::Inverse() const
+template<typename T>
+TQuaternion<T> TQuaternion<T>::Inverse() const
 {
-	float fNorm = W * W + X * X + Y * Y + Z * Z;
-	if(fNorm > 0.0f)
+	T fNorm = W * W + X * X + Y * Y + Z * Z;
+	if(fNorm > (T)0.0)
 	{
-		float fInvNorm = 1.0f / fNorm;
-		return Quaternion(W * fInvNorm, -X * fInvNorm, -Y * fInvNorm, -Z * fInvNorm);
+		T fInvNorm = (T)1.0 / fNorm;
+		return TQuaternion(W * fInvNorm, -X * fInvNorm, -Y * fInvNorm, -Z * fInvNorm);
 	}
 	else
 	{
@@ -267,7 +286,9 @@ Quaternion Quaternion::Inverse() const
 	}
 }
 
-Vector3 Quaternion::Rotate(const Vector3& v) const
+template<>
+template<>
+B3D_UTILITY_EXPORT TVector3<float> TQuaternion<float>::Rotate(const TVector3<float>& v) const
 {
 	// Note: Does compiler generate fast code here? Perhaps its better to pull all code locally without constructing
 	//       an intermediate matrix.
@@ -276,54 +297,60 @@ Vector3 Quaternion::Rotate(const Vector3& v) const
 	return rot.Multiply(v);
 }
 
-void Quaternion::LookRotation(const Vector3& forwardDir)
+template<typename T>
+void TQuaternion<T>::LookRotation(const TVector3<T>& forwardDir)
 {
-	if(forwardDir == Vector3::kZero)
+	if(forwardDir == TVector3<T>::kZero)
 		return;
 
-	Vector3 nrmForwardDir = Vector3::Normalize(forwardDir);
-	Vector3 currentForwardDir = -ZAxis();
+	TVector3<T> nrmForwardDir = TVector3<T>::Normalize(forwardDir);
+	TVector3<T> currentForwardDir = -ZAxis();
 
-	if((nrmForwardDir + currentForwardDir).SquaredLength() < 0.00005f)
+	if((nrmForwardDir + currentForwardDir).SquaredLength() < (T)0.00005)
 	{
 		// Oops, a 180 degree turn (infinite possible rotation axes)
 		// Default to yaw i.e. use current UP
-		*this = Quaternion(-Y, -Z, W, X);
+		*this = TQuaternion(-Y, -Z, W, X);
 	}
 	else
 	{
 		// Derive shortest arc to new direction
-		Quaternion rotQuat = GetRotationFromTo(currentForwardDir, nrmForwardDir);
+		TQuaternion rotQuat = GetRotationFromTo(currentForwardDir, nrmForwardDir);
 		*this = rotQuat * *this;
 	}
 }
 
-void Quaternion::LookRotation(const Vector3& forwardDir, const Vector3& upDir)
+template<>
+template<>
+B3D_UTILITY_EXPORT void TQuaternion<float>::LookRotation(const TVector3<float>& forwardDir, const TVector3<float>& upDir)
 {
-	Vector3 forward = Vector3::Normalize(forwardDir);
-	Vector3 up = Vector3::Normalize(upDir);
+	using T = float;
 
-	if(Math::ApproxEquals(Vector3::Dot(forward, up), 1.0f))
+	TVector3<T> forward = TVector3<T>::Normalize(forwardDir);
+	TVector3<T> up = TVector3<T>::Normalize(upDir);
+
+	if(Math::ApproxEquals(TVector3<T>::Dot(forward, up), (T)1.0))
 	{
 		LookRotation(forward);
 		return;
 	}
 
-	Vector3 x = Vector3::Cross(forward, up);
-	Vector3 y = Vector3::Cross(x, forward);
+	TVector3<T> x = TVector3<T>::Cross(forward, up);
+	TVector3<T> y = TVector3<T>::Cross(x, forward);
 
 	x.Normalize();
 	y.Normalize();
 
-	*this = Quaternion(x, y, -forward);
+	*this = TQuaternion(x, y, -forward);
 }
 
-Quaternion Quaternion::Slerp(float t, const Quaternion& p, const Quaternion& q, bool shortestPath)
+template<typename T>
+TQuaternion<T> TQuaternion<T>::Slerp(T t, const TQuaternion<T>& p, const TQuaternion<T>& q, bool shortestPath)
 {
-	float cos = p.Dot(q);
-	Quaternion quat;
+	T cos = p.Dot(q);
+	TQuaternion<T> quat;
 
-	if(cos < 0.0f && shortestPath)
+	if(cos < (T)0.0 && shortestPath)
 	{
 		cos = -cos;
 		quat = -q;
@@ -333,14 +360,14 @@ Quaternion Quaternion::Slerp(float t, const Quaternion& p, const Quaternion& q, 
 		quat = q;
 	}
 
-	if(abs(cos) < 1 - kEpsilon)
+	if(abs(cos) < (T)1 - kEpsilon)
 	{
 		// Standard case (slerp)
-		float sin = Math::SquareRoot(1 - Math::Square(cos));
-		Radian angle = Math::Atan2(sin, cos);
-		float invSin = 1.0f / sin;
-		float coeff0 = Math::Sin((1.0f - t) * angle) * invSin;
-		float coeff1 = Math::Sin(t * angle) * invSin;
+		T sin = Math::SquareRoot(1 - Math::Square(cos));
+		TRadian<T> angle = Math::Atan2(sin, cos);
+		T invSin = (T)1.0 / sin;
+		T coeff0 = Math::Sin(((T)1.0 - t) * angle) * invSin;
+		T coeff1 = Math::Sin(t * angle) * invSin;
 		return coeff0 * p + coeff1 * quat;
 	}
 	else
@@ -351,7 +378,7 @@ Quaternion Quaternion::Slerp(float t, const Quaternion& p, const Quaternion& q, 
 		// 2. "p" and "q" are almost inverse of each other (fCos ~= -1), there
 		//    are an infinite number of possibilities interpolation. but we haven't
 		//    have method to fix this case, so just use linear interpolation here.
-		Quaternion ret = (1.0f - t) * p + t * quat;
+		TQuaternion<T> ret = ((T)1.0 - t) * p + t * quat;
 
 		// Taking the complement requires renormalization
 		ret.Normalize();
@@ -359,52 +386,56 @@ Quaternion Quaternion::Slerp(float t, const Quaternion& p, const Quaternion& q, 
 	}
 }
 
-Quaternion Quaternion::GetRotationFromTo(const Vector3& from, const Vector3& dest, const Vector3& fallbackAxis)
+template<typename T>
+TQuaternion<T> TQuaternion<T>::GetRotationFromTo(const TVector3<T>& from, const TVector3<T>& dest, const TVector3<T>& fallbackAxis)
 {
 	// Based on Stan Melax's article in Game Programming Gems
-	Quaternion q;
+	TQuaternion<T> q;
 
-	Vector3 v0 = from;
-	Vector3 v1 = dest;
+	TVector3<T> v0 = from;
+	TVector3<T> v1 = dest;
 	v0.Normalize();
 	v1.Normalize();
 
-	float d = v0.Dot(v1);
+	T d = v0.Dot(v1);
 
 	// If dot == 1, vectors are the same
-	if(d >= 1.0f)
-		return Quaternion::kIdentity;
+	if(d >= (T)1.0)
+		return TQuaternion::kIdentity;
 
-	if(d < (1e-6f - 1.0f))
+	if(d < (T)(1e-6 - 1.0))
 	{
-		if(fallbackAxis != Vector3::kZero)
+		if(fallbackAxis != TVector3<T>::kZero)
 		{
 			// Rotate 180 degrees about the fallback axis
-			q.FromAxisAngle(fallbackAxis, Radian(Math::kPi));
+			q.FromAxisAngle(fallbackAxis, TRadian<T>(Math::kPi));
 		}
 		else
 		{
 			// Generate an axis
-			Vector3 axis = Vector3::kUnitX.Cross(from);
+			TVector3<T> axis = TVector3<T>::kUnitX.Cross(from);
 			if(axis.IsZeroLength()) // Pick another if colinear
-				axis = Vector3::kUnitY.Cross(from);
+				axis = TVector3<T>::kUnitY.Cross(from);
 			axis.Normalize();
-			q.FromAxisAngle(axis, Radian(Math::kPi));
+			q.FromAxisAngle(axis, TRadian<T>(Math::kPi));
 		}
 	}
 	else
 	{
-		float s = Math::SquareRoot((1 + d) * 2);
-		float invs = 1 / s;
+		T s = Math::SquareRoot(((T)1 + d) * (T)2);
+		T invs = (T)1 / s;
 
-		Vector3 c = v0.Cross(v1);
+		TVector3<T> c = v0.Cross(v1);
 
 		q.X = c.X * invs;
 		q.Y = c.Y * invs;
 		q.Z = c.Z * invs;
-		q.W = s * 0.5f;
+		q.W = s * (T)0.5;
 		q.Normalize();
 	}
 
 	return q;
 }
+
+template struct B3D_UTILITY_EXPORT TQuaternion<float>;
+template struct B3D_UTILITY_EXPORT TQuaternion<double>;

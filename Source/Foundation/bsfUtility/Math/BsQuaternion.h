@@ -13,7 +13,8 @@ namespace bs
 	 */
 
 	/** Represents a quaternion used for 3D rotations. */
-	class B3D_UTILITY_EXPORT Quaternion
+	template<typename T>
+	struct TQuaternion
 	{
 	private:
 		struct EulerAngleOrderData
@@ -22,36 +23,43 @@ namespace bs
 		};
 
 	public:
-		Quaternion() = default;
-		constexpr Quaternion(const Quaternion&) = default;
-		constexpr Quaternion& operator=(const Quaternion&) = default;
+		TQuaternion() = default;
+		constexpr TQuaternion(const TQuaternion&) = default;
+		constexpr TQuaternion& operator=(const TQuaternion&) = default;
 
-		constexpr Quaternion(BS_ZERO zero)
-			: X(0.0f), Y(0.0f), Z(0.0f), W(0.0f)
+		B3D_SCRIPT_EXPORT(Exclude(true))
+		constexpr TQuaternion(BS_ZERO zero)
+			: X((T)0.0), Y((T)0.0), Z((T)0.0), W((T)0.0)
 		{}
 
-		constexpr Quaternion(BS_IDENTITY)
-			: X(0.0f), Y(0.0f), Z(0.0f), W(1.0f)
+		B3D_SCRIPT_EXPORT(Exclude(true))
+		constexpr TQuaternion(BS_IDENTITY)
+			: X((T)0.0), Y((T)0.0), Z((T)0.0), W((T)1.0)
 		{}
 
-		constexpr Quaternion(float w, float x, float y, float z)
+		constexpr TQuaternion(T w, T x, T y, T z)
 			: X(x), Y(y), Z(z), W(w)
 		{}
 
 		/** Construct a quaternion from a rotation matrix. */
-		explicit Quaternion(const Matrix3& rot)
+		template<typename Condition = T, std::enable_if_t<std::is_same_v<Condition, float>, int> = 0> // TODO - Temporarily enabled for float only, until we get TMatrix3<T>
+		B3D_SCRIPT_EXPORT(Exclude(true))
+		explicit TQuaternion(const Matrix3& rot)
 		{
 			FromRotationMatrix(rot);
 		}
 
 		/** Construct a quaternion from an angle/axis. */
-		explicit Quaternion(const Vector3& axis, const Radian& angle)
+		B3D_SCRIPT_EXPORT(Exclude(true))
+		explicit TQuaternion(const TVector3<T>& axis, const TRadian<T>& angle)
 		{
 			FromAxisAngle(axis, angle);
 		}
 
 		/** Construct a quaternion from 3 orthonormal local axes. */
-		explicit Quaternion(const Vector3& xaxis, const Vector3& yaxis, const Vector3& zaxis)
+		B3D_SCRIPT_EXPORT(Exclude(true))
+		template<typename Condition = T, std::enable_if_t<std::is_same_v<Condition, float>, int> = 0> // TODO - Temporarily enabled for float only, until we get TMatrix3<T>
+		explicit TQuaternion(const TVector3<T>& xaxis, const TVector3<T>& yaxis, const TVector3<T>& zaxis)
 		{
 			FromAxes(xaxis, yaxis, zaxis);
 		}
@@ -59,9 +67,10 @@ namespace bs
 		/**
 		 * Construct a quaternion from euler angles, YXZ ordering.
 		 *
-		 * @see		Quaternion::fromEulerAngles
+		 * @see		Quaternion::FromEulerAngles
 		 */
-		explicit Quaternion(const Radian& xAngle, const Radian& yAngle, const Radian& zAngle)
+		B3D_SCRIPT_EXPORT(Exclude(true))
+		explicit TQuaternion(const TRadian<T>& xAngle, const TRadian<T>& yAngle, const TRadian<T>& zAngle)
 		{
 			FromEulerAngles(xAngle, yAngle, zAngle);
 		}
@@ -69,15 +78,16 @@ namespace bs
 		/**
 		 * Construct a quaternion from euler angles, custom ordering.
 		 *
-		 * @see		Quaternion::fromEulerAngles
+		 * @see		Quaternion::FromEulerAngles
 		 */
-		explicit Quaternion(const Radian& xAngle, const Radian& yAngle, const Radian& zAngle, EulerAngleOrder order)
+		B3D_SCRIPT_EXPORT(Exclude(true))
+		explicit TQuaternion(const TRadian<T>& xAngle, const TRadian<T>& yAngle, const TRadian<T>& zAngle, EulerAngleOrder order)
 		{
 			FromEulerAngles(xAngle, yAngle, zAngle, order);
 		}
 
 		/** Exchange the contents of this quaternion with another. */
-		void Swap(Quaternion& other)
+		void Swap(TQuaternion& other)
 		{
 			std::swap(W, other.W);
 			std::swap(X, other.X);
@@ -85,14 +95,14 @@ namespace bs
 			std::swap(Z, other.Z);
 		}
 
-		float operator[](const size_t i) const
+		T operator[](const size_t i) const
 		{
 			B3D_ASSERT(i < 4);
 
 			return *(&X + i);
 		}
 
-		float& operator[](const size_t i)
+		T& operator[](const size_t i)
 		{
 			B3D_ASSERT(i < 4);
 
@@ -104,13 +114,14 @@ namespace bs
 		 *
 		 * @note	It's up to the caller to ensure the matrix is orthonormal.
 		 */
+		template<typename Condition = T, std::enable_if_t<std::is_same_v<Condition, float>, int> = 0> // TODO - Temporarily enabled for float only, until we get TMatrix3<T>
 		void FromRotationMatrix(const Matrix3& mat);
 
 		/**
 		 * Initializes the quaternion from an angle axis pair. Quaternion will represent a rotation of "angle" radians
 		 * around "axis".
 		 */
-		void FromAxisAngle(const Vector3& axis, const Radian& angle);
+		void FromAxisAngle(const TVector3<T>& axis, const TRadian<T>& angle);
 
 		/**
 		 * Initializes the quaternion from orthonormal set of axes. Quaternion will represent a rotation from base axes
@@ -118,7 +129,8 @@ namespace bs
 		 *
 		 * @note	It's up to the caller to ensure the axes are orthonormal.
 		 */
-		void FromAxes(const Vector3& xAxis, const Vector3& yAxis, const Vector3& zAxis);
+		template<typename Condition = T, std::enable_if_t<std::is_same_v<Condition, float>, int> = 0> // TODO - Temporarily enabled for float only, until we get TMatrix3<T>
+		void FromAxes(const TVector3<T>& xAxis, const TVector3<T>& yAxis, const TVector3<T>& zAxis);
 
 		/**
 		 * Creates a quaternion from the provided Pitch/Yaw/Roll angles.
@@ -131,7 +143,7 @@ namespace bs
 		 * Since different values will be produced depending in which order are the rotations applied, this method assumes
 		 * they are applied in YXZ order. If you need a specific order, use the overloaded fromEulerAngles() method instead.
 		 */
-		void FromEulerAngles(const Radian& xAngle, const Radian& yAngle, const Radian& zAngle);
+		void FromEulerAngles(const TRadian<T>& xAngle, const TRadian<T>& yAngle, const TRadian<T>& zAngle);
 
 		/**
 		 * Creates a quaternion from the provided Pitch/Yaw/Roll angles.
@@ -142,11 +154,12 @@ namespace bs
 		 * @param[in]	order 	The order in which rotations will be extracted. Different values can be retrieved depending
 		 *						on the order.
 		 */
-		void FromEulerAngles(const Radian& xAngle, const Radian& yAngle, const Radian& zAngle, EulerAngleOrder order);
+		void FromEulerAngles(const TRadian<T>& xAngle, const TRadian<T>& yAngle, const TRadian<T>& zAngle, EulerAngleOrder order);
 
 		/**
 		 * Converts a quaternion to a rotation matrix.
 		 */
+		template<typename Condition = T, std::enable_if_t<std::is_same_v<Condition, float>, int> = 0> // TODO - Temporarily enabled for float only, until we get TMatrix3<T>
 		void ToRotationMatrix(Matrix3& mat) const;
 
 		/**
@@ -155,7 +168,7 @@ namespace bs
 		 * @param[out]	axis 	The axis around the which rotation takes place.
 		 * @param[out]	angle	The angle in radians determining amount of rotation around the axis.
 		 */
-		void ToAxisAngle(Vector3& axis, Radian& angle) const;
+		void ToAxisAngle(TVector3<T>& axis, TRadian<T>& angle) const;
 
 		/**
 		 * Converts a quaternion to an orthonormal set of axes.
@@ -164,7 +177,8 @@ namespace bs
 		 * @param[out]	yAxis	The Y axis.
 		 * @param[out]	zAxis	The Z axis.
 		 */
-		void ToAxes(Vector3& xAxis, Vector3& yAxis, Vector3& zAxis) const;
+		template<typename Condition = T, std::enable_if_t<std::is_same_v<Condition, float>, int> = 0> // TODO - Temporarily enabled for float only, until we get TMatrix3<T>
+		void ToAxes(TVector3<T>& xAxis, TVector3<T>& yAxis, TVector3<T>& zAxis) const;
 
 		/**
 		 * Extracts Pitch/Yaw/Roll rotations from this quaternion.
@@ -175,65 +189,66 @@ namespace bs
 		 *
 		 * @return	True if unique solution was found, false otherwise.
 		 */
-		bool ToEulerAngles(Radian& xAngle, Radian& yAngle, Radian& zAngle) const;
+		template<typename Condition = T, std::enable_if_t<std::is_same_v<Condition, float>, int> = 0> // TODO - Temporarily enabled for float only, until we get TMatrix3<T>
+		bool ToEulerAngles(TRadian<T>& xAngle, TRadian<T>& yAngle, TRadian<T>& zAngle) const;
 
 		/** Gets the positive x-axis of the coordinate system transformed by this quaternion. */
-		Vector3 XAxis() const;
+		TVector3<T> XAxis() const;
 
 		/** Gets the positive y-axis of the coordinate system transformed by this quaternion. */
-		Vector3 YAxis() const;
+		TVector3<T> YAxis() const;
 
 		/** Gets the positive z-axis of the coordinate system transformed by this quaternion. */
-		Vector3 ZAxis() const;
+		TVector3<T> ZAxis() const;
 
-		Quaternion operator+(const Quaternion& rhs) const
+		TQuaternion operator+(const TQuaternion& rhs) const
 		{
-			return Quaternion(W + rhs.W, X + rhs.X, Y + rhs.Y, Z + rhs.Z);
+			return TQuaternion(W + rhs.W, X + rhs.X, Y + rhs.Y, Z + rhs.Z);
 		}
 
-		Quaternion operator-(const Quaternion& rhs) const
+		TQuaternion operator-(const TQuaternion& rhs) const
 		{
-			return Quaternion(W - rhs.W, X - rhs.X, Y - rhs.Y, Z - rhs.Z);
+			return TQuaternion(W - rhs.W, X - rhs.X, Y - rhs.Y, Z - rhs.Z);
 		}
 
-		Quaternion operator*(const Quaternion& rhs) const
+		TQuaternion operator*(const TQuaternion& rhs) const
 		{
-			return Quaternion(
+			return TQuaternion(
 				W * rhs.W - X * rhs.X - Y * rhs.Y - Z * rhs.Z,
 				W * rhs.X + X * rhs.W + Y * rhs.Z - Z * rhs.Y,
 				W * rhs.Y + Y * rhs.W + Z * rhs.X - X * rhs.Z,
 				W * rhs.Z + Z * rhs.W + X * rhs.Y - Y * rhs.X);
 		}
 
-		Quaternion operator*(float rhs) const
+		TQuaternion operator*(T rhs) const
 		{
-			return Quaternion(rhs * W, rhs * X, rhs * Y, rhs * Z);
+			return TQuaternion(rhs * W, rhs * X, rhs * Y, rhs * Z);
 		}
 
-		Quaternion operator/(float rhs) const
+		TQuaternion operator/(T rhs) const
 		{
-			B3D_ASSERT(rhs != 0.0);
+			B3D_ASSERT(rhs != (T)0.0);
 
-			const float inv = 1.0f / rhs;
-			return Quaternion(W * inv, X * inv, Y * inv, Z * inv);
+			const T inv = (T)1.0 / rhs;
+			return TQuaternion(W * inv, X * inv, Y * inv, Z * inv);
 		}
 
-		Quaternion operator-() const
+		TQuaternion operator-() const
 		{
-			return Quaternion(-W, -X, -Y, -Z);
+			return TQuaternion(-W, -X, -Y, -Z);
 		}
 
-		bool operator==(const Quaternion& rhs) const
+		bool operator==(const TQuaternion& rhs) const
 		{
 			return (rhs.X == X) && (rhs.Y == Y) && (rhs.Z == Z) && (rhs.W == W);
 		}
 
-		bool operator!=(const Quaternion& rhs) const
+		bool operator!=(const TQuaternion& rhs) const
 		{
 			return !operator==(rhs);
 		}
 
-		Quaternion& operator+=(const Quaternion& rhs)
+		TQuaternion& operator+=(const TQuaternion& rhs)
 		{
 			W += rhs.W;
 			X += rhs.X;
@@ -243,7 +258,7 @@ namespace bs
 			return *this;
 		}
 
-		Quaternion& operator-=(const Quaternion& rhs)
+		TQuaternion& operator-=(const TQuaternion& rhs)
 		{
 			W -= rhs.W;
 			X -= rhs.X;
@@ -253,12 +268,12 @@ namespace bs
 			return *this;
 		}
 
-		Quaternion& operator*=(const Quaternion& rhs)
+		TQuaternion& operator*=(const TQuaternion& rhs)
 		{
-			float newW = W * rhs.W - X * rhs.X - Y * rhs.Y - Z * rhs.Z;
-			float newX = W * rhs.X + X * rhs.W + Y * rhs.Z - Z * rhs.Y;
-			float newY = W * rhs.Y + Y * rhs.W + Z * rhs.X - X * rhs.Z;
-			float newZ = W * rhs.Z + Z * rhs.W + X * rhs.Y - Y * rhs.X;
+			T newW = W * rhs.W - X * rhs.X - Y * rhs.Y - Z * rhs.Z;
+			T newX = W * rhs.X + X * rhs.W + Y * rhs.Z - Z * rhs.Y;
+			T newY = W * rhs.Y + Y * rhs.W + Z * rhs.X - X * rhs.Z;
+			T newZ = W * rhs.Z + Z * rhs.W + X * rhs.Y - Y * rhs.X;
 
 			W = newW;
 			X = newX;
@@ -268,13 +283,13 @@ namespace bs
 			return *this;
 		}
 
-		friend Quaternion operator*(float lhs, const Quaternion& rhs)
+		friend TQuaternion operator*(T lhs, const TQuaternion& rhs)
 		{
-			return Quaternion(lhs * rhs.W, lhs * rhs.X, lhs * rhs.Y, lhs * rhs.Z);
+			return TQuaternion(lhs * rhs.W, lhs * rhs.X, lhs * rhs.Y, lhs * rhs.Z);
 		}
 
 		/** Calculates the dot product of this quaternion and another. */
-		float Dot(const Quaternion& other) const
+		T Dot(const TQuaternion& other) const
 		{
 			return W * other.W + X * other.X + Y * other.Y + Z * other.Z;
 		}
@@ -284,11 +299,11 @@ namespace bs
 		 * above @p tolerance to avoid division by zero or precision issues. If false, no checks are made.
 		 */
 		template <bool SAFE = true>
-		float Normalize(float tolerance = 1e-04f)
+		T Normalize(T tolerance = (T)1e-04)
 		{
-			float len = Math::SquareRoot(Dot(*this, *this));
+			T len = Math::SquareRoot(Dot(*this, *this));
 			if(!SAFE || len > (tolerance * tolerance))
-				*this = *this * (1.0f / len);
+				*this = *this * ((T)1.0 / len);
 
 			return len;
 		}
@@ -298,17 +313,18 @@ namespace bs
 		 *
 		 * @note	Quaternion must be non-zero.
 		 */
-		Quaternion Inverse() const;
+		TQuaternion Inverse() const;
 
 		/** Rotates the provided vector. */
-		Vector3 Rotate(const Vector3& vec) const;
+		template<typename Condition = T, std::enable_if_t<std::is_same_v<Condition, float>, int> = 0> // TODO - Temporarily enabled for float only, until we get TMatrix3<T>
+		TVector3<T> Rotate(const TVector3<T>& vec) const;
 
 		/**
 		 * Orients the quaternion so its negative z axis points to the provided direction.
 		 *
 		 * @param[in]	forwardDir	Direction to orient towards.
 		 */
-		void LookRotation(const Vector3& forwardDir);
+		void LookRotation(const TVector3<T>& forwardDir);
 
 		/**
 		 * Orients the quaternion so its negative z axis points to the provided direction.
@@ -317,7 +333,8 @@ namespace bs
 		 * @param[in]	upDir		Constrains y axis orientation to a plane this vector lies on. This rule might be broken
 		 *							if forward and up direction are nearly parallel.
 		 */
-		void LookRotation(const Vector3& forwardDir, const Vector3& upDir);
+		template<typename Condition = T, std::enable_if_t<std::is_same_v<Condition, float>, int> = 0> // TODO - Temporarily enabled for float only, until we get TMatrix3<T>
+		void LookRotation(const TVector3<T>& forwardDir, const TVector3<T>& upDir);
 
 		/** Query if any of the components of the quaternion are not a number. */
 		bool IsNaN() const
@@ -326,7 +343,7 @@ namespace bs
 		}
 
 		/** Calculates the dot product between two quaternions. */
-		static float Dot(const Quaternion& lhs, const Quaternion& rhs)
+		static T Dot(const TQuaternion& lhs, const TQuaternion& rhs)
 		{
 			return lhs.W * rhs.W + lhs.X * rhs.X + lhs.Y * rhs.Y + lhs.Z * rhs.Z;
 		}
@@ -336,9 +353,9 @@ namespace bs
 		 * above @p tolerance to avoid division by zero or precision issues. If false, no checks are made.
 		 */
 		template <bool SAFE = true>
-		static Quaternion Normalize(const Quaternion& q, float tolerance = 1e-04f)
+		static TQuaternion Normalize(const TQuaternion& q, T tolerance = (T)1e-04)
 		{
-			float sqrdLen = Dot(q, q);
+			T sqrdLen = Dot(q, q);
 			if(!SAFE || sqrdLen > tolerance)
 				return q * Math::InverseSquareRoot(sqrdLen);
 
@@ -349,43 +366,52 @@ namespace bs
 		 * Performs spherical interpolation between two quaternions. Spherical interpolation neatly interpolates between
 		 * two rotations without modifying the size of the vector it is applied to (unlike linear interpolation).
 		 */
-		static Quaternion Slerp(float t, const Quaternion& p, const Quaternion& q, bool shortestPath = true);
+		static TQuaternion Slerp(T t, const TQuaternion& p, const TQuaternion& q, bool shortestPath = true);
 
 		/**
 		 * Linearly interpolates between the two quaternions using @p t. t should be in [0, 1] range, where t = 0
 		 * corresponds to the left vector, while t = 1 corresponds to the right vector.
 		 */
-		static Quaternion Lerp(float t, const Quaternion& a, const Quaternion& b)
+		static TQuaternion Lerp(T t, const TQuaternion& a, const TQuaternion& b)
 		{
-			float d = Dot(a, b);
-			float flip = d >= 0.0f ? 1.0f : -1.0f;
+			T d = Dot(a, b);
+			T flip = d >= (T)0.0 ? (T)1.0 : (T)-1.0;
 
-			Quaternion output = flip * (1.0f - t) * a + t * b;
+			TQuaternion output = flip * ((T)1.0 - t) * a + t * b;
 			return Normalize(output);
 		}
 
 		/** Gets the shortest arc quaternion to rotate this vector to the destination vector. */
-		static Quaternion GetRotationFromTo(const Vector3& from, const Vector3& dest, const Vector3& fallbackAxis = Vector3::kZero);
+		static TQuaternion GetRotationFromTo(const TVector3<T>& from, const TVector3<T>& dest, const TVector3<T>& fallbackAxis = TVector3<T>::kZero);
 
 		/** Returns the minimum of all the quaternion components as a new quaternion. */
-		static Quaternion Min(const Quaternion& a, const Quaternion& b)
+		static TQuaternion Min(const TQuaternion& a, const TQuaternion& b)
 		{
-			return Quaternion(std::min(a.X, b.X), std::min(a.Y, b.Y), std::min(a.Z, b.Z), std::min(a.W, b.W));
+			return TQuaternion(std::min(a.X, b.X), std::min(a.Y, b.Y), std::min(a.Z, b.Z), std::min(a.W, b.W));
 		}
 
 		/** Returns the maximum of all the quaternion components as a new quaternion. */
-		static Quaternion Max(const Quaternion& a, const Quaternion& b)
+		static TQuaternion Max(const TQuaternion& a, const TQuaternion& b)
 		{
-			return Quaternion(std::max(a.X, b.X), std::max(a.Y, b.Y), std::max(a.Z, b.Z), std::max(a.W, b.W));
+			return TQuaternion(std::max(a.X, b.X), std::max(a.Y, b.Y), std::max(a.Z, b.Z), std::max(a.W, b.W));
 		}
 
-		static constexpr const float kEpsilon = 1e-03f;
+		static constexpr const T kEpsilon = (T)1e-03;
 
-		static const Quaternion kZero;
-		static const Quaternion kIdentity;
+		static const TQuaternion kZero;
+		static const TQuaternion kIdentity;
 
-		float X, Y, Z, W; // Note: Order is relevant, don't break it
+		T X, Y, Z, W; // Note: Order is relevant, don't break it
 	};
+
+	template<> const TQuaternion<float> TQuaternion<float>::kZero{0.0f, 0.0f, 0.0f, 0.0f};
+	template<> const TQuaternion<double> TQuaternion<double>::kZero{0.0, 0.0, 0.0, 0.0};
+
+	template<> const TQuaternion<float> TQuaternion<float>::kIdentity{1.0f, 0.0f, 0.0f, 0.0f};
+	template<> const TQuaternion<double> TQuaternion<double>::kIdentity{1.0, 0.0, 0.0, 0.0};
+
+	extern template struct B3D_SCRIPT_EXPORT(DocumentationGroup(Math), ExportAsStruct(true), ExportName(Quaternion)) TQuaternion<float>;
+	extern template struct B3D_SCRIPT_EXPORT(DocumentationGroup(Math), ExportAsStruct(true), ExportName(QuaternionD)) TQuaternion<double>;
 
 	/** @} */
 } // namespace bs
@@ -394,16 +420,30 @@ namespace bs
 namespace std
 {
 	template <>
-	class numeric_limits<bs::Quaternion>
+	class numeric_limits<bs::TQuaternion<float>>
 	{
 	public:
-		constexpr static bs::Quaternion infinity() // NOLINT
+		constexpr static bs::TQuaternion<float> infinity() // NOLINT
 		{
-			return bs::Quaternion(
+			return bs::TQuaternion<float>(
 				std::numeric_limits<float>::infinity(),
 				std::numeric_limits<float>::infinity(),
 				std::numeric_limits<float>::infinity(),
 				std::numeric_limits<float>::infinity());
+		}
+	};
+
+	template <>
+	class numeric_limits<bs::TQuaternion<double>>
+	{
+	public:
+		constexpr static bs::TQuaternion<double> infinity() // NOLINT
+		{
+			return bs::TQuaternion<double>(
+				std::numeric_limits<double>::infinity(),
+				std::numeric_limits<double>::infinity(),
+				std::numeric_limits<double>::infinity(),
+				std::numeric_limits<double>::infinity());
 		}
 	};
 } // namespace std
