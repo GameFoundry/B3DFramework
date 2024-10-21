@@ -70,7 +70,7 @@ namespace bs
 	public:
 		TScriptTypeDefinition()
 		{
-			//sInitializeOnLoadTime.MakeSureIAmInstantiated();
+			sInitializeOnLoadTime.MakeSureIAmInstantiated();
 		}
 
 		/** Returns the meta-data storing information about the script type. */
@@ -97,11 +97,11 @@ namespace bs
 
 	protected:
 		static ScriptTypeMetaData sInteropMetaData;
-		//static InitializeScriptTypeDefinitionOnLoadTime<SelfType> sInitializeOnLoadTime;
+		static InitializeScriptTypeDefinitionOnLoadTime<SelfType> sInitializeOnLoadTime;
 	};
 
-	//template <typename SelfType>
-	//InitializeScriptTypeDefinitionOnLoadTime<SelfType> TScriptTypeDefinition<SelfType>::sInitializeOnLoadTime;
+	template <typename SelfType>
+	InitializeScriptTypeDefinitionOnLoadTime<SelfType> TScriptTypeDefinition<SelfType>::sInitializeOnLoadTime;
 
 	template <typename SelfType>
 	ScriptTypeMetaData TScriptTypeDefinition<SelfType>::sInteropMetaData;
