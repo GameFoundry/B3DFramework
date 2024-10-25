@@ -343,7 +343,7 @@ void ScriptGUIInteractable::InternalSetContextMenu(ScriptGUIInteractableWrapperB
 
 	SPtr<GUIContextMenu> nativeContextMenu;
 	if(contextMenu != nullptr)
-		nativeContextMenu = contextMenu->GetInternal();
+		nativeContextMenu = contextMenu->GetNativeObjectAsShared();
 
 	self->GetNativeObject()->SetContextMenu(nativeContextMenu);
 }

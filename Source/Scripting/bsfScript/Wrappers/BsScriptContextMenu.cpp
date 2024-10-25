@@ -17,31 +17,37 @@ using namespace std::placeholders;
 using namespace bs;
 ScriptContextMenu::OnEntryTriggeredThunkDef ScriptContextMenu::onEntryTriggered;
 
-ScriptContextMenu::ScriptContextMenu(MonoObject* instance)
-	: ScriptObject(instance)
+ScriptContextMenu::ScriptContextMenu(const SPtr<GUIContextMenu>& nativeObject)
+	: TScriptNonReflectableWrapper(nativeObject)
+{ }
+
+void ScriptContextMenu::SetupScriptBindings()
 {
-	mGCHandle = MonoUtil::NewWeakGcHandle(instance);
-	mContextMenu = B3DMakeShared<GUIContextMenu>();
+	sInteropMetaData.ScriptClass->AddInternalCall("Internal_CreateInstance", (void*)&ScriptContextMenu::InternalCreateInstance);
+	sInteropMetaData.ScriptClass->AddInternalCall("Internal_Open", (void*)&ScriptContextMenu::InternalOpen);
+	sInteropMetaData.ScriptClass->AddInternalCall("Internal_AddItem", (void*)&ScriptContextMenu::InternalAddItem);
+	sInteropMetaData.ScriptClass->AddInternalCall("Internal_AddSeparator", (void*)&ScriptContextMenu::InternalAddSeparator);
+	sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetLocalizedName", (void*)&ScriptContextMenu::InternalSetLocalizedName);
+
+	onEntryTriggered = (OnEntryTriggeredThunkDef)sInteropMetaData.ScriptClass->GetMethod("InternalDoOnEntryTriggered", 1)->GetThunk();
 }
 
-void ScriptContextMenu::InitRuntimeData()
+MonoObject* ScriptContextMenu::CreateScriptObject(bool construct)
 {
-	metaData.ScriptClass->AddInternalCall("Internal_CreateInstance", (void*)&ScriptContextMenu::InternalCreateInstance);
-	metaData.ScriptClass->AddInternalCall("Internal_Open", (void*)&ScriptContextMenu::InternalOpen);
-	metaData.ScriptClass->AddInternalCall("Internal_AddItem", (void*)&ScriptContextMenu::InternalAddItem);
-	metaData.ScriptClass->AddInternalCall("Internal_AddSeparator", (void*)&ScriptContextMenu::InternalAddSeparator);
-	metaData.ScriptClass->AddInternalCall("Internal_SetLocalizedName", (void*)&ScriptContextMenu::InternalSetLocalizedName);
-
-	onEntryTriggered = (OnEntryTriggeredThunkDef)metaData.ScriptClass->GetMethod("InternalDoOnEntryTriggered", 1)->GetThunk();
+	return sInteropMetaData.ScriptClass->CreateInstance(construct);
 }
 
-void ScriptContextMenu::InternalCreateInstance(MonoObject* instance)
+void ScriptContextMenu::InternalCreateInstance(MonoObject* scriptObject)
 {
-	new(B3DAllocate<ScriptContextMenu>()) ScriptContextMenu(instance);
+	auto nativeObject = B3DMakeShared<GUIContextMenu>();
+	ScriptObjectWrapper::Create<ScriptContextMenu>(nativeObject, scriptObject);
 }
 
-void ScriptContextMenu::InternalOpen(ScriptContextMenu* instance, Vector2I* position, ScriptGUILayoutWrapperBase* layoutPtr)
+void ScriptContextMenu::InternalOpen(ScriptContextMenu* self, Vector2I* position, ScriptGUILayoutWrapperBase* layoutPtr)
 {
+	if(!self->IsNativeObjectValid())
+		return;
+
 	GUIElement* layout = layoutPtr->GetNativeObject();
 
 	GUIWidget* widget = layout->GetParentWidget();
@@ -51,38 +57,47 @@ void ScriptContextMenu::InternalOpen(ScriptContextMenu* instance, Vector2I* posi
 	Rect2I bounds = layout->GetBounds();
 	Vector2I windowPosition = *position + Vector2I(bounds.X, bounds.Y);
 
-	SPtr<GUIContextMenu> contextMenu = instance->GetInternal();
+	SPtr<GUIContextMenu> contextMenu = self->GetNativeObjectAsShared();
 	contextMenu->Open(windowPosition, *widget);
 }
 
-void ScriptContextMenu::InternalAddItem(ScriptContextMenu* instance, MonoString* path, u32 callbackIdx, ShortcutKey* shortcut)
+void ScriptContextMenu::InternalAddItem(ScriptContextMenu* self, MonoString* path, u32 callbackIdx, ShortcutKey* shortcut)
 {
+	if(!self->IsNativeObjectValid())
+		return;
+
 	String nativePath = MonoUtil::MonoToString(path);
 
-	SPtr<GUIContextMenu> contextMenu = instance->GetInternal();
-	contextMenu->AddMenuItem(nativePath, std::bind(&ScriptContextMenu::OnContextMenuItemTriggered, instance, callbackIdx), 0, *shortcut);
+	SPtr<GUIContextMenu> contextMenu = self->GetNativeObjectAsShared();
+	contextMenu->AddMenuItem(nativePath, std::bind(&ScriptContextMenu::OnContextMenuItemTriggered, self, callbackIdx), 0, *shortcut);
 }
 
-void ScriptContextMenu::InternalAddSeparator(ScriptContextMenu* instance, MonoString* path)
+void ScriptContextMenu::InternalAddSeparator(ScriptContextMenu* self, MonoString* path)
 {
+	if(!self->IsNativeObjectValid())
+		return;
+
 	String nativePath = MonoUtil::MonoToString(path);
 
-	SPtr<GUIContextMenu> contextMenu = instance->GetInternal();
+	SPtr<GUIContextMenu> contextMenu = self->GetNativeObjectAsShared();
 	contextMenu->AddSeparator(nativePath, 0);
 }
 
-void ScriptContextMenu::InternalSetLocalizedName(ScriptContextMenu* instance, MonoString* label, ScriptLocString* name)
+void ScriptContextMenu::InternalSetLocalizedName(ScriptContextMenu* self, MonoString* label, ScriptLocString* name)
 {
+	if(!self->IsNativeObjectValid())
+		return;
+
 	if(label == nullptr || name == nullptr)
 		return;
 
 	String nativeLabel = MonoUtil::MonoToString(label);
-	SPtr<GUIContextMenu> contextMenu = instance->GetInternal();
+	SPtr<GUIContextMenu> contextMenu = self->GetNativeObjectAsShared();
 	contextMenu->SetLocalizedName(nativeLabel, *name->GetInternal());
 }
 
 void ScriptContextMenu::OnContextMenuItemTriggered(u32 idx)
 {
-	MonoObject* instance = MonoUtil::GetObjectFromGcHandle(mGCHandle);
-	MonoUtil::InvokeThunk(onEntryTriggered, instance, idx);
+	MonoObject* scriptObject = GetScriptObject();
+	MonoUtil::InvokeThunk(onEntryTriggered, scriptObject, idx);
 }
