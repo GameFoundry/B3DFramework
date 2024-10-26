@@ -288,7 +288,7 @@ void DrawHelper::Rectangle(const Rect3& area)
 	rectData.Color = mColor;
 	rectData.Transform = mTransform;
 	rectData.Layer = mLayer;
-	rectData.Center = mTransform.MultiplyAffine(area.GetCenter());
+	rectData.Center = mTransform.MultiplyAffine(area.Center);
 }
 
 void DrawHelper::Text(const Vector3& position, const String& text, const HFont& font, float size)

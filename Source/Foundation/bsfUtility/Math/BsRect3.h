@@ -16,13 +16,14 @@ namespace bs
 	 * origin. Axes should be perpendicular to each other and they extend in both positive and negative directions from the
 	 * origin by the amount specified by extents.
 	 */
-	class B3D_UTILITY_EXPORT Rect3
+	class B3D_UTILITY_EXPORT B3D_SCRIPT_EXPORT(ExportAsStruct(true)) Rect3
 	{
 	public:
 		Rect3() = default;
 
+		B3D_SCRIPT_EXPORT(Exclude(true))
 		Rect3(const Vector3& center, const std::array<Vector3, 2>& axes, const std::array<float, 2>& extents)
-			: mCenter(center), mAxisHorz(axes[0]), mAxisVert(axes[1]), mExtentHorz(extents[0]), mExtentVert(extents[1])
+			: Center(center), HorizontalAxis(axes[0]), VerticalAxis(axes[1]), HorizontalExtent(extents[0]), VerticalExtent(extents[1])
 		{}
 
 		/**
@@ -49,27 +50,11 @@ namespace bs
 		 */
 		std::pair<bool, float> Intersects(const Ray& ray) const;
 
-		/** Gets the origin of the rectangle. */
-		const Vector3& GetCenter() const { return mCenter; }
-
-		/** Returns the rectangle's horizontal axis. */
-		const Vector3& GetAxisHorz() const { return mAxisHorz; }
-
-		/** Returns the rectangle's vertical axis. */
-		const Vector3& GetAxisVert() const { return mAxisVert; }
-
-		/** Gets the extent of the rectangle along its horizontal axis. */
-		const float& GetExtentHorz() const { return mExtentHorz; }
-
-		/** Gets the extent of the rectangle along its vertical axis. */
-		const float& GetExtentVertical() const { return mExtentVert; }
-
-	private:
-		Vector3 mCenter{ BsZero };
-		Vector3 mAxisHorz{ BsZero };
-		Vector3 mAxisVert{ BsZero };
-		float mExtentHorz = 0.0f;
-		float mExtentVert = 0.0f;
+		Vector3 Center = Vector3::kZero;
+		Vector3 HorizontalAxis = Vector3::kZero;
+		Vector3 VerticalAxis = Vector3::kZero;
+		float HorizontalExtent = 0.0f;
+		float VerticalExtent = 0.0f;
 	};
 
 	/** @} */

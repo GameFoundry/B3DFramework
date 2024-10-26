@@ -1464,10 +1464,10 @@ void ShapeMeshes3D::SolidQuad(const Rect3& area, u8* outVertices, u8* outNormals
 {
 	outVertices += (vertexOffset * vertexStride);
 
-	Vector3 topLeft = area.GetCenter() - area.GetAxisHorz() * area.GetExtentHorz() + area.GetAxisVert() * area.GetExtentVertical();
-	Vector3 topRight = area.GetCenter() + area.GetAxisHorz() * area.GetExtentHorz() + area.GetAxisVert() * area.GetExtentVertical();
-	Vector3 botRight = area.GetCenter() + area.GetAxisHorz() * area.GetExtentHorz() - area.GetAxisVert() * area.GetExtentVertical();
-	Vector3 botLeft = area.GetCenter() - area.GetAxisHorz() * area.GetExtentHorz() - area.GetAxisVert() * area.GetExtentVertical();
+	Vector3 topLeft = area.Center - area.HorizontalAxis * area.HorizontalExtent + area.VerticalAxis * area.VerticalExtent;
+	Vector3 topRight = area.Center + area.HorizontalAxis * area.HorizontalExtent + area.VerticalAxis * area.VerticalExtent;
+	Vector3 botRight = area.Center + area.HorizontalAxis * area.HorizontalExtent - area.VerticalAxis * area.VerticalExtent;
+	Vector3 botLeft = area.Center - area.HorizontalAxis * area.HorizontalExtent - area.VerticalAxis * area.VerticalExtent;
 
 	outVertices = WriteVector3(outVertices, vertexStride, topLeft);
 	outVertices = WriteVector3(outVertices, vertexStride, topRight);
@@ -1479,7 +1479,7 @@ void ShapeMeshes3D::SolidQuad(const Rect3& area, u8* outVertices, u8* outNormals
 	outVertices = WriteVector3(outVertices, vertexStride, botRight);
 	outVertices = WriteVector3(outVertices, vertexStride, botLeft);
 
-	Vector3 normal = area.GetAxisHorz().Cross(area.GetAxisVert());
+	Vector3 normal = area.HorizontalAxis.Cross(area.VerticalAxis);
 	Vector3 reverseNormal = -normal;
 
 	outNormals += (vertexOffset * vertexStride);

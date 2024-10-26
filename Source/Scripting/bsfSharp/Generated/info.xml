@@ -1276,6 +1276,41 @@
 		<field name="Direction" type="Vector3D">
 		</field>
 	</struct>
+	<class native="SpriteVectorPath" script="SpriteVectorPath">
+		<doc>Implementation of SpriteImage that renders a vector path.</doc>
+		<method native="SetVectorPath" script="SetVectorPath" static="false">
+			<doc>Sets the vector path to render.</doc>
+			<param name="vectorPath" type="RRef&lt;VectorPath&gt;">
+			</param>
+		</method>
+		<ctor>
+			<doc>Creates a new sprite vector path.</doc>
+			<param name="vectorPath" type="RRef&lt;VectorPath&gt;">
+			</param>
+			<param name="size" type="Size2UI">
+			</param>
+		</ctor>
+		<ctor>
+			<doc>Creates a new sprite vector path.</doc>
+			<param name="createInformation" type="SpriteVectorPathCreateInformation">
+			</param>
+		</ctor>
+	</class>
+	<struct native="Rect3" script="Rect3">
+		<doc>Represents a rectangle in three dimensional space. It is represented by two axes that extend from the specified origin. Axes should be perpendicular to each other and they extend in both positive and negative directions from the origin by the amount specified by extents.</doc>
+		<ctor>
+		</ctor>
+		<field name="Center" type="Vector3">
+		</field>
+		<field name="HorizontalAxis" type="Vector3">
+		</field>
+		<field name="VerticalAxis" type="Vector3">
+		</field>
+		<field name="HorizontalExtent" type="float">
+		</field>
+		<field name="VerticalExtent" type="float">
+		</field>
+	</struct>
 	<class native="CAnimation" script="Animation">
 		<method native="Play" script="Play" static="false">
 			<param name="clip" type="RRef&lt;AnimationClip&gt;">
@@ -2305,33 +2340,6 @@ Use {0}, {1}, etc. in the string value for values that might change dynamically.
 			<doc>Curves for animating generic component properties.</doc>
 		</property>
 	</class>
-	<class native="AudioClip" script="AudioClip">
-		<doc>Audio clip stores audio data in a compressed or uncompressed format. Clips can be provided to audio sources or other audio methods to be played.</doc>
-		<property name="BitDepth" type="int" getter="GetBitDepth" setter="" static="false">
-			<doc>Returns the size of a single sample, in bits.</doc>
-		</property>
-		<property name="SampleRate" type="int" getter="GetFrequency" setter="" static="false">
-			<doc>Returns how many samples per second is the audio encoded in.</doc>
-		</property>
-		<property name="NumChannels" type="int" getter="GetNumChannels" setter="" static="false">
-			<doc>Returns the number of channels provided by the clip.</doc>
-		</property>
-		<property name="Format" type="AudioFormat" getter="GetFormat" setter="" static="false">
-			<doc>Returns in which format is audio data stored in.</doc>
-		</property>
-		<property name="ReadMode" type="AudioReadMode" getter="GetReadMode" setter="" static="false">
-			<doc>Returns how is the audio data read/decoded.</doc>
-		</property>
-		<property name="Duration" type="float" getter="GetLength" setter="" static="false">
-			<doc>Returns the length of the audio clip, in seconds.</doc>
-		</property>
-		<property name="NumSamples" type="int" getter="GetNumSamples" setter="" static="false">
-			<doc>Returns the total number of samples in the clip (includes all channels).</doc>
-		</property>
-		<property name="Is3D" type="bool" getter="Is3D" setter="" static="false">
-			<doc>Determines will the clip be played a spatial 3D sound, or as a normal sound (for example music).</doc>
-		</property>
-	</class>
 	<class native="ManagedPropertyInfo" script="ManagedPropertyInfo">
 		<doc>Contains data about a single property in a managed object (class or struct).</doc>
 	</class>
@@ -2491,6 +2499,33 @@ Use {0}, {1}, etc. in the string value for values that might change dynamically.
 			<doc>Audio will be slowly streamed from the disk, and decompressed if needed. Uses very little memory, and has either low or high CPU impact depending if the audio is in a compressed format. Since data is streamed from the disk, read speeds could also be a bottleneck.</doc>
 		</enumentry>
 	</enum>
+	<class native="AudioClip" script="AudioClip">
+		<doc>Audio clip stores audio data in a compressed or uncompressed format. Clips can be provided to audio sources or other audio methods to be played.</doc>
+		<property name="BitDepth" type="int" getter="GetBitDepth" setter="" static="false">
+			<doc>Returns the size of a single sample, in bits.</doc>
+		</property>
+		<property name="SampleRate" type="int" getter="GetFrequency" setter="" static="false">
+			<doc>Returns how many samples per second is the audio encoded in.</doc>
+		</property>
+		<property name="NumChannels" type="int" getter="GetNumChannels" setter="" static="false">
+			<doc>Returns the number of channels provided by the clip.</doc>
+		</property>
+		<property name="Format" type="AudioFormat" getter="GetFormat" setter="" static="false">
+			<doc>Returns in which format is audio data stored in.</doc>
+		</property>
+		<property name="ReadMode" type="AudioReadMode" getter="GetReadMode" setter="" static="false">
+			<doc>Returns how is the audio data read/decoded.</doc>
+		</property>
+		<property name="Duration" type="float" getter="GetLength" setter="" static="false">
+			<doc>Returns the length of the audio clip, in seconds.</doc>
+		</property>
+		<property name="NumSamples" type="int" getter="GetNumSamples" setter="" static="false">
+			<doc>Returns the total number of samples in the clip (includes all channels).</doc>
+		</property>
+		<property name="Is3D" type="bool" getter="Is3D" setter="" static="false">
+			<doc>Determines will the clip be played a spatial 3D sound, or as a normal sound (for example music).</doc>
+		</property>
+	</class>
 	<class native="ImportOptions" script="ImportOptions">
 		<doc>Base class for creating import options from. Import options are specific for each importer and control how is data imported.</doc>
 	</class>
@@ -7273,26 +7308,6 @@ Sprite images also allow you to specify sprite sheet animation by varying which 
 			<doc>Describes the sprite sheet grid used for animation, if animation is used.</doc>
 		</field>
 	</struct>
-	<class native="SpriteVectorPath" script="SpriteVectorPath">
-		<doc>Implementation of SpriteImage that renders a vector path.</doc>
-		<method native="SetVectorPath" script="SetVectorPath" static="false">
-			<doc>Sets the vector path to render.</doc>
-			<param name="vectorPath" type="RRef&lt;VectorPath&gt;">
-			</param>
-		</method>
-		<ctor>
-			<doc>Creates a new sprite vector path.</doc>
-			<param name="vectorPath" type="RRef&lt;VectorPath&gt;">
-			</param>
-			<param name="size" type="Size2UI">
-			</param>
-		</ctor>
-		<ctor>
-			<doc>Creates a new sprite vector path.</doc>
-			<param name="createInformation" type="SpriteVectorPathCreateInformation">
-			</param>
-		</ctor>
-	</class>
 	<struct native="SubResource" script="SubResource">
 		<doc>Contains a resource that was imported from a file that contains multiple resources (for example an animation from an FBX file).</doc>
 		<field name="Name" type="string">
