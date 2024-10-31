@@ -32,11 +32,11 @@ namespace bs
 		/** Notifies the wrapper that the native object it is managing is about to be destroyed. */
 		virtual void NotifyNativeObjectDestroyed();
 
+		/** Notifies the wrapper that the script object is about to be destroyed. */
+		virtual void NotifyScriptObjectDestroyed(bool isDestroyedDueToScriptReload);
+
 	protected:
 		friend class IScriptExportable;
-
-		/** Notifies the wrapper when the script object has been destroyed. */
-		virtual void NotifyScriptObjectDestroyed();
 
 		IScriptExportable* mNativeObject = nullptr;
 	};

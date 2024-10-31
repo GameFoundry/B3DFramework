@@ -30,18 +30,6 @@ namespace bs
 	template <typename T>
 	struct B3DHasGetHandle<T, std::void_t<decltype(std::declval<T>().GetHandle())>> : std::true_type {};
 
-	/** Structure to persist object data during script reload. Objects will store their data before reload happens, and then restore the data after it happens. */
-	struct ScriptObjectReloadPersistentData
-	{
-		ScriptObjectReloadPersistentData() {}
-
-		explicit ScriptObjectReloadPersistentData(const Any& data)
-			: Data(data)
-		{}
-
-		Any Data; // TODO - Don't use Any
-	};
-
 	/** Determines how is script object lifetime tracked, and when should the native object be destroyed. */
 	enum class ScriptObjectLifetimeTrackingMode
 	{
@@ -86,6 +74,9 @@ namespace bs
 
 		MonoObject* GetScriptObject() const;
 
+		/** Stores a pointer to the wrapper in the script object. This ensures that calls to GetScriptObjectWrapper() can return the script object wrapper associated with the script object. */
+		virtual void BindToScriptObject(MonoObject* scriptObject) = 0;
+
 		/** Returns the number of strong references on the underlying native object. */
 		virtual u32 GetNativeObjectReferenceCount() const
 		{
@@ -96,12 +87,16 @@ namespace bs
 		/** Used by derived classes to connect callbacks to native object events. */
 		virtual void RegisterEvents() { }
 
+		void NotifyScriptObjectDestroyed(bool isDestroyedDueToScriptReload) override;
 		void NotifyNativeObjectDestroyed() override;
 
 		/**
 		 * @name Script object lifetime tracking
 		 * @{
 		 */
+
+		/** Releases the currently held script object strong handle, if any. */ 
+		void ReleaseScriptObjectHandle();
 
 		/** Determines how is script object lifetime tracked, and when should the native object be destroyed. See ScriptObjectLifetimeTrackingMode. */
 		virtual ScriptObjectLifetimeTrackingMode GetLifetimeTrackingMode() const { return ScriptObjectLifetimeTrackingMode::StrongHandleWithGarbageCollection; }
@@ -118,9 +113,6 @@ namespace bs
 		 */
 		virtual void TransitionToStrongHandle();
 
-		/** Called when the script system is notified that the script object has been destroyed. */
-		virtual void NotifyScriptObjectDestroyed(bool isDestroyedDueToScriptReload);
-
 		/** @} */
 
 		/**
@@ -128,42 +120,41 @@ namespace bs
 		 * @{
 		 */
 
+		// TODO - Duplicated interface on IScriptExportable
+
 		/**
 		 * If true, the object will be given an opportunity to back up its data before a script reload operation, and its script object will be automatically
 		 * recreated once script reload ends, and given an opportunity to restore the backed up data. If false, the script object and its wrapper will
 		 * be destroyed on script reload.
 		 */
-		virtual bool ShouldPersistScriptReload() const { return false; }
+		virtual bool ShouldPersistScriptReload() const;
+
+		/** Called on all script object wrappers before script object reload happens. */
+		virtual void NotifyScriptWillReload();
 
 		/**
 		 * Called on all script object wrappers when script reload is about to happen. Allows the script object to back up its current state
 		 * so it may be restored after reload completes. Only relevant for script objects that persist script reload (i.e. ShouldPersistScriptReload() returns true).
 		 */
-		virtual Optional<ScriptObjectReloadPersistentData> BackupDataBeforeScriptReload() { return {}; }
-
-		/**
-		 * Called on all script object wrappers when script reload is about to happen, after BackupDataBeforeScriptReload() is called. Allows the wrapper to
-		 * release any explicit strong handles it may be holding, so the object gets released correctly.
-		 */
-		virtual void ReleaseStrongHandlesBeforeScriptReload() { ReleaseScriptObjectHandle(); }
+		virtual Optional<ScriptObjectReloadPersistentData> BackupDataBeforeScriptReload();
 
 		/**
 		 * Called on all script object wrappers after script assemblies have been reloaded. This needs to recreate the internal script object using the new assemblies,
 		 * as the old one will have been destroyed during the reload. Only relevant for script objects that persist script reload (i.e. ShouldPersistScriptReload() returns true).
 		 */
-		virtual void RecreateScriptObjectAfterScriptReload() { }
+		virtual void RecreateScriptObjectAfterScriptReload();
 
 		/**
 		 * Called on all script object wrappers after script objects have been created in RecreateScriptObjectAfterScriptReload(). Allows you to restore data backed up
 		 * in BackupDataBeforeScriptReload() call to the newly created script object. Only relevant for script objects that persist script reload (i.e. ShouldPersistScriptReload() returns true).
 		 */
-		virtual void RestoreDataAfterScriptReload(const ScriptObjectReloadPersistentData& data) { }
+		virtual void RestoreDataAfterScriptReload(const ScriptObjectReloadPersistentData& data);
 
 		/**
 		 * Called on all script object wrappers as the final step in script reload, after RestoreDataAfterScriptReload(). Allows you to perform actions that require
 		 * the entire scripting world to be fully recreated.
 		 */
-		virtual void NotifyScriptReloadFinished() { }
+		virtual void NotifyScriptReloadFinished();
 
 		/** @} */
 
@@ -183,9 +174,6 @@ namespace bs
 	protected:
 		/** Creates a new handle to the provided script object. Previous handle must be released. */
 		void CreateScriptObjectHandle(MonoObject* scriptObject);
-
-		/** Releases the currently held script object strong handle, if any. */ 
-		void ReleaseScriptObjectHandle();
 
 		u32 mScriptObjectHandle = ~0u;
 		bool mRequiresStrongHandle = false;
@@ -247,7 +235,7 @@ namespace bs
 		friend class ScriptObjectWrapper;
 
 		/** Stores a pointer to itself in the script object. This ensures that calls to GetScriptObjectWrapper() can return the script object wrapper associated with the script object. */
-		void BindToScriptObject(MonoObject* scriptObject)
+		void BindToScriptObject(MonoObject* scriptObject) override
 		{
 			SelfType* self = (SelfType*)(BaseType*)this; // Needed due to multiple inheritance. Safe since SelfType must point to an class derived from this one.
 

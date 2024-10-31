@@ -13,7 +13,7 @@ IScriptObjectWrapper::IScriptObjectWrapper(IScriptExportable* nativeObject)
 		nativeObject->AssociateWithScriptObjectWrapper(this);
 }
 
-void IScriptObjectWrapper::NotifyScriptObjectDestroyed()
+void IScriptObjectWrapper::NotifyScriptObjectDestroyed(bool isDestroyedDueToScriptReload)
 {
 	IScriptExportable* nativeObject = GetNativeObject();
 	if(nativeObject != nullptr)

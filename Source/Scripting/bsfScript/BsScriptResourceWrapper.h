@@ -89,19 +89,6 @@ namespace bs
 		bool ShouldPersistScriptReload() const override { return true; }
 		ScriptObjectLifetimeTrackingMode GetLifetimeTrackingMode() const override { return ScriptObjectLifetimeTrackingMode::StrongHandleWithExplicitDestroy; }
 
-		void NotifyScriptObjectDestroyed(bool isDestroyedDueToScriptReload) override
-		{
-			// Keep the wrapper alive if script reload and the native object is still valid
-			if(!isDestroyedDueToScriptReload || !IsNativeObjectValid())
-			{
-				TScriptObjectWrapper<SelfType, BaseType>::NotifyScriptObjectDestroyed(isDestroyedDueToScriptReload);
-				return;
-			}
-
-			// Handle should have been cleared already
-			B3D_ENSURE(mScriptObjectHandle == ~0u);
-		}
-
 		/**
 		 * Creates a new script object and a script object wrapper of @p SelfType, and associates them with the provided native object. Should not be called if @p nativeObject
 		 * already has an associated script object.

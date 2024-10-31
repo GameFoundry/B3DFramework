@@ -29,7 +29,15 @@ MonoObject* ScriptObjectWrapper::GetScriptObject() const
 
 void ScriptObjectWrapper::NotifyScriptObjectDestroyed(bool isDestroyedDueToScriptReload)
 {
-	IScriptObjectWrapper::NotifyScriptObjectDestroyed();
+	 // Don't kill the wrapper if we're persisting script reload, as we'll just bind a new script object on the wrapper after reload finishes
+	if(ShouldPersistScriptReload() && isDestroyedDueToScriptReload)
+	{
+		// Handle should have been cleared already by the caller
+		B3D_ENSURE(mScriptObjectHandle == ~0u);
+		return;
+	}
+
+	IScriptObjectWrapper::NotifyScriptObjectDestroyed(isDestroyedDueToScriptReload);
 	B3DDelete(this);
 }
 
@@ -38,6 +46,46 @@ void ScriptObjectWrapper::NotifyNativeObjectDestroyed()
 	ReleaseScriptObjectHandle();
 
 	IScriptObjectWrapper::NotifyNativeObjectDestroyed();
+}
+
+bool ScriptObjectWrapper::ShouldPersistScriptReload() const
+{
+	if(mNativeObject != nullptr)
+		return mNativeObject->ShouldPersistScriptReload();
+
+	return false;
+}
+
+void ScriptObjectWrapper::NotifyScriptWillReload()
+{
+	if(mNativeObject != nullptr)
+		mNativeObject->NotifyScriptWillReload();
+}
+
+Optional<ScriptObjectReloadPersistentData> ScriptObjectWrapper::BackupDataBeforeScriptReload()
+{
+	if(mNativeObject != nullptr)
+		return mNativeObject->BackupDataBeforeScriptReload();
+
+	return {};
+}
+
+void ScriptObjectWrapper::RecreateScriptObjectAfterScriptReload()
+{
+	if(mNativeObject != nullptr)
+		mNativeObject->RecreateScriptObjectAfterScriptReload();
+}
+
+void ScriptObjectWrapper::RestoreDataAfterScriptReload(const ScriptObjectReloadPersistentData& data)
+{
+	if(mNativeObject != nullptr)
+		mNativeObject->RestoreDataAfterScriptReload(data);
+}
+
+void ScriptObjectWrapper::NotifyScriptReloadFinished()
+{
+	if(mNativeObject != nullptr)
+		mNativeObject->NotifyScriptReloadFinished();
 }
 
 void ScriptObjectWrapper::CreateScriptObjectHandle(MonoObject* scriptObject)

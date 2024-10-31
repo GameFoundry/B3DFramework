@@ -3,6 +3,7 @@
 #pragma once
 
 #include "Prerequisites/BsPrerequisitesUtil.h"
+#include "Utility/BsAny.h"
 
 namespace bs
 {
@@ -11,6 +12,18 @@ namespace bs
 	 */
 
 	class IScriptObjectWrapper;
+
+	/** Structure to persist object data during script reload. Objects will store their data before reload happens, and then restore the data after it happens. */
+	struct ScriptObjectReloadPersistentData
+	{
+		ScriptObjectReloadPersistentData() {}
+
+		explicit ScriptObjectReloadPersistentData(const Any& data)
+			: Data(data)
+		{}
+
+		Any Data; // TODO - Don't use Any
+	};
 
 	/**
 	 * Interface to be implemented by types that are exported to scripting. Such types should also be decorated with B3D_SCRIPT_EXPORT() macro, along
@@ -34,6 +47,47 @@ namespace bs
 		 * but has gone out of scope.
 		 */
 		IScriptObjectWrapper* GetScriptObjectWrapper() const { return mScriptObjectWrapper; }
+
+		/**
+		 * @name Script reload
+		 * @{
+		 */
+
+		/**
+		 * If true, the object will be given an opportunity to back up its data before a script reload operation, and its script object will be automatically
+		 * recreated once script reload ends, and given an opportunity to restore the backed up data. If false, the script object and its wrapper will
+		 * be destroyed on script reload.
+		 */
+		virtual bool ShouldPersistScriptReload() const { return false; }
+
+		/** Called on all script objects before script object reload happens. */
+		virtual void NotifyScriptWillReload() { }
+
+		/*
+		 * Called on all script objects when script reload is about to happen, after NotifyScriptWillReload(). Allows the script object to back up its current state
+		 * so it may be restored after reload completes. Only relevant for script objects that persist script reload (i.e. ShouldPersistScriptReload() returns true).
+		 */
+		virtual Optional<ScriptObjectReloadPersistentData> BackupDataBeforeScriptReload() { return {}; }
+
+		/**
+		 * Called on all script objects after script assemblies have been reloaded. This needs to recreate the internal script object using the new assemblies,
+		 * as the old one will have been destroyed during the reload. Only relevant for script objects that persist script reload (i.e. ShouldPersistScriptReload() returns true).
+		 */
+		virtual void RecreateScriptObjectAfterScriptReload() { }
+
+		/**
+		 * Called on all script objects after script objects have been created in RecreateScriptObjectAfterScriptReload(). Allows you to restore data backed up
+		 * in BackupDataBeforeScriptReload() call to the newly created script object. Only relevant for script objects that persist script reload (i.e. ShouldPersistScriptReload() returns true).
+		 */
+		virtual void RestoreDataAfterScriptReload(const ScriptObjectReloadPersistentData& data) { }
+
+		/**
+		 * Called on all script object wrappers as the final step in script reload, after RestoreDataAfterScriptReload(). Allows you to perform actions that require
+		 * the entire scripting world to be fully recreated.
+		 */
+		virtual void NotifyScriptReloadFinished() { }
+
+		/** @} */
 
 	private:
 		friend class IScriptObjectWrapper;

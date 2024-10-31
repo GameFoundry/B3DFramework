@@ -41,6 +41,9 @@ void ScriptObjectManager::RefreshAssemblies(const Vector<AssemblyRefreshInfo>& a
 
 	OnRefreshStarted();
 
+	for(auto& scriptObject : mScriptObjectWrappers)
+		scriptObject->NotifyScriptWillReload();
+
 	// Make sure any managed game objects are properly destroyed so their OnDestroy callbacks fire before unloading the domain
 	GameObjectManager::Instance().DestroyQueuedObjects();
 
@@ -61,7 +64,7 @@ void ScriptObjectManager::RefreshAssemblies(const Vector<AssemblyRefreshInfo>& a
 		scriptObject->ClearManagedInstanceInternal();
 
 	for(auto& scriptObjectWrapper : mScriptObjectWrappers)
-		scriptObjectWrapper->ReleaseStrongHandlesBeforeScriptReload();
+		scriptObjectWrapper->ReleaseScriptObjectHandle();
 
 	MonoManager::Instance().UnloadScriptDomain();
 
@@ -73,9 +76,7 @@ void ScriptObjectManager::RefreshAssemblies(const Vector<AssemblyRefreshInfo>& a
 		B3D_ASSERT(scriptObject->IsPersistent() && "Non-persistent ScriptObject alive after domain unload.");
 
 	for(auto& scriptObjectWrapper : mScriptObjectWrappers)
-	{
 		B3D_ENSURE(scriptObjectWrapper->ShouldPersistScriptReload());
-	}
 
 	ScriptAssemblyManager::Instance().ClearAssemblyInfo();
 

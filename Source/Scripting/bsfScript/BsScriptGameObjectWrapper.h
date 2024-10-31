@@ -58,19 +58,6 @@ namespace bs
 		bool ShouldPersistScriptReload() const override { return true; }
 		ScriptObjectLifetimeTrackingMode GetLifetimeTrackingMode() const override { return ScriptObjectLifetimeTrackingMode::StrongHandleWithExplicitDestroy; }
 
-		void NotifyScriptObjectDestroyed(bool isDestroyedDueToScriptReload) override
-		{
-			// Keep the wrapper alive if script reload and the native object is still valid
-			if(!isDestroyedDueToScriptReload || !IsNativeObjectValid())
-			{
-				TScriptObjectWrapper<SelfType, BaseType>::NotifyScriptObjectDestroyed(isDestroyedDueToScriptReload);
-				return;
-			}
-
-			// Handle should have been cleared already
-			B3D_ENSURE(mScriptObjectHandle == ~0u);
-		}
-
 		/** Returns the wrapped native object as a shared pointer. */
 		SPtr<NativeType> GetNativeObjectAsShared() const { return std::static_pointer_cast<NativeType>(mNativeObjectStrongHandle.GetShared()); }
 
