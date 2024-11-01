@@ -78,7 +78,7 @@ void Application::OnShutDown()
 {
 	// Need to clear all objects before I unload any plugins, as they
 	// could have allocated parts or all of those objects.
-	SceneManager::Instance().ClearScene(true);
+	SceneManager::Instance().ClearMainScene(true);
 
 	// Resources too (Prefabs especially, since they hold the same data as a scene)
 	Resources::Instance().UnloadAll();

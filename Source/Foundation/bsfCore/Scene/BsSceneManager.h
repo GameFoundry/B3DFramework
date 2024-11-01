@@ -43,7 +43,7 @@ namespace bs
 		{};
 
 	public:
-		SceneInstance(ConstructPrivately dummy, const String& name, const HSceneObject& root, const SPtr<PhysicsScene>& physicsScene);
+		SceneInstance(ConstructPrivately dummy, const String& name, const HSceneObject& root, const UUID& associatedResourceId, const SPtr<PhysicsScene>& physicsScene);
 		~SceneInstance();
 
 		/** Name of the scene. */
@@ -68,6 +68,13 @@ namespace bs
 		/** Returns the game object collection storing all the scene's game objects. */
 		const SPtr<GameObjectCollection>& GetGameObjectCollection() const { return mGameObjectCollection; }
 
+		/** ID of the resource that the scene instance is associated with (e.g. resource the scene was loaded from.). */
+		void SetAssociatedResourceId(const UUID& id) { mAssociatedResourceId = id; }
+
+		/** @copydoc SetAssociatedResourceId */
+		B3D_SCRIPT_EXPORT(Property(Getter), ExportName(AssociatedResourceId))
+		const UUID& GetAssociatedResourceId() const { return mAssociatedResourceId; }
+
 		/** Creates a new scene object in the scene instance. */
 		B3D_SCRIPT_EXPORT()
 		HSceneObject CreateSceneObject(const String& name);
@@ -80,11 +87,15 @@ namespace bs
 		B3D_SCRIPT_EXPORT(ExtensionConstructorForType(SceneInstance))
 		static SPtr<SceneInstance> Create(const String& name, const HSceneObject& root);
 
+		/** Creates a new scene instance with an existing hierarchy and associated resource ID. */
+		static SPtr<SceneInstance> Create(const String& name, const HSceneObject& root, const UUID& associatedResourceId);
+
 	private:
 		friend class SceneManager;
 
 		String mName;
 		HSceneObject mRoot;
+		UUID mAssociatedResourceId; /**< ID of the resource the scene was loaded from, if any. */
 		bool mIsActive = true;
 		SPtr<PhysicsScene> mPhysicsScene;
 		SPtr<GameObjectCollection> mGameObjectCollection;
@@ -94,7 +105,7 @@ namespace bs
 	 * Keeps track of all active SceneObject%s and their components. Keeps track of component state and triggers their
 	 * events. Updates the transforms of objects as SceneObject%s move.
 	 */
-	class B3D_CORE_EXPORT SceneManager : public Module<SceneManager>
+	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT() SceneManager : public Module<SceneManager>
 	{
 	public:
 		SceneManager();
@@ -103,6 +114,7 @@ namespace bs
 		void OnStartUp() override;
 
 		/** Returns the object that represents the main scene. */
+		B3D_SCRIPT_EXPORT(Property(Getter), ExportName(MainScene))
 		const SPtr<SceneInstance>& GetMainScene() const { return mMainScene; } // TODO - Concept of main scene should be removed
 
 		/** Returns all live scene instances. */
@@ -113,19 +125,15 @@ namespace bs
 		 *
 		 * @param[in]	forceAll	If true, then even the persistent objects will be unloaded.
 		 */
-		void ClearScene(bool forceAll = false);
+		B3D_SCRIPT_EXPORT(InteropOnly(true))
+		void ClearMainScene(bool forceAll = false);
 
 		/**
 		 * Instantiates a new scene and makes it active. All non-persistent objects that are part of the current scene will
 		 * be destroyed.
 		 */
-		void LoadScene(const HPrefab& scene);
-
-		/**
-		 * Saves all the currently active scene objects into a brand new prefab which can then be saved to disk, loaded back
-		 * and provided to setScene() for loading.
-		 */
-		HPrefab SaveScene() const;
+		B3D_SCRIPT_EXPORT()
+		void LoadMainScene(B3D_NO_RREF const HPrefab& scene);
 
 		/**
 		 * Changes the component state that globally determines which component callbacks are activated. Only affects
@@ -156,6 +164,10 @@ namespace bs
 		 */
 		SPtr<Camera> GetMainCamera() const;
 
+		/** Returns the main camera component. See GetMainCamera(). */
+		B3D_SCRIPT_EXPORT(InteropOnly(true))
+		HSceneObject GetMainCameraSceneObject() const;
+
 		/**
 		 * Sets the render target that the main camera in the scene (if any) will render its view to. This generally means
 		 * the main game window when running standalone, or the Game viewport when running in editor.
@@ -163,7 +175,7 @@ namespace bs
 		void SetMainRenderTarget(const SPtr<RenderTarget>& rt);
 
 		/** Changes the root scene object. Any persistent objects will remain in the scene, now parented to the new root. */
-		void SetRootNodeInternal(const HSceneObject& root);
+		void SetRootNodeInternal(const HSceneObject& root, const UUID& associatedSceneResourceId);
 
 		/**
 		 * Binds a scene actor with a scene object. Every frame the scene object's transform will be monitored for
@@ -218,6 +230,14 @@ namespace bs
 
 		/** Notifies the manager that a scene instance was destroyed. */
 		void NotifySceneInstanceDestroyed(SceneInstance* sceneInstance);
+
+		/** Called when a new main scene has been loaded and is active. */
+		B3D_SCRIPT_EXPORT()
+		Event<void(UUID)> OnMainSceneLoaded;
+
+		/** Called when the main scene has been cleared or unloaded. */
+		B3D_SCRIPT_EXPORT()
+		Event<void(UUID)> OnMainSceneUnloaded;
 
 	protected:
 		/** Types of events that represent component state changes relevant to the scene manager. */

@@ -54,7 +54,7 @@ void PlayInEditor::SetStateImmediate(PlayInEditorState state)
 
 			GetSceneManager().SetComponentState(ComponentState::Stopped);
 			mSavedScene->Initialize();
-			GetSceneManager().SetRootNodeInternal(mSavedScene);
+			GetSceneManager().SetRootNodeInternal(mSavedScene, mSavedSceneResourceId);
 
 			mSavedScene = nullptr;
 			OnStopped();
@@ -134,6 +134,7 @@ void PlayInEditor::SaveSceneInMemory()
 {
 	mSavedSceneGameObjectCollection = GameObjectCollection::Create();
 	mSavedScene = SceneManager::Instance().GetMainScene()->GetRoot()->Clone(mSavedSceneGameObjectCollection, true);
+	mSavedSceneResourceId = SceneManager::Instance().GetMainScene()->GetAssociatedResourceId();
 
 	// Remove objects with "dont save" flag
 	Stack<HSceneObject> todo;

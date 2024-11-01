@@ -5967,6 +5967,8 @@ Sprite images also allow you to specify sprite sheet animation by varying which 
 		<property name="Physics" type="PhysicsScene" getter="GetPhysicsScene" setter="" static="false">
 			<doc>Physical representation of the scene, as assigned by the physics sub-system. Exact implementation depends on the physics plugin used.</doc>
 		</property>
+		<property name="AssociatedResourceId" type="UUID" getter="GetAssociatedResourceId" setter="" static="false">
+		</property>
 	</class>
 	<struct native="PARTICLE_ORBIT_DESC" script="ParticleOrbitOptions">
 		<doc>Structure used for initializing a ParticleOrbit object.</doc>
@@ -9575,6 +9577,27 @@ Alternatively you can also skip manually calling ReleaseInternalReference() and 
 		<event native="OnResourceModified" script="OnResourceModified" static="false">
 			<doc>Called when the internal resource the handle is pointing to has changed.</doc>
 			<param name="p0" type="RRefBase">
+			</param>
+		</event>
+	</class>
+	<class native="SceneManager" script="SceneManager">
+		<doc>Keeps track of all active SceneObject%s and their components. Keeps track of component state and triggers their events. Updates the transforms of objects as SceneObject%s move.</doc>
+		<method native="LoadMainScene" script="LoadMainScene" static="false">
+			<doc>Instantiates a new scene and makes it active. All non-persistent objects that are part of the current scene will be destroyed.</doc>
+			<param name="scene" type="Prefab">
+			</param>
+		</method>
+		<property name="MainScene" type="SceneInstance" getter="GetMainScene" setter="" static="false">
+			<doc>Returns the object that represents the main scene.</doc>
+		</property>
+		<event native="OnMainSceneLoaded" script="OnMainSceneLoaded" static="false">
+			<doc>Called when a new main scene has been loaded and is active.</doc>
+			<param name="p0" type="UUID">
+			</param>
+		</event>
+		<event native="OnMainSceneUnloaded" script="OnMainSceneUnloaded" static="false">
+			<doc>Called when the main scene has been cleared or unloaded.</doc>
+			<param name="p0" type="UUID">
 			</param>
 		</event>
 	</class>

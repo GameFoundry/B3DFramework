@@ -62,6 +62,17 @@ namespace bs
 			get { return Internal_GetPhysicsScene(mCachedPtr); }
 		}
 
+		[NativeWrapper]
+		public UUID AssociatedResourceId
+		{
+			get
+			{
+				UUID temp;
+				Internal_GetAssociatedResourceId(mCachedPtr, out temp);
+				return temp;
+			}
+		}
+
 		/// <summary>Creates a new scene object in the scene instance.</summary>
 		public SceneObject CreateSceneObject(string name)
 		{
@@ -76,6 +87,8 @@ namespace bs
 		private static extern bool Internal_IsActive(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern PhysicsScene Internal_GetPhysicsScene(IntPtr thisPtr);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		private static extern void Internal_GetAssociatedResourceId(IntPtr thisPtr, out UUID __output);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern SceneObject Internal_CreateSceneObject(IntPtr thisPtr, string name);
 		[MethodImpl(MethodImplOptions.InternalCall)]

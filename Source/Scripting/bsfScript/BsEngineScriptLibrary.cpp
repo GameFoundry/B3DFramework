@@ -8,12 +8,12 @@
 #include "Script/BsScriptManager.h"
 #include "BsScriptObjectManager.h"
 #include "BsApplication.h"
+#include "BsMonoMethod.h"
 #include "FileSystem/BsFileSystem.h"
 #include "Wrappers/GUI/BsScriptGUI.h"
 #include "BsPlayInEditor.h"
 #include "BsScriptDebug.generated.h"
 #include "BsScriptInput.generated.h"
-#include "Wrappers/BsScriptScene.h"
 #include "GUI/BsGUIManager.h"
 #include "BsScriptVirtualInput.generated.h"
 
@@ -33,12 +33,17 @@ void EngineScriptLibrary::Initialize()
 	ScriptObjectManager::StartUp();
 	ScriptAssemblyManager::StartUp();
 	ScriptResourceManager::StartUp();
-	ScriptScene::StartUp();
 	ScriptInput::StartUp();
 	ScriptVirtualInput::StartUp();
 	ScriptGUI::StartUp();
 
 	ScriptAssemblyManager::Instance().LoadAssemblyInfo(kEngineAssembly);
+	LoadMonoTypes();
+
+	mOnDomainReloadedConnection = ScriptObjectManager::Instance().OnRefreshDomainLoaded.Connect(std::bind(&EngineScriptLibrary::LoadMonoTypes, this));
+	mOnAssemblyRefreshDoneConnection = ScriptObjectManager::Instance().OnRefreshComplete.Connect(std::bind(&EngineScriptLibrary::OnAssemblyRefreshComplete, this));
+
+	TriggerOnInitialize();
 
 #if B3D_IS_ENGINE
 	engineAssembly.Invoke(ASSEMBLY_ENTRY_POINT);
@@ -47,7 +52,8 @@ void EngineScriptLibrary::Initialize()
 
 void EngineScriptLibrary::Update()
 {
-	ScriptScene::Update();
+	mUpdateMethod->Invoke(nullptr, nullptr);
+
 	PlayInEditor::Instance().Update();
 	ScriptObjectManager::Instance().Update();
 	ScriptGUI::Update();
@@ -86,6 +92,8 @@ void EngineScriptLibrary::Reload()
 
 void EngineScriptLibrary::Destroy()
 {
+	TriggerOnDestroy();
+
 	UnloadAssemblies();
 	ShutdownModules();
 }
@@ -101,12 +109,11 @@ void EngineScriptLibrary::ShutdownModules()
 	ScriptGUI::ShutDown();
 	ScriptVirtualInput::ShutDown();
 	ScriptInput::ShutDown();
-	ScriptScene::ShutDown();
 
 #if B3D_IS_ENGINE
 	MonoManager::ShutDown();
 #else
-	MonoManager::Instance().unloadAll();
+	MonoManager::Instance().UnloadAll();
 #endif
 
 	ScriptResourceManager::ShutDown();
@@ -117,6 +124,15 @@ void EngineScriptLibrary::ShutdownModules()
 
 	// Make sure all GUI elements are actually destroyed
 	GUIManager::Instance().ProcessDestroyQueue();
+}
+
+void EngineScriptLibrary::LoadMonoTypes()
+{
+	const String engineAssemblyPath = GetEngineAssemblyPath().ToString();
+	mEngineAssembly = &MonoManager::Instance().LoadAssembly(engineAssemblyPath, kEngineAssembly);
+
+	MonoClass* const applicationClass = mEngineAssembly->GetClass(kEngineNs, "Application");
+	mUpdateMethod = applicationClass->GetMethod("OnUpdate");
 }
 
 Path EngineScriptLibrary::GetEngineAssemblyPath() const
@@ -180,4 +196,21 @@ Path EngineScriptLibrary::GetBuiltinAssembliesPath() const
 Path EngineScriptLibrary::GetScriptingRuntimePath() const
 {
 	return MonoManager::Instance().GetMonoEtcFolder();
+}
+
+void EngineScriptLibrary::TriggerOnInitialize()
+{
+	static const String kApplicationOnInitialize = "Application::OnInitialize";
+	mEngineAssembly->Invoke(kApplicationOnInitialize);
+}
+
+void EngineScriptLibrary::TriggerOnDestroy()
+{
+	static const String kApplicationOnDestroy = "Application::OnDestroy";
+	mEngineAssembly->Invoke(kApplicationOnDestroy);
+}
+
+void EngineScriptLibrary::OnAssemblyRefreshComplete()
+{
+	TriggerOnInitialize();
 }

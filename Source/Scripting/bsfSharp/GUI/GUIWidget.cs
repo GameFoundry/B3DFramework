@@ -66,7 +66,7 @@ namespace bs
             nativeGUIWidget.UpdateTransform(SceneObject);
 
             if (serializableData.camera == null)
-                nativeGUIWidget.UpdateMainCamera(Scene.Camera);
+                nativeGUIWidget.UpdateMainCamera(SceneManager.Camera);
         }
 
         private void OnDestroy()

@@ -91,6 +91,7 @@ namespace bs
 
 		SPtr<GameObjectCollection> mSavedSceneGameObjectCollection;
 		HSceneObject mSavedScene;
+		UUID mSavedSceneResourceId;
 	};
 
 	/** @} */

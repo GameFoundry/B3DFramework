@@ -37,8 +37,8 @@ private:
 	bool& val;
 };
 
-SceneInstance::SceneInstance(ConstructPrivately dummy, const String& name, const HSceneObject& root, const SPtr<PhysicsScene>& physicsScene)
-	: mName(name), mRoot(root), mPhysicsScene(physicsScene), mGameObjectCollection(root->GetOwnerCollection())
+SceneInstance::SceneInstance(ConstructPrivately dummy, const String& name, const HSceneObject& root, const UUID& associatedResourceId, const SPtr<PhysicsScene>& physicsScene)
+	: mName(name), mRoot(root), mAssociatedResourceId(associatedResourceId), mPhysicsScene(physicsScene), mGameObjectCollection(root->GetOwnerCollection())
 {}
 
 SceneInstance::~SceneInstance()
@@ -60,7 +60,7 @@ SPtr<SceneInstance> SceneInstance::Create(const String& name)
 	const SPtr<GameObjectCollection>& gameObjectCollection = GameObjectCollection::Create();
 	HSceneObject root = SceneObject::CreateInternal(gameObjectCollection, "Root");
 
-	SPtr<SceneInstance> sceneInstance = B3DMakeShared<SceneInstance>(ConstructPrivately(), name, root, GetPhysics().CreatePhysicsScene());
+	SPtr<SceneInstance> sceneInstance = B3DMakeShared<SceneInstance>(ConstructPrivately(), name, root, UUID::kEmpty, GetPhysics().CreatePhysicsScene());
 	root->SetScene(sceneInstance, false);
 
 	SceneManager::Instance().NotifySceneInstanceCreated(sceneInstance);
@@ -71,11 +71,16 @@ SPtr<SceneInstance> SceneInstance::Create(const String& name)
 
 SPtr<SceneInstance> SceneInstance::Create(const String& name, const HSceneObject& root)
 {
+	return Create(name, root, UUID::kEmpty);
+}
+
+SPtr<SceneInstance> SceneInstance::Create(const String& name, const HSceneObject& root, const UUID& associatedResourceId)
+{
 	const SPtr<GameObjectCollection>& gameObjectCollection = root->GetOwnerCollection().lock();
 	if(!B3D_ENSURE(gameObjectCollection != nullptr))
 		return nullptr;
 
-	SPtr<SceneInstance> sceneInstance = B3DMakeShared<SceneInstance>(ConstructPrivately(), name, root, GetPhysics().CreatePhysicsScene());
+	SPtr<SceneInstance> sceneInstance = B3DMakeShared<SceneInstance>(ConstructPrivately(), name, root, associatedResourceId, GetPhysics().CreatePhysicsScene());
 	root->SetScene(sceneInstance, true);
 
 	SceneManager::Instance().NotifySceneInstanceCreated(sceneInstance);
@@ -104,7 +109,7 @@ void SceneManager::OnStartUp()
 	mMainScene->mRoot->SetScene(mMainScene);
 }
 
-void SceneManager::ClearScene(bool forceAll)
+void SceneManager::ClearMainScene(bool forceAll)
 {
 	const u32 childCount = mMainScene->mRoot->GetChildCount();
 
@@ -123,25 +128,24 @@ void SceneManager::ClearScene(bool forceAll)
 	if(B3D_ENSURE(gameObjectCollection != nullptr))
 		gameObjectCollection->DestroyQueuedObjects();
 
+	UUID oldMainSceneResourceId = mMainScene->GetAssociatedResourceId();
+
 	HSceneObject newRoot = SceneObject::CreateInternal(gameObjectCollection, "SceneRoot");
 	newRoot->SetScene(mMainScene, false);
+	SetRootNodeInternal(newRoot, UUID::kEmpty);
 
-	SetRootNodeInternal(newRoot);
+	OnMainSceneUnloaded(oldMainSceneResourceId);
 }
 
-void SceneManager::LoadScene(const HPrefab& scene)
+void SceneManager::LoadMainScene(const HPrefab& scene)
 {
 	HSceneObject root = scene->Instantiate(mMainScene, true);
-	SetRootNodeInternal(root);
+	SetRootNodeInternal(root, scene->GetId());
+
+	OnMainSceneLoaded(scene->GetId());
 }
 
-HPrefab SceneManager::SaveScene() const
-{
-	HSceneObject sceneRoot = mMainScene->GetRoot();
-	return Prefab::Create(sceneRoot);
-}
-
-void SceneManager::SetRootNodeInternal(const HSceneObject& root)
+void SceneManager::SetRootNodeInternal(const HSceneObject& root, const UUID& associatedSceneResourceId)
 {
 	if(root == nullptr)
 		return;
@@ -172,6 +176,7 @@ void SceneManager::SetRootNodeInternal(const HSceneObject& root)
 	mMainScene->mRoot->ClearParent();
 	mMainScene->mRoot->SetScene(mMainScene);
 	mMainScene->mGameObjectCollection = root->GetOwnerCollection().lock();
+	mMainScene->SetAssociatedResourceId(associatedSceneResourceId);
 
 	oldRoot->Destroy();
 }
@@ -247,6 +252,15 @@ SPtr<Camera> SceneManager::GetMainCamera() const
 		return mMainCameras[0];
 
 	return nullptr;
+}
+
+HSceneObject SceneManager::GetMainCameraSceneObject() const
+{
+	SPtr<Camera> camera = GetMainCamera();
+	if(camera == nullptr)
+		return HSceneObject();
+
+	return GetActorSOInternal(camera);
 }
 
 void SceneManager::SetMainRenderTarget(const SPtr<RenderTarget>& rt)

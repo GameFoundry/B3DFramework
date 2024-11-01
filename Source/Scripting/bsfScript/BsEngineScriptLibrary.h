@@ -50,14 +50,32 @@ namespace bs
 		}
 
 	protected:
+		/**	Loads all managed types and methods used by this module. */
+		void LoadMonoTypes();
+
 		/** Unloads all manages assemblies and the mono domain. */
 		void UnloadAssemblies();
 
 		/** Shuts down all script engine modules. */
 		void ShutdownModules();
 
+		/** Triggers the Application::OnInitialize() managed method. */
+		void TriggerOnInitialize();
+
+		/** Triggers the Application::OnDestroy() managed method. */
+		void TriggerOnDestroy();
+
+		/**	Triggered when an assembly refreshed finished. */
+		void OnAssemblyRefreshComplete();
+
 	private:
 		bool mScriptAssembliesLoaded = false;
+
+		MonoMethod* mUpdateMethod = nullptr;
+		MonoAssembly* mEngineAssembly = nullptr;
+
+		HEvent mOnDomainReloadedConnection;
+		HEvent mOnAssemblyRefreshDoneConnection;
 	};
 
 	/** @} */

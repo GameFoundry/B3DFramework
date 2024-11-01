@@ -7,6 +7,7 @@
 #include "../../../Foundation/bsfCore/Scene/BsSceneManager.h"
 #include "BsScriptSceneInstance.generated.h"
 #include "Wrappers/BsScriptSceneObject.h"
+#include "BsScriptResourceWrapper.h"
 #include "BsScriptPhysicsScene.generated.h"
 
 namespace bs
@@ -23,6 +24,7 @@ namespace bs
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetRoot", (void*)&ScriptSceneInstance::InternalGetRoot);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_IsActive", (void*)&ScriptSceneInstance::InternalIsActive);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetPhysicsScene", (void*)&ScriptSceneInstance::InternalGetPhysicsScene);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetAssociatedResourceId", (void*)&ScriptSceneInstance::InternalGetAssociatedResourceId);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_CreateSceneObject", (void*)&ScriptSceneInstance::InternalCreateSceneObject);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_Create", (void*)&ScriptSceneInstance::InternalCreate);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_Create0", (void*)&ScriptSceneInstance::InternalCreate0);
@@ -84,6 +86,14 @@ namespace bs
 		__output = ScriptPhysicsScene::GetOrCreateScriptObject(tmp__output);
 
 		return __output;
+	}
+
+	void ScriptSceneInstance::InternalGetAssociatedResourceId(ScriptSceneInstance* self, UUID* __output)
+	{
+		UUID tmp__output;
+		tmp__output = static_cast<SceneInstance*>(self->GetNativeObject())->GetAssociatedResourceId();
+
+		*__output = tmp__output;
 	}
 
 	MonoObject* ScriptSceneInstance::InternalCreateSceneObject(ScriptSceneInstance* self, MonoString* name)
