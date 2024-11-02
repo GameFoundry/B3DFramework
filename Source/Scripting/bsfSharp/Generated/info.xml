@@ -13869,6 +13869,23 @@ Alternatively you can also skip manually calling ReleaseInternalReference() and 
 		<enumentry native="Bottom" script="Bottom">
 		</enumentry>
 	</enum>
+	<class native="CGUIWidget" script="GUIWidget">
+		<doc>Component wrapper for GUIWidget.</doc>
+		<method native="InBounds" script="InBounds" static="false">
+			<param name="position" type="Vector2I">
+			</param>
+			<returns type="bool">
+			</returns>
+		</method>
+		<method native="GetBounds" script="GetBounds" static="false">
+			<returns type="Rect2I">
+			</returns>
+		</method>
+		<property name="Panel" type="GUIPanel" getter="GetPanel" setter="" static="false">
+		</property>
+		<property name="Depth" type="byte" getter="GetDepth" setter="SetDepth" static="false">
+		</property>
+	</class>
 	<class native="DragAndDropData" script="DragAndDropData">
 		<doc>Base type that should be inherited to provide specific data relevant to a drag and drop operation.</doc>
 		<ctor>

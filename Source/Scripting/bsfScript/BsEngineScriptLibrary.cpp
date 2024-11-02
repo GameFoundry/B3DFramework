@@ -10,7 +10,6 @@
 #include "BsApplication.h"
 #include "BsMonoMethod.h"
 #include "FileSystem/BsFileSystem.h"
-#include "Wrappers/GUI/BsScriptGUI.h"
 #include "BsPlayInEditor.h"
 #include "BsScriptDebug.generated.h"
 #include "BsScriptInput.generated.h"
@@ -35,7 +34,6 @@ void EngineScriptLibrary::Initialize()
 	ScriptResourceManager::StartUp();
 	ScriptInput::StartUp();
 	ScriptVirtualInput::StartUp();
-	ScriptGUI::StartUp();
 
 	ScriptAssemblyManager::Instance().LoadAssemblyInfo(kEngineAssembly);
 	LoadMonoTypes();
@@ -56,7 +54,6 @@ void EngineScriptLibrary::Update()
 
 	PlayInEditor::Instance().Update();
 	ScriptObjectManager::Instance().Update();
-	ScriptGUI::Update();
 }
 
 void EngineScriptLibrary::Reload()
@@ -106,7 +103,6 @@ void EngineScriptLibrary::UnloadAssemblies()
 
 void EngineScriptLibrary::ShutdownModules()
 {
-	ScriptGUI::ShutDown();
 	ScriptVirtualInput::ShutDown();
 	ScriptInput::ShutDown();
 

@@ -14,7 +14,7 @@ namespace bs
 	 */
 
 	/** Component wrapper for GUIWidget. */
-	class B3D_EXPORT CGUIWidget : public Component
+	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Rendering), ExportName(GUIWidget)) CGUIWidget : public Component
 	{
 	public:
 		virtual ~CGUIWidget() = default;
@@ -26,18 +26,23 @@ namespace bs
 		void SetStyleSheetCascade(const SPtr<const GUIStyleSheetCascade>& styleSheetCascade);
 
 		/** @copydoc GUIWidget::GetPanel */
+		B3D_SCRIPT_EXPORT(Property(Getter), ExportName(Panel))
 		GUIPanel* GetPanel() const;
 
 		/** @copydoc GUIWidget::GetDepth */
+		B3D_SCRIPT_EXPORT(Property(Getter), ExportName(Depth))
 		u8 GetDepth() const;
 
 		/** @copydoc GUIWidget::SetDepth */
+		B3D_SCRIPT_EXPORT(Property(Setter), ExportName(Depth))
 		void SetDepth(u8 depth);
 
 		/** @copydoc GUIWidget::InBounds */
+		B3D_SCRIPT_EXPORT()
 		bool InBounds(const Vector2I& position) const;
 
 		/** @copydoc GUIWidget::GetBounds */
+		B3D_SCRIPT_EXPORT()
 		const Rect2I& GetBounds() const;
 
 		/** @copydoc GUIWidget::GetTarget */
