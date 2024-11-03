@@ -45,6 +45,7 @@ namespace bs
 	/**	Interop class between C++ & CLR for RRefBase and RRef<T>. */
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptRRefBase : public TScriptValueTypeWrapper<HResource, ScriptRRefBase>
 	{
+		using Super = TScriptValueTypeWrapper;
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "RRefBase")
 
@@ -76,6 +77,8 @@ namespace bs
 
 	private:
 		friend class ScriptResourceManager;
+
+		void NotifyScriptObjectDestroyed(bool isDestroyedDueToScriptReload) override;
 
 		/************************************************************************/
 		/* 								CLR HOOKS						   		*/

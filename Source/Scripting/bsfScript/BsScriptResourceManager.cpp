@@ -57,6 +57,24 @@ void ScriptResourceManager::OnResourceDestroyed(const UUID& uuid)
 	}
 }
 
+void ScriptResourceManager::NotifyScriptRRefScriptObjectDestroyed(ScriptRRefBase* scriptRRef)
+{
+	if(!B3D_ENSURE(scriptRRef != nullptr))
+		return;
+
+	const UUID& resourceId = scriptRRef->GetNativeObject().GetId();
+
+	// Note: This can be faster if I determine the resource reference type first
+	for(auto& entry : mScriptRRefsPerType)
+	{
+		UnorderedMap<UUID, ScriptRRefBase*>& resourceReferencesById = entry.second;
+
+		const auto found = resourceReferencesById.find(resourceId);
+		if(found != resourceReferencesById.end())
+			resourceReferencesById.erase(found);
+	}
+}
+
 void ScriptResourceManager::ClearRRefs()
 {
 	mScriptRRefsPerType.clear();

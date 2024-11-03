@@ -90,3 +90,11 @@ MonoObject* ScriptRRefBase::InternalCastAs(ScriptRRefBase* self, MonoReflectionT
 
 	return CreateScriptObject(self->GetNativeObject(), rrefType);
 }
+
+void ScriptRRefBase::NotifyScriptObjectDestroyed(bool isDestroyedDueToScriptReload)
+{
+	ScriptResourceManager::Instance().NotifyScriptRRefScriptObjectDestroyed(this);
+
+	Super::NotifyScriptObjectDestroyed(isDestroyedDueToScriptReload);
+}
+

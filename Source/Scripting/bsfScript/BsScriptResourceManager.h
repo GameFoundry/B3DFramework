@@ -44,6 +44,9 @@ namespace bs
 			return GetScriptRRef(resource, rrefClass);
 		}
 
+		/** Notifies the system that script object holding the resource reference has been garbage collected. */
+		void NotifyScriptRRefScriptObjectDestroyed(ScriptRRefBase* scriptRRef);
+
 	private:
 		/**	Triggered when the native resource has been unloaded and therefore destroyed. */
 		void OnResourceDestroyed(const UUID& UUID);
