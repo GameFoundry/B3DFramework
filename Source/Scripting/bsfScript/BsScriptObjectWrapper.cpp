@@ -97,19 +97,19 @@ void ScriptObjectWrapper::CreateScriptObjectHandle(MonoObject* scriptObject)
 		if(GetLifetimeTrackingMode() == ScriptObjectLifetimeTrackingMode::WeakHandle)
 		{
 			mScriptObjectHandle = MonoUtil::NewWeakGcHandle(scriptObject);
-			mRequiresStrongHandle = false; // Not used in WeakHandle mode, but set it anyway
+			mHoldsStrongScriptObjectHandle = false; // Not used in WeakHandle mode, but set it anyway
 		}
 		else
 		{
 			mScriptObjectHandle = MonoUtil::NewGcHandle(scriptObject, false);
-			mRequiresStrongHandle = true; // Always start of as a strong handle, GC can transition to weak if needed
+			mHoldsStrongScriptObjectHandle = true; // Always start of as a strong handle, GC can transition to weak if needed
 		}
 	}
 }
 
-void ScriptObjectWrapper::TransitionToWeakHandle()
+void ScriptObjectWrapper::TransitionToWeakScriptObjectHandle()
 {
-	if(!mRequiresStrongHandle)
+	if(!mHoldsStrongScriptObjectHandle)
 		return;
 
 	if(mScriptObjectHandle == ~0u)
@@ -126,12 +126,12 @@ void ScriptObjectWrapper::TransitionToWeakHandle()
 	MonoUtil::FreeGcHandle(mScriptObjectHandle);
 
 	mScriptObjectHandle = weakHandle;
-	mRequiresStrongHandle = false;
+	mHoldsStrongScriptObjectHandle = false;
 }
 
-void ScriptObjectWrapper::TransitionToStrongHandle()
+void ScriptObjectWrapper::TransitionToStrongScriptObjectHandle()
 {
-	if(mRequiresStrongHandle)
+	if(mHoldsStrongScriptObjectHandle)
 		return;
 
 	if(mScriptObjectHandle == ~0u)
@@ -148,7 +148,7 @@ void ScriptObjectWrapper::TransitionToStrongHandle()
 	MonoUtil::FreeGcHandle(mScriptObjectHandle);
 
 	mScriptObjectHandle = strongHandle;
-	mRequiresStrongHandle = true;
+	mHoldsStrongScriptObjectHandle = true;
 }
 
 void ScriptObjectWrapper::ReleaseScriptObjectHandle()

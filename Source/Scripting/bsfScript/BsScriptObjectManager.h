@@ -55,7 +55,7 @@ namespace bs
 		 */
 		void RefreshAssemblies(const Vector<AssemblyRefreshInfo>& assemblies);
 
-		/**	Called once per frame. Triggers queued finalizer callbacks. */
+		/**	Called once per frame. Triggers garbage collection and queued finalizer callbacks. */
 		void Update();
 
 		/**
@@ -97,6 +97,12 @@ namespace bs
 		Event<void()> OnRefreshComplete;
 
 	private:
+		/**
+		 * Iterates over all active script object wrappers and finds wrappers that contain native objects referenced purely by script object (reference count == 1).
+		 * Strong handles on such script objects are released so they may be freed when the last script object goes out of scope.
+		 */
+		void PerformGarbageCollection();
+
 		Set<ScriptObjectBase*> mScriptObjects; // TODO - Deprecated
 		UnorderedSet<ScriptObjectWrapper*> mScriptObjectWrappers;
 
@@ -104,6 +110,9 @@ namespace bs
 		Vector<ScriptObjectWrapper*> mFinalizedScriptObjectWrappers[2];
 		u32 mFinalizedQueueIdx = 0;
 		Mutex mMutex;
+
+		float mGarbageCollectionIntervalMs = 1.0f / 60.0f;
+		float mLastGarbageCollectionTimeMs = 0.0f;
 	};
 
 	/** @} */

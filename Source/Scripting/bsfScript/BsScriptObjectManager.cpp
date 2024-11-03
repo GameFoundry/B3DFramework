@@ -143,6 +143,14 @@ void ScriptObjectManager::NotifyObjectFinalized(ScriptObjectWrapper* scriptObjec
 void ScriptObjectManager::Update()
 {
 	ProcessFinalizedObjects();
+
+	const float currentTimeMs = GetTime().GetRealTimeInSeconds();
+	if((mLastGarbageCollectionTimeMs + mGarbageCollectionIntervalMs) <= currentTimeMs)
+	{
+		PerformGarbageCollection();
+
+		mLastGarbageCollectionTimeMs = currentTimeMs;
+	}
 }
 
 void ScriptObjectManager::ProcessFinalizedObjects(bool assemblyRefresh)
@@ -164,3 +172,19 @@ void ScriptObjectManager::ProcessFinalizedObjects(bool assemblyRefresh)
 
 	mFinalizedScriptObjectWrappers[readQueueIdx].clear();
 }
+
+void ScriptObjectManager::PerformGarbageCollection()
+{
+#if 0 // Disabled until I solve issues that are happening without GC
+	// TODO - Should time-slice this over multiple frames
+
+	for(const auto& entry : mScriptObjectWrappers)
+	{
+		const u32 nativeObjectReferenceCount = entry->GetNativeObjectReferenceCount();
+
+		if(nativeObjectReferenceCount == 1)
+			entry->TransitionToWeakScriptObjectHandle();
+	}
+#endif
+}
+

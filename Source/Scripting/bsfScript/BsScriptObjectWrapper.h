@@ -105,13 +105,16 @@ namespace bs
 		 * Changes the internal script object handle from strong to weak. If the handle is already weak does nothing. Only relevant
 		 * if lifetime tracking mode is using garbage collection.
 		 */
-		virtual void TransitionToWeakHandle();
+		virtual void TransitionToWeakScriptObjectHandle();
 
 		/**
 		 * Changes the internal script object handle from weak to strong. If the handle is already strong does nothing. Only relevant
 		 * if lifetime tracking mode is using garbage collection.
 		 */
-		virtual void TransitionToStrongHandle();
+		virtual void TransitionToStrongScriptObjectHandle();
+
+		/** Returns true if the currently held script object handle is strong (preventing the script GC from releasing the object). */
+		bool HasStrongScriptObjectHandle() const { return mHoldsStrongScriptObjectHandle; }
 
 		/** @} */
 
@@ -176,7 +179,7 @@ namespace bs
 		void CreateScriptObjectHandle(MonoObject* scriptObject);
 
 		u32 mScriptObjectHandle = ~0u;
-		bool mRequiresStrongHandle = false;
+		bool mHoldsStrongScriptObjectHandle = false;
 	};
 
 	template <typename SelfType, typename BaseType>
