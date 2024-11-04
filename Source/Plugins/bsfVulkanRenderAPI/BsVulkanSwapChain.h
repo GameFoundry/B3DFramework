@@ -18,7 +18,7 @@ namespace bs
 		struct SwapChainImage
 		{
 			VulkanImage* Image = VK_NULL_HANDLE;
-			VulkanSemaphore* Semaphore = VK_NULL_HANDLE;
+			VulkanSemaphore* WaitSemaphore = VK_NULL_HANDLE; /**< Semaphore to wait on, only valid for acquired images. */
 			bool Acquired = false;
 			bool NeedsWait = false;
 
@@ -164,7 +164,8 @@ namespace bs
 
 			u32 mWidth = 0;
 			u32 mHeight = 0;
-			Vector<SwapChainImage> mSurfaces;
+			TInlineArray<SwapChainImage, 4> mSurfaces;
+			TInlineArray<VulkanSemaphore*, 4> mSemaphores;
 			TInlineArray<u32, 4> mAcquiredImageIndicesOnRenderThread;
 			u32 mAcquiredImageCountOnSubmitThread = 0;
 

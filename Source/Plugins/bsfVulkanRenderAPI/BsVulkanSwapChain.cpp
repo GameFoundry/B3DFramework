@@ -158,12 +158,17 @@ VulkanSwapChain::VulkanSwapChain(VulkanResourceManager* owner, const SPtr<Vulkan
 		mSurfaces[imageIndex].Acquired = false;
 		mSurfaces[imageIndex].NeedsWait = false;
 		mSurfaces[imageIndex].Image = owner->Create<VulkanImage>(imageDesc, false, false, "SwapChainSurface");
-		mSurfaces[imageIndex].Semaphore = owner->Create<VulkanSemaphore>();
 
 		if(mSurfaces[imageIndex].Image != nullptr)
 		{
 			mSurfaces[imageIndex].Image->SetName(StringUtil::Format("Color attachment #{0}", imageIndex));
 		}
+	}
+
+	mSemaphores.Resize(imageCount);
+	for(u32 imageIndex = 0; imageIndex < imageCount; imageIndex++)
+	{
+		mSemaphores[imageIndex] = owner->Create<VulkanSemaphore>();
 	}
 
 	B3DStackFree(images);
@@ -261,10 +266,13 @@ VulkanSwapChain::~VulkanSwapChain()
 
 			surface.Image->Destroy();
 			surface.Image = nullptr;
-
-			surface.Semaphore->Destroy();
-			surface.Semaphore = nullptr;
 		}
+
+		for(auto semaphore : mSemaphores)
+		{
+			semaphore->Destroy();
+		}
+		mSemaphores.Clear();
 
 		vkDestroySwapchainKHR(mDevice, mSwapChain, gVulkanAllocator);
 	}
@@ -311,7 +319,7 @@ ImageAcquireResult VulkanSwapChain::AcquireImage()
 	}
 
 	uint32_t imageIndex;
-	VkResult result = vkAcquireNextImageKHR(mDevice, mSwapChain, UINT64_MAX, mSurfaces[mLastAcquiredSemaphoreIndex].Semaphore->GetHandle(), VK_NULL_HANDLE, &imageIndex);
+	VkResult result = vkAcquireNextImageKHR(mDevice, mSwapChain, UINT64_MAX, mSemaphores[mLastAcquiredSemaphoreIndex]->GetHandle(), VK_NULL_HANDLE, &imageIndex);
 
 	// Return the error to the caller, so he can attempt to rebuild the swap chain
 	if(result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR)
@@ -325,12 +333,8 @@ ImageAcquireResult VulkanSwapChain::AcquireImage()
 		return output;
 	}
 
-	// In case surfaces aren't being distributed in round-robin fashion the image and semaphore indices might not match,
-	// in which case just move the semaphores
-	if(imageIndex != mLastAcquiredSemaphoreIndex)
-		std::swap(mSurfaces[mLastAcquiredSemaphoreIndex].Semaphore, mSurfaces[imageIndex].Semaphore);
-
-	mLastAcquiredSemaphoreIndex = (mLastAcquiredSemaphoreIndex + 1) % mSurfaces.size();
+	mSurfaces[imageIndex].WaitSemaphore = mSemaphores[mLastAcquiredSemaphoreIndex];
+	mLastAcquiredSemaphoreIndex = (mLastAcquiredSemaphoreIndex + 1) % mSemaphores.size();
 
 	B3D_ASSERT(!mSurfaces[imageIndex].Acquired && "Swap chain image being acquired twice.");
 	mSurfaces[imageIndex].Acquired = true;
@@ -463,7 +467,9 @@ bool VulkanSwapChain::AppendWaitSemaphoreIfRequired(u32 imageIndex, TInlineArray
 	if(!mSurfaces[imageIndex].NeedsWait)
 		return false;
 
-	outSemaphores.Add(mSurfaces[imageIndex].Semaphore);
+	if(B3D_ENSURE(mSurfaces[imageIndex].WaitSemaphore != nullptr))
+		outSemaphores.Add(mSurfaces[imageIndex].WaitSemaphore);
+
 	mSurfaces[imageIndex].NeedsWait = false;
 
 	return true;
