@@ -2,6 +2,9 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
+#include "Prerequisites/BsPrerequisitesUtil.h"
+#include "Script/BsIScriptExportable.h"
+
 namespace bs
 {
 	/** @addtogroup Localization
@@ -16,7 +19,7 @@ namespace bs
 	 *
 	 * Use {0}, {1}, etc. in the string value for values that might change dynamically.
 	 */
-	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(ExportName(LocString), DocumentationGroup(Localization)) HString
+	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(ExportName(LocString), DocumentationGroup(Localization)) HString : public IScriptExportable
 	{
 	public:
 		/**

@@ -33,10 +33,10 @@ namespace bs
 			for(int elementIndex = 0; elementIndex < (int)scriptArrayElements.Size(); elementIndex++)
 			{
 				ScriptLocString* scriptWrapperObjectElements;
-				scriptWrapperObjectElements = ScriptLocString::ToNative(scriptArrayElements.Get<MonoObject*>(elementIndex));
+				scriptWrapperObjectElements = ScriptLocString::GetScriptObjectWrapper(scriptArrayElements.Get<MonoObject*>(elementIndex));
 				if(scriptWrapperObjectElements != nullptr)
 				{
-					SPtr<HString> arrayElementPointerElements = scriptWrapperObjectElements->GetInternal();
+					SPtr<HString> arrayElementPointerElements = std::static_pointer_cast<HString>(scriptWrapperObjectElements->GetBaseNativeObjectAsShared());
 					if(arrayElementPointerElements)
 						vecElements[elementIndex] = *arrayElementPointerElements;
 				}
@@ -59,7 +59,7 @@ namespace bs
 			SPtr<HString> arrayElementPointerElements = B3DMakeShared<HString>();
 			*arrayElementPointerElements = value.Elements[elementIndex];
 			MonoObject* arrayElementElements;
-			arrayElementElements = ScriptLocString::Create(arrayElementPointerElements);
+			arrayElementElements = ScriptLocString::GetOrCreateScriptObject(arrayElementPointerElements);
 			scriptArrayElements.Set(elementIndex, arrayElementElements);
 		}
 		vecElements = scriptArrayElements.GetInternal();

@@ -8,67 +8,67 @@
 
 namespace bs
 {
-	ScriptLocString::ScriptLocString(MonoObject* managedInstance, const SPtr<HString>& value)
-		:ScriptObject(managedInstance), mInternal(value)
+	ScriptLocString::ScriptLocString(const SPtr<HString>& nativeObject)
+		:TScriptNonReflectableWrapper(nativeObject)
 	{
+		RegisterEvents();
 	}
 
-	void ScriptLocString::InitRuntimeData()
+	void ScriptLocString::SetupScriptBindings()
 	{
-		metaData.ScriptClass->AddInternalCall("Internal_HString", (void*)&ScriptLocString::InternalHString);
-		metaData.ScriptClass->AddInternalCall("Internal_HString0", (void*)&ScriptLocString::InternalHString0);
-		metaData.ScriptClass->AddInternalCall("Internal_HString1", (void*)&ScriptLocString::InternalHString1);
-		metaData.ScriptClass->AddInternalCall("Internal_HString2", (void*)&ScriptLocString::InternalHString2);
-		metaData.ScriptClass->AddInternalCall("Internal_GetValue", (void*)&ScriptLocString::InternalGetValue);
-		metaData.ScriptClass->AddInternalCall("Internal_SetParameter", (void*)&ScriptLocString::InternalSetParameter);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_HString", (void*)&ScriptLocString::InternalHString);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_HString0", (void*)&ScriptLocString::InternalHString0);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_HString1", (void*)&ScriptLocString::InternalHString1);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_HString2", (void*)&ScriptLocString::InternalHString2);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetValue", (void*)&ScriptLocString::InternalGetValue);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetParameter", (void*)&ScriptLocString::InternalSetParameter);
 
 	}
 
-	MonoObject* ScriptLocString::Create(const SPtr<HString>& value)
+	MonoObject* ScriptLocString::CreateScriptObject(bool construct)
 	{
-		if(value == nullptr) return nullptr; 
-
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
 
-		MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-		new (B3DAllocate<ScriptLocString>()) ScriptLocString(managedInstance, value);
-		return managedInstance;
+		if(construct)
+			return sInteropMetaData.ScriptClass->CreateInstance("bool", ctorParams);
+
+		return sInteropMetaData.ScriptClass->CreateInstance(false);
 	}
-	void ScriptLocString::InternalHString(MonoObject* managedInstance, MonoString* identifier, uint32_t stringTableId)
+	void ScriptLocString::InternalHString(MonoObject* scriptObject, MonoString* identifier, uint32_t stringTableId)
 	{
 		String tmpidentifier;
 		tmpidentifier = MonoUtil::MonoToString(identifier);
 		SPtr<HString> nativeObject = B3DMakeShared<HString>(tmpidentifier, stringTableId);
-		new (B3DAllocate<ScriptLocString>())ScriptLocString(managedInstance, nativeObject);
+		ScriptObjectWrapper::Create<ScriptLocString>(nativeObject, scriptObject);
 	}
 
-	void ScriptLocString::InternalHString0(MonoObject* managedInstance, MonoString* identifier, MonoString* defaultString, uint32_t stringTableId)
+	void ScriptLocString::InternalHString0(MonoObject* scriptObject, MonoString* identifier, MonoString* defaultString, uint32_t stringTableId)
 	{
 		String tmpidentifier;
 		tmpidentifier = MonoUtil::MonoToString(identifier);
 		String tmpdefaultString;
 		tmpdefaultString = MonoUtil::MonoToString(defaultString);
 		SPtr<HString> nativeObject = B3DMakeShared<HString>(tmpidentifier, tmpdefaultString, stringTableId);
-		new (B3DAllocate<ScriptLocString>())ScriptLocString(managedInstance, nativeObject);
+		ScriptObjectWrapper::Create<ScriptLocString>(nativeObject, scriptObject);
 	}
 
-	void ScriptLocString::InternalHString1(MonoObject* managedInstance, uint32_t stringTableId)
+	void ScriptLocString::InternalHString1(MonoObject* scriptObject, uint32_t stringTableId)
 	{
 		SPtr<HString> nativeObject = B3DMakeShared<HString>(stringTableId);
-		new (B3DAllocate<ScriptLocString>())ScriptLocString(managedInstance, nativeObject);
+		ScriptObjectWrapper::Create<ScriptLocString>(nativeObject, scriptObject);
 	}
 
-	void ScriptLocString::InternalHString2(MonoObject* managedInstance)
+	void ScriptLocString::InternalHString2(MonoObject* scriptObject)
 	{
 		SPtr<HString> nativeObject = B3DMakeShared<HString>();
-		new (B3DAllocate<ScriptLocString>())ScriptLocString(managedInstance, nativeObject);
+		ScriptObjectWrapper::Create<ScriptLocString>(nativeObject, scriptObject);
 	}
 
 	MonoString* ScriptLocString::InternalGetValue(ScriptLocString* self)
 	{
 		String tmp__output;
-		tmp__output = self->GetInternal()->GetValue();
+		tmp__output = static_cast<HString*>(self->GetNativeObject())->GetValue();
 
 		MonoString* __output;
 		__output = MonoUtil::StringToMono(tmp__output);
@@ -80,6 +80,6 @@ namespace bs
 	{
 		String tmpvalue;
 		tmpvalue = MonoUtil::MonoToString(value);
-		self->GetInternal()->SetParameter(idx, tmpvalue);
+		static_cast<HString*>(self->GetNativeObject())->SetParameter(idx, tmpvalue);
 	}
 }

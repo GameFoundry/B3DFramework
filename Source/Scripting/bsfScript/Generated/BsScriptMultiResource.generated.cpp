@@ -10,38 +10,38 @@
 namespace bs
 {
 #if !B3D_IS_ENGINE
-	ScriptMultiResource::ScriptMultiResource(MonoObject* managedInstance, const SPtr<MultiResource>& value)
-		:ScriptObject(managedInstance), mInternal(value)
+	ScriptMultiResource::ScriptMultiResource(const SPtr<MultiResource>& nativeObject)
+		:TScriptNonReflectableWrapper(nativeObject)
 	{
+		RegisterEvents();
 	}
 
-	void ScriptMultiResource::InitRuntimeData()
+	void ScriptMultiResource::SetupScriptBindings()
 	{
-		metaData.ScriptClass->AddInternalCall("Internal_MultiResource", (void*)&ScriptMultiResource::InternalMultiResource);
-		metaData.ScriptClass->AddInternalCall("Internal_MultiResource0", (void*)&ScriptMultiResource::InternalMultiResource0);
-		metaData.ScriptClass->AddInternalCall("Internal_GetEntries", (void*)&ScriptMultiResource::InternalGetEntries);
-		metaData.ScriptClass->AddInternalCall("Internal_SetEntries", (void*)&ScriptMultiResource::InternalSetEntries);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_MultiResource", (void*)&ScriptMultiResource::InternalMultiResource);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_MultiResource0", (void*)&ScriptMultiResource::InternalMultiResource0);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetEntries", (void*)&ScriptMultiResource::InternalGetEntries);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetEntries", (void*)&ScriptMultiResource::InternalSetEntries);
 
 	}
 
-	MonoObject* ScriptMultiResource::Create(const SPtr<MultiResource>& value)
+	MonoObject* ScriptMultiResource::CreateScriptObject(bool construct)
 	{
-		if(value == nullptr) return nullptr; 
-
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
 
-		MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-		new (B3DAllocate<ScriptMultiResource>()) ScriptMultiResource(managedInstance, value);
-		return managedInstance;
+		if(construct)
+			return sInteropMetaData.ScriptClass->CreateInstance("bool", ctorParams);
+
+		return sInteropMetaData.ScriptClass->CreateInstance(false);
 	}
-	void ScriptMultiResource::InternalMultiResource(MonoObject* managedInstance)
+	void ScriptMultiResource::InternalMultiResource(MonoObject* scriptObject)
 	{
 		SPtr<MultiResource> nativeObject = B3DMakeShared<MultiResource>();
-		new (B3DAllocate<ScriptMultiResource>())ScriptMultiResource(managedInstance, nativeObject);
+		ScriptObjectWrapper::Create<ScriptMultiResource>(nativeObject, scriptObject);
 	}
 
-	void ScriptMultiResource::InternalMultiResource0(MonoObject* managedInstance, MonoArray* entries)
+	void ScriptMultiResource::InternalMultiResource0(MonoObject* scriptObject, MonoArray* entries)
 	{
 		Vector<SubResource> nativeArrayentries;
 		if(entries != nullptr)
@@ -54,13 +54,13 @@ namespace bs
 			}
 		}
 		SPtr<MultiResource> nativeObject = B3DMakeShared<MultiResource>(nativeArrayentries);
-		new (B3DAllocate<ScriptMultiResource>())ScriptMultiResource(managedInstance, nativeObject);
+		ScriptObjectWrapper::Create<ScriptMultiResource>(nativeObject, scriptObject);
 	}
 
 	MonoArray* ScriptMultiResource::InternalGetEntries(ScriptMultiResource* self)
 	{
 		Vector<SubResource> nativeArray__output;
-		nativeArray__output = self->GetInternal()->Entries;
+		nativeArray__output = static_cast<MultiResource*>(self->GetNativeObject())->Entries;
 
 		MonoArray* __output;
 		int elementCount__output = (int)nativeArray__output.size();
@@ -87,7 +87,7 @@ namespace bs
 			}
 
 		}
-		self->GetInternal()->Entries = nativeArrayvalue;
+		static_cast<MultiResource*>(self->GetNativeObject())->Entries = nativeArrayvalue;
 	}
 #endif
 }

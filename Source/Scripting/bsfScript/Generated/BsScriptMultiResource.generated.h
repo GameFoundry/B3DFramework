@@ -4,30 +4,27 @@
 
 #include "BsScriptEnginePrerequisites.h"
 #include "../../../Foundation/bsfCore/Importer/BsImporter.h"
-#include "BsScriptObject.h"
+#include "BsScriptNonReflectableWrapper.h"
 #include "../../../Foundation/bsfCore/Importer/BsImporter.h"
 
 namespace bs { struct __SubResourceInterop; }
 namespace bs
 {
 #if !B3D_IS_ENGINE
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptMultiResource : public ScriptObject<ScriptMultiResource>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptMultiResource : public TScriptNonReflectableWrapper<MultiResource, ScriptMultiResource>
 	{
 	public:
-		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "MultiResource")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "MultiResource")
 
-		ScriptMultiResource(MonoObject* managedInstance, const SPtr<MultiResource>& value);
+		ScriptMultiResource(const SPtr<MultiResource>& nativeObject);
 
 		static void SetupScriptBindings();
 
-		SPtr<MultiResource> GetInternal() const { return mInternal; }
-		static MonoObject* Create(const SPtr<MultiResource>& value);
+		static MonoObject* CreateScriptObject(bool construct);
 
 	private:
-		SPtr<MultiResource> mInternal;
-
-		static void InternalMultiResource(MonoObject* managedInstance);
-		static void InternalMultiResource0(MonoObject* managedInstance, MonoArray* entries);
+		static void InternalMultiResource(MonoObject* scriptObject);
+		static void InternalMultiResource0(MonoObject* scriptObject, MonoArray* entries);
 		static MonoArray* InternalGetEntries(ScriptMultiResource* self);
 		static void InternalSetEntries(ScriptMultiResource* self, MonoArray* value);
 	};

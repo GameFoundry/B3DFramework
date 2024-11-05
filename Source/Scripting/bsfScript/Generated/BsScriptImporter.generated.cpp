@@ -107,7 +107,7 @@ namespace bs
 		tmp__output = Importer::Instance().ImportAll(tmpinputFilePath, tmpimportOptions);
 
 		MonoObject* __output;
-		__output = ScriptMultiResource::Create(tmp__output);
+		__output = ScriptMultiResource::GetOrCreateScriptObject(tmp__output);
 
 		return __output;
 	}
@@ -129,7 +129,7 @@ namespace bs
 		{
 			SPtr<MultiResource> nativeObject = AnyCast<SPtr<MultiResource>>(returnValue);
 			MonoObject* scriptObject;
-			scriptObject = ScriptMultiResource::Create(nativeObject);
+			scriptObject = ScriptMultiResource::GetOrCreateScriptObject(nativeObject);
 			return scriptObject;
 		};
 

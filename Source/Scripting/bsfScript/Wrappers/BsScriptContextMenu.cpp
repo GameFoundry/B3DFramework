@@ -93,7 +93,7 @@ void ScriptContextMenu::InternalSetLocalizedName(ScriptContextMenu* self, MonoSt
 
 	String nativeLabel = MonoUtil::MonoToString(label);
 	SPtr<GUIContextMenu> contextMenu = self->GetNativeObjectAsShared();
-	contextMenu->SetLocalizedName(nativeLabel, *name->GetInternal());
+	contextMenu->SetLocalizedName(nativeLabel, *name->GetNativeObjectAsShared());
 }
 
 void ScriptContextMenu::OnContextMenuItemTriggered(u32 idx)

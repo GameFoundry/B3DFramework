@@ -4,7 +4,7 @@
 
 #include "BsScriptEnginePrerequisites.h"
 #include "../Extensions/BsApplicationEx.h"
-#include "BsScriptObject.h"
+#include "BsScriptNonReflectableWrapper.h"
 #include "../../../Foundation/bsfCore/RenderAPI/BsVideoModeInfo.h"
 #include "../../../Foundation/bsfCore/BsCoreApplication.h"
 
@@ -13,21 +13,18 @@ namespace bs { struct __START_UP_DESCInterop; }
 namespace bs
 {
 #if !B3D_IS_ENGINE
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptApplication : public ScriptObject<ScriptApplication>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptApplication : public TScriptNonReflectableWrapper<ApplicationEx, ScriptApplication>
 	{
 	public:
-		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "Application")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "Application")
 
-		ScriptApplication(MonoObject* managedInstance, const SPtr<ApplicationEx>& value);
+		ScriptApplication(const SPtr<ApplicationEx>& nativeObject);
 
 		static void SetupScriptBindings();
 
-		SPtr<ApplicationEx> GetInternal() const { return mInternal; }
-		static MonoObject* Create(const SPtr<ApplicationEx>& value);
+		static MonoObject* CreateScriptObject(bool construct);
 
 	private:
-		SPtr<ApplicationEx> mInternal;
-
 		static void InternalStartUp(__START_UP_DESCInterop* desc);
 		static void InternalStartUp0(__VideoModeInterop* videoMode, MonoString* title, bool fullscreen);
 		static void InternalRunMainLoop();

@@ -11,30 +11,30 @@
 namespace bs
 {
 #if !B3D_IS_ENGINE
-	ScriptApplication::ScriptApplication(MonoObject* managedInstance, const SPtr<ApplicationEx>& value)
-		:ScriptObject(managedInstance), mInternal(value)
+	ScriptApplication::ScriptApplication(const SPtr<ApplicationEx>& nativeObject)
+		:TScriptNonReflectableWrapper(nativeObject)
 	{
+		RegisterEvents();
 	}
 
-	void ScriptApplication::InitRuntimeData()
+	void ScriptApplication::SetupScriptBindings()
 	{
-		metaData.ScriptClass->AddInternalCall("Internal_StartUp", (void*)&ScriptApplication::InternalStartUp);
-		metaData.ScriptClass->AddInternalCall("Internal_StartUp0", (void*)&ScriptApplication::InternalStartUp0);
-		metaData.ScriptClass->AddInternalCall("Internal_RunMainLoop", (void*)&ScriptApplication::InternalRunMainLoop);
-		metaData.ScriptClass->AddInternalCall("Internal_ShutDown", (void*)&ScriptApplication::InternalShutDown);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_StartUp", (void*)&ScriptApplication::InternalStartUp);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_StartUp0", (void*)&ScriptApplication::InternalStartUp0);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_RunMainLoop", (void*)&ScriptApplication::InternalRunMainLoop);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_ShutDown", (void*)&ScriptApplication::InternalShutDown);
 
 	}
 
-	MonoObject* ScriptApplication::Create(const SPtr<ApplicationEx>& value)
+	MonoObject* ScriptApplication::CreateScriptObject(bool construct)
 	{
-		if(value == nullptr) return nullptr; 
-
 		bool dummy = false;
 		void* ctorParams[1] = { &dummy };
 
-		MonoObject* managedInstance = metaData.ScriptClass->CreateInstance("bool", ctorParams);
-		new (B3DAllocate<ScriptApplication>()) ScriptApplication(managedInstance, value);
-		return managedInstance;
+		if(construct)
+			return sInteropMetaData.ScriptClass->CreateInstance("bool", ctorParams);
+
+		return sInteropMetaData.ScriptClass->CreateInstance(false);
 	}
 	void ScriptApplication::InternalStartUp(__START_UP_DESCInterop* desc)
 	{
