@@ -80,7 +80,7 @@ namespace bs
 		 *
 		 * @note This is an @ref asyncMethod "asynchronous method".
 		 */
-		AsyncOp WriteData(const SPtr<MeshData>& data, bool discardEntireBuffer);
+		TAsyncOp<void> WriteData(const SPtr<MeshData>& data, bool discardEntireBuffer);
 
 		/**
 		 * Reads internal mesh data to the provided previously allocated buffer. Provided data buffer will be locked until
@@ -92,7 +92,7 @@ namespace bs
 		 *
 		 * @note	This is an @ref asyncMethod "asynchronous method".
 		 */
-		AsyncOp ReadData(const SPtr<MeshData>& data);
+		TAsyncOp<void> ReadData(const SPtr<MeshData>& data);
 
 		/**
 		 * Allocates a buffer that exactly matches the size of this mesh. This is a helper function, primarily meant for

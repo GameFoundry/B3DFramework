@@ -228,7 +228,7 @@ namespace bs
 		 *
 		 * @note This is an @ref asyncMethod "asynchronous method".
 		 */
-		AsyncOp WriteData(const SPtr<PixelData>& data, u32 face = 0, u32 mipLevel = 0, bool discardEntireBuffer = false);
+		TAsyncOp<void> WriteData(const SPtr<PixelData>& data, u32 face = 0, u32 mipLevel = 0, bool discardEntireBuffer = false);
 
 		/**
 		 * Reads internal texture data to the provided previously allocated buffer. Provided data buffer will be locked
@@ -242,7 +242,7 @@ namespace bs
 		 *
 		 * @note This is an @ref asyncMethod "asynchronous method".
 		 */
-		AsyncOp ReadData(const SPtr<PixelData>& data, u32 face = 0, u32 mipLevel = 0);
+		TAsyncOp<void> ReadData(const SPtr<PixelData>& data, u32 face = 0, u32 mipLevel = 0);
 
 		/**
 		 * Reads internal texture data into a newly allocated buffer.

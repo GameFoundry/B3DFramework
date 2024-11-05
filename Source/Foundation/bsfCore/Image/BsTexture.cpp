@@ -120,35 +120,35 @@ SPtr<ct::RenderProxy> Texture::CreateRenderProxy() const
 	return gpuDevice->CreateTexture(createInformation, true);
 }
 
-AsyncOp Texture::WriteData(const SPtr<PixelData>& data, u32 face, u32 mipLevel, bool discardEntireBuffer)
+TAsyncOp<void> Texture::WriteData(const SPtr<PixelData>& data, u32 face, u32 mipLevel, bool discardEntireBuffer)
 {
 	u32 subresourceIdx = mProperties.MapToSubresourceIdx(face, mipLevel);
 	UpdateCpuBuffers(subresourceIdx, *data);
 
 	data->LockInternal();
 
-	std::function<void(const SPtr<ct::Texture>&, u32, u32, const SPtr<PixelData>&, bool, AsyncOp&)> func =
+	std::function<void(const SPtr<ct::Texture>&, u32, u32, const SPtr<PixelData>&, bool, TAsyncOp<void>&)> func =
 		[&](const SPtr<ct::Texture>& texture, u32 _face, u32 _mipLevel, const SPtr<PixelData>& _pixData,
-			bool _discardEntireBuffer, AsyncOp& asyncOp)
+			bool _discardEntireBuffer, TAsyncOp<void>& asyncOp)
 	{
 		texture->WriteData(*_pixData, _mipLevel, _face, _discardEntireBuffer);
 		_pixData->UnlockInternal();
 		asyncOp.CompleteOperation();
 	};
 
-	AsyncOp asyncOp;
+	TAsyncOp<void> asyncOp;
 	GetRenderThread().PostCommand([func = std::move(func), renderProxy = B3DGetRenderProxy(this), face, mipLevel, data, discardEntireBuffer, asyncOp]() mutable { func(renderProxy, face, mipLevel, data, discardEntireBuffer, asyncOp); }, "Texture::WriteData", false, GetName());
 
 	return asyncOp;
 }
 
-AsyncOp Texture::ReadData(const SPtr<PixelData>& data, u32 face, u32 mipLevel)
+TAsyncOp<void> Texture::ReadData(const SPtr<PixelData>& data, u32 face, u32 mipLevel)
 {
 	data->LockInternal();
 
-	std::function<void(const SPtr<ct::Texture>&, u32, u32, const SPtr<PixelData>&, AsyncOp&)> func =
+	std::function<void(const SPtr<ct::Texture>&, u32, u32, const SPtr<PixelData>&, TAsyncOp<void>&)> func =
 		[&](const SPtr<ct::Texture>& texture, u32 _face, u32 _mipLevel, const SPtr<PixelData>& _pixData,
-			AsyncOp& asyncOp)
+			TAsyncOp<void>& asyncOp)
 	{
 		// TODO - Transfer buffers should be handled by the Renderer
 		const SPtr<GpuDevice> gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
@@ -160,7 +160,7 @@ AsyncOp Texture::ReadData(const SPtr<PixelData>& data, u32 face, u32 mipLevel)
 		asyncOp.CompleteOperation();
 	};
 
-	AsyncOp asyncOp;
+	TAsyncOp<void> asyncOp;
 	GetRenderThread().PostCommand([func = std::move(func), renderProxy = B3DGetRenderProxy(this), face, mipLevel, data, asyncOp]() mutable { func(renderProxy, face, mipLevel, data, asyncOp); }, "Texture::ReadData", false, GetName());
 
 	return asyncOp;

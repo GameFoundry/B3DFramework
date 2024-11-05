@@ -7,7 +7,7 @@
 #include "Serialization/BsScriptAssemblyManager.h"
 
 using namespace bs;
-ScriptAsyncOpBase::ScriptAsyncOpBase(MonoObject* instance, const AsyncOpBase& op, const std::function<MonoObject*(const Any&)>& convertCallback)
+ScriptAsyncOpBase::ScriptAsyncOpBase(MonoObject* instance, const AsyncOp& op, const std::function<MonoObject*(const Any&)>& convertCallback)
 	: ScriptObject(instance), mOp(op), mConvertCallback(convertCallback)
 {}
 
@@ -18,7 +18,7 @@ void ScriptAsyncOpBase::InitRuntimeData()
 	metaData.ScriptClass->AddInternalCall("Internal_GetValue", (void*)&ScriptAsyncOpBase::InternalGetValue);
 }
 
-MonoObject* ScriptAsyncOpBase::CreateInternal(const AsyncOpBase& op, const std::function<MonoObject*(const Any&)>& convertCallback, u32 rttiId)
+MonoObject* ScriptAsyncOpBase::CreateInternal(const AsyncOp& op, const std::function<MonoObject*(const Any&)>& convertCallback, u32 rttiId)
 {
 	MonoClass* returnTypeClass = nullptr;
 
@@ -35,7 +35,7 @@ MonoObject* ScriptAsyncOpBase::CreateInternal(const AsyncOpBase& op, const std::
 	return CreateInternal(op, convertCallback, returnTypeClass);
 }
 
-MonoObject* ScriptAsyncOpBase::CreateInternal(const AsyncOpBase& op, const std::function<MonoObject*(const Any&)>& convertCallback, MonoClass* returnTypeClass)
+MonoObject* ScriptAsyncOpBase::CreateInternal(const AsyncOp& op, const std::function<MonoObject*(const Any&)>& convertCallback, MonoClass* returnTypeClass)
 {
 	MonoClass* asyncOpClass = nullptr;
 	if(!returnTypeClass)
@@ -52,7 +52,7 @@ MonoObject* ScriptAsyncOpBase::CreateInternal(const AsyncOpBase& op, const std::
 	return obj;
 }
 
-MonoObject* ScriptAsyncOpBase::CreateInternal(const AsyncOpBase& op, const std::function<MonoObject*(const Any&)>& convertCallback)
+MonoObject* ScriptAsyncOpBase::CreateInternal(const AsyncOp& op, const std::function<MonoObject*(const Any&)>& convertCallback)
 {
 	MonoObject* obj = metaData.ScriptClass->CreateInstance();
 	new(B3DAllocate<ScriptAsyncOpBase>()) ScriptAsyncOpBase(obj, op, convertCallback);

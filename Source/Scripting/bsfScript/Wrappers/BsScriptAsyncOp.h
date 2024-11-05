@@ -59,19 +59,19 @@ namespace bs
 		 */
 
 		/** @copydoc Create() */
-		static MonoObject* CreateInternal(const AsyncOpBase& op, const std::function<MonoObject*(const Any&)>& convertCallback, u32 rttiId);
+		static MonoObject* CreateInternal(const AsyncOp& op, const std::function<MonoObject*(const Any&)>& convertCallback, u32 rttiId);
 
 		/** @copydoc Create() */
-		static MonoObject* CreateInternal(const AsyncOpBase& op, const std::function<MonoObject*(const Any&)>& convertCallback);
+		static MonoObject* CreateInternal(const AsyncOp& op, const std::function<MonoObject*(const Any&)>& convertCallback);
 
 		/** @copydoc Create() */
-		static MonoObject* CreateInternal(const AsyncOpBase& op, const std::function<MonoObject*(const Any&)>& convertCallback, MonoClass* returnTypeClass);
+		static MonoObject* CreateInternal(const AsyncOp& op, const std::function<MonoObject*(const Any&)>& convertCallback, MonoClass* returnTypeClass);
 
 		/** @} */
 	private:
-		ScriptAsyncOpBase(MonoObject* instance, const AsyncOpBase& op, const std::function<MonoObject*(const Any&)>& convertCallback);
+		ScriptAsyncOpBase(MonoObject* instance, const AsyncOp& op, const std::function<MonoObject*(const Any&)>& convertCallback);
 
-		AsyncOpBase mOp;
+		AsyncOp mOp;
 		std::function<MonoObject*(const Any&)> mConvertCallback;
 
 		/************************************************************************/

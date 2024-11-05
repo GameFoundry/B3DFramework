@@ -340,7 +340,7 @@ namespace bs
 				}
 			};
 
-			AsyncOp initializeAsyncOp;
+			TAsyncOp<void> initializeAsyncOp;
 			initializeAsyncOp.DoWhenComplete(std::move(fnFinishInitializeShader));
 
 			// Performs shader initialization asynchronously on a worker thread.

@@ -29,7 +29,7 @@ namespace bs
 	 */
 
 	/** Common base for all TAsyncOp specializations. */
-	class B3D_UTILITY_EXPORT AsyncOpBase
+	class B3D_UTILITY_EXPORT AsyncOp
 	{
 	protected:
 		struct AsyncOpData
@@ -42,20 +42,20 @@ namespace bs
 		};
 
 	public:
-		AsyncOpBase()
+		AsyncOp()
 			: mData(B3DMakeShared<AsyncOpData>())
 		{}
 
-		AsyncOpBase(AsyncOpEmpty empty)
+		AsyncOp(AsyncOpEmpty empty)
 		{}
 
-		AsyncOpBase(const AsyncOpBase& other) = default;
-		AsyncOpBase(AsyncOpBase&& other)
+		AsyncOp(const AsyncOp& other) = default;
+		AsyncOp(AsyncOp&& other)
 			: mData(std::exchange(other.mData, nullptr))
 		{ }
 
-		AsyncOpBase& operator=(const AsyncOpBase& other) = default;
-		AsyncOpBase& operator=(AsyncOpBase&& other)
+		AsyncOp& operator=(const AsyncOp& other) = default;
+		AsyncOp& operator=(AsyncOp&& other)
 		{
 			if(&other != this)
 			{
@@ -167,13 +167,13 @@ namespace bs
 
 	/**
 	 * Object you may use to check on the results of an asynchronous operation. Contains uninitialized data until
-	 * hasCompleted() returns true.
+	 * HasCompleted() returns true.
 	 *
 	 * @note
 	 * You are allowed (and meant to) to copy this by value.
 	 */
 	template <class ReturnType>
-	class TAsyncOp : public AsyncOpBase
+	class TAsyncOp : public AsyncOp
 	{
 	public:
 		using ReturnValueType = ReturnType;
@@ -181,18 +181,18 @@ namespace bs
 		TAsyncOp() = default;
 
 		TAsyncOp(AsyncOpEmpty empty)
-			: AsyncOpBase(empty)
+			: AsyncOp(empty)
 		{}
 
 		TAsyncOp(const TAsyncOp& other) = default;
 		TAsyncOp(TAsyncOp&& other)
-			: AsyncOpBase(std::move(other))
+			: AsyncOp(std::move(other))
 		{ }
 
 		TAsyncOp& operator=(const TAsyncOp& other) = default;
 		TAsyncOp& operator=(TAsyncOp&& other)
 		{
-			return static_cast<TAsyncOp&>(AsyncOpBase::operator=(std::move(other)));
+			return static_cast<TAsyncOp&>(AsyncOp::operator=(std::move(other)));
 		}
 
 		/** Retrieves the value returned by the async operation. Only valid if hasCompleted() returns true. */
@@ -252,6 +252,54 @@ namespace bs
 		friend bool operator!=(const TAsyncOp<ReturnType2>&, std::nullptr_t);
 	};
 
+	template <>
+	class TAsyncOp<void> : public AsyncOp
+	{
+	public:
+		TAsyncOp() = default;
+
+		TAsyncOp(AsyncOpEmpty empty)
+			: AsyncOp(empty)
+		{}
+
+		TAsyncOp(const TAsyncOp& other) = default;
+
+		TAsyncOp(TAsyncOp&& other)
+			: AsyncOp(std::move(other))
+		{}
+
+		TAsyncOp& operator=(const TAsyncOp& other) = default;
+
+		TAsyncOp& operator=(TAsyncOp&& other)
+		{
+			return static_cast<TAsyncOp&>(AsyncOp::operator=(std::move(other)));
+		}
+
+	public: // ***** INTERNAL ******
+		/** @name Internal
+		 *  @{
+		 */
+
+		/** Mark the async operation as completed, without setting a return value. */
+		void CompleteOperation()
+		{
+			if(mData == nullptr)
+				mData = B3DMakeShared<AsyncOpData>();
+
+			{
+				Lock lock(mData->Mutex);
+
+				mData->IsCompleted = true;
+				mData->Signal.NotifyAll();
+			}
+		}
+
+		/** @} */
+	protected:
+		friend bool operator==(const TAsyncOp<void>&, std::nullptr_t);
+		friend bool operator!=(const TAsyncOp<void>&, std::nullptr_t);
+	};
+
 	/**	Checks if an AsyncOp is null. */
 	template <class ReturnType>
 	bool operator==(const TAsyncOp<ReturnType>& lhs, std::nullptr_t rhs)
@@ -265,9 +313,6 @@ namespace bs
 	{
 		return lhs.mData != nullptr;
 	}
-
-	/** @copydoc TAsyncOp */
-	using AsyncOp = TAsyncOp<Any>;
 
 	/** @} */
 } // namespace bs

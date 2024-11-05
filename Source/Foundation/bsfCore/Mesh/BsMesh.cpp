@@ -29,33 +29,33 @@ Mesh::Mesh()
 	: MeshBase(0, 0, DOT_TRIANGLE_LIST)
 {}
 
-AsyncOp Mesh::WriteData(const SPtr<MeshData>& data, bool discardEntireBuffer)
+TAsyncOp<void> Mesh::WriteData(const SPtr<MeshData>& data, bool discardEntireBuffer)
 {
 	UpdateBounds(*data);
 	UpdateCpuBuffer(0, *data);
 
 	data->LockInternal();
 
-	std::function<void(const SPtr<ct::Mesh>&, const SPtr<MeshData>&, bool, AsyncOp&)> func =
-		[&](const SPtr<ct::Mesh>& mesh, const SPtr<MeshData>& _meshData, bool _discardEntireBuffer, AsyncOp& asyncOp)
+	std::function<void(const SPtr<ct::Mesh>&, const SPtr<MeshData>&, bool, TAsyncOp<void>&)> func =
+		[&](const SPtr<ct::Mesh>& mesh, const SPtr<MeshData>& _meshData, bool _discardEntireBuffer, TAsyncOp<void>& asyncOp)
 	{
 		mesh->WriteData(*_meshData, _discardEntireBuffer, false);
 		_meshData->UnlockInternal();
 		asyncOp.CompleteOperation();
 	};
 
-	AsyncOp asyncOp;
+	TAsyncOp<void> asyncOp;
 	GetRenderThread().PostCommand([func = std::move(func), renderProxy = B3DGetRenderProxy(this), data, discardEntireBuffer, asyncOp]() mutable { func(renderProxy, data, discardEntireBuffer, asyncOp); }, "Mesh::WriteData", false, GetName());
 
 	return asyncOp;
 }
 
-AsyncOp Mesh::ReadData(const SPtr<MeshData>& data)
+TAsyncOp<void> Mesh::ReadData(const SPtr<MeshData>& data)
 {
 	data->LockInternal();
 
-	std::function<void(const SPtr<ct::Mesh>&, const SPtr<MeshData>&, AsyncOp&)> func =
-		[&](const SPtr<ct::Mesh>& mesh, const SPtr<MeshData>& _meshData, AsyncOp& asyncOp)
+	std::function<void(const SPtr<ct::Mesh>&, const SPtr<MeshData>&, TAsyncOp<void>&)> func =
+		[&](const SPtr<ct::Mesh>& mesh, const SPtr<MeshData>& _meshData, TAsyncOp<void>& asyncOp)
 	{
 		// TODO - Transfer buffers should be handled by the Renderer
 		const SPtr<GpuDevice> gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
@@ -67,7 +67,7 @@ AsyncOp Mesh::ReadData(const SPtr<MeshData>& data)
 		asyncOp.CompleteOperation();
 	};
 
-	AsyncOp asyncOp;
+	TAsyncOp<void> asyncOp;
 	GetRenderThread().PostCommand([func = std::move(func), renderProxy = B3DGetRenderProxy(this), data, asyncOp]() mutable { func(renderProxy, data, asyncOp); }, "Mesh::ReadData", false, GetName());
 
 	return asyncOp;
