@@ -7,15 +7,15 @@
 #include "Serialization/BsScriptAssemblyManager.h"
 
 using namespace bs;
-ScriptAsyncOpBase::ScriptAsyncOpBase(MonoObject* instance, const AsyncOp& op, const std::function<MonoObject*(const Any&)>& convertCallback)
-	: ScriptObject(instance), mOp(op), mConvertCallback(convertCallback)
+ScriptAsyncOpBase::ScriptAsyncOpBase(const AsyncOp& op, const std::function<MonoObject*(const Any&)>& convertCallback)
+	: TScriptValueTypeWrapper(op), mConvertCallback(convertCallback)
 {}
 
-void ScriptAsyncOpBase::InitRuntimeData()
+void ScriptAsyncOpBase::SetupScriptBindings()
 {
-	metaData.ScriptClass->AddInternalCall("Internal_IsComplete", (void*)&ScriptAsyncOpBase::InternalIsComplete);
-	metaData.ScriptClass->AddInternalCall("Internal_BlockUntilComplete", (void*)&ScriptAsyncOpBase::InternalBlockUntilComplete);
-	metaData.ScriptClass->AddInternalCall("Internal_GetValue", (void*)&ScriptAsyncOpBase::InternalGetValue);
+	sInteropMetaData.ScriptClass->AddInternalCall("Internal_IsComplete", (void*)&ScriptAsyncOpBase::InternalIsComplete);
+	sInteropMetaData.ScriptClass->AddInternalCall("Internal_BlockUntilComplete", (void*)&ScriptAsyncOpBase::InternalBlockUntilComplete);
+	sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetValue", (void*)&ScriptAsyncOpBase::InternalGetValue);
 }
 
 MonoObject* ScriptAsyncOpBase::CreateInternal(const AsyncOp& op, const std::function<MonoObject*(const Any&)>& convertCallback, u32 rttiId)
@@ -39,25 +39,27 @@ MonoObject* ScriptAsyncOpBase::CreateInternal(const AsyncOp& op, const std::func
 {
 	MonoClass* asyncOpClass = nullptr;
 	if(!returnTypeClass)
-		asyncOpClass = metaData.ScriptClass;
+		asyncOpClass = sInteropMetaData.ScriptClass;
 	else
 	{
 		::MonoClass* rawClass = BindGenericParam(returnTypeClass->GetInternalClass());
 		asyncOpClass = MonoManager::Instance().FindClass(rawClass);
 	}
 
-	MonoObject* obj = asyncOpClass->CreateInstance();
-	new(B3DAllocate<ScriptAsyncOpBase>()) ScriptAsyncOpBase(obj, op, convertCallback);
+	MonoObject* const scriptObject = asyncOpClass->CreateInstance();
+	ScriptAsyncOpBase* const scriptWrapper = B3DNew<ScriptAsyncOpBase>(op, convertCallback);
+	scriptWrapper->BindToScriptObject(scriptObject);
 
-	return obj;
+	return scriptObject;
 }
 
 MonoObject* ScriptAsyncOpBase::CreateInternal(const AsyncOp& op, const std::function<MonoObject*(const Any&)>& convertCallback)
 {
-	MonoObject* obj = metaData.ScriptClass->CreateInstance();
-	new(B3DAllocate<ScriptAsyncOpBase>()) ScriptAsyncOpBase(obj, op, convertCallback);
+	MonoObject* const scriptObject = sInteropMetaData.ScriptClass->CreateInstance();
+	ScriptAsyncOpBase* const scriptWrapper = B3DNew<ScriptAsyncOpBase>(op, convertCallback);
+	scriptWrapper->BindToScriptObject(scriptObject);
 
-	return obj;
+	return scriptObject;
 }
 
 ::MonoClass* ScriptAsyncOpBase::BindGenericParam(::MonoClass* param)
@@ -70,22 +72,22 @@ MonoObject* ScriptAsyncOpBase::CreateInternal(const AsyncOp& op, const std::func
 
 bool ScriptAsyncOpBase::InternalIsComplete(ScriptAsyncOpBase* thisPtr)
 {
-	return thisPtr->mOp.HasCompleted();
+	return thisPtr->GetNativeObject().HasCompleted();
 }
 
 void ScriptAsyncOpBase::InternalBlockUntilComplete(ScriptAsyncOpBase* thisPtr)
 {
-	thisPtr->mOp.BlockUntilComplete();
+	thisPtr->GetNativeObject().BlockUntilComplete();
 }
 
 MonoObject* ScriptAsyncOpBase::InternalGetValue(ScriptAsyncOpBase* thisPtr)
 {
-	if(!thisPtr->mOp.HasCompleted())
+	if(!thisPtr->GetNativeObject().HasCompleted())
 		return nullptr;
 
 	if(thisPtr->mConvertCallback == nullptr)
 		return nullptr;
 
-	return thisPtr->mConvertCallback(thisPtr->mOp.GetGenericReturnValue());
+	return thisPtr->mConvertCallback(thisPtr->GetNativeObject().GetGenericReturnValue());
 }
 

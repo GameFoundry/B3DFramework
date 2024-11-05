@@ -3,7 +3,7 @@
 #pragma once
 
 #include "BsScriptEnginePrerequisites.h"
-#include "BsScriptObject.h"
+#include "BsScriptValueTypeWrapper.h"
 #include "Threading/BsAsyncOp.h"
 
 namespace bs
@@ -28,10 +28,19 @@ namespace bs
 	 */
 
 	/**	Interop class between C++ & CLR for AsyncOpBase and AsyncOp<T>. */
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptAsyncOpBase : public ScriptObject<ScriptAsyncOpBase>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptAsyncOpBase : public TScriptValueTypeWrapper<AsyncOp, ScriptAsyncOpBase>
 	{
 	public:
-		SCRIPT_OBJ(kEngineAssembly, kEngineNs, "AsyncOpBase")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "AsyncOpBase")
+
+		ScriptAsyncOpBase(const AsyncOp& op, const std::function<MonoObject*(const Any&)>& convertCallback);
+
+		static void SetupScriptBindings();
+
+		static MonoObject* CreateScriptObject(bool construct)
+		{
+			return nullptr;
+		}
 
 		/** Creates a new managed AsyncOp<T> from a native TAsyncOp. */
 		template <class T>
@@ -69,9 +78,6 @@ namespace bs
 
 		/** @} */
 	private:
-		ScriptAsyncOpBase(MonoObject* instance, const AsyncOp& op, const std::function<MonoObject*(const Any&)>& convertCallback);
-
-		AsyncOp mOp;
 		std::function<MonoObject*(const Any&)> mConvertCallback;
 
 		/************************************************************************/

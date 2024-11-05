@@ -3,9 +3,8 @@
 #pragma once
 
 #include "BsScriptEnginePrerequisites.h"
-#include "Image/BsTexture.h"
+#include "BsScriptValueTypeWrapper.h"
 #include "BsScriptResourceWrapper.h"
-#include "Reflection/BsRTTIType.h"
 
 namespace bs
 {
@@ -13,34 +12,6 @@ namespace bs
 	/** @addtogroup ScriptInteropEngine
 	 *  @{
 	 */
-
-	/** Extends TScriptObjectWrapper by providing functionality required for types passed as values. */
-	template<typename NativeType, typename SelfType, typename BaseType = ScriptObjectWrapper>
-	class TScriptValueTypeWrapper : public TScriptObjectWrapper<SelfType, BaseType> // TODO - Move to its own file?
-	{
-	public:
-		TScriptValueTypeWrapper(const NativeType& nativeObject)
-			: TScriptObjectWrapper<SelfType, BaseType>(nullptr), mNativeObject(nativeObject)
-		{ }
-
-		NativeType& GetNativeObject() { return mNativeObject; }
-		virtual ScriptObjectLifetimeTrackingMode GetLifetimeTrackingMode() const { return ScriptObjectLifetimeTrackingMode::WeakHandle; }
-
-		/**
-		 * Creates a new script object and a script object wrapper of @p SelfType, and associates them with the provided native object. Should not be called if @p nativeObject
-		 * already has an associated script object.
-		 */
-		static MonoObject* CreateScriptObjectAndWrapper(const NativeType& nativeObject)
-		{
-			MonoObject* const scriptObject = SelfType::CreateScriptObject(false);
-			ScriptObjectWrapper::Create<SelfType>(nativeObject, scriptObject);
-
-			return scriptObject;
-		}
-
-	protected:
-		NativeType mNativeObject;
-	};
 
 	/**	Interop class between C++ & CLR for RRefBase and RRef<T>. */
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptRRefBase : public TScriptValueTypeWrapper<HResource, ScriptRRefBase>
@@ -61,6 +32,7 @@ namespace bs
 		{
 			return nullptr;
 		}
+
 		/**
 		 * Creates a new resource reference script object for the provided resource.
 		 *
