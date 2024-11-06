@@ -34,12 +34,6 @@ namespace bs
 		ScriptObjectManager() = default;
 		~ScriptObjectManager();
 
-		/**	Registers a newly created script interop object. */
-		void RegisterScriptObject(ScriptObjectBase* instance); // TODO - Deprecated
-
-		/**	Unregisters a script interop object that is no longer valid. */
-		void UnregisterScriptObject(ScriptObjectBase* instance); // TODO - Deprecated
-
 		/**	Registers a newly created script object wrapper. */
 		void RegisterScriptObjectWrapper(ScriptObjectWrapper* scriptObjectWrapper);
 
@@ -57,14 +51,6 @@ namespace bs
 
 		/**	Called once per frame. Triggers garbage collection and queued finalizer callbacks. */
 		void Update();
-
-		/**
-		 * Call this when object finalizer is triggered. At the end of the frame all objects queued with this method will
-		 * have their _onManagedInstanceDeleted methods triggered.
-		 *
-		 * @note	Thread safe.
-		 */
-		void NotifyObjectFinalized(ScriptObjectBase* instance);
 
 		/**
 		 * Call this when object finalizer is triggered. At the end of the frame all objects queued with this method will
@@ -103,10 +89,7 @@ namespace bs
 		 */
 		void PerformGarbageCollection();
 
-		Set<ScriptObjectBase*> mScriptObjects; // TODO - Deprecated
 		UnorderedSet<ScriptObjectWrapper*> mScriptObjectWrappers;
-
-		Vector<ScriptObjectBase*> mFinalizedObjects[2];
 		Vector<ScriptObjectWrapper*> mFinalizedScriptObjectWrappers[2];
 		u32 mFinalizedQueueIdx = 0;
 		Mutex mMutex;

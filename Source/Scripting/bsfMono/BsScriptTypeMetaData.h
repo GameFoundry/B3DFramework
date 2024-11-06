@@ -53,9 +53,6 @@ namespace bs
 
 		/** Field object that contains a native pointer to the script object wrapper. Only valid after assembly containing this type was loaded. */
 		MonoField* ScriptObjectWrapperPointerField = nullptr;
-
-		/** Field that signifies whether ScriptObjectWrapperPointerField holds new ScriptObjectWrapperType or old ScriptObjectBase type. */
-		MonoField* IsUsingNewScriptObjectManagerField = nullptr; // TODO - Temporary while we transition
 	};
 
 	/** @} */

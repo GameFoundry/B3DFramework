@@ -4,7 +4,7 @@
 
 #include "BsScriptEnginePrerequisites.h"
 #include "Scene/BsComponent.h"
-#include "BsScriptObject.h"
+#include "BsScriptObjectWrapper.h"
 
 namespace bs
 {

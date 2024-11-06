@@ -3,7 +3,6 @@
 #pragma once
 
 #include "BsScriptEnginePrerequisites.h"
-#include "BsScriptObject.h"
 #include "Particles/BsParticleDistribution.h"
 
 namespace bs

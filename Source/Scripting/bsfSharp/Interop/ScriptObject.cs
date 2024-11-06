@@ -18,11 +18,6 @@ namespace bs
         internal IntPtr mCachedPtr;
 
         /// <summary>
-        /// If >0, then new ScriptObjectWrapper interface is used for interop, otherwise old ScriptObjectBase interface is used. This field is temporary during the transition.
-        /// </summary>
-        internal int mIsUsingNewScriptObjectWrapper = 0;
-
-        /// <summary>
         /// Notifies the native script interop object that the managed instance was finalized.
         /// </summary>
         ~ScriptObject()
@@ -33,19 +28,11 @@ namespace bs
 
 #if DEBUG
                 // This will cause a crash, so we ignore it in release mode hoping all it causes is a memory leak.
-                if(mIsUsingNewScriptObjectWrapper > 0)
-                    Internal_ScriptObjectFinalizerCalled(mCachedPtr);
-                else
-                    Internal_ManagedInstanceDeleted(mCachedPtr);
+                Internal_ScriptObjectFinalizerCalled(mCachedPtr);
 #endif
             }
             else
-            {
-                if(mIsUsingNewScriptObjectWrapper > 0)
-                    Internal_ScriptObjectFinalizerCalled(mCachedPtr);
-                else
-                    Internal_ManagedInstanceDeleted(mCachedPtr);
-            }
+                Internal_ScriptObjectFinalizerCalled(mCachedPtr);
         }
 
         /// <summary>
@@ -56,9 +43,6 @@ namespace bs
         {
             return mCachedPtr;
         }
-
-        [MethodImpl(MethodImplOptions.InternalCall)]
-        private static extern void Internal_ManagedInstanceDeleted(IntPtr nativeInstance);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern void Internal_ScriptObjectFinalizerCalled(IntPtr scriptObjectWrapperPointer);

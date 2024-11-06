@@ -246,12 +246,6 @@ namespace bs
 
 			if(sInteropMetaData.ScriptObjectWrapperPointerField != nullptr)
 				sInteropMetaData.ScriptObjectWrapperPointerField->Set(scriptObject, &self);
-
-			if(sInteropMetaData.IsUsingNewScriptObjectManagerField != nullptr)
-			{
-				i32 value = 1;
-				sInteropMetaData.IsUsingNewScriptObjectManagerField->Set(scriptObject, &value);
-			}
 		}
 	};
 
@@ -269,6 +263,13 @@ namespace bs
 		/* 								CLR HOOKS						   		*/
 		/************************************************************************/
 		static void Internal_ScriptObjectFinalizerCalled(ScriptObjectWrapper* scriptObjectWrapper);
+	};
+
+	/** Contains backup data in the form of a raw memory buffer. */
+	struct RawBackupData
+	{
+		u8* Data = nullptr;
+		u32 Size = 0;
 	};
 
 	/** @} */

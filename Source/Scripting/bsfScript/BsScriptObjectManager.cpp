@@ -1,7 +1,6 @@
 //********************************* bs::framework - Copyright 2018-2019 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "BsScriptObjectManager.h"
-#include "BsScriptObject.h"
 #include "BsMonoManager.h"
 #include "Serialization/BsScriptAssemblyManager.h"
 #include "Scene/BsGameObjectManager.h"
@@ -12,16 +11,6 @@ using namespace bs;
 ScriptObjectManager::~ScriptObjectManager()
 {
 	ProcessFinalizedObjects();
-}
-
-void ScriptObjectManager::RegisterScriptObject(ScriptObjectBase* instance)
-{
-	mScriptObjects.insert(instance);
-}
-
-void ScriptObjectManager::UnregisterScriptObject(ScriptObjectBase* instance)
-{
-	mScriptObjects.erase(instance);
 }
 
 void ScriptObjectManager::RegisterScriptObjectWrapper(ScriptObjectWrapper* scriptObjectWrapper)
@@ -36,7 +25,6 @@ void ScriptObjectManager::UnregisterScriptObjectWrapper(ScriptObjectWrapper* scr
 
 void ScriptObjectManager::RefreshAssemblies(const Vector<AssemblyRefreshInfo>& assemblies)
 {
-	Map<ScriptObjectBase*, ScriptObjectBackup> backupData;
 	UnorderedMap<IScriptObjectWrapper*, ScriptObjectReloadPersistentData> reloadPeristentDataMap;
 
 	OnRefreshStarted();
@@ -50,18 +38,12 @@ void ScriptObjectManager::RefreshAssemblies(const Vector<AssemblyRefreshInfo>& a
 	// Make sure all objects that are finalized due to reasons other than assembly refreshed are destroyed
 	ProcessFinalizedObjects(false);
 
-	for(auto& scriptObject : mScriptObjects)
-		backupData[scriptObject] = scriptObject->BeginRefresh();
-
 	for(auto& scriptObjectWrapper : mScriptObjectWrappers)
 	{
 		Optional<ScriptObjectReloadPersistentData> reloadPersistentData = scriptObjectWrapper->BackupDataBeforeScriptReload();
 		if(reloadPersistentData.has_value())
 			reloadPeristentDataMap[scriptObjectWrapper] = *reloadPersistentData;
 	}
-
-	for(auto& scriptObject : mScriptObjects)
-		scriptObject->ClearManagedInstanceInternal();
 
 	for(auto& scriptObjectWrapper : mScriptObjectWrappers)
 		scriptObjectWrapper->ReleaseScriptObjectHandle();
@@ -71,9 +53,6 @@ void ScriptObjectManager::RefreshAssemblies(const Vector<AssemblyRefreshInfo>& a
 	// Unload script domain should trigger finalizers on everything, but since we usually delay
 	// their processing we need to manually trigger it here.
 	ProcessFinalizedObjects(true);
-
-	for(auto& scriptObject : mScriptObjects)
-		B3D_ASSERT(scriptObject->IsPersistent() && "Non-persistent ScriptObject alive after domain unload.");
 
 	for(auto& scriptObjectWrapper : mScriptObjectWrappers)
 		B3D_ENSURE(scriptObjectWrapper->ShouldPersistScriptReload());
@@ -86,27 +65,16 @@ void ScriptObjectManager::RefreshAssemblies(const Vector<AssemblyRefreshInfo>& a
 		ScriptAssemblyManager::Instance().LoadAssemblyInfo(entry.Name);
 	}
 
-	Vector<ScriptObjectBase*> scriptObjCopy(mScriptObjects.size()); // Store originals as we could add new objects during the next iteration
-	u32 idx = 0;
-	for(auto& scriptObject : mScriptObjects)
-		scriptObjCopy[idx++] = scriptObject;
-
 	TArray<ScriptObjectWrapper*> scriptObjectWrappersToRestore;
-	scriptObjectWrappersToRestore.Reserve((u64)mScriptObjects.size());
+	scriptObjectWrappersToRestore.Reserve((u64)mScriptObjectWrappers.size());
 
 	for(const auto& scriptObjectWrapper : mScriptObjectWrappers)
 		scriptObjectWrappersToRestore.Add(scriptObjectWrapper);
 
 	OnRefreshDomainLoaded();
 
-	for(auto& scriptObject : scriptObjCopy)
-		scriptObject->RestoreManagedInstanceInternal();
-
 	for(auto& scriptObjectWrapper : scriptObjectWrappersToRestore)
 		scriptObjectWrapper->RecreateScriptObjectAfterScriptReload();
-
-	for(auto& scriptObject : scriptObjCopy)
-		scriptObject->EndRefresh(backupData[scriptObject]);
 
 	for(auto& scriptObjectWrapper : scriptObjectWrappersToRestore)
 	{
@@ -121,14 +89,6 @@ void ScriptObjectManager::RefreshAssemblies(const Vector<AssemblyRefreshInfo>& a
 		scriptObjectWrapper->NotifyScriptReloadFinished();
 
 	OnRefreshComplete();
-}
-
-void ScriptObjectManager::NotifyObjectFinalized(ScriptObjectBase* instance)
-{
-	B3D_ASSERT(instance != nullptr);
-
-	Lock lock(mMutex);
-	mFinalizedObjects[mFinalizedQueueIdx].push_back(instance);
 }
 
 void ScriptObjectManager::NotifyObjectFinalized(ScriptObjectWrapper* scriptObjectWrapper)
@@ -161,11 +121,6 @@ void ScriptObjectManager::ProcessFinalizedObjects(bool assemblyRefresh)
 		readQueueIdx = mFinalizedQueueIdx;
 		mFinalizedQueueIdx = (mFinalizedQueueIdx + 1) % 2;
 	}
-
-	for(auto& finalizedObj : mFinalizedObjects[readQueueIdx])
-		finalizedObj->OnManagedInstanceDeletedInternal(assemblyRefresh);
-
-	mFinalizedObjects[readQueueIdx].clear();
 
 	for(auto& finalizedScriptObjectWrapper : mFinalizedScriptObjectWrappers[readQueueIdx])
 		finalizedScriptObjectWrapper->NotifyScriptObjectDestroyed(assemblyRefresh);

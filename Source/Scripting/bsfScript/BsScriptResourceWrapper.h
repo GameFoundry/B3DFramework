@@ -3,7 +3,6 @@
 #pragma once
 
 #include "BsScriptEnginePrerequisites.h"
-#include "BsScriptObject.h"
 #include "BsScriptObjectWrapper.h"
 #include "BsScriptResourceManager.h"
 #include "Resources/BsResource.h"

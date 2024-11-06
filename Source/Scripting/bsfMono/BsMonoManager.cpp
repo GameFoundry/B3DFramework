@@ -202,11 +202,6 @@ void MonoManager::RefreshScriptTypeMetaDataAndBindings(MonoAssembly& assembly)
 		else
 			meta->ScriptObjectWrapperPointerField = nullptr;
 
-		if(meta->ScriptClass->HasField("mIsUsingNewScriptObjectWrapper"))
-			meta->IsUsingNewScriptObjectManagerField = meta->ScriptClass->GetField("mIsUsingNewScriptObjectWrapper");
-		else
-			meta->IsUsingNewScriptObjectManagerField = nullptr;
-
 		if(meta->SetupScriptBindingsCallback != nullptr)
 			meta->SetupScriptBindingsCallback();
 	}
@@ -306,7 +301,6 @@ void MonoManager::UnloadScriptDomain()
 		{
 			entry.MetaData->ScriptClass = nullptr;
 			entry.MetaData->ScriptObjectWrapperPointerField = nullptr;
-			entry.MetaData->IsUsingNewScriptObjectManagerField = nullptr;
 		}
 	}
 
