@@ -331,7 +331,7 @@ void PrefabUtility::AssignPrefabResourceId(const HSceneObject& sceneObject, cons
 	sceneObject->IterateHierarchy(
 		[&originalResourceId, &newPrefabResourceId](const HSceneObject& sceneObject)
 		{
-			if(sceneObject->HasFlag(SOF_DontSave))
+			if(sceneObject->HasFlag(SceneObjectFlag::DontSave))
 				return false;
 
 			const UUID& currentResourceId = sceneObject->GetPrefabResourceId();
@@ -410,7 +410,7 @@ void PrefabUtility::RemapPrefabInstanceIds(const HSceneObject& root, const Unord
 	root->IterateHierarchy(
 		[&remappingTable, prefabId](const HSceneObject& sceneObject)
 		{
-			if(sceneObject->HasFlag(SOF_DontSave))
+			if(sceneObject->HasFlag(SceneObjectFlag::DontSave))
 				return false;
 
 			if(auto found = remappingTable.find(sceneObject.GetId()); found != remappingTable.end())
@@ -432,7 +432,7 @@ void PrefabUtility::RemapPrefabInstanceIds(const HSceneObject& root, const Unord
 	root->IterateHierarchy(
 		[&remappingTable](const HSceneObject& sceneObject)
 		{
-			if(sceneObject->HasFlag(SOF_DontSave))
+			if(sceneObject->HasFlag(SceneObjectFlag::DontSave))
 				return false;
 
 			if(auto found = remappingTable.find(sceneObject.GetId()); found != remappingTable.end())

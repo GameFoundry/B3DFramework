@@ -21,15 +21,19 @@ namespace bs
 	 */
 
 	/** Possible modifiers that can be applied to a SceneObject. */
-	enum SceneObjectFlags
+	enum class B3D_SCRIPT_EXPORT() SceneObjectFlag
 	{
-		SOF_DontSave = 0x02, /**< Object will be skipped when saving the scene hierarchy or a prefab. */
-		SOF_Persistent = 0x04, /**< Object will remain in the scene even after scene clear, unless destroyed directly.
-									This only works with top-level objects. */
-		SOF_Internal = 0x08 /**< Provides a hint to external systems that his object is used by engine internals.
-								 For example, those systems might not want to display those objects together with the
-								 user created ones. */
+		DontSave = 1 << 0, /**< Object will be skipped when saving the scene hierarchy or a prefab. */
+
+		/** Object will remain in the scene even after scene clear, unless destroyed directly. This only works with top-level objects. */
+		Persistent = 1 << 1,
+
+		/** Provides a hint to external systems that his object is used by engine internals. For example, those systems might not want to display those objects together with the user created ones. */
+		Internal = 1 << 2
 	};
+
+	B3D_FLAGS_OPERATORS(SceneObjectFlag)
+	using SceneObjectFlags = Flags<SceneObjectFlag>;
 
 	/**
 	 * An object in the scene graph. It has a transform object that allows it to be positioned, scaled and rotated. It can
@@ -101,7 +105,7 @@ namespace bs
 		void BreakPrefabLink();
 
 		/**	Checks if the scene object has a specific bit flag set. */
-		bool HasFlag(u32 flag) const;
+		bool HasFlag(SceneObjectFlag flag) const;
 
 	public: // ***** INTERNAL ******
 		/** @name Internal
@@ -129,10 +133,10 @@ namespace bs
 		void SetPrefabVersion(const UUID& version) { mPrefabVersion = version; }
 
 		/** Recursively enables the provided set of flags on this object and all children. */
-		void SetFlagsInternal(u32 flags);
+		void SetFlags(SceneObjectFlags flags);
 
 		/** Recursively disables the provided set of flags on this object and all children. */
-		void UnsetFlagsInternal(u32 flags);
+		void UnsetFlags(SceneObjectFlags flags);
 
 		/** @} */
 
@@ -170,7 +174,7 @@ namespace bs
 		UUID mPrefabResourceId; /**< Identifier of the prefab resource that this object is linked to, if any. */
 		UUID mPrefabVersion = UUID::kEmpty;
 		SPtr<SceneObjectHierarchyDelta> mPrefabDelta;
-		u32 mFlags;
+		SceneObjectFlags mFlags;
 
 		/************************************************************************/
 		/* 								Transform	                     		*/

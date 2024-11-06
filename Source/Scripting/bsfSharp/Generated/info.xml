@@ -451,25 +451,6 @@
 		<field name="Time" type="float">
 		</field>
 	</struct>
-	<class native="ApplicationEx" script="Application">
-		<doc>Script-exported API for Application.</doc>
-		<method native="StartUp" script="StartUp" static="true">
-			<param name="desc" type="StartUpDesc">
-			</param>
-		</method>
-		<method native="StartUp" script="StartUp" static="true">
-			<param name="videoMode" type="VideoMode">
-			</param>
-			<param name="title" type="string">
-			</param>
-			<param name="fullscreen" type="bool">
-			</param>
-		</method>
-		<method native="RunMainLoop" script="RunMainLoop" static="true">
-		</method>
-		<method native="ShutDown" script="ShutDown" static="true">
-		</method>
-	</class>
 	<enum native="ProjectionType" script="ProjectionType">
 		<doc>Projection type to use by the camera.</doc>
 		<enumentry native="PT_ORTHOGRAPHIC" script="Orthographic">
@@ -2526,6 +2507,18 @@ Use {0}, {1}, etc. in the string value for values that might change dynamically.
 			<doc>Determines will the clip be played a spatial 3D sound, or as a normal sound (for example music).</doc>
 		</property>
 	</class>
+	<enum native="SceneObjectFlag" script="SceneObjectFlag">
+		<doc>Possible modifiers that can be applied to a SceneObject.</doc>
+		<enumentry native="DontSave" script="DontSave">
+			<doc>Object will be skipped when saving the scene hierarchy or a prefab.</doc>
+		</enumentry>
+		<enumentry native="Internal" script="Internal">
+			<doc>Provides a hint to external systems that his object is used by engine internals. For example, those systems might not want to display those objects together with the user created ones.</doc>
+		</enumentry>
+		<enumentry native="Persistent" script="Persistent">
+			<doc>Object will remain in the scene even after scene clear, unless destroyed directly. This only works with top-level objects.</doc>
+		</enumentry>
+	</enum>
 	<class native="ImportOptions" script="ImportOptions">
 		<doc>Base class for creating import options from. Import options are specific for each importer and control how is data imported.</doc>
 	</class>

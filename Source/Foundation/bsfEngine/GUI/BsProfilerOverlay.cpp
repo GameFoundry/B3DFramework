@@ -323,7 +323,7 @@ void ProfilerOverlay::SetTarget(const SPtr<Camera>& camera)
 	if(mWidgetSO)
 		mWidgetSO->Destroy();
 
-	mWidgetSO = SceneObject::Create("ProfilerOverlay", SOF_Internal | SOF_Persistent | SOF_DontSave);
+	mWidgetSO = SceneObject::Create("ProfilerOverlay", SceneObjectFlag::Internal | SceneObjectFlag::Persistent | SceneObjectFlag::DontSave);
 	mWidget = mWidgetSO->AddComponent<CGUIWidget>(camera);
 	mWidget->SetDepth(127);
 

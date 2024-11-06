@@ -126,7 +126,7 @@ bool ScriptSceneObject::InternalHasFlag(ScriptSceneObject* self, bs::u32 flag)
 	if(!self->IsNativeObjectValid())
 		return false;
 
-	return self->GetNativeObject()->HasFlag(flag);
+	return self->GetNativeObject()->HasFlag((SceneObjectFlag)flag);
 }
 
 void ScriptSceneObject::InternalSetMobility(ScriptSceneObject* self, int value)

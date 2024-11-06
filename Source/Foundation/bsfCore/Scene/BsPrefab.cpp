@@ -101,7 +101,7 @@ UnorderedMap<UUID, UUID> Prefab::ReplaceInternalHierarchy(const HSceneObject& sc
 	FrameScope frameScope;
 	FrameVector<HSceneObject> sceneObjectsToDestroy;
 	newRoot->IterateHierarchy([&sceneObjectsToDestroy](const HSceneObject& sceneObject) {
-		if(sceneObject->HasFlag(SOF_DontSave))
+		if(sceneObject->HasFlag(SceneObjectFlag::DontSave))
 		{
 			sceneObjectsToDestroy.push_back(sceneObject);
 			return false;

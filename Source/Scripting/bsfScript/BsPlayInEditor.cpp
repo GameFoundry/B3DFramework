@@ -145,7 +145,7 @@ void PlayInEditor::SaveSceneInMemory()
 		HSceneObject current = todo.top();
 		todo.pop();
 
-		if(current->HasFlag(SOF_DontSave))
+		if(current->HasFlag(SceneObjectFlag::DontSave))
 			current->Destroy();
 		else
 		{

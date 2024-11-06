@@ -118,7 +118,7 @@ void SceneManager::ClearMainScene(bool forceAll)
 	{
 		HSceneObject child = mMainScene->mRoot->GetChild(childIndex);
 
-		if(forceAll || !child->HasFlag(SOF_Persistent))
+		if(forceAll || !child->HasFlag(SceneObjectFlag::Persistent))
 			child->Destroy();
 		else
 			childIndex++;
@@ -162,7 +162,7 @@ void SceneManager::SetRootNodeInternal(const HSceneObject& root, const UUID& ass
 		{
 			HSceneObject child = oldRoot->GetChild(i);
 
-			if(child->HasFlag(SOF_Persistent))
+			if(child->HasFlag(SceneObjectFlag::Persistent))
 				toRemove.push_back(child);
 		}
 

@@ -184,25 +184,25 @@ void SceneObject::BreakPrefabLink()
 	}
 }
 
-bool SceneObject::HasFlag(u32 flag) const
+bool SceneObject::HasFlag(SceneObjectFlag flag) const
 {
-	return (mFlags & flag) != 0;
+	return mFlags.IsSet(flag);
 }
 
-void SceneObject::SetFlagsInternal(u32 flags)
+void SceneObject::SetFlags(SceneObjectFlags flags)
 {
 	mFlags |= flags;
 
 	for(auto& child : mChildren)
-		child->SetFlagsInternal(flags);
+		child->SetFlags(flags);
 }
 
-void SceneObject::UnsetFlagsInternal(u32 flags)
+void SceneObject::UnsetFlags(SceneObjectFlags flags)
 {
 	mFlags &= ~flags;
 
 	for(auto& child : mChildren)
-		child->UnsetFlagsInternal(flags);
+		child->UnsetFlags(flags);
 }
 
 void SceneObject::Initialize()
@@ -666,7 +666,7 @@ void SceneObject::AddChild(const HSceneObject& object)
 {
 	mChildren.push_back(object);
 
-	object->SetFlagsInternal(mFlags);
+	object->SetFlags(mFlags);
 }
 
 void SceneObject::RemoveChild(const HSceneObject& object)

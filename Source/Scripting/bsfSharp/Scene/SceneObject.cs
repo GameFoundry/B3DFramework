@@ -262,7 +262,7 @@ namespace bs
         internal SceneObject(string name, bool isInternal)
         {
             if(isInternal)
-                Internal_CreateInstance(this, name, (int)(SceneObjectEditorFlags.DontSave | SceneObjectEditorFlags.Internal | SceneObjectEditorFlags.Persistent));
+                Internal_CreateInstance(this, name, (int)(SceneObjectFlag.DontSave | SceneObjectFlag.Internal | SceneObjectFlag.Persistent));
             else
                 Internal_CreateInstance(this, name, 0);
         }
@@ -506,7 +506,7 @@ namespace bs
         /// Checks if the scene object has a specific bit flag set.
         /// </summary>
         /// <param name="flag">The flag to check.</param>
-        internal bool HasFlag(SceneObjectEditorFlags flag)
+        internal bool HasFlag(SceneObjectFlag flag)
         {
             return Internal_HasFlag(mCachedPtr, (int)flag);
         }
@@ -656,30 +656,6 @@ namespace bs
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern void Internal_Destroy(IntPtr nativeInstance, bool immediate);
-    }
-
-    /// <summary>
-    /// Flags that can be used for controlling scene object behaviour.
-    /// </summary>
-    internal enum SceneObjectEditorFlags // Note: Must match C++ enum SceneObjectFlags
-    {
-        /// <summary>Object wont be in the main scene and its components won't receive updates.</summary>
-        DontInstantiate = 0x01,
-
-        /// <summary> Object will be skipped when saving the scene hierarchy or a prefab.</summary>
-        DontSave = 0x02,
-
-        /// <summary>
-        /// Object will remain in the scene even after scene clear, unless destroyed directly. This only works with
-        /// top-level objects.
-        /// </summary>
-        Persistent = 0x04,
-
-        /// <summary>
-        /// Provides a hint to external systems that his object is used by engine internals. For example, those systems
-        /// might not want to display those objects together with the user created ones.
-        /// </summary>
-        Internal = 0x08
     }
 
     /** @} */
