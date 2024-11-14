@@ -17,11 +17,11 @@
 #include "Win32/BsRenderDocFrameCapture.h"
 
 #if B3D_PLATFORM == B3D_PLATFORM_ID_WIN32
-#	include "Win32/BsWin32VideoModeInfo.h"
+#	include "Private/Win32/BsWin32VideoModeInfo.h"
 #elif B3D_PLATFORM == B3D_PLATFORM_ID_LINUX
-#	include "Linux/BsLinuxVideoModeInfo.h"
+#	include "Private/Linux/BsLinuxVideoModeInfo.h"
 #elif B3D_PLATFORM == B3D_PLATFORM_ID_MACOS
-#	include "MacOS/BsMacOSVideoModeInfo.h"
+#	include "Private/MacOS/BsMacOSVideoModeInfo.h"
 #	include <MoltenVK/vk_mvk_moltenvk.h>
 #else
 static_assert(false, "Other platform includes go here.");

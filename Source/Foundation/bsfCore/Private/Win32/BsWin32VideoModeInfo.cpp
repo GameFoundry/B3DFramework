@@ -1,6 +1,6 @@
 //************************************ bs::framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "Win32/BsWin32VideoModeInfo.h"
+#include "Private/Win32/BsWin32VideoModeInfo.h"
 #include "Math/BsMath.h"
 
 using namespace bs;

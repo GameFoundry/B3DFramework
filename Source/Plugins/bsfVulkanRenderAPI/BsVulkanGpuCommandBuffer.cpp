@@ -17,18 +17,9 @@
 #include "BsVulkanRenderPass.h"
 #include "BsVulkanRenderTexture.h"
 #include "BsVulkanGpuBackend.h"
+#include "BsVulkanRenderWindowSurface.h"
 #include "Profiling/BsRenderStats.h"
 #include "RenderAPI/BsGpuProgramParameterDescription.h"
-
-#if B3D_PLATFORM == B3D_PLATFORM_ID_WIN32
-#	include "Win32/BsWin32RenderWindow.h"
-#elif B3D_PLATFORM == B3D_PLATFORM_ID_LINUX
-#	include "Linux/BsLinuxRenderWindow.h"
-#elif B3D_PLATFORM == B3D_PLATFORM_ID_MACOS
-#	include "MacOS/BsMacOSRenderWindow.h"
-#else
-static_assert(false, "Other platforms go here");
-#endif
 
 using namespace bs;
 using namespace bs::ct;
@@ -320,20 +311,18 @@ void VulkanGpuCommandBuffer::SetRenderTarget(const SPtr<RenderTarget>& renderTar
 	{
 		if(renderTarget->GetProperties().IsWindow)
 		{
-#if B3D_PLATFORM == B3D_PLATFORM_ID_WIN32
-			Win32RenderWindow* window = static_cast<Win32RenderWindow*>(renderTarget.get());
-#elif B3D_PLATFORM == B3D_PLATFORM_ID_LINUX
-			LinuxRenderWindow* window = static_cast<LinuxRenderWindow*>(rt.get());
-#elif B3D_PLATFORM == B3D_PLATFORM_ID_MACOS
-			MacOSRenderWindow* window = static_cast<MacOSRenderWindow*>(rt.get());
-#endif
+			RenderWindow* const renderWindow = static_cast<RenderWindow*>(renderTarget.get());
 
-			swapChain = window->GetSwapChain();
+			VulkanRenderWindowSurface* renderWindowSurface = static_cast<VulkanRenderWindowSurface*>(renderWindow->GetRenderWindowSurface().get());
+			if(!B3D_ENSURE(renderWindowSurface != nullptr))
+				return;
+
+			swapChain = renderWindowSurface->GetSwapChain();
 
 			if(!swapChain->IsValid())
 			{
-				window->RebuildSwapChain();
-				swapChain = window->GetSwapChain();
+				renderWindow->RebuildSwapChain();
+				swapChain = renderWindowSurface->GetSwapChain();
 			}
 
 			u32 acquiredImageIndex;
@@ -389,7 +378,7 @@ void VulkanGpuCommandBuffer::SetRenderTarget(const SPtr<RenderTarget>& renderTar
 	// Warn if invalid load mask
 	if(loadMask.IsSet(RT_DEPTH) && !loadMask.IsSet(RT_STENCIL))
 	{
-		B3D_LOG(Warning, RenderBackend, "setRenderTarget() invalid load mask, depth enabled but stencil disabled. "
+		B3D_LOG(Warning, RenderBackend, "SetRenderTarget() invalid load mask, depth enabled but stencil disabled. "
 									   "This is not supported. Both will be loaded.");
 
 		loadMask.Set(RT_STENCIL);
@@ -397,7 +386,7 @@ void VulkanGpuCommandBuffer::SetRenderTarget(const SPtr<RenderTarget>& renderTar
 
 	if(!loadMask.IsSet(RT_DEPTH) && loadMask.IsSet(RT_STENCIL))
 	{
-		B3D_LOG(Warning, RenderBackend, "setRenderTarget() invalid load mask, stencil enabled but depth disabled. "
+		B3D_LOG(Warning, RenderBackend, "SetRenderTarget() invalid load mask, stencil enabled but depth disabled. "
 									   "This is not supported. Both will be loaded.");
 
 		loadMask.Set(RT_DEPTH);

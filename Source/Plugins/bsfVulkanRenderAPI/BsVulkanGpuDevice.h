@@ -114,7 +114,7 @@ namespace bs
 			void DoForEachQueue(const std::function<void(VulkanGpuQueue&)>&& callback) const;
 
 			/** Returns the best matching surface format according to the provided parameters. */
-			SurfaceFormat GetSurfaceFormat(const VkSurfaceKHR& surface, bool gamma) const;
+			SurfaceFormat GetSurfaceFormat(const VkSurfaceKHR& surface, bool useHardwareSRGB) const;
 
 			/** Returns a pool that can be used for allocating queries on this device. */
 			VulkanQueryPool& GetQueryPool() const { return *mQueryPool; }

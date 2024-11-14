@@ -1,21 +1,15 @@
 //************************************ bs::framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "Win32/BsWin32RenderWindow.h"
+#include "BsWin32RenderWindow.h"
 
 #include "BsCoreApplication.h"
+#include "BsWin32VideoModeInfo.h"
 #include "Private/Win32/BsWin32Platform.h"
 #include "Private/Win32/BsWin32Window.h"
-#include "Win32/BsWin32VideoModeInfo.h"
 #include "CoreObject/BsRenderThread.h"
-#include "Profiling/BsRenderStats.h"
 #include "Managers/BsRenderWindowManager.h"
-#include "BsVulkanGpuDevice.h"
-#include "BsVulkanSwapChain.h"
-#include "BsVulkanGpuCommandBuffer.h"
-#include "BsVulkanGpuBackend.h"
-#include "BsVulkanGpuQueue.h"
-#include "BsVulkanSubmitThread.h"
 #include "Math/BsMath.h"
+#include "RenderAPI/BsGpuDevice.h"
 
 using namespace bs;
 
@@ -25,7 +19,11 @@ Win32RenderWindow::Win32RenderWindow(const RenderWindowCreateInformation& create
 
 Win32RenderWindow::~Win32RenderWindow()
 {
-	// TODO - Wait for Vulkan submit thread to finish, destroy associated swap chain and surface
+	GetRenderThread().PostCommand([renderProxy = GetRenderProxy()]
+	{
+		if(renderProxy != nullptr)
+			renderProxy->Destroy();
+	}, "DestroyRenderWindowRenderProxy", true);
 
 	if(mWindow != nullptr)
 	{
@@ -377,66 +375,10 @@ void Win32RenderWindow::DoOnWindowMovedOrResized()
 
 namespace bs {
 namespace ct {
+
 Win32RenderWindow::Win32RenderWindow(const RenderWindowCreateInformation& createInformation, u32 windowId, u64 hWnd, const SPtr<RenderWindow>& parentWindow)
-	: RenderWindow(createInformation, windowId, parentWindow), mHWnd(hWnd)
+	: RenderWindow(createInformation, windowId, hWnd, parentWindow)
 { }
-
-Win32RenderWindow::~Win32RenderWindow()
-{
-	// TODO - When destroying main thread window this should be called first
-
-	GetVulkanSubmitThread().WaitUntilIdle();
-	mSwapChain->Destroy();
-}
-
-void Win32RenderWindow::Initialize()
-{
-	// Create Vulkan surface
-	VkWin32SurfaceCreateInfoKHR surfaceCreateInfo;
-	surfaceCreateInfo.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
-	surfaceCreateInfo.pNext = nullptr;
-	surfaceCreateInfo.flags = 0;
-	surfaceCreateInfo.hwnd = (HWND)mHWnd;
-
-#ifdef BS_STATIC_LIB
-	surfaceCreateInfo.hinstance = GetModuleHandle(NULL);
-#else
-	surfaceCreateInfo.hinstance = GetModuleHandle("bsfVulkanRenderAPI.dll");
-#endif
-
-	VkInstance instance = GetVulkanGpuBackend().GetVkInstance();
-	VkSurfaceKHR vkSurface;
-	VkResult result = vkCreateWin32SurfaceKHR(instance, &surfaceCreateInfo, gVulkanAllocator, &vkSurface);
-	B3D_ASSERT(result == VK_SUCCESS);
-
-	mSurface = B3DMakeShared<VulkanSurface>(vkSurface);
-
-	SPtr<VulkanGpuDevice> presentDevice = GetVulkanGpuBackend().GetPresentDevice();
-	VkPhysicalDevice physicalDevice = presentDevice->GetPhysical();
-
-	mPresentQueueFamily = presentDevice->GetQueueFamily(GQT_GRAPHICS);
-
-	VkBool32 supportsPresent;
-	vkGetPhysicalDeviceSurfaceSupportKHR(physicalDevice, mPresentQueueFamily, vkSurface, &supportsPresent);
-
-	if(!supportsPresent)
-	{
-		// Note: Not supporting present only queues at the moment
-		// Note: Also present device can only return one family of graphics queue, while there could be more (some of
-		// which support present)
-		B3D_EXCEPT(RenderingAPIException, "Cannot find a graphics queue that also supports present operations.");
-	}
-
-	SurfaceFormat format = presentDevice->GetSurfaceFormat(vkSurface, mCreateInformation.Gamma);
-	mColorFormat = format.ColorFormat;
-	mColorSpace = format.ColorSpace;
-	mDepthFormat = format.DepthFormat;
-
-	// Create swap chain
-	mSwapChain = presentDevice->GetResourceManager().Create<VulkanSwapChain>(mSurface, mRenderTargetProperties.Width, mRenderTargetProperties.Height, mRenderWindowProperties.Vsync, mColorFormat, mColorSpace, mCreateInformation.DepthBuffer, mDepthFormat);
-
-	RenderWindow::Initialize();
-}
 
 void Win32RenderWindow::SwapBuffers(u32 syncMask)
 {
@@ -445,25 +387,5 @@ void Win32RenderWindow::SwapBuffers(u32 syncMask)
 	// TODO - Implement show on swap
 	//if(mShowOnSwap)
 	//	SetHidden(false);
-}
-
-void Win32RenderWindow::RebuildSwapChain()
-{
-	GetVulkanSubmitThread().WaitUntilIdle();
-
-	SPtr<VulkanGpuDevice> presentDevice = GetVulkanGpuBackend().GetPresentDevice();
-	VulkanSwapChain* oldSwapChain = mSwapChain;
-	oldSwapChain->MarkAsRetired();
-
-	mSwapChain = presentDevice->GetResourceManager().Create<VulkanSwapChain>(mSurface, mRenderTargetProperties.Width, mRenderTargetProperties.Height, mRenderWindowProperties.Vsync, mColorFormat, mColorSpace, mCreateInformation.DepthBuffer, mDepthFormat, oldSwapChain);
-	oldSwapChain->Destroy();
-
-	OnSwapChainDidRebuild();
-}
-
-void Win32RenderWindow::DoOnSwapChainPropertiesModified()
-{
-	if(mSwapChain != nullptr)
-		mSwapChain->MarkAsInvalid();
 }
 }} // namespace bs::ct

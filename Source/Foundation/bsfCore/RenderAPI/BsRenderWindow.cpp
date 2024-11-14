@@ -5,6 +5,8 @@
 #include "CoreObject/BsCoreObjectSync.h"
 #include "CoreObject/BsRenderThread.h"
 #include "Managers/BsRenderWindowManager.h"
+#include "Managers/BsRenderWindowManager.h"
+#include "Managers/BsRenderWindowManager.h"
 #include "RenderAPI/BsViewport.h"
 #include "Platform/BsPlatform.h"
 #include "Private/RTTI/BsRenderTargetRTTI.h"
@@ -73,7 +75,7 @@ void RenderWindow::SetFullscreen(const VideoMode& mode)
 
 SPtr<RenderWindow> RenderWindow::Create(const RenderWindowCreateInformation& createInformation, const SPtr<RenderWindow>& parentWindow)
 {
-	return RenderWindowManager::Instance().Create(createInformation, parentWindow);
+	return RenderWindowManager::Instance().CreateRenderWindow(createInformation, parentWindow);
 }
 
 void RenderWindow::NotifyWindowEvent(WindowEventType type)
@@ -173,10 +175,54 @@ RTTIType* RenderWindow::GetRtti() const
 
 namespace bs { namespace ct
 {
-RenderWindow::RenderWindow(const RenderWindowCreateInformation& createInformation, u32 windowId, const SPtr<RenderWindow>& parentWindow)
-	:  mCreateInformation(createInformation), mWindowId(windowId), mParentWindow(parentWindow), mRenderWindowProperties(CreateRenderWindowProperties(createInformation))
+RenderWindow::RenderWindow(const RenderWindowCreateInformation& createInformation, u32 windowId, u64 platformWindowHandle, const SPtr<RenderWindow>& parentWindow)
+	:  mCreateInformation(createInformation), mWindowId(windowId), mPlatformWindowHandle(platformWindowHandle), mParentWindow(parentWindow), mRenderWindowProperties(CreateRenderWindowProperties(createInformation))
 {
 	mRenderTargetProperties = CreateRenderTargetProperties(createInformation);
+}
+
+void RenderWindow::Initialize()
+{
+	if(mCreateInformation.CreateRenderSurface)
+	{
+		RenderWindowSurfaceCreateInformation renderWindowSurfaceCreateInformation;
+		renderWindowSurfaceCreateInformation.Width = mRenderTargetProperties.Width;
+		renderWindowSurfaceCreateInformation.Height = mRenderTargetProperties.Height;
+		renderWindowSurfaceCreateInformation.CreateDepthBuffer = mCreateInformation.DepthBuffer;
+		renderWindowSurfaceCreateInformation.UseHardwareSRGB = mCreateInformation.Gamma;
+		renderWindowSurfaceCreateInformation.VSync = mCreateInformation.Vsync;
+		renderWindowSurfaceCreateInformation.PlatformWindowHandle = mPlatformWindowHandle;
+
+		mRenderWindowSurface = bs::RenderWindowManager::Instance().CreateRenderWindowSurface(renderWindowSurfaceCreateInformation);
+	}
+
+	Super::Initialize();
+}
+
+void RenderWindow::Destroy()
+{
+	if(mRenderWindowSurface != nullptr)
+	{
+		mRenderWindowSurface->Destroy();
+		mRenderWindowSurface = nullptr;
+	}
+
+	Super::Destroy();
+}
+
+void RenderWindow::RebuildSwapChain()
+{
+	if(mRenderWindowSurface != nullptr)
+	{
+		mRenderWindowSurface->RebuildSwapChain(mRenderTargetProperties.Width, mRenderTargetProperties.Height, mRenderWindowProperties.Vsync);
+		OnSwapChainDidRebuild();
+	}
+}
+
+void RenderWindow::DoOnSwapChainPropertiesModified()
+{
+	if(mRenderWindowSurface != nullptr)
+		mRenderWindowSurface->MarkSwapChainAsInvalid();
 }
 
 void RenderWindow::SyncFromCoreObject(const CoreSyncData& data, FrameAllocator& allocator)

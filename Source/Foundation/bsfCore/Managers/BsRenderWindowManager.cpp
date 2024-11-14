@@ -4,16 +4,31 @@
 #include "Platform/BsPlatform.h"
 #include "BsCoreApplication.h"
 
+#if B3D_PLATFORM == B3D_PLATFORM_ID_WIN32
+#	include "Private/Win32/BsWin32RenderWindow.h"
+#elif B3D_PLATFORM == B3D_PLATFORM_ID_LINUX
+#	include "Private/Linux/BsLinuxRenderWindow.h"
+#elif B3D_PLATFORM == B3D_PLATFORM_ID_MACOS
+#	include "Private/MacOS/BsMacOSRenderWindow.h"
+#endif
+
 using namespace std::placeholders;
 using namespace bs;
 
-SPtr<RenderWindow> RenderWindowManager::Create(const RenderWindowCreateInformation& createInformation, const SPtr<RenderWindow>& parentWindow)
+SPtr<RenderWindow> RenderWindowManager::CreateRenderWindow(const RenderWindowCreateInformation& createInformation, const SPtr<RenderWindow>& parentWindow)
 {
 	const u32 id = mNextWindowId++;
 
-	SPtr<RenderWindow> renderWindow = CreateImplementation(createInformation, id, parentWindow);
-	renderWindow->SetShared(renderWindow);
+	SPtr<RenderWindow> renderWindow;
+#if B3D_PLATFORM == B3D_PLATFORM_ID_WIN32
+	renderWindow = B3DMakeShared<Win32RenderWindow>(createInformation, id, parentWindow);
+#elif B3D_PLATFORM == B3D_PLATFORM_ID_LINUX
+	renderWindow = B3DMakeShared<LinuxRenderWindow>(createInformation, id, parentWindow);
+#elif B3D_PLATFORM == B3D_PLATFORM_ID_MACOS
+	renderWindow = B3DMakeShared<MacOSRenderWindow>(createInformation, id, parentWindow);
+#endif
 
+	renderWindow->SetShared(renderWindow);
 	mWindows[renderWindow->mWindowId] = renderWindow.get();
 
 	if(renderWindow->GetRenderWindowProperties().IsModal)
@@ -81,14 +96,4 @@ RenderWindow* RenderWindowManager::GetTopMostModal() const
 		return nullptr;
 
 	return mModalWindowStack.back();
-}
-
-RenderWindow* RenderWindowManager::GetRenderProxyObject(const ct::RenderWindow* window) const
-{
-	auto iterFind = mWindows.find(window->mWindowId);
-
-	if(iterFind != mWindows.end())
-		return iterFind->second;
-
-	return nullptr;
 }

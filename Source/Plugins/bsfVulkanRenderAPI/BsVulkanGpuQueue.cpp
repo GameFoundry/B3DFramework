@@ -77,19 +77,13 @@ void VulkanGpuQueue::PresentRenderWindow(const SPtr<RenderWindow>& renderWindow,
 	if(renderWindow == nullptr)
 		return;
 
+	VulkanRenderWindowSurface* renderWindowSurface = static_cast<VulkanRenderWindowSurface*>(renderWindow->GetRenderWindowSurface().get());
+	if(renderWindowSurface == nullptr)
+		return;
+
 	// Retrieve the swap chain before command buffer submit, as the submit might internally rebuild the swap chain.
-	VulkanSwapChain* swapChain = nullptr;
-
-#if B3D_PLATFORM == B3D_PLATFORM_ID_WIN32
-	Win32RenderWindow* window = static_cast<Win32RenderWindow*>(renderWindow.get());
-#elif B3D_PLATFORM == B3D_PLATFORM_ID_LINUX
-	LinuxRenderWindow* window = static_cast<LinuxRenderWindow*>(renderWindow.get());
-#elif B3D_PLATFORM == B3D_PLATFORM_ID_MACOS
-	MacOSRenderWindow* window = static_cast<MacOSRenderWindow*>(renderWindow.get());
-#endif
-
-	window->SwapBuffers();
-	swapChain = window->GetSwapChain();
+	VulkanSwapChain* const swapChain = renderWindowSurface->GetSwapChain();
+	renderWindow->SwapBuffers();
 
 	GetVulkanSubmitThread().QueuePresent(*this, *swapChain, syncMask);
 

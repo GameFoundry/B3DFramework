@@ -21,7 +21,10 @@ namespace bs
 		~RenderWindowManager() = default;
 
 		/** Creates a new render window using the specified options. Optionally makes the created window a child of another window. */
-		SPtr<RenderWindow> Create(const RenderWindowCreateInformation& createInformation, const SPtr<RenderWindow>& parentWindow);
+		SPtr<RenderWindow> CreateRenderWindow(const RenderWindowCreateInformation& createInformation, const SPtr<RenderWindow>& parentWindow);
+
+		/** Creates a render window surface that is appropriate for the currently active platform & GPU backend combination. Thread safe. */
+		virtual SPtr<ct::IRenderWindowSurface> CreateRenderWindowSurface(const ct::RenderWindowSurfaceCreateInformation& createInformation) = 0;
 
 		/** Called once per frame. Dispatches events. */
 		void Update();
@@ -55,12 +58,6 @@ namespace bs
 
 	protected:
 		friend class RenderWindow;
-
-		/**	Finds a main thread equivalent of the provided render proxy. */
-		RenderWindow* GetRenderProxyObject(const ct::RenderWindow* window) const;
-
-		/** @copydoc Create */
-		virtual SPtr<RenderWindow> CreateImplementation(const RenderWindowCreateInformation& createInformation, u32 windowId, const SPtr<RenderWindow>& parentWindow) = 0;
 
 	protected:
 		Map<u32, RenderWindow*> mWindows;

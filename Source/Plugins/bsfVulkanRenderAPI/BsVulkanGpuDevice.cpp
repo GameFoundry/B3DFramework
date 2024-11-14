@@ -701,7 +701,7 @@ u32 VulkanGpuDevice::GetQueueMask(GpuQueueUsage type, u32 queueIdx) const
 	return idMask;
 }
 
-SurfaceFormat VulkanGpuDevice::GetSurfaceFormat(const VkSurfaceKHR& surface, bool gamma) const
+SurfaceFormat VulkanGpuDevice::GetSurfaceFormat(const VkSurfaceKHR& surface, bool useHardwareSRGB) const
 {
 	uint32_t numFormats;
 	VkResult result = vkGetPhysicalDeviceSurfaceFormatsKHR(mPhysicalDevice, surface, &numFormats, nullptr);
@@ -723,7 +723,7 @@ SurfaceFormat VulkanGpuDevice::GetSurfaceFormat(const VkSurfaceKHR& surface, boo
 	// If there is no preferred format, use standard RGBA
 	if((numFormats == 1) && (surfaceFormats[0].format == VK_FORMAT_UNDEFINED))
 	{
-		if(gamma)
+		if(useHardwareSRGB)
 			output.ColorFormat = VK_FORMAT_R8G8B8A8_SRGB;
 		else
 			output.ColorFormat = VK_FORMAT_B8G8R8A8_UNORM;
@@ -754,7 +754,7 @@ SurfaceFormat VulkanGpuDevice::GetSurfaceFormat(const VkSurfaceKHR& surface, boo
 
 		u32 numWantedFormats;
 		VkFormat* wantedFormats;
-		if(gamma)
+		if(useHardwareSRGB)
 		{
 			numWantedFormats = sizeof(wantedFormatsSRGB) / sizeof(wantedFormatsSRGB[0]);
 			wantedFormats = wantedFormatsSRGB;
@@ -789,7 +789,7 @@ SurfaceFormat VulkanGpuDevice::GetSurfaceFormat(const VkSurfaceKHR& surface, boo
 			output.ColorFormat = surfaceFormats[0].format;
 			output.ColorSpace = surfaceFormats[0].colorSpace;
 
-			if(gamma)
+			if(useHardwareSRGB)
 			{
 				B3D_LOG(Error, RenderBackend, "Cannot find a valid sRGB format for a render window surface, "
 											 "falling back to a default format.");

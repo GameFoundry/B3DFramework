@@ -100,6 +100,9 @@ namespace bs
 
 		/** Window will be created as hidden and only be shown when the first framebuffer swap happens. */
 		bool HideUntilSwap = false;
+
+		/** If true the window render surface will be created, which internally provides a swap chain and allows the GPU to render to the window. */
+		bool CreateRenderSurface = true;
 	};
 
 	/**	Contains various properties that describe a render window. */
@@ -292,13 +295,18 @@ namespace bs
 		 *  @{
 		 */
 
+		class IRenderWindowSurface;
+
 		/** Render thread counterpart of bs::RenderWindow. */
 		class B3D_CORE_EXPORT RenderWindow : public RenderTarget
 		{
 			using Super = RenderTarget;
 		public:
-			RenderWindow(const RenderWindowCreateInformation& createInformation, u32 windowId, const SPtr<RenderWindow>& parentWindow);
+			RenderWindow(const RenderWindowCreateInformation& createInformation, u32 windowId, u64 platformWindowHandle, const SPtr<RenderWindow>& parentWindow);
 			~RenderWindow() override = default;
+
+			void Initialize() override;
+			void Destroy() override;
 
 			/**
 			 * Swaps the frame buffers to display the next frame.
@@ -311,11 +319,17 @@ namespace bs
 			 */
 			virtual void SwapBuffers(u32 syncMask = 0xFFFFFFFF) {}
 
+			/** Rebuilds the swap chain according to the currently set properties. */
+			virtual void RebuildSwapChain();
+
 			/**	Returns properties that describe the render window. */
 			const RenderWindowProperties& GetRenderWindowProperties() const { return mRenderWindowProperties; }
 
+			/** Returns the internal render window surface, if any. */
+			const SPtr<IRenderWindowSurface>& GetRenderWindowSurface() const { return mRenderWindowSurface; }
+
 			/** Triggers whenever the window changes properties that are relevant for the swap chain. */
-			virtual void DoOnSwapChainPropertiesModified() {}
+			virtual void DoOnSwapChainPropertiesModified();
 
 			/** Triggered when the window swap chain has been recreated. */
 			mutable Event<void()> OnSwapChainDidRebuild;
@@ -332,6 +346,39 @@ namespace bs
 			RenderWindowProperties mRenderWindowProperties;
 			WeakSPtr<RenderWindow> mParentWindow;
 			u32 mWindowId = 0;
+			u64 mPlatformWindowHandle = 0;
+			SPtr<IRenderWindowSurface> mRenderWindowSurface;
+		};
+
+		/** Structure used for initializing an implementation of RenderWindowSurface. */
+		struct RenderWindowSurfaceCreateInformation
+		{
+			u64 PlatformWindowHandle = 0; /**< Platform specific handle to the window we're creating the surface for. */
+			u32 Width = 0; /**< Width of the render surface, in pixels. */
+			u32 Height = 0; /**< Height of the render surface, in pixels. */
+			bool VSync = false;
+			bool CreateDepthBuffer = false;
+			bool UseHardwareSRGB = false;
+		};
+
+		/**
+		 * Interface that acts as a bridge between a RenderWindow and a GpuBackend. One such interface should be implemented for each GPU backend.
+		 * Internally creates the swap chain that allows the GPU to render to the window.
+		 */
+		class B3D_CORE_EXPORT IRenderWindowSurface
+		{
+		public:
+			IRenderWindowSurface() = default;
+			virtual ~IRenderWindowSurface() = default;
+
+			/** Rebuilds the swap chain with new properties. */
+			virtual void RebuildSwapChain(u32 width, u32 height, bool vsync) = 0;
+
+			/** Marks the swap chain as invalid, so the systems knows to rebuild it on the next occasion. */
+			virtual void MarkSwapChainAsInvalid() = 0;
+
+			/** Releases any resources associated with the surface. */
+			virtual void Destroy() = 0;
 		};
 
 		/** @} */
