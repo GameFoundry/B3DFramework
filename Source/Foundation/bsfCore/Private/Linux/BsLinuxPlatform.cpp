@@ -342,8 +342,7 @@ void Platform::clipCursorToWindow(const RenderWindow& window)
 {
 	Lock lock(mData->lock);
 
-	LinuxWindow* linuxWindow;
-	window.getCustomAttribute("LINUX_WINDOW", &linuxWindow);
+	LinuxWindow* const linuxWindow = static_cast<const LinuxRenderWindow&>(window.GetLowLevelWindow());
 
 	mData->cursorClipEnabled = true;
 	mData->cursorClipWindow = linuxWindow;
@@ -412,31 +411,27 @@ void Platform::setIcon(const PixelData& pixelData)
 	mainLinuxWindow->SetIcon(pixelData);
 }
 
-void Platform::setCaptionNonClientAreas(const ct::RenderWindow& window, const Vector<Rect2I>& nonClientAreas)
+void Platform::setCaptionNonClientAreas(const RenderWindow& window, const Vector<Rect2I>& nonClientAreas)
 {
 	if(nonClientAreas.size() == 0)
 		return;
 
 	Lock lock(mData->lock);
 
-	LinuxWindow* linuxWindow;
-	window.getCustomAttribute("LINUX_WINDOW", &linuxWindow);
-
+	LinuxWindow* const linuxWindow = static_cast<const LinuxRenderWindow&>(window.GetLowLevelWindow());
 	linuxWindow->SetDragZonesInternal(nonClientAreas);
 }
 
-void Platform::setResizeNonClientAreas(const ct::RenderWindow& window, const Vector<NonClientResizeArea>& nonClientAreas)
+void Platform::setResizeNonClientAreas(const RenderWindow& window, const Vector<NonClientResizeArea>& nonClientAreas)
 {
 	// Do nothing, resize areas not supported on Linux (but they are provided even on undecorated windows by the WM)
 }
 
-void Platform::resetNonClientAreas(const ct::RenderWindow& window)
+void Platform::resetNonClientAreas(const RenderWindow& window)
 {
 	Lock lock(mData->lock);
 
-	LinuxWindow* linuxWindow;
-	window.getCustomAttribute("LINUX_WINDOW", &linuxWindow);
-
+	LinuxWindow* const linuxWindow = static_cast<const LinuxRenderWindow&>(window.GetLowLevelWindow());
 	linuxWindow->SetDragZonesInternal({});
 }
 
@@ -790,11 +785,11 @@ LinuxWindow* getLinuxWindow(LinuxPlatform::Pimpl* data, ::Window xWindow)
 }
 
 /** Returns a RenderWindow from a native X11 window handle. Returns null if the window isn't a RenderWindow */
-ct::RenderWindow* getRenderWindow(LinuxPlatform::Pimpl* data, ::Window xWindow)
+RenderWindow* getRenderWindow(LinuxPlatform::Pimpl* data, ::Window xWindow)
 {
 	LinuxWindow* linuxWindow = getLinuxWindow(data, xWindow);
 	if(linuxWindow != nullptr)
-		return (ct::RenderWindow*)linuxWindow->GetUserDataInternal();
+		return (RenderWindow*)linuxWindow->GetUserDataInternal();
 
 	return nullptr;
 }
@@ -879,7 +874,7 @@ void Platform::MessagePumpInternal()
 					if(window != nullptr)
 					{
 						// If it's a render window we allow the client code to handle the message
-						ct::RenderWindow* renderWindow = (ct::RenderWindow*)window->GetUserDataInternal();
+						RenderWindow* renderWindow = (RenderWindow*)window->GetUserDataInternal();
 						if(renderWindow != nullptr)
 							renderWindow->NotifyWindowEventInternal(WindowEventType::CloseRequested);
 						else // If not, we just destroy the window
@@ -1093,9 +1088,9 @@ void Platform::MessagePumpInternal()
 						SetCursorPositionInternal(mData, pos);
 				}
 
-				ct::RenderWindow* renderWindow = getRenderWindow(mData, event.xcrossing.window);
+				RenderWindow* renderWindow = getRenderWindow(mData, event.xcrossing.window);
 				if(renderWindow != nullptr)
-					renderWindow->NotifyWindowEventInternal(WindowEventType::MouseLeft);
+					renderWindow->NotifyWindowEvent(WindowEventType::MouseLeft);
 			}
 			break;
 		case ConfigureNotify:
@@ -1105,11 +1100,11 @@ void Platform::MessagePumpInternal()
 				{
 					updateClipBounds(mData, window);
 
-					ct::RenderWindow* renderWindow = (ct::RenderWindow*)window->GetUserDataInternal();
+					RenderWindow* renderWindow = (RenderWindow*)window->GetUserDataInternal();
 					if(renderWindow != nullptr)
 					{
-						renderWindow->NotifyWindowEventInternal(WindowEventType::Resized);
-						renderWindow->NotifyWindowEventInternal(WindowEventType::Moved);
+						renderWindow->NotifyWindowEvent(WindowEventType::Resized);
+						renderWindow->NotifyWindowEvent(WindowEventType::Moved);
 					}
 				}
 			}
@@ -1120,13 +1115,13 @@ void Platform::MessagePumpInternal()
 				XSetICFocus(mData->IC);
 
 				// Send event to render window
-				ct::RenderWindow* renderWindow = getRenderWindow(mData, event.xfocus.window);
+				RenderWindow* renderWindow = getRenderWindow(mData, event.xfocus.window);
 
 				// Not a render window, so it doesn't care about these events
 				if(renderWindow != nullptr)
 				{
 					if(!renderWindow->GetProperties().hasFocus)
-						renderWindow->NotifyWindowEventInternal(WindowEventType::FocusReceived);
+						renderWindow->NotifyWindowEvent(WindowEventType::FocusReceived);
 				}
 			}
 			break;
@@ -1136,13 +1131,13 @@ void Platform::MessagePumpInternal()
 				XUnsetICFocus(mData->IC);
 
 				// Send event to render window
-				ct::RenderWindow* renderWindow = getRenderWindow(mData, event.xfocus.window);
+				RenderWindow* renderWindow = getRenderWindow(mData, event.xfocus.window);
 
 				// Not a render window, so it doesn't care about these events
 				if(renderWindow != nullptr)
 				{
 					if(renderWindow->GetProperties().hasFocus)
-						renderWindow->NotifyWindowEventInternal(WindowEventType::FocusLost);
+						renderWindow->NotifyWindowEvent(WindowEventType::FocusLost);
 				}
 			}
 			break;
@@ -1211,7 +1206,7 @@ void Platform::MessagePumpInternal()
 
 				if(result == Success)
 				{
-					ct::RenderWindow* renderWindow = getRenderWindow(mData, event.xproperty.window);
+					RenderWindow* renderWindow = getRenderWindow(mData, event.xproperty.window);
 
 					// Not a render window, so it doesn't care about these events
 					if(renderWindow == nullptr)
@@ -1229,17 +1224,17 @@ void Platform::MessagePumpInternal()
 						if(foundVert && foundHorz)
 						{
 							if(event.xproperty.state == PropertyNewValue)
-								renderWindow->NotifyWindowEventInternal(WindowEventType::Maximized);
+								renderWindow->NotifyWindowEvent(WindowEventType::Maximized);
 							else
-								renderWindow->NotifyWindowEventInternal(WindowEventType::Restored);
+								renderWindow->NotifyWindowEvent(WindowEventType::Restored);
 						}
 
 						if(atoms[i] == mData->atomWmStateHidden)
 						{
 							if(event.xproperty.state == PropertyNewValue)
-								renderWindow->NotifyWindowEventInternal(WindowEventType::Minimized);
+								renderWindow->NotifyWindowEvent(WindowEventType::Minimized);
 							else
-								renderWindow->NotifyWindowEventInternal(WindowEventType::Restored);
+								renderWindow->NotifyWindowEvent(WindowEventType::Restored);
 						}
 					}
 
@@ -1255,6 +1250,8 @@ void Platform::MessagePumpInternal()
 
 void Platform::StartUpInternal()
 {
+	XInitThreads(); // TODO: It might be fine to remove XLib locks everywhere, but best get things working first
+
 	Lock lock(mData->lock);
 	mData->xDisplay = XOpenDisplay(nullptr);
 	XSetErrorHandler(x11ErrorHandler);
@@ -1357,10 +1354,6 @@ void Platform::StartUpInternal()
 void Platform::UpdateInternal()
 {
 	LinuxDragAndDrop::update();
-}
-
-void Platform::CoreUpdateInternal()
-{
 	MessagePumpInternal();
 }
 

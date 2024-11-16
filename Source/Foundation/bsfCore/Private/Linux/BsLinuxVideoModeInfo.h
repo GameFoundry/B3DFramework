@@ -2,7 +2,7 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsVulkanPrerequisites.h"
+#include "BsCorePrerequisites.h"
 #include "RenderAPI/BsVideoModeInfo.h"
 #include <X11/extensions/Xrandr.h>
 
@@ -13,7 +13,7 @@ namespace bs::ct
 	 */
 
 	/** @copydoc VideoMode */
-	class LinuxVideoMode : public VideoMode
+	class B3D_CORE_EXPORT LinuxVideoMode : public VideoMode
 	{
 	public:
 		LinuxVideoMode(u32 width, u32 height, float refreshRate, u32 outputIdx);
@@ -29,7 +29,7 @@ namespace bs::ct
 	};
 
 	/** @copydoc VideoOutputInfo */
-	class LinuxVideoOutputInfo : public VideoOutputInfo
+	class B3D_CORE_EXPORT LinuxVideoOutputInfo : public VideoOutputInfo
 	{
 	public:
 		LinuxVideoOutputInfo(::Display* x11Display, i32 screen, XRROutputInfo* outputInfo, XRRCrtcInfo* crtcInfo, XRRScreenResources* screenRes, RROutput outputID, u32 outputIdx);
@@ -46,7 +46,7 @@ namespace bs::ct
 	};
 
 	/** @copydoc VideoModeInfo */
-	class LinuxVideoModeInfo : public VideoModeInfo
+	class B3D_CORE_EXPORT LinuxVideoModeInfo : public VideoModeInfo
 	{
 	public:
 		LinuxVideoModeInfo();

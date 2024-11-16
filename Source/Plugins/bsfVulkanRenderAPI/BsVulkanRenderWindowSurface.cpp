@@ -11,8 +11,8 @@ using namespace bs::ct;
 VulkanRenderWindowSurface::VulkanRenderWindowSurface(const RenderWindowSurfaceCreateInformation& createInformation)
 	:mPlatformWindowHandle(createInformation.PlatformWindowHandle)
 {
-#if B3D_PLATFORM == B3D_PLATFORM_ID_WIN32
 	// Create Vulkan surface
+#if B3D_PLATFORM == B3D_PLATFORM_ID_WIN32
 	VkWin32SurfaceCreateInfoKHR surfaceCreateInfo;
 	surfaceCreateInfo.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
 	surfaceCreateInfo.pNext = nullptr;
@@ -30,7 +30,20 @@ VulkanRenderWindowSurface::VulkanRenderWindowSurface(const RenderWindowSurfaceCr
 	VkResult result = vkCreateWin32SurfaceKHR(instance, &surfaceCreateInfo, gVulkanAllocator, &vkSurface);
 	B3D_ASSERT(result == VK_SUCCESS);
 #elif B3D_PLATFORM == B3D_PLATFORM_ID_LINUX
-	static_assert(false); // TODO
+	VkXlibSurfaceCreateInfoKHR surfaceCreateInfo;
+	surfaceCreateInfo.sType = VK_STRUCTURE_TYPE_XLIB_SURFACE_CREATE_INFO_KHR;
+	surfaceCreateInfo.pNext = nullptr;
+	surfaceCreateInfo.flags = -1;
+	surfaceCreateInfo.window = (::Window)mPlatformWindowHandle;
+	surfaceCreateInfo.dpy = LinuxPlatform::getXDisplay();
+
+	// Note: I manually lock Xlib, while Vulkan spec says XInitThreads should be called, since Vulkan
+	// surely calls Xlib under the hood as well. I've tried to guess which calls use Xlib and lock them
+	// externally, but XInitThreads might be required if problems occur.
+	VkInstance instance = GetVulkanGpuBackend().GetVkInstance();
+	VkSurfaceKHR vkSurface;
+	VkResult result = vkCreateXlibSurfaceKHR(instance, &surfaceCreateInfo, gVulkanAllocator, &vkSurface);
+	B3D_ASSERT(result == VK_SUCCESS);
 #elif B3D_PLATFORM == B3D_PLATFORM_ID_MACOS
 	static_assert(false); // TODO
 #else

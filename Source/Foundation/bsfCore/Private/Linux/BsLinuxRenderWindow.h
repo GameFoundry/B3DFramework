@@ -4,25 +4,28 @@
 
 #include "BsCorePrerequisites.h"
 #include "RenderAPI/BsRenderWindow.h"
+#include <X11/extensions/Xrandr.h>
 
 namespace bs
 {
+	class LinuxWindow;
+	class LinuxRenderWindow;
+
 	namespace ct
 	{
-		class Win32RenderWindow;
+		class LinuxRenderWindow;
 	}
 
 	/** @addtogroup Vulkan
 	 *  @{
 	 */
 
-	/** Render window implementation for Windows using Win32 API. */
-	class B3D_CORE_EXPORT Win32RenderWindow : public RenderWindow
+	/** Render window implementation for Linux. */
+	class B3D_CORE_EXPORT LinuxRenderWindow : public RenderWindow
 	{
-		using Super = RenderWindow;
 	public:
-		Win32RenderWindow(const RenderWindowCreateInformation& createInformation, u32 windowId, const SPtr<RenderWindow>& parentWindow);
-		~Win32RenderWindow() override;
+		LinuxRenderWindow(const RenderWindowCreateInformation& createInformation, u32 windowId, const SPtr<RenderWindow>& parentWindow);
+		~LinuxRenderWindow() override;
 
 		void Initialize() override;
 
@@ -36,37 +39,36 @@ namespace bs
 		void Maximize() override;
 		void Restore() override;
 		void SetFullscreen(u32 width, u32 height, float refreshRate = 60.0f, u32 monitorIdx = 0) override;
+		void SetFullscreen(const VideoMode& mode);
 		void SetWindowed(u32 width, u32 height) override;
 		void SetVSync(bool enabled, u32 interval = 1) override;
 
 		u64 GetPlatformWindowHandle() const override;
 
 	protected:
-		friend class ct::Win32RenderWindow;
+		friend class ct::LinuxRenderWindow;
+
+		/** Changes the video mode to the specified RandR mode on the specified output device. */
+		void SetVideoMode(i32 screen, RROutput output, RRMode mode);
 
 		SPtr<ct::RenderProxy> CreateRenderProxy() const override;
-
 		void DoOnWindowMovedOrResized() override;
 
 	private:
-		Win32Window* mWindow = nullptr;
+		LinuxWindow* mWindow = nullptr;
 		bool mIsChild = false;
 		i32 mDisplayFrequency = 0;
 	};
 
 	namespace ct
 	{
-		/** Render thread proxy for bs::Win32RenderWindow. */
-		class B3D_CORE_EXPORT Win32RenderWindow : public RenderWindow
+		/** Render thread proxy for bs::LinuxRenderWindow. */
+		class B3D_CORE_EXPORT LinuxRenderWindow : public RenderWindow
 		{
-			using Super = RenderWindow;
 		public:
-			Win32RenderWindow(const RenderWindowCreateInformation& createInformation, u32 windowId, u64 hWnd, const SPtr<RenderWindow>& parentWindow);
+			LinuxRenderWindow(const RenderWindowCreateInformation& createInformation, u32 windowId, u64 x11WindowHandle, const SPtr<RenderWindow>& parentWindow);
 
 			void SwapBuffers(u32 syncMask = 0xFFFFFFFF) override;
-
-		protected:
-			friend class bs::Win32RenderWindow;
 		};
 	} // namespace ct
 
