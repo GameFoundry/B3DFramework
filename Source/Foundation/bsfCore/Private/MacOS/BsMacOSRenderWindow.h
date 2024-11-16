@@ -7,27 +7,28 @@
 
 namespace bs
 {
+	class CocoaWindow;
+
 	namespace ct
 	{
-		class Win32RenderWindow;
+		class MacOSRenderWindow;
 	}
 
 	/** @addtogroup Vulkan
 	 *  @{
 	 */
 
-	/** Render window implementation for Windows using Win32 API. */
-	class B3D_CORE_EXPORT Win32RenderWindow : public RenderWindow
+	/** Render window implementation for MacOS using Cocoa. */
+	class B3D_CORE_EXPORT MacOSRenderWindow : public RenderWindow
 	{
-		using Super = RenderWindow;
 	public:
-		Win32RenderWindow(const RenderWindowCreateInformation& createInformation, u32 windowId, const SPtr<RenderWindow>& parentWindow);
+		MacOSRenderWindow(const RenderWindowCreateInformation& createInformation, u32 windowId, const SPtr<RenderWindow>& parentWindow);
 
 		void Initialize() override;
 		void Destroy() override;
 
-		Vector2I ScreenToWindowPosition(const Vector2I& screenPos) const override;
-		Vector2I WindowToScreenPosition(const Vector2I& windowPos) const override;
+		Vector2I ScreenToWindowPosition(const Vector2I& screenPosition) const override;
+		Vector2I WindowToScreenPosition(const Vector2I& windowPosition) const override;
 		void Move(i32 left, i32 top) override;
 		void Resize(u32 width, u32 height) override;
 		void Hide() override;
@@ -36,37 +37,38 @@ namespace bs
 		void Maximize() override;
 		void Restore() override;
 		void SetFullscreen(u32 width, u32 height, float refreshRate = 60.0f, u32 monitorIdx = 0) override;
+		void SetFullscreen(const VideoMode& mode);
 		void SetWindowed(u32 width, u32 height) override;
 		void SetVSync(bool enabled, u32 interval = 1) override;
 
 		u64 GetPlatformWindowHandle() const override;
 
 	protected:
-		friend class ct::Win32RenderWindow;
+		friend class ct::MacOSRenderWindow;
 
 		SPtr<ct::RenderProxy> CreateRenderProxy() const override;
-
 		void DoOnWindowMovedOrResized() override;
 
+		/** Changes the display mode (resolution, refresh rate) of the specified output device. */
+		void SetDisplayMode(const VideoOutputInfo& output, const VideoMode& mode);
+
 	private:
-		Win32Window* mWindow = nullptr;
+		CocoaWindow* mWindow = nullptr;
 		bool mIsChild = false;
-		i32 mDisplayFrequency = 0;
 	};
 
 	namespace ct
 	{
-		/** Render thread proxy for bs::Win32RenderWindow. */
-		class B3D_CORE_EXPORT Win32RenderWindow : public RenderWindow
+		/** Render thread proxy for bs::MacOSRenderWindow. */
+		class MacOSRenderWindow : public RenderWindow
 		{
-			using Super = RenderWindow;
 		public:
-			Win32RenderWindow(const RenderWindowCreateInformation& createInformation, u32 windowId, u64 hWnd, const SPtr<RenderWindow>& parentWindow);
+			MacOSRenderWindow(const RenderWindowCreateInformation& createInformation, u32 windowId, u64 platformWindowHandle, const SPtr<RenderWindow>& parentWindow);
 
 			void SwapBuffers(u32 syncMask = 0xFFFFFFFF) override;
 
 		protected:
-			friend class bs::Win32RenderWindow;
+			friend class bs::MacOSRenderWindow;
 		};
 	} // namespace ct
 

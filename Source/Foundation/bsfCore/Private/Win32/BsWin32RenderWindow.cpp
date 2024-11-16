@@ -17,23 +17,6 @@ Win32RenderWindow::Win32RenderWindow(const RenderWindowCreateInformation& create
 	: RenderWindow(createInformation, windowId, parentWindow)
 {}
 
-Win32RenderWindow::~Win32RenderWindow()
-{
-	GetRenderThread().PostCommand([renderProxy = GetRenderProxy()]
-	{
-		if(renderProxy != nullptr)
-			renderProxy->Destroy();
-	}, "DestroyRenderWindowRenderProxy", true);
-
-	if(mWindow != nullptr)
-	{
-		B3DDelete(mWindow);
-		mWindow = nullptr;
-	}
-
-	Platform::ResetNonClientAreas(*this);
-}
-
 void Win32RenderWindow::Initialize()
 {
 	// Create a window
@@ -127,6 +110,25 @@ void Win32RenderWindow::Initialize()
 	}
 
 	Super::Initialize();
+}
+
+void Win32RenderWindow::Destroy()
+{
+	GetRenderThread().PostCommand([renderProxy = GetRenderProxy()]
+	{
+		if(renderProxy != nullptr)
+			renderProxy->Destroy();
+	}, "DestroyRenderWindowRenderProxy", true);
+
+	if(mWindow != nullptr)
+	{
+		B3DDelete(mWindow);
+		mWindow = nullptr;
+	}
+
+	Platform::ResetNonClientAreas(*this);
+	
+	Super::Destroy();
 }
 
 Vector2I Win32RenderWindow::ScreenToWindowPosition(const Vector2I& screenPos) const

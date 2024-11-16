@@ -20,17 +20,17 @@ namespace bs
 	 *  @{
 	 */
 
-	/** Render window implementation for Linux. */
+	/** Render window implementation for Linux using Xlib. */
 	class B3D_CORE_EXPORT LinuxRenderWindow : public RenderWindow
 	{
 	public:
 		LinuxRenderWindow(const RenderWindowCreateInformation& createInformation, u32 windowId, const SPtr<RenderWindow>& parentWindow);
-		~LinuxRenderWindow() override;
 
 		void Initialize() override;
+		void Destroy() override;
 
-		Vector2I ScreenToWindowPosition(const Vector2I& screenPos) const override;
-		Vector2I WindowToScreenPosition(const Vector2I& windowPos) const override;
+		Vector2I ScreenToWindowPosition(const Vector2I& screenPosition) const override;
+		Vector2I WindowToScreenPosition(const Vector2I& windowPosition) const override;
 		void Move(i32 left, i32 top) override;
 		void Resize(u32 width, u32 height) override;
 		void Hide() override;

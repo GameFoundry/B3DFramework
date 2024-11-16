@@ -11,6 +11,9 @@ using namespace bs::ct;
 VulkanRenderWindowSurface::VulkanRenderWindowSurface(const RenderWindowSurfaceCreateInformation& createInformation)
 	:mPlatformWindowHandle(createInformation.PlatformWindowHandle)
 {
+	VkInstance instance = GetVulkanGpuBackend().GetVkInstance();
+	VkSurfaceKHR vkSurface;
+
 	// Create Vulkan surface
 #if B3D_PLATFORM == B3D_PLATFORM_ID_WIN32
 	VkWin32SurfaceCreateInfoKHR surfaceCreateInfo;
@@ -25,8 +28,6 @@ VulkanRenderWindowSurface::VulkanRenderWindowSurface(const RenderWindowSurfaceCr
 	surfaceCreateInfo.hinstance = GetModuleHandle("bsfVulkanRenderAPI.dll");
 #endif
 
-	VkInstance instance = GetVulkanGpuBackend().GetVkInstance();
-	VkSurfaceKHR vkSurface;
 	VkResult result = vkCreateWin32SurfaceKHR(instance, &surfaceCreateInfo, gVulkanAllocator, &vkSurface);
 	B3D_ASSERT(result == VK_SUCCESS);
 #elif B3D_PLATFORM == B3D_PLATFORM_ID_LINUX
@@ -40,12 +41,29 @@ VulkanRenderWindowSurface::VulkanRenderWindowSurface(const RenderWindowSurfaceCr
 	// Note: I manually lock Xlib, while Vulkan spec says XInitThreads should be called, since Vulkan
 	// surely calls Xlib under the hood as well. I've tried to guess which calls use Xlib and lock them
 	// externally, but XInitThreads might be required if problems occur.
-	VkInstance instance = GetVulkanGpuBackend().GetVkInstance();
-	VkSurfaceKHR vkSurface;
 	VkResult result = vkCreateXlibSurfaceKHR(instance, &surfaceCreateInfo, gVulkanAllocator, &vkSurface);
 	B3D_ASSERT(result == VK_SUCCESS);
 #elif B3D_PLATFORM == B3D_PLATFORM_ID_MACOS
-	static_assert(false); // TODO
+	MacOSPlatform::lockWindows();
+
+		CocoaWindow* const window = MacOSPlatform::getWindow(mCocoaWindowId);
+		if(B3D_ENSURE(window != nullptr))
+		{
+			MacOSPlatform::unlockWindows();
+			return;
+		}
+
+		// Create Vulkan surface
+		VkMacOSSurfaceCreateInfoMVK surfaceCreateInfo;
+		surfaceCreateInfo.sType = VK_STRUCTURE_TYPE_MACOS_SURFACE_CREATE_INFO_MVK;
+		surfaceCreateInfo.pNext = nullptr;
+		surfaceCreateInfo.flags = 0;
+		surfaceCreateInfo.pView = window->_getLayer();
+
+		VkResult result = vkCreateMacOSSurfaceMVK(instance, &surfaceCreateInfo, gVulkanAllocator, &vkSurface);
+		B3D_ASSERT(result == VK_SUCCESS);
+
+		MacOSPlatform::unlockWindows();
 #else
 	static_assert(false);
 #endif

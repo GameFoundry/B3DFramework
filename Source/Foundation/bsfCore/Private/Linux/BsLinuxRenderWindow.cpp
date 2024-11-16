@@ -3,15 +3,10 @@
 #include "CoreThread/BsCoreThread.h"
 #include "Private/Linux/BsLinuxPlatform.h"
 #include "Private/Linux/BsLinuxWindow.h"
-#include "Linux/BsLinuxRenderWindow.h"
-#include "Linux/BsLinuxVideoModeInfo.h"
+#include "Private/Linux/BsLinuxRenderWindow.h"
+#include "Private/Linux/BsLinuxVideoModeInfo.h"
 #include "Math/BsMath.h"
 #include "Managers/BsRenderWindowManager.h"
-#include "Managers/BsVulkanCommandBufferManager.h"
-#include "BsVulkanRenderAPI.h"
-#include "BsVulkanDevice.h"
-#include "BsVulkanSwapChain.h"
-#include "BsVulkanQueue.h"
 #include <X11/Xutil.h>
 
 #define XRANDR_ROTATION_LEFT (1 << 1)
@@ -22,27 +17,6 @@ using namespace bs;
 LinuxRenderWindow::LinuxRenderWindow(const RenderWindowCreateInformation& createInformation, u32 windowId, const SPtr<RenderWindow>& parentWindow)
 	: RenderWindow(createInformation, windowId, parentWindow)
 {}
-
-LinuxRenderWindow::~LinuxRenderWindow()
-{
-	// Make sure to set the original desktop video mode before we exit
-	if(mRenderWindowProperties.IsFullScreen)
-		SetWindowed(50, 50);
-
-	GetRenderThread().PostCommand([renderProxy = GetRenderProxy()]
-	  {
-		  if(renderProxy != nullptr)
-			  renderProxy->Destroy();
-	  }, "DestroyRenderWindowRenderProxy", true);
-
-	Platform::ResetNonClientAreas(*this);
-
-	if(mWindow != nullptr)
-	{
-		B3DDelete(mWindow);
-		mWindow = nullptr;
-	}
-}
 
 void LinuxRenderWindow::Initialize()
 {
@@ -76,7 +50,7 @@ void LinuxRenderWindow::Initialize()
 	windowCreateInformation.parent = 0;
 	if(!B3DIsWeakUnassigned(mParentWindow))
 	{
-		const SPtr<Win32RenderWindow> parentWindow = std::static_pointer_cast<Win32RenderWindow>(mParentWindow.lock());
+		const SPtr<LinuxRenderWindow> parentWindow = std::static_pointer_cast<LinuxRenderWindow>(mParentWindow.lock());
 		if(B3D_ENSURE(parentWindow != nullptr))
 			windowCreateInformation.parent = (::Window)parentWindow->GetPlatformWindowHandle();
 	}
@@ -112,19 +86,42 @@ void LinuxRenderWindow::Initialize()
 	Super::Initialize();
 }
 
-Vector2I LinuxRenderWindow::ScreenToWindowPosition(const Vector2I& screenPos) const
+LinuxRenderWindow::Destroy()
+{
+	// Make sure to set the original desktop video mode before we exit
+	if(mRenderWindowProperties.IsFullScreen)
+		SetWindowed(50, 50);
+
+	GetRenderThread().PostCommand([renderProxy = GetRenderProxy()]
+								  {
+									if(renderProxy != nullptr)
+										renderProxy->Destroy();
+								  }, "DestroyRenderWindowRenderProxy", true);
+
+	Platform::ResetNonClientAreas(*this);
+
+	if(mWindow != nullptr)
+	{
+		B3DDelete(mWindow);
+		mWindow = nullptr;
+	}
+
+	Super::Destroy();
+}
+
+Vector2I LinuxRenderWindow::ScreenToWindowPosition(const Vector2I& screenPosition) const
 {
 	LinuxPlatform::lockX();
-	Vector2I pos = mWindow->ScreenToWindowPos(screenPos);
+	Vector2I pos = mWindow->ScreenToWindowPos(screenPosition);
 	LinuxPlatform::unlockX();
 
 	return pos;
 }
 
-Vector2I LinuxRenderWindow::WindowToScreenPosition(const Vector2I& windowPos) const
+Vector2I LinuxRenderWindow::WindowToScreenPosition(const Vector2I& windowPosition) const
 {
 	LinuxPlatform::lockX();
-	Vector2I pos = mWindow->WindowToScreenPos(windowPos);
+	Vector2I pos = mWindow->WindowToScreenPos(windowPosition);
 	LinuxPlatform::unlockX();
 
 	return pos;

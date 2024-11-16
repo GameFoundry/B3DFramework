@@ -769,12 +769,12 @@ namespace bs
 			waitUntilDone:NO];
 	}}
 
-	void Platform::setResizeNonClientAreas(const ct::RenderWindow& window, const Vector<NonClientResizeArea>& nonClientAreas)
+	void Platform::setResizeNonClientAreas(const RenderWindow& window, const Vector<NonClientResizeArea>& nonClientAreas)
 	{
 		// Do nothing, custom resize areas not needed on MacOS
 	}
 
-	void Platform::resetNonClientAreas(const ct::RenderWindow& window)
+	void Platform::resetNonClientAreas(const RenderWindow& window)
 	{
 		UINT32 windowId;
 		window.getCustomAttribute("WINDOW_ID", &windowId);
