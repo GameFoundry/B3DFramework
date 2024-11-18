@@ -47,6 +47,9 @@ namespace bs
 	AudioFormat ScriptAudioClipImportOptions::InternalGetFormat(ScriptAudioClipImportOptions* self)
 	{
 		AudioFormat tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<AudioClipImportOptions*>(self->GetNativeObject())->Format;
 
 		AudioFormat __output;
@@ -57,12 +60,18 @@ namespace bs
 
 	void ScriptAudioClipImportOptions::InternalSetFormat(ScriptAudioClipImportOptions* self, AudioFormat value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<AudioClipImportOptions*>(self->GetNativeObject())->Format = value;
 	}
 
 	AudioReadMode ScriptAudioClipImportOptions::InternalGetReadMode(ScriptAudioClipImportOptions* self)
 	{
 		AudioReadMode tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<AudioClipImportOptions*>(self->GetNativeObject())->ReadMode;
 
 		AudioReadMode __output;
@@ -73,12 +82,18 @@ namespace bs
 
 	void ScriptAudioClipImportOptions::InternalSetReadMode(ScriptAudioClipImportOptions* self, AudioReadMode value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<AudioClipImportOptions*>(self->GetNativeObject())->ReadMode = value;
 	}
 
 	bool ScriptAudioClipImportOptions::InternalGetIs3D(ScriptAudioClipImportOptions* self)
 	{
 		bool tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<AudioClipImportOptions*>(self->GetNativeObject())->Is3D;
 
 		bool __output;
@@ -89,12 +104,18 @@ namespace bs
 
 	void ScriptAudioClipImportOptions::InternalSetIs3D(ScriptAudioClipImportOptions* self, bool value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<AudioClipImportOptions*>(self->GetNativeObject())->Is3D = value;
 	}
 
 	uint32_t ScriptAudioClipImportOptions::InternalGetBitDepth(ScriptAudioClipImportOptions* self)
 	{
 		uint32_t tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<AudioClipImportOptions*>(self->GetNativeObject())->BitDepth;
 
 		uint32_t __output;
@@ -105,6 +126,9 @@ namespace bs
 
 	void ScriptAudioClipImportOptions::InternalSetBitDepth(ScriptAudioClipImportOptions* self, uint32_t value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<AudioClipImportOptions*>(self->GetNativeObject())->BitDepth = value;
 	}
 #endif

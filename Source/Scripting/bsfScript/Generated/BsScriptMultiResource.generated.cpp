@@ -60,6 +60,9 @@ namespace bs
 	MonoArray* ScriptMultiResource::InternalGetEntries(ScriptMultiResource* self)
 	{
 		Vector<SubResource> nativeArray__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		nativeArray__output = static_cast<MultiResource*>(self->GetNativeObject())->Entries;
 
 		MonoArray* __output;
@@ -76,6 +79,9 @@ namespace bs
 
 	void ScriptMultiResource::InternalSetEntries(ScriptMultiResource* self, MonoArray* value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		Vector<SubResource> nativeArrayvalue;
 		if(value != nullptr)
 		{

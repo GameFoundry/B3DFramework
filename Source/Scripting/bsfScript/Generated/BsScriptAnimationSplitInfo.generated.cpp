@@ -56,6 +56,9 @@ namespace bs
 	MonoString* ScriptAnimationSplitInfo::InternalGetName(ScriptAnimationSplitInfo* self)
 	{
 		String tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<AnimationSplitInfo*>(self->GetNativeObject())->Name;
 
 		MonoString* __output;
@@ -66,6 +69,9 @@ namespace bs
 
 	void ScriptAnimationSplitInfo::InternalSetName(ScriptAnimationSplitInfo* self, MonoString* value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		String tmpvalue;
 		tmpvalue = MonoUtil::MonoToString(value);
 		static_cast<AnimationSplitInfo*>(self->GetNativeObject())->Name = tmpvalue;
@@ -74,6 +80,9 @@ namespace bs
 	uint32_t ScriptAnimationSplitInfo::InternalGetStartFrame(ScriptAnimationSplitInfo* self)
 	{
 		uint32_t tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<AnimationSplitInfo*>(self->GetNativeObject())->StartFrame;
 
 		uint32_t __output;
@@ -84,12 +93,18 @@ namespace bs
 
 	void ScriptAnimationSplitInfo::InternalSetStartFrame(ScriptAnimationSplitInfo* self, uint32_t value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<AnimationSplitInfo*>(self->GetNativeObject())->StartFrame = value;
 	}
 
 	uint32_t ScriptAnimationSplitInfo::InternalGetEndFrame(ScriptAnimationSplitInfo* self)
 	{
 		uint32_t tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<AnimationSplitInfo*>(self->GetNativeObject())->EndFrame;
 
 		uint32_t __output;
@@ -100,12 +115,18 @@ namespace bs
 
 	void ScriptAnimationSplitInfo::InternalSetEndFrame(ScriptAnimationSplitInfo* self, uint32_t value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<AnimationSplitInfo*>(self->GetNativeObject())->EndFrame = value;
 	}
 
 	bool ScriptAnimationSplitInfo::InternalGetIsAdditive(ScriptAnimationSplitInfo* self)
 	{
 		bool tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<AnimationSplitInfo*>(self->GetNativeObject())->IsAdditive;
 
 		bool __output;
@@ -116,6 +137,9 @@ namespace bs
 
 	void ScriptAnimationSplitInfo::InternalSetIsAdditive(ScriptAnimationSplitInfo* self, bool value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<AnimationSplitInfo*>(self->GetNativeObject())->IsAdditive = value;
 	}
 #endif

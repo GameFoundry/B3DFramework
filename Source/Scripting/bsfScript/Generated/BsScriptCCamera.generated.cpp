@@ -129,7 +129,7 @@ namespace bs
 		if(!self->IsNativeObjectValid())
 			{
 				__output = {};
-			return;
+				return;
 			}
 
 		TRadian<float> tmp__output;
@@ -209,7 +209,7 @@ namespace bs
 		if(!self->IsNativeObjectValid())
 			{
 				__output = {};
-			return;
+				return;
 			}
 
 		Matrix4 tmp__output;
@@ -223,7 +223,7 @@ namespace bs
 		if(!self->IsNativeObjectValid())
 			{
 				__output = {};
-			return;
+				return;
 			}
 
 		Matrix4 tmp__output;
@@ -404,7 +404,7 @@ namespace bs
 		if(!self->IsNativeObjectValid())
 			{
 				__output = {};
-			return;
+				return;
 			}
 
 		TVector2I<int32_t> tmp__output;
@@ -418,7 +418,7 @@ namespace bs
 		if(!self->IsNativeObjectValid())
 			{
 				__output = {};
-			return;
+				return;
 			}
 
 		TVector2<float> tmp__output;
@@ -432,7 +432,7 @@ namespace bs
 		if(!self->IsNativeObjectValid())
 			{
 				__output = {};
-			return;
+				return;
 			}
 
 		TVector3<float> tmp__output;
@@ -446,7 +446,7 @@ namespace bs
 		if(!self->IsNativeObjectValid())
 			{
 				__output = {};
-			return;
+				return;
 			}
 
 		TVector3<float> tmp__output;
@@ -460,7 +460,7 @@ namespace bs
 		if(!self->IsNativeObjectValid())
 			{
 				__output = {};
-			return;
+				return;
 			}
 
 		TVector3<float> tmp__output;
@@ -474,7 +474,7 @@ namespace bs
 		if(!self->IsNativeObjectValid())
 			{
 				__output = {};
-			return;
+				return;
 			}
 
 		TVector2<float> tmp__output;
@@ -488,7 +488,7 @@ namespace bs
 		if(!self->IsNativeObjectValid())
 			{
 				__output = {};
-			return;
+				return;
 			}
 
 		TVector3<float> tmp__output;
@@ -502,7 +502,7 @@ namespace bs
 		if(!self->IsNativeObjectValid())
 			{
 				__output = {};
-			return;
+				return;
 			}
 
 		TVector2I<int32_t> tmp__output;
@@ -516,7 +516,7 @@ namespace bs
 		if(!self->IsNativeObjectValid())
 			{
 				__output = {};
-			return;
+				return;
 			}
 
 		TVector2<float> tmp__output;
@@ -530,7 +530,7 @@ namespace bs
 		if(!self->IsNativeObjectValid())
 			{
 				__output = {};
-			return;
+				return;
 			}
 
 		TVector3<float> tmp__output;
@@ -544,7 +544,7 @@ namespace bs
 		if(!self->IsNativeObjectValid())
 			{
 				__output = {};
-			return;
+				return;
 			}
 
 		TVector3<float> tmp__output;
@@ -558,7 +558,7 @@ namespace bs
 		if(!self->IsNativeObjectValid())
 			{
 				__output = {};
-			return;
+				return;
 			}
 
 		TVector2I<int32_t> tmp__output;
@@ -572,7 +572,7 @@ namespace bs
 		if(!self->IsNativeObjectValid())
 			{
 				__output = {};
-			return;
+				return;
 			}
 
 		TRay<float> tmp__output;
@@ -588,7 +588,7 @@ namespace bs
 		if(!self->IsNativeObjectValid())
 			{
 				__output = {};
-			return;
+				return;
 			}
 
 		TVector3<float> tmp__output;
@@ -602,7 +602,7 @@ namespace bs
 		if(!self->IsNativeObjectValid())
 			{
 				__output = {};
-			return;
+				return;
 			}
 
 		TVector3<float> tmp__output;

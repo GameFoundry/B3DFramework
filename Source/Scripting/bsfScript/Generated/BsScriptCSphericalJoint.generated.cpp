@@ -39,7 +39,7 @@ namespace bs
 		if(!self->IsNativeObjectValid())
 			{
 				__output = {};
-			return;
+				return;
 			}
 
 		LimitConeRange tmp__output;

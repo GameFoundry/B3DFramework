@@ -88,7 +88,7 @@ namespace bs
 		if(!self->IsNativeObjectValid())
 			{
 				__output = {};
-			return;
+				return;
 			}
 
 		TVector2<float> tmp__output;

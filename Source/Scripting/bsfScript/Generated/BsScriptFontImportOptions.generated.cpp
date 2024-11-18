@@ -52,6 +52,9 @@ namespace bs
 	MonoArray* ScriptFontImportOptions::InternalGetFontSizes(ScriptFontImportOptions* self)
 	{
 		Vector<float> nativeArray__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		nativeArray__output = static_cast<FontImportOptions*>(self->GetNativeObject())->FontSizes;
 
 		MonoArray* __output;
@@ -68,6 +71,9 @@ namespace bs
 
 	void ScriptFontImportOptions::InternalSetFontSizes(ScriptFontImportOptions* self, MonoArray* value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		Vector<float> nativeArrayvalue;
 		if(value != nullptr)
 		{
@@ -85,6 +91,9 @@ namespace bs
 	MonoArray* ScriptFontImportOptions::InternalGetCharIndexRanges(ScriptFontImportOptions* self)
 	{
 		Vector<CharRange> nativeArray__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		nativeArray__output = static_cast<FontImportOptions*>(self->GetNativeObject())->CharIndexRanges;
 
 		MonoArray* __output;
@@ -101,6 +110,9 @@ namespace bs
 
 	void ScriptFontImportOptions::InternalSetCharIndexRanges(ScriptFontImportOptions* self, MonoArray* value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		Vector<CharRange> nativeArrayvalue;
 		if(value != nullptr)
 		{
@@ -118,6 +130,9 @@ namespace bs
 	uint32_t ScriptFontImportOptions::InternalGetDpi(ScriptFontImportOptions* self)
 	{
 		uint32_t tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<FontImportOptions*>(self->GetNativeObject())->Dpi;
 
 		uint32_t __output;
@@ -128,12 +143,18 @@ namespace bs
 
 	void ScriptFontImportOptions::InternalSetDpi(ScriptFontImportOptions* self, uint32_t value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<FontImportOptions*>(self->GetNativeObject())->Dpi = value;
 	}
 
 	FontRenderMode ScriptFontImportOptions::InternalGetRenderMode(ScriptFontImportOptions* self)
 	{
 		FontRenderMode tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<FontImportOptions*>(self->GetNativeObject())->RenderMode;
 
 		FontRenderMode __output;
@@ -144,12 +165,18 @@ namespace bs
 
 	void ScriptFontImportOptions::InternalSetRenderMode(ScriptFontImportOptions* self, FontRenderMode value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<FontImportOptions*>(self->GetNativeObject())->RenderMode = value;
 	}
 
 	bool ScriptFontImportOptions::InternalGetBold(ScriptFontImportOptions* self)
 	{
 		bool tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<FontImportOptions*>(self->GetNativeObject())->Bold;
 
 		bool __output;
@@ -160,12 +187,18 @@ namespace bs
 
 	void ScriptFontImportOptions::InternalSetBold(ScriptFontImportOptions* self, bool value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<FontImportOptions*>(self->GetNativeObject())->Bold = value;
 	}
 
 	bool ScriptFontImportOptions::InternalGetItalic(ScriptFontImportOptions* self)
 	{
 		bool tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<FontImportOptions*>(self->GetNativeObject())->Italic;
 
 		bool __output;
@@ -176,6 +209,9 @@ namespace bs
 
 	void ScriptFontImportOptions::InternalSetItalic(ScriptFontImportOptions* self, bool value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<FontImportOptions*>(self->GetNativeObject())->Italic = value;
 	}
 #endif

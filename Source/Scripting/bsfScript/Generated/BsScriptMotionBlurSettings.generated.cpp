@@ -48,6 +48,9 @@ namespace bs
 	bool ScriptMotionBlurSettings::InternalGetEnabled(ScriptMotionBlurSettings* self)
 	{
 		bool tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<MotionBlurSettings*>(self->GetNativeObject())->Enabled;
 
 		bool __output;
@@ -58,12 +61,18 @@ namespace bs
 
 	void ScriptMotionBlurSettings::InternalSetEnabled(ScriptMotionBlurSettings* self, bool value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<MotionBlurSettings*>(self->GetNativeObject())->Enabled = value;
 	}
 
 	MotionBlurDomain ScriptMotionBlurSettings::InternalGetDomain(ScriptMotionBlurSettings* self)
 	{
 		MotionBlurDomain tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<MotionBlurSettings*>(self->GetNativeObject())->Domain;
 
 		MotionBlurDomain __output;
@@ -74,12 +83,18 @@ namespace bs
 
 	void ScriptMotionBlurSettings::InternalSetDomain(ScriptMotionBlurSettings* self, MotionBlurDomain value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<MotionBlurSettings*>(self->GetNativeObject())->Domain = value;
 	}
 
 	MotionBlurFilter ScriptMotionBlurSettings::InternalGetFilter(ScriptMotionBlurSettings* self)
 	{
 		MotionBlurFilter tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<MotionBlurSettings*>(self->GetNativeObject())->Filter;
 
 		MotionBlurFilter __output;
@@ -90,12 +105,18 @@ namespace bs
 
 	void ScriptMotionBlurSettings::InternalSetFilter(ScriptMotionBlurSettings* self, MotionBlurFilter value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<MotionBlurSettings*>(self->GetNativeObject())->Filter = value;
 	}
 
 	MotionBlurQuality ScriptMotionBlurSettings::InternalGetQuality(ScriptMotionBlurSettings* self)
 	{
 		MotionBlurQuality tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<MotionBlurSettings*>(self->GetNativeObject())->Quality;
 
 		MotionBlurQuality __output;
@@ -106,12 +127,18 @@ namespace bs
 
 	void ScriptMotionBlurSettings::InternalSetQuality(ScriptMotionBlurSettings* self, MotionBlurQuality value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<MotionBlurSettings*>(self->GetNativeObject())->Quality = value;
 	}
 
 	float ScriptMotionBlurSettings::InternalGetMaximumRadius(ScriptMotionBlurSettings* self)
 	{
 		float tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<MotionBlurSettings*>(self->GetNativeObject())->MaximumRadius;
 
 		float __output;
@@ -122,6 +149,9 @@ namespace bs
 
 	void ScriptMotionBlurSettings::InternalSetMaximumRadius(ScriptMotionBlurSettings* self, float value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<MotionBlurSettings*>(self->GetNativeObject())->MaximumRadius = value;
 	}
 }

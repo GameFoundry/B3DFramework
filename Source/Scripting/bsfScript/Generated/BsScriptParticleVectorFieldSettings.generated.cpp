@@ -57,6 +57,9 @@ namespace bs
 	MonoObject* ScriptParticleVectorFieldSettings::InternalGetVectorField(ScriptParticleVectorFieldSettings* self)
 	{
 		TResourceHandle<VectorField> tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<ParticleVectorFieldSettings*>(self->GetNativeObject())->VectorField;
 
 		MonoObject* __output;
@@ -72,6 +75,9 @@ namespace bs
 
 	void ScriptParticleVectorFieldSettings::InternalSetVectorField(ScriptParticleVectorFieldSettings* self, MonoObject* value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		TResourceHandle<VectorField> tmpvalue;
 		ScriptRRefBase* scriptObjectWrappervalue;
 		scriptObjectWrappervalue = ScriptRRefBase::GetScriptObjectWrapper(value);
@@ -83,6 +89,9 @@ namespace bs
 	float ScriptParticleVectorFieldSettings::InternalGetIntensity(ScriptParticleVectorFieldSettings* self)
 	{
 		float tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<ParticleVectorFieldSettings*>(self->GetNativeObject())->Intensity;
 
 		float __output;
@@ -93,12 +102,18 @@ namespace bs
 
 	void ScriptParticleVectorFieldSettings::InternalSetIntensity(ScriptParticleVectorFieldSettings* self, float value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<ParticleVectorFieldSettings*>(self->GetNativeObject())->Intensity = value;
 	}
 
 	float ScriptParticleVectorFieldSettings::InternalGetTightness(ScriptParticleVectorFieldSettings* self)
 	{
 		float tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<ParticleVectorFieldSettings*>(self->GetNativeObject())->Tightness;
 
 		float __output;
@@ -109,12 +124,21 @@ namespace bs
 
 	void ScriptParticleVectorFieldSettings::InternalSetTightness(ScriptParticleVectorFieldSettings* self, float value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<ParticleVectorFieldSettings*>(self->GetNativeObject())->Tightness = value;
 	}
 
 	void ScriptParticleVectorFieldSettings::InternalGetScale(ScriptParticleVectorFieldSettings* self, TVector3<float>* __output)
 	{
 		TVector3<float> tmp__output;
+		if(!self->IsNativeObjectValid())
+			{
+				__output = {};
+				return;
+			}
+
 		tmp__output = static_cast<ParticleVectorFieldSettings*>(self->GetNativeObject())->Scale;
 
 		*__output = tmp__output;
@@ -124,12 +148,21 @@ namespace bs
 
 	void ScriptParticleVectorFieldSettings::InternalSetScale(ScriptParticleVectorFieldSettings* self, TVector3<float>* value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<ParticleVectorFieldSettings*>(self->GetNativeObject())->Scale = *value;
 	}
 
 	void ScriptParticleVectorFieldSettings::InternalGetOffset(ScriptParticleVectorFieldSettings* self, TVector3<float>* __output)
 	{
 		TVector3<float> tmp__output;
+		if(!self->IsNativeObjectValid())
+			{
+				__output = {};
+				return;
+			}
+
 		tmp__output = static_cast<ParticleVectorFieldSettings*>(self->GetNativeObject())->Offset;
 
 		*__output = tmp__output;
@@ -139,12 +172,21 @@ namespace bs
 
 	void ScriptParticleVectorFieldSettings::InternalSetOffset(ScriptParticleVectorFieldSettings* self, TVector3<float>* value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<ParticleVectorFieldSettings*>(self->GetNativeObject())->Offset = *value;
 	}
 
 	void ScriptParticleVectorFieldSettings::InternalGetRotation(ScriptParticleVectorFieldSettings* self, TQuaternion<float>* __output)
 	{
 		TQuaternion<float> tmp__output;
+		if(!self->IsNativeObjectValid())
+			{
+				__output = {};
+				return;
+			}
+
 		tmp__output = static_cast<ParticleVectorFieldSettings*>(self->GetNativeObject())->Rotation;
 
 		*__output = tmp__output;
@@ -154,12 +196,18 @@ namespace bs
 
 	void ScriptParticleVectorFieldSettings::InternalSetRotation(ScriptParticleVectorFieldSettings* self, TQuaternion<float>* value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<ParticleVectorFieldSettings*>(self->GetNativeObject())->Rotation = *value;
 	}
 
 	MonoObject* ScriptParticleVectorFieldSettings::InternalGetRotationRate(ScriptParticleVectorFieldSettings* self)
 	{
 		SPtr<TDistribution<TVector3<float>>> tmp__output = B3DMakeShared<TDistribution<TVector3<float>>>();
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		*tmp__output = static_cast<ParticleVectorFieldSettings*>(self->GetNativeObject())->RotationRate;
 
 		MonoObject* __output;
@@ -170,6 +218,9 @@ namespace bs
 
 	void ScriptParticleVectorFieldSettings::InternalSetRotationRate(ScriptParticleVectorFieldSettings* self, MonoObject* value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		SPtr<TDistribution<TVector3<float>>> tmpvalue;
 		ScriptVector3Distribution* scriptObjectWrappervalue;
 		scriptObjectWrappervalue = ScriptVector3Distribution::GetScriptObjectWrapper(value);
@@ -181,6 +232,9 @@ namespace bs
 	bool ScriptParticleVectorFieldSettings::InternalGetTilingX(ScriptParticleVectorFieldSettings* self)
 	{
 		bool tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<ParticleVectorFieldSettings*>(self->GetNativeObject())->TilingX;
 
 		bool __output;
@@ -191,12 +245,18 @@ namespace bs
 
 	void ScriptParticleVectorFieldSettings::InternalSetTilingX(ScriptParticleVectorFieldSettings* self, bool value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<ParticleVectorFieldSettings*>(self->GetNativeObject())->TilingX = value;
 	}
 
 	bool ScriptParticleVectorFieldSettings::InternalGetTilingY(ScriptParticleVectorFieldSettings* self)
 	{
 		bool tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<ParticleVectorFieldSettings*>(self->GetNativeObject())->TilingY;
 
 		bool __output;
@@ -207,12 +267,18 @@ namespace bs
 
 	void ScriptParticleVectorFieldSettings::InternalSetTilingY(ScriptParticleVectorFieldSettings* self, bool value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<ParticleVectorFieldSettings*>(self->GetNativeObject())->TilingY = value;
 	}
 
 	bool ScriptParticleVectorFieldSettings::InternalGetTilingZ(ScriptParticleVectorFieldSettings* self)
 	{
 		bool tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<ParticleVectorFieldSettings*>(self->GetNativeObject())->TilingZ;
 
 		bool __output;
@@ -223,6 +289,9 @@ namespace bs
 
 	void ScriptParticleVectorFieldSettings::InternalSetTilingZ(ScriptParticleVectorFieldSettings* self, bool value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<ParticleVectorFieldSettings*>(self->GetNativeObject())->TilingZ = value;
 	}
 }

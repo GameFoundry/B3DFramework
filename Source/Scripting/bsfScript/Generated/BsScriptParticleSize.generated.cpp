@@ -49,7 +49,7 @@ namespace bs
 		if(!self->IsNativeObjectValid())
 			{
 				__output = {};
-			return;
+				return;
 			}
 
 		PARTICLE_SIZE_DESC tmp__output;

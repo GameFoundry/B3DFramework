@@ -44,6 +44,9 @@ namespace bs
 	bool ScriptTemporalAASettings::InternalGetEnabled(ScriptTemporalAASettings* self)
 	{
 		bool tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<TemporalAASettings*>(self->GetNativeObject())->Enabled;
 
 		bool __output;
@@ -54,12 +57,18 @@ namespace bs
 
 	void ScriptTemporalAASettings::InternalSetEnabled(ScriptTemporalAASettings* self, bool value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<TemporalAASettings*>(self->GetNativeObject())->Enabled = value;
 	}
 
 	uint32_t ScriptTemporalAASettings::InternalGetJitteredPositionCount(ScriptTemporalAASettings* self)
 	{
 		uint32_t tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<TemporalAASettings*>(self->GetNativeObject())->JitteredPositionCount;
 
 		uint32_t __output;
@@ -70,12 +79,18 @@ namespace bs
 
 	void ScriptTemporalAASettings::InternalSetJitteredPositionCount(ScriptTemporalAASettings* self, uint32_t value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<TemporalAASettings*>(self->GetNativeObject())->JitteredPositionCount = value;
 	}
 
 	float ScriptTemporalAASettings::InternalGetSharpness(ScriptTemporalAASettings* self)
 	{
 		float tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<TemporalAASettings*>(self->GetNativeObject())->Sharpness;
 
 		float __output;
@@ -86,6 +101,9 @@ namespace bs
 
 	void ScriptTemporalAASettings::InternalSetSharpness(ScriptTemporalAASettings* self, float value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<TemporalAASettings*>(self->GetNativeObject())->Sharpness = value;
 	}
 }

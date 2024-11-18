@@ -41,6 +41,9 @@ namespace bs
 	MonoString* ScriptManagedTypeInfoObject::InternalGetTypeNamespace(ScriptManagedTypeInfoObject* self)
 	{
 		String tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<ManagedTypeInfoObject*>(self->GetNativeObject())->TypeNamespace;
 
 		MonoString* __output;
@@ -51,6 +54,9 @@ namespace bs
 
 	void ScriptManagedTypeInfoObject::InternalSetTypeNamespace(ScriptManagedTypeInfoObject* self, MonoString* value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		String tmpvalue;
 		tmpvalue = MonoUtil::MonoToString(value);
 		static_cast<ManagedTypeInfoObject*>(self->GetNativeObject())->TypeNamespace = tmpvalue;
@@ -59,6 +65,9 @@ namespace bs
 	MonoString* ScriptManagedTypeInfoObject::InternalGetTypeName(ScriptManagedTypeInfoObject* self)
 	{
 		String tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<ManagedTypeInfoObject*>(self->GetNativeObject())->TypeName;
 
 		MonoString* __output;
@@ -69,6 +78,9 @@ namespace bs
 
 	void ScriptManagedTypeInfoObject::InternalSetTypeName(ScriptManagedTypeInfoObject* self, MonoString* value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		String tmpvalue;
 		tmpvalue = MonoUtil::MonoToString(value);
 		static_cast<ManagedTypeInfoObject*>(self->GetNativeObject())->TypeName = tmpvalue;
@@ -77,6 +89,9 @@ namespace bs
 	bool ScriptManagedTypeInfoObject::InternalGetIsValueType(ScriptManagedTypeInfoObject* self)
 	{
 		bool tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<ManagedTypeInfoObject*>(self->GetNativeObject())->IsValueType;
 
 		bool __output;
@@ -87,12 +102,18 @@ namespace bs
 
 	void ScriptManagedTypeInfoObject::InternalSetIsValueType(ScriptManagedTypeInfoObject* self, bool value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<ManagedTypeInfoObject*>(self->GetNativeObject())->IsValueType = value;
 	}
 
 	uint32_t ScriptManagedTypeInfoObject::InternalGetTypeRTTIId(ScriptManagedTypeInfoObject* self)
 	{
 		uint32_t tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<ManagedTypeInfoObject*>(self->GetNativeObject())->TypeRTTIId;
 
 		uint32_t __output;
@@ -103,12 +124,18 @@ namespace bs
 
 	void ScriptManagedTypeInfoObject::InternalSetTypeRTTIId(ScriptManagedTypeInfoObject* self, uint32_t value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<ManagedTypeInfoObject*>(self->GetNativeObject())->TypeRTTIId = value;
 	}
 
 	ManagedObjectMetaDataFlag ScriptManagedTypeInfoObject::InternalGetMetaDataFlags(ScriptManagedTypeInfoObject* self)
 	{
 		Flags<ManagedObjectMetaDataFlag> tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<ManagedTypeInfoObject*>(self->GetNativeObject())->MetaDataFlags;
 
 		ManagedObjectMetaDataFlag __output;
@@ -119,6 +146,9 @@ namespace bs
 
 	void ScriptManagedTypeInfoObject::InternalSetMetaDataFlags(ScriptManagedTypeInfoObject* self, ManagedObjectMetaDataFlag value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<ManagedTypeInfoObject*>(self->GetNativeObject())->MetaDataFlags = value;
 	}
 }

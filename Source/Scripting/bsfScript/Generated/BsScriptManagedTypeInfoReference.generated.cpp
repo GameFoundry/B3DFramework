@@ -39,6 +39,9 @@ namespace bs
 	ManagedReferenceType ScriptManagedTypeInfoReference::InternalGetReferenceType(ScriptManagedTypeInfoReference* self)
 	{
 		ManagedReferenceType tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<ManagedTypeInfoReference*>(self->GetNativeObject())->ReferenceType;
 
 		ManagedReferenceType __output;
@@ -49,12 +52,18 @@ namespace bs
 
 	void ScriptManagedTypeInfoReference::InternalSetReferenceType(ScriptManagedTypeInfoReference* self, ManagedReferenceType value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<ManagedTypeInfoReference*>(self->GetNativeObject())->ReferenceType = value;
 	}
 
 	uint32_t ScriptManagedTypeInfoReference::InternalGetTypeRTTIId(ScriptManagedTypeInfoReference* self)
 	{
 		uint32_t tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<ManagedTypeInfoReference*>(self->GetNativeObject())->TypeRTTIId;
 
 		uint32_t __output;
@@ -65,12 +74,18 @@ namespace bs
 
 	void ScriptManagedTypeInfoReference::InternalSetTypeRTTIId(ScriptManagedTypeInfoReference* self, uint32_t value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<ManagedTypeInfoReference*>(self->GetNativeObject())->TypeRTTIId = value;
 	}
 
 	MonoString* ScriptManagedTypeInfoReference::InternalGetTypeNamespace(ScriptManagedTypeInfoReference* self)
 	{
 		String tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<ManagedTypeInfoReference*>(self->GetNativeObject())->TypeNamespace;
 
 		MonoString* __output;
@@ -81,6 +96,9 @@ namespace bs
 
 	void ScriptManagedTypeInfoReference::InternalSetTypeNamespace(ScriptManagedTypeInfoReference* self, MonoString* value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		String tmpvalue;
 		tmpvalue = MonoUtil::MonoToString(value);
 		static_cast<ManagedTypeInfoReference*>(self->GetNativeObject())->TypeNamespace = tmpvalue;
@@ -89,6 +107,9 @@ namespace bs
 	MonoString* ScriptManagedTypeInfoReference::InternalGetTypeName(ScriptManagedTypeInfoReference* self)
 	{
 		String tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<ManagedTypeInfoReference*>(self->GetNativeObject())->TypeName;
 
 		MonoString* __output;
@@ -99,6 +120,9 @@ namespace bs
 
 	void ScriptManagedTypeInfoReference::InternalSetTypeName(ScriptManagedTypeInfoReference* self, MonoString* value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		String tmpvalue;
 		tmpvalue = MonoUtil::MonoToString(value);
 		static_cast<ManagedTypeInfoReference*>(self->GetNativeObject())->TypeName = tmpvalue;

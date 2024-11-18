@@ -54,7 +54,7 @@ namespace bs
 		if(!self->IsNativeObjectValid())
 			{
 				__output = {};
-			return;
+				return;
 			}
 
 		TSize2<uint32_t> tmp__output;
@@ -68,7 +68,7 @@ namespace bs
 		if(!self->IsNativeObjectValid())
 			{
 				__output = {};
-			return;
+				return;
 			}
 
 		TSize2<uint32_t> tmp__output;
@@ -109,7 +109,7 @@ namespace bs
 		if(!self->IsNativeObjectValid())
 			{
 				__output = {};
-			return;
+				return;
 			}
 
 		Rect2 tmp__output;
@@ -131,7 +131,7 @@ namespace bs
 		if(!self->IsNativeObjectValid())
 			{
 				__output = {};
-			return;
+				return;
 			}
 
 		SpriteSheetGridAnimation tmp__output;

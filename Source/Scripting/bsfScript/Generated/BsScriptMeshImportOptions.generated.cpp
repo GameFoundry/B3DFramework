@@ -65,6 +65,9 @@ namespace bs
 	bool ScriptMeshImportOptions::InternalGetCpuCached(ScriptMeshImportOptions* self)
 	{
 		bool tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<MeshImportOptions*>(self->GetNativeObject())->CpuCached;
 
 		bool __output;
@@ -75,12 +78,18 @@ namespace bs
 
 	void ScriptMeshImportOptions::InternalSetCpuCached(ScriptMeshImportOptions* self, bool value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<MeshImportOptions*>(self->GetNativeObject())->CpuCached = value;
 	}
 
 	bool ScriptMeshImportOptions::InternalGetImportNormals(ScriptMeshImportOptions* self)
 	{
 		bool tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<MeshImportOptions*>(self->GetNativeObject())->ImportNormals;
 
 		bool __output;
@@ -91,12 +100,18 @@ namespace bs
 
 	void ScriptMeshImportOptions::InternalSetImportNormals(ScriptMeshImportOptions* self, bool value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<MeshImportOptions*>(self->GetNativeObject())->ImportNormals = value;
 	}
 
 	bool ScriptMeshImportOptions::InternalGetImportTangents(ScriptMeshImportOptions* self)
 	{
 		bool tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<MeshImportOptions*>(self->GetNativeObject())->ImportTangents;
 
 		bool __output;
@@ -107,12 +122,18 @@ namespace bs
 
 	void ScriptMeshImportOptions::InternalSetImportTangents(ScriptMeshImportOptions* self, bool value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<MeshImportOptions*>(self->GetNativeObject())->ImportTangents = value;
 	}
 
 	bool ScriptMeshImportOptions::InternalGetImportBlendShapes(ScriptMeshImportOptions* self)
 	{
 		bool tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<MeshImportOptions*>(self->GetNativeObject())->ImportBlendShapes;
 
 		bool __output;
@@ -123,12 +144,18 @@ namespace bs
 
 	void ScriptMeshImportOptions::InternalSetImportBlendShapes(ScriptMeshImportOptions* self, bool value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<MeshImportOptions*>(self->GetNativeObject())->ImportBlendShapes = value;
 	}
 
 	bool ScriptMeshImportOptions::InternalGetImportSkin(ScriptMeshImportOptions* self)
 	{
 		bool tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<MeshImportOptions*>(self->GetNativeObject())->ImportSkin;
 
 		bool __output;
@@ -139,12 +166,18 @@ namespace bs
 
 	void ScriptMeshImportOptions::InternalSetImportSkin(ScriptMeshImportOptions* self, bool value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<MeshImportOptions*>(self->GetNativeObject())->ImportSkin = value;
 	}
 
 	bool ScriptMeshImportOptions::InternalGetImportAnimation(ScriptMeshImportOptions* self)
 	{
 		bool tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<MeshImportOptions*>(self->GetNativeObject())->ImportAnimation;
 
 		bool __output;
@@ -155,12 +188,18 @@ namespace bs
 
 	void ScriptMeshImportOptions::InternalSetImportAnimation(ScriptMeshImportOptions* self, bool value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<MeshImportOptions*>(self->GetNativeObject())->ImportAnimation = value;
 	}
 
 	bool ScriptMeshImportOptions::InternalGetReduceKeyFrames(ScriptMeshImportOptions* self)
 	{
 		bool tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<MeshImportOptions*>(self->GetNativeObject())->ReduceKeyFrames;
 
 		bool __output;
@@ -171,12 +210,18 @@ namespace bs
 
 	void ScriptMeshImportOptions::InternalSetReduceKeyFrames(ScriptMeshImportOptions* self, bool value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<MeshImportOptions*>(self->GetNativeObject())->ReduceKeyFrames = value;
 	}
 
 	bool ScriptMeshImportOptions::InternalGetImportRootMotion(ScriptMeshImportOptions* self)
 	{
 		bool tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<MeshImportOptions*>(self->GetNativeObject())->ImportRootMotion;
 
 		bool __output;
@@ -187,12 +232,18 @@ namespace bs
 
 	void ScriptMeshImportOptions::InternalSetImportRootMotion(ScriptMeshImportOptions* self, bool value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<MeshImportOptions*>(self->GetNativeObject())->ImportRootMotion = value;
 	}
 
 	float ScriptMeshImportOptions::InternalGetImportScale(ScriptMeshImportOptions* self)
 	{
 		float tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<MeshImportOptions*>(self->GetNativeObject())->ImportScale;
 
 		float __output;
@@ -203,12 +254,18 @@ namespace bs
 
 	void ScriptMeshImportOptions::InternalSetImportScale(ScriptMeshImportOptions* self, float value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<MeshImportOptions*>(self->GetNativeObject())->ImportScale = value;
 	}
 
 	CollisionMeshType ScriptMeshImportOptions::InternalGetCollisionMeshType(ScriptMeshImportOptions* self)
 	{
 		CollisionMeshType tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<MeshImportOptions*>(self->GetNativeObject())->CollisionMeshType;
 
 		CollisionMeshType __output;
@@ -219,12 +276,18 @@ namespace bs
 
 	void ScriptMeshImportOptions::InternalSetCollisionMeshType(ScriptMeshImportOptions* self, CollisionMeshType value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<MeshImportOptions*>(self->GetNativeObject())->CollisionMeshType = value;
 	}
 
 	MonoArray* ScriptMeshImportOptions::InternalGetAnimationSplits(ScriptMeshImportOptions* self)
 	{
 		Vector<AnimationSplitInfo> nativeArray__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		nativeArray__output = static_cast<MeshImportOptions*>(self->GetNativeObject())->AnimationSplits;
 
 		MonoArray* __output;
@@ -245,6 +308,9 @@ namespace bs
 
 	void ScriptMeshImportOptions::InternalSetAnimationSplits(ScriptMeshImportOptions* self, MonoArray* value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		Vector<AnimationSplitInfo> nativeArrayvalue;
 		if(value != nullptr)
 		{
@@ -269,6 +335,9 @@ namespace bs
 	MonoArray* ScriptMeshImportOptions::InternalGetAnimationEvents(ScriptMeshImportOptions* self)
 	{
 		Vector<ImportedAnimationEvents> nativeArray__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		nativeArray__output = static_cast<MeshImportOptions*>(self->GetNativeObject())->AnimationEvents;
 
 		MonoArray* __output;
@@ -289,6 +358,9 @@ namespace bs
 
 	void ScriptMeshImportOptions::InternalSetAnimationEvents(ScriptMeshImportOptions* self, MonoArray* value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		Vector<ImportedAnimationEvents> nativeArrayvalue;
 		if(value != nullptr)
 		{

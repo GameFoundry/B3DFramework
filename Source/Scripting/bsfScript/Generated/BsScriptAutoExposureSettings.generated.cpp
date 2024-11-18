@@ -54,6 +54,9 @@ namespace bs
 	float ScriptAutoExposureSettings::InternalGetHistogramLog2Min(ScriptAutoExposureSettings* self)
 	{
 		float tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<AutoExposureSettings*>(self->GetNativeObject())->HistogramLog2Min;
 
 		float __output;
@@ -64,12 +67,18 @@ namespace bs
 
 	void ScriptAutoExposureSettings::InternalSetHistogramLog2Min(ScriptAutoExposureSettings* self, float value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<AutoExposureSettings*>(self->GetNativeObject())->HistogramLog2Min = value;
 	}
 
 	float ScriptAutoExposureSettings::InternalGetHistogramLog2Max(ScriptAutoExposureSettings* self)
 	{
 		float tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<AutoExposureSettings*>(self->GetNativeObject())->HistogramLog2Max;
 
 		float __output;
@@ -80,12 +89,18 @@ namespace bs
 
 	void ScriptAutoExposureSettings::InternalSetHistogramLog2Max(ScriptAutoExposureSettings* self, float value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<AutoExposureSettings*>(self->GetNativeObject())->HistogramLog2Max = value;
 	}
 
 	float ScriptAutoExposureSettings::InternalGetHistogramPctLow(ScriptAutoExposureSettings* self)
 	{
 		float tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<AutoExposureSettings*>(self->GetNativeObject())->HistogramPctLow;
 
 		float __output;
@@ -96,12 +111,18 @@ namespace bs
 
 	void ScriptAutoExposureSettings::InternalSetHistogramPctLow(ScriptAutoExposureSettings* self, float value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<AutoExposureSettings*>(self->GetNativeObject())->HistogramPctLow = value;
 	}
 
 	float ScriptAutoExposureSettings::InternalGetHistogramPctHigh(ScriptAutoExposureSettings* self)
 	{
 		float tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<AutoExposureSettings*>(self->GetNativeObject())->HistogramPctHigh;
 
 		float __output;
@@ -112,12 +133,18 @@ namespace bs
 
 	void ScriptAutoExposureSettings::InternalSetHistogramPctHigh(ScriptAutoExposureSettings* self, float value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<AutoExposureSettings*>(self->GetNativeObject())->HistogramPctHigh = value;
 	}
 
 	float ScriptAutoExposureSettings::InternalGetMinEyeAdaptation(ScriptAutoExposureSettings* self)
 	{
 		float tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<AutoExposureSettings*>(self->GetNativeObject())->MinEyeAdaptation;
 
 		float __output;
@@ -128,12 +155,18 @@ namespace bs
 
 	void ScriptAutoExposureSettings::InternalSetMinEyeAdaptation(ScriptAutoExposureSettings* self, float value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<AutoExposureSettings*>(self->GetNativeObject())->MinEyeAdaptation = value;
 	}
 
 	float ScriptAutoExposureSettings::InternalGetMaxEyeAdaptation(ScriptAutoExposureSettings* self)
 	{
 		float tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<AutoExposureSettings*>(self->GetNativeObject())->MaxEyeAdaptation;
 
 		float __output;
@@ -144,12 +177,18 @@ namespace bs
 
 	void ScriptAutoExposureSettings::InternalSetMaxEyeAdaptation(ScriptAutoExposureSettings* self, float value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<AutoExposureSettings*>(self->GetNativeObject())->MaxEyeAdaptation = value;
 	}
 
 	float ScriptAutoExposureSettings::InternalGetEyeAdaptationSpeedUp(ScriptAutoExposureSettings* self)
 	{
 		float tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<AutoExposureSettings*>(self->GetNativeObject())->EyeAdaptationSpeedUp;
 
 		float __output;
@@ -160,12 +199,18 @@ namespace bs
 
 	void ScriptAutoExposureSettings::InternalSetEyeAdaptationSpeedUp(ScriptAutoExposureSettings* self, float value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<AutoExposureSettings*>(self->GetNativeObject())->EyeAdaptationSpeedUp = value;
 	}
 
 	float ScriptAutoExposureSettings::InternalGetEyeAdaptationSpeedDown(ScriptAutoExposureSettings* self)
 	{
 		float tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<AutoExposureSettings*>(self->GetNativeObject())->EyeAdaptationSpeedDown;
 
 		float __output;
@@ -176,6 +221,9 @@ namespace bs
 
 	void ScriptAutoExposureSettings::InternalSetEyeAdaptationSpeedDown(ScriptAutoExposureSettings* self, float value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<AutoExposureSettings*>(self->GetNativeObject())->EyeAdaptationSpeedDown = value;
 	}
 }

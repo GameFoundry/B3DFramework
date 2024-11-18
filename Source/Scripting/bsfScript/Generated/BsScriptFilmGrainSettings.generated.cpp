@@ -44,6 +44,9 @@ namespace bs
 	bool ScriptFilmGrainSettings::InternalGetEnabled(ScriptFilmGrainSettings* self)
 	{
 		bool tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<FilmGrainSettings*>(self->GetNativeObject())->Enabled;
 
 		bool __output;
@@ -54,12 +57,18 @@ namespace bs
 
 	void ScriptFilmGrainSettings::InternalSetEnabled(ScriptFilmGrainSettings* self, bool value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<FilmGrainSettings*>(self->GetNativeObject())->Enabled = value;
 	}
 
 	float ScriptFilmGrainSettings::InternalGetIntensity(ScriptFilmGrainSettings* self)
 	{
 		float tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<FilmGrainSettings*>(self->GetNativeObject())->Intensity;
 
 		float __output;
@@ -70,12 +79,18 @@ namespace bs
 
 	void ScriptFilmGrainSettings::InternalSetIntensity(ScriptFilmGrainSettings* self, float value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<FilmGrainSettings*>(self->GetNativeObject())->Intensity = value;
 	}
 
 	float ScriptFilmGrainSettings::InternalGetSpeed(ScriptFilmGrainSettings* self)
 	{
 		float tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<FilmGrainSettings*>(self->GetNativeObject())->Speed;
 
 		float __output;
@@ -86,6 +101,9 @@ namespace bs
 
 	void ScriptFilmGrainSettings::InternalSetSpeed(ScriptFilmGrainSettings* self, float value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<FilmGrainSettings*>(self->GetNativeObject())->Speed = value;
 	}
 }

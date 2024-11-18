@@ -68,6 +68,9 @@ namespace bs
 	bool ScriptScreenSpaceLensFlareSettings::InternalGetEnabled(ScriptScreenSpaceLensFlareSettings* self)
 	{
 		bool tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<ScreenSpaceLensFlareSettings*>(self->GetNativeObject())->Enabled;
 
 		bool __output;
@@ -78,12 +81,18 @@ namespace bs
 
 	void ScriptScreenSpaceLensFlareSettings::InternalSetEnabled(ScriptScreenSpaceLensFlareSettings* self, bool value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<ScreenSpaceLensFlareSettings*>(self->GetNativeObject())->Enabled = value;
 	}
 
 	uint32_t ScriptScreenSpaceLensFlareSettings::InternalGetDownsampleCount(ScriptScreenSpaceLensFlareSettings* self)
 	{
 		uint32_t tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<ScreenSpaceLensFlareSettings*>(self->GetNativeObject())->DownsampleCount;
 
 		uint32_t __output;
@@ -94,12 +103,18 @@ namespace bs
 
 	void ScriptScreenSpaceLensFlareSettings::InternalSetDownsampleCount(ScriptScreenSpaceLensFlareSettings* self, uint32_t value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<ScreenSpaceLensFlareSettings*>(self->GetNativeObject())->DownsampleCount = value;
 	}
 
 	float ScriptScreenSpaceLensFlareSettings::InternalGetThreshold(ScriptScreenSpaceLensFlareSettings* self)
 	{
 		float tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<ScreenSpaceLensFlareSettings*>(self->GetNativeObject())->Threshold;
 
 		float __output;
@@ -110,12 +125,18 @@ namespace bs
 
 	void ScriptScreenSpaceLensFlareSettings::InternalSetThreshold(ScriptScreenSpaceLensFlareSettings* self, float value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<ScreenSpaceLensFlareSettings*>(self->GetNativeObject())->Threshold = value;
 	}
 
 	uint32_t ScriptScreenSpaceLensFlareSettings::InternalGetGhostCount(ScriptScreenSpaceLensFlareSettings* self)
 	{
 		uint32_t tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<ScreenSpaceLensFlareSettings*>(self->GetNativeObject())->GhostCount;
 
 		uint32_t __output;
@@ -126,12 +147,18 @@ namespace bs
 
 	void ScriptScreenSpaceLensFlareSettings::InternalSetGhostCount(ScriptScreenSpaceLensFlareSettings* self, uint32_t value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<ScreenSpaceLensFlareSettings*>(self->GetNativeObject())->GhostCount = value;
 	}
 
 	float ScriptScreenSpaceLensFlareSettings::InternalGetGhostSpacing(ScriptScreenSpaceLensFlareSettings* self)
 	{
 		float tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<ScreenSpaceLensFlareSettings*>(self->GetNativeObject())->GhostSpacing;
 
 		float __output;
@@ -142,12 +169,18 @@ namespace bs
 
 	void ScriptScreenSpaceLensFlareSettings::InternalSetGhostSpacing(ScriptScreenSpaceLensFlareSettings* self, float value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<ScreenSpaceLensFlareSettings*>(self->GetNativeObject())->GhostSpacing = value;
 	}
 
 	float ScriptScreenSpaceLensFlareSettings::InternalGetBrightness(ScriptScreenSpaceLensFlareSettings* self)
 	{
 		float tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<ScreenSpaceLensFlareSettings*>(self->GetNativeObject())->Brightness;
 
 		float __output;
@@ -158,12 +191,18 @@ namespace bs
 
 	void ScriptScreenSpaceLensFlareSettings::InternalSetBrightness(ScriptScreenSpaceLensFlareSettings* self, float value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<ScreenSpaceLensFlareSettings*>(self->GetNativeObject())->Brightness = value;
 	}
 
 	float ScriptScreenSpaceLensFlareSettings::InternalGetFilterSize(ScriptScreenSpaceLensFlareSettings* self)
 	{
 		float tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<ScreenSpaceLensFlareSettings*>(self->GetNativeObject())->FilterSize;
 
 		float __output;
@@ -174,12 +213,18 @@ namespace bs
 
 	void ScriptScreenSpaceLensFlareSettings::InternalSetFilterSize(ScriptScreenSpaceLensFlareSettings* self, float value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<ScreenSpaceLensFlareSettings*>(self->GetNativeObject())->FilterSize = value;
 	}
 
 	bool ScriptScreenSpaceLensFlareSettings::InternalGetHalo(ScriptScreenSpaceLensFlareSettings* self)
 	{
 		bool tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<ScreenSpaceLensFlareSettings*>(self->GetNativeObject())->Halo;
 
 		bool __output;
@@ -190,12 +235,18 @@ namespace bs
 
 	void ScriptScreenSpaceLensFlareSettings::InternalSetHalo(ScriptScreenSpaceLensFlareSettings* self, bool value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<ScreenSpaceLensFlareSettings*>(self->GetNativeObject())->Halo = value;
 	}
 
 	float ScriptScreenSpaceLensFlareSettings::InternalGetHaloRadius(ScriptScreenSpaceLensFlareSettings* self)
 	{
 		float tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<ScreenSpaceLensFlareSettings*>(self->GetNativeObject())->HaloRadius;
 
 		float __output;
@@ -206,12 +257,18 @@ namespace bs
 
 	void ScriptScreenSpaceLensFlareSettings::InternalSetHaloRadius(ScriptScreenSpaceLensFlareSettings* self, float value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<ScreenSpaceLensFlareSettings*>(self->GetNativeObject())->HaloRadius = value;
 	}
 
 	float ScriptScreenSpaceLensFlareSettings::InternalGetHaloThickness(ScriptScreenSpaceLensFlareSettings* self)
 	{
 		float tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<ScreenSpaceLensFlareSettings*>(self->GetNativeObject())->HaloThickness;
 
 		float __output;
@@ -222,12 +279,18 @@ namespace bs
 
 	void ScriptScreenSpaceLensFlareSettings::InternalSetHaloThickness(ScriptScreenSpaceLensFlareSettings* self, float value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<ScreenSpaceLensFlareSettings*>(self->GetNativeObject())->HaloThickness = value;
 	}
 
 	float ScriptScreenSpaceLensFlareSettings::InternalGetHaloThreshold(ScriptScreenSpaceLensFlareSettings* self)
 	{
 		float tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<ScreenSpaceLensFlareSettings*>(self->GetNativeObject())->HaloThreshold;
 
 		float __output;
@@ -238,12 +301,18 @@ namespace bs
 
 	void ScriptScreenSpaceLensFlareSettings::InternalSetHaloThreshold(ScriptScreenSpaceLensFlareSettings* self, float value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<ScreenSpaceLensFlareSettings*>(self->GetNativeObject())->HaloThreshold = value;
 	}
 
 	float ScriptScreenSpaceLensFlareSettings::InternalGetHaloAspectRatio(ScriptScreenSpaceLensFlareSettings* self)
 	{
 		float tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<ScreenSpaceLensFlareSettings*>(self->GetNativeObject())->HaloAspectRatio;
 
 		float __output;
@@ -254,12 +323,18 @@ namespace bs
 
 	void ScriptScreenSpaceLensFlareSettings::InternalSetHaloAspectRatio(ScriptScreenSpaceLensFlareSettings* self, float value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<ScreenSpaceLensFlareSettings*>(self->GetNativeObject())->HaloAspectRatio = value;
 	}
 
 	bool ScriptScreenSpaceLensFlareSettings::InternalGetChromaticAberration(ScriptScreenSpaceLensFlareSettings* self)
 	{
 		bool tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<ScreenSpaceLensFlareSettings*>(self->GetNativeObject())->ChromaticAberration;
 
 		bool __output;
@@ -270,12 +345,18 @@ namespace bs
 
 	void ScriptScreenSpaceLensFlareSettings::InternalSetChromaticAberration(ScriptScreenSpaceLensFlareSettings* self, bool value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<ScreenSpaceLensFlareSettings*>(self->GetNativeObject())->ChromaticAberration = value;
 	}
 
 	float ScriptScreenSpaceLensFlareSettings::InternalGetChromaticAberrationOffset(ScriptScreenSpaceLensFlareSettings* self)
 	{
 		float tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<ScreenSpaceLensFlareSettings*>(self->GetNativeObject())->ChromaticAberrationOffset;
 
 		float __output;
@@ -286,12 +367,18 @@ namespace bs
 
 	void ScriptScreenSpaceLensFlareSettings::InternalSetChromaticAberrationOffset(ScriptScreenSpaceLensFlareSettings* self, float value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<ScreenSpaceLensFlareSettings*>(self->GetNativeObject())->ChromaticAberrationOffset = value;
 	}
 
 	bool ScriptScreenSpaceLensFlareSettings::InternalGetBicubicUpsampling(ScriptScreenSpaceLensFlareSettings* self)
 	{
 		bool tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<ScreenSpaceLensFlareSettings*>(self->GetNativeObject())->BicubicUpsampling;
 
 		bool __output;
@@ -302,6 +389,9 @@ namespace bs
 
 	void ScriptScreenSpaceLensFlareSettings::InternalSetBicubicUpsampling(ScriptScreenSpaceLensFlareSettings* self, bool value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<ScreenSpaceLensFlareSettings*>(self->GetNativeObject())->BicubicUpsampling = value;
 	}
 }

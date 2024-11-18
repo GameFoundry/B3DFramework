@@ -53,6 +53,9 @@ namespace bs
 	MonoObject* ScriptManagedTypeInfoArray::InternalGetElementType(ScriptManagedTypeInfoArray* self)
 	{
 		SPtr<ManagedTypeInfo> tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<ManagedTypeInfoArray*>(self->GetNativeObject())->ElementType;
 
 		MonoObject* __output;
@@ -63,6 +66,9 @@ namespace bs
 
 	void ScriptManagedTypeInfoArray::InternalSetElementType(ScriptManagedTypeInfoArray* self, MonoObject* value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		SPtr<ManagedTypeInfo> tmpvalue;
 		ScriptManagedTypeInfoWrapperBase* scriptObjectWrappervalue;
 		scriptObjectWrappervalue = (ScriptManagedTypeInfoWrapperBase*)ScriptManagedTypeInfo::GetScriptObjectWrapper(value);
@@ -74,6 +80,9 @@ namespace bs
 	uint32_t ScriptManagedTypeInfoArray::InternalGetRank(ScriptManagedTypeInfoArray* self)
 	{
 		uint32_t tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<ManagedTypeInfoArray*>(self->GetNativeObject())->Rank;
 
 		uint32_t __output;
@@ -84,6 +93,9 @@ namespace bs
 
 	void ScriptManagedTypeInfoArray::InternalSetRank(ScriptManagedTypeInfoArray* self, uint32_t value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<ManagedTypeInfoArray*>(self->GetNativeObject())->Rank = value;
 	}
 }

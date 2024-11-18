@@ -69,6 +69,9 @@ namespace bs
 	MonoObject* ScriptParticleSystemSettings::InternalGetMaterial(ScriptParticleSystemSettings* self)
 	{
 		TResourceHandle<Material> tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<ParticleSystemSettings*>(self->GetNativeObject())->Material;
 
 		MonoObject* __output;
@@ -84,6 +87,9 @@ namespace bs
 
 	void ScriptParticleSystemSettings::InternalSetMaterial(ScriptParticleSystemSettings* self, MonoObject* value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		TResourceHandle<Material> tmpvalue;
 		ScriptRRefBase* scriptObjectWrappervalue;
 		scriptObjectWrappervalue = ScriptRRefBase::GetScriptObjectWrapper(value);
@@ -95,6 +101,9 @@ namespace bs
 	MonoObject* ScriptParticleSystemSettings::InternalGetMesh(ScriptParticleSystemSettings* self)
 	{
 		TResourceHandle<Mesh> tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<ParticleSystemSettings*>(self->GetNativeObject())->Mesh;
 
 		MonoObject* __output;
@@ -110,6 +119,9 @@ namespace bs
 
 	void ScriptParticleSystemSettings::InternalSetMesh(ScriptParticleSystemSettings* self, MonoObject* value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		TResourceHandle<Mesh> tmpvalue;
 		ScriptRRefBase* scriptObjectWrappervalue;
 		scriptObjectWrappervalue = ScriptRRefBase::GetScriptObjectWrapper(value);
@@ -121,6 +133,9 @@ namespace bs
 	ParticleSimulationSpace ScriptParticleSystemSettings::InternalGetSimulationSpace(ScriptParticleSystemSettings* self)
 	{
 		ParticleSimulationSpace tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<ParticleSystemSettings*>(self->GetNativeObject())->SimulationSpace;
 
 		ParticleSimulationSpace __output;
@@ -131,12 +146,18 @@ namespace bs
 
 	void ScriptParticleSystemSettings::InternalSetSimulationSpace(ScriptParticleSystemSettings* self, ParticleSimulationSpace value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<ParticleSystemSettings*>(self->GetNativeObject())->SimulationSpace = value;
 	}
 
 	ParticleOrientation ScriptParticleSystemSettings::InternalGetOrientation(ScriptParticleSystemSettings* self)
 	{
 		ParticleOrientation tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<ParticleSystemSettings*>(self->GetNativeObject())->Orientation;
 
 		ParticleOrientation __output;
@@ -147,12 +168,18 @@ namespace bs
 
 	void ScriptParticleSystemSettings::InternalSetOrientation(ScriptParticleSystemSettings* self, ParticleOrientation value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<ParticleSystemSettings*>(self->GetNativeObject())->Orientation = value;
 	}
 
 	float ScriptParticleSystemSettings::InternalGetDuration(ScriptParticleSystemSettings* self)
 	{
 		float tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<ParticleSystemSettings*>(self->GetNativeObject())->Duration;
 
 		float __output;
@@ -163,12 +190,18 @@ namespace bs
 
 	void ScriptParticleSystemSettings::InternalSetDuration(ScriptParticleSystemSettings* self, float value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<ParticleSystemSettings*>(self->GetNativeObject())->Duration = value;
 	}
 
 	bool ScriptParticleSystemSettings::InternalGetIsLooping(ScriptParticleSystemSettings* self)
 	{
 		bool tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<ParticleSystemSettings*>(self->GetNativeObject())->IsLooping;
 
 		bool __output;
@@ -179,12 +212,18 @@ namespace bs
 
 	void ScriptParticleSystemSettings::InternalSetIsLooping(ScriptParticleSystemSettings* self, bool value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<ParticleSystemSettings*>(self->GetNativeObject())->IsLooping = value;
 	}
 
 	uint32_t ScriptParticleSystemSettings::InternalGetMaxParticles(ScriptParticleSystemSettings* self)
 	{
 		uint32_t tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<ParticleSystemSettings*>(self->GetNativeObject())->MaxParticles;
 
 		uint32_t __output;
@@ -195,12 +234,18 @@ namespace bs
 
 	void ScriptParticleSystemSettings::InternalSetMaxParticles(ScriptParticleSystemSettings* self, uint32_t value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<ParticleSystemSettings*>(self->GetNativeObject())->MaxParticles = value;
 	}
 
 	bool ScriptParticleSystemSettings::InternalGetGpuSimulation(ScriptParticleSystemSettings* self)
 	{
 		bool tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<ParticleSystemSettings*>(self->GetNativeObject())->GpuSimulation;
 
 		bool __output;
@@ -211,12 +256,18 @@ namespace bs
 
 	void ScriptParticleSystemSettings::InternalSetGpuSimulation(ScriptParticleSystemSettings* self, bool value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<ParticleSystemSettings*>(self->GetNativeObject())->GpuSimulation = value;
 	}
 
 	ParticleRenderMode ScriptParticleSystemSettings::InternalGetRenderMode(ScriptParticleSystemSettings* self)
 	{
 		ParticleRenderMode tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<ParticleSystemSettings*>(self->GetNativeObject())->RenderMode;
 
 		ParticleRenderMode __output;
@@ -227,12 +278,18 @@ namespace bs
 
 	void ScriptParticleSystemSettings::InternalSetRenderMode(ScriptParticleSystemSettings* self, ParticleRenderMode value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<ParticleSystemSettings*>(self->GetNativeObject())->RenderMode = value;
 	}
 
 	bool ScriptParticleSystemSettings::InternalGetOrientationLockY(ScriptParticleSystemSettings* self)
 	{
 		bool tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<ParticleSystemSettings*>(self->GetNativeObject())->OrientationLockY;
 
 		bool __output;
@@ -243,12 +300,21 @@ namespace bs
 
 	void ScriptParticleSystemSettings::InternalSetOrientationLockY(ScriptParticleSystemSettings* self, bool value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<ParticleSystemSettings*>(self->GetNativeObject())->OrientationLockY = value;
 	}
 
 	void ScriptParticleSystemSettings::InternalGetOrientationPlaneNormal(ScriptParticleSystemSettings* self, TVector3<float>* __output)
 	{
 		TVector3<float> tmp__output;
+		if(!self->IsNativeObjectValid())
+			{
+				__output = {};
+				return;
+			}
+
 		tmp__output = static_cast<ParticleSystemSettings*>(self->GetNativeObject())->OrientationPlaneNormal;
 
 		*__output = tmp__output;
@@ -258,12 +324,18 @@ namespace bs
 
 	void ScriptParticleSystemSettings::InternalSetOrientationPlaneNormal(ScriptParticleSystemSettings* self, TVector3<float>* value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<ParticleSystemSettings*>(self->GetNativeObject())->OrientationPlaneNormal = *value;
 	}
 
 	ParticleSortMode ScriptParticleSystemSettings::InternalGetSortMode(ScriptParticleSystemSettings* self)
 	{
 		ParticleSortMode tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<ParticleSystemSettings*>(self->GetNativeObject())->SortMode;
 
 		ParticleSortMode __output;
@@ -274,12 +346,18 @@ namespace bs
 
 	void ScriptParticleSystemSettings::InternalSetSortMode(ScriptParticleSystemSettings* self, ParticleSortMode value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<ParticleSystemSettings*>(self->GetNativeObject())->SortMode = value;
 	}
 
 	bool ScriptParticleSystemSettings::InternalGetUseAutomaticSeed(ScriptParticleSystemSettings* self)
 	{
 		bool tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<ParticleSystemSettings*>(self->GetNativeObject())->UseAutomaticSeed;
 
 		bool __output;
@@ -290,12 +368,18 @@ namespace bs
 
 	void ScriptParticleSystemSettings::InternalSetUseAutomaticSeed(ScriptParticleSystemSettings* self, bool value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<ParticleSystemSettings*>(self->GetNativeObject())->UseAutomaticSeed = value;
 	}
 
 	uint32_t ScriptParticleSystemSettings::InternalGetManualSeed(ScriptParticleSystemSettings* self)
 	{
 		uint32_t tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<ParticleSystemSettings*>(self->GetNativeObject())->ManualSeed;
 
 		uint32_t __output;
@@ -306,12 +390,18 @@ namespace bs
 
 	void ScriptParticleSystemSettings::InternalSetManualSeed(ScriptParticleSystemSettings* self, uint32_t value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<ParticleSystemSettings*>(self->GetNativeObject())->ManualSeed = value;
 	}
 
 	bool ScriptParticleSystemSettings::InternalGetUseAutomaticBounds(ScriptParticleSystemSettings* self)
 	{
 		bool tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<ParticleSystemSettings*>(self->GetNativeObject())->UseAutomaticBounds;
 
 		bool __output;
@@ -322,12 +412,21 @@ namespace bs
 
 	void ScriptParticleSystemSettings::InternalSetUseAutomaticBounds(ScriptParticleSystemSettings* self, bool value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<ParticleSystemSettings*>(self->GetNativeObject())->UseAutomaticBounds = value;
 	}
 
 	void ScriptParticleSystemSettings::InternalGetCustomBounds(ScriptParticleSystemSettings* self, __TAABox_float_Interop* __output)
 	{
 		TAABox<float> tmp__output;
+		if(!self->IsNativeObjectValid())
+			{
+				__output = {};
+				return;
+			}
+
 		tmp__output = static_cast<ParticleSystemSettings*>(self->GetNativeObject())->CustomBounds;
 
 		__TAABox_float_Interop interop__output;
@@ -339,6 +438,9 @@ namespace bs
 
 	void ScriptParticleSystemSettings::InternalSetCustomBounds(ScriptParticleSystemSettings* self, __TAABox_float_Interop* value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		TAABox<float> tmpvalue;
 		tmpvalue = ScriptAABox::FromInterop(*value);
 		static_cast<ParticleSystemSettings*>(self->GetNativeObject())->CustomBounds = tmpvalue;

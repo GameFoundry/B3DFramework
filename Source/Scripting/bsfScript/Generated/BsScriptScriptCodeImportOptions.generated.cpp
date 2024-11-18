@@ -41,6 +41,9 @@ namespace bs
 	bool ScriptScriptCodeImportOptions::InternalGetEditorScript(ScriptScriptCodeImportOptions* self)
 	{
 		bool tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<ScriptCodeImportOptions*>(self->GetNativeObject())->EditorScript;
 
 		bool __output;
@@ -51,6 +54,9 @@ namespace bs
 
 	void ScriptScriptCodeImportOptions::InternalSetEditorScript(ScriptScriptCodeImportOptions* self, bool value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<ScriptCodeImportOptions*>(self->GetNativeObject())->EditorScript = value;
 	}
 #endif

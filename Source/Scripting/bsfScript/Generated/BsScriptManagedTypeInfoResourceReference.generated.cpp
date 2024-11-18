@@ -51,6 +51,9 @@ namespace bs
 	MonoObject* ScriptManagedTypeInfoResourceReference::InternalGetResourceType(ScriptManagedTypeInfoResourceReference* self)
 	{
 		SPtr<ManagedTypeInfo> tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<ManagedTypeInfoResourceReference*>(self->GetNativeObject())->ResourceType;
 
 		MonoObject* __output;
@@ -61,6 +64,9 @@ namespace bs
 
 	void ScriptManagedTypeInfoResourceReference::InternalSetResourceType(ScriptManagedTypeInfoResourceReference* self, MonoObject* value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		SPtr<ManagedTypeInfo> tmpvalue;
 		ScriptManagedTypeInfoWrapperBase* scriptObjectWrappervalue;
 		scriptObjectWrappervalue = (ScriptManagedTypeInfoWrapperBase*)ScriptManagedTypeInfo::GetScriptObjectWrapper(value);

@@ -66,6 +66,9 @@ namespace bs
 	MonoArray* ScriptResourceDragAndDropData::InternalGetResourcePaths(ScriptResourceDragAndDropData* self)
 	{
 		Vector<Path> nativeArray__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		nativeArray__output = static_cast<ResourceDragAndDropData*>(self->GetNativeObject())->ResourcePaths;
 
 		MonoArray* __output;
@@ -82,6 +85,9 @@ namespace bs
 
 	void ScriptResourceDragAndDropData::InternalSetResourcePaths(ScriptResourceDragAndDropData* self, MonoArray* value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		Vector<Path> nativeArrayvalue;
 		if(value != nullptr)
 		{

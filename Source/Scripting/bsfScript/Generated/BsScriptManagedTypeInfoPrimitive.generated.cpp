@@ -33,6 +33,9 @@ namespace bs
 	ManagedPrimitiveType ScriptManagedTypeInfoPrimitive::InternalGetPrimitiveType(ScriptManagedTypeInfoPrimitive* self)
 	{
 		ManagedPrimitiveType tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<ManagedTypeInfoPrimitive*>(self->GetNativeObject())->PrimitiveType;
 
 		ManagedPrimitiveType __output;
@@ -43,6 +46,9 @@ namespace bs
 
 	void ScriptManagedTypeInfoPrimitive::InternalSetPrimitiveType(ScriptManagedTypeInfoPrimitive* self, ManagedPrimitiveType value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<ManagedTypeInfoPrimitive*>(self->GetNativeObject())->PrimitiveType = value;
 	}
 }

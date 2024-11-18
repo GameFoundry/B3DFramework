@@ -76,6 +76,9 @@ namespace bs
 	MonoArray* ScriptSceneObjectDragAndDropData::InternalGetSceneObjects(ScriptSceneObjectDragAndDropData* self)
 	{
 		Vector<GameObjectHandle<SceneObject>> nativeArray__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		nativeArray__output = static_cast<SceneObjectDragAndDropData*>(self->GetNativeObject())->SceneObjects;
 
 		MonoArray* __output;
@@ -95,6 +98,9 @@ namespace bs
 
 	void ScriptSceneObjectDragAndDropData::InternalSetSceneObjects(ScriptSceneObjectDragAndDropData* self, MonoArray* value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		Vector<GameObjectHandle<SceneObject>> nativeArrayvalue;
 		if(value != nullptr)
 		{

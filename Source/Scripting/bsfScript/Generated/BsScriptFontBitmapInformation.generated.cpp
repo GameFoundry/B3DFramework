@@ -48,7 +48,7 @@ namespace bs
 		if(!self->IsNativeObjectValid())
 			{
 				__output = {};
-			return;
+				return;
 			}
 
 		CharacterInformation tmp__output;
@@ -62,6 +62,9 @@ namespace bs
 	float ScriptFontBitmapInformation::InternalGetSize(ScriptFontBitmapInformation* self)
 	{
 		float tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<FontBitmapInformation*>(self->GetNativeObject())->Size;
 
 		float __output;
@@ -72,12 +75,18 @@ namespace bs
 
 	void ScriptFontBitmapInformation::InternalSetSize(ScriptFontBitmapInformation* self, float value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<FontBitmapInformation*>(self->GetNativeObject())->Size = value;
 	}
 
 	float ScriptFontBitmapInformation::InternalGetBaselineOffset(ScriptFontBitmapInformation* self)
 	{
 		float tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<FontBitmapInformation*>(self->GetNativeObject())->BaselineOffset;
 
 		float __output;
@@ -88,12 +97,18 @@ namespace bs
 
 	void ScriptFontBitmapInformation::InternalSetBaselineOffset(ScriptFontBitmapInformation* self, float value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<FontBitmapInformation*>(self->GetNativeObject())->BaselineOffset = value;
 	}
 
 	float ScriptFontBitmapInformation::InternalGetLineHeight(ScriptFontBitmapInformation* self)
 	{
 		float tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<FontBitmapInformation*>(self->GetNativeObject())->LineHeight;
 
 		float __output;
@@ -104,12 +119,21 @@ namespace bs
 
 	void ScriptFontBitmapInformation::InternalSetLineHeight(ScriptFontBitmapInformation* self, float value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<FontBitmapInformation*>(self->GetNativeObject())->LineHeight = value;
 	}
 
 	void ScriptFontBitmapInformation::InternalGetMissingGlyph(ScriptFontBitmapInformation* self, __CharacterInformationInterop* __output)
 	{
 		CharacterInformation tmp__output;
+		if(!self->IsNativeObjectValid())
+			{
+				__output = {};
+				return;
+			}
+
 		tmp__output = static_cast<FontBitmapInformation*>(self->GetNativeObject())->MissingGlyph;
 
 		__CharacterInformationInterop interop__output;
@@ -121,6 +145,9 @@ namespace bs
 
 	void ScriptFontBitmapInformation::InternalSetMissingGlyph(ScriptFontBitmapInformation* self, __CharacterInformationInterop* value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		CharacterInformation tmpvalue;
 		tmpvalue = ScriptCharacterInformation::FromInterop(*value);
 		static_cast<FontBitmapInformation*>(self->GetNativeObject())->MissingGlyph = tmpvalue;
@@ -129,6 +156,9 @@ namespace bs
 	float ScriptFontBitmapInformation::InternalGetSpaceWidth(ScriptFontBitmapInformation* self)
 	{
 		float tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<FontBitmapInformation*>(self->GetNativeObject())->SpaceWidth;
 
 		float __output;
@@ -139,12 +169,18 @@ namespace bs
 
 	void ScriptFontBitmapInformation::InternalSetSpaceWidth(ScriptFontBitmapInformation* self, float value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<FontBitmapInformation*>(self->GetNativeObject())->SpaceWidth = value;
 	}
 
 	MonoArray* ScriptFontBitmapInformation::InternalGetTexturePages(ScriptFontBitmapInformation* self)
 	{
 		Vector<FontBitmapPage> nativeArray__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		nativeArray__output = static_cast<FontBitmapInformation*>(self->GetNativeObject())->TexturePages;
 
 		MonoArray* __output;
@@ -161,6 +197,9 @@ namespace bs
 
 	void ScriptFontBitmapInformation::InternalSetTexturePages(ScriptFontBitmapInformation* self, MonoArray* value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		Vector<FontBitmapPage> nativeArrayvalue;
 		if(value != nullptr)
 		{

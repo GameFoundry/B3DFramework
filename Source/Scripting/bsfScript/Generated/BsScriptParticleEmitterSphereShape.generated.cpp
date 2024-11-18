@@ -47,7 +47,7 @@ namespace bs
 		if(!self->IsNativeObjectValid())
 			{
 				__output = {};
-			return;
+				return;
 			}
 
 		PARTICLE_SPHERE_SHAPE_DESC tmp__output;

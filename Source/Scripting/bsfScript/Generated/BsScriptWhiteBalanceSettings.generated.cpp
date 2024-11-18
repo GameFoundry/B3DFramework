@@ -42,6 +42,9 @@ namespace bs
 	float ScriptWhiteBalanceSettings::InternalGetTemperature(ScriptWhiteBalanceSettings* self)
 	{
 		float tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<WhiteBalanceSettings*>(self->GetNativeObject())->Temperature;
 
 		float __output;
@@ -52,12 +55,18 @@ namespace bs
 
 	void ScriptWhiteBalanceSettings::InternalSetTemperature(ScriptWhiteBalanceSettings* self, float value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<WhiteBalanceSettings*>(self->GetNativeObject())->Temperature = value;
 	}
 
 	float ScriptWhiteBalanceSettings::InternalGetTint(ScriptWhiteBalanceSettings* self)
 	{
 		float tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<WhiteBalanceSettings*>(self->GetNativeObject())->Tint;
 
 		float __output;
@@ -68,6 +77,9 @@ namespace bs
 
 	void ScriptWhiteBalanceSettings::InternalSetTint(ScriptWhiteBalanceSettings* self, float value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<WhiteBalanceSettings*>(self->GetNativeObject())->Tint = value;
 	}
 }

@@ -53,6 +53,9 @@ namespace bs
 	PixelFormat ScriptTextureImportOptions::InternalGetFormat(ScriptTextureImportOptions* self)
 	{
 		PixelFormat tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<TextureImportOptions*>(self->GetNativeObject())->Format;
 
 		PixelFormat __output;
@@ -63,12 +66,18 @@ namespace bs
 
 	void ScriptTextureImportOptions::InternalSetFormat(ScriptTextureImportOptions* self, PixelFormat value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<TextureImportOptions*>(self->GetNativeObject())->Format = value;
 	}
 
 	bool ScriptTextureImportOptions::InternalGetGenerateMips(ScriptTextureImportOptions* self)
 	{
 		bool tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<TextureImportOptions*>(self->GetNativeObject())->GenerateMips;
 
 		bool __output;
@@ -79,12 +88,18 @@ namespace bs
 
 	void ScriptTextureImportOptions::InternalSetGenerateMips(ScriptTextureImportOptions* self, bool value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<TextureImportOptions*>(self->GetNativeObject())->GenerateMips = value;
 	}
 
 	uint32_t ScriptTextureImportOptions::InternalGetMaxMip(ScriptTextureImportOptions* self)
 	{
 		uint32_t tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<TextureImportOptions*>(self->GetNativeObject())->MaxMip;
 
 		uint32_t __output;
@@ -95,12 +110,18 @@ namespace bs
 
 	void ScriptTextureImportOptions::InternalSetMaxMip(ScriptTextureImportOptions* self, uint32_t value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<TextureImportOptions*>(self->GetNativeObject())->MaxMip = value;
 	}
 
 	bool ScriptTextureImportOptions::InternalGetCpuCached(ScriptTextureImportOptions* self)
 	{
 		bool tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<TextureImportOptions*>(self->GetNativeObject())->CpuCached;
 
 		bool __output;
@@ -111,12 +132,18 @@ namespace bs
 
 	void ScriptTextureImportOptions::InternalSetCpuCached(ScriptTextureImportOptions* self, bool value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<TextureImportOptions*>(self->GetNativeObject())->CpuCached = value;
 	}
 
 	bool ScriptTextureImportOptions::InternalGetSRgb(ScriptTextureImportOptions* self)
 	{
 		bool tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<TextureImportOptions*>(self->GetNativeObject())->SRgb;
 
 		bool __output;
@@ -127,12 +154,18 @@ namespace bs
 
 	void ScriptTextureImportOptions::InternalSetSRgb(ScriptTextureImportOptions* self, bool value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<TextureImportOptions*>(self->GetNativeObject())->SRgb = value;
 	}
 
 	bool ScriptTextureImportOptions::InternalGetCubemap(ScriptTextureImportOptions* self)
 	{
 		bool tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<TextureImportOptions*>(self->GetNativeObject())->Cubemap;
 
 		bool __output;
@@ -143,12 +176,18 @@ namespace bs
 
 	void ScriptTextureImportOptions::InternalSetCubemap(ScriptTextureImportOptions* self, bool value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<TextureImportOptions*>(self->GetNativeObject())->Cubemap = value;
 	}
 
 	CubemapSourceType ScriptTextureImportOptions::InternalGetCubemapSourceType(ScriptTextureImportOptions* self)
 	{
 		CubemapSourceType tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<TextureImportOptions*>(self->GetNativeObject())->CubemapSourceType;
 
 		CubemapSourceType __output;
@@ -159,6 +198,9 @@ namespace bs
 
 	void ScriptTextureImportOptions::InternalSetCubemapSourceType(ScriptTextureImportOptions* self, CubemapSourceType value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<TextureImportOptions*>(self->GetNativeObject())->CubemapSourceType = value;
 	}
 #endif

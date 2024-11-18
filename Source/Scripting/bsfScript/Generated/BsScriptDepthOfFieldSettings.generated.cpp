@@ -76,6 +76,9 @@ namespace bs
 	MonoObject* ScriptDepthOfFieldSettings::InternalGetBokehShape(ScriptDepthOfFieldSettings* self)
 	{
 		TResourceHandle<Texture> tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<DepthOfFieldSettings*>(self->GetNativeObject())->BokehShape;
 
 		MonoObject* __output;
@@ -91,6 +94,9 @@ namespace bs
 
 	void ScriptDepthOfFieldSettings::InternalSetBokehShape(ScriptDepthOfFieldSettings* self, MonoObject* value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		TResourceHandle<Texture> tmpvalue;
 		ScriptRRefBase* scriptObjectWrappervalue;
 		scriptObjectWrappervalue = ScriptRRefBase::GetScriptObjectWrapper(value);
@@ -102,6 +108,9 @@ namespace bs
 	bool ScriptDepthOfFieldSettings::InternalGetEnabled(ScriptDepthOfFieldSettings* self)
 	{
 		bool tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<DepthOfFieldSettings*>(self->GetNativeObject())->Enabled;
 
 		bool __output;
@@ -112,12 +121,18 @@ namespace bs
 
 	void ScriptDepthOfFieldSettings::InternalSetEnabled(ScriptDepthOfFieldSettings* self, bool value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<DepthOfFieldSettings*>(self->GetNativeObject())->Enabled = value;
 	}
 
 	DepthOfFieldType ScriptDepthOfFieldSettings::InternalGetType(ScriptDepthOfFieldSettings* self)
 	{
 		DepthOfFieldType tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<DepthOfFieldSettings*>(self->GetNativeObject())->Type;
 
 		DepthOfFieldType __output;
@@ -128,12 +143,18 @@ namespace bs
 
 	void ScriptDepthOfFieldSettings::InternalSetType(ScriptDepthOfFieldSettings* self, DepthOfFieldType value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<DepthOfFieldSettings*>(self->GetNativeObject())->Type = value;
 	}
 
 	float ScriptDepthOfFieldSettings::InternalGetFocalDistance(ScriptDepthOfFieldSettings* self)
 	{
 		float tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<DepthOfFieldSettings*>(self->GetNativeObject())->FocalDistance;
 
 		float __output;
@@ -144,12 +165,18 @@ namespace bs
 
 	void ScriptDepthOfFieldSettings::InternalSetFocalDistance(ScriptDepthOfFieldSettings* self, float value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<DepthOfFieldSettings*>(self->GetNativeObject())->FocalDistance = value;
 	}
 
 	float ScriptDepthOfFieldSettings::InternalGetFocalRange(ScriptDepthOfFieldSettings* self)
 	{
 		float tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<DepthOfFieldSettings*>(self->GetNativeObject())->FocalRange;
 
 		float __output;
@@ -160,12 +187,18 @@ namespace bs
 
 	void ScriptDepthOfFieldSettings::InternalSetFocalRange(ScriptDepthOfFieldSettings* self, float value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<DepthOfFieldSettings*>(self->GetNativeObject())->FocalRange = value;
 	}
 
 	float ScriptDepthOfFieldSettings::InternalGetNearTransitionRange(ScriptDepthOfFieldSettings* self)
 	{
 		float tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<DepthOfFieldSettings*>(self->GetNativeObject())->NearTransitionRange;
 
 		float __output;
@@ -176,12 +209,18 @@ namespace bs
 
 	void ScriptDepthOfFieldSettings::InternalSetNearTransitionRange(ScriptDepthOfFieldSettings* self, float value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<DepthOfFieldSettings*>(self->GetNativeObject())->NearTransitionRange = value;
 	}
 
 	float ScriptDepthOfFieldSettings::InternalGetFarTransitionRange(ScriptDepthOfFieldSettings* self)
 	{
 		float tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<DepthOfFieldSettings*>(self->GetNativeObject())->FarTransitionRange;
 
 		float __output;
@@ -192,12 +231,18 @@ namespace bs
 
 	void ScriptDepthOfFieldSettings::InternalSetFarTransitionRange(ScriptDepthOfFieldSettings* self, float value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<DepthOfFieldSettings*>(self->GetNativeObject())->FarTransitionRange = value;
 	}
 
 	float ScriptDepthOfFieldSettings::InternalGetNearBlurAmount(ScriptDepthOfFieldSettings* self)
 	{
 		float tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<DepthOfFieldSettings*>(self->GetNativeObject())->NearBlurAmount;
 
 		float __output;
@@ -208,12 +253,18 @@ namespace bs
 
 	void ScriptDepthOfFieldSettings::InternalSetNearBlurAmount(ScriptDepthOfFieldSettings* self, float value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<DepthOfFieldSettings*>(self->GetNativeObject())->NearBlurAmount = value;
 	}
 
 	float ScriptDepthOfFieldSettings::InternalGetFarBlurAmount(ScriptDepthOfFieldSettings* self)
 	{
 		float tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<DepthOfFieldSettings*>(self->GetNativeObject())->FarBlurAmount;
 
 		float __output;
@@ -224,12 +275,18 @@ namespace bs
 
 	void ScriptDepthOfFieldSettings::InternalSetFarBlurAmount(ScriptDepthOfFieldSettings* self, float value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<DepthOfFieldSettings*>(self->GetNativeObject())->FarBlurAmount = value;
 	}
 
 	float ScriptDepthOfFieldSettings::InternalGetMaxBokehSize(ScriptDepthOfFieldSettings* self)
 	{
 		float tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<DepthOfFieldSettings*>(self->GetNativeObject())->MaxBokehSize;
 
 		float __output;
@@ -240,12 +297,18 @@ namespace bs
 
 	void ScriptDepthOfFieldSettings::InternalSetMaxBokehSize(ScriptDepthOfFieldSettings* self, float value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<DepthOfFieldSettings*>(self->GetNativeObject())->MaxBokehSize = value;
 	}
 
 	float ScriptDepthOfFieldSettings::InternalGetAdaptiveColorThreshold(ScriptDepthOfFieldSettings* self)
 	{
 		float tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<DepthOfFieldSettings*>(self->GetNativeObject())->AdaptiveColorThreshold;
 
 		float __output;
@@ -256,12 +319,18 @@ namespace bs
 
 	void ScriptDepthOfFieldSettings::InternalSetAdaptiveColorThreshold(ScriptDepthOfFieldSettings* self, float value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<DepthOfFieldSettings*>(self->GetNativeObject())->AdaptiveColorThreshold = value;
 	}
 
 	float ScriptDepthOfFieldSettings::InternalGetAdaptiveRadiusThreshold(ScriptDepthOfFieldSettings* self)
 	{
 		float tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<DepthOfFieldSettings*>(self->GetNativeObject())->AdaptiveRadiusThreshold;
 
 		float __output;
@@ -272,12 +341,18 @@ namespace bs
 
 	void ScriptDepthOfFieldSettings::InternalSetAdaptiveRadiusThreshold(ScriptDepthOfFieldSettings* self, float value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<DepthOfFieldSettings*>(self->GetNativeObject())->AdaptiveRadiusThreshold = value;
 	}
 
 	float ScriptDepthOfFieldSettings::InternalGetApertureSize(ScriptDepthOfFieldSettings* self)
 	{
 		float tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<DepthOfFieldSettings*>(self->GetNativeObject())->ApertureSize;
 
 		float __output;
@@ -288,12 +363,18 @@ namespace bs
 
 	void ScriptDepthOfFieldSettings::InternalSetApertureSize(ScriptDepthOfFieldSettings* self, float value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<DepthOfFieldSettings*>(self->GetNativeObject())->ApertureSize = value;
 	}
 
 	float ScriptDepthOfFieldSettings::InternalGetFocalLength(ScriptDepthOfFieldSettings* self)
 	{
 		float tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<DepthOfFieldSettings*>(self->GetNativeObject())->FocalLength;
 
 		float __output;
@@ -304,12 +385,21 @@ namespace bs
 
 	void ScriptDepthOfFieldSettings::InternalSetFocalLength(ScriptDepthOfFieldSettings* self, float value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<DepthOfFieldSettings*>(self->GetNativeObject())->FocalLength = value;
 	}
 
 	void ScriptDepthOfFieldSettings::InternalGetSensorSize(ScriptDepthOfFieldSettings* self, TVector2<float>* __output)
 	{
 		TVector2<float> tmp__output;
+		if(!self->IsNativeObjectValid())
+			{
+				__output = {};
+				return;
+			}
+
 		tmp__output = static_cast<DepthOfFieldSettings*>(self->GetNativeObject())->SensorSize;
 
 		*__output = tmp__output;
@@ -319,12 +409,18 @@ namespace bs
 
 	void ScriptDepthOfFieldSettings::InternalSetSensorSize(ScriptDepthOfFieldSettings* self, TVector2<float>* value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<DepthOfFieldSettings*>(self->GetNativeObject())->SensorSize = *value;
 	}
 
 	bool ScriptDepthOfFieldSettings::InternalGetBokehOcclusion(ScriptDepthOfFieldSettings* self)
 	{
 		bool tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<DepthOfFieldSettings*>(self->GetNativeObject())->BokehOcclusion;
 
 		bool __output;
@@ -335,12 +431,18 @@ namespace bs
 
 	void ScriptDepthOfFieldSettings::InternalSetBokehOcclusion(ScriptDepthOfFieldSettings* self, bool value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<DepthOfFieldSettings*>(self->GetNativeObject())->BokehOcclusion = value;
 	}
 
 	float ScriptDepthOfFieldSettings::InternalGetOcclusionDepthRange(ScriptDepthOfFieldSettings* self)
 	{
 		float tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<DepthOfFieldSettings*>(self->GetNativeObject())->OcclusionDepthRange;
 
 		float __output;
@@ -351,6 +453,9 @@ namespace bs
 
 	void ScriptDepthOfFieldSettings::InternalSetOcclusionDepthRange(ScriptDepthOfFieldSettings* self, float value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<DepthOfFieldSettings*>(self->GetNativeObject())->OcclusionDepthRange = value;
 	}
 }

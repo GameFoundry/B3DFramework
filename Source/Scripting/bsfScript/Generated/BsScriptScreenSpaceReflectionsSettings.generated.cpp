@@ -46,6 +46,9 @@ namespace bs
 	bool ScriptScreenSpaceReflectionsSettings::InternalGetEnabled(ScriptScreenSpaceReflectionsSettings* self)
 	{
 		bool tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<ScreenSpaceReflectionsSettings*>(self->GetNativeObject())->Enabled;
 
 		bool __output;
@@ -56,12 +59,18 @@ namespace bs
 
 	void ScriptScreenSpaceReflectionsSettings::InternalSetEnabled(ScriptScreenSpaceReflectionsSettings* self, bool value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<ScreenSpaceReflectionsSettings*>(self->GetNativeObject())->Enabled = value;
 	}
 
 	uint32_t ScriptScreenSpaceReflectionsSettings::InternalGetQuality(ScriptScreenSpaceReflectionsSettings* self)
 	{
 		uint32_t tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<ScreenSpaceReflectionsSettings*>(self->GetNativeObject())->Quality;
 
 		uint32_t __output;
@@ -72,12 +81,18 @@ namespace bs
 
 	void ScriptScreenSpaceReflectionsSettings::InternalSetQuality(ScriptScreenSpaceReflectionsSettings* self, uint32_t value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<ScreenSpaceReflectionsSettings*>(self->GetNativeObject())->Quality = value;
 	}
 
 	float ScriptScreenSpaceReflectionsSettings::InternalGetIntensity(ScriptScreenSpaceReflectionsSettings* self)
 	{
 		float tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<ScreenSpaceReflectionsSettings*>(self->GetNativeObject())->Intensity;
 
 		float __output;
@@ -88,12 +103,18 @@ namespace bs
 
 	void ScriptScreenSpaceReflectionsSettings::InternalSetIntensity(ScriptScreenSpaceReflectionsSettings* self, float value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<ScreenSpaceReflectionsSettings*>(self->GetNativeObject())->Intensity = value;
 	}
 
 	float ScriptScreenSpaceReflectionsSettings::InternalGetMaxRoughness(ScriptScreenSpaceReflectionsSettings* self)
 	{
 		float tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<ScreenSpaceReflectionsSettings*>(self->GetNativeObject())->MaxRoughness;
 
 		float __output;
@@ -104,6 +125,9 @@ namespace bs
 
 	void ScriptScreenSpaceReflectionsSettings::InternalSetMaxRoughness(ScriptScreenSpaceReflectionsSettings* self, float value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<ScreenSpaceReflectionsSettings*>(self->GetNativeObject())->MaxRoughness = value;
 	}
 }

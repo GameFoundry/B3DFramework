@@ -101,6 +101,9 @@ namespace bs
 	ShadingLanguageFlag ScriptShaderImportOptions::InternalGetLanguages(ScriptShaderImportOptions* self)
 	{
 		Flags<ShadingLanguageFlag> tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<ShaderImportOptions*>(self->GetNativeObject())->Languages;
 
 		ShadingLanguageFlag __output;
@@ -111,6 +114,9 @@ namespace bs
 
 	void ScriptShaderImportOptions::InternalSetLanguages(ScriptShaderImportOptions* self, ShadingLanguageFlag value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<ShaderImportOptions*>(self->GetNativeObject())->Languages = value;
 	}
 #endif

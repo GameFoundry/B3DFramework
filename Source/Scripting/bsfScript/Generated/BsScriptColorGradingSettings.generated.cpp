@@ -40,6 +40,12 @@ namespace bs
 	void ScriptColorGradingSettings::InternalGetSaturation(ScriptColorGradingSettings* self, TVector3<float>* __output)
 	{
 		TVector3<float> tmp__output;
+		if(!self->IsNativeObjectValid())
+			{
+				__output = {};
+				return;
+			}
+
 		tmp__output = static_cast<ColorGradingSettings*>(self->GetNativeObject())->Saturation;
 
 		*__output = tmp__output;
@@ -49,12 +55,21 @@ namespace bs
 
 	void ScriptColorGradingSettings::InternalSetSaturation(ScriptColorGradingSettings* self, TVector3<float>* value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<ColorGradingSettings*>(self->GetNativeObject())->Saturation = *value;
 	}
 
 	void ScriptColorGradingSettings::InternalGetContrast(ScriptColorGradingSettings* self, TVector3<float>* __output)
 	{
 		TVector3<float> tmp__output;
+		if(!self->IsNativeObjectValid())
+			{
+				__output = {};
+				return;
+			}
+
 		tmp__output = static_cast<ColorGradingSettings*>(self->GetNativeObject())->Contrast;
 
 		*__output = tmp__output;
@@ -64,12 +79,21 @@ namespace bs
 
 	void ScriptColorGradingSettings::InternalSetContrast(ScriptColorGradingSettings* self, TVector3<float>* value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<ColorGradingSettings*>(self->GetNativeObject())->Contrast = *value;
 	}
 
 	void ScriptColorGradingSettings::InternalGetGain(ScriptColorGradingSettings* self, TVector3<float>* __output)
 	{
 		TVector3<float> tmp__output;
+		if(!self->IsNativeObjectValid())
+			{
+				__output = {};
+				return;
+			}
+
 		tmp__output = static_cast<ColorGradingSettings*>(self->GetNativeObject())->Gain;
 
 		*__output = tmp__output;
@@ -79,12 +103,21 @@ namespace bs
 
 	void ScriptColorGradingSettings::InternalSetGain(ScriptColorGradingSettings* self, TVector3<float>* value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<ColorGradingSettings*>(self->GetNativeObject())->Gain = *value;
 	}
 
 	void ScriptColorGradingSettings::InternalGetOffset(ScriptColorGradingSettings* self, TVector3<float>* __output)
 	{
 		TVector3<float> tmp__output;
+		if(!self->IsNativeObjectValid())
+			{
+				__output = {};
+				return;
+			}
+
 		tmp__output = static_cast<ColorGradingSettings*>(self->GetNativeObject())->Offset;
 
 		*__output = tmp__output;
@@ -94,6 +127,9 @@ namespace bs
 
 	void ScriptColorGradingSettings::InternalSetOffset(ScriptColorGradingSettings* self, TVector3<float>* value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<ColorGradingSettings*>(self->GetNativeObject())->Offset = *value;
 	}
 }

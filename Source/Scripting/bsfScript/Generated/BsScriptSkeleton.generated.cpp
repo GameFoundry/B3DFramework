@@ -51,7 +51,7 @@ namespace bs
 		if(!self->IsNativeObjectValid())
 			{
 				__output = {};
-			return;
+				return;
 			}
 
 		SkeletonBoneInfoEx tmp__output;

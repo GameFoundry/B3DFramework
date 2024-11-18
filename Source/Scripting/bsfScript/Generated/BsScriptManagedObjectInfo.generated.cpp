@@ -60,6 +60,9 @@ namespace bs
 	MonoObject* ScriptManagedObjectInfo::InternalGetTypeInfo(ScriptManagedObjectInfo* self)
 	{
 		SPtr<ManagedTypeInfoObject> tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<ManagedObjectInfo*>(self->GetNativeObject())->TypeInfo;
 
 		MonoObject* __output;
@@ -70,6 +73,9 @@ namespace bs
 
 	void ScriptManagedObjectInfo::InternalSetTypeInfo(ScriptManagedObjectInfo* self, MonoObject* value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		SPtr<ManagedTypeInfoObject> tmpvalue;
 		ScriptManagedTypeInfoObject* scriptObjectWrappervalue;
 		scriptObjectWrappervalue = ScriptManagedTypeInfoObject::GetScriptObjectWrapper(value);
@@ -81,6 +87,9 @@ namespace bs
 	MonoArray* ScriptManagedObjectInfo::InternalGetMembers(ScriptManagedObjectInfo* self)
 	{
 		Vector<SPtr<ManagedMemberInfo>> nativeArray__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		nativeArray__output = static_cast<ManagedObjectInfo*>(self->GetNativeObject())->Members;
 
 		MonoArray* __output;
@@ -100,6 +109,9 @@ namespace bs
 
 	void ScriptManagedObjectInfo::InternalSetMembers(ScriptManagedObjectInfo* self, MonoArray* value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		Vector<SPtr<ManagedMemberInfo>> nativeArrayvalue;
 		if(value != nullptr)
 		{
@@ -123,6 +135,9 @@ namespace bs
 	MonoObject* ScriptManagedObjectInfo::InternalGetBaseClass(ScriptManagedObjectInfo* self)
 	{
 		SPtr<ManagedObjectInfo> tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<ManagedObjectInfo*>(self->GetNativeObject())->BaseClass;
 
 		MonoObject* __output;
@@ -133,6 +148,9 @@ namespace bs
 
 	void ScriptManagedObjectInfo::InternalSetBaseClass(ScriptManagedObjectInfo* self, MonoObject* value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		SPtr<ManagedObjectInfo> tmpvalue;
 		ScriptManagedObjectInfo* scriptObjectWrappervalue;
 		scriptObjectWrappervalue = ScriptManagedObjectInfo::GetScriptObjectWrapper(value);

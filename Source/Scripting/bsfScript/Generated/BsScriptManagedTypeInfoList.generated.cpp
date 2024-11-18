@@ -51,6 +51,9 @@ namespace bs
 	MonoObject* ScriptManagedTypeInfoList::InternalGetElementType(ScriptManagedTypeInfoList* self)
 	{
 		SPtr<ManagedTypeInfo> tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<ManagedTypeInfoList*>(self->GetNativeObject())->ElementType;
 
 		MonoObject* __output;
@@ -61,6 +64,9 @@ namespace bs
 
 	void ScriptManagedTypeInfoList::InternalSetElementType(ScriptManagedTypeInfoList* self, MonoObject* value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		SPtr<ManagedTypeInfo> tmpvalue;
 		ScriptManagedTypeInfoWrapperBase* scriptObjectWrappervalue;
 		scriptObjectWrappervalue = (ScriptManagedTypeInfoWrapperBase*)ScriptManagedTypeInfo::GetScriptObjectWrapper(value);

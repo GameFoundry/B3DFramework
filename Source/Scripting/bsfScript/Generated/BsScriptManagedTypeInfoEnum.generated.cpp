@@ -37,6 +37,9 @@ namespace bs
 	ManagedPrimitiveType ScriptManagedTypeInfoEnum::InternalGetUnderlyingType(ScriptManagedTypeInfoEnum* self)
 	{
 		ManagedPrimitiveType tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<ManagedTypeInfoEnum*>(self->GetNativeObject())->UnderlyingType;
 
 		ManagedPrimitiveType __output;
@@ -47,12 +50,18 @@ namespace bs
 
 	void ScriptManagedTypeInfoEnum::InternalSetUnderlyingType(ScriptManagedTypeInfoEnum* self, ManagedPrimitiveType value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<ManagedTypeInfoEnum*>(self->GetNativeObject())->UnderlyingType = value;
 	}
 
 	MonoString* ScriptManagedTypeInfoEnum::InternalGetTypeNamespace(ScriptManagedTypeInfoEnum* self)
 	{
 		String tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<ManagedTypeInfoEnum*>(self->GetNativeObject())->TypeNamespace;
 
 		MonoString* __output;
@@ -63,6 +72,9 @@ namespace bs
 
 	void ScriptManagedTypeInfoEnum::InternalSetTypeNamespace(ScriptManagedTypeInfoEnum* self, MonoString* value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		String tmpvalue;
 		tmpvalue = MonoUtil::MonoToString(value);
 		static_cast<ManagedTypeInfoEnum*>(self->GetNativeObject())->TypeNamespace = tmpvalue;
@@ -71,6 +83,9 @@ namespace bs
 	MonoString* ScriptManagedTypeInfoEnum::InternalGetTypeName(ScriptManagedTypeInfoEnum* self)
 	{
 		String tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<ManagedTypeInfoEnum*>(self->GetNativeObject())->TypeName;
 
 		MonoString* __output;
@@ -81,6 +96,9 @@ namespace bs
 
 	void ScriptManagedTypeInfoEnum::InternalSetTypeName(ScriptManagedTypeInfoEnum* self, MonoString* value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		String tmpvalue;
 		tmpvalue = MonoUtil::MonoToString(value);
 		static_cast<ManagedTypeInfoEnum*>(self->GetNativeObject())->TypeName = tmpvalue;

@@ -44,6 +44,9 @@ namespace bs
 	MonoString* ScriptImportedAnimationEvents::InternalGetName(ScriptImportedAnimationEvents* self)
 	{
 		String tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<ImportedAnimationEvents*>(self->GetNativeObject())->Name;
 
 		MonoString* __output;
@@ -54,6 +57,9 @@ namespace bs
 
 	void ScriptImportedAnimationEvents::InternalSetName(ScriptImportedAnimationEvents* self, MonoString* value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		String tmpvalue;
 		tmpvalue = MonoUtil::MonoToString(value);
 		static_cast<ImportedAnimationEvents*>(self->GetNativeObject())->Name = tmpvalue;
@@ -62,6 +68,9 @@ namespace bs
 	MonoArray* ScriptImportedAnimationEvents::InternalGetEvents(ScriptImportedAnimationEvents* self)
 	{
 		Vector<AnimationEvent> nativeArray__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		nativeArray__output = static_cast<ImportedAnimationEvents*>(self->GetNativeObject())->Events;
 
 		MonoArray* __output;
@@ -78,6 +87,9 @@ namespace bs
 
 	void ScriptImportedAnimationEvents::InternalSetEvents(ScriptImportedAnimationEvents* self, MonoArray* value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		Vector<AnimationEvent> nativeArrayvalue;
 		if(value != nullptr)
 		{

@@ -52,6 +52,9 @@ namespace bs
 	float ScriptTonemappingSettings::InternalGetFilmicCurveShoulderStrength(ScriptTonemappingSettings* self)
 	{
 		float tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<TonemappingSettings*>(self->GetNativeObject())->FilmicCurveShoulderStrength;
 
 		float __output;
@@ -62,12 +65,18 @@ namespace bs
 
 	void ScriptTonemappingSettings::InternalSetFilmicCurveShoulderStrength(ScriptTonemappingSettings* self, float value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<TonemappingSettings*>(self->GetNativeObject())->FilmicCurveShoulderStrength = value;
 	}
 
 	float ScriptTonemappingSettings::InternalGetFilmicCurveLinearStrength(ScriptTonemappingSettings* self)
 	{
 		float tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<TonemappingSettings*>(self->GetNativeObject())->FilmicCurveLinearStrength;
 
 		float __output;
@@ -78,12 +87,18 @@ namespace bs
 
 	void ScriptTonemappingSettings::InternalSetFilmicCurveLinearStrength(ScriptTonemappingSettings* self, float value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<TonemappingSettings*>(self->GetNativeObject())->FilmicCurveLinearStrength = value;
 	}
 
 	float ScriptTonemappingSettings::InternalGetFilmicCurveLinearAngle(ScriptTonemappingSettings* self)
 	{
 		float tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<TonemappingSettings*>(self->GetNativeObject())->FilmicCurveLinearAngle;
 
 		float __output;
@@ -94,12 +109,18 @@ namespace bs
 
 	void ScriptTonemappingSettings::InternalSetFilmicCurveLinearAngle(ScriptTonemappingSettings* self, float value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<TonemappingSettings*>(self->GetNativeObject())->FilmicCurveLinearAngle = value;
 	}
 
 	float ScriptTonemappingSettings::InternalGetFilmicCurveToeStrength(ScriptTonemappingSettings* self)
 	{
 		float tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<TonemappingSettings*>(self->GetNativeObject())->FilmicCurveToeStrength;
 
 		float __output;
@@ -110,12 +131,18 @@ namespace bs
 
 	void ScriptTonemappingSettings::InternalSetFilmicCurveToeStrength(ScriptTonemappingSettings* self, float value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<TonemappingSettings*>(self->GetNativeObject())->FilmicCurveToeStrength = value;
 	}
 
 	float ScriptTonemappingSettings::InternalGetFilmicCurveToeNumerator(ScriptTonemappingSettings* self)
 	{
 		float tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<TonemappingSettings*>(self->GetNativeObject())->FilmicCurveToeNumerator;
 
 		float __output;
@@ -126,12 +153,18 @@ namespace bs
 
 	void ScriptTonemappingSettings::InternalSetFilmicCurveToeNumerator(ScriptTonemappingSettings* self, float value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<TonemappingSettings*>(self->GetNativeObject())->FilmicCurveToeNumerator = value;
 	}
 
 	float ScriptTonemappingSettings::InternalGetFilmicCurveToeDenominator(ScriptTonemappingSettings* self)
 	{
 		float tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<TonemappingSettings*>(self->GetNativeObject())->FilmicCurveToeDenominator;
 
 		float __output;
@@ -142,12 +175,18 @@ namespace bs
 
 	void ScriptTonemappingSettings::InternalSetFilmicCurveToeDenominator(ScriptTonemappingSettings* self, float value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<TonemappingSettings*>(self->GetNativeObject())->FilmicCurveToeDenominator = value;
 	}
 
 	float ScriptTonemappingSettings::InternalGetFilmicCurveLinearWhitePoint(ScriptTonemappingSettings* self)
 	{
 		float tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<TonemappingSettings*>(self->GetNativeObject())->FilmicCurveLinearWhitePoint;
 
 		float __output;
@@ -158,6 +197,9 @@ namespace bs
 
 	void ScriptTonemappingSettings::InternalSetFilmicCurveLinearWhitePoint(ScriptTonemappingSettings* self, float value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<TonemappingSettings*>(self->GetNativeObject())->FilmicCurveLinearWhitePoint = value;
 	}
 }

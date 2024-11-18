@@ -76,7 +76,7 @@ namespace bs
 		if(!self->IsNativeObjectValid())
 			{
 				__output = {};
-			return;
+				return;
 			}
 
 		ManagedMemberStyle tmp__output;
@@ -118,6 +118,9 @@ namespace bs
 	MonoString* ScriptManagedMemberInfo::InternalGetName(ScriptManagedMemberInfoWrapperBase* self)
 	{
 		String tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<ManagedMemberInfo*>(self->GetNativeObject())->Name;
 
 		MonoString* __output;
@@ -128,6 +131,9 @@ namespace bs
 
 	void ScriptManagedMemberInfo::InternalSetName(ScriptManagedMemberInfoWrapperBase* self, MonoString* value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		String tmpvalue;
 		tmpvalue = MonoUtil::MonoToString(value);
 		static_cast<ManagedMemberInfo*>(self->GetNativeObject())->Name = tmpvalue;
@@ -136,6 +142,9 @@ namespace bs
 	MonoObject* ScriptManagedMemberInfo::InternalGetTypeInfo(ScriptManagedMemberInfoWrapperBase* self)
 	{
 		SPtr<ManagedTypeInfo> tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<ManagedMemberInfo*>(self->GetNativeObject())->TypeInfo;
 
 		MonoObject* __output;
@@ -146,6 +155,9 @@ namespace bs
 
 	void ScriptManagedMemberInfo::InternalSetTypeInfo(ScriptManagedMemberInfoWrapperBase* self, MonoObject* value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		SPtr<ManagedTypeInfo> tmpvalue;
 		ScriptManagedTypeInfoWrapperBase* scriptObjectWrappervalue;
 		scriptObjectWrappervalue = (ScriptManagedTypeInfoWrapperBase*)ScriptManagedTypeInfo::GetScriptObjectWrapper(value);
@@ -157,6 +169,9 @@ namespace bs
 	ManagedFieldMetaDataFlag ScriptManagedMemberInfo::InternalGetMetaDataFlags(ScriptManagedMemberInfoWrapperBase* self)
 	{
 		Flags<ManagedFieldMetaDataFlag> tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<ManagedMemberInfo*>(self->GetNativeObject())->MetaDataFlags;
 
 		ManagedFieldMetaDataFlag __output;
@@ -167,6 +182,9 @@ namespace bs
 
 	void ScriptManagedMemberInfo::InternalSetMetaDataFlags(ScriptManagedMemberInfoWrapperBase* self, ManagedFieldMetaDataFlag value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<ManagedMemberInfo*>(self->GetNativeObject())->MetaDataFlags = value;
 	}
 }

@@ -46,6 +46,9 @@ namespace bs
 	bool ScriptParticleDepthCollisionSettings::InternalGetEnabled(ScriptParticleDepthCollisionSettings* self)
 	{
 		bool tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<ParticleDepthCollisionSettings*>(self->GetNativeObject())->Enabled;
 
 		bool __output;
@@ -56,12 +59,18 @@ namespace bs
 
 	void ScriptParticleDepthCollisionSettings::InternalSetEnabled(ScriptParticleDepthCollisionSettings* self, bool value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<ParticleDepthCollisionSettings*>(self->GetNativeObject())->Enabled = value;
 	}
 
 	float ScriptParticleDepthCollisionSettings::InternalGetRestitution(ScriptParticleDepthCollisionSettings* self)
 	{
 		float tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<ParticleDepthCollisionSettings*>(self->GetNativeObject())->Restitution;
 
 		float __output;
@@ -72,12 +81,18 @@ namespace bs
 
 	void ScriptParticleDepthCollisionSettings::InternalSetRestitution(ScriptParticleDepthCollisionSettings* self, float value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<ParticleDepthCollisionSettings*>(self->GetNativeObject())->Restitution = value;
 	}
 
 	float ScriptParticleDepthCollisionSettings::InternalGetDampening(ScriptParticleDepthCollisionSettings* self)
 	{
 		float tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<ParticleDepthCollisionSettings*>(self->GetNativeObject())->Dampening;
 
 		float __output;
@@ -88,12 +103,18 @@ namespace bs
 
 	void ScriptParticleDepthCollisionSettings::InternalSetDampening(ScriptParticleDepthCollisionSettings* self, float value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<ParticleDepthCollisionSettings*>(self->GetNativeObject())->Dampening = value;
 	}
 
 	float ScriptParticleDepthCollisionSettings::InternalGetRadiusScale(ScriptParticleDepthCollisionSettings* self)
 	{
 		float tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<ParticleDepthCollisionSettings*>(self->GetNativeObject())->RadiusScale;
 
 		float __output;
@@ -104,6 +125,9 @@ namespace bs
 
 	void ScriptParticleDepthCollisionSettings::InternalSetRadiusScale(ScriptParticleDepthCollisionSettings* self, float value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<ParticleDepthCollisionSettings*>(self->GetNativeObject())->RadiusScale = value;
 	}
 }

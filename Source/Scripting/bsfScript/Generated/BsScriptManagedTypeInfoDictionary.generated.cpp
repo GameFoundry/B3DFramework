@@ -53,6 +53,9 @@ namespace bs
 	MonoObject* ScriptManagedTypeInfoDictionary::InternalGetKeyType(ScriptManagedTypeInfoDictionary* self)
 	{
 		SPtr<ManagedTypeInfo> tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<ManagedTypeInfoDictionary*>(self->GetNativeObject())->KeyType;
 
 		MonoObject* __output;
@@ -63,6 +66,9 @@ namespace bs
 
 	void ScriptManagedTypeInfoDictionary::InternalSetKeyType(ScriptManagedTypeInfoDictionary* self, MonoObject* value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		SPtr<ManagedTypeInfo> tmpvalue;
 		ScriptManagedTypeInfoWrapperBase* scriptObjectWrappervalue;
 		scriptObjectWrappervalue = (ScriptManagedTypeInfoWrapperBase*)ScriptManagedTypeInfo::GetScriptObjectWrapper(value);
@@ -74,6 +80,9 @@ namespace bs
 	MonoObject* ScriptManagedTypeInfoDictionary::InternalGetValueType(ScriptManagedTypeInfoDictionary* self)
 	{
 		SPtr<ManagedTypeInfo> tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<ManagedTypeInfoDictionary*>(self->GetNativeObject())->ValueType;
 
 		MonoObject* __output;
@@ -84,6 +93,9 @@ namespace bs
 
 	void ScriptManagedTypeInfoDictionary::InternalSetValueType(ScriptManagedTypeInfoDictionary* self, MonoObject* value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		SPtr<ManagedTypeInfo> tmpvalue;
 		ScriptManagedTypeInfoWrapperBase* scriptObjectWrappervalue;
 		scriptObjectWrappervalue = (ScriptManagedTypeInfoWrapperBase*)ScriptManagedTypeInfo::GetScriptObjectWrapper(value);

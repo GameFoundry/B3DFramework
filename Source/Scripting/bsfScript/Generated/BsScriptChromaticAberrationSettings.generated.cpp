@@ -49,6 +49,9 @@ namespace bs
 	MonoObject* ScriptChromaticAberrationSettings::InternalGetFringeTexture(ScriptChromaticAberrationSettings* self)
 	{
 		TResourceHandle<Texture> tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<ChromaticAberrationSettings*>(self->GetNativeObject())->FringeTexture;
 
 		MonoObject* __output;
@@ -64,6 +67,9 @@ namespace bs
 
 	void ScriptChromaticAberrationSettings::InternalSetFringeTexture(ScriptChromaticAberrationSettings* self, MonoObject* value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		TResourceHandle<Texture> tmpvalue;
 		ScriptRRefBase* scriptObjectWrappervalue;
 		scriptObjectWrappervalue = ScriptRRefBase::GetScriptObjectWrapper(value);
@@ -75,6 +81,9 @@ namespace bs
 	bool ScriptChromaticAberrationSettings::InternalGetEnabled(ScriptChromaticAberrationSettings* self)
 	{
 		bool tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<ChromaticAberrationSettings*>(self->GetNativeObject())->Enabled;
 
 		bool __output;
@@ -85,12 +94,18 @@ namespace bs
 
 	void ScriptChromaticAberrationSettings::InternalSetEnabled(ScriptChromaticAberrationSettings* self, bool value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<ChromaticAberrationSettings*>(self->GetNativeObject())->Enabled = value;
 	}
 
 	ChromaticAberrationType ScriptChromaticAberrationSettings::InternalGetType(ScriptChromaticAberrationSettings* self)
 	{
 		ChromaticAberrationType tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<ChromaticAberrationSettings*>(self->GetNativeObject())->Type;
 
 		ChromaticAberrationType __output;
@@ -101,12 +116,18 @@ namespace bs
 
 	void ScriptChromaticAberrationSettings::InternalSetType(ScriptChromaticAberrationSettings* self, ChromaticAberrationType value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<ChromaticAberrationSettings*>(self->GetNativeObject())->Type = value;
 	}
 
 	float ScriptChromaticAberrationSettings::InternalGetShiftAmount(ScriptChromaticAberrationSettings* self)
 	{
 		float tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<ChromaticAberrationSettings*>(self->GetNativeObject())->ShiftAmount;
 
 		float __output;
@@ -117,6 +138,9 @@ namespace bs
 
 	void ScriptChromaticAberrationSettings::InternalSetShiftAmount(ScriptChromaticAberrationSettings* self, float value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<ChromaticAberrationSettings*>(self->GetNativeObject())->ShiftAmount = value;
 	}
 }

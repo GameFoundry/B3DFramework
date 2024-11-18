@@ -54,6 +54,9 @@ namespace bs
 	bool ScriptAmbientOcclusionSettings::InternalGetEnabled(ScriptAmbientOcclusionSettings* self)
 	{
 		bool tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<AmbientOcclusionSettings*>(self->GetNativeObject())->Enabled;
 
 		bool __output;
@@ -64,12 +67,18 @@ namespace bs
 
 	void ScriptAmbientOcclusionSettings::InternalSetEnabled(ScriptAmbientOcclusionSettings* self, bool value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<AmbientOcclusionSettings*>(self->GetNativeObject())->Enabled = value;
 	}
 
 	float ScriptAmbientOcclusionSettings::InternalGetRadius(ScriptAmbientOcclusionSettings* self)
 	{
 		float tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<AmbientOcclusionSettings*>(self->GetNativeObject())->Radius;
 
 		float __output;
@@ -80,12 +89,18 @@ namespace bs
 
 	void ScriptAmbientOcclusionSettings::InternalSetRadius(ScriptAmbientOcclusionSettings* self, float value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<AmbientOcclusionSettings*>(self->GetNativeObject())->Radius = value;
 	}
 
 	float ScriptAmbientOcclusionSettings::InternalGetBias(ScriptAmbientOcclusionSettings* self)
 	{
 		float tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<AmbientOcclusionSettings*>(self->GetNativeObject())->Bias;
 
 		float __output;
@@ -96,12 +111,18 @@ namespace bs
 
 	void ScriptAmbientOcclusionSettings::InternalSetBias(ScriptAmbientOcclusionSettings* self, float value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<AmbientOcclusionSettings*>(self->GetNativeObject())->Bias = value;
 	}
 
 	float ScriptAmbientOcclusionSettings::InternalGetFadeDistance(ScriptAmbientOcclusionSettings* self)
 	{
 		float tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<AmbientOcclusionSettings*>(self->GetNativeObject())->FadeDistance;
 
 		float __output;
@@ -112,12 +133,18 @@ namespace bs
 
 	void ScriptAmbientOcclusionSettings::InternalSetFadeDistance(ScriptAmbientOcclusionSettings* self, float value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<AmbientOcclusionSettings*>(self->GetNativeObject())->FadeDistance = value;
 	}
 
 	float ScriptAmbientOcclusionSettings::InternalGetFadeRange(ScriptAmbientOcclusionSettings* self)
 	{
 		float tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<AmbientOcclusionSettings*>(self->GetNativeObject())->FadeRange;
 
 		float __output;
@@ -128,12 +155,18 @@ namespace bs
 
 	void ScriptAmbientOcclusionSettings::InternalSetFadeRange(ScriptAmbientOcclusionSettings* self, float value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<AmbientOcclusionSettings*>(self->GetNativeObject())->FadeRange = value;
 	}
 
 	float ScriptAmbientOcclusionSettings::InternalGetIntensity(ScriptAmbientOcclusionSettings* self)
 	{
 		float tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<AmbientOcclusionSettings*>(self->GetNativeObject())->Intensity;
 
 		float __output;
@@ -144,12 +177,18 @@ namespace bs
 
 	void ScriptAmbientOcclusionSettings::InternalSetIntensity(ScriptAmbientOcclusionSettings* self, float value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<AmbientOcclusionSettings*>(self->GetNativeObject())->Intensity = value;
 	}
 
 	float ScriptAmbientOcclusionSettings::InternalGetPower(ScriptAmbientOcclusionSettings* self)
 	{
 		float tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<AmbientOcclusionSettings*>(self->GetNativeObject())->Power;
 
 		float __output;
@@ -160,12 +199,18 @@ namespace bs
 
 	void ScriptAmbientOcclusionSettings::InternalSetPower(ScriptAmbientOcclusionSettings* self, float value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<AmbientOcclusionSettings*>(self->GetNativeObject())->Power = value;
 	}
 
 	uint32_t ScriptAmbientOcclusionSettings::InternalGetQuality(ScriptAmbientOcclusionSettings* self)
 	{
 		uint32_t tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<AmbientOcclusionSettings*>(self->GetNativeObject())->Quality;
 
 		uint32_t __output;
@@ -176,6 +221,9 @@ namespace bs
 
 	void ScriptAmbientOcclusionSettings::InternalSetQuality(ScriptAmbientOcclusionSettings* self, uint32_t value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<AmbientOcclusionSettings*>(self->GetNativeObject())->Quality = value;
 	}
 }

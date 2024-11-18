@@ -49,7 +49,7 @@ namespace bs
 		if(!self->IsNativeObjectValid())
 			{
 				__output = {};
-			return;
+				return;
 			}
 
 		PARTICLE_SKINNED_MESH_SHAPE_DESC tmp__output;

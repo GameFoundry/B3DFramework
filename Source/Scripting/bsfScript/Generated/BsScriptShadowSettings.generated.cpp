@@ -46,6 +46,9 @@ namespace bs
 	float ScriptShadowSettings::InternalGetDirectionalShadowDistance(ScriptShadowSettings* self)
 	{
 		float tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<ShadowSettings*>(self->GetNativeObject())->DirectionalShadowDistance;
 
 		float __output;
@@ -56,12 +59,18 @@ namespace bs
 
 	void ScriptShadowSettings::InternalSetDirectionalShadowDistance(ScriptShadowSettings* self, float value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<ShadowSettings*>(self->GetNativeObject())->DirectionalShadowDistance = value;
 	}
 
 	uint32_t ScriptShadowSettings::InternalGetNumCascades(ScriptShadowSettings* self)
 	{
 		uint32_t tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<ShadowSettings*>(self->GetNativeObject())->NumCascades;
 
 		uint32_t __output;
@@ -72,12 +81,18 @@ namespace bs
 
 	void ScriptShadowSettings::InternalSetNumCascades(ScriptShadowSettings* self, uint32_t value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<ShadowSettings*>(self->GetNativeObject())->NumCascades = value;
 	}
 
 	float ScriptShadowSettings::InternalGetCascadeDistributionExponent(ScriptShadowSettings* self)
 	{
 		float tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<ShadowSettings*>(self->GetNativeObject())->CascadeDistributionExponent;
 
 		float __output;
@@ -88,12 +103,18 @@ namespace bs
 
 	void ScriptShadowSettings::InternalSetCascadeDistributionExponent(ScriptShadowSettings* self, float value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<ShadowSettings*>(self->GetNativeObject())->CascadeDistributionExponent = value;
 	}
 
 	uint32_t ScriptShadowSettings::InternalGetShadowFilteringQuality(ScriptShadowSettings* self)
 	{
 		uint32_t tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<ShadowSettings*>(self->GetNativeObject())->ShadowFilteringQuality;
 
 		uint32_t __output;
@@ -104,6 +125,9 @@ namespace bs
 
 	void ScriptShadowSettings::InternalSetShadowFilteringQuality(ScriptShadowSettings* self, uint32_t value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<ShadowSettings*>(self->GetNativeObject())->ShadowFilteringQuality = value;
 	}
 }

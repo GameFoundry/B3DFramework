@@ -51,6 +51,9 @@ namespace bs
 	bool ScriptBloomSettings::InternalGetEnabled(ScriptBloomSettings* self)
 	{
 		bool tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<BloomSettings*>(self->GetNativeObject())->Enabled;
 
 		bool __output;
@@ -61,12 +64,18 @@ namespace bs
 
 	void ScriptBloomSettings::InternalSetEnabled(ScriptBloomSettings* self, bool value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<BloomSettings*>(self->GetNativeObject())->Enabled = value;
 	}
 
 	uint32_t ScriptBloomSettings::InternalGetQuality(ScriptBloomSettings* self)
 	{
 		uint32_t tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<BloomSettings*>(self->GetNativeObject())->Quality;
 
 		uint32_t __output;
@@ -77,12 +86,18 @@ namespace bs
 
 	void ScriptBloomSettings::InternalSetQuality(ScriptBloomSettings* self, uint32_t value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<BloomSettings*>(self->GetNativeObject())->Quality = value;
 	}
 
 	float ScriptBloomSettings::InternalGetThreshold(ScriptBloomSettings* self)
 	{
 		float tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<BloomSettings*>(self->GetNativeObject())->Threshold;
 
 		float __output;
@@ -93,12 +108,18 @@ namespace bs
 
 	void ScriptBloomSettings::InternalSetThreshold(ScriptBloomSettings* self, float value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<BloomSettings*>(self->GetNativeObject())->Threshold = value;
 	}
 
 	float ScriptBloomSettings::InternalGetIntensity(ScriptBloomSettings* self)
 	{
 		float tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<BloomSettings*>(self->GetNativeObject())->Intensity;
 
 		float __output;
@@ -109,12 +130,21 @@ namespace bs
 
 	void ScriptBloomSettings::InternalSetIntensity(ScriptBloomSettings* self, float value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<BloomSettings*>(self->GetNativeObject())->Intensity = value;
 	}
 
 	void ScriptBloomSettings::InternalGetTint(ScriptBloomSettings* self, Color* __output)
 	{
 		Color tmp__output;
+		if(!self->IsNativeObjectValid())
+			{
+				__output = {};
+				return;
+			}
+
 		tmp__output = static_cast<BloomSettings*>(self->GetNativeObject())->Tint;
 
 		*__output = tmp__output;
@@ -124,12 +154,18 @@ namespace bs
 
 	void ScriptBloomSettings::InternalSetTint(ScriptBloomSettings* self, Color* value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<BloomSettings*>(self->GetNativeObject())->Tint = *value;
 	}
 
 	float ScriptBloomSettings::InternalGetFilterSize(ScriptBloomSettings* self)
 	{
 		float tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
 		tmp__output = static_cast<BloomSettings*>(self->GetNativeObject())->FilterSize;
 
 		float __output;
@@ -140,6 +176,9 @@ namespace bs
 
 	void ScriptBloomSettings::InternalSetFilterSize(ScriptBloomSettings* self, float value)
 	{
+		if(!self->IsNativeObjectValid())
+			return;
+
 		static_cast<BloomSettings*>(self->GetNativeObject())->FilterSize = value;
 	}
 }
