@@ -37,7 +37,7 @@ namespace bs
 		 * Script object wrapper will hold a strong handle onto the script object. Garbage collection will
 		 * trigger at certain time intervals and check if the native object is referenced only by the script
 		 * object wrapper. If so, the strong handle will transition to a weak handle and the native object
-		 * will be destroyed when the script object gets deleted.
+		 * will be destroyed when the script object gets garbage collected.
 		 *
 		 * This should be used by objects that can be referenced by both native and script code, and are
 		 * released when their reference count drops to 0.
