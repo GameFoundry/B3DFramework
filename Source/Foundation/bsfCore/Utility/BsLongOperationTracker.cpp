@@ -15,15 +15,6 @@ LongOperationTracker::~LongOperationTracker()
 	// TODO - Unregister the global async operation manager
 }
 
-void LongOperationTracker::Abort()
-{
-	if(!CanBeAborted())
-		return;
-
-	Lock lock(mMutex);
-	mAbortRequested = true;
-}
-
 float LongOperationTracker::GetProgressPercent() const
 {
 	Lock lock(mMutex);

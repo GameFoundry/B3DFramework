@@ -36,7 +36,7 @@ namespace bs
 
 	/**
 	 * Tracks execution of a long running operation (usually asynchronous operations taking multiple seconds/minutes).
-	 * Provides standardized way of cancelling such an operation, and providing information about progress of the operation. 
+	 * Provides standardized of providing information about progress of the operation. 
 	 */
 	class B3D_CORE_EXPORT LongOperationTracker : public IScriptExportable
 	{
@@ -58,9 +58,6 @@ namespace bs
 
 		/** Category of the operation, if provided. Can be used for grouping similar operations. */
 		const String& GetCategory() const { return mCategory; }
-		
-		/** Sets a flag that requests the operation to be aborted. Only relevant if the operation has been created with CanBeAbortedFlag. */
-		void Abort();
 
 		/** Returns true if the operation can be aborted. */
 		bool CanBeAborted() const { return mFlags.IsSet(LongOperationFlag::CanBeAborted); }
@@ -101,15 +98,11 @@ namespace bs
 		/** Changes the progress percent of the operation. Thread safe. */
 		void NotifyProgressChanged(float progressPercent);
 
-		/** Checks has the user requested for the operation to be aborted. Thread safe. */
-		bool IsAbortRequested() const;
-
 		/** @} */
 	protected:
 		mutable Mutex mMutex;
 		LongOperationState mState = LongOperationState::NotStarted;
 		float mProgressPercent = 0.0f;
-		bool mAbortRequested = false;
 		String mError; /**< Error reported if the operation failed. */
 
 		// Immutable
