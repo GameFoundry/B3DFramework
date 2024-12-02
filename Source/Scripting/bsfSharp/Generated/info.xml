@@ -14592,6 +14592,51 @@ Primary purpose of this class is to avoid expensive string compare, and instead 
 			</param>
 		</method>
 	</class>
+	<enum native="BuiltinResourceType" script="BuiltinResourceType">
+		<doc>Types of resources accessible from script code.</doc>
+		<enumentry native="SpriteVectorPath" script="SpriteVectorPath">
+		</enumentry>
+		<enumentry native="StringTable" script="StringTable">
+		</enumentry>
+		<enumentry native="ShaderInclude" script="ShaderInclude">
+		</enumentry>
+		<enumentry native="Mesh" script="Mesh">
+		</enumentry>
+		<enumentry native="Texture" script="Texture">
+		</enumentry>
+		<enumentry native="PhysicsMaterial" script="PhysicsMaterial">
+		</enumentry>
+		<enumentry native="SpriteTexture" script="SpriteTexture">
+		</enumentry>
+		<enumentry native="Material" script="Material">
+		</enumentry>
+		<enumentry native="Shader" script="Shader">
+		</enumentry>
+		<enumentry native="Font" script="Font">
+		</enumentry>
+		<enumentry native="Undefined" script="Undefined">
+		</enumentry>
+		<enumentry native="Prefab" script="Prefab">
+		</enumentry>
+		<enumentry native="PlainText" script="PlainText">
+		</enumentry>
+		<enumentry native="ScriptCode" script="ScriptCode">
+		</enumentry>
+		<enumentry native="PhysicsMesh" script="PhysicsMesh">
+		</enumentry>
+		<enumentry native="AudioClip" script="AudioClip">
+		</enumentry>
+		<enumentry native="AnimationClip" script="AnimationClip">
+		</enumentry>
+		<enumentry native="VectorField" script="VectorField">
+		</enumentry>
+		<enumentry native="SpriteImage" script="SpriteImage">
+		</enumentry>
+		<enumentry native="SpriteGlyph" script="SpriteGlyph">
+		</enumentry>
+		<enumentry native="VectorPath" script="VectorPath">
+		</enumentry>
+	</enum>
 	<enum native="ManagedReferenceType" script="ManagedReferenceType">
 		<doc>Valid reference script types.</doc>
 		<enumentry native="BuiltinResourceBase" script="BuiltinResourceBase">

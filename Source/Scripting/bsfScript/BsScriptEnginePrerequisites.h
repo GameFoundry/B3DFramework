@@ -188,7 +188,7 @@ namespace bs
 	};
 
 	/**	Types of resources accessible from script code. */
-	enum class ScriptResourceType // Note: Must be the same as C# enum ResourceType
+	enum class B3D_SCRIPT_EXPORT() BuiltinResourceType
 	{
 		Texture = TID_Texture,
 		SpriteTexture = TID_SpriteTexture,
