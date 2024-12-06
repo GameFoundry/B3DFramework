@@ -341,9 +341,10 @@ TShader<IsRenderProxy>::TShader(u32 id)
 {}
 
 template <bool IsRenderProxy>
-TShader<IsRenderProxy>::TShader(const String& name, const ShaderCreateInformationType& createInformation, u32 id)
-	: mName(name), mInformation(createInformation), mShaderId(id)
-{}
+TShader<IsRenderProxy>::TShader(const ShaderCreateInformationType& createInformation, u32 id)
+	: mInformation(createInformation), mShaderId(id)
+{
+}
 
 template <bool IsRenderProxy>
 TShader<IsRenderProxy>::~TShader()
@@ -520,7 +521,7 @@ template class TShader<false>;
 template class TShader<true>;
 
 Shader::Shader(const String& name, const ShaderCreateInformation& createInformation, u32 id)
-	: TShader(name, createInformation, id)
+	: Resource(true, name), TShader(createInformation, id)
 {
 	mMetaData = B3DMakeShared<ShaderMetaData>();
 }
@@ -708,7 +709,7 @@ Shader::Shader( u32 id)
 { }
 
 Shader::Shader(const String& name, const ShaderCreateInformation& createInformation, u32 id)
-	: TShader(name, createInformation, id)
+	: TShader(createInformation, id), mName(name)
 { }
 
 SPtr<Shader> Shader::Create(const String& name, const ShaderCreateInformation& createInformation)

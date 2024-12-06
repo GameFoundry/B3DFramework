@@ -6,6 +6,7 @@
 #include "Reflection/BsRTTIType.h"
 #include "Reflection/BsRTTIPlain.h"
 #include "RTTI/BsUUIDRTTI.h"
+#include "RTTI/BsStringRTTI.h"
 #include "Resources/BsResource.h"
 #include "Resources/BsResourceMetaData.h"
 
@@ -23,6 +24,7 @@ namespace bs
 			//B3D_RTTI_MEMBER(mSize, 0)
 			B3D_RTTI_MEMBER(mMetaData, 1)
 			B3D_RTTI_MEMBER(mId, 2)
+			B3D_RTTI_MEMBER(mName, 3)
 		B3D_RTTI_END_MEMBERS
 
 	public:

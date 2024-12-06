@@ -60,7 +60,10 @@ namespace bs
 		PackageResourceFlags Flags = PackageResourceFlag::None; /**< Flags to provide additional information about the resource. */
 
 		B3D_SCRIPT_EXPORT()
-		SPtr<PackageResourceUserMetaData> AdditionalMetaData; /**< Optional additional meta-data. This can be anything, but should be kept small. */
+		SPtr<PackageResourceUserMetaData> AdditionalMetaData; /**< Optional additional meta-data set explicitly by the user. This can be anything, but should be kept small. */
+
+		B3D_SCRIPT_EXPORT()
+		SPtr<ResourceMetaData> ResourceMetaData; /**< Meta-data that is inherited from the Resource object. */
 
 		/************************************************************************/
 		/* 								SERIALIZATION                      		*/

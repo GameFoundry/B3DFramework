@@ -8,20 +8,9 @@
 using namespace bs;
 
 Resource::Resource(bool createRenderProxy, const String& name)
-	: CoreObject(createRenderProxy), mId(UUIDGenerator::GenerateRandom()), mKeepSourceData(true)
+	: CoreObject(createRenderProxy), mId(UUIDGenerator::GenerateRandom()), mName(name), mKeepSourceData(true)
 {
 	mMetaData = B3DMakeShared<ResourceMetaData>();
-	mMetaData->DisplayName = name;
-}
-
-const String& Resource::GetName() const
-{
-	return mMetaData->DisplayName;
-}
-
-void Resource::SetName(const String& name)
-{
-	mMetaData->DisplayName = name;
 }
 
 void Resource::Destroy()

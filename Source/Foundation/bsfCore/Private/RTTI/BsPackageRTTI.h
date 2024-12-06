@@ -5,6 +5,7 @@
 #include "BsCorePrerequisites.h"
 #include "Resources/BsPackage.h"
 #include "Reflection/BsRTTIType.h"
+#include "Private/RTTI/BsResourceMetaDataRTTI.h"
 #include "RTTI/BsUUIDRTTI.h"
 #include "RTTI/BsPathRTTI.h"
 #include "RTTI/BsFlagsRTTI.h"
@@ -49,6 +50,7 @@ namespace bs
 			B3D_RTTI_MEMBER(CompressionType, 4)
 			B3D_RTTI_MEMBER(Flags, 5)
 			B3D_RTTI_MEMBER(AdditionalMetaData, 6)
+			B3D_RTTI_MEMBER(ResourceMetaData, 7)
 		B3D_RTTI_END_MEMBERS
 
 	public:

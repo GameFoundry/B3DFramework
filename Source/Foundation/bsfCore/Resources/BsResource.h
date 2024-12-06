@@ -21,10 +21,10 @@ namespace bs
 		virtual ~Resource() = default;
 
 		/**	Returns the name of the resource. */
-		const String& GetName() const;
+		const String& GetName() const { return mName; }
 
 		/**	Sets the name of the resource.  */
-		virtual void SetName(const String& name);
+		virtual void SetName(const String& name) { mName = name; }
 
 		/** Returns a globally unique identifier of the resource. */
 		const UUID& GetId() const { return mId; }
@@ -106,7 +106,8 @@ namespace bs
 		UUID mId;
 		TWeakResourceHandle<Resource> mSelfHandle;
 
-		SPtr<ResourceMetaData> mMetaData; // TODO - Deprecate this if possible
+		String mName;
+		SPtr<ResourceMetaData> mMetaData;
 
 		/**
 		 * Signal to the resource implementation if original data should be kept in memory. This is sometimes needed if

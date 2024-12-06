@@ -353,6 +353,7 @@ void Package::AddResource(const Path& path, const SPtr<Resource>& resource)
 	metaData->Path = path;
 	metaData->Id = id;
 	metaData->TypeId = resource != nullptr ? resource->GetTypeId() : 0;
+	metaData->ResourceMetaData = resource != nullptr ? resource->GetMetaData() : nullptr;
 
 	if(resource != nullptr)
 	{
@@ -475,6 +476,7 @@ void Package::SetResource(const SPtr<Resource>& resource, bool markAsDirty)
 	// Always make a copy and user might be reading from the meta-data, and we cannot modify it in a thread safe way
 	const SPtr<PackageResourceMetaData> metaDataCopy = B3DRTTIClone(resourceInformation->MetaData);
 	metaDataCopy->TypeId = resource->GetTypeId();
+	metaDataCopy->ResourceMetaData = resource->GetMetaData();
 
 	const Vector<ResourceDependency> resourceDependencies = Utility::FindResourceDependencies(*resource);
 	metaDataCopy->Dependencies.reserve(resourceDependencies.size());

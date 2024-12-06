@@ -416,11 +416,8 @@ namespace bs
 		using ShaderCreateInformationType = CoreVariantType<ShaderCreateInformation, IsRenderProxy>;
 
 		TShader(u32 id);
-		TShader(const String& name, const ShaderCreateInformationType& createInformation, u32 id);
+		TShader(const ShaderCreateInformationType& createInformation, u32 id);
 		virtual ~TShader();
-
-		/** Returns the name of the shader. */
-		String GetShaderName() const { return mName; }
 
 		/** Returns the total number of techniques in this shader. */
 		u32 GetTechniqueCount() const { return (u32)mInformation.Techniques.size(); }
@@ -571,7 +568,6 @@ namespace bs
 		/** @} */
 
 	protected:
-		String mName;
 		ShaderInformationType mInformation;
 		u32 mShaderId;
 	};
@@ -600,6 +596,9 @@ namespace bs
 	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Rendering)) Shader : public Resource, public TShader<false>
 	{
 	public:
+		/** Returns the name of the shader. */
+		String GetShaderName() const { return mName; }
+
 		/**
 		 * Sets a list include file paths that are referenced by this shader.
 		 *
@@ -683,9 +682,10 @@ namespace bs
 	 */
 
 	/** Shader specific resource meta-data containing information about referenced include files. */
-	class B3D_CORE_EXPORT ShaderMetaData : public ResourceMetaData
+	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT() ShaderMetaData : public ResourceMetaData
 	{
 	public:
+		B3D_SCRIPT_EXPORT()
 		Vector<String> Includes;
 
 		/************************************************************************/
@@ -717,12 +717,15 @@ namespace bs
 			/** Creates an empty shader. */
 			static SPtr<Shader> CreateEmpty();
 
+			/** Returns the name of the shader. */
+			String GetShaderName() const { return mName; }
 
 		protected:
 			friend class bs::Shader;
 
 			Shader(const String& name, const ShaderCreateInformation& createInformation, u32 id);
 
+			String mName;
 			static std::atomic<u32> mNextShaderId;
 
 		private:
