@@ -529,6 +529,9 @@ bool Path::ComparePathElem(const String& left, const String& right, bool caseSen
 
 Path Path::Combine(const Path& left, const Path& right)
 {
+	if(right.IsEmpty())
+		return left;
+
 	Path output = left;
 	return output.Append(right);
 }
