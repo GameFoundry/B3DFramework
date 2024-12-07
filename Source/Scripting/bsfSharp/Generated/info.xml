@@ -99,6 +99,13 @@
 			<doc>Spatial bounds of the vector field.</doc>
 		</field>
 	</struct>
+	<class native="CBoxCollider" script="BoxCollider">
+		<property name="Extents" type="Vector3" getter="GetExtents" setter="SetExtents" static="false">
+		</property>
+		<property name="Center" type="Vector3" getter="GetCenter" setter="SetCenter" static="false">
+			<doc>Determines the position of the box shape, relative to the component&apos;s scene object.</doc>
+		</property>
+	</class>
 	<enum native="IndexType" script="IndexType">
 		<doc>Type of mesh indices used, used for determining maximum number of vertices in a mesh.</doc>
 		<enumentry native="IT_16BIT" script="Index16">
@@ -108,13 +115,20 @@
 			<doc>32-bit indices.</doc>
 		</enumentry>
 	</enum>
-	<class native="CBoxCollider" script="BoxCollider">
-		<property name="Extents" type="Vector3" getter="GetExtents" setter="SetExtents" static="false">
-		</property>
-		<property name="Center" type="Vector3" getter="GetCenter" setter="SetCenter" static="false">
-			<doc>Determines the position of the box shape, relative to the component&apos;s scene object.</doc>
-		</property>
-	</class>
+	<struct native="ParticleEmissionMode" script="ParticleEmissionMode">
+		<doc>Controls how are particle positions on a shape chosen.</doc>
+		<ctor>
+		</ctor>
+		<field name="Type" type="ParticleEmissionModeType">
+			<doc>Type that determines general behaviour.</doc>
+		</field>
+		<field name="Speed" type="float">
+			<doc>Speed along which particle generation should move around the shape, relevant for Loop and PingPing emission modes.</doc>
+		</field>
+		<field name="Interval" type="float">
+			<doc>Determines the minimum interval allowed between the generated particles. 0 specifies the particles can be generated anywhere on the shape.</doc>
+		</field>
+	</struct>
 	<struct native="TQuaternion&lt;float&gt;" script="Quaternion">
 		<doc>Represents a quaternion used for 3D rotations.</doc>
 		<ctor>
@@ -159,20 +173,6 @@
 		<field name="Z" type="double">
 		</field>
 		<field name="W" type="double">
-		</field>
-	</struct>
-	<struct native="ParticleEmissionMode" script="ParticleEmissionMode">
-		<doc>Controls how are particle positions on a shape chosen.</doc>
-		<ctor>
-		</ctor>
-		<field name="Type" type="ParticleEmissionModeType">
-			<doc>Type that determines general behaviour.</doc>
-		</field>
-		<field name="Speed" type="float">
-			<doc>Speed along which particle generation should move around the shape, relevant for Loop and PingPing emission modes.</doc>
-		</field>
-		<field name="Interval" type="float">
-			<doc>Determines the minimum interval allowed between the generated particles. 0 specifies the particles can be generated anywhere on the shape.</doc>
 		</field>
 	</struct>
 	<enum native="EulerAngleOrder" script="EulerAngleOrder">
@@ -297,14 +297,8 @@
 		<field name="Height" type="int">
 		</field>
 	</struct>
-	<class native="MorphChannel" script="MorphChannel">
-		<doc>A collection of morph shapes that are sequentially blended together. Each shape has a weight in range [0, 1] which determines at what point is that shape blended. As the channel percent moves from 0 to 1, different shapes will be blended with those before or after them, depending on their weight.</doc>
-		<property name="Name" type="string" getter="GetName" setter="" static="false">
-			<doc>Returns the unique name of the channel.</doc>
-		</property>
-		<property name="Shapes" type="MorphShape" getter="GetShapes" setter="" static="false">
-			<doc>Returns all morph shapes within this channel, in order from lowest to highest.</doc>
-		</property>
+	<class native="MeshData" script="MeshData">
+		<doc>Contains mesh vertex and index data used for initializing, updating and reading mesh data from Mesh.</doc>
 	</class>
 	<struct native="Result" script="Result">
 		<doc>Same as TResult, but with no output object.</doc>
@@ -317,8 +311,14 @@
 		<field name="AdditionalErrorMessage" type="string">
 		</field>
 	</struct>
-	<class native="MeshData" script="MeshData">
-		<doc>Contains mesh vertex and index data used for initializing, updating and reading mesh data from Mesh.</doc>
+	<class native="MorphChannel" script="MorphChannel">
+		<doc>A collection of morph shapes that are sequentially blended together. Each shape has a weight in range [0, 1] which determines at what point is that shape blended. As the channel percent moves from 0 to 1, different shapes will be blended with those before or after them, depending on their weight.</doc>
+		<property name="Name" type="string" getter="GetName" setter="" static="false">
+			<doc>Returns the unique name of the channel.</doc>
+		</property>
+		<property name="Shapes" type="MorphShape" getter="GetShapes" setter="" static="false">
+			<doc>Returns all morph shapes within this channel, in order from lowest to highest.</doc>
+		</property>
 	</class>
 	<struct native="PARTICLE_STATIC_MESH_SHAPE_DESC" script="ParticleStaticMeshShapeOptions">
 		<doc>Information describing a ParticleEmitterStaticMeshShape.</doc>
@@ -366,21 +366,6 @@
 			<doc>Returns the precise time since application start, in microseconds. Unlike other time methods this is not only updated every frame, but will return exact time at the moment it is called.</doc>
 		</property>
 	</class>
-	<class native="Skeleton" script="Skeleton">
-		<doc>Contains information about bones required for skeletal animation.</doc>
-		<method native="GetBoneInfo" script="GetBoneInfo" static="false">
-			<doc>Returns information about a bone at the provided index.</doc>
-			<param name="boneIdx" type="int">
-				<doc>Index of the bone to retrieve information for.</doc>
-			</param>
-			<returns type="BoneInfo">
-				<doc>Information about the bone at the specified index.</doc>
-			</returns>
-		</method>
-		<property name="NumBones" type="int" getter="GetNumBones" setter="" static="false">
-			<doc>Returns the total number of bones in the skeleton.</doc>
-		</property>
-	</class>
 	<enum native="LogVerbosity" script="LogVerbosity">
 		<doc>Represents verbosity level at which a specific log message will be displayed.</doc>
 		<enumentry native="VeryVerbose" script="VeryVerbose">
@@ -408,6 +393,21 @@
 			<doc>An informational message will be logged, can be used for debugging and tracing.</doc>
 		</enumentry>
 	</enum>
+	<class native="Skeleton" script="Skeleton">
+		<doc>Contains information about bones required for skeletal animation.</doc>
+		<method native="GetBoneInfo" script="GetBoneInfo" static="false">
+			<doc>Returns information about a bone at the provided index.</doc>
+			<param name="boneIdx" type="int">
+				<doc>Index of the bone to retrieve information for.</doc>
+			</param>
+			<returns type="BoneInfo">
+				<doc>Information about the bone at the specified index.</doc>
+			</returns>
+		</method>
+		<property name="NumBones" type="int" getter="GetNumBones" setter="" static="false">
+			<doc>Returns the total number of bones in the skeleton.</doc>
+		</property>
+	</class>
 	<class native="ParticleColor" script="ParticleColor">
 		<doc>Changes the color of the particles over the particle lifetime.</doc>
 		<ctor>
@@ -516,6 +516,21 @@
 			<doc>Returns the number of color keys in the gradient.</doc>
 		</property>
 	</class>
+	<enum native="PropertyDistributionType" script="PropertyDistributionType">
+		<doc>Determines type of distribution used by distribution properties.</doc>
+		<enumentry native="PDT_Constant" script="Constant">
+			<doc>The distribution is a costant value.</doc>
+		</enumentry>
+		<enumentry native="PDT_RandomRange" script="RandomRange">
+			<doc>The distribution is a random value in a specified constant range.</doc>
+		</enumentry>
+		<enumentry native="PDT_Curve" script="Curve">
+			<doc>The distribution is a time-varying value.</doc>
+		</enumentry>
+		<enumentry native="PDT_RandomCurveRange" script="RandomCurveRange">
+			<doc>The distribution is a random value in a specified time-varying range.</doc>
+		</enumentry>
+	</enum>
 	<class native="TAnimationCurve&lt;float&gt;" script="AnimationCurve">
 		<doc>Animation spline represented by a set of keyframes, each representing an endpoint of a cubic hermite curve. The spline can be evaluated at any time, and uses caching to speed up multiple sequential evaluations.</doc>
 		<ctor>
@@ -636,21 +651,17 @@
 			<doc>Returns a list of all keyframes in the curve.</doc>
 		</property>
 	</class>
-	<enum native="PropertyDistributionType" script="PropertyDistributionType">
-		<doc>Determines type of distribution used by distribution properties.</doc>
-		<enumentry native="PDT_Constant" script="Constant">
-			<doc>The distribution is a costant value.</doc>
-		</enumentry>
-		<enumentry native="PDT_RandomRange" script="RandomRange">
-			<doc>The distribution is a random value in a specified constant range.</doc>
-		</enumentry>
-		<enumentry native="PDT_Curve" script="Curve">
-			<doc>The distribution is a time-varying value.</doc>
-		</enumentry>
-		<enumentry native="PDT_RandomCurveRange" script="RandomCurveRange">
-			<doc>The distribution is a random value in a specified time-varying range.</doc>
-		</enumentry>
-	</enum>
+	<class native="MultiResource" script="MultiResource">
+		<doc>Contains a group of resources imported from a single source file.</doc>
+		<ctor>
+		</ctor>
+		<ctor>
+			<param name="entries" type="SubResource">
+			</param>
+		</ctor>
+		<property name="Entries" type="SubResource" getter="GetEntries" setter="SetEntries" static="false">
+		</property>
+	</class>
 	<class native="ColorGradientHDR" script="ColorGradientHDR">
 		<doc>Represents a range of color values over some parameters, similar to a curve. Internally represented as a set of keys that get interpolated between. Capable of representing HDR colors, unlike the normal ColorGradient.</doc>
 		<ctor>
@@ -694,17 +705,6 @@
 		</method>
 		<property name="NumKeys" type="int" getter="GetNumKeys" setter="" static="false">
 			<doc>Returns the number of color keys in the gradient.</doc>
-		</property>
-	</class>
-	<class native="MultiResource" script="MultiResource">
-		<doc>Contains a group of resources imported from a single source file.</doc>
-		<ctor>
-		</ctor>
-		<ctor>
-			<param name="entries" type="SubResource">
-			</param>
-		</ctor>
-		<property name="Entries" type="SubResource" getter="GetEntries" setter="SetEntries" static="false">
 		</property>
 	</class>
 	<enum native="PointerEventType" script="PointerEventType">
@@ -837,21 +837,6 @@
 		<field name="Z" type="double">
 		</field>
 	</struct>
-	<enum native="TextureType" script="TextureType">
-		<doc>Available texture types.</doc>
-		<enumentry native="TEX_TYPE_CUBE_MAP" script="TextureCube">
-			<doc>Texture consisting out of six 2D textures describing an inside of a cube. Allows special sampling.</doc>
-		</enumentry>
-		<enumentry native="TEX_TYPE_1D" script="Texture1D">
-			<doc>One dimensional texture. Just a row of pixels.</doc>
-		</enumentry>
-		<enumentry native="TEX_TYPE_2D" script="Texture2D">
-			<doc>Two dimensional texture.</doc>
-		</enumentry>
-		<enumentry native="TEX_TYPE_3D" script="Texture3D">
-			<doc>Three dimensional texture.</doc>
-		</enumentry>
-	</enum>
 	<class native="RenderTexture" script="RenderTexture">
 		<doc>Render target specialization that allows you to render into one or multiple textures. Such textures can then be used in other operations as GPU program input.</doc>
 		<ctor>
@@ -918,6 +903,21 @@
 			<doc>Returns the depth/stencil surface that contains rendered depth and stencil data.</doc>
 		</property>
 	</class>
+	<enum native="TextureType" script="TextureType">
+		<doc>Available texture types.</doc>
+		<enumentry native="TEX_TYPE_CUBE_MAP" script="TextureCube">
+			<doc>Texture consisting out of six 2D textures describing an inside of a cube. Allows special sampling.</doc>
+		</enumentry>
+		<enumentry native="TEX_TYPE_1D" script="Texture1D">
+			<doc>One dimensional texture. Just a row of pixels.</doc>
+		</enumentry>
+		<enumentry native="TEX_TYPE_2D" script="Texture2D">
+			<doc>Two dimensional texture.</doc>
+		</enumentry>
+		<enumentry native="TEX_TYPE_3D" script="Texture3D">
+			<doc>Three dimensional texture.</doc>
+		</enumentry>
+	</enum>
 	<struct native="TVector4&lt;float&gt;" script="Vector4">
 		<doc>A four dimensional vector.</doc>
 		<ctor>
@@ -1026,26 +1026,6 @@
 		<field name="KeyIdx" type="int">
 		</field>
 	</struct>
-	<struct native="TSphere&lt;float&gt;" script="Sphere">
-		<doc>A sphere represented by a center point and a radius.</doc>
-		<ctor>
-			<doc>Default constructor. Creates a unit sphere around the origin.</doc>
-		</ctor>
-		<field name="Radius" type="float">
-		</field>
-		<field name="Center" type="Vector3">
-		</field>
-	</struct>
-	<struct native="TSphere&lt;double&gt;" script="SphereD">
-		<doc>A sphere represented by a center point and a radius.</doc>
-		<ctor>
-			<doc>Default constructor. Creates a unit sphere around the origin.</doc>
-		</ctor>
-		<field name="Radius" type="double">
-		</field>
-		<field name="Center" type="Vector3D">
-		</field>
-	</struct>
 	<class native="GUILabel" script="GUILabel">
 		<doc>GUI element that displays text and optionally a content image.</doc>
 		<method native="SetContent" script="SetContent" static="false">
@@ -1090,6 +1070,26 @@
 			</param>
 		</ctor>
 	</class>
+	<struct native="TSphere&lt;float&gt;" script="Sphere">
+		<doc>A sphere represented by a center point and a radius.</doc>
+		<ctor>
+			<doc>Default constructor. Creates a unit sphere around the origin.</doc>
+		</ctor>
+		<field name="Radius" type="float">
+		</field>
+		<field name="Center" type="Vector3">
+		</field>
+	</struct>
+	<struct native="TSphere&lt;double&gt;" script="SphereD">
+		<doc>A sphere represented by a center point and a radius.</doc>
+		<ctor>
+			<doc>Default constructor. Creates a unit sphere around the origin.</doc>
+		</ctor>
+		<field name="Radius" type="double">
+		</field>
+		<field name="Center" type="Vector3D">
+		</field>
+	</struct>
 	<class native="Random" script="Random">
 		<doc>Generates pseudo random numbers using the Xorshift128 algorithm. Suitable for high performance requirements.</doc>
 		<ctor>
@@ -1200,21 +1200,6 @@
 		<field name="Direction" type="Vector3D">
 		</field>
 	</struct>
-	<struct native="Rect3" script="Rect3">
-		<doc>Represents a rectangle in three dimensional space. It is represented by two axes that extend from the specified origin. Axes should be perpendicular to each other and they extend in both positive and negative directions from the origin by the amount specified by extents.</doc>
-		<ctor>
-		</ctor>
-		<field name="Center" type="Vector3">
-		</field>
-		<field name="HorizontalAxis" type="Vector3">
-		</field>
-		<field name="VerticalAxis" type="Vector3">
-		</field>
-		<field name="HorizontalExtent" type="float">
-		</field>
-		<field name="VerticalExtent" type="float">
-		</field>
-	</struct>
 	<class native="SpriteVectorPath" script="SpriteVectorPath">
 		<doc>Implementation of SpriteImage that renders a vector path.</doc>
 		<method native="SetVectorPath" script="SetVectorPath" static="false">
@@ -1235,6 +1220,21 @@
 			</param>
 		</ctor>
 	</class>
+	<struct native="Rect3" script="Rect3">
+		<doc>Represents a rectangle in three dimensional space. It is represented by two axes that extend from the specified origin. Axes should be perpendicular to each other and they extend in both positive and negative directions from the origin by the amount specified by extents.</doc>
+		<ctor>
+		</ctor>
+		<field name="Center" type="Vector3">
+		</field>
+		<field name="HorizontalAxis" type="Vector3">
+		</field>
+		<field name="VerticalAxis" type="Vector3">
+		</field>
+		<field name="HorizontalExtent" type="float">
+		</field>
+		<field name="VerticalExtent" type="float">
+		</field>
+	</struct>
 	<class native="CAnimation" script="Animation">
 		<method native="Play" script="Play" static="false">
 			<param name="clip" type="RRef&lt;AnimationClip&gt;">
@@ -1557,6 +1557,32 @@
 		<enumentry native="FailedNotFound" script="FailedNotFound">
 		</enumentry>
 	</enum>
+	<struct native="PARTICLE_CIRCLE_SHAPE_DESC" script="ParticleCircleShapeOptions">
+		<doc>Information describing a ParticleEmitterCircleShape.</doc>
+		<ctor>
+		</ctor>
+		<field name="Radius" type="float">
+			<doc>Radius of the circle.</doc>
+		</field>
+		<field name="Thickness" type="float">
+			<doc>Proportion of the surface that can emit particles. Thickness of 0 results in particles being emitted only from the edge of the circle, while thickness of 1 results in particles being emitted from the entire surface. In-between values will use a part of the surface.</doc>
+		</field>
+		<field name="Arc" type="Degree">
+			<doc>Angular portion of the cone from which to emit particles from, in degrees.</doc>
+		</field>
+		<field name="Mode" type="ParticleEmissionMode">
+			<doc>Determines how will particle positions on the shape be generated.</doc>
+		</field>
+	</struct>
+	<enum native="ChromaticAberrationType" script="ChromaticAberrationType">
+		<doc>Types of available chromatic aberration effects.</doc>
+		<enumentry native="Complex" script="Complex">
+			<doc>More complex chromatic aberration effect that takes longer to execute but may yield more visually pleasing results than the simple variant.</doc>
+		</enumentry>
+		<enumentry native="Simple" script="Simple">
+			<doc>Simple chromatic aberration effect that is fast to execute.</doc>
+		</enumentry>
+	</enum>
 	<class native="HString" script="LocString">
 		<doc>String handle. Provides a wrapper around an Unicode string, primarily for localization purposes.
 Actual value for this string is looked up in a global string table based on the provided identifier string and currently active language. If such value doesn&apos;t exist then the identifier is used as is.
@@ -1599,32 +1625,6 @@ Use {0}, {1}, etc. in the string value for values that might change dynamically.
 			</param>
 		</method>
 	</class>
-	<struct native="PARTICLE_CIRCLE_SHAPE_DESC" script="ParticleCircleShapeOptions">
-		<doc>Information describing a ParticleEmitterCircleShape.</doc>
-		<ctor>
-		</ctor>
-		<field name="Radius" type="float">
-			<doc>Radius of the circle.</doc>
-		</field>
-		<field name="Thickness" type="float">
-			<doc>Proportion of the surface that can emit particles. Thickness of 0 results in particles being emitted only from the edge of the circle, while thickness of 1 results in particles being emitted from the entire surface. In-between values will use a part of the surface.</doc>
-		</field>
-		<field name="Arc" type="Degree">
-			<doc>Angular portion of the cone from which to emit particles from, in degrees.</doc>
-		</field>
-		<field name="Mode" type="ParticleEmissionMode">
-			<doc>Determines how will particle positions on the shape be generated.</doc>
-		</field>
-	</struct>
-	<enum native="ChromaticAberrationType" script="ChromaticAberrationType">
-		<doc>Types of available chromatic aberration effects.</doc>
-		<enumentry native="Complex" script="Complex">
-			<doc>More complex chromatic aberration effect that takes longer to execute but may yield more visually pleasing results than the simple variant.</doc>
-		</enumentry>
-		<enumentry native="Simple" script="Simple">
-			<doc>Simple chromatic aberration effect that is fast to execute.</doc>
-		</enumentry>
-	</enum>
 	<enum native="PhysicsMeshType" script="PhysicsMeshType">
 		<doc>Valid types of a mesh used for physics.</doc>
 		<enumentry native="Triangle" script="Triangle">
@@ -1632,6 +1632,15 @@ Use {0}, {1}, etc. in the string value for values that might change dynamically.
 		</enumentry>
 		<enumentry native="Convex" script="Convex">
 			<doc>Mesh representing a convex shape. Mesh will not have more than 256 vertices. Incurrs a significantly lower performance impact than triangle meshes.</doc>
+		</enumentry>
+	</enum>
+	<enum native="PointForceMode" script="PointForceMode">
+		<doc>Type of force that can be applied to a rigidbody at an arbitrary point.</doc>
+		<enumentry native="Impulse" script="Impulse">
+			<doc>Value applied is an impulse (a direct change in its linear or angular momentum).</doc>
+		</enumentry>
+		<enumentry native="Force" script="Force">
+			<doc>Value applied is a force.</doc>
 		</enumentry>
 	</enum>
 	<enum native="CubemapSourceType" script="CubemapSourceType">
@@ -1649,54 +1658,11 @@ Use {0}, {1}, etc. in the string value for values that might change dynamically.
 			<doc>Source is a single cylindrical panoramic image.</doc>
 		</enumentry>
 	</enum>
-	<enum native="PointForceMode" script="PointForceMode">
-		<doc>Type of force that can be applied to a rigidbody at an arbitrary point.</doc>
-		<enumentry native="Impulse" script="Impulse">
-			<doc>Value applied is an impulse (a direct change in its linear or angular momentum).</doc>
-		</enumentry>
-		<enumentry native="Force" script="Force">
-			<doc>Value applied is a force.</doc>
-		</enumentry>
-	</enum>
-	<class native="VectorGraphicsSettings" script="VectorGraphicsSettings">
-		<doc>Settings that control how is a VectorPath drawn.</doc>
-	</class>
 	<class native="ManagedFieldInfo" script="ManagedFieldInfo">
 		<doc>Contains data about a single field in a managed object (class or struct).</doc>
 	</class>
-	<enum native="VectorComponent" script="VectorComponent">
-		<doc>Names of individual components of a vector.</doc>
-		<enumentry native="X" script="X">
-		</enumentry>
-		<enumentry native="Y" script="Y">
-		</enumentry>
-		<enumentry native="Z" script="Z">
-		</enumentry>
-		<enumentry native="W" script="W">
-		</enumentry>
-	</enum>
-	<class native="BloomSettings" script="BloomSettings">
-		<doc>Settings that control the bloom effect. Bloom adds an extra highlight to bright areas of the scene.</doc>
-		<ctor>
-		</ctor>
-		<property name="Enabled" type="bool" getter="GetEnabled" setter="SetEnabled" static="false">
-			<doc>Enables or disables the bloom effect.</doc>
-		</property>
-		<property name="Quality" type="int" getter="GetQuality" setter="SetQuality" static="false">
-			<doc>Quality of the bloom effect. Higher values will use higher resolution texture for calculating bloom, at the cost of lower performance. Valid range is [0, 3], default is 2.</doc>
-		</property>
-		<property name="Threshold" type="float" getter="GetThreshold" setter="SetThreshold" static="false">
-			<doc>Determines the minimal threshold of pixel luminance to be included in the bloom calculations. Any pixel with luminance below this value will be ignored for the purposes of bloom. The value represents luminance after it is scaled by exposure. Set to zero or negative to disable the threshold and include all pixels in the calculations.</doc>
-		</property>
-		<property name="Intensity" type="float" getter="GetIntensity" setter="SetIntensity" static="false">
-			<doc>Determines the intensity of the bloom effect. Ideally should be in [0, 4] range but higher values are allowed.</doc>
-		</property>
-		<property name="Tint" type="Color" getter="GetTint" setter="SetTint" static="false">
-			<doc>Tint color to apply to the bloom highlight. A pure white means the bloom inherits the underlying scene color.</doc>
-		</property>
-		<property name="FilterSize" type="float" getter="GetFilterSize" setter="SetFilterSize" static="false">
-			<doc>Determines the percent of the texture to account for when filtering for bloom. Larger values will include farther away pixels.</doc>
-		</property>
+	<class native="VectorGraphicsSettings" script="VectorGraphicsSettings">
+		<doc>Settings that control how is a VectorPath drawn.</doc>
 	</class>
 	<class native="CCharacterController" script="CharacterController">
 		<method native="Move" script="Move" static="false">
@@ -1736,6 +1702,63 @@ Use {0}, {1}, etc. in the string value for values that might change dynamically.
 			</param>
 		</event>
 	</class>
+	<class native="BloomSettings" script="BloomSettings">
+		<doc>Settings that control the bloom effect. Bloom adds an extra highlight to bright areas of the scene.</doc>
+		<ctor>
+		</ctor>
+		<property name="Enabled" type="bool" getter="GetEnabled" setter="SetEnabled" static="false">
+			<doc>Enables or disables the bloom effect.</doc>
+		</property>
+		<property name="Quality" type="int" getter="GetQuality" setter="SetQuality" static="false">
+			<doc>Quality of the bloom effect. Higher values will use higher resolution texture for calculating bloom, at the cost of lower performance. Valid range is [0, 3], default is 2.</doc>
+		</property>
+		<property name="Threshold" type="float" getter="GetThreshold" setter="SetThreshold" static="false">
+			<doc>Determines the minimal threshold of pixel luminance to be included in the bloom calculations. Any pixel with luminance below this value will be ignored for the purposes of bloom. The value represents luminance after it is scaled by exposure. Set to zero or negative to disable the threshold and include all pixels in the calculations.</doc>
+		</property>
+		<property name="Intensity" type="float" getter="GetIntensity" setter="SetIntensity" static="false">
+			<doc>Determines the intensity of the bloom effect. Ideally should be in [0, 4] range but higher values are allowed.</doc>
+		</property>
+		<property name="Tint" type="Color" getter="GetTint" setter="SetTint" static="false">
+			<doc>Tint color to apply to the bloom highlight. A pure white means the bloom inherits the underlying scene color.</doc>
+		</property>
+		<property name="FilterSize" type="float" getter="GetFilterSize" setter="SetFilterSize" static="false">
+			<doc>Determines the percent of the texture to account for when filtering for bloom. Larger values will include farther away pixels.</doc>
+		</property>
+	</class>
+	<enum native="VectorComponent" script="VectorComponent">
+		<doc>Names of individual components of a vector.</doc>
+		<enumentry native="X" script="X">
+		</enumentry>
+		<enumentry native="Y" script="Y">
+		</enumentry>
+		<enumentry native="Z" script="Z">
+		</enumentry>
+		<enumentry native="W" script="W">
+		</enumentry>
+	</enum>
+	<enum native="FolderChangeFlag" script="FolderChangeFlag">
+		<doc>Types of notifications we would like to receive when we start a FolderMonitor on a certain folder.</doc>
+		<enumentry native="FileAddedOrRemoved" script="FileAddedOrRemoved">
+			<doc>Called when file is created, moved or removed.</doc>
+		</enumentry>
+		<enumentry native="DirectoryAddedOrRemoved" script="DirectoryAddedOrRemoved">
+			<doc>Called when directory is created, moved or removed.</doc>
+		</enumentry>
+		<enumentry native="FileWritten" script="FileWritten">
+			<doc>Called when file is written to.</doc>
+		</enumentry>
+	</enum>
+	<enum native="ColorComponent" script="ColorComponent">
+		<doc>Names of individual components of a color.</doc>
+		<enumentry native="B" script="B">
+		</enumentry>
+		<enumentry native="R" script="R">
+		</enumentry>
+		<enumentry native="G" script="G">
+		</enumentry>
+		<enumentry native="A" script="A">
+		</enumentry>
+	</enum>
 	<class native="AnimationUtility" script="AnimationUtility">
 		<doc>Helper class for dealing with animations, animation clips and curves.</doc>
 		<method native="EulerToQuaternionCurve" script="EulerToQuaternionCurve" static="true">
@@ -1795,29 +1818,6 @@ Use {0}, {1}, etc. in the string value for values that might change dynamically.
 			</param>
 		</method>
 	</class>
-	<enum native="FolderChangeFlag" script="FolderChangeFlag">
-		<doc>Types of notifications we would like to receive when we start a FolderMonitor on a certain folder.</doc>
-		<enumentry native="FileAddedOrRemoved" script="FileAddedOrRemoved">
-			<doc>Called when file is created, moved or removed.</doc>
-		</enumentry>
-		<enumentry native="DirectoryAddedOrRemoved" script="DirectoryAddedOrRemoved">
-			<doc>Called when directory is created, moved or removed.</doc>
-		</enumentry>
-		<enumentry native="FileWritten" script="FileWritten">
-			<doc>Called when file is written to.</doc>
-		</enumentry>
-	</enum>
-	<enum native="ColorComponent" script="ColorComponent">
-		<doc>Names of individual components of a color.</doc>
-		<enumentry native="B" script="B">
-		</enumentry>
-		<enumentry native="R" script="R">
-		</enumentry>
-		<enumentry native="G" script="G">
-		</enumentry>
-		<enumentry native="A" script="A">
-		</enumentry>
-	</enum>
 	<struct native="LimitAngularRange" script="LimitAngularRange">
 		<doc>Represents a joint limit between two angles.</doc>
 		<ctor>
@@ -1875,16 +1875,18 @@ Use {0}, {1}, etc. in the string value for values that might change dynamically.
 			<doc>Clamp to end/beginning, keeping the last/first frame active.</doc>
 		</enumentry>
 	</enum>
-	<enum native="RangeComponent" script="RangeComponent">
-		<doc>Identifiers representing a range of values.</doc>
-		<enumentry native="Min" script="Min">
-		</enumentry>
-		<enumentry native="Max" script="Max">
-		</enumentry>
-	</enum>
-	<class native="PackageResourceUserMetaData" script="PackageResourceUserMetaData">
-		<doc>Contains user-specified meta-data for a resource stored in a Package.</doc>
-	</class>
+	<struct native="SkeletonBoneInfoEx" script="BoneInfo">
+		<doc>Contains internal information about a single bone in a Skeleton.</doc>
+		<field name="Name" type="string">
+			<doc>Unique name of the bone.</doc>
+		</field>
+		<field name="Parent" type="int">
+			<doc>Index of the parent bone (within the relevant Skeleton object). -1 if root bone.</doc>
+		</field>
+		<field name="InvBindPose" type="Matrix4">
+			<doc>Inverse transform of the pose the skeleton was initially created in.</doc>
+		</field>
+	</struct>
 	<enum native="GUIOptionType" script="GUIOptionType">
 		<doc>Type of GUI element options.</doc>
 		<enumentry native="FixedWidth" script="FixedWidth">
@@ -1898,18 +1900,16 @@ Use {0}, {1}, etc. in the string value for values that might change dynamically.
 		<enumentry native="FlexibleHeight" script="FlexibleHeight">
 		</enumentry>
 	</enum>
-	<struct native="SkeletonBoneInfoEx" script="BoneInfo">
-		<doc>Contains internal information about a single bone in a Skeleton.</doc>
-		<field name="Name" type="string">
-			<doc>Unique name of the bone.</doc>
-		</field>
-		<field name="Parent" type="int">
-			<doc>Index of the parent bone (within the relevant Skeleton object). -1 if root bone.</doc>
-		</field>
-		<field name="InvBindPose" type="Matrix4">
-			<doc>Inverse transform of the pose the skeleton was initially created in.</doc>
-		</field>
-	</struct>
+	<class native="PackageResourceUserMetaData" script="PackageResourceUserMetaData">
+		<doc>Contains user-specified meta-data for a resource stored in a Package.</doc>
+	</class>
+	<enum native="RangeComponent" script="RangeComponent">
+		<doc>Identifiers representing a range of values.</doc>
+		<enumentry native="Min" script="Min">
+		</enumentry>
+		<enumentry native="Max" script="Max">
+		</enumentry>
+	</enum>
 	<enum native="ObjectMobility" script="ObjectMobility">
 		<doc>Controls what kind of mobility restrictions a scene object has. This is used primarily as a performance hint to other systems. Generally the more restricted the mobility the higher performance can be achieved.</doc>
 		<enumentry native="Movable" script="Movable">
@@ -1929,12 +1929,6 @@ Use {0}, {1}, etc. in the string value for values that might change dynamically.
 		</property>
 		<property name="Rotation" type="QuaternionCurve" getter="GetRotationCurves" setter="" static="false">
 			<doc>Animation curve representing the rotation of the root bone.</doc>
-		</property>
-	</class>
-	<class native="MorphShapes" script="MorphShapes">
-		<doc>Contains a set of morph channels used for morph target animation. Each morph channel contains one or multiple shapes which are blended together depending on frame animation. Each channel is then additively blended together depending on some weight.</doc>
-		<property name="Channels" type="MorphChannel" getter="GetChannels" setter="" static="false">
-			<doc>Returns a list of all morph channels in the morph animation.</doc>
 		</property>
 	</class>
 	<struct native="TextureSurface" script="TextureSurface">
@@ -1967,6 +1961,12 @@ Use {0}, {1}, etc. in the string value for values that might change dynamically.
 			<doc>Forces a cubemap or a 3D texture to be bound as a 2D texture array.</doc>
 		</field>
 	</struct>
+	<class native="MorphShapes" script="MorphShapes">
+		<doc>Contains a set of morph channels used for morph target animation. Each morph channel contains one or multiple shapes which are blended together depending on frame animation. Each channel is then additively blended together depending on some weight.</doc>
+		<property name="Channels" type="MorphChannel" getter="GetChannels" setter="" static="false">
+			<doc>Returns a list of all morph channels in the morph animation.</doc>
+		</property>
+	</class>
 	<struct native="AnimationClipState" script="AnimationClipState">
 		<doc>Contains information about a currently playing animation clip.</doc>
 		<ctor>
@@ -2081,6 +2081,41 @@ Use {0}, {1}, etc. in the string value for values that might change dynamically.
 		</enumentry>
 		<enumentry native="MorphWeight" script="MorphWeight">
 			<doc>Signifies the curve is used to adjust the weight of a morph channel. In range [0, 1].</doc>
+		</enumentry>
+	</enum>
+	<struct native="VirtualAxisCreateInformation" script="VirtualAxisCreateInformation">
+		<doc>Information used for initializing a virtual axis.</doc>
+		<ctor>
+		</ctor>
+		<field name="Type" type="int">
+			<doc>Type of physical axis to map to. See InputAxis type for common types, but you are not limited to those values.</doc>
+		</field>
+		<field name="DeadZone" type="float">
+			<doc>Value below which to ignore axis value and consider it 0.</doc>
+		</field>
+		<field name="Sensitivity" type="float">
+			<doc>Higher sensitivity means the axis will more easily reach its maximum values.</doc>
+		</field>
+		<field name="Invert" type="bool">
+			<doc>Should the axis be inverted.</doc>
+		</field>
+		<field name="Normalize" type="bool">
+			<doc>If enabled, axis values will be normalized to [-1, 1] range. Most axes already come in normalized form and this value will not affect such axes. Some axes, like mouse movement are not normalized by default and will instead report relative movement. By enabling this you will normalize such axes to [-1, 1] range.</doc>
+		</field>
+	</struct>
+	<enum native="BuiltinMesh" script="BuiltinMesh">
+		<doc>Types of builtin meshes that are always available.</doc>
+		<enumentry native="Cone" script="Cone">
+		</enumentry>
+		<enumentry native="Box" script="Box">
+		</enumentry>
+		<enumentry native="Sphere" script="Sphere">
+		</enumentry>
+		<enumentry native="Cylinder" script="Cylinder">
+		</enumentry>
+		<enumentry native="Quad" script="Quad">
+		</enumentry>
+		<enumentry native="Disc" script="Disc">
 		</enumentry>
 	</enum>
 	<struct native="TNamedAnimationCurve&lt;float&gt;" script="NamedFloatCurve">
@@ -2258,46 +2293,9 @@ Use {0}, {1}, etc. in the string value for values that might change dynamically.
 			<doc>Actual curve containing animation data.</doc>
 		</field>
 	</struct>
-	<enum native="BuiltinMesh" script="BuiltinMesh">
-		<doc>Types of builtin meshes that are always available.</doc>
-		<enumentry native="Cone" script="Cone">
-		</enumentry>
-		<enumentry native="Box" script="Box">
-		</enumentry>
-		<enumentry native="Sphere" script="Sphere">
-		</enumentry>
-		<enumentry native="Cylinder" script="Cylinder">
-		</enumentry>
-		<enumentry native="Quad" script="Quad">
-		</enumentry>
-		<enumentry native="Disc" script="Disc">
-		</enumentry>
-	</enum>
-	<struct native="VirtualAxisCreateInformation" script="VirtualAxisCreateInformation">
-		<doc>Information used for initializing a virtual axis.</doc>
-		<ctor>
-		</ctor>
-		<field name="Type" type="int">
-			<doc>Type of physical axis to map to. See InputAxis type for common types, but you are not limited to those values.</doc>
-		</field>
-		<field name="DeadZone" type="float">
-			<doc>Value below which to ignore axis value and consider it 0.</doc>
-		</field>
-		<field name="Sensitivity" type="float">
-			<doc>Higher sensitivity means the axis will more easily reach its maximum values.</doc>
-		</field>
-		<field name="Invert" type="bool">
-			<doc>Should the axis be inverted.</doc>
-		</field>
-		<field name="Normalize" type="bool">
-			<doc>If enabled, axis values will be normalized to [-1, 1] range. Most axes already come in normalized form and this value will not affect such axes. Some axes, like mouse movement are not normalized by default and will instead report relative movement. By enabling this you will normalize such axes to [-1, 1] range.</doc>
-		</field>
-	</struct>
-	<struct native="AudioDevice" script="AudioDevice">
-		<doc>Identifier for a device that can be used for playing audio.</doc>
-		<field name="Name" type="string">
-		</field>
-	</struct>
+	<class native="ManagedPropertyInfo" script="ManagedPropertyInfo">
+		<doc>Contains data about a single property in a managed object (class or struct).</doc>
+	</class>
 	<struct native="AnimationEvent" script="AnimationEvent">
 		<doc>Event that is triggered when animation reaches a certain point.</doc>
 		<ctor>
@@ -2318,8 +2316,40 @@ Use {0}, {1}, etc. in the string value for values that might change dynamically.
 			<doc>Time at which to trigger the event, in seconds.</doc>
 		</field>
 	</struct>
-	<class native="ManagedPropertyInfo" script="ManagedPropertyInfo">
-		<doc>Contains data about a single property in a managed object (class or struct).</doc>
+	<struct native="AudioDevice" script="AudioDevice">
+		<doc>Identifier for a device that can be used for playing audio.</doc>
+		<field name="Name" type="string">
+		</field>
+	</struct>
+	<class native="GUISlider" script="GUISlider">
+		<doc>A slider with a draggable handle that can be vertical or horizontal.</doc>
+		<method native="SetRange" script="SetRange" static="false">
+			<doc>Sets a minimum and maximum allow values in the input field. Set to large negative/positive values if you don&apos;t require clamping.</doc>
+			<param name="min" type="float">
+			</param>
+			<param name="max" type="float">
+			</param>
+		</method>
+		<property name="HandlePositionInPercent" type="float" getter="GetHandlePositionInPercent" setter="SetHandlePositionInPercent" static="false">
+			<doc>Current position of the slider handle, in percent ranging [0.0f, 1.0f].</doc>
+		</property>
+		<property name="HandlePositionInRange" type="float" getter="GetHandlePositionInRange" setter="SetHandlePositionInRange" static="false">
+			<doc>Current position of the slider handle, scaled within the current minimum and maximum range, rounded up to nearest step increment. If no range is provided, the range is [0, 1].</doc>
+		</property>
+		<property name="RangeMinimum" type="float" getter="GetRangeMinimum" setter="" static="false">
+			<doc>Returns the minimum value of the slider</doc>
+		</property>
+		<property name="RangeMaximum" type="float" getter="GetRangeMaximum" setter="" static="false">
+			<doc>Returns the maximum value of the slider</doc>
+		</property>
+		<property name="Step" type="float" getter="GetStep" setter="SetStep" static="false">
+			<doc>Step that defines the minimal increment the value can be increased/decreased by. Set to zero to have no step.</doc>
+		</property>
+		<event native="OnChanged" script="OnChanged" static="false">
+			<doc>Triggered when the user changes the value of the slider.</doc>
+			<param name="p0" type="float">
+			</param>
+		</event>
 	</class>
 	<enum native="TangentModeBits" script="TangentMode">
 		<doc>Flags that are used for describing how are tangents calculated for a specific keyframe in an animation curve. Modes for &quot;in&quot; and &quot;out&quot; tangents can be combined.</doc>
@@ -2354,36 +2384,20 @@ Use {0}, {1}, etc. in the string value for values that might change dynamically.
 			<doc>Both tangents are manually adjusted by the user.</doc>
 		</enumentry>
 	</enum>
-	<class native="GUISlider" script="GUISlider">
-		<doc>A slider with a draggable handle that can be vertical or horizontal.</doc>
-		<method native="SetRange" script="SetRange" static="false">
-			<doc>Sets a minimum and maximum allow values in the input field. Set to large negative/positive values if you don&apos;t require clamping.</doc>
-			<param name="min" type="float">
-			</param>
-			<param name="max" type="float">
-			</param>
-		</method>
-		<property name="HandlePositionInPercent" type="float" getter="GetHandlePositionInPercent" setter="SetHandlePositionInPercent" static="false">
-			<doc>Current position of the slider handle, in percent ranging [0.0f, 1.0f].</doc>
-		</property>
-		<property name="HandlePositionInRange" type="float" getter="GetHandlePositionInRange" setter="SetHandlePositionInRange" static="false">
-			<doc>Current position of the slider handle, scaled within the current minimum and maximum range, rounded up to nearest step increment. If no range is provided, the range is [0, 1].</doc>
-		</property>
-		<property name="RangeMinimum" type="float" getter="GetRangeMinimum" setter="" static="false">
-			<doc>Returns the minimum value of the slider</doc>
-		</property>
-		<property name="RangeMaximum" type="float" getter="GetRangeMaximum" setter="" static="false">
-			<doc>Returns the maximum value of the slider</doc>
-		</property>
-		<property name="Step" type="float" getter="GetStep" setter="SetStep" static="false">
-			<doc>Step that defines the minimal increment the value can be increased/decreased by. Set to zero to have no step.</doc>
-		</property>
-		<event native="OnChanged" script="OnChanged" static="false">
-			<doc>Triggered when the user changes the value of the slider.</doc>
-			<param name="p0" type="float">
-			</param>
-		</event>
-	</class>
+	<struct native="PARTICLE_SIZE_DESC" script="ParticleSizeOptions">
+		<doc>Structure used for initializing a ParticleSize object.</doc>
+		<ctor>
+		</ctor>
+		<field name="Size" type="FloatDistribution">
+			<doc>Determines the uniform size of the particles evaluated over particle lifetime. Only used if 3D size is disabled.</doc>
+		</field>
+		<field name="Size3D" type="Vector3Distribution">
+			<doc>Determines the non-uniform size of the particles evaluated over particle lifetime. Only used if 3D size is enabled.</doc>
+		</field>
+		<field name="Use3DSize" type="bool">
+			<doc>Determines should the size be evaluated uniformly for all dimensions, or evaluate each dimension with its own distribution.</doc>
+		</field>
+	</struct>
 	<struct native="TangentRef" script="TangentRef">
 		<doc>Structure containing a reference to a keyframe tangent, as a keyframe reference and type of the tangent.</doc>
 		<ctor>
@@ -2397,20 +2411,6 @@ Use {0}, {1}, etc. in the string value for values that might change dynamically.
 		<field name="KeyframeRef" type="KeyframeRef">
 		</field>
 		<field name="Type" type="TangentType">
-		</field>
-	</struct>
-	<struct native="PARTICLE_SIZE_DESC" script="ParticleSizeOptions">
-		<doc>Structure used for initializing a ParticleSize object.</doc>
-		<ctor>
-		</ctor>
-		<field name="Size" type="FloatDistribution">
-			<doc>Determines the uniform size of the particles evaluated over particle lifetime. Only used if 3D size is disabled.</doc>
-		</field>
-		<field name="Size3D" type="Vector3Distribution">
-			<doc>Determines the non-uniform size of the particles evaluated over particle lifetime. Only used if 3D size is enabled.</doc>
-		</field>
-		<field name="Use3DSize" type="bool">
-			<doc>Determines should the size be evaluated uniformly for all dimensions, or evaluate each dimension with its own distribution.</doc>
 		</field>
 	</struct>
 	<class native="MorphShape" script="MorphShape">
@@ -2488,9 +2488,6 @@ Use {0}, {1}, etc. in the string value for values that might change dynamically.
 			<doc>Determines will the clip be played a spatial 3D sound, or as a normal sound (for example music).</doc>
 		</property>
 	</class>
-	<class native="ImportOptions" script="ImportOptions">
-		<doc>Base class for creating import options from. Import options are specific for each importer and control how is data imported.</doc>
-	</class>
 	<enum native="SceneObjectFlag" script="SceneObjectFlag">
 		<doc>Possible modifiers that can be applied to a SceneObject.</doc>
 		<enumentry native="DontSave" script="DontSave">
@@ -2503,6 +2500,9 @@ Use {0}, {1}, etc. in the string value for values that might change dynamically.
 			<doc>Object will remain in the scene even after scene clear, unless destroyed directly. This only works with top-level objects.</doc>
 		</enumentry>
 	</enum>
+	<class native="ImportOptions" script="ImportOptions">
+		<doc>Base class for creating import options from. Import options are specific for each importer and control how is data imported.</doc>
+	</class>
 	<class native="GUIHorizontalSlider" script="GUIHorizontalSlider">
 		<doc>A horizontal slider with a draggable handle.</doc>
 		<ctor>
@@ -2756,6 +2756,15 @@ Use {0}, {1}, etc. in the string value for values that might change dynamically.
 		<field name="Back" type="int">
 		</field>
 	</struct>
+	<struct native="FontBitmapPage" script="FontBitmapPage">
+		<doc>Information about a single page containing font bitmaps.</doc>
+		<ctor>
+		</ctor>
+		<field name="Texture" type="RRef&lt;Texture&gt;">
+		</field>
+		<field name="IsDynamic" type="bool">
+		</field>
+	</struct>
 	<enum native="PixelFormat" script="PixelFormat">
 		<doc>Pixel formats usable by images, textures and render surfaces.</doc>
 		<enumentry native="PF_R8" script="R8">
@@ -2921,15 +2930,6 @@ Use {0}, {1}, etc. in the string value for values that might change dynamically.
 			<doc>16-bit 4-channel pixel format, unsigned normalized.</doc>
 		</enumentry>
 	</enum>
-	<struct native="FontBitmapPage" script="FontBitmapPage">
-		<doc>Information about a single page containing font bitmaps.</doc>
-		<ctor>
-		</ctor>
-		<field name="Texture" type="RRef&lt;Texture&gt;">
-		</field>
-		<field name="IsDynamic" type="bool">
-		</field>
-	</struct>
 	<class native="PixelData" script="PixelData">
 		<doc>A buffer describing a volume (3D), image (2D) or line (1D) of pixels in memory. Pixels are stored as a succession of &quot;depth&quot; slices, each containing &quot;height&quot; rows of &quot;width&quot; pixels.</doc>
 		<ctor>
@@ -3032,15 +3032,6 @@ Use {0}, {1}, etc. in the string value for values that might change dynamically.
 		<enumentry native="Highest" script="Highest">
 		</enumentry>
 	</enum>
-	<enum native="AlphaMode" script="AlphaMode">
-		<doc>Mode of the alpha channel in a texture.</doc>
-		<enumentry native="None" script="None">
-		</enumentry>
-		<enumentry native="Premultiplied" script="Premultiplied">
-		</enumentry>
-		<enumentry native="Transparency" script="Transparency">
-		</enumentry>
-	</enum>
 	<struct native="LimitConeRange" script="LimitConeRange">
 		<doc>Represents a joint limit that contraints movement to within an elliptical cone.</doc>
 		<ctor>
@@ -3089,6 +3080,15 @@ Use {0}, {1}, etc. in the string value for values that might change dynamically.
 			<doc>Spring that controls how are the bodies pulled back towards the limit when they breach it.</doc>
 		</field>
 	</struct>
+	<enum native="AlphaMode" script="AlphaMode">
+		<doc>Mode of the alpha channel in a texture.</doc>
+		<enumentry native="None" script="None">
+		</enumentry>
+		<enumentry native="Premultiplied" script="Premultiplied">
+		</enumentry>
+		<enumentry native="Transparency" script="Transparency">
+		</enumentry>
+	</enum>
 	<enum native="MipMapWrapMode" script="MipMapWrapMode">
 		<doc>Wrap mode to use when generating mip maps.</doc>
 		<enumentry native="Repeat" script="Repeat">
@@ -3144,13 +3144,6 @@ Use {0}, {1}, etc. in the string value for values that might change dynamically.
 		<field name="IsSrgb" type="bool">
 		</field>
 	</struct>
-	<enum native="ScaleFilter" script="ScaleFilter">
-		<doc>Filtering types to use when scaling images.</doc>
-		<enumentry native="Nearest" script="Nearest">
-		</enumentry>
-		<enumentry native="Linear" script="Linear">
-		</enumentry>
-	</enum>
 	<class native="CSphereCollider" script="SphereCollider">
 		<property name="Radius" type="float" getter="GetRadius" setter="SetRadius" static="false">
 		</property>
@@ -3158,9 +3151,13 @@ Use {0}, {1}, etc. in the string value for values that might change dynamically.
 			<doc>Determines position of the sphere shape, relative to the component&apos;s scene object.</doc>
 		</property>
 	</class>
-	<class native="ParticleEvolver" script="ParticleEvolver">
-		<doc>Updates properties of all active particles in a particle system in some way.</doc>
-	</class>
+	<enum native="ScaleFilter" script="ScaleFilter">
+		<doc>Filtering types to use when scaling images.</doc>
+		<enumentry native="Nearest" script="Nearest">
+		</enumentry>
+		<enumentry native="Linear" script="Linear">
+		</enumentry>
+	</enum>
 	<class native="Mesh" script="Mesh">
 		<doc>Primary class for holding geometry. Stores data in the form of vertex buffers and optionally an index buffer, which may be bound to the pipeline for drawing. May contain multiple sub-meshes.</doc>
 		<ctor>
@@ -3244,6 +3241,9 @@ Use {0}, {1}, etc. in the string value for values that might change dynamically.
 		<property name="MeshData" type="RendererMeshData" getter="GetMeshData" setter="SetMeshData" static="false">
 			<doc>Accesses the vertex and index data of the mesh. If reading, mesh must have been created with the MeshUsage::CPUCached flag. If writing the caller must ensure the data matches mesh&apos;s vertex/index counts, vertex layout and index format.</doc>
 		</property>
+	</class>
+	<class native="ParticleEvolver" script="ParticleEvolver">
+		<doc>Updates properties of all active particles in a particle system in some way.</doc>
 	</class>
 	<enum native="ClearFlagBits" script="ClearFlags">
 		<doc>Flags that determine which portion of the viewport to clear.</doc>
@@ -3403,14 +3403,6 @@ Use {0}, {1}, etc. in the string value for values that might change dynamically.
 			<doc>If true the window render surface will be created, which internally provides a swap chain and allows the GPU to render to the window.</doc>
 		</field>
 	</struct>
-	<enum native="PackageResourceFlag" script="PackageResourceFlag">
-		<doc>Flags that can be set per-resource package meta-data.</doc>
-		<enumentry native="None" script="None">
-		</enumentry>
-		<enumentry native="Folder" script="Folder">
-			<doc>Resource entry represents a folder and has no associated resource data.</doc>
-		</enumentry>
-	</enum>
 	<class native="MeshImportOptions" script="MeshImportOptions">
 		<doc>Contains import options you may use to control how is a mesh imported from some external format into engine format.</doc>
 		<ctor>
@@ -3453,6 +3445,14 @@ Use {0}, {1}, etc. in the string value for values that might change dynamically.
 			<doc>Set of events that will be added to the animation clip, if animation import is enabled.</doc>
 		</property>
 	</class>
+	<enum native="PackageResourceFlag" script="PackageResourceFlag">
+		<doc>Flags that can be set per-resource package meta-data.</doc>
+		<enumentry native="None" script="None">
+		</enumentry>
+		<enumentry native="Folder" script="Folder">
+			<doc>Resource entry represents a folder and has no associated resource data.</doc>
+		</enumentry>
+	</enum>
 	<class native="PackageResourceMetaData" script="PackageResourceMetaData">
 		<doc>Contains meta-data for a resource stored in a Package.</doc>
 		<property name="ResourceName" type="string" getter="GetResourceName" setter="" static="false">
@@ -3556,8 +3556,6 @@ Use {0}, {1}, etc. in the string value for values that might change dynamically.
 	<class native="CoreApplication" script="CoreApplication">
 		<doc>Represents the primary entry point for the core systems. Handles start-up, shutdown, primary loop and allows you to load and unload plugins.</doc>
 	</class>
-	<class native="CAudioListener" script="AudioListener">
-	</class>
 	<class native="ManagedMemberInfo" script="ManagedMemberInfo">
 		<doc>Contains data about a single member (field or property) in a managed object (class or struct).</doc>
 		<method native="ParseStyle" script="ParseStyle" static="false">
@@ -3592,6 +3590,8 @@ Use {0}, {1}, etc. in the string value for values that might change dynamically.
 		</property>
 		<property name="MetaDataFlags" type="ManagedFieldMetaDataFlag" getter="GetMetaDataFlags" setter="SetMetaDataFlags" static="false">
 		</property>
+	</class>
+	<class native="CAudioListener" script="AudioListener">
 	</class>
 	<class native="CAudioSource" script="AudioSource">
 		<method native="Play" script="Play" static="false">
@@ -3628,21 +3628,6 @@ Use {0}, {1}, etc. in the string value for values that might change dynamically.
 			<doc>Determines the name of the bone the component is referencing.</doc>
 		</property>
 	</class>
-	<struct native="ContactPoint" script="ContactPoint">
-		<doc>Information about a single contact point during physics collision.</doc>
-		<field name="Position" type="Vector3">
-			<doc>Contact point in world space.</doc>
-		</field>
-		<field name="Normal" type="Vector3">
-			<doc>Normal pointing from the second shape to the first shape.</doc>
-		</field>
-		<field name="Impulse" type="float">
-			<doc>Impulse applied to the objects to keep them from penetrating. Divide by simulation step to get the force.</doc>
-		</field>
-		<field name="Separation" type="float">
-			<doc>Determines how far are the objects. Negative value denotes penetration.</doc>
-		</field>
-	</struct>
 	<struct native="BoneWeight" script="BoneWeight">
 		<doc>Contains per-vertex bone weights and indexes used for skinning, for up to four bones.</doc>
 		<field name="Index0" type="int">
@@ -3662,13 +3647,19 @@ Use {0}, {1}, etc. in the string value for values that might change dynamically.
 		<field name="Weight3" type="float">
 		</field>
 	</struct>
-	<struct native="CollisionData" script="CollisionData">
-		<doc>Information about a collision between two physics objects.</doc>
-		<field name="Collider" type="Collider">
-			<doc>Components of the colliders that have collided.</doc>
+	<struct native="ContactPoint" script="ContactPoint">
+		<doc>Information about a single contact point during physics collision.</doc>
+		<field name="Position" type="Vector3">
+			<doc>Contact point in world space.</doc>
 		</field>
-		<field name="ContactPoints" type="ContactPoint">
-			<doc>Information about all the contact points for the hit.</doc>
+		<field name="Normal" type="Vector3">
+			<doc>Normal pointing from the second shape to the first shape.</doc>
+		</field>
+		<field name="Impulse" type="float">
+			<doc>Impulse applied to the objects to keep them from penetrating. Divide by simulation step to get the force.</doc>
+		</field>
+		<field name="Separation" type="float">
+			<doc>Determines how far are the objects. Negative value denotes penetration.</doc>
 		</field>
 	</struct>
 	<class native="ParticleGravity" script="ParticleGravity">
@@ -3694,18 +3685,15 @@ Use {0}, {1}, etc. in the string value for values that might change dynamically.
 		<enumentry native="Spot" script="Spot">
 		</enumentry>
 	</enum>
-	<enum native="CollisionReportMode" script="CollisionReportMode">
-		<doc>Determines which collision events will be reported by physics objects.</doc>
-		<enumentry native="Report" script="Report">
-			<doc>Collision events will be triggered when object enters and/or leaves collision.</doc>
-		</enumentry>
-		<enumentry native="None" script="None">
-			<doc>No collision events will be triggered.</doc>
-		</enumentry>
-		<enumentry native="ReportPersistent" script="ReportPersistent">
-			<doc>Collision events will be triggered when object enters and/or leaves collision, but also every frame the object remains in collision.</doc>
-		</enumentry>
-	</enum>
+	<struct native="CollisionData" script="CollisionData">
+		<doc>Information about a collision between two physics objects.</doc>
+		<field name="Collider" type="Collider">
+			<doc>Components of the colliders that have collided.</doc>
+		</field>
+		<field name="ContactPoints" type="ContactPoint">
+			<doc>Information about all the contact points for the hit.</doc>
+		</field>
+	</struct>
 	<class native="ScreenSpaceLensFlareSettings" script="ScreenSpaceLensFlareSettings">
 		<doc>Settings that control the screen-space lens flare effect.</doc>
 		<ctor>
@@ -3756,6 +3744,18 @@ Use {0}, {1}, etc. in the string value for values that might change dynamically.
 			<doc>Uses a higher quality upscaling when blending the lens flare features with scene color. Results in less blocky artifacts at a cost to performance.</doc>
 		</property>
 	</class>
+	<enum native="CollisionReportMode" script="CollisionReportMode">
+		<doc>Determines which collision events will be reported by physics objects.</doc>
+		<enumentry native="Report" script="Report">
+			<doc>Collision events will be triggered when object enters and/or leaves collision.</doc>
+		</enumentry>
+		<enumentry native="None" script="None">
+			<doc>No collision events will be triggered.</doc>
+		</enumentry>
+		<enumentry native="ReportPersistent" script="ReportPersistent">
+			<doc>Collision events will be triggered when object enters and/or leaves collision, but also every frame the object remains in collision.</doc>
+		</enumentry>
+	</enum>
 	<struct native="PhysicsQueryHit" script="PhysicsQueryHit">
 		<doc>Hit information from a physics query.</doc>
 		<ctor>
@@ -4021,21 +4021,6 @@ Moves along the Planckian locus. In range [1500.0f, 15000.0f].</doc>
 In range [-1.0f, 1.0f].</doc>
 		</property>
 	</class>
-	<class native="ColorGradingSettings" script="ColorGradingSettings">
-		<doc>Settings that control color grading post-process.</doc>
-		<property name="Saturation" type="Vector3" getter="GetSaturation" setter="SetSaturation" static="false">
-			<doc>Saturation to be applied during color grading. Larger values increase vibrancy of the image. In range [0.0f, 2.0f].</doc>
-		</property>
-		<property name="Contrast" type="Vector3" getter="GetContrast" setter="SetContrast" static="false">
-			<doc>Contrast to be applied during color grading. Larger values increase difference between light and dark areas of the image. In range [0.0f, 2.0f].</doc>
-		</property>
-		<property name="Gain" type="Vector3" getter="GetGain" setter="SetGain" static="false">
-			<doc>Gain to be applied during color grading. Simply increases all color values by an equal scale. In range [0.0f, 2.0f].</doc>
-		</property>
-		<property name="Offset" type="Vector3" getter="GetOffset" setter="SetOffset" static="false">
-			<doc>Gain to be applied during color grading. Simply offsets all color values by an equal amount. In range [-1.0f, 1.0f].</doc>
-		</property>
-	</class>
 	<class native="ShaderImportOptions" script="ShaderImportOptions">
 		<doc>Contains import options you may use to control how is a shader imported.</doc>
 		<method native="SetDefine" script="SetDefine" static="false">
@@ -4081,33 +4066,19 @@ In range [-1.0f, 1.0f].</doc>
 			<doc>Flags that control which shading languages should the BSL shader be converted into. This ultimately controls on which render backends it will be able to run on.</doc>
 		</property>
 	</class>
-	<class native="AmbientOcclusionSettings" script="AmbientOcclusionSettings">
-		<doc>Settings that control screen space ambient occlusion.</doc>
-		<ctor>
-		</ctor>
-		<property name="Enabled" type="bool" getter="GetEnabled" setter="SetEnabled" static="false">
-			<doc>Enables or disables the screen space ambient occlusion effect.</doc>
+	<class native="ColorGradingSettings" script="ColorGradingSettings">
+		<doc>Settings that control color grading post-process.</doc>
+		<property name="Saturation" type="Vector3" getter="GetSaturation" setter="SetSaturation" static="false">
+			<doc>Saturation to be applied during color grading. Larger values increase vibrancy of the image. In range [0.0f, 2.0f].</doc>
 		</property>
-		<property name="Radius" type="float" getter="GetRadius" setter="SetRadius" static="false">
-			<doc>Radius (in world space, in meters) over which occluders are searched for. Smaller radius ensures better sampling precision but can miss occluders. Larger radius ensures far away occluders are considered but can yield lower quality or noise because of low sampling precision. Usually best to keep at around a meter, valid range is roughly [0.05, 5.0].</doc>
+		<property name="Contrast" type="Vector3" getter="GetContrast" setter="SetContrast" static="false">
+			<doc>Contrast to be applied during color grading. Larger values increase difference between light and dark areas of the image. In range [0.0f, 2.0f].</doc>
 		</property>
-		<property name="Bias" type="float" getter="GetBias" setter="SetBias" static="false">
-			<doc>Bias used to reduce false occlusion artifacts. Higher values reduce the amount of artifacts but will cause details to be lost in areas where occlusion isn&apos;t high. Value is in millimeters. Usually best to keep at a few dozen millimeters, valid range is roughly [0, 200].</doc>
+		<property name="Gain" type="Vector3" getter="GetGain" setter="SetGain" static="false">
+			<doc>Gain to be applied during color grading. Simply increases all color values by an equal scale. In range [0.0f, 2.0f].</doc>
 		</property>
-		<property name="FadeDistance" type="float" getter="GetFadeDistance" setter="SetFadeDistance" static="false">
-			<doc>Distance (in view space, in meters) after which AO starts fading out. The fade process will happen over the range as specified by <see cref="fadeRange"/>.</doc>
-		</property>
-		<property name="FadeRange" type="float" getter="GetFadeRange" setter="SetFadeRange" static="false">
-			<doc>Range (in view space, in meters) in which AO fades out from 100% to 0%. AO starts fading out after the distance specified in <see cref="fadeDistance"/>.</doc>
-		</property>
-		<property name="Intensity" type="float" getter="GetIntensity" setter="SetIntensity" static="false">
-			<doc>Linearly scales the intensity of the AO effect. Values less than 1 make the AO effect less pronounced, and vice versa. Valid range is roughly [0.2, 2].</doc>
-		</property>
-		<property name="Power" type="float" getter="GetPower" setter="SetPower" static="false">
-			<doc>Controls how quickly does the AO darkening effect increase with higher occlusion percent. This is a non-linear control and will cause the darkening to ramp up exponentially. Valid range is roughly [1, 4], where 1 means no extra darkening will occur.</doc>
-		</property>
-		<property name="Quality" type="int" getter="GetQuality" setter="SetQuality" static="false">
-			<doc>Quality level of generated ambient occlusion. In range [0, 4]. Higher levels yield higher quality AO at the cost of performance.</doc>
+		<property name="Offset" type="Vector3" getter="GetOffset" setter="SetOffset" static="false">
+			<doc>Gain to be applied during color grading. Simply offsets all color values by an equal amount. In range [-1.0f, 1.0f].</doc>
 		</property>
 	</class>
 	<class native="CCamera" script="Camera">
@@ -4244,6 +4215,35 @@ In range [-1.0f, 1.0f].</doc>
 		<property name="Main" type="bool" getter="IsMain" setter="SetMain" static="false">
 		</property>
 	</class>
+	<class native="AmbientOcclusionSettings" script="AmbientOcclusionSettings">
+		<doc>Settings that control screen space ambient occlusion.</doc>
+		<ctor>
+		</ctor>
+		<property name="Enabled" type="bool" getter="GetEnabled" setter="SetEnabled" static="false">
+			<doc>Enables or disables the screen space ambient occlusion effect.</doc>
+		</property>
+		<property name="Radius" type="float" getter="GetRadius" setter="SetRadius" static="false">
+			<doc>Radius (in world space, in meters) over which occluders are searched for. Smaller radius ensures better sampling precision but can miss occluders. Larger radius ensures far away occluders are considered but can yield lower quality or noise because of low sampling precision. Usually best to keep at around a meter, valid range is roughly [0.05, 5.0].</doc>
+		</property>
+		<property name="Bias" type="float" getter="GetBias" setter="SetBias" static="false">
+			<doc>Bias used to reduce false occlusion artifacts. Higher values reduce the amount of artifacts but will cause details to be lost in areas where occlusion isn&apos;t high. Value is in millimeters. Usually best to keep at a few dozen millimeters, valid range is roughly [0, 200].</doc>
+		</property>
+		<property name="FadeDistance" type="float" getter="GetFadeDistance" setter="SetFadeDistance" static="false">
+			<doc>Distance (in view space, in meters) after which AO starts fading out. The fade process will happen over the range as specified by <see cref="fadeRange"/>.</doc>
+		</property>
+		<property name="FadeRange" type="float" getter="GetFadeRange" setter="SetFadeRange" static="false">
+			<doc>Range (in view space, in meters) in which AO fades out from 100% to 0%. AO starts fading out after the distance specified in <see cref="fadeDistance"/>.</doc>
+		</property>
+		<property name="Intensity" type="float" getter="GetIntensity" setter="SetIntensity" static="false">
+			<doc>Linearly scales the intensity of the AO effect. Values less than 1 make the AO effect less pronounced, and vice versa. Valid range is roughly [0.2, 2].</doc>
+		</property>
+		<property name="Power" type="float" getter="GetPower" setter="SetPower" static="false">
+			<doc>Controls how quickly does the AO darkening effect increase with higher occlusion percent. This is a non-linear control and will cause the darkening to ramp up exponentially. Valid range is roughly [1, 4], where 1 means no extra darkening will occur.</doc>
+		</property>
+		<property name="Quality" type="int" getter="GetQuality" setter="SetQuality" static="false">
+			<doc>Quality level of generated ambient occlusion. In range [0, 4]. Higher levels yield higher quality AO at the cost of performance.</doc>
+		</property>
+	</class>
 	<enum native="DepthOfFieldType" script="DepthOfFieldType">
 		<doc>Types of available depth of field effects.</doc>
 		<enumentry native="Gaussian" script="Gaussian">
@@ -4330,25 +4330,6 @@ In range [-1.0f, 1.0f].</doc>
 			<doc>Object movement and rotation will result in blurring of the moving object. Can be significantly more expensive than just using camera blur due to the requirement to use a velocity buffer (unless some other effect also requires it, in which case it will be re-used).</doc>
 		</enumentry>
 	</enum>
-	<struct native="SubMesh" script="SubMesh">
-		<doc>Data about a sub-mesh range and the type of primitives contained in the range.</doc>
-		<ctor>
-		</ctor>
-		<ctor>
-			<param name="indexOffset" type="int">
-			</param>
-			<param name="indexCount" type="int">
-			</param>
-			<param name="drawOp" type="MeshTopology">
-			</param>
-		</ctor>
-		<field name="IndexOffset" type="int">
-		</field>
-		<field name="IndexCount" type="int">
-		</field>
-		<field name="DrawOp" type="MeshTopology">
-		</field>
-	</struct>
 	<class native="GUIToggle" script="GUIToggle">
 		<doc>GUI element representing a toggle (on/off) button.</doc>
 		<ctor>
@@ -4388,15 +4369,25 @@ In range [-1.0f, 1.0f].</doc>
 			</param>
 		</ctor>
 	</class>
-	<enum native="MotionBlurFilter" script="MotionBlurFilter">
-		<doc>Type of filter to use when filtering samples contributing to a blurred pixel.</doc>
-		<enumentry native="Simple" script="Simple">
-			<doc>Samples will be simply averaged together to create the blurred pixel.</doc>
-		</enumentry>
-		<enumentry native="Reconstruction" script="Reconstruction">
-			<doc>A more advanced reconstruction filter will be used. This filter provides better blur quality at a performance cost. In particular the filter will improve blurring at object boundaries, allowing blur to extend beyond the object silhouette. It will also try to estimate blurred background and provide better weighting between background, center and foreground samples.</doc>
-		</enumentry>
-	</enum>
+	<struct native="SubMesh" script="SubMesh">
+		<doc>Data about a sub-mesh range and the type of primitives contained in the range.</doc>
+		<ctor>
+		</ctor>
+		<ctor>
+			<param name="indexOffset" type="int">
+			</param>
+			<param name="indexCount" type="int">
+			</param>
+			<param name="drawOp" type="MeshTopology">
+			</param>
+		</ctor>
+		<field name="IndexOffset" type="int">
+		</field>
+		<field name="IndexCount" type="int">
+		</field>
+		<field name="DrawOp" type="MeshTopology">
+		</field>
+	</struct>
 	<class native="ImportedAnimationEvents" script="ImportedAnimationEvents">
 		<doc>A set of animation events that will be added to an animation clip during animation import.</doc>
 		<ctor>
@@ -4406,6 +4397,15 @@ In range [-1.0f, 1.0f].</doc>
 		<property name="Events" type="AnimationEvent" getter="GetEvents" setter="SetEvents" static="false">
 		</property>
 	</class>
+	<enum native="MotionBlurFilter" script="MotionBlurFilter">
+		<doc>Type of filter to use when filtering samples contributing to a blurred pixel.</doc>
+		<enumentry native="Simple" script="Simple">
+			<doc>Samples will be simply averaged together to create the blurred pixel.</doc>
+		</enumentry>
+		<enumentry native="Reconstruction" script="Reconstruction">
+			<doc>A more advanced reconstruction filter will be used. This filter provides better blur quality at a performance cost. In particular the filter will improve blurring at object boundaries, allowing blur to extend beyond the object silhouette. It will also try to estimate blurred background and provide better weighting between background, center and foreground samples.</doc>
+		</enumentry>
+	</enum>
 	<enum native="MotionBlurQuality" script="MotionBlurQuality">
 		<doc>Determines the number of samples to take during motion blur filtering.</doc>
 		<enumentry native="Ultra" script="Ultra">
@@ -4441,23 +4441,6 @@ In range [-1.0f, 1.0f].</doc>
 			<doc>Roughness at which screen space reflections start fading out and become replaced with refl. probes. Valid range is [0, 1]. Default is 0.8.</doc>
 		</property>
 	</class>
-	<class native="ChromaticAberrationSettings" script="ChromaticAberrationSettings">
-		<doc>Settings that control the chromatic aberration effect.</doc>
-		<ctor>
-		</ctor>
-		<property name="FringeTexture" type="RRef&lt;Texture&gt;" getter="GetFringeTexture" setter="SetFringeTexture" static="false">
-			<doc>Optional texture to apply to generate the channel shift fringe, allowing you to modulate the shifted colors. This texture should be 3x1 size, where the first pixel modules red, second green and third blue channel. If using the complex aberration effect you can use a larger texture, Nx1 size.</doc>
-		</property>
-		<property name="Enabled" type="bool" getter="GetEnabled" setter="SetEnabled" static="false">
-			<doc>Enables or disables the effect.</doc>
-		</property>
-		<property name="Type" type="ChromaticAberrationType" getter="GetType" setter="SetType" static="false">
-			<doc>Type of algorithm to use for rendering the effect.</doc>
-		</property>
-		<property name="ShiftAmount" type="float" getter="GetShiftAmount" setter="SetShiftAmount" static="false">
-			<doc>Determines the brightness of the lens flare effect. Value of 1 means the lens flare will be displayed at the same intensity as the scene it was derived from. In range [0, 1], default being 0.05.</doc>
-		</property>
-	</class>
 	<class native="CHingeJoint" script="HingeJoint">
 		<method native="SetFlag" script="SetFlag" static="false">
 			<param name="flag" type="HingeJointFlag">
@@ -4478,6 +4461,23 @@ In range [-1.0f, 1.0f].</doc>
 		<property name="Limit" type="LimitAngularRange" getter="GetLimit" setter="SetLimit" static="false">
 		</property>
 		<property name="Drive" type="HingeJointDrive" getter="GetDrive" setter="SetDrive" static="false">
+		</property>
+	</class>
+	<class native="ChromaticAberrationSettings" script="ChromaticAberrationSettings">
+		<doc>Settings that control the chromatic aberration effect.</doc>
+		<ctor>
+		</ctor>
+		<property name="FringeTexture" type="RRef&lt;Texture&gt;" getter="GetFringeTexture" setter="SetFringeTexture" static="false">
+			<doc>Optional texture to apply to generate the channel shift fringe, allowing you to modulate the shifted colors. This texture should be 3x1 size, where the first pixel modules red, second green and third blue channel. If using the complex aberration effect you can use a larger texture, Nx1 size.</doc>
+		</property>
+		<property name="Enabled" type="bool" getter="GetEnabled" setter="SetEnabled" static="false">
+			<doc>Enables or disables the effect.</doc>
+		</property>
+		<property name="Type" type="ChromaticAberrationType" getter="GetType" setter="SetType" static="false">
+			<doc>Type of algorithm to use for rendering the effect.</doc>
+		</property>
+		<property name="ShiftAmount" type="float" getter="GetShiftAmount" setter="SetShiftAmount" static="false">
+			<doc>Determines the brightness of the lens flare effect. Value of 1 means the lens flare will be displayed at the same intensity as the scene it was derived from. In range [0, 1], default being 0.05.</doc>
 		</property>
 	</class>
 	<class native="FilmGrainSettings" script="FilmGrainSettings">
@@ -4510,6 +4510,91 @@ In range [-1.0f, 1.0f].</doc>
 		<property name="ShadowFilteringQuality" type="int" getter="GetShadowFilteringQuality" setter="SetShadowFilteringQuality" static="false">
 			<doc>Determines the number of samples used for percentage closer shadow map filtering. Higher values yield higher quality shadows, at the cost of performance. Valid range is [1, 4].</doc>
 		</property>
+	</class>
+	<class native="VirtualInput" script="VirtualInput">
+		<doc>Handles virtual input that allows you to receive virtual input events that hide the actual physical input, allowing you to easily change the input keys while being transparent to the external code.</doc>
+		<method native="GetOrCreateVirtualButton" script="GetOrCreateVirtualButton" static="true">
+			<doc>Creates a new virtual button associated with the name, or returns an existing button if it exists.</doc>
+			<param name="name" type="string">
+			</param>
+			<returns type="VirtualButton">
+			</returns>
+		</method>
+		<method native="GetOrCreateVirtualAxis" script="GetOrCreateVirtualAxis" static="true">
+			<doc>Creates a new virtual axis associated with the name, or returns an existing axis if it exists.</doc>
+			<param name="name" type="string">
+			</param>
+			<returns type="VirtualAxis">
+			</returns>
+		</method>
+		<method native="IsButtonDown" script="IsButtonDown" static="false">
+			<doc>Check is the virtual button just getting pressed. This state is only active for one frame.</doc>
+			<param name="button" type="VirtualButton">
+				<doc>Virtual button identifier.</doc>
+			</param>
+			<param name="deviceIdx" type="int">
+				<doc>Optional device index in case multiple input devices are available.</doc>
+			</param>
+			<returns type="bool">
+			</returns>
+		</method>
+		<method native="IsButtonUp" script="IsButtonUp" static="false">
+			<doc>Check is the virtual button just getting released. This state is only active for one frame.</doc>
+			<param name="button" type="VirtualButton">
+				<doc>Virtual button identifier.</doc>
+			</param>
+			<param name="deviceIdx" type="int">
+				<doc>Optional device index in case multiple input devices are available.</doc>
+			</param>
+			<returns type="bool">
+			</returns>
+		</method>
+		<method native="IsButtonHeld" script="IsButtonHeld" static="false">
+			<doc>Check is the virtual button is being held. This state is active as long as the button is being held down, possibly for multiple frames.</doc>
+			<param name="button" type="VirtualButton">
+				<doc>Virtual button identifier.</doc>
+			</param>
+			<param name="deviceIdx" type="int">
+				<doc>Optional device index in case multiple input devices are available.</doc>
+			</param>
+			<returns type="bool">
+			</returns>
+		</method>
+		<method native="GetAxisValue" script="GetAxisValue" static="false">
+			<doc>Returns normalized value for the specified input axis. Returned value will usually be in [-1.0, 1.0] range, but can be outside the range for devices with unbound axes (for example mouse).</doc>
+			<param name="axis" type="VirtualAxis">
+				<doc>Virtual axis identifier.</doc>
+			</param>
+			<param name="deviceIdx" type="int">
+				<doc>Optional device index in case multiple input devices are available.</doc>
+			</param>
+			<returns type="float">
+			</returns>
+		</method>
+		<property name="Configuration" type="InputConfiguration" getter="GetConfiguration" setter="SetConfiguration" static="false">
+			<doc>Input configuration that determines how physical keys map to virtual buttons.</doc>
+		</property>
+		<event native="OnButtonDown" script="OnButtonDown" static="false">
+			<doc>Triggered when a virtual button is pressed.</doc>
+			<param name="p0" type="VirtualButton">
+			</param>
+			<param name="p1" type="int">
+			</param>
+		</event>
+		<event native="OnButtonUp" script="OnButtonUp" static="false">
+			<doc>Triggered when a virtual button is released.</doc>
+			<param name="p0" type="VirtualButton">
+			</param>
+			<param name="p1" type="int">
+			</param>
+		</event>
+		<event native="OnButtonHeld" script="OnButtonHeld" static="false">
+			<doc>Triggered every frame when a virtual button is being held down.</doc>
+			<param name="p0" type="VirtualButton">
+			</param>
+			<param name="p1" type="int">
+			</param>
+		</event>
 	</class>
 	<class native="RenderSettings" script="RenderSettings">
 		<doc>Settings that control rendering for a specific camera (view).</doc>
@@ -4598,91 +4683,6 @@ If this is disabled, then color grading and white balancing will not be enabled 
 			<doc>The absolute base cull-distance for objects rendered through this camera in world units. Objects will use this distance and apply their own factor to it to determine whether they should be visible.</doc>
 		</property>
 	</class>
-	<class native="VirtualInput" script="VirtualInput">
-		<doc>Handles virtual input that allows you to receive virtual input events that hide the actual physical input, allowing you to easily change the input keys while being transparent to the external code.</doc>
-		<method native="GetOrCreateVirtualButton" script="GetOrCreateVirtualButton" static="true">
-			<doc>Creates a new virtual button associated with the name, or returns an existing button if it exists.</doc>
-			<param name="name" type="string">
-			</param>
-			<returns type="VirtualButton">
-			</returns>
-		</method>
-		<method native="GetOrCreateVirtualAxis" script="GetOrCreateVirtualAxis" static="true">
-			<doc>Creates a new virtual axis associated with the name, or returns an existing axis if it exists.</doc>
-			<param name="name" type="string">
-			</param>
-			<returns type="VirtualAxis">
-			</returns>
-		</method>
-		<method native="IsButtonDown" script="IsButtonDown" static="false">
-			<doc>Check is the virtual button just getting pressed. This state is only active for one frame.</doc>
-			<param name="button" type="VirtualButton">
-				<doc>Virtual button identifier.</doc>
-			</param>
-			<param name="deviceIdx" type="int">
-				<doc>Optional device index in case multiple input devices are available.</doc>
-			</param>
-			<returns type="bool">
-			</returns>
-		</method>
-		<method native="IsButtonUp" script="IsButtonUp" static="false">
-			<doc>Check is the virtual button just getting released. This state is only active for one frame.</doc>
-			<param name="button" type="VirtualButton">
-				<doc>Virtual button identifier.</doc>
-			</param>
-			<param name="deviceIdx" type="int">
-				<doc>Optional device index in case multiple input devices are available.</doc>
-			</param>
-			<returns type="bool">
-			</returns>
-		</method>
-		<method native="IsButtonHeld" script="IsButtonHeld" static="false">
-			<doc>Check is the virtual button is being held. This state is active as long as the button is being held down, possibly for multiple frames.</doc>
-			<param name="button" type="VirtualButton">
-				<doc>Virtual button identifier.</doc>
-			</param>
-			<param name="deviceIdx" type="int">
-				<doc>Optional device index in case multiple input devices are available.</doc>
-			</param>
-			<returns type="bool">
-			</returns>
-		</method>
-		<method native="GetAxisValue" script="GetAxisValue" static="false">
-			<doc>Returns normalized value for the specified input axis. Returned value will usually be in [-1.0, 1.0] range, but can be outside the range for devices with unbound axes (for example mouse).</doc>
-			<param name="axis" type="VirtualAxis">
-				<doc>Virtual axis identifier.</doc>
-			</param>
-			<param name="deviceIdx" type="int">
-				<doc>Optional device index in case multiple input devices are available.</doc>
-			</param>
-			<returns type="float">
-			</returns>
-		</method>
-		<property name="Configuration" type="InputConfiguration" getter="GetConfiguration" setter="SetConfiguration" static="false">
-			<doc>Input configuration that determines how physical keys map to virtual buttons.</doc>
-		</property>
-		<event native="OnButtonDown" script="OnButtonDown" static="false">
-			<doc>Triggered when a virtual button is pressed.</doc>
-			<param name="p0" type="VirtualButton">
-			</param>
-			<param name="p1" type="int">
-			</param>
-		</event>
-		<event native="OnButtonUp" script="OnButtonUp" static="false">
-			<doc>Triggered when a virtual button is released.</doc>
-			<param name="p0" type="VirtualButton">
-			</param>
-			<param name="p1" type="int">
-			</param>
-		</event>
-		<event native="OnButtonHeld" script="OnButtonHeld" static="false">
-			<doc>Triggered every frame when a virtual button is being held down.</doc>
-			<param name="p0" type="VirtualButton">
-			</param>
-			<param name="p1" type="int">
-			</param>
-		</event>
-	</class>
 	<enum native="CameraFlag" script="CameraFlag">
 		<doc>Flags for controlling Camera options.</doc>
 		<enumentry native="OnDemand" script="OnDemand">
@@ -4741,18 +4741,6 @@ Sprite images also allow you to specify sprite sheet animation by varying which 
 			<doc>Character will be prevented from going further, but also slide down the slope.</doc>
 		</enumentry>
 	</enum>
-	<enum native="CharacterCollisionFlag" script="CharacterCollisionFlag">
-		<doc>Reports in which directions is the character colliding with other objects.</doc>
-		<enumentry native="Sides" script="Sides">
-			<doc>Character is colliding with its sides.</doc>
-		</enumentry>
-		<enumentry native="Up" script="Up">
-			<doc>Character is colliding with the ceiling.</doc>
-		</enumentry>
-		<enumentry native="Down" script="Down">
-			<doc>Character is colliding with the ground.</doc>
-		</enumentry>
-	</enum>
 	<class native="ParticleForce" script="ParticleForce">
 		<doc>Applies an arbitrary force to the particles.</doc>
 		<ctor>
@@ -4767,21 +4755,18 @@ Sprite images also allow you to specify sprite sheet animation by varying which 
 			<doc>Options describing the evolver.</doc>
 		</property>
 	</class>
-	<struct native="ControllerCollision" script="ControllerCollision">
-		<doc>Contains data about a collision of a character controller and another object.</doc>
-		<field name="Position" type="Vector3">
-			<doc>Contact position.</doc>
-		</field>
-		<field name="Normal" type="Vector3">
-			<doc>Contact normal.</doc>
-		</field>
-		<field name="MotionDir" type="Vector3">
-			<doc>Direction of motion after the hit.</doc>
-		</field>
-		<field name="MotionAmount" type="float">
-			<doc>Magnitude of motion after the hit.</doc>
-		</field>
-	</struct>
+	<enum native="CharacterCollisionFlag" script="CharacterCollisionFlag">
+		<doc>Reports in which directions is the character colliding with other objects.</doc>
+		<enumentry native="Sides" script="Sides">
+			<doc>Character is colliding with its sides.</doc>
+		</enumentry>
+		<enumentry native="Up" script="Up">
+			<doc>Character is colliding with the ceiling.</doc>
+		</enumentry>
+		<enumentry native="Down" script="Down">
+			<doc>Character is colliding with the ground.</doc>
+		</enumentry>
+	</enum>
 	<struct native="GUIContentImages" script="GUIContentImages">
 		<doc>Contains separate GUI content images for every possible GUI element state.</doc>
 		<ctor>
@@ -4807,6 +4792,21 @@ Sprite images also allow you to specify sprite sheet animation by varying which 
 		<field name="FocusedOn" type="SpriteImage">
 		</field>
 	</struct>
+	<struct native="ControllerCollision" script="ControllerCollision">
+		<doc>Contains data about a collision of a character controller and another object.</doc>
+		<field name="Position" type="Vector3">
+			<doc>Contact position.</doc>
+		</field>
+		<field name="Normal" type="Vector3">
+			<doc>Contact normal.</doc>
+		</field>
+		<field name="MotionDir" type="Vector3">
+			<doc>Direction of motion after the hit.</doc>
+		</field>
+		<field name="MotionAmount" type="float">
+			<doc>Magnitude of motion after the hit.</doc>
+		</field>
+	</struct>
 	<struct native="ControllerColliderCollision" script="ControllerColliderCollision">
 		<doc>Contains data about a collision of a character controller and a collider.</doc>
 		<field name="Collider" type="Collider">
@@ -4828,21 +4828,6 @@ Sprite images also allow you to specify sprite sheet animation by varying which 
 			<doc>Magnitude of motion after the hit.</doc>
 		</field>
 	</struct>
-	<enum native="SpriteAnimationPlayback" script="SpriteAnimationPlayback">
-		<doc>Type of playback to use for an animation of a SpriteTexture.</doc>
-		<enumentry native="PingPong" script="PingPong">
-			<doc>Loop the animation but reverse playback when the end is reached.</doc>
-		</enumentry>
-		<enumentry native="Loop" script="Loop">
-			<doc>Animate to the end of the animation then loop around.</doc>
-		</enumentry>
-		<enumentry native="None" script="None">
-			<doc>Do not animate.</doc>
-		</enumentry>
-		<enumentry native="Normal" script="Normal">
-			<doc>Animate once until the end of the animation is reached.</doc>
-		</enumentry>
-	</enum>
 	<class native="RendererMeshData" script="RendererMeshData">
 		<doc>Contains mesh vertex and index data used for initializing, updating and reading mesh data from Mesh.</doc>
 		<ctor>
@@ -4889,6 +4874,21 @@ Sprite images also allow you to specify sprite sheet animation by varying which 
 			<doc>Returns the number of indices contained in the mesh.</doc>
 		</property>
 	</class>
+	<enum native="SpriteAnimationPlayback" script="SpriteAnimationPlayback">
+		<doc>Type of playback to use for an animation of a SpriteTexture.</doc>
+		<enumentry native="PingPong" script="PingPong">
+			<doc>Loop the animation but reverse playback when the end is reached.</doc>
+		</enumentry>
+		<enumentry native="Loop" script="Loop">
+			<doc>Animate to the end of the animation then loop around.</doc>
+		</enumentry>
+		<enumentry native="None" script="None">
+			<doc>Do not animate.</doc>
+		</enumentry>
+		<enumentry native="Normal" script="Normal">
+			<doc>Animate once until the end of the animation is reached.</doc>
+		</enumentry>
+	</enum>
 	<struct native="ControllerControllerCollision" script="ControllerControllerCollision">
 		<doc>Contains data about a collision between two character controllers.</doc>
 		<field name="Controller" type="CharacterController">
@@ -4965,28 +4965,6 @@ Sprite images also allow you to specify sprite sheet animation by varying which 
 			<doc>Damping strength. Force propertional to the velocity error.</doc>
 		</field>
 	</struct>
-	<struct native="LimitCommon" script="LimitCommon">
-		<doc>Contains common values used by all Joint limit types.</doc>
-		<ctor>
-			<param name="contactDist" type="float">
-			</param>
-		</ctor>
-		<ctor>
-			<param name="spring" type="Spring">
-			</param>
-			<param name="restitution" type="float">
-			</param>
-		</ctor>
-		<field name="ContactDist" type="float">
-			<doc>Distance from the limit at which it becomes active. Allows the solver to activate earlier than the limit is reached to avoid breaking the limit.</doc>
-		</field>
-		<field name="Restitution" type="float">
-			<doc>Controls how do objects react when the limit is reached, values closer to zero specify non-ellastic collision, while those closer to one specify more ellastic (i.e bouncy) collision. Must be in [0, 1] range.</doc>
-		</field>
-		<field name="Spring" type="Spring">
-			<doc>Spring that controls how are the bodies pulled back towards the limit when they breach it.</doc>
-		</field>
-	</struct>
 	<class native="GUIResizableHorizontalScrollBar" script="GUIResizableHorizontalScrollBar">
 		<doc>Specialization of a GUIScrollBar for horizontal scrolling, with the ability to resize the scroll bar.</doc>
 		<ctor>
@@ -5016,44 +4994,18 @@ Sprite images also allow you to specify sprite sheet animation by varying which 
 			<doc>True if the force is provided in world space, false if in local space.</doc>
 		</field>
 	</struct>
-	<struct native="LimitLinearRange" script="LimitLinearRange">
-		<doc>Represents a joint limit between two distance values. Lower value must be less than the upper value.</doc>
+	<struct native="LimitCommon" script="LimitCommon">
+		<doc>Contains common values used by all Joint limit types.</doc>
 		<ctor>
-			<doc>Constructs an empty limit.</doc>
-		</ctor>
-		<ctor>
-			<doc>Constructs a hard limit. Once the limit is reached the movement of the attached bodies will come to a stop.</doc>
-			<param name="lower" type="float">
-				<doc>Lower distance of the limit. Must be less than <paramref name="upper"/>.</doc>
-			</param>
-			<param name="upper" type="float">
-				<doc>Upper distance of the limit. Must be more than <paramref name="lower"/>.</doc>
-			</param>
 			<param name="contactDist" type="float">
-				<doc>Distance from the limit at which it becomes active. Allows the solver to activate earlier than the limit is reached to avoid breaking the limit. Specify -1 for the default.</doc>
 			</param>
 		</ctor>
 		<ctor>
-			<doc>Constructs a soft limit. Once the limit is reached the bodies will bounce back according to the resitution parameter and will be pulled back towards the limit by the provided spring.</doc>
-			<param name="lower" type="float">
-				<doc>Lower distance of the limit. Must be less than <paramref name="upper"/>.</doc>
-			</param>
-			<param name="upper" type="float">
-				<doc>Upper distance of the limit. Must be more than <paramref name="lower"/>.</doc>
-			</param>
 			<param name="spring" type="Spring">
-				<doc>Spring that controls how are the bodies pulled back towards the limit when they breach it.</doc>
 			</param>
 			<param name="restitution" type="float">
-				<doc>Controls how do objects react when the limit is reached, values closer to zero specify non-ellastic collision, while those closer to one specify more ellastic (i.e bouncy) collision. Must be in [0, 1] range.</doc>
 			</param>
 		</ctor>
-		<field name="Lower" type="float">
-			<doc>Lower distance of the limit. Must be less than #upper.</doc>
-		</field>
-		<field name="Upper" type="float">
-			<doc>Upper distance of the limit. Must be more than #lower.</doc>
-		</field>
 		<field name="ContactDist" type="float">
 			<doc>Distance from the limit at which it becomes active. Allows the solver to activate earlier than the limit is reached to avoid breaking the limit.</doc>
 		</field>
@@ -5138,6 +5090,54 @@ Sprite images also allow you to specify sprite sheet animation by varying which 
 			</returns>
 		</method>
 	</class>
+	<struct native="LimitLinearRange" script="LimitLinearRange">
+		<doc>Represents a joint limit between two distance values. Lower value must be less than the upper value.</doc>
+		<ctor>
+			<doc>Constructs an empty limit.</doc>
+		</ctor>
+		<ctor>
+			<doc>Constructs a hard limit. Once the limit is reached the movement of the attached bodies will come to a stop.</doc>
+			<param name="lower" type="float">
+				<doc>Lower distance of the limit. Must be less than <paramref name="upper"/>.</doc>
+			</param>
+			<param name="upper" type="float">
+				<doc>Upper distance of the limit. Must be more than <paramref name="lower"/>.</doc>
+			</param>
+			<param name="contactDist" type="float">
+				<doc>Distance from the limit at which it becomes active. Allows the solver to activate earlier than the limit is reached to avoid breaking the limit. Specify -1 for the default.</doc>
+			</param>
+		</ctor>
+		<ctor>
+			<doc>Constructs a soft limit. Once the limit is reached the bodies will bounce back according to the resitution parameter and will be pulled back towards the limit by the provided spring.</doc>
+			<param name="lower" type="float">
+				<doc>Lower distance of the limit. Must be less than <paramref name="upper"/>.</doc>
+			</param>
+			<param name="upper" type="float">
+				<doc>Upper distance of the limit. Must be more than <paramref name="lower"/>.</doc>
+			</param>
+			<param name="spring" type="Spring">
+				<doc>Spring that controls how are the bodies pulled back towards the limit when they breach it.</doc>
+			</param>
+			<param name="restitution" type="float">
+				<doc>Controls how do objects react when the limit is reached, values closer to zero specify non-ellastic collision, while those closer to one specify more ellastic (i.e bouncy) collision. Must be in [0, 1] range.</doc>
+			</param>
+		</ctor>
+		<field name="Lower" type="float">
+			<doc>Lower distance of the limit. Must be less than #upper.</doc>
+		</field>
+		<field name="Upper" type="float">
+			<doc>Upper distance of the limit. Must be more than #lower.</doc>
+		</field>
+		<field name="ContactDist" type="float">
+			<doc>Distance from the limit at which it becomes active. Allows the solver to activate earlier than the limit is reached to avoid breaking the limit.</doc>
+		</field>
+		<field name="Restitution" type="float">
+			<doc>Controls how do objects react when the limit is reached, values closer to zero specify non-ellastic collision, while those closer to one specify more ellastic (i.e bouncy) collision. Must be in [0, 1] range.</doc>
+		</field>
+		<field name="Spring" type="Spring">
+			<doc>Spring that controls how are the bodies pulled back towards the limit when they breach it.</doc>
+		</field>
+	</struct>
 	<struct native="LimitLinear" script="LimitLinear">
 		<doc>Represents a joint limit between zero a single distance value.</doc>
 		<ctor>
@@ -5177,6 +5177,20 @@ Sprite images also allow you to specify sprite sheet animation by varying which 
 			<doc>Spring that controls how are the bodies pulled back towards the limit when they breach it.</doc>
 		</field>
 	</struct>
+	<class native="ParticleEmitterCircleShape" script="ParticleEmitterCircleShape">
+		<doc>Particle emitter shape that emits particles from a circle. Using the thickness parameter you can control whether to emit only from circle edge, the entire surface or just a part of the surface. Using the arc parameter you can emit from a specific angular portion of the circle.</doc>
+		<ctor>
+			<doc>Creates a new particle emitter circle shape.</doc>
+			<param name="desc" type="ParticleCircleShapeOptions">
+			</param>
+		</ctor>
+		<ctor>
+			<doc>Creates a new particle emitter circle shape.</doc>
+		</ctor>
+		<property name="Options" type="ParticleCircleShapeOptions" getter="GetOptions" setter="SetOptions" static="false">
+			<doc>Options describing the shape.</doc>
+		</property>
+	</class>
 	<enum native="D6JointAxis" script="D6JointAxis">
 		<doc>Specifies axes that the D6 joint can constrain motion on.</doc>
 		<enumentry native="X" script="X">
@@ -5200,20 +5214,6 @@ Sprite images also allow you to specify sprite sheet animation by varying which 
 			<doc>Rotation around the Z axis.</doc>
 		</enumentry>
 	</enum>
-	<class native="ParticleEmitterCircleShape" script="ParticleEmitterCircleShape">
-		<doc>Particle emitter shape that emits particles from a circle. Using the thickness parameter you can control whether to emit only from circle edge, the entire surface or just a part of the surface. Using the arc parameter you can emit from a specific angular portion of the circle.</doc>
-		<ctor>
-			<doc>Creates a new particle emitter circle shape.</doc>
-			<param name="desc" type="ParticleCircleShapeOptions">
-			</param>
-		</ctor>
-		<ctor>
-			<doc>Creates a new particle emitter circle shape.</doc>
-		</ctor>
-		<property name="Options" type="ParticleCircleShapeOptions" getter="GetOptions" setter="SetOptions" static="false">
-			<doc>Options describing the shape.</doc>
-		</property>
-	</class>
 	<enum native="D6JointMotion" script="D6JointMotion">
 		<doc>Specifies type of constraint placed on a specific axis.</doc>
 		<enumentry native="Free" script="Free">
@@ -5439,6 +5439,20 @@ Sprite images also allow you to specify sprite sheet animation by varying which 
 		<event native="OnJointBreak" script="OnJointBreak" static="false">
 		</event>
 	</class>
+	<class native="ParticleVelocity" script="ParticleVelocity">
+		<doc>Applies linear velocity to the particles.</doc>
+		<ctor>
+			<doc>Creates a new particle velocity evolver.</doc>
+			<param name="desc" type="ParticleVelocityOptions">
+			</param>
+		</ctor>
+		<ctor>
+			<doc>Creates a new particle velocity evolver.</doc>
+		</ctor>
+		<property name="Options" type="ParticleVelocityOptions" getter="GetOptions" setter="SetOptions" static="false">
+			<doc>Options describing the evolver.</doc>
+		</property>
+	</class>
 	<class native="CD6Joint" script="D6Joint">
 		<method native="GetMotion" script="GetMotion" static="false">
 			<param name="axis" type="D6JointAxis">
@@ -5497,20 +5511,6 @@ Sprite images also allow you to specify sprite sheet animation by varying which 
 		<property name="DriveAngularVelocity" type="Vector3" getter="GetDriveAngularVelocity" setter="" static="false">
 		</property>
 	</class>
-	<class native="ParticleVelocity" script="ParticleVelocity">
-		<doc>Applies linear velocity to the particles.</doc>
-		<ctor>
-			<doc>Creates a new particle velocity evolver.</doc>
-			<param name="desc" type="ParticleVelocityOptions">
-			</param>
-		</ctor>
-		<ctor>
-			<doc>Creates a new particle velocity evolver.</doc>
-		</ctor>
-		<property name="Options" type="ParticleVelocityOptions" getter="GetOptions" setter="SetOptions" static="false">
-			<doc>Options describing the evolver.</doc>
-		</property>
-	</class>
 	<class native="CDecal" script="Decal">
 		<doc>Wraps Decal as a Component.</doc>
 		<property name="Material" type="RRef&lt;Material&gt;" getter="GetMaterial" setter="SetMaterial" static="false">
@@ -5524,6 +5524,15 @@ Sprite images also allow you to specify sprite sheet animation by varying which 
 		<property name="LayerMask" type="int" getter="GetLayerMask" setter="SetLayerMask" static="false">
 		</property>
 	</class>
+	<enum native="GUIHorizontalTextAlignment" script="GUIHorizontalTextAlignment">
+		<doc>Determines how is text horizontally aligned in a GUI element.</doc>
+		<enumentry native="Left" script="Left">
+		</enumentry>
+		<enumentry native="Center" script="Center">
+		</enumentry>
+		<enumentry native="Right" script="Right">
+		</enumentry>
+	</enum>
 	<enum native="DistanceJointFlag" script="DistanceJointFlag">
 		<doc>Controls distance joint options.</doc>
 		<enumentry native="MinDistance" script="MinDistance">
@@ -5534,15 +5543,6 @@ Sprite images also allow you to specify sprite sheet animation by varying which 
 		</enumentry>
 		<enumentry native="Spring" script="Spring">
 			<doc>Enables spring when maintaining limits.</doc>
-		</enumentry>
-	</enum>
-	<enum native="GUIHorizontalTextAlignment" script="GUIHorizontalTextAlignment">
-		<doc>Determines how is text horizontally aligned in a GUI element.</doc>
-		<enumentry native="Left" script="Left">
-		</enumentry>
-		<enumentry native="Center" script="Center">
-		</enumentry>
-		<enumentry native="Right" script="Right">
 		</enumentry>
 	</enum>
 	<class native="CDistanceJoint" script="DistanceJoint">
@@ -5571,15 +5571,6 @@ Sprite images also allow you to specify sprite sheet animation by varying which 
 	</class>
 	<class native="CFixedJoint" script="FixedJoint">
 	</class>
-	<enum native="HingeJointFlag" script="HingeJointFlag">
-		<doc>Flags that control hinge joint options.</doc>
-		<enumentry native="Limit" script="Limit">
-			<doc>Joint limit is enabled.</doc>
-		</enumentry>
-		<enumentry native="Drive" script="Drive">
-			<doc>Joint drive is enabled.</doc>
-		</enumentry>
-	</enum>
 	<enum native="RigidbodyFlag" script="RigidbodyFlag">
 		<doc>Flags that control options of a Rigidbody object.</doc>
 		<enumentry native="None" script="None">
@@ -5593,6 +5584,15 @@ Sprite images also allow you to specify sprite sheet animation by varying which 
 		</enumentry>
 		<enumentry native="CCD" script="CCD">
 			<doc>Enables continous collision detection. This can prevent fast moving bodies from tunneling through each other. This must also be enabled globally in Physics otherwise the flag will be ignored.</doc>
+		</enumentry>
+	</enum>
+	<enum native="HingeJointFlag" script="HingeJointFlag">
+		<doc>Flags that control hinge joint options.</doc>
+		<enumentry native="Limit" script="Limit">
+			<doc>Joint limit is enabled.</doc>
+		</enumentry>
+		<enumentry native="Drive" script="Drive">
+			<doc>Joint drive is enabled.</doc>
 		</enumentry>
 	</enum>
 	<struct native="HingeJointDrive" script="HingeJointDrive">
@@ -6056,23 +6056,6 @@ Sprite images also allow you to specify sprite sheet animation by varying which 
 			<doc>Options describing the evolver.</doc>
 		</property>
 	</class>
-	<struct native="PARTICLE_ORBIT_DESC" script="ParticleOrbitOptions">
-		<doc>Structure used for initializing a ParticleOrbit object.</doc>
-		<ctor>
-		</ctor>
-		<field name="Center" type="Vector3Distribution">
-			<doc>Position of the center around which to orbit. Evaluated over particle system lifetime.</doc>
-		</field>
-		<field name="Velocity" type="Vector3Distribution">
-			<doc>Determines the speed of rotation around each axis. The speed is specified in &quot;turns&quot; where 0 = no rotation, 0.5 = 180 degree rotation and 1 = 360 degree rotation. Evaluated over particle lifetime.</doc>
-		</field>
-		<field name="Radial" type="FloatDistribution">
-			<doc>Speed at which to push or pull the particles towards/away from the center. Evaluated over particle lifetime.</doc>
-		</field>
-		<field name="WorldSpace" type="bool">
-			<doc>True if the properties provided are in world space, false if in local space.</doc>
-		</field>
-	</struct>
 	<class native="SceneInstance" script="SceneInstance">
 		<doc>Contains information about an instantiated scene.</doc>
 		<method native="CreateSceneObject" script="CreateSceneObject" static="false">
@@ -6109,6 +6092,23 @@ Sprite images also allow you to specify sprite sheet animation by varying which 
 		<property name="AssociatedResourceId" type="UUID" getter="GetAssociatedResourceId" setter="" static="false">
 		</property>
 	</class>
+	<struct native="PARTICLE_ORBIT_DESC" script="ParticleOrbitOptions">
+		<doc>Structure used for initializing a ParticleOrbit object.</doc>
+		<ctor>
+		</ctor>
+		<field name="Center" type="Vector3Distribution">
+			<doc>Position of the center around which to orbit. Evaluated over particle system lifetime.</doc>
+		</field>
+		<field name="Velocity" type="Vector3Distribution">
+			<doc>Determines the speed of rotation around each axis. The speed is specified in &quot;turns&quot; where 0 = no rotation, 0.5 = 180 degree rotation and 1 = 360 degree rotation. Evaluated over particle lifetime.</doc>
+		</field>
+		<field name="Radial" type="FloatDistribution">
+			<doc>Speed at which to push or pull the particles towards/away from the center. Evaluated over particle lifetime.</doc>
+		</field>
+		<field name="WorldSpace" type="bool">
+			<doc>True if the properties provided are in world space, false if in local space.</doc>
+		</field>
+	</struct>
 	<class native="ParticleOrbit" script="ParticleOrbit">
 		<doc>Moves particles so that their sprites orbit their center according to the provided offset and rotation values.</doc>
 		<ctor>
@@ -6134,14 +6134,6 @@ Sprite images also allow you to specify sprite sheet animation by varying which 
 			<doc>True if the velocity is provided in world space, false if in local space.</doc>
 		</field>
 	</struct>
-	<struct native="PARTICLE_GRAVITY_DESC" script="ParticleGravityOptions">
-		<doc>Structure used for initializing a ParticleGravity object.</doc>
-		<ctor>
-		</ctor>
-		<field name="Scale" type="float">
-			<doc>Scale which to apply to the gravity value retrieved from the physics sub-system.</doc>
-		</field>
-	</struct>
 	<enum native="ParticleCollisionMode" script="ParticleCollisionMode">
 		<doc>Types of collision modes that ParticleCollisions evolver can operate in.</doc>
 		<enumentry native="Plane" script="Plane">
@@ -6151,6 +6143,14 @@ Sprite images also allow you to specify sprite sheet animation by varying which 
 			<doc>Particles will collide with physics colliders in the scene.</doc>
 		</enumentry>
 	</enum>
+	<struct native="PARTICLE_GRAVITY_DESC" script="ParticleGravityOptions">
+		<doc>Structure used for initializing a ParticleGravity object.</doc>
+		<ctor>
+		</ctor>
+		<field name="Scale" type="float">
+			<doc>Scale which to apply to the gravity value retrieved from the physics sub-system.</doc>
+		</field>
+	</struct>
 	<enum native="ShaderParameterFlag" script="ShaderParameterFlag">
 		<doc>Flags used to further describe a shader parameter.</doc>
 		<enumentry native="None" script="None">
@@ -6165,12 +6165,6 @@ Sprite images also allow you to specify sprite sheet animation by varying which 
 			<doc>Allows the color parameter to be edited using the HDR color picker.</doc>
 		</enumentry>
 	</enum>
-	<struct native="PARTICLE_COLOR_DESC" script="ParticleColorOptions">
-		<doc>Structure used for initializing a ParticleColor object.</doc>
-		<field name="Color" type="ColorDistribution">
-			<doc>Determines the color of the particles evaluated over particle lifetime.</doc>
-		</field>
-	</struct>
 	<class native="StockIcons" script="StockIcons">
 		<doc>Provides easy access to variety of icons for use in the engine.</doc>
 		<method native="GetIcon" script="GetIcon" static="false">
@@ -6206,6 +6200,12 @@ Sprite images also allow you to specify sprite sheet animation by varying which 
 			</returns>
 		</method>
 	</class>
+	<struct native="PARTICLE_COLOR_DESC" script="ParticleColorOptions">
+		<doc>Structure used for initializing a ParticleColor object.</doc>
+		<field name="Color" type="ColorDistribution">
+			<doc>Determines the color of the particles evaluated over particle lifetime.</doc>
+		</field>
+	</struct>
 	<class native="ParticleSize" script="ParticleSize">
 		<doc>Changes the size of the particles over the particle lifetime.</doc>
 		<ctor>
@@ -6304,6 +6304,20 @@ Sprite images also allow you to specify sprite sheet animation by varying which 
 			<doc>Options describing the evolver.</doc>
 		</property>
 	</class>
+	<class native="PhysicsMesh" script="PhysicsMesh">
+		<doc>Represents a physics mesh that can be used with a MeshCollider. Physics mesh can be a generic triangle mesh or a convex mesh. Convex meshes are limited to 255 faces.</doc>
+		<ctor>
+			<param name="meshData" type="RendererMeshData">
+			</param>
+			<param name="type" type="PhysicsMeshType">
+			</param>
+		</ctor>
+		<property name="Type" type="PhysicsMeshType" getter="GetType" setter="" static="false">
+			<doc>Returns the type of the physics mesh.</doc>
+		</property>
+		<property name="MeshData" type="RendererMeshData" getter="GetMeshData" setter="" static="false">
+		</property>
+	</class>
 	<enum native="ParticleEmissionModeType" script="ParticleEmissionModeType">
 		<doc>Types of emission modes.</doc>
 		<enumentry native="Random" script="Random">
@@ -6319,20 +6333,6 @@ Sprite images also allow you to specify sprite sheet animation by varying which 
 			<doc>All particles spawned on the shape at some instant (usually a frame) will be spread around the shape equally.</doc>
 		</enumentry>
 	</enum>
-	<class native="PhysicsMesh" script="PhysicsMesh">
-		<doc>Represents a physics mesh that can be used with a MeshCollider. Physics mesh can be a generic triangle mesh or a convex mesh. Convex meshes are limited to 255 faces.</doc>
-		<ctor>
-			<param name="meshData" type="RendererMeshData">
-			</param>
-			<param name="type" type="PhysicsMeshType">
-			</param>
-		</ctor>
-		<property name="Type" type="PhysicsMeshType" getter="GetType" setter="" static="false">
-			<doc>Returns the type of the physics mesh.</doc>
-		</property>
-		<property name="MeshData" type="RendererMeshData" getter="GetMeshData" setter="" static="false">
-		</property>
-	</class>
 	<class native="ParticleEmitterShape" script="ParticleEmitterShape">
 		<doc>Base class from all emitter shapes. Emitter shapes determine the position and direction of newly created particles.</doc>
 	</class>
@@ -6356,6 +6356,23 @@ Sprite images also allow you to specify sprite sheet animation by varying which 
 		<enumentry native="HintedRaster" script="HintedRaster">
 		</enumentry>
 	</enum>
+	<struct native="SpriteTextureCreateInformation" script="SpriteTextureCreateInformation">
+		<doc>Descriptor structure used for initialization of a SpriteTexture.</doc>
+		<ctor>
+		</ctor>
+		<field name="AtlasTexture" type="RRef&lt;Texture&gt;">
+			<doc>Texture used as the atlas.</doc>
+		</field>
+		<field name="UVRange" type="Rect2">
+			<doc>Range in the atlas texture that the image maps to.</doc>
+		</field>
+		<field name="AnimationPlayback" type="SpriteAnimationPlayback">
+			<doc>Determines if animation is enabled and how should it play.</doc>
+		</field>
+		<field name="Animation" type="SpriteSheetGridAnimation">
+			<doc>Describes the sprite sheet grid used for animation, if animation is used.</doc>
+		</field>
+	</struct>
 	<struct native="PARTICLE_CONE_SHAPE_DESC" script="ParticleConeShapeOptions">
 		<doc>Information describing a ParticleEmitterConeShape.</doc>
 		<ctor>
@@ -6382,23 +6399,6 @@ Sprite images also allow you to specify sprite sheet animation by varying which 
 			<doc>Determines how will particle positions on the shape be generated.</doc>
 		</field>
 	</struct>
-	<struct native="SpriteTextureCreateInformation" script="SpriteTextureCreateInformation">
-		<doc>Descriptor structure used for initialization of a SpriteTexture.</doc>
-		<ctor>
-		</ctor>
-		<field name="AtlasTexture" type="RRef&lt;Texture&gt;">
-			<doc>Texture used as the atlas.</doc>
-		</field>
-		<field name="UVRange" type="Rect2">
-			<doc>Range in the atlas texture that the image maps to.</doc>
-		</field>
-		<field name="AnimationPlayback" type="SpriteAnimationPlayback">
-			<doc>Determines if animation is enabled and how should it play.</doc>
-		</field>
-		<field name="Animation" type="SpriteSheetGridAnimation">
-			<doc>Describes the sprite sheet grid used for animation, if animation is used.</doc>
-		</field>
-	</struct>
 	<class native="ParticleEmitterConeShape" script="ParticleEmitterConeShape">
 		<doc>Particle emitter shape that emits particles from a cone. Particles can be created on cone base or volume, while controling the radial arc of the emitted portion of the volume, as well as thickness of the cone emission volume. All particles will have random normals within the distribution of the cone.</doc>
 		<ctor>
@@ -6413,17 +6413,6 @@ Sprite images also allow you to specify sprite sheet animation by varying which 
 			<doc>Options describing the shape.</doc>
 		</property>
 	</class>
-	<struct native="PARTICLE_SPHERE_SHAPE_DESC" script="ParticleSphereShapeOptions">
-		<doc>Information describing a ParticleEmitterSphereShape.</doc>
-		<ctor>
-		</ctor>
-		<field name="Radius" type="float">
-			<doc>Radius of the sphere.</doc>
-		</field>
-		<field name="Thickness" type="float">
-			<doc>Proportion of the volume that can emit particles. Thickness of 0 results in particles being emitted only from the edge of the volume, while thickness of 1 results in particles being emitted from the entire volume. In-between values will use a part of the volume.</doc>
-		</field>
-	</struct>
 	<enum native="VertexLayout" script="VertexLayout">
 		<doc>Available vertex layouts that specify what data is provided per-vertex in a mesh. Combinations other than those provided are allowed.</doc>
 		<enumentry native="Tangent" script="Tangent">
@@ -6463,32 +6452,17 @@ Sprite images also allow you to specify sprite sheet animation by varying which 
 		<enumentry native="PNTU" script="PNTU">
 		</enumentry>
 	</enum>
-	<class native="ParticleEmitterSphereShape" script="ParticleEmitterSphereShape">
-		<doc>Particle emitter shape that emits particles from a sphere. Particles can be emitted from sphere surface, the entire volume or a proportion of the volume depending on the thickness parameter. All particles will have normals pointing outwards in a spherical direction.</doc>
+	<struct native="PARTICLE_SPHERE_SHAPE_DESC" script="ParticleSphereShapeOptions">
+		<doc>Information describing a ParticleEmitterSphereShape.</doc>
 		<ctor>
-			<doc>Creates a new particle emitter sphere shape.</doc>
-			<param name="desc" type="ParticleSphereShapeOptions">
-			</param>
 		</ctor>
-		<ctor>
-			<doc>Creates a new particle emitter sphere shape.</doc>
-		</ctor>
-		<property name="Options" type="ParticleSphereShapeOptions" getter="GetOptions" setter="SetOptions" static="false">
-			<doc>Options describing the shape.</doc>
-		</property>
-	</class>
-	<class native="CReflectionProbe" script="ReflectionProbe">
-		<method native="Capture" script="Capture" static="false">
-		</method>
-		<property name="Type" type="ReflectionProbeType" getter="GetType" setter="SetType" static="false">
-		</property>
-		<property name="Radius" type="float" getter="GetRadius" setter="SetRadius" static="false">
-		</property>
-		<property name="Extents" type="Vector3" getter="GetExtents" setter="SetExtents" static="false">
-		</property>
-		<property name="CustomTexture" type="RRef&lt;Texture&gt;" getter="GetCustomTexture" setter="SetCustomTexture" static="false">
-		</property>
-	</class>
+		<field name="Radius" type="float">
+			<doc>Radius of the sphere.</doc>
+		</field>
+		<field name="Thickness" type="float">
+			<doc>Proportion of the volume that can emit particles. Thickness of 0 results in particles being emitted only from the edge of the volume, while thickness of 1 results in particles being emitted from the entire volume. In-between values will use a part of the volume.</doc>
+		</field>
+	</struct>
 	<class native="CSphericalJoint" script="SphericalJoint">
 		<method native="SetFlag" script="SetFlag" static="false">
 			<param name="flag" type="SphericalJointFlag">
@@ -6505,6 +6479,32 @@ Sprite images also allow you to specify sprite sheet animation by varying which 
 		<property name="Limit" type="LimitConeRange" getter="GetLimit" setter="SetLimit" static="false">
 		</property>
 	</class>
+	<class native="CReflectionProbe" script="ReflectionProbe">
+		<method native="Capture" script="Capture" static="false">
+		</method>
+		<property name="Type" type="ReflectionProbeType" getter="GetType" setter="SetType" static="false">
+		</property>
+		<property name="Radius" type="float" getter="GetRadius" setter="SetRadius" static="false">
+		</property>
+		<property name="Extents" type="Vector3" getter="GetExtents" setter="SetExtents" static="false">
+		</property>
+		<property name="CustomTexture" type="RRef&lt;Texture&gt;" getter="GetCustomTexture" setter="SetCustomTexture" static="false">
+		</property>
+	</class>
+	<class native="ParticleEmitterSphereShape" script="ParticleEmitterSphereShape">
+		<doc>Particle emitter shape that emits particles from a sphere. Particles can be emitted from sphere surface, the entire volume or a proportion of the volume depending on the thickness parameter. All particles will have normals pointing outwards in a spherical direction.</doc>
+		<ctor>
+			<doc>Creates a new particle emitter sphere shape.</doc>
+			<param name="desc" type="ParticleSphereShapeOptions">
+			</param>
+		</ctor>
+		<ctor>
+			<doc>Creates a new particle emitter sphere shape.</doc>
+		</ctor>
+		<property name="Options" type="ParticleSphereShapeOptions" getter="GetOptions" setter="SetOptions" static="false">
+			<doc>Options describing the shape.</doc>
+		</property>
+	</class>
 	<struct native="PARTICLE_HEMISPHERE_SHAPE_DESC" script="ParticleHemisphereShapeOptions">
 		<doc>Information describing a ParticleEmitterHemisphereShape.</doc>
 		<ctor>
@@ -6516,20 +6516,6 @@ Sprite images also allow you to specify sprite sheet animation by varying which 
 			<doc>Proportion of the volume that can emit particles. Thickness of 0 results in particles being emitted only from the edge of the volume, while thickness of 1 results in particles being emitted from the entire volume. In-between values will use a part of the volume.</doc>
 		</field>
 	</struct>
-	<class native="ParticleEmitterHemisphereShape" script="ParticleEmitterHemisphereShape">
-		<doc>Particle emitter shape that emits particles from a hemisphere. Particles can be emitted from the hemisphere surface, the entire volume or a proportion of the volume depending on the thickness parameter. All particles will have normals pointing outwards in a spherical direction.</doc>
-		<ctor>
-			<doc>Creates a new particle emitter sphere shape.</doc>
-			<param name="desc" type="ParticleHemisphereShapeOptions">
-			</param>
-		</ctor>
-		<ctor>
-			<doc>Creates a new particle emitter sphere shape.</doc>
-		</ctor>
-		<property name="Options" type="ParticleHemisphereShapeOptions" getter="GetOptions" setter="SetOptions" static="false">
-			<doc>Options describing the shape.</doc>
-		</property>
-	</class>
 	<class native="GUIClickable" script="GUIClickable">
 		<doc>Base class for a clickable GUI button element.</doc>
 		<method native="SetContent" script="SetContent" static="false">
@@ -6549,6 +6535,20 @@ Sprite images also allow you to specify sprite sheet animation by varying which 
 		<event native="OnDoubleClick" script="OnDoubleClick" static="false">
 			<doc>Triggered when button is clicked twice in rapid succession.</doc>
 		</event>
+	</class>
+	<class native="ParticleEmitterHemisphereShape" script="ParticleEmitterHemisphereShape">
+		<doc>Particle emitter shape that emits particles from a hemisphere. Particles can be emitted from the hemisphere surface, the entire volume or a proportion of the volume depending on the thickness parameter. All particles will have normals pointing outwards in a spherical direction.</doc>
+		<ctor>
+			<doc>Creates a new particle emitter sphere shape.</doc>
+			<param name="desc" type="ParticleHemisphereShapeOptions">
+			</param>
+		</ctor>
+		<ctor>
+			<doc>Creates a new particle emitter sphere shape.</doc>
+		</ctor>
+		<property name="Options" type="ParticleHemisphereShapeOptions" getter="GetOptions" setter="SetOptions" static="false">
+			<doc>Options describing the shape.</doc>
+		</property>
 	</class>
 	<class native="Shader" script="Shader">
 		<doc>Contains definitions of GPU programs used for rendering, as well as a set of global parameters to control those programs.</doc>
@@ -6641,18 +6641,6 @@ Sprite images also allow you to specify sprite sheet animation by varying which 
 			<doc>Options describing the shape.</doc>
 		</property>
 	</class>
-	<enum native="ParticleEmitterMeshType" script="ParticleEmitterMeshType">
-		<doc>Determines the emission type for the mesh particle emitter shape.</doc>
-		<enumentry native="Vertex" script="Vertex">
-			<doc>Particles will be emitted from mesh vertices.</doc>
-		</enumentry>
-		<enumentry native="Edge" script="Edge">
-			<doc>Particles will be emitted from mesh edges.</doc>
-		</enumentry>
-		<enumentry native="Triangle" script="Triangle">
-			<doc>Particles will be emitted from mesh triangles.</doc>
-		</enumentry>
-	</enum>
 	<enum native="ManagedObjectMetaDataFlag" script="ManagedObjectMetaDataFlag">
 		<doc>Flags that are used to further desribe a type of a managed serializable object.</doc>
 		<enumentry native="Serializable" script="Serializable">
@@ -6678,6 +6666,18 @@ Sprite images also allow you to specify sprite sheet animation by varying which 
 			<doc>Determines the render mode used for rendering the characters into a bitmap.</doc>
 		</field>
 	</struct>
+	<enum native="ParticleEmitterMeshType" script="ParticleEmitterMeshType">
+		<doc>Determines the emission type for the mesh particle emitter shape.</doc>
+		<enumentry native="Vertex" script="Vertex">
+			<doc>Particles will be emitted from mesh vertices.</doc>
+		</enumentry>
+		<enumentry native="Edge" script="Edge">
+			<doc>Particles will be emitted from mesh edges.</doc>
+		</enumentry>
+		<enumentry native="Triangle" script="Triangle">
+			<doc>Particles will be emitted from mesh triangles.</doc>
+		</enumentry>
+	</enum>
 	<struct native="PARTICLE_SKINNED_MESH_SHAPE_DESC" script="ParticleSkinnedMeshShapeOptions">
 		<doc>Information describing a ParticleEmitterSkinnedMeshShape.</doc>
 		<ctor>
@@ -6692,6 +6692,19 @@ Sprite images also allow you to specify sprite sheet animation by varying which 
 			<doc>Renderable object containing a mesh to spawn particles on, as well as the attached Animation object resposible for performing skinned animation. Mesh must at least contain per-vertex position data encoded as 3D float vectors, blend indices encoded in 4-byte format, and blend weights encoded a 4D float vectors. Can optionally contain per-vertex normals encoded as 3D float vectors or as 4-byte unsigned-normalized format.</doc>
 		</field>
 	</struct>
+	<class native="ManagedObjectInfo" script="ManagedObjectInfo">
+		<doc>Contains data about serializable fields of a managed object, and the object&apos;s class hierarchy if it belongs to one. All public fields are by default serializable if their type support serialization. Type is serializable if it has the SerializeObject attribute, or is one of the built-in supported serializable types (primitive such as int or bool, game object, resource or resource reference). Array/List/Dictionary of serializable types is also considered serializable. Public field can be made non-serializable via the DontSerializeField attribute. Private/protected/internal field can be made serializable by specifying the SerializeField attribute.</doc>
+		<method native="GetReflectionType" script="GetReflectionType" static="false">
+			<returns type="Type">
+			</returns>
+		</method>
+		<property name="TypeInfo" type="ManagedTypeInfoObject" getter="GetTypeInfo" setter="SetTypeInfo" static="false">
+		</property>
+		<property name="Members" type="ManagedMemberInfo" getter="GetMembers" setter="SetMembers" static="false">
+		</property>
+		<property name="BaseClass" type="ManagedObjectInfo" getter="GetBaseClass" setter="SetBaseClass" static="false">
+		</property>
+	</class>
 	<enum native="TextureScaleMode" script="TextureScaleMode">
 		<doc>Type of scaling modes for GUI images.</doc>
 		<enumentry native="RepeatToFit" script="RepeatToFit">
@@ -6707,19 +6720,6 @@ Sprite images also allow you to specify sprite sheet animation by varying which 
 			<doc>Image will scale uniformly until both dimensions are larger or aligned with the assigned area. Remaining dimension might be cropped.</doc>
 		</enumentry>
 	</enum>
-	<class native="ManagedObjectInfo" script="ManagedObjectInfo">
-		<doc>Contains data about serializable fields of a managed object, and the object&apos;s class hierarchy if it belongs to one. All public fields are by default serializable if their type support serialization. Type is serializable if it has the SerializeObject attribute, or is one of the built-in supported serializable types (primitive such as int or bool, game object, resource or resource reference). Array/List/Dictionary of serializable types is also considered serializable. Public field can be made non-serializable via the DontSerializeField attribute. Private/protected/internal field can be made serializable by specifying the SerializeField attribute.</doc>
-		<method native="GetReflectionType" script="GetReflectionType" static="false">
-			<returns type="Type">
-			</returns>
-		</method>
-		<property name="TypeInfo" type="ManagedTypeInfoObject" getter="GetTypeInfo" setter="SetTypeInfo" static="false">
-		</property>
-		<property name="Members" type="ManagedMemberInfo" getter="GetMembers" setter="SetMembers" static="false">
-		</property>
-		<property name="BaseClass" type="ManagedObjectInfo" getter="GetBaseClass" setter="SetBaseClass" static="false">
-		</property>
-	</class>
 	<class native="ParticleEmitterSkinnedMeshShape" script="ParticleEmitterSkinnedMeshShape">
 		<doc>Particle emitter shape that emits particles from a surface of a skinned (animated) mesh. Particles can be emitted from mesh vertices, edges or triangles. If information about normals exists, particles will also inherit the normals.</doc>
 		<ctor>
@@ -7178,12 +7178,6 @@ Sprite images also allow you to specify sprite sheet animation by varying which 
 		<property name="Brightness" type="float" getter="GetBrightness" setter="SetBrightness" static="false">
 		</property>
 	</class>
-	<enum native="SliderJointFlag" script="SliderJointFlag">
-		<doc>Flag that controls slider joint&apos;s behaviour.</doc>
-		<enumentry native="Limit" script="Limit">
-			<doc>Enables the linear range limit.</doc>
-		</enumentry>
-	</enum>
 	<class native="ManagedTypeInfoDictionary" script="ManagedTypeInfoDictionary">
 		<doc>Contains information about a type of a managed Dictionary.</doc>
 		<property name="KeyType" type="ManagedTypeInfo" getter="GetKeyType" setter="SetKeyType" static="false">
@@ -7191,6 +7185,29 @@ Sprite images also allow you to specify sprite sheet animation by varying which 
 		<property name="ValueType" type="ManagedTypeInfo" getter="GetValueType" setter="SetValueType" static="false">
 		</property>
 	</class>
+	<enum native="SliderJointFlag" script="SliderJointFlag">
+		<doc>Flag that controls slider joint&apos;s behaviour.</doc>
+		<enumentry native="Limit" script="Limit">
+			<doc>Enables the linear range limit.</doc>
+		</enumentry>
+	</enum>
+	<struct native="ResourceLoadOptions" script="ResourceLoadOptions">
+		<doc>Options that may be used to customize resource load operation.</doc>
+		<ctor>
+			<param name="asynchronousLoad" type="bool">
+			</param>
+			<param name="loadDependencies" type="bool">
+			</param>
+			<param name="keepInternalReference" type="bool">
+			</param>
+		</ctor>
+		<field name="AsynchronousLoad" type="bool">
+		</field>
+		<field name="LoadDependencies" type="bool">
+		</field>
+		<field name="KeepInternalReference" type="bool">
+		</field>
+	</struct>
 	<class native="CSliderJoint" script="SliderJoint">
 		<method native="SetFlag" script="SetFlag" static="false">
 			<param name="flag" type="SliderJointFlag">
@@ -7211,23 +7228,6 @@ Sprite images also allow you to specify sprite sheet animation by varying which 
 		<property name="Limit" type="LimitLinearRange" getter="GetLimit" setter="SetLimit" static="false">
 		</property>
 	</class>
-	<struct native="ResourceLoadOptions" script="ResourceLoadOptions">
-		<doc>Options that may be used to customize resource load operation.</doc>
-		<ctor>
-			<param name="asynchronousLoad" type="bool">
-			</param>
-			<param name="loadDependencies" type="bool">
-			</param>
-			<param name="keepInternalReference" type="bool">
-			</param>
-		</ctor>
-		<field name="AsynchronousLoad" type="bool">
-		</field>
-		<field name="LoadDependencies" type="bool">
-		</field>
-		<field name="KeepInternalReference" type="bool">
-		</field>
-	</struct>
 	<struct native="SpriteImageInformation" script="SpriteImageInformation">
 		<doc>Information about a SpriteImage.</doc>
 		<ctor>
@@ -8162,6 +8162,12 @@ Primary purpose of this class is to avoid expensive string compare (axis names),
 		<field name="AxisIdentifier" type="int">
 		</field>
 	</struct>
+	<class native="RendererManager" script="RendererManager">
+		<doc>Allows you to change and retrieve the active renderer. Active renderer will be used for rendering all objects in the following frame.</doc>
+		<method native="RequestFrameCapture" script="RequestFrameCapture" static="false">
+			<doc>Queues GPU command capture of the next frame, if a frame capture is set up.</doc>
+		</method>
+	</class>
 	<enum native="ShadingLanguageFlag" script="ShadingLanguageFlags">
 		<doc>Supported types of low-level shading languages.</doc>
 		<enumentry native="VKSL" script="VKSL">
@@ -8185,12 +8191,6 @@ Primary purpose of this class is to avoid expensive string compare (axis names),
 			<doc>Metal shading language.</doc>
 		</enumentry>
 	</enum>
-	<class native="RendererManager" script="RendererManager">
-		<doc>Allows you to change and retrieve the active renderer. Active renderer will be used for rendering all objects in the following frame.</doc>
-		<method native="RequestFrameCapture" script="RequestFrameCapture" static="false">
-			<doc>Queues GPU command capture of the next frame, if a frame capture is set up.</doc>
-		</method>
-	</class>
 	<class native="TextureImportOptions" script="TextureImportOptions">
 		<doc>Contains import options you may use to control how is a texture imported.</doc>
 		<ctor>
@@ -8278,17 +8278,6 @@ Primary purpose of this class is to avoid expensive string compare (axis names),
 			<doc>This will be set to true if some previous event receiver has marked the event as used.</doc>
 		</field>
 	</struct>
-	<struct native="TextInputEvent" script="TextInputEvent">
-		<doc>Event that gets sent out when user inputs some text. These events may be preceeded by normal button events if user is typing on a keyboard.</doc>
-		<ctor>
-		</ctor>
-		<field name="TextChar" type="int">
-			<doc>Character the that was input.</doc>
-		</field>
-		<field name="IsUsed" type="bool">
-			<doc>This will be set to true if some previous event receiver has marked the event as used.</doc>
-		</field>
-	</struct>
 	<struct native="FontInformation" script="FontInformation">
 		<doc>Information about a Font.</doc>
 		<ctor>
@@ -8301,6 +8290,17 @@ Primary purpose of this class is to avoid expensive string compare (axis names),
 		</field>
 		<field name="RenderMode" type="FontRenderMode">
 			<doc>Determines the render mode used for rendering the characters into a bitmap.</doc>
+		</field>
+	</struct>
+	<struct native="TextInputEvent" script="TextInputEvent">
+		<doc>Event that gets sent out when user inputs some text. These events may be preceeded by normal button events if user is typing on a keyboard.</doc>
+		<ctor>
+		</ctor>
+		<field name="TextChar" type="int">
+			<doc>Character the that was input.</doc>
+		</field>
+		<field name="IsUsed" type="bool">
+			<doc>This will be set to true if some previous event receiver has marked the event as used.</doc>
 		</field>
 	</struct>
 	<enum native="InputAxis" script="InputAxis">
@@ -13877,21 +13877,6 @@ Alternatively you can also skip manually calling ReleaseInternalReference() and 
 	<class native="Application" script="Application">
 		<doc>Primary entry point for the framework. Handles startup and shutdown.</doc>
 	</class>
-	<enum native="BuiltinTexture" script="BuiltinTexture">
-		<doc>Types of builtin textures that are always available.</doc>
-		<enumentry native="White" script="White">
-		</enumentry>
-		<enumentry native="Black" script="Black">
-		</enumentry>
-		<enumentry native="BokehFlare" script="BokehFlare">
-		</enumentry>
-		<enumentry native="Normal" script="Normal">
-		</enumentry>
-		<enumentry native="White3D" script="White3D">
-		</enumentry>
-		<enumentry native="Black3D" script="Black3D">
-		</enumentry>
-	</enum>
 	<class native="GUIResizableVerticalScrollBar" script="GUIResizableVerticalScrollBar">
 		<doc>Specialization of a GUIScrollBar for vertical scrolling, with the ability to resize the scroll bar.</doc>
 		<ctor>
@@ -13909,6 +13894,36 @@ Alternatively you can also skip manually calling ReleaseInternalReference() and 
 				<doc>Additional options that control GUI element size and position. This will override options set in the style sheet.</doc>
 			</param>
 		</ctor>
+	</class>
+	<enum native="BuiltinTexture" script="BuiltinTexture">
+		<doc>Types of builtin textures that are always available.</doc>
+		<enumentry native="White" script="White">
+		</enumentry>
+		<enumentry native="Black" script="Black">
+		</enumentry>
+		<enumentry native="BokehFlare" script="BokehFlare">
+		</enumentry>
+		<enumentry native="Normal" script="Normal">
+		</enumentry>
+		<enumentry native="White3D" script="White3D">
+		</enumentry>
+		<enumentry native="Black3D" script="Black3D">
+		</enumentry>
+	</enum>
+	<class native="ResourceDragAndDropData" script="ResourceDragAndDropData">
+		<doc>Information about a single or multiple dragged resources, represented as paths.</doc>
+		<ctor>
+		</ctor>
+		<ctor>
+			<param name="relativeResourcePath" type="string">
+			</param>
+		</ctor>
+		<ctor>
+			<param name="relativeResourcePaths" type="string">
+			</param>
+		</ctor>
+		<property name="RelativeResourcePaths" type="string" getter="GetRelativeResourcePaths" setter="SetRelativeResourcePaths" static="false">
+		</property>
 	</class>
 	<enum native="BuiltinShader" script="BuiltinShader">
 		<doc>Types of builtin shaders that are always available.</doc>
@@ -13933,21 +13948,6 @@ Alternatively you can also skip manually calling ReleaseInternalReference() and 
 			<doc>Special shader used for rendering particles with lighting using the forward rendering pipeline (supports transparency).</doc>
 		</enumentry>
 	</enum>
-	<class native="ResourceDragAndDropData" script="ResourceDragAndDropData">
-		<doc>Information about a single or multiple dragged resources, represented as paths.</doc>
-		<ctor>
-		</ctor>
-		<ctor>
-			<param name="relativeResourcePath" type="string">
-			</param>
-		</ctor>
-		<ctor>
-			<param name="relativeResourcePaths" type="string">
-			</param>
-		</ctor>
-		<property name="RelativeResourcePaths" type="string" getter="GetRelativeResourcePaths" setter="SetRelativeResourcePaths" static="false">
-		</property>
-	</class>
 	<enum native="GUIVerticalTextAlignment" script="GUIVerticalTextAlignment">
 		<doc>Determines how is text vertically aligned in a GUI element.</doc>
 		<enumentry native="Top" script="Top">
