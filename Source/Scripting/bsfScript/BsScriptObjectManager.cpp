@@ -132,6 +132,7 @@ void ScriptObjectManager::PerformGarbageCollection()
 {
 	// TODO - Should time-slice this over multiple frames
 
+#if 0
 	for(const auto& entry : mScriptObjectWrappers)
 	{
 		const u32 nativeObjectReferenceCount = entry->GetNativeObjectReferenceCount();
@@ -139,5 +140,6 @@ void ScriptObjectManager::PerformGarbageCollection()
 		if(nativeObjectReferenceCount == 1)
 			entry->TransitionToWeakScriptObjectHandle();
 	}
+#endif
 }
 
