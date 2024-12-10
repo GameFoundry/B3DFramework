@@ -587,11 +587,13 @@ void Scheduler::BindToCurrentThread()
 
 	{
 		Lock lock(mSingleThreadWorkerMutex);
+		B3D_ASSERT(mSingleThreadWorker == nullptr);
+
 		SPtr<SchedulerThread> schedulerThread = bs::B3DMakeShared<SchedulerThread>(this, SchedulerThread::Mode::SingleThreaded, ~0u);
 		schedulerThread->Start();
 
-		const std::thread::id threadId = std::this_thread::get_id();
-		mSingleThreadWorkers.emplace(threadId, std::move(schedulerThread));
+		mSingleThreadWorkerThreadId = std::this_thread::get_id();
+		mSingleThreadWorker = schedulerThread;
 	}
 }
 
@@ -606,16 +608,11 @@ void Scheduler::UnbindFromCurrentThread()
 		Lock lock(Get()->mSingleThreadWorkerMutex);
 
 		const std::thread::id threadId = std::this_thread::get_id();
+		B3D_ASSERT(Get()->mSingleThreadWorkerThreadId == threadId);
+		B3D_ASSERT(Get()->mSingleThreadWorker == schedulerThread && "Scheduler running a single threaded worker that is not currently bound.");
 
-		auto& workers = Get()->mSingleThreadWorkers;
-		auto it = workers.find(threadId);
-		B3D_ASSERT(it != workers.end() && "Cannot find worker in the single threaded worker list.");
-		B3D_ASSERT(it->second.get() == schedulerThread.get() && "Scheduler running a single threaded worker that is not currently bound.");
-
-		workers.erase(it);
-
-		if (workers.empty())
-			Get()->mSingleThreadWorkerUnbindSignal.notify_one();
+		Get()->mSingleThreadWorker = nullptr;
+		Get()->mSingleThreadWorkerUnbindSignal.notify_one();
 	}
 
 	Current = nullptr;
@@ -637,9 +634,9 @@ Scheduler::Scheduler(const SchedulerCreateInformation& createInformation)
 Scheduler::~Scheduler()
 {
 	{
-		// Wait until all the single threaded workers have been unbound.
+		// Wait until the single threaded worker has been unbound.
 		Lock lock(mSingleThreadWorkerMutex);
-		mSingleThreadWorkerUnbindSignal.wait(lock, [this]() { return mSingleThreadWorkers.empty(); });
+		mSingleThreadWorkerUnbindSignal.wait(lock, [this]() { return mSingleThreadWorker == nullptr; });
 	}
 
 	// Release all worker threads.
@@ -679,12 +676,15 @@ void Scheduler::Post(SchedulerTask&& task)
 	}
 	else
 	{
-		if (auto worker = SchedulerThread::Get())
+		mSingleThreadWorkerMutex.lock();
+		if (auto worker = mSingleThreadWorker)
 		{
+			mSingleThreadWorkerMutex.unlock();
 			worker->Enqueue(std::move(task));
 		}
 		else
 		{
+			mSingleThreadWorkerMutex.unlock();
 			B3D_EXCEPT(InvalidStateException, "No thread bound to the scheduler. Did you call Scheduler::BindToCurrentThread()?");
 		}
 	}

@@ -464,7 +464,8 @@ namespace bs
 
 		Mutex mSingleThreadWorkerMutex;
 		ConditionVariable mSingleThreadWorkerUnbindSignal;
-		UnorderedMap<std::thread::id, SPtr<SchedulerThread>> mSingleThreadWorkers;
+		SPtr<SchedulerThread> mSingleThreadWorker;
+		std::thread::id mSingleThreadWorkerThreadId;
 
 		SchedulerInformation mInformation;
 	};
