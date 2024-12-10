@@ -617,17 +617,6 @@ LRESULT CALLBACK Win32Platform::Win32WndProcInternal(HWND hWnd, UINT uMsg, WPARA
 	if(uMsg == WM_CREATE)
 	{ // Store pointer to Win32Window in user data area
 		SetWindowLongPtr(hWnd, GWLP_USERDATA, (LONG_PTR)(((LPCREATESTRUCT)lParam)->lpCreateParams));
-
-		RenderWindow* newWindow = (RenderWindow*)GetWindowLongPtr(hWnd, GWLP_USERDATA);
-		if(newWindow != nullptr)
-		{
-			const RenderWindowProperties& renderWindowProperties = newWindow->GetRenderWindowProperties();
-			if(!renderWindowProperties.IsHidden)
-				ShowWindow(hWnd, SW_SHOWNORMAL);
-		}
-		else
-			ShowWindow(hWnd, SW_SHOWNORMAL);
-
 		return 0;
 	}
 

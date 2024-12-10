@@ -222,6 +222,9 @@ void Win32Window::Initialize()
 	// Note: We don't do this in the constructor as RenderWindow needs to be able to create Win32Window before we call SetFocus below, as that calls the message
 	// loop which attempts to fetch the HWND from a null Win32Window otherwise.
 
+	if(!m->IsHidden)
+		ShowWindow(m->HWnd, SW_SHOWNORMAL);
+
 	// Handle modal windows
 	B3DMarkAllocatorFrame();
 
