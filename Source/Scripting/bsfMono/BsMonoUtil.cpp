@@ -37,15 +37,28 @@ String MonoUtil::MonoToString(MonoString* str)
 
 MonoString* MonoUtil::WstringToMono(const WString& str)
 {
+	return WstringToMono(str.c_str());
+}
+
+MonoString* MonoUtil::WstringToMono(const wchar_t* string)
+{
 	if(sizeof(wchar_t) == 2) // Assuming UTF-16
-		return mono_string_from_utf16((mono_unichar2*)str.c_str());
+		return mono_string_from_utf16((mono_unichar2*)string);
 	else // Assuming UTF-32
-		return mono_string_from_utf32((mono_unichar4*)str.c_str());
+		return mono_string_from_utf32((mono_unichar4*)string);
 }
 
 MonoString* MonoUtil::StringToMono(const String& str)
 {
 	return WstringToMono(UTF8::ToWide(str));
+}
+
+MonoString* MonoUtil::StringToMono(const char* string)
+{
+	if(string == nullptr)
+		return nullptr;
+
+	return WstringToMono(UTF8::ToWide(string));
 }
 
 void MonoUtil::GetClassName(MonoObject* obj, String& ns, String& typeName)

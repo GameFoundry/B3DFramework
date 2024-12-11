@@ -23,8 +23,14 @@ namespace bs
 		/**	Converts a native wide string to a Mono (managed) string. */
 		static MonoString* WstringToMono(const WString& str);
 
+		/**	Converts a native wide string to a Mono (managed) string. */
+		static MonoString* WstringToMono(const wchar_t* string);
+
 		/**	Converts a native narrow string to a Mono (managed) string. */
 		static MonoString* StringToMono(const String& str);
+
+		/**	Converts a native narrow string to a Mono (managed) string. */
+		static MonoString* StringToMono(const char* string);
 
 		/**	Outputs name and namespace for the type of the specified object. */
 		static void GetClassName(MonoObject* obj, String& ns, String& typeName);
