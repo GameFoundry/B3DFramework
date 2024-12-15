@@ -15,6 +15,7 @@ using namespace bs;
 ScriptGUIScrollArea::ScriptGUIScrollArea(GUIScrollArea* nativeObject)
 	: TScriptGUIElementWrapper(nativeObject)
 {
+	RegisterEvents();
 }
 
 void ScriptGUIScrollArea::SetupScriptBindings()
