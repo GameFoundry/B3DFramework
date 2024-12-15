@@ -46,7 +46,7 @@ namespace bs
 	 * Represents a GUI element that can be rendered (i.e. has a visual representation). Renderable element can have a particular style, and provides
 	 * one or multiple render elements to be drawn.
 	 */
-	class B3D_EXPORT GUIRenderable : public GUIElement
+	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(GUI)) GUIRenderable : public GUIElement
 	{
 	public:
 		GUIRenderable(String styleClass, const GUISizeConstraints& sizeConstraints);
@@ -57,21 +57,25 @@ namespace bs
 		virtual const char* GetStyleSheetElement() const { return nullptr; } // Note: Null style sheet name currently means element doesn't support style-sheets
 
 		/** Returns a user-specified class that will be used for style lookup in the style sheet. */
+		B3D_SCRIPT_EXPORT(Property(Getter), ExportName(StyleSheetClass))
 		virtual const String& GetStyleSheetClass() const { return mStyleClass; }
 
 		/** Returns an user-specific ID will be used for style lookup in the style sheet. */
 		virtual const String& GetStyleSheetId() const { return StringUtil::kBlank; }
 
 		/**	Sets new style class to be used by the element. */
+		B3D_SCRIPT_EXPORT(Property(Setter), ExportName(StyleSheetClass))
 		void SetStyleSheetClass(const String& styleClass);
 
 		/** Returns true if the GUI elements wants to use the new style sheet approach for styling. */
 		bool IsUsingStyleSheets() const; // TODO - Temporary only while we transition styles out
 		
 		/**	Sets the tint of the GUI element. */
+		B3D_SCRIPT_EXPORT(Property(Setter), ExportName(Tint))
 		virtual void SetTint(const Color& color);
 
 		/**	Returns the tint that is applied to the GUI element. */
+		B3D_SCRIPT_EXPORT(Property(Getter), ExportName(Tint))
 		Color GetTint() const;
 
 		void ResetDimensions() override;

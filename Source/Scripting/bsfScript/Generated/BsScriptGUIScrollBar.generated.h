@@ -4,14 +4,15 @@
 
 #include "BsScriptEnginePrerequisites.h"
 #include "BsScriptGUIElementWrapper.h"
+#include "BsScriptGUIInteractable.generated.h"
 
 namespace bs { class GUIScrollBar; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptGUIScrollBarWrapperBase : public ScriptGUIElementWrapper
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptGUIScrollBarWrapperBase : public ScriptGUIInteractableWrapperBase
 	{
 	public:
-		using ScriptGUIElementWrapper::ScriptGUIElementWrapper;
+		using ScriptGUIInteractableWrapperBase::ScriptGUIInteractableWrapperBase;
 
 		virtual void RegisterEvents();
 		void OnScrollOrResize(float p0, float p1);

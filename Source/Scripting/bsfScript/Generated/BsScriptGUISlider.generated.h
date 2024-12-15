@@ -4,14 +4,15 @@
 
 #include "BsScriptEnginePrerequisites.h"
 #include "BsScriptGUIElementWrapper.h"
+#include "BsScriptGUIInteractable.generated.h"
 
 namespace bs { class GUISlider; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptGUISliderWrapperBase : public ScriptGUIElementWrapper
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptGUISliderWrapperBase : public ScriptGUIInteractableWrapperBase
 	{
 	public:
-		using ScriptGUIElementWrapper::ScriptGUIElementWrapper;
+		using ScriptGUIInteractableWrapperBase::ScriptGUIInteractableWrapperBase;
 
 		virtual void RegisterEvents();
 		void OnChanged(float p0);

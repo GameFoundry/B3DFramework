@@ -59,6 +59,7 @@ namespace bs
 	{
 		static_cast<GUIInputBox*>(GetNativeObject())->OnValueChanged.Connect(std::bind(&ScriptGUIInputBox::OnValueChanged, this, std::placeholders::_1));
 		static_cast<GUIInputBox*>(GetNativeObject())->OnConfirm.Connect(std::bind(&ScriptGUIInputBox::OnConfirm, this));
+		ScriptGUIInteractableWrapperBase::RegisterEvents();
 	}
 	void ScriptGUIInputBox::InternalSetText(ScriptGUIInputBox* self, MonoString* text)
 	{

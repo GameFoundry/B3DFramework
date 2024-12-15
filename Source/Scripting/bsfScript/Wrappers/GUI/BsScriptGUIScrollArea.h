@@ -6,6 +6,8 @@
 #include "Wrappers/GUI/BsScriptGUIElement.h"
 #include "GUI/BsGUIScrollArea.h"
 
+#include "Generated/BsScriptGUIInteractable.generated.h"
+
 namespace bs
 {
 	/** @addtogroup ScriptInteropEngine

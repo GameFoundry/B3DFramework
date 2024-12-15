@@ -75,12 +75,12 @@ bool GUIInteractable::DoOnCommandEvent(const GUICommandEvent& event)
 {
 	if(event.GetType() == GUICommandEventType::FocusGained)
 	{
-		OnFocusChanged(true);
+		OnFocusGained();
 		return !mOptionFlags.IsSet(GUIElementOption::ClickThrough);
 	}
 	else if(event.GetType() == GUICommandEventType::FocusLost)
 	{
-		OnFocusChanged(false);
+		OnFocusLost();
 		return !mOptionFlags.IsSet(GUIElementOption::ClickThrough);
 	}
 

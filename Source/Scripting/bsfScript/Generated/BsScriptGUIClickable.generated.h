@@ -4,16 +4,17 @@
 
 #include "BsScriptEnginePrerequisites.h"
 #include "BsScriptGUIElementWrapper.h"
+#include "BsScriptGUIInteractable.generated.h"
 #include "../../../Foundation/bsfEngine/GUI/BsGUIContent.h"
 
 namespace bs { class GUIClickable; }
 namespace bs { struct __GUIContentInterop; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptGUIClickableWrapperBase : public ScriptGUIElementWrapper
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptGUIClickableWrapperBase : public ScriptGUIInteractableWrapperBase
 	{
 	public:
-		using ScriptGUIElementWrapper::ScriptGUIElementWrapper;
+		using ScriptGUIInteractableWrapperBase::ScriptGUIInteractableWrapperBase;
 
 		virtual void RegisterEvents();
 		void OnClick();

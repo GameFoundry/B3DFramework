@@ -18,7 +18,7 @@ namespace bs
 	void ScriptGUIScrollBarWrapperBase::RegisterEvents()
 	{
 		static_cast<GUIScrollBar*>(GetNativeObject())->OnScrollOrResize.Connect(std::bind(&ScriptGUIScrollBarWrapperBase::OnScrollOrResize, this, std::placeholders::_1, std::placeholders::_2));
-		ScriptGUIElementWrapper::RegisterEvents();
+		ScriptGUIInteractableWrapperBase::RegisterEvents();
 	}
 	ScriptGUIScrollBar::ScriptGUIScrollBar(GUIScrollBar* nativeObject)
 		:TScriptGUIElementWrapper(nativeObject)

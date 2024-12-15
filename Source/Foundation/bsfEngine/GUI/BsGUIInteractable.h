@@ -20,7 +20,7 @@ namespace bs
 	 */
 
 	/** Contains options that change GUIElement behaviour. */
-	enum class GUIElementOption
+	enum class B3D_SCRIPT_EXPORT(DocumentationGroup(GUI)) GUIElementOption
 	{
 		/**
 		 * Enable this option if you want pointer events to pass through this element by default. This will allow elements
@@ -42,7 +42,7 @@ namespace bs
 	B3D_FLAGS_OPERATORS(GUIElementOption)
 
 	/** Represents a GUI element that can be interacted with. All interactable elements are also renderable (i.e. have a visual component). */
-	class B3D_EXPORT GUIInteractable : public GUIRenderable
+	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(GUI)) GUIInteractable : public GUIRenderable
 	{
 	public:
 		/**	Different sub-types of GUI elements. */
@@ -71,18 +71,22 @@ namespace bs
 		 * @param[in]	clear		If true the focus will be cleared from any elements currently in focus. Otherwise
 		 *							the element will just be appended to the in-focus list (if enabling focus).
 		 */
+		B3D_SCRIPT_EXPORT()
 		virtual void SetFocus(bool enabled, bool clear = false);
 
 		/** A set of flags controlling various aspects of the GUIElement. See GUIElementOptions.  */
+		B3D_SCRIPT_EXPORT(Property(Setter), ExportName(OptionFlags))
 		void SetOptionFlags(GUIElementOptions options) { mOptionFlags = options; }
 
 		/** @copydoc SetOptionFlags */
+		B3D_SCRIPT_EXPORT(Property(Getter), ExportName(OptionFlags))
 		GUIElementOptions GetOptionFlags() const { return mOptionFlags; }
 
 		/**
 		 * Assigns a new context menu that will be opened when the element is right clicked. Null is allowed in case no
 		 * context menu is wanted.
 		 */
+		B3D_SCRIPT_EXPORT(Property(Setter), ExportName(ContextMenu))
 		void SetContextMenu(const SPtr<GUIContextMenu>& menu) { mContextMenu = menu; }
 
 		/**
@@ -103,8 +107,13 @@ namespace bs
 
 		void Destroy() override;
 
-		/**	Triggered when the element loses or gains focus. */
-		Event<void(bool)> OnFocusChanged;
+		/**	Triggered when the element gains focus. */
+		B3D_SCRIPT_EXPORT()
+		Event<void()> OnFocusGained;
+
+		/**	Triggered when the element loses focus. */
+		B3D_SCRIPT_EXPORT()
+		Event<void()> OnFocusLost;
 
 	public: // ***** INTERNAL ******
 		/** @name Internal

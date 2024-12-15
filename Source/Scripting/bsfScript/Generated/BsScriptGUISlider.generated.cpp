@@ -18,7 +18,7 @@ namespace bs
 	void ScriptGUISliderWrapperBase::RegisterEvents()
 	{
 		static_cast<GUISlider*>(GetNativeObject())->OnChanged.Connect(std::bind(&ScriptGUISliderWrapperBase::OnChanged, this, std::placeholders::_1));
-		ScriptGUIElementWrapper::RegisterEvents();
+		ScriptGUIInteractableWrapperBase::RegisterEvents();
 	}
 	ScriptGUISlider::ScriptGUISlider(GUISlider* nativeObject)
 		:TScriptGUIElementWrapper(nativeObject)

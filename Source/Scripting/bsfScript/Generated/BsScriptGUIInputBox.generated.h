@@ -4,6 +4,7 @@
 
 #include "BsScriptEnginePrerequisites.h"
 #include "BsScriptGUIElementWrapper.h"
+#include "BsScriptGUIInteractable.generated.h"
 #include "../../../Foundation/bsfEngine/GUI/BsGUIInputBox.h"
 #include "../../../Foundation/bsfEngine/GUI/BsGUIInputBox.h"
 #include "../../../Foundation/bsfEngine/GUI/BsGUIOptions.h"
@@ -11,7 +12,7 @@
 namespace bs { class GUIInputBox; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptGUIInputBox : public TScriptGUIElementWrapper<GUIInputBox, ScriptGUIInputBox>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptGUIInputBox : public TScriptGUIElementWrapper<GUIInputBox, ScriptGUIInputBox, ScriptGUIInteractableWrapperBase>
 	{
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "GUIInputBox")

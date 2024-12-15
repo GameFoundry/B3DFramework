@@ -40,7 +40,7 @@ namespace bs
 		static_cast<GUIClickable*>(GetNativeObject())->OnHover.Connect(std::bind(&ScriptGUIClickableWrapperBase::OnHover, this));
 		static_cast<GUIClickable*>(GetNativeObject())->OnOut.Connect(std::bind(&ScriptGUIClickableWrapperBase::OnOut, this));
 		static_cast<GUIClickable*>(GetNativeObject())->OnDoubleClick.Connect(std::bind(&ScriptGUIClickableWrapperBase::OnDoubleClick, this));
-		ScriptGUIElementWrapper::RegisterEvents();
+		ScriptGUIInteractableWrapperBase::RegisterEvents();
 	}
 	ScriptGUIClickable::ScriptGUIClickable(GUIClickable* nativeObject)
 		:TScriptGUIElementWrapper(nativeObject)

@@ -6,6 +6,8 @@
 #include "Wrappers/GUI/BsScriptGUIElement.h"
 #include "GUI/BsGUIRenderTexture.h"
 
+#include "Generated/BsScriptGUIInteractable.generated.h"
+
 namespace bs
 {
 	/** @addtogroup ScriptInteropEngine

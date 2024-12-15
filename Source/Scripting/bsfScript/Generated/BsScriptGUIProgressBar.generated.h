@@ -4,13 +4,14 @@
 
 #include "BsScriptEnginePrerequisites.h"
 #include "BsScriptGUIElementWrapper.h"
+#include "BsScriptGUIInteractable.generated.h"
 #include "../../../Foundation/bsfEngine/GUI/BsGUIProgressBar.h"
 #include "../../../Foundation/bsfEngine/GUI/BsGUIOptions.h"
 
 namespace bs { class GUIProgressBar; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptGUIProgressBar : public TScriptGUIElementWrapper<GUIProgressBar, ScriptGUIProgressBar>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptGUIProgressBar : public TScriptGUIElementWrapper<GUIProgressBar, ScriptGUIProgressBar, ScriptGUIInteractableWrapperBase>
 	{
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "GUIProgressBar")

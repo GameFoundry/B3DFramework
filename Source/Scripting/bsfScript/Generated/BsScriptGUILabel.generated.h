@@ -4,6 +4,7 @@
 
 #include "BsScriptEnginePrerequisites.h"
 #include "BsScriptGUIElementWrapper.h"
+#include "BsScriptGUIInteractable.generated.h"
 #include "../../../Foundation/bsfEngine/GUI/BsGUIContent.h"
 #include "../../../Foundation/bsfEngine/GUI/BsGUILabel.h"
 #include "../../../Foundation/bsfEngine/GUI/BsGUIOptions.h"
@@ -12,7 +13,7 @@ namespace bs { class GUILabel; }
 namespace bs { struct __GUIContentInterop; }
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptGUILabel : public TScriptGUIElementWrapper<GUILabel, ScriptGUILabel>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptGUILabel : public TScriptGUIElementWrapper<GUILabel, ScriptGUILabel, ScriptGUIInteractableWrapperBase>
 	{
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "GUILabel")
