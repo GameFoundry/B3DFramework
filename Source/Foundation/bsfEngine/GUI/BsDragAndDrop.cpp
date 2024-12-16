@@ -75,9 +75,18 @@ void DragAndDrop::StartDrag(const SPtr<DragAndDropData>& data, std::function<voi
 
 void DragAndDrop::Update()
 {
-	// This only stays active for a single frame
-	if(IsDropInProgress() && mDroppedFrameIndex < Time::Instance().GetCurrentFrameIndex())
-		mDropData = nullptr;
+	if(mDropData != nullptr)
+	{
+		// Activate drop for this frame if requested
+		if(!mIsDropActiveThisFrame)
+			mIsDropActiveThisFrame = true;
+		else
+		{
+			// CLear drop data so we don't try to reactivate the drop next frame
+			mDropData = nullptr;
+			mIsDropActiveThisFrame = false;
+		}
+	}
 
 	if(IsDragInProgress())
 	{
@@ -98,8 +107,8 @@ void DragAndDrop::EndDrag(bool processed)
 		callback(processed);
 
 	mDropData = mDragData;
+	mIsDropActiveThisFrame = false; // We activate on next update, otherwise IsDropInProgress() checks could return true for two frames in a row
 	mDragData = nullptr;
-	mDroppedFrameIndex = Time::Instance().GetCurrentFrameIndex();
 
 	mDropCallbacks.clear();
 }

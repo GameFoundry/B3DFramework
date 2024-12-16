@@ -139,7 +139,7 @@ namespace bs
 
 		/** Returns true if a drop operation happened this frame. */
 		B3D_SCRIPT_EXPORT(Property(Getter), ExportName(IsDropInProgress))
-		bool IsDropInProgress() const { return mDropData != nullptr; }
+		bool IsDropInProgress() const { return mDropData != nullptr && mIsDropActiveThisFrame; }
 
 		/**	Get RTTI ID of the dragged data. Only valid if drag is in progress. */
 		u32 GetDragTypeId() const { return mDragData != nullptr ? mDragData->GetTypeId() : ~0u; }
@@ -202,7 +202,7 @@ namespace bs
 		SPtr<DragAndDropData> mDropData;
 		Vector<std::function<void(bool)>> mDropCallbacks;
 		bool mNeedsValidDropTarget = false;
-		u64 mDroppedFrameIndex = 0;
+		bool mIsDropActiveThisFrame = false;
 		HEvent mMouseCaptureChangedConn;
 
 		std::atomic<bool> mCaptureChanged{ false };
