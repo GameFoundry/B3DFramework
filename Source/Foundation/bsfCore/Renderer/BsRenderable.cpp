@@ -324,7 +324,7 @@ void Renderable::MarkResourcesDirtyInternal()
 
 namespace bs
 {
-	B3D_SYNC_BLOCK_BEGIN(Renderable, SyncPacket)
+	B3D_SYNC_BLOCK_BEGIN(Renderable, FullSyncPacket)
 		B3D_SYNC_BLOCK_ENTRY(mLayer)
 		B3D_SYNC_BLOCK_ENTRY(mOverrideBounds)
 		B3D_SYNC_BLOCK_ENTRY(mUseOverrideBounds)
@@ -336,6 +336,10 @@ namespace bs
 		B3D_SYNC_BLOCK_ENTRY_CUSTOM_SETTER(u64, mAnimationId)
 		B3D_SYNC_BLOCK_ENTRY_PACKET_BASE(SceneActor, SceneActorPacket)
 	B3D_SYNC_BLOCK_END
+
+	B3D_SYNC_BLOCK_BEGIN(Renderable, ActorSyncPacket)
+		B3D_SYNC_BLOCK_ENTRY_PACKET_BASE(SceneActor, SceneActorPacket)
+	B3D_SYNC_BLOCK_END
 }
 
 RenderProxySyncPacket* Renderable::CreateRenderProxySyncPacket(FrameAllocator& allocator, u32 flags)
@@ -343,14 +347,19 @@ RenderProxySyncPacket* Renderable::CreateRenderProxySyncPacket(FrameAllocator& a
 	RenderProxySyncPacket* const sceneActorSyncPacket = CreateSceneActorRenderProxySyncPacket(allocator, flags);
 	if(flags != (u32)ActorDirtyFlag::Transform)
 	{
-		SyncPacket* renderableSyncPacket = allocator.Construct<SyncPacket>(*this, allocator, flags);
+		FullSyncPacket* renderableSyncPacket = allocator.Construct<FullSyncPacket>(*this, allocator, flags);
 		renderableSyncPacket->mAnimationId = mAnimation != nullptr ? mAnimation->GetIdInternal() : (u64)-1;
 		renderableSyncPacket->SceneActorPacket = sceneActorSyncPacket;
 
 		return renderableSyncPacket;
 	}
+	else
+	{
+		ActorSyncPacket* actorSyncPacket = allocator.Construct<ActorSyncPacket>(*this, allocator, flags);
+		actorSyncPacket->SceneActorPacket = sceneActorSyncPacket;
 
-	return sceneActorSyncPacket;
+		return actorSyncPacket;
+	}
 }
 
 void Renderable::GetCoreDependencies(Vector<CoreObject*>& dependencies)

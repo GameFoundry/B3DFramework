@@ -223,6 +223,9 @@ namespace bs
 	 *
 	 * The packet definition will be created as part of @p ClassType, so you must declare `struct @p Name;` in your class.
 	 *
+	 * IMPORTANT: Type you pass to ApplySyncData() must be exactly ClassType as defined here. It cannot be a base type of ClassType or any other type otherwise
+	 *			  you risk memory corruption due to the cast to void*.
+	 *
 	 * @param	ClassType		Type of the source object from which the data will be gathered. Destination object type will be automatically deduced using
 	 *							CoreVariantType<Type, Core> helper.
 	 * @param	Name			Name of the packet structure.

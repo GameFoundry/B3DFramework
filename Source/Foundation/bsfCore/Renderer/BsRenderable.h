@@ -190,7 +190,8 @@ namespace bs
 		/** @} */
 	protected:
 		friend class ct::Renderable;
-		struct SyncPacket;
+		struct FullSyncPacket;
+		struct ActorSyncPacket;
 		
 		SPtr<ct::RenderProxy> CreateRenderProxy() const override;
 
