@@ -413,12 +413,18 @@ AcquirePackageLockResult PackageManager::AcquireReadLock(const Path& physicalPac
 		{
 			mPackagesById[package->GetPackageId()] = runtimePackageInformation;
 
+			const SPtr<PackageMetaData>& packageMetaData = package->GetPackageMetaData();
+
 			runtimePackageInformation->LoadedPackage = package;
 			runtimePackageInformation->PhysicalPath = physicalPackagePath;
-			runtimePackageInformation->VirtualPathPrefix = options.VirtualPathPrefix;
 			runtimePackageInformation->AcquiredWriteLock = false;
 
-			LoadPackageResourceInformation(*package, physicalPackagePath, options.VirtualPathPrefix);
+			if(packageMetaData != nullptr && packageMetaData->IncludePackageNameInVirtualPath)
+				runtimePackageInformation->VirtualPathPrefix = Path::Combine(options.VirtualPathPrefix, package->GetPackageName());
+			else
+				runtimePackageInformation->VirtualPathPrefix = options.VirtualPathPrefix;
+
+			LoadPackageResourceInformation(*package, physicalPackagePath, runtimePackageInformation->VirtualPathPrefix);
 
 			runtimePackageInformation->LoadSignal.NotifyAll();
 

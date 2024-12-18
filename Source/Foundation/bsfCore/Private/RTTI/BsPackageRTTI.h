@@ -21,6 +21,9 @@ namespace bs
 
 	class B3D_CORE_EXPORT PackageMetaDataRTTI : public TRTTIType<PackageMetaData, IReflectable, PackageMetaDataRTTI>
 	{
+		B3D_RTTI_BEGIN_MEMBERS
+			B3D_RTTI_MEMBER(IncludePackageNameInVirtualPath, 0)
+		B3D_RTTI_END_MEMBERS
 	public:
 		const String& GetRttiName() override
 		{

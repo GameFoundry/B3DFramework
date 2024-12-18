@@ -95,6 +95,12 @@ namespace bs
 	public:
 		PackageMetaData() = default;
 
+		/**
+		 * Hint to the package loader that the name of the package filename should be added as a parent path to the
+		 * virtual path of all the resources in the package.
+		 */
+		bool IncludePackageNameInVirtualPath = false;
+
 		/************************************************************************/
 		/* 								SERIALIZATION                      		*/
 		/************************************************************************/
