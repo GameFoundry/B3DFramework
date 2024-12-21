@@ -1242,6 +1242,8 @@ SPtr<Package> Package::Load(const SPtr<DataStream>& stream)
 	if (package == nullptr)
 		return nullptr;
 
+	stream->Skip(package->mMetaDataPaddingByteCount);
+
 	package->mSerializedMetaDataEnd = stream->Tell() + package->mMetaDataPaddingByteCount;
 	const u32 resourceCount = (u32)package->mResourceInformationByUUID.size();
 
