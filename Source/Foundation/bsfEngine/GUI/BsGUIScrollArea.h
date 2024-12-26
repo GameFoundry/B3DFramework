@@ -70,28 +70,28 @@ namespace bs
 		GUILayoutY& GetLayout() const { return *mContentLayout; }
 
 		/**	Scrolls the area up by specified amount of pixels, if possible. */
-		void ScrollUpPx(u32 pixels);
+		void ScrollUpPixels(u32 pixels);
 
 		/**	Scrolls the area down by specified amount of pixels, if possible. */
-		void ScrollDownPx(u32 pixels);
+		void ScrollDownPixels(u32 pixels);
 
 		/**	Scrolls the area left by specified amount of pixels, if possible. */
-		void ScrollLeftPx(u32 pixels);
+		void ScrollLeftPixels(u32 pixels);
 
 		/**	Scrolls the area right by specified amount of pixels, if possible. */
-		void ScrollRightPx(u32 pixels);
+		void ScrollRightPixels(u32 pixels);
 
 		/**	Scrolls the area up by specified percentage (ranging [0, 1]), if possible. */
-		void ScrollUpPct(float percent);
+		void ScrollUpPercent(float percent);
 
 		/**	Scrolls the area down by specified percentage (ranging [0, 1]), if possible. */
-		void ScrollDownPct(float percent);
+		void ScrollDownPercent(float percent);
 
 		/**	Scrolls the area left by specified percentage (ranging [0, 1]), if possible. */
-		void ScrollLeftPct(float percent);
+		void ScrollLeftPercent(float percent);
 
 		/**	Scrolls the area right by specified percentage (ranging [0, 1]), if possible. */
-		void ScrollRightPct(float percent);
+		void ScrollRightPercent(float percent);
 
 		/**
 		 * Scrolls the contents to the specified position (0 meaning top-most part of the content is visible, and 1 meaning

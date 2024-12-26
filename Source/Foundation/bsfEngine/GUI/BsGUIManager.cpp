@@ -215,7 +215,7 @@ void GUIManager::Update()
 	GetProfilerCPU().BeginSample("UpdateLayout");
 	for(auto& widgetInfo : mWidgets)
 	{
-		widgetInfo.Widget->UpdateLayoutInternal();
+		widgetInfo.Widget->UpdateLayout();
 	}
 	GetProfilerCPU().EndSample("UpdateLayout");
 

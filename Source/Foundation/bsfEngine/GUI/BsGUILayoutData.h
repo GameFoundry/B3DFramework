@@ -36,7 +36,6 @@ namespace bs
 			u32 signedDepth = ((i32)panelDepth + 32768) << 8;
 
 			Depth = signedDepth | (Depth & 0xFF0000FF);
-			;
 		}
 
 		/**	Retrieve widget part of element depth (Most significant part). */

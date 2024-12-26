@@ -406,7 +406,7 @@ Rect2I GUIScrollArea::GetContentBounds()
 	return bounds;
 }
 
-void GUIScrollArea::ScrollUpPx(u32 pixels)
+void GUIScrollArea::ScrollUpPixels(u32 pixels)
 {
 	if(mVertScroll != nullptr)
 	{
@@ -420,7 +420,7 @@ void GUIScrollArea::ScrollUpPx(u32 pixels)
 	}
 }
 
-void GUIScrollArea::ScrollDownPx(u32 pixels)
+void GUIScrollArea::ScrollDownPixels(u32 pixels)
 {
 	if(mVertScroll != nullptr)
 	{
@@ -434,7 +434,7 @@ void GUIScrollArea::ScrollDownPx(u32 pixels)
 	}
 }
 
-void GUIScrollArea::ScrollLeftPx(u32 pixels)
+void GUIScrollArea::ScrollLeftPixels(u32 pixels)
 {
 	if(mHorzScroll != nullptr)
 	{
@@ -448,7 +448,7 @@ void GUIScrollArea::ScrollLeftPx(u32 pixels)
 	}
 }
 
-void GUIScrollArea::ScrollRightPx(u32 pixels)
+void GUIScrollArea::ScrollRightPixels(u32 pixels)
 {
 	if(mHorzScroll != nullptr)
 	{
@@ -462,25 +462,25 @@ void GUIScrollArea::ScrollRightPx(u32 pixels)
 	}
 }
 
-void GUIScrollArea::ScrollUpPct(float percent)
+void GUIScrollArea::ScrollUpPercent(float percent)
 {
 	if(mVertScroll != nullptr)
 		mVertScroll->Scroll(percent);
 }
 
-void GUIScrollArea::ScrollDownPct(float percent)
+void GUIScrollArea::ScrollDownPercent(float percent)
 {
 	if(mVertScroll != nullptr)
 		mVertScroll->Scroll(-percent);
 }
 
-void GUIScrollArea::ScrollLeftPct(float percent)
+void GUIScrollArea::ScrollLeftPercent(float percent)
 {
 	if(mHorzScroll != nullptr)
 		mHorzScroll->Scroll(percent);
 }
 
-void GUIScrollArea::ScrollRightPct(float percent)
+void GUIScrollArea::ScrollRightPercent(float percent)
 {
 	if(mHorzScroll != nullptr)
 		mHorzScroll->Scroll(-percent);

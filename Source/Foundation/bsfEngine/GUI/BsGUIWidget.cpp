@@ -149,7 +149,7 @@ void GUIWidget::UpdateRTInternal()
 	}
 }
 
-void GUIWidget::UpdateLayoutInternal()
+void GUIWidget::UpdateLayout()
 {
 	// Check if render target size changed and update if needed
 	// Note: Purposely not relying to the RenderTarget::onResized callback, as it will trigger /before/ Input events.
@@ -187,9 +187,9 @@ void GUIWidget::UpdateLayoutInternal()
 			B3D_ASSERT(updateParent != nullptr || currentElem == mPanel);
 
 			if(updateParent != nullptr)
-				UpdateLayoutInternal(updateParent);
+				UpdateLayout(updateParent);
 			else // Must be root panel
-				UpdateLayoutInternal(mPanel);
+				UpdateLayout(mPanel);
 		}
 		else
 		{
@@ -202,7 +202,7 @@ void GUIWidget::UpdateLayoutInternal()
 	B3DClearAllocatorFrame();
 }
 
-void GUIWidget::UpdateLayoutInternal(GUIElement* elem)
+void GUIWidget::UpdateLayout(GUIElement* elem)
 {
 	GUIElement* parent = elem->GetParent();
 	bool isPanelOptimized = parent != nullptr && parent->GetType() == GUIElement::Type::Panel;

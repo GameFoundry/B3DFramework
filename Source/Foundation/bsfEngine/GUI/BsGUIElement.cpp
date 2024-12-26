@@ -162,7 +162,7 @@ Rect2I GUIElement::CalculateBoundsRelativeTo(GUIElement* relativeTo)
 		anchorBounds = relativeTo->GetBounds();
 
 	if(mLayoutUpdateParent != nullptr && mLayoutUpdateParent->IsDirty() && mParentWidget != nullptr)
-		mParentWidget->UpdateLayoutInternal(mLayoutUpdateParent);
+		mParentWidget->UpdateLayout(mLayoutUpdateParent);
 
 	Rect2I bounds = mLayoutData.Area;
 	bounds.X -= anchorBounds.X;
@@ -181,7 +181,7 @@ void GUIElement::SetBounds(const Rect2I& bounds)
 const Rect2I& GUIElement::GetBounds() const
 {
 	if(mLayoutUpdateParent != nullptr && mLayoutUpdateParent->IsDirty() && mParentWidget != nullptr)
-		mParentWidget->UpdateLayoutInternal(mLayoutUpdateParent);
+		mParentWidget->UpdateLayout(mLayoutUpdateParent);
 
 	return mLayoutData.Area;
 }

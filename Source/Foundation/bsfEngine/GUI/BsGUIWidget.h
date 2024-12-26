@@ -137,10 +137,10 @@ namespace bs
 		void MarkContentDirty(GUIElement* elem);
 
 		/**	Updates the layout of all child elements, repositioning and resizing them as needed. */
-		void UpdateLayoutInternal();
+		void UpdateLayout();
 
 		/**	Updates the layout of the provided element, and queues content updates. */
-		void UpdateLayoutInternal(GUIElement* elem);
+		void UpdateLayout(GUIElement* elem);
 
 		/**
 		 * Updates internal transform values from the specified scene object, in case that scene object's transform changed
