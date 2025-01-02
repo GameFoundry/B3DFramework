@@ -32,12 +32,6 @@ GUIViewport* GUIViewport::Create(const GUIOptions& options, const HCamera& camer
 	return new(B3DAllocate<GUIViewport>()) GUIViewport(GetStyleClass<GUIViewport>(styleName), camera, aspectRatio, fieldOfView, GUISizeConstraints::Create(options));
 }
 
-void GUIViewport::UpdateClippedBounds()
-{
-	mClippedBounds = GetCachedAbsoluteBounds();
-	mClippedBounds.Clip(mAbsoluteClippedArea);
-}
-
 Vector2I GUIViewport::CalculateUnconstrainedOptimalSize() const
 {
 	return Vector2I(0, 0);

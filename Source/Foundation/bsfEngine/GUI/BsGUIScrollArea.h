@@ -140,7 +140,6 @@ namespace bs
 		~GUIScrollArea() = default;
 
 		GUIConstrainedSize GetConstrainedSize() const override;
-		void UpdateClippedBounds() override;
 		GUIConstrainedSize CalculateConstrainedSize() const override;
 		void UpdateOptimalLayoutSizes() override;
 		Vector2I CalculateUnconstrainedOptimalSize() const override;

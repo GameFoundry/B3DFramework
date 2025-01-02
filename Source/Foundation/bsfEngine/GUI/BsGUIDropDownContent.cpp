@@ -49,7 +49,7 @@ void GUIDropDownContent::SetRange(u32 start, u32 end)
 		if(mIsToggle)
 			mStates[idx] = !mStates[idx];
 
-		mParent->ElementActivated(idx, mVisibleElements[visIdx].UnderlayButton->GetCachedClippedBounds());
+		mParent->ElementActivated(idx, mVisibleElements[visIdx].UnderlayButton->GetCachedAbsoluteClippedArea());
 	};
 
 	// Remove all elements

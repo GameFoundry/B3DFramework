@@ -105,6 +105,12 @@ namespace bs
 		 */
 		void SetNavigationGroupIndex(i32 index);
 
+		/**
+		 * Checks is the specified position within interactable bounds of a GUI element. These are the bounds that will be used for hit tests for e.g. mouse cursor.
+		 * By default this is the same as the absolute clipped bounds of the GUI element. Position is relative to parent GUI widget.
+		 */
+		virtual bool IsInInteractionBounds(const Vector2I& position) const;
+
 		void Destroy() override;
 
 		/**	Triggered when the element gains focus. */

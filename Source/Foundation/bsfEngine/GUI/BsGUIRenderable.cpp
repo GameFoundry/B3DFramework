@@ -65,11 +65,6 @@ bool GUIRenderable::IsUsingStyleSheets() const
 	return false;
 }
 
-void GUIRenderable::UpdateRenderElements()
-{
-	UpdateClippedBounds();
-}
-
 void GUIRenderable::GetRenderElementVertexAndIndexData(u32 renderElementIndex, u32 vertexOffset, u32 indexOffset, DataRange& outPositions, DataRange& outUVs, DataRange& outIndices) const
 {
 	const GUIRenderElement& renderElement = mRenderElements[renderElementIndex];
@@ -92,12 +87,6 @@ void GUIRenderable::GetRenderElementVertexAndIndexData(u32 renderElementIndex, u
 		renderElement.Offset;
 
 	renderElement.GetVertexAndIndexData(vertexOffset, indexOffset, renderElementOffset, renderElementClipRectangle, true, outPositions, outUVs, outIndices);
-}
-
-void GUIRenderable::UpdateClippedBounds()
-{
-	mClippedBounds = GetCachedAbsoluteBounds();
-	mClippedBounds.Clip(mAbsoluteClippedArea);
 }
 
 void GUIRenderable::SetStyleSheetClass(const String& styleClass)
@@ -143,14 +132,6 @@ void GUIRenderable::ChangeParentWidget(GUIWidget* widget)
 
 	if(widgetChanged)
 		RefreshStyle();
-}
-
-void GUIRenderable::UpdateAbsoluteCoordinates(const Vector2I& parentOrigin, const Rect2I& parentVisibleArea)
-{
-	Super::UpdateAbsoluteCoordinates(parentOrigin, parentVisibleArea);
-
-	// TODO - Concept of clipped bounds is strange. This looks like the same thing as mLayoutData.AbsoluteClippedArea, except for a few particular cases
-	UpdateClippedBounds();
 }
 
 const RectOffset& GUIRenderable::GetMargins() const
@@ -230,11 +211,6 @@ Rect2I GUIRenderable::GetCachedClippedContentBoundsInContentSpace() const
 	contentClipRect.Y -= localContentBounds.Y;
 
 	return contentClipRect;
-}
-
-bool GUIRenderable::IsInBounds(const Vector2I& position) const
-{
-	return GetCachedClippedBounds().Contains(position);
 }
 
 Vector2I GUIRenderable::GetContentOffsetInElementSpace() const

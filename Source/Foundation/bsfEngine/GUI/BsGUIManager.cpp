@@ -997,7 +997,7 @@ bool GUIManager::FindElementUnderPointer(const Vector2I& pointerScreenPos, bool 
 					if(!interactableElement)
 						continue;
 
-					if(interactableElement->IsVisible() && interactableElement->IsInBounds(localPos))
+					if(interactableElement->IsVisible() && interactableElement->IsInInteractionBounds(localPos))
 					{
 						ElementInfoUnderPointer elementInfo(interactableElement, widget);
 
@@ -1488,9 +1488,8 @@ void GUIManager::TabFocusFirst()
 			if(!acceptsKeyFocus || element->IsDisabled() || !element->IsVisible())
 				continue;
 
-			const Rect2I elemBounds = element->GetCachedClippedBounds();
-			const bool isFullyClipped = element->GetCachedClippedBounds().Width == 0 ||
-				element->GetCachedClippedBounds().Height == 0;
+			const Rect2I elemBounds = element->GetCachedAbsoluteClippedArea();
+			const bool isFullyClipped = element->GetCachedAbsoluteClippedArea().Width == 0 || element->GetCachedAbsoluteClippedArea().Height == 0;
 
 			if(isFullyClipped)
 				continue;

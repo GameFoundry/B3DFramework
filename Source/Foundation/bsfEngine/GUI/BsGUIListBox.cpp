@@ -330,7 +330,7 @@ void GUIListBox::OpenListBox()
 
 	desc.Camera = widget->GetCamera();
 	desc.StyleSheetCascade = widget->GetStyleSheetCascadeAsShared();
-	desc.Placement = DropDownAreaPlacement::AroundBoundsHorz(mClippedBounds);
+	desc.Placement = DropDownAreaPlacement::AroundBoundsHorz(GetCachedAbsoluteBounds());
 	desc.DropDownData.States = mElementStates;
 
 	GUIDropDownType type;

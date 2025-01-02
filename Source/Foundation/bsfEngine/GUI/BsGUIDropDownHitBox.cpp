@@ -34,28 +34,11 @@ void GUIDropDownHitBox::SetBounds(const Rect2I& bounds)
 {
 	mBounds.clear();
 	mBounds.push_back(bounds);
-
-	UpdateClippedBounds();
 }
 
 void GUIDropDownHitBox::SetBounds(const Vector<Rect2I>& bounds)
 {
 	mBounds = bounds;
-
-	UpdateClippedBounds();
-}
-
-void GUIDropDownHitBox::UpdateClippedBounds()
-{
-	mClippedBounds = Rect2I();
-
-	if(mBounds.size() > 0)
-	{
-		mClippedBounds = mBounds[0];
-
-		for(u32 i = 1; i < (u32)mBounds.size(); i++)
-			mClippedBounds.Encapsulate(mBounds[i]);
-	}
 }
 
 bool GUIDropDownHitBox::DoOnCommandEvent(const GUICommandEvent& ev)
@@ -119,7 +102,7 @@ bool GUIDropDownHitBox::DoOnMouseEvent(const GUIMouseEvent& ev)
 	return processed;
 }
 
-bool GUIDropDownHitBox::IsInBounds(const Vector2I& position) const
+bool GUIDropDownHitBox::IsInInteractionBounds(const Vector2I& position) const
 {
 	for(auto& bound : mBounds)
 	{

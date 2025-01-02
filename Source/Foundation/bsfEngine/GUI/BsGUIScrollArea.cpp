@@ -31,12 +31,6 @@ GUIScrollArea::GUIScrollArea(ScrollBarType vertBarType, ScrollBarType horzBarTyp
 	mVertScroll->OnScrollOrResize.Connect(std::bind(&GUIScrollArea::VertScrollUpdate, this, _1));
 }
 
-void GUIScrollArea::UpdateClippedBounds()
-{
-	mClippedBounds = GetCachedAbsoluteBounds();
-	mClippedBounds.Clip(mAbsoluteClippedArea);
-}
-
 Vector2I GUIScrollArea::CalculateUnconstrainedOptimalSize() const
 {
 	Vector2I optimalSize = mContentLayout->CalculateUnconstrainedOptimalSize();

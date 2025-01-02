@@ -43,6 +43,7 @@ namespace bs
 		u32 GetScrollableSize() const;
 
 		void SetTint(const Color& color) override;
+		bool IsInInteractionBounds(const Vector2I& position) const override { return false; } // Non-interactable
 
 		/**
 		 * Triggered whenever the scrollbar handle is moved or resized. Values provided are the handle position and size
@@ -92,7 +93,6 @@ namespace bs
 		virtual ~GUIScrollBar();
 
 		void UpdateRenderElements() override;
-		void UpdateClippedBounds() override;
 		u32 GetRenderElementDepthRange() const override;
 
 		static constexpr const char* kHorizontalHandleStyleClass = "ScrollBarHorizontalHandle";

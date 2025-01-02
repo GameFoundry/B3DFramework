@@ -159,10 +159,10 @@ namespace bs
 		) const;
 
 		/**
-		 * Recreates the internal render elements. Must be called before fillBuffer if element is dirty. Marks the element
-		 * as non dirty.
+		 * Recreates the internal render elements. Must be called before GetRenderElementVertexAndIndexData/FillBuffer if element is dirty.
+		 * Marks the element as non dirty.
 		 */
-		virtual void UpdateRenderElements();
+		virtual void UpdateRenderElements() { }
 
 		/** Set element part of element depth. Less significant than both widget and area depth. */
 		void SetElementDepth(u8 depth);
@@ -182,12 +182,6 @@ namespace bs
 		/** Updates element style based on active GUI style sheet. Call this after active style sheet changes, or element class/id changes. */
 		void RefreshStyle();
 
-		/** Similar to GetCachedBounds(), except the bounds are clipped against the current clip rectangle. */
-		const Rect2I& GetCachedClippedBounds() const { return mClippedBounds; }
-
-		/** Checks is the specified position within GUI element bounds. Position is relative to parent GUI widget. */
-		virtual bool IsInBounds(const Vector2I& position) const;
-
 		/**
 		 * Returns GUI element depth. This includes widget and area depth, but does not include specific per-render-element
 		 * depth.
@@ -199,17 +193,10 @@ namespace bs
 
 		void SetLayoutData(const GUILayoutData& data) override;
 		void ChangeParentWidget(GUIWidget* widget) override;
-		void UpdateAbsoluteCoordinates(const Vector2I& parentOrigin, const Rect2I& parentVisibleArea) override;
 
 		/** @} */
 	protected:
 		friend class GUISpriteHelper;
-
-		/**
-		 * Called whenever element clipped bounds need to be recalculated. (for example when width, height or clip
-		 * rectangles changes).
-		 */
-		virtual void UpdateClippedBounds();
 
 		/**	Method that gets triggered whenever element style changes. */
 		virtual void NotifyStyleChanged() {}
@@ -252,7 +239,6 @@ namespace bs
 	protected:
 		static const Color kDisabledColor;
 
-		Rect2I mClippedBounds; // TODO - Move to base class
 		TInlineArray<GUIRenderElement, 4> mRenderElements;
 		GUIElementStateFlags mStateFlags = GUIElementStateFlag::Normal;
 

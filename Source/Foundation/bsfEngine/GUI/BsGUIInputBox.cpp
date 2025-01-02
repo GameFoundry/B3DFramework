@@ -177,7 +177,7 @@ u32 GUIInputBox::GetRenderElementDepthRange() const
 
 bool GUIInputBox::HasCustomCursor(const Vector2I position, CursorType& type) const
 {
-	if(IsInBounds(position) && !IsDisabled())
+	if(IsInInteractionBounds(position) && !IsDisabled())
 	{
 		type = CursorType::IBeam;
 		return true;
