@@ -8,7 +8,7 @@
 #include "Math/BsComplex.h"
 #include "Reflection/BsRTTIIterator.h"
 #include "Utility/BsMinHeap.h"
-#include "Utility/BsQuadtree.h"
+#include "Utility/BsSpatialTree.h"
 #include "Utility/BsBitstream.h"
 #include "Utility/BsUSPtr.h"
 

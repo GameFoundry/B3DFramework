@@ -249,7 +249,7 @@ namespace bs
 	 *						It must also provide the following methods:
 	 *							- "static typename TSpatialTreeTraits<Dimension>::SIMDBoundsType GetBounds(const ElementType&, void*)"
 	 *								- Returns the bounds for the provided element
-	 *							- "static void SetElementId(const TSpatialTree::ElementId&, void*)"
+	 *							- "static void SetElementId(const TSpatialTreeElementId&, void*)"
 	 *								- Gets called when element's ID is first assigned or subsequently modified
 	 */
 	template <typename ElementType, typename Options, u32 Dimension>
