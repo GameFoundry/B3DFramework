@@ -8,7 +8,11 @@
 #include "Math/BsSphere.h"
 #include "Math/BsRect2.h"
 
-#define B3D_SIMDPP_ARCH_X86_SS_E4_1
+#if B3D_ARCHITECTURE == B3D_ARCHITECTURE_ID_X86_32 || B3D_ARCHITECTURE == B3D_ARCHITECTURE_ID_X86_64
+#define SIMDPP_ARCH_X86_AVX 1
+#elif B3D_ARCHITECTURE_ID_ARM64
+#define SIMDPP_ARCH_ARM_NEON 1
+#endif
 
 #if B3D_COMPILER == B3D_COMPILER_ID_MSVC
 #	pragma warning(disable : 4244)
@@ -86,9 +90,7 @@ namespace bs
 			}
 		};
 
-		/**
-		 * Version of bs::Rect2 suitable for SIMD use.
-		 */
+		/** Version of bs::Rect2 suitable for SIMD use. */
 		struct Rect2
 		{
 			/** Center of the bounds. Z and W component unused.*/
@@ -117,6 +119,50 @@ namespace bs
 
 			/** Returns true if the current bounds object intersects the provided object. */
 			bool Overlaps(const Rect2& other) const
+			{
+				auto myCenter = load<float32x4>(&Center);
+				auto otherCenter = load<float32x4>(&other.Center);
+
+				float32x4 diff = abs(sub(myCenter, otherCenter));
+
+				auto myExtents = simd::load<float32x4>(&Extents);
+				auto otherExtents = simd::load<float32x4>(&other.Extents);
+
+				float32x4 extents = add(myExtents, otherExtents);
+
+				return test_bits_any(bit_cast<uint32x4>(cmp_gt(diff, extents))) == false;
+			}
+		};
+
+		/** Version of bs::Range suitable for SIMD use. */
+		struct Range
+		{
+			/** Center of the bounds. Y, Z and W component unused.*/
+			SIMDPP_ALIGN(16)
+			Vector4 Center;
+
+			/** Extents (half-size) of the bounds. Y, Z and W component unused. */
+			SIMDPP_ALIGN(16)
+			Vector4 Extents;
+
+			Range() = default;
+
+			/** Initializes bounds from an Rect2. */
+			Range(const bs::Range& range)
+			{
+				Center = Vector4(range.Center, 0.0f, 0.0f, 0.0f);
+				Extents = Vector4(range.Extent, 0.0f, 0.0f, 0.0f);
+			}
+
+			/** Initializes bounds from a vector representing the center and equal extents in all directions. */
+			Range(float center, float extent)
+			{
+				Center = Vector4(center, 0.0f, 0.0f, 0.0f);
+				Extents = Vector4(extent, 0.0f, 0.0f, 0.0f);
+			}
+
+			/** Returns true if the current bounds object intersects the provided object. */
+			bool Overlaps(const Range& other) const
 			{
 				auto myCenter = load<float32x4>(&Center);
 				auto otherCenter = load<float32x4>(&other.Center);

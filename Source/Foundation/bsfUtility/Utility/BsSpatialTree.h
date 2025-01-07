@@ -21,6 +21,16 @@ namespace bs
 		static_assert(sizeof(TSpatialTreeTraits) == -1, "Unsupported dimension count.");
 	};
 
+	/** Traits for 1D tree. */
+	template<>
+	struct TSpatialTreeTraits<1>
+	{
+		using SIMDBoundsType = simd::Range;
+		using ScalarBoundsType = Range;
+		using CenterType = float;
+		static constexpr u32 kChildNodeCount = 2;
+	};
+
 	/** Traits for quad-tree. */
 	template<>
 	struct TSpatialTreeTraits<2>
@@ -66,6 +76,34 @@ namespace bs
 		static_assert(sizeof(TSpatialTreeChildNodeId) == -1, "Unsupported dimension count.");
 	};
 
+	/** Specialization of TSpatialTreeChildNodeId for a 1D tree. */
+	template<>
+	struct TSpatialTreeChildNodeId<1>
+	{
+		union
+		{
+			struct
+			{
+				u32 X : 1;
+				u32 Empty : 1;
+			};
+
+			struct
+			{
+				u32 Index : 1;
+				u32 Empty2 : 1;
+			};
+		};
+
+		TSpatialTreeChildNodeId()
+			: Empty(true)
+		{}
+
+		TSpatialTreeChildNodeId(u32 index)
+			: Index(index), Empty(false)
+		{}
+	};
+
 	/** Specialization of TSpatialTreeChildNodeId for a quad-tree. */
 	template<>
 	struct TSpatialTreeChildNodeId<2>
@@ -90,12 +128,8 @@ namespace bs
 			: Empty(true)
 		{}
 
-		TSpatialTreeChildNodeId(u32 x, u32 y)
-			: X(x), Y(y), Empty(false)
-		{}
-
 		TSpatialTreeChildNodeId(u32 index)
-			: Index(index), Empty2(false)
+			: Index(index), Empty(false)
 		{}
 	};
 
@@ -124,12 +158,8 @@ namespace bs
 			: Empty(true)
 		{}
 
-		TSpatialTreeChildNodeId(u32 x, u32 y, u32 z)
-			: X(x), Y(y), Z(z), Empty(false)
-		{}
-
 		TSpatialTreeChildNodeId(u32 index)
-			: Index(index), Empty2(false)
+			: Index(index), Empty(false)
 		{}
 	};
 
@@ -138,6 +168,47 @@ namespace bs
 	struct TSpatialTreeChildNodeIdRange
 	{
 		static_assert(sizeof(TSpatialTreeChildNodeIdRange) == -1, "Unsupported dimension count.");
+	};
+
+	/** Specialization of TSpatialTreeChildNodeIdRange for a 1D tree. */
+	template<>
+	struct TSpatialTreeChildNodeIdRange<1>
+	{
+		enum { Dimension = 1};
+
+		union
+		{
+			struct
+			{
+				u32 PositiveX : 1;
+				u32 NegativeX : 1;
+			};
+
+			struct
+			{
+				u32 PositiveBits : 1;
+				u32 NegativeBits : 1;
+			};
+
+			u32 AllBits : 2;
+		};
+
+		/** Constructs a range overlapping no nodes. */
+		TSpatialTreeChildNodeIdRange()
+			: AllBits(0)
+		{}
+
+		/** Constructs a range overlapping a single node. */
+		TSpatialTreeChildNodeIdRange(TSpatialTreeChildNodeId<Dimension> child)
+			: PositiveBits(child.Index), NegativeBits(~child.Index)
+		{}
+
+		/** Checks if the range contains the provided child. */
+		bool Contains(TSpatialTreeChildNodeId<Dimension> child) const
+		{
+			TSpatialTreeChildNodeIdRange childRange(child);
+			return (AllBits & childRange.AllBits) == childRange.AllBits;
+		}
 	};
 
 	/** Specialization of TSpatialTreeChildNodeIdRange for a quad-tree. */
@@ -556,6 +627,14 @@ namespace bs
 		simd::mask_float32x4 mask = simd::cmp_gt(simd::add(queryExtents, diff), childExtent);
 		if(simd::test_bits_any(simd::bit_cast<simd::uint32x4>(mask)) == false)
 		{
+#if B3D_ARCHITECTURE == B3D_ARCHITECTURE_ID_X86_32 || B3D_ARCHITECTURE == B3D_ARCHITECTURE_ID_X86_64
+			if constexpr(Dimension == 1)
+				output.Index = _mm_movemask_ps(simd::cmp_gt(queryCenter, nodeCenter).e.native()) & 0x1;
+			else if constexpr(Dimension == 2)
+				output.Index = _mm_movemask_ps(simd::cmp_gt(queryCenter, nodeCenter).e.native()) & 0x3;
+			else if constexpr(Dimension == 3)
+				output.Index = _mm_movemask_ps(simd::cmp_gt(queryCenter, nodeCenter).e.native()) & 0x7;
+#else // Generic path
 			auto ones = simd::make_uint<simd::uint32x4>(1, 1, 1, 1);
 			auto zeroes = simd::make_uint<simd::uint32x4>(0, 0, 0, 0);
 
@@ -573,6 +652,7 @@ namespace bs
 
 			if constexpr(Dimension >= 3)
 				output.Z = scalarResult.Z;
+#endif
 
 			output.Empty = false;
 		}
@@ -601,6 +681,24 @@ namespace bs
 
 		TSpatialTreeChildNodeIdRange<Dimension> output;
 
+#if B3D_ARCHITECTURE == B3D_ARCHITECTURE_ID_X86_32 || B3D_ARCHITECTURE == B3D_ARCHITECTURE_ID_X86_64
+		if constexpr(Dimension == 1)
+		{
+			output.PositiveBits = _mm_movemask_ps(simd::cmp_gt(queryMax, positiveMin).e.native()) & 0x1;
+			output.NegativeBits = _mm_movemask_ps(simd::cmp_le(queryMin, negativeMax).e.native()) & 0x1;
+		}
+		else if constexpr(Dimension == 2)
+		{
+			output.PositiveBits = _mm_movemask_ps(simd::cmp_gt(queryMax, positiveMin).e.native()) & 0x3;
+			output.NegativeBits = _mm_movemask_ps(simd::cmp_le(queryMin, negativeMax).e.native()) & 0x3;
+			
+		}
+		else if constexpr(Dimension == 3)
+		{
+			output.PositiveBits = _mm_movemask_ps(simd::cmp_gt(queryMax, positiveMin).e.native()) & 0x7;
+			output.NegativeBits = _mm_movemask_ps(simd::cmp_le(queryMin, negativeMax).e.native()) & 0x7;
+		}
+#else // Generic path
 		auto ones = simd::make_uint<simd::uint32x4>(1, 1, 1, 1);
 		auto zeroes = simd::make_uint<simd::uint32x4>(0, 0, 0, 0);
 
@@ -630,6 +728,7 @@ namespace bs
 
 		if constexpr(Dimension >= 3)
 			output.NegativeZ = scalarResult.Z;
+#endif
 
 		return output;
 	}

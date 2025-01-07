@@ -380,6 +380,23 @@ namespace bs
 		size_t ExplicitStrideInBytes;
 	};
 
+	/** Represents a range between two values. */
+	template<typename T>
+	struct TRange
+	{
+		constexpr TRange() = default;
+		constexpr TRange(T center, T extent)
+			: Center(center), Extent(extent)
+		{ }
+
+		T Center = (T)0.0;
+		T Extent = (T)0.0;
+	};
+
+	using Range = TRange<float>;
+	using RangeF = TRange<float>;
+	using RangeD = TRange<double>;
+
 	/** @} */
 } // namespace bs
 
