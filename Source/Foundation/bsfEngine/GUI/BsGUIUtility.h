@@ -32,7 +32,7 @@ namespace bs
 		 * @param[in]	height				Height of the layout.
 		 * @param[in]	layout				Parent layout of the children to calculate the area for.
 		 * @param[in]	updateOptimalSizes	Optimization (doesn't change the results). Set to false if
-		 *									GUIElementBase::_updateOptimalLayoutSizes was already called and optimal sizes
+		 *									GUIElement::UpdateOptimalLayoutSizes was already called and optimal sizes
 		 *									are up to date to avoid recalculating them. (Normally that is true if this is
 		 *									being called during GUI layout update)
 		 */
@@ -42,7 +42,7 @@ namespace bs
 		 * Calculates size of the GUI element area based on the GUI content size. This is just the content area expanded by padding and border provided by the style.
 		 *
 		 * @param	contentSize		Size of the GUI element's content area.
-		 * @param	styleSheetRule			Style to use when rendering the GUI element.
+		 * @param	styleSheetRule	Style to use when rendering the GUI element.
 		 * @return					Size of the GUI element (including the border).
 		 */
 		static Size2UI CalculateSizeWithPaddingAndBorder(const Size2UI& contentSize, const GUIStyleSheetRules& styleSheetRule);

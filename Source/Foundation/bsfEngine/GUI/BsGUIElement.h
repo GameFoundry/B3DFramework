@@ -164,18 +164,18 @@ namespace bs
 		 *
 		 * @note	This value is only updated during layout and/or absolute coordinate pass, which happens at the end of frame before GUI is drawn.
 		 *			This means this value may contain position that is from the previous frame, unless you manually request a layout update before
-		 *			retrieving this method.
+		 *			calling this method.
 		 */
 		const Vector2I& GetCachedAbsolutePosition() const { return mAbsolutePosition; }
 
 		/**
 		 * Returns the position and size of the GUI element, relative to the parent widget. The returned area is clipped by the visible
-		 * area as specified by the parent GUI element (e.g. if the parent is a scroll area, only some or none of the GUI element may
+		 * area as specified by the parent GUI element (e.g. if the parent is a scroll area or similar, only some or none of the GUI element may
 		 * be visible, if it's scrolled out of view).
 		 * 
 		 * @note	This value is only updated during layout and/or absolute coordinate pass, which happens at the end of frame before GUI is drawn.
 		 *			This means this value may contain position that is from the previous frame, unless you manually request a layout update before
-		 *			retrieving this method.
+		 *			calling this method.
 		 */
 		const Rect2I& GetCachedAbsoluteClippedArea() const { return mAbsoluteClippedArea; }
 
@@ -305,17 +305,6 @@ namespace bs
 		/**	Returns parent GUI base element. */
 		GUIElement* GetParent() const { return mParent; }
 
-		/**
-		 * Returns the parent element whose layout needs to be updated when this elements contents change.
-		 *
-		 * @note
-		 * Due to the nature of the GUI system, when a child element bounds or contents change, its parents and siblings
-		 * usually need their layout bound updated. This function returns the first parent of all the elements that require
-		 * updating. This parent usually has fixed bounds or some other property that allows its children to be updated
-		 * independently from the even higher-up elements.
-		 */
-		GUIElement* GetUpdateParent() const { return mLayoutUpdateParent; }
-
 		/**	Returns parent GUI widget, can be null. */
 		GUIWidget* GetParentWidget() const { return mParentWidget; }
 
@@ -416,13 +405,13 @@ namespace bs
 		GUIElement* FindLayoutUpdateParent();
 
 		/**
-		 * Helper method for recursion in UpdateAUParentsInternal(). Sets the provided anchor parent for all children recursively.
+		 * Helper method for recursion in UpdatePanelAndLayoutUpdateParents(). Sets the provided anchor parent for all children recursively.
 		 * Recursion stops when a child anchor is detected.
 		 */
 		void SetPanelParent(GUIPanel* panelParent);
 
 		/**
-		 * Helper method for recursion in UpdateAUParentsInternal(). Sets the provided update parent for all children recursively.
+		 * Helper method for recursion in UpdatePanelAndLayoutUpdateParents(). Sets the provided update parent for all children recursively.
 		 * Recursion stops when a child update parent is detected.
 		 */
 		void SetLayoutUpdateParent(GUIElement* layoutUpdateParent);
@@ -440,10 +429,10 @@ namespace bs
 		GUIElementInternalStateFlags mFlags = GUIElementInternalStateFlag::LayoutDirty;
 		bool mIsPendingDestroy = false;
 
-		GUISizeConstraints mSizeConstraints; /**< Constraints on the element size as set by the style, or set explicitly at runtime. */
-		GUILayoutData mLayoutData; /**< Relative position (to parent), size, depth and other information, valid after a layout update. */
+		GUISizeConstraints mSizeConstraints; /**< Constraints on the element size as set by the style sheet, or set explicitly at runtime. */
+		GUILayoutData mLayoutData; /**< Relative position (to parent), size, depth and other information, calculated during a layout update. */
 		Vector2I mAbsolutePosition; /**< Absolute position of the GUI element (relative to parent GUI widget). Only valid after layout update & absolute coordinate update. */
-		Rect2I mAbsoluteClippedArea; /**< This is the absolute area of the GUI element as clipped by the parent visible bounds (e.g. if a parent is a scroll area). Only valid after layout update & absolute coordinate update. */
+		Rect2I mAbsoluteClippedArea; /**< Absolute area of the GUI element as clipped by the parent visible bounds (e.g. if a parent is a scroll area). Only valid after layout update & absolute coordinate update. */
 
 		/************************************************************************/
 		/* 								RTTI		                     		*/

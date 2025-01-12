@@ -9,8 +9,8 @@
 
 using namespace bs;
 
-GUILayoutY::GUILayoutY(const GUISizeConstraints& dimensions)
-	: GUILayout(dimensions)
+GUILayoutY::GUILayoutY(const GUISizeConstraints& sizeConstraints)
+	: GUILayout(sizeConstraints)
 {}
 
 GUIConstrainedSize GUILayoutY::CalculateConstrainedSize() const

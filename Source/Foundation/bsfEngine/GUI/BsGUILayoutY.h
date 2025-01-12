@@ -16,7 +16,7 @@ namespace bs
 	{
 	public:
 		GUILayoutY() = default;
-		GUILayoutY(const GUISizeConstraints& dimensions);
+		GUILayoutY(const GUISizeConstraints& sizeConstraints);
 		~GUILayoutY() = default;
 
 		/**	Creates a new vertical layout. */
