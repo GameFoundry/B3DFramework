@@ -48,48 +48,6 @@ void GUIPanel::SetDepthRange(i16 depth, u16 depthRangeMin, u16 depthRangeMax)
 	MarkLayoutAsDirty();
 }
 
-GUIConstrainedSize GUIPanel::CalculateConstrainedSize() const
-{
-	Vector2I optimalSize;
-	Vector2I minSize;
-
-	for(auto& child : mChildren)
-	{
-		if(!child->IsActive())
-			continue;
-
-		GUIConstrainedSize sizeRange = child->CalculateConstrainedSize();
-
-		if(child->GetType() == GUIElement::Type::FixedSpace || child->GetType() == GUIElement::Type::FlexibleSpace)
-		{
-			sizeRange.Optimal.X = sizeRange.Optimal.Y = 0;
-			sizeRange.Min.X = sizeRange.Min.Y = 0;
-		}
-
-		u32 paddingX = child->GetMargins().Left + child->GetMargins().Right;
-		u32 paddingY = child->GetMargins().Top + child->GetMargins().Bottom;
-
-		Vector2I childMax;
-		childMax.X = child->GetSizeConstraints().X + sizeRange.Optimal.X + paddingX;
-		childMax.Y = child->GetSizeConstraints().Y + sizeRange.Optimal.Y + paddingY;
-
-		optimalSize.X = std::max(optimalSize.X, childMax.X);
-		optimalSize.Y = std::max(optimalSize.Y, childMax.Y);
-
-		childMax.X = child->GetSizeConstraints().X + sizeRange.Min.X + paddingX;
-		childMax.Y = child->GetSizeConstraints().Y + sizeRange.Min.Y + paddingY;
-
-		minSize.X = std::max(minSize.X, childMax.X);
-		minSize.Y = std::max(minSize.Y, childMax.Y);
-	}
-
-	GUIConstrainedSize sizeRange = GetSizeConstraints().CalculateConstrainedSize(optimalSize);
-	sizeRange.Min.X = std::max(sizeRange.Min.X, minSize.X);
-	sizeRange.Min.Y = std::max(sizeRange.Min.Y, minSize.Y);
-
-	return sizeRange;
-}
-
 GUIConstrainedSize GUIPanel::GetChildElementSizeRange(const GUIElement* element) const
 {
 	if(element->GetType() == GUIElement::Type::FixedSpace || element->GetType() == GUIElement::Type::FlexibleSpace)
@@ -126,18 +84,18 @@ void GUIPanel::UpdateOptimalLayoutSizes()
 		{
 			childSizeRange = GetChildElementSizeRange(child);
 
-			u32 paddingX = child->GetMargins().Left + child->GetMargins().Right;
-			u32 paddingY = child->GetMargins().Top + child->GetMargins().Bottom;
+			const u32 marginsX = child->GetMargins().Left + child->GetMargins().Right;
+			const u32 marginsY = child->GetMargins().Top + child->GetMargins().Bottom;
 
 			Vector2I childMax;
-			childMax.X = child->GetSizeConstraints().X + childSizeRange.Optimal.X + paddingX;
-			childMax.Y = child->GetSizeConstraints().Y + childSizeRange.Optimal.Y + paddingY;
+			childMax.X = child->GetSizeConstraints().X + childSizeRange.Optimal.X + marginsX;
+			childMax.Y = child->GetSizeConstraints().Y + childSizeRange.Optimal.Y + marginsY;
 
 			optimalSize.X = std::max(optimalSize.X, childMax.X);
 			optimalSize.Y = std::max(optimalSize.Y, childMax.Y);
 
-			childMax.X = child->GetSizeConstraints().X + childSizeRange.Min.X + paddingX;
-			childMax.Y = child->GetSizeConstraints().Y + childSizeRange.Min.Y + paddingY;
+			childMax.X = child->GetSizeConstraints().X + childSizeRange.Min.X + marginsX;
+			childMax.Y = child->GetSizeConstraints().Y + childSizeRange.Min.Y + marginsY;
 
 			minSize.X = std::max(minSize.X, childMax.X);
 			minSize.Y = std::max(minSize.Y, childMax.Y);

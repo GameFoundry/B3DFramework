@@ -14,37 +14,6 @@ GUILayoutX::GUILayoutX(const GUISizeConstraints& dimensions)
 	: GUILayout(dimensions)
 {}
 
-GUIConstrainedSize GUILayoutX::CalculateConstrainedSize() const
-{
-	Vector2I optimalSize;
-	Vector2I minSize;
-	for(auto& child : mChildren)
-	{
-		if(!child->IsActive())
-			continue;
-
-		GUIConstrainedSize sizeRange = child->CalculateConstrainedSize();
-
-		if(B3DRTTIIsOfType<GUIFixedSpace>(child))
-			sizeRange.Optimal.Y = sizeRange.Min.Y = 0;
-
-		u32 marginsX = child->GetMargins().Left + child->GetMargins().Right;
-		u32 marginsY = child->GetMargins().Top + child->GetMargins().Bottom;
-
-		optimalSize.X += sizeRange.Optimal.X + marginsX;
-		optimalSize.Y = std::max((u32)optimalSize.Y, sizeRange.Optimal.Y + marginsY);
-
-		minSize.X += sizeRange.Min.X + marginsX;
-		minSize.Y = std::max((u32)minSize.Y, sizeRange.Min.Y + marginsY);
-	}
-
-	GUIConstrainedSize sizeRange = GetSizeConstraints().CalculateConstrainedSize(optimalSize);
-	sizeRange.Min.X = std::max(sizeRange.Min.X, minSize.X);
-	sizeRange.Min.Y = std::max(sizeRange.Min.Y, minSize.Y);
-
-	return sizeRange;
-}
-
 void GUILayoutX::UpdateOptimalLayoutSizes()
 {
 	// Update all children first, otherwise we can't determine our own optimal size

@@ -20,7 +20,6 @@ namespace bs
 		static void SetupScriptBindings();
 
 	private:
-		static void InternalCalculateOptimalSize(MonoObject* elem, TVector2I<int32_t>* __output);
 		static void InternalCalculateTextBounds(MonoString* text, MonoObject* font, float fontSize, TVector2I<int32_t>* __output);
 	};
 }

@@ -20,22 +20,7 @@ namespace bs
 
 	void ScriptGUIUtility::SetupScriptBindings()
 	{
-		sInteropMetaData.ScriptClass->AddInternalCall("Internal_CalculateOptimalSize", (void*)&ScriptGUIUtility::InternalCalculateOptimalSize);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_CalculateTextBounds", (void*)&ScriptGUIUtility::InternalCalculateTextBounds);
-
-	}
-
-	void ScriptGUIUtility::InternalCalculateOptimalSize(MonoObject* elem, TVector2I<int32_t>* __output)
-	{
-		GUIElement* tmpelem;
-		ScriptGUIElement* scriptObjectWrapperelem;
-		scriptObjectWrapperelem = ScriptGUIElement::GetScriptObjectWrapper(elem);
-		if(scriptObjectWrapperelem != nullptr)
-			tmpelem = static_cast<GUIElement*>(scriptObjectWrapperelem->GetNativeObject());
-		TVector2I<int32_t> tmp__output;
-		tmp__output = GUIUtility::CalculateOptimalSize(tmpelem);
-
-		*__output = tmp__output;
 	}
 
 	void ScriptGUIUtility::InternalCalculateTextBounds(MonoString* text, MonoObject* font, float fontSize, TVector2I<int32_t>* __output)

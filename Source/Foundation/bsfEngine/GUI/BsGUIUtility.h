@@ -19,13 +19,6 @@ namespace bs
 	{
 	public:
 		/**
-		 * Calculates optimal size of a GUI element. This is the size that allows the GUI element to properly display all of
-		 * its content.
-		 */
-		B3D_SCRIPT_EXPORT()
-		static Vector2I CalculateOptimalSize(const GUIElement* elem);
-
-		/**
 		 * Calculates the size of elements in a layout of the specified size.
 		 *
 		 * @param[in]	width				Width of the layout.

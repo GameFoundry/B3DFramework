@@ -18,17 +18,6 @@ namespace bs
 		protected GUIUtility() { }
 
 		/// <summary>
-		/// Calculates optimal size of a GUI element. This is the size that allows the GUI element to properly display all of its 
-		/// content.
-		/// </summary>
-		public static Vector2I CalculateOptimalSize(GUIElement elem)
-		{
-			Vector2I temp;
-			Internal_CalculateOptimalSize(elem, out temp);
-			return temp;
-		}
-
-		/// <summary>
 		/// Calculates optimal content size for the provided text using the provided font and size. Size is calculated without 
 		/// word wrap.
 		/// </summary>
@@ -43,8 +32,6 @@ namespace bs
 			return temp;
 		}
 
-		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_CalculateOptimalSize(GUIElement elem, out Vector2I __output);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_CalculateTextBounds(string text, RRef<Font> font, float fontSize, out Vector2I __output);
 	}
