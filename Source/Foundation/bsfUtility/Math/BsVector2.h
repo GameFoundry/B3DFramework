@@ -209,6 +209,7 @@ namespace bs
 		}
 
 		/** Returns the length (magnitude) of the vector. */
+		template<typename U = T, typename = std::enable_if_t<std::is_floating_point_v<U>, i32>>
 		T Length() const
 		{
 			return Math::SquareRoot(X * X + Y * Y);
@@ -221,6 +222,7 @@ namespace bs
 		}
 
 		/** Returns the distance to another vector. */
+		template<typename U = T, typename = std::enable_if_t<std::is_floating_point_v<U>, i32>>
 		T Distance(const TVector2& rhs) const
 		{
 			return (*this - rhs).Length();
@@ -232,13 +234,22 @@ namespace bs
 			return (*this - rhs).SquaredLength();
 		}
 
+		/** Returns the manhattan distance between this and another point. */
+		template<typename U = T, typename = std::enable_if_t<std::is_integral_v<U>, i32>>
+		T CalculateManhattanDistance(const TVector2& other) const
+		{
+			return (T)std::abs((i32)(other.X - X)) + (T)std::abs((i32)(other.Y - Y));
+		}
+
 		/** Calculates the dot (scalar) product of this vector with another. */
+		template<typename U = T, typename = std::enable_if_t<std::is_floating_point_v<U>, i32>>
 		T Dot(const TVector2& other) const
 		{
 			return X * other.X + Y * other.Y;
 		}
 
 		/** Normalizes this vector, and returns the previous length. */
+		template<typename U = T, typename = std::enable_if_t<std::is_floating_point_v<U>, i32>>
 		T Normalize()
 		{
 			const T length = Length();
@@ -248,6 +259,7 @@ namespace bs
 		}
 
 		/** Normalizes this vector, and returns the previous length. Checks if the magnitude is above @p tolerance to avoid division by zero or precision issues. */
+		template<typename U = T, typename = std::enable_if_t<std::is_floating_point_v<U>, i32>>
 		T NormalizeChecked(T tolerance = (T)1e-04)
 		{
 			const T length = Length();
@@ -267,6 +279,7 @@ namespace bs
 		 * Calculates the 2 dimensional cross-product of 2 vectors, which results in a single floating point value which
 		 * is 2 times the area of the triangle.
 		 */
+		template<typename U = T, typename = std::enable_if_t<std::is_floating_point_v<U>, i32>>
 		T Cross(const TVector2& other) const
 		{
 			return X * other.Y - Y * other.X;
@@ -287,6 +300,7 @@ namespace bs
 		}
 
 		/** Returns true if this vector is zero length. */
+		template<typename U = T, typename = std::enable_if_t<std::is_floating_point_v<U>, i32>>
 		bool IsZeroLength(T tolerance = (T)1e-04) const
 		{
 			const T squaredLength = X * X + Y * Y;
@@ -294,12 +308,14 @@ namespace bs
 		}
 
 		/** Calculates a reflection vector to the plane with the given normal. */
+		template<typename U = T, typename = std::enable_if_t<std::is_floating_point_v<U>, i32>>
 		TVector2 Reflect(const TVector2& normal) const
 		{
 			return TVector2(*this - ((T)2.0 * this->Dot(normal) * normal));
 		}
 
 		/** Performs Gram-Schmidt orthonormalization. */
+		template<typename U = T, typename = std::enable_if_t<std::is_floating_point_v<U>, i32>>
 		static void Orthonormalize(TVector2& u, TVector2& v)
 		{
 			u.Normalize();
@@ -310,6 +326,7 @@ namespace bs
 		}
 
 		/** Normalizes the provided vector and returns the result. */
+		template<typename U = T, typename = std::enable_if_t<std::is_floating_point_v<U>, i32>>
 		static TVector2 Normalize(const TVector2& value)
 		{
 			const T squaredLength = value.X * value.X + value.Y * value.Y;
@@ -317,6 +334,7 @@ namespace bs
 		}
 
 		/** Normalizes the provided vector and returns the result. Checks if the magnitude is above @p tolerance to avoid division by zero or precision issues. */
+		template<typename U = T, typename = std::enable_if_t<std::is_floating_point_v<U>, i32>>
 		static TVector2 NormalizeChecked(const TVector2& value, T tolerance = (T)1e-04)
 		{
 			const T squaredLength = value.X * value.X + value.Y * value.Y;
@@ -327,6 +345,7 @@ namespace bs
 		}
 
 		/** Checks are any of the vector components NaN. */
+		template<typename U = T, typename = std::enable_if_t<std::is_floating_point_v<U>, i32>>
 		bool IsNaN() const
 		{
 			return Math::IsNaN(X) || Math::IsNaN(Y);
@@ -352,15 +371,23 @@ namespace bs
 
 	template<> const TVector2<float> TVector2<float>::kZero{BsZero};
 	template<> const TVector2<double> TVector2<double>::kZero{BsZero};
+	template<> const TVector2<i32> TVector2<i32>::kZero{BsZero};
+	template<> const TVector2<u32> TVector2<u32>::kZero{BsZero};
 
 	template<> const TVector2<float> TVector2<float>::kOne{1.0f, 1.0f};
 	template<> const TVector2<double> TVector2<double>::kOne{1.0, 1.0};
+	template<> const TVector2<i32> TVector2<i32>::kOne{1, 1};
+	template<> const TVector2<u32> TVector2<u32>::kOne{1u, 1u};
 
 	template<> const TVector2<float> TVector2<float>::kUnitX{1.0f, 0.0f};
 	template<> const TVector2<double> TVector2<double>::kUnitX{1.0, 0.0};
+	template<> const TVector2<i32> TVector2<i32>::kUnitX{1, 0};
+	template<> const TVector2<u32> TVector2<u32>::kUnitX{1u, 0u};
 
 	template<> const TVector2<float> TVector2<float>::kUnitY{0.0f, 1.0f};
 	template<> const TVector2<double> TVector2<double>::kUnitY{0.0, 1.0};
+	template<> const TVector2<i32> TVector2<i32>::kUnitY{0, 1};
+	template<> const TVector2<u32> TVector2<u32>::kUnitY{0u, 1u};
 
 	extern template struct B3D_SCRIPT_EXPORT(DocumentationGroup(Math), ExportAsStruct(true), ExportName(Vector2)) TVector2<float>;
 	extern template struct B3D_SCRIPT_EXPORT(DocumentationGroup(Math), ExportAsStruct(true), ExportName(Vector2D)) TVector2<double>;
