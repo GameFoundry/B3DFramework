@@ -14,11 +14,17 @@
 #include <mono/metadata/mono-debug.h>
 #include <mono/utils/mono-logger.h>
 #include <mono/metadata/threads.h>
+#include <mono/metadata/appdomain.h>
 
 using namespace bs;
+
+const String kMonoCompilerDir = "bin/Mono/compiler/";
+
+#if B3D_USE_DOTNETCORE
+static const char* kMonoAssembliesFolder = "bin/Assemblies/";
+#else
 const String kMonoLibDir = "bin/Mono/lib/";
 const String kMonoEtcDir = "bin/Mono/etc/";
-const String kMonoCompilerDir = "bin/Mono/compiler/";
 const MonoVersion kMonoVersion = MonoVersion::v4_5;
 
 struct MonoVersionData
@@ -30,6 +36,7 @@ struct MonoVersionData
 static const MonoVersionData kMonoVersionData[1] = {
 	{ kMonoLibDir + "mono/4.5", "v4.0.30319" }
 };
+#endif
 
 namespace bs
 {
@@ -90,12 +97,18 @@ namespace bs
 MonoManager::MonoManager()
 	: mScriptDomain(nullptr), mRootDomain(nullptr), mCorlibAssembly(nullptr)
 {
+
+#if !B3D_USE_DOTNETCORE
 	Path libDir = Paths::FindPath(kMonoLibDir);
 	Path etcDir = GetMonoEtcFolder();
 	Path assembliesDir = GetFrameworkAssembliesFolder();
 
 	mono_set_dirs(libDir.ToString().c_str(), etcDir.ToString().c_str());
 	mono_set_assemblies_path(assembliesDir.ToString().c_str());
+#else
+	const Path assembliesFolder = GetFrameworkAssembliesFolder();
+	mono_set_assemblies_path(assembliesFolder.ToString().c_str());
+#endif
 
 #if B3D_DEBUG
 	// Note: For proper debugging experience make sure to open a console window to display stdout and stderr, as Mono
@@ -150,6 +163,8 @@ bs::MonoAssembly& MonoManager::LoadAssembly(const Path& path, const String& name
 {
 	MonoAssembly* assembly = nullptr;
 
+#if !B3D_USE_DOTNETCORE
+	// Application domains not present with .NET Core
 	if(mScriptDomain == nullptr)
 	{
 		String appDomainName = "ScriptDomain";
@@ -161,6 +176,7 @@ bs::MonoAssembly& MonoManager::LoadAssembly(const Path& path, const String& name
 		if(!mono_domain_set(mScriptDomain, true))
 			B3D_EXCEPT(InternalErrorException, "Cannot set script app domain.");
 	}
+#endif
 
 	auto iterFind = mAssemblies.find(name);
 	if(iterFind != mAssemblies.end())
@@ -310,12 +326,20 @@ void MonoManager::UnloadScriptDomain()
 
 Path MonoManager::GetFrameworkAssembliesFolder() const
 {
+#if B3D_USE_DOTNETCORE
+	return Paths::FindPath(kMonoAssembliesFolder);
+#else
 	return Paths::FindPath(kMonoVersionData[(int)kMonoVersion].Path);
+#endif
 }
 
 Path MonoManager::GetMonoEtcFolder() const
 {
+#if B3D_USE_DOTNETCORE
+	return Path::kBlank;
+#else
 	return Paths::FindPath(kMonoEtcDir);
+#endif
 }
 
 Path MonoManager::GetCompilerPath() const

@@ -7,6 +7,9 @@
 #include "Error/BsException.h"
 #include <mono/jit/jit.h>
 #include <mono/metadata/attrdefs.h>
+#include <mono/metadata/object.h>
+#include <mono/metadata/class.h>
+#include <mono/metadata/reflection.h>
 
 namespace bs {
 MonoMethod::MonoMethod(::MonoMethod* method)

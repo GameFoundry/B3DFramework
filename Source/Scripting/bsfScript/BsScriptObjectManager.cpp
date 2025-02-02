@@ -25,6 +25,12 @@ void ScriptObjectManager::UnregisterScriptObjectWrapper(ScriptObjectWrapper* scr
 
 void ScriptObjectManager::RefreshAssemblies(const Vector<AssemblyRefreshInfo>& assemblies)
 {
+#if B3D_USE_DOTNETCORE
+	// Assembly reload is not supported with .NET Core at the moment, as it's relying on application domains which are no longer part of the core.
+	// Instead we need to re-implement this. Likely be uninitializaing and re-initializing the mono runtime.
+	return;
+#endif
+
 	UnorderedMap<IScriptObjectWrapper*, ScriptObjectReloadPersistentData> reloadPeristentDataMap;
 
 	OnRefreshStarted();

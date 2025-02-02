@@ -5,6 +5,8 @@
 #include "BsMonoClass.h"
 #include "BsMonoUtil.h"
 #include <mono/jit/jit.h>
+#include <mono/metadata/object.h>
+#include <mono/metadata/class.h>
 
 namespace bs { namespace Detail {
 template <>

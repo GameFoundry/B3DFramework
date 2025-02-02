@@ -13,6 +13,9 @@
 #include <mono/metadata/debug-helpers.h>
 #include <mono/metadata/tokentype.h>
 #include <mono/metadata/mono-debug.h>
+#include <mono/metadata/image.h>
+#include <mono/metadata/class.h>
+#include <mono/metadata/object.h>
 
 namespace bs {
 size_t MonoAssembly::ClassId::Hash::operator()(const MonoAssembly::ClassId& v) const

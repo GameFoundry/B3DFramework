@@ -1,5 +1,5 @@
-cmake_minimum_required (VERSION 3.12.0)
-project (bsf)
+cmake_minimum_required (VERSION 3.31.0)
+project (bsf LANGUAGES C CXX CSharp)
 
 set (BSF_DIRECTORY ${PROJECT_SOURCE_DIR})
 set (BSF_SOURCE_DIR ${BSF_DIRECTORY}/Source)

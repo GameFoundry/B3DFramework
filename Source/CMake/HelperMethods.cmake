@@ -1,13 +1,14 @@
-# Parses all C++ source files in the provided folder recursively, and outputs the list of files in @p outSourceFiles.
+# Parses all source files in the provided folder recursively, and outputs the list of files in @p outSourceFiles.
 # For each sub-folder found it also creates a source group with the folder hierarchy.
 #
 # @param	parentPath		Folder path in which to perform the search. All output paths will be relative to this path.
+# @param	pattern			Extensions of the source files to search for, e.g. "cpp|c|hpp|h"
 # @param	path			Additional path to append after @p parentPath. This will limit the search to this particular
 #							sub-path, but the output paths will still remain relative to @p parentPath. Must include
 #							the closing '/' if not empty.
 # @param	foldersToIgnore	Optional list of folders to ignore in the search
 # @param	outSourceFiles	List of all found source files, relative to @p parentPath.
-function(B3DGlobSourceFiles parentPath path foldersToIgnore outSourceFiles)
+function(B3DGlobSourceFilesWithExplicitPattern parentPath pattern path foldersToIgnore outSourceFiles)
 	if(NOT path)
 		# Need to assign some value to path, otherwise the list below is treated as empty
 		set(path "/")
@@ -51,7 +52,7 @@ function(B3DGlobSourceFiles parentPath path foldersToIgnore outSourceFiles)
 				list(APPEND pathsToProcess ${currentPath}${child}/)
 				list(APPEND sourceGroups ${currentSourceGroup}${child}/)
 			else()
-				if(${child} MATCHES ".*\.[cpp|cxx|c|hpp|h|inl|mm|m]$")
+				if(${child} MATCHES ".*\.[${pattern}]$")
 					list(APPEND sourceFiles "${currentPath}${child}")
 					list(APPEND sourceGroupFiles "${currentPath}${child}")
 				endif()
@@ -68,6 +69,22 @@ function(B3DGlobSourceFiles parentPath path foldersToIgnore outSourceFiles)
 		endforeach()
 
 	endwhile()
+
+	list(APPEND sourceFiles ${${outSourceFiles}})
+	set(${outSourceFiles} ${sourceFiles} PARENT_SCOPE)
+endfunction()
+
+# Parses all C++ source files in the provided folder recursively, and outputs the list of files in @p outSourceFiles.
+# For each sub-folder found it also creates a source group with the folder hierarchy.
+#
+# @param	parentPath		Folder path in which to perform the search. All output paths will be relative to this path.
+# @param	path			Additional path to append after @p parentPath. This will limit the search to this particular
+#							sub-path, but the output paths will still remain relative to @p parentPath. Must include
+#							the closing '/' if not empty.
+# @param	foldersToIgnore	Optional list of folders to ignore in the search
+# @param	outSourceFiles	List of all found source files, relative to @p parentPath.
+function(B3DGlobSourceFiles parentPath path foldersToIgnore outSourceFiles)
+	B3DGlobSourceFilesWithExplicitPattern("${parentPath}" "cpp|cxx|c|hpp|h|inl|mm|m" "${path}" "${foldersToIgnore}" sourceFiles)
 
 	list(APPEND sourceFiles ${${outSourceFiles}})
 	set(${outSourceFiles} ${sourceFiles} PARENT_SCOPE)
@@ -411,36 +428,6 @@ function(copy_folder_on_build target srcDir dstDir name filter)
 		   COMMENT "Copying ${SRC} ${DST}"
 		   )
 	endforeach()
-endfunction()
-
-function(generate_csharp_project folder project_name namespace assembly refs projectRefs)
-	file(GLOB_RECURSE ALL_FILES ${folder} ${folder}/*.cs)
-		
-	set(BS_SHARP_FILE_LIST "")
-	foreach(CUR_FILE ${ALL_FILES})
-		if(CUR_FILE MATCHES "obj/")
-			continue()
-		endif()
-	
-		string(REGEX REPLACE "/" "\\\\" CUR_FILE_PATH ${CUR_FILE})
-		string(APPEND BS_SHARP_FILE_LIST "\t<Compile Include=\"${CUR_FILE_PATH}\"/>\n")
-	endforeach()
-
-	set(BS_SHARP_ROOT_NS ${namespace})
-	set(BS_SHARP_ASSEMBLY_NAME ${assembly})
-	
-	if(B3D_IS_ENGINE)
-		set(BS_SHARP_DEFINES "IS_B3D;")
-	endif()
-
-	string(REGEX REPLACE "/" "\\\\" BINARY_DIR_PATH ${PROJECT_BINARY_DIR})
-	set(BS_SHARP_ASSEMBLY_OUTPUT "${BINARY_DIR_PATH}\\bin\\Assemblies")
-	set(BS_SHARP_PROJECT_REFS ${projectRefs})
-	set(BS_SHARP_REFS ${refs})
-
-	configure_file(
-		${folder}/${project_name}.csproj.in
-		${PROJECT_BINARY_DIR}/${BS_SHARP_ASSEMBLY_NAME}.csproj)
 endfunction()
 
 function(add_common_flags target)

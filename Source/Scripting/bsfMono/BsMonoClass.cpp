@@ -11,6 +11,9 @@
 
 #include <mono/jit/jit.h>
 #include <mono/metadata/debug-helpers.h>
+#include <mono/metadata/object.h>
+#include <mono/metadata/class.h>
+#include <mono/metadata/reflection.h>
 
 namespace bs {
 size_t MonoClass::MethodId::Hash::operator()(const MonoClass::MethodId& v) const

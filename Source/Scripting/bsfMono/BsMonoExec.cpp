@@ -11,6 +11,7 @@
 #include <mono/jit/jit.h>
 #include <mono/metadata/assembly.h>
 #include <mono/metadata/mono-config.h>
+#include <mono/metadata/appdomain.h>
 #include <cstring>
 
 const char* LIB_DIR = "lib/";
