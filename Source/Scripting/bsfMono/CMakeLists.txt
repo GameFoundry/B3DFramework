@@ -42,7 +42,12 @@ B3DSetUpPostBuildAndInstallSteps(bsfMono)
 if(B3D_IS_ENGINE)
 	# Target for running generic Mono code
 	add_executable(MonoExec BsMonoExec.cpp)
-	target_link_libraries(MonoExec ${mono_LIBRARIES})
+
+	if(B3D_USE_DOTNETCORE)
+		target_link_libraries(MonoExec ${DotNETCoreMono_LIBRARIES})
+	else()
+		target_link_libraries(MonoExec ${mono_LIBRARIES})
+	endif()
 
 	B3DSetUpPostBuildAndInstallSteps(MonoExec)
 endif()

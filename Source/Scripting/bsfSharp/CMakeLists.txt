@@ -29,11 +29,10 @@ if(B3D_USE_DOTNETCORE)
 else()
 	set_target_properties(${assemblyName} PROPERTIES
 			DOTNET_TARGET_FRAMEWORK_VERSION "v4.5"
-			VS_GLOBAL_ROOTNAMESPACE bs)
+			VS_GLOBAL_ROOTNAMESPACE bs
+			VS_DOTNET_REFERENCES "System;System.Core")
 endif()
 
-set_target_properties(${assemblyName} PROPERTIES
-		VS_DOTNET_REFERENCES "System;System.Core")
 
 target_compile_definitions(${assemblyName} PRIVATE ${defines})
 set_property(TARGET ${assemblyName} PROPERTY FOLDER Script)

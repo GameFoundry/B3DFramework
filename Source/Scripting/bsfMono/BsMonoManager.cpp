@@ -141,7 +141,12 @@ MonoManager::MonoManager()
 
 	mono_config_parse(nullptr);
 
+#if B3D_USE_DOTNETCORE
+	mRootDomain = mono_jit_init("bsfMono");
+#else
 	mRootDomain = mono_jit_init_version("bsfMono", kMonoVersionData[(int)kMonoVersion].Version.c_str());
+#endif
+
 	if(mRootDomain == nullptr)
 		B3D_EXCEPT(InternalErrorException, "Cannot initialize Mono runtime.");
 
