@@ -5,9 +5,9 @@
 #include "BsMonoClass.h"
 #include "BsMonoUtil.h"
 #include "../../../Foundation/bsfCore/Components/BsCCamera.h"
-#include "BsScriptTVector2I.generated.h"
 #include "BsScriptRenderSettings.generated.h"
 #include "BsScriptViewport.generated.h"
+#include "BsScriptTVector2.generated.h"
 #include "BsScriptTVector3.generated.h"
 #include "BsScriptTVector2.generated.h"
 #include "BsScriptTRay.generated.h"
@@ -399,7 +399,7 @@ namespace bs
 		static_cast<CCamera*>(self->GetNativeObject())->NotifyNeedsRedraw();
 	}
 
-	void ScriptCamera::InternalWorldToScreenPoint(ScriptCamera* self, TVector3<float>* worldPoint, TVector2I<int32_t>* __output)
+	void ScriptCamera::InternalWorldToScreenPoint(ScriptCamera* self, TVector3<float>* worldPoint, TVector2<int32_t>* __output)
 	{
 		if(!self->IsNativeObjectValid())
 		{
@@ -407,7 +407,7 @@ namespace bs
 			return;
 		}
 
-		TVector2I<int32_t> tmp__output;
+		TVector2<int32_t> tmp__output;
 		tmp__output = static_cast<CCamera*>(self->GetNativeObject())->WorldToScreenPoint(*worldPoint);
 
 		*__output = tmp__output;
@@ -441,7 +441,7 @@ namespace bs
 		*__output = tmp__output;
 	}
 
-	void ScriptCamera::InternalScreenToWorldPoint(ScriptCamera* self, TVector2I<int32_t>* screenPoint, float depth, TVector3<float>* __output)
+	void ScriptCamera::InternalScreenToWorldPoint(ScriptCamera* self, TVector2<int32_t>* screenPoint, float depth, TVector3<float>* __output)
 	{
 		if(!self->IsNativeObjectValid())
 		{
@@ -455,7 +455,7 @@ namespace bs
 		*__output = tmp__output;
 	}
 
-	void ScriptCamera::InternalScreenToViewPoint(ScriptCamera* self, TVector2I<int32_t>* screenPoint, float depth, TVector3<float>* __output)
+	void ScriptCamera::InternalScreenToViewPoint(ScriptCamera* self, TVector2<int32_t>* screenPoint, float depth, TVector3<float>* __output)
 	{
 		if(!self->IsNativeObjectValid())
 		{
@@ -469,7 +469,7 @@ namespace bs
 		*__output = tmp__output;
 	}
 
-	void ScriptCamera::InternalScreenToNdcPoint(ScriptCamera* self, TVector2I<int32_t>* screenPoint, TVector2<float>* __output)
+	void ScriptCamera::InternalScreenToNdcPoint(ScriptCamera* self, TVector2<int32_t>* screenPoint, TVector2<float>* __output)
 	{
 		if(!self->IsNativeObjectValid())
 		{
@@ -497,7 +497,7 @@ namespace bs
 		*__output = tmp__output;
 	}
 
-	void ScriptCamera::InternalViewToScreenPoint(ScriptCamera* self, TVector3<float>* viewPoint, TVector2I<int32_t>* __output)
+	void ScriptCamera::InternalViewToScreenPoint(ScriptCamera* self, TVector3<float>* viewPoint, TVector2<int32_t>* __output)
 	{
 		if(!self->IsNativeObjectValid())
 		{
@@ -505,7 +505,7 @@ namespace bs
 			return;
 		}
 
-		TVector2I<int32_t> tmp__output;
+		TVector2<int32_t> tmp__output;
 		tmp__output = static_cast<CCamera*>(self->GetNativeObject())->ViewToScreenPoint(*viewPoint);
 
 		*__output = tmp__output;
@@ -553,7 +553,7 @@ namespace bs
 		*__output = tmp__output;
 	}
 
-	void ScriptCamera::InternalNdcToScreenPoint(ScriptCamera* self, TVector2<float>* ndcPoint, TVector2I<int32_t>* __output)
+	void ScriptCamera::InternalNdcToScreenPoint(ScriptCamera* self, TVector2<float>* ndcPoint, TVector2<int32_t>* __output)
 	{
 		if(!self->IsNativeObjectValid())
 		{
@@ -561,13 +561,13 @@ namespace bs
 			return;
 		}
 
-		TVector2I<int32_t> tmp__output;
+		TVector2<int32_t> tmp__output;
 		tmp__output = static_cast<CCamera*>(self->GetNativeObject())->NdcToScreenPoint(*ndcPoint);
 
 		*__output = tmp__output;
 	}
 
-	void ScriptCamera::InternalScreenPointToRay(ScriptCamera* self, TVector2I<int32_t>* screenPoint, __TRay_float_Interop* __output)
+	void ScriptCamera::InternalScreenPointToRay(ScriptCamera* self, TVector2<int32_t>* screenPoint, __TRay_float_Interop* __output)
 	{
 		if(!self->IsNativeObjectValid())
 		{

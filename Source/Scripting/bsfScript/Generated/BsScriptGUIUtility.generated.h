@@ -5,7 +5,7 @@
 #include "BsScriptEnginePrerequisites.h"
 #include "../../../Foundation/bsfEngine/GUI/BsGUIUtility.h"
 #include "BsScriptTypeDefinition.h"
-#include "../../../Foundation/bsfUtility/Math/BsVector2I.h"
+#include "../../../Foundation/bsfUtility/Math/BsVector2.h"
 
 namespace bs
 {
@@ -19,6 +19,6 @@ namespace bs
 		static void SetupScriptBindings();
 
 	private:
-		static void InternalCalculateTextBounds(MonoString* text, MonoObject* font, float fontSize, TVector2I<int32_t>* __output);
+		static void InternalCalculateTextBounds(MonoString* text, MonoObject* font, float fontSize, TVector2<int32_t>* __output);
 	};
 }

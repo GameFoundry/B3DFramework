@@ -87,7 +87,7 @@ Rect2I GUIUtility::CalculateContentArea(const Size2UI& layoutSize, const GUIStyl
 
 Vector2I GUIUtility::CalculateTextBounds(const String& text, const HFont& font, float fontSize)
 {
-	Vector2I size;
+	Vector2I size{BsZero};
 	if(font != nullptr)
 	{
 		B3DMarkAllocatorFrame();

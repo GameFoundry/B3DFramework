@@ -4,8 +4,8 @@
 #include "BsMonoMethod.h"
 #include "BsMonoClass.h"
 #include "BsMonoUtil.h"
-#include "../../../Foundation/bsfUtility/Math/BsVector2I.h"
-#include "BsScriptTVector2I.generated.h"
+#include "../../../Foundation/bsfUtility/Math/BsVector2.h"
+#include "BsScriptTVector2.generated.h"
 
 namespace bs
 {

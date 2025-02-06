@@ -153,7 +153,7 @@ namespace bs
 		GUIBackgroundSprite mBackgroundSprite;
 		GUIContentSprites mTextSprite;
 		bool mIsMultiline;
-		Vector2I mTextOffset;
+		Vector2I mTextOffset{BsZero};
 		bool mHasFocus = false;
 		u64 mFocusGainedFrame = (u64)-1;
 		bool mIsMouseOver = false;

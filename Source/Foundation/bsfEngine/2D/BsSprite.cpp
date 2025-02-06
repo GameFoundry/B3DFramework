@@ -228,7 +228,7 @@ Vector2I Sprite::GetAnchorOffset(SpriteAnchor anchor, u32 width, u32 height)
 		return -Vector2I(width, height);
 	}
 
-	return Vector2I();
+	return Vector2I(0, 0);
 }
 
 void Sprite::UpdateBounds() const

@@ -21,8 +21,8 @@ namespace bs
 		public static PointerEvent Default()
 		{
 			PointerEvent value = new PointerEvent();
-			value.ScreenPos = Vector2I.Default();
-			value.Delta = Vector2I.Default();
+			value.ScreenPos = new Vector2I(0, 0);
+			value.Delta = new Vector2I(0, 0);
 			value.Button = PointerEventButton.Left;
 			value.Type = PointerEventType.CursorMoved;
 			value.Shift = false;

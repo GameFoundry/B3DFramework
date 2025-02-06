@@ -5,7 +5,7 @@
 #include "BsMonoClass.h"
 #include "BsMonoUtil.h"
 #include "../../../Foundation/bsfCore/Input/BsInput.h"
-#include "BsScriptTVector2I.generated.h"
+#include "BsScriptTVector2.generated.h"
 #include "BsScriptPointerEvent.generated.h"
 #include "BsScriptTextInputEvent.generated.h"
 #include "BsScriptButtonEvent.generated.h"
@@ -178,17 +178,17 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptInput::InternalGetPointerPosition(TVector2I<int32_t>* __output)
+	void ScriptInput::InternalGetPointerPosition(TVector2<int32_t>* __output)
 	{
-		TVector2I<int32_t> tmp__output;
+		TVector2<int32_t> tmp__output;
 		tmp__output = Input::Instance().GetPointerPosition();
 
 		*__output = tmp__output;
 	}
 
-	void ScriptInput::InternalGetPointerDelta(TVector2I<int32_t>* __output)
+	void ScriptInput::InternalGetPointerDelta(TVector2<int32_t>* __output)
 	{
-		TVector2I<int32_t> tmp__output;
+		TVector2<int32_t> tmp__output;
 		tmp__output = Input::Instance().GetPointerDelta();
 
 		*__output = tmp__output;

@@ -6,7 +6,7 @@
 #include "BsMonoUtil.h"
 #include "../../../Foundation/bsfEngine/GUI/BsCGUIWidget.h"
 #include "Wrappers/GUI/BsScriptGUILayout.h"
-#include "BsScriptTVector2I.generated.h"
+#include "BsScriptTVector2.generated.h"
 
 namespace bs
 {
@@ -72,7 +72,7 @@ namespace bs
 		static_cast<CGUIWidget*>(self->GetNativeObject())->SetDepth(depth);
 	}
 
-	bool ScriptGUIWidget::InternalInBounds(ScriptGUIWidget* self, TVector2I<int32_t>* position)
+	bool ScriptGUIWidget::InternalInBounds(ScriptGUIWidget* self, TVector2<int32_t>* position)
 	{
 		bool tmp__output;
 		if(!self->IsNativeObjectValid())

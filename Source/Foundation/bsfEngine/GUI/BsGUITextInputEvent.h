@@ -4,7 +4,6 @@
 
 #include "BsPrerequisites.h"
 #include "Input/BsInputFwd.h"
-#include "Math/BsVector2I.h"
 
 namespace bs
 {

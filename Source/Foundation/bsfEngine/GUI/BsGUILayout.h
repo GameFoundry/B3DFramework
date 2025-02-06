@@ -4,7 +4,6 @@
 
 #include "BsPrerequisites.h"
 #include "GUI/BsGUIElement.h"
-#include "Math/BsVector2I.h"
 #include "Utility/BsSpatialTree.h"
 
 namespace bs
@@ -25,7 +24,7 @@ namespace bs
 
 		static simd::Rect2 GetBounds(GUIElement* element, void* context)
 		{
-			const Vector2 relativePosition = element->GetLayoutData().RelativePosition.ToFloat();
+			const Vector2 relativePosition = element->GetLayoutData().RelativePosition.To<float>();
 			const Size2 size = element->GetLayoutData().Size.ToFloat();
 
 			const Rect2 area(relativePosition.X, relativePosition.Y, size.Width, size.Height);

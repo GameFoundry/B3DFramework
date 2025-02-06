@@ -4,7 +4,6 @@
 #include "GUI/BsGUIInteractable.h"
 #include "GUI/BsGUISpace.h"
 #include "Math/BsMath.h"
-#include "Math/BsVector2I.h"
 #include "Reflection/BsRTTIType.h"
 
 using namespace bs;
@@ -21,8 +20,8 @@ void GUILayoutY::UpdateOptimalLayoutSizes()
 	if(mChildren.size() != mChildrenConstrainedSizes.size())
 		mChildrenConstrainedSizes.resize(mChildren.size());
 
-	Vector2I optimalSize;
-	Vector2I minSize;
+	Vector2I optimalSize(BsZero);
+	Vector2I minSize(BsZero);
 
 	u32 childIdx = 0;
 	for(auto& child : mChildren)

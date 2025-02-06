@@ -4,7 +4,6 @@
 
 #include "BsPrerequisites.h"
 #include "Material/BsMaterialParam.h"
-#include "Math/BsVector2I.h"
 #include "Image/BsColor.h"
 #include "Material/BsShaderVariation.h"
 

@@ -3,7 +3,6 @@
 #pragma once
 
 #include "BsCorePrerequisites.h"
-#include "Math/BsVector2I.h"
 
 namespace bs
 {

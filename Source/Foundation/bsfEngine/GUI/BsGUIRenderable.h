@@ -6,7 +6,6 @@
 #include "GUI/BsGUIElement.h"
 #include "2D/BsSprite.h"
 #include "Math/BsRect2I.h"
-#include "Math/BsVector2I.h"
 #include "Image/BsColor.h"
 
 namespace bs

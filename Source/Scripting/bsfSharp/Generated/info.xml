@@ -757,23 +757,14 @@
 		<field name="Y" type="double">
 		</field>
 	</struct>
-	<struct native="Blend1DInfo" script="Blend1DInfo">
-		<doc>Defines a 1D blend where multiple animation clips are blended between each other using linear interpolation.</doc>
-		<field name="Clips" type="BlendClipInfo">
-		</field>
-	</struct>
-	<struct native="TVector2I&lt;int32_t&gt;" script="Vector2I">
-		<doc>A two dimensional vector with integer coordinates.</doc>
+	<struct native="TVector2&lt;int32_t&gt;" script="Vector2I">
+		<doc>A two dimensional vector.</doc>
 		<ctor>
 		</ctor>
 		<ctor>
 			<param name="x" type="int">
 			</param>
 			<param name="y" type="int">
-			</param>
-		</ctor>
-		<ctor>
-			<param name="value" type="int">
 			</param>
 		</ctor>
 		<field name="X" type="int">
@@ -781,18 +772,14 @@
 		<field name="Y" type="int">
 		</field>
 	</struct>
-	<struct native="TVector2I&lt;uint32_t&gt;" script="Vector2UI">
-		<doc>A two dimensional vector with integer coordinates.</doc>
+	<struct native="TVector2&lt;uint32_t&gt;" script="Vector2UI">
+		<doc>A two dimensional vector.</doc>
 		<ctor>
 		</ctor>
 		<ctor>
 			<param name="x" type="int">
 			</param>
 			<param name="y" type="int">
-			</param>
-		</ctor>
-		<ctor>
-			<param name="value" type="int">
 			</param>
 		</ctor>
 		<field name="X" type="int">
@@ -2001,6 +1988,11 @@ Use {0}, {1}, etc. in the string value for values that might change dynamically.
 		</field>
 		<field name="Stopped" type="bool">
 			<doc>Determines should the time be advanced automatically. Certain type of animation clips don&apos;t involve playback (e.g. for blending where animation weight controls the animation).</doc>
+		</field>
+	</struct>
+	<struct native="Blend1DInfo" script="Blend1DInfo">
+		<doc>Defines a 1D blend where multiple animation clips are blended between each other using linear interpolation.</doc>
+		<field name="Clips" type="BlendClipInfo">
 		</field>
 	</struct>
 	<struct native="TKeyframe&lt;int32_t&gt;" script="KeyFrameInt">

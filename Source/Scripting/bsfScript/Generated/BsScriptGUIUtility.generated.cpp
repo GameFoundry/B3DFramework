@@ -7,8 +7,8 @@
 #include "../../../Foundation/bsfEngine/GUI/BsGUIUtility.h"
 #include "BsScriptResourceManager.h"
 #include "Wrappers/BsScriptRRefBase.h"
+#include "BsScriptTVector2.generated.h"
 #include "../../../Foundation/bsfCore/Text/BsFont.h"
-#include "BsScriptTVector2I.generated.h"
 
 namespace bs
 {
@@ -23,7 +23,7 @@ namespace bs
 
 	}
 
-	void ScriptGUIUtility::InternalCalculateTextBounds(MonoString* text, MonoObject* font, float fontSize, TVector2I<int32_t>* __output)
+	void ScriptGUIUtility::InternalCalculateTextBounds(MonoString* text, MonoObject* font, float fontSize, TVector2<int32_t>* __output)
 	{
 		String tmptext;
 		tmptext = MonoUtil::MonoToString(text);
@@ -32,7 +32,7 @@ namespace bs
 		scriptObjectWrapperfont = ScriptRRefBase::GetScriptObjectWrapper(font);
 		if(scriptObjectWrapperfont != nullptr)
 			tmpfont = B3DStaticResourceCast<Font>(scriptObjectWrapperfont->GetNativeObject());
-		TVector2I<int32_t> tmp__output;
+		TVector2<int32_t> tmp__output;
 		tmp__output = GUIUtility::CalculateTextBounds(tmptext, tmpfont, fontSize);
 
 		*__output = tmp__output;

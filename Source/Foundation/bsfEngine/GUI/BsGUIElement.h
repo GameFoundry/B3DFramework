@@ -6,7 +6,6 @@
 #include "GUI/BsGUISizeConstraints.h"
 #include "GUI/BsGUILayoutData.h"
 #include "Math/BsRect2I.h"
-#include "Math/BsVector2I.h"
 #include "Utility/BsRectOffset.h"
 #include "Utility/BsSpatialTree.h"
 
@@ -492,7 +491,7 @@ namespace bs
 		GUILayoutData mLayoutData; /**< Relative position (to parent), size, depth and other information, calculated during a layout update. */
 
 		// Data calculated by absolute coordinate pass
-		Vector2I mAbsolutePosition; /**< Absolute position of the GUI element (relative to parent GUI widget). Only valid after layout update & absolute coordinate update. */
+		Vector2I mAbsolutePosition{BsZero}; /**< Absolute position of the GUI element (relative to parent GUI widget). Only valid after layout update & absolute coordinate update. */
 		Size2UI mAbsoluteSize; /**< Final size to use for the element. Same as GUILayoutData::Size, scaled by GUI element scale. */
 		float mAbsoluteScale = 1.0f; /**< Combined local and parent scale. */
 		Rect2I mAbsoluteClippedArea; /**< Absolute area of the GUI element as clipped by the parent visible bounds (e.g. if a parent is a scroll area). Only valid after layout update & absolute coordinate update. */

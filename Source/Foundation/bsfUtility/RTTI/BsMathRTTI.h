@@ -15,7 +15,6 @@
 #include "Math/BsRect2.h"
 #include "Math/BsSphere.h"
 #include "Math/BsVector2.h"
-#include "Math/BsVector2I.h"
 #include "Math/BsVector3.h"
 #include "Math/BsVector3I.h"
 #include "Math/BsVector4.h"

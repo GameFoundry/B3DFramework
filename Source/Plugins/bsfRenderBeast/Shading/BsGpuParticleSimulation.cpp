@@ -387,7 +387,7 @@ Vector2I GpuParticleResources::GetParticleOffset(u32 subTileId)
 
 Vector2 GpuParticleResources::GetParticleCoords(u32 subTileId)
 {
-	const Vector2I tileOffset = GetParticleOffset(subTileId);
+	const Vector2 tileOffset = GetParticleOffset(subTileId).To<float>();
 	return tileOffset / (float)kTexSize;
 }
 

@@ -421,7 +421,7 @@ void GUIManager::OnMouseDragEnded(const PointerEvent& event, DragCallbackInfo& d
 	{
 		for(auto& elementInfo : mElementsUnderPointer)
 		{
-			Vector2I localPos;
+			Vector2I localPos(BsZero);
 
 			if(elementInfo.Widget != nullptr)
 				localPos = GetWidgetRelativePos(elementInfo.Widget, event.ScreenPos);
@@ -1343,7 +1343,7 @@ Vector2I GUIManager::GetWidgetRelativePos(const GUIWidget* widget, const Vector2
 
 	const RenderWindow* window = GetWidgetWindow(*widget);
 	if(window == nullptr)
-		return Vector2I();
+		return Vector2I(BsZero);
 
 	Vector2I windowPos = window->ScreenToWindowPosition(screenPos);
 	windowPos = WindowToBridgedCoords(widget->GetTarget()->GetTarget(), windowPos);

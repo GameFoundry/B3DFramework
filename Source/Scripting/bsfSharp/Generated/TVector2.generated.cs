@@ -65,4 +65,64 @@ namespace bs
 	}
 
 	/** @} */
+
+	/** @addtogroup Math
+	 *  @{
+	 */
+
+	/// <summary>A two dimensional vector.</summary>
+	[StructLayout(LayoutKind.Sequential), SerializeObject]
+	public partial struct Vector2I
+	{
+		/// <summary>Initializes the struct with default values.</summary>
+		public static Vector2I Default()
+		{
+			Vector2I value = new Vector2I();
+			value.X = 0;
+			value.Y = 0;
+
+			return value;
+		}
+
+		public Vector2I(int x, int y)
+		{
+			this.X = x;
+			this.Y = y;
+		}
+
+		public int X;
+		public int Y;
+	}
+
+	/** @} */
+
+	/** @addtogroup Math
+	 *  @{
+	 */
+
+	/// <summary>A two dimensional vector.</summary>
+	[StructLayout(LayoutKind.Sequential), SerializeObject]
+	public partial struct Vector2UI
+	{
+		/// <summary>Initializes the struct with default values.</summary>
+		public static Vector2UI Default()
+		{
+			Vector2UI value = new Vector2UI();
+			value.X = 0;
+			value.Y = 0;
+
+			return value;
+		}
+
+		public Vector2UI(int x, int y)
+		{
+			this.X = x;
+			this.Y = y;
+		}
+
+		public int X;
+		public int Y;
+	}
+
+	/** @} */
 }

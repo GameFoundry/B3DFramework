@@ -55,7 +55,7 @@ GUIConstrainedSize GUIScrollArea::CalculateConstrainedSize() const
 	if(mContentLayout->IsActive())
 		return mSizeConstraints.CalculateConstrainedSize(CalculateUnconstrainedOptimalSize());
 
-	return mSizeConstraints.CalculateConstrainedSize(Vector2I());
+	return mSizeConstraints.CalculateConstrainedSize(Vector2I(BsZero));
 }
 
 GUIConstrainedSize GUIScrollArea::GetConstrainedSize() const

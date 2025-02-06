@@ -1,6 +1,8 @@
 //************************************ bs::framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "Private/Win32/BsWin32Window.h"
+
+#include "Math/BsVector2.h"
 #include "Private/Win32/BsWin32PlatformUtility.h"
 
 using namespace bs;

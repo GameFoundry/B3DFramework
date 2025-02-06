@@ -5,7 +5,6 @@
 #include "BsCorePrerequisites.h"
 #include "RenderAPI/BsRenderTarget.h"
 #include "RenderAPI/BsVideoModeInfo.h"
-#include "Math/BsVector2I.h"
 
 namespace bs
 {

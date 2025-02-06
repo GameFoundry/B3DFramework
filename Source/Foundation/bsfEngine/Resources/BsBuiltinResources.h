@@ -4,7 +4,6 @@
 
 #include "BsPrerequisites.h"
 #include "Utility/BsModule.h"
-#include "Math/BsVector2I.h"
 #include "BsApplication.h"
 
 #include "ThirdParty/json.hpp"

@@ -5,7 +5,6 @@
 #include "Math/BsRect2I.h"
 #include "Prerequisites/BsPrerequisitesUtil.h"
 #include "Math/BsVector2.h"
-#include "Math/BsVector2I.h"
 
 namespace bs
 {
@@ -183,7 +182,7 @@ namespace bs
 		{
 			u32 NodeId = ~0u;
 			u32 PageId = ~0u;
-			Vector2I Position;
+			Vector2I Position{BsZero};
 		};
 
 		TreeTextureAtlasLayout(const TreeTextureAtlasLayoutSettings& settings = TreeTextureAtlasLayoutSettings());

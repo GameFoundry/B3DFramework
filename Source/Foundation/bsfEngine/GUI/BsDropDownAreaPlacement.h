@@ -3,7 +3,6 @@
 #pragma once
 
 #include "BsPrerequisites.h"
-#include "Math/BsVector2I.h"
 #include "Math/BsRect2I.h"
 
 namespace bs
@@ -106,7 +105,7 @@ namespace bs
 	private:
 		Type mType;
 		Rect2I mBounds;
-		Vector2I mPosition;
+		Vector2I mPosition{BsZero};
 	};
 
 	/** @} */

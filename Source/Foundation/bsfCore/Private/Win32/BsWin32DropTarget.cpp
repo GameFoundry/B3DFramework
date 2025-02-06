@@ -137,7 +137,7 @@ HRESULT __stdcall Win32DropTarget::DragLeave()
 	{
 		Lock lock(mSync);
 
-		mQueuedDropOps.push_back(DropTargetOp(DropOpType::Leave, Vector2I()));
+		mQueuedDropOps.push_back(DropTargetOp(DropOpType::Leave, Vector2I(0, 0)));
 
 		DropTargetOp& op = mQueuedDropOps.back();
 		op.DataType = DropOpDataType::FileList;

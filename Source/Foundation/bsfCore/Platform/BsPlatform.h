@@ -4,7 +4,6 @@
 
 #include "BsCorePrerequisites.h"
 #include "Input/BsInputFwd.h"
-#include "Math/BsVector2I.h"
 #include "Math/BsRect2I.h"
 #include "Utility/BsEvent.h"
 

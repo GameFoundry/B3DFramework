@@ -4,7 +4,6 @@
 
 #include "BsPrerequisites.h"
 #include "Math/BsRect2I.h"
-#include "Math/BsVector2I.h"
 
 namespace bs
 {

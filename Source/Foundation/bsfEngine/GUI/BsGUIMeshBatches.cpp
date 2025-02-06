@@ -3,7 +3,6 @@
 #include "BsGUIInteractable.h"
 #include "BsGUIManager.h"
 #include "GUI/BsGUIMeshbatches.h"
-#include "Math/BsVector2I.h"
 #include "Mesh/BsMesh.h"
 #include "RenderAPI/BsVertexDescription.h"
 #include "Image/BsSpriteTexture.h"

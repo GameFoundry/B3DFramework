@@ -10,7 +10,6 @@
 #include "RenderAPI/BsGpuProgramParameterDescription.h"
 #include "Debug/BsDebug.h"
 #include "Error/BsException.h"
-#include "Math/BsVector2I.h"
 
 using namespace bs;
 

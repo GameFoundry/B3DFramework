@@ -7,7 +7,6 @@
 #include "Private/RTTI/BsMaterialRTTI.h"
 #include "Resources/BsResources.h"
 #include "Math/BsMatrixNxM.h"
-#include "Math/BsVector2I.h"
 #include "Math/BsVector3I.h"
 #include "Math/BsVector4I.h"
 #include "Material/BsMaterialParams.h"

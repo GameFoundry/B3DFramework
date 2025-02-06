@@ -5,7 +5,7 @@
 #include "BsScriptEnginePrerequisites.h"
 #include "BsScriptObjectWrapper.h"
 #include "../../../Foundation/bsfCore/Input/BsInputFwd.h"
-#include "../../../Foundation/bsfUtility/Math/BsVector2I.h"
+#include "../../../Foundation/bsfUtility/Math/BsVector2.h"
 #include "../../../Foundation/bsfCore/Input/BsInputFwd.h"
 #include "../../../Foundation/bsfCore/Input/BsInputFwd.h"
 
@@ -13,8 +13,8 @@ namespace bs
 {
 	struct __PointerEventInterop
 	{
-		TVector2I<int32_t> ScreenPos;
-		TVector2I<int32_t> Delta;
+		TVector2<int32_t> ScreenPos;
+		TVector2<int32_t> Delta;
 		PointerEventButton Button;
 		PointerEventType Type;
 		bool Shift;

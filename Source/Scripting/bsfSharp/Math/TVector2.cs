@@ -1,5 +1,8 @@
 ﻿//********************************* bs::framework - Copyright 2025 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
+//global using Vector2F = bs.TVector2<float>;
+//global using Vector2I = bs.TVector2<int>;
+
 using System;
 using System.Numerics;
 using System.Runtime.InteropServices;
@@ -23,17 +26,17 @@ namespace bs
         /// <summary>
         /// Returns the length of the vector.
         /// </summary>
-        public static T GetLength<T, Unit>(this TVector2<TUnitValue<T, Unit>> value) where T : IRootFunctions<T>, INumber<T>
+        public static float GetLength(this TVector2<int> value)
         {
-            return T.Sqrt((T)(value.X * value.X + value.Y + value.Y));
+            return float.Sqrt(value.X * value.X + value.Y + value.Y);
         }
 
         /// <summary>
-        /// Returns the Manhattan distance between two points.
+        /// Returns the length of the vector.
         /// </summary>
-        public static T ManhattanDistance<T>(TVector2<T> a, TVector2<T> b) where T : IBinaryInteger<T>
+        public static T GetLength<T, Unit>(this TVector2<TUnitValue<T, Unit>> value) where T : IRootFunctions<T>, INumber<T>
         {
-            return T.Abs(b.X - a.X) + T.Abs(b.Y - a.Y);
+            return T.Sqrt((T)(value.X * value.X + value.Y + value.Y));
         }
     }
 
@@ -111,6 +114,14 @@ namespace bs
 
         public static bool operator ==(TVector2<T> lhs, TVector2<T> rhs) => lhs.X.Equals(rhs.X) && lhs.Y.Equals(rhs.Y);
         public static bool operator !=(TVector2<T> lhs, TVector2<T> rhs) => !(lhs == rhs);
+
+        /// <summary>
+        /// Returns the Manhattan distance between two points.
+        /// </summary>
+        public static int ManhattanDistance(TVector2<int> a, TVector2<int> b)
+        {
+            return int.Abs(b.X - a.X) + int.Abs(b.Y - a.Y);
+        }
 
         public override int GetHashCode() => X.GetHashCode() ^ Y.GetHashCode() << 2;
 

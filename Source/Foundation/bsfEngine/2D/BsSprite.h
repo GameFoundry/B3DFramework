@@ -4,7 +4,6 @@
 
 #include "BsPrerequisites.h"
 #include "2D/BsSpriteMaterial.h"
-#include "Math/BsVector2I.h"
 #include "Math/BsRect2I.h"
 #include "Image/BsColor.h"
 #include "Math/BsRect2.h"

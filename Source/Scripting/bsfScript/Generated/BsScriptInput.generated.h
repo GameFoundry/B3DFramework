@@ -5,8 +5,8 @@
 #include "BsScriptEnginePrerequisites.h"
 #include "../../../Foundation/bsfCore/Input/BsInput.h"
 #include "BsScriptTypeDefinition.h"
-#include "../../../Foundation/bsfUtility/Math/BsVector2I.h"
 #include "../../../Foundation/bsfCore/Input/BsInputFwd.h"
+#include "../../../Foundation/bsfUtility/Math/BsVector2.h"
 #include "../../../Foundation/bsfCore/Input/BsInputFwd.h"
 #include "../../../Foundation/bsfCore/Input/BsInputFwd.h"
 #include "../../../Foundation/bsfCore/Input/BsInputFwd.h"
@@ -63,8 +63,8 @@ namespace bs
 		static bool InternalIsButtonHeld(ButtonCode keyCode, uint32_t deviceIdx);
 		static bool InternalIsButtonUp(ButtonCode keyCode, uint32_t deviceIdx);
 		static bool InternalIsButtonDown(ButtonCode keyCode, uint32_t deviceIdx);
-		static void InternalGetPointerPosition(TVector2I<int32_t>* __output);
-		static void InternalGetPointerDelta(TVector2I<int32_t>* __output);
+		static void InternalGetPointerPosition(TVector2<int32_t>* __output);
+		static void InternalGetPointerDelta(TVector2<int32_t>* __output);
 		static bool InternalIsPointerButtonHeld(PointerEventButton pointerButton);
 		static bool InternalIsPointerButtonUp(PointerEventButton pointerButton);
 		static bool InternalIsPointerButtonDown(PointerEventButton pointerButton);

@@ -124,13 +124,13 @@ void GUIContentSprites::BuildRenderElements(const GUIContentSpriteCreateInformat
 	Rect2 textBounds;
 	Rect2 imageBounds;
 
-	Rect2I textSpriteBounds = isContentTextAvailable ? mContentTextSprite.GetBounds(Vector2I(), Rect2I()) : Rect2I();
-	Rect2I contentImageSpriteBounds = isContentImageAvailable ? mContentImageSprite.GetBounds(Vector2I(), Rect2I()) : Rect2I();
+	Rect2I textSpriteBounds = isContentTextAvailable ? mContentTextSprite.GetBounds(Vector2I(BsZero), Rect2I()) : Rect2I();
+	Rect2I contentImageSpriteBounds = isContentImageAvailable ? mContentImageSprite.GetBounds(Vector2I(BsZero), Rect2I()) : Rect2I();
 
 	CalculateContentBounds(contentArea, Size2UI(contentImageSpriteBounds.Width, contentImageSpriteBounds.Height), Size2UI(textSpriteBounds.Width, textSpriteBounds.Height), GUIImagePosition::Left, textBounds, imageBounds);
 
-	const Vector2 textOffset = Vector2(textBounds.X, textBounds.Y) + createInformation.Offset.ToFloat();
-	const Vector2 imageOffset = Vector2(imageBounds.X, imageBounds.Y) + createInformation.Offset.ToFloat();
+	const Vector2 textOffset = Vector2(textBounds.X, textBounds.Y) + createInformation.Offset.To<float>();
+	const Vector2 imageOffset = Vector2(imageBounds.X, imageBounds.Y) + createInformation.Offset.To<float>();
 
 	if(isContentImageAvailable)
 		GUIRenderElementHelper::Append({ GUIRenderElementHelper::SpriteInfo(&mContentImageSprite, createInformation.Depth, imageOffset, imageBounds) }, outRenderElements );

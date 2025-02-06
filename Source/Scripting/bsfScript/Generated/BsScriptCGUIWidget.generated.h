@@ -5,7 +5,7 @@
 #include "BsScriptEnginePrerequisites.h"
 #include "Wrappers/BsScriptComponent.h"
 #include "GUI/BsGUIPanel.h"
-#include "../../../Foundation/bsfUtility/Math/BsVector2I.h"
+#include "../../../Foundation/bsfUtility/Math/BsVector2.h"
 #include "Math/BsRect2I.h"
 
 namespace bs { class CGUIWidget; }
@@ -26,7 +26,7 @@ namespace bs
 		static MonoObject* InternalGetPanel(ScriptGUIWidget* self);
 		static uint8_t InternalGetDepth(ScriptGUIWidget* self);
 		static void InternalSetDepth(ScriptGUIWidget* self, uint8_t depth);
-		static bool InternalInBounds(ScriptGUIWidget* self, TVector2I<int32_t>* position);
+		static bool InternalInBounds(ScriptGUIWidget* self, TVector2<int32_t>* position);
 		static void InternalGetBounds(ScriptGUIWidget* self, Rect2I* __output);
 	};
 }

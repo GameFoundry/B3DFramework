@@ -44,7 +44,7 @@ void GUISliderHandle::UpdateRenderElements()
 {
 	mRenderElements.Clear();
 
-	Vector2I offset;
+	Vector2I offset(BsZero);
 	Size2UI size;
 
 	u32 handleSize = GetHandleSizeInPixels();

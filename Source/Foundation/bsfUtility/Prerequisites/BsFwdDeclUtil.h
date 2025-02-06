@@ -104,10 +104,6 @@ namespace bs
 		BsIdentity
 	};
 
-	template<typename T> struct TVector2I;
-	using Vector2I = TVector2I<i32>;
-	using Vector2UI = TVector2I<u32>;
-
 	template<typename T> struct TVector3I;
 	using Vector3I = TVector3I<i32>;
 	using Vector3UI = TVector3I<u32>;
@@ -120,6 +116,8 @@ namespace bs
 	using Vector2 = TVector2<float>;
 	using Vector2F = TVector2<float>;
 	using Vector2D = TVector2<double>;
+	using Vector2I = TVector2<i32>;
+	using Vector2UI = TVector2<u32>;
 
 	template<typename T> struct TVector3;
 	using Vector3 = TVector3<float>;

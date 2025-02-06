@@ -370,7 +370,7 @@ void GUIDropDownContent::SelectPrevious(u32 startIdx)
 
 Vector2I GUIDropDownContent::CalculateUnconstrainedOptimalSize() const
 {
-	Vector2I optimalSize;
+	Vector2I optimalSize(BsZero);
 	for(auto& visibleElement : mVisibleElements)
 	{
 		const GUIDropDownDataEntry& element = mDropDownData.Entries[visibleElement.SequentialIndex];

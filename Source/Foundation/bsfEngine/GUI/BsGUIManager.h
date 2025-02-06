@@ -373,11 +373,11 @@ namespace bs
 		GUIInputCaret* mInputCaret = nullptr;
 		GUIInputSelection* mInputSelection = nullptr;
 
-		Vector2I mLastPointerScreenPos;
+		Vector2I mLastPointerScreenPos{BsZero};
 
 		DragState mDragState = DragState::NoDrag;
-		Vector2I mLastPointerClickPos;
-		Vector2I mDragStartPos;
+		Vector2I mLastPointerClickPos{BsZero};
+		Vector2I mDragStartPos{BsZero};
 
 		GUIMouseEvent mMouseEvent;
 		GUITextInputEvent mTextInputEvent;

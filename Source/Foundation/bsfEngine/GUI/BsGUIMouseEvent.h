@@ -3,7 +3,6 @@
 #pragma once
 
 #include "BsPrerequisites.h"
-#include "Math/BsVector2I.h"
 #include "BsDragAndDrop.h"
 
 namespace bs
@@ -129,9 +128,9 @@ namespace bs
 		void SetDragAndDropLeftData(const Vector2I& position, const SPtr<DragAndDropData>& dragAndDropData);
 
 		bool mButtonStates[(int)GUIMouseButton::Count];
-		Vector2I mPosition;
-		Vector2I mDragStartPosition;
-		Vector2I mDragAmount;
+		Vector2I mPosition{BsZero};
+		Vector2I mDragStartPosition{BsZero};
+		Vector2I mDragAmount{BsZero};
 		float mWheelScrollAmount = 0.0f;
 		GUIMouseEventType mType = GUIMouseEventType::MouseMove;
 		GUIMouseButton mButton = GUIMouseButton::Left;

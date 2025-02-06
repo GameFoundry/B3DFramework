@@ -12,7 +12,6 @@
 #include "Math/BsVector2.h"
 #include "Math/BsVector3.h"
 #include "Math/BsVector4.h"
-#include "Math/BsVector2I.h"
 #include "Error/BsException.h"
 #include "Debug/BsLog.h"
 

@@ -182,8 +182,8 @@ namespace bs
 		bool mRecalculateVertOffset;
 		bool mRecalculateHorzOffset;
 
-		Vector2I mVisibleSize;
-		Vector2I mContentSize;
+		Vector2I mVisibleSize{BsZero};
+		Vector2I mContentSize{BsZero};
 
 		Vector<GUIConstrainedSize> mChildSizeRanges;
 		GUIConstrainedSize mSizeRange;

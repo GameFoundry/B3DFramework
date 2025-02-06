@@ -123,7 +123,7 @@ void GUIInputBox::UpdateRenderElements()
 
 	const Rect2I contentBounds = GetCachedContentBoundsInElementSpace();
 
-	const Vector2 textOffset = Vector2I(mTextOffset.X + contentBounds.X, mTextOffset.Y + contentBounds.Y).ToFloat();
+	const Vector2 textOffset = Vector2I(mTextOffset.X + contentBounds.X, mTextOffset.Y + contentBounds.Y).To<float>();
 	const Vector2 caretOffset = Vector2(caretBounds.X, caretBounds.Y) + textOffset;
 
 	// Populate GUI render elements from the sprites
@@ -803,7 +803,7 @@ void GUIInputBox::ScrollTextToCaret()
 	i32 caretRight = caretPos.X + (i32)caretWidth;
 	i32 caretBottom = caretPos.Y + (i32)caretHeight;
 
-	Vector2I offset;
+	Vector2I offset{BsZero};
 	if(caretPos.X < left)
 	{
 		offset.X = left - caretPos.X;

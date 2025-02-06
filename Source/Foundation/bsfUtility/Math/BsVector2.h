@@ -29,6 +29,10 @@ namespace bs
 			: X(x), Y(y)
 		{}
 
+		/** Converts a vector with one underlying type to another. */
+		template<typename T2>
+		TVector2<T2> To() const { return TVector2<T2>((T2)X, (T2)Y); }
+
 		/** Exchange the contents of this vector with another. */
 		void Swap(TVector2& other)
 		{
@@ -106,6 +110,7 @@ namespace bs
 			return *this;
 		}
 
+		template<typename U = T, typename = std::enable_if_t<std::is_signed_v<U>, i32>>
 		TVector2 operator-() const
 		{
 			return TVector2(-X, -Y);
@@ -242,7 +247,6 @@ namespace bs
 		}
 
 		/** Calculates the dot (scalar) product of this vector with another. */
-		template<typename U = T, typename = std::enable_if_t<std::is_floating_point_v<U>, i32>>
 		T Dot(const TVector2& other) const
 		{
 			return X * other.X + Y * other.Y;
@@ -270,6 +274,7 @@ namespace bs
 		}
 
 		/** Generates a vector perpendicular to this vector. */
+		template<typename U = T, typename = std::enable_if_t<std::is_signed_v<U>, i32>>
 		TVector2 Perpendicular() const
 		{
 			return TVector2(-Y, X);
@@ -391,6 +396,8 @@ namespace bs
 
 	extern template struct B3D_SCRIPT_EXPORT(DocumentationGroup(Math), ExportAsStruct(true), ExportName(Vector2)) TVector2<float>;
 	extern template struct B3D_SCRIPT_EXPORT(DocumentationGroup(Math), ExportAsStruct(true), ExportName(Vector2D)) TVector2<double>;
+	extern template struct B3D_SCRIPT_EXPORT(DocumentationGroup(Math), ExportAsStruct(true), ExportName(Vector2I)) TVector2<i32>;
+	extern template struct B3D_SCRIPT_EXPORT(DocumentationGroup(Math), ExportAsStruct(true), ExportName(Vector2UI)) TVector2<u32>;
 
 	/** @} */
 } // namespace bs

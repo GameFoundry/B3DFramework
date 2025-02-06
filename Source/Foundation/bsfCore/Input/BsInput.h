@@ -308,14 +308,14 @@ namespace bs
 		Mutex mMutex;
 
 		Vector<DeviceData> mDevices;
-		Vector2I mLastPointerPosition;
-		Vector2I mPointerDelta;
+		Vector2I mLastPointerPosition{BsZero};
+		Vector2I mPointerDelta{BsZero};
 		ButtonState mPointerButtonStates[3];
 		bool mPointerDoubleClicked = false;
 		bool mLastPositionSet = false;
 
 		// Thread safe
-		Vector2I mPointerPosition;
+		Vector2I mPointerPosition{BsZero};
 		float mMouseScroll = 0.0f;
 		OSPointerButtonStates mPointerState;
 

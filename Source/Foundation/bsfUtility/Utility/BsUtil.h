@@ -175,6 +175,7 @@ namespace bs
 			return *this;
 		}
 
+		template<typename U = T, typename = std::enable_if_t<std::is_signed_v<U>, i32>>
 		TSize2 operator-() const
 		{
 			return TSize2(-Width, -Height);

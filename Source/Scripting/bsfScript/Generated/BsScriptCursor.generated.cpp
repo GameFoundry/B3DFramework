@@ -5,7 +5,7 @@
 #include "BsMonoClass.h"
 #include "BsMonoUtil.h"
 #include "../../../Foundation/bsfEngine/Platform/BsCursor.h"
-#include "BsScriptTVector2I.generated.h"
+#include "BsScriptTVector2.generated.h"
 #include "BsScriptPixelData.generated.h"
 
 namespace bs
@@ -32,14 +32,14 @@ namespace bs
 
 	}
 
-	void ScriptCursor::InternalSetScreenPosition(TVector2I<int32_t>* screenPos)
+	void ScriptCursor::InternalSetScreenPosition(TVector2<int32_t>* screenPos)
 	{
 		Cursor::Instance().SetScreenPosition(*screenPos);
 	}
 
-	void ScriptCursor::InternalGetScreenPosition(TVector2I<int32_t>* __output)
+	void ScriptCursor::InternalGetScreenPosition(TVector2<int32_t>* __output)
 	{
-		TVector2I<int32_t> tmp__output;
+		TVector2<int32_t> tmp__output;
 		tmp__output = Cursor::Instance().GetScreenPosition();
 
 		*__output = tmp__output;
@@ -77,7 +77,7 @@ namespace bs
 		Cursor::Instance().SetCursor(tmpname);
 	}
 
-	void ScriptCursor::InternalSetCursorIcon(MonoString* name, MonoObject* pixelData, TVector2I<int32_t>* hotSpot)
+	void ScriptCursor::InternalSetCursorIcon(MonoString* name, MonoObject* pixelData, TVector2<int32_t>* hotSpot)
 	{
 		String tmpname;
 		tmpname = MonoUtil::MonoToString(name);
@@ -89,7 +89,7 @@ namespace bs
 		Cursor::Instance().SetCursorIcon(tmpname, *tmppixelData, *hotSpot);
 	}
 
-	void ScriptCursor::InternalSetCursorIcon0(CursorType type, MonoObject* pixelData, TVector2I<int32_t>* hotSpot)
+	void ScriptCursor::InternalSetCursorIcon0(CursorType type, MonoObject* pixelData, TVector2<int32_t>* hotSpot)
 	{
 		SPtr<PixelData> tmppixelData;
 		ScriptPixelData* scriptObjectWrapperpixelData;

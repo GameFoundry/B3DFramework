@@ -109,7 +109,7 @@ void GUITexture::UpdateRenderElements()
 			((i32)mAbsoluteSize.Height - destSize.Y) / 2);
 	}
 	else
-		imageSpriteOffset = Vector2I();
+		imageSpriteOffset = Vector2I(BsZero);
 
 	mDesc.Width = (u32)destSize.X;
 	mDesc.Height = (u32)destSize.Y;

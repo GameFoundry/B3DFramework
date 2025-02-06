@@ -7,7 +7,6 @@
 #include "Math/BsMatrix4.h"
 #include "Math/BsVector3.h"
 #include "Math/BsVector2.h"
-#include "Math/BsVector2I.h"
 #include "Math/BsAABox.h"
 #include "Math/BsQuaternion.h"
 #include "Math/BsRay.h"

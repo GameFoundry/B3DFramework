@@ -1,7 +1,6 @@
 //************************************ bs::framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "Material/BsMaterialParam.h"
-#include "Math/BsVector2I.h"
 #include "Material/BsMaterialParams.h"
 #include "Material/BsMaterial.h"
 #include "Image/BsColorGradient.h"

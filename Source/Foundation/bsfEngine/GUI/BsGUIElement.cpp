@@ -547,7 +547,7 @@ void GUIElement::UpdateAbsoluteCoordinates(const Vector2I& parentOrigin, float p
 {
 	mAbsoluteScale = mScale * parentScale;
 
-	mAbsolutePosition = Vector2I::FromFloat(mLayoutData.RelativePosition.ToFloat() * mAbsoluteScale) + parentOrigin;
+	mAbsolutePosition = (mLayoutData.RelativePosition.To<float>() * mAbsoluteScale).To<i32>() + parentOrigin;
 	mAbsoluteSize = Size2UI::FromFloat(mLayoutData.Size.ToFloat() * mAbsoluteScale);
 
 	mAbsoluteClippedArea = Rect2I(mAbsolutePosition, mAbsoluteSize);

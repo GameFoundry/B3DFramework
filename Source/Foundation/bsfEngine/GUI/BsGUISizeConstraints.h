@@ -3,7 +3,6 @@
 #pragma once
 
 #include "BsPrerequisites.h"
-#include "Math/BsVector2I.h"
 
 namespace bs
 {
@@ -16,9 +15,9 @@ namespace bs
 	/**	Contains valid size range for a GUI element, based on element's optimal size and size constraints. */
 	struct B3D_EXPORT GUIConstrainedSize
 	{
-		Vector2I Optimal; /**< Optimal GUI element size, constrained by the size constraints. */
-		Vector2I Min; /**< In case of flexible size, minimum allowed size. Equivalent to Optimal if size is fixed. */
-		Vector2I Max; /**< In case of flexible size, maximum allowed size. Equivalent to Optimal if size is fixed. If 0, the dimension has no maximum limit. */
+		Vector2I Optimal{BsZero}; /**< Optimal GUI element size, constrained by the size constraints. */
+		Vector2I Min{BsZero}; /**< In case of flexible size, minimum allowed size. Equivalent to Optimal if size is fixed. */
+		Vector2I Max{BsZero}; /**< In case of flexible size, maximum allowed size. Equivalent to Optimal if size is fixed. If 0, the dimension has no maximum limit. */
 	};
 
 	/**	Flags that identify the type of data stored in a GUIDimensions structure. */

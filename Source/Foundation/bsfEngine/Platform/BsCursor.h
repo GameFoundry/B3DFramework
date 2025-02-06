@@ -5,7 +5,6 @@
 #include "BsPrerequisites.h"
 #include "Utility/BsModule.h"
 #include "Image/BsPixelData.h"
-#include "Math/BsVector2I.h"
 
 namespace bs
 {

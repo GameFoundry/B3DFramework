@@ -5,7 +5,6 @@
 #include "BsPrerequisites.h"
 #include "Utility/BsModule.h"
 #include "Math/BsRect2.h"
-#include "Math/BsVector2I.h"
 #include "Math/BsRect2I.h"
 #include "RenderAPI/BsGpuDevice.h"
 #include "Mesh/BsMeshBase.h"

@@ -19,7 +19,7 @@ GUIElementContainer::GUIElementContainer(const GUISizeConstraints& dimensions, c
 
 Vector2I GUIElementContainer::CalculateUnconstrainedOptimalSize() const
 {
-	return Vector2I();
+	return Vector2I(BsZero);
 }
 
 void GUIElementContainer::SetFocus(bool enabled, bool clear)
