@@ -5,7 +5,6 @@
 #include "GUI/BsGUILabel.h"
 #include "GUI/BsGUIPanel.h"
 #include "GUI/BsGUINavGroup.h"
-#include "Math/BsVector2I.h"
 #include "Mesh/BsMesh.h"
 #include "Components/BsCCamera.h"
 #include "RenderAPI/BsViewport.h"

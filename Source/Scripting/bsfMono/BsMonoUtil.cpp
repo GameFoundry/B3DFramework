@@ -259,6 +259,68 @@ MonoPrimitiveType MonoUtil::GetPrimitiveType(::MonoClass* monoClass)
 	return MonoPrimitiveType::Unknown;
 }
 
+::MonoClass* MonoUtil::GetPrimitiveTypeClass(MonoPrimitiveType primitiveType)
+{
+	switch(primitiveType)
+	{
+	case MonoPrimitiveType::Boolean: return GetBoolClass();
+	case MonoPrimitiveType::Char: return GetCharClass();
+	case MonoPrimitiveType::I8: return GetSByteClass();
+	case MonoPrimitiveType::U8: return GetByteClass();
+	case MonoPrimitiveType::I16: return GetInt16Class();
+	case MonoPrimitiveType::U16: return GetUint16Class();
+	case MonoPrimitiveType::I32: return GetInt32Class();
+	case MonoPrimitiveType::U32: return GetUint32Class();
+	case MonoPrimitiveType::I64: return GetInt64Class();
+	case MonoPrimitiveType::U64: return GetUint64Class();
+	case MonoPrimitiveType::R32: return GetFloatClass();
+	case MonoPrimitiveType::R64: return GetDoubleClass();
+	case MonoPrimitiveType::String: return GetStringClass();
+	}
+
+	return nullptr;
+}
+
+::MonoClass* MonoUtil::GetPrimitiveTypeClass(const String& typeName)
+{
+	static const UnorderedMap<String, MonoPrimitiveType> kLookup = []()
+	{
+		UnorderedMap<String, MonoPrimitiveType> lookup;
+		lookup["byte"] = MonoPrimitiveType::I8;
+		lookup["Byte"] = MonoPrimitiveType::I8;
+		lookup["sbyte"] = MonoPrimitiveType::U8;
+		lookup["SByte"] = MonoPrimitiveType::U8;
+		lookup["short"] = MonoPrimitiveType::I16;
+		lookup["Int16"] = MonoPrimitiveType::I16;
+		lookup["ushort"] = MonoPrimitiveType::U16;
+		lookup["UInt16"] = MonoPrimitiveType::U16;
+		lookup["int"] = MonoPrimitiveType::I32;
+		lookup["Int32"] = MonoPrimitiveType::I32;
+		lookup["uint"] = MonoPrimitiveType::U32;
+		lookup["UInt32"] = MonoPrimitiveType::U32;
+		lookup["long"] = MonoPrimitiveType::I32;
+		lookup["Int64"] = MonoPrimitiveType::I32;
+		lookup["ulong"] = MonoPrimitiveType::U64;
+		lookup["UInt64"] = MonoPrimitiveType::U64;
+		lookup["float"] = MonoPrimitiveType::R32;
+		lookup["Single"] = MonoPrimitiveType::R32;
+		lookup["double"] = MonoPrimitiveType::R64;
+		lookup["Double"] = MonoPrimitiveType::R64;
+		lookup["char"] = MonoPrimitiveType::Char;
+		lookup["Char"] = MonoPrimitiveType::Char;
+		lookup["bool"] = MonoPrimitiveType::Boolean;
+		lookup["Boolean"] = MonoPrimitiveType::Boolean;
+
+		return lookup;
+	}();
+
+	auto found = kLookup.find(typeName);
+	if(found != kLookup.end())
+		return GetPrimitiveTypeClass(found->second);
+
+	return nullptr;
+}
+
 ::MonoClass* MonoUtil::BindGenericParameters(::MonoClass* klass, ::MonoClass** params, u32 numParams)
 {
 	auto buffer = B3DManagedStackAllocate<MonoType*>(numParams);
@@ -313,32 +375,32 @@ void MonoUtil::GetGenericParameters(::MonoReflectionType* type, ::MonoClass** pa
 	}
 }
 
-::MonoClass* MonoUtil::GetUinT16Class()
+::MonoClass* MonoUtil::GetUint16Class()
 {
 	return mono_get_uint16_class();
 }
 
-::MonoClass* MonoUtil::GetInT16Class()
+::MonoClass* MonoUtil::GetInt16Class()
 {
 	return mono_get_int16_class();
 }
 
-::MonoClass* MonoUtil::GetUinT32Class()
+::MonoClass* MonoUtil::GetUint32Class()
 {
 	return mono_get_uint32_class();
 }
 
-::MonoClass* MonoUtil::GetInT32Class()
+::MonoClass* MonoUtil::GetInt32Class()
 {
 	return mono_get_int32_class();
 }
 
-::MonoClass* MonoUtil::GetUinT64Class()
+::MonoClass* MonoUtil::GetUint64Class()
 {
 	return mono_get_uint64_class();
 }
 
-::MonoClass* MonoUtil::GetInT64Class()
+::MonoClass* MonoUtil::GetInt64Class()
 {
 	return mono_get_int64_class();
 }

@@ -696,7 +696,7 @@ MonoObject* ManagedSerializableFieldDataU8::GetValueBoxed(const SPtr<ManagedType
 MonoObject* ManagedSerializableFieldDataI16::GetValueBoxed(const SPtr<ManagedTypeInfo>& typeInfo)
 {
 	if(IsPrimitiveOrEnumType(typeInfo, ManagedPrimitiveType::I16))
-		return MonoUtil::Box(MonoUtil::GetInT16Class(), &Value);
+		return MonoUtil::Box(MonoUtil::GetInt16Class(), &Value);
 
 	B3D_EXCEPT(InvalidParametersException, "Requesting an invalid type in serializable field.");
 	return nullptr;
@@ -705,7 +705,7 @@ MonoObject* ManagedSerializableFieldDataI16::GetValueBoxed(const SPtr<ManagedTyp
 MonoObject* ManagedSerializableFieldDataU16::GetValueBoxed(const SPtr<ManagedTypeInfo>& typeInfo)
 {
 	if(IsPrimitiveOrEnumType(typeInfo, ManagedPrimitiveType::U16))
-		return MonoUtil::Box(MonoUtil::GetUinT16Class(), &Value);
+		return MonoUtil::Box(MonoUtil::GetUint16Class(), &Value);
 
 	B3D_EXCEPT(InvalidParametersException, "Requesting an invalid type in serializable field.");
 	return nullptr;
@@ -714,7 +714,7 @@ MonoObject* ManagedSerializableFieldDataU16::GetValueBoxed(const SPtr<ManagedTyp
 MonoObject* ManagedSerializableFieldDataI32::GetValueBoxed(const SPtr<ManagedTypeInfo>& typeInfo)
 {
 	if(IsPrimitiveOrEnumType(typeInfo, ManagedPrimitiveType::I32))
-		return MonoUtil::Box(MonoUtil::GetInT32Class(), &Value);
+		return MonoUtil::Box(MonoUtil::GetInt32Class(), &Value);
 
 	B3D_EXCEPT(InvalidParametersException, "Requesting an invalid type in serializable field.");
 	return nullptr;
@@ -723,7 +723,7 @@ MonoObject* ManagedSerializableFieldDataI32::GetValueBoxed(const SPtr<ManagedTyp
 MonoObject* ManagedSerializableFieldDataU32::GetValueBoxed(const SPtr<ManagedTypeInfo>& typeInfo)
 {
 	if(IsPrimitiveOrEnumType(typeInfo, ManagedPrimitiveType::U32))
-		return MonoUtil::Box(MonoUtil::GetUinT32Class(), &Value);
+		return MonoUtil::Box(MonoUtil::GetUint32Class(), &Value);
 
 	B3D_EXCEPT(InvalidParametersException, "Requesting an invalid type in serializable field.");
 	return nullptr;
@@ -732,7 +732,7 @@ MonoObject* ManagedSerializableFieldDataU32::GetValueBoxed(const SPtr<ManagedTyp
 MonoObject* ManagedSerializableFieldDataI64::GetValueBoxed(const SPtr<ManagedTypeInfo>& typeInfo)
 {
 	if(IsPrimitiveOrEnumType(typeInfo, ManagedPrimitiveType::I64))
-		return MonoUtil::Box(MonoUtil::GetInT64Class(), &Value);
+		return MonoUtil::Box(MonoUtil::GetInt64Class(), &Value);
 
 	B3D_EXCEPT(InvalidParametersException, "Requesting an invalid type in serializable field.");
 	return nullptr;
@@ -741,7 +741,7 @@ MonoObject* ManagedSerializableFieldDataI64::GetValueBoxed(const SPtr<ManagedTyp
 MonoObject* ManagedSerializableFieldDataU64::GetValueBoxed(const SPtr<ManagedTypeInfo>& typeInfo)
 {
 	if(IsPrimitiveOrEnumType(typeInfo, ManagedPrimitiveType::U64))
-		return MonoUtil::Box(MonoUtil::GetUinT64Class(), &Value);
+		return MonoUtil::Box(MonoUtil::GetUint64Class(), &Value);
 
 	B3D_EXCEPT(InvalidParametersException, "Requesting an invalid type in serializable field.");
 	return nullptr;

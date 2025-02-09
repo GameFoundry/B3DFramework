@@ -44,6 +44,9 @@ namespace bs
 		void UnloadAll();
 
 		/**	Searches all loaded assemblies for the specified class. */
+		MonoClass* FindClass(const MonoTypeIdentifier& typeIdentifier);
+
+		/**	Searches all loaded assemblies for the specified class. */
 		MonoClass* FindClass(const String& ns, const String& typeName);
 
 		/**	Searches all loaded assemblies for the specified class. */

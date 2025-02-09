@@ -159,13 +159,13 @@ namespace bs
 			return *this;
 		}
 
-		bool operator==(const TArray& other)
+		bool operator==(const TArray& other) const
 		{
 			if(this->Size() != other.Size()) return false;
 			return std::equal(this->Begin(), this->End(), other.Begin());
 		}
 
-		bool operator!=(const TArray& other)
+		bool operator!=(const TArray& other) const
 		{
 			return !(*this == other);
 		}

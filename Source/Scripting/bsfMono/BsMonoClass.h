@@ -48,6 +48,9 @@ namespace bs
 		/**	Returns the full name (Namespace::TypeName) of this class. */
 		const String& GetFullName() const { return mFullName; }
 
+		/** Returns the assembly this class is a part of. */
+		const MonoAssembly* GetAssembly() const { return mParentAssembly; }
+
 		/**
 		 * Returns an object referencing a method with the specified name and number of parameters.
 		 *

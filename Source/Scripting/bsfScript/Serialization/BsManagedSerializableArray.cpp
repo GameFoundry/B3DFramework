@@ -69,7 +69,7 @@ MonoObject* ManagedSerializableArray::CreateManagedInstance(const SPtr<ManagedTy
 
 	MonoMethod* createInstance = arrayClass->GetMethodExact("CreateInstance", "Type,int[]");
 
-	ScriptArray lengthArray(MonoUtil::GetInT32Class(), (u32)sizes.size());
+	ScriptArray lengthArray(MonoUtil::GetInt32Class(), (u32)sizes.size());
 	for(u32 i = 0; i < (u32)sizes.size(); i++)
 		lengthArray.Set(i, sizes[i]);
 

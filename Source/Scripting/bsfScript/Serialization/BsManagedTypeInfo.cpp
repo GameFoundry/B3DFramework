@@ -187,17 +187,17 @@ bool ManagedTypeInfoPrimitive::IsTypeLoaded() const
 	case ManagedPrimitiveType::U8:
 		return MonoUtil::GetByteClass();
 	case ManagedPrimitiveType::I16:
-		return MonoUtil::GetInT16Class();
+		return MonoUtil::GetInt16Class();
 	case ManagedPrimitiveType::U16:
-		return MonoUtil::GetUinT16Class();
+		return MonoUtil::GetUint16Class();
 	case ManagedPrimitiveType::I32:
-		return MonoUtil::GetInT32Class();
+		return MonoUtil::GetInt32Class();
 	case ManagedPrimitiveType::U32:
-		return MonoUtil::GetUinT32Class();
+		return MonoUtil::GetUint32Class();
 	case ManagedPrimitiveType::I64:
-		return MonoUtil::GetInT64Class();
+		return MonoUtil::GetInt64Class();
 	case ManagedPrimitiveType::U64:
-		return MonoUtil::GetUinT64Class();
+		return MonoUtil::GetUint64Class();
 	case ManagedPrimitiveType::Float:
 		return MonoUtil::GetFloatClass();
 	case ManagedPrimitiveType::Double:

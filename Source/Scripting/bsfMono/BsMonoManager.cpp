@@ -207,16 +207,24 @@ void MonoManager::RefreshScriptTypeMetaDataAndBindings(MonoAssembly& assembly)
 {
 	// Fully initialize all types that use this assembly
 	Vector<RegisteredScriptWrapperTypeInformation>& typeMetas = GetScriptWrapperTypeInformation()[assembly.mName];
+
+	// Ensure we resolve types with smaller number of generic parameters first, as later types will depend on them
+	std::sort(typeMetas.begin(), typeMetas.end(), [](RegisteredScriptWrapperTypeInformation& lhs, RegisteredScriptWrapperTypeInformation& rhs)
+	{
+		return lhs.MetaData->Identifier.GenericTypeParameters.Size() < rhs.MetaData->Identifier.GenericTypeParameters.Size();
+	});
+
+	UnorderedMap<MonoTypeIdentifier, MonoClass*> resolvedTypes;
 	for(auto& entry : typeMetas)
 	{
 		ScriptTypeMetaData* meta = entry.MetaData;
 		*meta = entry.LocalMetaData;
 
-		meta->ScriptClass = assembly.GetClass(meta->Namespace, meta->Name);
-		if(meta->ScriptClass == nullptr)
-		{
-			B3D_EXCEPT(InvalidParametersException, "Unable to find class of type: \"" + meta->Namespace + "::" + meta->Name + "\"");
-		}
+		meta->ScriptClass = FindClass(meta->Identifier);
+		if(!B3D_ENSURE(meta->ScriptClass != nullptr))
+			continue;
+
+		resolvedTypes[meta->Identifier] = meta->ScriptClass;
 
 		if(meta->ScriptClass->HasField("mCachedPtr"))
 			meta->ScriptObjectWrapperPointerField = meta->ScriptClass->GetField("mCachedPtr");
@@ -260,8 +268,48 @@ bs::MonoAssembly* MonoManager::GetAssembly(const String& name) const
 
 void MonoManager::RegisterScriptType(ScriptTypeMetaData* metaData, const ScriptTypeMetaData& localMetaData)
 {
-	Vector<RegisteredScriptWrapperTypeInformation>& mMetas = GetScriptWrapperTypeInformation()[localMetaData.Assembly];
+	Vector<RegisteredScriptWrapperTypeInformation>& mMetas = GetScriptWrapperTypeInformation()[localMetaData.Identifier.Assembly];
 	mMetas.push_back({ metaData, localMetaData });
+}
+
+bs::MonoClass* MonoManager::FindClass(const MonoTypeIdentifier& typeIdentifier)
+{
+	auto fnFindClass = [this](const String& assemblyName, const String& nameSpace, const String& typeName) -> MonoClass*
+	{
+		if(assemblyName.empty())
+			return FindClass(nameSpace, typeName);
+
+		const MonoAssembly* assembly = GetAssembly(assemblyName);
+		if(assembly == nullptr)
+			return nullptr;
+		
+		return assembly->GetClass(nameSpace, typeName);
+	};
+
+	if(typeIdentifier.GenericTypeParameters.Size() == 0)
+		return fnFindClass(typeIdentifier.Assembly, typeIdentifier.Namespace, typeIdentifier.TypeName);
+
+	const String& genericTypeName = typeIdentifier.TypeName + '`' + ToString(typeIdentifier.GenericTypeParameters.Size());
+	MonoClass* const genericClass = fnFindClass(typeIdentifier.Assembly, typeIdentifier.Namespace, genericTypeName);
+	if(genericClass == nullptr)
+		return nullptr;
+	
+	TInlineArray<::MonoClass*, 4> genericArgumentClasses;
+	genericArgumentClasses.Reserve(typeIdentifier.GenericTypeParameters.Size());
+
+	for(const auto& genericTypeParameter : typeIdentifier.GenericTypeParameters)
+	{
+		MonoClass* const genericArgumentClass = FindClass(genericTypeParameter);
+		if(genericArgumentClass == nullptr)
+			return nullptr;
+
+		genericArgumentClasses.Add(genericArgumentClass->GetInternalClass());
+	}
+
+	::MonoClass* internalClass = MonoUtil::BindGenericParameters(genericClass->GetInternalClass(), genericArgumentClasses.Data(), (u32)genericArgumentClasses.Size());
+	const MonoAssembly* const assembly = genericClass->GetAssembly();
+
+	return assembly->GetClass(typeIdentifier.Namespace, typeIdentifier.GetTypeName(false), internalClass);
 }
 
 bs::MonoClass* MonoManager::FindClass(const String& ns, const String& typeName)

@@ -116,6 +116,12 @@ namespace bs
 		/** Returns the primitive type of the provided class. */
 		static MonoPrimitiveType GetPrimitiveType(::MonoClass* monoClass);
 
+		/** Returns a corresponding primitive class type based on the provided enum. */
+		static ::MonoClass* GetPrimitiveTypeClass(MonoPrimitiveType primitiveType);
+
+		/** Returns a corresponding primitive class type based on the provided name (e.g. float, int, bool, etc.) */
+		static ::MonoClass* GetPrimitiveTypeClass(const String& typeName);
+
 		/** Binds parameters to a generic class, and returns a new instantiable class with the bound parameters. */
 		static ::MonoClass* BindGenericParameters(::MonoClass* klass, ::MonoClass** params, u32 numParams);
 
@@ -134,22 +140,22 @@ namespace bs
 		static void GetGenericParameters(::MonoReflectionType* type, ::MonoClass** params, u32& numParams);
 
 		/** Returns Mono class for a 16-bit unsigned integer. */
-		static ::MonoClass* GetUinT16Class();
+		static ::MonoClass* GetUint16Class();
 
 		/** Returns Mono class for a 16-bit signed integer. */
-		static ::MonoClass* GetInT16Class();
+		static ::MonoClass* GetInt16Class();
 
 		/** Returns Mono class for a 32-bit unsigned integer. */
-		static ::MonoClass* GetUinT32Class();
+		static ::MonoClass* GetUint32Class();
 
 		/** Returns Mono class for a 32-bit signed integer. */
-		static ::MonoClass* GetInT32Class();
+		static ::MonoClass* GetInt32Class();
 
 		/** Returns Mono class for a 64-bit unsigned integer. */
-		static ::MonoClass* GetUinT64Class();
+		static ::MonoClass* GetUint64Class();
 
 		/** Returns Mono class for a 32-bit signed integer. */
-		static ::MonoClass* GetInT64Class();
+		static ::MonoClass* GetInt64Class();
 
 		/** Returns Mono class for a string. */
 		static ::MonoClass* GetStringClass();

@@ -12,6 +12,40 @@ namespace bs
 	 *  @{
 	 */
 
+	/** Identifies a managed type. */
+	struct B3D_MONO_EXPORT MonoTypeIdentifier
+	{
+		MonoTypeIdentifier() = default;
+		MonoTypeIdentifier(const String& assembly, const String& nameSpace, const String& typeName)
+			:Assembly(assembly), Namespace(nameSpace), TypeName(typeName)
+		{ }
+
+		/** Constructs the full type name from the identifier. */
+		String GetTypeName(bool includeNamespace) const;
+
+		bool operator==(const MonoTypeIdentifier& other) const
+		{
+			return Assembly == other.Assembly && Namespace == other.Namespace && TypeName == other.TypeName && GenericTypeParameters == other.GenericTypeParameters;
+		}
+
+		bool operator!=(const MonoTypeIdentifier& other) const
+		{
+			return !(*this == other);
+		}
+
+		/**
+		 * Parses a type containing generic arguments. Recursively parses generic arguments of any parent generic arguments.
+		 * Output type identifier will only have the type name and generic arguments fields populated, and optionally namespace if explicitly provided.
+		 */
+		static MonoTypeIdentifier Parse(const String& typeName);
+
+		String Assembly; /**< Name of the assembly the type is the located in, without the .dll extension. */
+		String Namespace; /**< Namespace of the type. */
+		String TypeName; /**< Name of the type. If type is a generic use `N syntax, where N is the number of generic parameters. e.g. List`1. */
+
+		TArray<MonoTypeIdentifier> GenericTypeParameters; /**< If type is a generic type, these should be the generic parameters to used to specialize the type. */
+	};
+
 	/** Type of create callback specified in ScriptTypeMetaData. */
 	enum class ScriptWrapperCreateCallbackType
 	{
@@ -21,16 +55,14 @@ namespace bs
 		GameObject,
 	};
 
+
 	/**	Contains information about a class exported to script. */
 	struct B3D_MONO_EXPORT ScriptTypeMetaData
 	{
 		ScriptTypeMetaData() = default;
-		ScriptTypeMetaData(const String& assembly, const String& nameSpace, const String& name, std::function<void()> setupScriptBindingsCallback);
+		ScriptTypeMetaData(const char* assembly, const char* nameSpace, const char* typeName, std::function<void()> setupScriptBindingsCallback);
 
-		// TODO - These should be const char
-		String Namespace; /**< Namespace the script class is located in. */
-		String Name; /**< Type name of the script class. */
-		String Assembly; /**< Name of the assembly the script class is located in. */
+		MonoTypeIdentifier Identifier;
 
 		u32 TypeId = ~0u; /**< RTTI ID of the native object. */
 		ScriptWrapperCreateCallbackType CreateCallbackType = ScriptWrapperCreateCallbackType::None; /**< Specifies which of the callbacks in the *CreateCallback union is valid. */
@@ -57,3 +89,28 @@ namespace bs
 
 	/** @} */
 } // namespace bs
+
+/** @cond STDLIB */
+
+namespace std
+{
+	/** Hash value generator for ScriptTypeIdentifier. */
+	template <>
+	struct hash<bs::MonoTypeIdentifier>
+	{
+		size_t operator()(const bs::MonoTypeIdentifier& key) const
+		{
+			size_t hash = 0;
+			bs::B3DCombineHash(hash, key.Assembly);
+			bs::B3DCombineHash(hash, key.Namespace);
+			bs::B3DCombineHash(hash, key.TypeName);
+
+			for(const auto& entry : key.GenericTypeParameters)
+				bs::B3DCombineHash(hash, bs::B3DHash(entry));
+
+			return hash;
+		}
+	};
+} // namespace std
+
+/** @endcond */

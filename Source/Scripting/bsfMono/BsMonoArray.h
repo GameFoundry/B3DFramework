@@ -187,37 +187,37 @@ namespace bs
 		template <>
 		inline ScriptArray ScriptArrayCreate<u16>(u32 size)
 		{
-			return ScriptArray(MonoUtil::GetUinT16Class(), size);
+			return ScriptArray(MonoUtil::GetUint16Class(), size);
 		}
 
 		template <>
 		inline ScriptArray ScriptArrayCreate<i16>(u32 size)
 		{
-			return ScriptArray(MonoUtil::GetInT16Class(), size);
+			return ScriptArray(MonoUtil::GetInt16Class(), size);
 		}
 
 		template <>
 		inline ScriptArray ScriptArrayCreate<u32>(u32 size)
 		{
-			return ScriptArray(MonoUtil::GetUinT32Class(), size);
+			return ScriptArray(MonoUtil::GetUint32Class(), size);
 		}
 
 		template <>
 		inline ScriptArray ScriptArrayCreate<i32>(u32 size)
 		{
-			return ScriptArray(MonoUtil::GetInT32Class(), size);
+			return ScriptArray(MonoUtil::GetInt32Class(), size);
 		}
 
 		template <>
 		inline ScriptArray ScriptArrayCreate<u64>(u32 size)
 		{
-			return ScriptArray(MonoUtil::GetUinT64Class(), size);
+			return ScriptArray(MonoUtil::GetUint64Class(), size);
 		}
 
 		template <>
 		inline ScriptArray ScriptArrayCreate<i64>(u32 size)
 		{
-			return ScriptArray(MonoUtil::GetInT64Class(), size);
+			return ScriptArray(MonoUtil::GetInt64Class(), size);
 		}
 
 		template <>
