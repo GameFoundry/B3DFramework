@@ -292,8 +292,8 @@ namespace bs
 	 */
 	struct B3D_SCRIPT_EXPORT(ExportAsStruct(true), DocumentationGroup(Input)) PointerEvent
 	{
-		Vector2I ScreenPos{BsZero}; /**< Screen position where the input event occurred. */
-		Vector2I Delta{BsZero}; /**< Change in movement since last sent event. */
+		Vector2I ScreenPos = Vector2I::kZero; /**< Screen position where the input event occurred. */
+		Vector2I Delta = Vector2I::kZero; /**< Change in movement since last sent event. */
 
 		B3D_SCRIPT_EXPORT(Exclude(true))
 		bool ButtonStates[(u32)PointerEventButton::Count] = { false, false, false }; /**< States of the pointer buttons (for example mouse buttons). */
