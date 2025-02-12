@@ -299,11 +299,16 @@ bs::MonoClass* MonoManager::FindClass(const MonoTypeIdentifier& typeIdentifier)
 
 	for(const auto& genericTypeParameter : typeIdentifier.GenericTypeParameters)
 	{
-		MonoClass* const genericArgumentClass = FindClass(genericTypeParameter);
-		if(genericArgumentClass == nullptr)
+		::MonoClass* genericArgumentInternalClass = nullptr;
+		if(MonoClass* const genericArgumentClass = FindClass(genericTypeParameter))
+			genericArgumentInternalClass = genericArgumentClass->GetInternalClass();
+		else if(genericTypeParameter.Namespace.empty() || typeIdentifier.Namespace == "System")
+			genericArgumentInternalClass = MonoUtil::GetPrimitiveTypeClass(genericTypeParameter.TypeName);
+
+		if(genericArgumentInternalClass == nullptr)
 			return nullptr;
 
-		genericArgumentClasses.Add(genericArgumentClass->GetInternalClass());
+		genericArgumentClasses.Add(genericArgumentInternalClass);
 	}
 
 	::MonoClass* internalClass = MonoUtil::BindGenericParameters(genericClass->GetInternalClass(), genericArgumentClasses.Data(), (u32)genericArgumentClasses.Size());
