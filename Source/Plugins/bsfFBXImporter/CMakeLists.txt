@@ -8,7 +8,7 @@ find_package(FBXSDK REQUIRED)
 add_library(bsfFBXImporter SHARED ${BS_FBXIMPORTER_SRC})
 
 # Common flags
-add_common_flags(bsfFBXImporter)
+B3DSetDefaultLinkAndCompileFlags(bsfFBXImporter)
 
 # Includes
 target_include_directories(bsfFBXImporter PRIVATE "./")

@@ -12,7 +12,7 @@ endif()
 add_library(bsfGLRenderAPI SHARED ${BS_GLRENDERAPI_SRC})
 
 # Common flags
-add_common_flags(bsfGLRenderAPI)
+B3DSetDefaultLinkAndCompileFlags(bsfGLRenderAPI)
 
 # Includes
 target_include_directories(bsfGLRenderAPI PRIVATE

@@ -430,7 +430,8 @@ function(copy_folder_on_build target srcDir dstDir name filter)
 	endforeach()
 endfunction()
 
-function(add_common_flags target)
+# Sets up default linker and compiler flags for the provided target, for each configuration.
+function(B3DSetDefaultLinkAndCompileFlags target)
 	get_target_property(target_type ${target} TYPE)
 
 	if(MSVC)

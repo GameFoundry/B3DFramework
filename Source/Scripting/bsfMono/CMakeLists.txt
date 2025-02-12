@@ -18,7 +18,7 @@ endif()
 add_library(bsfMono STATIC ${BS_MONO_SRC})
 
 # Common flags
-add_common_flags(bsfMono)
+B3DSetDefaultLinkAndCompileFlags(bsfMono)
 
 # Includes
 target_include_directories(bsfMono PUBLIC "./")

@@ -58,7 +58,7 @@ target_include_directories(ThirdParty INTERFACE
 # Target
 add_library(bsf SHARED ${BS_UTILITY_SRC} ${BS_CORE_SRC} ${BS_ENGINE_SRC})
 
-add_common_flags(bsf)
+B3DSetDefaultLinkAndCompileFlags(bsf)
 
 # Includes
 target_include_directories(bsf PUBLIC

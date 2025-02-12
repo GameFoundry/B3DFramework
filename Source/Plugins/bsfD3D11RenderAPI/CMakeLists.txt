@@ -5,7 +5,7 @@ B3DGlobSourceFiles(${CMAKE_CURRENT_SOURCE_DIR} "" "" BS_D3D11RENDERAPI_SRC)
 add_library(bsfD3D11RenderAPI SHARED ${BS_D3D11RENDERAPI_SRC})
 
 # Common flags
-add_common_flags(bsfD3D11RenderAPI)
+B3DSetDefaultLinkAndCompileFlags(bsfD3D11RenderAPI)
 
 # Includes
 target_include_directories(bsfD3D11RenderAPI PRIVATE "./")

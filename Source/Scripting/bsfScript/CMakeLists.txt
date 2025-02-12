@@ -5,7 +5,7 @@ B3DGlobSourceFiles(${CMAKE_CURRENT_SOURCE_DIR} "" "" BS_SCRIPT_SRC)
 add_library(bsfScript OBJECT ${BS_SCRIPT_SRC})
 
 # Common flags
-add_common_flags(bsfScript)
+B3DSetDefaultLinkAndCompileFlags(bsfScript)
 	
 # Includes
 set(bsfScript_INC

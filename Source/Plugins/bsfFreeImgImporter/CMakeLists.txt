@@ -8,7 +8,7 @@ find_package(freeimg REQUIRED)
 add_library(bsfFreeImgImporter SHARED ${BS_FREEIMGIMPORTER_SRC})
 
 # Common flags
-add_common_flags(bsfFreeImgImporter)
+B3DSetDefaultLinkAndCompileFlags(bsfFreeImgImporter)
 
 # Includes
 target_include_directories(bsfFreeImgImporter PRIVATE "./")

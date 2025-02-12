@@ -5,7 +5,7 @@ B3DGlobSourceFiles(${CMAKE_CURRENT_SOURCE_DIR} "" "" BS_NULL_PHYSICS_SRC)
 add_library(bsfNullPhysics SHARED ${BS_NULL_PHYSICS_SRC})
 
 # Common flags
-add_common_flags(bsfNullPhysics)
+B3DSetDefaultLinkAndCompileFlags(bsfNullPhysics)
 
 # Includes
 target_include_directories(bsfNullPhysics PRIVATE "./")

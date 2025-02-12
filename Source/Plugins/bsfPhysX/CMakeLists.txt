@@ -10,7 +10,7 @@ endif()
 add_library(bsfPhysX SHARED ${BS_PHYSX_SRC})
 
 # Common flags
-add_common_flags(bsfPhysX)
+B3DSetDefaultLinkAndCompileFlags(bsfPhysX)
 
 # Includes
 target_include_directories(bsfPhysX PRIVATE "./")

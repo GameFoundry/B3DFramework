@@ -5,7 +5,7 @@ B3DGlobSourceFiles(${CMAKE_CURRENT_SOURCE_DIR} "" "" BS_NULLRENDERAPI_SRC)
 add_library(bsfNullRenderAPI SHARED ${BS_NULLRENDERAPI_SRC})
 
 # Common flags
-add_common_flags(bsfNullRenderAPI)
+B3DSetDefaultLinkAndCompileFlags(bsfNullRenderAPI)
 
 # Includes
 target_include_directories(bsfNullRenderAPI PRIVATE "./")
