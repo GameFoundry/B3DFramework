@@ -34,11 +34,11 @@ namespace bs
 		/// return the size of the entire animation grid.
 		/// </summary>
 		[NativeWrapper]
-		public Size2UI Size
+		public TSize2<int> Size
 		{
 			get
 			{
-				Size2UI temp;
+				TSize2<int> temp;
 				Internal_GetSize(mCachedPtr, out temp);
 				return temp;
 			}
@@ -49,11 +49,11 @@ namespace bs
 		/// GetWidth().
 		/// </summary>
 		[NativeWrapper]
-		public Size2UI AnimationFrameSize
+		public TSize2<int> AnimationFrameSize
 		{
 			get
 			{
-				Size2UI temp;
+				TSize2<int> temp;
 				Internal_GetAnimationFrameSize(mCachedPtr, out temp);
 				return temp;
 			}
@@ -118,9 +118,9 @@ namespace bs
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern RRef<SpriteImage> Internal_GetRef(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_GetSize(IntPtr thisPtr, out Size2UI __output);
+		private static extern void Internal_GetSize(IntPtr thisPtr, out TSize2<int> __output);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_GetAnimationFrameSize(IntPtr thisPtr, out Size2UI __output);
+		private static extern void Internal_GetAnimationFrameSize(IntPtr thisPtr, out TSize2<int> __output);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern RRef<Texture> Internal_GetAtlasTexture(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]

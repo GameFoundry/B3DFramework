@@ -10,29 +10,29 @@
 
 namespace bs
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptSize2 : public TScriptTypeDefinition<ScriptSize2>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptTSize2_float_ : public TScriptTypeDefinition<ScriptTSize2_float_>
 	{
 	public:
-		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "Size2")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "TSize2<float>")
 
 		static MonoObject* Box(const TSize2<float>& value);
 		static TSize2<float> Unbox(MonoObject* value);
 
 	private:
-		ScriptSize2();
+		ScriptTSize2_float_();
 
 	};
 
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptSize2UI : public TScriptTypeDefinition<ScriptSize2UI>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptTSize2_uint32_t_ : public TScriptTypeDefinition<ScriptTSize2_uint32_t_>
 	{
 	public:
-		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "Size2UI")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "TSize2<int>")
 
 		static MonoObject* Box(const TSize2<uint32_t>& value);
 		static TSize2<uint32_t> Unbox(MonoObject* value);
 
 	private:
-		ScriptSize2UI();
+		ScriptTSize2_uint32_t_();
 
 	};
 }

@@ -18,7 +18,7 @@ namespace bs
 		protected SpriteVectorPath() { }
 
 		/// <summary>Creates a new sprite vector path.</summary>
-		public SpriteVectorPath(RRef<VectorPath> vectorPath, Size2UI size)
+		public SpriteVectorPath(RRef<VectorPath> vectorPath, TSize2<int> size)
 		{
 			Internal_Create(this, vectorPath, ref size);
 		}
@@ -55,7 +55,7 @@ namespace bs
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_SetVectorPath(IntPtr thisPtr, RRef<VectorPath> vectorPath);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_Create(SpriteVectorPath managedInstance, RRef<VectorPath> vectorPath, ref Size2UI size);
+		private static extern void Internal_Create(SpriteVectorPath managedInstance, RRef<VectorPath> vectorPath, ref TSize2<int> size);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_Create0(SpriteVectorPath managedInstance, ref SpriteVectorPathCreateInformation createInformation);
 	}

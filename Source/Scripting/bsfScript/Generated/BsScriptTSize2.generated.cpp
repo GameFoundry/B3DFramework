@@ -7,29 +7,29 @@
 
 namespace bs
 {
-	ScriptSize2::ScriptSize2()
+	ScriptTSize2_float_::ScriptTSize2_float_()
 	{ }
 
-	MonoObject* ScriptSize2::Box(const TSize2<float>& value)
+	MonoObject* ScriptTSize2_float_::Box(const TSize2<float>& value)
 	{
 		return MonoUtil::Box(sInteropMetaData.ScriptClass->GetInternalClass(), (void*)&value);
 	}
 
-	TSize2<float> ScriptSize2::Unbox(MonoObject* value)
+	TSize2<float> ScriptTSize2_float_::Unbox(MonoObject* value)
 	{
 		return *(TSize2<float>*)MonoUtil::Unbox(value);
 	}
 
 
-	ScriptSize2UI::ScriptSize2UI()
+	ScriptTSize2_uint32_t_::ScriptTSize2_uint32_t_()
 	{ }
 
-	MonoObject* ScriptSize2UI::Box(const TSize2<uint32_t>& value)
+	MonoObject* ScriptTSize2_uint32_t_::Box(const TSize2<uint32_t>& value)
 	{
 		return MonoUtil::Box(sInteropMetaData.ScriptClass->GetInternalClass(), (void*)&value);
 	}
 
-	TSize2<uint32_t> ScriptSize2UI::Unbox(MonoObject* value)
+	TSize2<uint32_t> ScriptTSize2_uint32_t_::Unbox(MonoObject* value)
 	{
 		return *(TSize2<uint32_t>*)MonoUtil::Unbox(value);
 	}

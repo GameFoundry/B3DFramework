@@ -12,57 +12,12 @@ namespace bs
 
 	/// <summary>Encapsulates width/height in a single structure.</summary>
 	[StructLayout(LayoutKind.Sequential), SerializeObject]
-	public partial struct Size2
+	public partial struct TSize2<T>
 	{
-		/// <summary>Initializes the struct with default values.</summary>
-		public static Size2 Default()
-		{
-			Size2 value = new Size2();
-			value.Width = 0;
-			value.Height = 0;
-
-			return value;
-		}
-
-		public Size2(float width, float height)
-		{
-			this.Width = width;
-			this.Height = height;
-		}
-
-		public float Width;
-		public float Height;
+		public T Width;
+		public T Height;
 	}
 
 	/** @} */
 
-	/** @addtogroup Math
-	 *  @{
-	 */
-
-	/// <summary>Encapsulates width/height in a single structure.</summary>
-	[StructLayout(LayoutKind.Sequential), SerializeObject]
-	public partial struct Size2UI
-	{
-		/// <summary>Initializes the struct with default values.</summary>
-		public static Size2UI Default()
-		{
-			Size2UI value = new Size2UI();
-			value.Width = 0;
-			value.Height = 0;
-
-			return value;
-		}
-
-		public Size2UI(int width, int height)
-		{
-			this.Width = width;
-			this.Height = height;
-		}
-
-		public int Width;
-		public int Height;
-	}
-
-	/** @} */
 }

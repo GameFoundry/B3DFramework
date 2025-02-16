@@ -686,36 +686,6 @@
 		<property name="Entries" type="SubResource" getter="GetEntries" setter="SetEntries" static="false">
 		</property>
 	</class>
-	<struct native="TSize2&lt;float&gt;" script="Size2">
-		<doc>Encapsulates width/height in a single structure.</doc>
-		<ctor>
-		</ctor>
-		<ctor>
-			<param name="width" type="float">
-			</param>
-			<param name="height" type="float">
-			</param>
-		</ctor>
-		<field name="Width" type="float">
-		</field>
-		<field name="Height" type="float">
-		</field>
-	</struct>
-	<struct native="TSize2&lt;uint32_t&gt;" script="Size2UI">
-		<doc>Encapsulates width/height in a single structure.</doc>
-		<ctor>
-		</ctor>
-		<ctor>
-			<param name="width" type="int">
-			</param>
-			<param name="height" type="int">
-			</param>
-		</ctor>
-		<field name="Width" type="int">
-		</field>
-		<field name="Height" type="int">
-		</field>
-	</struct>
 	<enum native="PointerEventType" script="PointerEventType">
 		<doc>Type of pointer event.</doc>
 		<enumentry native="CursorMoved" script="CursorMoved">
@@ -845,6 +815,36 @@
 		<field name="X" type="TUnitValue&lt;float,PhysicalPixel&gt;">
 		</field>
 		<field name="Y" type="TUnitValue&lt;float,PhysicalPixel&gt;">
+		</field>
+	</struct>
+	<struct native="TSize2&lt;float&gt;" script="TSize2&lt;float&gt;">
+		<doc>Encapsulates width/height in a single structure.</doc>
+		<ctor>
+		</ctor>
+		<ctor>
+			<param name="width" type="float">
+			</param>
+			<param name="height" type="float">
+			</param>
+		</ctor>
+		<field name="Width" type="float">
+		</field>
+		<field name="Height" type="float">
+		</field>
+	</struct>
+	<struct native="TSize2&lt;uint32_t&gt;" script="TSize2&lt;int&gt;">
+		<doc>Encapsulates width/height in a single structure.</doc>
+		<ctor>
+		</ctor>
+		<ctor>
+			<param name="width" type="int">
+			</param>
+			<param name="height" type="int">
+			</param>
+		</ctor>
+		<field name="Width" type="int">
+		</field>
+		<field name="Height" type="int">
 		</field>
 	</struct>
 	<struct native="TVector3&lt;float&gt;" script="Vector3">
@@ -1282,7 +1282,7 @@
 			<doc>Creates a new sprite vector path.</doc>
 			<param name="vectorPath" type="RRef&lt;VectorPath&gt;">
 			</param>
-			<param name="size" type="Size2UI">
+			<param name="size" type="TSize2&lt;int&gt;">
 			</param>
 		</ctor>
 		<ctor>
@@ -4802,10 +4802,10 @@ If this is disabled, then color grading and white balancing will not be enabled 
 	<class native="SpriteImage" script="SpriteImage">
 		<doc>Image that references a part of a texture by specifying an UV range. When the sprite image is rendered only the portion of the texture specified by the UV range will be rendered.
 Sprite images also allow you to specify sprite sheet animation by varying which portion of the UV is selected over time.</doc>
-		<property name="Size" type="Size2UI" getter="GetSize" setter="" static="false">
+		<property name="Size" type="TSize2&lt;int&gt;" getter="GetSize" setter="" static="false">
 			<doc>Returns the pixel size of the UV subrange covered in the texture atlas. If the image includes animation, this will return the size of the entire animation grid.</doc>
 		</property>
-		<property name="AnimationFrameSize" type="Size2UI" getter="GetAnimationFrameSize" setter="" static="false">
+		<property name="AnimationFrameSize" type="TSize2&lt;int&gt;" getter="GetAnimationFrameSize" setter="" static="false">
 			<doc>Returns the size of a single animation frame in pixels. If the texture has no animation this is the same as GetWidth().</doc>
 		</property>
 		<property name="Texture" type="RRef&lt;Texture&gt;" getter="GetAtlasTexture" setter="" static="false">
@@ -7499,13 +7499,13 @@ Sprite images also allow you to specify sprite sheet animation by varying which 
 			</param>
 			<param name="vectorPath" type="RRef&lt;VectorPath&gt;">
 			</param>
-			<param name="size" type="Size2UI">
+			<param name="size" type="TSize2&lt;int&gt;">
 			</param>
 		</ctor>
 		<field name="VectorPath" type="RRef&lt;VectorPath&gt;">
 			<doc>Vector path to render on the sprite.</doc>
 		</field>
-		<field name="Size" type="Size2UI">
+		<field name="Size" type="TSize2&lt;int&gt;">
 			<doc>Size of the rasterized path, in pixels.</doc>
 		</field>
 		<field name="ScalingMode" type="VectorGraphicsRasterizationScaling">
