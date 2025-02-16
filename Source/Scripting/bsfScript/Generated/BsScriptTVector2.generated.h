@@ -11,6 +11,9 @@
 #include "../../../Foundation/bsfUtility/Math/BsVector2.h"
 #include "BsScriptObjectWrapper.h"
 #include "../../../Foundation/bsfUtility/Math/BsVector2.h"
+#include "BsScriptObjectWrapper.h"
+#include "../../../Foundation/bsfEngine/GUI/BsGUIElement.h"
+#include "../../../Foundation/bsfEngine/GUI/BsGUIElement.h"
 
 namespace bs
 {
@@ -63,6 +66,27 @@ namespace bs
 
 	private:
 		ScriptTVector2_uint32_t_();
+
+	};
+
+	struct __TVector2_TUnitValue_int32_t__LogicalPixel__Interop
+	{
+		TUnitValue<int32_t, LogicalPixel> X;
+		TUnitValue<int32_t, LogicalPixel> Y;
+	};
+
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptTVector2_TUnitValue_int32_t__LogicalPixel__ : public TScriptTypeDefinition<ScriptTVector2_TUnitValue_int32_t__LogicalPixel__>
+	{
+	public:
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "TVector2<bs::TUnitValue<int,bs::LogicalPixel>>")
+
+		static MonoObject* Box(const __TVector2_TUnitValue_int32_t__LogicalPixel__Interop& value);
+		static __TVector2_TUnitValue_int32_t__LogicalPixel__Interop Unbox(MonoObject* value);
+		static TVector2<TUnitValue<int32_t, LogicalPixel>> FromInterop(const __TVector2_TUnitValue_int32_t__LogicalPixel__Interop& value);
+		static __TVector2_TUnitValue_int32_t__LogicalPixel__Interop ToInterop(const TVector2<TUnitValue<int32_t, LogicalPixel>>& value);
+
+	private:
+		ScriptTVector2_TUnitValue_int32_t__LogicalPixel__();
 
 	};
 }

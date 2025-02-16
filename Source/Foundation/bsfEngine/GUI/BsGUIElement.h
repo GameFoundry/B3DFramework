@@ -67,6 +67,8 @@ namespace bs
 	extern template struct B3D_SCRIPT_EXPORT(DocumentationGroup(GUI), ExportAsStruct(true)) TUnitValue<float, PhysicalPixel>;
 	extern template struct B3D_SCRIPT_EXPORT(DocumentationGroup(GUI), ExportAsStruct(true)) TUnitValue<i32, LogicalPixel>;
 
+	extern template struct B3D_SCRIPT_EXPORT(DocumentationGroup(GUI), ExportAsStruct(true)) TVector2<TUnitValue<i32, LogicalPixel>>;
+
 	/**
 	 * Base class for all GUI elements. Provides general functionality such as element size/position, as well as handling child/parent relationships.
 	 *

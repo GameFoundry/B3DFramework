@@ -11,19 +11,19 @@ namespace bs
 	 */
 
 	/** Contains a number value and an associated unit. Used primarily to prevent implicit conversion between numbers of different units. */
-	template<typename Type, typename Unit>
+	template<typename T, typename Unit>
 	struct TUnitValue
 	{
-		Type Value = (Type)0;
+		T Value = (T)0;
 
 		TUnitValue() = default;
-		TUnitValue(Type value)
+		TUnitValue(T value)
 			:Value(value)
 		{ }
 
-		explicit operator Type() { return Value; }
+		explicit operator T() { return Value; }
 
-		TUnitValue& operator=(Type value) { Value = value; return *this; }
+		TUnitValue& operator=(T value) { Value = value; return *this; }
 
 		bool operator==(const TUnitValue& rhs) const { return Value == rhs.Value; }
 		bool operator!=(const TUnitValue& rhs) const { return Value != rhs.Value; }
@@ -36,7 +36,7 @@ namespace bs
 
 		const TUnitValue& operator+() const { return *this; }
 
-		template<typename U = Type, typename = std::enable_if_t<std::is_signed_v<U>, i32>>
+		template<typename U = T, typename = std::enable_if_t<std::is_signed_v<U>, i32>>
 		TUnitValue operator-() const { return TUnitValue(-Value); }
 
 		TUnitValue& operator+=(const TUnitValue& rhs) { Value += rhs.Value; return *this; }

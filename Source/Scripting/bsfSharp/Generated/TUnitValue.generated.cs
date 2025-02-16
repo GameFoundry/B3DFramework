@@ -15,9 +15,9 @@ namespace bs
 	/// different units.
 	/// </summary>
 	[StructLayout(LayoutKind.Sequential), SerializeObject]
-	public partial struct TUnitValue<Type, Unit>
+	public partial struct TUnitValue<T, Unit>
 	{
-		public Type Value;
+		public T Value;
 	}
 
 	/** @} */

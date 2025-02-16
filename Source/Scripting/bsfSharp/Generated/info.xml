@@ -787,6 +787,21 @@
 		<field name="Y" type="int">
 		</field>
 	</struct>
+	<struct native="TVector2&lt;TUnitValue&lt;int32_t, LogicalPixel&gt;&gt;" script="TVector2&lt;TUnitValue&lt;int,LogicalPixel&gt;&gt;">
+		<doc>A two dimensional vector.</doc>
+		<ctor>
+		</ctor>
+		<ctor>
+			<param name="x" type="TUnitValue&lt;int,LogicalPixel&gt;">
+			</param>
+			<param name="y" type="TUnitValue&lt;int,LogicalPixel&gt;">
+			</param>
+		</ctor>
+		<field name="X" type="TUnitValue&lt;int,LogicalPixel&gt;">
+		</field>
+		<field name="Y" type="TUnitValue&lt;int,LogicalPixel&gt;">
+		</field>
+	</struct>
 	<struct native="TVector3&lt;float&gt;" script="Vector3">
 		<doc>A three dimensional vector.</doc>
 		<ctor>

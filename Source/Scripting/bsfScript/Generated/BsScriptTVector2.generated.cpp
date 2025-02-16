@@ -4,6 +4,8 @@
 #include "BsMonoMethod.h"
 #include "BsMonoClass.h"
 #include "BsMonoUtil.h"
+#include "../../../Foundation/bsfEngine/GUI/BsGUIElement.h"
+#include "BsScriptTUnitValue.generated.h"
 
 namespace bs
 {
@@ -60,6 +62,38 @@ namespace bs
 	TVector2<uint32_t> ScriptTVector2_uint32_t_::Unbox(MonoObject* value)
 	{
 		return *(TVector2<uint32_t>*)MonoUtil::Unbox(value);
+	}
+
+
+	ScriptTVector2_TUnitValue_int32_t__LogicalPixel__::ScriptTVector2_TUnitValue_int32_t__LogicalPixel__()
+	{ }
+
+	MonoObject* ScriptTVector2_TUnitValue_int32_t__LogicalPixel__::Box(const __TVector2_TUnitValue_int32_t__LogicalPixel__Interop& value)
+	{
+		return MonoUtil::Box(sInteropMetaData.ScriptClass->GetInternalClass(), (void*)&value);
+	}
+
+	__TVector2_TUnitValue_int32_t__LogicalPixel__Interop ScriptTVector2_TUnitValue_int32_t__LogicalPixel__::Unbox(MonoObject* value)
+	{
+		return *(__TVector2_TUnitValue_int32_t__LogicalPixel__Interop*)MonoUtil::Unbox(value);
+	}
+
+	TVector2<TUnitValue<int32_t, LogicalPixel>> ScriptTVector2_TUnitValue_int32_t__LogicalPixel__::FromInterop(const __TVector2_TUnitValue_int32_t__LogicalPixel__Interop& value)
+	{
+		TVector2<TUnitValue<int32_t, LogicalPixel>> output;
+		output.X = value.X;
+		output.Y = value.Y;
+
+		return output;
+	}
+
+	__TVector2_TUnitValue_int32_t__LogicalPixel__Interop ScriptTVector2_TUnitValue_int32_t__LogicalPixel__::ToInterop(const TVector2<TUnitValue<int32_t, LogicalPixel>>& value)
+	{
+		__TVector2_TUnitValue_int32_t__LogicalPixel__Interop output;
+		output.X = value.X;
+		output.Y = value.Y;
+
+		return output;
 	}
 
 }

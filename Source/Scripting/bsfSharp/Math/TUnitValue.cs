@@ -73,6 +73,7 @@ namespace bs
         public override int GetHashCode() => EqualityComparer<T>.Default.GetHashCode(Value);
 
         public string ToString(string format, IFormatProvider formatProvider) => Value.ToString(format, formatProvider);
+        public override string ToString() => this.ToString(null, System.Globalization.CultureInfo.CurrentCulture);
 
         public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider provider) => Value.TryFormat(destination, out charsWritten, format, provider);
 
@@ -165,7 +166,15 @@ namespace bs
 
         public static bool TryConvertFromChecked<TOther>(TOther value, out TUnitValue<T, Unit> result) where TOther : INumberBase<TOther>
         {
-            bool returnValue = T.TryConvertFromChecked(value, out var internalValue);
+            bool returnValue;
+            T internalValue;
+            if (typeof(T) == typeof(TOther))
+            {
+                returnValue = true;
+                internalValue = (T)(object)value;
+            }
+            else
+                returnValue = T.TryConvertFromChecked(value, out internalValue);
 
             result = new TUnitValue<T, Unit>(internalValue);
             return returnValue;
@@ -173,7 +182,15 @@ namespace bs
 
         public static bool TryConvertFromSaturating<TOther>(TOther value, out TUnitValue<T, Unit> result) where TOther : INumberBase<TOther>
         {
-            bool returnValue = T.TryConvertFromSaturating(value, out var internalValue);
+            bool returnValue;
+            T internalValue;
+            if (typeof(T) == typeof(TOther))
+            {
+                returnValue = true;
+                internalValue = (T)(object)value;
+            }
+            else
+                returnValue = T.TryConvertFromSaturating(value, out internalValue);
 
             result = new TUnitValue<T, Unit>(internalValue);
             return returnValue;
@@ -181,15 +198,52 @@ namespace bs
 
         public static bool TryConvertFromTruncating<TOther>(TOther value, out TUnitValue<T, Unit> result) where TOther : INumberBase<TOther>
         {
-            bool returnValue = T.TryConvertFromTruncating(value, out var internalValue);
+            bool returnValue;
+            T internalValue;
+            if (typeof(T) == typeof(TOther))
+            {
+                returnValue = true;
+                internalValue = (T)(object)value;
+            }
+            else
+                returnValue = T.TryConvertFromTruncating(value, out internalValue);
 
             result = new TUnitValue<T, Unit>(internalValue);
             return returnValue;
         }
 
-        public static bool TryConvertToChecked<TOther>(TUnitValue<T, Unit> value, out TOther result) where TOther : INumberBase<TOther> => T.TryConvertToChecked(value.Value, out result);
-        public static bool TryConvertToSaturating<TOther>(TUnitValue<T, Unit> value, out TOther result) where TOther : INumberBase<TOther> => T.TryConvertToSaturating(value.Value, out result);
-        public static bool TryConvertToTruncating<TOther>(TUnitValue<T, Unit> value, out TOther result) where TOther : INumberBase<TOther> => T.TryConvertToTruncating(value.Value, out result);
+        public static bool TryConvertToChecked<TOther>(TUnitValue<T, Unit> value, out TOther result) where TOther : INumberBase<TOther>
+        {
+            if (typeof(TOther) == typeof(T))
+            {
+                result = (TOther)(object)value.Value;
+                return true;
+            }
+
+            return T.TryConvertToChecked(value.Value, out result);
+        }
+
+        public static bool TryConvertToSaturating<TOther>(TUnitValue<T, Unit> value, out TOther result) where TOther : INumberBase<TOther>
+        {
+            if (typeof(TOther) == typeof(T))
+            {
+                result = (TOther)(object)value.Value;
+                return true;
+            }
+
+            return T.TryConvertToSaturating(value.Value, out result);
+        }
+
+        public static bool TryConvertToTruncating<TOther>(TUnitValue<T, Unit> value, out TOther result) where TOther : INumberBase<TOther>
+        {
+            if (typeof(TOther) == typeof(T))
+            {
+                result = (TOther)(object)value.Value;
+                return true;
+            }
+
+            return T.TryConvertToTruncating(value.Value, out result);
+        }
     }
 
     /** @} */
