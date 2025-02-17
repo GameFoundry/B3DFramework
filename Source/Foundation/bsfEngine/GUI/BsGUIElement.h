@@ -2,13 +2,13 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsGUIUnits.h"
 #include "BsPrerequisites.h"
 #include "GUI/BsGUISizeConstraints.h"
 #include "GUI/BsGUILayoutData.h"
 #include "Math/BsRect2I.h"
 #include "Utility/BsRectOffset.h"
 #include "Utility/BsSpatialTree.h"
+#include "BsGUIUnits.h"
 
 namespace bs
 {

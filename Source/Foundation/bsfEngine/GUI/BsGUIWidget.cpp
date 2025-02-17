@@ -285,7 +285,7 @@ void GUIWidget::UpdateLayout(GUIElement* element)
 		GUILayoutData childLayoutData = parentPanelLayoutData;
 		panel->UpdateDepthRangeInternal(childLayoutData);
 
-		childLayoutData.RelativePosition = Vector2I(relativeElementArea.X, relativeElementArea.Y);
+		childLayoutData.RelativePosition = GUILogicalPoint(relativeElementArea.X, relativeElementArea.Y);
 		childLayoutData.Size = Size2UI(relativeElementArea.Width, relativeElementArea.Height);
 
 		dirtyElement->SetLayoutData(childLayoutData);
@@ -498,7 +498,7 @@ void GUIWidget::UpdateRootPanel()
 	u32 height = area.Height;
 
 	GUILayoutData layoutData;
-	layoutData.RelativePosition = Vector2I::kZero;
+	layoutData.RelativePosition = GUILogicalPoint::kZero;
 	layoutData.Size = Size2UI(width, height);
 	layoutData.SetWidgetDepth(mDepth);
 

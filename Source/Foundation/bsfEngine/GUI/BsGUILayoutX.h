@@ -52,7 +52,7 @@ namespace bs
 		 * @param	sizeRanges			Ranges of possible sizes used for the child elements. Array must be same size as elements array.
 		 * @param	mySizeRange			Size range of this element.
 		 */
-		void GetChildRelativeLayoutAreas(const Size2UI& layoutSize, Vector2I* outElementPositions, Size2UI* outElementSizes, u32 elementCount, const Vector<GUIConstrainedSize>& sizeRanges, const GUIConstrainedSize& mySizeRange) const;
+		void GetChildRelativeLayoutAreas(const Size2UI& layoutSize, GUILogicalPoint* outElementPositions, Size2UI* outElementSizes, u32 elementCount, const Vector<GUIConstrainedSize>& sizeRanges, const GUIConstrainedSize& mySizeRange) const;
 	};
 
 	/** @} */

@@ -96,7 +96,7 @@ u32 GUIScrollBar::GetRenderElementDepthRange() const
 void GUIScrollBar::UpdateLayoutForChildren()
 {
 	GUILayoutData childLayoutData = mLayoutData;
-	childLayoutData.RelativePosition = Vector2I::kZero;
+	childLayoutData.RelativePosition = GUILogicalPoint::kZero;
 
 	mLayout->SetLayoutData(childLayoutData);
 	mLayout->UpdateLayoutForChildren();

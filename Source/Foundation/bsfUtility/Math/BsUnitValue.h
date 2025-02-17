@@ -21,7 +21,7 @@ namespace bs
 			:Value(value)
 		{ }
 
-		explicit operator T() { return Value; }
+		explicit operator T() const { return Value; }
 
 		TUnitValue& operator=(T value) { Value = value; return *this; }
 

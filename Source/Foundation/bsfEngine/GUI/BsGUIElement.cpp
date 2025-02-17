@@ -175,16 +175,16 @@ GUILogicalPoint GUIElement::CalculatePositionRelativeTo(GUIElement* relativeTo) 
 		mParentWidget->UpdateLayout(mLayoutUpdateParent);
 
 	if(relativeTo == nullptr)
-		return mLayoutData.RelativePosition.To<GUILogicalUnit>();
+		return mLayoutData.RelativePosition;
 
 	auto fnGetAccumulatedRelativePosition = [relativeTo](const GUIElement* element, auto&& fnGetAccumulatedRelativePosition)
 	{
 		GUIElement* const parent = element->GetParent();
 		if(parent == nullptr || element == relativeTo)
-			return element->GetLayoutData().RelativePosition.To<GUILogicalUnit>();
+			return element->GetLayoutData().RelativePosition;
 
 		const GUILogicalPoint& parentPosition = fnGetAccumulatedRelativePosition(parent, fnGetAccumulatedRelativePosition);
-		return parentPosition + element->GetLayoutData().RelativePosition.To<GUILogicalUnit>();
+		return parentPosition + element->GetLayoutData().RelativePosition;
 	};
 
 	return fnGetAccumulatedRelativePosition(this, fnGetAccumulatedRelativePosition);
@@ -547,7 +547,7 @@ void GUIElement::UpdateAbsoluteCoordinates(const Vector2I& parentOrigin, float p
 {
 	mAbsoluteScale = mScale * parentScale;
 
-	mAbsolutePosition = (mLayoutData.RelativePosition.To<float>() * mAbsoluteScale).To<i32>() + parentOrigin;
+	mAbsolutePosition = (mLayoutData.RelativePosition.To<i32>().To<float>() * mAbsoluteScale).To<i32>() + parentOrigin;
 	mAbsoluteSize = (mLayoutData.Size.To<float>() * mAbsoluteScale).To<u32>();
 
 	mAbsoluteClippedArea = Rect2I(mAbsolutePosition, mAbsoluteSize);

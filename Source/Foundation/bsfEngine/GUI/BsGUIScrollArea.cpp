@@ -85,7 +85,7 @@ void GUIScrollArea::UpdateOptimalLayoutSizes()
 	mSizeRange = mSizeConstraints.CalculateConstrainedSize(CalculateUnconstrainedOptimalSize());
 }
 
-void GUIScrollArea::CalculateRelativeElementAreas(const Size2UI& scrollAreaSize,  Vector2I* outElementPositions, Size2UI* outElementSizes, u32 elementCount, const Vector<GUIConstrainedSize>& sizeRanges, Vector2I& outVisibleSize) const
+void GUIScrollArea::CalculateRelativeElementAreas(const Size2UI& scrollAreaSize,  GUILogicalPoint* outElementPositions, Size2UI* outElementSizes, u32 elementCount, const Vector<GUIConstrainedSize>& sizeRanges, Vector2I& outVisibleSize) const
 {
 	B3D_ASSERT(mChildren.size() == elementCount && elementCount == 3);
 
@@ -151,7 +151,7 @@ void GUIScrollArea::CalculateRelativeElementAreas(const Size2UI& scrollAreaSize,
 	}
 
 	outElementSizes[layoutIdx] = Size2UI(layoutWidth, layoutHeight);
-	outElementPositions[layoutIdx] = Vector2I(0, 0);
+	outElementPositions[layoutIdx] = GUILogicalPoint(0, 0);
 
 	// Calculate vertical scrollbar bounds
 	if(hasVerticalScrollbar)
@@ -162,12 +162,12 @@ void GUIScrollArea::CalculateRelativeElementAreas(const Size2UI& scrollAreaSize,
 			scrollBarHeight = (u32)std::max(0, (i32)scrollBarHeight - (i32)kScrollBarWidth);
 
 		outElementSizes[vertScrollIdx] = Size2UI(kScrollBarWidth, scrollBarHeight);
-		outElementPositions[vertScrollIdx] = Vector2I( scrollBarOffset, 0);
+		outElementPositions[vertScrollIdx] = GUILogicalPoint( scrollBarOffset, 0);
 	}
 	else
 	{
 		outElementSizes[vertScrollIdx] = Size2UI(0, 0);
-		outElementPositions[vertScrollIdx] = Vector2I(layoutWidth, 0);
+		outElementPositions[vertScrollIdx] = GUILogicalPoint(layoutWidth, 0);
 	}
 
 	// Calculate horizontal scrollbar bounds
@@ -179,24 +179,24 @@ void GUIScrollArea::CalculateRelativeElementAreas(const Size2UI& scrollAreaSize,
 			scrollBarWidth = (u32)std::max(0, (i32)scrollBarWidth - (i32)kScrollBarWidth);
 
 		outElementSizes[horzScrollIdx] = Size2UI(scrollBarWidth, kScrollBarWidth);
-		outElementPositions[horzScrollIdx] = Vector2I(0, scrollBarOffset);
+		outElementPositions[horzScrollIdx] = GUILogicalPoint(0, scrollBarOffset);
 	}
 	else
 	{
 		outElementSizes[horzScrollIdx] = Size2UI(0, 0);
-		outElementPositions[horzScrollIdx] = Vector2I(0, layoutHeight);
+		outElementPositions[horzScrollIdx] = GUILogicalPoint(0, layoutHeight);
 	}
 }
 
 void GUIScrollArea::UpdateLayoutForChildren()
 {
 	const u32 elementCount = (u32)mChildren.size();
-	Vector2I* elementPositions = nullptr;
+	GUILogicalPoint* elementPositions = nullptr;
 	Size2UI* elementSizes = nullptr;
 
 	if(elementCount > 0)
 	{
-		elementPositions = B3DStackNew<Vector2I>(elementCount);
+		elementPositions = B3DStackNew<GUILogicalPoint>(elementCount);
 		elementSizes = B3DStackNew<Size2UI>(elementCount);
 	}
 

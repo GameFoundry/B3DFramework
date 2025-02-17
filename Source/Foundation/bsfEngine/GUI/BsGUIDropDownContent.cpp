@@ -395,7 +395,7 @@ void GUIDropDownContent::UpdateLayoutForChildren()
 	{
 		const GUIDropDownDataEntry& element = mDropDownData.Entries[visibleElement.SequentialIndex];
 
-		childData.RelativePosition = Vector2I(0, yOffset);
+		childData.RelativePosition = GUILogicalPoint(0, yOffset);
 		childData.Size.Height = GetElementHeight(visibleElement.SequentialIndex);
 
 		yOffset += (i32)childData.Size.Height;

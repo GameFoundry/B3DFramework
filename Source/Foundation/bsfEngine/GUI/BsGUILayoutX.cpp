@@ -58,7 +58,7 @@ void GUILayoutX::UpdateOptimalLayoutSizes()
 	mConstrainedSize.Min.Y = std::max(mConstrainedSize.Min.Y, minSize.Y);
 }
 
-void GUILayoutX::GetChildRelativeLayoutAreas(const Size2UI& layoutSize, Vector2I* outElementPositions, Size2UI* outElementSizes, u32 elementCount, const Vector<GUIConstrainedSize>& sizeRanges, const GUIConstrainedSize& mySizeRange) const
+void GUILayoutX::GetChildRelativeLayoutAreas(const Size2UI& layoutSize, GUILogicalPoint* outElementPositions, Size2UI* outElementSizes, u32 elementCount, const Vector<GUIConstrainedSize>& sizeRanges, const GUIConstrainedSize& mySizeRange) const
 {
 	B3D_ASSERT(mChildren.size() == elementCount);
 
@@ -316,12 +316,12 @@ void GUILayoutX::GetChildRelativeLayoutAreas(const Size2UI& layoutSize, Vector2I
 void GUILayoutX::UpdateLayoutForChildren()
 {
 	const u32 elementCount = (u32)mChildren.size();
-	Vector2I* elementPositions = nullptr;
+	GUILogicalPoint* elementPositions = nullptr;
 	Size2UI* elementSizes = nullptr;
 
 	if(elementCount > 0)
 	{
-		elementPositions = B3DStackNew<Vector2I>(elementCount);
+		elementPositions = B3DStackNew<GUILogicalPoint>(elementCount);
 		elementSizes = B3DStackNew<Size2UI>(elementCount);
 	}
 

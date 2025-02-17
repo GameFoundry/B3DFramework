@@ -3,6 +3,7 @@
 #pragma once
 
 #include "BsPrerequisites.h"
+#include "BsGUIUnits.h"
 #include "Math/BsRect2I.h"
 
 namespace bs
@@ -47,7 +48,7 @@ namespace bs
 			return (((i32)Depth >> 8) & 0xFFFF) - 32768;
 		}
 
-		Vector2I RelativePosition{BsZero}; /**< Coordinates relative to the parent GUI element. Set during UpdateLayout pass. */
+		GUILogicalPoint RelativePosition{BsZero}; /**< Coordinates relative to the parent GUI element. Set during UpdateLayout pass. */
 		Size2UI Size; /**< Size of the GUI element in pixels. */
 		u32 Depth = 0;
 		u16 DepthRangeMin = -1;

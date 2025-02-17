@@ -167,7 +167,7 @@ namespace bs
 		void UpdateAbsoluteCoordinatesForChildren() override;
 
 		/** Calculates the position and size of the scroll area child layout and the scroll bars. */
-		void CalculateRelativeElementAreas(const Size2UI& scrollAreaSize, Vector2I* outElementPositions, Size2UI* outElementSizes, u32 elementCount, const Vector<GUIConstrainedSize>& sizeRanges, Vector2I& outVisibleSize) const;
+		void CalculateRelativeElementAreas(const Size2UI& scrollAreaSize, GUILogicalPoint* outElementPositions, Size2UI* outElementSizes, u32 elementCount, const Vector<GUIConstrainedSize>& sizeRanges, Vector2I& outVisibleSize) const;
 
 		ScrollBarType mVerticalScrollBarType;
 		ScrollBarType mHorizontalScrollBarType;
