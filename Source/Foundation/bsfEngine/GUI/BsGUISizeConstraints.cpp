@@ -25,8 +25,7 @@ GUISizeConstraints GUISizeConstraints::Create(const TInlineArray<GUIOption, 4>& 
 		switch(option.type)
 		{
 		case GUIOptionType::Position:
-			dimensions.X = (i32)option.min;
-			dimensions.Y = (i32)option.max;
+			dimensions.ExplicitPosition = GUILogicalPoint((i32)option.min, (i32)option.max);
 			break;
 		case GUIOptionType::FixedWidth:
 			dimensions.Flags |= GUISizeConstraintFlag::FixedWidth | GUISizeConstraintFlag::WidthOverridenAtRuntime;

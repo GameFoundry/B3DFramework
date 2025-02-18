@@ -42,10 +42,9 @@ GUIElement::GUIElement(const GUISizeConstraints& dimensions)
 	: mSizeConstraints(dimensions)
 {}
 
-void GUIElement::SetPosition(i32 x, i32 y)
+void GUIElement::SetPosition(const GUILogicalPoint& position)
 {
-	mSizeConstraints.X = x;
-	mSizeConstraints.Y = y;
+	mSizeConstraints.ExplicitPosition = position;
 
 	// Note: I could call _markMeshAsDirty with a little more work. If parent is layout then this call can be ignored
 	// and if it's a panel, we can immediately change the position without a full layout rebuild.
@@ -70,13 +69,13 @@ void GUIElement::SetSize(u32 width, u32 height)
 	MarkLayoutAsDirty();
 }
 
-void GUIElement::SetWidth(u32 width)
+void GUIElement::SetWidth(GUILogicalUnit width)
 {
 	const bool isFixedBefore = mSizeConstraints.IsWidthFixed() && mSizeConstraints.IsHeightFixed();
 
 	mSizeConstraints.Flags |= GUISizeConstraintFlag::FixedWidth | GUISizeConstraintFlag::WidthOverridenAtRuntime;
 	mSizeConstraints.Flags.Unset(GUISizeConstraintFlag::ExpandingWidth);
-	mSizeConstraints.MinWidth = mSizeConstraints.MaxWidth = width;
+	mSizeConstraints.MinWidth = mSizeConstraints.MaxWidth = (u32)width.To<u32>();
 
 	const bool isFixedAfter = mSizeConstraints.IsWidthFixed() && mSizeConstraints.IsHeightFixed();
 
@@ -107,13 +106,13 @@ void GUIElement::SetFlexibleWidth(u32 minWidth, u32 maxWidth)
 	MarkLayoutAsDirty();
 }
 
-void GUIElement::SetHeight(u32 height)
+void GUIElement::SetHeight(GUILogicalUnit height)
 {
 	const bool isFixedBefore = mSizeConstraints.IsWidthFixed() && mSizeConstraints.IsHeightFixed();
 
 	mSizeConstraints.Flags |= GUISizeConstraintFlag::FixedHeight | GUISizeConstraintFlag::HeightOverridenAtRuntime;
 	mSizeConstraints.Flags.Unset(GUISizeConstraintFlag::ExpandingHeight);
-	mSizeConstraints.MinHeight = mSizeConstraints.MaxHeight = height;
+	mSizeConstraints.MinHeight = mSizeConstraints.MaxHeight = (u32)height.To<u32>();
 
 	const bool isFixedAfter = mSizeConstraints.IsWidthFixed() && mSizeConstraints.IsHeightFixed();
 

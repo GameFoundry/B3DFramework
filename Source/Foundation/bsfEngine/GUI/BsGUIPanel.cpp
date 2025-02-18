@@ -83,18 +83,20 @@ void GUIPanel::UpdateOptimalLayoutSizes()
 		{
 			childSizeRange = GetChildElementSizeRange(child);
 
+			const GUILogicalSize margins(child->GetMargins().Left + child->GetMargins().Right, child->GetMargins().Top + child->GetMargins().Bottom);
+
 			const u32 marginsX = child->GetMargins().Left + child->GetMargins().Right;
 			const u32 marginsY = child->GetMargins().Top + child->GetMargins().Bottom;
 
 			Vector2I childMax;
-			childMax.X = child->GetSizeConstraints().X + childSizeRange.Optimal.X + marginsX;
-			childMax.Y = child->GetSizeConstraints().Y + childSizeRange.Optimal.Y + marginsY;
+			childMax.X = (i32)child->GetSizeConstraints().ExplicitPosition.X + childSizeRange.Optimal.X + marginsX;
+			childMax.Y = (i32)child->GetSizeConstraints().ExplicitPosition.Y + childSizeRange.Optimal.Y + marginsY;
 
 			optimalSize.X = std::max(optimalSize.X, childMax.X);
 			optimalSize.Y = std::max(optimalSize.Y, childMax.Y);
 
-			childMax.X = child->GetSizeConstraints().X + childSizeRange.Min.X + marginsX;
-			childMax.Y = child->GetSizeConstraints().Y + childSizeRange.Min.Y + marginsY;
+			childMax.X = (i32)child->GetSizeConstraints().ExplicitPosition.X + childSizeRange.Min.X + marginsX;
+			childMax.Y = (i32)child->GetSizeConstraints().ExplicitPosition.Y + childSizeRange.Min.Y + marginsY;
 
 			minSize.X = std::max(minSize.X, childMax.X);
 			minSize.Y = std::max(minSize.Y, childMax.Y);
@@ -133,14 +135,14 @@ Rect2I GUIPanel::CalculateRelativeElementArea(const Size2UI& layoutSize, const G
 
 	Rect2I area;
 
-	area.X = dimensions.X;
-	area.Y = dimensions.Y;
+	area.X = (i32)dimensions.ExplicitPosition.X;
+	area.Y = (i32)dimensions.ExplicitPosition.Y;
 
 	if(dimensions.IsWidthFixed())
 		area.Width = (u32)sizeRange.Optimal.X;
 	else
 	{
-		u32 modifiedWidth = (u32)std::max(0, (i32)layoutSize.Width - dimensions.X);
+		u32 modifiedWidth = (u32)std::max(0, (i32)layoutSize.Width - (i32)dimensions.ExplicitPosition.X);
 
 		if(modifiedWidth > (u32)sizeRange.Optimal.X)
 		{
@@ -160,7 +162,7 @@ Rect2I GUIPanel::CalculateRelativeElementArea(const Size2UI& layoutSize, const G
 		area.Height = (u32)sizeRange.Optimal.Y;
 	else
 	{
-		u32 modifiedHeight = (u32)std::max(0, (i32)layoutSize.Height - dimensions.Y);
+		u32 modifiedHeight = (u32)std::max(0, (i32)layoutSize.Height - (i32)dimensions.ExplicitPosition.Y);
 
 		if(modifiedHeight > (u32)sizeRange.Optimal.Y)
 		{

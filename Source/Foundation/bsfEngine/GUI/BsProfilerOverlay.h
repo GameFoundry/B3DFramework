@@ -219,6 +219,7 @@ namespace bs
 		HEvent mTargetResizedConn;
 		bool mIsShown;
 		u32 mNumGPUSamplesPerColumn = 20;
+		float mDPIScale = 1.0f; // TODO - Hook this up with actual window DPI
 	};
 
 	/** @} */

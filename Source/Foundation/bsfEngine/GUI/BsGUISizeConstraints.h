@@ -4,6 +4,7 @@
 
 #include "BsPrerequisites.h"
 #include "Math/BsSize2.h"
+#include "BsGUIUnits.h"
 
 namespace bs
 {
@@ -72,8 +73,7 @@ namespace bs
 		/** Returns true if the GUI element will attempt to expand to fill all available height. */
 		bool IsHeightExpanding() const { return Flags.IsSet(GUISizeConstraintFlag::ExpandingHeight); }
 
-		i32 X = 0; // TODO - Move position elsewhere
-		i32 Y = 0;
+		GUILogicalPoint ExplicitPosition; // TODO - Move position elsewhere
 
 		u32 MinWidth = 0;
 		u32 MaxWidth = 0;

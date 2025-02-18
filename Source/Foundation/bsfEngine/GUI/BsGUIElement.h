@@ -84,10 +84,27 @@ namespace bs
 		 *
 		 * Be aware that this value will be ignored if GUI element is part of a layout since then the layout controls its placement.
 		 */
-		void SetPosition(i32 x, i32 y);
+		void SetPosition(GUILogicalUnit x, GUILogicalUnit y) { SetPosition(GUILogicalPoint(x, y));}
+
+		/**
+		 * Sets element position relative to parent GUI panel. Values should be provided in logical pixel units.
+		 *
+		 * Be aware that this value will be ignored if GUI element is part of a layout since then the layout controls its placement.
+		 */
+		void SetPosition(i32 x, i32 y) { SetPosition(GUILogicalPoint(x, y));} // TODO - Deprecated
+
+		/**
+		 * Sets element position relative to parent GUI panel. Values should be provided in logical pixel units.
+		 *
+		 * Be aware that this value will be ignored if GUI element is part of a layout since then the layout controls its placement.
+		 */
+		void SetPosition(const GUILogicalPoint& position);
 
 		/**	Sets fixed element width. Value should be in logical pixel units. */
-		void SetWidth(u32 width);
+		void SetWidth(u32 width) { SetWidth(GUILogicalUnit((i32)width)); } // TODO - Deprecated
+
+		/**	Sets fixed element width. Value should be in logical pixel units. */
+		void SetWidth(GUILogicalUnit width);
 
 		/**
 		 * Sets flexible element width. Element will be resized according to its contents and parent layout but will
@@ -97,7 +114,10 @@ namespace bs
 		void SetFlexibleWidth(u32 minWidth = 0, u32 maxWidth = 0);
 
 		/**	Sets fixed element height. Value should be in logical pixel units. */
-		void SetHeight(u32 height);
+		void SetHeight(u32 height) { SetHeight(GUILogicalUnit((i32)height)); } // TODO - Deprecated
+
+		/**	Sets fixed element height. Value should be in logical pixel units. */
+		void SetHeight(GUILogicalUnit height);
 
 		/**
 		 * Sets flexible element height. Element will be resized according to its contents and parent layout but will

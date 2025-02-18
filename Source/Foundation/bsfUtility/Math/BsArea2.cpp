@@ -3,6 +3,7 @@
 #include "Math/BsArea2.h"
 #include "Math/BsMatrix4.h"
 #include "Math/BsMath.h"
+#include "Math/BsVector2.h"
 
 using namespace bs;
 
@@ -194,14 +195,14 @@ void TArea2<PositionType, SizeType>::Cut(const Vector<TArea2>& rectanglesToCutWi
 
 		for(auto& rectangleToCut : temporaryPieceBuffers[inputBufferIndex])
 		{
-			Array<TRect2, 4> cutPieces;
+			Array<TArea2, 4> cutPieces;
 			const u32 pieceCount = rectangleToCut.Cut(rectangleToCutWith, cutPieces);
 
 			temporaryPieceBuffers[outputBufferIndex].insert(temporaryPieceBuffers[outputBufferIndex].end(), cutPieces.data(), cutPieces.data() + pieceCount);
 		}
 	}
 
-	pieces = Vector<TRect2>(temporaryPieceBuffers[outputBufferIndex].begin(), temporaryPieceBuffers[outputBufferIndex].end());
+	pieces = Vector<TArea2>(temporaryPieceBuffers[outputBufferIndex].begin(), temporaryPieceBuffers[outputBufferIndex].end());
 }
 
 template<>
@@ -253,7 +254,7 @@ void TArea2<PositionType, SizeType>::AddUnique(const TArea2& area, T& inOutAreaL
 	bool shouldAddArea = true;
 	for(auto it = inOutAreaList.begin(); it != inOutAreaList.end();)
 	{
-		const TRect2& existingArea = *it;
+		const TArea2& existingArea = *it;
 
 		if(existingArea.Contains(area))
 		{

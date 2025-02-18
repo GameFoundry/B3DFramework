@@ -1,6 +1,8 @@
 //************************************ bs::framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "GUI/BsProfilerOverlay.h"
+
+#include "BsGUIUtility.h"
 #include "Scene/BsSceneObject.h"
 #include "GUI/BsCGUIWidget.h"
 #include "GUI/BsGUILayout.h"
@@ -550,14 +552,18 @@ void ProfilerOverlay::TargetResized()
 
 void ProfilerOverlay::UpdateCpuSampleAreaSizes()
 {
-	static const i32 kPadding = 10;
+	static const GUILogicalUnit kPadding = 10;
 	static const float kLabelsContentRatio = 0.3f;
 
-	u32 width = (u32)std::max(0, (i32)mTarget->GetPixelArea().Width - kPadding * 2);
-	u32 height = (u32)std::max(0, (i32)(mTarget->GetPixelArea().Height - kPadding * 3));
+	const Rect2I pixelArea = mTarget->GetPixelArea();
+	const GUIPhysicalSize physicalSize(Math::Max(0, (i32)pixelArea.Width), Math::Max(0, (i32)pixelArea.Height));
+	const GUILogicalSize logicalSize = GUIUtility::PhysicalToLogical(physicalSize, mDPIScale);
 
-	u32 labelsWidth = Math::CeilToInt(width * kLabelsContentRatio);
-	u32 contentWidth = width - labelsWidth;
+	const GUILogicalUnit width = Math::Max(GUILogicalUnit(0), logicalSize.Width - kPadding * 2);
+	const GUILogicalUnit height = Math::Max(GUILogicalUnit(0), logicalSize.Height - kPadding * 3);
+
+	const GUILogicalUnit labelsWidth = Math::CeilToInt((float)width.To<float>() * kLabelsContentRatio);
+	const GUILogicalUnit contentWidth = width - labelsWidth;
 
 	mBasicLayoutLabels->SetPosition(kPadding, kPadding);
 	mBasicLayoutLabels->SetWidth(labelsWidth);
@@ -578,17 +584,21 @@ void ProfilerOverlay::UpdateCpuSampleAreaSizes()
 
 void ProfilerOverlay::UpdateGpuSampleAreaSizes()
 {
-	static const i32 kPadding = 10;
+	static const GUILogicalUnit kPadding = 10;
 	static const float kSamplesFrameRatio = 0.25f;
-	static const i32 kHeaderHeight = 20;
+	static const GUILogicalUnit kHeaderHeight = 20;
 	static const i32 kNumColumns = 3;
 	static const i32 kHeightPerEntry = 15;
 
-	u32 width = (u32)std::max(0, (i32)mTarget->GetPixelArea().Width - kPadding * 2);
-	u32 height = (u32)std::max(0, (i32)(mTarget->GetPixelArea().Height - kPadding * 3));
+	const Rect2I pixelArea = mTarget->GetPixelArea();
+	const GUIPhysicalSize physicalSize(Math::Max(0, (i32)pixelArea.Width), Math::Max(0, (i32)pixelArea.Height));
+	const GUILogicalSize logicalSize = GUIUtility::PhysicalToLogical(physicalSize, mDPIScale);
 
-	u32 frameHeight = Math::CeilToInt(height * kSamplesFrameRatio);
-	u32 samplesHeight = height - frameHeight;
+	const GUILogicalUnit width = Math::Max(GUILogicalUnit(0), logicalSize.Width - kPadding * 2);
+	const GUILogicalUnit height = Math::Max(GUILogicalUnit(0), logicalSize.Height - kPadding * 3);
+
+	const GUILogicalUnit frameHeight = Math::CeilToInt((float)height.To<float>() * kSamplesFrameRatio);
+	const GUILogicalUnit samplesHeight = height - frameHeight;
 
 	mGPULayoutFrameContents->SetPosition(kPadding, kPadding);
 	mGPULayoutFrameContents->SetWidth(width);
@@ -598,8 +608,8 @@ void ProfilerOverlay::UpdateGpuSampleAreaSizes()
 	mGPULayoutSamples->SetWidth(width);
 	mGPULayoutSamples->SetHeight(samplesHeight);
 
-	u32 columnWidth = width / kNumColumns;
-	u32 columnHeight = samplesHeight - kHeaderHeight;
+	GUILogicalUnit columnWidth = width / kNumColumns;
+	GUILogicalUnit columnHeight = samplesHeight - kHeaderHeight;
 	for(u32 i = 0; i < kNumColumns; i++)
 	{
 		mGPULayoutSampleLabels[i]->SetPosition(columnWidth * i, kHeaderHeight);
@@ -611,7 +621,7 @@ void ProfilerOverlay::UpdateGpuSampleAreaSizes()
 		mGPULayoutSampleContents[i]->SetHeight(columnHeight);
 	}
 
-	mNumGPUSamplesPerColumn = columnHeight / kHeightPerEntry;
+	mNumGPUSamplesPerColumn = (u32)(i32)columnHeight / kHeightPerEntry;
 }
 
 void ProfilerOverlay::UpdateCpuSampleContents(const ProfilerReport& mainThreadReport, const ProfilerReport& renderThreadReport)
