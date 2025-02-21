@@ -453,14 +453,14 @@ GUIDrawGroupRenderDataUpdate GUIWidget::RebuildDirtyRenderData()
 	return mBatches.RebuildDirty(dirty);
 }
 
-bool GUIWidget::InBounds(const Vector2I& position) const
+bool GUIWidget::InBounds(const GUIPhysicalPoint& position) const
 {
 	Viewport* target = GetTarget();
 	if(target == nullptr)
 		return false;
 
 	// Technically GUI widget bounds can be larger than the viewport, so make sure we clip to viewport first
-	if(!target->GetPixelArea().Contains(position))
+	if(!target->GetPixelArea().Contains(position.To<i32>()))
 		return false;
 
 	Vector3 vecPos((float)position.X, (float)position.Y, 0.0f);

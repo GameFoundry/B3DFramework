@@ -18,15 +18,15 @@ namespace bs
 		protected Cursor() { }
 
 		/// <summary>Moves the cursor to the specified screen position.</summary>
-		public static void SetScreenPosition(TVector2<int> screenPos)
+		public static void SetScreenPosition(TVector2<TUnitValue<int,PhysicalPixel>> screenPos)
 		{
 			Internal_SetScreenPosition(ref screenPos);
 		}
 
 		/// <summary>Retrieves the cursor position in screen coordinates.</summary>
-		public static TVector2<int> GetScreenPosition()
+		public static TVector2<TUnitValue<int,PhysicalPixel>> GetScreenPosition()
 		{
-			TVector2<int> temp;
+			TVector2<TUnitValue<int,PhysicalPixel>> temp;
 			Internal_GetScreenPosition(out temp);
 			return temp;
 		}
@@ -106,9 +106,9 @@ namespace bs
 		}
 
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_SetScreenPosition(ref TVector2<int> screenPos);
+		private static extern void Internal_SetScreenPosition(ref TVector2<TUnitValue<int,PhysicalPixel>> screenPos);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_GetScreenPosition(out TVector2<int> __output);
+		private static extern void Internal_GetScreenPosition(out TVector2<TUnitValue<int,PhysicalPixel>> __output);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_Hide();
 		[MethodImpl(MethodImplOptions.InternalCall)]

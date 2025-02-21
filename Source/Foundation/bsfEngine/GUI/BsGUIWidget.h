@@ -9,6 +9,7 @@
 #include "Math/BsMatrix4.h"
 #include "Utility/BsEvent.h"
 #include "BsGUIMeshBatches.h"
+#include "BsGUIUnits.h"
 
 namespace bs
 {
@@ -58,7 +59,7 @@ namespace bs
 		/**
 		 * Checks are the specified coordinates within widget bounds. Coordinates should be relative to the parent window.
 		 */
-		bool InBounds(const Vector2I& position) const;
+		bool InBounds(const GUIPhysicalPoint& position) const;
 
 		/** Returns bounds of the widget, relative to the parent window. */
 		const Rect2I& GetBounds() const { return mBounds; }

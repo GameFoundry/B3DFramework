@@ -204,7 +204,7 @@ namespace bs
 		 *
 		 * @return	If provided widget has no bridge, coordinates are returned as is.
 		 */
-		Vector2I WindowToBridgedCoords(const SPtr<RenderTarget>& target, const Vector2I& windowPos) const;
+		GUIPhysicalPoint WindowToBridgedCoords(const SPtr<RenderTarget>& target, const GUIPhysicalPoint& windowPos) const;
 
 		/**
 		 * Returns the render window that holds the GUI element that displays the provided render texture.
@@ -256,7 +256,7 @@ namespace bs
 		 * @param[in]	control			Is control key held.
 		 * @param[in]	alt				Is alt key held.
 		 */
-		bool FindElementUnderPointer(const Vector2I& screenMousePos, bool buttonStates[3], bool shift, bool control, bool alt);
+		bool FindElementUnderPointer(const GUIPhysicalPoint& screenMousePos, bool buttonStates[3], bool shift, bool control, bool alt);
 
 		/**	Called whenever a pointer (for example mouse cursor) is moved. */
 		void OnPointerMoved(const PointerEvent& event);
@@ -295,7 +295,7 @@ namespace bs
 		GUIMouseButton ButtonToGuiButton(PointerEventButton pointerButton) const;
 
 		/**	Converts screen coordinates to coordinates relative to the specified widget. */
-		Vector2I GetWidgetRelativePos(const GUIWidget* widget, const Vector2I& screenPos) const;
+		GUIPhysicalPoint GetWidgetRelativePos(const GUIWidget* widget, const GUIPhysicalPoint& screenPos) const;
 
 		/**	Hides the tooltip if any is shown. */
 		void HideTooltip();
@@ -376,8 +376,8 @@ namespace bs
 		Vector2I mLastPointerScreenPos{BsZero};
 
 		DragState mDragState = DragState::NoDrag;
-		Vector2I mLastPointerClickPos{BsZero};
-		Vector2I mDragStartPos{BsZero};
+		GUIPhysicalPoint mLastPointerClickPos{BsZero};
+		GUIPhysicalPoint mDragStartPos{BsZero};
 
 		GUIMouseEvent mMouseEvent;
 		GUITextInputEvent mTextInputEvent;

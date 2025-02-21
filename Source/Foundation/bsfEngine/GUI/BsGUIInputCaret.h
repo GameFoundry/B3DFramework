@@ -2,6 +2,7 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
+#include "BsGUIUnits.h"
 #include "BsPrerequisites.h"
 #include "GUI/BsGUIInputTool.h"
 #include "2D/BsTextSprite.h"
@@ -54,7 +55,7 @@ namespace bs
 		void MoveCaretDown();
 
 		/** Moves caret to the character nearest to the specified position. Position is relative to parent GUI element. */
-		void MoveCaretToPos(const Vector2I& pos);
+		void MoveCaretToPos(const GUIPhysicalPoint& pos);
 
 		/**
 		 * Moves the caret to a specific character index.
@@ -68,10 +69,10 @@ namespace bs
 		u32 GetCharIdxAtCaretPos() const;
 
 		/** Returns current caret position, relative to parent GUI element. */
-		Vector2I GetCaretPosition() const;
+		GUIPhysicalPoint GetCaretPosition() const;
 
 		/**	Returns height of the caret, in pixels. */
-		u32 GetCaretHeight() const;
+		GUIPhysicalUnit GetCaretHeight() const;
 
 		/**	Returns true if the character after the caret is newline. */
 		bool IsCaretAtNewline() const;

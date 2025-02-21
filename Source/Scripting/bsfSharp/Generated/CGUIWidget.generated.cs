@@ -31,7 +31,7 @@ namespace bs
 			set { Internal_SetDepth(mCachedPtr, value); }
 		}
 
-		public bool InBounds(TVector2<int> position)
+		public bool InBounds(TVector2<TUnitValue<int,PhysicalPixel>> position)
 		{
 			return Internal_InBounds(mCachedPtr, ref position);
 		}
@@ -50,7 +50,7 @@ namespace bs
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_SetDepth(IntPtr thisPtr, byte depth);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern bool Internal_InBounds(IntPtr thisPtr, ref TVector2<int> position);
+		private static extern bool Internal_InBounds(IntPtr thisPtr, ref TVector2<TUnitValue<int,PhysicalPixel>> position);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_GetBounds(IntPtr thisPtr, out Rect2I __output);
 	}

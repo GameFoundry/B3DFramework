@@ -21,15 +21,15 @@ GUIInputCaret::~GUIInputCaret()
 
 Rect2I GUIInputCaret::GetBounds() const
 {
-	const Vector2I caretPosition = GetCaretPosition();
-	return Rect2I(caretPosition.X, caretPosition.Y, 1, GetCaretHeight());
+	const GUIPhysicalPoint caretPosition = GetCaretPosition();
+	return Rect2I((i32)caretPosition.X, (i32)caretPosition.Y, 1, (i32)GetCaretHeight());
 }
 
 void GUIInputCaret::UpdateSprite()
 {
 	ImageSpriteInformation mCaretDesc;
 	mCaretDesc.Width = 1;
-	mCaretDesc.Height = GetCaretHeight();
+	mCaretDesc.Height = (i32)GetCaretHeight();
 	mCaretDesc.Image = GUIManager::Instance().GetCaretTexture();
 
 	GUIWidget* widget = nullptr;
@@ -80,7 +80,7 @@ void GUIInputCaret::MoveCaretUp()
 		return;
 	}
 
-	Vector2I caretCoords = GetCaretPosition();
+	GUIPhysicalPoint caretCoords = GetCaretPosition();
 	caretCoords.Y -= GetCaretHeight();
 
 	MoveCaretToPos(caretCoords);
@@ -105,13 +105,13 @@ void GUIInputCaret::MoveCaretDown()
 		return;
 	}
 
-	Vector2I caretCoords = GetCaretPosition();
+	GUIPhysicalPoint caretCoords = GetCaretPosition();
 	caretCoords.Y += GetCaretHeight();
 
 	MoveCaretToPos(caretCoords);
 }
 
-void GUIInputCaret::MoveCaretToPos(const Vector2I& pos)
+void GUIInputCaret::MoveCaretToPos(const GUIPhysicalPoint& pos)
 {
 	i32 charIdx = GetCharIdxAtPos(pos);
 
@@ -119,8 +119,8 @@ void GUIInputCaret::MoveCaretToPos(const Vector2I& pos)
 	{
 		Rect2I charRect = GetCharacterBounds(charIdx);
 
-		float xCenter = charRect.X + charRect.Width * 0.5f;
-		if(pos.X <= xCenter)
+		float xCenter = (float)charRect.X + (float)charRect.Width * 0.5f;
+		if((float)pos.X <= xCenter)
 			MoveCaretToChar(charIdx, CARET_BEFORE);
 		else
 			MoveCaretToChar(charIdx, CARET_AFTER);
@@ -207,7 +207,7 @@ u32 GUIInputCaret::GetCharIdxAtCaretPos() const
 	return GetCharIdxAtInputIdx(mCaretPos);
 }
 
-Vector2I GUIInputCaret::GetCaretPosition() const
+GUIPhysicalPoint GUIInputCaret::GetCaretPosition() const
 {
 	if(mNumChars > 0 && IsDescValid())
 	{
@@ -221,7 +221,7 @@ Vector2I GUIInputCaret::GetCaretPosition() const
 			if(mCaretPos == curPos)
 			{
 				// Caret is on line start
-				return Vector2I(0, lineDesc.GetLineYStart());
+				return GUIPhysicalPoint(0, lineDesc.GetLineYStart());
 			}
 
 			curPos += lineDesc.GetEndChar(false) - lineDesc.GetStartChar() + 1; // + 1 for special line start position
@@ -237,13 +237,13 @@ Vector2I GUIInputCaret::GetCaretPosition() const
 		u32 lineIdx = GetLineForChar(charIdx);
 		u32 yOffset = GetLineDesc(lineIdx).GetLineYStart();
 
-		return Vector2I(charRect.X + charRect.Width, yOffset);
+		return GUIPhysicalPoint(charRect.X + charRect.Width, yOffset);
 	}
 
-	return Vector2I(0, 0);
+	return GUIPhysicalPoint(0, 0);
 }
 
-u32 GUIInputCaret::GetCaretHeight() const
+GUIPhysicalUnit GUIInputCaret::GetCaretHeight() const
 {
 	u32 charIdx = GetCharIdxAtCaretPos();
 	if(charIdx > 0)
@@ -252,7 +252,7 @@ u32 GUIInputCaret::GetCaretHeight() const
 	if(charIdx < mNumChars && IsDescValid())
 	{
 		u32 lineIdx = GetLineForChar(charIdx);
-		return GetLineDesc(lineIdx).GetLineHeight();
+		return (i32)GetLineDesc(lineIdx).GetLineHeight();
 	}
 	else
 	{
@@ -262,7 +262,7 @@ u32 GUIInputCaret::GetCaretHeight() const
 			SPtr<const FontBitmapInformation> fontData = mTextDesc.Font->GetBitmap(nearestSize);
 
 			if(fontData != nullptr)
-				return Math::RoundToU32(fontData->LineHeight);
+				return Math::RoundToI32(fontData->LineHeight);
 		}
 	}
 

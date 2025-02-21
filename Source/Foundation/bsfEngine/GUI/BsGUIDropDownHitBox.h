@@ -59,7 +59,7 @@ namespace bs
 
 		bool DoOnCommandEvent(const GUICommandEvent& ev) override;
 		bool DoOnMouseEvent(const GUIMouseEvent& ev) override;
-		bool IsInInteractionBounds(const Vector2I& position) const override;
+		bool IsInInteractionBounds(const GUIPhysicalPoint& position) const override;
 
 		Vector<Rect2I> mBounds;
 		bool mCaptureMouseOver;

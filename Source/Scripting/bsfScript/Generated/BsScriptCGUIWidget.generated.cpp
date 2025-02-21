@@ -72,13 +72,15 @@ namespace bs
 		static_cast<CGUIWidget*>(self->GetNativeObject())->SetDepth(depth);
 	}
 
-	bool ScriptGUIWidget::InternalInBounds(ScriptGUIWidget* self, TVector2<int32_t>* position)
+	bool ScriptGUIWidget::InternalInBounds(ScriptGUIWidget* self, __TVector2_TUnitValue_int32_t__PhysicalPixel__Interop* position)
 	{
 		bool tmp__output;
 		if(!self->IsNativeObjectValid())
 			return {};
 
-		tmp__output = static_cast<CGUIWidget*>(self->GetNativeObject())->InBounds(*position);
+		TVector2<TUnitValue<int32_t, PhysicalPixel>> tmpposition;
+		tmpposition = ScriptTVector2_TUnitValue_int32_t__PhysicalPixel__::FromInterop(*position);
+		tmp__output = static_cast<CGUIWidget*>(self->GetNativeObject())->InBounds(tmpposition);
 
 		bool __output;
 		__output = tmp__output;

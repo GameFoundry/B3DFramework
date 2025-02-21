@@ -14,7 +14,7 @@ using namespace std::placeholders;
 
 using namespace bs;
 
-const u32 GUIScrollBar::kButtonScrollAmount = 10;
+const GUIPhysicalUnit GUIScrollBar::kButtonScrollAmount = 10;
 
 GUIScrollBar::GUIScrollBar(bool horizontal, bool resizable, const String& styleName, const GUISizeConstraints& dimensions)
 	: GUIInteractable(styleName, dimensions), mHorizontal(horizontal)
@@ -111,10 +111,10 @@ void GUIScrollBar::HandleMoved(float handlePct, float sizePct)
 void GUIScrollBar::UpButtonClicked()
 {
 	float handleOffset = 0.0f;
-	float scrollableSize = (float)mHandleBtn->GetScrollableLength();
+	GUIPhysicalUnitF scrollableSize = mHandleBtn->GetScrollableLength().To<float>();
 
 	if(scrollableSize > 0.0f)
-		handleOffset = kButtonScrollAmount / scrollableSize;
+		handleOffset = (float)(kButtonScrollAmount.To<float>() / scrollableSize);
 
 	Scroll(handleOffset);
 }
@@ -122,10 +122,10 @@ void GUIScrollBar::UpButtonClicked()
 void GUIScrollBar::DownButtonClicked()
 {
 	float handleOffset = 0.0f;
-	float scrollableSize = (float)mHandleBtn->GetScrollableLength();
+	GUIPhysicalUnitF scrollableSize = (float)mHandleBtn->GetScrollableLength();
 
 	if(scrollableSize > 0.0f)
-		handleOffset = kButtonScrollAmount / scrollableSize;
+		handleOffset = (float)(kButtonScrollAmount.To<float>() / scrollableSize);
 
 	Scroll(-handleOffset);
 }
@@ -181,7 +181,7 @@ void GUIScrollBar::SetScrollHandleSize(float pct)
 	mHandleBtn->MarkLayoutAsDirty();
 }
 
-u32 GUIScrollBar::GetScrollableSize() const
+GUIPhysicalUnit GUIScrollBar::GetScrollableSize() const
 {
 	return mHandleBtn->GetScrollableLength();
 }

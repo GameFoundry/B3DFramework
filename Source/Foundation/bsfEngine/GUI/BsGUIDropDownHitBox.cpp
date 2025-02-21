@@ -102,11 +102,11 @@ bool GUIDropDownHitBox::DoOnMouseEvent(const GUIMouseEvent& ev)
 	return processed;
 }
 
-bool GUIDropDownHitBox::IsInInteractionBounds(const Vector2I& position) const
+bool GUIDropDownHitBox::IsInInteractionBounds(const GUIPhysicalPoint& position) const
 {
 	for(auto& bound : mBounds)
 	{
-		if(bound.Contains(position))
+		if(bound.Contains(position.To<i32>()))
 			return true;
 	}
 

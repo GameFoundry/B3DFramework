@@ -38,16 +38,16 @@ namespace bs
 
 	};
 
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptTArea2_double__double_ : public TScriptTypeDefinition<ScriptTArea2_double__double_>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptTArea2_float__float_ : public TScriptTypeDefinition<ScriptTArea2_float__float_>
 	{
 	public:
-		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "TArea2<double,double>")
+		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "TArea2<float,float>")
 
-		static MonoObject* Box(const TArea2<double, double>& value);
-		static TArea2<double, double> Unbox(MonoObject* value);
+		static MonoObject* Box(const TArea2<float, float>& value);
+		static TArea2<float, float> Unbox(MonoObject* value);
 
 	private:
-		ScriptTArea2_double__double_();
+		ScriptTArea2_float__float_();
 
 	};
 }

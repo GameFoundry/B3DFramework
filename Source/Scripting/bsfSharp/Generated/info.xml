@@ -1296,33 +1296,33 @@
 		<field name="Height" type="int">
 		</field>
 	</struct>
-	<struct native="TArea2&lt;double, double&gt;" script="TArea2&lt;double,double&gt;">
+	<struct native="TArea2&lt;float, float&gt;" script="TArea2&lt;float,float&gt;">
 		<doc>Represents a 2D area. Area is represented with an origin in top left and width/height.</doc>
 		<ctor>
 		</ctor>
 		<ctor>
-			<param name="x" type="double">
+			<param name="x" type="float">
 			</param>
-			<param name="y" type="double">
+			<param name="y" type="float">
 			</param>
-			<param name="width" type="double">
+			<param name="width" type="float">
 			</param>
-			<param name="height" type="double">
+			<param name="height" type="float">
 			</param>
 		</ctor>
 		<ctor>
-			<param name="position" type="TVector2&lt;double&gt;">
+			<param name="position" type="TVector2&lt;float&gt;">
 			</param>
-			<param name="size" type="TSize2&lt;double&gt;">
+			<param name="size" type="TSize2&lt;float&gt;">
 			</param>
 		</ctor>
-		<field name="X" type="double">
+		<field name="X" type="float">
 		</field>
-		<field name="Y" type="double">
+		<field name="Y" type="float">
 		</field>
-		<field name="Width" type="double">
+		<field name="Width" type="float">
 		</field>
-		<field name="Height" type="double">
+		<field name="Height" type="float">
 		</field>
 	</struct>
 	<struct native="BlendClipInfo" script="BlendClipInfo">
@@ -14223,49 +14223,6 @@ Alternatively you can also skip manually calling ReleaseInternalReference() and 
 		<enumentry native="Bottom" script="Bottom">
 		</enumentry>
 	</enum>
-	<class native="CGUIWidget" script="GUIWidget">
-		<doc>Component wrapper for GUIWidget.</doc>
-		<method native="InBounds" script="InBounds" static="false">
-			<param name="position" type="TVector2&lt;int&gt;">
-			</param>
-			<returns type="bool">
-			</returns>
-		</method>
-		<method native="GetBounds" script="GetBounds" static="false">
-			<returns type="Rect2I">
-			</returns>
-		</method>
-		<property name="Panel" type="GUIPanel" getter="GetPanel" setter="" static="false">
-		</property>
-		<property name="Depth" type="byte" getter="GetDepth" setter="SetDepth" static="false">
-		</property>
-	</class>
-	<class native="DragAndDropData" script="DragAndDropData">
-		<doc>Base type that should be inherited to provide specific data relevant to a drag and drop operation.</doc>
-		<ctor>
-		</ctor>
-	</class>
-	<class native="DragAndDrop" script="DragAndDrop">
-		<doc>Handles GUI drag and drop operations. When active GUI elements will be notified of any drag events and will be able to retrieve dragged data. When cursor is released the data will be dropped and underlying GUI elements will be notified the data is dropped. The dropped data is also available for a single frame via GetDropData() method.</doc>
-		<method native="StartDrag" script="StartDrag" static="false">
-			<doc>Starts a drag operation with the specified data. This means GUI elements will start receiving drag and drop related events and they may choose to handle them.</doc>
-			<param name="data" type="DragAndDropData">
-				<doc>Some operation specific data that is just passed through to however needs it.</doc>
-			</param>
-		</method>
-		<property name="IsDragInProgress" type="bool" getter="IsDragInProgress" setter="" static="false">
-			<doc>Returns true if drag is currently in progress.</doc>
-		</property>
-		<property name="IsDropInProgress" type="bool" getter="IsDropInProgress" setter="" static="false">
-			<doc>Returns true if a drop operation happened this frame.</doc>
-		</property>
-		<property name="DragData" type="DragAndDropData" getter="GetDragData" setter="" static="false">
-			<doc>Gets drag specific data specified when the drag started. Only valid if drag is in progress.</doc>
-		</property>
-		<property name="DropData" type="DragAndDropData" getter="GetDropData" setter="" static="false">
-			<doc>Gets drag specific data specified when the drag started. Only valid if drop is in progress. This is only valid for a single frame when a drop happens.</doc>
-		</property>
-	</class>
 	<struct native="PhysicalPixel" script="PhysicalPixel">
 		<doc>Location in 2D space in physical pixels. Physical pixels represent actual pixels as displayed on the output monitor.</doc>
 	</struct>
@@ -14316,6 +14273,49 @@ Alternatively you can also skip manually calling ReleaseInternalReference() and 
 		<field name="Value" type="float">
 		</field>
 	</struct>
+	<class native="CGUIWidget" script="GUIWidget">
+		<doc>Component wrapper for GUIWidget.</doc>
+		<method native="InBounds" script="InBounds" static="false">
+			<param name="position" type="TVector2&lt;TUnitValue&lt;int,PhysicalPixel&gt;&gt;">
+			</param>
+			<returns type="bool">
+			</returns>
+		</method>
+		<method native="GetBounds" script="GetBounds" static="false">
+			<returns type="Rect2I">
+			</returns>
+		</method>
+		<property name="Panel" type="GUIPanel" getter="GetPanel" setter="" static="false">
+		</property>
+		<property name="Depth" type="byte" getter="GetDepth" setter="SetDepth" static="false">
+		</property>
+	</class>
+	<class native="DragAndDropData" script="DragAndDropData">
+		<doc>Base type that should be inherited to provide specific data relevant to a drag and drop operation.</doc>
+		<ctor>
+		</ctor>
+	</class>
+	<class native="DragAndDrop" script="DragAndDrop">
+		<doc>Handles GUI drag and drop operations. When active GUI elements will be notified of any drag events and will be able to retrieve dragged data. When cursor is released the data will be dropped and underlying GUI elements will be notified the data is dropped. The dropped data is also available for a single frame via GetDropData() method.</doc>
+		<method native="StartDrag" script="StartDrag" static="false">
+			<doc>Starts a drag operation with the specified data. This means GUI elements will start receiving drag and drop related events and they may choose to handle them.</doc>
+			<param name="data" type="DragAndDropData">
+				<doc>Some operation specific data that is just passed through to however needs it.</doc>
+			</param>
+		</method>
+		<property name="IsDragInProgress" type="bool" getter="IsDragInProgress" setter="" static="false">
+			<doc>Returns true if drag is currently in progress.</doc>
+		</property>
+		<property name="IsDropInProgress" type="bool" getter="IsDropInProgress" setter="" static="false">
+			<doc>Returns true if a drop operation happened this frame.</doc>
+		</property>
+		<property name="DragData" type="DragAndDropData" getter="GetDragData" setter="" static="false">
+			<doc>Gets drag specific data specified when the drag started. Only valid if drag is in progress.</doc>
+		</property>
+		<property name="DropData" type="DragAndDropData" getter="GetDropData" setter="" static="false">
+			<doc>Gets drag specific data specified when the drag started. Only valid if drop is in progress. This is only valid for a single frame when a drop happens.</doc>
+		</property>
+	</class>
 	<struct native="GUIOption" script="GUIOption">
 		<doc>Controls GUI element layout options, possibly by overriding the default options specified in GUI element style. These options control GUI element placement and size in a GUI layout.</doc>
 		<ctor>
@@ -14859,12 +14859,12 @@ Primary purpose of this class is to avoid expensive string compare, and instead 
 		<doc>Allows you to manipulate the platform cursor in various ways.</doc>
 		<method native="SetScreenPosition" script="SetScreenPosition" static="false">
 			<doc>Moves the cursor to the specified screen position.</doc>
-			<param name="screenPos" type="TVector2&lt;int&gt;">
+			<param name="screenPos" type="TVector2&lt;TUnitValue&lt;int,PhysicalPixel&gt;&gt;">
 			</param>
 		</method>
 		<method native="GetScreenPosition" script="GetScreenPosition" static="false">
 			<doc>Retrieves the cursor position in screen coordinates.</doc>
-			<returns type="TVector2&lt;int&gt;">
+			<returns type="TVector2&lt;TUnitValue&lt;int,PhysicalPixel&gt;&gt;">
 			</returns>
 		</method>
 		<method native="Hide" script="Hide" static="false">

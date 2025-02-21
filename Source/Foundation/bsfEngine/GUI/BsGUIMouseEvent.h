@@ -4,6 +4,7 @@
 
 #include "BsPrerequisites.h"
 #include "BsDragAndDrop.h"
+#include "GUI/BsGUIUnits.h"
 
 namespace bs
 {
@@ -53,7 +54,7 @@ namespace bs
 		 * The position of the mouse when the event happened. This is relative to the parent widget of the element this
 		 * event is being sent to.
 		 */
-		const Vector2I& GetPosition() const { return mPosition; }
+		const GUIPhysicalPoint& GetPosition() const { return mPosition; }
 
 		/**	Returns the internal type of the event. */
 		GUIMouseEventType GetType() const { return mType; }
@@ -62,10 +63,10 @@ namespace bs
 		GUIMouseButton GetButton() const { return mButton; }
 
 		/**	Returns drag amount in pixels, if event is drag related. */
-		Vector2I GetDragAmount() const { return mDragAmount; }
+		GUIPhysicalPoint GetDragAmount() const { return mDragAmount; }
 
 		/**	Returns the position where the drag was started from, if event is drag related. */
-		Vector2I GetDragStartPosition() const { return mDragStartPosition; }
+		GUIPhysicalPoint GetDragStartPosition() const { return mDragStartPosition; }
 
 		/**	Returns amount of mouse wheel scroll, if event is scroll wheel related. */
 		float GetWheelScrollAmount() const { return mWheelScrollAmount; }
@@ -89,48 +90,48 @@ namespace bs
 		friend class GUIManager;
 
 		/**	Initializes the event with MouseOver event data. */
-		void SetMouseOverData(const Vector2I& position);
+		void SetMouseOverData(const GUIPhysicalPoint& position);
 
 		/**	Initializes the event with MouseOut event data. */
-		void SetMouseOutData(const Vector2I& position);
+		void SetMouseOutData(const GUIPhysicalPoint& position);
 
 		/**	Initializes the event with MouseMove event data. */
-		void SetMouseMoveData(const Vector2I& position);
+		void SetMouseMoveData(const GUIPhysicalPoint& position);
 
 		/**	Initializes the event with MouseWheelScroll event data. */
 		void SetMouseWheelScrollData(float scrollAmount);
 
 		/**	Initializes the event with MouseUp event data. */
-		void SetMouseUpData(const Vector2I& position, GUIMouseButton button);
+		void SetMouseUpData(const GUIPhysicalPoint& position, GUIMouseButton button);
 
 		/**	Initializes the event with MouseDown event data. */
-		void SetMouseDownData(const Vector2I& position, GUIMouseButton button);
+		void SetMouseDownData(const GUIPhysicalPoint& position, GUIMouseButton button);
 
 		/**	Initializes the event with MouseDoubleClick event data. */
-		void SetMouseDoubleClickData(const Vector2I& position, GUIMouseButton button);
+		void SetMouseDoubleClickData(const GUIPhysicalPoint& position, GUIMouseButton button);
 
 		/**	Initializes the event with MouseDrag event data. */
-		void SetMouseDragData(const Vector2I& position, const Vector2I& dragStartPosition);
+		void SetMouseDragData(const GUIPhysicalPoint& position, const GUIPhysicalPoint& dragStartPosition);
 
 		/**	Initializes the event with MouseDragStart event data. */
-		void SetMouseDragStartData(const Vector2I& position, const Vector2I& dragStartPosition);
+		void SetMouseDragStartData(const GUIPhysicalPoint& position, const GUIPhysicalPoint& dragStartPosition);
 
 		/**	Initializes the event with MouseDragEnd event data. */
-		void SetMouseDragEndData(const Vector2I& position);
+		void SetMouseDragEndData(const GUIPhysicalPoint& position);
 
 		/**	Initializes the event with DragAndDropDropped event data. */
-		void SetDragAndDropDroppedData(const Vector2I& position, const SPtr<DragAndDropData>& dragAndDropData);
+		void SetDragAndDropDroppedData(const GUIPhysicalPoint& position, const SPtr<DragAndDropData>& dragAndDropData);
 
 		/**	Initializes the event with DragAndDropDragged event data. */
-		void SetDragAndDropDraggedData(const Vector2I& position, const SPtr<DragAndDropData>& dragAndDropData);
+		void SetDragAndDropDraggedData(const GUIPhysicalPoint& position, const SPtr<DragAndDropData>& dragAndDropData);
 
 		/**	Initializes the event with DragAndDropLeft event data. */
-		void SetDragAndDropLeftData(const Vector2I& position, const SPtr<DragAndDropData>& dragAndDropData);
+		void SetDragAndDropLeftData(const GUIPhysicalPoint& position, const SPtr<DragAndDropData>& dragAndDropData);
 
 		bool mButtonStates[(int)GUIMouseButton::Count];
-		Vector2I mPosition{BsZero};
-		Vector2I mDragStartPosition{BsZero};
-		Vector2I mDragAmount{BsZero};
+		GUIPhysicalPoint mPosition{BsZero};
+		GUIPhysicalPoint mDragStartPosition{BsZero};
+		GUIPhysicalPoint mDragAmount{BsZero};
 		float mWheelScrollAmount = 0.0f;
 		GUIMouseEventType mType = GUIMouseEventType::MouseMove;
 		GUIMouseButton mButton = GUIMouseButton::Left;

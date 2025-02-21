@@ -70,13 +70,13 @@ namespace bs
 		float GetMinimumStepIncrement() const { return mMinimumStepIncrement; }
 
 		/**	Returns the position of the slider handle, in pixels. Relative to this object. */
-		i32 GetHandlePositionInPixels() const;
+		GUIPhysicalUnit GetHandlePositionInPixels() const;
 
 		/**	Returns remaining length of the scrollable area not covered by the handle, in pixels. */
-		u32 GetScrollableLength() const { return GetTotalLength() - GetHandleSizeInPixels(); }
+		GUIPhysicalUnit GetScrollableLength() const { return GetTotalLength() - GetHandleSizeInPixels(); }
 
 		/**	Returns the total length of the area the handle can move in, in pixels. */
-		u32 GetTotalLength() const;
+		GUIPhysicalUnit GetTotalLength() const;
 
 		/**
 		 * Sets a step that defines the minimal increment the value can be increased/decreased by. Set to zero to have no
@@ -105,7 +105,7 @@ namespace bs
 		float GetHandleSizeInPercent() const { return mHandleSizeInPercent; }
 
 		/** Returns the size of the handle button, in pixels. */
-		u32 GetHandleSizeInPixels() const;
+		GUIPhysicalUnit GetHandleSizeInPixels() const;
 
 		/**
 		 * Size of the handle in percent of the total draggable area, along the handle drag direction.
@@ -126,7 +126,7 @@ namespace bs
 		void SetHandlePositionInPercent(float percent);
 
 		/**	Sets the position of the slider handle, in pixels. Relative to this object. */
-		void SetHandlePositionInPixels(i32 position);
+		void SetHandlePositionInPixels(GUIPhysicalUnit position);
 
 		Vector2I CalculateUnconstrainedOptimalSize() const override;
 
@@ -134,12 +134,12 @@ namespace bs
 	protected:
 		void UpdateRenderElements() override;
 
-		static constexpr u32 kMinimumHandleSize = 1;
+		static constexpr GUIPhysicalUnit kMinimumHandleSize = 1;
 	private:
 		bool DoOnMouseEvent(const GUIMouseEvent& ev) override;
 
 		/** Checks are the specified over the scroll handle. Coordinates are relative to the parent widget. */
-		bool IsOnHandle(const Vector2I& position) const;
+		bool IsOnHandle(const GUIPhysicalPoint& position) const;
 
 		GUIBackgroundSprite mBackgroundSprite;
 
@@ -147,7 +147,7 @@ namespace bs
 		float mHandlePositionInPercent = 0.0f;
 		float mHandleSizeInPercent = 0.0f;
 		float mMinimumStepIncrement = 0.0f;
-		i32 mDragStartPos = 0;
+		GUIPhysicalUnit mDragStartPos = 0;
 		DragState mDragState = DragState::Normal;
 		bool mMouseOverHandle = false;
 		bool mHandleDragged = false;

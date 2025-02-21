@@ -39,7 +39,7 @@ namespace bs
 
 		/** @copydoc GUIWidget::InBounds */
 		B3D_SCRIPT_EXPORT()
-		bool InBounds(const Vector2I& position) const;
+		bool InBounds(const GUIPhysicalPoint& position) const;
 
 		/** @copydoc GUIWidget::GetBounds */
 		B3D_SCRIPT_EXPORT()

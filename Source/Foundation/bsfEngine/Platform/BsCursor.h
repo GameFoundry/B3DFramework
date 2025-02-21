@@ -3,6 +3,7 @@
 #pragma once
 
 #include "BsPrerequisites.h"
+#include "GUI/BsGUIUnits.h"
 #include "Utility/BsModule.h"
 #include "Image/BsPixelData.h"
 
@@ -37,11 +38,11 @@ namespace bs
 
 		/**	Moves the cursor to the specified screen position. */
 		B3D_SCRIPT_EXPORT()
-		void SetScreenPosition(const Vector2I& screenPos);
+		void SetScreenPosition(const GUIPhysicalPoint& screenPos);
 
 		/**	Retrieves the cursor position in screen coordinates. */
 		B3D_SCRIPT_EXPORT()
-		Vector2I GetScreenPosition();
+		GUIPhysicalPoint GetScreenPosition() const;
 
 		/**	Hides the cursor. */
 		B3D_SCRIPT_EXPORT()

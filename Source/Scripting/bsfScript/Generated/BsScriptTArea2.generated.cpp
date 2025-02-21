@@ -35,17 +35,17 @@ namespace bs
 	}
 
 
-	ScriptTArea2_double__double_::ScriptTArea2_double__double_()
+	ScriptTArea2_float__float_::ScriptTArea2_float__float_()
 	{ }
 
-	MonoObject* ScriptTArea2_double__double_::Box(const TArea2<double, double>& value)
+	MonoObject* ScriptTArea2_float__float_::Box(const TArea2<float, float>& value)
 	{
 		return MonoUtil::Box(sInteropMetaData.ScriptClass->GetInternalClass(), (void*)&value);
 	}
 
-	TArea2<double, double> ScriptTArea2_double__double_::Unbox(MonoObject* value)
+	TArea2<float, float> ScriptTArea2_float__float_::Unbox(MonoObject* value)
 	{
-		return *(TArea2<double, double>*)MonoUtil::Unbox(value);
+		return *(TArea2<float, float>*)MonoUtil::Unbox(value);
 	}
 
 }

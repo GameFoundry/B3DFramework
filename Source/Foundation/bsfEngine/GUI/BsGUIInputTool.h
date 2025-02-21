@@ -2,6 +2,7 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
+#include "BsGUIUnits.h"
 #include "BsPrerequisites.h"
 #include "2D/BsTextSprite.h"
 
@@ -94,7 +95,7 @@ namespace bs
 		Rect2I GetCharacterBounds(u32 characterIndex) const;
 
 		/** Returns character index nearest to the specified position. Position should be relative to parent GUI element. */
-		i32 GetCharIdxAtPos(const Vector2I& pos) const;
+		i32 GetCharIdxAtPos(const GUIPhysicalPoint& pos) const;
 
 		/**	Returns true if the currently set text desctiptor is valid (has any characters). */
 		bool IsDescValid() const;

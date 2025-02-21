@@ -7,6 +7,7 @@
 #include "../../../Foundation/bsfEngine/Platform/BsCursor.h"
 #include "BsScriptTVector2.generated.h"
 #include "BsScriptPixelData.generated.h"
+#include "BsScriptTVector2.generated.h"
 
 namespace bs
 {
@@ -32,17 +33,21 @@ namespace bs
 
 	}
 
-	void ScriptCursor::InternalSetScreenPosition(TVector2<int32_t>* screenPos)
+	void ScriptCursor::InternalSetScreenPosition(__TVector2_TUnitValue_int32_t__PhysicalPixel__Interop* screenPos)
 	{
-		Cursor::Instance().SetScreenPosition(*screenPos);
+		TVector2<TUnitValue<int32_t, PhysicalPixel>> tmpscreenPos;
+		tmpscreenPos = ScriptTVector2_TUnitValue_int32_t__PhysicalPixel__::FromInterop(*screenPos);
+		Cursor::Instance().SetScreenPosition(tmpscreenPos);
 	}
 
-	void ScriptCursor::InternalGetScreenPosition(TVector2<int32_t>* __output)
+	void ScriptCursor::InternalGetScreenPosition(__TVector2_TUnitValue_int32_t__PhysicalPixel__Interop* __output)
 	{
-		TVector2<int32_t> tmp__output;
+		TVector2<TUnitValue<int32_t, PhysicalPixel>> tmp__output;
 		tmp__output = Cursor::Instance().GetScreenPosition();
 
-		*__output = tmp__output;
+		__TVector2_TUnitValue_int32_t__PhysicalPixel__Interop interop__output;
+		interop__output = ScriptTVector2_TUnitValue_int32_t__PhysicalPixel__::ToInterop(tmp__output);
+		MonoUtil::ValueCopy(__output, &interop__output, ScriptTVector2_TUnitValue_int32_t__PhysicalPixel__::GetMetaData()->ScriptClass->GetInternalClass());
 	}
 
 	void ScriptCursor::InternalHide()

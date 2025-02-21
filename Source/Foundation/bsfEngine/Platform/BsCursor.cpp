@@ -14,14 +14,14 @@ Cursor::Cursor()
 		RestoreCursorIcon((CursorType)i);
 }
 
-void Cursor::SetScreenPosition(const Vector2I& screenPos)
+void Cursor::SetScreenPosition(const GUIPhysicalPoint& screenPos)
 {
-	Platform::SetCursorPosition(screenPos);
+	Platform::SetCursorPosition(screenPos.To<i32>());
 }
 
-Vector2I Cursor::GetScreenPosition()
+GUIPhysicalPoint Cursor::GetScreenPosition() const
 {
-	return Platform::GetCursorPosition();
+	return Platform::GetCursorPosition().To<GUIPhysicalUnit>();
 }
 
 void Cursor::Hide()

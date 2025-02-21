@@ -40,10 +40,10 @@ namespace bs
 		void Scroll(float amount);
 
 		/**	Returns the maximum scrollable size the handle can move within (for example scroll bar length). */
-		u32 GetScrollableSize() const;
+		GUIPhysicalUnit GetScrollableSize() const;
 
 		void SetTint(const Color& color) override;
-		bool IsInInteractionBounds(const Vector2I& position) const override { return false; } // Non-interactable
+		bool IsInInteractionBounds(const GUIPhysicalPoint& position) const override { return false; } // Non-interactable
 
 		/**
 		 * Triggered whenever the scrollbar handle is moved or resized. Values provided are the handle position and size
@@ -135,7 +135,7 @@ namespace bs
 		GUISliderHandle* mHandleBtn;
 		bool mHorizontal;
 
-		static const u32 kButtonScrollAmount;
+		static const GUIPhysicalUnit kButtonScrollAmount;
 	};
 
 	/** @} */

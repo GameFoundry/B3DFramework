@@ -67,7 +67,7 @@ void GUISlider::UpdateLayoutForChildren()
 		u32 handleWidth = optimalSize.X;
 
 		optimalSize = mFillBackground->CalculateConstrainedSize().Optimal;
-		childData.Size = Size2UI(mSliderHandle->GetHandlePositionInPixels() + handleWidth / 2, optimalSize.Y);
+		childData.Size = Size2UI((i32)mSliderHandle->GetHandlePositionInPixels() + handleWidth / 2, optimalSize.Y);
 		childData.RelativePosition = GUILogicalPoint(0, (i32)((mLayoutData.Size.Height - childData.Size.Height) * 0.5f));
 
 		mFillBackground->SetLayoutData(childData);
@@ -88,7 +88,7 @@ void GUISlider::UpdateLayoutForChildren()
 		u32 handleHeight = optimalSize.Y;
 
 		optimalSize = mFillBackground->CalculateConstrainedSize().Optimal;
-		childData.Size = Size2UI(optimalSize.X, mSliderHandle->GetHandlePositionInPixels() + handleHeight / 2);
+		childData.Size = Size2UI(optimalSize.X, (i32)mSliderHandle->GetHandlePositionInPixels() + handleHeight / 2);
 		childData.RelativePosition = GUILogicalPoint((i32)((mLayoutData.Size.Width - childData.Size.Width) * 0.5f), 0);
 
 		mFillBackground->SetLayoutData(childData);

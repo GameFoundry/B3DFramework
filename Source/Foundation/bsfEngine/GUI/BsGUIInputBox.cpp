@@ -87,7 +87,7 @@ void GUIInputBox::UpdateRenderElements()
 	GUISpriteHelper::BuildSpriteRenderElements(*this, mState, mBackgroundSprite, Vector2I::kZero, 3);
 
 	GUIContent textContent = GUIContent(HString(mText));
-	GUISpriteHelper::BuildSpriteRenderElements(*this, mState, textContent, mTextSprite, mTextOffset, 1, mIsMultiline);
+	GUISpriteHelper::BuildSpriteRenderElements(*this, mState, textContent, mTextSprite, mTextOffset.To<i32>(), 1, mIsMultiline);
 
 	GUIInputCaret* const caret = GetGUIManager().GetInputCaretTool();
 	GUIInputSelection* const selection = GetGUIManager().GetInputSelectionTool();
@@ -95,7 +95,7 @@ void GUIInputBox::UpdateRenderElements()
 	Optional<TextSpriteInformation> textSpriteInformation;
 
 	ImageSprite* caretSprite = nullptr;
-	Rect2 caretBounds;
+	Rect2I caretBounds;
 	if(mCaretShown && GetGUIManager().GetCaretBlinkState())
 	{
 		textSpriteInformation = BuildTextSpriteInformation();
@@ -104,7 +104,7 @@ void GUIInputBox::UpdateRenderElements()
 		caret->UpdateSprite();
 
 		caretSprite = caret->GetSprite();
-		caretBounds = (Rect2)caret->GetBounds();
+		caretBounds = caret->GetBounds();
 	}
 
 	if(mSelectionShown)
@@ -123,13 +123,13 @@ void GUIInputBox::UpdateRenderElements()
 
 	const Rect2I contentBounds = GetCachedContentBoundsInElementSpace();
 
-	const Vector2 textOffset = Vector2I(mTextOffset.X + contentBounds.X, mTextOffset.Y + contentBounds.Y).To<float>();
-	const Vector2 caretOffset = Vector2(caretBounds.X, caretBounds.Y) + textOffset;
+	const GUIPhysicalPoint textOffset = GUIPhysicalPoint(mTextOffset.X + contentBounds.X, mTextOffset.Y + contentBounds.Y);
+	const GUIPhysicalPoint caretOffset = GUIPhysicalPoint(caretBounds.X, caretBounds.Y) + textOffset;
 
 	// Populate GUI render elements from the sprites
 	{
 		using T = GUIRenderElementHelper;
-		T::Append({ T::SpriteInfo(caretSprite, 0, caretOffset, (Rect2)contentBounds) }, mRenderElements);
+		T::Append({ T::SpriteInfo(caretSprite, 0, caretOffset.To<float>(), (Rect2)contentBounds) }, mRenderElements);
 
 		if(mSelectionShown)
 		{
@@ -148,7 +148,7 @@ void GUIInputBox::UpdateRenderElements()
 
 					renderElement.Depth = 2;
 					renderElement.Type = GUIMeshType::Triangle;
-					renderElement.Offset = Vector2(selectionBounds.X, selectionBounds.Y) + textOffset;
+					renderElement.Offset = Vector2(selectionBounds.X, selectionBounds.Y) + textOffset.To<float>();
 					renderElement.ClipRectangle = (Rect2)contentBounds;
 					renderElement.UseNewFillBuffer = true;
 				}
@@ -175,7 +175,7 @@ u32 GUIInputBox::GetRenderElementDepthRange() const
 	return 4;
 }
 
-bool GUIInputBox::HasCustomCursor(const Vector2I position, CursorType& type) const
+bool GUIInputBox::HasCustomCursor(const GUIPhysicalPoint& position, CursorType& type) const
 {
 	if(IsInInteractionBounds(position) && !IsDisabled())
 	{
@@ -786,24 +786,24 @@ void GUIInputBox::ScrollTextToCaret()
 {
 	TextSpriteInformation textSpriteInformation = BuildTextSpriteInformation();
 
-	Vector2I textOffset = GetTextOffset();
-	Vector2I caretPos = GetGUIManager().GetInputCaretTool()->GetCaretPosition() + textOffset;
-	u32 caretHeight = GetGUIManager().GetInputCaretTool()->GetCaretHeight();
-	u32 caretWidth = 1;
+	GUIPhysicalPoint textOffset = GetTextOffset();
+	GUIPhysicalPoint caretPos = GetGUIManager().GetInputCaretTool()->GetCaretPosition() + textOffset;
+	GUIPhysicalUnit caretHeight = GetGUIManager().GetInputCaretTool()->GetCaretHeight();
+	GUIPhysicalUnit caretWidth = 1;
 
-	i32 left = textOffset.X - mTextOffset.X;
+	GUIPhysicalUnit left = textOffset.X - mTextOffset.X;
 	// Include caret width here because we don't want to scroll if just the caret is outside the bounds
 	// (Possible if the text width is exactly the maximum width)
-	i32 right = left + (i32)textSpriteInformation.Width + caretWidth;
-	i32 top = textOffset.Y - mTextOffset.Y;
-	i32 bottom = top + (i32)textSpriteInformation.Height;
+	GUIPhysicalUnit right = left + (i32)textSpriteInformation.Width + caretWidth;
+	GUIPhysicalUnit top = textOffset.Y - mTextOffset.Y;
+	GUIPhysicalUnit bottom = top + (i32)textSpriteInformation.Height;
 
 	// If caret is too high to display we don't want the offset to keep adjusting itself
-	caretHeight = std::min(caretHeight, (u32)(bottom - top));
-	i32 caretRight = caretPos.X + (i32)caretWidth;
-	i32 caretBottom = caretPos.Y + (i32)caretHeight;
+	caretHeight = Math::Min(caretHeight, bottom - top);
+	GUIPhysicalUnit caretRight = caretPos.X + (i32)caretWidth;
+	GUIPhysicalUnit caretBottom = caretPos.Y + (i32)caretHeight;
 
-	Vector2I offset{BsZero};
+	GUIPhysicalPoint offset{BsZero};
 	if(caretPos.X < left)
 	{
 		offset.X = left - caretPos.X;
@@ -832,11 +832,11 @@ void GUIInputBox::ClampScrollToBounds(Rect2I unclippedTextBounds)
 {
 	const TextSpriteInformation textSpriteInformation = BuildTextSpriteInformation();
 
-	Vector2I newTextOffset;
-	i32 maxScrollableWidth = std::max(0, (i32)unclippedTextBounds.Width - (i32)textSpriteInformation.Width);
-	i32 maxScrollableHeight = std::max(0, (i32)unclippedTextBounds.Height - (i32)textSpriteInformation.Height);
-	newTextOffset.X = Math::Clamp(mTextOffset.X, -maxScrollableWidth, 0);
-	newTextOffset.Y = Math::Clamp(mTextOffset.Y, -maxScrollableHeight, 0);
+	GUIPhysicalPoint newTextOffset;
+	GUIPhysicalUnit maxScrollableWidth = std::max(0, (i32)unclippedTextBounds.Width - (i32)textSpriteInformation.Width);
+	GUIPhysicalUnit maxScrollableHeight = std::max(0, (i32)unclippedTextBounds.Height - (i32)textSpriteInformation.Height);
+	newTextOffset.X = Math::Clamp(mTextOffset.X, -maxScrollableWidth, GUIPhysicalUnit(0));
+	newTextOffset.Y = Math::Clamp(mTextOffset.Y, -maxScrollableHeight, GUIPhysicalUnit(0));
 
 	if(newTextOffset != mTextOffset)
 	{
@@ -947,10 +947,10 @@ String GUIInputBox::GetSelectedText()
 	return mText.substr(byteStart, byteEnd - byteStart);
 }
 
-Vector2I GUIInputBox::GetTextOffset() const
+GUIPhysicalPoint GUIInputBox::GetTextOffset() const
 {
 	Rect2I textBounds = GetCachedContentBounds();
-	return Vector2I(textBounds.X, textBounds.Y) + mTextOffset;
+	return GUIPhysicalPoint(textBounds.X, textBounds.Y) + mTextOffset;
 }
 
 SPtr<GUIContextMenu> GUIInputBox::GetContextMenu() const

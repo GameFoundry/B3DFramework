@@ -98,9 +98,9 @@ Rect2I GUIInputTool::GetCharacterBounds(u32 characterIndex) const
 	return Rect2I();
 }
 
-i32 GUIInputTool::GetCharIdxAtPos(const Vector2I& pos) const
+i32 GUIInputTool::GetCharIdxAtPos(const GUIPhysicalPoint& pos) const
 {
-	Vector2 vecPos((float)pos.X, (float)pos.Y);
+	Vector2 vecPos = pos.To<float>();
 
 	u32 lineStartChar = 0;
 	u32 lineEndChar = 0;

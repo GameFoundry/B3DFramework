@@ -16,8 +16,8 @@ namespace bs
 	{
 		T Value = (T)0;
 
-		TUnitValue() = default;
-		TUnitValue(T value)
+		constexpr TUnitValue() = default;
+		constexpr TUnitValue(T value)
 			:Value(value)
 		{ }
 
@@ -26,6 +26,15 @@ namespace bs
 		TUnitValue<T2, Unit2> To() const { return TUnitValue<T2, Unit2>((T2)Value); }
 
 		explicit operator T() const { return Value; }
+
+		template<typename U = T, typename = std::enable_if_t<!std::is_same_v<U, float>, i32>>
+		explicit operator float() const { return (float)Value; }
+
+		template<typename U = T, typename = std::enable_if_t<!std::is_same_v<U, int>, i32>>
+		explicit operator int() const { return (int)Value; }
+
+		template<typename U = T, typename = std::enable_if_t<!std::is_same_v<U, unsigned int>, i32>>
+		explicit operator unsigned int() const { return (unsigned int)Value; }
 
 		TUnitValue& operator=(T value) { Value = value; return *this; }
 

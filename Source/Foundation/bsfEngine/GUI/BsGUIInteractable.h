@@ -108,7 +108,7 @@ namespace bs
 		 * Checks is the specified position within interactable bounds of a GUI element. These are the bounds that will be used for hit tests for e.g. mouse cursor.
 		 * By default this is the same as the absolute clipped bounds of the GUI element. Position is relative to parent GUI widget.
 		 */
-		virtual bool IsInInteractionBounds(const Vector2I& position) const;
+		virtual bool IsInInteractionBounds(const GUIPhysicalPoint& position) const;
 
 		void Destroy() override;
 
@@ -170,10 +170,10 @@ namespace bs
 		void RemoveStateFlags(GUIElementStateFlags flags);
 
 		/**	Checks if the GUI element has a custom cursor and outputs the cursor type if it does. */
-		virtual bool HasCustomCursor(const Vector2I position, CursorType& type) const { return false; }
+		virtual bool HasCustomCursor(const GUIPhysicalPoint& position, CursorType& type) const { return false; }
 
 		/**	Checks if the GUI element accepts a drag and drop operation of the specified type. */
-		virtual bool AcceptDragAndDrop(const Vector2I position, u32 typeId) const { return false; }
+		virtual bool AcceptDragAndDrop(const GUIPhysicalPoint& position, u32 typeId) const { return false; }
 
 		/**	Returns a context menu if a GUI element has one. Otherwise returns nullptr. */
 		virtual SPtr<GUIContextMenu> GetContextMenu() const;

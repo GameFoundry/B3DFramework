@@ -419,12 +419,13 @@ void GUIManager::OnMouseDragEnded(const PointerEvent& event, DragCallbackInfo& d
 
 	if(DragAndDrop::Instance().IsDragInProgress() && guiButton == GUIMouseButton::Left)
 	{
+		const GUIPhysicalPoint screenPosition = event.ScreenPos.To<GUIPhysicalUnit>();
 		for(auto& elementInfo : mElementsUnderPointer)
 		{
-			Vector2I localPos(BsZero);
+			GUIPhysicalPoint localPos(BsZero);
 
 			if(elementInfo.Widget != nullptr)
-				localPos = GetWidgetRelativePos(elementInfo.Widget, event.ScreenPos);
+				localPos = GetWidgetRelativePos(elementInfo.Widget, screenPosition);
 
 			bool acceptDrop = true;
 			if(DragAndDrop::Instance().NeedsValidDropTarget())
@@ -456,19 +457,20 @@ void GUIManager::OnPointerMoved(const PointerEvent& event)
 	buttonStates[1] = event.ButtonStates[1];
 	buttonStates[2] = event.ButtonStates[2];
 
-	if(FindElementUnderPointer(event.ScreenPos, buttonStates, event.Shift, event.Control, event.Alt))
+	const GUIPhysicalPoint screenPosition = event.ScreenPos.To<GUIPhysicalUnit>();
+	if(FindElementUnderPointer(screenPosition, buttonStates, event.Shift, event.Control, event.Alt))
 		event.IsUsed = true;
 
 	if(mDragState == DragState::HeldWithoutDrag)
 	{
-		u32 dist = mLastPointerClickPos.CalculateManhattanDistance(event.ScreenPos);
+		u32 dist = (u32)mLastPointerClickPos.CalculateManhattanDistance(screenPosition);
 
 		if(dist > kDragDistance)
 		{
 			for(auto& activeElement : mActiveElements)
 			{
-				Vector2I localPos = GetWidgetRelativePos(activeElement.Widget, event.ScreenPos);
-				Vector2I localDragStartPos = GetWidgetRelativePos(activeElement.Widget, mLastPointerClickPos);
+				const GUIPhysicalPoint localPos = GetWidgetRelativePos(activeElement.Widget, screenPosition);
+				const GUIPhysicalPoint localDragStartPos = GetWidgetRelativePos(activeElement.Widget, mLastPointerClickPos);
 
 				mMouseEvent.SetMouseDragStartData(localPos, localDragStartPos);
 				if(SendMouseEvent(activeElement.Element, mMouseEvent))
@@ -476,7 +478,7 @@ void GUIManager::OnPointerMoved(const PointerEvent& event)
 			}
 
 			mDragState = DragState::Dragging;
-			mDragStartPos = event.ScreenPos;
+			mDragStartPos = screenPosition;
 		}
 	}
 
@@ -487,9 +489,9 @@ void GUIManager::OnPointerMoved(const PointerEvent& event)
 		{
 			if(mLastPointerScreenPos != event.ScreenPos)
 			{
-				Vector2I localPos = GetWidgetRelativePos(activeElement.Widget, event.ScreenPos);
+				const GUIPhysicalPoint localPos = GetWidgetRelativePos(activeElement.Widget, screenPosition);
 
-				mMouseEvent.SetMouseDragData(localPos, event.ScreenPos - mDragStartPos);
+				mMouseEvent.SetMouseDragData(localPos, screenPosition - mDragStartPos);
 				if(SendMouseEvent(activeElement.Element, mMouseEvent))
 					event.IsUsed = true;
 			}
@@ -503,7 +505,7 @@ void GUIManager::OnPointerMoved(const PointerEvent& event)
 			bool acceptDrop = true;
 			for(auto& elementInfo : mElementsUnderPointer)
 			{
-				Vector2I localPos = GetWidgetRelativePos(elementInfo.Widget, event.ScreenPos);
+				const GUIPhysicalPoint localPos = GetWidgetRelativePos(elementInfo.Widget, screenPosition);
 
 				acceptDrop = true;
 				if(DragAndDrop::Instance().NeedsValidDropTarget())
@@ -548,7 +550,7 @@ void GUIManager::OnPointerMoved(const PointerEvent& event)
 			bool hasCustomCursor = false;
 			for(auto& elementInfo : mElementsUnderPointer)
 			{
-				Vector2I localPos = GetWidgetRelativePos(elementInfo.Widget, event.ScreenPos);
+				const GUIPhysicalPoint localPos = GetWidgetRelativePos(elementInfo.Widget, screenPosition);
 
 				if(!moveProcessed)
 				{
@@ -620,7 +622,8 @@ void GUIManager::OnPointerReleased(const PointerEvent& event)
 	buttonStates[1] = event.ButtonStates[1];
 	buttonStates[2] = event.ButtonStates[2];
 
-	if(FindElementUnderPointer(event.ScreenPos, buttonStates, event.Shift, event.Control, event.Alt))
+	const GUIPhysicalPoint screenPosition = event.ScreenPos.To<GUIPhysicalUnit>();
+	if(FindElementUnderPointer(screenPosition, buttonStates, event.Shift, event.Control, event.Alt))
 		event.IsUsed = true;
 
 	mMouseEvent = GUIMouseEvent(buttonStates, event.Shift, event.Control, event.Alt);
@@ -638,7 +641,7 @@ void GUIManager::OnPointerReleased(const PointerEvent& event)
 
 			if(iterFind2 != mActiveElements.end())
 			{
-				Vector2I localPos = GetWidgetRelativePos(elementInfo.Widget, event.ScreenPos);
+				const GUIPhysicalPoint localPos = GetWidgetRelativePos(elementInfo.Widget, screenPosition);
 				mMouseEvent.SetMouseUpData(localPos, guiButton);
 
 				if(SendMouseEvent(elementInfo.Element, mMouseEvent))
@@ -660,7 +663,7 @@ void GUIManager::OnPointerReleased(const PointerEvent& event)
 		{
 			for(auto& activeElement : mActiveElements)
 			{
-				Vector2I localPos = GetWidgetRelativePos(activeElement.Widget, event.ScreenPos);
+				GUIPhysicalPoint localPos = GetWidgetRelativePos(activeElement.Widget, screenPosition);
 
 				mMouseEvent.SetMouseDragEndData(localPos);
 				if(SendMouseEvent(activeElement.Element, mMouseEvent))
@@ -694,7 +697,8 @@ void GUIManager::OnPointerPressed(const PointerEvent& event)
 	buttonStates[1] = event.ButtonStates[1];
 	buttonStates[2] = event.ButtonStates[2];
 
-	if(FindElementUnderPointer(event.ScreenPos, buttonStates, event.Shift, event.Control, event.Alt))
+	const GUIPhysicalPoint screenPosition = event.ScreenPos.To<GUIPhysicalUnit>();
+	if(FindElementUnderPointer(screenPosition, buttonStates, event.Shift, event.Control, event.Alt))
 		event.IsUsed = true;
 
 	// Determine elements that gained focus
@@ -764,7 +768,7 @@ void GUIManager::OnPointerPressed(const PointerEvent& event)
 		mNewActiveElements.clear();
 		for(auto& elementInfo : mElementsUnderPointer)
 		{
-			Vector2I localPos = GetWidgetRelativePos(elementInfo.Widget, event.ScreenPos);
+			GUIPhysicalPoint localPos = GetWidgetRelativePos(elementInfo.Widget, screenPosition);
 			mMouseEvent.SetMouseDownData(localPos, guiButton);
 
 			bool processed = SendMouseEvent(elementInfo.Element, mMouseEvent);
@@ -772,7 +776,7 @@ void GUIManager::OnPointerPressed(const PointerEvent& event)
 			if(guiButton == GUIMouseButton::Left)
 			{
 				mDragState = DragState::HeldWithoutDrag;
-				mLastPointerClickPos = event.ScreenPos;
+				mLastPointerClickPos = event.ScreenPos.To<GUIPhysicalUnit>();
 			}
 
 			mNewActiveElements.push_back(ElementInfo(elementInfo.Element, elementInfo.Widget));
@@ -821,7 +825,8 @@ void GUIManager::OnPointerDoubleClick(const PointerEvent& event)
 	buttonStates[1] = event.ButtonStates[1];
 	buttonStates[2] = event.ButtonStates[2];
 
-	if(FindElementUnderPointer(event.ScreenPos, buttonStates, event.Shift, event.Control, event.Alt))
+	const GUIPhysicalPoint screenPosition = event.ScreenPos.To<GUIPhysicalUnit>();
+	if(FindElementUnderPointer(screenPosition, buttonStates, event.Shift, event.Control, event.Alt))
 		event.IsUsed = true;
 
 	mMouseEvent = GUIMouseEvent(buttonStates, event.Shift, event.Control, event.Alt);
@@ -831,7 +836,7 @@ void GUIManager::OnPointerDoubleClick(const PointerEvent& event)
 	// We only check for mouse down if we are hovering over an element
 	for(auto& elementInfo : mElementsUnderPointer)
 	{
-		Vector2I localPos = GetWidgetRelativePos(elementInfo.Widget, event.ScreenPos);
+		GUIPhysicalPoint localPos = GetWidgetRelativePos(elementInfo.Widget, screenPosition);
 
 		mMouseEvent.SetMouseDoubleClickData(localPos, guiButton);
 		if(SendMouseEvent(elementInfo.Element, mMouseEvent))
@@ -921,7 +926,7 @@ void GUIManager::OnVirtualButtonDown(const VirtualButton& button, u32 deviceIdx)
 	}
 }
 
-bool GUIManager::FindElementUnderPointer(const Vector2I& pointerScreenPos, bool buttonStates[3], bool shift, bool control, bool alt)
+bool GUIManager::FindElementUnderPointer(const GUIPhysicalPoint& pointerScreenPos, bool buttonStates[3], bool shift, bool control, bool alt)
 {
 	Vector<const RenderWindow*> widgetWindows;
 	for(auto& widgetInfo : mWidgets)
@@ -961,7 +966,7 @@ bool GUIManager::FindElementUnderPointer(const Vector2I& pointerScreenPos, bool 
 	RenderWindow* topMostModal = RenderWindowManager::Instance().GetTopMostModal();
 	for(auto& window : uniqueWindows)
 	{
-		if(Platform::IsPointOverWindow(*window, pointerScreenPos))
+		if(Platform::IsPointOverWindow(*window, pointerScreenPos.To<i32>()))
 		{
 			// If there's a top most modal window, it needs to be this one, otherwise we ignore input to that window
 			if(topMostModal == nullptr || window == topMostModal)
@@ -973,7 +978,7 @@ bool GUIManager::FindElementUnderPointer(const Vector2I& pointerScreenPos, bool 
 
 	if(windowUnderPointer != nullptr)
 	{
-		Vector2I windowPos = windowUnderPointer->ScreenToWindowPosition(pointerScreenPos);
+		GUIPhysicalPoint windowPos = windowUnderPointer->ScreenToWindowPosition(pointerScreenPos.To<i32>()).To<GUIPhysicalUnit>();
 
 		u32 widgetIdx = 0;
 		for(auto& widgetInfo : mWidgets)
@@ -989,7 +994,7 @@ bool GUIManager::FindElementUnderPointer(const Vector2I& pointerScreenPos, bool 
 			{
 				// Note: This should only be checking non-culled element (i.e. GUIElement::GetVisibleElements())
 				const Vector<GUIRenderable*>& elements = widget->GetElements();
-				Vector2I localPos = GetWidgetRelativePos(widget, pointerScreenPos);
+				GUIPhysicalPoint localPos = GetWidgetRelativePos(widget, pointerScreenPos);
 
 				// Elements with lowest depth (most to the front) get handled first
 				for(auto iter = elements.begin(); iter != elements.end(); ++iter)
@@ -1046,7 +1051,7 @@ bool GUIManager::FindElementUnderPointer(const Vector2I& pointerScreenPos, bool 
 		// Send MouseOver event
 		if(mActiveElements.size() == 0 || iterFind != mActiveElements.end())
 		{
-			Vector2I localPos = GetWidgetRelativePos(widget, pointerScreenPos);
+			GUIPhysicalPoint localPos = GetWidgetRelativePos(widget, pointerScreenPos);
 
 			mMouseEvent = GUIMouseEvent(buttonStates, shift, control, alt);
 
@@ -1073,7 +1078,7 @@ bool GUIManager::FindElementUnderPointer(const Vector2I& pointerScreenPos, bool 
 
 			if(iterFind == mNewElementsUnderPointer.end())
 			{
-				Vector2I localPos = GetWidgetRelativePos(elementInfo.Widget, pointerScreenPos);
+				GUIPhysicalPoint localPos = GetWidgetRelativePos(elementInfo.Widget, pointerScreenPos);
 
 				mMouseEvent.SetDragAndDropLeftData(localPos, DragAndDrop::Instance().GetDragData());
 				if(SendMouseEvent(elementInfo.Element, mMouseEvent))
@@ -1104,7 +1109,7 @@ bool GUIManager::FindElementUnderPointer(const Vector2I& pointerScreenPos, bool 
 			// Send MouseOut event
 			if(mActiveElements.size() == 0 || iterFind2 != mActiveElements.end())
 			{
-				Vector2I localPos = GetWidgetRelativePos(widget, pointerScreenPos);
+				GUIPhysicalPoint localPos = GetWidgetRelativePos(widget, pointerScreenPos);
 
 				mMouseEvent.SetMouseOutData(localPos);
 				if(SendMouseEvent(element, mMouseEvent))
@@ -1255,7 +1260,7 @@ void GUIManager::OnMouseLeftWindow(RenderWindow& win)
 		// Send MouseOut event
 		if(mActiveElements.size() == 0 || iterFind != mActiveElements.end())
 		{
-			Vector2I localPos = GetWidgetRelativePos(widget, Vector2I());
+			GUIPhysicalPoint localPos = GetWidgetRelativePos(widget, GUIPhysicalPoint(BsZero));
 
 			mMouseEvent.SetMouseOutData(localPos);
 			SendMouseEvent(element, mMouseEvent);
@@ -1336,27 +1341,27 @@ GUIMouseButton GUIManager::ButtonToGuiButton(PointerEventButton pointerButton) c
 	return GUIMouseButton::Left;
 }
 
-Vector2I GUIManager::GetWidgetRelativePos(const GUIWidget* widget, const Vector2I& screenPos) const
+GUIPhysicalPoint GUIManager::GetWidgetRelativePos(const GUIWidget* widget, const GUIPhysicalPoint& screenPos) const
 {
 	if(widget == nullptr)
 		return screenPos;
 
 	const RenderWindow* window = GetWidgetWindow(*widget);
 	if(window == nullptr)
-		return Vector2I(BsZero);
+		return GUIPhysicalPoint(BsZero);
 
-	Vector2I windowPos = window->ScreenToWindowPosition(screenPos);
+	GUIPhysicalPoint windowPos = window->ScreenToWindowPosition(screenPos.To<i32>()).To<GUIPhysicalUnit>();
 	windowPos = WindowToBridgedCoords(widget->GetTarget()->GetTarget(), windowPos);
 
 	const Matrix4& worldTfrm = widget->GetWorldTfrm();
 
 	Vector4 vecLocalPos = worldTfrm.Inverse().MultiplyAffine(Vector4((float)windowPos.X, (float)windowPos.Y, 0.0f, 1.0f));
-	Vector2I curLocalPos(Math::RoundToI32(vecLocalPos.X), Math::RoundToI32(vecLocalPos.Y));
+	GUIPhysicalPoint curLocalPos(Math::RoundToI32(vecLocalPos.X), Math::RoundToI32(vecLocalPos.Y));
 
 	return curLocalPos;
 }
 
-Vector2I GUIManager::WindowToBridgedCoords(const SPtr<RenderTarget>& target, const Vector2I& windowPos) const
+GUIPhysicalPoint GUIManager::WindowToBridgedCoords(const SPtr<RenderTarget>& target, const GUIPhysicalPoint& windowPos) const
 {
 	// This cast might not be valid (the render target could be a window), but we only really need to cast
 	// so that mInputBridge map allows us to search through it - we don't access anything unless the target is bridged
@@ -1384,7 +1389,7 @@ Vector2I GUIManager::WindowToBridgedCoords(const SPtr<RenderTarget>& target, con
 		float scaleX = bridgeBounds.Width > 0 ? rtProps.Width / (float)bridgeBounds.Width : 0.0f;
 		float scaleY = bridgeBounds.Height > 0 ? rtProps.Height / (float)bridgeBounds.Height : 0.0f;
 
-		return Vector2I(Math::RoundToI32(x * scaleX), Math::RoundToI32(y * scaleY));
+		return GUIPhysicalPoint(Math::RoundToI32(x * scaleX), Math::RoundToI32(y * scaleY));
 	}
 
 	return windowPos;

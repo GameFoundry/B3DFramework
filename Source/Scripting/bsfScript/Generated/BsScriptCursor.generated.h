@@ -5,11 +5,13 @@
 #include "BsScriptEnginePrerequisites.h"
 #include "../../../Foundation/bsfEngine/Platform/BsCursor.h"
 #include "BsScriptTypeDefinition.h"
-#include "../../../Foundation/bsfUtility/Math/BsVector2.h"
+#include "../../../Foundation/bsfEngine/GUI/BsGUIUnits.h"
 #include "Math/BsRect2I.h"
 #include "../../../Foundation/bsfCore/Image/BsPixelData.h"
 #include "../../../Foundation/bsfEngine/Utility/BsEnums.h"
+#include "../../../Foundation/bsfUtility/Math/BsVector2.h"
 
+namespace bs { struct __TVector2_TUnitValue_int32_t__PhysicalPixel__Interop; }
 namespace bs
 {
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptCursor : public TScriptTypeDefinition<ScriptCursor>
@@ -22,8 +24,8 @@ namespace bs
 		static void SetupScriptBindings();
 
 	private:
-		static void InternalSetScreenPosition(TVector2<int32_t>* screenPos);
-		static void InternalGetScreenPosition(TVector2<int32_t>* __output);
+		static void InternalSetScreenPosition(__TVector2_TUnitValue_int32_t__PhysicalPixel__Interop* screenPos);
+		static void InternalGetScreenPosition(__TVector2_TUnitValue_int32_t__PhysicalPixel__Interop* __output);
 		static void InternalHide();
 		static void InternalShow();
 		static void InternalClipToRect(Rect2I* screenRect);

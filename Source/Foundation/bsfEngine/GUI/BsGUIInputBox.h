@@ -82,7 +82,7 @@ namespace bs
 		bool DoOnCommandEvent(const GUICommandEvent& ev) override;
 		bool DoOnVirtualButtonEvent(const GUIVirtualButtonEvent& ev) override;
 		u32 GetRenderElementDepthRange() const override;
-		bool HasCustomCursor(const Vector2I position, CursorType& type) const override;
+		bool HasCustomCursor(const GUIPhysicalPoint& position, CursorType& type) const override;
 		SPtr<GUIContextMenu> GetContextMenu() const override;
 
 	private:
@@ -129,7 +129,7 @@ namespace bs
 		void ClampScrollToBounds(Rect2I unclippedTextBounds);
 
 		/**	Returns offset at which to render the text. Relative to parent widget. */
-		Vector2I GetTextOffset() const;
+		GUIPhysicalPoint GetTextOffset() const;
 
 		/**	Cuts currently selected text to clipboard. */
 		void CutText();
@@ -153,7 +153,7 @@ namespace bs
 		GUIBackgroundSprite mBackgroundSprite;
 		GUIContentSprites mTextSprite;
 		bool mIsMultiline;
-		Vector2I mTextOffset{BsZero};
+		GUIPhysicalPoint mTextOffset{BsZero};
 		bool mHasFocus = false;
 		u64 mFocusGainedFrame = (u64)-1;
 		bool mIsMouseOver = false;

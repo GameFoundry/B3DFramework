@@ -54,7 +54,7 @@ void CGUIWidget::SetDepth(u8 depth)
 	mInternal->SetDepth(depth);
 }
 
-bool CGUIWidget::InBounds(const Vector2I& position) const
+bool CGUIWidget::InBounds(const GUIPhysicalPoint& position) const
 {
 	return mInternal->InBounds(position);
 }
