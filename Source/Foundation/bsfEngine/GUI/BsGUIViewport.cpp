@@ -52,7 +52,7 @@ void GUIViewport::FillBuffer(
 void GUIViewport::UpdateRenderElements()
 {
 	// TODO - This doesn't get called if element mesh is dirty!!! and I need to update the viewport when offset changes (in which case mesh is marked as dirty)
-	float currentAspect = mAbsoluteSize.Width / (float)mAbsoluteSize.Height;
+	float currentAspect = (float)mAbsoluteSize.Width / (float)mAbsoluteSize.Height;
 	Radian currentFOV = 2.0f * Math::Atan(Math::Tan(mVerticalFOV * 0.5f) * currentAspect);
 
 	mCamera->SetHorzFov(currentFOV);
@@ -61,10 +61,10 @@ void GUIViewport::UpdateRenderElements()
 	SPtr<RenderTarget> renderTarget = viewport->GetTarget();
 	const RenderTargetProperties& rtProps = renderTarget->GetProperties();
 
-	float x = mAbsolutePosition.X / (float)rtProps.Width;
-	float y = mAbsolutePosition.Y / (float)rtProps.Height;
-	float width = mAbsoluteSize.Width / (float)rtProps.Width;
-	float height = mAbsoluteSize.Height / (float)rtProps.Height;
+	float x = (float)mAbsolutePosition.X / (float)rtProps.Width;
+	float y = (float)mAbsolutePosition.Y / (float)rtProps.Height;
+	float width = (float)mAbsoluteSize.Width / (float)rtProps.Width;
+	float height = (float)mAbsoluteSize.Height / (float)rtProps.Height;
 
 	viewport->SetArea(Rect2(x, y, width, height));
 }

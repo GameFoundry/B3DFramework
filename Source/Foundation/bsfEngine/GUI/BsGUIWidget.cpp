@@ -294,7 +294,7 @@ void GUIWidget::UpdateLayout(GUIElement* element)
 
 		dirtyElement->SetLayoutData(childLayoutData);
 		dirtyElement->UpdateLayoutForChildren();
-		dirtyElement->UpdateAbsoluteCoordinates(panel->GetAbsolutePosition(), mDPIScale, panel->GetAbsoluteClippedArea());
+		dirtyElement->UpdateAbsoluteCoordinates(panel->GetIntermediateAbsolutePosition(), mDPIScale, panel->GetIntermediateAbsoluteClippedArea());
 	}
 	else
 	{
@@ -470,7 +470,7 @@ bool GUIWidget::InBounds(const GUIPhysicalPoint& position) const
 	Vector3 vecPos((float)position.X, (float)position.Y, 0.0f);
 	vecPos = mTransform.Inverse().MultiplyAffine(vecPos);
 
-	Vector2I localPos(Math::RoundToI32(vecPos.X), Math::RoundToI32(vecPos.Y));
+	GUIPhysicalPoint localPos(Math::RoundToI32(vecPos.X), Math::RoundToI32(vecPos.Y));
 	return mBounds.Contains(localPos);
 }
 
@@ -481,7 +481,7 @@ void GUIWidget::UpdateBounds() const
 
 	for(auto& elem : mElements)
 	{
-		Rect2I elemBounds = elem->GetAbsoluteClippedArea();
+		GUIPhysicalArea elemBounds = elem->GetAbsoluteClippedArea();
 		mBounds.Encapsulate(elemBounds);
 	}
 }

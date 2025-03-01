@@ -276,47 +276,47 @@ void ImageSprite::ClearMesh()
 	UpdateBounds();
 }
 
-Vector2 ImageSprite::GetTextureUvScale(Size2UI sourceSize, Vector2I destSize, TextureScaleMode scaleMode)
+Vector2 ImageSprite::GetTextureUvScale(Size2I sourceSize, Size2I destSize, TextureScaleMode scaleMode)
 {
 	Vector2 uvScale = Vector2(1.0f, 1.0f);
 
 	switch(scaleMode)
 	{
 	case TextureScaleMode::ScaleToFit:
-		uvScale.X = sourceSize.Width / (float)destSize.X;
-		uvScale.Y = sourceSize.Height / (float)destSize.Y;
+		uvScale.X = (float)sourceSize.Width / (float)destSize.Width;
+		uvScale.Y = (float)sourceSize.Height / (float)destSize.Height;
 
 		if(uvScale.X > uvScale.Y)
 		{
 			uvScale.X = 1.0f;
-			uvScale.Y = (destSize.Y * (sourceSize.Height / (float)sourceSize.Width)) / destSize.X;
+			uvScale.Y = ((float)destSize.Height * ((float)sourceSize.Height / (float)sourceSize.Width)) / (float)destSize.Width;
 		}
 		else
 		{
-			uvScale.X = (destSize.X * (sourceSize.Width / (float)sourceSize.Height)) / destSize.Y;
+			uvScale.X = ((float)destSize.Width * ((float)sourceSize.Width / (float)sourceSize.Height)) / (float)destSize.Height;
 			uvScale.Y = 1.0f;
 		}
 
 		break;
 	case TextureScaleMode::CropToFit:
-		uvScale.X = sourceSize.Width / (float)destSize.X;
-		uvScale.Y = sourceSize.Height / (float)destSize.Y;
+		uvScale.X = (float)sourceSize.Width / (float)destSize.Width;
+		uvScale.Y = (float)sourceSize.Height / (float)destSize.Height;
 
 		if(uvScale.X > uvScale.Y)
 		{
-			uvScale.X = (destSize.X * (sourceSize.Width / (float)sourceSize.Height)) / destSize.Y;
+			uvScale.X = ((float)destSize.Width * ((float)sourceSize.Width / (float)sourceSize.Height)) / (float)destSize.Height;
 			uvScale.Y = 1.0f;
 		}
 		else
 		{
 			uvScale.X = 1.0f;
-			uvScale.Y = (destSize.Y * (sourceSize.Height / (float)sourceSize.Width)) / destSize.X;
+			uvScale.Y = ((float)destSize.Height * ((float)sourceSize.Height / (float)sourceSize.Width)) / (float)destSize.Width;
 		}
 
 		break;
 	case TextureScaleMode::RepeatToFit:
-		uvScale.X = destSize.X / (float)sourceSize.Width;
-		uvScale.Y = destSize.Y / (float)sourceSize.Height;
+		uvScale.X = (float)destSize.Width / (float)sourceSize.Width;
+		uvScale.Y = (float)destSize.Height / (float)sourceSize.Height;
 		break;
 	case TextureScaleMode::StretchToFit:
 		// Do nothing, (1.0f, 1.0f) is the default UV scale

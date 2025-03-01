@@ -57,7 +57,7 @@ void GUIMeshBatches::Add(GUIRenderable* guiElement)
 
 	BatchedGUIElement& batchedGuiElement = mElements[guiElement];
 	batchedGuiElement.GUIElement = guiElement;
-	batchedGuiElement.Bounds = guiElement->GetAbsoluteClippedArea();
+	batchedGuiElement.Bounds = guiElement->GetAbsoluteClippedArea().ToRect2I();
 	batchedGuiElement.BatchPerRenderElement.Resize(guiRenderElements.Size(), ~0u);
 
 	for(u32 renderElementIndex = 0; renderElementIndex < (u32)guiRenderElements.Size(); renderElementIndex++)
@@ -278,7 +278,7 @@ GUIMeshBatches::Batch* GUIMeshBatches::Add(BatchedGUIElement& batchedGuiElement,
 
 	B3D_ASSERT(batchedGuiRenderElement.ParentGUIElement != nullptr);
 
-	const Rect2I bounds = batchedGuiRenderElement.ParentGUIElement->GetAbsoluteClippedArea();
+	const Rect2I bounds = batchedGuiRenderElement.ParentGUIElement->GetAbsoluteClippedArea().ToRect2I();
 	foundBatch->Bounds.Encapsulate(bounds);
 
 	MarkBoundsDirty(batchedGuiElement, foundBatch->Id);
@@ -418,7 +418,7 @@ GUIDrawGroupRenderDataUpdate GUIMeshBatches::RebuildDirty(bool forceRebuildMeshe
 			}
 
 			// If bounds changed, rebuild the bounds of the draw groups
-			Rect2I bounds = guiElement->GetAbsoluteClippedArea();
+			Rect2I bounds = guiElement->GetAbsoluteClippedArea().ToRect2I();
 			if(batchedGuiElement.Bounds != bounds)
 			{
 				MarkBoundsDirty(batchedGuiElement);
@@ -592,7 +592,7 @@ GUIDrawGroupRenderDataUpdate GUIMeshBatches::RebuildDirty(bool forceRebuildMeshe
 					if(batchRenderData.Id != batchId)
 						continue;
 
-					batchRenderData.RenderTargetElements.emplace_back(GUIRenderTargetRenderData(B3DGetRenderProxy(target), element->GetAbsoluteClippedArea()));
+					batchRenderData.RenderTargetElements.emplace_back(GUIRenderTargetRenderData(B3DGetRenderProxy(target), element->GetAbsoluteClippedArea().ToRect2I()));
 				}
 			}
 		}
@@ -939,7 +939,7 @@ Rect2I GUIMeshBatches::CalculateBounds(Batch& batch)
 		if(entry.ParentGUIElement->IsHidden())
 			continue;
 
-		Rect2I elementBounds = entry.ParentGUIElement->GetAbsoluteClippedArea();
+		Rect2I elementBounds = entry.ParentGUIElement->GetAbsoluteClippedArea().ToRect2I();
 		if(!boundsSet)
 		{
 			bounds = elementBounds;

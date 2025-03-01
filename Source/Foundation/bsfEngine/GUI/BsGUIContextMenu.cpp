@@ -13,7 +13,7 @@ GUIContextMenu::~GUIContextMenu()
 
 void GUIContextMenu::Open(const Vector2I& position, GUIWidget& widget)
 {
-	DROP_DOWN_BOX_DESC desc;
+	DropDownBoxCreateInformation desc;
 	desc.Camera = widget.GetCamera();
 	desc.StyleSheetCascade = widget.GetStyleSheetCascadeAsShared();
 	desc.Placement = DropDownAreaPlacement::AroundPosition(position);

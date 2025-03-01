@@ -7,7 +7,7 @@
 #include "../../../Foundation/bsfEngine/GUI/BsGUIUtility.h"
 #include "BsScriptResourceManager.h"
 #include "Wrappers/BsScriptRRefBase.h"
-#include "BsScriptTVector2.generated.h"
+#include "BsScriptTSize2.generated.h"
 #include "../../../Foundation/bsfCore/Text/BsFont.h"
 
 namespace bs

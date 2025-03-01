@@ -56,7 +56,7 @@ GUIDropDownDataEntry GUIDropDownDataEntry::SubMenu(const String& label, const GU
 	return dataEntry;
 }
 
-GUIDropDownMenu::GUIDropDownMenu(const HSceneObject& parent, const DROP_DOWN_BOX_DESC& desc, GUIDropDownType type)
+GUIDropDownMenu::GUIDropDownMenu(const HSceneObject& parent, const DropDownBoxCreateInformation& desc, GUIDropDownType type)
 	: CGUIWidget(parent, desc.Camera), mRootMenu(nullptr), mFrontHitBox(nullptr), mBackHitBox(nullptr), mCaptureHitBox(nullptr)
 {
 	SetDepth(0); // Needs to be in front of everything
@@ -456,7 +456,7 @@ void GUIDropDownMenu::DropDownSubMenu::CloseSubMenu()
 	}
 }
 
-void GUIDropDownMenu::DropDownSubMenu::ElementActivated(u32 idx, const Rect2I& bounds)
+void GUIDropDownMenu::DropDownSubMenu::ElementActivated(u32 idx, const GUIPhysicalArea& bounds)
 {
 	CloseSubMenu();
 
@@ -473,7 +473,7 @@ void GUIDropDownMenu::DropDownSubMenu::ElementActivated(u32 idx, const Rect2I& b
 	{
 		Content->SetKeyboardFocus(false);
 
-		ActiveChildSubMenu = B3DNew<DropDownSubMenu>(Owner, this, DropDownAreaPlacement::AroundBoundsVert(bounds), MAvailableBounds, Data.Entries[idx].GetSubMenuData(), Type, DepthOffset + 1);
+		ActiveChildSubMenu = B3DNew<DropDownSubMenu>(Owner, this, DropDownAreaPlacement::AroundBoundsVertical(bounds), MAvailableBounds, Data.Entries[idx].GetSubMenuData(), Type, DepthOffset + 1);
 	}
 }
 

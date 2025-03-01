@@ -12,7 +12,7 @@ using namespace std::placeholders;
 
 using namespace bs;
 
-const u32 GUIScrollArea::kScrollBarWidth = 16;
+const GUILogicalUnit GUIScrollArea::kScrollBarWidth = 16;
 const u32 GUIScrollArea::kWheelScrollAmount = 50;
 
 GUIScrollArea::GUIScrollArea(ScrollBarType vertBarType, ScrollBarType horzBarType, const String& scrollBarStyle, const String& scrollAreaStyle, const GUISizeConstraints& dimensions)
@@ -315,14 +315,14 @@ void GUIScrollArea::UpdateAbsoluteCoordinatesForChildren()
 
 	if(mContentLayout->IsActive())
 	{
-		const Vector2I contentOrigin(mAbsolutePosition.X - Math::FloorToInt(mHorzOffset * mAbsoluteScale), mAbsolutePosition.Y - Math::FloorToInt(mVertOffset * mAbsoluteScale));
-		const Rect2I contentVisibleAreaSize(mAbsolutePosition.X, mAbsolutePosition.Y, (u32)((float)mVisibleSize.Width * mAbsoluteScale), (u32)((float)mVisibleSize.Height * mAbsoluteScale)); // TODO - Clip visible size by parent clip rectangle?
+		const GUIPhysicalPointF contentOrigin(mIntermediateAbsolutePosition.X - mHorzOffset * mAbsoluteScale, mIntermediateAbsolutePosition.Y - mVertOffset * mAbsoluteScale);
+		const GUIPhysicalAreaF contentVisibleAreaSize(mIntermediateAbsolutePosition, mVisibleSize.To<GUIPhysicalUnitF>() * mAbsoluteScale); // TODO - Clip visible size by parent clip rectangle?
 
 		mContentLayout->UpdateAbsoluteCoordinates(contentOrigin, mAbsoluteScale, contentVisibleAreaSize);
 	}
 
-	mHorizontalScrollBar->UpdateAbsoluteCoordinates(mAbsolutePosition, mAbsoluteScale, mAbsoluteClippedArea);
-	mVerticalScrollBar->UpdateAbsoluteCoordinates(mAbsolutePosition, mAbsoluteScale, mAbsoluteClippedArea);
+	mHorizontalScrollBar->UpdateAbsoluteCoordinates(mIntermediateAbsolutePosition, mAbsoluteScale, mIntermediateAbsoluteClippedArea);
+	mVerticalScrollBar->UpdateAbsoluteCoordinates(mIntermediateAbsolutePosition, mAbsoluteScale, mIntermediateAbsoluteClippedArea);
 }
 
 void GUIScrollArea::VertScrollUpdate(float scrollPos)
@@ -375,15 +375,16 @@ float GUIScrollArea::GetHorizontalScroll() const
 
 Rect2I GUIScrollArea::GetContentBounds()
 {
-	Rect2I bounds = CalculateAbsoluteBoundsRelativeTo();
+	GUIPhysicalArea bounds = CalculateAbsoluteBoundsRelativeTo();
+	const GUIPhysicalUnit physicalScrollBarWidth = GUIUtility::LogicalToPhysical(kScrollBarWidth, GetAbsoluteScale());
 
 	if(mHorizontalScrollBar)
-		bounds.Height -= kScrollBarWidth;
+		bounds.Height -= physicalScrollBarWidth;
 
 	if(mVerticalScrollBar)
-		bounds.Width -= kScrollBarWidth;
+		bounds.Width -= physicalScrollBarWidth;
 
-	return bounds;
+	return bounds.ToRect2I();
 }
 
 void GUIScrollArea::ScrollUpPixels(GUIPhysicalUnit pixels)

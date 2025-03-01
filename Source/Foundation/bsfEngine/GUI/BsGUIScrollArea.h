@@ -127,7 +127,7 @@ namespace bs
 		 * Number of pixels the scroll bar will occupy when active. This is width for vertical scrollbar, and height for
 		 * horizontal scrollbar.
 		 */
-		static const u32 kScrollBarWidth;
+		static const GUILogicalUnit kScrollBarWidth;
 
 		/** @name Internal
 		 *  @{

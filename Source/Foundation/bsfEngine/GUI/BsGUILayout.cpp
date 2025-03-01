@@ -196,7 +196,7 @@ void GUILayout::UpdateAbsoluteCoordinatesForChildren()
 {
 	if(mIsCullingEnabled)
 	{
-		Rect2 relativeClippedArea = (Rect2)mAbsoluteClippedArea;
+		Rect2 relativeClippedArea = mAbsoluteClippedArea.ToRect2();
 		relativeClippedArea.X -= (float)mAbsolutePosition.X;
 		relativeClippedArea.Y -= (float)mAbsolutePosition.Y;
 
@@ -242,7 +242,7 @@ void GUILayout::UpdateAbsoluteCoordinatesForChildren()
 
 		for(auto& visibleChild : mVisibleElements)
 		{
-			visibleChild->UpdateAbsoluteCoordinates(mAbsolutePosition, mAbsoluteScale, mAbsoluteClippedArea);
+			visibleChild->UpdateAbsoluteCoordinates(mIntermediateAbsolutePosition, mAbsoluteScale, mIntermediateAbsoluteClippedArea);
 			visibleChild->UpdateAbsoluteCoordinatesForChildren();
 		}
 		
@@ -252,7 +252,7 @@ void GUILayout::UpdateAbsoluteCoordinatesForChildren()
 	{
 		for(auto& child : mChildren)
 		{
-			child->UpdateAbsoluteCoordinates(mAbsolutePosition, mAbsoluteScale, mAbsoluteClippedArea);
+			child->UpdateAbsoluteCoordinates(mIntermediateAbsolutePosition, mAbsoluteScale, mIntermediateAbsoluteClippedArea);
 			child->UpdateAbsoluteCoordinatesForChildren();
 		}
 	}

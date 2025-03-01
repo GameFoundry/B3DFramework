@@ -104,5 +104,5 @@ void ScriptGUIScrollArea::InternalSetVertScroll(ScriptGUIScrollArea* self, float
 
 int ScriptGUIScrollArea::InternalGetScrollBarWidth(ScriptGUIScrollArea* self)
 {
-	return GUIScrollArea::kScrollBarWidth;
+	return (int)GUIScrollArea::kScrollBarWidth;
 }

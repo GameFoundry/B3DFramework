@@ -118,18 +118,18 @@ void GUIInputBox::UpdateRenderElements()
 
 	// When text bounds are reduced the scroll needs to be adjusted so that
 	// input box isn't filled with mostly empty space.
-	Vector2I offset = mAbsolutePosition;
+	Vector2I offset = mAbsolutePosition.To<i32>();
 	ClampScrollToBounds(mTextSprite.GetTextSprite().GetBounds(offset, Rect2I()));
 
-	const Rect2I contentBounds = GetCachedContentBoundsInElementSpace();
+	const GUIPhysicalArea scaledContentBounds = GetScaledContentBounds();
 
-	const GUIPhysicalPoint textOffset = GUIPhysicalPoint(mTextOffset.X + contentBounds.X, mTextOffset.Y + contentBounds.Y);
+	const GUIPhysicalPoint textOffset = mTextOffset + scaledContentBounds.GetPosition();
 	const GUIPhysicalPoint caretOffset = GUIPhysicalPoint(caretBounds.X, caretBounds.Y) + textOffset;
 
 	// Populate GUI render elements from the sprites
 	{
 		using T = GUIRenderElementHelper;
-		T::Append({ T::SpriteInfo(caretSprite, 0, caretOffset.To<float>(), (Rect2)contentBounds) }, mRenderElements);
+		T::Append({ T::SpriteInfo(caretSprite, 0, caretOffset.To<float>(), scaledContentBounds.ToRect2()) }, mRenderElements);
 
 		if(mSelectionShown)
 		{
@@ -149,7 +149,7 @@ void GUIInputBox::UpdateRenderElements()
 					renderElement.Depth = 2;
 					renderElement.Type = GUIMeshType::Triangle;
 					renderElement.Offset = Vector2(selectionBounds.X, selectionBounds.Y) + textOffset.To<float>();
-					renderElement.ClipRectangle = (Rect2)contentBounds;
+					renderElement.ClipRectangle = scaledContentBounds.ToRect2();
 					renderElement.UseNewFillBuffer = true;
 				}
 			}
@@ -947,8 +947,7 @@ String GUIInputBox::GetSelectedText()
 
 GUIPhysicalPoint GUIInputBox::GetTextOffset() const
 {
-	Rect2I textBounds = GetCachedContentBounds();
-	return GUIPhysicalPoint(textBounds.X, textBounds.Y) + mTextOffset;
+	return GetAbsoluteContentBounds().GetPosition() + mTextOffset;
 }
 
 SPtr<GUIContextMenu> GUIInputBox::GetContextMenu() const

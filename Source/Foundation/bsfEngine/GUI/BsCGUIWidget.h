@@ -43,7 +43,7 @@ namespace bs
 
 		/** @copydoc GUIWidget::GetBounds */
 		B3D_SCRIPT_EXPORT()
-		const Rect2I& GetBounds() const;
+		const GUIPhysicalArea& GetBounds() const;
 
 		/** @copydoc GUIWidget::GetTarget */
 		Viewport* GetTarget() const;

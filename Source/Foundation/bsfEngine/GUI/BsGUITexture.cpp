@@ -66,45 +66,46 @@ void GUITexture::UpdateRenderElements()
 	mRenderElements.clear();
 	GUISpriteHelper::BuildSpriteRenderElements(*this, GUIElementState::Normal, mBackgroundSprite);
 
-	Size2UI textureSize(BsZero);
+	Size2I textureSize(BsZero);
 	if(SpriteImage::CheckIsLoaded(mActiveImage))
 	{
 		mDesc.Image = mActiveImage;
-		textureSize = mDesc.Image->GetAnimationFrameSize();
+		textureSize = mDesc.Image->GetAnimationFrameSize().To<i32>();
 	}
-	Vector2I destSize(mAbsoluteSize.Width, mAbsoluteSize.Height);
+
+	Size2I destSize = mAbsoluteSize.To<i32>();
 
 	// ScaleToFit is the only scaling mode that might result in the GUITexture area not being completely covered by
 	// the sprite. We need the actual sprite size and offsets to center it.
 	Vector2I imageSpriteOffset;
 	if(mScaleMode == TextureScaleMode::ScaleToFit)
 	{
-		if(destSize.X != 0 && destSize.Y != 0)
+		if(destSize.Width != 0 && destSize.Height != 0)
 		{
-			float aspectX = textureSize.Width / (float)destSize.X;
-			float aspectY = textureSize.Height / (float)destSize.Y;
+			float aspectX = (float)textureSize.Width / (float)destSize.Width;
+			float aspectY = (float)textureSize.Height / (float)destSize.Height;
 
 			if(aspectY > aspectX)
 			{
-				destSize.X = Math::RoundToU32(textureSize.Width / aspectY);
-				destSize.Y = Math::RoundToU32(textureSize.Height / aspectY);
+				destSize.Width = Math::RoundToI32((float)textureSize.Width / aspectY);
+				destSize.Height = Math::RoundToI32((float)textureSize.Height / aspectY);
 			}
 			else
 			{
-				destSize.X = Math::RoundToU32(textureSize.Width / aspectX);
-				destSize.Y = Math::RoundToU32(textureSize.Height / aspectX);
+				destSize.Width = Math::RoundToI32((float)textureSize.Width / aspectX);
+				destSize.Height = Math::RoundToI32((float)textureSize.Height / aspectX);
 			}
 		}
 
 		imageSpriteOffset = Vector2I(
-			((i32)mAbsoluteSize.Width - destSize.X) / 2,
-			((i32)mAbsoluteSize.Height - destSize.Y) / 2);
+			((i32)mAbsoluteSize.Width - destSize.Width) / 2,
+			((i32)mAbsoluteSize.Height - destSize.Height) / 2);
 	}
 	else
 		imageSpriteOffset = Vector2I(BsZero);
 
-	mDesc.Width = (u32)destSize.X;
-	mDesc.Height = (u32)destSize.Y;
+	mDesc.Width = (u32)destSize.Width;
+	mDesc.Height = (u32)destSize.Height;
 	mDesc.Transparent = mTransparent;
 	mDesc.Color = GetTint();
 

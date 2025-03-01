@@ -138,7 +138,7 @@ void ScriptGUIElement::InternalCalculateAbsoluteBounds(ScriptGUIElementWrapper* 
 		return;
 	}
 
-	*bounds = self->GetNativeObject()->CalculateAbsoluteBoundsRelativeTo();
+	*bounds = self->GetNativeObject()->CalculateAbsoluteBoundsRelativeTo().ToRect2I();
 }
 
 void ScriptGUIElement::InternalGetLayoutCalculatedSize(ScriptGUIElementWrapper* self, Size2UI* size)
@@ -206,7 +206,7 @@ void ScriptGUIElement::InternalCalculateAbsoluteBoundsRelativeTo(ScriptGUIElemen
 		relativeToElement = relativeTo->GetNativeObject();
 	}
 
-	*bounds = self->GetNativeObject()->CalculateAbsoluteBoundsRelativeTo(relativeToElement);
+	*bounds = self->GetNativeObject()->CalculateAbsoluteBoundsRelativeTo(relativeToElement).ToRect2I();
 }
 
 void ScriptGUIElement::InternalSetPosition(ScriptGUIElementWrapper* self, i32 x, i32 y)

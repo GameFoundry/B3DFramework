@@ -135,11 +135,9 @@ void GUIListBox::SetElementStates(const Vector<bool>& states)
 		OpenListBox();
 }
 
-Rect2I GUIListBox::GetCachedContentBoundsInElementSpace() const
+GUILogicalArea GUIListBox::GetContentBounds() const
 {
-	const Rect2I& cachedBounds = GetAbsoluteBounds();
-
-	GUILogicalSize layoutSize((i32)cachedBounds.Width, (i32)cachedBounds.Height);
+	GUILogicalSize layoutSize = mLayoutData.Size;
 
 	const GUILogicalUnit arrowAreaWidth = GetArrowCachedContentSize().Width;
 	layoutSize.Width = Math::Max(layoutSize.Width - arrowAreaWidth, 0);
@@ -147,10 +145,10 @@ Rect2I GUIListBox::GetCachedContentBoundsInElementSpace() const
 	if(mStyleSheetRuleInformation.CurrentStateRuleset != nullptr)
 	{
 		const GUIStyleSheetRules& styleSheetRules = mStyleSheetRuleInformation.CurrentStateRuleset->Rules;
-		return GUIUtility::CalculateContentArea(layoutSize, styleSheetRules).ToRect2I();
+		return GUIUtility::CalculateContentArea(layoutSize, styleSheetRules);
 	}
 
-	return Rect2I(0, 0, (u32)layoutSize.Width, (u32)layoutSize.Height);
+	return GUILogicalArea(GUILogicalPoint(0, 0), mLayoutData.Size);
 }
 
 GUILogicalArea GUIListBox::GetArrowCachedContentBoundsInElementSpace() const
@@ -160,11 +158,8 @@ GUILogicalArea GUIListBox::GetArrowCachedContentBoundsInElementSpace() const
 	if(!IsUsingStyleSheets() || mStyleSheetRuleInformation.CurrentStateRuleset == nullptr)
 		return output;
 
-	const Rect2I& cachedBounds = GetAbsoluteBounds();
-	const GUILogicalSize layoutSize((i32)cachedBounds.Width, (i32)cachedBounds.Height);
-
 	const GUIStyleSheetRules& styleSheetRules = mStyleSheetRuleInformation.CurrentStateRuleset->Rules;
-	const GUILogicalArea& fullContentArea = GUIUtility::CalculateContentArea(layoutSize, styleSheetRules);
+	const GUILogicalArea& fullContentArea = GUIUtility::CalculateContentArea(mLayoutData.Size, styleSheetRules);
 
 	const GUIStyleSheetRuleInformation& arrowRuleInformation = GetPseudoElementStyleSheetRuleInformation(mArrowPseudoElementIndex);
 	if(arrowRuleInformation.CurrentStateRuleset != nullptr)
@@ -181,9 +176,7 @@ GUILogicalArea GUIListBox::GetArrowCachedContentBoundsInElementSpace() const
 
 GUILogicalSize GUIListBox::GetArrowCachedContentSize() const
 {
-	const Rect2I& cachedBounds = GetAbsoluteBounds();
-
-	GUILogicalSize output(0, cachedBounds.Height);
+	GUILogicalSize output(0, mLayoutData.Size.Height);
 	if(!IsUsingStyleSheets() || mStyleSheetRuleInformation.CurrentStateRuleset == nullptr)
 		return output;
 	
@@ -315,23 +308,23 @@ void GUIListBox::OpenListBox()
 {
 	CloseListBox();
 
-	DROP_DOWN_BOX_DESC desc;
+	DropDownBoxCreateInformation createInformation;
 
 	u32 i = 0;
 	for(auto& elem : mElements)
 	{
 		String identifier = ToString(i);
-		desc.DropDownData.Entries.push_back(GUIDropDownDataEntry::Button(identifier, std::bind(&GUIListBox::ElementSelected, this, i)));
-		desc.DropDownData.LocalizedNames[identifier] = elem;
+		createInformation.DropDownData.Entries.push_back(GUIDropDownDataEntry::Button(identifier, std::bind(&GUIListBox::ElementSelected, this, i)));
+		createInformation.DropDownData.LocalizedNames[identifier] = elem;
 		i++;
 	}
 
 	GUIWidget* widget = GetParentWidget();
 
-	desc.Camera = widget->GetCamera();
-	desc.StyleSheetCascade = widget->GetStyleSheetCascadeAsShared();
-	desc.Placement = DropDownAreaPlacement::AroundBoundsHorz(GetAbsoluteBounds());
-	desc.DropDownData.States = mElementStates;
+	createInformation.Camera = widget->GetCamera();
+	createInformation.StyleSheetCascade = widget->GetStyleSheetCascadeAsShared();
+	createInformation.Placement = DropDownAreaPlacement::AroundBoundsHorizontal(GetAbsoluteBounds());
+	createInformation.DropDownData.States = mElementStates;
 
 	GUIDropDownType type;
 	if(mIsMultiselect)
@@ -340,7 +333,7 @@ void GUIListBox::OpenListBox()
 		type = GUIDropDownType::ListBox;
 
 	mDropDownBox = GUIDropDownBoxManager::Instance().OpenDropDownBox(
-		desc, type, std::bind(&GUIListBox::OnListBoxClosed, this));
+		createInformation, type, std::bind(&GUIListBox::OnListBoxClosed, this));
 
 	SetOnInternal(true);
 }

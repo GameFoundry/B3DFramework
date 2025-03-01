@@ -4,6 +4,7 @@
 
 #include "BsPrerequisites.h"
 #include "Math/BsRect2I.h"
+#include "BsGUIUnits.h"
 
 namespace bs
 {
@@ -56,28 +57,56 @@ namespace bs
 		 * box to correspond to the position, but if other corners offer more space for the contents, those will be used
 		 * instead.
 		 */
-		static DropDownAreaPlacement AroundPosition(const Vector2I& position);
+		static DropDownAreaPlacement AroundPosition(const Vector2I& position); // TODO - Deprecated
 
 		/**
 		 * Drop down box will be placed at the specified bounds. Box will be horizontally aligned to the left of the
 		 * provided bounds. Vertically system prefers placing the box at the bottom of the bounds, but may choose to align
 		 * it with the top of the bounds if it offers more space for the contents.
 		 */
-		static DropDownAreaPlacement AroundBoundsVert(const Rect2I& bounds);
+		static DropDownAreaPlacement AroundBoundsVert(const Rect2I& bounds); // TODO - Deprecated
 
 		/**
 		 * Drop down box will be placed at the specified bounds. Box will be vertically aligned to the top of the provided
 		 * bounds. Horizontally system prefers placing the box at the right of the bounds, but may choose to align it with
 		 * the left of the bounds if it offers more space for the contents.
 		 */
-		static DropDownAreaPlacement AroundBoundsHorz(const Rect2I& bounds);
+		static DropDownAreaPlacement AroundBoundsHorz(const Rect2I& bounds); // TODO - Deprecated
 
 		/**
 		 * Drop down box will be placed at the specified bounds. Box will be vertically aligned to the top or bottom of the
 		 * provided bounds, with bottom being preferred. Horizontally system prefers placing the box at the right of the
 		 * bounds, but may choose to align it with the left of the bounds if it offers more space for the contents.
 		 */
-		static DropDownAreaPlacement AroundBounds(const Rect2I& bounds);
+		static DropDownAreaPlacement AroundBounds(const Rect2I& bounds); // TODO - Deprecated
+
+		/**
+		 * Drop down box will be placed at the specified position. By default the system prefers the top left corner of the
+		 * box to correspond to the position, but if other corners offer more space for the contents, those will be used
+		 * instead.
+		 */
+		static DropDownAreaPlacement AroundPosition(const GUIPhysicalPoint& position);
+
+		/**
+		 * Drop down box will be placed at the specified bounds. Box will be horizontally aligned to the left of the
+		 * provided bounds. Vertically system prefers placing the box at the bottom of the bounds, but may choose to align
+		 * it with the top of the bounds if it offers more space for the contents.
+		 */
+		static DropDownAreaPlacement AroundBoundsVertical(const GUIPhysicalArea& bounds);
+
+		/**
+		 * Drop down box will be placed at the specified bounds. Box will be vertically aligned to the top of the provided
+		 * bounds. Horizontally system prefers placing the box at the right of the bounds, but may choose to align it with
+		 * the left of the bounds if it offers more space for the contents.
+		 */
+		static DropDownAreaPlacement AroundBoundsHorizontal(const GUIPhysicalArea& bounds);
+
+		/**
+		 * Drop down box will be placed at the specified bounds. Box will be vertically aligned to the top or bottom of the
+		 * provided bounds, with bottom being preferred. Horizontally system prefers placing the box at the right of the
+		 * bounds, but may choose to align it with the left of the bounds if it offers more space for the contents.
+		 */
+		static DropDownAreaPlacement AroundBounds(const GUIPhysicalArea& bounds);
 
 		/**	Returns drop down box positioning type. */
 		Type GetType() const { return mType; }

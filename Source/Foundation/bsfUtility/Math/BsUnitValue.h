@@ -21,6 +21,16 @@ namespace bs
 			:Value(value)
 		{ }
 
+		template<typename T2>
+		explicit constexpr TUnitValue(T2 value)
+			:Value((T)value)
+		{ }
+
+		template<typename T2, typename Unit2>
+		explicit constexpr TUnitValue(TUnitValue<T2, Unit2> value)
+			:Value((T)value.Value)
+		{ }
+
 		/** Converts a unit with one underlying type to another. */
 		template<typename T2, typename Unit2 = Unit>
 		TUnitValue<T2, Unit2> To() const { return TUnitValue<T2, Unit2>((T2)Value); }

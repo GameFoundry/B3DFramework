@@ -62,7 +62,7 @@ namespace bs
 		bool InBounds(const GUIPhysicalPoint& position) const;
 
 		/** Returns bounds of the widget, relative to the parent window. */
-		const Rect2I& GetBounds() const { return mBounds; }
+		const GUIPhysicalArea& GetBounds() const { return mBounds; }
 
 		/**
 		 * Rebuilds any dirty data required for GUI element rendering and returns the data required for updating the GUI
@@ -227,7 +227,7 @@ namespace bs
 
 		mutable u64 mCachedRTId = 0;
 		mutable bool mWidgetIsDirty = false;
-		mutable Rect2I mBounds;
+		mutable GUIPhysicalArea mBounds;
 
 		SPtr<const GUIStyleSheetCascade> mStyleSheetCascade;
 	};

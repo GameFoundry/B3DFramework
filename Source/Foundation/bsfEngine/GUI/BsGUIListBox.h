@@ -92,7 +92,7 @@ namespace bs
 		~GUIListBox();
 
 	private:
-		Rect2I GetCachedContentBoundsInElementSpace() const override;
+		GUILogicalArea GetContentBounds() const override;
 		void UpdateRenderElements() override;
 		bool DoOnMouseEvent(const GUIMouseEvent& ev) override;
 		bool DoOnCommandEvent(const GUICommandEvent& ev) override;

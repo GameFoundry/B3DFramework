@@ -7,6 +7,7 @@
 #include "../../../Foundation/bsfEngine/GUI/BsCGUIWidget.h"
 #include "Wrappers/GUI/BsScriptGUILayout.h"
 #include "BsScriptTVector2.generated.h"
+#include "BsScriptTArea2.generated.h"
 
 namespace bs
 {
@@ -88,7 +89,7 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptGUIWidget::InternalGetBounds(ScriptGUIWidget* self, Rect2I* __output)
+	void ScriptGUIWidget::InternalGetBounds(ScriptGUIWidget* self, __TArea2_TUnitValue_int32_t__PhysicalPixel___TUnitValue_int32_t__PhysicalPixel__Interop* __output)
 	{
 		if(!self->IsNativeObjectValid())
 		{
@@ -96,9 +97,11 @@ namespace bs
 			return;
 		}
 
-		Rect2I tmp__output;
+		TArea2<TUnitValue<int32_t, PhysicalPixel>, TUnitValue<int32_t, PhysicalPixel>> tmp__output;
 		tmp__output = static_cast<CGUIWidget*>(self->GetNativeObject())->GetBounds();
 
-		*__output = tmp__output;
+		__TArea2_TUnitValue_int32_t__PhysicalPixel___TUnitValue_int32_t__PhysicalPixel__Interop interop__output;
+		interop__output = ScriptTArea2_TUnitValue_int32_t__PhysicalPixel___TUnitValue_int32_t__PhysicalPixel__::ToInterop(tmp__output);
+		MonoUtil::ValueCopy(__output, &interop__output, ScriptTArea2_TUnitValue_int32_t__PhysicalPixel___TUnitValue_int32_t__PhysicalPixel__::GetMetaData()->ScriptClass->GetInternalClass());
 	}
 }

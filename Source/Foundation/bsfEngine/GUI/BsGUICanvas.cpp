@@ -207,8 +207,8 @@ void GUICanvas::Clear()
 
 void GUICanvas::UpdateRenderElements()
 {
-	Vector2 offset((float)mAbsolutePosition.X, (float)mAbsolutePosition.Y);
-	Rect2I clipRect = GetLocalClippedArea();
+	Vector2 offset = mAbsolutePosition.To<float>();
+	Rect2I clipRect = GetLocalClippedArea().ToRect2I();
 	BuildAllTriangleElementsIfDirty(offset, mAbsoluteScale, clipRect);
 
 	mRenderElements.Clear();
@@ -312,8 +312,8 @@ void GUICanvas::FillBuffer(
 	u8* uvs = vertices + sizeof(Vector2);
 	u32 indexStride = sizeof(u32);
 
-	Vector2I layoutOffset = Vector2I(mAbsolutePosition.X, mAbsolutePosition.Y) + offset;
-	Rect2I clipRect = GetLocalClippedArea();
+	Vector2I layoutOffset = mAbsolutePosition.To<i32>() + offset;
+	Rect2I clipRect = GetLocalClippedArea().ToRect2I();
 
 	Vector2 floatOffset((float)layoutOffset.X, (float)layoutOffset.Y);
 	BuildAllTriangleElementsIfDirty(floatOffset, mAbsoluteScale, clipRect);
@@ -425,15 +425,15 @@ void GUICanvas::BuildImageElement(const CanvasElement& element)
 	desc.Transparent = true;
 	desc.Color = element.Color;
 
-	Size2UI textureSize;
+	Size2I textureSize(BsZero);
 	if(SpriteImage::CheckIsLoaded(imageData.Image))
 	{
 		desc.Image = imageData.Image;
 
-		textureSize = desc.Image->GetSize();
+		textureSize = desc.Image->GetSize().To<i32>();
 	}
 
-	Vector2I destSize(mAbsoluteSize.Width, mAbsoluteSize.Height);
+	Size2I destSize = mAbsoluteSize.To<i32>();
 	desc.UvScale = ImageSprite::GetTextureUvScale(textureSize, destSize, element.ScaleMode);
 
 	element.ImageSprite->Update(desc, (u64)GetParentWidget());

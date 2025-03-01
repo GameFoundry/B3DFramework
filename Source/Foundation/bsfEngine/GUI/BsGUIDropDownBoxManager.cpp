@@ -10,7 +10,7 @@ GUIDropDownBoxManager::~GUIDropDownBoxManager()
 	CloseDropDownBox();
 }
 
-GameObjectHandle<GUIDropDownMenu> GUIDropDownBoxManager::OpenDropDownBox(const DROP_DOWN_BOX_DESC& desc, GUIDropDownType type, std::function<void()> onClosedCallback)
+GameObjectHandle<GUIDropDownMenu> GUIDropDownBoxManager::OpenDropDownBox(const DropDownBoxCreateInformation& desc, GUIDropDownType type, std::function<void()> onClosedCallback)
 {
 	CloseDropDownBox();
 

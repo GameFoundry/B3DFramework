@@ -23,7 +23,7 @@ namespace bs
 	};
 
 	/**	A set of parameters used for initializing a drop down box. */
-	struct DROP_DOWN_BOX_DESC
+	struct DropDownBoxCreateInformation
 	{
 		SPtr<Camera> Camera; /**< Camera on which to open the drop down box. */
 		DropDownAreaPlacement Placement; /**< Determines how is the drop down box positioned in the visible area. */
@@ -101,7 +101,7 @@ namespace bs
 		 * @param[in]	desc	Various parameters that control the drop down menu features and content.
 		 * @param[in]	type	Specific type of drop down box to display.
 		 */
-		GUIDropDownMenu(const HSceneObject& parent, const DROP_DOWN_BOX_DESC& desc, GUIDropDownType type);
+		GUIDropDownMenu(const HSceneObject& parent, const DropDownBoxCreateInformation& desc, GUIDropDownType type);
 		~GUIDropDownMenu();
 
 	private:
@@ -159,7 +159,7 @@ namespace bs
 			 * @param[in]	bounds	Bounds of the GUI element that is used as a visual representation of this drop down
 			 *						element.
 			 */
-			void ElementActivated(u32 idx, const Rect2I& bounds);
+			void ElementActivated(u32 idx, const GUIPhysicalArea& bounds);
 
 			/**
 			 * Called when the user selects an element with the specified index.

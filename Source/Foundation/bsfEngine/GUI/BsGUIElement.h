@@ -190,7 +190,7 @@ namespace bs
 		 *
 		 * @note	This call can be potentially expensive if the GUI state is dirty, as it can trigger a layout update operation.
 		 */
-		Rect2I CalculateAbsoluteBoundsRelativeTo(GUIElement* relativeTo = nullptr);
+		GUIPhysicalArea CalculateAbsoluteBoundsRelativeTo(GUIElement* relativeTo = nullptr);
 
 		/**
 		 * Calculates bounds of the GUI element, relative to the parent GUI widget, with scaling applied. 
@@ -198,7 +198,7 @@ namespace bs
 		 *
 		 * @note	This call can be potentially expensive if the GUI state is dirty, as it can trigger a layout update operation.
 		 */
-		Rect2I CalculateAbsoluteBounds() const;
+		GUIPhysicalArea CalculateAbsoluteBounds() const;
 
 		/**
 		 * Calculates bounds of the GUI element in screen space. 
@@ -215,7 +215,7 @@ namespace bs
 		 * Always returns value calculated by last layout update. This means out of date value may be returned if the
 		 * layout has been dirtied since then.
 		 */
-		Rect2I GetAbsoluteBounds() const { return Rect2I(mAbsolutePosition, mAbsoluteSize); }
+		GUIPhysicalArea GetAbsoluteBounds() const { return GUIPhysicalArea(mAbsolutePosition, mAbsoluteSize); }
 
 		/** Converts a point relative to the parent widget, into a point relative to this element. */
 		GUILogicalPoint WidgetToElementSpace(const GUIPhysicalPoint& point) const;
@@ -236,7 +236,7 @@ namespace bs
 		 * Always returns value calculated by last layout update. This means out of date value may be returned if the
 		 * layout has been dirtied since then.
 		 */
-		const Vector2I& GetAbsolutePosition() const { return mAbsolutePosition; }
+		const GUIPhysicalPoint& GetAbsolutePosition() const { return mAbsolutePosition; }
 
 		/** Combined local and parent scale. */
 		float GetAbsoluteScale() const { return mAbsoluteScale; }
@@ -287,7 +287,7 @@ namespace bs
 		 * @param parentScale			Scale of the parent GUI element.
 		 * @param parentVisibleArea		Absolute visible (clipped) area though which this element may be seen. This will be used for culling and clipping.
 		 */
-		virtual void UpdateAbsoluteCoordinates(const Vector2I& parentOrigin, float parentScale, const Rect2I& parentVisibleArea);
+		virtual void UpdateAbsoluteCoordinates(const GUIPhysicalPointF& parentOrigin, float parentScale, const GUIPhysicalAreaF& parentVisibleArea);
 
 		/** Calls UpdateAbsoluteCoordinates() on all child elements. */
 		virtual void UpdateAbsoluteCoordinatesForChildren();
@@ -448,10 +448,16 @@ namespace bs
 		 * Always returns value calculated by last layout update. This means out of date value may be returned if the
 		 * layout has been dirtied since then.
 		 */
-		const Rect2I& GetAbsoluteClippedArea() const { return mAbsoluteClippedArea; }
+		const GUIPhysicalArea& GetAbsoluteClippedArea() const { return mAbsoluteClippedArea; }
+
+		/** Similar to GetAbsolutePosition(), but contains floating point data that is not rounded, useful primarily for calculating child absolute coordinates without losing precision. */
+		const GUIPhysicalPointF& GetIntermediateAbsolutePosition() const { return mIntermediateAbsolutePosition; }
+
+		/** Similar to GetAbsoluteClippedArea(), but contains floating point data that is not rounded, useful primarily for calculating child absolute coordinates without losing precision. */
+		const GUIPhysicalAreaF& GetIntermediateAbsoluteClippedArea() const { return mIntermediateAbsoluteClippedArea; }
 
 		/** Same as GetAbsoluteClippedArea(), except the area is made relative to this GUI element. */
-		Rect2I GetLocalClippedArea() const;
+		GUIPhysicalArea GetLocalClippedArea() const;
 
 		/** @} */
 
@@ -509,10 +515,14 @@ namespace bs
 		GUILayoutData mLayoutData; /**< Relative position (to parent), size, depth and other information, calculated during a layout update. */
 
 		// Data calculated by absolute coordinate pass
-		Vector2I mAbsolutePosition{BsZero}; /**< Absolute position of the GUI element (relative to parent GUI widget). Only valid after layout update & absolute coordinate update. */
-		Size2UI mAbsoluteSize; /**< Final size to use for the element. Same as GUILayoutData::Size, scaled by GUI element scale. */
+		GUIPhysicalPoint mAbsolutePosition{BsZero}; /**< Absolute position of the GUI element (relative to parent GUI widget). Only valid after layout update & absolute coordinate update. */
+		GUIPhysicalSize mAbsoluteSize{BsZero}; /**< Final size to use for the element. Same as GUILayoutData::Size, scaled by GUI element scale. */
 		float mAbsoluteScale = 1.0f; /**< Combined local and parent scale. */
-		Rect2I mAbsoluteClippedArea; /**< Absolute area of the GUI element as clipped by the parent visible bounds (e.g. if a parent is a scroll area). Only valid after layout update & absolute coordinate update. */
+		GUIPhysicalArea mAbsoluteClippedArea; /**< Absolute area of the GUI element as clipped by the parent visible bounds (e.g. if a parent is a scroll area). Only valid after layout update & absolute coordinate update. */
+
+		// Keep floating point copies of absolute position & clipped area in case we need to update child absolute positions, so we don't lose precision from converting to integer at every child
+		GUIPhysicalPointF mIntermediateAbsolutePosition{BsZero};
+		GUIPhysicalAreaF mIntermediateAbsoluteClippedArea;
 
 		/************************************************************************/
 		/* 								RTTI		                     		*/

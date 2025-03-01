@@ -14509,7 +14509,7 @@ Alternatively you can also skip manually calling ReleaseInternalReference() and 
 			</returns>
 		</method>
 		<method native="GetBounds" script="GetBounds" static="false">
-			<returns type="Rect2I">
+			<returns type="TArea2&lt;TUnitValue&lt;int,PhysicalPixel&gt;,TUnitValue&lt;int,PhysicalPixel&gt;&gt;">
 			</returns>
 		</method>
 		<property name="Panel" type="GUIPanel" getter="GetPanel" setter="" static="false">
@@ -15077,7 +15077,7 @@ Primary purpose of this class is to avoid expensive string compare, and instead 
 			<param name="fontSize" type="float">
 				<doc>Size of individual characters in the font, in points.</doc>
 			</param>
-			<returns type="TVector2&lt;int&gt;">
+			<returns type="TSize2&lt;int&gt;">
 				<doc>Width/height required to display the text, in pixels.</doc>
 			</returns>
 		</method>

@@ -79,8 +79,8 @@ void GUIRenderTexture::UpdateRenderElements()
 	if(mActiveImage != nullptr && mActiveImage.IsLoaded())
 		mDesc.Image = mActiveImage;
 
-	mDesc.Width = mAbsoluteSize.Width;
-	mDesc.Height = mAbsoluteSize.Height;
+	mDesc.Width = (u32)mAbsoluteSize.Width;
+	mDesc.Height = (u32)mAbsoluteSize.Height;
 	mDesc.Transparent = mTransparent;
 	mDesc.Color = GetTint();
 

@@ -36,9 +36,9 @@ namespace bs
 			return Internal_InBounds(mCachedPtr, ref position);
 		}
 
-		public Rect2I GetBounds()
+		public TArea2<TUnitValue<int,PhysicalPixel>,TUnitValue<int,PhysicalPixel>> GetBounds()
 		{
-			Rect2I temp;
+			TArea2<TUnitValue<int,PhysicalPixel>,TUnitValue<int,PhysicalPixel>> temp;
 			Internal_GetBounds(mCachedPtr, out temp);
 			return temp;
 		}
@@ -52,7 +52,7 @@ namespace bs
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern bool Internal_InBounds(IntPtr thisPtr, ref TVector2<TUnitValue<int,PhysicalPixel>> position);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_GetBounds(IntPtr thisPtr, out Rect2I __output);
+		private static extern void Internal_GetBounds(IntPtr thisPtr, out TArea2<TUnitValue<int,PhysicalPixel>,TUnitValue<int,PhysicalPixel>> __output);
 	}
 
 	/** @} */

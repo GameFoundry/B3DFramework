@@ -59,7 +59,7 @@ bool CGUIWidget::InBounds(const GUIPhysicalPoint& position) const
 	return mInternal->InBounds(position);
 }
 
-const Rect2I& CGUIWidget::GetBounds() const
+const GUIPhysicalArea& CGUIWidget::GetBounds() const
 {
 	return mInternal->GetBounds();
 }

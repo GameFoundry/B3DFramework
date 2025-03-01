@@ -5,6 +5,42 @@
 
 using namespace bs;
 
+DropDownAreaPlacement DropDownAreaPlacement::AroundPosition(const GUIPhysicalPoint& position)
+{
+	DropDownAreaPlacement instance;
+	instance.mType = Type::Position;
+	instance.mPosition = position.To<i32>();
+
+	return instance;
+}
+
+DropDownAreaPlacement DropDownAreaPlacement::AroundBoundsVertical(const GUIPhysicalArea& bounds)
+{
+	DropDownAreaPlacement instance;
+	instance.mType = Type::BoundsVert;
+	instance.mBounds = bounds.ToRect2I();
+
+	return instance;
+}
+
+DropDownAreaPlacement DropDownAreaPlacement::AroundBoundsHorizontal(const GUIPhysicalArea& bounds)
+{
+	DropDownAreaPlacement instance;
+	instance.mType = Type::BoundsHorz;
+	instance.mBounds = bounds.ToRect2I();
+
+	return instance;
+}
+
+DropDownAreaPlacement DropDownAreaPlacement::AroundBounds(const GUIPhysicalArea& bounds)
+{
+	DropDownAreaPlacement instance;
+	instance.mType = Type::BoundsAll;
+	instance.mBounds = bounds.ToRect2I();
+
+	return instance;
+}
+
 DropDownAreaPlacement DropDownAreaPlacement::AroundPosition(const Vector2I& position)
 {
 	DropDownAreaPlacement instance;

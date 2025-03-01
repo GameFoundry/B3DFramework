@@ -69,8 +69,8 @@ void GUIRenderable::GetRenderElementVertexAndIndexData(u32 renderElementIndex, u
 {
 	const GUIRenderElement& renderElement = mRenderElements[renderElementIndex];
 
-	const Vector2I guiElementOffset = mAbsolutePosition;
-	const Rect2 guiElementClipRectangle = (Rect2)GetLocalClippedArea();
+	const GUIPhysicalPoint guiElementOffset = mAbsolutePosition;
+	const Rect2 guiElementClipRectangle = GetLocalClippedArea().ToRect2();
 
 	// Build the render element bounds to use for clipping
 	Rect2 renderElementClipRectangle = renderElement.ClipRectangle; // In space relative to parent GUI element
@@ -173,59 +173,61 @@ void GUIRenderable::ResetSizeConstraints()
 	MarkLayoutAsDirty();
 }
 
-Rect2I GUIRenderable::GetCachedContentBounds() const
+GUIPhysicalArea GUIRenderable::GetAbsoluteContentBounds() const
 {
-	Rect2I contentArea = GetCachedContentBoundsInElementSpace();
+	const GUIPhysicalPoint absolutePosition = GetAbsolutePosition();
 
-	const Rect2I& cachedBounds = GetAbsoluteBounds();
-	contentArea.X += cachedBounds.X;
-	contentArea.Y += cachedBounds.Y;
+	GUIPhysicalArea absoluteContentArea = GetScaledContentBounds();
+	absoluteContentArea.X += absolutePosition.X;
+	absoluteContentArea.Y += absolutePosition.Y;
 
-	return contentArea;
+	return absoluteContentArea;
 }
 
-Rect2I GUIRenderable::GetCachedContentBoundsInElementSpace() const
+GUILogicalArea GUIRenderable::GetContentBounds() const
 {
-	const Rect2I& cachedBounds = GetAbsoluteBounds();
-	const GUILogicalSize layoutSize((i32)cachedBounds.Width, (i32)cachedBounds.Height);
-
 	if(mStyleSheetRuleInformation.CurrentStateRuleset != nullptr)
 	{
 		const GUIStyleSheetRules& styleSheetRules = mStyleSheetRuleInformation.CurrentStateRuleset->Rules;
-		return GUIUtility::CalculateContentArea(layoutSize, styleSheetRules).ToRect2I();
+		return GUIUtility::CalculateContentArea(mLayoutData.Size, styleSheetRules);
 	}
 
-	return Rect2I(0, 0, (u32)layoutSize.Width, (u32)layoutSize.Height);
+	return GUILogicalArea(GUILogicalPoint(0, 0), mLayoutData.Size);
 }
 
-Rect2I GUIRenderable::GetCachedClippedContentBoundsInContentSpace() const
+GUIPhysicalArea GUIRenderable::GetScaledContentBounds() const
 {
-	const Rect2I localContentBounds = GetCachedContentBoundsInElementSpace();
+	float parentAbsoluteScale = 1.0f;
+	if(mParent != nullptr)
+		parentAbsoluteScale = mParent->GetAbsoluteScale();
 
-	// Transform into element space so we can clip it using the element clip rectangle
-	Rect2I contentClipRect = localContentBounds;
-	contentClipRect.Clip(GetLocalClippedArea());
-
-	// Transform into content sprite space
-	contentClipRect.X -= localContentBounds.X;
-	contentClipRect.Y -= localContentBounds.Y;
-
-	return contentClipRect;
+	GUIPhysicalArea contentArea = GetContentBounds().To<GUIPhysicalUnit>();
+	contentArea.X = Math::RoundToI32((float)contentArea.X * parentAbsoluteScale);
+	contentArea.Y = Math::RoundToI32((float)contentArea.Y * parentAbsoluteScale);
+	contentArea.Width = Math::RoundToI32((float)contentArea.Width * GetAbsoluteScale());
+	contentArea.Height = Math::RoundToI32((float)contentArea.Height * GetAbsoluteScale());
+	
+	return contentArea;
 }
 
-Vector2I GUIRenderable::GetContentOffsetInElementSpace() const
+GUILogicalPoint GUIRenderable::GetContentOffset() const
 {
 	if(mStyleSheetRuleInformation.CurrentStateRuleset != nullptr)
 	{
 		const GUIStyleSheetRules& styleSheetRules = mStyleSheetRuleInformation.CurrentStateRuleset->Rules;
 
 		const RectOffset& padding = GetPadding();
-		return Vector2I(
+		return GUILogicalPoint(
 			padding.Left + styleSheetRules.BorderLeft.GetVisibleWidth(),
 			padding.Top + styleSheetRules.BorderTop.GetVisibleWidth());
 	}
 
-	return Vector2I(0, 0);
+	return GUILogicalPoint(0, 0);
+}
+
+GUIPhysicalPoint GUIRenderable::GetScaledContentOffset() const
+{
+	return (GetContentOffset().To<float>() * GetAbsoluteScale()).To<GUIPhysicalUnit>();
 }
 
 Color GUIRenderable::GetTint() const

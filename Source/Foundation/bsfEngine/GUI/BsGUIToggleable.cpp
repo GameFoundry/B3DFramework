@@ -221,7 +221,7 @@ void GUIToggleable::UpdateRenderElements()
 	}
 
 	// Otherwise, create the checkmark sprite and offset the parent's contents to make room
-	const GUILogicalSize checkmarkAreaSize = CalculateCheckmarkContentAreaSize(GetAbsoluteBounds().GetSize().To<GUILogicalUnit>());
+	const GUIPhysicalSize checkmarkAreaSize = CalculateCheckmarkContentAreaSize(GetAbsoluteBounds().GetSize().To<GUILogicalUnit>()).To<GUIPhysicalUnit>();
 
 	// Use user-provided image, if one is provided
 	bool showCheckmarkSprite = false;
@@ -265,16 +265,23 @@ void GUIToggleable::UpdateRenderElements()
 
 	GUIContentSpriteCreateInformation contentSpriteCreateInformation(Size2UI::kZero, mContent, styleSheetRules, tint, mAbsoluteScale, batchId);
 
-	const Rect2I& contentAreaBounds = GetCachedContentBoundsInElementSpace();
-	contentSpriteCreateInformation.ContentArea = Rect2I(contentAreaBounds.X + (i32)kCheckmarkContentSpacing + (i32)checkmarkAreaSize.Width, contentAreaBounds.Y,
-		(u32)((i32)contentAreaBounds.Width - (i32)kCheckmarkContentSpacing - (i32)checkmarkAreaSize.Width), contentAreaBounds.Height);
+	const GUIPhysicalUnit physicalCheckmarkContentSpacing = GUIUtility::LogicalToPhysical(kCheckmarkContentSpacing, GetAbsoluteScale());
+
+	const GUIPhysicalArea& scaledContentAreaBounds = GetScaledContentBounds();
+	GUIPhysicalArea contentArea(
+		scaledContentAreaBounds.X + physicalCheckmarkContentSpacing + checkmarkAreaSize.Width,
+		scaledContentAreaBounds.Y,
+		scaledContentAreaBounds.Width - physicalCheckmarkContentSpacing - checkmarkAreaSize.Width,
+		scaledContentAreaBounds.Height);
+
+	contentSpriteCreateInformation.ContentArea = contentArea.ToRect2I();
 
 	// Offset to center the checkmark sprite within the checkmark content area
 	const Vector2 checkmarkCenterOffset = Vector2(
 		((float)checkmarkAreaSize.Width - (float)mCheckmarkSpriteInformation.Width) / 2.0f,
 		((float)checkmarkAreaSize.Height - (float)mCheckmarkSpriteInformation.Height) / 2.0f);
 
-	const Rect2I checkmarkContentArea = Rect2I(contentAreaBounds.X, contentAreaBounds.Y, (u32)checkmarkAreaSize.Width, (u32)checkmarkAreaSize.Height);
+	const Rect2 checkmarkContentArea = Rect2((float)scaledContentAreaBounds.X, (float)scaledContentAreaBounds.Y, (float)checkmarkAreaSize.Width, (float)checkmarkAreaSize.Height);
 	const Vector2 checkmarkOffset((float)checkmarkContentArea.X + checkmarkCenterOffset.X, (float)checkmarkContentArea.Y + checkmarkCenterOffset.Y);
 
 	mContentSprites.BuildRenderElements(contentSpriteCreateInformation, mRenderElements);
@@ -292,7 +299,7 @@ void GUIToggleable::UpdateRenderElements()
 		{
 			using T = GUIRenderElementHelper;
 
-			T::Append({ T::SpriteInfo(mCheckmarkSprite, 0, checkmarkOffset, (Rect2)checkmarkContentArea) }, mRenderElements);
+			T::Append({ T::SpriteInfo(mCheckmarkSprite, 0, checkmarkOffset, checkmarkContentArea) }, mRenderElements);
 		}
 	}
 }

@@ -66,7 +66,7 @@ void GUINavGroup::FocusNext(GUIInteractable* anchor)
 
 	// Find next element to focus on
 	{
-		const Rect2I focusedElemBounds = anchor->GetAbsoluteClippedArea();
+		const GUIPhysicalArea focusedElemBounds = anchor->GetAbsoluteClippedArea();
 
 		// We look for the element to the right of the current element, within some Y range (a 'row').
 		//// We search by rows in order to make the navigation perceptually nicer. Sometimes elements appear to be
@@ -81,8 +81,8 @@ void GUINavGroup::FocusNext(GUIInteractable* anchor)
 			{
 				bool operator()(const GUIInteractable* lhs, const GUIInteractable* rhs) const
 				{
-					const Rect2I boundsLHS = lhs->GetAbsoluteClippedArea();
-					const Rect2I boundsRHS = rhs->GetAbsoluteClippedArea();
+					const GUIPhysicalArea boundsLHS = lhs->GetAbsoluteClippedArea();
+					const GUIPhysicalArea boundsRHS = rhs->GetAbsoluteClippedArea();
 
 					if(boundsLHS.Y != boundsRHS.Y)
 						return boundsLHS.Y < boundsRHS.Y;
@@ -100,7 +100,7 @@ void GUINavGroup::FocusNext(GUIInteractable* anchor)
 				if(!acceptsKeyFocus || element->IsHidden() || element->IsDisabled())
 					continue;
 
-				const Rect2I elemBounds = element->GetAbsoluteClippedArea();
+				const GUIPhysicalArea elemBounds = element->GetAbsoluteClippedArea();
 				const bool isFullyClipped = elemBounds.Width == 0 || elemBounds.Height == 0;
 
 				if(isFullyClipped)
@@ -113,13 +113,13 @@ void GUINavGroup::FocusNext(GUIInteractable* anchor)
 			auto iterElem = elements.begin();
 			auto iterRowStart = iterElem;
 
-			i32 firstRowY = 0;
-			i32 rowY = 0;
+			GUIPhysicalUnit firstRowY = 0;
+			GUIPhysicalUnit rowY = 0;
 			for(; iterElem != elements.end(); ++iterElem)
 			{
 				GUIInteractable* element = *iterElem;
 
-				const Rect2I elemBounds = element->GetAbsoluteClippedArea();
+				const GUIPhysicalArea elemBounds = element->GetAbsoluteClippedArea();
 				if(iterElem == elements.begin())
 				{
 					firstRowY = elemBounds.Y;
@@ -127,7 +127,7 @@ void GUINavGroup::FocusNext(GUIInteractable* anchor)
 				}
 				else
 				{
-					const i32 yDiff = elemBounds.Y - rowY;
+					const GUIPhysicalUnit yDiff = elemBounds.Y - rowY;
 
 					// New row
 					if(yDiff >= kRowHeight)
@@ -147,7 +147,7 @@ void GUINavGroup::FocusNext(GUIInteractable* anchor)
 
 			// Try to find the next element in the current row (to the right of the current one)
 			GUIInteractable* nextElement = nullptr;
-			i32 nearestX = std::numeric_limits<i32>::max();
+			GUIPhysicalUnit nearestX = std::numeric_limits<i32>::max();
 			iterElem = iterRowStart;
 			for(; iterElem != elements.end(); ++iterElem)
 			{
@@ -155,8 +155,8 @@ void GUINavGroup::FocusNext(GUIInteractable* anchor)
 				if(element == anchor)
 					continue;
 
-				const Rect2I elemBounds = element->GetAbsoluteClippedArea();
-				const i32 yDiff = elemBounds.Y - rowY;
+				const GUIPhysicalArea elemBounds = element->GetAbsoluteClippedArea();
+				const GUIPhysicalUnit yDiff = elemBounds.Y - rowY;
 
 				// New row
 				if(yDiff >= kRowHeight)
@@ -170,7 +170,7 @@ void GUINavGroup::FocusNext(GUIInteractable* anchor)
 				// order to avoid the issue.
 				if(elemBounds.X > focusedElemBounds.X)
 				{
-					const i32 xDiff = elemBounds.X - focusedElemBounds.X;
+					const GUIPhysicalUnit xDiff = elemBounds.X - focusedElemBounds.X;
 					if(xDiff < nearestX)
 					{
 						nearestX = xDiff;
@@ -187,8 +187,8 @@ void GUINavGroup::FocusNext(GUIInteractable* anchor)
 				{
 					GUIInteractable* element = *iterElem;
 
-					const Rect2I elemBounds = element->GetAbsoluteClippedArea();
-					const i32 yDiff = elemBounds.Y - rowY;
+					const GUIPhysicalArea elemBounds = element->GetAbsoluteClippedArea();
+					const GUIPhysicalUnit yDiff = elemBounds.Y - rowY;
 
 					// New row
 					if(yDiff >= kRowHeight)
@@ -225,7 +225,7 @@ void GUINavGroup::FocusNext(GUIInteractable* anchor)
 
 void GUINavGroup::FocusTopLeft()
 {
-	u32 lowestDist = std::numeric_limits<u32>::max();
+	GUIPhysicalUnit lowestDist = std::numeric_limits<i32>::max();
 	GUIInteractable* topLeftElement = nullptr;
 
 	// Grab only elements without an explicit index
@@ -240,13 +240,13 @@ void GUINavGroup::FocusTopLeft()
 			continue;
 
 		// Ignore elements that have been fully clipped
-		const Rect2I elemBounds = element->GetAbsoluteClippedArea();
+		const GUIPhysicalArea elemBounds = element->GetAbsoluteClippedArea();
 		if(elemBounds.Width == 0 || elemBounds.Height == 0)
 			continue;
 
-		Vector2I elementPos(elemBounds.X, elemBounds.Y);
+		GUIPhysicalPoint elementPos = elemBounds.GetPosition();
 
-		const u32 dist = elementPos.SquaredLength();
+		const GUIPhysicalUnit dist = elementPos.SquaredLength();
 		if(dist < lowestDist)
 		{
 			lowestDist = dist;

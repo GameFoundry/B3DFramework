@@ -201,25 +201,25 @@ namespace bs
 		virtual void NotifyStyleChanged() {}
 
 		/**
-		 * Similar to GetCachedContentBounds(), except the bounds are relative to the parent GUI element rather than the
+		 * Similar to GetAbsoluteContentBounds(), except the bounds are relative to the parent GUI element rather than the
 		 * parent widget.
 		 */
-		virtual Rect2I GetCachedContentBoundsInElementSpace() const;
+		virtual GUILogicalArea GetContentBounds() const;
+
+		/** Similar to GetContentBounds(), but scaling has been applied to the position/size. */
+		GUIPhysicalArea GetScaledContentBounds() const;
 
 		/**
-		 * Returns bounds of the content contained within the GUI element. This will be the bounds returned by GetCachedBounds(),
+		 * Returns bounds of the content contained within the GUI element. This will be the bounds returned by GetAbsoluteBounds(),
 		 * minus the border and the padding. Relative to parent widget.
 		 */
-		Rect2I GetCachedContentBounds() const;
-
-		/**
-		 * Similar to GetCachedContentBounds(), except the bounds will be clipped by the current clip rectangle, and the
-		 * bounds will be relative to the content area of the GUI element rather than relative to the parent widget.
-		 */
-		Rect2I GetCachedClippedContentBoundsInContentSpace() const;
+		GUIPhysicalArea GetAbsoluteContentBounds() const;
 
 		/** Calculates the offset from the origin of the GUI element to the area containing content (combined border + padding offsets). */
-		Vector2I GetContentOffsetInElementSpace() const;
+		GUILogicalPoint GetContentOffset() const;
+
+		/** Similar to GetContentOffset(), but scaling has been applied. */
+		GUIPhysicalPoint GetScaledContentOffset() const;
 
 		/**
 		 * Registers a new pseudo-element for the GUI element. Pseudo-element can be used for providing additional style sheet rules for a GUI element.
