@@ -4,7 +4,7 @@
 
 #include "BsPrerequisites.h"
 #include "Utility/BsModule.h"
-#include "Math/BsRect2.h"
+#include "Math/BsArea2.h"
 #include "Math/BsArea2.h"
 #include "RenderAPI/BsGpuDevice.h"
 #include "Mesh/BsMeshBase.h"
@@ -42,7 +42,7 @@ namespace bs
 			void Initialize() override;
 
 			/** Executes the material on the currently bound render target, copying from @p source. */
-			void Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& source, const Rect2& area, bool flipUV);
+			void Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& source, const Area2& area, bool flipUV);
 
 			/**
 			 * Returns the material variation matching the provided parameters.
@@ -283,7 +283,7 @@ namespace bs
 			 *
 			 * @note	Render thread.
 			 */
-			void DrawScreenQuad(GpuCommandBuffer& commandBuffer, const Rect2& uv, const Vector2I& textureSize = Vector2I(1, 1), u32 numInstances = 1, bool flipUV = false);
+			void DrawScreenQuad(GpuCommandBuffer& commandBuffer, const Area2& uv, const Vector2I& textureSize = Vector2I(1, 1), u32 numInstances = 1, bool flipUV = false);
 
 			/**
 			 * Draws a quad over the entire viewport in normalized device coordinates.
@@ -296,7 +296,7 @@ namespace bs
 			 */
 			void DrawScreenQuad(GpuCommandBuffer& commandBuffer, u32 numInstances = 1)
 			{
-				Rect2 uv(0.0f, 0.0f, 1.0f, 1.0f);
+				Area2 uv(0.0f, 0.0f, 1.0f, 1.0f);
 				Vector2I textureSize(1, 1);
 
 				DrawScreenQuad(commandBuffer, uv, textureSize, numInstances);

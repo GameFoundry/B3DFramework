@@ -152,7 +152,7 @@ void TextureArrayToMSAATexture::Execute(GpuCommandBuffer& commandBuffer, const S
 
 	Bind(commandBuffer);
 
-	Rect2 area(0.0f, 0.0f, (float)targetProps.Width, (float)targetProps.Height);
+	Area2 area(0.0f, 0.0f, (float)targetProps.Width, (float)targetProps.Height);
 	GetRendererUtility().DrawScreenQuad(commandBuffer, area);
 }
 

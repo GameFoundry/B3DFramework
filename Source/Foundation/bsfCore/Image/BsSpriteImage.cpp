@@ -8,7 +8,7 @@
 
 using namespace bs;
 
-Rect2 SpriteImageBase::EvaluateAnimation(float t) const
+Area2 SpriteImageBase::EvaluateAnimation(float t) const
 {
 	if(mInformation.AnimationPlayback == SpriteAnimationPlayback::None)
 		return mInformation.UVRange;
@@ -17,7 +17,7 @@ Rect2 SpriteImageBase::EvaluateAnimation(float t) const
 	u32 column;
 	GetAnimationFrame(t, row, column);
 
-	Rect2 output;
+	Area2 output;
 
 	// Note: These could be pre-calculated
 	output.Width = mInformation.UVRange.Width / (float)mInformation.Animation.ColumnCount;

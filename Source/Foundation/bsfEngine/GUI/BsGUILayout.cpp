@@ -196,7 +196,7 @@ void GUILayout::UpdateAbsoluteCoordinatesForChildren()
 {
 	if(mIsCullingEnabled)
 	{
-		Rect2 relativeClippedArea = mAbsoluteClippedArea.ToRect2();
+		Area2 relativeClippedArea = mAbsoluteClippedArea.To<float>();
 		relativeClippedArea.X -= (float)mAbsolutePosition.X;
 		relativeClippedArea.Y -= (float)mAbsolutePosition.Y;
 

@@ -66,7 +66,7 @@ void GUIViewport::UpdateRenderElements()
 	float width = (float)mAbsoluteSize.Width / (float)rtProps.Width;
 	float height = (float)mAbsoluteSize.Height / (float)rtProps.Height;
 
-	viewport->SetArea(Rect2(x, y, width, height));
+	viewport->SetArea(Area2(x, y, width, height));
 }
 
 void GUIViewport::ChangeParentWidget(GUIWidget* widget)

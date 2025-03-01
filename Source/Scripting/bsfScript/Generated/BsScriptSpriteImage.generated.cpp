@@ -96,7 +96,7 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptSpriteImage::InternalSetUVRange(ScriptSpriteImageWrapperBase* self, Rect2* uvRange)
+	void ScriptSpriteImage::InternalSetUVRange(ScriptSpriteImageWrapperBase* self, Area2* uvRange)
 	{
 		if(!self->IsNativeObjectValid())
 			return;
@@ -104,7 +104,7 @@ namespace bs
 		static_cast<SpriteImage*>(self->GetNativeObject())->SetUVRange(*uvRange);
 	}
 
-	void ScriptSpriteImage::InternalGetUVRange(ScriptSpriteImageWrapperBase* self, Rect2* __output)
+	void ScriptSpriteImage::InternalGetUVRange(ScriptSpriteImageWrapperBase* self, Area2* __output)
 	{
 		if(!self->IsNativeObjectValid())
 		{
@@ -112,7 +112,7 @@ namespace bs
 			return;
 		}
 
-		Rect2 tmp__output;
+		Area2 tmp__output;
 		tmp__output = static_cast<SpriteImage*>(self->GetNativeObject())->GetUVRange();
 
 		*__output = tmp__output;

@@ -37,7 +37,7 @@ namespace bs
 		GUIMeshType Type = GUIMeshType::Triangle;
 		u32 Depth = 0;
 		Vector2 Offset = Vector2::kZero; /**< Offset to apply to every vertex in the render element, relative to parent GUI element. */
-		Rect2 ClipRectangle = Rect2::kEmpty; /**< Area of the clip rectangle, relative to the parent GUI element. Any vertices outside of this area will be clipped. Clipping is done before @p Offset is applied. */
+		Area2 ClipRectangle = Area2::kEmpty; /**< Area of the clip rectangle, relative to the parent GUI element. Any vertices outside of this area will be clipped. Clipping is done before @p Offset is applied. */
 		bool UseNewFillBuffer = false;
 	};
 
@@ -273,11 +273,11 @@ namespace bs
 				: Sprite(sprite), Depth(depth), MeshType(meshType)
 			{}
 
-			SpriteInfo(Sprite* sprite, u32 depth, const Rect2& bounds, GUIMeshType meshType = GUIMeshType::Triangle)
+			SpriteInfo(Sprite* sprite, u32 depth, const Area2& bounds, GUIMeshType meshType = GUIMeshType::Triangle)
 				: Sprite(sprite), Depth(depth), MeshType(meshType), Offset(bounds.X, bounds.Y), ClipRectangle(bounds), UseNewFillBuffer(true)
 			{}
 
-			SpriteInfo(Sprite* sprite, u32 depth, const Vector2& offset, const Rect2& clipRectangle, GUIMeshType meshType = GUIMeshType::Triangle)
+			SpriteInfo(Sprite* sprite, u32 depth, const Vector2& offset, const Area2& clipRectangle, GUIMeshType meshType = GUIMeshType::Triangle)
 				: Sprite(sprite), Depth(depth), MeshType(meshType), Offset(offset.X, offset.Y), ClipRectangle(clipRectangle), UseNewFillBuffer(true)
 			{}
 
@@ -285,7 +285,7 @@ namespace bs
 			u32 Depth = 0;
 			GUIMeshType MeshType = GUIMeshType::Triangle;
 			Vector2 Offset = Vector2::kZero;
-			Rect2 ClipRectangle;
+			Area2 ClipRectangle;
 			bool UseNewFillBuffer = false;
 		};
 

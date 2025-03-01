@@ -231,7 +231,7 @@ void GUIListBox::UpdateRenderElements()
 	{
 		using T = GUIRenderElementHelper;
 
-		T::Append({ T::SpriteInfo(mArrowSprite, 0, arrowBounds.ToRect2()) }, mRenderElements);
+		T::Append({ T::SpriteInfo(mArrowSprite, 0, arrowBounds.To<float>()) }, mRenderElements);
 	}
 }
 

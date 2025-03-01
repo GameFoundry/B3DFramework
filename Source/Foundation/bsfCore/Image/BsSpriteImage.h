@@ -3,7 +3,7 @@
 #pragma once
 
 #include "BsCorePrerequisites.h"
-#include "Math/BsRect2.h"
+#include "Math/BsArea2.h"
 #include "Resources/BsResource.h"
 #include "Math/BsVector2.h"
 
@@ -68,7 +68,7 @@ namespace bs
 	struct B3D_SCRIPT_EXPORT(ExportAsStruct(true), DocumentationGroup(Rendering)) SpriteImageInformation
 	{
 		/** Range in the atlas texture that the image maps to. */
-		Rect2 UVRange = Rect2(0.0f, 0.0f, 1.0f, 1.0f);
+		Area2 UVRange = Area2(0.0f, 0.0f, 1.0f, 1.0f);
 
 		/** Determines if animation is enabled and how should it play. */
 		SpriteAnimationPlayback AnimationPlayback = SpriteAnimationPlayback::None;
@@ -97,7 +97,7 @@ namespace bs
 
 		/** Determines the UV range that the image is referencing. */
 		B3D_SCRIPT_EXPORT(ExportName(UVRange), Property(Setter))
-		void SetUVRange(const Rect2& uvRange)
+		void SetUVRange(const Area2& uvRange)
 		{
 			mInformation.UVRange = uvRange;
 			MarkRenderProxyDataDirtyInternal();
@@ -105,7 +105,7 @@ namespace bs
 
 		/** Determines the UV range that the image is referencing. */
 		B3D_SCRIPT_EXPORT(ExportName(UVRange), Property(Getter))
-		const Rect2& GetUVRange() const { return mInformation.UVRange; }
+		const Area2& GetUVRange() const { return mInformation.UVRange; }
 
 		/** Transforms local UV coordinates into atlas UV coordinates. */
 		Vector2 TransformUV(const Vector2& uv) const { return Vector2(mInformation.UVRange.X + uv.X * mInformation.UVRange.Width, mInformation.UVRange.Y + uv.Y * mInformation.UVRange.Height); }
@@ -115,7 +115,7 @@ namespace bs
 		 * have animation playback enabled then just the default offset and size will be provided, otherwise the
 		 * animation will be evaluated and appropriate UV returned.
 		 */
-		Rect2 EvaluateAnimation(float t) const;
+		Area2 EvaluateAnimation(float t) const;
 
 		/** Returns the row and column of the current animation frame for time @p t. */
 		void GetAnimationFrame(float t, u32& outRow, u32& outColumn) const;

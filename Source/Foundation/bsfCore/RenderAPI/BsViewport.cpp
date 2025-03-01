@@ -16,7 +16,7 @@ ViewportBase::ViewportBase(float x, float y, float width, float height)
 {
 }
 
-void ViewportBase::SetArea(const Rect2& area)
+void ViewportBase::SetArea(const Area2& area)
 {
 	mNormArea = area;
 

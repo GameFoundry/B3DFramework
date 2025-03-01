@@ -51,7 +51,7 @@ typedef TOctTree<u32, DebugOctreeOptions> DebugOctree;
 
 struct DebugQuadtreeElement
 {
-	Rect2 Box;
+	Area2 Box;
 	mutable SpatialTreeElementId QuadtreeId;
 };
 
@@ -70,10 +70,10 @@ struct DebugQuadtreeOptions
 		MaximumDepth = 6,
 	};
 
-	static simd::Rect2 GetBounds(u32 elem, void* context)
+	static simd::Area2 GetBounds(u32 elem, void* context)
 	{
 		DebugQuadtreeData* quadtreeData = (DebugQuadtreeData*)context;
-		return simd::Rect2(quadtreeData->Elements[elem].Box);
+		return simd::Area2(quadtreeData->Elements[elem].Box);
 	}
 
 	static void SetElementId(u32 elem, const SpatialTreeElementId& id, void* context)
@@ -627,7 +627,7 @@ void UtilityTestSuite::TestQuadtree()
 				types[i].SizeMin + ((rand() / (float)RAND_MAX)) * (types[i].SizeMax - types[i].SizeMin) * 0.5f);
 
 			DebugQuadtreeElement elem;
-			elem.Box = Rect2(position - extents, extents);
+			elem.Box = Area2(position - extents, extents);
 
 			u32 elemIdx = (u32)quadtreeData.Elements.size();
 			quadtreeData.Elements.push_back(elem);
@@ -636,9 +636,9 @@ void UtilityTestSuite::TestQuadtree()
 	}
 
 	DebugQuadtreeElement manualElems[3];
-	manualElems[0].Box = Rect2(Vector2(100.0f, 100.0f), Vector2(110.0f, 115.0f));
-	manualElems[1].Box = Rect2(Vector2(200.0f, 100.0f), Vector2(250.0f, 150.0f));
-	manualElems[2].Box = Rect2(Vector2(90.0f, 90.0f), Vector2(105.0f, 105.0f));
+	manualElems[0].Box = Area2(Vector2(100.0f, 100.0f), Vector2(110.0f, 115.0f));
+	manualElems[1].Box = Area2(Vector2(200.0f, 100.0f), Vector2(250.0f, 150.0f));
+	manualElems[2].Box = Area2(Vector2(90.0f, 90.0f), Vector2(105.0f, 105.0f));
 
 	for(u32 i = 0; i < 3; i++)
 	{
@@ -647,7 +647,7 @@ void UtilityTestSuite::TestQuadtree()
 		quadtree.AddElement(elemIdx);
 	}
 
-	Rect2 queryBounds = manualElems[0].Box;
+	Area2 queryBounds = manualElems[0].Box;
 	DebugQuadtree::AreaIntersectIterator interIter(quadtree, queryBounds);
 
 	Vector<u32> overlapElements;

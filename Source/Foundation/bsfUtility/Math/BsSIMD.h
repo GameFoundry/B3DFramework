@@ -6,7 +6,7 @@
 #include "Math/BsVector4.h"
 #include "Math/BsAABox.h"
 #include "Math/BsSphere.h"
-#include "Math/BsRect2.h"
+#include "Math/BsArea2.h"
 
 #if B3D_ARCHITECTURE == B3D_ARCHITECTURE_ID_X86_32 || B3D_ARCHITECTURE == B3D_ARCHITECTURE_ID_X86_64
 #define SIMDPP_ARCH_X86_AVX 1
@@ -90,8 +90,8 @@ namespace bs
 			}
 		};
 
-		/** Version of bs::Rect2 suitable for SIMD use. */
-		struct Rect2
+		/** Version of bs::Area2 suitable for SIMD use. */
+		struct Area2
 		{
 			/** Center of the bounds. Z and W component unused.*/
 			SIMDPP_ALIGN(16)
@@ -101,24 +101,26 @@ namespace bs
 			SIMDPP_ALIGN(16)
 			Vector4 Extents;
 
-			Rect2() = default;
+			Area2() = default;
 
-			/** Initializes bounds from an Rect2. */
-			Rect2(const bs::Rect2& rect)
+			/** Initializes bounds from an Area2. */
+			Area2(const bs::Area2& area)
 			{
-				Center = Vector4(rect.GetCenter().X, rect.GetCenter().Y, 0.0f, 0.0f);
-				Extents = Vector4(rect.GetHalfSize().X, rect.GetHalfSize().Y, 0.0f, 0.0f);
+				const Size2 halfSize = area.GetSize() * 0.5f;
+
+				Center = Vector4(area.GetCenter().X, area.GetCenter().Y, 0.0f, 0.0f);
+				Extents = Vector4(halfSize.Width, halfSize.Height, 0.0f, 0.0f);
 			}
 
 			/** Initializes bounds from a vector representing the center and equal extents in all directions. */
-			Rect2(const Vector2& center, float extent)
+			Area2(const Vector2& center, float extent)
 			{
 				this->Center = Vector4(center.X, center.Y, 0.0f, 0.0f);
 				Extents = Vector4(extent, extent, 0.0f, 0.0f);
 			}
 
 			/** Returns true if the current bounds object intersects the provided object. */
-			bool Overlaps(const Rect2& other) const
+			bool Overlaps(const Area2& other) const
 			{
 				auto myCenter = load<float32x4>(&Center);
 				auto otherCenter = load<float32x4>(&other.Center);
@@ -147,7 +149,7 @@ namespace bs
 
 			Range() = default;
 
-			/** Initializes bounds from an Rect2. */
+			/** Initializes bounds from an Area2. */
 			Range(const bs::Range& range)
 			{
 				Center = Vector4(range.Center, 0.0f, 0.0f, 0.0f);

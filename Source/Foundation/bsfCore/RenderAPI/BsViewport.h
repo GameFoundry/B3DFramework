@@ -8,7 +8,7 @@
 #include "CoreObject/BsCoreObject.h"
 #include "Image/BsColor.h"
 #include "Math/BsArea2.h"
-#include "Math/BsRect2.h"
+#include "Math/BsArea2.h"
 #include "Script/BsIScriptExportable.h"
 #include "Utility/BsEvent.h"
 
@@ -38,11 +38,11 @@ namespace bs
 
 		/** Determines the area that the viewport covers. Coordinates are in normalized [0, 1] range. */
 		B3D_SCRIPT_EXPORT(ExportName(Area), Property(Setter))
-		void SetArea(const Rect2& area);
+		void SetArea(const Area2& area);
 
 		/** @copydoc SetArea() */
 		B3D_SCRIPT_EXPORT(ExportName(Area), Property(Getter))
-		Rect2 GetArea() const { return mNormArea; }
+		Area2 GetArea() const { return mNormArea; }
 
 		/**	Returns the area of the render target covered by the viewport, in pixels. */
 		B3D_SCRIPT_EXPORT(ExportName(PixelArea), Property(Getter))
@@ -98,7 +98,7 @@ namespace bs
 		/**	Gets the render target width. */
 		virtual u32 GetTargetHeight() const = 0;
 
-		Rect2 mNormArea;
+		Area2 mNormArea;
 
 		ClearFlags mClearFlags;
 		Color mClearColorValue;

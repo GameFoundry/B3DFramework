@@ -74,7 +74,7 @@ void GUIBackgroundSprite::BuildRenderElements(const GUIBackgroundSpriteCreateInf
 	mBackgroundSprite.Update(mBackgroundSpriteInformation, createInformation.BatchId);
 
 	// Calculate content bounds
-	const Rect2 backgroundImageBounds(
+	const Area2 backgroundImageBounds(
 		(float)createInformation.Offset.X, (float)createInformation.Offset.Y,
 		(float)createInformation.Size.Width, (float)createInformation.Size.Height);
 
@@ -121,8 +121,8 @@ void GUIContentSprites::BuildRenderElements(const GUIContentSpriteCreateInformat
 	}
 
 	// Calculate content bounds
-	Rect2 textBounds;
-	Rect2 imageBounds;
+	Area2 textBounds;
+	Area2 imageBounds;
 
 	Area2I textSpriteBounds = isContentTextAvailable ? mContentTextSprite.GetBounds(Vector2I(BsZero), Area2I()) : Area2I();
 	Area2I contentImageSpriteBounds = isContentImageAvailable ? mContentImageSprite.GetBounds(Vector2I(BsZero), Area2I()) : Area2I();
@@ -186,7 +186,7 @@ Size2UI GUIContentSprites::CalculateScaledImageSize(const HSpriteImage& image, c
 	return Size2UI(contentWidth, contentHeight);
 }
 
-void GUIContentSprites::CalculateContentBounds(const Area2I& contentArea, const Size2UI& imageSize, const Size2UI& textSize, GUIImagePosition imagePosition, Rect2& outTextBounds, Rect2& outImageBounds)
+void GUIContentSprites::CalculateContentBounds(const Area2I& contentArea, const Size2UI& imageSize, const Size2UI& textSize, GUIImagePosition imagePosition, Area2& outTextBounds, Area2& outImageBounds)
 {
 	if(imageSize.Width > 0 && imageSize.Height > 0)
 	{
@@ -231,7 +231,7 @@ void GUIContentSprites::CalculateContentBounds(const Area2I& contentArea, const 
 	}
 	else
 	{
-		outImageBounds = Rect2();
+		outImageBounds = Area2();
 
 		outTextBounds.X = (float)contentArea.X;
 		outTextBounds.Y = (float)contentArea.Y;

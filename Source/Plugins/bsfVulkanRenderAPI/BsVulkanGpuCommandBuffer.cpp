@@ -581,7 +581,7 @@ void VulkanGpuCommandBuffer::SetDynamicBufferOffset(u32 bufferIndex, u32 offset)
 	}
 }
 
-void VulkanGpuCommandBuffer::SetViewport(const Rect2& area)
+void VulkanGpuCommandBuffer::SetViewport(const Area2& area)
 {
 	EnsureValidThread();
 

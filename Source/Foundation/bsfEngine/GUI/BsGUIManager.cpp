@@ -1705,8 +1705,8 @@ void GUIRenderer::Render(const Camera& camera, const RendererViewContext& viewCo
 		{
 			region.Clip(clipRectangle);
 
-			const Rect2 normalizedRegionArea =
-				Rect2(
+			const Area2 normalizedRegionArea =
+				Area2(
 					region.X / (float)renderTargetWidth,
 					region.Y / (float)renderTargetHeight,
 					region.Width / (float)renderTargetWidth,
@@ -1789,7 +1789,7 @@ void GUIRenderer::Render(const Camera& camera, const RendererViewContext& viewCo
 	// Blit cached texture into main output
 	// Note: This could be optimized by blitting only the modified regions
 	commandBuffer.SetRenderTarget(renderTarget, 0, RT_ALL);
-	commandBuffer.SetViewport(Rect2(0.0f, 0.0f, 1.0f, 1.0f));
+	commandBuffer.SetViewport(Area2(0.0f, 0.0f, 1.0f, 1.0f));
 
 	GetRendererUtility().Blit(commandBuffer, cameraRenderData.CachedRenderTexture->GetColorTexture(0));
 

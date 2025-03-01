@@ -6,7 +6,7 @@
 #include "BsScriptReflectableWrapper.h"
 #include "../../../Foundation/bsfCore/RenderAPI/BsViewport.h"
 #include "../../../Foundation/bsfUtility/Image/BsColor.h"
-#include "Math/BsRect2.h"
+#include "Math/BsArea2.h"
 #include "../../../Foundation/bsfUtility/Math/BsArea2.h"
 #include "../../../Foundation/bsfCore/RenderAPI/BsViewport.h"
 
@@ -27,8 +27,8 @@ namespace bs
 	private:
 		static void InternalSetTarget(ScriptViewport* self, MonoObject* target);
 		static MonoObject* InternalGetTarget(ScriptViewport* self);
-		static void InternalSetArea(ScriptViewport* self, Rect2* area);
-		static void InternalGetArea(ScriptViewport* self, Rect2* __output);
+		static void InternalSetArea(ScriptViewport* self, Area2* area);
+		static void InternalGetArea(ScriptViewport* self, Area2* __output);
 		static void InternalGetPixelArea(ScriptViewport* self, TArea2<int32_t, uint32_t>* __output);
 		static void InternalSetClearFlags(ScriptViewport* self, ClearFlagBits flags);
 		static ClearFlagBits InternalGetClearFlags(ScriptViewport* self);

@@ -270,7 +270,7 @@ namespace bs
 			 *
 			 * @param	area			Area of the viewport, in normalized ([0,1] range) coordinates.
 			 */
-			virtual void SetViewport(const Rect2& area) = 0;
+			virtual void SetViewport(const Area2& area) = 0;
 
 			/**
 			 * Clears the currently active render target.

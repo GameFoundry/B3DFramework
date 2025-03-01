@@ -32,7 +32,7 @@ namespace bs
 		 * @note
 		 * Primitives are output in the form of a triangle list.
 		 */
-		static void SolidQuad(const Rect2& area, const SPtr<MeshData>& meshData, u32 vertexOffset, u32 indexOffset);
+		static void SolidQuad(const Area2& area, const SPtr<MeshData>& meshData, u32 vertexOffset, u32 indexOffset);
 
 		/**
 		 * Fills the mesh data with vertices representing a per-pixel line.

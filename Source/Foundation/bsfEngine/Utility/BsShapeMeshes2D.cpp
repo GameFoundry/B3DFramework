@@ -1,7 +1,7 @@
 //************************************ bs::framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "Utility/BsShapeMeshes2D.h"
-#include "Math/BsRect2.h"
+#include "Math/BsArea2.h"
 #include "Mesh/BsMesh.h"
 #include "Math/BsVector2.h"
 #include "Math/BsLine2.h"
@@ -13,7 +13,7 @@ using namespace bs;
 const u32 ShapeMeshes2D::kNumVerticesAaLine = 4;
 const u32 ShapeMeshes2D::kNumIndicesAaLine = 6;
 
-void ShapeMeshes2D::SolidQuad(const Rect2& area, const SPtr<MeshData>& meshData, u32 vertexOffset, u32 indexOffset)
+void ShapeMeshes2D::SolidQuad(const Area2& area, const SPtr<MeshData>& meshData, u32 vertexOffset, u32 indexOffset)
 {
 	u32* indexData = meshData->GetIndices32();
 	u8* positionData = meshData->GetElementData(VES_POSITION);

@@ -739,7 +739,7 @@ void RenderBeast::CaptureSceneCubeMap(GpuCommandBuffer& commandBuffer, const SPt
 	viewDesc.Target.ClearDepthValue = 1.0f;
 	viewDesc.Target.ClearStencilValue = 0;
 
-	viewDesc.Target.NrmViewRect = Rect2(0, 0, 1.0f, 1.0f);
+	viewDesc.Target.NrmViewRect = Area2(0, 0, 1.0f, 1.0f);
 	viewDesc.Target.ViewRect = Area2I(0, 0, texProps.Width, texProps.Height);
 	viewDesc.Target.TargetWidth = texProps.Width;
 	viewDesc.Target.TargetHeight = texProps.Height;

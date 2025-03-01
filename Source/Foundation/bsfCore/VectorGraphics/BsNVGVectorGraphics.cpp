@@ -88,7 +88,7 @@ namespace bs::ct
 				const Vector2& topLeft = Vector2(boxGradientPaint.Area.X, boxGradientPaint.Area.Y);
 				const Vector2& bottomRight = Vector2(boxGradientPaint.Area.X + boxGradientPaint.Area.Width, boxGradientPaint.Area.Y + boxGradientPaint.Area.Height);
 
-				const Rect2 area(topLeft.X, topLeft.Y, bottomRight.X - topLeft.X, bottomRight.Y - topLeft.Y);
+				const Area2 area(topLeft.X, topLeft.Y, bottomRight.X - topLeft.X, bottomRight.Y - topLeft.Y);
 
 				return nvgBoxGradient(&context, area.X, area.Y, area.Width, area.Height, boxGradientPaint.CornerRadius, boxGradientPaint.Feather, innerColor, outerColor);
 			}
@@ -118,7 +118,7 @@ namespace bs::ct
 		nvgGlobalAlpha(&context, state.Alpha);
 		nvgShapeAntiAlias(&context, state.AntialiasShape);
 
-		if(state.ScissorArea != Rect2::kEmpty)
+		if(state.ScissorArea != Area2::kEmpty)
 			nvgScissor(&context, state.ScissorArea.X, state.ScissorArea.Y, state.ScissorArea.Width, state.ScissorArea.Height);
 		else
 			nvgResetScissor(&context);
@@ -267,7 +267,7 @@ namespace bs::ct
 				{
 					fnEnsurePathOpen();
 
-					const Rect2& area = command.DrawRectangle.Area;
+					const Area2& area = command.DrawRectangle.Area;
 
 					const Vector2& topLeft = Vector2(area.X, area.Y);
 					const Vector2& bottomRight = Vector2(area.X + area.Width, area.Y + area.Height);
@@ -281,7 +281,7 @@ namespace bs::ct
 					fnEnsurePathOpen();
 
 					const VectorPathCommand::DrawRoundedRectangleCommand& drawRoundedRectangle = command.DrawRoundedRectangle;
-					const Rect2& area = drawRoundedRectangle.Area;
+					const Area2& area = drawRoundedRectangle.Area;
 
 					const Vector2& topLeft = Vector2(area.X, area.Y);
 					const Vector2& bottomRight = Vector2(area.X + area.Width, area.Y + area.Height);

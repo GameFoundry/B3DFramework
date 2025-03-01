@@ -5,7 +5,6 @@
 #include "Prerequisites/BsPrerequisitesUtil.h"
 #include "Math/BsSize2.h"
 #include "Math/BsVector2.h"
-#include "Math/BsRect2.h"
 #include "Math/BsVector4.h"
 #include "BsMatrix4.h"
 
@@ -36,8 +35,6 @@ namespace bs
 		template<typename PositionType2, typename SizeType2 = PositionType2>
 		TArea2<PositionType2, SizeType2> To() const { return TArea2<PositionType2, SizeType2>((PositionType2)X, (PositionType2)Y, (SizeType2)Width, (SizeType2)Height); }
 
-		Rect2 ToRect2() const { return Rect2((float)X, (float)Y, (float)Width, (float)Height); } // TODO - Temporary
-
 		/** Returns true if the area covered is 0. */
 		bool IsEmpty() const { return Width == 0 || Height == 0; }
 
@@ -46,6 +43,9 @@ namespace bs
 
 		/** Returns the size of the area. */
 		TSize2<SizeType> GetSize() const { return TSize2<SizeType>(Width, Height); }
+
+		/** Center of the rectangle. */
+		TVector2<PositionType> GetCenter() const { return TVector2<PositionType>(X + Width / (PositionType)2, Y + Width / (PositionType)2); }
 
 		/** Returns true if the area contains the provided point. */
 		bool Contains(const TVector2<PositionType>& point) const;
@@ -365,9 +365,6 @@ namespace bs
 	extern template struct B3D_SCRIPT_EXPORT(DocumentationGroup(Math), ExportAsStruct(true)) TArea2<i32>;
 	extern template struct B3D_SCRIPT_EXPORT(DocumentationGroup(Math), ExportAsStruct(true)) TArea2<i32, u32>;
 	extern template struct B3D_SCRIPT_EXPORT(DocumentationGroup(Math), ExportAsStruct(true)) TArea2<float>;
-
-	using Area2 = TArea2<float>;
-	using Area2I = TArea2<i32, u32>;
 
 	/** @} */
 }

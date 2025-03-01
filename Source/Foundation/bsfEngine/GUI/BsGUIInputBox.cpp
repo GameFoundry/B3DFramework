@@ -129,7 +129,7 @@ void GUIInputBox::UpdateRenderElements()
 	// Populate GUI render elements from the sprites
 	{
 		using T = GUIRenderElementHelper;
-		T::Append({ T::SpriteInfo(caretSprite, 0, caretOffset.To<float>(), scaledContentBounds.ToRect2()) }, mRenderElements);
+		T::Append({ T::SpriteInfo(caretSprite, 0, caretOffset.To<float>(), scaledContentBounds.To<float>()) }, mRenderElements);
 
 		if(mSelectionShown)
 		{
@@ -137,7 +137,7 @@ void GUIInputBox::UpdateRenderElements()
 			for(u32 selectionSpriteIndex = 0; selectionSpriteIndex < (u32)sprites.size(); ++selectionSpriteIndex)
 			{
 				ImageSprite* const sprite = sprites[selectionSpriteIndex];
-				const Rect2 selectionBounds = selection->GetBounds(selectionSpriteIndex).ToRect2();
+				const Area2 selectionBounds = selection->GetBounds(selectionSpriteIndex).To<float>();
 
 				for(u32 renderElementIndex = 0; renderElementIndex < sprite->GetRenderElementCount(); renderElementIndex++)
 				{
@@ -149,7 +149,7 @@ void GUIInputBox::UpdateRenderElements()
 					renderElement.Depth = 2;
 					renderElement.Type = GUIMeshType::Triangle;
 					renderElement.Offset = Vector2(selectionBounds.X, selectionBounds.Y) + textOffset.To<float>();
-					renderElement.ClipRectangle = scaledContentBounds.ToRect2();
+					renderElement.ClipRectangle = scaledContentBounds.To<float>();
 					renderElement.UseNewFillBuffer = true;
 				}
 			}

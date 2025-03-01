@@ -35,8 +35,8 @@ namespace bs
 	template<>
 	struct TSpatialTreeTraits<2>
 	{
-		using SIMDBoundsType = simd::Rect2;
-		using ScalarBoundsType = Rect2;
+		using SIMDBoundsType = simd::Area2;
+		using ScalarBoundsType = Area2;
 		using CenterType = Vector2;
 		static constexpr u32 kChildNodeCount = 4;
 	};

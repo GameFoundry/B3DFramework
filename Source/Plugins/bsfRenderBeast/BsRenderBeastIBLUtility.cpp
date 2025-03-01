@@ -269,7 +269,7 @@ void IrradianceAccumulateCubeSHMat::Execute(GpuCommandBuffer& commandBuffer, con
 	auto& rtProps = output->GetProperties();
 
 	// Render to just one pixel corresponding to the coefficient
-	Rect2 viewRect;
+	Area2 viewRect;
 	viewRect.X = (outputOffset.X + coefficientIdx) / (float)rtProps.Width;
 	viewRect.Y = outputOffset.Y / (float)rtProps.Height;
 
@@ -284,7 +284,7 @@ void IrradianceAccumulateCubeSHMat::Execute(GpuCommandBuffer& commandBuffer, con
 	GetRendererUtility().DrawScreenQuad(commandBuffer);
 
 	commandBuffer.SetRenderTarget(nullptr);
-	commandBuffer.SetViewport(Rect2(0, 0, 1, 1));
+	commandBuffer.SetViewport(Area2(0, 0, 1, 1));
 }
 
 POOLED_RenderTextureCreateInformation IrradianceAccumulateCubeSHMat::GetOutputDesc()

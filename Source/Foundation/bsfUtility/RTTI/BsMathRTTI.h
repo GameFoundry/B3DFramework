@@ -12,7 +12,7 @@
 #include "Math/BsMatrix4.h"
 #include "Math/BsQuaternion.h"
 #include "Math/BsPlane.h"
-#include "Math/BsRect2.h"
+#include "Math/BsArea2.h"
 #include "Math/BsSphere.h"
 #include "Math/BsVector2.h"
 #include "Math/BsVector3.h"
@@ -35,7 +35,7 @@ namespace bs
 	B3D_ALLOW_MEMCPY_SERIALIZATION(Matrix4);
 	B3D_ALLOW_MEMCPY_SERIALIZATION(Quaternion);
 	B3D_ALLOW_MEMCPY_SERIALIZATION(Plane);
-	B3D_ALLOW_MEMCPY_SERIALIZATION(Rect2);
+	B3D_ALLOW_MEMCPY_SERIALIZATION(Area2);
 	B3D_ALLOW_MEMCPY_SERIALIZATION(Sphere);
 	B3D_ALLOW_MEMCPY_SERIALIZATION(Vector2);
 	B3D_ALLOW_MEMCPY_SERIALIZATION(Vector2I);

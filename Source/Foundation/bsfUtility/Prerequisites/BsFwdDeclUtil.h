@@ -129,6 +129,10 @@ namespace bs
 	using Vector4F = TVector4<float>;
 	using Vector4D = TVector4<double>;
 
+	template<typename PositionType, typename SizeType> struct TArea2;
+	using Area2 = TArea2<float, float>;
+	using Area2I = TArea2<i32, u32>;
+
 	template<typename T> struct TQuaternion;
 	using Quaternion = TQuaternion<float>;
 	using QuaternionF = TQuaternion<float>;
@@ -185,7 +189,6 @@ namespace bs
 	class Matrix3;
 	class Matrix4;
 	class Capsule;
-	class Rect2;
 	class Rect3;
 	class Color;
 	class DynamicLibrary;

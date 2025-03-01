@@ -113,7 +113,7 @@ namespace bs
 		 * @param	outTextBounds	Position of the text sprite, relative to the GUI element.
 		 * @param	outImageBounds	Position of the image sprite, relative to the GUI element.
 		 */
-		static void CalculateContentBounds(const Area2I& contentArea, const Size2UI& imageSize, const Size2UI& textSize, GUIImagePosition imagePosition, Rect2& outTextBounds, Rect2& outImageBounds);
+		static void CalculateContentBounds(const Area2I& contentArea, const Size2UI& imageSize, const Size2UI& textSize, GUIImagePosition imagePosition, Area2& outTextBounds, Area2& outImageBounds);
 
 		ImageSprite mContentImageSprite;
 		TextSprite mContentTextSprite;

@@ -7,7 +7,7 @@
 
 using namespace bs;
 
-u32 SpriteRenderElement::GetVertexAndIndexData(u32 vertexOffset, u32 indexOffset, const Vector2& offset, const Rect2& clipRectangle, bool performClipping, DataRange& outPositions, DataRange& outUVs, DataRange& outIndices) const
+u32 SpriteRenderElement::GetVertexAndIndexData(u32 vertexOffset, u32 indexOffset, const Vector2& offset, const Area2& clipRectangle, bool performClipping, DataRange& outPositions, DataRange& outUVs, DataRange& outIndices) const
 {
 	const u32 startVertex = vertexOffset;
 	const u32 startIndex = indexOffset;
@@ -354,7 +354,7 @@ void Sprite::ClipQuadsToRect(u8* vertices, u8* uv, u32 numQuads, u32 vertStride,
 	}
 }
 
-void Sprite::ClipQuadsToRectangle(DataRange& vertices, DataRange& uv, u32 quadCount, u32 startVertexIndex, const Rect2& clipRectangle)
+void Sprite::ClipQuadsToRectangle(DataRange& vertices, DataRange& uv, u32 quadCount, u32 startVertexIndex, const Area2& clipRectangle)
 {
 	float left = clipRectangle.X;
 	float right = clipRectangle.X + clipRectangle.Width;

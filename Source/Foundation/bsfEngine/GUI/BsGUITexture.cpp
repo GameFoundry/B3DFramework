@@ -123,7 +123,7 @@ void GUITexture::UpdateRenderElements()
 
 	mImageSprite->Update(mDesc, (u64)GetParentWidget());
 
-	const Rect2 imageSpriteBounds(
+	const Area2 imageSpriteBounds(
 		(float)imageSpriteOffset.X, (float)imageSpriteOffset.Y,
 		(float)mDesc.Width, (float)mDesc.Height);
 

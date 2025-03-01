@@ -6,14 +6,14 @@
 #include "BsScriptObjectWrapper.h"
 #include "../../../Foundation/bsfCore/Image/BsSpriteImage.h"
 #include "../../../Foundation/bsfCore/Image/BsSpriteImage.h"
-#include "Math/BsRect2.h"
+#include "Math/BsArea2.h"
 #include "../../../Foundation/bsfCore/Image/BsSpriteImage.h"
 
 namespace bs
 {
 	struct __SpriteImageInformationInterop
 	{
-		Rect2 UVRange;
+		Area2 UVRange;
 		SpriteAnimationPlayback AnimationPlayback;
 		SpriteSheetGridAnimation Animation;
 	};

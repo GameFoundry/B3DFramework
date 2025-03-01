@@ -1017,7 +1017,7 @@ namespace bs
 			 * @param	dstRect			Destination rectangle to limit the writes to.
 			 * @param	output			Output target to which to write to results.
 			 */
-			void Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& source, u32 srcMip, const Rect2& srcRect, const Rect2& dstRect, const SPtr<RenderTexture>& output);
+			void Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& source, u32 srcMip, const Area2& srcRect, const Area2& dstRect, const SPtr<RenderTexture>& output);
 
 			/**
 			 * Returns the material variation matching the provided parameters.

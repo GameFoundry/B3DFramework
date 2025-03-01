@@ -281,7 +281,7 @@ void GUIToggleable::UpdateRenderElements()
 		((float)checkmarkAreaSize.Width - (float)mCheckmarkSpriteInformation.Width) / 2.0f,
 		((float)checkmarkAreaSize.Height - (float)mCheckmarkSpriteInformation.Height) / 2.0f);
 
-	const Rect2 checkmarkContentArea = Rect2((float)scaledContentAreaBounds.X, (float)scaledContentAreaBounds.Y, (float)checkmarkAreaSize.Width, (float)checkmarkAreaSize.Height);
+	const Area2 checkmarkContentArea = Area2((float)scaledContentAreaBounds.X, (float)scaledContentAreaBounds.Y, (float)checkmarkAreaSize.Width, (float)checkmarkAreaSize.Height);
 	const Vector2 checkmarkOffset((float)checkmarkContentArea.X + checkmarkCenterOffset.X, (float)checkmarkContentArea.Y + checkmarkCenterOffset.Y);
 
 	mContentSprites.BuildRenderElements(contentSpriteCreateInformation, mRenderElements);

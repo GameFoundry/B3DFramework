@@ -151,7 +151,7 @@ void IrradianceEvaluateMat::Execute(GpuCommandBuffer& commandBuffer, const Rende
 	commandBuffer.SetRenderTarget(output, FBT_DEPTH | FBT_STENCIL, loadMask);
 
 	Bind(commandBuffer);
-	GetRendererUtility().DrawScreenQuad(commandBuffer, Rect2(0.0f, 0.0f, (float)viewProps.Target.ViewRect.Width, (float)viewProps.Target.ViewRect.Height));
+	GetRendererUtility().DrawScreenQuad(commandBuffer, Area2(0.0f, 0.0f, (float)viewProps.Target.ViewRect.Width, (float)viewProps.Target.ViewRect.Height));
 
 	commandBuffer.SetRenderTarget(nullptr);
 }

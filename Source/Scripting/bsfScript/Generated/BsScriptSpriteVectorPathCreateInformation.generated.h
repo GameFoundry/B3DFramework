@@ -6,7 +6,7 @@
 #include "BsScriptObjectWrapper.h"
 #include "../../../Foundation/bsfCore/Image/BsSpriteVectorPath.h"
 #include "../../../Foundation/bsfCore/Image/BsSpriteImage.h"
-#include "Math/BsRect2.h"
+#include "Math/BsArea2.h"
 #include "../../../Foundation/bsfCore/VectorGraphics/BsVectorGraphics.h"
 #include "../../../Foundation/bsfUtility/Math/BsSize2.h"
 #include "../../../Foundation/bsfCore/Image/BsSpriteImage.h"
@@ -18,7 +18,7 @@ namespace bs
 		MonoObject* VectorPath;
 		TSize2<uint32_t> Size;
 		VectorGraphicsRasterizationScaling ScalingMode;
-		Rect2 UVRange;
+		Area2 UVRange;
 		SpriteAnimationPlayback AnimationPlayback;
 		SpriteSheetGridAnimation Animation;
 	};

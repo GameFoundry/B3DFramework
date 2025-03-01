@@ -424,7 +424,7 @@ void RCNodeBasePass::Render(const RenderCompositorNodeInputs& inputs)
 	GpuCommandBuffer& commandBuffer = *inputs.ActiveCommandBuffer;
 	commandBuffer.SetRenderTarget(RenderTarget);
 
-	Rect2 area(0.0f, 0.0f, 1.0f, 1.0f);
+	Area2 area(0.0f, 0.0f, 1.0f, 1.0f);
 	commandBuffer.SetViewport(area);
 
 	// Clear all targets
@@ -574,7 +574,7 @@ void RCNodeSceneColor::MsaaTexArrayToTexture(GpuCommandBuffer& commandBuffer)
 {
 	commandBuffer.SetRenderTarget(RenderTarget, FBT_DEPTH | FBT_STENCIL, RT_DEPTH_STENCIL);
 
-	Rect2 area(0.0f, 0.0f, 1.0f, 1.0f);
+	Area2 area(0.0f, 0.0f, 1.0f, 1.0f);
 	commandBuffer.SetViewport(area);
 
 	TextureArrayToMSAATexture* material = TextureArrayToMSAATexture::Get();
@@ -970,7 +970,7 @@ void RCNodeDeferredDirectLighting::Render(const RenderCompositorNodeInputs& inpu
 			{
 				commandBuffer.SetRenderTarget(mLightOcclusionRT, FBT_DEPTH, RT_DEPTH_STENCIL);
 
-				Rect2 area(0.0f, 0.0f, 1.0f, 1.0f);
+				Area2 area(0.0f, 0.0f, 1.0f, 1.0f);
 				commandBuffer.SetViewport(area);
 
 				commandBuffer.ClearViewport(FBT_COLOR, Color::kZero);
@@ -1584,7 +1584,7 @@ void RCNodeSkybox::Render(const RenderCompositorNodeInputs& inputs)
 
 	commandBuffer.SetRenderTarget(sceneColorNode->RenderTarget, readOnlyFlags, RT_COLOR0 | RT_DEPTH_STENCIL);
 
-	Rect2 area(0.0f, 0.0f, 1.0f, 1.0f);
+	Area2 area(0.0f, 0.0f, 1.0f, 1.0f);
 	commandBuffer.SetViewport(area);
 
 	SPtr<Mesh> mesh = GetRendererUtility().GetSkyBoxMesh();
@@ -2435,7 +2435,7 @@ void RCNodeHiZ::Render(const RenderCompositorNodeInputs& inputs)
 	Output = GetGpuResourcePool().Get(
 		POOLED_RenderTextureCreateInformation::Create2D(PF_R32F, size, size, TU_RENDERTARGET, 1, false, 1, numMips));
 
-	Rect2 srcRect = viewProps.Target.NrmViewRect;
+	Area2 srcRect = viewProps.Target.NrmViewRect;
 
 	// If viewport size is odd, adjust UV
 	srcRect.Width += (viewProps.Target.ViewRect.Width % 2) * (1.0f / viewProps.Target.ViewRect.Width);
@@ -2452,18 +2452,18 @@ void RCNodeHiZ::Render(const RenderCompositorNodeInputs& inputs)
 
 	SPtr<RenderTexture> rt = RenderTexture::Create(rtDesc);
 
-	Rect2 destRect;
+	Area2 destRect;
 	bool downsampledFirstMip = false; // Not used currently
 	if(downsampledFirstMip)
 	{
 		// Make sure that 1 pixel in HiZ maps to a 2x2 block in source
-		destRect = Rect2(0, 0, Math::CeilToInt(viewProps.Target.ViewRect.Width / 2.0f) / (float)size, Math::CeilToInt(viewProps.Target.ViewRect.Height / 2.0f) / (float)size);
+		destRect = Area2(0, 0, Math::CeilToInt(viewProps.Target.ViewRect.Width / 2.0f) / (float)size, Math::CeilToInt(viewProps.Target.ViewRect.Height / 2.0f) / (float)size);
 
 		material->Execute(commandBuffer, resolvedSceneDepth->Output->Texture, 0, srcRect, destRect, rt);
 	}
 	else // First level is just a copy of the depth buffer
 	{
-		destRect = Rect2(0, 0, viewProps.Target.ViewRect.Width / (float)size, viewProps.Target.ViewRect.Height / (float)size);
+		destRect = Area2(0, 0, viewProps.Target.ViewRect.Width / (float)size, viewProps.Target.ViewRect.Height / (float)size);
 
 		commandBuffer.SetRenderTarget(rt);
 		commandBuffer.SetViewport(destRect);
@@ -2475,7 +2475,7 @@ void RCNodeHiZ::Render(const RenderCompositorNodeInputs& inputs)
 		srcAreaInt.Height = (u32)(srcRect.Height * viewProps.Target.ViewRect.Height);
 
 		GetRendererUtility().Blit(commandBuffer, resolvedSceneDepth->Output->Texture, srcAreaInt);
-		commandBuffer.SetViewport(Rect2(0, 0, 1, 1));
+		commandBuffer.SetViewport(Area2(0, 0, 1, 1));
 	}
 
 	// Generate remaining mip levels

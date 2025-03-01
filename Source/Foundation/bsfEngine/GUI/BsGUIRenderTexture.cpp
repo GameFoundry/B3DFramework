@@ -86,7 +86,7 @@ void GUIRenderTexture::UpdateRenderElements()
 
 	mImageSprite->Update(mDesc, (u64)GetParentWidget());
 
-	const Rect2 imageBounds(
+	const Area2 imageBounds(
 		0.0f, 0.0f,
 		(float)mAbsoluteSize.Width, (float)mAbsoluteSize.Height);
 

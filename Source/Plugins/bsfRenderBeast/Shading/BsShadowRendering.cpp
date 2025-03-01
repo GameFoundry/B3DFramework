@@ -954,7 +954,7 @@ std::array<Vector3, 8> GetFrustum(const Matrix4& invVP, ConvexVolume& worldFrust
  * Converts a point in mixed space (clip_x, clip_y, view_z, view_w) to UV coordinates on a shadow map (x, y),
  * and normalized linear depth from the shadow caster's perspective (z).
  */
-Matrix4 CreateMixedToShadowUvMatrix(const Matrix4& viewP, const Matrix4& viewInvVP, const Rect2& shadowMapArea, float depthScale, float depthOffset, const Matrix4& shadowViewProj)
+Matrix4 CreateMixedToShadowUvMatrix(const Matrix4& viewP, const Matrix4& viewInvVP, const Area2& shadowMapArea, float depthScale, float depthOffset, const Matrix4& shadowViewProj)
 {
 	// Projects a point from (clip_x, clip_y, view_z, view_w) into clip space
 	Matrix4 mixedToShadow = Matrix4::kIdentity;
@@ -1416,7 +1416,7 @@ void ShadowRendering::RenderSpotShadowMap(GpuCommandBuffer& commandBuffer, const
 	ShadowRenderQueue::Execute(commandBuffer, scene, frameInfo, spotOptions);
 
 	// Restore viewport
-	commandBuffer.SetViewport(Rect2(0.0f, 0.0f, 1.0f, 1.0f));
+	commandBuffer.SetViewport(Area2(0.0f, 0.0f, 1.0f, 1.0f));
 
 	LightShadows& lightShadows = mSpotLightShadows[options.LightIdx];
 

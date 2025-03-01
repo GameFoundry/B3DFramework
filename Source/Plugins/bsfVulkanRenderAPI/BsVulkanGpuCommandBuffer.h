@@ -7,7 +7,7 @@
 #include "BsVulkanResource.h"
 #include "BsVulkanGpuPipelineState.h"
 #include "BsVulkanGpuDevice.h"
-#include "Math/BsRect2.h"
+#include "Math/BsArea2.h"
 #include "Math/BsArea2.h"
 #include "RenderAPI/BsGpuDeviceCapabilities.h"
 #include "Utility/BsDenseMap.h"
@@ -148,7 +148,7 @@ namespace bs
 			void DrawIndexed(u32 startIndex, u32 indexCount, u32 vertexOffset, u32 vertexCount, u32 instanceCount, u32 firstInstance) override;
 			void DispatchCompute(u32 groupCountX, u32 groupCountY, u32 groupCountZ) override;
 			void SetRenderTarget(const SPtr<RenderTarget>& target, u32 readOnlyFlags, RenderSurfaceMask loadMask) override;
-			void SetViewport(const Rect2& area) override;
+			void SetViewport(const Area2& area) override;
 			void ClearRenderTarget(u32 buffers, const Color& color, float depth, u16 stencil, u8 targetMask) override;
 			void ClearViewport(u32 buffers, const Color& color, float depth, u16 stencil, u8 targetMask) override;
 			void EnableScissorTest(u32 left, u32 top, u32 right, u32 bottom) override;
@@ -733,7 +733,7 @@ namespace bs
 			SPtr<VertexDescription> mVertexDescription;
 			SPtr<VulkanGpuBuffer> mIndexBuffer;
 			Vector<SPtr<VulkanGpuBuffer>> mVertexBuffers;
-			Rect2 mNormalizedViewportArea{ 0.0f, 0.0f, 1.0f, 1.0f };
+			Area2 mNormalizedViewportArea{ 0.0f, 0.0f, 1.0f, 1.0f };
 			Area2I mScissor{ 0, 0, 0, 0 };
 			bool mIsScissorTestEnabled = false;
 			u32 mStencilRef = 0;

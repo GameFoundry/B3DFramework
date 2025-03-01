@@ -74,7 +74,7 @@ namespace bs
 		return __output;
 	}
 
-	void ScriptViewport::InternalSetArea(ScriptViewport* self, Rect2* area)
+	void ScriptViewport::InternalSetArea(ScriptViewport* self, Area2* area)
 	{
 		if(!self->IsNativeObjectValid())
 			return;
@@ -82,7 +82,7 @@ namespace bs
 		static_cast<Viewport*>(self->GetNativeObject())->SetArea(*area);
 	}
 
-	void ScriptViewport::InternalGetArea(ScriptViewport* self, Rect2* __output)
+	void ScriptViewport::InternalGetArea(ScriptViewport* self, Area2* __output)
 	{
 		if(!self->IsNativeObjectValid())
 		{
@@ -90,7 +90,7 @@ namespace bs
 			return;
 		}
 
-		Rect2 tmp__output;
+		Area2 tmp__output;
 		tmp__output = static_cast<Viewport*>(self->GetNativeObject())->GetArea();
 
 		*__output = tmp__output;

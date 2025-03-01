@@ -368,7 +368,7 @@ namespace bs
 
 			u32 LightIdx; /**< Index of the light casting this shadow. */
 			Area2I Area; /**< Area of the shadow map in pixels, relative to its source texture. */
-			Rect2 NormArea; /**< Normalized shadow map area in [0, 1] range. */
+			Area2 NormArea; /**< Normalized shadow map area in [0, 1] range. */
 			u32 TextureIdx; /**< Index of the texture the shadow map is stored in. */
 
 			float DepthNear; /**< Distance to the near plane. */

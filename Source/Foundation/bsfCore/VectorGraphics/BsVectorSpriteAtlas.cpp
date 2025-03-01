@@ -54,14 +54,14 @@ SPtr<GUIVectorSpriteAtlasAllocation> GUIVectorSpriteAtlas::Allocate(const Vector
 	const SPtr<ct::VectorPathRenderable> renderable = vectorPath.CreateRenderable(settings);
 
 	HTexture atlasTexture;
-	Rect2 uvRange;
+	Area2 uvRange;
 
 	u32 textureId = ~0u;
 	Optional<TreeTextureAtlasLayout::Allocation> layoutAllocation;
 	if(useUniqueTexture)
 	{
 		atlasTexture = CreateOrFindTexture(requestedSize);
-		uvRange = Rect2(0.0f, 0.0f, 1.0f, 1.0f);
+		uvRange = Area2(0.0f, 0.0f, 1.0f, 1.0f);
 
 		textureId = GetNextUniqueTextureId();
 		mUniqueTextures[textureId] = atlasTexture;
@@ -88,11 +88,11 @@ SPtr<GUIVectorSpriteAtlasAllocation> GUIVectorSpriteAtlas::Allocate(const Vector
 			(float)layoutAllocation->Position.X / (float)atlasPageSize.Width,
 			(float)layoutAllocation->Position.Y / (float)atlasPageSize.Height);
 
-		const Vector2 uvSize(
+		const Size2 uvSize(
 			(float)requestedSize.Width / (float)atlasPageSize.Width,
 			(float)requestedSize.Height / (float)atlasPageSize.Height);
 
-		uvRange = Rect2(uvOffset, uvSize);
+		uvRange = Area2(uvOffset, uvSize);
 	}
 
 	GUIVectorSpriteAtlasAllocation* const allocation = B3DNew<GUIVectorSpriteAtlasAllocation>(this, key.VectorPathId, atlasTexture, uvRange, layoutAllocation, textureId, renderable);
@@ -238,7 +238,7 @@ void GUIVectorSpriteAtlas::RenderDirtySprites(u32 bufferIndex)
 		
 		// Bind render surface & clear it
 		commandBuffer->SetRenderTarget(renderTarget, 0, RT_NONE);
-		commandBuffer->SetViewport(Rect2(0.0f, 0.0f, 1.0f, 1.0f));
+		commandBuffer->SetViewport(Area2(0.0f, 0.0f, 1.0f, 1.0f));
 		commandBuffer->ClearRenderTarget(FBT_COLOR | FBT_DEPTH | FBT_STENCIL, Color::kZero, 1, 0, 0xFF);
 
 		entry.Renderable->Render(*commandBuffer);

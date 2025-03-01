@@ -26,12 +26,12 @@ namespace bs
 	class B3D_CORE_EXPORT GUIVectorSpriteAtlasAllocation : public std::enable_shared_from_this<GUIVectorSpriteAtlasAllocation>
 	{
 	public:
-		GUIVectorSpriteAtlasAllocation(GUIVectorSpriteAtlas* owner, u64 vectorPathId, const HTexture& atlasTexture, const Rect2& uvRange, const Optional<TreeTextureAtlasLayout::Allocation>& layoutAllocation, u32 textureId, const SPtr<ct::VectorPathRenderable>& renderable)
+		GUIVectorSpriteAtlasAllocation(GUIVectorSpriteAtlas* owner, u64 vectorPathId, const HTexture& atlasTexture, const Area2& uvRange, const Optional<TreeTextureAtlasLayout::Allocation>& layoutAllocation, u32 textureId, const SPtr<ct::VectorPathRenderable>& renderable)
 			: AtlasTexture(atlasTexture), UVRange(uvRange), mVectorPathId(vectorPathId), mOwner(owner), mLayoutAllocation(layoutAllocation), mTextureId(textureId), mRenderable(renderable)
 		{ }
 
 		const HTexture AtlasTexture;
-		const Rect2 UVRange;
+		const Area2 UVRange;
 
 	private:
 		friend GUIVectorSpriteAtlas;
@@ -144,7 +144,7 @@ namespace bs
 		{
 			SPtr<ct::VectorPathRenderable> Renderable;
 			SPtr<ct::Texture> Texture;
-			Rect2 UVRegion = Rect2::kEmpty;
+			Area2 UVRegion = Area2::kEmpty;
 			Size2UI Size = Size2UI::kZero;
 		};
 

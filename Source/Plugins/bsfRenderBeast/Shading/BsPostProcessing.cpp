@@ -76,7 +76,7 @@ void DownsampleMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>
 	Bind(commandBuffer);
 
 	if(MSAA)
-		GetRendererUtility().DrawScreenQuad(commandBuffer, Rect2(0.0f, 0.0f, (float)rtProps.Width, (float)rtProps.Height));
+		GetRendererUtility().DrawScreenQuad(commandBuffer, Area2(0.0f, 0.0f, (float)rtProps.Width, (float)rtProps.Height));
 	else
 		GetRendererUtility().DrawScreenQuad(commandBuffer);
 
@@ -220,7 +220,7 @@ void EyeAdaptHistogramReduceMat::Execute(GpuCommandBuffer& commandBuffer, const 
 
 	Bind(commandBuffer);
 
-	Rect2 drawUV(0.0f, 0.0f, (float)EyeAdaptHistogramMat::kHistogramNumTexels, 2.0f);
+	Area2 drawUV(0.0f, 0.0f, (float)EyeAdaptHistogramMat::kHistogramNumTexels, 2.0f);
 	GetRendererUtility().DrawScreenQuad(commandBuffer, drawUV);
 
 	commandBuffer.SetRenderTarget(nullptr);
@@ -1196,7 +1196,7 @@ void BokehDOFPrepareMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<Tex
 
 	bool MSAA = mVariationParameters.GetInt("MSAA_COUNT") > 1;
 	if(MSAA)
-		GetRendererUtility().DrawScreenQuad(commandBuffer, Rect2(0.0f, 0.0f, (float)srcProps.Width, (float)srcProps.Height));
+		GetRendererUtility().DrawScreenQuad(commandBuffer, Area2(0.0f, 0.0f, (float)srcProps.Width, (float)srcProps.Height));
 	else
 		GetRendererUtility().DrawScreenQuad(commandBuffer);
 }
@@ -1539,7 +1539,7 @@ void BuildHiZMat::Initialize()
 	}
 }
 
-void BuildHiZMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& source, u32 srcMip, const Rect2& srcRect, const Rect2& dstRect, const SPtr<RenderTexture>& output)
+void BuildHiZMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& source, u32 srcMip, const Area2& srcRect, const Area2& dstRect, const SPtr<RenderTexture>& output)
 {
 	BS_RENMAT_PROFILE_BLOCK
 
@@ -1566,7 +1566,7 @@ void BuildHiZMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& 
 	Bind(commandBuffer);
 	GetRendererUtility().DrawScreenQuad(commandBuffer, srcRect);
 
-	commandBuffer.SetViewport(Rect2(0, 0, 1, 1));
+	commandBuffer.SetViewport(Area2(0, 0, 1, 1));
 }
 
 BuildHiZMat* BuildHiZMat::GetVariation(bool noTextureViews)
@@ -1945,7 +1945,7 @@ void SSRStencilMat::Execute(GpuCommandBuffer& commandBuffer, const RendererView&
 	Bind(commandBuffer);
 
 	if(viewProps.Target.NumSamples > 1)
-		GetRendererUtility().DrawScreenQuad(commandBuffer, Rect2(0.0f, 0.0f, (float)viewRect.Width, (float)viewRect.Height));
+		GetRendererUtility().DrawScreenQuad(commandBuffer, Area2(0.0f, 0.0f, (float)viewRect.Width, (float)viewRect.Height));
 	else
 		GetRendererUtility().DrawScreenQuad(commandBuffer);
 }
@@ -2051,7 +2051,7 @@ void SSRTraceMat::Execute(GpuCommandBuffer& commandBuffer, const RendererView& v
 	Bind(commandBuffer);
 
 	if(viewProps.Target.NumSamples > 1)
-		GetRendererUtility().DrawScreenQuad(commandBuffer, Rect2(0.0f, 0.0f, (float)viewRect.Width, (float)viewRect.Height));
+		GetRendererUtility().DrawScreenQuad(commandBuffer, Area2(0.0f, 0.0f, (float)viewRect.Width, (float)viewRect.Height));
 	else
 		GetRendererUtility().DrawScreenQuad(commandBuffer);
 }
@@ -2276,7 +2276,7 @@ void TemporalFilteringMat::Execute(GpuCommandBuffer& commandBuffer, const Render
 	Bind(commandBuffer);
 
 	if(viewProps.Target.NumSamples > 1)
-		GetRendererUtility().DrawScreenQuad(commandBuffer, Rect2(0.0f, 0.0f, (float)viewRect.Width, (float)viewRect.Height));
+		GetRendererUtility().DrawScreenQuad(commandBuffer, Area2(0.0f, 0.0f, (float)viewRect.Width, (float)viewRect.Height));
 	else
 		GetRendererUtility().DrawScreenQuad(commandBuffer);
 }
@@ -2367,7 +2367,7 @@ void MSAACoverageMat::Execute(GpuCommandBuffer& commandBuffer, const RendererVie
 	mGPUParameters->SetUniformBuffer("PerCamera", perView);
 
 	Bind(commandBuffer);
-	GetRendererUtility().DrawScreenQuad(commandBuffer, Rect2(0, 0, (float)viewRect.Width, (float)viewRect.Height));
+	GetRendererUtility().DrawScreenQuad(commandBuffer, Area2(0, 0, (float)viewRect.Width, (float)viewRect.Height));
 }
 
 MSAACoverageMat* MSAACoverageMat::GetVariation(u32 msaaCount)
@@ -2397,6 +2397,6 @@ void MSAACoverageStencilMat::Execute(GpuCommandBuffer& commandBuffer, const Rend
 	mCoverageTexParam.Set(coverage);
 
 	Bind(commandBuffer);
-	GetRendererUtility().DrawScreenQuad(commandBuffer, Rect2(0, 0, (float)viewRect.Width, (float)viewRect.Height));
+	GetRendererUtility().DrawScreenQuad(commandBuffer, Area2(0, 0, (float)viewRect.Width, (float)viewRect.Height));
 }
 }}

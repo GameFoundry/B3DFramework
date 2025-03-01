@@ -6,7 +6,7 @@
 #include "2D/BsSpriteMaterial.h"
 #include "Math/BsArea2.h"
 #include "Image/BsColor.h"
-#include "Math/BsRect2.h"
+#include "Math/BsArea2.h"
 
 namespace bs
 {
@@ -57,7 +57,7 @@ namespace bs
 		 *								size matches the index count.
 		 * @return						Number of quads that were written.
 		 */
-		u32 GetVertexAndIndexData(u32 vertexOffset, u32 indexOffset, const Vector2& offset, const Rect2& clipRectangle, bool performClipping, DataRange& outPositions, DataRange& outUVs, DataRange& outIndices) const;
+		u32 GetVertexAndIndexData(u32 vertexOffset, u32 indexOffset, const Vector2& offset, const Area2& clipRectangle, bool performClipping, DataRange& outPositions, DataRange& outUVs, DataRange& outIndices) const;
 	};
 
 	/** Common information for all sprite types. */
@@ -150,7 +150,7 @@ namespace bs
 		 * @param	startVertexIndex	Offset into vertex/uv buffers at which to start clipping.
 		 * @param	clipRectangle		Rectangle to clip the geometry to.
 		 */
-		static void ClipQuadsToRectangle(DataRange& vertices, DataRange& uv, u32 quadCount, u32 startVertexIndex, const Rect2& clipRectangle);
+		static void ClipQuadsToRectangle(DataRange& vertices, DataRange& uv, u32 quadCount, u32 startVertexIndex, const Area2& clipRectangle);
 
 		/**
 		 * Clips the provided 2D vertices to the provided clip rectangle. The vertices can be arbitrary triangles.

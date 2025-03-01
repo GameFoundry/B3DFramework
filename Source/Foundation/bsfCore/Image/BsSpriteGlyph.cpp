@@ -56,7 +56,7 @@ void SpriteGlyph::SetGlyphSize(float size)
 void SpriteGlyph::UpdateGlyphAtlasInformation()
 {
 	mAtlasTexture = nullptr;
-	mInformation.UVRange = Rect2::kEmpty;
+	mInformation.UVRange = Area2::kEmpty;
 
 	if(!mFont.IsLoaded(false))
 		return;
@@ -72,7 +72,7 @@ void SpriteGlyph::UpdateGlyphAtlasInformation()
 	if(found != bitmapInformation->Characters.end())
 	{
 		mAtlasTexture = bitmapInformation->TexturePages[found->second.Page].Texture;
-		mInformation.UVRange = Rect2(found->second.UvX, found->second.UvY, found->second.UvWidth, found->second.UvHeight);
+		mInformation.UVRange = Area2(found->second.UvX, found->second.UvY, found->second.UvWidth, found->second.UvHeight);
 	}
 
 	MarkDependenciesDirty();

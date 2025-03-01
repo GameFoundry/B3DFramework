@@ -6,7 +6,7 @@
 #include "Image/BsColor.h"
 #include "Utility/BsRectOffset.h"
 #include "Math/BsMatrix4.h"
-#include "Math/BsRect2.h"
+#include "Math/BsArea2.h"
 #include "Resources/BsResource.h"
 
 namespace bs
@@ -123,7 +123,7 @@ namespace bs
 		{
 			Color InnerColor;
 			Color OuterColor;
-			Rect2 Area;
+			Area2 Area;
 			float CornerRadius;
 			float Feather;
 		};
@@ -142,7 +142,7 @@ namespace bs
 			Type = VectorGraphicsPaintType::Solid;
 			BoxGradient.InnerColor = Color::kBlack;
 			BoxGradient.OuterColor = Color::kBlack;
-			BoxGradient.Area = Rect2::kEmpty;
+			BoxGradient.Area = Area2::kEmpty;
 			BoxGradient.CornerRadius = 0.0f;
 			BoxGradient.Feather = 0.0f;
 		}
@@ -175,7 +175,7 @@ namespace bs
 		static VectorGraphicsPaint CreateLinearGradient(const Color& startColor, const Color& endColor, const Vector2& startPoint, const Vector2& endPoint);
 
 		/** Creates a paint with on color at the center of a box, and another color at the edges/corners of the box. */
-		static VectorGraphicsPaint CreateBoxGradient(const Color& innerColor, const Color& outerColor, const Rect2& area, float cornerRadius, float feather);
+		static VectorGraphicsPaint CreateBoxGradient(const Color& innerColor, const Color& outerColor, const Area2& area, float cornerRadius, float feather);
 
 		/** Creates a paint with on color at the center of a circle, and another color at the radius of the circle. */
 		static VectorGraphicsPaint CreateRadialGradient(const Color& innerColor, const Color& outerColor, const Vector2& center, float innerRadius, float outerRadius);
@@ -238,7 +238,7 @@ namespace bs
 		return paint;
 	}
 
-	inline VectorGraphicsPaint VectorGraphicsPaint::CreateBoxGradient(const Color& innerColor, const Color& outerColor, const Rect2& area, float cornerRadius, float feather)
+	inline VectorGraphicsPaint VectorGraphicsPaint::CreateBoxGradient(const Color& innerColor, const Color& outerColor, const Area2& area, float cornerRadius, float feather)
 	{
 		VectorGraphicsPaint paint;
 		paint.Type = VectorGraphicsPaintType::BoxGradient;
@@ -299,7 +299,7 @@ namespace bs
 		bool AntialiasShape = true; /**< If true, drawn shape will use antialiasing. */
 		float Alpha = 1.0f; /**< If less than zero, path will be drawn semi-transparently. */
 		VectorGraphicsBlendMode BlendMode = VectorGraphicsBlendMode::SourceOver; /**< Determines how are paths blended with each other. */
-		Rect2 ScissorArea = Rect2::kEmpty; /**< Allows you to clip path drawing to a particular rectangle. */
+		Area2 ScissorArea = Area2::kEmpty; /**< Allows you to clip path drawing to a particular rectangle. */
 	};
 
 	/** Represents a single command recorded by a VectorPath. */
@@ -327,10 +327,10 @@ namespace bs
 		{
 			Vector2 Position;
 
-			Rect2 GetBoundsAndUpdateCursor(Vector2& cursor) const
+			Area2 GetBoundsAndUpdateCursor(Vector2& cursor) const
 			{
 				cursor = Position;
-				return Rect2::kEmpty;
+				return Area2::kEmpty;
 			}
 		};
 
@@ -348,14 +348,14 @@ namespace bs
 		{
 			Vector2 Target;
 
-			Rect2 GetBoundsAndUpdateCursor(Vector2& cursor) const
+			Area2 GetBoundsAndUpdateCursor(Vector2& cursor) const
 			{
 				const Vector2 minimum = Vector2::Min(cursor, Target);
 				const Vector2 maximum = Vector2::Max(cursor, Target);
 				const Vector2 size = maximum - minimum;
 
 				cursor = Target;
-				return Rect2(minimum.X, minimum.Y, size.X, size.Y);
+				return Area2(minimum.X, minimum.Y, size.X, size.Y);
 			}
 		};
 
@@ -366,14 +366,14 @@ namespace bs
 			Vector2 EndPoint;
 			float Radius;
 
-			Rect2 GetBoundsAndUpdateCursor(Vector2& cursor) const
+			Area2 GetBoundsAndUpdateCursor(Vector2& cursor) const
 			{
 				const Vector2 minimum = Vector2::Min(cursor, Vector2::Min(MiddlePoint, EndPoint));
 				const Vector2 maximum = Vector2::Max(cursor, Vector2::Max(MiddlePoint, EndPoint));
 				const Vector2 size = maximum - minimum;
 
 				cursor = EndPoint;
-				return Rect2(minimum.X, minimum.Y, size.X, size.Y);
+				return Area2(minimum.X, minimum.Y, size.X, size.Y);
 
 			}
 		};
@@ -385,7 +385,7 @@ namespace bs
 			Vector2 ControlPoint2;
 			Vector2 EndPoint;
 
-			Rect2 GetBoundsAndUpdateCursor(Vector2& cursor) const
+			Area2 GetBoundsAndUpdateCursor(Vector2& cursor) const
 			{
 				// TODO - Calculate minimum bezier curve bounds with a more algebraic approach
 				const Vector2 minimum = Vector2::Min(cursor, Vector2::Min(ControlPoint1, Vector2::Min(ControlPoint2, EndPoint)));
@@ -393,7 +393,7 @@ namespace bs
 				const Vector2 size = maximum - minimum;
 
 				cursor = EndPoint;
-				return Rect2(minimum.X, minimum.Y, size.X, size.Y);
+				return Area2(minimum.X, minimum.Y, size.X, size.Y);
 
 			}
 		};
@@ -404,7 +404,7 @@ namespace bs
 			Vector2 ControlPoint;
 			Vector2 EndPoint;
 
-			Rect2 GetBoundsAndUpdateCursor(Vector2& cursor) const
+			Area2 GetBoundsAndUpdateCursor(Vector2& cursor) const
 			{
 				// TODO - Calculate minimum bezier curve bounds with a more algebraic approach
 				// See https://github.com/Pomax/bezierjs/blob/master/src/bezier.js
@@ -413,7 +413,7 @@ namespace bs
 				const Vector2 size = maximum - minimum;
 
 				cursor = EndPoint;
-				return Rect2(minimum.X, minimum.Y, size.X, size.Y);
+				return Area2(minimum.X, minimum.Y, size.X, size.Y);
 
 			}
 		};
@@ -421,9 +421,9 @@ namespace bs
 		/** Draws a rectangle. */
 		struct DrawRectangleCommand
 		{
-			Rect2 Area;
+			Area2 Area;
 
-			Rect2 GetBoundsAndUpdateCursor(Vector2& cursor) const
+			Area2 GetBoundsAndUpdateCursor(Vector2& cursor) const
 			{
 				return Area;
 			}
@@ -432,13 +432,13 @@ namespace bs
 		/** Draws a rectangle with rounded corners. */
 		struct DrawRoundedRectangleCommand
 		{
-			Rect2 Area;
+			Area2 Area;
 			float RadiusTopLeft;
 			float RadiusTopRight;
 			float RadiusBottomLeft;
 			float RadiusBottomRight;
 
-			Rect2 GetBoundsAndUpdateCursor(Vector2& cursor) const
+			Area2 GetBoundsAndUpdateCursor(Vector2& cursor) const
 			{
 				return Area;
 			}
@@ -450,9 +450,9 @@ namespace bs
 			Vector2 Origin;
 			Vector2 Radius;
 
-			Rect2 GetBoundsAndUpdateCursor(Vector2& cursor) const
+			Area2 GetBoundsAndUpdateCursor(Vector2& cursor) const
 			{
-				return Rect2(Origin.X - Radius.X, Origin.Y - Radius.Y, 2.0f * Radius.X, 2.0f * Radius.Y);
+				return Area2(Origin.X - Radius.X, Origin.Y - Radius.Y, 2.0f * Radius.X, 2.0f * Radius.Y);
 			}
 		};
 
@@ -465,10 +465,10 @@ namespace bs
 			Radian EndAngle;
 			VectorGraphicsPathWinding Direction;
 
-			Rect2 GetBoundsAndUpdateCursor(Vector2& cursor) const
+			Area2 GetBoundsAndUpdateCursor(Vector2& cursor) const
 			{
 				// TODO - Calculate minimum arc bounds with a more algebraic approach
-				return Rect2(Center.X, Center.Y, Radius, Radius);
+				return Area2(Center.X, Center.Y, Radius, Radius);
 			}
 		};
 
@@ -541,13 +541,13 @@ namespace bs
 		VectorPath& DrawCubicBezierTo(const Vector2& controlPoint1, const Vector2& controlPoint2, const Vector2& endPoint);
 
 		/** Draws a rectangle. */
-		VectorPath& DrawRectangle(const Rect2& area);
+		VectorPath& DrawRectangle(const Area2& area);
 
 		/** Draws a rectangle with rounded corners, all corners having the same radius. */
-		VectorPath& DrawRoundedRectangle(const Rect2& area, float cornerRadius);
+		VectorPath& DrawRoundedRectangle(const Area2& area, float cornerRadius);
 
 		/** Draws a rectangle with rounded corners, with explicit radius for each corner. */
-		VectorPath& DrawRoundedRectangle(const Rect2& area, float topLeftCornerRadius, float topRightCornerRadius, float bottomLeftCornerRadius, float bottomRightCornerRadius);
+		VectorPath& DrawRoundedRectangle(const Area2& area, float topLeftCornerRadius, float topRightCornerRadius, float bottomLeftCornerRadius, float bottomRightCornerRadius);
 
 		/** Draws a circle. */
 		VectorPath& DrawCircle(const Vector2& origin, float radius);
@@ -599,7 +599,7 @@ namespace bs
 		VectorPath& SetAntialiasShapes(bool antialiasShapes);
 
 		/** Sets a rectangle to clip shape rendering to. */
-		VectorPath& SetScissorRectangle(const Rect2& scissorArea);
+		VectorPath& SetScissorRectangle(const Area2& scissorArea);
 
 		/** Clears a previously set scissor rectangle. */
 		VectorPath& ClearScissor();

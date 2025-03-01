@@ -288,7 +288,7 @@ void RendererUtility::Blit(GpuCommandBuffer& commandBuffer, const SPtr<Texture>&
 {
 	auto& texProps = texture->GetProperties();
 
-	Rect2 fArea((float)area.X, (float)area.Y, (float)area.Width, (float)area.Height);
+	Area2 fArea((float)area.X, (float)area.Y, (float)area.Width, (float)area.Height);
 	if(area.Width == 0 || area.Height == 0)
 	{
 		fArea.X = 0.0f;
@@ -301,7 +301,7 @@ void RendererUtility::Blit(GpuCommandBuffer& commandBuffer, const SPtr<Texture>&
 	blitMat->Execute(commandBuffer, texture, fArea, flipUV);
 }
 
-void RendererUtility::DrawScreenQuad(GpuCommandBuffer& commandBuffer, const Rect2& uv, const Vector2I& textureSize, u32 numInstances, bool flipUV)
+void RendererUtility::DrawScreenQuad(GpuCommandBuffer& commandBuffer, const Area2& uv, const Vector2I& textureSize, u32 numInstances, bool flipUV)
 {
 	// Note: Consider drawing the quad using a single large triangle for possibly better performance
 	// Note2: Consider setting quad size in shader instead of rebuilding the mesh every time
@@ -391,7 +391,7 @@ void BlitMat::Initialize()
 	mIsFiltered = mVariationParameters.GetInt("MODE") == 1;
 }
 
-void BlitMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& source, const Rect2& area, bool flipUV)
+void BlitMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& source, const Area2& area, bool flipUV)
 {
 	BS_RENMAT_PROFILE_BLOCK
 
@@ -401,7 +401,7 @@ void BlitMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& sour
 	if(!mIsFiltered)
 		GetRendererUtility().DrawScreenQuad(commandBuffer, area, Vector2I(1, 1), 1, flipUV);
 	else
-		GetRendererUtility().DrawScreenQuad(commandBuffer, Rect2(0, 0, 1, 1), Vector2I(1, 1), 1, flipUV);
+		GetRendererUtility().DrawScreenQuad(commandBuffer, Area2(0, 0, 1, 1), Vector2I(1, 1), 1, flipUV);
 }
 
 BlitMat* BlitMat::GetVariation(u32 msaaCount, bool isColor, bool isFiltered)

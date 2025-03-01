@@ -37,7 +37,7 @@ HVectorPath GUIBackgroundVectorPathBuilder::BuildPath(const Size2UI& size, const
 		// If user requests a height of 35 pixels, a top & bottom borders of 5 pixels each (strokeWidth = 5), we want the fill rectangle to be 30 pixels high.
 		// Note that the total border height in the above example is 10 pixels (5 for top, 5 for bottom), but the other 5 pixels are taken from the fill size, so they won't expand the drawn area.
 		const float strokeWidth = drawBorder ? (float)styleSheetRule.BorderLeft.Width : 0.0f;
-		const Rect2 fillArea = Rect2(strokeWidth * 0.5f, strokeWidth * 0.5f, (float)size.Width - strokeWidth, (float)size.Height - strokeWidth);
+		const Area2 fillArea = Area2(strokeWidth * 0.5f, strokeWidth * 0.5f, (float)size.Width - strokeWidth, (float)size.Height - strokeWidth);
 
 		path->DrawRoundedRectangle(fillArea, borderTopLeftRadius, borderTopRightRadius, borderBottomLeftRadius, borderBottomRightRadius)
 			.ClosePath()
@@ -182,7 +182,7 @@ HVectorPath GUIBackgroundVectorPathBuilder::BuildPath(const Size2UI& size, const
 		}
 
 		// Center rectangle
-		path->DrawRoundedRectangle(Rect2(innerX, innerY, innerWidth, innerHeight), (float)styleSheetRule.BorderTopLeftRadius, (float)styleSheetRule.BorderTopRightRadius, (float)styleSheetRule.BorderBottomLeftRadius, (float)styleSheetRule.BorderBottomRightRadius);
+		path->DrawRoundedRectangle(Area2(innerX, innerY, innerWidth, innerHeight), (float)styleSheetRule.BorderTopLeftRadius, (float)styleSheetRule.BorderTopRightRadius, (float)styleSheetRule.BorderBottomLeftRadius, (float)styleSheetRule.BorderBottomRightRadius);
 		path->SetFillPaint(styleSheetRule.BackgroundColor);
 		path->DrawFill();
 	}
@@ -238,7 +238,7 @@ HVectorPath GUIDropDownArrowVectorPathBuilder::BuildPath(const Size2UI& size, co
 	constexpr float kArrowSize = kCanvasSize * 0.75f;
 	HVectorPath path = VectorPath::Create(Size2(kCanvasSize, kCanvasSize));
 
-	path->DrawRectangle(Rect2(0.0f, 0.0f, kCanvasSize, kCanvasSize))
+	path->DrawRectangle(Area2(0.0f, 0.0f, kCanvasSize, kCanvasSize))
 		.ClosePath()
 		.SetFillPaint(styleSheetRule.BackgroundColor)
 		.DrawFill();
@@ -320,9 +320,9 @@ HVectorPath GUIResizableVerticalScrollHandleVectorPathBuilder::BuildPath(const S
 
 	HVectorPath path = VectorPath::Create(constrainedSize);
 
-	path->DrawRectangle(Rect2(0.0f, 0.0f, constrainedSize.Width, kResizableHandleSize))
-		.DrawRectangle(Rect2(0.0f, kResizableHandleSize + kResizableHandlePadding, constrainedSize.Width, (float)size.Height - kResizableHandleSize * 2.0f - kResizableHandlePadding * 2.0f))
-		.DrawRectangle(Rect2(0.0f, (float)size.Height - kResizableHandleSize, constrainedSize.Width, kResizableHandleSize))
+	path->DrawRectangle(Area2(0.0f, 0.0f, constrainedSize.Width, kResizableHandleSize))
+		.DrawRectangle(Area2(0.0f, kResizableHandleSize + kResizableHandlePadding, constrainedSize.Width, (float)size.Height - kResizableHandleSize * 2.0f - kResizableHandlePadding * 2.0f))
+		.DrawRectangle(Area2(0.0f, (float)size.Height - kResizableHandleSize, constrainedSize.Width, kResizableHandleSize))
 		.ClosePath()
 		.SetFillPaint(styleSheetRule.BackgroundColor)
 		.DrawFill();
@@ -338,9 +338,9 @@ HVectorPath GUIResizableHorizontalScrollHandleVectorPathBuilder::BuildPath(const
 
 	HVectorPath path = VectorPath::Create(constrainedSize);
 
-	path->DrawRectangle(Rect2(0.0f, 0.0f, kResizableHandleSize, constrainedSize.Height))
-		.DrawRectangle(Rect2(kResizableHandleSize + kResizableHandlePadding, 0.0f, (float)size.Width - kResizableHandleSize * 2.0f - kResizableHandlePadding * 2.0f, constrainedSize.Height))
-		.DrawRectangle(Rect2((float)size.Width - kResizableHandleSize, 0.0f, kResizableHandleSize, constrainedSize.Height))
+	path->DrawRectangle(Area2(0.0f, 0.0f, kResizableHandleSize, constrainedSize.Height))
+		.DrawRectangle(Area2(kResizableHandleSize + kResizableHandlePadding, 0.0f, (float)size.Width - kResizableHandleSize * 2.0f - kResizableHandlePadding * 2.0f, constrainedSize.Height))
+		.DrawRectangle(Area2((float)size.Width - kResizableHandleSize, 0.0f, kResizableHandleSize, constrainedSize.Height))
 		.ClosePath()
 		.SetFillPaint(styleSheetRule.BackgroundColor)
 		.DrawFill();
@@ -362,7 +362,7 @@ HVectorPath GUISeparatorVectorPathBuilder::BuildPath(const Size2UI& size, const 
 	}
 	else if(size.Height > 1)
 	{
-		path->DrawRectangle(Rect2(0.0f, 0.0f, (float)size.Width, (float)size.Height))
+		path->DrawRectangle(Area2(0.0f, 0.0f, (float)size.Width, (float)size.Height))
 			.SetFillPaint(styleSheetRule.BackgroundColor)
 			.DrawFill();
 	}

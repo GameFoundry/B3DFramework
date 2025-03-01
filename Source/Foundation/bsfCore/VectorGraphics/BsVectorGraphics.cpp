@@ -89,7 +89,7 @@ namespace bs
 		return *this;
 	}
 
-	VectorPath& VectorPath::DrawRectangle(const Rect2& area)
+	VectorPath& VectorPath::DrawRectangle(const Area2& area)
 	{
 		VectorPathCommand command;
 		command.Type = VectorPathCommandType::DrawRectangle;
@@ -99,12 +99,12 @@ namespace bs
 		return *this;
 	}
 
-	VectorPath& VectorPath::DrawRoundedRectangle(const Rect2& area, float cornerRadius)
+	VectorPath& VectorPath::DrawRoundedRectangle(const Area2& area, float cornerRadius)
 	{
 		return DrawRoundedRectangle(area, cornerRadius, cornerRadius, cornerRadius, cornerRadius);
 	}
 
-	VectorPath& VectorPath::DrawRoundedRectangle(const Rect2& area, float topLeftCornerRadius, float topRightCornerRadius, float bottomLeftCornerRadius, float bottomRightCornerRadius)
+	VectorPath& VectorPath::DrawRoundedRectangle(const Area2& area, float topLeftCornerRadius, float topRightCornerRadius, float bottomLeftCornerRadius, float bottomRightCornerRadius)
 	{
 		VectorPathCommand command;
 		command.Type = VectorPathCommandType::DrawRoundedRectangle;
@@ -208,7 +208,7 @@ namespace bs
 		return *this;
 	}
 
-	VectorPath& VectorPath::SetScissorRectangle(const Rect2& scissorArea)
+	VectorPath& VectorPath::SetScissorRectangle(const Area2& scissorArea)
 	{
 		mCurrentState.ScissorArea = scissorArea;
 		return *this;
@@ -216,7 +216,7 @@ namespace bs
 
 	VectorPath& VectorPath::ClearScissor()
 	{
-		mCurrentState.ScissorArea = Rect2::kEmpty;
+		mCurrentState.ScissorArea = Area2::kEmpty;
 		return *this;
 	}
 

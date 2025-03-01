@@ -19,7 +19,7 @@ namespace bs
 		{
 			SpriteTextureCreateInformation value = new SpriteTextureCreateInformation();
 			value.AtlasTexture = null;
-			value.UVRange = new Rect2(0f, 0f, 1f, 1f);
+			value.UVRange = new Area2(0f, 0f, 1f, 1f);
 			value.AnimationPlayback = SpriteAnimationPlayback.None;
 			value.Animation = SpriteSheetGridAnimation.Default();
 
@@ -29,7 +29,7 @@ namespace bs
 		/// <summary>Texture used as the atlas.</summary>
 		public RRef<Texture> AtlasTexture;
 		/// <summary>Range in the atlas texture that the image maps to.</summary>
-		public Rect2 UVRange;
+		public Area2 UVRange;
 		/// <summary>Determines if animation is enabled and how should it play.</summary>
 		public SpriteAnimationPlayback AnimationPlayback;
 		/// <summary>Describes the sprite sheet grid used for animation, if animation is used.</summary>

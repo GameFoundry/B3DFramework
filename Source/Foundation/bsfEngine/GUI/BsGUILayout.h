@@ -22,15 +22,15 @@ namespace bs
 			MaximumDepth = 12
 		};
 
-		static simd::Rect2 GetBounds(GUIElement* element, void* context)
+		static simd::Area2 GetBounds(GUIElement* element, void* context)
 		{
 			const GUILayoutData& layoutData = element->GetLayoutData();
 
 			const Vector2 relativePosition = layoutData.RelativePosition.To<i32>().To<float>();
 			const Size2 size = layoutData.Size.To<float>();
 
-			const Rect2 area(relativePosition.X, relativePosition.Y, size.Width, size.Height);
-			return simd::Rect2(area);
+			const Area2 area(relativePosition.X, relativePosition.Y, size.Width, size.Height);
+			return simd::Area2(area);
 		}
 
 		static void SetElementId(GUIElement* element, const SpatialTreeElementId& id, void* context)

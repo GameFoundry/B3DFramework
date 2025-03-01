@@ -50,7 +50,7 @@ void GUILabel::UpdateRenderElements()
 	const GUIPhysicalPoint contentOffset = GetScaledContentOffset();
 	const GUIPhysicalArea contentBounds = GetScaledContentBounds();
 
-	const Rect2 textBounds(
+	const Area2 textBounds(
 		(float)contentOffset.X, (float)contentOffset.Y,
 		(float)contentBounds.Width, (float)contentBounds.Height);
 

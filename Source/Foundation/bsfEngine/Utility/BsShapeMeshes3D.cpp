@@ -1,7 +1,7 @@
 //************************************ bs::framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "Utility/BsShapeMeshes3D.h"
-#include "Math/BsRect2.h"
+#include "Math/BsArea2.h"
 #include "Mesh/BsMesh.h"
 #include "Math/BsVector2.h"
 #include "Math/BsQuaternion.h"

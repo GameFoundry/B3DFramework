@@ -41,7 +41,7 @@ void SpriteVectorPath::SetVectorPath(const HVectorPath& vectorPath)
 void SpriteVectorPath::RenderVectorPath()
 {
 	mAtlasTexture = nullptr;
-	mInformation.UVRange = Rect2::kEmpty;
+	mInformation.UVRange = Area2::kEmpty;
 
 	if(!mVectorPath.IsLoaded(false))
 		return;
