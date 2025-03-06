@@ -34,6 +34,14 @@ namespace bs
         /// <summary>
         /// Returns the length of the vector.
         /// </summary>
+        public static float GetLength<Unit>(this TVector2<TUnitValue<int, Unit>> value)
+        {
+            return float.Sqrt((float)value.X * (float)value.X + (float)value.Y + (float)value.Y);
+        }
+
+        /// <summary>
+        /// Returns the length of the vector.
+        /// </summary>
         public static T GetLength<T, Unit>(this TVector2<TUnitValue<T, Unit>> value) where T : IRootFunctions<T>, INumber<T>
         {
             return T.Sqrt((T)(value.X * value.X + value.Y + value.Y));

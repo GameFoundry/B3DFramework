@@ -15,7 +15,6 @@ namespace bs
 	struct __TVector2_TUnitValue_int32_t__PhysicalPixel__Interop;
 	struct __TArea2_TUnitValue_int32_t__LogicalPixel___TUnitValue_int32_t__LogicalPixel__Interop;
 	struct __TArea2_TUnitValue_int32_t__PhysicalPixel___TUnitValue_int32_t__PhysicalPixel__Interop;
-	struct __TUnitValue_int32_t__LogicalPixel_Interop;
 	struct __TSize2_TUnitValue_int32_t__LogicalPixel__Interop;
 }
 

@@ -27,18 +27,17 @@ namespace bs
         protected GUIScrollArea scrollArea;
         protected GUILabel topPadding;
         protected GUILabel bottomPadding;
-        protected int width;
-        protected int height;
-        protected int entryHeight;
+        protected GUILogicalSize size;
+        protected GUILogicalUnit entryHeight;
         protected float scrollPct;
         protected bool scrollToLatest;
-        protected int totalHeight;
+        protected GUILogicalUnit totalHeight;
         protected internal bool contentsDirty = true;
 
         /// <summary>
         /// Total number of entries in the list.
         /// </summary>
-        public int NumEntries
+        public int EntryCount
         {
             get { return entries.Count; }
         }
@@ -46,7 +45,7 @@ namespace bs
         /// <summary>
         /// Height of a single entry in the list, in pixels.
         /// </summary>
-        public int EntryHeight
+        public GUILogicalUnit EntryHeight
         {
             get { return entryHeight; }
             set { entryHeight = value; }
@@ -63,14 +62,13 @@ namespace bs
         /// <summary>
         /// Creates a new empty list view.
         /// </summary>
-        /// <param name="width">Width of the list view, in pixels.</param>
-        /// <param name="height">Height of the list view, in pixels.</param>
+        /// <param name="size">Size of the list view, in pixels.</param>
         /// <param name="entryHeight">Height of a single element in the list, in pixels.</param>
         /// <param name="layout">GUI layout into which the list view will be placed into.</param>
-        protected GUIListViewBase(int width, int height, int entryHeight, GUILayout layout)
+        protected GUIListViewBase(GUILogicalSize size, GUILogicalUnit entryHeight, GUILayout layout)
         {
             scrollArea = new GUIScrollArea(ScrollBarType.ShowIfDoesntFit, ScrollBarType.NeverShow,
-                GUIOption.FixedWidth(width), GUIOption.FixedHeight(height));
+                GUIOption.FixedWidth(size.Width), GUIOption.FixedHeight(size.Height));
             layout.AddElement(scrollArea);
 
             topPadding = new GUILabel(new LocString());
@@ -79,8 +77,7 @@ namespace bs
             scrollArea.Layout.AddElement(topPadding);
             scrollArea.Layout.AddElement(bottomPadding);
 
-            this.width = width;
-            this.height = height;
+            this.size = size;
             this.entryHeight = entryHeight;
         }
 
@@ -144,16 +141,12 @@ namespace bs
         /// <summary>
         /// Changes the size of the list view.
         /// </summary>
-        /// <param name="width">Width in pixels.</param>
-        /// <param name="height">Height in pixels.</param>
-        public void SetSize(int width, int height)
+        public void SetSize(GUILogicalSize size)
         {
-            if (width != this.width || height != this.height)
+            if (size != this.size)
             {
-                this.width = width;
-                this.height = height;
-
-                scrollArea.SetSize(new Size2UI(width, height));
+                this.size = size;
+                scrollArea.SetSize(size);
             }
         }
 
@@ -179,21 +172,20 @@ namespace bs
         /// <summary>
         /// Creates a new empty list view.
         /// </summary>
-        /// <param name="width">Width of the list view, in pixels.</param>
-        /// <param name="height">Height of the list view, in pixels.</param>
+        /// <param name="size">Size of the list view, in pixels.</param>
         /// <param name="entryHeight">Height of a single element in the list, in pixels.</param>
         /// <param name="layout">GUI layout into which the list view will be placed into.</param>
-        public GUIListView(int width, int height, int entryHeight, GUILayout layout)
-            :base(width, height, entryHeight, layout)
+        public GUIListView(GUILogicalSize size, GUILogicalUnit entryHeight, GUILayout layout)
+            :base(size, entryHeight, layout)
         { }
 
         /// <inheritdoc/>
         public override void Update()
         {
-            int numVisibleEntries = MathEx.CeilToInt(height / (float)entryHeight) + 1;
-            numVisibleEntries = MathEx.Min(numVisibleEntries, entries.Count);
+            int visibleEntryCount = MathEx.CeilToInt((float)size.Height / (float)entryHeight) + 1;
+            visibleEntryCount = MathEx.Min(visibleEntryCount, entries.Count);
 
-            while (visibleEntries.Count < numVisibleEntries)
+            while (visibleEntries.Count < visibleEntryCount)
             {
                 TEntry newEntry = new TEntry();
                 newEntry.Initialize(this);
@@ -203,7 +195,7 @@ namespace bs
                 contentsDirty = true;
             }
 
-            while (numVisibleEntries < visibleEntries.Count)
+            while (visibleEntryCount < visibleEntries.Count)
             {
                 int lastIdx = visibleEntries.Count - 1;
 
@@ -221,20 +213,20 @@ namespace bs
 
             if (contentsDirty)
             {
-                int newHeight = entries.Count * entryHeight;
+                GUILogicalUnit newHeight = entries.Count * entryHeight;
                 if (scrollToLatest)
                 {
-                    if (totalHeight > height && scrollPct < 1.0f)
+                    if (totalHeight > size.Height && scrollPct < 1.0f)
                         scrollToLatest = false;
                 }
                 else
                 {
-                    if (totalHeight <= height || scrollPct >= 1.0f)
+                    if (totalHeight <= size.Height || scrollPct >= 1.0f)
                         scrollToLatest = true;
                 }
 
                 totalHeight = newHeight;
-                int maxScrollOffset = MathEx.Max(0, totalHeight - height - 1);
+                GUILogicalUnit maxScrollOffset = GUILogicalUnit.Max(0, totalHeight - size.Height - 1);
 
                 float newScrollPct;
                 if (!scrollToLatest)
@@ -242,12 +234,12 @@ namespace bs
                     // Calculate the new scroll pct (which will be active after we change the top/bottom padding element
                     // sizes). If we use the existing scroll pct instead then the elements will lag one frame behind, which
                     // can be very noticeable on quickly updating lists.
-                    newScrollPct = (scrollPct*scrollArea.Layout.AbsoluteBounds.Height)/totalHeight;
+                    newScrollPct = (scrollPct*scrollArea.Layout.AbsoluteBounds.Height)/(float)totalHeight;
                 }
                 else
                     newScrollPct = 1.0f;
 
-                int startPos = MathEx.FloorToInt(newScrollPct * maxScrollOffset);
+                int startPos = MathEx.FloorToInt(newScrollPct * (float)maxScrollOffset);
                 int startIndex = MathEx.FloorToInt(startPos / (float)entryHeight);
 
                 // Check if we're at the list bottom and the extra element is out of bounds
@@ -259,12 +251,12 @@ namespace bs
                 for (int i = 0; i < visibleEntries.Count; i++)
                     visibleEntries[i].UpdateContents(startIndex + i, entries[startIndex + i]);
 
-                int bottomPosition = MathEx.Min(totalHeight, (startIndex + visibleEntries.Count) * entryHeight);
+                GUILogicalUnit bottomPosition = GUILogicalUnit.Min(totalHeight, (startIndex + visibleEntries.Count) * entryHeight);
                 bottomPadding.SetHeight(totalHeight - bottomPosition);
 
                 if (scrollToLatest)
                 {
-                    if (newHeight <= height)
+                    if (newHeight <= size.Height)
                         scrollArea.VerticalScroll = 0.0f;
                     else
                         scrollArea.VerticalScroll = 1.0f;

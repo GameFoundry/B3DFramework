@@ -186,7 +186,7 @@ namespace bs
         /// <param name="width">Width in logical pixel units.</param>
         public void SetWidth(GUILogicalUnit width)
         {
-            Internal_SetWidth2(mCachedPtr, width);
+            Internal_SetWidth2(mCachedPtr, ref width);
         }
 
         /// <summary>
@@ -216,7 +216,7 @@ namespace bs
         /// <param name="height">Height in logical pixel units.</param>
         public void SetHeight(GUILogicalUnit height)
         {
-            Internal_SetHeight2(mCachedPtr, height);
+            Internal_SetHeight2(mCachedPtr, ref height);
         }
 
         /// <summary>
@@ -371,7 +371,7 @@ namespace bs
         private static extern void Internal_SetWidth(IntPtr nativeInstance, int width);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
-        private static extern void Internal_SetWidth2(IntPtr nativeInstance, GUILogicalUnit width);
+        private static extern void Internal_SetWidth2(IntPtr nativeInstance, ref GUILogicalUnit width);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern void Internal_SetFlexibleWidth(IntPtr nativeInstance, int minWidth, int maxWidth);
@@ -380,7 +380,7 @@ namespace bs
         private static extern void Internal_SetHeight(IntPtr nativeInstance, int height);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
-        private static extern void Internal_SetHeight2(IntPtr nativeInstance, GUILogicalUnit height);
+        private static extern void Internal_SetHeight2(IntPtr nativeInstance, ref GUILogicalUnit height);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern void Internal_SetFlexibleHeight(IntPtr nativeInstance, int minHeight, int maxHeight);
