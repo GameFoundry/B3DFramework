@@ -46,8 +46,8 @@ namespace bs
 		static void InternalSetDisabled(ScriptGUIElementWrapper* self, bool disabled);
 		static bool InternalGetDisabled(ScriptGUIElementWrapper* self);
 		static MonoObject* InternalGetParent(ScriptGUIElementWrapper* self);
-		static void InternalCalculateAbsoluteBounds(ScriptGUIElementWrapper* self, Area2I* bounds);
-		static void InternalGetLayoutCalculatedSize(ScriptGUIElementWrapper* self, Size2UI* size);
+		static void InternalCalculateAbsoluteBounds(ScriptGUIElementWrapper* self, __TArea2_TUnitValue_int32_t__PhysicalPixel___TUnitValue_int32_t__PhysicalPixel__Interop* bounds);
+		static void InternalGetLayoutCalculatedSize(ScriptGUIElementWrapper* self, __TSize2_TUnitValue_int32_t__LogicalPixel__Interop* size);
 		static void InternalGetScreenBounds(ScriptGUIElementWrapper* self, Area2I* bounds);
 		static void InternalCalculatePositionRelativeTo(ScriptGUIElementWrapper* self, ScriptGUIElementWrapper* relativeTo, __TVector2_TUnitValue_int32_t__LogicalPixel__Interop* position);
 		static void InternalCalculateAbsoluteBoundsRelativeTo(ScriptGUIElementWrapper* self, ScriptGUIElementWrapper* relativeTo, Area2I* bounds);

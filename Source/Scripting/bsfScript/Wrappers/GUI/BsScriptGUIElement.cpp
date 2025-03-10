@@ -130,26 +130,26 @@ MonoObject* ScriptGUIElement::InternalGetParent(ScriptGUIElementWrapper* self)
 	return parentScriptObjectWrapper->GetScriptObject();
 }
 
-void ScriptGUIElement::InternalCalculateAbsoluteBounds(ScriptGUIElementWrapper* self, Area2I* bounds)
+void ScriptGUIElement::InternalCalculateAbsoluteBounds(ScriptGUIElementWrapper* self, __TArea2_TUnitValue_int32_t__PhysicalPixel___TUnitValue_int32_t__PhysicalPixel__Interop* bounds)
 {
 	if(!self->IsNativeObjectValid())
 	{
-		*bounds = Area2I();
+		*bounds = __TArea2_TUnitValue_int32_t__PhysicalPixel___TUnitValue_int32_t__PhysicalPixel__Interop();
 		return;
 	}
 
-	*bounds = self->GetNativeObject()->CalculateAbsoluteBoundsRelativeTo().To<i32, u32>();
+	*bounds = ScriptTArea2_TUnitValue_int32_t__PhysicalPixel___TUnitValue_int32_t__PhysicalPixel__::ToInterop(self->GetNativeObject()->CalculateAbsoluteBoundsRelativeTo());
 }
 
-void ScriptGUIElement::InternalGetLayoutCalculatedSize(ScriptGUIElementWrapper* self, Size2UI* size)
+void ScriptGUIElement::InternalGetLayoutCalculatedSize(ScriptGUIElementWrapper* self, __TSize2_TUnitValue_int32_t__LogicalPixel__Interop* size)
 {
 	if(!self->IsNativeObjectValid())
 	{
-		*size = Size2UI();
+		*size = __TSize2_TUnitValue_int32_t__LogicalPixel__Interop();
 		return;
 	}
 
-	*size = self->GetNativeObject()->CalculateSizeInLayout();
+	*size = ScriptTSize2_TUnitValue_int32_t__LogicalPixel__::ToInterop(self->GetNativeObject()->CalculateSizeInLayout());
 }
 
 void ScriptGUIElement::InternalGetScreenBounds(ScriptGUIElementWrapper* self, Area2I* bounds)

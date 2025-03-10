@@ -24,11 +24,11 @@ namespace bs
         /// Always returns value calculated by last layout update. This means out of date value may be returned if the
         /// layout has been dirtied since then. // TODO - This sentence is not true until below is implemented
         /// </summary>
-        public Area2I AbsoluteBounds // TODO - Refactor this to always return cached bounds, add CalculateAbsoluteBounds for other use cases
+        public GUIPhysicalArea AbsoluteBounds // TODO - Refactor this to always return cached bounds, add CalculateAbsoluteBounds for other use cases
         {
             get
             {
-                Area2I bounds;
+                GUIPhysicalArea bounds;
                 Internal_CalculateAbsoluteBounds(mCachedPtr, out bounds);
                 return bounds;
             }
@@ -61,11 +61,11 @@ namespace bs
         /// Always returns value calculated by last layout update. This means out of date value may be returned if the
         /// layout has been dirtied since then.
         /// </summary>
-        public Size2UI LayoutCalculatedSize 
+        public GUILogicalSize LayoutCalculatedSize 
         {
             get
             {
-                Size2UI size;
+                GUILogicalSize size;
                 Internal_GetLayoutCalculatedSize(mCachedPtr, out size);
                 return size;
             }
@@ -395,10 +395,10 @@ namespace bs
         private static extern void Internal_ResetSizeConstraints(IntPtr nativeInstance);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
-        private static extern void Internal_CalculateAbsoluteBounds(IntPtr nativeInstance, out Area2I value);
+        private static extern void Internal_CalculateAbsoluteBounds(IntPtr nativeInstance, out GUIPhysicalArea value);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
-        private static extern void Internal_GetLayoutCalculatedSize(IntPtr nativeInstance, out Size2UI value);
+        private static extern void Internal_GetLayoutCalculatedSize(IntPtr nativeInstance, out GUILogicalSize value);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern void Internal_GetScreenBounds(IntPtr nativeInstance, out Area2I value);

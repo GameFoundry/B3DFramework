@@ -166,7 +166,7 @@ namespace bs
 		 *
 		 * @note	This call can be potentially expensive if the GUI state is dirty, as it can trigger a layout update operation.
 		 */
-		Size2UI CalculateSizeInLayout() const;
+		GUILogicalSize CalculateSizeInLayout() const;
 
 		/**
 		 * Calculates position of the GUI element, relative to the provided parent element (or parent panel if null).

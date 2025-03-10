@@ -163,12 +163,12 @@ void GUIElement::ResetSizeConstraints()
 	MarkLayoutAsDirty();
 }
 
-Size2UI GUIElement::CalculateSizeInLayout() const
+GUILogicalSize GUIElement::CalculateSizeInLayout() const
 {
 	if(mLayoutUpdateParent != nullptr && mLayoutUpdateParent->IsLayoutDirty() && mParentWidget != nullptr)
 		mParentWidget->UpdateLayout(mLayoutUpdateParent);
 
-	return GetLayoutCalculatedSize().To<u32>();
+	return GetLayoutCalculatedSize();
 }
 
 GUILogicalPoint GUIElement::CalculatePositionRelativeTo(GUIElement* relativeTo) const
