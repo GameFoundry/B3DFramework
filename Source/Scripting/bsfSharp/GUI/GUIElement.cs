@@ -128,31 +128,6 @@ namespace bs
         /// <remarks>
         /// Be aware that this value will be ignored if GUI element is part of a layout because the layout controls placement of child elements.
         /// </remarks>
-        public void SetPosition(int x, int y)
-        {
-            Internal_SetPosition(mCachedPtr, x, y);
-        }
-
-        /// <summary>
-        /// Sets element position relative to parent GUI panel.
-        /// </summary>
-        /// <param name="position">X/Y position of the element in logical pixel units, relative to parent GUI panel.</param>
-        /// <remarks>
-        /// Be aware that this value will be ignored if GUI element is part of a layout because the layout controls placement of child elements.
-        /// </remarks>
-        public void SetPosition(Vector2I position)
-        {
-            Internal_SetPosition(mCachedPtr, position.X, position.Y);
-        }
-
-        /// <summary>
-        /// Sets element position relative to parent GUI panel.
-        /// </summary>
-        /// <param name="x">X position of the element in logical pixel units, relative to parent GUI panel.</param>
-        /// <param name="y">Y position of the element in logical pixel units, relative to parent GUI panel.</param>
-        /// <remarks>
-        /// Be aware that this value will be ignored if GUI element is part of a layout because the layout controls placement of child elements.
-        /// </remarks>
         public void SetPosition(GUILogicalUnit x, GUILogicalUnit y)
         {
             GUILogicalPoint point = new GUILogicalPoint(x, y);
@@ -169,15 +144,6 @@ namespace bs
         public void SetPosition(GUILogicalPoint position)
         {
             Internal_SetPosition2(mCachedPtr, ref position);
-        }
-
-        /// <summary>
-        /// Sets a fixed element width.
-        /// </summary>
-        /// <param name="width">Width in logical pixel units.</param>
-        public void SetWidth(int width)
-        {
-            Internal_SetWidth(mCachedPtr, width);
         }
 
         /// <summary>
@@ -205,15 +171,6 @@ namespace bs
         /// Sets a fixed element height.
         /// </summary>
         /// <param name="height">Height in logical pixel units.</param>
-        public void SetHeight(int height)
-        {
-            Internal_SetHeight(mCachedPtr, height);
-        }
-
-        /// <summary>
-        /// Sets a fixed element height.
-        /// </summary>
-        /// <param name="height">Height in logical pixel units.</param>
         public void SetHeight(GUILogicalUnit height)
         {
             Internal_SetHeight2(mCachedPtr, ref height);
@@ -229,15 +186,6 @@ namespace bs
         public void SetFlexibleHeight(int minHeight, int maxHeight)
         {
             Internal_SetFlexibleHeight(mCachedPtr, minHeight, maxHeight);
-        }
-
-        /// <summary>
-        /// Sets a fixed element width & height.
-        /// </summary>
-        /// <param name="size">Width/height in logical pixel units.</param>
-        public void SetSize(Size2UI size)
-        {
-            Internal_SetSize(mCachedPtr, ref size);
         }
 
         /// <summary>
@@ -362,13 +310,7 @@ namespace bs
         private static extern void Internal_SetDisabled(IntPtr nativeInstance, bool disabled);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
-        private static extern void Internal_SetPosition(IntPtr nativeInstance, int x, int y);
-
-        [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern void Internal_SetPosition2(IntPtr nativeInstance, ref GUILogicalPoint position);
-
-        [MethodImpl(MethodImplOptions.InternalCall)]
-        private static extern void Internal_SetWidth(IntPtr nativeInstance, int width);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern void Internal_SetWidth2(IntPtr nativeInstance, ref GUILogicalUnit width);
@@ -377,16 +319,10 @@ namespace bs
         private static extern void Internal_SetFlexibleWidth(IntPtr nativeInstance, int minWidth, int maxWidth);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
-        private static extern void Internal_SetHeight(IntPtr nativeInstance, int height);
-
-        [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern void Internal_SetHeight2(IntPtr nativeInstance, ref GUILogicalUnit height);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern void Internal_SetFlexibleHeight(IntPtr nativeInstance, int minHeight, int maxHeight);
-
-        [MethodImpl(MethodImplOptions.InternalCall)]
-        private static extern void Internal_SetSize(IntPtr nativeInstance, ref Size2UI size);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern void Internal_SetSize2(IntPtr nativeInstance, ref GUILogicalSize size);

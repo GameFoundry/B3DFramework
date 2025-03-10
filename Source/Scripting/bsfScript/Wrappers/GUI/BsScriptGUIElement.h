@@ -51,13 +51,9 @@ namespace bs
 		static void InternalGetScreenBounds(ScriptGUIElementWrapper* self, Area2I* bounds);
 		static void InternalCalculatePositionRelativeTo(ScriptGUIElementWrapper* self, ScriptGUIElementWrapper* relativeTo, __TVector2_TUnitValue_int32_t__LogicalPixel__Interop* position);
 		static void InternalCalculateAbsoluteBoundsRelativeTo(ScriptGUIElementWrapper* self, ScriptGUIElementWrapper* relativeTo, Area2I* bounds);
-		static void InternalSetPosition(ScriptGUIElementWrapper* self, i32 x, i32 y);
 		static void InternalSetPosition2(ScriptGUIElementWrapper* self, __TVector2_TUnitValue_int32_t__LogicalPixel__Interop* position);
-		static void InternalSetWidth(ScriptGUIElementWrapper* self, u32 width);
 		static void InternalSetWidth2(ScriptGUIElementWrapper* self, GUILogicalUnit* width);
-		static void InternalSetHeight(ScriptGUIElementWrapper* self, u32 height);
 		static void InternalSetHeight2(ScriptGUIElementWrapper* self, GUILogicalUnit* height);
-		static void InternalSetSize(ScriptGUIElementWrapper* self, Size2UI* size);
 		static void InternalSetSize2(ScriptGUIElementWrapper* self, __TSize2_TUnitValue_int32_t__LogicalPixel__Interop* size);
 		static void InternalSetFlexibleWidth(ScriptGUIElementWrapper* self, u32 minWidth, u32 maxWidth);
 		static void InternalSetFlexibleHeight(ScriptGUIElementWrapper* self, u32 minHeight, u32 maxHeight);

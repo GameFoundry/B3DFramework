@@ -60,7 +60,7 @@ namespace bs
 	 *
 	 * @note: Does not provide ability to render and interact with GUI elements - those are implemented by derived classes (i.e. GUIRenderable and GUIInteractable).
 	 */
-	class B3D_EXPORT GUIElement : public IReflectable, public IScriptExportable
+	class B3D_EXPORT /*B3D_SCRIPT_EXPORT(DocumentationGroup(GUI))*/ GUIElement : public IReflectable, public IScriptExportable
 	{
 	public:
 		/**	Valid types of GUI base elements. */
@@ -84,6 +84,7 @@ namespace bs
 		 *
 		 * Be aware that this value will be ignored if GUI element is part of a layout since then the layout controls its placement.
 		 */
+		B3D_SCRIPT_EXPORT()
 		void SetPosition(GUILogicalUnit x, GUILogicalUnit y) { SetPosition(GUILogicalPoint(x, y));}
 
 		/**

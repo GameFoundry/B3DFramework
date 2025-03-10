@@ -37,13 +37,9 @@ void ScriptGUIElement::SetupScriptBindings()
 	sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetScreenBounds", (void*)&ScriptGUIElement::InternalGetScreenBounds);
 	sInteropMetaData.ScriptClass->AddInternalCall("Internal_CalculatePositionRelativeTo", (void*)&ScriptGUIElement::InternalCalculatePositionRelativeTo);
 	sInteropMetaData.ScriptClass->AddInternalCall("Internal_CalculateAbsoluteBoundsRelativeTo", (void*)&ScriptGUIElement::InternalCalculateAbsoluteBoundsRelativeTo);
-	sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetPosition", (void*)&ScriptGUIElement::InternalSetPosition);
 	sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetPosition2", (void*)&ScriptGUIElement::InternalSetPosition2);
-	sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetWidth", (void*)&ScriptGUIElement::InternalSetWidth);
 	sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetWidth2", (void*)&ScriptGUIElement::InternalSetWidth2);
-	sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetHeight", (void*)&ScriptGUIElement::InternalSetHeight);
 	sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetHeight2", (void*)&ScriptGUIElement::InternalSetHeight2);
-	sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetSize", (void*)&ScriptGUIElement::InternalSetSize);
 	sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetSize2", (void*)&ScriptGUIElement::InternalSetSize2);
 	sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetFlexibleWidth", (void*)&ScriptGUIElement::InternalSetFlexibleWidth);
 	sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetFlexibleHeight", (void*)&ScriptGUIElement::InternalSetFlexibleHeight);
@@ -209,28 +205,12 @@ void ScriptGUIElement::InternalCalculateAbsoluteBoundsRelativeTo(ScriptGUIElemen
 	*bounds = self->GetNativeObject()->CalculateAbsoluteBoundsRelativeTo(relativeToElement).To<i32, u32>();
 }
 
-void ScriptGUIElement::InternalSetPosition(ScriptGUIElementWrapper* self, i32 x, i32 y)
-{
-	if(!self->IsNativeObjectValid())
-		return;
-
-	self->GetNativeObject()->SetPosition(x, y);
-}
-
 void ScriptGUIElement::InternalSetPosition2(ScriptGUIElementWrapper* self, __TVector2_TUnitValue_int32_t__LogicalPixel__Interop* position)
 {
 	if(!self->IsNativeObjectValid())
 		return;
 
 	self->GetNativeObject()->SetPosition(ScriptTVector2_TUnitValue_int32_t__LogicalPixel__::FromInterop(*position));
-}
-
-void ScriptGUIElement::InternalSetWidth(ScriptGUIElementWrapper* self, u32 width)
-{
-	if(!self->IsNativeObjectValid())
-		return;
-
-	self->GetNativeObject()->SetWidth(width);
 }
 
 void ScriptGUIElement::InternalSetWidth2(ScriptGUIElementWrapper* self, GUILogicalUnit* width)
@@ -249,28 +229,12 @@ void ScriptGUIElement::InternalSetFlexibleWidth(ScriptGUIElementWrapper* self, u
 	self->GetNativeObject()->SetFlexibleWidth(minWidth, maxWidth);
 }
 
-void ScriptGUIElement::InternalSetHeight(ScriptGUIElementWrapper* self, u32 height)
-{
-	if(!self->IsNativeObjectValid())
-		return;
-
-	self->GetNativeObject()->SetHeight(height);
-}
-
 void ScriptGUIElement::InternalSetHeight2(ScriptGUIElementWrapper* self, GUILogicalUnit* height)
 {
 	if(!self->IsNativeObjectValid())
 		return;
 
 	self->GetNativeObject()->SetHeight(*height);
-}
-
-void ScriptGUIElement::InternalSetSize(ScriptGUIElementWrapper* self, Size2UI* size)
-{
-	if(!self->IsNativeObjectValid())
-		return;
-
-	self->GetNativeObject()->SetSize(size->Width, size->Height);
 }
 
 void ScriptGUIElement::InternalSetSize2(ScriptGUIElementWrapper* self, __TSize2_TUnitValue_int32_t__LogicalPixel__Interop* size)
