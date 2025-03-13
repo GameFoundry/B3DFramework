@@ -10,7 +10,6 @@
 #include "../../../Foundation/bsfEngine/GUI/BsGUIElement.h"
 #include "../../../Foundation/bsfEngine/GUI/BsGUIUnits.h"
 #include "../../../Foundation/bsfEngine/GUI/BsGUIUnits.h"
-#include "../../../Foundation/bsfUtility/Math/BsArea2.h"
 #include "../../../Foundation/bsfEngine/GUI/BsGUIUnits.h"
 
 namespace bs { struct __TSize2_TUnitValue_int32_t__LogicalPixel__Interop; }
@@ -48,7 +47,7 @@ namespace bs
 		static void InternalCalculatePositionRelativeTo(ScriptGUIElement* self, MonoObject* relativeTo, __TVector2_TUnitValue_int32_t__LogicalPixel__Interop* __output);
 		static void InternalCalculateAbsoluteBoundsRelativeTo(ScriptGUIElement* self, MonoObject* relativeTo, __TArea2_TUnitValue_int32_t__PhysicalPixel___TUnitValue_int32_t__PhysicalPixel__Interop* __output);
 		static void InternalCalculateAbsoluteBounds(ScriptGUIElement* self, __TArea2_TUnitValue_int32_t__PhysicalPixel___TUnitValue_int32_t__PhysicalPixel__Interop* __output);
-		static void InternalCalculateScreenBounds(ScriptGUIElement* self, TArea2<int32_t, uint32_t>* __output);
+		static void InternalCalculateScreenBounds(ScriptGUIElement* self, __TArea2_TUnitValue_int32_t__PhysicalPixel___TUnitValue_int32_t__PhysicalPixel__Interop* __output);
 		static void InternalWidgetToElementSpace(ScriptGUIElement* self, __TVector2_TUnitValue_int32_t__PhysicalPixel__Interop* point, __TVector2_TUnitValue_int32_t__LogicalPixel__Interop* __output);
 		static void InternalElementToWidgetSpace(ScriptGUIElement* self, __TVector2_TUnitValue_int32_t__LogicalPixel__Interop* point, __TVector2_TUnitValue_int32_t__PhysicalPixel__Interop* __output);
 		static void InternalWidgetToElementSpace0(ScriptGUIElement* self, __TArea2_TUnitValue_int32_t__PhysicalPixel___TUnitValue_int32_t__PhysicalPixel__Interop* area, __TArea2_TUnitValue_int32_t__LogicalPixel___TUnitValue_int32_t__LogicalPixel__Interop* __output);

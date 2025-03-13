@@ -12,7 +12,6 @@
 #include "BsScriptTArea2.generated.h"
 #include "BsScriptTVector2.generated.h"
 #include "BsScriptTArea2.generated.h"
-#include "BsScriptTArea2.generated.h"
 
 namespace bs
 {
@@ -228,7 +227,7 @@ namespace bs
 		MonoUtil::ValueCopy(__output, &interop__output, ScriptTArea2_TUnitValue_int32_t__PhysicalPixel___TUnitValue_int32_t__PhysicalPixel__::GetMetaData()->ScriptClass->GetInternalClass());
 	}
 
-	void ScriptGUIElement::InternalCalculateScreenBounds(ScriptGUIElement* self, TArea2<int32_t, uint32_t>* __output)
+	void ScriptGUIElement::InternalCalculateScreenBounds(ScriptGUIElement* self, __TArea2_TUnitValue_int32_t__PhysicalPixel___TUnitValue_int32_t__PhysicalPixel__Interop* __output)
 	{
 		if(!self->IsNativeObjectValid())
 		{
@@ -236,10 +235,12 @@ namespace bs
 			return;
 		}
 
-		TArea2<int32_t, uint32_t> tmp__output;
+		TArea2<TUnitValue<int32_t, PhysicalPixel>, TUnitValue<int32_t, PhysicalPixel>> tmp__output;
 		tmp__output = static_cast<GUIElement*>(self->GetNativeObject())->CalculateScreenBounds();
 
-		*__output = tmp__output;
+		__TArea2_TUnitValue_int32_t__PhysicalPixel___TUnitValue_int32_t__PhysicalPixel__Interop interop__output;
+		interop__output = ScriptTArea2_TUnitValue_int32_t__PhysicalPixel___TUnitValue_int32_t__PhysicalPixel__::ToInterop(tmp__output);
+		MonoUtil::ValueCopy(__output, &interop__output, ScriptTArea2_TUnitValue_int32_t__PhysicalPixel___TUnitValue_int32_t__PhysicalPixel__::GetMetaData()->ScriptClass->GetInternalClass());
 	}
 
 	void ScriptGUIElement::InternalWidgetToElementSpace(ScriptGUIElement* self, __TVector2_TUnitValue_int32_t__PhysicalPixel__Interop* point, __TVector2_TUnitValue_int32_t__LogicalPixel__Interop* __output)

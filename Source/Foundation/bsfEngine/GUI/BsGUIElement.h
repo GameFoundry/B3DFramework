@@ -92,18 +92,8 @@ namespace bs
 		 *
 		 * Be aware that this value will be ignored if GUI element is part of a layout since then the layout controls its placement.
 		 */
-		void SetPosition(i32 x, i32 y) { SetPosition(GUILogicalPoint(x, y));} // TODO - Deprecated
-
-		/**
-		 * Sets element position relative to parent GUI panel. Values should be provided in logical pixel units.
-		 *
-		 * Be aware that this value will be ignored if GUI element is part of a layout since then the layout controls its placement.
-		 */
 		B3D_SCRIPT_EXPORT()
 		void SetPosition(const GUILogicalPoint& position);
-
-		/**	Sets fixed element width. Value should be in logical pixel units. */
-		void SetWidth(u32 width) { SetWidth(GUILogicalUnit((i32)width)); } // TODO - Deprecated
 
 		/**	Sets fixed element width. Value should be in logical pixel units. */
 		B3D_SCRIPT_EXPORT()
@@ -118,9 +108,6 @@ namespace bs
 		void SetFlexibleWidth(GUILogicalUnit minWidth = 0, GUILogicalUnit maxWidth = 0);
 
 		/**	Sets fixed element height. Value should be in logical pixel units. */
-		void SetHeight(u32 height) { SetHeight(GUILogicalUnit((i32)height)); } // TODO - Deprecated
-
-		/**	Sets fixed element height. Value should be in logical pixel units. */
 		B3D_SCRIPT_EXPORT()
 		void SetHeight(GUILogicalUnit height);
 
@@ -131,9 +118,6 @@ namespace bs
 		 */
 		B3D_SCRIPT_EXPORT()
 		void SetFlexibleHeight(GUILogicalUnit minHeight = 0, GUILogicalUnit maxHeight = 0);
-
-		/** Sets fixed width and height of a GUI element. Values provided should be in logical pixel units. */
-		void SetSize(u32 width, u32 height); // TODO - Deprecated
 
 		/** Sets fixed width and height of a GUI element. Values provided should be in logical pixel units. */
 		B3D_SCRIPT_EXPORT()
@@ -221,7 +205,7 @@ namespace bs
 		 * @note	This call can be potentially expensive if the GUI state is dirty, as it can trigger a layout update operation.
 		 */
 		B3D_SCRIPT_EXPORT(Property(Getter), ExportName(ScreenBounds))
-		Area2I CalculateScreenBounds() const;
+		GUIPhysicalArea CalculateScreenBounds() const;
 
 		/**
 		 * Returns bounds of the GUI element, relative to the parent GUI widget. Absolute values represent the final

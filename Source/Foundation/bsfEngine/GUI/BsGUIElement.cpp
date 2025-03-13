@@ -52,11 +52,6 @@ void GUIElement::SetPosition(const GUILogicalPoint& position)
 	MarkLayoutAsDirty();
 }
 
-void GUIElement::SetSize(u32 width, u32 height)
-{
-	SetSize(GUILogicalSize(width, height));
-}
-
 void GUIElement::SetSize(const GUILogicalSize& size)
 {
 	const bool isFixedBefore = mSizeConstraints.IsWidthFixed() && mSizeConstraints.IsHeightFixed();
@@ -231,28 +226,28 @@ GUIPhysicalArea GUIElement::CalculateAbsoluteBounds() const
 	return GetAbsoluteBounds();
 }
 
-Area2I GUIElement::CalculateScreenBounds() const
+GUIPhysicalArea GUIElement::CalculateScreenBounds() const
 {
-	Area2I area = CalculateAbsoluteBounds().To<i32, u32>();
+	GUIPhysicalArea area = CalculateAbsoluteBounds();
 	if(mParentWidget)
 	{
 		const Matrix4& widgetTfrm = mParentWidget->GetWorldTfrm();
-		Vector2I localPos(area.X, area.Y);
+		const GUIPhysicalPoint elementPosition = area.GetPosition();
 
-		const Vector4 widgetPosFlt = widgetTfrm.MultiplyAffine(Vector4((float)localPos.X, (float)localPos.Y, 0.0f, 1.0f));
-		const Vector2I widgetPos(Math::RoundToI32(widgetPosFlt.X), Math::RoundToI32(widgetPosFlt.Y));
+		const Vector4 elementPosition4D = widgetTfrm.MultiplyAffine(Vector4((float)elementPosition.X, (float)elementPosition.Y, 0.0f, 1.0f));
+		const GUIPhysicalPoint widgetRelativePosition(Math::RoundToI32(elementPosition4D.X), Math::RoundToI32(elementPosition4D.Y));
 
 		const RenderWindow* parentWindow = GUIManager::Instance().GetWidgetWindow(*mParentWidget);
 		if(parentWindow)
 		{
-			const Vector2I windowPos = parentWindow->WindowToScreenPosition(widgetPos);
+			const GUIPhysicalPoint windowPos = parentWindow->WindowToScreenPosition(widgetRelativePosition.To<i32>()).To<GUIPhysicalUnit>();
 			area.X = windowPos.X;
 			area.Y = windowPos.Y;
 		}
 		else
 		{
-			area.X = widgetPos.X;
-			area.Y = widgetPos.Y;
+			area.X = widgetRelativePosition.X;
+			area.Y = widgetRelativePosition.Y;
 		}
 	}
 

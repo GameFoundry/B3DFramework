@@ -88,11 +88,11 @@ namespace bs
 
 		/// <summary>Calculates bounds of the GUI element in screen space.</summary>
 		[NativeWrapper]
-		public TArea2<int,int> ScreenBounds
+		public TArea2<TUnitValue<int,PhysicalPixel>,TUnitValue<int,PhysicalPixel>> ScreenBounds
 		{
 			get
 			{
-				TArea2<int,int> temp;
+				TArea2<TUnitValue<int,PhysicalPixel>,TUnitValue<int,PhysicalPixel>> temp;
 				Internal_CalculateScreenBounds(mCachedPtr, out temp);
 				return temp;
 			}
@@ -319,7 +319,7 @@ namespace bs
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_CalculateAbsoluteBounds(IntPtr thisPtr, out TArea2<TUnitValue<int,PhysicalPixel>,TUnitValue<int,PhysicalPixel>> __output);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_CalculateScreenBounds(IntPtr thisPtr, out TArea2<int,int> __output);
+		private static extern void Internal_CalculateScreenBounds(IntPtr thisPtr, out TArea2<TUnitValue<int,PhysicalPixel>,TUnitValue<int,PhysicalPixel>> __output);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_WidgetToElementSpace(IntPtr thisPtr, ref TVector2<TUnitValue<int,PhysicalPixel>> point, out TVector2<TUnitValue<int,LogicalPixel>> __output);
 		[MethodImpl(MethodImplOptions.InternalCall)]

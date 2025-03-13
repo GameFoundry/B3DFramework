@@ -633,7 +633,7 @@ Be aware that this value will be ignored if GUI element is part of a layout sinc
 		<property name="AbsoluteBounds" type="TArea2&lt;TUnitValue&lt;int,PhysicalPixel&gt;,TUnitValue&lt;int,PhysicalPixel&gt;&gt;" getter="CalculateAbsoluteBounds" setter="" static="false">
 			<doc>Calculates bounds of the GUI element, relative to the parent GUI widget, with scaling applied.  The values are provided in physical pixel units.</doc>
 		</property>
-		<property name="ScreenBounds" type="TArea2&lt;int,int&gt;" getter="CalculateScreenBounds" setter="" static="false">
+		<property name="ScreenBounds" type="TArea2&lt;TUnitValue&lt;int,PhysicalPixel&gt;,TUnitValue&lt;int,PhysicalPixel&gt;&gt;" getter="CalculateScreenBounds" setter="" static="false">
 			<doc>Calculates bounds of the GUI element in screen space.</doc>
 		</property>
 		<property name="Parent" type="GUIElement" getter="GetParent" setter="" static="false">
