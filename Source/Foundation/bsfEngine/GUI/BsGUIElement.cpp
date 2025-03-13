@@ -186,7 +186,7 @@ GUILogicalPoint GUIElement::CalculatePositionRelativeTo(GUIElement* relativeTo) 
 	{
 		GUIElement* const parent = element->GetParent();
 		if(parent == nullptr || element == relativeTo)
-			return element->GetLayoutData().RelativePosition;
+			return GUILogicalPoint::kZero;
 
 		const GUILogicalPoint& parentPosition = fnGetAccumulatedRelativePosition(parent, fnGetAccumulatedRelativePosition);
 		return parentPosition + element->GetLayoutData().RelativePosition;

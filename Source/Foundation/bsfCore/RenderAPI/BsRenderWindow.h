@@ -159,6 +159,13 @@ namespace bs
 	public:
 		virtual ~RenderWindow() = default;
 
+		/**
+		 * Returns currently set DPI scale. Scale of 1.0 corresponds to 96 DPI.
+		 *  physical pixel = logical pixel * DPI scale
+		 *  logical pixel = physical pixel / DPI ccale;
+		 */
+		virtual float GetDPIScale() const { return 1.0f; } // TODO - Implement this
+
 		/**	Converts screen position into window local position. */
 		virtual Vector2I ScreenToWindowPosition(const Vector2I& screenPosition) const = 0;
 
