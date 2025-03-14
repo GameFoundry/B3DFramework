@@ -727,6 +727,12 @@ namespace bs
 		TID_D6JointDrive = 1251,
 		TID_BufferParamData = 1252,
 		TID_SamplerStateParamData = 1253,
+		TID_IEditorWindow = 1254,
+		TID_EditorRenderWindow = 1255,
+		TID_SecondaryEditorWindow = 1256,
+		TID_MainEditorWindow = 1257,
+		TID_ModalWindow = 1258,
+		TID_DockableEditorWindow = 1259,
 
 		// Moved from Engine layer
 		TID_CCamera = 30000,
