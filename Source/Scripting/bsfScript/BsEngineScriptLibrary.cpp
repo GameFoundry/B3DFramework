@@ -9,7 +9,6 @@
 #include "BsScriptObjectManager.h"
 #include "BsApplication.h"
 #include "BsMonoMethod.h"
-#include "BsMonoUtil.h"
 #include "FileSystem/BsFileSystem.h"
 #include "BsPlayInEditor.h"
 #include "BsScriptDebug.generated.h"
@@ -18,18 +17,6 @@
 #include "BsScriptVirtualInput.generated.h"
 
 using namespace bs;
-
-static void IterateAssemblies(void* object, void* userdata)
-{
-	::MonoAssembly* assembly = reinterpret_cast<::MonoAssembly*>(object);
-
-	String name = MonoUtil::GetAssemblyName(assembly);
-
-	
-
-	int a = 5;
-}
-
 void EngineScriptLibrary::Initialize()
 {
 	Path engineAssemblyPath = GetEngineAssemblyPath();
@@ -37,27 +24,6 @@ void EngineScriptLibrary::Initialize()
 
 #if B3D_IS_ENGINE
 	MonoManager::StartUp();
-
-	// TODO - POC
-	Path assemblyLoaderPath = GetBuiltinAssemblyFolder();
-	assemblyLoaderPath.Append(String("MAssemblyLoader") + ".dll");
-
-	MonoAssembly& assemblyLoaderAssembly = MonoManager::Instance().LoadAssembly(assemblyLoaderPath.ToString(), "MAssemblyLoader");
-
-	MonoClass* assemblyLoaderClass = assemblyLoaderAssembly.GetClass(kEngineNs, "AssemblyLoader");
-	assemblyLoaderClass->GetMethod("CreateContext")->Invoke(nullptr, nullptr);
-
-	MonoString* monoAssemblyPath = MonoUtil::StringToMono(engineAssemblyPath.ToString());
-
-	void* params[1] = { monoAssemblyPath };
-	assemblyLoaderClass->GetMethod("LoadAssembly", 1)->Invoke(nullptr, params);
-
-	MonoUtil::IterateAssemblies(IterateAssemblies, nullptr);
-
-	assemblyLoaderClass->GetMethod("UnloadContext")->Invoke(nullptr, nullptr);
-
-	MonoUtil::IterateAssemblies(IterateAssemblies, nullptr);
-
 	MonoAssembly& engineAssembly = MonoManager::Instance().LoadAssembly(engineAssemblyPath.ToString(), kEngineAssembly);
 #endif
 

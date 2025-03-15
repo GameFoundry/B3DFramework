@@ -130,8 +130,7 @@ MonoManager::MonoManager()
 		"--gc-debug=check-remset-consistency,verify-before-collections,xdomain-checks"
 	};
 	mono_jit_parse_options(4, (char**)options);
-	//mono_trace_set_level_string("warning"); // Note: Switch to "debug" for detailed output, disabled for now due to spam
-	mono_trace_set_level_string("debug"); // Note: Switch to "debug" for detailed output, disabled for now due to spam
+	mono_trace_set_level_string("warning"); // Note: Switch to "debug" for detailed output, disabled for now due to spam
 #else
 	mono_trace_set_level_string("warning");
 #endif

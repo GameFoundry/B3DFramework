@@ -10,8 +10,6 @@ namespace bs
 	 *  @{
 	 */
 
-	typedef void(*AssemblyLoadCallback)(void* assembly, void* userData);
-
 	/**	Utility class containing methods for various common Mono/Script related operations. */
 	class B3D_MONO_EXPORT MonoUtil
 	{
@@ -182,10 +180,6 @@ namespace bs
 
 		/** Returns Mono class for a generic object. */
 		static ::MonoClass* GetObjectClass();
-
-		// TODO - Doc
-		static void IterateAssemblies(AssemblyLoadCallback callback, void* userdata);
-		static String GetAssemblyName(::MonoAssembly* assembly);
 
 		/** @copydoc ThrowIfException(MonoObject*) */
 		static void ThrowIfException(MonoException* exception);
