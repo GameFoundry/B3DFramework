@@ -29,10 +29,8 @@ namespace bs
 		/************************************************************************/
 		/* 								CLR HOOKS						   		*/
 		/************************************************************************/
-		static void InternalCreateInstance(MonoObject* instance, u32 size);
-		static void InternalCreateInstance1(MonoObject* instance, GUILogicalUnit* size);
-		static void InternalSetSize(ScriptGUIFixedSpace* self, u32 size);
-		static void InternalSetSize1(ScriptGUIFixedSpace* self, GUILogicalUnit* size);
+		static void InternalCreateInstance(MonoObject* instance, GUILogicalUnit* size);
+		static void InternalSetSize(ScriptGUIFixedSpace* self, GUILogicalUnit* size);
 	};
 
 	/** @} */

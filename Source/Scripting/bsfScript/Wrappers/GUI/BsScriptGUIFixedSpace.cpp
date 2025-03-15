@@ -19,9 +19,7 @@ ScriptGUIFixedSpace::ScriptGUIFixedSpace(GUIFixedSpace* nativeObject)
 void ScriptGUIFixedSpace::SetupScriptBindings()
 {
 	sInteropMetaData.ScriptClass->AddInternalCall("Internal_CreateInstance", (void*)&ScriptGUIFixedSpace::InternalCreateInstance);
-	sInteropMetaData.ScriptClass->AddInternalCall("Internal_CreateInstance1", (void*)&ScriptGUIFixedSpace::InternalCreateInstance1);
 	sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetSize", (void*)&ScriptGUIFixedSpace::InternalSetSize);
-	sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetSize1", (void*)&ScriptGUIFixedSpace::InternalSetSize1);
 }
 
 MonoObject* ScriptGUIFixedSpace::CreateScriptObject(bool construct)
@@ -30,26 +28,14 @@ MonoObject* ScriptGUIFixedSpace::CreateScriptObject(bool construct)
 	return nullptr;
 }
 
-void ScriptGUIFixedSpace::InternalCreateInstance(MonoObject* instance, u32 size)
-{
-	GUIFixedSpace* space = GUIFixedSpace::Create((GUILogicalUnit)(i32)size);
-
-	ScriptObjectWrapper::Create<ScriptGUIFixedSpace>(space, instance);
-}
-
-void ScriptGUIFixedSpace::InternalCreateInstance1(MonoObject* instance, GUILogicalUnit* size)
+void ScriptGUIFixedSpace::InternalCreateInstance(MonoObject* instance, GUILogicalUnit* size)
 {
 	GUIFixedSpace* space = GUIFixedSpace::Create(*size);
 
 	ScriptObjectWrapper::Create<ScriptGUIFixedSpace>(space, instance);
 }
 
-void ScriptGUIFixedSpace::InternalSetSize(ScriptGUIFixedSpace* self, u32 size)
-{
-	self->GetNativeObject()->SetSize((i32)size);
-}
-
-void ScriptGUIFixedSpace::InternalSetSize1(ScriptGUIFixedSpace* self, GUILogicalUnit* size)
+void ScriptGUIFixedSpace::InternalSetSize(ScriptGUIFixedSpace* self, GUILogicalUnit* size)
 {
 	self->GetNativeObject()->SetSize(*size);
 }
