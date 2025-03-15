@@ -161,6 +161,7 @@ if(B3D_INCLUDE_ALL_IN_WORKFLOW AND MSVC)
 	add_subdirectory(Scripting/bsfMono)
 	add_subdirectory(Scripting/bsfScript)
 	add_subdirectory(Scripting/bsfSharp)
+	add_subdirectory(Scripting/bsfAssemblyLoader)
 else() # Otherwise include only chosen ones
 	if(B3D_BUILD_ALL_RENDER_BACKENDS)
 		if(WIN32)
@@ -213,6 +214,7 @@ else() # Otherwise include only chosen ones
 	if((SCRIPT_API AND SCRIPT_API MATCHES "C#") OR B3D_IS_ENGINE)
 		add_subdirectory(Scripting/bsfMono)
 		add_subdirectory(Scripting/bsfSharp)
+		add_subdirectory(Scripting/bsfAssemblyLoader)
 	endif()
 endif()
 

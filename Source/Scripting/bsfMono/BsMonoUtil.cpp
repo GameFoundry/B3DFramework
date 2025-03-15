@@ -9,6 +9,7 @@
 #include <mono/metadata/reflection.h>
 #include "String/BsUnicode.h"
 #include <mono/metadata/mono-debug.h>
+#include <mono/metadata/assembly.h>
 #include "BsMonoAssembly.h"
 #include "BsMonoClass.h"
 #include "BsMonoProperty.h"
@@ -443,6 +444,17 @@ void MonoUtil::GetGenericParameters(::MonoReflectionType* type, ::MonoClass** pa
 ::MonoClass* MonoUtil::GetObjectClass()
 {
 	return mono_get_object_class();
+}
+
+void MonoUtil::IterateAssemblies(AssemblyLoadCallback callback, void* userdata)
+{
+	mono_assembly_foreach(callback, userdata);
+}
+
+String MonoUtil::GetAssemblyName(::MonoAssembly* assembly)
+{
+	MonoAssemblyName* assemblyname = mono_assembly_get_name(assembly);
+	return mono_assembly_name_get_name(assemblyname);
 }
 
 void MonoUtil::ThrowIfException(MonoException* exception)
