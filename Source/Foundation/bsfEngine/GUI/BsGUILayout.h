@@ -4,7 +4,7 @@
 
 #include "BsPrerequisites.h"
 #include "GUI/BsGUIElement.h"
-#include "Utility/BsSpatialTree.h"
+#include "GUI/BsGUICulling.h"
 
 namespace bs
 {
@@ -12,47 +12,12 @@ namespace bs
 	 *  @{
 	 */
 
-	struct GUIQuadTreeOptions
-	{
-		enum
-		{
-			LoosePadding = 16,
-			MinimumElementsPerNode = 16,
-			MaximumElementsPerNode = 64,
-			MaximumDepth = 12
-		};
-
-		static simd::Area2 GetBounds(GUIElement* element, void* context)
-		{
-			const GUILayoutData& layoutData = element->GetLayoutData();
-
-			const Vector2 relativePosition = layoutData.RelativePosition.To<i32>().To<float>();
-			const Size2 size = layoutData.Size.To<float>();
-
-			const Area2 area(relativePosition.X, relativePosition.Y, size.Width, size.Height);
-			return simd::Area2(area);
-		}
-
-		static void SetElementId(GUIElement* element, const SpatialTreeElementId& id, void* context)
-		{
-			element->SetQuadTreeId(id);
-		}
-	};
-
-	using GUIElementQuadTree = TQuadTree<GUIElement*, GUIQuadTreeOptions>;
-
 	/**
 	 * Base class for layout GUI element. Layout element positions and sizes any child elements according to element styles
 	 * and layout options.
 	 */
 	class B3D_EXPORT GUILayout : public GUIElement
 	{
-		/** Information about GUI elements for culling purposes. */
-		struct GUIElementCullInformation 
-		{
-			u8 LastVisibleQueryIndex = 255;
-		};
-
 		using Super = GUIElement;
 	public:
 		GUILayout(const GUISizeConstraints& dimensions);
@@ -122,33 +87,15 @@ namespace bs
 		/** @} */
 
 	protected:
-		/** Builds a quad-tree from all child elements and their current relative positions and size. If quad-tree already exists it is rebuilt. */
-		void RebuildQuadTree();
-
-		/** Sets up necessary information for culling the provided element. Should be called on every element added to the layout, if culling is enabled. */
-		void RegisterElementForCulling(GUIElement* element);
-
-		/** Removes the element from culling related data structures. Should be called before the element is removed from the layout, if culling is enabled. */
-		void UnregisterElementFromCulling(GUIElement* element);
-
-		/** Clears quad-tree IDs from all the child elements. */
-		void ClearElementCullInformation();
-
-		const TInlineArray<GUIElement*, 4>& GetVisibleChildren() const override { return mIsCullingEnabled ? mVisibleElements : Super::GetVisibleChildren(); }
+		const TInlineArray<GUIElement*, 4>& GetVisibleChildren() const override { return mCulling != nullptr ? mCulling->GetVisibleElements() : Super::GetVisibleChildren(); }
 		void RegisterChildElement(GUIElement* element) override;
 		void UnregisterChildElement(GUIElement* element) override;
 		void UpdateAbsoluteCoordinatesForChildren() override;
 
 	protected:
-		static constexpr float kMaximumQuadtreeSize = 50000.0f;
-
 		Vector<GUIConstrainedSize> mChildrenConstrainedSizes;
 		GUIConstrainedSize mConstrainedSize;
-		bool mIsCullingEnabled = false;
-		u8 mCullingQueryIndex = 0;
-		UPtr<GUIElementQuadTree> mQuadTree;
-		UnorderedMap<GUIElement*, GUIElementCullInformation> mNonCulledElements;
-		TInlineArray<GUIElement*, 4> mVisibleElements;
+		UPtr<GUICulling> mCulling;
 
 		/************************************************************************/
 		/* 								RTTI		                     		*/

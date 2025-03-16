@@ -64,8 +64,8 @@ void GUILayout::InsertElement(u32 idx, GUIElement* element)
 	element->SetHiddenRecursive(IsHidden());
 	element->SetDisabledRecursive(IsDisabled());
 
-	if(mIsCullingEnabled)
-		RegisterElementForCulling(element);
+	if(mCulling != nullptr)
+		mCulling->RegisterElement(element);
 
 	MarkLayoutAsDirty();
 }
@@ -85,18 +85,18 @@ void GUILayout::RemoveElementAt(u32 idx)
 
 	child->SetParent(nullptr);
 
-	if(mIsCullingEnabled)
-		UnregisterElementFromCulling(child);
+	if(mCulling != nullptr)
+		mCulling->UnregisterElement(child);
 
 	MarkLayoutAsDirty();
 }
 
 void GUILayout::Clear()
 {
-	if(mIsCullingEnabled)
+	if(mCulling != nullptr)
 	{
-		ClearElementCullInformation();
-		mQuadTree = B3DMakeUnique<GUIElementQuadTree>(Vector2(-kMaximumQuadtreeSize * 0.5f, -kMaximumQuadtreeSize * 0.5f), kMaximumQuadtreeSize);
+		mCulling->ClearElements();
+		mCulling = B3DMakeUnique<GUICulling>(mChildren);
 	}
 
 	DestroyChildElements();
@@ -104,75 +104,16 @@ void GUILayout::Clear()
 
 void GUILayout::SetEnableCulling(bool enable)
 {
-	if(mIsCullingEnabled == enable)
+	const bool isCullingEnabled = mCulling != nullptr;
+	if(isCullingEnabled == enable)
 		return;
 	
-	mIsCullingEnabled = enable;
-
 	if(enable)
-		RebuildQuadTree();
+		mCulling = B3DMakeUnique<GUICulling>(mChildren);
 	else
 	{
-		ClearElementCullInformation();
-		mQuadTree = nullptr;
-	}
-}
-
-void GUILayout::RebuildQuadTree()
-{
-	B3D_ENSURE(mIsCullingEnabled);
-
-	mQuadTree = B3DMakeUnique<GUIElementQuadTree>(Vector2(-kMaximumQuadtreeSize * 0.5f, -kMaximumQuadtreeSize * 0.5f), kMaximumQuadtreeSize);
-
-	for(const auto& child : mChildren)
-		mQuadTree->AddElement(child);
-}
-
-void GUILayout::ClearElementCullInformation()
-{
-	for(const auto& element : mChildren)
-	{
-		const SpatialTreeElementId& quadTreeId = element->GetQuadTreeId();
-		if(B3D_ENSURE(quadTreeId.IsValid()))
-		{
-			element->SetQuadTreeId(SpatialTreeElementId());
-			element->SetCulled(false);
-		}
-	}
-
-	mNonCulledElements.clear();
-	mVisibleElements.Clear();
-}
-
-void GUILayout::RegisterElementForCulling(GUIElement* element)
-{
-	B3D_ENSURE(!element->GetQuadTreeId().IsValid());
-	mQuadTree->AddElement(element);
-
-	// All new elements default to culled, but we're guaranteed to run a new culling pass due to MarkLayoutAsDirty before next render, so this will be updated
-	element->SetCulled(true);
-}
-
-void GUILayout::UnregisterElementFromCulling(GUIElement* element)
-{
-	const SpatialTreeElementId& quadTreeId = element->GetQuadTreeId();
-	if(B3D_ENSURE(quadTreeId.IsValid()))
-	{
-		mQuadTree->RemoveElement(quadTreeId);
-		element->SetQuadTreeId(SpatialTreeElementId());
-	}
-
-	if(element->IsCulled())
-	{
-		element->SetCulled(false);
-	}
-	else
-	{
-		B3D_ENSURE(mNonCulledElements.erase(element) == 1);
-
-		if(auto found = std::find(mVisibleElements.Begin(), mVisibleElements.End(), element); B3D_ENSURE(found != mVisibleElements.End()))
-			mVisibleElements.SwapAndErase(found);
-		
+		mCulling->ClearElements();
+		mCulling = nullptr;
 	}
 }
 
@@ -180,69 +121,30 @@ void GUILayout::RegisterChildElement(GUIElement* element)
 {
 	Super::RegisterChildElement(element);
 
-	if(mIsCullingEnabled)
-		RegisterElementForCulling(element);
+	if(mCulling != nullptr)
+		mCulling->RegisterElement(element);
 }
 
 void GUILayout::UnregisterChildElement(GUIElement* element)
 {
-	if(mIsCullingEnabled)
-		UnregisterElementFromCulling(element);
+	if(mCulling != nullptr)
+		mCulling->UnregisterElement(element);
 
 	Super::UnregisterChildElement(element);
 }
 
 void GUILayout::UpdateAbsoluteCoordinatesForChildren()
 {
-	if(mIsCullingEnabled)
+	if(mCulling != nullptr)
 	{
 		const Area2 relativeClippedArea = WidgetToElementSpace(mAbsoluteClippedArea).To<float>();
+		mCulling->UpdateVisibleElements(relativeClippedArea);
 
-		GUIElementQuadTree::AreaIntersectIterator areaIterator(*mQuadTree, relativeClippedArea);
-		while(areaIterator.MoveNext())
-		{
-			GUIElement* const element = areaIterator.GetElement();
-
-			// Element was culled, but is no longer culled
-			if(element->IsCulled())
-			{
-				GUIElementCullInformation cullInformation;
-				cullInformation.LastVisibleQueryIndex = mCullingQueryIndex;
-
-				mNonCulledElements.insert(std::make_pair(element, cullInformation));
-				element->SetCulled(false);
-			}
-			// Was previously visible, mark as still visible
-			else
-			{
-				if(auto found = mNonCulledElements.find(element); B3D_ENSURE(found != mNonCulledElements.end()))
-					found->second.LastVisibleQueryIndex = mCullingQueryIndex;
-			}
-		}
-
-		// Find entries that were previously not culled but are now culled, populate visible elements
-		mVisibleElements.Clear();
-		for(auto it = mNonCulledElements.begin(); it != mNonCulledElements.end();)
-		{
-			if(it->second.LastVisibleQueryIndex == mCullingQueryIndex)
-			{
-				mVisibleElements.Add(it->first);
-
-				++it;
-				continue;
-			}
-
-			it->first->SetCulled(true);
-			it = mNonCulledElements.erase(it);
-		}
-
-		for(auto& visibleChild : mVisibleElements)
+		for(auto& visibleChild : mCulling->GetVisibleElements())
 		{
 			visibleChild->UpdateAbsoluteCoordinates(mIntermediateAbsolutePosition, mAbsoluteScale, mIntermediateAbsoluteClippedArea);
 			visibleChild->UpdateAbsoluteCoordinatesForChildren();
 		}
-		
-		mCullingQueryIndex++;
 	}
 	else
 	{

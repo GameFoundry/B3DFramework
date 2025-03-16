@@ -351,8 +351,8 @@ void GUILayoutX::UpdateLayoutForChildren()
 	if(elementPositions != nullptr)
 		B3DStackFree(elementPositions);
 
-	if(mIsCullingEnabled)
-		RebuildQuadTree();
+	if(mCulling != nullptr)
+		mCulling->RebuildQuadTree(mChildren);
 }
 
 GUILayoutX* GUILayoutX::Create()

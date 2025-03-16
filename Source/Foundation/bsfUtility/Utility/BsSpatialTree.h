@@ -375,6 +375,9 @@ namespace bs
 			/** Checks has the specified child node been created. */
 			bool HasChild(TSpatialTreeChildNodeId<Dimension> child) const { return mChildren[child.Index] != nullptr; }
 
+			/** Returns range containing all children of the current node. */
+			TSpatialTreeChildNodeIdRange<Dimension> GetChildren() const;
+
 		private:
 			friend class ElementIterator;
 			friend class TSpatialTree;
@@ -503,7 +506,7 @@ namespace bs
 			u32 mEndOfGroupElementIndex = 0;
 		};
 
-		/** Iterators that iterates over all elements intersecting the specified AABox. */
+		/** Iterator that iterates over all elements intersecting the specified AABox. */
 		class AreaIntersectIterator
 		{
 		public:
@@ -527,6 +530,31 @@ namespace bs
 			NodeIterator mNodeIterator;
 			ElementIterator mElementIterator;
 			SIMDBoundsType mBounds;
+		};
+
+		/** Iterator that iterates over all elements in the tree. */
+		class TreeIterator
+		{
+		public:
+			/** Constructs an iterator that iterates over all elements in the specified tree. */
+			TreeIterator(const TSpatialTree& tree);
+
+			/**
+			 * Returns the contents of the current element. MoveNext() must be called at least once and it must return true
+			 * prior to attempting to access this data.
+			 */
+			const ElementType& GetElement() const { return mElementIterator.GetCurrentElement(); }
+
+			/**
+			 * Moves to the next intersecting element. Iterator starts at a position before the first element, therefore
+			 * this method must be called at least once before attempting to access the current element data. If the method
+			 * returns false it means iterator end has been reached and attempting to access data will result in an error.
+			 */
+			bool MoveNext();
+
+		private:
+			NodeIterator mNodeIterator;
+			ElementIterator mElementIterator;
 		};
 
 		/**
@@ -577,6 +605,30 @@ namespace bs
 		PoolAlloc<sizeof(NodeElementSuballocationBlock)> mElementBlockAllocator;
 		PoolAlloc<sizeof(NodeElementBoundsSuballocationBlock), 512, 16> mElementBoundsBlockAllocator;
 	};
+
+	template <typename ElementType, typename Options, u32 Dimension>
+	TSpatialTreeChildNodeIdRange<Dimension> TSpatialTree<ElementType, Options, Dimension>::Node::GetChildren() const
+	{
+		TSpatialTreeChildNodeIdRange<Dimension> output;
+
+		if constexpr(Dimension == 1)
+		{
+			output.PositiveBits = 0x1;
+			output.NegativeBits = 0x1;
+		}
+		else if constexpr(Dimension == 2)
+		{
+			output.PositiveBits = 0x3;
+			output.NegativeBits = 0x3;
+		}
+		else if constexpr(Dimension == 3)
+		{
+			output.PositiveBits = 0x7;
+			output.NegativeBits = 0x7;
+		}
+
+		return output;
+	}
 
 	template <typename ElementType, typename Options, u32 Dimension>
 	u32 TSpatialTree<ElementType, Options, Dimension>::Node::MapElementIndexToBlock(u32 indexInNode, NodeElementSuballocationBlock** elements, NodeElementBoundsSuballocationBlock** bounds)
@@ -858,6 +910,39 @@ namespace bs
 
 			// Add all intersecting child nodes to the iterator
 			TSpatialTreeChildNodeIdRange<Dimension> childRange = nodeTraversalContext.Bounds.FindIntersectingChildren(mBounds);
+			for(u32 i = 0; i < kChildNodeCount; i++)
+			{
+				if(childRange.Contains(i) && nodeTraversalContext.Node->HasChild(i))
+					mNodeIterator.PushChild(i);
+			}
+		}
+
+		return false;
+	}
+
+	template <typename ElementType, typename Options, u32 Dimension>
+	TSpatialTree<ElementType, Options, Dimension>::TreeIterator::TreeIterator(const TSpatialTree& tree)
+		: mNodeIterator(tree)
+	{}
+
+	template <typename ElementType, typename Options, u32 Dimension>
+	bool TSpatialTree<ElementType, Options, Dimension>::TreeIterator::MoveNext()
+	{
+		while(true)
+		{
+			// First check elements of the current node (if any)
+			while(mElementIterator.MoveNext())
+				return true;
+
+			// No more elements in this node, move to the next one
+			if(!mNodeIterator.MoveNext())
+				return false; // No more nodes to check
+
+			const NodeTraversalContext& nodeTraversalContext = mNodeIterator.GetCurrent();
+			mElementIterator = ElementIterator(nodeTraversalContext.Node);
+
+			// Add all intersecting child nodes to the iterator
+			TSpatialTreeChildNodeIdRange<Dimension> childRange = nodeTraversalContext.Node->GetChildren();
 			for(u32 i = 0; i < kChildNodeCount; i++)
 			{
 				if(childRange.Contains(i) && nodeTraversalContext.Node->HasChild(i))

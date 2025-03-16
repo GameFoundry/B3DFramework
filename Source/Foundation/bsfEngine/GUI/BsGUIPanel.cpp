@@ -244,8 +244,8 @@ void GUIPanel::UpdateLayoutForChildren()
 	if(elementPositions != nullptr)
 		B3DStackFree(elementPositions);
 
-	if(mIsCullingEnabled)
-		RebuildQuadTree();
+	if(mCulling != nullptr)
+		mCulling->RebuildQuadTree(mChildren);
 }
 
 GUIPanel* GUIPanel::Create(i16 depth, u16 depthRangeMin, u16 depthRangeMax)
