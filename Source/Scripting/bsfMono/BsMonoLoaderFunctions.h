@@ -1,0 +1,17 @@
+#include <mono/jit/details/jit-functions.h>
+#include <mono/metadata/details/assembly-functions.h>
+#include <mono/metadata/details/mono-config-functions.h>
+#include <mono/metadata/details/mono-gc-functions.h>
+#include <mono/metadata/details/mono-debug-functions.h>
+#include <mono/utils/details/mono-publib-functions.h>
+#include <mono/utils/details/mono-logger-functions.h>
+#include <mono/metadata/details/threads-functions.h>
+#include <mono/metadata/details/appdomain-functions.h>
+#include <mono/metadata/details/object-functions.h>
+#include <mono/metadata/details/metadata-functions.h>
+#include <mono/metadata/details/image-functions.h>
+#include <mono/metadata/details/loader-functions.h>
+#include <mono/utils/details/mono-error-functions.h>
+#include <mono/metadata/details/class-functions.h>
+#include <mono/metadata/details/debug-helpers-functions.h>
+#include <mono/metadata/details/reflection-functions.h>

@@ -56,12 +56,12 @@ void DynamicLibrary::Unload()
 	mHandle = nullptr;
 }
 
-void* DynamicLibrary::GetSymbol(const String& strName) const
+void* DynamicLibrary::GetSymbol(const char* name) const
 {
 	if(!mHandle)
 		return nullptr;
 
-	return (void*)DYNLIB_GETSYM(mHandle, strName.c_str());
+	return (void*)DYNLIB_GETSYM(mHandle, name);
 }
 
 String DynamicLibrary::DynlibError()

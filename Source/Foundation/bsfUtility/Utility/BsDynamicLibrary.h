@@ -71,10 +71,10 @@ namespace bs
 		/**
 		 * Returns the address of the given symbol from the loaded library.
 		 *
-		 * @param[in] strName	The name of the symbol to search for.
-		 * @return				If the function succeeds, the returned value is a handle to the symbol. Otherwise null.
+		 * @param name		The name of the symbol to search for.
+		 * @return			If the function succeeds, the returned value is a handle to the symbol. Otherwise null.
 		 */
-		void* GetSymbol(const String& strName) const;
+		void* GetSymbol(const char* name) const;
 
 	protected:
 		friend class DynamicLibraryManager;
