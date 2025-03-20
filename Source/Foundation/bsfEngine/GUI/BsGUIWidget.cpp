@@ -528,7 +528,6 @@ void GUIWidget::UpdateRootPanel()
 	mPanel->SetHeight(size.Height);
 
 	mPanel->SetLayoutData(layoutData);
-	mPanel->SetScale(mDPIScale);
-	mPanel->ResetAbsoluteBounds();
+	mPanel->UpdateAbsoluteCoordinates(GUIPhysicalPointF::kZero, mDPIScale, GUIPhysicalAreaF(0.0f, 0.0f, (float)area.Width, (float)area.Height));
 	mPanel->MarkLayoutAsDirty();
 }

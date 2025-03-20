@@ -307,9 +307,6 @@ namespace bs
 		/** Updates layout data that determines GUI elements relative position, size and depth in the GUI widget. */
 		virtual void SetLayoutData(const GUILayoutData& data) { mLayoutData = data; }
 
-		/** Resets the absolute size & clipped area to full width/height of the GUI element. */
-		void ResetAbsoluteBounds();
-
 		/** Retrieves layout data that determines GUI elements relative position, size and depth in the GUI widget. */
 		const GUILayoutData& GetLayoutData() const { return mLayoutData; }
 

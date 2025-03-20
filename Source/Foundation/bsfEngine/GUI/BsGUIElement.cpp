@@ -637,17 +637,6 @@ const RectOffset& GUIElement::GetPadding() const
 	return padding;
 }
 
-void GUIElement::ResetAbsoluteBounds()
-{
-	mAbsoluteScale = mScale;
-
-	const GUIPhysicalSizeF intermediateAbsoluteSize = (mLayoutData.Size.To<float>()).To<GUIPhysicalUnitF>();
-
-	mAbsoluteSize = (mLayoutData.Size.To<float>() * mAbsoluteScale).To<GUIPhysicalUnit>();
-	mIntermediateAbsoluteClippedArea = GUIPhysicalAreaF(mIntermediateAbsolutePosition, intermediateAbsoluteSize);
-	mAbsoluteClippedArea = mIntermediateAbsoluteClippedArea.To<GUIPhysicalUnit>();
-}
-
 void GUIElement::SetParent(GUIElement* parent)
 {
 	if(mParent != parent)

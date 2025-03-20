@@ -452,9 +452,7 @@ void Platform::StartUpInternal()
 								  "in performance for waiting threads.");
 	}
 
-#if 0 // Disabled for now
 	SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
-#endif
 
 	mData->RequiresStartUp = true;
 }
