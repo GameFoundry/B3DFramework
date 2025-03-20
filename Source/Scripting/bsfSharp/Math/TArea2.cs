@@ -90,7 +90,7 @@ namespace bs
         public bool Overlaps(TArea2<PositionType, SizeType> other)
         {
             PositionType otherRight = other.X + PositionType.CreateTruncating(other.Width);
-            PositionType myRight = X + PositionType.CreateTruncating(other.Width);
+            PositionType myRight = X + PositionType.CreateTruncating(Width);
 
             PositionType otherBottom = other.Y + PositionType.CreateTruncating(other.Height);
             PositionType myBottom = Y + PositionType.CreateTruncating(Height);
