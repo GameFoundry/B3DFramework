@@ -234,7 +234,10 @@ namespace bs
                     // Calculate the new scroll pct (which will be active after we change the top/bottom padding element
                     // sizes). If we use the existing scroll pct instead then the elements will lag one frame behind, which
                     // can be very noticeable on quickly updating lists.
-                    newScrollPct = (scrollPct* (float)scrollArea.Layout.AbsoluteBounds.Height)/(float)totalHeight;
+                    if (totalHeight > 0)
+                        newScrollPct = (scrollPct * (float)scrollArea.Layout.AbsoluteBounds.Height) / (float)totalHeight;
+                    else
+                        newScrollPct = 0.0f;
                 }
                 else
                     newScrollPct = 1.0f;
