@@ -151,27 +151,26 @@ GUILogicalArea GUIListBox::GetContentBounds() const
 	return GUILogicalArea(GUILogicalPoint(0, 0), mLayoutData.Size);
 }
 
-GUILogicalArea GUIListBox::GetArrowCachedContentBoundsInElementSpace() const
+GUIPhysicalArea GUIListBox::GetArrowCachedContentBoundsInElementSpace() const
 {
-	GUILogicalArea output = GUILogicalArea::kEmpty;
-
 	if(!IsUsingStyleSheets() || mStyleSheetRuleInformation.CurrentStateRuleset == nullptr)
-		return output;
+		return GUIPhysicalArea::kEmpty;
 
 	const GUIStyleSheetRules& styleSheetRules = mStyleSheetRuleInformation.CurrentStateRuleset->Rules;
 	const GUILogicalArea& fullContentArea = GUIUtility::CalculateContentArea(mLayoutData.Size, styleSheetRules);
 
 	const GUIStyleSheetRuleInformation& arrowRuleInformation = GetPseudoElementStyleSheetRuleInformation(mArrowPseudoElementIndex);
+	GUILogicalArea logicalArea = GUILogicalArea::kEmpty;
 	if(arrowRuleInformation.CurrentStateRuleset != nullptr)
 	{
 		const GUIStyleSheetRules& arrowRules = arrowRuleInformation.CurrentStateRuleset->Rules;
-		output = GUIUtility::CalculateContentArea(GetArrowCachedContentSize(), arrowRules);
+		logicalArea = GUIUtility::CalculateContentArea(GetArrowCachedContentSize(), arrowRules);
 
-		const GUILogicalUnit arrowAreaOffset = Math::Max(fullContentArea.Width - (output.Width + arrowRules.Padding.Right + (i32)arrowRules.BorderRight.GetVisibleWidth()), 0);
-		output.X += fullContentArea.X + arrowAreaOffset;
+		const GUILogicalUnit arrowAreaOffset = Math::Max(fullContentArea.Width - (logicalArea.Width + arrowRules.Padding.Right + (i32)arrowRules.BorderRight.GetVisibleWidth()), 0);
+		logicalArea.X += fullContentArea.X + arrowAreaOffset;
 	}
 
-	return output;
+	return GUIUtility::LogicalToPhysical(logicalArea, GetAbsoluteScale());
 }
 
 GUILogicalSize GUIListBox::GetArrowCachedContentSize() const
@@ -206,7 +205,7 @@ void GUIListBox::UpdateRenderElements()
 		return;
 
 	const GUIStyleSheetRules& arrowStyleSheetRules = ruleInformation.CurrentStateRuleset->Rules;
-	const GUILogicalArea arrowBounds = GetArrowCachedContentBoundsInElementSpace();
+	const GUIPhysicalArea arrowBounds = GetArrowCachedContentBoundsInElementSpace();
 
 	mArrowSpriteInformation.Width = (u32)arrowBounds.Width;
 	mArrowSpriteInformation.Height = (u32)arrowBounds.Height;

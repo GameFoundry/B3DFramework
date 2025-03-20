@@ -97,8 +97,8 @@ namespace bs
 		bool DoOnMouseEvent(const GUIMouseEvent& ev) override;
 		bool DoOnCommandEvent(const GUICommandEvent& ev) override;
 
-		/** Returns the area in which the arrow box will be placed, local to the GUI element space. */
-		GUILogicalArea GetArrowCachedContentBoundsInElementSpace() const;
+		/** Returns the area in which the arrow box will be placed, relative to the GUI element. */
+		GUIPhysicalArea GetArrowCachedContentBoundsInElementSpace() const;
 
 		/** Returns the width/height of the arrow box. */
 		GUILogicalSize GetArrowCachedContentSize() const;
