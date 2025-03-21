@@ -235,7 +235,7 @@ namespace bs
                     // sizes). If we use the existing scroll pct instead then the elements will lag one frame behind, which
                     // can be very noticeable on quickly updating lists.
                     if (totalHeight > 0)
-                        newScrollPct = (scrollPct * (float)scrollArea.Layout.AbsoluteBounds.Height) / (float)totalHeight;
+                        newScrollPct = (scrollPct * (float)scrollArea.Layout.LayoutCalculatedSize.Height) / (float)totalHeight;
                     else
                         newScrollPct = 0.0f;
                 }
@@ -243,7 +243,7 @@ namespace bs
                     newScrollPct = 1.0f;
 
                 int startPos = MathEx.FloorToInt(newScrollPct * (float)maxScrollOffset);
-                int startIndex = MathEx.FloorToInt(startPos / (float)entryHeight);
+                int startIndex = MathEx.Min(MathEx.FloorToInt(startPos / (float)entryHeight), entries.Count - 1);
 
                 // Check if we're at the list bottom and the extra element is out of bounds
                 if ((startIndex + visibleEntries.Count) > entries.Count)
