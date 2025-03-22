@@ -796,6 +796,8 @@ namespace bs::ct
 			mRenderBuffersCooked = true;
 		}
 
+		commandBuffer.BeginLabel("VectorPathRenderable::Render");
+
 		SPtr<GpuBuffer> vertexBuffers[] = { mRenderBuffers.VertexBuffer };
 		commandBuffer.SetVertexDescription(mRenderBuffers.VertexDescription);
 		commandBuffer.SetVertexBuffers(0, vertexBuffers, 1);
@@ -921,6 +923,8 @@ namespace bs::ct
 				break;
 			}
 		}
+
+		commandBuffer.EndLabel();
 	}
 
 	RTTIType* NVGVectorPathRenderable::GetRttiStatic()

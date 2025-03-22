@@ -347,6 +347,7 @@ bool Font::RenderGlyphs(float size, const TArrayView<u32>& characterIds)
 			FontBitmapPage newPage;
 			newPage.IsDynamic = true;
 
+			// TODO - These textures should be shared between fonts. Its wasteful to allocate a 1024x1024 texture for each font+font size combination
 			TextureCreateInformation pageTextureCreateInformation;
 			pageTextureCreateInformation.Name = StringUtil::Format("Font Page Font: {0}, Size: {1}, Index:{2}", GetName(), bitmapInformation->Size, targetPageIndex);
 			pageTextureCreateInformation.Width = kFontPageSize;

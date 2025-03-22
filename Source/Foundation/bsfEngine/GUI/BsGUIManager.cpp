@@ -1655,6 +1655,7 @@ void GUIRenderer::Render(const Camera& camera, const RendererViewContext& viewCo
 	const bool viewflipYFlip = gpuBackendConventions.NdcYAxis == GpuBackendConventions::Axis::Down;
 
 	GpuCommandBuffer& commandBuffer = *viewContext.CommandBuffer;
+	commandBuffer.BeginLabel("GUIRenderer::Render");
 
 	// Re-create cached render texture if needed
 	const SPtr<RenderTarget> renderTarget = viewContext.CurrentTarget;
@@ -1801,6 +1802,7 @@ void GUIRenderer::Render(const Camera& camera, const RendererViewContext& viewCo
 
 	// Restore original viewport
 	commandBuffer.SetViewport(camera.GetViewport()->GetArea());
+	commandBuffer.EndLabel();
 }
 
 void GUIRenderer::Update(float time)
