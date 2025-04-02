@@ -540,7 +540,7 @@ void TextGeometry::GeneratePersistentData(const U32String& text, u8* buffer, u32
 
 const HTexture& TextGeometry::GetTextureForPage(u32 page) const
 {
-	return mFontBitmapInformation->TexturePages[page].Texture;
+	return mFont->GetPage(page).Texture;
 }
 
 float TextGeometry::GetBaselineOffset() const

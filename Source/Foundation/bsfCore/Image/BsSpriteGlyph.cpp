@@ -27,6 +27,15 @@ SPtr<SpriteGlyphAllocation> SpriteGlyphAllocation::Create(const WeakSPtr<SpriteI
 	return allocationShared;
 }
 
+SPtr<SpriteGlyphAllocation> SpriteGlyphAllocation::Create(const WeakSPtr<SpriteImageType>& owner, const TextureType& texture, const Area2& uvRange, const Size2I& sizeInPixels)
+{
+	SpriteGlyphAllocation* allocation = new(B3DAllocate<SpriteGlyphAllocation>()) SpriteGlyphAllocation(owner, texture, uvRange, sizeInPixels);
+	SPtr<SpriteGlyphAllocation> allocationShared = B3DMakeSharedFromExisting<SpriteGlyphAllocation>(allocation);
+	allocationShared->SetShared(allocationShared);
+	allocationShared->Initialize();
+
+	return allocationShared;
+}
 
 SPtr<ct::RenderProxy> SpriteGlyphAllocation::CreateRenderProxy() const
 {
@@ -64,6 +73,7 @@ SPtr<SpriteImageAllocation> SpriteGlyph::FindOrAllocateImageToFitArea(const Size
 	if(!mFont.IsLoaded(false))
 		return nullptr;
 
+#if 1
 	const float sizeInPoints = Font::GetQuantizedFontSize(Math::Min(
 		mFont->GetPointSizeForGlyphPixelWidth(mGlyph, size.Width),
 		mFont->GetPointSizeForGlyphPixelHeight(mGlyph, size.Height)));
@@ -74,8 +84,19 @@ SPtr<SpriteImageAllocation> SpriteGlyph::FindOrAllocateImageToFitArea(const Size
 
 	if(foundImage != mScaledAllocatedImages.end())
 		return std::static_pointer_cast<SpriteImageAllocation>((*foundImage)->GetShared());
-	
+
 	return AllocateImage(sizeInPoints);
+#else
+
+	auto foundImage = std::find_if(mScaledAllocatedImages.begin(), mScaledAllocatedImages.end(), [size](const SpriteImageAllocation* allocation) {
+		return static_cast<const SpriteGlyphAllocation*>(allocation)->GetSizeInPixels() == size;
+	});
+
+	if(foundImage != mScaledAllocatedImages.end())
+		return std::static_pointer_cast<SpriteImageAllocation>((*foundImage)->GetShared());
+	
+	return AllocateImage(size);
+#endif
 }
 
 SPtr<SpriteImageAllocation> SpriteGlyph::FindOrAllocateScaledImage(float scale)
@@ -106,11 +127,34 @@ SPtr<SpriteGlyphAllocation> SpriteGlyph::AllocateImage(float sizeInPoints)
 	auto found = bitmapInformation->Characters.find(mGlyph);
 	if(found != bitmapInformation->Characters.end())
 	{
-		atlasTexture = bitmapInformation->TexturePages[found->second.Page].Texture;
+		atlasTexture = mFont->GetPage(found->second.Page).Texture;
 		uvRange = Area2(found->second.UvX, found->second.UvY, found->second.UvWidth, found->second.UvHeight);
 	}
 
 	SPtr<SpriteGlyphAllocation> allocation = SpriteGlyphAllocation::Create(std::static_pointer_cast<SpriteGlyph>(GetShared()), atlasTexture, uvRange, sizeInPoints);
+	mScaledAllocatedImages.Add(allocation.get());
+
+	// TODO - We should have the ability to release glyphs from the font when no longer needed
+
+	return allocation;
+}
+
+SPtr<SpriteGlyphAllocation> SpriteGlyph::AllocateImage(const Size2I& sizeInPixels)
+{
+	TInlineArray<u32, 1> glyphs = { mGlyph };
+	mFont->RenderGlyphs(sizeInPixels, glyphs);
+
+	HTexture atlasTexture;
+	Area2 uvRange;
+
+	const CharacterInformation* characterInformation = mFont->FindCharacterInformation(mGlyph, sizeInPixels);
+	if(characterInformation != nullptr)
+	{
+		atlasTexture = mFont->GetPage(characterInformation->Page).Texture;
+		uvRange = Area2(characterInformation->UvX, characterInformation->UvY, characterInformation->UvWidth, characterInformation->UvHeight);
+	}
+
+	SPtr<SpriteGlyphAllocation> allocation = SpriteGlyphAllocation::Create(std::static_pointer_cast<SpriteGlyph>(GetShared()), atlasTexture, uvRange, sizeInPixels);
 	mScaledAllocatedImages.Add(allocation.get());
 
 	// TODO - We should have the ability to release glyphs from the font when no longer needed

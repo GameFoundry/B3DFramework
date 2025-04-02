@@ -23,6 +23,7 @@ namespace bs
 		float YOffset;
 		float XAdvance;
 		float YAdvance;
+		float PointSize;
 		MonoArray* KerningPairs;
 	};
 

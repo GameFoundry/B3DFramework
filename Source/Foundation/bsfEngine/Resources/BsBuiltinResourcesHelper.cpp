@@ -292,13 +292,19 @@ void BuiltinResourcesHelper::ImportFont(const Path& inputFile, const String& out
 	{
 		SPtr<const FontBitmapInformation> fontData = font->GetBitmap(size);
 
-		u32 pageIdx = 0;
-		for(auto& page : fontData->TexturePages)
+		UnorderedSet<HTexture> addedTextures;
+		for(const auto& pair : fontData->Characters)
 		{
-			const String& texturePageName = StringUtil::Format("{0}FontPage{1}", fontName, pageIdx);
-			package->AddResource(texturePageName, page.Texture);
+			const FontBitmapPage& page = font->GetPage(pair.second.Page);
+			if(page.Type == FontBitmapPageType::Runtime)
+				continue;
 
-			pageIdx++;
+			if(auto found = addedTextures.find(page.Texture); found == addedTextures.end())
+			{
+				const String& texturePageName = StringUtil::Format("{0}FontPage{1}", fontName, pair.second.Page);
+				package->AddResource(texturePageName, page.Texture);
+				addedTextures.insert(page.Texture);
+			}
 		}
 	}
 

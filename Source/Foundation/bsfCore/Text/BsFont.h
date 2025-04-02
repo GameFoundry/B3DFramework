@@ -52,12 +52,12 @@ namespace bs
 		struct LookupByPointSizeHash { size_t operator()(const CharacterInformation& value) const; };
 	};
 
-	bool CharacterInformation::LookupByPixelSizeEquals::operator()(const CharacterInformation& lhs, const CharacterInformation& rhs) const
+	inline bool CharacterInformation::LookupByPixelSizeEquals::operator()(const CharacterInformation& lhs, const CharacterInformation& rhs) const
 	{
 		return lhs.CharId == rhs.CharId && lhs.Width == rhs.Width && lhs.Height == rhs.Height;
 	}
 
-	size_t CharacterInformation::LookupByPixelSizeHash::operator()(const CharacterInformation& value) const
+	inline size_t CharacterInformation::LookupByPixelSizeHash::operator()(const CharacterInformation& value) const
 	{
 		size_t hash = 0;
 		B3DCombineHash(hash, value.CharId);
@@ -67,12 +67,12 @@ namespace bs
 		return hash;
 	}
 
-	bool CharacterInformation::LookupByPointSizeEquals::operator()(const CharacterInformation& lhs, const CharacterInformation& rhs) const
+	inline bool CharacterInformation::LookupByPointSizeEquals::operator()(const CharacterInformation& lhs, const CharacterInformation& rhs) const
 	{
 		return lhs.CharId == rhs.CharId && lhs.PointSize == rhs.PointSize;
 	}
 
-	size_t CharacterInformation::LookupByPointSizeHash::operator()(const CharacterInformation& value) const
+	inline size_t CharacterInformation::LookupByPointSizeHash::operator()(const CharacterInformation& value) const
 	{
 		size_t hash = 0;
 		B3DCombineHash(hash, value.CharId);
@@ -225,6 +225,21 @@ namespace bs
 		B3D_SCRIPT_EXPORT()
 		float GetClosestExistingBitmapSize(float size) const;
 
+		/** Calculates the required font size (in points) in order to render a glyph that has width of @p width pixels. */
+		float GetPointSizeForGlyphPixelWidth(u32 glyphId, i32 width) const;
+
+		/** Calculates the required font size (in points) in order to render a glyph that has height of @p height pixels. */
+		float GetPointSizeForGlyphPixelHeight(u32 glyphId, i32 height) const;
+
+		/** Attempts to find information about a character with the specified id and size. Returns null if character was not yet rendered via RenderGlyphs. */
+		const CharacterInformation* FindCharacterInformation(u32 characterId, const Size2I& sizeInPixels) const;
+
+		/** Attempts to find information about a character with the specified id and size. Returns null if character was not yet rendered via RenderGlyphs. */
+		const CharacterInformation* FindCharacterInformation(u32 characterId, float sizeInPoints) const;
+
+		/** Returns a font page information for a page at the specified index. */
+		const FontBitmapPage& GetPage(u32 pageIndex) const;
+
 		/**
 		 * Renders glyphs for particular characters in a particular size (in either points or pixels). The rendered glyphs will be
 		 * added to the first free texture page, or new texture page(s) will be allocated. Returns true if successful. 
@@ -313,7 +328,7 @@ namespace bs
 
 		// Note: Ideally there would be one map shared across both types of character sizes, but we cant deduce font size from pixel size at the moment
 		UnorderedMap<float, SPtr<FontBitmapInformation>> mCharactersByPointSize;
-		UnorderedSet<CharacterInformation, CharacterInformation::LookupByPixelSizeEquals, CharacterInformation::LookupByPixelSizeHash> mCharactersByPixelSize;
+		UnorderedSet<CharacterInformation, CharacterInformation::LookupByPixelSizeHash, CharacterInformation::LookupByPixelSizeEquals> mCharactersByPixelSize;
 
 		Vector<FontBitmapPage> mFontPages;
 

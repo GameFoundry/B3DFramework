@@ -69,15 +69,6 @@ namespace bs
 			set { Internal_SetSpaceWidth(mCachedPtr, value); }
 		}
 
-		/// <summary>Textures in which the character&apos;s pixels are stored.</summary>
-		[ShowInInspector]
-		[NativeWrapper]
-		public FontBitmapPage[] TexturePages
-		{
-			get { return Internal_GetTexturePages(mCachedPtr); }
-			set { Internal_SetTexturePages(mCachedPtr, value); }
-		}
-
 		/// <summary>Returns a character description for the character with the specified Unicode key.</summary>
 		public CharacterInformation GetCharacterInformation(int characterId)
 		{
@@ -108,10 +99,6 @@ namespace bs
 		private static extern float Internal_GetSpaceWidth(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_SetSpaceWidth(IntPtr thisPtr, float value);
-		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern FontBitmapPage[] Internal_GetTexturePages(IntPtr thisPtr);
-		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_SetTexturePages(IntPtr thisPtr, FontBitmapPage[] value);
 	}
 
 	/** @} */

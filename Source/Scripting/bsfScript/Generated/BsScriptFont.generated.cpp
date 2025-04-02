@@ -19,7 +19,7 @@ namespace bs
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetRef", (void*)&ScriptFont::InternalGetRef);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetBitmap", (void*)&ScriptFont::InternalGetBitmap);
-		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetClosestSize", (void*)&ScriptFont::InternalGetClosestSize);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetClosestExistingBitmapSize", (void*)&ScriptFont::InternalGetClosestExistingBitmapSize);
 
 	}
 
@@ -52,7 +52,7 @@ namespace bs
 		return __output;
 	}
 
-	float ScriptFont::InternalGetClosestSize(ScriptFont* self, float size)
+	float ScriptFont::InternalGetClosestExistingBitmapSize(ScriptFont* self, float size)
 	{
 		float tmp__output;
 		if(!self->IsNativeObjectValid())

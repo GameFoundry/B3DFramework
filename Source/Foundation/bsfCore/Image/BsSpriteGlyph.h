@@ -35,15 +35,22 @@ namespace bs
 		/** Size of the allocated glyph in points. */
 		float GetSizeInPoints() const { return mSizeInPoints; }
 
+		/** Size of the allocated glyph in pixels. */
+		const Size2I& GetSizeInPixels() const { return mSizeInPixels; }
+
 	protected:
 		TSpriteGlyphAllocation() = default;
 		TSpriteGlyphAllocation(const WeakSPtr<SpriteImageType>& owner, const TextureType& texture, const Area2& uvRange, float sizeInPoints)
 			:CoreVariantType<SpriteImageAllocation, IsRenderProxy>(owner, texture, uvRange), mSizeInPoints(sizeInPoints)
 		{ }
 
+		TSpriteGlyphAllocation(const WeakSPtr<SpriteImageType>& owner, const TextureType& texture, const Area2& uvRange, const Size2I& sizeInPixels)
+			:CoreVariantType<SpriteImageAllocation, IsRenderProxy>(owner, texture, uvRange), mSizeInPixels(sizeInPixels)
+		{ }
 
 	private:
 		float mSizeInPoints;
+		Size2I mSizeInPixels;
 	};
 
 	/** @copydoc TSpriteGlyphAllocation. */
@@ -54,6 +61,9 @@ namespace bs
 
 		/** Creates a new sprite glyph allocation. */
 		static SPtr<SpriteGlyphAllocation> Create(const WeakSPtr<SpriteImageType>& owner, const TextureType& texture, const Area2& uvRange, float sizeInPoints);
+
+		/** Creates a new sprite glyph allocation. */
+		static SPtr<SpriteGlyphAllocation> Create(const WeakSPtr<SpriteImageType>& owner, const TextureType& texture, const Area2& uvRange, const Size2I& sizeInPixels);
 
 	protected:
 		friend class ct::SpriteGlyphAllocation;
@@ -122,6 +132,9 @@ namespace bs
 
 		/** Allocates a sprite image using the provided size in points. */
 		SPtr<SpriteGlyphAllocation> AllocateImage(float sizeInPoints);
+
+		/** Allocates a sprite image using the provided size in pixels. */
+		SPtr<SpriteGlyphAllocation> AllocateImage(const Size2I& sizeInPixels);
 
 		void Initialize() override;
 		SPtr<ct::RenderProxy> CreateRenderProxy() const override;

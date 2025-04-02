@@ -33,7 +33,7 @@ namespace bs
 		if(scriptObjectWrapperTexture != nullptr)
 			tmpTexture = B3DStaticResourceCast<Texture>(scriptObjectWrapperTexture->GetNativeObject());
 		output.Texture = tmpTexture;
-		output.IsDynamic = value.IsDynamic;
+		output.Type = value.Type;
 
 		return output;
 	}
@@ -49,7 +49,7 @@ namespace bs
 		else
 			tmpTexture = nullptr;
 		output.Texture = tmpTexture;
-		output.IsDynamic = value.IsDynamic;
+		output.Type = value.Type;
 
 		return output;
 	}

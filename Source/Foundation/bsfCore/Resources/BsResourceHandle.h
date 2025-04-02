@@ -505,3 +505,23 @@ namespace bs
 
 	/** @} */
 } // namespace bs
+
+/** @cond STDLIB */
+
+namespace std
+{
+/** Hash value generator for TResourceHandle<T>. */
+template<class T>
+struct hash<bs::TResourceHandle<T>>
+{
+	size_t operator()(const bs::TResourceHandle<T>& value) const
+	{
+		size_t hash = 0;
+		bs::B3DCombineHash(hash, value.GetHandleData());
+
+		return hash;
+	}
+};
+} // namespace std
+
+/** @endcond */

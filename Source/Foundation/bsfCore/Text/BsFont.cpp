@@ -317,6 +317,12 @@ bool Font::RenderGlyphs(const FontSizeRequest& sizeRequest, const TArrayView<u32
 				fnAddKerning(otherCharacterInformation, characterId);
 			}
 		}
+		else
+		{
+			// TODO - Force the same dimensions otherwise we break lookup
+			characterInformation.Width = sizeRequest.FontSizeInPixels.Width;
+			characterInformation.Height = sizeRequest.FontSizeInPixels.Height;
+		}
 
 		// Read pixels
 		if(glyph->bitmap.buffer == nullptr && glyph->bitmap.rows > 0 && glyph->bitmap.width > 0)
@@ -642,6 +648,106 @@ float Font::GetClosestExistingBitmapSize(float size) const
 	}
 
 	return bestSize;
+}
+
+const CharacterInformation* Font::FindCharacterInformation(u32 characterId, const Size2I& sizeInPixels) const
+{
+	CharacterInformation lookupCharacterInformation;
+	lookupCharacterInformation.CharId = characterId;
+	lookupCharacterInformation.Width = (float)sizeInPixels.Width;
+	lookupCharacterInformation.Height = (float)sizeInPixels.Height;
+
+	if(auto found = mCharactersByPixelSize.find(lookupCharacterInformation); found != mCharactersByPixelSize.end())
+		return &(*found);
+
+	return nullptr;
+}
+
+const CharacterInformation* Font::FindCharacterInformation(u32 characterId, float sizeInPoints) const
+{
+	auto foundBitmapInformation = mCharactersByPointSize.find(sizeInPoints);
+	if(foundBitmapInformation != mCharactersByPointSize.end())
+	{
+		const SPtr<FontBitmapInformation> bitmapInformation = foundBitmapInformation->second;
+		const CharacterInformation& characterInformation = foundBitmapInformation->second->GetCharacterInformation(characterId);
+		if(characterInformation.CharId == characterId)
+			return &characterInformation;
+	}
+
+	return nullptr;
+}
+
+const FontBitmapPage& Font::GetPage(u32 pageIndex) const
+{
+	if(pageIndex >= (u32)mFontPages.size())
+	{
+		static FontBitmapPage kEmpty;
+		return kEmpty;
+	}
+
+	return mFontPages[pageIndex];
+}
+
+float Font::GetPointSizeForGlyphPixelWidth(u32 glyphId, i32 width) const
+{
+	const float widthInPoints = ((float)width * 72.0f) / (float)mInformation.DPI;
+	if(mImplementation->Face == nullptr)
+	{
+		B3D_LOG(Error, Font, "Failed to get glyph size. Font renderer is not initialized.");
+		return widthInPoints;
+	}
+
+	const FT_Face& face = mImplementation->Face;
+	FT_Error error = FT_Set_Char_Size(face, ConvertFloatToFixed26Dot6(widthInPoints), 0, mInformation.DPI, mInformation.DPI);
+	if (error)
+	{
+		B3D_LOG(Error, Font, "Failed to get glyph size. Failed to set character size.");
+		return widthInPoints;
+	}
+
+	const FT_Int32 loadFlags = ConvertFontRenderModeToLoadFlags(mInformation.RenderMode);
+	error = FT_Load_Char(face, (FT_ULong)glyphId, loadFlags);
+	if (error)
+	{
+		B3D_LOG(Error, Font, "Failed to get glyph size. Failed to load character.");
+		return widthInPoints;
+	}
+
+	const FT_GlyphSlot slot = face->glyph;
+	const float actualWidth = ConvertFixed26Dot6ToFloat(slot->metrics.width);
+
+	return widthInPoints * (float)width / actualWidth;
+}
+
+float Font::GetPointSizeForGlyphPixelHeight(u32 glyphId, i32 height) const
+{
+	const float heightInPoints = (height * 72.0f) / (float)mInformation.DPI;
+	if(mImplementation->Face == nullptr)
+	{
+		B3D_LOG(Error, Font, "Failed to get glyph size. Font renderer is not initialized.");
+		return heightInPoints;
+	}
+
+	const FT_Face& face = mImplementation->Face;
+	FT_Error error = FT_Set_Char_Size(face, ConvertFloatToFixed26Dot6(heightInPoints), 0, mInformation.DPI, mInformation.DPI);
+	if (error)
+	{
+		B3D_LOG(Error, Font, "Failed to get glyph size. Failed to set character size.");
+		return heightInPoints;
+	}
+
+	const FT_Int32 loadFlags = ConvertFontRenderModeToLoadFlags(mInformation.RenderMode);
+	error = FT_Load_Char(face, (FT_ULong)glyphId, loadFlags);
+	if (error)
+	{
+		B3D_LOG(Error, Font, "Failed to get glyph size. Failed to load character.");
+		return heightInPoints;
+	}
+
+	const FT_GlyphSlot slot = face->glyph;
+	const float actualHeight = ConvertFixed26Dot6ToFloat(slot->metrics.height);
+
+	return heightInPoints * (float)height / actualHeight;
 }
 
 void Font::GetCoreDependencies(Vector<CoreObject*>& dependencies)

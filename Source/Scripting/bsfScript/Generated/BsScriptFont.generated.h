@@ -23,6 +23,6 @@ namespace bs
 		static MonoObject* InternalGetRef(ScriptFont* self);
 
 		static MonoObject* InternalGetBitmap(ScriptFont* self, float size);
-		static float InternalGetClosestSize(ScriptFont* self, float size);
+		static float InternalGetClosestExistingBitmapSize(ScriptFont* self, float size);
 	};
 }

@@ -6,11 +6,9 @@
 #include "BsScriptReflectableWrapper.h"
 #include "../../../Foundation/bsfCore/Text/BsFont.h"
 #include "../../../Foundation/bsfCore/Text/BsFont.h"
-#include "../../../Foundation/bsfCore/Text/BsFont.h"
 
 namespace bs { struct FontBitmapInformation; }
 namespace bs { struct __CharacterInformationInterop; }
-namespace bs { struct __FontBitmapPageInterop; }
 namespace bs
 {
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptFontBitmapInformation : public TScriptReflectableWrapper<FontBitmapInformation, ScriptFontBitmapInformation>
@@ -36,7 +34,5 @@ namespace bs
 		static void InternalSetMissingGlyph(ScriptFontBitmapInformation* self, __CharacterInformationInterop* value);
 		static float InternalGetSpaceWidth(ScriptFontBitmapInformation* self);
 		static void InternalSetSpaceWidth(ScriptFontBitmapInformation* self, float value);
-		static MonoArray* InternalGetTexturePages(ScriptFontBitmapInformation* self);
-		static void InternalSetTexturePages(ScriptFontBitmapInformation* self, MonoArray* value);
 	};
 }

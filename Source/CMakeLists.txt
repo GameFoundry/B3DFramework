@@ -287,7 +287,7 @@ set(BS_FTP_CREDENTIALS_FILE "${PROJECT_SOURCE_DIR}/../ftp_credentials" CACHE STR
 mark_as_advanced(BS_FTP_CREDENTIALS_FILE)
 
 if(${B3D_INCLUDE_ASSET_PACKAGING_SCRIPTS})
-	add_run_asset_import_target(bsfBuiltinAssets ${BSF_SOURCE_DIR}/../Data ${BSF_SOURCE_DIR}/.. "")
+	add_run_asset_import_target(bsfBuiltinAssets ${BSF_SOURCE_DIR}/../Data/Raw ${BSF_SOURCE_DIR}/../Data "")
 	add_upload_assets_target(bsfBuiltinAssets "bsfCompiledData_Master" ${BSF_SOURCE_DIR}/../Data Raw/DataPackageContents.txt)
 	add_upload_assets_target(bsfDocImages "bsfDocImagesData_Master" ${BSF_SOURCE_DIR}/../Documentation DataPackageContents.txt)
 endif()

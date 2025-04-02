@@ -146,7 +146,7 @@ namespace bs
 	private:
 		Vector<FontBitmapPage> mBakedPages;
 		UnorderedMap<float, SPtr<FontBitmapInformation>> mCharactersByPointSize;
-		UnorderedSet<CharacterInformation, CharacterInformation::LookupByPixelSizeEquals, CharacterInformation::LookupByPixelSizeHash> mCharactersByPixelSize;
+		UnorderedSet<CharacterInformation, CharacterInformation::LookupByPixelSizeHash, CharacterInformation::LookupByPixelSizeEquals> mCharactersByPixelSize;
 
 		B3D_RTTI_BEGIN_MEMBERS
 			B3D_RTTI_MEMBER_NAMED(RenderMode, mInformation.RenderMode, 2)

@@ -5,7 +5,6 @@
 #include "BsMonoClass.h"
 #include "BsMonoUtil.h"
 #include "BsScriptCharacterInformation.generated.h"
-#include "BsScriptFontBitmapPage.generated.h"
 
 namespace bs
 {
@@ -28,8 +27,6 @@ namespace bs
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetMissingGlyph", (void*)&ScriptFontBitmapInformation::InternalSetMissingGlyph);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetSpaceWidth", (void*)&ScriptFontBitmapInformation::InternalGetSpaceWidth);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetSpaceWidth", (void*)&ScriptFontBitmapInformation::InternalSetSpaceWidth);
-		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetTexturePages", (void*)&ScriptFontBitmapInformation::InternalGetTexturePages);
-		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetTexturePages", (void*)&ScriptFontBitmapInformation::InternalSetTexturePages);
 
 	}
 
@@ -173,44 +170,5 @@ namespace bs
 			return;
 
 		static_cast<FontBitmapInformation*>(self->GetNativeObject())->SpaceWidth = value;
-	}
-
-	MonoArray* ScriptFontBitmapInformation::InternalGetTexturePages(ScriptFontBitmapInformation* self)
-	{
-		Vector<FontBitmapPage> nativeArray__output;
-		if(!self->IsNativeObjectValid())
-			return {};
-
-		nativeArray__output = static_cast<FontBitmapInformation*>(self->GetNativeObject())->TexturePages;
-
-		MonoArray* __output;
-		int elementCount__output = (int)nativeArray__output.size();
-		ScriptArray scriptArray__output = ScriptArray::Create<ScriptFontBitmapPage>(elementCount__output);
-		for(int elementIndex = 0; elementIndex < elementCount__output; elementIndex++)
-		{
-			scriptArray__output.Set(elementIndex, ScriptFontBitmapPage::ToInterop(nativeArray__output[elementIndex]));
-		}
-		__output = scriptArray__output.GetInternal();
-
-		return __output;
-	}
-
-	void ScriptFontBitmapInformation::InternalSetTexturePages(ScriptFontBitmapInformation* self, MonoArray* value)
-	{
-		if(!self->IsNativeObjectValid())
-			return;
-
-		Vector<FontBitmapPage> nativeArrayvalue;
-		if(value != nullptr)
-		{
-			ScriptArray scriptArrayvalue(value);
-			nativeArrayvalue.resize(scriptArrayvalue.Size());
-			for(int elementIndex = 0; elementIndex < (int)scriptArrayvalue.Size(); elementIndex++)
-			{
-				nativeArrayvalue[elementIndex] = ScriptFontBitmapPage::FromInterop(scriptArrayvalue.Get<__FontBitmapPageInterop>(elementIndex));
-			}
-
-		}
-		static_cast<FontBitmapInformation*>(self->GetNativeObject())->TexturePages = nativeArrayvalue;
 	}
 }

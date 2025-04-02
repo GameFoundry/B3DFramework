@@ -5,13 +5,14 @@
 #include "BsScriptEnginePrerequisites.h"
 #include "BsScriptObjectWrapper.h"
 #include "../../../Foundation/bsfCore/Text/BsFont.h"
+#include "../../../Foundation/bsfCore/Text/BsFont.h"
 
 namespace bs
 {
 	struct __FontBitmapPageInterop
 	{
 		MonoObject* Texture;
-		bool IsDynamic;
+		FontBitmapPageType Type;
 	};
 
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptFontBitmapPage : public TScriptTypeDefinition<ScriptFontBitmapPage>

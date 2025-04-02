@@ -3541,7 +3541,7 @@ Use {0}, {1}, etc. in the string value for values that might change dynamically.
 		</ctor>
 		<field name="Texture" type="RRef&lt;Texture&gt;">
 		</field>
-		<field name="IsDynamic" type="bool">
+		<field name="Type" type="FontBitmapPageType">
 		</field>
 	</struct>
 	<class native="PixelData" script="PixelData">
@@ -10328,10 +10328,25 @@ Alternatively you can also skip manually calling ReleaseInternalReference() and 
 		<field name="YAdvance" type="float">
 			<doc>Determines how much to advance the pen after writing this character, in pixels.</doc>
 		</field>
+		<field name="PointSize" type="float">
+			<doc>Size in points that the character was generated from. May be 0 if glyph was generated using pixel width/height.</doc>
+		</field>
 		<field name="KerningPairs" type="KerningPair">
 			<doc>Pairs that determine if certain character pairs should be closer or father together. for example &quot;AV&quot; combination.</doc>
 		</field>
 	</struct>
+	<enum native="FontBitmapPageType" script="FontBitmapPageType">
+		<doc>Available types of FontBitmapPage.</doc>
+		<enumentry native="Runtime" script="Runtime">
+			<doc>Glyphs in this page can be dynamically allocated at runtime and won&apos;t be saved.</doc>
+		</enumentry>
+		<enumentry native="Baked" script="Baked">
+			<doc>Glyphs in this page can be dynamically allocated at runtime and will be saved. Next time they are loaded they will use the Loaded type.</doc>
+		</enumentry>
+		<enumentry native="Loaded" script="Loaded">
+			<doc>Glyphs in this page can be read, but no new glyphs can be added to the page.</doc>
+		</enumentry>
+	</enum>
 	<class native="FontBitmapInformation" script="FontBitmapInformation">
 		<doc>Contains information about font characters rendered into one or multiple bitmaps, for specific font size.</doc>
 		<method native="GetCharacterInformation" script="GetCharacterInformation" static="false">
@@ -10356,9 +10371,6 @@ Alternatively you can also skip manually calling ReleaseInternalReference() and 
 		<property name="SpaceWidth" type="float" getter="GetSpaceWidth" setter="SetSpaceWidth" static="false">
 			<doc>Width of a space in pixels.</doc>
 		</property>
-		<property name="TexturePages" type="FontBitmapPage" getter="GetTexturePages" setter="SetTexturePages" static="false">
-			<doc>Textures in which the character&apos;s pixels are stored.</doc>
-		</property>
 	</class>
 	<class native="Font" script="Font">
 		<doc>Font resource containing data about textual characters and how to render text. Contains one or multiple font bitmaps, each for a specific size.</doc>
@@ -10371,8 +10383,8 @@ Alternatively you can also skip manually calling ReleaseInternalReference() and 
 				<doc>Bitmap object if it exists, false otherwise.</doc>
 			</returns>
 		</method>
-		<method native="GetClosestSize" script="GetClosestSize" static="false">
-			<doc>Finds the available font bitmap size closest to the provided size.</doc>
+		<method native="GetClosestExistingBitmapSize" script="GetClosestExistingBitmapSize" static="false">
+			<doc>Finds a rendered bitmap closest to the provided size.</doc>
 			<param name="size" type="float">
 				<doc>Size of the bitmap in points.</doc>
 			</param>

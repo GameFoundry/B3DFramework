@@ -37,6 +37,7 @@ namespace bs
 		output.YOffset = value.YOffset;
 		output.XAdvance = value.XAdvance;
 		output.YAdvance = value.YAdvance;
+		output.PointSize = value.PointSize;
 		Vector<KerningPair> vecKerningPairs;
 		if(value.KerningPairs != nullptr)
 		{
@@ -67,6 +68,7 @@ namespace bs
 		output.YOffset = value.YOffset;
 		output.XAdvance = value.XAdvance;
 		output.YAdvance = value.YAdvance;
+		output.PointSize = value.PointSize;
 		int elementCountKerningPairs = (int)value.KerningPairs.size();
 		MonoArray* vecKerningPairs;
 		ScriptArray scriptArrayKerningPairs = ScriptArray::Create<ScriptKerningPair>(elementCountKerningPairs);

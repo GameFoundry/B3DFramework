@@ -19,13 +19,13 @@ namespace bs
 		{
 			FontBitmapPage value = new FontBitmapPage();
 			value.Texture = null;
-			value.IsDynamic = false;
+			value.Type = FontBitmapPageType.Runtime;
 
 			return value;
 		}
 
 		public RRef<Texture> Texture;
-		public bool IsDynamic;
+		public FontBitmapPageType Type;
 	}
 
 	/** @} */
