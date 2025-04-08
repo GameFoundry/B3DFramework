@@ -23,7 +23,7 @@ namespace bs
             if (DPIScale == 0.0f)
                 return new GUILogicalUnit((int)value);
 
-            return new GUILogicalUnit((int)((float)value * (1.0f / DPIScale)));
+            return new GUILogicalUnit(MathEx.RoundToInt((float)value * (1.0f / DPIScale)));
         }
 
         /// <summary>
@@ -48,7 +48,7 @@ namespace bs
         /// <returns>Value in physical pixels.</returns>
         public static GUIPhysicalUnit LogicalToPhysicalPixels(GUILogicalUnit value, float DPIScale)
         {
-            return new GUIPhysicalUnit((int)((float)value * DPIScale));
+            return new GUIPhysicalUnit(MathEx.RoundToInt((float)value * DPIScale));
         }
 
         /// <summary>

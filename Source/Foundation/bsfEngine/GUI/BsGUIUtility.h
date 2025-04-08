@@ -27,7 +27,7 @@ namespace bs
 		 */
 		static GUIPhysicalUnit LogicalToPhysical(const GUILogicalUnit& value, float scale)
 		{
-			return (i32)((float)(i32)value * scale);
+			return Math::RoundToI32((float)(i32)value * scale);
 		}
 
 		/**
@@ -127,7 +127,7 @@ namespace bs
 				return (i32)value;
 
 			const float inversescale = 1.0f / scale;
-			return (i32)((float)(i32)value * inversescale);
+			return Math::RoundToI32((float)(i32)value * inversescale);
 		}
 
 		/**
