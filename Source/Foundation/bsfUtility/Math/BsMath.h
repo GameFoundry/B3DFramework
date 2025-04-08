@@ -5,6 +5,7 @@
 #include "Prerequisites/BsPrerequisitesUtil.h"
 #include "Math/BsDegree.h"
 #include "Math/BsRadian.h"
+#include "Math/BsUnitValue.h"
 
 namespace bs
 {
@@ -197,6 +198,10 @@ namespace bs
 		/** Returns the absolute value. */
 		template<class T>
 		static T Abs(T val) { return (T)std::fabs(val); }
+
+		/** Returns the absolute value. */
+		template<typename T, typename Unit>
+		static TUnitValue<T, Unit> Abs(const TUnitValue<T, Unit>& value) { return Abs(value.Value); }
 
 		/** Returns the absolute value. */
 		template<class T>
