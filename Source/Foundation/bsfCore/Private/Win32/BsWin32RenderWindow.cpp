@@ -179,6 +179,7 @@ void Win32RenderWindow::Resize(u32 width, u32 height)
 		mRenderTargetProperties.Height = mWindow->GetClientArea().Height;
 
 		MarkRenderProxyDataDirty();
+		OnResized();
 	}
 }
 
@@ -378,10 +379,19 @@ void Win32RenderWindow::DoOnWindowMovedOrResized()
 
 void Win32RenderWindow::DoOnDPIScaleChanged()
 {
+	const float oldDpiScale = mRenderTargetProperties.DPIScale;
+
 	const UINT DPI = mWindow->GetDPI();
 	mRenderTargetProperties.DPIScale = (float)DPI / (float)USER_DEFAULT_SCREEN_DPI;
 
+	if(oldDpiScale == mRenderTargetProperties.DPIScale)
+		return;
+
 	Super::DoOnDPIScaleChanged();
+
+	const float scaleRatio = mRenderTargetProperties.DPIScale / oldDpiScale;
+	if(!mRenderWindowProperties.IsMaximized && !mRenderWindowProperties.IsFullScreen)
+		Resize(Math::RoundToI32(mRenderTargetProperties.Width * scaleRatio), Math::RoundToI32(mRenderTargetProperties.Height * scaleRatio));
 }
 
 namespace bs::ct
