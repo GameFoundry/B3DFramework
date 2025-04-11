@@ -2,6 +2,7 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
+#include "BsGUIConstructionMethods.h"
 #include "BsPrerequisites.h"
 #include "GUI/BsGUIElementContainer.h"
 
@@ -11,7 +12,7 @@ namespace bs
 	 *  @{
 	 */
 
-	/**	Scroll bar options for a GUI scroll area. */
+	/**	Determines when and if to display a scroll bar on the scroll area. */
 	enum class ScrollBarType
 	{
 		ShowIfDoesntFit,
@@ -19,52 +20,32 @@ namespace bs
 		NeverShow
 	};
 
+	/** Determines how are elements positioned in a scroll area. */
+	enum class ScrollAreaLayoutType
+	{
+		Vertical, /**< GUI elements will be placed below/above each other (e.g. as in GUILayoutY). This is the standard scroll area. */
+		Horizontal, /**< GUI elements will be placed left/right to each other (e.g. as in GUILayoutX). */
+		Panel, /**< GUI elements must be explicitly positioned (e.g. as in GUIPanel). */
+	};
+
+	/** Structure describing contents of a GUIScrollArea element. */
+	struct B3D_SCRIPT_EXPORT(ExportAsStruct(true), DocumentationGroup(GUI)) GUIScrollAreaContent
+	{
+		GUIScrollAreaContent(ScrollBarType verticalScrollBarType = ScrollBarType::ShowIfDoesntFit, ScrollBarType horizontalScrollBarType = ScrollBarType::NeverShow, ScrollAreaLayoutType layoutType = ScrollAreaLayoutType::Vertical)
+			: VerticalScrollBarType(verticalScrollBarType), HorizontalScrollBarType(horizontalScrollBarType), LayoutType(layoutType)
+		{ }
+
+		ScrollBarType VerticalScrollBarType;
+		ScrollBarType HorizontalScrollBarType;
+		ScrollAreaLayoutType LayoutType;
+	};
+
 	/**	A GUI element container with support for vertical & horizontal scrolling. */
-	class B3D_EXPORT GUIScrollArea : public GUIElementContainer
+	class B3D_EXPORT GUIScrollArea : public GUIElementContainer, public TGUIConstructionMethods<GUIScrollArea, GUIScrollAreaContent>
 	{
 	public:
 		/** Returns type name of the GUI element used for finding GUI element styles. */
 		static const String& GetGuiTypeName();
-
-		/**
-		 * Creates a new empty scroll area.
-		 *
-		 * @param[in]	vertBarType		Vertical scrollbar options.
-		 * @param[in]	horzBarType		Horizontal scrollbar options.
-		 * @param[in]	scrollBarStyle	Style used by the scroll bars.
-		 * @param[in]	scrollAreaStyle	Style used by the scroll content area.
-		 */
-		static GUIScrollArea* Create(ScrollBarType vertBarType, ScrollBarType horzBarType, const String& scrollBarStyle = StringUtil::kBlank, const String& scrollAreaStyle = StringUtil::kBlank);
-
-		/**
-		 * Creates a new empty scroll area.
-		 *
-		 * @param[in]	vertBarType		Vertical scrollbar options.
-		 * @param[in]	horzBarType		Horizontal scrollbar options.
-		 * @param[in]	options			Options that allow you to control how is the element positioned and sized. This will
-		 *								override any similar options set by style.
-		 * @param[in]	scrollBarStyle	Style used by the scroll bars.
-		 * @param[in]	scrollAreaStyle	Style used by the scroll content area.
-		 */
-		static GUIScrollArea* Create(ScrollBarType vertBarType, ScrollBarType horzBarType, const GUIOptions& options, const String& scrollBarStyle = StringUtil::kBlank, const String& scrollAreaStyle = StringUtil::kBlank);
-
-		/**
-		 * Creates a new empty scroll area. Scroll bars will be show if needed and hidden otherwise.
-		 *
-		 * @param[in]	scrollBarStyle	Style used by the scroll bars.
-		 * @param[in]	scrollAreaStyle	Style used by the scroll content area.
-		 */
-		static GUIScrollArea* Create(const String& scrollBarStyle = StringUtil::kBlank, const String& scrollAreaStyle = StringUtil::kBlank);
-
-		/**
-		 * Creates a new empty scroll area. Scroll bars will be show if needed and hidden otherwise.
-		 *
-		 * @param[in]	options			Options that allow you to control how is the element positioned and sized. This will
-		 *								override any similar options set by style.
-		 * @param[in]	scrollBarStyle	Style used by the scroll bars.
-		 * @param[in]	scrollAreaStyle	Style used by the scroll content area.
-		 */
-		static GUIScrollArea* Create(const GUIOptions& options, const String& scrollBarStyle = StringUtil::kBlank, const String& scrollAreaStyle = StringUtil::kBlank);
 
 		~GUIScrollArea() = default;
 
@@ -138,6 +119,17 @@ namespace bs
 		 * horizontal scrollbar.
 		 */
 		static const GUILogicalUnit kScrollBarWidth;
+
+		/**
+		 * @name Internal
+		 * @{
+		 */
+
+		struct PrivatelyConstruct {};
+		GUIScrollArea(PrivatelyConstruct, const GUIScrollAreaContent& content, const String& styleClass, const GUISizeConstraints& sizeConstraints);
+
+		/** @} */
+
 	protected:
 		GUIConstrainedSize GetConstrainedSize() const override;
 		GUIConstrainedSize CalculateConstrainedSize() const override;
@@ -145,8 +137,6 @@ namespace bs
 		GUILogicalSize CalculateUnconstrainedOptimalSize() const override;
 
 	private:
-		GUIScrollArea(ScrollBarType vertBarType, ScrollBarType horzBarType, const String& scrollBarStyle, const String& scrollAreaStyle, const GUISizeConstraints& dimensions);
-
 		bool DoOnMouseEvent(const GUIMouseEvent& ev) override;
 
 		/**
@@ -169,9 +159,7 @@ namespace bs
 		/** Calculates the position and size of the scroll area child layout and the scroll bars. */
 		void CalculateRelativeElementAreas(const GUILogicalSize& scrollAreaSize, GUILogicalPoint* outElementPositions, GUILogicalSize* outElementSizes, u32 elementCount, const Vector<GUIConstrainedSize>& sizeRanges, GUILogicalSize& outVisibleSize) const;
 
-		ScrollBarType mVerticalScrollBarType;
-		ScrollBarType mHorizontalScrollBarType;
-		String mScrollBarStyle;
+		GUIScrollAreaContent mContent;
 
 		GUILayoutY* mContentLayout;
 		GUIVerticalScrollBar* mVerticalScrollBar;

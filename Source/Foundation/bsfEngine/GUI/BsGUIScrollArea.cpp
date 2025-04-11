@@ -34,18 +34,25 @@ namespace bs
 	};
 } // namespace bs
 
+// TODO
+// - Add a GUIContent structure for initializing and remove the explicit create methods
+// - Make sure its script exported via codegen
+// - Add an option to perform scroll via drag
+//  - Ideally, just by dragging on an empty area (perhaps an underlay element that catches the drag event?, or add some lower level funcionality to handle this)
+// - Add an option to perform zoom
+// - Need a way to specify the underlying layout element for the scroll area (GUILayoutY, GUIPanel, or perhaps even GUILayoutX)
 
 const GUILogicalUnit GUIScrollArea::kScrollBarWidth = 16;
 const u32 GUIScrollArea::kWheelScrollAmount = 50;
 
-GUIScrollArea::GUIScrollArea(ScrollBarType vertBarType, ScrollBarType horzBarType, const String& scrollBarStyle, const String& scrollAreaStyle, const GUISizeConstraints& dimensions)
-	: GUIElementContainer(dimensions, scrollAreaStyle), mVerticalScrollBarType(vertBarType), mHorizontalScrollBarType(horzBarType), mScrollBarStyle(scrollBarStyle), mVerticalScrollBar(nullptr), mHorizontalScrollBar(nullptr), mVertOffset(0), mHorzOffset(0), mRecalculateVertOffset(false), mRecalculateHorzOffset(false)
+GUIScrollArea::GUIScrollArea(PrivatelyConstruct, const GUIScrollAreaContent& content, const String& styleClass, const GUISizeConstraints& sizeConstraints)
+	: GUIElementContainer(sizeConstraints, styleClass), mContent(content), mVerticalScrollBar(nullptr), mHorizontalScrollBar(nullptr), mVertOffset(0), mHorzOffset(0), mRecalculateVertOffset(false), mRecalculateHorzOffset(false)
 {
 	mContentLayout = GUILayoutY::Create();
 	RegisterChildElement(mContentLayout);
 
-	mHorizontalScrollBar = GUIHorizontalScrollBar::Create(mScrollBarStyle);
-	mVerticalScrollBar = GUIVerticalScrollBar::Create(mScrollBarStyle);
+	mHorizontalScrollBar = GUIHorizontalScrollBar::Create();
+	mVerticalScrollBar = GUIVerticalScrollBar::Create();
 
 	RegisterChildElement(mHorizontalScrollBar);
 	RegisterChildElement(mVerticalScrollBar);
@@ -59,10 +66,10 @@ GUILogicalSize GUIScrollArea::CalculateUnconstrainedOptimalSize() const
 	// TODO - For layouts the function call below actually returns constrained size, despite the name
 	GUILogicalSize optimalSize = mContentLayout->CalculateUnconstrainedOptimalSize();
 
-	if(mVerticalScrollBarType != ScrollBarType::NeverShow)
+	if(mContent.VerticalScrollBarType != ScrollBarType::NeverShow)
 		optimalSize.Width += kScrollBarWidth;
 
-	if(mHorizontalScrollBarType != ScrollBarType::NeverShow)
+	if(mContent.HorizontalScrollBarType != ScrollBarType::NeverShow)
 		optimalSize.Height += kScrollBarWidth;
 
 	// Provide 10x10 in case underlying layout is empty because
@@ -135,11 +142,11 @@ void GUIScrollArea::CalculateRelativeElementAreas(const GUILogicalSize& scrollAr
 	//// We want elements to use their optimal height, since scroll area
 	//// technically provides "infinite" space
 	GUILogicalUnit optimalContentWidth = scrollAreaSize.Width;
-	if(mHorizontalScrollBarType != ScrollBarType::NeverShow)
+	if(mContent.HorizontalScrollBarType != ScrollBarType::NeverShow)
 		optimalContentWidth = sizeRanges[layoutIdx].Optimal.Width;
 
 	GUILogicalUnit optimalContentHeight = scrollAreaSize.Height;
-	if(mVerticalScrollBarType != ScrollBarType::NeverShow)
+	if(mContent.VerticalScrollBarType != ScrollBarType::NeverShow)
 		optimalContentHeight = sizeRanges[layoutIdx].Optimal.Height;
 
 	GUILogicalUnit layoutWidth = Math::Max(optimalContentWidth, scrollAreaSize.Width);
@@ -147,8 +154,8 @@ void GUIScrollArea::CalculateRelativeElementAreas(const GUILogicalSize& scrollAr
 
 	outVisibleSize = scrollAreaSize;
 
-	const bool hasHorizontalScrollbar = mHorizontalScrollBarType != ScrollBarType::NeverShow;
-	const bool hasVerticalScrollbar = mVerticalScrollBarType != ScrollBarType::NeverShow;
+	const bool hasHorizontalScrollbar = mContent.HorizontalScrollBarType != ScrollBarType::NeverShow;
+	const bool hasVerticalScrollbar = mContent.VerticalScrollBarType != ScrollBarType::NeverShow;
 	if(hasHorizontalScrollbar)
 	{
 		// Make room for scrollbar
@@ -256,8 +263,8 @@ void GUIScrollArea::UpdateLayoutForChildren()
 
 	mContentSize = elementSizes[layoutIdx];
 
-	const bool showVerticalScrollBar = mVerticalScrollBarType != ScrollBarType::NeverShow && mContentSize.Height > mVisibleSize.Height;
-	const bool showHorizontalScrollBar = mHorizontalScrollBarType != ScrollBarType::NeverShow && mContentSize.Width > mVisibleSize.Width;
+	const bool showVerticalScrollBar = mContent.VerticalScrollBarType != ScrollBarType::NeverShow && mContentSize.Height > mVisibleSize.Height;
+	const bool showHorizontalScrollBar = mContent.HorizontalScrollBarType != ScrollBarType::NeverShow && mContentSize.Width > mVisibleSize.Width;
 
 	// Vertical scrollbar
 	{
@@ -517,26 +524,6 @@ bool GUIScrollArea::DoOnMouseEvent(const GUIMouseEvent& ev)
 	}
 
 	return false;
-}
-
-GUIScrollArea* GUIScrollArea::Create(ScrollBarType vertBarType, ScrollBarType horzBarType, const String& scrollBarStyle, const String& scrollAreaStyle)
-{
-	return new(B3DAllocate<GUIScrollArea>()) GUIScrollArea(vertBarType, horzBarType, scrollBarStyle, GetStyleClass<GUIScrollArea>(scrollAreaStyle), GUISizeConstraints::Create());
-}
-
-GUIScrollArea* GUIScrollArea::Create(const GUIOptions& options, const String& scrollBarStyle, const String& scrollAreaStyle)
-{
-	return new(B3DAllocate<GUIScrollArea>()) GUIScrollArea(ScrollBarType::ShowIfDoesntFit, ScrollBarType::ShowIfDoesntFit, scrollBarStyle, GetStyleClass<GUIScrollArea>(scrollAreaStyle), GUISizeConstraints::Create(options));
-}
-
-GUIScrollArea* GUIScrollArea::Create(const String& scrollBarStyle, const String& scrollAreaStyle)
-{
-	return new(B3DAllocate<GUIScrollArea>()) GUIScrollArea(ScrollBarType::ShowIfDoesntFit, ScrollBarType::ShowIfDoesntFit, scrollBarStyle, GetStyleClass<GUIScrollArea>(scrollAreaStyle), GUISizeConstraints::Create());
-}
-
-GUIScrollArea* GUIScrollArea::Create(ScrollBarType vertBarType, ScrollBarType horzBarType, const GUIOptions& options, const String& scrollBarStyle, const String& scrollAreaStyle)
-{
-	return new(B3DAllocate<GUIScrollArea>()) GUIScrollArea(vertBarType, horzBarType, scrollBarStyle, GetStyleClass<GUIScrollArea>(scrollAreaStyle), GUISizeConstraints::Create(options));
 }
 
 const String& GUIScrollArea::GetGuiTypeName()

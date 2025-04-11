@@ -51,7 +51,7 @@ void ScriptGUIScrollArea::InternalCreateInstance(MonoObject* instance, ScrollBar
 	for(u32 i = 0; i < arrayLen; i++)
 		options.AddOption(scriptArray.Get<GUIOption>(i));
 
-	GUIScrollArea* guiScrollArea = GUIScrollArea::Create(vertBarType, horzBarType, options, MonoUtil::MonoToString(scrollBarStyle), MonoUtil::MonoToString(scrollAreaStyle));
+	GUIScrollArea* guiScrollArea = GUIScrollArea::Create(GUIScrollAreaContent(vertBarType, horzBarType), MonoUtil::MonoToString(scrollAreaStyle), options);
 	ScriptObjectWrapper::Create<ScriptGUIScrollArea>(guiScrollArea, instance);
 }
 
