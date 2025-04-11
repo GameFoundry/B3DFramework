@@ -388,6 +388,12 @@ GUIPhysicalArea GUIScrollArea::GetContentBounds()
 	return bounds;
 }
 
+void GUIScrollArea::SetEnableCulling(bool enable)
+{
+	if(mContentLayout != nullptr)
+		mContentLayout->SetEnableCulling(enable);
+}
+
 void GUIScrollArea::ScrollUpPixels(GUIPhysicalUnit pixels)
 {
 	if(mVerticalScrollBar != nullptr)

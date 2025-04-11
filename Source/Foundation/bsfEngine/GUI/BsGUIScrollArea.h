@@ -124,6 +124,14 @@ namespace bs
 		GUIPhysicalArea GetContentBounds();
 
 		/**
+		 * Enables/disables culling of child elements. If culling is enabled all child elements that are fully outside of the parent visible bounds will be marked as culled.
+		 * Culled elements will never have their contents or mesh updated, their absolute coordinate will not be updated and they wont be drawn
+		 * This is useful for layouts with a large amount of children, but comes with an overhead so it is disabled by default. Note this has no impact on layout update,
+		 * which may still be expensive with many elements.
+		 */
+		void SetEnableCulling(bool enable);
+
+		/**
 		 * Number of pixels the scroll bar will occupy when active. This is width for vertical scrollbar, and height for
 		 * horizontal scrollbar.
 		 */
