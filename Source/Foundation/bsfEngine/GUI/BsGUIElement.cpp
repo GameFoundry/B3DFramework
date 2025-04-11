@@ -542,6 +542,9 @@ void GUIElement::SetCulled(bool culled)
 				if(element->mParentWidget && !element->IsHidden())
 					element->mParentWidget->NotifyElementVisibilityChanged(element, true);
 
+				// Note we purposefully don't dirty the mesh or contents here, as notifying the widget that an element has because
+				// visible will re-add it to the mesh batches, performing the same operations as if it was dirtied
+
 				for(auto& child : element->mChildren)
 					fnSetCulledRecursive(child, false, fnSetCulledRecursive);
 			}

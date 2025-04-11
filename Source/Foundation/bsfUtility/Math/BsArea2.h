@@ -45,7 +45,7 @@ namespace bs
 		TSize2<SizeType> GetSize() const { return TSize2<SizeType>(Width, Height); }
 
 		/** Center of the rectangle. */
-		TVector2<PositionType> GetCenter() const { return TVector2<PositionType>(X + Width / (PositionType)2, Y + Width / (PositionType)2); }
+		TVector2<PositionType> GetCenter() const { return TVector2<PositionType>(X + Width / (PositionType)2, Y + Height / (PositionType)2); }
 
 		/** Returns true if the area contains the provided point. */
 		bool Contains(const TVector2<PositionType>& point) const;
