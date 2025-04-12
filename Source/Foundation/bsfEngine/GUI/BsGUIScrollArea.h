@@ -52,7 +52,7 @@ namespace bs
 
 		/**	Returns the scroll area layout that you may use to add elements inside the scroll area. */
 		B3D_SCRIPT_EXPORT(Property(Getter), ExportName(Layout))
-		GUILayoutY* GetLayout() const { return mContentLayout; }
+		GUILayout* GetLayout() const { return mContentLayout; }
 
 		/**	Scrolls the area up by specified amount of pixels, if possible. */
 		B3D_SCRIPT_EXPORT()
@@ -181,7 +181,7 @@ namespace bs
 
 		GUIScrollAreaContent mContent;
 
-		GUILayoutY* mContentLayout = nullptr;
+		GUILayout* mContentLayout = nullptr;
 		GUIVerticalScrollBar* mVerticalScrollBar = nullptr;
 		GUIHorizontalScrollBar* mHorizontalScrollBar = nullptr;
 

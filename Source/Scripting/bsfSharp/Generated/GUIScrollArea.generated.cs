@@ -65,7 +65,7 @@ namespace bs
 
 		/// <summary>Returns the scroll area layout that you may use to add elements inside the scroll area.</summary>
 		[NativeWrapper]
-		public GUILayoutY Layout
+		public GUILayout Layout
 		{
 			get { return Internal_GetLayout(mCachedPtr); }
 		}
@@ -184,7 +184,7 @@ namespace bs
 		}
 
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern GUILayoutY Internal_GetLayout(IntPtr thisPtr);
+		private static extern GUILayout Internal_GetLayout(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_ScrollUp(IntPtr thisPtr, ref TUnitValue<int,PhysicalPixel> pixels);
 		[MethodImpl(MethodImplOptions.InternalCall)]

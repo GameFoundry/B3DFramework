@@ -528,7 +528,7 @@
 				<doc>Additional options that control GUI element size and position. This will override options set in the style sheet.</doc>
 			</param>
 		</ctor>
-		<property name="Layout" type="GUILayoutY" getter="GetLayout" setter="" static="false">
+		<property name="Layout" type="GUILayout" getter="GetLayout" setter="" static="false">
 			<doc>Returns the scroll area layout that you may use to add elements inside the scroll area.</doc>
 		</property>
 		<property name="VerticalScroll" type="float" getter="GetVerticalScroll" setter="ScrollToVertical" static="false">

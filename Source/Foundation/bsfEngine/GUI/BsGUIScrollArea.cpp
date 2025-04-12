@@ -38,12 +38,13 @@ namespace bs
 } // namespace bs
 
 // TODO
-// - Add a GUIContent structure for initializing and remove the explicit create methods
-// - Make sure its script exported via codegen
-// - Add an option to perform scroll via drag
+// [x] Add a GUIContent structure for initializing and remove the explicit create methods
+// [x] Make sure its script exported via codegen
+// [ ] Port GUILayout and derived types to use codegen
+// [ ] Add an option to perform scroll via drag
 //  - Ideally, just by dragging on an empty area (perhaps an underlay element that catches the drag event?, or add some lower level funcionality to handle this)
-// - Add an option to perform zoom
-// - Need a way to specify the underlying layout element for the scroll area (GUILayoutY, GUIPanel, or perhaps even GUILayoutX)
+// [ ] Add an option to perform zoom
+// [x] Need a way to specify the underlying layout element for the scroll area (GUILayoutY, GUIPanel, or perhaps even GUILayoutX)
 
 const GUILogicalUnit GUIScrollArea::kScrollBarWidth = 16;
 const u32 GUIScrollArea::kWheelScrollAmount = 50;
@@ -57,14 +58,12 @@ GUIScrollArea::GUIScrollArea(PrivatelyConstruct, const GUIScrollAreaContent& con
 	case ScrollAreaLayoutType::Vertical:
 		mContentLayout = GUILayoutY::Create();
 		break;
-#if 0 // Disabled until we can fix script export for GUILayout
 	case ScrollAreaLayoutType::Horizontal:
 		mContentLayout = GUILayoutX::Create();
 		break;
 	case ScrollAreaLayoutType::Panel:
 		mContentLayout = GUIPanel::Create();
 		break;
-#endif
 	}
 	RegisterChildElement(mContentLayout);
 

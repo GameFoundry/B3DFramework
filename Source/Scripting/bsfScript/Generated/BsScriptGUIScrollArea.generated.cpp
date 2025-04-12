@@ -5,12 +5,12 @@
 #include "BsMonoClass.h"
 #include "BsMonoUtil.h"
 #include "../../../Foundation/bsfEngine/GUI/BsGUIScrollArea.h"
-#include "BsScriptGUIScrollAreaContent.generated.h"
+#include "BsScriptTUnitValue.generated.h"
 #include "Wrappers/GUI/BsScriptGUILayout.h"
 #include "BsScriptTArea2.generated.h"
 #include "BsScriptTUnitValue.generated.h"
-#include "BsScriptTUnitValue.generated.h"
 #include "BsScriptGUIScrollArea.generated.h"
+#include "BsScriptGUIScrollAreaContent.generated.h"
 #include "BsScriptGUIOption.generated.h"
 
 namespace bs
@@ -58,14 +58,14 @@ namespace bs
 	}
 	MonoObject* ScriptGUIScrollArea::InternalGetLayout(ScriptGUIScrollArea* self)
 	{
-		GUILayoutY* tmp__output = nullptr;
+		GUILayout* tmp__output = nullptr;
 		if(!self->IsNativeObjectValid())
 			return {};
 
 		tmp__output = static_cast<GUIScrollArea*>(self->GetNativeObject())->GetLayout();
 
 		MonoObject* __output;
-		__output = ScriptGUILayoutY::GetOrCreateScriptObject(tmp__output);
+		__output = ScriptGUILayout::GetOrCreateScriptObject(tmp__output);
 
 		return __output;
 	}
