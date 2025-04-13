@@ -8,10 +8,10 @@
 #include "BsMonoUtil.h"
 #include "BsScriptTVector2.generated.h"
 #include "GUI/BsGUIContextMenu.h"
-#include "Wrappers/GUI/BsScriptGUILayout.h"
 #include "GUI/BsGUILayout.h"
 
 #include "Generated/BsScriptHString.generated.h"
+#include "Generated/BsScriptGUILayout.generated.h"
 
 using namespace std::placeholders;
 

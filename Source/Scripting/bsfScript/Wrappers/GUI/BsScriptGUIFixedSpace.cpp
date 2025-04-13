@@ -8,7 +8,6 @@
 #include "BsMonoUtil.h"
 #include "GUI/BsGUILayout.h"
 #include "GUI/BsGUISpace.h"
-#include "Wrappers/GUI/BsScriptGUILayout.h"
 
 using namespace bs;
 ScriptGUIFixedSpace::ScriptGUIFixedSpace(GUIFixedSpace* nativeObject)

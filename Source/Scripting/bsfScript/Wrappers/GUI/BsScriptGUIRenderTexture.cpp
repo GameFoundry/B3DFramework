@@ -9,7 +9,6 @@
 #include "GUI/BsGUILayout.h"
 #include "GUI/BsGUIRenderTexture.h"
 #include "GUI/BsGUIOptions.h"
-#include "Wrappers/GUI/BsScriptGUILayout.h"
 
 #include "Generated/BsScriptHString.generated.h"
 #include "Generated/BsScriptGUIContent.generated.h"
