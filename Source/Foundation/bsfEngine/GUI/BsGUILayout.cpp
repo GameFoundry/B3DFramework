@@ -31,7 +31,7 @@ namespace bs
 /** @} */
 /** @endcond */
 
-GUILayout::GUILayout(const GUISizeConstraints& dimensions)
+GUILayout::GUILayout(const String& styleClass, const GUISizeConstraints& dimensions)
 	: GUIElement(dimensions)
 {}
 
@@ -43,10 +43,10 @@ void GUILayout::AddElement(GUIElement* element)
 	RegisterChildElement(element);
 }
 
-void GUILayout::InsertElement(u32 idx, GUIElement* element)
+void GUILayout::InsertElement(u32 index, GUIElement* element)
 {
-	if(idx > (u32)mChildren.size())
-		B3D_EXCEPT(InvalidParametersException, "Index out of range: " + ToString(idx) + ". Valid range: 0 .. " + ToString((u32)mChildren.size()));
+	if(index > (u32)mChildren.size())
+		B3D_EXCEPT(InvalidParametersException, "Index out of range: " + ToString(index) + ". Valid range: 0 .. " + ToString((u32)mChildren.size()));
 
 	if(element->IsPendingDestroy())
 		return;
@@ -58,7 +58,7 @@ void GUILayout::InsertElement(u32 idx, GUIElement* element)
 	}
 
 	element->SetParent(this);
-	mChildren.Insert(mChildren.begin() + idx, element);
+	mChildren.Insert(mChildren.begin() + index, element);
 
 	element->SetActiveRecursive(IsActive());
 	element->SetHiddenRecursive(IsHidden());
@@ -75,13 +75,13 @@ void GUILayout::RemoveElement(GUIElement* element)
 	UnregisterChildElement(element);
 }
 
-void GUILayout::RemoveElementAt(u32 idx)
+void GUILayout::RemoveElementAt(u32 index)
 {
-	if(idx >= (u32)mChildren.size())
-		B3D_EXCEPT(InvalidParametersException, "Index out of range: " + ToString(idx) + ". Valid range: 0 .. " + ToString((u32)mChildren.size()));
+	if(index >= (u32)mChildren.size())
+		B3D_EXCEPT(InvalidParametersException, "Index out of range: " + ToString(index) + ". Valid range: 0 .. " + ToString((u32)mChildren.size()));
 
-	GUIElement* child = mChildren[idx];
-	mChildren.erase(mChildren.begin() + idx);
+	GUIElement* child = mChildren[index];
+	mChildren.erase(mChildren.begin() + index);
 
 	child->SetParent(nullptr);
 

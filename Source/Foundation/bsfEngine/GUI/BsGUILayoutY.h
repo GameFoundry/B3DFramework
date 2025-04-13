@@ -4,6 +4,7 @@
 
 #include "BsPrerequisites.h"
 #include "GUI/BsGUILayout.h"
+#include "GUI/BsGUIConstructionMethods.h"
 
 namespace bs
 {
@@ -12,22 +13,17 @@ namespace bs
 	 */
 
 	/**	Represents a vertical layout that will layout out its child elements top to bottom. */
-	class B3D_EXPORT GUILayoutY final : public GUILayout
+	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(GUI)) GUILayoutY final : public GUILayout, public TGUIConstructionMethodsWithoutContent<GUILayoutY>
 	{
 	public:
+		struct PrivatelyConstruct { };
+
 		GUILayoutY() = default;
-		GUILayoutY(const GUISizeConstraints& sizeConstraints);
+		GUILayoutY(PrivatelyConstruct, const String& styleClass, const GUISizeConstraints& sizeConstraints);
 		~GUILayoutY() = default;
 
-		/**	Creates a new vertical layout. */
-		static GUILayoutY* Create();
-
-		/**
-		 * Creates a new vertical layout.
-		 *
-		 * @param[in]	options		Options that allow you to control how is the element positioned and sized.
-		 */
-		static GUILayoutY* Create(const GUIOptions& options);
+		/** Returns type name of the GUI element used for finding GUI element styles. */
+		static const String& GetGuiTypeName();
 
 	public: // ***** INTERNAL ******
 		/** @name Internal

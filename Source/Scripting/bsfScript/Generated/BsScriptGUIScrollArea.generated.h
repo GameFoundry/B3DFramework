@@ -6,7 +6,7 @@
 #include "BsScriptGUIElementWrapper.h"
 #include "BsScriptGUIInteractable.generated.h"
 #include "../../../Foundation/bsfEngine/GUI/BsGUIUnits.h"
-#include "GUI/BsGUILayout.h"
+#include "../../../Foundation/bsfEngine/GUI/BsGUILayout.h"
 #include "../../../Foundation/bsfEngine/GUI/BsGUIUnits.h"
 #include "../../../Foundation/bsfEngine/GUI/BsGUIUnits.h"
 #include "../../../Foundation/bsfEngine/GUI/BsGUIScrollArea.h"

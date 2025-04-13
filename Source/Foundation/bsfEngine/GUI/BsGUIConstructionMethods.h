@@ -4,6 +4,7 @@
 
 #include "BsPrerequisites.h"
 #include "BsGUIOptions.h"
+#include "BsGUIRenderable.h"
 
 namespace bs
 {

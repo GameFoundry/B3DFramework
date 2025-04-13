@@ -16,7 +16,7 @@ namespace bs
 	{
 	public:
 		GUIPanel() = default;
-		GUIPanel(i16 depth, u16 depthRangeMin, u16 depthRangeMax, const GUISizeConstraints& dimensions);
+		GUIPanel(i16 depth, u16 depthRangeMin, u16 depthRangeMax, const GUISizeConstraints& sizeConstraints);
 		~GUIPanel() = default;
 
 		/**

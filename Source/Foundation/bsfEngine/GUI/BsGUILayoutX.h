@@ -4,6 +4,7 @@
 
 #include "BsPrerequisites.h"
 #include "GUI/BsGUILayout.h"
+#include "BsGUIConstructionMethods.h"
 
 namespace bs
 {
@@ -12,22 +13,17 @@ namespace bs
 	 */
 
 	/** Represents a horizontal layout that will layout out its child elements left to right. */
-	class B3D_EXPORT GUILayoutX final : public GUILayout
+	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(GUI)) GUILayoutX final : public GUILayout, public TGUIConstructionMethodsWithoutContent<GUILayoutX>
 	{
 	public:
+		struct PrivatelyConstruct { };
+
 		GUILayoutX() = default;
-		GUILayoutX(const GUISizeConstraints& dimensions);
+		GUILayoutX(PrivatelyConstruct, const String& styleClass, const GUISizeConstraints& sizeConstraints);
 		~GUILayoutX() = default;
 
-		/**	Creates a new horizontal layout. */
-		static GUILayoutX* Create();
-
-		/**
-		 * Creates a new horizontal layout.
-		 *
-		 * @param[in]	options		Options that allow you to control how is the element positioned and sized.
-		 */
-		static GUILayoutX* Create(const GUIOptions& options);
+		/** Returns type name of the GUI element used for finding GUI element styles. */
+		static const String& GetGuiTypeName();
 
 	public: // ***** INTERNAL ******
 		/** @name Internal

@@ -8,9 +8,15 @@
 
 using namespace bs;
 
-GUILayoutY::GUILayoutY(const GUISizeConstraints& sizeConstraints)
-	: GUILayout(sizeConstraints)
+GUILayoutY::GUILayoutY(PrivatelyConstruct, const String& styleClass, const GUISizeConstraints& sizeConstraints)
+	: GUILayout(styleClass, sizeConstraints)
 {}
+
+const String& GUILayoutY::GetGuiTypeName()
+{
+	static String kName = "GUILayoutY";
+	return kName;
+}
 
 void GUILayoutY::UpdateOptimalLayoutSizes()
 {
@@ -353,14 +359,4 @@ void GUILayoutY::UpdateLayoutForChildren()
 
 	if(mCulling != nullptr)
 		mCulling->RebuildQuadTree(mChildren);
-}
-
-GUILayoutY* GUILayoutY::Create()
-{
-	return B3DNew<GUILayoutY>();
-}
-
-GUILayoutY* GUILayoutY::Create(const GUIOptions& options)
-{
-	return B3DNew<GUILayoutY>(GUISizeConstraints::Create(options));
 }

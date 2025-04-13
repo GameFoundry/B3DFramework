@@ -64,7 +64,7 @@ namespace bs
 	{
 	public:
 		GUIElement() = default;
-		GUIElement(const GUISizeConstraints& dimensions);
+		GUIElement(const GUISizeConstraints& sizeConstraints);
 		virtual ~GUIElement() = default;
 
 		/**

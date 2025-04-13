@@ -39,8 +39,8 @@ namespace bs
 /** @} */
 /** @endcond */
 
-GUIElement::GUIElement(const GUISizeConstraints& dimensions)
-	: mSizeConstraints(dimensions)
+GUIElement::GUIElement(const GUISizeConstraints& sizeConstraints)
+	: mSizeConstraints(sizeConstraints)
 {}
 
 void GUIElement::SetPosition(const GUILogicalPoint& position)

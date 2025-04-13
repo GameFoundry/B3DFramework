@@ -17,9 +17,7 @@ namespace bs
 	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(GUI)) GUIButton : public GUIClickable, public TGUIConstructionMethods<GUIButton, GUIContent>
 	{
 	public:
-		/**
-		 * Returns type name of the GUI element used for finding GUI element styles.
-		 */
+		/** Returns type name of the GUI element used for finding GUI element styles. */
 		static const String& GetGuiTypeName();
 
 	public: // ***** INTERNAL ******

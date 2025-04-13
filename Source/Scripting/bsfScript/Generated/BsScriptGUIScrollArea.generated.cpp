@@ -6,7 +6,7 @@
 #include "BsMonoUtil.h"
 #include "../../../Foundation/bsfEngine/GUI/BsGUIScrollArea.h"
 #include "BsScriptTUnitValue.generated.h"
-#include "Wrappers/GUI/BsScriptGUILayout.h"
+#include "BsScriptGUILayout.generated.h"
 #include "BsScriptTArea2.generated.h"
 #include "BsScriptTUnitValue.generated.h"
 #include "BsScriptGUIScrollArea.generated.h"
