@@ -378,7 +378,12 @@ void GUIWidget::NotifyElementVisibilityChanged(GUIElement* guiElement, bool isVi
 	if(GUIRenderable* const renderable = B3DRTTICast<GUIRenderable>(guiElement))
 	{
 		if(isVisible)
+		{
+			mDirtyContents.insert(renderable); // Ensures GUIRenderElements are created
+
 			mBatches.Add(renderable);
+			mBatches.MarkContentDirty(renderable);
+		}
 		else
 			mBatches.Remove(renderable);
 	}
