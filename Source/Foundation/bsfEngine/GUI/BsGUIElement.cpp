@@ -397,9 +397,6 @@ void GUIElement::SetHiddenRecursive(bool hidden)
 			if(mParentWidget && !IsCulled())
 				mParentWidget->NotifyElementVisibilityChanged(this, true);
 
-			// TODO - Invalidating layout should not be necessary
-			MarkLayoutAsDirty();
-
 			for(auto& child : mChildren)
 				child->SetHiddenRecursive(false);
 		}
@@ -542,9 +539,6 @@ void GUIElement::SetCulled(bool culled)
 				if(element->mParentWidget && !element->IsHidden())
 					element->mParentWidget->NotifyElementVisibilityChanged(element, true);
 
-				// Note we purposefully don't dirty the mesh or contents here, as notifying the widget that an element has because
-				// visible will re-add it to the mesh batches, performing the same operations as if it was dirtied
-
 				for(auto& child : element->mChildren)
 					fnSetCulledRecursive(child, false, fnSetCulledRecursive);
 			}
@@ -599,7 +593,11 @@ void GUIElement::UpdateAbsoluteCoordinates(const GUIPhysicalPointF& parentOrigin
 	mIntermediateAbsolutePosition = (mLayoutData.RelativePosition.To<float>() * parentScale).To<GUIPhysicalUnitF>() + parentOrigin;
 	const GUIPhysicalSizeF intermediateAbsoluteSize = (mLayoutData.Size.To<float>() * parentScale).To<GUIPhysicalUnitF>();
 
-	mIntermediateAbsoluteClippedArea = GUIPhysicalAreaF(mIntermediateAbsolutePosition, intermediateAbsoluteSize);
+	// Account for the fact that the content size may be larger than the calculated layout size (e.g. a scroll area with more elements than it can display)
+	const GUILogicalSize optimalContentSize = CalculateConstrainedSize().Optimal; // TODO - Avoid this call
+	const GUILogicalSize contentSize(Math::Max(optimalContentSize.Width, mLayoutData.Size.Width), Math::Max(optimalContentSize.Height, mLayoutData.Size.Height));
+
+	mIntermediateAbsoluteClippedArea = GUIPhysicalAreaF(mIntermediateAbsolutePosition, (contentSize.To<float>() * parentScale).To<GUIPhysicalUnitF>());
 	mIntermediateAbsoluteClippedArea.Clip(parentVisibleArea);
 
 	mAbsolutePosition = mIntermediateAbsolutePosition.To<GUIPhysicalUnit>();
