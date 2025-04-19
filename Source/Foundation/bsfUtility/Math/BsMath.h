@@ -720,6 +720,13 @@ namespace bs
 			return bs::Min(a, b, args...);
 		}
 
+		/** Returns the minimum value of the two provided. */
+		template <typename T, typename Unit>
+		static TUnitValue<T, Unit> Min(const TUnitValue<T, Unit>& a, const TUnitValue<T, Unit>& b)
+		{
+			return Min(a.Value, b.Value);
+		}
+
 		/** Returns the maximum value of the two provided. */
 		template <typename A, typename B>
 		static std::common_type_t<A, B> Max(const A& a, const B& b)
@@ -732,6 +739,13 @@ namespace bs
 		static std::common_type_t<A, B, Args...> Max(const A& a, const B& b, const Args&... args)
 		{
 			return bs::Max(a, b, args...);
+		}
+
+		/** Returns the maximum value of the two provided. */
+		template <typename T, typename Unit>
+		static TUnitValue<T, Unit> Max(const TUnitValue<T, Unit>& a, const TUnitValue<T, Unit>& b)
+		{
+			return Max(a.Value, b.Value);
 		}
 
 		/** Return the greater common divisor between two values. */
