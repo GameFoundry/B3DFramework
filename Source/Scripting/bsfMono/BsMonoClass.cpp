@@ -6,14 +6,17 @@
 #include "BsMonoProperty.h"
 #include "BsMonoAssembly.h"
 #include "BsMonoManager.h"
-#include "Error/BsException.h"
 #include "BsMonoUtil.h"
 
+#if B3D_USE_DOTNETCORE
+#include "BsMonoLoader.h"
+#else
 #include <mono/jit/jit.h>
 #include <mono/metadata/debug-helpers.h>
 #include <mono/metadata/object.h>
 #include <mono/metadata/class.h>
 #include <mono/metadata/reflection.h>
+#endif
 
 namespace bs {
 size_t MonoClass::MethodId::Hash::operator()(const MonoClass::MethodId& v) const

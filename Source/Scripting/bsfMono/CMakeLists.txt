@@ -29,9 +29,9 @@ target_compile_definitions(bsfMono PUBLIC -DBS_MONO_STATIC_LIB)
 # Libraries
 ## External lib: Mono
 if(B3D_USE_DOTNETCORE)
-	target_link_libraries(bsfMono PUBLIC ${DotNETCoreMono_LIBRARIES})
+	target_link_libraries(bsfMono PRIVATE ${DotNETCoreMono_LIBRARIES})
 else()
-	target_link_libraries(bsfMono PUBLIC ${mono_LIBRARIES})
+	target_link_libraries(bsfMono PRIVATE ${mono_LIBRARIES})
 endif()
 
 ## Local libs
@@ -42,11 +42,13 @@ B3DSetUpPostBuildAndInstallSteps(bsfMono)
 if(B3D_IS_ENGINE)
 	# Target for running generic Mono code
 	add_executable(MonoExec BsMonoExec.cpp)
+	target_link_libraries(MonoExec PRIVATE bsfMono)
 
 	if(B3D_USE_DOTNETCORE)
-		target_link_libraries(MonoExec ${DotNETCoreMono_LIBRARIES})
+		target_link_libraries(MonoExec PRIVATE ${DotNETCoreMono_LIBRARIES})
+		target_compile_definitions(MonoExec PRIVATE -DB3D_USE_DOTNETCORE=1)
 	else()
-		target_link_libraries(MonoExec ${mono_LIBRARIES})
+		target_link_libraries(MonoExec PRIVATE ${mono_LIBRARIES})
 	endif()
 
 	B3DSetUpPostBuildAndInstallSteps(MonoExec)

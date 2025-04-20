@@ -16,7 +16,7 @@ void MonoLoader::Load()
 	if(!B3D_ENSURE(mLibrary == nullptr))
 		return;
 
-	DynamicLibrary* const library = DynamicLibraryManager::Instance().Load("mono");
+	DynamicLibrary* const library = DynamicLibraryManager::Instance().Load("coreclr");
 	if(!B3D_ENSURE(library))
 		return;
 
@@ -32,6 +32,11 @@ void MonoLoader::Unload()
 {
 	if(mLibrary != nullptr)
 	{
+		// Clear all function pointers
+		#define MONO_API_FUNCTION(ret, name, args) name = nullptr;
+		#include "BsMonoLoaderFunctions.h"
+		#undef MONO_API_FUNCTION
+
 		DynamicLibraryManager::Instance().Unload(mLibrary);
 		mLibrary = nullptr;
 	}

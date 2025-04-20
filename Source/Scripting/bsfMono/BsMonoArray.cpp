@@ -4,9 +4,14 @@
 #include "BsMonoManager.h"
 #include "BsMonoClass.h"
 #include "BsMonoUtil.h"
+
+#if B3D_USE_DOTNETCORE
+#include "BsMonoLoader.h"
+#else
 #include <mono/jit/jit.h>
 #include <mono/metadata/object.h>
 #include <mono/metadata/class.h>
+#endif
 
 namespace bs { namespace Detail {
 template <>

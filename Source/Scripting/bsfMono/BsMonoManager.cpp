@@ -7,6 +7,9 @@
 #include "BsMonoUtil.h"
 #include "FileSystem/BsFileSystem.h"
 
+#if B3D_USE_DOTNETCORE
+#include "BsMonoLoader.h"
+#else
 #include "mono/jit/jit.h"
 #include <mono/metadata/assembly.h>
 #include <mono/metadata/mono-config.h>
@@ -15,6 +18,7 @@
 #include <mono/utils/mono-logger.h>
 #include <mono/metadata/threads.h>
 #include <mono/metadata/appdomain.h>
+#endif
 
 using namespace bs;
 
@@ -97,7 +101,6 @@ namespace bs
 MonoManager::MonoManager()
 	: mScriptDomain(nullptr), mRootDomain(nullptr), mCorlibAssembly(nullptr)
 {
-
 #if !B3D_USE_DOTNETCORE
 	Path libDir = Paths::FindPath(kMonoLibDir);
 	Path etcDir = GetMonoEtcFolder();
@@ -106,6 +109,9 @@ MonoManager::MonoManager()
 	mono_set_dirs(libDir.ToString().c_str(), etcDir.ToString().c_str());
 	mono_set_assemblies_path(assembliesDir.ToString().c_str());
 #else
+	MonoLoader::StartUp();
+	MonoLoader::Instance().Load();
+
 	const Path assembliesFolder = GetFrameworkAssembliesFolder();
 	mono_set_assemblies_path(assembliesFolder.ToString().c_str());
 #endif
@@ -162,6 +168,11 @@ MonoManager::MonoManager()
 MonoManager::~MonoManager()
 {
 	UnloadAll();
+
+#if B3D_USE_DOTNETCORE
+	MonoLoader::Instance().Unload();
+	MonoLoader::ShutDown();
+#endif
 }
 
 bs::MonoAssembly& MonoManager::LoadAssembly(const Path& path, const String& name)

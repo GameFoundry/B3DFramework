@@ -35,14 +35,34 @@
 #include "BsMonoLoaderFunctions.h"
 #undef MONO_API_FUNCTION
 
+#define mono_array_addr(array,type,index) ((type*)mono_array_addr_with_size ((array), sizeof (type), (index)))
+#define mono_array_get(array,type,index) ( *(type*)mono_array_addr ((array), type, (index)) )
+#define mono_array_set(array,type,index,value)	\
+	do {	\
+		type *__p = (type *) mono_array_addr ((array), type, (index));	\
+		*__p = (value);	\
+	} while (0)
+#define mono_array_setref(array,index,value)	\
+	do {	\
+		void **__p = (void **) mono_array_addr ((array), void*, (index));	\
+		mono_gc_wbarrier_set_arrayref ((array), __p, (MonoObject*)(value));	\
+		/* *__p = (value);*/	\
+	} while (0)
+#define mono_array_memcpy_refs(dest,destidx,src,srcidx,count)	\
+	do {	\
+		void **__p = (void **) mono_array_addr ((dest), void*, (destidx));	\
+		void **__s = mono_array_addr ((src), void*, (srcidx));	\
+		mono_gc_wbarrier_arrayref_copy (__p, __s, (count));	\
+	} while (0)
+
 namespace bs
 {
 	/** @addtogroup Mono
 	 *  @{
 	 */
 
-	// TODO - Doc
-	class B3D_MONO_EXPORT MonoLoader : Module<MonoLoader>
+	/** Dynamically loads the Mono dynamic library and sets up the function pointers defined in BsMonoLoaderFunctions.h. */
+	class B3D_MONO_EXPORT MonoLoader : public Module<MonoLoader>
 	{
 	public:
 		void Load();

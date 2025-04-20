@@ -8,6 +8,9 @@
 #include "FileSystem/BsDataStream.h"
 #include "Error/BsException.h"
 
+#if B3D_USE_DOTNETCORE
+#include "BsMonoLoader.h"
+#else
 #include <mono/jit/jit.h>
 #include <mono/metadata/assembly.h>
 #include <mono/metadata/debug-helpers.h>
@@ -16,6 +19,7 @@
 #include <mono/metadata/image.h>
 #include <mono/metadata/class.h>
 #include <mono/metadata/object.h>
+#endif
 
 namespace bs {
 size_t MonoAssembly::ClassId::Hash::operator()(const MonoAssembly::ClassId& v) const

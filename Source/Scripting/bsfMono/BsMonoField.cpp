@@ -4,11 +4,15 @@
 #include "BsMonoClass.h"
 #include "BsMonoManager.h"
 
+#if B3D_USE_DOTNETCORE
+#include "BsMonoLoader.h"
+#else
 #include <mono/metadata/attrdefs.h>
 #include <mono/jit/jit.h>
 #include <mono/metadata/class.h>
 #include <mono/metadata/object.h>
 #include <mono/metadata/reflection.h>
+#endif
 
 using namespace bs;
 

@@ -2,16 +2,21 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "BsMonoUtil.h"
 #include "Debug/BsDebug.h"
+#include "String/BsUnicode.h"
+#include "BsMonoAssembly.h"
+#include "BsMonoClass.h"
+#include "BsMonoProperty.h"
+
+#if B3D_USE_DOTNETCORE
+#include "BsMonoLoader.h"
+#else
 #include <mono/jit/jit.h>
 #include <mono/metadata/appdomain.h>
 #include <mono/metadata/object.h>
 #include <mono/metadata/class.h>
 #include <mono/metadata/reflection.h>
-#include "String/BsUnicode.h"
 #include <mono/metadata/mono-debug.h>
-#include "BsMonoAssembly.h"
-#include "BsMonoClass.h"
-#include "BsMonoProperty.h"
+#endif
 
 using namespace bs;
 static bool sGenericHelpersInitialized = false;

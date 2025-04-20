@@ -8,10 +8,15 @@
 #	include <unistd.h>
 #endif
 
+#if B3D_USE_DOTNETCORE
+#include "BsMonoLoader.h"
+#else
 #include <mono/jit/jit.h>
 #include <mono/metadata/assembly.h>
 #include <mono/metadata/mono-config.h>
 #include <mono/metadata/appdomain.h>
+#endif
+
 #include <cstring>
 
 const char* LIB_DIR = "lib/";
@@ -40,6 +45,11 @@ int main(int argc, char* argv[])
 	strcpy(assembliesDir, monoDir);
 	strcat(assembliesDir, ASSEMBLIES_DIR);
 
+#if B3D_USE_DOTNETCORE
+	bs::MonoLoader::StartUp();
+	bs::MonoLoader::Instance().Load();
+#endif
+
 	mono_set_dirs(libDir, etcDir);
 	mono_set_assemblies_path(assembliesDir);
 
@@ -60,6 +70,11 @@ int main(int argc, char* argv[])
 	int returnVal = mono_jit_exec(domain, assembly, argc - 3, argv + 3);
 
 	mono_jit_cleanup(domain);
+
+#if B3D_USE_DOTNETCORE
+	bs::MonoLoader::Instance().Unload();
+	bs::MonoLoader::ShutDown();
+#endif
 
 	return returnVal;
 }
