@@ -19,6 +19,7 @@ namespace bs
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "Light")
 
 		ScriptLight(const GameObjectHandle<CLight>& nativeObject);
+		~ScriptLight();
 
 		static void SetupScriptBindings();
 

@@ -25,6 +25,7 @@ namespace bs
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "PhysicsScene")
 
 		ScriptPhysicsScene(const SPtr<PhysicsScene>& nativeObject);
+		~ScriptPhysicsScene();
 
 		static void SetupScriptBindings();
 

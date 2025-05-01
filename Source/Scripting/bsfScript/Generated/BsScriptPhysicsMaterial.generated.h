@@ -14,6 +14,7 @@ namespace bs
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "PhysicsMaterial")
 
 		ScriptPhysicsMaterial(const TResourceHandle<PhysicsMaterial>& nativeObject);
+		~ScriptPhysicsMaterial();
 
 		static void SetupScriptBindings();
 

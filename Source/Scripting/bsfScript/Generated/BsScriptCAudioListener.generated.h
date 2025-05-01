@@ -14,6 +14,7 @@ namespace bs
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "AudioListener")
 
 		ScriptAudioListener(const GameObjectHandle<CAudioListener>& nativeObject);
+		~ScriptAudioListener();
 
 		static void SetupScriptBindings();
 

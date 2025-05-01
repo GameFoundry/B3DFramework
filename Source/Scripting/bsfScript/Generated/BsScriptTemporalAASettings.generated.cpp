@@ -13,6 +13,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptTemporalAASettings::~ScriptTemporalAASettings()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptTemporalAASettings::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_TemporalAASettings", (void*)&ScriptTemporalAASettings::InternalTemporalAASettings);

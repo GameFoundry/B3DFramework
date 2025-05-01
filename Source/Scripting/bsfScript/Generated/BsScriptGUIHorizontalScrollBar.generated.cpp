@@ -16,6 +16,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptGUIHorizontalScrollBar::~ScriptGUIHorizontalScrollBar()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptGUIHorizontalScrollBar::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_Create", (void*)&ScriptGUIHorizontalScrollBar::InternalCreate);

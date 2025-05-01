@@ -13,6 +13,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptResourceMetaData::~ScriptResourceMetaData()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptResourceMetaData::SetupScriptBindings()
 	{
 

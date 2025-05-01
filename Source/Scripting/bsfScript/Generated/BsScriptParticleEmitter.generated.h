@@ -20,6 +20,7 @@ namespace bs
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "ParticleEmitter")
 
 		ScriptParticleEmitter(const SPtr<ParticleEmitter>& nativeObject);
+		~ScriptParticleEmitter();
 
 		static void SetupScriptBindings();
 

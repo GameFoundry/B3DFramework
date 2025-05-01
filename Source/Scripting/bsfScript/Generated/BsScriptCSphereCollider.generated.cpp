@@ -15,6 +15,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptSphereCollider::~ScriptSphereCollider()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptSphereCollider::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetRadius", (void*)&ScriptSphereCollider::InternalSetRadius);

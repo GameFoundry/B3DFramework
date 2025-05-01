@@ -19,6 +19,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptSpriteGlyph::~ScriptSpriteGlyph()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptSpriteGlyph::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetRef", (void*)&ScriptSpriteGlyph::InternalGetRef);

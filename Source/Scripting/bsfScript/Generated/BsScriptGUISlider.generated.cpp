@@ -17,13 +17,23 @@ namespace bs
 
 	void ScriptGUISliderWrapperBase::RegisterEvents()
 	{
-		static_cast<GUISlider*>(GetNativeObject())->OnChanged.Connect(std::bind(&ScriptGUISliderWrapperBase::OnChanged, this, std::placeholders::_1));
+		OnChangedConnection = static_cast<GUISlider*>(GetNativeObject())->OnChanged.Connect(std::bind(&ScriptGUISliderWrapperBase::OnChanged, this, std::placeholders::_1));
 		ScriptGUIInteractableWrapperBase::RegisterEvents();
+	}
+	void ScriptGUISliderWrapperBase::UnregisterEvents()
+	{
+		OnChangedConnection.Disconnect();
+		ScriptGUIInteractableWrapperBase::UnregisterEvents();
 	}
 	ScriptGUISlider::ScriptGUISlider(GUISlider* nativeObject)
 		:TScriptGUIElementWrapper(nativeObject)
 	{
 		RegisterEvents();
+	}
+
+	ScriptGUISlider::~ScriptGUISlider()
+	{
+		UnregisterEvents();
 	}
 
 	void ScriptGUISlider::SetupScriptBindings()

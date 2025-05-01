@@ -17,6 +17,7 @@ namespace bs
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "ParticleGravity")
 
 		ScriptParticleGravity(const SPtr<ParticleGravity>& nativeObject);
+		~ScriptParticleGravity();
 
 		static void SetupScriptBindings();
 

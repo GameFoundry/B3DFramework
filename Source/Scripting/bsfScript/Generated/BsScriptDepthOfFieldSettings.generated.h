@@ -17,6 +17,7 @@ namespace bs
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "DepthOfFieldSettings")
 
 		ScriptDepthOfFieldSettings(const SPtr<DepthOfFieldSettings>& nativeObject);
+		~ScriptDepthOfFieldSettings();
 
 		static void SetupScriptBindings();
 

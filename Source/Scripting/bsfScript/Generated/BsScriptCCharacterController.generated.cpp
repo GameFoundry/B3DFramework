@@ -20,6 +20,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptCharacterController::~ScriptCharacterController()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptCharacterController::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_Move", (void*)&ScriptCharacterController::InternalMove);
@@ -80,8 +85,13 @@ namespace bs
 
 	void ScriptCharacterController::RegisterEvents()
 	{
-		static_cast<CCharacterController*>(GetNativeObject())->OnColliderHit.Connect(std::bind(&ScriptCharacterController::OnColliderHit, this, std::placeholders::_1));
-		static_cast<CCharacterController*>(GetNativeObject())->OnControllerHit.Connect(std::bind(&ScriptCharacterController::OnControllerHit, this, std::placeholders::_1));
+		OnColliderHitConnection = static_cast<CCharacterController*>(GetNativeObject())->OnColliderHit.Connect(std::bind(&ScriptCharacterController::OnColliderHit, this, std::placeholders::_1));
+		OnControllerHitConnection = static_cast<CCharacterController*>(GetNativeObject())->OnControllerHit.Connect(std::bind(&ScriptCharacterController::OnControllerHit, this, std::placeholders::_1));
+	}
+	void ScriptCharacterController::UnregisterEvents()
+	{
+		OnColliderHitConnection.Disconnect();
+		OnControllerHitConnection.Disconnect();
 	}
 	CharacterCollisionFlag ScriptCharacterController::InternalMove(ScriptCharacterController* self, TVector3<float>* displacement)
 	{

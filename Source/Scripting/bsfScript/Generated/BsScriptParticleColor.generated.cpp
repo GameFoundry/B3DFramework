@@ -15,6 +15,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptParticleColor::~ScriptParticleColor()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptParticleColor::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetOptions", (void*)&ScriptParticleColor::InternalSetOptions);

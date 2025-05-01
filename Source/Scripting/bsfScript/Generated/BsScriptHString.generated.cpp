@@ -14,6 +14,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptLocString::~ScriptLocString()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptLocString::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_HString", (void*)&ScriptLocString::InternalHString);

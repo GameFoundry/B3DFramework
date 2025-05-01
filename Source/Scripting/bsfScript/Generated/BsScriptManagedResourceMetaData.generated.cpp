@@ -13,6 +13,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptManagedResourceMetaData::~ScriptManagedResourceMetaData()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptManagedResourceMetaData::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetTypeNamespace", (void*)&ScriptManagedResourceMetaData::InternalGetTypeNamespace);

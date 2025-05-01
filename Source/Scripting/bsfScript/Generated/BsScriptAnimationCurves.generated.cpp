@@ -21,6 +21,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptAnimationCurves::~ScriptAnimationCurves()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptAnimationCurves::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_AnimationCurves", (void*)&ScriptAnimationCurves::InternalAnimationCurves);

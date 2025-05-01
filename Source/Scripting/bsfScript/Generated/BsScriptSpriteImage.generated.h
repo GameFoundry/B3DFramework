@@ -24,6 +24,7 @@ namespace bs
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "SpriteImage")
 
 		ScriptSpriteImage(const TResourceHandle<SpriteImage>& nativeObject);
+		~ScriptSpriteImage();
 
 		static void SetupScriptBindings();
 

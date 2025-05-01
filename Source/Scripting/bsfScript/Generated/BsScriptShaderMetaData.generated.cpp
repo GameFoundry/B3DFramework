@@ -13,6 +13,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptShaderMetaData::~ScriptShaderMetaData()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptShaderMetaData::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetIncludes", (void*)&ScriptShaderMetaData::InternalGetIncludes);

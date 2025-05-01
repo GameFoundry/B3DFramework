@@ -18,6 +18,7 @@ namespace bs
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "RenderTexture")
 
 		ScriptRenderTexture(const SPtr<RenderTexture>& nativeObject);
+		~ScriptRenderTexture();
 
 		static void SetupScriptBindings();
 

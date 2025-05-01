@@ -16,6 +16,7 @@ namespace bs
 		using ScriptGUIRenderableWrapperBase::ScriptGUIRenderableWrapperBase;
 
 		virtual void RegisterEvents();
+		virtual void UnregisterEvents();
 		void OnFocusGained();
 		void OnFocusLost();
 
@@ -24,6 +25,8 @@ namespace bs
 		typedef void(B3D_THUNKCALL *OnFocusLostThunkDefinition) (MonoObject*, MonoException**);
 		static OnFocusLostThunkDefinition OnFocusLostThunk;
 
+		HEvent OnFocusGainedConnection;
+		HEvent OnFocusLostConnection;
 	};
 
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptGUIInteractable : public TScriptGUIElementWrapper<GUIInteractable, ScriptGUIInteractable, ScriptGUIInteractableWrapperBase>
@@ -32,6 +35,7 @@ namespace bs
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "GUIInteractable")
 
 		ScriptGUIInteractable(GUIInteractable* nativeObject);
+		~ScriptGUIInteractable();
 
 		static void SetupScriptBindings();
 

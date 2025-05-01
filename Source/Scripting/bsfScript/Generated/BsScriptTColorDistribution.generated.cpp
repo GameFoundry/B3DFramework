@@ -16,6 +16,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptColorDistribution::~ScriptColorDistribution()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptColorDistribution::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_TColorDistribution", (void*)&ScriptColorDistribution::InternalTColorDistribution);
@@ -160,6 +165,11 @@ namespace bs
 		:TScriptNonReflectableWrapper(nativeObject)
 	{
 		RegisterEvents();
+	}
+
+	ScriptColorHDRDistribution::~ScriptColorHDRDistribution()
+	{
+		UnregisterEvents();
 	}
 
 	void ScriptColorHDRDistribution::SetupScriptBindings()

@@ -18,6 +18,7 @@ namespace bs
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "ParticleEmitterLineShape")
 
 		ScriptParticleEmitterLineShape(const SPtr<ParticleEmitterLineShape>& nativeObject);
+		~ScriptParticleEmitterLineShape();
 
 		static void SetupScriptBindings();
 

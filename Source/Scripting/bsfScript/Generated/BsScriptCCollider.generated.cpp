@@ -45,15 +45,27 @@ namespace bs
 
 	void ScriptColliderWrapperBase::RegisterEvents()
 	{
-		static_cast<CCollider*>(GetNativeObject())->OnCollisionBegin.Connect(std::bind(&ScriptColliderWrapperBase::OnCollisionBegin, this, std::placeholders::_1));
-		static_cast<CCollider*>(GetNativeObject())->OnCollisionStay.Connect(std::bind(&ScriptColliderWrapperBase::OnCollisionStay, this, std::placeholders::_1));
-		static_cast<CCollider*>(GetNativeObject())->OnCollisionEnd.Connect(std::bind(&ScriptColliderWrapperBase::OnCollisionEnd, this, std::placeholders::_1));
+		OnCollisionBeginConnection = static_cast<CCollider*>(GetNativeObject())->OnCollisionBegin.Connect(std::bind(&ScriptColliderWrapperBase::OnCollisionBegin, this, std::placeholders::_1));
+		OnCollisionStayConnection = static_cast<CCollider*>(GetNativeObject())->OnCollisionStay.Connect(std::bind(&ScriptColliderWrapperBase::OnCollisionStay, this, std::placeholders::_1));
+		OnCollisionEndConnection = static_cast<CCollider*>(GetNativeObject())->OnCollisionEnd.Connect(std::bind(&ScriptColliderWrapperBase::OnCollisionEnd, this, std::placeholders::_1));
 		ScriptGameObjectWrapper::RegisterEvents();
+	}
+	void ScriptColliderWrapperBase::UnregisterEvents()
+	{
+		OnCollisionBeginConnection.Disconnect();
+		OnCollisionStayConnection.Disconnect();
+		OnCollisionEndConnection.Disconnect();
+		ScriptGameObjectWrapper::UnregisterEvents();
 	}
 	ScriptCollider::ScriptCollider(const GameObjectHandle<CCollider>& nativeObject)
 		:TScriptGameObjectWrapper(nativeObject)
 	{
 		RegisterEvents();
+	}
+
+	ScriptCollider::~ScriptCollider()
+	{
+		UnregisterEvents();
 	}
 
 	void ScriptCollider::SetupScriptBindings()

@@ -24,6 +24,7 @@ namespace bs
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "Mesh")
 
 		ScriptMesh(const TResourceHandle<Mesh>& nativeObject);
+		~ScriptMesh();
 
 		static void SetupScriptBindings();
 

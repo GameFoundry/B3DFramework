@@ -16,6 +16,7 @@ namespace bs
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "BloomSettings")
 
 		ScriptBloomSettings(const SPtr<BloomSettings>& nativeObject);
+		~ScriptBloomSettings();
 
 		static void SetupScriptBindings();
 

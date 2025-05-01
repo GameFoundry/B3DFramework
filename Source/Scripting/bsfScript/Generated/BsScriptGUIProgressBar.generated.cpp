@@ -16,6 +16,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptGUIProgressBar::~ScriptGUIProgressBar()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptGUIProgressBar::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetPercent", (void*)&ScriptGUIProgressBar::InternalSetPercent);

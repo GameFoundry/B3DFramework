@@ -15,6 +15,7 @@ namespace bs
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "MeshCollider")
 
 		ScriptMeshCollider(const GameObjectHandle<CMeshCollider>& nativeObject);
+		~ScriptMeshCollider();
 
 		static void SetupScriptBindings();
 

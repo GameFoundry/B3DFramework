@@ -15,6 +15,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptParticleRotation::~ScriptParticleRotation()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptParticleRotation::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetOptions", (void*)&ScriptParticleRotation::InternalSetOptions);

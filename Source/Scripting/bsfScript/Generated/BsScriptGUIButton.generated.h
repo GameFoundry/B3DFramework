@@ -20,6 +20,7 @@ namespace bs
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "GUIButton")
 
 		ScriptGUIButton(GUIButton* nativeObject);
+		~ScriptGUIButton();
 
 		static void SetupScriptBindings();
 

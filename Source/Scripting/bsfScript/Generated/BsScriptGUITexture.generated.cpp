@@ -20,6 +20,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptGUITexture::~ScriptGUITexture()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptGUITexture::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetImage", (void*)&ScriptGUITexture::InternalSetImage);

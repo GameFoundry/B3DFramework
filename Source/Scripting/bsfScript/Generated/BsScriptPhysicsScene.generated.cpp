@@ -25,6 +25,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptPhysicsScene::~ScriptPhysicsScene()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptPhysicsScene::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_RayCast", (void*)&ScriptPhysicsScene::InternalRayCast);

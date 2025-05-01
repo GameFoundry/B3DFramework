@@ -36,16 +36,29 @@ namespace bs
 
 	void ScriptGUIClickableWrapperBase::RegisterEvents()
 	{
-		static_cast<GUIClickable*>(GetNativeObject())->OnClick.Connect(std::bind(&ScriptGUIClickableWrapperBase::OnClick, this));
-		static_cast<GUIClickable*>(GetNativeObject())->OnHover.Connect(std::bind(&ScriptGUIClickableWrapperBase::OnHover, this));
-		static_cast<GUIClickable*>(GetNativeObject())->OnOut.Connect(std::bind(&ScriptGUIClickableWrapperBase::OnOut, this));
-		static_cast<GUIClickable*>(GetNativeObject())->OnDoubleClick.Connect(std::bind(&ScriptGUIClickableWrapperBase::OnDoubleClick, this));
+		OnClickConnection = static_cast<GUIClickable*>(GetNativeObject())->OnClick.Connect(std::bind(&ScriptGUIClickableWrapperBase::OnClick, this));
+		OnHoverConnection = static_cast<GUIClickable*>(GetNativeObject())->OnHover.Connect(std::bind(&ScriptGUIClickableWrapperBase::OnHover, this));
+		OnOutConnection = static_cast<GUIClickable*>(GetNativeObject())->OnOut.Connect(std::bind(&ScriptGUIClickableWrapperBase::OnOut, this));
+		OnDoubleClickConnection = static_cast<GUIClickable*>(GetNativeObject())->OnDoubleClick.Connect(std::bind(&ScriptGUIClickableWrapperBase::OnDoubleClick, this));
 		ScriptGUIInteractableWrapperBase::RegisterEvents();
+	}
+	void ScriptGUIClickableWrapperBase::UnregisterEvents()
+	{
+		OnClickConnection.Disconnect();
+		OnHoverConnection.Disconnect();
+		OnOutConnection.Disconnect();
+		OnDoubleClickConnection.Disconnect();
+		ScriptGUIInteractableWrapperBase::UnregisterEvents();
 	}
 	ScriptGUIClickable::ScriptGUIClickable(GUIClickable* nativeObject)
 		:TScriptGUIElementWrapper(nativeObject)
 	{
 		RegisterEvents();
+	}
+
+	ScriptGUIClickable::~ScriptGUIClickable()
+	{
+		UnregisterEvents();
 	}
 
 	void ScriptGUIClickable::SetupScriptBindings()

@@ -15,6 +15,7 @@ namespace bs
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "AmbientOcclusionSettings")
 
 		ScriptAmbientOcclusionSettings(const SPtr<AmbientOcclusionSettings>& nativeObject);
+		~ScriptAmbientOcclusionSettings();
 
 		static void SetupScriptBindings();
 

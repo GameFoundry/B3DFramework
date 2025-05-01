@@ -17,11 +17,13 @@ namespace bs
 		using ScriptGameObjectWrapper::ScriptGameObjectWrapper;
 
 		virtual void RegisterEvents();
+		virtual void UnregisterEvents();
 		void OnJointBreak();
 
 		typedef void(B3D_THUNKCALL *OnJointBreakThunkDefinition) (MonoObject*, MonoException**);
 		static OnJointBreakThunkDefinition OnJointBreakThunk;
 
+		HEvent OnJointBreakConnection;
 	};
 
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptJoint : public TScriptGameObjectWrapper<CJoint, ScriptJoint, ScriptJointWrapperBase>
@@ -30,6 +32,7 @@ namespace bs
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "Joint")
 
 		ScriptJoint(const GameObjectHandle<CJoint>& nativeObject);
+		~ScriptJoint();
 
 		static void SetupScriptBindings();
 

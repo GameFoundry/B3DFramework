@@ -18,6 +18,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptAnimationUtility::~ScriptAnimationUtility()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptAnimationUtility::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_EulerToQuaternionCurve", (void*)&ScriptAnimationUtility::InternalEulerToQuaternionCurve);

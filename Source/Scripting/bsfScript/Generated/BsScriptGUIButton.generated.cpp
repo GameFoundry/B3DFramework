@@ -17,6 +17,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptGUIButton::~ScriptGUIButton()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptGUIButton::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_Create", (void*)&ScriptGUIButton::InternalCreate);

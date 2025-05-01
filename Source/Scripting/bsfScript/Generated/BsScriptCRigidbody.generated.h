@@ -22,10 +22,12 @@ namespace bs
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "Rigidbody")
 
 		ScriptRigidbody(const GameObjectHandle<CRigidbody>& nativeObject);
+		~ScriptRigidbody();
 
 		static void SetupScriptBindings();
 
 		virtual void RegisterEvents();
+		virtual void UnregisterEvents();
 		static MonoObject* CreateScriptObject(bool construct);
 
 	private:
@@ -40,6 +42,9 @@ namespace bs
 		typedef void(B3D_THUNKCALL *OnCollisionEndThunkDefinition) (MonoObject*, MonoObject* p0, MonoException**);
 		static OnCollisionEndThunkDefinition OnCollisionEndThunk;
 
+		HEvent OnCollisionBeginConnection;
+		HEvent OnCollisionStayConnection;
+		HEvent OnCollisionEndConnection;
 		static void InternalMove(ScriptRigidbody* self, TVector3<float>* position);
 		static void InternalRotate(ScriptRigidbody* self, TQuaternion<float>* rotation);
 		static void InternalSetMass(ScriptRigidbody* self, float mass);

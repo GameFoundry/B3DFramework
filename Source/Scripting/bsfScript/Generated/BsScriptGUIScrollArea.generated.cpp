@@ -21,6 +21,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptGUIScrollArea::~ScriptGUIScrollArea()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptGUIScrollArea::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetLayout", (void*)&ScriptGUIScrollArea::InternalGetLayout);

@@ -20,6 +20,7 @@ namespace bs
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "MeshImportOptions")
 
 		ScriptMeshImportOptions(const SPtr<MeshImportOptions>& nativeObject);
+		~ScriptMeshImportOptions();
 
 		static void SetupScriptBindings();
 

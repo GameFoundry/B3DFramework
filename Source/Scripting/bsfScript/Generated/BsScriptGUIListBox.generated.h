@@ -21,10 +21,12 @@ namespace bs
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "GUIListBox")
 
 		ScriptGUIListBox(GUIListBox* nativeObject);
+		~ScriptGUIListBox();
 
 		static void SetupScriptBindings();
 
 		virtual void RegisterEvents();
+		virtual void UnregisterEvents();
 		static MonoObject* CreateScriptObject(bool construct);
 
 	private:
@@ -33,6 +35,7 @@ namespace bs
 		typedef void(B3D_THUNKCALL *OnSelectionToggledThunkDefinition) (MonoObject*, uint32_t p0, bool p1, MonoException**);
 		static OnSelectionToggledThunkDefinition OnSelectionToggledThunk;
 
+		HEvent OnSelectionToggledConnection;
 		static bool InternalIsMultiselect(ScriptGUIListBox* self);
 		static void InternalSetElements(ScriptGUIListBox* self, MonoArray* elements);
 		static void InternalSelectElement(ScriptGUIListBox* self, uint32_t index);

@@ -18,6 +18,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptLightProbeVolume::~ScriptLightProbeVolume()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptLightProbeVolume::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_AddProbe", (void*)&ScriptLightProbeVolume::InternalAddProbe);

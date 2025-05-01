@@ -18,6 +18,7 @@ namespace bs
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "ParticleRotation")
 
 		ScriptParticleRotation(const SPtr<ParticleRotation>& nativeObject);
+		~ScriptParticleRotation();
 
 		static void SetupScriptBindings();
 

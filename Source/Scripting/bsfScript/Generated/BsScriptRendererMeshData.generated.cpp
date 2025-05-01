@@ -22,6 +22,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptRendererMeshData::~ScriptRendererMeshData()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptRendererMeshData::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetData", (void*)&ScriptRendererMeshData::InternalGetData);

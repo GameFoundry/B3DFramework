@@ -20,6 +20,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptAnimationClip::~ScriptAnimationClip()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptAnimationClip::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetRef", (void*)&ScriptAnimationClip::InternalGetRef);

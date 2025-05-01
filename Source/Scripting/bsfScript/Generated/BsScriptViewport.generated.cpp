@@ -19,6 +19,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptViewport::~ScriptViewport()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptViewport::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetTarget", (void*)&ScriptViewport::InternalSetTarget);

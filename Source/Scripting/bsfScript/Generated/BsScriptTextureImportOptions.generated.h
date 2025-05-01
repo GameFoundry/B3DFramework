@@ -19,6 +19,7 @@ namespace bs
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "TextureImportOptions")
 
 		ScriptTextureImportOptions(const SPtr<TextureImportOptions>& nativeObject);
+		~ScriptTextureImportOptions();
 
 		static void SetupScriptBindings();
 

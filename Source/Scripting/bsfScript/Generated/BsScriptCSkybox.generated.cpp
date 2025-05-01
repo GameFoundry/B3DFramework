@@ -17,6 +17,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptSkybox::~ScriptSkybox()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptSkybox::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetTexture", (void*)&ScriptSkybox::InternalGetTexture);

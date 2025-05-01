@@ -15,6 +15,7 @@ namespace bs
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "ManagedObjectInfo")
 
 		ScriptManagedObjectInfo(const SPtr<ManagedObjectInfo>& nativeObject);
+		~ScriptManagedObjectInfo();
 
 		static void SetupScriptBindings();
 

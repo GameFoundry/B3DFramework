@@ -15,6 +15,7 @@ namespace bs
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "FixedJoint")
 
 		ScriptFixedJoint(const GameObjectHandle<CFixedJoint>& nativeObject);
+		~ScriptFixedJoint();
 
 		static void SetupScriptBindings();
 

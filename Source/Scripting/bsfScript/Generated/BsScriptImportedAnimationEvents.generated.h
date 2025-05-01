@@ -18,6 +18,7 @@ namespace bs
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "ImportedAnimationEvents")
 
 		ScriptImportedAnimationEvents(const SPtr<ImportedAnimationEvents>& nativeObject);
+		~ScriptImportedAnimationEvents();
 
 		static void SetupScriptBindings();
 

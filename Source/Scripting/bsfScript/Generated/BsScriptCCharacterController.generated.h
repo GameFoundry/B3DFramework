@@ -23,10 +23,12 @@ namespace bs
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "CharacterController")
 
 		ScriptCharacterController(const GameObjectHandle<CCharacterController>& nativeObject);
+		~ScriptCharacterController();
 
 		static void SetupScriptBindings();
 
 		virtual void RegisterEvents();
+		virtual void UnregisterEvents();
 		static MonoObject* CreateScriptObject(bool construct);
 
 	private:
@@ -38,6 +40,8 @@ namespace bs
 		typedef void(B3D_THUNKCALL *OnControllerHitThunkDefinition) (MonoObject*, MonoObject* p0, MonoException**);
 		static OnControllerHitThunkDefinition OnControllerHitThunk;
 
+		HEvent OnColliderHitConnection;
+		HEvent OnControllerHitConnection;
 		static CharacterCollisionFlag InternalMove(ScriptCharacterController* self, TVector3<float>* displacement);
 		static void InternalGetFootPosition(ScriptCharacterController* self, TVector3<float>* __output);
 		static void InternalSetFootPosition(ScriptCharacterController* self, TVector3<float>* position);

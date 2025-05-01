@@ -17,6 +17,7 @@ namespace bs
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "RootMotion")
 
 		ScriptRootMotion(const SPtr<RootMotion>& nativeObject);
+		~ScriptRootMotion();
 
 		static void SetupScriptBindings();
 

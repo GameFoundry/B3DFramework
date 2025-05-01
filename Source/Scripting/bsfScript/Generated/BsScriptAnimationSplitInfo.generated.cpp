@@ -14,6 +14,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptAnimationSplitInfo::~ScriptAnimationSplitInfo()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptAnimationSplitInfo::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_AnimationSplitInfo", (void*)&ScriptAnimationSplitInfo::InternalAnimationSplitInfo);

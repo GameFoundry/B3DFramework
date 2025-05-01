@@ -13,6 +13,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptShaderVariationParameters::~ScriptShaderVariationParameters()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptShaderVariationParameters::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_ShaderVariationParameters", (void*)&ScriptShaderVariationParameters::InternalShaderVariationParameters);

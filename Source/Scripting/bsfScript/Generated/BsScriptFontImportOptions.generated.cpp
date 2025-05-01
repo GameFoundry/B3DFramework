@@ -16,6 +16,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptFontImportOptions::~ScriptFontImportOptions()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptFontImportOptions::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetFontSizes", (void*)&ScriptFontImportOptions::InternalGetFontSizes);

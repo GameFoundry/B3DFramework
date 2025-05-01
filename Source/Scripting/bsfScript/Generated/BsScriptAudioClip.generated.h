@@ -16,6 +16,7 @@ namespace bs
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "AudioClip")
 
 		ScriptAudioClip(const TResourceHandle<AudioClip>& nativeObject);
+		~ScriptAudioClip();
 
 		static void SetupScriptBindings();
 

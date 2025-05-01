@@ -13,6 +13,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptShadowSettings::~ScriptShadowSettings()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptShadowSettings::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_ShadowSettings", (void*)&ScriptShadowSettings::InternalShadowSettings);

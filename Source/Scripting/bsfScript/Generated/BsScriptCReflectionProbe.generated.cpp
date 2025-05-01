@@ -18,6 +18,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptReflectionProbe::~ScriptReflectionProbe()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptReflectionProbe::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetType", (void*)&ScriptReflectionProbe::InternalGetType);

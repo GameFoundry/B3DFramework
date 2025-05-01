@@ -19,10 +19,12 @@ namespace bs
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "GUIInputBox")
 
 		ScriptGUIInputBox(GUIInputBox* nativeObject);
+		~ScriptGUIInputBox();
 
 		static void SetupScriptBindings();
 
 		virtual void RegisterEvents();
+		virtual void UnregisterEvents();
 		static MonoObject* CreateScriptObject(bool construct);
 
 	private:
@@ -34,6 +36,8 @@ namespace bs
 		typedef void(B3D_THUNKCALL *OnConfirmThunkDefinition) (MonoObject*, MonoException**);
 		static OnConfirmThunkDefinition OnConfirmThunk;
 
+		HEvent OnValueChangedConnection;
+		HEvent OnConfirmConnection;
 		static void InternalSetText(ScriptGUIInputBox* self, MonoString* text);
 		static MonoString* InternalGetText(ScriptGUIInputBox* self);
 		static void InternalCreate(MonoObject* scriptObject, GUIInputBoxContent* contents, MonoString* styleClass, MonoArray* options);

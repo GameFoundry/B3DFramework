@@ -18,6 +18,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptDecal::~ScriptDecal()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptDecal::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetMaterial", (void*)&ScriptDecal::InternalSetMaterial);

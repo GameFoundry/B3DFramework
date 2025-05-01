@@ -14,6 +14,7 @@ namespace bs
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "Skybox")
 
 		ScriptSkybox(const GameObjectHandle<CSkybox>& nativeObject);
+		~ScriptSkybox();
 
 		static void SetupScriptBindings();
 

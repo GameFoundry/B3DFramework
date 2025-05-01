@@ -14,6 +14,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptMorphChannel::~ScriptMorphChannel()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptMorphChannel::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetName", (void*)&ScriptMorphChannel::InternalGetName);

@@ -18,6 +18,7 @@ namespace bs
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "SpriteTexture")
 
 		ScriptSpriteTexture(const TResourceHandle<SpriteTexture>& nativeObject);
+		~ScriptSpriteTexture();
 
 		static void SetupScriptBindings();
 

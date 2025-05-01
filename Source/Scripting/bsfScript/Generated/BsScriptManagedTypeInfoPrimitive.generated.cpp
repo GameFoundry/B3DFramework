@@ -13,6 +13,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptManagedTypeInfoPrimitive::~ScriptManagedTypeInfoPrimitive()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptManagedTypeInfoPrimitive::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetPrimitiveType", (void*)&ScriptManagedTypeInfoPrimitive::InternalGetPrimitiveType);

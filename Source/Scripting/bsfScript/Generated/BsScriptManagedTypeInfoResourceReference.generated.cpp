@@ -15,6 +15,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptManagedTypeInfoResourceReference::~ScriptManagedTypeInfoResourceReference()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptManagedTypeInfoResourceReference::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetResourceType", (void*)&ScriptManagedTypeInfoResourceReference::InternalGetResourceType);

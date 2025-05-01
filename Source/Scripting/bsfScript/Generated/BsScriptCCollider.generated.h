@@ -17,6 +17,7 @@ namespace bs
 		using ScriptGameObjectWrapper::ScriptGameObjectWrapper;
 
 		virtual void RegisterEvents();
+		virtual void UnregisterEvents();
 		void OnCollisionBegin(const CollisionData& p0);
 		void OnCollisionStay(const CollisionData& p0);
 		void OnCollisionEnd(const CollisionData& p0);
@@ -28,6 +29,9 @@ namespace bs
 		typedef void(B3D_THUNKCALL *OnCollisionEndThunkDefinition) (MonoObject*, MonoObject* p0, MonoException**);
 		static OnCollisionEndThunkDefinition OnCollisionEndThunk;
 
+		HEvent OnCollisionBeginConnection;
+		HEvent OnCollisionStayConnection;
+		HEvent OnCollisionEndConnection;
 	};
 
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptCollider : public TScriptGameObjectWrapper<CCollider, ScriptCollider, ScriptColliderWrapperBase>
@@ -36,6 +40,7 @@ namespace bs
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "Collider")
 
 		ScriptCollider(const GameObjectHandle<CCollider>& nativeObject);
+		~ScriptCollider();
 
 		static void SetupScriptBindings();
 

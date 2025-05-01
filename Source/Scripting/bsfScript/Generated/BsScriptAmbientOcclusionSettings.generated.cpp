@@ -13,6 +13,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptAmbientOcclusionSettings::~ScriptAmbientOcclusionSettings()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptAmbientOcclusionSettings::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_AmbientOcclusionSettings", (void*)&ScriptAmbientOcclusionSettings::InternalAmbientOcclusionSettings);

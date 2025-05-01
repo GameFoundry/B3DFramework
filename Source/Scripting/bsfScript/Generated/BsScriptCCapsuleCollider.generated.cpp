@@ -15,6 +15,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptCapsuleCollider::~ScriptCapsuleCollider()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptCapsuleCollider::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetNormal", (void*)&ScriptCapsuleCollider::InternalSetNormal);

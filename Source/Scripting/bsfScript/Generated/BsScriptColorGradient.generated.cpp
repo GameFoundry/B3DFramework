@@ -17,6 +17,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptColorGradient::~ScriptColorGradient()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptColorGradient::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_ColorGradient", (void*)&ScriptColorGradient::InternalColorGradient);

@@ -19,6 +19,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptPhysicsMesh::~ScriptPhysicsMesh()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptPhysicsMesh::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetRef", (void*)&ScriptPhysicsMesh::InternalGetRef);

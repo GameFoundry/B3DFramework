@@ -22,6 +22,7 @@ namespace bs
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "ParticleSystemSettings")
 
 		ScriptParticleSystemSettings(const SPtr<ParticleSystemSettings>& nativeObject);
+		~ScriptParticleSystemSettings();
 
 		static void SetupScriptBindings();
 

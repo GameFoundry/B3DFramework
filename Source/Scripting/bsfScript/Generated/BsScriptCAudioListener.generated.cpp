@@ -14,6 +14,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptAudioListener::~ScriptAudioListener()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptAudioListener::SetupScriptBindings()
 	{
 

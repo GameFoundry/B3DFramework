@@ -13,6 +13,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptMeshData::~ScriptMeshData()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptMeshData::SetupScriptBindings()
 	{
 

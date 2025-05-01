@@ -15,6 +15,7 @@ namespace bs
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "FilmGrainSettings")
 
 		ScriptFilmGrainSettings(const SPtr<FilmGrainSettings>& nativeObject);
+		~ScriptFilmGrainSettings();
 
 		static void SetupScriptBindings();
 

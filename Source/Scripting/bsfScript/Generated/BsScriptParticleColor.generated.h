@@ -18,6 +18,7 @@ namespace bs
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "ParticleColor")
 
 		ScriptParticleColor(const SPtr<ParticleColor>& nativeObject);
+		~ScriptParticleColor();
 
 		static void SetupScriptBindings();
 

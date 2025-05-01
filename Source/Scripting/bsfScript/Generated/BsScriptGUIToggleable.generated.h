@@ -15,11 +15,13 @@ namespace bs
 		using ScriptGUIClickableWrapperBase::ScriptGUIClickableWrapperBase;
 
 		virtual void RegisterEvents();
+		virtual void UnregisterEvents();
 		void OnToggled(bool p0);
 
 		typedef void(B3D_THUNKCALL *OnToggledThunkDefinition) (MonoObject*, bool p0, MonoException**);
 		static OnToggledThunkDefinition OnToggledThunk;
 
+		HEvent OnToggledConnection;
 	};
 
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptGUIToggleable : public TScriptGUIElementWrapper<GUIToggleable, ScriptGUIToggleable, ScriptGUIToggleableWrapperBase>
@@ -28,6 +30,7 @@ namespace bs
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "GUIToggleable")
 
 		ScriptGUIToggleable(GUIToggleable* nativeObject);
+		~ScriptGUIToggleable();
 
 		static void SetupScriptBindings();
 

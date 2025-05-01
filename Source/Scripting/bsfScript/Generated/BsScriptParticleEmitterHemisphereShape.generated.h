@@ -17,6 +17,7 @@ namespace bs
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "ParticleEmitterHemisphereShape")
 
 		ScriptParticleEmitterHemisphereShape(const SPtr<ParticleEmitterHemisphereShape>& nativeObject);
+		~ScriptParticleEmitterHemisphereShape();
 
 		static void SetupScriptBindings();
 

@@ -15,6 +15,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptAudioClipImportOptions::~ScriptAudioClipImportOptions()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptAudioClipImportOptions::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetFormat", (void*)&ScriptAudioClipImportOptions::InternalGetFormat);

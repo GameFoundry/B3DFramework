@@ -16,6 +16,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptGUIHorizontalSlider::~ScriptGUIHorizontalSlider()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptGUIHorizontalSlider::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_Create", (void*)&ScriptGUIHorizontalSlider::InternalCreate);

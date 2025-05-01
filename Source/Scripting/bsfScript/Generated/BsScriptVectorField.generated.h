@@ -17,6 +17,7 @@ namespace bs
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "VectorField")
 
 		ScriptVectorField(const TResourceHandle<VectorField>& nativeObject);
+		~ScriptVectorField();
 
 		static void SetupScriptBindings();
 

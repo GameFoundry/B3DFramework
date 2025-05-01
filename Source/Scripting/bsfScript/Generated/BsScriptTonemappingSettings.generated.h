@@ -15,6 +15,7 @@ namespace bs
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "TonemappingSettings")
 
 		ScriptTonemappingSettings(const SPtr<TonemappingSettings>& nativeObject);
+		~ScriptTonemappingSettings();
 
 		static void SetupScriptBindings();
 

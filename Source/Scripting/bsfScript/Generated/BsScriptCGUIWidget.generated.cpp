@@ -17,6 +17,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptGUIWidget::~ScriptGUIWidget()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptGUIWidget::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetPanel", (void*)&ScriptGUIWidget::InternalGetPanel);

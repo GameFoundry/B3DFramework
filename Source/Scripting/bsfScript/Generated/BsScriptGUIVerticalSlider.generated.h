@@ -18,6 +18,7 @@ namespace bs
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "GUIVerticalSlider")
 
 		ScriptGUIVerticalSlider(GUIVerticalSlider* nativeObject);
+		~ScriptGUIVerticalSlider();
 
 		static void SetupScriptBindings();
 

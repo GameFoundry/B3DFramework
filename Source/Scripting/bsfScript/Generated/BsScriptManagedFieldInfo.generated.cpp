@@ -13,6 +13,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptManagedFieldInfo::~ScriptManagedFieldInfo()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptManagedFieldInfo::SetupScriptBindings()
 	{
 

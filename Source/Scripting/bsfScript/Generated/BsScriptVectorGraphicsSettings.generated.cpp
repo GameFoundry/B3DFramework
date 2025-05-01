@@ -14,6 +14,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptVectorGraphicsSettings::~ScriptVectorGraphicsSettings()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptVectorGraphicsSettings::SetupScriptBindings()
 	{
 

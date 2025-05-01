@@ -16,6 +16,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptHingeJoint::~ScriptHingeJoint()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptHingeJoint::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetAngle", (void*)&ScriptHingeJoint::InternalGetAngle);

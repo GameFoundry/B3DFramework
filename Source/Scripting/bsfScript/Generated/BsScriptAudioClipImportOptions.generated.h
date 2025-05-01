@@ -19,6 +19,7 @@ namespace bs
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "AudioClipImportOptions")
 
 		ScriptAudioClipImportOptions(const SPtr<AudioClipImportOptions>& nativeObject);
+		~ScriptAudioClipImportOptions();
 
 		static void SetupScriptBindings();
 

@@ -23,10 +23,12 @@ namespace bs
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "Animation")
 
 		ScriptAnimation(const GameObjectHandle<CAnimation>& nativeObject);
+		~ScriptAnimation();
 
 		static void SetupScriptBindings();
 
 		virtual void RegisterEvents();
+		virtual void UnregisterEvents();
 		static MonoObject* CreateScriptObject(bool construct);
 
 	private:

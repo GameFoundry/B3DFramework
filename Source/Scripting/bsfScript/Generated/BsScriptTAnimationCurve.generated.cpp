@@ -21,6 +21,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptAnimationCurve::~ScriptAnimationCurve()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptAnimationCurve::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_TAnimationCurve", (void*)&ScriptAnimationCurve::InternalTAnimationCurve);
@@ -93,6 +98,11 @@ namespace bs
 		:TScriptNonReflectableWrapper(nativeObject)
 	{
 		RegisterEvents();
+	}
+
+	ScriptVector3Curve::~ScriptVector3Curve()
+	{
+		UnregisterEvents();
 	}
 
 	void ScriptVector3Curve::SetupScriptBindings()
@@ -169,6 +179,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptVector2Curve::~ScriptVector2Curve()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptVector2Curve::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_TAnimationCurve", (void*)&ScriptVector2Curve::InternalTAnimationCurve);
@@ -243,6 +258,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptQuaternionCurve::~ScriptQuaternionCurve()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptQuaternionCurve::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_TAnimationCurve", (void*)&ScriptQuaternionCurve::InternalTAnimationCurve);
@@ -315,6 +335,11 @@ namespace bs
 		:TScriptNonReflectableWrapper(nativeObject)
 	{
 		RegisterEvents();
+	}
+
+	ScriptIntegerCurve::~ScriptIntegerCurve()
+	{
+		UnregisterEvents();
 	}
 
 	void ScriptIntegerCurve::SetupScriptBindings()

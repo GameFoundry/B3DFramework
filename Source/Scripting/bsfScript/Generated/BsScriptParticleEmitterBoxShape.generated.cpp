@@ -15,6 +15,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptParticleEmitterBoxShape::~ScriptParticleEmitterBoxShape()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptParticleEmitterBoxShape::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetOptions", (void*)&ScriptParticleEmitterBoxShape::InternalSetOptions);

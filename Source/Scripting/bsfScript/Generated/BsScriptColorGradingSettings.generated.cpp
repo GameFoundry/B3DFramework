@@ -14,6 +14,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptColorGradingSettings::~ScriptColorGradingSettings()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptColorGradingSettings::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetSaturation", (void*)&ScriptColorGradingSettings::InternalGetSaturation);

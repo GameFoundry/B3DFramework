@@ -15,6 +15,7 @@ namespace bs
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "AutoExposureSettings")
 
 		ScriptAutoExposureSettings(const SPtr<AutoExposureSettings>& nativeObject);
+		~ScriptAutoExposureSettings();
 
 		static void SetupScriptBindings();
 

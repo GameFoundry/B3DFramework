@@ -14,6 +14,7 @@ namespace bs
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "VectorPath")
 
 		ScriptVectorPath(const TResourceHandle<VectorPath>& nativeObject);
+		~ScriptVectorPath();
 
 		static void SetupScriptBindings();
 

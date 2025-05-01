@@ -26,6 +26,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptAnimation::~ScriptAnimation()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptAnimation::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetDefaultClip", (void*)&ScriptAnimation::InternalSetDefaultClip);
@@ -109,6 +114,9 @@ namespace bs
 		static_cast<CAnimation*>(GetNativeObject())->ScriptRebuildFloatPropertiesInternal = std::bind(&ScriptAnimation::ScriptRebuildFloatPropertiesInternal, this, std::placeholders::_1);
 		static_cast<CAnimation*>(GetNativeObject())->ScriptUpdateFloatPropertiesInternal = std::bind(&ScriptAnimation::ScriptUpdateFloatPropertiesInternal, this);
 		static_cast<CAnimation*>(GetNativeObject())->ScriptOnEventTriggeredInternal = std::bind(&ScriptAnimation::ScriptOnEventTriggeredInternal, this, std::placeholders::_1, std::placeholders::_2);
+	}
+	void ScriptAnimation::UnregisterEvents()
+	{
 	}
 	void ScriptAnimation::InternalSetDefaultClip(ScriptAnimation* self, MonoObject* clip)
 	{

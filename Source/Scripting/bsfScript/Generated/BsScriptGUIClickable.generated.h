@@ -17,6 +17,7 @@ namespace bs
 		using ScriptGUIInteractableWrapperBase::ScriptGUIInteractableWrapperBase;
 
 		virtual void RegisterEvents();
+		virtual void UnregisterEvents();
 		void OnClick();
 		void OnHover();
 		void OnOut();
@@ -31,6 +32,10 @@ namespace bs
 		typedef void(B3D_THUNKCALL *OnDoubleClickThunkDefinition) (MonoObject*, MonoException**);
 		static OnDoubleClickThunkDefinition OnDoubleClickThunk;
 
+		HEvent OnClickConnection;
+		HEvent OnHoverConnection;
+		HEvent OnOutConnection;
+		HEvent OnDoubleClickConnection;
 	};
 
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptGUIClickable : public TScriptGUIElementWrapper<GUIClickable, ScriptGUIClickable, ScriptGUIClickableWrapperBase>
@@ -39,6 +44,7 @@ namespace bs
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "GUIClickable")
 
 		ScriptGUIClickable(GUIClickable* nativeObject);
+		~ScriptGUIClickable();
 
 		static void SetupScriptBindings();
 

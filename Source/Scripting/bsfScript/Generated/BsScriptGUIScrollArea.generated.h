@@ -24,6 +24,7 @@ namespace bs
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "GUIScrollArea")
 
 		ScriptGUIScrollArea(GUIScrollArea* nativeObject);
+		~ScriptGUIScrollArea();
 
 		static void SetupScriptBindings();
 

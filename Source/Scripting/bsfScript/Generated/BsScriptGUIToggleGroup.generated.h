@@ -14,6 +14,7 @@ namespace bs
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "GUIToggleGroup")
 
 		ScriptGUIToggleGroup(const SPtr<GUIToggleGroup>& nativeObject);
+		~ScriptGUIToggleGroup();
 
 		static void SetupScriptBindings();
 

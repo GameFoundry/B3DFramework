@@ -17,6 +17,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptGUIToggle::~ScriptGUIToggle()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptGUIToggle::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_Create", (void*)&ScriptGUIToggle::InternalCreate);

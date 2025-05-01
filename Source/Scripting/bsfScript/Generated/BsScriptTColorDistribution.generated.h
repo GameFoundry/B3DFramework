@@ -22,6 +22,7 @@ namespace bs
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "ColorDistribution")
 
 		ScriptColorDistribution(const SPtr<TColorDistribution<ColorGradient>>& nativeObject);
+		~ScriptColorDistribution();
 
 		static void SetupScriptBindings();
 
@@ -46,6 +47,7 @@ namespace bs
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "ColorHDRDistribution")
 
 		ScriptColorHDRDistribution(const SPtr<TColorDistribution<ColorGradientHDR>>& nativeObject);
+		~ScriptColorHDRDistribution();
 
 		static void SetupScriptBindings();
 

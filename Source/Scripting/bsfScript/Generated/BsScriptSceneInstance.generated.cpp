@@ -18,6 +18,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptSceneInstance::~ScriptSceneInstance()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptSceneInstance::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetName", (void*)&ScriptSceneInstance::InternalGetName);

@@ -16,6 +16,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptGUIVerticalScrollBar::~ScriptGUIVerticalScrollBar()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptGUIVerticalScrollBar::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_Create", (void*)&ScriptGUIVerticalScrollBar::InternalCreate);

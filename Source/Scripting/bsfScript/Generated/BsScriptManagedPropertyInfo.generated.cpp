@@ -13,6 +13,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptManagedPropertyInfo::~ScriptManagedPropertyInfo()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptManagedPropertyInfo::SetupScriptBindings()
 	{
 

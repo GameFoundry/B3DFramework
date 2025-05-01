@@ -18,6 +18,7 @@ namespace bs
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "ParticleEmitterCircleShape")
 
 		ScriptParticleEmitterCircleShape(const SPtr<ParticleEmitterCircleShape>& nativeObject);
+		~ScriptParticleEmitterCircleShape();
 
 		static void SetupScriptBindings();
 

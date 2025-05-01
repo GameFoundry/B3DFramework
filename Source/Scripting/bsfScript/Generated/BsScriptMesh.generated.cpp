@@ -24,6 +24,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptMesh::~ScriptMesh()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptMesh::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetRef", (void*)&ScriptMesh::InternalGetRef);

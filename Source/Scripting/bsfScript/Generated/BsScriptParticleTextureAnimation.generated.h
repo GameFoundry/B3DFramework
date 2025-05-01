@@ -17,6 +17,7 @@ namespace bs
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "ParticleTextureAnimation")
 
 		ScriptParticleTextureAnimation(const SPtr<ParticleTextureAnimation>& nativeObject);
+		~ScriptParticleTextureAnimation();
 
 		static void SetupScriptBindings();
 

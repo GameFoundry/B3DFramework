@@ -13,6 +13,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptFilmGrainSettings::~ScriptFilmGrainSettings()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptFilmGrainSettings::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_FilmGrainSettings", (void*)&ScriptFilmGrainSettings::InternalFilmGrainSettings);

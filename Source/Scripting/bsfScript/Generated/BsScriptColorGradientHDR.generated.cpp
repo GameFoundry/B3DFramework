@@ -17,6 +17,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptColorGradientHDR::~ScriptColorGradientHDR()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptColorGradientHDR::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_ColorGradientHDR", (void*)&ScriptColorGradientHDR::InternalColorGradientHDR);

@@ -17,6 +17,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptParticleCollisions::~ScriptParticleCollisions()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptParticleCollisions::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetPlanes", (void*)&ScriptParticleCollisions::InternalSetPlanes);

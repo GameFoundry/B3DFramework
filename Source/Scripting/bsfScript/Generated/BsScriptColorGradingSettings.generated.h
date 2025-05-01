@@ -16,6 +16,7 @@ namespace bs
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "ColorGradingSettings")
 
 		ScriptColorGradingSettings(const SPtr<ColorGradingSettings>& nativeObject);
+		~ScriptColorGradingSettings();
 
 		static void SetupScriptBindings();
 

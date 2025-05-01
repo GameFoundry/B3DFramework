@@ -19,6 +19,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptFloatDistribution::~ScriptFloatDistribution()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptFloatDistribution::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_TDistribution", (void*)&ScriptFloatDistribution::InternalTDistribution);
@@ -200,6 +205,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptVector3Distribution::~ScriptVector3Distribution()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptVector3Distribution::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_TDistribution", (void*)&ScriptVector3Distribution::InternalTDistribution);
@@ -379,6 +389,11 @@ namespace bs
 		:TScriptNonReflectableWrapper(nativeObject)
 	{
 		RegisterEvents();
+	}
+
+	ScriptVector2Distribution::~ScriptVector2Distribution()
+	{
+		UnregisterEvents();
 	}
 
 	void ScriptVector2Distribution::SetupScriptBindings()

@@ -17,6 +17,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptMeshImportOptions::~ScriptMeshImportOptions()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptMeshImportOptions::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetCpuCached", (void*)&ScriptMeshImportOptions::InternalGetCpuCached);

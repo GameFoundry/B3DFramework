@@ -14,6 +14,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptFixedJoint::~ScriptFixedJoint()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptFixedJoint::SetupScriptBindings()
 	{
 

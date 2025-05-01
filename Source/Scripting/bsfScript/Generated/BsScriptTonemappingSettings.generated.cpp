@@ -13,6 +13,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptTonemappingSettings::~ScriptTonemappingSettings()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptTonemappingSettings::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_TonemappingSettings", (void*)&ScriptTonemappingSettings::InternalTonemappingSettings);

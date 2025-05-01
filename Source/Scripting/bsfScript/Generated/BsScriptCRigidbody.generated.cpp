@@ -21,6 +21,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptRigidbody::~ScriptRigidbody()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptRigidbody::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_Move", (void*)&ScriptRigidbody::InternalMove);
@@ -109,9 +114,15 @@ namespace bs
 
 	void ScriptRigidbody::RegisterEvents()
 	{
-		static_cast<CRigidbody*>(GetNativeObject())->OnCollisionBegin.Connect(std::bind(&ScriptRigidbody::OnCollisionBegin, this, std::placeholders::_1));
-		static_cast<CRigidbody*>(GetNativeObject())->OnCollisionStay.Connect(std::bind(&ScriptRigidbody::OnCollisionStay, this, std::placeholders::_1));
-		static_cast<CRigidbody*>(GetNativeObject())->OnCollisionEnd.Connect(std::bind(&ScriptRigidbody::OnCollisionEnd, this, std::placeholders::_1));
+		OnCollisionBeginConnection = static_cast<CRigidbody*>(GetNativeObject())->OnCollisionBegin.Connect(std::bind(&ScriptRigidbody::OnCollisionBegin, this, std::placeholders::_1));
+		OnCollisionStayConnection = static_cast<CRigidbody*>(GetNativeObject())->OnCollisionStay.Connect(std::bind(&ScriptRigidbody::OnCollisionStay, this, std::placeholders::_1));
+		OnCollisionEndConnection = static_cast<CRigidbody*>(GetNativeObject())->OnCollisionEnd.Connect(std::bind(&ScriptRigidbody::OnCollisionEnd, this, std::placeholders::_1));
+	}
+	void ScriptRigidbody::UnregisterEvents()
+	{
+		OnCollisionBeginConnection.Disconnect();
+		OnCollisionStayConnection.Disconnect();
+		OnCollisionEndConnection.Disconnect();
 	}
 	void ScriptRigidbody::InternalMove(ScriptRigidbody* self, TVector3<float>* position)
 	{

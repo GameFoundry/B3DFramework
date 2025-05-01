@@ -18,6 +18,7 @@ namespace bs
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "SpriteVectorPath")
 
 		ScriptSpriteVectorPath(const TResourceHandle<SpriteVectorPath>& nativeObject);
+		~ScriptSpriteVectorPath();
 
 		static void SetupScriptBindings();
 

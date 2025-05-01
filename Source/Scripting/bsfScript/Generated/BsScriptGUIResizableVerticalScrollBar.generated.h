@@ -18,6 +18,7 @@ namespace bs
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "GUIResizableVerticalScrollBar")
 
 		ScriptGUIResizableVerticalScrollBar(GUIResizableVerticalScrollBar* nativeObject);
+		~ScriptGUIResizableVerticalScrollBar();
 
 		static void SetupScriptBindings();
 

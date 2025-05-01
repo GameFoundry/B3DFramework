@@ -19,6 +19,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptParticleSystemSettings::~ScriptParticleSystemSettings()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptParticleSystemSettings::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetMaterial", (void*)&ScriptParticleSystemSettings::InternalGetMaterial);

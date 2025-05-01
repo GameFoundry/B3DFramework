@@ -15,6 +15,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptSkeleton::~ScriptSkeleton()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptSkeleton::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetNumBones", (void*)&ScriptSkeleton::InternalGetNumBones);

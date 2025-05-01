@@ -38,6 +38,7 @@ namespace bs
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "AnimationCurve")
 
 		ScriptAnimationCurve(const SPtr<TAnimationCurve<float>>& nativeObject);
+		~ScriptAnimationCurve();
 
 		static void SetupScriptBindings();
 
@@ -55,6 +56,7 @@ namespace bs
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "Vector3Curve")
 
 		ScriptVector3Curve(const SPtr<TAnimationCurve<TVector3<float>>>& nativeObject);
+		~ScriptVector3Curve();
 
 		static void SetupScriptBindings();
 
@@ -72,6 +74,7 @@ namespace bs
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "Vector2Curve")
 
 		ScriptVector2Curve(const SPtr<TAnimationCurve<TVector2<float>>>& nativeObject);
+		~ScriptVector2Curve();
 
 		static void SetupScriptBindings();
 
@@ -89,6 +92,7 @@ namespace bs
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "QuaternionCurve")
 
 		ScriptQuaternionCurve(const SPtr<TAnimationCurve<TQuaternion<float>>>& nativeObject);
+		~ScriptQuaternionCurve();
 
 		static void SetupScriptBindings();
 
@@ -106,6 +110,7 @@ namespace bs
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "IntegerCurve")
 
 		ScriptIntegerCurve(const SPtr<TAnimationCurve<int32_t>>& nativeObject);
+		~ScriptIntegerCurve();
 
 		static void SetupScriptBindings();
 

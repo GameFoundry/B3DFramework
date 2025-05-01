@@ -15,6 +15,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptParticleForce::~ScriptParticleForce()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptParticleForce::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetOptions", (void*)&ScriptParticleForce::InternalSetOptions);

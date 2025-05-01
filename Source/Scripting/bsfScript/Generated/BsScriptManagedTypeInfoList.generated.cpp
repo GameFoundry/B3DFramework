@@ -15,6 +15,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptManagedTypeInfoList::~ScriptManagedTypeInfoList()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptManagedTypeInfoList::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetElementType", (void*)&ScriptManagedTypeInfoList::InternalGetElementType);

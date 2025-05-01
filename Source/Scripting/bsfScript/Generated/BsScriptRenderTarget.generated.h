@@ -23,6 +23,7 @@ namespace bs
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "RenderTarget")
 
 		ScriptRenderTarget(const SPtr<RenderTarget>& nativeObject);
+		~ScriptRenderTarget();
 
 		static void SetupScriptBindings();
 

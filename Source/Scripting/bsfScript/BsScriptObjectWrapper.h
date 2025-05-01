@@ -87,6 +87,9 @@ namespace bs
 		/** Used by derived classes to connect callbacks to native object events. */
 		virtual void RegisterEvents() { }
 
+		/** Used by derived classes to disconnect callbacks to native object events. */
+		virtual void UnregisterEvents() { }
+
 		void NotifyScriptObjectDestroyed(bool isDestroyedDueToScriptReload) override;
 		void NotifyNativeObjectDestroyed() override;
 

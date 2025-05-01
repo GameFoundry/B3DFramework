@@ -15,6 +15,7 @@ namespace bs
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "StringTable")
 
 		ScriptStringTable(const TResourceHandle<StringTable>& nativeObject);
+		~ScriptStringTable();
 
 		static void SetupScriptBindings();
 

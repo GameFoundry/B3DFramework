@@ -16,6 +16,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptGUILayoutX::~ScriptGUILayoutX()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptGUILayoutX::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_Create", (void*)&ScriptGUILayoutX::InternalCreate);

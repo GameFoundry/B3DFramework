@@ -20,6 +20,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptSpriteTexture::~ScriptSpriteTexture()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptSpriteTexture::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetRef", (void*)&ScriptSpriteTexture::InternalGetRef);

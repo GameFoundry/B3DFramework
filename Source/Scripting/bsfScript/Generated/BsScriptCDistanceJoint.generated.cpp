@@ -15,6 +15,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptDistanceJoint::~ScriptDistanceJoint()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptDistanceJoint::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetDistance", (void*)&ScriptDistanceJoint::InternalGetDistance);

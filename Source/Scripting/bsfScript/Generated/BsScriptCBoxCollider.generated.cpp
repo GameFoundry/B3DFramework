@@ -15,6 +15,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptBoxCollider::~ScriptBoxCollider()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptBoxCollider::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetExtents", (void*)&ScriptBoxCollider::InternalSetExtents);

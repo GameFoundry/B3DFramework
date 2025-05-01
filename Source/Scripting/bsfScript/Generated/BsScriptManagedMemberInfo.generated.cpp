@@ -16,6 +16,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptManagedMemberInfo::~ScriptManagedMemberInfo()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptManagedMemberInfo::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_IsSerializable", (void*)&ScriptManagedMemberInfo::InternalIsSerializable);

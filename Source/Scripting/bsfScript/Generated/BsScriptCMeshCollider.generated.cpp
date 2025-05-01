@@ -17,6 +17,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptMeshCollider::~ScriptMeshCollider()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptMeshCollider::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetMesh", (void*)&ScriptMeshCollider::InternalSetMesh);

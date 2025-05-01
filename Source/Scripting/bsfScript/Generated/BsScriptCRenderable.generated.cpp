@@ -18,6 +18,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptRenderable::~ScriptRenderable()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptRenderable::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetMesh", (void*)&ScriptRenderable::InternalSetMesh);

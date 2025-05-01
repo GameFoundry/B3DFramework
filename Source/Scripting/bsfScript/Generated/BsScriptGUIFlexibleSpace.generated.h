@@ -15,6 +15,7 @@ namespace bs
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "GUIFlexibleSpace")
 
 		ScriptGUIFlexibleSpace(GUIFlexibleSpace* nativeObject);
+		~ScriptGUIFlexibleSpace();
 
 		static void SetupScriptBindings();
 

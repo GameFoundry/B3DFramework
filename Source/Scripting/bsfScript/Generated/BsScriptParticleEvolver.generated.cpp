@@ -13,6 +13,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptParticleEvolver::~ScriptParticleEvolver()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptParticleEvolver::SetupScriptBindings()
 	{
 

@@ -20,6 +20,7 @@ namespace bs
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "ParticleGpuSimulationSettings")
 
 		ScriptParticleGpuSimulationSettings(const SPtr<ParticleGpuSimulationSettings>& nativeObject);
+		~ScriptParticleGpuSimulationSettings();
 
 		static void SetupScriptBindings();
 

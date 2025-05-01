@@ -15,11 +15,13 @@ namespace bs
 		using ScriptGUIInteractableWrapperBase::ScriptGUIInteractableWrapperBase;
 
 		virtual void RegisterEvents();
+		virtual void UnregisterEvents();
 		void OnScrollOrResize(float p0, float p1);
 
 		typedef void(B3D_THUNKCALL *OnScrollOrResizeThunkDefinition) (MonoObject*, float p0, float p1, MonoException**);
 		static OnScrollOrResizeThunkDefinition OnScrollOrResizeThunk;
 
+		HEvent OnScrollOrResizeConnection;
 	};
 
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptGUIScrollBar : public TScriptGUIElementWrapper<GUIScrollBar, ScriptGUIScrollBar, ScriptGUIScrollBarWrapperBase>
@@ -28,6 +30,7 @@ namespace bs
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "GUIScrollBar")
 
 		ScriptGUIScrollBar(GUIScrollBar* nativeObject);
+		~ScriptGUIScrollBar();
 
 		static void SetupScriptBindings();
 

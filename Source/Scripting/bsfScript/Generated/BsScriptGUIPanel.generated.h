@@ -19,6 +19,7 @@ namespace bs
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "GUIPanel")
 
 		ScriptGUIPanel(GUIPanel* nativeObject);
+		~ScriptGUIPanel();
 
 		static void SetupScriptBindings();
 

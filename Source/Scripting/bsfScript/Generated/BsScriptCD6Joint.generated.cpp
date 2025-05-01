@@ -20,6 +20,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptD6Joint::~ScriptD6Joint()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptD6Joint::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetMotion", (void*)&ScriptD6Joint::InternalGetMotion);

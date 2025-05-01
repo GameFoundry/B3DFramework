@@ -17,6 +17,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptGUILabel::~ScriptGUILabel()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptGUILabel::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetContent", (void*)&ScriptGUILabel::InternalSetContent);

@@ -15,6 +15,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptParticleTextureAnimation::~ScriptParticleTextureAnimation()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptParticleTextureAnimation::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetOptions", (void*)&ScriptParticleTextureAnimation::InternalSetOptions);

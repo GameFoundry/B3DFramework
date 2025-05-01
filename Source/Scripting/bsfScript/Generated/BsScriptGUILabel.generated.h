@@ -20,6 +20,7 @@ namespace bs
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "GUILabel")
 
 		ScriptGUILabel(GUILabel* nativeObject);
+		~ScriptGUILabel();
 
 		static void SetupScriptBindings();
 

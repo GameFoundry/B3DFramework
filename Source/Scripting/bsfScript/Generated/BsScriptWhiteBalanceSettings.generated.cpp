@@ -13,6 +13,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptWhiteBalanceSettings::~ScriptWhiteBalanceSettings()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptWhiteBalanceSettings::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_WhiteBalanceSettings", (void*)&ScriptWhiteBalanceSettings::InternalWhiteBalanceSettings);

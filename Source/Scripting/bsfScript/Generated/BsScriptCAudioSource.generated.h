@@ -15,6 +15,7 @@ namespace bs
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "AudioSource")
 
 		ScriptAudioSource(const GameObjectHandle<CAudioSource>& nativeObject);
+		~ScriptAudioSource();
 
 		static void SetupScriptBindings();
 

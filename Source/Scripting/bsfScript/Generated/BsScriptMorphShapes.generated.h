@@ -15,6 +15,7 @@ namespace bs
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "MorphShapes")
 
 		ScriptMorphShapes(const SPtr<MorphShapes>& nativeObject);
+		~ScriptMorphShapes();
 
 		static void SetupScriptBindings();
 

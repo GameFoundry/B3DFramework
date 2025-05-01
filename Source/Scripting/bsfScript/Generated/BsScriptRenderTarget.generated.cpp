@@ -14,6 +14,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptRenderTarget::~ScriptRenderTarget()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptRenderTarget::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetWidth", (void*)&ScriptRenderTarget::InternalGetWidth);

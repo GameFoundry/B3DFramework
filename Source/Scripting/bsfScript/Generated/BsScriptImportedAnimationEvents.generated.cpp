@@ -15,6 +15,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptImportedAnimationEvents::~ScriptImportedAnimationEvents()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptImportedAnimationEvents::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_ImportedAnimationEvents", (void*)&ScriptImportedAnimationEvents::InternalImportedAnimationEvents);

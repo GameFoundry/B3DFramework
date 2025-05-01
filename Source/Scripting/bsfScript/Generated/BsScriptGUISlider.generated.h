@@ -15,11 +15,13 @@ namespace bs
 		using ScriptGUIInteractableWrapperBase::ScriptGUIInteractableWrapperBase;
 
 		virtual void RegisterEvents();
+		virtual void UnregisterEvents();
 		void OnChanged(float p0);
 
 		typedef void(B3D_THUNKCALL *OnChangedThunkDefinition) (MonoObject*, float p0, MonoException**);
 		static OnChangedThunkDefinition OnChangedThunk;
 
+		HEvent OnChangedConnection;
 	};
 
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptGUISlider : public TScriptGUIElementWrapper<GUISlider, ScriptGUISlider, ScriptGUISliderWrapperBase>
@@ -28,6 +30,7 @@ namespace bs
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "GUISlider")
 
 		ScriptGUISlider(GUISlider* nativeObject);
+		~ScriptGUISlider();
 
 		static void SetupScriptBindings();
 

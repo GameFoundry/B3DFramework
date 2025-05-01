@@ -18,6 +18,7 @@ namespace bs
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "MotionBlurSettings")
 
 		ScriptMotionBlurSettings(const SPtr<MotionBlurSettings>& nativeObject);
+		~ScriptMotionBlurSettings();
 
 		static void SetupScriptBindings();
 

@@ -13,6 +13,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptMorphShape::~ScriptMorphShape()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptMorphShape::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetName", (void*)&ScriptMorphShape::InternalGetName);

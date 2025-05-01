@@ -18,6 +18,7 @@ namespace bs
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "Skeleton")
 
 		ScriptSkeleton(const SPtr<Skeleton>& nativeObject);
+		~ScriptSkeleton();
 
 		static void SetupScriptBindings();
 

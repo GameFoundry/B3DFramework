@@ -16,6 +16,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptSpriteImage::~ScriptSpriteImage()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptSpriteImage::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetRef", (void*)&ScriptSpriteImage::InternalGetRef);

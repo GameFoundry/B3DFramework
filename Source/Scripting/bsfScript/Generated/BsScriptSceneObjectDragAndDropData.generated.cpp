@@ -14,6 +14,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptSceneObjectDragAndDropData::~ScriptSceneObjectDragAndDropData()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptSceneObjectDragAndDropData::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SceneObjectDragAndDropData", (void*)&ScriptSceneObjectDragAndDropData::InternalSceneObjectDragAndDropData);

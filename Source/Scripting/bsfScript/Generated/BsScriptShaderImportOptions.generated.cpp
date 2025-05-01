@@ -15,6 +15,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptShaderImportOptions::~ScriptShaderImportOptions()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptShaderImportOptions::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetDefine", (void*)&ScriptShaderImportOptions::InternalSetDefine);

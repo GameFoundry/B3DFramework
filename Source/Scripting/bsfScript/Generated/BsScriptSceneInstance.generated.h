@@ -15,6 +15,7 @@ namespace bs
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "SceneInstance")
 
 		ScriptSceneInstance(const SPtr<SceneInstance>& nativeObject);
+		~ScriptSceneInstance();
 
 		static void SetupScriptBindings();
 

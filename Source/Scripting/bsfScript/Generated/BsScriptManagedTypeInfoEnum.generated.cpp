@@ -13,6 +13,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptManagedTypeInfoEnum::~ScriptManagedTypeInfoEnum()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptManagedTypeInfoEnum::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetUnderlyingType", (void*)&ScriptManagedTypeInfoEnum::InternalGetUnderlyingType);

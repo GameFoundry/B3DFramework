@@ -15,6 +15,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptParticleSize::~ScriptParticleSize()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptParticleSize::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetOptions", (void*)&ScriptParticleSize::InternalSetOptions);

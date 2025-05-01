@@ -16,6 +16,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptLight::~ScriptLight()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptLight::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetType", (void*)&ScriptLight::InternalSetType);

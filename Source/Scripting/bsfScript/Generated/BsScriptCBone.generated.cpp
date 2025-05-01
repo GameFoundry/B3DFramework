@@ -14,6 +14,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptBone::~ScriptBone()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptBone::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetBoneName", (void*)&ScriptBone::InternalSetBoneName);

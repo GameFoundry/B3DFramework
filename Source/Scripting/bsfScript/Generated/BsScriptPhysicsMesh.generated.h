@@ -16,6 +16,7 @@ namespace bs
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "PhysicsMesh")
 
 		ScriptPhysicsMesh(const TResourceHandle<PhysicsMesh>& nativeObject);
+		~ScriptPhysicsMesh();
 
 		static void SetupScriptBindings();
 

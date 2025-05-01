@@ -19,6 +19,7 @@ namespace bs
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "Shader")
 
 		ScriptShader(const TResourceHandle<Shader>& nativeObject);
+		~ScriptShader();
 
 		static void SetupScriptBindings();
 

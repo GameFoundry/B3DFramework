@@ -22,6 +22,7 @@ namespace bs
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "GUIRenderable")
 
 		ScriptGUIRenderable(GUIRenderable* nativeObject);
+		~ScriptGUIRenderable();
 
 		static void SetupScriptBindings();
 

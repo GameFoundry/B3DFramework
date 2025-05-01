@@ -13,6 +13,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptParticleDepthCollisionSettings::~ScriptParticleDepthCollisionSettings()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptParticleDepthCollisionSettings::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_ParticleDepthCollisionSettings", (void*)&ScriptParticleDepthCollisionSettings::InternalParticleDepthCollisionSettings);

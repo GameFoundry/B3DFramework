@@ -13,6 +13,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptScreenSpaceLensFlareSettings::~ScriptScreenSpaceLensFlareSettings()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptScreenSpaceLensFlareSettings::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_ScreenSpaceLensFlareSettings", (void*)&ScriptScreenSpaceLensFlareSettings::InternalScreenSpaceLensFlareSettings);

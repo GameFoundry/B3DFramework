@@ -15,6 +15,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptParticleGravity::~ScriptParticleGravity()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptParticleGravity::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetOptions", (void*)&ScriptParticleGravity::InternalSetOptions);

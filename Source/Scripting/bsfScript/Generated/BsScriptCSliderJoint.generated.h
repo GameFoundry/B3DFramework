@@ -18,6 +18,7 @@ namespace bs
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "SliderJoint")
 
 		ScriptSliderJoint(const GameObjectHandle<CSliderJoint>& nativeObject);
+		~ScriptSliderJoint();
 
 		static void SetupScriptBindings();
 

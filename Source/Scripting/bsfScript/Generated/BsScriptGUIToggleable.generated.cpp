@@ -17,13 +17,23 @@ namespace bs
 
 	void ScriptGUIToggleableWrapperBase::RegisterEvents()
 	{
-		static_cast<GUIToggleable*>(GetNativeObject())->OnToggled.Connect(std::bind(&ScriptGUIToggleableWrapperBase::OnToggled, this, std::placeholders::_1));
+		OnToggledConnection = static_cast<GUIToggleable*>(GetNativeObject())->OnToggled.Connect(std::bind(&ScriptGUIToggleableWrapperBase::OnToggled, this, std::placeholders::_1));
 		ScriptGUIClickableWrapperBase::RegisterEvents();
+	}
+	void ScriptGUIToggleableWrapperBase::UnregisterEvents()
+	{
+		OnToggledConnection.Disconnect();
+		ScriptGUIClickableWrapperBase::UnregisterEvents();
 	}
 	ScriptGUIToggleable::ScriptGUIToggleable(GUIToggleable* nativeObject)
 		:TScriptGUIElementWrapper(nativeObject)
 	{
 		RegisterEvents();
+	}
+
+	ScriptGUIToggleable::~ScriptGUIToggleable()
+	{
+		UnregisterEvents();
 	}
 
 	void ScriptGUIToggleable::SetupScriptBindings()

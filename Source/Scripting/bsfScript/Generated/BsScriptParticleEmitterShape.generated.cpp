@@ -13,6 +13,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptParticleEmitterShape::~ScriptParticleEmitterShape()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptParticleEmitterShape::SetupScriptBindings()
 	{
 

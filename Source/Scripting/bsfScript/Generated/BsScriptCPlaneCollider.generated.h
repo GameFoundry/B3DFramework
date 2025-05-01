@@ -16,6 +16,7 @@ namespace bs
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "PlaneCollider")
 
 		ScriptPlaneCollider(const GameObjectHandle<CPlaneCollider>& nativeObject);
+		~ScriptPlaneCollider();
 
 		static void SetupScriptBindings();
 

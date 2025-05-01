@@ -27,6 +27,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptRenderSettings::~ScriptRenderSettings()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptRenderSettings::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_RenderSettings", (void*)&ScriptRenderSettings::InternalRenderSettings);

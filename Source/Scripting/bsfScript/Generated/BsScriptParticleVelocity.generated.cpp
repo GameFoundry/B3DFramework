@@ -15,6 +15,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptParticleVelocity::~ScriptParticleVelocity()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptParticleVelocity::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetOptions", (void*)&ScriptParticleVelocity::InternalSetOptions);

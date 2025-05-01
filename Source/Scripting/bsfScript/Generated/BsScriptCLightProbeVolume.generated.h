@@ -20,6 +20,7 @@ namespace bs
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "LightProbeVolume")
 
 		ScriptLightProbeVolume(const GameObjectHandle<CLightProbeVolume>& nativeObject);
+		~ScriptLightProbeVolume();
 
 		static void SetupScriptBindings();
 

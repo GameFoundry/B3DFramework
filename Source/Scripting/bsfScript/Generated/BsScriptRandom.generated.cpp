@@ -16,6 +16,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptRandom::~ScriptRandom()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptRandom::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_Random", (void*)&ScriptRandom::InternalRandom);

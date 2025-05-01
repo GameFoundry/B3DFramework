@@ -18,6 +18,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptParticleGpuSimulationSettings::~ScriptParticleGpuSimulationSettings()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptParticleGpuSimulationSettings::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetVectorField", (void*)&ScriptParticleGpuSimulationSettings::InternalGetVectorField);

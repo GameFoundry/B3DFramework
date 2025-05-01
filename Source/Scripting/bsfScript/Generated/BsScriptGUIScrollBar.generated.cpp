@@ -17,13 +17,23 @@ namespace bs
 
 	void ScriptGUIScrollBarWrapperBase::RegisterEvents()
 	{
-		static_cast<GUIScrollBar*>(GetNativeObject())->OnScrollOrResize.Connect(std::bind(&ScriptGUIScrollBarWrapperBase::OnScrollOrResize, this, std::placeholders::_1, std::placeholders::_2));
+		OnScrollOrResizeConnection = static_cast<GUIScrollBar*>(GetNativeObject())->OnScrollOrResize.Connect(std::bind(&ScriptGUIScrollBarWrapperBase::OnScrollOrResize, this, std::placeholders::_1, std::placeholders::_2));
 		ScriptGUIInteractableWrapperBase::RegisterEvents();
+	}
+	void ScriptGUIScrollBarWrapperBase::UnregisterEvents()
+	{
+		OnScrollOrResizeConnection.Disconnect();
+		ScriptGUIInteractableWrapperBase::UnregisterEvents();
 	}
 	ScriptGUIScrollBar::ScriptGUIScrollBar(GUIScrollBar* nativeObject)
 		:TScriptGUIElementWrapper(nativeObject)
 	{
 		RegisterEvents();
+	}
+
+	ScriptGUIScrollBar::~ScriptGUIScrollBar()
+	{
+		UnregisterEvents();
 	}
 
 	void ScriptGUIScrollBar::SetupScriptBindings()

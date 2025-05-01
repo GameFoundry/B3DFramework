@@ -24,14 +24,25 @@ namespace bs
 
 	void ScriptGUIInteractableWrapperBase::RegisterEvents()
 	{
-		static_cast<GUIInteractable*>(GetNativeObject())->OnFocusGained.Connect(std::bind(&ScriptGUIInteractableWrapperBase::OnFocusGained, this));
-		static_cast<GUIInteractable*>(GetNativeObject())->OnFocusLost.Connect(std::bind(&ScriptGUIInteractableWrapperBase::OnFocusLost, this));
+		OnFocusGainedConnection = static_cast<GUIInteractable*>(GetNativeObject())->OnFocusGained.Connect(std::bind(&ScriptGUIInteractableWrapperBase::OnFocusGained, this));
+		OnFocusLostConnection = static_cast<GUIInteractable*>(GetNativeObject())->OnFocusLost.Connect(std::bind(&ScriptGUIInteractableWrapperBase::OnFocusLost, this));
 		ScriptGUIRenderableWrapperBase::RegisterEvents();
+	}
+	void ScriptGUIInteractableWrapperBase::UnregisterEvents()
+	{
+		OnFocusGainedConnection.Disconnect();
+		OnFocusLostConnection.Disconnect();
+		ScriptGUIRenderableWrapperBase::UnregisterEvents();
 	}
 	ScriptGUIInteractable::ScriptGUIInteractable(GUIInteractable* nativeObject)
 		:TScriptGUIElementWrapper(nativeObject)
 	{
 		RegisterEvents();
+	}
+
+	ScriptGUIInteractable::~ScriptGUIInteractable()
+	{
+		UnregisterEvents();
 	}
 
 	void ScriptGUIInteractable::SetupScriptBindings()

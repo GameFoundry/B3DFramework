@@ -26,6 +26,7 @@ namespace bs
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "GUIElement")
 
 		ScriptGUIElement(GUIElement* nativeObject);
+		~ScriptGUIElement();
 
 		static void SetupScriptBindings();
 

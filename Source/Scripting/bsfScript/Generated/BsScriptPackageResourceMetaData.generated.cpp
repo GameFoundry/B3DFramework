@@ -18,6 +18,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptPackageResourceMetaData::~ScriptPackageResourceMetaData()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptPackageResourceMetaData::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetResourceName", (void*)&ScriptPackageResourceMetaData::InternalGetResourceName);

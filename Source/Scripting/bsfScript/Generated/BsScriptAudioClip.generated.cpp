@@ -14,6 +14,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptAudioClip::~ScriptAudioClip()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptAudioClip::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetRef", (void*)&ScriptAudioClip::InternalGetRef);

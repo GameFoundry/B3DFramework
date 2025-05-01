@@ -16,6 +16,7 @@ namespace bs
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "ShaderMetaData")
 
 		ScriptShaderMetaData(const SPtr<ShaderMetaData>& nativeObject);
+		~ScriptShaderMetaData();
 
 		static void SetupScriptBindings();
 

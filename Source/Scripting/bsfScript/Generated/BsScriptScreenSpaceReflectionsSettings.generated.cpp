@@ -13,6 +13,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptScreenSpaceReflectionsSettings::~ScriptScreenSpaceReflectionsSettings()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptScreenSpaceReflectionsSettings::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_ScreenSpaceReflectionsSettings", (void*)&ScriptScreenSpaceReflectionsSettings::InternalScreenSpaceReflectionsSettings);

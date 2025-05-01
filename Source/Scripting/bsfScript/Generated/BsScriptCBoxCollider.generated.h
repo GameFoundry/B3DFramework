@@ -16,6 +16,7 @@ namespace bs
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "BoxCollider")
 
 		ScriptBoxCollider(const GameObjectHandle<CBoxCollider>& nativeObject);
+		~ScriptBoxCollider();
 
 		static void SetupScriptBindings();
 

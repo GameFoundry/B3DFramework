@@ -19,6 +19,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptParticleVectorFieldSettings::~ScriptParticleVectorFieldSettings()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptParticleVectorFieldSettings::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetVectorField", (void*)&ScriptParticleVectorFieldSettings::InternalGetVectorField);

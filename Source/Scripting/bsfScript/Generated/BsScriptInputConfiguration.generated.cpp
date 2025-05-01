@@ -15,6 +15,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptInputConfiguration::~ScriptInputConfiguration()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptInputConfiguration::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_InputConfiguration", (void*)&ScriptInputConfiguration::InternalInputConfiguration);

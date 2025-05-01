@@ -21,13 +21,23 @@ namespace bs
 
 	void ScriptJointWrapperBase::RegisterEvents()
 	{
-		static_cast<CJoint*>(GetNativeObject())->OnJointBreak.Connect(std::bind(&ScriptJointWrapperBase::OnJointBreak, this));
+		OnJointBreakConnection = static_cast<CJoint*>(GetNativeObject())->OnJointBreak.Connect(std::bind(&ScriptJointWrapperBase::OnJointBreak, this));
 		ScriptGameObjectWrapper::RegisterEvents();
+	}
+	void ScriptJointWrapperBase::UnregisterEvents()
+	{
+		OnJointBreakConnection.Disconnect();
+		ScriptGameObjectWrapper::UnregisterEvents();
 	}
 	ScriptJoint::ScriptJoint(const GameObjectHandle<CJoint>& nativeObject)
 		:TScriptGameObjectWrapper(nativeObject)
 	{
 		RegisterEvents();
+	}
+
+	ScriptJoint::~ScriptJoint()
+	{
+		UnregisterEvents();
 	}
 
 	void ScriptJoint::SetupScriptBindings()

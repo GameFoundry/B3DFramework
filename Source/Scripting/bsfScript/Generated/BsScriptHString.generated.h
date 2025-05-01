@@ -14,6 +14,7 @@ namespace bs
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "LocString")
 
 		ScriptLocString(const SPtr<HString>& nativeObject);
+		~ScriptLocString();
 
 		static void SetupScriptBindings();
 

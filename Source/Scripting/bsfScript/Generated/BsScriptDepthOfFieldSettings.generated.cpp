@@ -17,6 +17,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptDepthOfFieldSettings::~ScriptDepthOfFieldSettings()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptDepthOfFieldSettings::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_DepthOfFieldSettings", (void*)&ScriptDepthOfFieldSettings::InternalDepthOfFieldSettings);

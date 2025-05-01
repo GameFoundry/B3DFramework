@@ -15,6 +15,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptSphericalJoint::~ScriptSphericalJoint()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptSphericalJoint::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetLimit", (void*)&ScriptSphericalJoint::InternalGetLimit);

@@ -15,6 +15,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptGUIFlexibleSpace::~ScriptGUIFlexibleSpace()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptGUIFlexibleSpace::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_Create", (void*)&ScriptGUIFlexibleSpace::InternalCreate);

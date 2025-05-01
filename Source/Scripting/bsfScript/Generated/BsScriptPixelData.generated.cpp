@@ -17,6 +17,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptPixelData::~ScriptPixelData()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptPixelData::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetRowPitch", (void*)&ScriptPixelData::InternalGetRowPitch);

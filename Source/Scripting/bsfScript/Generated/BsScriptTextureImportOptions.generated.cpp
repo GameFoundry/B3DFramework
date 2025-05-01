@@ -15,6 +15,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptTextureImportOptions::~ScriptTextureImportOptions()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptTextureImportOptions::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetFormat", (void*)&ScriptTextureImportOptions::InternalGetFormat);

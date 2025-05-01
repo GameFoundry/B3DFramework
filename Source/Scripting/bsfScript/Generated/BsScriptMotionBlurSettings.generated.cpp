@@ -13,6 +13,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptMotionBlurSettings::~ScriptMotionBlurSettings()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptMotionBlurSettings::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_MotionBlurSettings", (void*)&ScriptMotionBlurSettings::InternalMotionBlurSettings);

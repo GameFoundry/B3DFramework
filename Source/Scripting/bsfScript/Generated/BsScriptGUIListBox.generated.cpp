@@ -20,6 +20,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptGUIListBox::~ScriptGUIListBox()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptGUIListBox::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_IsMultiselect", (void*)&ScriptGUIListBox::InternalIsMultiselect);
@@ -54,8 +59,13 @@ namespace bs
 
 	void ScriptGUIListBox::RegisterEvents()
 	{
-		static_cast<GUIListBox*>(GetNativeObject())->OnSelectionToggled.Connect(std::bind(&ScriptGUIListBox::OnSelectionToggled, this, std::placeholders::_1, std::placeholders::_2));
+		OnSelectionToggledConnection = static_cast<GUIListBox*>(GetNativeObject())->OnSelectionToggled.Connect(std::bind(&ScriptGUIListBox::OnSelectionToggled, this, std::placeholders::_1, std::placeholders::_2));
 		ScriptGUIClickableWrapperBase::RegisterEvents();
+	}
+	void ScriptGUIListBox::UnregisterEvents()
+	{
+		OnSelectionToggledConnection.Disconnect();
+		ScriptGUIClickableWrapperBase::UnregisterEvents();
 	}
 	bool ScriptGUIListBox::InternalIsMultiselect(ScriptGUIListBox* self)
 	{

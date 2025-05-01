@@ -18,6 +18,7 @@ namespace bs
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "GUIVerticalScrollBar")
 
 		ScriptGUIVerticalScrollBar(GUIVerticalScrollBar* nativeObject);
+		~ScriptGUIVerticalScrollBar();
 
 		static void SetupScriptBindings();
 

@@ -15,6 +15,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptManagedTypeInfo::~ScriptManagedTypeInfo()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptManagedTypeInfo::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_Matches", (void*)&ScriptManagedTypeInfo::InternalMatches);

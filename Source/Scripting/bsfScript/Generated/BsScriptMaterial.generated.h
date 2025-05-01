@@ -24,6 +24,7 @@ namespace bs
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "Material")
 
 		ScriptMaterial(const TResourceHandle<Material>& nativeObject);
+		~ScriptMaterial();
 
 		static void SetupScriptBindings();
 

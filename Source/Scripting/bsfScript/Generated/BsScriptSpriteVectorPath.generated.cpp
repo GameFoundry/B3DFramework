@@ -20,6 +20,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptSpriteVectorPath::~ScriptSpriteVectorPath()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptSpriteVectorPath::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetRef", (void*)&ScriptSpriteVectorPath::InternalGetRef);

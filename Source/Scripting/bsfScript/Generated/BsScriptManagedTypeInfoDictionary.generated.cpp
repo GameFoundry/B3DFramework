@@ -15,6 +15,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptManagedTypeInfoDictionary::~ScriptManagedTypeInfoDictionary()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptManagedTypeInfoDictionary::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetKeyType", (void*)&ScriptManagedTypeInfoDictionary::InternalGetKeyType);

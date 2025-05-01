@@ -16,6 +16,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptGUIFixedSpace::~ScriptGUIFixedSpace()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptGUIFixedSpace::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetSize", (void*)&ScriptGUIFixedSpace::InternalGetSize);

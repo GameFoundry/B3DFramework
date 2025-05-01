@@ -18,6 +18,7 @@ namespace bs
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "ParticleSize")
 
 		ScriptParticleSize(const SPtr<ParticleSize>& nativeObject);
+		~ScriptParticleSize();
 
 		static void SetupScriptBindings();
 

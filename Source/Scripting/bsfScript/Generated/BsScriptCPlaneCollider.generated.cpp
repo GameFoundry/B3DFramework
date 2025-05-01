@@ -15,6 +15,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptPlaneCollider::~ScriptPlaneCollider()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptPlaneCollider::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetNormal", (void*)&ScriptPlaneCollider::InternalSetNormal);

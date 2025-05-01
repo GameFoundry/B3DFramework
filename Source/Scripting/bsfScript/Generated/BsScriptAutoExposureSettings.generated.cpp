@@ -13,6 +13,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptAutoExposureSettings::~ScriptAutoExposureSettings()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptAutoExposureSettings::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_AutoExposureSettings", (void*)&ScriptAutoExposureSettings::InternalAutoExposureSettings);

@@ -15,6 +15,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptGUIRenderable::~ScriptGUIRenderable()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptGUIRenderable::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetStyleSheetClass", (void*)&ScriptGUIRenderable::InternalGetStyleSheetClass);

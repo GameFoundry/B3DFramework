@@ -16,6 +16,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptRenderTexture::~ScriptRenderTexture()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptRenderTexture::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_Create", (void*)&ScriptRenderTexture::InternalCreate);

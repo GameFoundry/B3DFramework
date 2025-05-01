@@ -15,6 +15,7 @@ namespace bs
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "Renderable")
 
 		ScriptRenderable(const GameObjectHandle<CRenderable>& nativeObject);
+		~ScriptRenderable();
 
 		static void SetupScriptBindings();
 

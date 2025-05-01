@@ -16,6 +16,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptChromaticAberrationSettings::~ScriptChromaticAberrationSettings()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptChromaticAberrationSettings::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_ChromaticAberrationSettings", (void*)&ScriptChromaticAberrationSettings::InternalChromaticAberrationSettings);

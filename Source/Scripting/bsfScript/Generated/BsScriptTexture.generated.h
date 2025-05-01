@@ -19,6 +19,7 @@ namespace bs
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "Texture")
 
 		ScriptTexture(const TResourceHandle<Texture>& nativeObject);
+		~ScriptTexture();
 
 		static void SetupScriptBindings();
 

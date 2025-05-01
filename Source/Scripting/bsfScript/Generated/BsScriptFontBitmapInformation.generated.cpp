@@ -14,6 +14,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptFontBitmapInformation::~ScriptFontBitmapInformation()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptFontBitmapInformation::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetCharacterInformation", (void*)&ScriptFontBitmapInformation::InternalGetCharacterInformation);

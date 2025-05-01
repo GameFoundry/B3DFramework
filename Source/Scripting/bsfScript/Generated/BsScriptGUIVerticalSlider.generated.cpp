@@ -16,6 +16,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptGUIVerticalSlider::~ScriptGUIVerticalSlider()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptGUIVerticalSlider::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_Create", (void*)&ScriptGUIVerticalSlider::InternalCreate);

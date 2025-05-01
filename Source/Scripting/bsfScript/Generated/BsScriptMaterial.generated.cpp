@@ -28,6 +28,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptMaterial::~ScriptMaterial()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptMaterial::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetRef", (void*)&ScriptMaterial::InternalGetRef);

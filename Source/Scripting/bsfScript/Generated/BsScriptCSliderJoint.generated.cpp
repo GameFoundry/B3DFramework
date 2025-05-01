@@ -15,6 +15,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptSliderJoint::~ScriptSliderJoint()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptSliderJoint::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetPosition", (void*)&ScriptSliderJoint::InternalGetPosition);

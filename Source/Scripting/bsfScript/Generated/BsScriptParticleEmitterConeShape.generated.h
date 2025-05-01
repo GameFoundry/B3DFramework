@@ -18,6 +18,7 @@ namespace bs
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "ParticleEmitterConeShape")
 
 		ScriptParticleEmitterConeShape(const SPtr<ParticleEmitterConeShape>& nativeObject);
+		~ScriptParticleEmitterConeShape();
 
 		static void SetupScriptBindings();
 

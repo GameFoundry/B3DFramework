@@ -17,6 +17,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptGUIPanel::~ScriptGUIPanel()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptGUIPanel::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_Create", (void*)&ScriptGUIPanel::InternalCreate);

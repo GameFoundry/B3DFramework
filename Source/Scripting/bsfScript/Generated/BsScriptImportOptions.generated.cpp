@@ -14,6 +14,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptImportOptions::~ScriptImportOptions()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptImportOptions::SetupScriptBindings()
 	{
 

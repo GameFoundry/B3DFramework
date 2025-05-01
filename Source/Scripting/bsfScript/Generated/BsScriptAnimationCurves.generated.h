@@ -24,6 +24,7 @@ namespace bs
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "AnimationCurves")
 
 		ScriptAnimationCurves(const SPtr<AnimationCurves>& nativeObject);
+		~ScriptAnimationCurves();
 
 		static void SetupScriptBindings();
 

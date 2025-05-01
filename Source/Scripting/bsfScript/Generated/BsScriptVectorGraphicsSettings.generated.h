@@ -14,6 +14,7 @@ namespace bs
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "VectorGraphicsSettings")
 
 		ScriptVectorGraphicsSettings(const SPtr<VectorGraphicsSettings>& nativeObject);
+		~ScriptVectorGraphicsSettings();
 
 		static void SetupScriptBindings();
 

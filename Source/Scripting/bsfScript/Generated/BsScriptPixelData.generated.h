@@ -19,6 +19,7 @@ namespace bs
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "PixelData")
 
 		ScriptPixelData(const SPtr<PixelData>& nativeObject);
+		~ScriptPixelData();
 
 		static void SetupScriptBindings();
 

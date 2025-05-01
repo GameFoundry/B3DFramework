@@ -20,6 +20,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptGUIInputBox::~ScriptGUIInputBox()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptGUIInputBox::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetText", (void*)&ScriptGUIInputBox::InternalSetText);
@@ -57,9 +62,15 @@ namespace bs
 
 	void ScriptGUIInputBox::RegisterEvents()
 	{
-		static_cast<GUIInputBox*>(GetNativeObject())->OnValueChanged.Connect(std::bind(&ScriptGUIInputBox::OnValueChanged, this, std::placeholders::_1));
-		static_cast<GUIInputBox*>(GetNativeObject())->OnConfirm.Connect(std::bind(&ScriptGUIInputBox::OnConfirm, this));
+		OnValueChangedConnection = static_cast<GUIInputBox*>(GetNativeObject())->OnValueChanged.Connect(std::bind(&ScriptGUIInputBox::OnValueChanged, this, std::placeholders::_1));
+		OnConfirmConnection = static_cast<GUIInputBox*>(GetNativeObject())->OnConfirm.Connect(std::bind(&ScriptGUIInputBox::OnConfirm, this));
 		ScriptGUIInteractableWrapperBase::RegisterEvents();
+	}
+	void ScriptGUIInputBox::UnregisterEvents()
+	{
+		OnValueChangedConnection.Disconnect();
+		OnConfirmConnection.Disconnect();
+		ScriptGUIInteractableWrapperBase::UnregisterEvents();
 	}
 	void ScriptGUIInputBox::InternalSetText(ScriptGUIInputBox* self, MonoString* text)
 	{

@@ -23,6 +23,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptGUICanvas::~ScriptGUICanvas()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptGUICanvas::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_DrawLine", (void*)&ScriptGUICanvas::InternalDrawLine);

@@ -15,6 +15,11 @@ namespace bs
 		RegisterEvents();
 	}
 
+	ScriptScriptCodeImportOptions::~ScriptScriptCodeImportOptions()
+	{
+		UnregisterEvents();
+	}
+
 	void ScriptScriptCodeImportOptions::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetEditorScript", (void*)&ScriptScriptCodeImportOptions::InternalGetEditorScript);

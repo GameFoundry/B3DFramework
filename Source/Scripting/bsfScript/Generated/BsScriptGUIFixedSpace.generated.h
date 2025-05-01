@@ -16,6 +16,7 @@ namespace bs
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "GUIFixedSpace")
 
 		ScriptGUIFixedSpace(GUIFixedSpace* nativeObject);
+		~ScriptGUIFixedSpace();
 
 		static void SetupScriptBindings();
 

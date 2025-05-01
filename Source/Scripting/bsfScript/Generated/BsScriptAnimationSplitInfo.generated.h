@@ -16,6 +16,7 @@ namespace bs
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "AnimationSplitInfo")
 
 		ScriptAnimationSplitInfo(const SPtr<AnimationSplitInfo>& nativeObject);
+		~ScriptAnimationSplitInfo();
 
 		static void SetupScriptBindings();
 
