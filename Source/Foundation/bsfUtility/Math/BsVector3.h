@@ -4,7 +4,7 @@
 
 #include <cmath>
 
-#include "Prerequisites/BsPrerequisitesUtil.h"
+#include "BsUtilityPrerequisites.h"
 #include "Math/BsRadian.h"
 #include "BsMath.h"
 

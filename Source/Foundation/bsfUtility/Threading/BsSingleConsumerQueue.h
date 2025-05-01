@@ -3,7 +3,7 @@
 #pragma once
 
 #include "BsSignalEvent.h"
-#include "Prerequisites/BsPrerequisitesUtil.h"
+#include "BsUtilityPrerequisites.h"
 #include "Threading/BsSignal.h"
 
 namespace bs

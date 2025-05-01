@@ -3,7 +3,7 @@
 #pragma once
 
 #include "Debug/BsDebug.h"
-#include "Prerequisites/BsPrerequisitesUtil.h"
+#include "BsUtilityPrerequisites.h"
 
 namespace bs
 {

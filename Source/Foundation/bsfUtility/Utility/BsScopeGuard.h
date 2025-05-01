@@ -1,7 +1,7 @@
 //********************************** Banshee Engine (www.banshee3d.com) **************************************************//
 //**************** Copyright (c) 2023 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************
 #pragma once
-#include "Prerequisites/BsPrerequisitesUtil.h"
+#include "BsUtilityPrerequisites.h"
 
 namespace bs
 {

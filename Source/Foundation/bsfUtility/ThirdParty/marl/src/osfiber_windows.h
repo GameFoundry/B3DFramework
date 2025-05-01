@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "Prerequisites/BsPrerequisitesUtil.h"
+#include "BsUtilityPrerequisites.h"
 
 #include <functional>
 #include <memory>

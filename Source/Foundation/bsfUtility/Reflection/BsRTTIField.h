@@ -3,7 +3,7 @@
 #pragma once
 
 #include <utility>
-#include "Prerequisites/BsPrerequisitesUtil.h"
+#include "BsUtilityPrerequisites.h"
 #include "Reflection/BsRTTIPlain.h"
 #include "Reflection/BsRTTIIterator.h"
 #include "Reflection/BsIReflectable.h"

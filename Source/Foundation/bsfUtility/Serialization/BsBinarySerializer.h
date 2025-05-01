@@ -3,7 +3,7 @@
 #pragma once
 
 #include <utility>
-#include "Prerequisites/BsPrerequisitesUtil.h"
+#include "BsUtilityPrerequisites.h"
 #include "Serialization/BsSerializedObject.h"
 #include "Reflection/BsRTTIField.h"
 #include "Reflection/BsRTTIType.h"

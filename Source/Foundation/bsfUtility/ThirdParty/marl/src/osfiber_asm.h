@@ -22,7 +22,7 @@
 // problem as the marl scheduler requires fibers to be executed on the same
 // thread throughout their lifetime.
 
-#include "Prerequisites/BsPrerequisitesUtil.h"
+#include "BsUtilityPrerequisites.h"
 
 #if defined(__x86_64__)
 #include "osfiber_asm_x64.h"

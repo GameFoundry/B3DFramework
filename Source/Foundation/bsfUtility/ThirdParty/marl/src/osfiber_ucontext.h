@@ -18,7 +18,7 @@
 #define _XOPEN_SOURCE
 #endif  //  !defined(_XOPEN_SOURCE)
 
-#include "Prerequisites/BsPrerequisitesUtil.h"
+#include "BsUtilityPrerequisites.h"
 
 #include <functional>
 #include <memory>

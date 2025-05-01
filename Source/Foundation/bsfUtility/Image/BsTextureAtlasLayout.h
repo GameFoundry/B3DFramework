@@ -3,7 +3,7 @@
 #pragma once
 
 #include "Math/BsArea2.h"
-#include "Prerequisites/BsPrerequisitesUtil.h"
+#include "BsUtilityPrerequisites.h"
 #include "Math/BsVector2.h"
 
 namespace bs

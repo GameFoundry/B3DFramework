@@ -6,7 +6,7 @@
 #include <algorithm>
 #include <unordered_map>
 
-#include "Prerequisites/BsPrerequisitesUtil.h"
+#include "BsUtilityPrerequisites.h"
 #include "Reflection/BsRTTIField.h"
 #include "Reflection/BsRTTIIteratorField.h"
 #include "Reflection/BsRTTIDataBlockField.h"

@@ -1,7 +1,7 @@
 //************************************ bs::framework - Copyright 2024 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
-#include "Prerequisites/BsPrerequisitesUtil.h"
+#include "BsUtilityPrerequisites.h"
 #include "Reflection/BsRTTIType.h"
 #include "Serialization/BsBinaryDelta.h"
 #include "RTTI/BsSerializedObjectRTTI.h"
