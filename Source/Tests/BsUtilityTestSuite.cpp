@@ -107,7 +107,7 @@ UtilityTestSuite::UtilityTestSuite()
 	B3D_ADD_TEST(UtilityTestSuite::TestArray);
 	B3D_ADD_TEST(UtilityTestSuite::TestComplex);
 	B3D_ADD_TEST(UtilityTestSuite::TestMinHeap);
-	//B3D_ADD_TEST(UtilityTestSuite::TestQuadtree)
+	B3D_ADD_TEST(UtilityTestSuite::TestQuadtree)
 	B3D_ADD_TEST(UtilityTestSuite::TestVarInt)
 	B3D_ADD_TEST(UtilityTestSuite::TestBitStream)
 	B3D_ADD_TEST(UtilityTestSuite::TestRTTIIterator)

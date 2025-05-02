@@ -1107,25 +1107,26 @@ namespace bs
 	template <typename ElementType, typename Options, u32 Dimension>
 	void TSpatialTree<ElementType, Options, Dimension>::RemoveElementFromLeafNode(Node* node, u32 elementIndexInNode)
 	{
+		B3D_ENSURE(node->mElementData.ElementCount > 0);
 		NodeElementData& elementData = node->mElementData;
 
 		NodeElementSuballocationBlock* elementsBlock;
 		NodeElementBoundsSuballocationBlock* elementBoundsBlock;
-		elementIndexInNode = node->MapElementIndexToBlock(elementIndexInNode, &elementsBlock, &elementBoundsBlock);
+		const u32 elementIndexInBlock = node->MapElementIndexToBlock(elementIndexInNode, &elementsBlock, &elementBoundsBlock);
 
 		NodeElementSuballocationBlock* lastElementsBlock;
 		NodeElementBoundsSuballocationBlock* lastElementBoundsBlock;
-		u32 lastElementIdx = node->MapElementIndexToBlock(elementData.ElementCount - 1, &lastElementsBlock, &lastElementBoundsBlock);
+		const u32 lastElementIndexInLastBlock = node->MapElementIndexToBlock(elementData.ElementCount - 1, &lastElementsBlock, &lastElementBoundsBlock);
 
-		if(elementData.ElementCount > 1)
+		if(elementIndexInNode != elementData.ElementCount -1)
 		{
-			std::swap(elementsBlock->Elements[elementIndexInNode], lastElementsBlock->Elements[lastElementIdx]);
-			std::swap(elementBoundsBlock->Bounds[elementIndexInNode], lastElementBoundsBlock->Bounds[lastElementIdx]);
+			std::swap(elementsBlock->Elements[elementIndexInBlock], lastElementsBlock->Elements[lastElementIndexInLastBlock]);
+			std::swap(elementBoundsBlock->Bounds[elementIndexInBlock], lastElementBoundsBlock->Bounds[lastElementIndexInLastBlock]);
 
-			Options::SetElementId(elementsBlock->Elements[elementIndexInNode], SpatialTreeElementId(node, elementIndexInNode), mContext);
+			Options::SetElementId(elementsBlock->Elements[elementIndexInBlock], SpatialTreeElementId(node, elementIndexInNode), mContext);
 		}
 
-		if(lastElementIdx == 0) // Last element in that group, remove it completely
+		if(lastElementIndexInLastBlock == 0) // Last element in that block, remove the block completely
 		{
 			elementData.ElementsBlock = lastElementsBlock->NextBlock;
 			elementData.ElementBoundsBlock = lastElementBoundsBlock->NextBlock;
