@@ -228,7 +228,8 @@ if(B3D_BUILD_TESTS)
 	add_executable(UtilityTest
 		Tests/BsUtilityTest.cpp
 		Tests/BsUtilityTestSuite.cpp
-		Tests/BsFileSystemTestSuite.cpp)
+		Tests/BsFileSystemTestSuite.cpp
+		Tests/BsECSTestSuite.cpp)
 		
 	target_link_libraries(UtilityTest bsf)
 	target_include_directories(UtilityTest PRIVATE

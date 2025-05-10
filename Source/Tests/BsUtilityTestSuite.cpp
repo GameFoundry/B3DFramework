@@ -1,6 +1,8 @@
 //************************************ bs::framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "BsUtilityTestSuite.h"
+
+#include "BsECSTestSuite.h"
 #include "BsFileSystemTestSuite.h"
 #include "Utility/BsBitfield.h"
 #include "Utility/BsTArray.h"
@@ -92,7 +94,9 @@ typedef TQuadTree<u32, DebugQuadtreeOptions> DebugQuadtree;
 void UtilityTestSuite::StartUp()
 {
 	SPtr<TestSuite> fileSystemTests = Create<FileSystemTestSuite>();
+	SPtr<TestSuite> ecsTests = Create<ECSTestSuite>();
 	Add(fileSystemTests);
+	Add(ecsTests);
 }
 
 void UtilityTestSuite::ShutDown()

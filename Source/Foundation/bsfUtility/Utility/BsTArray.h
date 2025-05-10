@@ -22,10 +22,15 @@ namespace bs
 
 		// For std compatibility
 		typedef Type value_type;
+		typedef Type* pointer;
+		typedef const Type* const_pointer;
+		typedef Type& reference;
+		typedef const Type& const_reference;
 		typedef Type* iterator;
 		typedef const Type* const_iterator;
 		typedef std::reverse_iterator<Type*> reverse_iterator;
 		typedef std::reverse_iterator<const Type*> const_reverse_iterator;
+		typedef ptrdiff_t difference_type;
 
 		TArray() = default;
 
