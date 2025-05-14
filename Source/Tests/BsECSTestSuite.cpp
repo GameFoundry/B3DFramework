@@ -76,19 +76,19 @@ void ECSTestSuite::TestEntitySparseSet()
 
 		entitySparseSet.ClearInvalid();
 
-		const u32 expectedEntityCount = entitySparseSet.GetDeletePolicy() == EntitySparseSetDeletePolicy::SwapOnly
+		const u32 expectedEntityCount = entitySparseSet.GetDeletePolicy() == SparseSetDeletePolicy::SwapOnly
 			? (u32)kEntities.Size()
 			: (u32)(kEntities.Size() - 2u);
 		B3D_TEST_ASSERT(entitySparseSet.Size() == expectedEntityCount)
 	};
 
-	TEntitySparseSet<EntitySparseSetDeletePolicy::SwapAndErase> swapAndEraseSparseSet;
+	TSparseSet<SparseSetDeletePolicy::SwapAndErase> swapAndEraseSparseSet;
 	fnTestSparseSet(swapAndEraseSparseSet);
 
-	TEntitySparseSet<EntitySparseSetDeletePolicy::SwapOnly> swapOnlySparseSet;
+	TSparseSet<SparseSetDeletePolicy::SwapOnly> swapOnlySparseSet;
 	fnTestSparseSet(swapOnlySparseSet);
 
-	TEntitySparseSet<EntitySparseSetDeletePolicy::InPlace> inPlaceDeleteSparseSet;
+	TSparseSet<SparseSetDeletePolicy::InPlace> inPlaceDeleteSparseSet;
 	fnTestSparseSet(inPlaceDeleteSparseSet);
 
 }
