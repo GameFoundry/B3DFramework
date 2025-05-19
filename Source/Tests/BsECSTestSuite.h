@@ -14,6 +14,7 @@ namespace bs
 		void ShutDown() override;
 
 	private:
-		void TestEntitySparseSet();
+		void TestSparseSet();
+		void TestComponentSparseSet();
 	};
 } // namespace bs

@@ -373,12 +373,12 @@ namespace bs::ecs
 			return mPackedEntities[index];
 		}
 
-		Iterator Add(Entity entity)
+		Iterator Add(Entity entity) // TODO - Make protected?
 		{
 			return AddInternal(entity, false);
 		}
 
-		Iterator Add(Iterator first, Iterator last)
+		Iterator Add(Iterator first, Iterator last) // TODO - Make protected?
 		{
 			Iterator iterator = End();
 			for(; first != last; ++first)
@@ -861,21 +861,16 @@ namespace bs::ecs
 
 			std::sort(mPackedEntities.Begin(), mPackedEntities.End(), std::move(predicate));
 
-			for(u64 arrayIndex = 0; arrayIndex < count; ++arrayIndex)
+			for(u64 packedIndex = 0; packedIndex < count; ++packedIndex)
 			{
-				u64 packedIndexToCheck = arrayIndex;
-				u64 originalPackedIndex = GetPackedIndex(mPackedEntities[packedIndexToCheck]);
-				while(packedIndexToCheck != originalPackedIndex)
-				{
-					// If the next index just points back to indexToCheck, this is just a simple swap, otherwise we need to follow the chain
-					const u64 nextPackedIndex = GetPackedIndex(mPackedEntities[originalPackedIndex]);
-					const Entity entity = mPackedEntities[packedIndexToCheck];
+				u64 originalPackedIndex = GetPackedIndex(mPackedEntities[packedIndex]);
+				if(packedIndex == originalPackedIndex)
+					continue;
 
-					GetSparseEntryReference(entity) = Entity(GetPackedIndexAsEntryIdentifier(packedIndexToCheck), entity.GetVersion());
-					(((T*)this)->*MoveOrSwapPayload)(originalPackedIndex, nextPackedIndex);
+				const Entity entity = mPackedEntities[packedIndex];
 
-					packedIndexToCheck = std::exchange(originalPackedIndex, nextPackedIndex);
-				}
+				GetSparseEntryReference(entity) = Entity(GetPackedIndexAsEntryIdentifier(packedIndex), entity.GetVersion());
+				(((T*)this)->*MoveOrSwapPayload)(originalPackedIndex, packedIndex);
 			}
 
 			//for(u64 rootPackedIndexToCheck = 0; rootPackedIndexToCheck < count; ++rootPackedIndexToCheck)
@@ -1254,10 +1249,7 @@ namespace bs::ecs
 				mComponents.Resize(page + 1, nullptr);
 
 			if(mComponents[page] == nullptr)
-			{
 				mComponents[page] = B3DAllocateMultiple<ComponentType>(PackedPageSize);
-				std::uninitialized_fill(mComponents[page], mComponents[page] + PackedPageSize, nullptr);
-			}
 
 			return mComponents[page];
 		}
@@ -1370,10 +1362,16 @@ namespace bs::ecs
 	template<typename Type, typename = void>
 	struct StorageForType;
 
-	template<typename Type, typename>
-	struct StorageForType
+	template<typename Type>
+	struct StorageForType<Type, std::enable_if_t<std::conjunction_v<std::is_move_constructible<Type>, std::is_move_assignable<Type>, std::negation<std::is_empty<Type>>>>>
 	{
 		using StorageType = TComponentSparseSet<Type>;
+	};
+
+	template<typename Type>
+	struct StorageForType<Type, std::enable_if_t<std::conjunction_v<std::disjunction<std::negation<std::is_move_constructible<Type>>, std::negation<std::is_move_assignable<Type>>>, std::negation<std::is_empty<Type>>>>>
+	{
+		using StorageType = TComponentSparseSet<Type, true>;
 	};
 
 	template<typename Type>
@@ -1408,22 +1406,22 @@ namespace bs::ecs
 		}
 
 		template<typename Type>
-		const SparseSet* TryGetStorage() const
+		const StorageType<Type>* TryGetStorage() const
 		{
 			if constexpr(std::is_same_v<Type, Entity>())
-				return &mEntityStorage;
+				return static_cast<StorageType<Type>*>(&mEntityStorage);
 
 			const typeid_t typeId = type_id<Type>();
 			if(auto found = mComponentStorage.find(typeId); found != mComponentStorage.end())
-				return found->second.get();
+				return static_cast<StorageType<Type>*>(found->second.get());
 
 			return nullptr;
 		}
 
 		template<typename Type>
-		SparseSet* TryGetStorage()
+		StorageType<Type>* TryGetStorage()
 		{
-			return const_cast<SparseSet*>(std::as_const(*this).TryGetStorage<Type>());
+			return const_cast<StorageType<Type>*>(std::as_const(*this).TryGetStorage<Type>());
 		}
 
 		bool ResetStorage(typeid_t typeId)
@@ -1482,10 +1480,141 @@ namespace bs::ecs
 			return destroyedEntity.GetVersion();
 		}
 
+		template<typename It>
+		void DestroyEntities(It first, It last)
+		{
+			// Note: Deleting from the end would be more efficient. Perhaps in the future.
+			const auto from = mEntityStorage.Begin();
+			const auto to = mEntityStorage.SortAs(first, last);
+
+			for(auto& entry : mComponentStorage)
+				entry.second->EraseIfValid(from, to);
+
+			mEntityStorage.Erase(from, to);
+		}
+
 		template<typename Type, typename... Arguments>
 		Type& AddComponent(Entity entity, Arguments&&... arguments)
 		{
-			return GetOrCreateStorage<Type>().AddComponent(entity, std::forward<Arguments>(arguments)...);
+			return GetOrCreateStorage<Type>().Add(entity, std::forward<Arguments>(arguments)...);
+		}
+
+		template<typename Type, typename It>
+		void AddComponents(It first, It last, const Type& component = {})
+		{
+			B3D_ASSERT(std::all_of(first, last, [this](Entity entity) { return IsEntityValid(entity); }));
+			GetOrCreateStorage<Type>().Add(std::move(first), std::move(last), component);
+		}
+
+		template<typename Type, typename... Arguments>
+		Type& AddOrReplaceComponent(Entity entity, Arguments&&... arguments)
+		{
+			auto storage = GetOrCreateStorage<Type>();
+			if(storage.Contains(entity))
+			{
+				Type& component = storage.Get(entity);
+				component = Type{std::forward<Arguments>(arguments)...};
+				return component;
+			}
+
+			return storage.template Add<Type>(entity, std::forward<Arguments>(arguments)...);
+		}
+
+		template<typename FirstComponentType, typename... OtherComponentType>
+		u64 RemoveComponents(Entity entity)
+		{
+			return (GetOrCreateStorage<FirstComponentType>().EraseIfValid(entity) + ... + GetOrCreateStorage<OtherComponentType>(entity));
+		}
+
+		template<typename FirstComponentType, typename... OtherComponentType, typename It>
+		u64 RemoveComponents(It first, It last)
+		{
+			u64 count = 0;
+			auto relevantComponentStorageTuple = std::forward_as_tuple(GetOrCreateStorage<FirstComponentType>(), GetOrCreateStorage<OtherComponentType>()...);
+			for(; first != last; ++first)
+				count = std::apply([entity = *first](auto&... storage) { return (storage.EraseIfValid(entity) + ... + 0u); }, relevantComponentStorageTuple);
+
+			return count;
+		}
+
+		template<typename... ComponentType>
+		decltype(auto) GetComponents(Entity entity) const
+		{
+			if constexpr(sizeof...(ComponentType) == 1u)
+				return (TryGetStorage<std::remove_const_t<ComponentType>>()->Get(entity), ...);
+			else
+				return std::forward_as_tuple(GetComponents<ComponentType>(entity)...);
+		}
+
+		template<typename... ComponentType>
+		decltype(auto) GetComponents(Entity entity)
+		{
+			if constexpr(sizeof...(ComponentType) == 1u)
+				return (TryGetStorage<std::remove_const_t<ComponentType>>()->Get(entity), ...);
+			else
+				return std::forward_as_tuple(GetComponents<ComponentType>(entity)...);
+		}
+
+		template<typename... ComponentType>
+		decltype(auto) TryGetComponents(Entity entity) const
+		{
+			if constexpr(sizeof...(ComponentType) == 1u)
+			{
+				const auto& storage = TryGetStorage<std::remove_const_t<ComponentType>...>();
+				return (storage != nullptr && storage.Contains(entity) ? &storage.Get(entity) : nullptr);
+			}
+			else
+				return std::forward_as_tuple(TryGetComponents<ComponentType>(entity)...);
+		}
+
+		template<typename... ComponentType>
+		decltype(auto) TryGetComponents(Entity entity)
+		{
+			if constexpr(sizeof...(ComponentType) == 1u)
+				return (TryGetStorage<std::remove_const_t<ComponentType>>()->Get(entity), ...);
+			else
+				return std::forward_as_tuple(GetComponents<ComponentType>(entity)...);
+		}
+
+		template<typename Type, typename... Arguments>
+		Type& GetOrAddComponent(Entity entity, Arguments&&... arguments)
+		{
+			auto& storage = GetOrCreateStorage<Type>();
+			return storage.Contains(entity) ? storage.Get(entity) : storage.Add(entity, std::forward<Arguments>(arguments)...);
+		}
+
+		// TODO - clear, isorphan, sort, view
+
+		template<typename... Type>
+		void Shrink()
+		{
+			if constexpr(sizeof...(Type) == 0u)
+			{
+				for(auto&& storage : mComponentStorage)
+					storage.second->Shrink();
+			}
+			else
+			{
+				(GetOrCreateStorage<Type>().Shrink(), ...);
+			}
+		}
+
+		template<typename... ComponentType>
+		bool HasAllOf(Entity entity) const
+		{
+			if constexpr(sizeof...(ComponentType) == 1u)
+			{
+				auto* storage = TryGetStorage<std::remove_const_t<ComponentType>...>();
+				return storage != nullptr && storage->Contains(entity);
+			}
+			else
+				return (HasAllOf<ComponentType> && ...);
+		}
+
+		template<typename... ComponentType>
+		bool HasAnyOf(Entity entity) const
+		{
+			return (HasAllOf<ComponentType> || ...);
 		}
 
 	private:
