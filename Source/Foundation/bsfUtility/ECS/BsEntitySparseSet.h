@@ -97,6 +97,11 @@ namespace bs::ecs
 			return IdentifierAndVersion != other.IdentifierAndVersion;
 		}
 
+		bool operator<(TEntity other) const
+		{
+			return Identifier < other.Identifier;
+		}
+
 		constexpr IdentifierType GetIdentifier() const
 		{
 			return (IdentifierType)(IdentifierAndVersion) & Traits::kIdentifierMask;
@@ -348,7 +353,7 @@ namespace bs::ecs
 
 	class SparseSet
 	{
-		using SparseContainerType = TArray<Entity*>;
+		using SparseContainerType = TArray<TArrayView<Entity>>;
 		using PackedContainerType = TArray<Entity>;
 		static constexpr u32 SparsePageSize = B3D_ECS_SPARSE_SET_PAGE_SIZE;
 
@@ -456,13 +461,13 @@ namespace bs::ecs
 				const u64 entityIdentifier = entity.GetIdentifier();
 				const u64 sparsePage = GetSparsePage(entityIdentifier);
 
-				if(mSparseIndices[sparsePage] == nullptr)
+				if(mSparseIndices[sparsePage].IsEmpty())
 					continue;
 
 				if(sparsePage >= (u64)newSparseIndices.Size())
-					newSparseIndices.Resize(sparsePage + 1, nullptr);
+					newSparseIndices.Resize(sparsePage + 1);
 
-				newSparseIndices[sparsePage] = std::exchange(mSparseIndices[sparsePage], nullptr);
+				newSparseIndices[sparsePage] = std::exchange(mSparseIndices[sparsePage], {});
 				createdPageCount++;
 
 				// Early exit
@@ -484,7 +489,7 @@ namespace bs::ecs
 
 			const u64 requiredPageCapacity = GetSparsePage(capacity - 1) + 1;
 			if(requiredPageCapacity > (u64)mSparseIndices.Size())
-				mSparseIndices.Resize(requiredPageCapacity, nullptr);
+				mSparseIndices.Resize(requiredPageCapacity);
 
 			mPackedEntities.Reserve(capacity);
 		}
@@ -592,21 +597,21 @@ namespace bs::ecs
 			const u64 sparsePage = GetSparsePage(entityIdentifier);
 
 			if(sparsePage >= mSparseIndices.Size())
-				mSparseIndices.Resize(sparsePage + 1, nullptr);
+				mSparseIndices.Resize(sparsePage + 1);
 
-			if(mSparseIndices[sparsePage] == nullptr)
+			if(mSparseIndices[sparsePage].IsEmpty())
 			{
-				mSparseIndices[sparsePage] = B3DAllocateMultiple<Entity>(SparsePageSize);
-				std::uninitialized_fill(mSparseIndices[sparsePage], mSparseIndices[sparsePage] + SparsePageSize, kNullEntity);
+				mSparseIndices[sparsePage] = TArrayView<Entity>(B3DAllocateMultiple<Entity>(SparsePageSize), SparsePageSize);
+				std::uninitialized_fill(mSparseIndices[sparsePage].Data(), mSparseIndices[sparsePage].Data() + SparsePageSize, kNullEntity);
 			}
 
-			return *(mSparseIndices[sparsePage] + GetSparseIndexWithinPage(entityIdentifier));
+			return mSparseIndices[sparsePage][GetSparseIndexWithinPage(entityIdentifier)];
 		}
 
 		Entity& GetSparseEntryReference(Entity value) const
 		{
 			const u64 entityIdentifier = value.GetIdentifier();
-			return mSparseIndices[GetSparsePage(entityIdentifier)][GetSparseIndexWithinPage(entityIdentifier)];
+			return const_cast<Entity&>(mSparseIndices[GetSparsePage(entityIdentifier)][GetSparseIndexWithinPage(entityIdentifier)]);
 		}
 
 		Entity* GetSparseEntryPointer(Entity value) const
@@ -614,8 +619,8 @@ namespace bs::ecs
 			const u64 entityIdentifier = value.GetIdentifier();
 			const u64 sparsePage = GetSparsePage(entityIdentifier);
 
-			if(sparsePage < mSparseIndices.Size() && mSparseIndices[sparsePage] != nullptr)
-				return &mSparseIndices[sparsePage][GetSparseIndexWithinPage(entityIdentifier)];
+			if(sparsePage < mSparseIndices.Size() && !mSparseIndices[sparsePage].IsEmpty())
+				return const_cast<Entity*>(&mSparseIndices[sparsePage][GetSparseIndexWithinPage(entityIdentifier)]);
 
 			return nullptr;
 		}
@@ -629,11 +634,11 @@ namespace bs::ecs
 		{
 			for(auto&& page : mSparseIndices)
 			{
-				if(page != nullptr)
+				if(!page.IsEmpty())
 				{
-					std::destroy(page, page + SparsePageSize);
-					B3DFree(page);
-					page = nullptr;
+					std::destroy(page.Data(), page.Data() + SparsePageSize);
+					B3DFree(page.Data());
+					page = {};
 				}
 			}
 			mSparseIndices.Clear();
@@ -861,35 +866,35 @@ namespace bs::ecs
 
 			std::sort(mPackedEntities.Begin(), mPackedEntities.End(), std::move(predicate));
 
-			for(u64 packedIndex = 0; packedIndex < count; ++packedIndex)
-			{
-				u64 originalPackedIndex = GetPackedIndex(mPackedEntities[packedIndex]);
-				if(packedIndex == originalPackedIndex)
-					continue;
-
-				const Entity entity = mPackedEntities[packedIndex];
-
-				GetSparseEntryReference(entity) = Entity(GetPackedIndexAsEntryIdentifier(packedIndex), entity.GetVersion());
-				(((T*)this)->*MoveOrSwapPayload)(originalPackedIndex, packedIndex);
-			}
-
-			//for(u64 rootPackedIndexToCheck = 0; rootPackedIndexToCheck < count; ++rootPackedIndexToCheck)
+			//for(u64 packedIndex = 0; packedIndex < count; ++packedIndex)
 			//{
-			//	u64 packedIndexToCheck = rootPackedIndexToCheck;
-			//	const u64 originalPackedIndex = GetPackedIndex(mPackedEntities[packedIndexToCheck]);
+			//	u64 originalPackedIndex = GetPackedIndex(mPackedEntities[packedIndex]);
+			//	if(packedIndex == originalPackedIndex)
+			//		continue;
 
-			//	while(packedIndexToCheck != originalPackedIndex)
-			//	{
-			//		const u64 nextPackedIndex = GetPackedIndex(mPackedEntities[originalPackedIndex]);
-			//		const Entity entity = mPackedEntities[packedIndexToCheck];
+			//	const Entity entity = mPackedEntities[packedIndex];
 
-			//		(((T*)this)->*MoveOrSwapPayload)(originalPackedIndex, nextPackedIndex);
-
-			//		// Make sure the sparse entry points to the new index
-			//		GetSparseEntryReference(entity) = Entity(GetPackedIndexAsEntryIdentifier(packedIndexToCheck), mPackedEntities[packedIndexToCheck].GetVersion());
-			//		packedIndexToCheck = std::exchange(originalPackedIndex, nextPackedIndex);
-			//	}
+			//	GetSparseEntryReference(entity) = Entity(GetPackedIndexAsEntryIdentifier(packedIndex), entity.GetVersion());
+			//	(((T*)this)->*MoveOrSwapPayload)(originalPackedIndex, packedIndex);
 			//}
+
+			for(u64 rootPackedIndexToCheck = 0; rootPackedIndexToCheck < count; ++rootPackedIndexToCheck)
+			{
+				u64 packedIndexToCheck = rootPackedIndexToCheck;
+				u64 originalPackedIndex = GetPackedIndex(mPackedEntities[packedIndexToCheck]);
+
+				while(packedIndexToCheck != originalPackedIndex)
+				{
+					const u64 nextPackedIndex = GetPackedIndex(mPackedEntities[originalPackedIndex]);
+					const Entity entity = mPackedEntities[packedIndexToCheck];
+
+					(((T*)this)->*MoveOrSwapPayload)(originalPackedIndex, nextPackedIndex);
+
+					// Make sure the sparse entry points to the new index
+					GetSparseEntryReference(entity) = Entity(GetPackedIndexAsEntryIdentifier(packedIndexToCheck), mPackedEntities[packedIndexToCheck].GetVersion());
+					packedIndexToCheck = std::exchange(originalPackedIndex, nextPackedIndex);
+				}
+			}
 		}
 
 		template<typename T, void(T::*MoveOrSwapPayload)(u64, u64), typename ComparisonFunction = std::less<>>
@@ -917,9 +922,9 @@ namespace bs::ecs
 	struct TPagedContainerIterator final
 	{
 		using value_type = typename ContainerType::value_type;
-		using pointer = typename ContainerType::pointer;
-		using reference = typename ContainerType::reference;
-		using difference_type = typename ContainerType::difference_type;
+		using pointer = typename std::pointer_traits<typename ContainerType::value_type>::element_type*;
+		using reference = typename std::pointer_traits<typename ContainerType::value_type>::element_type&;
+		using difference_type = typename std::pointer_traits<typename ContainerType::value_type>::difference_type;
 		using iterator_category = std::random_access_iterator_tag;
 
 		TPagedContainerIterator() = default;
@@ -1026,7 +1031,7 @@ namespace bs::ecs
 	template<typename ComponentType, bool InPlaceDelete = false, u64 PackedPageSize = 1024>
 	class TComponentSparseSet : public TSparseSet<InPlaceDelete ? SparseSetDeletePolicy::InPlace : SparseSetDeletePolicy::SwapAndErase>
 	{
-		using ComponentContainerType = TArray<ComponentType*>;
+		using ComponentContainerType = TArray<TArrayView<ComponentType>>;
 
 	public:
 		using Super = TSparseSet<InPlaceDelete ? SparseSetDeletePolicy::InPlace : SparseSetDeletePolicy::SwapAndErase>;
@@ -1200,22 +1205,28 @@ namespace bs::ecs
 
 		void MoveOrSwapPayload(u64 fromPackedIndex, u64 toPackedIndex)
 		{
-			if constexpr(InPlaceDelete)
+			constexpr bool isMovable = std::is_move_constructible_v<ComponentType> && std::is_move_assignable_v<ComponentType>;
+			B3D_ASSERT(isMovable);
+
+			if constexpr(isMovable)
 			{
-				if(Super::operator[](toPackedIndex) == kInvalidEntity)
+				if constexpr(InPlaceDelete)
 				{
-					ComponentType& componentToMove = GetComponentReference(fromPackedIndex);
+					if(Super::operator[](toPackedIndex) == kInvalidEntity)
+					{
+						ComponentType& componentToMove = GetComponentReference(fromPackedIndex);
 
-					ComponentType* destinationComponent = GetOrCreateComponentPointer(toPackedIndex);
-					new(destinationComponent) ComponentType(std::move(componentToMove));
+						ComponentType* destinationComponent = GetOrCreateComponentPointer(toPackedIndex);
+						new(destinationComponent) ComponentType(std::move(componentToMove));
 
-					componentToMove.~ComponentType();
+						componentToMove.~ComponentType();
+					}
+					else
+						std::swap(GetComponentReference(fromPackedIndex), GetComponentReference(toPackedIndex));
 				}
 				else
 					std::swap(GetComponentReference(fromPackedIndex), GetComponentReference(toPackedIndex));
 			}
-			else
-				std::swap(GetComponentReference(fromPackedIndex), GetComponentReference(toPackedIndex));
 		}
 
 		void ShrinkComponentArray(u64 newComponentCount)
@@ -1235,7 +1246,7 @@ namespace bs::ecs
 			const auto newPageCount = (newComponentCount + PackedPageSize - 1u) / PackedPageSize;
 			const u64 oldPageCount = mComponents.Size();
 			for(u64 page = newPageCount; page < oldPageCount; ++page)
-				B3DFree(mComponents[page]);
+				B3DFree(mComponents[page].Data());
 
 			mComponents.Resize(newPageCount);
 			mComponents.Shrink();
@@ -1246,12 +1257,12 @@ namespace bs::ecs
 			const u64 page = GetComponentPage(packedComponentIndex);
 
 			if(page >= mComponents.Size())
-				mComponents.Resize(page + 1, nullptr);
+				mComponents.Resize(page + 1);
 
-			if(mComponents[page] == nullptr)
-				mComponents[page] = B3DAllocateMultiple<ComponentType>(PackedPageSize);
+			if(mComponents[page].IsEmpty())
+				mComponents[page] = TArrayView(B3DAllocateMultiple<ComponentType>(PackedPageSize), PackedPageSize);
 
-			return mComponents[page];
+			return mComponents[page].Data();
 		}
 
 		ComponentType* GetOrCreateComponentPointer(u64 packedComponentIndex)
@@ -1305,10 +1316,7 @@ namespace bs::ecs
 
 		Entity Create()
 		{
-			if(Size() == GetFreeListHead())
-				return CreateEntity();
-
-			Entity entity = mPackedEntities[GetFreeListHead()];
+			Entity entity = Size() == GetFreeListHead() ? CreateEntity() : mPackedEntities[GetFreeListHead()];
 			return *AddInternal(entity, false);
 		}
 

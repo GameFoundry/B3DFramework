@@ -110,6 +110,17 @@
 		</Expand>
 	</Type>
 
+	<Type Name="bs::TArrayView&lt;*&gt;">
+		<DisplayString>{{ size={mSize} }}</DisplayString>
+		<Expand>
+			<Item Name="[size]" ExcludeView="simple">mSize</Item>
+			<ArrayItems>
+				<Size>mSize</Size>
+				<ValuePointer>mData</ValuePointer>
+			</ArrayItems>
+		</Expand>
+	</Type>
+
 	<Type Name="bs::TBitfield&lt;*&gt;">
 		<DisplayString>{{ size={mNumBits} }}</DisplayString>
 		<Expand>
