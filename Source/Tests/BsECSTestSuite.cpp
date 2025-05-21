@@ -93,18 +93,13 @@ void ECSTestSuite::TestSparseSet()
 
 	TSparseSet<SparseSetDeletePolicy::InPlace> inPlaceDeleteSparseSet;
 	fnTestSparseSet(inPlaceDeleteSparseSet);
-
-	//EntitySparseSet entitySparseSet;
-	//fnTestSparseSet(entitySparseSet); // TODO - Need separate test of this
-
-	// TODO - Add tests for SortN
-
 }
 
 template<typename ComponentType>
 static void RunComponentTests(ECSTestSuite& testSuite)
 {
 	static constexpr bool kIsTypeMovable = std::is_move_constructible_v<ComponentType> && std::is_move_assignable_v<ComponentType>;
+	static constexpr bool kIsTypeEmpty = std::is_empty_v<ComponentType>;
 
 	StorageType<ComponentType> componentSparseSet;
 	componentSparseSet.Reserve(10);
@@ -112,7 +107,11 @@ static void RunComponentTests(ECSTestSuite& testSuite)
 	u32 index = 0;
 	for(const auto& entity : kEntities)
 	{
-		componentSparseSet.Add(entity, (float)index + 1.0f, (float)index + 2.0f, (float)index + 3.0f);
+		if constexpr(!kIsTypeEmpty)
+			componentSparseSet.Add(entity, (float)index + 1.0f, (float)index + 2.0f, (float)index + 3.0f);
+		else
+			componentSparseSet.Add(entity);
+
 		index++;
 	}
 
@@ -120,16 +119,22 @@ static void RunComponentTests(ECSTestSuite& testSuite)
 	for(const auto& entity : kEntities)
 	{
 		B3D_TEST_ASSERT_EXTERNAL(testSuite, componentSparseSet.Contains(entity))
-		B3D_TEST_ASSERT_EXTERNAL(testSuite, componentSparseSet.Get(entity) == ComponentType((float)index + 1.0f, (float)index + 2.0f, (float)index + 3.0f))
+		if constexpr(!kIsTypeEmpty)
+		{
+			B3D_TEST_ASSERT_EXTERNAL(testSuite, componentSparseSet.Get(entity) == ComponentType((float)index + 1.0f, (float)index + 2.0f, (float)index + 3.0f))
+		}
 
 		index++;
 	}
 
-	index = 0;
-	for(const auto& component : componentSparseSet)
+	if constexpr(!kIsTypeEmpty)
 	{
-		B3D_TEST_ASSERT_EXTERNAL(testSuite, component == ComponentType((float)index + 1.0f, (float)index + 2.0f, (float)index + 3.0f))
-		index++;
+		index = 0;
+		for(const auto& component : componentSparseSet)
+		{
+			B3D_TEST_ASSERT_EXTERNAL(testSuite, component == ComponentType((float)index + 1.0f, (float)index + 2.0f, (float)index + 3.0f))
+			index++;
+		}
 	}
 
 	componentSparseSet.Erase(kEntities[1]);
@@ -151,9 +156,18 @@ static void RunComponentTests(ECSTestSuite& testSuite)
 	else
 		B3D_TEST_ASSERT_EXTERNAL(testSuite, count == kEntities.Size())
 
-	componentSparseSet.Add(kEntities[1], 2.0f, 3.0f, 4.0f);
-	componentSparseSet.Add(kEntities[3], 4.0f, 5.0f, 6.0f);
-	componentSparseSet.Add(kEntities[5], 6.0f, 7.0f, 8.0f);
+	if constexpr(!kIsTypeEmpty)
+	{
+		componentSparseSet.Add(kEntities[1], 2.0f, 3.0f, 4.0f);
+		componentSparseSet.Add(kEntities[3], 4.0f, 5.0f, 6.0f);
+		componentSparseSet.Add(kEntities[5], 6.0f, 7.0f, 8.0f);
+	}
+	else
+	{
+		componentSparseSet.Add(kEntities[1]);
+		componentSparseSet.Add(kEntities[3]);
+		componentSparseSet.Add(kEntities[5]);
+	}
 
 	if constexpr(kIsTypeMovable)
 	{
@@ -163,7 +177,11 @@ static void RunComponentTests(ECSTestSuite& testSuite)
 		for(const auto& entity : kEntities)
 		{
 			B3D_TEST_ASSERT_EXTERNAL(testSuite, componentSparseSet.Contains(entity))
-			B3D_TEST_ASSERT_EXTERNAL(testSuite, componentSparseSet.Get(entity) == ComponentType((float)index + 1.0f, (float)index + 2.0f, (float)index + 3.0f))
+
+			if constexpr(!kIsTypeEmpty)
+			{
+				B3D_TEST_ASSERT_EXTERNAL(testSuite, componentSparseSet.Get(entity) == ComponentType((float)index + 1.0f, (float)index + 2.0f, (float)index + 3.0f))
+			}
 
 			index++;
 		}
@@ -239,6 +257,7 @@ void ECSTestSuite::TestComponentSparseSet()
 
 	RunComponentTests<Position>(*this);
 	RunComponentTests<NonMovablePosition>(*this);
+	RunComponentTests<IsEnemyTag>(*this);
 
 	static constexpr u32 kEntityCount = 10;
 
