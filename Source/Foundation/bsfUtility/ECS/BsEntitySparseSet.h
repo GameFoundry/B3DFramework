@@ -1432,22 +1432,50 @@ namespace bs::ecs
 			return const_cast<StorageType<Type>*>(std::as_const(*this).TryGetStorage<Type>());
 		}
 
-		bool ResetStorage(typeid_t typeId)
+		bool RemoveStorage(typeid_t typeId)
 		{
 			return mComponentStorage.erase(typeId) > 0;
 		}
 
 		template<typename Type>
-		bool ResetStorage()
+		bool RemoveStorage()
 		{
 			const typeid_t typeId = type_id<Type>();
-			return ResetStorage(typeId);
+			return RemoveStorage(typeId);
+		}
+
+		template<typename... Type>
+		void ClearStorage()
+		{
+			if(sizeof...(Type) == 0u)
+				return;
+
+			(GetOrCreateStorage<Type>().Clear(), ...);
+		}
+
+		void Clear()
+		{
+			for(auto& entry : mComponentStorage)
+				entry.second->Clear();
+			
+			mEntityStorage.Clear();
 		}
 
 		bool IsEntityValid(Entity entity) const
 		{
 			if(auto found = mEntityStorage.Find(entity); found != mEntityStorage.End())
 				return found.Index() < mEntityStorage.GetFreeListHead();
+
+			return false;
+		}
+
+		bool HasEntityAnyComponents(Entity entity) const
+		{
+			for(auto& entry : mComponentStorage)
+			{
+				if(entry.second->Contains(entity))
+					return true;
+			}
 
 			return false;
 		}
@@ -1591,7 +1619,18 @@ namespace bs::ecs
 			return storage.Contains(entity) ? storage.Get(entity) : storage.Add(entity, std::forward<Arguments>(arguments)...);
 		}
 
-		// TODO - clear, isorphan, sort, view
+		template<typename Type, typename ComparisonFunction = std::less<>>
+		void Sort()
+		{
+			GetOrCreateStorage<Type>().template Sort<ComparisonFunction>();
+		}
+
+		template<typename TypeToSort, typename TypeToSortAs>
+		void SortAs()
+		{
+			const SparseSet& sortAsStorage = GetOrCreateStorage<TypeToSortAs>();
+			GetOrCreateStorage<TypeToSort>().SortAs(sortAsStorage.Begin(), sortAsStorage.End());
+		}
 
 		template<typename... Type>
 		void Shrink()
