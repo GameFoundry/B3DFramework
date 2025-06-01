@@ -1777,37 +1777,37 @@ namespace bs::ecs
 	template<typename T, typename From>
 	using TInheritConstFrom = typename TInheritConstFromHelper<T, From>::Type;
 
-	template<typename... Type>
-	static constexpr bool TAllTypesUseInPlaceDelete = ((sizeof...(Type) == 1u) && ... && (Type::kDeletePolicy == SparseSetDeletePolicy::InPlace));
+	template<typename... StorageType>
+	static constexpr bool TAllTypesUseInPlaceDelete = ((sizeof...(StorageType) == 1u) && ... && (StorageType::kDeletePolicy == SparseSetDeletePolicy::InPlace));
 
 	template<typename, typename, typename = void>
 	class TView;
 
-	template<typename... IncludedType, typename... ExcludedType>
-	class TView<TIncludedTypes<IncludedType...>, TExcludedTypes<ExcludedType...>, std::enable_if_t<(sizeof...(IncludedType) != 0u)>> : public TViewCommon<sizeof...(IncludedType), sizeof...(ExcludedType), TAllTypesUseInPlaceDelete<IncludedType...>>
+	template<typename... IncludedStorageType, typename... ExcludedStorageType>
+	class TView<TIncludedTypes<IncludedStorageType...>, TExcludedTypes<ExcludedStorageType...>, std::enable_if_t<(sizeof...(IncludedStorageType) != 0u)>> : public TViewCommon<sizeof...(IncludedStorageType), sizeof...(ExcludedStorageType), TAllTypesUseInPlaceDelete<IncludedStorageType...>>
 	{
-		using Super = TViewCommon<sizeof...(IncludedType), sizeof...(ExcludedType), TAllTypesUseInPlaceDelete<IncludedType...>>;
+		using Super = TViewCommon<sizeof...(IncludedStorageType), sizeof...(ExcludedStorageType), TAllTypesUseInPlaceDelete<IncludedStorageType...>>;
 
 		template<u32 Index>
-		using TElementAt = TTypeListElementAt<Index, TTypeList<IncludedType..., ExcludedType...>>;
+		using TStorageTypeAt = TTypeListElementAt<Index, TTypeList<IncludedStorageType..., ExcludedStorageType...>>;
 
-		template<typename Type>
-		static constexpr bool TIndexOf = TTypeListIndexOf<std::remove_const_t<Type>, TTypeList<typename IncludedType::ElementType..., typename ExcludedType::ElementType...>>;
+		template<typename ElementType>
+		static constexpr bool TIndexOfElementType = TTypeListIndexOf<std::remove_const_t<ElementType>, TTypeList<typename IncludedStorageType::ElementType..., typename ExcludedStorageType::ElementType...>>;
 		
 	public:
 		TView() = default;
-		TView(IncludedType... includedType, ExcludedType... excludedType)
+		TView(IncludedStorageType... includedType, ExcludedStorageType... excludedType)
 			:Super::Super({includedType...}, {excludedType...})
 		{ }
 
-		TView(std::tuple<IncludedType&...> includedTypes, std::tuple<ExcludedType&...> excludedTypes)
+		TView(std::tuple<IncludedStorageType&...> includedTypes, std::tuple<ExcludedStorageType&...> excludedTypes)
 			:TView(std::make_from_tuple<TView>(std::tuple_cat(includedTypes, excludedTypes)))
 		{ }
 
-		template<typename Type>
+		template<typename ElementType>
 		void SetLeadingType()
 		{
-			SetLeadingType<TIndexOf<Type>>();
+			SetLeadingType<TIndexOfElementType<ElementType>>();
 		}
 
 		template<u32 Index>
@@ -1816,39 +1816,39 @@ namespace bs::ecs
 			Super::SetExplicitLeadingTypeIndex(Index);
 		}
 
-		template<typename Type>
+		template<typename ElementType>
 		auto* GetStorage() const
 		{
-			return GetStorage<TIndexOf<Type>>();
+			return GetStorage<TIndexOfElementType<ElementType>>();
 		}
 
 		template<u32 Index>
 		auto* GetStorage() const
 		{
-			static_assert(Index < (sizeof...(IncludedType) + sizeof...(ExcludedType)), "Index out of range.");
+			static_assert(Index < (sizeof...(IncludedStorageType) + sizeof...(ExcludedStorageType)), "Index out of range.");
 
-			if constexpr(Index < sizeof...(IncludedType))
-				return static_cast<TElementAt<Index>*>(const_cast<TInheritConstFrom<SparseSet, TElementAt<Index>>*>(Super::GetIncludedTypeStorage(Index)));
+			if constexpr(Index < sizeof...(IncludedStorageType))
+				return static_cast<TStorageTypeAt<Index>*>(const_cast<TInheritConstFrom<SparseSet, TStorageTypeAt<Index>>*>(Super::GetIncludedTypeStorage(Index)));
 			else
-				return static_cast<TElementAt<Index>*>(const_cast<TInheritConstFrom<SparseSet, TElementAt<Index>>*>(Super::GetExcludedTypeStorage(Index - sizeof...(IncludedType))));
+				return static_cast<TStorageTypeAt<Index>*>(const_cast<TInheritConstFrom<SparseSet, TStorageTypeAt<Index>>*>(Super::GetExcludedTypeStorage(Index - sizeof...(IncludedStorageType))));
 		}
 
-		template<typename Type>
-		void SetStorage(Type& storage)
+		template<typename StorageType>
+		void SetStorage(StorageType& storage)
 		{
-			SetStorage<TIndexOf<typename Type::ElementType>>(storage);
+			SetStorage<TIndexOfElementType<typename StorageType::ElementType>>(storage);
 		}
 
-		template<u32 Index, typename Type>
-		void SetStorage(Type& storage)
+		template<u32 Index, typename StorageType>
+		void SetStorage(StorageType& storage)
 		{
-			static_assert(Index < (sizeof...(IncludedType) + sizeof...(ExcludedType)), "Index out of range.");
-			static_assert(std::is_convertible_v<Type, TElementAt<Index>>, "Unsupported type.");
+			static_assert(Index < (sizeof...(IncludedStorageType) + sizeof...(ExcludedStorageType)), "Index out of range.");
+			static_assert(std::is_convertible_v<StorageType, TStorageTypeAt<Index>>, "Unsupported type.");
 
-			if constexpr(Index < sizeof...(IncludedType))
+			if constexpr(Index < sizeof...(IncludedStorageType))
 				Super::SetIncludedTypeStorage(Index, &storage);
 			else
-				Super::SetExcludedTypeStorage(Index - sizeof...(IncludedType), &storage);
+				Super::SetExcludedTypeStorage(Index - sizeof...(IncludedStorageType), &storage);
 		}
 
 		decltype(auto) operator[](Entity entity) const
@@ -1856,17 +1856,17 @@ namespace bs::ecs
 			return Get(entity);
 		}
 
-		template<typename Type, typename... Other>
+		template<typename ElementType, typename... OtherElementType>
 		decltype(auto) Get(Entity entity) const
 		{
-			return Get<TIndexOf<Type>, TIndexOf<Other>...>(entity);
+			return Get<TIndexOfElementType<ElementType>, TIndexOfElementType<OtherElementType>...>(entity);
 		}
 
 		template<u32... Index>
 		decltype(auto) Get(Entity entity) const
 		{
 			if constexpr(sizeof...(Index) == 0)
-				return std::tuple_cat(std::forward_as_tuple(GetStorage<IncludedType::ElementType>()->Get(entity))...);
+				return std::tuple_cat(std::forward_as_tuple(GetStorage<IncludedStorageType::ElementType>()->Get(entity))...);
 			else if constexpr(sizeof...(Index) == 1)
 				return (GetStorage<Index>()->Get(entity), ...);
 			else
