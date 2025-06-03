@@ -1032,6 +1032,107 @@ namespace bs::ecs
 		return !(lhs < rhs);
 	}
 
+	/** Moves a temporary value into the structure so may be passed around and accessed as if it was a pointer. */
+	template<typename Type>
+	struct TPointerToTemporary
+	{
+		constexpr TPointerToTemporary(Type&& value)
+			: mValue{std::move(value)}
+		{ }
+
+		constexpr Type* operator->() noexcept { return &mValue; }
+		constexpr Type& operator*() noexcept { return mValue; }
+
+	private:
+		Type mValue;
+	};
+
+	/** Performs iteration at multiple underlying iterators at once. Only supports forward iteration, one entry at a time. */
+	template<typename BaseIteratorType, typename... OtherIteratorType>
+	struct TMultiIteratorAdapter
+	{
+		using iterator_type = BaseIteratorType;
+		using value_type = decltype(std::tuple_cat(std::make_tuple(*std::declval<BaseIteratorType>()), std::forward_as_tuple(*std::declval<OtherIteratorType>()...)));
+		using difference_type = typename std::iterator_traits<BaseIteratorType>::difference_type;
+		using pointer = TPointerToTemporary<value_type>;
+		using reference = value_type;
+		using iterator_category = std::input_iterator_tag;
+
+		constexpr TMultiIteratorAdapter() = default;
+		constexpr TMultiIteratorAdapter(BaseIteratorType firstIterator, OtherIteratorType... otherIterator)
+			: mIterators(firstIterator, otherIterator...)
+		{ }
+
+		template <typename... OtherIteratorType2, typename = std::enable_if_t<(!std::is_same_v<OtherIteratorType, OtherIteratorType2> && ...) && (std::is_constructible_v<OtherIteratorType, OtherIteratorType2> && ...)>>
+		constexpr TMultiIteratorAdapter(const TMultiIteratorAdapter<BaseIteratorType, OtherIteratorType2...>& other)
+			: mIterators(other.mIterators)
+		{}
+
+		constexpr TMultiIteratorAdapter& operator++()
+		{
+			++std::get<BaseIteratorType>(mIterators);
+			(++std::get<OtherIteratorType>(mIterators), ...);
+
+			return *this;
+		}
+
+		constexpr pointer operator->() const noexcept
+		{
+			return operator*();
+		}
+
+		constexpr reference operator*() const noexcept
+		{
+			return { *std::get<BaseIteratorType>(mIterators), *std::get<OtherIteratorType>(mIterators)... };
+		}
+
+		constexpr iterator_type GetBaseIterator() const
+		{
+			return std::get<BaseIteratorType>(mIterators);
+		}
+
+		template <typename... LeftIteratorTypes, typename... RightIteratorTypes>
+		friend constexpr bool operator==(const TMultiIteratorAdapter<LeftIteratorTypes...>&, const TMultiIteratorAdapter<RightIteratorTypes...>&);
+
+	private:
+		std::tuple<BaseIteratorType, OtherIteratorType...> mIterators;
+	};
+
+	template <typename... LeftIteratorTypes, typename... RightIteratorTypes>
+	constexpr bool operator==(const TMultiIteratorAdapter<LeftIteratorTypes...>& lhs, const TMultiIteratorAdapter<RightIteratorTypes...>& rhs)
+	{
+		return lhs.GetBaseIterator() == rhs.GetBaseIteratorType();
+	}
+
+	template <typename... LeftIteratorTypes, typename... RightIteratorTypes>
+	constexpr bool operator!=(const TMultiIteratorAdapter<LeftIteratorTypes...>& lhs, const TMultiIteratorAdapter<RightIteratorTypes...>& rhs)
+	{
+		return !(lhs == rhs);
+	}
+
+	/** Contains a range between two iterators that can be iterated using a ranged for loop. */
+	template <typename IteratorType>
+	struct TIteratorRange
+	{
+		using value_type = typename std::iterator_traits<IteratorType>::value_type;
+		using iterator = IteratorType;
+
+		constexpr TIteratorRange() = default;
+		constexpr TIteratorRange(IteratorType first, IteratorType last)
+			: mFirst(std::move(first)), mLast(std::move(last))
+		{ }
+
+		constexpr IteratorType begin() const { return mFirst; }
+		constexpr IteratorType end() const { return mLast; }
+
+		constexpr IteratorType cbegin() const { return begin(); }
+		constexpr IteratorType cend() const { return end(); }
+
+	private:
+		IteratorType mFirst;
+		IteratorType mLast;
+	};
+
 	template<typename ComponentType, bool InPlaceDelete = false, u64 PackedPageSize = 1024>
 	class TComponentSparseSet : public TSparseSet<InPlaceDelete ? SparseSetDeletePolicy::InPlace : SparseSetDeletePolicy::SwapAndErase>
 	{
@@ -1044,6 +1145,10 @@ namespace bs::ecs
 		using ConstIterator = TPagedContainerIterator<const ComponentContainerType, PackedPageSize>;
 		using ReverseIterator = std::reverse_iterator<Iterator>;
 		using ConstReverseIterator = std::reverse_iterator<ConstIterator>;
+		using IteratorRange = TIteratorRange<TMultiIteratorAdapter<typename Super::Iterator, Iterator>>;
+		using ConstIteratorRange = TIteratorRange<TMultiIteratorAdapter<typename Super::ConstIterator, ConstIterator>>;
+		using ReverseIteratorRange = TIteratorRange<TMultiIteratorAdapter<typename Super::ReverseIterator, ReverseIterator>>;
+		using ConstReverseIteratorRange = TIteratorRange<TMultiIteratorAdapter<typename Super::ConstReverseIterator, ConstReverseIterator>>;
 
 		~TComponentSparseSet() override
 		{
@@ -1084,7 +1189,7 @@ namespace bs::ecs
 				{
 					if(*it != kInvalidEntity)
 					{
-						ComponentType& component = GetComponentReference(GetPackedIndex(*it));
+						ComponentType& component = GetComponentReference(this->GetPackedIndex(*it));
 						component.~ComponentType();
 					}
 				}
@@ -1093,7 +1198,7 @@ namespace bs::ecs
 			{
 				for(auto it = Super::Begin(); it != Super::End(); ++it)
 				{
-					ComponentType& component = GetComponentReference(GetPackedIndex(*it));
+					ComponentType& component = GetComponentReference(this->GetPackedIndex(*it));
 					component.~ComponentType();
 				}
 			}
@@ -1143,6 +1248,12 @@ namespace bs::ecs
 			Super::Shrink();
 			ShrinkComponentArray(Super::Size());
 		}
+
+		IteratorRange Each() { return IteratorRange({ Super::Begin(), Begin() }, { Super::End(), End() }); }
+		ConstIteratorRange Each() const { return ConstIteratorRange({ Super::Cbegin(), Cbegin() }, { Super::Cend(), Cend() }); }
+
+		ReverseIteratorRange ReverseEach() { return ReverseIteratorRange({ Super::Rbegin(), Rbegin() }, { Super::Rend(), Rend() }); }
+		ConstReverseIteratorRange ReverseEach() const { return ConstReverseIteratorRange({ Super::Crbegin(), Crbegin() }, { Super::Crend(), Crend() }); }
 
 		ConstIterator Cbegin() const { return ConstIterator(mComponents, 0); }
 		ConstIterator Begin() const { return Cbegin(); }
@@ -1311,6 +1422,10 @@ namespace bs::ecs
 	public:
 		using ElementType = TagType;
 		using Super = TSparseSet<SparseSetDeletePolicy::SwapAndErase>;
+		using IteratorRange = TIteratorRange<TMultiIteratorAdapter<Iterator>>;
+		using ConstIteratorRange = TIteratorRange<TMultiIteratorAdapter<ConstIterator>>;
+		using ReverseIteratorRange = TIteratorRange<TMultiIteratorAdapter<ReverseIterator>>;
+		using ConstReverseIteratorRange = TIteratorRange<TMultiIteratorAdapter<ConstReverseIterator>>;
 
 		~TTagSparseSet() override = default;
 
@@ -1325,6 +1440,12 @@ namespace bs::ecs
 			for(It it = first; it != last; ++it)
 				Super::AddInternal(*it, true);
 		}
+
+		IteratorRange Each() { return IteratorRange({ Begin() }, { End() }); }
+		ConstIteratorRange Each() const { return ConstIteratorRange({ Cbegin() }, { Cend() }); }
+
+		ReverseIteratorRange ReverseEach() { return ReverseIteratorRange({ Rbegin() }, { Rend() }); }
+		ConstReverseIteratorRange ReverseEach() const { return ConstReverseIteratorRange({ Crbegin() }, { Crend() }); }
 	};
 
 	class EntitySparseSet : public TSparseSet<SparseSetDeletePolicy::SwapOnly>
@@ -1332,6 +1453,10 @@ namespace bs::ecs
 	public:
 		using ElementType = Entity;
 		using Super = TSparseSet<SparseSetDeletePolicy::SwapOnly>;
+		using IteratorRange = TIteratorRange<TMultiIteratorAdapter<Iterator>>;
+		using ConstIteratorRange = TIteratorRange<TMultiIteratorAdapter<ConstIterator>>;
+		using ReverseIteratorRange = TIteratorRange<TMultiIteratorAdapter<ReverseIterator>>;
+		using ConstReverseIteratorRange = TIteratorRange<TMultiIteratorAdapter<ConstReverseIterator>>;
 
 		~EntitySparseSet() override = default;
 
@@ -1358,6 +1483,12 @@ namespace bs::ecs
 			Super::Clear();
 			mNextEntityId = 0u;
 		}
+
+		IteratorRange Each() { return IteratorRange({ Begin() }, { Begin() + GetFreeListHead() }); }
+		ConstIteratorRange Each() const { return ConstIteratorRange({ Cbegin() }, { Cbegin() + GetFreeListHead() }); }
+
+		ReverseIteratorRange ReverseEach() { return ReverseIteratorRange({ Rbegin() }, { Rbegin() + (ReverseIterator::difference_type)GetFreeListHead() }); }
+		ConstReverseIteratorRange ReverseEach() const { return ConstReverseIteratorRange({ Crbegin() }, { Crbegin() + (ReverseIterator::difference_type)GetFreeListHead() }); }
 
 	private:
 		using UnderlyingIterator = typename Super::Iterator;
@@ -1417,6 +1548,21 @@ namespace bs::ecs
 
 	template<typename Type>
 	using TStorageType = typename StorageForType<Type>::StorageType;
+
+	template<typename T, typename From>
+	struct TInheritConstFromHelper
+	{
+		using Type = std::remove_const_t<T>;
+	};
+
+	template<typename T, typename From>
+	struct TInheritConstFromHelper<T, const From>
+	{
+		using Type = const T;
+	};
+
+	template<typename T, typename From>
+	using TInheritConstFrom = typename TInheritConstFromHelper<T, From>::Type;
 
 	template<typename It>
 	static bool IsEntityPartOfAll(It first, It last, Entity entity)
@@ -1483,6 +1629,9 @@ namespace bs::ecs
 			return *mUnderlyingIterator;
 		}
 
+		std::array<const SparseSet*, IncludedTypeCount>& GetIncludedTypeStorage() { return mIncludedTypeStorage; };
+		const std::array<const SparseSet*, IncludedTypeCount>& GetIncludedTypeStorage() const { return mIncludedTypeStorage; };
+
 		friend constexpr bool operator==(const TViewIterator& lhs, const TViewIterator& rhs) noexcept;
 		friend constexpr bool operator!=(const TViewIterator& lhs, const TViewIterator& rhs) noexcept;
 
@@ -1510,6 +1659,67 @@ namespace bs::ecs
 	constexpr bool operator!=(const TViewIterator<IncludedTypeCount, ExcludedTypeCount, InPlaceDelete>& lhs, const TViewIterator<IncludedTypeCount, ExcludedTypeCount, InPlaceDelete>& rhs) noexcept
 	{
 		return !(lhs.mUnderlyingIterator == rhs.mUnderlyingIterator);
+	}
+
+	template<typename IteratorType, typename... IncludedStorageType>
+	struct TViewIteratorAdapter
+	{
+	public:
+		using iterator_type = IteratorType;
+		using value_type = decltype(std::tuple_cat(std::make_tuple(*std::declval<IteratorType>()), std::forward_as_tuple(std::declval<IncludedStorageType>().Get({}))...));
+		using pointer = TPointerToTemporary<value_type>;
+		using reference = value_type;
+		using iterator_category = std::input_iterator_tag;
+
+		constexpr TViewIteratorAdapter() = default;
+		constexpr TViewIteratorAdapter(IteratorType iterator)
+			: mIterator(iterator)
+		{ }
+
+		constexpr TViewIteratorAdapter& operator++()
+		{
+			++mIterator;
+			return *this;
+		}
+
+		constexpr pointer operator->() const noexcept
+		{
+			return operator*();
+		}
+
+		constexpr reference operator*() const noexcept
+		{
+			return GetTuple(std::index_sequence_for<IncludedStorageType...>());
+		}
+
+		constexpr iterator_type GetEntityIterator() const
+		{
+			return mIterator;
+		}
+
+		template <typename... LeftIteratorTypes, typename... RightIteratorTypes>
+		friend constexpr bool operator==(const TViewIteratorAdapter<LeftIteratorTypes...>&, const TViewIteratorAdapter<RightIteratorTypes...>&);
+
+	private:
+		template<size_t... Index>
+		reference GetTuple(std::index_sequence<Index...>)
+		{
+			return std::tuple_cat(std::make_tuple(*mIterator), std::forward_as_tuple(static_cast<IncludedStorageType *>(std::get<Index>(mIterator.GetIncludedTypeStorage()))->Get(*mIterator))...);
+		}
+
+		IteratorType mIterator;
+	};
+
+	template <typename... LeftIteratorTypes, typename... RightIteratorTypes>
+	constexpr bool operator==(const TViewIteratorAdapter<LeftIteratorTypes...>& lhs, const TViewIteratorAdapter<RightIteratorTypes...>& rhs) noexcept
+	{
+		return lhs.GetEntityIterator() == rhs.GetEntityIterator();
+	}
+
+	template <typename... LeftIteratorTypes, typename... RightIteratorTypes>
+	constexpr bool operator!=(const TViewIteratorAdapter<LeftIteratorTypes...>& lhs, const TViewIteratorAdapter<RightIteratorTypes...>& rhs) noexcept
+	{
+		return !(lhs == rhs);
 	}
 
 	template<u32 IncludedTypeCount, u32 ExcludedTypeCount, bool InPlaceDelete>
@@ -1749,7 +1959,6 @@ namespace bs::ecs
 	template<u32 Index, typename List>
 	using TTypeListElementAt = typename TTypeListElementAtHelper<Index, List>::Type;
 
-
 	template<typename... Types>
 	struct TIncludedTypes : TTypeList<Types...>
 	{
@@ -1762,20 +1971,18 @@ namespace bs::ecs
 		explicit constexpr TExcludedTypes() = default;
 	};
 
-	template<typename T, typename From>
-	struct TInheritConstFromHelper
-	{
-		using Type = std::remove_const_t<T>;
-	};
+	template<typename Function, typename... Arguments>
+	struct TIsInvocableWithTupleArgumentsHelper : std::false_type { };
 
-	template<typename T, typename From>
-	struct TInheritConstFromHelper<T, const From>
-	{
-		using Type = const T;
-	};
+	template<typename Function, template<typename...> class Tuple, typename... Arguments>
+	struct TIsInvocableWithTupleArgumentsHelper<Function, Tuple<Arguments...>> : std::is_invocable<Function, Arguments...> { };
 
-	template<typename T, typename From>
-	using TInheritConstFrom = typename TInheritConstFromHelper<T, From>::Type;
+	template<typename Function, template<typename...> class Tuple, typename... Arguments>
+	struct TIsInvocableWithTupleArgumentsHelper<Function, const Tuple<Arguments...>> : std::is_invocable<Function, Arguments...> { };
+
+	/** Checks if the specified @p Function can be invoked using std::apply(Function, std::tuple<Arguments...>). */
+	template<typename Function, typename... Arguments>
+	static constexpr bool TIsInvocableWithTupleArguments = TIsInvocableWithTupleArgumentsHelper<Function, Arguments...>::value;
 
 	template<typename... StorageType>
 	static constexpr bool TAllTypesUseInPlaceDelete = ((sizeof...(StorageType) == 1u) && ... && (StorageType::kDeletePolicy == SparseSetDeletePolicy::InPlace));
@@ -1795,6 +2002,8 @@ namespace bs::ecs
 		static constexpr bool TIndexOfElementType = TTypeListIndexOf<std::remove_const_t<ElementType>, TTypeList<typename IncludedStorageType::ElementType..., typename ExcludedStorageType::ElementType...>>;
 		
 	public:
+		using IteratorRange = TIteratorRange<TViewIteratorAdapter<typename Super::Iterator, IncludedStorageType...>>;
+
 		TView() = default;
 		TView(IncludedStorageType... includedType, ExcludedStorageType... excludedType)
 			:Super::Super({includedType...}, {excludedType...})
@@ -1871,6 +2080,11 @@ namespace bs::ecs
 				return (GetStorage<Index>()->Get(entity), ...);
 			else
 				return std::tuple_cat(std::forward_as_tuple(GetStorage<Index>()->Get(entity))...);
+		}
+
+		IteratorRange Each() const
+		{
+			return IteratorRange(Super::Begin(), Super::End());
 		}
 	};
 
@@ -2013,6 +2227,8 @@ namespace bs::ecs
 		using Super = TSingleStorageViewCommon<StorageType>;
 
 	public:
+		using IteratorRange = std::conditional_t<StorageType::kDeletePolicy == SparseSetDeletePolicy::InPlace, TIteratorRange<TViewIteratorAdapter<typename Super::Iterator, StorageType>>, typename StorageType::IteratorRange>;
+
 		TView() = default;
 		TView(StorageType& storage)
 			:Super::Super(&storage)
@@ -2068,6 +2284,11 @@ namespace bs::ecs
 				return std::forward_as_tuple(GetStorage()->Get(entity));
 			else
 				return GetStorage<Index...>()->Get(entity);
+		}
+
+		IteratorRange Each() const
+		{
+			return IteratorRange(Super::Begin(), Super::End());
 		}
 	};
 
