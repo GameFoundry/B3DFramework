@@ -2,8 +2,6 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsUtilityPrerequisites.h"
-
 namespace bs
 {
 	/** @addtogroup Internal-Utility
@@ -15,14 +13,14 @@ namespace bs
 	 */
 
 	/** Data common to all event connections. */
-	class BaseConnectionData
+	struct EventConnection
 	{
 	public:
-		BaseConnectionData() = default;
+		EventConnection() = default;
 
-		virtual ~BaseConnectionData()
+		virtual ~EventConnection()
 		{
-			B3D_ASSERT(!HandleLinks && !IsActive);
+			B3D_ASSERT(!ActiveHandleCount && !IsActive);
 		}
 
 		virtual void Deactivate()
@@ -30,60 +28,60 @@ namespace bs
 			IsActive = false;
 		}
 
-		BaseConnectionData* Prev = nullptr;
-		BaseConnectionData* Next = nullptr;
+		EventConnection* Previous = nullptr;
+		EventConnection* Next = nullptr;
 		bool IsActive = true;
-		u32 HandleLinks = 0;
+		u32 ActiveHandleCount = 0;
 	};
 
 	/** Internal data for an Event, storing all connections. */
-	struct EventInternalData
+	struct EventControlBlock
 	{
-		EventInternalData() = default;
+		EventControlBlock() = default;
 
-		~EventInternalData()
+		~EventControlBlock()
 		{
-			BaseConnectionData* conn = MConnections;
-			while(conn != nullptr)
+			EventConnection* connection = ActiveConnections;
+			while(connection != nullptr)
 			{
-				BaseConnectionData* next = conn->Next;
-				B3DFree(conn);
+				EventConnection* next = connection->Next;
+				B3DFree(connection);
 
-				conn = next;
+				connection = next;
 			}
 
-			conn = MFreeConnections;
-			while(conn != nullptr)
+			connection = FreeConnections;
+			while(connection != nullptr)
 			{
-				BaseConnectionData* next = conn->Next;
-				B3DFree(conn);
+				EventConnection* next = connection->Next;
+				B3DFree(connection);
 
-				conn = next;
+				connection = next;
 			}
 
-			conn = MNewConnections;
-			while(conn != nullptr)
+			connection = NewConnections;
+			while(connection != nullptr)
 			{
-				BaseConnectionData* next = conn->Next;
-				B3DFree(conn);
+				EventConnection* next = connection->Next;
+				B3DFree(connection);
 
-				conn = next;
+				connection = next;
 			}
 		}
 
 		/** Appends a new connection to the active connection array. */
-		void Connect(BaseConnectionData* conn)
+		void Connect(EventConnection* connection)
 		{
-			conn->Prev = MLastConnection;
+			connection->Previous = LastConnection;
 
-			if(MLastConnection != nullptr)
-				MLastConnection->Next = conn;
+			if(LastConnection != nullptr)
+				LastConnection->Next = connection;
 
-			MLastConnection = conn;
+			LastConnection = connection;
 
 			// First connection
-			if(MConnections == nullptr)
-				MConnections = conn;
+			if(ActiveConnections == nullptr)
+				ActiveConnections = connection;
 		}
 
 		/**
@@ -91,85 +89,85 @@ namespace bs
 		 *
 		 * @note	Only call this once.
 		 */
-		void Disconnect(BaseConnectionData* conn)
+		void Disconnect(EventConnection* connection)
 		{
-			RecursiveLock lock(MMutex);
+			RecursiveLock lock(Mutex);
 
-			conn->Deactivate();
-			conn->HandleLinks--;
+			connection->Deactivate();
+			connection->ActiveHandleCount--;
 
-			if(conn->HandleLinks == 0)
-				Free(conn);
+			if(connection->ActiveHandleCount == 0)
+				FreeConnection(connection);
 		}
 
 		/** Disconnects all connections in the event. */
-		void Clear()
+		void DisconnectAll()
 		{
-			RecursiveLock lock(MMutex);
+			RecursiveLock lock(Mutex);
 
-			BaseConnectionData* conn = MConnections;
-			while(conn != nullptr)
+			EventConnection* connection = ActiveConnections;
+			while(connection != nullptr)
 			{
-				BaseConnectionData* next = conn->Next;
-				conn->Deactivate();
+				EventConnection* next = connection->Next;
+				connection->Deactivate();
 
-				if(conn->HandleLinks == 0)
-					Free(conn);
+				if(connection->ActiveHandleCount == 0)
+					FreeConnection(connection);
 
-				conn = next;
+				connection = next;
 			}
 
-			MConnections = nullptr;
-			MLastConnection = nullptr;
+			ActiveConnections = nullptr;
+			LastConnection = nullptr;
 		}
 
 		/**
 		 * Called when the event handle no longer keeps a reference to the connection data. This means we might be able to
 		 * free (and reuse) its memory if the event is done with it too.
 		 */
-		void FreeHandle(BaseConnectionData* conn)
+		void FreeHandle(EventConnection* connection)
 		{
-			RecursiveLock lock(MMutex);
+			RecursiveLock lock(Mutex);
 
-			conn->HandleLinks--;
+			connection->ActiveHandleCount--;
 
-			if(conn->HandleLinks == 0 && !conn->IsActive)
-				Free(conn);
+			if(connection->ActiveHandleCount == 0 && !connection->IsActive)
+				FreeConnection(connection);
 		}
 
 		/** Releases connection data and makes it available for re-use when next connection is formed. */
-		void Free(BaseConnectionData* conn)
+		void FreeConnection(EventConnection* connection)
 		{
-			if(conn->Prev != nullptr)
-				conn->Prev->Next = conn->Next;
+			if(connection->Previous != nullptr)
+				connection->Previous->Next = connection->Next;
 			else
-				MConnections = conn->Next;
+				ActiveConnections = connection->Next;
 
-			if(conn->Next != nullptr)
-				conn->Next->Prev = conn->Prev;
+			if(connection->Next != nullptr)
+				connection->Next->Previous = connection->Previous;
 			else
-				MLastConnection = conn->Prev;
+				LastConnection = connection->Previous;
 
-			conn->Prev = nullptr;
-			conn->Next = nullptr;
+			connection->Previous = nullptr;
+			connection->Next = nullptr;
 
-			if(MFreeConnections != nullptr)
+			if(FreeConnections != nullptr)
 			{
-				conn->Next = MFreeConnections;
-				MFreeConnections->Prev = conn;
+				connection->Next = FreeConnections;
+				FreeConnections->Previous = connection;
 			}
 
-			MFreeConnections = conn;
-			MFreeConnections->~BaseConnectionData();
+			FreeConnections = connection;
+			FreeConnections->~EventConnection();
 		}
 
-		BaseConnectionData* MConnections = nullptr;
-		BaseConnectionData* MLastConnection = nullptr;
-		BaseConnectionData* MFreeConnections = nullptr;
-		BaseConnectionData* MNewConnections = nullptr;
+		EventConnection* ActiveConnections = nullptr;
+		EventConnection* LastConnection = nullptr;
+		EventConnection* FreeConnections = nullptr;
+		EventConnection* NewConnections = nullptr;
 
-		RecursiveMutex MMutex;
-		bool MIsCurrentlyTriggering = false;
+		RecursiveMutex Mutex;
+		bool IsCurrentlyTriggering = false;
 	};
 
 	/** @} */
@@ -185,16 +183,16 @@ namespace bs
 	public:
 		HEvent() = default;
 
-		explicit HEvent(SPtr<EventInternalData> eventData, BaseConnectionData* connection)
-			: mConnection(connection), mEventData(std::move(eventData))
+		explicit HEvent(TShared<EventControlBlock> eventControlBlock, EventConnection* connection)
+			: mConnection(connection), mEventControlBlock(std::move(eventControlBlock))
 		{
-			connection->HandleLinks++;
+			connection->ActiveHandleCount++;
 		}
 
 		~HEvent()
 		{
 			if(mConnection != nullptr)
-				mEventData->FreeHandle(mConnection);
+				mEventControlBlock->FreeHandle(mConnection);
 		}
 
 		/** Disconnect from the event you are subscribed to. */
@@ -202,9 +200,9 @@ namespace bs
 		{
 			if(mConnection != nullptr)
 			{
-				mEventData->Disconnect(mConnection);
+				mEventControlBlock->Disconnect(mConnection);
 				mConnection = nullptr;
-				mEventData = nullptr;
+				mEventControlBlock = nullptr;
 			}
 		}
 
@@ -232,17 +230,17 @@ namespace bs
 		HEvent& operator=(const HEvent& rhs)
 		{
 			mConnection = rhs.mConnection;
-			mEventData = rhs.mEventData;
+			mEventControlBlock = rhs.mEventControlBlock;
 
 			if(mConnection != nullptr)
-				mConnection->HandleLinks++;
+				mConnection->ActiveHandleCount++;
 
 			return *this;
 		}
 
 	private:
-		BaseConnectionData* mConnection = nullptr;
-		SPtr<EventInternalData> mEventData;
+		EventConnection* mConnection = nullptr;
+		TShared<EventControlBlock> mEventControlBlock;
 	};
 
 	/** @} */
@@ -262,25 +260,25 @@ namespace bs
 	 */
 	// Note: I could create a policy template argument that allows creation of
 	// lockable and non-lockable events in the case mutex is causing too much overhead.
-	template <class RetType, class... Args>
+	// Note: Create a variant of event without the overhead of std::function
+	template <typename ReturnType, typename... ArgumentType>
 	class TEvent
 	{
-		struct ConnectionData : BaseConnectionData
+		struct TEventConnection : EventConnection
 		{
-		public:
 			void Deactivate() override
 			{
-				Func = nullptr;
+				Callback = nullptr;
 
-				BaseConnectionData::Deactivate();
+				EventConnection::Deactivate();
 			}
 
-			std::function<RetType(Args...)> Func;
+			std::function<ReturnType(ArgumentType...)> Callback;
 		};
 
 	public:
 		TEvent()
-			: mInternalData(B3DMakeShared<EventInternalData>())
+			: mControlBlock(B3DMakeShared2<EventControlBlock>())
 		{}
 
 		~TEvent()
@@ -289,96 +287,95 @@ namespace bs
 		}
 
 		/** Register a new callback that will get notified once the event is triggered. */
-		HEvent Connect(std::function<RetType(Args...)> func)
+		HEvent Connect(std::function<ReturnType(ArgumentType...)> callback)
 		{
-			RecursiveLock lock(mInternalData->MMutex);
+			RecursiveLock lock(mControlBlock->Mutex);
 
-			ConnectionData* connData = nullptr;
-			if(mInternalData->MFreeConnections != nullptr)
+			TEventConnection* connection = nullptr;
+			if(mControlBlock->FreeConnections != nullptr)
 			{
-				connData = static_cast<ConnectionData*>(mInternalData->MFreeConnections);
-				mInternalData->MFreeConnections = connData->Next;
+				connection = static_cast<TEventConnection*>(mControlBlock->FreeConnections);
+				mControlBlock->FreeConnections = connection->Next;
 
-				new(connData) ConnectionData();
-				if(connData->Next != nullptr)
-					connData->Next->Prev = nullptr;
+				new(connection) TEventConnection();
+				if(connection->Next != nullptr)
+					connection->Next->Previous = nullptr;
 
-				connData->IsActive = true;
+				connection->IsActive = true;
 			}
 
-			if(connData == nullptr)
-				connData = B3DNew<ConnectionData>();
+			if(connection == nullptr)
+				connection = B3DNew<TEventConnection>();
 
 			// If currently iterating over the connection list, delay modifying it until done
-			if(mInternalData->MIsCurrentlyTriggering)
+			if(mControlBlock->IsCurrentlyTriggering)
 			{
-				connData->Prev = mInternalData->MNewConnections;
+				connection->Previous = mControlBlock->NewConnections;
 
-				if(mInternalData->MNewConnections != nullptr)
-					mInternalData->MNewConnections->Next = connData;
+				if(mControlBlock->NewConnections != nullptr)
+					mControlBlock->NewConnections->Next = connection;
 
-				mInternalData->MNewConnections = connData;
+				mControlBlock->NewConnections = connection;
 			}
 			else
 			{
-				mInternalData->Connect(connData);
+				mControlBlock->Connect(connection);
 			}
 
-			connData->Func = func;
+			connection->Callback = callback;
 
-			return HEvent(mInternalData, connData);
+			return HEvent(mControlBlock, connection);
 		}
 
 		/** Trigger the event, notifying all register callback methods. */
-		void operator()(Args... args)
+		void operator()(ArgumentType... arguments)
 		{
-			// Increase ref count to ensure this event data isn't destroyed if one of the callbacks
-			// deletes the event itself.
-			SPtr<EventInternalData> internalData = mInternalData;
+			// Increase ref count to ensure this event data isn't destroyed if one of the callbacks deletes the event itself.
+			TShared<EventControlBlock> hoistedControlBlock = mControlBlock;
 
-			RecursiveLock lock(internalData->MMutex);
-			internalData->MIsCurrentlyTriggering = true;
+			RecursiveLock lock(hoistedControlBlock->Mutex);
+			hoistedControlBlock->IsCurrentlyTriggering = true;
 
-			ConnectionData* conn = static_cast<ConnectionData*>(internalData->MConnections);
-			while(conn != nullptr)
+			TEventConnection* connection = static_cast<TEventConnection*>(hoistedControlBlock->ActiveConnections);
+			while(connection != nullptr)
 			{
 				// Save next here in case the callback itself disconnects this connection
-				ConnectionData* next = static_cast<ConnectionData*>(conn->Next);
+				TEventConnection* next = static_cast<TEventConnection*>(connection->Next);
 
-				if(conn->Func != nullptr)
-					conn->Func(std::forward<Args>(args)...);
+				if(connection->Callback != nullptr)
+					connection->Callback(std::forward<ArgumentType>(arguments)...);
 
-				conn = next;
+				connection = next;
 			}
 
-			internalData->MIsCurrentlyTriggering = false;
+			hoistedControlBlock->IsCurrentlyTriggering = false;
 
 			// If any new connections were added during the above calls, add them to the connection list
-			if(internalData->MNewConnections != nullptr)
+			if(hoistedControlBlock->NewConnections != nullptr)
 			{
-				BaseConnectionData* lastNewConnection = internalData->MNewConnections;
+				EventConnection* lastNewConnection = hoistedControlBlock->NewConnections;
 				while(lastNewConnection != nullptr)
 					lastNewConnection = lastNewConnection->Next;
 
-				BaseConnectionData* currentConnection = lastNewConnection;
+				EventConnection* currentConnection = lastNewConnection;
 				while(currentConnection != nullptr)
 				{
-					BaseConnectionData* prevConnection = currentConnection->Prev;
+					EventConnection* prevConnection = currentConnection->Previous;
 					currentConnection->Next = nullptr;
-					currentConnection->Prev = nullptr;
+					currentConnection->Previous = nullptr;
 
-					mInternalData->Connect(currentConnection);
+					mControlBlock->Connect(currentConnection);
 					currentConnection = prevConnection;
 				}
 
-				internalData->MNewConnections = nullptr;
+				hoistedControlBlock->NewConnections = nullptr;
 			}
 		}
 
 		/** Clear all callbacks from the event. */
 		void Clear()
 		{
-			mInternalData->Clear();
+			mControlBlock->DisconnectAll();
 		}
 
 		/**
@@ -388,13 +385,13 @@ namespace bs
 		 */
 		bool Empty() const
 		{
-			RecursiveLock lock(mInternalData->MMutex);
+			RecursiveLock lock(mControlBlock->Mutex);
 
-			return mInternalData->MConnections == nullptr;
+			return mControlBlock->ActiveConnections == nullptr;
 		}
 
 	private:
-		SPtr<EventInternalData> mInternalData;
+		TShared<EventControlBlock> mControlBlock; // Note: Use thread unsafe shared if not using a thread safe policy
 	};
 
 	/** @} */

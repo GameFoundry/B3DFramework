@@ -226,6 +226,7 @@
 #include "Utility/BsMessageHandlerFwd.h"
 #include "Utility/BsFlags.h"
 #include "Utility/BsUtil.h"
+#include "Utility/BsShared.h"
 #include "Utility/BsEvent.h"
 #include "Utility/BsPlatformUtility.h"
 #include "Utility/BsNonCopyable.h"

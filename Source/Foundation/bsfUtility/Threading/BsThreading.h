@@ -131,4 +131,12 @@ namespace bs
 	private:
 		std::lock_guard<Mutex> mLockGuard;
 	};
+
+	/** Controls thread safety in variety of cases. Thread unsafe types are generally faster as the cost of safety. */
+	enum ThreadSafetyPolicy
+	{
+		ThreadSafe,
+		ThreadUnsafe
+	};
+
 } // namespace bs

@@ -1,8 +1,6 @@
-//************************************ bs::framework - Copyright 2018-2019 Marko Pintera **************************************//
+//************************************ bs::framework - Copyright 2025 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
-
-#include "BsUtilityPrerequisites.h"
 
 namespace bs
 {
@@ -54,13 +52,6 @@ namespace bs
 	private:
 		FirstType First;
 		SecondType Second;
-	};
-
-	/** Controls thread safety in variety of cases. Thread unsafe types are generally faster as the cost of safety. */
-	enum ThreadSafetyPolicy
-	{
-		ThreadSafe,
-		ThreadUnsafe
 	};
 
 	/**
@@ -194,6 +185,8 @@ namespace bs
 			:mObject(object)
 		{ }
 
+		~TSharedControlBlockWithDefaultDeleter() override { }
+
 		void DestroyOwnedObject() override
 		{
 			B3DDelete(mObject);
@@ -215,6 +208,8 @@ namespace bs
 		TSharedControlBlockWithCustomDeleter(ObjectType* object, DeleterType deleter)
 			:mDeleterAndObject(std::move(deleter), object)
 		{ }
+
+		~TSharedControlBlockWithCustomDeleter() override { }
 
 		void DestroyOwnedObject() override
 		{
@@ -239,6 +234,8 @@ namespace bs
 		{
 			new ((void*)&Object) ObjectType(std::forward<ArgumentType>(argument)...);
 		}
+
+		~TSharedControlBlockWithObject() override { }
 
 		void DestroyOwnedObject() override
 		{
@@ -429,28 +426,28 @@ namespace bs
 		}
 
 		/** Increments the strong reference count. */
-		void IncrementStrongReferenceCount()
+		void IncrementStrongReferenceCount() const
 		{
 			if(mControlBlock != nullptr)
 				mControlBlock->IncrementStrongReferenceCount();
 		}
 
 		/** Decrements the strong reference count, and releases the object if count is zero. */
-		void DecrementStrongReferenceCount()
+		void DecrementStrongReferenceCount() const
 		{
 			if(mControlBlock != nullptr)
 				mControlBlock->DecrementStrongReferenceCount();
 		}
 
 		/** Increments the weak reference count. */
-		void IncrementWeakReferenceCount()
+		void IncrementWeakReferenceCount() const
 		{
 			if(mControlBlock != nullptr)
 				mControlBlock->IncrementWeakReferenceCount();
 		}
 
 		/** Decrements the weak reference count, and releases the control block if the count is zero. */
-		void DecrementWeakReferenceCount()
+		void DecrementWeakReferenceCount() const
 		{
 			if(mControlBlock != nullptr)
 				mControlBlock->DecrementWeakReferenceCount();
@@ -507,7 +504,7 @@ namespace bs
 
 		TShared(const TShared& other)
 		{
-			CopyConstructFrom(other);
+			this->CopyConstructFrom(other);
 		}
 
 		template<typename OtherType, std::enable_if_t<std::is_convertible_v<OtherType, Type>, int> = 0>
@@ -518,7 +515,7 @@ namespace bs
 
 		TShared(TShared&& other)
 		{
-			MoveConstructFrom(std::move(other));
+			this->MoveConstructFrom(std::move(other));
 		}
 
 		template<typename OtherType, std::enable_if_t<std::is_convertible_v<OtherType, Type>, int> = 0>
@@ -716,7 +713,7 @@ namespace bs
 	template <typename Type, typename... ArgumentType, ThreadSafetyPolicy ThreadSafety = ThreadSafe>
 	TShared<Type, ThreadSafety> B3DMakeShared2(ArgumentType&&... argument)
 	{
-		TSharedControlBlock<ThreadSafety>* controlBlock = B3DNew<TSharedControlBlockWithObject<Type, ThreadSafety>>(std::forward<ArgumentType>(argument)...);
+		TSharedControlBlockWithObject<Type, ThreadSafety>* controlBlock = B3DNew<TSharedControlBlockWithObject<Type, ThreadSafety>>(std::forward<ArgumentType>(argument)...);
 
 		TShared<Type> shared;
 		shared.Construct(&controlBlock->Object, controlBlock);
