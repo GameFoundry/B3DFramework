@@ -924,8 +924,8 @@ bool PhysXScene::ConvexCast(const HPhysicsMesh& mesh, const Vector3& position, c
 	if(mesh->GetType() != PhysicsMeshType::Convex)
 		return false;
 
-	FPhysXMesh* physxMesh = static_cast<FPhysXMesh*>(mesh->GetInternalInternal());
-	PxConvexMeshGeometry geometry(physxMesh->GetConvexInternal());
+	FPhysXMesh* physxMesh = static_cast<FPhysXMesh*>(mesh->GetInternal());
+	PxConvexMeshGeometry geometry(physxMesh->GetPxConvexMesh());
 	PxTransform transform = ToPxTransform(position, rotation);
 
 	return Sweep(geometry, transform, unitDir, hit, layer, max);
@@ -975,8 +975,8 @@ Vector<PhysicsQueryHit> PhysXScene::ConvexCastAll(const HPhysicsMesh& mesh, cons
 	if(mesh->GetType() != PhysicsMeshType::Convex)
 		return Vector<PhysicsQueryHit>(0);
 
-	FPhysXMesh* physxMesh = static_cast<FPhysXMesh*>(mesh->GetInternalInternal());
-	PxConvexMeshGeometry geometry(physxMesh->GetConvexInternal());
+	FPhysXMesh* physxMesh = static_cast<FPhysXMesh*>(mesh->GetInternal());
+	PxConvexMeshGeometry geometry(physxMesh->GetPxConvexMesh());
 	PxTransform transform = ToPxTransform(position, rotation);
 
 	return SweepAll(geometry, transform, unitDir, layer, max);
@@ -1025,8 +1025,8 @@ bool PhysXScene::ConvexCastAny(const HPhysicsMesh& mesh, const Vector3& position
 	if(mesh->GetType() != PhysicsMeshType::Convex)
 		return false;
 
-	FPhysXMesh* physxMesh = static_cast<FPhysXMesh*>(mesh->GetInternalInternal());
-	PxConvexMeshGeometry geometry(physxMesh->GetConvexInternal());
+	FPhysXMesh* physxMesh = static_cast<FPhysXMesh*>(mesh->GetInternal());
+	PxConvexMeshGeometry geometry(physxMesh->GetPxConvexMesh());
 	PxTransform transform = ToPxTransform(position, rotation);
 
 	return SweepAny(geometry, transform, unitDir, layer, max);
@@ -1064,8 +1064,8 @@ Vector<Collider*> PhysXScene::ConvexOverlapInternal(const HPhysicsMesh& mesh, co
 	if(mesh->GetType() != PhysicsMeshType::Convex)
 		return Vector<Collider*>(0);
 
-	FPhysXMesh* physxMesh = static_cast<FPhysXMesh*>(mesh->GetInternalInternal());
-	PxConvexMeshGeometry geometry(physxMesh->GetConvexInternal());
+	FPhysXMesh* physxMesh = static_cast<FPhysXMesh*>(mesh->GetInternal());
+	PxConvexMeshGeometry geometry(physxMesh->GetPxConvexMesh());
 	PxTransform transform = ToPxTransform(position, rotation);
 
 	return Overlap(geometry, transform, layer);
@@ -1103,8 +1103,8 @@ bool PhysXScene::ConvexOverlapAny(const HPhysicsMesh& mesh, const Vector3& posit
 	if(mesh->GetType() != PhysicsMeshType::Convex)
 		return false;
 
-	FPhysXMesh* physxMesh = static_cast<FPhysXMesh*>(mesh->GetInternalInternal());
-	PxConvexMeshGeometry geometry(physxMesh->GetConvexInternal());
+	FPhysXMesh* physxMesh = static_cast<FPhysXMesh*>(mesh->GetInternal());
+	PxConvexMeshGeometry geometry(physxMesh->GetPxConvexMesh());
 	PxTransform transform = ToPxTransform(position, rotation);
 
 	return OverlapAny(geometry, transform, layer);
