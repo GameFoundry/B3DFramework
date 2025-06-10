@@ -38,15 +38,6 @@ namespace bs
 		B3D_SCRIPT_EXPORT(ExportName(Distance), Property(Getter))
 		float GetDistance() const { return mDistance; }
 
-		/** @name Internal
-		 *  @{
-		 */
-
-		/**	Returns the plane collider that this component wraps. */
-		PlaneCollider* GetInternalInternal() const { return static_cast<PlaneCollider*>(mInternal.get()); }
-
-		/** @} */
-
 		/************************************************************************/
 		/* 						COMPONENT OVERRIDES                      		*/
 		/************************************************************************/

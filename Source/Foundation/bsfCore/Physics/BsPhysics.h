@@ -117,7 +117,7 @@ namespace bs
 		/** Checks is the physics simulation update currently in progress. */
 		B3D_SCRIPT_EXPORT(ExportName(IsUpdateInProgress), Property(Getter))
 
-		bool IsUpdateInProgressInternal() const { return mUpdateInProgress; }
+		bool IsUpdateInProgress() const { return mUpdateInProgress; }
 
 		/**
 		 * Checks does the ray hit the provided collider.
@@ -129,7 +129,7 @@ namespace bs
 		 * @param[in]	maxDist		Maximum distance from the ray origin to search for hits.
 		 * @return					True if the ray has hit the collider.
 		 */
-		virtual bool RayCastInternal(const Vector3& origin, const Vector3& unitDir, const Collider& collider, PhysicsQueryHit& hit, float maxDist = FLT_MAX) const = 0;
+		virtual bool RayCast(const Vector3& origin, const Vector3& unitDir, const Collider& collider, PhysicsQueryHit& hit, float maxDist = FLT_MAX) const = 0;
 
 		/** @} */
 
@@ -576,6 +576,18 @@ namespace bs
 
 		/** @copydoc Rigidbody::Create */
 		virtual SPtr<Rigidbody> CreateRigidbody(const HSceneObject& linkedSO) = 0;
+
+		/**
+		 * Creates a collider with zero shapes. Make sure to assign at least one shape after construction.
+		 *
+		 * @param	position	Position of the collider. If collider is attached to a rigidbody, this represents position relative to the rigidbody.
+		 *						If collider is not attached to a rigidbody, this represents world space position.
+		 * @param	position	Rotation of the collider. If collider is attached to a rigidbody, this represents rotation relative to the rigidbody.
+		 *						If collider is not attached to a rigidbody, this represents world space rotation.
+		 * @param	scale		Scale of the collider. If collider is attached to a rigidbody, this represents scale relative to the rigidbody.
+		 *						If collider is not attached to a rigidbody, this represents world space scale.
+		 */
+		virtual SPtr<Collider> CreateCollider(const Vector3& position, const Quaternion& rotation, const Vector3& scale) = 0;
 
 		/**
 		 * Creates a new box collider.

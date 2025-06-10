@@ -49,15 +49,13 @@ namespace bs
 		/** Sets shape filter data from stored values. */
 		void SetFilter();
 
-		/** Updates the local shape transform based on the requested local transform values, and the actor the shape is currently attached to. */
-		void UpdateTransform();
-
 		/** Recreates the underlying shape using the currently set properties. */
 		void RecreateShape();
 
 		/** Destroys the currently assigned shape, if any. */
 		void DestroyShape();
 
+		void UpdateTransform() override;
 		void AttachToCollider(Collider& collider) override;
 		void DetachFromCollider() override;
 

@@ -30,10 +30,12 @@ void CBoxCollider::SetExtents(const Vector3& extents)
 
 	if(mInternal != nullptr)
 	{
-		GetInternalInternal()->SetExtents(clampedExtents);
+		TInlineArray<SPtr<ColliderShape>, 1> shapes = mInternal->GetShapes();
+		if(B3D_ENSURE(shapes.Size() == 1))
+			shapes[0]->SetShape(BoxColliderShapeInformation(clampedExtents));
 
 		if(mParent != nullptr)
-			mParent->UpdateMassDistributionInternal();
+			mParent->UpdateMassDistribution();
 	}
 }
 
@@ -45,16 +47,25 @@ void CBoxCollider::SetCenter(const Vector3& center)
 	mLocalPosition = center;
 
 	if(mInternal != nullptr)
-		UpdateTransform();
+	{
+		TInlineArray<SPtr<ColliderShape>, 1> shapes = mInternal->GetShapes();
+		if(B3D_ENSURE(shapes.Size() == 1))
+			shapes[0]->SetPosition(mLocalPosition);
+	}
 }
 
 SPtr<Collider> CBoxCollider::CreateInternal()
 {
 	const SPtr<SceneInstance>& scene = SO()->GetScene();
-	const Transform& tfrm = SO()->GetTransform();
+	const Transform& transform = SO()->GetTransform();
 
-	SPtr<Collider> collider = BoxCollider::Create(*scene->GetPhysicsScene(), mExtents, tfrm.GetPosition(), tfrm.GetRotation());
-	collider->SetOwnerInternal(PhysicsOwnerType::Component, this);
+	SPtr<ColliderShape> colliderShape = ColliderShape::CreateBox(mExtents);
+	colliderShape->SetPosition(mLocalPosition);
+	colliderShape->SetRotation(mLocalRotation);
+
+	SPtr<Collider> collider = Collider::Create(*scene->GetPhysicsScene(), transform.GetPosition(), transform.GetRotation(), transform.GetScale());
+	collider->SetOwner(PhysicsOwnerType::Component, this);
+	collider->SetShapes({ colliderShape });
 
 	return collider;
 }

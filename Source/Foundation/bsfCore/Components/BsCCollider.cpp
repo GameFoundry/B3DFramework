@@ -50,10 +50,13 @@ void CCollider::SetMass(float mass)
 
 	if(mInternal != nullptr)
 	{
-		mInternal->SetMass(mass);
+		TInlineArray<SPtr<ColliderShape>, 1> shapes = mInternal->GetShapes();
+
+		for(auto& entry : shapes)
+			entry->SetMass(mass);
 
 		if(mParent != nullptr)
-			mParent->UpdateMassDistributionInternal();
+			mParent->UpdateMassDistribution();
 	}
 }
 
@@ -62,7 +65,12 @@ void CCollider::SetMaterial(const HPhysicsMaterial& material)
 	mMaterial = material;
 
 	if(mInternal != nullptr)
-		mInternal->SetMaterial(material);
+	{
+		TInlineArray<SPtr<ColliderShape>, 1> shapes = mInternal->GetShapes();
+
+		for(auto& entry : shapes)
+			entry->SetMaterial(material);
+	}
 }
 
 void CCollider::SetContactOffset(float value)
@@ -72,7 +80,12 @@ void CCollider::SetContactOffset(float value)
 	mContactOffset = value;
 
 	if(mInternal != nullptr)
-		mInternal->SetContactOffset(value);
+	{
+		TInlineArray<SPtr<ColliderShape>, 1> shapes = mInternal->GetShapes();
+
+		for(auto& entry : shapes)
+			entry->SetContactOffset(value);
+	}
 }
 
 void CCollider::SetRestOffset(float value)
@@ -82,7 +95,12 @@ void CCollider::SetRestOffset(float value)
 	mRestOffset = value;
 
 	if(mInternal != nullptr)
-		mInternal->SetRestOffset(value);
+	{
+		TInlineArray<SPtr<ColliderShape>, 1> shapes = mInternal->GetShapes();
+
+		for(auto& entry : shapes)
+			entry->SetRestOffset(value);
+	}
 }
 
 void CCollider::SetLayer(u64 layer)
@@ -90,7 +108,12 @@ void CCollider::SetLayer(u64 layer)
 	mLayer = layer;
 
 	if(mInternal != nullptr)
-		mInternal->SetLayer(layer);
+	{
+		TInlineArray<SPtr<ColliderShape>, 1> shapes = mInternal->GetShapes();
+
+		for(auto& entry : shapes)
+			entry->SetLayer(layer);
+	}
 }
 
 void CCollider::SetCollisionReportMode(CollisionReportMode mode)
@@ -130,7 +153,7 @@ void CCollider::OnTransformChanged(TransformChangedFlags flags)
 
 	// Don't update the transform if it's due to Physics update since then we can guarantee it will remain at the same
 	// relative transform to its parent
-	if(GetPhysics().IsUpdateInProgressInternal())
+	if(GetPhysics().IsUpdateInProgress())
 		return;
 
 	if((flags & (TCF_Parent | TCF_Transform)) != 0)
@@ -192,11 +215,17 @@ void CCollider::RestoreInternal()
 
 	// Note: Merge into one call to avoid many virtual function calls
 	mInternal->SetIsTrigger(mIsTrigger);
-	mInternal->SetMass(mMass);
-	mInternal->SetMaterial(mMaterial);
-	mInternal->SetContactOffset(mContactOffset);
-	mInternal->SetRestOffset(mRestOffset);
-	mInternal->SetLayer(mLayer);
+
+	TInlineArray<SPtr<ColliderShape>, 1> shapes = mInternal->GetShapes();
+
+	for(auto& entry : shapes)
+	{
+		entry->SetMass(mMass);
+		entry->SetMaterial(mMaterial);
+		entry->SetContactOffset(mContactOffset);
+		entry->SetRestOffset(mRestOffset);
+		entry->SetLayer(mLayer);
+	}
 
 	UpdateParentRigidbody();
 	UpdateTransform();
@@ -213,7 +242,7 @@ void CCollider::DestroyInternal()
 	// This should release the last reference and destroy the internal collider
 	if(mInternal)
 	{
-		mInternal->SetOwnerInternal(PhysicsOwnerType::None, nullptr);
+		mInternal->SetOwner(PhysicsOwnerType::None, nullptr);
 		mInternal = nullptr;
 	}
 }
@@ -278,7 +307,7 @@ void CCollider::UpdateTransform()
 		if(mInternal)
 			mInternal->SetTransform(relativePos, relativeRot);
 
-		mParent->UpdateMassDistributionInternal();
+		mParent->UpdateMassDistribution();
 	}
 	else
 	{
@@ -302,52 +331,56 @@ void CCollider::UpdateCollisionReportMode()
 		mode = mParent->GetCollisionReportMode();
 
 	if(mInternal != nullptr)
-		mInternal->SetCollisionReportMode(mode);
+	{
+		TInlineArray<SPtr<ColliderShape>, 1> shapes = mInternal->GetShapes();
+
+		for(auto& entry : shapes)
+			entry->SetCollisionReportMode(mode);
+	}
 }
 
 void CCollider::TriggerOnCollisionBegin(const CollisionDataRaw& data)
 {
-	CollisionData hit;
-	hit.ContactPoints = data.ContactPoints;
-	hit.Collider[0] = B3DStaticGameObjectCast<CCollider>(mThisHandle);
-
-	if(data.Colliders[1] != nullptr)
-	{
-		CCollider* other = (CCollider*)data.Colliders[1]->GetOwnerInternal(PhysicsOwnerType::Component);
-		hit.Collider[1] = B3DStaticGameObjectCast<CCollider>(other->GetHandle());
-	}
-
-	OnCollisionBegin(hit);
+	OnCollisionBegin(PopulateCollisionData(data));
 }
 
 void CCollider::TriggerOnCollisionStay(const CollisionDataRaw& data)
 {
-	CollisionData hit;
-	hit.ContactPoints = data.ContactPoints;
-	hit.Collider[0] = B3DStaticGameObjectCast<CCollider>(mThisHandle);
-
-	if(data.Colliders[1] != nullptr)
-	{
-		CCollider* other = (CCollider*)data.Colliders[1]->GetOwnerInternal(PhysicsOwnerType::Component);
-		hit.Collider[1] = B3DStaticGameObjectCast<CCollider>(other->GetHandle());
-	}
-
-	OnCollisionStay(hit);
+	OnCollisionStay(PopulateCollisionData(data));
 }
 
 void CCollider::TriggerOnCollisionEnd(const CollisionDataRaw& data)
+{
+	OnCollisionEnd(PopulateCollisionData(data));
+}
+
+CollisionData CCollider::PopulateCollisionData(const CollisionDataRaw& data)
 {
 	CollisionData hit;
 	hit.ContactPoints = data.ContactPoints;
 	hit.Collider[0] = B3DStaticGameObjectCast<CCollider>(mThisHandle);
 
-	if(data.Colliders[1] != nullptr)
+	ColliderShape* const myColliderShape = data.ColliderShapes[0];
+	if(myColliderShape != nullptr)
 	{
-		CCollider* other = (CCollider*)data.Colliders[1]->GetOwnerInternal(PhysicsOwnerType::Component);
-		hit.Collider[1] = B3DStaticGameObjectCast<CCollider>(other->GetHandle());
+		Collider* const myCollider = myColliderShape->GetParentCollider();
+		if(B3D_ENSURE(myCollider != nullptr))
+			hit.ColliderShapes[0] = myCollider->GetShapes()[myColliderShape->GetShapeIndexInParent()];
 	}
 
-	OnCollisionEnd(hit);
+	ColliderShape* const otherColliderShape = data.ColliderShapes[1];
+	if(otherColliderShape != nullptr)
+	{
+		Collider* const otherCollider = otherColliderShape->GetParentCollider();
+		if(B3D_ENSURE(otherCollider != nullptr))
+		{
+			CCollider* other = (CCollider*)otherCollider->GetOwner(PhysicsOwnerType::Component);
+			hit.Collider[1] = B3DStaticGameObjectCast<CCollider>(other->GetHandle());
+			hit.ColliderShapes[1] = otherCollider->GetShapes()[otherColliderShape->GetShapeIndexInParent()];
+		}
+	}
+
+	return hit;
 }
 
 RTTIType* CCollider::GetRttiStatic()

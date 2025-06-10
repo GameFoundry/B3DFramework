@@ -74,7 +74,7 @@ namespace bs
 		/** Triggered by the PhysX simulation when a joint breaks. */
 		void ReportJointBreakEventInternal(const JointBreakEvent& event);
 
-		bool RayCastInternal(const Vector3& origin, const Vector3& unitDir, const Collider& collider, PhysicsQueryHit& hit, float maxDist = FLT_MAX) const override;
+		bool RayCast(const Vector3& origin, const Vector3& unitDir, const Collider& collider, PhysicsQueryHit& hit, float maxDist = FLT_MAX) const override;
 
 		/** Notifies the system that at physics scene is about to be destroyed. */
 		void NotifySceneDestroyedInternal(PhysXScene* scene);

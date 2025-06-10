@@ -270,7 +270,7 @@ Vector3 CRigidbody::GetVelocityAtPoint(const Vector3& point) const
 	return Vector3::kZero;
 }
 
-void CRigidbody::UpdateMassDistributionInternal()
+void CRigidbody::UpdateMassDistribution()
 {
 	if(mInternal != nullptr)
 		return mInternal->UpdateMassDistribution();
@@ -376,15 +376,16 @@ void CRigidbody::ProcessCollisionData(const CollisionDataRaw& data, CollisionDat
 {
 	output.ContactPoints = std::move(data.ContactPoints);
 
+	TODO - Set collider shapes
 	if(data.Colliders[0] != nullptr)
 	{
-		CCollider* other = (CCollider*)data.Colliders[0]->GetOwnerInternal(PhysicsOwnerType::Component);
+		CCollider* other = (CCollider*)data.Colliders[0]->GetOwner(PhysicsOwnerType::Component);
 		output.Collider[0] = B3DStaticGameObjectCast<CCollider>(other->GetHandle());
 	}
 
 	if(data.Colliders[1] != nullptr)
 	{
-		CCollider* other = (CCollider*)data.Colliders[1]->GetOwnerInternal(PhysicsOwnerType::Component);
+		CCollider* other = (CCollider*)data.Colliders[1]->GetOwner(PhysicsOwnerType::Component);
 		output.Collider[1] = B3DStaticGameObjectCast<CCollider>(other->GetHandle());
 	}
 }
@@ -500,7 +501,7 @@ void CRigidbody::OnTransformChanged(TransformChangedFlags flags)
 #endif
 	}
 
-	if(GetPhysics().IsUpdateInProgressInternal())
+	if(GetPhysics().IsUpdateInProgress())
 		return;
 
 	const Transform& tfrm = SO()->GetTransform();

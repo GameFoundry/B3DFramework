@@ -40,15 +40,6 @@ namespace bs
 
 		Vector3 GetCenter() const { return mLocalPosition; }
 
-		/** @name Internal
-		 *  @{
-		 */
-
-		/**	Returns the sphere collider that this component wraps. */
-		SphereCollider* GetInternalInternal() const { return static_cast<SphereCollider*>(mInternal.get()); }
-
-		/** @} */
-
 		/************************************************************************/
 		/* 						COMPONENT OVERRIDES                      		*/
 		/************************************************************************/

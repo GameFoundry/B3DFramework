@@ -214,7 +214,7 @@ namespace bs
 		void SetJointInternal(const HJoint& joint) { mParentJoint = joint; }
 
 		/** @copydoc Rigidbody::updateMassDistribution */
-		void UpdateMassDistributionInternal();
+		void UpdateMassDistribution();
 
 		/** @} */
 	protected:

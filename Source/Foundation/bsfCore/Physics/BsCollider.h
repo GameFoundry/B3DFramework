@@ -11,85 +11,60 @@
 
 namespace bs
 {
+	class PhysicsScene;
+}
+
+namespace bs
+{
+	class ColliderShape;
 	/** @addtogroup Physics
 	 *  @{
 	 */
 
 	/**
-	 * Collider represents physics geometry that can be in multiple states:
-	 *  - Default: Static geometry that physics objects can collide with.
+	 * Can contain one or multiple collider shapes that can be interacted with in the physics world. Each collider can be in multiple states:
+	 *  - Static: Static geometry that physics objects can collide with.
 	 *  - Trigger: Static geometry that can't be collided with but will report touch events.
-	 *  - Dynamic: Dynamic geometry that is a part of a Rigidbody. A set of colliders defines the shape of the parent
-	 *		       rigidbody.
+	 *  - Dynamic: Dynamic geometry that is a part of a Rigidbody. 
 	 */
 	class B3D_CORE_EXPORT Collider
 	{
 	public:
-		Collider() = default;
+		Collider(PhysicsScene& physicsScene, const Vector3& position = Vector3::kZero, const Quaternion& rotation = Quaternion::kIdentity, const Vector3& scale = Vector3::kOne);
 		virtual ~Collider() = default;
 
-		/** @copydoc FCollider::GetPosition */
-		Vector3 GetPosition() const;
+		/** Returns the position of the collider. */
+		Vector3 GetPosition() const { return mPosition; }
 
-		/** @copydoc FCollider::GetRotation */
-		Quaternion GetRotation() const;
+		/** Returns the rotation of the collider. */
+		Quaternion GetRotation() const { return mRotation; }
 
-		/** @copydoc FCollider::SetTransform */
-		void SetTransform(const Vector3& pos, const Quaternion& rot);
+		/** Changes the position and rotation of the collider. All child shapes will maintain relative position and rotation to the collider. */
+		void SetTransform(const Vector3& position, const Quaternion& rotation);
 
-		/** Sets the scale of the collider geometry. */
-		virtual void SetScale(const Vector3& scale);
+		/** Determines the scale of the collider geometry. Note changing scale may require underlying shapes to be re-created. */
+		void SetScale(const Vector3& scale);
 
-		/** Retrieves the scale of the collider geometry. */
-		Vector3 GetScale() const;
+		/** @copydoc SetScale */
+		Vector3 GetScale() const { return mScale; }
 
-		/** @copydoc FCollider::SetIsTrigger */
+		/** Determines if the collider is a trigger. Trigger collider will not prevent objects from going through its shapes but it will still report collision events. */
 		void SetIsTrigger(bool value);
 
-		/** @copydoc FCollider::GetIsTrigger */
-		bool GetIsTrigger() const;
+		/** @copydoc SetIsTrigger */
+		bool GetIsTrigger() const { return mIsTrigger; }
 
 		/** Determines the Rigidbody that controls this collider (if any). */
 		void SetRigidbody(Rigidbody* value);
 
-		/** @copydoc Collider::SetRigidbody() */
+		/** @copydoc SetRigidbody() */
 		Rigidbody* GetRigidbody() const { return mRigidbody; }
 
-		/** @copydoc FCollider::SetMass */
-		void SetMass(float mass);
+		/** Returns all the shapes associated with this collider. */
+		TInlineArray<SPtr<ColliderShape>, 1> GetShapes() const { return mShapes; }
 
-		/** @copydoc FCollider::GetMass */
-		float GetMass() const;
-
-		/** @copydoc FCollider::SetMaterial */
-		void SetMaterial(const HPhysicsMaterial& material);
-
-		/** @copydoc FCollider::GetMaterial */
-		HPhysicsMaterial GetMaterial() const;
-
-		/** @copydoc FCollider::SetContactOffset */
-		void SetContactOffset(float value);
-
-		/** @copydoc FCollider::GetContactOffset */
-		float GetContactOffset();
-
-		/** @copydoc FCollider::SetRestOffset */
-		void SetRestOffset(float value);
-
-		/** @copydoc FCollider::GetRestOffset */
-		float GetRestOffset();
-
-		/** @copydoc FCollider::SetLayer */
-		void SetLayer(u64 layer);
-
-		/** @copydoc FCollider::GetLayer */
-		u64 GetLayer() const;
-
-		/** @copydoc FCollider::SetCollisionReportMode */
-		void SetCollisionReportMode(CollisionReportMode mode);
-
-		/** @copydoc FCollider::GetCollisionReportMode */
-		CollisionReportMode GetCollisionReportMode() const;
+		/** Sets shapes to associate with the collider. Existing shapes are cleared. */
+		void SetShapes(const TArrayView<SPtr<ColliderShape>>& shapes);
 
 		/**
 		 * Checks does the ray hit this collider.
@@ -113,6 +88,19 @@ namespace bs
 		bool RayCast(const Vector3& origin, const Vector3& unitDir, PhysicsQueryHit& hit, float maxDist = FLT_MAX) const;
 
 		/**
+		 * Creates a collider with zero shapes. Make sure to assign at least one shape after construction.
+		 *
+		 * @param	scene		Scene into which to add the collider to.
+		 * @param	position	Position of the collider. If collider is attached to a rigidbody, this represents position relative to the rigidbody.
+		 *						If collider is not attached to a rigidbody, this represents world space position.
+		 * @param	position	Rotation of the collider. If collider is attached to a rigidbody, this represents rotation relative to the rigidbody.
+		 *						If collider is not attached to a rigidbody, this represents world space rotation.
+		 * @param	scale		Scale of the collider. If collider is attached to a rigidbody, this represents scale relative to the rigidbody.
+		 *						If collider is not attached to a rigidbody, this represents world space scale.
+		 */
+		static SPtr<Collider> Create(PhysicsScene& scene, const Vector3& position = Vector3::kZero, const Quaternion& rotation = Quaternion::kIdentity, const Vector3& scale = Vector3::kOne);
+
+		/**
 		 * Triggered when some object starts interacting with the collider. Only triggered if proper collision report mode
 		 * is turned on.
 		 */
@@ -132,14 +120,11 @@ namespace bs
 		 *  @{
 		 */
 
-		/** Returns the object containing common collider code. */
-		FCollider* GetInternalInternal() const { return mInternal; }
-
 		/**
 		 * Sets the object that owns this physics object, if any. Used for high level systems so they can easily map their
 		 * high level physics objects from the low level ones returned by various queries and events.
 		 */
-		void SetOwnerInternal(PhysicsOwnerType type, void* owner)
+		void SetOwner(PhysicsOwnerType type, void* owner)
 		{
 			mOwner.Type = type;
 			mOwner.OwnerData = owner;
@@ -149,14 +134,24 @@ namespace bs
 		 * Gets the object that owns this physics object, if any. Used for high level systems so they can easily map their
 		 * high level physics objects from the low level ones returned by various queries and events.
 		 */
-		void* GetOwnerInternal(PhysicsOwnerType type) const { return mOwner.Type == type ? mOwner.OwnerData : nullptr; }
+		void* GetOwner(PhysicsOwnerType type) const { return mOwner.Type == type ? mOwner.OwnerData : nullptr; }
 
 		/** @} */
 	protected:
-		FCollider* mInternal = nullptr;
+		/** Updates the transforms of all the currently attached shapes. Should be called after the collider transform changes. */
+		void UpdateShapeTransforms();
+
+		Vector3 mPosition = Vector3::kZero;
+		Quaternion mRotation = Quaternion::kIdentity;
+		Vector3 mScale = Vector3::kOne;
+
+		PhysicsScene& mPhysicsScene;
+		TInlineArray<SPtr<ColliderShape>, 1> mShapes;
+		bool mIsTrigger = false;
+
 		PhysicsObjectOwner mOwner;
 		Rigidbody* mRigidbody = nullptr;
-		Vector3 mScale = Vector3::kOne;
+
 	};
 
 	/** @} */

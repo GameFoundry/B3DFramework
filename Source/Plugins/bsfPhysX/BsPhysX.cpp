@@ -392,7 +392,7 @@ void ParseHit(const PxRaycastHit& input, PhysicsQueryHit& output, PxShape* shape
 
 	if(output.ColliderRaw != nullptr)
 	{
-		CCollider* component = (CCollider*)output.ColliderRaw->GetOwnerInternal(PhysicsOwnerType::Component);
+		CCollider* component = (CCollider*)output.ColliderRaw->GetOwner(PhysicsOwnerType::Component);
 		if(component != nullptr)
 			output.Collider = B3DStaticGameObjectCast<CCollider>(component->GetHandle());
 	}
@@ -410,7 +410,7 @@ void ParseHit(const PxSweepHit& input, PhysicsQueryHit& output, PxShape* shapeHi
 
 	if(output.ColliderRaw != nullptr)
 	{
-		CCollider* component = (CCollider*)output.ColliderRaw->GetOwnerInternal(PhysicsOwnerType::Component);
+		CCollider* component = (CCollider*)output.ColliderRaw->GetOwner(PhysicsOwnerType::Component);
 		if(component != nullptr)
 			output.Collider = B3DStaticGameObjectCast<CCollider>(component->GetHandle());
 	}
@@ -737,7 +737,7 @@ void PhysX::SetPaused(bool paused)
 	mPaused = paused;
 }
 
-bool PhysX::RayCastInternal(const Vector3& origin, const Vector3& unitDir, const Collider& collider, PhysicsQueryHit& hit, float maxDist) const
+bool PhysX::RayCast(const Vector3& origin, const Vector3& unitDir, const Collider& collider, PhysicsQueryHit& hit, float maxDist) const
 {
 	FPhysXCollider* physxCollider = static_cast<FPhysXCollider*>(collider.GetInternalInternal());
 	PxShape* shape = physxCollider->GetShapeInternal();

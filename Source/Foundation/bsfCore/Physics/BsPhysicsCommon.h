@@ -8,6 +8,7 @@
 
 namespace bs
 {
+	class ColliderShape;
 	/** @addtogroup Physics
 	 *  @{
 	 */
@@ -36,6 +37,9 @@ namespace bs
 	{
 		/** Components of the colliders that have collided. */
 		HCollider Collider[2];
+
+		/** Shapes of that have collided. */
+		SPtr<ColliderShape> ColliderShapes[2];
 
 		// Note: Not too happy this is heap allocated, use static allocator?
 		Vector<ContactPoint> ContactPoints; /**< Information about all the contact points for the hit. */

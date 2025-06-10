@@ -54,15 +54,6 @@ namespace bs
 		B3D_SCRIPT_EXPORT(ExportName(Radius), Property(Getter))
 		float GetRadius() const { return mRadius; }
 
-		/** @name Internal
-		 *  @{
-		 */
-
-		/**	Returns the capsule collider that this component wraps. */
-		CapsuleCollider* GetInternalInternal() const { return static_cast<CapsuleCollider*>(mInternal.get()); }
-
-		/** @} */
-
 		/************************************************************************/
 		/* 						COMPONENT OVERRIDES                      		*/
 		/************************************************************************/

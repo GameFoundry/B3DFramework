@@ -4,6 +4,7 @@
 
 #include "BsCorePrerequisites.h"
 #include "Physics/BsCollider.h"
+#include "Physics/BsColliderShape.h"
 #include "Scene/BsComponent.h"
 
 namespace bs
@@ -31,51 +32,51 @@ namespace bs
 		B3D_SCRIPT_EXPORT(ExportName(Trigger), Property(Getter))
 		bool GetIsTrigger() const { return mIsTrigger; }
 
-		/** @copydoc Collider::SetMass */
+		/** @copydoc ColliderShape::SetMass */
 		B3D_SCRIPT_EXPORT(ExportName(Mass), Property(Setter))
 		void SetMass(float mass);
 
-		/** @copydoc Collider::GetMass */
+		/** @copydoc ColliderShape::GetMass */
 		B3D_SCRIPT_EXPORT(ExportName(Mass), Property(Getter))
 		float GetMass() const { return mMass; }
 
-		/** @copydoc Collider::SetMaterial */
+		/** @copydoc ColliderShape::SetMaterial */
 		B3D_SCRIPT_EXPORT(ExportName(Material), Property(Setter))
 		void SetMaterial(const HPhysicsMaterial& material);
 
-		/** @copydoc Collider::GetMaterial */
+		/** @copydoc ColliderShape::GetMaterial */
 		B3D_SCRIPT_EXPORT(ExportName(Material), Property(Getter))
 		HPhysicsMaterial GetMaterial() const { return mMaterial; }
 
-		/** @copydoc Collider::SetContactOffset */
+		/** @copydoc ColliderShape::SetContactOffset */
 		B3D_SCRIPT_EXPORT(ExportName(ContactOffset), Property(Setter))
 		void SetContactOffset(float value);
 
-		/** @copydoc Collider::GetContactOffset */
+		/** @copydoc ColliderShape::GetContactOffset */
 		B3D_SCRIPT_EXPORT(ExportName(ContactOffset), Property(Getter))
 		float GetContactOffset() const { return mContactOffset; }
 
-		/** @copydoc Collider::SetRestOffset */
+		/** @copydoc ColliderShape::SetRestOffset */
 		B3D_SCRIPT_EXPORT(ExportName(RestOffset), Property(Setter))
 		void SetRestOffset(float value);
 
-		/** @copydoc Collider::GetRestOffset */
+		/** @copydoc ColliderShape::GetRestOffset */
 		B3D_SCRIPT_EXPORT(ExportName(RestOffset), Property(Getter))
 		float GetRestOffset() const { return mRestOffset; }
 
-		/** @copydoc Collider::SetLayer */
+		/** @copydoc ColliderShape::SetLayer */
 		B3D_SCRIPT_EXPORT(ExportName(Layer), Property(Setter), UI(AsLayerMask))
 		void SetLayer(u64 layer);
 
-		/** @copydoc Collider::GetLayer */
+		/** @copydoc ColliderShape::GetLayer */
 		B3D_SCRIPT_EXPORT(ExportName(Layer), Property(Getter), UI(AsLayerMask))
 		u64 GetLayer() const { return mLayer; }
 
-		/** @copydoc Collider::SetCollisionReportMode */
+		/** @copydoc ColliderShape::SetCollisionReportMode */
 		B3D_SCRIPT_EXPORT(ExportName(CollisionReportMode), Property(Setter))
 		void SetCollisionReportMode(CollisionReportMode mode);
 
-		/** @copydoc Collider::GetCollisionReportMode */
+		/** @copydoc ColliderShape::GetCollisionReportMode */
 		B3D_SCRIPT_EXPORT(ExportName(CollisionReportMode), Property(Getter))
 		CollisionReportMode GetCollisionReportMode() const { return mCollisionReportMode; }
 
@@ -166,6 +167,9 @@ namespace bs
 
 		/** Triggered when the internal collider ends touching another object. */
 		void TriggerOnCollisionEnd(const CollisionDataRaw& data);
+
+		/** Populates CollisionData structure for a collision event involving this component. */
+		CollisionData PopulateCollisionData(const CollisionDataRaw& data);
 
 		SPtr<Collider> mInternal;
 

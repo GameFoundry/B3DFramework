@@ -30,15 +30,6 @@ namespace bs
 		B3D_SCRIPT_EXPORT(ExportName(Mesh), Property(Getter))
 		HPhysicsMesh GetMesh() const { return mMesh; }
 
-		/** @name Internal
-		 *  @{
-		 */
-
-		/**	Returns the mesh collider that this component wraps. */
-		MeshCollider* GetInternalInternal() const { return static_cast<MeshCollider*>(mInternal.get()); }
-
-		/** @} */
-
 		/************************************************************************/
 		/* 						COMPONENT OVERRIDES                      		*/
 		/************************************************************************/

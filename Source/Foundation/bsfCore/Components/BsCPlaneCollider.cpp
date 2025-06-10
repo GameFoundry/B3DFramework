@@ -35,7 +35,14 @@ void CPlaneCollider::SetNormal(const Vector3& normal)
 	mLocalPosition = mNormal * mDistance;
 
 	if(mInternal != nullptr)
-		UpdateTransform();
+	{
+		TInlineArray<SPtr<ColliderShape>, 1> shapes = mInternal->GetShapes();
+		if(B3D_ENSURE(shapes.Size() == 1))
+		{
+			shapes[0]->SetPosition(mLocalPosition);
+			shapes[0]->SetRotation(mLocalRotation);
+		}
+	}
 }
 
 void CPlaneCollider::SetDistance(float distance)
@@ -47,17 +54,26 @@ void CPlaneCollider::SetDistance(float distance)
 	mLocalPosition = mNormal * distance;
 
 	if(mInternal != nullptr)
-		UpdateTransform();
+	{
+		TInlineArray<SPtr<ColliderShape>, 1> shapes = mInternal->GetShapes();
+		if(B3D_ENSURE(shapes.Size() == 1))
+			shapes[0]->SetPosition(mLocalPosition);
+	}
 }
 
 SPtr<Collider> CPlaneCollider::CreateInternal()
 {
 	const SPtr<SceneInstance>& scene = SO()->GetScene();
-	const Transform& tfrm = SO()->GetTransform();
+	const Transform& transform = SO()->GetTransform();
 
-	SPtr<Collider> collider = PlaneCollider::Create(*scene->GetPhysicsScene(), tfrm.GetPosition(), tfrm.GetRotation());
+	SPtr<ColliderShape> colliderShape = ColliderShape::CreatePlane();
+	colliderShape->SetPosition(mLocalPosition);
+	colliderShape->SetRotation(mLocalRotation);
 
-	collider->SetOwnerInternal(PhysicsOwnerType::Component, this);
+	SPtr<Collider> collider = Collider::Create(*scene->GetPhysicsScene(), transform.GetPosition(), transform.GetRotation(), transform.GetScale());
+	collider->SetOwner(PhysicsOwnerType::Component, this);
+	collider->SetShapes({ colliderShape });
+
 	return collider;
 }
 

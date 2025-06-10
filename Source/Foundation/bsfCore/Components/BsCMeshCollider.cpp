@@ -35,7 +35,9 @@ void CMeshCollider::SetMesh(const HPhysicsMesh& mesh)
 
 	if(mInternal != nullptr)
 	{
-		GetInternalInternal()->SetMesh(mesh);
+		TInlineArray<SPtr<ColliderShape>, 1> shapes = mInternal->GetShapes();
+		if(B3D_ENSURE(shapes.Size() == 1))
+			shapes[0]->SetShape(MeshColliderShapeInformation(mesh));
 
 		if(mParent != nullptr)
 		{
@@ -44,7 +46,7 @@ void CMeshCollider::SetMesh(const HPhysicsMesh& mesh)
 			if(mMesh.IsLoaded() && mMesh->GetType() == PhysicsMeshType::Triangle)
 				UpdateParentRigidbody();
 			else
-				mParent->UpdateMassDistributionInternal();
+				mParent->UpdateMassDistribution();
 		}
 	}
 }
@@ -52,11 +54,15 @@ void CMeshCollider::SetMesh(const HPhysicsMesh& mesh)
 SPtr<Collider> CMeshCollider::CreateInternal()
 {
 	const SPtr<SceneInstance>& scene = SO()->GetScene();
-	const Transform& tfrm = SO()->GetTransform();
+	const Transform& transform = SO()->GetTransform();
 
-	SPtr<MeshCollider> collider = MeshCollider::Create(*scene->GetPhysicsScene(), tfrm.GetPosition(), tfrm.GetRotation());
-	collider->SetMesh(mMesh);
-	collider->SetOwnerInternal(PhysicsOwnerType::Component, this);
+	SPtr<ColliderShape> colliderShape = ColliderShape::CreateMesh(mMesh);
+	colliderShape->SetPosition(mLocalPosition);
+	colliderShape->SetRotation(mLocalRotation);
+
+	SPtr<Collider> collider = Collider::Create(*scene->GetPhysicsScene(), transform.GetPosition(), transform.GetRotation(), transform.GetScale());
+	collider->SetOwner(PhysicsOwnerType::Component, this);
+	collider->SetShapes({ colliderShape });
 
 	return collider;
 }

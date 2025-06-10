@@ -61,7 +61,7 @@ Vector<HCollider> RawToComponent(const Vector<Collider*>& raw)
 		if(entry == nullptr)
 			continue;
 
-		CCollider* component = (CCollider*)entry->GetOwnerInternal(PhysicsOwnerType::Component);
+		CCollider* component = (CCollider*)entry->GetOwner(PhysicsOwnerType::Component);
 		if(component == nullptr)
 			continue;
 

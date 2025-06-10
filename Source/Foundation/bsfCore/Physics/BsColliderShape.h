@@ -284,6 +284,11 @@ namespace bs
 		/** @} */
 
 	protected:
+		friend class Collider;
+
+		/** Updates the local shape transform based on the requested local transform values, and the actor the shape is currently attached to. */
+		virtual void UpdateTransform() = 0;
+
 		Vector3 mPosition = Vector3::kZero;
 		Quaternion mRotation = Quaternion::kIdentity;
 		Vector3 mScale = Vector3::kOne;

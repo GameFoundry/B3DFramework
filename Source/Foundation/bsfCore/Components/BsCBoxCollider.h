@@ -38,15 +38,6 @@ namespace bs
 		B3D_SCRIPT_EXPORT(ExportName(Center), Property(Getter))
 		Vector3 GetCenter() const { return mLocalPosition; }
 
-		/** @name Internal
-		 *  @{
-		 */
-
-		/**	Returns the box collider that this component wraps. */
-		BoxCollider* GetInternalInternal() const { return static_cast<BoxCollider*>(mInternal.get()); }
-
-		/** @} */
-
 		/************************************************************************/
 		/* 						COMPONENT OVERRIDES                      		*/
 		/************************************************************************/
