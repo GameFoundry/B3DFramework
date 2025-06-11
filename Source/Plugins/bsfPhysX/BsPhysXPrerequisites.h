@@ -61,9 +61,9 @@ namespace bs
 	}
 
 	/** Converts a framework position/rotation pair to a PhysX transform. */
-	inline physx::PxTransform ToPxTransform(const Vector3& pos, const Quaternion& rot)
+	inline physx::PxTransform ToPxTransform(const Vector3& position, const Quaternion& rotation)
 	{
-		return physx::PxTransform(ToPxVector(pos), ToPxQuaternion(rot));
+		return physx::PxTransform(ToPxVector(position), ToPxQuaternion(rotation));
 	}
 
 	/** Converts a PhysX vector to framework's vector. */

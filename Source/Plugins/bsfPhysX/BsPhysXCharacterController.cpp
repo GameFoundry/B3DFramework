@@ -229,7 +229,7 @@ void PhysXCharacterController::onShapeHit(const PxControllerShapeHit& hit)
 	collision.MotionDir = FromPxVector(hit.dir);
 	collision.MotionAmount = hit.length;
 	collision.TriangleIndex = hit.triangleIndex;
-	collision.ColliderRaw = (Collider*)hit.shape->userData;
+	collision.ColliderShape = (ColliderShape*)hit.shape->userData;
 
 	OnColliderHit(collision);
 }

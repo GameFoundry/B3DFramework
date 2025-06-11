@@ -5,6 +5,7 @@
 #include <PxRigidDynamic.h>
 
 #include "BsPhysX.h"
+#include "BsPhysXCollider.h"
 #include "BsPhysXRigidbody.h"
 #include "BsPhysXMaterial.h"
 #include "BsPhysXMesh.h"
@@ -185,6 +186,8 @@ void PhysXColliderShape::SetGeometry(const physx::PxGeometry& geometry)
 			underlyingMaterial = GetPhysX().GetDefaultMaterial();
 
 		PxShape* const newShape = GetPhysX().GetPhysX()->createShape(geometry, *underlyingMaterial, true);
+		newShape->userData = this;
+
 		if(B3D_ENSURE(newShape != nullptr))
 		{
 			newShape->setLocalPose(mShape->getLocalPose());
@@ -336,7 +339,7 @@ void PhysXColliderShape::AttachToCollider(Collider& collider)
 	else
 	{
 		const PhysXCollider& physxCollider = static_cast<PhysXCollider&>(collider);
-		PxRigidStatic* const staticBody = physxCollider.GetPxStaticBody();
+		PxRigidStatic* const staticBody = physxCollider.GetPxRigidStatic();
 
 		staticBody->attachShape(*mShape);
 	}
@@ -362,7 +365,7 @@ void PhysXColliderShape::DetachFromCollider()
 	else
 	{
 		const PhysXCollider& physxCollider = static_cast<const PhysXCollider&>(*mParentCollider);
-		PxRigidStatic* const staticBody = physxCollider.GetPxStaticBody();
+		PxRigidStatic* const staticBody = physxCollider.GetPxRigidStatic();
 
 		staticBody->detachShape(*mShape);
 	}

@@ -50,7 +50,7 @@ bool PhysicsScene::RayCastAny(const Ray& ray, u64 layer, float max) const
 	return RayCastAny(ray.Origin, ray.Direction, layer, max);
 }
 
-Vector<HCollider> RawToComponent(const Vector<Collider*>& raw)
+Vector<HCollider> RawToComponent(const Vector<ColliderShape*>& raw)
 {
 	if(raw.empty())
 		return Vector<HCollider>(0);
@@ -61,7 +61,8 @@ Vector<HCollider> RawToComponent(const Vector<Collider*>& raw)
 		if(entry == nullptr)
 			continue;
 
-		CCollider* component = (CCollider*)entry->GetOwner(PhysicsOwnerType::Component);
+		Collider* const collider = entry->GetCollider();
+		CCollider* component = (CCollider*)collider->GetOwner(PhysicsOwnerType::Component);
 		if(component == nullptr)
 			continue;
 

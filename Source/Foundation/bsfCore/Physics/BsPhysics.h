@@ -684,16 +684,16 @@ namespace bs
 		virtual SPtr<CharacterController> CreateCharacterController(const CHAR_CONTROLLER_DESC& desc) = 0;
 
 		/** @copydoc PhysicsScene::BoxOverlap() */
-		virtual Vector<Collider*> BoxOverlapInternal(const AABox& box, const Quaternion& rotation, u64 layer = BS_ALL_LAYERS) const = 0;
+		virtual Vector<ColliderShape*> BoxOverlapInternal(const AABox& box, const Quaternion& rotation, u64 layer = BS_ALL_LAYERS) const = 0;
 
 		/** @copydoc PhysicsScene::SphereOverlap() */
-		virtual Vector<Collider*> SphereOverlapInternal(const Sphere& sphere, u64 layer = BS_ALL_LAYERS) const = 0;
+		virtual Vector<ColliderShape*> SphereOverlapInternal(const Sphere& sphere, u64 layer = BS_ALL_LAYERS) const = 0;
 
 		/** @copydoc PhysicsScene::CapsuleOverlap() */
-		virtual Vector<Collider*> CapsuleOverlapInternal(const Capsule& capsule, const Quaternion& rotation, u64 layer = BS_ALL_LAYERS) const = 0;
+		virtual Vector<ColliderShape*> CapsuleOverlapInternal(const Capsule& capsule, const Quaternion& rotation, u64 layer = BS_ALL_LAYERS) const = 0;
 
 		/** @copydoc PhysicsScene::ConvexOverlap() */
-		virtual Vector<Collider*> ConvexOverlapInternal(const HPhysicsMesh& mesh, const Vector3& position, const Quaternion& rotation, u64 layer = BS_ALL_LAYERS) const = 0;
+		virtual Vector<ColliderShape*> ConvexOverlapInternal(const HPhysicsMesh& mesh, const Vector3& position, const Quaternion& rotation, u64 layer = BS_ALL_LAYERS) const = 0;
 
 		/** @} */
 	protected:

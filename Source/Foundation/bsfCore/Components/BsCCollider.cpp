@@ -363,7 +363,7 @@ CollisionData CCollider::PopulateCollisionData(const CollisionDataRaw& data)
 	ColliderShape* const myColliderShape = data.ColliderShapes[0];
 	if(myColliderShape != nullptr)
 	{
-		Collider* const myCollider = myColliderShape->GetParentCollider();
+		Collider* const myCollider = myColliderShape->GetCollider();
 		if(B3D_ENSURE(myCollider != nullptr))
 			hit.ColliderShapes[0] = myCollider->GetShapes()[myColliderShape->GetShapeIndexInParent()];
 	}
@@ -371,7 +371,7 @@ CollisionData CCollider::PopulateCollisionData(const CollisionDataRaw& data)
 	ColliderShape* const otherColliderShape = data.ColliderShapes[1];
 	if(otherColliderShape != nullptr)
 	{
-		Collider* const otherCollider = otherColliderShape->GetParentCollider();
+		Collider* const otherCollider = otherColliderShape->GetCollider();
 		if(B3D_ENSURE(otherCollider != nullptr))
 		{
 			CCollider* other = (CCollider*)otherCollider->GetOwner(PhysicsOwnerType::Component);

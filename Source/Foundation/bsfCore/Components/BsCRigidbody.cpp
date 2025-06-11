@@ -376,17 +376,22 @@ void CRigidbody::ProcessCollisionData(const CollisionDataRaw& data, CollisionDat
 {
 	output.ContactPoints = std::move(data.ContactPoints);
 
-	TODO - Set collider shapes
-	if(data.Colliders[0] != nullptr)
+	ColliderShape* const myColliderShape = data.ColliderShapes[0];
+	if(myColliderShape != nullptr)
 	{
-		CCollider* other = (CCollider*)data.Colliders[0]->GetOwner(PhysicsOwnerType::Component);
-		output.Collider[0] = B3DStaticGameObjectCast<CCollider>(other->GetHandle());
+		Collider* myCollider = myColliderShape->GetCollider();
+		CCollider* myColliderComponent = (CCollider*)myCollider->GetOwner(PhysicsOwnerType::Component);
+		output.Collider[0] = B3DStaticGameObjectCast<CCollider>(myColliderComponent->GetHandle());
+		output.ColliderShapes[0] = myCollider->GetShapes()[myColliderShape->GetShapeIndexInParent()];
 	}
 
-	if(data.Colliders[1] != nullptr)
+	ColliderShape* const otherColliderShape = data.ColliderShapes[1];
+	if(otherColliderShape != nullptr)
 	{
-		CCollider* other = (CCollider*)data.Colliders[1]->GetOwner(PhysicsOwnerType::Component);
-		output.Collider[1] = B3DStaticGameObjectCast<CCollider>(other->GetHandle());
+		Collider* otherCollider = otherColliderShape->GetCollider();
+		CCollider* otherColliderComponent = (CCollider*)otherCollider->GetOwner(PhysicsOwnerType::Component);
+		output.Collider[1] = B3DStaticGameObjectCast<CCollider>(otherColliderComponent->GetHandle());
+		output.ColliderShapes[1] = otherCollider->GetShapes()[otherColliderShape->GetShapeIndexInParent()];
 	}
 }
 

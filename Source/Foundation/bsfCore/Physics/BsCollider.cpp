@@ -65,14 +65,14 @@ void Collider::SetTransform(const Vector3& position, const Quaternion& rotation)
 	mPosition = position;
 	mRotation = rotation;
 
-	UpdateShapeTransforms();
+	UpdateTransform();
 }
 
 void Collider::SetScale(const Vector3& scale)
 {
 	mScale = scale;
 
-	UpdateShapeTransforms();
+	UpdateTransform();
 }
 
 void Collider::SetIsTrigger(bool value)
@@ -107,7 +107,7 @@ bool Collider::RayCast(const Vector3& origin, const Vector3& unitDir, PhysicsQue
 	return GetPhysics().RayCast(origin, unitDir, *this, hit, maxDist);
 }
 
-void Collider::UpdateShapeTransforms()
+void Collider::UpdateTransform()
 {
 	for(auto& entry : mShapes)
 		entry->UpdateTransform();

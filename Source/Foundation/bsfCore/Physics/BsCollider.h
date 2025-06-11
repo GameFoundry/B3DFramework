@@ -55,7 +55,7 @@ namespace bs
 		bool GetIsTrigger() const { return mIsTrigger; }
 
 		/** Determines the Rigidbody that controls this collider (if any). */
-		void SetRigidbody(Rigidbody* value);
+		virtual void SetRigidbody(Rigidbody* value);
 
 		/** @copydoc SetRigidbody() */
 		Rigidbody* GetRigidbody() const { return mRigidbody; }
@@ -138,8 +138,8 @@ namespace bs
 
 		/** @} */
 	protected:
-		/** Updates the transforms of all the currently attached shapes. Should be called after the collider transform changes. */
-		void UpdateShapeTransforms();
+		/** Updates the transforms of all the currently attached shapes and the underlying collider object. Should be called after the collider transform changes. */
+		virtual void UpdateTransform();
 
 		Vector3 mPosition = Vector3::kZero;
 		Quaternion mRotation = Quaternion::kIdentity;

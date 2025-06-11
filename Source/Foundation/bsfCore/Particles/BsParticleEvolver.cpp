@@ -550,8 +550,8 @@ u32 GroupRaycast(const PhysicsScene& physicsScene, LineSegment3* segments, Parti
 		groupBounds.Merge(segments[i].End);
 	}
 
-	Vector<Collider*> hitColliders = physicsScene.BoxOverlapInternal(groupBounds, Quaternion::kIdentity, layer);
-	if(hitColliders.empty())
+	Vector<ColliderShape*> hitColliderShapes = physicsScene.BoxOverlapInternal(groupBounds, Quaternion::kIdentity, layer);
+	if(hitColliderShapes.empty())
 		return 0;
 
 	u32 numHits = 0;
@@ -571,8 +571,10 @@ u32 GroupRaycast(const PhysicsScene& physicsScene, LineSegment3* segments, Parti
 		ray.Origin = segments[i].Start;
 		ray.Direction = diff / length;
 
-		for(auto& collider : hitColliders)
+		for(auto& colliderShape : hitColliderShapes)
 		{
+			Collider* const collider = colliderShape->GetCollider();
+
 			PhysicsQueryHit queryHit;
 			if(collider->RayCast(ray, queryHit, length))
 			{

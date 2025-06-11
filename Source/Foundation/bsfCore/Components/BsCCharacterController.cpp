@@ -205,10 +205,11 @@ void CCharacterController::TriggerOnColliderHit(const ControllerColliderCollisio
 	// Const-cast and modify is okay because we're the only object receiving this event
 	auto& hit = const_cast<ControllerColliderCollision&>(value);
 
-	if(hit.ColliderRaw)
+	if(hit.ColliderShape)
 	{
-		const auto collider = (CCollider*)hit.ColliderRaw->GetOwner(PhysicsOwnerType::Component);
-		hit.Collider = B3DStaticGameObjectCast<CCollider>(collider->GetHandle());
+		Collider* const collider = hit.ColliderShape->GetCollider();
+		const auto colliderComponent = (CCollider*)collider->GetOwner(PhysicsOwnerType::Component);
+		hit.Collider = B3DStaticGameObjectCast<CCollider>(colliderComponent->GetHandle());
 	}
 
 	OnColliderHit(hit);

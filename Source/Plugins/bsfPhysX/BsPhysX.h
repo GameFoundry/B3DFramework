@@ -32,16 +32,16 @@ namespace bs
 		/** Event reported when a physics object interacts with a collider. */
 		struct TriggerEvent
 		{
-			Collider* Trigger; /** Trigger that was interacted with. */
-			Collider* Other; /** Collider that was interacted with. */
+			ColliderShape* Trigger; /** Trigger shape that was interacted with. */
+			ColliderShape* Other; /** Collider shape that was interacted with. */
 			ContactEventType Type; /** Exact type of the event. */
 		};
 
 		/** Event reported when two colliders interact. */
 		struct ContactEvent
 		{
-			Collider* ColliderA; /** First collider. */
-			Collider* ColliderB; /** Second collider. */
+			ColliderShape* ColliderShapeA; /** First collider shape. */
+			ColliderShape* ColliderShapeB; /** Second collider shape. */
 			ContactEventType Type; /** Exact type of the event. */
 			// Note: Not too happy this is heap allocated, use static allocator?
 			Vector<ContactPoint> Points; /** Information about all contact points between the colliders. */
@@ -122,7 +122,11 @@ namespace bs
 		PhysXScene(physx::PxPhysics* physics, const PHYSICS_INIT_DESC& input, const physx::PxTolerancesScale& scale);
 		~PhysXScene();
 
+		/** Returns the underlying PhysX scene. */
+		physx::PxScene& GetPxScene() const { return *mScene; }
+
 		SPtr<Rigidbody> CreateRigidbody(const HSceneObject& linkedSO) override;
+		SPtr<Collider> CreateCollider(const Vector3& position, const Quaternion& rotation, const Vector3& scale) override;
 		SPtr<BoxCollider> CreateBoxCollider(const Vector3& extents, const Vector3& position, const Quaternion& rotation) override;
 		SPtr<SphereCollider> CreateSphereCollider(float radius, const Vector3& position, const Quaternion& rotation) override;
 		SPtr<PlaneCollider> CreatePlaneCollider(const Vector3& position, const Quaternion& rotation) override;
@@ -168,10 +172,10 @@ namespace bs
 		float GetMaxTesselationEdgeLength() const override { return mTesselationLength; }
 		void SetMaxTesselationEdgeLength(float length) override;
 
-		Vector<Collider*> BoxOverlapInternal(const AABox& box, const Quaternion& rotation, u64 layer = BS_ALL_LAYERS) const override;
-		Vector<Collider*> SphereOverlapInternal(const Sphere& sphere, u64 layer = BS_ALL_LAYERS) const override;
-		Vector<Collider*> CapsuleOverlapInternal(const Capsule& capsule, const Quaternion& rotation, u64 layer = BS_ALL_LAYERS) const override;
-		Vector<Collider*> ConvexOverlapInternal(const HPhysicsMesh& mesh, const Vector3& position, const Quaternion& rotation, u64 layer = BS_ALL_LAYERS) const override;
+		Vector<ColliderShape*> BoxOverlapInternal(const AABox& box, const Quaternion& rotation, u64 layer = BS_ALL_LAYERS) const override;
+		Vector<ColliderShape*> SphereOverlapInternal(const Sphere& sphere, u64 layer = BS_ALL_LAYERS) const override;
+		Vector<ColliderShape*> CapsuleOverlapInternal(const Capsule& capsule, const Quaternion& rotation, u64 layer = BS_ALL_LAYERS) const override;
+		Vector<ColliderShape*> ConvexOverlapInternal(const HPhysicsMesh& mesh, const Vector3& position, const Quaternion& rotation, u64 layer = BS_ALL_LAYERS) const override;
 
 	private:
 		/**
@@ -194,7 +198,7 @@ namespace bs
 		inline bool SweepAny(const physx::PxGeometry& geometry, const physx::PxTransform& tfrm, const Vector3& unitDir, u64 layer, float maxDist) const;
 
 		/** Helper method that returns all colliders that are overlapping the provided geometry. */
-		inline Vector<Collider*> Overlap(const physx::PxGeometry& geometry, const physx::PxTransform& tfrm, u64 layer) const;
+		inline Vector<ColliderShape*> Overlap(const physx::PxGeometry& geometry, const physx::PxTransform& tfrm, u64 layer) const;
 
 		/** Helper method that checks if the provided geometry overlaps any physics object. */
 		inline bool OverlapAny(const physx::PxGeometry& geometry, const physx::PxTransform& tfrm, u64 layer) const;

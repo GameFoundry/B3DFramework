@@ -26,7 +26,7 @@ namespace bs
 	/** Information about a collision between two physics objects. */
 	struct CollisionDataRaw
 	{
-		Collider* Colliders[2]; /**< Colliders involved in the collision. */
+		ColliderShape* ColliderShapes[2]; /**< Collider shapes involved in the collision. */
 
 		// Note: Not too happy this is heap allocated, use static allocator?
 		Vector<ContactPoint> ContactPoints; /**< Information about all the contact points for the hit. */
@@ -95,8 +95,7 @@ namespace bs
 		 */
 		HCollider Collider;
 
-		B3D_SCRIPT_EXPORT(Exclude(true))
-		bs::Collider* ColliderRaw = nullptr; /**< Collider that was hit. */
+		SPtr<ColliderShape> ColliderShape; /**< Collider shape that was hit. */
 	};
 
 	/** @} */

@@ -259,7 +259,7 @@ namespace bs
 		HCollider Collider;
 
 		B3D_SCRIPT_EXPORT(Exclude(true))
-		bs::Collider* ColliderRaw; /**< Collider that was touched. */
+		bs::ColliderShape* ColliderShape; /**< Collider that was touched. */
 		u32 TriangleIndex; /**< Touched triangle index for mesh colliders. */
 	};
 

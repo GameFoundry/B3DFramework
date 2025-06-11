@@ -21,6 +21,7 @@
 #include "BsPhysXCharacterController.h"
 #include "Components/BsCCollider.h"
 #include "BsFPhysXCollider.h"
+#include "BsPhysXCollider.h"
 #include "BsPhysXColliderShape.h"
 #include "Utility/BsTime.h"
 #include "Math/BsVector3.h"
@@ -187,8 +188,8 @@ class PhysXEventCallback : public PxSimulationEventCallback
 				continue;
 
 			PhysX::TriggerEvent event;
-			event.Trigger = (Collider*)pair.triggerShape->userData;
-			event.Other = (Collider*)pair.otherShape->userData;
+			event.Trigger = (ColliderShape*)pair.triggerShape->userData;
+			event.Other = (ColliderShape*)pair.otherShape->userData;
 			event.Type = type;
 
 			GetPhysX().ReportTriggerEventInternal(event);
@@ -263,8 +264,8 @@ class PhysXEventCallback : public PxSimulationEventCallback
 				}
 			}
 
-			event.ColliderA = (Collider*)pair.shapes[0]->userData;
-			event.ColliderB = (Collider*)pair.shapes[1]->userData;
+			event.ColliderShapeA = (ColliderShape*)pair.shapes[0]->userData;
+			event.ColliderShapeB = (ColliderShape*)pair.shapes[1]->userData;
 
 			GetPhysX().ReportContactEventInternal(event);
 		}
@@ -309,8 +310,8 @@ class PhysXBroadPhaseCallback : public PxBroadPhaseCallback
 {
 	void onObjectOutOfBounds(PxShape& shape, PxActor& actor) override
 	{
-		Collider* collider = (Collider*)shape.userData;
-		if(collider != nullptr)
+		ColliderShape* colliderShape = (ColliderShape*)shape.userData;
+		if(colliderShape != nullptr)
 			B3D_LOG(Warning, Physics, "Physics object out of bounds. Consider increasing broadphase region!");
 	}
 
@@ -387,14 +388,19 @@ void ParseHit(const PxRaycastHit& input, PhysicsQueryHit& output, PxShape* shape
 	SetUnmappedTriangleIndex(input, output, shapeHint);
 	output.Uv = Vector2(input.u, input.v);
 
+	ColliderShape* colliderShape = nullptr;
 	if(input.shape)
-		output.ColliderRaw = (Collider*)input.shape->userData;
+		colliderShape = (ColliderShape*)input.shape->userData;
 
-	if(output.ColliderRaw != nullptr)
+	if(colliderShape != nullptr)
 	{
-		CCollider* component = (CCollider*)output.ColliderRaw->GetOwner(PhysicsOwnerType::Component);
+		Collider* const collider = colliderShape->GetCollider();
+
+		CCollider* component = (CCollider*)collider->GetOwner(PhysicsOwnerType::Component);
 		if(component != nullptr)
 			output.Collider = B3DStaticGameObjectCast<CCollider>(component->GetHandle());
+
+		output.ColliderShape = collider->GetShapes()[colliderShape->GetShapeIndexInParent()];
 	}
 }
 
@@ -406,13 +412,20 @@ void ParseHit(const PxSweepHit& input, PhysicsQueryHit& output, PxShape* shapeHi
 	output.Distance = input.distance;
 	output.TriangleIdx = input.faceIndex;
 	SetUnmappedTriangleIndex(input, output, shapeHint);
-	output.ColliderRaw = (Collider*)input.shape->userData;
 
-	if(output.ColliderRaw != nullptr)
+	ColliderShape* colliderShape = nullptr;
+	if(input.shape)
+		colliderShape = (ColliderShape*)input.shape->userData;
+
+	if(colliderShape != nullptr)
 	{
-		CCollider* component = (CCollider*)output.ColliderRaw->GetOwner(PhysicsOwnerType::Component);
+		Collider* const collider = colliderShape->GetCollider();
+
+		CCollider* component = (CCollider*)collider->GetOwner(PhysicsOwnerType::Component);
 		if(component != nullptr)
 			output.Collider = B3DStaticGameObjectCast<CCollider>(component->GetHandle());
+
+		output.ColliderShape = collider->GetShapes()[colliderShape->GetShapeIndexInParent()];
 	}
 }
 
@@ -467,7 +480,7 @@ struct PhysXOverlapQueryCallback : PxOverlapCallback
 	static const int kMaxHits = 32;
 	PxOverlapHit Buffer[kMaxHits];
 
-	Vector<Collider*> Data;
+	Vector<ColliderShape*> Data;
 
 	PhysXOverlapQueryCallback()
 		: PxOverlapCallback(Buffer, kMaxHits)
@@ -476,7 +489,7 @@ struct PhysXOverlapQueryCallback : PxOverlapCallback
 	PxAgain processTouches(const PxOverlapHit* buffer, PxU32 nbHits) override
 	{
 		for(PxU32 i = 0; i < nbHits; i++)
-			Data.push_back((Collider*)buffer[i].shape->userData);
+			Data.push_back((ColliderShape*)buffer[i].shape->userData);
 
 		return true;
 	}
@@ -605,28 +618,29 @@ void PhysX::TriggerEvents()
 
 	for(auto& entry : mTriggerEvents)
 	{
-		data.Colliders[0] = entry.Trigger;
-		data.Colliders[1] = entry.Other;
+		data.ColliderShapes[0] = entry.Trigger;
+		data.ColliderShapes[1] = entry.Other;
+
+		Collider* const triggerCollider = entry.Trigger->GetCollider();
 
 		switch(entry.Type)
 		{
 		case ContactEventType::ContactBegin:
-			entry.Trigger->OnCollisionBegin(data);
+			triggerCollider->OnCollisionBegin(data);
 			break;
 		case ContactEventType::ContactStay:
-			entry.Trigger->OnCollisionStay(data);
+			triggerCollider->OnCollisionStay(data);
 			break;
 		case ContactEventType::ContactEnd:
-			entry.Trigger->OnCollisionEnd(data);
+			triggerCollider->OnCollisionEnd(data);
 			break;
 		}
 	}
 
-	auto notifyContact = [&](Collider* obj, Collider* other, ContactEventType type,
-							 const Vector<ContactPoint>& points, bool flipNormals = false)
+	auto notifyContact = [&](ColliderShape* colliderShapeA, ColliderShape* colliderShapeB, ContactEventType type, const Vector<ContactPoint>& points, bool flipNormals = false)
 	{
-		data.Colliders[0] = obj;
-		data.Colliders[1] = other;
+		data.ColliderShapes[0] = colliderShapeA;
+		data.ColliderShapes[1] = colliderShapeB;
 		data.ContactPoints = points;
 
 		if(flipNormals)
@@ -635,7 +649,8 @@ void PhysX::TriggerEvents()
 				point.Normal = -point.Normal;
 		}
 
-		Rigidbody* rigidbody = obj->GetRigidbody();
+		Collider* const colliderA = colliderShapeA->GetCollider();
+		Rigidbody* rigidbody = colliderA->GetRigidbody();
 		if(rigidbody != nullptr)
 		{
 			switch(type)
@@ -656,13 +671,13 @@ void PhysX::TriggerEvents()
 			switch(type)
 			{
 			case ContactEventType::ContactBegin:
-				obj->OnCollisionBegin(data);
+				colliderA->OnCollisionBegin(data);
 				break;
 			case ContactEventType::ContactStay:
-				obj->OnCollisionStay(data);
+				colliderA->OnCollisionStay(data);
 				break;
 			case ContactEventType::ContactEnd:
-				obj->OnCollisionEnd(data);
+				colliderA->OnCollisionEnd(data);
 				break;
 			}
 		}
@@ -670,24 +685,24 @@ void PhysX::TriggerEvents()
 
 	for(auto& entry : mContactEvents)
 	{
-		if(entry.ColliderA != nullptr)
+		if(entry.ColliderShapeA != nullptr)
 		{
-			CollisionReportMode reportModeA = entry.ColliderA->GetCollisionReportMode();
+			CollisionReportMode reportModeA = entry.ColliderShapeA->GetCollisionReportMode();
 
 			if(reportModeA == CollisionReportMode::ReportPersistent)
-				notifyContact(entry.ColliderA, entry.ColliderB, entry.Type, entry.Points, true);
+				notifyContact(entry.ColliderShapeA, entry.ColliderShapeB, entry.Type, entry.Points, true);
 			else if(reportModeA == CollisionReportMode::Report && entry.Type != ContactEventType::ContactStay)
-				notifyContact(entry.ColliderA, entry.ColliderB, entry.Type, entry.Points, true);
+				notifyContact(entry.ColliderShapeA, entry.ColliderShapeB, entry.Type, entry.Points, true);
 		}
 
-		if(entry.ColliderB != nullptr)
+		if(entry.ColliderShapeB != nullptr)
 		{
-			CollisionReportMode reportModeB = entry.ColliderB->GetCollisionReportMode();
+			CollisionReportMode reportModeB = entry.ColliderShapeB->GetCollisionReportMode();
 
 			if(reportModeB == CollisionReportMode::ReportPersistent)
-				notifyContact(entry.ColliderB, entry.ColliderA, entry.Type, entry.Points, false);
+				notifyContact(entry.ColliderShapeB, entry.ColliderShapeA, entry.Type, entry.Points, false);
 			else if(reportModeB == CollisionReportMode::Report && entry.Type != ContactEventType::ContactStay)
-				notifyContact(entry.ColliderB, entry.ColliderA, entry.Type, entry.Points, false);
+				notifyContact(entry.ColliderShapeB, entry.ColliderShapeA, entry.Type, entry.Points, false);
 		}
 	}
 
@@ -793,6 +808,12 @@ SPtr<Rigidbody> PhysXScene::CreateRigidbody(const HSceneObject& linkedSO)
 {
 	return B3DMakeShared<PhysXRigidbody>(mPhysics, mScene, linkedSO);
 }
+
+SPtr<Collider> PhysXScene::CreateCollider(const Vector3& position, const Quaternion& rotation, const Vector3& scale)
+{
+	return B3DMakeShared<PhysXCollider>(*this, position, rotation, scale);
+}
+
 
 SPtr<BoxCollider> PhysXScene::CreateBoxCollider(const Vector3& extents, const Vector3& position, const Quaternion& rotation)
 {
@@ -1136,7 +1157,7 @@ bool PhysXScene::OverlapAny(const PxGeometry& geometry, const PxTransform& tfrm,
 	return mScene->overlap(geometry, tfrm, output, filterData);
 }
 
-Vector<Collider*> PhysXScene::Overlap(const PxGeometry& geometry, const PxTransform& tfrm, u64 layer) const
+Vector<ColliderShape*> PhysXScene::Overlap(const PxGeometry& geometry, const PxTransform& tfrm, u64 layer) const
 {
 	PhysXOverlapQueryCallback output;
 
