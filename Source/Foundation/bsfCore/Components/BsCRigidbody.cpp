@@ -278,6 +278,9 @@ void CRigidbody::UpdateMassDistribution()
 
 void CRigidbody::UpdateColliders()
 {
+	// Note: Instead of clearing all, then re-registering below, detect changes between arrays and add/remove only changed
+	ClearColliders();
+
 	Stack<HSceneObject> todo;
 	todo.push(SO());
 
@@ -295,14 +298,8 @@ void CRigidbody::UpdateColliders()
 				if(!entry->IsValidParent(B3DStaticGameObjectCast<CRigidbody>(mThisHandle)))
 					continue;
 
-				Collider* collider = entry->GetInternalInternal();
-				if(collider == nullptr)
-					continue;
-
-				entry->SetRigidbody(B3DStaticGameObjectCast<CRigidbody>(mThisHandle), true);
+				entry->SetRigidbody(B3DStaticGameObjectCast<CRigidbody>(mThisHandle));
 				mChildren.push_back(entry);
-
-				collider->SetRigidbody(mInternal.get());
 			}
 		}
 
@@ -321,10 +318,11 @@ void CRigidbody::UpdateColliders()
 
 void CRigidbody::ClearColliders()
 {
-	for(auto& collider : mChildren)
-		collider->SetRigidbody(HRigidbody(), true);
-
+	Vector<HCollider> children = std::move(mChildren);
 	mChildren.clear();
+
+	for(auto& collider : children)
+		collider->SetRigidbody(HRigidbody());
 }
 
 void CRigidbody::AddCollider(const HCollider& collider)

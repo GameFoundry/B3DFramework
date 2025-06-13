@@ -10,7 +10,7 @@ using namespace physx;
 using namespace bs;
 
 PhysXCollider::PhysXCollider(PhysXScene& physicsScene, const Vector3& position, const Quaternion& rotation, const Vector3& scale)
-	: Collider(physicsScene, position, rotation, scale) 
+	: Collider(physicsScene, position, rotation, scale)
 {
 	CreateStaticBody();
 }
@@ -21,6 +21,20 @@ PhysXCollider::~PhysXCollider()
 		entry->DetachFromCollider();
 
 	DestroyStaticBody();
+}
+
+void PhysXCollider::SetShapes(const TArrayView<SPtr<ColliderShape>>& shapes)
+{
+	PhysXScene& physXScene = static_cast<PhysXScene&>(mPhysicsScene);
+	PxScene& pxScene = physXScene.GetPxScene();
+
+	if(mStaticBody != nullptr)
+		pxScene.removeActor(*mStaticBody);
+
+	Collider::SetShapes(shapes);
+	
+	if(mStaticBody != nullptr)
+		pxScene.addActor(*mStaticBody);
 }
 
 void PhysXCollider::SetRigidbody(Rigidbody* rigidbody)
@@ -43,6 +57,15 @@ void PhysXCollider::SetRigidbody(Rigidbody* rigidbody)
 	
 	for(auto& entry : mShapes)
 		entry->AttachToCollider(*this);
+
+	if(mStaticBody != nullptr)
+	{
+		// Add body to scene after adding the shapes
+		PhysXScene& physXScene = static_cast<PhysXScene&>(mPhysicsScene);
+		PxScene& pxScene = physXScene.GetPxScene();
+
+		pxScene.addActor(*mStaticBody);
+	}
 }
 
 void PhysXCollider::UpdateTransform()
@@ -60,11 +83,6 @@ void PhysXCollider::CreateStaticBody()
 
 	mStaticBody = GetPhysX().GetPhysX()->createRigidStatic(PxTransform(PxIdentity));
 	mStaticBody->setGlobalPose(ToPxTransform(mPosition, mRotation));
-
-	PhysXScene& physXScene = static_cast<PhysXScene&>(mPhysicsScene);
-	PxScene& pxScene = physXScene.GetPxScene();
-
-	pxScene.addActor(*mStaticBody);
 }
 
 void PhysXCollider::DestroyStaticBody()

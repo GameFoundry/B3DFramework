@@ -21,6 +21,7 @@ namespace bs
 		PhysXCollider(PhysXScene& physicsScene, const Vector3& position = Vector3::kZero, const Quaternion& rotation = Quaternion::kIdentity, const Vector3& scale = Vector3::kOne);
 		~PhysXCollider() override;
 
+		void SetShapes(const TArrayView<SPtr<ColliderShape>>& shapes) override;
 		void SetRigidbody(Rigidbody* rigidbody) override;
 		void UpdateTransform() override;
 

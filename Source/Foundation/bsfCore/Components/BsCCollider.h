@@ -142,11 +142,9 @@ namespace bs
 		/**
 		 * Changes the rigidbody parent of the collider. Meant to be called from the Rigidbody itself.
 		 *
-		 * @param[in] rigidbody		New rigidbody to assign as the parent to the collider.
-		 * @param[in] internal		If true the rigidbody will just be changed internally, but parent rigidbody will not be
-		 *							notified.
+		 * @param rigidbody		New rigidbody to assign as the parent to the collider.
 		 */
-		void SetRigidbody(const HRigidbody& rigidbody, bool internal = false);
+		void SetRigidbody(const HRigidbody& rigidbody);
 
 		/**
 		 * Updates the transform of the internal Collider representation from the transform of the component's scene object.

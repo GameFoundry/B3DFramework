@@ -160,15 +160,15 @@ void CCollider::OnTransformChanged(TransformChangedFlags flags)
 		UpdateTransform();
 }
 
-void CCollider::SetRigidbody(const HRigidbody& rigidbody, bool internal)
+void CCollider::SetRigidbody(const HRigidbody& rigidbody)
 {
 	if(rigidbody == mParent)
 		return;
 
-	if(mParent != nullptr && !internal)
+	if(mParent != nullptr)
 		mParent->RemoveCollider(B3DStaticGameObjectCast<CCollider>(mThisHandle));
 
-	if(mInternal != nullptr && !internal)
+	if(mInternal != nullptr)
 	{
 		Rigidbody* rigidBodyPtr = nullptr;
 
@@ -178,7 +178,7 @@ void CCollider::SetRigidbody(const HRigidbody& rigidbody, bool internal)
 		mInternal->SetRigidbody(rigidBodyPtr);
 	}
 
-	if(rigidbody != nullptr && !internal)
+	if(rigidbody != nullptr)
 		rigidbody->AddCollider(B3DStaticGameObjectCast<CCollider>(mThisHandle));
 
 	mParent = rigidbody;

@@ -64,7 +64,7 @@ namespace bs
 		TInlineArray<SPtr<ColliderShape>, 1> GetShapes() const { return mShapes; }
 
 		/** Sets shapes to associate with the collider. Existing shapes are cleared. */
-		void SetShapes(const TArrayView<SPtr<ColliderShape>>& shapes);
+		virtual void SetShapes(const TArrayView<SPtr<ColliderShape>>& shapes);
 
 		/**
 		 * Checks does the ray hit this collider.
