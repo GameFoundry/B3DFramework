@@ -225,6 +225,22 @@ namespace bs
 		using UnderlyingType = T;
 	};
 
+	using TypeId = u64;
+
+	/** Returns a unique type identifier for the provided type. Note the identifiers will NOT remain constant across application runs. */
+#if B3D_UTILITY_EXPORTS
+	template <typename T>
+	B3D_UTILITY_EXPORT TypeId B3DGetRuntimeTypeId() noexcept
+	{
+	  static char const kTypeId = 0;
+
+	  return (u64)&kTypeId;
+	}
+#else
+	template <typename T>
+	B3D_UTILITY_EXPORT TypeId B3DGetRuntimeTypeId() noexcept;
+#endif
+
 	/** @} */
 } // namespace bs
 

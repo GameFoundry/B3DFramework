@@ -15,25 +15,6 @@ namespace bs::ecs
 
 	// Note: Based on EnTT (https://github.com/skypjack/entt)
 
-	// TODO - Move to utility library
-	// TODO - Needs fixing to work on a cross-dll boundary
-	using typeidfn_t = void(*)();
-	using typeid_t = u64;
-
-	//template <typename T>
-	//static typeid_t type_id() noexcept
-	//{
-	//  return (typeid_t)(typeidfn_t(type_id<T>));
-	//}
-
-	template <typename T>
-	typeid_t type_id() noexcept
-	{
-	  static char const type_id = 0;
-
-	  return (u64)&type_id;
-	}
-
 	/** Provides information about a backing type for an Entity. */
 	template<typename>
 	struct TEntityTypeTraits;
@@ -2535,7 +2516,7 @@ namespace bs::ecs
 	class Registry
 	{
 	public:
-		const SparseSet* TryGetStorage(typeid_t typeId) const
+		const SparseSet* TryGetStorage(TypeId typeId) const
 		{
 			if(auto found = mComponentStorage.find(typeId); found != mComponentStorage.end())
 				return found->second.get();
@@ -2543,7 +2524,7 @@ namespace bs::ecs
 			return nullptr;
 		}
 
-		SparseSet* TryGetStorage(typeid_t typeId)
+		SparseSet* TryGetStorage(TypeId typeId)
 		{
 			return const_cast<SparseSet*>(std::as_const(*this).TryGetStorage(typeId));
 		}
@@ -2554,7 +2535,7 @@ namespace bs::ecs
 			if constexpr(std::is_same_v<Type, Entity>)
 				return static_cast<const TStorageType<Type>*>(&mEntityStorage);
 
-			const typeid_t typeId = type_id<Type>();
+			const TypeId typeId = B3DGetRuntimeTypeId<Type>();
 			if(auto found = mComponentStorage.find(typeId); found != mComponentStorage.end())
 				return static_cast<const TStorageType<Type>*>(found->second.get());
 
@@ -2567,7 +2548,7 @@ namespace bs::ecs
 			return const_cast<TStorageType<Type>*>(std::as_const(*this).TryGetStorage<Type>());
 		}
 
-		bool RemoveStorage(typeid_t typeId)
+		bool RemoveStorage(TypeId typeId)
 		{
 			return mComponentStorage.erase(typeId) > 0;
 		}
@@ -2575,7 +2556,7 @@ namespace bs::ecs
 		template<typename Type>
 		bool RemoveStorage()
 		{
-			const typeid_t typeId = type_id<Type>();
+			const TypeId typeId = B3DGetRuntimeTypeId<Type>();
 			return RemoveStorage(typeId);
 		}
 
@@ -2833,7 +2814,7 @@ namespace bs::ecs
 			if constexpr(std::is_same_v<Type, Entity>)
 				return static_cast<TStorageType<Type>&>(mEntityStorage);
 
-			const typeid_t typeId = type_id<Type>();
+			const TypeId typeId = B3DGetRuntimeTypeId<Type>();
 			if(auto found = mComponentStorage.find(typeId); found != mComponentStorage.end())
 				return static_cast<TStorageType<Type>&>(*found->second);
 
@@ -2851,7 +2832,7 @@ namespace bs::ecs
 		}
 
 		EntitySparseSet mEntityStorage;
-		UnorderedMap<typeid_t, SPtr<SparseSet>> mComponentStorage;
+		UnorderedMap<TypeId, SPtr<SparseSet>> mComponentStorage;
 
 	};
 
