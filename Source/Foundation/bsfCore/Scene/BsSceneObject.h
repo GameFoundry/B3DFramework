@@ -53,6 +53,7 @@ namespace bs
 		};
 
 		friend class SceneManager;
+		friend class Scene;
 		friend class Prefab;
 		friend class SceneObjectHierarchyDelta;
 		friend class PrefabUtility;
@@ -66,7 +67,7 @@ namespace bs
 		 * @param[in]	name	Name of the scene object.
 		 * @param[in]	flags	Optional flags that control object behavior. See SceneObjectFlags.
 		 */
-		static HSceneObject Create(const String& name, u32 flags = 0); // DEPRECATED - Use SceneInstance::CreateSceneObject
+		static HSceneObject Create(const String& name, u32 flags = 0);
 
 		/**
 		 * Destroys this object and any of its held components.

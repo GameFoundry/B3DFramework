@@ -465,6 +465,7 @@ namespace bs
 	class Component;
 	class SceneManager;
 	class SceneInstance;
+	class Scene;
 	// RTTI
 	class MeshRTTI;
 	// Desc structs
@@ -747,6 +748,7 @@ namespace bs
 		TID_SphereColliderShape = 1267,
 		TID_CapsuleColliderShape = 1268,
 		TID_MeshColliderShape = 1269,
+		TID_Scene = 1270,
 
 		// Moved from Engine layer
 		TID_CCamera = 30000,
@@ -779,6 +781,7 @@ namespace bs
 	typedef TResourceHandle<Font> HFont;
 	typedef TResourceHandle<Shader> HShader;
 	typedef TResourceHandle<Prefab> HPrefab;
+	typedef TResourceHandle<Scene> HScene;
 	typedef TResourceHandle<StringTable> HStringTable;
 	typedef TResourceHandle<PhysicsMaterial> HPhysicsMaterial;
 	typedef TResourceHandle<PhysicsMesh> HPhysicsMesh;

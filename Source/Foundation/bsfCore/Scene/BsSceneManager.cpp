@@ -178,6 +178,7 @@ void SceneManager::ClearMainScene(bool forceAll)
 void SceneManager::LoadMainScene(const HPrefab& scene)
 {
 	HSceneObject root = scene->Instantiate(mMainScene, true);
+	// TODO - Scene::Instantiate calls these two below automatically
 	mMainScene->SetRoot(root);
 	mMainScene->SetAssociatedResourceId(scene->GetId());
 

@@ -120,7 +120,7 @@ namespace bs
 		 *								the original is destroyed before instantiating.
 		 * @return						Instantiated clone of the prefab's scene object hierarchy.
 		 */
-		HSceneObject Instantiate(SPtr<SceneInstance>& inOutSceneInstance, bool preserveIds) const;
+		HSceneObject Instantiate(SPtr<SceneInstance>& inOutSceneInstance, bool preserveIds) const; // TODO - preserveIds is always false for prefabs
 
 		/**
 		 * Replaces the contents of this prefab with new contents from the provided object. Returns a map of @p sceneObject IDs

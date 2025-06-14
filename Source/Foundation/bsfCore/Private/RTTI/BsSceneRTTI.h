@@ -5,7 +5,7 @@
 #include "BsCorePrerequisites.h"
 #include "Reflection/BsRTTIType.h"
 #include "RTTI/BsUUIDRTTI.h"
-#include "Scene/BsPrefab.h"
+#include "Scene/BsScene.h"
 #include "Scene/BsSceneObject.h"
 #include "Utility/BsUtility.h"
 
@@ -16,20 +16,17 @@ namespace bs
 	 *  @{
 	 */
 
-	class B3D_CORE_EXPORT PrefabRTTI : public TRTTIType<Prefab, Resource, PrefabRTTI>
+	class B3D_CORE_EXPORT SceneRTTI : public TRTTIType<Scene, Resource, SceneRTTI>
 	{
 		SPtr<SceneObject> mRootSceneObject;
 
 		B3D_RTTI_BEGIN_MEMBERS
 			B3D_RTTI_GENERATED_MEMBER(mRootSceneObject, 0)
-			B3D_RTTI_MEMBER(mPrefabVersion, 1)
-			// B3D_RTTI_MEMBER_PLAIN(mNextLinkId, 2)
 			B3D_RTTI_MEMBER(mUUID, 3)
-			B3D_RTTI_MEMBER(mIsScene, 4)
 		B3D_RTTI_END_MEMBERS
 
 	public:
-		void OnOperationStarted(Prefab& object, RTTIOperationTypeFlags operationType, RTTIOperationContext& context) override
+		void OnOperationStarted(Scene& object, RTTIOperationTypeFlags operationType, RTTIOperationContext& context) override
 		{
 			if(operationType.IsSet(RTTIOperationType::WriteBit))
 			{
@@ -44,7 +41,7 @@ namespace bs
 			}
 		}
 
-		void OnOperationEnded(Prefab& object, RTTIOperationTypeFlags operationType, RTTIOperationContext& context) override
+		void OnOperationEnded(Scene& object, RTTIOperationTypeFlags operationType, RTTIOperationContext& context) override
 		{
 			if(operationType.IsSet(RTTIOperationType::WriteBit))
 			{
@@ -57,18 +54,18 @@ namespace bs
 
 		const String& GetRttiName() override
 		{
-			static String name = "Prefab";
+			static String name = "Scene";
 			return name;
 		}
 
 		u32 GetRttiId() const override
 		{
-			return TID_Prefab;
+			return TID_Scene;
 		}
 
 		SPtr<IReflectable> NewRttiObject() override
 		{
-			return Prefab::CreateEmpty();
+			return Scene::CreateEmpty();
 		}
 	};
 

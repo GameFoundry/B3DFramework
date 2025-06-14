@@ -97,7 +97,7 @@ UnorderedMap<UUID, UUID> Prefab::ReplaceInternalHierarchy(const HSceneObject& sc
 	HSceneObject newRoot = sceneObject->Clone(newGameObjectCollection, true);
 	newRoot->mParent = nullptr;
 
-	// Remove objects with "dont save" flag
+	// Remove objects that should not be saved
 	FrameScope frameScope;
 	FrameVector<HSceneObject> sceneObjectsToDestroy;
 	newRoot->IterateHierarchy([&sceneObjectsToDestroy](const HSceneObject& sceneObject) {
