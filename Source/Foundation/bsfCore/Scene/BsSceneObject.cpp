@@ -221,13 +221,16 @@ void SceneObject::Initialize()
 			sceneObject->SetParent(sceneObject->GetScene()->GetRoot());
 
 		for(auto& component : sceneObject->mComponents)
-			component->Initialize();
+		{
+			if(!component->HasGameObjectFlag(GameObjectTransientFlag::Initialized))
+				component->Initialize();
+		}
 
 		for(auto& child : sceneObject->mChildren)
 			fnInitialize(child.Get());
 	};
 
-	Function<void(SceneObject*)> fnTriggerEvents = [&fnTriggerEvents](SceneObject* sceneObject)
+	Function<void(SceneObject*)> fnTriggerComponentCreatedEvents = [&fnTriggerComponentCreatedEvents](SceneObject* sceneObject)
 	{
 		if(!sceneObject->HasGameObjectFlag(GameObjectTransientFlag::Initialized))
 			return;
@@ -236,11 +239,11 @@ void SceneObject::Initialize()
 			GetSceneManager().NotifyComponentCreatedInternal(component, sceneObject->GetActive());
 
 		for(auto& child : sceneObject->mChildren)
-				fnTriggerEvents(child.Get());
+				fnTriggerComponentCreatedEvents(child.Get());
 	};
 
 	fnInitialize(this);
-	fnTriggerEvents(this);
+	fnTriggerComponentCreatedEvents(this);
 }
 
 /************************************************************************/
@@ -591,11 +594,10 @@ void SceneObject::SetScene(const SPtr<SceneInstance>& scene, bool recursive)
 	if(currentScene == scene)
 		return;
 
-	if(!B3D_ENSURE(scene != nullptr))
-		return;
-
 	mParentScene = scene;
-	SetOwnerCollection(scene->GetGameObjectCollection());
+
+	if(scene != nullptr)
+		SetOwnerCollection(scene->GetGameObjectCollection());
 
 	if(recursive)
 	{
@@ -676,9 +678,7 @@ void SceneObject::RemoveChild(const HSceneObject& object)
 	if(result != mChildren.end())
 		mChildren.erase(result);
 	else
-	{
-		B3D_EXCEPT(InternalErrorException, "Trying to remove a child but it's not a child of the transform.");
-	}
+		B3D_LOG(Warning, Scene, "Trying to remove a child but it's not a child of the transform.");
 }
 
 HSceneObject SceneObject::FindPath(const String& path) const

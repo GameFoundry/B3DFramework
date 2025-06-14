@@ -236,7 +236,7 @@ TransformChangedFlags ScriptComponent::InternalGetNotifyFlags(ScriptGameObjectWr
 	if(self->IsNativeObjectValid())
 	{
 		HComponent component = B3DStaticGameObjectCast<Component>(self->GetBaseNativeObjectAsHandle());
-		return component->GetNotifyFlagsInternal();
+		return component->GetNotifyFlags();
 	}
 
 	return TCF_None;

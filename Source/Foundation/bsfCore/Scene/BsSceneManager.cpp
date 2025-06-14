@@ -46,6 +46,39 @@ SceneInstance::~SceneInstance()
 	GetSceneManager().NotifySceneInstanceDestroyed(this);
 }
 
+void SceneInstance::SetRoot(const HSceneObject& newRoot)
+{
+	if(newRoot == nullptr)
+		return;
+
+	HSceneObject oldRoot = mRoot;
+	const u32 childCount = oldRoot->GetChildCount();
+
+	// Make sure to keep persistent objects
+	{
+		FrameScope frameScope;
+		FrameVector<HSceneObject> toMove;
+		for(u32 i = 0; i < childCount; i++)
+		{
+			HSceneObject child = oldRoot->GetChild(i);
+
+			if(child->HasFlag(SceneObjectFlag::Persistent))
+				toMove.push_back(child);
+		}
+
+		for(auto& entry : toMove)
+			entry->SetParent(newRoot, false);
+	}
+
+	oldRoot->Destroy();
+	mGameObjectCollection->DestroyQueuedObjects();
+
+	mRoot = newRoot;
+	mRoot->ClearParent();
+	mRoot->SetScene(shared_from_this());
+	mGameObjectCollection = newRoot->GetOwnerCollection().lock();
+}
+
 HSceneObject SceneInstance::CreateSceneObject(const String& name)
 {
 	HSceneObject newSceneObject = SceneObject::CreateInternal(mGameObjectCollection, name);
@@ -131,8 +164,8 @@ void SceneManager::ClearMainScene(bool forceAll)
 	UUID oldMainSceneResourceId = mMainScene->GetAssociatedResourceId();
 
 	HSceneObject newRoot = SceneObject::CreateInternal(gameObjectCollection, "SceneRoot");
-	newRoot->SetScene(mMainScene, false);
-	SetRootNodeInternal(newRoot, UUID::kEmpty);
+	mMainScene->SetRoot(newRoot);
+	mMainScene->SetAssociatedResourceId(UUID::kEmpty);
 
 	OnMainSceneUnloaded(oldMainSceneResourceId);
 }
@@ -140,45 +173,10 @@ void SceneManager::ClearMainScene(bool forceAll)
 void SceneManager::LoadMainScene(const HPrefab& scene)
 {
 	HSceneObject root = scene->Instantiate(mMainScene, true);
-	SetRootNodeInternal(root, scene->GetId());
+	mMainScene->SetRoot(root);
+	mMainScene->SetAssociatedResourceId(scene->GetId());
 
 	OnMainSceneLoaded(scene->GetId());
-}
-
-void SceneManager::SetRootNodeInternal(const HSceneObject& root, const UUID& associatedSceneResourceId)
-{
-	if(root == nullptr)
-		return;
-
-	HSceneObject oldRoot = mMainScene->mRoot;
-
-	const u32 childCount = oldRoot->GetChildCount();
-	// Make sure to keep persistent objects
-
-	B3DMarkAllocatorFrame();
-	{
-		FrameVector<HSceneObject> toRemove;
-		for(u32 i = 0; i < childCount; i++)
-		{
-			HSceneObject child = oldRoot->GetChild(i);
-
-			if(child->HasFlag(SceneObjectFlag::Persistent))
-				toRemove.push_back(child);
-		}
-
-		for(auto& entry : toRemove)
-			entry->SetParent(root, false);
-	}
-	B3DClearAllocatorFrame();
-
-	// TODO - This function should just replace the scene instance, rather than update it
-	mMainScene->mRoot = root;
-	mMainScene->mRoot->ClearParent();
-	mMainScene->mRoot->SetScene(mMainScene);
-	mMainScene->mGameObjectCollection = root->GetOwnerCollection().lock();
-	mMainScene->SetAssociatedResourceId(associatedSceneResourceId);
-
-	oldRoot->Destroy();
 }
 
 void SceneManager::BindActorInternal(const SPtr<SceneActor>& actor, const HSceneObject& so)

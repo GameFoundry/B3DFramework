@@ -112,8 +112,9 @@ namespace bs
 		 */
 
 		/**
-		 * Construct any resources the component needs before use. Called when the parent scene object is instantiated.
-		 * A non-instantiated component shouldn't be used in a live scene.
+		 * Construct any resources the component needs before use. Called when the parent scene object is initialized.
+		 * A non-initialized component shouldn't be used in a live scene (i.e. it should not receive any of the 
+		 * component logic updates or events). 
 		 */
 		virtual void Initialize();
 
@@ -124,7 +125,7 @@ namespace bs
 		void RefreshEnabledState(bool triggerEvents = true);
 
 		/** Gets the currently assigned notify flags. See SetNotifyFlagsInternal(). */
-		TransformChangedFlags GetNotifyFlagsInternal() const { return mNotifyFlags; }
+		TransformChangedFlags GetNotifyFlags() const { return mNotifyFlags; }
 
 		/** @} */
 	protected:

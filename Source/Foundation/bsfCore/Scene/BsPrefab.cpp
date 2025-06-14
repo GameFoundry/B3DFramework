@@ -148,7 +148,6 @@ HSceneObject Prefab::Instantiate(SPtr<SceneInstance>& inOutSceneInstance, bool p
 	if(mRoot == nullptr)
 		return HSceneObject();
 
-
 	SPtr<GameObjectCollection> gameObjectCollection;
 	if(inOutSceneInstance != nullptr)
 		gameObjectCollection = inOutSceneInstance->GetGameObjectCollection();

@@ -37,7 +37,7 @@ namespace bs
 	};
 
 	/** Contains information about an instantiated scene. */
-	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Scene)) SceneInstance : public IScriptExportable
+	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Scene)) SceneInstance : public IScriptExportable, public std::enable_shared_from_this<SceneInstance>
 	{
 		struct ConstructPrivately
 		{};
@@ -65,13 +65,7 @@ namespace bs
 		B3D_SCRIPT_EXPORT(ExportName(Physics), Property(Getter))
 		const SPtr<PhysicsScene>& GetPhysicsScene() const { return mPhysicsScene; }
 
-		/** Returns the game object collection storing all the scene's game objects. */
-		const SPtr<GameObjectCollection>& GetGameObjectCollection() const { return mGameObjectCollection; }
-
-		/** ID of the resource that the scene instance is associated with (e.g. resource the scene was loaded from.). */
-		void SetAssociatedResourceId(const UUID& id) { mAssociatedResourceId = id; }
-
-		/** @copydoc SetAssociatedResourceId */
+		/** Returns the ID of the resource that the scene instance is associated with (e.g. resource the scene was loaded from.). */
 		B3D_SCRIPT_EXPORT(Property(Getter), ExportName(AssociatedResourceId))
 		const UUID& GetAssociatedResourceId() const { return mAssociatedResourceId; }
 
@@ -89,6 +83,25 @@ namespace bs
 
 		/** Creates a new scene instance with an existing hierarchy and associated resource ID. */
 		static SPtr<SceneInstance> Create(const String& name, const HSceneObject& root, const UUID& associatedResourceId);
+
+		/**
+		 * @name Internal
+		 * @{
+		 */
+
+		/** Returns the game object collection storing all the scene's game objects. */
+		const SPtr<GameObjectCollection>& GetGameObjectCollection() const { return mGameObjectCollection; }
+
+		/** Sets the ID of the resource that the scene instance is associated with (e.g. resource the scene was loaded from.). */
+		void SetAssociatedResourceId(const UUID& id) { mAssociatedResourceId = id; }
+
+		/**
+		 * Changes the root scene object. Any persistent objects will remain in the scene, now parented to the new root. All non-persistent objects
+		 * in the old root are destroyed.
+		 */
+		void SetRoot(const HSceneObject& newRoot);
+
+		/** @} */
 
 	private:
 		friend class SceneManager;
@@ -173,9 +186,6 @@ namespace bs
 		 * the main game window when running standalone, or the Game viewport when running in editor.
 		 */
 		void SetMainRenderTarget(const SPtr<RenderTarget>& rt);
-
-		/** Changes the root scene object. Any persistent objects will remain in the scene, now parented to the new root. */
-		void SetRootNodeInternal(const HSceneObject& root, const UUID& associatedSceneResourceId);
 
 		/**
 		 * Binds a scene actor with a scene object. Every frame the scene object's transform will be monitored for
