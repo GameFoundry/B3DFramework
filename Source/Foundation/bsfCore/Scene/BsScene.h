@@ -13,19 +13,21 @@ namespace bs
 	 */
 
 	/** Saveable hierarchy of scene objects that can be instantiated into a SceneInstance. */
-	class B3D_CORE_EXPORT Scene : public Resource
+	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Localization)) Scene : public Resource
 	{
 	public:
 		Scene();
 		~Scene();
 
-		/** Creates a new scene from the provided scene object. The provided scene object and all saveable children will be cloned as part of the scene. */
-		static HScene Create(const HSceneObject& sceneObject);
-
 		/** Instantiates a scene by creating an instance of the scene object hierarchy. */
+		B3D_SCRIPT_EXPORT()
 		SPtr<SceneInstance> Instantiate() const;
 
 		bool AllowAsyncLoading() const override { return false; }
+
+		/** Creates a new scene from the provided scene object. The provided scene object and all saveable children will be cloned as part of the scene. */
+		B3D_SCRIPT_EXPORT(ExtensionConstructorForType(Scene))
+		static HScene Create(const HSceneObject& sceneObject);
 
 	public: // ***** INTERNAL ******
 		/** @name Internal

@@ -10634,6 +10634,19 @@ Alternatively you can also skip manually calling ReleaseInternalReference() and 
 			</param>
 		</event>
 	</class>
+	<class native="Scene" script="Scene">
+		<doc>Saveable hierarchy of scene objects that can be instantiated into a SceneInstance.</doc>
+		<method native="Instantiate" script="Instantiate" static="false">
+			<doc>Instantiates a scene by creating an instance of the scene object hierarchy.</doc>
+			<returns type="SceneInstance">
+			</returns>
+		</method>
+		<ctor>
+			<doc>Creates a new scene from the provided scene object. The provided scene object and all saveable children will be cloned as part of the scene.</doc>
+			<param name="sceneObject" type="SceneObject">
+			</param>
+		</ctor>
+	</class>
 	<class native="SceneManager" script="SceneManager">
 		<doc>Keeps track of all active SceneObject%s and their components. Keeps track of component state and triggers their events. Updates the transforms of objects as SceneObject%s move.</doc>
 		<method native="LoadMainScene" script="LoadMainScene" static="false">
