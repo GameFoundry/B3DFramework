@@ -95,7 +95,14 @@ HResource Resources::Load(const Path& resourcePath, const ResourceLoadOptions& l
 
 HResource Resources::Load(const UUID& resourceId, const ResourceLoadOptions& loadOptions)
 {
-	// TODO - Consider doing a lookup for loaded resources, as that might be a common case. To skip expensive operations if resource is already loaded.
+	// Look up the loaded resource list first because:
+	// 1. It avoids expensive steps for already loaded packages.
+	// 2. It looks up resources that were registered at runtime but are not saved in a package
+	{
+		Lock lock(mLoadedResourceMutex);
+		if(auto found = mLoadedResourceInformation.find(resourceId); found != mLoadedResourceInformation.end())
+			return found->second->ResourceHandle.Lock();
+	}
 
 	UPtr<PackageReadLock> packageReadLock;
 	Path packagePath;
