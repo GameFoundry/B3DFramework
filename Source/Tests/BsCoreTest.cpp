@@ -43,7 +43,7 @@ private:
 	void TestBinarySerialization();
 	void TestSerializedObject();
 	void TestBinaryDelta();
-	void TestSceneSaveLoad();
+	void TestPrefabSaveLoad();
 	void TestPrefabScenario1();
 	void TestPrefabScenario2();
 	void TestPrefabScenario3();
@@ -76,7 +76,7 @@ CoreTestSuite::CoreTestSuite()
 	B3D_ADD_TEST(CoreTestSuite::TestBinarySerialization)
 	B3D_ADD_TEST(CoreTestSuite::TestSerializedObject)
 	B3D_ADD_TEST(CoreTestSuite::TestBinaryDelta)
-	B3D_ADD_TEST(CoreTestSuite::TestSceneSaveLoad)
+	B3D_ADD_TEST(CoreTestSuite::TestPrefabSaveLoad)
 	B3D_ADD_TEST(CoreTestSuite::TestPrefabScenario1)
 	B3D_ADD_TEST(CoreTestSuite::TestPrefabScenario2)
 	B3D_ADD_TEST(CoreTestSuite::TestPrefabScenario3)
@@ -237,7 +237,7 @@ void CoreTestSuite::TestBinaryDelta()
 	UnitTestSerializationHelpers::TestAssertObjectsMatch(*this, objectA, objectB, true);
 }
 
-void CoreTestSuite::TestSceneSaveLoad()
+void CoreTestSuite::TestPrefabSaveLoad()
 {
 	// Create & serialize scene 0
 	SPtr<MemoryDataStream> serializedScene0Stream = B3DMakeShared<MemoryDataStream>();
@@ -284,7 +284,7 @@ void CoreTestSuite::TestSceneSaveLoad()
 
 	// Instantiate the scene and ensure prefab links are valid
 	{
-		SPtr<SceneInstance> instancedScene = scene0Prefab->Instantiate();
+		SPtr<SceneInstance> instancedScene = scene0Prefab->InstantiateAsScene();
 		HSceneObject instancedSceneRoot = instancedScene->GetRoot();
 		UnitTestSceneA instancedScene0Wrapper(instancedSceneRoot);
 
@@ -732,7 +732,7 @@ void CoreTestSuite::TestAssertPrefabScenario()
 		UnitTestPrefabUpdateHelper::TestAssertPrefabLinksMatchPrefabInternals_UnitTestSceneB(*this, mScene, nullptr, UUID::kEmpty, prefabSceneLookup);
 
 		{
-			SPtr<SceneInstance> instantiatedSceneInstance = prefab->Instantiate();
+			SPtr<SceneInstance> instantiatedSceneInstance = prefab->InstantiateAsScene();
 			HSceneObject instantiatedInstanceRoot = instantiatedSceneInstance->GetRoot();
 			UnitTestSceneB instantiatedScene(instantiatedInstanceRoot);
 			UnitTestPrefabUpdateHelper::TestAssertPrefabLinksMatchPrefabInternals_UnitTestSceneB(*this, instantiatedScene, nullptr, UUID::kEmpty, prefabSceneLookup);

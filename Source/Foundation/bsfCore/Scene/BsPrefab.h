@@ -45,19 +45,18 @@ namespace bs
 		 * Instantiates a prefab by creating an instance of the prefab's scene object hierarchy. The returned hierarchy
 		 * will be parented to the provided scene instance root.
 		 *
-		 * @param	sceneInstance	Scene instance into which to instantiate the prefab instance in. If null, prefab will be instantiated
-		 *							in a brand new scene instance. TODO - Null value here should not be supported
+		 * @param	sceneInstance	Scene instance into which to instantiate the prefab instance in.
 		 * @return					Instantiated clone of the prefab's scene object hierarchy.
 		 */
 		HSceneObject Instantiate(const SPtr<SceneInstance>& sceneInstance) const;
 
 		/**
-		 * Instantiates a prefab by creating an instance of the prefab's scene object hierarchy. Instance will be placed in a brand
-		 * new scene instance.
+		 * Instantiates a prefab by creating an instance of the prefab's scene object hierarchy as a brand new scene instance, whose
+		 * root is the prefab root.
 		 *
 		 * @return					Newly created scene instance.
 		 */
-		SPtr<SceneInstance> Instantiate() const; // TODO - Doesn't belong on a Prefab, should be Scene only
+		SPtr<SceneInstance> InstantiateAsScene() const;
 
 		/**
 		 * Returns a version value that gets updated every time the prefab contents update. Can be used for detecting if a prefab instance
@@ -99,16 +98,6 @@ namespace bs
 		HSceneObject Clone(const SPtr<GameObjectCollection>& cloneOwnerCollection) const;
 
 		/**
-		 * Instantiates a prefab by creating an instance of the prefab's scene object hierarchy. The returned hierarchy
-		 * will be parented to world root by default.
-		 *
-		 * @param	inOutSceneInstance	Scene instance into which to instantiate the prefab instance in. If null, new
-		 *								scene instance will be created and output through this parameter.
-		 * @return						Instantiated clone of the prefab's scene object hierarchy.
-		 */
-		HSceneObject Instantiate(SPtr<SceneInstance>& inOutSceneInstance) const;
-
-		/**
 		 * Replaces the contents of this prefab with new contents from the provided object. Returns a map of @p sceneObject IDs
 		 * that were remapped to new IDs within the prefab.
 		 */
@@ -125,6 +114,17 @@ namespace bs
 	private:
 		/**	Creates an empty and uninitialized prefab. */
 		static SPtr<Prefab> CreateEmpty();
+
+		/**
+		 * Instantiates a prefab by creating an instance of the prefab's scene object hierarchy. The returned hierarchy
+		 * will be parented to world root by default, if the provided instance is non-empty. If the provided scene instance
+		 * is empty, new scene instance will be created and prefab's root will be set as the scene instance's root.
+		 *
+		 * @param	inOutSceneInstance	Scene instance into which to instantiate the prefab instance in. If null, new
+		 *								scene instance will be created and output through this parameter.
+		 * @return						Instantiated clone of the prefab's scene object hierarchy.
+		 */
+		HSceneObject InstantiateInternal(SPtr<SceneInstance>& inOutSceneInstance) const;
 
 		void Initialize() override;
 		void Destroy() override;

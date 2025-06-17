@@ -124,19 +124,22 @@ UnorderedMap<UUID, UUID> Prefab::ReplaceInternalHierarchy(const HSceneObject& sc
 
 HSceneObject Prefab::Instantiate(const SPtr<SceneInstance>& sceneInstance) const
 {
+	if(!B3D_ENSURE(sceneInstance != nullptr))
+		return HSceneObject();
+
 	SPtr<SceneInstance> sceneInstanceMutableShared = sceneInstance;
-	return Instantiate(sceneInstanceMutableShared);
+	return InstantiateInternal(sceneInstanceMutableShared);
 }
 
-SPtr<SceneInstance> Prefab::Instantiate() const
+SPtr<SceneInstance> Prefab::InstantiateAsScene() const
 {
 	SPtr<SceneInstance> sceneInstance;
-	Instantiate(sceneInstance);
+	InstantiateInternal(sceneInstance);
 
 	return sceneInstance;
 }
 
-HSceneObject Prefab::Instantiate(SPtr<SceneInstance>& inOutSceneInstance) const
+HSceneObject Prefab::InstantiateInternal(SPtr<SceneInstance>& inOutSceneInstance) const
 {
 	if(mRoot == nullptr)
 		return HSceneObject();
