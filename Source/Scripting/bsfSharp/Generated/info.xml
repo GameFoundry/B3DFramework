@@ -1824,7 +1824,7 @@ Also see SetContactOffset().</doc>
 		<property name="Layer" type="ulong" getter="GetLayer" setter="SetLayer" static="false">
 			<doc>Determines the layer of the collider shape. Layer controls with which shapes will this shape collide.</doc>
 		</property>
-		<property name="CollisionReportMode" type="CollisionReportMode" getter="" setter="SetCollisionReportMode" static="false">
+		<property name="CollisionReportMode" type="CollisionReportMode" getter="GetCollisionReportMode" setter="SetCollisionReportMode" static="false">
 			<doc>Determines which (if any) collision events are reported.</doc>
 		</property>
 		<property name="PlaneShapeInformation" type="PlaneColliderShapeInformation" getter="GetPlaneShapeInformation" setter="" static="false">
@@ -10634,6 +10634,34 @@ Alternatively you can also skip manually calling ReleaseInternalReference() and 
 			</param>
 		</event>
 	</class>
+	<class native="ManagedTypeInfoReference" script="ManagedTypeInfoReference">
+		<doc>Contains information about a type of a managed game object or resource.</doc>
+		<property name="ReferenceType" type="ManagedReferenceType" getter="GetReferenceType" setter="SetReferenceType" static="false">
+		</property>
+		<property name="TypeRTTIId" type="int" getter="GetTypeRTTIId" setter="SetTypeRTTIId" static="false">
+		</property>
+		<property name="TypeNamespace" type="string" getter="GetTypeNamespace" setter="SetTypeNamespace" static="false">
+		</property>
+		<property name="TypeName" type="string" getter="GetTypeName" setter="SetTypeName" static="false">
+		</property>
+	</class>
+	<class native="Prefab" script="Prefab">
+		<doc>Prefab is a saveable hierarchy of scene objects. It can be instanced, and instances will maintain link to the original prefab they were created from, allowing you to update them to latest version if the prefab changes. Prefabs can also be nested within each-other, as long as there are no circular dependencies.</doc>
+		<method native="Instantiate" script="Instantiate" static="false">
+			<doc>Instantiates a prefab by creating an instance of the prefab&apos;s scene object hierarchy. The returned hierarchy will be parented to the provided scene instance root.</doc>
+			<param name="sceneInstance" type="SceneInstance">
+				<doc>Scene instance into which to instantiate the prefab instance in.</doc>
+			</param>
+			<returns type="SceneObject">
+				<doc>Instantiated clone of the prefab&apos;s scene object hierarchy.</doc>
+			</returns>
+		</method>
+		<ctor>
+			<doc>Creates a new prefab from the provided scene object. If the scene object has an existing prefab link it will be broken. After the prefab is created the scene object will be automatically linked to it.</doc>
+			<param name="sceneObject" type="SceneObject">
+			</param>
+		</ctor>
+	</class>
 	<class native="Scene" script="Scene">
 		<doc>Saveable hierarchy of scene objects that can be instantiated into a SceneInstance.</doc>
 		<method native="Instantiate" script="Instantiate" static="false">
@@ -15843,17 +15871,6 @@ Primary purpose of this class is to avoid expensive string compare, and instead 
 	<class native="ManagedTypeInfoEnum" script="ManagedTypeInfoEnum">
 		<doc>Contains information about a type of a managed enum.</doc>
 		<property name="UnderlyingType" type="ManagedPrimitiveType" getter="GetUnderlyingType" setter="SetUnderlyingType" static="false">
-		</property>
-		<property name="TypeNamespace" type="string" getter="GetTypeNamespace" setter="SetTypeNamespace" static="false">
-		</property>
-		<property name="TypeName" type="string" getter="GetTypeName" setter="SetTypeName" static="false">
-		</property>
-	</class>
-	<class native="ManagedTypeInfoReference" script="ManagedTypeInfoReference">
-		<doc>Contains information about a type of a managed game object or resource.</doc>
-		<property name="ReferenceType" type="ManagedReferenceType" getter="GetReferenceType" setter="SetReferenceType" static="false">
-		</property>
-		<property name="TypeRTTIId" type="int" getter="GetTypeRTTIId" setter="SetTypeRTTIId" static="false">
 		</property>
 		<property name="TypeNamespace" type="string" getter="GetTypeNamespace" setter="SetTypeNamespace" static="false">
 		</property>

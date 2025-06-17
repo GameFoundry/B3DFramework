@@ -48,15 +48,8 @@ namespace bs
 		 * @param	sceneInstance	Scene instance into which to instantiate the prefab instance in.
 		 * @return					Instantiated clone of the prefab's scene object hierarchy.
 		 */
+		B3D_SCRIPT_EXPORT()
 		HSceneObject Instantiate(const SPtr<SceneInstance>& sceneInstance) const;
-
-		/**
-		 * Instantiates a prefab by creating an instance of the prefab's scene object hierarchy as a brand new scene instance, whose
-		 * root is the prefab root.
-		 *
-		 * @return					Newly created scene instance.
-		 */
-		SPtr<SceneInstance> InstantiateAsScene() const;
 
 		/**
 		 * Returns a version value that gets updated every time the prefab contents update. Can be used for detecting if a prefab instance
@@ -96,6 +89,14 @@ namespace bs
 		 * @return							Clone of the prefab's scene object hierarchy.
 		 */
 		HSceneObject Clone(const SPtr<GameObjectCollection>& cloneOwnerCollection) const;
+
+		/**
+		 * Instantiates a prefab by creating an instance of the prefab's scene object hierarchy as a brand new scene instance, whose
+		 * root is the prefab root.
+		 *
+		 * @return					Newly created scene instance.
+		 */
+		SPtr<SceneInstance> InstantiateAsScene() const;
 
 		/**
 		 * Replaces the contents of this prefab with new contents from the provided object. Returns a map of @p sceneObject IDs

@@ -186,7 +186,7 @@ namespace bs
 		virtual void SetCollisionReportMode(CollisionReportMode mode) { mCollisionReportMode = mode; }
 
 		/** @copydoc SetCollisionReportMode() */
-		B3D_SCRIPT_EXPORT(Property(Setter), ExportName(CollisionReportMode))
+		B3D_SCRIPT_EXPORT(Property(Getter), ExportName(CollisionReportMode))
 		CollisionReportMode GetCollisionReportMode() const { return mCollisionReportMode; }
 
 		/** Changes or sets the collider shape to a plane. */
