@@ -15,19 +15,22 @@ namespace bs
 	 *  @{
 	 */
 
-	/** Base class for both render and main thread implementations of Decal. */
-	class B3D_CORE_EXPORT DecalBase : public SceneActor
+	/** Templated base class for both render and main thread implementations of Decal. */
+	template <bool IsRenderProxy>
+	class B3D_CORE_EXPORT TDecal : public CoreVariantType<SceneActor, IsRenderProxy>
 	{
 	public:
-		DecalBase();
-		DecalBase(const Vector2& size, float maxDistance);
-		virtual ~DecalBase() = default;
+		using MaterialType = CoreVariantHandleType<Material, IsRenderProxy>;
+
+		TDecal();
+		TDecal(const MaterialType& material, const Vector2& size, float maxDistance);
+		virtual ~TDecal() = default;
 
 		/** Width and height of the decal. */
 		void SetSize(const Vector2& size)
 		{
 			mSize = Vector2::Max(Vector2::kZero, size);
-			MarkSceneActorRenderProxyDataDirty();
+			SceneActor::MarkSceneActorRenderProxyDataDirty();
 			UpdateBounds();
 		}
 
@@ -37,14 +40,24 @@ namespace bs
 		/** Returns width and height of the decal, scaled by decal's transform. */
 		Vector2 GetWorldSize() const
 		{
-			return Vector2(mSize.X * mTransform.GetScale().X, mSize.Y * mTransform.GetScale().Y);
+			return Vector2(mSize.X * SceneActor::mTransform.GetScale().X, mSize.Y * SceneActor::mTransform.GetScale().Y);
 		}
+
+		/** Determines the material to use when rendering the decal. */
+		void SetMaterial(const MaterialType& material)
+		{
+			mMaterial = material;
+			SceneActor::MarkSceneActorRenderProxyDataDirty();
+		}
+
+		/** @copydoc SetMaterial */
+		const MaterialType& GetMaterial() const { return mMaterial; }
 
 		/** Determines the maximum distance (from its origin) at which the decal is displayed. */
 		void SetMaxDistance(float distance)
 		{
 			mMaxDistance = Math::Max(0.0f, distance);
-			MarkSceneActorRenderProxyDataDirty();
+			SceneActor::MarkSceneActorRenderProxyDataDirty();
 			UpdateBounds();
 		}
 
@@ -52,7 +65,7 @@ namespace bs
 		float GetMaxDistance() const { return mMaxDistance; }
 
 		/** Maximum distance (from its origin) at which the decal is displayed, scaled by decal's transform. */
-		float GetWorldMaxDistance() const { return mMaxDistance * mTransform.GetScale().Z; }
+		float GetWorldMaxDistance() const { return mMaxDistance * SceneActor::mTransform.GetScale().Z; }
 
 		/**
 		 * Bitfield that allows you to mask on which objects will the decal be projected onto. Only objects with the
@@ -62,7 +75,7 @@ namespace bs
 		void SetLayerMask(u32 mask)
 		{
 			mLayerMask = mask;
-			MarkSceneActorRenderProxyDataDirty();
+			SceneActor::MarkSceneActorRenderProxyDataDirty();
 		}
 
 		/** @copydoc SetLayerMask */
@@ -95,43 +108,16 @@ namespace bs
 		/** Updates the internal bounds for the decal. Call this whenever a property affecting the bounds changes. */
 		void UpdateBounds();
 
+		MaterialType mMaterial;
+		Matrix4 mTfrmMatrix = BsIdentity;
+		Matrix4 mTfrmMatrixNoScale = BsIdentity;
+
 		Vector2 mSize = Vector2::kOne;
 		float mMaxDistance = 10.0f;
 		u64 mLayer = 1;
 		u32 mLayerMask = 0xFFFFFFFF;
-		Matrix4 mTfrmMatrix = BsIdentity;
-		Matrix4 mTfrmMatrixNoScale = BsIdentity;
 
 		Bounds mBounds;
-	};
-
-	/** Templated base class for both render and main thread implementations of Decal. */
-	template <bool IsRenderProxy>
-	class B3D_CORE_EXPORT TDecal : public DecalBase
-	{
-	public:
-		using MaterialType = CoreVariantHandleType<Material, IsRenderProxy>;
-
-		TDecal() = default;
-
-		TDecal(const MaterialType& material, const Vector2& size, float maxDistance)
-			: DecalBase(size, maxDistance), mMaterial(material)
-		{}
-
-		virtual ~TDecal() = default;
-
-		/** Determines the material to use when rendering the decal. */
-		void SetMaterial(const MaterialType& material)
-		{
-			mMaterial = material;
-			MarkSceneActorRenderProxyDataDirty();
-		}
-
-		/** @copydoc SetMaterial */
-		const MaterialType& GetMaterial() const { return mMaterial; }
-
-	protected:
-		MaterialType mMaterial;
 	};
 
 	/** @} */

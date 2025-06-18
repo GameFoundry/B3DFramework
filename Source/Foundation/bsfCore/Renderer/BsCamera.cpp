@@ -24,7 +24,7 @@ using namespace bs;
 const float CameraBase::kInfiniteFarPlaneAdjust = 0.00001f;
 
 CameraBase::CameraBase()
-	: mRecalcFrustum(true), mRecalcFrustumPlanes(true), mRecalcView(true)
+	: mRecalcFrustum(true), mRecalcFrustumPlanes(true)
 {
 	InvalidateFrustum();
 }
@@ -32,21 +32,21 @@ CameraBase::CameraBase()
 void CameraBase::SetFlags(CameraFlags flags)
 {
 	mCameraFlags = flags;
-	MarkSceneActorRenderProxyDataDirty();
+	MarkRenderProxyDataDirty();
 }
 
 void CameraBase::SetHorzFov(const Radian& fov)
 {
 	mHorzFOV = fov;
 	InvalidateFrustum();
-	MarkSceneActorRenderProxyDataDirty();
+	MarkRenderProxyDataDirty();
 }
 
 void CameraBase::SetFarClipDistance(float farPlane)
 {
 	mFarDist = farPlane;
 	InvalidateFrustum();
-	MarkSceneActorRenderProxyDataDirty();
+	MarkRenderProxyDataDirty();
 }
 
 void CameraBase::SetNearClipDistance(float nearPlane)
@@ -59,7 +59,7 @@ void CameraBase::SetNearClipDistance(float nearPlane)
 
 	mNearDist = nearPlane;
 	InvalidateFrustum();
-	MarkSceneActorRenderProxyDataDirty();
+	MarkRenderProxyDataDirty();
 }
 
 const Matrix4& CameraBase::GetProjectionMatrix() const
@@ -90,46 +90,12 @@ const Matrix4& CameraBase::GetProjectionMatrixRsInv() const
 	return mProjMatrixRSInv;
 }
 
-const Matrix4& CameraBase::GetViewMatrix() const
-{
-	UpdateView();
-
-	return mViewMatrix;
-}
-
-const Matrix4& CameraBase::GetViewMatrixInv() const
-{
-	UpdateView();
-
-	return mViewMatrixInv;
-}
-
 const ConvexVolume& CameraBase::GetFrustum() const
 {
 	// Make any pending updates to the calculated frustum planes
 	UpdateFrustumPlanes();
 
 	return mFrustum;
-}
-
-ConvexVolume CameraBase::GetWorldFrustum() const
-{
-	const Vector<Plane>& frustumPlanes = GetFrustum().GetPlanes();
-
-	const Transform& tfrm = GetTransform();
-
-	Matrix4 worldMatrix;
-	worldMatrix.SetTrs(tfrm.GetPosition(), tfrm.GetRotation(), Vector3::kOne);
-
-	Vector<Plane> worldPlanes(frustumPlanes.size());
-	u32 i = 0;
-	for(auto& plane : frustumPlanes)
-	{
-		worldPlanes[i] = worldMatrix.MultiplyAffine(plane);
-		i++;
-	}
-
-	return ConvexVolume(worldPlanes);
 }
 
 void CameraBase::CalcProjectionParameters(float& left, float& right, float& bottom, float& top) const
@@ -315,16 +281,6 @@ bool CameraBase::IsFrustumOutOfDate() const
 	return mRecalcFrustum;
 }
 
-void CameraBase::UpdateView() const
-{
-	if(!mCustomViewMatrix && mRecalcView)
-	{
-		mViewMatrix.MakeView(mTransform.GetPosition(), mTransform.GetRotation());
-		mViewMatrixInv = mViewMatrix.InverseAffine();
-		mRecalcView = false;
-	}
-}
-
 void CameraBase::UpdateFrustumPlanes() const
 {
 	UpdateFrustum();
@@ -345,7 +301,7 @@ void CameraBase::SetAspectRatio(float r)
 {
 	mAspect = r;
 	InvalidateFrustum();
-	MarkSceneActorRenderProxyDataDirty();
+	MarkRenderProxyDataDirty();
 }
 
 const AABox& CameraBase::GetBoundingBox() const
@@ -359,24 +315,12 @@ void CameraBase::SetProjectionType(ProjectionType pt)
 {
 	mProjType = pt;
 	InvalidateFrustum();
-	MarkSceneActorRenderProxyDataDirty();
+	MarkRenderProxyDataDirty();
 }
 
 ProjectionType CameraBase::GetProjectionType() const
 {
 	return mProjType;
-}
-
-void CameraBase::SetCustomViewMatrix(bool enable, const Matrix4& viewMatrix)
-{
-	mCustomViewMatrix = enable;
-	if(enable)
-	{
-		mViewMatrix = viewMatrix;
-		mViewMatrixInv = mViewMatrix.InverseAffine();
-	}
-
-	MarkSceneActorRenderProxyDataDirty();
 }
 
 void CameraBase::SetCustomProjectionMatrix(bool enable, const Matrix4& projMatrix)
@@ -387,7 +331,7 @@ void CameraBase::SetCustomProjectionMatrix(bool enable, const Matrix4& projMatri
 		mProjMatrix = projMatrix;
 
 	InvalidateFrustum();
-	MarkSceneActorRenderProxyDataDirty();
+	MarkRenderProxyDataDirty();
 }
 
 void CameraBase::SetOrthoWindow(float w, float h)
@@ -396,7 +340,7 @@ void CameraBase::SetOrthoWindow(float w, float h)
 	mAspect = w / h;
 
 	InvalidateFrustum();
-	MarkSceneActorRenderProxyDataDirty();
+	MarkRenderProxyDataDirty();
 }
 
 void CameraBase::SetOrthoWindowHeight(float h)
@@ -404,7 +348,7 @@ void CameraBase::SetOrthoWindowHeight(float h)
 	mOrthoHeight = h;
 
 	InvalidateFrustum();
-	MarkSceneActorRenderProxyDataDirty();
+	MarkRenderProxyDataDirty();
 }
 
 void CameraBase::SetOrthoWindowWidth(float w)
@@ -412,7 +356,7 @@ void CameraBase::SetOrthoWindowWidth(float w)
 	mOrthoHeight = w / mAspect;
 
 	InvalidateFrustum();
-	MarkSceneActorRenderProxyDataDirty();
+	MarkRenderProxyDataDirty();
 }
 
 float CameraBase::GetOrthoWindowHeight() const
@@ -434,7 +378,7 @@ void CameraBase::SetFrustumExtents(float left, float right, float top, float bot
 	mBottom = bottom;
 
 	InvalidateFrustum();
-	MarkSceneActorRenderProxyDataDirty();
+	MarkRenderProxyDataDirty();
 }
 
 void CameraBase::ResetFrustumExtents()
@@ -442,7 +386,7 @@ void CameraBase::ResetFrustumExtents()
 	mFrustumExtentsManuallySet = false;
 
 	InvalidateFrustum();
-	MarkSceneActorRenderProxyDataDirty();
+	MarkRenderProxyDataDirty();
 }
 
 void CameraBase::GetFrustumExtents(float& outleft, float& outright, float& outtop, float& outbottom) const
@@ -455,43 +399,41 @@ void CameraBase::GetFrustumExtents(float& outleft, float& outright, float& outto
 	outbottom = mBottom;
 }
 
-void CameraBase::SetTransform(const Transform& transform)
-{
-	SceneActor::SetTransform(transform);
-
-	mRecalcView = true;
-}
-
 void CameraBase::InvalidateFrustum() const
 {
 	mRecalcFrustum = true;
 	mRecalcFrustumPlanes = true;
 }
 
-Vector2I CameraBase::WorldToScreenPoint(const Vector3& worldPoint) const
+template<bool IsRenderProxy>
+Vector2I TCamera<IsRenderProxy>::WorldToScreenPoint(const Vector3& worldPoint) const
 {
 	Vector2 ndcPoint = WorldToNdcPoint(worldPoint);
 	return NdcToScreenPoint(ndcPoint);
 }
 
-Vector2 CameraBase::WorldToNdcPoint(const Vector3& worldPoint) const
+template<bool IsRenderProxy>
+Vector2 TCamera<IsRenderProxy>::WorldToNdcPoint(const Vector3& worldPoint) const
 {
 	Vector3 viewPoint = WorldToViewPoint(worldPoint);
 	return ViewToNdcPoint(viewPoint);
 }
 
-Vector3 CameraBase::WorldToViewPoint(const Vector3& worldPoint) const
+template<bool IsRenderProxy>
+Vector3 TCamera<IsRenderProxy>::WorldToViewPoint(const Vector3& worldPoint) const
 {
 	return GetViewMatrix().MultiplyAffine(worldPoint);
 }
 
-Vector3 CameraBase::ScreenToWorldPoint(const Vector2I& screenPoint, float depth) const
+template<bool IsRenderProxy>
+Vector3 TCamera<IsRenderProxy>::ScreenToWorldPoint(const Vector2I& screenPoint, float depth) const
 {
 	Vector2 ndcPoint = ScreenToNdcPoint(screenPoint);
 	return NdcToWorldPoint(ndcPoint, depth);
 }
 
-Vector3 CameraBase::ScreenToWorldPointDeviceDepth(const Vector2I& screenPoint, float deviceDepth) const
+template<bool IsRenderProxy>
+Vector3 TCamera<IsRenderProxy>::ScreenToWorldPointDeviceDepth(const Vector2I& screenPoint, float deviceDepth) const
 {
 	Vector2 ndcPoint = ScreenToNdcPoint(screenPoint);
 	Vector4 worldPoint(ndcPoint.X, ndcPoint.Y, deviceDepth, 1.0f);
@@ -510,13 +452,15 @@ Vector3 CameraBase::ScreenToWorldPointDeviceDepth(const Vector2I& screenPoint, f
 	return ViewToWorldPoint(worldPoint3D);
 }
 
-Vector3 CameraBase::ScreenToViewPoint(const Vector2I& screenPoint, float depth) const
+template<bool IsRenderProxy>
+Vector3 TCamera<IsRenderProxy>::ScreenToViewPoint(const Vector2I& screenPoint, float depth) const
 {
 	Vector2 ndcPoint = ScreenToNdcPoint(screenPoint);
 	return NdcToViewPoint(ndcPoint, depth);
 }
 
-Vector2 CameraBase::ScreenToNdcPoint(const Vector2I& screenPoint) const
+template<bool IsRenderProxy>
+Vector2 TCamera<IsRenderProxy>::ScreenToNdcPoint(const Vector2I& screenPoint) const
 {
 	Area2I viewport = GetViewportRect();
 
@@ -534,36 +478,42 @@ Vector2 CameraBase::ScreenToNdcPoint(const Vector2I& screenPoint) const
 	return ndcPoint;
 }
 
-Vector3 CameraBase::ViewToWorldPoint(const Vector3& viewPoint) const
+template<bool IsRenderProxy>
+Vector3 TCamera<IsRenderProxy>::ViewToWorldPoint(const Vector3& viewPoint) const
 {
 	return GetViewMatrix().InverseAffine().MultiplyAffine(viewPoint);
 }
 
-Vector2I CameraBase::ViewToScreenPoint(const Vector3& viewPoint) const
+template<bool IsRenderProxy>
+Vector2I TCamera<IsRenderProxy>::ViewToScreenPoint(const Vector3& viewPoint) const
 {
 	Vector2 ndcPoint = ViewToNdcPoint(viewPoint);
 	return NdcToScreenPoint(ndcPoint);
 }
 
-Vector2 CameraBase::ViewToNdcPoint(const Vector3& viewPoint) const
+template<bool IsRenderProxy>
+Vector2 TCamera<IsRenderProxy>::ViewToNdcPoint(const Vector3& viewPoint) const
 {
 	Vector3 projPoint = ProjectPoint(viewPoint);
 
 	return Vector2(projPoint.X, projPoint.Y);
 }
 
-Vector3 CameraBase::NdcToWorldPoint(const Vector2& ndcPoint, float depth) const
+template<bool IsRenderProxy>
+Vector3 TCamera<IsRenderProxy>::NdcToWorldPoint(const Vector2& ndcPoint, float depth) const
 {
 	Vector3 viewPoint = NdcToViewPoint(ndcPoint, depth);
 	return ViewToWorldPoint(viewPoint);
 }
 
-Vector3 CameraBase::NdcToViewPoint(const Vector2& ndcPoint, float depth) const
+template<bool IsRenderProxy>
+Vector3 TCamera<IsRenderProxy>::NdcToViewPoint(const Vector2& ndcPoint, float depth) const
 {
 	return UnprojectPoint(Vector3(ndcPoint.X, ndcPoint.Y, depth));
 }
 
-Vector2I CameraBase::NdcToScreenPoint(const Vector2& ndcPoint) const
+template<bool IsRenderProxy>
+Vector2I TCamera<IsRenderProxy>::NdcToScreenPoint(const Vector2& ndcPoint) const
 {
 	Area2I viewport = GetViewportRect();
 
@@ -581,7 +531,8 @@ Vector2I CameraBase::NdcToScreenPoint(const Vector2& ndcPoint) const
 	return screenPoint;
 }
 
-Ray CameraBase::ScreenPointToRay(const Vector2I& screenPoint) const
+template<bool IsRenderProxy>
+Ray TCamera<IsRenderProxy>::ScreenPointToRay(const Vector2I& screenPoint) const
 {
 	Vector2 ndcPoint = ScreenToNdcPoint(screenPoint);
 
@@ -594,7 +545,8 @@ Ray CameraBase::ScreenPointToRay(const Vector2I& screenPoint) const
 	return ray;
 }
 
-Vector3 CameraBase::ProjectPoint(const Vector3& point) const
+template<bool IsRenderProxy>
+Vector3 TCamera<IsRenderProxy>::ProjectPoint(const Vector3& point) const
 {
 	Vector4 projPoint4(point.X, point.Y, point.Z, 1.0f);
 	projPoint4 = GetProjectionMatrixRs().Multiply(projPoint4);
@@ -616,7 +568,8 @@ Vector3 CameraBase::ProjectPoint(const Vector3& point) const
 	return Vector3(projPoint4.X, projPoint4.Y, projPoint4.Z);
 }
 
-Vector3 CameraBase::UnprojectPoint(const Vector3& point) const
+template<bool IsRenderProxy>
+Vector3 TCamera<IsRenderProxy>::UnprojectPoint(const Vector3& point) const
 {
 	// Point.z is expected to be in view space, so we need to do some extra work to get the proper coordinates
 	// (as opposed to if point.z was in device coordinates, in which case we could just inverse project)
@@ -674,8 +627,78 @@ Vector3 CameraBase::UnprojectPoint(const Vector3& point) const
 
 template <bool IsRenderProxy>
 TCamera<IsRenderProxy>::TCamera()
+	:mRecalcView(true)
 {
 	mRenderSettings = B3DMakeShared<RenderSettingsType>();
+}
+
+template <bool IsRenderProxy>
+void TCamera<IsRenderProxy>::SetTransform(const Transform& transform)
+{
+	SceneActor::SetTransform(transform);
+
+	mRecalcView = true;
+}
+
+template <bool IsRenderProxy>
+const Matrix4& TCamera<IsRenderProxy>::GetViewMatrix() const
+{
+	UpdateView();
+
+	return mViewMatrix;
+}
+
+template <bool IsRenderProxy>
+const Matrix4& TCamera<IsRenderProxy>::GetViewMatrixInv() const
+{
+	UpdateView();
+
+	return mViewMatrixInv;
+}
+
+template <bool IsRenderProxy>
+void TCamera<IsRenderProxy>::SetCustomViewMatrix(bool enable, const Matrix4& viewMatrix)
+{
+	mCustomViewMatrix = enable;
+	if(enable)
+	{
+		mViewMatrix = viewMatrix;
+		mViewMatrixInv = mViewMatrix.InverseAffine();
+	}
+
+	MarkRenderProxyDataDirty();
+}
+
+template <bool IsRenderProxy>
+ConvexVolume TCamera<IsRenderProxy>::GetWorldFrustum() const
+{
+	const Vector<Plane>& frustumPlanes = GetFrustum().GetPlanes();
+
+	const Transform& transform = this->GetTransform();
+
+	Matrix4 worldMatrix;
+	worldMatrix.SetTrs(transform.GetPosition(), transform.GetRotation(), Vector3::kOne);
+
+	Vector<Plane> worldPlanes(frustumPlanes.size());
+	u32 i = 0;
+	for(auto& plane : frustumPlanes)
+	{
+		worldPlanes[i] = worldMatrix.MultiplyAffine(plane);
+		i++;
+	}
+
+	return ConvexVolume(worldPlanes);
+}
+
+template <bool IsRenderProxy>
+void TCamera<IsRenderProxy>::UpdateView() const
+{
+	if(!mCustomViewMatrix && mRecalcView)
+	{
+		mViewMatrix.MakeView(this->mTransform.GetPosition(), this->mTransform.GetRotation());
+		mViewMatrixInv = mViewMatrix.InverseAffine();
+		mRecalcView = false;
+	}
 }
 
 template class TCamera<false>;
@@ -799,7 +822,7 @@ void Camera::GetCoreDependencies(Vector<CoreObject*>& dependencies)
 
 void Camera::MarkSceneActorRenderProxyDataDirty(ActorDirtyFlag flag)
 {
-	MarkRenderProxyDataDirty((u32)flag);
+	CoreObject::MarkRenderProxyDataDirty((u32)flag);
 }
 
 RTTIType* Camera::GetRttiStatic()

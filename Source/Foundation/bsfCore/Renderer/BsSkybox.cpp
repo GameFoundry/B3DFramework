@@ -24,6 +24,9 @@ namespace bs
 	B3D_SYNC_BLOCK_END
 }
 
+template TSkybox<true>;
+template TSkybox<false>;
+
 Skybox::Skybox()
 {
 	// This shouldn't normally happen, as filtered textures are generated when a radiance texture is assigned, but

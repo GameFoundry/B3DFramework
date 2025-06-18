@@ -16,20 +16,23 @@
 
 using namespace bs;
 
-ReflectionProbeBase::ReflectionProbeBase(ReflectionProbeType type, float radius, const Vector3& extents)
+template<bool IsRenderProxy>
+TReflectionProbe<IsRenderProxy>::TReflectionProbe(ReflectionProbeType type, float radius, const Vector3& extents)
 	: mType(type), mRadius(radius), mExtents(extents)
 {}
 
-float ReflectionProbeBase::GetRadius() const
+template<bool IsRenderProxy>
+float TReflectionProbe<IsRenderProxy>::GetRadius() const
 {
-	Vector3 scale = mTransform.GetScale();
+	Vector3 scale = this->mTransform.GetScale();
 	return mRadius * std::max(std::max(scale.X, scale.Y), scale.Z);
 }
 
-void ReflectionProbeBase::UpdateBounds()
+template<bool IsRenderProxy>
+void TReflectionProbe<IsRenderProxy>::UpdateBounds()
 {
-	Vector3 position = mTransform.GetPosition();
-	Vector3 scale = mTransform.GetScale();
+	Vector3 position = this->mTransform.GetPosition();
+	Vector3 scale = this->mTransform.GetScale();
 
 	switch(mType)
 	{

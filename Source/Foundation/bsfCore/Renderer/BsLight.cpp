@@ -9,59 +9,66 @@
 
 using namespace bs;
 
-LightBase::LightBase()
+template<bool IsRenderProxy>
+TLight<IsRenderProxy>::TLight()
 	: mType(LightType::Radial), mCastsShadows(false), mColor(Color::kWhite), mAttRadius(10.0f), mSourceRadius(0.0f), mIntensity(100.0f), mSpotAngle(45), mSpotFalloffAngle(35.0f), mAutoAttenuation(false), mShadowBias(0.5f)
 {
 	UpdateAttenuationRange();
 }
 
-LightBase::LightBase(LightType type, Color color, float intensity, float attRadius, float srcRadius, bool castsShadows, Degree spotAngle, Degree spotFalloffAngle)
+template<bool IsRenderProxy>
+TLight<IsRenderProxy>::TLight(LightType type, Color color, float intensity, float attRadius, float srcRadius, bool castsShadows, Degree spotAngle, Degree spotFalloffAngle)
 	: mType(type), mCastsShadows(castsShadows), mColor(color), mAttRadius(attRadius), mSourceRadius(srcRadius), mIntensity(intensity), mSpotAngle(spotAngle), mSpotFalloffAngle(spotFalloffAngle), mAutoAttenuation(false), mShadowBias(0.5f)
 {
 	UpdateAttenuationRange();
 }
 
-void LightBase::SetUseAutoAttenuation(bool enabled)
+template<bool IsRenderProxy>
+void TLight<IsRenderProxy>::SetUseAutoAttenuation(bool enabled)
 {
 	mAutoAttenuation = enabled;
 
 	if(enabled)
 		UpdateAttenuationRange();
 
-	MarkSceneActorRenderProxyDataDirty();
+	this->MarkSceneActorRenderProxyDataDirty();
 }
 
-void LightBase::SetAttenuationRadius(float radius)
+template<bool IsRenderProxy>
+void TLight<IsRenderProxy>::SetAttenuationRadius(float radius)
 {
 	if(mAutoAttenuation)
 		return;
 
 	mAttRadius = radius;
-	MarkSceneActorRenderProxyDataDirty();
+	this->MarkSceneActorRenderProxyDataDirty();
 	UpdateBounds();
 }
 
-void LightBase::SetSourceRadius(float radius)
+template<bool IsRenderProxy>
+void TLight<IsRenderProxy>::SetSourceRadius(float radius)
 {
 	mSourceRadius = radius;
 
 	if(mAutoAttenuation)
 		UpdateAttenuationRange();
 
-	MarkSceneActorRenderProxyDataDirty();
+	this->MarkSceneActorRenderProxyDataDirty();
 }
 
-void LightBase::SetIntensity(float intensity)
+template<bool IsRenderProxy>
+void TLight<IsRenderProxy>::SetIntensity(float intensity)
 {
 	mIntensity = intensity;
 
 	if(mAutoAttenuation)
 		UpdateAttenuationRange();
 
-	MarkSceneActorRenderProxyDataDirty();
+	this->MarkSceneActorRenderProxyDataDirty();
 }
 
-float LightBase::GetLuminance() const
+template<bool IsRenderProxy>
+float TLight<IsRenderProxy>::GetLuminance() const
 {
 	float radius2 = mSourceRadius * mSourceRadius;
 
@@ -100,7 +107,8 @@ float LightBase::GetLuminance() const
 	}
 }
 
-void LightBase::UpdateAttenuationRange()
+template<bool IsRenderProxy>
+void TLight<IsRenderProxy>::UpdateAttenuationRange()
 {
 	// Value to which intensity needs to drop in order for the light contribution to fade out to zero
 	const float minAttenuation = 0.2f;
@@ -128,9 +136,10 @@ void LightBase::UpdateAttenuationRange()
 	UpdateBounds();
 }
 
-void LightBase::UpdateBounds()
+template<bool IsRenderProxy>
+void TLight<IsRenderProxy>::UpdateBounds()
 {
-	const Transform& tfrm = GetTransform();
+	const Transform& tfrm = this->GetTransform();
 
 	switch(mType)
 	{
@@ -164,14 +173,18 @@ void LightBase::UpdateBounds()
 	}
 }
 
-void LightBase::SetTransform(const Transform& transform)
+template<bool IsRenderProxy>
+void TLight<IsRenderProxy>::SetTransform(const Transform& transform)
 {
-	if(mMobility != ObjectMobility::Movable)
+	if(this->mMobility != ObjectMobility::Movable)
 		return;
 
 	SceneActor::SetTransform(transform);
 	UpdateBounds();
 }
+
+template class TLight<true>;
+template class TLight<false>;
 
 namespace bs
 {
@@ -192,7 +205,7 @@ namespace bs
 }
 
 Light::Light(LightType type, Color color, float intensity, float attRadius, float srcRadius, bool castsShadows, Degree spotAngle, Degree spotFalloffAngle)
-	: LightBase(type, color, intensity, attRadius, srcRadius, castsShadows, spotAngle, spotFalloffAngle)
+	: TLight(type, color, intensity, attRadius, srcRadius, castsShadows, spotAngle, spotFalloffAngle)
 {
 	// Calling virtual method is okay here because this is the most derived type
 	UpdateBounds();
@@ -258,7 +271,7 @@ const u32 Light::kLightConeNumSides = 20;
 const u32 Light::kLightConeNumSlices = 10;
 
 Light::Light(LightType type, Color color, float intensity, float attRadius, float srcRadius, bool castsShadows, Degree spotAngle, Degree spotFalloffAngle)
-	: LightBase(type, color, intensity, attRadius, srcRadius, castsShadows, spotAngle, spotFalloffAngle), mRendererId(0)
+	: TLight(type, color, intensity, attRadius, srcRadius, castsShadows, spotAngle, spotFalloffAngle), mRendererId(0)
 {
 }
 

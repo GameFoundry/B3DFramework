@@ -10,18 +10,21 @@
 
 using namespace bs;
 
-DecalBase::DecalBase()
+template<bool IsRenderProxy>
+TDecal<IsRenderProxy>::TDecal()
 {
 	UpdateBounds();
 }
 
-DecalBase::DecalBase(const Vector2& size, float maxDistance)
-	: mSize(size), mMaxDistance(maxDistance)
+template<bool IsRenderProxy>
+TDecal<IsRenderProxy>::TDecal(const MaterialType& material, const Vector2& size, float maxDistance)
+	: mMaterial(material), mSize(size), mMaxDistance(maxDistance)
 {
 	UpdateBounds();
 }
 
-void DecalBase::SetLayer(u64 layer)
+template<bool IsRenderProxy>
+void TDecal<IsRenderProxy>::SetLayer(u64 layer)
 {
 	const bool isPow2 = layer && !((layer - 1) & layer);
 
@@ -32,22 +35,24 @@ void DecalBase::SetLayer(u64 layer)
 	}
 
 	mLayer = layer;
-	MarkSceneActorRenderProxyDataDirty();
+	SceneActor::MarkSceneActorRenderProxyDataDirty();
 }
 
-void DecalBase::SetTransform(const Transform& transform)
+template<bool IsRenderProxy>
+void TDecal<IsRenderProxy>::SetTransform(const Transform& transform)
 {
-	if(mMobility != ObjectMobility::Movable)
+	if(SceneActor::mMobility != ObjectMobility::Movable)
 		return;
 
-	mTransform = transform;
+	SceneActor::mTransform = transform;
 	mTfrmMatrix = transform.GetMatrix();
 	mTfrmMatrixNoScale = Matrix4::TRS(transform.GetPosition(), transform.GetRotation(), Vector3::kOne);
 
-	MarkSceneActorRenderProxyDataDirty(ActorDirtyFlag::Transform);
+	SceneActor::MarkSceneActorRenderProxyDataDirty(ActorDirtyFlag::Transform);
 }
 
-void DecalBase::UpdateBounds()
+template<bool IsRenderProxy>
+void TDecal<IsRenderProxy>::UpdateBounds()
 {
 	const Vector2& extents = mSize * 0.5f;
 

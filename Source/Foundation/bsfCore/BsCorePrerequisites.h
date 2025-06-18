@@ -307,6 +307,8 @@ namespace bs
 	B3D_CORE_OBJECT_FORWARD_DECLARE(SpriteGlyphAllocation)
 	B3D_CORE_OBJECT_FORWARD_DECLARE(SpriteTextureAllocation)
 	B3D_CORE_OBJECT_FORWARD_DECLARE(SpriteVectorPathAllocation)
+	B3D_CORE_OBJECT_FORWARD_DECLARE(SceneInstance)
+	B3D_CORE_OBJECT_FORWARD_DECLARE(SceneActor)
 	B3D_CORE_OBJECT_FORWARD_DECLARE_STRUCT(DepthOfFieldSettings)
 	B3D_CORE_OBJECT_FORWARD_DECLARE_STRUCT(ChromaticAberrationSettings)
 	B3D_CORE_OBJECT_FORWARD_DECLARE_STRUCT(RenderSettings)
@@ -439,7 +441,6 @@ namespace bs
 	class MorphShape;
 	class MorphChannel;
 	class Transform;
-	class SceneActor;
 	class CoreObjectManager;
 	struct CollisionData;
 	// Asset import

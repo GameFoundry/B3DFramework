@@ -33,7 +33,7 @@ namespace bs
 	 * render any Renderable objects visible by a camera.
 	 */
 	template <bool IsRenderProxy>
-	class B3D_CORE_EXPORT TRenderable : public SceneActor
+	class B3D_CORE_EXPORT TRenderable : public CoreVariantType<SceneActor, IsRenderProxy>
 	{
 		using MeshType = CoreVariantHandleType<Mesh, IsRenderProxy>;
 		using MaterialType = CoreVariantHandleType<Material, IsRenderProxy>;

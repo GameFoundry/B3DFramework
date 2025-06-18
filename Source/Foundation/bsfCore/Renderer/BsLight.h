@@ -34,13 +34,13 @@ namespace bs
 	 */
 
 	/** Base class for both main and render thread Light implementations. */
-	class B3D_CORE_EXPORT LightBase : public SceneActor
+	template<bool IsRenderProxy>
+	class B3D_CORE_EXPORT TLight : public CoreVariantType<SceneActor, IsRenderProxy>
 	{
 	public:
-		LightBase();
-		LightBase(LightType type, Color color, float intensity, float attRadius, float srcRadius, bool castsShadows, Degree spotAngle, Degree spotFalloffAngle);
-
-		virtual ~LightBase() {}
+		TLight();
+		TLight(LightType type, Color color, float intensity, float attRadius, float srcRadius, bool castsShadows, Degree spotAngle, Degree spotFalloffAngle);
+		virtual ~TLight() = default;
 
 		/**	Determines the type of the light. */
 		LightType GetType() const { return mType; }
@@ -49,7 +49,7 @@ namespace bs
 		void SetType(LightType type)
 		{
 			mType = type;
-			MarkSceneActorRenderProxyDataDirty();
+			this->MarkSceneActorRenderProxyDataDirty();
 			UpdateBounds();
 		}
 
@@ -57,7 +57,7 @@ namespace bs
 		void SetCastsShadow(bool castsShadow)
 		{
 			mCastsShadows = castsShadow;
-			MarkSceneActorRenderProxyDataDirty();
+			this->MarkSceneActorRenderProxyDataDirty();
 		}
 
 		/** @copydoc SetCastsShadow */
@@ -76,7 +76,7 @@ namespace bs
 		void SetShadowBias(float bias)
 		{
 			mShadowBias = bias;
-			MarkSceneActorRenderProxyDataDirty();
+			this->MarkSceneActorRenderProxyDataDirty();
 		}
 
 		/** @copydoc SetShadowBias() */
@@ -86,7 +86,7 @@ namespace bs
 		void SetColor(const Color& color)
 		{
 			mColor = color;
-			MarkSceneActorRenderProxyDataDirty();
+			this->MarkSceneActorRenderProxyDataDirty();
 		}
 
 		/** @copydoc SetColor() */
@@ -141,7 +141,7 @@ namespace bs
 		void SetSpotAngle(const Degree& spotAngle)
 		{
 			mSpotAngle = spotAngle;
-			MarkSceneActorRenderProxyDataDirty();
+			this->MarkSceneActorRenderProxyDataDirty();
 			UpdateBounds();
 		}
 
@@ -155,7 +155,7 @@ namespace bs
 		void SetSpotFalloffAngle(const Degree& spotFallofAngle)
 		{
 			mSpotFalloffAngle = spotFallofAngle;
-			MarkSceneActorRenderProxyDataDirty();
+			this->MarkSceneActorRenderProxyDataDirty();
 			UpdateBounds();
 		}
 
@@ -207,7 +207,7 @@ namespace bs
 	}
 
 	/** Illuminates a portion of the scene covered by the light. */
-	class B3D_CORE_EXPORT Light : public IReflectable, public CoreObject, public LightBase
+	class B3D_CORE_EXPORT Light : public IReflectable, public CoreObject, public TLight<false>
 	{
 	public:
 		/**
@@ -253,7 +253,7 @@ namespace bs
 	namespace ct
 	{
 		/** Render thread counterpart of bs::Light. */
-		class B3D_CORE_EXPORT Light : public RenderProxy, public LightBase
+		class B3D_CORE_EXPORT Light : public RenderProxy, public TLight<true>
 		{
 		public:
 			~Light();

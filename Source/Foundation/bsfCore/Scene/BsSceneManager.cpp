@@ -60,7 +60,7 @@ void SceneInstance::SetRoot(const HSceneObject& newRoot)
 
 	mRoot = newRoot;
 	mRoot->ClearParent();
-	mRoot->SetScene(shared_from_this());
+	mRoot->SetScene(std::static_pointer_cast<SceneInstance>(GetShared()));
 
 	const u32 childCount = oldRoot->GetChildCount();
 
@@ -126,8 +126,13 @@ SPtr<SceneInstance> SceneInstance::Create(const String& name, const HSceneObject
 	return sceneInstance;
 }
 
-SceneManager::SceneManager()
+SPtr<ct::RenderProxy> SceneInstance::CreateRenderProxy() const
 {
+	ct::SceneInstance* renderProxy = new(B3DAllocate<ct::SceneInstance>()) ct::SceneInstance();
+	SPtr<ct::SceneInstance> renderProxyShared = B3DMakeSharedFromExisting<ct::SceneInstance>(renderProxy);
+	renderProxyShared->SetShared(renderProxyShared);
+
+	return renderProxyShared;
 }
 
 SceneManager::~SceneManager()

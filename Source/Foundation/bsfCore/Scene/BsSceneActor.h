@@ -6,7 +6,11 @@
 #include "Scene/BsTransform.h"
 
 namespace bs
-{
+{namespace ct
+	{
+		class SceneActor;
+	}
+
 	struct RenderProxySyncPacket;
 
 	/** @addtogroup Scene-Internal
@@ -26,35 +30,20 @@ namespace bs
 	typedef Flags<ActorDirtyFlag> ActorDirtyFlags;
 	B3D_FLAGS_OPERATORS(ActorDirtyFlag)
 
-	// SceneActor is not a core object itself, but as it's used as a base for many, this is needed for common core sync functionality used by those.
-	template <>
-	struct RenderThreadType<SceneActor>
+	/** Common class for both main and render thread variants of SceneActor. */
+	template<bool IsRenderProxy>
+	class B3D_CORE_EXPORT TSceneActor
 	{
-		typedef SceneActor Type;
-	};
-
-	/**
-	 * A base class for objects that can be placed in the scene. It has a transform object that allows it to be positioned,
-	 * scaled and rotated, as well a properties that control its mobility (movable vs. immovable) and active status.
-	 *
-	 * In a way scene actors are similar to SceneObject%s, the main difference being that their implementations perform
-	 * some functionality directly, rather than relying on attached Components. Scene actors can be considered as a
-	 * lower-level alternative to SceneObject/Component model. In fact many Components internally just wrap scene actors.
-	 */
-	class B3D_CORE_EXPORT SceneActor
-	{
+		using SceneInstanceType = CoreVariantType<SceneInstance, IsRenderProxy>;
 	public:
-		SceneActor() = default;
-		virtual ~SceneActor() = default;
+		TSceneActor() = default;
+		virtual ~TSceneActor() = default;
 
 		/** Determines the position, rotation and scale of the actor. */
 		virtual void SetTransform(const Transform& transform);
 
 		/** @copydoc SetTransform */
 		const Transform& GetTransform() const { return mTransform; }
-
-		/** Shorthand for getTransform(). */
-		const Transform& Tfrm() const { return mTransform; }
 
 		/**
 		 * Determines if the actor is currently active. Deactivated actors act as if they have been destroyed, without
@@ -76,10 +65,81 @@ namespace bs
 		ObjectMobility GetMobility() const { return mMobility; }
 
 		/** Determines the scene that the actor is a part of. */
-		virtual void SetSceneInstance(const SPtr<SceneInstance>& instance);
+		virtual void SetSceneInstance(const SPtr<SceneInstanceType>& instance);
 
 		/** @copydoc SetSceneInstance */
-		const SPtr<SceneInstance>& GetSceneInstance() const { return mSceneInstance; }
+		const SPtr<SceneInstanceType>& GetSceneInstance() const { return mSceneInstance; }
+	protected:
+		/**
+		 * Marks the main thread object as dirty and notifies the system its data should be synced with its render
+		 * thread counterpart.
+		 */
+		virtual void MarkSceneActorRenderProxyDataDirty(ActorDirtyFlag flag = ActorDirtyFlag::Everything) {}
+
+	protected:
+		friend class SceneManager;
+
+		Transform mTransform;
+		ObjectMobility mMobility = ObjectMobility::Movable;
+		bool mActive = true;
+		u32 mHash = 0;
+		SPtr<SceneInstanceType> mSceneInstance;
+	};
+
+#if B3D_CORE_EXPORTS
+	template<bool IsRenderProxy>
+	void TSceneActor<IsRenderProxy>::SetTransform(const Transform& transform)
+	{
+		if(mMobility != ObjectMobility::Movable)
+			return;
+
+		mTransform = transform;
+		MarkSceneActorRenderProxyDataDirty(ActorDirtyFlag::Transform);
+	}
+
+	template<bool IsRenderProxy>
+	void TSceneActor<IsRenderProxy>::SetMobility(ObjectMobility mobility)
+	{
+		if(mMobility == mobility)
+			return;
+
+		mMobility = mobility;
+		MarkSceneActorRenderProxyDataDirty(ActorDirtyFlag::Mobility);
+	}
+
+	template<bool IsRenderProxy>
+	void TSceneActor<IsRenderProxy>::SetActive(bool active)
+	{
+		if(mActive == active)
+			return;
+
+		mActive = active;
+		MarkSceneActorRenderProxyDataDirty(ActorDirtyFlag::Active);
+	}
+
+	template<bool IsRenderProxy>
+	void TSceneActor<IsRenderProxy>::SetSceneInstance(const SPtr<SceneInstanceType>& instance)
+	{
+		if(mSceneInstance == instance)
+			return;
+
+		mSceneInstance = instance;
+		MarkSceneActorRenderProxyDataDirty(ActorDirtyFlag::Everything);
+	}
+#endif
+
+	/**
+	 * A base class for objects that can be placed in the scene. It has a transform object that allows it to be positioned,
+	 * scaled and rotated, as well a properties that control its mobility (movable vs. immovable) and active status.
+	 *
+	 * In a way scene actors are similar to SceneObject%s, the main difference being that their implementations perform
+	 * some functionality directly, rather than relying on attached Components. Scene actors can be considered as a
+	 * lower-level alternative to SceneObject/Component model. In fact many Components internally just wrap scene actors.
+	 */
+	class B3D_CORE_EXPORT SceneActor : public TSceneActor<false>
+	{
+	public:
+		SceneActor() = default;
 
 		/**
 		 * @name Internal
@@ -102,26 +162,29 @@ namespace bs
 		 */
 		RenderProxySyncPacket* CreateSceneActorRenderProxySyncPacket(FrameAllocator& allocator, u32 flags);
 
+		/** @} */
+
 		struct SyncEverythingPacket;
 		struct SyncTransformPacket;
 		struct SyncActiveStatePacket;
 
 		/** @} */
-	protected:
-		/**
-		 * Marks the main thread object as dirty and notifies the system its data should be synced with its render
-		 * thread counterpart.
-		 */
-		virtual void MarkSceneActorRenderProxyDataDirty(ActorDirtyFlag flag = ActorDirtyFlag::Everything) {}
-
-	protected:
-		friend class SceneManager;
-
-		Transform mTransform;
-		ObjectMobility mMobility = ObjectMobility::Movable;
-		bool mActive = true;
-		u32 mHash = 0;
-		SPtr<SceneInstance> mSceneInstance;
+	private:
+		friend class ct::SceneActor;
 	};
+
+	namespace ct
+	{
+		/** @copydoc bs::SceneActor */
+		class B3D_CORE_EXPORT SceneActor : public TSceneActor<true>
+		{
+		public:
+			SceneActor() = default;
+
+		private:
+			friend class bs::SceneActor;
+		};
+	}
+
 	/** @} */
 } // namespace bs

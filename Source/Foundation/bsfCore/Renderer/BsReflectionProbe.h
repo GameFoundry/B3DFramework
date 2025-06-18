@@ -37,13 +37,16 @@ namespace bs
 	 *  @{
 	 */
 
-	/** Base class for both render and main thread implementations of a reflection probe. */
-	class B3D_CORE_EXPORT ReflectionProbeBase : public SceneActor
+	/** Templated base class for both render and main thread implementations of a reflection probe. */
+	template <bool IsRenderProxy>
+	class B3D_CORE_EXPORT TReflectionProbe : public CoreVariantType<SceneActor, IsRenderProxy>
 	{
 	public:
-		ReflectionProbeBase() = default;
-		ReflectionProbeBase(ReflectionProbeType type, float radius, const Vector3& extents);
-		virtual ~ReflectionProbeBase() = default;
+		using TextureType = CoreVariantType<Texture, IsRenderProxy>;
+
+		TReflectionProbe() = default;
+		TReflectionProbe(ReflectionProbeType type, float radius, const Vector3& extents);
+		virtual ~TReflectionProbe() = default;
 
 		/**	Returns the type of the probe. */
 		ReflectionProbeType GetType() const { return mType; }
@@ -52,7 +55,7 @@ namespace bs
 		void SetType(ReflectionProbeType type)
 		{
 			mType = type;
-			MarkSceneActorRenderProxyDataDirty();
+			SceneActor::MarkSceneActorRenderProxyDataDirty();
 			UpdateBounds();
 		}
 
@@ -63,18 +66,18 @@ namespace bs
 		void SetRadius(float radius)
 		{
 			mRadius = radius;
-			MarkSceneActorRenderProxyDataDirty();
+			this->MarkSceneActorRenderProxyDataDirty();
 			UpdateBounds();
 		}
 
 		/** Returns the extents of a box reflection probe. */
-		Vector3 GetExtents() const { return mExtents * mTransform.GetScale(); }
+		Vector3 GetExtents() const { return mExtents * this->mTransform.GetScale(); }
 
 		/** Sets the extents of a box reflection probe. Determines range of influence. */
 		void SetExtents(const Vector3& extents)
 		{
 			mExtents = extents;
-			MarkSceneActorRenderProxyDataDirty();
+			this->MarkSceneActorRenderProxyDataDirty();
 			UpdateBounds();
 		}
 
@@ -90,6 +93,11 @@ namespace bs
 		/** Retrieves transition distance set by setTransitionDistance(). */
 		float GetTransitionDistance() const { return mTransitionDistance; }
 
+		/**
+		 * Returns a pre-filtered texture that is generated either from the provided custom texture, or from scene capture.
+		 */
+		SPtr<TextureType> GetFilteredTexture() const { return mFilteredTexture; }
+
 	protected:
 		/** Updates the internal bounds for the probe. Call this whenever a property affecting the bounds changes. */
 		void UpdateBounds();
@@ -100,29 +108,7 @@ namespace bs
 		float mTransitionDistance = 0.1f; /**< Extra distance to used for fading out box probes. */
 
 		Sphere mBounds = { Vector3::kZero, 1.0f }; /**< Sphere that bounds the probe area of influence. */
-	};
 
-	/** Templated base class for both render and main thread implementations of a reflection probe. */
-	template <bool IsRenderProxy>
-	class B3D_CORE_EXPORT TReflectionProbe : public ReflectionProbeBase
-	{
-	public:
-		using TextureType = CoreVariantType<Texture, IsRenderProxy>;
-
-		TReflectionProbe() = default;
-
-		TReflectionProbe(ReflectionProbeType type, float radius, const Vector3& extents)
-			: ReflectionProbeBase(type, radius, extents)
-		{}
-
-		virtual ~TReflectionProbe() = default;
-
-		/**
-		 * Returns a pre-filtered texture that is generated either from the provided custom texture, or from scene capture.
-		 */
-		SPtr<TextureType> GetFilteredTexture() const { return mFilteredTexture; }
-
-	protected:
 		SPtr<TextureType> mFilteredTexture;
 	};
 

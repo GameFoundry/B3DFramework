@@ -25,12 +25,14 @@ namespace bs
 		Texture = 1 << 4
 	};
 
-	/** Base class for both render and main thread implementations of a skybox. */
-	class B3D_CORE_EXPORT SkyboxBase : public SceneActor
+	/** Templated base class for both render and main thread implementations of a skybox. */
+	template <bool IsRenderProxy>
+	class B3D_CORE_EXPORT TSkybox : public CoreVariantType<SceneActor, IsRenderProxy>
 	{
 	public:
-		SkyboxBase() = default;
-		virtual ~SkyboxBase() = default;
+		using TextureType = CoreVariantHandleType<Texture, IsRenderProxy>;
+
+		virtual ~TSkybox() = default;
 
 		/**
 		 * Brightness multiplier that will be applied to skybox values before they're being used. Allows you to make the
@@ -39,24 +41,11 @@ namespace bs
 		void SetBrightness(float brightness)
 		{
 			mBrightness = brightness;
-			MarkSceneActorRenderProxyDataDirty();
+			SceneActor::MarkSceneActorRenderProxyDataDirty();
 		}
 
 		/** @copydoc SetBrightness */
 		float GetBrightness() const { return mBrightness; }
-
-	protected:
-		float mBrightness = 1.0f; /**< Multiplier to apply to evaluated skybox values before using them. */
-	};
-
-	/** Templated base class for both render and main thread implementations of a skybox. */
-	template <bool IsRenderProxy>
-	class B3D_CORE_EXPORT TSkybox : public SkyboxBase
-	{
-	public:
-		using TextureType = CoreVariantHandleType<Texture, IsRenderProxy>;
-
-		virtual ~TSkybox() = default;
 
 		/**
 		 * Determines an environment map to use for sampling skybox radiance. Must be a cube-map texture, and should ideally
@@ -66,6 +55,7 @@ namespace bs
 
 	protected:
 		TextureType mTexture;
+		float mBrightness = 1.0f; /**< Multiplier to apply to evaluated skybox values before using them. */
 	};
 
 	/** @} */

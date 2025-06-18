@@ -3,6 +3,7 @@
 #pragma once
 
 #include "BsCorePrerequisites.h"
+#include "CoreObject/BsCoreObject.h"
 #include "Utility/BsModule.h"
 #include "Scene/BsGameObject.h"
 
@@ -37,7 +38,7 @@ namespace bs
 	};
 
 	/** Contains information about an instantiated scene. */
-	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Scene)) SceneInstance : public IScriptExportable, public std::enable_shared_from_this<SceneInstance>
+	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Scene)) SceneInstance : public CoreObject, public IScriptExportable
 	{
 		struct ConstructPrivately
 		{};
@@ -106,6 +107,8 @@ namespace bs
 	private:
 		friend class SceneManager;
 
+		SPtr<ct::RenderProxy> CreateRenderProxy() const override;
+
 		String mName;
 		HSceneObject mRoot;
 		UUID mAssociatedResourceId; /**< ID of the resource the scene was loaded from, if any. */
@@ -114,6 +117,18 @@ namespace bs
 		SPtr<GameObjectCollection> mGameObjectCollection;
 	};
 
+	namespace ct
+	{
+		/** @copydoc SceneInstance */
+		class B3D_CORE_EXPORT SceneInstance : public RenderProxy
+		{
+		protected:
+			friend class bs::SceneInstance;
+
+			SceneInstance() = default;
+		};
+	} // namespace ct
+
 	/**
 	 * Keeps track of all active SceneObject%s and their components. Keeps track of component state and triggers their
 	 * events. Updates the transforms of objects as SceneObject%s move.
@@ -121,7 +136,7 @@ namespace bs
 	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT() SceneManager : public Module<SceneManager>
 	{
 	public:
-		SceneManager();
+		SceneManager() = default;
 		~SceneManager();
 
 		void OnStartUp() override;

@@ -23,43 +23,6 @@ namespace bs
 	B3D_SYNC_BLOCK_END
 }
 
-void SceneActor::SetTransform(const Transform& transform)
-{
-	if(mMobility != ObjectMobility::Movable)
-		return;
-
-	mTransform = transform;
-	MarkSceneActorRenderProxyDataDirty(ActorDirtyFlag::Transform);
-}
-
-void SceneActor::SetMobility(ObjectMobility mobility)
-{
-	if(mMobility == mobility)
-		return;
-
-	mMobility = mobility;
-	MarkSceneActorRenderProxyDataDirty(ActorDirtyFlag::Mobility);
-}
-
-void SceneActor::SetActive(bool active)
-{
-	if(mActive == active)
-		return;
-
-	mActive = active;
-	MarkSceneActorRenderProxyDataDirty(ActorDirtyFlag::Active);
-}
-
-void SceneActor::SetSceneInstance(const SPtr<SceneInstance>& instance)
-{
-	if(mSceneInstance == instance)
-		return;
-
-	mSceneInstance = instance;
-	MarkSceneActorRenderProxyDataDirty(ActorDirtyFlag::Everything);
-}
-
-
 void SceneActor::UpdateStateInternal(const SceneObject& so, bool force)
 {
 	u32 curHash = so.GetTransformHash();

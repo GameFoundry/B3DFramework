@@ -56,12 +56,10 @@ namespace bs
 	 */
 
 	/** Common base class for both main and render thread implementations of Camera. */
-	class B3D_CORE_EXPORT CameraBase : public SceneActor
+	class B3D_CORE_EXPORT CameraBase
 	{
 	public:
 		virtual ~CameraBase() = default;
-
-		void SetTransform(const Transform& transform) override;
 
 		/** Determines flags used for controlling the camera behaviour. */
 		void SetFlags(CameraFlags flag);
@@ -145,21 +143,6 @@ namespace bs
 		/** Returns the inverse of the projection matrix. See getProjectionMatrix(). */
 		virtual const Matrix4& GetProjectionMatrixInv() const;
 
-		/** Gets the camera view matrix. Used for positioning/orienting the camera. */
-		virtual const Matrix4& GetViewMatrix() const;
-
-		/** Returns the inverse of the view matrix. See getViewMatrix(). */
-		virtual const Matrix4& GetViewMatrixInv() const;
-
-		/**
-		 * Sets whether the camera should use the custom view matrix. When this is enabled camera will no longer calculate
-		 * its view matrix based on position/orientation and caller will be resonsible to keep the view matrix up to date.
-		 */
-		virtual void SetCustomViewMatrix(bool enable, const Matrix4& viewMatrix = Matrix4::kIdentity);
-
-		/** Returns true if a custom view matrix is used. */
-		virtual bool IsCustomViewMatrixEnabled() const { return mCustomViewMatrix; }
-
 		/**
 		 * Sets whether the camera should use the custom projection matrix. When this is enabled camera will no longer
 		 * calculate its projection matrix based on field of view, aspect and other parameters and caller will be resonsible
@@ -172,9 +155,6 @@ namespace bs
 
 		/** Returns a convex volume representing the visible area of the camera, in local space. */
 		virtual const ConvexVolume& GetFrustum() const;
-
-		/** Returns a convex volume representing the visible area of the camera, in world space. */
-		virtual ConvexVolume GetWorldFrustum() const;
 
 		/**	Returns the bounding of the frustum. */
 		const AABox& GetBoundingBox() const;
@@ -225,7 +205,7 @@ namespace bs
 		void SetPriority(i32 priority)
 		{
 			mPriority = priority;
-			MarkSceneActorRenderProxyDataDirty();
+			MarkRenderProxyDataDirty();
 		}
 
 		/** @copydoc SetPriority() */
@@ -235,7 +215,7 @@ namespace bs
 		void SetLayers(u64 layers)
 		{
 			mLayers = layers;
-			MarkSceneActorRenderProxyDataDirty();
+			MarkRenderProxyDataDirty();
 		}
 
 		/** @copydoc SetLayers() */
@@ -248,7 +228,7 @@ namespace bs
 		void SetMsaaCount(u32 count)
 		{
 			mMSAA = count;
-			MarkSceneActorRenderProxyDataDirty();
+			MarkRenderProxyDataDirty();
 		}
 
 		/** @copydoc SetMsaaCount() */
@@ -258,7 +238,110 @@ namespace bs
 		 * Notifies a on-demand camera that it should re-draw its contents on the next frame. Ignored for a camera
 		 * that isn't on-demand.
 		 */
-		void NotifyNeedsRedraw() { MarkSceneActorRenderProxyDataDirty((ActorDirtyFlag)CameraDirtyFlag::Redraw); }
+		void NotifyNeedsRedraw() { MarkRenderProxyDataDirty((ActorDirtyFlag)CameraDirtyFlag::Redraw); }
+
+		static const float kInfiniteFarPlaneAdjust; /**< Small constant used to reduce far plane projection to avoid inaccuracies. */
+
+	protected:
+		CameraBase();
+
+		/**	Calculate projection parameters that are used when constructing the projection matrix. */
+		virtual void CalcProjectionParameters(float& left, float& right, float& bottom, float& top) const;
+
+		/**	Recalculate frustum if dirty. */
+		virtual void UpdateFrustum() const;
+
+		/**	Recalculate frustum planes if dirty. */
+		virtual void UpdateFrustumPlanes() const;
+
+		/**	Checks if the frustum requires updating. */
+		virtual bool IsFrustumOutOfDate() const;
+
+		/**	Notify camera that the frustum requires to be updated. */
+		virtual void InvalidateFrustum() const;
+
+		/**	Returns a rectangle that defines the viewport position and size, in pixels. */
+		virtual Area2I GetViewportRect() const = 0;
+
+		/** Marks the render proxy data dirty, which lets the system know to synchronize it with the render thread at first opportunity. */
+		virtual void MarkRenderProxyDataDirty(ActorDirtyFlag dirtyFlag = ActorDirtyFlag::Everything) { }
+
+	protected:
+		u64 mLayers = 0xFFFFFFFFFFFFFFFF; /**< Bitfield that can be used for filtering what objects the camera sees. */
+
+		ProjectionType mProjType = PT_PERSPECTIVE; /**< Type of camera projection. */
+		Radian mHorzFOV = Degree(90.0f); /**< Horizontal field of view represents how wide is the camera angle. */
+		float mFarDist = 500.0f; /**< Clip any objects further than this. Larger value decreases depth precision at smaller depths. */
+		float mNearDist = 0.05f; /**< Clip any objects close than this. Smaller value decreases depth precision at larger depths. */
+		float mAspect = 1.33333333333333f; /**< Width/height viewport ratio. */
+		float mOrthoHeight = 5; /**< Height in world units used for orthographic cameras. */
+		i32 mPriority = 0; /**< Determines in what order will the camera be rendered. Higher priority means the camera will be rendered sooner. */
+		bool mMain = false; /**< Determines does this camera render to the main render surface. */
+		CameraFlags mCameraFlags; /**< Flags for controlling various behaviour. */
+
+		bool mCustomProjMatrix = false; /**< Is custom projection matrix set. */
+		u8 mMSAA = 1; /**< Number of samples to render the scene with. */
+
+		bool mFrustumExtentsManuallySet = false; /**< Are frustum extents manually set. */
+
+		mutable Matrix4 mProjMatrixRS = BsZero; /**< Cached render-system specific projection matrix. */
+		mutable Matrix4 mProjMatrix = BsZero; /**< Cached projection matrix that determines how are 3D points projected to a 2D viewport. */
+		mutable Matrix4 mProjMatrixRSInv = BsZero;
+		mutable Matrix4 mProjMatrixInv = BsZero;
+
+		mutable ConvexVolume mFrustum; /**< Main clipping planes describing cameras visible area. */
+		mutable bool mRecalcFrustum : 1; /**< Should frustum be recalculated. */
+		mutable bool mRecalcFrustumPlanes : 1; /**< Should frustum planes be recalculated. */
+		mutable float mLeft, mRight, mTop, mBottom; /**< Frustum extents. */
+		mutable AABox mBoundingBox; /**< Frustum bounding box. */
+	};
+
+	/** Templated common base class for both main and render thread implementations of Camera. */
+	template <bool IsRenderProxy>
+	class B3D_CORE_EXPORT TCamera : public CameraBase, public CoreVariantType<SceneActor, IsRenderProxy>
+	{
+		using ViewportType = CoreVariantType<Viewport, IsRenderProxy>;
+		using RenderSettingsType = CoreVariantType<RenderSettings, IsRenderProxy>;
+
+	public:
+		TCamera();
+		virtual ~TCamera() = default;
+
+		void SetTransform(const Transform& transform) override;
+
+		/**	Returns the viewport used by the camera. */
+		SPtr<ViewportType> GetViewport() const { return mViewport; }
+
+		/**
+		 * Sets whether the camera should use the custom view matrix. When this is enabled camera will no longer calculate
+		 * its view matrix based on position/orientation and caller will be resonsible to keep the view matrix up to date.
+		 */
+		virtual void SetCustomViewMatrix(bool enable, const Matrix4& viewMatrix = Matrix4::kIdentity);
+
+		/** Returns true if a custom view matrix is used. */
+		virtual bool IsCustomViewMatrixEnabled() const { return mCustomViewMatrix; }
+
+		/** Gets the camera view matrix. Used for positioning/orienting the camera. */
+		virtual const Matrix4& GetViewMatrix() const;
+
+		/** Returns the inverse of the view matrix. See getViewMatrix(). */
+		virtual const Matrix4& GetViewMatrixInv() const;
+
+		/** Returns a convex volume representing the visible area of the camera, in world space. */
+		virtual ConvexVolume GetWorldFrustum() const;
+
+		/**
+		 * Settings that control rendering for this view. They determine how will the renderer process this view, which
+		 * effects will be enabled, and what properties will those effects use.
+		 */
+		void SetRenderSettings(const SPtr<RenderSettingsType>& settings)
+		{
+			mRenderSettings = settings;
+			MarkRenderProxyDataDirty((ActorDirtyFlag)CameraDirtyFlag::RenderSettings);
+		}
+
+		/** @copydoc SetRenderSettings() */
+		const SPtr<RenderSettingsType>& GetRenderSettings() const { return mRenderSettings; }
 
 		/**
 		 * Converts a point in world space to screen coordinates.
@@ -405,20 +488,12 @@ namespace bs
 		 */
 		Vector3 UnprojectPoint(const Vector3& point) const;
 
-		static const float kInfiniteFarPlaneAdjust; /**< Small constant used to reduce far plane projection to avoid inaccuracies. */
+		void MarkRenderProxyDataDirty(ActorDirtyFlag dirtyFlag = ActorDirtyFlag::Everything) override
+		{
+			this->MarkSceneActorRenderProxyDataDirty(dirtyFlag);
+		}
 
 	protected:
-		CameraBase();
-
-		/**	Calculate projection parameters that are used when constructing the projection matrix. */
-		virtual void CalcProjectionParameters(float& left, float& right, float& bottom, float& top) const;
-
-		/**	Recalculate frustum if dirty. */
-		virtual void UpdateFrustum() const;
-
-		/**	Recalculate frustum planes if dirty. */
-		virtual void UpdateFrustumPlanes() const;
-
 		/**
 		 * Update view matrix from parent position/orientation.
 		 *
@@ -426,77 +501,11 @@ namespace bs
 		 */
 		virtual void UpdateView() const;
 
-		/**	Checks if the frustum requires updating. */
-		virtual bool IsFrustumOutOfDate() const;
-
-		/**	Notify camera that the frustum requires to be updated. */
-		virtual void InvalidateFrustum() const;
-
-		/**	Returns a rectangle that defines the viewport position and size, in pixels. */
-		virtual Area2I GetViewportRect() const = 0;
-
-	protected:
-		u64 mLayers = 0xFFFFFFFFFFFFFFFF; /**< Bitfield that can be used for filtering what objects the camera sees. */
-
-		ProjectionType mProjType = PT_PERSPECTIVE; /**< Type of camera projection. */
-		Radian mHorzFOV = Degree(90.0f); /**< Horizontal field of view represents how wide is the camera angle. */
-		float mFarDist = 500.0f; /**< Clip any objects further than this. Larger value decreases depth precision at smaller depths. */
-		float mNearDist = 0.05f; /**< Clip any objects close than this. Smaller value decreases depth precision at larger depths. */
-		float mAspect = 1.33333333333333f; /**< Width/height viewport ratio. */
-		float mOrthoHeight = 5; /**< Height in world units used for orthographic cameras. */
-		i32 mPriority = 0; /**< Determines in what order will the camera be rendered. Higher priority means the camera will be rendered sooner. */
-		bool mMain = false; /**< Determines does this camera render to the main render surface. */
-		CameraFlags mCameraFlags; /**< Flags for controlling various behaviour. */
-
 		bool mCustomViewMatrix = false; /**< Is custom view matrix set. */
-		bool mCustomProjMatrix = false; /**< Is custom projection matrix set. */
-		u8 mMSAA = 1; /**< Number of samples to render the scene with. */
-
-		bool mFrustumExtentsManuallySet = false; /**< Are frustum extents manually set. */
-
-		mutable Matrix4 mProjMatrixRS = BsZero; /**< Cached render-system specific projection matrix. */
-		mutable Matrix4 mProjMatrix = BsZero; /**< Cached projection matrix that determines how are 3D points projected to a 2D viewport. */
 		mutable Matrix4 mViewMatrix = BsZero; /**< Cached view matrix that determines camera position/orientation. */
-		mutable Matrix4 mProjMatrixRSInv = BsZero;
-		mutable Matrix4 mProjMatrixInv = BsZero;
 		mutable Matrix4 mViewMatrixInv = BsZero;
-
-		mutable ConvexVolume mFrustum; /**< Main clipping planes describing cameras visible area. */
-		mutable bool mRecalcFrustum : 1; /**< Should frustum be recalculated. */
-		mutable bool mRecalcFrustumPlanes : 1; /**< Should frustum planes be recalculated. */
 		mutable bool mRecalcView : 1; /**< Should view matrix be recalculated. */
-		mutable float mLeft, mRight, mTop, mBottom; /**< Frustum extents. */
-		mutable AABox mBoundingBox; /**< Frustum bounding box. */
-	};
 
-	/** Templated common base class for both main and render thread implementations of Camera. */
-	template <bool IsRenderProxy>
-	class B3D_CORE_EXPORT TCamera : public CameraBase
-	{
-		using ViewportType = CoreVariantType<Viewport, IsRenderProxy>;
-		using RenderSettingsType = CoreVariantType<RenderSettings, IsRenderProxy>;
-
-	public:
-		TCamera();
-		virtual ~TCamera() = default;
-
-		/**	Returns the viewport used by the camera. */
-		SPtr<ViewportType> GetViewport() const { return mViewport; }
-
-		/**
-		 * Settings that control rendering for this view. They determine how will the renderer process this view, which
-		 * effects will be enabled, and what properties will those effects use.
-		 */
-		void SetRenderSettings(const SPtr<RenderSettingsType>& settings)
-		{
-			mRenderSettings = settings;
-			MarkSceneActorRenderProxyDataDirty((ActorDirtyFlag)CameraDirtyFlag::RenderSettings);
-		}
-
-		/** @copydoc SetRenderSettings() */
-		const SPtr<RenderSettingsType>& GetRenderSettings() const { return mRenderSettings; }
-
-	protected:
 		/** Viewport that describes a 2D rendering surface. */
 		SPtr<ViewportType> mViewport;
 
