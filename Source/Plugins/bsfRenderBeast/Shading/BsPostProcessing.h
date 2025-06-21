@@ -13,7 +13,7 @@ namespace b3d
 {
 	namespace render
 	{
-		struct RendererViewTargetData;
+		struct RendererViewTargetInformation;
 
 		/** @addtogroup RenderBeast
 		 *  @{

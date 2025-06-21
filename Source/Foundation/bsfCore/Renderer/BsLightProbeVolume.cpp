@@ -442,6 +442,7 @@ bool LightProbeVolume::RenderProbes(GpuCommandBuffer& commandBuffer, u32 maxProb
 	}
 
 	const SPtr<GpuDevice>& gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
+	const SPtr<RendererScene>& rendererScene = mSceneInstance->GetRendererScene();
 
 	u32 numProbeUpdates = 0;
 	for(; mFirstDirtyProbe < (u32)mProbeInfos.size(); ++mFirstDirtyProbe)
@@ -467,7 +468,7 @@ bool LightProbeVolume::RenderProbes(GpuCommandBuffer& commandBuffer, u32 maxProb
 			const Quaternion& rotation = tfrm.GetRotation();
 			Vector3 transformedPos = rotation.Rotate(localPos) + position;
 
-			GetRenderer()->CaptureSceneCubeMap(commandBuffer, cubemap, transformedPos, CaptureSettings());
+			GetRenderer()->CaptureSceneCubeMap(*rendererScene, commandBuffer, cubemap, transformedPos, CaptureSettings());
 			GetIBLUtility().FilterCubemapForIrradiance(commandBuffer, cubemap, mCoefficients, probeInfo.BufferIdx);
 
 			probeInfo.Flags = LightProbeFlags::Clean;
@@ -478,7 +479,6 @@ bool LightProbeVolume::RenderProbes(GpuCommandBuffer& commandBuffer, u32 maxProb
 			break;
 	}
 
-	const SPtr<RendererScene>& rendererScene = mSceneInstance->GetRendererScene();
 	rendererScene->UpdateLightProbeVolume(this);
 
 	return mFirstDirtyProbe == (u32)mProbeInfos.size();

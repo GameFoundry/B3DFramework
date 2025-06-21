@@ -96,8 +96,6 @@ void RenderBeast::InitializeOnRenderThread(const LoadedRendererTextures& rendere
 	RendererTextures::StartUp(rendererTextures);
 
 	mRenderThreadOptions = B3DMakeShared<RenderBeastOptions>();
-	mScene = B3DMakeShared<RenderBeastScene>(*mDevice, mRenderThreadOptions);
-
 	mMainViewGroup = B3DNew<RendererViewGroup>(nullptr, 0, true);
 
 	StandardDeferred::StartUp();
@@ -144,7 +142,11 @@ void RenderBeast::DestroyOnRenderThread()
 	// Make sure all tasks finish first
 	ProcessTasks(true);
 
-	mScene = nullptr;
+	while(!mScenes.empty())
+	{
+		SPtr<RenderBeastScene> scene = mScenes.back().lock();
+		scene->Destroy();
+	}
 
 	RenderCompositor::CleanUp();
 
@@ -161,6 +163,22 @@ void RenderBeast::DestroyOnRenderThread()
 	RendererUtility::ShutDown();
 
 	Renderer::DestroyOnRenderThread();
+}
+
+void RenderBeast::NotifySceneCreated(const WeakSPtr<RenderBeastScene>& scene)
+{
+	mScenes.push_back(scene);
+}
+
+void RenderBeast::NotifySceneDestroyed(const RenderBeastScene* scene)
+{
+	auto found = std::find_if(mScenes.begin(), mScenes.end(), [scene](const WeakSPtr<RenderBeastScene>& otherScene)
+	{
+		return otherScene.lock().get() == scene;
+	});
+	
+	if(B3D_ENSURE(found != mScenes.end()))
+		mScenes.erase(found);
 }
 
 void RenderBeast::SetOptions(const SPtr<RendererOptions>& options)
@@ -181,11 +199,21 @@ void RenderBeast::SyncOptions(const RenderBeastOptions& options)
 		filteringChanged |= mRenderThreadOptions->AnisotropyMax != options.AnisotropyMax;
 
 	if(filteringChanged)
-		mScene->RefreshSamplerOverrides(true);
+	{
+		for(const auto& entry : mScenes)
+		{
+			const SPtr<RenderBeastScene>& scene = entry.lock();
+			scene->RefreshSamplerOverrides(true);
+		}
+	}
 
 	*mRenderThreadOptions = options;
 
-	mScene->SetOptions(mRenderThreadOptions);
+	for(const auto& entry : mScenes)
+	{
+		const SPtr<RenderBeastScene>& scene = entry.lock();
+		scene->SetOptions(mRenderThreadOptions);
+	}
 
 	ShadowRendering& shadowRenderer = mMainViewGroup->GetShadowRenderer();
 	shadowRenderer.SetShadowMapSize(mRenderThreadOptions->ShadowMapSize);
@@ -198,7 +226,7 @@ void RenderBeast::RenderAll(PerFrameData perFrameData)
 
 	if(mOptionsDirty)
 	{
-		GetRenderThread().PostCommand(std::bind(&::b3d::render::RenderBeast::SyncOptions, this, *mOptions), "RenderBeast::SyncOptions");
+		GetRenderThread().PostCommand([this, options = *mOptions]() { SyncOptions(options); }, "RenderBeast::SyncOptions");
 		mOptionsDirty = false;
 	}
 
@@ -207,95 +235,26 @@ void RenderBeast::RenderAll(PerFrameData perFrameData)
 	timings.TimeDelta = GetTime().GetFrameDelta();
 	timings.FrameIdx = GetTime().GetCurrentFrameIndex();
 
-	GetRenderThread().PostCommand(std::bind(&::b3d::render::RenderBeast::RenderThreadRenderAll, this, timings, perFrameData), "RenderBeast::RenderAll");
+	GetRenderThread().PostCommand([this, timings, perFrameData]() { RenderAllScenes(timings, perFrameData); }, "RenderBeast::RenderAll");
 }
 
-void RenderBeast::RenderThreadRenderAll(FrameTimings timings, PerFrameData perFrameData)
+void RenderBeast::RenderAllScenes(FrameTimings timings, PerFrameData perFrameData)
 {
 	ASSERT_IF_NOT_RENDER_THREAD;
 
 	GetProfilerGPU().BeginFrame();
 	GetProfilerCPU().BeginSample("Render");
 
-	SPtr<GpuCommandBuffer> commandBuffer = mCommandBufferPool->Create(GpuCommandBufferCreateInformation::Create("Main"));
-	const SceneInfo& sceneInfo = mScene->GetSceneInfo();
-
-	// Note: I'm iterating over all sampler states every frame. If this ends up being a performance
-	// issue consider handling this internally in render::Material which can only do it when sampler states
-	// are actually modified after sync
-	mScene->RefreshSamplerOverrides();
-
-	// Update global per-frame hardware buffers
-	mScene->SetParamFrameParams(timings.Time);
-
-	// Update bounds for all particle systems
-	if(perFrameData.Particles)
-		PROFILE_CALL(mScene->UpdateParticleSystemBounds(perFrameData.Particles), "Particle bounds")
-
-	sceneInfo.RenderableReady.resize(sceneInfo.Renderables.size(), false);
-	sceneInfo.RenderableReady.assign(sceneInfo.Renderables.size(), false);
-
-	FrameInfo frameInfo(timings, perFrameData);
-
 	// Make sure any renderer tasks finish first, as rendering might depend on them
 	ProcessTasks(false, timings.FrameIdx);
 
-	mDevice->BeginFrame();
-
-	if (mIsFrameCaptureRequested)
-		GpuBackend::Instance().StartCapture();
-
-	// If any reflection probes were updated or added, we need to copy them over in the global reflection probe array
-	UpdateReflProbeArray(*commandBuffer);
-
-	// Update per-frame data for all renderable objects
-	for(u32 i = 0; i < sceneInfo.Renderables.size(); i++)
-		mScene->PrepareRenderable(i, frameInfo);
-
-	for(u32 i = 0; i < sceneInfo.ParticleSystems.size(); i++)
-		mScene->PrepareParticleSystem(i, frameInfo);
-
-	for(u32 i = 0; i < sceneInfo.Decals.size(); i++)
-		mScene->PrepareDecal(i, frameInfo);
-
-	// Gather all views
-	for(auto& rtInfo : sceneInfo.RenderTargets)
+	FrameInfo frameInfo(timings, perFrameData);
+	for(auto& entry : mScenes)
 	{
-		Vector<RendererView*> views;
-		SPtr<RenderTarget> target = rtInfo.Target;
-		const Vector<Camera*>& cameras = rtInfo.Cameras;
-
-		u32 numCameras = (u32)cameras.size();
-		for(u32 i = 0; i < numCameras; i++)
-		{
-			u32 viewIdx = sceneInfo.CameraToView.at(cameras[i]);
-			RendererView* viewInfo = sceneInfo.Views[viewIdx];
-
-			if (mIsFrameCaptureRequested)
-				viewInfo->NotifyNeedsRedraw();
-
-			viewInfo->UpdateAsyncOperations(); // Note: Needs to happen before any ShouldDraw*() calls, to be consistent
-			views.push_back(viewInfo);
-		}
-
-		mMainViewGroup->SetViews(views.data(), (u32)views.size());
-		PROFILE_CALL(mMainViewGroup->DetermineVisibility(*commandBuffer, sceneInfo), "Determine visibility")
-
-		// Render everything
-		const bool anythingDrawn = RenderViews(*commandBuffer, *mMainViewGroup, frameInfo);
-		if(anythingDrawn)
-		{
-			mDevice->SubmitCommandBuffer(commandBuffer);
-			commandBuffer = mCommandBufferPool->Create(GpuCommandBufferCreateInformation::Create("Main"));
-
-			if(rtInfo.Target->GetProperties().IsWindow)
-			{
-				mDevice->PresentRenderWindow(std::static_pointer_cast<RenderWindow>(rtInfo.Target));
-			}
-		}
+		const SPtr<RenderBeastScene>& scene = entry.lock();
+		RenderScene(*scene, frameInfo);
 	}
 
-	mDevice->SubmitCommandBuffer(commandBuffer);
 	mDevice->EndFrame();
 
 	// Tick pool frame
@@ -313,7 +272,87 @@ void RenderBeast::RenderThreadRenderAll(FrameTimings timings, PerFrameData perFr
 	}
 }
 
-bool RenderBeast::RenderViews(GpuCommandBuffer& commandBuffer, RendererViewGroup& viewGroup, const FrameInfo& frameInfo)
+bool RenderBeast::RenderScene(RenderBeastScene& scene, const FrameInfo& frameInfo)
+{
+	SPtr<GpuCommandBuffer> commandBuffer = mCommandBufferPool->Create(GpuCommandBufferCreateInformation::Create("Main"));
+	const SceneInfo& sceneInfo = scene.GetSceneInfo();
+
+	// Note: I'm iterating over all sampler states every frame. If this ends up being a performance
+	// issue consider handling this internally in render::Material which can only do it when sampler states
+	// are actually modified after sync
+	scene.RefreshSamplerOverrides();
+
+	// Update global per-frame hardware buffers
+	scene.SetParamFrameParams(frameInfo.Timings.Time);
+
+	// Update bounds for all particle systems
+	if(frameInfo.PerFrameData.Particles)
+		PROFILE_CALL(scene.UpdateParticleSystemBounds(frameInfo.PerFrameData.Particles), "Particle bounds")
+
+	sceneInfo.RenderableReady.resize(sceneInfo.Renderables.size(), false);
+	sceneInfo.RenderableReady.assign(sceneInfo.Renderables.size(), false);
+
+	mDevice->BeginFrame();
+
+	if (mIsFrameCaptureRequested)
+		GpuBackend::Instance().StartCapture();
+
+	// If any reflection probes were updated or added, we need to copy them over in the global reflection probe array
+	scene.UpdateReflectionProbes(*commandBuffer);
+
+	// Update per-frame data for all renderable objects
+	for(u32 i = 0; i < sceneInfo.Renderables.size(); i++)
+		scene.PrepareRenderable(i, frameInfo);
+
+	for(u32 i = 0; i < sceneInfo.ParticleSystems.size(); i++)
+		scene.PrepareParticleSystem(i, frameInfo);
+
+	for(u32 i = 0; i < sceneInfo.Decals.size(); i++)
+		scene.PrepareDecal(i, frameInfo);
+
+	bool anythingDrawnForScene = false;
+	for(auto& rtInfo : sceneInfo.RenderTargets)
+	{
+		Vector<RendererView*> views;
+		SPtr<RenderTarget> target = rtInfo.Target;
+		const Vector<Camera*>& cameras = rtInfo.Cameras;
+
+		const u32 cameraCount = (u32)cameras.size();
+		for(u32 i = 0; i < cameraCount; i++)
+		{
+			const u32 viewIndex = sceneInfo.CameraToView.at(cameras[i]);
+			RendererView* viewInfo = sceneInfo.Views[viewIndex];
+
+			if (mIsFrameCaptureRequested)
+				viewInfo->NotifyNeedsRedraw();
+
+			viewInfo->UpdateAsyncOperations(); // Note: Needs to happen before any ShouldDraw*() calls, to be consistent
+			views.push_back(viewInfo);
+		}
+
+		mMainViewGroup->SetViews(views.data(), (u32)views.size());
+		PROFILE_CALL(mMainViewGroup->DetermineVisibility(*commandBuffer, sceneInfo), "Determine visibility")
+
+		// Render everything
+		const bool anythingDrawnForView = RenderViews(*commandBuffer, scene, *mMainViewGroup, frameInfo);
+		if(anythingDrawnForView)
+		{
+			mDevice->SubmitCommandBuffer(commandBuffer);
+			commandBuffer = mCommandBufferPool->Create(GpuCommandBufferCreateInformation::Create("Main"));
+
+			if(rtInfo.Target->GetProperties().IsWindow)
+			{
+				mDevice->PresentRenderWindow(std::static_pointer_cast<RenderWindow>(rtInfo.Target));
+			}
+
+			anythingDrawnForScene = true;
+		}
+	}
+
+	return anythingDrawnForScene;
+}
+
+bool RenderBeast::RenderViews(GpuCommandBuffer& commandBuffer, RenderBeastScene& scene, RendererViewGroup& viewGroup, const FrameInfo& frameInfo)
 {
 	bool needs3DRender = false;
 	u32 numViews = viewGroup.GetNumViews();
@@ -330,12 +369,12 @@ bool RenderBeast::RenderViews(GpuCommandBuffer& commandBuffer, RendererViewGroup
 
 	if(needs3DRender)
 	{
-		const SceneInfo& sceneInfo = mScene->GetSceneInfo();
+		const SceneInfo& sceneInfo = scene.GetSceneInfo();
 		const VisibilityInfo& visibility = viewGroup.GetVisibilityInfo();
 
 		// Render shadow maps
 		ShadowRendering& shadowRenderer = viewGroup.GetShadowRenderer();
-		shadowRenderer.RenderShadowMaps(commandBuffer,*mScene, viewGroup, frameInfo);
+		shadowRenderer.RenderShadowMaps(commandBuffer,scene, viewGroup, frameInfo);
 
 		// Update various buffers required by each renderable
 		u32 numRenderables = (u32)sceneInfo.Renderables.size();
@@ -344,7 +383,7 @@ bool RenderBeast::RenderViews(GpuCommandBuffer& commandBuffer, RendererViewGroup
 			if(!visibility.Renderables[i])
 				continue;
 
-			mScene->PrepareVisibleRenderable(i, frameInfo);
+			scene.PrepareVisibleRenderable(i, frameInfo);
 		}
 	}
 
@@ -354,7 +393,7 @@ bool RenderBeast::RenderViews(GpuCommandBuffer& commandBuffer, RendererViewGroup
 		RendererView* view = viewGroup.GetView(i);
 
 		auto viewId = (u64)view;
-		const RendererViewTargetData& viewTarget = view->GetProperties().Target;
+		const RendererViewTargetInformation& viewTarget = view->GetProperties().Target;
 		String title = StringUtil::Format("({0} x {1})", viewTarget.TargetWidth, viewTarget.TargetHeight);
 		GetProfilerGPU().BeginView(commandBuffer, viewId, ProfilerString(title.data(), title.size()));
 
@@ -372,7 +411,7 @@ bool RenderBeast::RenderViews(GpuCommandBuffer& commandBuffer, RendererViewGroup
 		}
 		else
 		{
-			RenderView(commandBuffer, viewGroup, *view, frameInfo);
+			RenderView(commandBuffer, scene, viewGroup, *view, frameInfo);
 			anythingDrawn = true;
 		}
 
@@ -382,11 +421,11 @@ bool RenderBeast::RenderViews(GpuCommandBuffer& commandBuffer, RendererViewGroup
 	return anythingDrawn;
 }
 
-void RenderBeast::RenderView(GpuCommandBuffer& commandBuffer, const RendererViewGroup& viewGroup, RendererView& view, const FrameInfo& frameInfo)
+void RenderBeast::RenderView(GpuCommandBuffer& commandBuffer, RenderBeastScene& scene, const RendererViewGroup& viewGroup, RendererView& view, const FrameInfo& frameInfo)
 {
 	GetProfilerCPU().BeginSample("Render view");
 
-	const SceneInfo& sceneInfo = mScene->GetSceneInfo();
+	const SceneInfo& sceneInfo = scene.GetSceneInfo();
 	auto& viewProps = view.GetProperties();
 
 	SPtr<GpuBuffer> perCameraBuffer = view.GetPerViewBuffer();
@@ -394,7 +433,7 @@ void RenderBeast::RenderView(GpuCommandBuffer& commandBuffer, const RendererView
 
 	// Make sure light probe data is up to date
 	if(view.GetRenderSettings().EnableIndirectLighting)
-		mScene->UpdateLightProbes(commandBuffer);
+		scene.UpdateLightProbes(commandBuffer);
 
 	view.BeginFrame(frameInfo);
 
@@ -519,97 +558,11 @@ bool RenderBeast::RenderOverlay(GpuCommandBuffer& commandBuffer, RendererView& v
 	return needsRedraw;
 }
 
-void RenderBeast::UpdateReflProbeArray(GpuCommandBuffer& commandBuffer)
+void RenderBeast::CaptureSceneCubeMap(RendererScene& scene, GpuCommandBuffer& commandBuffer, const SPtr<Texture>& cubemap, const Vector3& position, const CaptureSettings& settings)
 {
-	SceneInfo& sceneInfo = mScene->GetSceneInfoInternal();
-	u32 numProbes = (u32)sceneInfo.ReflProbes.size();
+	RenderBeastScene& renderBeastScene = static_cast<RenderBeastScene&>(scene);
 
-	B3DMarkAllocatorFrame();
-	{
-		u32 currentCubeArraySize = 0;
-
-		if(sceneInfo.ReflProbeCubemapsTex != nullptr)
-			currentCubeArraySize = sceneInfo.ReflProbeCubemapsTex->GetProperties().ArraySliceCount;
-
-		bool forceArrayUpdate = false;
-		if(sceneInfo.ReflProbeCubemapsTex == nullptr || (currentCubeArraySize < numProbes && currentCubeArraySize != kMaxReflectionCubemaps))
-		{
-			TextureCreateInformation cubeMapDesc;
-			cubeMapDesc.Name = "Reflection Probe Cubemap Array";
-			cubeMapDesc.Type = TEX_TYPE_CUBE_MAP;
-			cubeMapDesc.Format = PF_RG11B10F;
-			cubeMapDesc.Width = IBLUtility::kReflectionCubemapSize;
-			cubeMapDesc.Height = IBLUtility::kReflectionCubemapSize;
-			cubeMapDesc.MipMapCount = PixelUtility::GetMipmapCount(cubeMapDesc.Width, cubeMapDesc.Height, 1, cubeMapDesc.Format);
-			cubeMapDesc.ArraySliceCount = std::min(kMaxReflectionCubemaps, numProbes + 4); // Keep a few empty entries
-
-			sceneInfo.ReflProbeCubemapsTex = mDevice->CreateTexture(cubeMapDesc);
-
-			forceArrayUpdate = true;
-		}
-
-		auto& cubemapArrayProps = sceneInfo.ReflProbeCubemapsTex->GetProperties();
-
-		FrameQueue<u32> emptySlots;
-		for(u32 i = 0; i < numProbes; i++)
-		{
-			const RendererReflectionProbe& probeInfo = sceneInfo.ReflProbes[i];
-
-			if(probeInfo.ArrayIdx > kMaxReflectionCubemaps)
-				continue;
-
-			if(probeInfo.ArrayDirty || forceArrayUpdate)
-			{
-				SPtr<Texture> texture = probeInfo.Probe->GetFilteredTexture();
-				if(texture == nullptr)
-					continue;
-
-				auto& srcProps = texture->GetProperties();
-				bool isValid = srcProps.Width == IBLUtility::kReflectionCubemapSize &&
-					srcProps.Height == IBLUtility::kReflectionCubemapSize &&
-					srcProps.MipMapCount == cubemapArrayProps.MipMapCount &&
-					srcProps.Type == TEX_TYPE_CUBE_MAP;
-
-				if(!isValid)
-				{
-					if(!probeInfo.ErrorFlagged)
-					{
-						B3D_LOG(Error, Renderer, "Cubemap texture invalid to use as a reflection cubemap. "
-												"Check texture size (must be {0}x{0}) and mip-map count",
-							   IBLUtility::kReflectionCubemapSize);
-
-						probeInfo.ErrorFlagged = true;
-					}
-				}
-				else
-				{
-					for(u32 face = 0; face < 6; face++)
-					{
-						for(u32 mip = 0; mip <= srcProps.MipMapCount; mip++)
-						{
-							TextureCopyInformation copyDesc;
-							copyDesc.SourceFace = face;
-							copyDesc.SourceMip = mip;
-							copyDesc.DestinationFace = probeInfo.ArrayIdx * 6 + face;
-							copyDesc.DestinationMip = mip;
-
-							texture->Copy(commandBuffer, sceneInfo.ReflProbeCubemapsTex, copyDesc);
-						}
-					}
-				}
-
-				mScene->SetReflectionProbeArrayIndex(i, probeInfo.ArrayIdx, true);
-			}
-
-			// Note: Consider pruning the reflection cubemap array if empty slot count becomes too high
-		}
-	}
-	B3DClearAllocatorFrame();
-}
-
-void RenderBeast::CaptureSceneCubeMap(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& cubemap, const Vector3& position, const CaptureSettings& settings)
-{
-	const SceneInfo& sceneInfo = mScene->GetSceneInfo();
+	const SceneInfo& sceneInfo = renderBeastScene.GetSceneInfo();
 	auto& texProps = cubemap->GetProperties();
 
 	Matrix4 projTransform = Matrix4::ProjectionPerspective(Degree(90.0f), 1.0f, 0.05f, 1000.0f);
@@ -618,7 +571,7 @@ void RenderBeast::CaptureSceneCubeMap(GpuCommandBuffer& commandBuffer, const SPt
 	GpuDevice& gpuDevice = commandBuffer.GetGpuDevice();
 	gpuDevice.ConvertProjectionMatrix(projTransform, projTransform);
 
-	RENDERER_VIEW_DESC viewDesc;
+	RendererViewCreateInformation viewDesc;
 	viewDesc.Target.ClearFlags = FBT_COLOR | FBT_DEPTH;
 	viewDesc.Target.ClearColor = Color::kBlack;
 	viewDesc.Target.ClearDepthValue = 1.0f;
@@ -738,7 +691,7 @@ void RenderBeast::CaptureSceneCubeMap(GpuCommandBuffer& commandBuffer, const SPt
 	viewGroup.DetermineVisibility(commandBuffer, sceneInfo);
 
 	FrameInfo frameInfo({ 0.0f, 1.0f / 60.0f, 0 }, PerFrameData());
-	RenderViews(commandBuffer, viewGroup, frameInfo);
+	RenderViews(commandBuffer, renderBeastScene, viewGroup, frameInfo);
 
 	// Make sure the render texture is available for reads
 	commandBuffer.SetRenderTarget(nullptr);

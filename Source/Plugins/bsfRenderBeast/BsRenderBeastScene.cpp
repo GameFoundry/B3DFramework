@@ -18,6 +18,7 @@
 #include "RenderAPI/BsVertexDescription.h"
 #include "Shading/BsGpuParticleSimulation.h"
 #include "Renderer/BsDecal.h"
+#include "Renderer/BsIBLUtility.h"
 #include "Renderer/BsRendererUtility.h"
 
 namespace b3d { namespace render {
@@ -167,20 +168,9 @@ RenderBeastScene::RenderBeastScene(GpuDevice& gpuDevice, const SPtr<RenderBeastO
 	mPerFrameParamBuffer = gPerFrameParamDef.CreateBuffer();
 }
 
-RenderBeastScene::~RenderBeastScene()
-{
-	for(auto& entry : mInfo.Renderables)
-		B3DDelete(entry);
-
-	for(auto& entry : mInfo.Views)
-		B3DDelete(entry);
-
-	B3D_ASSERT(mSamplerOverrides.empty());
-}
-
 void RenderBeastScene::RegisterCamera(Camera* camera)
 {
-	RENDERER_VIEW_DESC viewDesc = CreateViewDesc(camera);
+	RendererViewCreateInformation viewDesc = CreateViewDesc(camera);
 
 	RendererView* view = B3DNew<RendererView>(viewDesc);
 	view->SetRenderSettings(camera->GetRenderSettings());
@@ -207,7 +197,7 @@ void RenderBeastScene::UpdateCamera(Camera* camera, u32 updateFlag)
 
 	if((updateFlag & updateEverythingFlag) != 0)
 	{
-		RENDERER_VIEW_DESC viewDesc = CreateViewDesc(camera);
+		RendererViewCreateInformation viewDesc = CreateViewDesc(camera);
 
 		view->SetView(viewDesc);
 		view->SetRenderSettings(camera->GetRenderSettings());
@@ -612,6 +602,94 @@ void RenderBeastScene::UnregisterReflectionProbe(ReflectionProbe* probe)
 	// Last element is the one we want to erase
 	mInfo.ReflProbes.erase(mInfo.ReflProbes.end() - 1);
 	mInfo.ReflProbeWorldBounds.erase(mInfo.ReflProbeWorldBounds.end() - 1);
+}
+
+void RenderBeastScene::UpdateReflectionProbes(GpuCommandBuffer& commandBuffer)
+{
+	SceneInfo& sceneInfo = GetSceneInfo();
+	const u32 probeCount = (u32)sceneInfo.ReflProbes.size();
+
+	B3DMarkAllocatorFrame();
+	{
+		u32 currentCubeArraySize = 0;
+
+		if(sceneInfo.ReflProbeCubemapsTex != nullptr)
+			currentCubeArraySize = sceneInfo.ReflProbeCubemapsTex->GetProperties().ArraySliceCount;
+
+		bool forceArrayUpdate = false;
+		if(sceneInfo.ReflProbeCubemapsTex == nullptr || (currentCubeArraySize < probeCount && currentCubeArraySize != kMaxReflectionCubemaps))
+		{
+			TextureCreateInformation cubeMapDesc;
+			cubeMapDesc.Name = "Reflection Probe Cubemap Array";
+			cubeMapDesc.Type = TEX_TYPE_CUBE_MAP;
+			cubeMapDesc.Format = PF_RG11B10F;
+			cubeMapDesc.Width = IBLUtility::kReflectionCubemapSize;
+			cubeMapDesc.Height = IBLUtility::kReflectionCubemapSize;
+			cubeMapDesc.MipMapCount = PixelUtility::GetMipmapCount(cubeMapDesc.Width, cubeMapDesc.Height, 1, cubeMapDesc.Format);
+			cubeMapDesc.ArraySliceCount = std::min(kMaxReflectionCubemaps, probeCount + 4); // Keep a few empty entries
+
+			sceneInfo.ReflProbeCubemapsTex = mGpuDevice.CreateTexture(cubeMapDesc);
+
+			forceArrayUpdate = true;
+		}
+
+		auto& cubemapArrayProps = sceneInfo.ReflProbeCubemapsTex->GetProperties();
+
+		FrameQueue<u32> emptySlots;
+		for(u32 i = 0; i < probeCount; i++)
+		{
+			const RendererReflectionProbe& probeInfo = sceneInfo.ReflProbes[i];
+
+			if(probeInfo.ArrayIdx > kMaxReflectionCubemaps)
+				continue;
+
+			if(probeInfo.ArrayDirty || forceArrayUpdate)
+			{
+				SPtr<Texture> texture = probeInfo.Probe->GetFilteredTexture();
+				if(texture == nullptr)
+					continue;
+
+				auto& srcProps = texture->GetProperties();
+				bool isValid = srcProps.Width == IBLUtility::kReflectionCubemapSize &&
+					srcProps.Height == IBLUtility::kReflectionCubemapSize &&
+					srcProps.MipMapCount == cubemapArrayProps.MipMapCount &&
+					srcProps.Type == TEX_TYPE_CUBE_MAP;
+
+				if(!isValid)
+				{
+					if(!probeInfo.ErrorFlagged)
+					{
+						B3D_LOG(Error, Renderer, "Cubemap texture invalid to use as a reflection cubemap. "
+												"Check texture size (must be {0}x{0}) and mip-map count",
+							   IBLUtility::kReflectionCubemapSize);
+
+						probeInfo.ErrorFlagged = true;
+					}
+				}
+				else
+				{
+					for(u32 face = 0; face < 6; face++)
+					{
+						for(u32 mip = 0; mip <= srcProps.MipMapCount; mip++)
+						{
+							TextureCopyInformation copyDesc;
+							copyDesc.SourceFace = face;
+							copyDesc.SourceMip = mip;
+							copyDesc.DestinationFace = probeInfo.ArrayIdx * 6 + face;
+							copyDesc.DestinationMip = mip;
+
+							texture->Copy(commandBuffer, sceneInfo.ReflProbeCubemapsTex, copyDesc);
+						}
+					}
+				}
+
+				SetReflectionProbeArrayIndex(i, probeInfo.ArrayIdx, true);
+			}
+
+			// Note: Consider pruning the reflection cubemap array if empty slot count becomes too high
+		}
+	}
+	B3DClearAllocatorFrame();
 }
 
 void RenderBeastScene::SetReflectionProbeArrayIndex(u32 probeIdx, u32 arrayIdx, bool markAsClean)
@@ -1086,6 +1164,27 @@ void RenderBeastScene::UnregisterDecal(Decal* decal)
 	mInfo.DecalCullInfos.erase(mInfo.DecalCullInfos.end() - 1);
 }
 
+void RenderBeastScene::Initialize()
+{
+	GetRenderBeast()->NotifySceneCreated(std::static_pointer_cast<RenderBeastScene>(GetShared()));
+
+	RendererScene::Initialize();
+}
+
+void RenderBeastScene::Destroy()
+{
+	for(auto& entry : mInfo.Renderables)
+		B3DDelete(entry);
+
+	for(auto& entry : mInfo.Views)
+		B3DDelete(entry);
+
+	B3D_ASSERT(mSamplerOverrides.empty());
+
+	GetRenderBeast()->NotifySceneDestroyed(this);
+	RendererScene::Destroy();
+}
+
 void RenderBeastScene::SetOptions(const SPtr<RenderBeastOptions>& options)
 {
 	mOptions = options;
@@ -1094,11 +1193,11 @@ void RenderBeastScene::SetOptions(const SPtr<RenderBeastOptions>& options)
 		entry->SetStateReductionMode(mOptions->StateReductionMode);
 }
 
-RENDERER_VIEW_DESC RenderBeastScene::CreateViewDesc(Camera* camera) const
+RendererViewCreateInformation RenderBeastScene::CreateViewDesc(Camera* camera) const
 {
 	SPtr<Viewport> viewport = camera->GetViewport();
 	ClearFlags clearFlags = viewport->GetClearFlags();
-	RENDERER_VIEW_DESC viewDesc;
+	RendererViewCreateInformation viewDesc;
 
 	viewDesc.Target.ClearFlags = 0;
 	if(clearFlags.IsSet(ClearFlagBits::Color))

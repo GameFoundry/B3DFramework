@@ -41,7 +41,7 @@ void SceneActor::UpdateStateInternal(const SceneObject& so, bool force)
 
 	const SPtr<SceneInstance>& sceneInstance = so.GetScene();
 	if(mSceneInstance != sceneInstance || force)
-		SetSceneInstance(sceneInstance);
+		SetScene(sceneInstance);
 }
 
 RenderProxySyncPacket* SceneActor::CreateSceneActorRenderProxySyncPacket(FrameAllocator& allocator, u32 flags)

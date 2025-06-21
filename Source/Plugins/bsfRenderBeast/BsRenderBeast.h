@@ -59,11 +59,13 @@ namespace b3d
 
 			void Initialize(const SPtr<GpuDevice>& gpuDevice) override;
 			void Destroy() override;
-			void CaptureSceneCubeMap(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& cubemap, const Vector3& position, const CaptureSettings& settings) override;
+			void CaptureSceneCubeMap(RendererScene& scene, GpuCommandBuffer& commandBuffer, const SPtr<Texture>& cubemap, const Vector3& position, const CaptureSettings& settings) override;
 			void RequestFrameCapture() override { mIsFrameCaptureRequested = true; }
 			SPtr<RendererScene> CreateScene() override;
 
 		private:
+			friend class RenderBeastScene;
+
 			/**
 			 * Updates the render options on the render thread.
 			 *
@@ -79,21 +81,28 @@ namespace b3d
 			 *
 			 * @note	Render thread only.
 			 */
-			void RenderThreadRenderAll(FrameTimings timings, PerFrameData perFrameData);
+			void RenderAllScenes(FrameTimings timings, PerFrameData perFrameData);
+
+			/**
+			 * Renders all views in the provided scene. Returns true if anything has been draw to any of the views.
+			 *
+			 * @note	Render thread only.
+			 */
+			bool RenderScene(RenderBeastScene& scene, const FrameInfo& frameInfo);
 
 			/**
 			 * Renders all views in the provided view group. Returns true if anything has been draw to any of the views.
 			 *
 			 * @note	Render thread only.
 			 */
-			bool RenderViews(GpuCommandBuffer& commandBuffer, RendererViewGroup& viewGroup, const FrameInfo& frameInfo);
+			bool RenderViews(GpuCommandBuffer& commandBuffer, RenderBeastScene& scene, RendererViewGroup& viewGroup, const FrameInfo& frameInfo);
 
 			/**
 			 * Renders all objects visible by the provided view.
 			 *
 			 * @note	Render thread only.
 			 */
-			void RenderView(GpuCommandBuffer& commandBuffer, const RendererViewGroup& viewGroup, RendererView& view, const FrameInfo& frameInfo);
+			void RenderView(GpuCommandBuffer& commandBuffer, RenderBeastScene& scene, const RendererViewGroup& viewGroup, RendererView& view, const FrameInfo& frameInfo);
 
 			/**
 			 * Renders all overlay callbacks of the provided view. Returns true if anything has been rendered in any of the views.
@@ -108,15 +117,18 @@ namespace b3d
 			/**	Destroys data used by the renderer on the render thread. */
 			void DestroyOnRenderThread() override;
 
-			/** Updates the global reflection probe cubemap array with changed probe textures. */
-			void UpdateReflProbeArray(GpuCommandBuffer& commandBuffer);
+			/** Called right after a renderer scene has been created. */
+			void NotifySceneCreated(const WeakSPtr<RenderBeastScene>& scene);
+
+			/** Called just before a renderer scene is destroyed. */
+			void NotifySceneDestroyed(const RenderBeastScene* scene);
 
 			// Render thread only fields
 			RenderBeastFeatureSet mFeatureSet = RenderBeastFeatureSet::Desktop;
 			bool mIsFrameCaptureRequested = false;
 
 			// Scene data
-			SPtr<RenderBeastScene> mScene;
+			Vector<WeakSPtr<RenderBeastScene>> mScenes;
 
 			SPtr<RenderBeastOptions> mRenderThreadOptions;
 

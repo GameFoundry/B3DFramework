@@ -51,13 +51,13 @@ SkyboxMat* SkyboxMat::GetVariation(bool color)
 	return Get(GetVariation<false>());
 }
 
-RendererViewData::RendererViewData()
+RendererViewInformation::RendererViewInformation()
 	: EncodeDepth(false)
 {
 }
 
-RendererViewProperties::RendererViewProperties(const RENDERER_VIEW_DESC& src)
-	: RendererViewData(src), FrameIdx(0), Target(src.Target)
+RendererViewProperties::RendererViewProperties(const RendererViewCreateInformation& src)
+	: RendererViewInformation(src), FrameIdx(0), Target(src.Target)
 {
 	ProjTransformNoAa = src.ProjTransform;
 	ViewProjTransform = src.ProjTransform * src.ViewTransform;
@@ -69,7 +69,7 @@ RendererView::RendererView()
 	mParamBuffer = gPerCameraParamDef.CreateBuffer();
 }
 
-RendererView::RendererView(const RENDERER_VIEW_DESC& desc)
+RendererView::RendererView(const RendererViewCreateInformation& desc)
 	: mProperties(desc), mCamera(desc.SceneCamera), mRenderSettingsHash(0), mViewIdx(-1)
 {
 	mParamBuffer = gPerCameraParamDef.CreateBuffer();
@@ -118,7 +118,7 @@ void RendererView::SetTransform(const Vector3& origin, const Vector3& direction,
 	mProperties.TemporalJitter = Vector2::kZero;
 }
 
-void RendererView::SetView(const RENDERER_VIEW_DESC& desc)
+void RendererView::SetView(const RendererViewCreateInformation& desc)
 {
 	mCamera = desc.SceneCamera;
 	mProperties = desc;

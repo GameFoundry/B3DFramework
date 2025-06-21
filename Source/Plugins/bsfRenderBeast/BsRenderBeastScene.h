@@ -77,7 +77,6 @@ namespace b3d
 		{
 		public:
 			RenderBeastScene(GpuDevice& gpuDevice, const SPtr<RenderBeastOptions>& options);
-			~RenderBeastScene();
 
 			void RegisterCamera(Camera* camera) override;
 			void UpdateCamera(Camera* camera, u32 updateFlag) override;
@@ -110,6 +109,9 @@ namespace b3d
 			void UpdateDecal(Decal* decal) override;
 			void UnregisterDecal(Decal* decal) override;
 
+			void Initialize() override;
+			void Destroy() override;
+
 			/** Updates the index at which the reflection probe's texture is stored at, in the global array. */
 			void SetReflectionProbeArrayIndex(u32 probeIdx, u32 arrayIdx, bool markAsClean);
 
@@ -118,6 +120,9 @@ namespace b3d
 			 * is detected since the last call, the call does nothing.
 			 */
 			void UpdateLightProbes(GpuCommandBuffer& commandBuffer);
+
+			/** Updates the global reflection probe cubemap array with changed probe textures. */
+			void UpdateReflectionProbes(GpuCommandBuffer& commandBuffer);
 
 			/** Returns a container with all relevant scene objects. */
 			const SceneInfo& GetSceneInfo() const { return mInfo; }
@@ -176,11 +181,11 @@ namespace b3d
 			void UpdateParticleSystemBounds(const ParticlePerFrameData* particleRenderData);
 
 			/** Returns a modifiable version of SceneInfo. Only to be used by friends who know what they are doing. */
-			SceneInfo& GetSceneInfoInternal() { return mInfo; }
+			SceneInfo& GetSceneInfo() { return mInfo; }
 
 		private:
 			/** Creates a renderer view descriptor for the particular camera. */
-			RENDERER_VIEW_DESC CreateViewDesc(Camera* camera) const;
+			RendererViewCreateInformation CreateViewDesc(Camera* camera) const;
 
 			/**
 			 * Find the render target the camera belongs to and adds it to the relevant list. If the camera was previously

@@ -128,7 +128,7 @@ void ReflectionProbe::CaptureAndFilter()
 			settings.DepthEncodeNear = radius;
 			settings.DepthEncodeFar = radius + 1; // + 1 arbitrary, make it a customizable value?
 
-			render::GetRenderer()->CaptureSceneCubeMap(*commandBuffer, textureRenderProxy, probeRenderProxy->GetTransform().GetPosition(), settings);
+			render::GetRenderer()->CaptureSceneCubeMap(*rendererScene, *commandBuffer, textureRenderProxy, probeRenderProxy->GetTransform().GetPosition(), settings);
 			render::GetIBLUtility().FilterCubemapForSpecular(*commandBuffer, textureRenderProxy, nullptr);
 
 			probeRenderProxy->mFilteredTexture = textureRenderProxy;

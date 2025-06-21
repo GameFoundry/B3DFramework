@@ -164,6 +164,7 @@ namespace b3d
 			/**
 			 * Captures the scene at the specified location into a cubemap.
 			 *
+			 * @param	scene			Scene to capture.
 			 * @param	commandBuffer	Command buffer on which to encode the capture.
 			 * @param	cubemap			Cubemap to store the results in.
 			 * @param	position		Position to capture the scene at.
@@ -171,7 +172,7 @@ namespace b3d
 			 *
 			 * @note	Render thread.
 			 */
-			virtual void CaptureSceneCubeMap(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& cubemap, const Vector3& position, const CaptureSettings& settings) = 0;
+			virtual void CaptureSceneCubeMap(RendererScene& scene, GpuCommandBuffer& commandBuffer, const SPtr<Texture>& cubemap, const Vector3& position, const CaptureSettings& settings) = 0;
 
 			/** Creates a new renderer scene. */
 			virtual SPtr<RendererScene> CreateScene() = 0;

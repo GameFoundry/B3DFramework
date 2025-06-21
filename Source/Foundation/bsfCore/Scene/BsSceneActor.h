@@ -65,9 +65,9 @@ namespace b3d
 		ObjectMobility GetMobility() const { return mMobility; }
 
 		/** Determines the scene that the actor is a part of. */
-		virtual void SetSceneInstance(const SPtr<SceneInstanceType>& instance);
+		virtual void SetScene(const SPtr<SceneInstanceType>& instance);
 
-		/** @copydoc SetSceneInstance */
+		/** @copydoc SetScene */
 		const SPtr<SceneInstanceType>& GetSceneInstance() const { return mSceneInstance; }
 	protected:
 		/**
@@ -118,7 +118,7 @@ namespace b3d
 	}
 
 	template<bool IsRenderProxy>
-	void TSceneActor<IsRenderProxy>::SetSceneInstance(const SPtr<SceneInstanceType>& instance)
+	void TSceneActor<IsRenderProxy>::SetScene(const SPtr<SceneInstanceType>& instance)
 	{
 		if(mSceneInstance == instance)
 			return;

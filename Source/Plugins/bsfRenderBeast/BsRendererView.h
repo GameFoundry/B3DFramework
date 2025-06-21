@@ -91,10 +91,10 @@ namespace b3d
 			SPtr<GpuBuffer> mParamBuffer;
 		};
 
-		/** Data shared between RENDERER_VIEW_DESC and RendererViewProperties */
-		struct RendererViewData
+		/** Data shared between RendererViewCreateInformation and RendererViewProperties */
+		struct RendererViewInformation
 		{
-			RendererViewData();
+			RendererViewInformation();
 
 			Matrix4 ViewTransform;
 			Matrix4 ProjTransform;
@@ -151,8 +151,8 @@ namespace b3d
 			ConvexVolume CullFrustum;
 		};
 
-		/** Data shared between RENDERER_VIEW_TARGET_DESC and RendererViewTargetProperties */
-		struct RendererViewTargetData
+		/** Data shared between RendererViewTargetCreateInformation and RendererViewTargetProperties */
+		struct RendererViewTargetInformation
 		{
 			SPtr<RenderTarget> Target;
 
@@ -169,24 +169,24 @@ namespace b3d
 		};
 
 		/** Set of properties describing the output render target used by a renderer view. */
-		struct RENDERER_VIEW_TARGET_DESC : RendererViewTargetData
+		struct RendererViewTargetCreateInformation : RendererViewTargetInformation
 		{};
 
 		/** Set of properties used describing a specific view that the renderer can render. */
-		struct RENDERER_VIEW_DESC : RendererViewData
+		struct RendererViewCreateInformation : RendererViewInformation
 		{
-			RENDERER_VIEW_TARGET_DESC Target;
+			RendererViewTargetCreateInformation Target;
 
 			StateReduction StateReduction;
 			Camera* SceneCamera;
 		};
 
 		/** Set of properties used describing a specific view that the renderer can render. */
-		struct RendererViewProperties : RendererViewData
+		struct RendererViewProperties : RendererViewInformation
 		{
 			RendererViewProperties() {}
 
-			RendererViewProperties(const RENDERER_VIEW_DESC& src);
+			RendererViewProperties(const RendererViewCreateInformation& src);
 
 			Matrix4 ViewProjTransform;
 			Matrix4 PrevViewProjTransform;
@@ -194,7 +194,7 @@ namespace b3d
 			Vector2 TemporalJitter{ BsZero };
 			u32 FrameIdx;
 
-			RendererViewTargetData Target;
+			RendererViewTargetInformation Target;
 		};
 
 		/** Information whether certain scene objects are visible in a view, per object type. */
@@ -248,7 +248,7 @@ namespace b3d
 		{
 		public:
 			RendererView();
-			RendererView(const RENDERER_VIEW_DESC& desc);
+			RendererView(const RendererViewCreateInformation& desc);
 
 			/** Sets state reduction mode that determines how do render queues group & sort renderables. */
 			void SetStateReductionMode(StateReduction reductionMode);
@@ -260,7 +260,7 @@ namespace b3d
 			void SetTransform(const Vector3& origin, const Vector3& direction, const Matrix4& view, const Matrix4& proj, const ConvexVolume& worldFrustum);
 
 			/** Updates all internal information with new view information. */
-			void SetView(const RENDERER_VIEW_DESC& desc);
+			void SetView(const RendererViewCreateInformation& desc);
 
 			/** Returns a structure describing the view. */
 			const RendererViewProperties& GetProperties() const { return mProperties; }
