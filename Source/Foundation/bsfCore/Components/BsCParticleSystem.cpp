@@ -92,7 +92,9 @@ void CParticleSystem::RestoreInternal()
 {
 	if(mInternal == nullptr)
 	{
-		mInternal = ParticleSystem::Create();
+		const SPtr<SceneInstance>& scene = SceneObject()->GetScene();
+
+		mInternal = ParticleSystem::Create(scene);
 		GetSceneManager().BindActorInternal(mInternal, SceneObject());
 	}
 

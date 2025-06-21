@@ -27,12 +27,19 @@ CSkybox::~CSkybox()
 
 void CSkybox::OnBeginPlay()
 {
+	const SPtr<SceneInstance>& scene = SceneObject()->GetScene();
+
 	// If mInternal already exists this means this object was deserialized,
 	// so all we need to do is initialize it.
 	if(mInternal != nullptr)
+	{
+		mInternal->SetScene(scene);
 		mInternal->Initialize();
+	}
 	else
-		mInternal = Skybox::Create();
+	{
+		mInternal = Skybox::Create(scene);
+	}
 
 	GetSceneManager().BindActorInternal(mInternal, SceneObject());
 }

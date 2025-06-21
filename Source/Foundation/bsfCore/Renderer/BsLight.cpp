@@ -20,8 +20,8 @@ TLight<IsRenderProxy>::TLight()
 }
 
 template<bool IsRenderProxy>
-TLight<IsRenderProxy>::TLight(LightType type, Color color, float intensity, float attRadius, float srcRadius, bool castsShadows, Degree spotAngle, Degree spotFalloffAngle)
-	: mType(type), mCastsShadows(castsShadows), mColor(color), mAttRadius(attRadius), mSourceRadius(srcRadius), mIntensity(intensity), mSpotAngle(spotAngle), mSpotFalloffAngle(spotFalloffAngle), mAutoAttenuation(false), mShadowBias(0.5f)
+TLight<IsRenderProxy>::TLight(const SPtr<SceneInstanceType>& scene, LightType type, Color color, float intensity, float attRadius, float srcRadius, bool castsShadows, Degree spotAngle, Degree spotFalloffAngle)
+	: Super(scene), mType(type), mCastsShadows(castsShadows), mColor(color), mAttRadius(attRadius), mSourceRadius(srcRadius), mIntensity(intensity), mSpotAngle(spotAngle), mSpotFalloffAngle(spotFalloffAngle), mAutoAttenuation(false), mShadowBias(0.5f)
 {
 	UpdateAttenuationRange();
 }
@@ -207,17 +207,17 @@ namespace b3d
 	B3D_SYNC_BLOCK_END
 }
 
-Light::Light(LightType type, Color color, float intensity, float attRadius, float srcRadius, bool castsShadows, Degree spotAngle, Degree spotFalloffAngle)
-	: TLight(type, color, intensity, attRadius, srcRadius, castsShadows, spotAngle, spotFalloffAngle)
+Light::Light(const SPtr<SceneInstance>& scene, LightType type, Color color, float intensity, float attRadius, float srcRadius, bool castsShadows, Degree spotAngle, Degree spotFalloffAngle)
+	: TLight(scene, type, color, intensity, attRadius, srcRadius, castsShadows, spotAngle, spotFalloffAngle)
 {
 	// Calling virtual method is okay here because this is the most derived type
 	UpdateBounds();
 }
 
-SPtr<Light> Light::Create(LightType type, Color color, float intensity, float attRadius, bool castsShadows, Degree spotAngle, Degree spotFalloffAngle)
+SPtr<Light> Light::Create(const SPtr<SceneInstance>& scene, LightType type, Color color, float intensity, float attRadius, bool castsShadows, Degree spotAngle, Degree spotFalloffAngle)
 {
 	Light* light = new(B3DAllocate<Light>())
-		Light(type, color, intensity, attRadius, 0.0f, castsShadows, spotAngle, spotFalloffAngle);
+		Light(scene, type, color, intensity, attRadius, 0.0f, castsShadows, spotAngle, spotFalloffAngle);
 	SPtr<Light> lightShared = B3DMakeSharedFromExisting<Light>(light);
 	lightShared->SetShared(lightShared);
 	lightShared->Initialize();
@@ -237,7 +237,7 @@ SPtr<Light> Light::CreateEmpty()
 SPtr<render::RenderProxy> Light::CreateRenderProxy() const
 {
 	render::Light* renderProxy = new(B3DAllocate<render::Light>())
-		render::Light(mType, mColor, mIntensity, mAttRadius, mSourceRadius, mCastsShadows, mSpotAngle, mSpotFalloffAngle);
+		render::Light(B3DGetRenderProxy(mSceneInstance), mType, mColor, mIntensity, mAttRadius, mSourceRadius, mCastsShadows, mSpotAngle, mSpotFalloffAngle);
 	SPtr<render::Light> renderProxyShared = B3DMakeSharedFromExisting<render::Light>(renderProxy);
 	renderProxyShared->SetShared(renderProxyShared);
 
@@ -273,8 +273,8 @@ namespace b3d { namespace render
 const u32 Light::kLightConeNumSides = 20;
 const u32 Light::kLightConeNumSlices = 10;
 
-Light::Light(LightType type, Color color, float intensity, float attRadius, float srcRadius, bool castsShadows, Degree spotAngle, Degree spotFalloffAngle)
-	: TLight(type, color, intensity, attRadius, srcRadius, castsShadows, spotAngle, spotFalloffAngle), mRendererId(0)
+Light::Light(const SPtr<SceneInstance>& scene, LightType type, Color color, float intensity, float attRadius, float srcRadius, bool castsShadows, Degree spotAngle, Degree spotFalloffAngle)
+	: TLight(scene, type, color, intensity, attRadius, srcRadius, castsShadows, spotAngle, spotFalloffAngle), mRendererId(0)
 {
 }
 

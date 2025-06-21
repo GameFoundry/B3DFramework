@@ -37,8 +37,11 @@ namespace b3d
 	{
 		using MeshType = CoreVariantHandleType<Mesh, IsRenderProxy>;
 		using MaterialType = CoreVariantHandleType<Material, IsRenderProxy>;
+		using SceneInstanceType = CoreVariantType<SceneInstance, IsRenderProxy>;
+		using Super = CoreVariantType<SceneActor, IsRenderProxy>;
 
 	public:
+		TRenderable(const SPtr<SceneInstanceType>& scene);
 		TRenderable();
 		virtual ~TRenderable() = default;
 
@@ -177,14 +180,14 @@ namespace b3d
 		bool IsAnimated() const { return mAnimation != nullptr; }
 
 		/**	Creates a new renderable handler instance. */
-		static SPtr<Renderable> Create();
+		static SPtr<Renderable> Create(const SPtr<SceneInstance>& sceneInstance);
 
 		/**
 		 * @name Internal
 		 * @{
 		 */
 
-		void UpdateStateInternal(const SceneObject& so, bool force = false) override;
+		void UpdateStateFromSceneObject(const SceneObject& so, bool force = false) override;
 		void Initialize() override;
 
 		/** @} */
@@ -192,6 +195,9 @@ namespace b3d
 		friend class render::Renderable;
 		struct FullSyncPacket;
 		struct ActorSyncPacket;
+
+		Renderable() = default; // Serialization only
+		Renderable(const SPtr<SceneInstance>& sceneInstance);
 		
 		SPtr<render::RenderProxy> CreateRenderProxy() const override;
 
@@ -276,7 +282,8 @@ namespace b3d
 		protected:
 			friend class b3d::Renderable;
 
-			Renderable();
+			Renderable(const SPtr<SceneInstance>& scene);
+			Renderable() = default;
 
 			void Initialize() override;
 			void SyncFromCoreObject(const CoreSyncData& data, FrameAllocator& allocator) override;
@@ -284,9 +291,9 @@ namespace b3d
 			/** Creates any buffers required for renderable animation. Should be called whenever animation properties change. */
 			void CreateAnimationBuffers();
 
-			u32 mRendererId;
-			u64 mAnimationId;
-			u32 mMorphShapeVersion;
+			u32 mRendererId = 0;
+			u64 mAnimationId = (u64)-1;
+			u32 mMorphShapeVersion = 0;
 
 			SPtr<GpuBuffer> mBoneMatrixBuffer;
 			SPtr<GpuBuffer> mBonePrevMatrixBuffer;

@@ -24,20 +24,26 @@ CLight::~CLight()
 
 Sphere CLight::GetBounds() const
 {
-	mInternal->UpdateStateInternal(*SO());
+	mInternal->UpdateStateFromSceneObject(*SO());
 
 	return mInternal->GetBounds();
 }
 
 void CLight::OnBeginPlay()
 {
+	const SPtr<SceneInstance>& scene = SceneObject()->GetScene();
+
 	// If mInternal already exists this means this object was deserialized,
 	// so all we need to do is initialize it.
 	if(mInternal != nullptr)
+	{
+		mInternal->SetScene(scene);
 		mInternal->Initialize();
+	}
 	else
 	{
 		mInternal = Light::Create(
+			scene,
 			mType,
 			mColor,
 			mIntensity,

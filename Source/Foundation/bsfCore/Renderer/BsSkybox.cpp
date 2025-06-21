@@ -26,10 +26,16 @@ namespace b3d
 	B3D_SYNC_BLOCK_END
 }
 
+template <bool IsRenderProxy>
+TSkybox<IsRenderProxy>::TSkybox(const SPtr<SceneInstanceType>& scene)
+	:Super(scene)
+{ }
+
 template TSkybox<true>;
 template TSkybox<false>;
 
-Skybox::Skybox()
+Skybox::Skybox(const SPtr<SceneInstance>& scene)
+	:TSkybox(scene)
 {
 	// This shouldn't normally happen, as filtered textures are generated when a radiance texture is assigned, but
 	// we check for it anyway (something could have gone wrong).
@@ -39,6 +45,10 @@ Skybox::Skybox()
 			FilterTexture();
 	}
 }
+
+Skybox::Skybox()
+	:Skybox(nullptr)
+{ }
 
 Skybox::~Skybox()
 {
@@ -138,12 +148,14 @@ SPtr<Skybox> Skybox::CreateEmpty()
 	return skyboxShared;
 }
 
-SPtr<Skybox> Skybox::Create()
+SPtr<Skybox> Skybox::Create(const SPtr<SceneInstance>& scene)
 {
-	SPtr<Skybox> skybox = CreateEmpty();
-	skybox->Initialize();
+	Skybox* skybox = new(B3DAllocate<Skybox>()) Skybox(scene);
+	SPtr<Skybox> skyboxShared = B3DMakeSharedFromExisting<Skybox>(skybox);
+	skyboxShared->SetShared(skyboxShared);
+	skyboxShared->Initialize();
 
-	return skybox;
+	return skyboxShared;
 }
 
 SPtr<render::RenderProxy> Skybox::CreateRenderProxy() const
@@ -152,7 +164,7 @@ SPtr<render::RenderProxy> Skybox::CreateRenderProxy() const
 	SPtr<render::Texture> filteredRadiance = B3DGetRenderProxy(mFilteredRadiance);
 	SPtr<render::Texture> irradiance = B3DGetRenderProxy(mIrradiance);
 
-	render::Skybox* renderProxy = new(B3DAllocate<render::Skybox>()) render::Skybox(radiance, filteredRadiance, irradiance);
+	render::Skybox* renderProxy = new(B3DAllocate<render::Skybox>()) render::Skybox(B3DGetRenderProxy(mSceneInstance), radiance, filteredRadiance, irradiance);
 	SPtr<render::Skybox> renderProxyShared = B3DMakeSharedFromExisting<render::Skybox>(renderProxy);
 	renderProxyShared->SetShared(renderProxyShared);
 
@@ -185,8 +197,8 @@ RTTIType* Skybox::GetRtti() const
 
 namespace b3d { namespace render
 {
-Skybox::Skybox(const SPtr<Texture>& radiance, const SPtr<Texture>& filteredRadiance, const SPtr<Texture>& irradiance)
-	: mFilteredRadiance(filteredRadiance), mIrradiance(irradiance)
+Skybox::Skybox(const SPtr<SceneInstance>& scene, const SPtr<Texture>& radiance, const SPtr<Texture>& filteredRadiance, const SPtr<Texture>& irradiance)
+	: TSkybox(scene), mFilteredRadiance(filteredRadiance), mIrradiance(irradiance)
 {
 	mTexture = radiance;
 }

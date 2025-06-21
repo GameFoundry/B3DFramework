@@ -118,7 +118,8 @@ RTTIType* ParticleGpuSimulationSettings::GetRtti() const
 	return GetRttiStatic();
 }
 
-ParticleSystem::ParticleSystem()
+ParticleSystem::ParticleSystem(const SPtr<SceneInstance>& scene)
+	:SceneActor(scene)
 {
 	mId = ParticleManager::Instance().RegisterParticleSystem(this);
 	mSeed = rand();
@@ -132,6 +133,10 @@ ParticleSystem::ParticleSystem()
 
 	mEmitters = { emitter };
 }
+
+ParticleSystem::ParticleSystem()
+	:ParticleSystem(nullptr)
+{ }
 
 ParticleSystem::~ParticleSystem()
 {
@@ -421,7 +426,7 @@ float ParticleSystem::AdvanceTimeInternal(float time, float timeDelta, float dur
 
 SPtr<render::RenderProxy> ParticleSystem::CreateRenderProxy() const
 {
-	render::ParticleSystem* renderProxy = new(B3DAllocate<render::ParticleSystem>()) render::ParticleSystem(mId);
+	render::ParticleSystem* renderProxy = new(B3DAllocate<render::ParticleSystem>()) render::ParticleSystem(B3DGetRenderProxy(mScene), mId);
 	SPtr<render::ParticleSystem> renderProxyShared = B3DMakeSharedFromExisting<render::ParticleSystem>(renderProxy);
 	renderProxyShared->SetShared(renderProxyShared);
 
@@ -460,9 +465,11 @@ void ParticleSystem::GetCoreDependencies(Vector<CoreObject*>& dependencies)
 		dependencies.push_back(mSettings.Material.Get());
 }
 
-SPtr<ParticleSystem> ParticleSystem::Create()
+SPtr<ParticleSystem> ParticleSystem::Create(const SPtr<SceneInstance>& scene)
 {
-	SPtr<ParticleSystem> ptr = CreateEmpty();
+	ParticleSystem* rawPtr = new(B3DAllocate<ParticleSystem>()) ParticleSystem(scene);
+	SPtr<ParticleSystem> ptr = B3DMakeSharedFromExisting<ParticleSystem>(rawPtr);
+	ptr->SetShared(ptr);
 	ptr->Initialize();
 
 	return ptr;

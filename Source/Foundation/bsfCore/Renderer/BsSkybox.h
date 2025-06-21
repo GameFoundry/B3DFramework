@@ -31,7 +31,11 @@ namespace b3d
 	{
 	public:
 		using TextureType = CoreVariantHandleType<Texture, IsRenderProxy>;
+		using SceneInstanceType = CoreVariantType<SceneInstance, IsRenderProxy>;
+		using Super = CoreVariantType<SceneActor, IsRenderProxy>;
 
+		TSkybox() = default;
+		TSkybox(const SPtr<SceneInstanceType>& scene);
 		virtual ~TSkybox() = default;
 
 		/**
@@ -78,12 +82,13 @@ namespace b3d
 		void SetTexture(const HTexture& texture);
 
 		/** Creates a new skybox. */
-		static SPtr<Skybox> Create();
+		static SPtr<Skybox> Create(const SPtr<SceneInstance>& scene);
 	
 	protected:
 		friend class render::Skybox;
 		struct SyncPacket;
 
+		Skybox(const SPtr<SceneInstance>& scene);
 		Skybox();
 
 		/**
@@ -134,7 +139,7 @@ namespace b3d
 		protected:
 			friend class b3d::Skybox;
 
-			Skybox(const SPtr<Texture>& radiance, const SPtr<Texture>& filteredRadiance, const SPtr<Texture>& irradiance);
+			Skybox(const SPtr<SceneInstance>& scene, const SPtr<Texture>& radiance, const SPtr<Texture>& filteredRadiance, const SPtr<Texture>& irradiance);
 
 			void Initialize() override;
 			void SyncFromCoreObject(const CoreSyncData& data, FrameAllocator& allocator) override;

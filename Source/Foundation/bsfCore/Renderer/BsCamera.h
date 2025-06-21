@@ -302,8 +302,11 @@ namespace b3d
 	{
 		using ViewportType = CoreVariantType<Viewport, IsRenderProxy>;
 		using RenderSettingsType = CoreVariantType<RenderSettings, IsRenderProxy>;
+		using SceneInstanceType = CoreVariantType<SceneInstance, IsRenderProxy>;
+		using Super = CoreVariantType<SceneActor, IsRenderProxy>;
 
 	public:
+		TCamera(const SPtr<SceneInstanceType>& scene);
 		TCamera();
 		virtual ~TCamera() = default;
 
@@ -536,7 +539,7 @@ namespace b3d
 		bool IsMain() const { return mMain; }
 
 		/**	Creates a new camera that renders to the specified portion of the provided render target. */
-		static SPtr<Camera> Create();
+		static SPtr<Camera> Create(const SPtr<SceneInstance>& scene);
 
 		/**
 		 * @name Internal
@@ -553,6 +556,9 @@ namespace b3d
 		struct TransformSyncPacket;
 
 		friend class render::Camera;
+
+		Camera() = default; // Serialization only
+		Camera(const SPtr<SceneInstance>& scene);
 
 		/** @copydoc CameraBase */
 		Area2I GetViewportRect() const override;
@@ -595,9 +601,8 @@ namespace b3d
 		protected:
 			friend class b3d::Camera;
 
-			Camera(SPtr<RenderTarget> target = nullptr, float left = 0.0f, float top = 0.0f, float width = 1.0f, float height = 1.0f);
-
-			Camera(const SPtr<Viewport>& viewport);
+			Camera(const SPtr<SceneInstance>& scene, const SPtr<RenderTarget>& target = nullptr, float left = 0.0f, float top = 0.0f, float width = 1.0f, float height = 1.0f);
+			Camera(const SPtr<SceneInstance>& scene, const SPtr<Viewport>& viewport);
 
 			void Initialize() override;
 			Area2I GetViewportRect() const override;

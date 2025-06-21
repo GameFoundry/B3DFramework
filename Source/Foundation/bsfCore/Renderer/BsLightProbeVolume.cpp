@@ -18,8 +18,8 @@
 
 using namespace b3d;
 
-LightProbeVolume::LightProbeVolume(const AABox& volume, const Vector3I& cellCount)
-	: mVolume(volume), mCellCount(cellCount)
+LightProbeVolume::LightProbeVolume(const SPtr<SceneInstance>& scene, const AABox& volume, const Vector3I& cellCount)
+	: SceneActor(scene), mVolume(volume), mCellCount(cellCount)
 {
 	Reset();
 }
@@ -276,9 +276,9 @@ void LightProbeVolume::UpdateCoefficients()
 	}
 }
 
-SPtr<LightProbeVolume> LightProbeVolume::Create(const AABox& volume, const Vector3I& cellCount)
+SPtr<LightProbeVolume> LightProbeVolume::Create(const SPtr<SceneInstance>& scene, const AABox& volume, const Vector3I& cellCount)
 {
-	LightProbeVolume* probeVolume = new(B3DAllocate<LightProbeVolume>()) LightProbeVolume(volume, cellCount);
+	LightProbeVolume* probeVolume = new(B3DAllocate<LightProbeVolume>()) LightProbeVolume(scene, volume, cellCount);
 	SPtr<LightProbeVolume> probeVolumePtr = B3DMakeSharedFromExisting<LightProbeVolume>(probeVolume);
 	probeVolumePtr->SetShared(probeVolumePtr);
 	probeVolumePtr->Initialize();
@@ -297,7 +297,7 @@ SPtr<LightProbeVolume> LightProbeVolume::CreateEmpty()
 
 SPtr<render::RenderProxy> LightProbeVolume::CreateRenderProxy() const
 {
-	render::LightProbeVolume* renderProxy = new(B3DAllocate<render::LightProbeVolume>()) render::LightProbeVolume(mProbes);
+	render::LightProbeVolume* renderProxy = new(B3DAllocate<render::LightProbeVolume>()) render::LightProbeVolume(B3DGetRenderProxy(mSceneInstance), mProbes);
 	SPtr<render::LightProbeVolume> renderProxyShared = B3DMakeSharedFromExisting<render::LightProbeVolume>(renderProxy);
 	renderProxyShared->SetShared(renderProxyShared);
 
@@ -355,7 +355,8 @@ RTTIType* LightProbeVolume::GetRtti() const
 
 namespace b3d { namespace render
 {
-LightProbeVolume::LightProbeVolume(const UnorderedMap<u32, b3d::LightProbeVolume::ProbeInfo>& probes)
+LightProbeVolume::LightProbeVolume(const SPtr<SceneInstance>& scene, const UnorderedMap<u32, b3d::LightProbeVolume::ProbeInfo>& probes)
+	:SceneActor(scene)
 {
 	mInitCoefficients.resize(probes.size());
 	mProbePositions.resize(probes.size());

@@ -19,8 +19,8 @@
 using namespace b3d;
 
 template<bool IsRenderProxy>
-TReflectionProbe<IsRenderProxy>::TReflectionProbe(ReflectionProbeType type, float radius, const Vector3& extents)
-	: mType(type), mRadius(radius), mExtents(extents)
+TReflectionProbe<IsRenderProxy>::TReflectionProbe(const SPtr<SceneInstanceType>& scene, ReflectionProbeType type, float radius, const Vector3& extents)
+	: Super(scene), mType(type), mRadius(radius), mExtents(extents)
 {}
 
 template<bool IsRenderProxy>
@@ -60,8 +60,8 @@ namespace b3d
 	B3D_SYNC_BLOCK_END
 }
 
-ReflectionProbe::ReflectionProbe(ReflectionProbeType type, float radius, const Vector3& extents)
-	: TReflectionProbe(type, radius, extents)
+ReflectionProbe::ReflectionProbe(const SPtr<SceneInstance>& scene, ReflectionProbeType type, float radius, const Vector3& extents)
+	: TReflectionProbe(scene, type, radius, extents)
 {
 	// Calling virtual method is okay here because this is the most derived type
 	UpdateBounds();
@@ -171,9 +171,9 @@ void ReflectionProbe::CaptureAndFilter()
 	render::GetRenderer()->AddTask(mRendererTask);
 }
 
-SPtr<ReflectionProbe> ReflectionProbe::CreateSphere(float radius)
+SPtr<ReflectionProbe> ReflectionProbe::CreateSphere(const SPtr<SceneInstance>& scene, float radius)
 {
-	ReflectionProbe* probe = new(B3DAllocate<ReflectionProbe>()) ReflectionProbe(ReflectionProbeType::Sphere, radius, Vector3::kZero);
+	ReflectionProbe* probe = new(B3DAllocate<ReflectionProbe>()) ReflectionProbe(scene, ReflectionProbeType::Sphere, radius, Vector3::kZero);
 	SPtr<ReflectionProbe> probePtr = B3DMakeSharedFromExisting<ReflectionProbe>(probe);
 	probePtr->SetShared(probePtr);
 	probePtr->Initialize();
@@ -181,9 +181,9 @@ SPtr<ReflectionProbe> ReflectionProbe::CreateSphere(float radius)
 	return probePtr;
 }
 
-SPtr<ReflectionProbe> ReflectionProbe::CreateBox(const Vector3& extents)
+SPtr<ReflectionProbe> ReflectionProbe::CreateBox(const SPtr<SceneInstance>& scene, const Vector3& extents)
 {
-	ReflectionProbe* probe = new(B3DAllocate<ReflectionProbe>()) ReflectionProbe(ReflectionProbeType::Box, 1.0f, extents);
+	ReflectionProbe* probe = new(B3DAllocate<ReflectionProbe>()) ReflectionProbe(scene, ReflectionProbeType::Box, 1.0f, extents);
 	SPtr<ReflectionProbe> probePtr = B3DMakeSharedFromExisting<ReflectionProbe>(probe);
 	probePtr->SetShared(probePtr);
 	probePtr->Initialize();
@@ -204,7 +204,7 @@ SPtr<render::RenderProxy> ReflectionProbe::CreateRenderProxy() const
 {
 	SPtr<render::Texture> filteredTexture = B3DGetRenderProxy(mFilteredTexture);
 
-	render::ReflectionProbe* renderProxy = new(B3DAllocate<render::ReflectionProbe>()) render::ReflectionProbe(mType, mRadius, mExtents, filteredTexture);
+	render::ReflectionProbe* renderProxy = new(B3DAllocate<render::ReflectionProbe>()) render::ReflectionProbe(B3DGetRenderProxy(mSceneInstance), mType, mRadius, mExtents, filteredTexture);
 	SPtr<render::ReflectionProbe> renderProxyShared = B3DMakeSharedFromExisting<render::ReflectionProbe>(renderProxy);
 	renderProxyShared->SetShared(renderProxyShared);
 
@@ -240,8 +240,8 @@ template class TReflectionProbe<false>;
 
 namespace b3d { namespace render
 {
-ReflectionProbe::ReflectionProbe(ReflectionProbeType type, float radius, const Vector3& extents, const SPtr<Texture>& filteredTexture)
-	: TReflectionProbe(type, radius, extents), mRendererId(0)
+ReflectionProbe::ReflectionProbe(const SPtr<SceneInstance>& scene, ReflectionProbeType type, float radius, const Vector3& extents, const SPtr<Texture>& filteredTexture)
+	: TReflectionProbe(scene, type, radius, extents), mRendererId(0)
 {
 	mFilteredTexture = filteredTexture;
 }

@@ -627,11 +627,17 @@ Vector3 TCamera<IsRenderProxy>::UnprojectPoint(const Vector3& point) const
 }
 
 template <bool IsRenderProxy>
-TCamera<IsRenderProxy>::TCamera()
-	:mRecalcView(true)
+TCamera<IsRenderProxy>::TCamera(const SPtr<SceneInstanceType>& scene)
+	:Super(scene), mRecalcView(true)
 {
 	mRenderSettings = B3DMakeShared<RenderSettingsType>();
 }
+
+template <bool IsRenderProxy>
+TCamera<IsRenderProxy>::TCamera()
+	:TCamera(nullptr)
+{ }
+
 
 template <bool IsRenderProxy>
 void TCamera<IsRenderProxy>::SetTransform(const Transform& transform)
@@ -705,9 +711,13 @@ void TCamera<IsRenderProxy>::UpdateView() const
 template class TCamera<false>;
 template class TCamera<true>;
 
-SPtr<Camera> Camera::Create()
+Camera::Camera(const SPtr<SceneInstance>& scene)
+	:TCamera(scene)
+{ }
+
+SPtr<Camera> Camera::Create(const SPtr<SceneInstance>& scene)
 {
-	Camera* camera = new(B3DAllocate<Camera>()) Camera();
+	Camera* camera = new(B3DAllocate<Camera>()) Camera(scene);
 	SPtr<Camera> cameraShared = B3DMakeSharedFromExisting<Camera>(camera);
 	cameraShared->SetShared(cameraShared);
 	cameraShared->Initialize();
@@ -726,7 +736,7 @@ SPtr<Camera> Camera::CreateEmpty()
 
 SPtr<render::RenderProxy> Camera::CreateRenderProxy() const
 {
-	render::Camera* renderProxy = new(B3DAllocate<render::Camera>()) render::Camera(B3DGetRenderProxy(mViewport));
+	render::Camera* renderProxy = new(B3DAllocate<render::Camera>()) render::Camera(B3DGetRenderProxy(mSceneInstance), B3DGetRenderProxy(mViewport));
 	SPtr<render::Camera> renderProxyShared = B3DMakeSharedFromExisting<render::Camera>(renderProxy);
 	renderProxyShared->SetShared(renderProxyShared);
 
@@ -838,22 +848,22 @@ RTTIType* Camera::GetRtti() const
 
 namespace b3d { namespace render
 {
-Camera::~Camera()
-{
-	const SPtr<RendererScene>& rendererScene = mSceneInstance->GetRendererScene();
-	rendererScene->UnregisterCamera(this);
-}
-
-Camera::Camera(SPtr<RenderTarget> target, float left, float top, float width, float height)
-	: mRendererId(0)
+Camera::Camera(const SPtr<SceneInstance>& scene, const SPtr<RenderTarget>& target, float left, float top, float width, float height)
+	: TCamera(scene), mRendererId(0)
 {
 	mViewport = Viewport::Create(target, left, top, width, height);
 }
 
-Camera::Camera(const SPtr<Viewport>& viewport)
-	: mRendererId(0)
+Camera::Camera(const SPtr<SceneInstance>& scene, const SPtr<Viewport>& viewport)
+	: TCamera(scene), mRendererId(0)
 {
 	mViewport = viewport;
+}
+
+Camera::~Camera()
+{
+	const SPtr<RendererScene>& rendererScene = mSceneInstance->GetRendererScene();
+	rendererScene->UnregisterCamera(this);
 }
 
 void Camera::Initialize()

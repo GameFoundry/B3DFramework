@@ -516,7 +516,7 @@ namespace b3d
 		void Stop();
 
 		/** Creates a new empty ParticleSystem object. */
-		static SPtr<ParticleSystem> Create();
+		static SPtr<ParticleSystem> Create(const SPtr<SceneInstance>& scene);
 
 		/**
 		 * @name Internal
@@ -566,6 +566,7 @@ namespace b3d
 			Playing
 		};
 
+		ParticleSystem(const SPtr<SceneInstance>& scene);
 		ParticleSystem();
 
 		/**
@@ -694,8 +695,8 @@ namespace b3d
 		private:
 			friend class b3d::ParticleSystem;
 
-			ParticleSystem(u32 id)
-				: mId(id)
+			ParticleSystem(const SPtr<SceneInstance>& scene, u32 id)
+				: SceneActor(scene), mId(id)
 			{}
 
 			void SyncFromCoreObject(const CoreSyncData& data, FrameAllocator& allocator) override;

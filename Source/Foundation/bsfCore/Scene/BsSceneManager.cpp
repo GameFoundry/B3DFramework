@@ -201,7 +201,7 @@ void SceneManager::LoadMainScene(const HScene& scene)
 void SceneManager::BindActorInternal(const SPtr<SceneActor>& actor, const HSceneObject& so)
 {
 	mBoundActors[actor.get()] = BoundActorData(actor, so);
-	actor->UpdateStateInternal(*so, true);
+	actor->UpdateStateFromSceneObject(*so, true);
 }
 
 void SceneManager::UnbindActorInternal(const SPtr<SceneActor>& actor)
@@ -260,7 +260,7 @@ void SceneManager::NotifyMainCameraStateChangedInternal(const SPtr<Camera>& came
 void SceneManager::UpdateCoreObjectTransformsInternal()
 {
 	for(auto& entry : mBoundActors)
-		entry.second.Actor->UpdateStateInternal(*entry.second.So);
+		entry.second.Actor->UpdateStateFromSceneObject(*entry.second.So);
 }
 
 SPtr<Camera> SceneManager::GetMainCamera() const

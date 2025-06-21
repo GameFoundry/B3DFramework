@@ -37,9 +37,11 @@ namespace b3d
 	template<bool IsRenderProxy>
 	class B3D_CORE_EXPORT TLight : public CoreVariantType<SceneActor, IsRenderProxy>
 	{
+		using SceneInstanceType = CoreVariantType<SceneInstance, IsRenderProxy>;
+		using Super = CoreVariantType<SceneActor, IsRenderProxy>;
 	public:
 		TLight();
-		TLight(LightType type, Color color, float intensity, float attRadius, float srcRadius, bool castsShadows, Degree spotAngle, Degree spotFalloffAngle);
+		TLight(const SPtr<SceneInstanceType>& scene, LightType type, Color color, float intensity, float attRadius, float srcRadius, bool castsShadows, Degree spotAngle, Degree spotFalloffAngle);
 		virtual ~TLight() = default;
 
 		/**	Determines the type of the light. */
@@ -213,23 +215,24 @@ namespace b3d
 		/**
 		 * Creates a new light with provided settings.
 		 *
-		 * @param[in]	type				Type of light that determines how are the rest of the parameters interpreted.
-		 * @param[in]	color				Color of the light.
-		 * @param[in]	intensity			Power of the light source. This will be luminous flux for radial & spot lights,
-		 *									luminance for directional lights with no area, and illuminance for directional
-		 *									lights with area (non-zero source radius).
-		 * @param[in]	attRadius			Radius at which light's influence fades out to zero.
-		 * @param[in]	castsShadows		Determines whether the light casts shadows.
-		 * @param[in]	spotAngle			Total angle covered by a spot light.
-		 * @param[in]	spotFalloffAngle	Spot light angle at which falloff starts. Must be smaller than total angle.
+		 * @param	scene				Scene in which to create the light.
+		 * @param	type				Type of light that determines how are the rest of the parameters interpreted.
+		 * @param	color				Color of the light.
+		 * @param	intensity			Power of the light source. This will be luminous flux for radial & spot lights,
+		 *								luminance for directional lights with no area, and illuminance for directional
+		 *								lights with area (non-zero source radius).
+		 * @param	attRadius			Radius at which light's influence fades out to zero.
+		 * @param	castsShadows		Determines whether the light casts shadows.
+		 * @param	spotAngle			Total angle covered by a spot light.
+		 * @param	spotFalloffAngle	Spot light angle at which falloff starts. Must be smaller than total angle.
 		 */
-		static SPtr<Light> Create(LightType type = LightType::Radial, Color color = Color::kWhite, float intensity = 100.0f, float attRadius = 10.0f, bool castsShadows = false, Degree spotAngle = Degree(45), Degree spotFalloffAngle = Degree(40));
+		static SPtr<Light> Create(const SPtr<SceneInstance>& scene, LightType type = LightType::Radial, Color color = Color::kWhite, float intensity = 100.0f, float attRadius = 10.0f, bool castsShadows = false, Degree spotAngle = Degree(45), Degree spotFalloffAngle = Degree(40));
 
 	protected:
 		friend class render::Light;
 		struct SyncPacket;
 
-		Light(LightType type, Color color, float intensity, float attRadius, float srcRadius, bool castsShadows, Degree spotAngle, Degree spotFalloffAngle);
+		Light(const SPtr<SceneInstance>& scene, LightType type, Color color, float intensity, float attRadius, float srcRadius, bool castsShadows, Degree spotAngle, Degree spotFalloffAngle);
 
 		SPtr<render::RenderProxy> CreateRenderProxy() const override;
 		void MarkSceneActorRenderProxyDataDirty(ActorDirtyFlag flag = ActorDirtyFlag::Everything) override;
@@ -270,7 +273,7 @@ namespace b3d
 		protected:
 			friend class b3d::Light;
 
-			Light(LightType type, Color color, float intensity, float attRadius, float srcRadius, bool castsShadows, Degree spotAngle, Degree spotFalloffAngle);
+			Light(const SPtr<SceneInstance>& scene, LightType type, Color color, float intensity, float attRadius, float srcRadius, bool castsShadows, Degree spotAngle, Degree spotFalloffAngle);
 
 			void Initialize() override;
 			void SyncFromCoreObject(const CoreSyncData& data, FrameAllocator& allocator) override;

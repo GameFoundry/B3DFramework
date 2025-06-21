@@ -21,9 +21,11 @@ namespace b3d
 	{
 	public:
 		using MaterialType = CoreVariantHandleType<Material, IsRenderProxy>;
+		using SceneInstanceType = CoreVariantType<SceneInstance, IsRenderProxy>;
+		using Super = CoreVariantType<SceneActor, IsRenderProxy>;
 
 		TDecal();
-		TDecal(const MaterialType& material, const Vector2& size, float maxDistance);
+		TDecal(const SPtr<SceneInstanceType>& scene, const MaterialType& material, const Vector2& size, float maxDistance);
 		virtual ~TDecal() = default;
 
 		/** Width and height of the decal. */
@@ -140,19 +142,20 @@ namespace b3d
 		/**
 		 * Creates a new decal.
 		 *
-		 * @param[in]	material		Material to use when rendering the decal.
-		 * @param[in]	size			Size of the decal in world units.
-		 * @param[in]	maxDistance		Maximum distance at which will the decal be visible (from the current decal origin,
-		 *								along the negative Z axis).
-		 * @returns						New decal object.
+		 * @param	scene			Scene to create the decal in.
+		 * @param	material		Material to use when rendering the decal.
+		 * @param	size			Size of the decal in world units.
+		 * @param	maxDistance		Maximum distance at which will the decal be visible (from the current decal origin,
+	 *								along the negative Z axis).
+		 * @returns					New decal object.
 		 */
-		static SPtr<Decal> Create(const HMaterial& material, const Vector2& size = Vector2::kOne, float maxDistance = 10.0f);
+		static SPtr<Decal> Create(const SPtr<SceneInstance>& scene, const HMaterial& material, const Vector2& size = Vector2::kOne, float maxDistance = 10.0f);
 
 	protected:
 		friend render::Decal;
 		struct SyncPacket;
 
-		Decal(const HMaterial& material, const Vector2& size, float maxDistance);
+		Decal(const SPtr<SceneInstance>& scene, const HMaterial& material, const Vector2& size, float maxDistance);
 
 		SPtr<render::RenderProxy> CreateRenderProxy() const override;
 		void GetCoreDependencies(Vector<CoreObject*>& dependencies) override;
@@ -191,7 +194,7 @@ namespace b3d
 		protected:
 			friend class b3d::Decal;
 
-			Decal(const SPtr<Material>& material, const Vector2& size, float maxDistance);
+			Decal(const SPtr<SceneInstance>& scene, const SPtr<Material>& material, const Vector2& size, float maxDistance);
 
 			void Initialize() override;
 			void SyncFromCoreObject(const CoreSyncData& data, FrameAllocator& allocator) override;

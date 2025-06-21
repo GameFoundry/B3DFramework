@@ -40,22 +40,28 @@ bool IsMeshValid(const SPtr<render::Mesh>& mesh)
 }
 
 template <bool IsRenderProxy>
-TRenderable<IsRenderProxy>::TRenderable()
+TRenderable<IsRenderProxy>::TRenderable(const SPtr<SceneInstanceType>& scene)
+	:Super(scene)
 {
 	mMaterials.resize(1);
 }
 
 template <bool IsRenderProxy>
+TRenderable<IsRenderProxy>::TRenderable()
+	:TRenderable(nullptr)
+{ }
+
+template <bool IsRenderProxy>
 void TRenderable<IsRenderProxy>::SetTransform(const Transform& transform)
 {
-	if(mMobility != ObjectMobility::Movable)
+	if(this->mMobility != ObjectMobility::Movable)
 		return;
 
-	mTransform = transform;
+	this->mTransform = transform;
 	mTfrmMatrix = transform.GetMatrix();
 	mTfrmMatrixNoScale = Matrix4::TRS(transform.GetPosition(), transform.GetRotation(), Vector3::kOne);
 
-	MarkSceneActorRenderProxyDataDirty(ActorDirtyFlag::Transform);
+	this->MarkSceneActorRenderProxyDataDirty(ActorDirtyFlag::Transform);
 }
 
 template <bool IsRenderProxy>
@@ -73,7 +79,7 @@ void TRenderable<IsRenderProxy>::SetMesh(const MeshType& mesh)
 
 	MarkDependenciesDirtyInternal();
 	MarkResourcesDirtyInternal();
-	MarkSceneActorRenderProxyDataDirty();
+	this->MarkSceneActorRenderProxyDataDirty();
 }
 
 template <bool IsRenderProxy>
@@ -86,7 +92,7 @@ void TRenderable<IsRenderProxy>::SetMaterial(u32 idx, const MaterialType& materi
 
 	MarkDependenciesDirtyInternal();
 	MarkResourcesDirtyInternal();
-	MarkSceneActorRenderProxyDataDirty();
+	this->MarkSceneActorRenderProxyDataDirty();
 }
 
 template <bool IsRenderProxy>
@@ -103,7 +109,7 @@ void TRenderable<IsRenderProxy>::SetMaterials(const Vector<MaterialType>& materi
 
 	MarkDependenciesDirtyInternal();
 	MarkResourcesDirtyInternal();
-	MarkSceneActorRenderProxyDataDirty();
+	this->MarkSceneActorRenderProxyDataDirty();
 }
 
 template <bool IsRenderProxy>
@@ -133,7 +139,7 @@ void TRenderable<IsRenderProxy>::SetLayer(u64 layer)
 	}
 
 	mLayer = layer;
-	MarkSceneActorRenderProxyDataDirty();
+	this->MarkSceneActorRenderProxyDataDirty();
 }
 
 template <bool IsRenderProxy>
@@ -142,7 +148,7 @@ void TRenderable<IsRenderProxy>::SetOverrideBounds(const AABox& bounds)
 	mOverrideBounds = bounds;
 
 	if(mUseOverrideBounds)
-		MarkSceneActorRenderProxyDataDirty();
+		this->MarkSceneActorRenderProxyDataDirty();
 }
 
 template <bool IsRenderProxy>
@@ -152,7 +158,7 @@ void TRenderable<IsRenderProxy>::SetUseOverrideBounds(bool enable)
 		return;
 
 	mUseOverrideBounds = enable;
-	MarkSceneActorRenderProxyDataDirty();
+	this->MarkSceneActorRenderProxyDataDirty();
 }
 
 template <bool IsRenderProxy>
@@ -162,7 +168,7 @@ void TRenderable<IsRenderProxy>::SetWriteVelocity(bool enable)
 		return;
 
 	mWriteVelocity = enable;
-	MarkSceneActorRenderProxyDataDirty();
+	this->MarkSceneActorRenderProxyDataDirty();
 }
 
 template <bool IsRenderProxy>
@@ -170,11 +176,15 @@ void TRenderable<IsRenderProxy>::SetCullDistanceFactor(float factor)
 {
 	mCullDistanceFactor = factor;
 
-	MarkSceneActorRenderProxyDataDirty();
+	this->MarkSceneActorRenderProxyDataDirty();
 }
 
 template class TRenderable<false>;
 template class TRenderable<true>;
+
+Renderable::Renderable(const SPtr<SceneInstance>& sceneInstance)
+	: TRenderable(sceneInstance)
+{ }
 
 void Renderable::Initialize()
 {
@@ -230,7 +240,7 @@ Bounds Renderable::GetBounds() const
 
 SPtr<render::RenderProxy> Renderable::CreateRenderProxy() const
 {
-	render::Renderable* renderProxy = new(B3DAllocate<render::Renderable>()) render::Renderable();
+	render::Renderable* renderProxy = new(B3DAllocate<render::Renderable>()) render::Renderable(B3DGetRenderProxy(mSceneInstance));
 	SPtr<render::Renderable> renderProxyShared = B3DMakeSharedFromExisting<render::Renderable>(renderProxy);
 	renderProxyShared->SetShared(renderProxyShared);
 
@@ -276,7 +286,7 @@ void Renderable::RefreshAnimation()
 	}
 }
 
-void Renderable::UpdateStateInternal(const SceneObject& so, bool force)
+void Renderable::UpdateStateFromSceneObject(const SceneObject& so, bool force)
 {
 	u32 curHash = so.GetTransformHash();
 	if(curHash != mHash || force)
@@ -305,7 +315,7 @@ void Renderable::UpdateStateInternal(const SceneObject& so, bool force)
 	}
 
 	// Hash now matches so transform won't be applied twice, so we can just call base class version
-	SceneActor::UpdateStateInternal(so, force);
+	SceneActor::UpdateStateFromSceneObject(so, force);
 }
 
 void Renderable::MarkSceneActorRenderProxyDataDirty(ActorDirtyFlag flag)
@@ -417,9 +427,11 @@ void Renderable::NotifyResourceChanged(const HResource& resource)
 	MarkRenderProxyDataDirty();
 }
 
-SPtr<Renderable> Renderable::Create()
+SPtr<Renderable> Renderable::Create(const SPtr<SceneInstance>& sceneInstance)
 {
-	SPtr<Renderable> handlerPtr = CreateEmpty();
+	Renderable* handler = new(B3DAllocate<Renderable>()) Renderable(sceneInstance);
+	SPtr<Renderable> handlerPtr = B3DMakeSharedFromExisting<Renderable>(handler);
+	handlerPtr->SetShared(handlerPtr);
 	handlerPtr->Initialize();
 
 	return handlerPtr;
@@ -446,10 +458,9 @@ RTTIType* Renderable::GetRtti() const
 
 namespace b3d { namespace render
 {
-Renderable::Renderable()
-	: mRendererId(0), mAnimationId((u64)-1), mMorphShapeVersion(0)
-{
-}
+Renderable::Renderable(const SPtr<SceneInstance>& sceneInstance)
+	: TRenderable(sceneInstance)
+{ }
 
 Renderable::~Renderable()
 {

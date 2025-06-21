@@ -26,12 +26,17 @@ CDecal::~CDecal()
 
 void CDecal::OnBeginPlay()
 {
+	const SPtr<SceneInstance>& scene = SceneObject()->GetScene();
+
 	// If mInternal already exists this means this object was deserialized,
 	// so all we need to do is initialize it.
 	if(mInternal != nullptr)
+	{
+		mInternal->SetScene(scene);
 		mInternal->Initialize();
+	}
 	else
-		mInternal = Decal::Create(HMaterial());
+		mInternal = Decal::Create(scene, HMaterial());
 
 	GetSceneManager().BindActorInternal(mInternal, SceneObject());
 }

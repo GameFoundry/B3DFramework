@@ -23,7 +23,7 @@ namespace b3d
 	B3D_SYNC_BLOCK_END
 }
 
-void SceneActor::UpdateStateInternal(const SceneObject& so, bool force)
+void SceneActor::UpdateStateFromSceneObject(const SceneObject& so, bool force)
 {
 	u32 curHash = so.GetTransformHash();
 	if(curHash != mHash || force)

@@ -21,7 +21,7 @@ namespace b3d
 	{
 	public:
 		CReflectionProbe(const HSceneObject& parent);
-		virtual ~CReflectionProbe();
+		~CReflectionProbe() override;
 
 		/** @copydoc ReflectionProbe::GetType */
 		B3D_SCRIPT_EXPORT(ExportName(Type), Property(Getter))

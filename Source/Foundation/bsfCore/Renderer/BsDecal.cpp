@@ -20,8 +20,8 @@ TDecal<IsRenderProxy>::TDecal()
 }
 
 template<bool IsRenderProxy>
-TDecal<IsRenderProxy>::TDecal(const MaterialType& material, const Vector2& size, float maxDistance)
-	: mMaterial(material), mSize(size), mMaxDistance(maxDistance)
+TDecal<IsRenderProxy>::TDecal(const SPtr<SceneInstanceType>& scene, const MaterialType& material, const Vector2& size, float maxDistance)
+	: Super(scene), mMaterial(material), mSize(size), mMaxDistance(maxDistance)
 {
 	UpdateBounds();
 }
@@ -81,16 +81,16 @@ namespace b3d
 	B3D_SYNC_BLOCK_END
 }
 
-Decal::Decal(const HMaterial& material, const Vector2& size, float maxDistance)
-	: TDecal(material, size, maxDistance)
+Decal::Decal(const SPtr<SceneInstance>& scene, const HMaterial& material, const Vector2& size, float maxDistance)
+	: TDecal(scene, material, size, maxDistance)
 {
 	// Calling virtual method is okay here because this is the most derived type
 	UpdateBounds();
 }
 
-SPtr<Decal> Decal::Create(const HMaterial& material, const Vector2& size, float maxDistance)
+SPtr<Decal> Decal::Create(const SPtr<SceneInstance>& scene, const HMaterial& material, const Vector2& size, float maxDistance)
 {
-	Decal* decal = new(B3DAllocate<Decal>()) Decal(material, size, maxDistance);
+	Decal* decal = new(B3DAllocate<Decal>()) Decal(scene, material, size, maxDistance);
 	SPtr<Decal> decalPtr = B3DMakeSharedFromExisting<Decal>(decal);
 	decalPtr->SetShared(decalPtr);
 	decalPtr->Initialize();
@@ -111,7 +111,7 @@ SPtr<render::RenderProxy> Decal::CreateRenderProxy() const
 {
 	SPtr<render::Material> material = B3DGetRenderProxy(mMaterial);
 
-	render::Decal* renderProxy = new(B3DAllocate<render::Decal>()) render::Decal(material, mSize, mMaxDistance);
+	render::Decal* renderProxy = new(B3DAllocate<render::Decal>()) render::Decal(B3DGetRenderProxy(mSceneInstance), material, mSize, mMaxDistance);
 	SPtr<render::Decal> renderProxyShared = B3DMakeSharedFromExisting<render::Decal>(renderProxy);
 	renderProxyShared->SetShared(renderProxyShared);
 
@@ -153,8 +153,8 @@ template class TDecal<false>;
 
 namespace b3d { namespace render
 {
-Decal::Decal(const SPtr<Material>& material, const Vector2& size, float maxDistance)
-	: TDecal(material, size, maxDistance)
+Decal::Decal(const SPtr<SceneInstance>& scene, const SPtr<Material>& material, const Vector2& size, float maxDistance)
+	: TDecal(scene, material, size, maxDistance)
 {}
 
 Decal::~Decal()

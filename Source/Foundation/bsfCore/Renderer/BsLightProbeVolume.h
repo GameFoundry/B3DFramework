@@ -178,18 +178,19 @@ namespace b3d
 		/**
 		 * Creates a new light volume with probes aligned in a grid pattern.
 		 *
-		 * @param[in]	volume		Axis aligned volume to be covered by the light probes.
-		 * @param[in]	cellCount	Number of grid cells to split the volume into. Minimum number of 1, in which case each
-		 *							corner of the volume is represented by a single probe. Higher values subdivide the
-		 *							volume in an uniform way.
+		 * @param	scene		Scene to create the light probe volume in.
+		 * @param	volume		Axis aligned volume to be covered by the light probes.
+		 * @param	cellCount	Number of grid cells to split the volume into. Minimum number of 1, in which case each
+		 *						corner of the volume is represented by a single probe. Higher values subdivide the
+		 *						volume in an uniform way.
 		 */
-		static SPtr<LightProbeVolume> Create(const AABox& volume = AABox::kUnitBox, const Vector3I& cellCount = Vector3I(1, 1, 1));
+		static SPtr<LightProbeVolume> Create(const SPtr<SceneInstance>& scene, const AABox& volume = AABox::kUnitBox, const Vector3I& cellCount = Vector3I(1, 1, 1));
 
 	protected:
 		friend class render::LightProbeVolume;
 		struct SyncPacket;
 
-		LightProbeVolume(const AABox& volume, const Vector3I& cellCount);
+		LightProbeVolume(const SPtr<SceneInstance>& scene, const AABox& volume, const Vector3I& cellCount);
 
 		/** Renders the light probe data on the render thread. */
 		void RunRenderProbeTask();
@@ -275,7 +276,7 @@ namespace b3d
 		protected:
 			friend class b3d::LightProbeVolume;
 
-			LightProbeVolume(const UnorderedMap<u32, b3d::LightProbeVolume::ProbeInfo>& probes);
+			LightProbeVolume(const SPtr<SceneInstance>& scene, const UnorderedMap<u32, b3d::LightProbeVolume::ProbeInfo>& probes);
 
 			void Initialize() override;
 			void SyncFromCoreObject(const CoreSyncData& data, FrameAllocator& allocator) override;

@@ -43,9 +43,11 @@ namespace b3d
 	{
 	public:
 		using TextureType = CoreVariantType<Texture, IsRenderProxy>;
+		using SceneInstanceType = CoreVariantType<SceneInstance, IsRenderProxy>;
+		using Super = CoreVariantType<SceneActor, IsRenderProxy>;
 
 		TReflectionProbe() = default;
-		TReflectionProbe(ReflectionProbeType type, float radius, const Vector3& extents);
+		TReflectionProbe(const SPtr<SceneInstanceType>& scene, ReflectionProbeType type, float radius, const Vector3& extents);
 		virtual ~TReflectionProbe() = default;
 
 		/**	Returns the type of the probe. */
@@ -160,24 +162,26 @@ namespace b3d
 		/**
 		 * Creates a new sphere reflection probe.
 		 *
-		 * @param[in]	radius	Radius in which the reflection probe will be rendered within.
+		 * @param		scene	Scene in which to create the reflection probe.
+		 * @param		radius	Radius in which the reflection probe will be rendered within.
 		 * @returns				New reflection probe.
 		 */
-		static SPtr<ReflectionProbe> CreateSphere(float radius);
+		static SPtr<ReflectionProbe> CreateSphere(const SPtr<SceneInstanceType>& scene, float radius);
 
 		/**
 		 * Creates a new box reflection probe.
 		 *
-		 * @param[in]	extents	Extents of the box in which the reflection probe will be rendered within.
+		 * @param		scene	Scene in which to create the reflection probe.
+		 * @param		extents	Extents of the box in which the reflection probe will be rendered within.
 		 * @returns				New reflection probe.
 		 */
-		static SPtr<ReflectionProbe> CreateBox(const Vector3& extents);
+		static SPtr<ReflectionProbe> CreateBox(const SPtr<SceneInstanceType>& scene, const Vector3& extents);
 
 	protected:
 		friend class render::ReflectionProbe;
 		struct SyncPacket;
 
-		ReflectionProbe(ReflectionProbeType type, float radius, const Vector3& extents);
+		ReflectionProbe(const SPtr<SceneInstance>& scene, ReflectionProbeType type, float radius, const Vector3& extents);
 
 		SPtr<render::RenderProxy> CreateRenderProxy() const override;
 		void MarkSceneActorRenderProxyDataDirty(ActorDirtyFlag flags = ActorDirtyFlag::Everything) override;
@@ -224,7 +228,7 @@ namespace b3d
 		protected:
 			friend class b3d::ReflectionProbe;
 
-			ReflectionProbe(ReflectionProbeType type, float radius, const Vector3& extents, const SPtr<Texture>& filteredTexture);
+			ReflectionProbe(const SPtr<SceneInstance>& scene, ReflectionProbeType type, float radius, const Vector3& extents, const SPtr<Texture>& filteredTexture);
 
 			void Initialize() override;
 			void SyncFromCoreObject(const CoreSyncData& data, FrameAllocator& allocator) override;

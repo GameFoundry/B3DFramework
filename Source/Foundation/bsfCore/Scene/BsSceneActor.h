@@ -37,6 +37,7 @@ namespace b3d
 		using SceneInstanceType = CoreVariantType<SceneInstance, IsRenderProxy>;
 	public:
 		TSceneActor() = default;
+		TSceneActor(const SPtr<SceneInstanceType>& sceneInstance);
 		virtual ~TSceneActor() = default;
 
 		/** Determines the position, rotation and scale of the actor. */
@@ -87,6 +88,11 @@ namespace b3d
 	};
 
 #if B3D_CORE_EXPORTS
+	template <bool IsRenderProxy>
+	TSceneActor<IsRenderProxy>::TSceneActor(const SPtr<SceneInstanceType>& sceneInstance)
+		: mSceneInstance(sceneInstance)
+	{ }
+
 	template<bool IsRenderProxy>
 	void TSceneActor<IsRenderProxy>::SetTransform(const Transform& transform)
 	{
@@ -123,6 +129,8 @@ namespace b3d
 		if(mSceneInstance == instance)
 			return;
 
+		B3D_ENSURE(instance != nullptr);
+
 		mSceneInstance = instance;
 		MarkSceneActorRenderProxyDataDirty(ActorDirtyFlag::Everything);
 	}
@@ -139,7 +147,7 @@ namespace b3d
 	class B3D_CORE_EXPORT SceneActor : public TSceneActor<false>
 	{
 	public:
-		SceneActor() = default;
+		using TSceneActor::TSceneActor;
 
 		/**
 		 * @name Internal
@@ -154,7 +162,7 @@ namespace b3d
 		 * This method is used by the scene manager to update actors that have been bound to a scene object. Never call this
 		 * method for multiple different scene objects, as actor can only ever be bound to one during its lifetime.
 		 */
-		virtual void UpdateStateInternal(const SceneObject& so, bool force = false);
+		virtual void UpdateStateFromSceneObject(const SceneObject& so, bool force = false);
 
 		/**
 		 * Creates a data packet that will be used for syncing the core object with it's render proxy.
@@ -179,7 +187,7 @@ namespace b3d
 		class B3D_CORE_EXPORT SceneActor : public TSceneActor<true>
 		{
 		public:
-			SceneActor() = default;
+			using TSceneActor::TSceneActor;
 
 		private:
 			friend class b3d::SceneActor;

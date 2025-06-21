@@ -34,12 +34,17 @@ void CRenderable::SetMesh(HMesh mesh)
 
 void CRenderable::OnBeginPlay()
 {
+	const SPtr<SceneInstance>& scene = SceneObject()->GetScene();
+
 	// If mInternal already exists this means this object was deserialized,
 	// so all we need to do is initialize it.
 	if(mInternal != nullptr)
+	{
+		mInternal->SetScene(scene);
 		mInternal->Initialize();
+	}
 	else
-		mInternal = Renderable::Create();
+		mInternal = Renderable::Create(scene);
 
 	GetSceneManager().BindActorInternal(mInternal, SceneObject());
 
@@ -53,7 +58,7 @@ void CRenderable::OnBeginPlay()
 
 Bounds CRenderable::GetBounds() const
 {
-	mInternal->UpdateStateInternal(*SO());
+	mInternal->UpdateStateFromSceneObject(*SO());
 	return mInternal->GetBounds();
 }
 
@@ -74,7 +79,7 @@ void CRenderable::RegisterAnimationInternal(const HAnimation& animation)
 
 		// Need to update transform because animated renderables handle local transforms through bones, so it
 		// shouldn't be included in the renderable's transform.
-		mInternal->UpdateStateInternal(*SO(), true);
+		mInternal->UpdateStateFromSceneObject(*SO(), true);
 	}
 }
 
@@ -88,7 +93,7 @@ void CRenderable::UnregisterAnimationInternal()
 
 		// Need to update transform because animated renderables handle local transforms through bones, so it
 		// shouldn't be included in the renderable's transform.
-		mInternal->UpdateStateInternal(*SO(), true);
+		mInternal->UpdateStateFromSceneObject(*SO(), true);
 	}
 }
 
