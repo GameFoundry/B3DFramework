@@ -34,17 +34,13 @@ void Component::Destroy(bool immediate)
 	if(!B3D_ENSURE(!HasGameObjectFlag(GameObjectTransientFlag::Destroyed)))
 		return;
 
-	HComponent thisComponentHandle = B3DStaticGameObjectCast<Component>(mThisHandle);
-	mParent->RemoveComponent(thisComponentHandle);
-	mParent = nullptr;
-
 	if(immediate)
-		DestroyImmediate();
+		DestroyImmediate(true);
 	else
-		QueueForDestroy();
+		QueueForDestroy(true);
 }
 
-void Component::DestroyImmediate()
+void Component::DestroyImmediate(bool removeFromParent)
 {
 	if(!B3D_ENSURE(!HasGameObjectFlag(GameObjectTransientFlag::Destroyed)))
 		return;
@@ -54,15 +50,23 @@ void Component::DestroyImmediate()
 		if(HasGameObjectFlag(GameObjectTransientFlag::Initialized))
 		{
 			HComponent thisComponentHandle = B3DStaticGameObjectCast<Component>(mThisHandle);
-			GetSceneManager().NotifyComponentDestroyedInternal(thisComponentHandle, true);
+
+			const SPtr<SceneInstance>& scene = SceneObject()->GetScene();
+			scene->NotifyComponentDestroyed(thisComponentHandle, true);
 		}
+	}
+
+	if(removeFromParent)
+	{
+		HComponent thisComponentHandle = B3DStaticGameObjectCast<Component>(mThisHandle);
+		mParent->RemoveComponent(thisComponentHandle);
 	}
 
 	mParent = nullptr;
 	GameObject::DestroyImmediate();
 }
 
-void Component::QueueForDestroy()
+void Component::QueueForDestroy(bool removeFromParent)
 {
 	if(HasGameObjectFlag(GameObjectTransientFlag::QueuedForDestroy))
 		return;
@@ -73,9 +77,18 @@ void Component::QueueForDestroy()
 	if(HasGameObjectFlag(GameObjectTransientFlag::Initialized))
 	{
 		HComponent thisComponentHandle = B3DStaticGameObjectCast<Component>(mThisHandle);
-		GetSceneManager().NotifyComponentDestroyedInternal(thisComponentHandle, true);
+		
+		const SPtr<SceneInstance>& scene = SceneObject()->GetScene();
+		scene->NotifyComponentDestroyed(thisComponentHandle, true);
 	}
 
+	if(removeFromParent)
+	{
+		HComponent thisComponentHandle = B3DStaticGameObjectCast<Component>(mThisHandle);
+		mParent->RemoveComponent(thisComponentHandle);
+	}
+
+	mParent = nullptr;
 	GameObject::QueueForDestroy();
 }
 
@@ -120,14 +133,20 @@ void Component::RefreshEnabledState(bool triggerEvents)
 			UnsetGameObjectFlag(GameObjectTransientFlag::Disabled);
 
 			if(triggerEvents) // Note: Not sure this check makes sense, but keeping it to maintain behaviour from SceneObject. Same for below.
-				GetSceneManager().NotifyComponentActivatedInternal(thisComponentHandle, triggerEvents);
+			{
+				const SPtr<SceneInstance>& scene = SceneObject()->GetScene();
+				scene->NotifyComponentActivated(thisComponentHandle, triggerEvents);
+			}
 		}
 		else
 		{
 			SetGameObjectFlag(GameObjectTransientFlag::Disabled);
 
 			if(triggerEvents)
-				GetSceneManager().NotifyComponentDeactivatedInternal(thisComponentHandle, triggerEvents);
+			{
+				const SPtr<SceneInstance>& scene = SceneObject()->GetScene();
+				scene->NotifyComponentDeactivated(thisComponentHandle, triggerEvents);
+			}
 			
 		}
 	}

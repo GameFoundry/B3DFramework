@@ -80,7 +80,6 @@ void Application::OnShutDown()
 	// Need to clear all objects before I unload any plugins, as they
 	// could have allocated parts or all of those objects.
 	SceneManager::Instance().ClearMainScene(true);
-	SceneManager::ShutDown();
 
 	// Resources too (Prefabs especially, since they hold the same data as a scene)
 	Resources::Instance().UnloadAll();
@@ -91,6 +90,7 @@ void Application::OnShutDown()
 	ScriptManager::ShutDown();
 	DebugDraw::ShutDown();
 
+	SceneManager::ShutDown(); // Needs to trigger after ScriptManager, as script objects may still be referencing scene objects
 	CoreApplication::OnShutDown();
 }
 

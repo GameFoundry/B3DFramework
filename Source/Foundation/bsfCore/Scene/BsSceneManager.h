@@ -38,8 +38,143 @@ namespace b3d
 		Stopped /**< No component callbacks are being triggered. */
 	};
 
+	/** Maintains a list of all components associated with a SceneInstance, and their current state (running, inactive, uninitialized). */
+	class B3D_CORE_EXPORT SceneInstanceComponents
+	{
+	public:
+		/**
+		 * Changes the component state that globally determines which component callbacks are activated. Only affects
+		 * components that don't have the ComponentFlag::AlwaysRun flag set.
+		 */
+		void SetComponentState(ComponentState state);
+
+		/** Checks are the components currently in the Running state. */
+		B3D_SCRIPT_EXPORT(ExportName(IsRunning), Property(Getter))
+		bool IsRunning() const { return mComponentState == ComponentState::Running; }
+
+		/**
+		 * Returns a list of all components of the specified type currently in the scene.
+		 *
+		 * @tparam		T			Type of the component to search for.
+		 *
+		 * @param[in]	activeOnly	If true only active components are returned, otherwise all components are returned.
+		 * @return					A list of all matching components in the scene.
+		 */
+		template <class T>
+		Vector<GameObjectHandle<T>> FindComponents(bool activeOnly = true);
+
+		/** Called every frame. Calls update methods on all active components. */
+		void Update();
+
+		/** Called at fixed time internals. Calls the fixed update method on all active components. */
+		void FixedUpdate();
+
+		/** Notifies the manager that a new component has just been created. The manager triggers necessary callbacks. */
+		void NotifyComponentCreated(const HComponent& component, bool parentActive);
+
+		/**
+		 * Notifies the manager that a scene object the component belongs to was activated. The manager triggers necessary
+		 * callbacks.
+		 */
+		void NotifyComponentActivated(const HComponent& component, bool triggerEvent); // TODO - Activated -> Enabled, to match OnEnabled
+
+		/**
+		 * Notifies the manager that a scene object the component belongs to was deactivated. The manager triggers necessary
+		 * callbacks.
+		 */
+		void NotifyComponentDeactivated(const HComponent& component, bool triggerEvent); // TODO - Deactivated -> Disabled, to match OnDisabled
+
+		/** Notifies the manager that a component is about to be destroyed. The manager triggers necessary callbacks. */
+		void NotifyComponentDestroyed(const HComponent& component, bool immediate);
+
+	protected:
+		/**
+		 * Adds a component to the specified state list. Caller is expected to first remove the component from any
+		 * existing state lists.
+		 */
+		void AddToStateList(const HComponent& component, u32 listType);
+
+		/** Removes a component from its current scene manager state list (if any). */
+		void RemoveFromStateList(const HComponent& component);
+
+		/** Iterates over components that had their state modified and moves them to the appropriate state lists. */
+		void ProcessStateChanges();
+
+		/**
+		 * Encodes an index and a type into a single 32-bit integer. Top 2 bits represent the type, while the rest represent
+		 * the index.
+		 */
+		static u32 EncodeComponentId(u32 idx, u32 type);
+
+		/** Decodes an id encoded with encodeComponentId(). */
+		static void DecodeComponentId(u32 id, u32& idx, u32& type);
+
+		/** Checks does the specified component type match the provided RTTI id. */
+		static bool IsComponentOfType(const HComponent& component, u32 rttiId);
+
+		/** Types of events that represent component state changes relevant to the scene manager. */
+		enum class ComponentStateEventType
+		{
+			Created,
+			Activated,
+			Deactivated,
+			Destroyed
+		};
+
+		/** Describes a single component state change. */
+		struct ComponentStateChange
+		{
+			ComponentStateChange(HComponent obj, ComponentStateEventType type)
+				: Obj(std::move(obj)), Type(type)
+			{}
+
+			HComponent Obj;
+			ComponentStateEventType Type;
+		};
+
+		Vector<HComponent> mActiveComponents;
+		Vector<HComponent> mInactiveComponents;
+		Vector<HComponent> mUninitializedComponents;
+
+		std::array<Vector<HComponent>*, 3> mComponentsPerState = { { &mActiveComponents, &mInactiveComponents, &mUninitializedComponents } };
+
+		ComponentState mComponentState = ComponentState::Running;
+		bool mDisableStateChange = false;
+		Vector<ComponentStateChange> mStateChanges;
+	};
+
+	template <class T>
+	Vector<GameObjectHandle<T>> SceneInstanceComponents::FindComponents(bool activeOnly)
+	{
+		u32 rttiId = T::GetRttiStatic()->GetRttiId();
+
+		Vector<GameObjectHandle<T>> output;
+		for(auto& entry : mActiveComponents)
+		{
+			if(IsComponentOfType(entry, rttiId))
+				output.push_back(B3DStaticGameObjectCast<T>(entry));
+		}
+
+		if(!activeOnly)
+		{
+			for(auto& entry : mInactiveComponents)
+			{
+				if(IsComponentOfType(entry, rttiId))
+					output.push_back(B3DStaticGameObjectCast<T>(entry));
+			}
+
+			for(auto& entry : mUninitializedComponents)
+			{
+				if(IsComponentOfType(entry, rttiId))
+					output.push_back(B3DStaticGameObjectCast<T>(entry));
+			}
+		}
+
+		return output;
+	}
+
 	/** Contains information about an instantiated scene. */
-	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Scene)) SceneInstance : public CoreObject, public IScriptExportable
+	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Scene)) SceneInstance : public CoreObject, public IScriptExportable, public SceneInstanceComponents
 	{
 		struct ConstructPrivately
 		{};
@@ -108,6 +243,9 @@ namespace b3d
 		 * in the old root are destroyed.
 		 */
 		void SetRoot(const HSceneObject& newRoot);
+
+		/** Called every frame. Calls update methods on all active components. */
+		void Update();
 
 		/** @} */
 
@@ -184,26 +322,6 @@ namespace b3d
 		B3D_SCRIPT_EXPORT()
 		void LoadMainScene(B3D_NO_RREF const HScene& scene);
 
-		/**
-		 * Changes the component state that globally determines which component callbacks are activated. Only affects
-		 * components that don't have the ComponentFlag::AlwaysRun flag set.
-		 */
-		void SetComponentState(ComponentState state);
-
-		/** Checks are the components currently in the Running state. */
-		bool IsRunning() const { return mComponentState == ComponentState::Running; }
-
-		/**
-		 * Returns a list of all components of the specified type currently in the scene.
-		 *
-		 * @tparam		T			Type of the component to search for.
-		 *
-		 * @param[in]	activeOnly	If true only active components are returned, otherwise all components are returned.
-		 * @return					A list of all matching components in the scene.
-		 */
-		template <class T>
-		Vector<GameObjectHandle<T>> FindComponents(bool activeOnly = true);
-
 		/** Returns all cameras in the scene. */
 		const UnorderedMap<Camera*, SPtr<Camera>>& GetAllCameras() const { return mCameras; }
 
@@ -216,6 +334,12 @@ namespace b3d
 		/** Returns the main camera component. See GetMainCamera(). */
 		B3D_SCRIPT_EXPORT(InteropOnly(true))
 		HSceneObject GetMainCameraSceneObject() const;
+
+		/**
+		 * Changes the component state that globally determines which component callbacks are activated. Only affects
+		 * components that don't have the ComponentFlag::AlwaysRun flag set.
+		 */
+		void SetComponentState(ComponentState state); // TODO - Deprecate this and call this on a per-SceneInstance basis
 
 		/**
 		 * Sets the render target that the main camera in the scene (if any) will render its view to. This generally means
@@ -245,31 +369,13 @@ namespace b3d
 		void NotifyMainCameraStateChangedInternal(const SPtr<Camera>& camera);
 
 		/** Called every frame. Calls update methods on all scene objects and their components. */
-		void UpdateInternal();
+		void Update();
 
 		/** Called at fixed time internals. Calls the fixed update method on all active components. */
-		void FixedUpdateInternal();
+		void FixedUpdate();
 
 		/** Updates dirty transforms on any core objects that may be tied with scene objects. */
 		void UpdateCoreObjectTransformsInternal();
-
-		/** Notifies the manager that a new component has just been created. The manager triggers necessary callbacks. */
-		void NotifyComponentCreatedInternal(const HComponent& component, bool parentActive);
-
-		/**
-		 * Notifies the manager that a scene object the component belongs to was activated. The manager triggers necessary
-		 * callbacks.
-		 */
-		void NotifyComponentActivatedInternal(const HComponent& component, bool triggerEvent); // TODO - Activated -> Enabled, to match OnEnabled
-
-		/**
-		 * Notifies the manager that a scene object the component belongs to was deactivated. The manager triggers necessary
-		 * callbacks.
-		 */
-		void NotifyComponentDeactivatedInternal(const HComponent& component, bool triggerEvent); // TODO - Deactivated -> Disabled, to match OnDisabled
-
-		/** Notifies the manager that a component is about to be destroyed. The manager triggers necessary callbacks. */
-		void NotifyComponentDestroyedInternal(const HComponent& component, bool immediate);
 
 		/** Notifies the manager that a new scene instance was created. */
 		void NotifySceneInstanceCreated(const SPtr<SceneInstance>& sceneInstance);
@@ -286,26 +392,6 @@ namespace b3d
 		Event<void(UUID)> OnMainSceneUnloaded;
 
 	protected:
-		/** Types of events that represent component state changes relevant to the scene manager. */
-		enum class ComponentStateEventType
-		{
-			Created,
-			Activated,
-			Deactivated,
-			Destroyed
-		};
-
-		/** Describes a single component state change. */
-		struct ComponentStateChange
-		{
-			ComponentStateChange(HComponent obj, ComponentStateEventType type)
-				: Obj(std::move(obj)), Type(type)
-			{}
-
-			HComponent Obj;
-			ComponentStateEventType Type;
-		};
-
 		friend class SceneObject;
 
 		/**
@@ -324,30 +410,6 @@ namespace b3d
 		/**	Callback that is triggered when the main render target size is changed. */
 		void OnMainRenderTargetResized();
 
-		/**
-		 * Adds a component to the specified state list. Caller is expected to first remove the component from any
-		 * existing state lists.
-		 */
-		void AddToStateList(const HComponent& component, u32 listType);
-
-		/** Removes a component from its current scene manager state list (if any). */
-		void RemoveFromStateList(const HComponent& component);
-
-		/** Iterates over components that had their state modified and moves them to the appropriate state lists. */
-		void ProcessStateChanges();
-
-		/**
-		 * Encodes an index and a type into a single 32-bit integer. Top 2 bits represent the type, while the rest represent
-		 * the index.
-		 */
-		static u32 EncodeComponentId(u32 idx, u32 type);
-
-		/** Decodes an id encoded with encodeComponentId(). */
-		static void DecodeComponentId(u32 id, u32& idx, u32& type);
-
-		/** Checks does the specified component type match the provided RTTI id. */
-		static bool IsComponentOfType(const HComponent& component, u32 rttiId);
-
 	protected:
 		SPtr<SceneInstance> mMainScene;
 		UnorderedMap<SceneInstance*, WeakSPtr<SceneInstance>> mSceneInstances;
@@ -356,52 +418,12 @@ namespace b3d
 		UnorderedMap<Camera*, SPtr<Camera>> mCameras;
 		Vector<SPtr<Camera>> mMainCameras;
 
-		Vector<HComponent> mActiveComponents;
-		Vector<HComponent> mInactiveComponents;
-		Vector<HComponent> mUninitializedComponents;
-
-		std::array<Vector<HComponent>*, 3> mComponentsPerState = { { &mActiveComponents, &mInactiveComponents, &mUninitializedComponents } };
-
 		SPtr<RenderTarget> mMainRT;
 		HEvent mMainRTResizedConn;
-
-		ComponentState mComponentState = ComponentState::Running;
-		bool mDisableStateChange = false;
-		Vector<ComponentStateChange> mStateChanges;
 	};
 
 	/**	Provides easy access to the SceneManager. */
 	B3D_CORE_EXPORT SceneManager& GetSceneManager();
-
-	template <class T>
-	Vector<GameObjectHandle<T>> SceneManager::FindComponents(bool activeOnly)
-	{
-		u32 rttiId = T::GetRttiStatic()->GetRttiId();
-
-		Vector<GameObjectHandle<T>> output;
-		for(auto& entry : mActiveComponents)
-		{
-			if(IsComponentOfType(entry, rttiId))
-				output.push_back(B3DStaticGameObjectCast<T>(entry));
-		}
-
-		if(!activeOnly)
-		{
-			for(auto& entry : mInactiveComponents)
-			{
-				if(IsComponentOfType(entry, rttiId))
-					output.push_back(B3DStaticGameObjectCast<T>(entry));
-			}
-
-			for(auto& entry : mUninitializedComponents)
-			{
-				if(IsComponentOfType(entry, rttiId))
-					output.push_back(B3DStaticGameObjectCast<T>(entry));
-			}
-		}
-
-		return output;
-	}
 
 	/** @} */
 } // namespace b3d

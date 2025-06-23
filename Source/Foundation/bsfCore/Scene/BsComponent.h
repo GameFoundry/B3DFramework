@@ -130,6 +130,8 @@ namespace b3d
 		/** @} */
 	protected:
 		friend class SceneManager;
+		friend class SceneInstance;
+		friend class SceneInstanceComponents;
 		friend class SceneObject;
 		friend class SceneObjectRTTI;
 
@@ -166,8 +168,18 @@ namespace b3d
 		 */
 		virtual void OnTransformChanged(TransformChangedFlags flags) {}
 
-		void DestroyImmediate() override;
-		void QueueForDestroy() override;
+		/**
+		 * Destroys the component without delay. Object will be removed from its game object collection, and reference to the object
+		 * in all active handles will become null. If @p removeFromParent is specified, the component will be removed from the parent's
+		 * child list, otherwise it's expected the caller to perform the removal.
+		 */
+		void DestroyImmediate(bool removeFromParent);
+
+		/**
+		 * Queues the component to be destroyed at the end of the frame. If @p removeFromParent is specified, the component
+		 * will be removed from the parent's child list, otherwise it's expected the caller to perform the removal.
+		 */
+		void QueueForDestroy(bool removeFromParent);
 
 		/** Checks whether the component wants to received the specified transform changed message. */
 		bool SupportsNotify(TransformChangedFlags flags) const { return (mNotifyFlags & flags) != 0; }

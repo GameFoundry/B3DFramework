@@ -301,14 +301,14 @@ void CoreApplication::RunMainLoopFrame()
 		for(u32 i = 0; i < numIterations; i++)
 		{
 			FixedUpdate();
-			PROFILE_CALL(GetSceneManager().FixedUpdateInternal(), "Scene fixed update");
+			PROFILE_CALL(GetSceneManager().FixedUpdate(), "Scene fixed update");
 			PROFILE_CALL(GetPhysics().FixedUpdate(stepSeconds), "Physics simulation");
 
 			GetTime().AdvanceFixedUpdateInternal(step);
 		}
 	}
 
-	PROFILE_CALL(GetSceneManager().UpdateInternal(), "Scene update");
+	PROFILE_CALL(GetSceneManager().Update(), "Scene update");
 	GetAudio().UpdateInternal();
 	GetPhysics().Update();
 

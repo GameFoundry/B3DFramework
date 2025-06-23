@@ -273,7 +273,7 @@ void ParticleSystem::SimulateInternal(float timeDelta, const EvaluatedAnimationD
 	state.LocalToWorld = mTransform.GetMatrix();
 	state.WorldToLocal = state.LocalToWorld.InverseAffine();
 	state.System = this;
-	state.Scene = (mScene && mScene->IsActive()) ? mScene.get() : GetSceneManager().GetMainScene().get();
+	state.Scene = mSceneInstance.get();
 	state.AnimData = animData;
 
 	// For GPU simulation we only care about newly spawned particles, so clear old ones
@@ -426,7 +426,7 @@ float ParticleSystem::AdvanceTimeInternal(float time, float timeDelta, float dur
 
 SPtr<render::RenderProxy> ParticleSystem::CreateRenderProxy() const
 {
-	render::ParticleSystem* renderProxy = new(B3DAllocate<render::ParticleSystem>()) render::ParticleSystem(B3DGetRenderProxy(mScene), mId);
+	render::ParticleSystem* renderProxy = new(B3DAllocate<render::ParticleSystem>()) render::ParticleSystem(B3DGetRenderProxy(mSceneInstance), mId);
 	SPtr<render::ParticleSystem> renderProxyShared = B3DMakeSharedFromExisting<render::ParticleSystem>(renderProxy);
 	renderProxyShared->SetShared(renderProxyShared);
 

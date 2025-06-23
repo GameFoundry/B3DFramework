@@ -27,7 +27,6 @@ namespace b3d
 
 		/**	Returns the current play state of the game. */
 		B3D_SCRIPT_EXPORT(InteropOnly(true))
-
 		PlayInEditorState GetState() const { return mState; }
 
 		/**
@@ -62,11 +61,7 @@ namespace b3d
 		 *  @{
 		 */
 
-		/**
-		 * Called once per frame.
-		 *
-		 * @note	Internal method.
-		 */
+		/** Called once per frame. */
 		void Update();
 
 		/** @} */

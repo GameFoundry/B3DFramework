@@ -228,13 +228,16 @@ void CAnimation::OnEnabled()
 		mPreviewMode = false;
 	}
 
-	if(SceneManager::Instance().IsRunning())
+	const SPtr<SceneInstance>& scene = SceneObject()->GetScene();
+	if(scene->IsRunning())
 		RestoreInternal(false);
 }
 
 void CAnimation::Update()
 {
-	const bool isRunning = SceneManager::Instance().IsRunning();
+	const SPtr<SceneInstance>& scene = SceneObject()->GetScene();
+	const bool isRunning = scene->IsRunning();
+
 	if(!isRunning && !mPreviewMode)
 	{
 		// Make sure attached CBone components match the position of the skeleton bones even when the component is not
@@ -355,7 +358,8 @@ void CAnimation::DestroyInternal()
 
 bool CAnimation::TogglePreviewModeInternal(bool enabled)
 {
-	bool isRunning = SceneManager::Instance().IsRunning();
+	const SPtr<SceneInstance>& scene = SceneObject()->GetScene();
+	bool isRunning = scene->IsRunning();
 
 	if(enabled)
 	{

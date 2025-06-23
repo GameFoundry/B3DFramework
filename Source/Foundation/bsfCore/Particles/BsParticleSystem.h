@@ -623,7 +623,6 @@ namespace b3d
 		/**	Creates a new ParticleSystem instance without initializing it. */
 		static SPtr<ParticleSystem> CreateEmpty();
 
-		SPtr<SceneInstance> mScene;
 		ParticleSystemSettings mSettings;
 		ParticleGpuSimulationSettings mGpuSimulationSettings;
 		Vector<SPtr<ParticleEmitter>> mEmitters;

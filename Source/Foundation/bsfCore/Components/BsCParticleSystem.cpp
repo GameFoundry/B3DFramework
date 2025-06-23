@@ -81,7 +81,8 @@ void CParticleSystem::OnEnabled()
 		mPreviewMode = false;
 	}
 
-	if(SceneManager::Instance().IsRunning())
+	const SPtr<SceneInstance>& scene = SceneObject()->GetScene();
+	if(scene->IsRunning())
 	{
 		RestoreInternal();
 		mInternal->Play();
@@ -121,7 +122,8 @@ void CParticleSystem::DestroyInternal()
 
 bool CParticleSystem::TogglePreviewModeInternal(bool enabled)
 {
-	bool isRunning = SceneManager::Instance().IsRunning();
+	const SPtr<SceneInstance>& scene = SceneObject()->GetScene();
+	const bool isRunning = scene->IsRunning();
 
 	if(enabled)
 	{

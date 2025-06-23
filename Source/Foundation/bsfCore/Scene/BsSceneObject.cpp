@@ -90,7 +90,7 @@ void SceneObject::QueueForDestroy()
 
 	// Important to queue components to destroy before the scene objects, as they will reference their parent during destruction
 	for(const auto& component : mComponents)
-		component->QueueForDestroy();
+		component->QueueForDestroy(false);
 
 	for(const auto& child : mChildren)
 		child->QueueForDestroy();
@@ -114,7 +114,7 @@ void SceneObject::DestroyImmediate()
 		// for components might query the SO's components, and we want to only return live ones
 		for(auto it = mComponents.begin(); it != mComponents.end();)
 		{
-			(*it)->DestroyImmediate();
+			(*it)->DestroyImmediate(false);
 
 			it = mComponents.erase(it);
 		}
@@ -235,13 +235,14 @@ void SceneObject::Initialize()
 			fnInitialize(child.Get());
 	};
 
-	Function<void(SceneObject*)> fnTriggerComponentCreatedEvents = [&fnTriggerComponentCreatedEvents](SceneObject* sceneObject)
+	const SPtr<SceneInstance>& scene = GetScene();
+	Function<void(SceneObject*)> fnTriggerComponentCreatedEvents = [&fnTriggerComponentCreatedEvents, &scene](SceneObject* sceneObject)
 	{
 		if(!sceneObject->HasGameObjectFlag(GameObjectTransientFlag::Initialized))
 			return;
 
 		for(auto& component : sceneObject->mComponents)
-			GetSceneManager().NotifyComponentCreatedInternal(component, sceneObject->GetActive());
+			scene->NotifyComponentCreated(component, sceneObject->GetActive());
 
 		for(auto& child : sceneObject->mChildren)
 				fnTriggerComponentCreatedEvents(child.Get());
@@ -470,12 +471,13 @@ void SceneObject::NotifyTransformChanged(TransformChangedFlags flags) const
 	// Only send component flags if we haven't removed them all
 	if(componentFlags != 0)
 	{
+		const SPtr<SceneInstance>& scene = GetScene();
 		for(auto& entry : mComponents)
 		{
 			if(entry->SupportsNotify(flags))
 			{
 				bool alwaysRun = entry->HasFlag(ComponentFlag::AlwaysRun);
-				if(alwaysRun || GetSceneManager().IsRunning())
+				if(alwaysRun || scene->IsRunning())
 					entry->OnTransformChanged(componentFlags);
 			}
 		}
@@ -976,7 +978,8 @@ void SceneObject::InternalAddComponent(const HComponent& component, bool initial
 	{
 		component->Initialize();
 
-		GetSceneManager().NotifyComponentCreatedInternal(component, GetActive());
+		const SPtr<SceneInstance>& scene = GetScene();
+		scene->NotifyComponentCreated(component, GetActive());
 	}
 }
 
