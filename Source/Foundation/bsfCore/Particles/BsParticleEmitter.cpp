@@ -9,7 +9,7 @@
 #include "Private/Particles/BsParticleSet.h"
 #include "Private/RTTI/BsParticleSystemRTTI.h"
 #include "Animation/BsAnimation.h"
-#include "Animation/BsAnimationManager.h"
+#include "Animation/BsAnimationScene.h"
 #include "Mesh/BsMesh.h"
 
 using namespace b3d;
@@ -1105,7 +1105,7 @@ u32 ParticleEmitterSkinnedMeshShape::SpawnInternal(const Random& random, Particl
 			{
 				const auto iterFind = state.AnimData->Infos.find(animId);
 				if(iterFind != state.AnimData->Infos.end())
-					bones = &state.AnimData->Transforms[iterFind->second.PoseInfo.StartIdx];
+					bones = &state.AnimData->Transforms[iterFind->second.PoseInfo.BoneStartIndex];
 			}
 		}
 	}

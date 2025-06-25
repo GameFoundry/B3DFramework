@@ -7,7 +7,7 @@
 #include "BsApplication.h"
 #include "Physics/BsPhysics.h"
 #include "Audio/BsAudio.h"
-#include "Animation/BsAnimationManager.h"
+#include "Animation/BsAnimationScene.h"
 #include "Scene/BsGameObjectCollection.h"
 
 using namespace b3d;
@@ -71,7 +71,10 @@ void PlayInEditor::SetStateImmediate(PlayInEditorState state)
 
 			GetSceneManager().SetComponentState(ComponentState::Running);
 			SetSystemsPauseState(false);
-			GetAnimationManager().SetPaused(false);
+
+			// TODO - PlayInEditor should be associated with a particular scene
+			const SPtr<SceneInstance>& scene = GetSceneManager().GetMainScene();
+			scene->GetAnimationScene()->SetPaused(false);
 
 			if(oldState == PlayInEditorState::Stopped)
 				OnPlay();
@@ -83,7 +86,10 @@ void PlayInEditor::SetStateImmediate(PlayInEditorState state)
 		{
 			mFrameStepActive = false;
 			SetSystemsPauseState(true);
-			GetAnimationManager().SetPaused(true);
+
+			// TODO - PlayInEditor should be associated with a particular scene
+			const SPtr<SceneInstance>& scene = GetSceneManager().GetMainScene();
+			scene->GetAnimationScene()->SetPaused(true);
 
 			if(oldState == PlayInEditorState::Stopped)
 				SaveSceneInMemory();

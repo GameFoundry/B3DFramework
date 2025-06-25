@@ -308,7 +308,8 @@ void CAnimation::RestoreInternal(bool previewMode)
 	if(mInternal != nullptr)
 		DestroyInternal();
 
-	mInternal = Animation::Create();
+	const SPtr<SceneInstance>& scene = SceneObject()->GetScene();
+	mInternal = Animation::Create(scene);
 
 	mAnimatedRenderable = SO()->GetComponent<CRenderable>();
 

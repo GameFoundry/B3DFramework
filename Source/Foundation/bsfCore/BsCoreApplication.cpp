@@ -34,7 +34,7 @@
 #include "Physics/BsPhysics.h"
 #include "Audio/BsAudioManager.h"
 #include "Audio/BsAudio.h"
-#include "Animation/BsAnimationManager.h"
+#include "Animation/BsAnimationScene.h"
 #include "FileSystem/BsFileSystem.h"
 #include "Managers/BsGpuBackendManager.h"
 #include "Material/BsShaderCompiler.h"
@@ -109,7 +109,6 @@ CoreApplication::~CoreApplication()
 	AudioManager::ShutDown();
 	ResourceListenerManager::ShutDown();
 	ParticleManager::ShutDown();
-	AnimationManager::ShutDown();
 
 	// This must be done after all resources are released since it will unload the physics plugin, and some resources
 	// might be instances of types from that plugin.
@@ -211,7 +210,6 @@ void CoreApplication::OnStartUp()
 	MeshManager::StartUp();
 	Importer::StartUp();
 	AudioManager::StartUp(mStartUpDesc.Audio);
-	AnimationManager::StartUp();
 	ParticleManager::StartUp();
 	FolderMonitorManager::StartUp();
 
@@ -327,7 +325,7 @@ void CoreApplication::RunMainLoopFrame()
 
 	// Evaluate animation after scene and plugin updates because the renderer will just now be displaying the
 	// animation we sent on the previous frame, and we want the scene information to match to what is displayed.
-	perFrameData.Animation = AnimationManager::Instance().Update(mStartUpDesc.AsyncAnimation);
+	perFrameData.Animation = GetSceneManager().EvaluateAnimation(mStartUpDesc.AsyncAnimation);
 	perFrameData.Particles = ParticleManager::Instance().Update(*perFrameData.Animation);
 
 	// Send out resource events in case any were loaded/destroyed/modified

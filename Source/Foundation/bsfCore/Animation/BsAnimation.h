@@ -10,6 +10,7 @@
 #include "Animation/BsSkeletonMask.h"
 #include "Math/BsVector2.h"
 #include "Math/BsAABox.h"
+#include "Scene/BsSceneActor.h"
 
 namespace b3d
 {
@@ -283,7 +284,7 @@ namespace b3d
 	 * thread for updating attached scene objects and bones (if skeleton is attached), or the data is made available for
 	 * manual queries in the case of generic animation.
 	 */
-	class B3D_CORE_EXPORT Animation : public CoreObject, public IResourceListener
+	class B3D_CORE_EXPORT Animation : public CoreObject, public IResourceListener, public SceneActor
 	{
 	public:
 		~Animation();
@@ -472,7 +473,7 @@ namespace b3d
 		bool GetGenericCurveValue(u32 curveIdx, float& value);
 
 		/** Creates a new empty Animation object. */
-		static SPtr<Animation> Create();
+		static SPtr<Animation> Create(const SPtr<SceneInstance>& scene);
 
 		/** Triggered whenever an animation event is reached. */
 		Event<void(const HAnimationClip&, const String&)> OnEventTriggered;
@@ -489,9 +490,9 @@ namespace b3d
 
 		/** @} */
 	private:
-		friend class AnimationManager;
+		friend class AnimationScene;
 
-		Animation();
+		Animation(const SPtr<SceneInstance>& scene);
 
 		/**
 		 * Triggers any events between the last frame and current one.

@@ -3,6 +3,7 @@
 #pragma once
 
 #include "BsCorePrerequisites.h"
+#include "Animation/BsAnimationScene.h"
 #include "CoreObject/BsCoreObject.h"
 #include "Utility/BsModule.h"
 #include "Scene/BsGameObject.h"
@@ -180,7 +181,7 @@ namespace b3d
 		{};
 
 	public:
-		SceneInstance(ConstructPrivately dummy, const String& name, const HSceneObject& root, const UUID& associatedResourceId, const SPtr<PhysicsScene>& physicsScene, const SPtr<RendererScene>& rendererScene);
+		SceneInstance(ConstructPrivately dummy, const String& name, const HSceneObject& root, const UUID& associatedResourceId);
 		~SceneInstance();
 
 		/** Name of the scene. */
@@ -207,6 +208,9 @@ namespace b3d
 		 * Exact implementation depends on the renderer plugin used.
 		 */
 		const SPtr<RendererScene>& GetRendererScene() const { return mRendererScene; }
+
+		/** Returns the object responsible for updating animations in this scene. */
+		const SPtr<AnimationScene>& GetAnimationScene() const { return mAnimationScene; }
 
 		/** Returns the ID of the resource that the scene instance is associated with (e.g. resource the scene was loaded from.). */
 		B3D_SCRIPT_EXPORT(Property(Getter), ExportName(AssociatedResourceId))
@@ -311,6 +315,7 @@ namespace b3d
 		bool mIsActive = true;
 		SPtr<PhysicsScene> mPhysicsScene;
 		SPtr<RendererScene> mRendererScene;
+		SPtr<AnimationScene> mAnimationScene;
 		SPtr<GameObjectCollection> mGameObjectCollection;
 
 		UnorderedMap<SceneActor*, BoundActorData> mBoundActors;

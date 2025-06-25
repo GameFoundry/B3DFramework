@@ -1,11 +1,12 @@
 //************************************ B3D Framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "Animation/BsAnimation.h"
-#include "Animation/BsAnimationManager.h"
+#include "Animation/BsAnimationScene.h"
 #include "Animation/BsAnimationClip.h"
 #include "Animation/BsAnimationUtility.h"
 #include "Scene/BsSceneObject.h"
 #include "Animation/BsMorphShapes.h"
+#include "Scene/BsSceneManager.h"
 
 using namespace b3d;
 
@@ -636,15 +637,19 @@ void AnimationProxy::UpdateTime(const Vector<AnimationClipInfo>& clipInfos)
 	}
 }
 
-Animation::Animation()
+Animation::Animation(const SPtr<SceneInstance>& scene)
+	:SceneActor(scene)
 {
-	mId = AnimationManager::Instance().RegisterAnimation(this);
+	const SPtr<AnimationScene>& animationScene = scene->GetAnimationScene();
+
+	mId = animationScene->RegisterAnimation(this);
 	mAnimProxy = B3DMakeShared<AnimationProxy>(mId);
 }
 
 Animation::~Animation()
 {
-	AnimationManager::Instance().UnregisterAnimation(mId);
+	const SPtr<AnimationScene>& animationScene = mSceneInstance->GetAnimationScene();
+	animationScene->UnregisterAnimation(mId);
 }
 
 void Animation::SetSkeleton(const SPtr<Skeleton>& skeleton)
@@ -1274,9 +1279,9 @@ bool Animation::GetGenericCurveValue(u32 curveIdx, float& value)
 	return true;
 }
 
-SPtr<Animation> Animation::Create()
+SPtr<Animation> Animation::Create(const SPtr<SceneInstance>& sceneInstance)
 {
-	Animation* anim = new(B3DAllocate<Animation>()) Animation();
+	Animation* anim = new(B3DAllocate<Animation>()) Animation(sceneInstance);
 
 	SPtr<Animation> animPtr = B3DMakeSharedFromExisting(anim);
 	animPtr->SetShared(animPtr);

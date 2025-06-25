@@ -11,7 +11,7 @@
 #include "BsRenderBeastScene.h"
 #include "BsRenderBeast.h"
 #include "BsRendererDecal.h"
-#include "Animation/BsAnimationManager.h"
+#include "Animation/BsAnimationScene.h"
 #include "RenderAPI/BsGpuCommandBuffer.h"
 
 namespace b3d {
@@ -220,7 +220,7 @@ void RendererView::BeginFrame(const FrameInfo& frameInfo)
 	gPerCameraParamDef.gNDCToPrevNDC.Set(mParamBuffer, NDCToPrevNDC);
 
 	mFrameTimings = frameInfo.Timings;
-	mAsyncAnim = frameInfo.PerFrameData.Animation ? frameInfo.PerFrameData.Animation->Async : false;
+	mAsyncAnim = frameInfo.PerFrameData.Animation ? frameInfo.PerFrameData.Animation->AsynchronousEvaluation : false;
 
 	// Account for auto-exposure taking multiple frames
 	if(mRedrawThisFrame)

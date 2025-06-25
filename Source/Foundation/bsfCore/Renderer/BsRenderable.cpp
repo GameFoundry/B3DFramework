@@ -13,7 +13,7 @@
 #include "Renderer/BsRenderer.h"
 #include "Animation/BsAnimation.h"
 #include "Animation/BsMorphShapes.h"
-#include "Animation/BsAnimationManager.h"
+#include "Animation/BsAnimationScene.h"
 #include "Scene/BsSceneManager.h"
 #include "CoreObject/BsCoreObjectSync.h"
 #include "RenderAPI/BsGpuBuffer.h"
@@ -604,7 +604,7 @@ void Renderable::UpdateAnimationBuffers(const EvaluatedAnimationData& animData)
 	if(mAnimationId == (u64)-1)
 		return;
 
-	const EvaluatedAnimationData::AnimInfo* animInfo = nullptr;
+	const EvaluatedAnimationData::AnimationInfo* animInfo = nullptr;
 
 	auto iterFind = animData.Infos.find(mAnimationId);
 	if(iterFind != animData.Infos.end())
@@ -622,11 +622,11 @@ void Renderable::UpdateAnimationBuffers(const EvaluatedAnimationData& animData)
 
 		// Note: If multiple elements are using the same animation (not possible atm), this buffer should be shared by
 		// all such elements
-		const u32 bufferSize = poseInfo.NumBones * 3 * sizeof(Vector4);
+		const u32 bufferSize = poseInfo.BoneCount * 3 * sizeof(Vector4);
 		u8* dest = (u8*)B3DStackAllocate(bufferSize);
-		for(u32 j = 0; j < poseInfo.NumBones; j++)
+		for(u32 j = 0; j < poseInfo.BoneCount; j++)
 		{
-			const Matrix4& transform = animData.Transforms[poseInfo.StartIdx + j];
+			const Matrix4& transform = animData.Transforms[poseInfo.BoneStartIndex + j];
 			memcpy(dest, &transform, 12 * sizeof(float)); // Assuming row-major format
 
 			dest += 12 * sizeof(float);

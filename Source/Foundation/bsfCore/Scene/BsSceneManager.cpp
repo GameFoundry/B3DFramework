@@ -371,8 +371,8 @@ bool SceneInstanceComponents::IsComponentOfType(const HComponent& component, u32
 	return component->GetRtti()->GetRttiId() == rttiId;
 }
 
-SceneInstance::SceneInstance(ConstructPrivately dummy, const String& name, const HSceneObject& root, const UUID& associatedResourceId, const SPtr<PhysicsScene>& physicsScene, const SPtr<RendererScene>& rendererScene)
-	: mName(name), mRoot(root), mAssociatedResourceId(associatedResourceId), mPhysicsScene(physicsScene), mRendererScene(rendererScene), mGameObjectCollection(root->GetOwnerCollection())
+SceneInstance::SceneInstance(ConstructPrivately dummy, const String& name, const HSceneObject& root, const UUID& associatedResourceId)
+	: mName(name), mRoot(root), mAssociatedResourceId(associatedResourceId), mPhysicsScene(GetPhysics().CreatePhysicsScene()), mRendererScene(RendererScene::Create()), mAnimationScene(AnimationScene::Create()), mGameObjectCollection(root->GetOwnerCollection())
 {}
 
 SceneInstance::~SceneInstance()
@@ -558,7 +558,7 @@ SPtr<SceneInstance> SceneInstance::Create(const String& name)
 	const SPtr<GameObjectCollection>& gameObjectCollection = GameObjectCollection::Create();
 	HSceneObject root = SceneObject::CreateInternal(gameObjectCollection, "Root");
 
-	SPtr<SceneInstance> sceneInstance = B3DMakeShared<SceneInstance>(ConstructPrivately(), name, root, UUID::kEmpty, GetPhysics().CreatePhysicsScene(), RendererScene::Create());
+	SPtr<SceneInstance> sceneInstance = B3DMakeShared<SceneInstance>(ConstructPrivately(), name, root, UUID::kEmpty);
 	root->SetScene(sceneInstance, false);
 
 	SceneManager::Instance().NotifySceneInstanceCreated(sceneInstance);
@@ -581,7 +581,7 @@ SPtr<SceneInstance> SceneInstance::Create(const String& name, const HSceneObject
 	if(!B3D_ENSURE(gameObjectCollection != nullptr))
 		return nullptr;
 
-	SPtr<SceneInstance> sceneInstance = B3DMakeShared<SceneInstance>(ConstructPrivately(), name, root, associatedResourceId, GetPhysics().CreatePhysicsScene(), RendererScene::Create());
+	SPtr<SceneInstance> sceneInstance = B3DMakeShared<SceneInstance>(ConstructPrivately(), name, root, associatedResourceId);
 	root->SetScene(sceneInstance, true);
 
 	SceneManager::Instance().NotifySceneInstanceCreated(sceneInstance);
