@@ -139,6 +139,9 @@ namespace b3d
 		/** Recursively disables the provided set of flags on this object and all children. */
 		void UnsetFlags(SceneObjectFlags flags);
 
+		/** Sets the current scene parent to null. Only useful if an object is replacing an existing scene instance root. */
+		void ClearParent();
+
 		/** @} */
 
 	private:
@@ -487,9 +490,6 @@ namespace b3d
 		 *									changed (this means the local transform will be modified accordingly).
 		 */
 		void SetParentInternal(const HSceneObject& parent, bool keepWorldTransform = true);
-
-		/** Sets the current scene parent to null. Only useful if an object is replacing an existing scene instance root. */
-		void ClearParent();
 
 		/** Changes the owning scene of the scene object and optionally all children if @p recursive is true. */
 		void SetScene(const SPtr<SceneInstance>& scene, bool recursive = true);

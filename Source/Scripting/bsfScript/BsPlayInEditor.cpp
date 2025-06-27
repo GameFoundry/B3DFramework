@@ -61,6 +61,8 @@ void PlayInEditor::SetStateImmediate(PlayInEditorState state)
 
 			// Restore instance data as cloning the hierarchy created new game object handles, and we wish to ensure that anything holding the old handles still remains valid.
 			SceneUtility::RestoreSceneObjectHierarchyInstanceData(mainScene->GetRoot(), mSavedSceneInstanceData);
+			mSavedSceneInstanceData = {};
+
 			mSavedScene->Initialize();
 
 			mSavedScene = nullptr;

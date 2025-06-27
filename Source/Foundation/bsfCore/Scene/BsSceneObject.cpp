@@ -217,11 +217,6 @@ void SceneObject::Initialize()
 		{
 			if(!component->HasGameObjectFlag(GameObjectTransientFlag::Initialized))
 				component->Initialize();
-			else
-			{
-				// Only runtime persistent objects are allowed to be already initialized, as they are moved from instance to instance
-				B3D_ASSERT(sceneObject->HasFlag(SceneObjectFlag::RuntimePersistent));
-			}
 		}
 
 		for(auto& child : sceneObject->mChildren)
@@ -585,6 +580,7 @@ void SceneObject::ClearParent()
 	if(mParent != nullptr)
 		mParent->RemoveChild(GetHandle());
 
+	SetScene(nullptr, true);
 	mParent = nullptr;
 }
 
