@@ -9,6 +9,7 @@
 #include "Audio/BsAudio.h"
 #include "Animation/BsAnimationScene.h"
 #include "Scene/BsGameObjectCollection.h"
+#include "Scene/BsSceneUtility.h"
 
 using namespace b3d;
 PlayInEditor::PlayInEditor(const SPtr<SceneInstance>& scene)
@@ -58,6 +59,8 @@ void PlayInEditor::SetStateImmediate(PlayInEditorState state)
 			mainScene->SetRoot(mSavedScene);
 			mainScene->SetAssociatedResourceId(mSavedSceneResourceId);
 
+			// Restore instance data as cloning the hierarchy created new game object handles, and we wish to ensure that anything holding the old handles still remains valid.
+			SceneUtility::RestoreSceneObjectHierarchyInstanceData(mainScene->GetRoot(), mSavedSceneInstanceData);
 			mSavedScene->Initialize();
 
 			mSavedScene = nullptr;
@@ -140,6 +143,7 @@ void PlayInEditor::SaveSceneInMemory()
 {
 	mSavedSceneGameObjectCollection = GameObjectCollection::Create();
 	mSavedScene = mAssociatedScene->GetRoot()->Clone(mSavedSceneGameObjectCollection, true);
+	mSavedSceneInstanceData = SceneUtility::RecordSceneObjectHierarchyInstanceData(mAssociatedScene->GetRoot());
 	mSavedSceneResourceId = mAssociatedScene->GetAssociatedResourceId();
 
 	// Remove objects with "dont save" flag

@@ -3,6 +3,7 @@
 #pragma once
 
 #include "BsScriptEnginePrerequisites.h"
+#include "Scene/BsPrefabUtility.h"
 #include "Utility/BsModule.h"
 
 namespace b3d
@@ -93,6 +94,7 @@ namespace b3d
 
 		SPtr<GameObjectCollection> mSavedSceneGameObjectCollection;
 		HSceneObject mSavedScene;
+		UnorderedMap<UUID, SPtr<GameObjectInstanceData>> mSavedSceneInstanceData;
 		UUID mSavedSceneResourceId;
 	};
 

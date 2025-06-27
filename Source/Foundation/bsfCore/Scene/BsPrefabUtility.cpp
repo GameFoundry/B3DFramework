@@ -33,7 +33,7 @@ struct PrefabInstanceData
  *
  * @note	Does not recurse into child prefab instances.
  */
-static void RecordInstanceData(const HSceneObject& sceneObject, UnorderedMap<UUID, PrefabInstanceData>& outInstanceData)
+static void RecordPrefabInstanceData(const HSceneObject& sceneObject, UnorderedMap<UUID, PrefabInstanceData>& outInstanceData)
 {
 	sceneObject->IterateHierarchy(
 		[&outInstanceData](const HSceneObject& sceneObject)
@@ -60,7 +60,7 @@ static void RecordInstanceData(const HSceneObject& sceneObject, UnorderedMap<UUI
  *
  * @note	Does not recurse into child prefab instances.
  */
-static void RestoreInstanceData(const HSceneObject& sceneObject, const UnorderedMap<UUID, PrefabInstanceData>& instanceData)
+static void RestorePrefabInstanceData(const HSceneObject& sceneObject, const UnorderedMap<UUID, PrefabInstanceData>& instanceData)
 {
 	SPtr<GameObjectCollection> gameObjectCollection = sceneObject->GetOwnerCollection().lock();
 	if(!B3D_ENSURE(gameObjectCollection))
@@ -160,7 +160,7 @@ void PrefabUtility::RevertToPrefab(const HSceneObject& sceneObject)
 
 	// Save IDs, destroy original, create new, restore IDs
 	UnorderedMap<UUID, PrefabInstanceData> instanceData;
-	RecordInstanceData(sceneObject, instanceData);
+	RecordPrefabInstanceData(sceneObject, instanceData);
 
 	SPtr<SceneInstance> sceneInstance = sceneObject->GetScene();
 	HSceneObject parent = sceneObject->GetParent();
@@ -174,7 +174,7 @@ void PrefabUtility::RevertToPrefab(const HSceneObject& sceneObject)
 	newInstance->mParent->RemoveChild(newInstance);
 	newInstance->mParent = parent;
 
-	RestoreInstanceData(newInstance, instanceData);
+	RestorePrefabInstanceData(newInstance, instanceData);
 }
 
 HSceneObject PrefabUtility::UpdateInstanceFromPrefab(const HSceneObject& instance, const Prefab& prefab)
@@ -199,7 +199,7 @@ HSceneObject PrefabUtility::UpdateInstanceFromPrefab(const HSceneObject& instanc
 
 	// Save IDs, destroy original, create new, restore IDs
 	UnorderedMap<UUID, PrefabInstanceData> instanceData;
-	RecordInstanceData(instance, instanceData);
+	RecordPrefabInstanceData(instance, instanceData);
 
 	HSceneObject parent = instance->GetParent();
 	SPtr<SceneObjectHierarchyDelta> prefabDelta = instance->GetPrefabDelta();
@@ -217,7 +217,7 @@ HSceneObject PrefabUtility::UpdateInstanceFromPrefab(const HSceneObject& instanc
 	// at once (i.e. during the Clone() call above) will share GameObjectHandleData so we can simply replace
 	// to what they point to, affecting all of the handles to that object. (In another words, we can modify the
 	// new handles at this point, but old ones must keep referencing what they already were.)
-	RestoreInstanceData(newInstance, instanceData);
+	RestorePrefabInstanceData(newInstance, instanceData);
 
 	newInstance->SetParent(parent, false);
 
