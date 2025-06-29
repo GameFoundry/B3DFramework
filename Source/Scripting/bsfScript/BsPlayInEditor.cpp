@@ -20,7 +20,7 @@ PlayInEditor::PlayInEditor(const SPtr<SceneInstance>& scene)
 	else
 	{
 		SetSystemsPauseState(true);
-		GetTime().ResetSimulationTime();
+		mAssociatedScene->GetTime().Reset();
 		mAssociatedScene->SetComponentState(ComponentState::Stopped);
 	}
 }
@@ -51,16 +51,14 @@ void PlayInEditor::SetStateImmediate(PlayInEditorState state)
 			mFrameStepActive = false;
 
 			SetSystemsPauseState(true);
-			GetTime().ResetSimulationTime();
 
+			mAssociatedScene->GetTime().Reset();
 			mAssociatedScene->SetComponentState(ComponentState::Stopped);
-
-			const SPtr<SceneInstance>& mainScene = GetSceneManager().GetMainScene();
-			mainScene->SetRoot(mSavedScene);
-			mainScene->SetAssociatedResourceId(mSavedSceneResourceId);
+			mAssociatedScene->SetRoot(mSavedScene);
+			mAssociatedScene->SetAssociatedResourceId(mSavedSceneResourceId);
 
 			// Restore instance data as cloning the hierarchy created new game object handles, and we wish to ensure that anything holding the old handles still remains valid.
-			SceneUtility::RestoreSceneObjectHierarchyInstanceData(mainScene->GetRoot(), mSavedSceneInstanceData);
+			SceneUtility::RestoreSceneObjectHierarchyInstanceData(mAssociatedScene->GetRoot(), mSavedSceneInstanceData);
 			mSavedSceneInstanceData = {};
 
 			mSavedScene->Initialize();
@@ -161,8 +159,8 @@ void PlayInEditor::SaveSceneInMemory()
 			current->Destroy();
 		else
 		{
-			u32 numChildren = current->GetChildCount();
-			for(u32 i = 0; i < numChildren; i++)
+			const u32 childCount = current->GetChildCount();
+			for(u32 i = 0; i < childCount; i++)
 				todo.push(current->GetChild(i));
 		}
 	}
@@ -172,7 +170,7 @@ void PlayInEditor::SaveSceneInMemory()
 
 void PlayInEditor::SetSystemsPauseState(bool paused)
 {
-	GetTime().SetSimulationTimePaused(paused);
-	GetPhysics().SetPaused(paused);
+	mAssociatedScene->GetTime().SetPaused(paused);
+	mAssociatedScene->GetPhysicsScene()->SetPaused(paused);
 	GetAudio().SetPaused(paused);
 }

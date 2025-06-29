@@ -27,7 +27,7 @@ void Audio::StopManualSources()
 	mManualSources.clear();
 }
 
-void Audio::UpdateInternal()
+void Audio::Update()
 {
 	const u32 numSources = (u32)mManualSources.size();
 	for(u32 i = 0; i < numSources; i++)

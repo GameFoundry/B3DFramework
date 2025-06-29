@@ -3,6 +3,7 @@
 #pragma once
 
 #include "BsUtilityPrerequisites.h"
+#include "Script/BsIScriptExportable.h"
 #include "Utility/BsModule.h"
 
 namespace b3d
@@ -12,7 +13,7 @@ namespace b3d
 	 */
 
 	/**
-	 * Manages all time related functionality.
+	 * Manages global time related functionality.
 	 *
 	 * @note	Main thread only unless where specified otherwise.
 	 */
@@ -39,47 +40,15 @@ namespace b3d
 		u64 GetRealTimeInMilliseconds() const { return mTimeSinceStartMs; }
 
 		/**
-		 * Gets the time since the simulation started playing, multiplied by the time scale factor. In editor this will reset to zero every time you
-		 * start playing in editor, and in a standalone application this will be similar to GetRealTimeInSeconds(), except simulation time can be
-		 * sped up/down, or stopped entirely by setting the time scale.
-		 *
-		 * @return	Time since game start, affected by simulation time scale.
-		 */
-		B3D_SCRIPT_EXPORT(Property(Getter), ExportName(SimulationTimeInSeconds))
-		float GetSimulationTimeInSeconds() const { return mSimulationTimeInSeconds; }
-
-		/** Allows you to speed time up or down, or completely pause it by providing zero. Must be zero or larger. */
-		B3D_SCRIPT_EXPORT(Property(Setter), ExportName(SimulationTimeScale))
-		void SetSimulationTimeScale(float scale);
-
-		/** Returns the currently applied simulation time scale. */
-		B3D_SCRIPT_EXPORT(Property(Getter), ExportName(SimulationTimeScale))
-		float GetSimulationTimeScale() const { return mSimulationTimeScale; }
-
-		/** Resets the simulation time to zero. Primarily used for editor purposes for resetting the time when ending play in editor. */
-		B3D_SCRIPT_EXPORT()
-		void ResetSimulationTime() { mSimulationTimeInSeconds = 0.0f; }
-
-		/** Pauses or unpauses the simulation time. This is equivalent to setting the time scale to 0. */
-		B3D_SCRIPT_EXPORT()
-		void SetSimulationTimePaused(bool paused) { mIsSimulationTimePaused = paused;}
-
-		/**
 		 * Gets the time since last frame was executed. Only gets updated once per frame.
 		 *
 		 * @return	Time since last frame was executed, in seconds.
 		 */
 		B3D_SCRIPT_EXPORT(Property(Getter), ExportName(FrameDelta))
-		float GetFrameDelta() const { return mFrameDelta; }
-
-		/** Returns the step (in seconds) between fixed frame updates. */
-		float GetFixedFrameDelta() const { return (float)(mFixedStep * kMicrosecToSec); }
+		float GetFrameDelta() const { return mFrameDelta; } // TODO - Deprecated, use SceneTime
 
 		/** Returns the time (in seconds) the latest frame has started. */
 		float GetLastFrameTime() const { return (float)(mLastFrameTime * kMicrosecToSec); }
-
-		/** Returns the time (in seconds) the latest fixed update has started. */
-		float GetLastFixedUpdateTime() const { return (float)(mLastFixedUpdateTime * kMicrosecToSec); }
 
 		/**
 		 * Returns the sequential index of the current frame. First frame is 0.
@@ -155,7 +124,87 @@ namespace b3d
 		 */
 
 		/** Called every frame. Should only be called by Application. */
-		void UpdateInternal();
+		void Update();
+
+		/** @} */
+
+		/** Multiply with time in microseconds to get a time in seconds. */
+		static const double kMicrosecToSec;
+
+	private:
+		float mFrameDelta = 0.0f; /**< Frame delta in seconds */
+		float mTimeSinceStart = 0.0f; /**< Time since start in seconds */
+		u64 mTimeSinceStartMs = 0u;
+		bool mFirstFrame = true;
+
+		u64 mAppStartTime = 0u; /**< Time the application started, in microseconds */
+		u64 mLastFrameTime = 0u; /**< Time since last runOneFrame call, In microseconds */
+		std::atomic<unsigned long> mCurrentFrame{ 0UL };
+
+		std::time_t mAppStartUpDate;
+
+		Timer* mTimer;
+	};
+
+	/** Easier way to access the Time module. */
+	B3D_UTILITY_EXPORT Time& GetTime();
+
+	/** Manages simulation time for a particular scene. This time runs only while scene is simulating. */
+	class B3D_UTILITY_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(General)) SceneTime : public IScriptExportable
+	{
+	public:
+		SceneTime();
+		~SceneTime();
+
+		/**
+		 * Gets the time since the simulation started playing, multiplied by the time scale factor. In editor this will reset to zero every time you
+		 * start playing in editor, and in a standalone application this will be similar to GetRealTimeInSeconds(), except simulation time can be
+		 * sped up/down, or stopped entirely by setting the time scale.
+		 *
+		 * @return	Time since game start, affected by simulation time scale.
+		 */
+		B3D_SCRIPT_EXPORT(Property(Getter), ExportName(TimeInSeconds))
+		float GetTimeInSeconds() const { return mTimeInSeconds; }
+
+		/** Allows you to speed time up or down, or completely pause it by providing zero. Must be zero or larger. */
+		B3D_SCRIPT_EXPORT(Property(Setter), ExportName(Scale))
+		void SetScale(float scale);
+
+		/** Returns the currently applied simulation time scale. */
+		B3D_SCRIPT_EXPORT(Property(Getter), ExportName(Scale))
+		float GetScale() const { return mTimeScale; }
+
+		/** Resets the simulation time to zero. Primarily used for editor purposes for resetting the time when ending play in editor. */
+		B3D_SCRIPT_EXPORT()
+		void Reset() { mTimeInSeconds = 0.0f; }
+
+		/** Pauses or unpauses the simulation time. This is equivalent to setting the time scale to 0. */
+		B3D_SCRIPT_EXPORT()
+		void SetPaused(bool paused) { mIsTimePaused = paused;}
+
+		/**
+		 * Gets the time since last frame was executed. Only gets updated once per frame.
+		 *
+		 * @return	Time since last frame was executed, in seconds.
+		 */
+		B3D_SCRIPT_EXPORT(Property(Getter), ExportName(FrameDelta))
+		float GetFrameDelta() const { return mFrameDelta; }
+
+		/** Returns the step (in seconds) between fixed frame updates. */
+		float GetFixedFrameDelta() const { return (float)(mFixedStep * Time::kMicrosecToSec); }
+
+		/** Returns the time (in seconds) the latest frame has started. */
+		float GetLastFrameTime() const { return (float)(mLastFrameTime * Time::kMicrosecToSec); }
+
+		/** Returns the time (in seconds) the latest fixed update has started. */
+		float GetLastFixedUpdateTime() const { return (float)(mLastFixedUpdateTime * Time::kMicrosecToSec); }
+
+		/** @name Internal
+		 *  @{
+		 */
+
+		/** Called every frame. Should only be called by Application. */
+		void Update();
 
 		/**
 		 * Calculates the number of fixed update iterations required and their step size. Values depend on the current
@@ -168,53 +217,40 @@ namespace b3d
 		 *							cases this will be either 1 or 0, or a larger amount of frames are taking a long time
 		 *							to execute (longer than a multiple of fixed frame step).
 		 */
-		u32 GetFixedUpdateStepInternal(u64& step);
+		u32 GetFixedUpdateStep(u64& step);
 
 		/**
 		 * Advances the fixed update timers by @p step microseconds. Should be called once for each iteration as returned
 		 * by GetFixedUpdateStepInternal(), per frame.
 		 */
-		void AdvanceFixedUpdateInternal(u64 step);
+		void AdvanceFixedUpdate(u64 step);
 
 		/** @} */
 
-		/** Multiply with time in microseconds to get a time in seconds. */
-		static const double kMicrosecToSec;
-
 	private:
 		/** Maximum number of fixed updates that can ever be accumulated. */
-		static constexpr u32 kMaxAccumFixedUpdates = 200;
+		static constexpr u32 kMaximumAccumulatedFixedUpdates = 200;
 
 		/** Determines how many new fixed updates are regenerated per frame. */
 		static constexpr u32 kNewFixedUpdatesPerFrame = 4;
 
 		float mFrameDelta = 0.0f; /**< Frame delta in seconds */
-		float mTimeSinceStart = 0.0f; /**< Time since start in seconds */
-		u64 mTimeSinceStartMs = 0u;
 		bool mFirstFrame = true;
 
-		u64 mAppStartTime = 0u; /**< Time the application started, in microseconds */
-		u64 mLastFrameTime = 0u; /**< Time since last runOneFrame call, In microseconds */
-		std::atomic<unsigned long> mCurrentFrame{ 0UL };
+		u64 mLastFrameTime = 0u; /**< Time since last frame update call, In microseconds */
 
-		// Simulation time
-		float mSimulationTimeInSeconds = 0.0f;
-		float mSimulationTimeScale = 1.0f;
-		bool mIsSimulationTimePaused = false;
+		float mTimeInSeconds = 0.0f;
+		float mTimeScale = 1.0f;
+		bool mIsTimePaused = false;
 
 		// Fixed update
 		u64 mFixedStep = 16666; // 60 times a second in microseconds
 		u64 mLastFixedUpdateTime = 0;
 		bool mFirstFixedFrame = true;
-		u32 mNumRemainingFixedUpdates = kMaxAccumFixedUpdates;
-
-		std::time_t mAppStartUpDate;
+		u32 mRemainingFixedUpdateCount = kMaximumAccumulatedFixedUpdates;
 
 		Timer* mTimer;
 	};
-
-	/** Easier way to access the Time module. */
-	B3D_UTILITY_EXPORT Time& GetTime();
 
 	/** @} */
 } // namespace b3d

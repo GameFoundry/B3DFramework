@@ -11,6 +11,7 @@
 #include "Renderer/BsRenderer.h"
 #include "Renderer/BsRendererManager.h"
 #include "Renderer/BsRendererUtility.h"
+#include "Utility/BsTime.h"
 
 using namespace b3d;
 

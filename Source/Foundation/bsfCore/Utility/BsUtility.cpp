@@ -5,6 +5,7 @@
 #include "Reflection/BsRTTIObjectWrapper.h"
 #include "Reflection/BsRTTIType.h"
 #include "Scene/BsSceneObject.h"
+#include "Error/BsException.h"
 
 using namespace b3d;
 

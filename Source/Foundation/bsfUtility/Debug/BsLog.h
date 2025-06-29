@@ -3,7 +3,6 @@
 #pragma once
 
 #include "BsUtilityPrerequisites.h"
-#include "Utility/BsTime.h"
 
 namespace b3d
 {

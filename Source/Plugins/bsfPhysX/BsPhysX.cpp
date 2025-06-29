@@ -120,170 +120,159 @@ public:
 	}
 };
 
-class PhysXEventCallback : public PxSimulationEventCallback
+void PhysXEventCallback::onTrigger(PxTriggerPair* pairs, PxU32 count)
 {
-	void onWake(PxActor** actors, PxU32 count) override
-	{ /* Do nothing */
-	}
-
-	void onSleep(PxActor** actors, PxU32 count) override
-	{ /* Do nothing */
-	}
-
-	void onTrigger(PxTriggerPair* pairs, PxU32 count) override
+	for(PxU32 i = 0; i < count; i++)
 	{
-		for(PxU32 i = 0; i < count; i++)
+		const PxTriggerPair& pair = pairs[i];
+		if(pair.triggerShape->userData == nullptr)
+			continue;
+
+		PhysXScene::ContactEventType type;
+		bool ignoreContact = false;
+		PhysXObjectFilterFlags flags = PhysXObjectFilterFlags(pair.triggerShape->getSimulationFilterData().word2);
+
+		if(flags.IsSet(PhysXObjectFilterFlag::ReportAll))
 		{
-			const PxTriggerPair& pair = pairs[i];
-			if(pair.triggerShape->userData == nullptr)
-				continue;
-
-			PhysX::ContactEventType type;
-			bool ignoreContact = false;
-			PhysXObjectFilterFlags flags = PhysXObjectFilterFlags(pair.triggerShape->getSimulationFilterData().word2);
-
-			if(flags.IsSet(PhysXObjectFilterFlag::ReportAll))
-			{
-				switch((u32)pair.status)
-				{
-				case PxPairFlag::eNOTIFY_TOUCH_FOUND:
-					type = PhysX::ContactEventType::ContactBegin;
-					break;
-				case PxPairFlag::eNOTIFY_TOUCH_PERSISTS:
-					type = PhysX::ContactEventType::ContactStay;
-					break;
-				case PxPairFlag::eNOTIFY_TOUCH_LOST:
-					type = PhysX::ContactEventType::ContactEnd;
-					break;
-				default:
-					ignoreContact = true;
-					break;
-				}
-			}
-			else if(flags.IsSet(PhysXObjectFilterFlag::ReportBasic))
-			{
-				switch((u32)pair.status)
-				{
-				case PxPairFlag::eNOTIFY_TOUCH_FOUND:
-					type = PhysX::ContactEventType::ContactBegin;
-					break;
-				case PxPairFlag::eNOTIFY_TOUCH_LOST:
-					type = PhysX::ContactEventType::ContactEnd;
-					break;
-				default:
-					ignoreContact = true;
-					break;
-				}
-			}
-			else
-				ignoreContact = true;
-
-			if(ignoreContact)
-				continue;
-
-			PhysX::TriggerEvent event;
-			event.Trigger = (ColliderShape*)pair.triggerShape->userData;
-			event.Other = (ColliderShape*)pair.otherShape->userData;
-			event.Type = type;
-
-			GetPhysX().ReportTriggerEventInternal(event);
-		}
-	}
-
-	void onContact(const PxContactPairHeader& pairHeader, const PxContactPair* pairs, PxU32 count) override
-	{
-		for(PxU32 i = 0; i < count; i++)
-		{
-			const PxContactPair& pair = pairs[i];
-
-			PhysX::ContactEventType type;
-			bool ignoreContact = false;
-			switch((u32)pair.events)
+			switch((u32)pair.status)
 			{
 			case PxPairFlag::eNOTIFY_TOUCH_FOUND:
-				type = PhysX::ContactEventType::ContactBegin;
+				type = PhysXScene::ContactEventType::ContactBegin;
 				break;
 			case PxPairFlag::eNOTIFY_TOUCH_PERSISTS:
-				type = PhysX::ContactEventType::ContactStay;
+				type = PhysXScene::ContactEventType::ContactStay;
 				break;
 			case PxPairFlag::eNOTIFY_TOUCH_LOST:
-				type = PhysX::ContactEventType::ContactEnd;
+				type = PhysXScene::ContactEventType::ContactEnd;
 				break;
 			default:
 				ignoreContact = true;
 				break;
 			}
-
-			if(ignoreContact)
-				continue;
-
-			PhysX::ContactEvent event;
-			event.Type = type;
-
-			PxU32 contactCount = pair.contactCount;
-			const PxU8* stream = pair.contactStream;
-			PxU16 streamSize = pair.contactStreamSize;
-
-			if(contactCount > 0 && streamSize > 0)
+		}
+		else if(flags.IsSet(PhysXObjectFilterFlag::ReportBasic))
+		{
+			switch((u32)pair.status)
 			{
-				PxU32 contactIdx = 0;
-				PxContactStreamIterator iter((PxU8*)stream, streamSize);
+			case PxPairFlag::eNOTIFY_TOUCH_FOUND:
+				type = PhysXScene::ContactEventType::ContactBegin;
+				break;
+			case PxPairFlag::eNOTIFY_TOUCH_LOST:
+				type = PhysXScene::ContactEventType::ContactEnd;
+				break;
+			default:
+				ignoreContact = true;
+				break;
+			}
+		}
+		else
+			ignoreContact = true;
 
-				stream += ((streamSize + 15) & ~15);
+		if(ignoreContact)
+			continue;
 
-				const PxReal* impulses = reinterpret_cast<const PxReal*>(stream);
-				PxU32 hasImpulses = (pair.flags & PxContactPairFlag::eINTERNAL_HAS_IMPULSES);
+		PhysXScene::TriggerEvent event;
+		event.Trigger = (ColliderShape*)pair.triggerShape->userData;
+		event.Other = (ColliderShape*)pair.otherShape->userData;
+		event.Type = type;
 
-				while(iter.hasNextPatch())
+		mScene.ReportTriggerEvent(event);
+	}
+}
+
+void PhysXEventCallback::onContact(const PxContactPairHeader& pairHeader, const PxContactPair* pairs, PxU32 count)
+{
+	for(PxU32 i = 0; i < count; i++)
+	{
+		const PxContactPair& pair = pairs[i];
+
+		PhysXScene::ContactEventType type;
+		bool ignoreContact = false;
+		switch((u32)pair.events)
+		{
+		case PxPairFlag::eNOTIFY_TOUCH_FOUND:
+			type = PhysXScene::ContactEventType::ContactBegin;
+			break;
+		case PxPairFlag::eNOTIFY_TOUCH_PERSISTS:
+			type = PhysXScene::ContactEventType::ContactStay;
+			break;
+		case PxPairFlag::eNOTIFY_TOUCH_LOST:
+			type = PhysXScene::ContactEventType::ContactEnd;
+			break;
+		default:
+			ignoreContact = true;
+			break;
+		}
+
+		if(ignoreContact)
+			continue;
+
+		PhysXScene::ContactEvent event;
+		event.Type = type;
+
+		PxU32 contactCount = pair.contactCount;
+		const PxU8* stream = pair.contactStream;
+		PxU16 streamSize = pair.contactStreamSize;
+
+		if(contactCount > 0 && streamSize > 0)
+		{
+			PxU32 contactIdx = 0;
+			PxContactStreamIterator iter((PxU8*)stream, streamSize);
+
+			stream += ((streamSize + 15) & ~15);
+
+			const PxReal* impulses = reinterpret_cast<const PxReal*>(stream);
+			PxU32 hasImpulses = (pair.flags & PxContactPairFlag::eINTERNAL_HAS_IMPULSES);
+
+			while(iter.hasNextPatch())
+			{
+				iter.nextPatch();
+				while(iter.hasNextContact())
 				{
-					iter.nextPatch();
-					while(iter.hasNextContact())
-					{
-						iter.nextContact();
+					iter.nextContact();
 
-						ContactPoint point;
-						point.Position = FromPxVector(iter.getContactPoint());
-						point.Separation = iter.getSeparation();
-						point.Normal = FromPxVector(iter.getContactNormal());
+					ContactPoint point;
+					point.Position = FromPxVector(iter.getContactPoint());
+					point.Separation = iter.getSeparation();
+					point.Normal = FromPxVector(iter.getContactNormal());
 
-						if(hasImpulses)
-							point.Impulse = impulses[contactIdx];
-						else
-							point.Impulse = 0.0f;
+					if(hasImpulses)
+						point.Impulse = impulses[contactIdx];
+					else
+						point.Impulse = 0.0f;
 
-						event.Points.push_back(point);
+					event.Points.push_back(point);
 
-						contactIdx++;
-					}
+					contactIdx++;
 				}
 			}
-
-			event.ColliderShapeA = (ColliderShape*)pair.shapes[0]->userData;
-			event.ColliderShapeB = (ColliderShape*)pair.shapes[1]->userData;
-
-			GetPhysX().ReportContactEventInternal(event);
 		}
-	}
 
-	void onConstraintBreak(PxConstraintInfo* constraints, PxU32 count) override
+		event.ColliderShapeA = (ColliderShape*)pair.shapes[0]->userData;
+		event.ColliderShapeB = (ColliderShape*)pair.shapes[1]->userData;
+
+		mScene.ReportContactEvent(event);
+	}
+}
+
+void PhysXEventCallback::onConstraintBreak(PxConstraintInfo* constraints, PxU32 count)
+{
+	for(u32 i = 0; i < count; i++)
 	{
-		for(u32 i = 0; i < count; i++)
-		{
-			PxConstraintInfo& constraintInfo = constraints[i];
+		PxConstraintInfo& constraintInfo = constraints[i];
 
-			if(constraintInfo.type != PxConstraintExtIDs::eJOINT)
-				continue;
+		if(constraintInfo.type != PxConstraintExtIDs::eJOINT)
+			continue;
 
-			PxJoint* pxJoint = (PxJoint*)constraintInfo.externalReference;
+		PxJoint* pxJoint = (PxJoint*)constraintInfo.externalReference;
 
-			PhysX::JointBreakEvent event;
-			event.Joint = (Joint*)pxJoint->userData;
+		PhysXScene::JointBreakEvent event;
+		event.Joint = (Joint*)pxJoint->userData;
 
-			if(event.Joint != nullptr)
-				GetPhysX().ReportJointBreakEventInternal(event);
-		}
+		if(event.Joint != nullptr)
+			mScene.ReportJointBreakEvent(event);
 	}
-};
+}
 
 class PhysXCPUDispatcher : public PxCpuDispatcher
 {
@@ -492,11 +481,7 @@ struct PhysXOverlapQueryCallback : PxOverlapCallback
 static PhysXAllocator gPhysXAllocator;
 static PhysXErrorCallback gPhysXErrorHandler;
 static PhysXCPUDispatcher gPhysXCPUDispatcher;
-static PhysXEventCallback gPhysXEventCallback;
 static PhysXBroadPhaseCallback gPhysXBroadphaseCallback;
-
-static const u32 kSize16K = 1 << 14;
-const u32 PhysX::kScratchBufferSize = kSize16K * 64; // 1MB by default
 
 PhysX::PhysX(const PhysicsCreateInformation& input)
 	: Physics(input), mInitDesc(input)
@@ -532,184 +517,6 @@ PhysX::~PhysX()
 	mFoundation->release();
 }
 
-void PhysX::FixedUpdate(float step)
-{
-	if(mPaused)
-		return;
-
-	mUpdateInProgress = true;
-
-	// Note: Consider delaying fetchResults one frame. This could improve performance because Physics update would be
-	//       able to run parallel to the simulation thread, but at a cost to input latency.
-	B3DMarkAllocatorFrame();
-	u8* scratchBuffer = B3DFrameAllocateAligned(kScratchBufferSize, 16);
-
-	for(auto& scene : mScenes)
-	{
-		scene->mScene->simulate(step, nullptr, scratchBuffer, kScratchBufferSize);
-
-		u32 errorState;
-		if(!scene->mScene->fetchResults(true, &errorState))
-			B3D_LOG(Warning, Physics, "Physics simulation failed. Error code: {0}", errorState);
-	}
-
-	B3DFrameFreeAligned(scratchBuffer);
-	B3DClearAllocatorFrame();
-
-	// Update rigidbodies with new transforms
-	for(auto& scene : mScenes)
-	{
-		PxU32 numActiveTransforms;
-		const PxActiveTransform* activeTransforms = scene->mScene->getActiveTransforms(numActiveTransforms);
-
-		for(PxU32 i = 0; i < numActiveTransforms; i++)
-		{
-			Rigidbody* rigidbody = static_cast<Rigidbody*>(activeTransforms[i].userData);
-
-			// Note: This should never happen, as actors gets their userData set to null when they're destroyed. However
-			// in some cases PhysX seems to keep those actors alive for a frame or few, and reports their state here. Until
-			// I find out why I need to perform this check.
-			if(activeTransforms[i].actor->userData == nullptr)
-				continue;
-
-			const PxTransform& transform = activeTransforms[i].actor2World;
-
-			// Note: Make this faster, avoid dereferencing Rigidbody and attempt to access pos/rot destination directly,
-			//       use non-temporal writes
-			rigidbody->SetTransformInternal(FromPxVector(transform.p), FromPxQuaternion(transform.q));
-		}
-	}
-
-	// Note: Consider extrapolating for the remaining "simulationAmount" value
-	mUpdateInProgress = false;
-
-	TriggerEvents();
-}
-
-void PhysX::Update()
-{
-	// Note: Potentially interpolate (would mean a one frame delay needs to be introduced)
-}
-
-void PhysX::ReportContactEventInternal(const ContactEvent& event)
-{
-	mContactEvents.push_back(event);
-}
-
-void PhysX::ReportTriggerEventInternal(const TriggerEvent& event)
-{
-	mTriggerEvents.push_back(event);
-}
-
-void PhysX::ReportJointBreakEventInternal(const JointBreakEvent& event)
-{
-	mJointBreakEvents.push_back(event);
-}
-
-void PhysX::TriggerEvents()
-{
-	CollisionDataRaw data;
-
-	for(auto& entry : mTriggerEvents)
-	{
-		data.ColliderShapes[0] = entry.Trigger;
-		data.ColliderShapes[1] = entry.Other;
-
-		Collider* const triggerCollider = entry.Trigger->GetCollider();
-
-		switch(entry.Type)
-		{
-		case ContactEventType::ContactBegin:
-			triggerCollider->OnCollisionBegin(data);
-			break;
-		case ContactEventType::ContactStay:
-			triggerCollider->OnCollisionStay(data);
-			break;
-		case ContactEventType::ContactEnd:
-			triggerCollider->OnCollisionEnd(data);
-			break;
-		}
-	}
-
-	auto notifyContact = [&](ColliderShape* colliderShapeA, ColliderShape* colliderShapeB, ContactEventType type, const Vector<ContactPoint>& points, bool flipNormals = false)
-	{
-		data.ColliderShapes[0] = colliderShapeA;
-		data.ColliderShapes[1] = colliderShapeB;
-		data.ContactPoints = points;
-
-		if(flipNormals)
-		{
-			for(auto& point : data.ContactPoints)
-				point.Normal = -point.Normal;
-		}
-
-		Collider* const colliderA = colliderShapeA->GetCollider();
-		Rigidbody* rigidbody = colliderA->GetRigidbody();
-		if(rigidbody != nullptr)
-		{
-			switch(type)
-			{
-			case ContactEventType::ContactBegin:
-				rigidbody->OnCollisionBegin(data);
-				break;
-			case ContactEventType::ContactStay:
-				rigidbody->OnCollisionStay(data);
-				break;
-			case ContactEventType::ContactEnd:
-				rigidbody->OnCollisionEnd(data);
-				break;
-			}
-		}
-		else
-		{
-			switch(type)
-			{
-			case ContactEventType::ContactBegin:
-				colliderA->OnCollisionBegin(data);
-				break;
-			case ContactEventType::ContactStay:
-				colliderA->OnCollisionStay(data);
-				break;
-			case ContactEventType::ContactEnd:
-				colliderA->OnCollisionEnd(data);
-				break;
-			}
-		}
-	};
-
-	for(auto& entry : mContactEvents)
-	{
-		if(entry.ColliderShapeA != nullptr)
-		{
-			CollisionReportMode reportModeA = entry.ColliderShapeA->GetCollisionReportMode();
-
-			if(reportModeA == CollisionReportMode::ReportPersistent)
-				notifyContact(entry.ColliderShapeA, entry.ColliderShapeB, entry.Type, entry.Points, true);
-			else if(reportModeA == CollisionReportMode::Report && entry.Type != ContactEventType::ContactStay)
-				notifyContact(entry.ColliderShapeA, entry.ColliderShapeB, entry.Type, entry.Points, true);
-		}
-
-		if(entry.ColliderShapeB != nullptr)
-		{
-			CollisionReportMode reportModeB = entry.ColliderShapeB->GetCollisionReportMode();
-
-			if(reportModeB == CollisionReportMode::ReportPersistent)
-				notifyContact(entry.ColliderShapeB, entry.ColliderShapeA, entry.Type, entry.Points, false);
-			else if(reportModeB == CollisionReportMode::Report && entry.Type != ContactEventType::ContactStay)
-				notifyContact(entry.ColliderShapeB, entry.ColliderShapeA, entry.Type, entry.Points, false);
-		}
-	}
-
-	for(auto& entry : mJointBreakEvents)
-	{
-		entry.Joint->OnJointBreak();
-	}
-
-	mTriggerEvents.clear();
-	mContactEvents.clear();
-	mJointBreakEvents.clear();
-}
-
 SPtr<PhysicsMaterial> PhysX::CreateMaterial(float staticFriction, float dynamicFriction, float restitution)
 {
 	return B3DMakeShared<PhysXMaterial>(mPhysics, staticFriction, dynamicFriction, restitution);
@@ -739,11 +546,6 @@ void PhysX::NotifySceneDestroyedInternal(PhysXScene* scene)
 	B3D_ASSERT(iterFind != mScenes.end());
 
 	mScenes.erase(iterFind);
-}
-
-void PhysX::SetPaused(bool paused)
-{
-	mPaused = paused;
 }
 
 bool PhysX::RayCast(const Vector3& origin, const Vector3& unitDirection, const ColliderShape& colliderShape, PhysicsQueryHit& hit, float maxDistance) const
@@ -800,13 +602,13 @@ bool PhysX::RayCast(const Vector3& origin, const Vector3& unitDirection, const C
 }
 
 PhysXScene::PhysXScene(PxPhysics* physics, const PhysicsCreateInformation& input, const physx::PxTolerancesScale& scale)
-	: mPhysics(physics)
+	: mPhysics(physics), mEventCallback(*this)
 {
 	PxSceneDesc sceneDesc(scale); // TODO - Test out various other parameters provided by scene desc
 	sceneDesc.gravity = ToPxVector(input.Gravity);
 	sceneDesc.cpuDispatcher = &gPhysXCPUDispatcher;
 	sceneDesc.filterShader = PhysXFilterShader;
-	sceneDesc.simulationEventCallback = &gPhysXEventCallback;
+	sceneDesc.simulationEventCallback = &mEventCallback;
 	sceneDesc.broadPhaseCallback = &gPhysXBroadphaseCallback;
 
 	// Optionally: eENABLE_KINEMATIC_STATIC_PAIRS, eENABLE_KINEMATIC_PAIRS, eENABLE_PCM
@@ -830,6 +632,67 @@ PhysXScene::~PhysXScene()
 	mScene->release();
 
 	GetPhysX().NotifySceneDestroyedInternal(this);
+}
+
+void PhysXScene::FixedUpdate(float step)
+{
+	static constexpr u32 kSize16K = 1 << 14;
+	static constexpr u32 kScratchBufferSize = kSize16K * 64; // 1MB by default
+
+	if(mPaused)
+		return;
+
+	mUpdateInProgress = true;
+
+	// Note: Consider delaying fetchResults one frame. This could improve performance because Physics update would be
+	//       able to run parallel to the simulation thread, but at a cost to input latency.
+	B3DMarkAllocatorFrame();
+	u8* scratchBuffer = B3DFrameAllocateAligned(kScratchBufferSize, 16);
+
+	mScene->simulate(step, nullptr, scratchBuffer, kScratchBufferSize);
+
+	u32 errorState;
+	if(!mScene->fetchResults(true, &errorState))
+		B3D_LOG(Warning, Physics, "Physics simulation failed. Error code: {0}", errorState);
+
+	B3DFrameFreeAligned(scratchBuffer);
+	B3DClearAllocatorFrame();
+
+	// Update rigidbodies with new transforms
+	PxU32 activeTransformCount;
+	const PxActiveTransform* activeTransforms = mScene->getActiveTransforms(activeTransformCount);
+
+	for(PxU32 transformIndex = 0; transformIndex < activeTransformCount; transformIndex++)
+	{
+		Rigidbody* rigidbody = static_cast<Rigidbody*>(activeTransforms[transformIndex].userData);
+
+		// Note: This should never happen, as actors gets their userData set to null when they're destroyed. However
+		// in some cases PhysX seems to keep those actors alive for a frame or few, and reports their state here. Until
+		// I find out why I need to perform this check.
+		if(activeTransforms[transformIndex].actor->userData == nullptr)
+			continue;
+
+		const PxTransform& transform = activeTransforms[transformIndex].actor2World;
+
+		// Note: Make this faster, avoid dereferencing Rigidbody and attempt to access pos/rot destination directly,
+		//       use non-temporal writes
+		rigidbody->SetTransformInternal(FromPxVector(transform.p), FromPxQuaternion(transform.q));
+	}
+
+	// Note: Consider extrapolating for the remaining "simulationAmount" value
+	mUpdateInProgress = false;
+
+	TriggerEvents();
+}
+
+void PhysXScene::Update()
+{
+	// Note: Potentially interpolate (would mean a one frame delay needs to be introduced)
+}
+
+void PhysXScene::SetPaused(bool paused)
+{
+	mPaused = paused;
 }
 
 SPtr<Rigidbody> PhysXScene::CreateRigidbody(const HSceneObject& linkedSO)
@@ -1226,6 +1089,125 @@ void PhysXScene::ClearBroadPhaseRegions()
 		mScene->removeBroadPhaseRegion(entry.second);
 
 	mBroadPhaseRegionHandles.clear();
+}
+
+void PhysXScene::ReportContactEvent(const ContactEvent& event)
+{
+	mContactEvents.push_back(event);
+}
+
+void PhysXScene::ReportTriggerEvent(const TriggerEvent& event)
+{
+	mTriggerEvents.push_back(event);
+}
+
+void PhysXScene::ReportJointBreakEvent(const JointBreakEvent& event)
+{
+	mJointBreakEvents.push_back(event);
+}
+
+void PhysXScene::TriggerEvents()
+{
+	CollisionDataRaw data;
+
+	for(auto& entry : mTriggerEvents)
+	{
+		data.ColliderShapes[0] = entry.Trigger;
+		data.ColliderShapes[1] = entry.Other;
+
+		Collider* const triggerCollider = entry.Trigger->GetCollider();
+
+		switch(entry.Type)
+		{
+		case ContactEventType::ContactBegin:
+			triggerCollider->OnCollisionBegin(data);
+			break;
+		case ContactEventType::ContactStay:
+			triggerCollider->OnCollisionStay(data);
+			break;
+		case ContactEventType::ContactEnd:
+			triggerCollider->OnCollisionEnd(data);
+			break;
+		}
+	}
+
+	auto notifyContact = [&](ColliderShape* colliderShapeA, ColliderShape* colliderShapeB, ContactEventType type, const Vector<ContactPoint>& points, bool flipNormals = false)
+	{
+		data.ColliderShapes[0] = colliderShapeA;
+		data.ColliderShapes[1] = colliderShapeB;
+		data.ContactPoints = points;
+
+		if(flipNormals)
+		{
+			for(auto& point : data.ContactPoints)
+				point.Normal = -point.Normal;
+		}
+
+		Collider* const colliderA = colliderShapeA->GetCollider();
+		Rigidbody* rigidbody = colliderA->GetRigidbody();
+		if(rigidbody != nullptr)
+		{
+			switch(type)
+			{
+			case ContactEventType::ContactBegin:
+				rigidbody->OnCollisionBegin(data);
+				break;
+			case ContactEventType::ContactStay:
+				rigidbody->OnCollisionStay(data);
+				break;
+			case ContactEventType::ContactEnd:
+				rigidbody->OnCollisionEnd(data);
+				break;
+			}
+		}
+		else
+		{
+			switch(type)
+			{
+			case ContactEventType::ContactBegin:
+				colliderA->OnCollisionBegin(data);
+				break;
+			case ContactEventType::ContactStay:
+				colliderA->OnCollisionStay(data);
+				break;
+			case ContactEventType::ContactEnd:
+				colliderA->OnCollisionEnd(data);
+				break;
+			}
+		}
+	};
+
+	for(auto& entry : mContactEvents)
+	{
+		if(entry.ColliderShapeA != nullptr)
+		{
+			CollisionReportMode reportModeA = entry.ColliderShapeA->GetCollisionReportMode();
+
+			if(reportModeA == CollisionReportMode::ReportPersistent)
+				notifyContact(entry.ColliderShapeA, entry.ColliderShapeB, entry.Type, entry.Points, true);
+			else if(reportModeA == CollisionReportMode::Report && entry.Type != ContactEventType::ContactStay)
+				notifyContact(entry.ColliderShapeA, entry.ColliderShapeB, entry.Type, entry.Points, true);
+		}
+
+		if(entry.ColliderShapeB != nullptr)
+		{
+			CollisionReportMode reportModeB = entry.ColliderShapeB->GetCollisionReportMode();
+
+			if(reportModeB == CollisionReportMode::ReportPersistent)
+				notifyContact(entry.ColliderShapeB, entry.ColliderShapeA, entry.Type, entry.Points, false);
+			else if(reportModeB == CollisionReportMode::Report && entry.Type != ContactEventType::ContactStay)
+				notifyContact(entry.ColliderShapeB, entry.ColliderShapeA, entry.Type, entry.Points, false);
+		}
+	}
+
+	for(auto& entry : mJointBreakEvents)
+	{
+		entry.Joint->OnJointBreak();
+	}
+
+	mTriggerEvents.clear();
+	mContactEvents.clear();
+	mJointBreakEvents.clear();
 }
 
 namespace b3d {

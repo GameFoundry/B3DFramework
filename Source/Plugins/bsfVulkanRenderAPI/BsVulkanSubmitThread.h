@@ -5,6 +5,7 @@
 #include "BsVulkanPrerequisites.h"
 #include "Threading/BsSignal.h"
 #include "Threading/BsSingleConsumerQueue.h"
+#include "Utility/BsModule.h"
 
 namespace b3d::render
 {

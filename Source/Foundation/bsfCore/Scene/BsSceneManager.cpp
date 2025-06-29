@@ -19,6 +19,7 @@
 #include "Renderer/BsRendererScene.h"
 #include "Components/BsCCamera.h"
 #include "Particles/BsParticleScene.h"
+#include "Profiling/BsProfilerCPU.h"
 
 using namespace b3d;
 
@@ -374,17 +375,42 @@ bool SceneInstanceComponents::IsComponentOfType(const HComponent& component, u32
 
 SceneInstance::SceneInstance(ConstructPrivately dummy, const String& name, const HSceneObject& root, const UUID& associatedResourceId)
 	: mName(name), mRoot(root), mAssociatedResourceId(associatedResourceId), mPhysicsScene(GetPhysics().CreatePhysicsScene()), mRendererScene(RendererScene::Create()), mAnimationScene(AnimationScene::Create()), mParticleScene(ParticleScene::Create()), mGameObjectCollection(root->GetOwnerCollection())
-{}
+{
+}
 
 SceneInstance::~SceneInstance()
 {
 	GetSceneManager().NotifySceneInstanceDestroyed(this);
 }
 
+void SceneInstance::Initialize()
+{
+	CoreObject::Initialize();
+	
+	mAnimationScene->SetOwner(std::static_pointer_cast<SceneInstance>(GetShared()));
+}
+
+void SceneInstance::FixedUpdate()
+{
+	u64 fixedUpdateStep;
+	const u32 iterationCount = mTime.GetFixedUpdateStep(fixedUpdateStep);
+
+	const float stepSeconds = fixedUpdateStep / 1000000.0f;
+	for(u32 i = 0; i < iterationCount; i++)
+	{
+		PROFILE_CALL(SceneInstanceComponents::FixedUpdate(), "Scene fixed update");
+		PROFILE_CALL(mPhysicsScene->FixedUpdate(stepSeconds), "Physics simulation");
+
+		mTime.AdvanceFixedUpdate(fixedUpdateStep);
+	}
+}
+
 void SceneInstance::Update()
 {
 	SceneInstanceComponents::Update();
 	mGameObjectCollection->DestroyQueuedObjects();
+
+	mPhysicsScene->Update();
 }
 
 void SceneInstance::BindActor(const SPtr<SceneActor>& actor, const HSceneObject& so)
@@ -688,24 +714,6 @@ void SceneManager::NotifySceneInstanceDestroyed(SceneInstance* sceneInstance)
 	auto found = mSceneInstances.find(sceneInstance);
 	if(B3D_ENSURE(found != mSceneInstances.end()))
 		mSceneInstances.erase(found);
-}
-
-void SceneManager::Update()
-{
-	for(auto& entry : mSceneInstances)
-	{
-		const SPtr<SceneInstance>& scene = entry.second.lock();
-		scene->Update();
-	}
-}
-
-void SceneManager::FixedUpdate()
-{
-	for(auto& entry : mSceneInstances)
-	{
-		const SPtr<SceneInstance>& scene = entry.second.lock();
-		scene->Update();
-	}
 }
 
 namespace b3d

@@ -104,7 +104,7 @@ void OAAudio::SetPaused(bool paused)
 		source->SetGlobalPause(paused);
 }
 
-void OAAudio::UpdateInternal()
+void OAAudio::Update()
 {
 	// If previous task still hasn't completed, just skip streaming this frame, queuing more tasks won't help
 	if(!mStreamingTaskSignal.IsSignalled())
@@ -113,7 +113,7 @@ void OAAudio::UpdateInternal()
 	mStreamingTaskSignal.Reset();
 	GetCoreApplication().GetTaskScheduler().Post(SchedulerTask([this] { UpdateStreaming(); mStreamingTaskSignal.Signal(); }, "AudioStreaming"));
 
-	Audio::UpdateInternal();
+	Audio::Update();
 }
 
 void OAAudio::SetActiveDevice(const AudioDevice& device)

@@ -71,7 +71,7 @@ namespace b3d
 		 */
 
 		/** Called once per frame. Queues streaming audio requests. */
-		virtual void UpdateInternal();
+		virtual void Update();
 
 		/** @} */
 	protected:

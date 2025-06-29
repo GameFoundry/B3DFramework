@@ -20,11 +20,6 @@ namespace b3d
 	private:
 		static float InternalGetRealTimeInSeconds();
 		static uint64_t InternalGetRealTimeInMilliseconds();
-		static float InternalGetSimulationTimeInSeconds();
-		static void InternalSetSimulationTimeScale(float scale);
-		static float InternalGetSimulationTimeScale();
-		static void InternalResetSimulationTime();
-		static void InternalSetSimulationTimePaused(bool paused);
 		static float InternalGetFrameDelta();
 		static uint64_t InternalGetCurrentFrameIndex();
 		static uint64_t InternalGetTimePrecise();

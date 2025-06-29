@@ -8,6 +8,7 @@
 #include "GUI/BsGUIMouseEvent.h"
 #include "GUI/BsGUICommandEvent.h"
 #include "StyleSheet/BsGUIStyleSheet.h"
+#include "Utility/BsTime.h"
 
 using namespace b3d;
 

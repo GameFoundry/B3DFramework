@@ -5,6 +5,7 @@
 #include "Components/BsCRigidbody.h"
 #include "Physics/BsPhysics.h"
 #include "Private/RTTI/BsCColliderRTTI.h"
+#include "Scene/BsSceneManager.h"
 
 using namespace std::placeholders;
 
@@ -151,9 +152,12 @@ void CCollider::OnTransformChanged(TransformChangedFlags flags)
 	if((flags & TCF_Parent) != 0)
 		UpdateParentRigidbody();
 
+	const SPtr<SceneInstance>& scene = SceneObject()->GetScene();
+	const SPtr<PhysicsScene>& physicsScene = scene->GetPhysicsScene();
+
 	// Don't update the transform if it's due to Physics update since then we can guarantee it will remain at the same
 	// relative transform to its parent
-	if(GetPhysics().IsUpdateInProgress())
+	if(physicsScene->IsUpdateInProgress())
 		return;
 
 	if((flags & (TCF_Parent | TCF_Transform)) != 0)

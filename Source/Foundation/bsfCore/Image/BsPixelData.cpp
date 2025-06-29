@@ -7,6 +7,7 @@
 #include "Math/BsVector2.h"
 #include "Math/BsMath.h"
 #include "Debug/BsDebug.h"
+#include "Error/BsException.h"
 
 using namespace b3d;
 

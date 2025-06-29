@@ -25,7 +25,7 @@ namespace b3d
 		float GetVolume() const override;
 		void SetPaused(bool paused) override;
 		bool IsPaused() const override { return mIsPaused; }
-		void UpdateInternal() override;
+		void Update() override;
 		void SetActiveDevice(const AudioDevice& device) override;
 		AudioDevice GetActiveDevice() const override { return mActiveDevice; }
 		AudioDevice GetDefaultDevice() const override { return mDefaultDevice; }

@@ -2,6 +2,7 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
+
 #include "BsPhysXPrerequisites.h"
 #include "Physics/BsPhysics.h"
 #include "Physics/BsPhysicsCommon.h"
@@ -9,6 +10,7 @@
 #include "foundation/Px.h"
 #include "characterkinematic/PxControllerManager.h"
 #include "cooking/PxCooking.h"
+#include "PxSimulationEventCallback.h"
 
 namespace b3d
 {
@@ -21,6 +23,70 @@ namespace b3d
 	/** NVIDIA PhysX implementation of Physics. */
 	class PhysX : public Physics
 	{
+	public:
+		PhysX(const PhysicsCreateInformation& input);
+		~PhysX();
+
+		SPtr<PhysicsMaterial> CreateMaterial(float staticFriction, float dynamicFriction, float restitution) override;
+		SPtr<PhysicsMesh> CreateMesh(const SPtr<MeshData>& meshData, PhysicsMeshType type) override;
+		SPtr<PhysicsScene> CreatePhysicsScene() override;
+		SPtr<ColliderShape> CreateColliderShape() override;
+
+		bool RayCast(const Vector3& origin, const Vector3& unitDirection, const ColliderShape& colliderShape, PhysicsQueryHit& hit, float maxDistance = FLT_MAX) const override;
+		bool RayCast(const Vector3& origin, const Vector3& unitDirection, const Collider& collider, PhysicsQueryHit& hit, float maxDistance = FLT_MAX) const override;
+
+		/** Notifies the system that at physics scene is about to be destroyed. */
+		void NotifySceneDestroyedInternal(PhysXScene* scene);
+
+		/** Returns the default PhysX material. */
+		physx::PxMaterial* GetDefaultMaterial() const { return mDefaultMaterial; }
+
+		/** Returns the main PhysX object. */
+		physx::PxPhysics* GetPhysX() const { return mPhysics; }
+
+		/** Returns the PhysX object used for mesh cooking. */
+		physx::PxCooking* GetCooking() const { return mCooking; }
+
+		/** Returns default scale used in the PhysX scene. */
+		physx::PxTolerancesScale GetScale() const { return mScale; }
+
+	private:
+		friend class PhysXEventCallback;
+
+		PhysicsCreateInformation mInitDesc;
+
+		Vector<PhysXScene*> mScenes;
+		UnorderedMap<u32, u32> mBroadPhaseRegionHandles;
+
+		physx::PxFoundation* mFoundation = nullptr;
+		physx::PxPhysics* mPhysics = nullptr;
+		physx::PxCooking* mCooking = nullptr;
+		physx::PxMaterial* mDefaultMaterial = nullptr;
+		physx::PxTolerancesScale mScale;
+	};
+
+	class PhysXEventCallback : public physx::PxSimulationEventCallback
+	{
+	public:
+		PhysXEventCallback(PhysXScene& scene)
+			:mScene(scene)
+		{ }
+
+	protected:
+		void onWake(physx::PxActor** actors, physx::PxU32 count) override { /* Do nothing. */ }
+		void onSleep(physx::PxActor** actors, physx::PxU32 count) override { /* Do nothing. */ }
+		void onTrigger(physx::PxTriggerPair* pairs, physx::PxU32 count) override;
+		void onContact(const physx::PxContactPairHeader& pairHeader, const physx::PxContactPair* pairs, physx::PxU32 count) override;
+		void onConstraintBreak(physx::PxConstraintInfo* constraints, physx::PxU32 count) override;
+
+	private:
+		PhysXScene& mScene;
+	};
+
+	/** Contains information about a single PhysX scene. */
+	class PhysXScene : public PhysicsScene
+	{
+	public:
 		/** Type of contacts reported by PhysX simulation. */
 		enum class ContactEventType
 		{
@@ -53,75 +119,12 @@ namespace b3d
 			Joint* Joint; /** Broken joint. */
 		};
 
-	public:
-		PhysX(const PhysicsCreateInformation& input);
-		~PhysX();
+		PhysXScene(physx::PxPhysics* physics, const PhysicsCreateInformation& input, const physx::PxTolerancesScale& scale);
+		~PhysXScene();
 
 		void FixedUpdate(float step) override;
 		void Update() override;
-		SPtr<PhysicsMaterial> CreateMaterial(float staticFriction, float dynamicFriction, float restitution) override;
-		SPtr<PhysicsMesh> CreateMesh(const SPtr<MeshData>& meshData, PhysicsMeshType type) override;
-		SPtr<PhysicsScene> CreatePhysicsScene() override;
-		SPtr<ColliderShape> CreateColliderShape() override;
 		void SetPaused(bool paused) override;
-
-		/** Triggered by the PhysX simulation when an interaction between two colliders is found. */
-		void ReportContactEventInternal(const ContactEvent& event);
-
-		/** Triggered by the PhysX simulation when an interaction between two trigger and a collider is found. */
-		void ReportTriggerEventInternal(const TriggerEvent& event);
-
-		/** Triggered by the PhysX simulation when a joint breaks. */
-		void ReportJointBreakEventInternal(const JointBreakEvent& event);
-
-		bool RayCast(const Vector3& origin, const Vector3& unitDirection, const ColliderShape& colliderShape, PhysicsQueryHit& hit, float maxDistance = FLT_MAX) const override;
-		bool RayCast(const Vector3& origin, const Vector3& unitDirection, const Collider& collider, PhysicsQueryHit& hit, float maxDistance = FLT_MAX) const override;
-
-		/** Notifies the system that at physics scene is about to be destroyed. */
-		void NotifySceneDestroyedInternal(PhysXScene* scene);
-
-		/** Returns the default PhysX material. */
-		physx::PxMaterial* GetDefaultMaterial() const { return mDefaultMaterial; }
-
-		/** Returns the main PhysX object. */
-		physx::PxPhysics* GetPhysX() const { return mPhysics; }
-
-		/** Returns the PhysX object used for mesh cooking. */
-		physx::PxCooking* GetCooking() const { return mCooking; }
-
-		/** Returns default scale used in the PhysX scene. */
-		physx::PxTolerancesScale GetScale() const { return mScale; }
-
-	private:
-		friend class PhysXEventCallback;
-
-		/** Sends out all events recorded during simulation to the necessary physics objects. */
-		void TriggerEvents();
-
-		PhysicsCreateInformation mInitDesc;
-		bool mPaused = false;
-
-		Vector<TriggerEvent> mTriggerEvents;
-		Vector<ContactEvent> mContactEvents;
-		Vector<JointBreakEvent> mJointBreakEvents;
-		Vector<PhysXScene*> mScenes;
-		UnorderedMap<u32, u32> mBroadPhaseRegionHandles;
-
-		physx::PxFoundation* mFoundation = nullptr;
-		physx::PxPhysics* mPhysics = nullptr;
-		physx::PxCooking* mCooking = nullptr;
-		physx::PxMaterial* mDefaultMaterial = nullptr;
-		physx::PxTolerancesScale mScale;
-
-		static const u32 kScratchBufferSize;
-	};
-
-	/** Contains information about a single PhysX scene. */
-	class PhysXScene : public PhysicsScene
-	{
-	public:
-		PhysXScene(physx::PxPhysics* physics, const PhysicsCreateInformation& input, const physx::PxTolerancesScale& scale);
-		~PhysXScene();
 
 		/** Returns the underlying PhysX scene. */
 		physx::PxScene& GetPxScene() const { return *mScene; }
@@ -173,6 +176,15 @@ namespace b3d
 		Vector<ColliderShape*> CapsuleOverlapInternal(const Capsule& capsule, const Quaternion& rotation, u64 layer = BS_ALL_LAYERS) const override;
 		Vector<ColliderShape*> ConvexOverlapInternal(const HPhysicsMesh& mesh, const Vector3& position, const Quaternion& rotation, u64 layer = BS_ALL_LAYERS) const override;
 
+		/** Triggered by the PhysX simulation when an interaction between two colliders is found. */
+		void ReportContactEvent(const ContactEvent& event);
+
+		/** Triggered by the PhysX simulation when an interaction between two trigger and a collider is found. */
+		void ReportTriggerEvent(const TriggerEvent& event);
+
+		/** Triggered by the PhysX simulation when a joint breaks. */
+		void ReportJointBreakEvent(const JointBreakEvent& event);
+
 	private:
 		/**
 		 * Helper method that performs a sweep query by checking if the provided geometry hits any physics objects
@@ -199,6 +211,8 @@ namespace b3d
 		/** Helper method that checks if the provided geometry overlaps any physics object. */
 		inline bool OverlapAny(const physx::PxGeometry& geometry, const physx::PxTransform& tfrm, u64 layer) const;
 
+		/** Sends out all events recorded during simulation to the necessary physics objects. */
+		void TriggerEvents();
 	private:
 		friend class PhysX;
 
@@ -206,10 +220,16 @@ namespace b3d
 
 		UnorderedMap<u32, u32> mBroadPhaseRegionHandles;
 		u32 mNextRegionIdx = 1;
+		bool mPaused = false;
 
 		physx::PxPhysics* mPhysics = nullptr;
 		physx::PxScene* mScene = nullptr;
 		physx::PxControllerManager* mCharManager = nullptr;
+		PhysXEventCallback mEventCallback;
+
+		Vector<TriggerEvent> mTriggerEvents;
+		Vector<ContactEvent> mContactEvents;
+		Vector<JointBreakEvent> mJointBreakEvents;
 	};
 
 	/** Provides easier access to PhysX. */

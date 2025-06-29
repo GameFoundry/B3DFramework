@@ -228,26 +228,12 @@
 		</field>
 	</struct>
 	<class native="Time" script="Time">
-		<doc>Manages all time related functionality.</doc>
-		<method native="ResetSimulationTime" script="ResetSimulationTime" static="false">
-			<doc>Resets the simulation time to zero. Primarily used for editor purposes for resetting the time when ending play in editor.</doc>
-		</method>
-		<method native="SetSimulationTimePaused" script="SetSimulationTimePaused" static="false">
-			<doc>Pauses or unpauses the simulation time. This is equivalent to setting the time scale to 0.</doc>
-			<param name="paused" type="bool">
-			</param>
-		</method>
+		<doc>Manages global time related functionality.</doc>
 		<property name="RealTimeInSeconds" type="float" getter="GetRealTimeInSeconds" setter="" static="false">
 			<doc>Gets the time elapsed since application start. Only gets updated once per frame.</doc>
 		</property>
 		<property name="RealTimeInMilliseconds" type="ulong" getter="GetRealTimeInMilliseconds" setter="" static="false">
 			<doc>Gets the time elapsed since application start. Only gets updated once per frame.</doc>
-		</property>
-		<property name="SimulationTimeInSeconds" type="float" getter="GetSimulationTimeInSeconds" setter="" static="false">
-			<doc>Gets the time since the simulation started playing, multiplied by the time scale factor. In editor this will reset to zero every time you start playing in editor, and in a standalone application this will be similar to GetRealTimeInSeconds(), except simulation time can be sped up/down, or stopped entirely by setting the time scale.</doc>
-		</property>
-		<property name="SimulationTimeScale" type="float" getter="GetSimulationTimeScale" setter="SetSimulationTimeScale" static="false">
-			<doc>Allows you to speed time up or down, or completely pause it by providing zero. Must be zero or larger.</doc>
 		</property>
 		<property name="FrameDelta" type="float" getter="GetFrameDelta" setter="" static="false">
 			<doc>Gets the time since last frame was executed. Only gets updated once per frame.</doc>
@@ -258,6 +244,54 @@
 		<property name="TimePrecise" type="ulong" getter="GetTimePrecise" setter="" static="false">
 			<doc>Returns the precise time since application start, in microseconds. Unlike other time methods this is not only updated every frame, but will return exact time at the moment it is called.</doc>
 		</property>
+	</class>
+	<class native="SceneTime" script="SceneTime">
+		<doc>Manages simulation time for a particular scene. This time runs only while scene is simulating.</doc>
+		<method native="Reset" script="Reset" static="false">
+			<doc>Resets the simulation time to zero. Primarily used for editor purposes for resetting the time when ending play in editor.</doc>
+		</method>
+		<method native="SetPaused" script="SetPaused" static="false">
+			<doc>Pauses or unpauses the simulation time. This is equivalent to setting the time scale to 0.</doc>
+			<param name="paused" type="bool">
+			</param>
+		</method>
+		<property name="TimeInSeconds" type="float" getter="GetTimeInSeconds" setter="" static="false">
+			<doc>Gets the time since the simulation started playing, multiplied by the time scale factor. In editor this will reset to zero every time you start playing in editor, and in a standalone application this will be similar to GetRealTimeInSeconds(), except simulation time can be sped up/down, or stopped entirely by setting the time scale.</doc>
+		</property>
+		<property name="Scale" type="float" getter="GetScale" setter="SetScale" static="false">
+			<doc>Allows you to speed time up or down, or completely pause it by providing zero. Must be zero or larger.</doc>
+		</property>
+		<property name="FrameDelta" type="float" getter="GetFrameDelta" setter="" static="false">
+			<doc>Gets the time since last frame was executed. Only gets updated once per frame.</doc>
+		</property>
+	</class>
+	<class native="CCollider" script="Collider">
+		<property name="Trigger" type="bool" getter="GetIsTrigger" setter="SetIsTrigger" static="false">
+		</property>
+		<property name="Mass" type="float" getter="GetMass" setter="SetMass" static="false">
+		</property>
+		<property name="Material" type="RRef&lt;PhysicsMaterial&gt;" getter="GetMaterial" setter="SetMaterial" static="false">
+		</property>
+		<property name="ContactOffset" type="float" getter="GetContactOffset" setter="SetContactOffset" static="false">
+		</property>
+		<property name="RestOffset" type="float" getter="GetRestOffset" setter="SetRestOffset" static="false">
+		</property>
+		<property name="Layer" type="ulong" getter="GetLayer" setter="SetLayer" static="false">
+		</property>
+		<property name="CollisionReportMode" type="CollisionReportMode" getter="GetCollisionReportMode" setter="SetCollisionReportMode" static="false">
+		</property>
+		<event native="OnCollisionBegin" script="OnCollisionBegin" static="false">
+			<param name="p0" type="CollisionData">
+			</param>
+		</event>
+		<event native="OnCollisionStay" script="OnCollisionStay" static="false">
+			<param name="p0" type="CollisionData">
+			</param>
+		</event>
+		<event native="OnCollisionEnd" script="OnCollisionEnd" static="false">
+			<param name="p0" type="CollisionData">
+			</param>
+		</event>
 	</class>
 	<class native="Skeleton" script="Skeleton">
 		<doc>Contains information about bones required for skeletal animation.</doc>
@@ -326,21 +360,6 @@
 		<enumentry native="Positive" script="Positive">
 		</enumentry>
 	</enum>
-	<struct native="ColorGradientKey" script="ColorGradientKey">
-		<doc>Single key in a ColorGradient.</doc>
-		<ctor>
-		</ctor>
-		<ctor>
-			<param name="color" type="Color">
-			</param>
-			<param name="time" type="float">
-			</param>
-		</ctor>
-		<field name="Color" type="Color">
-		</field>
-		<field name="Time" type="float">
-		</field>
-	</struct>
 	<struct native="LogEntry" script="LogEntry">
 		<doc>A single log entry, containing a message and a channel the message was recorded on.</doc>
 		<ctor>
@@ -439,6 +458,21 @@
 		<field name="B" type="float">
 		</field>
 		<field name="A" type="float">
+		</field>
+	</struct>
+	<struct native="ColorGradientKey" script="ColorGradientKey">
+		<doc>Single key in a ColorGradient.</doc>
+		<ctor>
+		</ctor>
+		<ctor>
+			<param name="color" type="Color">
+			</param>
+			<param name="time" type="float">
+			</param>
+		</ctor>
+		<field name="Color" type="Color">
+		</field>
+		<field name="Time" type="float">
 		</field>
 	</struct>
 	<enum native="ProjectionType" script="ProjectionType">
@@ -3133,11 +3167,6 @@ Use {0}, {1}, etc. in the string value for values that might change dynamically.
 			<doc>If enabled, axis values will be normalized to [-1, 1] range. Most axes already come in normalized form and this value will not affect such axes. Some axes, like mouse movement are not normalized by default and will instead report relative movement. By enabling this you will normalize such axes to [-1, 1] range.</doc>
 		</field>
 	</struct>
-	<struct native="AudioDevice" script="AudioDevice">
-		<doc>Identifier for a device that can be used for playing audio.</doc>
-		<field name="Name" type="string">
-		</field>
-	</struct>
 	<struct native="AnimationEvent" script="AnimationEvent">
 		<doc>Event that is triggered when animation reaches a certain point.</doc>
 		<ctor>
@@ -3156,6 +3185,11 @@ Use {0}, {1}, etc. in the string value for values that might change dynamically.
 		</field>
 		<field name="Time" type="float">
 			<doc>Time at which to trigger the event, in seconds.</doc>
+		</field>
+	</struct>
+	<struct native="AudioDevice" script="AudioDevice">
+		<doc>Identifier for a device that can be used for playing audio.</doc>
+		<field name="Name" type="string">
 		</field>
 	</struct>
 	<class native="ManagedPropertyInfo" script="ManagedPropertyInfo">
@@ -4734,34 +4768,6 @@ Use {0}, {1}, etc. in the string value for values that might change dynamically.
 		<field name="Mesh" type="RRef&lt;PhysicsMesh&gt;">
 		</field>
 	</struct>
-	<class native="CCollider" script="Collider">
-		<property name="Trigger" type="bool" getter="GetIsTrigger" setter="SetIsTrigger" static="false">
-		</property>
-		<property name="Mass" type="float" getter="GetMass" setter="SetMass" static="false">
-		</property>
-		<property name="Material" type="RRef&lt;PhysicsMaterial&gt;" getter="GetMaterial" setter="SetMaterial" static="false">
-		</property>
-		<property name="ContactOffset" type="float" getter="GetContactOffset" setter="SetContactOffset" static="false">
-		</property>
-		<property name="RestOffset" type="float" getter="GetRestOffset" setter="SetRestOffset" static="false">
-		</property>
-		<property name="Layer" type="ulong" getter="GetLayer" setter="SetLayer" static="false">
-		</property>
-		<property name="CollisionReportMode" type="CollisionReportMode" getter="GetCollisionReportMode" setter="SetCollisionReportMode" static="false">
-		</property>
-		<event native="OnCollisionBegin" script="OnCollisionBegin" static="false">
-			<param name="p0" type="CollisionData">
-			</param>
-		</event>
-		<event native="OnCollisionStay" script="OnCollisionStay" static="false">
-			<param name="p0" type="CollisionData">
-			</param>
-		</event>
-		<event native="OnCollisionEnd" script="OnCollisionEnd" static="false">
-			<param name="p0" type="CollisionData">
-			</param>
-		</event>
-	</class>
 	<struct native="SpriteSheetGridAnimation" script="SpriteSheetGridAnimation">
 		<doc>Descriptor that describes a simple sprite sheet animation. The parent area is split into a grid of <see cref="RowCount"/> x <see cref="ColumnCount"/>, each representing one frame of the animation. Every frame is of equal size. Frames are sequentially evaluated starting from the top-most row, iterating over all columns in a row and then moving to next row, up to <see cref="FrameCount"/> frames. <see cref="FramesPerSecond"/> frames are evaluated every second, allowing you to control animation speed.</doc>
 		<ctor>
@@ -10037,9 +10043,6 @@ Optionally if the parameter is an array you may provide an array index you which
 			<returns type="bool">
 			</returns>
 		</method>
-		<property name="IsUpdateInProgress" type="bool" getter="IsUpdateInProgress" setter="" static="false">
-			<doc>Checks is the physics simulation update currently in progress.</doc>
-		</property>
 	</class>
 	<class native="PhysicsScene" script="PhysicsScene">
 		<doc>Physical representation of a scene, allowing creation of new physical objects in the scene and queries against those objects. Objects created in different scenes cannot physically interact with eachother.</doc>

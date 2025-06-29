@@ -153,9 +153,6 @@ namespace b3d
 		/**	Called for each iteration of the main loop. Called after all game objects and plugins are updated. */
 		virtual void PostUpdate();
 
-		/** Called during the fixed update of the main loop. Called after preUpdate and before postUpdate. */
-		virtual void FixedUpdate();
-
 		/**	Initializes the renderer specified during construction. Called during initialization. */
 		virtual void StartUpRenderer() { }
 

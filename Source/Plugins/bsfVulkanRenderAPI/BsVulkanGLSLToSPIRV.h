@@ -3,6 +3,7 @@
 #pragma once
 
 #include "BsVulkanPrerequisites.h"
+#include "Utility/BsModule.h"
 
 namespace b3d
 {

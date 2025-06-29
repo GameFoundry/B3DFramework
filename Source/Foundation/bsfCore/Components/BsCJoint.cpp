@@ -5,6 +5,7 @@
 #include "Scene/BsSceneObject.h"
 #include "Physics/BsPhysics.h"
 #include "Private/RTTI/BsCJointRTTI.h"
+#include "Scene/BsSceneManager.h"
 
 using namespace std::placeholders;
 
@@ -180,13 +181,16 @@ void CJoint::OnTransformChanged(TransformChangedFlags flags)
 	if(mInternal == nullptr)
 		return;
 
+	const SPtr<SceneInstance>& scene = SceneObject()->GetScene();
+	const SPtr<PhysicsScene>& physicsScene = scene->GetPhysicsScene();
+
 	// We're ignoring this during physics update because it would cause problems if the joint itself was moved by physics
 	// Note: This isn't particularily correct because if the joint is being moved by physics but the rigidbodies
 	// themselves are not parented to the joint, the transform will need updating. However I'm leaving it up to the
 	// user to ensure rigidbodies are always parented to the joint in such a case (It's an unlikely situation that
 	// I can't think of an use for - joint transform will almost always be set as an initialization step and not a
 	// physics response).
-	if(GetPhysics().IsUpdateInProgress())
+	if(physicsScene->IsUpdateInProgress())
 		return;
 
 	UpdateTransform(JointBody::Target);
@@ -228,8 +232,11 @@ void CJoint::NotifyRigidbodyMoved(const HRigidbody& body)
 	if(mInternal == nullptr)
 		return;
 
+	const SPtr<SceneInstance>& scene = SceneObject()->GetScene();
+	const SPtr<PhysicsScene>& physicsScene = scene->GetPhysicsScene();
+
 	// If physics update is in progress do nothing, as its the joint itself that's probably moving the body
-	if(GetPhysics().IsUpdateInProgress())
+	if(physicsScene->IsUpdateInProgress())
 		return;
 
 	if(mBodies[0] == body)

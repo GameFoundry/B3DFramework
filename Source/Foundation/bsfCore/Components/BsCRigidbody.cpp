@@ -6,6 +6,7 @@
 #include "Components/BsCJoint.h"
 #include "Private/RTTI/BsCRigidbodyRTTI.h"
 #include "Physics/BsPhysics.h"
+#include "Scene/BsSceneManager.h"
 
 using namespace std::placeholders;
 
@@ -490,7 +491,10 @@ void CRigidbody::OnTransformChanged(TransformChangedFlags flags)
 #endif
 	}
 
-	if(GetPhysics().IsUpdateInProgress())
+	const SPtr<SceneInstance>& scene = SceneObject()->GetScene();
+	const SPtr<PhysicsScene>& physicsScene = scene->GetPhysicsScene();
+
+	if(physicsScene->IsUpdateInProgress())
 		return;
 
 	const Transform& tfrm = SO()->GetTransform();

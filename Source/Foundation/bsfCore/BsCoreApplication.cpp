@@ -276,7 +276,17 @@ void CoreApplication::RunMainLoopFrame()
 
 	Platform::UpdateInternal();
 	DeferredCallManager::Instance().UpdateInternal();
-	GetTime().UpdateInternal();
+	GetTime().Update();
+	{
+		const UnorderedMap<SceneInstance*, WeakSPtr<SceneInstance>>& allScenes = GetSceneManager().GetAllScenes();
+
+		// Note: Can we do this as part of SceneInstance::Update? Would clean up this bit of code
+		for(const auto& entry : allScenes)
+		{
+			const SPtr<SceneInstance>& scene = entry.second.lock();
+			scene->GetTime().Update();
+		}
+	}
 	GetInput().UpdateInternal();
 	// RenderWindowManager::update needs to happen after Input::update and before Input::_triggerCallbacks,
 	// so that all input is properly captured in case there is a focus change, and so that
@@ -289,25 +299,21 @@ void CoreApplication::RunMainLoopFrame()
 
 	PreUpdate();
 
-	// Trigger fixed updates if required
 	{
-		u64 step;
-		const u32 numIterations = GetTime().GetFixedUpdateStepInternal(step);
-
-		const float stepSeconds = step / 1000000.0f;
-		for(u32 i = 0; i < numIterations; i++)
+		// Purposefully make a copy, assume components Updates can modify the active scene list
+		const UnorderedMap<SceneInstance*, WeakSPtr<SceneInstance>> allScenes = GetSceneManager().GetAllScenes();
+		for(const auto& entry : allScenes)
 		{
-			FixedUpdate();
-			PROFILE_CALL(GetSceneManager().FixedUpdate(), "Scene fixed update");
-			PROFILE_CALL(GetPhysics().FixedUpdate(stepSeconds), "Physics simulation");
+			const SPtr<SceneInstance>& scene = entry.second.lock();
+			if(scene == nullptr)
+				continue;
 
-			GetTime().AdvanceFixedUpdateInternal(step);
+			scene->FixedUpdate();
+			PROFILE_CALL(scene->Update(), "Scene update");
 		}
 	}
 
-	PROFILE_CALL(GetSceneManager().Update(), "Scene update");
-	GetAudio().UpdateInternal();
-	GetPhysics().Update();
+	GetAudio().Update();
 
 	// Update plugins
 	for(const auto& pair : mLoadedPlugins)
@@ -322,20 +328,25 @@ void CoreApplication::RunMainLoopFrame()
 
 	PerFrameData perFrameData;
 
-	const UnorderedMap<SceneInstance*, WeakSPtr<SceneInstance>>& allScenes = GetSceneManager().GetAllScenes();
-	for(const auto& entry : allScenes)
+	// Update particles and animation
 	{
-		const SPtr<SceneInstance>& scene = entry.second.lock();
-		render::RendererScene* const rendererSceneProxy = B3DGetRenderProxy(scene->GetRendererScene()).get();
+		const UnorderedMap<SceneInstance*, WeakSPtr<SceneInstance>>& allScenes = GetSceneManager().GetAllScenes();
 
-		// Evaluate animation after scene and plugin updates because the renderer will just now be displaying the
-		// animation we sent on the previous frame, and we want the scene information to match to what is displayed.
+		// Note: Can we do this as part of SceneInstance::Update? Would clean up this bit of code
+		for(const auto& entry : allScenes)
+		{
+			const SPtr<SceneInstance>& scene = entry.second.lock();
+			render::RendererScene* const rendererSceneProxy = B3DGetRenderProxy(scene->GetRendererScene()).get();
 
-		PerSceneFrameData perSceneFrameData;
-		perSceneFrameData.Animation = scene->GetAnimationScene()->Update(mStartUpDesc.AsyncAnimation);
-		perSceneFrameData.Particles = scene->GetParticleScene()->Update(*perSceneFrameData.Animation);
+			// Evaluate animation after scene and plugin updates because the renderer will just now be displaying the
+			// animation we sent on the previous frame, and we want the scene information to match to what is displayed.
 
-		perFrameData.PerSceneData[rendererSceneProxy] = std::move(perSceneFrameData);
+			PerSceneFrameData perSceneFrameData;
+			perSceneFrameData.Animation = scene->GetAnimationScene()->Update(mStartUpDesc.AsyncAnimation);
+			perSceneFrameData.Particles = scene->GetParticleScene()->Update(*perSceneFrameData.Animation);
+
+			perFrameData.PerSceneData[rendererSceneProxy] = std::move(perSceneFrameData);
+		}
 	}
 
 	// Send out resource events in case any were loaded/destroyed/modified
@@ -375,11 +386,6 @@ void CoreApplication::PreUpdate()
 }
 
 void CoreApplication::PostUpdate()
-{
-	// Do nothing
-}
-
-void CoreApplication::FixedUpdate()
 {
 	// Do nothing
 }

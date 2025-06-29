@@ -4,6 +4,7 @@
 
 #include "BsVulkanPrerequisites.h"
 #include "BsVulkanResource.h"
+#include "Utility/BsModule.h"
 
 namespace b3d
 {

@@ -7,6 +7,7 @@
 #include "CoreObject/BsCoreObject.h"
 #include "Utility/BsModule.h"
 #include "Scene/BsGameObject.h"
+#include "Utility/BsTime.h"
 
 namespace b3d
 {
@@ -216,6 +217,12 @@ namespace b3d
 		/** Returns the object responsible for updating particles in this scene. */
 		const SPtr<ParticleScene>& GetParticleScene() const { return mParticleScene; }
 
+		/** Returns an object that manages time associated with this scene. */
+		const SceneTime& GetTime() const { return mTime; }
+
+		/** @copydoc GetTime */
+		SceneTime& GetTime() { return mTime; }
+
 		/** Returns the ID of the resource that the scene instance is associated with (e.g. resource the scene was loaded from.). */
 		B3D_SCRIPT_EXPORT(Property(Getter), ExportName(AssociatedResourceId))
 		const UUID& GetAssociatedResourceId() const { return mAssociatedResourceId; }
@@ -270,7 +277,10 @@ namespace b3d
 		 */
 		void SetRoot(const HSceneObject& newRoot);
 
-		/** Called every frame. Calls update methods on all active components. */
+		/** Called every frame before Update(). Calls FixedUpdate() methods on all active components and advances physics. */
+		void FixedUpdate();
+
+		/** Called every frame. Calls Update() methods on all active components. */
 		void Update();
 
 		/**
@@ -308,6 +318,7 @@ namespace b3d
 	private:
 		friend class SceneManager;
 
+		void Initialize() override;
 		SPtr<render::RenderProxy> CreateRenderProxy() const override;
 
 		/**	Callback that is triggered when the main render target size is changed. */
@@ -322,6 +333,7 @@ namespace b3d
 		SPtr<AnimationScene> mAnimationScene;
 		SPtr<ParticleScene> mParticleScene;
 		SPtr<GameObjectCollection> mGameObjectCollection;
+		SceneTime mTime;
 
 		UnorderedMap<SceneActor*, BoundActorData> mBoundActors;
 
@@ -400,12 +412,6 @@ namespace b3d
 		 * the main game window when running standalone, or the Game viewport when running in editor.
 		 */
 		void SetMainCameraRenderTarget(const SPtr<RenderTarget>& renderTarget);
-
-		/** Called every frame. Calls update methods on all scene objects and their components. */
-		void Update();
-
-		/** Called at fixed time internals. Calls the fixed update method on all active components. */
-		void FixedUpdate();
 
 		/** Updates dirty transforms on any scene actors that are linked with scene objects. */
 		void UpdateLinkedSceneActorTransforms();

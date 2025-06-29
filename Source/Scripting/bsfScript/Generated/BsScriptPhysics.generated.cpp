@@ -17,7 +17,6 @@ namespace b3d
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_ToggleCollision", (void*)&ScriptPhysics::InternalToggleCollision);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_IsCollisionEnabled", (void*)&ScriptPhysics::InternalIsCollisionEnabled);
-		sInteropMetaData.ScriptClass->AddInternalCall("Internal_IsUpdateInProgress", (void*)&ScriptPhysics::InternalIsUpdateInProgress);
 
 	}
 
@@ -30,17 +29,6 @@ namespace b3d
 	{
 		bool tmp__output;
 		tmp__output = Physics::Instance().IsCollisionEnabled(groupA, groupB);
-
-		bool __output;
-		__output = tmp__output;
-
-		return __output;
-	}
-
-	bool ScriptPhysics::InternalIsUpdateInProgress()
-	{
-		bool tmp__output;
-		tmp__output = Physics::Instance().IsUpdateInProgress();
 
 		bool __output;
 		__output = tmp__output;

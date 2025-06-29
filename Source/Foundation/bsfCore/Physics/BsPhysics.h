@@ -67,9 +67,6 @@ namespace b3d
 		/************************************************* OPTIONS ********************************************************/
 		/******************************************************************************************************************/
 
-		/** Pauses or resumes the physics simulation. */
-		virtual void SetPaused(bool paused) = 0;
-
 		/**
 		 * Enables or disables collision between two layers. Each physics object can be assigned a specific layer, and here
 		 * you can determine which layers can interact with each other.
@@ -100,23 +97,6 @@ namespace b3d
 
 		/** Creates a new empty collider shape. Note you must set the shape information after creation. */
 		virtual SPtr<ColliderShape> CreateColliderShape() = 0;
-
-		/**
-		 * Updates the physics simulation. In order to maintain stability of the physics calculations this method should
-		 * be called at fixed intervals (e.g. 60 times a second).
-		 *
-		 * @param[in]	step	Time delta to advance the physics simulation by, in seconds.
-		 */
-		virtual void FixedUpdate(float step) = 0;
-
-		/**
-		 * Performs any physics operations that arent tied to the fixed update interval. Should be called once per frame.
-		 */
-		virtual void Update() {}
-
-		/** Checks is the physics simulation update currently in progress. */
-		B3D_SCRIPT_EXPORT(ExportName(IsUpdateInProgress), Property(Getter))
-		bool IsUpdateInProgress() const { return mUpdateInProgress; }
 
 		/**
 		 * Checks does the ray hit the provided collider shape.
@@ -151,8 +131,6 @@ namespace b3d
 
 		mutable Mutex mMutex;
 		bool mCollisionMap[kCollisionMapSize][kCollisionMapSize];
-
-		bool mUpdateInProgress = false;
 	};
 
 	/** Provides easier access to Physics. */
@@ -176,6 +154,25 @@ namespace b3d
 	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Physics)) PhysicsScene : public IScriptExportable
 	{
 	public:
+		/**
+		 * Updates the physics simulation. In order to maintain stability of the physics calculations this method should
+		 * be called at fixed intervals (e.g. 60 times a second).
+		 *
+		 * @param[in]	step	Time delta to advance the physics simulation by, in seconds.
+		 */
+		virtual void FixedUpdate(float step) = 0;
+
+		/**
+		 * Performs any physics operations that arent tied to the fixed update interval. Should be called once per frame.
+		 */
+		virtual void Update() {}
+
+		/** Pauses or resumes the physics simulation. */
+		virtual void SetPaused(bool paused) = 0;
+
+		/** Checks is the physics simulation update currently in progress. */
+		bool IsUpdateInProgress() const { return mUpdateInProgress; }
+
 		/******************************************************************************************************************/
 		/************************************************* QUERIES ********************************************************/
 		/******************************************************************************************************************/
@@ -638,6 +635,7 @@ namespace b3d
 		PhysicsScene() = default;
 		virtual ~PhysicsScene() = default;
 
+		bool mUpdateInProgress = false;
 		PhysicsFlags mFlags;
 	};
 

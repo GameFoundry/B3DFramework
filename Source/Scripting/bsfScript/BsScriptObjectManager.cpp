@@ -7,6 +7,7 @@
 #include "BsMonoAssembly.h"
 #include "BsMonoUtil.h"
 #include "BsScriptObjectWrapper.h"
+#include "Utility/BsTime.h"
 
 using namespace b3d;
 ScriptObjectManager::~ScriptObjectManager()

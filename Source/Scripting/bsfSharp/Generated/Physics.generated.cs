@@ -17,13 +17,6 @@ namespace b3d
 		private Physics(bool __dummy0) { }
 		protected Physics() { }
 
-		/// <summary>Checks is the physics simulation update currently in progress.</summary>
-		[NativeWrapper]
-		public static bool IsUpdateInProgress
-		{
-			get { return Internal_IsUpdateInProgress(); }
-		}
-
 		/// <summary>
 		/// Enables or disables collision between two layers. Each physics object can be assigned a specific layer, and here you 
 		/// can determine which layers can interact with each other.
@@ -43,8 +36,6 @@ namespace b3d
 		private static extern void Internal_ToggleCollision(ulong groupA, ulong groupB, bool enabled);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern bool Internal_IsCollisionEnabled(ulong groupA, ulong groupB);
-		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern bool Internal_IsUpdateInProgress();
 	}
 
 	/** @} */

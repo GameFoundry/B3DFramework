@@ -7,9 +7,6 @@
 
 using namespace b3d;
 
-constexpr u32 Time::kMaxAccumFixedUpdates;
-constexpr u32 Time::kNewFixedUpdatesPerFrame;
-
 const double Time::kMicrosecToSec = 1.0 / 1000000.0;
 
 Time::Time()
@@ -25,7 +22,7 @@ Time::~Time()
 	B3DDelete(mTimer);
 }
 
-void Time::UpdateInternal()
+void Time::Update()
 {
 	u64 currentFrameTime = mTimer->GetMicroseconds();
 
@@ -39,23 +36,70 @@ void Time::UpdateInternal()
 
 	mTimeSinceStartMs = (u64)(currentFrameTime / 1000);
 	mTimeSinceStart = mTimeSinceStartMs / 1000.0f;
-
-	if(!mIsSimulationTimePaused)
-		mSimulationTimeInSeconds += mFrameDelta * mSimulationTimeScale;
-
 	mLastFrameTime = currentFrameTime;
 
 	mCurrentFrame.fetch_add(1, std::memory_order_relaxed);
 }
 
-void Time::SetSimulationTimeScale(float scale)
+u64 Time::GetTimePrecise() const
 {
-	mSimulationTimeScale = Math::Max(0.0f, scale);
+	return mTimer->GetMicroseconds();
 }
 
-u32 Time::GetFixedUpdateStepInternal(u64& step)
+String Time::GetCurrentDateTimeString(bool isUTC)
 {
-	const u64 currentTime = GetTimePrecise();
+	std::time_t t = std::time(nullptr);
+	return ToString(t, isUTC, false, TimeToStringConversionType::Full);
+}
+
+String Time::GetCurrentTimeString(bool isUTC)
+{
+	std::time_t t = std::time(nullptr);
+	return ToString(t, isUTC, false, TimeToStringConversionType::Time);
+}
+
+String Time::GetAppStartUpDateString(bool isUTC)
+{
+	return ToString(mAppStartUpDate, isUTC, false, TimeToStringConversionType::Full);
+}
+
+SceneTime::SceneTime()
+{
+	mTimer = B3DNew<Timer>();
+	mLastFrameTime = mTimer->GetMicroseconds();
+}
+
+SceneTime::~SceneTime()
+{
+	B3DDelete(mTimer);
+}
+
+void SceneTime::Update()
+{
+	u64 currentFrameTime = mTimer->GetMicroseconds();
+
+	if(!mFirstFrame)
+		mFrameDelta = (float)((currentFrameTime - mLastFrameTime) * Time::kMicrosecToSec);
+	else
+	{
+		mFrameDelta = 0.0f;
+		mFirstFrame = false;
+	}
+
+	if(!mIsTimePaused)
+		mTimeInSeconds += mFrameDelta * mTimeScale;
+
+	mLastFrameTime = currentFrameTime;
+}
+
+void SceneTime::SetScale(float scale)
+{
+	mTimeScale = Math::Max(0.0f, scale);
+}
+
+u32 SceneTime::GetFixedUpdateStep(u64& step)
+{
+	const u64 currentTime = GetTime().GetTimePrecise();
 
 	// Skip fixed update first frame (time delta is zero, and no input received yet)
 	if(mFirstFixedFrame)
@@ -85,16 +129,16 @@ u32 Time::GetFixedUpdateStepInternal(u64& step)
 		// will slow down to free up the CPU (at the cost of stability, but this time we have no other option).
 
 		auto stepus = (i64)mFixedStep;
-		if(numIterations > mNumRemainingFixedUpdates)
+		if(numIterations > mRemainingFixedUpdateCount)
 		{
-			stepus = Math::DivideAndRoundUp(simulationAmount, (i64)mNumRemainingFixedUpdates);
+			stepus = Math::DivideAndRoundUp(simulationAmount, (i64)mRemainingFixedUpdateCount);
 			numIterations = (u32)Math::DivideAndRoundUp(simulationAmount, (i64)stepus);
 		}
 
-		B3D_ASSERT(numIterations <= mNumRemainingFixedUpdates);
+		B3D_ASSERT(numIterations <= mRemainingFixedUpdateCount);
 
-		mNumRemainingFixedUpdates -= numIterations;
-		mNumRemainingFixedUpdates = std::min(kMaxAccumFixedUpdates, mNumRemainingFixedUpdates + kNewFixedUpdatesPerFrame);
+		mRemainingFixedUpdateCount -= numIterations;
+		mRemainingFixedUpdateCount = std::min(kMaximumAccumulatedFixedUpdates, mRemainingFixedUpdateCount + kNewFixedUpdatesPerFrame);
 
 		step = stepus;
 		return numIterations;
@@ -104,31 +148,9 @@ u32 Time::GetFixedUpdateStepInternal(u64& step)
 	return 0;
 }
 
-void Time::AdvanceFixedUpdateInternal(u64 step)
+void SceneTime::AdvanceFixedUpdate(u64 step)
 {
 	mLastFixedUpdateTime += step;
-}
-
-u64 Time::GetTimePrecise() const
-{
-	return mTimer->GetMicroseconds();
-}
-
-String Time::GetCurrentDateTimeString(bool isUTC)
-{
-	std::time_t t = std::time(nullptr);
-	return ToString(t, isUTC, false, TimeToStringConversionType::Full);
-}
-
-String Time::GetCurrentTimeString(bool isUTC)
-{
-	std::time_t t = std::time(nullptr);
-	return ToString(t, isUTC, false, TimeToStringConversionType::Time);
-}
-
-String Time::GetAppStartUpDateString(bool isUTC)
-{
-	return ToString(mAppStartUpDate, isUTC, false, TimeToStringConversionType::Full);
 }
 
 namespace b3d

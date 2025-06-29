@@ -94,6 +94,16 @@ namespace b3d
 		/** Creates a new empty animation scene. */
 		static SPtr<AnimationScene> Create() { return B3DMakeShared<AnimationScene>(); }
 
+		/**
+		 * @name Internal
+		 * @{
+		 */
+
+		/** Scene instance that owns this animation scene. */
+		void SetOwner(const SPtr<SceneInstance>& scene) { mOwner = scene; }
+
+		/** @} */
+
 	private:
 		friend class Animation;
 
@@ -146,6 +156,7 @@ namespace b3d
 		WaitGroup mWorkerWaitGroup;
 
 		bool mSwapBuffers = false;
+		WeakSPtr<SceneInstance> mOwner;
 	};
 
 	/** @} */

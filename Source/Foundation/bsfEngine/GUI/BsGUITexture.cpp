@@ -7,6 +7,7 @@
 #include "GUI/BsGUISizeConstraints.h"
 #include "Image/BsSpriteVectorPath.h"
 #include "StyleSheet/BsGUIStyleSheet.h"
+#include "Utility/BsTime.h"
 
 using namespace b3d;
 

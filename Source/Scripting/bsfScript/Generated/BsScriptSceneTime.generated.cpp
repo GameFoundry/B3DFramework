@@ -1,0 +1,108 @@
+//********************************* B3D Framework - Copyright 2018-2022 Marko Pintera ************************************//
+//*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
+#include "BsScriptSceneTime.generated.h"
+#include "BsMonoMethod.h"
+#include "BsMonoClass.h"
+#include "BsMonoUtil.h"
+#include "../../../Foundation/bsfUtility/Utility/BsTime.h"
+
+namespace b3d
+{
+	ScriptSceneTime::ScriptSceneTime(const SPtr<SceneTime>& nativeObject)
+		:TScriptNonReflectableWrapper(nativeObject)
+	{
+		RegisterEvents();
+	}
+
+	ScriptSceneTime::~ScriptSceneTime()
+	{
+		UnregisterEvents();
+	}
+
+	void ScriptSceneTime::SetupScriptBindings()
+	{
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetTimeInSeconds", (void*)&ScriptSceneTime::InternalGetTimeInSeconds);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetScale", (void*)&ScriptSceneTime::InternalSetScale);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetScale", (void*)&ScriptSceneTime::InternalGetScale);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_Reset", (void*)&ScriptSceneTime::InternalReset);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetPaused", (void*)&ScriptSceneTime::InternalSetPaused);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetFrameDelta", (void*)&ScriptSceneTime::InternalGetFrameDelta);
+
+	}
+
+	MonoObject* ScriptSceneTime::CreateScriptObject(bool construct)
+	{
+		bool dummy = false;
+		void* ctorParams[1] = { &dummy };
+
+		if(construct)
+			return sInteropMetaData.ScriptClass->CreateInstance("bool", ctorParams);
+
+		return sInteropMetaData.ScriptClass->CreateInstance(false);
+	}
+	float ScriptSceneTime::InternalGetTimeInSeconds(ScriptSceneTime* self)
+	{
+		float tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
+		tmp__output = static_cast<SceneTime*>(self->GetNativeObject())->GetTimeInSeconds();
+
+		float __output;
+		__output = tmp__output;
+
+		return __output;
+	}
+
+	void ScriptSceneTime::InternalSetScale(ScriptSceneTime* self, float scale)
+	{
+		if(!self->IsNativeObjectValid())
+			return;
+
+		static_cast<SceneTime*>(self->GetNativeObject())->SetScale(scale);
+	}
+
+	float ScriptSceneTime::InternalGetScale(ScriptSceneTime* self)
+	{
+		float tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
+		tmp__output = static_cast<SceneTime*>(self->GetNativeObject())->GetScale();
+
+		float __output;
+		__output = tmp__output;
+
+		return __output;
+	}
+
+	void ScriptSceneTime::InternalReset(ScriptSceneTime* self)
+	{
+		if(!self->IsNativeObjectValid())
+			return;
+
+		static_cast<SceneTime*>(self->GetNativeObject())->Reset();
+	}
+
+	void ScriptSceneTime::InternalSetPaused(ScriptSceneTime* self, bool paused)
+	{
+		if(!self->IsNativeObjectValid())
+			return;
+
+		static_cast<SceneTime*>(self->GetNativeObject())->SetPaused(paused);
+	}
+
+	float ScriptSceneTime::InternalGetFrameDelta(ScriptSceneTime* self)
+	{
+		float tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
+		tmp__output = static_cast<SceneTime*>(self->GetNativeObject())->GetFrameDelta();
+
+		float __output;
+		__output = tmp__output;
+
+		return __output;
+	}
+}
