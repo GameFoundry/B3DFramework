@@ -5,7 +5,9 @@
 #include "BsMonoClass.h"
 #include "BsMonoUtil.h"
 #include "../../../Foundation/bsfCore/Scene/BsSceneManager.h"
+#include "Reflection/BsRTTIType.h"
 #include "BsScriptSceneInstance.generated.h"
+#include "BsScriptIEditorSceneInstance.generated.h"
 #include "Wrappers/BsScriptSceneObject.h"
 #include "BsScriptResourceWrapper.h"
 #include "BsScriptPhysicsScene.generated.h"
@@ -33,6 +35,7 @@ namespace b3d
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetPhysicsScene", (void*)&ScriptSceneInstance::InternalGetPhysicsScene);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetAssociatedResourceId", (void*)&ScriptSceneInstance::InternalGetAssociatedResourceId);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetMainCameraComponent", (void*)&ScriptSceneInstance::InternalGetMainCameraComponent);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetEditorSceneInstance", (void*)&ScriptSceneInstance::InternalGetEditorSceneInstance);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_Clear", (void*)&ScriptSceneInstance::InternalClear);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_CreateSceneObject", (void*)&ScriptSceneInstance::InternalCreateSceneObject);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_IsRunning", (void*)&ScriptSceneInstance::InternalIsRunning);
@@ -137,6 +140,20 @@ namespace b3d
 		if(tmp__output)
 			temp__output = ScriptComponent::GetOrCreateScriptObject(tmp__output);
 		__output = temp__output;
+
+		return __output;
+	}
+
+	MonoObject* ScriptSceneInstance::InternalGetEditorSceneInstance(ScriptSceneInstance* self)
+	{
+		SPtr<IEditorSceneInstance> tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
+		tmp__output = static_cast<SceneInstance*>(self->GetNativeObject())->GetEditorSceneInstance();
+
+		MonoObject* __output;
+		__output = ScriptIEditorSceneInstance::GetOrCreateScriptObject(tmp__output);
 
 		return __output;
 	}

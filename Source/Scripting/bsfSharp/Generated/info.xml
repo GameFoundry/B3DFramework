@@ -6963,6 +6963,9 @@ Sprite images also allow you to specify sprite sheet animation by varying which 
 		<property name="MainCamera" type="Camera" getter="GetMainCameraComponent" setter="" static="false">
 			<doc>Returns the main camera component. See GetMainCamera().</doc>
 		</property>
+		<property name="EditorSceneInstance" type="IEditorSceneInstance" getter="GetEditorSceneInstance" setter="" static="false">
+			<doc>Editor scene instance, if running from within the editor.</doc>
+		</property>
 		<property name="IsRunning" type="bool" getter="IsRunning" setter="" static="false">
 			<doc>Checks are the components currently in the Running state.</doc>
 		</property>
@@ -10689,6 +10692,9 @@ Alternatively you can also skip manually calling ReleaseInternalReference() and 
 			<param name="sceneObject" type="SceneObject">
 			</param>
 		</ctor>
+	</class>
+	<class native="IEditorSceneInstance" script="IEditorSceneInstance">
+		<doc>Interface that provides editor-specific information about a scene instance.</doc>
 	</class>
 	<class native="SceneManager" script="SceneManager">
 		<doc>Keeps track of all active SceneObject%s and their components. Keeps track of component state and triggers their events. Updates the transforms of objects as SceneObject%s move.</doc>

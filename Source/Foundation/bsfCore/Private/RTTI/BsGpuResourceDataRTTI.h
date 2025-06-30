@@ -5,6 +5,7 @@
 #include "BsCorePrerequisites.h"
 #include "Reflection/BsRTTIType.h"
 #include "Resources/BsGpuResourceData.h"
+#include "Error/BsException.h"
 
 namespace b3d
 {

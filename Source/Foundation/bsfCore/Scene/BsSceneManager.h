@@ -176,6 +176,23 @@ namespace b3d
 		return output;
 	}
 
+#if B3D_WITH_EDITOR 
+	/** Interface that provides editor-specific information about a scene instance. */
+	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Scene)) IEditorSceneInstance : public IScriptExportable, public IReflectable
+	{
+	public:
+		IEditorSceneInstance() = default;
+
+		/************************************************************************/
+		/* 								RTTI		                     		*/
+		/************************************************************************/
+	public:
+		friend class IEditorSceneInstanceRTTI;
+		static RTTIType* GetRttiStatic();
+		RTTIType* GetRtti() const override;
+	};
+#endif
+
 	/** Contains information about an instantiated scene. */
 	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Scene)) SceneInstance : public CoreObject, public IScriptExportable, public SceneInstanceComponents
 	{
@@ -239,6 +256,12 @@ namespace b3d
 		/** Returns the main camera component. See GetMainCamera(). */
 		B3D_SCRIPT_EXPORT(Property(Getter), ExportName(MainCamera))
 		HCamera GetMainCameraComponent() const;
+
+#if B3D_WITH_EDITOR 
+		/** Editor scene instance, if running from within the editor. */
+		B3D_SCRIPT_EXPORT(Property(Getter), ExportName(EditorSceneInstance))
+		SPtr<IEditorSceneInstance> GetEditorSceneInstance() const { return mEditorSceneInstance.lock(); }
+#endif
 
 		/** Removes all scene objects from the scene, except for persistent objects. If @p forceAll is true, removes even the persistent objects. */
 		B3D_SCRIPT_EXPORT()
@@ -317,6 +340,11 @@ namespace b3d
 		 */
 		void SetMainCameraRenderTarget(const SPtr<RenderTarget>& renderTarget);
 
+#if B3D_WITH_EDITOR
+		/** @copydoc GetEditorSceneInstance */
+		void SetEditorSceneInstance(const SPtr<IEditorSceneInstance>& scene) { mEditorSceneInstance = scene; }
+#endif
+
 		/** @} */
 
 	private:
@@ -346,6 +374,10 @@ namespace b3d
 
 		SPtr<RenderTarget> mPrimaryRenderTarget;
 		HEvent mMainRenderTargetResizedHandle;
+
+#if B3D_WITH_EDITOR
+		WeakSPtr<IEditorSceneInstance> mEditorSceneInstance;
+#endif
 	};
 
 	namespace render

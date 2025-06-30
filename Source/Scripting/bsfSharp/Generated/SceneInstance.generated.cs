@@ -83,6 +83,13 @@ namespace b3d
 			get { return Internal_GetMainCameraComponent(mCachedPtr); }
 		}
 
+		/// <summary>Editor scene instance, if running from within the editor.</summary>
+		[NativeWrapper]
+		public IEditorSceneInstance EditorSceneInstance
+		{
+			get { return Internal_GetEditorSceneInstance(mCachedPtr); }
+		}
+
 		/// <summary>Checks are the components currently in the Running state.</summary>
 		[NativeWrapper]
 		public bool IsRunning
@@ -119,6 +126,8 @@ namespace b3d
 		private static extern void Internal_GetAssociatedResourceId(IntPtr thisPtr, out UUID __output);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern Camera Internal_GetMainCameraComponent(IntPtr thisPtr);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		private static extern IEditorSceneInstance Internal_GetEditorSceneInstance(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_Clear(IntPtr thisPtr, bool forceAll);
 		[MethodImpl(MethodImplOptions.InternalCall)]

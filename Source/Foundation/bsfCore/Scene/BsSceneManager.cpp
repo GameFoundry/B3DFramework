@@ -21,6 +21,10 @@
 #include "Particles/BsParticleScene.h"
 #include "Profiling/BsProfilerCPU.h"
 
+#if B3D_WITH_EDITOR
+#include "Private/RTTI/BsIEditorSceneInstanceRTTI.h"
+#endif
+
 using namespace b3d;
 
 enum ListType
@@ -372,6 +376,18 @@ bool SceneInstanceComponents::IsComponentOfType(const HComponent& component, u32
 {
 	return component->GetRtti()->GetRttiId() == rttiId;
 }
+
+#if B3D_WITH_EDITOR
+RTTIType* IEditorSceneInstance::GetRttiStatic()
+{
+	return IEditorSceneInstanceRTTI::Instance();
+}
+
+RTTIType* IEditorSceneInstance::GetRtti() const
+{
+	return IEditorSceneInstance::GetRttiStatic();
+}
+#endif
 
 SceneInstance::SceneInstance(ConstructPrivately dummy, const String& name, const HSceneObject& root, const UUID& associatedResourceId)
 	: mName(name), mRoot(root), mAssociatedResourceId(associatedResourceId), mPhysicsScene(GetPhysics().CreatePhysicsScene()), mRendererScene(RendererScene::Create()), mAnimationScene(AnimationScene::Create()), mParticleScene(ParticleScene::Create()), mGameObjectCollection(root->GetOwnerCollection())
