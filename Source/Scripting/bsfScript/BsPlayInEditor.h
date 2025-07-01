@@ -38,6 +38,10 @@ namespace b3d
 		B3D_SCRIPT_EXPORT(InteropOnly(true))
 		void SetState(PlayInEditorState state);
 
+		/** Returns the scene that will be played when entering PIE. */
+		B3D_SCRIPT_EXPORT(Property(Getter), ExportName(Scene))
+		SPtr<SceneInstance> GetScene() const { return mAssociatedScene; }
+
 		/**	Runs the game for a single frame and then pauses it. */
 		B3D_SCRIPT_EXPORT()
 		void FrameStep();
