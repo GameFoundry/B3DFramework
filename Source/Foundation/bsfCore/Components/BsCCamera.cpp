@@ -3,7 +3,7 @@
 #include "Components/BsCCamera.h"
 #include "Private/RTTI/BsCCameraRTTI.h"
 #include "Scene/BsSceneObject.h"
-#include "Scene/BsSceneManager.h"
+#include "Scene/BsSceneInstance.h"
 #include "BsCoreApplication.h"
 
 using namespace b3d;

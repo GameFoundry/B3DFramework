@@ -5,7 +5,7 @@
 #include "BsGameObjectCollection.h"
 #include "BsPrefabIdRemapper.h"
 #include "BsPrefabUpdateHelper.h"
-#include "BsSceneManager.h"
+#include "Scene/BsSceneInstance.h"
 #include "Scene/BsSceneObjectHierarchyDelta.h"
 #include "Scene/BsPrefab.h"
 #include "Scene/BsSceneObject.h"

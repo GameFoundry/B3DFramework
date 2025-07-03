@@ -4,7 +4,7 @@
 #include "Scene/BsSceneObject.h"
 #include "Components/BsCRigidbody.h"
 #include "Private/RTTI/BsCPlaneColliderRTTI.h"
-#include "Scene/BsSceneManager.h"
+#include "Scene/BsSceneInstance.h"
 
 using namespace b3d;
 

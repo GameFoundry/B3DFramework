@@ -3,7 +3,7 @@
 #pragma once
 
 #include "BsScriptEnginePrerequisites.h"
-#include "../../../Foundation/bsfCore/Scene/BsSceneManager.h"
+#include "../../../Foundation/bsfCore/Scene/BsSceneInstance.h"
 #include "BsScriptNonReflectableWrapper.h"
 #include "Utility/BsUUID.h"
 

@@ -6,7 +6,7 @@
 #include "Animation/BsAnimationUtility.h"
 #include "Scene/BsSceneObject.h"
 #include "Animation/BsMorphShapes.h"
-#include "Scene/BsSceneManager.h"
+#include "Scene/BsSceneInstance.h"
 
 using namespace b3d;
 

@@ -8,7 +8,7 @@
 #include "Animation/BsMorphShapes.h"
 #include "Animation/BsAnimationClip.h"
 #include "Private/RTTI/BsCAnimationRTTI.h"
-#include "Scene/BsSceneManager.h"
+#include "Scene/BsSceneInstance.h"
 
 using namespace std::placeholders;
 

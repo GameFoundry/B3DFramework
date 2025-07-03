@@ -6,7 +6,7 @@
 #include "Components/BsCJoint.h"
 #include "Private/RTTI/BsCRigidbodyRTTI.h"
 #include "Physics/BsPhysics.h"
-#include "Scene/BsSceneManager.h"
+#include "Scene/BsSceneInstance.h"
 
 using namespace std::placeholders;
 

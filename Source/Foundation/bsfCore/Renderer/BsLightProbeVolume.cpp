@@ -14,7 +14,7 @@
 #include "Profiling/BsProfilerGPU.h"
 #include "RenderAPI/BsGpuDevice.h"
 #include "RenderAPI/BsGpuPipelineState.h"
-#include "Scene/BsSceneManager.h"
+#include "Scene/BsSceneInstance.h"
 
 using namespace b3d;
 

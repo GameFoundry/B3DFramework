@@ -5,7 +5,7 @@
 #include "Components/BsCRigidbody.h"
 #include "Physics/BsPhysicsMesh.h"
 #include "Private/RTTI/BsCMeshColliderRTTI.h"
-#include "Scene/BsSceneManager.h"
+#include "Scene/BsSceneInstance.h"
 
 using namespace b3d;
 

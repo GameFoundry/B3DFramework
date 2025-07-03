@@ -2,7 +2,7 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "Components/BsCCharacterController.h"
 #include "Scene/BsSceneObject.h"
-#include "Scene/BsSceneManager.h"
+#include "Scene/BsSceneInstance.h"
 #include "Physics/BsCollider.h"
 #include "Private/RTTI/BsCCharacterControllerRTTI.h"
 #include "BsCCollider.h"

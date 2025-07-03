@@ -4,7 +4,6 @@
 
 #include "BsCorePrerequisites.h"
 #include "Reflection/BsRTTIType.h"
-#include "Scene/BsSceneManager.h"
 
 namespace b3d
 {

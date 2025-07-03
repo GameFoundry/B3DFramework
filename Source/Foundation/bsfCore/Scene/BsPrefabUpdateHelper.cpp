@@ -5,6 +5,7 @@
 #include "BsGameObjectCollection.h"
 #include "BsPrefabUtility.h"
 #include "BsSceneManager.h"
+#include "Scene/BsSceneInstance.h"
 #include "Scene/BsPrefab.h"
 #include "Scene/BsSceneObject.h"
 #include "Resources/BsResources.h"

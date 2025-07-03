@@ -5,7 +5,7 @@
 #include "Scene/BsSceneObject.h"
 #include "Physics/BsPhysics.h"
 #include "Private/RTTI/BsCJointRTTI.h"
-#include "Scene/BsSceneManager.h"
+#include "Scene/BsSceneInstance.h"
 
 using namespace std::placeholders;
 

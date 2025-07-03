@@ -4,7 +4,7 @@
 #include "BsMonoMethod.h"
 #include "BsMonoClass.h"
 #include "BsMonoUtil.h"
-#include "../../../Foundation/bsfCore/Scene/BsSceneManager.h"
+#include "../../../Foundation/bsfCore/Scene/BsSceneInstance.h"
 #include "Reflection/BsRTTIType.h"
 #include "BsScriptSceneInstance.generated.h"
 #include "BsScriptIEditorSceneInstance.generated.h"

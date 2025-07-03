@@ -3,7 +3,7 @@
 #include "Physics/BsRigidbody.h"
 #include "Physics/BsPhysics.h"
 #include "Scene/BsSceneObject.h"
-#include "Scene/BsSceneManager.h"
+#include "Scene/BsSceneInstance.h"
 
 using namespace b3d;
 

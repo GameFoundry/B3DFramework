@@ -2,7 +2,7 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "Components/BsCSkybox.h"
 #include "Private/RTTI/BsCSkyboxRTTI.h"
-#include "Scene/BsSceneManager.h"
+#include "Scene/BsSceneInstance.h"
 #include "Renderer/BsSkybox.h"
 
 using namespace b3d;

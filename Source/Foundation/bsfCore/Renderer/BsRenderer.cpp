@@ -7,12 +7,13 @@
 #include "Renderer/BsRendererExtension.h"
 #include "Renderer/BsRendererManager.h"
 #include "CoreObject/BsCoreObjectManager.h"
-#include "Scene/BsSceneManager.h"
+#include "Scene/BsSceneInstance.h"
 #include "Material/BsShader.h"
 #include "Profiling/BsProfilerGPU.h"
 #include "Profiling/BsProfilerCPU.h"
 #include "RenderAPI/BsGpuCommandBuffer.h"
 #include "RenderAPI/BsGpuDevice.h"
+#include "Scene/BsSceneManager.h"
 
 using namespace b3d;
 

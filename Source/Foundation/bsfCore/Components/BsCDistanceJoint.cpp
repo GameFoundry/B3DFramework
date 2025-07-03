@@ -3,7 +3,7 @@
 #include "Components/BsCDistanceJoint.h"
 #include "Scene/BsSceneObject.h"
 #include "Private/RTTI/BsCDistanceJointRTTI.h"
-#include "Scene/BsSceneManager.h"
+#include "Scene/BsSceneInstance.h"
 
 using namespace b3d;
 

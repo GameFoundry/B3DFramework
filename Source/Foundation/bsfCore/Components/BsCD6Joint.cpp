@@ -3,7 +3,7 @@
 #include "Components/BsCD6Joint.h"
 #include "Scene/BsSceneObject.h"
 #include "Private/RTTI/BsCD6JointRTTI.h"
-#include "Scene/BsSceneManager.h"
+#include "Scene/BsSceneInstance.h"
 
 using namespace b3d;
 

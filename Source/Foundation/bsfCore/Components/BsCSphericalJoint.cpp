@@ -3,7 +3,7 @@
 #include "Components/BsCSphericalJoint.h"
 #include "Scene/BsSceneObject.h"
 #include "Private/RTTI/BsCSphericalJointRTTI.h"
-#include "Scene/BsSceneManager.h"
+#include "Scene/BsSceneInstance.h"
 
 using namespace b3d;
 

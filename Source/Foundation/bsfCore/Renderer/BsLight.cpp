@@ -8,7 +8,7 @@
 #include "Scene/BsSceneObject.h"
 #include "Mesh/BsMesh.h"
 #include "CoreObject/BsCoreObjectSync.h"
-#include "Scene/BsSceneManager.h"
+#include "Scene/BsSceneInstance.h"
 
 using namespace b3d;
 

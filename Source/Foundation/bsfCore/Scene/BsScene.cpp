@@ -7,7 +7,7 @@
 #include "Scene/BsPrefabUtility.h"
 #include "BsCoreApplication.h"
 #include "BsGameObjectCollection.h"
-#include "BsSceneManager.h"
+#include "Scene/BsSceneInstance.h"
 
 using namespace b3d;
 

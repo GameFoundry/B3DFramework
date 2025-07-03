@@ -25,6 +25,7 @@
 #include "BsEngineConfig.h"
 #include "GUI/BsProfilerOverlay.h"
 #include "Renderer/BsCamera.h"
+#include "Scene/BsSceneInstance.h"
 #include "Text/BsStockIcons.h"
 
 using namespace b3d;

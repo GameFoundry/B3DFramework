@@ -4,7 +4,7 @@
 
 #include "BsScriptEnginePrerequisites.h"
 #include "BsScriptReflectableWrapper.h"
-#include "../../../Foundation/bsfCore/Scene/BsSceneManager.h"
+#include "../../../Foundation/bsfCore/Scene/BsSceneInstance.h"
 
 namespace b3d { class IEditorSceneInstance; }
 namespace b3d

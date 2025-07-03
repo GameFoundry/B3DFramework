@@ -7,7 +7,7 @@
 #include "Material/BsMaterial.h"
 #include "Components/BsCAnimation.h"
 #include "Math/BsBounds.h"
-#include "Scene/BsSceneManager.h"
+#include "Scene/BsSceneInstance.h"
 
 using namespace b3d;
 

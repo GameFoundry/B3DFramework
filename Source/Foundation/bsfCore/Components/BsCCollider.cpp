@@ -5,7 +5,7 @@
 #include "Components/BsCRigidbody.h"
 #include "Physics/BsPhysics.h"
 #include "Private/RTTI/BsCColliderRTTI.h"
-#include "Scene/BsSceneManager.h"
+#include "Scene/BsSceneInstance.h"
 
 using namespace std::placeholders;
 

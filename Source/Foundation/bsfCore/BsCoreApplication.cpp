@@ -10,6 +10,7 @@
 #include "Utility/BsDynamicLibrary.h"
 #include "Utility/BsDynamicLibraryManager.h"
 #include "Scene/BsSceneManager.h"
+#include "Scene/BsSceneInstance.h"
 #include "Importer/BsImporter.h"
 #include "Resources/BsResources.h"
 #include "Scene/BsSceneObject.h"

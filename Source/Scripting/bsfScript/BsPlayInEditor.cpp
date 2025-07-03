@@ -2,13 +2,13 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "BsPlayInEditor.h"
 #include "Utility/BsTime.h"
-#include "Scene/BsSceneManager.h"
 #include "Scene/BsSceneObject.h"
 #include "BsApplication.h"
 #include "Physics/BsPhysics.h"
 #include "Audio/BsAudio.h"
 #include "Animation/BsAnimationScene.h"
 #include "Scene/BsGameObjectCollection.h"
+#include "Scene/BsSceneInstance.h"
 #include "Scene/BsSceneUtility.h"
 
 using namespace b3d;

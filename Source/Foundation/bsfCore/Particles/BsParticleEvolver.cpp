@@ -13,7 +13,7 @@
 #include "Math/BsLineSegment3.h"
 #include "Material/BsShader.h"
 #include "Scene/BsSceneObject.h"
-#include "Scene/BsSceneManager.h"
+#include "Scene/BsSceneInstance.h"
 
 using namespace b3d;
 

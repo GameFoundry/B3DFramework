@@ -4,7 +4,7 @@
 #include "Scene/BsSceneObject.h"
 #include "Utility/BsTime.h"
 #include "Private/RTTI/BsCParticleSystemRTTI.h"
-#include "Scene/BsSceneManager.h"
+#include "Scene/BsSceneInstance.h"
 
 using namespace std::placeholders;
 

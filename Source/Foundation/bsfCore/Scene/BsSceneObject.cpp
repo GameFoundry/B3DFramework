@@ -3,6 +3,7 @@
 #include "Scene/BsSceneObject.h"
 #include "Scene/BsComponent.h"
 #include "Scene/BsSceneManager.h"
+#include "Scene/BsSceneInstance.h"
 #include "Error/BsException.h"
 #include "Debug/BsDebug.h"
 #include "Private/RTTI/BsSceneObjectRTTI.h"

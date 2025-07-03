@@ -14,7 +14,7 @@
 #include "Animation/BsAnimation.h"
 #include "Animation/BsMorphShapes.h"
 #include "Animation/BsAnimationScene.h"
-#include "Scene/BsSceneManager.h"
+#include "Scene/BsSceneInstance.h"
 #include "CoreObject/BsCoreObjectSync.h"
 #include "RenderAPI/BsGpuBuffer.h"
 #include "RenderAPI/BsGpuDevice.h"
