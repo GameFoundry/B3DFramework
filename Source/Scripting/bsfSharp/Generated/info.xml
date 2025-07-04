@@ -1,5 +1,16 @@
 <?xml version='1.0' encoding='UTF-8' standalone='no'?>
 <entries>
+	<enum native="AreaComponent" script="AreaComponent">
+		<doc>Names of individual components of an area.</doc>
+		<enumentry native="Width" script="Width">
+		</enumentry>
+		<enumentry native="X" script="X">
+		</enumentry>
+		<enumentry native="Y" script="Y">
+		</enumentry>
+		<enumentry native="Height" script="Height">
+		</enumentry>
+	</enum>
 	<struct native="TSize3&lt;float&gt;" script="Size3">
 		<doc>Encapsulates width/height/depth in a single structure.</doc>
 		<ctor>
@@ -1286,6 +1297,20 @@ Be aware that this value will be ignored if GUI element is part of a layout sinc
 		<field name="W" type="double">
 		</field>
 	</struct>
+	<enum native="SizeComponent" script="SizeComponent">
+		<doc>Names of individual components of a size.</doc>
+		<enumentry native="Width" script="Width">
+		</enumentry>
+		<enumentry native="Height" script="Height">
+		</enumentry>
+	</enum>
+	<class native="ManagedResourceMetaData" script="ManagedResourceMetaData">
+		<doc>Resource meta-data for user-defined managed resources.</doc>
+		<property name="TypeNamespace" type="string" getter="GetTypeNamespace" setter="SetTypeNamespace" static="false">
+		</property>
+		<property name="TypeName" type="string" getter="GetTypeName" setter="SetTypeName" static="false">
+		</property>
+	</class>
 	<struct native="TPlane&lt;float&gt;" script="Plane">
 		<doc>A plane represented by a normal and a distance.</doc>
 		<field name="Normal" type="Vector3">
@@ -2319,29 +2344,6 @@ Also see SetContactOffset().</doc>
 			</param>
 		</ctor>
 	</class>
-	<class native="MorphChannel" script="MorphChannel">
-		<doc>A collection of morph shapes that are sequentially blended together. Each shape has a weight in range [0, 1] which determines at what point is that shape blended. As the channel percent moves from 0 to 1, different shapes will be blended with those before or after them, depending on their weight.</doc>
-		<property name="Name" type="string" getter="GetName" setter="" static="false">
-			<doc>Returns the unique name of the channel.</doc>
-		</property>
-		<property name="Shapes" type="MorphShape" getter="GetShapes" setter="" static="false">
-			<doc>Returns all morph shapes within this channel, in order from lowest to highest.</doc>
-		</property>
-	</class>
-	<struct native="Result" script="Result">
-		<doc>Same as TResult, but with no output object.</doc>
-		<ctor>
-		</ctor>
-		<field name="Status" type="ResultStatus">
-		</field>
-		<field name="ErrorMessage" type="string">
-		</field>
-		<field name="AdditionalErrorMessage" type="string">
-		</field>
-	</struct>
-	<class native="MeshData" script="MeshData">
-		<doc>Contains mesh vertex and index data used for initializing, updating and reading mesh data from Mesh.</doc>
-	</class>
 	<struct native="PARTICLE_STATIC_MESH_SHAPE_DESC" script="ParticleStaticMeshShapeOptions">
 		<doc>Information describing a ParticleEmitterStaticMeshShape.</doc>
 		<ctor>
@@ -2373,6 +2375,29 @@ Also see SetContactOffset().</doc>
 		<property name="TimePrecise" type="ulong" getter="GetTimePrecise" setter="" static="false">
 			<doc>Returns the precise time since application start, in microseconds. Unlike other time methods this is not only updated every frame, but will return exact time at the moment it is called.</doc>
 		</property>
+	</class>
+	<struct native="Result" script="Result">
+		<doc>Same as TResult, but with no output object.</doc>
+		<ctor>
+		</ctor>
+		<field name="Status" type="ResultStatus">
+		</field>
+		<field name="ErrorMessage" type="string">
+		</field>
+		<field name="AdditionalErrorMessage" type="string">
+		</field>
+	</struct>
+	<class native="MorphChannel" script="MorphChannel">
+		<doc>A collection of morph shapes that are sequentially blended together. Each shape has a weight in range [0, 1] which determines at what point is that shape blended. As the channel percent moves from 0 to 1, different shapes will be blended with those before or after them, depending on their weight.</doc>
+		<property name="Name" type="string" getter="GetName" setter="" static="false">
+			<doc>Returns the unique name of the channel.</doc>
+		</property>
+		<property name="Shapes" type="MorphShape" getter="GetShapes" setter="" static="false">
+			<doc>Returns all morph shapes within this channel, in order from lowest to highest.</doc>
+		</property>
+	</class>
+	<class native="MeshData" script="MeshData">
+		<doc>Contains mesh vertex and index data used for initializing, updating and reading mesh data from Mesh.</doc>
 	</class>
 	<class native="SceneTime" script="SceneTime">
 		<doc>Manages simulation time for a particular scene. This time runs only while scene is simulating.</doc>
@@ -2797,12 +2822,6 @@ Use {0}, {1}, etc. in the string value for values that might change dynamically.
 			<doc>Animation curve representing the rotation of the root bone.</doc>
 		</property>
 	</class>
-	<class native="MorphShapes" script="MorphShapes">
-		<doc>Contains a set of morph channels used for morph target animation. Each morph channel contains one or multiple shapes which are blended together depending on frame animation. Each channel is then additively blended together depending on some weight.</doc>
-		<property name="Channels" type="MorphChannel" getter="GetChannels" setter="" static="false">
-			<doc>Returns a list of all morph channels in the morph animation.</doc>
-		</property>
-	</class>
 	<struct native="TextureSurface" script="TextureSurface">
 		<doc>References a subset of surfaces within a texture.</doc>
 		<ctor>
@@ -2833,6 +2852,12 @@ Use {0}, {1}, etc. in the string value for values that might change dynamically.
 			<doc>Forces a cubemap or a 3D texture to be bound as a 2D texture array.</doc>
 		</field>
 	</struct>
+	<class native="MorphShapes" script="MorphShapes">
+		<doc>Contains a set of morph channels used for morph target animation. Each morph channel contains one or multiple shapes which are blended together depending on frame animation. Each channel is then additively blended together depending on some weight.</doc>
+		<property name="Channels" type="MorphChannel" getter="GetChannels" setter="" static="false">
+			<doc>Returns a list of all morph channels in the morph animation.</doc>
+		</property>
+	</class>
 	<struct native="AnimationClipState" script="AnimationClipState">
 		<doc>Contains information about a currently playing animation clip.</doc>
 		<ctor>
@@ -15936,11 +15961,4 @@ Primary purpose of this class is to avoid expensive string compare, and instead 
 			<doc>Determines ordering in inspector relative to other members.</doc>
 		</field>
 	</struct>
-	<class native="ManagedResourceMetaData" script="ManagedResourceMetaData">
-		<doc>Resource meta-data for user-defined managed resources.</doc>
-		<property name="TypeNamespace" type="string" getter="GetTypeNamespace" setter="SetTypeNamespace" static="false">
-		</property>
-		<property name="TypeName" type="string" getter="GetTypeName" setter="SetTypeName" static="false">
-		</property>
-	</class>
 </entries>

@@ -30,6 +30,7 @@ namespace b3d
             Vector2,
             Vector3,
             Vector4,
+            Area2,
             GameObjectRef,
             Resource,
             Object,
@@ -409,6 +410,8 @@ namespace b3d
                     return FieldType.Vector3;
                 else if (internalType == typeof (Vector4))
                     return FieldType.Vector4;
+                else if (internalType == typeof (Area2))
+                    return FieldType.Area2;
                 else if (internalType == typeof(Quaternion))
                     return FieldType.Quaternion;
                 else if (internalType == typeof (Color))
@@ -445,7 +448,7 @@ namespace b3d
                         return FieldType.RRef;
 
                     // Shouldn't happen because native code should only supply us with supported types
-                    throw new Exception("Cannot determine field type. Found an unsupported generic type.");
+                    throw new Exception("Cannot determine field type. Found an unsupported generic type for " + internalType.Name + ".");
                 }
 
                 // Otherwise the type must be an object, unless some error occurred

@@ -643,6 +643,22 @@ namespace b3d
 		Max
 	};
 
+	/** Names of individual components of an area. */
+	enum class B3D_SCRIPT_EXPORT(DocumentationGroup(Utility)) AreaComponent
+	{
+		X,
+		Y,
+		Width,
+		Height
+	};
+
+	/** Names of individual components of a size. */
+	enum class B3D_SCRIPT_EXPORT(DocumentationGroup(Utility)) SizeComponent
+	{
+		Width,
+		Height
+	};
+
 	/**
 	 * Bits that map to a specific surface of a render target. Combine the bits to generate a mask that references
 	 * only specific render target surfaces.
