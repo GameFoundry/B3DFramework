@@ -97,7 +97,7 @@ void VulkanSubmitThread::QueuePresent(VulkanGpuQueue& queue, VulkanSwapChain& sw
 	{
 		VulkanGpuDevice& device = queue.GetDevice();
 
-		const VkResult result = RunBlockingCallAsYieldable(vkDeviceWaitIdle, device.GetLogical());
+		const VkResult result = kEnableSubmitThread ? RunBlockingCallAsYieldable(vkDeviceWaitIdle, device.GetLogical()) : vkDeviceWaitIdle(device.GetLogical());
 		B3D_ASSERT(result == VK_SUCCESS);
 
 		device.DoForEachQueue([](VulkanGpuQueue& queue)
@@ -116,7 +116,7 @@ void VulkanSubmitThread::QueueImageAcquire(VulkanSwapChain& swapChain)
 {
 	auto fnCommand = [this, &swapChain]
 	{
-		RunBlockingCallAsYieldable([&swapChain] { swapChain.AcquireImage(); });
+		kEnableSubmitThread ? RunBlockingCallAsYieldable([&swapChain] { swapChain.AcquireImage(); }) : swapChain.AcquireImage();
 
 		swapChain.GetMessageQueue().PostCommand([&swapChain] { swapChain.NotifyUnbound(); });
 	};
@@ -144,7 +144,7 @@ void VulkanSubmitThread::WaitUntilIdle(bool performCleanupForShutdown)
 {
 	auto fnCommand = [this, performCleanupForShutdown]()
 	{
-		const VkResult result = RunBlockingCallAsYieldable(vkDeviceWaitIdle, mGpuDevice.GetLogical());
+		const VkResult result = kEnableSubmitThread ? RunBlockingCallAsYieldable(vkDeviceWaitIdle, mGpuDevice.GetLogical()) : vkDeviceWaitIdle(mGpuDevice.GetLogical());
 		B3D_ASSERT(result == VK_SUCCESS);
 
 		mGpuDevice.DoForEachQueue([performCleanupForShutdown](VulkanGpuQueue& queue)
@@ -168,7 +168,7 @@ void VulkanSubmitThread::WaitUntilIdle(VulkanGpuQueue& queue)
 {
 	auto fnCommand = [&queue]()
 	{
-		const VkResult result = RunBlockingCallAsYieldable(vkQueueWaitIdle, queue.GetVulkanHandle());
+		const VkResult result = kEnableSubmitThread ? RunBlockingCallAsYieldable(vkQueueWaitIdle, queue.GetVulkanHandle()) : vkQueueWaitIdle(queue.GetVulkanHandle());
 		B3D_ASSERT(result == VK_SUCCESS);
 
 		queue.RefreshCompletionStateOnSubmitThread(true);

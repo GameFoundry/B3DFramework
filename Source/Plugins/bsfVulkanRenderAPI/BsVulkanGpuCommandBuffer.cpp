@@ -1303,7 +1303,7 @@ GpuCommandBufferSubmitInformation VulkanGpuCommandBuffer::PrepareForSubmitOnSubm
 		const GpuQueueUsage transitionQueueUsage = (GpuQueueUsage)queueUsageIndex;
 		TransitionInfo& transitionInformation = mTransitionInfoTemp[queueUsageIndex];
 
-		bool empty = transitionInformation.ImageBarriers.size() == 0 && transitionInformation.BufferBarriers.size() == 0;
+		bool empty = transitionInformation.ImageBarriers.empty() && transitionInformation.BufferBarriers.empty();
 		if(empty)
 			continue;
 
@@ -1314,14 +1314,14 @@ GpuCommandBufferSubmitInformation VulkanGpuCommandBuffer::PrepareForSubmitOnSubm
 
 		VkCommandBuffer vkCmdBuffer = transitionCommandBuffer->GetVulkanHandle();
 
-		u32 numImgBarriers = (u32)transitionInformation.ImageBarriers.size();
-		u32 numBufferBarriers = (u32)transitionInformation.BufferBarriers.size();
+		const u32 imageBarrierCount = (u32)transitionInformation.ImageBarriers.size();
+		const u32 bufferBarrierCount = (u32)transitionInformation.BufferBarriers.size();
 
 		VkPipelineStageFlags srcStage = 0;
 		VkPipelineStageFlags dstStage = 0;
 		::GetPipelineStageFlags(transitionInformation.ImageBarriers, srcStage, dstStage);
 
-		vkCmdPipelineBarrier(vkCmdBuffer, srcStage, dstStage, 0, 0, nullptr, numBufferBarriers, transitionInformation.BufferBarriers.data(), numImgBarriers, transitionInformation.ImageBarriers.data());
+		vkCmdPipelineBarrier(vkCmdBuffer, srcStage, dstStage, 0, 0, nullptr, bufferBarrierCount, transitionInformation.BufferBarriers.data(), imageBarrierCount, transitionInformation.ImageBarriers.data());
 
 		transitionCommandBuffer->End();
 
@@ -2081,7 +2081,10 @@ void VulkanGpuCommandBuffer::CopyBufferToImage(VulkanBuffer* source, VulkanImage
 
 void VulkanGpuCommandBuffer::CopyImageToBuffer(VulkanImage* source, VulkanBuffer* destination, const VkExtent3D& region, const VkImageSubresourceRange& subresourceRange, VkImageLayout layout, u32 rowPitch, u32 sliceHeight)
 {
-	RegisterImageTransfer(source, subresourceRange, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, VulkanAccessFlag::Read);
+	VkImageSubresourceRange subresourceRangeForBarrier = subresourceRange;
+	subresourceRangeForBarrier.aspectMask = source->GetAspectFlags(); // If the source image contains both depth & stencil, then both aspect flags need to provided for pipeline barrier. But for the copy operation there must only be one aspect.
+
+	RegisterImageTransfer(source, subresourceRangeForBarrier, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, VulkanAccessFlag::Read);
 	RegisterBuffer(destination, BufferUseFlagBits::Transfer, VulkanAccessFlag::Write);
 
 	VkImageSubresourceLayers rangeLayers;
