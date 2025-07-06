@@ -300,20 +300,25 @@ void GUIElement::MarkAsClean()
 
 void GUIElement::MarkLayoutAsDirty()
 {
-	if(IsHidden())
-		return;
-
-	GUIElement* const layoutUpdateParent = mLayoutUpdateParent != nullptr ? mLayoutUpdateParent : GetParent();
-	bool isLayoutDirtyOld = false;
-
-	if(layoutUpdateParent != nullptr)
+	if(!IsHidden())
 	{
-		isLayoutDirtyOld = layoutUpdateParent->mFlags.IsSet(GUIElementInternalStateFlag::LayoutDirty);
-		layoutUpdateParent->mFlags.Set(GUIElementInternalStateFlag::LayoutDirty);
-	}
+		GUIElement* const layoutUpdateParent = mLayoutUpdateParent != nullptr ? mLayoutUpdateParent : GetParent();
+		bool isLayoutDirtyOld = false;
 
-	if(mParentWidget != nullptr && !isLayoutDirtyOld)
-		mParentWidget->MarkLayoutDirty(layoutUpdateParent);
+		if(layoutUpdateParent != nullptr)
+		{
+			isLayoutDirtyOld = layoutUpdateParent->mFlags.IsSet(GUIElementInternalStateFlag::LayoutDirty);
+			layoutUpdateParent->mFlags.Set(GUIElementInternalStateFlag::LayoutDirty);
+		}
+
+		if(mParentWidget != nullptr && !isLayoutDirtyOld)
+			mParentWidget->MarkLayoutDirty(layoutUpdateParent);
+	}
+	else
+	{
+		// If hidden, set the layout dirty flag locally so we know to rebuild the layout once its unhidden
+		mFlags.Set(GUIElementInternalStateFlag::LayoutDirty);
+	}
 }
 
 void GUIElement::MarkAbsoluteCoordinatesAsDirty()
@@ -397,6 +402,10 @@ void GUIElement::SetHiddenRecursive(bool hidden)
 			if(mParentWidget && !IsCulled())
 				mParentWidget->NotifyElementVisibilityChanged(this, true);
 
+			// It's possible the layout was dirtied while object was hidden, make sure to invalidate layout once its visible again
+			if(mFlags.IsSet(GUIElementInternalStateFlag::LayoutDirty))
+				MarkLayoutAsDirty();
+
 			for(auto& child : mChildren)
 				child->SetHiddenRecursive(false);
 		}
@@ -414,6 +423,7 @@ void GUIElement::SetActive(bool active)
 		{
 			mFlags |= kActiveFlags;
 
+			// Make inactive before hidden, as layout update will be skipped if hidden
 			SetActiveRecursive(false);
 			SetHiddenRecursive(true);
 		}
@@ -425,16 +435,16 @@ void GUIElement::SetActive(bool active)
 			{
 				if(mParent->IsActive())
 				{
-					SetActiveRecursive(true);
-
 					if(!mParent->IsHidden())
 						SetHiddenRecursive(false);
+
+					SetActiveRecursive(true);
 				}
 			}
 			else
 			{
-				SetActiveRecursive(true);
 				SetHiddenRecursive(false);
+				SetActiveRecursive(true);
 			}
 		}
 	}
