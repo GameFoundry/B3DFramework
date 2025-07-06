@@ -17,12 +17,12 @@ using namespace b3d;
 ScriptResourceManager::ScriptResourceManager()
 {
 	mResourceDestroyedConn = GetResources().OnResourceDestroyed.Connect(std::bind(&ScriptResourceManager::OnResourceDestroyed, this, _1));
-	mRefreshWillUnloadAssembliesConnection = ScriptObjectManager::Instance().OnRefreshWillUnloadAssemblies.Connect(std::bind(&ScriptResourceManager::ClearRRefs, this));
+	mOnWillUnloadAssembliesConnection = ScriptObjectManager::Instance().OnWillUnloadAssemblies.Connect(std::bind(&ScriptResourceManager::ClearRRefs, this));
 }
 
 ScriptResourceManager::~ScriptResourceManager()
 {
-	mRefreshWillUnloadAssembliesConnection.Disconnect();
+	mOnWillUnloadAssembliesConnection.Disconnect();
 	mResourceDestroyedConn.Disconnect();
 }
 

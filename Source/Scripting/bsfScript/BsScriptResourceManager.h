@@ -60,7 +60,7 @@ namespace b3d
 		UnorderedMap<::MonoClass*, UnorderedMap<UUID, ScriptRRefBase*>> mScriptRRefsPerType;
 
 		HEvent mResourceDestroyedConn;
-		HEvent mRefreshWillUnloadAssembliesConnection;
+		HEvent mOnWillUnloadAssembliesConnection;
 	};
 
 	/** @} */

@@ -95,6 +95,7 @@ void EngineScriptLibrary::Destroy()
 
 void EngineScriptLibrary::UnloadAssemblies()
 {
+	ScriptObjectManager::Instance().OnWillUnloadAssemblies();
 	MonoManager::Instance().UnloadScriptDomain();
 	ScriptObjectManager::Instance().ProcessFinalizedObjects();
 }

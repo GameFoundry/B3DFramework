@@ -50,7 +50,7 @@ void ScriptObjectManager::RefreshAssemblies(const Vector<AssemblyRefreshInfo>& a
 	for(auto& scriptObjectWrapper : mScriptObjectWrappers)
 		scriptObjectWrapper->ReleaseScriptObjectHandle();
 
-	OnRefreshWillUnloadAssemblies();
+	OnWillUnloadAssemblies();
 
 	// Unload the domain which GCs all the script objects and triggers their finalizers
 	MonoManager::Instance().UnloadScriptDomain();

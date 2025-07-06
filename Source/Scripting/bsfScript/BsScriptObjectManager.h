@@ -77,7 +77,7 @@ namespace b3d
 		 * Triggered when all non-persistent objects were destroyed during assembly refresh, just before managed assemblies will be unloaded.
 		 * You should clear any assembly information at this point.
 		 */
-		Event<void()> OnRefreshWillUnloadAssemblies;
+		Event<void()> OnWillUnloadAssemblies;
 
 		/**
 		 * Triggered right after a domain was reloaded. This signals the outside world that they should update any kept Mono
