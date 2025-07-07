@@ -8,12 +8,9 @@
 
 using namespace b3d;
 
-template<>
-template<>
-B3D_UTILITY_EXPORT void TRay<float>::Transform<float, 0>(const Matrix4& matrix)
+template<typename T>
+void TRay<T>::Transform(const TMatrix4<T>& matrix)
 {
-	using T = float;
-
 	TVector3<T> end = GetPoint((T)1.0);
 
 	Origin = matrix.Multiply(Origin);
@@ -22,18 +19,15 @@ B3D_UTILITY_EXPORT void TRay<float>::Transform<float, 0>(const Matrix4& matrix)
 	Direction = TVector3<T>::Normalize(end - Origin);
 }
 
-template<>
-template<>
-B3D_UTILITY_EXPORT void TRay<float>::TransformAffine(const Matrix4& matrix)
+template<typename T>
+void TRay<T>::TransformAffine(const TMatrix4<T>& matrix)
 {
-	using T = float;
-
 	TVector3<T> end = GetPoint((T)1.0);
 
 	Origin = matrix.MultiplyAffine(Origin);
 	end = matrix.MultiplyAffine(end);
 
-	Direction = Vector3::Normalize(end - Origin);
+	Direction = TVector3<T>::Normalize(end - Origin);
 }
 
 template<typename T>

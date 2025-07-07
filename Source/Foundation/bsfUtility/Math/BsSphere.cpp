@@ -27,12 +27,9 @@ void TSphere<T>::Merge(const TVector3<T>& point)
 	Radius = std::max(Radius, dist);
 }
 
-template<>
-template<>
-void TSphere<float>::Transform<float, 0>(const Matrix4& matrix)
+template<typename T>
+void TSphere<T>::Transform(const TMatrix4<T>& matrix)
 {
-	using T = float;
-
 	T lengthSqrd[3];
 	for(u32 i = 0; i < 3; i++)
 	{

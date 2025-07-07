@@ -6,17 +6,16 @@
 
 using namespace b3d;
 
-const Matrix3 Matrix3::kZero{ BS_ZERO() };
-const Matrix3 Matrix3::kIdentity{ BS_IDENTITY() };
-
-Vector3 Matrix3::GetColumn(u32 col) const
+template<typename T>
+TVector3<T> TMatrix3<T>::GetColumn(u32 col) const
 {
 	B3D_ASSERT(col < 3);
 
-	return Vector3(m[0][col], m[1][col], m[2][col]);
+	return TVector3<T>(m[0][col], m[1][col], m[2][col]);
 }
 
-void Matrix3::SetColumn(u32 col, const Vector3& vec)
+template<typename T>
+void TMatrix3<T>::SetColumn(u32 col, const TVector3<T>& vec)
 {
 	B3D_ASSERT(col < 3);
 
@@ -25,14 +24,16 @@ void Matrix3::SetColumn(u32 col, const Vector3& vec)
 	m[2][col] = vec.Z;
 }
 
-void Matrix3::FromAxes(const Vector3& xAxis, const Vector3& yAxis, const Vector3& zAxis)
+template<typename T>
+void TMatrix3<T>::FromAxes(const TVector3<T>& xAxis, const TVector3<T>& yAxis, const TVector3<T>& zAxis)
 {
 	SetColumn(0, xAxis);
 	SetColumn(1, yAxis);
 	SetColumn(2, zAxis);
 }
 
-bool Matrix3::operator==(const Matrix3& rhs) const
+template<typename T>
+bool TMatrix3<T>::operator==(const TMatrix3& rhs) const
 {
 	for(u32 row = 0; row < 3; row++)
 	{
@@ -46,14 +47,16 @@ bool Matrix3::operator==(const Matrix3& rhs) const
 	return true;
 }
 
-bool Matrix3::operator!=(const Matrix3& rhs) const
+template<typename T>
+bool TMatrix3<T>::operator!=(const TMatrix3& rhs) const
 {
 	return !operator==(rhs);
 }
 
-Matrix3 Matrix3::operator+(const Matrix3& rhs) const
+template<typename T>
+TMatrix3<T> TMatrix3<T>::operator+(const TMatrix3& rhs) const
 {
-	Matrix3 sum;
+	TMatrix3 sum;
 	for(u32 row = 0; row < 3; row++)
 	{
 		for(u32 col = 0; col < 3; col++)
@@ -65,9 +68,10 @@ Matrix3 Matrix3::operator+(const Matrix3& rhs) const
 	return sum;
 }
 
-Matrix3 Matrix3::operator-(const Matrix3& rhs) const
+template<typename T>
+TMatrix3<T> TMatrix3<T>::operator-(const TMatrix3& rhs) const
 {
-	Matrix3 diff;
+	TMatrix3 diff;
 	for(u32 row = 0; row < 3; row++)
 	{
 		for(u32 col = 0; col < 3; col++)
@@ -80,9 +84,10 @@ Matrix3 Matrix3::operator-(const Matrix3& rhs) const
 	return diff;
 }
 
-Matrix3 Matrix3::operator*(const Matrix3& rhs) const
+template<typename T>
+TMatrix3<T> TMatrix3<T>::operator*(const TMatrix3& rhs) const
 {
-	Matrix3 prod;
+	TMatrix3 prod;
 	for(u32 row = 0; row < 3; row++)
 	{
 		for(u32 col = 0; col < 3; col++)
@@ -95,9 +100,10 @@ Matrix3 Matrix3::operator*(const Matrix3& rhs) const
 	return prod;
 }
 
-Matrix3 Matrix3::operator-() const
+template<typename T>
+TMatrix3<T> TMatrix3<T>::operator-() const
 {
-	Matrix3 neg;
+	TMatrix3 neg;
 	for(u32 row = 0; row < 3; row++)
 	{
 		for(u32 col = 0; col < 3; col++)
@@ -107,9 +113,10 @@ Matrix3 Matrix3::operator-() const
 	return neg;
 }
 
-Matrix3 Matrix3::operator*(float rhs) const
+template<typename T>
+TMatrix3<T> TMatrix3<T>::operator*(T rhs) const
 {
-	Matrix3 prod;
+	TMatrix3 prod;
 	for(u32 row = 0; row < 3; row++)
 	{
 		for(u32 col = 0; col < 3; col++)
@@ -119,9 +126,10 @@ Matrix3 Matrix3::operator*(float rhs) const
 	return prod;
 }
 
-Vector3 Matrix3::Multiply(const Vector3& vec) const
+template<typename T>
+TVector3<T> TMatrix3<T>::Multiply(const TVector3<T>& vec) const
 {
-	Vector3 prod;
+	TVector3<T> prod;
 	for(u32 row = 0; row < 3; row++)
 	{
 		prod[row] =
@@ -133,9 +141,10 @@ Vector3 Matrix3::Multiply(const Vector3& vec) const
 	return prod;
 }
 
-Matrix3 Matrix3::Transpose() const
+template<typename T>
+TMatrix3<T> TMatrix3<T>::Transpose() const
 {
-	Matrix3 matTranspose;
+	TMatrix3 matTranspose;
 	for(u32 row = 0; row < 3; row++)
 	{
 		for(u32 col = 0; col < 3; col++)
@@ -145,7 +154,8 @@ Matrix3 Matrix3::Transpose() const
 	return matTranspose;
 }
 
-bool Matrix3::Inverse(Matrix3& matInv, float tolerance) const
+template<typename T>
+bool TMatrix3<T>::Inverse(TMatrix3& matInv, T tolerance) const
 {
 	matInv[0][0] = m[1][1] * m[2][2] - m[1][2] * m[2][1];
 	matInv[0][1] = m[0][2] * m[2][1] - m[0][1] * m[2][2];
@@ -157,12 +167,12 @@ bool Matrix3::Inverse(Matrix3& matInv, float tolerance) const
 	matInv[2][1] = m[0][1] * m[2][0] - m[0][0] * m[2][1];
 	matInv[2][2] = m[0][0] * m[1][1] - m[0][1] * m[1][0];
 
-	float det = m[0][0] * matInv[0][0] + m[0][1] * matInv[1][0] + m[0][2] * matInv[2][0];
+	T det = m[0][0] * matInv[0][0] + m[0][1] * matInv[1][0] + m[0][2] * matInv[2][0];
 
 	if(abs(det) <= tolerance)
 		return false;
 
-	float invDet = 1.0f / det;
+	T invDet = (T)1.0 / det;
 	for(u32 row = 0; row < 3; row++)
 	{
 		for(u32 col = 0; col < 3; col++)
@@ -172,41 +182,44 @@ bool Matrix3::Inverse(Matrix3& matInv, float tolerance) const
 	return true;
 }
 
-Matrix3 Matrix3::Inverse(float tolerance) const
+template<typename T>
+TMatrix3<T> TMatrix3<T>::Inverse(T tolerance) const
 {
-	Matrix3 matInv = Matrix3::kZero;
+	TMatrix3 matInv = TMatrix3<T>::kZero;
 	Inverse(matInv, tolerance);
 	return matInv;
 }
 
-float Matrix3::Determinant() const
+template<typename T>
+T TMatrix3<T>::Determinant() const
 {
-	float cofactor00 = m[1][1] * m[2][2] - m[1][2] * m[2][1];
-	float cofactor10 = m[1][2] * m[2][0] - m[1][0] * m[2][2];
-	float cofactor20 = m[1][0] * m[2][1] - m[1][1] * m[2][0];
+	T cofactor00 = m[1][1] * m[2][2] - m[1][2] * m[2][1];
+	T cofactor10 = m[1][2] * m[2][0] - m[1][0] * m[2][2];
+	T cofactor20 = m[1][0] * m[2][1] - m[1][1] * m[2][0];
 
-	float det = m[0][0] * cofactor00 + m[0][1] * cofactor10 + m[0][2] * cofactor20;
+	T det = m[0][0] * cofactor00 + m[0][1] * cofactor10 + m[0][2] * cofactor20;
 
 	return det;
 }
 
-void Matrix3::Bidiagonalize(Matrix3& matA, Matrix3& matL, Matrix3& matR)
+template<typename T>
+void TMatrix3<T>::Bidiagonalize(TMatrix3& matA, TMatrix3& matL, TMatrix3& matR)
 {
-	float v[3], w[3];
-	float length, sign, t1, invT1, t2;
+	T v[3], w[3];
+	T length, sign, t1, invT1, t2;
 	bool bIdentity;
 
 	// Map first column to (*,0,0)
 	length = Math::SquareRoot(matA[0][0] * matA[0][0] + matA[1][0] * matA[1][0] + matA[2][0] * matA[2][0]);
-	if(length > 0.0f)
+	if(length > (T)0.0)
 	{
-		sign = (matA[0][0] > 0.0f ? 1.0f : -1.0f);
+		sign = (matA[0][0] > (T)0.0 ? (T)1.0 : -(T)1.0);
 		t1 = matA[0][0] + sign * length;
-		invT1 = 1.0f / t1;
+		invT1 = (T)1.0 / t1;
 		v[1] = matA[1][0] * invT1;
 		v[2] = matA[2][0] * invT1;
 
-		t2 = -2.0f / (1.0f + v[1] * v[1] + v[2] * v[2]);
+		t2 = (T)-2.0 / ((T)1.0 + v[1] * v[1] + v[2] * v[2]);
 		w[0] = t2 * (matA[0][0] + matA[1][0] * v[1] + matA[2][0] * v[2]);
 		w[1] = t2 * (matA[0][1] + matA[1][1] * v[1] + matA[2][1] * v[2]);
 		w[2] = t2 * (matA[0][2] + matA[1][2] * v[1] + matA[2][2] * v[2]);
@@ -218,29 +231,29 @@ void Matrix3::Bidiagonalize(Matrix3& matA, Matrix3& matL, Matrix3& matR)
 		matA[2][1] += v[2] * w[1];
 		matA[2][2] += v[2] * w[2];
 
-		matL[0][0] = 1.0f + t2;
+		matL[0][0] = (T)1.0 + t2;
 		matL[0][1] = matL[1][0] = t2 * v[1];
 		matL[0][2] = matL[2][0] = t2 * v[2];
-		matL[1][1] = 1.0f + t2 * v[1] * v[1];
+		matL[1][1] = (T)1.0 + t2 * v[1] * v[1];
 		matL[1][2] = matL[2][1] = t2 * v[1] * v[2];
-		matL[2][2] = 1.0f + t2 * v[2] * v[2];
+		matL[2][2] = (T)1.0 + t2 * v[2] * v[2];
 		bIdentity = false;
 	}
 	else
 	{
-		matL = Matrix3::kIdentity;
+		matL = TMatrix3<T>::kIdentity;
 		bIdentity = true;
 	}
 
 	// Map first row to (*,*,0)
 	length = Math::SquareRoot(matA[0][1] * matA[0][1] + matA[0][2] * matA[0][2]);
-	if(length > 0.0)
+	if(length > (T)0.0)
 	{
-		sign = (matA[0][1] > 0.0f ? 1.0f : -1.0f);
+		sign = (matA[0][1] > (T)0.0 ? (T)1.0 : -(T)1.0);
 		t1 = matA[0][1] + sign * length;
 		v[2] = matA[0][2] / t1;
 
-		t2 = -2.0f / (1.0f + v[2] * v[2]);
+		t2 = (T)-2.0f / ((T)1.0 + v[2] * v[2]);
 		w[0] = t2 * (matA[0][1] + matA[0][2] * v[2]);
 		w[1] = t2 * (matA[1][1] + matA[1][2] * v[2]);
 		w[2] = t2 * (matA[2][1] + matA[2][2] * v[2]);
@@ -250,42 +263,42 @@ void Matrix3::Bidiagonalize(Matrix3& matA, Matrix3& matL, Matrix3& matR)
 		matA[2][1] += w[2];
 		matA[2][2] += w[2] * v[2];
 
-		matR[0][0] = 1.0;
-		matR[0][1] = matR[1][0] = 0.0;
-		matR[0][2] = matR[2][0] = 0.0;
-		matR[1][1] = 1.0f + t2;
+		matR[0][0] = (T)1.0;
+		matR[0][1] = matR[1][0] = (T)0.0;
+		matR[0][2] = matR[2][0] = (T)0.0;
+		matR[1][1] = (T)1.0 + t2;
 		matR[1][2] = matR[2][1] = t2 * v[2];
-		matR[2][2] = 1.0f + t2 * v[2] * v[2];
+		matR[2][2] = (T)1.0 + t2 * v[2] * v[2];
 	}
 	else
 	{
-		matR = Matrix3::kIdentity;
+		matR = TMatrix3<T>::kIdentity;
 	}
 
 	// Map second column to (*,*,0)
 	length = Math::SquareRoot(matA[1][1] * matA[1][1] + matA[2][1] * matA[2][1]);
-	if(length > 0.0)
+	if(length > (T)0.0)
 	{
-		sign = (matA[1][1] > 0.0f ? 1.0f : -1.0f);
+		sign = (matA[1][1] > (T)0.0 ? (T)1.0 : -(T)1.0);
 		t1 = matA[1][1] + sign * length;
 		v[2] = matA[2][1] / t1;
 
-		t2 = -2.0f / (1.0f + v[2] * v[2]);
+		t2 = (T)-2.0f / ((T)1.0 + v[2] * v[2]);
 		w[1] = t2 * (matA[1][1] + matA[2][1] * v[2]);
 		w[2] = t2 * (matA[1][2] + matA[2][2] * v[2]);
 		matA[1][1] += w[1];
 		matA[1][2] += w[2];
 		matA[2][2] += v[2] * w[2];
 
-		float a = 1.0f + t2;
-		float b = t2 * v[2];
-		float c = 1.0f + b * v[2];
+		T a = (T)1.0 + t2;
+		T b = t2 * v[2];
+		T c = (T)1.0 + b * v[2];
 
 		if(bIdentity)
 		{
-			matL[0][0] = 1.0;
-			matL[0][1] = matL[1][0] = 0.0;
-			matL[0][2] = matL[2][0] = 0.0;
+			matL[0][0] = (T)1.0;
+			matL[0][1] = matL[1][0] = (T)0.0;
+			matL[0][2] = matL[2][0] = (T)0.0;
 			matL[1][1] = a;
 			matL[1][2] = matL[2][1] = b;
 			matL[2][2] = c;
@@ -294,8 +307,8 @@ void Matrix3::Bidiagonalize(Matrix3& matA, Matrix3& matL, Matrix3& matR)
 		{
 			for(int row = 0; row < 3; row++)
 			{
-				float tmp0 = matL[row][1];
-				float tmp1 = matL[row][2];
+				T tmp0 = matL[row][1];
+				T tmp1 = matL[row][2];
 				matL[row][1] = a * tmp0 + b * tmp1;
 				matL[row][2] = b * tmp0 + c * tmp1;
 			}
@@ -303,26 +316,27 @@ void Matrix3::Bidiagonalize(Matrix3& matA, Matrix3& matL, Matrix3& matR)
 	}
 }
 
-void Matrix3::GolubKahanStep(Matrix3& matA, Matrix3& matL, Matrix3& matR)
+template<typename T>
+void TMatrix3<T>::GolubKahanStep(TMatrix3& matA, TMatrix3& matL, TMatrix3& matR)
 {
-	float f11 = matA[0][1] * matA[0][1] + matA[1][1] * matA[1][1];
-	float t22 = matA[1][2] * matA[1][2] + matA[2][2] * matA[2][2];
-	float t12 = matA[1][1] * matA[1][2];
-	float trace = f11 + t22;
-	float diff = f11 - t22;
-	float discr = Math::SquareRoot(diff * diff + 4.0f * t12 * t12);
-	float root1 = 0.5f * (trace + discr);
-	float root2 = 0.5f * (trace - discr);
+	T f11 = matA[0][1] * matA[0][1] + matA[1][1] * matA[1][1];
+	T t22 = matA[1][2] * matA[1][2] + matA[2][2] * matA[2][2];
+	T t12 = matA[1][1] * matA[1][2];
+	T trace = f11 + t22;
+	T diff = f11 - t22;
+	T discr = Math::SquareRoot(diff * diff + (T)4.0 * t12 * t12);
+	T root1 = (T)0.5 * (trace + discr);
+	T root2 = (T)0.5 * (trace - discr);
 
 	// Adjust right
-	float y = matA[0][0] - (abs(root1 - t22) <= abs(root2 - t22) ? root1 : root2);
-	float z = matA[0][1];
-	float invLength = Math::InverseSquareRoot(y * y + z * z);
-	float sin = z * invLength;
-	float cos = -y * invLength;
+	T y = matA[0][0] - (abs(root1 - t22) <= abs(root2 - t22) ? root1 : root2);
+	T z = matA[0][1];
+	T invLength = Math::InverseSquareRoot(y * y + z * z);
+	T sin = z * invLength;
+	T cos = -y * invLength;
 
-	float tmp0 = matA[0][0];
-	float tmp1 = matA[0][1];
+	T tmp0 = matA[0][0];
+	T tmp1 = matA[0][1];
 	matA[0][0] = cos * tmp0 - sin * tmp1;
 	matA[0][1] = sin * tmp0 + cos * tmp1;
 	matA[1][0] = -sin * matA[1][1];
@@ -406,18 +420,19 @@ void Matrix3::GolubKahanStep(Matrix3& matA, Matrix3& matL, Matrix3& matR)
 	}
 }
 
-void Matrix3::SingularValueDecomposition(Matrix3& matL, Vector3& matS, Matrix3& matR) const
+template<typename T>
+void TMatrix3<T>::SingularValueDecomposition(TMatrix3& matL, TVector3<T>& matS, TMatrix3& matR) const
 {
 	u32 row, col;
 
-	Matrix3 mat = *this;
+	TMatrix3 mat = *this;
 	Bidiagonalize(mat, matL, matR);
 
 	for(unsigned int i = 0; i < kSvdMaxIters; i++)
 	{
-		float tmp, tmp0, tmp1;
-		float sin0, cos0, tan0;
-		float sin1, cos1, tan1;
+		T tmp, tmp0, tmp1;
+		T sin0, cos0, tan0;
+		T sin1, cos1, tan1;
 
 		bool test1 = (abs(mat[0][1]) <= kSvdEpsilon * (abs(mat[0][0]) + abs(mat[1][1])));
 		bool test2 = (abs(mat[1][2]) <= kSvdEpsilon * (abs(mat[1][1]) + abs(mat[2][2])));
@@ -435,8 +450,8 @@ void Matrix3::SingularValueDecomposition(Matrix3& matL, Vector3& matS, Matrix3& 
 			{
 				// 2x2 closed form factorization
 				tmp = (mat[1][1] * mat[1][1] - mat[2][2] * mat[2][2] + mat[1][2] * mat[1][2]) / (mat[1][2] * mat[2][2]);
-				tan0 = 0.5f * (tmp + Math::SquareRoot(tmp * tmp + 4.0f));
-				cos0 = Math::InverseSquareRoot(1.0f + tan0 * tan0);
+				tan0 = (T)0.5 * (tmp + Math::SquareRoot(tmp * tmp + (T)4.0));
+				cos0 = Math::InverseSquareRoot((T)1.0 + tan0 * tan0);
 				sin0 = tan0 * cos0;
 
 				for(col = 0; col < 3; col++)
@@ -448,7 +463,7 @@ void Matrix3::SingularValueDecomposition(Matrix3& matL, Vector3& matS, Matrix3& 
 				}
 
 				tan1 = (mat[1][2] - mat[2][2] * tan0) / mat[1][1];
-				cos1 = Math::InverseSquareRoot(1.0f + tan1 * tan1);
+				cos1 = Math::InverseSquareRoot((T)1.0 + tan1 * tan1);
 				sin1 = -tan1 * cos1;
 
 				for(row = 0; row < 3; row++)
@@ -471,8 +486,8 @@ void Matrix3::SingularValueDecomposition(Matrix3& matL, Vector3& matS, Matrix3& 
 			{
 				// 2x2 closed form factorization
 				tmp = (mat[0][0] * mat[0][0] + mat[1][1] * mat[1][1] - mat[0][1] * mat[0][1]) / (mat[0][1] * mat[1][1]);
-				tan0 = 0.5f * (-tmp + Math::SquareRoot(tmp * tmp + 4.0f));
-				cos0 = Math::InverseSquareRoot(1.0f + tan0 * tan0);
+				tan0 = (T)0.5 * (-tmp + Math::SquareRoot(tmp * tmp + (T)4.0));
+				cos0 = Math::InverseSquareRoot((T)1.0 + tan0 * tan0);
 				sin0 = tan0 * cos0;
 
 				for(col = 0; col < 3; col++)
@@ -484,7 +499,7 @@ void Matrix3::SingularValueDecomposition(Matrix3& matL, Vector3& matS, Matrix3& 
 				}
 
 				tan1 = (mat[0][1] - mat[1][1] * tan0) / mat[0][0];
-				cos1 = Math::InverseSquareRoot(1.0f + tan1 * tan1);
+				cos1 = Math::InverseSquareRoot((T)1.0 + tan1 * tan1);
 				sin1 = -tan1 * cos1;
 
 				for(row = 0; row < 3; row++)
@@ -519,17 +534,18 @@ void Matrix3::SingularValueDecomposition(Matrix3& matL, Vector3& matS, Matrix3& 
 	}
 }
 
-void Matrix3::Orthonormalize()
+template<typename T>
+void TMatrix3<T>::Orthonormalize()
 {
 	// Compute q0
-	float invLength = Math::InverseSquareRoot(m[0][0] * m[0][0] + m[1][0] * m[1][0] + m[2][0] * m[2][0]);
+	T invLength = Math::InverseSquareRoot(m[0][0] * m[0][0] + m[1][0] * m[1][0] + m[2][0] * m[2][0]);
 
 	m[0][0] *= invLength;
 	m[1][0] *= invLength;
 	m[2][0] *= invLength;
 
 	// Compute q1
-	float dot0 = m[0][0] * m[0][1] + m[1][0] * m[1][1] + m[2][0] * m[2][1];
+	T dot0 = m[0][0] * m[0][1] + m[1][0] * m[1][1] + m[2][0] * m[2][1];
 
 	m[0][1] -= dot0 * m[0][0];
 	m[1][1] -= dot0 * m[1][0];
@@ -542,7 +558,7 @@ void Matrix3::Orthonormalize()
 	m[2][1] *= invLength;
 
 	// Compute q2
-	float dot1 = m[0][1] * m[0][2] + m[1][1] * m[1][2] + m[2][1] * m[2][2];
+	T dot1 = m[0][1] * m[0][2] + m[1][1] * m[1][2] + m[2][1] * m[2][2];
 	dot0 = m[0][0] * m[0][2] + m[1][0] * m[1][2] + m[2][0] * m[2][2];
 
 	m[0][2] -= dot0 * m[0][0] + dot1 * m[0][1];
@@ -556,24 +572,26 @@ void Matrix3::Orthonormalize()
 	m[2][2] *= invLength;
 }
 
-void Matrix3::Decomposition(Quaternion& rotation, Vector3& scale) const
+template<typename T>
+void TMatrix3<T>::Decomposition(TQuaternion<T>& rotation, TVector3<T>& scale) const
 {
-	Matrix3 matQ;
-	Vector3 vecU;
+	TMatrix3 matQ;
+	TVector3<T> vecU;
 	QDUDecomposition(matQ, scale, vecU);
 
-	rotation = Quaternion(matQ);
+	rotation = TQuaternion<T>(matQ);
 }
 
-void Matrix3::QDUDecomposition(Matrix3& matQ, Vector3& vecD, Vector3& vecU) const
+template<typename T>
+void TMatrix3<T>::QDUDecomposition(TMatrix3& matQ, TVector3<T>& vecD, TVector3<T>& vecU) const
 {
 	// Build orthogonal matrix Q
-	float invLength = Math::InverseSquareRoot(m[0][0] * m[0][0] + m[1][0] * m[1][0] + m[2][0] * m[2][0]);
+	T invLength = Math::InverseSquareRoot(m[0][0] * m[0][0] + m[1][0] * m[1][0] + m[2][0] * m[2][0]);
 	matQ[0][0] = m[0][0] * invLength;
 	matQ[1][0] = m[1][0] * invLength;
 	matQ[2][0] = m[2][0] * invLength;
 
-	float dot = matQ[0][0] * m[0][1] + matQ[1][0] * m[1][1] + matQ[2][0] * m[2][1];
+	T dot = matQ[0][0] * m[0][1] + matQ[1][0] * m[1][1] + matQ[2][0] * m[2][1];
 	matQ[0][1] = m[0][1] - dot * matQ[0][0];
 	matQ[1][1] = m[1][1] - dot * matQ[1][0];
 	matQ[2][1] = m[2][1] - dot * matQ[2][0];
@@ -599,11 +617,11 @@ void Matrix3::QDUDecomposition(Matrix3& matQ, Vector3& vecD, Vector3& vecU) cons
 	matQ[2][2] *= invLength;
 
 	// Guarantee that orthogonal matrix has determinant 1 (no reflections)
-	float fDet = matQ[0][0] * matQ[1][1] * matQ[2][2] + matQ[0][1] * matQ[1][2] * matQ[2][0] +
+	T fDet = matQ[0][0] * matQ[1][1] * matQ[2][2] + matQ[0][1] * matQ[1][2] * matQ[2][0] +
 		matQ[0][2] * matQ[1][0] * matQ[2][1] - matQ[0][2] * matQ[1][1] * matQ[2][0] -
 		matQ[0][1] * matQ[1][0] * matQ[2][2] - matQ[0][0] * matQ[1][2] * matQ[2][1];
 
-	if(fDet < 0.0f)
+	if(fDet < (T)0.0)
 	{
 		for(u32 row = 0; row < 3; row++)
 			for(u32 col = 0; col < 3; col++)
@@ -611,7 +629,7 @@ void Matrix3::QDUDecomposition(Matrix3& matQ, Vector3& vecD, Vector3& vecU) cons
 	}
 
 	// Build "right" matrix R
-	Matrix3 matRight;
+	TMatrix3 matRight;
 	matRight[0][0] = matQ[0][0] * m[0][0] + matQ[1][0] * m[1][0] +
 		matQ[2][0] * m[2][0];
 	matRight[0][1] = matQ[0][0] * m[0][1] + matQ[1][0] * m[1][1] +
@@ -631,21 +649,22 @@ void Matrix3::QDUDecomposition(Matrix3& matQ, Vector3& vecD, Vector3& vecU) cons
 	vecD[2] = matRight[2][2];
 
 	// The shear component
-	float invD0 = 1.0f / vecD[0];
+	T invD0 = (T)1.0 / vecD[0];
 	vecU[0] = matRight[0][1] * invD0;
 	vecU[1] = matRight[0][2] * invD0;
 	vecU[2] = matRight[1][2] / vecD[1];
 }
 
-void Matrix3::ToAxisAngle(Vector3& axis, Radian& radians) const
+template<typename T>
+void TMatrix3<T>::ToAxisAngle(TVector3<T>& axis, TRadian<T>& radians) const
 {
-	float trace = m[0][0] + m[1][1] + m[2][2];
-	float cos = 0.5f * (trace - 1.0f);
+	T trace = m[0][0] + m[1][1] + m[2][2];
+	T cos = (T)0.5 * (trace - (T)1.0);
 	radians = Math::Acos(cos); // In [0, PI]
 
-	if(radians > Radian(0.0f))
+	if(radians > TRadian<T>((T)0.0))
 	{
-		if(radians < Radian(Math::kPi))
+		if(radians < TRadian<T>(Math::kPi))
 		{
 			axis.X = m[2][1] - m[1][2];
 			axis.Y = m[0][2] - m[2][0];
@@ -655,23 +674,23 @@ void Matrix3::ToAxisAngle(Vector3& axis, Radian& radians) const
 		else
 		{
 			// Angle is PI
-			float fHalfInverse;
+			T fHalfInverse;
 			if(m[0][0] >= m[1][1])
 			{
 				// r00 >= r11
 				if(m[0][0] >= m[2][2])
 				{
 					// r00 is maximum diagonal term
-					axis.X = 0.5f * Math::SquareRoot(m[0][0] - m[1][1] - m[2][2] + 1.0f);
-					fHalfInverse = 0.5f / axis.X;
+					axis.X = (T)0.5 * Math::SquareRoot(m[0][0] - m[1][1] - m[2][2] + (T)1.0);
+					fHalfInverse = (T)0.5 / axis.X;
 					axis.Y = fHalfInverse * m[0][1];
 					axis.Z = fHalfInverse * m[0][2];
 				}
 				else
 				{
 					// r22 is maximum diagonal term
-					axis.Z = 0.5f * Math::SquareRoot(m[2][2] - m[0][0] - m[1][1] + 1.0f);
-					fHalfInverse = 0.5f / axis.Z;
+					axis.Z = (T)0.5 * Math::SquareRoot(m[2][2] - m[0][0] - m[1][1] + (T)1.0);
+					fHalfInverse = (T)0.5 / axis.Z;
 					axis.X = fHalfInverse * m[0][2];
 					axis.Y = fHalfInverse * m[1][2];
 				}
@@ -682,16 +701,16 @@ void Matrix3::ToAxisAngle(Vector3& axis, Radian& radians) const
 				if(m[1][1] >= m[2][2])
 				{
 					// r11 is maximum diagonal term
-					axis.Y = 0.5f * Math::SquareRoot(m[1][1] - m[0][0] - m[2][2] + 1.0f);
-					fHalfInverse = 0.5f / axis.Y;
+					axis.Y = (T)0.5 * Math::SquareRoot(m[1][1] - m[0][0] - m[2][2] + (T)1.0);
+					fHalfInverse = (T)0.5 / axis.Y;
 					axis.X = fHalfInverse * m[0][1];
 					axis.Z = fHalfInverse * m[1][2];
 				}
 				else
 				{
 					// r22 is maximum diagonal term
-					axis.Z = 0.5f * Math::SquareRoot(m[2][2] - m[0][0] - m[1][1] + 1.0f);
-					fHalfInverse = 0.5f / axis.Z;
+					axis.Z = (T)0.5 * Math::SquareRoot(m[2][2] - m[0][0] - m[1][1] + (T)1.0);
+					fHalfInverse = (T)0.5 / axis.Z;
 					axis.X = fHalfInverse * m[0][2];
 					axis.Y = fHalfInverse * m[1][2];
 				}
@@ -702,26 +721,27 @@ void Matrix3::ToAxisAngle(Vector3& axis, Radian& radians) const
 	{
 		// The angle is 0 and the matrix is the identity.  Any axis will
 		// work, so just use the x-axis.
-		axis.X = 1.0f;
-		axis.Y = 0.0f;
-		axis.Z = 0.0f;
+		axis.X = (T)1.0;
+		axis.Y = (T)0.0;
+		axis.Z = (T)0.0;
 	}
 }
 
-void Matrix3::FromAxisAngle(const Vector3& axis, const Radian& angle)
+template<typename T>
+void TMatrix3<T>::FromAxisAngle(const TVector3<T>& axis, const TRadian<T>& angle)
 {
-	float cos = Math::Cos(angle);
-	float sin = Math::Sin(angle);
-	float oneMinusCos = 1.0f - cos;
-	float x2 = axis.X * axis.X;
-	float y2 = axis.Y * axis.Y;
-	float z2 = axis.Z * axis.Z;
-	float xym = axis.X * axis.Y * oneMinusCos;
-	float xzm = axis.X * axis.Z * oneMinusCos;
-	float yzm = axis.Y * axis.Z * oneMinusCos;
-	float xSin = axis.X * sin;
-	float ySin = axis.Y * sin;
-	float zSin = axis.Z * sin;
+	T cos = Math::Cos(angle);
+	T sin = Math::Sin(angle);
+	T oneMinusCos = (T)1.0 - cos;
+	T x2 = axis.X * axis.X;
+	T y2 = axis.Y * axis.Y;
+	T z2 = axis.Z * axis.Z;
+	T xym = axis.X * axis.Y * oneMinusCos;
+	T xzm = axis.X * axis.Z * oneMinusCos;
+	T yzm = axis.Y * axis.Z * oneMinusCos;
+	T xSin = axis.X * sin;
+	T ySin = axis.Y * sin;
+	T zSin = axis.Z * sin;
 
 	m[0][0] = x2 * oneMinusCos + cos;
 	m[0][1] = xym - zSin;
@@ -734,24 +754,27 @@ void Matrix3::FromAxisAngle(const Vector3& axis, const Radian& angle)
 	m[2][2] = z2 * oneMinusCos + cos;
 }
 
-void Matrix3::ToQuaternion(Quaternion& quat) const
+template<typename T>
+void TMatrix3<T>::ToQuaternion(TQuaternion<T>& quat) const
 {
 	quat.FromRotationMatrix(*this);
 }
 
-void Matrix3::FromQuaternion(const Quaternion& quat)
+template<typename T>
+void TMatrix3<T>::FromQuaternion(const TQuaternion<T>& quat)
 {
 	quat.ToRotationMatrix(*this);
 }
 
-bool Matrix3::ToEulerAngles(Radian& xAngle, Radian& yAngle, Radian& zAngle) const
+template<typename T>
+bool TMatrix3<T>::ToEulerAngles(TRadian<T>& xAngle, TRadian<T>& yAngle, TRadian<T>& zAngle) const
 {
-	float m21 = m[2][1];
+	T m21 = m[2][1];
 	if(m21 < 1)
 	{
 		if(m21 > -1)
 		{
-			xAngle = Radian(Math::Asin(m21));
+			xAngle = TRadian<T>(Math::Asin(m21));
 			yAngle = atan2(-m[2][0], m[2][2]);
 			zAngle = atan2(-m[0][1], m[1][1]);
 
@@ -760,8 +783,8 @@ bool Matrix3::ToEulerAngles(Radian& xAngle, Radian& yAngle, Radian& zAngle) cons
 		else
 		{
 			// Note: Not an unique solution.
-			xAngle = Radian(-Math::kHalfPi);
-			yAngle = Radian(0.0f);
+			xAngle = TRadian<T>(-Math::kHalfPi);
+			yAngle = TRadian<T>((T)0.0);
 			zAngle = -atan2(m[0][2], m[0][0]);
 
 			return false;
@@ -770,24 +793,25 @@ bool Matrix3::ToEulerAngles(Radian& xAngle, Radian& yAngle, Radian& zAngle) cons
 	else
 	{
 		// Note: Not an unique solution.
-		xAngle = Radian(Math::kHalfPi);
-		yAngle = Radian(0.0f);
+		xAngle = TRadian<T>(Math::kHalfPi);
+		yAngle = TRadian<T>((T)0.0);
 		zAngle = atan2(m[0][2], m[0][0]);
 
 		return false;
 	}
 }
 
-void Matrix3::FromEulerAngles(const Radian& xAngle, const Radian& yAngle, const Radian& zAngle)
+template<typename T>
+void TMatrix3<T>::FromEulerAngles(const TRadian<T>& xAngle, const TRadian<T>& yAngle, const TRadian<T>& zAngle)
 {
-	float cx = Math::Cos(xAngle);
-	float sx = Math::Sin(xAngle);
+	T cx = Math::Cos(xAngle);
+	T sx = Math::Sin(xAngle);
 
-	float cy = Math::Cos(yAngle);
-	float sy = Math::Sin(yAngle);
+	T cy = Math::Cos(yAngle);
+	T sy = Math::Sin(yAngle);
 
-	float cz = Math::Cos(zAngle);
-	float sz = Math::Sin(zAngle);
+	T cz = Math::Cos(zAngle);
+	T sz = Math::Sin(zAngle);
 
 	m[0][0] = cy * cz - sx * sy * sz;
 	m[0][1] = -cx * sz;
@@ -802,39 +826,41 @@ void Matrix3::FromEulerAngles(const Radian& xAngle, const Radian& yAngle, const 
 	m[2][2] = cx * cy;
 }
 
-void Matrix3::FromEulerAngles(const Radian& xAngle, const Radian& yAngle, const Radian& zAngle, EulerAngleOrder order)
+template<typename T>
+void TMatrix3<T>::FromEulerAngles(const TRadian<T>& xAngle, const TRadian<T>& yAngle, const TRadian<T>& zAngle, EulerAngleOrder order)
 {
 	// Euler angle conversions
-	static constexpr const EulerAngleOrderData kEaLookup[6] = { { 0, 1, 2, 1.0f }, { 0, 2, 1, -1.0f }, { 1, 0, 2, -1.0f }, { 1, 2, 0, 1.0f }, { 2, 0, 1, 1.0f }, { 2, 1, 0, -1.0f } };
+	static constexpr const EulerAngleOrderData kEaLookup[6] = { { 0, 1, 2, (T)1.0 }, { 0, 2, 1, -(T)1.0 }, { 1, 0, 2, -(T)1.0 }, { 1, 2, 0, (T)1.0 }, { 2, 0, 1, (T)1.0 }, { 2, 1, 0, -(T)1.0 } };
 
 	const EulerAngleOrderData& l = kEaLookup[(int)order];
 
-	Matrix3 mats[3];
-	float cx = Math::Cos(xAngle);
-	float sx = Math::Sin(xAngle);
-	mats[0] = Matrix3(
-		1.0f, 0.0f, 0.0f,
-		0.0f, cx, -sx,
-		0.0f, sx, cx);
+	TMatrix3 mats[3];
+	T cx = Math::Cos(xAngle);
+	T sx = Math::Sin(xAngle);
+	mats[0] = TMatrix3(
+		(T)1.0, (T)0.0, (T)0.0,
+		(T)0.0, cx, -sx,
+		(T)0.0, sx, cx);
 
-	float cy = Math::Cos(yAngle);
-	float sy = Math::Sin(yAngle);
-	mats[1] = Matrix3(
-		cy, 0.0f, sy,
-		0.0f, 1.0f, 0.0f,
-		-sy, 0.0f, cy);
+	T cy = Math::Cos(yAngle);
+	T sy = Math::Sin(yAngle);
+	mats[1] = TMatrix3(
+		cy, (T)0.0, sy,
+		(T)0.0, (T)1.0, (T)0.0,
+		-sy, (T)0.0, cy);
 
-	float cz = Math::Cos(zAngle);
-	float sz = Math::Sin(zAngle);
-	mats[2] = Matrix3(
-		cz, -sz, 0.0f,
-		sz, cz, 0.0f,
-		0.0f, 0.0f, 1.0f);
+	T cz = Math::Cos(zAngle);
+	T sz = Math::Sin(zAngle);
+	mats[2] = TMatrix3(
+		cz, -sz, (T)0.0,
+		sz, cz, (T)0.0,
+		(T)0.0, (T)0.0, (T)1.0);
 
 	*this = mats[l.C] * (mats[l.B] * mats[l.A]);
 }
 
-void Matrix3::Tridiagonal(float diag[3], float subDiag[3])
+template<typename T>
+void TMatrix3<T>::Tridiagonal(T diag[3], T subDiag[3])
 {
 	// Householder reduction T = Q^t M Q
 	//   Input:
@@ -844,33 +870,33 @@ void Matrix3::Tridiagonal(float diag[3], float subDiag[3])
 	//     diag, diagonal entries of T
 	//     subd, subdiagonal entries of T (T is symmetric)
 
-	float fA = m[0][0];
-	float fB = m[0][1];
-	float fC = m[0][2];
-	float fD = m[1][1];
-	float fE = m[1][2];
-	float fF = m[2][2];
+	T fA = m[0][0];
+	T fB = m[0][1];
+	T fC = m[0][2];
+	T fD = m[1][1];
+	T fE = m[1][2];
+	T fF = m[2][2];
 
 	diag[0] = fA;
-	subDiag[2] = 0.0;
+	subDiag[2] = (T)0.0;
 	if(abs(fC) >= kEpsilon)
 	{
-		float length = Math::SquareRoot(fB * fB + fC * fC);
-		float invLength = 1.0f / length;
+		T length = Math::SquareRoot(fB * fB + fC * fC);
+		T invLength = (T)1.0 / length;
 		fB *= invLength;
 		fC *= invLength;
-		float fQ = 2.0f * fB * fE + fC * (fF - fD);
+		T fQ = (T)2.0 * fB * fE + fC * (fF - fD);
 		diag[1] = fD + fC * fQ;
 		diag[2] = fF - fC * fQ;
 		subDiag[0] = length;
 		subDiag[1] = fE - fB * fQ;
-		m[0][0] = 1.0;
-		m[0][1] = 0.0;
-		m[0][2] = 0.0;
-		m[1][0] = 0.0;
+		m[0][0] = (T)1.0;
+		m[0][1] = (T)0.0;
+		m[0][2] = (T)0.0;
+		m[1][0] = (T)0.0;
 		m[1][1] = fB;
 		m[1][2] = fC;
-		m[2][0] = 0.0;
+		m[2][0] = (T)0.0;
 		m[2][1] = fC;
 		m[2][2] = -fB;
 	}
@@ -880,19 +906,20 @@ void Matrix3::Tridiagonal(float diag[3], float subDiag[3])
 		diag[2] = fF;
 		subDiag[0] = fB;
 		subDiag[1] = fE;
-		m[0][0] = 1.0;
-		m[0][1] = 0.0;
-		m[0][2] = 0.0;
-		m[1][0] = 0.0;
-		m[1][1] = 1.0;
-		m[1][2] = 0.0;
-		m[2][0] = 0.0;
-		m[2][1] = 0.0;
-		m[2][2] = 1.0;
+		m[0][0] = (T)1.0;
+		m[0][1] = (T)0.0;
+		m[0][2] = (T)0.0;
+		m[1][0] = (T)0.0;
+		m[1][1] = (T)1.0;
+		m[1][2] = (T)0.0;
+		m[2][0] = (T)0.0;
+		m[2][1] = (T)0.0;
+		m[2][2] = (T)1.0;
 	}
 }
 
-bool Matrix3::QLAlgorithm(float diag[3], float subDiag[3])
+template<typename T>
+bool TMatrix3<T>::QLAlgorithm(T diag[3], T subDiag[3])
 {
 	// QL iteration with implicit shifting to reduce matrix from tridiagonal to diagonal
 
@@ -905,7 +932,7 @@ bool Matrix3::QLAlgorithm(float diag[3], float subDiag[3])
 			int j;
 			for(j = i; j <= 1; j++)
 			{
-				float sum = abs(diag[j]) + abs(diag[j + 1]);
+				T sum = abs(diag[j]) + abs(diag[j + 1]);
 
 				if(abs(subDiag[j]) + sum == sum)
 					break;
@@ -914,36 +941,36 @@ bool Matrix3::QLAlgorithm(float diag[3], float subDiag[3])
 			if(j == i)
 				break;
 
-			float tmp0 = (diag[i + 1] - diag[i]) / (2.0f * subDiag[i]);
-			float tmp1 = Math::SquareRoot(tmp0 * tmp0 + 1.0f);
+			T tmp0 = (diag[i + 1] - diag[i]) / ((T)2.0 * subDiag[i]);
+			T tmp1 = Math::SquareRoot(tmp0 * tmp0 + (T)1.0);
 
-			if(tmp0 < 0.0f)
+			if(tmp0 < (T)0.0)
 				tmp0 = diag[j] - diag[i] + subDiag[i] / (tmp0 - tmp1);
 			else
 				tmp0 = diag[j] - diag[i] + subDiag[i] / (tmp0 + tmp1);
 
-			float sin = 1.0f;
-			float cos = 1.0f;
-			float tmp2 = 0.0f;
+			T sin = (T)1.0;
+			T cos = (T)1.0;
+			T tmp2 = (T)0.0;
 			for(int k = j - 1; k >= i; k--)
 			{
-				float tmp3 = sin * subDiag[k];
-				float tmp4 = cos * subDiag[k];
+				T tmp3 = sin * subDiag[k];
+				T tmp4 = cos * subDiag[k];
 
 				if(abs(tmp3) >= abs(tmp0))
 				{
 					cos = tmp0 / tmp3;
-					tmp1 = Math::SquareRoot(cos * cos + 1.0f);
+					tmp1 = Math::SquareRoot(cos * cos + (T)1.0);
 					subDiag[k + 1] = tmp3 * tmp1;
-					sin = 1.0f / tmp1;
+					sin = (T)1.0 / tmp1;
 					cos *= sin;
 				}
 				else
 				{
 					sin = tmp3 / tmp0;
-					tmp1 = Math::SquareRoot(sin * sin + 1.0f);
+					tmp1 = Math::SquareRoot(sin * sin + (T)1.0);
 					subDiag[k + 1] = tmp0 * tmp1;
-					cos = 1.0f / tmp1;
+					cos = (T)1.0 / tmp1;
 					sin *= cos;
 				}
 
@@ -976,10 +1003,11 @@ bool Matrix3::QLAlgorithm(float diag[3], float subDiag[3])
 	return true;
 }
 
-void Matrix3::EigenSolveSymmetric(float eigenValues[3], Vector3 eigenVectors[3]) const
+template<typename T>
+void TMatrix3<T>::EigenSolveSymmetric(T eigenValues[3], TVector3<T> eigenVectors[3]) const
 {
-	Matrix3 mat = *this;
-	float subDiag[3];
+	TMatrix3 mat = *this;
+	T subDiag[3];
 	mat.Tridiagonal(eigenValues, subDiag);
 	mat.QLAlgorithm(eigenValues, subDiag);
 
@@ -991,9 +1019,9 @@ void Matrix3::EigenSolveSymmetric(float eigenValues[3], Vector3 eigenVectors[3])
 	}
 
 	// Make eigenvectors form a right--handed system
-	Vector3 cross = eigenVectors[1].Cross(eigenVectors[2]);
-	float det = eigenVectors[0].Dot(cross);
-	if(det < 0.0f)
+	TVector3<T> cross = eigenVectors[1].Cross(eigenVectors[2]);
+	T det = eigenVectors[0].Dot(cross);
+	if(det < (T)0.0)
 	{
 		eigenVectors[2][0] = -eigenVectors[2][0];
 		eigenVectors[2][1] = -eigenVectors[2][1];
@@ -1001,17 +1029,5 @@ void Matrix3::EigenSolveSymmetric(float eigenValues[3], Vector3 eigenVectors[3])
 	}
 }
 
-namespace b3d
-{
-	Matrix3 operator*(float lhs, const Matrix3& rhs)
-	{
-		Matrix3 prod;
-		for(u32 row = 0; row < 3; row++)
-		{
-			for(u32 col = 0; col < 3; col++)
-				prod[row][col] = lhs * rhs.m[row][col];
-		}
-
-		return prod;
-	}
-}
+template struct B3D_UTILITY_EXPORT TMatrix3<float>;
+template struct B3D_UTILITY_EXPORT TMatrix3<double>;

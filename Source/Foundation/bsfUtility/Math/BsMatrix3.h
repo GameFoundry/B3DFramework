@@ -15,44 +15,45 @@ namespace b3d
 	 * A 3x3 matrix. Can be used for non-homogenous transformations of three dimensional vectors and points. In row major
 	 * format.
 	 */
-	class B3D_UTILITY_EXPORT Matrix3
+	template<typename T>
+	struct B3D_UTILITY_EXPORT TMatrix3
 	{
 	private:
 		struct EulerAngleOrderData
 		{
 			int A, B, C;
-			float Sign;
+			T Sign;
 		};
 
 	public:
-		Matrix3() = default;
-		constexpr Matrix3(const Matrix3&) = default;
-		constexpr Matrix3& operator=(const Matrix3&) = default;
+		TMatrix3() = default;
+		constexpr TMatrix3(const TMatrix3&) = default;
+		constexpr TMatrix3& operator=(const TMatrix3&) = default;
 
-		constexpr Matrix3(BS_ZERO)
-			: m{ { 0.0f, 0.0f, 0.0f },
-				 { 0.0f, 0.0f, 0.0f },
-				 { 0.0f, 0.0f, 0.0f } }
+		constexpr TMatrix3(BS_ZERO)
+			: m{ { (T)0.0, (T)0.0, (T)0.0 },
+				 { (T)0.0, (T)0.0, (T)0.0 },
+				 { (T)0.0, (T)0.0, (T)0.0 } }
 		{}
 
-		constexpr Matrix3(BS_IDENTITY)
-			: m{ { 1.0f, 0.0f, 0.0f },
-				 { 0.0f, 1.0f, 0.0f },
-				 { 0.0f, 0.0f, 1.0f } }
+		constexpr TMatrix3(BS_IDENTITY)
+			: m{ { (T)1.0, (T)0.0, (T)0.0 },
+				 { (T)0.0, (T)1.0, (T)0.0 },
+				 { (T)0.0, (T)0.0, (T)1.0 } }
 		{}
 
-		constexpr Matrix3(float m00, float m01, float m02, float m10, float m11, float m12, float m20, float m21, float m22)
+		constexpr TMatrix3(T m00, T m01, T m02, T m10, T m11, T m12, T m20, T m21, T m22)
 			: m{ { m00, m01, m02 }, { m10, m11, m12 }, { m20, m21, m22 } }
 		{}
 
-		/** Construct a matrix from a quaternion. */
-		explicit Matrix3(const Quaternion& rotation)
+		/** Construct a matrix from a TQuaternion<T>. */
+		explicit TMatrix3(const TQuaternion<T>& rotation)
 		{
 			FromQuaternion(rotation);
 		}
 
 		/** Construct a matrix that performs rotation and scale. */
-		explicit Matrix3(const Quaternion& rotation, const Vector3& scale)
+		explicit TMatrix3(const TQuaternion<T>& rotation, const TVector3<T>& scale)
 		{
 			FromQuaternion(rotation);
 
@@ -64,13 +65,13 @@ namespace b3d
 		}
 
 		/** Construct a matrix from an angle/axis pair. */
-		explicit Matrix3(const Vector3& axis, const Radian& angle)
+		explicit TMatrix3(const TVector3<T>& axis, const TRadian<T>& angle)
 		{
 			FromAxisAngle(axis, angle);
 		}
 
 		/** Construct a matrix from 3 orthonormal local axes. */
-		explicit Matrix3(const Vector3& xaxis, const Vector3& yaxis, const Vector3& zaxis)
+		explicit TMatrix3(const TVector3<T>& xaxis, const TVector3<T>& yaxis, const TVector3<T>& zaxis)
 		{
 			FromAxes(xaxis, yaxis, zaxis);
 		}
@@ -78,9 +79,9 @@ namespace b3d
 		/**
 		 * Construct a matrix from euler angles, YXZ ordering.
 		 *
-		 * @see		Matrix3::fromEulerAngles
+		 * @see		TMatrix3::FromEulerAngles
 		 */
-		explicit Matrix3(const Radian& xAngle, const Radian& yAngle, const Radian& zAngle)
+		explicit TMatrix3(const TRadian<T>& xAngle, const TRadian<T>& yAngle, const TRadian<T>& zAngle)
 		{
 			FromEulerAngles(xAngle, yAngle, zAngle);
 		}
@@ -88,15 +89,15 @@ namespace b3d
 		/**
 		 * Construct a matrix from euler angles, custom ordering.
 		 *
-		 * @see		Matrix3::fromEulerAngles
+		 * @see		TMatrix3::FromEulerAngles
 		 */
-		explicit Matrix3(const Radian& xAngle, const Radian& yAngle, const Radian& zAngle, EulerAngleOrder order)
+		explicit TMatrix3(const TRadian<T>& xAngle, const TRadian<T>& yAngle, const TRadian<T>& zAngle, EulerAngleOrder order)
 		{
 			FromEulerAngles(xAngle, yAngle, zAngle, order);
 		}
 
 		/** Swaps the contents of this matrix with another. */
-		void Swap(Matrix3& other)
+		void Swap(TMatrix3& other)
 		{
 			std::swap(m[0][0], other.m[0][0]);
 			std::swap(m[0][1], other.m[0][1]);
@@ -110,32 +111,32 @@ namespace b3d
 		}
 
 		/** Returns a row of the matrix. */
-		float* operator[](u32 row) const
+		T* operator[](u32 row) const
 		{
 			B3D_ASSERT(row < 3);
 
-			return (float*)m[row];
+			return (T*)m[row];
 		}
 
-		Vector3 GetColumn(u32 col) const;
-		void SetColumn(u32 col, const Vector3& vec);
+		TVector3<T> GetColumn(u32 col) const;
+		void SetColumn(u32 col, const TVector3<T>& vec);
 
-		bool operator==(const Matrix3& rhs) const;
-		bool operator!=(const Matrix3& rhs) const;
+		bool operator==(const TMatrix3& rhs) const;
+		bool operator!=(const TMatrix3& rhs) const;
 
-		Matrix3 operator+(const Matrix3& rhs) const;
-		Matrix3 operator-(const Matrix3& rhs) const;
-		Matrix3 operator*(const Matrix3& rhs) const;
-		Matrix3 operator-() const;
-		Matrix3 operator*(float rhs) const;
+		TMatrix3 operator+(const TMatrix3& rhs) const;
+		TMatrix3 operator-(const TMatrix3& rhs) const;
+		TMatrix3 operator*(const TMatrix3& rhs) const;
+		TMatrix3 operator-() const;
+		TMatrix3 operator*(T rhs) const;
 
-		friend Matrix3 operator*(float lhs, const Matrix3& rhs);
+		friend TMatrix3 operator*(T lhs, const TMatrix3& rhs);
 
 		/** Transforms the given vector by this matrix and returns the newly transformed vector. */
-		Vector3 Multiply(const Vector3& vec) const;
+		TVector3<T> Multiply(const TVector3<T>& vec) const;
 
 		/** Returns a transpose of the matrix (switched columns and rows). */
-		Matrix3 Transpose() const;
+		TMatrix3 Transpose() const;
 
 		/**
 		 * Calculates an inverse of the matrix if it exists.
@@ -145,7 +146,7 @@ namespace b3d
 		 * 							Zero determinant means inverse doesn't exist.
 		 * @return					True if inverse exists, false otherwise.
 		 */
-		bool Inverse(Matrix3& mat, float fTolerance = 1e-06f) const;
+		bool Inverse(TMatrix3& mat, T fTolerance = (T)1e-06) const;
 
 		/**
 		 * Calculates an inverse of the matrix if it exists.
@@ -155,19 +156,19 @@ namespace b3d
 		 *
 		 * @return					Resulting matrix inverse if it exists, otherwise a zero matrix.
 		 */
-		Matrix3 Inverse(float fTolerance = 1e-06f) const;
+		TMatrix3 Inverse(T fTolerance = (T)1e-06) const;
 
 		/** Calculates the matrix determinant. */
-		float Determinant() const;
+		T Determinant() const;
 
 		/**
-		 * Decompose a Matrix3 to rotation and scale.
+		 * Decompose a TMatrix3 to rotation and scale.
 		 *
 		 * @note
 		 * Matrix must consist only of rotation and uniform scale transformations, otherwise accurate results are not
 		 * guaranteed. Applying non-uniform scale guarantees rotation portion will not be accurate.
 		 */
-		void Decomposition(Quaternion& rotation, Vector3& scale) const;
+		void Decomposition(TQuaternion<T>& rotation, TVector3<T>& scale) const;
 
 		/**
 		 * Decomposes the matrix into various useful values.
@@ -178,7 +179,7 @@ namespace b3d
 		 * @param[out]	matR	Unitary matrix. Columns form orthonormal bases. If your matrix is affine and
 		 * 						doesn't use non-uniform scaling this matrix will be the rotation part of the matrix.
 		 */
-		void SingularValueDecomposition(Matrix3& matL, Vector3& matS, Matrix3& matR) const;
+		void SingularValueDecomposition(TMatrix3& matL, TVector3<T>& matS, TMatrix3& matR) const;
 
 		/**
 		 * Decomposes the matrix into a set of values.
@@ -188,7 +189,7 @@ namespace b3d
 		 * @param[out]	vecD	If the matrix is affine these will be scaling factors of the matrix.
 		 * @param[out]	vecU	If the matrix is affine these will be shear factors of the matrix.
 		 */
-		void QDUDecomposition(Matrix3& matQ, Vector3& vecD, Vector3& vecU) const;
+		void QDUDecomposition(TMatrix3& matQ, TVector3<T>& vecD, TVector3<T>& vecU) const;
 
 		/** Gram-Schmidt orthonormalization (applied to columns of rotation matrix) */
 		void Orthonormalize();
@@ -198,23 +199,23 @@ namespace b3d
 		 *
 		 * @note	Matrix must be orthonormal.
 		 */
-		void ToAxisAngle(Vector3& axis, Radian& angle) const;
+		void ToAxisAngle(TVector3<T>& axis, TRadian<T>& angle) const;
 
 		/** Creates a rotation matrix from an axis angle representation. */
-		void FromAxisAngle(const Vector3& axis, const Radian& angle);
+		void FromAxisAngle(const TVector3<T>& axis, const TRadian<T>& angle);
 
 		/**
-		 * Converts an orthonormal matrix to quaternion representation.
+		 * Converts an orthonormal matrix to TQuaternion<T> representation.
 		 *
 		 * @note	Matrix must be orthonormal.
 		 */
-		void ToQuaternion(Quaternion& quat) const;
+		void ToQuaternion(TQuaternion<T>& quat) const;
 
-		/** Creates a rotation matrix from a quaternion representation. */
-		void FromQuaternion(const Quaternion& quat);
+		/** Creates a rotation matrix from a TQuaternion<T> representation. */
+		void FromQuaternion(const TQuaternion<T>& quat);
 
 		/** Creates a matrix from a three axes. */
-		void FromAxes(const Vector3& xAxis, const Vector3& yAxis, const Vector3& zAxis);
+		void FromAxes(const TVector3<T>& xAxis, const TVector3<T>& yAxis, const TVector3<T>& zAxis);
 
 		/**
 		 * Converts an orthonormal matrix to euler angle (pitch/yaw/roll) representation.
@@ -226,7 +227,7 @@ namespace b3d
 		 *
 		 * @note	Matrix must be orthonormal.
 		 */
-		bool ToEulerAngles(Radian& xAngle, Radian& yAngle, Radian& zAngle) const;
+		bool ToEulerAngles(TRadian<T>& xAngle, TRadian<T>& yAngle, TRadian<T>& zAngle) const;
 
 		/**
 		 * Creates a rotation matrix from the provided Pitch/Yaw/Roll angles.
@@ -239,7 +240,7 @@ namespace b3d
 		 * 			Since different values will be produced depending in which order are the rotations applied, this method assumes
 		 * 			they are applied in YXZ order. If you need a specific order, use the overloaded "fromEulerAngles" method instead.
 		 */
-		void FromEulerAngles(const Radian& xAngle, const Radian& yAngle, const Radian& zAngle);
+		void FromEulerAngles(const TRadian<T>& xAngle, const TRadian<T>& yAngle, const TRadian<T>& zAngle);
 
 		/**
 		 * Creates a rotation matrix from the provided Pitch/Yaw/Roll angles.
@@ -252,7 +253,7 @@ namespace b3d
 		 *
 		 * @note	Matrix must be orthonormal.
 		 */
-		void FromEulerAngles(const Radian& xAngle, const Radian& yAngle, const Radian& zAngle, EulerAngleOrder order);
+		void FromEulerAngles(const TRadian<T>& xAngle, const TRadian<T>& yAngle, const TRadian<T>& zAngle, EulerAngleOrder order);
 
 		/**
 		 * Eigensolver, matrix must be symmetric.
@@ -262,28 +263,34 @@ namespace b3d
 		 * Eigenvalue is that magnitude. In other words you will get the same result whether you multiply the vector by the
 		 * matrix or by its eigenvalue.
 		 */
-		void EigenSolveSymmetric(float eigenValues[3], Vector3 eigenVectors[3]) const;
+		void EigenSolveSymmetric(T eigenValues[3], TVector3<T> eigenVectors[3]) const;
 
-		static constexpr const float kEpsilon = 1e-06f;
-		static const Matrix3 kZero;
-		static const Matrix3 kIdentity;
+		static constexpr const T kEpsilon = (T)1e-06;
+		static const TMatrix3 kZero;
+		static const TMatrix3 kIdentity;
 
 	protected:
-		friend class Matrix4;
+		template<typename T2>
+		friend struct TMatrix4;
 
 		// Support for eigensolver
-		void Tridiagonal(float diag[3], float subDiag[3]);
-		bool QLAlgorithm(float diag[3], float subDiag[3]);
+		void Tridiagonal(T diag[3], T subDiag[3]);
+		bool QLAlgorithm(T diag[3], T subDiag[3]);
 
 		// Support for singular value decomposition
-		static constexpr const float kSvdEpsilon = 1e-04f;
-		;
+		static constexpr const T kSvdEpsilon = (T)1e-04;
 		static constexpr const unsigned int kSvdMaxIters = 32;
-		static void Bidiagonalize(Matrix3& matA, Matrix3& matL, Matrix3& matR);
-		static void GolubKahanStep(Matrix3& matA, Matrix3& matL, Matrix3& matR);
 
-		float m[3][3];
+		static void Bidiagonalize(TMatrix3& matA, TMatrix3& matL, TMatrix3& matR);
+		static void GolubKahanStep(TMatrix3& matA, TMatrix3& matL, TMatrix3& matR);
+
+		T m[3][3];
 	};
+
+	template<> const TMatrix3<float> TMatrix3<float>::kZero{BsZero};
+	template<> const TMatrix3<double> TMatrix3<double>::kZero{BsZero};
+	template<> const TMatrix3<float> TMatrix3<float>::kIdentity{BsIdentity};
+	template<> const TMatrix3<double> TMatrix3<double>::kIdentity{BsIdentity};
 
 	/** @} */
 } // namespace b3d
@@ -292,11 +299,11 @@ namespace b3d
 
 namespace std
 {
-/** Hash value generator for Matrix3. */
-template<>
-struct hash<b3d::Matrix3>
+/** Hash value generator for TMatrix3. */
+template<typename T>
+struct hash<b3d::TMatrix3<T>>
 {
-	size_t operator()(const b3d::Matrix3& value) const
+	size_t operator()(const b3d::TMatrix3<T>& value) const
 	{
 		using namespace b3d;
 

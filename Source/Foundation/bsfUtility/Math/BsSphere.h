@@ -35,8 +35,7 @@ namespace b3d
 		void Merge(const TVector3<T>& point);
 
 		/** Transforms the sphere by the given matrix. */
-		template<typename Condition = T, std::enable_if_t<std::is_same_v<Condition, float>, int> = 0> // TODO - Temporarily enabled for float only, until we get TMatrix3<T>
-		void Transform(const Matrix4& matrix);
+		void Transform(const TMatrix4<T>& matrix);
 
 		/** Returns whether or not this sphere contains the provided point. */
 		bool Contains(const TVector3<T>& v) const;

@@ -81,7 +81,6 @@ namespace b3d
 		T GetDistance(const TVector3<T>& point) const;
 
 		/** Project a vector onto the plane. */
-		template<typename Condition = T, std::enable_if_t<std::is_same_v<Condition, float>, int> = 0> // TODO - Temporarily enabled for float only, until we get TMatrix3<T>
 		TVector3<T> ProjectVector(const TVector3<T>& v) const;
 
 		/** Normalizes the plane's normal and the length scale of d. */

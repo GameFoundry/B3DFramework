@@ -77,8 +77,7 @@ namespace b3d
 		 * is instead created by encompassing the transformed oriented bounding box.
 		 * Retrieving the value as an actual OBB would provide a tighter fit.
 		 */
-		template<typename Condition = T, std::enable_if_t<std::is_same_v<Condition, float>, int> = 0> // TODO - Temporarily enabled for float only, until we get TMatrix3<T>
-		void Transform(const Matrix4& matrix);
+		void Transform(const TMatrix4<T>& matrix);
 
 		/**
 		 * Transforms the bounding box by the given matrix.
@@ -91,8 +90,7 @@ namespace b3d
 		 * @note
 		 * Provided matrix must be affine.
 		 */
-		template<typename Condition = T, std::enable_if_t<std::is_same_v<Condition, float>, int> = 0> // TODO - Temporarily enabled for float only, until we get TMatrix3<T>
-		void TransformAffine(const Matrix4& matrix);
+		void TransformAffine(const TMatrix4<T>& matrix);
 
 		/** Returns true if this and the provided box intersect. */
 		bool Intersects(const TAABox<T>& b2) const;

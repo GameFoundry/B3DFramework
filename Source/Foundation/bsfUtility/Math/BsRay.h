@@ -40,16 +40,14 @@ namespace b3d
 		}
 
 		/** Transforms the ray by the given matrix. */
-		template<typename Condition = T, std::enable_if_t<std::is_same_v<Condition, float>, int> = 0> // TODO - Temporarily enabled for float only, until we get TMatrix3<T>
-		void Transform(const Matrix4& matrix);
+		void Transform(const TMatrix4<T>& matrix);
 
 		/**
 		 * Transforms the ray by the given matrix.
 		 *
 		 * @note	Provided matrix must be affine.
 		 */
-		template<typename Condition = T, std::enable_if_t<std::is_same_v<Condition, float>, int> = 0> // TODO - Temporarily enabled for float only, until we get TMatrix3<T>
-		void TransformAffine(const Matrix4& matrix);
+		void TransformAffine(const TMatrix4<T>& matrix);
 
 		/** Ray/plane intersection, returns boolean result and distance to intersection point. */
 		std::pair<bool, T> Intersects(const TPlane<T>& p) const;

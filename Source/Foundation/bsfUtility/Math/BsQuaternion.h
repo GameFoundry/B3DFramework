@@ -46,9 +46,8 @@ namespace b3d
 		{}
 
 		/** Construct a quaternion from a rotation matrix. */
-		template<typename Condition = T, std::enable_if_t<std::is_same_v<Condition, float>, int> = 0> // TODO - Temporarily enabled for float only, until we get TMatrix3<T>
 		B3D_SCRIPT_EXPORT(Exclude(true))
-		explicit TQuaternion(const Matrix3& rot)
+		explicit TQuaternion(const TMatrix3<T>& rot)
 		{
 			FromRotationMatrix(rot);
 		}
@@ -61,7 +60,6 @@ namespace b3d
 		}
 
 		/** Construct a quaternion from 3 orthonormal local axes. */
-		template<typename Condition = T, std::enable_if_t<std::is_same_v<Condition, float>, int> = 0> // TODO - Temporarily enabled for float only, until we get TMatrix3<T>
 		B3D_SCRIPT_EXPORT(Exclude(true))
 		explicit TQuaternion(const TVector3<T>& xaxis, const TVector3<T>& yaxis, const TVector3<T>& zaxis)
 		{
@@ -118,8 +116,7 @@ namespace b3d
 		 *
 		 * @note	It's up to the caller to ensure the matrix is orthonormal.
 		 */
-		template<typename Condition = T, std::enable_if_t<std::is_same_v<Condition, float>, int> = 0> // TODO - Temporarily enabled for float only, until we get TMatrix3<T>
-		void FromRotationMatrix(const Matrix3& mat);
+		void FromRotationMatrix(const TMatrix3<T>& mat);
 
 		/**
 		 * Initializes the quaternion from an angle axis pair. Quaternion will represent a rotation of "angle" radians
@@ -133,7 +130,6 @@ namespace b3d
 		 *
 		 * @note	It's up to the caller to ensure the axes are orthonormal.
 		 */
-		template<typename Condition = T, std::enable_if_t<std::is_same_v<Condition, float>, int> = 0> // TODO - Temporarily enabled for float only, until we get TMatrix3<T>
 		void FromAxes(const TVector3<T>& xAxis, const TVector3<T>& yAxis, const TVector3<T>& zAxis);
 
 		/**
@@ -163,8 +159,7 @@ namespace b3d
 		/**
 		 * Converts a quaternion to a rotation matrix.
 		 */
-		template<typename Condition = T, std::enable_if_t<std::is_same_v<Condition, float>, int> = 0> // TODO - Temporarily enabled for float only, until we get TMatrix3<T>
-		void ToRotationMatrix(Matrix3& mat) const;
+		void ToRotationMatrix(TMatrix3<T>& mat) const;
 
 		/**
 		 * Converts a quaternion to an angle axis pair.
@@ -181,7 +176,6 @@ namespace b3d
 		 * @param[out]	yAxis	The Y axis.
 		 * @param[out]	zAxis	The Z axis.
 		 */
-		template<typename Condition = T, std::enable_if_t<std::is_same_v<Condition, float>, int> = 0> // TODO - Temporarily enabled for float only, until we get TMatrix3<T>
 		void ToAxes(TVector3<T>& xAxis, TVector3<T>& yAxis, TVector3<T>& zAxis) const;
 
 		/**
@@ -193,7 +187,6 @@ namespace b3d
 		 *
 		 * @return	True if unique solution was found, false otherwise.
 		 */
-		template<typename Condition = T, std::enable_if_t<std::is_same_v<Condition, float>, int> = 0> // TODO - Temporarily enabled for float only, until we get TMatrix3<T>
 		bool ToEulerAngles(TRadian<T>& xAngle, TRadian<T>& yAngle, TRadian<T>& zAngle) const;
 
 		/** Gets the positive x-axis of the coordinate system transformed by this quaternion. */
@@ -320,7 +313,6 @@ namespace b3d
 		TQuaternion Inverse() const;
 
 		/** Rotates the provided vector. */
-		template<typename Condition = T, std::enable_if_t<std::is_same_v<Condition, float>, int> = 0> // TODO - Temporarily enabled for float only, until we get TMatrix3<T>
 		TVector3<T> Rotate(const TVector3<T>& vec) const;
 
 		/**
@@ -337,7 +329,6 @@ namespace b3d
 		 * @param[in]	upDir		Constrains y axis orientation to a plane this vector lies on. This rule might be broken
 		 *							if forward and up direction are nearly parallel.
 		 */
-		template<typename Condition = T, std::enable_if_t<std::is_same_v<Condition, float>, int> = 0> // TODO - Temporarily enabled for float only, until we get TMatrix3<T>
 		void LookRotation(const TVector3<T>& forwardDir, const TVector3<T>& upDir);
 
 		/** Query if any of the components of the quaternion are not a number. */

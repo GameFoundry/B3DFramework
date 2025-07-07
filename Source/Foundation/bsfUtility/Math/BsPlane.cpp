@@ -75,21 +75,20 @@ PlaneSide TPlane<T>::GetSide(const TSphere<T>& sphere) const
 	return PlaneSide::Both;
 }
 
-template<>
-template<>
-TVector3<float> TPlane<float>::ProjectVector<float, 0>(const TVector3<float>& point) const
+template<typename T>
+TVector3<T> TPlane<T>::ProjectVector(const TVector3<T>& point) const
 {
 	// We know plane normal is unit length, so use simple method
-	Matrix3 xform;
-	xform[0][0] = 1.0f - Normal.X * Normal.X;
+	TMatrix3<T> xform;
+	xform[0][0] = (T)1.0 - Normal.X * Normal.X;
 	xform[0][1] = -Normal.X * Normal.Y;
 	xform[0][2] = -Normal.X * Normal.Z;
 	xform[1][0] = -Normal.Y * Normal.X;
-	xform[1][1] = 1.0f - Normal.Y * Normal.Y;
+	xform[1][1] = (T)1.0 - Normal.Y * Normal.Y;
 	xform[1][2] = -Normal.Y * Normal.Z;
 	xform[2][0] = -Normal.Z * Normal.X;
 	xform[2][1] = -Normal.Z * Normal.Y;
-	xform[2][2] = 1.0f - Normal.Z * Normal.Z;
+	xform[2][2] = (T)1.0 - Normal.Z * Normal.Z;
 	return xform.Multiply(point);
 }
 

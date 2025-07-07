@@ -75,12 +75,9 @@ void TAABox<T>::Merge(const TVector3<T>& point)
 	Minimum.Min(point);
 }
 
-template<>
-template<>
-B3D_UTILITY_EXPORT void AABox::Transform(const Matrix4& matrix)
+template<typename T>
+void TAABox<T>::Transform(const TMatrix4<T>& matrix)
 {
-	using T = float;
-
 	// Getting the old values so that we can use the existing merge method.
 	TVector3<T> oldMin = Minimum;
 	TVector3<T> oldMax = Maximum;
@@ -127,12 +124,9 @@ B3D_UTILITY_EXPORT void AABox::Transform(const Matrix4& matrix)
 	Merge(matrix.MultiplyAffine(currentCorner));
 }
 
-template<>
-template<>
-B3D_UTILITY_EXPORT void TAABox<float>::TransformAffine<float, 0>(const Matrix4& m)
+template<typename T>
+void TAABox<T>::TransformAffine(const TMatrix4<T>& m)
 {
-	using T = float;
-
 	TVector3<T> min = m.GetTranslation();
 	TVector3<T> max = m.GetTranslation();
 	for(u32 i = 0; i < 3; i++)

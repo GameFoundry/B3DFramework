@@ -269,7 +269,7 @@ namespace b3d
 namespace std
 {
 /** Hash value generator for TVector4<T>. */
-template<class T>
+template<typename T>
 struct hash<b3d::TVector4<T>>
 {
 	size_t operator()(const b3d::TVector4<T>& value) const

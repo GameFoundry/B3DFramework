@@ -129,6 +129,16 @@ namespace b3d
 	using Vector4F = TVector4<float>;
 	using Vector4D = TVector4<double>;
 
+	template<typename T> struct TMatrix4;
+	using Matrix4 = TMatrix4<float>;
+	using Matrix4F = TMatrix4<float>;
+	using Matrix4D = TMatrix4<double>;
+
+	template<typename T> struct TMatrix3;
+	using Matrix3 = TMatrix3<float>;
+	using Matrix3F = TMatrix3<float>;
+	using Matrix3D = TMatrix3<double>;
+
 	template<typename PositionType, typename SizeType> struct TArea2;
 	using Area2 = TArea2<float, float>;
 	using Area2I = TArea2<i32, u32>;
@@ -186,8 +196,6 @@ namespace b3d
 
 	class Angle;
 	class Math;
-	class Matrix3;
-	class Matrix4;
 	class Capsule;
 	class Rect3;
 	class Color;

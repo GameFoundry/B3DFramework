@@ -8,12 +8,9 @@
 
 using namespace b3d;
 
-template<>
-template<>
-B3D_UTILITY_EXPORT void TQuaternion<float>::FromRotationMatrix(const Matrix3& mat)
+template<typename T>
+void TQuaternion<T>::FromRotationMatrix(const TMatrix3<T>& mat)
 {
-	using T = float;
-
 	// Algorithm in Ken Shoemake's article in 1987 SIGGRAPH course notes
 	// article "Quaternion Calculus and Fast Animation".
 
@@ -71,11 +68,10 @@ void TQuaternion<T>::FromAxisAngle(const TVector3<T>& axis, const TRadian<T>& an
 	Z = sin * axis.Z;
 }
 
-template<>
-template<>
-B3D_UTILITY_EXPORT void TQuaternion<float>::FromAxes(const TVector3<float>& xaxis, const TVector3<float>& yaxis, const TVector3<float>& zaxis)
+template<typename T>
+void TQuaternion<T>::FromAxes(const TVector3<T>& xaxis, const TVector3<T>& yaxis, const TVector3<T>& zaxis)
 {
-	Matrix3 kRot;
+	TMatrix3<T> kRot;
 
 	kRot[0][0] = xaxis.X;
 	kRot[1][0] = xaxis.Y;
@@ -142,12 +138,9 @@ void TQuaternion<T>::FromEulerAngles(const TRadian<T>& xAngle, const TRadian<T>&
 	*this = quats[l.C] * (quats[l.B] * quats[l.A]);
 }
 
-template<>
-template<>
-B3D_UTILITY_EXPORT void TQuaternion<float>::ToRotationMatrix(Matrix3& mat) const
+template<typename T>
+void TQuaternion<T>::ToRotationMatrix(TMatrix3<T>& mat) const
 {
-	using T = float;
-
 	T tx = X + X;
 	T ty = Y + Y;
 	T tz = Z + Z;
@@ -194,11 +187,10 @@ void TQuaternion<T>::ToAxisAngle(TVector3<T>& axis, TRadian<T>& angle) const
 	}
 }
 
-template<>
-template<>
-B3D_UTILITY_EXPORT void TQuaternion<float>::ToAxes(TVector3<float>& xaxis, TVector3<float>& yaxis, TVector3<float>& zaxis) const
+template<typename T>
+void TQuaternion<T>::ToAxes(TVector3<T>& xaxis, TVector3<T>& yaxis, TVector3<T>& zaxis) const
 {
-	Matrix3 matRot;
+	TMatrix3<T> matRot;
 	ToRotationMatrix(matRot);
 
 	xaxis.X = matRot[0][0];
@@ -214,11 +206,10 @@ B3D_UTILITY_EXPORT void TQuaternion<float>::ToAxes(TVector3<float>& xaxis, TVect
 	zaxis.Z = matRot[2][2];
 }
 
-template<>
-template<>
-B3D_UTILITY_EXPORT bool TQuaternion<float>::ToEulerAngles(TRadian<float>& xAngle, TRadian<float>& yAngle, TRadian<float>& zAngle) const
+template<typename T>
+bool TQuaternion<T>::ToEulerAngles(TRadian<T>& xAngle, TRadian<T>& yAngle, TRadian<T>& zAngle) const
 {
-	Matrix3 matRot;
+	TMatrix3<T> matRot;
 	ToRotationMatrix(matRot);
 	return matRot.ToEulerAngles(xAngle, yAngle, zAngle);
 }
@@ -286,13 +277,12 @@ TQuaternion<T> TQuaternion<T>::Inverse() const
 	}
 }
 
-template<>
-template<>
-B3D_UTILITY_EXPORT TVector3<float> TQuaternion<float>::Rotate(const TVector3<float>& v) const
+template<typename T>
+TVector3<T> TQuaternion<T>::Rotate(const TVector3<T>& v) const
 {
 	// Note: Does compiler generate fast code here? Perhaps its better to pull all code locally without constructing
 	//       an intermediate matrix.
-	Matrix3 rot;
+	TMatrix3<T> rot;
 	ToRotationMatrix(rot);
 	return rot.Multiply(v);
 }
@@ -320,12 +310,9 @@ void TQuaternion<T>::LookRotation(const TVector3<T>& forwardDir)
 	}
 }
 
-template<>
-template<>
-B3D_UTILITY_EXPORT void TQuaternion<float>::LookRotation(const TVector3<float>& forwardDir, const TVector3<float>& upDir)
+template<typename T>
+void TQuaternion<T>::LookRotation(const TVector3<T>& forwardDir, const TVector3<T>& upDir)
 {
-	using T = float;
-
 	TVector3<T> forward = TVector3<T>::Normalize(forwardDir);
 	TVector3<T> up = TVector3<T>::Normalize(upDir);
 

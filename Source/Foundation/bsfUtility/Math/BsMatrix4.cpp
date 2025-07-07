@@ -8,28 +8,25 @@
 
 using namespace b3d;
 
-const Matrix4 Matrix4::kZero{ BS_ZERO() };
-const Matrix4 Matrix4::kIdentity{ BS_IDENTITY() };
-
-static float MINOR(const Matrix4& m, const u32 r0, const u32 r1, const u32 r2, const u32 c0, const u32 c1, const u32 c2)
+template<typename T>
+static T MINOR(const TMatrix4<T>& m, const u32 r0, const u32 r1, const u32 r2, const u32 c0, const u32 c1, const u32 c2)
 {
 	return m[r0][c0] * (m[r1][c1] * m[r2][c2] - m[r2][c1] * m[r1][c2]) -
 		m[r0][c1] * (m[r1][c0] * m[r2][c2] - m[r2][c0] * m[r1][c2]) +
 		m[r0][c2] * (m[r1][c0] * m[r2][c1] - m[r2][c0] * m[r1][c1]);
 }
 
-Matrix4 Matrix4::Adjoint() const
+template<typename T>
+TMatrix4<T> TMatrix4<T>::Adjoint() const
 {
-	return Matrix4(MINOR(*this, 1, 2, 3, 1, 2, 3), -MINOR(*this, 0, 2, 3, 1, 2, 3), MINOR(*this, 0, 1, 3, 1, 2, 3), -MINOR(*this, 0, 1, 2, 1, 2, 3),
-
+	return TMatrix4(MINOR(*this, 1, 2, 3, 1, 2, 3), -MINOR(*this, 0, 2, 3, 1, 2, 3), MINOR(*this, 0, 1, 3, 1, 2, 3), -MINOR(*this, 0, 1, 2, 1, 2, 3),
 				   -MINOR(*this, 1, 2, 3, 0, 2, 3), MINOR(*this, 0, 2, 3, 0, 2, 3), -MINOR(*this, 0, 1, 3, 0, 2, 3), MINOR(*this, 0, 1, 2, 0, 2, 3),
-
 				   MINOR(*this, 1, 2, 3, 0, 1, 3), -MINOR(*this, 0, 2, 3, 0, 1, 3), MINOR(*this, 0, 1, 3, 0, 1, 3), -MINOR(*this, 0, 1, 2, 0, 1, 3),
-
 				   -MINOR(*this, 1, 2, 3, 0, 1, 2), MINOR(*this, 0, 2, 3, 0, 1, 2), -MINOR(*this, 0, 1, 3, 0, 1, 2), MINOR(*this, 0, 1, 2, 0, 1, 2));
 }
 
-float Matrix4::Determinant() const
+template<typename T>
+T TMatrix4<T>::Determinant() const
 {
 	return m[0][0] * MINOR(*this, 1, 2, 3, 1, 2, 3) -
 		m[0][1] * MINOR(*this, 1, 2, 3, 0, 2, 3) +
@@ -37,47 +34,49 @@ float Matrix4::Determinant() const
 		m[0][3] * MINOR(*this, 1, 2, 3, 0, 1, 2);
 }
 
-float Matrix4::Determinant3x3() const
+template<typename T>
+T TMatrix4<T>::Determinant3x3() const
 {
-	float cofactor00 = m[1][1] * m[2][2] - m[1][2] * m[2][1];
-	float cofactor10 = m[1][2] * m[2][0] - m[1][0] * m[2][2];
-	float cofactor20 = m[1][0] * m[2][1] - m[1][1] * m[2][0];
+	T cofactor00 = m[1][1] * m[2][2] - m[1][2] * m[2][1];
+	T cofactor10 = m[1][2] * m[2][0] - m[1][0] * m[2][2];
+	T cofactor20 = m[1][0] * m[2][1] - m[1][1] * m[2][0];
 
-	float det = m[0][0] * cofactor00 + m[0][1] * cofactor10 + m[0][2] * cofactor20;
+	T det = m[0][0] * cofactor00 + m[0][1] * cofactor10 + m[0][2] * cofactor20;
 
 	return det;
 }
 
-Matrix4 Matrix4::Inverse() const
+template<typename T>
+TMatrix4<T> TMatrix4<T>::Inverse() const
 {
-	float m00 = m[0][0], m01 = m[0][1], m02 = m[0][2], m03 = m[0][3];
-	float m10 = m[1][0], m11 = m[1][1], m12 = m[1][2], m13 = m[1][3];
-	float m20 = m[2][0], m21 = m[2][1], m22 = m[2][2], m23 = m[2][3];
-	float m30 = m[3][0], m31 = m[3][1], m32 = m[3][2], m33 = m[3][3];
+	T m00 = m[0][0], m01 = m[0][1], m02 = m[0][2], m03 = m[0][3];
+	T m10 = m[1][0], m11 = m[1][1], m12 = m[1][2], m13 = m[1][3];
+	T m20 = m[2][0], m21 = m[2][1], m22 = m[2][2], m23 = m[2][3];
+	T m30 = m[3][0], m31 = m[3][1], m32 = m[3][2], m33 = m[3][3];
 
-	float v0 = m20 * m31 - m21 * m30;
-	float v1 = m20 * m32 - m22 * m30;
-	float v2 = m20 * m33 - m23 * m30;
-	float v3 = m21 * m32 - m22 * m31;
-	float v4 = m21 * m33 - m23 * m31;
-	float v5 = m22 * m33 - m23 * m32;
+	T v0 = m20 * m31 - m21 * m30;
+	T v1 = m20 * m32 - m22 * m30;
+	T v2 = m20 * m33 - m23 * m30;
+	T v3 = m21 * m32 - m22 * m31;
+	T v4 = m21 * m33 - m23 * m31;
+	T v5 = m22 * m33 - m23 * m32;
 
-	float t00 = +(v5 * m11 - v4 * m12 + v3 * m13);
-	float t10 = -(v5 * m10 - v2 * m12 + v1 * m13);
-	float t20 = +(v4 * m10 - v2 * m11 + v0 * m13);
-	float t30 = -(v3 * m10 - v1 * m11 + v0 * m12);
+	T t00 = +(v5 * m11 - v4 * m12 + v3 * m13);
+	T t10 = -(v5 * m10 - v2 * m12 + v1 * m13);
+	T t20 = +(v4 * m10 - v2 * m11 + v0 * m13);
+	T t30 = -(v3 * m10 - v1 * m11 + v0 * m12);
 
-	float invDet = 1 / (t00 * m00 + t10 * m01 + t20 * m02 + t30 * m03);
+	T invDet = 1 / (t00 * m00 + t10 * m01 + t20 * m02 + t30 * m03);
 
-	float d00 = t00 * invDet;
-	float d10 = t10 * invDet;
-	float d20 = t20 * invDet;
-	float d30 = t30 * invDet;
+	T d00 = t00 * invDet;
+	T d10 = t10 * invDet;
+	T d20 = t20 * invDet;
+	T d30 = t30 * invDet;
 
-	float d01 = -(v5 * m01 - v4 * m02 + v3 * m03) * invDet;
-	float d11 = +(v5 * m00 - v2 * m02 + v1 * m03) * invDet;
-	float d21 = -(v4 * m00 - v2 * m01 + v0 * m03) * invDet;
-	float d31 = +(v3 * m00 - v1 * m01 + v0 * m02) * invDet;
+	T d01 = -(v5 * m01 - v4 * m02 + v3 * m03) * invDet;
+	T d11 = +(v5 * m00 - v2 * m02 + v1 * m03) * invDet;
+	T d21 = -(v4 * m00 - v2 * m01 + v0 * m03) * invDet;
+	T d31 = +(v3 * m00 - v1 * m01 + v0 * m02) * invDet;
 
 	v0 = m10 * m31 - m11 * m30;
 	v1 = m10 * m32 - m12 * m30;
@@ -86,10 +85,10 @@ Matrix4 Matrix4::Inverse() const
 	v4 = m11 * m33 - m13 * m31;
 	v5 = m12 * m33 - m13 * m32;
 
-	float d02 = +(v5 * m01 - v4 * m02 + v3 * m03) * invDet;
-	float d12 = -(v5 * m00 - v2 * m02 + v1 * m03) * invDet;
-	float d22 = +(v4 * m00 - v2 * m01 + v0 * m03) * invDet;
-	float d32 = -(v3 * m00 - v1 * m01 + v0 * m02) * invDet;
+	T d02 = +(v5 * m01 - v4 * m02 + v3 * m03) * invDet;
+	T d12 = -(v5 * m00 - v2 * m02 + v1 * m03) * invDet;
+	T d22 = +(v4 * m00 - v2 * m01 + v0 * m03) * invDet;
+	T d32 = -(v3 * m00 - v1 * m01 + v0 * m02) * invDet;
 
 	v0 = m21 * m10 - m20 * m11;
 	v1 = m22 * m10 - m20 * m12;
@@ -98,30 +97,31 @@ Matrix4 Matrix4::Inverse() const
 	v4 = m23 * m11 - m21 * m13;
 	v5 = m23 * m12 - m22 * m13;
 
-	float d03 = -(v5 * m01 - v4 * m02 + v3 * m03) * invDet;
-	float d13 = +(v5 * m00 - v2 * m02 + v1 * m03) * invDet;
-	float d23 = -(v4 * m00 - v2 * m01 + v0 * m03) * invDet;
-	float d33 = +(v3 * m00 - v1 * m01 + v0 * m02) * invDet;
+	T d03 = -(v5 * m01 - v4 * m02 + v3 * m03) * invDet;
+	T d13 = +(v5 * m00 - v2 * m02 + v1 * m03) * invDet;
+	T d23 = -(v4 * m00 - v2 * m01 + v0 * m03) * invDet;
+	T d33 = +(v3 * m00 - v1 * m01 + v0 * m02) * invDet;
 
-	return Matrix4(
+	return TMatrix4(
 		d00, d01, d02, d03,
 		d10, d11, d12, d13,
 		d20, d21, d22, d23,
 		d30, d31, d32, d33);
 }
 
-Matrix4 Matrix4::InverseAffine() const
+template<typename T>
+TMatrix4<T> TMatrix4<T>::InverseAffine() const
 {
-	float m10 = m[1][0], m11 = m[1][1], m12 = m[1][2];
-	float m20 = m[2][0], m21 = m[2][1], m22 = m[2][2];
+	T m10 = m[1][0], m11 = m[1][1], m12 = m[1][2];
+	T m20 = m[2][0], m21 = m[2][1], m22 = m[2][2];
 
-	float t00 = m22 * m11 - m21 * m12;
-	float t10 = m20 * m12 - m22 * m10;
-	float t20 = m21 * m10 - m20 * m11;
+	T t00 = m22 * m11 - m21 * m12;
+	T t10 = m20 * m12 - m22 * m10;
+	T t20 = m21 * m10 - m20 * m11;
 
-	float m00 = m[0][0], m01 = m[0][1], m02 = m[0][2];
+	T m00 = m[0][0], m01 = m[0][1], m02 = m[0][2];
 
-	float invDet = 1 / (m00 * t00 + m01 * t10 + m02 * t20);
+	T invDet = 1 / (m00 * t00 + m01 * t10 + m02 * t20);
 
 	t00 *= invDet;
 	t10 *= invDet;
@@ -131,34 +131,35 @@ Matrix4 Matrix4::InverseAffine() const
 	m01 *= invDet;
 	m02 *= invDet;
 
-	float r00 = t00;
-	float r01 = m02 * m21 - m01 * m22;
-	float r02 = m01 * m12 - m02 * m11;
+	T r00 = t00;
+	T r01 = m02 * m21 - m01 * m22;
+	T r02 = m01 * m12 - m02 * m11;
 
-	float r10 = t10;
-	float r11 = m00 * m22 - m02 * m20;
-	float r12 = m02 * m10 - m00 * m12;
+	T r10 = t10;
+	T r11 = m00 * m22 - m02 * m20;
+	T r12 = m02 * m10 - m00 * m12;
 
-	float r20 = t20;
-	float r21 = m01 * m20 - m00 * m21;
-	float r22 = m00 * m11 - m01 * m10;
+	T r20 = t20;
+	T r21 = m01 * m20 - m00 * m21;
+	T r22 = m00 * m11 - m01 * m10;
 
-	float m03 = m[0][3], m13 = m[1][3], m23 = m[2][3];
+	T m03 = m[0][3], m13 = m[1][3], m23 = m[2][3];
 
-	float r03 = -(r00 * m03 + r01 * m13 + r02 * m23);
-	float r13 = -(r10 * m03 + r11 * m13 + r12 * m23);
-	float r23 = -(r20 * m03 + r21 * m13 + r22 * m23);
+	T r03 = -(r00 * m03 + r01 * m13 + r02 * m23);
+	T r13 = -(r10 * m03 + r11 * m13 + r12 * m23);
+	T r23 = -(r20 * m03 + r21 * m13 + r22 * m23);
 
-	return Matrix4(
+	return TMatrix4(
 		r00, r01, r02, r03,
 		r10, r11, r12, r13,
 		r20, r21, r22, r23,
 		0, 0, 0, 1);
 }
 
-void Matrix4::SetTrs(const Vector3& translation, const Quaternion& rotation, const Vector3& scale)
+template<typename T>
+void TMatrix4<T>::SetTrs(const TVector3<T>& translation, const TQuaternion<T>& rotation, const TVector3<T>& scale)
 {
-	Matrix3 rot3x3;
+	TMatrix3<T> rot3x3;
 	rotation.ToRotationMatrix(rot3x3);
 
 	m[0][0] = scale.X * rot3x3[0][0];
@@ -181,12 +182,13 @@ void Matrix4::SetTrs(const Vector3& translation, const Quaternion& rotation, con
 	m[3][3] = 1;
 }
 
-void Matrix4::SetInverseTrs(const Vector3& translation, const Quaternion& rotation, const Vector3& scale)
+template<typename T>
+void TMatrix4<T>::SetInverseTrs(const TVector3<T>& translation, const TQuaternion<T>& rotation, const TVector3<T>& scale)
 {
 	// Invert the parameters
-	Vector3 invTranslate = -translation;
-	Vector3 invScale(1 / scale.X, 1 / scale.Y, 1 / scale.Z);
-	Quaternion invRot = rotation.Inverse();
+	TVector3<T> invTranslate = -translation;
+	TVector3<T> invScale((T)1.0 / scale.X, (T)1.0 / scale.Y, (T)1.0 / scale.Z);
+	TQuaternion<T> invRot = rotation.Inverse();
 
 	// Because we're inverting, order is translation, rotation, scale
 	// So make translation relative to scale & rotation
@@ -194,7 +196,7 @@ void Matrix4::SetInverseTrs(const Vector3& translation, const Quaternion& rotati
 	invTranslate *= invScale;
 
 	// Next, make a 3x3 rotation matrix
-	Matrix3 rot3x3;
+	TMatrix3<T> rot3x3;
 	invRot.ToRotationMatrix(rot3x3);
 
 	// Set up final matrix with scale, rotation and translation
@@ -218,19 +220,21 @@ void Matrix4::SetInverseTrs(const Vector3& translation, const Quaternion& rotati
 	m[3][3] = 1;
 }
 
-void Matrix4::Decomposition(Vector3& position, Quaternion& rotation, Vector3& scale) const
+template<typename T>
+void TMatrix4<T>::Decomposition(TVector3<T>& position, TQuaternion<T>& rotation, TVector3<T>& scale) const
 {
-	Matrix3 m3x3 = Get3x3();
+	TMatrix3<T> m3x3 = Get3x3();
 
-	Matrix3 matQ;
-	Vector3 vecU;
+	TMatrix3<T> matQ;
+	TVector3<T> vecU;
 	m3x3.QDUDecomposition(matQ, scale, vecU);
 
-	rotation = Quaternion(matQ);
-	position = Vector3(m[0][3], m[1][3], m[2][3]);
+	rotation = TQuaternion<T>(matQ);
+	position = TVector3<T>(m[0][3], m[1][3], m[2][3]);
 }
 
-void Matrix4::MakeView(const Vector3& position, const Quaternion& orientation)
+template<typename T>
+void TMatrix4<T>::MakeView(const TVector3<T>& position, const TQuaternion<T>& orientation)
 {
 	// View matrix is:
 	//
@@ -242,168 +246,174 @@ void Matrix4::MakeView(const Vector3& position, const Quaternion& orientation)
 	// Where T = -(Transposed(Rot) * Pos)
 
 	// This is most efficiently done using 3x3 Matrices
-	Matrix3 rot;
+	TMatrix3<T> rot;
 	orientation.ToRotationMatrix(rot);
 
 	// Make the translation relative to new axes
-	Matrix3 rotT = rot.Transpose();
-	Vector3 trans = (-rotT).Multiply(position);
+	TMatrix3<T> rotT = rot.Transpose();
+	TVector3<T> trans = (-rotT).Multiply(position);
 
 	// Make final matrix
-	*this = Matrix4(rotT);
+	*this = TMatrix4(rotT);
 	m[0][3] = trans.X;
 	m[1][3] = trans.Y;
 	m[2][3] = trans.Z;
 }
 
-void Matrix4::MakeProjectionOrtho(float left, float right, float top, float bottom, float near, float far)
+template<typename T>
+void TMatrix4<T>::MakeProjectionOrtho(T left, T right, T top, T bottom, T near, T far)
 {
 	// Create a matrix that transforms coordinate to normalized device coordinate in range:
 	// Left -1 - Right 1
 	// Bottom -1 - Top 1
 	// Near -1 - Far 1
 
-	float deltaX = right - left;
-	float deltaY = bottom - top;
-	float deltaZ = far - near;
+	T deltaX = right - left;
+	T deltaY = bottom - top;
+	T deltaZ = far - near;
 
-	m[0][0] = 2.0F / deltaX;
-	m[0][1] = 0.0f;
-	m[0][2] = 0.0f;
+	m[0][0] = (T)2.0 / deltaX;
+	m[0][1] = (T)0.0;
+	m[0][2] = (T)0.0;
 	m[0][3] = -(right + left) / deltaX;
 
-	m[1][0] = 0.0f;
-	m[1][1] = -2.0F / deltaY;
-	m[1][2] = 0.0f;
+	m[1][0] = (T)0.0;
+	m[1][1] = (T)-2.0 / deltaY;
+	m[1][2] = (T)0.0;
 	m[1][3] = (top + bottom) / deltaY;
 
-	m[2][0] = 0.0f;
-	m[2][1] = 0.0f;
+	m[2][0] = (T)0.0;
+	m[2][1] = (T)0.0;
 
-	if(far == 0.0f)
+	if(far == (T)0.0)
 	{
-		m[2][2] = 1.0f;
-		m[2][3] = 0.0f;
+		m[2][2] = (T)1.0;
+		m[2][3] = (T)0.0;
 	}
 	else
 	{
-		m[2][2] = -2.0F / deltaZ;
+		m[2][2] = (T)-2.0 / deltaZ;
 		m[2][3] = -(far + near) / deltaZ;
 	}
 
-	m[3][0] = 0.0f;
-	m[3][1] = 0.0f;
-	m[3][2] = 0.0f;
-	m[3][3] = 1.0f;
+	m[3][0] = (T)0.0;
+	m[3][1] = (T)0.0;
+	m[3][2] = (T)0.0;
+	m[3][3] = (T)1.0;
 }
 
-Matrix4 Matrix4::Translation(const Vector3& translation)
+template<typename T>
+TMatrix4<T> TMatrix4<T>::Translation(const TVector3<T>& translation)
 {
-	Matrix4 mat;
+	TMatrix4 mat;
 
-	mat[0][0] = 1.0f;
-	mat[0][1] = 0.0f;
-	mat[0][2] = 0.0f;
+	mat[0][0] = (T)1.0;
+	mat[0][1] = (T)0.0;
+	mat[0][2] = (T)0.0;
 	mat[0][3] = translation.X;
-	mat[1][0] = 0.0f;
-	mat[1][1] = 1.0f;
-	mat[1][2] = 0.0f;
+	mat[1][0] = (T)0.0;
+	mat[1][1] = (T)1.0;
+	mat[1][2] = (T)0.0;
 	mat[1][3] = translation.Y;
-	mat[2][0] = 0.0f;
-	mat[2][1] = 0.0f;
-	mat[2][2] = 1.0f;
+	mat[2][0] = (T)0.0;
+	mat[2][1] = (T)0.0;
+	mat[2][2] = (T)1.0;
 	mat[2][3] = translation.Z;
-	mat[3][0] = 0.0f;
-	mat[3][1] = 0.0f;
-	mat[3][2] = 0.0f;
-	mat[3][3] = 1.0f;
+	mat[3][0] = (T)0.0;
+	mat[3][1] = (T)0.0;
+	mat[3][2] = (T)0.0;
+	mat[3][3] = (T)1.0;
 
 	return mat;
 }
 
-Matrix4 Matrix4::Scaling(const Vector3& scale)
+template<typename T>
+TMatrix4<T> TMatrix4<T>::Scaling(const TVector3<T>& scale)
 {
-	Matrix4 mat;
+	TMatrix4 mat;
 
 	mat[0][0] = scale.X;
-	mat[0][1] = 0.0f;
-	mat[0][2] = 0.0f;
-	mat[0][3] = 0.0f;
-	mat[1][0] = 0.0f;
+	mat[0][1] = (T)0.0;
+	mat[0][2] = (T)0.0;
+	mat[0][3] = (T)0.0;
+	mat[1][0] = (T)0.0;
 	mat[1][1] = scale.Y;
-	mat[1][2] = 0.0f;
-	mat[1][3] = 0.0f;
-	mat[2][0] = 0.0f;
-	mat[2][1] = 0.0f;
+	mat[1][2] = (T)0.0;
+	mat[1][3] = (T)0.0;
+	mat[2][0] = (T)0.0;
+	mat[2][1] = (T)0.0;
 	mat[2][2] = scale.Z;
-	mat[2][3] = 0.0f;
-	mat[3][0] = 0.0f;
-	mat[3][1] = 0.0f;
-	mat[3][2] = 0.0f;
-	mat[3][3] = 1.0f;
+	mat[2][3] = (T)0.0;
+	mat[3][0] = (T)0.0;
+	mat[3][1] = (T)0.0;
+	mat[3][2] = (T)0.0;
+	mat[3][3] = (T)1.0;
 
 	return mat;
 }
 
-Matrix4 Matrix4::Scaling(float scale)
+template<typename T>
+TMatrix4<T> TMatrix4<T>::Scaling(T scale)
 {
-	Matrix4 mat;
+	TMatrix4 mat;
 
 	mat[0][0] = scale;
-	mat[0][1] = 0.0f;
-	mat[0][2] = 0.0f;
-	mat[0][3] = 0.0f;
-	mat[1][0] = 0.0f;
+	mat[0][1] = (T)0.0;
+	mat[0][2] = (T)0.0;
+	mat[0][3] = (T)0.0;
+	mat[1][0] = (T)0.0;
 	mat[1][1] = scale;
-	mat[1][2] = 0.0f;
-	mat[1][3] = 0.0f;
-	mat[2][0] = 0.0f;
-	mat[2][1] = 0.0f;
+	mat[1][2] = (T)0.0;
+	mat[1][3] = (T)0.0;
+	mat[2][0] = (T)0.0;
+	mat[2][1] = (T)0.0;
 	mat[2][2] = scale;
-	mat[2][3] = 0.0f;
-	mat[3][0] = 0.0f;
-	mat[3][1] = 0.0f;
-	mat[3][2] = 0.0f;
-	mat[3][3] = 1.0f;
+	mat[2][3] = (T)0.0;
+	mat[3][0] = (T)0.0;
+	mat[3][1] = (T)0.0;
+	mat[3][2] = (T)0.0;
+	mat[3][3] = (T)1.0;
 
 	return mat;
 }
 
-Matrix4 Matrix4::Rotation(const Quaternion& rotation)
+template<typename T>
+TMatrix4<T> TMatrix4<T>::Rotation(const TQuaternion<T>& rotation)
 {
-	Matrix3 mat;
+	TMatrix3<T> mat;
 	rotation.ToRotationMatrix(mat);
 
-	return Matrix4(mat);
+	return TMatrix4(mat);
 }
 
-Matrix4 Matrix4::ProjectionPerspective(const Degree& horzFOV, float aspect, float near, float far, bool positiveZ)
+template<typename T>
+TMatrix4<T> TMatrix4<T>::ProjectionPerspective(const TDegree<T>& horzFOV, T aspect, T near, T far, bool positiveZ)
 {
 	// Note: Duplicate code in Camera, bring it all here eventually
-	static constexpr float kInfiniteFarPlaneAdjust = 0.00001f;
+	static constexpr T kInfiniteFarPlaneAdjust = (T)0.00001;
 
-	Radian thetaX(horzFOV * 0.5f);
-	float tanThetaX = Math::Tan(thetaX);
-	float tanThetaY = tanThetaX / aspect;
+	TRadian<T> thetaX(horzFOV * (T)0.5);
+	T tanThetaX = Math::Tan(thetaX);
+	T tanThetaY = tanThetaX / aspect;
 
-	float half_w = tanThetaX * near;
-	float half_h = tanThetaY * near;
+	T half_w = tanThetaX * near;
+	T half_h = tanThetaY * near;
 
-	float left = -half_w;
-	float right = half_w;
-	float bottom = -half_h;
-	float top = half_h;
+	T left = -half_w;
+	T right = half_w;
+	T bottom = -half_h;
+	T top = half_h;
 
-	float inv_w = 1 / (right - left);
-	float inv_h = 1 / (top - bottom);
-	float inv_d = 1 / (far - near);
+	T inv_w = 1 / (right - left);
+	T inv_h = 1 / (top - bottom);
+	T inv_d = 1 / (far - near);
 
-	float A = 2 * near * inv_w;
-	float B = 2 * near * inv_h;
-	float C = (right + left) * inv_w;
-	float D = (top + bottom) * inv_h;
-	float q, qn;
-	float sign = positiveZ ? 1.0f : -1.0f;
+	T A = 2 * near * inv_w;
+	T B = 2 * near * inv_h;
+	T C = (right + left) * inv_w;
+	T D = (top + bottom) * inv_h;
+	T q, qn;
+	T sign = positiveZ ? (T)1.0 : -(T)1.0;
 
 	if(far == 0)
 	{
@@ -417,55 +427,62 @@ Matrix4 Matrix4::ProjectionPerspective(const Degree& horzFOV, float aspect, floa
 		qn = -2.0f * (far * near) * inv_d;
 	}
 
-	Matrix4 mat;
+	TMatrix4 mat;
 	mat[0][0] = A;
-	mat[0][1] = 0.0f;
+	mat[0][1] = (T)0.0;
 	mat[0][2] = C;
-	mat[0][3] = 0.0f;
-	mat[1][0] = 0.0f;
+	mat[0][3] = (T)0.0;
+	mat[1][0] = (T)0.0;
 	mat[1][1] = B;
 	mat[1][2] = D;
-	mat[1][3] = 0.0f;
-	mat[2][0] = 0.0f;
-	mat[2][1] = 0.0f;
+	mat[1][3] = (T)0.0;
+	mat[2][0] = (T)0.0;
+	mat[2][1] = (T)0.0;
 	mat[2][2] = q;
 	mat[2][3] = qn;
-	mat[3][0] = 0.0f;
-	mat[3][1] = 0.0f;
+	mat[3][0] = (T)0.0;
+	mat[3][1] = (T)0.0;
 	mat[3][2] = sign;
-	mat[3][3] = 0.0f;
+	mat[3][3] = (T)0.0;
 
 	return mat;
 }
 
-Matrix4 Matrix4::ProjectionOrthographic(float left, float right, float top, float bottom, float near, float far)
+template<typename T>
+TMatrix4<T> TMatrix4<T>::ProjectionOrthographic(T left, T right, T top, T bottom, T near, T far)
 {
-	Matrix4 output;
+	TMatrix4 output;
 	output.MakeProjectionOrtho(left, right, top, bottom, near, far);
 
 	return output;
 }
 
-Matrix4 Matrix4::View(const Vector3& position, const Quaternion& orientation)
+template<typename T>
+TMatrix4<T> TMatrix4<T>::View(const TVector3<T>& position, const TQuaternion<T>& orientation)
 {
-	Matrix4 mat;
+	TMatrix4 mat;
 	mat.MakeView(position, orientation);
 
 	return mat;
 }
 
-Matrix4 Matrix4::TRS(const Vector3& translation, const Quaternion& rotation, const Vector3& scale)
+template<typename T>
+TMatrix4<T> TMatrix4<T>::TRS(const TVector3<T>& translation, const TQuaternion<T>& rotation, const TVector3<T>& scale)
 {
-	Matrix4 mat;
+	TMatrix4 mat;
 	mat.SetTrs(translation, rotation, scale);
 
 	return mat;
 }
 
-Matrix4 Matrix4::InverseTrs(const Vector3& translation, const Quaternion& rotation, const Vector3& scale)
+template<typename T>
+TMatrix4<T> TMatrix4<T>::InverseTrs(const TVector3<T>& translation, const TQuaternion<T>& rotation, const TVector3<T>& scale)
 {
-	Matrix4 mat;
+	TMatrix4 mat;
 	mat.SetInverseTrs(translation, rotation, scale);
 
 	return mat;
 }
+
+template struct B3D_UTILITY_EXPORT TMatrix4<float>;
+template struct B3D_UTILITY_EXPORT TMatrix4<double>;

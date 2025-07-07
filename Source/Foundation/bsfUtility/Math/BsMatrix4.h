@@ -16,32 +16,33 @@ namespace b3d
 	 */
 
 	/** Class representing a 4x4 matrix, in row major format. */
-	class B3D_UTILITY_EXPORT Matrix4
+	template<typename T>
+	struct B3D_UTILITY_EXPORT TMatrix4
 	{
 	public:
-		Matrix4() = default;
-		constexpr Matrix4(const Matrix4&) = default;
-		constexpr Matrix4& operator=(const Matrix4&) = default;
+		TMatrix4() = default;
+		constexpr TMatrix4(const TMatrix4&) = default;
+		constexpr TMatrix4& operator=(const TMatrix4&) = default;
 
-		constexpr Matrix4(BS_ZERO)
-			: m{ { 0.0f, 0.0f, 0.0f, 0.0f },
-				 { 0.0f, 0.0f, 0.0f, 0.0f },
-				 { 0.0f, 0.0f, 0.0f, 0.0f },
-				 { 0.0f, 0.0f, 0.0f, 0.0f } }
+		constexpr TMatrix4(BS_ZERO)
+			: m{ { (T)0.0, (T)0.0, (T)0.0, (T)0.0 },
+				 { (T)0.0, (T)0.0, (T)0.0, (T)0.0 },
+				 { (T)0.0, (T)0.0, (T)0.0, (T)0.0 },
+				 { (T)0.0, (T)0.0, (T)0.0, (T)0.0 } }
 		{}
 
-		constexpr Matrix4(BS_IDENTITY)
-			: m{ { 1.0f, 0.0f, 0.0f, 0.0f },
-				 { 0.0f, 1.0f, 0.0f, 0.0f },
-				 { 0.0f, 0.0f, 1.0f, 0.0f },
-				 { 0.0f, 0.0f, 0.0f, 1.0f } }
+		constexpr TMatrix4(BS_IDENTITY)
+			: m{ { (T)1.0, (T)0.0, (T)0.0, (T)0.0 },
+				 { (T)0.0, (T)1.0, (T)0.0, (T)0.0 },
+				 { (T)0.0, (T)0.0, (T)1.0, (T)0.0 },
+				 { (T)0.0, (T)0.0, (T)0.0, (T)1.0 } }
 		{}
 
-		constexpr Matrix4(
-			float m00, float m01, float m02, float m03,
-			float m10, float m11, float m12, float m13,
-			float m20, float m21, float m22, float m23,
-			float m30, float m31, float m32, float m33)
+		constexpr TMatrix4(
+			T m00, T m01, T m02, T m03,
+			T m10, T m11, T m12, T m13,
+			T m20, T m21, T m22, T m23,
+			T m30, T m31, T m32, T m33)
 			: m{ { m00, m01, m02, m03 },
 				 { m10, m11, m12, m13 },
 				 { m20, m21, m22, m23 },
@@ -49,15 +50,15 @@ namespace b3d
 		{}
 
 		/** Creates a 4x4 transformation matrix with a zero translation part from a rotation/scaling 3x3 matrix. */
-		constexpr explicit Matrix4(const Matrix3& mat3)
-			: m{ { mat3.m[0][0], mat3.m[0][1], mat3.m[0][2], 0.0f },
-				 { mat3.m[1][0], mat3.m[1][1], mat3.m[1][2], 0.0f },
-				 { mat3.m[2][0], mat3.m[2][1], mat3.m[2][2], 0.0f },
-				 { 0.0f, 0.0f, 0.0f, 1.0f } }
+		constexpr explicit TMatrix4(const TMatrix3<T>& mat3)
+			: m{ { mat3.m[0][0], mat3.m[0][1], mat3.m[0][2], (T)0.0 },
+				 { mat3.m[1][0], mat3.m[1][1], mat3.m[1][2], (T)0.0 },
+				 { mat3.m[2][0], mat3.m[2][1], mat3.m[2][2], (T)0.0 },
+				 { (T)0.0, (T)0.0, (T)0.0, (T)1.0 } }
 		{}
 
 		/** Swaps the contents of this matrix with another. */
-		void Swap(Matrix4& other)
+		void Swap(TMatrix4& other)
 		{
 			std::swap(m[0][0], other.m[0][0]);
 			std::swap(m[0][1], other.m[0][1]);
@@ -78,24 +79,24 @@ namespace b3d
 		}
 
 		/** Returns a row of the matrix. */
-		Vector4& operator[](u32 row)
+		TVector4<T>& operator[](u32 row)
 		{
 			B3D_ASSERT(row < 4);
 
-			return *(Vector4*)m[row];
+			return *(TVector4<T>*)m[row];
 		}
 
 		/** Returns a row of the matrix. */
-		const Vector4& operator[](u32 row) const
+		const TVector4<T>& operator[](u32 row) const
 		{
 			B3D_ASSERT(row < 4);
 
-			return *(Vector4*)m[row];
+			return *(TVector4<T>*)m[row];
 		}
 
-		Matrix4 operator*(const Matrix4& rhs) const
+		TMatrix4 operator*(const TMatrix4& rhs) const
 		{
-			Matrix4 r;
+			TMatrix4 r;
 
 			r.m[0][0] = m[0][0] * rhs.m[0][0] + m[0][1] * rhs.m[1][0] + m[0][2] * rhs.m[2][0] + m[0][3] * rhs.m[3][0];
 			r.m[0][1] = m[0][0] * rhs.m[0][1] + m[0][1] * rhs.m[1][1] + m[0][2] * rhs.m[2][1] + m[0][3] * rhs.m[3][1];
@@ -120,9 +121,9 @@ namespace b3d
 			return r;
 		}
 
-		Matrix4 operator+(const Matrix4& rhs) const
+		TMatrix4 operator+(const TMatrix4& rhs) const
 		{
-			Matrix4 r;
+			TMatrix4 r;
 
 			r.m[0][0] = m[0][0] + rhs.m[0][0];
 			r.m[0][1] = m[0][1] + rhs.m[0][1];
@@ -147,9 +148,9 @@ namespace b3d
 			return r;
 		}
 
-		Matrix4 operator-(const Matrix4& rhs) const
+		TMatrix4 operator-(const TMatrix4& rhs) const
 		{
-			Matrix4 r;
+			TMatrix4 r;
 			r.m[0][0] = m[0][0] - rhs.m[0][0];
 			r.m[0][1] = m[0][1] - rhs.m[0][1];
 			r.m[0][2] = m[0][2] - rhs.m[0][2];
@@ -173,7 +174,7 @@ namespace b3d
 			return r;
 		}
 
-		inline bool operator==(const Matrix4& rhs) const
+		inline bool operator==(const TMatrix4& rhs) const
 		{
 			if(m[0][0] != rhs.m[0][0] || m[0][1] != rhs.m[0][1] || m[0][2] != rhs.m[0][2] || m[0][3] != rhs.m[0][3] ||
 			   m[1][0] != rhs.m[1][0] || m[1][1] != rhs.m[1][1] || m[1][2] != rhs.m[1][2] || m[1][3] != rhs.m[1][3] ||
@@ -186,40 +187,40 @@ namespace b3d
 			return true;
 		}
 
-		inline bool operator!=(const Matrix4& rhs) const
+		inline bool operator!=(const TMatrix4& rhs) const
 		{
 			return !operator==(rhs);
 		}
 
-		Matrix4 operator*(float rhs) const
+		TMatrix4 operator*(T rhs) const
 		{
-			return Matrix4(rhs * m[0][0], rhs * m[0][1], rhs * m[0][2], rhs * m[0][3], rhs * m[1][0], rhs * m[1][1], rhs * m[1][2], rhs * m[1][3], rhs * m[2][0], rhs * m[2][1], rhs * m[2][2], rhs * m[2][3], rhs * m[3][0], rhs * m[3][1], rhs * m[3][2], rhs * m[3][3]);
+			return TMatrix4(rhs * m[0][0], rhs * m[0][1], rhs * m[0][2], rhs * m[0][3], rhs * m[1][0], rhs * m[1][1], rhs * m[1][2], rhs * m[1][3], rhs * m[2][0], rhs * m[2][1], rhs * m[2][2], rhs * m[2][3], rhs * m[3][0], rhs * m[3][1], rhs * m[3][2], rhs * m[3][3]);
 		}
 
 		/** Returns the specified column of the matrix, ignoring the last row. */
-		Vector3 GetColumn(u32 col) const
+		TVector3<T> GetColumn(u32 col) const
 		{
 			B3D_ASSERT(col < 4);
 
-			return Vector3(m[0][col], m[1][col], m[2][col]);
+			return TVector3(m[0][col], m[1][col], m[2][col]);
 		}
 
 		/** Returns the specified column of the matrix. */
-		Vector4 GetColumn4D(u32 col) const
+		TVector4<T> GetColumn4D(u32 col) const
 		{
 			B3D_ASSERT(col < 4);
 
-			return Vector4(m[0][col], m[1][col], m[2][col], m[3][col]);
+			return TVector4(m[0][col], m[1][col], m[2][col], m[3][col]);
 		}
 
 		/** Returns a transpose of the matrix (switched columns and rows). */
-		Matrix4 Transpose() const
+		TMatrix4 Transpose() const
 		{
-			return Matrix4(m[0][0], m[1][0], m[2][0], m[3][0], m[0][1], m[1][1], m[2][1], m[3][1], m[0][2], m[1][2], m[2][2], m[3][2], m[0][3], m[1][3], m[2][3], m[3][3]);
+			return TMatrix4(m[0][0], m[1][0], m[2][0], m[3][0], m[0][1], m[1][1], m[2][1], m[3][1], m[0][2], m[1][2], m[2][2], m[3][2], m[0][3], m[1][3], m[2][3], m[3][3]);
 		}
 
 		/** Assigns the vector to a column of the matrix. */
-		void SetColumn(u32 idx, const Vector4& column)
+		void SetColumn(u32 idx, const TVector4<T>& column)
 		{
 			m[0][idx] = column.X;
 			m[1][idx] = column.Y;
@@ -228,7 +229,7 @@ namespace b3d
 		}
 
 		/** Assigns the vector to a row of the matrix. */
-		void SetRow(u32 idx, const Vector4& column)
+		void SetRow(u32 idx, const TVector4<T>& column)
 		{
 			m[idx][0] = column.X;
 			m[idx][1] = column.Y;
@@ -237,9 +238,9 @@ namespace b3d
 		}
 
 		/** Returns the rotation/scaling part of the matrix as a 3x3 matrix. */
-		Matrix3 Get3x3() const
+		TMatrix3<T> Get3x3() const
 		{
-			Matrix3 m3x3;
+			TMatrix3<T> m3x3;
 			m3x3.m[0][0] = m[0][0];
 			m3x3.m[0][1] = m[0][1];
 			m3x3.m[0][2] = m[0][2];
@@ -254,30 +255,30 @@ namespace b3d
 		}
 
 		/** Calculates the adjoint of the matrix. */
-		Matrix4 Adjoint() const;
+		TMatrix4 Adjoint() const;
 
 		/** Calculates the determinant of the matrix. */
-		float Determinant() const;
+		T Determinant() const;
 
 		/** Calculates the determinant of the 3x3 sub-matrix. */
-		float Determinant3x3() const;
+		T Determinant3x3() const;
 
 		/** Calculates the inverse of the matrix. */
-		Matrix4 Inverse() const;
+		TMatrix4 Inverse() const;
 
 		/**
 		 * Creates a matrix from translation, rotation and scale.
 		 *
 		 * @note	The transformation are applied in scale->rotation->translation order.
 		 */
-		void SetTrs(const Vector3& translation, const Quaternion& rotation, const Vector3& scale);
+		void SetTrs(const TVector3<T>& translation, const TQuaternion<T>& rotation, const TVector3<T>& scale);
 
 		/**
 		 * Creates a matrix from inverse translation, rotation and scale.
 		 *
 		 * @note	This is cheaper than setTRS() and then performing inverse().
 		 */
-		void SetInverseTrs(const Vector3& translation, const Quaternion& rotation, const Vector3& scale);
+		void SetInverseTrs(const TVector3<T>& translation, const TQuaternion<T>& rotation, const TVector3<T>& scale);
 
 		/**
 		 * Decompose a Matrix4 to translation, rotation and scale.
@@ -288,10 +289,10 @@ namespace b3d
 		 *  - Plain TRS matrices (that aren't composed with other matrices) can always be decomposed
 		 *  - Composed TRS matrices can be decomposed ONLY if the scaling factor is uniform
 		 */
-		void Decomposition(Vector3& position, Quaternion& rotation, Vector3& scale) const;
+		void Decomposition(TVector3<T>& position, TQuaternion<T>& rotation, TVector3<T>& scale) const;
 
 		/** Extracts the translation (position) part of the matrix. */
-		Vector3 GetTranslation() const { return Vector3(m[0][3], m[1][3], m[2][3]); }
+		TVector3<T> GetTranslation() const { return TVector3<T>(m[0][3], m[1][3], m[2][3]); }
 
 		/**
 		 * Check whether or not the matrix is affine matrix.
@@ -308,16 +309,16 @@ namespace b3d
 		 *
 		 * @note	Matrix must be affine.
 		 */
-		Matrix4 InverseAffine() const;
+		TMatrix4 InverseAffine() const;
 
 		/**
 		 * Concatenate two affine matrices.
 		 *
 		 * @note	Both matrices must be affine.
 		 */
-		Matrix4 ConcatenateAffine(const Matrix4& other) const
+		TMatrix4 ConcatenateAffine(const TMatrix4& other) const
 		{
-			return Matrix4(
+			return TMatrix4(
 				m[0][0] * other.m[0][0] + m[0][1] * other.m[1][0] + m[0][2] * other.m[2][0],
 				m[0][0] * other.m[0][1] + m[0][1] * other.m[1][1] + m[0][2] * other.m[2][1],
 				m[0][0] * other.m[0][2] + m[0][1] * other.m[1][2] + m[0][2] * other.m[2][2],
@@ -333,7 +334,7 @@ namespace b3d
 				m[2][0] * other.m[0][2] + m[2][1] * other.m[1][2] + m[2][2] * other.m[2][2],
 				m[2][0] * other.m[0][3] + m[2][1] * other.m[1][3] + m[2][2] * other.m[2][3] + m[2][3],
 
-				0, 0, 0, 1);
+				(T)0.0, (T)0.0, (T)0.0, (T)1.0);
 		}
 
 		/**
@@ -341,19 +342,19 @@ namespace b3d
 		 *
 		 * @note	Matrix must be affine.
 		 */
-		Plane MultiplyAffine(const Plane& p) const
+		TPlane<T> MultiplyAffine(const TPlane<T>& p) const
 		{
-			Vector4 localNormal(p.Normal.X, p.Normal.Y, p.Normal.Z, 0.0f);
-			Vector4 localPoint = localNormal * p.D;
-			localPoint.W = 1.0f;
+			TVector4<T> localNormal(p.Normal.X, p.Normal.Y, p.Normal.Z, (T)0.0);
+			TVector4<T> localPoint = localNormal * p.D;
+			localPoint.W = (T)1.0;
 
-			Matrix4 itMat = Inverse().Transpose();
-			Vector4 worldNormal = itMat.MultiplyAffine(localNormal);
-			Vector4 worldPoint = MultiplyAffine(localPoint);
+			TMatrix4 itMat = Inverse().Transpose();
+			TVector4<T> worldNormal = itMat.MultiplyAffine(localNormal);
+			TVector4<T> worldPoint = MultiplyAffine(localPoint);
 
-			float d = worldNormal.Dot(worldPoint);
+			T d = worldNormal.Dot(worldPoint);
 
-			return Plane(worldNormal.X, worldNormal.Y, worldNormal.Z, d);
+			return TPlane<T>(worldNormal.X, worldNormal.Y, worldNormal.Z, d);
 		}
 
 		/**
@@ -361,9 +362,9 @@ namespace b3d
 		 *
 		 * @note	Matrix must be affine, if it is not use multiply() method.
 		 */
-		Vector3 MultiplyAffine(const Vector3& v) const
+		TVector3<T> MultiplyAffine(const TVector3<T>& v) const
 		{
-			return Vector3(
+			return TVector3<T>(
 				m[0][0] * v.X + m[0][1] * v.Y + m[0][2] * v.Z + m[0][3],
 				m[1][0] * v.X + m[1][1] * v.Y + m[1][2] * v.Z + m[1][3],
 				m[2][0] * v.X + m[2][1] * v.Y + m[2][2] * v.Z + m[2][3]);
@@ -374,9 +375,9 @@ namespace b3d
 		 *
 		 * @note	Matrix must be affine, if it is not use multiply() method.
 		 */
-		Vector4 MultiplyAffine(const Vector4& v) const
+		TVector4<T> MultiplyAffine(const TVector4<T>& v) const
 		{
-			return Vector4(
+			return TVector4<T>(
 				m[0][0] * v.X + m[0][1] * v.Y + m[0][2] * v.Z + m[0][3] * v.W,
 				m[1][0] * v.X + m[1][1] * v.Y + m[1][2] * v.Z + m[1][3] * v.W,
 				m[2][0] * v.X + m[2][1] * v.Y + m[2][2] * v.Z + m[2][3] * v.W,
@@ -384,9 +385,9 @@ namespace b3d
 		}
 
 		/** Transform a 3D direction by this matrix. */
-		Vector3 MultiplyDirection(const Vector3& v) const
+		TVector3<T> MultiplyDirection(const TVector3<T>& v) const
 		{
-			return Vector3(
+			return TVector3<T>(
 				m[0][0] * v.X + m[0][1] * v.Y + m[0][2] * v.Z,
 				m[1][0] * v.X + m[1][1] * v.Y + m[1][2] * v.Z,
 				m[2][0] * v.X + m[2][1] * v.Y + m[2][2] * v.Z);
@@ -401,11 +402,11 @@ namespace b3d
 		 * @note
 		 * If your matrix doesn't contain projection components use MultiplyAffine() method as it is faster.
 		 */
-		Vector3 Multiply(const Vector3& v) const
+		TVector3<T> Multiply(const TVector3<T>& v) const
 		{
-			Vector3 r(BsZero);
+			TVector3<T> r(BsZero);
 
-			float fInvW = 1.0f / (m[3][0] * v.X + m[3][1] * v.Y + m[3][2] * v.Z + m[3][3]);
+			T fInvW = (T)1.0 / (m[3][0] * v.X + m[3][1] * v.Y + m[3][2] * v.Z + m[3][3]);
 
 			r.X = (m[0][0] * v.X + m[0][1] * v.Y + m[0][2] * v.Z + m[0][3]) * fInvW;
 			r.Y = (m[1][0] * v.X + m[1][1] * v.Y + m[1][2] * v.Z + m[1][3]) * fInvW;
@@ -419,9 +420,9 @@ namespace b3d
 		 *
 		 * @note	If your matrix doesn't contain projection components use MultiplyAffine() method as it is faster.
 		 */
-		Vector4 Multiply(const Vector4& v) const
+		TVector4<T> Multiply(const TVector4<T>& v) const
 		{
-			return Vector4(
+			return TVector4<T>(
 				m[0][0] * v.X + m[0][1] * v.Y + m[0][2] * v.Z + m[0][3] * v.W,
 				m[1][0] * v.X + m[1][1] * v.Y + m[1][2] * v.Z + m[1][3] * v.W,
 				m[2][0] * v.X + m[2][1] * v.Y + m[2][2] * v.Z + m[2][3] * v.W,
@@ -429,65 +430,70 @@ namespace b3d
 		}
 
 		/** Creates a view matrix and applies optional reflection. */
-		void MakeView(const Vector3& position, const Quaternion& orientation);
+		void MakeView(const TVector3<T>& position, const TQuaternion<T>& orientation);
 
 		/**
 		 * Creates an ortographic projection matrix that scales the part of the view bounded by @p left, @p right,
 		 * @p top and @p bottom into [-1, 1] range. If @p far is non-zero the matrix will also transform the depth into
 		 * [-1, 1] range, otherwise it will leave it as-is.
 		 */
-		void MakeProjectionOrtho(float left, float right, float top, float bottom, float near, float far);
+		void MakeProjectionOrtho(T left, T right, T top, T bottom, T near, T far);
 
 		/** Creates a 4x4 transformation matrix that performs translation. */
-		static Matrix4 Translation(const Vector3& translation);
+		static TMatrix4 Translation(const TVector3<T>& translation);
 
 		/** Creates a 4x4 transformation matrix that performs scaling. */
-		static Matrix4 Scaling(const Vector3& scale);
+		static TMatrix4 Scaling(const TVector3<T>& scale);
 
 		/** Creates a 4x4 transformation matrix that performs uniform scaling. */
-		static Matrix4 Scaling(float scale);
+		static TMatrix4 Scaling(T scale);
 
 		/** Creates a 4x4 transformation matrix that performs rotation. */
-		static Matrix4 Rotation(const Quaternion& rotation);
+		static TMatrix4 Rotation(const TQuaternion<T>& rotation);
 
 		/**
 		 * Creates a 4x4 perspective projection matrix.
 		 *
-		 * @param[in]	horzFOV		Horizontal field of view.
-		 * @param[in]	aspect		Aspect ratio. Determines the vertical field of view.
-		 * @param[in]	near		Distance to the near plane.
-		 * @param[in]	far			Distance to the far plane.
-		 * @param[in]	positiveZ	If true the matrix will project geometry as if its looking along the positive Z axis.
-		 *							Otherwise it projects along the negative Z axis (default).
+		 * @param	horzFOV		Horizontal field of view.
+		 * @param	aspect		Aspect ratio. Determines the vertical field of view.
+		 * @param	near		Distance to the near plane.
+		 * @param	far			Distance to the far plane.
+		 * @param	positiveZ	If true the matrix will project geometry as if its looking along the positive Z axis.
+		 *						Otherwise it projects along the negative Z axis (default).
 		 */
-		static Matrix4 ProjectionPerspective(const Degree& horzFOV, float aspect, float near, float far, bool positiveZ = false);
+		static TMatrix4 ProjectionPerspective(const TDegree<T>& horzFOV, T aspect, T near, T far, bool positiveZ = false);
 
 		/** @copydoc MakeProjectionOrtho() */
-		static Matrix4 ProjectionOrthographic(float left, float right, float top, float bottom, float near, float far);
+		static TMatrix4 ProjectionOrthographic(T left, T right, T top, T bottom, T near, T far);
 
 		/** Creates a view matrix. */
-		static Matrix4 View(const Vector3& position, const Quaternion& orientation);
+		static TMatrix4 View(const TVector3<T>& position, const TQuaternion<T>& orientation);
 
 		/**
 		 * Creates a matrix from translation, rotation and scale.
 		 *
 		 * @note	The transformation are applied in scale->rotation->translation order.
 		 */
-		static Matrix4 TRS(const Vector3& translation, const Quaternion& rotation, const Vector3& scale);
+		static TMatrix4 TRS(const TVector3<T>& translation, const TQuaternion<T>& rotation, const TVector3<T>& scale);
 
 		/**
 		 * Creates a matrix from inverse translation, rotation and scale.
 		 *
 		 * @note	This is cheaper than setTRS() and then performing inverse().
 		 */
-		static Matrix4 InverseTrs(const Vector3& translation, const Quaternion& rotation, const Vector3& scale);
+		static TMatrix4 InverseTrs(const TVector3<T>& translation, const TQuaternion<T>& rotation, const TVector3<T>& scale);
 
-		static const Matrix4 kZero;
-		static const Matrix4 kIdentity;
+		static const TMatrix4 kZero;
+		static const TMatrix4 kIdentity;
 
 	private:
-		float m[4][4];
+		T m[4][4];
 	};
+
+	template<> const TMatrix4<float> TMatrix4<float>::kZero{BsZero};
+	template<> const TMatrix4<double> TMatrix4<double>::kZero{BsZero};
+	template<> const TMatrix4<float> TMatrix4<float>::kIdentity{BsIdentity};
+	template<> const TMatrix4<double> TMatrix4<double>::kIdentity{BsIdentity};
 
 	/** @} */
 } // namespace b3d
@@ -496,11 +502,11 @@ namespace b3d
 
 namespace std
 {
-/** Hash value generator for Matrix4. */
-template<>
-struct hash<b3d::Matrix4>
+/** Hash value generator for TMatrix4<T>. */
+template<typename T>
+struct hash<b3d::TMatrix4<T>>
 {
-	size_t operator()(const b3d::Matrix4& value) const
+	size_t operator()(const b3d::TMatrix4<T>& value) const
 	{
 		using namespace b3d;
 
