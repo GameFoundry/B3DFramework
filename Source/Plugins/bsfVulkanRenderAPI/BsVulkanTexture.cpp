@@ -134,6 +134,8 @@ void VulkanImage::Destroy()
 
 void VulkanImage::SetName(const StringView& name)
 {
+	SetDebugName(name);
+
 	if(vkSetDebugUtilsObjectNameEXT == nullptr)
 		return;
 

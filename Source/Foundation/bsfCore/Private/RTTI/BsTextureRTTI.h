@@ -117,6 +117,10 @@ namespace b3d
 					}
 				}
 
+				// Inherit name from resource if not set
+				if(texProps.Name.empty())
+					texProps.Name = object.GetName();
+
 				// A bit clumsy initializing with already set values, but I feel its better than complicating things and storing the values
 				// in mRTTIData.
 				object.Initialize();

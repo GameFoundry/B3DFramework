@@ -118,7 +118,11 @@ void BuiltinResources::OnStartUp()
 	dummyPixelData->SetColorAt(Color::kRed, 1, 0);
 	dummyPixelData->SetColorAt(Color::kRed, 1, 1);
 
-	mDummyTexture = Texture::Create(dummyPixelData);
+	TextureCreateInformation dummyTextureCreateInformation;
+	dummyTextureCreateInformation.InitialData = dummyPixelData;
+	dummyTextureCreateInformation.Name = "DummyTexture";
+
+	mDummyTexture = Texture::Create(dummyTextureCreateInformation);
 
 	mWhiteSpriteTexture = GetSkinTexture(kWhiteTex);
 
