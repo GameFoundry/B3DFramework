@@ -12,11 +12,11 @@ namespace b3d
 	 */
 
 	/** Represents a line segment in three dimensional space defined by a start and an end point. */
-	class B3D_UTILITY_EXPORT LineSegment3
+	template<typename T>
+	struct B3D_UTILITY_EXPORT TLineSegment3
 	{
-	public:
-		LineSegment3() = default;
-		LineSegment3(const Vector3& start, const Vector3& end);
+		TLineSegment3() = default;
+		TLineSegment3(const TVector3<T>& start, const TVector3<T>& end);
 
 		/**
 		 * Find the nearest point on the line segment and the provided ray.
@@ -26,16 +26,16 @@ namespace b3d
 		 *
 		 * @note	If segment and ray are parallel the set of points at the segment origin are returned.
 		 */
-		std::pair<std::array<Vector3, 2>, float> GetNearestPoint(const Ray& ray) const;
+		std::pair<std::array<TVector3<T>, 2>, T> GetNearestPoint(const TRay<T>& ray) const;
 
 		/** Returns the length of the line segment. */
-		float GetLength() const { return Start.Distance(End); }
+		T GetLength() const { return Start.Distance(End); }
 
 		/** Returns the center point along the line segment. */
-		Vector3 GetCenter() const { return Start + (End - Start) * 0.5f; }
+		TVector3<T> GetCenter() const { return Start + (End - Start) * (T)0.5; }
 
-		Vector3 Start = BsZero;
-		Vector3 End = BsZero;
+		TVector3<T> Start = BsZero;
+		TVector3<T> End = BsZero;
 	};
 
 	/** @} */

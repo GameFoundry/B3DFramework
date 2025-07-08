@@ -23,26 +23,27 @@ namespace b3d
 	};
 
 	/** Represents a convex volume defined by planes representing the volume border. */
-	class B3D_UTILITY_EXPORT ConvexVolume
+	template<typename T>
+	struct B3D_UTILITY_EXPORT TConvexVolume
 	{
 	public:
-		ConvexVolume() = default;
-		ConvexVolume(const Vector<Plane>& planes);
+		TConvexVolume() = default;
+		TConvexVolume(const Vector<TPlane<T>>& planes);
 
 		/** Creates frustum planes from the provided projection matrix. */
-		ConvexVolume(const Matrix4& projectionMatrix, bool useNearPlane = true);
+		TConvexVolume(const TMatrix4<T>& projectionMatrix, bool useNearPlane = true);
 
 		/**
 		 * Checks does the volume intersects the provided axis aligned box.
 		 * This will return true if the box is fully inside the volume.
 		 */
-		bool Intersects(const AABox& box) const;
+		bool Intersects(const TAABox<T>& box) const;
 
 		/**
 		 * Checks does the volume intersects the provided sphere.
 		 * This will return true if the sphere is fully inside the volume.
 		 */
-		bool Intersects(const Sphere& sphere) const;
+		bool Intersects(const TSphere<T>& sphere) const;
 
 		/**
 		 * Checks if the convex volume contains the provided point.
@@ -51,16 +52,16 @@ namespace b3d
 		 * @param[in]	expand	Optional value to expand the size of the convex volume by the specified value during the
 		 *						check. Negative values shrink the volume.
 		 */
-		bool Contains(const Vector3& p, float expand = 0.0f) const;
+		bool Contains(const TVector3<T>& p, T expand = (T)0.0) const;
 
 		/** Returns the internal set of planes that represent the volume. */
-		Vector<Plane> GetPlanes() const { return mPlanes; }
+		Vector<TPlane<T>> GetPlanes() const { return mPlanes; }
 
 		/** Returns the specified plane that represents the volume. */
-		const Plane& GetPlane(FrustumPlane whichPlane) const;
+		const TPlane<T>& GetPlane(FrustumPlane whichPlane) const;
 
 	private:
-		Vector<Plane> mPlanes;
+		Vector<TPlane<T>> mPlanes;
 	};
 
 	/** @} */

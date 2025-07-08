@@ -7,37 +7,45 @@
 
 using namespace b3d;
 
-Bounds::Bounds(const AABox& box, const Sphere& sphere)
+template<typename T>
+TBounds<T>::TBounds(const TAABox<T>& box, const TSphere<T>& sphere)
 	: mBox(box), mSphere(sphere)
 {}
 
-void Bounds::SetBounds(const AABox& box, const Sphere& sphere)
+template<typename T>
+void TBounds<T>::SetBounds(const TAABox<T>& box, const TSphere<T>& sphere)
 {
 	mBox = box;
 	mSphere = sphere;
 }
 
-void Bounds::Merge(const Bounds& rhs)
+template<typename T>
+void TBounds<T>::Merge(const TBounds<T>& rhs)
 {
 	mBox.Merge(rhs.mBox);
 	mSphere.Merge(rhs.mSphere);
 }
 
-void Bounds::Merge(const Vector3& point)
+template<typename T>
+void TBounds<T>::Merge(const TVector3<T>& point)
 {
 	mBox.Merge(point);
 	mSphere.Merge(point);
 }
 
-void Bounds::Transform(const Matrix4& matrix)
+template<typename T>
+void TBounds<T>::Transform(const TMatrix4<T>& matrix)
 {
 	mBox.Transform(matrix);
 	mSphere.Transform(matrix);
 }
 
-void Bounds::TransformAffine(const Matrix4& matrix)
+template<typename T>
+void TBounds<T>::TransformAffine(const TMatrix4<T>& matrix)
 {
 	mBox.TransformAffine(matrix);
 	mSphere.Transform(matrix);
 }
 
+template struct B3D_UTILITY_EXPORT TBounds<float>;
+template struct B3D_UTILITY_EXPORT TBounds<double>;

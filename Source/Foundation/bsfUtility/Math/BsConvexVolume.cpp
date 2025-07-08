@@ -9,19 +9,21 @@
 
 using namespace b3d;
 
-ConvexVolume::ConvexVolume(const Vector<Plane>& planes)
+template<typename T>
+TConvexVolume<T>::TConvexVolume(const Vector<TPlane<T>>& planes)
 	: mPlanes(planes)
 {}
 
-ConvexVolume::ConvexVolume(const Matrix4& projectionMatrix, bool useNearPlane)
+template<typename T>
+TConvexVolume<T>::TConvexVolume(const TMatrix4<T>& projectionMatrix, bool useNearPlane)
 {
 	mPlanes.reserve(6);
 
-	const Matrix4& proj = projectionMatrix;
+	const TMatrix4<T>& proj = projectionMatrix;
 
 	// Left
 	{
-		Plane plane;
+		TPlane<T> plane;
 		plane.Normal.X = proj[3][0] + proj[0][0];
 		plane.Normal.Y = proj[3][1] + proj[0][1];
 		plane.Normal.Z = proj[3][2] + proj[0][2];
@@ -32,7 +34,7 @@ ConvexVolume::ConvexVolume(const Matrix4& projectionMatrix, bool useNearPlane)
 
 	// Right
 	{
-		Plane plane;
+		TPlane<T> plane;
 		plane.Normal.X = proj[3][0] - proj[0][0];
 		plane.Normal.Y = proj[3][1] - proj[0][1];
 		plane.Normal.Z = proj[3][2] - proj[0][2];
@@ -43,7 +45,7 @@ ConvexVolume::ConvexVolume(const Matrix4& projectionMatrix, bool useNearPlane)
 
 	// Top
 	{
-		Plane plane;
+		TPlane<T> plane;
 		plane.Normal.X = proj[3][0] - proj[1][0];
 		plane.Normal.Y = proj[3][1] - proj[1][1];
 		plane.Normal.Z = proj[3][2] - proj[1][2];
@@ -54,7 +56,7 @@ ConvexVolume::ConvexVolume(const Matrix4& projectionMatrix, bool useNearPlane)
 
 	// Bottom
 	{
-		Plane plane;
+		TPlane<T> plane;
 		plane.Normal.X = proj[3][0] + proj[1][0];
 		plane.Normal.Y = proj[3][1] + proj[1][1];
 		plane.Normal.Z = proj[3][2] + proj[1][2];
@@ -65,7 +67,7 @@ ConvexVolume::ConvexVolume(const Matrix4& projectionMatrix, bool useNearPlane)
 
 	// Far
 	{
-		Plane plane;
+		TPlane<T> plane;
 		plane.Normal.X = proj[3][0] - proj[2][0];
 		plane.Normal.Y = proj[3][1] - proj[2][1];
 		plane.Normal.Z = proj[3][2] - proj[2][2];
@@ -77,7 +79,7 @@ ConvexVolume::ConvexVolume(const Matrix4& projectionMatrix, bool useNearPlane)
 	// Near
 	if(useNearPlane)
 	{
-		Plane plane;
+		TPlane<T> plane;
 		plane.Normal.X = proj[3][0] + proj[2][0];
 		plane.Normal.Y = proj[3][1] + proj[2][1];
 		plane.Normal.Z = proj[3][2] + proj[2][2];
@@ -88,22 +90,23 @@ ConvexVolume::ConvexVolume(const Matrix4& projectionMatrix, bool useNearPlane)
 
 	for(u32 i = 0; i < (u32)mPlanes.size(); i++)
 	{
-		float length = mPlanes[i].Normal.Normalize();
+		T length = mPlanes[i].Normal.Normalize();
 		mPlanes[i].D /= -length;
 	}
 }
 
-bool ConvexVolume::Intersects(const AABox& box) const
+template<typename T>
+bool TConvexVolume<T>::Intersects(const TAABox<T>& box) const
 {
-	Vector3 center = box.GetCenter();
-	Vector3 extents = box.GetHalfSize();
-	Vector3 absExtents(Math::Abs(extents.X), Math::Abs(extents.Y), Math::Abs(extents.Z));
+	TVector3<T> center = box.GetCenter();
+	TVector3<T> extents = box.GetHalfSize();
+	TVector3<T> absExtents(Math::Abs(extents.X), Math::Abs(extents.Y), Math::Abs(extents.Z));
 
 	for(auto& plane : mPlanes)
 	{
-		float dist = center.Dot(plane.Normal) - plane.D;
+		T dist = center.Dot(plane.Normal) - plane.D;
 
-		float effectiveRadius = absExtents.X * abs(plane.Normal.X);
+		T effectiveRadius = absExtents.X * abs(plane.Normal.X);
 		effectiveRadius += absExtents.Y * abs(plane.Normal.Y);
 		effectiveRadius += absExtents.Z * abs(plane.Normal.Z);
 
@@ -114,14 +117,15 @@ bool ConvexVolume::Intersects(const AABox& box) const
 	return true;
 }
 
-bool ConvexVolume::Intersects(const Sphere& sphere) const
+template<typename T>
+bool TConvexVolume<T>::Intersects(const TSphere<T>& sphere) const
 {
-	Vector3 center = sphere.Center;
-	float radius = sphere.Radius;
+	TVector3<T> center = sphere.Center;
+	T radius = sphere.Radius;
 
 	for(auto& plane : mPlanes)
 	{
-		float dist = center.Dot(plane.Normal) - plane.D;
+		T dist = center.Dot(plane.Normal) - plane.D;
 
 		if(dist < -radius)
 			return false;
@@ -130,7 +134,8 @@ bool ConvexVolume::Intersects(const Sphere& sphere) const
 	return true;
 }
 
-bool ConvexVolume::Contains(const Vector3& p, float expand) const
+template<typename T>
+bool TConvexVolume<T>::Contains(const TVector3<T>& p, T expand) const
 {
 	for(auto& plane : mPlanes)
 	{
@@ -141,7 +146,8 @@ bool ConvexVolume::Contains(const Vector3& p, float expand) const
 	return true;
 }
 
-const Plane& ConvexVolume::GetPlane(FrustumPlane whichPlane) const
+template<typename T>
+const TPlane<T>& TConvexVolume<T>::GetPlane(FrustumPlane whichPlane) const
 {
 	if(whichPlane >= mPlanes.size())
 	{
@@ -150,3 +156,6 @@ const Plane& ConvexVolume::GetPlane(FrustumPlane whichPlane) const
 
 	return mPlanes[whichPlane];
 }
+
+template struct B3D_UTILITY_EXPORT TConvexVolume<float>;
+template struct B3D_UTILITY_EXPORT TConvexVolume<double>;

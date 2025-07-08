@@ -15,27 +15,27 @@ namespace b3d
 	 */
 
 	/** Bounds represented by an axis aligned box and a sphere. */
-	class B3D_UTILITY_EXPORT Bounds
+	template<typename T>
+	struct B3D_UTILITY_EXPORT TBounds
 	{
-	public:
-		Bounds() = default;
-		Bounds(const AABox& box, const Sphere& sphere);
-		~Bounds() = default;
+		TBounds() = default;
+		TBounds(const TAABox<T>& box, const TSphere<T>& sphere);
+		~TBounds() = default;
 
 		/** Returns the axis aligned box representing the bounds. */
-		const AABox& GetBox() const { return mBox; }
+		const TAABox<T>& GetBox() const { return mBox; }
 
 		/** Returns the sphere representing the bounds. */
-		const Sphere& GetSphere() const { return mSphere; }
+		const TSphere<T>& GetSphere() const { return mSphere; }
 
 		/** Updates the bounds by setting the new bounding box and sphere. */
-		void SetBounds(const AABox& box, const Sphere& sphere);
+		void SetBounds(const TAABox<T>& box, const TSphere<T>& sphere);
 
 		/** Merges the two bounds, creating a new bounds that encapsulates them both. */
-		void Merge(const Bounds& rhs);
+		void Merge(const TBounds& rhs);
 
 		/** Expands the bounds so it includes the provided point. */
-		void Merge(const Vector3& point);
+		void Merge(const TVector3<T>& point);
 
 		/**
 		 * Transforms the bounds by the given matrix.
@@ -45,7 +45,7 @@ namespace b3d
 		 * is instead created by encompassing the transformed oriented bounding box.
 		 * Retrieving the value as an actual OBB would provide a tighter fit.
 		 */
-		void Transform(const Matrix4& matrix);
+		void Transform(const TMatrix4<T>& matrix);
 
 		/**
 		 * Transforms the bounds by the given matrix.
@@ -58,11 +58,11 @@ namespace b3d
 		 * @note
 		 * Provided matrix must be affine.
 		 */
-		void TransformAffine(const Matrix4& matrix);
+		void TransformAffine(const TMatrix4<T>& matrix);
 
 	protected:
-		AABox mBox;
-		Sphere mSphere;
+		TAABox<T> mBox;
+		TSphere<T> mSphere;
 	};
 
 	/** @} */

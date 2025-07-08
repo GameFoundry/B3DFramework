@@ -5,75 +5,77 @@
 
 using namespace b3d;
 
-Capsule::Capsule(const LineSegment3& segment, float radius)
+template<typename T>
+TCapsule<T>::TCapsule(const TLineSegment3<T>& segment, T radius)
 	: mSegment(segment), mRadius(radius)
 {}
 
-std::pair<bool, float> Capsule::Intersects(const Ray& ray) const
+template<typename T>
+std::pair<bool, T> TCapsule<T>::Intersects(const TRay<T>& ray) const
 {
-	const Vector3& org = ray.Origin;
-	const Vector3& dir = ray.Direction;
+	const TVector3<T>& org = ray.Origin;
+	const TVector3<T>& dir = ray.Direction;
 
-	Vector3 segDir = mSegment.End - mSegment.Start;
-	float segExtent = segDir.Normalize() * 0.5f;
-	Vector3 segCenter = mSegment.Start + segDir * segExtent;
+	TVector3<T> segDir = mSegment.End - mSegment.Start;
+	T segExtent = segDir.Normalize() * (T)0.5;
+	TVector3<T> segCenter = mSegment.Start + segDir * segExtent;
 
-	Vector3 basis[3];
+	TVector3<T> basis[3];
 	basis[0] = segDir;
 	basis[0].OrthogonalComplement(basis[1], basis[2]);
 
-	float rSqr = mRadius * mRadius;
+	T rSqr = mRadius * mRadius;
 
-	Vector3 diff = org - segCenter;
-	Vector3 P(basis[1].Dot(diff), basis[2].Dot(diff), basis[0].Dot(diff));
+	TVector3<T> diff = org - segCenter;
+	TVector3<T> P(basis[1].Dot(diff), basis[2].Dot(diff), basis[0].Dot(diff));
 
 	// Get the z-value, in capsule coordinates, of the incoming line's
 	// unit-length direction.
-	float dz = basis[0].Dot(dir);
-	if(std::abs(dz) == 1.0f)
+	T dz = basis[0].Dot(dir);
+	if(std::abs(dz) == (T)1.0)
 	{
 		// The line is parallel to the capsule axis.  Determine whether the
 		// line intersects the capsule hemispheres.
-		float radialSqrDist = rSqr - P[0] * P[0] - P[1] * P[1];
-		if(radialSqrDist < 0.0f)
+		T radialSqrDist = rSqr - P[0] * P[0] - P[1] * P[1];
+		if(radialSqrDist < (T)0.0)
 		{
 			// The line is outside the cylinder of the capsule, so there is no
 			// intersection.
-			return std::make_pair(false, 0.0f);
+			return std::make_pair(false, (T)0.0);
 		}
 
 		// The line intersects the hemispherical caps.
-		float zOffset = std::sqrt(radialSqrDist) + segExtent;
-		if(dz > 0.0f)
+		T zOffset = std::sqrt(radialSqrDist) + segExtent;
+		if(dz > (T)0.0)
 			return std::make_pair(true, -P[2] - zOffset);
 		else
 			return std::make_pair(true, P[2] - zOffset);
 	}
 
 	// Convert the incoming line unit-length direction to capsule coordinates.
-	Vector3 D(basis[1].Dot(dir), basis[2].Dot(dir), dz);
+	TVector3<T> D(basis[1].Dot(dir), basis[2].Dot(dir), dz);
 
 	// Test intersection of line with infinite cylinder
-	float a0 = P[0] * P[0] + P[1] * P[1] - rSqr;
-	float a1 = P[0] * D[0] + P[1] * D[1];
-	float a2 = D[0] * D[0] + D[1] * D[1];
-	float discr = a1 * a1 - a0 * a2;
+	T a0 = P[0] * P[0] + P[1] * P[1] - rSqr;
+	T a1 = P[0] * D[0] + P[1] * D[1];
+	T a2 = D[0] * D[0] + D[1] * D[1];
+	T discr = a1 * a1 - a0 * a2;
 
-	if(discr < 0.0f)
+	if(discr < (T)0.0)
 	{
 		// The line does not intersect the infinite cylinder.
-		return std::make_pair(false, 0.0f);
+		return std::make_pair(false, (T)0.0);
 	}
 
-	float root, inv, tValue, zValue;
-	float nearestT = std::numeric_limits<float>::max();
+	T root, inv, tValue, zValue;
+	T nearestT = std::numeric_limits<T>::max();
 	bool foundOneIntersection = false;
 
-	if(discr > 0.0f)
+	if(discr > (T)0.0)
 	{
 		// The line intersects the infinite cylinder in two places.
 		root = std::sqrt(discr);
-		inv = 1.0f / a2;
+		inv = (T)1.0 / a2;
 
 		tValue = (-a1 - root) * inv;
 		zValue = P[2] + tValue * D[2];
@@ -107,7 +109,7 @@ std::pair<bool, float> Capsule::Intersects(const Ray& ray) const
 	}
 
 	// Test intersection with bottom hemisphere.
-	float PZpE = P[2] + segExtent;
+	T PZpE = P[2] + segExtent;
 	a1 += PZpE * D[2];
 	a0 += PZpE * PZpE;
 	discr = a1 * a1 - a0;
@@ -140,7 +142,7 @@ std::pair<bool, float> Capsule::Intersects(const Ray& ray) const
 			}
 		}
 	}
-	else if(discr == 0.0f)
+	else if(discr == (T)0.0)
 	{
 		tValue = -a1;
 		zValue = P[2] + tValue * D[2];
@@ -157,10 +159,10 @@ std::pair<bool, float> Capsule::Intersects(const Ray& ray) const
 	}
 
 	// Test intersection with top hemisphere
-	a1 -= 2.0f * segExtent * D[2];
-	a0 -= 4.0f * segExtent * P[2];
+	a1 -= (T)2.0 * segExtent * D[2];
+	a0 -= (T)4.0 * segExtent * P[2];
 	discr = a1 * a1 - a0;
-	if(discr > 0.0f)
+	if(discr > (T)0.0)
 	{
 		root = sqrt(discr);
 		tValue = -a1 - root;
@@ -189,7 +191,7 @@ std::pair<bool, float> Capsule::Intersects(const Ray& ray) const
 			}
 		}
 	}
-	else if(discr == 0.0f)
+	else if(discr == (T)0.0)
 	{
 		tValue = -a1;
 		zValue = P[2] + tValue * D[2];
@@ -208,5 +210,8 @@ std::pair<bool, float> Capsule::Intersects(const Ray& ray) const
 	if(foundOneIntersection)
 		return std::make_pair(true, nearestT);
 
-	return std::make_pair(false, 0.0f);
+	return std::make_pair(false, (T)0.0);
 }
+
+template struct B3D_UTILITY_EXPORT TCapsule<float>;
+template struct B3D_UTILITY_EXPORT TCapsule<double>;

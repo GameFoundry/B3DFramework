@@ -10,8 +10,6 @@
 
 namespace b3d
 {
-	class Bounds;
-
 	namespace render
 	{
 		struct SceneInfo;

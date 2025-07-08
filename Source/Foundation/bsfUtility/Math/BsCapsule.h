@@ -13,40 +13,40 @@ namespace b3d
 	 */
 
 	/** Represents a capsule with a line segment and a radius. */
-	class B3D_UTILITY_EXPORT Capsule
+	template<typename T>
+	struct B3D_UTILITY_EXPORT TCapsule
 	{
-	public:
-		Capsule() = default;
-		Capsule(const LineSegment3& segment, float radius);
+		TCapsule() = default;
+		TCapsule(const TLineSegment3<T>& segment, T radius);
 
 		/**
 		 * Ray/capsule intersection.
 		 *
 		 * @return	Boolean result and distance to the nearest intersection point.
 		 */
-		std::pair<bool, float> Intersects(const Ray& ray) const;
+		std::pair<bool, T> Intersects(const TRay<T>& ray) const;
 
 		/**
 		 * Returns the line segment along which the capsule lies. All capsule points are at equal distance from this
 		 * segment.
 		 */
-		const LineSegment3& GetSegment() const { return mSegment; }
+		const TLineSegment3<T>& GetSegment() const { return mSegment; }
 
 		/** Returns the radius of the capsule. It defines the distance of the capsule from its line segment. */
-		float GetRadius() const { return mRadius; }
+		T GetRadius() const { return mRadius; }
 
 		/**
 		 * Returns the height of the capsule. The height is the distance between centers of the hemispheres that form the
 		 * capsule's ends.
 		 */
-		float GetHeight() const { return mSegment.GetLength(); }
+		T GetHeight() const { return mSegment.GetLength(); }
 
 		/** Returns the center point of the capsule. */
-		Vector3 GetCenter() const { return mSegment.GetCenter(); }
+		TVector3<T> GetCenter() const { return mSegment.GetCenter(); }
 
 	private:
-		LineSegment3 mSegment;
-		float mRadius = 0.0f;
+		TLineSegment3<T> mSegment;
+		T mRadius = (T)0.0;
 	};
 
 	/** @} */

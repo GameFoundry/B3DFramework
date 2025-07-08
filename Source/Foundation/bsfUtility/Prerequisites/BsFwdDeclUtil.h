@@ -178,6 +178,27 @@ namespace b3d
 	using RayF = TRay<float>;
 	using RayD = TRay<double>;
 
+	template<typename T> struct TBounds;
+	using Bounds = TBounds<float>;
+	using BoundsF = TBounds<float>;
+	using BoundsD = TBounds<double>;
+
+	template<typename T> struct TCapsule;
+	using Capsule = TCapsule<float>;
+	using CapsuleF = TCapsule<float>;
+	using CapsuleD = TCapsule<double>;
+
+	template<typename T> struct TLineSegment3;
+	using LineSegment3 = TLineSegment3<float>;
+	using LineSegment3F = TLineSegment3<float>;
+	using LineSegment3D = TLineSegment3<double>;
+
+
+	template<typename T> struct TConvexVolume;
+	using ConvexVolume = TConvexVolume<float>;
+	using ConvexVolumeF = TConvexVolume<float>;
+	using ConvexVolumeD = TConvexVolume<double>;
+
 	/** @} */
 
 	/** @addtogroup Platform-Utility
@@ -194,9 +215,7 @@ namespace b3d
 
 	/** @} */
 
-	class Angle;
 	class Math;
-	class Capsule;
 	class Rect3;
 	class Color;
 	class DynamicLibrary;
