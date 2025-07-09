@@ -691,6 +691,10 @@ LRESULT CALLBACK Win32Platform::Win32WndProcInternal(HWND hWnd, UINT uMsg, WPARA
 			win->NotifyWindowEvent(WindowEventType::Restored);
 
 		return 0;
+	case WM_PAINT:
+		ValidateRect(hWnd, NULL);
+		win->NotifyWindowEvent(WindowEventType::Redraw);
+		return 0;
 	case WM_SETCURSOR:
 		if(IsCursorHidden())
 			::SetCursor(nullptr);

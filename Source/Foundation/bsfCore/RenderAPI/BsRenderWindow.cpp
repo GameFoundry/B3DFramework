@@ -142,6 +142,11 @@ void RenderWindow::NotifyWindowEvent(WindowEventType type)
 
 			break;
 		}
+	case WindowEventType::Redraw:
+	{
+		MarkRenderProxyDataDirty((u32)RenderWindowDirtyFlag::Redraw);
+		break;
+	}
 	case WindowEventType::MouseLeft:
 		{
 			RenderWindowManager::Instance().NotifyMouseLeft(*this);
@@ -223,6 +228,8 @@ void RenderWindow::NotifySwapBuffersRequested()
 		b3d::RenderWindowManager::Instance().RequestShowWindow(mWindowId, true);
 		mShowOnSwap = false;
 	}
+
+	mIsRedrawRequested = false;
 }
 
 void RenderWindow::RebuildSwapChain()
@@ -245,6 +252,12 @@ void RenderWindow::SyncFromCoreObject(const CoreSyncData& data, FrameAllocator& 
 	auto* const syncPacket = data.GetSyncPacket<b3d::RenderWindow::SyncPacket>();
 	if(syncPacket == nullptr)
 		return;
+
+	if(syncPacket->Flags == (u32)RenderWindowDirtyFlag::Redraw)
+	{
+		mIsRedrawRequested = true;
+		return;
+	}
 
 	const u32 oldWidth = mRenderTargetProperties.Width;
 	const u32 oldHeight = mRenderTargetProperties.Height;

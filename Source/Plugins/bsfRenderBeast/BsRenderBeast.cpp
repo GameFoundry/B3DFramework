@@ -326,13 +326,17 @@ bool RenderBeast::RenderScene(RenderBeastScene& scene, const FrameInfo& frameInf
 		SPtr<RenderTarget> target = rtInfo.Target;
 		const Vector<Camera*>& cameras = rtInfo.Cameras;
 
+		const bool isWindow = target->GetProperties().IsWindow;
+		const SPtr<RenderWindow> window = std::static_pointer_cast<RenderWindow>(rtInfo.Target);
+		const bool renderTargetNeedsRedraw = window != nullptr ? window->IsRedrawRequested() : false;
+
 		const u32 cameraCount = (u32)cameras.size();
 		for(u32 i = 0; i < cameraCount; i++)
 		{
 			const u32 viewIndex = sceneInfo.CameraToView.at(cameras[i]);
 			RendererView* viewInfo = sceneInfo.Views[viewIndex];
 
-			if (mIsFrameCaptureRequested)
+			if (mIsFrameCaptureRequested || renderTargetNeedsRedraw)
 				viewInfo->NotifyNeedsRedraw();
 
 			viewInfo->UpdateAsyncOperations(); // Note: Needs to happen before any ShouldDraw*() calls, to be consistent
@@ -343,16 +347,14 @@ bool RenderBeast::RenderScene(RenderBeastScene& scene, const FrameInfo& frameInf
 		PROFILE_CALL(mMainViewGroup->DetermineVisibility(*commandBuffer, sceneInfo), "Determine visibility")
 
 		// Render everything
-		const bool anythingDrawnForView = RenderViews(*commandBuffer, scene, *mMainViewGroup, frameInfo);
+		const bool anythingDrawnForView = RenderViews(*commandBuffer, scene, *mMainViewGroup, frameInfo, renderTargetNeedsRedraw);
 		if(anythingDrawnForView)
 		{
 			mDevice->SubmitCommandBuffer(commandBuffer);
 			commandBuffer = mCommandBufferPool->Create(GpuCommandBufferCreateInformation::Create("Main"));
 
-			if(rtInfo.Target->GetProperties().IsWindow)
-			{
-				mDevice->PresentRenderWindow(std::static_pointer_cast<RenderWindow>(rtInfo.Target));
-			}
+			if(isWindow)
+				mDevice->PresentRenderWindow(window);
 
 			anythingDrawnForScene = true;
 		}
@@ -363,7 +365,7 @@ bool RenderBeast::RenderScene(RenderBeastScene& scene, const FrameInfo& frameInf
 	return anythingDrawnForScene;
 }
 
-bool RenderBeast::RenderViews(GpuCommandBuffer& commandBuffer, RenderBeastScene& scene, RendererViewGroup& viewGroup, const FrameInfo& frameInfo)
+bool RenderBeast::RenderViews(GpuCommandBuffer& commandBuffer, RenderBeastScene& scene, RendererViewGroup& viewGroup, const FrameInfo& frameInfo, bool forceRender)
 {
 	bool needs3DRender = false;
 	u32 numViews = viewGroup.GetNumViews();
@@ -417,7 +419,7 @@ bool RenderBeast::RenderViews(GpuCommandBuffer& commandBuffer, RenderBeastScene&
 		const RenderSettings& settings = view->GetRenderSettings();
 		if(settings.OverlayOnly)
 		{
-			if(RenderOverlay(commandBuffer, scene, *view, frameInfo))
+			if(RenderOverlay(commandBuffer, scene, *view, frameInfo, forceRender))
 				anythingDrawn = true;
 		}
 		else
@@ -494,7 +496,7 @@ void RenderBeast::RenderView(GpuCommandBuffer& commandBuffer, RenderBeastScene& 
 	GetProfilerCPU().EndSample("Render view");
 }
 
-bool RenderBeast::RenderOverlay(GpuCommandBuffer& commandBuffer, RenderBeastScene& scene, RendererView& view, const FrameInfo& frameInfo)
+bool RenderBeast::RenderOverlay(GpuCommandBuffer& commandBuffer, RenderBeastScene& scene, RendererView& view, const FrameInfo& frameInfo, bool forceRender)
 {
 	GetProfilerCPU().BeginSample("Render overlay");
 
@@ -546,7 +548,7 @@ bool RenderBeast::RenderOverlay(GpuCommandBuffer& commandBuffer, RenderBeastScen
 			if(request == RendererExtensionRequest::DontRender)
 				continue;
 
-			if(request == RendererExtensionRequest::ForceRender)
+			if(request == RendererExtensionRequest::ForceRender || forceRender)
 				needsRedraw = true;
 
 			mOverlayExtensions.push_back(entry);
@@ -704,7 +706,7 @@ void RenderBeast::CaptureSceneCubeMap(RendererScene& scene, GpuCommandBuffer& co
 	viewGroup.DetermineVisibility(commandBuffer, sceneInfo);
 
 	FrameInfo frameInfo({ 0.0f, 1.0f / 60.0f, 0 }, false, PerSceneFrameData());
-	RenderViews(commandBuffer, renderBeastScene, viewGroup, frameInfo);
+	RenderViews(commandBuffer, renderBeastScene, viewGroup, frameInfo, false);
 
 	// Make sure the render texture is available for reads
 	commandBuffer.SetRenderTarget(nullptr);

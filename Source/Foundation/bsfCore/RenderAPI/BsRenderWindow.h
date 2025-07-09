@@ -37,7 +37,19 @@ namespace b3d
 		MouseLeft,
 		/** Triggered when the user wants to close the window. */
 		CloseRequested,
+		/** Triggered when the OS requests the window to be redrawn. */
+		Redraw,
 	};
+
+	/**	Signals which portion of a render window is dirty. */
+	enum class RenderWindowDirtyFlag
+	{
+		Redraw = 1 << 0,
+		Everything = 1 << 1,
+	};
+
+	typedef Flags<RenderWindowDirtyFlag> RenderWindowDirtyFlags;
+	B3D_FLAGS_OPERATORS(RenderWindowDirtyFlag)
 
 	/** @} */
 
@@ -318,6 +330,9 @@ namespace b3d
 			/** Rebuilds the swap chain according to the currently set properties. */
 			virtual void RebuildSwapChain();
 
+			/** Returns true if the operating system has requested the window to be redrawn. This state is cleared when NotifySwapBuffersRequested() is called. */
+			bool IsRedrawRequested() const { return mIsRedrawRequested; }
+
 			/**	Returns properties that describe the render window. */
 			const RenderWindowProperties& GetRenderWindowProperties() const { return mRenderWindowProperties; }
 
@@ -344,6 +359,7 @@ namespace b3d
 			u32 mWindowId = 0;
 			u64 mPlatformWindowHandle = 0;
 			bool mShowOnSwap = false;
+			bool mIsRedrawRequested = false;
 			SPtr<IRenderWindowSurface> mRenderWindowSurface;
 		};
 

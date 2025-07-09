@@ -78,7 +78,8 @@ void RenderWindowManager::NotifyMouseLeft(RenderWindow& window)
 
 void RenderWindowManager::RequestShowWindow(u32 windowId, bool show)
 {
-	auto fnShowWindow = [windowId, show, this]
+	SignalEvent event;
+	auto fnShowWindow = [windowId, show, &event, this]
 	{
 		auto found = mWindows.find(windowId);
 		if(found == mWindows.end())
@@ -88,12 +89,19 @@ void RenderWindowManager::RequestShowWindow(u32 windowId, bool show)
 			found->second->Show();
 		else
 			found->second->Hide();
+
+		event.Signal();
 	};
 
 	if(GetCoreApplication().GetMainThreadId() == B3D_CURRENT_THREAD_ID)
 		fnShowWindow();
 	else
+	{
 		GetCoreApplication().GetMainThreadScheduler().Post(SchedulerTask(std::move(fnShowWindow)));
+
+		// Make sure to wait for the message to be processed by the main thread, because if we present an image onto a hidden window it will get lost (at least on Win32).
+		event.Wait();
+	}
 }
 
 void RenderWindowManager::Update()
