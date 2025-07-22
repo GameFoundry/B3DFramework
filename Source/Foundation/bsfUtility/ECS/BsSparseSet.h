@@ -432,7 +432,6 @@ namespace b3d::ecs
 		reverse_iterator rend() const { return Rend(); }
 		const_reverse_iterator crend() const { return Crend(); }
 
-		// TODO - Instead of events, just notify the parent Registry and/or Group directly
 		Event<void(Entity)> OnWasAdded; /**< Triggers any time a new entity is added to the set. */
 		Event<void(Entity)> OnWillRemove; /**< Triggers right before an entity is removed from the set. */
 	protected:

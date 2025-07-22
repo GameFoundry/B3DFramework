@@ -11,6 +11,8 @@
 
 #include <iterator>
 
+#include "BsEntityStorage.h"
+
 namespace b3d::ecs
 {
 	/** @addtogroup General
@@ -89,5 +91,171 @@ namespace b3d::ecs
 	{
 		return !(lhs == rhs);
 	}
+
+	template<u32 OwnedTypeCount, u32 IncludedTypeCount, u32 ExcludedTypeCount>
+	struct TGroupInternals
+	{
+		template<typename OwnedAndIncludedTypes, typename ExcludedTypes>
+		TGroupInternals(const std::tuple<OwnedAndIncludedTypes...>& ownedAndIncludedTypes, const std::tuple<ExcludedTypes>& excludedTypes)
+			: mIncludedTypeStorage(std::apply([](auto*... storage) { return std::array<SparseSet*, OwnedTypeCount + IncludedTypeCount>(storage...); }, ownedAndIncludedTypes))
+			, mExcludedTypeStorage(std::apply([](auto*... storage) { return std::array<SparseSet*, ExcludedTypeCount>(storage...); }), excludedTypes)
+		{
+			u32 eventHandleIndex = 0;
+			std::apply([this, &eventHandleIndex](auto*... storage)
+			{
+				((mEventHandles[eventHandleIndex++] = storage->OnDidAdd.Connect(&TGroupInternals::TryAddEntryToGroupAfterAdd),
+					mEventHandles[eventHandleIndex++] = storage->OnWillRemove.Connect(&TGroupInternals::TryRemoveFromGroup)), ...);
+			}, ownedAndIncludedTypes);
+
+			std::apply([this, &eventHandleIndex](auto*... storage)
+			{
+				((mEventHandles[eventHandleIndex++] = storage->OnDidAdd.Connect(&TGroupInternals::TryRemoveFromGroup),
+					mEventHandles[eventHandleIndex++] = storage->OnWillRemove.Connect(&TGroupInternals::TryAddEntryToGroupBeforeRemove)), ...);
+			});
+			
+			for(auto entry : mIncludedTypeStorage[0])
+				TryAddEntryToGroupAfterAdd(entry);
+		}
+
+		~TGroupInternals()
+		{
+			for(const auto& entry : mEventHandles)
+				entry.Disconnect();
+		}
+
+		u64 Size() const { return mNextIndex; }
+
+		template<u32 Index>
+		SparseSet* GetStorage()
+		{
+			if constexpr(Index < (OwnedTypeCount + IncludedTypeCount))
+				return mIncludedTypeStorage[Index];
+			else
+				return mExcludedTypeStorage[Index - (OwnedTypeCount + IncludedTypeCount)];
+		}
+		
+	private:
+		void SwapEntry(u64 packedIndex, Entity entity)
+		{
+			for(u32 storageIndex = 0; storageIndex < OwnedTypeCount; ++storageIndex)
+				mIncludedTypeStorage[storageIndex]->Swap(mIncludedTypeStorage[packedIndex], entity);
+		}
+
+		void TryAddEntryToGroupAfterAdd(Entity entity)
+		{
+			const bool inclusiveFilterPassed = std::apply([entity, index = mNextIndex](auto* firstStorage, auto*... otherStorage)
+			{
+				return firstStorage->Contains(entity) && firstStorage->GetPackedIndex(entity) >= index && (otherStorage->Contains(entity) && ...);
+			});
+
+			const bool exclusiveFilterPassed = std::apply([entity](auto*... storage) { return (!storage->Contains(entity) && ...); });
+
+			if(inclusiveFilterPassed && exclusiveFilterPassed)
+				SwapEntry(mNextIndex++, entity);
+		}
+
+		void TryAddEntryToGroupBeforeRemove(Entity entity)
+		{
+			const bool inclusiveFilterPassed = std::apply([entity, index = mNextIndex](auto* firstStorage, auto*... otherStorage)
+			{
+				return firstStorage->Contains(entity) && firstStorage->GetPackedIndex(entity) >= index && (otherStorage->Contains(entity) && ...);
+			});
+
+			const bool exclusiveFilterPassed = std::apply([entity](auto*... storage)
+			{
+				return (0u + ... + storage->Contains(entity)) == 1u;
+			});
+
+			if(inclusiveFilterPassed && exclusiveFilterPassed)
+				SwapEntry(mNextIndex++, entity);
+		}
+
+		void TryRemoveFromGroup(Entity entity)
+		{
+			if(mIncludedTypeStorage[0]->Contains(entity) && mIncludedTypeStorage->GetPackedIndex(entity) < mNextIndex)
+				SwapEntry(mNextIndex--, entity);
+		}
+
+		std::array<SparseSet*, OwnedTypeCount + IncludedTypeCount> mIncludedTypeStorage { };
+		std::array<SparseSet*, ExcludedTypeCount> mExcludedTypeStorage { };
+		std::array<HEvent, (OwnedTypeCount + IncludedTypeCount + ExcludedTypeCount) * 2> mEventHandles;
+		u64 mNextIndex = 0;
+	};
+
+	template<u32 IncludedTypeCount, u32 ExcludedTypeCount>
+	struct TGroupInternals<0, IncludedTypeCount, ExcludedTypeCount>
+	{
+		template<typename IncludedTypes, typename ExcludedTypes>
+		TGroupInternals(const std::tuple<IncludedTypes...>& includedTypes, const std::tuple<ExcludedTypes>& excludedTypes)
+			: mIncludedTypeStorage(std::apply([](auto*... storage) { return std::array<SparseSet*, IncludedTypeCount>(storage...); }, includedTypes))
+			, mExcludedTypeStorage(std::apply([](auto*... storage) { return std::array<SparseSet*, ExcludedTypeCount>(storage...); }), excludedTypes)
+		{
+			u32 eventHandleIndex = 0;
+			std::apply([this, &eventHandleIndex](auto*... storage)
+			{
+				((mEventHandles[eventHandleIndex++] = storage->OnDidAdd.Connect(&TGroupInternals::TryAddEntryToGroupAfterAdd),
+					mEventHandles[eventHandleIndex++] = storage->OnWillRemove.Connect(&TGroupInternals::TryRemoveFromGroup)), ...);
+			}, includedTypes);
+
+			std::apply([this, &eventHandleIndex](auto*... storage)
+			{
+				((mEventHandles[eventHandleIndex++] = storage->OnDidAdd.Connect(&TGroupInternals::TryRemoveFromGroup),
+					mEventHandles[eventHandleIndex++] = storage->OnWillRemove.Connect(&TGroupInternals::TryAddEntryToGroupBeforeRemove)), ...);
+			});
+			
+			for(auto entry : mIncludedTypeStorage[0])
+				TryAddEntryToGroupAfterAdd(entry);
+		}
+
+		~TGroupInternals()
+		{
+			for(const auto& entry : mEventHandles)
+				entry.Disconnect();
+		}
+
+		EntitySparseSet& GetGroupStorage() { return mGroupEntities; }
+		const EntitySparseSet& GetGroupStorage() const { return mGroupEntities; }
+
+		template<u32 Index>
+		SparseSet* GetStorage()
+		{
+			if constexpr(Index < IncludedTypeCount)
+				return mIncludedTypeStorage[Index];
+			else
+				return mExcludedTypeStorage[Index - IncludedTypeCount];
+		}
+		
+	private:
+		void TryAddEntryToGroupAfterAdd(Entity entity)
+		{
+			const bool inclusiveFilterPassed = std::apply([entity](auto*... storage) { return (storage->Contains(entity) && ...); });
+			const bool exclusiveFilterPassed = std::apply([entity](auto*... storage) { return (!storage->Contains(entity) && ...); });
+
+			if(!mGroupEntities.Contains(entity) && inclusiveFilterPassed && exclusiveFilterPassed)
+				mGroupEntities.Add(entity);
+		}
+
+		void TryAddEntryToGroupBeforeRemove(Entity entity)
+		{
+			const bool inclusiveFilterPassed = std::apply([entity](auto*... storage) { return (storage->Contains(entity) && ...); });
+			const bool exclusiveFilterPassed = std::apply([entity](auto*... storage) { return (0u + ... + storage->Contains(entity)) == 1u; });
+
+			if(!mGroupEntities.Contains(entity) && inclusiveFilterPassed && exclusiveFilterPassed)
+				mGroupEntities.Add(entity);
+		}
+
+		void TryRemoveFromGroup(Entity entity)
+		{
+			mGroupEntities.EraseIfValid(entity);
+		}
+
+		std::array<SparseSet*, IncludedTypeCount> mIncludedTypeStorage { };
+		std::array<SparseSet*, ExcludedTypeCount> mExcludedTypeStorage { };
+		std::array<HEvent, (IncludedTypeCount + ExcludedTypeCount) * 2> mEventHandles;
+		EntitySparseSet mGroupEntities;
+	};
+
+
+
 	/** @} */
 } // namespace b3d::ecs
