@@ -36,7 +36,7 @@ namespace b3d::ecs
 		using iterator_category = std::input_iterator_tag;
 
 		constexpr TGroupIteratorAdapter() = default;
-		constexpr TGroupIteratorAdapter(IteratorType iterator, std::tuple<OwnedStorageTypes*..., IncludedStorageTypes*> ownedAndIncludedTypeStorage)
+		constexpr TGroupIteratorAdapter(IteratorType iterator, std::tuple<OwnedStorageTypes*..., IncludedStorageTypes*...> ownedAndIncludedTypeStorage)
 			: mIterator(iterator), mOwnedAndIncludedTypeStorage(std::move(ownedAndIncludedTypeStorage))
 		{ }
 
@@ -78,7 +78,7 @@ namespace b3d::ecs
 		}
 
 		IteratorType mIterator;
-		std::tuple<OwnedStorageTypes*..., IncludedStorageTypes*> mOwnedAndIncludedTypeStorage;
+		std::tuple<OwnedStorageTypes*..., IncludedStorageTypes*...> mOwnedAndIncludedTypeStorage;
 	};
 
 	template <typename... LeftIteratorTypes, typename... RightIteratorTypes>
@@ -93,11 +93,19 @@ namespace b3d::ecs
 		return !(lhs == rhs);
 	}
 
-	template<u32 OwnedTypeCount, u32 IncludedTypeCount, u32 ExcludedTypeCount>
-	struct TGroupInternals
+	struct GroupInternals
 	{
-		template<typename OwnedAndIncludedTypes, typename ExcludedTypes>
-		TGroupInternals(const std::tuple<OwnedAndIncludedTypes...>& ownedAndIncludedTypes, const std::tuple<ExcludedTypes>& excludedTypes)
+		virtual ~GroupInternals() = default;
+
+		// TODO - This needs to be implemented in derived types
+		virtual bool OwnsType(const TypeId typeId) const { return false; }
+	};
+
+	template<u32 OwnedTypeCount, u32 IncludedTypeCount, u32 ExcludedTypeCount>
+	struct TGroupInternals : GroupInternals
+	{
+		template<typename... OwnedAndIncludedTypes, typename... ExcludedTypes>
+		TGroupInternals(const std::tuple<OwnedAndIncludedTypes...>& ownedAndIncludedTypes, const std::tuple<ExcludedTypes...>& excludedTypes)
 			: mIncludedTypeStorage(std::apply([](auto*... storage) { return std::array<SparseSet*, OwnedTypeCount + IncludedTypeCount>(storage...); }, ownedAndIncludedTypes))
 			, mExcludedTypeStorage(std::apply([](auto*... storage) { return std::array<SparseSet*, ExcludedTypeCount>(storage...); }), excludedTypes)
 		{
@@ -186,8 +194,8 @@ namespace b3d::ecs
 	template<u32 IncludedTypeCount, u32 ExcludedTypeCount>
 	struct TGroupInternals<0, IncludedTypeCount, ExcludedTypeCount>
 	{
-		template<typename IncludedTypes, typename ExcludedTypes>
-		TGroupInternals(const std::tuple<IncludedTypes...>& includedTypes, const std::tuple<ExcludedTypes>& excludedTypes)
+		template<typename... IncludedTypes, typename... ExcludedTypes>
+		TGroupInternals(const std::tuple<IncludedTypes...>& includedTypes, const std::tuple<ExcludedTypes...>& excludedTypes)
 			: mIncludedTypeStorage(std::apply([](auto*... storage) { return std::array<SparseSet*, IncludedTypeCount>(storage...); }, includedTypes))
 			, mExcludedTypeStorage(std::apply([](auto*... storage) { return std::array<SparseSet*, ExcludedTypeCount>(storage...); }), excludedTypes)
 		{

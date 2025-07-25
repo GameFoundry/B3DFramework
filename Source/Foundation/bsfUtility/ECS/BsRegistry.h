@@ -10,8 +10,7 @@
 #include "ECS/BsTagStorage.h"
 #include "ECS/BsEntityStorage.h"
 #include "ECS/BsView.h"
-
-#include <iterator>
+#include "ECS/BsGroup.h"
 
 namespace b3d::ecs
 {
@@ -243,31 +242,70 @@ namespace b3d::ecs
 			return storage.Contains(entity) ? storage.Get(entity) : storage.Add(entity, std::forward<Arguments>(arguments)...);
 		}
 
-		template<typename FirstIncludedType, typename... OtherIncludedType, typename... ExcludedType>
-		TView<TIncludedTypes<TStorageType<const FirstIncludedType>, TStorageType<const OtherIncludedType>...>, TExcludedTypes<TStorageType<const ExcludedType>...>>
-		CreateView(TExcludedTypes<ExcludedType...> = TExcludedTypes<ExcludedType...>{}) const
+		template<typename FirstIncludedType, typename... OtherIncludedTypes, typename... ExcludedTypes>
+		TView<TIncludedTypes<TStorageType<const FirstIncludedType>, TStorageType<const OtherIncludedTypes>...>, TExcludedTypes<TStorageType<const ExcludedTypes>...>>
+		CreateView(TExcludedTypes<ExcludedTypes...> = TExcludedTypes<ExcludedTypes...>{}) const
 		{
-			TView<TIncludedTypes<TStorageType<const FirstIncludedType>, TStorageType<const OtherIncludedType>...>, TExcludedTypes<TStorageType<const ExcludedType>...>> view;
+			TView<TIncludedTypes<TStorageType<const FirstIncludedType>, TStorageType<const OtherIncludedTypes>...>, TExcludedTypes<TStorageType<const ExcludedTypes>...>> view;
 
 			[&view](const auto*... storage)
 			{
 				((storage != nullptr ? view.SetStorage(*storage) : void()), ...);
-			}(TryGetStorage<std::remove_const_t<FirstIncludedType>>(), TryGetStorage<std::remove_const_t<OtherIncludedType>>()..., TryGetStorage<std::remove_const_t<ExcludedType>>()...);
+			}(TryGetStorage<std::remove_const_t<FirstIncludedType>>(), TryGetStorage<std::remove_const_t<OtherIncludedTypes>>()..., TryGetStorage<std::remove_const_t<ExcludedTypes>>()...);
 
 			return view;
 		}
 
-		template<typename FirstIncludedType, typename... OtherIncludedType, typename... ExcludedType>
-		TView<TIncludedTypes<TStorageType<FirstIncludedType>, TStorageType<OtherIncludedType>...>, TExcludedTypes<TStorageType<ExcludedType>...>>
-		CreateView(TExcludedTypes<ExcludedType...> = TExcludedTypes<ExcludedType...>{}) 
+		template<typename FirstIncludedType, typename... OtherIncludedTypes, typename... ExcludedTypes>
+		TView<TIncludedTypes<TStorageType<FirstIncludedType>, TStorageType<OtherIncludedTypes>...>, TExcludedTypes<TStorageType<ExcludedTypes>...>>
+		CreateView(TExcludedTypes<ExcludedTypes...> = TExcludedTypes<ExcludedTypes...>{}) 
 		{
-			TView<TIncludedTypes<TStorageType<FirstIncludedType>, TStorageType<OtherIncludedType>...>, TExcludedTypes<TStorageType<ExcludedType>...>> view;
+			TView<TIncludedTypes<TStorageType<FirstIncludedType>, TStorageType<OtherIncludedTypes>...>, TExcludedTypes<TStorageType<ExcludedTypes>...>> view;
 
 			view.SetStorage(GetOrCreateStorage<std::remove_const_t<FirstIncludedType>>());
-			(view.SetStorage(GetOrCreateStorage<std::remove_const_t<OtherIncludedType>>()), ...);
-			(view.SetStorage(GetOrCreateStorage<std::remove_const_t<ExcludedType>>()), ...);
+			(view.SetStorage(GetOrCreateStorage<std::remove_const_t<OtherIncludedTypes>>()), ...);
+			(view.SetStorage(GetOrCreateStorage<std::remove_const_t<ExcludedTypes>>()), ...);
 
 			return view;
+		}
+
+		template<typename... OwnedTypes, typename... IncludedTypes, typename... ExcludedTypes>
+		TGroup<TOwnedTypes<OwnedTypes...>, TIncludedTypes<IncludedTypes...>, TExcludedTypes<ExcludedTypes...>>
+		GetOrCreateGroup(TIncludedTypes<IncludedTypes...> = TIncludedTypes<IncludedTypes...>{}, TExcludedTypes<ExcludedTypes...> = TExcludedTypes<ExcludedTypes...>{})
+		{
+			using GroupType = TGroup<TOwnedTypes<OwnedTypes...>, TIncludedTypes<IncludedTypes...>, TExcludedTypes<ExcludedTypes...>>;
+			using InternalsType = typename GroupType::GroupInternalsType;
+
+			if(auto found = mGroupStorage.find(GroupType::TypeId()); found != mGroupStorage.end())
+				return GroupType(*std::static_pointer_cast<InternalsType>(found.second));
+
+			SPtr<InternalsType> internals;
+			if constexpr(sizeof...(OwnedTypes) == 0)
+				internals = B3DMakeShared<InternalsType>(std::forward_as_tuple(GetOrCreateStorage<std::remove_const_t<IncludedTypes>>()...), std::forward_as_tuple(GetOrCreateStorage<std::remove_const_t<ExcludedTypes>>()...));
+			else
+			{
+				// Ensure no other group owns any of types the new group is meant to own
+				if(!B3D_ENSURE(std::all_of(mGroupStorage.begin(), mGroupStorage.end(), [](const auto& entry) -> bool { return !(entry.second->OwnsType(B3DGetRuntimeTypeId<OwnedTypes>()) || ...); })))
+					return GroupType();
+
+				internals = B3DMakeShared<InternalsType>(std::forward_as_tuple(GetOrCreateStorage<std::remove_const_t<OwnedTypes>>()...), std::forward_as_tuple(GetOrCreateStorage<std::remove_const_t<IncludedTypes>>()...), std::forward_as_tuple(GetOrCreateStorage<std::remove_const_t<ExcludedTypes>>()...));
+			}
+
+			mGroupStorage[GroupType::TypeId()] = internals;
+			return GroupType(*internals);
+		}
+
+		template<typename... OwnedTypes, typename... IncludedTypes, typename... ExcludedTypes>
+		TGroup<TOwnedTypes<OwnedTypes...>, TIncludedTypes<IncludedTypes...>, TExcludedTypes<ExcludedTypes...>>
+		GetGroup(TIncludedTypes<IncludedTypes...> = TIncludedTypes<IncludedTypes...>{}, TExcludedTypes<ExcludedTypes...> = TExcludedTypes<ExcludedTypes...>{})
+		{
+			using GroupType = TGroup<TOwnedTypes<OwnedTypes...>, TIncludedTypes<IncludedTypes...>, TExcludedTypes<ExcludedTypes...>>;
+			using InternalsType = typename GroupType::GroupInternalsType;
+
+			if(auto found = mGroupStorage.find(GroupType::TypeId()); found != mGroupStorage.end())
+				return GroupType(*std::static_pointer_cast<InternalsType>(found.second));
+
+			return GroupType();
 		}
 
 		template<typename Type, typename ComparisonFunction = std::less<>>
@@ -341,6 +379,7 @@ namespace b3d::ecs
 
 		EntitySparseSet mEntityStorage;
 		UnorderedMap<TypeId, SPtr<SparseSet>> mComponentStorage;
+		UnorderedMap<TypeId, SPtr<GroupInternals>> mGroupStorage;
 	};
 
 	/** @} */
