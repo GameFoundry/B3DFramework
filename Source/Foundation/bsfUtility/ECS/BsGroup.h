@@ -103,29 +103,29 @@ namespace b3d::ecs
 	{
 		template<typename... OwnedAndIncludedTypes, typename... ExcludedTypes>
 		TGroupInternals(const std::tuple<OwnedAndIncludedTypes...>& ownedAndIncludedTypes, const std::tuple<ExcludedTypes...>& excludedTypes)
-			: mIncludedTypeStorage(std::apply([](auto*... storage) { return std::array<SparseSet*, OwnedTypeCount + IncludedTypeCount>(storage...); }, ownedAndIncludedTypes))
-			, mExcludedTypeStorage(std::apply([](auto*... storage) { return std::array<SparseSet*, ExcludedTypeCount>(storage...); }), excludedTypes)
+			: mIncludedTypeStorage(std::apply([](auto&&... storage) { return std::array<SparseSet*, OwnedTypeCount + IncludedTypeCount>({&storage...}); }, ownedAndIncludedTypes))
+			, mExcludedTypeStorage(std::apply([](auto&&... storage) { return std::array<SparseSet*, ExcludedTypeCount>({&storage...}); }, excludedTypes))
 		{
 			u32 eventHandleIndex = 0;
-			std::apply([this, &eventHandleIndex](auto*... storage)
+			std::apply([this, &eventHandleIndex](auto&&... storage)
 			{
-				((mEventHandles[eventHandleIndex++] = storage->OnDidAdd.Connect(&TGroupInternals::TryAddEntryToGroupAfterAdd),
-					mEventHandles[eventHandleIndex++] = storage->OnWillRemove.Connect(&TGroupInternals::TryRemoveFromGroup)), ...);
+				((mEventHandles[eventHandleIndex++] = storage.OnWasAdded.Connect([this](Entity entity) { TryAddEntryToGroupAfterAdd(entity); }),
+					mEventHandles[eventHandleIndex++] = storage.OnWillRemove.Connect([this](Entity entity) { TryRemoveFromGroup(entity); })), ...);
 			}, ownedAndIncludedTypes);
 
-			std::apply([this, &eventHandleIndex](auto*... storage)
+			std::apply([this, &eventHandleIndex](auto&&... storage)
 			{
-				((mEventHandles[eventHandleIndex++] = storage->OnDidAdd.Connect(&TGroupInternals::TryRemoveFromGroup),
-					mEventHandles[eventHandleIndex++] = storage->OnWillRemove.Connect(&TGroupInternals::TryAddEntryToGroupBeforeRemove)), ...);
-			});
+				((mEventHandles[eventHandleIndex++] = storage.OnWasAdded.Connect([this](Entity entity) { TryRemoveFromGroup(entity); }),
+					mEventHandles[eventHandleIndex++] = storage.OnWillRemove.Connect([this](Entity entity) { TryAddEntryToGroupBeforeRemove(entity); })), ...);
+			}, excludedTypes);
 			
-			for(auto entry : mIncludedTypeStorage[0])
+			for(auto entry : *mIncludedTypeStorage[0])
 				TryAddEntryToGroupAfterAdd(entry);
 		}
 
 		~TGroupInternals()
 		{
-			for(const auto& entry : mEventHandles)
+			for(auto& entry : mEventHandles)
 				entry.Disconnect();
 		}
 
@@ -144,7 +144,7 @@ namespace b3d::ecs
 		void SwapEntry(u64 packedIndex, Entity entity)
 		{
 			for(u32 storageIndex = 0; storageIndex < OwnedTypeCount; ++storageIndex)
-				mIncludedTypeStorage[storageIndex]->Swap(mIncludedTypeStorage[packedIndex], entity);
+				mIncludedTypeStorage[storageIndex]->Swap((*mIncludedTypeStorage[storageIndex])[packedIndex], entity);
 		}
 
 		void TryAddEntryToGroupAfterAdd(Entity entity)
@@ -152,9 +152,9 @@ namespace b3d::ecs
 			const bool inclusiveFilterPassed = std::apply([entity, index = mNextIndex](auto* firstStorage, auto*... otherStorage)
 			{
 				return firstStorage->Contains(entity) && firstStorage->GetPackedIndex(entity) >= index && (otherStorage->Contains(entity) && ...);
-			});
+			}, mIncludedTypeStorage);
 
-			const bool exclusiveFilterPassed = std::apply([entity](auto*... storage) { return (!storage->Contains(entity) && ...); });
+			const bool exclusiveFilterPassed = std::apply([entity](auto*... storage) { return (!storage->Contains(entity) && ...); }, mExcludedTypeStorage);
 
 			if(inclusiveFilterPassed && exclusiveFilterPassed)
 				SwapEntry(mNextIndex++, entity);
@@ -178,7 +178,7 @@ namespace b3d::ecs
 
 		void TryRemoveFromGroup(Entity entity)
 		{
-			if(mIncludedTypeStorage[0]->Contains(entity) && mIncludedTypeStorage->GetPackedIndex(entity) < mNextIndex)
+			if(mIncludedTypeStorage[0]->Contains(entity) && mIncludedTypeStorage[0]->GetPackedIndex(entity) < mNextIndex)
 				SwapEntry(mNextIndex--, entity);
 		}
 
@@ -193,21 +193,21 @@ namespace b3d::ecs
 	{
 		template<typename... IncludedTypes, typename... ExcludedTypes>
 		TGroupInternals(const std::tuple<IncludedTypes...>& includedTypes, const std::tuple<ExcludedTypes...>& excludedTypes)
-			: mIncludedTypeStorage(std::apply([](auto*... storage) { return std::array<SparseSet*, IncludedTypeCount>(storage...); }, includedTypes))
-			, mExcludedTypeStorage(std::apply([](auto*... storage) { return std::array<SparseSet*, ExcludedTypeCount>(storage...); }), excludedTypes)
+			: mIncludedTypeStorage(std::apply([](auto&&... storage) { return std::array<SparseSet*, IncludedTypeCount>({ &storage... }); }, includedTypes))
+			, mExcludedTypeStorage(std::apply([](auto&&... storage) { return std::array<SparseSet*, ExcludedTypeCount>({ &storage... }); }), excludedTypes)
 		{
 			u32 eventHandleIndex = 0;
-			std::apply([this, &eventHandleIndex](auto*... storage)
+			std::apply([this, &eventHandleIndex](auto&&... storage)
 			{
-				((mEventHandles[eventHandleIndex++] = storage->OnDidAdd.Connect(&TGroupInternals::TryAddEntryToGroupAfterAdd),
-					mEventHandles[eventHandleIndex++] = storage->OnWillRemove.Connect(&TGroupInternals::TryRemoveFromGroup)), ...);
+				((mEventHandles[eventHandleIndex++] = storage.OnWasAdded.Connect([this](Entity entity) { TryAddEntryToGroupAfterAdd(entity); }),
+					mEventHandles[eventHandleIndex++] = storage.OnWillRemove.Connect([this](Entity entity) { TryRemoveFromGroup(entity); })), ...);
 			}, includedTypes);
 
-			std::apply([this, &eventHandleIndex](auto*... storage)
+			std::apply([this, &eventHandleIndex](auto&&... storage)
 			{
-				((mEventHandles[eventHandleIndex++] = storage->OnDidAdd.Connect(&TGroupInternals::TryRemoveFromGroup),
-					mEventHandles[eventHandleIndex++] = storage->OnWillRemove.Connect(&TGroupInternals::TryAddEntryToGroupBeforeRemove)), ...);
-			});
+				((mEventHandles[eventHandleIndex++] = storage.OnWasAdded.Connect([this](Entity entity) { TryRemoveFromGroup(entity); }),
+					mEventHandles[eventHandleIndex++] = storage.OnWillRemove.Connect([this](Entity entity) { TryAddEntryToGroupBeforeRemove(entity); })), ...);
+			}, excludedTypes);
 			
 			for(auto entry : mIncludedTypeStorage[0])
 				TryAddEntryToGroupAfterAdd(entry);
@@ -477,12 +477,12 @@ namespace b3d::ecs
 	public:
 		using Iterator = SparseSet::Iterator;
 		using ReverseIterator = SparseSet::Iterator;
-		using IteratorRange = TIteratorRange<TGroupIteratorAdapter<Iterator, TOwnedTypes<OwnedStorageTypes>..., TIncludedTypes<IncludedStorageTypes...>>>;
+		using IteratorRange = TIteratorRange<TGroupIteratorAdapter<Iterator, TOwnedTypes<OwnedStorageTypes...>, TIncludedTypes<IncludedStorageTypes...>>>;
 		using GroupInternalsType = TGroupInternals<sizeof...(OwnedStorageTypes), sizeof...(IncludedStorageTypes), sizeof...(ExcludedStorageTypes)>; 
 
 		TGroup() = default;
 		TGroup(GroupInternalsType& internals)
-			:mInternals(internals)
+			:mInternals(&internals)
 		{ }
 
 		const SparseSet& GetLeadingStorage()

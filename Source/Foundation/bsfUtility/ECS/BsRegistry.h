@@ -270,14 +270,14 @@ namespace b3d::ecs
 		}
 
 		template<typename... OwnedTypes, typename... IncludedTypes, typename... ExcludedTypes>
-		TGroup<TOwnedTypes<OwnedTypes...>, TIncludedTypes<IncludedTypes...>, TExcludedTypes<ExcludedTypes...>>
+		TGroup<TOwnedTypes<TStorageType<OwnedTypes>...>, TIncludedTypes<TStorageType<IncludedTypes>...>, TExcludedTypes<TStorageType<ExcludedTypes>...>>
 		GetOrCreateGroup(TIncludedTypes<IncludedTypes...> = TIncludedTypes<IncludedTypes...>{}, TExcludedTypes<ExcludedTypes...> = TExcludedTypes<ExcludedTypes...>{})
 		{
-			using GroupType = TGroup<TOwnedTypes<OwnedTypes...>, TIncludedTypes<IncludedTypes...>, TExcludedTypes<ExcludedTypes...>>;
+			using GroupType = TGroup<TOwnedTypes<TStorageType<OwnedTypes>...>, TIncludedTypes<TStorageType<IncludedTypes>...>, TExcludedTypes<TStorageType<ExcludedTypes>...>>;
 			using InternalsType = typename GroupType::GroupInternalsType;
 
 			if(auto found = mGroupStorage.find(GroupType::TypeId()); found != mGroupStorage.end())
-				return GroupType(*std::static_pointer_cast<InternalsType>(found.second));
+				return GroupType(*std::static_pointer_cast<InternalsType>(found->second));
 
 			SPtr<InternalsType> internals;
 			if constexpr(sizeof...(OwnedTypes) == 0)
@@ -288,7 +288,7 @@ namespace b3d::ecs
 				if(!B3D_ENSURE(std::all_of(mGroupStorage.begin(), mGroupStorage.end(), [](const auto& entry) -> bool { return !(entry.second->OwnsType(B3DGetRuntimeTypeId<OwnedTypes>()) || ...); })))
 					return GroupType();
 
-				internals = B3DMakeShared<InternalsType>(std::forward_as_tuple(GetOrCreateStorage<std::remove_const_t<OwnedTypes>>()...), std::forward_as_tuple(GetOrCreateStorage<std::remove_const_t<IncludedTypes>>()...), std::forward_as_tuple(GetOrCreateStorage<std::remove_const_t<ExcludedTypes>>()...));
+				internals = B3DMakeShared<InternalsType>(std::forward_as_tuple(GetOrCreateStorage<std::remove_const_t<OwnedTypes>>()..., GetOrCreateStorage<std::remove_const_t<IncludedTypes>>()...), std::forward_as_tuple(GetOrCreateStorage<std::remove_const_t<ExcludedTypes>>()...));
 			}
 
 			mGroupStorage[GroupType::TypeId()] = internals;
@@ -296,10 +296,10 @@ namespace b3d::ecs
 		}
 
 		template<typename... OwnedTypes, typename... IncludedTypes, typename... ExcludedTypes>
-		TGroup<TOwnedTypes<OwnedTypes...>, TIncludedTypes<IncludedTypes...>, TExcludedTypes<ExcludedTypes...>>
+		TGroup<TOwnedTypes<TStorageType<OwnedTypes>...>, TIncludedTypes<TStorageType<IncludedTypes>...>, TExcludedTypes<TStorageType<ExcludedTypes>...>>
 		GetGroup(TIncludedTypes<IncludedTypes...> = TIncludedTypes<IncludedTypes...>{}, TExcludedTypes<ExcludedTypes...> = TExcludedTypes<ExcludedTypes...>{})
 		{
-			using GroupType = TGroup<TOwnedTypes<OwnedTypes...>, TIncludedTypes<IncludedTypes...>, TExcludedTypes<ExcludedTypes...>>;
+			using GroupType = TGroup<TOwnedTypes<TStorageType<OwnedTypes>...>, TIncludedTypes<TStorageType<IncludedTypes>...>, TExcludedTypes<TStorageType<ExcludedTypes>...>>;
 			using InternalsType = typename GroupType::GroupInternalsType;
 
 			if(auto found = mGroupStorage.find(GroupType::TypeId()); found != mGroupStorage.end())
