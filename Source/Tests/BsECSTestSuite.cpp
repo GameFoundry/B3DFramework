@@ -99,6 +99,7 @@ ECSTestSuite::ECSTestSuite()
 	B3D_ADD_TEST(ECSTestSuite::TestRegistry)
 	B3D_ADD_TEST(ECSTestSuite::TestComponentSparseSet)
 	B3D_ADD_TEST(ECSTestSuite::TestViews)
+	B3D_ADD_TEST(ECSTestSuite::TestGroups)
 }
 
 void ECSTestSuite::TestSparseSet()
@@ -483,12 +484,6 @@ void ECSTestSuite::TestRegistry()
 	B3D_TEST_ASSERT(entityStorage->Size() == 0)
 }
 
-//template<typename... Type>
-//TView(Type &...storage) -> TView<TIncludedTypes<Type...>, TExcludedTypes<>>;
-//
-//template<typename... Get, typename... Exclude>
-//TView(std::tuple<Get &...>, std::tuple<Exclude &...> = {}) -> TView<TIncludedTypes<Get...>, TExcludedTypes<Exclude...>>;
-
 void ECSTestSuite::TestViews()
 {
 	using TestTypeList = TTypeList<test::Position, test::Velocity>;
@@ -662,6 +657,181 @@ void ECSTestSuite::TestViews()
 	});
 
 	B3D_TEST_ASSERT(index == kEntityWithPositionCount)
+
+	//auto isEnemyView = registry.CreateView<test::IsEnemyTag>();
+
+	// TODO - Add empty type to view, try iterating it in single storage mode
+
+	// TODO - Test view with exclude
+
+
+}
+
+void ECSTestSuite::TestGroups()
+{
+	Registry registry;
+
+	static constexpr u32 kEntityCount = 30;
+	static constexpr u32 kEntityWithPositionCount = kEntityCount;
+	static constexpr u32 kEntityWithVelocityCount = kEntityCount / 2;
+	static constexpr u32 kEntityWithEnemyTagCount = kEntityCount / 3;
+	std::array<Entity, kEntityCount> entities;
+
+	for(u32 i = 0; i < kEntityCount; ++i)
+	{
+		entities[i] = registry.CreateEntity();
+		registry.AddComponent<test::Position>(entities[i], (float)i + 1.0f, (float)i + 2.0f, (float)i + 3.0f);
+	}
+
+	// Add velocity to every second entity
+	for(u32 i = 0; i < kEntityWithVelocityCount; ++i)
+		registry.AddComponent<test::Velocity>(entities[i * 2 + 0], 5.0f, 5.0f, 5.0f);
+
+	// Add tags to last five entities
+	for(u32 i = 0; i < kEntityWithEnemyTagCount; ++i)
+		registry.AddComponents(entities.begin() + kEntityWithPositionCount - kEntityWithEnemyTagCount, entities.end(), test::IsEnemyTag());
+
+	// Owning group
+	auto positionVelocityOwningGroup = registry.GetOrCreateGroup<test::Position, test::Velocity>();
+
+	static_assert(std::is_same_v<decltype(std::get<0>(positionVelocityOwningGroup.Get({}))), test::Position&>, "Unexpected type");
+	static_assert(std::is_same_v<decltype(std::get<1>(positionVelocityOwningGroup.Get({}))), test::Velocity&>, "Unexpected type");
+
+	//u32 index = 0;
+	//for(const auto& entity : positionVelocityView)
+	//{
+	//	auto tuple = positionVelocityView.Get<test::Position, test::Velocity>(entity);
+	//	auto tuple2 = positionVelocityView.Get(entity);
+
+	//	const test::Position& position3 = positionVelocityView.GetStorage<test::Position>()->Get(entity);
+	//	const test::Position& position2 = positionVelocityView.GetStorage<0>()->Get(entity);
+	//	const test::Position& position1 = positionVelocityView.Get<test::Position>(entity);
+	//	const test::Position& position = std::get<0>(tuple);
+	//	const test::Position& position4 = std::get<0>(tuple2);
+	//	const test::Velocity& velocity = std::get<1>(tuple);
+
+	//	B3D_TEST_ASSERT(position == position1)
+	//	B3D_TEST_ASSERT(position == position2)
+	//	B3D_TEST_ASSERT(position == position3)
+	//	B3D_TEST_ASSERT(position == position4)
+	//	B3D_TEST_ASSERT(position == test::Position((float)index + 1.0f, (float)index + 2.0f, (float)index + 3.0f))
+	//	B3D_TEST_ASSERT(velocity == test::Velocity(5.0f, 5.0f, 5.0f))
+
+	//	index++;
+	//}
+
+	//B3D_TEST_ASSERT(index == Math::Min(kEntityWithVelocityCount, kEntityWithPositionCount))
+
+	//index = 0;
+	//for(auto [entity, position, velocity] : positionVelocityView.Each())
+	//{
+	//	B3D_TEST_ASSERT(entity == entities[index])
+	//	B3D_TEST_ASSERT(position == test::Position((float)index + 1.0f, (float)index + 2.0f, (float)index + 3.0f))
+	//	B3D_TEST_ASSERT(velocity == test::Velocity(5.0f, 5.0f, 5.0f))
+
+	//	index++;
+	//}
+
+	//B3D_TEST_ASSERT(index == Math::Min(kEntityWithVelocityCount, kEntityWithPositionCount))
+
+	//index = 0;
+	//positionVelocityView.DoForEach([&index, &entities, this](Entity entity, const test::Position& position, const test::Velocity& velocity)
+	//{
+	//	B3D_TEST_ASSERT(entity == entities[index])
+	//	B3D_TEST_ASSERT(position == test::Position((float)index + 1.0f, (float)index + 2.0f, (float)index + 3.0f))
+	//	B3D_TEST_ASSERT(velocity == test::Velocity(5.0f, 5.0f, 5.0f))
+	//	index++;
+	//});
+
+	//B3D_TEST_ASSERT(index == Math::Min(kEntityWithVelocityCount, kEntityWithPositionCount))
+
+	//index = 0;
+	//positionVelocityView.DoForEach([&index, &entities, this](const test::Position& position, const test::Velocity& velocity)
+	//{
+	//	B3D_TEST_ASSERT(position == test::Position((float)index + 1.0f, (float)index + 2.0f, (float)index + 3.0f))
+	//	B3D_TEST_ASSERT(velocity == test::Velocity(5.0f, 5.0f, 5.0f))
+	//	index++;
+	//});
+
+	//B3D_TEST_ASSERT(index == Math::Min(kEntityWithVelocityCount, kEntityWithPositionCount))
+
+	//// Multi-view with tags
+	//auto positionVelocityEnemyView = constRegistry.CreateView<test::Position, test::Velocity, test::IsEnemyTag>();
+
+	//index = 0;
+	//for(const auto& entity : positionVelocityEnemyView)
+	//{
+	//	auto tuple = positionVelocityEnemyView.Get<test::Position, test::Velocity>(entity);
+
+	//	const test::Position& position = std::get<0>(tuple);
+	//	const test::Velocity& velocity = std::get<1>(tuple);
+
+	//	index++;
+	//}
+
+	//B3D_TEST_ASSERT(index == kEntityWithEnemyTagCount)
+
+	//index = 0;
+	//for(auto [entity, position, velocity] : positionVelocityEnemyView.Each())
+	//{
+	//	B3D_TEST_ASSERT(entity == entities[index])
+	//	B3D_TEST_ASSERT(position == test::Position((float)index + 1.0f, (float)index + 2.0f, (float)index + 3.0f))
+	//	B3D_TEST_ASSERT(velocity == test::Velocity(5.0f, 5.0f, 5.0f))
+
+	//	index++;
+	//}
+
+	//B3D_TEST_ASSERT(index == kEntityWithEnemyTagCount)
+
+	//index = 0;
+	//positionVelocityEnemyView.DoForEach([&index, &entities, this](Entity entity, const test::Position& position, const test::Velocity& velocity)
+	//{
+	//	B3D_TEST_ASSERT(entity == entities[index])
+	//	B3D_TEST_ASSERT(position == test::Position((float)index + 1.0f, (float)index + 2.0f, (float)index + 3.0f))
+	//	B3D_TEST_ASSERT(velocity == test::Velocity(5.0f, 5.0f, 5.0f))
+	//	index++;
+	//});
+
+	//B3D_TEST_ASSERT(index == kEntityWithEnemyTagCount)
+
+	//index = 0;
+	//positionVelocityEnemyView.DoForEach([&index, &entities, this](const test::Position& position, const test::Velocity& velocity)
+	//{
+	//	B3D_TEST_ASSERT(position == test::Position((float)index + 1.0f, (float)index + 2.0f, (float)index + 3.0f))
+	//	B3D_TEST_ASSERT(velocity == test::Velocity(5.0f, 5.0f, 5.0f))
+	//	index++;
+	//});
+
+	//B3D_TEST_ASSERT(index == kEntityWithEnemyTagCount)
+
+	//// Test single storage
+	//auto positionView = registry.CreateView<const test::Position>();
+	//static_assert(std::is_same_v<decltype(std::get<0>(positionView.Get({}))), const test::Position&>, "Unexpected type");
+	//static_assert(!std::is_same_v<decltype(std::get<0>(positionView.Get({}))), test::Position&>, "Unexpected type");
+
+	//auto nonConstPositionView = registry.CreateView<test::Position>();
+	//static_assert(std::is_same_v<decltype(std::get<0>(nonConstPositionView.Get({}))), test::Position&>, "Unexpected type");
+	//static_assert(!std::is_same_v<decltype(std::get<0>(nonConstPositionView.Get({}))), const test::Position&>, "Unexpected type");
+
+	//index = 0;
+	//for(auto [entity, position] : positionView.Each())
+	//{
+	//	B3D_TEST_ASSERT(entity == entities[index])
+	//	B3D_TEST_ASSERT(position == test::Position((float)index + 1.0f, (float)index + 2.0f, (float)index + 3.0f))
+
+	//	index++;
+	//}
+
+	//B3D_TEST_ASSERT(index == kEntityWithPositionCount)
+
+	//index = 0;
+	//nonConstPositionView.DoForEach([&index, &entities, this](test::Position& position)
+	//{
+	//	B3D_TEST_ASSERT(position == test::Position((float)index + 1.0f, (float)index + 2.0f, (float)index + 3.0f))
+	//	index++;
+	//});
+
+	//B3D_TEST_ASSERT(index == kEntityWithPositionCount)
 
 	//auto isEnemyView = registry.CreateView<test::IsEnemyTag>();
 

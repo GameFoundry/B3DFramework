@@ -555,7 +555,7 @@ namespace b3d::ecs
 			const auto ownedAndIncludedTypeStorage = GetOwnedAndIncludedStoragesAsTuple(std::index_sequence_for<OwnedStorageTypes...>{}, std::index_sequence_for<IncludedStorageTypes...>{});
 
 			if constexpr(sizeof...(Indices) == 0)
-				return std::apply([entity](auto*... storage) { std::tuple_cat((GetAsTuple(storage->Get(entity)), ...)); }, ownedAndIncludedTypeStorage);
+				return std::apply([entity](auto*... storage) { return std::tuple_cat(GetAsTuple(storage, entity)...); }, ownedAndIncludedTypeStorage);
 			else if constexpr(sizeof...(Indices) == 1)
 				return (std::get<Indices>(ownedAndIncludedTypeStorage)->Get(entity), ...);
 			else
