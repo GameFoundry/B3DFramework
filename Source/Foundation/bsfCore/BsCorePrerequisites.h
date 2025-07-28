@@ -265,6 +265,18 @@ namespace b3d
 		typedef render::TYPE Type;                   \
 	};
 
+	class CoreObject;
+	namespace render
+	{
+		class RenderProxy;
+	}
+
+	template <>
+	struct RenderThreadType<CoreObject>
+	{
+		typedef render::RenderProxy Type;
+	};
+
 	B3D_CORE_OBJECT_FORWARD_DECLARE(Pass)
 	B3D_CORE_OBJECT_FORWARD_DECLARE(Technique)
 	B3D_CORE_OBJECT_FORWARD_DECLARE(Shader)
@@ -395,7 +407,6 @@ namespace b3d
 	struct GpuObjectParameterInformation;
 	struct GpuDataParameterBlockInformation;
 	class ShaderInclude;
-	class CoreObject;
 	class ImportOptions;
 	class TextureImportOptions;
 	class FontImportOptions;
@@ -493,7 +504,6 @@ namespace b3d
 	{
 		class Renderer;
 		class VertexData;
-		class RenderProxy;
 		class GpuCommandBuffer;
 		class EventQuery;
 		class TimerQuery;
