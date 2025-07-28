@@ -66,12 +66,12 @@ namespace b3d::ecs
 
 	private:
 		template<typename OwnedStorageType>
-		auto GetOwnedStorageElementTuple(OwnedStorageType& storage)
+		auto GetOwnedStorageElementTuple(OwnedStorageType& storage) const
 		{
-			if constexpr(std::is_void_v<typename OwnedStorageType::ValueType>)
+			if constexpr(std::is_void_v<typename OwnedStorageType::ElementType>)
 				return std::make_tuple();
 			else
-				return GetAsTuple(storage[mIterator.Index()]);
+				return std::forward_as_tuple(storage.Begin()[mIterator.Index()]);
 		}
 
 		IteratorType mIterator;
@@ -284,7 +284,7 @@ namespace b3d::ecs
 			:mInternals(internals)
 		{ }
 
-		const SparseSet& GetLeadingStorage()
+		const SparseSet& GetLeadingStorage() const
 		{
 			return mInternals->GetGroupStorage();
 		}
@@ -324,10 +324,10 @@ namespace b3d::ecs
 			if(mInternals != nullptr) GetLeadingStorage().Shrink();
 		}
 
-		Iterator Begin() const { return mInternals != nullptr ? mInternals->Begin() : Iterator{}; }
-		Iterator End() const { return mInternals != nullptr ? mInternals->End() : Iterator{}; }
-		ReverseIterator Rbegin() const { return mInternals != nullptr ? mInternals->Rbegin() : ReverseIterator{}; }
-		ReverseIterator Rend() const { return mInternals != nullptr ? mInternals->Rend() : ReverseIterator{}; }
+		Iterator Begin() const { return mInternals != nullptr ? GetLeadingStorage().Begin() : Iterator{}; }
+		Iterator End() const { return mInternals != nullptr ? GetLeadingStorage().End() : Iterator{}; }
+		ReverseIterator Rbegin() const { return mInternals != nullptr ? GetLeadingStorage().Rbegin() : ReverseIterator{}; }
+		ReverseIterator Rend() const { return mInternals != nullptr ? GetLeadingStorage().Rend() : ReverseIterator{}; }
 
 		Entity Front() const
 		{
@@ -485,7 +485,7 @@ namespace b3d::ecs
 			:mInternals(&internals)
 		{ }
 
-		const SparseSet& GetLeadingStorage()
+		const SparseSet& GetLeadingStorage() const
 		{
 			return *GetStorage<0>();
 		}
@@ -515,10 +515,10 @@ namespace b3d::ecs
 			return mInternals != nullptr ? mInternals->Size() == 0 : true;
 		}
 
-		Iterator Begin() const { return mInternals != nullptr ? mInternals->Begin() : Iterator{}; }
-		Iterator End() const { return mInternals != nullptr ? mInternals->Begin() + mInternals->Size() : Iterator{}; }
-		ReverseIterator Rbegin() const { return mInternals != nullptr ? mInternals->Rbegin() + (GetLeadingStorage().Size() - mInternals->Size()) : ReverseIterator{}; }
-		ReverseIterator Rend() const { return mInternals != nullptr ? mInternals->Rend() : ReverseIterator{}; }
+		Iterator Begin() const { return mInternals != nullptr ? GetLeadingStorage().Begin() : Iterator{}; }
+		Iterator End() const { return mInternals != nullptr ? GetLeadingStorage().Begin() + mInternals->Size() : Iterator{}; }
+		ReverseIterator Rbegin() const { return mInternals != nullptr ? GetLeadingStorage().Rbegin() + (GetLeadingStorage().Size() - mInternals->Size()) : ReverseIterator{}; }
+		ReverseIterator Rend() const { return mInternals != nullptr ? GetLeadingStorage().Rend() : ReverseIterator{}; }
 
 		Entity Front() const
 		{
@@ -571,13 +571,13 @@ namespace b3d::ecs
 		template<typename Function>
 		void DoForEach(const Function& function)
 		{
-			for(auto entity : Each())
+			for(auto tuple : Each())
 			{
 				// Check for (Entity, Type&, ...) signature
 				if constexpr(TIsInvocableWithTupleArguments<Function, decltype(std::tuple_cat(std::tuple<Entity>{}, std::declval<TGroup>().Get({})))>)
-					std::apply(function, std::tuple_cat(std::forward_as_tuple(entity), Get(entity)));
+					std::apply(function, tuple);
 				else // Check for (Type&, ...) signature (fast path)
-					std::apply([&function](auto, auto&&... otherElements) { function(std::forward<decltype(otherElements)>(otherElements)...); } );
+					std::apply([&function](auto, auto&&... otherElements) { function(std::forward<decltype(otherElements)>(otherElements)...); }, tuple);
 			}
 		}
 

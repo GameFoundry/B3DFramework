@@ -18,6 +18,6 @@ namespace b3d
 		void TestComponentSparseSet();
 		void TestRegistry();
 		void TestViews();
-		void TestGroups();
+		void TestOwningGroup();
 	};
 } // namespace b3d
