@@ -9,6 +9,8 @@
 
 #include <iterator>
 
+#include "Utility/BsTypeId.h"
+
 namespace b3d::ecs
 {
 	/** @addtogroup General
@@ -181,11 +183,17 @@ namespace b3d::ecs
 
 		static constexpr u64 kMaximumEntryCount = Entity::kIdentifierMask;
 
-		SparseSet() = default;
+		SparseSet(TypeHash elementTypeHash = B3DGetTypeHash<void>())
+			: mElementTypeHash(elementTypeHash)
+		{ }
+
 		virtual ~SparseSet()
 		{
 			FreeSparsePages();
 		}
+
+		/** Returns a hash value that represents the element type stored in this set. */
+		TypeHash GetElementTypeHash() const { return mElementTypeHash; }
 
 		Entity operator[](u64 index)
 		{
@@ -560,6 +568,8 @@ namespace b3d::ecs
 
 		// Note: Might consider paging this. It won't be continous anymore, making it harder to iterate, but adding entries might prevent expensive resizes if there's a lot of entries
 		PackedContainerType mPackedEntities; /**< Packed array of entities. */
+
+		TypeHash mElementTypeHash = 0;
 	};
 
 	template<SparseSetDeletePolicy DeletePolicy>
@@ -569,7 +579,14 @@ namespace b3d::ecs
 	public:
 		static constexpr SparseSetDeletePolicy kDeletePolicy = DeletePolicy;
 
-		TSparseSet() = default;
+		TSparseSet()
+			:SparseSet(B3DGetTypeHash<void>())
+		{ }
+
+		TSparseSet(TypeHash elementTypeHash)
+			:SparseSet(elementTypeHash)
+		{ }
+
 		~TSparseSet() override = default;
 
 		void Clear() override

@@ -152,6 +152,10 @@ namespace b3d::ecs
 		using ReverseIteratorRange = TIteratorRange<TMultiIteratorAdapter<typename Super::ReverseIterator, ReverseIterator>>;
 		using ConstReverseIteratorRange = TIteratorRange<TMultiIteratorAdapter<typename Super::ConstReverseIterator, ConstReverseIterator>>;
 
+		TComponentSparseSet()
+			:TSparseSet(B3DGetTypeHash<ComponentType>())
+		{ }
+
 		~TComponentSparseSet() override
 		{
 			ShrinkComponentArray(0);

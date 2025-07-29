@@ -94,8 +94,7 @@ namespace b3d::ecs
 	{
 		virtual ~GroupInternals() = default;
 
-		// TODO - This needs to be implemented in derived types
-		virtual bool OwnsType(const TypeId typeId) const { return false; }
+		virtual bool OwnsType(TypeHash elementTypeHash) const { return false; }
 	};
 
 	template<u32 OwnedTypeCount, u32 IncludedTypeCount, u32 ExcludedTypeCount>
@@ -138,6 +137,17 @@ namespace b3d::ecs
 				return mIncludedTypeStorage[Index];
 			else
 				return mExcludedTypeStorage[Index - (OwnedTypeCount + IncludedTypeCount)];
+		}
+
+		bool OwnsType(TypeHash elementTypeHash) const override
+		{
+			for(u32 typeIndex = 0; typeIndex < OwnedTypeCount; ++typeIndex)
+			{
+				if(mIncludedTypeStorage[typeIndex]->GetElementTypeHash() == elementTypeHash)
+					return true;
+			}
+			
+			return false;
 		}
 		
 	private:
@@ -189,7 +199,7 @@ namespace b3d::ecs
 	};
 
 	template<u32 IncludedTypeCount, u32 ExcludedTypeCount>
-	struct TGroupInternals<0, IncludedTypeCount, ExcludedTypeCount>
+	struct TGroupInternals<0, IncludedTypeCount, ExcludedTypeCount> : GroupInternals
 	{
 		template<typename... IncludedTypes, typename... ExcludedTypes>
 		TGroupInternals(const std::tuple<IncludedTypes...>& includedTypes, const std::tuple<ExcludedTypes...>& excludedTypes)

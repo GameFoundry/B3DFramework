@@ -285,7 +285,7 @@ namespace b3d::ecs
 			else
 			{
 				// Ensure no other group owns any of types the new group is meant to own
-				if(!B3D_ENSURE(std::all_of(mGroupStorage.begin(), mGroupStorage.end(), [](const auto& entry) -> bool { return !(entry.second->OwnsType(B3DGetRuntimeTypeId<OwnedTypes>()) || ...); })))
+				if(!B3D_ENSURE(std::all_of(mGroupStorage.begin(), mGroupStorage.end(), [](const auto& entry) -> bool { return !(entry.second->OwnsType(B3DGetTypeHash<OwnedTypes>()) || ...); })))
 					return GroupType();
 
 				internals = B3DMakeShared<InternalsType>(std::forward_as_tuple(GetOrCreateStorage<std::remove_const_t<OwnedTypes>>()..., GetOrCreateStorage<std::remove_const_t<IncludedTypes>>()...), std::forward_as_tuple(GetOrCreateStorage<std::remove_const_t<ExcludedTypes>>()...));

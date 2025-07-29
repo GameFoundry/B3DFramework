@@ -822,11 +822,13 @@ void ECSTestSuite::TestOwningGroup()
 
 	B3D_TEST_ASSERT(index == (kEntityWithVelocityCount - 1))
 
+	// Enable if needed. Disabled as it triggers an ensure.
+#if 0
 	// Attempting to create a group with the same owned type should result in a null group
-	//auto positionOnlyGroup = registry.GetOrCreateGroup<test::Position>();
-	//B3D_TEST_ASSERT(positionOnlyGroup.GetSize() == 0);
+	auto positionOnlyGroup = registry.GetOrCreateGroup<test::Position>();
+	B3D_TEST_ASSERT(positionOnlyGroup.GetSize() == 0);
+#endif
 
-	// TODO - Test that adding multiple groups with same owned types triggers a warning
 	// TODO - Test a group with a non-owning entry (ideally, also make use of tags)
 	// TODO - Test exclude
 }

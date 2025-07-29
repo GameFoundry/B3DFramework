@@ -29,6 +29,10 @@ namespace b3d::ecs
 		using ReverseIteratorRange = TIteratorRange<TMultiIteratorAdapter<ReverseIterator>>;
 		using ConstReverseIteratorRange = TIteratorRange<TMultiIteratorAdapter<ConstReverseIterator>>;
 
+		TTagSparseSet()
+			:TSparseSet(B3DGetTypeHash<TagType>())
+		{ }
+
 		~TTagSparseSet() override = default;
 
 		void Add(Entity entity)

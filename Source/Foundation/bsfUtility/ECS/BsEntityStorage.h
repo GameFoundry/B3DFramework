@@ -28,6 +28,9 @@ namespace b3d::ecs
 		using ReverseIteratorRange = TIteratorRange<ReverseIterator>;
 		using ConstReverseIteratorRange = TIteratorRange<ConstReverseIterator>;
 
+		EntitySparseSet()
+			:TSparseSet(B3DGetTypeHash<Entity>())
+		{ }
 		~EntitySparseSet() override = default;
 
 		Entity Create()
