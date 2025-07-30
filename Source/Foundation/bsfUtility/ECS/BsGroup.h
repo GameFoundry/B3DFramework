@@ -175,12 +175,12 @@ namespace b3d::ecs
 			const bool inclusiveFilterPassed = std::apply([entity, index = mNextIndex](auto* firstStorage, auto*... otherStorage)
 			{
 				return firstStorage->Contains(entity) && firstStorage->GetPackedIndex(entity) >= index && (otherStorage->Contains(entity) && ...);
-			});
+			}, mIncludedTypeStorage);
 
 			const bool exclusiveFilterPassed = std::apply([entity](auto*... storage)
 			{
 				return (0u + ... + storage->Contains(entity)) == 1u;
-			});
+			}, mExcludedTypeStorage);
 
 			if(inclusiveFilterPassed && exclusiveFilterPassed)
 				SwapEntry(mNextIndex++, entity);
@@ -204,7 +204,7 @@ namespace b3d::ecs
 		template<typename... IncludedTypes, typename... ExcludedTypes>
 		TGroupInternals(const std::tuple<IncludedTypes...>& includedTypes, const std::tuple<ExcludedTypes...>& excludedTypes)
 			: mIncludedTypeStorage(std::apply([](auto&&... storage) { return std::array<SparseSet*, IncludedTypeCount>({ &storage... }); }, includedTypes))
-			, mExcludedTypeStorage(std::apply([](auto&&... storage) { return std::array<SparseSet*, ExcludedTypeCount>({ &storage... }); }), excludedTypes)
+			, mExcludedTypeStorage(std::apply([](auto&&... storage) { return std::array<SparseSet*, ExcludedTypeCount>({ &storage... }); }, excludedTypes))
 		{
 			u32 eventHandleIndex = 0;
 			std::apply([this, &eventHandleIndex](auto&&... storage)
@@ -219,18 +219,18 @@ namespace b3d::ecs
 					mEventHandles[eventHandleIndex++] = storage.OnWillRemove.Connect([this](Entity entity) { TryAddEntryToGroupBeforeRemove(entity); })), ...);
 			}, excludedTypes);
 			
-			for(auto entry : mIncludedTypeStorage[0])
+			for(auto entry : *mIncludedTypeStorage[0])
 				TryAddEntryToGroupAfterAdd(entry);
 		}
 
 		~TGroupInternals()
 		{
-			for(const auto& entry : mEventHandles)
+			for(auto& entry : mEventHandles)
 				entry.Disconnect();
 		}
 
-		EntitySparseSet& GetGroupStorage() { return mGroupEntities; }
-		const EntitySparseSet& GetGroupStorage() const { return mGroupEntities; }
+		TSparseSet<SparseSetDeletePolicy::SwapAndErase>& GetGroupStorage() { return mGroupEntities; }
+		const TSparseSet<SparseSetDeletePolicy::SwapAndErase>& GetGroupStorage() const { return mGroupEntities; }
 
 		template<u32 Index>
 		SparseSet* GetStorage()
@@ -244,8 +244,8 @@ namespace b3d::ecs
 	private:
 		void TryAddEntryToGroupAfterAdd(Entity entity)
 		{
-			const bool inclusiveFilterPassed = std::apply([entity](auto*... storage) { return (storage->Contains(entity) && ...); });
-			const bool exclusiveFilterPassed = std::apply([entity](auto*... storage) { return (!storage->Contains(entity) && ...); });
+			const bool inclusiveFilterPassed = std::apply([entity](auto*... storage) { return (storage->Contains(entity) && ...); }, mIncludedTypeStorage);
+			const bool exclusiveFilterPassed = std::apply([entity](auto*... storage) { return (!storage->Contains(entity) && ...); }, mExcludedTypeStorage);
 
 			if(!mGroupEntities.Contains(entity) && inclusiveFilterPassed && exclusiveFilterPassed)
 				mGroupEntities.Add(entity);
@@ -253,8 +253,8 @@ namespace b3d::ecs
 
 		void TryAddEntryToGroupBeforeRemove(Entity entity)
 		{
-			const bool inclusiveFilterPassed = std::apply([entity](auto*... storage) { return (storage->Contains(entity) && ...); });
-			const bool exclusiveFilterPassed = std::apply([entity](auto*... storage) { return (0u + ... + storage->Contains(entity)) == 1u; });
+			const bool inclusiveFilterPassed = std::apply([entity](auto*... storage) { return (storage->Contains(entity) && ...); }, mIncludedTypeStorage);
+			const bool exclusiveFilterPassed = std::apply([entity](auto*... storage) { return (0u + ... + storage->Contains(entity)) == 1u; }, mExcludedTypeStorage);
 
 			if(!mGroupEntities.Contains(entity) && inclusiveFilterPassed && exclusiveFilterPassed)
 				mGroupEntities.Add(entity);
@@ -268,7 +268,7 @@ namespace b3d::ecs
 		std::array<SparseSet*, IncludedTypeCount> mIncludedTypeStorage { };
 		std::array<SparseSet*, ExcludedTypeCount> mExcludedTypeStorage { };
 		std::array<HEvent, (IncludedTypeCount + ExcludedTypeCount) * 2> mEventHandles;
-		EntitySparseSet mGroupEntities;
+		TSparseSet<SparseSetDeletePolicy::SwapAndErase> mGroupEntities;
 	};
 
 	template<typename, typename, typename>
@@ -291,7 +291,7 @@ namespace b3d::ecs
 
 		TGroup() = default;
 		TGroup(GroupInternalsType& internals)
-			:mInternals(internals)
+			:mInternals(&internals)
 		{ }
 
 		const SparseSet& GetLeadingStorage() const
@@ -373,7 +373,7 @@ namespace b3d::ecs
 			const auto includedTypeStorage = GetIncludedStoragesAsTuple(std::index_sequence_for<IncludedStorageTypes...>{});
 
 			if constexpr(sizeof...(Indices) == 0)
-				return std::apply([entity](auto*... storage) { std::tuple_cat((GetAsTuple(storage->Get(entity)), ...)); }, includedTypeStorage);
+				return std::apply([entity](auto*... storage) { return std::tuple_cat(GetAsTuple(storage, entity)...); }, includedTypeStorage);
 			else if constexpr(sizeof...(Indices) == 1)
 				return (std::get<Indices>(includedTypeStorage)->Get(entity), ...);
 			else

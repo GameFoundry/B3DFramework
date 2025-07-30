@@ -49,7 +49,7 @@ namespace b3d::ecs
 				Entity entity(hint.GetIdentifier(), GetVersion(hint));
 				if(entity == kInvalidEntity || GetPackedIndex(entity) >= GetFirstFreeElementPackedIndex())
 				{
-					Iterator iterator = Super::AddInternal(entity, false);
+					Iterator iterator = Super::AddInternal(hint, false);
 					OnWasAdded(*iterator);
 
 					return *iterator;

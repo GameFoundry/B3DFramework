@@ -19,5 +19,8 @@ namespace b3d
 		void TestRegistry();
 		void TestViews();
 		void TestOwningGroup();
+		void TestOwningGroupWithIncluded();
+		void TestOwningGroupWithExcluded();
+		void TestNonOwningGroup();
 	};
 } // namespace b3d
