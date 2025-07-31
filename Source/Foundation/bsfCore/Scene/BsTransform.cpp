@@ -5,7 +5,7 @@
 
 using namespace b3d;
 
-Transform Transform::IDENTITY;
+Transform Transform::kIdentity;
 
 Transform::Transform(const Vector3& position, const Quaternion& rotation, const Vector3& scale)
 	: mPosition(position), mRotation(rotation), mScale(scale)

@@ -155,7 +155,7 @@ namespace b3d
 		 */
 		void Pitch(const Radian& angle);
 
-		static Transform IDENTITY;
+		static Transform kIdentity;
 
 	private:
 		Vector3 mPosition = Vector3::kZero;

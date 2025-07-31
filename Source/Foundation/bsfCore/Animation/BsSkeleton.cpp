@@ -312,7 +312,7 @@ void Skeleton::GetPose(Matrix4* pose, LocalSkeletonPose& localPose, const Skelet
 Transform Skeleton::CalcBoneTransform(u32 idx) const
 {
 	if(idx >= mNumBones)
-		return Transform::IDENTITY;
+		return Transform::kIdentity;
 
 	Transform output = mBoneTransforms[idx];
 
