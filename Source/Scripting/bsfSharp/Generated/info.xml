@@ -2064,7 +2064,7 @@ Also see SetContactOffset().</doc>
 			<doc>Determines bounds that will be used for animation and mesh culling. Only relevant if setUseBounds() is set to true.</doc>
 		</property>
 		<property name="UseBounds" type="bool" getter="GetUseBounds" setter="SetUseBounds" static="false">
-			<doc>Determines should animation bounds be used for visibility determination (culling). If false the bounds of the mesh attached to the relevant CRenderable component will be used instead.</doc>
+			<doc>Determines should animation bounds be used for visibility determination (culling). If false the bounds of the mesh attached to the relevant Renderable component will be used instead.</doc>
 		</property>
 		<property name="Cull" type="bool" getter="GetEnableCull" setter="SetEnableCull" static="false">
 			<doc>Enables or disables culling of the animation when out of view. Culled animation will not be evaluated.</doc>
@@ -7923,76 +7923,6 @@ Sprite images also allow you to specify sprite sheet animation by varying which 
 			<doc>Reflection probe cubemap is generated, but sphere is used for calculating the influence radius and proxy geometry.</doc>
 		</enumentry>
 	</enum>
-	<class native="CRenderable" script="Renderable">
-		<method native="SetMaterial" script="SetMaterial" static="false">
-			<param name="idx" type="int">
-			</param>
-			<param name="material" type="RRef&lt;Material&gt;">
-			</param>
-		</method>
-		<method native="SetMaterial" script="SetMaterial" static="false">
-			<param name="material" type="RRef&lt;Material&gt;">
-			</param>
-		</method>
-		<method native="GetMaterial" script="GetMaterial" static="false">
-			<param name="idx" type="int">
-			</param>
-			<returns type="RRef&lt;Material&gt;">
-			</returns>
-		</method>
-		<property name="Mesh" type="RRef&lt;Mesh&gt;" getter="GetMesh" setter="SetMesh" static="false">
-		</property>
-		<property name="Materials" type="RRef&lt;Material&gt;" getter="GetMaterials" setter="SetMaterials" static="false">
-		</property>
-		<property name="CullDistance" type="float" getter="GetCullDistanceFactor" setter="SetCullDistanceFactor" static="false">
-		</property>
-		<property name="WriteVelocity" type="bool" getter="GetWriteVelocity" setter="SetWriteVelocity" static="false">
-		</property>
-		<property name="Layers" type="ulong" getter="GetLayer" setter="SetLayer" static="false">
-		</property>
-		<property name="Bounds" type="Bounds" getter="GetBounds" setter="" static="false">
-			<doc>Gets world bounds of the mesh rendered by this object.</doc>
-		</property>
-	</class>
-	<class native="Renderable2" script="Renderable2">
-		<method native="SetMaterial" script="SetMaterial" static="false">
-			<doc>Sets a material that will be used for rendering a sub-mesh with the specified index. If a sub-mesh doesn&apos;t have a specific material set then the primary material will be used.</doc>
-			<param name="index" type="int">
-			</param>
-			<param name="material" type="RRef&lt;Material&gt;">
-			</param>
-		</method>
-		<method native="GetMaterial" script="GetMaterial" static="false">
-			<doc>Returns the material used for rendering a sub-mesh with the specified index.</doc>
-			<param name="index" type="int">
-			</param>
-			<returns type="RRef&lt;Material&gt;">
-			</returns>
-		</method>
-		<method native="SetMaterial" script="SetMaterial" static="false">
-			<doc>Sets the primary material to use for rendering. Any sub-mesh that doesn&apos;t have an explicit material set will use this material.</doc>
-			<param name="material" type="RRef&lt;Material&gt;">
-			</param>
-		</method>
-		<property name="Bounds" type="Bounds" getter="GetBounds" setter="" static="false">
-			<doc>Gets world bounds of the mesh rendered by this object.</doc>
-		</property>
-		<property name="Mesh" type="RRef&lt;Mesh&gt;" getter="GetMesh" setter="SetMesh" static="false">
-			<doc>Determines the mesh to render. All sub-meshes of the mesh will be rendered, and you may set individual materials for each sub-mesh.</doc>
-		</property>
-		<property name="Materials" type="RRef&lt;Material&gt;" getter="GetMaterials" setter="SetMaterials" static="false">
-			<doc>Determines all materials used for rendering this renderable. Each of the materials is used for rendering a single sub-mesh. If number of materials is larger than number of sub-meshes, they will be ignored. If lower, the remaining materials will be removed.</doc>
-		</property>
-		<property name="Layers" type="ulong" getter="GetLayer" setter="SetLayer" static="false">
-			<doc>Determines the layer bitfield that controls whether a renderable is considered visible in a specific camera. Renderable layer must match camera layer in order for the camera to render the component.</doc>
-		</property>
-		<property name="WriteVelocity" type="bool" getter="GetWriteVelocity" setter="SetWriteVelocity" static="false">
-			<doc>If enabled this renderable will write per-pixel velocity information when rendered. This is required for effects such as temporal anti-aliasing and motion blur, but comes with a minor performance overhead. If you are not using those effects you can disable this for a performance gain.</doc>
-		</property>
-		<property name="CullDistance" type="float" getter="GetCullDistanceFactor" setter="SetCullDistanceFactor" static="false">
-			<doc>Factor to be applied to the cull distance set in the camera&apos;s render settings.</doc>
-		</property>
-	</class>
 	<enum native="ForceMode" script="ForceMode">
 		<doc>Type of force or torque that can be applied to a rigidbody.</doc>
 		<enumentry native="Impulse" script="Impulse">
@@ -8153,6 +8083,45 @@ Sprite images also allow you to specify sprite sheet animation by varying which 
 		<field name="KeepInternalReference" type="bool">
 		</field>
 	</struct>
+	<class native="Renderable" script="Renderable">
+		<method native="SetMaterial" script="SetMaterial" static="false">
+			<doc>Sets a material that will be used for rendering a sub-mesh with the specified index. If a sub-mesh doesn&apos;t have a specific material set then the primary material will be used.</doc>
+			<param name="index" type="int">
+			</param>
+			<param name="material" type="RRef&lt;Material&gt;">
+			</param>
+		</method>
+		<method native="GetMaterial" script="GetMaterial" static="false">
+			<doc>Returns the material used for rendering a sub-mesh with the specified index.</doc>
+			<param name="index" type="int">
+			</param>
+			<returns type="RRef&lt;Material&gt;">
+			</returns>
+		</method>
+		<method native="SetMaterial" script="SetMaterial" static="false">
+			<doc>Sets the primary material to use for rendering. Any sub-mesh that doesn&apos;t have an explicit material set will use this material.</doc>
+			<param name="material" type="RRef&lt;Material&gt;">
+			</param>
+		</method>
+		<property name="Bounds" type="Bounds" getter="GetBounds" setter="" static="false">
+			<doc>Gets world bounds of the mesh rendered by this object.</doc>
+		</property>
+		<property name="Mesh" type="RRef&lt;Mesh&gt;" getter="GetMesh" setter="SetMesh" static="false">
+			<doc>Determines the mesh to render. All sub-meshes of the mesh will be rendered, and you may set individual materials for each sub-mesh.</doc>
+		</property>
+		<property name="Materials" type="RRef&lt;Material&gt;" getter="GetMaterials" setter="SetMaterials" static="false">
+			<doc>Determines all materials used for rendering this renderable. Each of the materials is used for rendering a single sub-mesh. If number of materials is larger than number of sub-meshes, they will be ignored. If lower, the remaining materials will be removed.</doc>
+		</property>
+		<property name="Layers" type="ulong" getter="GetLayer" setter="SetLayer" static="false">
+			<doc>Determines the layer bitfield that controls whether a renderable is considered visible in a specific camera. Renderable layer must match camera layer in order for the camera to render the component.</doc>
+		</property>
+		<property name="WriteVelocity" type="bool" getter="GetWriteVelocity" setter="SetWriteVelocity" static="false">
+			<doc>If enabled this renderable will write per-pixel velocity information when rendered. This is required for effects such as temporal anti-aliasing and motion blur, but comes with a minor performance overhead. If you are not using those effects you can disable this for a performance gain.</doc>
+		</property>
+		<property name="CullDistance" type="float" getter="GetCullDistanceFactor" setter="SetCullDistanceFactor" static="false">
+			<doc>Factor to be applied to the cull distance set in the camera&apos;s render settings.</doc>
+		</property>
+	</class>
 	<struct native="SpriteImageInformation" script="SpriteImageInformation">
 		<doc>Information about a SpriteImage.</doc>
 		<ctor>

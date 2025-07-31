@@ -4,8 +4,8 @@
 #include "BsMonoMethod.h"
 #include "BsMonoClass.h"
 #include "BsMonoUtil.h"
-#include "../../../Foundation/bsfCore/Components/BsCRenderable.h"
-#include "BsScriptCRenderable.generated.h"
+#include "../../../Foundation/bsfCore/Components/BsRenderable.h"
+#include "BsScriptRenderable.generated.h"
 
 namespace b3d
 {
@@ -27,11 +27,11 @@ namespace b3d
 		PARTICLE_SKINNED_MESH_SHAPE_DESC output;
 		output.Type = value.Type;
 		output.Sequential = value.Sequential;
-		GameObjectHandle<CRenderable> tmpRenderable;
+		GameObjectHandle<Renderable> tmpRenderable;
 		ScriptRenderable* scriptObjectWrapperRenderable;
 		scriptObjectWrapperRenderable = ScriptRenderable::GetScriptObjectWrapper(value.Renderable);
 		if(scriptObjectWrapperRenderable != nullptr)
-			tmpRenderable = B3DStaticGameObjectCast<CRenderable>(scriptObjectWrapperRenderable->GetBaseNativeObjectAsHandle());
+			tmpRenderable = B3DStaticGameObjectCast<Renderable>(scriptObjectWrapperRenderable->GetBaseNativeObjectAsHandle());
 		output.Renderable = tmpRenderable;
 
 		return output;
@@ -44,8 +44,8 @@ namespace b3d
 		output.Sequential = value.Sequential;
 		MonoObject* tmpRenderable;
 		MonoObject* temptmpRenderable = nullptr;
-		if(value.Renderable.GetComponent())
-			temptmpRenderable = ScriptComponent::GetOrCreateScriptObject(value.Renderable.GetComponent());
+		if(value.Renderable)
+			temptmpRenderable = ScriptComponent::GetOrCreateScriptObject(value.Renderable);
 		tmpRenderable = temptmpRenderable;
 		output.Renderable = tmpRenderable;
 

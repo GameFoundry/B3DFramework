@@ -69,7 +69,7 @@ namespace b3d
 
 		/// <summary>
 		/// Determines should animation bounds be used for visibility determination (culling). If false the bounds of the mesh 
-		/// attached to the relevant CRenderable component will be used instead.
+		/// attached to the relevant Renderable component will be used instead.
 		/// </summary>
 		[ShowInInspector]
 		[NativeWrapper]

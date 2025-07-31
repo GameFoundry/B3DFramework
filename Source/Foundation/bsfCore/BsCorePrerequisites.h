@@ -377,7 +377,6 @@ namespace b3d
 	B3D_COMPONENT_FORWARD_DECLARE(D6Joint)
 	B3D_COMPONENT_FORWARD_DECLARE(CharacterController)
 	B3D_COMPONENT_FORWARD_DECLARE(Camera)
-	B3D_COMPONENT_FORWARD_DECLARE(Renderable)
 	B3D_COMPONENT_FORWARD_DECLARE(Light)
 	B3D_COMPONENT_FORWARD_DECLARE(Animation)
 	B3D_COMPONENT_FORWARD_DECLARE(Bone)
@@ -768,9 +767,8 @@ namespace b3d
 		// Moved from Engine layer
 		TID_CCamera = 30000,
 		TID_Camera = 30003,
-		TID_CRenderable = 30001,
+		TID_Renderable = 30001,
 		TID_SpriteTexture = 30002,
-		TID_Renderable = 30004,
 		TID_Light = 30011,
 		TID_CLight = 30012,
 	};
@@ -825,7 +823,7 @@ namespace b3d
 	typedef GameObjectHandle<SceneObject> HSceneObject;
 	typedef GameObjectHandle<Component> HComponent;
 	typedef GameObjectHandle<CCamera> HCamera;
-	typedef GameObjectHandle<CRenderable> HRenderable;
+	typedef GameObjectHandle<Renderable> HRenderable;
 	typedef GameObjectHandle<CLight> HLight;
 	typedef GameObjectHandle<CAnimation> HAnimation;
 	typedef GameObjectHandle<CBone> HBone;

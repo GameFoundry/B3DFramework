@@ -2,7 +2,7 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "BsRendererView.h"
 #include "Renderer/BsCamera.h"
-#include "Renderer/BsRenderable.h"
+#include "Components/BsRenderable.h"
 #include "Renderer/BsRendererUtility.h"
 #include "Material/BsMaterial.h"
 #include "Material/BsShader.h"

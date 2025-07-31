@@ -6,15 +6,15 @@
 #include "Wrappers/BsScriptComponent.h"
 #include "Math/BsBounds.h"
 
-namespace b3d { class CRenderable; }
+namespace b3d { class Renderable; }
 namespace b3d
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptRenderable : public TScriptGameObjectWrapper<CRenderable, ScriptRenderable>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptRenderable : public TScriptGameObjectWrapper<Renderable, ScriptRenderable>
 	{
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "Renderable")
 
-		ScriptRenderable(const GameObjectHandle<CRenderable>& nativeObject);
+		ScriptRenderable(const GameObjectHandle<Renderable>& nativeObject);
 		~ScriptRenderable();
 
 		static void SetupScriptBindings();
@@ -22,19 +22,19 @@ namespace b3d
 		static MonoObject* CreateScriptObject(bool construct);
 
 	private:
+		static void InternalGetBounds(ScriptRenderable* self, TBounds<float>* __output);
 		static void InternalSetMesh(ScriptRenderable* self, MonoObject* mesh);
 		static MonoObject* InternalGetMesh(ScriptRenderable* self);
-		static void InternalSetMaterial(ScriptRenderable* self, uint32_t idx, MonoObject* material);
+		static void InternalSetMaterial(ScriptRenderable* self, uint32_t index, MonoObject* material);
+		static MonoObject* InternalGetMaterial(ScriptRenderable* self, uint32_t index);
 		static void InternalSetMaterial0(ScriptRenderable* self, MonoObject* material);
-		static MonoObject* InternalGetMaterial(ScriptRenderable* self, uint32_t idx);
-		static void InternalSetMaterials(ScriptRenderable* self, MonoArray* materials);
 		static MonoArray* InternalGetMaterials(ScriptRenderable* self);
-		static void InternalSetCullDistanceFactor(ScriptRenderable* self, float factor);
-		static float InternalGetCullDistanceFactor(ScriptRenderable* self);
+		static void InternalSetMaterials(ScriptRenderable* self, MonoArray* materials);
+		static void InternalSetLayer(ScriptRenderable* self, uint64_t layer);
 		static void InternalSetWriteVelocity(ScriptRenderable* self, bool enable);
 		static bool InternalGetWriteVelocity(ScriptRenderable* self);
-		static void InternalSetLayer(ScriptRenderable* self, uint64_t layer);
+		static void InternalSetCullDistanceFactor(ScriptRenderable* self, float factor);
+		static float InternalGetCullDistanceFactor(ScriptRenderable* self);
 		static uint64_t InternalGetLayer(ScriptRenderable* self);
-		static void InternalGetBounds(ScriptRenderable* self, TBounds<float>* __output);
 	};
 }

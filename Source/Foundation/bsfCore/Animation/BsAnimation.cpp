@@ -228,7 +228,7 @@ void AnimationProxy::Rebuild(Vector<AnimationClipInfo>& clipInfos, const Vector<
 		if(morphShapes != nullptr)
 		{
 			NumMorphChannels = morphShapes->GetNumChannels();
-			NumMorphVertices = morphShapes->GetNumVertices();
+			NumMorphVertices = morphShapes->GetVertexCount();
 
 			NumMorphShapes = 0;
 			for(u32 i = 0; i < NumMorphChannels; i++)

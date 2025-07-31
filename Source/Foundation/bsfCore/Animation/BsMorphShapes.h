@@ -152,7 +152,7 @@ namespace b3d
 		const Vector<SPtr<MorphChannel>>& GetChannels() const { return mChannels; }
 
 		/** Returns the number of vertices per morph shape. */
-		u32 GetNumVertices() const { return mNumVertices; }
+		u32 GetVertexCount() const { return mNumVertices; }
 
 		/** Creates a new set of morph shapes. */
 		static SPtr<MorphShapes> Create(const Vector<SPtr<MorphChannel>>& channels, u32 numVertices);

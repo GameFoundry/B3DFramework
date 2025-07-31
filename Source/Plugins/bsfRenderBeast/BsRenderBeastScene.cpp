@@ -383,8 +383,6 @@ void RenderBeastScene::RegisterRenderable(Renderable* renderable)
 			renElement.AnimationId = renderable->GetAnimationId();
 			renElement.MorphShapeVersion = 0;
 			renElement.MorphShapeBuffer = renderable->GetMorphShapeBuffer();
-			renElement.BoneMatrixBuffer = renderable->GetBoneMatrixBuffer();
-			renElement.BonePrevMatrixBuffer = renderable->GetBonePrevMatrixBuffer();
 			renElement.MorphVertexDefinition = renderable->GetMorphVertexDescription();
 
 			renElement.Material = renderable->GetMaterial(i);
@@ -465,10 +463,10 @@ void RenderBeastScene::RegisterRenderable(Renderable* renderable)
 		gpuParams->GetPipelineParameterInformation()->GetBinding("PerCamera", element.PerCameraBinding);
 
 		if(gpuParams->HasStorageBuffer("boneMatrices"))
-			gpuParams->SetStorageBuffer("boneMatrices", element.BoneMatrixBuffer);
+			gpuParams->GetStorageBufferParameter("boneMatrices", element.BoneMatrixBufferParameter);
 
 		if(gpuParams->HasStorageBuffer("prevBoneMatrices"))
-			gpuParams->SetStorageBuffer("prevBoneMatrices", element.BonePrevMatrixBuffer);
+			gpuParams->GetStorageBufferParameter("prevBoneMatrices", element.PreviousBoneMatrixBufferParameter);
 
 		ShaderFlags shaderFlags = shader->GetFlags();
 		const bool useForwardRendering = shaderFlags.IsSet(ShaderFlag::Forward) || shaderFlags.IsSet(ShaderFlag::Transparent);
@@ -1418,9 +1416,6 @@ void RenderBeastScene::PrepareRenderable(u32 idx, const FrameInfo& frameInfo)
 	for(auto& element : rendererRenderable->Elements)
 		element.MaterialAnimationTime += frameInfo.Timings.TimeDelta;
 
-	if(frameInfo.PerSceneFrameData.Animation != nullptr)
-		rendererRenderable->Renderable->UpdatePrevFrameAnimationBuffers();
-
 	if(rendererRenderable->PrevFrameDirtyState != PrevFrameDirtyState::Clean)
 	{
 		if(rendererRenderable->PrevFrameDirtyState == PrevFrameDirtyState::Updated)
@@ -1442,13 +1437,34 @@ void RenderBeastScene::PrepareVisibleRenderable(u32 idx, const FrameInfo& frameI
 	RendererRenderable* rendererRenderable = mInfo.Renderables[idx];
 
 	// Note: Before uploading bone matrices perhaps check if they has actually been changed since last frame
+	SPtr<GpuBuffer> boneMatrixBuffer;
+	SPtr<GpuBuffer> previousBoneMatrixBuffer;
+	bool isAnimated = false;
 	if(frameInfo.PerSceneFrameData.Animation != nullptr)
-		rendererRenderable->Renderable->UpdateAnimationBuffers(*frameInfo.PerSceneFrameData.Animation);
+	{
+		isAnimated = rendererRenderable->Renderable->GetAnimationId() != (u64)-1;
+
+		if(isAnimated)
+		{
+			rendererRenderable->Renderable->UpdateAnimationBuffers(*frameInfo.PerSceneFrameData.Animation);
+			boneMatrixBuffer = rendererRenderable->Renderable->GetBoneMatrixBuffer();
+			previousBoneMatrixBuffer = rendererRenderable->Renderable->GetPreviousBoneMatrixBuffer();
+		}
+	}
 
 	// Note: Could this step be moved in notifyRenderableUpdated, so it only triggers when material actually gets
 	// changed? Although it shouldn't matter much because if the internal versions keeping track of dirty params.
 	for(auto& element : rendererRenderable->Elements)
+	{
 		element.Material->UpdateParamsSet(element.Params, element.MaterialAnimationTime);
+
+		// Note: If renderable is not writing to velocity, then these buffer don't have to be rebound every frame. Potential optimization for future.
+		if(isAnimated)
+		{
+			element.BoneMatrixBufferParameter.Set(boneMatrixBuffer);
+			element.PreviousBoneMatrixBufferParameter.Set(previousBoneMatrixBuffer);
+		}
+	}
 
 	mInfo.Renderables[idx]->PerObjectParamBuffer->FlushCache();
 	mInfo.RenderableReady[idx] = true;

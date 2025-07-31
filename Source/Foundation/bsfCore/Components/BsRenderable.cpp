@@ -1,0 +1,714 @@
+//************************************ B3D Framework - Copyright 2018 Marko Pintera **************************************//
+//*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
+#include "Components/BsRenderable.h"
+
+#include "BsCoreApplication.h"
+#include "Animation/BsMorphShapes.h"
+#include "Scene/BsSceneObject.h"
+#include "Mesh/BsMesh.h"
+#include "Material/BsMaterial.h"
+#include "Components/BsCAnimation.h"
+#include "CoreObject/BsCoreObjectSync.h"
+#include "Math/BsBounds.h"
+#include "RenderAPI/BsGpuBuffer.h"
+#include "RenderAPI/BsGpuDevice.h"
+#include "Renderer/BsRendererScene.h"
+#include "Scene/BsSceneInstance.h"
+#include "Private/RTTI/BsRenderableRTTI.h"
+
+using namespace b3d;
+
+template <bool IsRenderProxy>
+TRenderable<IsRenderProxy>::TRenderable()
+{
+	mMaterials.resize(1);
+}
+
+template <bool IsRenderProxy>
+void TRenderable<IsRenderProxy>::SetMesh(const MeshType& mesh)
+{
+	mMesh = mesh;
+
+	u32 subMeshCount = 0;
+	if(IsValid(mesh))
+		subMeshCount = (u32)mesh->GetProperties().SubMeshes.size();
+
+	mMaterials.resize(subMeshCount);
+
+	DoOnMeshChanged();
+
+	MarkCoreObjectDependenciesDirty();
+	MarkReferencedResourcesDirty();
+	MarkRenderProxyDataDirty();
+}
+
+template <bool IsRenderProxy>
+void TRenderable<IsRenderProxy>::SetMaterial(u32 index, const MaterialType& material)
+{
+	if(index >= (u32)mMaterials.size())
+		return;
+
+	mMaterials[index] = material;
+
+	MarkCoreObjectDependenciesDirty();
+	MarkReferencedResourcesDirty();
+	MarkRenderProxyDataDirty();
+}
+
+template <bool IsRenderProxy>
+void TRenderable<IsRenderProxy>::SetMaterials(const Vector<MaterialType>& materials)
+{
+	const u32 materialCount = (u32)mMaterials.size();
+	const u32 materialCountToAssign = std::min(materialCount, (u32)materials.size());
+
+	for(u32 materialIndex = 0; materialIndex < materialCountToAssign; materialIndex++)
+		mMaterials[materialIndex] = materials[materialIndex];
+
+	for(u32 materialIndex = materialCountToAssign; materialIndex < materialCount; ++materialIndex)
+		mMaterials[materialIndex] = nullptr;
+
+	MarkCoreObjectDependenciesDirty();
+	MarkReferencedResourcesDirty();
+	MarkRenderProxyDataDirty();
+}
+
+template <bool IsRenderProxy>
+typename TRenderable<IsRenderProxy>::MaterialType TRenderable<IsRenderProxy>::GetMaterial(u32 index) const
+{
+	if(index >= (u32)mMaterials.size())
+		return nullptr;
+
+	return mMaterials[index];
+}
+
+template <bool IsRenderProxy>
+void TRenderable<IsRenderProxy>::SetLayer(u64 layer)
+{
+	const bool isPow2 = layer && !((layer - 1) & layer);
+
+	if(!isPow2)
+	{
+		B3D_LOG(Warning, Renderer, "Invalid layer provided. Only one layer bit may be set. Ignoring.");
+		return;
+	}
+
+	mLayer = layer;
+	MarkRenderProxyDataDirty();
+}
+
+template <bool IsRenderProxy>
+void TRenderable<IsRenderProxy>::SetOverrideBounds(const AABox& bounds)
+{
+	mOverrideBounds = bounds;
+
+	if(mUseOverrideBounds)
+		MarkRenderProxyDataDirty();
+}
+
+template <bool IsRenderProxy>
+void TRenderable<IsRenderProxy>::SetUseOverrideBounds(bool enable)
+{
+	if(mUseOverrideBounds == enable)
+		return;
+
+	mUseOverrideBounds = enable;
+	MarkRenderProxyDataDirty();
+}
+
+template <bool IsRenderProxy>
+void TRenderable<IsRenderProxy>::SetWriteVelocity(bool enable)
+{
+	if(mWriteVelocity == enable)
+		return;
+
+	mWriteVelocity = enable;
+	MarkRenderProxyDataDirty();
+}
+
+template <bool IsRenderProxy>
+void TRenderable<IsRenderProxy>::SetCullDistanceFactor(float factor)
+{
+	mCullDistanceFactor = factor;
+	MarkRenderProxyDataDirty();
+}
+
+template <bool IsRenderProxy>
+void TRenderable<IsRenderProxy>::MarkRenderProxyDataDirty(ComponentDirtyFlag flag)
+{
+	if constexpr(!IsRenderProxy)
+		CoreObject::MarkRenderProxyDataDirty((u32)flag);
+}
+
+template <bool IsRenderProxy>
+void TRenderable<IsRenderProxy>::MarkCoreObjectDependenciesDirty()
+{
+	if constexpr(!IsRenderProxy)
+		CoreObject::MarkDependenciesDirty(); // TODO - Rename the base class method
+}
+
+template <bool IsRenderProxy>
+void TRenderable<IsRenderProxy>::MarkReferencedResourcesDirty()
+{
+	if constexpr(!IsRenderProxy)
+		IResourceListener::MarkListenerResourcesDirty(); // TODO - Rename the base class method
+}
+
+template class TRenderable<false>;
+template class TRenderable<true>;
+
+namespace b3d
+{
+	B3D_SYNC_BLOCK_BEGIN(Renderable, FullSyncPacket)
+		B3D_SYNC_BLOCK_ENTRY(mLayer)
+		B3D_SYNC_BLOCK_ENTRY(mOverrideBounds)
+		B3D_SYNC_BLOCK_ENTRY(mUseOverrideBounds)
+		B3D_SYNC_BLOCK_ENTRY(mWriteVelocity)
+		B3D_SYNC_BLOCK_ENTRY(mAnimType)
+		B3D_SYNC_BLOCK_ENTRY(mCullDistanceFactor)
+		B3D_SYNC_BLOCK_ENTRY(mMesh)
+		B3D_SYNC_BLOCK_ENTRY(mMaterials)
+		B3D_SYNC_BLOCK_ENTRY_CUSTOM_SETTER(bool, mActive)
+		B3D_SYNC_BLOCK_ENTRY_CUSTOM_SETTER(u64, mAnimationId)
+		B3D_SYNC_BLOCK_ENTRY_CUSTOM_SETTER(SPtr<SceneInstance>, mSceneInstance)
+		B3D_SYNC_BLOCK_ENTRY_CUSTOM_SETTER(Transform, mTransform)
+	B3D_SYNC_BLOCK_END
+
+	B3D_SYNC_BLOCK_BEGIN(Renderable, TransformSyncPacket)
+		B3D_SYNC_BLOCK_ENTRY_CUSTOM_SETTER(Transform, mTransform)
+	B3D_SYNC_BLOCK_END
+}
+
+Renderable::Renderable()
+{
+	SetName("Renderable");
+	SetFlag(ComponentFlag::AlwaysRun, true);
+	mNotifyFlags = (TransformChangedFlags)(TCF_Parent | TCF_Transform);
+}
+
+Renderable::Renderable(const HSceneObject& parent)
+	: Component(parent)
+{
+	SetName("Renderable");
+	SetFlag(ComponentFlag::AlwaysRun, true);
+	mNotifyFlags = (TransformChangedFlags)(TCF_Parent | TCF_Transform);
+}
+
+void Renderable::Initialize()
+{
+	SetShared(B3DStaticGameObjectCast<Renderable>(mThisHandle).GetShared());
+
+	Component::Initialize();
+	CoreObject::Initialize();
+}
+
+void Renderable::OnCreated()
+{
+	// If any resources were deserialized before initialization, make sure the listener is notified
+	MarkReferencedResourcesDirty();
+}
+
+void Renderable::OnBeginPlay()
+{
+	mAnimation = SO()->GetComponent<CAnimation>();
+	if(mAnimation != nullptr)
+	{
+		RegisterAnimation(mAnimation);
+		mAnimation->RegisterRenderableInternal(B3DStaticGameObjectCast<Renderable>(mThisHandle));
+	}
+}
+
+void Renderable::OnEnabled()
+{
+	MarkRenderProxyDataDirty();
+}
+
+void Renderable::OnDisabled()
+{
+	MarkRenderProxyDataDirty();
+}
+
+void Renderable::OnDestroyed()
+{
+	if(mAnimation != nullptr)
+		mAnimation->UnregisterRenderableInternal();
+
+	const SPtr<SceneInstance>& scene = SceneObject()->GetScene();
+	CoreObject::Destroy();
+}
+
+void Renderable::OnTransformChanged(TransformChangedFlags flags)
+{
+	const SPtr<Animation>& animation = mAnimation.IsValid() ? mAnimation->GetInternalInternal() : nullptr;
+
+	// If skinned animation, don't include own transform since that will be handled by root bone animation
+	bool ignoreOwnTransform;
+	if(mAnimType == RenderableAnimType::Skinned || mAnimType == RenderableAnimType::SkinnedMorph)
+		ignoreOwnTransform = animation != nullptr ? animation->GetAnimatesRootInternal() : false;
+	else
+		ignoreOwnTransform = false;
+
+	if(ignoreOwnTransform)
+		SceneObject()->SetLocalTransform(Transform::kIdentity);
+
+	const Transform& transform = SceneObject()->GetLocalTransform();
+	mWorldTransformMatrix = transform.GetMatrix();
+	mWorldTransformMatrixWithoutScale = Matrix4::TRS(transform.GetPosition(), transform.GetRotation(), Vector3::kOne);
+
+	MarkRenderProxyDataDirty(ComponentDirtyFlag::Transform);
+}
+
+SPtr<render::RenderProxy> Renderable::CreateRenderProxy() const
+{
+	const SPtr<SceneInstance>& scene = SceneObject()->GetScene();
+
+	render::Renderable* renderProxy = new(B3DAllocate<render::Renderable>()) render::Renderable(B3DGetRenderProxy(scene));
+	SPtr<render::Renderable> renderProxyShared = B3DMakeSharedFromExisting<render::Renderable>(renderProxy);
+	renderProxyShared->SetShared(renderProxyShared);
+
+	return renderProxyShared;
+}
+
+RenderProxySyncPacket* Renderable::CreateRenderProxySyncPacket(FrameAllocator& allocator, u32 flags)
+{
+	if(flags != (u32)ActorDirtyFlag::Transform)
+	{
+		const SPtr<Animation>& animation = mAnimation.IsValid() ? mAnimation->GetInternalInternal() : nullptr;
+
+		FullSyncPacket* const syncPacket = allocator.Construct<FullSyncPacket>(*this, allocator, flags);
+		syncPacket->mActive = GetEnabled();
+		syncPacket->mAnimationId = mAnimation != nullptr ? animation->GetIdInternal() : (u64)-1;
+		syncPacket->mSceneInstance = B3DGetRenderProxy(SceneObject()->GetScene());
+		syncPacket->mTransform = SceneObject()->GetTransform();
+
+		return syncPacket;
+	}
+	else
+	{
+		TransformSyncPacket* const syncPacket = allocator.Construct<TransformSyncPacket>(*this, allocator, flags);
+		syncPacket->mTransform = SceneObject()->GetTransform();
+
+		return syncPacket;
+	}
+}
+
+Bounds Renderable::GetBounds() const
+{
+	if(mUseOverrideBounds)
+	{
+		Sphere sphere(mOverrideBounds.GetCenter(), mOverrideBounds.GetRadius());
+
+		Bounds bounds(mOverrideBounds, sphere);
+		bounds.TransformAffine(mWorldTransformMatrix);
+
+		return bounds;
+	}
+
+	HMesh mesh = GetMesh();
+	if(!mesh.IsLoaded())
+	{
+		const Transform& transform = SceneObject()->GetTransform();
+
+		AABox box(transform.GetPosition(), transform.GetPosition());
+		Sphere sphere(transform.GetPosition(), 0.0f);
+
+		return Bounds(box, sphere);
+	}
+	else
+	{
+		Bounds bounds = mesh->GetProperties().Bounds;
+		bounds.TransformAffine(mWorldTransformMatrix);
+
+		return bounds;
+	}
+}
+
+bool Renderable::CalculateBounds(Bounds& bounds)
+{
+	bounds = GetBounds();
+
+	return true;
+}
+
+void Renderable::GetCoreDependencies(Vector<CoreObject*>& dependencies)
+{
+	if(mMesh.IsLoaded())
+		dependencies.push_back(mMesh.Get());
+
+	for(auto& material : mMaterials)
+	{
+		if(material.IsLoaded())
+			dependencies.push_back(material.Get());
+	}
+}
+
+void Renderable::OnDependencyDirty(CoreObject* dependency, u32 dirtyFlags)
+{
+	if(mMesh.IsLoaded(false) && mMesh.Get() == dependency)
+	{
+		CoreObject::OnDependencyDirty(dependency, dirtyFlags);
+		return;
+	}
+
+	if(((u32)MaterialDirtyFlags::Shader & dirtyFlags) != 0)
+		CoreObject::OnDependencyDirty(dependency, dirtyFlags);
+}
+
+void Renderable::GetListenerResources(Vector<HResource>& resources)
+{
+	if(mMesh != nullptr)
+		resources.push_back(mMesh);
+
+	for(auto& material : mMaterials)
+	{
+		if(material != nullptr)
+			resources.push_back(material);
+	}
+}
+
+void Renderable::NotifyResourceLoaded(const HResource& resource)
+{
+	if(resource == mMesh)
+		DoOnMeshChanged();
+
+	MarkCoreObjectDependenciesDirty();
+	MarkRenderProxyDataDirty();
+}
+
+void Renderable::NotifyResourceChanged(const HResource& resource)
+{
+	if(resource == mMesh)
+		DoOnMeshChanged();
+
+	MarkCoreObjectDependenciesDirty();
+	MarkRenderProxyDataDirty();
+}
+
+void Renderable::RefreshAnimation()
+{
+	if(mAnimation == nullptr)
+	{
+		mAnimType = RenderableAnimType::None;
+		return;
+	}
+
+	SPtr<Animation> animation = mAnimation->GetInternalInternal();
+	if(animation == nullptr)
+	{
+		mAnimType = RenderableAnimType::None;
+		return;
+	}
+
+	if(mMesh.IsLoaded(false))
+	{
+		SPtr<Skeleton> skeleton = mMesh->GetSkeleton();
+		SPtr<MorphShapes> morphShapes = mMesh->GetMorphShapes();
+
+		if(skeleton != nullptr && morphShapes != nullptr)
+			mAnimType = RenderableAnimType::SkinnedMorph;
+		else if(skeleton != nullptr)
+			mAnimType = RenderableAnimType::Skinned;
+		else if(morphShapes != nullptr)
+			mAnimType = RenderableAnimType::Morph;
+		else
+			mAnimType = RenderableAnimType::None;
+
+		animation->SetSkeleton(mMesh->GetSkeleton());
+		animation->SetMorphShapes(mMesh->GetMorphShapes());
+	}
+	else
+	{
+		mAnimType = RenderableAnimType::None;
+
+		animation->SetSkeleton(nullptr);
+		animation->SetMorphShapes(nullptr);
+	}
+}
+
+void Renderable::RegisterAnimation(const HAnimation& animation)
+{
+	mAnimation = animation;
+
+	RefreshAnimation();
+	MarkRenderProxyDataDirty();
+}
+
+void Renderable::UnregisterAnimation()
+{
+	mAnimation = nullptr;
+
+	RefreshAnimation();
+	MarkRenderProxyDataDirty();
+}
+
+void Renderable::DoOnMeshChanged()
+{
+	if(mAnimation != nullptr)
+	{
+		mAnimation->UpdateBoundsInternal(false);
+		RefreshAnimation();
+	}
+}
+
+RTTIType* Renderable::GetRttiStatic()
+{
+	return RenderableRTTI::Instance();
+}
+
+RTTIType* Renderable::GetRtti() const
+{
+	return Renderable::GetRttiStatic();
+}
+
+namespace b3d { namespace render
+{
+static SPtr<GpuBuffer> CreateBoneMatrixBuffer(u32 boneCount)
+{
+	GpuBufferCreateInformation bufferCreateInformation;
+	bufferCreateInformation.Type = GpuBufferType::SimpleStorage;
+	bufferCreateInformation.Flags = GpuBufferFlag::StoreOnCPUWithGPUAccess;
+	bufferCreateInformation.SimpleStorage.Count = boneCount * 3;
+	bufferCreateInformation.SimpleStorage.Format = BF_32X4F;
+
+	const SPtr<GpuDevice>& gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
+	SPtr<GpuBuffer> buffer = gpuDevice->CreateGpuBuffer(bufferCreateInformation);
+
+	const u32 bufferSize = boneCount * 3 * sizeof(Vector4);
+	u8* const temporaryBuffer = (u8*)B3DStackAllocate(bufferSize);
+	u8* currentWriteLocation = temporaryBuffer;
+
+	// Initialize bone transforms to identity, so the object renders properly even if no animation is animating it
+	for(u32 i = 0; i < boneCount; i++)
+	{
+		memcpy(currentWriteLocation, &Matrix4::kIdentity, 12 * sizeof(float)); // Assuming row-major format
+		currentWriteLocation += 12 * sizeof(float);
+	}
+
+	buffer->WriteData(0, bufferSize, temporaryBuffer, BWT_DISCARD);
+	B3DStackFree(temporaryBuffer);
+
+	return buffer;
+}
+
+Renderable::Renderable(const SPtr<SceneInstance>& sceneInstance)
+	: mSceneInstance(sceneInstance)
+{ }
+
+Renderable::~Renderable()
+{
+	if(mActive)
+	{
+		const SPtr<RendererScene>& rendererScene = mSceneInstance->GetRendererScene();
+		rendererScene->UnregisterRenderable(this);
+	}
+}
+
+void Renderable::Initialize()
+{
+	const SPtr<RendererScene>& rendererScene = mSceneInstance->GetRendererScene();
+	rendererScene->RegisterRenderable(this);
+
+	RenderProxy::Initialize();
+}
+
+Bounds Renderable::GetBounds() const
+{
+	if(mUseOverrideBounds)
+	{
+		Sphere sphere(mOverrideBounds.GetCenter(), mOverrideBounds.GetRadius());
+
+		Bounds bounds(mOverrideBounds, sphere);
+		bounds.TransformAffine(mWorldTransformMatrix);
+
+		return bounds;
+	}
+
+	SPtr<Mesh> mesh = GetMesh();
+
+	if(mesh == nullptr)
+	{
+		AABox box(mTransform.GetPosition(), mTransform.GetPosition());
+		Sphere sphere(mTransform.GetPosition(), 0.0f);
+
+		return Bounds(box, sphere);
+	}
+	else
+	{
+		Bounds bounds = mesh->GetProperties().Bounds;
+		bounds.TransformAffine(mWorldTransformMatrix);
+
+		return bounds;
+	}
+}
+
+void Renderable::CreateAnimationBuffers()
+{
+	if(mAnimType == RenderableAnimType::Skinned || mAnimType == RenderableAnimType::SkinnedMorph)
+	{
+		SPtr<Skeleton> skeleton = mMesh->GetSkeleton();
+		u32 boneCount = skeleton != nullptr ? skeleton->GetBoneCount() : 0;
+
+		if(boneCount > 0)
+		{
+			mBoneMatrixBuffer = CreateBoneMatrixBuffer(boneCount);
+
+			if(mWriteVelocity)
+				mPreviousBoneMatrixBuffer = CreateBoneMatrixBuffer(boneCount);
+			else
+				mPreviousBoneMatrixBuffer = nullptr;
+		}
+		else
+		{
+			mBoneMatrixBuffer = nullptr;
+			mPreviousBoneMatrixBuffer = nullptr;
+		}
+	}
+	else
+	{
+		mBoneMatrixBuffer = nullptr;
+		mPreviousBoneMatrixBuffer = nullptr;
+	}
+
+	if(mAnimType == RenderableAnimType::Morph || mAnimType == RenderableAnimType::SkinnedMorph)
+	{
+		// Note: Not handling velocity writing for morph animations
+
+		SPtr<MorphShapes> morphShapes = mMesh->GetMorphShapes();
+
+		const u32 vertexSize = sizeof(Vector3) + sizeof(u32);
+		const u32 vertexCount = morphShapes->GetVertexCount();
+
+		GpuBufferCreateInformation vertexBufferCreateInformation;
+		vertexBufferCreateInformation.Type = GpuBufferType::Vertex;
+		vertexBufferCreateInformation.Flags = GpuBufferFlag::StoreOnCPUWithGPUAccess;
+		vertexBufferCreateInformation.Vertex.ElementSize = vertexSize;
+		vertexBufferCreateInformation.Vertex.Count = vertexCount;
+
+		const SPtr<GpuDevice>& gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
+		SPtr<GpuBuffer> vertexBuffer = gpuDevice->CreateGpuBuffer(vertexBufferCreateInformation);
+
+		u32 totalSize = vertexSize * vertexCount;
+		u8* dest = (u8*)B3DStackAllocate(totalSize);
+		memset(dest, 0, totalSize);
+
+		vertexBuffer->WriteData(0, totalSize, dest, BWT_DISCARD);
+		B3DStackFree(dest);
+
+		mMorphShapeBuffer = vertexBuffer;
+	}
+	else
+		mMorphShapeBuffer = nullptr;
+
+	mMorphShapeVersion = 0;
+}
+
+void Renderable::UpdateAnimationBuffers(const EvaluatedAnimationData& animData)
+{
+	if(mAnimationId == (u64)-1)
+		return;
+
+	const EvaluatedAnimationData::AnimationInfo* animInfo = nullptr;
+
+	auto iterFind = animData.Infos.find(mAnimationId);
+	if(iterFind != animData.Infos.end())
+		animInfo = &iterFind->second;
+
+	if(animInfo == nullptr)
+		return;
+
+	if(mAnimType == RenderableAnimType::Skinned || mAnimType == RenderableAnimType::SkinnedMorph)
+	{
+		const EvaluatedAnimationData::PoseInfo& poseInfo = animInfo->PoseInfo;
+
+		if(mWriteVelocity)
+			std::swap(mBoneMatrixBuffer, mPreviousBoneMatrixBuffer);
+
+		// Note: If multiple elements are using the same animation (not possible atm), this buffer should be shared by
+		// all such elements
+		const u32 bufferSize = poseInfo.BoneCount * 3 * sizeof(Vector4);
+		u8* const temporaryBuffer = (u8*)B3DStackAllocate(bufferSize);
+		u8* currentWriteLocation = temporaryBuffer;
+		for(u32 j = 0; j < poseInfo.BoneCount; j++)
+		{
+			const Matrix4& transform = animData.Transforms[poseInfo.BoneStartIndex + j];
+			memcpy(currentWriteLocation, &transform, 12 * sizeof(float)); // Assuming row-major format
+
+			currentWriteLocation += 12 * sizeof(float);
+		}
+
+		mBoneMatrixBuffer->WriteData(0, bufferSize, temporaryBuffer, BWT_DISCARD);
+		B3DStackFree(temporaryBuffer);
+	}
+
+	if(mAnimType == RenderableAnimType::Morph || mAnimType == RenderableAnimType::SkinnedMorph)
+	{
+		if(mMorphShapeVersion != animInfo->MorphShapeInfo.Version)
+		{
+			SPtr<MeshData> meshData = animInfo->MorphShapeInfo.MeshData;
+
+			u32 bufferSize = meshData->GetSize();
+			u8* data = meshData->GetData();
+
+			mMorphShapeBuffer->WriteData(0, bufferSize, data, BWT_DISCARD);
+			mMorphShapeVersion = animInfo->MorphShapeInfo.Version;
+		}
+	}
+}
+
+void Renderable::SyncFromCoreObject(const CoreSyncData& data, FrameAllocator& allocator)
+{
+	RenderProxySyncPacket* const syncPacket = data.GetSyncPacket();
+	if(syncPacket == nullptr)
+		return;
+
+	bool oldIsActive = mActive;
+
+	syncPacket->ApplySyncData(this);
+
+	mWorldTransformMatrix = mTransform.GetMatrix();
+	mWorldTransformMatrixWithoutScale = Matrix4::TRS(mTransform.GetPosition(), mTransform.GetRotation(), Vector3::kOne);
+
+	const SPtr<RendererScene>& rendererScene = mSceneInstance->GetRendererScene();
+
+	const u32 flags = syncPacket->Flags;
+	const u32 updateEverythingFlag = (u32)ActorDirtyFlag::Everything | (u32)ActorDirtyFlag::Active | (u32)ActorDirtyFlag::Dependency;
+	if((flags & updateEverythingFlag) != 0)
+	{
+		CreateAnimationBuffers();
+
+		// Create special vertex declaration if using morph shapes
+		if(mAnimType == RenderableAnimType::Morph || mAnimType == RenderableAnimType::SkinnedMorph)
+		{
+			TInlineArray<VertexElement, 8> vertexElements = mMesh->GetVertexDescription()->GetElements();
+			vertexElements.Add(VertexElement(VET_FLOAT3, VES_POSITION, 1, 1));
+			vertexElements.Add(VertexElement(VET_UBYTE4_NORM, VES_NORMAL, 1, 1));
+
+			mMorphVertexDescription = B3DMakeShared<VertexDescription>(vertexElements);
+		}
+		else
+			mMorphVertexDescription = nullptr;
+
+		if(oldIsActive != mActive)
+		{
+			if(mActive)
+				rendererScene->RegisterRenderable(this);
+			else
+				rendererScene->UnregisterRenderable(this);
+		}
+		else
+		{
+			rendererScene->UnregisterRenderable(this);
+			rendererScene->RegisterRenderable(this);
+		}
+	}
+	else if((flags & (u32)ActorDirtyFlag::Mobility) != 0)
+	{
+		rendererScene->UnregisterRenderable(this);
+		rendererScene->RegisterRenderable(this);
+	}
+	else if((flags & (u32)ActorDirtyFlag::Transform) != 0)
+	{
+		if(mActive)
+			rendererScene->UpdateRenderable(this);
+	}
+}
+}}

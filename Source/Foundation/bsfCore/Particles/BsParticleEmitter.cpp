@@ -5,11 +5,12 @@
 #include "Mesh/BsMeshUtility.h"
 #include "RenderAPI/BsVertexDescription.h"
 #include "Math/BsRandom.h"
-#include "Components/BsCRenderable.h"
+#include "Components/BsRenderable.h"
 #include "Private/Particles/BsParticleSet.h"
 #include "Private/RTTI/BsParticleSystemRTTI.h"
 #include "Animation/BsAnimation.h"
 #include "Animation/BsAnimationScene.h"
+#include "Components/BsCAnimation.h"
 #include "Mesh/BsMesh.h"
 
 using namespace b3d;
@@ -1068,8 +1069,8 @@ ParticleEmitterSkinnedMeshShape::ParticleEmitterSkinnedMeshShape(const PARTICLE_
 	: mInfo(desc)
 {
 	HMesh mesh;
-	if(!desc.Renderable.Empty())
-		mesh = desc.Renderable.GetActor()->GetMesh();
+	if(desc.Renderable.IsValid())
+		mesh = desc.Renderable->GetMesh();
 
 	mIsValid = mMeshEmissionHelper.Initialize(mesh, desc.Type == ParticleEmitterMeshType::Vertex, false);
 }
@@ -1079,8 +1080,8 @@ void ParticleEmitterSkinnedMeshShape::SetOptions(const PARTICLE_SKINNED_MESH_SHA
 	mInfo = options;
 
 	HMesh mesh;
-	if(!options.Renderable.Empty())
-		mesh = options.Renderable.GetActor()->GetMesh();
+	if(options.Renderable.IsValid())
+		mesh = options.Renderable->GetMesh();
 
 	mIsValid = mMeshEmissionHelper.Initialize(mesh, options.Type == ParticleEmitterMeshType::Vertex, false);
 }
@@ -1092,12 +1093,11 @@ u32 ParticleEmitterSkinnedMeshShape::SpawnInternal(const Random& random, Particl
 
 	const Matrix4* bones = nullptr;
 
-	if(!mInfo.Renderable.Empty())
+	if(mInfo.Renderable.IsValid())
 	{
-		const SPtr<Renderable>& renderable = mInfo.Renderable.GetActor();
-		const SPtr<Animation>& animation = renderable->GetAnimation();
-		;
-		if(animation)
+		const HAnimation& animationComponent = mInfo.Renderable->GetAnimation();
+		SPtr<Animation> animation = animationComponent.IsValid() ? animationComponent->GetInternalInternal() : nullptr;
+		if(animation != nullptr)
 		{
 			const u64 animId = animation->GetIdInternal();
 
@@ -1183,17 +1183,18 @@ u32 ParticleEmitterSkinnedMeshShape::SpawnInternal(const Random& random, Particl
 
 void ParticleEmitterSkinnedMeshShape::CalcBounds(AABox& shape, AABox& velocity) const
 {
-	if(!mInfo.Renderable.Empty())
+	if(mInfo.Renderable.IsValid())
 	{
-		const SPtr<Renderable>& renderable = mInfo.Renderable.GetActor();
-		const SPtr<Animation>& anim = renderable->GetAnimation();
-		if(anim)
+		const HRenderable& renderable = mInfo.Renderable;
+		const HAnimation& animationComponent = renderable->GetAnimation();
+		const SPtr<Animation>& animation = animationComponent != nullptr ? animationComponent->GetInternalInternal() : nullptr;
+		if(animation)
 		{
 			// No culling, make the box infinite
-			if(!anim->GetCulling())
+			if(!animation->GetCulling())
 				shape = AABox::kInfBox;
 			else
-				shape = anim->GetBounds();
+				shape = animation->GetBounds();
 		}
 		else
 		{

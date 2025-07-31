@@ -246,6 +246,13 @@ namespace b3d
 		return !object.IsLoaded(false) ? nullptr : std::static_pointer_cast<CoreVariantType<Type, true>>(object->GetRenderProxy());
 	}
 
+	/** Returns associated render proxy object, or null if the object is null or has no render proxy. */
+	template<class Type>
+	SPtr<CoreVariantType<Type, true>> B3DGetRenderProxy(const GameObjectHandle<Type>& object)
+	{
+		return !object.IsValid() ? nullptr : std::static_pointer_cast<CoreVariantType<Type, true>>(object->GetRenderProxy());
+	}
+
 
 	/** @} */
 } // namespace b3d

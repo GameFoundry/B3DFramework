@@ -4,7 +4,7 @@
 
 #include "BsRenderBeastPrerequisites.h"
 #include "Renderer/BsRenderElement.h"
-#include "Renderer/BsRenderable.h"
+#include "Components/BsRenderable.h"
 #include "Renderer/BsGpuDataParameterBlock.h"
 #include "Material/BsMaterialParam.h"
 #include "RenderAPI/BsGpuPipelineParameterLayout.h"
@@ -74,12 +74,6 @@ namespace b3d
 			/** Collection of parameters used for image based lighting. */
 			ImageBasedLightingParams ImageBasedParams;
 
-			/** GPU buffer containing element's bone matrices, if it requires any. */
-			SPtr<GpuBuffer> BoneMatrixBuffer;
-
-			/** GPU buffer containing element's bone matrices for the previous frame, if it requires any. */
-			SPtr<GpuBuffer> BonePrevMatrixBuffer;
-
 			/** Vertex buffer containing element's morph shape vertices, if it has any. */
 			SPtr<GpuBuffer> MorphShapeBuffer;
 
@@ -88,6 +82,12 @@ namespace b3d
 
 			/** Time to used for evaluating material animation. */
 			float MaterialAnimationTime = 0.0f;
+
+			/** Shader parameter binding for the bone matrix buffer. */
+			TGpuParameterBuffer<true> BoneMatrixBufferParameter;
+
+			/** Shader parameter binding for the previous frame's bone matrix buffer. */
+			TGpuParameterBuffer<true> PreviousBoneMatrixBufferParameter;
 
 			/** Version of the morph shape vertices in the buffer. */
 			mutable u32 MorphShapeVersion;
@@ -115,7 +115,7 @@ namespace b3d
 			Matrix4 PrevWorldTfrm = Matrix4::kIdentity;
 			PrevFrameDirtyState PrevFrameDirtyState = PrevFrameDirtyState::Clean;
 
-			Renderable* Renderable;
+			Renderable* Renderable = nullptr;
 			Vector<RenderableElement> Elements;
 
 			SPtr<GpuBuffer> PerObjectParamBuffer;

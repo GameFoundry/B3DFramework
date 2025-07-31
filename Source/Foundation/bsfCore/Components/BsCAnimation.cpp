@@ -2,7 +2,7 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "Components/BsCAnimation.h"
 #include "Scene/BsSceneObject.h"
-#include "Components/BsCRenderable.h"
+#include "Components/BsRenderable.h"
 #include "Components/BsCBone.h"
 #include "Mesh/BsMesh.h"
 #include "Animation/BsMorphShapes.h"
@@ -160,7 +160,7 @@ void CAnimation::SetBounds(const AABox& bounds)
 	{
 		if(mAnimatedRenderable != nullptr)
 		{
-			SPtr<Renderable> renderable = mAnimatedRenderable->GetInternalInternal();
+			SPtr<Renderable> renderable = mAnimatedRenderable.GetShared();
 			if(renderable != nullptr)
 				renderable->SetOverrideBounds(bounds);
 
@@ -243,7 +243,7 @@ void CAnimation::Update()
 		// Make sure attached CBone components match the position of the skeleton bones even when the component is not
 		// otherwise running.
 
-		HRenderable animatedRenderable = SO()->GetComponent<CRenderable>();
+		HRenderable animatedRenderable = SO()->GetComponent<Renderable>();
 		if(animatedRenderable)
 		{
 			HMesh mesh = animatedRenderable->GetMesh();
@@ -311,7 +311,7 @@ void CAnimation::RestoreInternal(bool previewMode)
 	const SPtr<SceneInstance>& scene = SceneObject()->GetScene();
 	mInternal = Animation::Create(scene);
 
-	mAnimatedRenderable = SO()->GetComponent<CRenderable>();
+	mAnimatedRenderable = SO()->GetComponent<Renderable>();
 
 	if(!previewMode)
 	{
@@ -343,13 +343,13 @@ void CAnimation::RestoreInternal(bool previewMode)
 		UpdateSceneObjectMapping();
 
 	if(mAnimatedRenderable != nullptr)
-		mAnimatedRenderable->RegisterAnimationInternal(B3DStaticGameObjectCast<CAnimation>(mThisHandle));
+		mAnimatedRenderable->RegisterAnimation(B3DStaticGameObjectCast<CAnimation>(mThisHandle));
 }
 
 void CAnimation::DestroyInternal()
 {
 	if(mAnimatedRenderable != nullptr)
-		mAnimatedRenderable->UnregisterAnimationInternal();
+		mAnimatedRenderable->UnregisterAnimation();
 
 	mPrimaryPlayingClip = nullptr;
 
@@ -478,7 +478,7 @@ void CAnimation::UpdateBoundsInternal(bool updateRenderable)
 {
 	SPtr<Renderable> renderable;
 	if(updateRenderable && mAnimatedRenderable != nullptr)
-		renderable = mAnimatedRenderable->GetInternalInternal();
+		renderable = mAnimatedRenderable.GetShared();
 
 	if(mUseBounds)
 	{

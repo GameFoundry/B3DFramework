@@ -1,10 +1,10 @@
 //********************************* B3D Framework - Copyright 2018-2022 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "BsScriptCRenderable.generated.h"
+#include "BsScriptRenderable.generated.h"
 #include "BsMonoMethod.h"
 #include "BsMonoClass.h"
 #include "BsMonoUtil.h"
-#include "../../../Foundation/bsfCore/Components/BsCRenderable.h"
+#include "../../../Foundation/bsfCore/Components/BsRenderable.h"
 #include "BsScriptResourceManager.h"
 #include "Wrappers/BsScriptRRefBase.h"
 #include "../../../Foundation/bsfCore/Mesh/BsMesh.h"
@@ -12,7 +12,7 @@
 
 namespace b3d
 {
-	ScriptRenderable::ScriptRenderable(const GameObjectHandle<CRenderable>& nativeObject)
+	ScriptRenderable::ScriptRenderable(const GameObjectHandle<Renderable>& nativeObject)
 		:TScriptGameObjectWrapper(nativeObject)
 	{
 		RegisterEvents();
@@ -25,20 +25,20 @@ namespace b3d
 
 	void ScriptRenderable::SetupScriptBindings()
 	{
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetBounds", (void*)&ScriptRenderable::InternalGetBounds);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetMesh", (void*)&ScriptRenderable::InternalSetMesh);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetMesh", (void*)&ScriptRenderable::InternalGetMesh);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetMaterial", (void*)&ScriptRenderable::InternalSetMaterial);
-		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetMaterial0", (void*)&ScriptRenderable::InternalSetMaterial0);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetMaterial", (void*)&ScriptRenderable::InternalGetMaterial);
-		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetMaterials", (void*)&ScriptRenderable::InternalSetMaterials);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetMaterial0", (void*)&ScriptRenderable::InternalSetMaterial0);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetMaterials", (void*)&ScriptRenderable::InternalGetMaterials);
-		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetCullDistanceFactor", (void*)&ScriptRenderable::InternalSetCullDistanceFactor);
-		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetCullDistanceFactor", (void*)&ScriptRenderable::InternalGetCullDistanceFactor);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetMaterials", (void*)&ScriptRenderable::InternalSetMaterials);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetLayer", (void*)&ScriptRenderable::InternalSetLayer);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetWriteVelocity", (void*)&ScriptRenderable::InternalSetWriteVelocity);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetWriteVelocity", (void*)&ScriptRenderable::InternalGetWriteVelocity);
-		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetLayer", (void*)&ScriptRenderable::InternalSetLayer);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetCullDistanceFactor", (void*)&ScriptRenderable::InternalSetCullDistanceFactor);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetCullDistanceFactor", (void*)&ScriptRenderable::InternalGetCullDistanceFactor);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetLayer", (void*)&ScriptRenderable::InternalGetLayer);
-		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetBounds", (void*)&ScriptRenderable::InternalGetBounds);
 
 	}
 
@@ -52,6 +52,20 @@ namespace b3d
 
 		return sInteropMetaData.ScriptClass->CreateInstance(false);
 	}
+	void ScriptRenderable::InternalGetBounds(ScriptRenderable* self, TBounds<float>* __output)
+	{
+		if(!self->IsNativeObjectValid())
+		{
+			*__output = {};
+			return;
+		}
+
+		TBounds<float> tmp__output;
+		tmp__output = static_cast<Renderable*>(self->GetNativeObject())->GetBounds();
+
+		*__output = tmp__output;
+	}
+
 	void ScriptRenderable::InternalSetMesh(ScriptRenderable* self, MonoObject* mesh)
 	{
 		if(!self->IsNativeObjectValid())
@@ -62,7 +76,7 @@ namespace b3d
 		scriptObjectWrappermesh = ScriptRRefBase::GetScriptObjectWrapper(mesh);
 		if(scriptObjectWrappermesh != nullptr)
 			tmpmesh = B3DStaticResourceCast<Mesh>(scriptObjectWrappermesh->GetNativeObject());
-		static_cast<CRenderable*>(self->GetNativeObject())->SetMesh(tmpmesh);
+		static_cast<Renderable*>(self->GetNativeObject())->SetMesh(tmpmesh);
 	}
 
 	MonoObject* ScriptRenderable::InternalGetMesh(ScriptRenderable* self)
@@ -71,7 +85,7 @@ namespace b3d
 		if(!self->IsNativeObjectValid())
 			return {};
 
-		tmp__output = static_cast<CRenderable*>(self->GetNativeObject())->GetMesh();
+		tmp__output = static_cast<Renderable*>(self->GetNativeObject())->GetMesh();
 
 		MonoObject* __output;
 		ScriptRRefBase* script__output;
@@ -84,7 +98,7 @@ namespace b3d
 		return __output;
 	}
 
-	void ScriptRenderable::InternalSetMaterial(ScriptRenderable* self, uint32_t idx, MonoObject* material)
+	void ScriptRenderable::InternalSetMaterial(ScriptRenderable* self, uint32_t index, MonoObject* material)
 	{
 		if(!self->IsNativeObjectValid())
 			return;
@@ -94,7 +108,26 @@ namespace b3d
 		scriptObjectWrappermaterial = ScriptRRefBase::GetScriptObjectWrapper(material);
 		if(scriptObjectWrappermaterial != nullptr)
 			tmpmaterial = B3DStaticResourceCast<Material>(scriptObjectWrappermaterial->GetNativeObject());
-		static_cast<CRenderable*>(self->GetNativeObject())->SetMaterial(idx, tmpmaterial);
+		static_cast<Renderable*>(self->GetNativeObject())->SetMaterial(index, tmpmaterial);
+	}
+
+	MonoObject* ScriptRenderable::InternalGetMaterial(ScriptRenderable* self, uint32_t index)
+	{
+		TResourceHandle<Material> tmp__output;
+		if(!self->IsNativeObjectValid())
+			return {};
+
+		tmp__output = static_cast<Renderable*>(self->GetNativeObject())->GetMaterial(index);
+
+		MonoObject* __output;
+		ScriptRRefBase* script__output;
+		script__output = ScriptResourceManager::Instance().GetScriptRRef(tmp__output);
+		if(script__output != nullptr)
+			__output = script__output->GetScriptObject();
+		else
+			__output = nullptr;
+
+		return __output;
 	}
 
 	void ScriptRenderable::InternalSetMaterial0(ScriptRenderable* self, MonoObject* material)
@@ -107,24 +140,30 @@ namespace b3d
 		scriptObjectWrappermaterial = ScriptRRefBase::GetScriptObjectWrapper(material);
 		if(scriptObjectWrappermaterial != nullptr)
 			tmpmaterial = B3DStaticResourceCast<Material>(scriptObjectWrappermaterial->GetNativeObject());
-		static_cast<CRenderable*>(self->GetNativeObject())->SetMaterial(tmpmaterial);
+		static_cast<Renderable*>(self->GetNativeObject())->SetMaterial(tmpmaterial);
 	}
 
-	MonoObject* ScriptRenderable::InternalGetMaterial(ScriptRenderable* self, uint32_t idx)
+	MonoArray* ScriptRenderable::InternalGetMaterials(ScriptRenderable* self)
 	{
-		TResourceHandle<Material> tmp__output;
+		Vector<TResourceHandle<Material>> nativeArray__output;
 		if(!self->IsNativeObjectValid())
 			return {};
 
-		tmp__output = static_cast<CRenderable*>(self->GetNativeObject())->GetMaterial(idx);
+		nativeArray__output = static_cast<Renderable*>(self->GetNativeObject())->GetMaterials();
 
-		MonoObject* __output;
-		ScriptRRefBase* script__output;
-		script__output = ScriptResourceManager::Instance().GetScriptRRef(tmp__output);
-		if(script__output != nullptr)
-			__output = script__output->GetScriptObject();
-		else
-			__output = nullptr;
+		MonoArray* __output;
+		int elementCount__output = (int)nativeArray__output.size();
+		ScriptArray scriptArray__output = ScriptArray::Create<ScriptRRefBase>(elementCount__output);
+		for(int elementIndex = 0; elementIndex < elementCount__output; elementIndex++)
+		{
+			ScriptRRefBase* scriptObjectWrapper__output;
+			scriptObjectWrapper__output = ScriptResourceManager::Instance().GetScriptRRef(nativeArray__output[elementIndex]);
+			if(scriptObjectWrapper__output != nullptr)
+				scriptArray__output.Set(elementIndex, scriptObjectWrapper__output->GetScriptObject());
+			else
+				scriptArray__output.Set(elementIndex, nullptr);
+		}
+		__output = scriptArray__output.GetInternal();
 
 		return __output;
 	}
@@ -151,30 +190,35 @@ namespace b3d
 				}
 			}
 		}
-		static_cast<CRenderable*>(self->GetNativeObject())->SetMaterials(nativeArraymaterials);
+		static_cast<Renderable*>(self->GetNativeObject())->SetMaterials(nativeArraymaterials);
 	}
 
-	MonoArray* ScriptRenderable::InternalGetMaterials(ScriptRenderable* self)
+	void ScriptRenderable::InternalSetLayer(ScriptRenderable* self, uint64_t layer)
 	{
-		Vector<TResourceHandle<Material>> nativeArray__output;
+		if(!self->IsNativeObjectValid())
+			return;
+
+		static_cast<Renderable*>(self->GetNativeObject())->SetLayer(layer);
+	}
+
+	void ScriptRenderable::InternalSetWriteVelocity(ScriptRenderable* self, bool enable)
+	{
+		if(!self->IsNativeObjectValid())
+			return;
+
+		static_cast<Renderable*>(self->GetNativeObject())->SetWriteVelocity(enable);
+	}
+
+	bool ScriptRenderable::InternalGetWriteVelocity(ScriptRenderable* self)
+	{
+		bool tmp__output;
 		if(!self->IsNativeObjectValid())
 			return {};
 
-		nativeArray__output = static_cast<CRenderable*>(self->GetNativeObject())->GetMaterials();
+		tmp__output = static_cast<Renderable*>(self->GetNativeObject())->GetWriteVelocity();
 
-		MonoArray* __output;
-		int elementCount__output = (int)nativeArray__output.size();
-		ScriptArray scriptArray__output = ScriptArray::Create<ScriptRRefBase>(elementCount__output);
-		for(int elementIndex = 0; elementIndex < elementCount__output; elementIndex++)
-		{
-			ScriptRRefBase* scriptObjectWrapper__output;
-			scriptObjectWrapper__output = ScriptResourceManager::Instance().GetScriptRRef(nativeArray__output[elementIndex]);
-			if(scriptObjectWrapper__output != nullptr)
-				scriptArray__output.Set(elementIndex, scriptObjectWrapper__output->GetScriptObject());
-			else
-				scriptArray__output.Set(elementIndex, nullptr);
-		}
-		__output = scriptArray__output.GetInternal();
+		bool __output;
+		__output = tmp__output;
 
 		return __output;
 	}
@@ -184,7 +228,7 @@ namespace b3d
 		if(!self->IsNativeObjectValid())
 			return;
 
-		static_cast<CRenderable*>(self->GetNativeObject())->SetCullDistanceFactor(factor);
+		static_cast<Renderable*>(self->GetNativeObject())->SetCullDistanceFactor(factor);
 	}
 
 	float ScriptRenderable::InternalGetCullDistanceFactor(ScriptRenderable* self)
@@ -193,42 +237,12 @@ namespace b3d
 		if(!self->IsNativeObjectValid())
 			return {};
 
-		tmp__output = static_cast<CRenderable*>(self->GetNativeObject())->GetCullDistanceFactor();
+		tmp__output = static_cast<Renderable*>(self->GetNativeObject())->GetCullDistanceFactor();
 
 		float __output;
 		__output = tmp__output;
 
 		return __output;
-	}
-
-	void ScriptRenderable::InternalSetWriteVelocity(ScriptRenderable* self, bool enable)
-	{
-		if(!self->IsNativeObjectValid())
-			return;
-
-		static_cast<CRenderable*>(self->GetNativeObject())->SetWriteVelocity(enable);
-	}
-
-	bool ScriptRenderable::InternalGetWriteVelocity(ScriptRenderable* self)
-	{
-		bool tmp__output;
-		if(!self->IsNativeObjectValid())
-			return {};
-
-		tmp__output = static_cast<CRenderable*>(self->GetNativeObject())->GetWriteVelocity();
-
-		bool __output;
-		__output = tmp__output;
-
-		return __output;
-	}
-
-	void ScriptRenderable::InternalSetLayer(ScriptRenderable* self, uint64_t layer)
-	{
-		if(!self->IsNativeObjectValid())
-			return;
-
-		static_cast<CRenderable*>(self->GetNativeObject())->SetLayer(layer);
 	}
 
 	uint64_t ScriptRenderable::InternalGetLayer(ScriptRenderable* self)
@@ -237,25 +251,11 @@ namespace b3d
 		if(!self->IsNativeObjectValid())
 			return {};
 
-		tmp__output = static_cast<CRenderable*>(self->GetNativeObject())->GetLayer();
+		tmp__output = static_cast<Renderable*>(self->GetNativeObject())->GetLayer();
 
 		uint64_t __output;
 		__output = tmp__output;
 
 		return __output;
-	}
-
-	void ScriptRenderable::InternalGetBounds(ScriptRenderable* self, TBounds<float>* __output)
-	{
-		if(!self->IsNativeObjectValid())
-		{
-			*__output = {};
-			return;
-		}
-
-		TBounds<float> tmp__output;
-		tmp__output = static_cast<CRenderable*>(self->GetNativeObject())->GetBounds();
-
-		*__output = tmp__output;
 	}
 }

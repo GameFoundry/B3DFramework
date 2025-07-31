@@ -124,7 +124,7 @@ namespace b3d
 
 		/**
 		 * Determines should animation bounds be used for visibility determination (culling). If false the bounds of the
-		 * mesh attached to the relevant CRenderable component will be used instead.
+		 * mesh attached to the relevant Renderable component will be used instead.
 		 */
 		B3D_SCRIPT_EXPORT(ExportName(UseBounds), Property(Setter))
 		void SetUseBounds(bool enable);
