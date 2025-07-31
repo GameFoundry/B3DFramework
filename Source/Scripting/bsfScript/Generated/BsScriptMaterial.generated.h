@@ -5,7 +5,6 @@
 #include "BsScriptEnginePrerequisites.h"
 #include "BsScriptResourceWrapper.h"
 #include "../../../Foundation/bsfUtility/Image/BsColor.h"
-#include "Math/BsMatrix4.h"
 #include "../../../Foundation/bsfCore/Material/BsShaderVariation.h"
 #include "../../../Foundation/bsfUtility/Image/BsColorGradient.h"
 #include "../../../Foundation/bsfCore/Animation/BsAnimationCurve.h"
@@ -13,6 +12,7 @@
 #include "../../../Foundation/bsfUtility/Math/BsVector3.h"
 #include "../../../Foundation/bsfUtility/Math/BsVector4.h"
 #include "Math/BsMatrix3.h"
+#include "Math/BsMatrix4.h"
 
 namespace b3d { class Material; }
 namespace b3d { class MaterialEx; }
@@ -45,8 +45,8 @@ namespace b3d
 		static void InternalSetVec2(ScriptMaterial* self, MonoString* name, TVector2<float>* value, uint32_t arrayIdx);
 		static void InternalSetVec3(ScriptMaterial* self, MonoString* name, TVector3<float>* value, uint32_t arrayIdx);
 		static void InternalSetVec4(ScriptMaterial* self, MonoString* name, TVector4<float>* value, uint32_t arrayIdx);
-		static void InternalSetMat3(ScriptMaterial* self, MonoString* name, Matrix3* value, uint32_t arrayIdx);
-		static void InternalSetMat4(ScriptMaterial* self, MonoString* name, Matrix4* value, uint32_t arrayIdx);
+		static void InternalSetMat3(ScriptMaterial* self, MonoString* name, TMatrix3<float>* value, uint32_t arrayIdx);
+		static void InternalSetMat4(ScriptMaterial* self, MonoString* name, TMatrix4<float>* value, uint32_t arrayIdx);
 		static float InternalGetFloat(ScriptMaterial* self, MonoString* name, uint32_t arrayIdx);
 		static MonoObject* InternalGetFloatCurve(ScriptMaterial* self, MonoString* name, uint32_t arrayIdx);
 		static void InternalGetColor(ScriptMaterial* self, MonoString* name, uint32_t arrayIdx, Color* __output);
@@ -54,8 +54,8 @@ namespace b3d
 		static void InternalGetVec2(ScriptMaterial* self, MonoString* name, uint32_t arrayIdx, TVector2<float>* __output);
 		static void InternalGetVec3(ScriptMaterial* self, MonoString* name, uint32_t arrayIdx, TVector3<float>* __output);
 		static void InternalGetVec4(ScriptMaterial* self, MonoString* name, uint32_t arrayIdx, TVector4<float>* __output);
-		static void InternalGetMat3(ScriptMaterial* self, MonoString* name, uint32_t arrayIdx, Matrix3* __output);
-		static void InternalGetMat4(ScriptMaterial* self, MonoString* name, uint32_t arrayIdx, Matrix4* __output);
+		static void InternalGetMat3(ScriptMaterial* self, MonoString* name, uint32_t arrayIdx, TMatrix3<float>* __output);
+		static void InternalGetMat4(ScriptMaterial* self, MonoString* name, uint32_t arrayIdx, TMatrix4<float>* __output);
 		static bool InternalIsAnimated(ScriptMaterial* self, MonoString* name, uint32_t arrayIdx);
 		static void InternalCreate(MonoObject* scriptObject);
 		static void InternalCreate0(MonoObject* scriptObject, MonoObject* shader);

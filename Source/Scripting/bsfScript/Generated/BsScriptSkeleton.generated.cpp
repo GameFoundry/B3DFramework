@@ -22,7 +22,7 @@ namespace b3d
 
 	void ScriptSkeleton::SetupScriptBindings()
 	{
-		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetNumBones", (void*)&ScriptSkeleton::InternalGetNumBones);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetBoneCount", (void*)&ScriptSkeleton::InternalGetBoneCount);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetBoneInfo", (void*)&ScriptSkeleton::InternalGetBoneInfo);
 
 	}
@@ -37,13 +37,13 @@ namespace b3d
 
 		return sInteropMetaData.ScriptClass->CreateInstance(false);
 	}
-	uint32_t ScriptSkeleton::InternalGetNumBones(ScriptSkeleton* self)
+	uint32_t ScriptSkeleton::InternalGetBoneCount(ScriptSkeleton* self)
 	{
 		uint32_t tmp__output;
 		if(!self->IsNativeObjectValid())
 			return {};
 
-		tmp__output = static_cast<Skeleton*>(self->GetNativeObject())->GetNumBones();
+		tmp__output = static_cast<Skeleton*>(self->GetNativeObject())->GetBoneCount();
 
 		uint32_t __output;
 		__output = tmp__output;

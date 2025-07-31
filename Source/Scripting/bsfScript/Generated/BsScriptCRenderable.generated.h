@@ -35,6 +35,6 @@ namespace b3d
 		static bool InternalGetWriteVelocity(ScriptRenderable* self);
 		static void InternalSetLayer(ScriptRenderable* self, uint64_t layer);
 		static uint64_t InternalGetLayer(ScriptRenderable* self);
-		static void InternalGetBounds(ScriptRenderable* self, Bounds* __output);
+		static void InternalGetBounds(ScriptRenderable* self, TBounds<float>* __output);
 	};
 }

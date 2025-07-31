@@ -13,7 +13,7 @@ namespace b3d
 	{
 		MonoString* Name;
 		int32_t Parent;
-		Matrix4 InvBindPose;
+		TMatrix4<float> InvBindPose;
 	};
 
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptBoneInfo : public TScriptTypeDefinition<ScriptBoneInfo>

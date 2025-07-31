@@ -245,7 +245,7 @@ namespace b3d
 		return __output;
 	}
 
-	void ScriptRenderable::InternalGetBounds(ScriptRenderable* self, Bounds* __output)
+	void ScriptRenderable::InternalGetBounds(ScriptRenderable* self, TBounds<float>* __output)
 	{
 		if(!self->IsNativeObjectValid())
 		{
@@ -253,7 +253,7 @@ namespace b3d
 			return;
 		}
 
-		Bounds tmp__output;
+		TBounds<float> tmp__output;
 		tmp__output = static_cast<CRenderable*>(self->GetNativeObject())->GetBounds();
 
 		*__output = tmp__output;

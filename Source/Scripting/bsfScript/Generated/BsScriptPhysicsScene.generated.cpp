@@ -154,7 +154,7 @@ namespace b3d
 		return __output;
 	}
 
-	bool ScriptPhysicsScene::InternalCapsuleCast(ScriptPhysicsScene* self, Capsule* capsule, TQuaternion<float>* rotation, TVector3<float>* unitDir, __PhysicsQueryHitInterop* hit, uint64_t layer, float max)
+	bool ScriptPhysicsScene::InternalCapsuleCast(ScriptPhysicsScene* self, TCapsule<float>* capsule, TQuaternion<float>* rotation, TVector3<float>* unitDir, __PhysicsQueryHitInterop* hit, uint64_t layer, float max)
 	{
 		bool tmp__output;
 		if(!self->IsNativeObjectValid())
@@ -281,7 +281,7 @@ namespace b3d
 		return __output;
 	}
 
-	MonoArray* ScriptPhysicsScene::InternalCapsuleCastAll(ScriptPhysicsScene* self, Capsule* capsule, TQuaternion<float>* rotation, TVector3<float>* unitDir, uint64_t layer, float max)
+	MonoArray* ScriptPhysicsScene::InternalCapsuleCastAll(ScriptPhysicsScene* self, TCapsule<float>* capsule, TQuaternion<float>* rotation, TVector3<float>* unitDir, uint64_t layer, float max)
 	{
 		Vector<PhysicsQueryHit> nativeArray__output;
 		if(!self->IsNativeObjectValid())
@@ -388,7 +388,7 @@ namespace b3d
 		return __output;
 	}
 
-	bool ScriptPhysicsScene::InternalCapsuleCastAny(ScriptPhysicsScene* self, Capsule* capsule, TQuaternion<float>* rotation, TVector3<float>* unitDir, uint64_t layer, float max)
+	bool ScriptPhysicsScene::InternalCapsuleCastAny(ScriptPhysicsScene* self, TCapsule<float>* capsule, TQuaternion<float>* rotation, TVector3<float>* unitDir, uint64_t layer, float max)
 	{
 		bool tmp__output;
 		if(!self->IsNativeObjectValid())
@@ -471,7 +471,7 @@ namespace b3d
 		return __output;
 	}
 
-	MonoArray* ScriptPhysicsScene::InternalCapsuleOverlap(ScriptPhysicsScene* self, Capsule* capsule, TQuaternion<float>* rotation, uint64_t layer)
+	MonoArray* ScriptPhysicsScene::InternalCapsuleOverlap(ScriptPhysicsScene* self, TCapsule<float>* capsule, TQuaternion<float>* rotation, uint64_t layer)
 	{
 		Vector<GameObjectHandle<CCollider>> nativeArray__output;
 		if(!self->IsNativeObjectValid())
@@ -554,7 +554,7 @@ namespace b3d
 		return __output;
 	}
 
-	bool ScriptPhysicsScene::InternalCapsuleOverlapAny(ScriptPhysicsScene* self, Capsule* capsule, TQuaternion<float>* rotation, uint64_t layer)
+	bool ScriptPhysicsScene::InternalCapsuleOverlapAny(ScriptPhysicsScene* self, TCapsule<float>* capsule, TQuaternion<float>* rotation, uint64_t layer)
 	{
 		bool tmp__output;
 		if(!self->IsNativeObjectValid())

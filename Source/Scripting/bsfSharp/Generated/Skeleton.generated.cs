@@ -21,7 +21,7 @@ namespace b3d
 		[NativeWrapper]
 		public int NumBones
 		{
-			get { return Internal_GetNumBones(mCachedPtr); }
+			get { return Internal_GetBoneCount(mCachedPtr); }
 		}
 
 		/// <summary>Returns information about a bone at the provided index.</summary>
@@ -35,7 +35,7 @@ namespace b3d
 		}
 
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern int Internal_GetNumBones(IntPtr thisPtr);
+		private static extern int Internal_GetBoneCount(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_GetBoneInfo(IntPtr thisPtr, int boneIdx, out BoneInfo __output);
 	}

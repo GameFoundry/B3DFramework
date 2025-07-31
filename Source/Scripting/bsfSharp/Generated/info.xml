@@ -1,54 +1,5 @@
 <?xml version='1.0' encoding='UTF-8' standalone='no'?>
 <entries>
-	<enum native="AreaComponent" script="AreaComponent">
-		<doc>Names of individual components of an area.</doc>
-		<enumentry native="Width" script="Width">
-		</enumentry>
-		<enumentry native="X" script="X">
-		</enumentry>
-		<enumentry native="Y" script="Y">
-		</enumentry>
-		<enumentry native="Height" script="Height">
-		</enumentry>
-	</enum>
-	<struct native="TSize3&lt;float&gt;" script="Size3">
-		<doc>Encapsulates width/height/depth in a single structure.</doc>
-		<ctor>
-		</ctor>
-		<ctor>
-			<param name="width" type="float">
-			</param>
-			<param name="height" type="float">
-			</param>
-			<param name="depth" type="float">
-			</param>
-		</ctor>
-		<field name="Width" type="float">
-		</field>
-		<field name="Height" type="float">
-		</field>
-		<field name="Depth" type="float">
-		</field>
-	</struct>
-	<struct native="TSize3&lt;uint32_t&gt;" script="Size3UI">
-		<doc>Encapsulates width/height/depth in a single structure.</doc>
-		<ctor>
-		</ctor>
-		<ctor>
-			<param name="width" type="int">
-			</param>
-			<param name="height" type="int">
-			</param>
-			<param name="depth" type="int">
-			</param>
-		</ctor>
-		<field name="Width" type="int">
-		</field>
-		<field name="Height" type="int">
-		</field>
-		<field name="Depth" type="int">
-		</field>
-	</struct>
 	<class native="AnimationClip" script="AnimationClip">
 		<doc>Contains animation curves for translation/rotation/scale of scene objects/skeleton bones, as well as curves for generic property animation.</doc>
 		<ctor>
@@ -126,6 +77,21 @@
 			<doc>Determines the position of the box shape, relative to the component&apos;s scene object.</doc>
 		</property>
 	</class>
+	<enum native="EulerAngleOrder" script="EulerAngleOrder">
+		<doc>Values that represent in which order are euler angles applied when used in transformations.</doc>
+		<enumentry native="XYZ" script="XYZ">
+		</enumentry>
+		<enumentry native="ZXY" script="ZXY">
+		</enumentry>
+		<enumentry native="YXZ" script="YXZ">
+		</enumentry>
+		<enumentry native="XZY" script="XZY">
+		</enumentry>
+		<enumentry native="YZX" script="YZX">
+		</enumentry>
+		<enumentry native="ZYX" script="ZYX">
+		</enumentry>
+	</enum>
 	<struct native="TQuaternion&lt;float&gt;" script="Quaternion">
 		<doc>Represents a quaternion used for 3D rotations.</doc>
 		<ctor>
@@ -186,21 +152,55 @@
 			<doc>Determines the minimum interval allowed between the generated particles. 0 specifies the particles can be generated anywhere on the shape.</doc>
 		</field>
 	</struct>
-	<enum native="EulerAngleOrder" script="EulerAngleOrder">
-		<doc>Values that represent in which order are euler angles applied when used in transformations.</doc>
-		<enumentry native="XYZ" script="XYZ">
+	<enum native="AreaComponent" script="AreaComponent">
+		<doc>Names of individual components of an area.</doc>
+		<enumentry native="Width" script="Width">
 		</enumentry>
-		<enumentry native="ZXY" script="ZXY">
+		<enumentry native="X" script="X">
 		</enumentry>
-		<enumentry native="YXZ" script="YXZ">
+		<enumentry native="Y" script="Y">
 		</enumentry>
-		<enumentry native="XZY" script="XZY">
-		</enumentry>
-		<enumentry native="YZX" script="YZX">
-		</enumentry>
-		<enumentry native="ZYX" script="ZYX">
+		<enumentry native="Height" script="Height">
 		</enumentry>
 	</enum>
+	<struct native="TSize3&lt;float&gt;" script="Size3">
+		<doc>Encapsulates width/height/depth in a single structure.</doc>
+		<ctor>
+		</ctor>
+		<ctor>
+			<param name="width" type="float">
+			</param>
+			<param name="height" type="float">
+			</param>
+			<param name="depth" type="float">
+			</param>
+		</ctor>
+		<field name="Width" type="float">
+		</field>
+		<field name="Height" type="float">
+		</field>
+		<field name="Depth" type="float">
+		</field>
+	</struct>
+	<struct native="TSize3&lt;uint32_t&gt;" script="Size3UI">
+		<doc>Encapsulates width/height/depth in a single structure.</doc>
+		<ctor>
+		</ctor>
+		<ctor>
+			<param name="width" type="int">
+			</param>
+			<param name="height" type="int">
+			</param>
+			<param name="depth" type="int">
+			</param>
+		</ctor>
+		<field name="Width" type="int">
+		</field>
+		<field name="Height" type="int">
+		</field>
+		<field name="Depth" type="int">
+		</field>
+	</struct>
 	<class native="Skeleton" script="Skeleton">
 		<doc>Contains information about bones required for skeletal animation.</doc>
 		<method native="GetBoneInfo" script="GetBoneInfo" static="false">
@@ -212,7 +212,7 @@
 				<doc>Information about the bone at the specified index.</doc>
 			</returns>
 		</method>
-		<property name="NumBones" type="int" getter="GetNumBones" setter="" static="false">
+		<property name="NumBones" type="int" getter="GetBoneCount" setter="" static="false">
 			<doc>Returns the total number of bones in the skeleton.</doc>
 		</property>
 	</class>
@@ -268,6 +268,152 @@
 		<enumentry native="Positive" script="Positive">
 		</enumentry>
 	</enum>
+	<struct native="LogEntry" script="LogEntry">
+		<doc>A single log entry, containing a message and a channel the message was recorded on.</doc>
+		<ctor>
+		</ctor>
+		<field name="Message" type="string">
+		</field>
+		<field name="Verbosity" type="LogVerbosity">
+		</field>
+		<field name="CategoryName" type="string">
+		</field>
+		<field name="LocalTime" type="ulong">
+			<doc>Local time of message</doc>
+		</field>
+	</struct>
+	<enum native="DrawOperationType" script="MeshTopology">
+		<doc>Describes operation that will be used for rendering a certain set of vertices.</doc>
+		<enumentry native="DOT_POINT_LIST" script="PointList">
+			<doc>Each vertex represents a point.</doc>
+		</enumentry>
+		<enumentry native="DOT_LINE_STRIP" script="LineStrip">
+			<doc>Each vertex (except the first) forms a line with the previous vertex.</doc>
+		</enumentry>
+		<enumentry native="DOT_LINE_LIST" script="LineList">
+			<doc>Each sequential pair of vertices represent a line.</doc>
+		</enumentry>
+		<enumentry native="DOT_TRIANGLE_STRIP" script="TriangleStrip">
+			<doc>Each vertex (except the first two) form a triangle with the previous two vertices.</doc>
+		</enumentry>
+		<enumentry native="DOT_TRIANGLE_LIST" script="TriangleList">
+			<doc>Each sequential 3-tuple of vertices represent a triangle.</doc>
+		</enumentry>
+		<enumentry native="DOT_TRIANGLE_FAN" script="TriangleFan">
+			<doc>Each vertex (except the first two) form a triangle with the first vertex and previous vertex.</doc>
+		</enumentry>
+	</enum>
+	<class native="Debug" script="Debug">
+		<doc>Utility class providing various debug functionality.</doc>
+		<method native="Log" script="Log" static="false">
+			<doc>Logs a new message.</doc>
+			<param name="message" type="string">
+				<doc>The message describing the log entry.</doc>
+			</param>
+			<param name="verbosity" type="LogVerbosity">
+				<doc>Verbosity of the message, determining its importance.</doc>
+			</param>
+			<param name="categoryName" type="string">
+				<doc>Category of the message, determining which system is it relevant to.</doc>
+			</param>
+		</method>
+		<method native="ClearLog" script="ClearLog" static="false">
+			<doc>Removes all log entries for a specific category and/or verbosity level.</doc>
+			<param name="categoryName" type="string">
+				<doc>Name of the category to clear. Specify null to clear all categories.</doc>
+			</param>
+			<param name="verbosity" type="LogVerbosity">
+				<doc>Verbosity level to clear.</doc>
+			</param>
+		</method>
+		<property name="LogEntries" type="LogEntry" getter="GetLogEntries" setter="" static="false">
+			<doc>Returns all existing log entries.</doc>
+		</property>
+		<event native="OnLogEntryAdded" script="OnLogEntryAdded" static="false">
+			<doc>Triggered when a new entry in the log is added.</doc>
+			<param name="p0" type="LogEntry">
+			</param>
+		</event>
+		<event native="OnLogModified" script="OnLogModified" static="false">
+			<doc>Triggered whenever one or multiple log entries were added or removed. Triggers only once per frame.</doc>
+		</event>
+	</class>
+	<class native="GUIRenderable" script="GUIRenderable">
+		<doc>Represents a GUI element that can be rendered (i.e. has a visual representation). Renderable element can have a particular style, and provides one or multiple render elements to be drawn.</doc>
+		<property name="StyleSheetClass" type="string" getter="GetStyleSheetClass" setter="SetStyleSheetClass" static="false">
+			<doc>Sets new style class to be used by the element.</doc>
+		</property>
+		<property name="Tint" type="Color" getter="GetTint" setter="SetTint" static="false">
+			<doc>Sets the tint of the GUI element.</doc>
+		</property>
+	</class>
+	<struct native="Color" script="Color">
+		<doc>Color represented as 4 components, each being a floating point value ranging from 0 to 1. Color components are red, green, blue and alpha.</doc>
+		<ctor>
+			<param name="red" type="float">
+			</param>
+			<param name="green" type="float">
+			</param>
+			<param name="blue" type="float">
+			</param>
+			<param name="alpha" type="float">
+			</param>
+		</ctor>
+		<field name="R" type="float">
+		</field>
+		<field name="G" type="float">
+		</field>
+		<field name="B" type="float">
+		</field>
+		<field name="A" type="float">
+		</field>
+	</struct>
+	<struct native="TVector3&lt;float&gt;" script="Vector3">
+		<doc>A three dimensional vector.</doc>
+		<ctor>
+		</ctor>
+		<ctor>
+			<param name="x" type="float">
+			</param>
+			<param name="y" type="float">
+			</param>
+			<param name="z" type="float">
+			</param>
+		</ctor>
+		<ctor>
+			<param name="vec" type="Vector4">
+			</param>
+		</ctor>
+		<field name="X" type="float">
+		</field>
+		<field name="Y" type="float">
+		</field>
+		<field name="Z" type="float">
+		</field>
+	</struct>
+	<struct native="TVector3&lt;double&gt;" script="Vector3D">
+		<doc>A three dimensional vector.</doc>
+		<ctor>
+		</ctor>
+		<ctor>
+			<param name="x" type="double">
+			</param>
+			<param name="y" type="double">
+			</param>
+			<param name="z" type="double">
+			</param>
+		</ctor>
+		<ctor>
+			<param name="vec" type="Vector4">
+			</param>
+		</ctor>
+		<field name="X" type="double">
+		</field>
+		<field name="Y" type="double">
+		</field>
+		<field name="Z" type="double">
+		</field>
+	</struct>
 	<struct native="ColorGradientKey" script="ColorGradientKey">
 		<doc>Single key in a ColorGradient.</doc>
 		<ctor>
@@ -281,20 +427,6 @@
 		<field name="Color" type="Color">
 		</field>
 		<field name="Time" type="float">
-		</field>
-	</struct>
-	<struct native="LogEntry" script="LogEntry">
-		<doc>A single log entry, containing a message and a channel the message was recorded on.</doc>
-		<ctor>
-		</ctor>
-		<field name="Message" type="string">
-		</field>
-		<field name="Verbosity" type="LogVerbosity">
-		</field>
-		<field name="CategoryName" type="string">
-		</field>
-		<field name="LocalTime" type="ulong">
-			<doc>Local time of message</doc>
 		</field>
 	</struct>
 	<enum native="ProjectionType" script="ProjectionType">
@@ -596,92 +728,6 @@ Be aware that this value will be ignored if GUI element is part of a layout sinc
 			<doc>Returns parent GUI base element.</doc>
 		</property>
 	</class>
-	<enum native="DrawOperationType" script="MeshTopology">
-		<doc>Describes operation that will be used for rendering a certain set of vertices.</doc>
-		<enumentry native="DOT_POINT_LIST" script="PointList">
-			<doc>Each vertex represents a point.</doc>
-		</enumentry>
-		<enumentry native="DOT_LINE_STRIP" script="LineStrip">
-			<doc>Each vertex (except the first) forms a line with the previous vertex.</doc>
-		</enumentry>
-		<enumentry native="DOT_LINE_LIST" script="LineList">
-			<doc>Each sequential pair of vertices represent a line.</doc>
-		</enumentry>
-		<enumentry native="DOT_TRIANGLE_STRIP" script="TriangleStrip">
-			<doc>Each vertex (except the first two) form a triangle with the previous two vertices.</doc>
-		</enumentry>
-		<enumentry native="DOT_TRIANGLE_LIST" script="TriangleList">
-			<doc>Each sequential 3-tuple of vertices represent a triangle.</doc>
-		</enumentry>
-		<enumentry native="DOT_TRIANGLE_FAN" script="TriangleFan">
-			<doc>Each vertex (except the first two) form a triangle with the first vertex and previous vertex.</doc>
-		</enumentry>
-	</enum>
-	<class native="Debug" script="Debug">
-		<doc>Utility class providing various debug functionality.</doc>
-		<method native="Log" script="Log" static="false">
-			<doc>Logs a new message.</doc>
-			<param name="message" type="string">
-				<doc>The message describing the log entry.</doc>
-			</param>
-			<param name="verbosity" type="LogVerbosity">
-				<doc>Verbosity of the message, determining its importance.</doc>
-			</param>
-			<param name="categoryName" type="string">
-				<doc>Category of the message, determining which system is it relevant to.</doc>
-			</param>
-		</method>
-		<method native="ClearLog" script="ClearLog" static="false">
-			<doc>Removes all log entries for a specific category and/or verbosity level.</doc>
-			<param name="categoryName" type="string">
-				<doc>Name of the category to clear. Specify null to clear all categories.</doc>
-			</param>
-			<param name="verbosity" type="LogVerbosity">
-				<doc>Verbosity level to clear.</doc>
-			</param>
-		</method>
-		<property name="LogEntries" type="LogEntry" getter="GetLogEntries" setter="" static="false">
-			<doc>Returns all existing log entries.</doc>
-		</property>
-		<event native="OnLogEntryAdded" script="OnLogEntryAdded" static="false">
-			<doc>Triggered when a new entry in the log is added.</doc>
-			<param name="p0" type="LogEntry">
-			</param>
-		</event>
-		<event native="OnLogModified" script="OnLogModified" static="false">
-			<doc>Triggered whenever one or multiple log entries were added or removed. Triggers only once per frame.</doc>
-		</event>
-	</class>
-	<class native="GUIRenderable" script="GUIRenderable">
-		<doc>Represents a GUI element that can be rendered (i.e. has a visual representation). Renderable element can have a particular style, and provides one or multiple render elements to be drawn.</doc>
-		<property name="StyleSheetClass" type="string" getter="GetStyleSheetClass" setter="SetStyleSheetClass" static="false">
-			<doc>Sets new style class to be used by the element.</doc>
-		</property>
-		<property name="Tint" type="Color" getter="GetTint" setter="SetTint" static="false">
-			<doc>Sets the tint of the GUI element.</doc>
-		</property>
-	</class>
-	<struct native="Color" script="Color">
-		<doc>Color represented as 4 components, each being a floating point value ranging from 0 to 1. Color components are red, green, blue and alpha.</doc>
-		<ctor>
-			<param name="red" type="float">
-			</param>
-			<param name="green" type="float">
-			</param>
-			<param name="blue" type="float">
-			</param>
-			<param name="alpha" type="float">
-			</param>
-		</ctor>
-		<field name="R" type="float">
-		</field>
-		<field name="G" type="float">
-		</field>
-		<field name="B" type="float">
-		</field>
-		<field name="A" type="float">
-		</field>
-	</struct>
 	<class native="TAnimationCurve&lt;float&gt;" script="AnimationCurve">
 		<doc>Animation spline represented by a set of keyframes, each representing an endpoint of a cubic hermite curve. The spline can be evaluated at any time, and uses caching to speed up multiple sequential evaluations.</doc>
 		<ctor>
@@ -1122,52 +1168,6 @@ Be aware that this value will be ignored if GUI element is part of a layout sinc
 		<field name="X" type="TUnitValue&lt;float,PhysicalPixel&gt;">
 		</field>
 		<field name="Y" type="TUnitValue&lt;float,PhysicalPixel&gt;">
-		</field>
-	</struct>
-	<struct native="TVector3&lt;float&gt;" script="Vector3">
-		<doc>A three dimensional vector.</doc>
-		<ctor>
-		</ctor>
-		<ctor>
-			<param name="x" type="float">
-			</param>
-			<param name="y" type="float">
-			</param>
-			<param name="z" type="float">
-			</param>
-		</ctor>
-		<ctor>
-			<param name="vec" type="Vector4">
-			</param>
-		</ctor>
-		<field name="X" type="float">
-		</field>
-		<field name="Y" type="float">
-		</field>
-		<field name="Z" type="float">
-		</field>
-	</struct>
-	<struct native="TVector3&lt;double&gt;" script="Vector3D">
-		<doc>A three dimensional vector.</doc>
-		<ctor>
-		</ctor>
-		<ctor>
-			<param name="x" type="double">
-			</param>
-			<param name="y" type="double">
-			</param>
-			<param name="z" type="double">
-			</param>
-		</ctor>
-		<ctor>
-			<param name="vec" type="Vector4">
-			</param>
-		</ctor>
-		<field name="X" type="double">
-		</field>
-		<field name="Y" type="double">
-		</field>
-		<field name="Z" type="double">
 		</field>
 	</struct>
 	<enum native="TextureType" script="TextureType">
@@ -4414,27 +4414,16 @@ Use {0}, {1}, etc. in the string value for values that might change dynamically.
 	<class native="PackageMetaData" script="PackageMetaData">
 		<doc>Contains meta-data for the entirety of a Package (not individual resources).</doc>
 	</class>
-	<class native="MotionBlurSettings" script="MotionBlurSettings">
-		<doc>Settings that control the motion blur effect.</doc>
+	<struct native="MeshColliderShapeInformation" script="MeshColliderShapeInformation">
+		<doc>Information describing a mesh collider shape.</doc>
 		<ctor>
+			<param name="mesh" type="RRef&lt;PhysicsMesh&gt;">
+			</param>
 		</ctor>
-		<property name="Enabled" type="bool" getter="GetEnabled" setter="SetEnabled" static="false">
-			<doc>Enables or disables the motion blur effect.</doc>
-		</property>
-		<property name="Domain" type="MotionBlurDomain" getter="GetDomain" setter="SetDomain" static="false">
-			<doc>Determines which parts of the scene will trigger motion blur.</doc>
-		</property>
-		<property name="Filter" type="MotionBlurFilter" getter="GetFilter" setter="SetFilter" static="false">
-			<doc>Type of filter to use when filtering samples contributing to a blurred pixel.</doc>
-		</property>
-		<property name="Quality" type="MotionBlurQuality" getter="GetQuality" setter="SetQuality" static="false">
-			<doc>Determines the number of samples to take during motion blur filtering. Increasing this value will yield higher quality blur at the cost of the performance.</doc>
-		</property>
-		<property name="MaximumRadius" type="float" getter="GetMaximumRadius" setter="SetMaximumRadius" static="false">
-			<doc>Determines the maximum radius over which the blur samples are allowed to be taken, in percent of the screen width (e.g. with 1% radius, on 1920x1028 resolution the maximum radius in pixels will be 1920 * 0.01 = 20px). This clamps the maximum velocity that can affect the blur, as higher velocities require higher radius. Very high values can adversely affect performance as cache accesses become more random.</doc>
-		</property>
-	</class>
-	<struct native="START_UP_DESC" script="StartUpDesc">
+		<field name="Mesh" type="RRef&lt;PhysicsMesh&gt;">
+		</field>
+	</struct>
+	<struct native="ApplicationCreateInformation" script="ApplicationCreateInformation">
 		<doc>Structure containing parameters for starting the application.</doc>
 		<ctor>
 		</ctor>
@@ -4459,7 +4448,7 @@ Use {0}, {1}, etc. in the string value for values that might change dynamically.
 		<field name="AsyncAnimation" type="bool">
 			<doc>True if animation should be evaluated at the same time while rendering is happening. This introduces a one frame delay to all animations but can result in better performance. If false the animation will be forced to finish evaluating before rendering starts, ensuring up-to-date frame but potentially blocking the rendering thread from moving forward until the animation finishes.</doc>
 		</field>
-		<field name="PrimaryWindowDesc" type="RenderWindowCreateInformation">
+		<field name="PrimaryWindow" type="RenderWindowCreateInformation">
 			<doc>Describes the window to create during start-up.</doc>
 		</field>
 		<field name="Importers" type="string">
@@ -4779,15 +4768,6 @@ Use {0}, {1}, etc. in the string value for values that might change dynamically.
 		<field name="Radius" type="float">
 		</field>
 		<field name="HalfHeight" type="float">
-		</field>
-	</struct>
-	<struct native="MeshColliderShapeInformation" script="MeshColliderShapeInformation">
-		<doc>Information describing a mesh collider shape.</doc>
-		<ctor>
-			<param name="mesh" type="RRef&lt;PhysicsMesh&gt;">
-			</param>
-		</ctor>
-		<field name="Mesh" type="RRef&lt;PhysicsMesh&gt;">
 		</field>
 	</struct>
 	<struct native="SpriteSheetGridAnimation" script="SpriteSheetGridAnimation">
@@ -5315,6 +5295,26 @@ In range [-1.0f, 1.0f].</doc>
 			<doc>8 samples per pixel.</doc>
 		</enumentry>
 	</enum>
+	<class native="MotionBlurSettings" script="MotionBlurSettings">
+		<doc>Settings that control the motion blur effect.</doc>
+		<ctor>
+		</ctor>
+		<property name="Enabled" type="bool" getter="GetEnabled" setter="SetEnabled" static="false">
+			<doc>Enables or disables the motion blur effect.</doc>
+		</property>
+		<property name="Domain" type="MotionBlurDomain" getter="GetDomain" setter="SetDomain" static="false">
+			<doc>Determines which parts of the scene will trigger motion blur.</doc>
+		</property>
+		<property name="Filter" type="MotionBlurFilter" getter="GetFilter" setter="SetFilter" static="false">
+			<doc>Type of filter to use when filtering samples contributing to a blurred pixel.</doc>
+		</property>
+		<property name="Quality" type="MotionBlurQuality" getter="GetQuality" setter="SetQuality" static="false">
+			<doc>Determines the number of samples to take during motion blur filtering. Increasing this value will yield higher quality blur at the cost of the performance.</doc>
+		</property>
+		<property name="MaximumRadius" type="float" getter="GetMaximumRadius" setter="SetMaximumRadius" static="false">
+			<doc>Determines the maximum radius over which the blur samples are allowed to be taken, in percent of the screen width (e.g. with 1% radius, on 1920x1028 resolution the maximum radius in pixels will be 1920 * 0.01 = 20px). This clamps the maximum velocity that can affect the blur, as higher velocities require higher radius. Very high values can adversely affect performance as cache accesses become more random.</doc>
+		</property>
+	</class>
 	<class native="ScreenSpaceReflectionsSettings" script="ScreenSpaceReflectionsSettings">
 		<doc>Settings that control the screen space reflections effect. Screen space reflections provide high quality mirror-like reflections at low performance cost. They should be used together with reflection probes as the effects complement each other. As the name implies, the reflections are only limited to geometry drawn on the screen and the system will fall back to refl. probes when screen space data is unavailable. Similarly the system will fall back to refl. probes for rougher (more glossy rather than mirror-like) surfaces. Those surfaces require a higher number of samples to achieve the glossy look, so we instead fall back to refl. probes which are pre-filtered and can be quickly sampled.</doc>
 		<ctor>
@@ -7952,6 +7952,45 @@ Sprite images also allow you to specify sprite sheet animation by varying which 
 		</property>
 		<property name="Bounds" type="Bounds" getter="GetBounds" setter="" static="false">
 			<doc>Gets world bounds of the mesh rendered by this object.</doc>
+		</property>
+	</class>
+	<class native="Renderable2" script="Renderable2">
+		<method native="SetMaterial" script="SetMaterial" static="false">
+			<doc>Sets a material that will be used for rendering a sub-mesh with the specified index. If a sub-mesh doesn&apos;t have a specific material set then the primary material will be used.</doc>
+			<param name="index" type="int">
+			</param>
+			<param name="material" type="RRef&lt;Material&gt;">
+			</param>
+		</method>
+		<method native="GetMaterial" script="GetMaterial" static="false">
+			<doc>Returns the material used for rendering a sub-mesh with the specified index.</doc>
+			<param name="index" type="int">
+			</param>
+			<returns type="RRef&lt;Material&gt;">
+			</returns>
+		</method>
+		<method native="SetMaterial" script="SetMaterial" static="false">
+			<doc>Sets the primary material to use for rendering. Any sub-mesh that doesn&apos;t have an explicit material set will use this material.</doc>
+			<param name="material" type="RRef&lt;Material&gt;">
+			</param>
+		</method>
+		<property name="Bounds" type="Bounds" getter="GetBounds" setter="" static="false">
+			<doc>Gets world bounds of the mesh rendered by this object.</doc>
+		</property>
+		<property name="Mesh" type="RRef&lt;Mesh&gt;" getter="GetMesh" setter="SetMesh" static="false">
+			<doc>Determines the mesh to render. All sub-meshes of the mesh will be rendered, and you may set individual materials for each sub-mesh.</doc>
+		</property>
+		<property name="Materials" type="RRef&lt;Material&gt;" getter="GetMaterials" setter="SetMaterials" static="false">
+			<doc>Determines all materials used for rendering this renderable. Each of the materials is used for rendering a single sub-mesh. If number of materials is larger than number of sub-meshes, they will be ignored. If lower, the remaining materials will be removed.</doc>
+		</property>
+		<property name="Layers" type="ulong" getter="GetLayer" setter="SetLayer" static="false">
+			<doc>Determines the layer bitfield that controls whether a renderable is considered visible in a specific camera. Renderable layer must match camera layer in order for the camera to render the component.</doc>
+		</property>
+		<property name="WriteVelocity" type="bool" getter="GetWriteVelocity" setter="SetWriteVelocity" static="false">
+			<doc>If enabled this renderable will write per-pixel velocity information when rendered. This is required for effects such as temporal anti-aliasing and motion blur, but comes with a minor performance overhead. If you are not using those effects you can disable this for a performance gain.</doc>
+		</property>
+		<property name="CullDistance" type="float" getter="GetCullDistanceFactor" setter="SetCullDistanceFactor" static="false">
+			<doc>Factor to be applied to the cull distance set in the camera&apos;s render settings.</doc>
 		</property>
 	</class>
 	<enum native="ForceMode" script="ForceMode">

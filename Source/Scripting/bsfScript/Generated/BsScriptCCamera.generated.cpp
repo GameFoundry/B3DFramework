@@ -209,7 +209,7 @@ namespace b3d
 		return __output;
 	}
 
-	void ScriptCamera::InternalGetProjectionMatrixRs(ScriptCamera* self, Matrix4* __output)
+	void ScriptCamera::InternalGetProjectionMatrixRs(ScriptCamera* self, TMatrix4<float>* __output)
 	{
 		if(!self->IsNativeObjectValid())
 		{
@@ -217,13 +217,13 @@ namespace b3d
 			return;
 		}
 
-		Matrix4 tmp__output;
+		TMatrix4<float> tmp__output;
 		tmp__output = static_cast<CCamera*>(self->GetNativeObject())->GetProjectionMatrixRs();
 
 		*__output = tmp__output;
 	}
 
-	void ScriptCamera::InternalGetViewMatrix(ScriptCamera* self, Matrix4* __output)
+	void ScriptCamera::InternalGetViewMatrix(ScriptCamera* self, TMatrix4<float>* __output)
 	{
 		if(!self->IsNativeObjectValid())
 		{
@@ -231,7 +231,7 @@ namespace b3d
 			return;
 		}
 
-		Matrix4 tmp__output;
+		TMatrix4<float> tmp__output;
 		tmp__output = static_cast<CCamera*>(self->GetNativeObject())->GetViewMatrix();
 
 		*__output = tmp__output;

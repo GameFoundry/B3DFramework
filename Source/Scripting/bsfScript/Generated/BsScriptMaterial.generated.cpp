@@ -242,7 +242,7 @@ namespace b3d
 		static_cast<Material*>(self->GetNativeObject())->SetVec4(tmpname, *value, arrayIdx);
 	}
 
-	void ScriptMaterial::InternalSetMat3(ScriptMaterial* self, MonoString* name, Matrix3* value, uint32_t arrayIdx)
+	void ScriptMaterial::InternalSetMat3(ScriptMaterial* self, MonoString* name, TMatrix3<float>* value, uint32_t arrayIdx)
 	{
 		if(!self->IsNativeObjectValid())
 			return;
@@ -252,7 +252,7 @@ namespace b3d
 		static_cast<Material*>(self->GetNativeObject())->SetMat3(tmpname, *value, arrayIdx);
 	}
 
-	void ScriptMaterial::InternalSetMat4(ScriptMaterial* self, MonoString* name, Matrix4* value, uint32_t arrayIdx)
+	void ScriptMaterial::InternalSetMat4(ScriptMaterial* self, MonoString* name, TMatrix4<float>* value, uint32_t arrayIdx)
 	{
 		if(!self->IsNativeObjectValid())
 			return;
@@ -374,7 +374,7 @@ namespace b3d
 		*__output = tmp__output;
 	}
 
-	void ScriptMaterial::InternalGetMat3(ScriptMaterial* self, MonoString* name, uint32_t arrayIdx, Matrix3* __output)
+	void ScriptMaterial::InternalGetMat3(ScriptMaterial* self, MonoString* name, uint32_t arrayIdx, TMatrix3<float>* __output)
 	{
 		if(!self->IsNativeObjectValid())
 		{
@@ -384,13 +384,13 @@ namespace b3d
 
 		String tmpname;
 		tmpname = MonoUtil::MonoToString(name);
-		Matrix3 tmp__output;
+		TMatrix3<float> tmp__output;
 		tmp__output = static_cast<Material*>(self->GetNativeObject())->GetMat3(tmpname, arrayIdx);
 
 		*__output = tmp__output;
 	}
 
-	void ScriptMaterial::InternalGetMat4(ScriptMaterial* self, MonoString* name, uint32_t arrayIdx, Matrix4* __output)
+	void ScriptMaterial::InternalGetMat4(ScriptMaterial* self, MonoString* name, uint32_t arrayIdx, TMatrix4<float>* __output)
 	{
 		if(!self->IsNativeObjectValid())
 		{
@@ -400,7 +400,7 @@ namespace b3d
 
 		String tmpname;
 		tmpname = MonoUtil::MonoToString(name);
-		Matrix4 tmp__output;
+		TMatrix4<float> tmp__output;
 		tmp__output = static_cast<Material*>(self->GetNativeObject())->GetMat4(tmpname, arrayIdx);
 
 		*__output = tmp__output;

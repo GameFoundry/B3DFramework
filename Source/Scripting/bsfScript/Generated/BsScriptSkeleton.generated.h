@@ -25,7 +25,7 @@ namespace b3d
 		static MonoObject* CreateScriptObject(bool construct);
 
 	private:
-		static uint32_t InternalGetNumBones(ScriptSkeleton* self);
+		static uint32_t InternalGetBoneCount(ScriptSkeleton* self);
 		static void InternalGetBoneInfo(ScriptSkeleton* self, int32_t boneIdx, __SkeletonBoneInfoExInterop* __output);
 	};
 }

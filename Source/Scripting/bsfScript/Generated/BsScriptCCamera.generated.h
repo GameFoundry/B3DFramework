@@ -5,8 +5,8 @@
 #include "BsScriptEnginePrerequisites.h"
 #include "Wrappers/BsScriptComponent.h"
 #include "../../../Foundation/bsfCore/Utility/BsCommonTypes.h"
-#include "Math/BsMatrix4.h"
 #include "../../../Foundation/bsfCore/Renderer/BsCamera.h"
+#include "Math/BsMatrix4.h"
 #include "Math/BsRadian.h"
 #include "../../../Foundation/bsfUtility/Math/BsVector2.h"
 #include "../../../Foundation/bsfUtility/Math/BsVector3.h"
@@ -41,8 +41,8 @@ namespace b3d
 		static float InternalGetFarClipDistance(ScriptCamera* self);
 		static void InternalSetAspectRatio(ScriptCamera* self, float ratio);
 		static float InternalGetAspectRatio(ScriptCamera* self);
-		static void InternalGetProjectionMatrixRs(ScriptCamera* self, Matrix4* __output);
-		static void InternalGetViewMatrix(ScriptCamera* self, Matrix4* __output);
+		static void InternalGetProjectionMatrixRs(ScriptCamera* self, TMatrix4<float>* __output);
+		static void InternalGetViewMatrix(ScriptCamera* self, TMatrix4<float>* __output);
 		static void InternalSetProjectionType(ScriptCamera* self, ProjectionType pt);
 		static ProjectionType InternalGetProjectionType(ScriptCamera* self);
 		static void InternalSetOrthoWindowHeight(ScriptCamera* self, float h);
