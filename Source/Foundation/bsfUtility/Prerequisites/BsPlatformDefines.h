@@ -82,7 +82,7 @@
 #endif
 
 #if defined(__clang__) || defined(__GNUC__) || defined(__INTEL_COMPILER)
-#	define B3D_PRETTY_FUNCTION __PRETTYFUNCTION__
+#	define B3D_PRETTY_FUNCTION __PRETTY_FUNCTION__
 #	define B3D_PRETTY_FUNCTION_PREFIX '='
 #	define B3D_PRETTY_FUNCTION_SUFFIX ']'
 #elif defined(_MSC_VER)
