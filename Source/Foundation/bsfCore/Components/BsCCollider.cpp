@@ -282,49 +282,41 @@ void CCollider::UpdateParentRigidbody()
 
 void CCollider::UpdateTransform()
 {
-	const Transform& tfrm = SO()->GetTransform();
-	Vector3 myScale = tfrm.GetScale();
+	const Transform& transform = SO()->GetTransform();
 
 	if(mParent != nullptr)
 	{
-		const Transform& parentTfrm = mParent->SO()->GetTransform();
-		Vector3 parentPos = parentTfrm.GetPosition();
-		Quaternion parentRot = parentTfrm.GetRotation();
+		const Transform& parentTransform = mParent->SO()->GetTransform();
+		const Vector3& parentPosition = parentTransform.GetPosition();
+		const Quaternion& parentRotation = parentTransform.GetRotation();
 
-		Vector3 myPos = tfrm.GetPosition();
-		Quaternion myRot = tfrm.GetRotation();
+		const Vector3& myPosition = transform.GetPosition();
+		const Quaternion& myRotation = transform.GetRotation();
 
-		Vector3 scale = parentTfrm.GetScale();
-		Vector3 invScale = scale;
-		if(invScale.X != 0) invScale.X = 1.0f / invScale.X;
-		if(invScale.Y != 0) invScale.Y = 1.0f / invScale.Y;
-		if(invScale.Z != 0) invScale.Z = 1.0f / invScale.Z;
+		Vector3 scale = parentTransform.GetScale();
+		Vector3 inverseScale = scale;
+		if(!Math::ApproxEquals(inverseScale.X,0.0f)) inverseScale.X = 1.0f / inverseScale.X;
+		if(!Math::ApproxEquals(inverseScale.Y,0.0f)) inverseScale.Y = 1.0f / inverseScale.Y;
+		if(!Math::ApproxEquals(inverseScale.Z,0.0f)) inverseScale.Z = 1.0f / inverseScale.Z;
 
-		Quaternion invRotation = parentRot.Inverse();
+		const Quaternion& inverseRotation = parentRotation.Inverse();
 
-		Vector3 relativePos = invRotation.Rotate(myPos - parentPos) * invScale;
-		Quaternion relativeRot = invRotation * myRot;
-
-		relativePos = relativePos + relativeRot.Rotate(mLocalPosition * scale);
-		relativeRot = relativeRot * mLocalRotation;
+		const Vector3& relativePosition = inverseRotation.Rotate(myPosition - parentPosition) * inverseScale;
+		const Quaternion& relativeRotation = inverseRotation * myRotation;
 
 		if(mInternal)
-			mInternal->SetTransform(relativePos, relativeRot);
+			mInternal->SetTransform(relativePosition, relativeRotation);
 
 		mParent->UpdateMassDistribution();
 	}
 	else
 	{
-		Quaternion myRot = tfrm.GetRotation();
-		Vector3 myPos = tfrm.GetPosition() + myRot.Rotate(mLocalPosition * myScale);
-		myRot = myRot * mLocalRotation;
-
 		if(mInternal)
-			mInternal->SetTransform(myPos, myRot);
+			mInternal->SetTransform(transform.GetPosition(), transform.GetRotation());
 	}
 
 	if(mInternal)
-		mInternal->SetScale(myScale);
+		mInternal->SetScale(transform.GetScale());
 }
 
 void CCollider::UpdateCollisionReportMode()
