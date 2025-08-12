@@ -39,14 +39,14 @@ void CMeshCollider::SetMesh(const HPhysicsMesh& mesh)
 		if(B3D_ENSURE(shapes.Size() == 1))
 			shapes[0]->SetShape(MeshColliderShapeInformation(mesh));
 
-		if(mParent != nullptr)
+		if(mRigidbody != nullptr)
 		{
 			// If triangle mesh its possible the parent can no longer use this collider (they're not supported for
 			// non-kinematic rigidbodies)
 			if(mMesh.IsLoaded() && mMesh->GetType() == PhysicsMeshType::Triangle)
 				UpdateParentRigidbody();
 			else
-				mParent->UpdateMassDistribution();
+				mRigidbody->UpdateMassDistribution();
 		}
 	}
 }
@@ -57,8 +57,8 @@ SPtr<Collider> CMeshCollider::CreateInternal()
 	const Transform& transform = SO()->GetTransform();
 
 	SPtr<ColliderShape> colliderShape = ColliderShape::CreateMesh(mMesh);
-	colliderShape->SetPosition(mLocalPosition);
-	colliderShape->SetRotation(mLocalRotation);
+	colliderShape->SetPosition(mShapeLocalPosition);
+	colliderShape->SetRotation(mShapeLocalRotation);
 
 	SPtr<Collider> collider = Collider::Create(*scene->GetPhysicsScene(), transform.GetPosition(), transform.GetRotation(), transform.GetScale());
 	collider->SetOwner(PhysicsOwnerType::Component, this);

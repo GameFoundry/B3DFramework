@@ -37,7 +37,7 @@ namespace b3d
 		/** @copydoc SetCenter() */
 		B3D_SCRIPT_EXPORT(ExportName(Center), Property(Getter))
 
-		Vector3 GetCenter() const { return mLocalPosition; }
+		Vector3 GetCenter() const { return mShapeLocalPosition; }
 
 		/************************************************************************/
 		/* 						COMPONENT OVERRIDES                      		*/

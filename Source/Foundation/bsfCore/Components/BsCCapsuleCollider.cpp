@@ -12,7 +12,7 @@ CCapsuleCollider::CCapsuleCollider()
 {
 	SetName("CapsuleCollider");
 
-	mLocalRotation = Quaternion::GetRotationFromTo(Vector3::kUnitX, mNormal);
+	mShapeLocalRotation = Quaternion::GetRotationFromTo(Vector3::kUnitX, mNormal);
 }
 
 CCapsuleCollider::CCapsuleCollider(const HSceneObject& parent, float radius, float halfHeight)
@@ -20,7 +20,7 @@ CCapsuleCollider::CCapsuleCollider(const HSceneObject& parent, float radius, flo
 {
 	SetName("CapsuleCollider");
 
-	mLocalRotation = Quaternion::GetRotationFromTo(Vector3::kUnitX, mNormal);
+	mShapeLocalRotation = Quaternion::GetRotationFromTo(Vector3::kUnitX, mNormal);
 }
 
 void CCapsuleCollider::SetNormal(const Vector3& normal)
@@ -29,29 +29,29 @@ void CCapsuleCollider::SetNormal(const Vector3& normal)
 		return;
 
 	mNormal = b3d::Vector3::Normalize(normal);
-	mLocalRotation = Quaternion::GetRotationFromTo(Vector3::kUnitX, mNormal);
+	mShapeLocalRotation = Quaternion::GetRotationFromTo(Vector3::kUnitX, mNormal);
 
 	if(mInternal != nullptr)
 	{
 		TInlineArray<SPtr<ColliderShape>, 1> shapes = mInternal->GetShapes();
 		if(B3D_ENSURE(shapes.Size() == 1))
-			shapes[0]->SetRotation(mLocalRotation);
+			shapes[0]->SetRotation(mShapeLocalRotation);
 		
 	}
 }
 
 void CCapsuleCollider::SetCenter(const Vector3& center)
 {
-	if(mLocalPosition == center)
+	if(mShapeLocalPosition == center)
 		return;
 
-	mLocalPosition = center;
+	mShapeLocalPosition = center;
 
 	if(mInternal != nullptr)
 	{
 		TInlineArray<SPtr<ColliderShape>, 1> shapes = mInternal->GetShapes();
 		if(B3D_ENSURE(shapes.Size() == 1))
-			shapes[0]->SetPosition(mLocalPosition);
+			shapes[0]->SetPosition(mShapeLocalPosition);
 	}
 }
 
@@ -69,8 +69,8 @@ void CCapsuleCollider::SetHalfHeight(float halfHeight)
 		if(B3D_ENSURE(shapes.Size() == 1))
 			shapes[0]->SetShape(CapsuleColliderShapeInformation(mRadius, clampedHalfHeight));
 
-		if(mParent != nullptr)
-			mParent->UpdateMassDistribution();
+		if(mRigidbody != nullptr)
+			mRigidbody->UpdateMassDistribution();
 	}
 }
 
@@ -88,8 +88,8 @@ void CCapsuleCollider::SetRadius(float radius)
 		if(B3D_ENSURE(shapes.Size() == 1))
 			shapes[0]->SetShape(CapsuleColliderShapeInformation(clampedRadius, mHalfHeight));
 
-		if(mParent != nullptr)
-			mParent->UpdateMassDistribution();
+		if(mRigidbody != nullptr)
+			mRigidbody->UpdateMassDistribution();
 	}
 }
 
@@ -99,8 +99,8 @@ SPtr<Collider> CCapsuleCollider::CreateInternal()
 	const Transform& transform = SO()->GetTransform();
 
 	SPtr<ColliderShape> colliderShape = ColliderShape::CreateCapsule(CapsuleColliderShapeInformation(mRadius, mHalfHeight));
-	colliderShape->SetPosition(mLocalPosition);
-	colliderShape->SetRotation(mLocalRotation);
+	colliderShape->SetPosition(mShapeLocalPosition);
+	colliderShape->SetRotation(mShapeLocalRotation);
 
 	SPtr<Collider> collider = Collider::Create(*scene->GetPhysicsScene(), transform.GetPosition(), transform.GetRotation(), transform.GetScale());
 	collider->SetOwner(PhysicsOwnerType::Component, this);

@@ -151,7 +151,6 @@ namespace b3d
 
 		PhysicsObjectOwner mOwner;
 		Rigidbody* mRigidbody = nullptr;
-
 	};
 
 	/** @} */

@@ -81,7 +81,7 @@ namespace b3d
 		CollisionReportMode GetCollisionReportMode() const { return mCollisionReportMode; }
 
 		/** @copydoc Collider::GetRigidbody */
-		HRigidbody GetRigidbody() const { return mParent; }
+		HRigidbody GetRigidbody() const { return mRigidbody; }
 
 		/** @copydoc Collider::RayCast(const Ray&, PhysicsQueryHit&, float) const */
 		bool RayCast(const Ray& ray, PhysicsQueryHit& hit, float maxDist = FLT_MAX) const;
@@ -178,10 +178,12 @@ namespace b3d
 		HPhysicsMaterial mMaterial;
 		float mMass = 1.0f;
 		bool mIsTrigger = false;
-		Vector3 mLocalPosition = Vector3::kZero;
-		Quaternion mLocalRotation = Quaternion::kIdentity;
 
-		HRigidbody mParent;
+		HRigidbody mRigidbody;
+
+		// TODO - Move to derived classes that actually need these
+		Vector3 mShapeLocalPosition = Vector3::kZero;
+		Quaternion mShapeLocalRotation = Quaternion::kIdentity;
 
 		/************************************************************************/
 		/* 								RTTI		                     		*/

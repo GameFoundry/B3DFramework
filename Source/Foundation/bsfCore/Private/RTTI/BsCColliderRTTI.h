@@ -24,8 +24,8 @@ namespace b3d
 			B3D_RTTI_MEMBER(mMaterial, 3)
 			B3D_RTTI_MEMBER(mMass, 4)
 			B3D_RTTI_MEMBER(mIsTrigger, 5)
-			B3D_RTTI_MEMBER(mLocalPosition, 6)
-			B3D_RTTI_MEMBER(mLocalRotation, 7)
+			B3D_RTTI_MEMBER(mShapeLocalPosition, 6)
+			B3D_RTTI_MEMBER(mShapeLocalRotation, 7)
 			B3D_RTTI_MEMBER(mCollisionReportMode, 8)
 		B3D_RTTI_END_MEMBERS
 	public:

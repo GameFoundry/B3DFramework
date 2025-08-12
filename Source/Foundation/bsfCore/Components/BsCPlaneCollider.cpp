@@ -12,7 +12,7 @@ CPlaneCollider::CPlaneCollider()
 {
 	SetName("PlaneCollider");
 
-	mLocalRotation = Quaternion::GetRotationFromTo(Vector3::kUnitX, mNormal);
+	mShapeLocalRotation = Quaternion::GetRotationFromTo(Vector3::kUnitX, mNormal);
 }
 
 CPlaneCollider::CPlaneCollider(const HSceneObject& parent)
@@ -20,7 +20,7 @@ CPlaneCollider::CPlaneCollider(const HSceneObject& parent)
 {
 	SetName("PlaneCollider");
 
-	mLocalRotation = Quaternion::GetRotationFromTo(Vector3::kUnitX, mNormal);
+	mShapeLocalRotation = Quaternion::GetRotationFromTo(Vector3::kUnitX, mNormal);
 }
 
 void CPlaneCollider::SetNormal(const Vector3& normal)
@@ -31,16 +31,16 @@ void CPlaneCollider::SetNormal(const Vector3& normal)
 	mNormal = normal;
 	mNormal.Normalize();
 
-	mLocalRotation = Quaternion::GetRotationFromTo(Vector3::kUnitX, normal);
-	mLocalPosition = mNormal * mDistance;
+	mShapeLocalRotation = Quaternion::GetRotationFromTo(Vector3::kUnitX, normal);
+	mShapeLocalPosition = mNormal * mDistance;
 
 	if(mInternal != nullptr)
 	{
 		TInlineArray<SPtr<ColliderShape>, 1> shapes = mInternal->GetShapes();
 		if(B3D_ENSURE(shapes.Size() == 1))
 		{
-			shapes[0]->SetPosition(mLocalPosition);
-			shapes[0]->SetRotation(mLocalRotation);
+			shapes[0]->SetPosition(mShapeLocalPosition);
+			shapes[0]->SetRotation(mShapeLocalRotation);
 		}
 	}
 }
@@ -51,13 +51,13 @@ void CPlaneCollider::SetDistance(float distance)
 		return;
 
 	mDistance = distance;
-	mLocalPosition = mNormal * distance;
+	mShapeLocalPosition = mNormal * distance;
 
 	if(mInternal != nullptr)
 	{
 		TInlineArray<SPtr<ColliderShape>, 1> shapes = mInternal->GetShapes();
 		if(B3D_ENSURE(shapes.Size() == 1))
-			shapes[0]->SetPosition(mLocalPosition);
+			shapes[0]->SetPosition(mShapeLocalPosition);
 	}
 }
 
@@ -67,8 +67,8 @@ SPtr<Collider> CPlaneCollider::CreateInternal()
 	const Transform& transform = SO()->GetTransform();
 
 	SPtr<ColliderShape> colliderShape = ColliderShape::CreatePlane(PlaneColliderShapeInformation());
-	colliderShape->SetPosition(mLocalPosition);
-	colliderShape->SetRotation(mLocalRotation);
+	colliderShape->SetPosition(mShapeLocalPosition);
+	colliderShape->SetRotation(mShapeLocalRotation);
 
 	SPtr<Collider> collider = Collider::Create(*scene->GetPhysicsScene(), transform.GetPosition(), transform.GetRotation(), transform.GetScale());
 	collider->SetOwner(PhysicsOwnerType::Component, this);

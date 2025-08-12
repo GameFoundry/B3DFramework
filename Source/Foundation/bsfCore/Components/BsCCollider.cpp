@@ -56,8 +56,8 @@ void CCollider::SetMass(float mass)
 		for(auto& entry : shapes)
 			entry->SetMass(mass);
 
-		if(mParent != nullptr)
-			mParent->UpdateMassDistribution();
+		if(mRigidbody != nullptr)
+			mRigidbody->UpdateMassDistribution();
 	}
 }
 
@@ -166,11 +166,11 @@ void CCollider::OnTransformChanged(TransformChangedFlags flags)
 
 void CCollider::SetRigidbody(const HRigidbody& rigidbody)
 {
-	if(rigidbody == mParent)
+	if(rigidbody == mRigidbody)
 		return;
 
-	if(mParent != nullptr)
-		mParent->RemoveCollider(B3DStaticGameObjectCast<CCollider>(mThisHandle));
+	if(mRigidbody != nullptr)
+		mRigidbody->RemoveCollider(B3DStaticGameObjectCast<CCollider>(mThisHandle));
 
 	if(mInternal != nullptr)
 	{
@@ -185,7 +185,7 @@ void CCollider::SetRigidbody(const HRigidbody& rigidbody)
 	if(rigidbody != nullptr)
 		rigidbody->AddCollider(B3DStaticGameObjectCast<CCollider>(mThisHandle));
 
-	mParent = rigidbody;
+	mRigidbody = rigidbody;
 	UpdateCollisionReportMode();
 	UpdateTransform();
 }
@@ -238,10 +238,10 @@ void CCollider::RestoreInternal()
 
 void CCollider::DestroyInternal()
 {
-	if(mParent != nullptr)
-		mParent->RemoveCollider(B3DStaticGameObjectCast<CCollider>(mThisHandle));
+	if(mRigidbody != nullptr)
+		mRigidbody->RemoveCollider(B3DStaticGameObjectCast<CCollider>(mThisHandle));
 
-	mParent = nullptr;
+	mRigidbody = nullptr;
 
 	// This should release the last reference and destroy the internal collider
 	if(mInternal)
@@ -284,9 +284,9 @@ void CCollider::UpdateTransform()
 {
 	const Transform& transform = SO()->GetTransform();
 
-	if(mParent != nullptr)
+	if(mRigidbody != nullptr)
 	{
-		const Transform& parentTransform = mParent->SO()->GetTransform();
+		const Transform& parentTransform = mRigidbody->SO()->GetTransform();
 		const Vector3& parentPosition = parentTransform.GetPosition();
 		const Quaternion& parentRotation = parentTransform.GetRotation();
 
@@ -307,7 +307,7 @@ void CCollider::UpdateTransform()
 		if(mInternal)
 			mInternal->SetTransform(relativePosition, relativeRotation);
 
-		mParent->UpdateMassDistribution();
+		mRigidbody->UpdateMassDistribution();
 	}
 	else
 	{
@@ -323,8 +323,8 @@ void CCollider::UpdateCollisionReportMode()
 {
 	CollisionReportMode mode = mCollisionReportMode;
 
-	if(mParent != nullptr)
-		mode = mParent->GetCollisionReportMode();
+	if(mRigidbody != nullptr)
+		mode = mRigidbody->GetCollisionReportMode();
 
 	if(mInternal != nullptr)
 	{
