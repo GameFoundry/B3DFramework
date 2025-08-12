@@ -968,49 +968,6 @@ namespace b3d
 		SF_ReplicableOnly = 1 << 1
 	};
 
-	/** Helper type that can contain either a component or scene actor version of an object. */
-	template <class T>
-	struct ComponentOrActor
-	{
-		using ComponentType = typename ComponentType<T>::Type;
-		using HandleType = GameObjectHandle<ComponentType>;
-
-		ComponentOrActor() = default;
-
-		ComponentOrActor(const GameObjectHandle<ComponentType>& component)
-			: mComponent(component)
-		{}
-
-		ComponentOrActor(const SPtr<T>& actor)
-			: mActor(actor)
-		{}
-
-		/** Returns true if both the component and the actor fields are not assigned. */
-		bool Empty() const
-		{
-			return !mActor && !mComponent;
-		}
-
-		/** Returns the assigned value as a scene actor. */
-		SPtr<T> GetActor() const
-		{
-			if(mActor)
-				return mActor;
-
-			return mComponent->GetInternalInternal();
-		}
-
-		/** Returns the assigned value as a component. */
-		HandleType GetComponent() const
-		{
-			return mComponent;
-		}
-
-	private:
-		GameObjectHandle<ComponentType> mComponent;
-		SPtr<T> mActor;
-	};
-
 	B3D_CORE_EXPORT B3D_LOG_CATEGORY_EXTERN(RenderThread, Log)
 	B3D_CORE_EXPORT B3D_LOG_CATEGORY_EXTERN(Renderer, Log)
 	B3D_CORE_EXPORT B3D_LOG_CATEGORY_EXTERN(Scene, Log)
