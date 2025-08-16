@@ -9,6 +9,8 @@ shader Blit
 				2, // Depth
 			};
 		MSAA_COUNT = { 1, 2, 4, 8 };
+        BLEND = { true, false };
+        WRITE_ALPHA = { false, true };
 	};
 
 	depth
@@ -21,6 +23,23 @@ shader Blit
 		compare = always;	
 		#endif
 	};
+
+	#if BLEND
+	blend
+	{
+		target
+        {
+			enabled = true;
+			color = { srcA, srcIA, add };
+
+			#if WRITE_ALPHA
+				writemask = RGBA;
+			#else
+				writemask = RGB;
+			#endif
+		};
+	};
+	#endif
 
 	code
 	{

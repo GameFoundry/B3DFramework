@@ -25,13 +25,15 @@ namespace b3d
 			RMAT_DEF("Blit.bsl");
 
 			/** Helper method used for initializing variations of this material. */
-			template <u32 MSAA, u32 MODE>
+			template <u32 MSAA, u32 MODE, u32 BLEND, u32 WRITE_ALPHA>
 			static const ShaderVariationParameters& GetVariation()
 			{
 				static ShaderVariationParameters variation = ShaderVariationParameters(
 					TInlineArray<ShaderVariationParameter, 4>({
 						ShaderVariationParameter("MSAA_COUNT", MSAA),
 						ShaderVariationParameter("MODE", MODE),
+						ShaderVariationParameter("BLEND", BLEND),
+						ShaderVariationParameter("WRITE_ALPHA", WRITE_ALPHA),
 					}));
 
 				return variation;
@@ -55,8 +57,12 @@ namespace b3d
 			 *							depth textures the minimum of all samples will be used.
 			 * @param	isFiltered		True if to apply bilinear filtering to the sampled texture. Only relevant for color
 			 *							textures with no multiple samples.
+			 * @param	blend			If true blit source will be blended with the target image, rather than overwriting it, using
+			 *							the alpha value from the source.
+			 * @param	writeAlpha		If true, alpha value from the source will be passed to the destination. Only relevant when
+			 *							@p blend in enabled.
 			 */
-			static BlitMat* GetVariation(u32 msaaCount, bool isColor, bool isFiltered);
+			static BlitMat* GetVariation(u32 msaaCount, bool isColor, bool isFiltered, bool blend = false, bool writeAlpha = false);
 
 		private:
 			GpuParameterSampledTexture mSource;
@@ -267,6 +273,19 @@ namespace b3d
 			 *							textures with no multiple samples.
 			 */
 			void Blit(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& texture, const Area2I& area = Area2I::kEmpty, bool flipUV = false, bool isDepth = false, bool isFiltered = false);
+
+			/**
+			 * Blends contents of the provided texture into the currently bound render target.
+			 *
+			 * @param	commandBuffer	Command buffer to encode the operation on.
+			 * @param	texture			Source texture to blit.
+			 * @param	area				Area of the source texture to blit in pixels. If width or height is zero it is assumed
+			 *							the entire texture should be blitted.
+			 * @param	flipUV			If true, vertical UV coordinate will be flipped upside down.
+			 * @param	isFiltered		True if to apply bilinear filtering to the sampled texture.
+			 * @param	writeAlpha		If true, alpha form the source texture will be transferred to the destination texture.
+			 */
+			void Blend(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& texture, const Area2I& area = Area2I::kEmpty, bool flipUV = false, bool isFiltered = false, bool writeAlpha = false);
 
 			/**
 			 * Draws a quad over the entire viewport in normalized device coordinates.
