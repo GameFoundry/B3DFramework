@@ -14,7 +14,7 @@ namespace b3d
 	 *  @{
 	 */
 
-	class B3D_CORE_EXPORT CMeshColliderRTTI : public TRTTIType<CMeshCollider, CCollider, CMeshColliderRTTI>
+	class B3D_CORE_EXPORT MeshColliderRTTI : public TRTTIType<MeshCollider, Collider, MeshColliderRTTI>
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
@@ -23,18 +23,18 @@ namespace b3d
 	public:
 		const String& GetRttiName() override
 		{
-			static String name = "CMeshCollider";
+			static String name = "MeshCollider";
 			return name;
 		}
 
 		u32 GetRttiId() const override
 		{
-			return TID_CMeshCollider;
+			return TID_MeshCollider;
 		}
 
 		SPtr<IReflectable> NewRttiObject() override
 		{
-			return SceneObject::CreateEmptyComponent<CMeshCollider>();
+			return SceneObject::CreateEmptyComponent<MeshCollider>();
 		}
 	};
 

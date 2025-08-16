@@ -9,7 +9,7 @@
 
 namespace b3d
 {
-	ScriptBoxCollider::ScriptBoxCollider(const GameObjectHandle<CBoxCollider>& nativeObject)
+	ScriptBoxCollider::ScriptBoxCollider(const GameObjectHandle<BoxCollider>& nativeObject)
 		:TScriptGameObjectWrapper(nativeObject)
 	{
 		RegisterEvents();
@@ -44,7 +44,7 @@ namespace b3d
 		if(!self->IsNativeObjectValid())
 			return;
 
-		static_cast<CBoxCollider*>(self->GetNativeObject())->SetExtents(*extents);
+		static_cast<BoxCollider*>(self->GetNativeObject())->SetExtents(*extents);
 	}
 
 	void ScriptBoxCollider::InternalGetExtents(ScriptBoxCollider* self, TVector3<float>* __output)
@@ -56,7 +56,7 @@ namespace b3d
 		}
 
 		TVector3<float> tmp__output;
-		tmp__output = static_cast<CBoxCollider*>(self->GetNativeObject())->GetExtents();
+		tmp__output = static_cast<BoxCollider*>(self->GetNativeObject())->GetExtents();
 
 		*__output = tmp__output;
 	}
@@ -66,7 +66,7 @@ namespace b3d
 		if(!self->IsNativeObjectValid())
 			return;
 
-		static_cast<CBoxCollider*>(self->GetNativeObject())->SetCenter(*center);
+		static_cast<BoxCollider*>(self->GetNativeObject())->SetCenter(*center);
 	}
 
 	void ScriptBoxCollider::InternalGetCenter(ScriptBoxCollider* self, TVector3<float>* __output)
@@ -78,7 +78,7 @@ namespace b3d
 		}
 
 		TVector3<float> tmp__output;
-		tmp__output = static_cast<CBoxCollider*>(self->GetNativeObject())->GetCenter();
+		tmp__output = static_cast<BoxCollider*>(self->GetNativeObject())->GetCenter();
 
 		*__output = tmp__output;
 	}

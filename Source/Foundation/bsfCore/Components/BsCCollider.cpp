@@ -12,7 +12,7 @@ using namespace std::placeholders;
 
 using namespace b3d;
 
-CCollider::CCollider(const HSceneObject& parent)
+Collider::Collider(const HSceneObject& parent)
 	: Component(parent)
 {
 	SetName("Collider");
@@ -20,11 +20,11 @@ CCollider::CCollider(const HSceneObject& parent)
 	mNotifyFlags = (TransformChangedFlags)(TCF_Parent | TCF_Transform | TCF_NotifyStopped);
 }
 
-CCollider::CCollider()
-	:CCollider(nullptr)
+Collider::Collider()
+	:Collider(nullptr)
 { }
 
-void CCollider::SetIsTrigger(bool value)
+void Collider::SetIsTrigger(bool value)
 {
 	if(mIsTrigger == value)
 		return;
@@ -38,7 +38,7 @@ void CCollider::SetIsTrigger(bool value)
 	RefreshParentRigidbody();
 }
 
-void CCollider::SetMass(float mass)
+void Collider::SetMass(float mass)
 {
 	if(mMass == mass)
 		return;
@@ -52,7 +52,7 @@ void CCollider::SetMass(float mass)
 		mParentDynamicRigidbody->UpdateMassDistribution();
 }
 
-void CCollider::SetMaterial(const HPhysicsMaterial& material)
+void Collider::SetMaterial(const HPhysicsMaterial& material)
 {
 	mMaterial = material;
 
@@ -60,7 +60,7 @@ void CCollider::SetMaterial(const HPhysicsMaterial& material)
 		entry->SetMaterial(material);
 }
 
-void CCollider::SetContactOffset(float value)
+void Collider::SetContactOffset(float value)
 {
 	value = std::max(0.0f, std::max(value, GetRestOffset()));
 
@@ -70,7 +70,7 @@ void CCollider::SetContactOffset(float value)
 		entry->SetContactOffset(value);
 }
 
-void CCollider::SetRestOffset(float value)
+void Collider::SetRestOffset(float value)
 {
 	value = std::min(value, GetContactOffset());
 
@@ -80,7 +80,7 @@ void CCollider::SetRestOffset(float value)
 		entry->SetRestOffset(value);
 }
 
-void CCollider::SetLayer(u64 layer)
+void Collider::SetLayer(u64 layer)
 {
 	mLayer = layer;
 
@@ -88,14 +88,14 @@ void CCollider::SetLayer(u64 layer)
 		entry->SetLayer(layer);
 }
 
-void CCollider::SetCollisionReportMode(CollisionReportMode mode)
+void Collider::SetCollisionReportMode(CollisionReportMode mode)
 {
 	mCollisionReportMode = mode;
 
 	UpdateCollisionReportMode();
 }
 
-void CCollider::OnCreated()
+void Collider::OnCreated()
 {
 	const Vector3& scale = SceneObject()->GetTransform().GetScale();
 
@@ -135,7 +135,7 @@ void CCollider::OnCreated()
 	}
 }
 
-void CCollider::OnDestroyed()
+void Collider::OnDestroyed()
 {
 	Rigidbody* const dynamicRigidbody = mParentDynamicRigidbody.IsValid() ? mParentDynamicRigidbody->GetInternal() : nullptr;
 	if(dynamicRigidbody == nullptr)
@@ -153,14 +153,14 @@ void CCollider::OnDestroyed()
 	}
 	else
 	{
-		mParentDynamicRigidbody->RemoveCollider(B3DStaticGameObjectCast<CCollider>(mThisHandle));
+		mParentDynamicRigidbody->RemoveCollider(B3DStaticGameObjectCast<Collider>(mThisHandle));
 		mParentDynamicRigidbody = nullptr;
 	}
 
 	B3D_ASSERT(mStaticRigidbody == nullptr);
 }
 
-void CCollider::OnEnabled()
+void Collider::OnEnabled()
 {
 	Rigidbody* const dynamicRigidbody = mParentDynamicRigidbody.IsValid() ? mParentDynamicRigidbody->GetInternal() : nullptr;
 	if(dynamicRigidbody != nullptr)
@@ -175,7 +175,7 @@ void CCollider::OnEnabled()
 	}
 }
 
-void CCollider::OnDisabled()
+void Collider::OnDisabled()
 {
 	Rigidbody* const dynamicRigidbody = mParentDynamicRigidbody.IsValid() ? mParentDynamicRigidbody->GetInternal() : nullptr;
 	if(dynamicRigidbody != nullptr)
@@ -192,7 +192,7 @@ void CCollider::OnDisabled()
 		mStaticRigidbody->RemoveFromScene();
 }
 
-void CCollider::OnTransformChanged(TransformChangedFlags flags)
+void Collider::OnTransformChanged(TransformChangedFlags flags)
 {
 	if(!GetEnabled())
 		return;
@@ -212,14 +212,14 @@ void CCollider::OnTransformChanged(TransformChangedFlags flags)
 		UpdateTransform();
 }
 
-bool CCollider::SetDynamicRigidbody(const HRigidbody& rigidbody)
+bool Collider::SetDynamicRigidbody(const HRigidbody& rigidbody)
 {
 	if(rigidbody == mParentDynamicRigidbody)
 		return false;
 
 	// Detach shapes from original body, destroy static body if needed
 	if(mParentDynamicRigidbody != nullptr)
-		mParentDynamicRigidbody->RemoveCollider(B3DStaticGameObjectCast<CCollider>(mThisHandle));
+		mParentDynamicRigidbody->RemoveCollider(B3DStaticGameObjectCast<Collider>(mThisHandle));
 
 	Rigidbody* const originalDynamicRigidbody = mParentDynamicRigidbody.IsValid() ? mParentDynamicRigidbody->GetInternal() : nullptr;
 	if(originalDynamicRigidbody != nullptr)
@@ -269,7 +269,7 @@ bool CCollider::SetDynamicRigidbody(const HRigidbody& rigidbody)
 	}
 
 	if(rigidbody != nullptr)
-		rigidbody->AddCollider(B3DStaticGameObjectCast<CCollider>(mThisHandle));
+		rigidbody->AddCollider(B3DStaticGameObjectCast<Collider>(mThisHandle));
 
 	mParentDynamicRigidbody = rigidbody;
 	UpdateCollisionReportMode();
@@ -278,17 +278,17 @@ bool CCollider::SetDynamicRigidbody(const HRigidbody& rigidbody)
 	return true;
 }
 
-bool CCollider::RayCast(const Ray& ray, PhysicsQueryHit& outHit, float maximumDistance) const
+bool Collider::RayCast(const Ray& ray, PhysicsQueryHit& outHit, float maximumDistance) const
 {
 	return GetPhysics().RayCast(ray.Origin, ray.Direction, *this, outHit, maximumDistance);
 }
 
-bool CCollider::RayCast(const Vector3& origin, const Vector3& direction, PhysicsQueryHit& outHit, float maximumDistance) const
+bool Collider::RayCast(const Vector3& origin, const Vector3& direction, PhysicsQueryHit& outHit, float maximumDistance) const
 {
 	return GetPhysics().RayCast(origin, direction, *this, outHit, maximumDistance);
 }
 
-bool CCollider::RefreshParentRigidbody()
+bool Collider::RefreshParentRigidbody()
 {
 	if(mIsTrigger)
 		return SetDynamicRigidbody(HRigidbody());
@@ -312,7 +312,7 @@ bool CCollider::RefreshParentRigidbody()
 	return SetDynamicRigidbody(HRigidbody());
 }
 
-void CCollider::UpdateTransform(bool updateShapeTransforms)
+void Collider::UpdateTransform(bool updateShapeTransforms)
 {
 	const Transform& transform = SO()->GetTransform();
 
@@ -355,7 +355,7 @@ void CCollider::UpdateTransform(bool updateShapeTransforms)
 	}
 }
 
-void CCollider::UpdateCollisionReportMode()
+void Collider::UpdateCollisionReportMode()
 {
 	CollisionReportMode mode = mCollisionReportMode;
 
@@ -366,16 +366,16 @@ void CCollider::UpdateCollisionReportMode()
 		entry->SetCollisionReportMode(mode);
 }
 
-CollisionData CCollider::PopulateCollisionData(const CollisionDataRaw& data)
+CollisionData Collider::PopulateCollisionData(const CollisionDataRaw& data)
 {
 	CollisionData hit;
 	hit.ContactPoints = data.ContactPoints;
-	hit.Collider[0] = B3DStaticGameObjectCast<CCollider>(mThisHandle);
+	hit.Collider[0] = B3DStaticGameObjectCast<Collider>(mThisHandle);
 
 	ColliderShape* const myColliderShape = data.ColliderShapes[0];
 	if(myColliderShape != nullptr)
 	{
-		CCollider* const myCollider = myColliderShape->GetParentCollider();
+		Collider* const myCollider = myColliderShape->GetParentCollider();
 		if(B3D_ENSURE(myCollider != nullptr))
 			hit.ColliderShapes[0] = myCollider->GetShapes()[myColliderShape->GetShapeIndexInParent()];
 	}
@@ -383,10 +383,10 @@ CollisionData CCollider::PopulateCollisionData(const CollisionDataRaw& data)
 	ColliderShape* const otherColliderShape = data.ColliderShapes[1];
 	if(otherColliderShape != nullptr)
 	{
-		CCollider* const otherCollider = otherColliderShape->GetParentCollider();
+		Collider* const otherCollider = otherColliderShape->GetParentCollider();
 		if(B3D_ENSURE(otherCollider != nullptr))
 		{
-			hit.Collider[1] = B3DStaticGameObjectCast<CCollider>(otherCollider->GetHandle());
+			hit.Collider[1] = B3DStaticGameObjectCast<Collider>(otherCollider->GetHandle());
 			hit.ColliderShapes[1] = otherCollider->GetShapes()[otherColliderShape->GetShapeIndexInParent()];
 		}
 	}
@@ -394,12 +394,12 @@ CollisionData CCollider::PopulateCollisionData(const CollisionDataRaw& data)
 	return hit;
 }
 
-RTTIType* CCollider::GetRttiStatic()
+RTTIType* Collider::GetRttiStatic()
 {
-	return CColliderRTTI::Instance();
+	return ColliderRTTI::Instance();
 }
 
-RTTIType* CCollider::GetRtti() const
+RTTIType* Collider::GetRtti() const
 {
-	return CCollider::GetRttiStatic();
+	return Collider::GetRttiStatic();
 }

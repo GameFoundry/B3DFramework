@@ -12,10 +12,10 @@ namespace b3d
 	 */
 
 	/** Collider with a capsule geometry. */
-	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Physics), ExportName(CapsuleCollider)) CCapsuleCollider : public CCollider
+	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Physics)) CapsuleCollider : public Collider
 	{
 	public:
-		CCapsuleCollider(const HSceneObject& parent, float radius = 1.0f, float halfHeight = 0.5f);
+		CapsuleCollider(const HSceneObject& parent, float radius = 1.0f, float halfHeight = 0.5f);
 
 		/** Normal vector that determines how is the capsule oriented. */
 		B3D_SCRIPT_EXPORT(ExportName(Normal), Property(Setter))
@@ -68,12 +68,12 @@ namespace b3d
 		/* 								RTTI		                     		*/
 		/************************************************************************/
 	public:
-		friend class CCapsuleColliderRTTI;
+		friend class CapsuleColliderRTTI;
 		static RTTIType* GetRttiStatic();
 		RTTIType* GetRtti() const;
 
 	protected:
-		CCapsuleCollider(); // Serialization only
+		CapsuleCollider(); // Serialization only
 	};
 
 	/** @} */

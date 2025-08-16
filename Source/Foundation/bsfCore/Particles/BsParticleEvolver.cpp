@@ -574,7 +574,7 @@ u32 GroupRaycast(const PhysicsScene& physicsScene, LineSegment3* segments, Parti
 
 		for(auto& colliderShape : hitColliderShapes)
 		{
-			CCollider* const collider = colliderShape->GetParentCollider();
+			Collider* const collider = colliderShape->GetParentCollider();
 
 			PhysicsQueryHit queryHit;
 			if(collider->RayCast(ray, queryHit, length))

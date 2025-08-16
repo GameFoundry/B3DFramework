@@ -20,11 +20,11 @@ namespace b3d
 	 * This object is intended to remain static in the world. You /can/ move it, but it will not interact with the physics world correctly when moved. For that case
 	 * use Rigidbody instead.
 	 */
-	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Physics), ExportName(Collider)) CCollider : public Component
+	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Physics)) Collider : public Component
 	{
 	public:
-		CCollider(const HSceneObject& parent);
-		virtual ~CCollider() = default;
+		Collider(const HSceneObject& parent);
+		virtual ~Collider() = default;
 
 		/** Determines if the collider is a trigger. Trigger collider will not prevent objects from going through its shapes but it will still report collision events. */
 		B3D_SCRIPT_EXPORT(ExportName(Trigger), Property(Setter))
@@ -197,12 +197,12 @@ namespace b3d
 		/* 								RTTI		                     		*/
 		/************************************************************************/
 	public:
-		friend class CColliderRTTI;
+		friend class ColliderRTTI;
 		static RTTIType* GetRttiStatic();
 		RTTIType* GetRtti() const override;
 
 	protected:
-		CCollider(); // Serialization only
+		Collider(); // Serialization only
 	};
 
 	/** @} */

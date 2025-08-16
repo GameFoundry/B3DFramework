@@ -12,10 +12,10 @@ namespace b3d
 	 */
 
 	/** Collider with box geometry. */
-	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Physics), ExportName(BoxCollider)) CBoxCollider : public CCollider
+	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Physics)) BoxCollider : public Collider
 	{
 	public:
-		CBoxCollider(const HSceneObject& parent, const Vector3& extents = Vector3(0.5f, 0.5f, 0.5f));
+		BoxCollider(const HSceneObject& parent, const Vector3& extents = Vector3(0.5f, 0.5f, 0.5f));
 
 		/** Determines the extents (half size) of the geometry of the box. */
 		B3D_SCRIPT_EXPORT(ExportName(Extents), Property(Setter))
@@ -49,12 +49,12 @@ namespace b3d
 		/* 								RTTI		                     		*/
 		/************************************************************************/
 	public:
-		friend class CBoxColliderRTTI;
+		friend class BoxColliderRTTI;
 		static RTTIType* GetRttiStatic();
 		RTTIType* GetRtti() const override;
 
 	protected:
-		CBoxCollider(); // Serialization only
+		BoxCollider(); // Serialization only
 	};
 
 	/** @} */

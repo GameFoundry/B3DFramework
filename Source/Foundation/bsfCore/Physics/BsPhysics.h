@@ -124,7 +124,7 @@ namespace b3d
 		 * @param	maximumDistance		Maximum distance from the ray origin to search for hits.
 		 * @return						True if the ray has hit the collider.
 		 */
-		virtual bool RayCast(const Vector3& origin, const Vector3& unitDirection, const CCollider& collider, PhysicsQueryHit& hit, float maximumDistance = FLT_MAX) const = 0;
+		virtual bool RayCast(const Vector3& origin, const Vector3& unitDirection, const Collider& collider, PhysicsQueryHit& hit, float maximumDistance = FLT_MAX) const = 0;
 
 		/** @} */
 

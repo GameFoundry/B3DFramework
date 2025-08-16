@@ -7,7 +7,7 @@
 #include "../../../Foundation/bsfCore/Physics/BsPhysicsCommon.h"
 #include "../../../Foundation/bsfCore/Physics/BsPhysicsCommon.h"
 
-namespace b3d { class CCollider; }
+namespace b3d { class Collider; }
 namespace b3d { struct __CollisionDataInterop; }
 namespace b3d
 {
@@ -34,12 +34,12 @@ namespace b3d
 		HEvent OnCollisionEndConnection;
 	};
 
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptCollider : public TScriptGameObjectWrapper<CCollider, ScriptCollider, ScriptColliderWrapperBase>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptCollider : public TScriptGameObjectWrapper<Collider, ScriptCollider, ScriptColliderWrapperBase>
 	{
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "Collider")
 
-		ScriptCollider(const GameObjectHandle<CCollider>& nativeObject);
+		ScriptCollider(const GameObjectHandle<Collider>& nativeObject);
 		~ScriptCollider();
 
 		static void SetupScriptBindings();

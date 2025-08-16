@@ -290,9 +290,9 @@ void CRigidbody::UpdateColliders()
 		HSceneObject currentSO = todo.top();
 		todo.pop();
 
-		if(currentSO->HasComponent<CCollider>())
+		if(currentSO->HasComponent<Collider>())
 		{
-			Vector<HCollider> colliders = currentSO->GetComponents<CCollider>();
+			Vector<HCollider> colliders = currentSO->GetComponents<Collider>();
 
 			for(auto& entry : colliders)
 			{
@@ -364,16 +364,16 @@ void CRigidbody::ProcessCollisionData(const CollisionDataRaw& data, CollisionDat
 	ColliderShape* const myColliderShape = data.ColliderShapes[0];
 	if(myColliderShape != nullptr)
 	{
-		CCollider* const myCollider = myColliderShape->GetParentCollider();
-		output.Collider[0] = B3DStaticGameObjectCast<CCollider>(myCollider->GetHandle());
+		Collider* const myCollider = myColliderShape->GetParentCollider();
+		output.Collider[0] = B3DStaticGameObjectCast<Collider>(myCollider->GetHandle());
 		output.ColliderShapes[0] = myCollider->GetShapes()[myColliderShape->GetShapeIndexInParent()];
 	}
 
 	ColliderShape* const otherColliderShape = data.ColliderShapes[1];
 	if(otherColliderShape != nullptr)
 	{
-		CCollider* const otherCollider = otherColliderShape->GetParentCollider();
-		output.Collider[1] = B3DStaticGameObjectCast<CCollider>(otherCollider->GetHandle());
+		Collider* const otherCollider = otherColliderShape->GetParentCollider();
+		output.Collider[1] = B3DStaticGameObjectCast<Collider>(otherCollider->GetHandle());
 		output.ColliderShapes[1] = otherCollider->GetShapes()[otherColliderShape->GetShapeIndexInParent()];
 	}
 }

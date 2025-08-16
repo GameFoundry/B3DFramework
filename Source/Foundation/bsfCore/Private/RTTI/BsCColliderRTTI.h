@@ -15,7 +15,7 @@ namespace b3d
 	 *  @{
 	 */
 
-	class B3D_CORE_EXPORT CColliderRTTI : public TRTTIType<CCollider, Component, CColliderRTTI>
+	class B3D_CORE_EXPORT ColliderRTTI : public TRTTIType<Collider, Component, ColliderRTTI>
 	{
 		B3D_RTTI_BEGIN_MEMBERS
 			B3D_RTTI_MEMBER(mLayer, 0)
@@ -29,13 +29,13 @@ namespace b3d
 	public:
 		const String& GetRttiName()
 		{
-			static String name = "CCollider";
+			static String name = "Collider";
 			return name;
 		}
 
 		u32 GetRttiId() const override
 		{
-			return TID_CCollider;
+			return TID_Collider;
 		}
 
 		SPtr<IReflectable> NewRttiObject()

@@ -6,15 +6,15 @@
 #include "Wrappers/BsScriptComponent.h"
 #include "BsScriptCCollider.generated.h"
 
-namespace b3d { class CMeshCollider; }
+namespace b3d { class MeshCollider; }
 namespace b3d
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptMeshCollider : public TScriptGameObjectWrapper<CMeshCollider, ScriptMeshCollider, ScriptColliderWrapperBase>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptMeshCollider : public TScriptGameObjectWrapper<MeshCollider, ScriptMeshCollider, ScriptColliderWrapperBase>
 	{
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "MeshCollider")
 
-		ScriptMeshCollider(const GameObjectHandle<CMeshCollider>& nativeObject);
+		ScriptMeshCollider(const GameObjectHandle<MeshCollider>& nativeObject);
 		~ScriptMeshCollider();
 
 		static void SetupScriptBindings();

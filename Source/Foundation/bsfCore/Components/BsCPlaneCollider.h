@@ -12,10 +12,10 @@ namespace b3d
 	 */
 
 	/** A collider with plane geometry. Plane colliders cannot be a part of non-kinematic rigidbodies. */
-	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Physics), ExportName(PlaneCollider)) CPlaneCollider : public CCollider
+	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Physics)) PlaneCollider : public Collider
 	{
 	public:
-		CPlaneCollider(const HSceneObject& parent);
+		PlaneCollider(const HSceneObject& parent);
 
 		/** Normal vector that determines the local orientation of the plane. */
 		B3D_SCRIPT_EXPORT(ExportName(Normal), Property(Setter))
@@ -52,12 +52,12 @@ namespace b3d
 		/* 								RTTI		                     		*/
 		/************************************************************************/
 	public:
-		friend class CPlaneColliderRTTI;
+		friend class PlaneColliderRTTI;
 		static RTTIType* GetRttiStatic();
 		RTTIType* GetRtti() const override;
 
 	protected:
-		CPlaneCollider(); // Serialization only
+		PlaneCollider(); // Serialization only
 	};
 
 	/** @} */

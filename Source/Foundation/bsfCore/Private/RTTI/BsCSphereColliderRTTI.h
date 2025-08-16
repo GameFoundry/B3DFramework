@@ -15,7 +15,7 @@ namespace b3d
 	 *  @{
 	 */
 
-	class B3D_CORE_EXPORT CSphereColliderRTTI : public TRTTIType<CSphereCollider, CCollider, CSphereColliderRTTI>
+	class B3D_CORE_EXPORT CSphereColliderRTTI : public TRTTIType<SphereCollider, Collider, CSphereColliderRTTI>
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
@@ -31,12 +31,12 @@ namespace b3d
 
 		u32 GetRttiId() const override
 		{
-			return TID_CSphereCollider;
+			return TID_SphereCollider;
 		}
 
 		SPtr<IReflectable> NewRttiObject() override
 		{
-			return SceneObject::CreateEmptyComponent<CSphereCollider>();
+			return SceneObject::CreateEmptyComponent<SphereCollider>();
 		}
 	};
 

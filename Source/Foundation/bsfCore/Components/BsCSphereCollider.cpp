@@ -8,27 +8,27 @@
 
 using namespace b3d;
 
-CSphereCollider::CSphereCollider(const HSceneObject& parent, float radius)
-	: CCollider(parent), mRadius(radius)
+SphereCollider::SphereCollider(const HSceneObject& parent, float radius)
+	: Collider(parent), mRadius(radius)
 {
 	SetName("SphereCollider");
 }
 
-CSphereCollider::CSphereCollider()
-	: CSphereCollider(nullptr)
+SphereCollider::SphereCollider()
+	: SphereCollider(nullptr)
 { }
 
-void CSphereCollider::OnCreated()
+void SphereCollider::OnCreated()
 {
 	SPtr<ColliderShape> colliderShape = ColliderShape::CreateSphere(mRadius);
 	colliderShape->SetPosition(mShapeLocalPosition);
 
 	mShapes = { colliderShape };
 
-	CCollider::OnCreated();
+	Collider::OnCreated();
 }
 
-void CSphereCollider::SetRadius(float radius)
+void SphereCollider::SetRadius(float radius)
 {
 	float clampedRadius = std::max(radius, 0.01f);
 	if(mRadius == clampedRadius)
@@ -43,7 +43,7 @@ void CSphereCollider::SetRadius(float radius)
 		mParentDynamicRigidbody->UpdateMassDistribution();
 }
 
-void CSphereCollider::SetCenter(const Vector3& center)
+void SphereCollider::SetCenter(const Vector3& center)
 {
 	if(mShapeLocalPosition == center)
 		return;
@@ -54,12 +54,12 @@ void CSphereCollider::SetCenter(const Vector3& center)
 		mShapes[0]->SetPosition(mShapeLocalPosition);
 }
 
-RTTIType* CSphereCollider::GetRttiStatic()
+RTTIType* SphereCollider::GetRttiStatic()
 {
 	return CSphereColliderRTTI::Instance();
 }
 
-RTTIType* CSphereCollider::GetRtti() const
+RTTIType* SphereCollider::GetRtti() const
 {
-	return CSphereCollider::GetRttiStatic();
+	return SphereCollider::GetRttiStatic();
 }

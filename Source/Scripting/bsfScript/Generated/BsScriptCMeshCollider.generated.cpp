@@ -11,7 +11,7 @@
 
 namespace b3d
 {
-	ScriptMeshCollider::ScriptMeshCollider(const GameObjectHandle<CMeshCollider>& nativeObject)
+	ScriptMeshCollider::ScriptMeshCollider(const GameObjectHandle<MeshCollider>& nativeObject)
 		:TScriptGameObjectWrapper(nativeObject)
 	{
 		RegisterEvents();
@@ -49,7 +49,7 @@ namespace b3d
 		scriptObjectWrappermesh = ScriptRRefBase::GetScriptObjectWrapper(mesh);
 		if(scriptObjectWrappermesh != nullptr)
 			tmpmesh = B3DStaticResourceCast<PhysicsMesh>(scriptObjectWrappermesh->GetNativeObject());
-		static_cast<CMeshCollider*>(self->GetNativeObject())->SetMesh(tmpmesh);
+		static_cast<MeshCollider*>(self->GetNativeObject())->SetMesh(tmpmesh);
 	}
 
 	MonoObject* ScriptMeshCollider::InternalGetMesh(ScriptMeshCollider* self)
@@ -58,7 +58,7 @@ namespace b3d
 		if(!self->IsNativeObjectValid())
 			return {};
 
-		tmp__output = static_cast<CMeshCollider*>(self->GetNativeObject())->GetMesh();
+		tmp__output = static_cast<MeshCollider*>(self->GetNativeObject())->GetMesh();
 
 		MonoObject* __output;
 		ScriptRRefBase* script__output;

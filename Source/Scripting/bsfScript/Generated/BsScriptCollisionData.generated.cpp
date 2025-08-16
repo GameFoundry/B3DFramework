@@ -29,18 +29,18 @@ namespace b3d
 	CollisionData ScriptCollisionData::FromInterop(const __CollisionDataInterop& value)
 	{
 		CollisionData output;
-		GameObjectHandle<CCollider> vecCollider[2];
+		GameObjectHandle<Collider> vecCollider[2];
 		if(value.Collider != nullptr)
 		{
 			ScriptArray scriptArrayCollider(value.Collider);
 			for(int elementIndex = 0; elementIndex < (int)scriptArrayCollider.Size(); elementIndex++)
 			{
-				GameObjectHandle<CCollider> arrayElementPointerCollider;
+				GameObjectHandle<Collider> arrayElementPointerCollider;
 				ScriptColliderWrapperBase* scriptObjectWrapperCollider;
 				scriptObjectWrapperCollider = (ScriptColliderWrapperBase*)ScriptCollider::GetScriptObjectWrapper(scriptArrayCollider.Get<MonoObject*>(elementIndex));
 				if(scriptObjectWrapperCollider != nullptr)
 				{
-					arrayElementPointerCollider = B3DStaticGameObjectCast<CCollider>(scriptObjectWrapperCollider->GetBaseNativeObjectAsHandle());
+					arrayElementPointerCollider = B3DStaticGameObjectCast<Collider>(scriptObjectWrapperCollider->GetBaseNativeObjectAsHandle());
 					vecCollider[elementIndex] = arrayElementPointerCollider;
 				}
 			}

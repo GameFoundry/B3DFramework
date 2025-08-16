@@ -12,10 +12,10 @@ namespace b3d
 	 */
 
 	/** A collider with sphere geometry. */
-	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Physics), ExportName(SphereCollider)) CSphereCollider : public CCollider
+	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Physics)) SphereCollider : public Collider
 	{
 	public:
-		CSphereCollider(const HSceneObject& parent, float radius = 1.0f);
+		SphereCollider(const HSceneObject& parent, float radius = 1.0f);
 
 		/** Determines the radius of the sphere geometry. */
 		B3D_SCRIPT_EXPORT(ExportName(Radius), Property(Setter))
@@ -54,7 +54,7 @@ namespace b3d
 		RTTIType* GetRtti() const override;
 
 	protected:
-		CSphereCollider(); // Serialization only
+		SphereCollider(); // Serialization only
 	};
 
 	/** @} */

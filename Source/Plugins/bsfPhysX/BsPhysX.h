@@ -35,7 +35,7 @@ namespace b3d
 		SPtr<StaticRigidbody> CreateStaticRigidbody() override;
 
 		bool RayCast(const Vector3& origin, const Vector3& unitDirection, const ColliderShape& colliderShape, PhysicsQueryHit& hit, float maxDistance = FLT_MAX) const override;
-		bool RayCast(const Vector3& origin, const Vector3& unitDirection, const CCollider& collider, PhysicsQueryHit& hit, float maxDistance = FLT_MAX) const override;
+		bool RayCast(const Vector3& origin, const Vector3& unitDirection, const Collider& collider, PhysicsQueryHit& hit, float maxDistance = FLT_MAX) const override;
 
 		/** Notifies the system that at physics scene is about to be destroyed. */
 		void NotifySceneDestroyedInternal(PhysXScene* scene);

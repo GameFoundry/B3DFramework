@@ -8,19 +8,19 @@
 
 using namespace b3d;
 
-CPlaneCollider::CPlaneCollider(const HSceneObject& parent)
-	: CCollider(parent)
+PlaneCollider::PlaneCollider(const HSceneObject& parent)
+	: Collider(parent)
 {
 	SetName("PlaneCollider");
 
 	mShapeLocalRotation = Quaternion::GetRotationFromTo(Vector3::kUnitX, mNormal);
 }
 
-CPlaneCollider::CPlaneCollider()
-	: CPlaneCollider(nullptr)
+PlaneCollider::PlaneCollider()
+	: PlaneCollider(nullptr)
 { }
 
-void CPlaneCollider::OnCreated()
+void PlaneCollider::OnCreated()
 {
 	SPtr<ColliderShape> colliderShape = ColliderShape::CreatePlane(PlaneColliderShapeInformation());
 	colliderShape->SetPosition(mShapeLocalPosition);
@@ -28,10 +28,10 @@ void CPlaneCollider::OnCreated()
 
 	mShapes = { colliderShape };
 
-	CCollider::OnCreated();
+	Collider::OnCreated();
 }
 
-void CPlaneCollider::SetNormal(const Vector3& normal)
+void PlaneCollider::SetNormal(const Vector3& normal)
 {
 	if(mNormal == normal)
 		return;
@@ -49,7 +49,7 @@ void CPlaneCollider::SetNormal(const Vector3& normal)
 	}
 }
 
-void CPlaneCollider::SetDistance(float distance)
+void PlaneCollider::SetDistance(float distance)
 {
 	if(mDistance == distance)
 		return;
@@ -61,18 +61,18 @@ void CPlaneCollider::SetDistance(float distance)
 		mShapes[0]->SetPosition(mShapeLocalPosition);
 }
 
-bool CPlaneCollider::IsValidParent(const HRigidbody& parent) const
+bool PlaneCollider::IsValidParent(const HRigidbody& parent) const
 {
 	// Planes cannot be added to non-kinematic rigidbodies
 	return parent->GetIsKinematic();
 }
 
-RTTIType* CPlaneCollider::GetRttiStatic()
+RTTIType* PlaneCollider::GetRttiStatic()
 {
-	return CPlaneColliderRTTI::Instance();
+	return PlaneColliderRTTI::Instance();
 }
 
-RTTIType* CPlaneCollider::GetRtti() const
+RTTIType* PlaneCollider::GetRtti() const
 {
-	return CPlaneCollider::GetRttiStatic();
+	return PlaneCollider::GetRttiStatic();
 }

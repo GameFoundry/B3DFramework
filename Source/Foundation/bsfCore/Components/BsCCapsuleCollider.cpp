@@ -8,19 +8,19 @@
 
 using namespace b3d;
 
-CCapsuleCollider::CCapsuleCollider(const HSceneObject& parent, float radius, float halfHeight)
-	: CCollider(parent), mRadius(radius), mHalfHeight(halfHeight)
+CapsuleCollider::CapsuleCollider(const HSceneObject& parent, float radius, float halfHeight)
+	: Collider(parent), mRadius(radius), mHalfHeight(halfHeight)
 {
 	SetName("CapsuleCollider");
 
 	mShapeLocalRotation = Quaternion::GetRotationFromTo(Vector3::kUnitX, mNormal);
 }
 
-CCapsuleCollider::CCapsuleCollider()
-	: CCapsuleCollider(nullptr)
+CapsuleCollider::CapsuleCollider()
+	: CapsuleCollider(nullptr)
 { }
 
-void CCapsuleCollider::OnCreated()
+void CapsuleCollider::OnCreated()
 {
 	SPtr<ColliderShape> colliderShape = ColliderShape::CreateCapsule(CapsuleColliderShapeInformation(mRadius, mHalfHeight));
 	colliderShape->SetPosition(mShapeLocalPosition);
@@ -28,10 +28,10 @@ void CCapsuleCollider::OnCreated()
 
 	mShapes = { colliderShape };
 
-	CCollider::OnCreated();
+	Collider::OnCreated();
 }
 
-void CCapsuleCollider::SetNormal(const Vector3& normal)
+void CapsuleCollider::SetNormal(const Vector3& normal)
 {
 	if(mNormal == normal)
 		return;
@@ -44,7 +44,7 @@ void CCapsuleCollider::SetNormal(const Vector3& normal)
 		
 }
 
-void CCapsuleCollider::SetCenter(const Vector3& center)
+void CapsuleCollider::SetCenter(const Vector3& center)
 {
 	if(mShapeLocalPosition == center)
 		return;
@@ -55,7 +55,7 @@ void CCapsuleCollider::SetCenter(const Vector3& center)
 		mShapes[0]->SetPosition(mShapeLocalPosition);
 }
 
-void CCapsuleCollider::SetHalfHeight(float halfHeight)
+void CapsuleCollider::SetHalfHeight(float halfHeight)
 {
 	float clampedHalfHeight = std::max(halfHeight, 0.01f);
 	if(mHalfHeight == clampedHalfHeight)
@@ -70,7 +70,7 @@ void CCapsuleCollider::SetHalfHeight(float halfHeight)
 		mParentDynamicRigidbody->UpdateMassDistribution();
 }
 
-void CCapsuleCollider::SetRadius(float radius)
+void CapsuleCollider::SetRadius(float radius)
 {
 	float clampedRadius = std::max(radius, 0.01f);
 	if(mRadius == clampedRadius)
@@ -85,12 +85,12 @@ void CCapsuleCollider::SetRadius(float radius)
 		mParentDynamicRigidbody->UpdateMassDistribution();
 }
 
-RTTIType* CCapsuleCollider::GetRttiStatic()
+RTTIType* CapsuleCollider::GetRttiStatic()
 {
-	return CCapsuleColliderRTTI::Instance();
+	return CapsuleColliderRTTI::Instance();
 }
 
-RTTIType* CCapsuleCollider::GetRtti() const
+RTTIType* CapsuleCollider::GetRtti() const
 {
-	return CCapsuleCollider::GetRttiStatic();
+	return CapsuleCollider::GetRttiStatic();
 }

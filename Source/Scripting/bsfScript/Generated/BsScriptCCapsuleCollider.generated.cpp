@@ -9,7 +9,7 @@
 
 namespace b3d
 {
-	ScriptCapsuleCollider::ScriptCapsuleCollider(const GameObjectHandle<CCapsuleCollider>& nativeObject)
+	ScriptCapsuleCollider::ScriptCapsuleCollider(const GameObjectHandle<CapsuleCollider>& nativeObject)
 		:TScriptGameObjectWrapper(nativeObject)
 	{
 		RegisterEvents();
@@ -48,7 +48,7 @@ namespace b3d
 		if(!self->IsNativeObjectValid())
 			return;
 
-		static_cast<CCapsuleCollider*>(self->GetNativeObject())->SetNormal(*normal);
+		static_cast<CapsuleCollider*>(self->GetNativeObject())->SetNormal(*normal);
 	}
 
 	void ScriptCapsuleCollider::InternalGetNormal(ScriptCapsuleCollider* self, TVector3<float>* __output)
@@ -60,7 +60,7 @@ namespace b3d
 		}
 
 		TVector3<float> tmp__output;
-		tmp__output = static_cast<CCapsuleCollider*>(self->GetNativeObject())->GetNormal();
+		tmp__output = static_cast<CapsuleCollider*>(self->GetNativeObject())->GetNormal();
 
 		*__output = tmp__output;
 	}
@@ -70,7 +70,7 @@ namespace b3d
 		if(!self->IsNativeObjectValid())
 			return;
 
-		static_cast<CCapsuleCollider*>(self->GetNativeObject())->SetCenter(*center);
+		static_cast<CapsuleCollider*>(self->GetNativeObject())->SetCenter(*center);
 	}
 
 	void ScriptCapsuleCollider::InternalGetCenter(ScriptCapsuleCollider* self, TVector3<float>* __output)
@@ -82,7 +82,7 @@ namespace b3d
 		}
 
 		TVector3<float> tmp__output;
-		tmp__output = static_cast<CCapsuleCollider*>(self->GetNativeObject())->GetCenter();
+		tmp__output = static_cast<CapsuleCollider*>(self->GetNativeObject())->GetCenter();
 
 		*__output = tmp__output;
 	}
@@ -92,7 +92,7 @@ namespace b3d
 		if(!self->IsNativeObjectValid())
 			return;
 
-		static_cast<CCapsuleCollider*>(self->GetNativeObject())->SetHalfHeight(halfHeight);
+		static_cast<CapsuleCollider*>(self->GetNativeObject())->SetHalfHeight(halfHeight);
 	}
 
 	float ScriptCapsuleCollider::InternalGetHalfHeight(ScriptCapsuleCollider* self)
@@ -101,7 +101,7 @@ namespace b3d
 		if(!self->IsNativeObjectValid())
 			return {};
 
-		tmp__output = static_cast<CCapsuleCollider*>(self->GetNativeObject())->GetHalfHeight();
+		tmp__output = static_cast<CapsuleCollider*>(self->GetNativeObject())->GetHalfHeight();
 
 		float __output;
 		__output = tmp__output;
@@ -114,7 +114,7 @@ namespace b3d
 		if(!self->IsNativeObjectValid())
 			return;
 
-		static_cast<CCapsuleCollider*>(self->GetNativeObject())->SetRadius(radius);
+		static_cast<CapsuleCollider*>(self->GetNativeObject())->SetRadius(radius);
 	}
 
 	float ScriptCapsuleCollider::InternalGetRadius(ScriptCapsuleCollider* self)
@@ -123,7 +123,7 @@ namespace b3d
 		if(!self->IsNativeObjectValid())
 			return {};
 
-		tmp__output = static_cast<CCapsuleCollider*>(self->GetNativeObject())->GetRadius();
+		tmp__output = static_cast<CapsuleCollider*>(self->GetNativeObject())->GetRadius();
 
 		float __output;
 		__output = tmp__output;

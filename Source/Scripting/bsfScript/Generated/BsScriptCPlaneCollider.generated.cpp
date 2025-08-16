@@ -9,7 +9,7 @@
 
 namespace b3d
 {
-	ScriptPlaneCollider::ScriptPlaneCollider(const GameObjectHandle<CPlaneCollider>& nativeObject)
+	ScriptPlaneCollider::ScriptPlaneCollider(const GameObjectHandle<PlaneCollider>& nativeObject)
 		:TScriptGameObjectWrapper(nativeObject)
 	{
 		RegisterEvents();
@@ -44,7 +44,7 @@ namespace b3d
 		if(!self->IsNativeObjectValid())
 			return;
 
-		static_cast<CPlaneCollider*>(self->GetNativeObject())->SetNormal(*normal);
+		static_cast<PlaneCollider*>(self->GetNativeObject())->SetNormal(*normal);
 	}
 
 	void ScriptPlaneCollider::InternalGetNormal(ScriptPlaneCollider* self, TVector3<float>* __output)
@@ -56,7 +56,7 @@ namespace b3d
 		}
 
 		TVector3<float> tmp__output;
-		tmp__output = static_cast<CPlaneCollider*>(self->GetNativeObject())->GetNormal();
+		tmp__output = static_cast<PlaneCollider*>(self->GetNativeObject())->GetNormal();
 
 		*__output = tmp__output;
 	}
@@ -66,7 +66,7 @@ namespace b3d
 		if(!self->IsNativeObjectValid())
 			return;
 
-		static_cast<CPlaneCollider*>(self->GetNativeObject())->SetDistance(distance);
+		static_cast<PlaneCollider*>(self->GetNativeObject())->SetDistance(distance);
 	}
 
 	float ScriptPlaneCollider::InternalGetDistance(ScriptPlaneCollider* self)
@@ -75,7 +75,7 @@ namespace b3d
 		if(!self->IsNativeObjectValid())
 			return {};
 
-		tmp__output = static_cast<CPlaneCollider*>(self->GetNativeObject())->GetDistance();
+		tmp__output = static_cast<PlaneCollider*>(self->GetNativeObject())->GetDistance();
 
 		float __output;
 		__output = tmp__output;

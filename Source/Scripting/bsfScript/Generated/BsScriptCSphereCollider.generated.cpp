@@ -9,7 +9,7 @@
 
 namespace b3d
 {
-	ScriptSphereCollider::ScriptSphereCollider(const GameObjectHandle<CSphereCollider>& nativeObject)
+	ScriptSphereCollider::ScriptSphereCollider(const GameObjectHandle<SphereCollider>& nativeObject)
 		:TScriptGameObjectWrapper(nativeObject)
 	{
 		RegisterEvents();
@@ -44,7 +44,7 @@ namespace b3d
 		if(!self->IsNativeObjectValid())
 			return;
 
-		static_cast<CSphereCollider*>(self->GetNativeObject())->SetRadius(radius);
+		static_cast<SphereCollider*>(self->GetNativeObject())->SetRadius(radius);
 	}
 
 	float ScriptSphereCollider::InternalGetRadius(ScriptSphereCollider* self)
@@ -53,7 +53,7 @@ namespace b3d
 		if(!self->IsNativeObjectValid())
 			return {};
 
-		tmp__output = static_cast<CSphereCollider*>(self->GetNativeObject())->GetRadius();
+		tmp__output = static_cast<SphereCollider*>(self->GetNativeObject())->GetRadius();
 
 		float __output;
 		__output = tmp__output;
@@ -66,7 +66,7 @@ namespace b3d
 		if(!self->IsNativeObjectValid())
 			return;
 
-		static_cast<CSphereCollider*>(self->GetNativeObject())->SetCenter(*center);
+		static_cast<SphereCollider*>(self->GetNativeObject())->SetCenter(*center);
 	}
 
 	void ScriptSphereCollider::InternalGetCenter(ScriptSphereCollider* self, TVector3<float>* __output)
@@ -78,7 +78,7 @@ namespace b3d
 		}
 
 		TVector3<float> tmp__output;
-		tmp__output = static_cast<CSphereCollider*>(self->GetNativeObject())->GetCenter();
+		tmp__output = static_cast<SphereCollider*>(self->GetNativeObject())->GetCenter();
 
 		*__output = tmp__output;
 	}

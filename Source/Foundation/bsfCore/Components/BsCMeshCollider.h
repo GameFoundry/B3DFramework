@@ -12,10 +12,10 @@ namespace b3d
 	 */
 
 	/** A collider represented by an arbitrary mesh. */
-	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Physics), ExportName(MeshCollider)) CMeshCollider : public CCollider
+	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Physics)) MeshCollider : public Collider
 	{
 	public:
-		CMeshCollider(const HSceneObject& parent);
+		MeshCollider(const HSceneObject& parent);
 
 		/**
 		 * Determines a mesh that represents the collider geometry. This can be a generic triangle mesh, or and convex mesh.
@@ -44,12 +44,12 @@ namespace b3d
 		/* 								RTTI		                     		*/
 		/************************************************************************/
 	public:
-		friend class CMeshColliderRTTI;
+		friend class MeshColliderRTTI;
 		static RTTIType* GetRttiStatic();
 		RTTIType* GetRtti() const;
 
 	protected:
-		CMeshCollider(); // Serialization only
+		MeshCollider(); // Serialization only
 	};
 
 	/** @} */

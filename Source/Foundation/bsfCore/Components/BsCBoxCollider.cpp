@@ -8,27 +8,27 @@
 
 using namespace b3d;
 
-CBoxCollider::CBoxCollider(const HSceneObject& parent, const Vector3& extents)
-	: CCollider(parent), mExtents(extents)
+BoxCollider::BoxCollider(const HSceneObject& parent, const Vector3& extents)
+	: Collider(parent), mExtents(extents)
 {
 	SetName("BoxCollider");
 }
 
-CBoxCollider::CBoxCollider()
-	: CBoxCollider(nullptr)
+BoxCollider::BoxCollider()
+	: BoxCollider(nullptr)
 { }
 
-void CBoxCollider::OnCreated()
+void BoxCollider::OnCreated()
 {
 	SPtr<ColliderShape> colliderShape = ColliderShape::CreateBox(mExtents);
 	colliderShape->SetPosition(mShapeLocalPosition);
 
 	mShapes = { colliderShape };
 
-	CCollider::OnCreated();
+	Collider::OnCreated();
 }
 
-void CBoxCollider::SetExtents(const Vector3& extents)
+void BoxCollider::SetExtents(const Vector3& extents)
 {
 	Vector3 clampedExtents = Vector3::Max(extents, Vector3(0.01f, 0.01f, 0.01f));
 
@@ -44,7 +44,7 @@ void CBoxCollider::SetExtents(const Vector3& extents)
 		mParentDynamicRigidbody->UpdateMassDistribution();
 }
 
-void CBoxCollider::SetCenter(const Vector3& center)
+void BoxCollider::SetCenter(const Vector3& center)
 {
 	if(mShapeLocalPosition == center)
 		return;
@@ -55,12 +55,12 @@ void CBoxCollider::SetCenter(const Vector3& center)
 		mShapes[0]->SetPosition(mShapeLocalPosition);
 }
 
-RTTIType* CBoxCollider::GetRttiStatic()
+RTTIType* BoxCollider::GetRttiStatic()
 {
-	return CBoxColliderRTTI::Instance();
+	return BoxColliderRTTI::Instance();
 }
 
-RTTIType* CBoxCollider::GetRtti() const
+RTTIType* BoxCollider::GetRtti() const
 {
-	return CBoxCollider::GetRttiStatic();
+	return BoxCollider::GetRttiStatic();
 }

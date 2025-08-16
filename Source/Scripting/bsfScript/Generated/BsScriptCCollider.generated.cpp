@@ -45,9 +45,9 @@ namespace b3d
 
 	void ScriptColliderWrapperBase::RegisterEvents()
 	{
-		OnCollisionBeginConnection = static_cast<CCollider*>(GetNativeObject())->OnCollisionBegin.Connect(std::bind(&ScriptColliderWrapperBase::OnCollisionBegin, this, std::placeholders::_1));
-		OnCollisionStayConnection = static_cast<CCollider*>(GetNativeObject())->OnCollisionStay.Connect(std::bind(&ScriptColliderWrapperBase::OnCollisionStay, this, std::placeholders::_1));
-		OnCollisionEndConnection = static_cast<CCollider*>(GetNativeObject())->OnCollisionEnd.Connect(std::bind(&ScriptColliderWrapperBase::OnCollisionEnd, this, std::placeholders::_1));
+		OnCollisionBeginConnection = static_cast<Collider*>(GetNativeObject())->OnCollisionBegin.Connect(std::bind(&ScriptColliderWrapperBase::OnCollisionBegin, this, std::placeholders::_1));
+		OnCollisionStayConnection = static_cast<Collider*>(GetNativeObject())->OnCollisionStay.Connect(std::bind(&ScriptColliderWrapperBase::OnCollisionStay, this, std::placeholders::_1));
+		OnCollisionEndConnection = static_cast<Collider*>(GetNativeObject())->OnCollisionEnd.Connect(std::bind(&ScriptColliderWrapperBase::OnCollisionEnd, this, std::placeholders::_1));
 		ScriptGameObjectWrapper::RegisterEvents();
 	}
 	void ScriptColliderWrapperBase::UnregisterEvents()
@@ -57,7 +57,7 @@ namespace b3d
 		OnCollisionEndConnection.Disconnect();
 		ScriptGameObjectWrapper::UnregisterEvents();
 	}
-	ScriptCollider::ScriptCollider(const GameObjectHandle<CCollider>& nativeObject)
+	ScriptCollider::ScriptCollider(const GameObjectHandle<Collider>& nativeObject)
 		:TScriptGameObjectWrapper(nativeObject)
 	{
 		RegisterEvents();
@@ -105,7 +105,7 @@ namespace b3d
 		if(!self->IsNativeObjectValid())
 			return;
 
-		static_cast<CCollider*>(self->GetNativeObject())->SetIsTrigger(value);
+		static_cast<Collider*>(self->GetNativeObject())->SetIsTrigger(value);
 	}
 
 	bool ScriptCollider::InternalGetIsTrigger(ScriptColliderWrapperBase* self)
@@ -114,7 +114,7 @@ namespace b3d
 		if(!self->IsNativeObjectValid())
 			return {};
 
-		tmp__output = static_cast<CCollider*>(self->GetNativeObject())->GetIsTrigger();
+		tmp__output = static_cast<Collider*>(self->GetNativeObject())->GetIsTrigger();
 
 		bool __output;
 		__output = tmp__output;
@@ -127,7 +127,7 @@ namespace b3d
 		if(!self->IsNativeObjectValid())
 			return;
 
-		static_cast<CCollider*>(self->GetNativeObject())->SetMass(mass);
+		static_cast<Collider*>(self->GetNativeObject())->SetMass(mass);
 	}
 
 	float ScriptCollider::InternalGetMass(ScriptColliderWrapperBase* self)
@@ -136,7 +136,7 @@ namespace b3d
 		if(!self->IsNativeObjectValid())
 			return {};
 
-		tmp__output = static_cast<CCollider*>(self->GetNativeObject())->GetMass();
+		tmp__output = static_cast<Collider*>(self->GetNativeObject())->GetMass();
 
 		float __output;
 		__output = tmp__output;
@@ -154,7 +154,7 @@ namespace b3d
 		scriptObjectWrappermaterial = ScriptRRefBase::GetScriptObjectWrapper(material);
 		if(scriptObjectWrappermaterial != nullptr)
 			tmpmaterial = B3DStaticResourceCast<PhysicsMaterial>(scriptObjectWrappermaterial->GetNativeObject());
-		static_cast<CCollider*>(self->GetNativeObject())->SetMaterial(tmpmaterial);
+		static_cast<Collider*>(self->GetNativeObject())->SetMaterial(tmpmaterial);
 	}
 
 	MonoObject* ScriptCollider::InternalGetMaterial(ScriptColliderWrapperBase* self)
@@ -163,7 +163,7 @@ namespace b3d
 		if(!self->IsNativeObjectValid())
 			return {};
 
-		tmp__output = static_cast<CCollider*>(self->GetNativeObject())->GetMaterial();
+		tmp__output = static_cast<Collider*>(self->GetNativeObject())->GetMaterial();
 
 		MonoObject* __output;
 		ScriptRRefBase* script__output;
@@ -181,7 +181,7 @@ namespace b3d
 		if(!self->IsNativeObjectValid())
 			return;
 
-		static_cast<CCollider*>(self->GetNativeObject())->SetContactOffset(value);
+		static_cast<Collider*>(self->GetNativeObject())->SetContactOffset(value);
 	}
 
 	float ScriptCollider::InternalGetContactOffset(ScriptColliderWrapperBase* self)
@@ -190,7 +190,7 @@ namespace b3d
 		if(!self->IsNativeObjectValid())
 			return {};
 
-		tmp__output = static_cast<CCollider*>(self->GetNativeObject())->GetContactOffset();
+		tmp__output = static_cast<Collider*>(self->GetNativeObject())->GetContactOffset();
 
 		float __output;
 		__output = tmp__output;
@@ -203,7 +203,7 @@ namespace b3d
 		if(!self->IsNativeObjectValid())
 			return;
 
-		static_cast<CCollider*>(self->GetNativeObject())->SetRestOffset(value);
+		static_cast<Collider*>(self->GetNativeObject())->SetRestOffset(value);
 	}
 
 	float ScriptCollider::InternalGetRestOffset(ScriptColliderWrapperBase* self)
@@ -212,7 +212,7 @@ namespace b3d
 		if(!self->IsNativeObjectValid())
 			return {};
 
-		tmp__output = static_cast<CCollider*>(self->GetNativeObject())->GetRestOffset();
+		tmp__output = static_cast<Collider*>(self->GetNativeObject())->GetRestOffset();
 
 		float __output;
 		__output = tmp__output;
@@ -225,7 +225,7 @@ namespace b3d
 		if(!self->IsNativeObjectValid())
 			return;
 
-		static_cast<CCollider*>(self->GetNativeObject())->SetLayer(layer);
+		static_cast<Collider*>(self->GetNativeObject())->SetLayer(layer);
 	}
 
 	uint64_t ScriptCollider::InternalGetLayer(ScriptColliderWrapperBase* self)
@@ -234,7 +234,7 @@ namespace b3d
 		if(!self->IsNativeObjectValid())
 			return {};
 
-		tmp__output = static_cast<CCollider*>(self->GetNativeObject())->GetLayer();
+		tmp__output = static_cast<Collider*>(self->GetNativeObject())->GetLayer();
 
 		uint64_t __output;
 		__output = tmp__output;
@@ -247,7 +247,7 @@ namespace b3d
 		if(!self->IsNativeObjectValid())
 			return;
 
-		static_cast<CCollider*>(self->GetNativeObject())->SetCollisionReportMode(mode);
+		static_cast<Collider*>(self->GetNativeObject())->SetCollisionReportMode(mode);
 	}
 
 	CollisionReportMode ScriptCollider::InternalGetCollisionReportMode(ScriptColliderWrapperBase* self)
@@ -256,7 +256,7 @@ namespace b3d
 		if(!self->IsNativeObjectValid())
 			return {};
 
-		tmp__output = static_cast<CCollider*>(self->GetNativeObject())->GetCollisionReportMode();
+		tmp__output = static_cast<Collider*>(self->GetNativeObject())->GetCollisionReportMode();
 
 		CollisionReportMode __output;
 		__output = tmp__output;

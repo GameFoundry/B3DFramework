@@ -7,15 +7,15 @@
 #include "BsScriptCCollider.generated.h"
 #include "../../../Foundation/bsfUtility/Math/BsVector3.h"
 
-namespace b3d { class CCapsuleCollider; }
+namespace b3d { class CapsuleCollider; }
 namespace b3d
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptCapsuleCollider : public TScriptGameObjectWrapper<CCapsuleCollider, ScriptCapsuleCollider, ScriptColliderWrapperBase>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptCapsuleCollider : public TScriptGameObjectWrapper<CapsuleCollider, ScriptCapsuleCollider, ScriptColliderWrapperBase>
 	{
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "CapsuleCollider")
 
-		ScriptCapsuleCollider(const GameObjectHandle<CCapsuleCollider>& nativeObject);
+		ScriptCapsuleCollider(const GameObjectHandle<CapsuleCollider>& nativeObject);
 		~ScriptCapsuleCollider();
 
 		static void SetupScriptBindings();

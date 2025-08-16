@@ -15,7 +15,7 @@ namespace b3d
 	 *  @{
 	 */
 
-	class B3D_CORE_EXPORT CPlaneColliderRTTI : public TRTTIType<CPlaneCollider, CCollider, CPlaneColliderRTTI>
+	class B3D_CORE_EXPORT PlaneColliderRTTI : public TRTTIType<PlaneCollider, Collider, PlaneColliderRTTI>
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
@@ -27,18 +27,18 @@ namespace b3d
 	public:
 		const String& GetRttiName() override
 		{
-			static String name = "CPlaneCollider";
+			static String name = "PlaneCollider";
 			return name;
 		}
 
 		u32 GetRttiId() const override
 		{
-			return TID_CPlaneCollider;
+			return TID_PlaneCollider;
 		}
 
 		SPtr<IReflectable> NewRttiObject() override
 		{
-			return SceneObject::CreateEmptyComponent<CPlaneCollider>();
+			return SceneObject::CreateEmptyComponent<PlaneCollider>();
 		}
 	};
 

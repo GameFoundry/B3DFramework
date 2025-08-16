@@ -15,7 +15,7 @@ namespace b3d
 	 *  @{
 	 */
 
-	class B3D_CORE_EXPORT CCapsuleColliderRTTI : public TRTTIType<CCapsuleCollider, CCollider, CCapsuleColliderRTTI>
+	class B3D_CORE_EXPORT CapsuleColliderRTTI : public TRTTIType<CapsuleCollider, Collider, CapsuleColliderRTTI>
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
@@ -28,18 +28,18 @@ namespace b3d
 	public:
 		const String& GetRttiName() override
 		{
-			static String name = "CCapsuleCollider";
+			static String name = "CapsuleCollider";
 			return name;
 		}
 
 		u32 GetRttiId() const override
 		{
-			return TID_CCapsuleCollider;
+			return TID_CapsuleCollider;
 		}
 
 		SPtr<IReflectable> NewRttiObject() override
 		{
-			return SceneObject::CreateEmptyComponent<CCapsuleCollider>();
+			return SceneObject::CreateEmptyComponent<CapsuleCollider>();
 		}
 	};
 

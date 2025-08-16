@@ -27,11 +27,11 @@ namespace b3d
 	ControllerColliderCollision ScriptControllerColliderCollision::FromInterop(const __ControllerColliderCollisionInterop& value)
 	{
 		ControllerColliderCollision output;
-		GameObjectHandle<CCollider> tmpCollider;
+		GameObjectHandle<Collider> tmpCollider;
 		ScriptColliderWrapperBase* scriptObjectWrapperCollider;
 		scriptObjectWrapperCollider = (ScriptColliderWrapperBase*)ScriptCollider::GetScriptObjectWrapper(value.Collider);
 		if(scriptObjectWrapperCollider != nullptr)
-			tmpCollider = B3DStaticGameObjectCast<CCollider>(scriptObjectWrapperCollider->GetBaseNativeObjectAsHandle());
+			tmpCollider = B3DStaticGameObjectCast<Collider>(scriptObjectWrapperCollider->GetBaseNativeObjectAsHandle());
 		output.Collider = tmpCollider;
 		output.TriangleIndex = value.TriangleIndex;
 		output.Position = value.Position;

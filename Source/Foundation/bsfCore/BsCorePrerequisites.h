@@ -361,13 +361,7 @@ namespace b3d
 		typedef C##TYPE Type;           \
 	};
 
-	B3D_COMPONENT_FORWARD_DECLARE(Collider)
 	B3D_COMPONENT_FORWARD_DECLARE(Rigidbody)
-	B3D_COMPONENT_FORWARD_DECLARE(BoxCollider)
-	B3D_COMPONENT_FORWARD_DECLARE(SphereCollider)
-	B3D_COMPONENT_FORWARD_DECLARE(PlaneCollider)
-	B3D_COMPONENT_FORWARD_DECLARE(CapsuleCollider)
-	B3D_COMPONENT_FORWARD_DECLARE(MeshCollider)
 	B3D_COMPONENT_FORWARD_DECLARE(Joint)
 	B3D_COMPONENT_FORWARD_DECLARE(HingeJoint)
 	B3D_COMPONENT_FORWARD_DECLARE(DistanceJoint)
@@ -581,14 +575,14 @@ namespace b3d
 		TID_MaterialParams = 1090,
 		//TID_MaterialRTTIParam = 1091,
 		TID_PhysicsMaterial = 1092,
-		TID_CCollider = 1093,
-		TID_CBoxCollider = 1094,
-		TID_CSphereCollider = 1095,
-		TID_CCapsuleCollider = 1096,
-		TID_CPlaneCollider = 1097,
+		TID_Collider = 1093,
+		TID_BoxCollider = 1094,
+		TID_SphereCollider = 1095,
+		TID_CapsuleCollider = 1096,
+		TID_PlaneCollider = 1097,
 		TID_CRigidbody = 1098,
 		TID_PhysicsMesh = 1099,
-		TID_CMeshCollider = 1100,
+		TID_MeshCollider = 1100,
 		TID_CJoint = 1101,
 		TID_CFixedJoint = 1102,
 		TID_CDistanceJoint = 1103,
@@ -827,12 +821,12 @@ namespace b3d
 	typedef GameObjectHandle<CAnimation> HAnimation;
 	typedef GameObjectHandle<CBone> HBone;
 	typedef GameObjectHandle<CRigidbody> HRigidbody;
-	typedef GameObjectHandle<CCollider> HCollider;
-	typedef GameObjectHandle<CBoxCollider> HBoxCollider;
-	typedef GameObjectHandle<CSphereCollider> HSphereCollider;
-	typedef GameObjectHandle<CCapsuleCollider> HCapsuleCollider;
-	typedef GameObjectHandle<CPlaneCollider> HPlaneCollider;
-	typedef GameObjectHandle<CMeshCollider> HMeshCollider;
+	typedef GameObjectHandle<Collider> HCollider;
+	typedef GameObjectHandle<BoxCollider> HBoxCollider;
+	typedef GameObjectHandle<SphereCollider> HSphereCollider;
+	typedef GameObjectHandle<CapsuleCollider> HCapsuleCollider;
+	typedef GameObjectHandle<PlaneCollider> HPlaneCollider;
+	typedef GameObjectHandle<MeshCollider> HMeshCollider;
 	typedef GameObjectHandle<CJoint> HJoint;
 	typedef GameObjectHandle<CHingeJoint> HHingeJoint;
 	typedef GameObjectHandle<CSliderJoint> HSliderJoint;

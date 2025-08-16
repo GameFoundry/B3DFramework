@@ -9,26 +9,26 @@
 
 using namespace b3d;
 
-CMeshCollider::CMeshCollider(const HSceneObject& parent)
-	: CCollider(parent)
+MeshCollider::MeshCollider(const HSceneObject& parent)
+	: Collider(parent)
 {
 	SetName("MeshCollider");
 }
 
-CMeshCollider::CMeshCollider()
-	: CMeshCollider(nullptr)
+MeshCollider::MeshCollider()
+	: MeshCollider(nullptr)
 { }
 
-void CMeshCollider::OnCreated()
+void MeshCollider::OnCreated()
 {
 	SPtr<ColliderShape> colliderShape = ColliderShape::CreateMesh(mMesh);
 
 	mShapes = { colliderShape };
 
-	CCollider::OnCreated();
+	Collider::OnCreated();
 }
 
-void CMeshCollider::SetMesh(const HPhysicsMesh& mesh)
+void MeshCollider::SetMesh(const HPhysicsMesh& mesh)
 {
 	if(mMesh == mesh)
 		return;
@@ -55,18 +55,18 @@ void CMeshCollider::SetMesh(const HPhysicsMesh& mesh)
 	}
 }
 
-bool CMeshCollider::IsValidParent(const HRigidbody& parent) const
+bool MeshCollider::IsValidParent(const HRigidbody& parent) const
 {
 	// Triangle mesh colliders cannot be used for non-kinematic rigidbodies
 	return !mMesh.IsLoaded() || mMesh->GetType() == PhysicsMeshType::Convex || parent->GetIsKinematic();
 }
 
-RTTIType* CMeshCollider::GetRttiStatic()
+RTTIType* MeshCollider::GetRttiStatic()
 {
-	return CMeshColliderRTTI::Instance();
+	return MeshColliderRTTI::Instance();
 }
 
-RTTIType* CMeshCollider::GetRtti() const
+RTTIType* MeshCollider::GetRtti() const
 {
-	return CMeshCollider::GetRttiStatic();
+	return MeshCollider::GetRttiStatic();
 }

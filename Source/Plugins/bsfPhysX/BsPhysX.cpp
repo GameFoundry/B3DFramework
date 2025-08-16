@@ -379,9 +379,9 @@ void ParseHit(const PxRaycastHit& input, PhysicsQueryHit& output, PxShape* shape
 
 	if(colliderShape != nullptr)
 	{
-		CCollider* const collider = colliderShape->GetParentCollider();
+		Collider* const collider = colliderShape->GetParentCollider();
 		if(collider != nullptr)
-			output.Collider = B3DStaticGameObjectCast<CCollider>(collider->GetHandle());
+			output.Collider = B3DStaticGameObjectCast<Collider>(collider->GetHandle());
 
 		output.ColliderShape = collider->GetShapes()[colliderShape->GetShapeIndexInParent()];
 	}
@@ -402,9 +402,9 @@ void ParseHit(const PxSweepHit& input, PhysicsQueryHit& output, PxShape* shapeHi
 
 	if(colliderShape != nullptr)
 	{
-		CCollider* const collider = colliderShape->GetParentCollider();
+		Collider* const collider = colliderShape->GetParentCollider();
 		if(collider != nullptr)
-			output.Collider = B3DStaticGameObjectCast<CCollider>(collider->GetHandle());
+			output.Collider = B3DStaticGameObjectCast<Collider>(collider->GetHandle());
 
 		output.ColliderShape = collider->GetShapes()[colliderShape->GetShapeIndexInParent()];
 	}
@@ -570,7 +570,7 @@ bool PhysX::RayCast(const Vector3& origin, const Vector3& unitDirection, const C
 	return hitCount > 0;
 }
 
-bool PhysX::RayCast(const Vector3& origin, const Vector3& unitDirection, const CCollider& collider, PhysicsQueryHit& hit, float maxDistance) const
+bool PhysX::RayCast(const Vector3& origin, const Vector3& unitDirection, const Collider& collider, PhysicsQueryHit& hit, float maxDistance) const
 {
 	float nearestHitDistance = FLT_MIN;
 	bool isAnythingHit = false;
@@ -1114,7 +1114,7 @@ void PhysXScene::TriggerEvents()
 		data.ColliderShapes[0] = entry.Trigger;
 		data.ColliderShapes[1] = entry.Other;
 
-		CCollider* const triggerCollider = entry.Trigger->GetParentCollider();
+		Collider* const triggerCollider = entry.Trigger->GetParentCollider();
 
 		switch(entry.Type)
 		{
@@ -1142,7 +1142,7 @@ void PhysXScene::TriggerEvents()
 				point.Normal = -point.Normal;
 		}
 
-		CCollider* const colliderA = colliderShapeA->GetParentCollider();
+		Collider* const colliderA = colliderShapeA->GetParentCollider();
 		Rigidbody* rigidbody = colliderA->GetRigidbody().IsValid() ? colliderA->GetRigidbody()->GetInternal() : nullptr;
 		if(rigidbody != nullptr)
 		{

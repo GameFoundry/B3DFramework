@@ -218,7 +218,7 @@ namespace b3d
 
 		/** @} */
 	protected:
-		friend class CCollider;
+		friend class Collider;
 
 		/**
 		 * Searches child scene objects for Collider components and attaches them to the rigidbody. Make sure to call
