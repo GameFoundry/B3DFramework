@@ -214,7 +214,7 @@ void CRigidbody::SetFlags(RigidbodyFlag flags)
 	mFlags = flags;
 
 	mImplementation->SetFlags(flags);
-	mImplementation->UpdateMassDistribution();
+	UpdateMassDistribution();
 }
 
 void CRigidbody::AddForce(const Vector3& force, ForceMode mode)
@@ -317,25 +317,12 @@ void CRigidbody::CheckForNestedRigibody()
 	}
 }
 
-void CRigidbody::ProcessCollisionData(const CollisionDataRaw& data, CollisionData& output)
+void CRigidbody::UpdateMassDistribution()
 {
-	output.ContactPoints = std::move(data.ContactPoints);
+	if(((u32)mFlags & (u32)RigidbodyFlag::AutoTensors) == 0)
+		return;
 
-	ColliderShape* const myColliderShape = data.ColliderShapes[0];
-	if(myColliderShape != nullptr)
-	{
-		Collider* const myCollider = myColliderShape->GetParentCollider();
-		output.Collider[0] = B3DStaticGameObjectCast<Collider>(myCollider->GetHandle());
-		output.ColliderShapes[0] = myCollider->GetShapes()[myColliderShape->GetShapeIndexInParent()];
-	}
-
-	ColliderShape* const otherColliderShape = data.ColliderShapes[1];
-	if(otherColliderShape != nullptr)
-	{
-		Collider* const otherCollider = otherColliderShape->GetParentCollider();
-		output.Collider[1] = B3DStaticGameObjectCast<Collider>(otherCollider->GetHandle());
-		output.ColliderShapes[1] = otherCollider->GetShapes()[otherColliderShape->GetShapeIndexInParent()];
-	}
+	mImplementation->UpdateMassDistribution((((u32)mFlags & (u32)RigidbodyFlag::AutoMass)) != 0);
 }
 
 void CRigidbody::OnCreated()
@@ -344,7 +331,7 @@ void CRigidbody::OnCreated()
 
 	const Transform& transform = SO()->GetTransform();
 
-	mImplementation = GetPhysics().CreateRigidbodyImplementation();
+	mImplementation = GetPhysics().CreateRigidbodyImplementation(*this);
 	mImplementation->SetTransform(transform.GetPosition(), transform.GetRotation());
 	mImplementation->SetSolverIterationCounts(mPositionSolverCount, mVelocitySolverCount);
 	mImplementation->SetMaxAngularVelocity(mMaxAngularVelocity);
@@ -366,7 +353,7 @@ void CRigidbody::OnCreated()
 		if(((u32)mFlags & (u32)RigidbodyFlag::AutoMass) == 0)
 			mImplementation->SetMass(mMass);
 
-		mImplementation->UpdateMassDistribution();
+		UpdateMassDistribution();
 	}
 }
 
@@ -401,7 +388,7 @@ void CRigidbody::OnTransformChanged(TransformChangedFlags flags)
 		UpdateColliders();
 
 		if(((u32)mFlags & (u32)RigidbodyFlag::AutoTensors) != 0)
-			mImplementation->UpdateMassDistribution();
+			UpdateMassDistribution();
 
 #if B3D_DEBUG
 		CheckForNestedRigibody();

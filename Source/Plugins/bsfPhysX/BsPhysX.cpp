@@ -410,6 +410,30 @@ void ParseHit(const PxSweepHit& input, PhysicsQueryHit& output, PxShape* shapeHi
 	}
 }
 
+static CollisionData ConvertCollisionData(CollisionDataRaw& data)
+{
+	CollisionData output;
+	output.ContactPoints = std::move(data.ContactPoints);
+
+	ColliderShape* const colliderShape0 = data.ColliderShapes[0];
+	if(colliderShape0 != nullptr)
+	{
+		Collider* const collider = colliderShape0->GetParentCollider();
+		output.Collider[0] = B3DStaticGameObjectCast<Collider>(collider->GetHandle());
+		output.ColliderShapes[0] = collider->GetShapes()[colliderShape0->GetShapeIndexInParent()];
+	}
+
+	ColliderShape* const colliderShape1 = data.ColliderShapes[1];
+	if(colliderShape1 != nullptr)
+	{
+		Collider* const collider = colliderShape1->GetParentCollider();
+		output.Collider[1] = B3DStaticGameObjectCast<Collider>(collider->GetHandle());
+		output.ColliderShapes[1] = collider->GetShapes()[colliderShape1->GetShapeIndexInParent()];
+	}
+
+	return output;
+}
+
 struct PhysXRaycastQueryCallback : PxRaycastCallback
 {
 	static const int kMaxHits = 32;
@@ -538,9 +562,14 @@ SPtr<ColliderShape> PhysX::CreateColliderShape()
 	return B3DMakeShared<PhysXColliderShape>();
 }
 
-SPtr<IColliderImplementation> PhysX::CreateColliderImplementation()
+UPtr<IColliderImplementation> PhysX::CreateColliderImplementation()
 {
-	return B3DMakeShared<PhysXCollider>();
+	return B3DMakeUnique<PhysXCollider>();
+}
+
+UPtr<IRigidbodyImplementation> PhysX::CreateRigidbodyImplementation(CRigidbody& owner)
+{
+	return B3DMakeUnique<PhysXRigidbody>(owner);
 }
 
 void PhysX::NotifySceneDestroyed(PhysXScene* scene)
@@ -668,7 +697,7 @@ void PhysXScene::FixedUpdate(float step)
 
 	for(PxU32 transformIndex = 0; transformIndex < activeTransformCount; transformIndex++)
 	{
-		Rigidbody* rigidbody = static_cast<Rigidbody*>(activeTransforms[transformIndex].userData);
+		CRigidbody* rigidbody = static_cast<CRigidbody*>(activeTransforms[transformIndex].userData);
 
 		// Note: This should never happen, as actors gets their userData set to null when they're destroyed. However
 		// in some cases PhysX seems to keep those actors alive for a frame or few, and reports their state here. Until
@@ -680,7 +709,9 @@ void PhysXScene::FixedUpdate(float step)
 
 		// Note: Make this faster, avoid dereferencing Rigidbody and attempt to access pos/rot destination directly,
 		//       use non-temporal writes
-		rigidbody->SetTransformInternal(FromPxVector(transform.p), FromPxQuaternion(transform.q));
+		const HSceneObject& sceneObject = rigidbody->SceneObject();
+		sceneObject->SetWorldPosition(FromPxVector(transform.p));
+		sceneObject->SetWorldRotation(FromPxQuaternion(transform.q));
 	}
 
 	// Note: Consider extrapolating for the remaining "simulationAmount" value
@@ -697,11 +728,6 @@ void PhysXScene::Update()
 void PhysXScene::SetPaused(bool paused)
 {
 	mPaused = paused;
-}
-
-SPtr<Rigidbody> PhysXScene::CreateRigidbody(const HSceneObject& linkedSO)
-{
-	return B3DMakeShared<PhysXRigidbody>(mPhysics, mScene, linkedSO);
 }
 
 SPtr<FixedJoint> PhysXScene::CreateFixedJoint(const FixedJointCreateInformation& desc)
@@ -1119,13 +1145,13 @@ void PhysXScene::TriggerEvents()
 		switch(entry.Type)
 		{
 		case ContactEventType::ContactBegin:
-			triggerCollider->OnCollisionBegin(triggerCollider->PopulateCollisionData(data));
+			triggerCollider->OnCollisionBegin(ConvertCollisionData(data));
 			break;
 		case ContactEventType::ContactStay:
-			triggerCollider->OnCollisionStay(triggerCollider->PopulateCollisionData(data));
+			triggerCollider->OnCollisionStay(ConvertCollisionData(data));
 			break;
 		case ContactEventType::ContactEnd:
-			triggerCollider->OnCollisionEnd(triggerCollider->PopulateCollisionData(data));
+			triggerCollider->OnCollisionEnd(ConvertCollisionData(data));
 			break;
 		}
 	}
@@ -1149,13 +1175,13 @@ void PhysXScene::TriggerEvents()
 			switch(type)
 			{
 			case ContactEventType::ContactBegin:
-				rigidbody->OnCollisionBegin(rigidbody->PopulateCollisionData(data));
+				rigidbody->OnCollisionBegin(ConvertCollisionData(data));
 				break;
 			case ContactEventType::ContactStay:
-				rigidbody->OnCollisionStay(rigidbody->PopulateCollisionData(data));
+				rigidbody->OnCollisionStay(ConvertCollisionData(data));
 				break;
 			case ContactEventType::ContactEnd:
-				rigidbody->OnCollisionEnd(rigidbody->PopulateCollisionData(data));
+				rigidbody->OnCollisionEnd(ConvertCollisionData(data));
 				break;
 			}
 		}
@@ -1164,13 +1190,13 @@ void PhysXScene::TriggerEvents()
 			switch(type)
 			{
 			case ContactEventType::ContactBegin:
-				colliderA->OnCollisionBegin(colliderA->PopulateCollisionData(data));
+				colliderA->OnCollisionBegin(ConvertCollisionData(data));
 				break;
 			case ContactEventType::ContactStay:
-				colliderA->OnCollisionStay(colliderA->PopulateCollisionData(data));
+				colliderA->OnCollisionStay(ConvertCollisionData(data));
 				break;
 			case ContactEventType::ContactEnd:
-				colliderA->OnCollisionEnd(colliderA->PopulateCollisionData(data));
+				colliderA->OnCollisionEnd(ConvertCollisionData(data));
 				break;
 			}
 		}

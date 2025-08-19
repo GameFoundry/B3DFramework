@@ -49,7 +49,7 @@ void Collider::SetMass(float mass)
 		entry->SetMass(mass);
 
 	if(mParentRigidbody != nullptr)
-		mParentRigidbody->GetImplementation().UpdateMassDistribution();
+		mParentRigidbody->UpdateMassDistribution();
 }
 
 void Collider::SetMaterial(const HPhysicsMaterial& material)
@@ -166,7 +166,12 @@ void Collider::OnEnabled()
 	if(mParentRigidbody.IsValid())
 	{
 		for (const auto& shape : mShapes)
+		{
+			const u32 rigidbodyFlags = (u32)mParentRigidbody->GetFlags();
+			shape->SetContinuousCollisionDetection((rigidbodyFlags & (u32)RigidbodyFlag::CCD) != 0);
+
 			mParentRigidbody->GetImplementation().AttachShape(shape);
+		}
 	}
 	else
 	{
@@ -179,12 +184,11 @@ void Collider::OnDisabled()
 {
 	if(mParentRigidbody.IsValid())
 	{
-		for (const auto& existingShape : mShapes)
+		for (const auto& shape : mShapes)
 		{
-			if (existingShape == nullptr)
-				continue;
+			mParentRigidbody->GetImplementation().DetachShape(shape);
+			shape->SetContinuousCollisionDetection(false);
 
-			mParentRigidbody->GetImplementation().DetachShape(existingShape);
 		}
 	}
 	else
@@ -225,7 +229,11 @@ bool Collider::SetRigidbody(const HRigidbody& rigidbody)
 		if(GetEnabled()) // If not enabled, shapes won't be part of the dynamic rigidbody
 		{
 			for(auto& entry : mShapes)
+			{
 				mParentRigidbody->GetImplementation().DetachShape(entry);
+
+				entry->SetContinuousCollisionDetection(false);
+			}
 		}
 	}
 	else
@@ -245,7 +253,12 @@ bool Collider::SetRigidbody(const HRigidbody& rigidbody)
 		if(GetEnabled())
 		{
 			for(auto& entry : mShapes)
+			{
+				const u32 rigidbodyFlags = (u32)rigidbody->GetFlags();
+				entry->SetContinuousCollisionDetection((rigidbodyFlags & (u32)RigidbodyFlag::CCD) != 0);
+
 				rigidbody->GetImplementation().AttachShape(entry);
+			}
 		}
 	}
 	else
@@ -333,7 +346,7 @@ void Collider::UpdateTransform(bool updateShapeTransforms)
 		mAdjustedPosition = inverseRotation.Rotate(myPosition - parentPosition) * inverseScale;
 		mAdjustedRotation = inverseRotation * myRotation;
 
-		mParentRigidbody->GetImplementation().UpdateMassDistribution();
+		mParentRigidbody->UpdateMassDistribution();
 	}
 	else
 	{
@@ -361,34 +374,6 @@ void Collider::UpdateCollisionReportMode()
 
 	for(auto& entry : mShapes)
 		entry->SetCollisionReportMode(mode);
-}
-
-CollisionData Collider::PopulateCollisionData(const CollisionDataRaw& data)
-{
-	CollisionData hit;
-	hit.ContactPoints = data.ContactPoints;
-	hit.Collider[0] = B3DStaticGameObjectCast<Collider>(mThisHandle);
-
-	ColliderShape* const myColliderShape = data.ColliderShapes[0];
-	if(myColliderShape != nullptr)
-	{
-		Collider* const myCollider = myColliderShape->GetParentCollider();
-		if(B3D_ENSURE(myCollider != nullptr))
-			hit.ColliderShapes[0] = myCollider->GetShapes()[myColliderShape->GetShapeIndexInParent()];
-	}
-
-	ColliderShape* const otherColliderShape = data.ColliderShapes[1];
-	if(otherColliderShape != nullptr)
-	{
-		Collider* const otherCollider = otherColliderShape->GetParentCollider();
-		if(B3D_ENSURE(otherCollider != nullptr))
-		{
-			hit.Collider[1] = B3DStaticGameObjectCast<Collider>(otherCollider->GetHandle());
-			hit.ColliderShapes[1] = otherCollider->GetShapes()[otherColliderShape->GetShapeIndexInParent()];
-		}
-	}
-
-	return hit;
 }
 
 RTTIType* Collider::GetRttiStatic()

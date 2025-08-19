@@ -3,6 +3,7 @@
 #include "BsFPhysXJoint.h"
 #include "BsPhysXRigidbody.h"
 #include "Physics/BsJoint.h"
+#include "Components/BsCRigidbody.h"
 #include "PxRigidDynamic.h"
 
 using namespace physx;
@@ -30,7 +31,7 @@ FPhysXJoint::~FPhysXJoint()
 	mJoint->release();
 }
 
-Rigidbody* FPhysXJoint::GetBody(JointBody body) const
+CRigidbody* FPhysXJoint::GetBody(JointBody body) const
 {
 	PxRigidActor* actorA = nullptr;
 	PxRigidActor* actorB = nullptr;
@@ -41,10 +42,10 @@ Rigidbody* FPhysXJoint::GetBody(JointBody body) const
 	if(wantedActor == nullptr)
 		return nullptr;
 
-	return (Rigidbody*)wantedActor->userData;
+	return (CRigidbody*)wantedActor->userData;
 }
 
-void FPhysXJoint::SetBody(JointBody body, Rigidbody* value)
+void FPhysXJoint::SetBody(JointBody body, CRigidbody* value)
 {
 	PxRigidActor* actorA = nullptr;
 	PxRigidActor* actorB = nullptr;
@@ -53,7 +54,7 @@ void FPhysXJoint::SetBody(JointBody body, Rigidbody* value)
 
 	PxRigidActor* actor = nullptr;
 	if(value != nullptr)
-		actor = static_cast<PhysXRigidbody*>(value)->GetPxRigidDynamic();
+		actor = static_cast<PhysXRigidbody&>(value->GetImplementation()).GetPxRigidDynamic();
 
 	if(body == JointBody::Target)
 		actorA = actor;

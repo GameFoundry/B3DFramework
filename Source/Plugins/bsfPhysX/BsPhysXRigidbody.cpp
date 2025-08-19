@@ -43,12 +43,10 @@ PxForceMode::Enum ToPxForceMode(PointForceMode mode)
 	return PxForceMode::eFORCE;
 }
 
-PhysXRigidbody::PhysXRigidbody()
+PhysXRigidbody::PhysXRigidbody(CRigidbody& owner)
 {
-	User data should be Rigidbody component;
-
 	mPxRigidDynamic = GetPhysX().GetPhysX()->createRigidDynamic(PxTransform(PxIdentity));
-	mPxRigidDynamic->userData = this;
+	mPxRigidDynamic->userData = &owner;
 }
 
 PhysXRigidbody::~PhysXRigidbody()
@@ -254,15 +252,10 @@ Vector3 PhysXRigidbody::GetVelocityAtPoint(const Vector3& point) const
 	return FromPxVector(velocity);
 }
 
-void PhysXRigidbody::UpdateMassDistribution()
+void PhysXRigidbody::UpdateMassDistribution(bool autoMassEnabled)
 {
-	if(((u32)mFlags & (u32)RigidbodyFlag::AutoTensors) == 0)
-		return;
-
-	if(((u32)mFlags & (u32)RigidbodyFlag::AutoMass) == 0)
-	{
+	if(autoMassEnabled)
 		PxRigidBodyExt::setMassAndUpdateInertia(*mPxRigidDynamic, mPxRigidDynamic->getMass());
-	}
 	else
 	{
 		const u32 shapeCount = mPxRigidDynamic->getNbShapes();
@@ -288,9 +281,6 @@ void PhysXRigidbody::AttachShape(const SPtr<ColliderShape>& shape)
 	if(!B3D_ENSURE(shape != nullptr))
 		return;
 
-	const u32 rigidbodyFlags = (u32)GetFlags();
-	shape->SetContinuousCollisionDetection((rigidbodyFlags & (u32)RigidbodyFlag::CCD) != 0);
-
 	const PhysXColliderShape& physxShape = static_cast<const PhysXColliderShape&>(*shape);
 	mPxRigidDynamic->attachShape(*physxShape.GetPxShape());
 }
@@ -299,8 +289,6 @@ void PhysXRigidbody::DetachShape(const SPtr<ColliderShape>& shape)
 {
 	if(!B3D_ENSURE(shape != nullptr))
 		return;
-
-	shape->SetContinuousCollisionDetection(false);
 
 	const PhysXColliderShape& physxShape = static_cast<const PhysXColliderShape&>(*shape);
 	mPxRigidDynamic->detachShape(*physxShape.GetPxShape());

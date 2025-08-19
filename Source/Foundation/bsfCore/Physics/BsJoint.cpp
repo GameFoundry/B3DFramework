@@ -4,12 +4,12 @@
 
 using namespace b3d;
 
-Rigidbody* Joint::GetBody(JointBody body) const
+CRigidbody* Joint::GetBody(JointBody body) const
 {
 	return mInternal->GetBody(body);
 }
 
-void Joint::SetBody(JointBody body, Rigidbody* value)
+void Joint::SetBody(JointBody body, CRigidbody* value)
 {
 	mInternal->SetBody(body, value);
 }

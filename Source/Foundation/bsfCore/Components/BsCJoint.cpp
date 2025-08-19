@@ -56,22 +56,18 @@ void CJoint::SetBody(JointBody body, const HRigidbody& value)
 	// If joint already exists, destroy it if we removed all bodies, otherwise update its transform
 	if(mInternal != nullptr)
 	{
-		if(!IsBodyValid(mBodies[0]) && !IsBodyValid(mBodies[1]))
+		if(!mBodies[0].IsValid()&& !mBodies[1].IsValid())
 			DestroyInternal();
 		else
 		{
-			Rigidbody* rigidbody = nullptr;
-			if(value != nullptr)
-				rigidbody = value->GetInternal();
-
-			mInternal->SetBody(body, rigidbody);
+			mInternal->SetBody(body, value.IsValid() ? value.Get() : nullptr);
 			UpdateTransform(body);
 		}
 	}
 	else // If joint doesn't exist, check if we can create it
 	{
 		// Must be an active component and at least one of the bodies must be non-null
-		if(GetEnabled() && (IsBodyValid(mBodies[0]) || IsBodyValid(mBodies[1])))
+		if(GetEnabled() && (mBodies[0].IsValid() || mBodies[1].IsValid()))
 		{
 			RestoreInternal();
 		}
@@ -172,7 +168,7 @@ void CJoint::OnDisabled()
 
 void CJoint::OnEnabled()
 {
-	if(IsBodyValid(mBodies[0]) || IsBodyValid(mBodies[1]))
+	if(mBodies[0].IsValid() || mBodies[1].IsValid())
 		RestoreInternal();
 }
 
@@ -200,12 +196,12 @@ void CJoint::OnTransformChanged(TransformChangedFlags flags)
 void CJoint::RestoreInternal()
 {
 	if(mBodies[0] != nullptr)
-		mDesc.Bodies[0].Body = mBodies[0]->GetInternal();
+		mDesc.Bodies[0].Body = mBodies[0].Get();
 	else
 		mDesc.Bodies[0].Body = nullptr;
 
 	if(mBodies[1] != nullptr)
-		mDesc.Bodies[1].Body = mBodies[1]->GetInternal();
+		mDesc.Bodies[1].Body = mBodies[1].Get();
 	else
 		mDesc.Bodies[1].Body = nullptr;
 
@@ -245,17 +241,6 @@ void CJoint::NotifyRigidbodyMoved(const HRigidbody& body)
 		UpdateTransform(JointBody::Anchor);
 	else
 		B3D_ASSERT(false); // Not allowed to happen
-}
-
-bool CJoint::IsBodyValid(const HRigidbody& body)
-{
-	if(body == nullptr)
-		return false;
-
-	if(body->GetInternal() == nullptr)
-		return false;
-
-	return true;
 }
 
 void CJoint::UpdateTransform(JointBody body)

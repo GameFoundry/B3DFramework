@@ -300,6 +300,15 @@ namespace b3d
 		/** Sets that joint that this rigidbody is attached to. Allows the rigidbody to notify the joint when it moves. */
 		void SetParentJoint(const HJoint& joint) { mParentJoint = joint; }
 
+		/**
+		 * Recalculates rigidbody's mass, inertia tensors and center of mass depending on the currently set child colliders.
+		 * This should be called whenever relevant child collider properties change (like mass or shape).
+		 *
+		 * If automatic tensor calculation is turned off then this will do nothing. If automatic mass calculation is turned
+		 * off then this will use the mass set directly on the body using setMass().
+		 */
+		void UpdateMassDistribution();
+
 		/** @} */
 	protected:
 		friend class Collider;
@@ -324,9 +333,6 @@ namespace b3d
 
 		/** Checks if the rigidbody is nested under another rigidbody, and throws out a warning if so. */
 		void CheckForNestedRigibody();
-
-		/** Appends Component referenes for the colliders to the collision data. */
-		void ProcessCollisionData(const CollisionDataRaw& raw, CollisionData& output);
 
 		/************************************************************************/
 		/* 						COMPONENT OVERRIDES                      		*/
@@ -399,10 +405,10 @@ namespace b3d
 		virtual void WakeUp() = 0;
 
 		/** @copydoc CRigidbody::SetSleepThreshold */
-		virtual void SetSleepThreshold(float threshold);
+		virtual void SetSleepThreshold(float threshold) = 0;
 
 		/** @copydoc CRigidbody::SetUseGravity */
-		virtual void SetUseGravity(bool gravity);
+		virtual void SetUseGravity(bool gravity) = 0;
 
 		/** @copydoc CRigidbody::SetVelocity */
 		virtual void SetVelocity(const Vector3& velocity) = 0;
@@ -446,14 +452,8 @@ namespace b3d
 		/** @copydoc CRigidbody::GetVelocityAtPoint */
 		virtual Vector3 GetVelocityAtPoint(const Vector3& point) const = 0;
 
-		/**
-		 * Recalculates rigidbody's mass, inertia tensors and center of mass depending on the currently set child colliders.
-		 * This should be called whenever relevant child collider properties change (like mass or shape).
-		 *
-		 * If automatic tensor calculation is turned off then this will do nothing. If automatic mass calculation is turned
-		 * off then this will use the mass set directly on the body using setMass().
-		 */
-		virtual void UpdateMassDistribution() = 0;
+		/** @copydoc CRigidbody::UpdateMassDistribution */
+		virtual void UpdateMassDistribution(bool autoMassEnabled) = 0;
 
 		/**
 		 * Sets the transform of the low-level physics rigidbody object. Unlike Move() and Rotate() this will not transform the

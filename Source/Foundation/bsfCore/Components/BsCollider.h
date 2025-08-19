@@ -132,9 +132,6 @@ namespace b3d
 		const Vector3& GetAdjustedPosition() const { return mAdjustedPosition; }
 		const Quaternion& GetAdjustedRotation() const { return mAdjustedRotation; }
 
-		/** Populates CollisionData structure for a collision event involving this component. */
-		CollisionData PopulateCollisionData(const CollisionDataRaw& data); // TODO - Shouldn't be necessary, pass CollisionData directly from Physics subsystem
-
 		/** @} */
 
 		/************************************************************************/

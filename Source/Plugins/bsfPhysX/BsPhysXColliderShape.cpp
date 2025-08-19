@@ -238,10 +238,9 @@ void PhysXColliderShape::UpdateTransform()
 	if (mParentCollider != nullptr)
 	{
 		const HRigidbody& rigidbody = mParentCollider->GetRigidbody();
-		const Rigidbody* const rigidbodyActor = rigidbody.IsValid() ? rigidbody->GetInternal() : nullptr;
 
 		const Transform& parentTransform = mParentCollider->SceneObject()->GetTransform();
-		if (rigidbodyActor != nullptr)
+		if (rigidbody.IsValid())
 		{
 			// Note: Is this right? Why aren't rigidbody shapes relative?
 			const Transform adjustedParentTransform(mParentCollider->GetAdjustedPosition(), mParentCollider->GetAdjustedRotation(), parentTransform.GetScale());

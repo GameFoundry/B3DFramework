@@ -18,7 +18,7 @@ namespace b3d
 	class PhysXRigidbody : public IRigidbodyImplementation
 	{
 	public:
-		PhysXRigidbody();
+		PhysXRigidbody(CRigidbody& owner);
 		~PhysXRigidbody() override;
 
 		void Move(const Vector3& position) override;
@@ -49,7 +49,7 @@ namespace b3d
 		void AddTorque(const Vector3& torque, ForceMode mode = ForceMode::Force) override;
 		void AddForceAtPoint(const Vector3& force, const Vector3& position, PointForceMode mode = PointForceMode::Force) override;
 		Vector3 GetVelocityAtPoint(const Vector3& point) const override;
-		void UpdateMassDistribution() override;
+		void UpdateMassDistribution(bool autoMassEnabled) override;
 		void AttachShape(const SPtr<ColliderShape>& shape) override;
 		void DetachShape(const SPtr<ColliderShape>& shape) override;
 		void AddToScene(PhysicsScene& scene) override;

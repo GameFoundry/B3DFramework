@@ -15,6 +15,11 @@
 
 namespace b3d
 {
+	class IRigidbodyImplementation;
+}
+
+namespace b3d
+{
 	class IColliderImplementation;
 	/** @addtogroup Physics
 	 *  @{
@@ -100,7 +105,10 @@ namespace b3d
 		virtual SPtr<ColliderShape> CreateColliderShape() = 0;
 
 		/** Creates an object that provides low-level functionality required for a Collider. */
-		virtual SPtr<IColliderImplementation> CreateColliderImplementation() = 0;
+		virtual UPtr<IColliderImplementation> CreateColliderImplementation() = 0;
+
+		/** Creates an object that provides low-level functionality required for a Rigidbody. */
+		virtual UPtr<IRigidbodyImplementation> CreateRigidbodyImplementation(CRigidbody& owner) = 0;
 
 		/**
 		 * Checks does the ray hit the provided collider shape.
@@ -585,9 +593,6 @@ namespace b3d
 		/******************************************************************************************************************/
 		/************************************************* CREATION *******************************************************/
 		/******************************************************************************************************************/
-
-		/** @copydoc Rigidbody::Create */
-		virtual SPtr<Rigidbody> CreateRigidbody(const HSceneObject& linkedSO) = 0;
 
 		/** Creates a new fixed joint. */
 		virtual SPtr<FixedJoint> CreateFixedJoint(const FixedJointCreateInformation& createInformation) = 0;

@@ -33,10 +33,10 @@ namespace b3d
 		virtual ~FJoint() = default;
 
 		/** @copydoc SetBody() */
-		virtual Rigidbody* GetBody(JointBody body) const = 0;
+		virtual CRigidbody* GetBody(JointBody body) const = 0;
 
 		/** Determines a body managed by the joint. One of the bodies must be movable (non-kinematic). */
-		virtual void SetBody(JointBody body, Rigidbody* value) = 0;
+		virtual void SetBody(JointBody body, CRigidbody* value) = 0;
 
 		/** Returns the position relative to the body, at which the body is anchored to the joint. */
 		virtual Vector3 GetPosition(JointBody body) const = 0;

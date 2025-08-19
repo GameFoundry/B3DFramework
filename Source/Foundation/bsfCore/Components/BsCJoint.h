@@ -110,9 +110,6 @@ namespace b3d
 		/** Notifies the joint that one of the attached rigidbodies moved and that its transform needs updating. */
 		void NotifyRigidbodyMoved(const HRigidbody& body);
 
-		/** Checks can the provided rigidbody be used for initializing the joint. */
-		bool IsBodyValid(const HRigidbody& body);
-
 		/** Updates the local transform for the specified body attached to the joint. */
 		void UpdateTransform(JointBody body);
 

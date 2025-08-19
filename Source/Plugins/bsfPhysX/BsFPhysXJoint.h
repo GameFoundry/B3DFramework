@@ -19,8 +19,8 @@ namespace b3d
 		FPhysXJoint(physx::PxJoint* joint, const JOINT_DESC& desc);
 		~FPhysXJoint();
 
-		Rigidbody* GetBody(JointBody body) const override;
-		void SetBody(JointBody body, Rigidbody* value) override;
+		CRigidbody* GetBody(JointBody body) const override;
+		void SetBody(JointBody body, CRigidbody* value) override;
 		Vector3 GetPosition(JointBody body) const override;
 		Quaternion GetRotation(JointBody body) const override;
 		void SetTransform(JointBody body, const Vector3& position, const Quaternion& rotation) override;

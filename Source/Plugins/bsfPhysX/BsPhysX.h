@@ -32,7 +32,8 @@ namespace b3d
 		SPtr<PhysicsMesh> CreateMesh(const SPtr<MeshData>& meshData, PhysicsMeshType type) override;
 		SPtr<PhysicsScene> CreatePhysicsScene() override;
 		SPtr<ColliderShape> CreateColliderShape() override;
-		SPtr<IColliderImplementation> CreateColliderImplementation() override;
+		UPtr<IColliderImplementation> CreateColliderImplementation() override;
+		UPtr<IRigidbodyImplementation> CreateRigidbodyImplementation(CRigidbody& owner) override;
 
 		bool RayCast(const Vector3& origin, const Vector3& unitDirection, const ColliderShape& colliderShape, PhysicsQueryHit& hit, float maxDistance = FLT_MAX) const override;
 		bool RayCast(const Vector3& origin, const Vector3& unitDirection, const Collider& collider, PhysicsQueryHit& hit, float maxDistance = FLT_MAX) const override;
@@ -131,7 +132,6 @@ namespace b3d
 		/** Returns the underlying PhysX scene. */
 		physx::PxScene& GetPxScene() const { return *mScene; }
 
-		SPtr<Rigidbody> CreateRigidbody(const HSceneObject& linkedSO) override;
 		SPtr<FixedJoint> CreateFixedJoint(const FixedJointCreateInformation& desc) override;
 		SPtr<DistanceJoint> CreateDistanceJoint(const DistanceJointCreateInformation& desc) override;
 		SPtr<HingeJoint> CreateHingeJoint(const HingeJointCreateInformation& desc) override;

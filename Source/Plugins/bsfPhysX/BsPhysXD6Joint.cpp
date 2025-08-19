@@ -103,11 +103,11 @@ PhysXD6Joint::PhysXD6Joint(PxPhysics* physx, const D6JointCreateInformation& des
 {
 	PxRigidActor* actor0 = nullptr;
 	if(desc.Bodies[0].Body != nullptr)
-		actor0 = static_cast<PhysXRigidbody*>(desc.Bodies[0].Body)->GetPxRigidDynamic();
+		actor0 = static_cast<PhysXRigidbody&>(desc.Bodies[0].Body->GetImplementation()).GetPxRigidDynamic();
 
 	PxRigidActor* actor1 = nullptr;
 	if(desc.Bodies[1].Body != nullptr)
-		actor1 = static_cast<PhysXRigidbody*>(desc.Bodies[1].Body)->GetPxRigidDynamic();
+		actor1 = static_cast<PhysXRigidbody&>(desc.Bodies[1].Body->GetImplementation()).GetPxRigidDynamic();
 
 	PxTransform tfrm0 = ToPxTransform(desc.Bodies[0].Position, desc.Bodies[0].Rotation);
 	PxTransform tfrm1 = ToPxTransform(desc.Bodies[1].Position, desc.Bodies[1].Rotation);
