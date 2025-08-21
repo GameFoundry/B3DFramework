@@ -7,17 +7,15 @@
 
 using namespace b3d;
 
-CSphericalJoint::CSphericalJoint()
-	: CJoint(mInformation)
-{
-	SetName("SphericalJoint");
-}
-
 CSphericalJoint::CSphericalJoint(const HSceneObject& parent)
 	: CJoint(parent, mInformation)
 {
 	SetName("SphericalJoint");
 }
+
+CSphericalJoint::CSphericalJoint()
+	: CSphericalJoint(nullptr)
+{ }
 
 LimitConeRange CSphericalJoint::GetLimit() const
 {

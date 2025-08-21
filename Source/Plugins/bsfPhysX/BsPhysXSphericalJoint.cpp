@@ -6,57 +6,40 @@
 #include "PxRigidDynamic.h"
 
 using namespace physx;
-
 using namespace b3d;
 
-PxSphericalJointFlag::Enum ToPxFlag(SphericalJointFlag flag)
-{
-	switch(flag)
-	{
-	default:
-	case SphericalJointFlag::Limit:
-		return PxSphericalJointFlag::eLIMIT_ENABLED;
-	}
-}
-
-PhysXSphericalJoint::PhysXSphericalJoint(PxPhysics* physx, const SphericalJointCreateInformation& desc)
-	: SphericalJoint(desc)
+PhysXSphericalJoint::PhysXSphericalJoint(PxPhysics* physx, const SphericalJointCreateInformation& createInformation)
 {
 	PxRigidActor* actor0 = nullptr;
-	if(desc.Bodies[0].Body != nullptr)
-		actor0 = static_cast<PhysXRigidbody&>(desc.Bodies[0].Body->GetImplementation()).GetPxRigidDynamic();
+	if(createInformation.Bodies[0].Body != nullptr)
+		actor0 = static_cast<PhysXRigidbody&>(createInformation.Bodies[0].Body->GetImplementation()).GetPxRigidDynamic();
 
 	PxRigidActor* actor1 = nullptr;
-	if(desc.Bodies[1].Body != nullptr)
-		actor1 = static_cast<PhysXRigidbody&>(desc.Bodies[1].Body->GetImplementation()).GetPxRigidDynamic();
+	if(createInformation.Bodies[1].Body != nullptr)
+		actor1 = static_cast<PhysXRigidbody&>(createInformation.Bodies[1].Body->GetImplementation()).GetPxRigidDynamic();
 
-	PxTransform tfrm0 = ToPxTransform(desc.Bodies[0].Position, desc.Bodies[0].Rotation);
-	PxTransform tfrm1 = ToPxTransform(desc.Bodies[1].Position, desc.Bodies[1].Rotation);
+	PxTransform tfrm0 = ToPxTransform(createInformation.Bodies[0].Position, createInformation.Bodies[0].Rotation);
+	PxTransform tfrm1 = ToPxTransform(createInformation.Bodies[1].Position, createInformation.Bodies[1].Rotation);
 
 	PxSphericalJoint* joint = PxSphericalJointCreate(*physx, actor0, tfrm0, actor1, tfrm1);
 	joint->userData = this;
 
-	mInternal = B3DNew<FPhysXJoint>(joint, desc);
+	mInternal.Initialize(*joint, createInformation);
 
 	PxSphericalJointFlags flags;
 
-	if(((u32)desc.Flag & (u32)SphericalJointFlag::Limit) != 0)
+	if(((u32)createInformation.Flag & (u32)SphericalJointFlag::Limit) != 0)
 		flags |= PxSphericalJointFlag::eLIMIT_ENABLED;
 
 	joint->setSphericalJointFlags(flags);
 
 	// Calls to virtual methods are okay here
-	SetLimit(desc.Limit);
-}
-
-PhysXSphericalJoint::~PhysXSphericalJoint()
-{
-	B3DDelete(mInternal);
+	PhysXSphericalJoint::SetLimit(createInformation.Limit);
 }
 
 LimitConeRange PhysXSphericalJoint::GetLimit() const
 {
-	PxJointLimitCone pxLimit = GetInternal()->getLimitCone();
+	PxJointLimitCone pxLimit = GetPxSphericalJoint().getLimitCone();
 
 	LimitConeRange limit;
 	limit.YLimitAngle = pxLimit.yAngle;
@@ -76,22 +59,5 @@ void PhysXSphericalJoint::SetLimit(const LimitConeRange& limit)
 	pxLimit.damping = limit.Spring.Damping;
 	pxLimit.restitution = limit.Restitution;
 
-	GetInternal()->setLimitCone(pxLimit);
-}
-
-void PhysXSphericalJoint::SetFlag(SphericalJointFlag flag, bool enabled)
-{
-	GetInternal()->setSphericalJointFlag(ToPxFlag(flag), enabled);
-}
-
-bool PhysXSphericalJoint::HasFlag(SphericalJointFlag flag) const
-{
-	return GetInternal()->getSphericalJointFlags() & ToPxFlag(flag);
-}
-
-PxSphericalJoint* PhysXSphericalJoint::GetInternal() const
-{
-	FPhysXJoint* internal = static_cast<FPhysXJoint*>(mInternal);
-
-	return static_cast<PxSphericalJoint*>(internal->GetInternalInternal());
+	GetPxSphericalJoint().setLimitCone(pxLimit);
 }

@@ -3,7 +3,6 @@
 #pragma once
 
 #include "BsCorePrerequisites.h"
-#include "Physics/BsHingeJoint.h"
 #include "Components/BsCJoint.h"
 
 namespace b3d
@@ -11,6 +10,48 @@ namespace b3d
 	/** @addtogroup Components-Core
 	 *  @{
 	 */
+
+	class IHingeJointImplementation;
+
+	/** Flags that control hinge joint options. */
+	enum class B3D_SCRIPT_EXPORT(DocumentationGroup(Physics)) HingeJointFlag
+	{
+		Limit = 0x1, /**< Joint limit is enabled. */
+		Drive = 0x2 /**< Joint drive is enabled. */
+	};
+
+	/** Properties of a drive that drives the joint's angular velocity towards a paricular value. */
+	struct B3D_SCRIPT_EXPORT(DocumentationGroup(Physics), ExportAsStruct(true)) HingeJointDrive
+	{
+		/** Target speed of the joint. */
+		float Speed = 0.0f;
+
+		/** Maximum torque the drive is allowed to apply .*/
+		float ForceLimit = FLT_MAX;
+
+		/** Scales the velocity of the first body, and its response to drive torque is scaled down. */
+		float GearRatio = 1.0f;
+
+		/**
+		 * If the joint is moving faster than the drive's target speed, the drive will try to break. If you don't want
+		 * the breaking to happen set this to true.
+		 */
+		bool FreeSpin = false;
+
+		bool operator==(const HingeJointDrive& other) const
+		{
+			return Speed == other.Speed && ForceLimit == other.ForceLimit && GearRatio == other.GearRatio &&
+				FreeSpin && other.FreeSpin;
+		}
+	};
+
+	/** Structure used for initializing a new HingeJoint. */
+	struct HingeJointCreateInformation : JointCreateInformation
+	{
+		HingeJointDrive Drive;
+		LimitAngularRange Limit;
+		HingeJointFlag Flag = (HingeJointFlag)0;
+	};
 
 	/** Hinge joint removes all but a single rotation degree of freedom from its two attached bodies (for example a door hinge). */
 	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Physics), ExportName(HingeJoint)) CHingeJoint : public CJoint
@@ -64,8 +105,8 @@ namespace b3d
 		 *  @{
 		 */
 
-		/**	Returns the hinge joint that this component wraps. */
-		HingeJoint* GetInternalInternal() const { return static_cast<HingeJoint*>(mInternal.get()); }
+		/** Returns the low level joint implementation. */
+		IHingeJointImplementation& GetImplementation() const { return static_cast<IHingeJointImplementation&>(*mImplementation); }
 
 		/** @} */
 

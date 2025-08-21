@@ -2,10 +2,21 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "Components/BsCD6Joint.h"
 #include "Scene/BsSceneObject.h"
+#include "Private/RTTI/BsD6JointDriveRTTI.h" // TODO - Move to CD6JointRTTI
 #include "Private/RTTI/BsCD6JointRTTI.h"
 #include "Scene/BsSceneInstance.h"
 
 using namespace b3d;
+
+RTTIType* D6JointDrive::GetRttiStatic()
+{
+	return D6JointDriveRTTI::Instance();
+}
+
+RTTIType* D6JointDrive::GetRtti() const
+{
+	return GetRttiStatic();
+}
 
 CD6Joint::CD6Joint(const HSceneObject& parent)
 	: CJoint(parent, mInformation)

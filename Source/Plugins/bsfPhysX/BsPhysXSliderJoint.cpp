@@ -7,67 +7,40 @@
 #include "PxRigidDynamic.h"
 
 using namespace physx;
-
 using namespace b3d;
 
-PxPrismaticJointFlag::Enum ToPxFlag(SliderJointFlag flag)
-{
-	switch(flag)
-	{
-	default:
-	case SliderJointFlag::Limit:
-		return PxPrismaticJointFlag::eLIMIT_ENABLED;
-	}
-}
-
-PhysXSliderJoint::PhysXSliderJoint(PxPhysics* physx, const SliderJointCreateInformation& desc)
-	: SliderJoint(desc)
+PhysXSliderJoint::PhysXSliderJoint(PxPhysics* physx, const SliderJointCreateInformation& createInformation)
 {
 	PxRigidActor* actor0 = nullptr;
-	if(desc.Bodies[0].Body != nullptr)
-		actor0 = static_cast<PhysXRigidbody&>(desc.Bodies[0].Body->GetImplementation()).GetPxRigidDynamic();
+	if(createInformation.Bodies[0].Body != nullptr)
+		actor0 = static_cast<PhysXRigidbody&>(createInformation.Bodies[0].Body->GetImplementation()).GetPxRigidDynamic();
 
 	PxRigidActor* actor1 = nullptr;
-	if(desc.Bodies[1].Body != nullptr)
-		actor1 = static_cast<PhysXRigidbody&>(desc.Bodies[1].Body->GetImplementation()).GetPxRigidDynamic();
+	if(createInformation.Bodies[1].Body != nullptr)
+		actor1 = static_cast<PhysXRigidbody&>(createInformation.Bodies[1].Body->GetImplementation()).GetPxRigidDynamic();
 
-	PxTransform tfrm0 = ToPxTransform(desc.Bodies[0].Position, desc.Bodies[0].Rotation);
-	PxTransform tfrm1 = ToPxTransform(desc.Bodies[1].Position, desc.Bodies[1].Rotation);
+	PxTransform tfrm0 = ToPxTransform(createInformation.Bodies[0].Position, createInformation.Bodies[0].Rotation);
+	PxTransform tfrm1 = ToPxTransform(createInformation.Bodies[1].Position, createInformation.Bodies[1].Rotation);
 
 	PxPrismaticJoint* joint = PxPrismaticJointCreate(*physx, actor0, tfrm0, actor1, tfrm1);
 	joint->userData = this;
 
-	mInternal = B3DNew<FPhysXJoint>(joint, desc);
+	mInternal.Initialize(*joint, createInformation);
 
 	PxPrismaticJointFlags flags;
 
-	if(((u32)desc.Flag & (u32)SliderJointFlag::Limit) != 0)
+	if(((u32)createInformation.Flag & (u32)SliderJointFlag::Limit) != 0)
 		flags |= PxPrismaticJointFlag::eLIMIT_ENABLED;
 
 	joint->setPrismaticJointFlags(flags);
 
 	// Calls to virtual methods are okay here
-	SetLimit(desc.Limit);
-}
-
-PhysXSliderJoint::~PhysXSliderJoint()
-{
-	B3DDelete(mInternal);
-}
-
-float PhysXSliderJoint::GetPosition() const
-{
-	return GetInternal()->getPosition();
-}
-
-float PhysXSliderJoint::GetSpeed() const
-{
-	return GetInternal()->getVelocity();
+	PhysXSliderJoint::SetLimit(createInformation.Limit);
 }
 
 LimitLinearRange PhysXSliderJoint::GetLimit() const
 {
-	PxJointLinearLimitPair pxLimit = GetInternal()->getLimit();
+	PxJointLinearLimitPair pxLimit = GetPxPrismaticJoint().getLimit();
 
 	LimitLinearRange limit;
 	limit.Lower = pxLimit.lower;
@@ -87,22 +60,5 @@ void PhysXSliderJoint::SetLimit(const LimitLinearRange& limit)
 	pxLimit.damping = limit.Spring.Damping;
 	pxLimit.restitution = limit.Restitution;
 
-	GetInternal()->setLimit(pxLimit);
-}
-
-void PhysXSliderJoint::SetFlag(SliderJointFlag flag, bool enabled)
-{
-	GetInternal()->setPrismaticJointFlag(ToPxFlag(flag), enabled);
-}
-
-bool PhysXSliderJoint::HasFlag(SliderJointFlag flag) const
-{
-	return GetInternal()->getPrismaticJointFlags() & ToPxFlag(flag);
-}
-
-PxPrismaticJoint* PhysXSliderJoint::GetInternal() const
-{
-	FPhysXJoint* internal = static_cast<FPhysXJoint*>(mInternal);
-
-	return static_cast<PxPrismaticJoint*>(internal->GetInternalInternal());
+	GetPxPrismaticJoint().setLimit(pxLimit);
 }

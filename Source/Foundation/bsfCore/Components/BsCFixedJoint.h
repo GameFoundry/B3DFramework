@@ -13,6 +13,12 @@ namespace b3d
 	 *  @{
 	 */
 
+	class IFixedJointImplementation;
+
+	/** Structure used for initializing a new FixedJoint. */
+	struct FixedJointCreateInformation : JointCreateInformation
+	{};
+
 	/**
 	 * @copydoc	FixedJoint
 	 *
@@ -27,8 +33,8 @@ namespace b3d
 		 *  @{
 		 */
 
-		/**	Returns the fixed joint that this component wraps. */
-		FixedJoint* GetInternalInternal() const { return static_cast<FixedJoint*>(mInternal.get()); }
+		/** Returns the low level joint implementation. */
+		IFixedJointImplementation& GetImplementation() const { return static_cast<IFixedJointImplementation&>(*mImplementation); }
 
 		/** @} */
 
@@ -54,6 +60,10 @@ namespace b3d
 	protected:
 		CFixedJoint(); // Serialization only
 	};
+
+	/** Low-level interface for a joint used by the FixedJoint component. Should be implemented by the physics plugin to provide joint functionality. */
+	class B3D_CORE_EXPORT IFixedJointImplementation : public IJointImplementation
+	{ };
 
 	/** @} */
 } // namespace b3d

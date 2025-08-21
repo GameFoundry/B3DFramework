@@ -3,7 +3,6 @@
 #pragma once
 
 #include "BsCorePrerequisites.h"
-#include "Physics/BsSliderJoint.h"
 #include "Components/BsCJoint.h"
 
 namespace b3d
@@ -11,6 +10,21 @@ namespace b3d
 	/** @addtogroup Components-Core
 	 *  @{
 	 */
+
+	class ISliderJointImplementation;
+
+	/** Flag that controls slider joint's behaviour. */
+	enum class B3D_SCRIPT_EXPORT(DocumentationGroup(Physics)) SliderJointFlag
+	{
+		Limit = 0x1 /**< Enables the linear range limit. */
+	};
+
+	/** Structure used for initializing a new SliderJoint. */
+	struct SliderJointCreateInformation : JointCreateInformation
+	{
+		LimitLinearRange Limit;
+		SliderJointFlag Flag = (SliderJointFlag)0;
+	};
 
 	/** Joint that removes all but a single translational degree of freedom. Bodies are allowed to move along a single axis. */
 	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Physics), ExportName(SliderJoint)) CSliderJoint : public CJoint
@@ -51,8 +65,8 @@ namespace b3d
 		 *  @{
 		 */
 
-		/**	Returns the slider joint that this component wraps. */
-		SliderJoint* GetInternalInternal() const { return static_cast<SliderJoint*>(mInternal.get()); }
+		/** Returns the low level joint implementation. */
+		ISliderJointImplementation& GetImplementation() const { return static_cast<ISliderJointImplementation&>(*mImplementation); }
 
 		/** @} */
 
@@ -83,6 +97,8 @@ namespace b3d
 	class B3D_CORE_EXPORT ISliderJointImplementation : public IJointImplementation
 	{
 	public:
+		using IJointImplementation::GetPosition;
+
 		/** @copydoc SliderJoint::GetPosition */
 		virtual float GetPosition() const = 0;
 

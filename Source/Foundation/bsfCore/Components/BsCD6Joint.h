@@ -3,7 +3,6 @@
 #pragma once
 
 #include "BsCorePrerequisites.h"
-#include "Physics/BsD6Joint.h"
 #include "Components/BsCJoint.h"
 
 namespace b3d
@@ -11,6 +10,110 @@ namespace b3d
 	/** @addtogroup Components-Core
 	 *  @{
 	 */
+
+	class ID6JointImplementation;
+
+	/** Specifies axes that the D6 joint can constrain motion on. */
+	enum class B3D_SCRIPT_EXPORT(DocumentationGroup(Physics)) D6JointAxis
+	{
+		X, /**< Movement on the X axis. */
+		Y, /**< Movement on the Y axis. */
+		Z, /**< Movement on the Z axis. */
+		Twist, /**< Rotation around the X axis. */
+		SwingY, /**< Rotation around the Y axis. */
+		SwingZ, /**< Rotation around the Z axis. */
+		Count
+	};
+
+	/** Specifies type of constraint placed on a specific axis. */
+	enum class B3D_SCRIPT_EXPORT(DocumentationGroup(Physics)) D6JointMotion
+	{
+		Locked, /**< Axis is immovable. */
+		Limited, /**< Axis will be constrained by the specified limits. */
+		Free, /**< Axis will not be constrained. */
+		Count
+	};
+
+	/** Type of drives that can be used for moving or rotating bodies attached to the joint. */
+	enum class B3D_SCRIPT_EXPORT(DocumentationGroup(Physics)) D6JointDriveType
+	{
+		X, /**< Linear movement on the X axis using the linear drive model. */
+		Y, /**< Linear movement on the Y axis using the linear drive model. */
+		Z, /**< Linear movement on the Z axis using the linear drive model. */
+		/**
+		 * Rotation around the Y axis using the twist/swing angular drive model. Should not be used together with
+		 * SLERP mode.
+		 */
+		Swing,
+		/**
+		 * Rotation around the Z axis using the twist/swing angular drive model. Should not be used together with
+		 * SLERP mode.
+		 */
+		Twist,
+		/**
+		 * Rotation using spherical linear interpolation. Uses the SLERP angular drive mode which performs rotation
+		 * by interpolating the quaternion values directly over the shortest path (applies to all three axes, which
+		 * they all must be unlocked).
+		 */
+		SLERP,
+		Count
+	};
+
+	/**
+	 * Specifies parameters for a drive that will attempt to move the joint bodies to the specified drive position and
+	 * velocity.
+	 */
+	struct B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Physics), ExportAsStruct(true)) D6JointDrive : public IReflectable
+	{
+		bool operator==(const D6JointDrive& other) const
+		{
+			return Stiffness == other.Stiffness && Damping == other.Damping && ForceLimit == other.ForceLimit &&
+				Acceleration == other.Acceleration;
+		}
+
+		/** Spring strength. Force proportional to the position error. */
+		float Stiffness = 0.0f;
+
+		/** Damping strength. Force propertional to the velocity error. */
+		float Damping = 0.0f;
+
+		/** Maximum force the drive can apply. */
+		float ForceLimit = FLT_MAX;
+
+		/**
+		 * If true the drive will generate acceleration instead of forces. Acceleration drives are easier to tune as
+		 * they account for the masses of the actors to which the joint is attached.
+		 */
+		bool Acceleration = false;
+
+		/************************************************************************/
+		/* 								RTTI		                     		*/
+		/************************************************************************/
+	public:
+		friend class D6JointDriveRTTI;
+		static RTTIType* GetRttiStatic();
+		RTTIType* GetRtti() const override;
+	};
+
+	/** Structure used for initializing a new D6Joint. */
+	struct D6JointCreateInformation : JointCreateInformation
+	{
+		D6JointCreateInformation()
+		{
+			Motion.Resize((u32)D6JointAxis::Count);
+			Drive.Resize((u32)D6JointDriveType::Count);
+		}
+
+		TInlineArray<D6JointMotion, (u32)D6JointAxis::Count> Motion;
+		TInlineArray<D6JointDrive, (u32)D6JointDriveType::Count> Drive;
+		LimitLinear LimitLinear;
+		LimitAngularRange LimitTwist;
+		LimitConeRange LimitSwing;
+		Vector3 DrivePosition = Vector3::kZero;
+		Quaternion DriveRotation = Quaternion::kIdentity;
+		Vector3 DriveLinearVelocity = Vector3::kZero;
+		Vector3 DriveAngularVelocity = Vector3::kZero;
+	};
 
 	/**
 	 * Represents the most customizable type of joint. This joint type can be used to create all other built-in joint
@@ -126,8 +229,8 @@ namespace b3d
 		 *  @{
 		 */
 
-		/**	Returns the D6 joint that this component wraps. */
-		D6Joint* GetInternalInternal() const { return static_cast<D6Joint*>(mInternal.get()); }
+		/** Returns the low level joint implementation. */
+		ID6JointImplementation& GetImplementation() const { return static_cast<ID6JointImplementation&>(*mImplementation); }
 
 		/** @} */
 

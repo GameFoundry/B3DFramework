@@ -3,7 +3,6 @@
 #pragma once
 
 #include "BsCorePrerequisites.h"
-#include "Physics/BsSphericalJoint.h"
 #include "Components/BsCJoint.h"
 
 namespace b3d
@@ -11,6 +10,21 @@ namespace b3d
 	/** @addtogroup Components-Core
 	 *  @{
 	 */
+
+	class ISphericalJointImplementation;
+
+	/** Flags that control options for the spherical joint */
+	enum class B3D_SCRIPT_EXPORT(DocumentationGroup(Physics)) SphericalJointFlag
+	{
+		Limit = 0x1 /**< Enables the cone range limit. */
+	};
+
+	/** Structure used for initializing a new SphericalJoint. */
+	struct SphericalJointCreateInformation : JointCreateInformation
+	{
+		LimitConeRange Limit;
+		SphericalJointFlag Flag = (SphericalJointFlag)0;
+	};
 
 	/**
 	 * A spherical joint removes all translational degrees of freedom but allows all rotational degrees of freedom.
@@ -45,8 +59,8 @@ namespace b3d
 		 *  @{
 		 */
 
-		/**	Returns the spherical joint that this component wraps. */
-		SphericalJoint* GetInternalInternal() const { return static_cast<SphericalJoint*>(mInternal.get()); }
+		/** Returns the low level joint implementation. */
+		ISphericalJointImplementation& GetImplementation() const { return static_cast<ISphericalJointImplementation&>(*mImplementation); }
 
 		/** @} */
 

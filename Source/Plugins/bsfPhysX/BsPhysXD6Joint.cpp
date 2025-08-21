@@ -7,44 +7,9 @@
 #include "PxRigidDynamic.h"
 
 using namespace physx;
-
 using namespace b3d;
 
-PxD6Axis::Enum ToPxAxis(D6JointAxis axis)
-{
-	switch(axis)
-	{
-	default:
-	case D6JointAxis::X:
-		return PxD6Axis::eX;
-	case D6JointAxis::Y:
-		return PxD6Axis::eY;
-	case D6JointAxis::Z:
-		return PxD6Axis::eZ;
-	case D6JointAxis::Twist:
-		return PxD6Axis::eTWIST;
-	case D6JointAxis::SwingY:
-		return PxD6Axis::eSWING1;
-	case D6JointAxis::SwingZ:
-		return PxD6Axis::eSWING2;
-	}
-}
-
-PxD6Motion::Enum ToPxMotion(D6JointMotion motion)
-{
-	switch(motion)
-	{
-	default:
-	case D6JointMotion::Free:
-		return PxD6Motion::eFREE;
-	case D6JointMotion::Limited:
-		return PxD6Motion::eLIMITED;
-	case D6JointMotion::Locked:
-		return PxD6Motion::eLOCKED;
-	}
-}
-
-PxD6Drive::Enum ToPxDrive(D6JointDriveType drive)
+static PxD6Drive::Enum ToPxDrive(D6JointDriveType drive)
 {
 	switch(drive)
 	{
@@ -64,107 +29,41 @@ PxD6Drive::Enum ToPxDrive(D6JointDriveType drive)
 	}
 }
 
-D6JointMotion FromPxMotion(PxD6Motion::Enum motion)
-{
-	switch(motion)
-	{
-	default:
-	case PxD6Motion::eFREE:
-		return D6JointMotion::Free;
-	case PxD6Motion::eLIMITED:
-		return D6JointMotion::Limited;
-	case PxD6Motion::eLOCKED:
-		return D6JointMotion::Locked;
-	}
-}
-
-D6JointDriveType FromPxDrive(PxD6Drive::Enum drive)
-{
-	switch(drive)
-	{
-	default:
-	case PxD6Drive::eX:
-		return D6JointDriveType::X;
-	case PxD6Drive::eY:
-		return D6JointDriveType::Y;
-	case PxD6Drive::eZ:
-		return D6JointDriveType::Z;
-	case PxD6Drive::eSWING:
-		return D6JointDriveType::Swing;
-	case PxD6Drive::eTWIST:
-		return D6JointDriveType::Twist;
-	case PxD6Drive::eSLERP:
-		return D6JointDriveType::SLERP;
-	}
-}
-
-PhysXD6Joint::PhysXD6Joint(PxPhysics* physx, const D6JointCreateInformation& desc)
-	: D6Joint(desc)
+PhysXD6Joint::PhysXD6Joint(PxPhysics* physx, const D6JointCreateInformation& createInformation)
 {
 	PxRigidActor* actor0 = nullptr;
-	if(desc.Bodies[0].Body != nullptr)
-		actor0 = static_cast<PhysXRigidbody&>(desc.Bodies[0].Body->GetImplementation()).GetPxRigidDynamic();
+	if(createInformation.Bodies[0].Body != nullptr)
+		actor0 = static_cast<PhysXRigidbody&>(createInformation.Bodies[0].Body->GetImplementation()).GetPxRigidDynamic();
 
 	PxRigidActor* actor1 = nullptr;
-	if(desc.Bodies[1].Body != nullptr)
-		actor1 = static_cast<PhysXRigidbody&>(desc.Bodies[1].Body->GetImplementation()).GetPxRigidDynamic();
+	if(createInformation.Bodies[1].Body != nullptr)
+		actor1 = static_cast<PhysXRigidbody&>(createInformation.Bodies[1].Body->GetImplementation()).GetPxRigidDynamic();
 
-	PxTransform tfrm0 = ToPxTransform(desc.Bodies[0].Position, desc.Bodies[0].Rotation);
-	PxTransform tfrm1 = ToPxTransform(desc.Bodies[1].Position, desc.Bodies[1].Rotation);
+	PxTransform tfrm0 = ToPxTransform(createInformation.Bodies[0].Position, createInformation.Bodies[0].Rotation);
+	PxTransform tfrm1 = ToPxTransform(createInformation.Bodies[1].Position, createInformation.Bodies[1].Rotation);
 
 	PxD6Joint* joint = PxD6JointCreate(*physx, actor0, tfrm0, actor1, tfrm1);
 	joint->userData = this;
 
-	mInternal = B3DNew<FPhysXJoint>(joint, desc);
+	mInternal.Initialize(*joint, createInformation);
 
-	// Calls to virtual methods are okay here
 	for(u32 i = 0; i < (u32)D6JointAxis::Count; i++)
-		SetMotion((D6JointAxis)i, desc.Motion[i]);
+		PhysXD6Joint::SetMotion((D6JointAxis)i, createInformation.Motion[i]);
 
 	for(u32 i = 0; i < (u32)D6JointDriveType::Count; i++)
-		SetDrive((D6JointDriveType)i, desc.Drive[i]);
+		PhysXD6Joint::SetDrive((D6JointDriveType)i, createInformation.Drive[i]);
 
-	SetLimitLinear(desc.LimitLinear);
-	SetLimitTwist(desc.LimitTwist);
-	SetLimitSwing(desc.LimitSwing);
+	PhysXD6Joint::SetLimitLinear(createInformation.LimitLinear);
+	PhysXD6Joint::SetLimitTwist(createInformation.LimitTwist);
+	PhysXD6Joint::SetLimitSwing(createInformation.LimitSwing);
 
-	SetDriveTransform(desc.DrivePosition, desc.DriveRotation);
-	SetDriveVelocity(desc.DriveLinearVelocity, desc.DriveAngularVelocity);
-}
-
-PhysXD6Joint::~PhysXD6Joint()
-{
-	B3DDelete(mInternal);
-}
-
-D6JointMotion PhysXD6Joint::GetMotion(D6JointAxis axis) const
-{
-	return FromPxMotion(GetInternal()->getMotion(ToPxAxis(axis)));
-}
-
-void PhysXD6Joint::SetMotion(D6JointAxis axis, D6JointMotion motion)
-{
-	GetInternal()->setMotion(ToPxAxis(axis), ToPxMotion(motion));
-}
-
-Radian PhysXD6Joint::GetTwist() const
-{
-	return Radian(GetInternal()->getTwist());
-}
-
-Radian PhysXD6Joint::GetSwingY() const
-{
-	return Radian(GetInternal()->getSwingYAngle());
-}
-
-Radian PhysXD6Joint::GetSwingZ() const
-{
-	return Radian(GetInternal()->getSwingZAngle());
+	PhysXD6Joint::SetDriveTransform(createInformation.DrivePosition, createInformation.DriveRotation);
+	PhysXD6Joint::SetDriveVelocity(createInformation.DriveLinearVelocity, createInformation.DriveAngularVelocity);
 }
 
 LimitLinear PhysXD6Joint::GetLimitLinear() const
 {
-	PxJointLinearLimit pxLimit = GetInternal()->getLinearLimit();
+	PxJointLinearLimit pxLimit = GetPxD6Joint().getLinearLimit();
 
 	LimitLinear limit;
 	limit.Extent = pxLimit.value;
@@ -183,12 +82,12 @@ void PhysXD6Joint::SetLimitLinear(const LimitLinear& limit)
 	pxLimit.damping = limit.Spring.Damping;
 	pxLimit.restitution = limit.Restitution;
 
-	GetInternal()->setLinearLimit(pxLimit);
+	GetPxD6Joint().setLinearLimit(pxLimit);
 }
 
 LimitAngularRange PhysXD6Joint::GetLimitTwist() const
 {
-	PxJointAngularLimitPair pxLimit = GetInternal()->getTwistLimit();
+	PxJointAngularLimitPair pxLimit = GetPxD6Joint().getTwistLimit();
 
 	LimitAngularRange limit;
 	limit.Lower = pxLimit.lower;
@@ -208,12 +107,12 @@ void PhysXD6Joint::SetLimitTwist(const LimitAngularRange& limit)
 	pxLimit.damping = limit.Spring.Damping;
 	pxLimit.restitution = limit.Restitution;
 
-	GetInternal()->setTwistLimit(pxLimit);
+	GetPxD6Joint().setTwistLimit(pxLimit);
 }
 
 LimitConeRange PhysXD6Joint::GetLimitSwing() const
 {
-	PxJointLimitCone pxLimit = GetInternal()->getSwingLimit();
+	PxJointLimitCone pxLimit = GetPxD6Joint().getSwingLimit();
 
 	LimitConeRange limit;
 	limit.YLimitAngle = pxLimit.yAngle;
@@ -233,12 +132,12 @@ void PhysXD6Joint::SetLimitSwing(const LimitConeRange& limit)
 	pxLimit.damping = limit.Spring.Damping;
 	pxLimit.restitution = limit.Restitution;
 
-	GetInternal()->setSwingLimit(pxLimit);
+	GetPxD6Joint().setSwingLimit(pxLimit);
 }
 
 D6JointDrive PhysXD6Joint::GetDrive(D6JointDriveType type) const
 {
-	PxD6JointDrive pxDrive = GetInternal()->getDrive(ToPxDrive(type));
+	PxD6JointDrive pxDrive = GetPxD6Joint().getDrive(ToPxDrive(type));
 
 	D6JointDrive drive;
 	drive.Acceleration = pxDrive.flags & PxD6JointDriveFlag::eACCELERATION;
@@ -260,22 +159,7 @@ void PhysXD6Joint::SetDrive(D6JointDriveType type, const D6JointDrive& drive)
 	pxDrive.damping = drive.Damping;
 	pxDrive.forceLimit = drive.ForceLimit;
 
-	GetInternal()->setDrive(ToPxDrive(type), pxDrive);
-}
-
-Vector3 PhysXD6Joint::GetDrivePosition() const
-{
-	return FromPxVector(GetInternal()->getDrivePosition().p);
-}
-
-Quaternion PhysXD6Joint::GetDriveRotation() const
-{
-	return FromPxQuaternion(GetInternal()->getDrivePosition().q);
-}
-
-void PhysXD6Joint::SetDriveTransform(const Vector3& position, const Quaternion& rotation)
-{
-	GetInternal()->setDrivePosition(ToPxTransform(position, rotation));
+	GetPxD6Joint().setDrive(ToPxDrive(type), pxDrive);
 }
 
 Vector3 PhysXD6Joint::GetDriveLinearVelocity() const
@@ -283,7 +167,7 @@ Vector3 PhysXD6Joint::GetDriveLinearVelocity() const
 	PxVec3 linear;
 	PxVec3 angular;
 
-	GetInternal()->getDriveVelocity(linear, angular);
+	GetPxD6Joint().getDriveVelocity(linear, angular);
 	return FromPxVector(linear);
 }
 
@@ -292,18 +176,6 @@ Vector3 PhysXD6Joint::GetDriveAngularVelocity() const
 	PxVec3 linear;
 	PxVec3 angular;
 
-	GetInternal()->getDriveVelocity(linear, angular);
+	GetPxD6Joint().getDriveVelocity(linear, angular);
 	return FromPxVector(angular);
-}
-
-void PhysXD6Joint::SetDriveVelocity(const Vector3& linear, const Vector3& angular)
-{
-	GetInternal()->setDriveVelocity(ToPxVector(linear), ToPxVector(angular));
-}
-
-PxD6Joint* PhysXD6Joint::GetInternal() const
-{
-	FPhysXJoint* internal = static_cast<FPhysXJoint*>(mInternal);
-
-	return static_cast<PxD6Joint*>(internal->GetInternalInternal());
 }

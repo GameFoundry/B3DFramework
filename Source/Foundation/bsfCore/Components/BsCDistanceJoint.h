@@ -12,6 +12,26 @@ namespace b3d
 	 *  @{
 	 */
 
+	class IDistanceJointImplementation;
+
+	/** Controls distance joint options. */
+	enum class B3D_SCRIPT_EXPORT(DocumentationGroup(Physics)) DistanceJointFlag
+	{
+		MinDistance = 0x1, /**< Enables minimum distance limit. */
+		MaxDistance = 0x2, /**< Enables maximum distance limit. */
+		Spring = 0x4 /**< Enables spring when maintaining limits. */
+	};
+
+	/** Structure used for initializing a new DistanceJoint. */
+	struct DistanceJointCreateInformation : JointCreateInformation
+	{
+		float MinDistance = 0.0f;
+		float MaxDistance = 0.0f;
+		float Tolerance = 0.25f;
+		Spring Spring;
+		DistanceJointFlag Flag = (DistanceJointFlag)0;
+	};
+
 	/** A joint that maintains an upper or lower (or both) bound on the distance between two bodies. */
 	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Physics), ExportName(DistanceJoint)) CDistanceJoint : public CJoint
 	{
@@ -80,8 +100,8 @@ namespace b3d
 		 *  @{
 		 */
 
-		/**	Returns the distance joint that this component wraps. */
-		DistanceJoint* GetInternalInternal() const { return static_cast<DistanceJoint*>(mInternal.get()); }
+		/** Returns the low level joint implementation. */
+		IDistanceJointImplementation& GetImplementation() const { return static_cast<IDistanceJointImplementation&>(*mImplementation); }
 
 		/** @} */
 
