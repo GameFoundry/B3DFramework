@@ -176,7 +176,7 @@ namespace b3d
 		bool RefreshParentRigidbody();
 
 		TInlineArray<SPtr<ColliderShape>, 1> mShapes;
-		SPtr<IColliderImplementation> mImplementation; // TODO - Can be unique ptr
+		UPtr<IColliderImplementation> mImplementation;
 
 		u64 mLayer = 1;
 		CollisionReportMode mCollisionReportMode = CollisionReportMode::None;
@@ -188,7 +188,7 @@ namespace b3d
 
 		HRigidbody mParentRigidbody;
 
-		// TODO - We should remove this, I'm not sure why it's needed
+		// TODO - Remove. Just directly use SO position/rotation and remove special handling for rigibodies in CCollider & ColliderShape UpdateTransform
 		Vector3 mAdjustedPosition{BsZero};
 		Quaternion mAdjustedRotation{BsIdentity};
 

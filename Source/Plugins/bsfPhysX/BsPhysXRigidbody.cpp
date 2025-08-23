@@ -190,22 +190,22 @@ void PhysXRigidbody::SetSolverIterationCounts(u32 positionCount, u32 velocityCou
 	mPxRigidDynamic->setSolverIterationCounts(std::max(1U, positionCount), std::max(1U, velocityCount));
 }
 
-void PhysXRigidbody::SetFlags(RigidbodyFlag flags)
+void PhysXRigidbody::SetFlags(RigidbodyFlags flags)
 {
 	bool ccdEnabledOld = mPxRigidDynamic->getRigidBodyFlags() & PxRigidBodyFlag::eENABLE_CCD;
-	bool ccdEnabledNew = ((u32)flags & (u32)RigidbodyFlag::CCD) != 0;
+	bool ccdEnabledNew = flags.IsSet(RigidbodyFlag::CCD);
 
 	if(ccdEnabledOld != ccdEnabledNew)
 	{
 		mPxRigidDynamic->setRigidBodyFlag(PxRigidBodyFlag::eENABLE_CCD, ccdEnabledNew);
 
 		// Enable/disable CCD on shapes so the filter can handle them properly
-		u32 numShapes = mPxRigidDynamic->getNbShapes();
-		StackMemory<PxShape*> shapes = B3DManagedStackAllocate<PxShape*>(numShapes);
+		const u32 shapeCount = mPxRigidDynamic->getNbShapes();
+		StackMemory<PxShape*> shapes = B3DManagedStackAllocate<PxShape*>(shapeCount);
 
-		mPxRigidDynamic->getShapes(shapes, sizeof(PxShape*) * numShapes);
+		mPxRigidDynamic->getShapes(shapes, sizeof(PxShape*) * shapeCount);
 
-		for(u32 i = 0; i < numShapes; i++)
+		for(u32 i = 0; i < shapeCount; i++)
 		{
 			ColliderShape* const colliderShape = (ColliderShape*)shapes[i]->userData;
 			colliderShape->SetContinuousCollisionDetection(ccdEnabledNew);

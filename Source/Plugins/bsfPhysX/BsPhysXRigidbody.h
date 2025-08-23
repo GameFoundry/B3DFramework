@@ -44,7 +44,7 @@ namespace b3d
 		void SetCenterOfMass(const Vector3& position, const Quaternion& rotation) override;
 		void GetCenterOfMass(Vector3& outPosition, Quaternion& outRotation) override;
 		void SetSolverIterationCounts(u32 positionCount, u32 velocityCount) override;
-		void SetFlags(RigidbodyFlag flags) override;
+		void SetFlags(RigidbodyFlags flags) override;
 		void AddForce(const Vector3& force, ForceMode mode = ForceMode::Force) override;
 		void AddTorque(const Vector3& torque, ForceMode mode = ForceMode::Force) override;
 		void AddForceAtPoint(const Vector3& force, const Vector3& position, PointForceMode mode = PointForceMode::Force) override;

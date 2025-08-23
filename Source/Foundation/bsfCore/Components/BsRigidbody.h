@@ -49,6 +49,9 @@ namespace b3d
 		CCD = 0x04
 	};
 
+	using RigidbodyFlags = Flags<RigidbodyFlag>;
+	B3D_FLAGS_OPERATORS(RigidbodyFlag)
+
 	/**
 	 * Rigidbody is a dynamic physics object that can be moved using forces (or directly). It will interact with other
 	 * static and dynamic physics objects in the scene accordingly (it will push other non-kinematic rigidbodies,
@@ -234,11 +237,11 @@ namespace b3d
 
 		/** Flags that control the behaviour of the rigidbody. */
 		B3D_SCRIPT_EXPORT(ExportName(Flags), Property(Setter), UI(Hide))
-		void SetFlags(RigidbodyFlag flags);
+		void SetFlags(RigidbodyFlags flags);
 
 		/** @copydoc GetFlags */
 		B3D_SCRIPT_EXPORT(ExportName(Flags), Property(Getter))
-		RigidbodyFlag GetFlags() const { return mFlags; }
+		RigidbodyFlags GetFlags() const { return mFlags; }
 
 		/**
 		 * Applies a force to the center of the mass of the rigidbody. This will produce linear momentum.
@@ -346,13 +349,13 @@ namespace b3d
 		void OnEnabled() override;
 		void OnTransformChanged(TransformChangedFlags flags) override;
 
-		SPtr<IRigidbodyImplementation> mImplementation; // TODO - Can be unique ptr
+		UPtr<IRigidbodyImplementation> mImplementation;
 		Vector<HCollider> mChildColliders;
 		HJoint mParentJoint;
 
 		u32 mPositionSolverCount = 4;
 		u32 mVelocitySolverCount = 1;
-		RigidbodyFlag mFlags = (RigidbodyFlag)((u32)RigidbodyFlag::AutoTensors | (u32)RigidbodyFlag::AutoMass);
+		RigidbodyFlags mFlags = RigidbodyFlag::AutoTensors | RigidbodyFlag::AutoMass;
 		CollisionReportMode mCollisionReportMode = CollisionReportMode::None;
 		Vector3 mCenterOfMassPosition = Vector3::kZero;
 		Quaternion mCenterOfMassRotation = Quaternion::kIdentity;
@@ -438,7 +441,7 @@ namespace b3d
 		virtual void SetMaxAngularVelocity(float velocity) = 0;
 
 		/** @copydoc Rigidbody::SetFlags */
-		virtual void SetFlags(RigidbodyFlag flags) = 0;
+		virtual void SetFlags(RigidbodyFlags flags) = 0;
 
 		/** @copydoc Rigidbody::AddForce */
 		virtual void AddForce(const Vector3& force, ForceMode mode = ForceMode::Force) = 0;

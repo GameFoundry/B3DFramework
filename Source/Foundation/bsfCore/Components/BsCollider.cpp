@@ -167,8 +167,8 @@ void Collider::OnEnabled()
 	{
 		for (const auto& shape : mShapes)
 		{
-			const u32 rigidbodyFlags = (u32)mParentRigidbody->GetFlags();
-			shape->SetContinuousCollisionDetection((rigidbodyFlags & (u32)RigidbodyFlag::CCD) != 0);
+			const RigidbodyFlags rigidbodyFlags = mParentRigidbody->GetFlags();
+			shape->SetContinuousCollisionDetection(rigidbodyFlags.IsSet(RigidbodyFlag::CCD));
 
 			mParentRigidbody->GetImplementation().AttachShape(shape);
 		}
@@ -254,8 +254,8 @@ bool Collider::SetRigidbody(const HRigidbody& rigidbody)
 		{
 			for(auto& entry : mShapes)
 			{
-				const u32 rigidbodyFlags = (u32)rigidbody->GetFlags();
-				entry->SetContinuousCollisionDetection((rigidbodyFlags & (u32)RigidbodyFlag::CCD) != 0);
+				const RigidbodyFlags rigidbodyFlags = rigidbody->GetFlags();
+				entry->SetContinuousCollisionDetection(rigidbodyFlags.IsSet(RigidbodyFlag::CCD));
 
 				rigidbody->GetImplementation().AttachShape(entry);
 			}

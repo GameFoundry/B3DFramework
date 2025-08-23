@@ -40,7 +40,7 @@ void Rigidbody::Rotate(const Quaternion& rotation)
 
 void Rigidbody::SetMass(float mass)
 {
-	if(((u32)mFlags & (u32)RigidbodyFlag::AutoMass) != 0)
+	if(mFlags.IsSet(RigidbodyFlag::AutoMass))
 	{
 		B3D_LOG(Warning, Physics, "Attempting to set Rigidbody mass, but it has automatic mass calculation turned on.");
 		return;
@@ -123,7 +123,7 @@ void Rigidbody::SetAngularDrag(float drag)
 
 void Rigidbody::SetInertiaTensor(const Vector3& tensor)
 {
-	if(((u32)mFlags & (u32)RigidbodyFlag::AutoTensors) != 0)
+	if(mFlags.IsSet(RigidbodyFlag::AutoTensors))
 	{
 		B3D_LOG(Warning, Physics, "Attempting to set Rigidbody inertia tensor, but it has automatic tensor calculation turned on.");
 		return;
@@ -146,7 +146,7 @@ void Rigidbody::SetMaxAngularVelocity(float velocity)
 
 void Rigidbody::SetCenterOfMassPosition(const Vector3& position)
 {
-	if(((u32)mFlags & (u32)RigidbodyFlag::AutoTensors) != 0)
+	if(mFlags.IsSet(RigidbodyFlag::AutoTensors))
 	{
 		B3D_LOG(Warning, Physics, "Attempting to set Rigidbody center of mass, but it has automatic tensor calculation turned on.");
 		return;
@@ -167,7 +167,7 @@ Vector3 Rigidbody::GetCenterOfMassPosition() const
 
 void Rigidbody::SetCenterOfMassRotation(const Quaternion& rotation)
 {
-	if(((u32)mFlags & (u32)RigidbodyFlag::AutoTensors) != 0)
+	if(mFlags.IsSet(RigidbodyFlag::AutoTensors))
 	{
 		B3D_LOG(Warning, Physics, "Attempting to set Rigidbody center of mass, but it has automatic tensor calculation turned on.");
 		return;
@@ -209,7 +209,7 @@ void Rigidbody::SetCollisionReportMode(CollisionReportMode mode)
 		entry->UpdateCollisionReportMode();
 }
 
-void Rigidbody::SetFlags(RigidbodyFlag flags)
+void Rigidbody::SetFlags(RigidbodyFlags flags)
 {
 	mFlags = flags;
 
@@ -319,10 +319,10 @@ void Rigidbody::CheckForNestedRigibody()
 
 void Rigidbody::UpdateMassDistribution()
 {
-	if(((u32)mFlags & (u32)RigidbodyFlag::AutoTensors) == 0)
+	if(!mFlags.IsSet(RigidbodyFlag::AutoTensors))
 		return;
 
-	mImplementation->UpdateMassDistribution((((u32)mFlags & (u32)RigidbodyFlag::AutoMass)) != 0);
+	mImplementation->UpdateMassDistribution(mFlags.IsSet(RigidbodyFlag::AutoMass));
 }
 
 void Rigidbody::OnCreated()
@@ -342,7 +342,7 @@ void Rigidbody::OnCreated()
 	mImplementation->SetIsKinematic(mIsKinematic);
 	mImplementation->SetFlags(mFlags);
 
-	if(((u32)mFlags & (u32)RigidbodyFlag::AutoTensors) == 0)
+	if(!mFlags.IsSet(RigidbodyFlag::AutoTensors))
 	{
 		mImplementation->SetCenterOfMass(mCenterOfMassPosition, mCenterOfMassRotation);
 		mImplementation->SetInertiaTensor(mInertiaTensor);
@@ -350,7 +350,7 @@ void Rigidbody::OnCreated()
 	}
 	else
 	{
-		if(((u32)mFlags & (u32)RigidbodyFlag::AutoMass) == 0)
+		if(!mFlags.IsSet(RigidbodyFlag::AutoMass))
 			mImplementation->SetMass(mMass);
 
 		UpdateMassDistribution();
@@ -387,7 +387,7 @@ void Rigidbody::OnTransformChanged(TransformChangedFlags flags)
 		ClearColliders();
 		UpdateColliders();
 
-		if(((u32)mFlags & (u32)RigidbodyFlag::AutoTensors) != 0)
+		if(mFlags.IsSet(RigidbodyFlag::AutoTensors))
 			UpdateMassDistribution();
 
 #if B3D_DEBUG

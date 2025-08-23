@@ -510,14 +510,14 @@ namespace b3d
 
 	RigidbodyFlag ScriptRigidbody::InternalGetFlags(ScriptRigidbody* self)
 	{
-		RigidbodyFlag tmp__output;
+		Flags<RigidbodyFlag> tmp__output;
 		if(!self->IsNativeObjectValid())
 			return {};
 
 		tmp__output = static_cast<Rigidbody*>(self->GetNativeObject())->GetFlags();
 
 		RigidbodyFlag __output;
-		__output = tmp__output;
+		__output = (RigidbodyFlag)(uint32_t)tmp__output;
 
 		return __output;
 	}
