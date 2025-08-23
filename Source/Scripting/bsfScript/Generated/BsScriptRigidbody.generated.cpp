@@ -1,10 +1,10 @@
 //********************************* B3D Framework - Copyright 2018-2022 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "BsScriptCRigidbody.generated.h"
+#include "BsScriptRigidbody.generated.h"
 #include "BsMonoMethod.h"
 #include "BsMonoClass.h"
 #include "BsMonoUtil.h"
-#include "../../../Foundation/bsfCore/Components/BsCRigidbody.h"
+#include "../../../Foundation/bsfCore/Components/BsRigidbody.h"
 #include "BsScriptCollisionData.generated.h"
 #include "BsScriptTVector3.generated.h"
 #include "BsScriptTQuaternion.generated.h"
@@ -368,12 +368,12 @@ namespace b3d
 		*__output = tmp__output;
 	}
 
-	void ScriptRigidbody::InternalSetMaxAngularVelocity(ScriptRigidbody* self, float maxVelocity)
+	void ScriptRigidbody::InternalSetMaxAngularVelocity(ScriptRigidbody* self, float velocity)
 	{
 		if(!self->IsNativeObjectValid())
 			return;
 
-		static_cast<Rigidbody*>(self->GetNativeObject())->SetMaxAngularVelocity(maxVelocity);
+		static_cast<Rigidbody*>(self->GetNativeObject())->SetMaxAngularVelocity(velocity);
 	}
 
 	float ScriptRigidbody::InternalGetMaxAngularVelocity(ScriptRigidbody* self)

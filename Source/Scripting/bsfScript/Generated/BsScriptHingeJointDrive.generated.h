@@ -4,7 +4,7 @@
 
 #include "BsScriptEnginePrerequisites.h"
 #include "BsScriptObjectWrapper.h"
-#include "../../../Foundation/bsfCore/Physics/BsHingeJoint.h"
+#include "../../../Foundation/bsfCore/Components/BsHingeJoint.h"
 
 namespace b3d
 {

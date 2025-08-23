@@ -1,10 +1,10 @@
 //********************************* B3D Framework - Copyright 2018-2022 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "BsScriptCHingeJoint.generated.h"
+#include "BsScriptHingeJoint.generated.h"
 #include "BsMonoMethod.h"
 #include "BsMonoClass.h"
 #include "BsMonoUtil.h"
-#include "../../../Foundation/bsfCore/Components/BsCHingeJoint.h"
+#include "../../../Foundation/bsfCore/Components/BsHingeJoint.h"
 #include "BsScriptLimitAngularRange.generated.h"
 #include "BsScriptHingeJointDrive.generated.h"
 
@@ -25,10 +25,10 @@ namespace b3d
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetAngle", (void*)&ScriptHingeJoint::InternalGetAngle);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetSpeed", (void*)&ScriptHingeJoint::InternalGetSpeed);
-		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetLimit", (void*)&ScriptHingeJoint::InternalGetLimit);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetLimit", (void*)&ScriptHingeJoint::InternalSetLimit);
-		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetDrive", (void*)&ScriptHingeJoint::InternalGetDrive);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetLimit", (void*)&ScriptHingeJoint::InternalGetLimit);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetDrive", (void*)&ScriptHingeJoint::InternalSetDrive);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetDrive", (void*)&ScriptHingeJoint::InternalGetDrive);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetFlag", (void*)&ScriptHingeJoint::InternalSetFlag);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_HasFlag", (void*)&ScriptHingeJoint::InternalHasFlag);
 
@@ -72,6 +72,16 @@ namespace b3d
 		return __output;
 	}
 
+	void ScriptHingeJoint::InternalSetLimit(ScriptHingeJoint* self, __LimitAngularRangeInterop* limit)
+	{
+		if(!self->IsNativeObjectValid())
+			return;
+
+		LimitAngularRange tmplimit;
+		tmplimit = ScriptLimitAngularRange::FromInterop(*limit);
+		static_cast<HingeJoint*>(self->GetNativeObject())->SetLimit(tmplimit);
+	}
+
 	void ScriptHingeJoint::InternalGetLimit(ScriptHingeJoint* self, __LimitAngularRangeInterop* __output)
 	{
 		if(!self->IsNativeObjectValid())
@@ -88,14 +98,12 @@ namespace b3d
 		MonoUtil::ValueCopy(__output, &interop__output, ScriptLimitAngularRange::GetMetaData()->ScriptClass->GetInternalClass());
 	}
 
-	void ScriptHingeJoint::InternalSetLimit(ScriptHingeJoint* self, __LimitAngularRangeInterop* limit)
+	void ScriptHingeJoint::InternalSetDrive(ScriptHingeJoint* self, HingeJointDrive* drive)
 	{
 		if(!self->IsNativeObjectValid())
 			return;
 
-		LimitAngularRange tmplimit;
-		tmplimit = ScriptLimitAngularRange::FromInterop(*limit);
-		static_cast<HingeJoint*>(self->GetNativeObject())->SetLimit(tmplimit);
+		static_cast<HingeJoint*>(self->GetNativeObject())->SetDrive(*drive);
 	}
 
 	void ScriptHingeJoint::InternalGetDrive(ScriptHingeJoint* self, HingeJointDrive* __output)
@@ -110,14 +118,6 @@ namespace b3d
 		tmp__output = static_cast<HingeJoint*>(self->GetNativeObject())->GetDrive();
 
 		*__output = tmp__output;
-	}
-
-	void ScriptHingeJoint::InternalSetDrive(ScriptHingeJoint* self, HingeJointDrive* drive)
-	{
-		if(!self->IsNativeObjectValid())
-			return;
-
-		static_cast<HingeJoint*>(self->GetNativeObject())->SetDrive(*drive);
 	}
 
 	void ScriptHingeJoint::InternalSetFlag(ScriptHingeJoint* self, HingeJointFlag flag, bool enabled)

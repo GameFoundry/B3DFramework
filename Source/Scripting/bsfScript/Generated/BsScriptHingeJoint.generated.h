@@ -4,11 +4,11 @@
 
 #include "BsScriptEnginePrerequisites.h"
 #include "Wrappers/BsScriptComponent.h"
-#include "BsScriptCJoint.generated.h"
+#include "BsScriptJoint.generated.h"
 #include "Math/BsRadian.h"
-#include "../../../Foundation/bsfCore/Physics/BsJoint.h"
-#include "../../../Foundation/bsfCore/Physics/BsHingeJoint.h"
-#include "../../../Foundation/bsfCore/Physics/BsHingeJoint.h"
+#include "../../../Foundation/bsfCore/Components/BsJoint.h"
+#include "../../../Foundation/bsfCore/Components/BsHingeJoint.h"
+#include "../../../Foundation/bsfCore/Components/BsHingeJoint.h"
 
 namespace b3d { class HingeJoint; }
 namespace b3d { struct __LimitAngularRangeInterop; }
@@ -29,10 +29,10 @@ namespace b3d
 	private:
 		static void InternalGetAngle(ScriptHingeJoint* self, TRadian<float>* __output);
 		static float InternalGetSpeed(ScriptHingeJoint* self);
-		static void InternalGetLimit(ScriptHingeJoint* self, __LimitAngularRangeInterop* __output);
 		static void InternalSetLimit(ScriptHingeJoint* self, __LimitAngularRangeInterop* limit);
-		static void InternalGetDrive(ScriptHingeJoint* self, HingeJointDrive* __output);
+		static void InternalGetLimit(ScriptHingeJoint* self, __LimitAngularRangeInterop* __output);
 		static void InternalSetDrive(ScriptHingeJoint* self, HingeJointDrive* drive);
+		static void InternalGetDrive(ScriptHingeJoint* self, HingeJointDrive* __output);
 		static void InternalSetFlag(ScriptHingeJoint* self, HingeJointFlag flag, bool enabled);
 		static bool InternalHasFlag(ScriptHingeJoint* self, HingeJointFlag flag);
 	};

@@ -10,12 +10,17 @@ namespace b3d
 	 *  @{
 	 */
 
+	/// <summary>
+	/// Hinge joint removes all but a single rotation degree of freedom from its two attached bodies (for example a door 
+	/// hinge).
+	/// </summary>
 	[ShowInInspector]
 	public partial class HingeJoint : Joint
 	{
 		private HingeJoint(bool __dummy0) { }
 		protected HingeJoint() { }
 
+		/// <summary>Returns the current angle between the two attached bodes.</summary>
 		[NativeWrapper]
 		public Radian Angle
 		{
@@ -27,12 +32,17 @@ namespace b3d
 			}
 		}
 
+		/// <summary>Returns the current angular speed of the joint.</summary>
 		[NativeWrapper]
 		public float Speed
 		{
 			get { return Internal_GetSpeed(mCachedPtr); }
 		}
 
+		/// <summary>
+		/// Determines the limit of the joint. Limit constrains the motion to the specified angle range. You must enable the 
+		/// limit flag on the joint in order for this to be recognized.
+		/// </summary>
 		[ShowInInspector]
 		[NativeWrapper]
 		public LimitAngularRange Limit
@@ -46,6 +56,10 @@ namespace b3d
 			set { Internal_SetLimit(mCachedPtr, ref value); }
 		}
 
+		/// <summary>
+		/// Determines the drive properties of the joint. It drives the joint&apos;s angular velocity towards a particular value. 
+		/// You must enable the drive flag on the joint in order for the drive to be active.
+		/// </summary>
 		[ShowInInspector]
 		[NativeWrapper]
 		public HingeJointDrive Drive
@@ -59,11 +73,13 @@ namespace b3d
 			set { Internal_SetDrive(mCachedPtr, ref value); }
 		}
 
+		/// <summary>Enables or disables a flag that controls joint behaviour.</summary>
 		public void SetFlag(HingeJointFlag flag, bool enabled)
 		{
 			Internal_SetFlag(mCachedPtr, flag, enabled);
 		}
 
+		/// <summary>Checks is the specified option enabled.</summary>
 		public bool HasFlag(HingeJointFlag flag)
 		{
 			return Internal_HasFlag(mCachedPtr, flag);
@@ -74,13 +90,13 @@ namespace b3d
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern float Internal_GetSpeed(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_GetLimit(IntPtr thisPtr, out LimitAngularRange __output);
-		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_SetLimit(IntPtr thisPtr, ref LimitAngularRange limit);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_GetDrive(IntPtr thisPtr, out HingeJointDrive __output);
+		private static extern void Internal_GetLimit(IntPtr thisPtr, out LimitAngularRange __output);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_SetDrive(IntPtr thisPtr, ref HingeJointDrive drive);
+		[MethodImpl(MethodImplOptions.InternalCall)]
+		private static extern void Internal_GetDrive(IntPtr thisPtr, out HingeJointDrive __output);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_SetFlag(IntPtr thisPtr, HingeJointFlag flag, bool enabled);
 		[MethodImpl(MethodImplOptions.InternalCall)]

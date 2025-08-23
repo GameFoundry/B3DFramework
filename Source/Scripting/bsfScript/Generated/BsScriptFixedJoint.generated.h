@@ -4,7 +4,7 @@
 
 #include "BsScriptEnginePrerequisites.h"
 #include "Wrappers/BsScriptComponent.h"
-#include "BsScriptCJoint.generated.h"
+#include "BsScriptJoint.generated.h"
 
 namespace b3d { class FixedJoint; }
 namespace b3d

@@ -4,7 +4,7 @@
 #include "BsMonoMethod.h"
 #include "BsMonoClass.h"
 #include "BsMonoUtil.h"
-#include "../../../Foundation/bsfCore/Physics/BsJoint.h"
+#include "../../../Foundation/bsfCore/Components/BsJoint.h"
 #include "BsScriptSpring.generated.h"
 
 namespace b3d

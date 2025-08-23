@@ -5,15 +5,15 @@
 #include "BsScriptEnginePrerequisites.h"
 #include "Wrappers/BsScriptComponent.h"
 #include "../../../Foundation/bsfCore/Physics/BsPhysicsCommon.h"
-#include "../../../Foundation/bsfCore/Physics/BsRigidbody.h"
+#include "../../../Foundation/bsfCore/Components/BsRigidbody.h"
 #include "../../../Foundation/bsfUtility/Math/BsVector3.h"
 #include "../../../Foundation/bsfUtility/Math/BsQuaternion.h"
 #include "../../../Foundation/bsfCore/Physics/BsPhysicsCommon.h"
-#include "../../../Foundation/bsfCore/Physics/BsRigidbody.h"
-#include "../../../Foundation/bsfCore/Physics/BsRigidbody.h"
+#include "../../../Foundation/bsfCore/Components/BsRigidbody.h"
+#include "../../../Foundation/bsfCore/Components/BsRigidbody.h"
 
-namespace b3d { class Rigidbody; }
 namespace b3d { struct __CollisionDataInterop; }
+namespace b3d { class Rigidbody; }
 namespace b3d
 {
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptRigidbody : public TScriptGameObjectWrapper<Rigidbody, ScriptRigidbody>
@@ -68,7 +68,7 @@ namespace b3d
 		static float InternalGetAngularDrag(ScriptRigidbody* self);
 		static void InternalSetInertiaTensor(ScriptRigidbody* self, TVector3<float>* tensor);
 		static void InternalGetInertiaTensor(ScriptRigidbody* self, TVector3<float>* __output);
-		static void InternalSetMaxAngularVelocity(ScriptRigidbody* self, float maxVelocity);
+		static void InternalSetMaxAngularVelocity(ScriptRigidbody* self, float velocity);
 		static float InternalGetMaxAngularVelocity(ScriptRigidbody* self);
 		static void InternalSetCenterOfMassPosition(ScriptRigidbody* self, TVector3<float>* position);
 		static void InternalGetCenterOfMassPosition(ScriptRigidbody* self, TVector3<float>* __output);

@@ -5,7 +5,7 @@
 #include "BsCorePrerequisites.h"
 #include "Reflection/BsRTTIType.h"
 #include "Reflection/BsRTTIPlain.h"
-#include "Components/BsCJoint.h"
+#include "Components/BsJoint.h"
 #include "RTTI/BsMathRTTI.h"
 
 namespace b3d

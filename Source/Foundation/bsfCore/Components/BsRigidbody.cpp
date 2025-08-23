@@ -3,7 +3,7 @@
 #include "Components/BsRigidbody.h"
 #include "Scene/BsSceneObject.h"
 #include "Components/BsCollider.h"
-#include "Components/BsCJoint.h"
+#include "Components/BsJoint.h"
 #include "Private/RTTI/BsRigidbodyRTTI.h"
 #include "Physics/BsPhysics.h"
 #include "Scene/BsSceneInstance.h"

@@ -1,10 +1,10 @@
 //********************************* B3D Framework - Copyright 2018-2022 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "BsScriptCSliderJoint.generated.h"
+#include "BsScriptSliderJoint.generated.h"
 #include "BsMonoMethod.h"
 #include "BsMonoClass.h"
 #include "BsMonoUtil.h"
-#include "../../../Foundation/bsfCore/Components/BsCSliderJoint.h"
+#include "../../../Foundation/bsfCore/Components/BsSliderJoint.h"
 #include "BsScriptLimitLinearRange.generated.h"
 
 namespace b3d
@@ -24,8 +24,8 @@ namespace b3d
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetPosition", (void*)&ScriptSliderJoint::InternalGetPosition);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetSpeed", (void*)&ScriptSliderJoint::InternalGetSpeed);
-		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetLimit", (void*)&ScriptSliderJoint::InternalGetLimit);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetLimit", (void*)&ScriptSliderJoint::InternalSetLimit);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetLimit", (void*)&ScriptSliderJoint::InternalGetLimit);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetFlag", (void*)&ScriptSliderJoint::InternalSetFlag);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_HasFlag", (void*)&ScriptSliderJoint::InternalHasFlag);
 
@@ -69,6 +69,16 @@ namespace b3d
 		return __output;
 	}
 
+	void ScriptSliderJoint::InternalSetLimit(ScriptSliderJoint* self, __LimitLinearRangeInterop* limit)
+	{
+		if(!self->IsNativeObjectValid())
+			return;
+
+		LimitLinearRange tmplimit;
+		tmplimit = ScriptLimitLinearRange::FromInterop(*limit);
+		static_cast<SliderJoint*>(self->GetNativeObject())->SetLimit(tmplimit);
+	}
+
 	void ScriptSliderJoint::InternalGetLimit(ScriptSliderJoint* self, __LimitLinearRangeInterop* __output)
 	{
 		if(!self->IsNativeObjectValid())
@@ -83,16 +93,6 @@ namespace b3d
 		__LimitLinearRangeInterop interop__output;
 		interop__output = ScriptLimitLinearRange::ToInterop(tmp__output);
 		MonoUtil::ValueCopy(__output, &interop__output, ScriptLimitLinearRange::GetMetaData()->ScriptClass->GetInternalClass());
-	}
-
-	void ScriptSliderJoint::InternalSetLimit(ScriptSliderJoint* self, __LimitLinearRangeInterop* limit)
-	{
-		if(!self->IsNativeObjectValid())
-			return;
-
-		LimitLinearRange tmplimit;
-		tmplimit = ScriptLimitLinearRange::FromInterop(*limit);
-		static_cast<SliderJoint*>(self->GetNativeObject())->SetLimit(tmplimit);
 	}
 
 	void ScriptSliderJoint::InternalSetFlag(ScriptSliderJoint* self, SliderJointFlag flag, bool enabled)

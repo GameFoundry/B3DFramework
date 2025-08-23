@@ -5350,28 +5350,6 @@ In range [-1.0f, 1.0f].</doc>
 			<doc>Determines the brightness of the lens flare effect. Value of 1 means the lens flare will be displayed at the same intensity as the scene it was derived from. In range [0, 1], default being 0.05.</doc>
 		</property>
 	</class>
-	<class native="CHingeJoint" script="HingeJoint">
-		<method native="SetFlag" script="SetFlag" static="false">
-			<param name="flag" type="HingeJointFlag">
-			</param>
-			<param name="enabled" type="bool">
-			</param>
-		</method>
-		<method native="HasFlag" script="HasFlag" static="false">
-			<param name="flag" type="HingeJointFlag">
-			</param>
-			<returns type="bool">
-			</returns>
-		</method>
-		<property name="Angle" type="Radian" getter="GetAngle" setter="" static="false">
-		</property>
-		<property name="Speed" type="float" getter="GetSpeed" setter="" static="false">
-		</property>
-		<property name="Limit" type="LimitAngularRange" getter="GetLimit" setter="SetLimit" static="false">
-		</property>
-		<property name="Drive" type="HingeJointDrive" getter="GetDrive" setter="SetDrive" static="false">
-		</property>
-	</class>
 	<class native="FilmGrainSettings" script="FilmGrainSettings">
 		<doc>Settings that control the film grain effect. Film grains adds a time-varying noise effect over the entire image.</doc>
 		<ctor>
@@ -5757,719 +5735,6 @@ Sprite images also allow you to specify sprite sheet animation by varying which 
 			<doc>Magnitude of motion after the hit.</doc>
 		</field>
 	</struct>
-	<struct native="LightProbeInfo" script="LightProbeInfo">
-		<doc>Information about a single probe in the light probe volume.</doc>
-		<field name="Handle" type="int">
-		</field>
-		<field name="Position" type="Vector3">
-		</field>
-	</struct>
-	<enum native="JointBody" script="JointBody">
-		<doc>Specifies first or second body referenced by a Joint.</doc>
-		<enumentry native="Target" script="Target">
-			<doc>Body the joint is influencing.</doc>
-		</enumentry>
-		<enumentry native="Anchor" script="Anchor">
-			<doc>Body the joint is attached to (if any).</doc>
-		</enumentry>
-	</enum>
-	<class native="GUIFlexibleSpace" script="GUIFlexibleSpace">
-		<doc>GUI element that may be inserted into layouts to make a space of a flexible size. The space will expand only if there is room and other elements are not squished because of it. If multiple flexible spaces are in a layout, their sizes will be shared equally.</doc>
-		<ctor>
-			<doc>Creates a new flexible space GUI element.</doc>
-		</ctor>
-	</class>
-	<class native="GUIProgressBar" script="GUIProgressBar">
-		<doc>GUI element containing a background image and a fill image that is scaled depending on the percentage set by the caller.</doc>
-		<ctor>
-			<doc>Creates a new GUI element.</doc>
-			<param name="styleClass" type="string">
-				<doc>Style class that will be used for determining GUI element visuals from the current style sheet. If no class is provided, default style is determined based on GUI element type.</doc>
-			</param>
-			<param name="options" type="GUIOption">
-				<doc>Additional options that control GUI element size and position. This will override options set in the style sheet.</doc>
-			</param>
-		</ctor>
-		<ctor>
-			<doc>Creates a new GUI element.</doc>
-			<param name="options" type="GUIOption">
-				<doc>Additional options that control GUI element size and position. This will override options set in the style sheet.</doc>
-			</param>
-		</ctor>
-		<property name="Percent" type="float" getter="GetPercent" setter="SetPercent" static="false">
-			<doc>Determines how far is the progress bar filled, in range [0, 1].</doc>
-		</property>
-	</class>
-	<struct native="Spring" script="Spring">
-		<doc>Controls spring parameters for a physics joint limits. If a limit is soft (body bounces back due to restition when the limit is reached) the spring will pull the body back towards the limit using the specified parameters.</doc>
-		<ctor>
-			<doc>Constructs a spring with no force.</doc>
-		</ctor>
-		<ctor>
-			<doc>Constructs a spring.</doc>
-			<param name="stiffness" type="float">
-				<doc>Spring strength. Force proportional to the position error.</doc>
-			</param>
-			<param name="damping" type="float">
-				<doc>Damping strength. Force propertional to the velocity error.</doc>
-			</param>
-		</ctor>
-		<field name="Stiffness" type="float">
-			<doc>Spring strength. Force proportional to the position error.</doc>
-		</field>
-		<field name="Damping" type="float">
-			<doc>Damping strength. Force propertional to the velocity error.</doc>
-		</field>
-	</struct>
-	<struct native="LimitCommon" script="LimitCommon">
-		<doc>Contains common values used by all Joint limit types.</doc>
-		<ctor>
-			<param name="contactDist" type="float">
-			</param>
-		</ctor>
-		<ctor>
-			<param name="spring" type="Spring">
-			</param>
-			<param name="restitution" type="float">
-			</param>
-		</ctor>
-		<field name="ContactDist" type="float">
-			<doc>Distance from the limit at which it becomes active. Allows the solver to activate earlier than the limit is reached to avoid breaking the limit.</doc>
-		</field>
-		<field name="Restitution" type="float">
-			<doc>Controls how do objects react when the limit is reached, values closer to zero specify non-ellastic collision, while those closer to one specify more ellastic (i.e bouncy) collision. Must be in [0, 1] range.</doc>
-		</field>
-		<field name="Spring" type="Spring">
-			<doc>Spring that controls how are the bodies pulled back towards the limit when they breach it.</doc>
-		</field>
-	</struct>
-	<class native="GUIResizableHorizontalScrollBar" script="GUIResizableHorizontalScrollBar">
-		<doc>Specialization of a GUIScrollBar for horizontal scrolling, with the ability to resize the scroll bar.</doc>
-		<ctor>
-			<doc>Creates a new GUI element.</doc>
-			<param name="styleClass" type="string">
-				<doc>Style class that will be used for determining GUI element visuals from the current style sheet. If no class is provided, default style is determined based on GUI element type.</doc>
-			</param>
-			<param name="options" type="GUIOption">
-				<doc>Additional options that control GUI element size and position. This will override options set in the style sheet.</doc>
-			</param>
-		</ctor>
-		<ctor>
-			<doc>Creates a new GUI element.</doc>
-			<param name="options" type="GUIOption">
-				<doc>Additional options that control GUI element size and position. This will override options set in the style sheet.</doc>
-			</param>
-		</ctor>
-	</class>
-	<struct native="PARTICLE_FORCE_DESC" script="ParticleForceOptions">
-		<doc>Structure used for initializing a ParticleForce object.</doc>
-		<ctor>
-		</ctor>
-		<field name="Force" type="Vector3Distribution">
-			<doc>Determines the force of the particles evaluated over particle lifetime.</doc>
-		</field>
-		<field name="WorldSpace" type="bool">
-			<doc>True if the force is provided in world space, false if in local space.</doc>
-		</field>
-	</struct>
-	<struct native="LimitLinearRange" script="LimitLinearRange">
-		<doc>Represents a joint limit between two distance values. Lower value must be less than the upper value.</doc>
-		<ctor>
-			<doc>Constructs an empty limit.</doc>
-		</ctor>
-		<ctor>
-			<doc>Constructs a hard limit. Once the limit is reached the movement of the attached bodies will come to a stop.</doc>
-			<param name="lower" type="float">
-				<doc>Lower distance of the limit. Must be less than <paramref name="upper"/>.</doc>
-			</param>
-			<param name="upper" type="float">
-				<doc>Upper distance of the limit. Must be more than <paramref name="lower"/>.</doc>
-			</param>
-			<param name="contactDist" type="float">
-				<doc>Distance from the limit at which it becomes active. Allows the solver to activate earlier than the limit is reached to avoid breaking the limit. Specify -1 for the default.</doc>
-			</param>
-		</ctor>
-		<ctor>
-			<doc>Constructs a soft limit. Once the limit is reached the bodies will bounce back according to the resitution parameter and will be pulled back towards the limit by the provided spring.</doc>
-			<param name="lower" type="float">
-				<doc>Lower distance of the limit. Must be less than <paramref name="upper"/>.</doc>
-			</param>
-			<param name="upper" type="float">
-				<doc>Upper distance of the limit. Must be more than <paramref name="lower"/>.</doc>
-			</param>
-			<param name="spring" type="Spring">
-				<doc>Spring that controls how are the bodies pulled back towards the limit when they breach it.</doc>
-			</param>
-			<param name="restitution" type="float">
-				<doc>Controls how do objects react when the limit is reached, values closer to zero specify non-ellastic collision, while those closer to one specify more ellastic (i.e bouncy) collision. Must be in [0, 1] range.</doc>
-			</param>
-		</ctor>
-		<field name="Lower" type="float">
-			<doc>Lower distance of the limit. Must be less than #upper.</doc>
-		</field>
-		<field name="Upper" type="float">
-			<doc>Upper distance of the limit. Must be more than #lower.</doc>
-		</field>
-		<field name="ContactDist" type="float">
-			<doc>Distance from the limit at which it becomes active. Allows the solver to activate earlier than the limit is reached to avoid breaking the limit.</doc>
-		</field>
-		<field name="Restitution" type="float">
-			<doc>Controls how do objects react when the limit is reached, values closer to zero specify non-ellastic collision, while those closer to one specify more ellastic (i.e bouncy) collision. Must be in [0, 1] range.</doc>
-		</field>
-		<field name="Spring" type="Spring">
-			<doc>Spring that controls how are the bodies pulled back towards the limit when they breach it.</doc>
-		</field>
-	</struct>
-	<class native="ManagedTypeUtility" script="ManagedTypeUtility">
-		<doc>Provides various utility methods for reflection-like operations on managed objects.</doc>
-		<method native="GetTypeInfo" script="GetTypeInfo" static="true">
-			<doc>Retrieves information about the object&apos;s type. Object must be a primitive type, scene object, component, resource, resource reference type, or a custom type marked with SerializeObject attribute in order for type information to be present. Type information can also be retrieved for arrays, lists or dictionaries of the above types.</doc>
-			<param name="objectType" type="Type">
-			</param>
-			<returns type="ManagedTypeInfo">
-			</returns>
-		</method>
-		<method native="GetSerializableObjectInfo" script="GetSerializableObjectInfo" static="true">
-			<doc>Retrieves detailed information about a serializable object. Provided object&apos;s type must be marked with a SerializeObject attribute for this information to be available.</doc>
-			<param name="objectType" type="Type">
-			</param>
-			<returns type="ManagedObjectInfo">
-			</returns>
-		</method>
-		<method native="GetRTTITypeId" script="GetRTTITypeId" static="true">
-			<doc>Deduces the RTTI ID of the native object that is wrapped by the provided object type. Returns ~0u for types that do not wrap native types.</doc>
-			<param name="objectType" type="Type">
-			</param>
-			<returns type="int">
-			</returns>
-		</method>
-		<method native="CreateSerializableObject" script="CreateSerializableObject" static="true">
-			<doc>Creates a new instance of a serialized object of the provided type.</doc>
-			<param name="typeInfo" type="ManagedTypeInfoObject">
-			</param>
-			<returns type="object">
-			</returns>
-		</method>
-		<method native="CreateArray" script="CreateArray" static="true">
-			<doc>Creates a new instance of an array of the provided type and size. Size array must have an element for each rank of the array type.</doc>
-			<param name="typeInfo" type="ManagedTypeInfoArray">
-			</param>
-			<param name="arraySizes" type="int">
-			</param>
-			<returns type="object">
-			</returns>
-		</method>
-		<method native="CreateList" script="CreateList" static="true">
-			<doc>Creates a new instance of a list of the provided type with the provided initial capacity.</doc>
-			<param name="typeInfo" type="ManagedTypeInfoList">
-			</param>
-			<param name="size" type="int">
-			</param>
-			<returns type="object">
-			</returns>
-		</method>
-		<method native="CreateDictionary" script="CreateDictionary" static="true">
-			<doc>Creates a new instance of a dictionary of the provided type.</doc>
-			<param name="typeInfo" type="ManagedTypeInfoDictionary">
-			</param>
-			<returns type="object">
-			</returns>
-		</method>
-		<method native="CloneObject" script="CloneObject" static="true">
-			<doc>Clones the specified object. Non-serializable types and fields are ignored in clone. A deep copy is performed on all serializable elements except for resources or game objects.</doc>
-			<param name="original" type="object">
-				<doc>Non-null reference to the object to clone. Object type must be serializable.</doc>
-			</param>
-			<returns type="object">
-				<doc>Deep copy of the original object</doc>
-			</returns>
-		</method>
-		<method native="CreateObjectOfType" script="CreateObjectOfType" static="true">
-			<doc>Creates an uninitialized object of the specified type.</doc>
-			<param name="type" type="Type">
-				<doc>Type of the object to create. Must be serializable</doc>
-			</param>
-			<returns type="object">
-				<doc>New instance of the specified type, or null if the type is not serializable.</doc>
-			</returns>
-		</method>
-	</class>
-	<struct native="LimitLinear" script="LimitLinear">
-		<doc>Represents a joint limit between zero a single distance value.</doc>
-		<ctor>
-			<doc>Constructs an empty limit.</doc>
-		</ctor>
-		<ctor>
-			<doc>Constructs a hard limit. Once the limit is reached the movement of the attached bodies will come to a stop.</doc>
-			<param name="extent" type="float">
-				<doc>Distance at which the limit becomes active.</doc>
-			</param>
-			<param name="contactDist" type="float">
-				<doc>Distance from the limit at which it becomes active. Allows the solver to activate earlier than the limit is reached to avoid breaking the limit. Specify -1 for the default.</doc>
-			</param>
-		</ctor>
-		<ctor>
-			<doc>Constructs a soft limit. Once the limit is reached the bodies will bounce back according to the resitution parameter and will be pulled back towards the limit by the provided spring.</doc>
-			<param name="extent" type="float">
-				<doc>Distance at which the limit becomes active.</doc>
-			</param>
-			<param name="spring" type="Spring">
-				<doc>Spring that controls how are the bodies pulled back towards the limit when they breach it.</doc>
-			</param>
-			<param name="restitution" type="float">
-				<doc>Controls how do objects react when the limit is reached, values closer to zero specify non-ellastic collision, while those closer to one specify more ellastic (i.e bouncy) collision. Must be in [0, 1] range.</doc>
-			</param>
-		</ctor>
-		<field name="Extent" type="float">
-			<doc>Distance at which the limit becomes active.</doc>
-		</field>
-		<field name="ContactDist" type="float">
-			<doc>Distance from the limit at which it becomes active. Allows the solver to activate earlier than the limit is reached to avoid breaking the limit.</doc>
-		</field>
-		<field name="Restitution" type="float">
-			<doc>Controls how do objects react when the limit is reached, values closer to zero specify non-ellastic collision, while those closer to one specify more ellastic (i.e bouncy) collision. Must be in [0, 1] range.</doc>
-		</field>
-		<field name="Spring" type="Spring">
-			<doc>Spring that controls how are the bodies pulled back towards the limit when they breach it.</doc>
-		</field>
-	</struct>
-	<enum native="D6JointAxis" script="D6JointAxis">
-		<doc>Specifies axes that the D6 joint can constrain motion on.</doc>
-		<enumentry native="X" script="X">
-			<doc>Movement on the X axis.</doc>
-		</enumentry>
-		<enumentry native="Count" script="Count">
-		</enumentry>
-		<enumentry native="Y" script="Y">
-			<doc>Movement on the Y axis.</doc>
-		</enumentry>
-		<enumentry native="Z" script="Z">
-			<doc>Movement on the Z axis.</doc>
-		</enumentry>
-		<enumentry native="SwingY" script="SwingY">
-			<doc>Rotation around the Y axis.</doc>
-		</enumentry>
-		<enumentry native="Twist" script="Twist">
-			<doc>Rotation around the X axis.</doc>
-		</enumentry>
-		<enumentry native="SwingZ" script="SwingZ">
-			<doc>Rotation around the Z axis.</doc>
-		</enumentry>
-	</enum>
-	<class native="ParticleEmitterCircleShape" script="ParticleEmitterCircleShape">
-		<doc>Particle emitter shape that emits particles from a circle. Using the thickness parameter you can control whether to emit only from circle edge, the entire surface or just a part of the surface. Using the arc parameter you can emit from a specific angular portion of the circle.</doc>
-		<ctor>
-			<doc>Creates a new particle emitter circle shape.</doc>
-			<param name="desc" type="ParticleCircleShapeOptions">
-			</param>
-		</ctor>
-		<ctor>
-			<doc>Creates a new particle emitter circle shape.</doc>
-		</ctor>
-		<property name="Options" type="ParticleCircleShapeOptions" getter="GetOptions" setter="SetOptions" static="false">
-			<doc>Options describing the shape.</doc>
-		</property>
-	</class>
-	<enum native="D6JointMotion" script="D6JointMotion">
-		<doc>Specifies type of constraint placed on a specific axis.</doc>
-		<enumentry native="Free" script="Free">
-			<doc>Axis will not be constrained.</doc>
-		</enumentry>
-		<enumentry native="Locked" script="Locked">
-			<doc>Axis is immovable.</doc>
-		</enumentry>
-		<enumentry native="Limited" script="Limited">
-			<doc>Axis will be constrained by the specified limits.</doc>
-		</enumentry>
-		<enumentry native="Count" script="Count">
-		</enumentry>
-	</enum>
-	<class native="Input" script="Input">
-		<doc>Primary module used for dealing with input. Allows you to receieve and query raw or OS input for mouse/keyboard/gamepad.</doc>
-		<method native="GetAxisValue" script="GetAxisValue" static="false">
-			<doc>Returns value of the specified input axis. Normally in range [-1.0, 1.0] but can be outside the range for devices with unbound axes (for example mouse).</doc>
-			<param name="type" type="int">
-				<doc>Type of axis to query. Usually a type from InputAxis but can be a custom value.</doc>
-			</param>
-			<param name="deviceIdx" type="int">
-				<doc>Index of the device in case more than one is hooked up (0 - primary).</doc>
-			</param>
-			<returns type="float">
-			</returns>
-		</method>
-		<method native="IsButtonHeld" script="IsButtonHeld" static="false">
-			<doc>Query if the provided button is currently being held (this frame or previous frames).</doc>
-			<param name="keyCode" type="ButtonCode">
-				<doc>Code of the button to query.</doc>
-			</param>
-			<param name="deviceIdx" type="int">
-				<doc>Device to query the button on (0 - primary).</doc>
-			</param>
-			<returns type="bool">
-			</returns>
-		</method>
-		<method native="IsButtonUp" script="IsButtonUp" static="false">
-			<doc>Query if the provided button is currently being released (only true for one frame).</doc>
-			<param name="keyCode" type="ButtonCode">
-				<doc>Code of the button to query.</doc>
-			</param>
-			<param name="deviceIdx" type="int">
-				<doc>Device to query the button on (0 - primary).</doc>
-			</param>
-			<returns type="bool">
-			</returns>
-		</method>
-		<method native="IsButtonDown" script="IsButtonDown" static="false">
-			<doc>Query if the provided button is currently being pressed (only true for one frame).</doc>
-			<param name="keyCode" type="ButtonCode">
-				<doc>Code of the button to query.</doc>
-			</param>
-			<param name="deviceIdx" type="int">
-				<doc>Device to query the button on (0 - primary).</doc>
-			</param>
-			<returns type="bool">
-			</returns>
-		</method>
-		<method native="IsPointerButtonHeld" script="IsPointerButtonHeld" static="false">
-			<doc>Query if the provided pointer button is currently being held (this frame or previous frames).</doc>
-			<param name="pointerButton" type="PointerEventButton">
-				<doc>Code of the button to query.</doc>
-			</param>
-			<returns type="bool">
-			</returns>
-		</method>
-		<method native="IsPointerButtonUp" script="IsPointerButtonUp" static="false">
-			<doc>Query if the provided pointer button is currently being released (only true for one frame).</doc>
-			<param name="pointerButton" type="PointerEventButton">
-				<doc>Code of the button to query.</doc>
-			</param>
-			<returns type="bool">
-			</returns>
-		</method>
-		<method native="IsPointerButtonDown" script="IsPointerButtonDown" static="false">
-			<doc>Query if the provided pointer button is currently being pressed (only true for one frame).</doc>
-			<param name="pointerButton" type="PointerEventButton">
-				<doc>Code of the button to query.</doc>
-			</param>
-			<returns type="bool">
-			</returns>
-		</method>
-		<method native="IsPointerDoubleClicked" script="IsPointerDoubleClicked" static="false">
-			<doc>Query has the left pointer button has been double-clicked this frame.</doc>
-			<returns type="bool">
-			</returns>
-		</method>
-		<method native="SetMouseSmoothing" script="SetMouseSmoothing" static="false">
-			<doc>Enables or disables mouse smoothing. Smoothing makes the changes to mouse axes more gradual.</doc>
-			<param name="enabled" type="bool">
-			</param>
-		</method>
-		<property name="PointerPosition" type="TVector2&lt;int&gt;" getter="GetPointerPosition" setter="" static="false">
-			<doc>Returns position of the pointer (for example mouse cursor) relative to the screen.</doc>
-		</property>
-		<property name="PointerDelta" type="TVector2&lt;int&gt;" getter="GetPointerDelta" setter="" static="false">
-			<doc>Returns difference between pointer position between current and last frame.</doc>
-		</property>
-		<event native="OnButtonDown" script="OnButtonDown" static="false">
-			<doc>Triggered whenever a button is first pressed.</doc>
-			<param name="p0" type="ButtonEvent">
-			</param>
-		</event>
-		<event native="OnButtonUp" script="OnButtonUp" static="false">
-			<doc>Triggered whenever a button is first released.</doc>
-			<param name="p0" type="ButtonEvent">
-			</param>
-		</event>
-		<event native="OnCharInput" script="OnCharInput" static="false">
-			<doc>Triggered whenever user inputs a text character.</doc>
-			<param name="p0" type="TextInputEvent">
-			</param>
-		</event>
-		<event native="OnPointerMoved" script="OnPointerMoved" static="false">
-			<doc>Triggers when some pointing device (mouse cursor, touch) moves.</doc>
-			<param name="p0" type="PointerEvent">
-			</param>
-		</event>
-		<event native="OnPointerPressed" script="OnPointerPressed" static="false">
-			<doc>Triggers when some pointing device (mouse cursor, touch) button is pressed.</doc>
-			<param name="p0" type="PointerEvent">
-			</param>
-		</event>
-		<event native="OnPointerReleased" script="OnPointerReleased" static="false">
-			<doc>Triggers when some pointing device (mouse cursor, touch) button is released.</doc>
-			<param name="p0" type="PointerEvent">
-			</param>
-		</event>
-		<event native="OnPointerDoubleClick" script="OnPointerDoubleClick" static="false">
-			<doc>Triggers when some pointing device (mouse cursor, touch) button is double clicked.</doc>
-			<param name="p0" type="PointerEvent">
-			</param>
-		</event>
-	</class>
-	<enum native="D6JointDriveType" script="D6JointDriveType">
-		<doc>Type of drives that can be used for moving or rotating bodies attached to the joint.</doc>
-		<enumentry native="SLERP" script="SLERP">
-			<doc>Rotation using spherical linear interpolation. Uses the SLERP angular drive mode which performs rotation by interpolating the quaternion values directly over the shortest path (applies to all three axes, which they all must be unlocked).</doc>
-		</enumentry>
-		<enumentry native="X" script="X">
-			<doc>Linear movement on the X axis using the linear drive model.</doc>
-		</enumentry>
-		<enumentry native="Count" script="Count">
-			<doc>Rotation using spherical linear interpolation. Uses the SLERP angular drive mode which performs rotation by interpolating the quaternion values directly over the shortest path (applies to all three axes, which they all must be unlocked).</doc>
-		</enumentry>
-		<enumentry native="Y" script="Y">
-			<doc>Linear movement on the Y axis using the linear drive model.</doc>
-		</enumentry>
-		<enumentry native="Z" script="Z">
-			<doc>Linear movement on the Z axis using the linear drive model.</doc>
-		</enumentry>
-		<enumentry native="Swing" script="Swing">
-			<doc>Rotation around the Y axis using the twist/swing angular drive model. Should not be used together with SLERP mode.</doc>
-		</enumentry>
-		<enumentry native="Twist" script="Twist">
-			<doc>Rotation around the Z axis using the twist/swing angular drive model. Should not be used together with SLERP mode.</doc>
-		</enumentry>
-	</enum>
-	<struct native="D6JointDrive" script="D6JointDrive">
-		<doc>Specifies parameters for a drive that will attempt to move the joint bodies to the specified drive position and velocity.</doc>
-		<ctor>
-		</ctor>
-		<field name="Stiffness" type="float">
-			<doc>Spring strength. Force proportional to the position error.</doc>
-		</field>
-		<field name="Damping" type="float">
-			<doc>Damping strength. Force propertional to the velocity error.</doc>
-		</field>
-		<field name="ForceLimit" type="float">
-			<doc>Maximum force the drive can apply.</doc>
-		</field>
-		<field name="Acceleration" type="bool">
-			<doc>If true the drive will generate acceleration instead of forces. Acceleration drives are easier to tune as they account for the masses of the actors to which the joint is attached.</doc>
-		</field>
-	</struct>
-	<enum native="SphericalJointFlag" script="SphericalJointFlag">
-		<doc>Flags that control options for the spherical joint</doc>
-		<enumentry native="Limit" script="Limit">
-			<doc>Enables the cone range limit.</doc>
-		</enumentry>
-	</enum>
-	<class native="CJoint" script="Joint">
-		<method native="GetBody" script="GetBody" static="false">
-			<param name="body" type="JointBody">
-			</param>
-			<returns type="Rigidbody">
-			</returns>
-		</method>
-		<method native="SetBody" script="SetBody" static="false">
-			<param name="body" type="JointBody">
-			</param>
-			<param name="value" type="Rigidbody">
-			</param>
-		</method>
-		<method native="GetPosition" script="GetPosition" static="false">
-			<param name="body" type="JointBody">
-			</param>
-			<returns type="Vector3">
-			</returns>
-		</method>
-		<method native="GetRotation" script="GetRotation" static="false">
-			<param name="body" type="JointBody">
-			</param>
-			<returns type="Quaternion">
-			</returns>
-		</method>
-		<method native="SetTransform" script="SetTransform" static="false">
-			<param name="body" type="JointBody">
-			</param>
-			<param name="position" type="Vector3">
-			</param>
-			<param name="rotation" type="Quaternion">
-			</param>
-		</method>
-		<property name="BreakForce" type="float" getter="GetBreakForce" setter="SetBreakForce" static="false">
-		</property>
-		<property name="BreakTorque" type="float" getter="GetBreakTorque" setter="SetBreakTorque" static="false">
-		</property>
-		<property name="EnableCollision" type="bool" getter="GetEnableCollision" setter="SetEnableCollision" static="false">
-		</property>
-		<event native="OnJointBreak" script="OnJointBreak" static="false">
-		</event>
-	</class>
-	<class native="CD6Joint" script="D6Joint">
-		<method native="GetMotion" script="GetMotion" static="false">
-			<param name="axis" type="D6JointAxis">
-			</param>
-			<returns type="D6JointMotion">
-			</returns>
-		</method>
-		<method native="SetMotion" script="SetMotion" static="false">
-			<param name="axis" type="D6JointAxis">
-			</param>
-			<param name="motion" type="D6JointMotion">
-			</param>
-		</method>
-		<method native="GetDrive" script="GetDrive" static="false">
-			<param name="type" type="D6JointDriveType">
-			</param>
-			<returns type="D6JointDrive">
-			</returns>
-		</method>
-		<method native="SetDrive" script="SetDrive" static="false">
-			<param name="type" type="D6JointDriveType">
-			</param>
-			<param name="drive" type="D6JointDrive">
-			</param>
-		</method>
-		<method native="SetDriveTransform" script="SetDriveTransform" static="false">
-			<param name="position" type="Vector3">
-			</param>
-			<param name="rotation" type="Quaternion">
-			</param>
-		</method>
-		<method native="SetDriveVelocity" script="SetDriveVelocity" static="false">
-			<param name="linear" type="Vector3">
-			</param>
-			<param name="angular" type="Vector3">
-			</param>
-		</method>
-		<property name="Twist" type="Radian" getter="GetTwist" setter="" static="false">
-		</property>
-		<property name="SwingY" type="Radian" getter="GetSwingY" setter="" static="false">
-		</property>
-		<property name="SwingZ" type="Radian" getter="GetSwingZ" setter="" static="false">
-		</property>
-		<property name="LimitLinear" type="LimitLinear" getter="GetLimitLinear" setter="SetLimitLinear" static="false">
-		</property>
-		<property name="LimitTwist" type="LimitAngularRange" getter="GetLimitTwist" setter="SetLimitTwist" static="false">
-		</property>
-		<property name="LimitSwing" type="LimitConeRange" getter="GetLimitSwing" setter="SetLimitSwing" static="false">
-		</property>
-		<property name="DrivePosition" type="Vector3" getter="GetDrivePosition" setter="" static="false">
-		</property>
-		<property name="DriveRotation" type="Quaternion" getter="GetDriveRotation" setter="" static="false">
-		</property>
-		<property name="DriveLinearVelocity" type="Vector3" getter="GetDriveLinearVelocity" setter="" static="false">
-		</property>
-		<property name="DriveAngularVelocity" type="Vector3" getter="GetDriveAngularVelocity" setter="" static="false">
-		</property>
-	</class>
-	<class native="ParticleVelocity" script="ParticleVelocity">
-		<doc>Applies linear velocity to the particles.</doc>
-		<ctor>
-			<doc>Creates a new particle velocity evolver.</doc>
-			<param name="desc" type="ParticleVelocityOptions">
-			</param>
-		</ctor>
-		<ctor>
-			<doc>Creates a new particle velocity evolver.</doc>
-		</ctor>
-		<property name="Options" type="ParticleVelocityOptions" getter="GetOptions" setter="SetOptions" static="false">
-			<doc>Options describing the evolver.</doc>
-		</property>
-	</class>
-	<enum native="DistanceJointFlag" script="DistanceJointFlag">
-		<doc>Controls distance joint options.</doc>
-		<enumentry native="MinDistance" script="MinDistance">
-			<doc>Enables minimum distance limit.</doc>
-		</enumentry>
-		<enumentry native="MaxDistance" script="MaxDistance">
-			<doc>Enables maximum distance limit.</doc>
-		</enumentry>
-		<enumentry native="Spring" script="Spring">
-			<doc>Enables spring when maintaining limits.</doc>
-		</enumentry>
-	</enum>
-	<enum native="GUIHorizontalTextAlignment" script="GUIHorizontalTextAlignment">
-		<doc>Determines how is text horizontally aligned in a GUI element.</doc>
-		<enumentry native="Left" script="Left">
-		</enumentry>
-		<enumentry native="Center" script="Center">
-		</enumentry>
-		<enumentry native="Right" script="Right">
-		</enumentry>
-	</enum>
-	<class native="CDistanceJoint" script="DistanceJoint">
-		<method native="SetFlag" script="SetFlag" static="false">
-			<param name="flag" type="DistanceJointFlag">
-			</param>
-			<param name="enabled" type="bool">
-			</param>
-		</method>
-		<method native="HasFlag" script="HasFlag" static="false">
-			<param name="flag" type="DistanceJointFlag">
-			</param>
-			<returns type="bool">
-			</returns>
-		</method>
-		<property name="Distance" type="float" getter="GetDistance" setter="" static="false">
-		</property>
-		<property name="MinDistance" type="float" getter="GetMinDistance" setter="SetMinDistance" static="false">
-		</property>
-		<property name="MaxDistance" type="float" getter="GetMaxDistance" setter="SetMaxDistance" static="false">
-		</property>
-		<property name="Tolerance" type="float" getter="GetTolerance" setter="SetTolerance" static="false">
-		</property>
-		<property name="Spring" type="Spring" getter="GetSpring" setter="SetSpring" static="false">
-		</property>
-	</class>
-	<class native="CFixedJoint" script="FixedJoint">
-	</class>
-	<class native="CapsuleCollider" script="CapsuleCollider">
-		<doc>Collider with a capsule geometry.</doc>
-		<property name="Normal" type="Vector3" getter="GetNormal" setter="SetNormal" static="false">
-			<doc>Normal vector that determines how is the capsule oriented.</doc>
-		</property>
-		<property name="Center" type="Vector3" getter="GetCenter" setter="SetCenter" static="false">
-			<doc>Determines the position of the capsule shape, relative to the component&apos;s scene object.</doc>
-		</property>
-		<property name="HalfHeight" type="float" getter="GetHalfHeight" setter="SetHalfHeight" static="false">
-			<doc>Determines the half height of the capsule, from the origin to one of the hemispherical centers, along the normal vector.</doc>
-		</property>
-		<property name="Radius" type="float" getter="GetRadius" setter="SetRadius" static="false">
-			<doc>Determines the radius of the capsule.</doc>
-		</property>
-	</class>
-	<enum native="HingeJointFlag" script="HingeJointFlag">
-		<doc>Flags that control hinge joint options.</doc>
-		<enumentry native="Limit" script="Limit">
-			<doc>Joint limit is enabled.</doc>
-		</enumentry>
-		<enumentry native="Drive" script="Drive">
-			<doc>Joint drive is enabled.</doc>
-		</enumentry>
-	</enum>
-	<enum native="RigidbodyFlag" script="RigidbodyFlag">
-		<doc>Flags that control options of a Rigidbody object.</doc>
-		<enumentry native="None" script="None">
-			<doc>No options.</doc>
-		</enumentry>
-		<enumentry native="AutoTensors" script="AutoTensors">
-			<doc>Automatically calculate center of mass transform and inertia tensors from child shapes (colliders).</doc>
-		</enumentry>
-		<enumentry native="AutoMass" script="AutoMass">
-			<doc>Calculate mass distribution from child shapes (colliders). Only relevant when auto-tensors is on.</doc>
-		</enumentry>
-		<enumentry native="CCD" script="CCD">
-			<doc>Enables continous collision detection. This can prevent fast moving bodies from tunneling through each other. This must also be enabled globally in Physics otherwise the flag will be ignored.</doc>
-		</enumentry>
-	</enum>
-	<struct native="HingeJointDrive" script="HingeJointDrive">
-		<doc>Properties of a drive that drives the joint&apos;s angular velocity towards a paricular value.</doc>
-		<ctor>
-		</ctor>
-		<field name="Speed" type="float">
-			<doc>Target speed of the joint.</doc>
-		</field>
-		<field name="ForceLimit" type="float">
-			<doc>Maximum torque the drive is allowed to apply .</doc>
-		</field>
-		<field name="GearRatio" type="float">
-			<doc>Scales the velocity of the first body, and its response to drive torque is scaled down.</doc>
-		</field>
-		<field name="FreeSpin" type="bool">
-			<doc>If the joint is moving faster than the drive&apos;s target speed, the drive will try to break. If you don&apos;t want the breaking to happen set this to true.</doc>
-		</field>
-	</struct>
 	<class native="CLight" script="Light">
 		<property name="Type" type="LightType" getter="GetType" setter="SetType" static="false">
 		</property>
@@ -6493,6 +5758,28 @@ Sprite images also allow you to specify sprite sheet animation by varying which 
 		</property>
 		<property name="Bounds" type="Sphere" getter="GetBounds" setter="" static="false">
 		</property>
+	</class>
+	<struct native="LightProbeInfo" script="LightProbeInfo">
+		<doc>Information about a single probe in the light probe volume.</doc>
+		<field name="Handle" type="int">
+		</field>
+		<field name="Position" type="Vector3">
+		</field>
+	</struct>
+	<enum native="JointBody" script="JointBody">
+		<doc>Specifies first or second body referenced by a Joint.</doc>
+		<enumentry native="Target" script="Target">
+			<doc>Body the joint is influencing.</doc>
+		</enumentry>
+		<enumentry native="Anchor" script="Anchor">
+			<doc>Body the joint is attached to (if any).</doc>
+		</enumentry>
+	</enum>
+	<class native="GUIFlexibleSpace" script="GUIFlexibleSpace">
+		<doc>GUI element that may be inserted into layouts to make a space of a flexible size. The space will expand only if there is room and other elements are not squished because of it. If multiple flexible spaces are in a layout, their sizes will be shared equally.</doc>
+		<ctor>
+			<doc>Creates a new flexible space GUI element.</doc>
+		</ctor>
 	</class>
 	<class native="CLightProbeVolume" script="LightProbeVolume">
 		<method native="AddProbe" script="AddProbe" static="false">
@@ -7007,6 +6294,71 @@ Sprite images also allow you to specify sprite sheet animation by varying which 
 			<doc>True if the velocity is provided in world space, false if in local space.</doc>
 		</field>
 	</struct>
+	<class native="ParticleVelocity" script="ParticleVelocity">
+		<doc>Applies linear velocity to the particles.</doc>
+		<ctor>
+			<doc>Creates a new particle velocity evolver.</doc>
+			<param name="desc" type="ParticleVelocityOptions">
+			</param>
+		</ctor>
+		<ctor>
+			<doc>Creates a new particle velocity evolver.</doc>
+		</ctor>
+		<property name="Options" type="ParticleVelocityOptions" getter="GetOptions" setter="SetOptions" static="false">
+			<doc>Options describing the evolver.</doc>
+		</property>
+	</class>
+	<struct native="LimitCommon" script="LimitCommon">
+		<doc>Contains common values used by all Joint limit types.</doc>
+		<ctor>
+			<param name="contactDist" type="float">
+			</param>
+		</ctor>
+		<ctor>
+			<param name="spring" type="Spring">
+			</param>
+			<param name="restitution" type="float">
+			</param>
+		</ctor>
+		<field name="ContactDist" type="float">
+			<doc>Distance from the limit at which it becomes active. Allows the solver to activate earlier than the limit is reached to avoid breaking the limit.</doc>
+		</field>
+		<field name="Restitution" type="float">
+			<doc>Controls how do objects react when the limit is reached, values closer to zero specify non-ellastic collision, while those closer to one specify more ellastic (i.e bouncy) collision. Must be in [0, 1] range.</doc>
+		</field>
+		<field name="Spring" type="Spring">
+			<doc>Spring that controls how are the bodies pulled back towards the limit when they breach it.</doc>
+		</field>
+	</struct>
+	<class native="GUIResizableHorizontalScrollBar" script="GUIResizableHorizontalScrollBar">
+		<doc>Specialization of a GUIScrollBar for horizontal scrolling, with the ability to resize the scroll bar.</doc>
+		<ctor>
+			<doc>Creates a new GUI element.</doc>
+			<param name="styleClass" type="string">
+				<doc>Style class that will be used for determining GUI element visuals from the current style sheet. If no class is provided, default style is determined based on GUI element type.</doc>
+			</param>
+			<param name="options" type="GUIOption">
+				<doc>Additional options that control GUI element size and position. This will override options set in the style sheet.</doc>
+			</param>
+		</ctor>
+		<ctor>
+			<doc>Creates a new GUI element.</doc>
+			<param name="options" type="GUIOption">
+				<doc>Additional options that control GUI element size and position. This will override options set in the style sheet.</doc>
+			</param>
+		</ctor>
+	</class>
+	<struct native="PARTICLE_FORCE_DESC" script="ParticleForceOptions">
+		<doc>Structure used for initializing a ParticleForce object.</doc>
+		<ctor>
+		</ctor>
+		<field name="Force" type="Vector3Distribution">
+			<doc>Determines the force of the particles evaluated over particle lifetime.</doc>
+		</field>
+		<field name="WorldSpace" type="bool">
+			<doc>True if the force is provided in world space, false if in local space.</doc>
+		</field>
+	</struct>
 	<struct native="PARTICLE_GRAVITY_DESC" script="ParticleGravityOptions">
 		<doc>Structure used for initializing a ParticleGravity object.</doc>
 		<ctor>
@@ -7362,22 +6714,6 @@ Sprite images also allow you to specify sprite sheet animation by varying which 
 		<property name="CustomTexture" type="RRef&lt;Texture&gt;" getter="GetCustomTexture" setter="SetCustomTexture" static="false">
 		</property>
 	</class>
-	<class native="CSphericalJoint" script="SphericalJoint">
-		<method native="SetFlag" script="SetFlag" static="false">
-			<param name="flag" type="SphericalJointFlag">
-			</param>
-			<param name="enabled" type="bool">
-			</param>
-		</method>
-		<method native="HasFlag" script="HasFlag" static="false">
-			<param name="flag" type="SphericalJointFlag">
-			</param>
-			<returns type="bool">
-			</returns>
-		</method>
-		<property name="Limit" type="LimitConeRange" getter="GetLimit" setter="SetLimit" static="false">
-		</property>
-	</class>
 	<struct native="PARTICLE_HEMISPHERE_SHAPE_DESC" script="ParticleHemisphereShapeOptions">
 		<doc>Information describing a ParticleEmitterHemisphereShape.</doc>
 		<ctor>
@@ -7435,6 +6771,160 @@ Sprite images also allow you to specify sprite sheet animation by varying which 
 			<doc>Particles will be emitted only from box surface.</doc>
 		</enumentry>
 	</enum>
+	<class native="HingeJoint" script="HingeJoint">
+		<doc>Hinge joint removes all but a single rotation degree of freedom from its two attached bodies (for example a door hinge).</doc>
+		<method native="SetFlag" script="SetFlag" static="false">
+			<doc>Enables or disables a flag that controls joint behaviour.</doc>
+			<param name="flag" type="HingeJointFlag">
+			</param>
+			<param name="enabled" type="bool">
+			</param>
+		</method>
+		<method native="HasFlag" script="HasFlag" static="false">
+			<doc>Checks is the specified option enabled.</doc>
+			<param name="flag" type="HingeJointFlag">
+			</param>
+			<returns type="bool">
+			</returns>
+		</method>
+		<property name="Angle" type="Radian" getter="GetAngle" setter="" static="false">
+			<doc>Returns the current angle between the two attached bodes.</doc>
+		</property>
+		<property name="Speed" type="float" getter="GetSpeed" setter="" static="false">
+			<doc>Returns the current angular speed of the joint.</doc>
+		</property>
+		<property name="Limit" type="LimitAngularRange" getter="GetLimit" setter="SetLimit" static="false">
+			<doc>Determines the limit of the joint. Limit constrains the motion to the specified angle range. You must enable the limit flag on the joint in order for this to be recognized.</doc>
+		</property>
+		<property name="Drive" type="HingeJointDrive" getter="GetDrive" setter="SetDrive" static="false">
+			<doc>Determines the drive properties of the joint. It drives the joint&apos;s angular velocity towards a particular value. You must enable the drive flag on the joint in order for the drive to be active.</doc>
+		</property>
+	</class>
+	<class native="Rigidbody" script="Rigidbody">
+		<doc>Rigidbody is a dynamic physics object that can be moved using forces (or directly). It will interact with other static and dynamic physics objects in the scene accordingly (it will push other non-kinematic rigidbodies, and collide with static objects).
+The shape and mass of a rigidbody is governed by its colliders. At least one collider must be attached to the collider. To attach a collider, place it on the same scene object as the rigidbody, or a child scene object.</doc>
+		<method native="Move" script="Move" static="false">
+			<doc>Moves the rigidbody to a specific position. This method will ensure physically correct movement, meaning the body will collide with other objects along the way.</doc>
+			<param name="position" type="Vector3">
+			</param>
+		</method>
+		<method native="Rotate" script="Rotate" static="false">
+			<doc>Rotates the rigidbody. This method will ensure physically correct rotation, meaning the body will collide with other objects along the way.</doc>
+			<param name="rotation" type="Quaternion">
+			</param>
+		</method>
+		<method native="Sleep" script="Sleep" static="false">
+			<doc>Forces the object to sleep. Useful if you know the object will not move in any significant way for a while.</doc>
+		</method>
+		<method native="WakeUp" script="WakeUp" static="false">
+			<doc>Wakes an object up. Useful if you modified properties of this object, and potentially surrounding objects which might result in the object being moved by physics (although the physics system will automatically wake the object up for majority of such cases).</doc>
+		</method>
+		<method native="AddForce" script="AddForce" static="false">
+			<doc>Applies a force to the center of the mass of the rigidbody. This will produce linear momentum.</doc>
+			<param name="force" type="Vector3">
+				<doc>Force to apply.</doc>
+			</param>
+			<param name="mode" type="ForceMode">
+				<doc>Determines what is the type of <paramref name="force"/>.</doc>
+			</param>
+		</method>
+		<method native="AddTorque" script="AddTorque" static="false">
+			<doc>Applies a torque to the rigidbody. This will produce angular momentum.</doc>
+			<param name="torque" type="Vector3">
+				<doc>Torque to apply.</doc>
+			</param>
+			<param name="mode" type="ForceMode">
+				<doc>Determines what is the type of <paramref name="torque"/>.</doc>
+			</param>
+		</method>
+		<method native="AddForceAtPoint" script="AddForceAtPoint" static="false">
+			<doc>Applies a force to a specific point on the rigidbody. This will in most cases produce both linear and angular momentum.</doc>
+			<param name="force" type="Vector3">
+				<doc>Force to apply.</doc>
+			</param>
+			<param name="position" type="Vector3">
+				<doc>World position to apply the force at.</doc>
+			</param>
+			<param name="mode" type="PointForceMode">
+				<doc>Determines what is the type of <paramref name="force"/>.</doc>
+			</param>
+		</method>
+		<method native="GetVelocityAtPoint" script="GetVelocityAtPoint" static="false">
+			<doc>Returns the total (linear + angular) velocity at a specific point.</doc>
+			<param name="point" type="Vector3">
+				<doc>Point in world space.</doc>
+			</param>
+			<returns type="Vector3">
+				<doc>Total velocity of the point.</doc>
+			</returns>
+		</method>
+		<property name="Mass" type="float" getter="GetMass" setter="SetMass" static="false">
+			<doc>Determines the mass of the object and all of its collider shapes. Only relevant if RigidbodyFlag::AutoMass or RigidbodyFlag::AutoTensors is turned off. Value of zero means the object is immovable (but can be rotated).</doc>
+		</property>
+		<property name="IsKinematic" type="bool" getter="GetIsKinematic" setter="SetIsKinematic" static="false">
+			<doc>Determines if the body is kinematic. Kinematic body will not move in response to external forces (for example gravity, or another object pushing it), essentially behaving like collider. Unlike a collider though, you can still move the object and have other dynamic objects respond correctly (meaning it will push other objects).</doc>
+		</property>
+		<property name="IsSleeping" type="bool" getter="IsSleeping" setter="" static="false">
+			<doc>Checks if the body is sleeping. Objects that aren&apos;t moved/rotated for a while are put to sleep to reduce load on the physics system.</doc>
+		</property>
+		<property name="SleepThreshold" type="float" getter="GetSleepThreshold" setter="SetSleepThreshold" static="false">
+			<doc>Determines a threshold of force and torque under which the object will be considered to be put to sleep.</doc>
+		</property>
+		<property name="UseGravity" type="bool" getter="GetUseGravity" setter="SetUseGravity" static="false">
+			<doc>Determines whether or not the rigidbody will have the global gravity force applied to it.</doc>
+		</property>
+		<property name="Velocity" type="Vector3" getter="GetVelocity" setter="SetVelocity" static="false">
+			<doc>Determines the linear velocity of the body.</doc>
+		</property>
+		<property name="AngularVelocity" type="Vector3" getter="GetAngularVelocity" setter="SetAngularVelocity" static="false">
+			<doc>Determines the angular velocity of the body.</doc>
+		</property>
+		<property name="Drag" type="float" getter="GetDrag" setter="SetDrag" static="false">
+			<doc>Determines the linear drag of the body. Higher drag values means the object resists linear movement more.</doc>
+		</property>
+		<property name="AngularDrag" type="float" getter="GetAngularDrag" setter="SetAngularDrag" static="false">
+			<doc>Determines the angular drag of the body. Higher drag values means the object resists angular movement more.</doc>
+		</property>
+		<property name="InertiaTensor" type="Vector3" getter="GetInertiaTensor" setter="SetInertiaTensor" static="false">
+			<doc>Determines the inertia tensor in local mass space. Inertia tensor determines how difficult is to rotate the object. Values of zero in the inertia tensor mean the object will be unable to rotate around a specific axis. Only relevant if RigidbodyFlag::AutoTensors is turned off.</doc>
+		</property>
+		<property name="MaxAngularVelocity" type="float" getter="GetMaxAngularVelocity" setter="SetMaxAngularVelocity" static="false">
+			<doc>Determines the maximum angular velocity of the rigidbody. Velocity will be clamped to this value.</doc>
+		</property>
+		<property name="CenterOfMassPosition" type="Vector3" getter="GetCenterOfMassPosition" setter="SetCenterOfMassPosition" static="false">
+			<doc>Determines the rigidbody&apos;s center of mass position. Only relevant if RigibodyFlag::AutoTensors is turned off.</doc>
+		</property>
+		<property name="CenterOfMassRotation" type="Quaternion" getter="GetCenterOfMassRotation" setter="SetCenterOfMassRotation" static="false">
+			<doc>Determines the rigidbody&apos;s center of mass rotation. Only relevant if RigibodyFlag::AutoTensors is turned off.</doc>
+		</property>
+		<property name="PositionSolverCount" type="int" getter="GetPositionSolverCount" setter="SetPositionSolverCount" static="false">
+			<doc>Determines the number of iterations to use when solving for position. Higher values can improve precision and numerical stability of the simulation.</doc>
+		</property>
+		<property name="VelocitySolverCount" type="int" getter="GetVelocitySolverCount" setter="SetVelocitySolverCount" static="false">
+			<doc>Determines the number of iterations to use when solving for velocity. Higher values can improve precision and numerical stability of the simulation.</doc>
+		</property>
+		<property name="CollisionReportMode" type="CollisionReportMode" getter="GetCollisionReportMode" setter="SetCollisionReportMode" static="false">
+			<doc>Sets a value that determines which (if any) collision events are reported.</doc>
+		</property>
+		<property name="Flags" type="RigidbodyFlag" getter="GetFlags" setter="SetFlags" static="false">
+			<doc>Flags that control the behaviour of the rigidbody.</doc>
+		</property>
+		<event native="OnCollisionBegin" script="OnCollisionBegin" static="false">
+			<doc>Triggered when one of the colliders owned by the rigidbody starts colliding with another object.</doc>
+			<param name="p0" type="CollisionData">
+			</param>
+		</event>
+		<event native="OnCollisionStay" script="OnCollisionStay" static="false">
+			<doc>Triggered when a previously colliding collider stays in collision. Triggered once per frame.</doc>
+			<param name="p0" type="CollisionData">
+			</param>
+		</event>
+		<event native="OnCollisionEnd" script="OnCollisionEnd" static="false">
+			<doc>Triggered when one of the colliders owned by the rigidbody stops colliding with another object.</doc>
+			<param name="p0" type="CollisionData">
+			</param>
+		</event>
+	</class>
 	<class native="MeshCollider" script="MeshCollider">
 		<doc>A collider represented by an arbitrary mesh.</doc>
 		<property name="Mesh" type="RRef&lt;PhysicsMesh&gt;" getter="GetMesh" setter="SetMesh" static="false">
@@ -7500,6 +6990,43 @@ Sprite images also allow you to specify sprite sheet animation by varying which 
 			<doc>Options describing the shape.</doc>
 		</property>
 	</class>
+	<class native="ParticleEmitterCircleShape" script="ParticleEmitterCircleShape">
+		<doc>Particle emitter shape that emits particles from a circle. Using the thickness parameter you can control whether to emit only from circle edge, the entire surface or just a part of the surface. Using the arc parameter you can emit from a specific angular portion of the circle.</doc>
+		<ctor>
+			<doc>Creates a new particle emitter circle shape.</doc>
+			<param name="desc" type="ParticleCircleShapeOptions">
+			</param>
+		</ctor>
+		<ctor>
+			<doc>Creates a new particle emitter circle shape.</doc>
+		</ctor>
+		<property name="Options" type="ParticleCircleShapeOptions" getter="GetOptions" setter="SetOptions" static="false">
+			<doc>Options describing the shape.</doc>
+		</property>
+	</class>
+	<enum native="D6JointAxis" script="D6JointAxis">
+		<doc>Specifies axes that the D6 joint can constrain motion on.</doc>
+		<enumentry native="X" script="X">
+			<doc>Movement on the X axis.</doc>
+		</enumentry>
+		<enumentry native="Count" script="Count">
+		</enumentry>
+		<enumentry native="Y" script="Y">
+			<doc>Movement on the Y axis.</doc>
+		</enumentry>
+		<enumentry native="Z" script="Z">
+			<doc>Movement on the Z axis.</doc>
+		</enumentry>
+		<enumentry native="SwingY" script="SwingY">
+			<doc>Rotation around the Y axis.</doc>
+		</enumentry>
+		<enumentry native="Twist" script="Twist">
+			<doc>Rotation around the X axis.</doc>
+		</enumentry>
+		<enumentry native="SwingZ" script="SwingZ">
+			<doc>Rotation around the Z axis.</doc>
+		</enumentry>
+	</enum>
 	<struct native="PARTICLE_RECT_SHAPE_DESC" script="ParticleRectShapeOptions">
 		<doc>Information describing a ParticleEmitterRectShape.</doc>
 		<field name="Extents" type="TVector2&lt;float&gt;">
@@ -7908,166 +7435,534 @@ Sprite images also allow you to specify sprite sheet animation by varying which 
 			<doc>Reflection probe cubemap is generated, but sphere is used for calculating the influence radius and proxy geometry.</doc>
 		</enumentry>
 	</enum>
-	<enum native="ForceMode" script="ForceMode">
-		<doc>Type of force or torque that can be applied to a rigidbody.</doc>
-		<enumentry native="Impulse" script="Impulse">
-			<doc>Value applied is an impulse (a direct change in its linear or angular momentum).</doc>
-		</enumentry>
-		<enumentry native="Force" script="Force">
-			<doc>Value applied is a force.</doc>
-		</enumentry>
-		<enumentry native="Velocity" script="Velocity">
-			<doc>Value applied is velocity.</doc>
-		</enumentry>
-		<enumentry native="Acceleration" script="Acceleration">
-			<doc>Value applied is accelearation.</doc>
-		</enumentry>
-	</enum>
-	<class native="CRigidbody" script="Rigidbody">
-		<method native="Move" script="Move" static="false">
-			<param name="position" type="Vector3">
-			</param>
-		</method>
-		<method native="Rotate" script="Rotate" static="false">
-			<param name="rotation" type="Quaternion">
-			</param>
-		</method>
-		<method native="Sleep" script="Sleep" static="false">
-		</method>
-		<method native="WakeUp" script="WakeUp" static="false">
-		</method>
-		<method native="AddForce" script="AddForce" static="false">
-			<param name="force" type="Vector3">
-			</param>
-			<param name="mode" type="ForceMode">
-			</param>
-		</method>
-		<method native="AddTorque" script="AddTorque" static="false">
-			<param name="torque" type="Vector3">
-			</param>
-			<param name="mode" type="ForceMode">
-			</param>
-		</method>
-		<method native="AddForceAtPoint" script="AddForceAtPoint" static="false">
-			<param name="force" type="Vector3">
-			</param>
-			<param name="position" type="Vector3">
-			</param>
-			<param name="mode" type="PointForceMode">
-			</param>
-		</method>
-		<method native="GetVelocityAtPoint" script="GetVelocityAtPoint" static="false">
-			<param name="point" type="Vector3">
-			</param>
-			<returns type="Vector3">
-			</returns>
-		</method>
-		<property name="Mass" type="float" getter="GetMass" setter="SetMass" static="false">
-		</property>
-		<property name="IsKinematic" type="bool" getter="GetIsKinematic" setter="SetIsKinematic" static="false">
-		</property>
-		<property name="IsSleeping" type="bool" getter="IsSleeping" setter="" static="false">
-		</property>
-		<property name="SleepThreshold" type="float" getter="GetSleepThreshold" setter="SetSleepThreshold" static="false">
-		</property>
-		<property name="UseGravity" type="bool" getter="GetUseGravity" setter="SetUseGravity" static="false">
-		</property>
-		<property name="Velocity" type="Vector3" getter="GetVelocity" setter="SetVelocity" static="false">
-		</property>
-		<property name="AngularVelocity" type="Vector3" getter="GetAngularVelocity" setter="SetAngularVelocity" static="false">
-		</property>
-		<property name="Drag" type="float" getter="GetDrag" setter="SetDrag" static="false">
-		</property>
-		<property name="AngularDrag" type="float" getter="GetAngularDrag" setter="SetAngularDrag" static="false">
-		</property>
-		<property name="InertiaTensor" type="Vector3" getter="GetInertiaTensor" setter="SetInertiaTensor" static="false">
-		</property>
-		<property name="MaxAngularVelocity" type="float" getter="GetMaxAngularVelocity" setter="SetMaxAngularVelocity" static="false">
-		</property>
-		<property name="CenterOfMassPosition" type="Vector3" getter="GetCenterOfMassPosition" setter="SetCenterOfMassPosition" static="false">
-			<doc>Determines the rigidbody&apos;s center of mass position. Only relevant if RigibodyFlag::AutoTensors is turned off.</doc>
-		</property>
-		<property name="CenterOfMassRotation" type="Quaternion" getter="GetCenterOfMassRotation" setter="SetCenterOfMassRotation" static="false">
-			<doc>Determines the rigidbody&apos;s center of mass rotation. Only relevant if RigibodyFlag::AutoTensors is turned off.</doc>
-		</property>
-		<property name="PositionSolverCount" type="int" getter="GetPositionSolverCount" setter="SetPositionSolverCount" static="false">
-		</property>
-		<property name="VelocitySolverCount" type="int" getter="GetVelocitySolverCount" setter="SetVelocitySolverCount" static="false">
-		</property>
-		<property name="CollisionReportMode" type="CollisionReportMode" getter="GetCollisionReportMode" setter="SetCollisionReportMode" static="false">
-			<doc>Sets a value that determines which (if any) collision events are reported.</doc>
-		</property>
-		<property name="Flags" type="RigidbodyFlag" getter="GetFlags" setter="SetFlags" static="false">
-		</property>
-		<event native="OnCollisionBegin" script="OnCollisionBegin" static="false">
-			<param name="p0" type="CollisionData">
-			</param>
-		</event>
-		<event native="OnCollisionStay" script="OnCollisionStay" static="false">
-			<param name="p0" type="CollisionData">
-			</param>
-		</event>
-		<event native="OnCollisionEnd" script="OnCollisionEnd" static="false">
-			<param name="p0" type="CollisionData">
-			</param>
-		</event>
-	</class>
 	<class native="CSkybox" script="Skybox">
 		<property name="Texture" type="RRef&lt;Texture&gt;" getter="GetTexture" setter="SetTexture" static="false">
 		</property>
 		<property name="Brightness" type="float" getter="GetBrightness" setter="SetBrightness" static="false">
 		</property>
 	</class>
-	<enum native="SliderJointFlag" script="SliderJointFlag">
-		<doc>Flag that controls slider joint&apos;s behaviour.</doc>
-		<enumentry native="Limit" script="Limit">
-			<doc>Enables the linear range limit.</doc>
-		</enumentry>
-	</enum>
-	<class native="ManagedTypeInfoDictionary" script="ManagedTypeInfoDictionary">
-		<doc>Contains information about a type of a managed Dictionary.</doc>
-		<property name="KeyType" type="ManagedTypeInfo" getter="GetKeyType" setter="SetKeyType" static="false">
+	<class native="CapsuleCollider" script="CapsuleCollider">
+		<doc>Collider with a capsule geometry.</doc>
+		<property name="Normal" type="Vector3" getter="GetNormal" setter="SetNormal" static="false">
+			<doc>Normal vector that determines how is the capsule oriented.</doc>
 		</property>
-		<property name="ValueType" type="ManagedTypeInfo" getter="GetValueType" setter="SetValueType" static="false">
+		<property name="Center" type="Vector3" getter="GetCenter" setter="SetCenter" static="false">
+			<doc>Determines the position of the capsule shape, relative to the component&apos;s scene object.</doc>
+		</property>
+		<property name="HalfHeight" type="float" getter="GetHalfHeight" setter="SetHalfHeight" static="false">
+			<doc>Determines the half height of the capsule, from the origin to one of the hemispherical centers, along the normal vector.</doc>
+		</property>
+		<property name="Radius" type="float" getter="GetRadius" setter="SetRadius" static="false">
+			<doc>Determines the radius of the capsule.</doc>
 		</property>
 	</class>
-	<class native="CSliderJoint" script="SliderJoint">
-		<method native="SetFlag" script="SetFlag" static="false">
-			<param name="flag" type="SliderJointFlag">
+	<class native="GUIProgressBar" script="GUIProgressBar">
+		<doc>GUI element containing a background image and a fill image that is scaled depending on the percentage set by the caller.</doc>
+		<ctor>
+			<doc>Creates a new GUI element.</doc>
+			<param name="styleClass" type="string">
+				<doc>Style class that will be used for determining GUI element visuals from the current style sheet. If no class is provided, default style is determined based on GUI element type.</doc>
 			</param>
-			<param name="enabled" type="bool">
+			<param name="options" type="GUIOption">
+				<doc>Additional options that control GUI element size and position. This will override options set in the style sheet.</doc>
+			</param>
+		</ctor>
+		<ctor>
+			<doc>Creates a new GUI element.</doc>
+			<param name="options" type="GUIOption">
+				<doc>Additional options that control GUI element size and position. This will override options set in the style sheet.</doc>
+			</param>
+		</ctor>
+		<property name="Percent" type="float" getter="GetPercent" setter="SetPercent" static="false">
+			<doc>Determines how far is the progress bar filled, in range [0, 1].</doc>
+		</property>
+	</class>
+	<struct native="Spring" script="Spring">
+		<doc>Controls spring parameters for a physics joint limits. If a limit is soft (body bounces back due to restition when the limit is reached) the spring will pull the body back towards the limit using the specified parameters.</doc>
+		<ctor>
+			<doc>Constructs a spring with no force.</doc>
+		</ctor>
+		<ctor>
+			<doc>Constructs a spring.</doc>
+			<param name="stiffness" type="float">
+				<doc>Spring strength. Force proportional to the position error.</doc>
+			</param>
+			<param name="damping" type="float">
+				<doc>Damping strength. Force propertional to the velocity error.</doc>
+			</param>
+		</ctor>
+		<field name="Stiffness" type="float">
+			<doc>Spring strength. Force proportional to the position error.</doc>
+		</field>
+		<field name="Damping" type="float">
+			<doc>Damping strength. Force propertional to the velocity error.</doc>
+		</field>
+	</struct>
+	<struct native="LimitLinearRange" script="LimitLinearRange">
+		<doc>Represents a joint limit between two distance values. Lower value must be less than the upper value.</doc>
+		<ctor>
+			<doc>Constructs an empty limit.</doc>
+		</ctor>
+		<ctor>
+			<doc>Constructs a hard limit. Once the limit is reached the movement of the attached bodies will come to a stop.</doc>
+			<param name="lower" type="float">
+				<doc>Lower distance of the limit. Must be less than <paramref name="upper"/>.</doc>
+			</param>
+			<param name="upper" type="float">
+				<doc>Upper distance of the limit. Must be more than <paramref name="lower"/>.</doc>
+			</param>
+			<param name="contactDist" type="float">
+				<doc>Distance from the limit at which it becomes active. Allows the solver to activate earlier than the limit is reached to avoid breaking the limit. Specify -1 for the default.</doc>
+			</param>
+		</ctor>
+		<ctor>
+			<doc>Constructs a soft limit. Once the limit is reached the bodies will bounce back according to the resitution parameter and will be pulled back towards the limit by the provided spring.</doc>
+			<param name="lower" type="float">
+				<doc>Lower distance of the limit. Must be less than <paramref name="upper"/>.</doc>
+			</param>
+			<param name="upper" type="float">
+				<doc>Upper distance of the limit. Must be more than <paramref name="lower"/>.</doc>
+			</param>
+			<param name="spring" type="Spring">
+				<doc>Spring that controls how are the bodies pulled back towards the limit when they breach it.</doc>
+			</param>
+			<param name="restitution" type="float">
+				<doc>Controls how do objects react when the limit is reached, values closer to zero specify non-ellastic collision, while those closer to one specify more ellastic (i.e bouncy) collision. Must be in [0, 1] range.</doc>
+			</param>
+		</ctor>
+		<field name="Lower" type="float">
+			<doc>Lower distance of the limit. Must be less than #upper.</doc>
+		</field>
+		<field name="Upper" type="float">
+			<doc>Upper distance of the limit. Must be more than #lower.</doc>
+		</field>
+		<field name="ContactDist" type="float">
+			<doc>Distance from the limit at which it becomes active. Allows the solver to activate earlier than the limit is reached to avoid breaking the limit.</doc>
+		</field>
+		<field name="Restitution" type="float">
+			<doc>Controls how do objects react when the limit is reached, values closer to zero specify non-ellastic collision, while those closer to one specify more ellastic (i.e bouncy) collision. Must be in [0, 1] range.</doc>
+		</field>
+		<field name="Spring" type="Spring">
+			<doc>Spring that controls how are the bodies pulled back towards the limit when they breach it.</doc>
+		</field>
+	</struct>
+	<class native="ManagedTypeUtility" script="ManagedTypeUtility">
+		<doc>Provides various utility methods for reflection-like operations on managed objects.</doc>
+		<method native="GetTypeInfo" script="GetTypeInfo" static="true">
+			<doc>Retrieves information about the object&apos;s type. Object must be a primitive type, scene object, component, resource, resource reference type, or a custom type marked with SerializeObject attribute in order for type information to be present. Type information can also be retrieved for arrays, lists or dictionaries of the above types.</doc>
+			<param name="objectType" type="Type">
+			</param>
+			<returns type="ManagedTypeInfo">
+			</returns>
+		</method>
+		<method native="GetSerializableObjectInfo" script="GetSerializableObjectInfo" static="true">
+			<doc>Retrieves detailed information about a serializable object. Provided object&apos;s type must be marked with a SerializeObject attribute for this information to be available.</doc>
+			<param name="objectType" type="Type">
+			</param>
+			<returns type="ManagedObjectInfo">
+			</returns>
+		</method>
+		<method native="GetRTTITypeId" script="GetRTTITypeId" static="true">
+			<doc>Deduces the RTTI ID of the native object that is wrapped by the provided object type. Returns ~0u for types that do not wrap native types.</doc>
+			<param name="objectType" type="Type">
+			</param>
+			<returns type="int">
+			</returns>
+		</method>
+		<method native="CreateSerializableObject" script="CreateSerializableObject" static="true">
+			<doc>Creates a new instance of a serialized object of the provided type.</doc>
+			<param name="typeInfo" type="ManagedTypeInfoObject">
+			</param>
+			<returns type="object">
+			</returns>
+		</method>
+		<method native="CreateArray" script="CreateArray" static="true">
+			<doc>Creates a new instance of an array of the provided type and size. Size array must have an element for each rank of the array type.</doc>
+			<param name="typeInfo" type="ManagedTypeInfoArray">
+			</param>
+			<param name="arraySizes" type="int">
+			</param>
+			<returns type="object">
+			</returns>
+		</method>
+		<method native="CreateList" script="CreateList" static="true">
+			<doc>Creates a new instance of a list of the provided type with the provided initial capacity.</doc>
+			<param name="typeInfo" type="ManagedTypeInfoList">
+			</param>
+			<param name="size" type="int">
+			</param>
+			<returns type="object">
+			</returns>
+		</method>
+		<method native="CreateDictionary" script="CreateDictionary" static="true">
+			<doc>Creates a new instance of a dictionary of the provided type.</doc>
+			<param name="typeInfo" type="ManagedTypeInfoDictionary">
+			</param>
+			<returns type="object">
+			</returns>
+		</method>
+		<method native="CloneObject" script="CloneObject" static="true">
+			<doc>Clones the specified object. Non-serializable types and fields are ignored in clone. A deep copy is performed on all serializable elements except for resources or game objects.</doc>
+			<param name="original" type="object">
+				<doc>Non-null reference to the object to clone. Object type must be serializable.</doc>
+			</param>
+			<returns type="object">
+				<doc>Deep copy of the original object</doc>
+			</returns>
+		</method>
+		<method native="CreateObjectOfType" script="CreateObjectOfType" static="true">
+			<doc>Creates an uninitialized object of the specified type.</doc>
+			<param name="type" type="Type">
+				<doc>Type of the object to create. Must be serializable</doc>
+			</param>
+			<returns type="object">
+				<doc>New instance of the specified type, or null if the type is not serializable.</doc>
+			</returns>
+		</method>
+	</class>
+	<struct native="LimitLinear" script="LimitLinear">
+		<doc>Represents a joint limit between zero a single distance value.</doc>
+		<ctor>
+			<doc>Constructs an empty limit.</doc>
+		</ctor>
+		<ctor>
+			<doc>Constructs a hard limit. Once the limit is reached the movement of the attached bodies will come to a stop.</doc>
+			<param name="extent" type="float">
+				<doc>Distance at which the limit becomes active.</doc>
+			</param>
+			<param name="contactDist" type="float">
+				<doc>Distance from the limit at which it becomes active. Allows the solver to activate earlier than the limit is reached to avoid breaking the limit. Specify -1 for the default.</doc>
+			</param>
+		</ctor>
+		<ctor>
+			<doc>Constructs a soft limit. Once the limit is reached the bodies will bounce back according to the resitution parameter and will be pulled back towards the limit by the provided spring.</doc>
+			<param name="extent" type="float">
+				<doc>Distance at which the limit becomes active.</doc>
+			</param>
+			<param name="spring" type="Spring">
+				<doc>Spring that controls how are the bodies pulled back towards the limit when they breach it.</doc>
+			</param>
+			<param name="restitution" type="float">
+				<doc>Controls how do objects react when the limit is reached, values closer to zero specify non-ellastic collision, while those closer to one specify more ellastic (i.e bouncy) collision. Must be in [0, 1] range.</doc>
+			</param>
+		</ctor>
+		<field name="Extent" type="float">
+			<doc>Distance at which the limit becomes active.</doc>
+		</field>
+		<field name="ContactDist" type="float">
+			<doc>Distance from the limit at which it becomes active. Allows the solver to activate earlier than the limit is reached to avoid breaking the limit.</doc>
+		</field>
+		<field name="Restitution" type="float">
+			<doc>Controls how do objects react when the limit is reached, values closer to zero specify non-ellastic collision, while those closer to one specify more ellastic (i.e bouncy) collision. Must be in [0, 1] range.</doc>
+		</field>
+		<field name="Spring" type="Spring">
+			<doc>Spring that controls how are the bodies pulled back towards the limit when they breach it.</doc>
+		</field>
+	</struct>
+	<class native="Joint" script="Joint">
+		<doc>Base class for all Joint types. Joints constrain how two rigidbodies move relative to one another (for example a door hinge). One of the bodies in the joint must always be movable (non-kinematic).</doc>
+		<method native="SetBody" script="SetBody" static="false">
+			<doc>Determines a body managed by the joint. One of the bodies must be movable (non-kinematic).</doc>
+			<param name="body" type="JointBody">
+			</param>
+			<param name="value" type="Rigidbody">
 			</param>
 		</method>
-		<method native="HasFlag" script="HasFlag" static="false">
-			<param name="flag" type="SliderJointFlag">
+		<method native="GetBody" script="GetBody" static="false">
+			<param name="body" type="JointBody">
+			</param>
+			<returns type="Rigidbody">
+			</returns>
+		</method>
+		<method native="GetRelativeBodyPosition" script="GetPosition" static="false">
+			<doc>Returns the position at which the body is anchored to the joint, relative to the body.</doc>
+			<param name="body" type="JointBody">
+			</param>
+			<returns type="Vector3">
+			</returns>
+		</method>
+		<method native="GetRelativeBodyRotation" script="GetRotation" static="false">
+			<doc>Returns the rotation at which the body is anchored to the joint, relative to the body.</doc>
+			<param name="body" type="JointBody">
+			</param>
+			<returns type="Quaternion">
+			</returns>
+		</method>
+		<method native="SetRelativeBodyTransform" script="SetTransform" static="false">
+			<doc>Sets the position and rotation at which the body is anchored to the joint, relative to the body.</doc>
+			<param name="body" type="JointBody">
+			</param>
+			<param name="position" type="Vector3">
+			</param>
+			<param name="rotation" type="Quaternion">
+			</param>
+		</method>
+		<property name="BreakForce" type="float" getter="GetBreakForce" setter="SetBreakForce" static="false">
+			<doc>Determines the maximum force the joint can apply before breaking. Broken joints no longer participate in physics simulation.</doc>
+		</property>
+		<property name="BreakTorque" type="float" getter="GetBreakTorque" setter="SetBreakTorque" static="false">
+			<doc>Determines the maximum torque the joint can apply before breaking. Broken joints no longer participate in physics simulation.</doc>
+		</property>
+		<property name="EnableCollision" type="bool" getter="GetEnableCollision" setter="SetEnableCollision" static="false">
+			<doc>Determines whether collision between the two bodies managed by the joint are enabled.</doc>
+		</property>
+		<event native="OnJointBreak" script="OnJointBreak" static="false">
+			<doc>Triggered when the joint&apos;s break force or torque is exceeded.</doc>
+		</event>
+	</class>
+	<enum native="D6JointMotion" script="D6JointMotion">
+		<doc>Specifies type of constraint placed on a specific axis.</doc>
+		<enumentry native="Free" script="Free">
+			<doc>Axis will not be constrained.</doc>
+		</enumentry>
+		<enumentry native="Locked" script="Locked">
+			<doc>Axis is immovable.</doc>
+		</enumentry>
+		<enumentry native="Limited" script="Limited">
+			<doc>Axis will be constrained by the specified limits.</doc>
+		</enumentry>
+		<enumentry native="Count" script="Count">
+		</enumentry>
+	</enum>
+	<class native="Input" script="Input">
+		<doc>Primary module used for dealing with input. Allows you to receieve and query raw or OS input for mouse/keyboard/gamepad.</doc>
+		<method native="GetAxisValue" script="GetAxisValue" static="false">
+			<doc>Returns value of the specified input axis. Normally in range [-1.0, 1.0] but can be outside the range for devices with unbound axes (for example mouse).</doc>
+			<param name="type" type="int">
+				<doc>Type of axis to query. Usually a type from InputAxis but can be a custom value.</doc>
+			</param>
+			<param name="deviceIdx" type="int">
+				<doc>Index of the device in case more than one is hooked up (0 - primary).</doc>
+			</param>
+			<returns type="float">
+			</returns>
+		</method>
+		<method native="IsButtonHeld" script="IsButtonHeld" static="false">
+			<doc>Query if the provided button is currently being held (this frame or previous frames).</doc>
+			<param name="keyCode" type="ButtonCode">
+				<doc>Code of the button to query.</doc>
+			</param>
+			<param name="deviceIdx" type="int">
+				<doc>Device to query the button on (0 - primary).</doc>
 			</param>
 			<returns type="bool">
 			</returns>
 		</method>
-		<property name="Position" type="float" getter="GetPosition" setter="" static="false">
+		<method native="IsButtonUp" script="IsButtonUp" static="false">
+			<doc>Query if the provided button is currently being released (only true for one frame).</doc>
+			<param name="keyCode" type="ButtonCode">
+				<doc>Code of the button to query.</doc>
+			</param>
+			<param name="deviceIdx" type="int">
+				<doc>Device to query the button on (0 - primary).</doc>
+			</param>
+			<returns type="bool">
+			</returns>
+		</method>
+		<method native="IsButtonDown" script="IsButtonDown" static="false">
+			<doc>Query if the provided button is currently being pressed (only true for one frame).</doc>
+			<param name="keyCode" type="ButtonCode">
+				<doc>Code of the button to query.</doc>
+			</param>
+			<param name="deviceIdx" type="int">
+				<doc>Device to query the button on (0 - primary).</doc>
+			</param>
+			<returns type="bool">
+			</returns>
+		</method>
+		<method native="IsPointerButtonHeld" script="IsPointerButtonHeld" static="false">
+			<doc>Query if the provided pointer button is currently being held (this frame or previous frames).</doc>
+			<param name="pointerButton" type="PointerEventButton">
+				<doc>Code of the button to query.</doc>
+			</param>
+			<returns type="bool">
+			</returns>
+		</method>
+		<method native="IsPointerButtonUp" script="IsPointerButtonUp" static="false">
+			<doc>Query if the provided pointer button is currently being released (only true for one frame).</doc>
+			<param name="pointerButton" type="PointerEventButton">
+				<doc>Code of the button to query.</doc>
+			</param>
+			<returns type="bool">
+			</returns>
+		</method>
+		<method native="IsPointerButtonDown" script="IsPointerButtonDown" static="false">
+			<doc>Query if the provided pointer button is currently being pressed (only true for one frame).</doc>
+			<param name="pointerButton" type="PointerEventButton">
+				<doc>Code of the button to query.</doc>
+			</param>
+			<returns type="bool">
+			</returns>
+		</method>
+		<method native="IsPointerDoubleClicked" script="IsPointerDoubleClicked" static="false">
+			<doc>Query has the left pointer button has been double-clicked this frame.</doc>
+			<returns type="bool">
+			</returns>
+		</method>
+		<method native="SetMouseSmoothing" script="SetMouseSmoothing" static="false">
+			<doc>Enables or disables mouse smoothing. Smoothing makes the changes to mouse axes more gradual.</doc>
+			<param name="enabled" type="bool">
+			</param>
+		</method>
+		<property name="PointerPosition" type="TVector2&lt;int&gt;" getter="GetPointerPosition" setter="" static="false">
+			<doc>Returns position of the pointer (for example mouse cursor) relative to the screen.</doc>
 		</property>
-		<property name="Speed" type="float" getter="GetSpeed" setter="" static="false">
+		<property name="PointerDelta" type="TVector2&lt;int&gt;" getter="GetPointerDelta" setter="" static="false">
+			<doc>Returns difference between pointer position between current and last frame.</doc>
 		</property>
-		<property name="Limit" type="LimitLinearRange" getter="GetLimit" setter="SetLimit" static="false">
-		</property>
+		<event native="OnButtonDown" script="OnButtonDown" static="false">
+			<doc>Triggered whenever a button is first pressed.</doc>
+			<param name="p0" type="ButtonEvent">
+			</param>
+		</event>
+		<event native="OnButtonUp" script="OnButtonUp" static="false">
+			<doc>Triggered whenever a button is first released.</doc>
+			<param name="p0" type="ButtonEvent">
+			</param>
+		</event>
+		<event native="OnCharInput" script="OnCharInput" static="false">
+			<doc>Triggered whenever user inputs a text character.</doc>
+			<param name="p0" type="TextInputEvent">
+			</param>
+		</event>
+		<event native="OnPointerMoved" script="OnPointerMoved" static="false">
+			<doc>Triggers when some pointing device (mouse cursor, touch) moves.</doc>
+			<param name="p0" type="PointerEvent">
+			</param>
+		</event>
+		<event native="OnPointerPressed" script="OnPointerPressed" static="false">
+			<doc>Triggers when some pointing device (mouse cursor, touch) button is pressed.</doc>
+			<param name="p0" type="PointerEvent">
+			</param>
+		</event>
+		<event native="OnPointerReleased" script="OnPointerReleased" static="false">
+			<doc>Triggers when some pointing device (mouse cursor, touch) button is released.</doc>
+			<param name="p0" type="PointerEvent">
+			</param>
+		</event>
+		<event native="OnPointerDoubleClick" script="OnPointerDoubleClick" static="false">
+			<doc>Triggers when some pointing device (mouse cursor, touch) button is double clicked.</doc>
+			<param name="p0" type="PointerEvent">
+			</param>
+		</event>
 	</class>
-	<struct native="ResourceLoadOptions" script="ResourceLoadOptions">
-		<doc>Options that may be used to customize resource load operation.</doc>
+	<enum native="D6JointDriveType" script="D6JointDriveType">
+		<doc>Type of drives that can be used for moving or rotating bodies attached to the joint.</doc>
+		<enumentry native="SLERP" script="SLERP">
+			<doc>Rotation using spherical linear interpolation. Uses the SLERP angular drive mode which performs rotation by interpolating the quaternion values directly over the shortest path (applies to all three axes, which they all must be unlocked).</doc>
+		</enumentry>
+		<enumentry native="X" script="X">
+			<doc>Linear movement on the X axis using the linear drive model.</doc>
+		</enumentry>
+		<enumentry native="Count" script="Count">
+			<doc>Rotation using spherical linear interpolation. Uses the SLERP angular drive mode which performs rotation by interpolating the quaternion values directly over the shortest path (applies to all three axes, which they all must be unlocked).</doc>
+		</enumentry>
+		<enumentry native="Y" script="Y">
+			<doc>Linear movement on the Y axis using the linear drive model.</doc>
+		</enumentry>
+		<enumentry native="Z" script="Z">
+			<doc>Linear movement on the Z axis using the linear drive model.</doc>
+		</enumentry>
+		<enumentry native="Swing" script="Swing">
+			<doc>Rotation around the Y axis using the twist/swing angular drive model. Should not be used together with SLERP mode.</doc>
+		</enumentry>
+		<enumentry native="Twist" script="Twist">
+			<doc>Rotation around the Z axis using the twist/swing angular drive model. Should not be used together with SLERP mode.</doc>
+		</enumentry>
+	</enum>
+	<struct native="D6JointDrive" script="D6JointDrive">
+		<doc>Specifies parameters for a drive that will attempt to move the joint bodies to the specified drive position and velocity.</doc>
 		<ctor>
-			<param name="asynchronousLoad" type="bool">
-			</param>
-			<param name="loadDependencies" type="bool">
-			</param>
-			<param name="keepInternalReference" type="bool">
-			</param>
 		</ctor>
-		<field name="AsynchronousLoad" type="bool">
+		<field name="Stiffness" type="float">
+			<doc>Spring strength. Force proportional to the position error.</doc>
 		</field>
-		<field name="LoadDependencies" type="bool">
+		<field name="Damping" type="float">
+			<doc>Damping strength. Force propertional to the velocity error.</doc>
 		</field>
-		<field name="KeepInternalReference" type="bool">
+		<field name="ForceLimit" type="float">
+			<doc>Maximum force the drive can apply.</doc>
+		</field>
+		<field name="Acceleration" type="bool">
+			<doc>If true the drive will generate acceleration instead of forces. Acceleration drives are easier to tune as they account for the masses of the actors to which the joint is attached.</doc>
 		</field>
 	</struct>
+	<class native="D6Joint" script="D6Joint">
+		<doc>Represents the most customizable type of joint. This joint type can be used to create all other built-in joint types, and to design your own custom ones, but is less intuitive to use. Allows a specification of a linear constraint (for example for slider), twist constraint (rotating around X) and swing constraint (rotating around Y and Z). It also allows you to constrain limits to only specific axes or completely lock specific axes.</doc>
+		<method native="SetMotion" script="SetMotion" static="false">
+			<doc>Allows you to constrain motion of the specified axis. Be aware that when setting drives for a specific axis you must also take care not to constrain its motion in a conflicting way (for example you cannot add a drive that moves the joint on X axis, and then lock the X axis).
+Unlocking translations degrees of freedom allows the bodies to move along the subset of the unlocked axes. (for example unlocking just one translational axis is the equivalent of a slider joint.)
+Angular degrees of freedom are partitioned as twist (around X axis) and swing (around Y and Z axes). Different effects can be achieves by unlocking their various combinations: - If a single degree of angular freedom is unlocked it should be the twist degree as it has extra options for that case (for example for a hinge joint). - If both swing degrees are unlocked but twist is locked the result is a zero-twist joint. - If one swing and one twist degree of freedom are unlocked the result is a zero-swing joint (for example an arm attached at the elbow) - If all angular degrees of freedom are unlocked the result is the same as the spherical joint.</doc>
+			<param name="axis" type="D6JointAxis">
+			</param>
+			<param name="motion" type="D6JointMotion">
+			</param>
+		</method>
+		<method native="GetMotion" script="GetMotion" static="false">
+			<doc>Returns motion constraint for the specified axis.</doc>
+			<param name="axis" type="D6JointAxis">
+			</param>
+			<returns type="D6JointMotion">
+			</returns>
+		</method>
+		<method native="SetDrive" script="SetDrive" static="false">
+			<doc>Determines a drive that will attempt to move the specified degree(s) of freedom to the wanted position and velocity.</doc>
+			<param name="type" type="D6JointDriveType">
+			</param>
+			<param name="drive" type="D6JointDrive">
+			</param>
+		</method>
+		<method native="GetDrive" script="GetDrive" static="false">
+			<param name="type" type="D6JointDriveType">
+			</param>
+			<returns type="D6JointDrive">
+			</returns>
+		</method>
+		<method native="SetDriveTransform" script="SetDriveTransform" static="false">
+			<doc>Sets the drive&apos;s target position and rotation relative to the joint&apos;s first body.</doc>
+			<param name="position" type="Vector3">
+			</param>
+			<param name="rotation" type="Quaternion">
+			</param>
+		</method>
+		<method native="SetDriveVelocity" script="SetDriveVelocity" static="false">
+			<doc>Sets the drive&apos;s target linear and angular velocities.</doc>
+			<param name="linear" type="Vector3">
+			</param>
+			<param name="angular" type="Vector3">
+			</param>
+		</method>
+		<property name="Twist" type="Radian" getter="GetTwist" setter="" static="false">
+			<doc>Returns the current rotation of the joint around the X axis.</doc>
+		</property>
+		<property name="SwingY" type="Radian" getter="GetSwingY" setter="" static="false">
+			<doc>Returns the current rotation of the joint around the Y axis.</doc>
+		</property>
+		<property name="SwingZ" type="Radian" getter="GetSwingZ" setter="" static="false">
+			<doc>Returns the current rotation of the joint around the Z axis.</doc>
+		</property>
+		<property name="LimitLinear" type="LimitLinear" getter="GetLimitLinear" setter="SetLimitLinear" static="false">
+			<doc>Determines the linear limit used for constraining translation degrees of freedom.</doc>
+		</property>
+		<property name="LimitTwist" type="LimitAngularRange" getter="GetLimitTwist" setter="SetLimitTwist" static="false">
+			<doc>Determines the angular limit used for constraining the twist (rotation around X) degree of freedom.</doc>
+		</property>
+		<property name="LimitSwing" type="LimitConeRange" getter="GetLimitSwing" setter="SetLimitSwing" static="false">
+			<doc>Determines the cone limit used for constraining the swing (rotation around Y and Z) degree of freedom.</doc>
+		</property>
+		<property name="DrivePosition" type="Vector3" getter="GetDrivePosition" setter="" static="false">
+			<doc>Returns the drive&apos;s target position relative to the joint&apos;s first body.</doc>
+		</property>
+		<property name="DriveRotation" type="Quaternion" getter="GetDriveRotation" setter="" static="false">
+			<doc>Returns the drive&apos;s target rotation relative to the joint&apos;s first body.</doc>
+		</property>
+		<property name="DriveLinearVelocity" type="Vector3" getter="GetDriveLinearVelocity" setter="" static="false">
+			<doc>Returns the drive&apos;s target linear velocity.</doc>
+		</property>
+		<property name="DriveAngularVelocity" type="Vector3" getter="GetDriveAngularVelocity" setter="" static="false">
+			<doc>Returns the drive&apos;s target angular velocity.</doc>
+		</property>
+	</class>
 	<class native="Decal" script="Decal">
 		<doc>Wraps Decal as a Component.</doc>
 		<property name="Size" type="TVector2&lt;float&gt;" getter="GetSize" setter="SetSize" static="false">
@@ -8086,6 +7981,103 @@ Sprite images also allow you to specify sprite sheet animation by varying which 
 			<doc>Determines the layer that controls whether a system is considered visible in a specific camera. Layer must match camera layer bitfield in order for the camera to render the decal.</doc>
 		</property>
 	</class>
+	<enum native="DistanceJointFlag" script="DistanceJointFlag">
+		<doc>Controls distance joint options.</doc>
+		<enumentry native="MinDistance" script="MinDistance">
+			<doc>Enables minimum distance limit.</doc>
+		</enumentry>
+		<enumentry native="MaxDistance" script="MaxDistance">
+			<doc>Enables maximum distance limit.</doc>
+		</enumentry>
+		<enumentry native="Spring" script="Spring">
+			<doc>Enables spring when maintaining limits.</doc>
+		</enumentry>
+	</enum>
+	<enum native="GUIHorizontalTextAlignment" script="GUIHorizontalTextAlignment">
+		<doc>Determines how is text horizontally aligned in a GUI element.</doc>
+		<enumentry native="Left" script="Left">
+		</enumentry>
+		<enumentry native="Center" script="Center">
+		</enumentry>
+		<enumentry native="Right" script="Right">
+		</enumentry>
+	</enum>
+	<class native="DistanceJoint" script="DistanceJoint">
+		<doc>A joint that maintains an upper or lower (or both) bound on the distance between two bodies.</doc>
+		<method native="SetFlag" script="SetFlag" static="false">
+			<doc>Enables or disables a flag that controls joint behaviour.</doc>
+			<param name="flag" type="DistanceJointFlag">
+			</param>
+			<param name="enabled" type="bool">
+			</param>
+		</method>
+		<method native="HasFlag" script="HasFlag" static="false">
+			<doc>Checks whether a certain joint flag is enabled.</doc>
+			<param name="flag" type="DistanceJointFlag">
+			</param>
+			<returns type="bool">
+			</returns>
+		</method>
+		<property name="Distance" type="float" getter="GetDistance" setter="" static="false">
+			<doc>Returns the current distance between the two joint bodies.</doc>
+		</property>
+		<property name="MinDistance" type="float" getter="GetMinDistance" setter="SetMinDistance" static="false">
+			<doc>Determines the minimum distance the bodies are allowed to be at, they will get no closer. You must enable min distance flag in order for this limit to be applied.</doc>
+		</property>
+		<property name="MaxDistance" type="float" getter="GetMaxDistance" setter="SetMaxDistance" static="false">
+			<doc>Determines the maximum distance the bodies are allowed to be at, they will get no further. You must enable max distance flag in order for this limit to be applied.</doc>
+		</property>
+		<property name="Tolerance" type="float" getter="GetTolerance" setter="SetTolerance" static="false">
+			<doc>Determines the error tolerance of the joint at which the joint becomes active. This value slightly extends the lower and upper limit.</doc>
+		</property>
+		<property name="Spring" type="Spring" getter="GetSpring" setter="SetSpring" static="false">
+			<doc>Determines a spring that controls how the joint responds when a limit is reached. You must enable the spring flag on the joint in order for this to be recognized.</doc>
+		</property>
+	</class>
+	<class native="FixedJoint" script="FixedJoint">
+		<doc>Physics joint that will maintain a fixed distance and orientation between its two attached bodies.</doc>
+	</class>
+	<enum native="HingeJointFlag" script="HingeJointFlag">
+		<doc>Flags that control hinge joint options.</doc>
+		<enumentry native="Limit" script="Limit">
+			<doc>Joint limit is enabled.</doc>
+		</enumentry>
+		<enumentry native="Drive" script="Drive">
+			<doc>Joint drive is enabled.</doc>
+		</enumentry>
+	</enum>
+	<enum native="RigidbodyFlag" script="RigidbodyFlag">
+		<doc>Flags that control options of a Rigidbody object.</doc>
+		<enumentry native="None" script="None">
+			<doc>No options.</doc>
+		</enumentry>
+		<enumentry native="AutoTensors" script="AutoTensors">
+			<doc>Automatically calculate center of mass transform and inertia tensors from child shapes (colliders).</doc>
+		</enumentry>
+		<enumentry native="AutoMass" script="AutoMass">
+			<doc>Calculate mass distribution from child shapes (colliders). Only relevant when auto-tensors is on.</doc>
+		</enumentry>
+		<enumentry native="CCD" script="CCD">
+			<doc>Enables continous collision detection. This can prevent fast moving bodies from tunneling through each other. This must also be enabled globally in Physics otherwise the flag will be ignored.</doc>
+		</enumentry>
+	</enum>
+	<struct native="HingeJointDrive" script="HingeJointDrive">
+		<doc>Properties of a drive that drives the joint&apos;s angular velocity towards a paricular value.</doc>
+		<ctor>
+		</ctor>
+		<field name="Speed" type="float">
+			<doc>Target speed of the joint.</doc>
+		</field>
+		<field name="ForceLimit" type="float">
+			<doc>Maximum torque the drive is allowed to apply .</doc>
+		</field>
+		<field name="GearRatio" type="float">
+			<doc>Scales the velocity of the first body, and its response to drive torque is scaled down.</doc>
+		</field>
+		<field name="FreeSpin" type="bool">
+			<doc>If the joint is moving faster than the drive&apos;s target speed, the drive will try to break. If you don&apos;t want the breaking to happen set this to true.</doc>
+		</field>
+	</struct>
 	<class native="PlaneCollider" script="PlaneCollider">
 		<doc>A collider with plane geometry. Plane colliders cannot be a part of non-kinematic rigidbodies.</doc>
 		<property name="Normal" type="Vector3" getter="GetNormal" setter="SetNormal" static="false">
@@ -8133,6 +8125,60 @@ Sprite images also allow you to specify sprite sheet animation by varying which 
 		</property>
 		<property name="CullDistance" type="float" getter="GetCullDistanceFactor" setter="SetCullDistanceFactor" static="false">
 			<doc>Factor to be applied to the cull distance set in the camera&apos;s render settings.</doc>
+		</property>
+	</class>
+	<enum native="ForceMode" script="ForceMode">
+		<doc>Type of force or torque that can be applied to a rigidbody.</doc>
+		<enumentry native="Impulse" script="Impulse">
+			<doc>Value applied is an impulse (a direct change in its linear or angular momentum).</doc>
+		</enumentry>
+		<enumentry native="Force" script="Force">
+			<doc>Value applied is a force.</doc>
+		</enumentry>
+		<enumentry native="Velocity" script="Velocity">
+			<doc>Value applied is velocity.</doc>
+		</enumentry>
+		<enumentry native="Acceleration" script="Acceleration">
+			<doc>Value applied is accelearation.</doc>
+		</enumentry>
+	</enum>
+	<enum native="SliderJointFlag" script="SliderJointFlag">
+		<doc>Flag that controls slider joint&apos;s behaviour.</doc>
+		<enumentry native="Limit" script="Limit">
+			<doc>Enables the linear range limit.</doc>
+		</enumentry>
+	</enum>
+	<class native="ManagedTypeInfoDictionary" script="ManagedTypeInfoDictionary">
+		<doc>Contains information about a type of a managed Dictionary.</doc>
+		<property name="KeyType" type="ManagedTypeInfo" getter="GetKeyType" setter="SetKeyType" static="false">
+		</property>
+		<property name="ValueType" type="ManagedTypeInfo" getter="GetValueType" setter="SetValueType" static="false">
+		</property>
+	</class>
+	<class native="SliderJoint" script="SliderJoint">
+		<doc>Joint that removes all but a single translational degree of freedom. Bodies are allowed to move along a single axis.</doc>
+		<method native="SetFlag" script="SetFlag" static="false">
+			<doc>Enables or disables a flag that controls the joint&apos;s behaviour.</doc>
+			<param name="flag" type="SliderJointFlag">
+			</param>
+			<param name="enabled" type="bool">
+			</param>
+		</method>
+		<method native="HasFlag" script="HasFlag" static="false">
+			<doc>Checks is the specified flag enabled.</doc>
+			<param name="flag" type="SliderJointFlag">
+			</param>
+			<returns type="bool">
+			</returns>
+		</method>
+		<property name="Position" type="float" getter="GetPosition" setter="" static="false">
+			<doc>Returns the current position of the slider.</doc>
+		</property>
+		<property name="Speed" type="float" getter="GetSpeed" setter="" static="false">
+			<doc>Returns the current speed of the slider.</doc>
+		</property>
+		<property name="Limit" type="LimitLinearRange" getter="GetLimit" setter="SetLimit" static="false">
+			<doc>Determines a limit that constrains the movement of the joint to a specific minimum and maximum distance. You must enable the limit flag on the joint in order for this to be recognized.</doc>
 		</property>
 	</class>
 	<class native="GUICanvas" script="GUICanvas">
@@ -8253,6 +8299,32 @@ Sprite images also allow you to specify sprite sheet animation by varying which 
 		</property>
 		<property name="Center" type="Vector3" getter="GetCenter" setter="SetCenter" static="false">
 			<doc>Determines position of the sphere shape, relative to the component&apos;s scene object.</doc>
+		</property>
+	</class>
+	<enum native="SphericalJointFlag" script="SphericalJointFlag">
+		<doc>Flags that control options for the spherical joint</doc>
+		<enumentry native="Limit" script="Limit">
+			<doc>Enables the cone range limit.</doc>
+		</enumentry>
+	</enum>
+	<class native="SphericalJoint" script="SphericalJoint">
+		<doc>A spherical joint removes all translational degrees of freedom but allows all rotational degrees of freedom. Essentially this ensures that the anchor points of the two bodies are always coincident. Bodies are allowed to rotate around the anchor points, and their rotation can be limited by an elliptical cone.</doc>
+		<method native="SetFlag" script="SetFlag" static="false">
+			<doc>Enables or disables a flag that controls the joint&apos;s behaviour.</doc>
+			<param name="flag" type="SphericalJointFlag">
+			</param>
+			<param name="enabled" type="bool">
+			</param>
+		</method>
+		<method native="HasFlag" script="HasFlag" static="false">
+			<doc>Checks is the specified flag enabled.</doc>
+			<param name="flag" type="SphericalJointFlag">
+			</param>
+			<returns type="bool">
+			</returns>
+		</method>
+		<property name="Limit" type="LimitConeRange" getter="GetLimit" setter="SetLimit" static="false">
+			<doc>Determines the limit of the joint. This clamps the rotation inside an eliptical angular cone. You must enable limit flag on the joint in order for this to be recognized.</doc>
 		</property>
 	</class>
 	<struct native="SpriteImageInformation" script="SpriteImageInformation">
@@ -10638,6 +10710,23 @@ Optionally if the parameter is an array you may provide an array index you which
 			<doc>Controls &quot;bounciness&quot; of an object during a collision. Value of 1 means the collision is elastic, and value of 0 means the value is inelastic. Must be in [0, 1] range.</doc>
 		</property>
 	</class>
+	<struct native="ResourceLoadOptions" script="ResourceLoadOptions">
+		<doc>Options that may be used to customize resource load operation.</doc>
+		<ctor>
+			<param name="asynchronousLoad" type="bool">
+			</param>
+			<param name="loadDependencies" type="bool">
+			</param>
+			<param name="keepInternalReference" type="bool">
+			</param>
+		</ctor>
+		<field name="AsynchronousLoad" type="bool">
+		</field>
+		<field name="LoadDependencies" type="bool">
+		</field>
+		<field name="KeepInternalReference" type="bool">
+		</field>
+	</struct>
 	<class native="Resources" script="Resources">
 		<doc>Manager for dealing with all engine resources. It allows you to save new resources and load existing ones.</doc>
 		<method native="Exists" script="Exists" static="false">

@@ -1,10 +1,10 @@
 //********************************* B3D Framework - Copyright 2018-2022 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "BsScriptCD6Joint.generated.h"
+#include "BsScriptD6Joint.generated.h"
 #include "BsMonoMethod.h"
 #include "BsMonoClass.h"
 #include "BsMonoUtil.h"
-#include "../../../Foundation/bsfCore/Components/BsCD6Joint.h"
+#include "../../../Foundation/bsfCore/Components/BsD6Joint.h"
 #include "BsScriptD6JointDrive.generated.h"
 #include "BsScriptLimitLinear.generated.h"
 #include "BsScriptLimitAngularRange.generated.h"
@@ -27,19 +27,19 @@ namespace b3d
 
 	void ScriptD6Joint::SetupScriptBindings()
 	{
-		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetMotion", (void*)&ScriptD6Joint::InternalGetMotion);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetMotion", (void*)&ScriptD6Joint::InternalSetMotion);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetMotion", (void*)&ScriptD6Joint::InternalGetMotion);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetTwist", (void*)&ScriptD6Joint::InternalGetTwist);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetSwingY", (void*)&ScriptD6Joint::InternalGetSwingY);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetSwingZ", (void*)&ScriptD6Joint::InternalGetSwingZ);
-		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetLimitLinear", (void*)&ScriptD6Joint::InternalGetLimitLinear);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetLimitLinear", (void*)&ScriptD6Joint::InternalSetLimitLinear);
-		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetLimitTwist", (void*)&ScriptD6Joint::InternalGetLimitTwist);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetLimitLinear", (void*)&ScriptD6Joint::InternalGetLimitLinear);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetLimitTwist", (void*)&ScriptD6Joint::InternalSetLimitTwist);
-		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetLimitSwing", (void*)&ScriptD6Joint::InternalGetLimitSwing);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetLimitTwist", (void*)&ScriptD6Joint::InternalGetLimitTwist);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetLimitSwing", (void*)&ScriptD6Joint::InternalSetLimitSwing);
-		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetDrive", (void*)&ScriptD6Joint::InternalGetDrive);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetLimitSwing", (void*)&ScriptD6Joint::InternalGetLimitSwing);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetDrive", (void*)&ScriptD6Joint::InternalSetDrive);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetDrive", (void*)&ScriptD6Joint::InternalGetDrive);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetDrivePosition", (void*)&ScriptD6Joint::InternalGetDrivePosition);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetDriveRotation", (void*)&ScriptD6Joint::InternalGetDriveRotation);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetDriveTransform", (void*)&ScriptD6Joint::InternalSetDriveTransform);
@@ -59,6 +59,14 @@ namespace b3d
 
 		return sInteropMetaData.ScriptClass->CreateInstance(false);
 	}
+	void ScriptD6Joint::InternalSetMotion(ScriptD6Joint* self, D6JointAxis axis, D6JointMotion motion)
+	{
+		if(!self->IsNativeObjectValid())
+			return;
+
+		static_cast<D6Joint*>(self->GetNativeObject())->SetMotion(axis, motion);
+	}
+
 	D6JointMotion ScriptD6Joint::InternalGetMotion(ScriptD6Joint* self, D6JointAxis axis)
 	{
 		D6JointMotion tmp__output;
@@ -71,14 +79,6 @@ namespace b3d
 		__output = tmp__output;
 
 		return __output;
-	}
-
-	void ScriptD6Joint::InternalSetMotion(ScriptD6Joint* self, D6JointAxis axis, D6JointMotion motion)
-	{
-		if(!self->IsNativeObjectValid())
-			return;
-
-		static_cast<D6Joint*>(self->GetNativeObject())->SetMotion(axis, motion);
 	}
 
 	void ScriptD6Joint::InternalGetTwist(ScriptD6Joint* self, TRadian<float>* __output)
@@ -123,6 +123,16 @@ namespace b3d
 		*__output = tmp__output;
 	}
 
+	void ScriptD6Joint::InternalSetLimitLinear(ScriptD6Joint* self, __LimitLinearInterop* limit)
+	{
+		if(!self->IsNativeObjectValid())
+			return;
+
+		LimitLinear tmplimit;
+		tmplimit = ScriptLimitLinear::FromInterop(*limit);
+		static_cast<D6Joint*>(self->GetNativeObject())->SetLimitLinear(tmplimit);
+	}
+
 	void ScriptD6Joint::InternalGetLimitLinear(ScriptD6Joint* self, __LimitLinearInterop* __output)
 	{
 		if(!self->IsNativeObjectValid())
@@ -139,14 +149,14 @@ namespace b3d
 		MonoUtil::ValueCopy(__output, &interop__output, ScriptLimitLinear::GetMetaData()->ScriptClass->GetInternalClass());
 	}
 
-	void ScriptD6Joint::InternalSetLimitLinear(ScriptD6Joint* self, __LimitLinearInterop* limit)
+	void ScriptD6Joint::InternalSetLimitTwist(ScriptD6Joint* self, __LimitAngularRangeInterop* limit)
 	{
 		if(!self->IsNativeObjectValid())
 			return;
 
-		LimitLinear tmplimit;
-		tmplimit = ScriptLimitLinear::FromInterop(*limit);
-		static_cast<D6Joint*>(self->GetNativeObject())->SetLimitLinear(tmplimit);
+		LimitAngularRange tmplimit;
+		tmplimit = ScriptLimitAngularRange::FromInterop(*limit);
+		static_cast<D6Joint*>(self->GetNativeObject())->SetLimitTwist(tmplimit);
 	}
 
 	void ScriptD6Joint::InternalGetLimitTwist(ScriptD6Joint* self, __LimitAngularRangeInterop* __output)
@@ -165,14 +175,14 @@ namespace b3d
 		MonoUtil::ValueCopy(__output, &interop__output, ScriptLimitAngularRange::GetMetaData()->ScriptClass->GetInternalClass());
 	}
 
-	void ScriptD6Joint::InternalSetLimitTwist(ScriptD6Joint* self, __LimitAngularRangeInterop* limit)
+	void ScriptD6Joint::InternalSetLimitSwing(ScriptD6Joint* self, __LimitConeRangeInterop* limit)
 	{
 		if(!self->IsNativeObjectValid())
 			return;
 
-		LimitAngularRange tmplimit;
-		tmplimit = ScriptLimitAngularRange::FromInterop(*limit);
-		static_cast<D6Joint*>(self->GetNativeObject())->SetLimitTwist(tmplimit);
+		LimitConeRange tmplimit;
+		tmplimit = ScriptLimitConeRange::FromInterop(*limit);
+		static_cast<D6Joint*>(self->GetNativeObject())->SetLimitSwing(tmplimit);
 	}
 
 	void ScriptD6Joint::InternalGetLimitSwing(ScriptD6Joint* self, __LimitConeRangeInterop* __output)
@@ -191,14 +201,14 @@ namespace b3d
 		MonoUtil::ValueCopy(__output, &interop__output, ScriptLimitConeRange::GetMetaData()->ScriptClass->GetInternalClass());
 	}
 
-	void ScriptD6Joint::InternalSetLimitSwing(ScriptD6Joint* self, __LimitConeRangeInterop* limit)
+	void ScriptD6Joint::InternalSetDrive(ScriptD6Joint* self, D6JointDriveType type, __D6JointDriveInterop* drive)
 	{
 		if(!self->IsNativeObjectValid())
 			return;
 
-		LimitConeRange tmplimit;
-		tmplimit = ScriptLimitConeRange::FromInterop(*limit);
-		static_cast<D6Joint*>(self->GetNativeObject())->SetLimitSwing(tmplimit);
+		D6JointDrive tmpdrive;
+		tmpdrive = ScriptD6JointDrive::FromInterop(*drive);
+		static_cast<D6Joint*>(self->GetNativeObject())->SetDrive(type, tmpdrive);
 	}
 
 	void ScriptD6Joint::InternalGetDrive(ScriptD6Joint* self, D6JointDriveType type, __D6JointDriveInterop* __output)
@@ -215,16 +225,6 @@ namespace b3d
 		__D6JointDriveInterop interop__output;
 		interop__output = ScriptD6JointDrive::ToInterop(tmp__output);
 		MonoUtil::ValueCopy(__output, &interop__output, ScriptD6JointDrive::GetMetaData()->ScriptClass->GetInternalClass());
-	}
-
-	void ScriptD6Joint::InternalSetDrive(ScriptD6Joint* self, D6JointDriveType type, __D6JointDriveInterop* drive)
-	{
-		if(!self->IsNativeObjectValid())
-			return;
-
-		D6JointDrive tmpdrive;
-		tmpdrive = ScriptD6JointDrive::FromInterop(*drive);
-		static_cast<D6Joint*>(self->GetNativeObject())->SetDrive(type, tmpdrive);
 	}
 
 	void ScriptD6Joint::InternalGetDrivePosition(ScriptD6Joint* self, TVector3<float>* __output)

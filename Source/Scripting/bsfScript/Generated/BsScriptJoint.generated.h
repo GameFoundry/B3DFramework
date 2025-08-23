@@ -4,9 +4,9 @@
 
 #include "BsScriptEnginePrerequisites.h"
 #include "Wrappers/BsScriptComponent.h"
-#include "../../../Foundation/bsfUtility/Math/BsQuaternion.h"
 #include "../../../Foundation/bsfUtility/Math/BsVector3.h"
-#include "../../../Foundation/bsfCore/Physics/BsFJoint.h"
+#include "../../../Foundation/bsfCore/Components/BsJoint.h"
+#include "../../../Foundation/bsfUtility/Math/BsQuaternion.h"
 
 namespace b3d { class Joint; }
 namespace b3d
@@ -39,16 +39,16 @@ namespace b3d
 		static MonoObject* CreateScriptObject(bool construct);
 
 	private:
-		static MonoObject* InternalGetBody(ScriptJointWrapperBase* self, JointBody body);
 		static void InternalSetBody(ScriptJointWrapperBase* self, JointBody body, MonoObject* value);
-		static void InternalGetPosition(ScriptJointWrapperBase* self, JointBody body, TVector3<float>* __output);
-		static void InternalGetRotation(ScriptJointWrapperBase* self, JointBody body, TQuaternion<float>* __output);
-		static void InternalSetTransform(ScriptJointWrapperBase* self, JointBody body, TVector3<float>* position, TQuaternion<float>* rotation);
-		static float InternalGetBreakForce(ScriptJointWrapperBase* self);
+		static MonoObject* InternalGetBody(ScriptJointWrapperBase* self, JointBody body);
+		static void InternalGetRelativeBodyPosition(ScriptJointWrapperBase* self, JointBody body, TVector3<float>* __output);
+		static void InternalGetRelativeBodyRotation(ScriptJointWrapperBase* self, JointBody body, TQuaternion<float>* __output);
+		static void InternalSetRelativeBodyTransform(ScriptJointWrapperBase* self, JointBody body, TVector3<float>* position, TQuaternion<float>* rotation);
 		static void InternalSetBreakForce(ScriptJointWrapperBase* self, float force);
-		static float InternalGetBreakTorque(ScriptJointWrapperBase* self);
+		static float InternalGetBreakForce(ScriptJointWrapperBase* self);
 		static void InternalSetBreakTorque(ScriptJointWrapperBase* self, float torque);
-		static bool InternalGetEnableCollision(ScriptJointWrapperBase* self);
+		static float InternalGetBreakTorque(ScriptJointWrapperBase* self);
 		static void InternalSetEnableCollision(ScriptJointWrapperBase* self, bool value);
+		static bool InternalGetEnableCollision(ScriptJointWrapperBase* self);
 	};
 }

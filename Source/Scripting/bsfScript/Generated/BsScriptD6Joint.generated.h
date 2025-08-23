@@ -4,23 +4,23 @@
 
 #include "BsScriptEnginePrerequisites.h"
 #include "Wrappers/BsScriptComponent.h"
-#include "BsScriptCJoint.generated.h"
-#include "../../../Foundation/bsfCore/Physics/BsD6Joint.h"
-#include "../../../Foundation/bsfCore/Physics/BsD6Joint.h"
-#include "../../../Foundation/bsfCore/Physics/BsD6Joint.h"
-#include "../../../Foundation/bsfCore/Physics/BsD6Joint.h"
+#include "BsScriptJoint.generated.h"
+#include "../../../Foundation/bsfCore/Components/BsD6Joint.h"
+#include "../../../Foundation/bsfCore/Components/BsD6Joint.h"
+#include "../../../Foundation/bsfCore/Components/BsD6Joint.h"
+#include "../../../Foundation/bsfCore/Components/BsD6Joint.h"
 #include "Math/BsRadian.h"
-#include "../../../Foundation/bsfCore/Physics/BsJoint.h"
-#include "../../../Foundation/bsfCore/Physics/BsJoint.h"
-#include "../../../Foundation/bsfCore/Physics/BsJoint.h"
+#include "../../../Foundation/bsfCore/Components/BsJoint.h"
+#include "../../../Foundation/bsfCore/Components/BsJoint.h"
+#include "../../../Foundation/bsfCore/Components/BsJoint.h"
 #include "../../../Foundation/bsfUtility/Math/BsVector3.h"
 #include "../../../Foundation/bsfUtility/Math/BsQuaternion.h"
 
-namespace b3d { struct __D6JointDriveInterop; }
 namespace b3d { class D6Joint; }
 namespace b3d { struct __LimitLinearInterop; }
 namespace b3d { struct __LimitAngularRangeInterop; }
 namespace b3d { struct __LimitConeRangeInterop; }
+namespace b3d { struct __D6JointDriveInterop; }
 namespace b3d
 {
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptD6Joint : public TScriptGameObjectWrapper<D6Joint, ScriptD6Joint, ScriptJointWrapperBase>
@@ -36,19 +36,19 @@ namespace b3d
 		static MonoObject* CreateScriptObject(bool construct);
 
 	private:
-		static D6JointMotion InternalGetMotion(ScriptD6Joint* self, D6JointAxis axis);
 		static void InternalSetMotion(ScriptD6Joint* self, D6JointAxis axis, D6JointMotion motion);
+		static D6JointMotion InternalGetMotion(ScriptD6Joint* self, D6JointAxis axis);
 		static void InternalGetTwist(ScriptD6Joint* self, TRadian<float>* __output);
 		static void InternalGetSwingY(ScriptD6Joint* self, TRadian<float>* __output);
 		static void InternalGetSwingZ(ScriptD6Joint* self, TRadian<float>* __output);
-		static void InternalGetLimitLinear(ScriptD6Joint* self, __LimitLinearInterop* __output);
 		static void InternalSetLimitLinear(ScriptD6Joint* self, __LimitLinearInterop* limit);
-		static void InternalGetLimitTwist(ScriptD6Joint* self, __LimitAngularRangeInterop* __output);
+		static void InternalGetLimitLinear(ScriptD6Joint* self, __LimitLinearInterop* __output);
 		static void InternalSetLimitTwist(ScriptD6Joint* self, __LimitAngularRangeInterop* limit);
-		static void InternalGetLimitSwing(ScriptD6Joint* self, __LimitConeRangeInterop* __output);
+		static void InternalGetLimitTwist(ScriptD6Joint* self, __LimitAngularRangeInterop* __output);
 		static void InternalSetLimitSwing(ScriptD6Joint* self, __LimitConeRangeInterop* limit);
-		static void InternalGetDrive(ScriptD6Joint* self, D6JointDriveType type, __D6JointDriveInterop* __output);
+		static void InternalGetLimitSwing(ScriptD6Joint* self, __LimitConeRangeInterop* __output);
 		static void InternalSetDrive(ScriptD6Joint* self, D6JointDriveType type, __D6JointDriveInterop* drive);
+		static void InternalGetDrive(ScriptD6Joint* self, D6JointDriveType type, __D6JointDriveInterop* __output);
 		static void InternalGetDrivePosition(ScriptD6Joint* self, TVector3<float>* __output);
 		static void InternalGetDriveRotation(ScriptD6Joint* self, TQuaternion<float>* __output);
 		static void InternalSetDriveTransform(ScriptD6Joint* self, TVector3<float>* position, TQuaternion<float>* rotation);

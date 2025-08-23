@@ -1,7 +1,7 @@
 //************************************ B3D Framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "BsPhysXDistanceJoint.h"
-#include "BsFPhysXJoint.h"
+#include "BsPhysXJoint.h"
 #include "BsPhysXRigidbody.h"
 #include "PxRigidDynamic.h"
 

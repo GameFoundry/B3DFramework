@@ -1,10 +1,10 @@
 //************************************ B3D Framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "Components/BsCJoint.h"
+#include "Components/BsJoint.h"
 #include "Components/BsRigidbody.h"
 #include "Scene/BsSceneObject.h"
 #include "Physics/BsPhysics.h"
-#include "Private/RTTI/BsCJointRTTI.h"
+#include "Private/RTTI/BsJointRTTI.h"
 #include "Scene/BsSceneInstance.h"
 
 using namespace std::placeholders;

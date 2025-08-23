@@ -4,9 +4,9 @@
 
 #include "BsScriptEnginePrerequisites.h"
 #include "BsScriptObjectWrapper.h"
-#include "../../../Foundation/bsfCore/Physics/BsJoint.h"
+#include "../../../Foundation/bsfCore/Components/BsJoint.h"
 #include "Math/BsRadian.h"
-#include "../../../Foundation/bsfCore/Physics/BsJoint.h"
+#include "../../../Foundation/bsfCore/Components/BsJoint.h"
 
 namespace b3d
 {

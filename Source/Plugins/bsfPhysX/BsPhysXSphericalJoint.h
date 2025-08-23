@@ -4,9 +4,9 @@
 
 #include "BsPhysXPrerequisites.h"
 #include "PxPhysics.h"
-#include "Components/BsCSphericalJoint.h"
+#include "Components/BsSphericalJoint.h"
 #include "extensions/PxSphericalJoint.h"
-#include "BsFPhysXJoint.h"
+#include "BsPhysXJoint.h"
 
 namespace b3d
 {

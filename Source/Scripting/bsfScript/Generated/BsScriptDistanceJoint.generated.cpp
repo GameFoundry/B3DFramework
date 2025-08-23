@@ -1,10 +1,10 @@
 //********************************* B3D Framework - Copyright 2018-2022 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "BsScriptCDistanceJoint.generated.h"
+#include "BsScriptDistanceJoint.generated.h"
 #include "BsMonoMethod.h"
 #include "BsMonoClass.h"
 #include "BsMonoUtil.h"
-#include "../../../Foundation/bsfCore/Components/BsCDistanceJoint.h"
+#include "../../../Foundation/bsfCore/Components/BsDistanceJoint.h"
 #include "BsScriptSpring.generated.h"
 
 namespace b3d
@@ -23,14 +23,14 @@ namespace b3d
 	void ScriptDistanceJoint::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetDistance", (void*)&ScriptDistanceJoint::InternalGetDistance);
-		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetMinDistance", (void*)&ScriptDistanceJoint::InternalGetMinDistance);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetMinDistance", (void*)&ScriptDistanceJoint::InternalSetMinDistance);
-		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetMaxDistance", (void*)&ScriptDistanceJoint::InternalGetMaxDistance);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetMinDistance", (void*)&ScriptDistanceJoint::InternalGetMinDistance);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetMaxDistance", (void*)&ScriptDistanceJoint::InternalSetMaxDistance);
-		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetTolerance", (void*)&ScriptDistanceJoint::InternalGetTolerance);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetMaxDistance", (void*)&ScriptDistanceJoint::InternalGetMaxDistance);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetTolerance", (void*)&ScriptDistanceJoint::InternalSetTolerance);
-		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetSpring", (void*)&ScriptDistanceJoint::InternalGetSpring);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetTolerance", (void*)&ScriptDistanceJoint::InternalGetTolerance);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetSpring", (void*)&ScriptDistanceJoint::InternalSetSpring);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetSpring", (void*)&ScriptDistanceJoint::InternalGetSpring);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetFlag", (void*)&ScriptDistanceJoint::InternalSetFlag);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_HasFlag", (void*)&ScriptDistanceJoint::InternalHasFlag);
 
@@ -60,6 +60,14 @@ namespace b3d
 		return __output;
 	}
 
+	void ScriptDistanceJoint::InternalSetMinDistance(ScriptDistanceJoint* self, float value)
+	{
+		if(!self->IsNativeObjectValid())
+			return;
+
+		static_cast<DistanceJoint*>(self->GetNativeObject())->SetMinDistance(value);
+	}
+
 	float ScriptDistanceJoint::InternalGetMinDistance(ScriptDistanceJoint* self)
 	{
 		float tmp__output;
@@ -74,12 +82,12 @@ namespace b3d
 		return __output;
 	}
 
-	void ScriptDistanceJoint::InternalSetMinDistance(ScriptDistanceJoint* self, float value)
+	void ScriptDistanceJoint::InternalSetMaxDistance(ScriptDistanceJoint* self, float value)
 	{
 		if(!self->IsNativeObjectValid())
 			return;
 
-		static_cast<DistanceJoint*>(self->GetNativeObject())->SetMinDistance(value);
+		static_cast<DistanceJoint*>(self->GetNativeObject())->SetMaxDistance(value);
 	}
 
 	float ScriptDistanceJoint::InternalGetMaxDistance(ScriptDistanceJoint* self)
@@ -96,12 +104,12 @@ namespace b3d
 		return __output;
 	}
 
-	void ScriptDistanceJoint::InternalSetMaxDistance(ScriptDistanceJoint* self, float value)
+	void ScriptDistanceJoint::InternalSetTolerance(ScriptDistanceJoint* self, float value)
 	{
 		if(!self->IsNativeObjectValid())
 			return;
 
-		static_cast<DistanceJoint*>(self->GetNativeObject())->SetMaxDistance(value);
+		static_cast<DistanceJoint*>(self->GetNativeObject())->SetTolerance(value);
 	}
 
 	float ScriptDistanceJoint::InternalGetTolerance(ScriptDistanceJoint* self)
@@ -118,12 +126,12 @@ namespace b3d
 		return __output;
 	}
 
-	void ScriptDistanceJoint::InternalSetTolerance(ScriptDistanceJoint* self, float value)
+	void ScriptDistanceJoint::InternalSetSpring(ScriptDistanceJoint* self, Spring* value)
 	{
 		if(!self->IsNativeObjectValid())
 			return;
 
-		static_cast<DistanceJoint*>(self->GetNativeObject())->SetTolerance(value);
+		static_cast<DistanceJoint*>(self->GetNativeObject())->SetSpring(*value);
 	}
 
 	void ScriptDistanceJoint::InternalGetSpring(ScriptDistanceJoint* self, Spring* __output)
@@ -138,14 +146,6 @@ namespace b3d
 		tmp__output = static_cast<DistanceJoint*>(self->GetNativeObject())->GetSpring();
 
 		*__output = tmp__output;
-	}
-
-	void ScriptDistanceJoint::InternalSetSpring(ScriptDistanceJoint* self, Spring* value)
-	{
-		if(!self->IsNativeObjectValid())
-			return;
-
-		static_cast<DistanceJoint*>(self->GetNativeObject())->SetSpring(*value);
 	}
 
 	void ScriptDistanceJoint::InternalSetFlag(ScriptDistanceJoint* self, DistanceJointFlag flag, bool enabled)

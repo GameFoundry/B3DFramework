@@ -4,7 +4,7 @@
 
 #include "BsScriptEnginePrerequisites.h"
 #include "BsScriptObjectWrapper.h"
-#include "../../../Foundation/bsfCore/Physics/BsD6Joint.h"
+#include "../../../Foundation/bsfCore/Components/BsD6Joint.h"
 
 namespace b3d
 {

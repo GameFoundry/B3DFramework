@@ -3,8 +3,8 @@
 #pragma once
 
 #include "BsPhysXPrerequisites.h"
-#include "BsFPhysXJoint.h"
-#include "Components/BsCDistanceJoint.h"
+#include "BsPhysXJoint.h"
+#include "Components/BsDistanceJoint.h"
 #include "extensions/PxDistanceJoint.h"
 
 namespace b3d

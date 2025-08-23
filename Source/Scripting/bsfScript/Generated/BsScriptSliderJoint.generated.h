@@ -4,9 +4,9 @@
 
 #include "BsScriptEnginePrerequisites.h"
 #include "Wrappers/BsScriptComponent.h"
-#include "BsScriptCJoint.generated.h"
-#include "../../../Foundation/bsfCore/Physics/BsSliderJoint.h"
-#include "../../../Foundation/bsfCore/Physics/BsJoint.h"
+#include "BsScriptJoint.generated.h"
+#include "../../../Foundation/bsfCore/Components/BsSliderJoint.h"
+#include "../../../Foundation/bsfCore/Components/BsJoint.h"
 
 namespace b3d { class SliderJoint; }
 namespace b3d { struct __LimitLinearRangeInterop; }
@@ -27,8 +27,8 @@ namespace b3d
 	private:
 		static float InternalGetPosition(ScriptSliderJoint* self);
 		static float InternalGetSpeed(ScriptSliderJoint* self);
-		static void InternalGetLimit(ScriptSliderJoint* self, __LimitLinearRangeInterop* __output);
 		static void InternalSetLimit(ScriptSliderJoint* self, __LimitLinearRangeInterop* limit);
+		static void InternalGetLimit(ScriptSliderJoint* self, __LimitLinearRangeInterop* __output);
 		static void InternalSetFlag(ScriptSliderJoint* self, SliderJointFlag flag, bool enabled);
 		static bool InternalHasFlag(ScriptSliderJoint* self, SliderJointFlag flag);
 	};

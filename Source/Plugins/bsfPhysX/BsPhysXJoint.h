@@ -3,7 +3,7 @@
 #pragma once
 
 #include "BsPhysXPrerequisites.h"
-#include "Components/BsCJoint.h"
+#include "Components/BsJoint.h"
 #include "BsPhysXRigidbody.h"
 #include "extensions/PxJoint.h"
 #include "PxRigidDynamic.h"

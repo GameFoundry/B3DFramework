@@ -4,9 +4,9 @@
 
 #include "BsScriptEnginePrerequisites.h"
 #include "Wrappers/BsScriptComponent.h"
-#include "BsScriptCJoint.generated.h"
-#include "../../../Foundation/bsfCore/Physics/BsJoint.h"
-#include "../../../Foundation/bsfCore/Physics/BsSphericalJoint.h"
+#include "BsScriptJoint.generated.h"
+#include "../../../Foundation/bsfCore/Components/BsJoint.h"
+#include "../../../Foundation/bsfCore/Components/BsSphericalJoint.h"
 
 namespace b3d { class SphericalJoint; }
 namespace b3d { struct __LimitConeRangeInterop; }
@@ -25,8 +25,8 @@ namespace b3d
 		static MonoObject* CreateScriptObject(bool construct);
 
 	private:
-		static void InternalGetLimit(ScriptSphericalJoint* self, __LimitConeRangeInterop* __output);
 		static void InternalSetLimit(ScriptSphericalJoint* self, __LimitConeRangeInterop* limit);
+		static void InternalGetLimit(ScriptSphericalJoint* self, __LimitConeRangeInterop* __output);
 		static void InternalSetFlag(ScriptSphericalJoint* self, SphericalJointFlag flag, bool enabled);
 		static bool InternalHasFlag(ScriptSphericalJoint* self, SphericalJointFlag flag);
 	};

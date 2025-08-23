@@ -1,10 +1,10 @@
 //********************************* B3D Framework - Copyright 2018-2022 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "BsScriptCSphericalJoint.generated.h"
+#include "BsScriptSphericalJoint.generated.h"
 #include "BsMonoMethod.h"
 #include "BsMonoClass.h"
 #include "BsMonoUtil.h"
-#include "../../../Foundation/bsfCore/Components/BsCSphericalJoint.h"
+#include "../../../Foundation/bsfCore/Components/BsSphericalJoint.h"
 #include "BsScriptLimitConeRange.generated.h"
 
 namespace b3d
@@ -22,8 +22,8 @@ namespace b3d
 
 	void ScriptSphericalJoint::SetupScriptBindings()
 	{
-		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetLimit", (void*)&ScriptSphericalJoint::InternalGetLimit);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetLimit", (void*)&ScriptSphericalJoint::InternalSetLimit);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetLimit", (void*)&ScriptSphericalJoint::InternalGetLimit);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetFlag", (void*)&ScriptSphericalJoint::InternalSetFlag);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_HasFlag", (void*)&ScriptSphericalJoint::InternalHasFlag);
 
@@ -39,6 +39,16 @@ namespace b3d
 
 		return sInteropMetaData.ScriptClass->CreateInstance(false);
 	}
+	void ScriptSphericalJoint::InternalSetLimit(ScriptSphericalJoint* self, __LimitConeRangeInterop* limit)
+	{
+		if(!self->IsNativeObjectValid())
+			return;
+
+		LimitConeRange tmplimit;
+		tmplimit = ScriptLimitConeRange::FromInterop(*limit);
+		static_cast<SphericalJoint*>(self->GetNativeObject())->SetLimit(tmplimit);
+	}
+
 	void ScriptSphericalJoint::InternalGetLimit(ScriptSphericalJoint* self, __LimitConeRangeInterop* __output)
 	{
 		if(!self->IsNativeObjectValid())
@@ -53,16 +63,6 @@ namespace b3d
 		__LimitConeRangeInterop interop__output;
 		interop__output = ScriptLimitConeRange::ToInterop(tmp__output);
 		MonoUtil::ValueCopy(__output, &interop__output, ScriptLimitConeRange::GetMetaData()->ScriptClass->GetInternalClass());
-	}
-
-	void ScriptSphericalJoint::InternalSetLimit(ScriptSphericalJoint* self, __LimitConeRangeInterop* limit)
-	{
-		if(!self->IsNativeObjectValid())
-			return;
-
-		LimitConeRange tmplimit;
-		tmplimit = ScriptLimitConeRange::FromInterop(*limit);
-		static_cast<SphericalJoint*>(self->GetNativeObject())->SetLimit(tmplimit);
 	}
 
 	void ScriptSphericalJoint::InternalSetFlag(ScriptSphericalJoint* self, SphericalJointFlag flag, bool enabled)

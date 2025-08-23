@@ -4,7 +4,7 @@
 
 #include "BsCorePrerequisites.h"
 #include "Reflection/BsRTTIType.h"
-#include "Components/BsCFixedJoint.h"
+#include "Components/BsFixedJoint.h"
 #include "Private/RTTI/BsGameObjectRTTI.h"
 
 namespace b3d

@@ -3,7 +3,7 @@
 #pragma once
 
 #include "BsCorePrerequisites.h"
-#include "Components/BsCJoint.h"
+#include "Components/BsJoint.h"
 
 namespace b3d
 {
