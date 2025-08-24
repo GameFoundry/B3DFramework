@@ -4,7 +4,7 @@
 
 #include "BsCorePrerequisites.h"
 #include "Reflection/BsRTTIType.h"
-#include "Components/BsCReflectionProbe.h"
+#include "Components/BsReflectionProbe.h"
 #include "Private/RTTI/BsGameObjectRTTI.h"
 #include "Renderer/BsRenderer.h"
 #include "RTTI/BsMathRTTI.h"
