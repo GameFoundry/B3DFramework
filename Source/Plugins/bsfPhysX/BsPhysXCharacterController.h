@@ -61,7 +61,7 @@ namespace b3d
 	class PhysXCharacterController : public ICharacterControllerImplementation, physx::PxUserControllerHitReport, physx::PxQueryFilterCallback, physx::PxControllerFilterCallback
 	{
 	public:
-		PhysXCharacterController(physx::PxControllerManager* manager, CCharacterController& owner, const CharacterControllerCreateInformation& createInformation);
+		PhysXCharacterController(physx::PxControllerManager* manager, CharacterController& owner, const CharacterControllerCreateInformation& createInformation);
 		~PhysXCharacterController() override;
 
 		CharacterCollisionFlags Move(const Vector3& displacement) override;
@@ -97,7 +97,7 @@ namespace b3d
 		physx::PxQueryHitType::Enum postFilter(const physx::PxFilterData& filterData, const physx::PxQueryHit& hit) override;
 		bool filter(const physx::PxController& a, const physx::PxController& b) override;
 
-		CCharacterController& mOwner;
+		CharacterController& mOwner;
 		physx::PxCapsuleController* mController = nullptr;
 		float mMinMoveDistance = 0.0f;
 		float mLastMoveCall = 0.0f;

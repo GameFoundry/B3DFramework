@@ -25,7 +25,7 @@ static PxCapsuleControllerDesc ToPxDesc(const CharacterControllerCreateInformati
 	return output;
 }
 
-PhysXCharacterController::PhysXCharacterController(PxControllerManager* manager, CCharacterController& owner, const CharacterControllerCreateInformation& createInformation)
+PhysXCharacterController::PhysXCharacterController(PxControllerManager* manager, CharacterController& owner, const CharacterControllerCreateInformation& createInformation)
 	:mOwner(owner)
 {
 	PxCapsuleControllerDesc pxDesc = ToPxDesc(createInformation);
@@ -95,7 +95,7 @@ void PhysXCharacterController::onControllerHit(const PxControllersHit& hit)
 	collision.Normal = FromPxVector(hit.worldNormal);
 	collision.MotionDir = FromPxVector(hit.dir);
 	collision.MotionAmount = hit.length;
-	collision.ControllerRaw = (CCharacterController*)hit.controller->getUserData();
+	collision.ControllerRaw = (CharacterController*)hit.controller->getUserData();
 
 	mOwner.OnControllerHit(collision);
 }
@@ -120,8 +120,8 @@ PxQueryHitType::Enum PhysXCharacterController::postFilter(const PxFilterData& fi
 
 bool PhysXCharacterController::filter(const PxController& a, const PxController& b)
 {
-	CCharacterController* controllerA = (CCharacterController*)a.getUserData();
-	CCharacterController* controllerB = (CCharacterController*)b.getUserData();
+	CharacterController* controllerA = (CharacterController*)a.getUserData();
+	CharacterController* controllerB = (CharacterController*)b.getUserData();
 
 	bool canCollide = GetPhysics().IsCollisionEnabled(controllerA->GetLayer(), controllerB->GetLayer());
 	return canCollide;

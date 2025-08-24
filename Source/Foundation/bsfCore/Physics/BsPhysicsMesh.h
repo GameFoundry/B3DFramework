@@ -11,7 +11,7 @@ namespace b3d
 	 *  @{
 	 */
 
-	class FPhysicsMesh;
+	class IPhysicsMeshImplementation;
 
 	/**
 	 * Represents a physics mesh that can be used with a MeshCollider. Physics mesh can be a generic triangle mesh
@@ -25,7 +25,7 @@ namespace b3d
 
 		/** Returns the type of the physics mesh. */
 		B3D_SCRIPT_EXPORT(ExportName(Type), Property(Getter))
-		PhysicsMeshType GetType() const;
+		PhysicsMeshType GetType() const { return mType; }
 
 		/** Returns the mesh's indices and vertices. */
 		SPtr<MeshData> GetMeshData() const;
@@ -44,21 +44,25 @@ namespace b3d
 		 */
 
 		/** Returns the internal implementation of the physics mesh. */
-		virtual FPhysicsMesh* GetInternal() { return mInternal.get(); }
+		virtual IPhysicsMeshImplementation* GetImplementation() { return mImplementation.get(); }
 
 		/**
 		 * @copydoc Create()
 		 *
 		 * For internal use. Requires manual initialization after creation.
 		 */
-		static SPtr<PhysicsMesh> CreatePtrInternal(const SPtr<MeshData>& meshData, PhysicsMeshType type);
+		static SPtr<PhysicsMesh> CreateShared(const SPtr<MeshData>& meshData, PhysicsMeshType type);
+
+		/** Creates an empty and uninitialized object instance. To be used by serialization. */
+		static SPtr<PhysicsMesh> CreateEmpty();
 
 		/** @} */
 
 	protected:
 		void Initialize() override;
+		void Destroy() override;
 
-		SPtr<FPhysicsMesh> mInternal;
+		SPtr<IPhysicsMeshImplementation> mImplementation;
 		SPtr<MeshData> mInitMeshData; // Transient, only used during initalization
 		PhysicsMeshType mType; // Transient, only used during initalization
 
@@ -76,12 +80,11 @@ namespace b3d
 	 *  @{
 	 */
 
-	/** Foundation that contains a specific implementation of a PhysicsMesh. */
-	class B3D_CORE_EXPORT FPhysicsMesh : public IReflectable
+	/** Low-level interface for a physics mesh, to be implemented by the physics plugin to provide functionality. */
+	class B3D_CORE_EXPORT IPhysicsMeshImplementation : public IReflectable
 	{
 	public:
-		FPhysicsMesh(const SPtr<MeshData>& meshData, PhysicsMeshType type);
-		virtual ~FPhysicsMesh();
+		virtual ~IPhysicsMeshImplementation() = default;
 
 		/** Returns the mesh's indices and vertices. */
 		virtual SPtr<MeshData> GetMeshData() const = 0;
@@ -89,13 +92,11 @@ namespace b3d
 	protected:
 		friend class PhysicsMesh;
 
-		PhysicsMeshType mType;
-
 		/************************************************************************/
 		/* 								SERIALIZATION                      		*/
 		/************************************************************************/
 	public:
-		friend class FPhysicsMeshRTTI;
+		friend class PhysicsMeshImplementationRTTI;
 		static RTTIType* GetRttiStatic();
 		RTTIType* GetRtti() const override;
 	};

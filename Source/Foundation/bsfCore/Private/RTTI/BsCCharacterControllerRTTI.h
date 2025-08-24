@@ -16,7 +16,7 @@ namespace b3d
 	 *  @{
 	 */
 
-	class B3D_CORE_EXPORT CCharacterControllerRTTI : public TRTTIType<CCharacterController, Component, CCharacterControllerRTTI>
+	class B3D_CORE_EXPORT CharacterControllerRTTI : public TRTTIType<CharacterController, Component, CharacterControllerRTTI>
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
@@ -36,18 +36,18 @@ namespace b3d
 	public:
 		const String& GetRttiName() override
 		{
-			static String name = "CCharacterController";
+			static String name = "CharacterController";
 			return name;
 		}
 
 		u32 GetRttiId() const override
 		{
-			return TID_CCharacterController;
+			return TID_CharacterController;
 		}
 
 		SPtr<IReflectable> NewRttiObject()
 		{
-			return SceneObject::CreateEmptyComponent<CCharacterController>();
+			return SceneObject::CreateEmptyComponent<CharacterController>();
 		}
 	};
 

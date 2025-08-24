@@ -361,7 +361,6 @@ namespace b3d
 		typedef C##TYPE Type;           \
 	};
 
-	B3D_COMPONENT_FORWARD_DECLARE(CharacterController)
 	B3D_COMPONENT_FORWARD_DECLARE(Camera)
 	B3D_COMPONENT_FORWARD_DECLARE(Light)
 	B3D_COMPONENT_FORWARD_DECLARE(Animation)
@@ -582,8 +581,8 @@ namespace b3d
 		TID_SphericalJoint = 1105,
 		TID_SliderJoint = 1106,
 		TID_D6Joint = 1107,
-		TID_CCharacterController = 1108,
-		TID_FPhysicsMesh = 1109,
+		TID_CharacterController = 1108,
+		TID_PhysicsMeshImplementation = 1109,
 		TID_ShaderImportOptions = 1110,
 		TID_AudioClip = 1111,
 		TID_AudioClipImportOptions = 1112,
@@ -826,7 +825,7 @@ namespace b3d
 	typedef GameObjectHandle<SphericalJoint> HSphericalJoint;
 	typedef GameObjectHandle<FixedJoint> HFixedJoint;
 	typedef GameObjectHandle<D6Joint> HD6Joint;
-	typedef GameObjectHandle<CCharacterController> HCharacterController;
+	typedef GameObjectHandle<CharacterController> HCharacterController;
 	typedef GameObjectHandle<CReflectionProbe> HReflectionProbe;
 	typedef GameObjectHandle<CSkybox> HSkybox;
 	typedef GameObjectHandle<CLightProbeVolume> HLightProbeVolume;

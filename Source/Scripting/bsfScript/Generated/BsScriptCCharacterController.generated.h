@@ -12,17 +12,17 @@
 #include "Math/BsRadian.h"
 #include "../../../Foundation/bsfCore/Physics/BsCharacterController.h"
 
-namespace b3d { class CCharacterController; }
+namespace b3d { class CharacterController; }
 namespace b3d { struct __ControllerColliderCollisionInterop; }
 namespace b3d { struct __ControllerControllerCollisionInterop; }
 namespace b3d
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptCharacterController : public TScriptGameObjectWrapper<CCharacterController, ScriptCharacterController>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptCharacterController : public TScriptGameObjectWrapper<CharacterController, ScriptCharacterController>
 	{
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "CharacterController")
 
-		ScriptCharacterController(const GameObjectHandle<CCharacterController>& nativeObject);
+		ScriptCharacterController(const GameObjectHandle<CharacterController>& nativeObject);
 		~ScriptCharacterController();
 
 		static void SetupScriptBindings();

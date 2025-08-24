@@ -163,31 +163,7 @@ bool CookMesh(const SPtr<MeshData>& meshData, PhysicsMeshType type, u8** data, u
 }
 
 PhysXMesh::PhysXMesh(const SPtr<MeshData>& meshData, PhysicsMeshType type)
-	: PhysicsMesh(meshData, type)
-{}
-
-void PhysXMesh::Initialize()
-{
-	if(mInternal == nullptr) // Could be not-null if we're deserializing
-		mInternal = B3DMakeShared<FPhysXMesh>(mInitMeshData, mType);
-
-	PhysicsMesh::Initialize();
-}
-
-void PhysXMesh::Destroy()
-{
-	mInternal = nullptr;
-
-	PhysicsMesh::Destroy();
-}
-
-FPhysXMesh::FPhysXMesh()
-	: FPhysicsMesh(nullptr, PhysicsMeshType::Convex)
-{
-}
-
-FPhysXMesh::FPhysXMesh(const SPtr<MeshData>& meshData, PhysicsMeshType type)
-	: FPhysicsMesh(meshData, type)
+	: mType(type)
 {
 	// Perform cooking if needed
 	if(meshData != nullptr)
@@ -196,7 +172,7 @@ FPhysXMesh::FPhysXMesh(const SPtr<MeshData>& meshData, PhysicsMeshType type)
 	Initialize();
 }
 
-FPhysXMesh::~FPhysXMesh()
+PhysXMesh::~PhysXMesh()
 {
 	if(mCookedData != nullptr)
 	{
@@ -219,7 +195,7 @@ FPhysXMesh::~FPhysXMesh()
 	}
 }
 
-void FPhysXMesh::Initialize()
+void PhysXMesh::Initialize()
 {
 	if(mCookedData != nullptr && mCookedDataSize > 0)
 	{
@@ -233,7 +209,7 @@ void FPhysXMesh::Initialize()
 	}
 }
 
-SPtr<MeshData> FPhysXMesh::GetMeshData() const
+SPtr<MeshData> PhysXMesh::GetMeshData() const
 {
 	TInlineArray<VertexElement, 8> vertexElements;
 	vertexElements.Add(VertexElement(VET_FLOAT3, VES_POSITION));
@@ -332,12 +308,12 @@ SPtr<MeshData> FPhysXMesh::GetMeshData() const
 	return meshData;
 }
 
-RTTIType* FPhysXMesh::GetRttiStatic()
+RTTIType* PhysXMesh::GetRttiStatic()
 {
-	return FPhysXMeshRTTI::Instance();
+	return PhysXMeshRTTI::Instance();
 }
 
-RTTIType* FPhysXMesh::GetRtti() const
+RTTIType* PhysXMesh::GetRtti() const
 {
 	return GetRttiStatic();
 }

@@ -27,11 +27,11 @@ namespace b3d
 	ControllerControllerCollision ScriptControllerControllerCollision::FromInterop(const __ControllerControllerCollisionInterop& value)
 	{
 		ControllerControllerCollision output;
-		GameObjectHandle<CCharacterController> tmpController;
+		GameObjectHandle<CharacterController> tmpController;
 		ScriptCharacterController* scriptObjectWrapperController;
 		scriptObjectWrapperController = ScriptCharacterController::GetScriptObjectWrapper(value.Controller);
 		if(scriptObjectWrapperController != nullptr)
-			tmpController = B3DStaticGameObjectCast<CCharacterController>(scriptObjectWrapperController->GetBaseNativeObjectAsHandle());
+			tmpController = B3DStaticGameObjectCast<CharacterController>(scriptObjectWrapperController->GetBaseNativeObjectAsHandle());
 		output.Controller = tmpController;
 		output.Position = value.Position;
 		output.Normal = value.Normal;

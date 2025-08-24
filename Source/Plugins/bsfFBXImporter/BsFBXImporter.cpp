@@ -148,7 +148,7 @@ Vector<SubResourceRaw> FBXImporter::ImportAll(const Path& filePath, SPtr<const I
 			{
 				PhysicsMeshType type = collisionMeshType == CollisionMeshType::Convex ? PhysicsMeshType::Convex : PhysicsMeshType::Triangle;
 
-				SPtr<PhysicsMesh> physicsMesh = PhysicsMesh::CreatePtrInternal(rendererMeshData->GetData(), type);
+				SPtr<PhysicsMesh> physicsMesh = PhysicsMesh::CreateShared(rendererMeshData->GetData(), type);
 
 				output.push_back({ u8"collision", physicsMesh });
 			}

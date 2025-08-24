@@ -131,7 +131,7 @@ namespace b3d
 		HCharacterController Controller;
 
 		B3D_SCRIPT_EXPORT(Exclude(true))
-		CCharacterController* ControllerRaw; /**< Controller that was touched. */
+		CharacterController* ControllerRaw; /**< Controller that was touched. */
 	};
 
 	/**
@@ -139,10 +139,10 @@ namespace b3d
 	 * of the standard physics model to handle various issues with manually moving kinematic objects. Uses a capsule to
 	 * represent the character's bounds.
 	 */
-	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Physics), ExportName(CharacterController)) CCharacterController : public Component
+	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Physics)) CharacterController : public Component
 	{
 	public:
-		CCharacterController(const HSceneObject& parent);
+		CharacterController(const HSceneObject& parent);
 
 		/**
 		 * Moves the controller in the specified direction by the specified amount, while interacting with surrounding
@@ -286,12 +286,12 @@ namespace b3d
 		/* 								RTTI		                     		*/
 		/************************************************************************/
 	public:
-		friend class CCharacterControllerRTTI;
+		friend class CharacterControllerRTTI;
 		static RTTIType* GetRttiStatic();
 		RTTIType* GetRtti() const override;
 
 	protected:
-		CCharacterController(); // Serialization only
+		CharacterController(); // Serialization only
 	};
 
 	/** Low-level interface for a character controller. Should be implemented by the physics plugin to provide functionality. */

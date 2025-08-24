@@ -544,9 +544,9 @@ SPtr<PhysicsMaterial> PhysX::CreateMaterial(float staticFriction, float dynamicF
 	return B3DMakeShared<PhysXMaterial>(mPhysics, staticFriction, dynamicFriction, restitution);
 }
 
-SPtr<PhysicsMesh> PhysX::CreateMesh(const SPtr<MeshData>& meshData, PhysicsMeshType type)
+UPtr<IPhysicsMeshImplementation> PhysX::CreateMesh(const SPtr<MeshData>& meshData, PhysicsMeshType type)
 {
-	return B3DMakeShared<PhysXMesh>(meshData, type);
+	return B3DMakeUnique<PhysXMesh>(meshData, type);
 }
 
 SPtr<PhysicsScene> PhysX::CreatePhysicsScene()
@@ -760,7 +760,7 @@ UPtr<ID6JointImplementation> PhysXScene::CreateD6Joint(Joint& owner, const D6Joi
 	return B3DMakeUnique<PhysXD6Joint>(mPhysics, owner, createInformation);
 }
 
-UPtr<ICharacterControllerImplementation> PhysXScene::CreateCharacterController(CCharacterController& owner, const CharacterControllerCreateInformation& createInformation)
+UPtr<ICharacterControllerImplementation> PhysXScene::CreateCharacterController(CharacterController& owner, const CharacterControllerCreateInformation& createInformation)
 {
 	return B3DMakeUnique<PhysXCharacterController>(mCharManager, owner, createInformation);
 }
@@ -835,7 +835,7 @@ bool PhysXScene::ConvexCast(const HPhysicsMesh& mesh, const Vector3& position, c
 	if(mesh->GetType() != PhysicsMeshType::Convex)
 		return false;
 
-	FPhysXMesh* physxMesh = static_cast<FPhysXMesh*>(mesh->GetInternal());
+	PhysXMesh* physxMesh = static_cast<PhysXMesh*>(mesh->GetImplementation());
 	PxConvexMeshGeometry geometry(physxMesh->GetPxConvexMesh());
 	PxTransform transform = ToPxTransform(position, rotation);
 
@@ -886,7 +886,7 @@ Vector<PhysicsQueryHit> PhysXScene::ConvexCastAll(const HPhysicsMesh& mesh, cons
 	if(mesh->GetType() != PhysicsMeshType::Convex)
 		return Vector<PhysicsQueryHit>(0);
 
-	FPhysXMesh* physxMesh = static_cast<FPhysXMesh*>(mesh->GetInternal());
+	PhysXMesh* physxMesh = static_cast<PhysXMesh*>(mesh->GetImplementation());
 	PxConvexMeshGeometry geometry(physxMesh->GetPxConvexMesh());
 	PxTransform transform = ToPxTransform(position, rotation);
 
@@ -936,7 +936,7 @@ bool PhysXScene::ConvexCastAny(const HPhysicsMesh& mesh, const Vector3& position
 	if(mesh->GetType() != PhysicsMeshType::Convex)
 		return false;
 
-	FPhysXMesh* physxMesh = static_cast<FPhysXMesh*>(mesh->GetInternal());
+	PhysXMesh* physxMesh = static_cast<PhysXMesh*>(mesh->GetImplementation());
 	PxConvexMeshGeometry geometry(physxMesh->GetPxConvexMesh());
 	PxTransform transform = ToPxTransform(position, rotation);
 
@@ -975,7 +975,7 @@ Vector<ColliderShape*> PhysXScene::ConvexOverlapInternal(const HPhysicsMesh& mes
 	if(mesh->GetType() != PhysicsMeshType::Convex)
 		return {};
 
-	FPhysXMesh* physxMesh = static_cast<FPhysXMesh*>(mesh->GetInternal());
+	PhysXMesh* physxMesh = static_cast<PhysXMesh*>(mesh->GetImplementation());
 	PxConvexMeshGeometry geometry(physxMesh->GetPxConvexMesh());
 	PxTransform transform = ToPxTransform(position, rotation);
 
@@ -1014,7 +1014,7 @@ bool PhysXScene::ConvexOverlapAny(const HPhysicsMesh& mesh, const Vector3& posit
 	if(mesh->GetType() != PhysicsMeshType::Convex)
 		return false;
 
-	FPhysXMesh* physxMesh = static_cast<FPhysXMesh*>(mesh->GetInternal());
+	PhysXMesh* physxMesh = static_cast<PhysXMesh*>(mesh->GetImplementation());
 	PxConvexMeshGeometry geometry(physxMesh->GetPxConvexMesh());
 	PxTransform transform = ToPxTransform(position, rotation);
 

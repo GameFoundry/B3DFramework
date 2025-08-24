@@ -11,7 +11,7 @@ using namespace std::placeholders;
 
 using namespace b3d;
 
-CCharacterController::CCharacterController(const HSceneObject& parent)
+CharacterController::CharacterController(const HSceneObject& parent)
 	: Component(parent)
 {
 	SetName("CharacterController");
@@ -19,11 +19,11 @@ CCharacterController::CCharacterController(const HSceneObject& parent)
 	mNotifyFlags = TCF_Transform;
 }
 
-CCharacterController::CCharacterController()
-	: CCharacterController(nullptr)
+CharacterController::CharacterController()
+	: CharacterController(nullptr)
 { }
 
-CharacterCollisionFlags CCharacterController::Move(const Vector3& displacement)
+CharacterCollisionFlags CharacterController::Move(const Vector3& displacement)
 {
 	CharacterCollisionFlags output;
 
@@ -36,7 +36,7 @@ CharacterCollisionFlags CCharacterController::Move(const Vector3& displacement)
 	return output;
 }
 
-Vector3 CCharacterController::GetFootPosition() const
+Vector3 CharacterController::GetFootPosition() const
 {
 	if(mImplementation == nullptr)
 		return Vector3::kZero;
@@ -44,7 +44,7 @@ Vector3 CCharacterController::GetFootPosition() const
 	return mImplementation->GetFootPosition();
 }
 
-void CCharacterController::SetFootPosition(const Vector3& position)
+void CharacterController::SetFootPosition(const Vector3& position)
 {
 	if(mImplementation == nullptr)
 		return;
@@ -53,7 +53,7 @@ void CCharacterController::SetFootPosition(const Vector3& position)
 	UpdateSceneObjectPositionFromController();
 }
 
-void CCharacterController::SetRadius(float radius)
+void CharacterController::SetRadius(float radius)
 {
 	mInformation.Radius = radius;
 
@@ -61,7 +61,7 @@ void CCharacterController::SetRadius(float radius)
 		UpdateDimensions();
 }
 
-void CCharacterController::SetHeight(float height)
+void CharacterController::SetHeight(float height)
 {
 	mInformation.Height = height;
 
@@ -69,7 +69,7 @@ void CCharacterController::SetHeight(float height)
 		UpdateDimensions();
 }
 
-void CCharacterController::SetUp(const Vector3& up)
+void CharacterController::SetUp(const Vector3& up)
 {
 	mInformation.Up = up;
 
@@ -77,7 +77,7 @@ void CCharacterController::SetUp(const Vector3& up)
 		mImplementation->SetUp(up);
 }
 
-void CCharacterController::SetClimbingMode(CharacterClimbingMode mode)
+void CharacterController::SetClimbingMode(CharacterClimbingMode mode)
 {
 	mInformation.ClimbingMode = mode;
 
@@ -85,7 +85,7 @@ void CCharacterController::SetClimbingMode(CharacterClimbingMode mode)
 		mImplementation->SetClimbingMode(mode);
 }
 
-void CCharacterController::SetNonWalkableMode(CharacterNonWalkableMode mode)
+void CharacterController::SetNonWalkableMode(CharacterNonWalkableMode mode)
 {
 	mInformation.NonWalkableMode = mode;
 
@@ -93,7 +93,7 @@ void CCharacterController::SetNonWalkableMode(CharacterNonWalkableMode mode)
 		mImplementation->SetNonWalkableMode(mode);
 }
 
-void CCharacterController::SetMinMoveDistance(float value)
+void CharacterController::SetMinMoveDistance(float value)
 {
 	mInformation.MinMoveDistance = value;
 
@@ -101,7 +101,7 @@ void CCharacterController::SetMinMoveDistance(float value)
 		mImplementation->SetMinMoveDistance(value);
 }
 
-void CCharacterController::SetContactOffset(float value)
+void CharacterController::SetContactOffset(float value)
 {
 	mInformation.ContactOffset = value;
 
@@ -109,7 +109,7 @@ void CCharacterController::SetContactOffset(float value)
 		mImplementation->SetContactOffset(value);
 }
 
-void CCharacterController::SetStepOffset(float value)
+void CharacterController::SetStepOffset(float value)
 {
 	mInformation.StepOffset = value;
 
@@ -117,7 +117,7 @@ void CCharacterController::SetStepOffset(float value)
 		mImplementation->SetStepOffset(value);
 }
 
-void CCharacterController::SetSlopeLimit(Radian value)
+void CharacterController::SetSlopeLimit(Radian value)
 {
 	mInformation.SlopeLimit = value;
 
@@ -125,17 +125,17 @@ void CCharacterController::SetSlopeLimit(Radian value)
 		mImplementation->SetSlopeLimit(value);
 }
 
-void CCharacterController::OnDestroyed()
+void CharacterController::OnDestroyed()
 {
 	mImplementation = nullptr;
 }
 
-void CCharacterController::OnDisabled()
+void CharacterController::OnDisabled()
 {
 	mImplementation = nullptr;
 }
 
-void CCharacterController::OnEnabled()
+void CharacterController::OnEnabled()
 {
 	const SPtr<SceneInstance>& scene = SO()->GetScene();
 
@@ -145,7 +145,7 @@ void CCharacterController::OnEnabled()
 	UpdateDimensions();
 }
 
-void CCharacterController::OnTransformChanged(TransformChangedFlags flags)
+void CharacterController::OnTransformChanged(TransformChangedFlags flags)
 {
 	if(mImplementation == nullptr)
 		return;
@@ -153,14 +153,14 @@ void CCharacterController::OnTransformChanged(TransformChangedFlags flags)
 	mImplementation->SetPosition(SO()->GetTransform().GetPosition());
 }
 
-void CCharacterController::UpdateSceneObjectPositionFromController()
+void CharacterController::UpdateSceneObjectPositionFromController()
 {
 	mNotifyFlags = (TransformChangedFlags)0;
 	SO()->SetWorldPosition(mImplementation->GetPosition());
 	mNotifyFlags = TCF_Transform;
 }
 
-void CCharacterController::UpdateDimensions()
+void CharacterController::UpdateDimensions()
 {
 	const Vector3 scale = SO()->GetTransform().GetScale();
 	const float height = mInformation.Height * Math::Abs(scale.Y);
@@ -170,7 +170,7 @@ void CCharacterController::UpdateDimensions()
 	mImplementation->SetRadius(radius);
 }
 
-void CCharacterController::TriggerOnColliderHit(const ControllerColliderCollision& value)
+void CharacterController::TriggerOnColliderHit(const ControllerColliderCollision& value)
 {
 	// Const-cast and modify is okay because we're the only object receiving this event
 	auto& hit = const_cast<ControllerColliderCollision&>(value);
@@ -184,26 +184,26 @@ void CCharacterController::TriggerOnColliderHit(const ControllerColliderCollisio
 	OnColliderHit(hit);
 }
 
-void CCharacterController::TriggerOnControllerHit(const ControllerControllerCollision& value)
+void CharacterController::TriggerOnControllerHit(const ControllerControllerCollision& value)
 {
 	// Const-cast and modify is okay because we're the only object receiving this event
 	ControllerControllerCollision& hit = const_cast<ControllerControllerCollision&>(value);
 
 	if(hit.ControllerRaw)
 	{
-		const CCharacterController* const controller = hit.ControllerRaw;
-		hit.Controller = B3DStaticGameObjectCast<CCharacterController>(controller->GetHandle());
+		const CharacterController* const controller = hit.ControllerRaw;
+		hit.Controller = B3DStaticGameObjectCast<CharacterController>(controller->GetHandle());
 	}
 
 	OnControllerHit(hit);
 }
 
-RTTIType* CCharacterController::GetRttiStatic()
+RTTIType* CharacterController::GetRttiStatic()
 {
-	return CCharacterControllerRTTI::Instance();
+	return CharacterControllerRTTI::Instance();
 }
 
-RTTIType* CCharacterController::GetRtti() const
+RTTIType* CharacterController::GetRtti() const
 {
-	return CCharacterController::GetRttiStatic();
+	return CharacterController::GetRttiStatic();
 }

@@ -39,7 +39,7 @@ namespace b3d
 	/**	Type IDs used by the RTTI system for the PhysX library. */
 	enum TypeID_PhysX
 	{
-		TID_FPhysXMesh = 100000,
+		TID_PhysXMesh = 100000,
 	};
 
 	/** Converts a framework vector to a PhysX vector. */

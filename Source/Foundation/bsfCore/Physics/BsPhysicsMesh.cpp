@@ -9,42 +9,54 @@ using namespace b3d;
 
 PhysicsMesh::PhysicsMesh(const SPtr<MeshData>& meshData, PhysicsMeshType type)
 	: mInitMeshData(meshData), mType(type)
-{
-	// Derived class is responsible for initializing mInternal
-}
-
-PhysicsMeshType PhysicsMesh::GetType() const
-{
-	return mInternal->mType;
-}
+{ }
 
 SPtr<MeshData> PhysicsMesh::GetMeshData() const
 {
-	return mInternal->GetMeshData();
+	return mImplementation->GetMeshData();
 }
 
 HPhysicsMesh PhysicsMesh::Create(const SPtr<MeshData>& meshData, PhysicsMeshType type)
 {
-	SPtr<PhysicsMesh> newMesh = CreatePtrInternal(meshData, type);
+	SPtr<PhysicsMesh> newMesh = CreateShared(meshData, type);
 
 	return B3DStaticResourceCast<PhysicsMesh>(GetResources().CreateResourceHandle(newMesh));
 }
 
-SPtr<PhysicsMesh> PhysicsMesh::CreatePtrInternal(const SPtr<MeshData>& meshData, PhysicsMeshType type)
+SPtr<PhysicsMesh> PhysicsMesh::CreateShared(const SPtr<MeshData>& meshData, PhysicsMeshType type)
 {
-	SPtr<PhysicsMesh> newMesh = GetPhysics().CreateMesh(meshData, type);
+	SPtr<PhysicsMesh> newMesh = B3DMakeShared<PhysicsMesh>(meshData, type);
 	newMesh->SetShared(newMesh);
 	newMesh->Initialize();
 
 	return newMesh;
 }
 
+SPtr<PhysicsMesh> PhysicsMesh::CreateEmpty()
+{
+	SPtr<PhysicsMesh> newMesh = B3DMakeShared<PhysicsMesh>(nullptr, PhysicsMeshType::Convex);
+	newMesh->SetShared(newMesh);
+
+	return newMesh;
+}
+
 void PhysicsMesh::Initialize()
 {
+	if(mImplementation == nullptr) // Could be not-null if we're deserializing
+		mImplementation = GetPhysics().CreateMesh(mInitMeshData, mType);
+
 	mInitMeshData = nullptr;
 
 	Resource::Initialize();
 }
+
+void PhysicsMesh::Destroy()
+{
+	mImplementation = nullptr;
+	
+	Resource::Destroy();
+}
+
 
 RTTIType* PhysicsMesh::GetRttiStatic()
 {
@@ -56,21 +68,12 @@ RTTIType* PhysicsMesh::GetRtti() const
 	return GetRttiStatic();
 }
 
-FPhysicsMesh::FPhysicsMesh(const SPtr<MeshData>& meshData, PhysicsMeshType type)
-	: mType(type)
+RTTIType* IPhysicsMeshImplementation::GetRttiStatic()
 {
+	return PhysicsMeshImplementationRTTI::Instance();
 }
 
-FPhysicsMesh::~FPhysicsMesh()
-{
-}
-
-RTTIType* FPhysicsMesh::GetRttiStatic()
-{
-	return FPhysicsMeshRTTI::Instance();
-}
-
-RTTIType* FPhysicsMesh::GetRtti() const
+RTTIType* IPhysicsMeshImplementation::GetRtti() const
 {
 	return GetRttiStatic();
 }

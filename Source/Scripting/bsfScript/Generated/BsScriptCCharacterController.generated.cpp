@@ -14,7 +14,7 @@ namespace b3d
 	ScriptCharacterController::OnColliderHitThunkDefinition ScriptCharacterController::OnColliderHitThunk; 
 	ScriptCharacterController::OnControllerHitThunkDefinition ScriptCharacterController::OnControllerHitThunk; 
 
-	ScriptCharacterController::ScriptCharacterController(const GameObjectHandle<CCharacterController>& nativeObject)
+	ScriptCharacterController::ScriptCharacterController(const GameObjectHandle<CharacterController>& nativeObject)
 		:TScriptGameObjectWrapper(nativeObject)
 	{
 		RegisterEvents();
@@ -85,8 +85,8 @@ namespace b3d
 
 	void ScriptCharacterController::RegisterEvents()
 	{
-		OnColliderHitConnection = static_cast<CCharacterController*>(GetNativeObject())->OnColliderHit.Connect(std::bind(&ScriptCharacterController::OnColliderHit, this, std::placeholders::_1));
-		OnControllerHitConnection = static_cast<CCharacterController*>(GetNativeObject())->OnControllerHit.Connect(std::bind(&ScriptCharacterController::OnControllerHit, this, std::placeholders::_1));
+		OnColliderHitConnection = static_cast<CharacterController*>(GetNativeObject())->OnColliderHit.Connect(std::bind(&ScriptCharacterController::OnColliderHit, this, std::placeholders::_1));
+		OnControllerHitConnection = static_cast<CharacterController*>(GetNativeObject())->OnControllerHit.Connect(std::bind(&ScriptCharacterController::OnControllerHit, this, std::placeholders::_1));
 	}
 	void ScriptCharacterController::UnregisterEvents()
 	{
@@ -99,7 +99,7 @@ namespace b3d
 		if(!self->IsNativeObjectValid())
 			return {};
 
-		tmp__output = static_cast<CCharacterController*>(self->GetNativeObject())->Move(*displacement);
+		tmp__output = static_cast<CharacterController*>(self->GetNativeObject())->Move(*displacement);
 
 		CharacterCollisionFlag __output;
 		__output = (CharacterCollisionFlag)(uint32_t)tmp__output;
@@ -116,7 +116,7 @@ namespace b3d
 		}
 
 		TVector3<float> tmp__output;
-		tmp__output = static_cast<CCharacterController*>(self->GetNativeObject())->GetFootPosition();
+		tmp__output = static_cast<CharacterController*>(self->GetNativeObject())->GetFootPosition();
 
 		*__output = tmp__output;
 	}
@@ -126,7 +126,7 @@ namespace b3d
 		if(!self->IsNativeObjectValid())
 			return;
 
-		static_cast<CCharacterController*>(self->GetNativeObject())->SetFootPosition(*position);
+		static_cast<CharacterController*>(self->GetNativeObject())->SetFootPosition(*position);
 	}
 
 	float ScriptCharacterController::InternalGetRadius(ScriptCharacterController* self)
@@ -135,7 +135,7 @@ namespace b3d
 		if(!self->IsNativeObjectValid())
 			return {};
 
-		tmp__output = static_cast<CCharacterController*>(self->GetNativeObject())->GetRadius();
+		tmp__output = static_cast<CharacterController*>(self->GetNativeObject())->GetRadius();
 
 		float __output;
 		__output = tmp__output;
@@ -148,7 +148,7 @@ namespace b3d
 		if(!self->IsNativeObjectValid())
 			return;
 
-		static_cast<CCharacterController*>(self->GetNativeObject())->SetRadius(radius);
+		static_cast<CharacterController*>(self->GetNativeObject())->SetRadius(radius);
 	}
 
 	float ScriptCharacterController::InternalGetHeight(ScriptCharacterController* self)
@@ -157,7 +157,7 @@ namespace b3d
 		if(!self->IsNativeObjectValid())
 			return {};
 
-		tmp__output = static_cast<CCharacterController*>(self->GetNativeObject())->GetHeight();
+		tmp__output = static_cast<CharacterController*>(self->GetNativeObject())->GetHeight();
 
 		float __output;
 		__output = tmp__output;
@@ -170,7 +170,7 @@ namespace b3d
 		if(!self->IsNativeObjectValid())
 			return;
 
-		static_cast<CCharacterController*>(self->GetNativeObject())->SetHeight(height);
+		static_cast<CharacterController*>(self->GetNativeObject())->SetHeight(height);
 	}
 
 	void ScriptCharacterController::InternalGetUp(ScriptCharacterController* self, TVector3<float>* __output)
@@ -182,7 +182,7 @@ namespace b3d
 		}
 
 		TVector3<float> tmp__output;
-		tmp__output = static_cast<CCharacterController*>(self->GetNativeObject())->GetUp();
+		tmp__output = static_cast<CharacterController*>(self->GetNativeObject())->GetUp();
 
 		*__output = tmp__output;
 	}
@@ -192,7 +192,7 @@ namespace b3d
 		if(!self->IsNativeObjectValid())
 			return;
 
-		static_cast<CCharacterController*>(self->GetNativeObject())->SetUp(*up);
+		static_cast<CharacterController*>(self->GetNativeObject())->SetUp(*up);
 	}
 
 	CharacterClimbingMode ScriptCharacterController::InternalGetClimbingMode(ScriptCharacterController* self)
@@ -201,7 +201,7 @@ namespace b3d
 		if(!self->IsNativeObjectValid())
 			return {};
 
-		tmp__output = static_cast<CCharacterController*>(self->GetNativeObject())->GetClimbingMode();
+		tmp__output = static_cast<CharacterController*>(self->GetNativeObject())->GetClimbingMode();
 
 		CharacterClimbingMode __output;
 		__output = tmp__output;
@@ -214,7 +214,7 @@ namespace b3d
 		if(!self->IsNativeObjectValid())
 			return;
 
-		static_cast<CCharacterController*>(self->GetNativeObject())->SetClimbingMode(mode);
+		static_cast<CharacterController*>(self->GetNativeObject())->SetClimbingMode(mode);
 	}
 
 	CharacterNonWalkableMode ScriptCharacterController::InternalGetNonWalkableMode(ScriptCharacterController* self)
@@ -223,7 +223,7 @@ namespace b3d
 		if(!self->IsNativeObjectValid())
 			return {};
 
-		tmp__output = static_cast<CCharacterController*>(self->GetNativeObject())->GetNonWalkableMode();
+		tmp__output = static_cast<CharacterController*>(self->GetNativeObject())->GetNonWalkableMode();
 
 		CharacterNonWalkableMode __output;
 		__output = tmp__output;
@@ -236,7 +236,7 @@ namespace b3d
 		if(!self->IsNativeObjectValid())
 			return;
 
-		static_cast<CCharacterController*>(self->GetNativeObject())->SetNonWalkableMode(mode);
+		static_cast<CharacterController*>(self->GetNativeObject())->SetNonWalkableMode(mode);
 	}
 
 	float ScriptCharacterController::InternalGetMinMoveDistance(ScriptCharacterController* self)
@@ -245,7 +245,7 @@ namespace b3d
 		if(!self->IsNativeObjectValid())
 			return {};
 
-		tmp__output = static_cast<CCharacterController*>(self->GetNativeObject())->GetMinMoveDistance();
+		tmp__output = static_cast<CharacterController*>(self->GetNativeObject())->GetMinMoveDistance();
 
 		float __output;
 		__output = tmp__output;
@@ -258,7 +258,7 @@ namespace b3d
 		if(!self->IsNativeObjectValid())
 			return;
 
-		static_cast<CCharacterController*>(self->GetNativeObject())->SetMinMoveDistance(value);
+		static_cast<CharacterController*>(self->GetNativeObject())->SetMinMoveDistance(value);
 	}
 
 	float ScriptCharacterController::InternalGetContactOffset(ScriptCharacterController* self)
@@ -267,7 +267,7 @@ namespace b3d
 		if(!self->IsNativeObjectValid())
 			return {};
 
-		tmp__output = static_cast<CCharacterController*>(self->GetNativeObject())->GetContactOffset();
+		tmp__output = static_cast<CharacterController*>(self->GetNativeObject())->GetContactOffset();
 
 		float __output;
 		__output = tmp__output;
@@ -280,7 +280,7 @@ namespace b3d
 		if(!self->IsNativeObjectValid())
 			return;
 
-		static_cast<CCharacterController*>(self->GetNativeObject())->SetContactOffset(value);
+		static_cast<CharacterController*>(self->GetNativeObject())->SetContactOffset(value);
 	}
 
 	float ScriptCharacterController::InternalGetStepOffset(ScriptCharacterController* self)
@@ -289,7 +289,7 @@ namespace b3d
 		if(!self->IsNativeObjectValid())
 			return {};
 
-		tmp__output = static_cast<CCharacterController*>(self->GetNativeObject())->GetStepOffset();
+		tmp__output = static_cast<CharacterController*>(self->GetNativeObject())->GetStepOffset();
 
 		float __output;
 		__output = tmp__output;
@@ -302,7 +302,7 @@ namespace b3d
 		if(!self->IsNativeObjectValid())
 			return;
 
-		static_cast<CCharacterController*>(self->GetNativeObject())->SetStepOffset(value);
+		static_cast<CharacterController*>(self->GetNativeObject())->SetStepOffset(value);
 	}
 
 	void ScriptCharacterController::InternalGetSlopeLimit(ScriptCharacterController* self, TRadian<float>* __output)
@@ -314,7 +314,7 @@ namespace b3d
 		}
 
 		TRadian<float> tmp__output;
-		tmp__output = static_cast<CCharacterController*>(self->GetNativeObject())->GetSlopeLimit();
+		tmp__output = static_cast<CharacterController*>(self->GetNativeObject())->GetSlopeLimit();
 
 		*__output = tmp__output;
 	}
@@ -324,7 +324,7 @@ namespace b3d
 		if(!self->IsNativeObjectValid())
 			return;
 
-		static_cast<CCharacterController*>(self->GetNativeObject())->SetSlopeLimit(*value);
+		static_cast<CharacterController*>(self->GetNativeObject())->SetSlopeLimit(*value);
 	}
 
 	uint64_t ScriptCharacterController::InternalGetLayer(ScriptCharacterController* self)
@@ -333,7 +333,7 @@ namespace b3d
 		if(!self->IsNativeObjectValid())
 			return {};
 
-		tmp__output = static_cast<CCharacterController*>(self->GetNativeObject())->GetLayer();
+		tmp__output = static_cast<CharacterController*>(self->GetNativeObject())->GetLayer();
 
 		uint64_t __output;
 		__output = tmp__output;
@@ -346,6 +346,6 @@ namespace b3d
 		if(!self->IsNativeObjectValid())
 			return;
 
-		static_cast<CCharacterController*>(self->GetNativeObject())->SetLayer(layer);
+		static_cast<CharacterController*>(self->GetNativeObject())->SetLayer(layer);
 	}
 }

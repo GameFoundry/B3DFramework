@@ -14,17 +14,17 @@ namespace b3d
 	 *  @{
 	 */
 
-	class FPhysXMeshRTTI : public TRTTIType<FPhysXMesh, FPhysicsMesh, FPhysXMeshRTTI>
+	class PhysXMeshRTTI : public TRTTIType<PhysXMesh, IPhysicsMeshImplementation, PhysXMeshRTTI>
 	{
 	private:
-		SPtr<DataStream> GetCookedData(FPhysXMesh* obj, u32& size)
+		SPtr<DataStream> GetCookedData(PhysXMesh* obj, u32& size)
 		{
 			size = obj->mCookedDataSize;
 
 			return B3DMakeShared<MemoryDataStream>(obj->mCookedData, obj->mCookedDataSize);
 		}
 
-		void SetCookedData(FPhysXMesh* obj, const SPtr<DataStream>& value, u32 size)
+		void SetCookedData(PhysXMesh* obj, const SPtr<DataStream>& value, u32 size)
 		{
 			obj->mCookedData = (u8*)B3DAllocate(size);
 			obj->mCookedDataSize = size;
@@ -33,31 +33,31 @@ namespace b3d
 		}
 
 	public:
-		FPhysXMeshRTTI()
+		PhysXMeshRTTI()
 		{
-			AddDataBlockField("mCookedData", 0, &FPhysXMeshRTTI::GetCookedData, &FPhysXMeshRTTI::SetCookedData);
+			AddDataBlockField("mCookedData", 0, &PhysXMeshRTTI::GetCookedData, &PhysXMeshRTTI::SetCookedData);
 		}
 
-		void OnOperationEnded(FPhysXMesh& object, RTTIOperationTypeFlags operationType, RTTIOperationContext& context) override
+		void OnOperationEnded(PhysXMesh& object, RTTIOperationTypeFlags operationType, RTTIOperationContext& context) override
 		{
 			if(operationType.IsSet(RTTIOperationType::WriteBit) && !operationType.IsSet(RTTIOperationType::PreExistingObjectBit))
 				object.Initialize();
 		}
 
-		const String& GetRttiName()
+		const String& GetRttiName() override
 		{
-			static String name = "FPhysXMesh";
+			static String name = "PhysXMesh";
 			return name;
 		}
 
 		u32 GetRttiId() const override
 		{
-			return TID_FPhysXMesh;
+			return TID_PhysXMesh;
 		}
 
-		SPtr<IReflectable> NewRttiObject()
+		SPtr<IReflectable> NewRttiObject() override
 		{
-			return B3DMakeShared<FPhysXMesh>();
+			return B3DMakeShared<PhysXMesh>();
 		}
 	};
 

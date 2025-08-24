@@ -12,26 +12,12 @@ namespace b3d
 	 *  @{
 	 */
 
-	/** PhysX implementation of a PhysicsMesh. */
-	class PhysXMesh : public PhysicsMesh
+	/** PhysX implementation of the PhysicsMesh foundation, FPhysicsMesh. */
+	class PhysXMesh : public IPhysicsMeshImplementation
 	{
 	public:
 		PhysXMesh(const SPtr<MeshData>& meshData, PhysicsMeshType type);
-
-	private:
-		void Initialize() override;
-		void Destroy() override;
-
-		// Note: Must not have its own RTTI type, it's important it shares the same type ID as PhysicsMesh so the
-		// system knows to recognize it. Use FPhysicsMesh instead.
-	};
-
-	/** PhysX implementation of the PhysicsMesh foundation, FPhysicsMesh. */
-	class FPhysXMesh : public FPhysicsMesh
-	{
-	public:
-		FPhysXMesh(const SPtr<MeshData>& meshData, PhysicsMeshType type);
-		~FPhysXMesh();
+		~PhysXMesh() override;
 
 		SPtr<MeshData> GetMeshData() const override;
 
@@ -64,14 +50,15 @@ namespace b3d
 
 		u8* mCookedData = nullptr;
 		u32 mCookedDataSize = 0;
+		PhysicsMeshType mType;
 
 		/************************************************************************/
 		/* 								SERIALIZATION                      		*/
 		/************************************************************************/
 	public:
-		FPhysXMesh(); // Serialization only
+		PhysXMesh() = default; // Serialization only
 
-		friend class FPhysXMeshRTTI;
+		friend class PhysXMeshRTTI;
 		static RTTIType* GetRttiStatic();
 		RTTIType* GetRtti() const override;
 	};

@@ -15,6 +15,7 @@
 
 namespace b3d
 {
+	class IPhysicsMeshImplementation;
 	class ICharacterControllerImplementation;
 	class IColliderImplementation;
 	class ID6JointImplementation;
@@ -99,8 +100,8 @@ namespace b3d
 		/** @copydoc PhysicsMaterial::Create */
 		virtual SPtr<PhysicsMaterial> CreateMaterial(float staticFriction, float dynamicFriction, float restitution) = 0;
 
-		/** @copydoc PhysicsMesh::Create */
-		virtual SPtr<PhysicsMesh> CreateMesh(const SPtr<MeshData>& meshData, PhysicsMeshType type) = 0;
+		/** Creates a physics mesh implementation. See PhysicsMesh::Create. */
+		virtual UPtr<IPhysicsMeshImplementation> CreateMesh(const SPtr<MeshData>& meshData, PhysicsMeshType type) = 0;
 
 		/** Creates an object representing the physics scene. Must be manually released via destroyPhysicsScene(). */
 		virtual SPtr<PhysicsScene> CreatePhysicsScene() = 0;
@@ -617,7 +618,7 @@ namespace b3d
 		virtual UPtr<ID6JointImplementation> CreateD6Joint(Joint& owner, const D6JointCreateInformation& createInformation) = 0;
 
 		/** Creates a new character controller. */
-		virtual UPtr<ICharacterControllerImplementation> CreateCharacterController(CCharacterController& owner, const CharacterControllerCreateInformation& createInformation) = 0;
+		virtual UPtr<ICharacterControllerImplementation> CreateCharacterController(CharacterController& owner, const CharacterControllerCreateInformation& createInformation) = 0;
 
 		/** @copydoc PhysicsScene::BoxOverlap() */
 		virtual Vector<ColliderShape*> BoxOverlapInternal(const AABox& box, const Quaternion& rotation, u64 layer = BS_ALL_LAYERS) const = 0;

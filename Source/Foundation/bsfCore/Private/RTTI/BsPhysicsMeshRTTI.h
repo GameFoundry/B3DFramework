@@ -19,7 +19,8 @@ namespace b3d
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
-			B3D_RTTI_MEMBER(mInternal, 0)
+			B3D_RTTI_MEMBER(mImplementation, 0)
+			B3D_RTTI_MEMBER(mType, 1)
 		B3D_RTTI_END_MEMBERS
 
 	public:
@@ -29,7 +30,7 @@ namespace b3d
 				object.Initialize();
 		}
 
-		const String& GetRttiName()
+		const String& GetRttiName() override
 		{
 			static String name = "PhysicsMesh";
 			return name;
@@ -40,34 +41,27 @@ namespace b3d
 			return TID_PhysicsMesh;
 		}
 
-		SPtr<IReflectable> NewRttiObject()
+		SPtr<IReflectable> NewRttiObject() override
 		{
-			SPtr<PhysicsMesh> mesh = GetPhysics().CreateMesh(nullptr, PhysicsMeshType::Convex);
-			mesh->SetShared(mesh);
-
-			return mesh;
+			return PhysicsMesh::CreateEmpty();
 		}
 	};
 
-	class B3D_CORE_EXPORT FPhysicsMeshRTTI : public TRTTIType<FPhysicsMesh, IReflectable, FPhysicsMeshRTTI>
+	class B3D_CORE_EXPORT PhysicsMeshImplementationRTTI : public TRTTIType<IPhysicsMeshImplementation, IReflectable, PhysicsMeshImplementationRTTI>
 	{
-	private:
-		B3D_RTTI_BEGIN_MEMBERS
-			B3D_RTTI_MEMBER(mType, 0)
-		B3D_RTTI_END_MEMBERS
 	public:
-		const String& GetRttiName()
+		const String& GetRttiName() override
 		{
-			static String name = "FPhysicsMesh";
+			static String name = "PhysicsMesh";
 			return name;
 		}
 
 		u32 GetRttiId() const override
 		{
-			return TID_FPhysicsMesh;
+			return TID_PhysicsMeshImplementation;
 		}
 
-		SPtr<IReflectable> NewRttiObject()
+		SPtr<IReflectable> NewRttiObject() override
 		{
 			B3D_EXCEPT(InternalErrorException, "Cannot instantiate an abstract class.");
 			return nullptr;

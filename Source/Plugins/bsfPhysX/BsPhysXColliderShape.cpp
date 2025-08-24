@@ -151,7 +151,7 @@ void PhysXColliderShape::SetShape(const MeshColliderShapeInformation& informatio
 	if(!mesh.IsValid())
 		return;
 
-	FPhysXMesh* underlyingMesh = static_cast<FPhysXMesh*>(mesh->GetInternal());
+	PhysXMesh* underlyingMesh = static_cast<PhysXMesh*>(mesh->GetImplementation());
 	if(!B3D_ENSURE(underlyingMesh != nullptr))
 		return;
 
