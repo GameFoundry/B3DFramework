@@ -4,13 +4,13 @@
 
 #include "BsScriptEnginePrerequisites.h"
 #include "Wrappers/BsScriptComponent.h"
-#include "../../../Foundation/bsfCore/Physics/BsCharacterController.h"
-#include "../../../Foundation/bsfCore/Physics/BsCharacterController.h"
+#include "../../../Foundation/bsfCore/Components/BsCharacterController.h"
+#include "../../../Foundation/bsfCore/Components/BsCharacterController.h"
 #include "../../../Foundation/bsfUtility/Math/BsVector3.h"
-#include "../../../Foundation/bsfCore/Physics/BsCharacterController.h"
-#include "../../../Foundation/bsfCore/Physics/BsCharacterController.h"
+#include "../../../Foundation/bsfCore/Components/BsCharacterController.h"
+#include "../../../Foundation/bsfCore/Components/BsCharacterController.h"
 #include "Math/BsRadian.h"
-#include "../../../Foundation/bsfCore/Physics/BsCharacterController.h"
+#include "../../../Foundation/bsfCore/Components/BsCharacterController.h"
 
 namespace b3d { class CharacterController; }
 namespace b3d { struct __ControllerColliderCollisionInterop; }
@@ -43,27 +43,27 @@ namespace b3d
 		HEvent OnColliderHitConnection;
 		HEvent OnControllerHitConnection;
 		static CharacterCollisionFlag InternalMove(ScriptCharacterController* self, TVector3<float>* displacement);
-		static void InternalGetFootPosition(ScriptCharacterController* self, TVector3<float>* __output);
 		static void InternalSetFootPosition(ScriptCharacterController* self, TVector3<float>* position);
-		static float InternalGetRadius(ScriptCharacterController* self);
+		static void InternalGetFootPosition(ScriptCharacterController* self, TVector3<float>* __output);
 		static void InternalSetRadius(ScriptCharacterController* self, float radius);
-		static float InternalGetHeight(ScriptCharacterController* self);
+		static float InternalGetRadius(ScriptCharacterController* self);
 		static void InternalSetHeight(ScriptCharacterController* self, float height);
-		static void InternalGetUp(ScriptCharacterController* self, TVector3<float>* __output);
+		static float InternalGetHeight(ScriptCharacterController* self);
 		static void InternalSetUp(ScriptCharacterController* self, TVector3<float>* up);
-		static CharacterClimbingMode InternalGetClimbingMode(ScriptCharacterController* self);
+		static void InternalGetUp(ScriptCharacterController* self, TVector3<float>* __output);
 		static void InternalSetClimbingMode(ScriptCharacterController* self, CharacterClimbingMode mode);
-		static CharacterNonWalkableMode InternalGetNonWalkableMode(ScriptCharacterController* self);
+		static CharacterClimbingMode InternalGetClimbingMode(ScriptCharacterController* self);
 		static void InternalSetNonWalkableMode(ScriptCharacterController* self, CharacterNonWalkableMode mode);
-		static float InternalGetMinMoveDistance(ScriptCharacterController* self);
+		static CharacterNonWalkableMode InternalGetNonWalkableMode(ScriptCharacterController* self);
 		static void InternalSetMinMoveDistance(ScriptCharacterController* self, float value);
-		static float InternalGetContactOffset(ScriptCharacterController* self);
+		static float InternalGetMinMoveDistance(ScriptCharacterController* self);
 		static void InternalSetContactOffset(ScriptCharacterController* self, float value);
-		static float InternalGetStepOffset(ScriptCharacterController* self);
+		static float InternalGetContactOffset(ScriptCharacterController* self);
 		static void InternalSetStepOffset(ScriptCharacterController* self, float value);
-		static void InternalGetSlopeLimit(ScriptCharacterController* self, TRadian<float>* __output);
+		static float InternalGetStepOffset(ScriptCharacterController* self);
 		static void InternalSetSlopeLimit(ScriptCharacterController* self, TRadian<float>* value);
-		static uint64_t InternalGetLayer(ScriptCharacterController* self);
+		static void InternalGetSlopeLimit(ScriptCharacterController* self, TRadian<float>* __output);
 		static void InternalSetLayer(ScriptCharacterController* self, uint64_t layer);
+		static uint64_t InternalGetLayer(ScriptCharacterController* self);
 	};
 }

@@ -2584,44 +2584,6 @@ Use {0}, {1}, etc. in the string value for values that might change dynamically.
 			<doc>Determines the percent of the texture to account for when filtering for bloom. Larger values will include farther away pixels.</doc>
 		</property>
 	</class>
-	<class native="CCharacterController" script="CharacterController">
-		<method native="Move" script="Move" static="false">
-			<param name="displacement" type="Vector3">
-			</param>
-			<returns type="CharacterCollisionFlag">
-			</returns>
-		</method>
-		<property name="FootPosition" type="Vector3" getter="GetFootPosition" setter="SetFootPosition" static="false">
-		</property>
-		<property name="Radius" type="float" getter="GetRadius" setter="SetRadius" static="false">
-		</property>
-		<property name="Height" type="float" getter="GetHeight" setter="SetHeight" static="false">
-		</property>
-		<property name="Up" type="Vector3" getter="GetUp" setter="SetUp" static="false">
-		</property>
-		<property name="ClimbingMode" type="CharacterClimbingMode" getter="GetClimbingMode" setter="SetClimbingMode" static="false">
-		</property>
-		<property name="NonWalkableMode" type="CharacterNonWalkableMode" getter="GetNonWalkableMode" setter="SetNonWalkableMode" static="false">
-		</property>
-		<property name="MinMoveDistance" type="float" getter="GetMinMoveDistance" setter="SetMinMoveDistance" static="false">
-		</property>
-		<property name="ContactOffset" type="float" getter="GetContactOffset" setter="SetContactOffset" static="false">
-		</property>
-		<property name="StepOffset" type="float" getter="GetStepOffset" setter="SetStepOffset" static="false">
-		</property>
-		<property name="SlopeLimit" type="Radian" getter="GetSlopeLimit" setter="SetSlopeLimit" static="false">
-		</property>
-		<property name="Layer" type="ulong" getter="GetLayer" setter="SetLayer" static="false">
-		</property>
-		<event native="OnColliderHit" script="OnColliderHit" static="false">
-			<param name="p0" type="ControllerColliderCollision">
-			</param>
-		</event>
-		<event native="OnControllerHit" script="OnControllerHit" static="false">
-			<param name="p0" type="ControllerControllerCollision">
-			</param>
-		</event>
-	</class>
 	<class native="AnimationUtility" script="AnimationUtility">
 		<doc>Helper class for dealing with animations, animation clips and curves.</doc>
 		<method native="EulerToQuaternionCurve" script="EulerToQuaternionCurve" static="true">
@@ -4496,6 +4458,15 @@ Use {0}, {1}, etc. in the string value for values that might change dynamically.
 		<field name="Weight3" type="float">
 		</field>
 	</struct>
+	<enum native="LightType" script="LightType">
+		<doc>Light type that determines how is light information parsed by the renderer and other systems.</doc>
+		<enumentry native="Directional" script="Directional">
+		</enumentry>
+		<enumentry native="Radial" script="Radial">
+		</enumentry>
+		<enumentry native="Spot" script="Spot">
+		</enumentry>
+	</enum>
 	<struct native="CollisionData" script="CollisionData">
 		<doc>Information about a collision between two physics objects.</doc>
 		<field name="Collider" type="Collider">
@@ -4522,15 +4493,6 @@ Use {0}, {1}, etc. in the string value for values that might change dynamically.
 			<doc>Options describing the evolver.</doc>
 		</property>
 	</class>
-	<enum native="LightType" script="LightType">
-		<doc>Light type that determines how is light information parsed by the renderer and other systems.</doc>
-		<enumentry native="Directional" script="Directional">
-		</enumentry>
-		<enumentry native="Radial" script="Radial">
-		</enumentry>
-		<enumentry native="Spot" script="Spot">
-		</enumentry>
-	</enum>
 	<enum native="CollisionReportMode" script="CollisionReportMode">
 		<doc>Determines which collision events will be reported by physics objects.</doc>
 		<enumentry native="Report" script="Report">
@@ -4951,6 +4913,82 @@ In range [-1.0f, 1.0f].</doc>
 		</ctor>
 		<property name="Languages" type="ShadingLanguageFlags" getter="GetLanguages" setter="SetLanguages" static="false">
 			<doc>Flags that control which shading languages should the BSL shader be converted into. This ultimately controls on which render backends it will be able to run on.</doc>
+		</property>
+	</class>
+	<class native="LightProbeVolume" script="LightProbeVolume">
+		<doc>Allows you to define a volume of light probes that will be used for indirect lighting. Lighting information in the scene will be interpolated from nearby probes to calculate the amount of indirect lighting at that position. It is up to the caller to place the light probes in areas where the lighting changes in order to yield the best results.
+The volume can never have less than 4 probes.</doc>
+		<method native="AddProbe" script="AddProbe" static="false">
+			<doc>Adds a new probe at the specified position and returns a handle to the probe. The position is relative to the volume origin.</doc>
+			<param name="position" type="Vector3">
+			</param>
+			<returns type="int">
+			</returns>
+		</method>
+		<method native="RemoveProbe" script="RemoveProbe" static="false">
+			<doc>Removes the probe with the specified handle. Note that if this is one of the last four remaining probes in the volume it cannot be removed.</doc>
+			<param name="handle" type="int">
+			</param>
+		</method>
+		<method native="SetProbePosition" script="SetProbePosition" static="false">
+			<doc>Updates the position of the probe with the specified handle.</doc>
+			<param name="handle" type="int">
+			</param>
+			<param name="position" type="Vector3">
+			</param>
+		</method>
+		<method native="GetProbePosition" script="GetProbePosition" static="false">
+			<doc>Retrieves the position of the probe with the specified handle.</doc>
+			<param name="handle" type="int">
+			</param>
+			<returns type="Vector3">
+			</returns>
+		</method>
+		<method native="GetProbes" script="GetProbes" static="false">
+			<doc>Returns a list of all light probes in the volume.</doc>
+			<returns type="LightProbeInfo">
+			</returns>
+		</method>
+		<method native="RenderProbe" script="RenderProbe" static="false">
+			<doc>Causes the information for this specific light probe to be updated. You generally want to call this when the probe is moved or the scene around the probe changes.</doc>
+			<param name="handle" type="int">
+			</param>
+		</method>
+		<method native="RenderProbes" script="RenderProbes" static="false">
+			<doc>Causes the information for all lights probes to be updated. You generally want to call this if you move the entire light volume or the scene around the volume changes.</doc>
+		</method>
+		<method native="Resize" script="Resize" static="false">
+			<doc>Resizes the light probe grid and inserts new light probes, if the new size is larger than previous size. New probes are inserted in a grid pattern matching the new size and density parameters.
+Note that shrinking the volume will not remove light probes. In order to remove probes outside of the new volume call Clip().
+Resize will not change the positions of current light probes. If you wish to reset all probes to the currently set grid position, call Reset().</doc>
+			<param name="volume" type="AABox">
+				<doc>Axis aligned volume to be covered by the light probes.</doc>
+			</param>
+			<param name="cellCount" type="Vector3I">
+				<doc>Number of grid cells to split the volume into. Minimum number of 1, in which case each corner of the volume is represented by a single probe. Higher values subdivide the volume in an uniform way.</doc>
+			</param>
+		</method>
+		<method native="Clip" script="Clip" static="false">
+			<doc>Removes any probes outside of the current grid volume.</doc>
+		</method>
+		<method native="Reset" script="Reset" static="false">
+			<doc>Resets all probes to match the original grid pattern. This will reset probe positions, as well as add/remove probes as necessary, essentially losing any custom changes to the probes.</doc>
+		</method>
+		<method native="Resize" script="Resize" static="false">
+			<doc>Resizes the light probe grid and inserts new light probes, if the new size is larger than previous size. New probes are inserted in a grid pattern matching the new size and density parameters.
+Note that shrinking the volume will not remove light probes. In order to remove probes outside of the new volume call Clip().
+Resize will not change the positions of current light probes. If you wish to reset all probes to the currently set grid position, call Reset().</doc>
+			<param name="volume" type="AABox">
+				<doc>Axis aligned volume to be covered by the light probes.</doc>
+			</param>
+			<param name="cellCount" type="Vector3I">
+			</param>
+		</method>
+		<property name="GridVolume" type="AABox" getter="GetGridVolume" setter="" static="false">
+			<doc>Returns the volume that&apos;s used for adding probes in a uniform grid pattern.</doc>
+		</property>
+		<property name="CellCount" type="Vector3I" getter="GetCellCount" setter="" static="false">
+			<doc>Returns the cell count that&apos;s used for determining the density of probes within a grid volume.</doc>
 		</property>
 	</class>
 	<class native="AmbientOcclusionSettings" script="AmbientOcclusionSettings">
@@ -5559,282 +5597,6 @@ If this is disabled, then color grading and white balancing will not be enabled 
 			<doc>If set the camera will only render when requested by the user through Camera::notifyNeedsRedraw(). Otherwise the camera will render every frame (unless disabled).</doc>
 		</enumentry>
 	</enum>
-	<enum native="CharacterClimbingMode" script="CharacterClimbingMode">
-		<doc>Controls climbing behaviour for a capsule character controller. Normally the character controller will not automatically climb when heights are greater than the assigned step offset. However due to the shape of the capsule it might automatically climb over slightly larger heights than assigned step offsets.</doc>
-		<enumentry native="Normal" script="Normal">
-			<doc>Normal behaviour. Capsule character controller will be able to auto-step even above the step offset.</doc>
-		</enumentry>
-		<enumentry native="Constrained" script="Constrained">
-			<doc>The system will attempt to limit auto-step to the provided step offset and no higher.</doc>
-		</enumentry>
-	</enum>
-	<class native="SpriteImage" script="SpriteImage">
-		<doc>Image that references a part of a texture by specifying an UV range. When the sprite image is rendered only the portion of the texture specified by the UV range will be rendered.
-Sprite images also allow you to specify sprite sheet animation by varying which portion of the UV is selected over time.</doc>
-		<property name="AnimationFrameSize" type="TSize2&lt;int&gt;" getter="GetAnimationFrameSize" setter="" static="false">
-			<doc>Returns the size of a single animation frame in logical pixel units. If the texture has no animation this is the same as GetLogicalSize().</doc>
-		</property>
-		<property name="Animation" type="SpriteSheetGridAnimation" getter="GetAnimation" setter="SetAnimation" static="false">
-			<doc>Sets properties describing sprite animation. The animation splits the sprite area into a grid of sub-images which can be evaluated over time. In order to view the animation you must also enable playback through setAnimationPlayback().</doc>
-		</property>
-		<property name="AnimationPlayback" type="SpriteAnimationPlayback" getter="GetAnimationPlayback" setter="SetAnimationPlayback" static="false">
-			<doc>Determines if and how should the sprite animation play.</doc>
-		</property>
-	</class>
-	<enum native="CharacterNonWalkableMode" script="CharacterNonWalkableMode">
-		<doc>Controls behaviour when a character controller reaches a slope thats larger than its slope offset.</doc>
-		<enumentry native="Prevent" script="Prevent">
-			<doc>Character will be prevented from going further, but will be allowed to move laterally.</doc>
-		</enumentry>
-		<enumentry native="PreventAndSlide" script="PreventAndSlide">
-			<doc>Character will be prevented from going further, but also slide down the slope.</doc>
-		</enumentry>
-	</enum>
-	<enum native="CharacterCollisionFlag" script="CharacterCollisionFlag">
-		<doc>Reports in which directions is the character colliding with other objects.</doc>
-		<enumentry native="Sides" script="Sides">
-			<doc>Character is colliding with its sides.</doc>
-		</enumentry>
-		<enumentry native="Up" script="Up">
-			<doc>Character is colliding with the ceiling.</doc>
-		</enumentry>
-		<enumentry native="Down" script="Down">
-			<doc>Character is colliding with the ground.</doc>
-		</enumentry>
-	</enum>
-	<class native="ParticleForce" script="ParticleForce">
-		<doc>Applies an arbitrary force to the particles.</doc>
-		<ctor>
-			<doc>Creates a new particle force evolver.</doc>
-			<param name="desc" type="ParticleForceOptions">
-			</param>
-		</ctor>
-		<ctor>
-			<doc>Creates a new particle force evolver.</doc>
-		</ctor>
-		<property name="Options" type="ParticleForceOptions" getter="GetOptions" setter="SetOptions" static="false">
-			<doc>Options describing the evolver.</doc>
-		</property>
-	</class>
-	<struct native="ControllerCollision" script="ControllerCollision">
-		<doc>Contains data about a collision of a character controller and another object.</doc>
-		<field name="Position" type="Vector3">
-			<doc>Contact position.</doc>
-		</field>
-		<field name="Normal" type="Vector3">
-			<doc>Contact normal.</doc>
-		</field>
-		<field name="MotionDir" type="Vector3">
-			<doc>Direction of motion after the hit.</doc>
-		</field>
-		<field name="MotionAmount" type="float">
-			<doc>Magnitude of motion after the hit.</doc>
-		</field>
-	</struct>
-	<struct native="GUIContentImages" script="GUIContentImages">
-		<doc>Contains separate GUI content images for every possible GUI element state.</doc>
-		<ctor>
-		</ctor>
-		<ctor>
-			<param name="image" type="SpriteImage">
-			</param>
-		</ctor>
-		<field name="Normal" type="SpriteImage">
-		</field>
-		<field name="Hover" type="SpriteImage">
-		</field>
-		<field name="Active" type="SpriteImage">
-		</field>
-		<field name="Focused" type="SpriteImage">
-		</field>
-		<field name="NormalOn" type="SpriteImage">
-		</field>
-		<field name="HoverOn" type="SpriteImage">
-		</field>
-		<field name="ActiveOn" type="SpriteImage">
-		</field>
-		<field name="FocusedOn" type="SpriteImage">
-		</field>
-	</struct>
-	<enum native="SpriteAnimationPlayback" script="SpriteAnimationPlayback">
-		<doc>Type of playback to use for an animation of a SpriteTexture.</doc>
-		<enumentry native="PingPong" script="PingPong">
-			<doc>Loop the animation but reverse playback when the end is reached.</doc>
-		</enumentry>
-		<enumentry native="Loop" script="Loop">
-			<doc>Animate to the end of the animation then loop around.</doc>
-		</enumentry>
-		<enumentry native="None" script="None">
-			<doc>Do not animate.</doc>
-		</enumentry>
-		<enumentry native="Normal" script="Normal">
-			<doc>Animate once until the end of the animation is reached.</doc>
-		</enumentry>
-	</enum>
-	<class native="RendererMeshData" script="RendererMeshData">
-		<doc>Contains mesh vertex and index data used for initializing, updating and reading mesh data from Mesh.</doc>
-		<ctor>
-			<param name="numVertices" type="int">
-			</param>
-			<param name="numIndices" type="int">
-			</param>
-			<param name="layout" type="VertexLayout">
-			</param>
-			<param name="indexType" type="IndexType">
-			</param>
-		</ctor>
-		<property name="Data" type="MeshData" getter="GetData" setter="" static="false">
-			<doc>Returns the underlying MeshData structure.</doc>
-		</property>
-		<property name="Positions" type="Vector3" getter="GetPositions" setter="SetPositions" static="false">
-			<doc>An array of all vertex positions. Only valid if the vertex layout contains vertex positions.</doc>
-		</property>
-		<property name="Normals" type="Vector3" getter="GetNormals" setter="SetNormals" static="false">
-			<doc>An array of all vertex normals. Only valid if the vertex layout contains vertex normals.</doc>
-		</property>
-		<property name="Tangents" type="Vector4" getter="GetTangents" setter="SetTangents" static="false">
-			<doc>An array of all vertex tangents. Only valid if the vertex layout contains vertex tangents.</doc>
-		</property>
-		<property name="Colors" type="Color" getter="GetColors" setter="SetColors" static="false">
-			<doc>An array of all vertex colors. Only valid if the vertex layout contains vertex colors.</doc>
-		</property>
-		<property name="UV0" type="TVector2&lt;float&gt;" getter="GetUV0" setter="SetUV0" static="false">
-			<doc>An array of all vertex texture coordinates in the UV0 channel. Only valid if the vertex layout contains UV0 coordinates.</doc>
-		</property>
-		<property name="UV1" type="TVector2&lt;float&gt;" getter="GetUV1" setter="SetUV1" static="false">
-			<doc>An array of all vertex texture coordinates in the UV1 channel. Only valid if the vertex layout contains UV1 coordinates.</doc>
-		</property>
-		<property name="BoneWeights" type="BoneWeight" getter="GetBoneWeights" setter="SetBoneWeights" static="false">
-			<doc>An array of all vertex bone weights. Only valid if the vertex layout contains bone weights.</doc>
-		</property>
-		<property name="Indices" type="int" getter="GetIndices" setter="SetIndices" static="false">
-			<doc>An array of all indices.</doc>
-		</property>
-		<property name="VertexCount" type="int" getter="GetVertexCount" setter="" static="false">
-			<doc>Returns the number of vertices contained in the mesh.</doc>
-		</property>
-		<property name="IndexCount" type="int" getter="GetIndexCount" setter="" static="false">
-			<doc>Returns the number of indices contained in the mesh.</doc>
-		</property>
-	</class>
-	<struct native="ControllerControllerCollision" script="ControllerControllerCollision">
-		<doc>Contains data about a collision between two character controllers.</doc>
-		<field name="Controller" type="CharacterController">
-			<doc>Component of the controller that was touched. Can be null if the controller has no component parent, in which case check #controllerRaw.</doc>
-		</field>
-		<field name="Position" type="Vector3">
-			<doc>Contact position.</doc>
-		</field>
-		<field name="Normal" type="Vector3">
-			<doc>Contact normal.</doc>
-		</field>
-		<field name="MotionDir" type="Vector3">
-			<doc>Direction of motion after the hit.</doc>
-		</field>
-		<field name="MotionAmount" type="float">
-			<doc>Magnitude of motion after the hit.</doc>
-		</field>
-	</struct>
-	<class native="CLight" script="Light">
-		<property name="Type" type="LightType" getter="GetType" setter="SetType" static="false">
-		</property>
-		<property name="Color" type="Color" getter="GetColor" setter="SetColor" static="false">
-		</property>
-		<property name="Intensity" type="float" getter="GetIntensity" setter="SetIntensity" static="false">
-		</property>
-		<property name="UseAutoAttenuation" type="bool" getter="GetUseAutoAttenuation" setter="SetUseAutoAttenuation" static="false">
-		</property>
-		<property name="AttenuationRadius" type="float" getter="GetAttenuationRadius" setter="SetAttenuationRadius" static="false">
-		</property>
-		<property name="SourceRadius" type="float" getter="GetSourceRadius" setter="SetSourceRadius" static="false">
-		</property>
-		<property name="SpotAngle" type="Degree" getter="GetSpotAngle" setter="SetSpotAngle" static="false">
-		</property>
-		<property name="SpotAngleFalloff" type="Degree" getter="GetSpotFalloffAngle" setter="SetSpotFalloffAngle" static="false">
-		</property>
-		<property name="CastsShadow" type="bool" getter="GetCastsShadow" setter="SetCastsShadow" static="false">
-		</property>
-		<property name="ShadowBias" type="float" getter="GetShadowBias" setter="SetShadowBias" static="false">
-		</property>
-		<property name="Bounds" type="Sphere" getter="GetBounds" setter="" static="false">
-		</property>
-	</class>
-	<struct native="LightProbeInfo" script="LightProbeInfo">
-		<doc>Information about a single probe in the light probe volume.</doc>
-		<field name="Handle" type="int">
-		</field>
-		<field name="Position" type="Vector3">
-		</field>
-	</struct>
-	<enum native="JointBody" script="JointBody">
-		<doc>Specifies first or second body referenced by a Joint.</doc>
-		<enumentry native="Target" script="Target">
-			<doc>Body the joint is influencing.</doc>
-		</enumentry>
-		<enumentry native="Anchor" script="Anchor">
-			<doc>Body the joint is attached to (if any).</doc>
-		</enumentry>
-	</enum>
-	<class native="GUIFlexibleSpace" script="GUIFlexibleSpace">
-		<doc>GUI element that may be inserted into layouts to make a space of a flexible size. The space will expand only if there is room and other elements are not squished because of it. If multiple flexible spaces are in a layout, their sizes will be shared equally.</doc>
-		<ctor>
-			<doc>Creates a new flexible space GUI element.</doc>
-		</ctor>
-	</class>
-	<class native="CLightProbeVolume" script="LightProbeVolume">
-		<method native="AddProbe" script="AddProbe" static="false">
-			<param name="position" type="Vector3">
-			</param>
-			<returns type="int">
-			</returns>
-		</method>
-		<method native="SetProbePosition" script="SetProbePosition" static="false">
-			<param name="handle" type="int">
-			</param>
-			<param name="position" type="Vector3">
-			</param>
-		</method>
-		<method native="GetProbePosition" script="GetProbePosition" static="false">
-			<param name="handle" type="int">
-			</param>
-			<returns type="Vector3">
-			</returns>
-		</method>
-		<method native="RemoveProbe" script="RemoveProbe" static="false">
-			<param name="handle" type="int">
-			</param>
-		</method>
-		<method native="GetProbes" script="GetProbes" static="false">
-			<returns type="LightProbeInfo">
-			</returns>
-		</method>
-		<method native="RenderProbe" script="RenderProbe" static="false">
-			<param name="handle" type="int">
-			</param>
-		</method>
-		<method native="RenderProbes" script="RenderProbes" static="false">
-		</method>
-		<method native="Resize" script="Resize" static="false">
-			<param name="volume" type="AABox">
-			</param>
-			<param name="cellCount" type="Vector3I">
-			</param>
-		</method>
-		<method native="Clip" script="Clip" static="false">
-		</method>
-		<method native="Reset" script="Reset" static="false">
-		</method>
-		<method native="Resize" script="Resize" static="false">
-			<param name="volume" type="AABox">
-			</param>
-			<param name="cellCount" type="Vector3I">
-			</param>
-		</method>
-		<property name="GridVolume" type="AABox" getter="GetGridVolume" setter="" static="false">
-		</property>
-		<property name="CellCount" type="Vector3I" getter="GetCellCount" setter="" static="false">
-		</property>
-	</class>
 	<class native="TColorDistribution&lt;ColorGradient&gt;" script="ColorDistribution">
 		<doc>Specifies a color as a distribution, which can include a constant color, random color range or a color gradient.</doc>
 		<ctor>
@@ -6359,6 +6121,32 @@ Sprite images also allow you to specify sprite sheet animation by varying which 
 			<doc>True if the force is provided in world space, false if in local space.</doc>
 		</field>
 	</struct>
+	<class native="ParticleForce" script="ParticleForce">
+		<doc>Applies an arbitrary force to the particles.</doc>
+		<ctor>
+			<doc>Creates a new particle force evolver.</doc>
+			<param name="desc" type="ParticleForceOptions">
+			</param>
+		</ctor>
+		<ctor>
+			<doc>Creates a new particle force evolver.</doc>
+		</ctor>
+		<property name="Options" type="ParticleForceOptions" getter="GetOptions" setter="SetOptions" static="false">
+			<doc>Options describing the evolver.</doc>
+		</property>
+	</class>
+	<enum native="CharacterCollisionFlag" script="CharacterCollisionFlag">
+		<doc>Reports in which directions is the character colliding with other objects.</doc>
+		<enumentry native="Sides" script="Sides">
+			<doc>Character is colliding with its sides.</doc>
+		</enumentry>
+		<enumentry native="Up" script="Up">
+			<doc>Character is colliding with the ceiling.</doc>
+		</enumentry>
+		<enumentry native="Down" script="Down">
+			<doc>Character is colliding with the ground.</doc>
+		</enumentry>
+	</enum>
 	<struct native="PARTICLE_GRAVITY_DESC" script="ParticleGravityOptions">
 		<doc>Structure used for initializing a ParticleGravity object.</doc>
 		<ctor>
@@ -6700,18 +6488,6 @@ Sprite images also allow you to specify sprite sheet animation by varying which 
 		</ctor>
 		<property name="Options" type="ParticleSphereShapeOptions" getter="GetOptions" setter="SetOptions" static="false">
 			<doc>Options describing the shape.</doc>
-		</property>
-	</class>
-	<class native="CReflectionProbe" script="ReflectionProbe">
-		<method native="Capture" script="Capture" static="false">
-		</method>
-		<property name="Type" type="ReflectionProbeType" getter="GetType" setter="SetType" static="false">
-		</property>
-		<property name="Radius" type="float" getter="GetRadius" setter="SetRadius" static="false">
-		</property>
-		<property name="Extents" type="Vector3" getter="GetExtents" setter="SetExtents" static="false">
-		</property>
-		<property name="CustomTexture" type="RRef&lt;Texture&gt;" getter="GetCustomTexture" setter="SetCustomTexture" static="false">
 		</property>
 	</class>
 	<struct native="PARTICLE_HEMISPHERE_SHAPE_DESC" script="ParticleHemisphereShapeOptions">
@@ -7426,15 +7202,6 @@ The shape and mass of a rigidbody is governed by its colliders. At least one col
 		<property name="Layer" type="ulong" getter="GetLayer" setter="SetLayer" static="false">
 		</property>
 	</class>
-	<enum native="ReflectionProbeType" script="ReflectionProbeType">
-		<doc>Probe type that determines the shape of the probe and how is it interpreted by the renderer.</doc>
-		<enumentry native="Box" script="Box">
-			<doc>Reflection probe cubemap is generated, and box extents are used for calculating influence ranges and box geometry.</doc>
-		</enumentry>
-		<enumentry native="Sphere" script="Sphere">
-			<doc>Reflection probe cubemap is generated, but sphere is used for calculating the influence radius and proxy geometry.</doc>
-		</enumentry>
-	</enum>
 	<class native="CSkybox" script="Skybox">
 		<property name="Texture" type="RRef&lt;Texture&gt;" getter="GetTexture" setter="SetTexture" static="false">
 		</property>
@@ -7455,6 +7222,226 @@ The shape and mass of a rigidbody is governed by its colliders. At least one col
 		<property name="Radius" type="float" getter="GetRadius" setter="SetRadius" static="false">
 			<doc>Determines the radius of the capsule.</doc>
 		</property>
+	</class>
+	<enum native="CharacterClimbingMode" script="CharacterClimbingMode">
+		<doc>Controls climbing behaviour for a capsule character controller. Normally the character controller will not automatically climb when heights are greater than the assigned step offset. However due to the shape of the capsule it might automatically climb over slightly larger heights than assigned step offsets.</doc>
+		<enumentry native="Normal" script="Normal">
+			<doc>Normal behaviour. Capsule character controller will be able to auto-step even above the step offset.</doc>
+		</enumentry>
+		<enumentry native="Constrained" script="Constrained">
+			<doc>The system will attempt to limit auto-step to the provided step offset and no higher.</doc>
+		</enumentry>
+	</enum>
+	<class native="SpriteImage" script="SpriteImage">
+		<doc>Image that references a part of a texture by specifying an UV range. When the sprite image is rendered only the portion of the texture specified by the UV range will be rendered.
+Sprite images also allow you to specify sprite sheet animation by varying which portion of the UV is selected over time.</doc>
+		<property name="AnimationFrameSize" type="TSize2&lt;int&gt;" getter="GetAnimationFrameSize" setter="" static="false">
+			<doc>Returns the size of a single animation frame in logical pixel units. If the texture has no animation this is the same as GetLogicalSize().</doc>
+		</property>
+		<property name="Animation" type="SpriteSheetGridAnimation" getter="GetAnimation" setter="SetAnimation" static="false">
+			<doc>Sets properties describing sprite animation. The animation splits the sprite area into a grid of sub-images which can be evaluated over time. In order to view the animation you must also enable playback through setAnimationPlayback().</doc>
+		</property>
+		<property name="AnimationPlayback" type="SpriteAnimationPlayback" getter="GetAnimationPlayback" setter="SetAnimationPlayback" static="false">
+			<doc>Determines if and how should the sprite animation play.</doc>
+		</property>
+	</class>
+	<enum native="CharacterNonWalkableMode" script="CharacterNonWalkableMode">
+		<doc>Controls behaviour when a character controller reaches a slope thats larger than its slope offset.</doc>
+		<enumentry native="Prevent" script="Prevent">
+			<doc>Character will be prevented from going further, but will be allowed to move laterally.</doc>
+		</enumentry>
+		<enumentry native="PreventAndSlide" script="PreventAndSlide">
+			<doc>Character will be prevented from going further, but also slide down the slope.</doc>
+		</enumentry>
+	</enum>
+	<struct native="ControllerCollision" script="ControllerCollision">
+		<doc>Contains data about a collision of a character controller and another object.</doc>
+		<field name="Position" type="Vector3">
+			<doc>Contact position.</doc>
+		</field>
+		<field name="Normal" type="Vector3">
+			<doc>Contact normal.</doc>
+		</field>
+		<field name="MotionDir" type="Vector3">
+			<doc>Direction of motion after the hit.</doc>
+		</field>
+		<field name="MotionAmount" type="float">
+			<doc>Magnitude of motion after the hit.</doc>
+		</field>
+	</struct>
+	<struct native="GUIContentImages" script="GUIContentImages">
+		<doc>Contains separate GUI content images for every possible GUI element state.</doc>
+		<ctor>
+		</ctor>
+		<ctor>
+			<param name="image" type="SpriteImage">
+			</param>
+		</ctor>
+		<field name="Normal" type="SpriteImage">
+		</field>
+		<field name="Hover" type="SpriteImage">
+		</field>
+		<field name="Active" type="SpriteImage">
+		</field>
+		<field name="Focused" type="SpriteImage">
+		</field>
+		<field name="NormalOn" type="SpriteImage">
+		</field>
+		<field name="HoverOn" type="SpriteImage">
+		</field>
+		<field name="ActiveOn" type="SpriteImage">
+		</field>
+		<field name="FocusedOn" type="SpriteImage">
+		</field>
+	</struct>
+	<enum native="SpriteAnimationPlayback" script="SpriteAnimationPlayback">
+		<doc>Type of playback to use for an animation of a SpriteTexture.</doc>
+		<enumentry native="PingPong" script="PingPong">
+			<doc>Loop the animation but reverse playback when the end is reached.</doc>
+		</enumentry>
+		<enumentry native="Loop" script="Loop">
+			<doc>Animate to the end of the animation then loop around.</doc>
+		</enumentry>
+		<enumentry native="None" script="None">
+			<doc>Do not animate.</doc>
+		</enumentry>
+		<enumentry native="Normal" script="Normal">
+			<doc>Animate once until the end of the animation is reached.</doc>
+		</enumentry>
+	</enum>
+	<class native="RendererMeshData" script="RendererMeshData">
+		<doc>Contains mesh vertex and index data used for initializing, updating and reading mesh data from Mesh.</doc>
+		<ctor>
+			<param name="numVertices" type="int">
+			</param>
+			<param name="numIndices" type="int">
+			</param>
+			<param name="layout" type="VertexLayout">
+			</param>
+			<param name="indexType" type="IndexType">
+			</param>
+		</ctor>
+		<property name="Data" type="MeshData" getter="GetData" setter="" static="false">
+			<doc>Returns the underlying MeshData structure.</doc>
+		</property>
+		<property name="Positions" type="Vector3" getter="GetPositions" setter="SetPositions" static="false">
+			<doc>An array of all vertex positions. Only valid if the vertex layout contains vertex positions.</doc>
+		</property>
+		<property name="Normals" type="Vector3" getter="GetNormals" setter="SetNormals" static="false">
+			<doc>An array of all vertex normals. Only valid if the vertex layout contains vertex normals.</doc>
+		</property>
+		<property name="Tangents" type="Vector4" getter="GetTangents" setter="SetTangents" static="false">
+			<doc>An array of all vertex tangents. Only valid if the vertex layout contains vertex tangents.</doc>
+		</property>
+		<property name="Colors" type="Color" getter="GetColors" setter="SetColors" static="false">
+			<doc>An array of all vertex colors. Only valid if the vertex layout contains vertex colors.</doc>
+		</property>
+		<property name="UV0" type="TVector2&lt;float&gt;" getter="GetUV0" setter="SetUV0" static="false">
+			<doc>An array of all vertex texture coordinates in the UV0 channel. Only valid if the vertex layout contains UV0 coordinates.</doc>
+		</property>
+		<property name="UV1" type="TVector2&lt;float&gt;" getter="GetUV1" setter="SetUV1" static="false">
+			<doc>An array of all vertex texture coordinates in the UV1 channel. Only valid if the vertex layout contains UV1 coordinates.</doc>
+		</property>
+		<property name="BoneWeights" type="BoneWeight" getter="GetBoneWeights" setter="SetBoneWeights" static="false">
+			<doc>An array of all vertex bone weights. Only valid if the vertex layout contains bone weights.</doc>
+		</property>
+		<property name="Indices" type="int" getter="GetIndices" setter="SetIndices" static="false">
+			<doc>An array of all indices.</doc>
+		</property>
+		<property name="VertexCount" type="int" getter="GetVertexCount" setter="" static="false">
+			<doc>Returns the number of vertices contained in the mesh.</doc>
+		</property>
+		<property name="IndexCount" type="int" getter="GetIndexCount" setter="" static="false">
+			<doc>Returns the number of indices contained in the mesh.</doc>
+		</property>
+	</class>
+	<struct native="ControllerControllerCollision" script="ControllerControllerCollision">
+		<doc>Contains data about a collision between two character controllers.</doc>
+		<field name="Controller" type="CharacterController">
+			<doc>Component of the controller that was touched. Can be null if the controller has no component parent, in which case check #controllerRaw.</doc>
+		</field>
+		<field name="Position" type="Vector3">
+			<doc>Contact position.</doc>
+		</field>
+		<field name="Normal" type="Vector3">
+			<doc>Contact normal.</doc>
+		</field>
+		<field name="MotionDir" type="Vector3">
+			<doc>Direction of motion after the hit.</doc>
+		</field>
+		<field name="MotionAmount" type="float">
+			<doc>Magnitude of motion after the hit.</doc>
+		</field>
+	</struct>
+	<class native="CharacterController" script="CharacterController">
+		<doc>Special physics controller meant to be used for game characters. Uses the &quot;slide-and-collide&quot; physics instead of of the standard physics model to handle various issues with manually moving kinematic objects. Uses a capsule to represent the character&apos;s bounds.</doc>
+		<method native="Move" script="Move" static="false">
+			<doc>Moves the controller in the specified direction by the specified amount, while interacting with surrounding geometry. Returns flags signaling where collision occurred after the movement.
+Does not account for gravity, you must apply it manually.</doc>
+			<param name="displacement" type="Vector3">
+			</param>
+			<returns type="CharacterCollisionFlag">
+			</returns>
+		</method>
+		<property name="FootPosition" type="Vector3" getter="GetFootPosition" setter="SetFootPosition" static="false">
+			<doc>Determines the position of the bottom of the controller. Position takes contact offset into account. Changing this will teleport the character to the location. Use move() for movement that includes physics.</doc>
+		</property>
+		<property name="Radius" type="float" getter="GetRadius" setter="SetRadius" static="false">
+			<doc>Determines the radius of the controller capsule.</doc>
+		</property>
+		<property name="Height" type="float" getter="GetHeight" setter="SetHeight" static="false">
+			<doc>Determines the height between the centers of the two spheres of the controller capsule.</doc>
+		</property>
+		<property name="Up" type="Vector3" getter="GetUp" setter="SetUp" static="false">
+			<doc>Determines the up direction of capsule. Determines capsule orientation.</doc>
+		</property>
+		<property name="ClimbingMode" type="CharacterClimbingMode" getter="GetClimbingMode" setter="SetClimbingMode" static="false">
+		</property>
+		<property name="NonWalkableMode" type="CharacterNonWalkableMode" getter="GetNonWalkableMode" setter="SetNonWalkableMode" static="false">
+		</property>
+		<property name="MinMoveDistance" type="float" getter="GetMinMoveDistance" setter="SetMinMoveDistance" static="false">
+		</property>
+		<property name="ContactOffset" type="float" getter="GetContactOffset" setter="SetContactOffset" static="false">
+		</property>
+		<property name="StepOffset" type="float" getter="GetStepOffset" setter="SetStepOffset" static="false">
+		</property>
+		<property name="SlopeLimit" type="Radian" getter="GetSlopeLimit" setter="SetSlopeLimit" static="false">
+		</property>
+		<property name="Layer" type="ulong" getter="GetLayer" setter="SetLayer" static="false">
+			<doc>Determines the layer that controls what can the controller collide with.</doc>
+		</property>
+		<event native="OnColliderHit" script="OnColliderHit" static="false">
+			<doc>Triggered when the controller hits a collider.</doc>
+			<param name="p0" type="ControllerColliderCollision">
+			</param>
+		</event>
+		<event native="OnControllerHit" script="OnControllerHit" static="false">
+			<doc>Triggered when the controller hits another character controller.</doc>
+			<param name="p0" type="ControllerControllerCollision">
+			</param>
+		</event>
+	</class>
+	<struct native="LightProbeInfo" script="LightProbeInfo">
+		<doc>Information about a single probe in the light probe volume.</doc>
+		<field name="Handle" type="int">
+		</field>
+		<field name="Position" type="Vector3">
+		</field>
+	</struct>
+	<enum native="JointBody" script="JointBody">
+		<doc>Specifies first or second body referenced by a Joint.</doc>
+		<enumentry native="Target" script="Target">
+			<doc>Body the joint is influencing.</doc>
+		</enumentry>
+		<enumentry native="Anchor" script="Anchor">
+			<doc>Body the joint is attached to (if any).</doc>
+		</enumentry>
+	</enum>
+	<class native="GUIFlexibleSpace" script="GUIFlexibleSpace">
+		<doc>GUI element that may be inserted into layouts to make a space of a flexible size. The space will expand only if there is room and other elements are not squished because of it. If multiple flexible spaces are in a layout, their sizes will be shared equally.</doc>
+		<ctor>
+			<doc>Creates a new flexible space GUI element.</doc>
+		</ctor>
 	</class>
 	<class native="GUIProgressBar" script="GUIProgressBar">
 		<doc>GUI element containing a background image and a fill image that is scaled depending on the percentage set by the caller.</doc>
@@ -8078,6 +8065,87 @@ Angular degrees of freedom are partitioned as twist (around X axis) and swing (a
 			<doc>If the joint is moving faster than the drive&apos;s target speed, the drive will try to break. If you don&apos;t want the breaking to happen set this to true.</doc>
 		</field>
 	</struct>
+	<class native="FontBitmapInformation" script="FontBitmapInformation">
+		<doc>Contains information about font characters rendered into one or multiple bitmaps, for specific font size.</doc>
+		<method native="GetCharacterInformation" script="GetCharacterInformation" static="false">
+			<doc>Returns a character description for the character with the specified Unicode key.</doc>
+			<param name="characterId" type="int">
+			</param>
+			<returns type="CharacterInformation">
+			</returns>
+		</method>
+		<property name="Size" type="float" getter="GetSize" setter="SetSize" static="false">
+			<doc>Font size for which the bitmaps are rendered.</doc>
+		</property>
+		<property name="BaselineOffset" type="float" getter="GetBaselineOffset" setter="SetBaselineOffset" static="false">
+			<doc>Y offset to the baseline on which the characters are placed, in pixels.</doc>
+		</property>
+		<property name="LineHeight" type="float" getter="GetLineHeight" setter="SetLineHeight" static="false">
+			<doc>Height of a single line of the font, in pixels.</doc>
+		</property>
+		<property name="MissingGlyph" type="CharacterInformation" getter="GetMissingGlyph" setter="SetMissingGlyph" static="false">
+			<doc>Character to use when data for a character is missing.</doc>
+		</property>
+		<property name="SpaceWidth" type="float" getter="GetSpaceWidth" setter="SetSpaceWidth" static="false">
+			<doc>Width of a space in pixels.</doc>
+		</property>
+	</class>
+	<struct native="GUIPanelContent" script="GUIPanelContent">
+		<doc>Structure describing contents of a GUIPanel element.</doc>
+		<ctor>
+			<param name="depth" type="short">
+			</param>
+			<param name="depthRangeMinimum" type="ushort">
+			</param>
+			<param name="depthRangeMaximum" type="ushort">
+			</param>
+		</ctor>
+		<field name="Depth" type="short">
+			<doc>Determines rendering order of the GUI panel. Panels with lower depth will be rendered in front of panels with higher depth. Provided depth is relative to depth of the parent GUI panel (if any).</doc>
+		</field>
+		<field name="DepthRangeMinimum" type="ushort">
+			<doc>Minimum range of depths that children of this GUI panel can have. If any panel has depth outside of the range [depth - depthRangeMin, depth + depthRangeMax] it will be clamped to nearest extreme. Value of 65535 means infinite range.</doc>
+		</field>
+		<field name="DepthRangeMaximum" type="ushort">
+			<doc>Maximum range of depths that children of this GUI panel can have. If any panel has depth outside of the range [depth - depthRangeMin, depth + depthRangeMax] it will be clamped to nearest extreme. Value of 65535 means infinite range.</doc>
+		</field>
+	</struct>
+	<class native="Light" script="Light">
+		<property name="Type" type="LightType" getter="GetType" setter="SetType" static="false">
+			<doc>Determines the type of the light.</doc>
+		</property>
+		<property name="CastsShadow" type="bool" getter="GetCastsShadow" setter="SetCastsShadow" static="false">
+			<doc>Determines does this light cast shadows when rendered.</doc>
+		</property>
+		<property name="ShadowBias" type="float" getter="GetShadowBias" setter="SetShadowBias" static="false">
+			<doc>Shadow bias determines offset at which the shadows are rendered from the shadow caster. Bias value of 0 means the shadow will be renderered exactly at the casters position. If your geometry has thin areas this will produce an artifact called shadow acne, in which case you can increase the shadow bias value to eliminate it. Note that increasing the shadow bias will on the other hand make the shadow be offset from the caster and may make the caster appear as if floating (Peter Panning artifact). Neither is perfect, so it is preferable to ensure all your geometry has thickness and keep the bias at zero, or even at negative values.
+Default value is 0.5. Should be in rough range [-1, 1].</doc>
+		</property>
+		<property name="Color" type="Color" getter="GetColor" setter="SetColor" static="false">
+			<doc>Determines the color emitted by the light.</doc>
+		</property>
+		<property name="AttenuationRadius" type="float" getter="GetAttenuationRadius" setter="SetAttenuationRadius" static="false">
+			<doc>Range at which the light contribution fades out to zero. Use setUseAutoAttenuation to provide a radius automatically dependant on light intensity. The radius will cut-off light contribution and therefore manually set very small radius can end up being very physically incorrect.</doc>
+		</property>
+		<property name="SourceRadius" type="float" getter="GetSourceRadius" setter="SetSourceRadius" static="false">
+			<doc>Radius of the light source. If non-zero then this light represents an area light, otherwise it is a punctual light. Area lights have different attenuation then punctual lights, and their appearance in specular reflections is realistic. Shape of the area light depends on light type: - For directional light the shape is a disc projected on the hemisphere on the sky. This parameter represents angular radius (in degrees) of the disk and should be very small (think of how much space the Sun takes on the sky - roughly 0.25 degree radius). - For radial light the shape is a sphere and the source radius is the radius of the sphere. - For spot lights the shape is a disc oriented in the direction of the spot light and the source radius is the radius of the disc.</doc>
+		</property>
+		<property name="UseAutoAttenuation" type="bool" getter="GetUseAutoAttenuation" setter="SetUseAutoAttenuation" static="false">
+			<doc>If enabled the attenuation radius will automatically be controlled in order to provide reasonable light radius, depending on its intensity.</doc>
+		</property>
+		<property name="Intensity" type="float" getter="GetIntensity" setter="SetIntensity" static="false">
+			<doc>Determines the power of the light source. This will be luminous flux for radial &amp; spot lights, luminance for directional lights with no area, and illuminance for directional lights with area (non-zero source radius).</doc>
+		</property>
+		<property name="SpotAngle" type="Degree" getter="GetSpotAngle" setter="SetSpotAngle" static="false">
+			<doc>Determines the total angle covered by a spot light.</doc>
+		</property>
+		<property name="SpotAngleFalloff" type="Degree" getter="GetSpotFalloffAngle" setter="SetSpotFalloffAngle" static="false">
+			<doc>Determines the falloff angle covered by a spot light. Falloff angle determines at what point does light intensity starts quadratically falling off as the angle approaches the total spot angle.</doc>
+		</property>
+		<property name="Bounds" type="Sphere" getter="GetBounds" setter="" static="false">
+			<doc>Returns world space bounds that completely encompass the light&apos;s area of influence.</doc>
+		</property>
+	</class>
 	<class native="PlaneCollider" script="PlaneCollider">
 		<doc>A collider with plane geometry. Plane colliders cannot be a part of non-kinematic rigidbodies.</doc>
 		<property name="Normal" type="Vector3" getter="GetNormal" setter="SetNormal" static="false">
@@ -8085,6 +8153,33 @@ Angular degrees of freedom are partitioned as twist (around X axis) and swing (a
 		</property>
 		<property name="Distance" type="float" getter="GetDistance" setter="SetDistance" static="false">
 			<doc>Determines the distance of the plane from the local origin, along its normal vector.</doc>
+		</property>
+	</class>
+	<enum native="ReflectionProbeType" script="ReflectionProbeType">
+		<doc>Probe type that determines the shape of the probe and how is it interpreted by the renderer.</doc>
+		<enumentry native="Box" script="Box">
+			<doc>Reflection probe cubemap is generated, and box extents are used for calculating influence ranges and box geometry.</doc>
+		</enumentry>
+		<enumentry native="Sphere" script="Sphere">
+			<doc>Reflection probe cubemap is generated, but sphere is used for calculating the influence radius and proxy geometry.</doc>
+		</enumentry>
+	</enum>
+	<class native="ReflectionProbe" script="ReflectionProbe">
+		<doc>Specifies a location at which a pre-computed texture containing scene radiance will be generated. This texture will then be used by the renderer to provide specular reflections.</doc>
+		<method native="Capture" script="Capture" static="false">
+			<doc>Captures the scene at the current location and generates a filtered reflection cubemap. No action is taken if a custom texture is set.</doc>
+		</method>
+		<property name="CustomTexture" type="RRef&lt;Texture&gt;" getter="GetCustomTexture" setter="SetCustomTexture" static="false">
+			<doc>Allows you assign a custom texture to use as a reflection map. This will disable automatic generation of reflections. To re-enable auto-generation call this with a null parameter.</doc>
+		</property>
+		<property name="Radius" type="float" getter="GetRadius" setter="SetRadius" static="false">
+			<doc>Determines the radius of a sphere reflection probe.</doc>
+		</property>
+		<property name="Extents" type="Vector3" getter="GetExtents" setter="SetExtents" static="false">
+			<doc>Determines the extents of a box reflection probe. Determines range of influence.</doc>
+		</property>
+		<property name="Type" type="ReflectionProbeType" getter="GetType" setter="SetType" static="false">
+			<doc>Determines the type of the probe.</doc>
 		</property>
 	</class>
 	<class native="Renderable" script="Renderable">
@@ -10808,7 +10903,7 @@ Alternatively you can also skip manually calling ReleaseInternalReference() and 
 		</property>
 	</class>
 	<class native="Prefab" script="Prefab">
-		<doc>Prefab is a saveable hierarchy of scene objects. It can be instanced, and instances will maintain link to the original prefab they were created from, allowing you to update them to latest version if the prefab changes. Prefabs can also be nested within each-other, as long as there are no circular dependencies.</doc>
+		<doc>Prefab is a saveable hierarchy of scene objects. It can be instanced, and instances will maintain a link to the original prefab they were created from, allowing you to update them to latest version if the prefab changes. Prefabs can also be nested within each-other, as long as there are no circular dependencies. Instanced prefabs can also contain per instance modifications that will be preserved even if the prefab they were created from changes.</doc>
 		<method native="Instantiate" script="Instantiate" static="false">
 			<doc>Instantiates a prefab by creating an instance of the prefab&apos;s scene object hierarchy. The returned hierarchy will be parented to the provided scene instance root.</doc>
 			<param name="sceneInstance" type="SceneInstance">
@@ -10903,51 +10998,6 @@ Alternatively you can also skip manually calling ReleaseInternalReference() and 
 			<doc>Glyphs in this page can be read, but no new glyphs can be added to the page.</doc>
 		</enumentry>
 	</enum>
-	<class native="FontBitmapInformation" script="FontBitmapInformation">
-		<doc>Contains information about font characters rendered into one or multiple bitmaps, for specific font size.</doc>
-		<method native="GetCharacterInformation" script="GetCharacterInformation" static="false">
-			<doc>Returns a character description for the character with the specified Unicode key.</doc>
-			<param name="characterId" type="int">
-			</param>
-			<returns type="CharacterInformation">
-			</returns>
-		</method>
-		<property name="Size" type="float" getter="GetSize" setter="SetSize" static="false">
-			<doc>Font size for which the bitmaps are rendered.</doc>
-		</property>
-		<property name="BaselineOffset" type="float" getter="GetBaselineOffset" setter="SetBaselineOffset" static="false">
-			<doc>Y offset to the baseline on which the characters are placed, in pixels.</doc>
-		</property>
-		<property name="LineHeight" type="float" getter="GetLineHeight" setter="SetLineHeight" static="false">
-			<doc>Height of a single line of the font, in pixels.</doc>
-		</property>
-		<property name="MissingGlyph" type="CharacterInformation" getter="GetMissingGlyph" setter="SetMissingGlyph" static="false">
-			<doc>Character to use when data for a character is missing.</doc>
-		</property>
-		<property name="SpaceWidth" type="float" getter="GetSpaceWidth" setter="SetSpaceWidth" static="false">
-			<doc>Width of a space in pixels.</doc>
-		</property>
-	</class>
-	<struct native="GUIPanelContent" script="GUIPanelContent">
-		<doc>Structure describing contents of a GUIPanel element.</doc>
-		<ctor>
-			<param name="depth" type="short">
-			</param>
-			<param name="depthRangeMinimum" type="ushort">
-			</param>
-			<param name="depthRangeMaximum" type="ushort">
-			</param>
-		</ctor>
-		<field name="Depth" type="short">
-			<doc>Determines rendering order of the GUI panel. Panels with lower depth will be rendered in front of panels with higher depth. Provided depth is relative to depth of the parent GUI panel (if any).</doc>
-		</field>
-		<field name="DepthRangeMinimum" type="ushort">
-			<doc>Minimum range of depths that children of this GUI panel can have. If any panel has depth outside of the range [depth - depthRangeMin, depth + depthRangeMax] it will be clamped to nearest extreme. Value of 65535 means infinite range.</doc>
-		</field>
-		<field name="DepthRangeMaximum" type="ushort">
-			<doc>Maximum range of depths that children of this GUI panel can have. If any panel has depth outside of the range [depth - depthRangeMin, depth + depthRangeMax] it will be clamped to nearest extreme. Value of 65535 means infinite range.</doc>
-		</field>
-	</struct>
 	<class native="Font" script="Font">
 		<doc>Font resource containing data about textual characters and how to render text. Contains one or multiple font bitmaps, each for a specific size.</doc>
 		<method native="GetBitmap" script="GetBitmap" static="false">

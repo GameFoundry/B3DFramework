@@ -4,8 +4,8 @@
 
 #include "BsScriptEnginePrerequisites.h"
 #include "Wrappers/BsScriptComponent.h"
-#include "../../../Foundation/bsfCore/Renderer/BsReflectionProbe.h"
 #include "../../../Foundation/bsfUtility/Math/BsVector3.h"
+#include "../../../Foundation/bsfCore/Components/BsReflectionProbe.h"
 
 namespace b3d { class ReflectionProbe; }
 namespace b3d
@@ -23,14 +23,14 @@ namespace b3d
 		static MonoObject* CreateScriptObject(bool construct);
 
 	private:
-		static ReflectionProbeType InternalGetType(ScriptReflectionProbe* self);
-		static void InternalSetType(ScriptReflectionProbe* self, ReflectionProbeType type);
-		static float InternalGetRadius(ScriptReflectionProbe* self);
-		static void InternalSetRadius(ScriptReflectionProbe* self, float radius);
-		static void InternalGetExtents(ScriptReflectionProbe* self, TVector3<float>* __output);
-		static void InternalSetExtents(ScriptReflectionProbe* self, TVector3<float>* extents);
-		static MonoObject* InternalGetCustomTexture(ScriptReflectionProbe* self);
 		static void InternalSetCustomTexture(ScriptReflectionProbe* self, MonoObject* texture);
+		static MonoObject* InternalGetCustomTexture(ScriptReflectionProbe* self);
+		static float InternalGetRadius(ScriptReflectionProbe* self);
+		static void InternalGetExtents(ScriptReflectionProbe* self, TVector3<float>* __output);
 		static void InternalCapture(ScriptReflectionProbe* self);
+		static void InternalSetType(ScriptReflectionProbe* self, ReflectionProbeType type);
+		static ReflectionProbeType InternalGetType(ScriptReflectionProbe* self);
+		static void InternalSetRadius(ScriptReflectionProbe* self, float radius);
+		static void InternalSetExtents(ScriptReflectionProbe* self, TVector3<float>* extents);
 	};
 }

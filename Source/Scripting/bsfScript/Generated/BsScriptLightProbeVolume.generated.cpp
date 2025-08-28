@@ -1,10 +1,10 @@
 //********************************* B3D Framework - Copyright 2018-2022 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "BsScriptCLightProbeVolume.generated.h"
+#include "BsScriptLightProbeVolume.generated.h"
 #include "BsMonoMethod.h"
 #include "BsMonoClass.h"
 #include "BsMonoUtil.h"
-#include "../../../Foundation/bsfCore/Components/BsCLightProbeVolume.h"
+#include "../../../Foundation/bsfCore/Components/BsLightProbeVolume.h"
 #include "BsScriptTVector3I.generated.h"
 #include "BsScriptLightProbeInfo.generated.h"
 #include "BsScriptTVector3.generated.h"
@@ -26,9 +26,9 @@ namespace b3d
 	void ScriptLightProbeVolume::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_AddProbe", (void*)&ScriptLightProbeVolume::InternalAddProbe);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_RemoveProbe", (void*)&ScriptLightProbeVolume::InternalRemoveProbe);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetProbePosition", (void*)&ScriptLightProbeVolume::InternalSetProbePosition);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetProbePosition", (void*)&ScriptLightProbeVolume::InternalGetProbePosition);
-		sInteropMetaData.ScriptClass->AddInternalCall("Internal_RemoveProbe", (void*)&ScriptLightProbeVolume::InternalRemoveProbe);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetProbes", (void*)&ScriptLightProbeVolume::InternalGetProbes);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_RenderProbe", (void*)&ScriptLightProbeVolume::InternalRenderProbe);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_RenderProbes", (void*)&ScriptLightProbeVolume::InternalRenderProbes);
@@ -64,6 +64,14 @@ namespace b3d
 		return __output;
 	}
 
+	void ScriptLightProbeVolume::InternalRemoveProbe(ScriptLightProbeVolume* self, uint32_t handle)
+	{
+		if(!self->IsNativeObjectValid())
+			return;
+
+		static_cast<LightProbeVolume*>(self->GetNativeObject())->RemoveProbe(handle);
+	}
+
 	void ScriptLightProbeVolume::InternalSetProbePosition(ScriptLightProbeVolume* self, uint32_t handle, TVector3<float>* position)
 	{
 		if(!self->IsNativeObjectValid())
@@ -84,14 +92,6 @@ namespace b3d
 		tmp__output = static_cast<LightProbeVolume*>(self->GetNativeObject())->GetProbePosition(handle);
 
 		*__output = tmp__output;
-	}
-
-	void ScriptLightProbeVolume::InternalRemoveProbe(ScriptLightProbeVolume* self, uint32_t handle)
-	{
-		if(!self->IsNativeObjectValid())
-			return;
-
-		static_cast<LightProbeVolume*>(self->GetNativeObject())->RemoveProbe(handle);
 	}
 
 	MonoArray* ScriptLightProbeVolume::InternalGetProbes(ScriptLightProbeVolume* self)

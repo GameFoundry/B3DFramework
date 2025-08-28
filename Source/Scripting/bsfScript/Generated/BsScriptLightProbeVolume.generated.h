@@ -5,13 +5,13 @@
 #include "BsScriptEnginePrerequisites.h"
 #include "Wrappers/BsScriptComponent.h"
 #include "../../../Foundation/bsfUtility/Math/BsVector3I.h"
-#include "../../../Foundation/bsfCore/Renderer/BsLightProbeVolume.h"
+#include "../../../Foundation/bsfCore/Components/BsLightProbeVolume.h"
 #include "../../../Foundation/bsfUtility/Math/BsVector3.h"
 #include "../../../Foundation/bsfUtility/Math/BsAABox.h"
 
-namespace b3d { struct __TAABox_float_Interop; }
 namespace b3d { class LightProbeVolume; }
 namespace b3d { struct __LightProbeInfoInterop; }
+namespace b3d { struct __TAABox_float_Interop; }
 namespace b3d
 {
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptLightProbeVolume : public TScriptGameObjectWrapper<LightProbeVolume, ScriptLightProbeVolume>
@@ -28,9 +28,9 @@ namespace b3d
 
 	private:
 		static uint32_t InternalAddProbe(ScriptLightProbeVolume* self, TVector3<float>* position);
+		static void InternalRemoveProbe(ScriptLightProbeVolume* self, uint32_t handle);
 		static void InternalSetProbePosition(ScriptLightProbeVolume* self, uint32_t handle, TVector3<float>* position);
 		static void InternalGetProbePosition(ScriptLightProbeVolume* self, uint32_t handle, TVector3<float>* __output);
-		static void InternalRemoveProbe(ScriptLightProbeVolume* self, uint32_t handle);
 		static MonoArray* InternalGetProbes(ScriptLightProbeVolume* self);
 		static void InternalRenderProbe(ScriptLightProbeVolume* self, uint32_t handle);
 		static void InternalRenderProbes(ScriptLightProbeVolume* self);

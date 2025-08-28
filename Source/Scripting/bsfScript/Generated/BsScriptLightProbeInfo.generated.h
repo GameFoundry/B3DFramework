@@ -4,7 +4,7 @@
 
 #include "BsScriptEnginePrerequisites.h"
 #include "BsScriptObjectWrapper.h"
-#include "../../../Foundation/bsfCore/Renderer/BsLightProbeVolume.h"
+#include "../../../Foundation/bsfCore/Components/BsLightProbeVolume.h"
 #include "../../../Foundation/bsfUtility/Math/BsVector3.h"
 
 namespace b3d

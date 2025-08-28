@@ -4,7 +4,7 @@
 #include "Material/BsMaterial.h"
 #include "Material/BsGpuParamsSet.h"
 #include "RenderAPI/BsGpuParameters.h"
-#include "Components/BsCLight.h"
+#include "Components/BsLight.h"
 #include "Renderer/BsRendererUtility.h"
 #include "BsRenderBeast.h"
 #include "Shading/BsStandardDeferred.h"

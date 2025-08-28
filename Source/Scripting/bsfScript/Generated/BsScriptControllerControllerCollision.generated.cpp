@@ -4,8 +4,8 @@
 #include "BsMonoMethod.h"
 #include "BsMonoClass.h"
 #include "BsMonoUtil.h"
-#include "../../../Foundation/bsfCore/Components/BsCCharacterController.h"
-#include "BsScriptCCharacterController.generated.h"
+#include "../../../Foundation/bsfCore/Components/BsCharacterController.h"
+#include "BsScriptCharacterController.generated.h"
 #include "../../../Foundation/bsfUtility/Math/BsVector3.h"
 #include "BsScriptTVector3.generated.h"
 

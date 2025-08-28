@@ -3,7 +3,7 @@
 #include "BsShadowRendering.h"
 #include "BsRendererView.h"
 #include "BsRenderBeastScene.h"
-#include "Components/BsCLight.h"
+#include "Components/BsLight.h"
 #include "Renderer/BsRendererUtility.h"
 #include "Material/BsGpuParamsSet.h"
 #include "Mesh/BsMesh.h"

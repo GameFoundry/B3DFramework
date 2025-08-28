@@ -11,9 +11,10 @@ namespace b3d
 	 */
 
 	/// <summary>
-	/// Prefab is a saveable hierarchy of scene objects. It can be instanced, and instances will maintain link to the original 
-	/// prefab they were created from, allowing you to update them to latest version if the prefab changes. Prefabs can also 
-	/// be nested within each-other, as long as there are no circular dependencies.
+	/// Prefab is a saveable hierarchy of scene objects. It can be instanced, and instances will maintain a link to the 
+	/// original prefab they were created from, allowing you to update them to latest version if the prefab changes. Prefabs 
+	/// can also be nested within each-other, as long as there are no circular dependencies. Instanced prefabs can also 
+	/// contain per instance modifications that will be preserved even if the prefab they were created from changes.
 	/// </summary>
 	[ShowInInspector]
 	public partial class Prefab : Resource

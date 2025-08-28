@@ -4,7 +4,7 @@
 
 #include "BsScriptEnginePrerequisites.h"
 #include "BsScriptObjectWrapper.h"
-#include "../../../Foundation/bsfCore/Physics/BsCharacterController.h"
+#include "../../../Foundation/bsfCore/Components/BsCharacterController.h"
 #include "../../../Foundation/bsfUtility/Math/BsVector3.h"
 
 namespace b3d
