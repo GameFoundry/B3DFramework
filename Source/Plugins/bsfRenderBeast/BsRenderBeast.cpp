@@ -15,7 +15,7 @@
 #include "Utility/BsTime.h"
 #include "Animation/BsAnimationScene.h"
 #include "Animation/BsSkeleton.h"
-#include "Components/BsCLight.h"
+#include "Components/BsLight.h"
 #include "Renderer/BsRendererExtension.h"
 #include "Renderer/BsRenderSettings.h"
 #include "Renderer/BsIBLUtility.h"
