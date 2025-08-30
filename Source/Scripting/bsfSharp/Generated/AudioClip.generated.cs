@@ -44,7 +44,7 @@ namespace b3d
 		[NativeWrapper]
 		public int NumChannels
 		{
-			get { return Internal_GetNumChannels(mCachedPtr); }
+			get { return Internal_GetChannelCount(mCachedPtr); }
 		}
 
 		/// <summary>Returns in which format is audio data stored in.</summary>
@@ -72,7 +72,7 @@ namespace b3d
 		[NativeWrapper]
 		public int NumSamples
 		{
-			get { return Internal_GetNumSamples(mCachedPtr); }
+			get { return Internal_GetSampleCount(mCachedPtr); }
 		}
 
 		/// <summary>Determines will the clip be played a spatial 3D sound, or as a normal sound (for example music).</summary>
@@ -98,7 +98,7 @@ namespace b3d
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern int Internal_GetFrequency(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern int Internal_GetNumChannels(IntPtr thisPtr);
+		private static extern int Internal_GetChannelCount(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern AudioFormat Internal_GetFormat(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
@@ -106,7 +106,7 @@ namespace b3d
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern float Internal_GetLength(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern int Internal_GetNumSamples(IntPtr thisPtr);
+		private static extern int Internal_GetSampleCount(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern bool Internal_Is3D(IntPtr thisPtr);
 	}

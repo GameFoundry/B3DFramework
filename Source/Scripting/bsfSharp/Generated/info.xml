@@ -194,6 +194,15 @@
 		<field name="Depth" type="int">
 		</field>
 	</struct>
+	<class native="Skybox" script="Skybox">
+		<doc>Allows you to specify an environment map to use for sampling radiance of the sky.</doc>
+		<property name="Texture" type="RRef&lt;Texture&gt;" getter="GetTexture" setter="SetTexture" static="false">
+			<doc>Determines an environment map to use for sampling skybox radiance. Must be a cube-map texture, and should ideally contain HDR data.</doc>
+		</property>
+		<property name="Brightness" type="float" getter="GetBrightness" setter="SetBrightness" static="false">
+			<doc>Brightness multiplier that will be applied to skybox values before they&apos;re being used. Allows you to make the skybox more or less bright. Equal to one by default.</doc>
+		</property>
+	</class>
 	<class native="Skeleton" script="Skeleton">
 		<doc>Contains information about bones required for skeletal animation.</doc>
 		<method native="GetBoneInfo" script="GetBoneInfo" static="false">
@@ -1977,62 +1986,90 @@ Also see SetContactOffset().</doc>
 		</ctor>
 	</class>
 	<class native="CAnimation" script="Animation">
+		<doc>Handles animation playback. Takes one or multiple animation clips as input and evaluates them every animation update tick depending on set properties. The evaluated data is used by the render thread for skeletal animation, by the main thread for updating attached scene objects and bones (if skeleton is attached), or the data is made available for manual queries in the case of generic animation.</doc>
 		<method native="Play" script="Play" static="false">
+			<doc>Plays the specified animation clip.</doc>
 			<param name="clip" type="RRef&lt;AnimationClip&gt;">
 			</param>
 		</method>
 		<method native="BlendAdditive" script="BlendAdditive" static="false">
+			<doc>Plays the specified animation clip on top of the animation currently playing in the main layer. Multiple such clips can be playing at once, as long as you ensure each is given its own layer. Each animation can also have a weight that determines how much it influences the main animation.</doc>
 			<param name="clip" type="RRef&lt;AnimationClip&gt;">
+				<doc>Clip to additively blend. Must contain additive animation curves.</doc>
 			</param>
 			<param name="weight" type="float">
+				<doc>Determines how much of an effect will the blended animation have on the final output. In range [0, 1].</doc>
 			</param>
 			<param name="fadeLength" type="float">
+				<doc>Applies the blend over a specified time period, increasing the weight as the time passes. Set to zero to blend immediately. In seconds.</doc>
 			</param>
 			<param name="layer" type="int">
+				<doc>Layer to play the clip in. Multiple additive clips can be playing at once in separate layers and each layer has its own weight.</doc>
 			</param>
 		</method>
 		<method native="Blend1D" script="Blend1D" static="false">
+			<doc>Blend multiple animation clips between each other using linear interpolation. Unlike normal animations these animations are not advanced with the progress of time, and is instead expected the user manually changes the <paramref name="alpha"/> parameter.</doc>
 			<param name="info" type="Blend1DInfo">
+				<doc>Information about the clips to blend. Clip positions must be sorted from lowest to highest.</doc>
 			</param>
-			<param name="t" type="float">
+			<param name="alpha" type="float">
+				<doc>Parameter that controls the blending. Range depends on the positions of the provided animation clips.</doc>
 			</param>
 		</method>
 		<method native="Blend2D" script="Blend2D" static="false">
+			<doc>Blend four animation clips between each other using bilinear interpolation. Unlike normal animations these animations are not advanced with the progress of time, and is instead expected the user manually changes the <paramref name="alpha"/> parameter.</doc>
 			<param name="info" type="Blend2DInfo">
+				<doc>Information about the clips to blend.</doc>
 			</param>
-			<param name="t" type="TVector2&lt;float&gt;">
+			<param name="alpha" type="TVector2&lt;float&gt;">
+				<doc>Parameter that controls the blending, in range [(0, 0), (1, 1)]. alpha = (0, 0) means top left animation has full influence, alpha = (1, 0) means top right animation has full influence, alpha = (0, 1) means bottom left animation has full influence, alpha = (1, 1) means bottom right animation has full influence.</doc>
 			</param>
 		</method>
 		<method native="CrossFade" script="CrossFade" static="false">
+			<doc>Fades the specified animation clip in, while fading other playing animation out, over the specified time period.</doc>
 			<param name="clip" type="RRef&lt;AnimationClip&gt;">
+				<doc>Clip to fade in.</doc>
 			</param>
 			<param name="fadeLength" type="float">
+				<doc>Determines the time period over which the fade occurs. In seconds.</doc>
 			</param>
 		</method>
 		<method native="Sample" script="Sample" static="false">
+			<doc>Samples an animation clip at the specified time, displaying only that particular frame without further playback.</doc>
 			<param name="clip" type="RRef&lt;AnimationClip&gt;">
+				<doc>Animation clip to sample.</doc>
 			</param>
 			<param name="time" type="float">
+				<doc>Time to sample the clip at.</doc>
 			</param>
 		</method>
 		<method native="Stop" script="Stop" static="false">
+			<doc>Stops playing all animations on the provided layer. Specify ~0u to stop animation on the main layer (non-additive animations).</doc>
 			<param name="layer" type="int">
 			</param>
 		</method>
 		<method native="StopAll" script="StopAll" static="false">
+			<doc>Stops playing all animations.</doc>
 		</method>
 		<method native="GetState" script="GetState" static="false">
+			<doc>Retrieves detailed information about a currently playing animation clip.</doc>
 			<param name="clip" type="RRef&lt;AnimationClip&gt;">
+				<doc>Clip to retrieve the information for.</doc>
 			</param>
 			<param name="state" type="AnimationClipState">
+				<doc>Animation clip state containing the requested information. Only valid if the method returns true.</doc>
 			</param>
 			<returns type="bool">
+				<doc>True if the state was found (animation clip is playing), false otherwise.</doc>
 			</returns>
 		</method>
 		<method native="SetState" script="SetState" static="false">
+			<doc>Changes the state of a playing animation clip. If animation clip is not currently playing the playback is started for the clip.</doc>
 			<param name="clip" type="RRef&lt;AnimationClip&gt;">
+				<doc>Clip to change the state for.</doc>
 			</param>
 			<param name="state" type="AnimationClipState">
+				<doc>New state of the animation (e.g. changing the time for seeking).</doc>
 			</param>
 		</method>
 		<method native="SetMorphChannelWeight" script="SetMorphChannelWeight" static="false">
@@ -2045,18 +2082,21 @@ Also see SetContactOffset().</doc>
 			</param>
 		</method>
 		<property name="DefaultClip" type="RRef&lt;AnimationClip&gt;" getter="GetDefaultClip" setter="SetDefaultClip" static="false">
-			<doc>Determines the default clip to play as soon as the component is enabled. If more control over playing clips is needed use the play(), blend() and crossFade() methods to queue clips for playback manually, and setState() method for modify their states individually.</doc>
+			<doc>Determines the default clip to play as soon as the component is enabled. If more control over playing clips is needed use the Play(), Blend*(), CrossFade() methods to queue clips for playback manually, and SetState() method to modify their states individually.</doc>
 		</property>
-		<property name="WrapMode" type="AnimWrapMode" getter="GetWrapMode" setter="SetWrapMode" static="false">
+		<property name="WrapMode" type="AnimationWrapMode" getter="GetWrapMode" setter="SetWrapMode" static="false">
+			<doc>Determines the wrap mode for all active animations. Wrap mode determines what happens when animation reaches the first or last frame.</doc>
 		</property>
 		<property name="Speed" type="float" getter="GetSpeed" setter="SetSpeed" static="false">
+			<doc>Determines the speed for all animations. The default value is 1.0f. Use negative values to play-back in reverse.</doc>
 		</property>
 		<property name="IsPlaying" type="bool" getter="IsPlaying" setter="" static="false">
+			<doc>Checks if any animation clips are currently playing.</doc>
 		</property>
-		<property name="Bounds" type="AABox" getter="GetBounds" setter="SetBounds" static="false">
-			<doc>Determines bounds that will be used for animation and mesh culling. Only relevant if setUseBounds() is set to true.</doc>
+		<property name="CustomBounds" type="AABox" getter="GetCustomBounds" setter="SetCustomBounds" static="false">
+			<doc>Determines bounds that will be used for animation and mesh culling. Only relevant if SetUseCustomBounds() is set to true.</doc>
 		</property>
-		<property name="UseBounds" type="bool" getter="GetUseBounds" setter="SetUseBounds" static="false">
+		<property name="UseCustomBounds" type="bool" getter="GetUseCustomBounds" setter="SetUseCustomBounds" static="false">
 			<doc>Determines should animation bounds be used for visibility determination (culling). If false the bounds of the mesh attached to the relevant Renderable component will be used instead.</doc>
 		</property>
 		<property name="Cull" type="bool" getter="GetEnableCull" setter="SetEnableCull" static="false">
@@ -2310,9 +2350,9 @@ This object is intended to remain static in the world. You /can/ move it, but it
 		</field>
 		<field name="TopRightClip" type="RRef&lt;AnimationClip&gt;">
 		</field>
-		<field name="BotLeftClip" type="RRef&lt;AnimationClip&gt;">
+		<field name="BottomLeftClip" type="RRef&lt;AnimationClip&gt;">
 		</field>
-		<field name="BotRightClip" type="RRef&lt;AnimationClip&gt;">
+		<field name="BottomRightClip" type="RRef&lt;AnimationClip&gt;">
 		</field>
 	</struct>
 	<enum native="ResultStatus" script="ResultStatus">
@@ -2426,6 +2466,39 @@ This object is intended to remain static in the world. You /can/ move it, but it
 	<class native="MeshData" script="MeshData">
 		<doc>Contains mesh vertex and index data used for initializing, updating and reading mesh data from Mesh.</doc>
 	</class>
+	<enum native="HingeJointFlag" script="HingeJointFlag">
+		<doc>Flags that control hinge joint options.</doc>
+		<enumentry native="Limit" script="Limit">
+			<doc>Joint limit is enabled.</doc>
+		</enumentry>
+		<enumentry native="Drive" script="Drive">
+			<doc>Joint drive is enabled.</doc>
+		</enumentry>
+	</enum>
+	<enum native="RigidbodyFlag" script="RigidbodyFlag">
+		<doc>Flags that control options of a Rigidbody object.</doc>
+		<enumentry native="None" script="None">
+			<doc>No options.</doc>
+		</enumentry>
+		<enumentry native="AutoTensors" script="AutoTensors">
+			<doc>Automatically calculate center of mass transform and inertia tensors from child shapes (colliders).</doc>
+		</enumentry>
+		<enumentry native="AutoMass" script="AutoMass">
+			<doc>Calculate mass distribution from child shapes (colliders). Only relevant when auto-tensors is on.</doc>
+		</enumentry>
+		<enumentry native="CCD" script="CCD">
+			<doc>Enables continous collision detection. This can prevent fast moving bodies from tunneling through each other. This must also be enabled globally in Physics otherwise the flag will be ignored.</doc>
+		</enumentry>
+	</enum>
+	<enum native="AnimationWrapMode" script="AnimationWrapMode">
+		<doc>Determines how an animation clip behaves when it reaches the end.</doc>
+		<enumentry native="Loop" script="Loop">
+			<doc>Loop around to the beginning/end when the last/first frame is reached.</doc>
+		</enumentry>
+		<enumentry native="Clamp" script="Clamp">
+			<doc>Clamp to end/beginning, keeping the last/first frame active.</doc>
+		</enumentry>
+	</enum>
 	<class native="SceneTime" script="SceneTime">
 		<doc>Manages simulation time for a particular scene. This time runs only while scene is simulating.</doc>
 		<method native="Reset" script="Reset" static="false">
@@ -2666,63 +2739,6 @@ Use {0}, {1}, etc. in the string value for values that might change dynamically.
 		<enumentry native="A" script="A">
 		</enumentry>
 	</enum>
-	<struct native="LimitAngularRange" script="LimitAngularRange">
-		<doc>Represents a joint limit between two angles.</doc>
-		<ctor>
-			<doc>Constructs an empty limit.</doc>
-		</ctor>
-		<ctor>
-			<doc>Constructs a hard limit. Once the limit is reached the movement of the attached bodies will come to a stop.</doc>
-			<param name="lower" type="Radian">
-				<doc>Lower angle of the limit. Must be less than <paramref name="upper"/>.</doc>
-			</param>
-			<param name="upper" type="Radian">
-				<doc>Upper angle of the limit. Must be more than <paramref name="lower"/>.</doc>
-			</param>
-			<param name="contactDist" type="float">
-				<doc>Distance from the limit at which it becomes active. Allows the solver to activate earlier than the limit is reached to avoid breaking the limit. Specify -1 for the default.</doc>
-			</param>
-		</ctor>
-		<ctor>
-			<doc>Constructs a soft limit. Once the limit is reached the bodies will bounce back according to the resitution parameter and will be pulled back towards the limit by the provided spring.</doc>
-			<param name="lower" type="Radian">
-				<doc>Lower angle of the limit. Must be less than <paramref name="upper"/>.</doc>
-			</param>
-			<param name="upper" type="Radian">
-				<doc>Upper angle of the limit. Must be more than <paramref name="lower"/>.</doc>
-			</param>
-			<param name="spring" type="Spring">
-				<doc>Spring that controls how are the bodies pulled back towards the limit when they breach it.</doc>
-			</param>
-			<param name="restitution" type="float">
-				<doc>Controls how do objects react when the limit is reached, values closer to zero specify non-ellastic collision, while those closer to one specify more ellastic (i.e bouncy) collision. Must be in [0, 1] range.</doc>
-			</param>
-		</ctor>
-		<field name="Lower" type="Radian">
-			<doc>Lower angle of the limit. Must be less than #upper.</doc>
-		</field>
-		<field name="Upper" type="Radian">
-			<doc>Upper angle of the limit. Must be less than #lower.</doc>
-		</field>
-		<field name="ContactDist" type="float">
-			<doc>Distance from the limit at which it becomes active. Allows the solver to activate earlier than the limit is reached to avoid breaking the limit.</doc>
-		</field>
-		<field name="Restitution" type="float">
-			<doc>Controls how do objects react when the limit is reached, values closer to zero specify non-ellastic collision, while those closer to one specify more ellastic (i.e bouncy) collision. Must be in [0, 1] range.</doc>
-		</field>
-		<field name="Spring" type="Spring">
-			<doc>Spring that controls how are the bodies pulled back towards the limit when they breach it.</doc>
-		</field>
-	</struct>
-	<enum native="AnimWrapMode" script="AnimWrapMode">
-		<doc>Determines how an animation clip behaves when it reaches the end.</doc>
-		<enumentry native="Loop" script="Loop">
-			<doc>Loop around to the beginning/end when the last/first frame is reached.</doc>
-		</enumentry>
-		<enumentry native="Clamp" script="Clamp">
-			<doc>Clamp to end/beginning, keeping the last/first frame active.</doc>
-		</enumentry>
-	</enum>
 	<enum native="RangeComponent" script="RangeComponent">
 		<doc>Identifiers representing a range of values.</doc>
 		<enumentry native="Min" script="Min">
@@ -2835,7 +2851,7 @@ Use {0}, {1}, etc. in the string value for values that might change dynamically.
 		<field name="Weight" type="float">
 			<doc>Determines how much of an influence does the clip have on the final pose.</doc>
 		</field>
-		<field name="WrapMode" type="AnimWrapMode">
+		<field name="WrapMode" type="AnimationWrapMode">
 			<doc>Determines what happens to other animation clips when a new clip starts playing.</doc>
 		</field>
 		<field name="Stopped" type="bool">
@@ -3326,7 +3342,7 @@ Use {0}, {1}, etc. in the string value for values that might change dynamically.
 		<property name="SampleRate" type="int" getter="GetFrequency" setter="" static="false">
 			<doc>Returns how many samples per second is the audio encoded in.</doc>
 		</property>
-		<property name="NumChannels" type="int" getter="GetNumChannels" setter="" static="false">
+		<property name="NumChannels" type="int" getter="GetChannelCount" setter="" static="false">
 			<doc>Returns the number of channels provided by the clip.</doc>
 		</property>
 		<property name="Format" type="AudioFormat" getter="GetFormat" setter="" static="false">
@@ -3338,7 +3354,7 @@ Use {0}, {1}, etc. in the string value for values that might change dynamically.
 		<property name="Duration" type="float" getter="GetLength" setter="" static="false">
 			<doc>Returns the length of the audio clip, in seconds.</doc>
 		</property>
-		<property name="NumSamples" type="int" getter="GetNumSamples" setter="" static="false">
+		<property name="NumSamples" type="int" getter="GetSampleCount" setter="" static="false">
 			<doc>Returns the total number of samples in the clip (includes all channels).</doc>
 		</property>
 		<property name="Is3D" type="bool" getter="Is3D" setter="" static="false">
@@ -7202,12 +7218,6 @@ The shape and mass of a rigidbody is governed by its colliders. At least one col
 		<property name="Layer" type="ulong" getter="GetLayer" setter="SetLayer" static="false">
 		</property>
 	</class>
-	<class native="CSkybox" script="Skybox">
-		<property name="Texture" type="RRef&lt;Texture&gt;" getter="GetTexture" setter="SetTexture" static="false">
-		</property>
-		<property name="Brightness" type="float" getter="GetBrightness" setter="SetBrightness" static="false">
-		</property>
-	</class>
 	<class native="CapsuleCollider" script="CapsuleCollider">
 		<doc>Collider with a capsule geometry.</doc>
 		<property name="Normal" type="Vector3" getter="GetNormal" setter="SetNormal" static="false">
@@ -7646,6 +7656,54 @@ Does not account for gravity, you must apply it manually.</doc>
 			<doc>Spring that controls how are the bodies pulled back towards the limit when they breach it.</doc>
 		</field>
 	</struct>
+	<struct native="LimitAngularRange" script="LimitAngularRange">
+		<doc>Represents a joint limit between two angles.</doc>
+		<ctor>
+			<doc>Constructs an empty limit.</doc>
+		</ctor>
+		<ctor>
+			<doc>Constructs a hard limit. Once the limit is reached the movement of the attached bodies will come to a stop.</doc>
+			<param name="lower" type="Radian">
+				<doc>Lower angle of the limit. Must be less than <paramref name="upper"/>.</doc>
+			</param>
+			<param name="upper" type="Radian">
+				<doc>Upper angle of the limit. Must be more than <paramref name="lower"/>.</doc>
+			</param>
+			<param name="contactDist" type="float">
+				<doc>Distance from the limit at which it becomes active. Allows the solver to activate earlier than the limit is reached to avoid breaking the limit. Specify -1 for the default.</doc>
+			</param>
+		</ctor>
+		<ctor>
+			<doc>Constructs a soft limit. Once the limit is reached the bodies will bounce back according to the resitution parameter and will be pulled back towards the limit by the provided spring.</doc>
+			<param name="lower" type="Radian">
+				<doc>Lower angle of the limit. Must be less than <paramref name="upper"/>.</doc>
+			</param>
+			<param name="upper" type="Radian">
+				<doc>Upper angle of the limit. Must be more than <paramref name="lower"/>.</doc>
+			</param>
+			<param name="spring" type="Spring">
+				<doc>Spring that controls how are the bodies pulled back towards the limit when they breach it.</doc>
+			</param>
+			<param name="restitution" type="float">
+				<doc>Controls how do objects react when the limit is reached, values closer to zero specify non-ellastic collision, while those closer to one specify more ellastic (i.e bouncy) collision. Must be in [0, 1] range.</doc>
+			</param>
+		</ctor>
+		<field name="Lower" type="Radian">
+			<doc>Lower angle of the limit. Must be less than #upper.</doc>
+		</field>
+		<field name="Upper" type="Radian">
+			<doc>Upper angle of the limit. Must be less than #lower.</doc>
+		</field>
+		<field name="ContactDist" type="float">
+			<doc>Distance from the limit at which it becomes active. Allows the solver to activate earlier than the limit is reached to avoid breaking the limit.</doc>
+		</field>
+		<field name="Restitution" type="float">
+			<doc>Controls how do objects react when the limit is reached, values closer to zero specify non-ellastic collision, while those closer to one specify more ellastic (i.e bouncy) collision. Must be in [0, 1] range.</doc>
+		</field>
+		<field name="Spring" type="Spring">
+			<doc>Spring that controls how are the bodies pulled back towards the limit when they breach it.</doc>
+		</field>
+	</struct>
 	<class native="Joint" script="Joint">
 		<doc>Base class for all Joint types. Joints constrain how two rigidbodies move relative to one another (for example a door hinge). One of the bodies in the joint must always be movable (non-kinematic).</doc>
 		<method native="SetBody" script="SetBody" static="false">
@@ -8024,30 +8082,6 @@ Angular degrees of freedom are partitioned as twist (around X axis) and swing (a
 	<class native="FixedJoint" script="FixedJoint">
 		<doc>Physics joint that will maintain a fixed distance and orientation between its two attached bodies.</doc>
 	</class>
-	<enum native="HingeJointFlag" script="HingeJointFlag">
-		<doc>Flags that control hinge joint options.</doc>
-		<enumentry native="Limit" script="Limit">
-			<doc>Joint limit is enabled.</doc>
-		</enumentry>
-		<enumentry native="Drive" script="Drive">
-			<doc>Joint drive is enabled.</doc>
-		</enumentry>
-	</enum>
-	<enum native="RigidbodyFlag" script="RigidbodyFlag">
-		<doc>Flags that control options of a Rigidbody object.</doc>
-		<enumentry native="None" script="None">
-			<doc>No options.</doc>
-		</enumentry>
-		<enumentry native="AutoTensors" script="AutoTensors">
-			<doc>Automatically calculate center of mass transform and inertia tensors from child shapes (colliders).</doc>
-		</enumentry>
-		<enumentry native="AutoMass" script="AutoMass">
-			<doc>Calculate mass distribution from child shapes (colliders). Only relevant when auto-tensors is on.</doc>
-		</enumentry>
-		<enumentry native="CCD" script="CCD">
-			<doc>Enables continous collision detection. This can prevent fast moving bodies from tunneling through each other. This must also be enabled globally in Physics otherwise the flag will be ignored.</doc>
-		</enumentry>
-	</enum>
 	<struct native="HingeJointDrive" script="HingeJointDrive">
 		<doc>Properties of a drive that drives the joint&apos;s angular velocity towards a paricular value.</doc>
 		<ctor>

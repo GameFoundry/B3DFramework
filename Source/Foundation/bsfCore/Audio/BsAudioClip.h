@@ -37,7 +37,7 @@ namespace b3d
 	};
 
 	/** Descriptor used for initializing an audio clip. */
-	struct AUDIO_CLIP_DESC
+	struct AudioClipCreateInformation
 	{
 		/** Determines how is audio data read. */
 		AudioReadMode ReadMode = AudioReadMode::LoadDecompressed;
@@ -52,7 +52,7 @@ namespace b3d
 		u32 BitDepth = 16;
 
 		/** Number of channels. Each channel has its own step of samples. */
-		u32 NumChannels = 2;
+		u32 ChannelCount = 2;
 
 		/** Determines should the audio clip be played using 3D positioning. Only valid for mono audio. */
 		bool Is3D = true;
@@ -79,18 +79,15 @@ namespace b3d
 
 		/** Returns the size of a single sample, in bits. */
 		B3D_SCRIPT_EXPORT(ExportName(BitDepth), Property(Getter))
-
-		u32 GetBitDepth() const { return mDesc.BitDepth; }
+		u32 GetBitDepth() const { return mInformation.BitDepth; }
 
 		/** Returns how many samples per second is the audio encoded in. */
 		B3D_SCRIPT_EXPORT(ExportName(SampleRate), Property(Getter))
-
-		u32 GetFrequency() const { return mDesc.Frequency; }
+		u32 GetFrequency() const { return mInformation.Frequency; }
 
 		/** Returns the number of channels provided by the clip. */
 		B3D_SCRIPT_EXPORT(ExportName(NumChannels), Property(Getter))
-
-		u32 GetNumChannels() const { return mDesc.NumChannels; }
+		u32 GetChannelCount() const { return mInformation.ChannelCount; }
 
 		/**
 		 * Returns in which format is audio data stored in.
@@ -98,8 +95,7 @@ namespace b3d
 		 * @see	AudioFormat
 		 */
 		B3D_SCRIPT_EXPORT(ExportName(Format), Property(Getter))
-
-		AudioFormat GetFormat() const { return mDesc.Format; }
+		AudioFormat GetFormat() const { return mInformation.Format; }
 
 		/**
 		 * Returns how is the audio data read/decoded.
@@ -107,23 +103,19 @@ namespace b3d
 		 * @see	AudioReadMode
 		 */
 		B3D_SCRIPT_EXPORT(ExportName(ReadMode), Property(Getter))
-
-		AudioReadMode GetReadMode() const { return mDesc.ReadMode; }
+		AudioReadMode GetReadMode() const { return mInformation.ReadMode; }
 
 		/** Returns the length of the audio clip, in seconds. */
 		B3D_SCRIPT_EXPORT(ExportName(Duration), Property(Getter))
-
 		float GetLength() const { return mLength; }
 
 		/** Returns the total number of samples in the clip (includes all channels). */
 		B3D_SCRIPT_EXPORT(ExportName(NumSamples), Property(Getter))
-
-		u32 GetNumSamples() const { return mNumSamples; }
+		u32 GetSampleCount() const { return mSampleCount; }
 
 		/** Determines will the clip be played a spatial 3D sound, or as a normal sound (for example music). */
 		B3D_SCRIPT_EXPORT(ExportName(Is3D), Property(Getter))
-
-		bool Is3D() const { return mDesc.Is3D; }
+		bool Is3D() const { return mInformation.Is3D; }
 
 		/**
 		 * Creates a new AudioClip and populates it with provided samples.
@@ -133,12 +125,12 @@ namespace b3d
 		 *							@p desc parameter. Ownership of the data stream is taken by the audio clip and the
 		 *							caller must not close it manually.
 		 * @param[in]	streamSize	Number of bytes to read from the @p samples stream.
-		 * @param[in]	numSamples	Total number of samples (including all channels).
-		 * @param[in]	desc		Descriptor containing meta-data for the provided samples.
+		 * @param[in]	sampleCount	Total number of samples (including all channels).
+		 * @param[in]	createInformation		Descriptor containing meta-data for the provided samples.
 		 *
 		 * @note	If the provided samples are in PCM format, they should be signed integers of provided bit depth.
 		 */
-		static HAudioClip Create(const SPtr<DataStream>& samples, u32 streamSize, u32 numSamples, const AUDIO_CLIP_DESC& desc);
+		static HAudioClip Create(const SPtr<DataStream>& samples, u32 streamSize, u32 sampleCount, const AudioClipCreateInformation& createInformation);
 
 	public: // ***** INTERNAL ******
 		/** @name Internal
@@ -146,11 +138,11 @@ namespace b3d
 		 */
 
 		/** Creates a new AudioClip without initializing it. Use create() for normal use. */
-		static SPtr<AudioClip> CreatePtrInternal(const SPtr<DataStream>& samples, u32 streamSize, u32 numSamples, const AUDIO_CLIP_DESC& desc);
+		static SPtr<AudioClip> CreatePtrInternal(const SPtr<DataStream>& samples, u32 streamSize, u32 numSamples, const AudioClipCreateInformation& desc);
 
 		/** @} */
 	protected:
-		AudioClip(const SPtr<DataStream>& samples, u32 streamSize, u32 numSamples, const AUDIO_CLIP_DESC& desc);
+		AudioClip(const SPtr<DataStream>& samples, u32 streamSize, u32 numSamples, const AudioClipCreateInformation& desc);
 
 		void Initialize() override;
 		bool IsCompressible() const override { return false; } // Compression handled on a case by case basis manually by the audio system
@@ -159,8 +151,8 @@ namespace b3d
 		virtual SPtr<DataStream> GetSourceStream(u32& size) = 0;
 
 	protected:
-		AUDIO_CLIP_DESC mDesc;
-		u32 mNumSamples;
+		AudioClipCreateInformation mInformation;
+		u32 mSampleCount;
 		u32 mStreamSize;
 		u32 mStreamOffset = 0;
 		float mLength = 0.0f;

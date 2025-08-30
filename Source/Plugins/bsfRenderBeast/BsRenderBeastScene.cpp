@@ -3,7 +3,7 @@
 #include "BsRenderBeastScene.h"
 #include "Renderer/BsCamera.h"
 #include "Components/BsLight.h"
-#include "Components/BsCSkybox.h"
+#include "Components/BsSkybox.h"
 #include "Components/BsReflectionProbe.h"
 #include "Renderer/BsRenderer.h"
 #include "Particles/BsParticleScene.h"

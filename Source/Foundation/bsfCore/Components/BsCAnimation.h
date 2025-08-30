@@ -13,9 +13,10 @@ namespace b3d
 	 */
 
 	/**
-	 * @copydoc	Animation
-	 *
-	 * @note	Wraps Animation as a Component.
+	 * Handles animation playback. Takes one or multiple animation clips as input and evaluates them every animation update
+	 * tick depending on set properties. The evaluated data is used by the render thread for skeletal animation, by the main
+	 * thread for updating attached scene objects and bones (if skeleton is attached), or the data is made available for
+	 * manual queries in the case of generic animation.
 	 */
 	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Animation), ExportName(Animation)) CAnimation : public Component
 	{
@@ -29,11 +30,10 @@ namespace b3d
 
 	public:
 		CAnimation(const HSceneObject& parent);
-		virtual ~CAnimation() = default;
 
 		/**
 		 * Determines the default clip to play as soon as the component is enabled. If more control over playing clips is needed
-		 * use the play(), blend() and crossFade() methods to queue clips for playback manually, and setState() method for
+		 * use the Play(), Blend*(), CrossFade() methods to queue clips for playback manually, and SetState() method to
 		 * modify their states individually.
 		 */
 		B3D_SCRIPT_EXPORT(ExportName(DefaultClip), Property(Setter))
@@ -41,18 +41,20 @@ namespace b3d
 
 		/** @copydoc SetDefaultClip */
 		B3D_SCRIPT_EXPORT(ExportName(DefaultClip), Property(Getter))
-
 		HAnimationClip GetDefaultClip() const { return mDefaultClip; }
 
-		/** @copydoc Animation::SetWrapMode */
+		/**
+		 * Determines the wrap mode for all active animations. Wrap mode determines what happens when animation reaches the
+		 * first or last frame.
+		 */
 		B3D_SCRIPT_EXPORT(ExportName(WrapMode), Property(Setter))
-		void SetWrapMode(AnimWrapMode wrapMode);
+		void SetWrapMode(AnimationWrapMode wrapMode);
 
 		/** @copydoc SetWrapMode */
 		B3D_SCRIPT_EXPORT(ExportName(WrapMode), Property(Getter))
-		AnimWrapMode GetWrapMode() const { return mWrapMode; }
+		AnimationWrapMode GetWrapMode() const { return mWrapMode; }
 
-		/** @copydoc Animation::SetSpeed */
+		/** Determines the speed for all animations. The default value is 1.0f. Use negative values to play-back in reverse. */
 		B3D_SCRIPT_EXPORT(ExportName(Speed), Property(Setter))
 		void SetSpeed(float speed);
 
@@ -60,47 +62,102 @@ namespace b3d
 		B3D_SCRIPT_EXPORT(ExportName(Speed), Property(Getter))
 		float GetSpeed() const { return mSpeed; }
 
-		/** @copydoc Animation::Play */
+		/** Plays the specified animation clip. */
 		B3D_SCRIPT_EXPORT(ExportName(Play))
 		void Play(const HAnimationClip& clip);
 
-		/** @copydoc Animation::BlendAdditive */
+		/**
+		 * Plays the specified animation clip on top of the animation currently playing in the main layer. Multiple
+		 * such clips can be playing at once, as long as you ensure each is given its own layer. Each animation can
+		 * also have a weight that determines how much it influences the main animation.
+		 *
+		 * @param	clip		Clip to additively blend. Must contain additive animation curves.
+		 * @param	weight		Determines how much of an effect will the blended animation have on the final output. In range [0, 1].
+		 * @param	fadeLength	Applies the blend over a specified time period, increasing the weight as the time
+		 *						passes. Set to zero to blend immediately. In seconds.
+		 * @param	layer		Layer to play the clip in. Multiple additive clips can be playing at once in separate
+		 *						layers and each layer has its own weight.
+		 */
 		B3D_SCRIPT_EXPORT(ExportName(BlendAdditive))
 		void BlendAdditive(const HAnimationClip& clip, float weight, float fadeLength = 0.0f, u32 layer = 0);
 
-		/** @copydoc Animation::Blend1D */
+		/**
+		 * Blend multiple animation clips between each other using linear interpolation. Unlike normal animations these
+		 * animations are not advanced with the progress of time, and is instead expected the user manually changes the
+		 * @p alpha parameter.
+		 *
+		 * @param	info	Information about the clips to blend. Clip positions must be sorted from lowest to highest.
+		 * @param	alpha	Parameter that controls the blending. Range depends on the positions of the provided
+		 *					animation clips.
+		 */
 		B3D_SCRIPT_EXPORT(ExportName(Blend1D))
-		void Blend1D(const Blend1DInfo& info, float t);
+		void Blend1D(const Blend1DInfo& info, float alpha);
 
-		/** @copydoc Animation::Blend2D */
+		/**
+		 * Blend four animation clips between each other using bilinear interpolation. Unlike normal animations these
+		 * animations are not advanced with the progress of time, and is instead expected the user manually changes the
+		 * @p alpha parameter.
+		 *
+		 * @param	info	Information about the clips to blend.
+		 * @param	alpha	Parameter that controls the blending, in range [(0, 0), (1, 1)]. alpha = (0, 0) means top left
+		 *					animation has full influence, alpha = (1, 0) means top right animation has full influence,
+		 *					alpha = (0, 1) means bottom left animation has full influence, alpha = (1, 1) means bottom right
+		 *					animation has full influence.
+		 */
 		B3D_SCRIPT_EXPORT(ExportName(Blend2D))
-		void Blend2D(const Blend2DInfo& info, const Vector2& t);
+		void Blend2D(const Blend2DInfo& info, const Vector2& alpha);
 
-		/** @copydoc Animation::CrossFade */
+		/**
+		 * Fades the specified animation clip in, while fading other playing animation out, over the specified time period.
+		 *
+		 * @param	clip		Clip to fade in.
+		 * @param	fadeLength	Determines the time period over which the fade occurs. In seconds.
+		 */
 		B3D_SCRIPT_EXPORT(ExportName(CrossFade))
 		void CrossFade(const HAnimationClip& clip, float fadeLength);
 
-		/** @copydoc Animation::Sample */
+		/**
+		 * Samples an animation clip at the specified time, displaying only that particular frame without further playback.
+		 *
+		 * @param clip	Animation clip to sample.
+		 * @param time	Time to sample the clip at.
+		 */
 		B3D_SCRIPT_EXPORT(ExportName(Sample))
 		void Sample(const HAnimationClip& clip, float time);
 
-		/** @copydoc Animation::Stop */
+		/**
+		 * Stops playing all animations on the provided layer. Specify ~0u to stop animation on the main layer
+		 * (non-additive animations).
+		 */
 		B3D_SCRIPT_EXPORT(ExportName(Stop))
 		void Stop(u32 layer);
 
-		/** @copydoc Animation::StopAll */
+		/** Stops playing all animations. */
 		B3D_SCRIPT_EXPORT(ExportName(StopAll))
 		void StopAll();
 
-		/** @copydoc Animation::IsPlaying */
+		/** Checks if any animation clips are currently playing. */
 		B3D_SCRIPT_EXPORT(ExportName(IsPlaying), Property(Getter))
 		bool IsPlaying() const;
 
-		/** @copydoc Animation::GetState */
+		/**
+		 * Retrieves detailed information about a currently playing animation clip.
+		 *
+		 * @param	clip	Clip to retrieve the information for.
+		 * @param	state	Animation clip state containing the requested information. Only valid if the method returns
+		 *					true.
+		 * @return			True if the state was found (animation clip is playing), false otherwise.
+		 */
 		B3D_SCRIPT_EXPORT(ExportName(GetState))
 		bool GetState(const HAnimationClip& clip, AnimationClipState& state);
 
-		/** @copydoc Animation::SetState */
+		/**
+		 * Changes the state of a playing animation clip. If animation clip is not currently playing the playback is started
+		 * for the clip.
+		 *
+		 * @param	clip	Clip to change the state for.
+		 * @param	state	New state of the animation (e.g. changing the time for seeking).
+		 */
 		B3D_SCRIPT_EXPORT(ExportName(SetState))
 		void SetState(const HAnimationClip& clip, AnimationClipState state);
 
@@ -114,25 +171,24 @@ namespace b3d
 		B3D_SCRIPT_EXPORT(ExportName(SetMorphChannelWeight))
 		void SetMorphChannelWeight(const String& name, float weight);
 
-		/** Determines bounds that will be used for animation and mesh culling. Only relevant if setUseBounds() is set to true. */
-		B3D_SCRIPT_EXPORT(ExportName(Bounds), Property(Setter))
-		void SetBounds(const AABox& bounds);
+		/** Determines bounds that will be used for animation and mesh culling. Only relevant if SetUseCustomBounds() is set to true. */
+		B3D_SCRIPT_EXPORT(ExportName(CustomBounds), Property(Setter))
+		void SetCustomBounds(const AABox& bounds);
 
-		/** @copydoc SetBounds */
-		B3D_SCRIPT_EXPORT(ExportName(Bounds), Property(Getter))
-		const AABox& GetBounds() const { return mBounds; }
+		/** @copydoc SetCustomBounds */
+		B3D_SCRIPT_EXPORT(ExportName(CustomBounds), Property(Getter))
+		const AABox& GetCustomBounds() const { return mCustomBounds; }
 
 		/**
 		 * Determines should animation bounds be used for visibility determination (culling). If false the bounds of the
 		 * mesh attached to the relevant Renderable component will be used instead.
 		 */
-		B3D_SCRIPT_EXPORT(ExportName(UseBounds), Property(Setter))
-		void SetUseBounds(bool enable);
+		B3D_SCRIPT_EXPORT(ExportName(UseCustomBounds), Property(Setter))
+		void SetUseCustomBounds(bool enable);
 
-		/** @copydoc SetUseBounds */
-		B3D_SCRIPT_EXPORT(ExportName(UseBounds), Property(Getter))
-
-		bool GetUseBounds() const { return mUseBounds; }
+		/** @copydoc SetUseCustomBounds */
+		B3D_SCRIPT_EXPORT(ExportName(UseCustomBounds), Property(Getter))
+		bool GetUseCustomBounds() const { return mUseCustomBounds; }
 
 		/** Enables or disables culling of the animation when out of view. Culled animation will not be evaluated. */
 		B3D_SCRIPT_EXPORT(ExportName(Cull), Property(Setter))
@@ -140,16 +196,20 @@ namespace b3d
 
 		/** Checks whether the animation will be evaluated when it is out of view. */
 		B3D_SCRIPT_EXPORT(ExportName(Cull), Property(Getter))
-
 		bool GetEnableCull() const { return mEnableCull; }
 
-		/** @copydoc Animation::GetNumClips */
+		/** Returns the total number of animation clips influencing this animation. */
 		B3D_SCRIPT_EXPORT(InteropOnly(true))
-		u32 GetNumClips() const;
+		u32 GetClipCount() const;
 
-		/** @copydoc Animation::GetClip */
+		/**
+		 * Returns one of the animation clips influencing this animation.
+		 *
+		 * @param	index	Sequential index of the animation clip to retrieve.
+		 * @return			Animation clip at the specified index, or null if the index is out of range.
+		 */
 		B3D_SCRIPT_EXPORT(InteropOnly(true))
-		HAnimationClip GetClip(u32 idx) const;
+		HAnimationClip GetClip(u32 index) const;
 
 		/** Triggered whenever an animation event is reached. */
 		Event<void(const HAnimationClip&, const String&)> OnEventTriggered;
@@ -165,28 +225,28 @@ namespace b3d
 		 * Registers a new bone component, creating a new transform mapping from the bone name to the scene object the
 		 * component is attached to.
 		 */
-		void AddBoneInternal(HBone bone);
+		void AddBone(const HBone& bone);
 
 		/** Unregisters a bone component, removing the bone -> scene object mapping. */
-		void RemoveBoneInternal(const HBone& bone);
+		void RemoveBone(const HBone& bone);
 
 		/** Called whenever the bone name the Bone component points to changes. */
-		void NotifyBoneChangedInternal(const HBone& bone);
+		void NotifyBoneChanged(const HBone& bone);
 
 		/**
 		 * Registers a Renderable component with the animation, should be called whenever a Renderable component is added
 		 * to the same scene object as this component.
 		 */
-		void RegisterRenderableInternal(const HRenderable& renderable);
+		void RegisterRenderable(const HRenderable& renderable);
 
 		/**
 		 * Removes renderable from the animation component. Should be called when a Renderable component is removed from
 		 * this scene object.
 		 */
-		void UnregisterRenderableInternal();
+		void UnregisterRenderable();
 
 		/** Re-applies the bounds to the internal animation object, and the relevant renderable object if one exists. */
-		void UpdateBoundsInternal(bool updateRenderable = true);
+		void UpdateBounds(bool updateRenderable = true);
 
 		/**
 		 * Rebuilds internal curve -> property mapping about the currently playing animation clip. This mapping allows the
@@ -196,9 +256,19 @@ namespace b3d
 		B3D_SCRIPT_EXPORT(InteropOnly(true))
 		void RefreshClipMappingsInternal();
 
-		/** @copydoc Animation::GetGenericCurveValue */
+		/**
+		 * Retrieves an evaluated value for a generic curve with the specified index.
+		 *
+		 * @param	index		The curve index referencing a set of curves from the first playing animation clip.
+		 *						Generic curves from all other clips are ignored.
+		 * @param	outValue	Value of the generic curve. Only valid if the method return true.
+		 * @return				True if the value was retrieved successfully. The method might fail if animation update
+		 *						didn't yet have a chance to execute and values are not yet available, or if the
+		 *						animation clip changed since the last frame (the last problem can be avoided by ensuring
+		 *						to read the curve values before changing the clip).
+		 */
 		B3D_SCRIPT_EXPORT(InteropOnly(true))
-		bool GetGenericCurveValueInternal(u32 curveIdx, float& value);
+		bool GetGenericCurveValueInternal(u32 index, float& outValue);
 
 		/**
 		 * Preview mode allows certain operations on the component to be allowed (like basic animation playback),
@@ -230,7 +300,6 @@ namespace b3d
 	protected:
 		friend class SceneObject;
 
-		void OnBeginPlay() override;
 		void OnDestroyed() override;
 		void Update() override;
 		void OnDisabled() override;
@@ -259,11 +328,19 @@ namespace b3d
 		 */
 		void UpdateSceneObjectMapping();
 
-		/** @copydoc Animation::MapCurveToSceneObject */
-		void MapCurveToSceneObject(const String& curve, const HSceneObject& so);
+		/**
+		 * Ensures that any position/rotation/scale animation of a specific animation curve is transferred to the
+		 * provided scene object. Also allow the opposite operation which can allow scene object transform changes
+		 * to manipulate object bones.
+		 *
+		 * @param	curve			Name of the curve (bone) to connect the scene object with. Use empty string to map to the
+		 *							root bone, regardless of the bone name.
+		 * @param	sceneObject		Scene object to influence by the curve modifications, and vice versa.
+		 */
+		void MapCurveToSceneObject(const String& curve, const HSceneObject& sceneObject);
 
-		/** @copydoc Animation::UnmapSceneObject */
-		void UnmapSceneObject(const HSceneObject& so);
+		/** Removes the curve <-> scene object mapping that was set via MapCurveToSceneObject(). */
+		void UnmapSceneObject(const HSceneObject& sceneObject);
 
 		/** Searches child scene objects for Bone components and returns any found ones. */
 		Vector<HBone> FindChildBones();
@@ -273,14 +350,14 @@ namespace b3d
 
 		HAnimationClip mDefaultClip;
 		HAnimationClip mPrimaryPlayingClip;
-		AnimWrapMode mWrapMode = AnimWrapMode::Loop;
+		AnimationWrapMode mWrapMode = AnimationWrapMode::Loop;
 		float mSpeed = 1.0f;
 		bool mEnableCull = true;
-		bool mUseBounds = false;
+		bool mUseCustomBounds = false;
 		bool mPreviewMode = false;
-		AABox mBounds;
+		AABox mCustomBounds;
 
-		Vector<SceneObjectMappingInfo> mMappingInfos;
+		Vector<SceneObjectMappingInfo> mMappedSceneObjectInfos;
 
 		/************************************************************************/
 		/* 								RTTI		                     		*/

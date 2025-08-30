@@ -21,9 +21,9 @@ namespace b3d
 		static MonoObject* CreateScriptObject(bool construct);
 
 	private:
-		static MonoObject* InternalGetTexture(ScriptSkybox* self);
 		static void InternalSetTexture(ScriptSkybox* self, MonoObject* texture);
 		static void InternalSetBrightness(ScriptSkybox* self, float brightness);
 		static float InternalGetBrightness(ScriptSkybox* self);
+		static MonoObject* InternalGetTexture(ScriptSkybox* self);
 	};
 }

@@ -123,7 +123,7 @@ void Skeleton::GetPose(Matrix4* pose, LocalSkeletonPose& localPose, const Skelet
 		layer.Index = 0;
 		layer.Additive = false;
 		layer.States = &state;
-		layer.NumStates = 1;
+		layer.StateCount = 1;
 
 		clip.GetBoneMapping(*this, state.BoneToCurveMapping);
 
@@ -159,7 +159,7 @@ void Skeleton::GetPose(Matrix4* pose, LocalSkeletonPose& localPose, const Skelet
 		if(layer.Additive)
 		{
 			float weightSum = 0.0f;
-			for(u32 j = 0; j < layer.NumStates; j++)
+			for(u32 j = 0; j < layer.StateCount; j++)
 				weightSum += layer.States[j].Weight;
 
 			invLayerWeight = 1.0f / weightSum;
@@ -167,7 +167,7 @@ void Skeleton::GetPose(Matrix4* pose, LocalSkeletonPose& localPose, const Skelet
 		else
 			invLayerWeight = 1.0f;
 
-		for(u32 j = 0; j < layer.NumStates; j++)
+		for(u32 j = 0; j < layer.StateCount; j++)
 		{
 			const AnimationState& state = layer.States[j];
 			if(state.Disabled)

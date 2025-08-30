@@ -80,8 +80,8 @@ const EvaluatedAnimationData* AnimationScene::Update(bool async)
 	mProxies.clear();
 	for(auto& anim : mAnimations)
 	{
-		anim.second->UpdateAnimProxy(timeDelta);
-		mProxies.push_back(anim.second->mAnimProxy);
+		anim.second->UpdateAnimationProxy(timeDelta);
+		mProxies.push_back(anim.second->mAnimationProxy);
 	}
 
 	// Build frustums for culling
@@ -166,12 +166,12 @@ const EvaluatedAnimationData* AnimationScene::Update(bool async)
 void AnimationScene::EvaluateAnimation(AnimationProxy* anim, u32& curBoneIdx)
 {
 	// Culling
-	if(anim->MCullEnabled)
+	if(anim->CullEnabled)
 	{
 		bool isVisible = false;
 		for(auto& frustum : mCullFrustums)
 		{
-			if(frustum.Intersects(anim->MBounds))
+			if(frustum.Intersects(anim->Bounds))
 			{
 				isVisible = true;
 				break;
@@ -202,7 +202,7 @@ void AnimationScene::EvaluateAnimation(AnimationProxy* anim, u32& curBoneIdx)
 		u32 numBones = anim->Skeleton->GetBoneCount();
 
 		EvaluatedAnimationData::PoseInfo& poseInfo = animInfo.PoseInfo;
-		poseInfo.AnimationId = anim->Id;
+		poseInfo.AnimationId = anim->AnimationId;
 		poseInfo.BoneStartIndex = curBoneIdx;
 		poseInfo.BoneCount = numBones;
 
@@ -211,20 +211,20 @@ void AnimationScene::EvaluateAnimation(AnimationProxy* anim, u32& curBoneIdx)
 
 		// Copy transforms from mapped scene objects
 		u32 boneTfrmIdx = 0;
-		for(u32 i = 0; i < anim->NumSceneObjects; i++)
+		for(u32 i = 0; i < anim->SceneObjectCount; i++)
 		{
 			const AnimatedSceneObjectInfo& soInfo = anim->SceneObjectInfos[i];
 
-			if(soInfo.BoneIdx == -1)
+			if(soInfo.BoneIndex == -1)
 				continue;
 
-			boneDst[soInfo.BoneIdx] = anim->SceneObjectTransforms[boneTfrmIdx];
-			anim->SkeletonPose.HasOverride[soInfo.BoneIdx] = true;
+			boneDst[soInfo.BoneIndex] = anim->SceneObjectTransforms[boneTfrmIdx];
+			anim->SkeletonPose.HasOverride[soInfo.BoneIndex] = true;
 			boneTfrmIdx++;
 		}
 
 		// Animate bones
-		anim->Skeleton->GetPose(boneDst, anim->SkeletonPose, anim->SkeletonMask, anim->Layers, anim->NumLayers);
+		anim->Skeleton->GetPose(boneDst, anim->SkeletonPose, anim->SkeletonMask, anim->Layers, anim->LayerCount);
 
 		curBoneIdx += numBones;
 		hasAnimInfo = true;
@@ -232,7 +232,7 @@ void AnimationScene::EvaluateAnimation(AnimationProxy* anim, u32& curBoneIdx)
 	else
 	{
 		EvaluatedAnimationData::PoseInfo& poseInfo = animInfo.PoseInfo;
-		poseInfo.AnimationId = anim->Id;
+		poseInfo.AnimationId = anim->AnimationId;
 		poseInfo.BoneStartIndex = 0;
 		poseInfo.BoneCount = 0;
 	}
@@ -246,21 +246,21 @@ void AnimationScene::EvaluateAnimation(AnimationProxy* anim, u32& curBoneIdx)
 	}
 
 	// Update mapped scene objects
-	memset(anim->SceneObjectPose.HasOverride, 1, sizeof(bool) * 3 * anim->NumSceneObjects);
+	memset(anim->SceneObjectPose.HasOverride, 1, sizeof(bool) * 3 * anim->SceneObjectCount);
 
 	// Update scene object transforms
-	for(u32 i = 0; i < anim->NumSceneObjects; i++)
+	for(u32 i = 0; i < anim->SceneObjectCount; i++)
 	{
 		const AnimatedSceneObjectInfo& soInfo = anim->SceneObjectInfos[i];
 
 		// We already evaluated bones
-		if(soInfo.BoneIdx != -1)
+		if(soInfo.BoneIndex != -1)
 			continue;
 
-		if(soInfo.LayerIdx == -1 || soInfo.StateIdx == -1)
+		if(soInfo.LayerIndex == -1 || soInfo.StateIndex == -1)
 			continue;
 
-		const AnimationState& state = anim->Layers[soInfo.LayerIdx].States[soInfo.StateIdx];
+		const AnimationState& state = anim->Layers[soInfo.LayerIndex].States[soInfo.StateIndex];
 		if(state.Disabled)
 			continue;
 
@@ -298,7 +298,7 @@ void AnimationScene::EvaluateAnimation(AnimationProxy* anim, u32& curBoneIdx)
 
 	// Update generic curves
 	// Note: No blending for generic animations, just use first animation
-	if(anim->NumLayers > 0 && anim->Layers[0].NumStates > 0)
+	if(anim->LayerCount > 0 && anim->Layers[0].StateCount > 0)
 	{
 		const AnimationState& state = anim->Layers[0].States[0];
 		if(!state.Disabled)
@@ -313,9 +313,9 @@ void AnimationScene::EvaluateAnimation(AnimationProxy* anim, u32& curBoneIdx)
 	}
 
 	// Update morph shapes
-	if(anim->NumMorphShapes > 0)
+	if(anim->MorphShapeCount > 0)
 	{
-		auto iterFind = prevRenderData.Infos.find(anim->Id);
+		auto iterFind = prevRenderData.Infos.find(anim->AnimationId);
 		if(iterFind != prevRenderData.Infos.end())
 			animInfo.MorphShapeInfo = iterFind->second.MorphShapeInfo;
 		else
@@ -323,7 +323,7 @@ void AnimationScene::EvaluateAnimation(AnimationProxy* anim, u32& curBoneIdx)
 
 		// Recalculate weights if curves are present
 		bool hasMorphCurves = false;
-		for(u32 i = 0; i < anim->NumMorphChannels; i++)
+		for(u32 i = 0; i < anim->MorphChannelCount; i++)
 		{
 			MorphChannelInfo& channelInfo = anim->MorphChannelInfos[i];
 			if(channelInfo.WeightCurveIdx != (u32)-1)
@@ -333,9 +333,9 @@ void AnimationScene::EvaluateAnimation(AnimationProxy* anim, u32& curBoneIdx)
 			}
 
 			float frameWeight;
-			if(channelInfo.FrameCurveIdx != (u32)-1)
+			if(channelInfo.FrameCurveIndex != (u32)-1)
 			{
-				frameWeight = Math::Clamp01(anim->GenericCurveOutputs[channelInfo.FrameCurveIdx]);
+				frameWeight = Math::Clamp01(anim->GenericCurveOutputs[channelInfo.FrameCurveIndex]);
 				hasMorphCurves = true;
 			}
 			else
@@ -432,24 +432,24 @@ void AnimationScene::EvaluateAnimation(AnimationProxy* anim, u32& curBoneIdx)
 		// Generate morph shape vertices
 		if(anim->MorphChannelWeightsDirty || hasMorphCurves)
 		{
-			SPtr<MeshData> meshData = B3DMakeShared<MeshData>(anim->NumMorphVertices, 0, mBlendShapeVertexDescription);
+			SPtr<MeshData> meshData = B3DMakeShared<MeshData>(anim->MorphVertexCount, 0, mBlendShapeVertexDescription);
 
 			u8* bufferData = meshData->GetData();
 			memset(bufferData, 0, meshData->GetSize());
 
-			u32 tempDataSize = (sizeof(Vector3) + sizeof(float)) * anim->NumMorphVertices;
+			u32 tempDataSize = (sizeof(Vector3) + sizeof(float)) * anim->MorphVertexCount;
 			u8* tempData = (u8*)B3DStackAllocate(tempDataSize);
 			memset(tempData, 0, tempDataSize);
 
 			Vector3* tempNormals = (Vector3*)tempData;
-			float* accumulatedWeight = (float*)(tempData + sizeof(Vector3) * anim->NumMorphVertices);
+			float* accumulatedWeight = (float*)(tempData + sizeof(Vector3) * anim->MorphVertexCount);
 
 			u8* positions = meshData->GetElementData(VES_POSITION, 1, 1);
 			u8* normals = meshData->GetElementData(VES_NORMAL, 1, 1);
 
 			u32 stride = mBlendShapeVertexDescription->GetVertexStride(1);
 
-			for(u32 i = 0; i < anim->NumMorphShapes; i++)
+			for(u32 i = 0; i < anim->MorphShapeCount; i++)
 			{
 				const MorphShapeInfo& info = anim->MorphShapeInfos[i];
 				float absWeight = Math::Abs(info.FinalWeight);
@@ -471,7 +471,7 @@ void AnimationScene::EvaluateAnimation(AnimationProxy* anim, u32& curBoneIdx)
 				}
 			}
 
-			for(u32 i = 0; i < anim->NumMorphVertices; i++)
+			for(u32 i = 0; i < anim->MorphVertexCount; i++)
 			{
 				PackedNormal* destNrm = (PackedNormal*)(normals + i * stride);
 
@@ -505,7 +505,7 @@ void AnimationScene::EvaluateAnimation(AnimationProxy* anim, u32& curBoneIdx)
 	if(hasAnimInfo)
 	{
 		Lock lock(mMutex);
-		renderData.Infos[anim->Id] = animInfo;
+		renderData.Infos[anim->AnimationId] = animInfo;
 	}
 }
 

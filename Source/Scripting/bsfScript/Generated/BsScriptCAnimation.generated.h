@@ -4,12 +4,12 @@
 
 #include "BsScriptEnginePrerequisites.h"
 #include "Wrappers/BsScriptComponent.h"
+#include "../../../Foundation/bsfUtility/Math/BsAABox.h"
 #include "../../../Foundation/bsfCore/Animation/BsAnimation.h"
 #include "../../../Foundation/bsfCore/Animation/BsAnimation.h"
 #include "../../../Foundation/bsfUtility/Math/BsVector2.h"
 #include "../../../Foundation/bsfCore/Animation/BsAnimation.h"
 #include "../../../Foundation/bsfCore/Animation/BsAnimation.h"
-#include "../../../Foundation/bsfUtility/Math/BsAABox.h"
 
 namespace b3d { struct __TAABox_float_Interop; }
 namespace b3d { class CAnimation; }
@@ -45,14 +45,14 @@ namespace b3d
 
 		static void InternalSetDefaultClip(ScriptAnimation* self, MonoObject* clip);
 		static MonoObject* InternalGetDefaultClip(ScriptAnimation* self);
-		static void InternalSetWrapMode(ScriptAnimation* self, AnimWrapMode wrapMode);
-		static AnimWrapMode InternalGetWrapMode(ScriptAnimation* self);
+		static void InternalSetWrapMode(ScriptAnimation* self, AnimationWrapMode wrapMode);
+		static AnimationWrapMode InternalGetWrapMode(ScriptAnimation* self);
 		static void InternalSetSpeed(ScriptAnimation* self, float speed);
 		static float InternalGetSpeed(ScriptAnimation* self);
 		static void InternalPlay(ScriptAnimation* self, MonoObject* clip);
 		static void InternalBlendAdditive(ScriptAnimation* self, MonoObject* clip, float weight, float fadeLength, uint32_t layer);
-		static void InternalBlend1D(ScriptAnimation* self, __Blend1DInfoInterop* info, float t);
-		static void InternalBlend2D(ScriptAnimation* self, __Blend2DInfoInterop* info, TVector2<float>* t);
+		static void InternalBlend1D(ScriptAnimation* self, __Blend1DInfoInterop* info, float alpha);
+		static void InternalBlend2D(ScriptAnimation* self, __Blend2DInfoInterop* info, TVector2<float>* alpha);
 		static void InternalCrossFade(ScriptAnimation* self, MonoObject* clip, float fadeLength);
 		static void InternalSample(ScriptAnimation* self, MonoObject* clip, float time);
 		static void InternalStop(ScriptAnimation* self, uint32_t layer);
@@ -61,16 +61,16 @@ namespace b3d
 		static bool InternalGetState(ScriptAnimation* self, MonoObject* clip, AnimationClipState* state);
 		static void InternalSetState(ScriptAnimation* self, MonoObject* clip, AnimationClipState* state);
 		static void InternalSetMorphChannelWeight(ScriptAnimation* self, MonoString* name, float weight);
-		static void InternalSetBounds(ScriptAnimation* self, __TAABox_float_Interop* bounds);
-		static void InternalGetBounds(ScriptAnimation* self, __TAABox_float_Interop* __output);
-		static void InternalSetUseBounds(ScriptAnimation* self, bool enable);
-		static bool InternalGetUseBounds(ScriptAnimation* self);
+		static void InternalSetCustomBounds(ScriptAnimation* self, __TAABox_float_Interop* bounds);
+		static void InternalGetCustomBounds(ScriptAnimation* self, __TAABox_float_Interop* __output);
+		static void InternalSetUseCustomBounds(ScriptAnimation* self, bool enable);
+		static bool InternalGetUseCustomBounds(ScriptAnimation* self);
 		static void InternalSetEnableCull(ScriptAnimation* self, bool enable);
 		static bool InternalGetEnableCull(ScriptAnimation* self);
-		static uint32_t InternalGetNumClips(ScriptAnimation* self);
-		static MonoObject* InternalGetClip(ScriptAnimation* self, uint32_t idx);
+		static uint32_t InternalGetClipCount(ScriptAnimation* self);
+		static MonoObject* InternalGetClip(ScriptAnimation* self, uint32_t index);
 		static void InternalRefreshClipMappingsInternal(ScriptAnimation* self);
-		static bool InternalGetGenericCurveValueInternal(ScriptAnimation* self, uint32_t curveIdx, float* value);
+		static bool InternalGetGenericCurveValueInternal(ScriptAnimation* self, uint32_t index, float* outValue);
 		static bool InternalTogglePreviewModeInternal(ScriptAnimation* self, bool enabled);
 	};
 }

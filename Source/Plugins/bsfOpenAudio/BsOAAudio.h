@@ -87,7 +87,7 @@ namespace b3d
 			OAAudioSource* Source;
 		};
 
-		SPtr<AudioClip> CreateClip(const SPtr<DataStream>& samples, u32 streamSize, u32 numSamples, const AUDIO_CLIP_DESC& desc) override;
+		SPtr<AudioClip> CreateClip(const SPtr<DataStream>& samples, u32 streamSize, u32 numSamples, const AudioClipCreateInformation& desc) override;
 		SPtr<AudioListener> CreateListener() override;
 		SPtr<AudioSource> CreateSource() override;
 

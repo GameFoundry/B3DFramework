@@ -19,15 +19,15 @@ namespace b3d
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
-			B3D_RTTI_MEMBER_NAMED(readMode, mDesc.ReadMode, 0)
-			B3D_RTTI_MEMBER_NAMED(format, mDesc.Format, 1)
-			B3D_RTTI_MEMBER_NAMED(frequency, mDesc.Frequency, 2)
-			B3D_RTTI_MEMBER_NAMED(bitDepth, mDesc.BitDepth, 3)
-			B3D_RTTI_MEMBER_NAMED(numChannels, mDesc.NumChannels, 4)
-			B3D_RTTI_MEMBER(mNumSamples, 5)
+			B3D_RTTI_MEMBER_NAMED(readMode, mInformation.ReadMode, 0)
+			B3D_RTTI_MEMBER_NAMED(format, mInformation.Format, 1)
+			B3D_RTTI_MEMBER_NAMED(frequency, mInformation.Frequency, 2)
+			B3D_RTTI_MEMBER_NAMED(bitDepth, mInformation.BitDepth, 3)
+			B3D_RTTI_MEMBER_NAMED(numChannels, mInformation.ChannelCount, 4)
+			B3D_RTTI_MEMBER(mSampleCount, 5)
 			B3D_RTTI_MEMBER(mStreamSize, 7)
 			B3D_RTTI_MEMBER(mStreamOffset, 8)
-			B3D_RTTI_MEMBER_NAMED(is3D, mDesc.Is3D, 9)
+			B3D_RTTI_MEMBER_NAMED(is3D, mInformation.Is3D, 9)
 			B3D_RTTI_MEMBER(mLength, 10)
 		B3D_RTTI_END_MEMBERS
 

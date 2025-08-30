@@ -272,7 +272,7 @@ void OAAudioSource::SetTime(float time)
 		else
 		{
 			if(mAudioClip.IsLoaded())
-				mStreamProcessedPosition = (u32)(time * mAudioClip->GetFrequency() * mAudioClip->GetNumChannels());
+				mStreamProcessedPosition = (u32)(time * mAudioClip->GetFrequency() * mAudioClip->GetChannelCount());
 			else
 				mStreamProcessedPosition = 0;
 
@@ -318,7 +318,7 @@ float OAAudioSource::GetTime() const
 	{
 		float timeOffset = 0.0f;
 		if(mAudioClip.IsLoaded())
-			timeOffset = (float)mStreamProcessedPosition / mAudioClip->GetFrequency() / mAudioClip->GetNumChannels();
+			timeOffset = (float)mStreamProcessedPosition / mAudioClip->GetFrequency() / mAudioClip->GetChannelCount();
 
 		// When streaming, the returned offset is relative to the last queued buffer
 		alGetSourcef(mSourceIDs[0], AL_SEC_OFFSET, &time);
@@ -488,11 +488,11 @@ void OAAudioSource::StreamUnlocked()
 {
 	AudioDataInfo info;
 	info.BitDepth = mAudioClip->GetBitDepth();
-	info.NumChannels = mAudioClip->GetNumChannels();
+	info.NumChannels = mAudioClip->GetChannelCount();
 	info.SampleRate = mAudioClip->GetFrequency();
 	info.NumSamples = 0;
 
-	u32 totalNumSamples = mAudioClip->GetNumSamples();
+	u32 totalNumSamples = mAudioClip->GetSampleCount();
 
 	// Note: It is safe to access contexts here only because it is guaranteed by the OAAudio manager that it will always
 	// stop all streaming before changing contexts. Otherwise a mutex lock would be needed for every context access.

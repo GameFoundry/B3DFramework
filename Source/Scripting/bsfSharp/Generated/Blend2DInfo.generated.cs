@@ -18,8 +18,8 @@ namespace b3d
 	{
 		public RRef<AnimationClip> TopLeftClip;
 		public RRef<AnimationClip> TopRightClip;
-		public RRef<AnimationClip> BotLeftClip;
-		public RRef<AnimationClip> BotRightClip;
+		public RRef<AnimationClip> BottomLeftClip;
+		public RRef<AnimationClip> BottomRightClip;
 	}
 
 	/** @} */

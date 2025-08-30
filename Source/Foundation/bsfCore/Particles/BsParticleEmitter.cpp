@@ -1099,7 +1099,7 @@ u32 ParticleEmitterSkinnedMeshShape::SpawnInternal(const Random& random, Particl
 		SPtr<Animation> animation = animationComponent.IsValid() ? animationComponent->GetInternalInternal() : nullptr;
 		if(animation != nullptr)
 		{
-			const u64 animId = animation->GetIdInternal();
+			const u64 animId = animation->GetAnimationId();
 
 			if(state.AnimData)
 			{

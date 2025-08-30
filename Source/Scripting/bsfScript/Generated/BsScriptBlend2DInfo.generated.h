@@ -12,8 +12,8 @@ namespace b3d
 	{
 		MonoObject* TopLeftClip;
 		MonoObject* TopRightClip;
-		MonoObject* BotLeftClip;
-		MonoObject* BotRightClip;
+		MonoObject* BottomLeftClip;
+		MonoObject* BottomRightClip;
 	};
 
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptBlend2DInfo : public TScriptTypeDefinition<ScriptBlend2DInfo>

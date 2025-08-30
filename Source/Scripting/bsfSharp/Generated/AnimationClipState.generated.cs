@@ -22,7 +22,7 @@ namespace b3d
 			value.Time = 0f;
 			value.Speed = 1f;
 			value.Weight = 1f;
-			value.WrapMode = AnimWrapMode.Loop;
+			value.WrapMode = AnimationWrapMode.Loop;
 			value.Stopped = false;
 
 			return value;
@@ -37,7 +37,7 @@ namespace b3d
 		/// <summary>Determines how much of an influence does the clip have on the final pose.</summary>
 		public float Weight;
 		/// <summary>Determines what happens to other animation clips when a new clip starts playing.</summary>
-		public AnimWrapMode WrapMode;
+		public AnimationWrapMode WrapMode;
 		/// <summary>
 		/// Determines should the time be advanced automatically. Certain type of animation clips don&apos;t involve playback 
 		/// (e.g. for blending where animation weight controls the animation).

@@ -2,7 +2,7 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "BsTiledDeferred.h"
 #include "Renderer/BsRendererUtility.h"
-#include "Components/BsCSkybox.h"
+#include "Components/BsSkybox.h"
 #include "BsRenderBeast.h"
 #include "RenderAPI/BsGpuCommandBuffer.h"
 

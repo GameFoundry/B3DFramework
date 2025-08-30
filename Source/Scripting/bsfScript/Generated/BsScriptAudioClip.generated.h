@@ -27,11 +27,11 @@ namespace b3d
 
 		static uint32_t InternalGetBitDepth(ScriptAudioClip* self);
 		static uint32_t InternalGetFrequency(ScriptAudioClip* self);
-		static uint32_t InternalGetNumChannels(ScriptAudioClip* self);
+		static uint32_t InternalGetChannelCount(ScriptAudioClip* self);
 		static AudioFormat InternalGetFormat(ScriptAudioClip* self);
 		static AudioReadMode InternalGetReadMode(ScriptAudioClip* self);
 		static float InternalGetLength(ScriptAudioClip* self);
-		static uint32_t InternalGetNumSamples(ScriptAudioClip* self);
+		static uint32_t InternalGetSampleCount(ScriptAudioClip* self);
 		static bool InternalIs3D(ScriptAudioClip* self);
 	};
 }

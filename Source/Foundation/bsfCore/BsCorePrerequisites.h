@@ -477,7 +477,7 @@ namespace b3d
 	struct SliderJointCreateInformation;
 	struct SphericalJointCreateInformation;
 	struct D6JointCreateInformation;
-	struct AUDIO_CLIP_DESC;
+	struct AudioClipCreateInformation;
 
 	namespace render
 	{

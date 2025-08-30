@@ -9,7 +9,7 @@
 
 using namespace b3d;
 
-OAAudioClip::OAAudioClip(const SPtr<DataStream>& samples, u32 streamSize, u32 numSamples, const AUDIO_CLIP_DESC& desc)
+OAAudioClip::OAAudioClip(const SPtr<DataStream>& samples, u32 streamSize, u32 numSamples, const AudioClipCreateInformation& desc)
 	: AudioClip(samples, streamSize, numSamples, desc)
 {}
 
@@ -26,10 +26,10 @@ void OAAudioClip::Initialize()
 						   // other thread sees properly initialized AudioClip members
 
 		AudioDataInfo info;
-		info.BitDepth = mDesc.BitDepth;
-		info.NumChannels = mDesc.NumChannels;
-		info.NumSamples = mNumSamples;
-		info.SampleRate = mDesc.Frequency;
+		info.BitDepth = mInformation.BitDepth;
+		info.NumChannels = mInformation.ChannelCount;
+		info.NumSamples = mSampleCount;
+		info.SampleRate = mInformation.Frequency;
 
 		// If we need to keep source data, read everything into memory and keep a copy
 		if(mKeepSourceData)
@@ -45,8 +45,8 @@ void OAAudioClip::Initialize()
 
 		// Load decompressed data into a sound buffer
 		bool loadDecompressed =
-			mDesc.ReadMode == AudioReadMode::LoadDecompressed ||
-			(mDesc.ReadMode == AudioReadMode::LoadCompressed && mDesc.Format == AudioFormat::PCM);
+			mInformation.ReadMode == AudioReadMode::LoadDecompressed ||
+			(mInformation.ReadMode == AudioReadMode::LoadCompressed && mInformation.Format == AudioFormat::PCM);
 
 		if(loadDecompressed)
 		{
@@ -65,7 +65,7 @@ void OAAudioClip::Initialize()
 			u8* sampleBuffer = (u8*)B3DStackAllocate(bufferSize);
 
 			// Decompress from Ogg
-			if(mDesc.Format == AudioFormat::VORBIS)
+			if(mInformation.Format == AudioFormat::VORBIS)
 			{
 				OggVorbisDecoder reader;
 				if(reader.Open(stream, info, offset))
@@ -90,7 +90,7 @@ void OAAudioClip::Initialize()
 			B3DStackFree(sampleBuffer);
 		}
 		// Load compressed data for streaming from memory
-		else if(mDesc.ReadMode == AudioReadMode::LoadCompressed)
+		else if(mInformation.ReadMode == AudioReadMode::LoadCompressed)
 		{
 			// If reading from file, make a copy of data in memory, otherwise just take ownership of the existing buffer
 			if(mStreamData->IsFile())
@@ -116,7 +116,7 @@ void OAAudioClip::Initialize()
 			// Do nothing
 		}
 
-		if(mDesc.Format == AudioFormat::VORBIS && mDesc.ReadMode != AudioReadMode::LoadDecompressed)
+		if(mInformation.Format == AudioFormat::VORBIS && mInformation.ReadMode != AudioReadMode::LoadDecompressed)
 		{
 			mNeedsDecompression = true;
 
@@ -145,7 +145,7 @@ void OAAudioClip::GetSamples(u8* samples, u32 offset, u32 count) const
 		}
 		else
 		{
-			u32 bytesPerSample = mDesc.BitDepth / 8;
+			u32 bytesPerSample = mInformation.BitDepth / 8;
 			u32 size = count * bytesPerSample;
 			u32 streamOffset = mStreamOffset + offset * bytesPerSample;
 
@@ -160,7 +160,7 @@ void OAAudioClip::GetSamples(u8* samples, u32 offset, u32 count) const
 	{
 		B3D_ASSERT(!mNeedsDecompression); // Normal stream must exist if decompressing
 
-		const u32 bytesPerSample = mDesc.BitDepth / 8;
+		const u32 bytesPerSample = mInformation.BitDepth / 8;
 		u32 size = count * bytesPerSample;
 		u32 streamOffset = offset * bytesPerSample;
 

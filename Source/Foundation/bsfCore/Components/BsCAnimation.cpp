@@ -10,17 +10,7 @@
 #include "Private/RTTI/BsCAnimationRTTI.h"
 #include "Scene/BsSceneInstance.h"
 
-using namespace std::placeholders;
-
 using namespace b3d;
-
-CAnimation::CAnimation()
-{
-	mNotifyFlags = TCF_Transform;
-	SetFlag(ComponentFlag::AlwaysRun, true);
-
-	SetName("Animation");
-}
 
 CAnimation::CAnimation(const HSceneObject& parent)
 	: Component(parent)
@@ -31,6 +21,10 @@ CAnimation::CAnimation(const HSceneObject& parent)
 	SetName("Animation");
 }
 
+CAnimation::CAnimation()
+	: CAnimation(nullptr)
+{ }
+
 void CAnimation::SetDefaultClip(const HAnimationClip& clip)
 {
 	mDefaultClip = clip;
@@ -39,7 +33,7 @@ void CAnimation::SetDefaultClip(const HAnimationClip& clip)
 		mInternal->Play(clip);
 }
 
-void CAnimation::SetWrapMode(AnimWrapMode wrapMode)
+void CAnimation::SetWrapMode(AnimationWrapMode wrapMode)
 {
 	mWrapMode = wrapMode;
 
@@ -67,16 +61,16 @@ void CAnimation::BlendAdditive(const HAnimationClip& clip, float weight, float f
 		mInternal->BlendAdditive(clip, weight, fadeLength, layer);
 }
 
-void CAnimation::Blend1D(const Blend1DInfo& info, float t)
+void CAnimation::Blend1D(const Blend1DInfo& info, float alpha)
 {
 	if(mInternal != nullptr && !mPreviewMode)
-		mInternal->Blend1D(info, t);
+		mInternal->Blend1D(info, alpha);
 }
 
-void CAnimation::Blend2D(const Blend2DInfo& info, const Vector2& t)
+void CAnimation::Blend2D(const Blend2DInfo& info, const Vector2& alpha)
 {
 	if(mInternal != nullptr && !mPreviewMode)
-		mInternal->Blend2D(info, t);
+		mInternal->Blend2D(info, alpha);
 }
 
 void CAnimation::CrossFade(const HAnimationClip& clip, float fadeLength)
@@ -142,21 +136,21 @@ void CAnimation::SetMorphChannelWeight(const String& name, float weight)
 		return;
 
 	const Vector<SPtr<MorphChannel>>& channels = morphShapes->GetChannels();
-	for(u32 i = 0; i < (u32)channels.size(); i++)
+	for(u32 morphChannelIndex = 0; morphChannelIndex < (u32)channels.size(); morphChannelIndex++)
 	{
-		if(channels[i]->GetName() == name)
+		if(channels[morphChannelIndex]->GetName() == name)
 		{
-			mInternal->SetMorphChannelWeight(i, weight);
+			mInternal->SetMorphChannelWeight(morphChannelIndex, weight);
 			break;
 		}
 	}
 }
 
-void CAnimation::SetBounds(const AABox& bounds)
+void CAnimation::SetCustomBounds(const AABox& bounds)
 {
-	mBounds = bounds;
+	mCustomBounds = bounds;
 
-	if(mUseBounds)
+	if(mUseCustomBounds)
 	{
 		if(mAnimatedRenderable != nullptr)
 		{
@@ -166,7 +160,7 @@ void CAnimation::SetBounds(const AABox& bounds)
 
 			if(mInternal != nullptr && !mPreviewMode)
 			{
-				AABox bounds = mBounds;
+				AABox bounds = mCustomBounds;
 
 				bounds.TransformAffine(SO()->GetWorldMatrix());
 				mInternal->SetBounds(bounds);
@@ -175,11 +169,11 @@ void CAnimation::SetBounds(const AABox& bounds)
 	}
 }
 
-void CAnimation::SetUseBounds(bool enable)
+void CAnimation::SetUseCustomBounds(bool enable)
 {
-	mUseBounds = enable;
+	mUseCustomBounds = enable;
 
-	UpdateBoundsInternal();
+	UpdateBounds();
 }
 
 void CAnimation::SetEnableCull(bool enable)
@@ -190,24 +184,20 @@ void CAnimation::SetEnableCull(bool enable)
 		mInternal->SetCulling(enable);
 }
 
-u32 CAnimation::GetNumClips() const
+u32 CAnimation::GetClipCount() const
 {
 	if(mInternal != nullptr)
-		return mInternal->GetNumClips();
+		return mInternal->GetClipCount();
 
 	return 0;
 }
 
-HAnimationClip CAnimation::GetClip(u32 idx) const
+HAnimationClip CAnimation::GetClip(u32 index) const
 {
 	if(mInternal != nullptr)
-		return mInternal->GetClip(idx);
+		return mInternal->GetClip(index);
 
 	return HAnimationClip();
-}
-
-void CAnimation::OnBeginPlay()
-{
 }
 
 void CAnimation::OnDestroyed()
@@ -252,18 +242,18 @@ void CAnimation::Update()
 				const SPtr<Skeleton>& skeleton = mesh->GetSkeleton();
 				if(skeleton)
 				{
-					for(auto& entry : mMappingInfos)
+					for(auto& entry : mMappedSceneObjectInfos)
 					{
 						// We allow a null bone for the root bone mapping, should be non-null for everything else
 						if(!entry.IsMappedToBone || entry.Bone == nullptr)
 							continue;
 
-						const u32 numBones = skeleton->GetBoneCount();
-						for(u32 j = 0; j < numBones; j++)
+						const u32 boneCount = skeleton->GetBoneCount();
+						for(u32 boneIndex = 0; boneIndex < boneCount; boneIndex++)
 						{
-							if(skeleton->GetBoneInfo(j).Name == entry.Bone->GetBoneName())
+							if(skeleton->GetBoneInfo(boneIndex).Name == entry.Bone->GetBoneName())
 							{
-								Matrix4 bindPose = skeleton->GetInvBindPose(j).InverseAffine();
+								Matrix4 bindPose = skeleton->GetInvBindPose(boneIndex).InverseAffine();
 								bindPose = SO()->GetTransform().GetMatrix() * bindPose;
 
 								Vector3 position, scale;
@@ -300,7 +290,7 @@ void CAnimation::OnTransformChanged(TransformChangedFlags flags)
 		return;
 
 	if((flags & (TCF_Transform)) != 0)
-		UpdateBoundsInternal(false);
+		UpdateBounds(false);
 }
 
 void CAnimation::RestoreInternal(bool previewMode)
@@ -315,14 +305,14 @@ void CAnimation::RestoreInternal(bool previewMode)
 
 	if(!previewMode)
 	{
-		mInternal->OnEventTriggered.Connect(std::bind(&CAnimation::EventTriggered, this, _1, _2));
+		mInternal->OnEventTriggered.Connect([this](const HAnimationClip& clip, const String& name) { EventTriggered(clip, name); });
 
 		mInternal->SetWrapMode(mWrapMode);
 		mInternal->SetSpeed(mSpeed);
 		mInternal->SetCulling(mEnableCull);
 	}
 
-	UpdateBoundsInternal();
+	UpdateBounds();
 
 	if(!previewMode)
 	{
@@ -391,106 +381,105 @@ bool CAnimation::TogglePreviewModeInternal(bool enabled)
 	}
 }
 
-bool CAnimation::GetGenericCurveValueInternal(u32 curveIdx, float& value)
+bool CAnimation::GetGenericCurveValueInternal(u32 index, float& outValue)
 {
 	if(mInternal == nullptr)
 		return false;
 
-	return mInternal->GetGenericCurveValue(curveIdx, value);
+	return mInternal->GetGenericCurveValue(index, outValue);
 }
 
-void CAnimation::MapCurveToSceneObject(const String& curve, const HSceneObject& so)
+void CAnimation::MapCurveToSceneObject(const String& curve, const HSceneObject& sceneObject)
 {
 	if(mInternal == nullptr)
 		return;
 
-	mInternal->MapCurveToSceneObject(curve, so);
+	mInternal->MapCurveToSceneObject(curve, sceneObject);
 }
 
-void CAnimation::UnmapSceneObject(const HSceneObject& so)
+void CAnimation::UnmapSceneObject(const HSceneObject& sceneObject)
 {
 	if(mInternal == nullptr)
 		return;
 
-	mInternal->UnmapSceneObject(so);
+	mInternal->UnmapSceneObject(sceneObject);
 }
 
-void CAnimation::AddBoneInternal(HBone bone)
+void CAnimation::AddBone(const HBone& bone)
 {
 	const HSceneObject& currentSO = bone->SO();
 
 	SceneObjectMappingInfo newMapping;
 	newMapping.SceneObject = currentSO;
 	newMapping.IsMappedToBone = true;
-	newMapping.Bone = std::move(bone);
+	newMapping.Bone = bone;
 
-	mMappingInfos.push_back(newMapping);
+	mMappedSceneObjectInfos.push_back(newMapping);
 
 	if(mInternal)
 		mInternal->MapCurveToSceneObject(newMapping.Bone->GetBoneName(), newMapping.SceneObject);
 }
 
-void CAnimation::RemoveBoneInternal(const HBone& bone)
+void CAnimation::RemoveBone(const HBone& bone)
 {
-	HSceneObject newSO;
-	for(u32 i = 0; i < (u32)mMappingInfos.size(); i++)
+	for(u32 mappingIndex = 0; mappingIndex < (u32)mMappedSceneObjectInfos.size(); mappingIndex++)
 	{
-		if(mMappingInfos[i].Bone == bone)
+		if(mMappedSceneObjectInfos[mappingIndex].Bone == bone)
 		{
 			if(mInternal)
-				mInternal->UnmapSceneObject(mMappingInfos[i].SceneObject);
+				mInternal->UnmapSceneObject(mMappedSceneObjectInfos[mappingIndex].SceneObject);
 
-			mMappingInfos.erase(mMappingInfos.begin() + i);
-			i--;
+			mMappedSceneObjectInfos.erase(mMappedSceneObjectInfos.begin() + mappingIndex);
+			mappingIndex--;
 		}
 	}
 }
 
-void CAnimation::NotifyBoneChangedInternal(const HBone& bone)
+void CAnimation::NotifyBoneChanged(const HBone& bone)
 {
 	if(mInternal == nullptr)
 		return;
 
-	for(u32 i = 0; i < (u32)mMappingInfos.size(); i++)
+	for(u32 i = 0; i < (u32)mMappedSceneObjectInfos.size(); i++)
 	{
-		if(mMappingInfos[i].Bone == bone)
+		if(mMappedSceneObjectInfos[i].Bone == bone)
 		{
-			mInternal->UnmapSceneObject(mMappingInfos[i].SceneObject);
-			mInternal->MapCurveToSceneObject(bone->GetBoneName(), mMappingInfos[i].SceneObject);
+			mInternal->UnmapSceneObject(mMappedSceneObjectInfos[i].SceneObject);
+			mInternal->MapCurveToSceneObject(bone->GetBoneName(), mMappedSceneObjectInfos[i].SceneObject);
 			break;
 		}
 	}
 }
 
-void CAnimation::RegisterRenderableInternal(const HRenderable& renderable)
+void CAnimation::RegisterRenderable(const HRenderable& renderable)
 {
 	mAnimatedRenderable = renderable;
 
-	UpdateBoundsInternal();
+	UpdateBounds();
 }
 
-void CAnimation::UnregisterRenderableInternal()
+void CAnimation::UnregisterRenderable()
 {
 	mAnimatedRenderable = nullptr;
 }
 
-void CAnimation::UpdateBoundsInternal(bool updateRenderable)
+void CAnimation::UpdateBounds(bool updateRenderable)
 {
 	SPtr<Renderable> renderable;
 	if(updateRenderable && mAnimatedRenderable != nullptr)
 		renderable = mAnimatedRenderable.GetShared();
 
-	if(mUseBounds)
+	if(mUseCustomBounds)
 	{
 		if(renderable != nullptr)
 		{
 			renderable->SetUseOverrideBounds(true);
-			renderable->SetOverrideBounds(mBounds);
+			renderable->SetOverrideBounds(mCustomBounds);
 		}
 
 		if(mInternal != nullptr)
 		{
-			AABox bounds = mBounds;
+			AABox bounds = mCustomBounds;
 			bounds.TransformAffine(SO()->GetWorldMatrix());
 
 			mInternal->SetBounds(bounds);
@@ -514,24 +503,24 @@ void CAnimation::UpdateBoundsInternal(bool updateRenderable)
 
 void CAnimation::SetBoneMappings()
 {
-	mMappingInfos.clear();
+	mMappedSceneObjectInfos.clear();
 
 	SceneObjectMappingInfo rootMapping;
 	rootMapping.SceneObject = SO();
 	rootMapping.IsMappedToBone = true;
 
-	mMappingInfos.push_back(rootMapping);
+	mMappedSceneObjectInfos.push_back(rootMapping);
 	mInternal->MapCurveToSceneObject("", rootMapping.SceneObject);
 
 	Vector<HBone> childBones = FindChildBones();
 	for(auto& entry : childBones)
-		AddBoneInternal(entry);
+		AddBone(entry);
 }
 
 void CAnimation::UpdateSceneObjectMapping()
 {
 	Vector<SceneObjectMappingInfo> newMappingInfos;
-	for(auto& entry : mMappingInfos)
+	for(auto& entry : mMappedSceneObjectInfos)
 	{
 		if(entry.IsMappedToBone)
 			newMappingInfos.push_back(entry);
@@ -541,19 +530,19 @@ void CAnimation::UpdateSceneObjectMapping()
 
 	if(mPrimaryPlayingClip.IsLoaded())
 	{
-		HSceneObject root = SO();
+		HSceneObject rootSceneObject = SO();
 
-		const auto& findMappings = [&](const String& name, AnimationCurveFlags flags)
+		const auto& fnFindSceneObjectMapping = [&](const String& name, AnimationCurveFlags flags)
 		{
 			if(flags.IsSet(AnimationCurveFlag::ImportedCurve))
 				return;
 
-			HSceneObject currentSO = root->FindPath(name);
+			HSceneObject currentSceneObject = rootSceneObject->FindPath(name);
 
 			bool found = false;
 			for(u32 i = 0; i < (u32)newMappingInfos.size(); i++)
 			{
-				if(newMappingInfos[i].SceneObject == currentSO)
+				if(newMappingInfos[i].SceneObject == currentSceneObject)
 				{
 					found = true;
 					break;
@@ -564,25 +553,25 @@ void CAnimation::UpdateSceneObjectMapping()
 			{
 				SceneObjectMappingInfo newMappingInfo;
 				newMappingInfo.IsMappedToBone = false;
-				newMappingInfo.SceneObject = currentSO;
+				newMappingInfo.SceneObject = currentSceneObject;
 
 				newMappingInfos.push_back(newMappingInfo);
-				MapCurveToSceneObject(name, currentSO);
+				MapCurveToSceneObject(name, currentSceneObject);
 			}
 		};
 
 		SPtr<AnimationCurves> curves = mPrimaryPlayingClip->GetCurves();
 		for(auto& curve : curves->Position)
-			findMappings(curve.Name, curve.Flags);
+			fnFindSceneObjectMapping(curve.Name, curve.Flags);
 
 		for(auto& curve : curves->Rotation)
-			findMappings(curve.Name, curve.Flags);
+			fnFindSceneObjectMapping(curve.Name, curve.Flags);
 
 		for(auto& curve : curves->Scale)
-			findMappings(curve.Name, curve.Flags);
+			fnFindSceneObjectMapping(curve.Name, curve.Flags);
 	}
 
-	mMappingInfos = newMappingInfos;
+	mMappedSceneObjectInfos = newMappingInfos;
 }
 
 void CAnimation::RefreshClipMappingsInternal()
@@ -601,22 +590,22 @@ Vector<HBone> CAnimation::FindChildBones()
 	todo.push(SO());
 
 	Vector<HBone> bones;
-	while(todo.size() > 0)
+	while(!todo.empty())
 	{
-		HSceneObject currentSO = todo.top();
+		HSceneObject currentSceneObject = todo.top();
 		todo.pop();
 
-		HBone bone = currentSO->GetComponent<CBone>();
+		HBone bone = currentSceneObject->GetComponent<CBone>();
 		if(bone != nullptr)
 		{
 			bone->SetParentInternal(B3DStaticGameObjectCast<CAnimation>(GetHandle()), true);
 			bones.push_back(bone);
 		}
 
-		int childCount = currentSO->GetChildCount();
+		int childCount = currentSceneObject->GetChildCount();
 		for(int i = 0; i < childCount; i++)
 		{
-			HSceneObject child = currentSO->GetChild(i);
+			HSceneObject child = currentSceneObject->GetChild(i);
 			if(child->GetComponent<CAnimation>() != nullptr)
 				continue;
 

@@ -24,11 +24,11 @@ namespace b3d
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetRef", (void*)&ScriptAudioClip::InternalGetRef);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetBitDepth", (void*)&ScriptAudioClip::InternalGetBitDepth);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetFrequency", (void*)&ScriptAudioClip::InternalGetFrequency);
-		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetNumChannels", (void*)&ScriptAudioClip::InternalGetNumChannels);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetChannelCount", (void*)&ScriptAudioClip::InternalGetChannelCount);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetFormat", (void*)&ScriptAudioClip::InternalGetFormat);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetReadMode", (void*)&ScriptAudioClip::InternalGetReadMode);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetLength", (void*)&ScriptAudioClip::InternalGetLength);
-		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetNumSamples", (void*)&ScriptAudioClip::InternalGetNumSamples);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetSampleCount", (void*)&ScriptAudioClip::InternalGetSampleCount);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_Is3D", (void*)&ScriptAudioClip::InternalIs3D);
 
 	}
@@ -76,13 +76,13 @@ namespace b3d
 		return __output;
 	}
 
-	uint32_t ScriptAudioClip::InternalGetNumChannels(ScriptAudioClip* self)
+	uint32_t ScriptAudioClip::InternalGetChannelCount(ScriptAudioClip* self)
 	{
 		uint32_t tmp__output;
 		if(!self->IsNativeObjectValid())
 			return {};
 
-		tmp__output = static_cast<AudioClip*>(self->GetNativeObject())->GetNumChannels();
+		tmp__output = static_cast<AudioClip*>(self->GetNativeObject())->GetChannelCount();
 
 		uint32_t __output;
 		__output = tmp__output;
@@ -132,13 +132,13 @@ namespace b3d
 		return __output;
 	}
 
-	uint32_t ScriptAudioClip::InternalGetNumSamples(ScriptAudioClip* self)
+	uint32_t ScriptAudioClip::InternalGetSampleCount(ScriptAudioClip* self)
 	{
 		uint32_t tmp__output;
 		if(!self->IsNativeObjectValid())
 			return {};
 
-		tmp__output = static_cast<AudioClip*>(self->GetNativeObject())->GetNumSamples();
+		tmp__output = static_cast<AudioClip*>(self->GetNativeObject())->GetSampleCount();
 
 		uint32_t __output;
 		__output = tmp__output;

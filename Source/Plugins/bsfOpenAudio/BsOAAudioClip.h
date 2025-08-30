@@ -16,7 +16,7 @@ namespace b3d
 	class OAAudioClip : public AudioClip
 	{
 	public:
-		OAAudioClip(const SPtr<DataStream>& samples, u32 streamSize, u32 numSamples, const AUDIO_CLIP_DESC& desc);
+		OAAudioClip(const SPtr<DataStream>& samples, u32 streamSize, u32 numSamples, const AudioClipCreateInformation& desc);
 		virtual ~OAAudioClip();
 
 		/**

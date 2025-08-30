@@ -7,8 +7,8 @@
 
 using namespace b3d;
 
-AudioClip::AudioClip(const SPtr<DataStream>& samples, u32 streamSize, u32 numSamples, const AUDIO_CLIP_DESC& desc)
-	: Resource(false), mDesc(desc), mNumSamples(numSamples), mStreamSize(streamSize), mStreamData(samples)
+AudioClip::AudioClip(const SPtr<DataStream>& samples, u32 streamSize, u32 numSamples, const AudioClipCreateInformation& desc)
+	: Resource(false), mInformation(desc), mSampleCount(numSamples), mStreamSize(streamSize), mStreamData(samples)
 {
 	if(samples != nullptr)
 		mStreamOffset = (u32)samples->Tell();
@@ -18,17 +18,17 @@ AudioClip::AudioClip(const SPtr<DataStream>& samples, u32 streamSize, u32 numSam
 
 void AudioClip::Initialize()
 {
-	mLength = mNumSamples / mDesc.NumChannels / (float)mDesc.Frequency;
+	mLength = mSampleCount / mInformation.ChannelCount / (float)mInformation.Frequency;
 
 	Resource::Initialize();
 }
 
-HAudioClip AudioClip::Create(const SPtr<DataStream>& samples, u32 streamSize, u32 numSamples, const AUDIO_CLIP_DESC& desc)
+HAudioClip AudioClip::Create(const SPtr<DataStream>& samples, u32 streamSize, u32 sampleCount, const AudioClipCreateInformation& createInformation)
 {
-	return B3DStaticResourceCast<AudioClip>(GetResources().CreateResourceHandle(CreatePtrInternal(samples, streamSize, numSamples, desc)));
+	return B3DStaticResourceCast<AudioClip>(GetResources().CreateResourceHandle(CreatePtrInternal(samples, streamSize, sampleCount, createInformation)));
 }
 
-SPtr<AudioClip> AudioClip::CreatePtrInternal(const SPtr<DataStream>& samples, u32 streamSize, u32 numSamples, const AUDIO_CLIP_DESC& desc)
+SPtr<AudioClip> AudioClip::CreatePtrInternal(const SPtr<DataStream>& samples, u32 streamSize, u32 numSamples, const AudioClipCreateInformation& desc)
 {
 	SPtr<AudioClip> newClip = GetAudio().CreateClip(samples, streamSize, numSamples, desc);
 	newClip->SetShared(newClip);
@@ -39,7 +39,7 @@ SPtr<AudioClip> AudioClip::CreatePtrInternal(const SPtr<DataStream>& samples, u3
 
 SPtr<AudioClip> AudioClip::CreateEmpty()
 {
-	AUDIO_CLIP_DESC desc;
+	AudioClipCreateInformation desc;
 
 	SPtr<AudioClip> newClip = GetAudio().CreateClip(nullptr, 0, 0, desc);
 	newClip->SetShared(newClip);

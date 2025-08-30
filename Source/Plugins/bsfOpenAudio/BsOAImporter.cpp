@@ -115,11 +115,11 @@ SPtr<Resource> OAImporter::Import(const Path& filePath, SPtr<const ImportOptions
 		sampleStream = OggVorbisEncoder::PCMToOggVorbis(sampleStream->Data(), info, bufferSize);
 	}
 
-	AUDIO_CLIP_DESC clipDesc;
+	AudioClipCreateInformation clipDesc;
 	clipDesc.BitDepth = info.BitDepth;
 	clipDesc.Format = clipIO->Format;
 	clipDesc.Frequency = info.SampleRate;
-	clipDesc.NumChannels = info.NumChannels;
+	clipDesc.ChannelCount = info.NumChannels;
 	clipDesc.ReadMode = clipIO->ReadMode;
 	clipDesc.Is3D = clipIO->Is3D;
 

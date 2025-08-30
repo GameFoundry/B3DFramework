@@ -213,7 +213,7 @@ void Renderable::OnBeginPlay()
 	if(mAnimation != nullptr)
 	{
 		RegisterAnimation(mAnimation);
-		mAnimation->RegisterRenderableInternal(B3DStaticGameObjectCast<Renderable>(mThisHandle));
+		mAnimation->RegisterRenderable(B3DStaticGameObjectCast<Renderable>(mThisHandle));
 	}
 }
 
@@ -230,7 +230,7 @@ void Renderable::OnDisabled()
 void Renderable::OnDestroyed()
 {
 	if(mAnimation != nullptr)
-		mAnimation->UnregisterRenderableInternal();
+		mAnimation->UnregisterRenderable();
 
 	CoreObject::Destroy();
 }
@@ -242,7 +242,7 @@ void Renderable::OnTransformChanged(TransformChangedFlags flags)
 	// If skinned animation, don't include own transform since that will be handled by root bone animation
 	bool ignoreOwnTransform;
 	if(mAnimType == RenderableAnimType::Skinned || mAnimType == RenderableAnimType::SkinnedMorph)
-		ignoreOwnTransform = animation != nullptr ? animation->GetAnimatesRootInternal() : false;
+		ignoreOwnTransform = animation != nullptr ? animation->GetAnimatesRoot() : false;
 	else
 		ignoreOwnTransform = false;
 
@@ -275,7 +275,7 @@ RenderProxySyncPacket* Renderable::CreateRenderProxySyncPacket(FrameAllocator& a
 
 		FullSyncPacket* const syncPacket = allocator.Construct<FullSyncPacket>(*this, allocator, flags);
 		syncPacket->mActive = GetEnabled();
-		syncPacket->mAnimationId = mAnimation != nullptr ? animation->GetIdInternal() : (u64)-1;
+		syncPacket->mAnimationId = mAnimation != nullptr ? animation->GetAnimationId() : (u64)-1;
 		syncPacket->mSceneInstance = B3DGetRenderProxy(SceneObject()->GetScene());
 		syncPacket->mTransform = SceneObject()->GetTransform();
 
@@ -443,7 +443,7 @@ void Renderable::DoOnMeshChanged()
 {
 	if(mAnimation != nullptr)
 	{
-		mAnimation->UpdateBoundsInternal(false);
+		mAnimation->UpdateBounds(false);
 		RefreshAnimation();
 	}
 }

@@ -11,7 +11,7 @@ namespace b3d
 	 */
 
 	/// <summary>Determines how an animation clip behaves when it reaches the end.</summary>
-	public enum AnimWrapMode
+	public enum AnimationWrapMode
 	{
 		/// <summary>Loop around to the beginning/end when the last/first frame is reached.</summary>
 		Loop = 0,

@@ -55,7 +55,7 @@ RTTIType* MorphChannel::GetRtti() const
 }
 
 MorphShapes::MorphShapes(const Vector<SPtr<MorphChannel>>& channels, u32 numVertices)
-	: mChannels(channels), mNumVertices(numVertices)
+	: mChannels(channels), mVertexCount(numVertices)
 {
 }
 

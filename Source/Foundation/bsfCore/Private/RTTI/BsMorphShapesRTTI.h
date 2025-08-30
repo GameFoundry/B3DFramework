@@ -72,7 +72,7 @@ namespace b3d
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
 			B3D_RTTI_MEMBER_CONTAINER(mChannels, 0)
-			B3D_RTTI_MEMBER(mNumVertices, 1)
+			B3D_RTTI_MEMBER(mVertexCount, 1)
 		B3D_RTTI_END_MEMBERS
 
 	public:

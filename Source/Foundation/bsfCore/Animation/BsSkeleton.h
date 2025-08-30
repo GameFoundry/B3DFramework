@@ -46,7 +46,7 @@ namespace b3d
 		SPtr<AnimationCurves> Curves; /**< All curves in the animation clip. */
 		float Length; /**< Total length of the animation clip in seconds (same as the length of the longest animation curve). */
 		AnimationCurveMapping* BoneToCurveMapping; /**< Mapping of bone indices to curve indices for quick lookup .*/
-		AnimationCurveMapping* SoToCurveMapping; /**< Mapping of scene object indices to curve indices for quick lookup. */
+		AnimationCurveMapping* SceneObjectToCurveMapping; /**< Mapping of scene object indices to curve indices for quick lookup. */
 
 		TCurveCache<Vector3>* PositionCaches; /**< Cache used for evaluating position curves. */
 		TCurveCache<Quaternion>* RotationCaches; /**< Cache used for evaluating rotation curves. */
@@ -63,7 +63,7 @@ namespace b3d
 	struct AnimationStateLayer
 	{
 		AnimationState* States; /**< Array of animation states in the layer. */
-		u32 NumStates; /**< Number of states in @p states. */
+		u32 StateCount; /**< Number of states in @p states. */
 
 		u8 Index; /**< Unique index of the animation layer. */
 

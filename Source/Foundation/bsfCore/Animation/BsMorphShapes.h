@@ -44,12 +44,10 @@ namespace b3d
 
 		/** Returns the name of the shape. */
 		B3D_SCRIPT_EXPORT(Property(Getter), ExportName(Name))
-
 		const String& GetName() const { return mName; }
 
 		/** Returns the weight of the shape, determining how are different shapes within a channel blended. */
 		B3D_SCRIPT_EXPORT(Property(Getter), ExportName(Weight))
-
 		float GetWeight() const { return mWeight; }
 
 		/** Returns a reference to all of the shape's vertices. Contains only vertices that differ from the base. */
@@ -92,18 +90,16 @@ namespace b3d
 	public:
 		/** Returns the unique name of the channel. */
 		B3D_SCRIPT_EXPORT(Property(Getter), ExportName(Name))
-
 		const String& GetName() const { return mName; }
 
 		/** Returns the number of available morph shapes. */
-		u32 GetNumShapes() const { return (u32)mShapes.size(); }
+		u32 GetShapeCount() const { return (u32)mShapes.size(); }
 
 		/** Returns the morph shape at the specified index. */
-		SPtr<MorphShape> GetShape(u32 idx) const { return mShapes[idx]; }
+		SPtr<MorphShape> GetShape(u32 index) const { return mShapes[index]; }
 
 		/** Returns all morph shapes within this channel, in order from lowest to highest. */
 		B3D_SCRIPT_EXPORT(Property(Getter), ExportName(Shapes))
-
 		const Vector<SPtr<MorphShape>>& GetShapes() const { return mShapes; }
 
 		/** Creates a new channel from a set of morph shapes. */
@@ -141,18 +137,17 @@ namespace b3d
 	{
 	public:
 		/** Returns the number of available morph channels. */
-		u32 GetNumChannels() const { return (u32)mChannels.size(); }
+		u32 GetChannelCount() const { return (u32)mChannels.size(); }
 
 		/** Returns the morph channel at the specified index. */
-		SPtr<MorphChannel> GetChannel(u32 idx) const { return mChannels[idx]; }
+		SPtr<MorphChannel> GetChannel(u32 index) const { return mChannels[index]; }
 
 		/** Returns a list of all morph channels in the morph animation. */
 		B3D_SCRIPT_EXPORT(Property(Getter), ExportName(Channels))
-
 		const Vector<SPtr<MorphChannel>>& GetChannels() const { return mChannels; }
 
 		/** Returns the number of vertices per morph shape. */
-		u32 GetVertexCount() const { return mNumVertices; }
+		u32 GetVertexCount() const { return mVertexCount; }
 
 		/** Creates a new set of morph shapes. */
 		static SPtr<MorphShapes> Create(const Vector<SPtr<MorphChannel>>& channels, u32 numVertices);
@@ -162,7 +157,7 @@ namespace b3d
 		MorphShapes(const Vector<SPtr<MorphChannel>>& channels, u32 numVertices);
 
 		Vector<SPtr<MorphChannel>> mChannels;
-		u32 mNumVertices;
+		u32 mVertexCount;
 
 		/************************************************************************/
 		/* 								SERIALIZATION                      		*/

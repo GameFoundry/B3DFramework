@@ -8,11 +8,11 @@
 #include "BsScriptResourceManager.h"
 #include "Wrappers/BsScriptRRefBase.h"
 #include "../../../Foundation/bsfCore/Animation/BsAnimationClip.h"
+#include "BsScriptTAABox.generated.h"
 #include "BsScriptBlend1DInfo.generated.h"
 #include "BsScriptTVector2.generated.h"
 #include "BsScriptBlend2DInfo.generated.h"
 #include "BsScriptAnimationClipState.generated.h"
-#include "BsScriptTAABox.generated.h"
 
 namespace b3d
 {
@@ -51,13 +51,13 @@ namespace b3d
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetState", (void*)&ScriptAnimation::InternalGetState);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetState", (void*)&ScriptAnimation::InternalSetState);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetMorphChannelWeight", (void*)&ScriptAnimation::InternalSetMorphChannelWeight);
-		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetBounds", (void*)&ScriptAnimation::InternalSetBounds);
-		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetBounds", (void*)&ScriptAnimation::InternalGetBounds);
-		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetUseBounds", (void*)&ScriptAnimation::InternalSetUseBounds);
-		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetUseBounds", (void*)&ScriptAnimation::InternalGetUseBounds);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetCustomBounds", (void*)&ScriptAnimation::InternalSetCustomBounds);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetCustomBounds", (void*)&ScriptAnimation::InternalGetCustomBounds);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetUseCustomBounds", (void*)&ScriptAnimation::InternalSetUseCustomBounds);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetUseCustomBounds", (void*)&ScriptAnimation::InternalGetUseCustomBounds);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetEnableCull", (void*)&ScriptAnimation::InternalSetEnableCull);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetEnableCull", (void*)&ScriptAnimation::InternalGetEnableCull);
-		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetNumClips", (void*)&ScriptAnimation::InternalGetNumClips);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetClipCount", (void*)&ScriptAnimation::InternalGetClipCount);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetClip", (void*)&ScriptAnimation::InternalGetClip);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_RefreshClipMappingsInternal", (void*)&ScriptAnimation::InternalRefreshClipMappingsInternal);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetGenericCurveValueInternal", (void*)&ScriptAnimation::InternalGetGenericCurveValueInternal);
@@ -150,7 +150,7 @@ namespace b3d
 		return __output;
 	}
 
-	void ScriptAnimation::InternalSetWrapMode(ScriptAnimation* self, AnimWrapMode wrapMode)
+	void ScriptAnimation::InternalSetWrapMode(ScriptAnimation* self, AnimationWrapMode wrapMode)
 	{
 		if(!self->IsNativeObjectValid())
 			return;
@@ -158,15 +158,15 @@ namespace b3d
 		static_cast<CAnimation*>(self->GetNativeObject())->SetWrapMode(wrapMode);
 	}
 
-	AnimWrapMode ScriptAnimation::InternalGetWrapMode(ScriptAnimation* self)
+	AnimationWrapMode ScriptAnimation::InternalGetWrapMode(ScriptAnimation* self)
 	{
-		AnimWrapMode tmp__output;
+		AnimationWrapMode tmp__output;
 		if(!self->IsNativeObjectValid())
 			return {};
 
 		tmp__output = static_cast<CAnimation*>(self->GetNativeObject())->GetWrapMode();
 
-		AnimWrapMode __output;
+		AnimationWrapMode __output;
 		__output = tmp__output;
 
 		return __output;
@@ -220,24 +220,24 @@ namespace b3d
 		static_cast<CAnimation*>(self->GetNativeObject())->BlendAdditive(tmpclip, weight, fadeLength, layer);
 	}
 
-	void ScriptAnimation::InternalBlend1D(ScriptAnimation* self, __Blend1DInfoInterop* info, float t)
+	void ScriptAnimation::InternalBlend1D(ScriptAnimation* self, __Blend1DInfoInterop* info, float alpha)
 	{
 		if(!self->IsNativeObjectValid())
 			return;
 
 		Blend1DInfo tmpinfo;
 		tmpinfo = ScriptBlend1DInfo::FromInterop(*info);
-		static_cast<CAnimation*>(self->GetNativeObject())->Blend1D(tmpinfo, t);
+		static_cast<CAnimation*>(self->GetNativeObject())->Blend1D(tmpinfo, alpha);
 	}
 
-	void ScriptAnimation::InternalBlend2D(ScriptAnimation* self, __Blend2DInfoInterop* info, TVector2<float>* t)
+	void ScriptAnimation::InternalBlend2D(ScriptAnimation* self, __Blend2DInfoInterop* info, TVector2<float>* alpha)
 	{
 		if(!self->IsNativeObjectValid())
 			return;
 
 		Blend2DInfo tmpinfo;
 		tmpinfo = ScriptBlend2DInfo::FromInterop(*info);
-		static_cast<CAnimation*>(self->GetNativeObject())->Blend2D(tmpinfo, *t);
+		static_cast<CAnimation*>(self->GetNativeObject())->Blend2D(tmpinfo, *alpha);
 	}
 
 	void ScriptAnimation::InternalCrossFade(ScriptAnimation* self, MonoObject* clip, float fadeLength)
@@ -338,17 +338,17 @@ namespace b3d
 		static_cast<CAnimation*>(self->GetNativeObject())->SetMorphChannelWeight(tmpname, weight);
 	}
 
-	void ScriptAnimation::InternalSetBounds(ScriptAnimation* self, __TAABox_float_Interop* bounds)
+	void ScriptAnimation::InternalSetCustomBounds(ScriptAnimation* self, __TAABox_float_Interop* bounds)
 	{
 		if(!self->IsNativeObjectValid())
 			return;
 
 		TAABox<float> tmpbounds;
 		tmpbounds = ScriptAABox::FromInterop(*bounds);
-		static_cast<CAnimation*>(self->GetNativeObject())->SetBounds(tmpbounds);
+		static_cast<CAnimation*>(self->GetNativeObject())->SetCustomBounds(tmpbounds);
 	}
 
-	void ScriptAnimation::InternalGetBounds(ScriptAnimation* self, __TAABox_float_Interop* __output)
+	void ScriptAnimation::InternalGetCustomBounds(ScriptAnimation* self, __TAABox_float_Interop* __output)
 	{
 		if(!self->IsNativeObjectValid())
 		{
@@ -357,28 +357,28 @@ namespace b3d
 		}
 
 		TAABox<float> tmp__output;
-		tmp__output = static_cast<CAnimation*>(self->GetNativeObject())->GetBounds();
+		tmp__output = static_cast<CAnimation*>(self->GetNativeObject())->GetCustomBounds();
 
 		__TAABox_float_Interop interop__output;
 		interop__output = ScriptAABox::ToInterop(tmp__output);
 		MonoUtil::ValueCopy(__output, &interop__output, ScriptAABox::GetMetaData()->ScriptClass->GetInternalClass());
 	}
 
-	void ScriptAnimation::InternalSetUseBounds(ScriptAnimation* self, bool enable)
+	void ScriptAnimation::InternalSetUseCustomBounds(ScriptAnimation* self, bool enable)
 	{
 		if(!self->IsNativeObjectValid())
 			return;
 
-		static_cast<CAnimation*>(self->GetNativeObject())->SetUseBounds(enable);
+		static_cast<CAnimation*>(self->GetNativeObject())->SetUseCustomBounds(enable);
 	}
 
-	bool ScriptAnimation::InternalGetUseBounds(ScriptAnimation* self)
+	bool ScriptAnimation::InternalGetUseCustomBounds(ScriptAnimation* self)
 	{
 		bool tmp__output;
 		if(!self->IsNativeObjectValid())
 			return {};
 
-		tmp__output = static_cast<CAnimation*>(self->GetNativeObject())->GetUseBounds();
+		tmp__output = static_cast<CAnimation*>(self->GetNativeObject())->GetUseCustomBounds();
 
 		bool __output;
 		__output = tmp__output;
@@ -408,13 +408,13 @@ namespace b3d
 		return __output;
 	}
 
-	uint32_t ScriptAnimation::InternalGetNumClips(ScriptAnimation* self)
+	uint32_t ScriptAnimation::InternalGetClipCount(ScriptAnimation* self)
 	{
 		uint32_t tmp__output;
 		if(!self->IsNativeObjectValid())
 			return {};
 
-		tmp__output = static_cast<CAnimation*>(self->GetNativeObject())->GetNumClips();
+		tmp__output = static_cast<CAnimation*>(self->GetNativeObject())->GetClipCount();
 
 		uint32_t __output;
 		__output = tmp__output;
@@ -422,13 +422,13 @@ namespace b3d
 		return __output;
 	}
 
-	MonoObject* ScriptAnimation::InternalGetClip(ScriptAnimation* self, uint32_t idx)
+	MonoObject* ScriptAnimation::InternalGetClip(ScriptAnimation* self, uint32_t index)
 	{
 		TResourceHandle<AnimationClip> tmp__output;
 		if(!self->IsNativeObjectValid())
 			return {};
 
-		tmp__output = static_cast<CAnimation*>(self->GetNativeObject())->GetClip(idx);
+		tmp__output = static_cast<CAnimation*>(self->GetNativeObject())->GetClip(index);
 
 		MonoObject* __output;
 		ScriptRRefBase* script__output;
@@ -449,13 +449,13 @@ namespace b3d
 		static_cast<CAnimation*>(self->GetNativeObject())->RefreshClipMappingsInternal();
 	}
 
-	bool ScriptAnimation::InternalGetGenericCurveValueInternal(ScriptAnimation* self, uint32_t curveIdx, float* value)
+	bool ScriptAnimation::InternalGetGenericCurveValueInternal(ScriptAnimation* self, uint32_t index, float* outValue)
 	{
 		bool tmp__output;
 		if(!self->IsNativeObjectValid())
 			return {};
 
-		tmp__output = static_cast<CAnimation*>(self->GetNativeObject())->GetGenericCurveValueInternal(curveIdx, *value);
+		tmp__output = static_cast<CAnimation*>(self->GetNativeObject())->GetGenericCurveValueInternal(index, *outValue);
 
 		bool __output;
 		__output = tmp__output;

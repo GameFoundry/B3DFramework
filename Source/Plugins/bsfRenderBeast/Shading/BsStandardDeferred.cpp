@@ -3,7 +3,7 @@
 #include "BsStandardDeferred.h"
 #include "Material/BsGpuParamsSet.h"
 #include "Mesh/BsMesh.h"
-#include "Components/BsCSkybox.h"
+#include "Components/BsSkybox.h"
 #include "Renderer/BsRendererUtility.h"
 #include "BsRenderBeastScene.h"
 #include "BsRendererView.h"

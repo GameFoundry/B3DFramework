@@ -22,8 +22,8 @@ namespace b3d
 			B3D_RTTI_MEMBER(mWrapMode, 1)
 			B3D_RTTI_MEMBER(mSpeed, 2)
 			B3D_RTTI_MEMBER(mEnableCull, 3)
-			B3D_RTTI_MEMBER(mUseBounds, 4)
-			B3D_RTTI_MEMBER(mBounds, 5)
+			B3D_RTTI_MEMBER(mUseCustomBounds, 4)
+			B3D_RTTI_MEMBER(mCustomBounds, 5)
 		B3D_RTTI_END_MEMBERS
 	public:
 		const String& GetRttiName() override

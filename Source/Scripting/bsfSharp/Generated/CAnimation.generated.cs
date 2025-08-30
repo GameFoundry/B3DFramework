@@ -10,6 +10,12 @@ namespace b3d
 	 *  @{
 	 */
 
+	/// <summary>
+	/// Handles animation playback. Takes one or multiple animation clips as input and evaluates them every animation update 
+	/// tick depending on set properties. The evaluated data is used by the render thread for skeletal animation, by the main 
+	/// thread for updating attached scene objects and bones (if skeleton is attached), or the data is made available for 
+	/// manual queries in the case of generic animation.
+	/// </summary>
 	[ShowInInspector]
 	public partial class Animation : Component
 	{
@@ -18,8 +24,8 @@ namespace b3d
 
 		/// <summary>
 		/// Determines the default clip to play as soon as the component is enabled. If more control over playing clips is needed 
-		/// use the play(), blend() and crossFade() methods to queue clips for playback manually, and setState() method for 
-		/// modify their states individually.
+		/// use the Play(), Blend*(), CrossFade() methods to queue clips for playback manually, and SetState() method to modify 
+		/// their states individually.
 		/// </summary>
 		[ShowInInspector]
 		[NativeWrapper]
@@ -29,14 +35,21 @@ namespace b3d
 			set { Internal_SetDefaultClip(mCachedPtr, value); }
 		}
 
+		/// <summary>
+		/// Determines the wrap mode for all active animations. Wrap mode determines what happens when animation reaches the 
+		/// first or last frame.
+		/// </summary>
 		[ShowInInspector]
 		[NativeWrapper]
-		public AnimWrapMode WrapMode
+		public AnimationWrapMode WrapMode
 		{
 			get { return Internal_GetWrapMode(mCachedPtr); }
 			set { Internal_SetWrapMode(mCachedPtr, value); }
 		}
 
+		/// <summary>
+		/// Determines the speed for all animations. The default value is 1.0f. Use negative values to play-back in reverse.
+		/// </summary>
 		[ShowInInspector]
 		[NativeWrapper]
 		public float Speed
@@ -45,6 +58,7 @@ namespace b3d
 			set { Internal_SetSpeed(mCachedPtr, value); }
 		}
 
+		/// <summary>Checks if any animation clips are currently playing.</summary>
 		[NativeWrapper]
 		public bool IsPlaying
 		{
@@ -52,19 +66,20 @@ namespace b3d
 		}
 
 		/// <summary>
-		/// Determines bounds that will be used for animation and mesh culling. Only relevant if setUseBounds() is set to true.
+		/// Determines bounds that will be used for animation and mesh culling. Only relevant if SetUseCustomBounds() is set to 
+		/// true.
 		/// </summary>
 		[ShowInInspector]
 		[NativeWrapper]
-		public AABox Bounds
+		public AABox CustomBounds
 		{
 			get
 			{
 				AABox temp;
-				Internal_GetBounds(mCachedPtr, out temp);
+				Internal_GetCustomBounds(mCachedPtr, out temp);
 				return temp;
 			}
-			set { Internal_SetBounds(mCachedPtr, ref value); }
+			set { Internal_SetCustomBounds(mCachedPtr, ref value); }
 		}
 
 		/// <summary>
@@ -73,10 +88,10 @@ namespace b3d
 		/// </summary>
 		[ShowInInspector]
 		[NativeWrapper]
-		public bool UseBounds
+		public bool UseCustomBounds
 		{
-			get { return Internal_GetUseBounds(mCachedPtr); }
-			set { Internal_SetUseBounds(mCachedPtr, value); }
+			get { return Internal_GetUseCustomBounds(mCachedPtr); }
+			set { Internal_SetUseCustomBounds(mCachedPtr, value); }
 		}
 
 		/// <summary>
@@ -103,51 +118,118 @@ namespace b3d
 		/// <summary>Triggers a callback in script code when animation event is triggered (script only).</summary>
 		partial void Callback_EventTriggered(RRef<AnimationClip> p0, string p1);
 
+		/// <summary>Plays the specified animation clip.</summary>
 		public void Play(RRef<AnimationClip> clip)
 		{
 			Internal_Play(mCachedPtr, clip);
 		}
 
+		/// <summary>
+		/// Plays the specified animation clip on top of the animation currently playing in the main layer. Multiple such clips 
+		/// can be playing at once, as long as you ensure each is given its own layer. Each animation can also have a weight that 
+		/// determines how much it influences the main animation.
+		/// </summary>
+		/// <param name="clip">Clip to additively blend. Must contain additive animation curves.</param>
+		/// <param name="weight">
+		/// Determines how much of an effect will the blended animation have on the final output. In range [0, 1].
+		/// </param>
+		/// <param name="fadeLength">
+		/// Applies the blend over a specified time period, increasing the weight as the time passes. Set to zero to blend 
+		/// immediately. In seconds.
+		/// </param>
+		/// <param name="layer">
+		/// Layer to play the clip in. Multiple additive clips can be playing at once in separate layers and each layer has its 
+		/// own weight.
+		/// </param>
 		public void BlendAdditive(RRef<AnimationClip> clip, float weight, float fadeLength = 0f, int layer = 0)
 		{
 			Internal_BlendAdditive(mCachedPtr, clip, weight, fadeLength, layer);
 		}
 
-		public void Blend1D(Blend1DInfo info, float t)
+		/// <summary>
+		/// Blend multiple animation clips between each other using linear interpolation. Unlike normal animations these 
+		/// animations are not advanced with the progress of time, and is instead expected the user manually changes the 
+		/// <paramref name="alpha"/> parameter.
+		/// </summary>
+		/// <param name="info">
+		/// Information about the clips to blend. Clip positions must be sorted from lowest to highest.
+		/// </param>
+		/// <param name="alpha">
+		/// Parameter that controls the blending. Range depends on the positions of the provided animation clips.
+		/// </param>
+		public void Blend1D(Blend1DInfo info, float alpha)
 		{
-			Internal_Blend1D(mCachedPtr, ref info, t);
+			Internal_Blend1D(mCachedPtr, ref info, alpha);
 		}
 
-		public void Blend2D(Blend2DInfo info, TVector2<float> t)
+		/// <summary>
+		/// Blend four animation clips between each other using bilinear interpolation. Unlike normal animations these animations 
+		/// are not advanced with the progress of time, and is instead expected the user manually changes the <paramref 
+		/// name="alpha"/> parameter.
+		/// </summary>
+		/// <param name="info">Information about the clips to blend.</param>
+		/// <param name="alpha">
+		/// Parameter that controls the blending, in range [(0, 0), (1, 1)]. alpha = (0, 0) means top left animation has full 
+		/// influence, alpha = (1, 0) means top right animation has full influence, alpha = (0, 1) means bottom left animation 
+		/// has full influence, alpha = (1, 1) means bottom right animation has full influence.
+		/// </param>
+		public void Blend2D(Blend2DInfo info, TVector2<float> alpha)
 		{
-			Internal_Blend2D(mCachedPtr, ref info, ref t);
+			Internal_Blend2D(mCachedPtr, ref info, ref alpha);
 		}
 
+		/// <summary>
+		/// Fades the specified animation clip in, while fading other playing animation out, over the specified time period.
+		/// </summary>
+		/// <param name="clip">Clip to fade in.</param>
+		/// <param name="fadeLength">Determines the time period over which the fade occurs. In seconds.</param>
 		public void CrossFade(RRef<AnimationClip> clip, float fadeLength)
 		{
 			Internal_CrossFade(mCachedPtr, clip, fadeLength);
 		}
 
+		/// <summary>
+		/// Samples an animation clip at the specified time, displaying only that particular frame without further playback.
+		/// </summary>
+		/// <param name="clip">Animation clip to sample.</param>
+		/// <param name="time">Time to sample the clip at.</param>
 		public void Sample(RRef<AnimationClip> clip, float time)
 		{
 			Internal_Sample(mCachedPtr, clip, time);
 		}
 
+		/// <summary>
+		/// Stops playing all animations on the provided layer. Specify ~0u to stop animation on the main layer (non-additive 
+		/// animations).
+		/// </summary>
 		public void Stop(int layer)
 		{
 			Internal_Stop(mCachedPtr, layer);
 		}
 
+		/// <summary>Stops playing all animations.</summary>
 		public void StopAll()
 		{
 			Internal_StopAll(mCachedPtr);
 		}
 
+		/// <summary>Retrieves detailed information about a currently playing animation clip.</summary>
+		/// <param name="clip">Clip to retrieve the information for.</param>
+		/// <param name="state">
+		/// Animation clip state containing the requested information. Only valid if the method returns true.
+		/// </param>
+		/// <returns>True if the state was found (animation clip is playing), false otherwise.</returns>
 		public bool GetState(RRef<AnimationClip> clip, out AnimationClipState state)
 		{
 			return Internal_GetState(mCachedPtr, clip, out state);
 		}
 
+		/// <summary>
+		/// Changes the state of a playing animation clip. If animation clip is not currently playing the playback is started for 
+		/// the clip.
+		/// </summary>
+		/// <param name="clip">Clip to change the state for.</param>
+		/// <param name="state">New state of the animation (e.g. changing the time for seeking).</param>
 		public void SetState(RRef<AnimationClip> clip, AnimationClipState state)
 		{
 			Internal_SetState(mCachedPtr, clip, ref state);
@@ -170,9 +252,9 @@ namespace b3d
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern RRef<AnimationClip> Internal_GetDefaultClip(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_SetWrapMode(IntPtr thisPtr, AnimWrapMode wrapMode);
+		private static extern void Internal_SetWrapMode(IntPtr thisPtr, AnimationWrapMode wrapMode);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern AnimWrapMode Internal_GetWrapMode(IntPtr thisPtr);
+		private static extern AnimationWrapMode Internal_GetWrapMode(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_SetSpeed(IntPtr thisPtr, float speed);
 		[MethodImpl(MethodImplOptions.InternalCall)]
@@ -182,9 +264,9 @@ namespace b3d
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_BlendAdditive(IntPtr thisPtr, RRef<AnimationClip> clip, float weight, float fadeLength, int layer);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_Blend1D(IntPtr thisPtr, ref Blend1DInfo info, float t);
+		private static extern void Internal_Blend1D(IntPtr thisPtr, ref Blend1DInfo info, float alpha);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_Blend2D(IntPtr thisPtr, ref Blend2DInfo info, ref TVector2<float> t);
+		private static extern void Internal_Blend2D(IntPtr thisPtr, ref Blend2DInfo info, ref TVector2<float> alpha);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_CrossFade(IntPtr thisPtr, RRef<AnimationClip> clip, float fadeLength);
 		[MethodImpl(MethodImplOptions.InternalCall)]
@@ -202,25 +284,25 @@ namespace b3d
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_SetMorphChannelWeight(IntPtr thisPtr, string name, float weight);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_SetBounds(IntPtr thisPtr, ref AABox bounds);
+		private static extern void Internal_SetCustomBounds(IntPtr thisPtr, ref AABox bounds);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_GetBounds(IntPtr thisPtr, out AABox __output);
+		private static extern void Internal_GetCustomBounds(IntPtr thisPtr, out AABox __output);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_SetUseBounds(IntPtr thisPtr, bool enable);
+		private static extern void Internal_SetUseCustomBounds(IntPtr thisPtr, bool enable);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern bool Internal_GetUseBounds(IntPtr thisPtr);
+		private static extern bool Internal_GetUseCustomBounds(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_SetEnableCull(IntPtr thisPtr, bool enable);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern bool Internal_GetEnableCull(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern int Internal_GetNumClips(IntPtr thisPtr);
+		private static extern int Internal_GetClipCount(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern RRef<AnimationClip> Internal_GetClip(IntPtr thisPtr, int idx);
+		private static extern RRef<AnimationClip> Internal_GetClip(IntPtr thisPtr, int index);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_RefreshClipMappingsInternal(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern bool Internal_GetGenericCurveValueInternal(IntPtr thisPtr, int curveIdx, out float value);
+		private static extern bool Internal_GetGenericCurveValueInternal(IntPtr thisPtr, int index, out float outValue);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern bool Internal_TogglePreviewModeInternal(IntPtr thisPtr, bool enabled);
 		private void Internal_ScriptRebuildFloatPropertiesInternal(RRef<AnimationClip> p0)
