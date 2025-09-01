@@ -2052,7 +2052,7 @@ void VulkanGpuCommandBuffer::CopyBufferToBuffer(VulkanBuffer* source, VulkanBuff
 
 }
 
-void VulkanGpuCommandBuffer::CopyBufferToImage(VulkanBuffer* source, VulkanImage* destination, const VkExtent3D& region, const VkImageSubresourceRange& subresourceRange, VkImageLayout layout, u32 rowPitch, u32 sliceHeight)
+void VulkanGpuCommandBuffer::CopyBufferToImage(VulkanBuffer* source, VulkanImage* destination, const VkExtent3D& region, const VkImageSubresourceRange& subresourceRange, VkImageLayout layout)
 {
 	RegisterBuffer(source, BufferUseFlagBits::Transfer, VulkanAccessFlag::Read);
 	RegisterImageTransfer(destination, subresourceRange, layout, VulkanAccessFlag::Write);
@@ -2064,8 +2064,8 @@ void VulkanGpuCommandBuffer::CopyBufferToImage(VulkanBuffer* source, VulkanImage
 	rangeLayers.mipLevel = subresourceRange.baseMipLevel;
 
 	VkBufferImageCopy copyRegion;
-	copyRegion.bufferRowLength = rowPitch;
-	copyRegion.bufferImageHeight = sliceHeight;
+	copyRegion.bufferRowLength = source->GetRowPitch();
+	copyRegion.bufferImageHeight = source->GetSliceHeight();
 	copyRegion.bufferOffset = 0;
 	copyRegion.imageOffset.x = 0;
 	copyRegion.imageOffset.y = 0;

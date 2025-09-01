@@ -1593,10 +1593,8 @@ void VulkanTexture::WriteDataInternal(const PixelData& source, u32 mipLevel, u32
 	else
 		transferLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
 
-	const ImageSubresourcePitch pitch = GetPitchForSubresource(mImage, face, mipLevel);
-
 	// Queue copy command
-	vulkanCommandBuffer->CopyBufferToImage(stagingBuffer, mImage, extent, range, transferLayout, pitch.RowPitch, pitch.SliceHeight);
+	vulkanCommandBuffer->CopyBufferToImage(stagingBuffer, mImage, extent, range, transferLayout);
 	vulkanCommandBuffer->AppendSyncMask(useMask);
 
 	stagingBuffer->Destroy();

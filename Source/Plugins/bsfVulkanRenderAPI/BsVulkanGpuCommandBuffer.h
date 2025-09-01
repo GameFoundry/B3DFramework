@@ -355,10 +355,8 @@ namespace b3d
 			 * @param	region				Region of the image to copy to.
 			 * @param	subresourceRange	Subresource(s) of the image to copy to.
 			 * @param	layout				Current layout of the image subresources in the provided range.
-			 * @param	rowPitch			Determines how many pixels to advance when moving to a new row in the source buffer.
-			 * @param	sliceHeight			Determines how many pixels to advance when moving to a new slice in the source buffer.
 			 */
-			void CopyBufferToImage(VulkanBuffer* source, VulkanImage* destination, const VkExtent3D& region, const VkImageSubresourceRange& subresourceRange, VkImageLayout layout, u32 rowPitch, u32 sliceHeight);
+			void CopyBufferToImage(VulkanBuffer* source, VulkanImage* destination, const VkExtent3D& region, const VkImageSubresourceRange& subresourceRange, VkImageLayout layout);
 
 			/**
 			 * Copies the contents of the image subresource into the destination buffer. Caller must ensure the provided
