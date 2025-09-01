@@ -5,19 +5,9 @@
 #include "Components/BsAnimation.h"
 #include "Private/RTTI/BsCBoneRTTI.h"
 
-using namespace std::placeholders;
-
 using namespace b3d;
 
-CBone::CBone()
-{
-	SetName("Bone");
-
-	mNotifyFlags = TCF_Parent;
-	SetFlag(ComponentFlag::AlwaysRun, true);
-}
-
-CBone::CBone(const HSceneObject& parent)
+Bone::Bone(const HSceneObject& parent)
 	: Component(parent)
 {
 	SetName("Bone");
@@ -25,7 +15,11 @@ CBone::CBone(const HSceneObject& parent)
 	mNotifyFlags = TCF_Parent;
 }
 
-void CBone::SetBoneName(const String& name)
+Bone::Bone()
+	: Bone(nullptr)
+{ }
+
+void Bone::SetBoneName(const String& name)
 {
 	if(mBoneName == name)
 		return;
@@ -33,31 +27,31 @@ void CBone::SetBoneName(const String& name)
 	mBoneName = name;
 
 	if(mParent != nullptr)
-		mParent->NotifyBoneNameChanged(B3DStaticGameObjectCast<CBone>(GetHandle()));
+		mParent->NotifyBoneNameChanged(B3DStaticGameObjectCast<Bone>(GetHandle()));
 }
 
-void CBone::OnDestroyed()
+void Bone::OnDestroyed()
 {
 	if(mParent != nullptr)
-		mParent->RemoveBone(B3DStaticGameObjectCast<CBone>(GetHandle()));
+		mParent->RemoveBone(B3DStaticGameObjectCast<Bone>(GetHandle()));
 
 	mParent = nullptr;
 }
 
-void CBone::OnDisabled()
+void Bone::OnDisabled()
 {
 	if(mParent != nullptr)
-		mParent->RemoveBone(B3DStaticGameObjectCast<CBone>(GetHandle()));
+		mParent->RemoveBone(B3DStaticGameObjectCast<Bone>(GetHandle()));
 
 	mParent = nullptr;
 }
 
-void CBone::OnEnabled()
+void Bone::OnEnabled()
 {
 	UpdateParentAnimation();
 }
 
-void CBone::OnTransformChanged(TransformChangedFlags flags)
+void Bone::OnTransformChanged(TransformChangedFlags flags)
 {
 	if(!GetEnabled())
 		return;
@@ -66,7 +60,7 @@ void CBone::OnTransformChanged(TransformChangedFlags flags)
 		UpdateParentAnimation();
 }
 
-void CBone::UpdateParentAnimation()
+void Bone::UpdateParentAnimation()
 {
 	HSceneObject currentSO = SO();
 	while(currentSO != nullptr)
@@ -75,9 +69,9 @@ void CBone::UpdateParentAnimation()
 		if(parent != nullptr)
 		{
 			if(parent->GetEnabled())
-				SetParentInternal(parent);
+				SetParentAnimation(parent);
 			else
-				SetParentInternal(HAnimation());
+				SetParentAnimation(HAnimation());
 
 			return;
 		}
@@ -85,10 +79,10 @@ void CBone::UpdateParentAnimation()
 		currentSO = currentSO->GetParent();
 	}
 
-	SetParentInternal(HAnimation());
+	SetParentAnimation(HAnimation());
 }
 
-void CBone::SetParentInternal(const HAnimation& animation, bool isInternal)
+void Bone::SetParentAnimation(const HAnimation& animation, bool isInternal)
 {
 	if(animation == mParent)
 		return;
@@ -96,21 +90,21 @@ void CBone::SetParentInternal(const HAnimation& animation, bool isInternal)
 	if(!isInternal)
 	{
 		if(mParent != nullptr)
-			mParent->RemoveBone(B3DStaticGameObjectCast<CBone>(GetHandle()));
+			mParent->RemoveBone(B3DStaticGameObjectCast<Bone>(GetHandle()));
 
 		if(animation != nullptr)
-			animation->AddBone(B3DStaticGameObjectCast<CBone>(GetHandle()));
+			animation->AddBone(B3DStaticGameObjectCast<Bone>(GetHandle()));
 	}
 
 	mParent = animation;
 }
 
-RTTIType* CBone::GetRttiStatic()
+RTTIType* Bone::GetRttiStatic()
 {
-	return CBoneRTTI::Instance();
+	return BoneRTTI::Instance();
 }
 
-RTTIType* CBone::GetRtti() const
+RTTIType* Bone::GetRtti() const
 {
-	return CBone::GetRttiStatic();
+	return Bone::GetRttiStatic();
 }

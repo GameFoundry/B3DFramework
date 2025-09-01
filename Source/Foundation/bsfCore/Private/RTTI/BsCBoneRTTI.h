@@ -14,7 +14,7 @@ namespace b3d
 	 *  @{
 	 */
 
-	class B3D_CORE_EXPORT CBoneRTTI : public TRTTIType<CBone, Component, CBoneRTTI>
+	class B3D_CORE_EXPORT BoneRTTI : public TRTTIType<Bone, Component, BoneRTTI>
 	{
 		B3D_RTTI_BEGIN_MEMBERS
 			B3D_RTTI_MEMBER(mBoneName, 0)
@@ -22,18 +22,18 @@ namespace b3d
 	public:
 		const String& GetRttiName() override
 		{
-			static String name = "CBone";
+			static String name = "Bone";
 			return name;
 		}
 
 		u32 GetRttiId() const override
 		{
-			return TID_CBone;
+			return TID_Bone;
 		}
 
 		SPtr<IReflectable> NewRttiObject() override
 		{
-			return SceneObject::CreateEmptyComponent<CBone>();
+			return SceneObject::CreateEmptyComponent<Bone>();
 		}
 	};
 

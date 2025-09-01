@@ -15,11 +15,11 @@ namespace b3d
 	 * Component that maps animation for specific bone also be applied to the SceneObject this component is attached to.
 	 * The component will attach to the first found parent Animation component.
 	 */
-	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Animation), ExportName(Bone)) CBone : public Component
+	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Animation)) Bone : public Component
 	{
 	public:
-		CBone(const HSceneObject& parent);
-		virtual ~CBone() = default;
+		Bone(const HSceneObject& parent);
+		virtual ~Bone() = default;
 
 		/** Determines the name of the bone the component is referencing. */
 		B3D_SCRIPT_EXPORT(ExportName(Name), Property(Setter))
@@ -27,7 +27,6 @@ namespace b3d
 
 		/** @copydoc SetBoneName */
 		B3D_SCRIPT_EXPORT(ExportName(Name), Property(Getter))
-
 		const String& GetBoneName() const { return mBoneName; }
 
 		/** @name Internal
@@ -37,11 +36,11 @@ namespace b3d
 		/**
 		 * Changes the parent animation of this component.
 		 *
-		 * @param[in]	animation	New animation parent, can be null.
-		 * @param[in]	isInternal	If true the bone will just be changed internally, but parent animation will not be
-		 *							notified.
+		 * @param	animation	New animation parent, can be null.
+		 * @param	isInternal	If true the bone will just be changed internally, but parent animation will not be
+		 *						notified.
 		 */
-		void SetParentInternal(const HAnimation& animation, bool isInternal = false);
+		void SetParentAnimation(const HAnimation& animation, bool isInternal = false);
 
 		/** @} */
 	private:
@@ -67,12 +66,12 @@ namespace b3d
 		/* 								RTTI		                     		*/
 		/************************************************************************/
 	public:
-		friend class CBoneRTTI;
+		friend class BoneRTTI;
 		static RTTIType* GetRttiStatic();
 		RTTIType* GetRtti() const;
 
 	protected:
-		CBone(); // Serialization only
+		Bone(); // Serialization only
 	};
 
 	/** @} */

@@ -362,7 +362,6 @@ namespace b3d
 	};
 
 	B3D_COMPONENT_FORWARD_DECLARE(Camera)
-	B3D_COMPONENT_FORWARD_DECLARE(Bone)
 	B3D_COMPONENT_FORWARD_DECLARE(AudioSource)
 	B3D_COMPONENT_FORWARD_DECLARE(AudioListener)
 	B3D_COMPONENT_FORWARD_DECLARE(ParticleSystem)
@@ -593,7 +592,7 @@ namespace b3d
 		TID_Animation = 1122,
 		TID_AnimationEvent = 1123,
 		TID_ImportedAnimationEvents = 1124,
-		TID_CBone = 1125,
+		TID_Bone = 1125,
 		TID_MaterialParamData = 1126,
 		TID_RenderSettings = 1127,
 		TID_MorphShape = 1128,
@@ -805,7 +804,7 @@ namespace b3d
 	typedef GameObjectHandle<Renderable> HRenderable;
 	typedef GameObjectHandle<Light> HLight;
 	typedef GameObjectHandle<Animation> HAnimation;
-	typedef GameObjectHandle<CBone> HBone;
+	typedef GameObjectHandle<Bone> HBone;
 	typedef GameObjectHandle<Rigidbody> HRigidbody;
 	typedef GameObjectHandle<Collider> HCollider;
 	typedef GameObjectHandle<BoxCollider> HBoxCollider;

@@ -5,15 +5,15 @@
 #include "BsScriptEnginePrerequisites.h"
 #include "Wrappers/BsScriptComponent.h"
 
-namespace b3d { class CBone; }
+namespace b3d { class Bone; }
 namespace b3d
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptBone : public TScriptGameObjectWrapper<CBone, ScriptBone>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptBone : public TScriptGameObjectWrapper<Bone, ScriptBone>
 	{
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "Bone")
 
-		ScriptBone(const GameObjectHandle<CBone>& nativeObject);
+		ScriptBone(const GameObjectHandle<Bone>& nativeObject);
 		~ScriptBone();
 
 		static void SetupScriptBindings();

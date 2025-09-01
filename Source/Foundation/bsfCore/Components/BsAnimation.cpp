@@ -1984,10 +1984,10 @@ Vector<HBone> Animation::FindChildBones()
 		HSceneObject currentSceneObject = todo.top();
 		todo.pop();
 
-		HBone bone = currentSceneObject->GetComponent<CBone>();
+		HBone bone = currentSceneObject->GetComponent<Bone>();
 		if(bone != nullptr)
 		{
-			bone->SetParentInternal(B3DStaticGameObjectCast<Animation>(GetHandle()), true);
+			bone->SetParentAnimation(B3DStaticGameObjectCast<Animation>(GetHandle()), true);
 			bones.push_back(bone);
 		}
 

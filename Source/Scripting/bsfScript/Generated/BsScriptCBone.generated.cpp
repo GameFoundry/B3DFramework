@@ -8,7 +8,7 @@
 
 namespace b3d
 {
-	ScriptBone::ScriptBone(const GameObjectHandle<CBone>& nativeObject)
+	ScriptBone::ScriptBone(const GameObjectHandle<Bone>& nativeObject)
 		:TScriptGameObjectWrapper(nativeObject)
 	{
 		RegisterEvents();
@@ -43,7 +43,7 @@ namespace b3d
 
 		String tmpname;
 		tmpname = MonoUtil::MonoToString(name);
-		static_cast<CBone*>(self->GetNativeObject())->SetBoneName(tmpname);
+		static_cast<Bone*>(self->GetNativeObject())->SetBoneName(tmpname);
 	}
 
 	MonoString* ScriptBone::InternalGetBoneName(ScriptBone* self)
@@ -52,7 +52,7 @@ namespace b3d
 		if(!self->IsNativeObjectValid())
 			return {};
 
-		tmp__output = static_cast<CBone*>(self->GetNativeObject())->GetBoneName();
+		tmp__output = static_cast<Bone*>(self->GetNativeObject())->GetBoneName();
 
 		MonoString* __output;
 		__output = MonoUtil::StringToMono(tmp__output);
