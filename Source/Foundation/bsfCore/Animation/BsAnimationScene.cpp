@@ -8,7 +8,7 @@
 #include "Scene/BsSceneInstance.h"
 #include "Renderer/BsCamera.h"
 #include "Animation/BsMorphShapes.h"
-#include "Components/BsCAnimation.h"
+#include "Components/BsAnimation.h"
 #include "Mesh/BsMeshData.h"
 #include "Mesh/BsMeshUtility.h"
 

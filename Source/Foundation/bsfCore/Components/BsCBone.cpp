@@ -2,7 +2,7 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "Components/BsCBone.h"
 #include "Scene/BsSceneObject.h"
-#include "Components/BsCAnimation.h"
+#include "Components/BsAnimation.h"
 #include "Private/RTTI/BsCBoneRTTI.h"
 
 using namespace std::placeholders;

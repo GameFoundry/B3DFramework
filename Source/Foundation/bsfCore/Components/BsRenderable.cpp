@@ -7,7 +7,7 @@
 #include "Scene/BsSceneObject.h"
 #include "Mesh/BsMesh.h"
 #include "Material/BsMaterial.h"
-#include "Components/BsCAnimation.h"
+#include "Components/BsAnimation.h"
 #include "CoreObject/BsCoreObjectSync.h"
 #include "Math/BsBounds.h"
 #include "RenderAPI/BsGpuBuffer.h"
