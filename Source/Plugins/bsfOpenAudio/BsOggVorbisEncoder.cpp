@@ -230,7 +230,7 @@ SPtr<MemoryDataStream> OggVorbisEncoder::PCMToOggVorbis(u8* samples, const Audio
 	OggVorbisEncoder writer;
 	writer.Open(writeCallback, info.SampleRate, info.BitDepth, info.NumChannels);
 
-	writer.Write(samples, info.NumSamples);
+	writer.Write(samples, info.SampleCount);
 	writer.Close();
 
 	auto output = B3DMakeShared<MemoryDataStream>(totalEncodedSize);

@@ -344,9 +344,9 @@ namespace b3d
 	class D6Joint;
 	class CharacterController;
 	class AudioListener;
-	class AudioSource;
 	class Animation;
 	class Bone;
+	class CAudioSource;
 
 	// Components
 	template <class T>
@@ -362,7 +362,6 @@ namespace b3d
 	};
 
 	B3D_COMPONENT_FORWARD_DECLARE(Camera)
-	B3D_COMPONENT_FORWARD_DECLARE(AudioSource)
 	B3D_COMPONENT_FORWARD_DECLARE(AudioListener)
 	B3D_COMPONENT_FORWARD_DECLARE(ParticleSystem)
 

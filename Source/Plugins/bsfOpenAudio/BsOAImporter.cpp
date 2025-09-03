@@ -67,10 +67,10 @@ SPtr<Resource> OAImporter::Import(const Path& filePath, SPtr<const ImportOptions
 			return nullptr;
 
 		bytesPerSample = info.BitDepth / 8;
-		bufferSize = info.NumSamples * bytesPerSample;
+		bufferSize = info.SampleCount * bytesPerSample;
 
 		sampleStream = B3DMakeShared<MemoryDataStream>(bufferSize);
-		reader->Read(sampleStream->Data(), info.NumSamples);
+		reader->Read(sampleStream->Data(), info.SampleCount);
 	}
 
 	SPtr<const AudioClipImportOptions> clipIO = std::static_pointer_cast<const AudioClipImportOptions>(importOptions);
@@ -78,14 +78,14 @@ SPtr<Resource> OAImporter::Import(const Path& filePath, SPtr<const ImportOptions
 	// If 3D, convert to mono
 	if(clipIO->Is3D && info.NumChannels > 1)
 	{
-		u32 numSamplesPerChannel = info.NumSamples / info.NumChannels;
+		u32 numSamplesPerChannel = info.SampleCount / info.NumChannels;
 
 		u32 monoBufferSize = numSamplesPerChannel * bytesPerSample;
 		auto monoStream = B3DMakeShared<MemoryDataStream>(monoBufferSize);
 
 		AudioUtility::ConvertToMono(sampleStream->Data(), monoStream->Data(), info.BitDepth, numSamplesPerChannel, info.NumChannels);
 
-		info.NumSamples = numSamplesPerChannel;
+		info.SampleCount = numSamplesPerChannel;
 		info.NumChannels = 1;
 
 		sampleStream = monoStream;
@@ -95,10 +95,10 @@ SPtr<Resource> OAImporter::Import(const Path& filePath, SPtr<const ImportOptions
 	// Convert bit depth if needed
 	if(clipIO->BitDepth != info.BitDepth)
 	{
-		u32 outBufferSize = info.NumSamples * (clipIO->BitDepth / 8);
+		u32 outBufferSize = info.SampleCount * (clipIO->BitDepth / 8);
 		auto outStream = B3DMakeShared<MemoryDataStream>(outBufferSize);
 
-		AudioUtility::ConvertBitDepth(sampleStream->Data(), info.BitDepth, outStream->Data(), clipIO->BitDepth, info.NumSamples);
+		AudioUtility::ConvertBitDepth(sampleStream->Data(), info.BitDepth, outStream->Data(), clipIO->BitDepth, info.SampleCount);
 
 		info.BitDepth = clipIO->BitDepth;
 
@@ -123,7 +123,7 @@ SPtr<Resource> OAImporter::Import(const Path& filePath, SPtr<const ImportOptions
 	clipDesc.ReadMode = clipIO->ReadMode;
 	clipDesc.Is3D = clipIO->Is3D;
 
-	SPtr<AudioClip> clip = AudioClip::CreatePtrInternal(sampleStream, bufferSize, info.NumSamples, clipDesc);
+	SPtr<AudioClip> clip = AudioClip::CreatePtrInternal(sampleStream, bufferSize, info.SampleCount, clipDesc);
 
 	const String fileName = filePath.GetFilename(false);
 	clip->SetName(fileName);

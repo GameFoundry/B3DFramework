@@ -1,7 +1,8 @@
 //************************************ B3D Framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "Audio/BsAudio.h"
-#include "Audio/BsAudioSource.h"
+#include "Components/BsCAudioSource.h"
+#include "Scene/BsTransform.h"
 
 using namespace b3d;
 
@@ -10,7 +11,7 @@ void Audio::Play(const HAudioClip& clip, const Vector3& position, float volume)
 	Transform transform;
 	transform.SetPosition(position);
 
-	SPtr<AudioSource> source = CreateSource();
+	SPtr<IAudioSourceImplementation> source = CreateSource();
 	source->SetClip(clip);
 	source->SetTransform(transform);
 	source->SetVolume(volume);

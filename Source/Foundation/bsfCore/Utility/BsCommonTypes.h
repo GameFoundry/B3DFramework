@@ -755,7 +755,7 @@ namespace b3d
 	/** Meta-data describing a chunk of audio. */
 	struct AudioDataInfo
 	{
-		u32 NumSamples; /**< Total number of audio samples in the audio data (includes all channels). */
+		u32 SampleCount; /**< Total number of audio samples in the audio data (includes all channels). */
 		u32 SampleRate; /**< Number of audio samples per second, per channel. */
 		u32 NumChannels; /**< Number of channels. Each channel has its own set of samples. */
 		u32 BitDepth; /**< Number of bits per sample. */

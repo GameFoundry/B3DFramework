@@ -136,7 +136,7 @@ void OAAudio::SetActiveDevice(const AudioDevice& device)
 	RebuildContexts();
 }
 
-bool OAAudio::IsExtensionSupportedInternal(const String& extension) const
+bool OAAudio::IsExtensionSupported(const String& extension) const
 {
 	if(mDevice == nullptr)
 		return false;
@@ -147,14 +147,14 @@ bool OAAudio::IsExtensionSupportedInternal(const String& extension) const
 		return alIsExtensionPresent(extension.c_str()) != AL_FALSE;
 }
 
-void OAAudio::RegisterListenerInternal(OAAudioListener* listener)
+void OAAudio::RegisterListener(OAAudioListener* listener)
 {
 	mListeners.push_back(listener);
 
 	RebuildContexts();
 }
 
-void OAAudio::UnregisterListenerInternal(OAAudioListener* listener)
+void OAAudio::UnregisterListener(OAAudioListener* listener)
 {
 	auto iterFind = std::find(mListeners.begin(), mListeners.end(), listener);
 	if(iterFind != mListeners.end())
@@ -163,12 +163,12 @@ void OAAudio::UnregisterListenerInternal(OAAudioListener* listener)
 	RebuildContexts();
 }
 
-void OAAudio::RegisterSourceInternal(OAAudioSource* source)
+void OAAudio::RegisterSource(OAAudioSource* source)
 {
 	mSources.insert(source);
 }
 
-void OAAudio::UnregisterSourceInternal(OAAudioSource* source)
+void OAAudio::UnregisterSource(OAAudioSource* source)
 {
 	mSources.erase(source);
 }
@@ -189,7 +189,7 @@ void OAAudio::StopStreaming(OAAudioSource* source)
 	mDestroyedSources.insert(source);
 }
 
-ALCcontext* OAAudio::GetContextInternal(const OAAudioListener* listener) const
+ALCcontext* OAAudio::GetContext(const OAAudioListener* listener) const
 {
 	if(mListeners.size() > 0)
 	{
@@ -219,7 +219,7 @@ SPtr<AudioListener> OAAudio::CreateListener()
 	return B3DMakeShared<OAAudioListener>();
 }
 
-SPtr<AudioSource> OAAudio::CreateSource()
+SPtr<IAudioSourceImplementation> OAAudio::CreateSource()
 {
 	return B3DMakeShared<OAAudioSource>();
 }
@@ -234,10 +234,10 @@ void OAAudio::RebuildContexts()
 	if(mDevice == nullptr)
 		return;
 
-	u32 numListeners = (u32)mListeners.size();
-	u32 numContexts = numListeners > 1 ? numListeners : 1;
+	const u32 listenerCount = (u32)mListeners.size();
+	const u32 contextCount = listenerCount > 1 ? listenerCount : 1;
 
-	for(u32 i = 0; i < numContexts; i++)
+	for(u32 i = 0; i < contextCount; i++)
 	{
 		ALCcontext* context = alcCreateContext(mDevice, nullptr);
 		mContexts.push_back(context);
@@ -303,7 +303,7 @@ void OAAudio::UpdateStreaming()
 	}
 }
 
-ALenum OAAudio::GetOpenALBufferFormatInternal(u32 numChannels, u32 bitDepth)
+ALenum OAAudio::GetOpenALBufferFormat(u32 numChannels, u32 bitDepth)
 {
 	switch(bitDepth)
 	{
@@ -358,20 +358,20 @@ ALenum OAAudio::GetOpenALBufferFormatInternal(u32 numChannels, u32 bitDepth)
 	}
 }
 
-void OAAudio::WriteToOpenALBufferInternal(u32 bufferId, u8* samples, const AudioDataInfo& info)
+void OAAudio::WriteToOpenALBuffer(u32 bufferId, u8* samples, const AudioDataInfo& info)
 {
 	if(info.NumChannels <= 2) // Mono or stereo
 	{
 		if(info.BitDepth > 16)
 		{
-			if(IsExtensionSupportedInternal("AL_EXT_float32"))
+			if(IsExtensionSupported("AL_EXT_float32"))
 			{
-				u32 bufferSize = info.NumSamples * sizeof(float);
+				u32 bufferSize = info.SampleCount * sizeof(float);
 				float* sampleBufferFloat = (float*)B3DStackAllocate(bufferSize);
 
-				AudioUtility::ConvertToFloat(samples, info.BitDepth, sampleBufferFloat, info.NumSamples);
+				AudioUtility::ConvertToFloat(samples, info.BitDepth, sampleBufferFloat, info.SampleCount);
 
-				ALenum format = GetOpenALBufferFormatInternal(info.NumChannels, info.BitDepth);
+				ALenum format = GetOpenALBufferFormat(info.NumChannels, info.BitDepth);
 				alBufferData(bufferId, format, sampleBufferFloat, bufferSize, info.SampleRate);
 
 				B3DStackFree(sampleBufferFloat);
@@ -380,12 +380,12 @@ void OAAudio::WriteToOpenALBufferInternal(u32 bufferId, u8* samples, const Audio
 			{
 				B3D_LOG(Warning, RenderBackend, "OpenAL doesn't support bit depth larger than 16. Your audio data will be truncated.");
 
-				u32 bufferSize = info.NumSamples * 2;
+				u32 bufferSize = info.SampleCount * 2;
 				u8* sampleBuffer16 = (u8*)B3DStackAllocate(bufferSize);
 
-				AudioUtility::ConvertBitDepth(samples, info.BitDepth, sampleBuffer16, 16, info.NumSamples);
+				AudioUtility::ConvertBitDepth(samples, info.BitDepth, sampleBuffer16, 16, info.SampleCount);
 
-				ALenum format = GetOpenALBufferFormatInternal(info.NumChannels, 16);
+				ALenum format = GetOpenALBufferFormat(info.NumChannels, 16);
 				alBufferData(bufferId, format, sampleBuffer16, bufferSize, info.SampleRate);
 
 				B3DStackFree(sampleBuffer16);
@@ -394,21 +394,21 @@ void OAAudio::WriteToOpenALBufferInternal(u32 bufferId, u8* samples, const Audio
 		else if(info.BitDepth == 8)
 		{
 			// OpenAL expects unsigned 8-bit data, but engine stores it as signed, so convert
-			u32 bufferSize = info.NumSamples * (info.BitDepth / 8);
+			u32 bufferSize = info.SampleCount * (info.BitDepth / 8);
 			u8* sampleBuffer = (u8*)B3DStackAllocate(bufferSize);
 
-			for(u32 i = 0; i < info.NumSamples; i++)
+			for(u32 i = 0; i < info.SampleCount; i++)
 				sampleBuffer[i] = ((i8*)samples)[i] + 128;
 
-			ALenum format = GetOpenALBufferFormatInternal(info.NumChannels, 16);
+			ALenum format = GetOpenALBufferFormat(info.NumChannels, 16);
 			alBufferData(bufferId, format, sampleBuffer, bufferSize, info.SampleRate);
 
 			B3DStackFree(sampleBuffer);
 		}
 		else
 		{
-			ALenum format = GetOpenALBufferFormatInternal(info.NumChannels, info.BitDepth);
-			alBufferData(bufferId, format, samples, info.NumSamples * (info.BitDepth / 8), info.SampleRate);
+			ALenum format = GetOpenALBufferFormat(info.NumChannels, info.BitDepth);
+			alBufferData(bufferId, format, samples, info.SampleCount * (info.BitDepth / 8), info.SampleRate);
 		}
 	}
 	else // Multichannel
@@ -417,12 +417,12 @@ void OAAudio::WriteToOpenALBufferInternal(u32 bufferId, u8* samples, const Audio
 
 		if(info.BitDepth == 24) // 24-bit not supported, convert to 32-bit
 		{
-			u32 bufferSize = info.NumSamples * sizeof(i32);
+			u32 bufferSize = info.SampleCount * sizeof(i32);
 			u8* sampleBuffer32 = (u8*)B3DStackAllocate(bufferSize);
 
-			AudioUtility::ConvertBitDepth(samples, info.BitDepth, sampleBuffer32, 32, info.NumSamples);
+			AudioUtility::ConvertBitDepth(samples, info.BitDepth, sampleBuffer32, 32, info.SampleCount);
 
-			ALenum format = GetOpenALBufferFormatInternal(info.NumChannels, 32);
+			ALenum format = GetOpenALBufferFormat(info.NumChannels, 32);
 			alBufferData(bufferId, format, sampleBuffer32, bufferSize, info.SampleRate);
 
 			B3DStackFree(sampleBuffer32);
@@ -430,21 +430,21 @@ void OAAudio::WriteToOpenALBufferInternal(u32 bufferId, u8* samples, const Audio
 		else if(info.BitDepth == 8)
 		{
 			// OpenAL expects unsigned 8-bit data, but engine stores it as signed, so convert
-			u32 bufferSize = info.NumSamples * (info.BitDepth / 8);
+			u32 bufferSize = info.SampleCount * (info.BitDepth / 8);
 			u8* sampleBuffer = (u8*)B3DStackAllocate(bufferSize);
 
-			for(u32 i = 0; i < info.NumSamples; i++)
+			for(u32 i = 0; i < info.SampleCount; i++)
 				sampleBuffer[i] = ((i8*)samples)[i] + 128;
 
-			ALenum format = GetOpenALBufferFormatInternal(info.NumChannels, 16);
+			ALenum format = GetOpenALBufferFormat(info.NumChannels, 16);
 			alBufferData(bufferId, format, sampleBuffer, bufferSize, info.SampleRate);
 
 			B3DStackFree(sampleBuffer);
 		}
 		else
 		{
-			ALenum format = GetOpenALBufferFormatInternal(info.NumChannels, info.BitDepth);
-			alBufferData(bufferId, format, samples, info.NumSamples * (info.BitDepth / 8), info.SampleRate);
+			ALenum format = GetOpenALBufferFormat(info.NumChannels, info.BitDepth);
+			alBufferData(bufferId, format, samples, info.SampleCount * (info.BitDepth / 8), info.SampleRate);
 		}
 	}
 }

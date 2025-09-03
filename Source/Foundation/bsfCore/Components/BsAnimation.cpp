@@ -3,7 +3,7 @@
 #include "Components/BsAnimation.h"
 #include "Scene/BsSceneObject.h"
 #include "Components/BsRenderable.h"
-#include "Components/BsCBone.h"
+#include "Components/BsBone.h"
 #include "Mesh/BsMesh.h"
 #include "Animation/BsMorphShapes.h"
 #include "Animation/BsAnimationClip.h"

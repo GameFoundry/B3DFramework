@@ -9,7 +9,9 @@
 
 namespace b3d
 {
+	class IAudioSourceImplementation;
 	class SignalEvent;
+
 	/** @addtogroup OpenAudio
 	 *  @{
 	 */
@@ -36,37 +38,37 @@ namespace b3d
 		 */
 
 		/** Checks is a specific OpenAL extension supported. */
-		bool IsExtensionSupportedInternal(const String& extension) const;
+		bool IsExtensionSupported(const String& extension) const;
 
 		/** Registers a new AudioListener. Should be called on listener creation. */
-		void RegisterListenerInternal(OAAudioListener* listener);
+		void RegisterListener(OAAudioListener* listener);
 
 		/** Unregisters an existing AudioListener. Should be called before listener destruction. */
-		void UnregisterListenerInternal(OAAudioListener* listener);
+		void UnregisterListener(OAAudioListener* listener);
 
 		/** Registers a new AudioSource. Should be called on source creation. */
-		void RegisterSourceInternal(OAAudioSource* source);
+		void RegisterSource(OAAudioSource* source);
 
 		/** Unregisters an existing AudioSource. Should be called before source destruction. */
-		void UnregisterSourceInternal(OAAudioSource* source);
+		void UnregisterSource(OAAudioSource* source);
 
 		/** Returns a list of all OpenAL contexts. Each listener has its own context. */
-		const Vector<ALCcontext*>& GetContextsInternal() const { return mContexts; }
+		const Vector<ALCcontext*>& GetContexts() const { return mContexts; }
 
 		/** Returns an OpenAL context assigned to the provided listener. */
-		ALCcontext* GetContextInternal(const OAAudioListener* listener) const;
+		ALCcontext* GetContext(const OAAudioListener* listener) const;
 
 		/**
 		 * Returns optimal format for the provided number of channels and bit depth. It is assumed the user has checked if
 		 * extensions providing these formats are actually available.
 		 */
-		i32 GetOpenALBufferFormatInternal(u32 numChannels, u32 bitDepth);
+		i32 GetOpenALBufferFormat(u32 numChannels, u32 bitDepth);
 
 		/**
 		 * Writes provided samples into the OpenAL buffer with the provided ID. If the provided format is not supported the
 		 * samples will first be converted into a valid format.
 		 */
-		void WriteToOpenALBufferInternal(u32 bufferId, u8* samples, const AudioDataInfo& info);
+		void WriteToOpenALBuffer(u32 bufferId, u8* samples, const AudioDataInfo& info);
 
 		/** @} */
 
@@ -89,7 +91,7 @@ namespace b3d
 
 		SPtr<AudioClip> CreateClip(const SPtr<DataStream>& samples, u32 streamSize, u32 numSamples, const AudioClipCreateInformation& desc) override;
 		SPtr<AudioListener> CreateListener() override;
-		SPtr<AudioSource> CreateSource() override;
+		SPtr<IAudioSourceImplementation> CreateSource() override;
 
 		/**
 		 * Delete all existing contexts and rebuild them according to the listener list. All audio sources will be rebuilt

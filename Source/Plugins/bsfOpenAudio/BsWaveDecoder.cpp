@@ -152,7 +152,7 @@ bool WaveDecoder::ParseHeader(AudioDataInfo& info)
 		// DATA chunk
 		else if(subChunkId[0] == 'd' && subChunkId[1] == 'a' && subChunkId[2] == 't' && subChunkId[3] == 'a')
 		{
-			info.NumSamples = subChunkSize / mBytesPerSample;
+			info.SampleCount = subChunkSize / mBytesPerSample;
 			mDataOffset = (u32)mStream->Tell();
 
 			foundData = true;

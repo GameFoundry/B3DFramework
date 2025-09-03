@@ -4,154 +4,153 @@
 #include "BsOAAudio.h"
 #include "BsOAAudioClip.h"
 #include "AL/al.h"
+#include "Scene/BsTransform.h"
 
 using namespace b3d;
 
 OAAudioSource::OAAudioSource()
 	: mStreamBuffers(), mBusyBuffers()
 {
-	GetOAAudio().RegisterSourceInternal(this);
+	GetOAAudio().RegisterSource(this);
 	Rebuild();
 }
 
 OAAudioSource::~OAAudioSource()
 {
 	Clear();
-	GetOAAudio().UnregisterSourceInternal(this);
+	GetOAAudio().UnregisterSource(this);
 }
 
 void OAAudioSource::SetClip(const HAudioClip& clip)
 {
+	mAudioClip = B3DStaticResourceCast<OAAudioClip>(clip);
+
 	Stop();
 
 	Lock lock(mMutex);
-	AudioSource::SetClip(clip);
-
 	ApplyClip();
 }
 
 void OAAudioSource::SetTransform(const Transform& transform)
 {
-	SceneActor::SetTransform(transform);
+	mPosition = transform.GetPosition();
 
-	auto& contexts = GetOAAudio().GetContextsInternal();
-	u32 numContexts = (u32)contexts.size();
-	for(u32 i = 0; i < numContexts; i++)
+	auto& contexts = GetOAAudio().GetContexts();
+	const u32 contextCount = (u32)contexts.size();
+	for(u32 contextIndex = 0; contextIndex < contextCount; contextIndex++)
 	{
 		if(contexts.size() > 1)
-			alcMakeContextCurrent(contexts[i]);
+			alcMakeContextCurrent(contexts[contextIndex]);
 
 		if(Is3D())
 		{
 			Vector3 position = transform.GetPosition();
-			alSource3f(mSourceIDs[i], AL_POSITION, position.X, position.Y, position.Z);
+			alSource3f(mSourceIDs[contextIndex], AL_POSITION, position.X, position.Y, position.Z);
 		}
 		else
-			alSource3f(mSourceIDs[i], AL_POSITION, 0.0f, 0.0f, 0.0f);
+			alSource3f(mSourceIDs[contextIndex], AL_POSITION, 0.0f, 0.0f, 0.0f);
 	}
 }
 
 void OAAudioSource::SetVelocity(const Vector3& velocity)
 {
-	AudioSource::SetVelocity(velocity);
+	mVelocity = velocity;
 
-	auto& contexts = GetOAAudio().GetContextsInternal();
-	u32 numContexts = (u32)contexts.size();
-	for(u32 i = 0; i < numContexts; i++)
+	auto& contexts = GetOAAudio().GetContexts();
+	const u32 contextCount = (u32)contexts.size();
+	for(u32 contextIndex = 0; contextIndex < contextCount; contextIndex++)
 	{
 		if(contexts.size() > 1)
-			alcMakeContextCurrent(contexts[i]);
+			alcMakeContextCurrent(contexts[contextIndex]);
 
 		if(Is3D())
-			alSource3f(mSourceIDs[i], AL_VELOCITY, velocity.X, velocity.Y, velocity.Z);
+			alSource3f(mSourceIDs[contextIndex], AL_VELOCITY, velocity.X, velocity.Y, velocity.Z);
 		else
-			alSource3f(mSourceIDs[i], AL_VELOCITY, 0.0f, 0.0f, 0.0f);
+			alSource3f(mSourceIDs[contextIndex], AL_VELOCITY, 0.0f, 0.0f, 0.0f);
 	}
 }
 
 void OAAudioSource::SetVolume(float volume)
 {
-	AudioSource::SetVolume(volume);
+	mVolume = volume;
 
-	auto& contexts = GetOAAudio().GetContextsInternal();
-	u32 numContexts = (u32)contexts.size();
-	for(u32 i = 0; i < numContexts; i++)
+	auto& contexts = GetOAAudio().GetContexts();
+	const u32 contextCount = (u32)contexts.size();
+	for(u32 contextIndex = 0; contextIndex < contextCount; contextIndex++)
 	{
 		if(contexts.size() > 1)
-			alcMakeContextCurrent(contexts[i]);
+			alcMakeContextCurrent(contexts[contextIndex]);
 
-		alSourcef(mSourceIDs[i], AL_GAIN, mVolume);
+		alSourcef(mSourceIDs[contextIndex], AL_GAIN, volume);
 	}
 }
 
 void OAAudioSource::SetPitch(float pitch)
 {
-	AudioSource::SetPitch(pitch);
+	mPitch = pitch;
 
-	auto& contexts = GetOAAudio().GetContextsInternal();
-	u32 numContexts = (u32)contexts.size();
-	for(u32 i = 0; i < numContexts; i++)
+	auto& contexts = GetOAAudio().GetContexts();
+	const u32 contextCount = (u32)contexts.size();
+	for(u32 contextIndex = 0; contextIndex < contextCount; contextIndex++)
 	{
 		if(contexts.size() > 1)
-			alcMakeContextCurrent(contexts[i]);
+			alcMakeContextCurrent(contexts[contextIndex]);
 
-		alSourcef(mSourceIDs[i], AL_PITCH, pitch);
+		alSourcef(mSourceIDs[contextIndex], AL_PITCH, pitch);
 	}
 }
 
 void OAAudioSource::SetIsLooping(bool loop)
 {
-	AudioSource::SetIsLooping(loop);
+	mLoop = loop;
 
 	// When streaming we handle looping manually
 	if(RequiresStreaming())
 		loop = false;
 
-	auto& contexts = GetOAAudio().GetContextsInternal();
-	u32 numContexts = (u32)contexts.size();
-	for(u32 i = 0; i < numContexts; i++)
+	auto& contexts = GetOAAudio().GetContexts();
+	const u32 contextCount = (u32)contexts.size();
+	for(u32 contextIndex = 0; contextIndex < contextCount; contextIndex++)
 	{
 		if(contexts.size() > 1)
-			alcMakeContextCurrent(contexts[i]);
+			alcMakeContextCurrent(contexts[contextIndex]);
 
-		alSourcei(mSourceIDs[i], AL_LOOPING, loop);
+		alSourcei(mSourceIDs[contextIndex], AL_LOOPING, loop);
 	}
 }
 
 void OAAudioSource::SetPriority(i32 priority)
 {
-	AudioSource::SetPriority(priority);
-
 	// Do nothing, OpenAL doesn't support priorities (perhaps emulate the behaviour by manually disabling sources?)
 }
 
 void OAAudioSource::SetMinDistance(float distance)
 {
-	AudioSource::SetMinDistance(distance);
+	mMinDistance = distance;
 
-	auto& contexts = GetOAAudio().GetContextsInternal();
-	u32 numContexts = (u32)contexts.size();
-	for(u32 i = 0; i < numContexts; i++)
+	auto& contexts = GetOAAudio().GetContexts();
+	const u32 contextCount = (u32)contexts.size();
+	for(u32 contextIndex = 0; contextIndex < contextCount; contextIndex++)
 	{
 		if(contexts.size() > 1)
-			alcMakeContextCurrent(contexts[i]);
+			alcMakeContextCurrent(contexts[contextIndex]);
 
-		alSourcef(mSourceIDs[i], AL_REFERENCE_DISTANCE, distance);
+		alSourcef(mSourceIDs[contextIndex], AL_REFERENCE_DISTANCE, distance);
 	}
 }
 
 void OAAudioSource::SetAttenuation(float attenuation)
 {
-	AudioSource::SetAttenuation(attenuation);
+	mAttenuation = attenuation;
 
-	auto& contexts = GetOAAudio().GetContextsInternal();
-	u32 numContexts = (u32)contexts.size();
-	for(u32 i = 0; i < numContexts; i++)
+	auto& contexts = GetOAAudio().GetContexts();
+	const u32 contextCount = (u32)contexts.size();
+	for(u32 contextIndex = 0; contextIndex < contextCount; contextIndex++)
 	{
 		if(contexts.size() > 1)
-			alcMakeContextCurrent(contexts[i]);
+			alcMakeContextCurrent(contexts[contextIndex]);
 
-		alSourcef(mSourceIDs[i], AL_ROLLOFF_FACTOR, attenuation);
+		alSourcef(mSourceIDs[contextIndex], AL_ROLLOFF_FACTOR, attenuation);
 	}
 }
 
@@ -171,14 +170,14 @@ void OAAudioSource::Play()
 		}
 	}
 
-	auto& contexts = GetOAAudio().GetContextsInternal();
-	u32 numContexts = (u32)contexts.size();
-	for(u32 i = 0; i < numContexts; i++)
+	auto& contexts = GetOAAudio().GetContexts();
+	const u32 contextCount = (u32)contexts.size();
+	for(u32 contextIndex = 0; contextIndex < contextCount; contextIndex++)
 	{
 		if(contexts.size() > 1)
-			alcMakeContextCurrent(contexts[i]);
+			alcMakeContextCurrent(contexts[contextIndex]);
 
-		alSourcePlay(mSourceIDs[i]);
+		alSourcePlay(mSourceIDs[contextIndex]);
 
 		// Non-3D clips need to play only on a single source
 		// Note: I'm still creating sourcs objects (and possibly queuing streaming buffers) for these non-playing
@@ -191,28 +190,28 @@ void OAAudioSource::Play()
 
 void OAAudioSource::Pause()
 {
-	auto& contexts = GetOAAudio().GetContextsInternal();
-	u32 numContexts = (u32)contexts.size();
-	for(u32 i = 0; i < numContexts; i++)
+	auto& contexts = GetOAAudio().GetContexts();
+	const u32 contextCount = (u32)contexts.size();
+	for(u32 contextIndex = 0; contextIndex < contextCount; contextIndex++)
 	{
 		if(contexts.size() > 1)
-			alcMakeContextCurrent(contexts[i]);
+			alcMakeContextCurrent(contexts[contextIndex]);
 
-		alSourcePause(mSourceIDs[i]);
+		alSourcePause(mSourceIDs[contextIndex]);
 	}
 }
 
 void OAAudioSource::Stop()
 {
-	auto& contexts = GetOAAudio().GetContextsInternal();
-	u32 numContexts = (u32)contexts.size();
-	for(u32 i = 0; i < numContexts; i++)
+	auto& contexts = GetOAAudio().GetContexts();
+	const u32 contextCount = (u32)contexts.size();
+	for(u32 contextIndex = 0; contextIndex < contextCount; contextIndex++)
 	{
 		if(contexts.size() > 1)
-			alcMakeContextCurrent(contexts[i]);
+			alcMakeContextCurrent(contexts[contextIndex]);
 
-		alSourceStop(mSourceIDs[i]);
-		alSourcef(mSourceIDs[i], AL_SEC_OFFSET, 0.0f);
+		alSourceStop(mSourceIDs[contextIndex]);
+		alSourcef(mSourceIDs[contextIndex], AL_SEC_OFFSET, 0.0f);
 	}
 
 	{
@@ -237,14 +236,14 @@ void OAAudioSource::SetGlobalPause(bool pause)
 	{
 		if(pause)
 		{
-			auto& contexts = GetOAAudio().GetContextsInternal();
-			u32 numContexts = (u32)contexts.size();
-			for(u32 i = 0; i < numContexts; i++)
+			auto& contexts = GetOAAudio().GetContexts();
+			const u32 contextCount = (u32)contexts.size();
+			for(u32 contextIndex = 0; contextIndex < contextCount; contextIndex++)
 			{
 				if(contexts.size() > 1)
-					alcMakeContextCurrent(contexts[i]);
+					alcMakeContextCurrent(contexts[contextIndex]);
 
-				alSourcePause(mSourceIDs[i]);
+				alSourcePause(mSourceIDs[contextIndex]);
 			}
 		}
 		else
@@ -281,14 +280,14 @@ void OAAudioSource::SetTime(float time)
 		}
 	}
 
-	auto& contexts = GetOAAudio().GetContextsInternal();
-	u32 numContexts = (u32)contexts.size();
-	for(u32 i = 0; i < numContexts; i++)
+	auto& contexts = GetOAAudio().GetContexts();
+	const u32 contextCount = (u32)contexts.size();
+	for(u32 contextIndex = 0; contextIndex < contextCount; contextIndex++)
 	{
 		if(contexts.size() > 1)
-			alcMakeContextCurrent(contexts[i]);
+			alcMakeContextCurrent(contexts[contextIndex]);
 
-		alSourcef(mSourceIDs[i], AL_SEC_OFFSET, clipTime);
+		alSourcef(mSourceIDs[contextIndex], AL_SEC_OFFSET, clipTime);
 	}
 
 	if(state != AudioSourceState::Stopped)
@@ -302,7 +301,7 @@ float OAAudioSource::GetTime() const
 {
 	Lock lock(mMutex);
 
-	auto& contexts = GetOAAudio().GetContextsInternal();
+	auto& contexts = GetOAAudio().GetContexts();
 
 	if(contexts.size() > 1)
 		alcMakeContextCurrent(contexts[0]);
@@ -350,17 +349,17 @@ void OAAudioSource::Clear()
 	mSavedTime = GetTime();
 	Stop();
 
-	auto& contexts = GetOAAudio().GetContextsInternal();
-	u32 numContexts = (u32)contexts.size();
+	auto& contexts = GetOAAudio().GetContexts();
+	const u32 contextCount = (u32)contexts.size();
 
 	Lock lock(mMutex);
-	for(u32 i = 0; i < numContexts; i++)
+	for(u32 contextIndex = 0; contextIndex < contextCount; contextIndex++)
 	{
 		if(contexts.size() > 1)
-			alcMakeContextCurrent(contexts[i]);
+			alcMakeContextCurrent(contexts[contextIndex]);
 
-		alSourcei(mSourceIDs[i], AL_BUFFER, 0);
-		alDeleteSources(1, &mSourceIDs[i]);
+		alSourcei(mSourceIDs[contextIndex], AL_BUFFER, 0);
+		alDeleteSources(1, &mSourceIDs[contextIndex]);
 	}
 
 	mSourceIDs.clear();
@@ -368,13 +367,13 @@ void OAAudioSource::Clear()
 
 void OAAudioSource::Rebuild()
 {
-	auto& contexts = GetOAAudio().GetContextsInternal();
-	u32 numContexts = (u32)contexts.size();
+	auto& contexts = GetOAAudio().GetContexts();
+	u32 contextCount = (u32)contexts.size();
 
 	{
 		Lock lock(mMutex);
 
-		for(u32 i = 0; i < numContexts; i++)
+		for(u32 i = 0; i < contextCount; i++)
 		{
 			if(contexts.size() > 1)
 				alcMakeContextCurrent(contexts[i]);
@@ -386,33 +385,31 @@ void OAAudioSource::Rebuild()
 		}
 	}
 
-	for(u32 i = 0; i < numContexts; i++)
+	for(u32 contextIndex = 0; contextIndex < contextCount; contextIndex++)
 	{
 		if(contexts.size() > 1)
-			alcMakeContextCurrent(contexts[i]);
+			alcMakeContextCurrent(contexts[contextIndex]);
 
-		alSourcef(mSourceIDs[i], AL_PITCH, mPitch);
-		alSourcef(mSourceIDs[i], AL_REFERENCE_DISTANCE, mMinDistance);
-		alSourcef(mSourceIDs[i], AL_ROLLOFF_FACTOR, mAttenuation);
+		alSourcef(mSourceIDs[contextIndex], AL_PITCH, mPitch);
+		alSourcef(mSourceIDs[contextIndex], AL_REFERENCE_DISTANCE, mMinDistance);
+		alSourcef(mSourceIDs[contextIndex], AL_ROLLOFF_FACTOR, mAttenuation);
 
 		if(RequiresStreaming())
-			alSourcei(mSourceIDs[i], AL_LOOPING, false);
+			alSourcei(mSourceIDs[contextIndex], AL_LOOPING, false);
 		else
-			alSourcei(mSourceIDs[i], AL_LOOPING, mLoop);
+			alSourcei(mSourceIDs[contextIndex], AL_LOOPING, mLoop);
 
 		if(Is3D())
 		{
-			Vector3 position = mTransform.GetPosition();
-
-			alSourcei(mSourceIDs[i], AL_SOURCE_RELATIVE, false);
-			alSource3f(mSourceIDs[i], AL_POSITION, position.X, position.Y, position.Z);
-			alSource3f(mSourceIDs[i], AL_VELOCITY, mVelocity.X, mVelocity.Y, mVelocity.Z);
+			alSourcei(mSourceIDs[contextIndex], AL_SOURCE_RELATIVE, false);
+			alSource3f(mSourceIDs[contextIndex], AL_POSITION, mPosition.X, mPosition.Y, mPosition.Z);
+			alSource3f(mSourceIDs[contextIndex], AL_VELOCITY, mVelocity.X, mVelocity.Y, mVelocity.Z);
 		}
 		else
 		{
-			alSourcei(mSourceIDs[i], AL_SOURCE_RELATIVE, true);
-			alSource3f(mSourceIDs[i], AL_POSITION, 0.0f, 0.0f, 0.0f);
-			alSource3f(mSourceIDs[i], AL_VELOCITY, 0.0f, 0.0f, 0.0f);
+			alSourcei(mSourceIDs[contextIndex], AL_SOURCE_RELATIVE, true);
+			alSource3f(mSourceIDs[contextIndex], AL_POSITION, 0.0f, 0.0f, 0.0f);
+			alSource3f(mSourceIDs[contextIndex], AL_VELOCITY, 0.0f, 0.0f, 0.0f);
 		}
 
 		{
@@ -427,7 +424,7 @@ void OAAudioSource::Rebuild()
 					oaBuffer = oaClip->GetOpenALBufferInternal();
 				}
 
-				alSourcei(mSourceIDs[i], AL_BUFFER, oaBuffer);
+				alSourcei(mSourceIDs[contextIndex], AL_BUFFER, oaBuffer);
 			}
 		}
 	}
@@ -459,7 +456,7 @@ void OAAudioSource::StopStreaming()
 	mIsStreaming = false;
 	GetOAAudio().StopStreaming(this);
 
-	auto& contexts = GetOAAudio().GetContextsInternal();
+	auto& contexts = GetOAAudio().GetContexts();
 	u32 numContexts = (u32)contexts.size();
 	for(u32 i = 0; i < numContexts; i++)
 	{
@@ -490,45 +487,45 @@ void OAAudioSource::StreamUnlocked()
 	info.BitDepth = mAudioClip->GetBitDepth();
 	info.NumChannels = mAudioClip->GetChannelCount();
 	info.SampleRate = mAudioClip->GetFrequency();
-	info.NumSamples = 0;
+	info.SampleCount = 0;
 
-	u32 totalNumSamples = mAudioClip->GetSampleCount();
+	const u32 totalSampleCount = mAudioClip->GetSampleCount();
 
 	// Note: It is safe to access contexts here only because it is guaranteed by the OAAudio manager that it will always
 	// stop all streaming before changing contexts. Otherwise a mutex lock would be needed for every context access.
-	auto& contexts = GetOAAudio().GetContextsInternal();
-	u32 numContexts = (u32)contexts.size();
-	for(u32 i = 0; i < numContexts; i++)
+	auto& contexts = GetOAAudio().GetContexts();
+	const u32 contextCount = (u32)contexts.size();
+	for(u32 contextIndex = 0; contextIndex < contextCount; contextIndex++)
 	{
 		if(contexts.size() > 1)
-			alcMakeContextCurrent(contexts[i]);
+			alcMakeContextCurrent(contexts[contextIndex]);
 
-		i32 numProcessedBuffers = 0;
-		alGetSourcei(mSourceIDs[i], AL_BUFFERS_PROCESSED, &numProcessedBuffers);
+		i32 processedBufferCount = 0;
+		alGetSourcei(mSourceIDs[contextIndex], AL_BUFFERS_PROCESSED, &processedBufferCount);
 
-		for(i32 j = numProcessedBuffers; j > 0; j--)
+		for(i32 j = processedBufferCount; j > 0; j--)
 		{
 			u32 buffer;
-			alSourceUnqueueBuffers(mSourceIDs[i], 1, &buffer);
+			alSourceUnqueueBuffers(mSourceIDs[contextIndex], 1, &buffer);
 
-			i32 bufferIdx = -1;
+			i32 bufferIndex = -1;
 			for(u32 k = 0; k < kStreamBufferCount; k++)
 			{
 				if(buffer == mStreamBuffers[k])
 				{
-					bufferIdx = k;
+					bufferIndex = (i32)k;
 					break;
 				}
 			}
 
 			// Possibly some buffer from previous playback remained unqueued, in which case ignore it
-			if(bufferIdx == -1)
+			if(bufferIndex == -1)
 				continue;
 
-			mBusyBuffers[bufferIdx] &= ~(1 << bufferIdx);
+			mBusyBuffers[bufferIndex] &= ~(1 << bufferIndex);
 
 			// Check if all sources are done with this buffer
-			if(mBusyBuffers[bufferIdx] != 0)
+			if(mBusyBuffers[bufferIndex] != 0)
 				break;
 
 			i32 bufferSize;
@@ -548,7 +545,7 @@ void OAAudioSource::StreamUnlocked()
 				mStreamProcessedPosition += bufferSize / bytesPerSample;
 			}
 
-			if(mStreamProcessedPosition == totalNumSamples) // Reached the end
+			if(mStreamProcessedPosition == totalSampleCount) // Reached the end
 			{
 				mStreamProcessedPosition = 0;
 
@@ -566,7 +563,7 @@ void OAAudioSource::StreamUnlocked()
 		if(mBusyBuffers[i] != 0)
 			continue;
 
-		if(FillBuffer(mStreamBuffers[i], info, totalNumSamples))
+		if(FillBuffer(mStreamBuffers[i], info, totalSampleCount))
 		{
 			for(auto& source : mSourceIDs)
 				alSourceQueueBuffers(source, 1, &mStreamBuffers[i]);
@@ -578,33 +575,31 @@ void OAAudioSource::StreamUnlocked()
 	}
 }
 
-bool OAAudioSource::FillBuffer(u32 buffer, AudioDataInfo& info, u32 maxNumSamples)
+bool OAAudioSource::FillBuffer(u32 buffer, AudioDataInfo& info, u32 maxSampleCount)
 {
-	u32 numRemainingSamples = maxNumSamples - mStreamQueuedPosition;
-	if(numRemainingSamples == 0) // Reached the end
+	u32 remainingSampleCount = maxSampleCount - mStreamQueuedPosition;
+	if(remainingSampleCount == 0) // Reached the end
 	{
 		if(mLoop)
 		{
 			mStreamQueuedPosition = 0;
-			numRemainingSamples = maxNumSamples;
+			remainingSampleCount = maxSampleCount;
 		}
 		else // If not looping, don't queue any more buffers, we're done
 			return false;
 	}
 
 	// Read audio data
-	u32 numSamples = std::min(numRemainingSamples, info.SampleRate * info.NumChannels); // 1 second of data
-	u32 sampleBufferSize = numSamples * (info.BitDepth / 8);
+	const u32 sampleCount = std::min(remainingSampleCount, info.SampleRate * info.NumChannels); // 1 second of data
+	const u32 sampleBufferSize = sampleCount * (info.BitDepth / 8);
 
-	u8* samples = (u8*)B3DStackAllocate(sampleBufferSize);
+	u8* const samples = (u8*)B3DStackAllocate(sampleBufferSize);
 
-	OAAudioClip* audioClip = static_cast<OAAudioClip*>(mAudioClip.Get());
+	mAudioClip->GetSamples(samples, mStreamQueuedPosition, sampleCount);
+	mStreamQueuedPosition += sampleCount;
 
-	audioClip->GetSamples(samples, mStreamQueuedPosition, numSamples);
-	mStreamQueuedPosition += numSamples;
-
-	info.NumSamples = numSamples;
-	GetOAAudio().WriteToOpenALBufferInternal(buffer, samples, info);
+	info.SampleCount = sampleCount;
+	GetOAAudio().WriteToOpenALBuffer(buffer, samples, info);
 
 	B3DStackFree(samples);
 
@@ -613,14 +608,14 @@ bool OAAudioSource::FillBuffer(u32 buffer, AudioDataInfo& info, u32 maxNumSample
 
 void OAAudioSource::ApplyClip()
 {
-	auto& contexts = GetOAAudio().GetContextsInternal();
-	u32 numContexts = (u32)contexts.size();
-	for(u32 i = 0; i < numContexts; i++)
+	auto& contexts = GetOAAudio().GetContexts();
+	const u32 contextCount = (u32)contexts.size();
+	for(u32 contextIndex = 0; contextIndex < contextCount; contextIndex++)
 	{
 		if(contexts.size() > 1)
-			alcMakeContextCurrent(contexts[i]);
+			alcMakeContextCurrent(contexts[contextIndex]);
 
-		alSourcei(mSourceIDs[i], AL_SOURCE_RELATIVE, !Is3D());
+		alSourcei(mSourceIDs[contextIndex], AL_SOURCE_RELATIVE, !Is3D());
 
 		if(!RequiresStreaming())
 		{
@@ -631,33 +626,12 @@ void OAAudioSource::ApplyClip()
 				oaBuffer = oaClip->GetOpenALBufferInternal();
 			}
 
-			alSourcei(mSourceIDs[i], AL_BUFFER, oaBuffer);
+			alSourcei(mSourceIDs[contextIndex], AL_BUFFER, oaBuffer);
 		}
 	}
 
 	// Looping is influenced by streaming mode, so re-apply it in case it changed
 	SetIsLooping(mLoop);
-}
-
-void OAAudioSource::OnClipChanged()
-{
-	AudioSourceState state = GetState();
-	float savedTime = GetTime();
-
-	Stop();
-
-	{
-		Lock lock(mMutex);
-		ApplyClip();
-	}
-
-	SetTime(savedTime);
-
-	if(state != AudioSourceState::Stopped)
-		Play();
-
-	if(state == AudioSourceState::Paused)
-		Pause();
 }
 
 bool OAAudioSource::Is3D() const

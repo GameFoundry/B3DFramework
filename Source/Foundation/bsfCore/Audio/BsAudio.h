@@ -8,6 +8,8 @@
 
 namespace b3d
 {
+	class IAudioSourceImplementation;
+
 	/** @addtogroup Audio
 	 *  @{
 	 */
@@ -77,7 +79,7 @@ namespace b3d
 	protected:
 		friend class AudioClip;
 		friend class AudioListener;
-		friend class AudioSource;
+		friend class CAudioSource;
 
 		/**
 		 * Creates a new audio clip.
@@ -94,14 +96,14 @@ namespace b3d
 		virtual SPtr<AudioListener> CreateListener() = 0;
 
 		/** Creates a new AudioSource. */
-		virtual SPtr<AudioSource> CreateSource() = 0;
+		virtual SPtr<IAudioSourceImplementation> CreateSource() = 0;
 
 		/** Stops playback of all sources started with Audio::play calls. */
 		void StopManualSources();
 
 	private:
-		Vector<SPtr<AudioSource>> mManualSources;
-		Vector<SPtr<AudioSource>> mTempSources;
+		Vector<SPtr<IAudioSourceImplementation>> mManualSources;
+		Vector<SPtr<IAudioSourceImplementation>> mTempSources;
 	};
 
 	/** Provides easier access to Audio. */

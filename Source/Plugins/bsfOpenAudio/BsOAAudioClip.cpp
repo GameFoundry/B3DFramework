@@ -28,7 +28,7 @@ void OAAudioClip::Initialize()
 		AudioDataInfo info;
 		info.BitDepth = mInformation.BitDepth;
 		info.NumChannels = mInformation.ChannelCount;
-		info.NumSamples = mSampleCount;
+		info.SampleCount = mSampleCount;
 		info.SampleRate = mInformation.Frequency;
 
 		// If we need to keep source data, read everything into memory and keep a copy
@@ -61,7 +61,7 @@ void OAAudioClip::Initialize()
 				offset = mStreamOffset;
 			}
 
-			u32 bufferSize = info.NumSamples * (info.BitDepth / 8);
+			u32 bufferSize = info.SampleCount * (info.BitDepth / 8);
 			u8* sampleBuffer = (u8*)B3DStackAllocate(bufferSize);
 
 			// Decompress from Ogg
@@ -69,7 +69,7 @@ void OAAudioClip::Initialize()
 			{
 				OggVorbisDecoder reader;
 				if(reader.Open(stream, info, offset))
-					reader.Read(sampleBuffer, info.NumSamples);
+					reader.Read(sampleBuffer, info.SampleCount);
 				else
 					B3D_LOG(Error, Audio, "Failed decompressing AudioClip stream.");
 			}
@@ -81,7 +81,7 @@ void OAAudioClip::Initialize()
 			}
 
 			alGenBuffers(1, &mBufferId);
-			GetOAAudio().WriteToOpenALBufferInternal(mBufferId, sampleBuffer, info);
+			GetOAAudio().WriteToOpenALBuffer(mBufferId, sampleBuffer, info);
 
 			mStreamData = nullptr;
 			mStreamOffset = 0;

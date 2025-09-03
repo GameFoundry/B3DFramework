@@ -3,7 +3,12 @@
 #pragma once
 
 #include "BsOAPrerequisites.h"
-#include "Audio/BsAudioSource.h"
+#include "Components/BsCAudioSource.h"
+
+namespace b3d
+{
+	class OAAudioClip;
+}
 
 namespace b3d
 {
@@ -12,7 +17,7 @@ namespace b3d
 	 */
 
 	/** OpenAL implementation of an AudioSource. */
-	class OAAudioSource : public AudioSource
+	class OAAudioSource : public IAudioSourceImplementation
 	{
 	public:
 		OAAudioSource();
@@ -71,12 +76,19 @@ namespace b3d
 		bool RequiresStreaming() const;
 
 		/** Fills the provided buffer with streaming data. */
-		bool FillBuffer(u32 buffer, AudioDataInfo& info, u32 maxNumSamples);
+		bool FillBuffer(u32 buffer, AudioDataInfo& info, u32 maxSampleCount);
 
 		/** Makes the current audio clip active. Should be called whenever the audio clip changes. */
 		void ApplyClip();
 
-		void OnClipChanged() override;
+		TResourceHandle<OAAudioClip> mAudioClip;
+		Vector3 mPosition = BsZero;
+		Vector3 mVelocity = BsZero;
+		float mVolume = 1.0f;
+		float mPitch = 1.0f;
+		bool mLoop = false;
+		float mMinDistance = 1.0f;
+		float mAttenuation = 1.0f;
 
 		Vector<u32> mSourceIDs;
 		float mSavedTime = 0.0f;
