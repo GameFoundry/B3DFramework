@@ -360,7 +360,7 @@ ALenum OAAudio::GetOpenALBufferFormat(u32 numChannels, u32 bitDepth)
 
 void OAAudio::WriteToOpenALBuffer(u32 bufferId, u8* samples, const AudioDataInfo& info)
 {
-	if(info.NumChannels <= 2) // Mono or stereo
+	if(info.ChannelCount <= 2) // Mono or stereo
 	{
 		if(info.BitDepth > 16)
 		{
@@ -371,7 +371,7 @@ void OAAudio::WriteToOpenALBuffer(u32 bufferId, u8* samples, const AudioDataInfo
 
 				AudioUtility::ConvertToFloat(samples, info.BitDepth, sampleBufferFloat, info.SampleCount);
 
-				ALenum format = GetOpenALBufferFormat(info.NumChannels, info.BitDepth);
+				ALenum format = GetOpenALBufferFormat(info.ChannelCount, info.BitDepth);
 				alBufferData(bufferId, format, sampleBufferFloat, bufferSize, info.SampleRate);
 
 				B3DStackFree(sampleBufferFloat);
@@ -385,7 +385,7 @@ void OAAudio::WriteToOpenALBuffer(u32 bufferId, u8* samples, const AudioDataInfo
 
 				AudioUtility::ConvertBitDepth(samples, info.BitDepth, sampleBuffer16, 16, info.SampleCount);
 
-				ALenum format = GetOpenALBufferFormat(info.NumChannels, 16);
+				ALenum format = GetOpenALBufferFormat(info.ChannelCount, 16);
 				alBufferData(bufferId, format, sampleBuffer16, bufferSize, info.SampleRate);
 
 				B3DStackFree(sampleBuffer16);
@@ -400,14 +400,14 @@ void OAAudio::WriteToOpenALBuffer(u32 bufferId, u8* samples, const AudioDataInfo
 			for(u32 i = 0; i < info.SampleCount; i++)
 				sampleBuffer[i] = ((i8*)samples)[i] + 128;
 
-			ALenum format = GetOpenALBufferFormat(info.NumChannels, 16);
+			ALenum format = GetOpenALBufferFormat(info.ChannelCount, 16);
 			alBufferData(bufferId, format, sampleBuffer, bufferSize, info.SampleRate);
 
 			B3DStackFree(sampleBuffer);
 		}
 		else
 		{
-			ALenum format = GetOpenALBufferFormat(info.NumChannels, info.BitDepth);
+			ALenum format = GetOpenALBufferFormat(info.ChannelCount, info.BitDepth);
 			alBufferData(bufferId, format, samples, info.SampleCount * (info.BitDepth / 8), info.SampleRate);
 		}
 	}
@@ -422,7 +422,7 @@ void OAAudio::WriteToOpenALBuffer(u32 bufferId, u8* samples, const AudioDataInfo
 
 			AudioUtility::ConvertBitDepth(samples, info.BitDepth, sampleBuffer32, 32, info.SampleCount);
 
-			ALenum format = GetOpenALBufferFormat(info.NumChannels, 32);
+			ALenum format = GetOpenALBufferFormat(info.ChannelCount, 32);
 			alBufferData(bufferId, format, sampleBuffer32, bufferSize, info.SampleRate);
 
 			B3DStackFree(sampleBuffer32);
@@ -436,14 +436,14 @@ void OAAudio::WriteToOpenALBuffer(u32 bufferId, u8* samples, const AudioDataInfo
 			for(u32 i = 0; i < info.SampleCount; i++)
 				sampleBuffer[i] = ((i8*)samples)[i] + 128;
 
-			ALenum format = GetOpenALBufferFormat(info.NumChannels, 16);
+			ALenum format = GetOpenALBufferFormat(info.ChannelCount, 16);
 			alBufferData(bufferId, format, sampleBuffer, bufferSize, info.SampleRate);
 
 			B3DStackFree(sampleBuffer);
 		}
 		else
 		{
-			ALenum format = GetOpenALBufferFormat(info.NumChannels, info.BitDepth);
+			ALenum format = GetOpenALBufferFormat(info.ChannelCount, info.BitDepth);
 			alBufferData(bufferId, format, samples, info.SampleCount * (info.BitDepth / 8), info.SampleRate);
 		}
 	}

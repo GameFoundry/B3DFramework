@@ -138,7 +138,7 @@ namespace b3d
 		 */
 
 		/** Creates a new AudioClip without initializing it. Use create() for normal use. */
-		static SPtr<AudioClip> CreatePtrInternal(const SPtr<DataStream>& samples, u32 streamSize, u32 numSamples, const AudioClipCreateInformation& desc);
+		static SPtr<AudioClip> CreateShared(const SPtr<DataStream>& samples, u32 streamSize, u32 numSamples, const AudioClipCreateInformation& desc);
 
 		/** @} */
 	protected:

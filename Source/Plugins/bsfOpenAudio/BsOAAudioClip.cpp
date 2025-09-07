@@ -9,8 +9,8 @@
 
 using namespace b3d;
 
-OAAudioClip::OAAudioClip(const SPtr<DataStream>& samples, u32 streamSize, u32 numSamples, const AudioClipCreateInformation& desc)
-	: AudioClip(samples, streamSize, numSamples, desc)
+OAAudioClip::OAAudioClip(const SPtr<DataStream>& samples, u32 streamSize, u32 sampleCount, const AudioClipCreateInformation& createInformation)
+	: AudioClip(samples, streamSize, sampleCount, createInformation)
 {}
 
 OAAudioClip::~OAAudioClip()
@@ -27,7 +27,7 @@ void OAAudioClip::Initialize()
 
 		AudioDataInfo info;
 		info.BitDepth = mInformation.BitDepth;
-		info.NumChannels = mInformation.ChannelCount;
+		info.ChannelCount = mInformation.ChannelCount;
 		info.SampleCount = mSampleCount;
 		info.SampleRate = mInformation.Frequency;
 

@@ -11,13 +11,20 @@ using namespace b3d;
 template<typename T>
 void TSphere<T>::Merge(const TSphere<T>& rhs)
 {
-	TVector3<T> newCenter = (Center + rhs.Center) * (T)0.5;
+	const TVector3<T> delta = Center - rhs.Center;
+	const T centerDistance = delta.Length();
 
-	T newRadiusA = newCenter.Distance(Center) + Radius;
-	T newRadiusB = newCenter.Distance(rhs.Center) + rhs.Radius;
+	if(Radius >= centerDistance + rhs.Radius)
+		return; // This sphere encompasses the other sphere
+	else if(rhs.Radius >= centerDistance + Radius)
+	{
+		*this = rhs;
+		return; // Other sphere encompasses this sphere
+	}
 
-	Center = newCenter;
-	Radius = std::max(newRadiusA, newRadiusB);
+	const T newRadius = (centerDistance + Radius + rhs.Radius) * (T)0.5;
+	Center = Center + (delta / centerDistance) * (newRadius - Radius);
+	Radius = newRadius;
 }
 
 template<typename T>
@@ -30,17 +37,17 @@ void TSphere<T>::Merge(const TVector3<T>& point)
 template<typename T>
 void TSphere<T>::Transform(const TMatrix4<T>& matrix)
 {
-	T lengthSqrd[3];
+	T lengthSquared[3];
 	for(u32 i = 0; i < 3; i++)
 	{
 		TVector3<T> column = matrix.GetColumn(i);
-		lengthSqrd[i] = column.Dot(column);
+		lengthSquared[i] = column.Dot(column);
 	}
 
-	T maxLengthSqrd = std::max(lengthSqrd[0], std::max(lengthSqrd[1], lengthSqrd[2]));
+	T maxLengthSquared = std::max(lengthSquared[0], std::max(lengthSquared[1], lengthSquared[2]));
 
 	Center = matrix.MultiplyAffine(Center);
-	Radius *= sqrt(maxLengthSqrd);
+	Radius *= sqrt(maxLengthSquared);
 }
 
 template<typename T>

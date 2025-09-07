@@ -16,7 +16,7 @@ namespace b3d
 	class OAAudioClip : public AudioClip
 	{
 	public:
-		OAAudioClip(const SPtr<DataStream>& samples, u32 streamSize, u32 numSamples, const AudioClipCreateInformation& desc);
+		OAAudioClip(const SPtr<DataStream>& samples, u32 streamSize, u32 sampleCount, const AudioClipCreateInformation& createInformation);
 		virtual ~OAAudioClip();
 
 		/**
@@ -38,7 +38,7 @@ namespace b3d
 		 */
 
 		/** Returns the internal OpenAL buffer. Only valid if the audio clip was created without AudioReadMode::Stream. */
-		u32 GetOpenALBufferInternal() const { return mBufferId; }
+		u32 GetOpenALBuffer() const { return mBufferId; }
 
 		/** @} */
 	protected:

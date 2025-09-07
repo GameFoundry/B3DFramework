@@ -99,7 +99,7 @@ template<typename T>
 bool TConvexVolume<T>::Intersects(const TAABox<T>& box) const
 {
 	TVector3<T> center = box.GetCenter();
-	TVector3<T> extents = box.GetHalfSize();
+	TVector3<T> extents = box.GetExtents();
 	TVector3<T> absExtents(Math::Abs(extents.X), Math::Abs(extents.Y), Math::Abs(extents.Z));
 
 	for(auto& plane : mPlanes)

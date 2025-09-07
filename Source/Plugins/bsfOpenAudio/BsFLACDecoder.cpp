@@ -117,7 +117,7 @@ void StreamMetadata(const FLAC__StreamDecoder*, const FLAC__StreamMetadata* meta
 	{
 		data->Info.SampleCount = (u32)meta->data.stream_info.total_samples * meta->data.stream_info.channels;
 		data->Info.SampleRate = meta->data.stream_info.sample_rate;
-		data->Info.NumChannels = meta->data.stream_info.channels;
+		data->Info.ChannelCount = meta->data.stream_info.channels;
 		data->Info.BitDepth = meta->data.stream_info.bits_per_sample;
 	}
 }

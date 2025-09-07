@@ -54,7 +54,7 @@ namespace b3d
 			AABox(const b3d::AABox& box)
 			{
 				Center = Vector4(box.GetCenter());
-				Extents = Vector4(box.GetHalfSize());
+				Extents = Vector4(box.GetExtents());
 			}
 
 			/** Initializes bounds from a Sphere. */

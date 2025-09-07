@@ -76,17 +76,17 @@ SPtr<Resource> OAImporter::Import(const Path& filePath, SPtr<const ImportOptions
 	SPtr<const AudioClipImportOptions> clipIO = std::static_pointer_cast<const AudioClipImportOptions>(importOptions);
 
 	// If 3D, convert to mono
-	if(clipIO->Is3D && info.NumChannels > 1)
+	if(clipIO->Is3D && info.ChannelCount > 1)
 	{
-		u32 numSamplesPerChannel = info.SampleCount / info.NumChannels;
+		u32 numSamplesPerChannel = info.SampleCount / info.ChannelCount;
 
 		u32 monoBufferSize = numSamplesPerChannel * bytesPerSample;
 		auto monoStream = B3DMakeShared<MemoryDataStream>(monoBufferSize);
 
-		AudioUtility::ConvertToMono(sampleStream->Data(), monoStream->Data(), info.BitDepth, numSamplesPerChannel, info.NumChannels);
+		AudioUtility::ConvertToMono(sampleStream->Data(), monoStream->Data(), info.BitDepth, numSamplesPerChannel, info.ChannelCount);
 
 		info.SampleCount = numSamplesPerChannel;
-		info.NumChannels = 1;
+		info.ChannelCount = 1;
 
 		sampleStream = monoStream;
 		bufferSize = monoBufferSize;
@@ -119,11 +119,11 @@ SPtr<Resource> OAImporter::Import(const Path& filePath, SPtr<const ImportOptions
 	clipDesc.BitDepth = info.BitDepth;
 	clipDesc.Format = clipIO->Format;
 	clipDesc.Frequency = info.SampleRate;
-	clipDesc.ChannelCount = info.NumChannels;
+	clipDesc.ChannelCount = info.ChannelCount;
 	clipDesc.ReadMode = clipIO->ReadMode;
 	clipDesc.Is3D = clipIO->Is3D;
 
-	SPtr<AudioClip> clip = AudioClip::CreatePtrInternal(sampleStream, bufferSize, info.SampleCount, clipDesc);
+	SPtr<AudioClip> clip = AudioClip::CreateShared(sampleStream, bufferSize, info.SampleCount, clipDesc);
 
 	const String fileName = filePath.GetFilename(false);
 	clip->SetName(fileName);

@@ -42,7 +42,7 @@ void TDecal<IsRenderProxy>::UpdateBounds()
 
 	localAABB.TransformAffine(mWorldTransformMatrix);
 
-	mBounds = Bounds(localAABB, Sphere(localAABB.GetCenter(), localAABB.GetRadius()));
+	mBounds = Bounds(localAABB);
 }
 
 template <bool IsRenderProxy>

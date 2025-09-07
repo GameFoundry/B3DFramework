@@ -340,7 +340,7 @@ u32 MeshData::GetStreamSize() const
 
 Bounds MeshData::CalculateBounds() const
 {
-	Bounds bounds;
+	Bounds bounds(BsZero);
 
 	SPtr<VertexDescription> vertexDesc = GetVertexDescription();
 	for(u32 i = 0; i < vertexDesc->GetElementCount(); i++)
@@ -382,7 +382,7 @@ Bounds MeshData::CalculateBounds() const
 
 			float radius = Math::SquareRoot(radiusSqrd);
 
-			bounds = Bounds(AABox(min, max), Sphere(center, radius));
+			bounds = Bounds(center, (max - min) * 0.5f, radius);
 			break;
 		}
 	}

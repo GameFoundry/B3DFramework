@@ -428,7 +428,7 @@ TVector3<T> TAABox<T>::GetSize() const
 }
 
 template<typename T>
-TVector3<T> TAABox<T>::GetHalfSize() const
+TVector3<T> TAABox<T>::GetExtents() const
 {
 	return (Maximum - Minimum) * (T)0.5;
 }
@@ -436,7 +436,7 @@ TVector3<T> TAABox<T>::GetHalfSize() const
 template<typename T>
 T TAABox<T>::GetRadius() const
 {
-	return ((Maximum - Minimum) * (T)0.5).Length();
+	return GetExtents().Length();
 }
 
 template<typename T>

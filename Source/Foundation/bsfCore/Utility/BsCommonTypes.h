@@ -757,7 +757,7 @@ namespace b3d
 	{
 		u32 SampleCount; /**< Total number of audio samples in the audio data (includes all channels). */
 		u32 SampleRate; /**< Number of audio samples per second, per channel. */
-		u32 NumChannels; /**< Number of channels. Each channel has its own set of samples. */
+		u32 ChannelCount; /**< Number of channels. Each channel has its own set of samples. */
 		u32 BitDepth; /**< Number of bits per sample. */
 	};
 

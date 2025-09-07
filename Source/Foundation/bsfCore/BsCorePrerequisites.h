@@ -945,6 +945,16 @@ namespace b3d
 		SF_ReplicableOnly = 1 << 1
 	};
 
+	/**
+	 * Maximum supported dimension of a 3D scene. Primarily provided to be used instead of infinity, as the engine compiles with
+	 * fast math by default, which may not handle infinities correctly.
+	 */
+	static constexpr double kMaximumSceneSize = 1e30;
+
+	/** Maximum supported extent of a 3D scene (Half of kMaximumSceneSize). */
+	static constexpr double kMaximumSceneExtent = kMaximumSceneSize * 0.5;
+
+
 	B3D_CORE_EXPORT B3D_LOG_CATEGORY_EXTERN(RenderThread, Log)
 	B3D_CORE_EXPORT B3D_LOG_CATEGORY_EXTERN(Renderer, Log)
 	B3D_CORE_EXPORT B3D_LOG_CATEGORY_EXTERN(Scene, Log)

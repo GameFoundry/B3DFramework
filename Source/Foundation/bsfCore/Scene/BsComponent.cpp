@@ -22,7 +22,7 @@ bool Component::CalculateBounds(Bounds& bounds)
 {
 	Vector3 position = SO()->GetTransform().GetPosition();
 
-	bounds = Bounds(AABox(position, position), Sphere(position, 0.0f));
+	bounds = Bounds(position, Vector3::kZero, 0.0f);
 	return false;
 }
 

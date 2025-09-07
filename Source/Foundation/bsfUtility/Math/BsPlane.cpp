@@ -47,7 +47,7 @@ PlaneSide TPlane<T>::GetSide(const TAABox<T>& box) const
 
 	// Calculate the maximize allows absolute distance for
 	// the distance between box centre and plane
-	TVector3<T> halfSize = box.GetHalfSize();
+	TVector3<T> halfSize = box.GetExtents();
 	T maxAbsDist = abs(Normal.X * halfSize.X) + abs(Normal.Y * halfSize.Y) + abs(Normal.Z * halfSize.Z);
 
 	if(dist < -maxAbsDist)

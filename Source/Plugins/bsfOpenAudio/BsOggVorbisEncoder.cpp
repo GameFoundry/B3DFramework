@@ -228,7 +228,7 @@ SPtr<MemoryDataStream> OggVorbisEncoder::PCMToOggVorbis(u8* samples, const Audio
 	B3DMarkAllocatorFrame();
 
 	OggVorbisEncoder writer;
-	writer.Open(writeCallback, info.SampleRate, info.BitDepth, info.NumChannels);
+	writer.Open(writeCallback, info.SampleRate, info.BitDepth, info.ChannelCount);
 
 	writer.Write(samples, info.SampleCount);
 	writer.Close();

@@ -73,7 +73,7 @@ SPtr<Resource> FMODImporter::Import(const Path& filePath, SPtr<const ImportOptio
 	sound->getLength(&size, FMOD_TIMEUNIT_PCMBYTES);
 
 	info.BitDepth = numBits;
-	info.NumChannels = numChannels;
+	info.ChannelCount = numChannels;
 	info.SampleRate = (u32)frequency;
 	info.NumSamples = size / (info.BitDepth / 8);
 
@@ -111,17 +111,17 @@ SPtr<Resource> FMODImporter::Import(const Path& filePath, SPtr<const ImportOptio
 	SPtr<const AudioClipImportOptions> clipIO = std::static_pointer_cast<const AudioClipImportOptions>(importOptions);
 
 	// If 3D, convert to mono
-	if(clipIO->Is3D && info.NumChannels > 1)
+	if(clipIO->Is3D && info.ChannelCount > 1)
 	{
-		u32 numSamplesPerChannel = info.NumSamples / info.NumChannels;
+		u32 numSamplesPerChannel = info.NumSamples / info.ChannelCount;
 
 		u32 monoBufferSize = numSamplesPerChannel * bytesPerSample;
 		u8* monoBuffer = (u8*)B3DAllocate(monoBufferSize);
 
-		AudioUtility::ConvertToMono(sampleBuffer, monoBuffer, info.BitDepth, numSamplesPerChannel, info.NumChannels);
+		AudioUtility::ConvertToMono(sampleBuffer, monoBuffer, info.BitDepth, numSamplesPerChannel, info.ChannelCount);
 
 		info.NumSamples = numSamplesPerChannel;
-		info.NumChannels = 1;
+		info.ChannelCount = 1;
 
 		B3DFree(sampleBuffer);
 
@@ -165,7 +165,7 @@ SPtr<Resource> FMODImporter::Import(const Path& filePath, SPtr<const ImportOptio
 	clipDesc.BitDepth = info.BitDepth;
 	clipDesc.Format = clipIO->Format;
 	clipDesc.Frequency = info.SampleRate;
-	clipDesc.NumChannels = info.NumChannels;
+	clipDesc.NumChannels = info.ChannelCount;
 	clipDesc.ReadMode = clipIO->ReadMode;
 	clipDesc.Is3D = clipIO->Is3D;
 

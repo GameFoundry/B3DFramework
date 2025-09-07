@@ -32,7 +32,7 @@ FMOD_RESULT F_CALLBACK PCMReadCallback(FMOD_SOUND* sound, void* data, unsigned i
 	B3D_ASSERT(readSamples == numSamples);
 
 	decompressor->ReadPos += readSamples;
-	decompressor->ReadPos %= clip->GetNumSamples();
+	decompressor->ReadPos %= clip->GetSampleCount();
 
 	return FMOD_OK;
 }
@@ -48,10 +48,10 @@ FMOD_RESULT F_CALLBACK PCMSetPosCallback(FMOD_SOUND* sound, int subsound, unsign
 	switch(posType)
 	{
 	case FMOD_TIMEUNIT_MS:
-		decompressor->ReadPos = (u32)((clip->GetFrequency() * clip->GetNumChannels()) * (position / 1000.0f));
+		decompressor->ReadPos = (u32)((clip->GetFrequency() * clip->GetChannelCount()) * (position / 1000.0f));
 		break;
 	case FMOD_TIMEUNIT_PCM:
-		decompressor->ReadPos = clip->GetNumChannels() * position;
+		decompressor->ReadPos = clip->GetChannelCount() * position;
 		break;
 	case FMOD_TIMEUNIT_PCMBYTES:
 		B3D_ASSERT(position % bytesPerSample == 0);
@@ -62,13 +62,13 @@ FMOD_RESULT F_CALLBACK PCMSetPosCallback(FMOD_SOUND* sound, int subsound, unsign
 		break;
 	}
 
-	decompressor->ReadPos %= clip->GetNumSamples();
+	decompressor->ReadPos %= clip->GetSampleCount();
 	decompressor->VorbisReader.Seek(decompressor->ReadPos);
 	return FMOD_OK;
 }
 
-FMODAudioClip::FMODAudioClip(const SPtr<DataStream>& samples, u32 streamSize, u32 numSamples, const AUDIO_CLIP_DESC& desc)
-	: AudioClip(samples, streamSize, numSamples, desc)
+FMODAudioClip::FMODAudioClip(const SPtr<DataStream>& samples, u32 streamSize, u32 sampleCount, const AudioClipCreateInformation& createInformation)
+	: AudioClip(samples, streamSize, sampleCount, createInformation)
 {}
 
 FMODAudioClip::~FMODAudioClip()
@@ -80,10 +80,10 @@ FMODAudioClip::~FMODAudioClip()
 void FMODAudioClip::Initialize()
 {
 	AudioDataInfo info;
-	info.BitDepth = mDesc.BitDepth;
-	info.NumChannels = mDesc.NumChannels;
-	info.NumSamples = mNumSamples;
-	info.SampleRate = mDesc.Frequency;
+	info.BitDepth = mInformation.BitDepth;
+	info.ChannelCount = mInformation.ChannelCount;
+	info.SampleCount = mSampleCount;
+	info.SampleRate = mInformation.Frequency;
 
 	// If we need to keep source data, read everything into memory and keep a copy
 	if(mKeepSourceData)
@@ -110,7 +110,7 @@ void FMODAudioClip::Initialize()
 			offset = mStreamOffset;
 		}
 
-		u32 bufferSize = info.NumSamples * (info.BitDepth / 8);
+		u32 bufferSize = info.SampleCount * (info.BitDepth / 8);
 
 		FMOD_CREATESOUNDEXINFO exInfo;
 		memset(&exInfo, 0, sizeof(exInfo));
@@ -124,11 +124,11 @@ void FMODAudioClip::Initialize()
 		else
 			flags |= FMOD_2D;
 
-		if(mDesc.Format == AudioFormat::PCM)
+		if(mInformation.Format == AudioFormat::PCM)
 		{
 			flags |= FMOD_OPENRAW;
 
-			switch(mDesc.BitDepth)
+			switch(mInformation.BitDepth)
 			{
 			case 8:
 				exInfo.format = FMOD_SOUND_FORMAT_PCM8;
@@ -147,15 +147,15 @@ void FMODAudioClip::Initialize()
 				break;
 			}
 
-			exInfo.numchannels = mDesc.NumChannels;
-			exInfo.defaultfrequency = mDesc.Frequency;
+			exInfo.numchannels = mInformation.ChannelCount;
+			exInfo.defaultfrequency = mInformation.Frequency;
 		}
 
 		u8* sampleBuffer = (u8*)B3DStackAllocate(bufferSize);
 		stream->Seek(offset);
 		stream->Read(sampleBuffer, bufferSize);
 
-		FMOD::System* fmod = GetFMODAudio().GetFMODInternal();
+		FMOD::System* fmod = GetFMODAudio().GetFMOD();
 		if(fmod->createSound((const char*)sampleBuffer, flags, &exInfo, &mSound) != FMOD_OK)
 		{
 			B3D_LOG(Error, Audio, "Failed creating sound.");
@@ -174,7 +174,7 @@ void FMODAudioClip::Initialize()
 	else // Streaming
 	{
 		// If reading from file, make a copy of data in memory, otherwise just take ownership of the existing buffer
-		if(mDesc.ReadMode == AudioReadMode::LoadCompressed && mStreamData->IsFile())
+		if(mInformation.ReadMode == AudioReadMode::LoadCompressed && mStreamData->IsFile())
 		{
 			if(mSourceStreamData != nullptr) // If it's already loaded in memory, use it directly
 				mStreamData = mSourceStreamData;
@@ -214,7 +214,7 @@ FMOD::Sound* FMODAudioClip::CreateStreamingSound() const
 	if(mStreamData->IsFile())
 	{
 		// Initialize() guarantees the data was loaded in memory if it's not streaming
-		B3D_ASSERT(mDesc.ReadMode == AudioReadMode::Stream);
+		B3D_ASSERT(mInformation.ReadMode == AudioReadMode::Stream);
 
 		exInfo.length = mStreamSize;
 		exInfo.fileoffset = mStreamOffset;
@@ -228,7 +228,7 @@ FMOD::Sound* FMODAudioClip::CreateStreamingSound() const
 	{
 		SPtr<MemoryDataStream> memStream = std::static_pointer_cast<MemoryDataStream>(mStreamData);
 
-		if(mDesc.ReadMode == AudioReadMode::Stream)
+		if(mInformation.ReadMode == AudioReadMode::Stream)
 		{
 			// Note: I could use FMOD_OPENMEMORY_POINT here to save on memory, but then the caller would need to make
 			// sure the memory is not deallocated. I'm ignoring this for now as streaming from memory should be a rare
@@ -244,15 +244,15 @@ FMOD::Sound* FMODAudioClip::CreateStreamingSound() const
 		{
 			flags |= FMOD_OPENUSER;
 
-			exInfo.decodebuffersize = mDesc.Frequency;
+			exInfo.decodebuffersize = mInformation.Frequency;
 			exInfo.pcmreadcallback = PCMReadCallback;
 			exInfo.pcmsetposcallback = PCMSetPosCallback;
 
 			AudioDataInfo info;
-			info.BitDepth = mDesc.BitDepth;
-			info.NumChannels = mDesc.NumChannels;
-			info.NumSamples = mNumSamples;
-			info.SampleRate = mDesc.Frequency;
+			info.BitDepth = mInformation.BitDepth;
+			info.ChannelCount = mInformation.ChannelCount;
+			info.SampleCount = mSampleCount;
+			info.SampleRate = mInformation.Frequency;
 
 			FMODOggDecompressorData* decompressorData = B3DNew<FMODOggDecompressorData>();
 			decompressorData->Clip = this;
@@ -264,7 +264,7 @@ FMOD::Sound* FMODAudioClip::CreateStreamingSound() const
 			}
 
 			exInfo.userdata = decompressorData;
-			exInfo.length = mNumSamples * (mDesc.BitDepth / 8);
+			exInfo.length = mSampleCount * (mInformation.BitDepth / 8);
 
 			streamData = nullptr;
 		}
@@ -275,9 +275,9 @@ FMOD::Sound* FMODAudioClip::CreateStreamingSound() const
 	else
 		flags |= FMOD_2D;
 
-	if(mDesc.Format == AudioFormat::PCM || mDesc.ReadMode == AudioReadMode::LoadCompressed)
+	if(mInformation.Format == AudioFormat::PCM || mInformation.ReadMode == AudioReadMode::LoadCompressed)
 	{
-		switch(mDesc.BitDepth)
+		switch(mInformation.BitDepth)
 		{
 		case 8:
 			exInfo.format = FMOD_SOUND_FORMAT_PCM8;
@@ -296,15 +296,15 @@ FMOD::Sound* FMODAudioClip::CreateStreamingSound() const
 			break;
 		}
 
-		exInfo.numchannels = mDesc.NumChannels;
-		exInfo.defaultfrequency = mDesc.Frequency;
+		exInfo.numchannels = mInformation.ChannelCount;
+		exInfo.defaultfrequency = mInformation.Frequency;
 
-		if(mDesc.ReadMode != AudioReadMode::LoadCompressed)
+		if(mInformation.ReadMode != AudioReadMode::LoadCompressed)
 			flags |= FMOD_OPENRAW;
 	}
 
 	FMOD::Sound* sound = nullptr;
-	FMOD::System* fmod = GetFMODAudio().GetFMODInternal();
+	FMOD::System* fmod = GetFMODAudio().GetFMOD();
 	if(fmod->createSound(streamData, flags, &exInfo, &sound) != FMOD_OK)
 	{
 		B3D_LOG(Error, Audio, "Failed creating a streaming sound.");
@@ -336,6 +336,6 @@ SPtr<DataStream> FMODAudioClip::GetSourceStream(u32& size)
 
 bool FMODAudioClip::RequiresStreaming() const
 {
-	return mDesc.ReadMode == AudioReadMode::Stream ||
-		(mDesc.ReadMode == AudioReadMode::LoadCompressed && mDesc.Format == AudioFormat::VORBIS);
+	return mInformation.ReadMode == AudioReadMode::Stream ||
+		(mInformation.ReadMode == AudioReadMode::LoadCompressed && mInformation.Format == AudioFormat::VORBIS);
 }

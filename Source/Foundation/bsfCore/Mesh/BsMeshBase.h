@@ -54,7 +54,7 @@ namespace b3d
 		u32 IndexCount;
 
 		/**	Bounds of the geometry contained in the vertex buffers for all sub-meshes. */
-		Bounds Bounds;
+		Bounds Bounds = Bounds::kEmpty;
 	};
 
 	/** @} */

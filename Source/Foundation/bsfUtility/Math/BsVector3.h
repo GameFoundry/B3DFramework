@@ -426,7 +426,7 @@ namespace b3d
 
 		static const TVector3 kZero;
 		static const TVector3 kOne;
-		static const TVector3 kInf;
+		static const TVector3 kInfinite;
 		static const TVector3 kUnitX;
 		static const TVector3 kUnitY;
 		static const TVector3 kUnitZ;
@@ -438,8 +438,8 @@ namespace b3d
 	template<> const TVector3<float> TVector3<float>::kOne{1.0f, 1.0f, 1.0f};
 	template<> const TVector3<double> TVector3<double>::kOne{1.0, 1.0, 1.0};
 
-	template<> const TVector3<float> TVector3<float>::kInf{ std::numeric_limits<float>::infinity(),std::numeric_limits<float>::infinity(),std::numeric_limits<float>::infinity() };
-	template<> const TVector3<double> TVector3<double>::kInf{ std::numeric_limits<double>::infinity(),std::numeric_limits<double>::infinity(),std::numeric_limits<double>::infinity() };
+	template<> const TVector3<float> TVector3<float>::kInfinite{ std::numeric_limits<float>::infinity(),std::numeric_limits<float>::infinity(),std::numeric_limits<float>::infinity() };
+	template<> const TVector3<double> TVector3<double>::kInfinite{ std::numeric_limits<double>::infinity(),std::numeric_limits<double>::infinity(),std::numeric_limits<double>::infinity() };
 
 	template<> const TVector3<float> TVector3<float>::kUnitX{1.0f, 0.0f, 0.0f};
 	template<> const TVector3<double> TVector3<double>::kUnitX{1.0, 0.0, 0.0};

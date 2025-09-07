@@ -736,7 +736,7 @@ void RenderBeastScene::RegisterParticleSystem(ParticleSystem* particleSystem)
 	particleSystem->SetRendererId(rendererId);
 
 	mInfo.ParticleSystems.push_back(RendererParticles());
-	mInfo.ParticleSystemCullInfos.push_back(CullInfo(Bounds(), particleSystem->GetLayer()));
+	mInfo.ParticleSystemCullInfos.push_back(CullInfo(Bounds(BsZero), particleSystem->GetLayer()));
 
 	RendererParticles& rendererParticles = mInfo.ParticleSystems.back();
 	rendererParticles.ParticleSystem = particleSystem;

@@ -25,7 +25,7 @@ namespace b3d
 	class FMODAudioClip : public AudioClip
 	{
 	public:
-		FMODAudioClip(const SPtr<DataStream>& samples, u32 streamSize, u32 numSamples, const AUDIO_CLIP_DESC& desc);
+		FMODAudioClip(const SPtr<DataStream>& samples, u32 streamSize, u32 sampleCount, const AudioClipCreateInformation& createInformation);
 		virtual ~FMODAudioClip();
 
 		/**

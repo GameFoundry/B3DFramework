@@ -114,7 +114,7 @@ namespace b3d
 		TVector3<T> GetSize() const;
 
 		/** Extents of the box (distance from center to one of the corners) */
-		TVector3<T> GetHalfSize() const;
+		TVector3<T> GetExtents() const;
 
 		/** Radius of a sphere that fully encompasses the box. */
 		T GetRadius() const;

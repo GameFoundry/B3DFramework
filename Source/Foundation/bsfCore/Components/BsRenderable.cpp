@@ -290,9 +290,7 @@ Bounds Renderable::GetBounds() const
 {
 	if(mUseOverrideBounds)
 	{
-		Sphere sphere(mOverrideBounds.GetCenter(), mOverrideBounds.GetRadius());
-
-		Bounds bounds(mOverrideBounds, sphere);
+		Bounds bounds(mOverrideBounds);
 		bounds.TransformAffine(mWorldTransformMatrix);
 
 		return bounds;
@@ -302,11 +300,7 @@ Bounds Renderable::GetBounds() const
 	if(!mesh.IsLoaded())
 	{
 		const Transform& transform = SceneObject()->GetTransform();
-
-		AABox box(transform.GetPosition(), transform.GetPosition());
-		Sphere sphere(transform.GetPosition(), 0.0f);
-
-		return Bounds(box, sphere);
+		return Bounds(transform.GetPosition(), Vector3::kZero, 0.0f);
 	}
 	else
 	{
@@ -502,9 +496,7 @@ Bounds Renderable::GetBounds() const
 {
 	if(mUseOverrideBounds)
 	{
-		Sphere sphere(mOverrideBounds.GetCenter(), mOverrideBounds.GetRadius());
-
-		Bounds bounds(mOverrideBounds, sphere);
+		Bounds bounds(mOverrideBounds);
 		bounds.TransformAffine(mWorldTransformMatrix);
 
 		return bounds;
@@ -514,10 +506,7 @@ Bounds Renderable::GetBounds() const
 
 	if(mesh == nullptr)
 	{
-		AABox box(mTransform.GetPosition(), mTransform.GetPosition());
-		Sphere sphere(mTransform.GetPosition(), 0.0f);
-
-		return Bounds(box, sphere);
+		return Bounds(mTransform.GetPosition(), Vector3::kZero, 0.0f);
 	}
 	else
 	{

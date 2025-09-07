@@ -135,7 +135,7 @@ SPtr<AudioClip> FMODAudio::CreateClip(const SPtr<DataStream>& samples, u32 strea
 	return B3DMakeShared<FMODAudioClip>(samples, streamSize, sampleCount, createInformation);
 }
 
-SPtr<AudioListener> FMODAudio::CreateListener()
+SPtr<IAudioListenerImplementation> FMODAudio::CreateListener()
 {
 	return B3DMakeShared<FMODAudioListener>();
 }

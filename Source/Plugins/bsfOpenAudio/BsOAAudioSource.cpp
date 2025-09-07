@@ -421,7 +421,7 @@ void OAAudioSource::Rebuild()
 				if(mAudioClip.IsLoaded())
 				{
 					OAAudioClip* oaClip = static_cast<OAAudioClip*>(mAudioClip.Get());
-					oaBuffer = oaClip->GetOpenALBufferInternal();
+					oaBuffer = oaClip->GetOpenALBuffer();
 				}
 
 				alSourcei(mSourceIDs[contextIndex], AL_BUFFER, oaBuffer);
@@ -485,7 +485,7 @@ void OAAudioSource::StreamUnlocked()
 {
 	AudioDataInfo info;
 	info.BitDepth = mAudioClip->GetBitDepth();
-	info.NumChannels = mAudioClip->GetChannelCount();
+	info.ChannelCount = mAudioClip->GetChannelCount();
 	info.SampleRate = mAudioClip->GetFrequency();
 	info.SampleCount = 0;
 
@@ -590,7 +590,7 @@ bool OAAudioSource::FillBuffer(u32 buffer, AudioDataInfo& info, u32 maxSampleCou
 	}
 
 	// Read audio data
-	const u32 sampleCount = std::min(remainingSampleCount, info.SampleRate * info.NumChannels); // 1 second of data
+	const u32 sampleCount = std::min(remainingSampleCount, info.SampleRate * info.ChannelCount); // 1 second of data
 	const u32 sampleBufferSize = sampleCount * (info.BitDepth / 8);
 
 	u8* const samples = (u8*)B3DStackAllocate(sampleBufferSize);
@@ -623,7 +623,7 @@ void OAAudioSource::ApplyClip()
 			if(mAudioClip.IsLoaded())
 			{
 				OAAudioClip* oaClip = static_cast<OAAudioClip*>(mAudioClip.Get());
-				oaBuffer = oaClip->GetOpenALBufferInternal();
+				oaBuffer = oaClip->GetOpenALBuffer();
 			}
 
 			alSourcei(mSourceIDs[contextIndex], AL_BUFFER, oaBuffer);

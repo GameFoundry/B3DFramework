@@ -401,7 +401,7 @@ AABox ParticleSystem::CalculateBoundsInternal() const
 		return AABox::kEmpty;
 
 	const ParticleSetData& particles = mParticleSet->GetParticles();
-	AABox bounds(Vector3::kInf, -Vector3::kInf);
+	AABox bounds(Vector3::kInfinite, -Vector3::kInfinite);
 	for(u32 i = 0; i < particleCount; i++)
 		bounds.Merge(particles.Position[i]);
 

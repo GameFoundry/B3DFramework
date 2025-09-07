@@ -84,12 +84,12 @@ bool OggVorbisDecoder::Open(const SPtr<DataStream>& stream, AudioDataInfo& info,
 	}
 
 	vorbis_info* vorbisInfo = ov_info(&mOggVorbisFile, -1);
-	info.NumChannels = vorbisInfo->channels;
+	info.ChannelCount = vorbisInfo->channels;
 	info.SampleRate = vorbisInfo->rate;
 	info.SampleCount = (u32)(ov_pcm_total(&mOggVorbisFile, -1) * vorbisInfo->channels);
 	info.BitDepth = 16;
 
-	mChannelCount = info.NumChannels;
+	mChannelCount = info.ChannelCount;
 	return true;
 }
 

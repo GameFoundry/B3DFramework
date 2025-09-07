@@ -3,7 +3,8 @@
 #pragma once
 
 #include "BsFMODPrerequisites.h"
-#include "Audio/BsAudioListener.h"
+#include "Components/BsAudioListener.h"
+#include "Scene/BsTransform.h"
 
 namespace b3d
 {
@@ -12,11 +13,11 @@ namespace b3d
 	 */
 
 	/** FMOD implementation of an AudioListener. */
-	class FMODAudioListener : public AudioListener
+	class FMODAudioListener : public IAudioListenerImplementation
 	{
 	public:
 		FMODAudioListener();
-		virtual ~FMODAudioListener();
+		~FMODAudioListener() override;
 
 		void SetTransform(const Transform& transform) override;
 		void SetVelocity(const Vector3& velocity) override;
@@ -27,6 +28,8 @@ namespace b3d
 		/** Called by the FMODAudio system when the listener list changes. */
 		void Rebuild(i32 id);
 
+		Transform mTransform;
+		Vector3 mVelocity = Vector3::kZero;
 		i32 mId;
 	};
 

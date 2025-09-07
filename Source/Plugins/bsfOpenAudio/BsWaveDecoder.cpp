@@ -84,8 +84,8 @@ bool WaveDecoder::ParseHeader(AudioDataInfo& info)
 				return false;
 			}
 
-			u16 numChannels = 0;
-			if(mStream->Read(&numChannels, sizeof(numChannels)) != sizeof(numChannels))
+			u16 channelCount = 0;
+			if(mStream->Read(&channelCount, sizeof(channelCount)) != sizeof(channelCount))
 				return false;
 
 			u32 sampleRate = 0;
@@ -104,7 +104,7 @@ bool WaveDecoder::ParseHeader(AudioDataInfo& info)
 			if(mStream->Read(&bitDepth, sizeof(bitDepth)) != sizeof(bitDepth))
 				return false;
 
-			info.NumChannels = numChannels;
+			info.ChannelCount = channelCount;
 			info.SampleRate = sampleRate;
 			info.BitDepth = bitDepth;
 

@@ -805,7 +805,7 @@ bool PhysXScene::RayCast(const Vector3& origin, const Vector3& unitDir, PhysicsQ
 
 bool PhysXScene::BoxCast(const AABox& box, const Quaternion& rotation, const Vector3& unitDir, PhysicsQueryHit& hit, u64 layer, float max) const
 {
-	PxBoxGeometry geometry(ToPxVector(box.GetHalfSize()));
+	PxBoxGeometry geometry(ToPxVector(box.GetExtents()));
 	PxTransform transform = ToPxTransform(box.GetCenter(), rotation);
 
 	return Sweep(geometry, transform, unitDir, hit, layer, max);
@@ -856,7 +856,7 @@ Vector<PhysicsQueryHit> PhysXScene::RayCastAll(const Vector3& origin, const Vect
 
 Vector<PhysicsQueryHit> PhysXScene::BoxCastAll(const AABox& box, const Quaternion& rotation, const Vector3& unitDir, u64 layer, float max) const
 {
-	PxBoxGeometry geometry(ToPxVector(box.GetHalfSize()));
+	PxBoxGeometry geometry(ToPxVector(box.GetExtents()));
 	PxTransform transform = ToPxTransform(box.GetCenter(), rotation);
 
 	return SweepAll(geometry, transform, unitDir, layer, max);
@@ -906,7 +906,7 @@ bool PhysXScene::RayCastAny(const Vector3& origin, const Vector3& unitDir, u64 l
 
 bool PhysXScene::BoxCastAny(const AABox& box, const Quaternion& rotation, const Vector3& unitDir, u64 layer, float max) const
 {
-	PxBoxGeometry geometry(ToPxVector(box.GetHalfSize()));
+	PxBoxGeometry geometry(ToPxVector(box.GetExtents()));
 	PxTransform transform = ToPxTransform(box.GetCenter(), rotation);
 
 	return SweepAny(geometry, transform, unitDir, layer, max);
@@ -945,7 +945,7 @@ bool PhysXScene::ConvexCastAny(const HPhysicsMesh& mesh, const Vector3& position
 
 Vector<ColliderShape*> PhysXScene::BoxOverlapInternal(const AABox& box, const Quaternion& rotation, u64 layer) const
 {
-	PxBoxGeometry geometry(ToPxVector(box.GetHalfSize()));
+	PxBoxGeometry geometry(ToPxVector(box.GetExtents()));
 	PxTransform transform = ToPxTransform(box.GetCenter(), rotation);
 
 	return Overlap(geometry, transform, layer);
@@ -984,7 +984,7 @@ Vector<ColliderShape*> PhysXScene::ConvexOverlapInternal(const HPhysicsMesh& mes
 
 bool PhysXScene::BoxOverlapAny(const AABox& box, const Quaternion& rotation, u64 layer) const
 {
-	PxBoxGeometry geometry(ToPxVector(box.GetHalfSize()));
+	PxBoxGeometry geometry(ToPxVector(box.GetExtents()));
 	PxTransform transform = ToPxTransform(box.GetCenter(), rotation);
 
 	return OverlapAny(geometry, transform, layer);
