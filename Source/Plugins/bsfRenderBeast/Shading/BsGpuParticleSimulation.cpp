@@ -712,7 +712,7 @@ AABox GpuParticleSystem::GetBounds() const
 	const ParticleSystemSettings& settings = mParent->GetSettings();
 
 	if(settings.UseAutomaticBounds)
-		return AABox::kInfinite;
+		return AABox(-(float)kMaximumSceneExtent, (float)kMaximumSceneExtent);
 
 	return settings.CustomBounds;
 }

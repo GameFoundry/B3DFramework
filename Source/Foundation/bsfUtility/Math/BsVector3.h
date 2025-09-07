@@ -27,6 +27,9 @@ namespace b3d
 			: X((T)0.0), Y((T)0.0), Z((T)0.0)
 		{}
 
+		constexpr TVector3(T value)
+			: X(value), Y(value), Z(value)
+		{}
 		constexpr TVector3(T x, T y, T z)
 			: X(x), Y(y), Z(z)
 		{}

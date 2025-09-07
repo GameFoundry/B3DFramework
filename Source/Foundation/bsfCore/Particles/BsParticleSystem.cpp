@@ -393,7 +393,7 @@ void ParticleSystem::PostSimulate(const ParticleSystemState& state, u32 startIdx
 
 AABox ParticleSystem::CalculateBoundsInternal() const
 {
-	// TODO - If evolvers are deterministic (as well as their properties), calculate the maximinal bounds in an
+	// TODO - If evolvers are deterministic (as well as their properties), calculate the maximal bounds in an
 	// analytical way
 
 	const u32 particleCount = mParticleSet->GetParticleCount();
@@ -401,7 +401,7 @@ AABox ParticleSystem::CalculateBoundsInternal() const
 		return AABox::kEmpty;
 
 	const ParticleSetData& particles = mParticleSet->GetParticles();
-	AABox bounds(Vector3::kInfinite, -Vector3::kInfinite);
+	AABox bounds(Vector3(-(float)kMaximumSceneExtent), Vector3((float)kMaximumSceneExtent));
 	for(u32 i = 0; i < particleCount; i++)
 		bounds.Merge(particles.Position[i]);
 
