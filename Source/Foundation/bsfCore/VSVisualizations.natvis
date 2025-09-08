@@ -11,7 +11,7 @@
 
 	<Type Name="b3d::TResourceHandle&lt;*&gt;">
 		<DisplayString Condition="mData == 0 || mData->Object._Ptr == 0">Empty</DisplayString>
-		<DisplayString>Name = Unknown, Id = {mData->Id}</DisplayString>
+		<DisplayString>Name = {mData->Object._Ptr->mName}, Id = {mData->Id}</DisplayString>
 		<Expand>
 			<ExpandedItem Condition="mData != 0 &amp;&amp; mData->Object._Ptr != 0">($T1*)mData->Object._Ptr</ExpandedItem>
 		</Expand>
