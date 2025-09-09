@@ -9,7 +9,7 @@
 #include "../../../Foundation/bsfCore/Particles/BsParticleEvolver.h"
 
 namespace b3d { class ParticleRotation; }
-namespace b3d { struct __PARTICLE_ROTATION_DESCInterop; }
+namespace b3d { struct __ParticleRotationSettingsInterop; }
 namespace b3d
 {
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleRotation : public TScriptReflectableWrapper<ParticleRotation, ScriptParticleRotation, ScriptParticleEvolverWrapperBase>
@@ -25,9 +25,9 @@ namespace b3d
 		static MonoObject* CreateScriptObject(bool construct);
 
 	private:
-		static void InternalSetOptions(ScriptParticleRotation* self, __PARTICLE_ROTATION_DESCInterop* options);
-		static void InternalGetOptions(ScriptParticleRotation* self, __PARTICLE_ROTATION_DESCInterop* __output);
-		static void InternalCreate(MonoObject* scriptObject, __PARTICLE_ROTATION_DESCInterop* desc);
+		static void InternalSetSettings(ScriptParticleRotation* self, __ParticleRotationSettingsInterop* settings);
+		static void InternalGetSettings(ScriptParticleRotation* self, __ParticleRotationSettingsInterop* __output);
+		static void InternalCreate(MonoObject* scriptObject, __ParticleRotationSettingsInterop* settings);
 		static void InternalCreate0(MonoObject* scriptObject);
 	};
 }

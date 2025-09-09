@@ -24,9 +24,9 @@ namespace b3d
 		static MonoObject* CreateScriptObject(bool construct);
 
 	private:
-		static void InternalSetOptions(ScriptParticleGravity* self, ParticleGravitySettings* options);
-		static void InternalGetOptions(ScriptParticleGravity* self, ParticleGravitySettings* __output);
-		static void InternalCreate(MonoObject* scriptObject, ParticleGravitySettings* desc);
+		static void InternalSetSettings(ScriptParticleGravity* self, ParticleGravitySettings* settings);
+		static void InternalGetSettings(ScriptParticleGravity* self, ParticleGravitySettings* __output);
+		static void InternalCreate(MonoObject* scriptObject, ParticleGravitySettings* settings);
 		static void InternalCreate0(MonoObject* scriptObject);
 	};
 }

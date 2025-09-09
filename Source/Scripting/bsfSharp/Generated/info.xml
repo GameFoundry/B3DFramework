@@ -249,13 +249,13 @@
 		<doc>Changes the color of the particles over the particle lifetime.</doc>
 		<ctor>
 			<doc>Creates a new particle color evolver.</doc>
-			<param name="desc" type="ParticleColorOptions">
+			<param name="settings" type="ParticleColorOptions">
 			</param>
 		</ctor>
 		<ctor>
 			<doc>Creates a new particle color evolver.</doc>
 		</ctor>
-		<property name="Options" type="ParticleColorOptions" getter="GetOptions" setter="SetOptions" static="false">
+		<property name="Settings" type="ParticleColorOptions" getter="GetSettings" setter="SetSettings" static="false">
 			<doc>Options describing the evolver.</doc>
 		</property>
 	</class>
@@ -375,6 +375,10 @@
 		<ctor>
 		</ctor>
 		<ctor>
+			<param name="value" type="float">
+			</param>
+		</ctor>
+		<ctor>
 			<param name="x" type="float">
 			</param>
 			<param name="y" type="float">
@@ -396,6 +400,10 @@
 	<struct native="TVector3&lt;double&gt;" script="Vector3D">
 		<doc>A three dimensional vector.</doc>
 		<ctor>
+		</ctor>
+		<ctor>
+			<param name="value" type="double">
+			</param>
 		</ctor>
 		<ctor>
 			<param name="x" type="double">
@@ -865,6 +873,17 @@ Be aware that this value will be ignored if GUI element is part of a layout sinc
 			<doc>The distribution is a random value in a specified time-varying range.</doc>
 		</enumentry>
 	</enum>
+	<struct native="ParticleSphereShapeSettings" script="ParticleSphereShapeSettings">
+		<doc>Information describing a ParticleEmitterSphereShape.</doc>
+		<ctor>
+		</ctor>
+		<field name="Radius" type="float">
+			<doc>Radius of the sphere.</doc>
+		</field>
+		<field name="Thickness" type="float">
+			<doc>Proportion of the volume that can emit particles. Thickness of 0 results in particles being emitted only from the edge of the volume, while thickness of 1 results in particles being emitted from the entire volume. In-between values will use a part of the volume.</doc>
+		</field>
+	</struct>
 	<class native="ColorGradientHDR" script="ColorGradientHDR">
 		<doc>Represents a range of color values over some parameters, similar to a curve. Internally represented as a set of keys that get interpolated between. Capable of representing HDR colors, unlike the normal ColorGradient.</doc>
 		<ctor>
@@ -1041,6 +1060,15 @@ Be aware that this value will be ignored if GUI element is part of a layout sinc
 		<field name="Height" type="TUnitValue&lt;float,PhysicalPixel&gt;">
 		</field>
 	</struct>
+	<enum native="AudioFormat" script="AudioFormat">
+		<doc>Valid internal engine audio formats.</doc>
+		<enumentry native="PCM" script="PCM">
+			<doc>Pulse code modulation audio (&quot;raw&quot; uncompressed audio).</doc>
+		</enumentry>
+		<enumentry native="VORBIS" script="VORBIS">
+			<doc>Vorbis compressed audio.</doc>
+		</enumentry>
+	</enum>
 	<enum native="PointerEventType" script="PointerEventType">
 		<doc>Type of pointer event.</doc>
 		<enumentry native="CursorMoved" script="CursorMoved">
@@ -1187,6 +1215,29 @@ Be aware that this value will be ignored if GUI element is part of a layout sinc
 			<doc>Three dimensional texture.</doc>
 		</enumentry>
 	</enum>
+	<struct native="ParticleCollisionSettings" script="ParticleCollisionsSettings">
+		<doc>Structure used for initializing a ParticleCollisions object.</doc>
+		<ctor>
+		</ctor>
+		<field name="Mode" type="ParticleCollisionMode">
+			<doc>Collision mode determining with which geometry the particles will interact with.</doc>
+		</field>
+		<field name="Restitution" type="float">
+			<doc>Determines the elasticity (bounciness) of the particle collision. Lower values make the collision less bouncy and higher values more.</doc>
+		</field>
+		<field name="Dampening" type="float">
+			<doc>Determines how much velocity should a particle lose after a collision, in percent of its current velocity. In range [0, 1].</doc>
+		</field>
+		<field name="LifetimeLoss" type="float">
+			<doc>Determines how much should the particle lifetime be reduced after a collision, in percent of its original lifetime. In range [0, 1].</doc>
+		</field>
+		<field name="Radius" type="float">
+			<doc>Radius of every individual particle used for collisions, in meters.</doc>
+		</field>
+		<field name="Layer" type="ulong">
+			<doc>Physics layers that determine which objects will particle collide with. Only relevant when using the World collision mode.</doc>
+		</field>
+	</struct>
 	<class native="RenderTexture" script="RenderTexture">
 		<doc>Render target specialization that allows you to render into one or multiple textures. Such textures can then be used in other operations as GPU program input.</doc>
 		<ctor>
@@ -1985,124 +2036,6 @@ Also see SetContactOffset().</doc>
 			</param>
 		</ctor>
 	</class>
-	<class native="CAnimation" script="Animation">
-		<doc>Handles animation playback. Takes one or multiple animation clips as input and evaluates them every animation update tick depending on set properties. The evaluated data is used by the render thread for skeletal animation, by the main thread for updating attached scene objects and bones (if skeleton is attached), or the data is made available for manual queries in the case of generic animation.</doc>
-		<method native="Play" script="Play" static="false">
-			<doc>Plays the specified animation clip.</doc>
-			<param name="clip" type="RRef&lt;AnimationClip&gt;">
-			</param>
-		</method>
-		<method native="BlendAdditive" script="BlendAdditive" static="false">
-			<doc>Plays the specified animation clip on top of the animation currently playing in the main layer. Multiple such clips can be playing at once, as long as you ensure each is given its own layer. Each animation can also have a weight that determines how much it influences the main animation.</doc>
-			<param name="clip" type="RRef&lt;AnimationClip&gt;">
-				<doc>Clip to additively blend. Must contain additive animation curves.</doc>
-			</param>
-			<param name="weight" type="float">
-				<doc>Determines how much of an effect will the blended animation have on the final output. In range [0, 1].</doc>
-			</param>
-			<param name="fadeLength" type="float">
-				<doc>Applies the blend over a specified time period, increasing the weight as the time passes. Set to zero to blend immediately. In seconds.</doc>
-			</param>
-			<param name="layer" type="int">
-				<doc>Layer to play the clip in. Multiple additive clips can be playing at once in separate layers and each layer has its own weight.</doc>
-			</param>
-		</method>
-		<method native="Blend1D" script="Blend1D" static="false">
-			<doc>Blend multiple animation clips between each other using linear interpolation. Unlike normal animations these animations are not advanced with the progress of time, and is instead expected the user manually changes the <paramref name="alpha"/> parameter.</doc>
-			<param name="info" type="Blend1DInfo">
-				<doc>Information about the clips to blend. Clip positions must be sorted from lowest to highest.</doc>
-			</param>
-			<param name="alpha" type="float">
-				<doc>Parameter that controls the blending. Range depends on the positions of the provided animation clips.</doc>
-			</param>
-		</method>
-		<method native="Blend2D" script="Blend2D" static="false">
-			<doc>Blend four animation clips between each other using bilinear interpolation. Unlike normal animations these animations are not advanced with the progress of time, and is instead expected the user manually changes the <paramref name="alpha"/> parameter.</doc>
-			<param name="info" type="Blend2DInfo">
-				<doc>Information about the clips to blend.</doc>
-			</param>
-			<param name="alpha" type="TVector2&lt;float&gt;">
-				<doc>Parameter that controls the blending, in range [(0, 0), (1, 1)]. alpha = (0, 0) means top left animation has full influence, alpha = (1, 0) means top right animation has full influence, alpha = (0, 1) means bottom left animation has full influence, alpha = (1, 1) means bottom right animation has full influence.</doc>
-			</param>
-		</method>
-		<method native="CrossFade" script="CrossFade" static="false">
-			<doc>Fades the specified animation clip in, while fading other playing animation out, over the specified time period.</doc>
-			<param name="clip" type="RRef&lt;AnimationClip&gt;">
-				<doc>Clip to fade in.</doc>
-			</param>
-			<param name="fadeLength" type="float">
-				<doc>Determines the time period over which the fade occurs. In seconds.</doc>
-			</param>
-		</method>
-		<method native="Sample" script="Sample" static="false">
-			<doc>Samples an animation clip at the specified time, displaying only that particular frame without further playback.</doc>
-			<param name="clip" type="RRef&lt;AnimationClip&gt;">
-				<doc>Animation clip to sample.</doc>
-			</param>
-			<param name="time" type="float">
-				<doc>Time to sample the clip at.</doc>
-			</param>
-		</method>
-		<method native="Stop" script="Stop" static="false">
-			<doc>Stops playing all animations on the provided layer. Specify ~0u to stop animation on the main layer (non-additive animations).</doc>
-			<param name="layer" type="int">
-			</param>
-		</method>
-		<method native="StopAll" script="StopAll" static="false">
-			<doc>Stops playing all animations.</doc>
-		</method>
-		<method native="GetState" script="GetState" static="false">
-			<doc>Retrieves detailed information about a currently playing animation clip.</doc>
-			<param name="clip" type="RRef&lt;AnimationClip&gt;">
-				<doc>Clip to retrieve the information for.</doc>
-			</param>
-			<param name="state" type="AnimationClipState">
-				<doc>Animation clip state containing the requested information. Only valid if the method returns true.</doc>
-			</param>
-			<returns type="bool">
-				<doc>True if the state was found (animation clip is playing), false otherwise.</doc>
-			</returns>
-		</method>
-		<method native="SetState" script="SetState" static="false">
-			<doc>Changes the state of a playing animation clip. If animation clip is not currently playing the playback is started for the clip.</doc>
-			<param name="clip" type="RRef&lt;AnimationClip&gt;">
-				<doc>Clip to change the state for.</doc>
-			</param>
-			<param name="state" type="AnimationClipState">
-				<doc>New state of the animation (e.g. changing the time for seeking).</doc>
-			</param>
-		</method>
-		<method native="SetMorphChannelWeight" script="SetMorphChannelWeight" static="false">
-			<doc>Changes a weight of a single morph channel, determining how much of it to apply on top of the base mesh.</doc>
-			<param name="name" type="string">
-				<doc>Name of the morph channel to modify. This depends on the mesh the animation is currently animating.</doc>
-			</param>
-			<param name="weight" type="float">
-				<doc>Weight that determines how much of the channel to apply to the mesh, in range [0, 1].</doc>
-			</param>
-		</method>
-		<property name="DefaultClip" type="RRef&lt;AnimationClip&gt;" getter="GetDefaultClip" setter="SetDefaultClip" static="false">
-			<doc>Determines the default clip to play as soon as the component is enabled. If more control over playing clips is needed use the Play(), Blend*(), CrossFade() methods to queue clips for playback manually, and SetState() method to modify their states individually.</doc>
-		</property>
-		<property name="WrapMode" type="AnimationWrapMode" getter="GetWrapMode" setter="SetWrapMode" static="false">
-			<doc>Determines the wrap mode for all active animations. Wrap mode determines what happens when animation reaches the first or last frame.</doc>
-		</property>
-		<property name="Speed" type="float" getter="GetSpeed" setter="SetSpeed" static="false">
-			<doc>Determines the speed for all animations. The default value is 1.0f. Use negative values to play-back in reverse.</doc>
-		</property>
-		<property name="IsPlaying" type="bool" getter="IsPlaying" setter="" static="false">
-			<doc>Checks if any animation clips are currently playing.</doc>
-		</property>
-		<property name="CustomBounds" type="AABox" getter="GetCustomBounds" setter="SetCustomBounds" static="false">
-			<doc>Determines bounds that will be used for animation and mesh culling. Only relevant if SetUseCustomBounds() is set to true.</doc>
-		</property>
-		<property name="UseCustomBounds" type="bool" getter="GetUseCustomBounds" setter="SetUseCustomBounds" static="false">
-			<doc>Determines should animation bounds be used for visibility determination (culling). If false the bounds of the mesh attached to the relevant Renderable component will be used instead.</doc>
-		</property>
-		<property name="Cull" type="bool" getter="GetEnableCull" setter="SetEnableCull" static="false">
-			<doc>Enables or disables culling of the animation when out of view. Culled animation will not be evaluated.</doc>
-		</property>
-	</class>
 	<struct native="TVector3I&lt;int32_t&gt;" script="Vector3I">
 		<doc>A three dimensional vector with integer coordinates.</doc>
 		<ctor>
@@ -2147,6 +2080,32 @@ Also see SetContactOffset().</doc>
 		<field name="Y" type="int">
 		</field>
 		<field name="Z" type="int">
+		</field>
+	</struct>
+	<struct native="ParticleConeShapeSettings" script="ParticleConeShapeSettings">
+		<doc>Information describing a ParticleEmitterConeShape.</doc>
+		<ctor>
+		</ctor>
+		<field name="Type" type="ParticleEmitterConeType">
+			<doc>Determines where on the cone are the particles emitter from.</doc>
+		</field>
+		<field name="Radius" type="float">
+			<doc>Radius of the cone base.</doc>
+		</field>
+		<field name="Angle" type="Degree">
+			<doc>Angle of the cone.</doc>
+		</field>
+		<field name="Length" type="float">
+			<doc>Length of the cone. Irrelevant if emission type is Base.</doc>
+		</field>
+		<field name="Thickness" type="float">
+			<doc>Proportion of the volume that can emit particles. Thickness of 0 results in particles being emitted only from the edge of the cone, while thickness of 1 results in particles being emitted from the entire volume. In-between values will use a part of the volume.</doc>
+		</field>
+		<field name="Arc" type="Degree">
+			<doc>Angular portion of the cone from which to emit particles from, in degrees.</doc>
+		</field>
+		<field name="Mode" type="ParticleEmissionMode">
+			<doc>Determines how will particle positions on the shape be generated.</doc>
 		</field>
 	</struct>
 	<enum native="ShaderParameterType" script="ShaderParameterType">
@@ -2335,6 +2294,23 @@ This object is intended to remain static in the world. You /can/ move it, but it
 			<doc>Curves for animating generic component properties.</doc>
 		</property>
 	</class>
+	<struct native="ParticleCircleShapeSettings" script="ParticleCircleShapeSettings">
+		<doc>Information describing a ParticleEmitterCircleShape.</doc>
+		<ctor>
+		</ctor>
+		<field name="Radius" type="float">
+			<doc>Radius of the circle.</doc>
+		</field>
+		<field name="Thickness" type="float">
+			<doc>Proportion of the surface that can emit particles. Thickness of 0 results in particles being emitted only from the edge of the circle, while thickness of 1 results in particles being emitted from the entire surface. In-between values will use a part of the surface.</doc>
+		</field>
+		<field name="Arc" type="Degree">
+			<doc>Angular portion of the cone from which to emit particles from, in degrees.</doc>
+		</field>
+		<field name="Mode" type="ParticleEmissionMode">
+			<doc>Determines how will particle positions on the shape be generated.</doc>
+		</field>
+	</struct>
 	<enum native="CompressionType" script="CompressionType">
 		<doc>Supported compression modes.</doc>
 		<enumentry native="Uncompressed" script="Uncompressed">
@@ -2344,17 +2320,6 @@ This object is intended to remain static in the world. You /can/ move it, but it
 		<enumentry native="Default" script="Default">
 		</enumentry>
 	</enum>
-	<struct native="Blend2DInfo" script="Blend2DInfo">
-		<doc>Defines a 2D blend where two animation clips are blended between each other using bilinear interpolation.</doc>
-		<field name="TopLeftClip" type="RRef&lt;AnimationClip&gt;">
-		</field>
-		<field name="TopRightClip" type="RRef&lt;AnimationClip&gt;">
-		</field>
-		<field name="BottomLeftClip" type="RRef&lt;AnimationClip&gt;">
-		</field>
-		<field name="BottomRightClip" type="RRef&lt;AnimationClip&gt;">
-		</field>
-	</struct>
 	<enum native="ResultStatus" script="ResultStatus">
 		<doc>Common result codes for TResult/Result types.</doc>
 		<enumentry native="FailedReadOnly" script="FailedReadOnly">
@@ -2411,20 +2376,72 @@ This object is intended to remain static in the world. You /can/ move it, but it
 			</param>
 		</ctor>
 	</class>
-	<struct native="PARTICLE_STATIC_MESH_SHAPE_DESC" script="ParticleStaticMeshShapeOptions">
-		<doc>Information describing a ParticleEmitterStaticMeshShape.</doc>
+	<class native="MorphChannel" script="MorphChannel">
+		<doc>A collection of morph shapes that are sequentially blended together. Each shape has a weight in range [0, 1] which determines at what point is that shape blended. As the channel percent moves from 0 to 1, different shapes will be blended with those before or after them, depending on their weight.</doc>
+		<property name="Name" type="string" getter="GetName" setter="" static="false">
+			<doc>Returns the unique name of the channel.</doc>
+		</property>
+		<property name="Shapes" type="MorphShape" getter="GetShapes" setter="" static="false">
+			<doc>Returns all morph shapes within this channel, in order from lowest to highest.</doc>
+		</property>
+	</class>
+	<struct native="Result" script="Result">
+		<doc>Same as TResult, but with no output object.</doc>
 		<ctor>
 		</ctor>
-		<field name="Type" type="ParticleEmitterMeshType">
-			<doc>Determines from which portion of the mesh are the particles emitted from.</doc>
+		<field name="Status" type="ResultStatus">
 		</field>
-		<field name="Sequential" type="bool">
-			<doc>When enabled the particles will be emitted sequentially from mesh vertices in the order they are defined. Only relevant for the Vertex emit mode.</doc>
+		<field name="ErrorMessage" type="string">
 		</field>
-		<field name="Mesh" type="RRef&lt;Mesh&gt;">
-			<doc>Mesh to spawn particles on. Must at least contain per-vertex position data encoded as 3D float vectors. Can optionally contain per-vertex normals encoded as 3D float vectors or as 4-byte unsigned-normalized format.</doc>
+		<field name="AdditionalErrorMessage" type="string">
 		</field>
 	</struct>
+	<class native="AudioSource" script="AudioSource">
+		<doc>Represents a source for emitting audio. Audio can be played spatially (gun shot), or normally (music). Each audio source must have an AudioClip to play-back, and it can also have a position in the case of spatial (3D) audio.
+Whether or not an audio source is spatial is controlled by the assigned AudioClip. The volume and the pitch of a spatial audio source is controlled by its position and the AudioListener&apos;s position/direction/velocity.</doc>
+		<method native="Play" script="Play" static="false">
+			<doc>Starts playing the currently assigned audio clip.</doc>
+		</method>
+		<method native="Pause" script="Pause" static="false">
+			<doc>Pauses the audio playback.</doc>
+		</method>
+		<method native="Stop" script="Stop" static="false">
+			<doc>Stops audio playback, rewinding it to the start.</doc>
+		</method>
+		<property name="Clip" type="RRef&lt;AudioClip&gt;" getter="GetClip" setter="SetClip" static="false">
+			<doc>Audio clip to play.</doc>
+		</property>
+		<property name="Volume" type="float" getter="GetVolume" setter="SetVolume" static="false">
+			<doc>Volume of the audio played from this source, in [0, 1] range.</doc>
+		</property>
+		<property name="Pitch" type="float" getter="GetPitch" setter="SetPitch" static="false">
+			<doc>Determines the pitch of the played audio. 1 is the default.</doc>
+		</property>
+		<property name="Loop" type="bool" getter="GetIsLooping" setter="SetIsLooping" static="false">
+			<doc>Determines whether the audio clip should loop when it finishes playing.</doc>
+		</property>
+		<property name="Priority" type="int" getter="GetPriority" setter="SetPriority" static="false">
+			<doc>Determines the priority of the audio source. If more audio sources are playing than supported by the hardware, some might get disabled. By setting a higher priority the audio source is guaranteed to be disabled after sources with lower priority.</doc>
+		</property>
+		<property name="MinDistance" type="float" getter="GetMinDistance" setter="SetMinDistance" static="false">
+			<doc>Minimum distance at which audio attenuation starts. When the listener is closer to the source than this value, audio is heard at full volume. Once farther away the audio starts attenuating.</doc>
+		</property>
+		<property name="Attenuation" type="float" getter="GetAttenuation" setter="SetAttenuation" static="false">
+			<doc>Attenuation that controls how quickly does audio volume drop off as the listener moves further from the source.</doc>
+		</property>
+		<property name="Time" type="float" getter="GetTime" setter="SetTime" static="false">
+			<doc>Determines the current time of playback. If playback hasn&apos;t yet started, it specifies the time at which playback will start at. The time is in seconds, in range [0, clipLength].</doc>
+		</property>
+		<property name="PlayOnStart" type="bool" getter="GetPlayOnStart" setter="SetPlayOnStart" static="false">
+			<doc>Sets whether playback should start as soon as the component is enabled.</doc>
+		</property>
+		<property name="State" type="AudioSourceState" getter="GetState" setter="" static="false">
+			<doc>Returns the current state of the audio playback (playing/paused/stopped).</doc>
+		</property>
+	</class>
+	<class native="MeshData" script="MeshData">
+		<doc>Contains mesh vertex and index data used for initializing, updating and reading mesh data from Mesh.</doc>
+	</class>
 	<class native="Time" script="Time">
 		<doc>Manages global time related functionality.</doc>
 		<property name="RealTimeInSeconds" type="float" getter="GetRealTimeInSeconds" setter="" static="false">
@@ -2443,62 +2460,6 @@ This object is intended to remain static in the world. You /can/ move it, but it
 			<doc>Returns the precise time since application start, in microseconds. Unlike other time methods this is not only updated every frame, but will return exact time at the moment it is called.</doc>
 		</property>
 	</class>
-	<struct native="Result" script="Result">
-		<doc>Same as TResult, but with no output object.</doc>
-		<ctor>
-		</ctor>
-		<field name="Status" type="ResultStatus">
-		</field>
-		<field name="ErrorMessage" type="string">
-		</field>
-		<field name="AdditionalErrorMessage" type="string">
-		</field>
-	</struct>
-	<class native="MorphChannel" script="MorphChannel">
-		<doc>A collection of morph shapes that are sequentially blended together. Each shape has a weight in range [0, 1] which determines at what point is that shape blended. As the channel percent moves from 0 to 1, different shapes will be blended with those before or after them, depending on their weight.</doc>
-		<property name="Name" type="string" getter="GetName" setter="" static="false">
-			<doc>Returns the unique name of the channel.</doc>
-		</property>
-		<property name="Shapes" type="MorphShape" getter="GetShapes" setter="" static="false">
-			<doc>Returns all morph shapes within this channel, in order from lowest to highest.</doc>
-		</property>
-	</class>
-	<class native="MeshData" script="MeshData">
-		<doc>Contains mesh vertex and index data used for initializing, updating and reading mesh data from Mesh.</doc>
-	</class>
-	<enum native="HingeJointFlag" script="HingeJointFlag">
-		<doc>Flags that control hinge joint options.</doc>
-		<enumentry native="Limit" script="Limit">
-			<doc>Joint limit is enabled.</doc>
-		</enumentry>
-		<enumentry native="Drive" script="Drive">
-			<doc>Joint drive is enabled.</doc>
-		</enumentry>
-	</enum>
-	<enum native="RigidbodyFlag" script="RigidbodyFlag">
-		<doc>Flags that control options of a Rigidbody object.</doc>
-		<enumentry native="None" script="None">
-			<doc>No options.</doc>
-		</enumentry>
-		<enumentry native="AutoTensors" script="AutoTensors">
-			<doc>Automatically calculate center of mass transform and inertia tensors from child shapes (colliders).</doc>
-		</enumentry>
-		<enumentry native="AutoMass" script="AutoMass">
-			<doc>Calculate mass distribution from child shapes (colliders). Only relevant when auto-tensors is on.</doc>
-		</enumentry>
-		<enumentry native="CCD" script="CCD">
-			<doc>Enables continous collision detection. This can prevent fast moving bodies from tunneling through each other. This must also be enabled globally in Physics otherwise the flag will be ignored.</doc>
-		</enumentry>
-	</enum>
-	<enum native="AnimationWrapMode" script="AnimationWrapMode">
-		<doc>Determines how an animation clip behaves when it reaches the end.</doc>
-		<enumentry native="Loop" script="Loop">
-			<doc>Loop around to the beginning/end when the last/first frame is reached.</doc>
-		</enumentry>
-		<enumentry native="Clamp" script="Clamp">
-			<doc>Clamp to end/beginning, keeping the last/first frame active.</doc>
-		</enumentry>
-	</enum>
 	<class native="SceneTime" script="SceneTime">
 		<doc>Manages simulation time for a particular scene. This time runs only while scene is simulating.</doc>
 		<method native="Reset" script="Reset" static="false">
@@ -2516,6 +2477,15 @@ This object is intended to remain static in the world. You /can/ move it, but it
 			<doc>Allows you to speed time up or down, or completely pause it by providing zero. Must be zero or larger.</doc>
 		</property>
 	</class>
+	<enum native="ChromaticAberrationType" script="ChromaticAberrationType">
+		<doc>Types of available chromatic aberration effects.</doc>
+		<enumentry native="Complex" script="Complex">
+			<doc>More complex chromatic aberration effect that takes longer to execute but may yield more visually pleasing results than the simple variant.</doc>
+		</enumentry>
+		<enumentry native="Simple" script="Simple">
+			<doc>Simple chromatic aberration effect that is fast to execute.</doc>
+		</enumentry>
+	</enum>
 	<class native="HString" script="LocString">
 		<doc>String handle. Provides a wrapper around an Unicode string, primarily for localization purposes.
 Actual value for this string is looked up in a global string table based on the provided identifier string and currently active language. If such value doesn&apos;t exist then the identifier is used as is.
@@ -2558,32 +2528,6 @@ Use {0}, {1}, etc. in the string value for values that might change dynamically.
 			</param>
 		</method>
 	</class>
-	<struct native="PARTICLE_CIRCLE_SHAPE_DESC" script="ParticleCircleShapeOptions">
-		<doc>Information describing a ParticleEmitterCircleShape.</doc>
-		<ctor>
-		</ctor>
-		<field name="Radius" type="float">
-			<doc>Radius of the circle.</doc>
-		</field>
-		<field name="Thickness" type="float">
-			<doc>Proportion of the surface that can emit particles. Thickness of 0 results in particles being emitted only from the edge of the circle, while thickness of 1 results in particles being emitted from the entire surface. In-between values will use a part of the surface.</doc>
-		</field>
-		<field name="Arc" type="Degree">
-			<doc>Angular portion of the cone from which to emit particles from, in degrees.</doc>
-		</field>
-		<field name="Mode" type="ParticleEmissionMode">
-			<doc>Determines how will particle positions on the shape be generated.</doc>
-		</field>
-	</struct>
-	<enum native="ChromaticAberrationType" script="ChromaticAberrationType">
-		<doc>Types of available chromatic aberration effects.</doc>
-		<enumentry native="Complex" script="Complex">
-			<doc>More complex chromatic aberration effect that takes longer to execute but may yield more visually pleasing results than the simple variant.</doc>
-		</enumentry>
-		<enumentry native="Simple" script="Simple">
-			<doc>Simple chromatic aberration effect that is fast to execute.</doc>
-		</enumentry>
-	</enum>
 	<enum native="PhysicsMeshType" script="PhysicsMeshType">
 		<doc>Valid types of a mesh used for physics.</doc>
 		<enumentry native="Triangle" script="Triangle">
@@ -2799,6 +2743,12 @@ Use {0}, {1}, etc. in the string value for values that might change dynamically.
 			<doc>Animation curve representing the rotation of the root bone.</doc>
 		</property>
 	</class>
+	<class native="MorphShapes" script="MorphShapes">
+		<doc>Contains a set of morph channels used for morph target animation. Each morph channel contains one or multiple shapes which are blended together depending on frame animation. Each channel is then additively blended together depending on some weight.</doc>
+		<property name="Channels" type="MorphChannel" getter="GetChannels" setter="" static="false">
+			<doc>Returns a list of all morph channels in the morph animation.</doc>
+		</property>
+	</class>
 	<struct native="TextureSurface" script="TextureSurface">
 		<doc>References a subset of surfaces within a texture.</doc>
 		<ctor>
@@ -2827,40 +2777,6 @@ Use {0}, {1}, etc. in the string value for values that might change dynamically.
 		</field>
 		<field name="IsBoundAs2DArray" type="bool">
 			<doc>Forces a cubemap or a 3D texture to be bound as a 2D texture array.</doc>
-		</field>
-	</struct>
-	<class native="MorphShapes" script="MorphShapes">
-		<doc>Contains a set of morph channels used for morph target animation. Each morph channel contains one or multiple shapes which are blended together depending on frame animation. Each channel is then additively blended together depending on some weight.</doc>
-		<property name="Channels" type="MorphChannel" getter="GetChannels" setter="" static="false">
-			<doc>Returns a list of all morph channels in the morph animation.</doc>
-		</property>
-	</class>
-	<struct native="AnimationClipState" script="AnimationClipState">
-		<doc>Contains information about a currently playing animation clip.</doc>
-		<ctor>
-		</ctor>
-		<field name="Layer" type="int">
-			<doc>Layer the clip is playing on. Multiple clips can be played simulatenously on different layers.</doc>
-		</field>
-		<field name="Time" type="float">
-			<doc>Current time the animation is playing from.</doc>
-		</field>
-		<field name="Speed" type="float">
-			<doc>Speed at which the animation is playing.</doc>
-		</field>
-		<field name="Weight" type="float">
-			<doc>Determines how much of an influence does the clip have on the final pose.</doc>
-		</field>
-		<field name="WrapMode" type="AnimationWrapMode">
-			<doc>Determines what happens to other animation clips when a new clip starts playing.</doc>
-		</field>
-		<field name="Stopped" type="bool">
-			<doc>Determines should the time be advanced automatically. Certain type of animation clips don&apos;t involve playback (e.g. for blending where animation weight controls the animation).</doc>
-		</field>
-	</struct>
-	<struct native="Blend1DInfo" script="Blend1DInfo">
-		<doc>Defines a 1D blend where multiple animation clips are blended between each other using linear interpolation.</doc>
-		<field name="Clips" type="BlendClipInfo">
 		</field>
 	</struct>
 	<struct native="TKeyframe&lt;int32_t&gt;" script="KeyFrameInt">
@@ -3166,6 +3082,11 @@ Use {0}, {1}, etc. in the string value for values that might change dynamically.
 			<doc>If enabled, axis values will be normalized to [-1, 1] range. Most axes already come in normalized form and this value will not affect such axes. Some axes, like mouse movement are not normalized by default and will instead report relative movement. By enabling this you will normalize such axes to [-1, 1] range.</doc>
 		</field>
 	</struct>
+	<struct native="AudioDevice" script="AudioDevice">
+		<doc>Identifier for a device that can be used for playing audio.</doc>
+		<field name="Name" type="string">
+		</field>
+	</struct>
 	<struct native="AnimationEvent" script="AnimationEvent">
 		<doc>Event that is triggered when animation reaches a certain point.</doc>
 		<ctor>
@@ -3184,11 +3105,6 @@ Use {0}, {1}, etc. in the string value for values that might change dynamically.
 		</field>
 		<field name="Time" type="float">
 			<doc>Time at which to trigger the event, in seconds.</doc>
-		</field>
-	</struct>
-	<struct native="AudioDevice" script="AudioDevice">
-		<doc>Identifier for a device that can be used for playing audio.</doc>
-		<field name="Name" type="string">
 		</field>
 	</struct>
 	<class native="ManagedPropertyInfo" script="ManagedPropertyInfo">
@@ -3272,20 +3188,6 @@ Use {0}, {1}, etc. in the string value for values that might change dynamically.
 		<field name="Type" type="TangentType">
 		</field>
 	</struct>
-	<struct native="PARTICLE_SIZE_DESC" script="ParticleSizeOptions">
-		<doc>Structure used for initializing a ParticleSize object.</doc>
-		<ctor>
-		</ctor>
-		<field name="Size" type="FloatDistribution">
-			<doc>Determines the uniform size of the particles evaluated over particle lifetime. Only used if 3D size is disabled.</doc>
-		</field>
-		<field name="Size3D" type="Vector3Distribution">
-			<doc>Determines the non-uniform size of the particles evaluated over particle lifetime. Only used if 3D size is enabled.</doc>
-		</field>
-		<field name="Use3DSize" type="bool">
-			<doc>Determines should the size be evaluated uniformly for all dimensions, or evaluate each dimension with its own distribution.</doc>
-		</field>
-	</struct>
 	<class native="MorphShape" script="MorphShape">
 		<doc>Name and weight of a single shape in a morph target animation. Each shape internally represents a set of vertices that describe the morph shape.</doc>
 		<property name="Name" type="string" getter="GetName" setter="" static="false">
@@ -3313,15 +3215,6 @@ Use {0}, {1}, etc. in the string value for values that might change dynamically.
 			<doc>Returns a list of all available audio devices.</doc>
 		</property>
 	</class>
-	<enum native="AudioFormat" script="AudioFormat">
-		<doc>Valid internal engine audio formats.</doc>
-		<enumentry native="PCM" script="PCM">
-			<doc>Pulse code modulation audio (&quot;raw&quot; uncompressed audio).</doc>
-		</enumentry>
-		<enumentry native="VORBIS" script="VORBIS">
-			<doc>Vorbis compressed audio.</doc>
-		</enumentry>
-	</enum>
 	<enum native="AudioReadMode" script="AudioReadMode">
 		<doc>Modes that determine how and when is audio data read.</doc>
 		<enumentry native="LoadDecompressed" script="LoadDecompressed">
@@ -3486,6 +3379,20 @@ Use {0}, {1}, etc. in the string value for values that might change dynamically.
 			<doc>Determines the distance between temporal AA samples. Larger values result in a sharper image.</doc>
 		</property>
 	</class>
+	<struct native="ParticleSkinnedMeshShapeSettings" script="ParticleSkinnedMeshShapeSettings">
+		<doc>Information describing a ParticleEmitterSkinnedMeshShape.</doc>
+		<ctor>
+		</ctor>
+		<field name="Type" type="ParticleEmitterMeshType">
+			<doc>Determines from which portion of the mesh are the particles emitted from.</doc>
+		</field>
+		<field name="Sequential" type="bool">
+			<doc>When enabled the particles will be emitted sequentially from mesh vertices in the order they are defined. Only relevant for the Vertex emit mode.</doc>
+		</field>
+		<field name="Renderable" type="Renderable">
+			<doc>Renderable object containing a mesh to spawn particles on, as well as the attached Animation object resposible for performing skinned animation. Mesh must at least contain per-vertex position data encoded as 3D float vectors, blend indices encoded in 4-byte format, and blend weights encoded a 4D float vectors. Can optionally contain per-vertex normals encoded as 3D float vectors or as 4-byte unsigned-normalized format.</doc>
+		</field>
+	</struct>
 	<class native="AudioClipImportOptions" script="AudioClipImportOptions">
 		<doc>Contains import options you may use to control how an audio clip is imported.</doc>
 		<ctor>
@@ -3535,80 +3442,17 @@ Use {0}, {1}, etc. in the string value for values that might change dynamically.
 		<enumentry native="Count" script="Count">
 		</enumentry>
 	</enum>
-	<enum native="ManagedFieldMetaDataFlag" script="ManagedFieldMetaDataFlag">
-		<doc>Flags that are used to further define a field in a managed serializable object.</doc>
-		<enumentry native="Range" script="Range">
-			<doc>Integer or floating point field with min/max range.</doc>
-		</enumentry>
-		<enumentry native="Serializable" script="Serializable">
-			<doc>Field will be automatically serialized.</doc>
-		</enumentry>
-		<enumentry native="NotNull" script="NotNull">
-			<doc>Field containing a reference type that should never be null.</doc>
-		</enumentry>
-		<enumentry native="Inspectable" script="Inspectable">
-			<doc>Field will be visible in the default inspector.</doc>
-		</enumentry>
-		<enumentry native="Step" script="Step">
-			<doc>Integer or floating point field with a minimum increment/decrement step.</doc>
-		</enumentry>
-		<enumentry native="Animable" script="Animable">
-			<doc>Field can be animated through the animation window.</doc>
-		</enumentry>
-		<enumentry native="AsLayerMask" script="AsLayerMask">
-			<doc>Integer field rendered as a layer selection dropdown.</doc>
-		</enumentry>
-		<enumentry native="Inline" script="Inline">
-			<doc>Signifies that the field containing a class/struct should display the child fields of that objects as if they were part of the parent class in the inspector.</doc>
-		</enumentry>
-		<enumentry native="PassByCopy" script="PassByCopy">
-			<doc>Field containing a reference type being passed by copy instead of by reference.</doc>
-		</enumentry>
-		<enumentry native="NativeWrapper" script="NativeWrapper">
-			<doc>Field represents a property that wraps a native object. Getters and setters of such a property issue calls into native code to update the native object.</doc>
-		</enumentry>
-		<enumentry native="ApplyOnDirty" script="ApplyOnDirty">
-			<doc>When a field changes those changes need to be applied to the parent object by calling the field setter. Only applicable to properties containing reference types.</doc>
-		</enumentry>
-		<enumentry native="LoadOnAssign" script="LoadOnAssign">
-			<doc>Signifies that a resource reference should be loaded when assigned to field through the inspector.</doc>
-		</enumentry>
-		<enumentry native="AsQuaternion" script="AsQuaternion">
-			<doc>When a quaternion is displayed in the inspector, by default it will be displayed as converted into euler angles. Use this flag to force it to be displayed as a quaternion (4D value) with no conversion instead.</doc>
-		</enumentry>
-		<enumentry native="Category" script="Category">
-			<doc>Fields contains information about a category, which is used for grouping fields under a foldout in the inspector. Retrieve the category field style for information about the category.</doc>
-		</enumentry>
-		<enumentry native="Order" script="Order">
-			<doc>Field contains information about its order relative to other fields. Retrieve the order field style for information about the order.</doc>
-		</enumentry>
-		<enumentry native="HDR" script="HDR">
-			<doc>Field containing a color that supports high dynamic range.</doc>
-		</enumentry>
-	</enum>
-	<enum native="AudioSourceState" script="AudioSourceState">
-		<doc>Valid states in which AudioSource can be in.</doc>
-		<enumentry native="Playing" script="Playing">
-			<doc>Source is currently playing.</doc>
-		</enumentry>
-		<enumentry native="Paused" script="Paused">
-			<doc>Source is currently paused (play will resume from paused point).</doc>
-		</enumentry>
-		<enumentry native="Stopped" script="Stopped">
-			<doc>Source is currently stopped (play will resume from start).</doc>
-		</enumentry>
-	</enum>
 	<class native="ParticleEmitterStaticMeshShape" script="ParticleEmitterStaticMeshShape">
 		<doc>Particle emitter shape that emits particles from a surface of a static (non-animated) mesh. Particles can be emitted from mesh vertices, edges or triangles. If information about normals exists, particles will also inherit the normals.</doc>
 		<ctor>
 			<doc>Creates a new particle emitter static mesh shape.</doc>
-			<param name="desc" type="ParticleStaticMeshShapeOptions">
+			<param name="settings" type="ParticleStaticMeshShapeSettings">
 			</param>
 		</ctor>
 		<ctor>
 			<doc>Creates a new particle emitter static mesh shape.</doc>
 		</ctor>
-		<property name="Options" type="ParticleStaticMeshShapeOptions" getter="GetOptions" setter="SetOptions" static="false">
+		<property name="Settings" type="ParticleStaticMeshShapeSettings" getter="GetSettings" setter="SetSettings" static="false">
 			<doc>Options describing the shape.</doc>
 		</property>
 	</class>
@@ -4298,6 +4142,17 @@ Use {0}, {1}, etc. in the string value for values that might change dynamically.
 			<doc>If true the window render surface will be created, which internally provides a swap chain and allows the GPU to render to the window.</doc>
 		</field>
 	</struct>
+	<struct native="ParticleHemisphereShapeSettings" script="ParticleHemisphereShapeSettings">
+		<doc>Information describing a ParticleEmitterHemisphereShape.</doc>
+		<ctor>
+		</ctor>
+		<field name="Radius" type="float">
+			<doc>Radius of the hemisphere.</doc>
+		</field>
+		<field name="Thickness" type="float">
+			<doc>Proportion of the volume that can emit particles. Thickness of 0 results in particles being emitted only from the edge of the volume, while thickness of 1 results in particles being emitted from the entire volume. In-between values will use a part of the volume.</doc>
+		</field>
+	</struct>
 	<class native="MeshImportOptions" script="MeshImportOptions">
 		<doc>Contains import options you may use to control how is a mesh imported from some external format into engine format.</doc>
 		<ctor>
@@ -4440,6 +4295,295 @@ Use {0}, {1}, etc. in the string value for values that might change dynamically.
 	<class native="CoreApplication" script="CoreApplication">
 		<doc>Represents the primary entry point for the core systems. Handles start-up, shutdown, primary loop and allows you to load and unload plugins.</doc>
 	</class>
+	<enum native="HingeJointFlag" script="HingeJointFlag">
+		<doc>Flags that control hinge joint options.</doc>
+		<enumentry native="Limit" script="Limit">
+			<doc>Joint limit is enabled.</doc>
+		</enumentry>
+		<enumentry native="Drive" script="Drive">
+			<doc>Joint drive is enabled.</doc>
+		</enumentry>
+	</enum>
+	<enum native="RigidbodyFlag" script="RigidbodyFlag">
+		<doc>Flags that control options of a Rigidbody object.</doc>
+		<enumentry native="None" script="None">
+			<doc>No options.</doc>
+		</enumentry>
+		<enumentry native="AutoTensors" script="AutoTensors">
+			<doc>Automatically calculate center of mass transform and inertia tensors from child shapes (colliders).</doc>
+		</enumentry>
+		<enumentry native="AutoMass" script="AutoMass">
+			<doc>Calculate mass distribution from child shapes (colliders). Only relevant when auto-tensors is on.</doc>
+		</enumentry>
+		<enumentry native="CCD" script="CCD">
+			<doc>Enables continous collision detection. This can prevent fast moving bodies from tunneling through each other. This must also be enabled globally in Physics otherwise the flag will be ignored.</doc>
+		</enumentry>
+	</enum>
+	<enum native="AnimationWrapMode" script="AnimationWrapMode">
+		<doc>Determines how an animation clip behaves when it reaches the end.</doc>
+		<enumentry native="Loop" script="Loop">
+			<doc>Loop around to the beginning/end when the last/first frame is reached.</doc>
+		</enumentry>
+		<enumentry native="Clamp" script="Clamp">
+			<doc>Clamp to end/beginning, keeping the last/first frame active.</doc>
+		</enumentry>
+	</enum>
+	<struct native="AnimationClipState" script="AnimationClipState">
+		<doc>Contains information about a currently playing animation clip.</doc>
+		<ctor>
+		</ctor>
+		<field name="Layer" type="int">
+			<doc>Layer the clip is playing on. Multiple clips can be played simulatenously on different layers.</doc>
+		</field>
+		<field name="Time" type="float">
+			<doc>Current time the animation is playing from.</doc>
+		</field>
+		<field name="Speed" type="float">
+			<doc>Speed at which the animation is playing.</doc>
+		</field>
+		<field name="Weight" type="float">
+			<doc>Determines how much of an influence does the clip have on the final pose.</doc>
+		</field>
+		<field name="WrapMode" type="AnimationWrapMode">
+			<doc>Determines what happens to other animation clips when a new clip starts playing.</doc>
+		</field>
+		<field name="Stopped" type="bool">
+			<doc>Determines should the time be advanced automatically. Certain type of animation clips don&apos;t involve playback (e.g. for blending where animation weight controls the animation).</doc>
+		</field>
+	</struct>
+	<struct native="Blend1DInfo" script="Blend1DInfo">
+		<doc>Defines a 1D blend where multiple animation clips are blended between each other using linear interpolation.</doc>
+		<field name="Clips" type="BlendClipInfo">
+		</field>
+	</struct>
+	<struct native="Blend2DInfo" script="Blend2DInfo">
+		<doc>Defines a 2D blend where two animation clips are blended between each other using bilinear interpolation.</doc>
+		<field name="TopLeftClip" type="RRef&lt;AnimationClip&gt;">
+		</field>
+		<field name="TopRightClip" type="RRef&lt;AnimationClip&gt;">
+		</field>
+		<field name="BottomLeftClip" type="RRef&lt;AnimationClip&gt;">
+		</field>
+		<field name="BottomRightClip" type="RRef&lt;AnimationClip&gt;">
+		</field>
+	</struct>
+	<class native="Animation" script="Animation">
+		<doc>Handles animation playback. Takes one or multiple animation clips as input and evaluates them every animation update tick depending on set properties. The evaluated data is used by the render thread for skeletal animation, by the main thread for updating attached scene objects and bones (if skeleton is attached), or the data is made available for manual queries in the case of generic animation.</doc>
+		<method native="Play" script="Play" static="false">
+			<doc>Plays the specified animation clip.</doc>
+			<param name="clip" type="RRef&lt;AnimationClip&gt;">
+			</param>
+		</method>
+		<method native="BlendAdditive" script="BlendAdditive" static="false">
+			<doc>Plays the specified animation clip on top of the animation currently playing in the main layer. Multiple such clips can be playing at once, as long as you ensure each is given its own layer. Each animation can also have a weight that determines how much it influences the main animation.</doc>
+			<param name="clip" type="RRef&lt;AnimationClip&gt;">
+				<doc>Clip to additively blend. Must contain additive animation curves.</doc>
+			</param>
+			<param name="weight" type="float">
+				<doc>Determines how much of an effect will the blended animation have on the final output. In range [0, 1].</doc>
+			</param>
+			<param name="fadeLength" type="float">
+				<doc>Applies the blend over a specified time period, increasing the weight as the time passes. Set to zero to blend immediately. In seconds.</doc>
+			</param>
+			<param name="layer" type="int">
+				<doc>Layer to play the clip in. Multiple additive clips can be playing at once in separate layers and each layer has its own weight.</doc>
+			</param>
+		</method>
+		<method native="Blend1D" script="Blend1D" static="false">
+			<doc>Blend multiple animation clips between each other using linear interpolation. Unlike normal animations these animations are not advanced with the progress of time, and is instead expected the user manually changes the <paramref name="alpha"/> parameter.</doc>
+			<param name="info" type="Blend1DInfo">
+				<doc>Information about the clips to blend. Clip positions must be sorted from lowest to highest.</doc>
+			</param>
+			<param name="alpha" type="float">
+				<doc>Parameter that controls the blending. Range depends on the positions of the provided animation clips.</doc>
+			</param>
+		</method>
+		<method native="Blend2D" script="Blend2D" static="false">
+			<doc>Blend four animation clips between each other using bilinear interpolation. Unlike normal animations these animations are not advanced with the progress of time, and is instead expected the user manually changes the <paramref name="alpha"/> parameter.</doc>
+			<param name="info" type="Blend2DInfo">
+				<doc>Information about the clips to blend.</doc>
+			</param>
+			<param name="alpha" type="TVector2&lt;float&gt;">
+				<doc>Parameter that controls the blending, in range [(0, 0), (1, 1)]. alpha = (0, 0) means top left animation has full influence, alpha = (1, 0) means top right animation has full influence, alpha = (0, 1) means bottom left animation has full influence, alpha = (1, 1) means bottom right animation has full influence.</doc>
+			</param>
+		</method>
+		<method native="CrossFade" script="CrossFade" static="false">
+			<doc>Fades the specified animation clip in, while fading other playing animation out, over the specified time period.</doc>
+			<param name="clip" type="RRef&lt;AnimationClip&gt;">
+				<doc>Clip to fade in.</doc>
+			</param>
+			<param name="fadeLength" type="float">
+				<doc>Determines the time period over which the fade occurs. In seconds.</doc>
+			</param>
+		</method>
+		<method native="Sample" script="Sample" static="false">
+			<doc>Samples an animation clip at the specified time, displaying only that particular frame without further playback.</doc>
+			<param name="clip" type="RRef&lt;AnimationClip&gt;">
+				<doc>Animation clip to sample.</doc>
+			</param>
+			<param name="time" type="float">
+				<doc>Time to sample the clip at.</doc>
+			</param>
+		</method>
+		<method native="Stop" script="Stop" static="false">
+			<doc>Stops playing all animations on the provided layer. Specify ~0u to stop animation on the main layer (non-additive animations).</doc>
+			<param name="layer" type="int">
+			</param>
+		</method>
+		<method native="StopAll" script="StopAll" static="false">
+			<doc>Stops playing all animations.</doc>
+		</method>
+		<method native="GetState" script="GetState" static="false">
+			<doc>Retrieves detailed information about a currently playing animation clip.</doc>
+			<param name="clip" type="RRef&lt;AnimationClip&gt;">
+				<doc>Clip to retrieve the information for.</doc>
+			</param>
+			<param name="state" type="AnimationClipState">
+				<doc>Animation clip state containing the requested information. Only valid if the method returns true.</doc>
+			</param>
+			<returns type="bool">
+				<doc>True if the state was found (animation clip is playing), false otherwise.</doc>
+			</returns>
+		</method>
+		<method native="SetState" script="SetState" static="false">
+			<doc>Changes the state of a playing animation clip. If animation clip is not currently playing the playback is started for the clip.</doc>
+			<param name="clip" type="RRef&lt;AnimationClip&gt;">
+				<doc>Clip to change the state for.</doc>
+			</param>
+			<param name="state" type="AnimationClipState">
+				<doc>New state of the animation (e.g. changing the time for seeking).</doc>
+			</param>
+		</method>
+		<method native="SetMorphChannelWeight" script="SetMorphChannelWeight" static="false">
+			<doc>Changes a weight of a single morph channel, determining how much of it to apply on top of the base mesh.</doc>
+			<param name="name" type="string">
+				<doc>Name of the morph channel to modify. This depends on the mesh the animation is currently animating.</doc>
+			</param>
+			<param name="weight" type="float">
+				<doc>Weight that determines how much of the channel to apply to the mesh, in range [0, 1].</doc>
+			</param>
+		</method>
+		<property name="DefaultClip" type="RRef&lt;AnimationClip&gt;" getter="GetDefaultClip" setter="SetDefaultClip" static="false">
+			<doc>Determines the default clip to play as soon as the component is enabled. If more control over playing clips is needed use the Play(), Blend*(), CrossFade() methods to queue clips for playback manually, and SetState() method to modify their states individually.</doc>
+		</property>
+		<property name="WrapMode" type="AnimationWrapMode" getter="GetWrapMode" setter="SetWrapMode" static="false">
+			<doc>Determines the wrap mode for all active animations. Wrap mode determines what happens when animation reaches the first or last frame.</doc>
+		</property>
+		<property name="Speed" type="float" getter="GetSpeed" setter="SetSpeed" static="false">
+			<doc>Determines the speed for all animations. The default value is 1.0f. Use negative values to play-back in reverse.</doc>
+		</property>
+		<property name="IsPlaying" type="bool" getter="IsPlaying" setter="" static="false">
+			<doc>Checks if any animation clips are currently playing.</doc>
+		</property>
+		<property name="CustomBounds" type="AABox" getter="GetCustomBounds" setter="SetCustomBounds" static="false">
+			<doc>Determines bounds that will be used for animation and mesh culling. Only relevant if SetUseCustomBounds() is set to true.</doc>
+		</property>
+		<property name="UseCustomBounds" type="bool" getter="GetUseCustomBounds" setter="SetUseCustomBounds" static="false">
+			<doc>Determines should animation bounds be used for visibility determination (culling). If false the bounds of the mesh attached to the relevant Renderable component will be used instead.</doc>
+		</property>
+		<property name="Cull" type="bool" getter="GetEnableCull" setter="SetEnableCull" static="false">
+			<doc>Enables or disables culling of the animation when out of view. Culled animation will not be evaluated.</doc>
+		</property>
+	</class>
+	<class native="ShaderMetaData" script="ShaderMetaData">
+		<doc>Shader specific resource meta-data containing information about referenced include files.</doc>
+		<property name="Includes" type="string" getter="GetIncludes" setter="SetIncludes" static="false">
+		</property>
+	</class>
+	<class native="AudioListener" script="AudioListener">
+		<doc>Represents a listener that hears audio sources. For spatial audio the volume and pitch of played audio is determined by the distance, orientation and velocity differences between the source and the listener.</doc>
+	</class>
+	<enum native="ManagedFieldMetaDataFlag" script="ManagedFieldMetaDataFlag">
+		<doc>Flags that are used to further define a field in a managed serializable object.</doc>
+		<enumentry native="Range" script="Range">
+			<doc>Integer or floating point field with min/max range.</doc>
+		</enumentry>
+		<enumentry native="Serializable" script="Serializable">
+			<doc>Field will be automatically serialized.</doc>
+		</enumentry>
+		<enumentry native="NotNull" script="NotNull">
+			<doc>Field containing a reference type that should never be null.</doc>
+		</enumentry>
+		<enumentry native="Inspectable" script="Inspectable">
+			<doc>Field will be visible in the default inspector.</doc>
+		</enumentry>
+		<enumentry native="Step" script="Step">
+			<doc>Integer or floating point field with a minimum increment/decrement step.</doc>
+		</enumentry>
+		<enumentry native="Animable" script="Animable">
+			<doc>Field can be animated through the animation window.</doc>
+		</enumentry>
+		<enumentry native="AsLayerMask" script="AsLayerMask">
+			<doc>Integer field rendered as a layer selection dropdown.</doc>
+		</enumentry>
+		<enumentry native="Inline" script="Inline">
+			<doc>Signifies that the field containing a class/struct should display the child fields of that objects as if they were part of the parent class in the inspector.</doc>
+		</enumentry>
+		<enumentry native="PassByCopy" script="PassByCopy">
+			<doc>Field containing a reference type being passed by copy instead of by reference.</doc>
+		</enumentry>
+		<enumentry native="NativeWrapper" script="NativeWrapper">
+			<doc>Field represents a property that wraps a native object. Getters and setters of such a property issue calls into native code to update the native object.</doc>
+		</enumentry>
+		<enumentry native="ApplyOnDirty" script="ApplyOnDirty">
+			<doc>When a field changes those changes need to be applied to the parent object by calling the field setter. Only applicable to properties containing reference types.</doc>
+		</enumentry>
+		<enumentry native="LoadOnAssign" script="LoadOnAssign">
+			<doc>Signifies that a resource reference should be loaded when assigned to field through the inspector.</doc>
+		</enumentry>
+		<enumentry native="AsQuaternion" script="AsQuaternion">
+			<doc>When a quaternion is displayed in the inspector, by default it will be displayed as converted into euler angles. Use this flag to force it to be displayed as a quaternion (4D value) with no conversion instead.</doc>
+		</enumentry>
+		<enumentry native="Category" script="Category">
+			<doc>Fields contains information about a category, which is used for grouping fields under a foldout in the inspector. Retrieve the category field style for information about the category.</doc>
+		</enumentry>
+		<enumentry native="Order" script="Order">
+			<doc>Field contains information about its order relative to other fields. Retrieve the order field style for information about the order.</doc>
+		</enumentry>
+		<enumentry native="HDR" script="HDR">
+			<doc>Field containing a color that supports high dynamic range.</doc>
+		</enumentry>
+	</enum>
+	<enum native="AudioSourceState" script="AudioSourceState">
+		<doc>Valid states in which AudioSource can be in.</doc>
+		<enumentry native="Playing" script="Playing">
+			<doc>Source is currently playing.</doc>
+		</enumentry>
+		<enumentry native="Paused" script="Paused">
+			<doc>Source is currently paused (play will resume from paused point).</doc>
+		</enumentry>
+		<enumentry native="Stopped" script="Stopped">
+			<doc>Source is currently stopped (play will resume from start).</doc>
+		</enumentry>
+	</enum>
+	<class native="Bone" script="Bone">
+		<doc>Component that maps animation for specific bone also be applied to the SceneObject this component is attached to. The component will attach to the first found parent Animation component.</doc>
+		<property name="Name" type="string" getter="GetBoneName" setter="SetBoneName" static="false">
+			<doc>Determines the name of the bone the component is referencing.</doc>
+		</property>
+	</class>
+	<struct native="LightProbeInfo" script="LightProbeInfo">
+		<doc>Information about a single probe in the light probe volume.</doc>
+		<field name="Handle" type="int">
+		</field>
+		<field name="Position" type="Vector3">
+		</field>
+	</struct>
+	<enum native="JointBody" script="JointBody">
+		<doc>Specifies first or second body referenced by a Joint.</doc>
+		<enumentry native="Target" script="Target">
+			<doc>Body the joint is influencing.</doc>
+		</enumentry>
+		<enumentry native="Anchor" script="Anchor">
+			<doc>Body the joint is attached to (if any).</doc>
+		</enumentry>
+	</enum>
+	<class native="GUIFlexibleSpace" script="GUIFlexibleSpace">
+		<doc>GUI element that may be inserted into layouts to make a space of a flexible size. The space will expand only if there is room and other elements are not squished because of it. If multiple flexible spaces are in a layout, their sizes will be shared equally.</doc>
+		<ctor>
+			<doc>Creates a new flexible space GUI element.</doc>
+		</ctor>
+	</class>
 	<struct native="ContactPoint" script="ContactPoint">
 		<doc>Information about a single contact point during physics collision.</doc>
 		<field name="Position" type="Vector3">
@@ -4499,13 +4643,13 @@ Use {0}, {1}, etc. in the string value for values that might change dynamically.
 		<doc>Applies gravity to the particles.</doc>
 		<ctor>
 			<doc>Creates a new particle gravity evolver.</doc>
-			<param name="desc" type="ParticleGravityOptions">
+			<param name="settings" type="ParticleGravitySettings">
 			</param>
 		</ctor>
 		<ctor>
 			<doc>Creates a new particle gravity evolver.</doc>
 		</ctor>
-		<property name="Options" type="ParticleGravityOptions" getter="GetOptions" setter="SetOptions" static="false">
+		<property name="Settings" type="ParticleGravitySettings" getter="GetSettings" setter="SetSettings" static="false">
 			<doc>Options describing the evolver.</doc>
 		</property>
 	</class>
@@ -4675,78 +4819,6 @@ Use {0}, {1}, etc. in the string value for values that might change dynamically.
 		</property>
 		<property name="Center" type="Vector3" getter="GetCenter" setter="SetCenter" static="false">
 			<doc>Determines the position of the box shape, relative to the component&apos;s scene object.</doc>
-		</property>
-	</class>
-	<class native="CAudioListener" script="AudioListener">
-	</class>
-	<class native="ManagedMemberInfo" script="ManagedMemberInfo">
-		<doc>Contains data about a single member (field or property) in a managed object (class or struct).</doc>
-		<method native="ParseStyle" script="ParseStyle" static="false">
-			<doc>Parses style attributes for this members and returns a structure holding all the relevant style information.</doc>
-			<returns type="ManagedMemberStyle">
-			</returns>
-		</method>
-		<method native="GetValue" script="GetValue" static="false">
-			<doc>Returns a boxed value contained in the member in the specified object instance.</doc>
-			<param name="instance" type="object">
-				<doc>Object instance to access the member on.</doc>
-			</param>
-			<returns type="object">
-				<doc>A boxed value of the member.</doc>
-			</returns>
-		</method>
-		<method native="SetValue" script="SetValue" static="false">
-			<doc>Sets a value of the member in the specified object instance.</doc>
-			<param name="instance" type="object">
-				<doc>Object instance to access the member on.</doc>
-			</param>
-			<param name="value" type="object">
-				<doc>Boxed value to set on the member.</doc>
-			</param>
-		</method>
-		<property name="IsSerializable" type="bool" getter="IsSerializable" setter="" static="false">
-			<doc>Determines should the member be serialized when serializing the parent object.</doc>
-		</property>
-		<property name="Name" type="string" getter="GetName" setter="SetName" static="false">
-		</property>
-		<property name="TypeInfo" type="ManagedTypeInfo" getter="GetTypeInfo" setter="SetTypeInfo" static="false">
-		</property>
-		<property name="MetaDataFlags" type="ManagedFieldMetaDataFlag" getter="GetMetaDataFlags" setter="SetMetaDataFlags" static="false">
-		</property>
-	</class>
-	<class native="CAudioSource" script="AudioSource">
-		<method native="Play" script="Play" static="false">
-		</method>
-		<method native="Pause" script="Pause" static="false">
-		</method>
-		<method native="Stop" script="Stop" static="false">
-		</method>
-		<property name="Clip" type="RRef&lt;AudioClip&gt;" getter="GetClip" setter="SetClip" static="false">
-		</property>
-		<property name="Volume" type="float" getter="GetVolume" setter="SetVolume" static="false">
-		</property>
-		<property name="Pitch" type="float" getter="GetPitch" setter="SetPitch" static="false">
-		</property>
-		<property name="Loop" type="bool" getter="GetIsLooping" setter="SetIsLooping" static="false">
-		</property>
-		<property name="Priority" type="int" getter="GetPriority" setter="SetPriority" static="false">
-		</property>
-		<property name="MinDistance" type="float" getter="GetMinDistance" setter="SetMinDistance" static="false">
-		</property>
-		<property name="Attenuation" type="float" getter="GetAttenuation" setter="SetAttenuation" static="false">
-		</property>
-		<property name="Time" type="float" getter="GetTime" setter="SetTime" static="false">
-		</property>
-		<property name="PlayOnStart" type="bool" getter="GetPlayOnStart" setter="SetPlayOnStart" static="false">
-			<doc>Sets whether playback should start as soon as the component is enabled.</doc>
-		</property>
-		<property name="State" type="AudioSourceState" getter="GetState" setter="" static="false">
-		</property>
-	</class>
-	<class native="CBone" script="Bone">
-		<doc>Component that maps animation for specific bone also be applied to the SceneObject this component is attached to. The component will attach to the first found parent Animation component.</doc>
-		<property name="Name" type="string" getter="GetBoneName" setter="SetBoneName" static="false">
-			<doc>Determines the name of the bone the component is referencing.</doc>
 		</property>
 	</class>
 	<struct native="SpriteSheetGridAnimation" script="SpriteSheetGridAnimation">
@@ -5256,6 +5328,20 @@ Resize will not change the positions of current light probes. If you wish to res
 			<doc>Object movement and rotation will result in blurring of the moving object. Can be significantly more expensive than just using camera blur due to the requirement to use a velocity buffer (unless some other effect also requires it, in which case it will be re-used).</doc>
 		</enumentry>
 	</enum>
+	<struct native="ParticleRotationSettings" script="ParticleRotationSettings">
+		<doc>Structure used for initializing a ParticleRotation object.</doc>
+		<ctor>
+		</ctor>
+		<field name="Rotation" type="FloatDistribution">
+			<doc>Determines the rotation of the particles in degrees, applied around the particle&apos;s local Z axis. Only used if 3D rotation is disabled.</doc>
+		</field>
+		<field name="Rotation3D" type="Vector3Distribution">
+			<doc>Determines the rotation of the particles in degrees as Euler angles. Only used if 3D rotation is enabled.</doc>
+		</field>
+		<field name="Use3DRotation" type="bool">
+			<doc>Determines should the particle rotation be a single angle applied around a Z axis (if disabled), or a set of Euler angles that allow you to rotate around every axis (if enabled).</doc>
+		</field>
+	</struct>
 	<struct native="SubMesh" script="SubMesh">
 		<doc>Data about a sub-mesh range and the type of primitives contained in the range.</doc>
 		<ctor>
@@ -5950,32 +6036,111 @@ If this is disabled, then color grading and white balancing will not be enabled 
 			<doc>Returns the type of the represented distribution.</doc>
 		</property>
 	</class>
-	<struct native="PARTICLE_TEXTURE_ANIMATION_DESC" script="ParticleTextureAnimationOptions">
+	<struct native="ParticleTextureAnimationSettings" script="ParticleTextureAnimationSettings">
 		<doc>Structure used for initializing a ParticleTextureAnimation object.</doc>
 		<ctor>
 		</ctor>
 		<field name="RandomizeRow" type="bool">
 			<doc>Randomly pick a row to use for animation when the particle is first spawned. This implies that only a single row of the grid will be used for individual particle&apos;s animation.</doc>
 		</field>
-		<field name="NumCycles" type="int">
+		<field name="CycleCount" type="int">
 			<doc>Number of cycles to loop the animation during particle&apos;s lifetime.</doc>
 		</field>
 	</struct>
+	<class native="ShaderVariationParameters" script="ShaderVariationParameters">
+		<doc>Contains information about a single variation of a Shader. Each variation can have a separate set of #defines that control shader compilation.</doc>
+		<ctor>
+		</ctor>
+		<method native="GetInt" script="GetInt" static="false">
+			<doc>Returns the value of a signed integer parameter with the specified name. Returns 0 if the parameter cannot be found.</doc>
+			<param name="name" type="string">
+			</param>
+			<returns type="int">
+			</returns>
+		</method>
+		<method native="GetUInt" script="GetUInt" static="false">
+			<doc>Returns the value of a unsigned integer parameter with the specified name. Returns 0 if the parameter cannot be found.</doc>
+			<param name="name" type="string">
+			</param>
+			<returns type="int">
+			</returns>
+		</method>
+		<method native="GetFloat" script="GetFloat" static="false">
+			<doc>Returns the value of a float parameter with the specified name. Returns 0 if the parameter cannot be found.</doc>
+			<param name="name" type="string">
+			</param>
+			<returns type="float">
+			</returns>
+		</method>
+		<method native="GetBool" script="GetBool" static="false">
+			<doc>Returns the value of a boolean parameter with the specified name. Returns false if the parameter cannot be found.</doc>
+			<param name="name" type="string">
+			</param>
+			<returns type="bool">
+			</returns>
+		</method>
+		<method native="SetInt" script="SetInt" static="false">
+			<doc>Sets the value of the parameter for the provided name. Any previous value for a parameter with the same name will be overwritten.</doc>
+			<param name="name" type="string">
+			</param>
+			<param name="value" type="int">
+			</param>
+		</method>
+		<method native="SetUInt" script="SetUInt" static="false">
+			<doc>Sets the value of the parameter for the provided name. Any previous value for a parameter with the same name will be overwritten.</doc>
+			<param name="name" type="string">
+			</param>
+			<param name="value" type="int">
+			</param>
+		</method>
+		<method native="SetFloat" script="SetFloat" static="false">
+			<doc>Sets the value of the parameter for the provided name. Any previous value for a parameter with the same name will be overwritten.</doc>
+			<param name="name" type="string">
+			</param>
+			<param name="value" type="float">
+			</param>
+		</method>
+		<method native="SetBool" script="SetBool" static="false">
+			<doc>Sets the value of the parameter for the provided name. Any previous value for a parameter with the same name will be overwritten.</doc>
+			<param name="name" type="string">
+			</param>
+			<param name="value" type="bool">
+			</param>
+		</method>
+		<method native="RemoveParam" script="RemoveParam" static="false">
+			<doc>Removes a parameter with the specified name.</doc>
+			<param name="paramName" type="string">
+			</param>
+		</method>
+		<method native="HasParam" script="HasParam" static="false">
+			<doc>Checks if the variation has a parameter with the specified name.</doc>
+			<param name="paramName" type="string">
+			</param>
+			<returns type="bool">
+			</returns>
+		</method>
+		<method native="ClearParams" script="ClearParams" static="false">
+			<doc>Removes all parameters.</doc>
+		</method>
+		<property name="ParamNames" type="string" getter="GetParamNames" setter="" static="false">
+			<doc>Returns a list of names of all registered parameters.</doc>
+		</property>
+	</class>
 	<class native="ParticleTextureAnimation" script="ParticleTextureAnimation">
 		<doc>Provides functionality for particle texture animation. Uses the sprite texture assigned to the particle&apos;s material to determine animation properties.</doc>
 		<ctor>
 			<doc>Creates a new particle texture animation evolver.</doc>
-			<param name="desc" type="ParticleTextureAnimationOptions">
+			<param name="settings" type="ParticleTextureAnimationSettings">
 			</param>
 		</ctor>
 		<ctor>
 			<doc>Creates a new particle texture animation evolver.</doc>
 		</ctor>
-		<property name="Options" type="ParticleTextureAnimationOptions" getter="GetOptions" setter="SetOptions" static="false">
+		<property name="Settings" type="ParticleTextureAnimationSettings" getter="GetSettings" setter="SetSettings" static="false">
 			<doc>Options describing the evolver.</doc>
 		</property>
 	</class>
-	<struct native="PARTICLE_ORBIT_DESC" script="ParticleOrbitOptions">
+	<struct native="ParticleOrbitSettings" script="ParticleOrbitSettings">
 		<doc>Structure used for initializing a ParticleOrbit object.</doc>
 		<ctor>
 		</ctor>
@@ -5992,76 +6157,21 @@ If this is disabled, then color grading and white balancing will not be enabled 
 			<doc>True if the properties provided are in world space, false if in local space.</doc>
 		</field>
 	</struct>
-	<class native="SceneInstance" script="SceneInstance">
-		<doc>Contains information about an instantiated scene.</doc>
-		<method native="Clear" script="Clear" static="false">
-			<doc>Removes all scene objects from the scene, except for persistent objects. If <paramref name="forceAll"/> is true, removes even the persistent objects.</doc>
-			<param name="forceAll" type="bool">
-			</param>
-		</method>
-		<method native="CreateSceneObject" script="CreateSceneObject" static="false">
-			<doc>Creates a new scene object in the scene instance.</doc>
-			<param name="name" type="string">
-				<doc>Name of the scene object.</doc>
-			</param>
-			<param name="flags" type="int">
-				<doc>Optional flags that control object behavior. See SceneObjectFlags.</doc>
-			</param>
-			<returns type="SceneObject">
-			</returns>
-		</method>
-		<ctor>
-			<doc>Creates a new empty scene instance.</doc>
-			<param name="name" type="string">
-			</param>
-		</ctor>
-		<ctor>
-			<doc>Creates a new scene instance with an existing hierarchy.</doc>
-			<param name="name" type="string">
-			</param>
-			<param name="root" type="SceneObject">
-			</param>
-		</ctor>
-		<property name="Name" type="string" getter="GetName" setter="" static="false">
-			<doc>Name of the scene.</doc>
-		</property>
-		<property name="Root" type="SceneObject" getter="GetRoot" setter="" static="false">
-			<doc>Root object of the scene.</doc>
-		</property>
-		<property name="IsActive" type="bool" getter="IsActive" setter="" static="false">
-			<doc>Checks is the scene currently active. IF inactive the scene properties aside from the name are undefined.</doc>
-		</property>
-		<property name="Physics" type="PhysicsScene" getter="GetPhysicsScene" setter="" static="false">
-			<doc>Representation of the scene used by the physics sub-system. Contains all the objects that can be physically interacted with. Exact implementation depends on the physics plugin used.</doc>
-		</property>
-		<property name="AssociatedResourceId" type="UUID" getter="GetAssociatedResourceId" setter="" static="false">
-			<doc>Returns the ID of the resource that the scene instance is associated with (e.g. resource the scene was loaded from.).</doc>
-		</property>
-		<property name="MainCamera" type="Camera" getter="GetMainCameraComponent" setter="" static="false">
-			<doc>Returns the main camera component. See GetMainCamera().</doc>
-		</property>
-		<property name="EditorSceneInstance" type="IEditorSceneInstance" getter="GetEditorSceneInstance" setter="" static="false">
-			<doc>Editor scene instance, if running from within the editor.</doc>
-		</property>
-		<property name="IsRunning" type="bool" getter="IsRunning" setter="" static="false">
-			<doc>Checks are the components currently in the Running state.</doc>
-		</property>
-	</class>
 	<class native="ParticleOrbit" script="ParticleOrbit">
 		<doc>Moves particles so that their sprites orbit their center according to the provided offset and rotation values.</doc>
 		<ctor>
 			<doc>Creates a new particle orbit evolver.</doc>
-			<param name="desc" type="ParticleOrbitOptions">
+			<param name="settings" type="ParticleOrbitSettings">
 			</param>
 		</ctor>
 		<ctor>
 			<doc>Creates a new particle orbit evolver.</doc>
 		</ctor>
-		<property name="Options" type="ParticleOrbitOptions" getter="GetOptions" setter="SetOptions" static="false">
+		<property name="Settings" type="ParticleOrbitSettings" getter="GetSettings" setter="SetSettings" static="false">
 			<doc>Options describing the evolver.</doc>
 		</property>
 	</class>
-	<struct native="PARTICLE_VELOCITY_DESC" script="ParticleVelocityOptions">
+	<struct native="ParticleVelocitySettings" script="ParticleVelocitySettings">
 		<doc>Structure used for initializing a ParticleVelocity object.</doc>
 		<ctor>
 		</ctor>
@@ -6076,57 +6186,17 @@ If this is disabled, then color grading and white balancing will not be enabled 
 		<doc>Applies linear velocity to the particles.</doc>
 		<ctor>
 			<doc>Creates a new particle velocity evolver.</doc>
-			<param name="desc" type="ParticleVelocityOptions">
+			<param name="settings" type="ParticleVelocitySettings">
 			</param>
 		</ctor>
 		<ctor>
 			<doc>Creates a new particle velocity evolver.</doc>
 		</ctor>
-		<property name="Options" type="ParticleVelocityOptions" getter="GetOptions" setter="SetOptions" static="false">
+		<property name="Settings" type="ParticleVelocitySettings" getter="GetSettings" setter="SetSettings" static="false">
 			<doc>Options describing the evolver.</doc>
 		</property>
 	</class>
-	<struct native="LimitCommon" script="LimitCommon">
-		<doc>Contains common values used by all Joint limit types.</doc>
-		<ctor>
-			<param name="contactDist" type="float">
-			</param>
-		</ctor>
-		<ctor>
-			<param name="spring" type="Spring">
-			</param>
-			<param name="restitution" type="float">
-			</param>
-		</ctor>
-		<field name="ContactDist" type="float">
-			<doc>Distance from the limit at which it becomes active. Allows the solver to activate earlier than the limit is reached to avoid breaking the limit.</doc>
-		</field>
-		<field name="Restitution" type="float">
-			<doc>Controls how do objects react when the limit is reached, values closer to zero specify non-ellastic collision, while those closer to one specify more ellastic (i.e bouncy) collision. Must be in [0, 1] range.</doc>
-		</field>
-		<field name="Spring" type="Spring">
-			<doc>Spring that controls how are the bodies pulled back towards the limit when they breach it.</doc>
-		</field>
-	</struct>
-	<class native="GUIResizableHorizontalScrollBar" script="GUIResizableHorizontalScrollBar">
-		<doc>Specialization of a GUIScrollBar for horizontal scrolling, with the ability to resize the scroll bar.</doc>
-		<ctor>
-			<doc>Creates a new GUI element.</doc>
-			<param name="styleClass" type="string">
-				<doc>Style class that will be used for determining GUI element visuals from the current style sheet. If no class is provided, default style is determined based on GUI element type.</doc>
-			</param>
-			<param name="options" type="GUIOption">
-				<doc>Additional options that control GUI element size and position. This will override options set in the style sheet.</doc>
-			</param>
-		</ctor>
-		<ctor>
-			<doc>Creates a new GUI element.</doc>
-			<param name="options" type="GUIOption">
-				<doc>Additional options that control GUI element size and position. This will override options set in the style sheet.</doc>
-			</param>
-		</ctor>
-	</class>
-	<struct native="PARTICLE_FORCE_DESC" script="ParticleForceOptions">
+	<struct native="ParticleForceSettings" script="ParticleForceSettings">
 		<doc>Structure used for initializing a ParticleForce object.</doc>
 		<ctor>
 		</ctor>
@@ -6141,13 +6211,13 @@ If this is disabled, then color grading and white balancing will not be enabled 
 		<doc>Applies an arbitrary force to the particles.</doc>
 		<ctor>
 			<doc>Creates a new particle force evolver.</doc>
-			<param name="desc" type="ParticleForceOptions">
+			<param name="settings" type="ParticleForceSettings">
 			</param>
 		</ctor>
 		<ctor>
 			<doc>Creates a new particle force evolver.</doc>
 		</ctor>
-		<property name="Options" type="ParticleForceOptions" getter="GetOptions" setter="SetOptions" static="false">
+		<property name="Settings" type="ParticleForceSettings" getter="GetSettings" setter="SetSettings" static="false">
 			<doc>Options describing the evolver.</doc>
 		</property>
 	</class>
@@ -6163,7 +6233,7 @@ If this is disabled, then color grading and white balancing will not be enabled 
 			<doc>Character is colliding with the ground.</doc>
 		</enumentry>
 	</enum>
-	<struct native="PARTICLE_GRAVITY_DESC" script="ParticleGravityOptions">
+	<struct native="ParticleGravitySettings" script="ParticleGravitySettings">
 		<doc>Structure used for initializing a ParticleGravity object.</doc>
 		<ctor>
 		</ctor>
@@ -6171,6 +6241,54 @@ If this is disabled, then color grading and white balancing will not be enabled 
 			<doc>Scale which to apply to the gravity value retrieved from the physics sub-system.</doc>
 		</field>
 	</struct>
+	<struct native="ParticleColorSettings" script="ParticleColorOptions">
+		<doc>Structure used for initializing a ParticleColor object.</doc>
+		<field name="Color" type="ColorDistribution">
+			<doc>Determines the color of the particles evaluated over particle lifetime.</doc>
+		</field>
+	</struct>
+	<struct native="ParticleSizeSettings" script="ParticleSizeSettings">
+		<doc>Structure used for initializing a ParticleSize object.</doc>
+		<ctor>
+		</ctor>
+		<field name="Size" type="FloatDistribution">
+			<doc>Determines the uniform size of the particles evaluated over particle lifetime. Only used if 3D size is disabled.</doc>
+		</field>
+		<field name="Size3D" type="Vector3Distribution">
+			<doc>Determines the non-uniform size of the particles evaluated over particle lifetime. Only used if 3D size is enabled.</doc>
+		</field>
+		<field name="Use3DSize" type="bool">
+			<doc>Determines should the size be evaluated uniformly for all dimensions, or evaluate each dimension with its own distribution.</doc>
+		</field>
+	</struct>
+	<class native="ParticleSize" script="ParticleSize">
+		<doc>Changes the size of the particles over the particle lifetime.</doc>
+		<ctor>
+			<doc>Creates a new particle size evolver.</doc>
+			<param name="settings" type="ParticleSizeSettings">
+			</param>
+		</ctor>
+		<ctor>
+			<doc>Creates a new particle size evolver.</doc>
+		</ctor>
+		<property name="Settings" type="ParticleSizeSettings" getter="GetSettings" setter="SetSettings" static="false">
+			<doc>Options describing the evolver.</doc>
+		</property>
+	</class>
+	<class native="ParticleRotation" script="ParticleRotation">
+		<doc>Rotates the particles over the particle lifetime.</doc>
+		<ctor>
+			<doc>Creates a new particle rotation evolver.</doc>
+			<param name="settings" type="ParticleRotationSettings">
+			</param>
+		</ctor>
+		<ctor>
+			<doc>Creates a new particle rotation evolver.</doc>
+		</ctor>
+		<property name="Settings" type="ParticleRotationSettings" getter="GetSettings" setter="SetSettings" static="false">
+			<doc>Options describing the evolver.</doc>
+		</property>
+	</class>
 	<enum native="ParticleCollisionMode" script="ParticleCollisionMode">
 		<doc>Types of collision modes that ParticleCollisions evolver can operate in.</doc>
 		<enumentry native="Plane" script="Plane">
@@ -6180,144 +6298,11 @@ If this is disabled, then color grading and white balancing will not be enabled 
 			<doc>Particles will collide with physics colliders in the scene.</doc>
 		</enumentry>
 	</enum>
-	<enum native="ShaderParameterFlag" script="ShaderParameterFlag">
-		<doc>Flags used to further describe a shader parameter.</doc>
-		<enumentry native="None" script="None">
-		</enumentry>
-		<enumentry native="Internal" script="Internal">
-			<doc>Parameter is for internal use by the renderer and isn&apos;t expected to be set by the user.</doc>
-		</enumentry>
-		<enumentry native="HideInInspector" script="HideInInspector">
-			<doc>Parameter should not be displayed in the editor inspector.</doc>
-		</enumentry>
-		<enumentry native="HDR" script="HDR">
-			<doc>Allows the color parameter to be edited using the HDR color picker.</doc>
-		</enumentry>
-	</enum>
-	<struct native="PARTICLE_COLOR_DESC" script="ParticleColorOptions">
-		<doc>Structure used for initializing a ParticleColor object.</doc>
-		<field name="Color" type="ColorDistribution">
-			<doc>Determines the color of the particles evaluated over particle lifetime.</doc>
-		</field>
-	</struct>
-	<class native="StockIcons" script="StockIcons">
-		<doc>Provides easy access to variety of icons for use in the engine.</doc>
-		<method native="GetIcon" script="GetIcon" static="false">
-			<doc>Retrieves a particular stock icon.</doc>
-			<param name="icon" type="StockIcon">
-				<doc>Icon to retrieve.</doc>
-			</param>
-			<param name="size" type="float">
-				<doc>Size of the icon in points.</doc>
-			</param>
-			<returns type="SpriteImage">
-			</returns>
-		</method>
-		<method native="GetUnicode" script="GetUnicode" static="false">
-			<doc>Returns the unicode character corresponding to an icon.</doc>
-			<param name="icon" type="StockIcon">
-			</param>
-			<returns type="int">
-			</returns>
-		</method>
-		<method native="GetFont" script="GetFont" static="false">
-			<doc>Returns the font in which the provided icon is stored in.</doc>
-			<param name="icon" type="StockIcon">
-			</param>
-			<returns type="Font">
-			</returns>
-		</method>
-		<method native="ParseIconName" script="ParseIconName" static="false">
-			<doc>Parses an icon name and returns the corresponding enum entry if found.</doc>
-			<param name="name" type="string">
-			</param>
-			<returns type="StockIcon">
-			</returns>
-		</method>
-	</class>
-	<class native="ParticleSize" script="ParticleSize">
-		<doc>Changes the size of the particles over the particle lifetime.</doc>
-		<ctor>
-			<doc>Creates a new particle size evolver.</doc>
-			<param name="desc" type="ParticleSizeOptions">
-			</param>
-		</ctor>
-		<ctor>
-			<doc>Creates a new particle size evolver.</doc>
-		</ctor>
-		<property name="Options" type="ParticleSizeOptions" getter="GetOptions" setter="SetOptions" static="false">
-			<doc>Options describing the evolver.</doc>
-		</property>
-	</class>
-	<enum native="SceneObjectDiffFlags" script="SceneObjectDiffFlags">
-		<doc>Flags that mark which portion of a scene-object is modified.</doc>
-		<enumentry native="Name" script="Name">
-		</enumentry>
-		<enumentry native="Position" script="Position">
-		</enumentry>
-		<enumentry native="Active" script="Active">
-		</enumentry>
-		<enumentry native="Rotation" script="Rotation">
-		</enumentry>
-		<enumentry native="Scale" script="Scale">
-		</enumentry>
-	</enum>
-	<struct native="PARTICLE_ROTATION_DESC" script="ParticleRotationOptions">
-		<doc>Structure used for initializing a ParticleRotation object.</doc>
-		<ctor>
-		</ctor>
-		<field name="Rotation" type="FloatDistribution">
-			<doc>Determines the rotation of the particles in degrees, applied around the particle&apos;s local Z axis. Only used if 3D rotation is disabled.</doc>
-		</field>
-		<field name="Rotation3D" type="Vector3Distribution">
-			<doc>Determines the rotation of the particles in degrees as Euler angles. Only used if 3D rotation is enabled.</doc>
-		</field>
-		<field name="Use3DRotation" type="bool">
-			<doc>Determines should the particle rotation be a single angle applied around a Z axis (if disabled), or a set of Euler angles that allow you to rotate around every axis (if enabled).</doc>
-		</field>
-	</struct>
-	<class native="ParticleRotation" script="ParticleRotation">
-		<doc>Rotates the particles over the particle lifetime.</doc>
-		<ctor>
-			<doc>Creates a new particle rotation evolver.</doc>
-			<param name="desc" type="ParticleRotationOptions">
-			</param>
-		</ctor>
-		<ctor>
-			<doc>Creates a new particle rotation evolver.</doc>
-		</ctor>
-		<property name="Options" type="ParticleRotationOptions" getter="GetOptions" setter="SetOptions" static="false">
-			<doc>Options describing the evolver.</doc>
-		</property>
-	</class>
-	<struct native="PARTICLE_COLLISIONS_DESC" script="ParticleCollisionsOptions">
-		<doc>Structure used for initializing a ParticleCollisions object.</doc>
-		<ctor>
-		</ctor>
-		<field name="Mode" type="ParticleCollisionMode">
-			<doc>Collision mode determining with which geometry the particles will interact with.</doc>
-		</field>
-		<field name="Restitution" type="float">
-			<doc>Determines the elasticity (bounciness) of the particle collision. Lower values make the collision less bouncy and higher values more.</doc>
-		</field>
-		<field name="Dampening" type="float">
-			<doc>Determines how much velocity should a particle lose after a collision, in percent of its current velocity. In range [0, 1].</doc>
-		</field>
-		<field name="LifetimeLoss" type="float">
-			<doc>Determines how much should the particle lifetime be reduced after a collision, in percent of its original lifetime. In range [0, 1].</doc>
-		</field>
-		<field name="Radius" type="float">
-			<doc>Radius of every individual particle used for collisions, in meters.</doc>
-		</field>
-		<field name="Layer" type="ulong">
-			<doc>Physics layers that determine which objects will particle collide with. Only relevant when using the World collision mode.</doc>
-		</field>
-	</struct>
 	<class native="ParticleCollisions" script="ParticleCollisions">
 		<doc>Particle evolver that allows particles to collide with the world.</doc>
 		<ctor>
 			<doc>Creates a new particle collision evolver.</doc>
-			<param name="desc" type="ParticleCollisionsOptions">
+			<param name="settings" type="ParticleCollisionsSettings">
 			</param>
 		</ctor>
 		<ctor>
@@ -6329,7 +6314,7 @@ If this is disabled, then color grading and white balancing will not be enabled 
 		<property name="PlaneObjects" type="SceneObject" getter="GetPlaneObjects" setter="SetPlaneObjects" static="false">
 			<doc>Determines a set of objects whose transforms to derive the collision planes from. Objects can move in the world and collision planes will be updated automatically. Object&apos;s negative Z axis is considered to be plane normal.</doc>
 		</property>
-		<property name="Options" type="ParticleCollisionsOptions" getter="GetOptions" setter="SetOptions" static="false">
+		<property name="Settings" type="ParticleCollisionsSettings" getter="GetSettings" setter="SetSettings" static="false">
 			<doc>Options describing the evolver.</doc>
 		</property>
 	</class>
@@ -6374,160 +6359,45 @@ If this is disabled, then color grading and white balancing will not be enabled 
 			<doc>Emit particles from the entire cone volume.</doc>
 		</enumentry>
 	</enum>
-	<enum native="FontRenderMode" script="FontRenderMode">
-		<doc>Determines how is a font rendered into the bitmap texture.</doc>
-		<enumentry native="Smooth" script="Smooth">
-		</enumentry>
-		<enumentry native="Raster" script="Raster">
-		</enumentry>
-		<enumentry native="HintedSmooth" script="HintedSmooth">
-		</enumentry>
-		<enumentry native="HintedRaster" script="HintedRaster">
-		</enumentry>
-	</enum>
-	<struct native="PARTICLE_CONE_SHAPE_DESC" script="ParticleConeShapeOptions">
-		<doc>Information describing a ParticleEmitterConeShape.</doc>
-		<ctor>
-		</ctor>
-		<field name="Type" type="ParticleEmitterConeType">
-			<doc>Determines where on the cone are the particles emitter from.</doc>
-		</field>
-		<field name="Radius" type="float">
-			<doc>Radius of the cone base.</doc>
-		</field>
-		<field name="Angle" type="Degree">
-			<doc>Angle of the cone.</doc>
-		</field>
-		<field name="Length" type="float">
-			<doc>Length of the cone. Irrelevant if emission type is Base.</doc>
-		</field>
-		<field name="Thickness" type="float">
-			<doc>Proportion of the volume that can emit particles. Thickness of 0 results in particles being emitted only from the edge of the cone, while thickness of 1 results in particles being emitted from the entire volume. In-between values will use a part of the volume.</doc>
-		</field>
-		<field name="Arc" type="Degree">
-			<doc>Angular portion of the cone from which to emit particles from, in degrees.</doc>
-		</field>
-		<field name="Mode" type="ParticleEmissionMode">
-			<doc>Determines how will particle positions on the shape be generated.</doc>
-		</field>
-	</struct>
-	<struct native="SpriteTextureCreateInformation" script="SpriteTextureCreateInformation">
-		<doc>Descriptor structure used for initialization of a SpriteTexture.</doc>
-		<ctor>
-		</ctor>
-		<field name="AtlasTexture" type="RRef&lt;Texture&gt;">
-			<doc>Texture used as the atlas.</doc>
-		</field>
-		<field name="UVRange" type="TArea2&lt;float,float&gt;">
-			<doc>Range in the atlas texture that the image is to be read from, in [0, 1] range.</doc>
-		</field>
-		<field name="AnimationPlayback" type="SpriteAnimationPlayback">
-			<doc>Determines if animation is enabled and how should it play.</doc>
-		</field>
-		<field name="Animation" type="SpriteSheetGridAnimation">
-			<doc>Describes the sprite sheet grid used for animation, if animation is used.</doc>
-		</field>
-	</struct>
 	<class native="ParticleEmitterConeShape" script="ParticleEmitterConeShape">
-		<doc>Particle emitter shape that emits particles from a cone. Particles can be created on cone base or volume, while controling the radial arc of the emitted portion of the volume, as well as thickness of the cone emission volume. All particles will have random normals within the distribution of the cone.</doc>
+		<doc>Particle emitter shape that emits particles from a cone. Particles can be created on cone base or volume, while controlling the radial arc of the emitted portion of the volume, as well as thickness of the cone emission volume. All particles will have random normals within the distribution of the cone.</doc>
 		<ctor>
 			<doc>Creates a new particle emitter cone shape.</doc>
-			<param name="desc" type="ParticleConeShapeOptions">
+			<param name="settings" type="ParticleConeShapeSettings">
 			</param>
 		</ctor>
 		<ctor>
 			<doc>Creates a new particle emitter cone shape.</doc>
 		</ctor>
-		<property name="Options" type="ParticleConeShapeOptions" getter="GetOptions" setter="SetOptions" static="false">
+		<property name="Settings" type="ParticleConeShapeSettings" getter="GetSettings" setter="SetSettings" static="false">
 			<doc>Options describing the shape.</doc>
 		</property>
 	</class>
-	<struct native="PARTICLE_SPHERE_SHAPE_DESC" script="ParticleSphereShapeOptions">
-		<doc>Information describing a ParticleEmitterSphereShape.</doc>
-		<ctor>
-		</ctor>
-		<field name="Radius" type="float">
-			<doc>Radius of the sphere.</doc>
-		</field>
-		<field name="Thickness" type="float">
-			<doc>Proportion of the volume that can emit particles. Thickness of 0 results in particles being emitted only from the edge of the volume, while thickness of 1 results in particles being emitted from the entire volume. In-between values will use a part of the volume.</doc>
-		</field>
-	</struct>
-	<enum native="VertexLayout" script="VertexLayout">
-		<doc>Available vertex layouts that specify what data is provided per-vertex in a mesh. Combinations other than those provided are allowed.</doc>
-		<enumentry native="Tangent" script="Tangent">
-		</enumentry>
-		<enumentry native="PNU" script="PNU">
-		</enumentry>
-		<enumentry native="Normal" script="Normal">
-		</enumentry>
-		<enumentry native="Position" script="Position">
-		</enumentry>
-		<enumentry native="BoneWeights" script="BoneWeights">
-		</enumentry>
-		<enumentry native="Color" script="Color">
-		</enumentry>
-		<enumentry native="UV0" script="UV0">
-		</enumentry>
-		<enumentry native="UV1" script="UV1">
-		</enumentry>
-		<enumentry native="PC" script="PC">
-		</enumentry>
-		<enumentry native="PU" script="PU">
-		</enumentry>
-		<enumentry native="PCU" script="PCU">
-		</enumentry>
-		<enumentry native="PCN" script="PCN">
-		</enumentry>
-		<enumentry native="PCNU" script="PCNU">
-		</enumentry>
-		<enumentry native="PCNT" script="PCNT">
-		</enumentry>
-		<enumentry native="PCNTU" script="PCNTU">
-		</enumentry>
-		<enumentry native="PN" script="PN">
-		</enumentry>
-		<enumentry native="PNT" script="PNT">
-		</enumentry>
-		<enumentry native="PNTU" script="PNTU">
-		</enumentry>
-	</enum>
 	<class native="ParticleEmitterSphereShape" script="ParticleEmitterSphereShape">
 		<doc>Particle emitter shape that emits particles from a sphere. Particles can be emitted from sphere surface, the entire volume or a proportion of the volume depending on the thickness parameter. All particles will have normals pointing outwards in a spherical direction.</doc>
 		<ctor>
 			<doc>Creates a new particle emitter sphere shape.</doc>
-			<param name="desc" type="ParticleSphereShapeOptions">
+			<param name="settings" type="ParticleSphereShapeSettings">
 			</param>
 		</ctor>
 		<ctor>
 			<doc>Creates a new particle emitter sphere shape.</doc>
 		</ctor>
-		<property name="Options" type="ParticleSphereShapeOptions" getter="GetOptions" setter="SetOptions" static="false">
+		<property name="Settings" type="ParticleSphereShapeSettings" getter="GetSettings" setter="SetSettings" static="false">
 			<doc>Options describing the shape.</doc>
 		</property>
 	</class>
-	<struct native="PARTICLE_HEMISPHERE_SHAPE_DESC" script="ParticleHemisphereShapeOptions">
-		<doc>Information describing a ParticleEmitterHemisphereShape.</doc>
-		<ctor>
-		</ctor>
-		<field name="Radius" type="float">
-			<doc>Radius of the hemisphere.</doc>
-		</field>
-		<field name="Thickness" type="float">
-			<doc>Proportion of the volume that can emit particles. Thickness of 0 results in particles being emitted only from the edge of the volume, while thickness of 1 results in particles being emitted from the entire volume. In-between values will use a part of the volume.</doc>
-		</field>
-	</struct>
 	<class native="ParticleEmitterHemisphereShape" script="ParticleEmitterHemisphereShape">
 		<doc>Particle emitter shape that emits particles from a hemisphere. Particles can be emitted from the hemisphere surface, the entire volume or a proportion of the volume depending on the thickness parameter. All particles will have normals pointing outwards in a spherical direction.</doc>
 		<ctor>
 			<doc>Creates a new particle emitter sphere shape.</doc>
-			<param name="desc" type="ParticleHemisphereShapeOptions">
+			<param name="settings" type="ParticleHemisphereShapeSettings">
 			</param>
 		</ctor>
 		<ctor>
 			<doc>Creates a new particle emitter sphere shape.</doc>
 		</ctor>
-		<property name="Options" type="ParticleHemisphereShapeOptions" getter="GetOptions" setter="SetOptions" static="false">
+		<property name="Settings" type="ParticleHemisphereShapeSettings" getter="GetSettings" setter="SetSettings" static="false">
 			<doc>Options describing the shape.</doc>
 		</property>
 	</class>
@@ -6732,7 +6602,7 @@ The shape and mass of a rigidbody is governed by its colliders. At least one col
 			<doc>Returns information about all parameters available in the shader.</doc>
 		</property>
 	</class>
-	<struct native="PARTICLE_BOX_SHAPE_DESC" script="ParticleBoxShapeOptions">
+	<struct native="ParticleBoxShapeSettings" script="ParticleBoxShapeSettings">
 		<doc>Information describing a ParticleEmitterBoxShape.</doc>
 		<ctor>
 		</ctor>
@@ -6743,21 +6613,462 @@ The shape and mass of a rigidbody is governed by its colliders. At least one col
 			<doc>Extends of the box.</doc>
 		</field>
 	</struct>
+	<enum native="ButtonCode" script="ButtonCode">
+		<doc>Contains all possible input buttons, including keyboard scan codes, mouse buttons and gamepad buttons.</doc>
+		<enumentry native="Key2" script="Key2">
+		</enumentry>
+		<enumentry native="Numpad2" script="Numpad2">
+		</enumentry>
+		<enumentry native="Unassigned" script="Unassigned">
+		</enumentry>
+		<enumentry native="Key6" script="Key6">
+		</enumentry>
+		<enumentry native="Escape" script="Escape">
+		</enumentry>
+		<enumentry native="RightShift" script="RightShift">
+		</enumentry>
+		<enumentry native="Key1" script="Key1">
+		</enumentry>
+		<enumentry native="X" script="X">
+		</enumentry>
+		<enumentry native="LeftWindows" script="LeftWindows">
+		</enumentry>
+		<enumentry native="Key3" script="Key3">
+		</enumentry>
+		<enumentry native="Z" script="Z">
+		</enumentry>
+		<enumentry native="Enter" script="Enter">
+		</enumentry>
+		<enumentry native="Key4" script="Key4">
+		</enumentry>
+		<enumentry native="Key5" script="Key5">
+		</enumentry>
+		<enumentry native="Key7" script="Key7">
+		</enumentry>
+		<enumentry native="Key8" script="Key8">
+		</enumentry>
+		<enumentry native="Q" script="Q">
+		</enumentry>
+		<enumentry native="Minus" script="Minus">
+		</enumentry>
+		<enumentry native="CapsLock" script="CapsLock">
+		</enumentry>
+		<enumentry native="Key9" script="Key9">
+		</enumentry>
+		<enumentry native="P" script="P">
+		</enumentry>
+		<enumentry native="Key0" script="Key0">
+		</enumentry>
+		<enumentry native="Equals" script="Equals">
+		</enumentry>
+		<enumentry native="Y" script="Y">
+		</enumentry>
+		<enumentry native="LeftBracket" script="LeftBracket">
+		</enumentry>
+		<enumentry native="GamepadButton8" script="GamepadButton8">
+		</enumentry>
+		<enumentry native="Backspace" script="Backspace">
+		</enumentry>
+		<enumentry native="A" script="A">
+		</enumentry>
+		<enumentry native="Tab" script="Tab">
+		</enumentry>
+		<enumentry native="W" script="W">
+		</enumentry>
+		<enumentry native="E" script="E">
+		</enumentry>
+		<enumentry native="R" script="R">
+		</enumentry>
+		<enumentry native="T" script="T">
+		</enumentry>
+		<enumentry native="U" script="U">
+		</enumentry>
+		<enumentry native="Period" script="Period">
+		</enumentry>
+		<enumentry native="I" script="I">
+		</enumentry>
+		<enumentry native="Semicolon" script="Semicolon">
+		</enumentry>
+		<enumentry native="O" script="O">
+		</enumentry>
+		<enumentry native="D" script="D">
+		</enumentry>
+		<enumentry native="RightBracket" script="RightBracket">
+		</enumentry>
+		<enumentry native="LeftControl" script="LeftControl">
+		</enumentry>
+		<enumentry native="S" script="S">
+		</enumentry>
+		<enumentry native="F" script="F">
+		</enumentry>
+		<enumentry native="G" script="G">
+		</enumentry>
+		<enumentry native="Backslash" script="Backslash">
+		</enumentry>
+		<enumentry native="H" script="H">
+		</enumentry>
+		<enumentry native="GamepadRightBumper" script="GamepadRightBumper">
+		</enumentry>
+		<enumentry native="J" script="J">
+		</enumentry>
+		<enumentry native="K" script="K">
+		</enumentry>
+		<enumentry native="L" script="L">
+		</enumentry>
+		<enumentry native="F5" script="F5">
+		</enumentry>
+		<enumentry native="Apostrophe" script="Apostrophe">
+		</enumentry>
+		<enumentry native="WebHome" script="WebHome">
+		</enumentry>
+		<enumentry native="Grave" script="Grave">
+		</enumentry>
+		<enumentry native="GamepadStart" script="GamepadStart">
+		</enumentry>
+		<enumentry native="LeftShift" script="LeftShift">
+		</enumentry>
+		<enumentry native="C" script="C">
+		</enumentry>
+		<enumentry native="V" script="V">
+		</enumentry>
+		<enumentry native="Space" script="Space">
+		</enumentry>
+		<enumentry native="B" script="B">
+		</enumentry>
+		<enumentry native="WebStop" script="WebStop">
+		</enumentry>
+		<enumentry native="N" script="N">
+		</enumentry>
+		<enumentry native="M" script="M">
+		</enumentry>
+		<enumentry native="Comma" script="Comma">
+		</enumentry>
+		<enumentry native="Slash" script="Slash">
+		</enumentry>
+		<enumentry native="NumpadMultiply" script="NumpadMultiply">
+		</enumentry>
+		<enumentry native="GamepadA" script="GamepadA">
+		</enumentry>
+		<enumentry native="LeftAlt" script="LeftAlt">
+		</enumentry>
+		<enumentry native="GamepadButton4" script="GamepadButton4">
+		</enumentry>
+		<enumentry native="F1" script="F1">
+		</enumentry>
+		<enumentry native="GamepadButton7" script="GamepadButton7">
+		</enumentry>
+		<enumentry native="F2" script="F2">
+		</enumentry>
+		<enumentry native="GamepadButton6" script="GamepadButton6">
+		</enumentry>
+		<enumentry native="WebBack" script="WebBack">
+		</enumentry>
+		<enumentry native="F3" script="F3">
+		</enumentry>
+		<enumentry native="GamepadButton1" script="GamepadButton1">
+		</enumentry>
+		<enumentry native="F4" script="F4">
+		</enumentry>
+		<enumentry native="GamepadButton3" script="GamepadButton3">
+		</enumentry>
+		<enumentry native="F6" script="F6">
+		</enumentry>
+		<enumentry native="GamepadButton2" script="GamepadButton2">
+		</enumentry>
+		<enumentry native="F7" script="F7">
+		</enumentry>
+		<enumentry native="F8" script="F8">
+		</enumentry>
+		<enumentry native="F9" script="F9">
+		</enumentry>
+		<enumentry native="F10" script="F10">
+		</enumentry>
+		<enumentry native="NumLock" script="NumLock">
+		</enumentry>
+		<enumentry native="ScrollLock" script="ScrollLock">
+		</enumentry>
+		<enumentry native="Numpad7" script="Numpad7">
+		</enumentry>
+		<enumentry native="Numpad8" script="Numpad8">
+		</enumentry>
+		<enumentry native="Numpad9" script="Numpad9">
+		</enumentry>
+		<enumentry native="NumpadMinus" script="NumpadMinus">
+		</enumentry>
+		<enumentry native="GamepadX" script="GamepadX">
+		</enumentry>
+		<enumentry native="Numpad4" script="Numpad4">
+		</enumentry>
+		<enumentry native="GamepadY" script="GamepadY">
+		</enumentry>
+		<enumentry native="Numpad5" script="Numpad5">
+		</enumentry>
+		<enumentry native="Numpad6" script="Numpad6">
+		</enumentry>
+		<enumentry native="NumpadPlus" script="NumpadPlus">
+		</enumentry>
+		<enumentry native="Numpad1" script="Numpad1">
+		</enumentry>
+		<enumentry native="Numpad3" script="Numpad3">
+		</enumentry>
+		<enumentry native="GamepadDPadUp" script="GamepadDPadUp">
+		</enumentry>
+		<enumentry native="Numpad0" script="Numpad0">
+		</enumentry>
+		<enumentry native="NumpadDecimal" script="NumpadDecimal">
+		</enumentry>
+		<enumentry native="WebSearch" script="WebSearch">
+		</enumentry>
+		<enumentry native="OEM102" script="OEM102">
+		</enumentry>
+		<enumentry native="F11" script="F11">
+		</enumentry>
+		<enumentry native="RightControl" script="RightControl">
+		</enumentry>
+		<enumentry native="F12" script="F12">
+		</enumentry>
+		<enumentry native="F13" script="F13">
+		</enumentry>
+		<enumentry native="F14" script="F14">
+		</enumentry>
+		<enumentry native="F15" script="F15">
+		</enumentry>
+		<enumentry native="Kana" script="Kana">
+		</enumentry>
+		<enumentry native="ABNTC1" script="ABNTC1">
+		</enumentry>
+		<enumentry native="Convert" script="Convert">
+		</enumentry>
+		<enumentry native="NoConvert" script="NoConvert">
+		</enumentry>
+		<enumentry native="Yen" script="Yen">
+		</enumentry>
+		<enumentry native="ABNTC2" script="ABNTC2">
+		</enumentry>
+		<enumentry native="NumadEquals" script="NumadEquals">
+		</enumentry>
+		<enumentry native="PreviousTrack" script="PreviousTrack">
+		</enumentry>
+		<enumentry native="At" script="At">
+		</enumentry>
+		<enumentry native="Colon" script="Colon">
+		</enumentry>
+		<enumentry native="Underline" script="Underline">
+		</enumentry>
+		<enumentry native="Kanji" script="Kanji">
+		</enumentry>
+		<enumentry native="Stop" script="Stop">
+		</enumentry>
+		<enumentry native="Awake" script="Awake">
+		</enumentry>
+		<enumentry native="RightAlt" script="RightAlt">
+		</enumentry>
+		<enumentry native="AX" script="AX">
+		</enumentry>
+		<enumentry native="Unlabeled" script="Unlabeled">
+		</enumentry>
+		<enumentry native="NextTrack" script="NextTrack">
+		</enumentry>
+		<enumentry native="NumpadEnter" script="NumpadEnter">
+		</enumentry>
+		<enumentry native="Mute" script="Mute">
+		</enumentry>
+		<enumentry native="Calculator" script="Calculator">
+		</enumentry>
+		<enumentry native="GamepadButton5" script="GamepadButton5">
+		</enumentry>
+		<enumentry native="PlayPause" script="PlayPause">
+		</enumentry>
+		<enumentry native="MediaStop" script="MediaStop">
+		</enumentry>
+		<enumentry native="VolumeDown" script="VolumeDown">
+		</enumentry>
+		<enumentry native="VolumeUp" script="VolumeUp">
+		</enumentry>
+		<enumentry native="NumpadComma" script="NumpadComma">
+		</enumentry>
+		<enumentry native="NumpadDivide" script="NumpadDivide">
+		</enumentry>
+		<enumentry native="SysRq" script="SysRq">
+		</enumentry>
+		<enumentry native="Pause" script="Pause">
+		</enumentry>
+		<enumentry native="Home" script="Home">
+		</enumentry>
+		<enumentry native="MouseButton9" script="MouseButton9">
+		</enumentry>
+		<enumentry native="ArrowUp" script="ArrowUp">
+		</enumentry>
+		<enumentry native="PageUp" script="PageUp">
+		</enumentry>
+		<enumentry native="ArrowLeft" script="ArrowLeft">
+		</enumentry>
+		<enumentry native="ArrowRight" script="ArrowRight">
+		</enumentry>
+		<enumentry native="End" script="End">
+		</enumentry>
+		<enumentry native="GamepadButton20" script="GamepadButton20">
+		</enumentry>
+		<enumentry native="ArrowDown" script="ArrowDown">
+		</enumentry>
+		<enumentry native="PageDown" script="PageDown">
+		</enumentry>
+		<enumentry native="Insert" script="Insert">
+		</enumentry>
+		<enumentry native="Delete" script="Delete">
+		</enumentry>
+		<enumentry native="RightWindows" script="RightWindows">
+		</enumentry>
+		<enumentry native="ApplicationMenu" script="ApplicationMenu">
+		</enumentry>
+		<enumentry native="Power" script="Power">
+		</enumentry>
+		<enumentry native="Sleep" script="Sleep">
+		</enumentry>
+		<enumentry native="WebFavorites" script="WebFavorites">
+		</enumentry>
+		<enumentry native="WebRefresh" script="WebRefresh">
+		</enumentry>
+		<enumentry native="WebForward" script="WebForward">
+		</enumentry>
+		<enumentry native="MyComputer" script="MyComputer">
+		</enumentry>
+		<enumentry native="Mail" script="Mail">
+		</enumentry>
+		<enumentry native="MediaSelect" script="MediaSelect">
+		</enumentry>
+		<enumentry native="MouseLeft" script="MouseLeft">
+		</enumentry>
+		<enumentry native="MouseRight" script="MouseRight">
+		</enumentry>
+		<enumentry native="MouseMiddle" script="MouseMiddle">
+		</enumentry>
+		<enumentry native="MouseButton4" script="MouseButton4">
+		</enumentry>
+		<enumentry native="MouseButton5" script="MouseButton5">
+		</enumentry>
+		<enumentry native="MouseButton6" script="MouseButton6">
+		</enumentry>
+		<enumentry native="MouseButton7" script="MouseButton7">
+		</enumentry>
+		<enumentry native="MouseButton8" script="MouseButton8">
+		</enumentry>
+		<enumentry native="MouseButton10" script="MouseButton10">
+		</enumentry>
+		<enumentry native="MouseButton11" script="MouseButton11">
+		</enumentry>
+		<enumentry native="MouseButton12" script="MouseButton12">
+		</enumentry>
+		<enumentry native="MouseButton13" script="MouseButton13">
+		</enumentry>
+		<enumentry native="MouseButton14" script="MouseButton14">
+		</enumentry>
+		<enumentry native="MouseKeyCount" script="MouseKeyCount">
+		</enumentry>
+		<enumentry native="MouseButton15" script="MouseButton15">
+		</enumentry>
+		<enumentry native="MouseButton16" script="MouseButton16">
+		</enumentry>
+		<enumentry native="MouseButton17" script="MouseButton17">
+		</enumentry>
+		<enumentry native="MouseButton18" script="MouseButton18">
+		</enumentry>
+		<enumentry native="MouseButton19" script="MouseButton19">
+		</enumentry>
+		<enumentry native="GamepadButton11" script="GamepadButton11">
+		</enumentry>
+		<enumentry native="MouseButton20" script="MouseButton20">
+		</enumentry>
+		<enumentry native="GamepadButton10" script="GamepadButton10">
+		</enumentry>
+		<enumentry native="MouseButton21" script="MouseButton21">
+		</enumentry>
+		<enumentry native="GamepadButton13" script="GamepadButton13">
+		</enumentry>
+		<enumentry native="MouseButton22" script="MouseButton22">
+		</enumentry>
+		<enumentry native="GamepadButton12" script="GamepadButton12">
+		</enumentry>
+		<enumentry native="MouseButton23" script="MouseButton23">
+		</enumentry>
+		<enumentry native="GamepadButton15" script="GamepadButton15">
+		</enumentry>
+		<enumentry native="MouseButton24" script="MouseButton24">
+		</enumentry>
+		<enumentry native="GamepadButton14" script="GamepadButton14">
+		</enumentry>
+		<enumentry native="MouseButton25" script="MouseButton25">
+		</enumentry>
+		<enumentry native="GamepadButton17" script="GamepadButton17">
+		</enumentry>
+		<enumentry native="MouseButton26" script="MouseButton26">
+		</enumentry>
+		<enumentry native="GamepadButton16" script="GamepadButton16">
+		</enumentry>
+		<enumentry native="MouseButton27" script="MouseButton27">
+		</enumentry>
+		<enumentry native="GamepadButton19" script="GamepadButton19">
+		</enumentry>
+		<enumentry native="MouseButton28" script="MouseButton28">
+		</enumentry>
+		<enumentry native="GamepadButton18" script="GamepadButton18">
+		</enumentry>
+		<enumentry native="MouseButton29" script="MouseButton29">
+		</enumentry>
+		<enumentry native="MouseButton30" script="MouseButton30">
+		</enumentry>
+		<enumentry native="MouseButton31" script="MouseButton31">
+		</enumentry>
+		<enumentry native="MouseButton32" script="MouseButton32">
+		</enumentry>
+		<enumentry native="GamepadB" script="GamepadB">
+		</enumentry>
+		<enumentry native="GamepadLeftBumper" script="GamepadLeftBumper">
+		</enumentry>
+		<enumentry native="GamepadLeftStick" script="GamepadLeftStick">
+		</enumentry>
+		<enumentry native="GamepadRightStick" script="GamepadRightStick">
+		</enumentry>
+		<enumentry native="GamepadBack" script="GamepadBack">
+		</enumentry>
+		<enumentry native="GamepadDPadLeft" script="GamepadDPadLeft">
+		</enumentry>
+		<enumentry native="GamepadDPatRight" script="GamepadDPatRight">
+		</enumentry>
+		<enumentry native="GamepadDPadDown" script="GamepadDPadDown">
+		</enumentry>
+		<enumentry native="GamepadButton9" script="GamepadButton9">
+		</enumentry>
+		<enumentry native="GamepadDPadUpLeft" script="GamepadDPadUpLeft">
+		</enumentry>
+		<enumentry native="GamepadDPadUpRight" script="GamepadDPadUpRight">
+		</enumentry>
+		<enumentry native="GamepadDPadDownLeft" script="GamepadDPadDownLeft">
+		</enumentry>
+		<enumentry native="GamepadDPadDownRight" script="GamepadDPadDownRight">
+		</enumentry>
+		<enumentry native="KeyboardKeyCount" script="KeyboardKeyCount">
+		</enumentry>
+		<enumentry native="GamepadKeyCount" script="GamepadKeyCount">
+		</enumentry>
+		<enumentry native="TotalKeyCount" script="TotalKeyCount">
+		</enumentry>
+	</enum>
 	<class native="ParticleEmitterBoxShape" script="ParticleEmitterBoxShape">
 		<doc>Particle emitter shape that emits particles from an axis aligned box. Particles can be emitted from box volume, surface or edges. All particles have their normals set to positive Z direction.</doc>
 		<ctor>
 			<doc>Creates a new particle emitter box shape.</doc>
-			<param name="desc" type="ParticleBoxShapeOptions">
+			<param name="settings" type="ParticleBoxShapeSettings">
 			</param>
 		</ctor>
 		<ctor>
 			<doc>Creates a new particle emitter box shape.</doc>
 		</ctor>
-		<property name="Options" type="ParticleBoxShapeOptions" getter="GetOptions" setter="SetOptions" static="false">
+		<property name="Settings" type="ParticleBoxShapeSettings" getter="GetSettings" setter="SetSettings" static="false">
 			<doc>Options describing the shape.</doc>
 		</property>
 	</class>
-	<struct native="PARTICLE_LINE_SHAPE_DESC" script="ParticleLineShapeOptions">
+	<struct native="ParticleLineShapeSettings" script="ParticleLineShapeSettings">
 		<doc>Information describing a ParticleEmitterLineShape.</doc>
 		<ctor>
 		</ctor>
@@ -6772,13 +7083,13 @@ The shape and mass of a rigidbody is governed by its colliders. At least one col
 		<doc>Particle emitter shape that emits particles from a line segment.</doc>
 		<ctor>
 			<doc>Creates a new particle emitter edge shape.</doc>
-			<param name="desc" type="ParticleLineShapeOptions">
+			<param name="settings" type="ParticleLineShapeSettings">
 			</param>
 		</ctor>
 		<ctor>
 			<doc>Creates a new particle emitter edge shape.</doc>
 		</ctor>
-		<property name="Options" type="ParticleLineShapeOptions" getter="GetOptions" setter="SetOptions" static="false">
+		<property name="Settings" type="ParticleLineShapeSettings" getter="GetSettings" setter="SetSettings" static="false">
 			<doc>Options describing the shape.</doc>
 		</property>
 	</class>
@@ -6786,13 +7097,13 @@ The shape and mass of a rigidbody is governed by its colliders. At least one col
 		<doc>Particle emitter shape that emits particles from a circle. Using the thickness parameter you can control whether to emit only from circle edge, the entire surface or just a part of the surface. Using the arc parameter you can emit from a specific angular portion of the circle.</doc>
 		<ctor>
 			<doc>Creates a new particle emitter circle shape.</doc>
-			<param name="desc" type="ParticleCircleShapeOptions">
+			<param name="settings" type="ParticleCircleShapeSettings">
 			</param>
 		</ctor>
 		<ctor>
 			<doc>Creates a new particle emitter circle shape.</doc>
 		</ctor>
-		<property name="Options" type="ParticleCircleShapeOptions" getter="GetOptions" setter="SetOptions" static="false">
+		<property name="Settings" type="ParticleCircleShapeSettings" getter="GetSettings" setter="SetSettings" static="false">
 			<doc>Options describing the shape.</doc>
 		</property>
 	</class>
@@ -6819,7 +7130,21 @@ The shape and mass of a rigidbody is governed by its colliders. At least one col
 			<doc>Rotation around the Z axis.</doc>
 		</enumentry>
 	</enum>
-	<struct native="PARTICLE_RECT_SHAPE_DESC" script="ParticleRectShapeOptions">
+	<struct native="ParticleStaticMeshShapeSettings" script="ParticleStaticMeshShapeSettings">
+		<doc>Information describing a ParticleEmitterStaticMeshShape.</doc>
+		<ctor>
+		</ctor>
+		<field name="Type" type="ParticleEmitterMeshType">
+			<doc>Determines from which portion of the mesh are the particles emitted from.</doc>
+		</field>
+		<field name="Sequential" type="bool">
+			<doc>When enabled the particles will be emitted sequentially from mesh vertices in the order they are defined. Only relevant for the Vertex emit mode.</doc>
+		</field>
+		<field name="Mesh" type="RRef&lt;Mesh&gt;">
+			<doc>Mesh to spawn particles on. Must at least contain per-vertex position data encoded as 3D float vectors. Can optionally contain per-vertex normals encoded as 3D float vectors or as 4-byte unsigned-normalized format.</doc>
+		</field>
+	</struct>
+	<struct native="ParticleRectangleShapeSettings" script="ParticleRectShapeSettings">
 		<doc>Information describing a ParticleEmitterRectShape.</doc>
 		<field name="Extents" type="TVector2&lt;float&gt;">
 			<doc>Extents of the rectangle.</doc>
@@ -6829,13 +7154,13 @@ The shape and mass of a rigidbody is governed by its colliders. At least one col
 		<doc>Particle emitter shape that emits particles from the surface of a rectangle.</doc>
 		<ctor>
 			<doc>Creates a new particle emitter rectangle shape.</doc>
-			<param name="desc" type="ParticleRectShapeOptions">
+			<param name="settings" type="ParticleRectShapeSettings">
 			</param>
 		</ctor>
 		<ctor>
 			<doc>Creates a new particle emitter rectangle shape.</doc>
 		</ctor>
-		<property name="Options" type="ParticleRectShapeOptions" getter="GetOptions" setter="SetOptions" static="false">
+		<property name="Settings" type="ParticleRectShapeSettings" getter="GetSettings" setter="SetSettings" static="false">
 			<doc>Options describing the shape.</doc>
 		</property>
 	</class>
@@ -6876,20 +7201,6 @@ The shape and mass of a rigidbody is governed by its colliders. At least one col
 			<doc>Determines the render mode used for rendering the characters into a bitmap.</doc>
 		</field>
 	</struct>
-	<struct native="PARTICLE_SKINNED_MESH_SHAPE_DESC" script="ParticleSkinnedMeshShapeOptions">
-		<doc>Information describing a ParticleEmitterSkinnedMeshShape.</doc>
-		<ctor>
-		</ctor>
-		<field name="Type" type="ParticleEmitterMeshType">
-			<doc>Determines from which portion of the mesh are the particles emitted from.</doc>
-		</field>
-		<field name="Sequential" type="bool">
-			<doc>When enabled the particles will be emitted sequentially from mesh vertices in the order they are defined. Only relevant for the Vertex emit mode.</doc>
-		</field>
-		<field name="Renderable" type="Renderable">
-			<doc>Renderable object containing a mesh to spawn particles on, as well as the attached Animation object resposible for performing skinned animation. Mesh must at least contain per-vertex position data encoded as 3D float vectors, blend indices encoded in 4-byte format, and blend weights encoded a 4D float vectors. Can optionally contain per-vertex normals encoded as 3D float vectors or as 4-byte unsigned-normalized format.</doc>
-		</field>
-	</struct>
 	<enum native="TextureScaleMode" script="TextureScaleMode">
 		<doc>Type of scaling modes for GUI images.</doc>
 		<enumentry native="RepeatToFit" script="RepeatToFit">
@@ -6922,13 +7233,13 @@ The shape and mass of a rigidbody is governed by its colliders. At least one col
 		<doc>Particle emitter shape that emits particles from a surface of a skinned (animated) mesh. Particles can be emitted from mesh vertices, edges or triangles. If information about normals exists, particles will also inherit the normals.</doc>
 		<ctor>
 			<doc>Creates a new particle emitter skinned mesh shape.</doc>
-			<param name="desc" type="ParticleSkinnedMeshShapeOptions">
+			<param name="settings" type="ParticleSkinnedMeshShapeSettings">
 			</param>
 		</ctor>
 		<ctor>
 			<doc>Creates a new particle emitter skinned mesh shape.</doc>
 		</ctor>
-		<property name="Options" type="ParticleSkinnedMeshShapeOptions" getter="GetOptions" setter="SetOptions" static="false">
+		<property name="Settings" type="ParticleSkinnedMeshShapeSettings" getter="GetSettings" setter="SetSettings" static="false">
 			<doc>Options describing the shape.</doc>
 		</property>
 	</class>
@@ -7431,28 +7742,6 @@ Does not account for gravity, you must apply it manually.</doc>
 			</param>
 		</event>
 	</class>
-	<struct native="LightProbeInfo" script="LightProbeInfo">
-		<doc>Information about a single probe in the light probe volume.</doc>
-		<field name="Handle" type="int">
-		</field>
-		<field name="Position" type="Vector3">
-		</field>
-	</struct>
-	<enum native="JointBody" script="JointBody">
-		<doc>Specifies first or second body referenced by a Joint.</doc>
-		<enumentry native="Target" script="Target">
-			<doc>Body the joint is influencing.</doc>
-		</enumentry>
-		<enumentry native="Anchor" script="Anchor">
-			<doc>Body the joint is attached to (if any).</doc>
-		</enumentry>
-	</enum>
-	<class native="GUIFlexibleSpace" script="GUIFlexibleSpace">
-		<doc>GUI element that may be inserted into layouts to make a space of a flexible size. The space will expand only if there is room and other elements are not squished because of it. If multiple flexible spaces are in a layout, their sizes will be shared equally.</doc>
-		<ctor>
-			<doc>Creates a new flexible space GUI element.</doc>
-		</ctor>
-	</class>
 	<class native="GUIProgressBar" script="GUIProgressBar">
 		<doc>GUI element containing a background image and a fill image that is scaled depending on the percentage set by the caller.</doc>
 		<ctor>
@@ -7495,6 +7784,46 @@ Does not account for gravity, you must apply it manually.</doc>
 			<doc>Damping strength. Force propertional to the velocity error.</doc>
 		</field>
 	</struct>
+	<struct native="LimitCommon" script="LimitCommon">
+		<doc>Contains common values used by all Joint limit types.</doc>
+		<ctor>
+			<param name="contactDist" type="float">
+			</param>
+		</ctor>
+		<ctor>
+			<param name="spring" type="Spring">
+			</param>
+			<param name="restitution" type="float">
+			</param>
+		</ctor>
+		<field name="ContactDist" type="float">
+			<doc>Distance from the limit at which it becomes active. Allows the solver to activate earlier than the limit is reached to avoid breaking the limit.</doc>
+		</field>
+		<field name="Restitution" type="float">
+			<doc>Controls how do objects react when the limit is reached, values closer to zero specify non-ellastic collision, while those closer to one specify more ellastic (i.e bouncy) collision. Must be in [0, 1] range.</doc>
+		</field>
+		<field name="Spring" type="Spring">
+			<doc>Spring that controls how are the bodies pulled back towards the limit when they breach it.</doc>
+		</field>
+	</struct>
+	<class native="GUIResizableHorizontalScrollBar" script="GUIResizableHorizontalScrollBar">
+		<doc>Specialization of a GUIScrollBar for horizontal scrolling, with the ability to resize the scroll bar.</doc>
+		<ctor>
+			<doc>Creates a new GUI element.</doc>
+			<param name="styleClass" type="string">
+				<doc>Style class that will be used for determining GUI element visuals from the current style sheet. If no class is provided, default style is determined based on GUI element type.</doc>
+			</param>
+			<param name="options" type="GUIOption">
+				<doc>Additional options that control GUI element size and position. This will override options set in the style sheet.</doc>
+			</param>
+		</ctor>
+		<ctor>
+			<doc>Creates a new GUI element.</doc>
+			<param name="options" type="GUIOption">
+				<doc>Additional options that control GUI element size and position. This will override options set in the style sheet.</doc>
+			</param>
+		</ctor>
+	</class>
 	<struct native="LimitLinearRange" script="LimitLinearRange">
 		<doc>Represents a joint limit between two distance values. Lower value must be less than the upper value.</doc>
 		<ctor>
@@ -8529,6 +8858,34 @@ Default value is 0.5. Should be in rough range [-1, 1].</doc>
 			</param>
 		</ctor>
 	</class>
+	<enum native="FontRenderMode" script="FontRenderMode">
+		<doc>Determines how is a font rendered into the bitmap texture.</doc>
+		<enumentry native="Smooth" script="Smooth">
+		</enumentry>
+		<enumentry native="Raster" script="Raster">
+		</enumentry>
+		<enumentry native="HintedSmooth" script="HintedSmooth">
+		</enumentry>
+		<enumentry native="HintedRaster" script="HintedRaster">
+		</enumentry>
+	</enum>
+	<struct native="SpriteTextureCreateInformation" script="SpriteTextureCreateInformation">
+		<doc>Descriptor structure used for initialization of a SpriteTexture.</doc>
+		<ctor>
+		</ctor>
+		<field name="AtlasTexture" type="RRef&lt;Texture&gt;">
+			<doc>Texture used as the atlas.</doc>
+		</field>
+		<field name="UVRange" type="TArea2&lt;float,float&gt;">
+			<doc>Range in the atlas texture that the image is to be read from, in [0, 1] range.</doc>
+		</field>
+		<field name="AnimationPlayback" type="SpriteAnimationPlayback">
+			<doc>Determines if animation is enabled and how should it play.</doc>
+		</field>
+		<field name="Animation" type="SpriteSheetGridAnimation">
+			<doc>Describes the sprite sheet grid used for animation, if animation is used.</doc>
+		</field>
+	</struct>
 	<class native="SpriteTexture" script="SpriteTexture">
 		<doc>Implementation of SpriteImage that uses a user-provided texture as the atlas texture.</doc>
 		<ctor>
@@ -8800,528 +9157,8 @@ Default value is 0.5. Should be in rough range [-1, 1].</doc>
 		<property name="IsAdditive" type="bool" getter="GetIsAdditive" setter="SetIsAdditive" static="false">
 		</property>
 	</class>
-	<enum native="ButtonCode" script="ButtonCode">
-		<doc>Contains all possible input buttons, including keyboard scan codes, mouse buttons and gamepad buttons.</doc>
-		<enumentry native="Key2" script="Key2">
-		</enumentry>
-		<enumentry native="Numpad2" script="Numpad2">
-		</enumentry>
-		<enumentry native="Unassigned" script="Unassigned">
-		</enumentry>
-		<enumentry native="Key6" script="Key6">
-		</enumentry>
-		<enumentry native="Escape" script="Escape">
-		</enumentry>
-		<enumentry native="RightShift" script="RightShift">
-		</enumentry>
-		<enumentry native="Key1" script="Key1">
-		</enumentry>
-		<enumentry native="X" script="X">
-		</enumentry>
-		<enumentry native="LeftWindows" script="LeftWindows">
-		</enumentry>
-		<enumentry native="Key3" script="Key3">
-		</enumentry>
-		<enumentry native="Z" script="Z">
-		</enumentry>
-		<enumentry native="Enter" script="Enter">
-		</enumentry>
-		<enumentry native="Key4" script="Key4">
-		</enumentry>
-		<enumentry native="Key5" script="Key5">
-		</enumentry>
-		<enumentry native="Key7" script="Key7">
-		</enumentry>
-		<enumentry native="Key8" script="Key8">
-		</enumentry>
-		<enumentry native="Q" script="Q">
-		</enumentry>
-		<enumentry native="Minus" script="Minus">
-		</enumentry>
-		<enumentry native="CapsLock" script="CapsLock">
-		</enumentry>
-		<enumentry native="Key9" script="Key9">
-		</enumentry>
-		<enumentry native="P" script="P">
-		</enumentry>
-		<enumentry native="Key0" script="Key0">
-		</enumentry>
-		<enumentry native="Equals" script="Equals">
-		</enumentry>
-		<enumentry native="Y" script="Y">
-		</enumentry>
-		<enumentry native="LeftBracket" script="LeftBracket">
-		</enumentry>
-		<enumentry native="GamepadButton8" script="GamepadButton8">
-		</enumentry>
-		<enumentry native="Backspace" script="Backspace">
-		</enumentry>
-		<enumentry native="A" script="A">
-		</enumentry>
-		<enumentry native="Tab" script="Tab">
-		</enumentry>
-		<enumentry native="W" script="W">
-		</enumentry>
-		<enumentry native="E" script="E">
-		</enumentry>
-		<enumentry native="R" script="R">
-		</enumentry>
-		<enumentry native="T" script="T">
-		</enumentry>
-		<enumentry native="U" script="U">
-		</enumentry>
-		<enumentry native="Period" script="Period">
-		</enumentry>
-		<enumentry native="I" script="I">
-		</enumentry>
-		<enumentry native="Semicolon" script="Semicolon">
-		</enumentry>
-		<enumentry native="O" script="O">
-		</enumentry>
-		<enumentry native="D" script="D">
-		</enumentry>
-		<enumentry native="RightBracket" script="RightBracket">
-		</enumentry>
-		<enumentry native="LeftControl" script="LeftControl">
-		</enumentry>
-		<enumentry native="S" script="S">
-		</enumentry>
-		<enumentry native="F" script="F">
-		</enumentry>
-		<enumentry native="G" script="G">
-		</enumentry>
-		<enumentry native="Backslash" script="Backslash">
-		</enumentry>
-		<enumentry native="H" script="H">
-		</enumentry>
-		<enumentry native="GamepadRightBumper" script="GamepadRightBumper">
-		</enumentry>
-		<enumentry native="J" script="J">
-		</enumentry>
-		<enumentry native="K" script="K">
-		</enumentry>
-		<enumentry native="L" script="L">
-		</enumentry>
-		<enumentry native="F5" script="F5">
-		</enumentry>
-		<enumentry native="Apostrophe" script="Apostrophe">
-		</enumentry>
-		<enumentry native="WebHome" script="WebHome">
-		</enumentry>
-		<enumentry native="Grave" script="Grave">
-		</enumentry>
-		<enumentry native="GamepadStart" script="GamepadStart">
-		</enumentry>
-		<enumentry native="LeftShift" script="LeftShift">
-		</enumentry>
-		<enumentry native="C" script="C">
-		</enumentry>
-		<enumentry native="V" script="V">
-		</enumentry>
-		<enumentry native="Space" script="Space">
-		</enumentry>
-		<enumentry native="B" script="B">
-		</enumentry>
-		<enumentry native="WebStop" script="WebStop">
-		</enumentry>
-		<enumentry native="N" script="N">
-		</enumentry>
-		<enumentry native="M" script="M">
-		</enumentry>
-		<enumentry native="Comma" script="Comma">
-		</enumentry>
-		<enumentry native="Slash" script="Slash">
-		</enumentry>
-		<enumentry native="NumpadMultiply" script="NumpadMultiply">
-		</enumentry>
-		<enumentry native="GamepadA" script="GamepadA">
-		</enumentry>
-		<enumentry native="LeftAlt" script="LeftAlt">
-		</enumentry>
-		<enumentry native="GamepadButton4" script="GamepadButton4">
-		</enumentry>
-		<enumentry native="F1" script="F1">
-		</enumentry>
-		<enumentry native="GamepadButton7" script="GamepadButton7">
-		</enumentry>
-		<enumentry native="F2" script="F2">
-		</enumentry>
-		<enumentry native="GamepadButton6" script="GamepadButton6">
-		</enumentry>
-		<enumentry native="WebBack" script="WebBack">
-		</enumentry>
-		<enumentry native="F3" script="F3">
-		</enumentry>
-		<enumentry native="GamepadButton1" script="GamepadButton1">
-		</enumentry>
-		<enumentry native="F4" script="F4">
-		</enumentry>
-		<enumentry native="GamepadButton3" script="GamepadButton3">
-		</enumentry>
-		<enumentry native="F6" script="F6">
-		</enumentry>
-		<enumentry native="GamepadButton2" script="GamepadButton2">
-		</enumentry>
-		<enumentry native="F7" script="F7">
-		</enumentry>
-		<enumentry native="F8" script="F8">
-		</enumentry>
-		<enumentry native="F9" script="F9">
-		</enumentry>
-		<enumentry native="F10" script="F10">
-		</enumentry>
-		<enumentry native="NumLock" script="NumLock">
-		</enumentry>
-		<enumentry native="ScrollLock" script="ScrollLock">
-		</enumentry>
-		<enumentry native="Numpad7" script="Numpad7">
-		</enumentry>
-		<enumentry native="Numpad8" script="Numpad8">
-		</enumentry>
-		<enumentry native="Numpad9" script="Numpad9">
-		</enumentry>
-		<enumentry native="NumpadMinus" script="NumpadMinus">
-		</enumentry>
-		<enumentry native="GamepadX" script="GamepadX">
-		</enumentry>
-		<enumentry native="Numpad4" script="Numpad4">
-		</enumentry>
-		<enumentry native="GamepadY" script="GamepadY">
-		</enumentry>
-		<enumentry native="Numpad5" script="Numpad5">
-		</enumentry>
-		<enumentry native="Numpad6" script="Numpad6">
-		</enumentry>
-		<enumentry native="NumpadPlus" script="NumpadPlus">
-		</enumentry>
-		<enumentry native="Numpad1" script="Numpad1">
-		</enumentry>
-		<enumentry native="Numpad3" script="Numpad3">
-		</enumentry>
-		<enumentry native="GamepadDPadUp" script="GamepadDPadUp">
-		</enumentry>
-		<enumentry native="Numpad0" script="Numpad0">
-		</enumentry>
-		<enumentry native="NumpadDecimal" script="NumpadDecimal">
-		</enumentry>
-		<enumentry native="WebSearch" script="WebSearch">
-		</enumentry>
-		<enumentry native="OEM102" script="OEM102">
-		</enumentry>
-		<enumentry native="F11" script="F11">
-		</enumentry>
-		<enumentry native="RightControl" script="RightControl">
-		</enumentry>
-		<enumentry native="F12" script="F12">
-		</enumentry>
-		<enumentry native="F13" script="F13">
-		</enumentry>
-		<enumentry native="F14" script="F14">
-		</enumentry>
-		<enumentry native="F15" script="F15">
-		</enumentry>
-		<enumentry native="Kana" script="Kana">
-		</enumentry>
-		<enumentry native="ABNTC1" script="ABNTC1">
-		</enumentry>
-		<enumentry native="Convert" script="Convert">
-		</enumentry>
-		<enumentry native="NoConvert" script="NoConvert">
-		</enumentry>
-		<enumentry native="Yen" script="Yen">
-		</enumentry>
-		<enumentry native="ABNTC2" script="ABNTC2">
-		</enumentry>
-		<enumentry native="NumadEquals" script="NumadEquals">
-		</enumentry>
-		<enumentry native="PreviousTrack" script="PreviousTrack">
-		</enumentry>
-		<enumentry native="At" script="At">
-		</enumentry>
-		<enumentry native="Colon" script="Colon">
-		</enumentry>
-		<enumentry native="Underline" script="Underline">
-		</enumentry>
-		<enumentry native="Kanji" script="Kanji">
-		</enumentry>
-		<enumentry native="Stop" script="Stop">
-		</enumentry>
-		<enumentry native="Awake" script="Awake">
-		</enumentry>
-		<enumentry native="RightAlt" script="RightAlt">
-		</enumentry>
-		<enumentry native="AX" script="AX">
-		</enumentry>
-		<enumentry native="Unlabeled" script="Unlabeled">
-		</enumentry>
-		<enumentry native="NextTrack" script="NextTrack">
-		</enumentry>
-		<enumentry native="NumpadEnter" script="NumpadEnter">
-		</enumentry>
-		<enumentry native="Mute" script="Mute">
-		</enumentry>
-		<enumentry native="Calculator" script="Calculator">
-		</enumentry>
-		<enumentry native="GamepadButton5" script="GamepadButton5">
-		</enumentry>
-		<enumentry native="PlayPause" script="PlayPause">
-		</enumentry>
-		<enumentry native="MediaStop" script="MediaStop">
-		</enumentry>
-		<enumentry native="VolumeDown" script="VolumeDown">
-		</enumentry>
-		<enumentry native="VolumeUp" script="VolumeUp">
-		</enumentry>
-		<enumentry native="NumpadComma" script="NumpadComma">
-		</enumentry>
-		<enumentry native="NumpadDivide" script="NumpadDivide">
-		</enumentry>
-		<enumentry native="SysRq" script="SysRq">
-		</enumentry>
-		<enumentry native="Pause" script="Pause">
-		</enumentry>
-		<enumentry native="Home" script="Home">
-		</enumentry>
-		<enumentry native="MouseButton9" script="MouseButton9">
-		</enumentry>
-		<enumentry native="ArrowUp" script="ArrowUp">
-		</enumentry>
-		<enumentry native="PageUp" script="PageUp">
-		</enumentry>
-		<enumentry native="ArrowLeft" script="ArrowLeft">
-		</enumentry>
-		<enumentry native="ArrowRight" script="ArrowRight">
-		</enumentry>
-		<enumentry native="End" script="End">
-		</enumentry>
-		<enumentry native="GamepadButton20" script="GamepadButton20">
-		</enumentry>
-		<enumentry native="ArrowDown" script="ArrowDown">
-		</enumentry>
-		<enumentry native="PageDown" script="PageDown">
-		</enumentry>
-		<enumentry native="Insert" script="Insert">
-		</enumentry>
-		<enumentry native="Delete" script="Delete">
-		</enumentry>
-		<enumentry native="RightWindows" script="RightWindows">
-		</enumentry>
-		<enumentry native="ApplicationMenu" script="ApplicationMenu">
-		</enumentry>
-		<enumentry native="Power" script="Power">
-		</enumentry>
-		<enumentry native="Sleep" script="Sleep">
-		</enumentry>
-		<enumentry native="WebFavorites" script="WebFavorites">
-		</enumentry>
-		<enumentry native="WebRefresh" script="WebRefresh">
-		</enumentry>
-		<enumentry native="WebForward" script="WebForward">
-		</enumentry>
-		<enumentry native="MyComputer" script="MyComputer">
-		</enumentry>
-		<enumentry native="Mail" script="Mail">
-		</enumentry>
-		<enumentry native="MediaSelect" script="MediaSelect">
-		</enumentry>
-		<enumentry native="MouseLeft" script="MouseLeft">
-		</enumentry>
-		<enumentry native="MouseRight" script="MouseRight">
-		</enumentry>
-		<enumentry native="MouseMiddle" script="MouseMiddle">
-		</enumentry>
-		<enumentry native="MouseButton4" script="MouseButton4">
-		</enumentry>
-		<enumentry native="MouseButton5" script="MouseButton5">
-		</enumentry>
-		<enumentry native="MouseButton6" script="MouseButton6">
-		</enumentry>
-		<enumentry native="MouseButton7" script="MouseButton7">
-		</enumentry>
-		<enumentry native="MouseButton8" script="MouseButton8">
-		</enumentry>
-		<enumentry native="MouseButton10" script="MouseButton10">
-		</enumentry>
-		<enumentry native="MouseButton11" script="MouseButton11">
-		</enumentry>
-		<enumentry native="MouseButton12" script="MouseButton12">
-		</enumentry>
-		<enumentry native="MouseButton13" script="MouseButton13">
-		</enumentry>
-		<enumentry native="MouseButton14" script="MouseButton14">
-		</enumentry>
-		<enumentry native="MouseKeyCount" script="MouseKeyCount">
-		</enumentry>
-		<enumentry native="MouseButton15" script="MouseButton15">
-		</enumentry>
-		<enumentry native="MouseButton16" script="MouseButton16">
-		</enumentry>
-		<enumentry native="MouseButton17" script="MouseButton17">
-		</enumentry>
-		<enumentry native="MouseButton18" script="MouseButton18">
-		</enumentry>
-		<enumentry native="MouseButton19" script="MouseButton19">
-		</enumentry>
-		<enumentry native="GamepadButton11" script="GamepadButton11">
-		</enumentry>
-		<enumentry native="MouseButton20" script="MouseButton20">
-		</enumentry>
-		<enumentry native="GamepadButton10" script="GamepadButton10">
-		</enumentry>
-		<enumentry native="MouseButton21" script="MouseButton21">
-		</enumentry>
-		<enumentry native="GamepadButton13" script="GamepadButton13">
-		</enumentry>
-		<enumentry native="MouseButton22" script="MouseButton22">
-		</enumentry>
-		<enumentry native="GamepadButton12" script="GamepadButton12">
-		</enumentry>
-		<enumentry native="MouseButton23" script="MouseButton23">
-		</enumentry>
-		<enumentry native="GamepadButton15" script="GamepadButton15">
-		</enumentry>
-		<enumentry native="MouseButton24" script="MouseButton24">
-		</enumentry>
-		<enumentry native="GamepadButton14" script="GamepadButton14">
-		</enumentry>
-		<enumentry native="MouseButton25" script="MouseButton25">
-		</enumentry>
-		<enumentry native="GamepadButton17" script="GamepadButton17">
-		</enumentry>
-		<enumentry native="MouseButton26" script="MouseButton26">
-		</enumentry>
-		<enumentry native="GamepadButton16" script="GamepadButton16">
-		</enumentry>
-		<enumentry native="MouseButton27" script="MouseButton27">
-		</enumentry>
-		<enumentry native="GamepadButton19" script="GamepadButton19">
-		</enumentry>
-		<enumentry native="MouseButton28" script="MouseButton28">
-		</enumentry>
-		<enumentry native="GamepadButton18" script="GamepadButton18">
-		</enumentry>
-		<enumentry native="MouseButton29" script="MouseButton29">
-		</enumentry>
-		<enumentry native="MouseButton30" script="MouseButton30">
-		</enumentry>
-		<enumentry native="MouseButton31" script="MouseButton31">
-		</enumentry>
-		<enumentry native="MouseButton32" script="MouseButton32">
-		</enumentry>
-		<enumentry native="GamepadB" script="GamepadB">
-		</enumentry>
-		<enumentry native="GamepadLeftBumper" script="GamepadLeftBumper">
-		</enumentry>
-		<enumentry native="GamepadLeftStick" script="GamepadLeftStick">
-		</enumentry>
-		<enumentry native="GamepadRightStick" script="GamepadRightStick">
-		</enumentry>
-		<enumentry native="GamepadBack" script="GamepadBack">
-		</enumentry>
-		<enumentry native="GamepadDPadLeft" script="GamepadDPadLeft">
-		</enumentry>
-		<enumentry native="GamepadDPatRight" script="GamepadDPatRight">
-		</enumentry>
-		<enumentry native="GamepadDPadDown" script="GamepadDPadDown">
-		</enumentry>
-		<enumentry native="GamepadButton9" script="GamepadButton9">
-		</enumentry>
-		<enumentry native="GamepadDPadUpLeft" script="GamepadDPadUpLeft">
-		</enumentry>
-		<enumentry native="GamepadDPadUpRight" script="GamepadDPadUpRight">
-		</enumentry>
-		<enumentry native="GamepadDPadDownLeft" script="GamepadDPadDownLeft">
-		</enumentry>
-		<enumentry native="GamepadDPadDownRight" script="GamepadDPadDownRight">
-		</enumentry>
-		<enumentry native="KeyboardKeyCount" script="KeyboardKeyCount">
-		</enumentry>
-		<enumentry native="GamepadKeyCount" script="GamepadKeyCount">
-		</enumentry>
-		<enumentry native="TotalKeyCount" script="TotalKeyCount">
-		</enumentry>
-	</enum>
 	<class native="ResourceMetaData" script="ResourceMetaData">
 		<doc>Class containing meta-information describing a resource.</doc>
-	</class>
-	<class native="ShaderVariationParameters" script="ShaderVariationParameters">
-		<doc>Contains information about a single variation of a Shader. Each variation can have a separate set of #defines that control shader compilation.</doc>
-		<ctor>
-		</ctor>
-		<method native="GetInt" script="GetInt" static="false">
-			<doc>Returns the value of a signed integer parameter with the specified name. Returns 0 if the parameter cannot be found.</doc>
-			<param name="name" type="string">
-			</param>
-			<returns type="int">
-			</returns>
-		</method>
-		<method native="GetUInt" script="GetUInt" static="false">
-			<doc>Returns the value of a unsigned integer parameter with the specified name. Returns 0 if the parameter cannot be found.</doc>
-			<param name="name" type="string">
-			</param>
-			<returns type="int">
-			</returns>
-		</method>
-		<method native="GetFloat" script="GetFloat" static="false">
-			<doc>Returns the value of a float parameter with the specified name. Returns 0 if the parameter cannot be found.</doc>
-			<param name="name" type="string">
-			</param>
-			<returns type="float">
-			</returns>
-		</method>
-		<method native="GetBool" script="GetBool" static="false">
-			<doc>Returns the value of a boolean parameter with the specified name. Returns false if the parameter cannot be found.</doc>
-			<param name="name" type="string">
-			</param>
-			<returns type="bool">
-			</returns>
-		</method>
-		<method native="SetInt" script="SetInt" static="false">
-			<doc>Sets the value of the parameter for the provided name. Any previous value for a parameter with the same name will be overwritten.</doc>
-			<param name="name" type="string">
-			</param>
-			<param name="value" type="int">
-			</param>
-		</method>
-		<method native="SetUInt" script="SetUInt" static="false">
-			<doc>Sets the value of the parameter for the provided name. Any previous value for a parameter with the same name will be overwritten.</doc>
-			<param name="name" type="string">
-			</param>
-			<param name="value" type="int">
-			</param>
-		</method>
-		<method native="SetFloat" script="SetFloat" static="false">
-			<doc>Sets the value of the parameter for the provided name. Any previous value for a parameter with the same name will be overwritten.</doc>
-			<param name="name" type="string">
-			</param>
-			<param name="value" type="float">
-			</param>
-		</method>
-		<method native="SetBool" script="SetBool" static="false">
-			<doc>Sets the value of the parameter for the provided name. Any previous value for a parameter with the same name will be overwritten.</doc>
-			<param name="name" type="string">
-			</param>
-			<param name="value" type="bool">
-			</param>
-		</method>
-		<method native="RemoveParam" script="RemoveParam" static="false">
-			<doc>Removes a parameter with the specified name.</doc>
-			<param name="paramName" type="string">
-			</param>
-		</method>
-		<method native="HasParam" script="HasParam" static="false">
-			<doc>Checks if the variation has a parameter with the specified name.</doc>
-			<param name="paramName" type="string">
-			</param>
-			<returns type="bool">
-			</returns>
-		</method>
-		<method native="ClearParams" script="ClearParams" static="false">
-			<doc>Removes all parameters.</doc>
-		</method>
-		<property name="ParamNames" type="string" getter="GetParamNames" setter="" static="false">
-			<doc>Returns a list of names of all registered parameters.</doc>
-		</property>
 	</class>
 	<struct native="ShaderVariationParameterValue" script="ShaderVariationParameterValue">
 		<doc>Represents a single potential value of a shader variation parameter and optionally its name.</doc>
@@ -9351,11 +9188,6 @@ Default value is 0.5. Should be in rough range [-1, 1].</doc>
 			<doc>A list of potential values this parameter can take on.</doc>
 		</field>
 	</struct>
-	<class native="ShaderMetaData" script="ShaderMetaData">
-		<doc>Shader specific resource meta-data containing information about referenced include files.</doc>
-		<property name="Includes" type="string" getter="GetIncludes" setter="SetIncludes" static="false">
-		</property>
-	</class>
 	<struct native="VirtualAxis" script="VirtualAxis">
 		<doc>Identifier for a virtual axis.
 Primary purpose of this class is to avoid expensive string compare (axis names), and instead use a unique axis identifier for compare. Generally you want to create one of these using the axis name, and then store it for later use.</doc>
@@ -9418,6 +9250,61 @@ Primary purpose of this class is to avoid expensive string compare (axis names),
 		</property>
 		<property name="CubemapSourceType" type="CubemapSourceType" getter="GetCubemapSourceType" setter="SetCubemapSourceType" static="false">
 			<doc>Determines how should the source texture be interpreted when generating a cubemap. Only relevant when <see cref="cubemap"/> is set to true.</doc>
+		</property>
+	</class>
+	<class native="SceneInstance" script="SceneInstance">
+		<doc>Contains information about an instantiated scene.</doc>
+		<method native="Clear" script="Clear" static="false">
+			<doc>Removes all scene objects from the scene, except for persistent objects. If <paramref name="forceAll"/> is true, removes even the persistent objects.</doc>
+			<param name="forceAll" type="bool">
+			</param>
+		</method>
+		<method native="CreateSceneObject" script="CreateSceneObject" static="false">
+			<doc>Creates a new scene object in the scene instance.</doc>
+			<param name="name" type="string">
+				<doc>Name of the scene object.</doc>
+			</param>
+			<param name="flags" type="int">
+				<doc>Optional flags that control object behavior. See SceneObjectFlags.</doc>
+			</param>
+			<returns type="SceneObject">
+			</returns>
+		</method>
+		<ctor>
+			<doc>Creates a new empty scene instance.</doc>
+			<param name="name" type="string">
+			</param>
+		</ctor>
+		<ctor>
+			<doc>Creates a new scene instance with an existing hierarchy.</doc>
+			<param name="name" type="string">
+			</param>
+			<param name="root" type="SceneObject">
+			</param>
+		</ctor>
+		<property name="Name" type="string" getter="GetName" setter="" static="false">
+			<doc>Name of the scene.</doc>
+		</property>
+		<property name="Root" type="SceneObject" getter="GetRoot" setter="" static="false">
+			<doc>Root object of the scene.</doc>
+		</property>
+		<property name="IsActive" type="bool" getter="IsActive" setter="" static="false">
+			<doc>Checks is the scene currently active. IF inactive the scene properties aside from the name are undefined.</doc>
+		</property>
+		<property name="Physics" type="PhysicsScene" getter="GetPhysicsScene" setter="" static="false">
+			<doc>Representation of the scene used by the physics sub-system. Contains all the objects that can be physically interacted with. Exact implementation depends on the physics plugin used.</doc>
+		</property>
+		<property name="AssociatedResourceId" type="UUID" getter="GetAssociatedResourceId" setter="" static="false">
+			<doc>Returns the ID of the resource that the scene instance is associated with (e.g. resource the scene was loaded from.).</doc>
+		</property>
+		<property name="MainCamera" type="Camera" getter="GetMainCameraComponent" setter="" static="false">
+			<doc>Returns the main camera component. See GetMainCamera().</doc>
+		</property>
+		<property name="EditorSceneInstance" type="IEditorSceneInstance" getter="GetEditorSceneInstance" setter="" static="false">
+			<doc>Editor scene instance, if running from within the editor.</doc>
+		</property>
+		<property name="IsRunning" type="bool" getter="IsRunning" setter="" static="false">
+			<doc>Checks are the components currently in the Running state.</doc>
 		</property>
 	</class>
 	<struct native="ButtonEvent" script="ButtonEvent">
@@ -10839,6 +10726,45 @@ Optionally if the parameter is an array you may provide an array index you which
 			<doc>Controls &quot;bounciness&quot; of an object during a collision. Value of 1 means the collision is elastic, and value of 0 means the value is inelastic. Must be in [0, 1] range.</doc>
 		</property>
 	</class>
+	<enum native="VertexLayout" script="VertexLayout">
+		<doc>Available vertex layouts that specify what data is provided per-vertex in a mesh. Combinations other than those provided are allowed.</doc>
+		<enumentry native="Tangent" script="Tangent">
+		</enumentry>
+		<enumentry native="PNU" script="PNU">
+		</enumentry>
+		<enumentry native="Normal" script="Normal">
+		</enumentry>
+		<enumentry native="Position" script="Position">
+		</enumentry>
+		<enumentry native="BoneWeights" script="BoneWeights">
+		</enumentry>
+		<enumentry native="Color" script="Color">
+		</enumentry>
+		<enumentry native="UV0" script="UV0">
+		</enumentry>
+		<enumentry native="UV1" script="UV1">
+		</enumentry>
+		<enumentry native="PC" script="PC">
+		</enumentry>
+		<enumentry native="PU" script="PU">
+		</enumentry>
+		<enumentry native="PCU" script="PCU">
+		</enumentry>
+		<enumentry native="PCN" script="PCN">
+		</enumentry>
+		<enumentry native="PCNU" script="PCNU">
+		</enumentry>
+		<enumentry native="PCNT" script="PCNT">
+		</enumentry>
+		<enumentry native="PCNTU" script="PCNTU">
+		</enumentry>
+		<enumentry native="PN" script="PN">
+		</enumentry>
+		<enumentry native="PNT" script="PNT">
+		</enumentry>
+		<enumentry native="PNTU" script="PNTU">
+		</enumentry>
+	</enum>
 	<struct native="ResourceLoadOptions" script="ResourceLoadOptions">
 		<doc>Options that may be used to customize resource load operation.</doc>
 		<ctor>
@@ -10975,6 +10901,19 @@ Alternatively you can also skip manually calling ReleaseInternalReference() and 
 			<doc>In a standalone game this represents the scene that is playing. In editor this represents the primary scene being edited. When creating scene objects and no scene is provided, the object will be created in the main scene. If null main scene is set, new empty main scene will be created internally, as the main scene must always exist.</doc>
 		</property>
 	</class>
+	<enum native="SceneObjectDiffFlags" script="SceneObjectDiffFlags">
+		<doc>Flags that mark which portion of a scene-object is modified.</doc>
+		<enumentry native="Name" script="Name">
+		</enumentry>
+		<enumentry native="Position" script="Position">
+		</enumentry>
+		<enumentry native="Active" script="Active">
+		</enumentry>
+		<enumentry native="Rotation" script="Rotation">
+		</enumentry>
+		<enumentry native="Scale" script="Scale">
+		</enumentry>
+	</enum>
 	<struct native="CharacterInformation" script="CharacterInformation">
 		<doc>Describes a single character in a font of a specific size.</doc>
 		<field name="CharId" type="int">
@@ -15147,6 +15086,55 @@ Alternatively you can also skip manually calling ReleaseInternalReference() and 
 		<enumentry native="FontAwesomeZ" script="FontAwesomeZ">
 		</enumentry>
 	</enum>
+	<enum native="ShaderParameterFlag" script="ShaderParameterFlag">
+		<doc>Flags used to further describe a shader parameter.</doc>
+		<enumentry native="None" script="None">
+		</enumentry>
+		<enumentry native="Internal" script="Internal">
+			<doc>Parameter is for internal use by the renderer and isn&apos;t expected to be set by the user.</doc>
+		</enumentry>
+		<enumentry native="HideInInspector" script="HideInInspector">
+			<doc>Parameter should not be displayed in the editor inspector.</doc>
+		</enumentry>
+		<enumentry native="HDR" script="HDR">
+			<doc>Allows the color parameter to be edited using the HDR color picker.</doc>
+		</enumentry>
+	</enum>
+	<class native="StockIcons" script="StockIcons">
+		<doc>Provides easy access to variety of icons for use in the engine.</doc>
+		<method native="GetIcon" script="GetIcon" static="false">
+			<doc>Retrieves a particular stock icon.</doc>
+			<param name="icon" type="StockIcon">
+				<doc>Icon to retrieve.</doc>
+			</param>
+			<param name="size" type="float">
+				<doc>Size of the icon in points.</doc>
+			</param>
+			<returns type="SpriteImage">
+			</returns>
+		</method>
+		<method native="GetUnicode" script="GetUnicode" static="false">
+			<doc>Returns the unicode character corresponding to an icon.</doc>
+			<param name="icon" type="StockIcon">
+			</param>
+			<returns type="int">
+			</returns>
+		</method>
+		<method native="GetFont" script="GetFont" static="false">
+			<doc>Returns the font in which the provided icon is stored in.</doc>
+			<param name="icon" type="StockIcon">
+			</param>
+			<returns type="Font">
+			</returns>
+		</method>
+		<method native="ParseIconName" script="ParseIconName" static="false">
+			<doc>Parses an icon name and returns the corresponding enum entry if found.</doc>
+			<param name="name" type="string">
+			</param>
+			<returns type="StockIcon">
+			</returns>
+		</method>
+	</class>
 	<class native="Application" script="Application">
 		<doc>Primary entry point for the framework. Handles startup and shutdown.</doc>
 	</class>
@@ -16164,4 +16152,39 @@ Primary purpose of this class is to avoid expensive string compare, and instead 
 			<doc>Determines ordering in inspector relative to other members.</doc>
 		</field>
 	</struct>
+	<class native="ManagedMemberInfo" script="ManagedMemberInfo">
+		<doc>Contains data about a single member (field or property) in a managed object (class or struct).</doc>
+		<method native="ParseStyle" script="ParseStyle" static="false">
+			<doc>Parses style attributes for this members and returns a structure holding all the relevant style information.</doc>
+			<returns type="ManagedMemberStyle">
+			</returns>
+		</method>
+		<method native="GetValue" script="GetValue" static="false">
+			<doc>Returns a boxed value contained in the member in the specified object instance.</doc>
+			<param name="instance" type="object">
+				<doc>Object instance to access the member on.</doc>
+			</param>
+			<returns type="object">
+				<doc>A boxed value of the member.</doc>
+			</returns>
+		</method>
+		<method native="SetValue" script="SetValue" static="false">
+			<doc>Sets a value of the member in the specified object instance.</doc>
+			<param name="instance" type="object">
+				<doc>Object instance to access the member on.</doc>
+			</param>
+			<param name="value" type="object">
+				<doc>Boxed value to set on the member.</doc>
+			</param>
+		</method>
+		<property name="IsSerializable" type="bool" getter="IsSerializable" setter="" static="false">
+			<doc>Determines should the member be serialized when serializing the parent object.</doc>
+		</property>
+		<property name="Name" type="string" getter="GetName" setter="SetName" static="false">
+		</property>
+		<property name="TypeInfo" type="ManagedTypeInfo" getter="GetTypeInfo" setter="SetTypeInfo" static="false">
+		</property>
+		<property name="MetaDataFlags" type="ManagedFieldMetaDataFlag" getter="GetMetaDataFlags" setter="SetMetaDataFlags" static="false">
+		</property>
+	</class>
 </entries>

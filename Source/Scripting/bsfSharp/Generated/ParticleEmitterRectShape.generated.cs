@@ -17,9 +17,9 @@ namespace b3d
 		private ParticleEmitterRectShape(bool __dummy0) { }
 
 		/// <summary>Creates a new particle emitter rectangle shape.</summary>
-		public ParticleEmitterRectShape(ParticleRectShapeOptions desc)
+		public ParticleEmitterRectShape(ParticleRectShapeSettings settings)
 		{
-			Internal_Create(this, ref desc);
+			Internal_Create(this, ref settings);
 		}
 
 		/// <summary>Creates a new particle emitter rectangle shape.</summary>
@@ -32,23 +32,23 @@ namespace b3d
 		[ShowInInspector]
 		[Inline]
 		[NativeWrapper]
-		public ParticleRectShapeOptions Options
+		public ParticleRectShapeSettings Settings
 		{
 			get
 			{
-				ParticleRectShapeOptions temp;
-				Internal_GetOptions(mCachedPtr, out temp);
+				ParticleRectShapeSettings temp;
+				Internal_GetSettings(mCachedPtr, out temp);
 				return temp;
 			}
-			set { Internal_SetOptions(mCachedPtr, ref value); }
+			set { Internal_SetSettings(mCachedPtr, ref value); }
 		}
 
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_SetOptions(IntPtr thisPtr, ref ParticleRectShapeOptions options);
+		private static extern void Internal_SetSettings(IntPtr thisPtr, ref ParticleRectShapeSettings settings);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_GetOptions(IntPtr thisPtr, out ParticleRectShapeOptions __output);
+		private static extern void Internal_GetSettings(IntPtr thisPtr, out ParticleRectShapeSettings __output);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_Create(ParticleEmitterRectShape managedInstance, ref ParticleRectShapeOptions desc);
+		private static extern void Internal_Create(ParticleEmitterRectShape managedInstance, ref ParticleRectShapeSettings settings);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_Create0(ParticleEmitterRectShape managedInstance);
 	}

@@ -4,7 +4,7 @@
 #include "BsMonoMethod.h"
 #include "BsMonoClass.h"
 #include "BsMonoUtil.h"
-#include "BsScriptPARTICLE_SPHERE_SHAPE_DESC.generated.h"
+#include "BsScriptParticleSphereShapeSettings.generated.h"
 #include "BsScriptParticleEmitterSphereShape.generated.h"
 
 namespace b3d
@@ -22,8 +22,8 @@ namespace b3d
 
 	void ScriptParticleEmitterSphereShape::SetupScriptBindings()
 	{
-		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetOptions", (void*)&ScriptParticleEmitterSphereShape::InternalSetOptions);
-		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetOptions", (void*)&ScriptParticleEmitterSphereShape::InternalGetOptions);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetSettings", (void*)&ScriptParticleEmitterSphereShape::InternalSetSettings);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetSettings", (void*)&ScriptParticleEmitterSphereShape::InternalGetSettings);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_Create", (void*)&ScriptParticleEmitterSphereShape::InternalCreate);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_Create0", (void*)&ScriptParticleEmitterSphereShape::InternalCreate0);
 
@@ -39,15 +39,15 @@ namespace b3d
 
 		return sInteropMetaData.ScriptClass->CreateInstance(false);
 	}
-	void ScriptParticleEmitterSphereShape::InternalSetOptions(ScriptParticleEmitterSphereShape* self, ParticleSphereShapeSettings* options)
+	void ScriptParticleEmitterSphereShape::InternalSetSettings(ScriptParticleEmitterSphereShape* self, ParticleSphereShapeSettings* settings)
 	{
 		if(!self->IsNativeObjectValid())
 			return;
 
-		static_cast<ParticleEmitterSphereShape*>(self->GetNativeObject())->SetSettings(*options);
+		static_cast<ParticleEmitterSphereShape*>(self->GetNativeObject())->SetSettings(*settings);
 	}
 
-	void ScriptParticleEmitterSphereShape::InternalGetOptions(ScriptParticleEmitterSphereShape* self, ParticleSphereShapeSettings* __output)
+	void ScriptParticleEmitterSphereShape::InternalGetSettings(ScriptParticleEmitterSphereShape* self, ParticleSphereShapeSettings* __output)
 	{
 		if(!self->IsNativeObjectValid())
 		{
@@ -61,9 +61,9 @@ namespace b3d
 		*__output = tmp__output;
 	}
 
-	void ScriptParticleEmitterSphereShape::InternalCreate(MonoObject* scriptObject, ParticleSphereShapeSettings* desc)
+	void ScriptParticleEmitterSphereShape::InternalCreate(MonoObject* scriptObject, ParticleSphereShapeSettings* settings)
 	{
-		SPtr<ParticleEmitterSphereShape> nativeObject = ParticleEmitterSphereShape::Create(*desc);
+		SPtr<ParticleEmitterSphereShape> nativeObject = ParticleEmitterSphereShape::Create(*settings);
 		ScriptObjectWrapper::Create<ScriptParticleEmitterSphereShape>(nativeObject, scriptObject);
 	}
 

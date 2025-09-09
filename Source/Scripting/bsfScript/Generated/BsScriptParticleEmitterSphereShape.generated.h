@@ -24,9 +24,9 @@ namespace b3d
 		static MonoObject* CreateScriptObject(bool construct);
 
 	private:
-		static void InternalSetOptions(ScriptParticleEmitterSphereShape* self, ParticleSphereShapeSettings* options);
-		static void InternalGetOptions(ScriptParticleEmitterSphereShape* self, ParticleSphereShapeSettings* __output);
-		static void InternalCreate(MonoObject* scriptObject, ParticleSphereShapeSettings* desc);
+		static void InternalSetSettings(ScriptParticleEmitterSphereShape* self, ParticleSphereShapeSettings* settings);
+		static void InternalGetSettings(ScriptParticleEmitterSphereShape* self, ParticleSphereShapeSettings* __output);
+		static void InternalCreate(MonoObject* scriptObject, ParticleSphereShapeSettings* settings);
 		static void InternalCreate0(MonoObject* scriptObject);
 	};
 }

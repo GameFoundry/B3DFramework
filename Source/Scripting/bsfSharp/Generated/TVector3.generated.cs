@@ -25,6 +25,13 @@ namespace b3d
 			return value;
 		}
 
+		public Vector3(float value)
+		{
+			this.X = 0;
+			this.Y = 0;
+			this.Z = 0;
+		}
+
 		public Vector3(float x, float y, float z)
 		{
 			this.X = x;
@@ -63,6 +70,13 @@ namespace b3d
 			value.Z = 0;
 
 			return value;
+		}
+
+		public Vector3D(double value)
+		{
+			this.X = 0;
+			this.Y = 0;
+			this.Z = 0;
 		}
 
 		public Vector3D(double x, double y, double z)

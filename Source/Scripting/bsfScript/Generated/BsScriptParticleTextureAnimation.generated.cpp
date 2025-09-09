@@ -4,7 +4,7 @@
 #include "BsMonoMethod.h"
 #include "BsMonoClass.h"
 #include "BsMonoUtil.h"
-#include "BsScriptPARTICLE_TEXTURE_ANIMATION_DESC.generated.h"
+#include "BsScriptParticleTextureAnimationSettings.generated.h"
 #include "BsScriptParticleTextureAnimation.generated.h"
 
 namespace b3d
@@ -22,8 +22,8 @@ namespace b3d
 
 	void ScriptParticleTextureAnimation::SetupScriptBindings()
 	{
-		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetOptions", (void*)&ScriptParticleTextureAnimation::InternalSetOptions);
-		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetOptions", (void*)&ScriptParticleTextureAnimation::InternalGetOptions);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetSettings", (void*)&ScriptParticleTextureAnimation::InternalSetSettings);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetSettings", (void*)&ScriptParticleTextureAnimation::InternalGetSettings);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_Create", (void*)&ScriptParticleTextureAnimation::InternalCreate);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_Create0", (void*)&ScriptParticleTextureAnimation::InternalCreate0);
 
@@ -39,15 +39,15 @@ namespace b3d
 
 		return sInteropMetaData.ScriptClass->CreateInstance(false);
 	}
-	void ScriptParticleTextureAnimation::InternalSetOptions(ScriptParticleTextureAnimation* self, ParticleTextureAnimationSettings* options)
+	void ScriptParticleTextureAnimation::InternalSetSettings(ScriptParticleTextureAnimation* self, ParticleTextureAnimationSettings* settings)
 	{
 		if(!self->IsNativeObjectValid())
 			return;
 
-		static_cast<ParticleTextureAnimation*>(self->GetNativeObject())->SetSettings(*options);
+		static_cast<ParticleTextureAnimation*>(self->GetNativeObject())->SetSettings(*settings);
 	}
 
-	void ScriptParticleTextureAnimation::InternalGetOptions(ScriptParticleTextureAnimation* self, ParticleTextureAnimationSettings* __output)
+	void ScriptParticleTextureAnimation::InternalGetSettings(ScriptParticleTextureAnimation* self, ParticleTextureAnimationSettings* __output)
 	{
 		if(!self->IsNativeObjectValid())
 		{
@@ -61,9 +61,9 @@ namespace b3d
 		*__output = tmp__output;
 	}
 
-	void ScriptParticleTextureAnimation::InternalCreate(MonoObject* scriptObject, ParticleTextureAnimationSettings* desc)
+	void ScriptParticleTextureAnimation::InternalCreate(MonoObject* scriptObject, ParticleTextureAnimationSettings* settings)
 	{
-		SPtr<ParticleTextureAnimation> nativeObject = ParticleTextureAnimation::Create(*desc);
+		SPtr<ParticleTextureAnimation> nativeObject = ParticleTextureAnimation::Create(*settings);
 		ScriptObjectWrapper::Create<ScriptParticleTextureAnimation>(nativeObject, scriptObject);
 	}
 

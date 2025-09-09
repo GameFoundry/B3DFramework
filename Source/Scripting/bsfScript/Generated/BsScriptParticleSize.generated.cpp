@@ -4,7 +4,7 @@
 #include "BsMonoMethod.h"
 #include "BsMonoClass.h"
 #include "BsMonoUtil.h"
-#include "BsScriptPARTICLE_SIZE_DESC.generated.h"
+#include "BsScriptParticleSizeSettings.generated.h"
 #include "BsScriptParticleSize.generated.h"
 
 namespace b3d
@@ -22,8 +22,8 @@ namespace b3d
 
 	void ScriptParticleSize::SetupScriptBindings()
 	{
-		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetOptions", (void*)&ScriptParticleSize::InternalSetOptions);
-		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetOptions", (void*)&ScriptParticleSize::InternalGetOptions);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetSettings", (void*)&ScriptParticleSize::InternalSetSettings);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetSettings", (void*)&ScriptParticleSize::InternalGetSettings);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_Create", (void*)&ScriptParticleSize::InternalCreate);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_Create0", (void*)&ScriptParticleSize::InternalCreate0);
 
@@ -39,17 +39,17 @@ namespace b3d
 
 		return sInteropMetaData.ScriptClass->CreateInstance(false);
 	}
-	void ScriptParticleSize::InternalSetOptions(ScriptParticleSize* self, __PARTICLE_SIZE_DESCInterop* options)
+	void ScriptParticleSize::InternalSetSettings(ScriptParticleSize* self, __ParticleSizeSettingsInterop* settings)
 	{
 		if(!self->IsNativeObjectValid())
 			return;
 
-		ParticleSizeSettings tmpoptions;
-		tmpoptions = ScriptParticleSizeOptions::FromInterop(*options);
-		static_cast<ParticleSize*>(self->GetNativeObject())->SetSettings(tmpoptions);
+		ParticleSizeSettings tmpsettings;
+		tmpsettings = ScriptParticleSizeSettings::FromInterop(*settings);
+		static_cast<ParticleSize*>(self->GetNativeObject())->SetSettings(tmpsettings);
 	}
 
-	void ScriptParticleSize::InternalGetOptions(ScriptParticleSize* self, __PARTICLE_SIZE_DESCInterop* __output)
+	void ScriptParticleSize::InternalGetSettings(ScriptParticleSize* self, __ParticleSizeSettingsInterop* __output)
 	{
 		if(!self->IsNativeObjectValid())
 		{
@@ -60,16 +60,16 @@ namespace b3d
 		ParticleSizeSettings tmp__output;
 		tmp__output = static_cast<ParticleSize*>(self->GetNativeObject())->GetSettings();
 
-		__PARTICLE_SIZE_DESCInterop interop__output;
-		interop__output = ScriptParticleSizeOptions::ToInterop(tmp__output);
-		MonoUtil::ValueCopy(__output, &interop__output, ScriptParticleSizeOptions::GetMetaData()->ScriptClass->GetInternalClass());
+		__ParticleSizeSettingsInterop interop__output;
+		interop__output = ScriptParticleSizeSettings::ToInterop(tmp__output);
+		MonoUtil::ValueCopy(__output, &interop__output, ScriptParticleSizeSettings::GetMetaData()->ScriptClass->GetInternalClass());
 	}
 
-	void ScriptParticleSize::InternalCreate(MonoObject* scriptObject, __PARTICLE_SIZE_DESCInterop* desc)
+	void ScriptParticleSize::InternalCreate(MonoObject* scriptObject, __ParticleSizeSettingsInterop* settings)
 	{
-		ParticleSizeSettings tmpdesc;
-		tmpdesc = ScriptParticleSizeOptions::FromInterop(*desc);
-		SPtr<ParticleSize> nativeObject = ParticleSize::Create(tmpdesc);
+		ParticleSizeSettings tmpsettings;
+		tmpsettings = ScriptParticleSizeSettings::FromInterop(*settings);
+		SPtr<ParticleSize> nativeObject = ParticleSize::Create(tmpsettings);
 		ScriptObjectWrapper::Create<ScriptParticleSize>(nativeObject, scriptObject);
 	}
 

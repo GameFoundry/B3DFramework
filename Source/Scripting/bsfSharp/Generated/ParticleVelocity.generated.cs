@@ -17,9 +17,9 @@ namespace b3d
 		private ParticleVelocity(bool __dummy0) { }
 
 		/// <summary>Creates a new particle velocity evolver.</summary>
-		public ParticleVelocity(ParticleVelocityOptions desc)
+		public ParticleVelocity(ParticleVelocitySettings settings)
 		{
-			Internal_Create(this, ref desc);
+			Internal_Create(this, ref settings);
 		}
 
 		/// <summary>Creates a new particle velocity evolver.</summary>
@@ -31,23 +31,23 @@ namespace b3d
 		/// <summary>Options describing the evolver.</summary>
 		[ShowInInspector]
 		[NativeWrapper]
-		public ParticleVelocityOptions Options
+		public ParticleVelocitySettings Settings
 		{
 			get
 			{
-				ParticleVelocityOptions temp;
-				Internal_GetOptions(mCachedPtr, out temp);
+				ParticleVelocitySettings temp;
+				Internal_GetSettings(mCachedPtr, out temp);
 				return temp;
 			}
-			set { Internal_SetOptions(mCachedPtr, ref value); }
+			set { Internal_SetSettings(mCachedPtr, ref value); }
 		}
 
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_SetOptions(IntPtr thisPtr, ref ParticleVelocityOptions options);
+		private static extern void Internal_SetSettings(IntPtr thisPtr, ref ParticleVelocitySettings settings);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_GetOptions(IntPtr thisPtr, out ParticleVelocityOptions __output);
+		private static extern void Internal_GetSettings(IntPtr thisPtr, out ParticleVelocitySettings __output);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_Create(ParticleVelocity managedInstance, ref ParticleVelocityOptions desc);
+		private static extern void Internal_Create(ParticleVelocity managedInstance, ref ParticleVelocitySettings settings);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_Create0(ParticleVelocity managedInstance);
 	}

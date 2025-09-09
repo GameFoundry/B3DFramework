@@ -21,9 +21,9 @@ namespace b3d
 		private ParticleEmitterHemisphereShape(bool __dummy0) { }
 
 		/// <summary>Creates a new particle emitter sphere shape.</summary>
-		public ParticleEmitterHemisphereShape(ParticleHemisphereShapeOptions desc)
+		public ParticleEmitterHemisphereShape(ParticleHemisphereShapeSettings settings)
 		{
-			Internal_Create(this, ref desc);
+			Internal_Create(this, ref settings);
 		}
 
 		/// <summary>Creates a new particle emitter sphere shape.</summary>
@@ -36,23 +36,23 @@ namespace b3d
 		[ShowInInspector]
 		[Inline]
 		[NativeWrapper]
-		public ParticleHemisphereShapeOptions Options
+		public ParticleHemisphereShapeSettings Settings
 		{
 			get
 			{
-				ParticleHemisphereShapeOptions temp;
-				Internal_GetOptions(mCachedPtr, out temp);
+				ParticleHemisphereShapeSettings temp;
+				Internal_GetSettings(mCachedPtr, out temp);
 				return temp;
 			}
-			set { Internal_SetOptions(mCachedPtr, ref value); }
+			set { Internal_SetSettings(mCachedPtr, ref value); }
 		}
 
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_SetOptions(IntPtr thisPtr, ref ParticleHemisphereShapeOptions options);
+		private static extern void Internal_SetSettings(IntPtr thisPtr, ref ParticleHemisphereShapeSettings settings);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_GetOptions(IntPtr thisPtr, out ParticleHemisphereShapeOptions __output);
+		private static extern void Internal_GetSettings(IntPtr thisPtr, out ParticleHemisphereShapeSettings __output);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_Create(ParticleEmitterHemisphereShape managedInstance, ref ParticleHemisphereShapeOptions desc);
+		private static extern void Internal_Create(ParticleEmitterHemisphereShape managedInstance, ref ParticleHemisphereShapeSettings settings);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_Create0(ParticleEmitterHemisphereShape managedInstance);
 	}

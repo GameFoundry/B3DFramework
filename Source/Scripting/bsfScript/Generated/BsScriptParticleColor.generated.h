@@ -9,7 +9,7 @@
 #include "../../../Foundation/bsfCore/Particles/BsParticleEvolver.h"
 
 namespace b3d { class ParticleColor; }
-namespace b3d { struct __PARTICLE_COLOR_DESCInterop; }
+namespace b3d { struct __ParticleColorSettingsInterop; }
 namespace b3d
 {
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleColor : public TScriptReflectableWrapper<ParticleColor, ScriptParticleColor, ScriptParticleEvolverWrapperBase>
@@ -25,9 +25,9 @@ namespace b3d
 		static MonoObject* CreateScriptObject(bool construct);
 
 	private:
-		static void InternalSetOptions(ScriptParticleColor* self, __PARTICLE_COLOR_DESCInterop* options);
-		static void InternalGetOptions(ScriptParticleColor* self, __PARTICLE_COLOR_DESCInterop* __output);
-		static void InternalCreate(MonoObject* scriptObject, __PARTICLE_COLOR_DESCInterop* desc);
+		static void InternalSetSettings(ScriptParticleColor* self, __ParticleColorSettingsInterop* settings);
+		static void InternalGetSettings(ScriptParticleColor* self, __ParticleColorSettingsInterop* __output);
+		static void InternalCreate(MonoObject* scriptObject, __ParticleColorSettingsInterop* settings);
 		static void InternalCreate0(MonoObject* scriptObject);
 	};
 }

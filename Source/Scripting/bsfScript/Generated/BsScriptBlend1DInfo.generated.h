@@ -4,8 +4,8 @@
 
 #include "BsScriptEnginePrerequisites.h"
 #include "BsScriptObjectWrapper.h"
-#include "../../../Foundation/bsfCore/Animation/BsAnimation.h"
-#include "../../../Foundation/bsfCore/Animation/BsAnimation.h"
+#include "../../../Foundation/bsfCore/Components/BsAnimation.h"
+#include "../../../Foundation/bsfCore/Components/BsAnimation.h"
 #include "BsScriptBlendClipInfo.generated.h"
 
 namespace b3d

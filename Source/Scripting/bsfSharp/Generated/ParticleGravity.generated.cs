@@ -17,9 +17,9 @@ namespace b3d
 		private ParticleGravity(bool __dummy0) { }
 
 		/// <summary>Creates a new particle gravity evolver.</summary>
-		public ParticleGravity(ParticleGravityOptions desc)
+		public ParticleGravity(ParticleGravitySettings settings)
 		{
-			Internal_Create(this, ref desc);
+			Internal_Create(this, ref settings);
 		}
 
 		/// <summary>Creates a new particle gravity evolver.</summary>
@@ -31,23 +31,23 @@ namespace b3d
 		/// <summary>Options describing the evolver.</summary>
 		[ShowInInspector]
 		[NativeWrapper]
-		public ParticleGravityOptions Options
+		public ParticleGravitySettings Settings
 		{
 			get
 			{
-				ParticleGravityOptions temp;
-				Internal_GetOptions(mCachedPtr, out temp);
+				ParticleGravitySettings temp;
+				Internal_GetSettings(mCachedPtr, out temp);
 				return temp;
 			}
-			set { Internal_SetOptions(mCachedPtr, ref value); }
+			set { Internal_SetSettings(mCachedPtr, ref value); }
 		}
 
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_SetOptions(IntPtr thisPtr, ref ParticleGravityOptions options);
+		private static extern void Internal_SetSettings(IntPtr thisPtr, ref ParticleGravitySettings settings);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_GetOptions(IntPtr thisPtr, out ParticleGravityOptions __output);
+		private static extern void Internal_GetSettings(IntPtr thisPtr, out ParticleGravitySettings __output);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_Create(ParticleGravity managedInstance, ref ParticleGravityOptions desc);
+		private static extern void Internal_Create(ParticleGravity managedInstance, ref ParticleGravitySettings settings);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_Create0(ParticleGravity managedInstance);
 	}

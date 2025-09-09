@@ -9,7 +9,7 @@
 #include "../../../Foundation/bsfCore/Particles/BsParticleEmitter.h"
 
 namespace b3d { class ParticleEmitterRectShape; }
-namespace b3d { struct __PARTICLE_RECT_SHAPE_DESCInterop; }
+namespace b3d { struct __ParticleRectangleShapeSettingsInterop; }
 namespace b3d
 {
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleEmitterRectShape : public TScriptReflectableWrapper<ParticleEmitterRectShape, ScriptParticleEmitterRectShape, ScriptParticleEmitterShapeWrapperBase>
@@ -25,9 +25,9 @@ namespace b3d
 		static MonoObject* CreateScriptObject(bool construct);
 
 	private:
-		static void InternalSetOptions(ScriptParticleEmitterRectShape* self, __PARTICLE_RECT_SHAPE_DESCInterop* options);
-		static void InternalGetOptions(ScriptParticleEmitterRectShape* self, __PARTICLE_RECT_SHAPE_DESCInterop* __output);
-		static void InternalCreate(MonoObject* scriptObject, __PARTICLE_RECT_SHAPE_DESCInterop* desc);
+		static void InternalSetSettings(ScriptParticleEmitterRectShape* self, __ParticleRectangleShapeSettingsInterop* settings);
+		static void InternalGetSettings(ScriptParticleEmitterRectShape* self, __ParticleRectangleShapeSettingsInterop* __output);
+		static void InternalCreate(MonoObject* scriptObject, __ParticleRectangleShapeSettingsInterop* settings);
 		static void InternalCreate0(MonoObject* scriptObject);
 	};
 }

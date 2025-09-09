@@ -20,9 +20,9 @@ namespace b3d
 		private ParticleEmitterBoxShape(bool __dummy0) { }
 
 		/// <summary>Creates a new particle emitter box shape.</summary>
-		public ParticleEmitterBoxShape(ParticleBoxShapeOptions desc)
+		public ParticleEmitterBoxShape(ParticleBoxShapeSettings settings)
 		{
-			Internal_Create(this, ref desc);
+			Internal_Create(this, ref settings);
 		}
 
 		/// <summary>Creates a new particle emitter box shape.</summary>
@@ -35,23 +35,23 @@ namespace b3d
 		[ShowInInspector]
 		[Inline]
 		[NativeWrapper]
-		public ParticleBoxShapeOptions Options
+		public ParticleBoxShapeSettings Settings
 		{
 			get
 			{
-				ParticleBoxShapeOptions temp;
-				Internal_GetOptions(mCachedPtr, out temp);
+				ParticleBoxShapeSettings temp;
+				Internal_GetSettings(mCachedPtr, out temp);
 				return temp;
 			}
-			set { Internal_SetOptions(mCachedPtr, ref value); }
+			set { Internal_SetSettings(mCachedPtr, ref value); }
 		}
 
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_SetOptions(IntPtr thisPtr, ref ParticleBoxShapeOptions options);
+		private static extern void Internal_SetSettings(IntPtr thisPtr, ref ParticleBoxShapeSettings settings);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_GetOptions(IntPtr thisPtr, out ParticleBoxShapeOptions __output);
+		private static extern void Internal_GetSettings(IntPtr thisPtr, out ParticleBoxShapeSettings __output);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_Create(ParticleEmitterBoxShape managedInstance, ref ParticleBoxShapeOptions desc);
+		private static extern void Internal_Create(ParticleEmitterBoxShape managedInstance, ref ParticleBoxShapeSettings settings);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_Create0(ParticleEmitterBoxShape managedInstance);
 	}

@@ -20,9 +20,9 @@ namespace b3d
 		private ParticleTextureAnimation(bool __dummy0) { }
 
 		/// <summary>Creates a new particle texture animation evolver.</summary>
-		public ParticleTextureAnimation(ParticleTextureAnimationOptions desc)
+		public ParticleTextureAnimation(ParticleTextureAnimationSettings settings)
 		{
-			Internal_Create(this, ref desc);
+			Internal_Create(this, ref settings);
 		}
 
 		/// <summary>Creates a new particle texture animation evolver.</summary>
@@ -34,23 +34,23 @@ namespace b3d
 		/// <summary>Options describing the evolver.</summary>
 		[ShowInInspector]
 		[NativeWrapper]
-		public ParticleTextureAnimationOptions Options
+		public ParticleTextureAnimationSettings Settings
 		{
 			get
 			{
-				ParticleTextureAnimationOptions temp;
-				Internal_GetOptions(mCachedPtr, out temp);
+				ParticleTextureAnimationSettings temp;
+				Internal_GetSettings(mCachedPtr, out temp);
 				return temp;
 			}
-			set { Internal_SetOptions(mCachedPtr, ref value); }
+			set { Internal_SetSettings(mCachedPtr, ref value); }
 		}
 
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_SetOptions(IntPtr thisPtr, ref ParticleTextureAnimationOptions options);
+		private static extern void Internal_SetSettings(IntPtr thisPtr, ref ParticleTextureAnimationSettings settings);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_GetOptions(IntPtr thisPtr, out ParticleTextureAnimationOptions __output);
+		private static extern void Internal_GetSettings(IntPtr thisPtr, out ParticleTextureAnimationSettings __output);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_Create(ParticleTextureAnimation managedInstance, ref ParticleTextureAnimationOptions desc);
+		private static extern void Internal_Create(ParticleTextureAnimation managedInstance, ref ParticleTextureAnimationSettings settings);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_Create0(ParticleTextureAnimation managedInstance);
 	}

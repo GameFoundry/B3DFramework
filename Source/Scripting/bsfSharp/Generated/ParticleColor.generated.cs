@@ -17,9 +17,9 @@ namespace b3d
 		private ParticleColor(bool __dummy0) { }
 
 		/// <summary>Creates a new particle color evolver.</summary>
-		public ParticleColor(ParticleColorOptions desc)
+		public ParticleColor(ParticleColorOptions settings)
 		{
-			Internal_Create(this, ref desc);
+			Internal_Create(this, ref settings);
 		}
 
 		/// <summary>Creates a new particle color evolver.</summary>
@@ -31,23 +31,23 @@ namespace b3d
 		/// <summary>Options describing the evolver.</summary>
 		[ShowInInspector]
 		[NativeWrapper]
-		public ParticleColorOptions Options
+		public ParticleColorOptions Settings
 		{
 			get
 			{
 				ParticleColorOptions temp;
-				Internal_GetOptions(mCachedPtr, out temp);
+				Internal_GetSettings(mCachedPtr, out temp);
 				return temp;
 			}
-			set { Internal_SetOptions(mCachedPtr, ref value); }
+			set { Internal_SetSettings(mCachedPtr, ref value); }
 		}
 
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_SetOptions(IntPtr thisPtr, ref ParticleColorOptions options);
+		private static extern void Internal_SetSettings(IntPtr thisPtr, ref ParticleColorOptions settings);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_GetOptions(IntPtr thisPtr, out ParticleColorOptions __output);
+		private static extern void Internal_GetSettings(IntPtr thisPtr, out ParticleColorOptions __output);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_Create(ParticleColor managedInstance, ref ParticleColorOptions desc);
+		private static extern void Internal_Create(ParticleColor managedInstance, ref ParticleColorOptions settings);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_Create0(ParticleColor managedInstance);
 	}

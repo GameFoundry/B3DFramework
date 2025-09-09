@@ -17,9 +17,9 @@ namespace b3d
 		private ParticleCollisions(bool __dummy0) { }
 
 		/// <summary>Creates a new particle collision evolver.</summary>
-		public ParticleCollisions(ParticleCollisionsOptions desc)
+		public ParticleCollisions(ParticleCollisionsSettings settings)
 		{
-			Internal_Create(this, ref desc);
+			Internal_Create(this, ref settings);
 		}
 
 		/// <summary>Creates a new particle collision evolver.</summary>
@@ -54,15 +54,15 @@ namespace b3d
 		/// <summary>Options describing the evolver.</summary>
 		[ShowInInspector]
 		[NativeWrapper]
-		public ParticleCollisionsOptions Options
+		public ParticleCollisionsSettings Settings
 		{
 			get
 			{
-				ParticleCollisionsOptions temp;
-				Internal_GetOptions(mCachedPtr, out temp);
+				ParticleCollisionsSettings temp;
+				Internal_GetSettings(mCachedPtr, out temp);
 				return temp;
 			}
-			set { Internal_SetOptions(mCachedPtr, ref value); }
+			set { Internal_SetSettings(mCachedPtr, ref value); }
 		}
 
 		[MethodImpl(MethodImplOptions.InternalCall)]
@@ -74,11 +74,11 @@ namespace b3d
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern SceneObject[] Internal_GetPlaneObjects(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_SetOptions(IntPtr thisPtr, ref ParticleCollisionsOptions options);
+		private static extern void Internal_SetSettings(IntPtr thisPtr, ref ParticleCollisionsSettings settings);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_GetOptions(IntPtr thisPtr, out ParticleCollisionsOptions __output);
+		private static extern void Internal_GetSettings(IntPtr thisPtr, out ParticleCollisionsSettings __output);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_Create(ParticleCollisions managedInstance, ref ParticleCollisionsOptions desc);
+		private static extern void Internal_Create(ParticleCollisions managedInstance, ref ParticleCollisionsSettings settings);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_Create0(ParticleCollisions managedInstance);
 	}

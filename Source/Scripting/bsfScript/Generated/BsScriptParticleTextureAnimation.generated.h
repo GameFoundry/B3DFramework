@@ -24,9 +24,9 @@ namespace b3d
 		static MonoObject* CreateScriptObject(bool construct);
 
 	private:
-		static void InternalSetOptions(ScriptParticleTextureAnimation* self, ParticleTextureAnimationSettings* options);
-		static void InternalGetOptions(ScriptParticleTextureAnimation* self, ParticleTextureAnimationSettings* __output);
-		static void InternalCreate(MonoObject* scriptObject, ParticleTextureAnimationSettings* desc);
+		static void InternalSetSettings(ScriptParticleTextureAnimation* self, ParticleTextureAnimationSettings* settings);
+		static void InternalGetSettings(ScriptParticleTextureAnimation* self, ParticleTextureAnimationSettings* __output);
+		static void InternalCreate(MonoObject* scriptObject, ParticleTextureAnimationSettings* settings);
 		static void InternalCreate0(MonoObject* scriptObject);
 	};
 }

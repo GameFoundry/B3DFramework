@@ -9,7 +9,7 @@
 #include "../../../Foundation/bsfCore/Particles/BsParticleEmitter.h"
 
 namespace b3d { class ParticleEmitterConeShape; }
-namespace b3d { struct __PARTICLE_CONE_SHAPE_DESCInterop; }
+namespace b3d { struct __ParticleConeShapeSettingsInterop; }
 namespace b3d
 {
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleEmitterConeShape : public TScriptReflectableWrapper<ParticleEmitterConeShape, ScriptParticleEmitterConeShape, ScriptParticleEmitterShapeWrapperBase>
@@ -25,9 +25,9 @@ namespace b3d
 		static MonoObject* CreateScriptObject(bool construct);
 
 	private:
-		static void InternalSetOptions(ScriptParticleEmitterConeShape* self, __PARTICLE_CONE_SHAPE_DESCInterop* options);
-		static void InternalGetOptions(ScriptParticleEmitterConeShape* self, __PARTICLE_CONE_SHAPE_DESCInterop* __output);
-		static void InternalCreate(MonoObject* scriptObject, __PARTICLE_CONE_SHAPE_DESCInterop* desc);
+		static void InternalSetSettings(ScriptParticleEmitterConeShape* self, __ParticleConeShapeSettingsInterop* settings);
+		static void InternalGetSettings(ScriptParticleEmitterConeShape* self, __ParticleConeShapeSettingsInterop* __output);
+		static void InternalCreate(MonoObject* scriptObject, __ParticleConeShapeSettingsInterop* settings);
 		static void InternalCreate0(MonoObject* scriptObject);
 	};
 }

@@ -4,7 +4,7 @@
 #include "BsMonoMethod.h"
 #include "BsMonoClass.h"
 #include "BsMonoUtil.h"
-#include "BsScriptPARTICLE_STATIC_MESH_SHAPE_DESC.generated.h"
+#include "BsScriptParticleStaticMeshShapeSettings.generated.h"
 #include "BsScriptParticleEmitterStaticMeshShape.generated.h"
 
 namespace b3d
@@ -22,8 +22,8 @@ namespace b3d
 
 	void ScriptParticleEmitterStaticMeshShape::SetupScriptBindings()
 	{
-		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetOptions", (void*)&ScriptParticleEmitterStaticMeshShape::InternalSetOptions);
-		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetOptions", (void*)&ScriptParticleEmitterStaticMeshShape::InternalGetOptions);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetSettings", (void*)&ScriptParticleEmitterStaticMeshShape::InternalSetSettings);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetSettings", (void*)&ScriptParticleEmitterStaticMeshShape::InternalGetSettings);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_Create", (void*)&ScriptParticleEmitterStaticMeshShape::InternalCreate);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_Create0", (void*)&ScriptParticleEmitterStaticMeshShape::InternalCreate0);
 
@@ -39,17 +39,17 @@ namespace b3d
 
 		return sInteropMetaData.ScriptClass->CreateInstance(false);
 	}
-	void ScriptParticleEmitterStaticMeshShape::InternalSetOptions(ScriptParticleEmitterStaticMeshShape* self, __PARTICLE_STATIC_MESH_SHAPE_DESCInterop* options)
+	void ScriptParticleEmitterStaticMeshShape::InternalSetSettings(ScriptParticleEmitterStaticMeshShape* self, __ParticleStaticMeshShapeSettingsInterop* settings)
 	{
 		if(!self->IsNativeObjectValid())
 			return;
 
-		ParticleStaticMeshShapeSettings tmpoptions;
-		tmpoptions = ScriptParticleStaticMeshShapeOptions::FromInterop(*options);
-		static_cast<ParticleEmitterStaticMeshShape*>(self->GetNativeObject())->SetSettings(tmpoptions);
+		ParticleStaticMeshShapeSettings tmpsettings;
+		tmpsettings = ScriptParticleStaticMeshShapeSettings::FromInterop(*settings);
+		static_cast<ParticleEmitterStaticMeshShape*>(self->GetNativeObject())->SetSettings(tmpsettings);
 	}
 
-	void ScriptParticleEmitterStaticMeshShape::InternalGetOptions(ScriptParticleEmitterStaticMeshShape* self, __PARTICLE_STATIC_MESH_SHAPE_DESCInterop* __output)
+	void ScriptParticleEmitterStaticMeshShape::InternalGetSettings(ScriptParticleEmitterStaticMeshShape* self, __ParticleStaticMeshShapeSettingsInterop* __output)
 	{
 		if(!self->IsNativeObjectValid())
 		{
@@ -60,16 +60,16 @@ namespace b3d
 		ParticleStaticMeshShapeSettings tmp__output;
 		tmp__output = static_cast<ParticleEmitterStaticMeshShape*>(self->GetNativeObject())->GetSettings();
 
-		__PARTICLE_STATIC_MESH_SHAPE_DESCInterop interop__output;
-		interop__output = ScriptParticleStaticMeshShapeOptions::ToInterop(tmp__output);
-		MonoUtil::ValueCopy(__output, &interop__output, ScriptParticleStaticMeshShapeOptions::GetMetaData()->ScriptClass->GetInternalClass());
+		__ParticleStaticMeshShapeSettingsInterop interop__output;
+		interop__output = ScriptParticleStaticMeshShapeSettings::ToInterop(tmp__output);
+		MonoUtil::ValueCopy(__output, &interop__output, ScriptParticleStaticMeshShapeSettings::GetMetaData()->ScriptClass->GetInternalClass());
 	}
 
-	void ScriptParticleEmitterStaticMeshShape::InternalCreate(MonoObject* scriptObject, __PARTICLE_STATIC_MESH_SHAPE_DESCInterop* desc)
+	void ScriptParticleEmitterStaticMeshShape::InternalCreate(MonoObject* scriptObject, __ParticleStaticMeshShapeSettingsInterop* settings)
 	{
-		ParticleStaticMeshShapeSettings tmpdesc;
-		tmpdesc = ScriptParticleStaticMeshShapeOptions::FromInterop(*desc);
-		SPtr<ParticleEmitterStaticMeshShape> nativeObject = ParticleEmitterStaticMeshShape::Create(tmpdesc);
+		ParticleStaticMeshShapeSettings tmpsettings;
+		tmpsettings = ScriptParticleStaticMeshShapeSettings::FromInterop(*settings);
+		SPtr<ParticleEmitterStaticMeshShape> nativeObject = ParticleEmitterStaticMeshShape::Create(tmpsettings);
 		ScriptObjectWrapper::Create<ScriptParticleEmitterStaticMeshShape>(nativeObject, scriptObject);
 	}
 

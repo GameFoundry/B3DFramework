@@ -9,7 +9,7 @@
 #include "../../../Foundation/bsfCore/Particles/BsParticleEvolver.h"
 
 namespace b3d { class ParticleSize; }
-namespace b3d { struct __PARTICLE_SIZE_DESCInterop; }
+namespace b3d { struct __ParticleSizeSettingsInterop; }
 namespace b3d
 {
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleSize : public TScriptReflectableWrapper<ParticleSize, ScriptParticleSize, ScriptParticleEvolverWrapperBase>
@@ -25,9 +25,9 @@ namespace b3d
 		static MonoObject* CreateScriptObject(bool construct);
 
 	private:
-		static void InternalSetOptions(ScriptParticleSize* self, __PARTICLE_SIZE_DESCInterop* options);
-		static void InternalGetOptions(ScriptParticleSize* self, __PARTICLE_SIZE_DESCInterop* __output);
-		static void InternalCreate(MonoObject* scriptObject, __PARTICLE_SIZE_DESCInterop* desc);
+		static void InternalSetSettings(ScriptParticleSize* self, __ParticleSizeSettingsInterop* settings);
+		static void InternalGetSettings(ScriptParticleSize* self, __ParticleSizeSettingsInterop* __output);
+		static void InternalCreate(MonoObject* scriptObject, __ParticleSizeSettingsInterop* settings);
 		static void InternalCreate0(MonoObject* scriptObject);
 	};
 }

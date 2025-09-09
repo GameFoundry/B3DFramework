@@ -4,7 +4,7 @@
 
 #include "BsScriptEnginePrerequisites.h"
 #include "BsScriptObjectWrapper.h"
-#include "../../../Foundation/bsfCore/Animation/BsAnimation.h"
+#include "../../../Foundation/bsfCore/Components/BsAnimation.h"
 
 namespace b3d
 {

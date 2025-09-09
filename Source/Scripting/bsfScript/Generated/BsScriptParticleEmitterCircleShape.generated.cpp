@@ -4,7 +4,7 @@
 #include "BsMonoMethod.h"
 #include "BsMonoClass.h"
 #include "BsMonoUtil.h"
-#include "BsScriptPARTICLE_CIRCLE_SHAPE_DESC.generated.h"
+#include "BsScriptParticleCircleShapeSettings.generated.h"
 #include "BsScriptParticleEmitterCircleShape.generated.h"
 
 namespace b3d
@@ -22,8 +22,8 @@ namespace b3d
 
 	void ScriptParticleEmitterCircleShape::SetupScriptBindings()
 	{
-		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetOptions", (void*)&ScriptParticleEmitterCircleShape::InternalSetOptions);
-		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetOptions", (void*)&ScriptParticleEmitterCircleShape::InternalGetOptions);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetSettings", (void*)&ScriptParticleEmitterCircleShape::InternalSetSettings);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetSettings", (void*)&ScriptParticleEmitterCircleShape::InternalGetSettings);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_Create", (void*)&ScriptParticleEmitterCircleShape::InternalCreate);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_Create0", (void*)&ScriptParticleEmitterCircleShape::InternalCreate0);
 
@@ -39,17 +39,17 @@ namespace b3d
 
 		return sInteropMetaData.ScriptClass->CreateInstance(false);
 	}
-	void ScriptParticleEmitterCircleShape::InternalSetOptions(ScriptParticleEmitterCircleShape* self, __PARTICLE_CIRCLE_SHAPE_DESCInterop* options)
+	void ScriptParticleEmitterCircleShape::InternalSetSettings(ScriptParticleEmitterCircleShape* self, __ParticleCircleShapeSettingsInterop* settings)
 	{
 		if(!self->IsNativeObjectValid())
 			return;
 
-		ParticleCircleShapeSettings tmpoptions;
-		tmpoptions = ScriptParticleCircleShapeOptions::FromInterop(*options);
-		static_cast<ParticleEmitterCircleShape*>(self->GetNativeObject())->SetSettings(tmpoptions);
+		ParticleCircleShapeSettings tmpsettings;
+		tmpsettings = ScriptParticleCircleShapeSettings::FromInterop(*settings);
+		static_cast<ParticleEmitterCircleShape*>(self->GetNativeObject())->SetSettings(tmpsettings);
 	}
 
-	void ScriptParticleEmitterCircleShape::InternalGetOptions(ScriptParticleEmitterCircleShape* self, __PARTICLE_CIRCLE_SHAPE_DESCInterop* __output)
+	void ScriptParticleEmitterCircleShape::InternalGetSettings(ScriptParticleEmitterCircleShape* self, __ParticleCircleShapeSettingsInterop* __output)
 	{
 		if(!self->IsNativeObjectValid())
 		{
@@ -60,16 +60,16 @@ namespace b3d
 		ParticleCircleShapeSettings tmp__output;
 		tmp__output = static_cast<ParticleEmitterCircleShape*>(self->GetNativeObject())->GetSettings();
 
-		__PARTICLE_CIRCLE_SHAPE_DESCInterop interop__output;
-		interop__output = ScriptParticleCircleShapeOptions::ToInterop(tmp__output);
-		MonoUtil::ValueCopy(__output, &interop__output, ScriptParticleCircleShapeOptions::GetMetaData()->ScriptClass->GetInternalClass());
+		__ParticleCircleShapeSettingsInterop interop__output;
+		interop__output = ScriptParticleCircleShapeSettings::ToInterop(tmp__output);
+		MonoUtil::ValueCopy(__output, &interop__output, ScriptParticleCircleShapeSettings::GetMetaData()->ScriptClass->GetInternalClass());
 	}
 
-	void ScriptParticleEmitterCircleShape::InternalCreate(MonoObject* scriptObject, __PARTICLE_CIRCLE_SHAPE_DESCInterop* desc)
+	void ScriptParticleEmitterCircleShape::InternalCreate(MonoObject* scriptObject, __ParticleCircleShapeSettingsInterop* settings)
 	{
-		ParticleCircleShapeSettings tmpdesc;
-		tmpdesc = ScriptParticleCircleShapeOptions::FromInterop(*desc);
-		SPtr<ParticleEmitterCircleShape> nativeObject = ParticleEmitterCircleShape::Create(tmpdesc);
+		ParticleCircleShapeSettings tmpsettings;
+		tmpsettings = ScriptParticleCircleShapeSettings::FromInterop(*settings);
+		SPtr<ParticleEmitterCircleShape> nativeObject = ParticleEmitterCircleShape::Create(tmpsettings);
 		ScriptObjectWrapper::Create<ScriptParticleEmitterCircleShape>(nativeObject, scriptObject);
 	}
 

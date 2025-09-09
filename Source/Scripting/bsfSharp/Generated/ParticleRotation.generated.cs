@@ -17,9 +17,9 @@ namespace b3d
 		private ParticleRotation(bool __dummy0) { }
 
 		/// <summary>Creates a new particle rotation evolver.</summary>
-		public ParticleRotation(ParticleRotationOptions desc)
+		public ParticleRotation(ParticleRotationSettings settings)
 		{
-			Internal_Create(this, ref desc);
+			Internal_Create(this, ref settings);
 		}
 
 		/// <summary>Creates a new particle rotation evolver.</summary>
@@ -31,23 +31,23 @@ namespace b3d
 		/// <summary>Options describing the evolver.</summary>
 		[ShowInInspector]
 		[NativeWrapper]
-		public ParticleRotationOptions Options
+		public ParticleRotationSettings Settings
 		{
 			get
 			{
-				ParticleRotationOptions temp;
-				Internal_GetOptions(mCachedPtr, out temp);
+				ParticleRotationSettings temp;
+				Internal_GetSettings(mCachedPtr, out temp);
 				return temp;
 			}
-			set { Internal_SetOptions(mCachedPtr, ref value); }
+			set { Internal_SetSettings(mCachedPtr, ref value); }
 		}
 
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_SetOptions(IntPtr thisPtr, ref ParticleRotationOptions options);
+		private static extern void Internal_SetSettings(IntPtr thisPtr, ref ParticleRotationSettings settings);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_GetOptions(IntPtr thisPtr, out ParticleRotationOptions __output);
+		private static extern void Internal_GetSettings(IntPtr thisPtr, out ParticleRotationSettings __output);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_Create(ParticleRotation managedInstance, ref ParticleRotationOptions desc);
+		private static extern void Internal_Create(ParticleRotation managedInstance, ref ParticleRotationSettings settings);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_Create0(ParticleRotation managedInstance);
 	}

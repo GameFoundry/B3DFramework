@@ -9,7 +9,7 @@
 #include "../../../Foundation/bsfCore/Particles/BsParticleEmitter.h"
 
 namespace b3d { class ParticleEmitterSkinnedMeshShape; }
-namespace b3d { struct __PARTICLE_SKINNED_MESH_SHAPE_DESCInterop; }
+namespace b3d { struct __ParticleSkinnedMeshShapeSettingsInterop; }
 namespace b3d
 {
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleEmitterSkinnedMeshShape : public TScriptReflectableWrapper<ParticleEmitterSkinnedMeshShape, ScriptParticleEmitterSkinnedMeshShape, ScriptParticleEmitterShapeWrapperBase>
@@ -25,9 +25,9 @@ namespace b3d
 		static MonoObject* CreateScriptObject(bool construct);
 
 	private:
-		static void InternalSetOptions(ScriptParticleEmitterSkinnedMeshShape* self, __PARTICLE_SKINNED_MESH_SHAPE_DESCInterop* options);
-		static void InternalGetOptions(ScriptParticleEmitterSkinnedMeshShape* self, __PARTICLE_SKINNED_MESH_SHAPE_DESCInterop* __output);
-		static void InternalCreate(MonoObject* scriptObject, __PARTICLE_SKINNED_MESH_SHAPE_DESCInterop* desc);
+		static void InternalSetSettings(ScriptParticleEmitterSkinnedMeshShape* self, __ParticleSkinnedMeshShapeSettingsInterop* settings);
+		static void InternalGetSettings(ScriptParticleEmitterSkinnedMeshShape* self, __ParticleSkinnedMeshShapeSettingsInterop* __output);
+		static void InternalCreate(MonoObject* scriptObject, __ParticleSkinnedMeshShapeSettingsInterop* settings);
 		static void InternalCreate0(MonoObject* scriptObject);
 	};
 }

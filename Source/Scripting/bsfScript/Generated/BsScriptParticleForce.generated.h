@@ -9,7 +9,7 @@
 #include "../../../Foundation/bsfCore/Particles/BsParticleEvolver.h"
 
 namespace b3d { class ParticleForce; }
-namespace b3d { struct __PARTICLE_FORCE_DESCInterop; }
+namespace b3d { struct __ParticleForceSettingsInterop; }
 namespace b3d
 {
 	class B3D_SCRIPT_INTEROP_EXPORT ScriptParticleForce : public TScriptReflectableWrapper<ParticleForce, ScriptParticleForce, ScriptParticleEvolverWrapperBase>
@@ -25,9 +25,9 @@ namespace b3d
 		static MonoObject* CreateScriptObject(bool construct);
 
 	private:
-		static void InternalSetOptions(ScriptParticleForce* self, __PARTICLE_FORCE_DESCInterop* options);
-		static void InternalGetOptions(ScriptParticleForce* self, __PARTICLE_FORCE_DESCInterop* __output);
-		static void InternalCreate(MonoObject* scriptObject, __PARTICLE_FORCE_DESCInterop* desc);
+		static void InternalSetSettings(ScriptParticleForce* self, __ParticleForceSettingsInterop* settings);
+		static void InternalGetSettings(ScriptParticleForce* self, __ParticleForceSettingsInterop* __output);
+		static void InternalCreate(MonoObject* scriptObject, __ParticleForceSettingsInterop* settings);
 		static void InternalCreate0(MonoObject* scriptObject);
 	};
 }

@@ -1,0 +1,53 @@
+//********************************* B3D Framework - Copyright 2018-2022 Marko Pintera ************************************//
+//*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
+#include "BsScriptParticleForceSettings.generated.h"
+#include "BsMonoMethod.h"
+#include "BsMonoClass.h"
+#include "BsMonoUtil.h"
+#include "../../../Foundation/bsfCore/Particles/BsParticleDistribution.h"
+#include "BsScriptTDistribution.generated.h"
+
+namespace b3d
+{
+	ScriptParticleForceSettings::ScriptParticleForceSettings()
+	{ }
+
+	MonoObject* ScriptParticleForceSettings::Box(const __ParticleForceSettingsInterop& value)
+	{
+		return MonoUtil::Box(sInteropMetaData.ScriptClass->GetInternalClass(), (void*)&value);
+	}
+
+	__ParticleForceSettingsInterop ScriptParticleForceSettings::Unbox(MonoObject* value)
+	{
+		return *(__ParticleForceSettingsInterop*)MonoUtil::Unbox(value);
+	}
+
+	ParticleForceSettings ScriptParticleForceSettings::FromInterop(const __ParticleForceSettingsInterop& value)
+	{
+		ParticleForceSettings output;
+		SPtr<TDistribution<TVector3<float>>> tmpForce;
+		ScriptVector3Distribution* scriptObjectWrapperForce;
+		scriptObjectWrapperForce = ScriptVector3Distribution::GetScriptObjectWrapper(value.Force);
+		if(scriptObjectWrapperForce != nullptr)
+			tmpForce = std::static_pointer_cast<TDistribution<TVector3<float>>>(scriptObjectWrapperForce->GetBaseNativeObjectAsShared());
+		if(tmpForce != nullptr)
+		output.Force = *tmpForce;
+		output.WorldSpace = value.WorldSpace;
+
+		return output;
+	}
+
+	__ParticleForceSettingsInterop ScriptParticleForceSettings::ToInterop(const ParticleForceSettings& value)
+	{
+		__ParticleForceSettingsInterop output;
+		MonoObject* tmpForce;
+		SPtr<TDistribution<TVector3<float>>> tmpForcecopy;
+		tmpForcecopy = B3DMakeShared<TDistribution<TVector3<float>>>(value.Force);
+		tmpForce = ScriptVector3Distribution::GetOrCreateScriptObject(tmpForcecopy);
+		output.Force = tmpForce;
+		output.WorldSpace = value.WorldSpace;
+
+		return output;
+	}
+
+}

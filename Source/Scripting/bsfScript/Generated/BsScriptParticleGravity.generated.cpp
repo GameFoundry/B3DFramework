@@ -4,7 +4,7 @@
 #include "BsMonoMethod.h"
 #include "BsMonoClass.h"
 #include "BsMonoUtil.h"
-#include "BsScriptPARTICLE_GRAVITY_DESC.generated.h"
+#include "BsScriptParticleGravitySettings.generated.h"
 #include "BsScriptParticleGravity.generated.h"
 
 namespace b3d
@@ -22,8 +22,8 @@ namespace b3d
 
 	void ScriptParticleGravity::SetupScriptBindings()
 	{
-		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetOptions", (void*)&ScriptParticleGravity::InternalSetOptions);
-		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetOptions", (void*)&ScriptParticleGravity::InternalGetOptions);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetSettings", (void*)&ScriptParticleGravity::InternalSetSettings);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetSettings", (void*)&ScriptParticleGravity::InternalGetSettings);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_Create", (void*)&ScriptParticleGravity::InternalCreate);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_Create0", (void*)&ScriptParticleGravity::InternalCreate0);
 
@@ -39,15 +39,15 @@ namespace b3d
 
 		return sInteropMetaData.ScriptClass->CreateInstance(false);
 	}
-	void ScriptParticleGravity::InternalSetOptions(ScriptParticleGravity* self, ParticleGravitySettings* options)
+	void ScriptParticleGravity::InternalSetSettings(ScriptParticleGravity* self, ParticleGravitySettings* settings)
 	{
 		if(!self->IsNativeObjectValid())
 			return;
 
-		static_cast<ParticleGravity*>(self->GetNativeObject())->SetSettings(*options);
+		static_cast<ParticleGravity*>(self->GetNativeObject())->SetSettings(*settings);
 	}
 
-	void ScriptParticleGravity::InternalGetOptions(ScriptParticleGravity* self, ParticleGravitySettings* __output)
+	void ScriptParticleGravity::InternalGetSettings(ScriptParticleGravity* self, ParticleGravitySettings* __output)
 	{
 		if(!self->IsNativeObjectValid())
 		{
@@ -61,9 +61,9 @@ namespace b3d
 		*__output = tmp__output;
 	}
 
-	void ScriptParticleGravity::InternalCreate(MonoObject* scriptObject, ParticleGravitySettings* desc)
+	void ScriptParticleGravity::InternalCreate(MonoObject* scriptObject, ParticleGravitySettings* settings)
 	{
-		SPtr<ParticleGravity> nativeObject = ParticleGravity::Create(*desc);
+		SPtr<ParticleGravity> nativeObject = ParticleGravity::Create(*settings);
 		ScriptObjectWrapper::Create<ScriptParticleGravity>(nativeObject, scriptObject);
 	}
 

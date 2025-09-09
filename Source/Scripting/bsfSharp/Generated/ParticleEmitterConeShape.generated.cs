@@ -12,7 +12,7 @@ namespace b3d
 
 	/// <summary>
 	/// Particle emitter shape that emits particles from a cone. Particles can be created on cone base or volume, while 
-	/// controling the radial arc of the emitted portion of the volume, as well as thickness of the cone emission volume. All 
+	/// controlling the radial arc of the emitted portion of the volume, as well as thickness of the cone emission volume. All 
 	/// particles will have random normals within the distribution of the cone.
 	/// </summary>
 	[ShowInInspector]
@@ -21,9 +21,9 @@ namespace b3d
 		private ParticleEmitterConeShape(bool __dummy0) { }
 
 		/// <summary>Creates a new particle emitter cone shape.</summary>
-		public ParticleEmitterConeShape(ParticleConeShapeOptions desc)
+		public ParticleEmitterConeShape(ParticleConeShapeSettings settings)
 		{
-			Internal_Create(this, ref desc);
+			Internal_Create(this, ref settings);
 		}
 
 		/// <summary>Creates a new particle emitter cone shape.</summary>
@@ -36,23 +36,23 @@ namespace b3d
 		[ShowInInspector]
 		[Inline]
 		[NativeWrapper]
-		public ParticleConeShapeOptions Options
+		public ParticleConeShapeSettings Settings
 		{
 			get
 			{
-				ParticleConeShapeOptions temp;
-				Internal_GetOptions(mCachedPtr, out temp);
+				ParticleConeShapeSettings temp;
+				Internal_GetSettings(mCachedPtr, out temp);
 				return temp;
 			}
-			set { Internal_SetOptions(mCachedPtr, ref value); }
+			set { Internal_SetSettings(mCachedPtr, ref value); }
 		}
 
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_SetOptions(IntPtr thisPtr, ref ParticleConeShapeOptions options);
+		private static extern void Internal_SetSettings(IntPtr thisPtr, ref ParticleConeShapeSettings settings);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_GetOptions(IntPtr thisPtr, out ParticleConeShapeOptions __output);
+		private static extern void Internal_GetSettings(IntPtr thisPtr, out ParticleConeShapeSettings __output);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_Create(ParticleEmitterConeShape managedInstance, ref ParticleConeShapeOptions desc);
+		private static extern void Internal_Create(ParticleEmitterConeShape managedInstance, ref ParticleConeShapeSettings settings);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_Create0(ParticleEmitterConeShape managedInstance);
 	}

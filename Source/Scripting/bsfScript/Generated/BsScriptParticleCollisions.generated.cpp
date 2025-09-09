@@ -6,7 +6,7 @@
 #include "BsMonoUtil.h"
 #include "BsScriptTPlane.generated.h"
 #include "Wrappers/BsScriptSceneObject.h"
-#include "BsScriptPARTICLE_COLLISIONS_DESC.generated.h"
+#include "BsScriptParticleCollisionSettings.generated.h"
 #include "BsScriptParticleCollisions.generated.h"
 
 namespace b3d
@@ -28,8 +28,8 @@ namespace b3d
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetPlanes", (void*)&ScriptParticleCollisions::InternalGetPlanes);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetPlaneObjects", (void*)&ScriptParticleCollisions::InternalSetPlaneObjects);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetPlaneObjects", (void*)&ScriptParticleCollisions::InternalGetPlaneObjects);
-		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetOptions", (void*)&ScriptParticleCollisions::InternalSetOptions);
-		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetOptions", (void*)&ScriptParticleCollisions::InternalGetOptions);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetSettings", (void*)&ScriptParticleCollisions::InternalSetSettings);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetSettings", (void*)&ScriptParticleCollisions::InternalGetSettings);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_Create", (void*)&ScriptParticleCollisions::InternalCreate);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_Create0", (void*)&ScriptParticleCollisions::InternalCreate0);
 
@@ -131,15 +131,15 @@ namespace b3d
 		return __output;
 	}
 
-	void ScriptParticleCollisions::InternalSetOptions(ScriptParticleCollisions* self, ParticleCollisionSettings* options)
+	void ScriptParticleCollisions::InternalSetSettings(ScriptParticleCollisions* self, ParticleCollisionSettings* settings)
 	{
 		if(!self->IsNativeObjectValid())
 			return;
 
-		static_cast<ParticleCollisions*>(self->GetNativeObject())->SetSettings(*options);
+		static_cast<ParticleCollisions*>(self->GetNativeObject())->SetSettings(*settings);
 	}
 
-	void ScriptParticleCollisions::InternalGetOptions(ScriptParticleCollisions* self, ParticleCollisionSettings* __output)
+	void ScriptParticleCollisions::InternalGetSettings(ScriptParticleCollisions* self, ParticleCollisionSettings* __output)
 	{
 		if(!self->IsNativeObjectValid())
 		{
@@ -153,9 +153,9 @@ namespace b3d
 		*__output = tmp__output;
 	}
 
-	void ScriptParticleCollisions::InternalCreate(MonoObject* scriptObject, ParticleCollisionSettings* desc)
+	void ScriptParticleCollisions::InternalCreate(MonoObject* scriptObject, ParticleCollisionSettings* settings)
 	{
-		SPtr<ParticleCollisions> nativeObject = ParticleCollisions::Create(*desc);
+		SPtr<ParticleCollisions> nativeObject = ParticleCollisions::Create(*settings);
 		ScriptObjectWrapper::Create<ScriptParticleCollisions>(nativeObject, scriptObject);
 	}
 

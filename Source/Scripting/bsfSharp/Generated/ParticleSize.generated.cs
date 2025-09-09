@@ -17,9 +17,9 @@ namespace b3d
 		private ParticleSize(bool __dummy0) { }
 
 		/// <summary>Creates a new particle size evolver.</summary>
-		public ParticleSize(ParticleSizeOptions desc)
+		public ParticleSize(ParticleSizeSettings settings)
 		{
-			Internal_Create(this, ref desc);
+			Internal_Create(this, ref settings);
 		}
 
 		/// <summary>Creates a new particle size evolver.</summary>
@@ -31,23 +31,23 @@ namespace b3d
 		/// <summary>Options describing the evolver.</summary>
 		[ShowInInspector]
 		[NativeWrapper]
-		public ParticleSizeOptions Options
+		public ParticleSizeSettings Settings
 		{
 			get
 			{
-				ParticleSizeOptions temp;
-				Internal_GetOptions(mCachedPtr, out temp);
+				ParticleSizeSettings temp;
+				Internal_GetSettings(mCachedPtr, out temp);
 				return temp;
 			}
-			set { Internal_SetOptions(mCachedPtr, ref value); }
+			set { Internal_SetSettings(mCachedPtr, ref value); }
 		}
 
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_SetOptions(IntPtr thisPtr, ref ParticleSizeOptions options);
+		private static extern void Internal_SetSettings(IntPtr thisPtr, ref ParticleSizeSettings settings);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_GetOptions(IntPtr thisPtr, out ParticleSizeOptions __output);
+		private static extern void Internal_GetSettings(IntPtr thisPtr, out ParticleSizeSettings __output);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_Create(ParticleSize managedInstance, ref ParticleSizeOptions desc);
+		private static extern void Internal_Create(ParticleSize managedInstance, ref ParticleSizeSettings settings);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_Create0(ParticleSize managedInstance);
 	}

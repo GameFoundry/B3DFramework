@@ -19,9 +19,9 @@ namespace b3d
 		private ParticleOrbit(bool __dummy0) { }
 
 		/// <summary>Creates a new particle orbit evolver.</summary>
-		public ParticleOrbit(ParticleOrbitOptions desc)
+		public ParticleOrbit(ParticleOrbitSettings settings)
 		{
-			Internal_Create(this, ref desc);
+			Internal_Create(this, ref settings);
 		}
 
 		/// <summary>Creates a new particle orbit evolver.</summary>
@@ -33,23 +33,23 @@ namespace b3d
 		/// <summary>Options describing the evolver.</summary>
 		[ShowInInspector]
 		[NativeWrapper]
-		public ParticleOrbitOptions Options
+		public ParticleOrbitSettings Settings
 		{
 			get
 			{
-				ParticleOrbitOptions temp;
-				Internal_GetOptions(mCachedPtr, out temp);
+				ParticleOrbitSettings temp;
+				Internal_GetSettings(mCachedPtr, out temp);
 				return temp;
 			}
-			set { Internal_SetOptions(mCachedPtr, ref value); }
+			set { Internal_SetSettings(mCachedPtr, ref value); }
 		}
 
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_SetOptions(IntPtr thisPtr, ref ParticleOrbitOptions options);
+		private static extern void Internal_SetSettings(IntPtr thisPtr, ref ParticleOrbitSettings settings);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_GetOptions(IntPtr thisPtr, out ParticleOrbitOptions __output);
+		private static extern void Internal_GetSettings(IntPtr thisPtr, out ParticleOrbitSettings __output);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_Create(ParticleOrbit managedInstance, ref ParticleOrbitOptions desc);
+		private static extern void Internal_Create(ParticleOrbit managedInstance, ref ParticleOrbitSettings settings);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_Create0(ParticleOrbit managedInstance);
 	}

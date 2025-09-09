@@ -20,9 +20,9 @@ namespace b3d
 		private ParticleEmitterSkinnedMeshShape(bool __dummy0) { }
 
 		/// <summary>Creates a new particle emitter skinned mesh shape.</summary>
-		public ParticleEmitterSkinnedMeshShape(ParticleSkinnedMeshShapeOptions desc)
+		public ParticleEmitterSkinnedMeshShape(ParticleSkinnedMeshShapeSettings settings)
 		{
-			Internal_Create(this, ref desc);
+			Internal_Create(this, ref settings);
 		}
 
 		/// <summary>Creates a new particle emitter skinned mesh shape.</summary>
@@ -35,23 +35,23 @@ namespace b3d
 		[ShowInInspector]
 		[Inline]
 		[NativeWrapper]
-		public ParticleSkinnedMeshShapeOptions Options
+		public ParticleSkinnedMeshShapeSettings Settings
 		{
 			get
 			{
-				ParticleSkinnedMeshShapeOptions temp;
-				Internal_GetOptions(mCachedPtr, out temp);
+				ParticleSkinnedMeshShapeSettings temp;
+				Internal_GetSettings(mCachedPtr, out temp);
 				return temp;
 			}
-			set { Internal_SetOptions(mCachedPtr, ref value); }
+			set { Internal_SetSettings(mCachedPtr, ref value); }
 		}
 
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_SetOptions(IntPtr thisPtr, ref ParticleSkinnedMeshShapeOptions options);
+		private static extern void Internal_SetSettings(IntPtr thisPtr, ref ParticleSkinnedMeshShapeSettings settings);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_GetOptions(IntPtr thisPtr, out ParticleSkinnedMeshShapeOptions __output);
+		private static extern void Internal_GetSettings(IntPtr thisPtr, out ParticleSkinnedMeshShapeSettings __output);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_Create(ParticleEmitterSkinnedMeshShape managedInstance, ref ParticleSkinnedMeshShapeOptions desc);
+		private static extern void Internal_Create(ParticleEmitterSkinnedMeshShape managedInstance, ref ParticleSkinnedMeshShapeSettings settings);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_Create0(ParticleEmitterSkinnedMeshShape managedInstance);
 	}

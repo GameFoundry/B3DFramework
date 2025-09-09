@@ -20,9 +20,9 @@ namespace b3d
 		private ParticleEmitterStaticMeshShape(bool __dummy0) { }
 
 		/// <summary>Creates a new particle emitter static mesh shape.</summary>
-		public ParticleEmitterStaticMeshShape(ParticleStaticMeshShapeOptions desc)
+		public ParticleEmitterStaticMeshShape(ParticleStaticMeshShapeSettings settings)
 		{
-			Internal_Create(this, ref desc);
+			Internal_Create(this, ref settings);
 		}
 
 		/// <summary>Creates a new particle emitter static mesh shape.</summary>
@@ -35,23 +35,23 @@ namespace b3d
 		[ShowInInspector]
 		[Inline]
 		[NativeWrapper]
-		public ParticleStaticMeshShapeOptions Options
+		public ParticleStaticMeshShapeSettings Settings
 		{
 			get
 			{
-				ParticleStaticMeshShapeOptions temp;
-				Internal_GetOptions(mCachedPtr, out temp);
+				ParticleStaticMeshShapeSettings temp;
+				Internal_GetSettings(mCachedPtr, out temp);
 				return temp;
 			}
-			set { Internal_SetOptions(mCachedPtr, ref value); }
+			set { Internal_SetSettings(mCachedPtr, ref value); }
 		}
 
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_SetOptions(IntPtr thisPtr, ref ParticleStaticMeshShapeOptions options);
+		private static extern void Internal_SetSettings(IntPtr thisPtr, ref ParticleStaticMeshShapeSettings settings);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_GetOptions(IntPtr thisPtr, out ParticleStaticMeshShapeOptions __output);
+		private static extern void Internal_GetSettings(IntPtr thisPtr, out ParticleStaticMeshShapeSettings __output);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_Create(ParticleEmitterStaticMeshShape managedInstance, ref ParticleStaticMeshShapeOptions desc);
+		private static extern void Internal_Create(ParticleEmitterStaticMeshShape managedInstance, ref ParticleStaticMeshShapeSettings settings);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_Create0(ParticleEmitterStaticMeshShape managedInstance);
 	}

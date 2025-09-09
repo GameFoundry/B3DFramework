@@ -4,7 +4,7 @@
 #include "BsMonoMethod.h"
 #include "BsMonoClass.h"
 #include "BsMonoUtil.h"
-#include "BsScriptPARTICLE_RECT_SHAPE_DESC.generated.h"
+#include "BsScriptParticleRectangleShapeSettings.generated.h"
 #include "BsScriptParticleEmitterRectShape.generated.h"
 
 namespace b3d
@@ -22,8 +22,8 @@ namespace b3d
 
 	void ScriptParticleEmitterRectShape::SetupScriptBindings()
 	{
-		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetOptions", (void*)&ScriptParticleEmitterRectShape::InternalSetOptions);
-		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetOptions", (void*)&ScriptParticleEmitterRectShape::InternalGetOptions);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetSettings", (void*)&ScriptParticleEmitterRectShape::InternalSetSettings);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetSettings", (void*)&ScriptParticleEmitterRectShape::InternalGetSettings);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_Create", (void*)&ScriptParticleEmitterRectShape::InternalCreate);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_Create0", (void*)&ScriptParticleEmitterRectShape::InternalCreate0);
 
@@ -39,17 +39,17 @@ namespace b3d
 
 		return sInteropMetaData.ScriptClass->CreateInstance(false);
 	}
-	void ScriptParticleEmitterRectShape::InternalSetOptions(ScriptParticleEmitterRectShape* self, __PARTICLE_RECT_SHAPE_DESCInterop* options)
+	void ScriptParticleEmitterRectShape::InternalSetSettings(ScriptParticleEmitterRectShape* self, __ParticleRectangleShapeSettingsInterop* settings)
 	{
 		if(!self->IsNativeObjectValid())
 			return;
 
-		ParticleRectangleShapeSettings tmpoptions;
-		tmpoptions = ScriptParticleRectShapeOptions::FromInterop(*options);
-		static_cast<ParticleEmitterRectShape*>(self->GetNativeObject())->SetSettings(tmpoptions);
+		ParticleRectangleShapeSettings tmpsettings;
+		tmpsettings = ScriptParticleRectShapeSettings::FromInterop(*settings);
+		static_cast<ParticleEmitterRectShape*>(self->GetNativeObject())->SetSettings(tmpsettings);
 	}
 
-	void ScriptParticleEmitterRectShape::InternalGetOptions(ScriptParticleEmitterRectShape* self, __PARTICLE_RECT_SHAPE_DESCInterop* __output)
+	void ScriptParticleEmitterRectShape::InternalGetSettings(ScriptParticleEmitterRectShape* self, __ParticleRectangleShapeSettingsInterop* __output)
 	{
 		if(!self->IsNativeObjectValid())
 		{
@@ -60,16 +60,16 @@ namespace b3d
 		ParticleRectangleShapeSettings tmp__output;
 		tmp__output = static_cast<ParticleEmitterRectShape*>(self->GetNativeObject())->GetSettings();
 
-		__PARTICLE_RECT_SHAPE_DESCInterop interop__output;
-		interop__output = ScriptParticleRectShapeOptions::ToInterop(tmp__output);
-		MonoUtil::ValueCopy(__output, &interop__output, ScriptParticleRectShapeOptions::GetMetaData()->ScriptClass->GetInternalClass());
+		__ParticleRectangleShapeSettingsInterop interop__output;
+		interop__output = ScriptParticleRectShapeSettings::ToInterop(tmp__output);
+		MonoUtil::ValueCopy(__output, &interop__output, ScriptParticleRectShapeSettings::GetMetaData()->ScriptClass->GetInternalClass());
 	}
 
-	void ScriptParticleEmitterRectShape::InternalCreate(MonoObject* scriptObject, __PARTICLE_RECT_SHAPE_DESCInterop* desc)
+	void ScriptParticleEmitterRectShape::InternalCreate(MonoObject* scriptObject, __ParticleRectangleShapeSettingsInterop* settings)
 	{
-		ParticleRectangleShapeSettings tmpdesc;
-		tmpdesc = ScriptParticleRectShapeOptions::FromInterop(*desc);
-		SPtr<ParticleEmitterRectShape> nativeObject = ParticleEmitterRectShape::Create(tmpdesc);
+		ParticleRectangleShapeSettings tmpsettings;
+		tmpsettings = ScriptParticleRectShapeSettings::FromInterop(*settings);
+		SPtr<ParticleEmitterRectShape> nativeObject = ParticleEmitterRectShape::Create(tmpsettings);
 		ScriptObjectWrapper::Create<ScriptParticleEmitterRectShape>(nativeObject, scriptObject);
 	}
 

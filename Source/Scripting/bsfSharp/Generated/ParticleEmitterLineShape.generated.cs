@@ -17,9 +17,9 @@ namespace b3d
 		private ParticleEmitterLineShape(bool __dummy0) { }
 
 		/// <summary>Creates a new particle emitter edge shape.</summary>
-		public ParticleEmitterLineShape(ParticleLineShapeOptions desc)
+		public ParticleEmitterLineShape(ParticleLineShapeSettings settings)
 		{
-			Internal_Create(this, ref desc);
+			Internal_Create(this, ref settings);
 		}
 
 		/// <summary>Creates a new particle emitter edge shape.</summary>
@@ -32,23 +32,23 @@ namespace b3d
 		[ShowInInspector]
 		[Inline]
 		[NativeWrapper]
-		public ParticleLineShapeOptions Options
+		public ParticleLineShapeSettings Settings
 		{
 			get
 			{
-				ParticleLineShapeOptions temp;
-				Internal_GetOptions(mCachedPtr, out temp);
+				ParticleLineShapeSettings temp;
+				Internal_GetSettings(mCachedPtr, out temp);
 				return temp;
 			}
-			set { Internal_SetOptions(mCachedPtr, ref value); }
+			set { Internal_SetSettings(mCachedPtr, ref value); }
 		}
 
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_SetOptions(IntPtr thisPtr, ref ParticleLineShapeOptions options);
+		private static extern void Internal_SetSettings(IntPtr thisPtr, ref ParticleLineShapeSettings settings);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_GetOptions(IntPtr thisPtr, out ParticleLineShapeOptions __output);
+		private static extern void Internal_GetSettings(IntPtr thisPtr, out ParticleLineShapeSettings __output);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_Create(ParticleEmitterLineShape managedInstance, ref ParticleLineShapeOptions desc);
+		private static extern void Internal_Create(ParticleEmitterLineShape managedInstance, ref ParticleLineShapeSettings settings);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_Create0(ParticleEmitterLineShape managedInstance);
 	}
