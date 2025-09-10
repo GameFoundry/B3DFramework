@@ -438,7 +438,7 @@ void VulkanGpuBackend::OnStartUp()
 	// Create vertex input manager
 	VulkanVertexInputManager::StartUp();
 
-	//mFrameCapture = B3DMakeShared<RenderDocFrameCapture>(mInstance); // TODO - This should included in the build for development only, but it's currently always bundled with the application
+	mFrameCapture = B3DMakeShared<RenderDocFrameCapture>(mInstance); // TODO - This should included in the build for development only, but it's currently always bundled with the application
 
 	Super::OnStartUp();
 }

@@ -725,7 +725,7 @@ namespace b3d
 			ParticleGpuSimulationSettings mGpuSimulationSettings;
 			u64 mLayer = 1;
 			Transform mTransform;
-			bool mActive = false;
+			bool mActive = true;
 			SPtr<SceneInstance> mSceneInstance;
 		};
 	} // namespace render
