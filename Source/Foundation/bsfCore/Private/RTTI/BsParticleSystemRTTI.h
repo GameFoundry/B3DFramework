@@ -4,7 +4,7 @@
 
 #include "BsCorePrerequisites.h"
 #include "Reflection/BsRTTIType.h"
-#include "Components/BsCParticleSystem.h"
+#include "Components/BsParticleSystem.h"
 #include "Particles/BsParticleEmitter.h"
 #include "Private/RTTI/BsGameObjectRTTI.h"
 #include "Particles/BsParticleEvolver.h"

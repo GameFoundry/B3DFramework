@@ -21,7 +21,7 @@
 #include "BsRenderBeastScene.h"
 #include "BsRenderBeast.h"
 #include "Particles/BsParticleScene.h"
-#include "Components/BsCParticleSystem.h"
+#include "Components/BsParticleSystem.h"
 #include "Profiling/BsProfilerGPU.h"
 #include "Shading/BsGpuParticleSimulation.h"
 #include "Profiling/BsProfilerCPU.h"

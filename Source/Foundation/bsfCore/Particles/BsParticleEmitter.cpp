@@ -7,7 +7,7 @@
 #include "Math/BsRandom.h"
 #include "Components/BsRenderable.h"
 #include "Private/Particles/BsParticleSet.h"
-#include "Private/RTTI/BsCParticleSystemRTTI.h"
+#include "Private/RTTI/BsParticleSystemRTTI.h"
 #include "Animation/BsAnimationScene.h"
 #include "Components/BsAnimation.h"
 #include "Mesh/BsMesh.h"

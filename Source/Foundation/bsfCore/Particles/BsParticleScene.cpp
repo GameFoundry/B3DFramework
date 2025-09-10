@@ -7,7 +7,7 @@
 #include "Allocators/BsPoolAlloc.h"
 #include "Private/Particles/BsParticleSet.h"
 #include "Animation/BsAnimationScene.h"
-#include "Components/BsCParticleSystem.h"
+#include "Components/BsParticleSystem.h"
 #include "Image/BsPixelUtility.h"
 
 using namespace b3d;
