@@ -4,7 +4,7 @@
 
 #include "BsCorePrerequisites.h"
 #include "Reflection/BsRTTIType.h"
-#include "Components/BsCCamera.h"
+#include "Components/BsCamera.h"
 #include "Private/RTTI/BsGameObjectRTTI.h"
 #include "RTTI/BsMathRTTI.h"
 
@@ -15,7 +15,7 @@ namespace b3d
 	 *  @{
 	 */
 
-	class B3D_CORE_EXPORT CCameraRTTI : public TRTTIType<Camera, Component, CCameraRTTI>
+	class B3D_CORE_EXPORT CameraRTTI : public TRTTIType<Camera, Component, CameraRTTI>
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
@@ -64,9 +64,9 @@ namespace b3d
 		}
 
 	public:
-		CCameraRTTI()
+		CameraRTTI()
 		{
-			AddField("mCameraFlags", 25, &CCameraRTTI::GetCameraFlagsIterator, &CCameraRTTI::GetCameraFlags, &CCameraRTTI::SetCameraFlags);
+			AddField("mCameraFlags", 25, &CameraRTTI::GetCameraFlagsIterator, &CameraRTTI::GetCameraFlags, &CameraRTTI::SetCameraFlags);
 		}
 
 		const String& GetRttiName() override

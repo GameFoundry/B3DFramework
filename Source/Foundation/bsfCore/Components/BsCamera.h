@@ -567,7 +567,7 @@ namespace b3d
 		/* 								RTTI		                     		*/
 		/************************************************************************/
 	public:
-		friend class CCameraRTTI;
+		friend class CameraRTTI;
 		static RTTIType* GetRttiStatic();
 		RTTIType* GetRtti() const override;
 

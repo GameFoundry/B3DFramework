@@ -3,7 +3,7 @@
 #include "BsRenderCompositor.h"
 #include "Renderer/BsRendererExtension.h"
 #include "Components/BsSkybox.h"
-#include "Components/BsCCamera.h"
+#include "Components/BsCamera.h"
 #include "Renderer/BsRendererUtility.h"
 #include "Utility/BsBitwise.h"
 #include "Mesh/BsMesh.h"

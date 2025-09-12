@@ -1,7 +1,7 @@
 //************************************ B3D Framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "Components/BsCCamera.h"
-#include "Private/RTTI/BsCCameraRTTI.h"
+#include "Components/BsCamera.h"
+#include "Private/RTTI/BsCameraRTTI.h"
 #include "Scene/BsSceneObject.h"
 #include "Scene/BsSceneInstance.h"
 #include "BsCoreApplication.h"
@@ -846,7 +846,7 @@ void Camera::GetCoreDependencies(Vector<CoreObject*>& dependencies)
 
 RTTIType* Camera::GetRttiStatic()
 {
-	return CCameraRTTI::Instance();
+	return CameraRTTI::Instance();
 }
 
 RTTIType* Camera::GetRtti() const
