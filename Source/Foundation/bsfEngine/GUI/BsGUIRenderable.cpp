@@ -2,7 +2,7 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "GUI/BsGUIRenderable.h"
 #include "BsGUIUtility.h"
-#include "GUI/BsCGUIWidget.h"
+#include "GUI/BsGUIWidget.h"
 #include "GUI/BsGUIManager.h"
 #include "Resources/BsBuiltinResources.h"
 #include "StyleSheet/BsGUIStyleSheet.h"
@@ -122,7 +122,7 @@ void GUIRenderable::SetLayoutData(const GUILayoutData& data)
 	SetElementDepth(elemDepth);
 }
 
-void GUIRenderable::ChangeParentWidget(CGUIWidget* widget)
+void GUIRenderable::ChangeParentWidget(GUIWidget* widget)
 {
 	if(IsPendingDestroy())
 		return;
@@ -268,7 +268,7 @@ void GUIRenderable::RefreshStyle()
 	bool anyRuleChanged = false;
 	if(GetStyleSheetElement() != nullptr)
 	{
-		const CGUIWidget* parentWidget = GetParentWidget();
+		const GUIWidget* parentWidget = GetParentWidget();
 		const GUIStyleSheetCascade& styleSheetCascade = parentWidget != nullptr ? parentWidget->GetStyleSheetCascade() : GUIStyleSheetCascade::kEmpty;
 
 		SPtr<const GUIStyleSheetStateRulesets> newStateRulesets = styleSheetCascade.BuildStateRulesets(*this);

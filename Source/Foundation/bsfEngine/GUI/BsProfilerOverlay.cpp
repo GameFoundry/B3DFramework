@@ -4,7 +4,7 @@
 
 #include "BsGUIUtility.h"
 #include "Scene/BsSceneObject.h"
-#include "GUI/BsCGUIWidget.h"
+#include "GUI/BsGUIWidget.h"
 #include "GUI/BsGUILayout.h"
 #include "GUI/BsGUILayoutX.h"
 #include "GUI/BsGUILayoutY.h"
@@ -32,10 +32,10 @@ public:
 	u32 CurIdx;
 	GUILayout& LabelLayout;
 	GUILayout& ContentLayout;
-	CGUIWidget& Widget;
+	GUIWidget& Widget;
 	Vector<ProfilerOverlay::BasicRow>& Rows;
 
-	BasicRowFiller(Vector<ProfilerOverlay::BasicRow>& _rows, GUILayout& _labelLayout, GUILayout& _contentLayout, CGUIWidget& _widget)
+	BasicRowFiller(Vector<ProfilerOverlay::BasicRow>& _rows, GUILayout& _labelLayout, GUILayout& _contentLayout, GUIWidget& _widget)
 		: CurIdx(0), LabelLayout(_labelLayout), ContentLayout(_contentLayout), Widget(_widget), Rows(_rows)
 	{}
 
@@ -132,10 +132,10 @@ public:
 	u32 CurIdx;
 	GUILayout& LabelLayout;
 	GUILayout& ContentLayout;
-	CGUIWidget& Widget;
+	GUIWidget& Widget;
 	Vector<ProfilerOverlay::PreciseRow>& Rows;
 
-	PreciseRowFiller(Vector<ProfilerOverlay::PreciseRow>& _rows, GUILayout& _labelLayout, GUILayout& _contentLayout, CGUIWidget& _widget)
+	PreciseRowFiller(Vector<ProfilerOverlay::PreciseRow>& _rows, GUILayout& _labelLayout, GUILayout& _contentLayout, GUIWidget& _widget)
 		: CurIdx(0), LabelLayout(_labelLayout), ContentLayout(_contentLayout), Widget(_widget), Rows(_rows)
 	{}
 
@@ -232,10 +232,10 @@ public:
 	u32 CurIdx;
 	GUILayout& LabelLayout;
 	GUILayout& ContentLayout;
-	CGUIWidget& Widget;
+	GUIWidget& Widget;
 	Vector<ProfilerOverlay::GPUSampleRow>& Rows;
 
-	GPUSampleRowFiller(Vector<ProfilerOverlay::GPUSampleRow>& rows, GUILayout& labelLayout, GUILayout& contentLayout, CGUIWidget& _widget)
+	GPUSampleRowFiller(Vector<ProfilerOverlay::GPUSampleRow>& rows, GUILayout& labelLayout, GUILayout& contentLayout, GUIWidget& _widget)
 		: CurIdx(0), LabelLayout(labelLayout), ContentLayout(contentLayout), Widget(_widget), Rows(rows)
 	{}
 
@@ -326,7 +326,7 @@ void ProfilerOverlay::SetTarget(const HCamera& camera)
 		mWidgetSO->Destroy();
 
 	mWidgetSO = SceneObject::Create("ProfilerOverlay", SceneObjectFlag::Internal | SceneObjectFlag::RuntimePersistent);
-	mWidget = mWidgetSO->AddComponent<CGUIWidget>(camera);
+	mWidget = mWidgetSO->AddComponent<GUIWidget>(camera);
 	mWidget->SetDepth(127);
 
 	// Set up CPU sample areas

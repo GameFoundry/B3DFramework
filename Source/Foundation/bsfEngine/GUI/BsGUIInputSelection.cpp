@@ -36,7 +36,7 @@ void GUIInputSelection::UpdateSprite()
 		}
 	}
 
-	const CGUIWidget* widget = nullptr;
+	const GUIWidget* widget = nullptr;
 	if(mElement != nullptr)
 		widget = mElement->GetParentWidget();
 

@@ -345,7 +345,7 @@ namespace b3d
 		GUIElement* GetParent() const { return mParent; }
 
 		/**	Returns parent GUI widget, can be null. */
-		CGUIWidget* GetParentWidget() const { return mParentWidget; }
+		GUIWidget* GetParentWidget() const { return mParentWidget; }
 
 		/**	Checks if element is explicitly hidden. */
 		B3D_SCRIPT_EXPORT(Property(Getter), ExportName(Hidden))
@@ -398,7 +398,7 @@ namespace b3d
 		 * element style by using a widget with a different skin. You are allowed to pass null here, but elements with no
 		 * parent will be unmanaged. You will be responsible for deleting them manually, and they will not render anywhere.
 		 */
-		virtual void ChangeParentWidget(CGUIWidget* widget);
+		virtual void ChangeParentWidget(GUIWidget* widget);
 
 		/**Registers a new child element. */
 		virtual void RegisterChildElement(GUIElement* element);
@@ -501,7 +501,7 @@ namespace b3d
 		/** Unregisters and destroys all child elements. */
 		void DestroyChildElements();
 
-		CGUIWidget* mParentWidget = nullptr;
+		GUIWidget* mParentWidget = nullptr;
 		GUIPanel* mPanelParent = nullptr; /**< First panel in the parent hierarchy, if any. */
 		GUIElement* mLayoutUpdateParent = nullptr; /**< Parent on which we need to call layout update if this element's size changes. This will be the first parent GUI element that doesn't have fixed bounds. */
 

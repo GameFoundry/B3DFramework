@@ -4,7 +4,7 @@
 
 #include "BsGUIUtility.h"
 #include "BsGUIVectorPaths.h"
-#include "GUI/BsCGUIWidget.h"
+#include "GUI/BsGUIWidget.h"
 #include "GUI/BsGUISizeConstraints.h"
 #include "GUI/BsGUIMouseEvent.h"
 #include "GUI/BsGUIManager.h"
@@ -317,7 +317,7 @@ void GUIListBox::OpenListBox()
 		i++;
 	}
 
-	CGUIWidget* widget = GetParentWidget();
+	GUIWidget* widget = GetParentWidget();
 
 	createInformation.Camera = widget->GetCamera();
 	createInformation.StyleSheetCascade = widget->GetStyleSheetCascadeAsShared();

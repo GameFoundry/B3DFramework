@@ -6,7 +6,7 @@
 #include "GUI/BsGUISpace.h"
 #include "GUI/BsGUIInteractable.h"
 #include "Error/BsException.h"
-#include "GUI/BsCGUIWidget.h"
+#include "GUI/BsGUIWidget.h"
 #include "BsGUIManager.h"
 #include "BsGUIUtility.h"
 #include "StyleSheet/BsGUIStyleSheet.h"
@@ -734,7 +734,7 @@ void GUIElement::DestroyChildElements()
 	B3D_ASSERT(mChildren.Empty());
 }
 
-void GUIElement::ChangeParentWidget(CGUIWidget* widget)
+void GUIElement::ChangeParentWidget(GUIWidget* widget)
 {
 	B3D_ASSERT(!IsPendingDestroy());
 

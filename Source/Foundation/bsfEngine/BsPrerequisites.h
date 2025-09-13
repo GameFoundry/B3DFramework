@@ -131,9 +131,8 @@ namespace b3d
 	struct ShortcutKey;
 
 	// GUI
-	class CGUIWidget;
-	class GUIManager;
 	class GUIWidget;
+	class GUIManager;
 	class GUIElement;
 	class GUIInteractable;
 	class GUILabel;
@@ -197,7 +196,7 @@ namespace b3d
 	class SpriteMaterial;
 	struct SpriteMaterialInfo;
 
-	typedef GameObjectHandle<CGUIWidget> HGUIWidget;
+	typedef GameObjectHandle<GUIWidget> HGUIWidget;
 	typedef GameObjectHandle<CProfilerOverlay> HProfilerOverlay;
 
 	typedef TResourceHandle<PlainText> HPlainText;

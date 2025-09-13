@@ -25,7 +25,7 @@ namespace b3d
 		 * @param[in]	position	Position of the tooltip, relative to the parent GUI widget.
 		 * @param[in]	text		Text to display on the tooltip.
 		 */
-		void Show(const CGUIWidget& widget, const GUIPhysicalPoint& position, const String& text);
+		void Show(const GUIWidget& widget, const GUIPhysicalPoint& position, const String& text);
 
 		/**	Hides the currently shown tooltip. */
 		void Hide();

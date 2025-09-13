@@ -1,7 +1,7 @@
 //************************************ B3D Framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "GUI/BsGUIManager.h"
-#include "GUI/BsCGUIWidget.h"
+#include "GUI/BsGUIWidget.h"
 #include "GUI/BsGUIInteractable.h"
 #include "Image/BsSpriteTexture.h"
 #include "Utility/BsTime.h"
@@ -123,7 +123,7 @@ void GUIManager::DestroyRenderer(render::GUIRenderer* renderer)
 	B3DDelete(renderer);
 }
 
-void GUIManager::RegisterWidget(CGUIWidget* widget)
+void GUIManager::RegisterWidget(GUIWidget* widget)
 {
 	const Viewport* renderTarget = widget->GetTarget();
 	if(renderTarget == nullptr)
@@ -132,7 +132,7 @@ void GUIManager::RegisterWidget(CGUIWidget* widget)
 	mWidgets.push_back(WidgetInfo(widget));
 }
 
-void GUIManager::UnregisterWidget(CGUIWidget* widget)
+void GUIManager::UnregisterWidget(GUIWidget* widget)
 {
 	{
 		auto findIter = std::find_if(begin(mWidgets), end(mWidgets), [=](const WidgetInfo& x)
@@ -194,7 +194,7 @@ void GUIManager::Update()
 			for(auto& entry : mElementsUnderPointer)
 			{
 				const String& tooltipText = entry.Element->GetTooltip();
-				CGUIWidget* parentWidget = entry.Element->GetParentWidget();
+				GUIWidget* parentWidget = entry.Element->GetParentWidget();
 
 				if(!tooltipText.empty() && parentWidget != nullptr)
 				{
@@ -347,7 +347,7 @@ void GUIManager::Update()
 	// Update dirty widget render data
 	for(auto& entry : mWidgets)
 	{
-		CGUIWidget* widget = entry.Widget;
+		GUIWidget* widget = entry.Widget;
 		GUIDrawGroupRenderDataUpdate updateData = widget->RebuildDirtyRenderData();
 
 		HCamera camera;
@@ -991,7 +991,7 @@ bool GUIManager::FindElementUnderPointer(const GUIPhysicalPoint& pointerScreenPo
 				continue;
 			}
 
-			CGUIWidget* widget = widgetInfo.Widget;
+			GUIWidget* widget = widgetInfo.Widget;
 			if(widgetWindows[widgetIdx] == windowUnderPointer && widget->InBounds(WindowToBridgedCoords(widget->GetTarget()->GetTarget(), windowPos)))
 			{
 				// Note: This should only be checking non-culled element (i.e. GUIElement::GetVisibleElements())
@@ -1036,7 +1036,7 @@ bool GUIManager::FindElementUnderPointer(const GUIPhysicalPoint& pointerScreenPo
 	for(auto& elementInfo : mNewElementsUnderPointer)
 	{
 		GUIInteractable* element = elementInfo.Element;
-		CGUIWidget* widget = elementInfo.Widget;
+		GUIWidget* widget = elementInfo.Widget;
 
 		if(elementInfo.ReceivedMouseOver)
 		{
@@ -1095,7 +1095,7 @@ bool GUIManager::FindElementUnderPointer(const GUIPhysicalPoint& pointerScreenPo
 	for(auto& elementInfo : mElementsUnderPointer)
 	{
 		GUIInteractable* element = elementInfo.Element;
-		CGUIWidget* widget = elementInfo.Widget;
+		GUIWidget* widget = elementInfo.Widget;
 
 		auto iterFind = std::find_if(mNewElementsUnderPointer.begin(), mNewElementsUnderPointer.end(), [=](const ElementInfoUnderPointer& x)
 									 { return x.Element == element; });
@@ -1151,7 +1151,7 @@ void GUIManager::OnWindowFocusGained(RenderWindow& win)
 {
 	for(auto& widgetInfo : mWidgets)
 	{
-		CGUIWidget* widget = widgetInfo.Widget;
+		GUIWidget* widget = widgetInfo.Widget;
 		if(GetWidgetWindow(*widget) == &win)
 			widget->OwnerWindowFocusChanged();
 	}
@@ -1210,7 +1210,7 @@ void GUIManager::OnWindowFocusLost(RenderWindow& win)
 {
 	for(auto& widgetInfo : mWidgets)
 	{
-		CGUIWidget* widget = widgetInfo.Widget;
+		GUIWidget* widget = widgetInfo.Widget;
 		if(GetWidgetWindow(*widget) == &win)
 			widget->OwnerWindowFocusChanged();
 	}
@@ -1248,7 +1248,7 @@ void GUIManager::OnMouseLeftWindow(RenderWindow& win)
 	for(auto& elementInfo : mElementsUnderPointer)
 	{
 		GUIInteractable* element = elementInfo.Element;
-		CGUIWidget* widget = elementInfo.Widget;
+		GUIWidget* widget = elementInfo.Widget;
 
 		if(widget != nullptr && widget->GetTarget()->GetTarget().get() != &win)
 		{
@@ -1343,7 +1343,7 @@ GUIMouseButton GUIManager::ButtonToGuiButton(PointerEventButton pointerButton) c
 	return GUIMouseButton::Left;
 }
 
-GUIPhysicalPoint GUIManager::GetWidgetRelativePos(const CGUIWidget* widget, const GUIPhysicalPoint& screenPos) const
+GUIPhysicalPoint GUIManager::GetWidgetRelativePos(const GUIWidget* widget, const GUIPhysicalPoint& screenPos) const
 {
 	if(widget == nullptr)
 		return screenPos;
@@ -1375,7 +1375,7 @@ GUIPhysicalPoint GUIManager::WindowToBridgedCoords(const SPtr<RenderTarget>& tar
 	if(iterFind != mInputBridge.end()) // Widget input is bridged, which means we need to transform the coordinates
 	{
 		const GUIInteractable* bridgeElement = iterFind->second;
-		const CGUIWidget* parentWidget = bridgeElement->GetParentWidget();
+		const GUIWidget* parentWidget = bridgeElement->GetParentWidget();
 		if(parentWidget == nullptr)
 			return windowPos;
 
@@ -1397,7 +1397,7 @@ GUIPhysicalPoint GUIManager::WindowToBridgedCoords(const SPtr<RenderTarget>& tar
 	return windowPos;
 }
 
-const RenderWindow* GUIManager::GetWidgetWindow(const CGUIWidget& widget) const
+const RenderWindow* GUIManager::GetWidgetWindow(const GUIWidget& widget) const
 {
 	const Viewport* viewport = widget.GetTarget();
 	if(viewport == nullptr)
@@ -1415,7 +1415,7 @@ const RenderWindow* GUIManager::GetWidgetWindow(const CGUIWidget& widget) const
 	auto iterFind = mInputBridge.find(renderTexture);
 	if(iterFind != mInputBridge.end())
 	{
-		CGUIWidget* parentWidget = iterFind->second->GetParentWidget();
+		GUIWidget* parentWidget = iterFind->second->GetParentWidget();
 		if(parentWidget == nullptr)
 			return nullptr;
 
@@ -1443,7 +1443,7 @@ SPtr<RenderWindow> GUIManager::GetBridgeWindow(const SPtr<RenderTexture>& target
 		if(iterFind == mInputBridge.end())
 			return nullptr;
 
-		CGUIWidget* parentWidget = iterFind->second->GetParentWidget();
+		GUIWidget* parentWidget = iterFind->second->GetParentWidget();
 		if(parentWidget == nullptr)
 			return nullptr;
 
@@ -1461,7 +1461,7 @@ SPtr<RenderWindow> GUIManager::GetBridgeWindow(const SPtr<RenderTexture>& target
 	return nullptr;
 }
 
-void GUIManager::GetBridgedElements(const CGUIWidget* widget, TInlineArray<std::pair<const GUIInteractable*, SPtr<const RenderTarget>>, 4>& elements)
+void GUIManager::GetBridgedElements(const GUIWidget* widget, TInlineArray<std::pair<const GUIInteractable*, SPtr<const RenderTarget>>, 4>& elements)
 {
 	if(widget == nullptr)
 		return;
@@ -1469,7 +1469,7 @@ void GUIManager::GetBridgedElements(const CGUIWidget* widget, TInlineArray<std::
 	for(auto& entry : mInputBridge)
 	{
 		const GUIInteractable* element = entry.second;
-		CGUIWidget* parentWidget = element->GetParentWidget();
+		GUIWidget* parentWidget = element->GetParentWidget();
 		if(parentWidget == widget)
 			elements.Add(std::make_pair(element, entry.first));
 	}

@@ -23,10 +23,10 @@ namespace b3d
 	 *
 	 * Widgets are the only GUI objects that may be arbitrarily transformed, allowing you to create 3D interfaces.
 	 */
-	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Rendering)) CGUIWidget : public Component
+	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Rendering)) GUIWidget : public Component
 	{
 	public:
-		virtual ~CGUIWidget() = default;
+		virtual ~GUIWidget() = default;
 
 		/** Determines the style sheets that all GUI elements part of this widget will lookup styles in. */
 		const GUIStyleSheetCascade& GetStyleSheetCascade() const;
@@ -81,7 +81,6 @@ namespace b3d
 
 		/**	Returns a list of all elements parented to this widget. */
 		const Vector<GUIRenderable*>& GetElements() const { return mElements; }
-
 
 		/**	Triggered when the widget's viewport size changes. */
 		Event<void()> OnOwnerTargetResized;
@@ -169,7 +168,7 @@ namespace b3d
 		 * Constructs a new GUI widget attached to the specified parent scene object. Widget elements will be rendered on
 		 * the provided camera.
 		 */
-		CGUIWidget(const HSceneObject& parent, const HCamera& camera);
+		GUIWidget(const HSceneObject& parent, const HCamera& camera);
 
 		void Update() override;
 		void OnCreated() override;
@@ -183,8 +182,8 @@ namespace b3d
 		virtual void OwnerWindowFocusChanged() {}
 
 	private:
-		CGUIWidget(CGUIWidget&&) = delete;
-		CGUIWidget(const CGUIWidget&) = delete;
+		GUIWidget(GUIWidget&&) = delete;
+		GUIWidget(const GUIWidget&) = delete;
 
 		/**	Calculates widget bounds using the bounds of all child elements. */
 		void UpdateBounds() const;
@@ -216,11 +215,11 @@ namespace b3d
 		/* 								RTTI		                     		*/
 		/************************************************************************/
 	public:
-		friend class CGUIWidgetRTTI;
+		friend class GUIWidgetRTTI;
 		static RTTIType* GetRttiStatic();
 		RTTIType* GetRtti() const override;
 
-		CGUIWidget(); // Serialization only
+		GUIWidget(); // Serialization only
 	};
 
 	/** @} */

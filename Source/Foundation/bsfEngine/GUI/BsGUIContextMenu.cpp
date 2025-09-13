@@ -11,7 +11,7 @@ GUIContextMenu::~GUIContextMenu()
 	Close();
 }
 
-void GUIContextMenu::Open(const GUIPhysicalPoint& position, CGUIWidget& widget)
+void GUIContextMenu::Open(const GUIPhysicalPoint& position, GUIWidget& widget)
 {
 	DropDownBoxCreateInformation desc;
 	desc.Camera = widget.GetCamera();

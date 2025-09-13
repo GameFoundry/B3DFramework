@@ -1,7 +1,7 @@
 //************************************ B3D Framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "GUI/BsGUIViewport.h"
-#include "GUI/BsCGUIWidget.h"
+#include "GUI/BsGUIWidget.h"
 #include "GUI/BsGUISizeConstraints.h"
 #include "Components/BsCamera.h"
 #include "RenderAPI/BsViewport.h"
@@ -69,7 +69,7 @@ void GUIViewport::UpdateRenderElements()
 	viewport->SetArea(Area2(x, y, width, height));
 }
 
-void GUIViewport::ChangeParentWidget(CGUIWidget* widget)
+void GUIViewport::ChangeParentWidget(GUIWidget* widget)
 {
 	GUIInteractable::ChangeParentWidget(widget);
 

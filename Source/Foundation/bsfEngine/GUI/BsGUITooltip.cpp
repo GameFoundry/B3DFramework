@@ -21,8 +21,8 @@ using namespace b3d;
 const GUILogicalUnit GUITooltip::kTooltipWidth = 200;
 const GUILogicalUnit GUITooltip::kCursorSize = 16;
 
-GUITooltip::GUITooltip(const HSceneObject& parent, const CGUIWidget& overlaidWidget, const GUIPhysicalPoint& position, const String& text)
-	: CGUIWidget(parent, overlaidWidget.GetCamera())
+GUITooltip::GUITooltip(const HSceneObject& parent, const GUIWidget& overlaidWidget, const GUIPhysicalPoint& position, const String& text)
+	: GUIWidget(parent, overlaidWidget.GetCamera())
 {
 	SetDepth(0); // Needs to be in front of everything
 	SetStyleSheetCascade(overlaidWidget.GetStyleSheetCascadeAsShared());

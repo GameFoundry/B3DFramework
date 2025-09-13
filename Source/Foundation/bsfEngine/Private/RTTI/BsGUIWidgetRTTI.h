@@ -4,7 +4,7 @@
 
 #include "BsCorePrerequisites.h"
 #include "Reflection/BsRTTIType.h"
-#include "GUI/BsCGUIWidget.h"
+#include "GUI/BsGUIWidget.h"
 #include "Private/RTTI/BsGameObjectRTTI.h"
 
 namespace b3d
@@ -14,23 +14,23 @@ namespace b3d
 	 *  @{
 	 */
 
-	class B3D_EXPORT CGUIWidgetRTTI : public TRTTIType<CGUIWidget, Component, CGUIWidgetRTTI>
+	class B3D_EXPORT GUIWidgetRTTI : public TRTTIType<GUIWidget, Component, GUIWidgetRTTI>
 	{
 	public:
 		const String& GetRttiName() override
 		{
-			static String name = "CGUIWidget";
+			static String name = "GUIWidget";
 			return name;
 		}
 
 		u32 GetRttiId() const override
 		{
-			return TID_CGUIWidget;
+			return TID_GUIWidget;
 		}
 
 		SPtr<IReflectable> NewRttiObject()
 		{
-			return SceneObject::CreateEmptyComponent<CGUIWidget>();
+			return SceneObject::CreateEmptyComponent<GUIWidget>();
 		}
 	};
 

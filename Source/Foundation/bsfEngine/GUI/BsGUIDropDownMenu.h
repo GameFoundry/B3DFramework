@@ -3,7 +3,7 @@
 #pragma once
 
 #include "BsPrerequisites.h"
-#include "GUI/BsCGUIWidget.h"
+#include "GUI/BsGUIWidget.h"
 #include "Math/BsArea2.h"
 #include "GUI/BsDropDownAreaPlacement.h"
 #include "Utility/BsRectOffset.h"
@@ -91,7 +91,7 @@ namespace b3d
 	};
 
 	/**	This is a generic GUI drop down box class that can be used for: list boxes, menu bars or context menus. */
-	class B3D_EXPORT GUIDropDownMenu : public CGUIWidget
+	class B3D_EXPORT GUIDropDownMenu : public GUIWidget
 	{
 	public:
 		/**

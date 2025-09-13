@@ -191,7 +191,7 @@ namespace b3d
 		const RectOffset& GetPadding() const override;
 
 		void SetLayoutData(const GUILayoutData& data) override;
-		void ChangeParentWidget(CGUIWidget* widget) override;
+		void ChangeParentWidget(GUIWidget* widget) override;
 
 		/** @} */
 	protected:

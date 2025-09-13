@@ -8,17 +8,17 @@
 #include "../../../Foundation/bsfEngine/GUI/BsGUIUnits.h"
 #include "../../../Foundation/bsfEngine/GUI/BsGUIUnits.h"
 
-namespace b3d { class CGUIWidget; }
+namespace b3d { class GUIWidget; }
 namespace b3d { struct __TVector2_TUnitValue_int32_t__PhysicalPixel__Interop; }
 namespace b3d { struct __TArea2_TUnitValue_int32_t__PhysicalPixel___TUnitValue_int32_t__PhysicalPixel__Interop; }
 namespace b3d
 {
-	class B3D_SCRIPT_INTEROP_EXPORT ScriptGUIWidget : public TScriptGameObjectWrapper<CGUIWidget, ScriptGUIWidget>
+	class B3D_SCRIPT_INTEROP_EXPORT ScriptGUIWidget : public TScriptGameObjectWrapper<GUIWidget, ScriptGUIWidget>
 	{
 	public:
 		B3D_SCRIPT_TYPE_DEFINITION(kEngineAssembly, kEngineNs, "GUIWidget")
 
-		ScriptGUIWidget(const GameObjectHandle<CGUIWidget>& nativeObject);
+		ScriptGUIWidget(const GameObjectHandle<GUIWidget>& nativeObject);
 		~ScriptGUIWidget();
 
 		static void SetupScriptBindings();

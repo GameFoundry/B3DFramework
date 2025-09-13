@@ -75,7 +75,7 @@ namespace b3d
 		};
 
 	public:
-		GUIMeshBatches(CGUIWidget* parentWidget);
+		GUIMeshBatches(GUIWidget* parentWidget);
 
 		/** Iterates over all the render elements in the GUI elements and adds them to suitable batches. */
 		void Add(GUIRenderable* guiElement);
@@ -248,7 +248,7 @@ namespace b3d
 		UnorderedMap<GUIRenderable*, u32> mDirtyElements;
 		Vector<Area2I> mDirtyRegionsForRemovedBatches;
 		bool mBatchesOutOfDateInRenderer = true;
-		CGUIWidget* mWidget;
+		GUIWidget* mWidget;
 
 		u32 mNextDepthRangeId = 0;
 		u32 mNextBatchId = 0;

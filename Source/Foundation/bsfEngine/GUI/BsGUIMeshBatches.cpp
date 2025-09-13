@@ -40,7 +40,7 @@ SPtr<VertexDescription> GetGUILineMeshDesc()
 	return sDesc;
 }
 
-GUIMeshBatches::GUIMeshBatches(CGUIWidget* parentWidget)
+GUIMeshBatches::GUIMeshBatches(GUIWidget* parentWidget)
 	: mWidget(parentWidget)
 {
 	BatchesInDepthRange rootDepthRange;

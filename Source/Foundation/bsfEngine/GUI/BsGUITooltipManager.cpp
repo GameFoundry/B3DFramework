@@ -11,7 +11,7 @@ GUITooltipManager::~GUITooltipManager()
 	Hide();
 }
 
-void GUITooltipManager::Show(const CGUIWidget& widget, const GUIPhysicalPoint& position, const String& text)
+void GUITooltipManager::Show(const GUIWidget& widget, const GUIPhysicalPoint& position, const String& text)
 {
 	Hide();
 

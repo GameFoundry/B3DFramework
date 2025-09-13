@@ -1,7 +1,7 @@
 //************************************ B3D Framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "GUI/BsGUIInteractable.h"
-#include "GUI/BsCGUIWidget.h"
+#include "GUI/BsGUIWidget.h"
 #include "GUI/BsGUIManager.h"
 #include "BsGUINavGroup.h"
 #include "Resources/BsBuiltinResources.h"
@@ -97,7 +97,7 @@ bool GUIInteractable::DoOnVirtualButtonEvent(const GUIVirtualButtonEvent& event)
 	return false;
 }
 
-void GUIInteractable::ChangeParentWidget(CGUIWidget* widget)
+void GUIInteractable::ChangeParentWidget(GUIWidget* widget)
 {
 	if(IsPendingDestroy())
 		return;

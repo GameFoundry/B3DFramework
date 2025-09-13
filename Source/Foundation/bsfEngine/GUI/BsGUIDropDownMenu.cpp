@@ -59,7 +59,7 @@ GUIDropDownDataEntry GUIDropDownDataEntry::SubMenu(const String& label, const GU
 }
 
 GUIDropDownMenu::GUIDropDownMenu(const HSceneObject& parent, const DropDownBoxCreateInformation& createInformation, GUIDropDownType type)
-	: CGUIWidget(parent, createInformation.Camera), mRootMenu(nullptr), mFrontHitBox(nullptr), mBackHitBox(nullptr), mCaptureHitBox(nullptr)
+	: GUIWidget(parent, createInformation.Camera), mRootMenu(nullptr), mFrontHitBox(nullptr), mBackHitBox(nullptr), mCaptureHitBox(nullptr)
 {
 	SetDepth(0); // Needs to be in front of everything
 	SetStyleSheetCascade(createInformation.StyleSheetCascade);
@@ -127,7 +127,7 @@ void GUIDropDownMenu::OnDestroyed()
 	B3DDelete(mRootMenu);
 	mRootMenu = nullptr;
 
-	CGUIWidget::OnDestroyed();
+	GUIWidget::OnDestroyed();
 }
 
 void GUIDropDownMenu::DropDownFocusLost()

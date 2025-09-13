@@ -67,7 +67,7 @@ namespace b3d
 	private:
 		GUIViewport(const String& styleName, const HCamera& camera, float aspectRatio, Degree fieldOfView, const GUISizeConstraints& dimensions);
 
-		void ChangeParentWidget(CGUIWidget* widget) override;
+		void ChangeParentWidget(GUIWidget* widget) override;
 
 		HCamera mCamera;
 		float mAspectRatio;

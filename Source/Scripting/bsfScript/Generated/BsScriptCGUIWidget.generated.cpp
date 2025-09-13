@@ -11,7 +11,7 @@
 
 namespace b3d
 {
-	ScriptGUIWidget::ScriptGUIWidget(const GameObjectHandle<CGUIWidget>& nativeObject)
+	ScriptGUIWidget::ScriptGUIWidget(const GameObjectHandle<GUIWidget>& nativeObject)
 		:TScriptGameObjectWrapper(nativeObject)
 	{
 		RegisterEvents();
@@ -48,7 +48,7 @@ namespace b3d
 		if(!self->IsNativeObjectValid())
 			return {};
 
-		tmp__output = static_cast<CGUIWidget*>(self->GetNativeObject())->GetPanel();
+		tmp__output = static_cast<GUIWidget*>(self->GetNativeObject())->GetPanel();
 
 		MonoObject* __output;
 		__output = ScriptGUIPanel::GetOrCreateScriptObject(tmp__output);
@@ -62,7 +62,7 @@ namespace b3d
 		if(!self->IsNativeObjectValid())
 			return {};
 
-		tmp__output = static_cast<CGUIWidget*>(self->GetNativeObject())->GetDepth();
+		tmp__output = static_cast<GUIWidget*>(self->GetNativeObject())->GetDepth();
 
 		uint8_t __output;
 		__output = tmp__output;
@@ -75,7 +75,7 @@ namespace b3d
 		if(!self->IsNativeObjectValid())
 			return;
 
-		static_cast<CGUIWidget*>(self->GetNativeObject())->SetDepth(depth);
+		static_cast<GUIWidget*>(self->GetNativeObject())->SetDepth(depth);
 	}
 
 	bool ScriptGUIWidget::InternalInBounds(ScriptGUIWidget* self, __TVector2_TUnitValue_int32_t__PhysicalPixel__Interop* position)
@@ -86,7 +86,7 @@ namespace b3d
 
 		TVector2<TUnitValue<int32_t, PhysicalPixel>> tmpposition;
 		tmpposition = ScriptTVector2_TUnitValue_int32_t__PhysicalPixel__::FromInterop(*position);
-		tmp__output = static_cast<CGUIWidget*>(self->GetNativeObject())->InBounds(tmpposition);
+		tmp__output = static_cast<GUIWidget*>(self->GetNativeObject())->InBounds(tmpposition);
 
 		bool __output;
 		__output = tmp__output;
@@ -103,7 +103,7 @@ namespace b3d
 		}
 
 		TArea2<TUnitValue<int32_t, PhysicalPixel>, TUnitValue<int32_t, PhysicalPixel>> tmp__output;
-		tmp__output = static_cast<CGUIWidget*>(self->GetNativeObject())->GetBounds();
+		tmp__output = static_cast<GUIWidget*>(self->GetNativeObject())->GetBounds();
 
 		__TArea2_TUnitValue_int32_t__PhysicalPixel___TUnitValue_int32_t__PhysicalPixel__Interop interop__output;
 		interop__output = ScriptTArea2_TUnitValue_int32_t__PhysicalPixel___TUnitValue_int32_t__PhysicalPixel__::ToInterop(tmp__output);

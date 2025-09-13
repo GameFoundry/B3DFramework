@@ -527,7 +527,7 @@ namespace b3d
 		TID_SceneObjectHierarchyDelta = 1078,
 		TID_SceneObjectHierarchyDeltaObject = 1079,
 		//TID_ComponentDelta = 1080,
-		TID_CGUIWidget = 1081,
+		TID_GUIWidget = 1081,
 		/// TID_ProfilerOverlay = 1082,
 		TID_StringTable = 1083,
 		TID_LanguageData = 1084,

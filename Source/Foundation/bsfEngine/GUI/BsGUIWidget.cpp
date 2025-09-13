@@ -1,13 +1,13 @@
 //************************************ B3D Framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "GUI/BsCGUIWidget.h"
+#include "GUI/BsGUIWidget.h"
 
 #include "BsGUIManager.h"
 #include "BsGUINavGroup.h"
 #include "BsGUIPanel.h"
 #include "BsGUIRenderable.h"
 #include "BsGUIUtility.h"
-#include "Private/RTTI/BsCGUIWidgetRTTI.h"
+#include "Private/RTTI/BsGUIWidgetRTTI.h"
 #include "Scene/BsSceneObject.h"
 #include "Components/BsCamera.h"
 #include "RenderAPI/BsRenderTarget.h"
@@ -17,18 +17,18 @@
 
 using namespace b3d;
 
-CGUIWidget::CGUIWidget(const HSceneObject& parent, const HCamera& camera)
+GUIWidget::GUIWidget(const HSceneObject& parent, const HCamera& camera)
 	: Component(parent), mCamera(camera), mBatches(this)
 {
 	SetFlag(ComponentFlag::AlwaysRun, true);
 	mNotifyFlags = TCF_Transform;
 }
 
-CGUIWidget::CGUIWidget()
-	:CGUIWidget(nullptr, nullptr)
+GUIWidget::GUIWidget()
+	:GUIWidget(nullptr, nullptr)
 { }
 
-void CGUIWidget::SetStyleSheetCascade(const SPtr<const GUIStyleSheetCascade>& styleSheetCascade)
+void GUIWidget::SetStyleSheetCascade(const SPtr<const GUIStyleSheetCascade>& styleSheetCascade)
 {
 	if(!B3D_ENSURE(styleSheetCascade != nullptr))
 		return;
@@ -39,7 +39,7 @@ void CGUIWidget::SetStyleSheetCascade(const SPtr<const GUIStyleSheetCascade>& st
 		element->RefreshStyle();
 }
 
-const GUIStyleSheetCascade& CGUIWidget::GetStyleSheetCascade() const
+const GUIStyleSheetCascade& GUIWidget::GetStyleSheetCascade() const
 {
 	if(mStyleSheetCascade != nullptr)
 		return *mStyleSheetCascade;
@@ -47,7 +47,7 @@ const GUIStyleSheetCascade& CGUIWidget::GetStyleSheetCascade() const
 	return GUIStyleSheetCascade::kEmpty;
 }
 
-void CGUIWidget::SetDepth(u8 depth)
+void GUIWidget::SetDepth(u8 depth)
 {
 	mDepth = depth;
 	mWidgetIsDirty = true;
@@ -55,7 +55,7 @@ void CGUIWidget::SetDepth(u8 depth)
 	UpdateRootPanel();
 }
 
-bool CGUIWidget::InBounds(const GUIPhysicalPoint& position) const
+bool GUIWidget::InBounds(const GUIPhysicalPoint& position) const
 {
 	Viewport* target = GetTarget();
 	if(target == nullptr)
@@ -74,7 +74,7 @@ bool CGUIWidget::InBounds(const GUIPhysicalPoint& position) const
 	return mBounds.Contains(localPos);
 }
 
-Viewport* CGUIWidget::GetTarget() const
+Viewport* GUIWidget::GetTarget() const
 {
 	if(mCamera != nullptr)
 		return mCamera->GetViewport().get();
@@ -82,7 +82,7 @@ Viewport* CGUIWidget::GetTarget() const
 	return nullptr;
 }
 
-void CGUIWidget::SetDPIScale(float dpiScale)
+void GUIWidget::SetDPIScale(float dpiScale)
 {
 	if(mDPIScale == dpiScale)
 		return;
@@ -93,7 +93,7 @@ void CGUIWidget::SetDPIScale(float dpiScale)
 	UpdateRootPanel();
 }
 
-void CGUIWidget::SetCamera(const HCamera& camera)
+void GUIWidget::SetCamera(const HCamera& camera)
 {
 	HCamera newCamera = camera;
 	if(newCamera != nullptr)
@@ -112,7 +112,7 @@ void CGUIWidget::SetCamera(const HCamera& camera)
 	UpdateRootPanel();
 }
 
-void CGUIWidget::RegisterElement(GUIElement* guiElement)
+void GUIWidget::RegisterElement(GUIElement* guiElement)
 {
 	B3D_ASSERT(guiElement != nullptr && !guiElement->IsPendingDestroy());
 
@@ -132,7 +132,7 @@ void CGUIWidget::RegisterElement(GUIElement* guiElement)
 	}
 }
 
-void CGUIWidget::UnregisterElement(GUIElement* guiElement)
+void GUIWidget::UnregisterElement(GUIElement* guiElement)
 {
 	B3D_ASSERT(guiElement != nullptr);
 
@@ -153,7 +153,7 @@ void CGUIWidget::UnregisterElement(GUIElement* guiElement)
 	}
 }
 
-void CGUIWidget::NotifyElementVisibilityChanged(GUIElement* guiElement, bool isVisible)
+void GUIWidget::NotifyElementVisibilityChanged(GUIElement* guiElement, bool isVisible)
 {
 	if(GUIRenderable* const renderable = B3DRTTICast<GUIRenderable>(guiElement))
 	{
@@ -169,7 +169,7 @@ void CGUIWidget::NotifyElementVisibilityChanged(GUIElement* guiElement, bool isV
 	}
 }
 
-void CGUIWidget::MarkMeshDirty(GUIElement* elem)
+void GUIWidget::MarkMeshDirty(GUIElement* elem)
 {
 	mWidgetIsDirty = true;
 
@@ -177,7 +177,7 @@ void CGUIWidget::MarkMeshDirty(GUIElement* elem)
 		mBatches.MarkMeshDirty(renderable);
 }
 
-void CGUIWidget::MarkContentDirty(GUIElement* elem)
+void GUIWidget::MarkContentDirty(GUIElement* elem)
 {
 	if(GUIRenderable *const renderable = B3DRTTICast<GUIRenderable>(elem))
 	{
@@ -189,7 +189,7 @@ void CGUIWidget::MarkContentDirty(GUIElement* elem)
 	}
 }
 
-void CGUIWidget::UpdateBounds() const
+void GUIWidget::UpdateBounds() const
 {
 	if(!mElements.empty())
 		mBounds = mElements[0]->GetAbsoluteClippedArea();
@@ -201,7 +201,7 @@ void CGUIWidget::UpdateBounds() const
 	}
 }
 
-void CGUIWidget::UpdateRootPanel()
+void GUIWidget::UpdateRootPanel()
 {
 	Viewport* target = GetTarget();
 	if(target == nullptr)
@@ -225,7 +225,7 @@ void CGUIWidget::UpdateRootPanel()
 	mPanel->MarkLayoutAsDirty();
 }
 
-void CGUIWidget::UpdateRenderTarget()
+void GUIWidget::UpdateRenderTarget()
 {
 	SPtr<RenderTarget> rt;
 	u64 newRTId = 0;
@@ -246,7 +246,7 @@ void CGUIWidget::UpdateRenderTarget()
 	}
 }
 
-void CGUIWidget::UpdateLayout()
+void GUIWidget::UpdateLayout()
 {
 	// Check if render target size changed and update if needed
 	// Note: Purposely not relying to the RenderTarget::onResized callback, as it will trigger /before/ Input events.
@@ -361,7 +361,7 @@ void CGUIWidget::UpdateLayout()
 	}
 }
 
-void CGUIWidget::UpdateLayout(GUIElement* element)
+void GUIWidget::UpdateLayout(GUIElement* element)
 {
 	GUIElement* const parent = element->GetParent();
 	const bool isPanelOptimized = parent != nullptr && parent->Is<GUIPanel>();
@@ -410,7 +410,7 @@ void CGUIWidget::UpdateLayout(GUIElement* element)
 	fnMarkContentsAsDirtyAndClearDirtyFlags(element, fnMarkContentsAsDirtyAndClearDirtyFlags);
 }
 
-GUIDrawGroupRenderDataUpdate CGUIWidget::RebuildDirtyRenderData()
+GUIDrawGroupRenderDataUpdate GUIWidget::RebuildDirtyRenderData()
 {
 	if(!GetEnabled())
 		return GUIDrawGroupRenderDataUpdate();
@@ -437,7 +437,7 @@ GUIDrawGroupRenderDataUpdate CGUIWidget::RebuildDirtyRenderData()
 	return mBatches.RebuildDirty(dirty);
 }
 
-void CGUIWidget::OnCreated()
+void GUIWidget::OnCreated()
 {
 	mStyleSheetCascade = GetBuiltinResources().GetDefaultGUIStyleSheetCascade();
 
@@ -461,7 +461,7 @@ void CGUIWidget::OnCreated()
 	UpdateRootPanel();
 }
 
-void CGUIWidget::OnDestroyed()
+void GUIWidget::OnDestroyed()
 {
 	if(mPanel != nullptr)
 	{
@@ -480,22 +480,22 @@ void CGUIWidget::OnDestroyed()
 	mDirtyLayoutOrAbsoluteCoordinates.clear();
 }
 
-void CGUIWidget::Update()
+void GUIWidget::Update()
 {
 	UpdateRenderTarget();
 }
 
-void CGUIWidget::OnTransformChanged(TransformChangedFlags flags)
+void GUIWidget::OnTransformChanged(TransformChangedFlags flags)
 {
 	mWidgetIsDirty = true;
 }
 
-RTTIType* CGUIWidget::GetRttiStatic()
+RTTIType* GUIWidget::GetRttiStatic()
 {
-	return CGUIWidgetRTTI::Instance();
+	return GUIWidgetRTTI::Instance();
 }
 
-RTTIType* CGUIWidget::GetRtti() const
+RTTIType* GUIWidget::GetRtti() const
 {
-	return CGUIWidget::GetRttiStatic();
+	return GUIWidget::GetRttiStatic();
 }
