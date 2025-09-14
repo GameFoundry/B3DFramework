@@ -95,7 +95,7 @@ function(B3DParseFontAwesomeIcons iconsJSONPath outIconIds outIconIdentifiers ou
 	set(${outIconIdentifiers} ${iconIdentifiers} PARENT_SCOPE)
 endfunction()
 
-set(FONT_AWESOME_INSTALL_DIR ${B3D_FRAMEWORK_ROOT_DIRECTORY}/Dependencies/FontAwesome CACHE PATH "")
+set(FONT_AWESOME_INSTALL_DIR ${B3D_FRAMEWORK_ROOT_FOLDER}/Dependencies/FontAwesome CACHE PATH "")
 mark_as_advanced(FONT_AWESOME_INSTALL_DIR)
 
 # Generates a file containing a list of all stock icons, that can be included in C++ code.

@@ -21,10 +21,10 @@ function(B3DRegisterCodeGenTarget)
 		return()
 	endif()
 
-	B3DRegisterIncludeFolderForCodeGen(${B3D_FRAMEWORK_SOURCE_DIRECTORY}/Foundation/bsfUtility)
-	B3DRegisterIncludeFolderForCodeGen(${B3D_FRAMEWORK_SOURCE_DIRECTORY}/Foundation/bsfCore)
-	B3DRegisterIncludeFolderForCodeGen(${B3D_FRAMEWORK_SOURCE_DIRECTORY}/Foundation/bsfEngine)
-	B3DRegisterIncludeFolderForCodeGen(${B3D_FRAMEWORK_SOURCE_DIRECTORY}/Scripting/bsfScript)
+	B3DRegisterIncludeFolderForCodeGen(${B3D_FRAMEWORK_SOURCE_FOLDER}/Foundation/bsfUtility)
+	B3DRegisterIncludeFolderForCodeGen(${B3D_FRAMEWORK_SOURCE_FOLDER}/Foundation/bsfCore)
+	B3DRegisterIncludeFolderForCodeGen(${B3D_FRAMEWORK_SOURCE_FOLDER}/Foundation/bsfEngine)
+	B3DRegisterIncludeFolderForCodeGen(${B3D_FRAMEWORK_SOURCE_FOLDER}/Scripting/bsfScript)
 
 	if(B3D_IS_ENGINE)
 		B3DRegisterIncludeFolderForCodeGen(${PROJECT_SOURCE_DIR}/Source/EditorCore)
@@ -33,12 +33,12 @@ function(B3DRegisterCodeGenTarget)
 
 	set(B3D_CODEGEN_HEADER_FOLDERS
 		${B3D_CODEGEN_HEADER_FOLDERS}
-		"-I${B3D_FRAMEWORK_SOURCE_DIRECTORY}/Scripting/bsfMono"
-		"-I${B3D_FRAMEWORK_SOURCE_DIRECTORY}/Foundation/bsfUtility/ThirdParty"
+		"-I${B3D_FRAMEWORK_SOURCE_FOLDER}/Scripting/bsfMono"
+		"-I${B3D_FRAMEWORK_SOURCE_FOLDER}/Foundation/bsfUtility/ThirdParty"
 		"-I${PROJECT_BINARY_DIR}/Generated/bsfUtility/")
 
 	set(B3D_CODEGEN_HEADER_FILES
-		"${B3D_FRAMEWORK_SOURCE_DIRECTORY}/Foundation/bsfUtility/BsUtilityPrerequisites.h"
+		"${B3D_FRAMEWORK_SOURCE_FOLDER}/Foundation/bsfUtility/BsUtilityPrerequisites.h"
 		${B3D_CODEGEN_HEADER_FILES})
 
 	list(REMOVE_DUPLICATES B3D_CODEGEN_HEADER_FOLDERS)
@@ -55,8 +55,8 @@ function(B3DRegisterCodeGenTarget)
 	file(WRITE ${PROJECT_BINARY_DIR}/B3DCodeGenParseTarget.cpp ${parseTargetFileContents})
 
 	set(GenScriptBinding_SOURCE_FILE ${PROJECT_BINARY_DIR}/B3DCodeGenParseTarget.cpp)
-	set(GenScriptBinding_OUTPUT_CPP_DIR ${B3D_FRAMEWORK_SOURCE_DIRECTORY}/Scripting/bsfScript/Generated)
-	set(GenScriptBinding_OUTPUT_CS_DIR ${B3D_FRAMEWORK_SOURCE_DIRECTORY}/Scripting/bsfSharp/Generated)
+	set(GenScriptBinding_OUTPUT_CPP_DIR ${B3D_FRAMEWORK_SOURCE_FOLDER}/Scripting/bsfScript/Generated)
+	set(GenScriptBinding_OUTPUT_CS_DIR ${B3D_FRAMEWORK_SOURCE_FOLDER}/Scripting/bsfSharp/Generated)
 	set(GenScriptBinding_INCLUDE_DIRS ${headerFoldersArgument})
 	set(GenScriptBinding_WORKING_DIR ${PROJECT_SOURCE_DIR})
 
@@ -91,7 +91,7 @@ function(B3DRegisterCodeGenTarget)
 	set(runCodegenCommand "${GenScriptBinding_SBGEN_EXECUTABLE} ${runCodegenCommandArguments}")
 
 	configure_file(
-		${B3D_FRAMEWORK_SOURCE_DIRECTORY}/CMake/Scripts/GenerateScriptBindings.cmake.in
+		${B3D_FRAMEWORK_SOURCE_FOLDER}/CMake/Scripts/GenerateScriptBindings.cmake.in
 		${CMAKE_CURRENT_BINARY_DIR}/GenerateScriptBindings.cmake
 		@ONLY)
 

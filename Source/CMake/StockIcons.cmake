@@ -1,14 +1,14 @@
-set(FONT_AWESOME_INSTALL_DIR ${B3D_FRAMEWORK_ROOT_DIRECTORY}/Dependencies/FontAwesome CACHE PATH "")
+set(FONT_AWESOME_INSTALL_DIR ${B3D_FRAMEWORK_ROOT_FOLDER}/Dependencies/FontAwesome CACHE PATH "")
 mark_as_advanced(FONT_AWESOME_INSTALL_DIR)
 
 # Registers a target that can be used for building stock icons.
 function(B3DRegisterBuildStockIconsTarget)
 	set(BuildStockIcons_FONTAWESOME_DIRECTORY ${FONT_AWESOME_INSTALL_DIR})
-	set(BuildStockIcons_ICON_LIST_OUTPUT_DIRECTORY ${B3D_FRAMEWORK_ROOT_DIRECTORY}/Source/Foundation/bsfCore/Text)
-	set(BuildStockIcons_FONT_OUTPUT_DIRECTORY ${B3D_FRAMEWORK_ROOT_DIRECTORY}/Data/Raw/Fonts)
+	set(BuildStockIcons_ICON_LIST_OUTPUT_DIRECTORY ${B3D_FRAMEWORK_ROOT_FOLDER}/Source/Foundation/bsfCore/Text)
+	set(BuildStockIcons_FONT_OUTPUT_DIRECTORY ${B3D_FRAMEWORK_ROOT_FOLDER}/Data/Raw/Fonts)
 
 	configure_file(
-			${B3D_FRAMEWORK_SOURCE_DIRECTORY}/CMake/Scripts/BuildStockIcons.cmake.in
+			${B3D_FRAMEWORK_SOURCE_FOLDER}/CMake/Scripts/BuildStockIcons.cmake.in
 			${CMAKE_CURRENT_BINARY_DIR}/BuildStockIcons.cmake
 			@ONLY)
 

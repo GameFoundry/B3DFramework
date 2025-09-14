@@ -8,7 +8,7 @@
 B3DStartFindPackage(FLAC)
 
 if(B3D_USE_BUNDLED_LIBRARIES)
-	set(FLAC_INSTALL_DIR ${B3D_FRAMEWORK_SOURCE_DIRECTORY}/../Dependencies/libFLAC CACHE PATH "")
+	set(FLAC_INSTALL_DIR ${B3D_FRAMEWORK_SOURCE_FOLDER}/../Dependencies/libFLAC CACHE PATH "")
 endif()
 B3DPopulateDefaultPackageSearchPaths(FLAC)
 

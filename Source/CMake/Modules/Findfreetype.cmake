@@ -8,7 +8,7 @@
 B3DStartFindPackage(freetype)
 
 if(B3D_USE_BUNDLED_LIBRARIES)
-	set(freetype_INSTALL_DIR ${B3D_FRAMEWORK_SOURCE_DIRECTORY}/../Dependencies/freetype CACHE PATH "")
+	set(freetype_INSTALL_DIR ${B3D_FRAMEWORK_SOURCE_FOLDER}/../Dependencies/freetype CACHE PATH "")
 endif()
 B3DPopulateDefaultPackageSearchPaths(freetype)
 

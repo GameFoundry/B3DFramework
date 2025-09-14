@@ -4,8 +4,8 @@ if ("${PROJECT_SOURCE_DIR}" STREQUAL "${CMAKE_SOURCE_DIR}")
 	set(BS_TOP_LEVEL True)
 endif()
 
-set (BSF_DEPENDENCY_DIRECTORY ${B3D_FRAMEWORK_ROOT_DIRECTORY}/Dependencies)
-set (BSF_TOOLS_DIRECTORY ${B3D_FRAMEWORK_ROOT_DIRECTORY}/Tools)
+set (BSF_DEPENDENCY_DIRECTORY ${B3D_FRAMEWORK_ROOT_FOLDER}/Dependencies)
+set (BSF_TOOLS_DIRECTORY ${B3D_FRAMEWORK_ROOT_FOLDER}/Tools)
 
 # Options
 set(B3D_BUILD_EXAMPLES ON CACHE BOOL "If true, framework example projects will be built by default.")
@@ -20,7 +20,7 @@ if(NOT CMAKE_CONFIGURATION_TYPES) # Multiconfig generator?
 endif()
 
 # Includes required for various find_package calls
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${B3D_FRAMEWORK_SOURCE_DIRECTORY}/CMake/Modules/")
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${B3D_FRAMEWORK_SOURCE_FOLDER}/CMake/Modules/")
 
 if(${CMAKE_SIZEOF_VOID_P} EQUAL 8)
 	set(B3D_IS_64BIT true)

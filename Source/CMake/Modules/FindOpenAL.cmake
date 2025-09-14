@@ -8,7 +8,7 @@
 B3DStartFindPackage(OpenAL)
 
 if(B3D_USE_BUNDLED_LIBRARIES)
-	set(OpenAL_INSTALL_DIR ${B3D_FRAMEWORK_SOURCE_DIRECTORY}/../Dependencies/OpenAL CACHE PATH "")
+	set(OpenAL_INSTALL_DIR ${B3D_FRAMEWORK_SOURCE_FOLDER}/../Dependencies/OpenAL CACHE PATH "")
 endif()
 B3DPopulateDefaultPackageSearchPaths(OpenAL)
 

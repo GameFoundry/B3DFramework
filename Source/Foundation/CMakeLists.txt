@@ -16,7 +16,7 @@ endif()
 if(B3D_USE_BUNDLED_LIBRARIES)
 	if(B3D_EXPERIMENTAL_ENABLE_NETWORKING)
 		set(BS_RAKNET_PREBUILT_DEPENDENCY_VERSION 1) # Tick this when you change the binaries
-		check_and_update_binary_deps(bsfDep_RakNet RakNet ${B3D_FRAMEWORK_SOURCE_DIRECTORY}/../Dependencies/RakNet ${BS_RAKNET_PREBUILT_DEPENDENCY_VERSION})
+		check_and_update_binary_deps(bsfDep_RakNet RakNet ${B3D_FRAMEWORK_SOURCE_FOLDER}/../Dependencies/RakNet ${BS_RAKNET_PREBUILT_DEPENDENCY_VERSION})
 	endif()
 endif()
 

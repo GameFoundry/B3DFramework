@@ -7,7 +7,7 @@
 
 B3DStartFindPackage(XShaderCompiler)
 
-set(XShaderCompiler_INSTALL_DIR ${B3D_FRAMEWORK_SOURCE_DIRECTORY}/../Dependencies/XShaderCompiler CACHE PATH "")
+set(XShaderCompiler_INSTALL_DIR ${B3D_FRAMEWORK_SOURCE_FOLDER}/../Dependencies/XShaderCompiler CACHE PATH "")
 B3DPopulateDefaultPackageSearchPaths(XShaderCompiler)
 
 B3DFindImportedIncludes(XShaderCompiler Xsc/Xsc.h)

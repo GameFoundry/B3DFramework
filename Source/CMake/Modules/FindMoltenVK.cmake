@@ -7,7 +7,7 @@
 
 B3DStartFindPackage(MoltenVK)
 
-set(MoltenVK_INSTALL_DIR ${B3D_FRAMEWORK_SOURCE_DIRECTORY}/../Dependencies/MoltenVK CACHE PATH "")
+set(MoltenVK_INSTALL_DIR ${B3D_FRAMEWORK_SOURCE_FOLDER}/../Dependencies/MoltenVK CACHE PATH "")
 B3DPopulateDefaultPackageSearchPaths(MoltenVK)
 
 B3DFindImportedIncludes(MoltenVK MoltenVK/mvk_vulkan.h)

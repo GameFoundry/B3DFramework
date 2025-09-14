@@ -8,7 +8,7 @@
 B3DStartFindPackage(glslang)
 
 if(B3D_USE_BUNDLED_LIBRARIES)
-	set(glslang_INSTALL_DIR ${B3D_FRAMEWORK_SOURCE_DIRECTORY}/../Dependencies/glslang CACHE PATH "")
+	set(glslang_INSTALL_DIR ${B3D_FRAMEWORK_SOURCE_FOLDER}/../Dependencies/glslang CACHE PATH "")
 endif()
 B3DPopulateDefaultPackageSearchPaths(glslang)
 

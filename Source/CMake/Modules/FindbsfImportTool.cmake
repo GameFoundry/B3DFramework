@@ -4,7 +4,7 @@
 #  bsfImportTool_EXECUTABLE_PATH
 #  bsfImportTool_FOUND
 
-set(bsfImportTool_INSTALL_DIRS ${B3D_FRAMEWORK_SOURCE_DIRECTORY}/../Dependencies/tools/bsfImportTool/bin CACHE PATH "")
+set(bsfImportTool_INSTALL_DIRS ${B3D_FRAMEWORK_SOURCE_FOLDER}/../Dependencies/tools/bsfImportTool/bin CACHE PATH "")
 
 if(NOT bsfImportTool_FIND_QUIET)
 	message(STATUS "Looking for bsfImportTool installation...")

@@ -1,10 +1,10 @@
-function(run_import_tool _PREFIX _FOLDER _ARGS _WORKING_DIR)
+function(run_import_tool _PREFIX _INPUT_FOLDER _OUTPUT_FOLDER _ARGS)
 	message(STATUS "Checking built-in assets for modifications for '${_PREFIX}'...")
 	
 	execute_process(
-		COMMAND @RunAssetImport_EXECUTABLE@ ${_FOLDER}/Raw/ ${_FOLDER}/ ${_ARGS}
+		COMMAND @RunAssetImport_EXECUTABLE@ ${_INPUT_FOLDER}/ ${_OUTPUT_FOLDER}/ ${_ARGS}
 		COMMENT "...importing files, please wait."
-		WORKING_DIRECTORY ${_WORKING_DIR}
+		WORKING_DIRECTORY ""
 		RESULT_VARIABLE IMPORT_STATUS_CODE
 	)
 	
@@ -25,5 +25,5 @@ endfunction()
 run_import_tool(
 	@RunAssetImport_PREFIX@
 	@RunAssetImport_INPUT_FOLDER@
-	"@RunAssetImport_CMD_ARGS@"
-	@RunAssetImport_WORKING_DIR@)
+	@RunAssetImport_OUTPUT_FOLDER@
+	"@RunAssetImport_CMD_ARGS@")

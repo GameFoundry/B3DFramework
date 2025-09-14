@@ -143,10 +143,10 @@ cmake_minimum_required (VERSION 3.12.0)
 project (myProject)
 
 # Let the system know where `bsf` source code is located
-set(B3D_FRAMEWORK_ROOT_DIRECTORY "C:/bsf" CACHE STRING "bsf directory")
+set(B3D_FRAMEWORK_ROOT_FOLDER "C:/bsf" CACHE STRING "bsf directory")
 
 # Include bsf projects and their CMake code
-include(${B3D_FRAMEWORK_ROOT_DIRECTORY}/Source/CMake/ProjectDefaults.cmake)
+include(${B3D_FRAMEWORK_ROOT_FOLDER}/Source/CMake/ProjectDefaults.cmake)
 
 # Build an executable from the provided C++ files
 add_executable(myApp WIN32 "Main.cpp")

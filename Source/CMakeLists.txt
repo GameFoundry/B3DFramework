@@ -4,8 +4,8 @@ set (B3D_FRAMEWORK_VERSION_MINOR 1)
 set (B3D_FRAMEWORK_VERSION_PATCH 0)
 set (B3D_FRAMEWORK_CURRENT_RELEASE_YEAR 2019)
 
-set (BS_FRAMEWORK_PREBUILT_DEPENDENCIES_VERSION 12)
-set (BS_FRAMEWORK_SRC_DEPENDENCIES_VERSION 1)
+set (B3D_FRAMEWORK_PREBUILT_DEPENDENCIES_VERSION 12)
+set (B3D_FRAMEWORK_SOURCE_DEPENDENCIES_VERSION 1)
 set (B3D_FRAMEWORK_BUILTIN_ASSETS_VERSION 7)
 
 # Options
@@ -52,35 +52,35 @@ set(B3D_EXPERIMENTAL_ENABLE_NETWORKING OFF CACHE BOOL "If true, enable experimen
 
 # Add cotire if enabled
 if(B3D_ENABLE_COTIRE)
-	include(${B3D_FRAMEWORK_SOURCE_DIRECTORY}/CMake/cotire.cmake)
+	include(${B3D_FRAMEWORK_SOURCE_FOLDER}/CMake/cotire.cmake)
 endif()
 
 set(B3D_USE_BUNDLED_LIBRARIES ON CACHE BOOL "Use and install bundled libraries")
 
 # Ensure dependencies are up to date
 ## Check prebuilt dependencies that are downloaded in a .zip
-check_and_update_binary_deps(bsfDependencies Dependencies ${B3D_FRAMEWORK_SOURCE_DIRECTORY}/../Dependencies/ ${BS_FRAMEWORK_PREBUILT_DEPENDENCIES_VERSION})
+check_and_update_binary_deps(bsfDependencies Dependencies ${B3D_FRAMEWORK_SOURCE_FOLDER}/../Dependencies/ ${B3D_FRAMEWORK_PREBUILT_DEPENDENCIES_VERSION})
 
 ## Check dependencies built from source
 if(WIN32)
-	set(SOURCE_DEP_BUILD_DIR ${B3D_FRAMEWORK_SOURCE_DIRECTORY}/../Dependencies/Build)
-	set(SOURCE_DEP_BUILD_VERSION_FILE ${SOURCE_DEP_BUILD_DIR}/.version)
-	if(EXISTS ${SOURCE_DEP_BUILD_VERSION_FILE})
-		file (STRINGS ${SOURCE_DEP_BUILD_VERSION_FILE} CURRENT_SOURCE_DEP_VERSION)
-		if(${BS_FRAMEWORK_SRC_DEPENDENCIES_VERSION} GREATER ${CURRENT_SOURCE_DEP_VERSION})
+	set(sourceDependencyBuildFolder ${B3D_FRAMEWORK_SOURCE_FOLDER}/../Dependencies/Build)
+	set(sourceDependencyBuildVersionFile ${sourceDependencyBuildFolder}/.version)
+	if(EXISTS ${sourceDependencyBuildVersionFile})
+		file (STRINGS ${sourceDependencyBuildVersionFile} currentSourceDependencyVersion)
+		if(${B3D_FRAMEWORK_SOURCE_DEPENDENCIES_VERSION} GREATER ${currentSourceDependencyVersion})
 			message(STATUS "Built dependencies are out of date, forcing recompile.")
 			execute_process(COMMAND "${CMAKE_COMMAND}"
-				-E remove_directory "${SOURCE_DEP_BUILD_DIR}")	
+				-E remove_directory "${sourceDependencyBuildFolder}")
 		endif()
 	else()
 		message(STATUS "Built dependencies are out of date, forcing recompile.")
 		execute_process(COMMAND "${CMAKE_COMMAND}"
-			-E remove_directory "${SOURCE_DEP_BUILD_DIR}")	
+			-E remove_directory "${sourceDependencyBuildFolder}")
 	endif()
 endif()
 
 ## Check data dependencies
-B3DUpdateBuiltinAssetsIfNeeded(bsf ${B3D_FRAMEWORK_SOURCE_DIRECTORY}/../Data/Raw Raw ${B3D_FRAMEWORK_BUILTIN_ASSETS_VERSION})
+B3DUpdateBuiltinAssetsIfNeeded(bsf ${B3D_FRAMEWORK_SOURCE_FOLDER}/../Data/Raw Raw ${B3D_FRAMEWORK_BUILTIN_ASSETS_VERSION})
 
 # Config file
 ## Note: Must happen before script binding generation
@@ -131,8 +131,8 @@ else()
 endif()
 
 ## Generate config files
-configure_file("${B3D_FRAMEWORK_SOURCE_DIRECTORY}/CMake/BsEngineConfig.h.in" "${PROJECT_BINARY_DIR}/Generated/bsfEngine/BsEngineConfig.h")
-configure_file("${B3D_FRAMEWORK_SOURCE_DIRECTORY}/CMake/BsFrameworkConfig.h.in" "${PROJECT_BINARY_DIR}/Generated/bsfUtility/BsFrameworkConfig.h")
+configure_file("${B3D_FRAMEWORK_SOURCE_FOLDER}/CMake/BsEngineConfig.h.in" "${PROJECT_BINARY_DIR}/Generated/bsfEngine/BsEngineConfig.h")
+configure_file("${B3D_FRAMEWORK_SOURCE_FOLDER}/CMake/BsFrameworkConfig.h.in" "${PROJECT_BINARY_DIR}/Generated/bsfUtility/BsFrameworkConfig.h")
 
 # Set files disallowed in precompiled headers
 set_directory_properties(PROPERTIES
@@ -288,18 +288,18 @@ set(B3D_FTP_CREDENTIALS_FILE "${PROJECT_SOURCE_DIR}/../ftp_credentials" CACHE ST
 mark_as_advanced(B3D_FTP_CREDENTIALS_FILE)
 
 if(${B3D_INCLUDE_ASSET_PACKAGING_SCRIPTS})
-	add_run_asset_import_target(bsfBuiltinAssets ${B3D_FRAMEWORK_SOURCE_DIRECTORY}/../Data/Raw ${B3D_FRAMEWORK_SOURCE_DIRECTORY}/../Data "")
-	add_upload_assets_target(bsfBuiltinAssets "bsfCompiledData_Master" ${B3D_FRAMEWORK_SOURCE_DIRECTORY}/../Data Raw/DataPackageContents.txt)
-	add_upload_assets_target(bsfDocImages "bsfDocImagesData_Master" ${B3D_FRAMEWORK_SOURCE_DIRECTORY}/../Documentation DataPackageContents.txt)
+	B3DAddRunAssetImportTarget(bsfBuiltinAssets ${B3D_FRAMEWORK_SOURCE_FOLDER}/../Data/Raw ${B3D_FRAMEWORK_SOURCE_FOLDER}/../Data "")
+	B3DAddUploadAssetsTarget(bsfBuiltinAssets ${B3D_FRAMEWORK_SOURCE_FOLDER}/../Data Raw/DataPackageContents.txt)
+	B3DAddUploadAssetsTarget(bsfDocImages ${B3D_FRAMEWORK_SOURCE_FOLDER}/../Documentation DataPackageContents.txt)
 endif()
 
-set(B3D_FRAMEWORK_COMPILED_ASSETS_VERSION_FILE ${B3D_FRAMEWORK_SOURCE_DIRECTORY}/../Data/.reqversion)
+set(B3D_FRAMEWORK_COMPILED_ASSETS_VERSION_FILE ${B3D_FRAMEWORK_SOURCE_FOLDER}/../Data/.reqversion)
 file (STRINGS ${B3D_FRAMEWORK_COMPILED_ASSETS_VERSION_FILE} B3D_FRAMEWORK_COMPILED_ASSETS_VERSION)
-B3DUpdateBuiltinAssetsIfNeeded(bsfCompiled ${B3D_FRAMEWORK_SOURCE_DIRECTORY}/../Data Data ${B3D_FRAMEWORK_COMPILED_ASSETS_VERSION})
+B3DUpdateBuiltinAssetsIfNeeded(bsfCompiled ${B3D_FRAMEWORK_SOURCE_FOLDER}/../Data Data ${B3D_FRAMEWORK_COMPILED_ASSETS_VERSION})
 
-set(B3D_DOCUMENTATION_ASSETS_VERSION_FILE ${B3D_FRAMEWORK_SOURCE_DIRECTORY}/../Documentation/.reqversion)
+set(B3D_DOCUMENTATION_ASSETS_VERSION_FILE ${B3D_FRAMEWORK_SOURCE_FOLDER}/../Documentation/.reqversion)
 file (STRINGS ${B3D_DOCUMENTATION_ASSETS_VERSION_FILE} B3D_DOCUMENTATION_ASSETS_VERSION)
-B3DUpdateBuiltinAssetsIfNeeded(bsfDocImages ${B3D_FRAMEWORK_SOURCE_DIRECTORY}/../Documentation Documentation ${B3D_DOCUMENTATION_ASSETS_VERSION})
+B3DUpdateBuiltinAssetsIfNeeded(bsfDocImages ${B3D_FRAMEWORK_SOURCE_FOLDER}/../Documentation Documentation ${B3D_DOCUMENTATION_ASSETS_VERSION})
 
 if(NOT B3D_IS_ENGINE)
 	set(B3D_ASSETS_INSTALL_FOLDER bin)

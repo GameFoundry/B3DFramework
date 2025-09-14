@@ -94,16 +94,16 @@ endfunction()
 function(B3DRegisterOptionalFrameworkSubdirectories)
 	# Grab examples projects
 	if(B3D_BUILD_EXAMPLES)
-		find_path(EXAMPLE_SUBMODULE_SOURCES "CMakeLists.txt" PATHS "${B3D_FRAMEWORK_ROOT_DIRECTORY}/Examples" NO_DEFAULT_PATH NO_CACHE)
+		find_path(EXAMPLE_SUBMODULE_SOURCES "CMakeLists.txt" PATHS "${B3D_FRAMEWORK_ROOT_FOLDER}/Examples" NO_DEFAULT_PATH NO_CACHE)
 		if(NOT EXAMPLE_SUBMODULE_SOURCES)
 			execute_process(COMMAND git submodule update
 					--init
 					-- Examples
-					WORKING_DIRECTORY ${B3D_FRAMEWORK_ROOT_DIRECTORY})
+					WORKING_DIRECTORY ${B3D_FRAMEWORK_ROOT_FOLDER})
 		endif()
 		mark_as_advanced(EXAMPLE_SUBMODULE_SOURCES)
 
-		add_subdirectory(${B3D_FRAMEWORK_ROOT_DIRECTORY}/Examples)
+		add_subdirectory(${B3D_FRAMEWORK_ROOT_FOLDER}/Examples)
 	endif()
 
 	# Grab code-generator project
@@ -123,11 +123,11 @@ function(B3DRegisterOptionalFrameworkSubdirectories)
 
 	# Script binding generation script
 	if(((SCRIPT_API AND (NOT SCRIPT_API MATCHES "None")) OR B3D_IS_ENGINE) AND B3D_BUILD_CODEGEN)
-		include(${B3D_FRAMEWORK_SOURCE_DIRECTORY}/CMake/GenerateScriptBindings.cmake)
+		include(${B3D_FRAMEWORK_SOURCE_FOLDER}/CMake/GenerateScriptBindings.cmake)
 	endif()
 
 	# Stock icon generation script
-	include(${B3D_FRAMEWORK_SOURCE_DIRECTORY}/CMake/StockIcons.cmake)
+	include(${B3D_FRAMEWORK_SOURCE_FOLDER}/CMake/StockIcons.cmake)
 endfunction()
 
 function(add_prefix var prefix)
@@ -815,46 +815,58 @@ function(B3DUpdateBuiltinAssetsIfNeeded assetPrefix assetFolder folderName asset
 	endif()
 endfunction()
 
-function(add_run_asset_import_target _PREFIX _FOLDER _WORKING_DIR _ARGS)
+# Registers a target that performs asset import for builtin assets.
+#
+# @param	assetPrefix			Prefix identifying the asset pack to build (e.g. 'Framework', 'Editor', etc.)
+# @param	inputFolder			Absolute folder in which to find raw assets to import.
+# @param	outputFolder		Absolute folder in which to place imported assets.
+# @param	additionalArguments	Optional additional arguments to pass to the import tool.
+function(B3DAddRunAssetImportTarget assetPrefix inputFolder outputFolder additionalArguments)
 	find_package(bsfImportTool)
 
 	if(NOT bsfImportTool_FOUND)
 		message("Cannot add asset import target because bsfImportTool binaries cannot be found. Build the bsfImportTool target and install it to Dependencies/tools/bsfImportTool.")
 	else()
 		set(RunAssetImport_EXECUTABLE ${bsfImportTool_EXECUTABLE})
-		set(RunAssetImport_INPUT_FOLDER ${_FOLDER})
-		set(RunAssetImport_CMD_ARGS ${_ARGS})
-		set(RunAssetImport_PREFIX ${_PREFIX})
-		set(RunAssetImport_WORKING_DIR ${_WORKING_DIR})
-		
+		set(RunAssetImport_INPUT_FOLDER ${inputFolder})
+		set(RunAssetImport_OUTPUT_FOLDER ${outputFolder})
+		set(RunAssetImport_CMD_ARGS ${additionalArguments})
+		set(RunAssetImport_PREFIX ${assetPrefix})
+
 		configure_file(
-			${B3D_FRAMEWORK_SOURCE_DIRECTORY}/CMake/Scripts/RunAssetImport.cmake.in
-			${CMAKE_CURRENT_BINARY_DIR}/RunAssetImport_${_PREFIX}.cmake
+			${B3D_FRAMEWORK_SOURCE_FOLDER}/CMake/Scripts/RunAssetImport.cmake.in
+			${CMAKE_CURRENT_BINARY_DIR}/RunAssetImport_${assetPrefix}.cmake
 			@ONLY)
 		
-		add_custom_target(RunAssetImport_${_PREFIX} COMMAND ${CMAKE_COMMAND} -P
-			${CMAKE_CURRENT_BINARY_DIR}/RunAssetImport_${_PREFIX}.cmake)
+		add_custom_target(RunAssetImport_${assetPrefix} COMMAND ${CMAKE_COMMAND} -P
+			${CMAKE_CURRENT_BINARY_DIR}/RunAssetImport_${assetPrefix}.cmake)
 			
-		set_property(TARGET RunAssetImport_${_PREFIX} PROPERTY FOLDER Scripts)
+		set_property(TARGET RunAssetImport_${assetPrefix} PROPERTY FOLDER Scripts)
 	endif()
 endfunction()
 
-function(add_upload_assets_target _PREFIX _NAME _FOLDER _FILES)
+# Registers a target that performs archive and upload of current set of builtin assets. Updates the .reqversion
+# file to the next available version.
+#
+# @param	assetPrefix		Prefix identifying the asset packet to upload (e.g. 'Framework', 'Editor', etc.)
+# @param	inputFolder		Folder that contains the data list file, and the .version and .reqversion files.
+# @param	dataListFile	Textual file that contains a newline separated list of assets to package.
+function(B3DAddUploadAssetsTarget assetPrefix inputFolder dataListFile)
 	set(UploadAssets_FTP_CREDENTIALS_FILE ${B3D_FTP_CREDENTIALS_FILE})
-	set(UploadAssets_INPUT_FOLDER ${_FOLDER})
-	set(UploadAssets_INPUT_FILES ${_FILES})
-	set(UploadAssets_ARCHIVE_NAME ${_NAME})
+	set(UploadAssets_INPUT_FOLDER ${inputFolder})
+	set(UploadAssets_INPUT_FILES ${dataListFile})
+	set(UploadAssets_ARCHIVE_NAME ${assetPrefix}Data_Master)
 	set(UploadAssets_TEMP_FOLDER ${PROJECT_SOURCE_DIR}/Temp)
 
 	configure_file(
-		${B3D_FRAMEWORK_SOURCE_DIRECTORY}/CMake/Scripts/UploadAssets.cmake.in
-		${CMAKE_CURRENT_BINARY_DIR}/UploadAssets_${_PREFIX}.cmake
+		${B3D_FRAMEWORK_SOURCE_FOLDER}/CMake/Scripts/UploadAssets.cmake.in
+		${CMAKE_CURRENT_BINARY_DIR}/UploadAssets_${assetPrefix}.cmake
 		@ONLY)
 	
-	add_custom_target(UploadAssets_${_PREFIX} COMMAND ${CMAKE_COMMAND} -P
-		${CMAKE_CURRENT_BINARY_DIR}/UploadAssets_${_PREFIX}.cmake)
+	add_custom_target(UploadAssets_${assetPrefix} COMMAND ${CMAKE_COMMAND} -P
+		${CMAKE_CURRENT_BINARY_DIR}/UploadAssets_${assetPrefix}.cmake)
 		
-	set_property(TARGET UploadAssets_${_PREFIX} PROPERTY FOLDER Scripts)
+	set_property(TARGET UploadAssets_${assetPrefix} PROPERTY FOLDER Scripts)
 endfunction()
 
 #######################################################################################

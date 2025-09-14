@@ -31,7 +31,7 @@ if(NOT B3D_IS_ENGINE)
 
 	# Copy .dlls on build
 	if(B3D_USE_BUNDLED_LIBRARIES)
-		copy_folder_on_build(bsfSharp ${B3D_FRAMEWORK_SOURCE_DIRECTORY}/../Dependencies/mono ${PROJECT_BINARY_DIR} bin/Mono "*.*")
+		copy_folder_on_build(bsfSharp ${B3D_FRAMEWORK_SOURCE_FOLDER}/../Dependencies/mono ${PROJECT_BINARY_DIR} bin/Mono "*.*")
 	endif()
 endif()
 

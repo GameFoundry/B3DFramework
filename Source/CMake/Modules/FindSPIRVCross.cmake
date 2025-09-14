@@ -8,7 +8,7 @@
 B3DStartFindPackage(SPIRVCross)
 
 if(B3D_USE_BUNDLED_LIBRARIES)
-	set(SPIRVCross_INSTALL_DIR ${B3D_FRAMEWORK_SOURCE_DIRECTORY}/../Dependencies/SPIRVCross CACHE PATH "")
+	set(SPIRVCross_INSTALL_DIR ${B3D_FRAMEWORK_SOURCE_FOLDER}/../Dependencies/SPIRVCross CACHE PATH "")
 endif()
 
 B3DPopulateDefaultPackageSearchPaths(SPIRVCross)

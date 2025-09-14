@@ -4,7 +4,7 @@
 #  BansheeCodeGenerator_EXECUTABLE_PATH
 #  BansheeCodeGenerator_FOUND
 
-set(BansheeCodeGenerator_INSTALL_DIRS ${B3D_FRAMEWORK_SOURCE_DIRECTORY}/../Dependencies/tools/BansheeCodeGenerator/bin CACHE PATH "")
+set(BansheeCodeGenerator_INSTALL_DIRS ${B3D_FRAMEWORK_SOURCE_FOLDER}/../Dependencies/tools/BansheeCodeGenerator/bin CACHE PATH "")
 
 message(STATUS "Looking for BansheeCodeGenerator installation...")
 find_program(BansheeCodeGenerator_EXECUTABLE NAMES BansheeCodeGenerator PATHS ${BansheeCodeGenerator_INSTALL_DIRS})

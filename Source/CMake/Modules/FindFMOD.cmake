@@ -11,7 +11,7 @@ if(WIN32)
 	set(FMOD_INSTALL_DIR "C:/Program Files (x86)/FMOD SoundSystem/FMOD Studio API Windows" CACHE PATH "")
 else()
 	if(B3D_USE_BUNDLED_LIBRARIES)
-		set(FMOD_INSTALL_DIR ${B3D_FRAMEWORK_SOURCE_DIRECTORY}/../Dependencies/FMOD CACHE PATH "")
+		set(FMOD_INSTALL_DIR ${B3D_FRAMEWORK_SOURCE_FOLDER}/../Dependencies/FMOD CACHE PATH "")
 	endif()
 endif()
 

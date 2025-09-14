@@ -8,7 +8,7 @@
 B3DStartFindPackage(freeimg)
 
 if(B3D_USE_BUNDLED_LIBRARIES)
-	set(freeimg_INSTALL_DIR ${B3D_FRAMEWORK_SOURCE_DIRECTORY}/../Dependencies/freeimg CACHE PATH "")
+	set(freeimg_INSTALL_DIR ${B3D_FRAMEWORK_SOURCE_FOLDER}/../Dependencies/freeimg CACHE PATH "")
 endif()
 B3DPopulateDefaultPackageSearchPaths(freeimg)
 

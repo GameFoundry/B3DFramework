@@ -2,10 +2,10 @@
 if(APPLE) # MacOS
 	if(B3D_USE_BUNDLED_LIBRARIES)
 		set(BS_SPVC_PREBUILT_DEPENDENCY_VERSION 1) # Tick this when you change the binaries
-		check_and_update_binary_deps(bsfDep_SPIRVCross SPIRVCross ${B3D_FRAMEWORK_SOURCE_DIRECTORY}/../Dependencies/SPIRVCross ${BS_SPVC_PREBUILT_DEPENDENCY_VERSION})
+		check_and_update_binary_deps(bsfDep_SPIRVCross SPIRVCross ${B3D_FRAMEWORK_SOURCE_FOLDER}/../Dependencies/SPIRVCross ${BS_SPVC_PREBUILT_DEPENDENCY_VERSION})
 
 		set(BS_MVK_PREBUILT_DEPENDENCY_VERSION 3) # Tick this when you change the binaries
-		check_and_update_binary_deps(bsfDep_MoltenVK MoltenVK ${B3D_FRAMEWORK_SOURCE_DIRECTORY}/../Dependencies/MoltenVK ${BS_MVK_PREBUILT_DEPENDENCY_VERSION})
+		check_and_update_binary_deps(bsfDep_MoltenVK MoltenVK ${B3D_FRAMEWORK_SOURCE_FOLDER}/../Dependencies/MoltenVK ${BS_MVK_PREBUILT_DEPENDENCY_VERSION})
 	endif()
 endif()
 

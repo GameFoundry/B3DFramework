@@ -8,7 +8,7 @@
 B3DStartFindPackage(RakNet)
 
 if(B3D_USE_BUNDLED_LIBRARIES)
-	set(RakNet_INSTALL_DIR ${B3D_FRAMEWORK_SOURCE_DIRECTORY}/../Dependencies/RakNet CACHE PATH "")
+	set(RakNet_INSTALL_DIR ${B3D_FRAMEWORK_SOURCE_FOLDER}/../Dependencies/RakNet CACHE PATH "")
 endif()
 
 B3DPopulateDefaultPackageSearchPaths(RakNet)

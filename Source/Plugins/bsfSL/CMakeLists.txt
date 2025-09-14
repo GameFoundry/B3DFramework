@@ -9,22 +9,22 @@ if(B3D_BUILD_BSL_PARSER)
 	set(BS_BISON_OPTIONS -l)
 
 	execute_process(
-			COMMAND ${flex_EXECUTABLE} ${BS_FLEX_OPTIONS} ${B3D_FRAMEWORK_SOURCE_DIRECTORY}/Plugins/bsfSL/BsLexerFX.l
-			COMMAND ${bison_EXECUTABLE} ${BS_BISON_OPTIONS} ${B3D_FRAMEWORK_SOURCE_DIRECTORY}/Plugins/bsfSL/BsParserFX.y
-			WORKING_DIRECTORY ${B3D_FRAMEWORK_SOURCE_DIRECTORY}/Plugins/bsfSL
+			COMMAND ${flex_EXECUTABLE} ${BS_FLEX_OPTIONS} ${B3D_FRAMEWORK_SOURCE_FOLDER}/Plugins/bsfSL/BsLexerFX.l
+			COMMAND ${bison_EXECUTABLE} ${BS_BISON_OPTIONS} ${B3D_FRAMEWORK_SOURCE_FOLDER}/Plugins/bsfSL/BsParserFX.y
+			WORKING_DIRECTORY ${B3D_FRAMEWORK_SOURCE_FOLDER}/Plugins/bsfSL
 			RESULT_VARIABLE rv
 	)
 	
-	file(RENAME "${B3D_FRAMEWORK_SOURCE_DIRECTORY}/Plugins/bsfSL/BsLexerFX.h" "${B3D_FRAMEWORK_SOURCE_DIRECTORY}/Plugins/bsfSL/BsLexerFX.h")
-	file(RENAME "${B3D_FRAMEWORK_SOURCE_DIRECTORY}/Plugins/bsfSL/BsLexerFX.c" "${B3D_FRAMEWORK_SOURCE_DIRECTORY}/Plugins/bsfSL/BsLexerFX.c")
-	file(RENAME "${B3D_FRAMEWORK_SOURCE_DIRECTORY}/Plugins/bsfSL/BsParserFX.h" "${B3D_FRAMEWORK_SOURCE_DIRECTORY}/Plugins/bsfSL/BsParserFX.h")
-	file(RENAME "${B3D_FRAMEWORK_SOURCE_DIRECTORY}/Plugins/bsfSL/BsParserFX.c" "${B3D_FRAMEWORK_SOURCE_DIRECTORY}/Plugins/bsfSL/BsParserFX.c")
+	file(RENAME "${B3D_FRAMEWORK_SOURCE_FOLDER}/Plugins/bsfSL/BsLexerFX.h" "${B3D_FRAMEWORK_SOURCE_FOLDER}/Plugins/bsfSL/BsLexerFX.h")
+	file(RENAME "${B3D_FRAMEWORK_SOURCE_FOLDER}/Plugins/bsfSL/BsLexerFX.c" "${B3D_FRAMEWORK_SOURCE_FOLDER}/Plugins/bsfSL/BsLexerFX.c")
+	file(RENAME "${B3D_FRAMEWORK_SOURCE_FOLDER}/Plugins/bsfSL/BsParserFX.h" "${B3D_FRAMEWORK_SOURCE_FOLDER}/Plugins/bsfSL/BsParserFX.h")
+	file(RENAME "${B3D_FRAMEWORK_SOURCE_FOLDER}/Plugins/bsfSL/BsParserFX.c" "${B3D_FRAMEWORK_SOURCE_FOLDER}/Plugins/bsfSL/BsParserFX.c")
 endif()
 
 # Ensure pre-built binary dependencies are up to date
 if(B3D_USE_BUNDLED_LIBRARIES)
 	set(BS_XSC_PREBUILT_DEPENDENCY_VERSION 7) # Tick this when you change the binaries
-	check_and_update_binary_deps(bsfDep_XShaderCompiler XShaderCompiler ${B3D_FRAMEWORK_SOURCE_DIRECTORY}/../Dependencies/XShaderCompiler ${BS_XSC_PREBUILT_DEPENDENCY_VERSION})
+	check_and_update_binary_deps(bsfDep_XShaderCompiler XShaderCompiler ${B3D_FRAMEWORK_SOURCE_FOLDER}/../Dependencies/XShaderCompiler ${BS_XSC_PREBUILT_DEPENDENCY_VERSION})
 endif()
 
 # Source files and their filters
@@ -45,12 +45,12 @@ target_include_directories(bsfSL PRIVATE "./")
 # Pre-build step
 if(B3D_BUILD_BSL_PARSER AND WIN32)
 	add_custom_command(TARGET bsfSL PRE_BUILD
-		COMMAND ${flex_EXECUTABLE} ${BS_FLEX_OPTIONS} ${B3D_FRAMEWORK_SOURCE_DIRECTORY}/Plugins/bsfSL/BsLexerFX.l
-		COMMAND ${bison_EXECUTABLE} ${BS_BISON_OPTIONS} ${B3D_FRAMEWORK_SOURCE_DIRECTORY}/Plugins/bsfSL/BsParserFX.y
-		COMMAND xcopy /Y /I BsLexerFX.h \"${B3D_FRAMEWORK_SOURCE_DIRECTORY}/Plugins/bsfSL\"
-		COMMAND xcopy /Y /I BsLexerFX.c \"${B3D_FRAMEWORK_SOURCE_DIRECTORY}/Plugins/bsfSL\"
-		COMMAND xcopy /Y /I BsParserFX.h \"${B3D_FRAMEWORK_SOURCE_DIRECTORY}/Plugins/bsfSL\"
-		COMMAND xcopy /Y /I BsParserFX.c \"${B3D_FRAMEWORK_SOURCE_DIRECTORY}/Plugins/bsfSL\"
+		COMMAND ${flex_EXECUTABLE} ${BS_FLEX_OPTIONS} ${B3D_FRAMEWORK_SOURCE_FOLDER}/Plugins/bsfSL/BsLexerFX.l
+		COMMAND ${bison_EXECUTABLE} ${BS_BISON_OPTIONS} ${B3D_FRAMEWORK_SOURCE_FOLDER}/Plugins/bsfSL/BsParserFX.y
+		COMMAND xcopy /Y /I BsLexerFX.h \"${B3D_FRAMEWORK_SOURCE_FOLDER}/Plugins/bsfSL\"
+		COMMAND xcopy /Y /I BsLexerFX.c \"${B3D_FRAMEWORK_SOURCE_FOLDER}/Plugins/bsfSL\"
+		COMMAND xcopy /Y /I BsParserFX.h \"${B3D_FRAMEWORK_SOURCE_FOLDER}/Plugins/bsfSL\"
+		COMMAND xcopy /Y /I BsParserFX.c \"${B3D_FRAMEWORK_SOURCE_FOLDER}/Plugins/bsfSL\"
 		COMMAND del BsLexerFX.h BsLexerFX.c BsParserFX.h BsParserFX.c
 		COMMENT "Building BSL lexer/parser...")
 endif()
