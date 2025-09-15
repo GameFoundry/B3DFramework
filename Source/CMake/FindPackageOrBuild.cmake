@@ -1,63 +1,73 @@
-function(build_dependency DEPENDENCY_NAME BUILD_CONFIG BUILD_OPTIONS)
-	set(DEPENDENCY_BUILD_DIR "${CMAKE_SOURCE_DIR}/../Dependencies/Build/${DEPENDENCY_NAME}/${BUILD_CONFIG}")
-	
+# Builds a dependency that supports CMake as its build system.
+#
+# @param		dependencyName		Name of the dependency to build, relative to the ./External folder.
+# @param		buildConfig			Configuration to build (e.g. 'Debug', 'Release')
+# @param		buildOptions		Additional options to pass to CMake when generating the build.
+function(B3DBuildDependency dependencyName buildConfig buildOptions)
+	set(dependencyBuildFolder "${CMAKE_SOURCE_DIR}/../Dependencies/Build/${dependencyName}/${BUILD_CONFIG}")
+
 	# Make the build folder
 	execute_process(COMMAND "${CMAKE_COMMAND}"
-						-E make_directory ${DEPENDENCY_BUILD_DIR}
-					WORKING_DIRECTORY "${DEPENDENCY_BUILD_DIR}")	
+						-E make_directory ${dependencyBuildFolder}
+					WORKING_DIRECTORY "${dependencyBuildFolder}")
 	
 	# Make build files
 	execute_process(COMMAND "${CMAKE_COMMAND}"
 						-G "${CMAKE_GENERATOR}"
-						${BUILD_OPTIONS}
-						"${CMAKE_SOURCE_DIR}/External/${DEPENDENCY_NAME}"
-						WORKING_DIRECTORY "${DEPENDENCY_BUILD_DIR}")
+						${buildOptions}
+						"${CMAKE_SOURCE_DIR}/External/${dependencyName}"
+						WORKING_DIRECTORY "${dependencyBuildFolder}")
 					
 	# Execute the build and install
 	execute_process(COMMAND "${CMAKE_COMMAND}"
-		--build "${DEPENDENCY_BUILD_DIR}"
+		--build "${dependencyBuildFolder}"
 		--config ${BUILD_CONFIG})		
 
 	execute_process(COMMAND "${CMAKE_COMMAND}"
-		--build "${DEPENDENCY_BUILD_DIR}"
+		--build "${dependencyBuildFolder}"
 		--config ${BUILD_CONFIG}
 		--target Install)
 endfunction()
 
-function(find_package_or_build DEPENDENCY_NAME DEPENDENCY_INCLUDE_PATH BUILD_OPTIONS)
-	set(DEPENDENCIES_BUILD_DIR "${CMAKE_SOURCE_DIR}/../Dependencies/Build")
-	set(DEPENDENCY_BUILD_DIR "${DEPENDENCIES_BUILD_DIR}/${DEPENDENCY_NAME}")
-	set(DEPENDENCY_SOURCE_DIR "${CMAKE_SOURCE_DIR}/External/${DEPENDENCY_NAME}")
+# Attempts to find a dependency, and if it cannot find it fetches the dependency source as a submodule,
+# and runs CMake build to compile the dependency in Release and Debug configurations.
+#
+# @param		dependencyName			Name of the dependency to find/build, relative to the ./External folder.
+# @param		dependencyIncludePath	Location of the include folder for the dependencies, used for locating an existing dependency.
+# @param		buildOptions			Additional options to pass to CMake when generating the build.
+function(B3DFindOrBuildDependency dependencyName dependencyIncludePath buildOptions)
+	set(dependenciesBuildFolder "${CMAKE_SOURCE_DIR}/../Dependencies/Build")
+	set(dependencySourceFolder "${CMAKE_SOURCE_DIR}/External/${dependencyName}")
 
 	# Look for dependency binaries
-	find_package(${DEPENDENCY_NAME} QUIET)
+	find_package(${dependencyName} QUIET)
 
 	# Cannot find binaries, see if we can compile them
-	if(NOT ${DEPENDENCY_NAME}_FOUND)
-		message(STATUS "...${DEPENDENCY_NAME} binaries cannot be found, building from source and retrying.")
+	if(NOT ${dependencyName}_FOUND)
+		message(STATUS "...${dependencyName} binaries cannot be found, building from source and retrying.")
 
 		# See if we have the source code for the dependency, and if not fetch them from git
-		find_path(SUBMODULE_SOURCES ${DEPENDENCY_INCLUDE_PATH} ${DEPENDENCY_SOURCE_DIR})
+		find_path(SUBMODULE_SOURCES ${dependencyIncludePath} ${dependencySourceFolder})
 		if(NOT SUBMODULE_SOURCES)
 			execute_process(COMMAND git submodule update
 								--init
-								-- External/${DEPENDENCY_NAME}
+								-- External/${dependencyName}
 							WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
 		else()
 			execute_process(COMMAND git submodule update
-								-- External/${DEPENDENCY_NAME}
+								-- External/${dependencyName}
 							WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
 		endif()
 
 		# Build
-		build_dependency(${DEPENDENCY_NAME} Release "${BUILD_OPTIONS}")
-		build_dependency(${DEPENDENCY_NAME} Debug "${BUILD_OPTIONS}")
+		B3DBuildDependency(${dependencyName} Release "${buildOptions}")
+		B3DBuildDependency(${dependencyName} Debug "${buildOptions}")
 		
 		# Update the dependencies version
-		file(WRITE ${DEPENDENCIES_BUILD_DIR}/.version ${B3D_SOURCE_DEPENDENCIES_VERSION})
+		file(WRITE ${dependenciesBuildFolder}/.version ${B3D_SOURCE_DEPENDENCIES_VERSION})
 		
 		# Now try finding the package again, this time it's required
-		find_package(${DEPENDENCY_NAME} REQUIRED)
+		find_package(${dependencyName} REQUIRED)
 		
 		mark_as_advanced(SUBMODULE_SOURCES)
 	endif()

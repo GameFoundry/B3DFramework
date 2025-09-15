@@ -108,16 +108,16 @@ function(B3DRegisterOptionalFrameworkSubdirectories)
 
 	# Grab code-generator project
 	if(B3D_BUILD_CODEGEN)
-		find_path(CODEGEN_SUBMODULE_SOURCES "CMakeLists.txt" PATHS "${BSF_TOOLS_DIRECTORY}/BansheeCodeGenerator" NO_DEFAULT_PATH NO_CACHE)
+		find_path(CODEGEN_SUBMODULE_SOURCES "CMakeLists.txt" PATHS "${B3D_TOOLS_DIRECTORY}/BansheeCodeGenerator" NO_DEFAULT_PATH NO_CACHE)
 		if(NOT CODEGEN_SUBMODULE_SOURCES)
 			execute_process(COMMAND git submodule update
 					--init
 					-- BansheeCodeGenerator
-					WORKING_DIRECTORY ${BSF_TOOLS_DIRECTORY})
+					WORKING_DIRECTORY ${B3D_TOOLS_DIRECTORY})
 		endif()
 		mark_as_advanced(CODEGEN_SUBMODULE_SOURCES)
 
-		add_subdirectory(${BSF_TOOLS_DIRECTORY}/BansheeCodeGenerator)
+		add_subdirectory(${B3D_TOOLS_DIRECTORY}/BansheeCodeGenerator)
 		set_property(TARGET BansheeCodeGenerator PROPERTY FOLDER Tools)
 	endif()
 
@@ -139,7 +139,7 @@ function(B3DAddRuntimeDependencies target)
 		if(WIN32)
 			add_dependencies(${target} bsfVulkanRenderAPI bsfNullRenderAPI)
 		elseif(APPLE)
-			add_dependencies(${target} bsfNullRenderAPI)
+			add_dependencies(${target} bsfVulkanRenderAPI bsfNullRenderAPI)
 		else()
 			add_dependencies(${target} bsfVulkanRenderAPI bsfNullRenderAPI)
 		endif()

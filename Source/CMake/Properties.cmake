@@ -1,15 +1,11 @@
 include(CheckCXXCompilerFlag)
 
 if ("${PROJECT_SOURCE_DIR}" STREQUAL "${CMAKE_SOURCE_DIR}")
-	set(BS_TOP_LEVEL True)
+	set(B3D_IS_ROOT_FOLDER True)
 endif()
 
-set (BSF_DEPENDENCY_DIRECTORY ${B3D_FRAMEWORK_ROOT_FOLDER}/Dependencies)
-set (BSF_TOOLS_DIRECTORY ${B3D_FRAMEWORK_ROOT_FOLDER}/Tools)
-
-# Options
-set(B3D_BUILD_EXAMPLES ON CACHE BOOL "If true, framework example projects will be built by default.")
-set(B3D_BUILD_CODEGEN OFF CACHE BOOL "If true, code-generator project will be included as part of the main project.")
+set (B3D_DEPENDENCY_DIRECTORY ${B3D_FRAMEWORK_ROOT_FOLDER}/Dependencies)
+set (B3D_TOOLS_DIRECTORY ${B3D_FRAMEWORK_ROOT_FOLDER}/Tools)
 
 # Configuration types
 if(NOT CMAKE_CONFIGURATION_TYPES) # Multiconfig generator?
@@ -55,29 +51,29 @@ set(CMAKE_FIND_FRAMEWORK "LAST")
 
 # Output
 if(B3D_IS_64BIT)
-	set(BS_OUTPUT_DIR_PREFIX x64)
+	set(outputFolderPrefix x64)
 else()
-	set(BS_OUTPUT_DIR_PREFIX x86)
+	set(outputFolderPrefix x86)
 endif()
 
-set(BS_BINARY_OUTPUT_DIR ${PROJECT_BINARY_DIR}/bin/${BS_OUTPUT_DIR_PREFIX})
-set(BS_LIBRARY_OUTPUT_DIR ${PROJECT_BINARY_DIR}/lib/${BS_OUTPUT_DIR_PREFIX})
+set(binaryOutputFolder ${PROJECT_BINARY_DIR}/bin/${outputFolderPrefix})
+set(libraryOutputFolder ${PROJECT_BINARY_DIR}/lib/${outputFolderPrefix})
 
-if (BS_TOP_LEVEL)
-	set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${BS_BINARY_OUTPUT_DIR}/Debug)
-	set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO ${BS_BINARY_OUTPUT_DIR}/RelWithDebInfo)
-	set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_MINSIZEREL ${BS_BINARY_OUTPUT_DIR}/MinSizeRel)
-	set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${BS_BINARY_OUTPUT_DIR}/Release)
+if (B3D_IS_ROOT_FOLDER)
+	set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${binaryOutputFolder}/Debug)
+	set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO ${binaryOutputFolder}/RelWithDebInfo)
+	set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_MINSIZEREL ${binaryOutputFolder}/MinSizeRel)
+	set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${binaryOutputFolder}/Release)
 
-	set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_DEBUG ${BS_BINARY_OUTPUT_DIR}/Debug)
-	set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_RELWITHDEBINFO ${BS_BINARY_OUTPUT_DIR}/RelWithDebInfo)
-	set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_MINSIZEREL ${BS_BINARY_OUTPUT_DIR}/MinSizeRel)
-	set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE ${BS_BINARY_OUTPUT_DIR}/Release)
+	set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_DEBUG ${binaryOutputFolder}/Debug)
+	set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_RELWITHDEBINFO ${binaryOutputFolder}/RelWithDebInfo)
+	set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_MINSIZEREL ${binaryOutputFolder}/MinSizeRel)
+	set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE ${binaryOutputFolder}/Release)
 
-	set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_DEBUG ${BS_LIBRARY_OUTPUT_DIR}/Debug)
-	set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELWITHDEBINFO ${BS_LIBRARY_OUTPUT_DIR}/RelWithDebInfo)
-	set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_MINSIZEREL ${BS_LIBRARY_OUTPUT_DIR}/MinSizeRel)
-	set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELEASE ${BS_LIBRARY_OUTPUT_DIR}/Release)
+	set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_DEBUG ${libraryOutputFolder}/Debug)
+	set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELWITHDEBINFO ${libraryOutputFolder}/RelWithDebInfo)
+	set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_MINSIZEREL ${libraryOutputFolder}/MinSizeRel)
+	set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELEASE ${libraryOutputFolder}/Release)
 
 	set_property(GLOBAL PROPERTY USE_FOLDERS TRUE)
 endif()
@@ -87,23 +83,23 @@ if (UNIX)
 	# macOS
 	if (CMAKE_SYSTEM_NAME STREQUAL Darwin)
 		# Find tools used for stripping binaries
-		find_program(DSYMUTIL_TOOL dsymutil)
+		find_program(dsymutilToolPath dsymutil)
 
-		if (NOT DSYMUTIL_TOOL)
+		if (NOT dsymutilToolPath)
 			message(FATAL_ERROR "Could not find 'dsymutil' tool.")
 		endif()
 
-		find_program(STRIP_TOOL strip)
-		if (NOT STRIP_TOOL)
+		find_program(stripToolPath strip)
+		if (NOT stripToolPath)
 			message(FATAL_ERROR "Could not find 'strip' tool.")
 		endif()
 
 	# Linux
 	else()
 		# Find tools used for stripping binaries
-	    find_program(OBJCOPY_TOOL objcopy)
+	    find_program(objcopyToolPath objcopy)
 
-	    if (NOT OBJCOPY_TOOL)
+	    if (NOT objcopyToolPath)
 	        message(FATAL_ERROR "Could not find 'objcopy' tool.")
 	    endif()
 

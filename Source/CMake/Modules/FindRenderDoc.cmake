@@ -7,7 +7,7 @@
 
 B3DStartFindPackage(RenderDoc)
 
-set(RenderDoc_INSTALL_DIR ${BSF_DEPENDENCY_DIRECTORY}/RenderDoc CACHE PATH "")
+set(RenderDoc_INSTALL_DIR ${B3D_DEPENDENCY_DIRECTORY}/RenderDoc CACHE PATH "")
 B3DPopulateDefaultPackageSearchPaths(RenderDoc)
 
 B3DFindImportedIncludes(RenderDoc RenderDoc/renderdoc_app.h)

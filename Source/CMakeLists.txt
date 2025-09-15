@@ -1,8 +1,8 @@
 # Version
-set (B3D_FRAMEWORK_VERSION_MAJOR 1)
-set (B3D_FRAMEWORK_VERSION_MINOR 1)
+set (B3D_FRAMEWORK_VERSION_MAJOR 2)
+set (B3D_FRAMEWORK_VERSION_MINOR 0)
 set (B3D_FRAMEWORK_VERSION_PATCH 0)
-set (B3D_FRAMEWORK_CURRENT_RELEASE_YEAR 2019)
+set (B3D_FRAMEWORK_CURRENT_RELEASE_YEAR 2025)
 
 set (B3D_FRAMEWORK_PREBUILT_DEPENDENCIES_VERSION 12)
 set (B3D_FRAMEWORK_SOURCE_DEPENDENCIES_VERSION 1)
@@ -17,17 +17,21 @@ set_property(CACHE B3D_PHYSICS_BACKEND PROPERTY STRINGS "PhysX" "Null")
 
 if(WIN32)
 	set(B3D_RENDER_BACKEND "Vulkan" CACHE STRING "Render API to use.")
-	set_property(CACHE B3D_RENDER_BACKEND PROPERTY STRINGS "DirectX 11" "OpenGL" "Vulkan" "Null")
+	set_property(CACHE B3D_RENDER_BACKEND PROPERTY STRINGS "Vulkan" "Null")
 elseif(APPLE)
 	set(B3D_RENDER_BACKEND "Vulkan" CACHE STRING "Render API to use.")
-	set_property(CACHE B3D_RENDER_BACKEND PROPERTY STRINGS "OpenGL" "Vulkan" "Null")
+	set_property(CACHE B3D_RENDER_BACKEND PROPERTY STRINGS "Vulkan" "Null")
 else()
 	set(B3D_RENDER_BACKEND "Vulkan" CACHE STRING "Render API to use.")
-	set_property(CACHE B3D_RENDER_BACKEND PROPERTY STRINGS "OpenGL" "Vulkan" "Null")
+	set_property(CACHE B3D_RENDER_BACKEND PROPERTY STRINGS "Vulkan" "Null")
 endif()
 
 set(B3D_RENDERER "RenderBeast" CACHE STRING "Renderer backend to use.")
 set_property(CACHE B3D_RENDERER PROPERTY STRINGS RenderBeast Null)
+
+set(B3D_BUILD_EXAMPLES ON CACHE BOOL "If true, framework example projects will be built by default.")
+
+set(B3D_BUILD_CODEGEN OFF CACHE BOOL "If true, code-generator project will be included as part of the main project.")
 
 set(B3D_INCLUDE_ALL_IN_WORKFLOW OFF CACHE BOOL "If true, all libraries (even those not selected) will be included in the generated workflow (e.g. Visual Studio solution). This is useful when working on engine internals with a need for easy access to all parts of it. Only relevant for workflow generators like Visual Studio or XCode.")
 
@@ -78,12 +82,8 @@ B3DUpdateBuiltinAssetsIfNeeded(bsf ${B3D_FRAMEWORK_SOURCE_FOLDER}/../Data/Raw Ra
 # Config file
 ## Note: Must happen before script binding generation
 ## Set names of libraries used in the config file
-if(B3D_RENDER_BACKEND MATCHES "DirectX 11")
-	set(RENDER_API_MODULE_LIB bsfD3D11RenderAPI)
-elseif(B3D_RENDER_BACKEND MATCHES "Vulkan")
+if(B3D_RENDER_BACKEND MATCHES "Vulkan")
 	set(RENDER_API_MODULE_LIB bsfVulkanRenderAPI)
-elseif(B3D_RENDER_BACKEND MATCHES "OpenGL")
-	set(RENDER_API_MODULE_LIB bsfGLRenderAPI)
 else()
 	set(RENDER_API_MODULE_LIB bsfNullRenderAPI)
 endif()
@@ -134,8 +134,6 @@ add_subdirectory(Foundation)
 ## Plugins
 ### If using MSVC include all plugins in the solution (which ones actually build is controlled by dependencies)
 if(B3D_INCLUDE_ALL_IN_WORKFLOW AND MSVC)
-	add_subdirectory(Plugins/bsfD3D11RenderAPI)
-	add_subdirectory(Plugins/bsfGLRenderAPI)
 	add_subdirectory(Plugins/bsfVulkanRenderAPI)
 	add_subdirectory(Plugins/bsfNullRenderAPI)
 	add_subdirectory(Plugins/bsfFMOD)
@@ -152,23 +150,11 @@ if(B3D_INCLUDE_ALL_IN_WORKFLOW AND MSVC)
 	add_subdirectory(Scripting/bsfSharp)
 else() # Otherwise include only chosen ones
 	if(B3D_BUILD_ALL_RENDER_BACKENDS)
-		if(WIN32)
-			add_subdirectory(Plugins/bsfD3D11RenderAPI)
-		endif()
-		
-		if(NOT APPLE)
-			add_subdirectory(Plugins/bsfVulkanRenderAPI)
-		endif()
-		
-		add_subdirectory(Plugins/bsfGLRenderAPI)
+		add_subdirectory(Plugins/bsfVulkanRenderAPI)
 		add_subdirectory(Plugins/bsfNullRenderAPI)
 	else()
-		if(B3D_RENDER_BACKEND MATCHES "DirectX 11")
-			add_subdirectory(Plugins/bsfD3D11RenderAPI)
-		elseif(B3D_RENDER_BACKEND MATCHES "Vulkan")
+		if(B3D_RENDER_BACKEND MATCHES "Vulkan")
 			add_subdirectory(Plugins/bsfVulkanRenderAPI)
-		elseif(B3D_RENDER_BACKEND MATCHES "OpenGL")
-			add_subdirectory(Plugins/bsfGLRenderAPI)
 		else()
 			add_subdirectory(Plugins/bsfNullRenderAPI)
 		endif()

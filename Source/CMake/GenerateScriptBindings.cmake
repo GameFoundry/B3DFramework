@@ -1,6 +1,9 @@
 set(B3D_CODEGEN_HEADER_FOLDERS "")
 set(B3D_CODEGEN_HEADER_FILES "")
 
+# Registers a folder path in which the code generator tool will look for include files to process.
+#
+# @param	path		Path to a folder that contains the include files.
 function(B3DRegisterIncludeFolderForCodeGen path)
 	set(B3D_CODEGEN_HEADER_FOLDERS ${B3D_CODEGEN_HEADER_FOLDERS} "-I${path}" PARENT_SCOPE)
 	
@@ -16,6 +19,7 @@ function(B3DRegisterIncludeFolderForCodeGen path)
 	set(B3D_CODEGEN_HEADER_FILES ${B3D_CODEGEN_HEADER_FILES} ${publicHeaderFiles} PARENT_SCOPE)
 endfunction()
 
+# Registers a target that runs the code generator tool.
 function(B3DRegisterCodeGenTarget)
 	if (NOT TARGET BansheeCodeGenerator)
 		return()
