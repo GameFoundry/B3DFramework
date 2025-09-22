@@ -663,13 +663,40 @@ void ECSTestSuite::TestView()
 
 	B3D_TEST_ASSERT(index == kEntityWithPositionCount)
 
-	//auto isEnemyView = registry.CreateView<test::IsEnemyTag>();
+	// Tag view
+	auto isEnemyView = registry.CreateView<test::IsEnemyTag>();
+	static_assert(std::is_same_v<decltype(isEnemyView.Get({})), std::tuple<>>, "Unexpected type");
 
-	// TODO - Add empty type to view, try iterating it in single storage mode
+	index = 0;
+	for(auto [entity] : isEnemyView.Each())
+	{
+		B3D_TEST_ASSERT(entity == entities[index])
 
-	// TODO - Test view with exclude
+		index++;
+	}
 
+	B3D_TEST_ASSERT(index == kEntityWithEnemyTagCount)
 
+	// View with exclude
+	auto positionVelocityNotEnemyView = constRegistry.CreateView<test::Position, test::Velocity>(TExcludedTypes<test::IsEnemyTag>());
+
+	index = 0;
+	for(const auto& entity : positionVelocityNotEnemyView)
+	{
+		auto tuple = positionVelocityNotEnemyView.Get<test::Position, test::Velocity>(entity);
+
+		const test::Position& position = std::get<0>(tuple);
+		const test::Velocity& velocity = std::get<1>(tuple);
+
+		const u32 adjustedIndex = index + kEntityWithEnemyTagCount;
+
+		B3D_TEST_ASSERT(position == test::Position((float)adjustedIndex + 1.0f, (float)adjustedIndex + 2.0f, (float)adjustedIndex + 3.0f))
+		B3D_TEST_ASSERT(velocity == test::Velocity(5.0f, 5.0f, 5.0f))
+
+		index++;
+	}
+
+	B3D_TEST_ASSERT(index == (Math::Min(kEntityWithPositionCount, kEntityWithVelocityCount) - kEntityWithEnemyTagCount))
 }
 
 void ECSTestSuite::TestRuntimeView()
