@@ -1,8 +1,8 @@
 //************************************ B3D Framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "Serialization/BsSerializedObject.h"
-#include "Serialization/BsIntermediateSerializer.h"
-#include "RTTI/BsSerializedObjectRTTI.h"
+#include "Serialization/B3DSerializedObject.h"
+#include "Serialization/B3DIntermediateSerializer.h"
+#include "RTTI/B3DSerializedObjectRTTI.h"
 
 #include "ThirdParty/CityHash/city.h"
 

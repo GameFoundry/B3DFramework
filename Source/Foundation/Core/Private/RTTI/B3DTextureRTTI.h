@@ -2,14 +2,14 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsCorePrerequisites.h"
-#include "Reflection/BsRTTIType.h"
-#include "Reflection/BsRTTIPlain.h"
-#include "Image/BsTexture.h"
-#include "Math/BsMath.h"
-#include "CoreObject/BsRenderThread.h"
-#include "Managers/BsTextureManager.h"
-#include "Image/BsPixelData.h"
+#include "B3DCorePrerequisites.h"
+#include "Reflection/B3DRTTIType.h"
+#include "Reflection/B3DRTTIPlain.h"
+#include "Image/B3DTexture.h"
+#include "Math/B3DMath.h"
+#include "CoreObject/B3DRenderThread.h"
+#include "Managers/B3DTextureManager.h"
+#include "Image/B3DPixelData.h"
 
 namespace b3d
 {

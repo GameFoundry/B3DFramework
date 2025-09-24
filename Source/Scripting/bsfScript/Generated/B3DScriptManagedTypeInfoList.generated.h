@@ -2,10 +2,10 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsScriptEnginePrerequisites.h"
-#include "BsScriptReflectableWrapper.h"
-#include "BsScriptManagedTypeInfo.generated.h"
-#include "../Serialization/BsManagedTypeInfo.h"
+#include "B3DScriptEnginePrerequisites.h"
+#include "B3DScriptReflectableWrapper.h"
+#include "B3DScriptManagedTypeInfo.generated.h"
+#include "../Serialization/B3DManagedTypeInfo.h"
 
 namespace b3d { class ManagedTypeInfoList; }
 namespace b3d

@@ -1,18 +1,18 @@
 //************************************ B3D Framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "GUI/BsGUITooltip.h"
+#include "GUI/B3DGUITooltip.h"
 
-#include "BsGUIUtility.h"
-#include "GUI/BsGUIPanel.h"
-#include "Components/BsCamera.h"
-#include "RenderAPI/BsViewport.h"
-#include "GUI/BsGUILayoutY.h"
-#include "GUI/BsGUILayoutX.h"
-#include "GUI/BsGUITexture.h"
-#include "GUI/BsGUILabel.h"
-#include "Resources/BsBuiltinResources.h"
-#include "GUI/BsDropDownAreaPlacement.h"
-#include "StyleSheet/BsGUIStyleSheet.h"
+#include "B3DGUIUtility.h"
+#include "GUI/B3DGUIPanel.h"
+#include "Components/B3DCamera.h"
+#include "RenderAPI/B3DViewport.h"
+#include "GUI/B3DGUILayoutY.h"
+#include "GUI/B3DGUILayoutX.h"
+#include "GUI/B3DGUITexture.h"
+#include "GUI/B3DGUILabel.h"
+#include "Resources/B3DBuiltinResources.h"
+#include "GUI/B3DDropDownAreaPlacement.h"
+#include "StyleSheet/B3DGUIStyleSheet.h"
 
 using namespace std::placeholders;
 

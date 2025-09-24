@@ -2,10 +2,10 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsCorePrerequisites.h"
-#include "Reflection/BsRTTIPlain.h"
-#include "Reflection/BsRTTIType.h"
-#include "Audio/BsAudioClipImportOptions.h"
+#include "B3DCorePrerequisites.h"
+#include "Reflection/B3DRTTIPlain.h"
+#include "Reflection/B3DRTTIType.h"
+#include "Audio/B3DAudioClipImportOptions.h"
 
 namespace b3d
 {

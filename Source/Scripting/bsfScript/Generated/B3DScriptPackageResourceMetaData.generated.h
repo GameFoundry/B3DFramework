@@ -2,12 +2,12 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsScriptEnginePrerequisites.h"
-#include "BsScriptReflectableWrapper.h"
-#include "../../../Foundation/bsfCore/Resources/BsPackage.h"
-#include "Utility/BsUUID.h"
-#include "../../../Foundation/bsfUtility/Utility/BsCompression.h"
-#include "../../../Foundation/bsfCore/Resources/BsPackage.h"
+#include "B3DScriptEnginePrerequisites.h"
+#include "B3DScriptReflectableWrapper.h"
+#include "../../../Foundation/Core/Resources/B3DPackage.h"
+#include "Utility/B3DUUID.h"
+#include "../../../Foundation/Utility/Utility/B3DCompression.h"
+#include "../../../Foundation/Core/Resources/B3DPackage.h"
 
 namespace b3d { class PackageResourceMetaDataExtension; }
 namespace b3d { class PackageResourceMetaData; }

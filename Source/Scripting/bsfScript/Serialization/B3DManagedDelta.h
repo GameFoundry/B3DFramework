@@ -2,8 +2,8 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsScriptEnginePrerequisites.h"
-#include "Serialization/BsBinaryDelta.h"
+#include "B3DScriptEnginePrerequisites.h"
+#include "Serialization/B3DBinaryDelta.h"
 
 namespace b3d
 {

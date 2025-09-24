@@ -1,13 +1,13 @@
 //************************************ B3D Framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "Serialization/BsFileSerializer.h"
+#include "Serialization/B3DFileSerializer.h"
 
-#include "Error/BsException.h"
-#include "Reflection/BsIReflectable.h"
-#include "Serialization/BsBinarySerializer.h"
-#include "FileSystem/BsFileSystem.h"
-#include "FileSystem/BsDataStream.h"
-#include "Debug/BsDebug.h"
+#include "Error/B3DException.h"
+#include "Reflection/B3DIReflectable.h"
+#include "Serialization/B3DBinarySerializer.h"
+#include "FileSystem/B3DFileSystem.h"
+#include "FileSystem/B3DDataStream.h"
+#include "Debug/B3DDebug.h"
 #include <numeric>
 
 using namespace std::placeholders;

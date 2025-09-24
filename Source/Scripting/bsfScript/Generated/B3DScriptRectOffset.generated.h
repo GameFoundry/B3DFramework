@@ -2,9 +2,9 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsScriptEnginePrerequisites.h"
-#include "BsScriptObjectWrapper.h"
-#include "../../../Foundation/bsfEngine/Utility/BsRectOffset.h"
+#include "B3DScriptEnginePrerequisites.h"
+#include "B3DScriptObjectWrapper.h"
+#include "../../../Foundation/Engine/Utility/B3DRectOffset.h"
 
 namespace b3d
 {

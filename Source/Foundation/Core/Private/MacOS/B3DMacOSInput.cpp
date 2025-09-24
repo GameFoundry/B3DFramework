@@ -1,10 +1,10 @@
 //************************************ B3D Framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "Input/BsInput.h"
-#include "Private/MacOS/BsMacOSInput.h"
-#include "Input/BsMouse.h"
-#include "Input/BsKeyboard.h"
-#include "Input/BsGamepad.h"
+#include "Input/B3DInput.h"
+#include "Private/MacOS/B3DMacOSInput.h"
+#include "Input/B3DMouse.h"
+#include "Input/B3DKeyboard.h"
+#include "Input/B3DGamepad.h"
 
 using namespace b3d;
 

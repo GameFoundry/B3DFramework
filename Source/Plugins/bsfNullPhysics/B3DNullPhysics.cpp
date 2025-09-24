@@ -1,18 +1,18 @@
 //************************************ B3D Framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "BsNullPhysics.h"
-#include "BsNullPhysicsMaterial.h"
-#include "BsNullPhysicsMesh.h"
-#include "BsNullPhysicsRigidbody.h"
-#include "BsNullPhysicsColliders.h"
-#include "BsNullPhysicsJoints.h"
-#include "BsNullPhysicsCharacterController.h"
-#include "Threading/BsTaskScheduler.h"
-#include "Components/BsCCollider.h"
-#include "Utility/BsTime.h"
-#include "Math/BsVector3.h"
-#include "Math/BsAABox.h"
-#include "Math/BsCapsule.h"
+#include "B3DNullPhysics.h"
+#include "B3DNullPhysicsMaterial.h"
+#include "B3DNullPhysicsMesh.h"
+#include "B3DNullPhysicsRigidbody.h"
+#include "B3DNullPhysicsColliders.h"
+#include "B3DNullPhysicsJoints.h"
+#include "B3DNullPhysicsCharacterController.h"
+#include "Threading/B3DTaskScheduler.h"
+#include "Components/B3DCCollider.h"
+#include "Utility/B3DTime.h"
+#include "Math/B3DVector3.h"
+#include "Math/B3DAABox.h"
+#include "Math/B3DCapsule.h"
 
 using namespace b3d;
 

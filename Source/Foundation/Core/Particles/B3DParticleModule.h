@@ -2,9 +2,9 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsCorePrerequisites.h"
-#include "Math/BsMatrix4.h"
-#include "Script/BsIScriptExportable.h"
+#include "B3DCorePrerequisites.h"
+#include "Math/B3DMatrix4.h"
+#include "Script/B3DIScriptExportable.h"
 
 namespace b3d
 {

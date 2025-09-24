@@ -2,9 +2,9 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsPrerequisites.h"
-#include "Importer/BsImportOptions.h"
-#include "Resources/BsScriptCode.h"
+#include "B3DPrerequisites.h"
+#include "Importer/B3DImportOptions.h"
+#include "Resources/B3DScriptCode.h"
 
 namespace b3d
 {

@@ -2,7 +2,7 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsCorePrerequisites.h"
+#include "B3DCorePrerequisites.h"
 
 #define WIN32_LEAN_AND_MEAN
 #ifndef DIRECTINPUT_VERSION

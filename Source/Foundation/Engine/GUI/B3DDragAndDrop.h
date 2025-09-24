@@ -2,10 +2,10 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsPrerequisites.h"
-#include "Utility/BsModule.h"
-#include "Input/BsInput.h"
-#include "Utility/BsEvent.h"
+#include "B3DPrerequisites.h"
+#include "Utility/B3DModule.h"
+#include "Input/B3DInput.h"
+#include "Utility/B3DEvent.h"
 #include <atomic>
 
 namespace b3d

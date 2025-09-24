@@ -1,18 +1,18 @@
 //************************************ B3D Framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "BsBSLCompiler.h"
-#include "RenderAPI/BsGpuProgram.h"
+#include "B3DBSLCompiler.h"
+#include "RenderAPI/B3DGpuProgram.h"
 #include <regex>
-#include "Material/BsShader.h"
-#include "Material/BsTechnique.h"
-#include "Material/BsPass.h"
-#include "Math/BsMatrix4.h"
-#include "Resources/BsBuiltinResources.h"
-#include "Material/BsShaderVariation.h"
+#include "Material/B3DShader.h"
+#include "Material/B3DTechnique.h"
+#include "Material/B3DPass.h"
+#include "Math/B3DMatrix4.h"
+#include "Resources/B3DBuiltinResources.h"
+#include "Material/B3DShaderVariation.h"
 
-#include "BsBSLParser.h"
-#include "BsHLSLCrossCompiler.h"
-#include "RenderAPI/BsGpuDevice.h"
+#include "B3DBSLParser.h"
+#include "B3DHLSLCrossCompiler.h"
+#include "RenderAPI/B3DGpuDevice.h"
 
 using namespace std;
 using namespace b3d;

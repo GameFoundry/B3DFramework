@@ -2,9 +2,9 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsPhysXPrerequisites.h"
-#include "BsPhysXJoint.h"
-#include "Components/BsDistanceJoint.h"
+#include "B3DPhysXPrerequisites.h"
+#include "B3DPhysXJoint.h"
+#include "Components/B3DDistanceJoint.h"
 #include "extensions/PxDistanceJoint.h"
 
 namespace b3d

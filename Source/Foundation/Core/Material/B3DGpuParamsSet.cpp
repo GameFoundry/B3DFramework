@@ -1,20 +1,20 @@
 //************************************ B3D Framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "Material/BsGpuParamsSet.h"
+#include "Material/B3DGpuParamsSet.h"
 
-#include "BsCoreApplication.h"
-#include "Material/BsShader.h"
-#include "Material/BsTechnique.h"
-#include "Material/BsPass.h"
-#include "RenderAPI/BsGpuProgram.h"
-#include "RenderAPI/BsGpuPipelineState.h"
-#include "Material/BsMaterialParams.h"
-#include "RenderAPI/BsGpuProgramParameterDescription.h"
-#include "Animation/BsAnimationCurve.h"
-#include "Image/BsColorGradient.h"
-#include "Image/BsSpriteTexture.h"
-#include "RenderAPI/BsGpuDevice.h"
-#include "RenderAPI/BsGpuDeviceCapabilities.h"
+#include "B3DCoreApplication.h"
+#include "Material/B3DShader.h"
+#include "Material/B3DTechnique.h"
+#include "Material/B3DPass.h"
+#include "RenderAPI/B3DGpuProgram.h"
+#include "RenderAPI/B3DGpuPipelineState.h"
+#include "Material/B3DMaterialParams.h"
+#include "RenderAPI/B3DGpuProgramParameterDescription.h"
+#include "Animation/B3DAnimationCurve.h"
+#include "Image/B3DColorGradient.h"
+#include "Image/B3DSpriteTexture.h"
+#include "RenderAPI/B3DGpuDevice.h"
+#include "RenderAPI/B3DGpuDeviceCapabilities.h"
 
 using namespace b3d;
 

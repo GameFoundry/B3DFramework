@@ -1,11 +1,11 @@
 //************************************ B3D Framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "Components/BsHingeJoint.h"
+#include "Components/B3DHingeJoint.h"
 
-#include "Physics/BsPhysics.h"
-#include "Scene/BsSceneObject.h"
-#include "Private/RTTI/BsHingeJointRTTI.h"
-#include "Scene/BsSceneInstance.h"
+#include "Physics/B3DPhysics.h"
+#include "Scene/B3DSceneObject.h"
+#include "Private/RTTI/B3DHingeJointRTTI.h"
+#include "Scene/B3DSceneInstance.h"
 
 using namespace b3d;
 

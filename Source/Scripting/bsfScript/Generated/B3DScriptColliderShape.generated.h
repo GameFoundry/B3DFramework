@@ -2,18 +2,18 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsScriptEnginePrerequisites.h"
-#include "BsScriptReflectableWrapper.h"
-#include "../../../Foundation/bsfCore/Physics/BsColliderShape.h"
-#include "../../../Foundation/bsfCore/Physics/BsPhysicsCommon.h"
-#include "../../../Foundation/bsfCore/Physics/BsColliderShape.h"
-#include "../../../Foundation/bsfUtility/Math/BsVector3.h"
-#include "../../../Foundation/bsfCore/Physics/BsColliderShape.h"
-#include "../../../Foundation/bsfUtility/Math/BsQuaternion.h"
-#include "../../../Foundation/bsfCore/Physics/BsColliderShape.h"
-#include "../../../Foundation/bsfCore/Physics/BsColliderShape.h"
-#include "../../../Foundation/bsfCore/Physics/BsColliderShape.h"
-#include "../../../Foundation/bsfCore/Physics/BsColliderShape.h"
+#include "B3DScriptEnginePrerequisites.h"
+#include "B3DScriptReflectableWrapper.h"
+#include "../../../Foundation/Core/Physics/B3DColliderShape.h"
+#include "../../../Foundation/Core/Physics/B3DPhysicsCommon.h"
+#include "../../../Foundation/Core/Physics/B3DColliderShape.h"
+#include "../../../Foundation/Utility/Math/B3DVector3.h"
+#include "../../../Foundation/Core/Physics/B3DColliderShape.h"
+#include "../../../Foundation/Utility/Math/B3DQuaternion.h"
+#include "../../../Foundation/Core/Physics/B3DColliderShape.h"
+#include "../../../Foundation/Core/Physics/B3DColliderShape.h"
+#include "../../../Foundation/Core/Physics/B3DColliderShape.h"
+#include "../../../Foundation/Core/Physics/B3DColliderShape.h"
 
 namespace b3d { struct __BoxColliderShapeInformationInterop; }
 namespace b3d { class ColliderShape; }

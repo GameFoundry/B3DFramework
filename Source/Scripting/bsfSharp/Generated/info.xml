@@ -8309,14 +8309,14 @@ Widgets are the only GUI objects that may be arbitrarily transformed, allowing y
 		<doc>Contains information about a single variation of a Shader. Each variation can have a separate set of #defines that control shader compilation.</doc>
 		<ctor>
 		</ctor>
-		<method native="GetInt" script="GetInt" static="false">
+		<method native="GetI32" script="GetI32" static="false">
 			<doc>Returns the value of a signed integer parameter with the specified name. Returns 0 if the parameter cannot be found.</doc>
 			<param name="name" type="string">
 			</param>
 			<returns type="int">
 			</returns>
 		</method>
-		<method native="GetUInt" script="GetUInt" static="false">
+		<method native="GetUI32" script="GetUI32" static="false">
 			<doc>Returns the value of a unsigned integer parameter with the specified name. Returns 0 if the parameter cannot be found.</doc>
 			<param name="name" type="string">
 			</param>
@@ -8337,14 +8337,14 @@ Widgets are the only GUI objects that may be arbitrarily transformed, allowing y
 			<returns type="bool">
 			</returns>
 		</method>
-		<method native="SetInt" script="SetInt" static="false">
+		<method native="SetI32" script="SetI32" static="false">
 			<doc>Sets the value of the parameter for the provided name. Any previous value for a parameter with the same name will be overwritten.</doc>
 			<param name="name" type="string">
 			</param>
 			<param name="value" type="int">
 			</param>
 		</method>
-		<method native="SetUInt" script="SetUInt" static="false">
+		<method native="SetU32" script="SetU32" static="false">
 			<doc>Sets the value of the parameter for the provided name. Any previous value for a parameter with the same name will be overwritten.</doc>
 			<param name="name" type="string">
 			</param>
@@ -8365,22 +8365,22 @@ Widgets are the only GUI objects that may be arbitrarily transformed, allowing y
 			<param name="value" type="bool">
 			</param>
 		</method>
-		<method native="RemoveParam" script="RemoveParam" static="false">
+		<method native="RemoveParameter" script="RemoveParameter" static="false">
 			<doc>Removes a parameter with the specified name.</doc>
-			<param name="paramName" type="string">
+			<param name="parameter" type="string">
 			</param>
 		</method>
-		<method native="HasParam" script="HasParam" static="false">
+		<method native="HasParameter" script="HasParameter" static="false">
 			<doc>Checks if the variation has a parameter with the specified name.</doc>
 			<param name="paramName" type="string">
 			</param>
 			<returns type="bool">
 			</returns>
 		</method>
-		<method native="ClearParams" script="ClearParams" static="false">
+		<method native="ClearParameters" script="ClearParameters" static="false">
 			<doc>Removes all parameters.</doc>
 		</method>
-		<property name="ParamNames" type="string" getter="GetParamNames" setter="" static="false">
+		<property name="ParamNames" type="string" getter="GetParameters" setter="" static="false">
 			<doc>Returns a list of names of all registered parameters.</doc>
 		</property>
 	</class>

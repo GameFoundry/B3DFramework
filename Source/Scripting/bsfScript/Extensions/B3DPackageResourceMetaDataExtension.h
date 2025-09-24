@@ -2,8 +2,8 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsScriptEnginePrerequisites.h"
-#include "Resources/BsPackage.h"
+#include "B3DScriptEnginePrerequisites.h"
+#include "Resources/B3DPackage.h"
 
 namespace b3d
 {

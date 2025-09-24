@@ -2,8 +2,8 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsOAPrerequisites.h"
-#include "BsAudioDecoder.h"
+#include "B3DOAPrerequisites.h"
+#include "B3DAudioDecoder.h"
 
 namespace b3d
 {

@@ -2,12 +2,12 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsCorePrerequisites.h"
-#include "Resources/BsGpuResourceData.h"
-#include "RenderAPI/BsVertexDescription.h"
-#include "RenderAPI/BsSubMesh.h"
-#include "Math/BsBounds.h"
-#include "Script/BsIScriptExportable.h"
+#include "B3DCorePrerequisites.h"
+#include "Resources/B3DGpuResourceData.h"
+#include "RenderAPI/B3DVertexDescription.h"
+#include "RenderAPI/B3DSubMesh.h"
+#include "Math/B3DBounds.h"
+#include "Script/B3DIScriptExportable.h"
 
 namespace b3d
 {

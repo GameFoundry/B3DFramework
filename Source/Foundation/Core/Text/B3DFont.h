@@ -2,10 +2,10 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsCorePrerequisites.h"
-#include "Script/BsIScriptExportable.h"
-#include "Image/BsTextureAtlasLayout.h"
-#include "Resources/BsResource.h"
+#include "B3DCorePrerequisites.h"
+#include "Script/B3DIScriptExportable.h"
+#include "Image/B3DTextureAtlasLayout.h"
+#include "Resources/B3DResource.h"
 
 namespace b3d
 {namespace render

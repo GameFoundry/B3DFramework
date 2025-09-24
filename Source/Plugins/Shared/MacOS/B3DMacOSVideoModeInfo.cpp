@@ -1,6 +1,6 @@
 //************************************ B3D Framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "MacOS/BsMacOSVideoModeInfo.h"
+#include "MacOS/B3DMacOSVideoModeInfo.h"
 #include <IOKit/graphics/IOGraphicsLib.h>
 
 namespace b3d::render

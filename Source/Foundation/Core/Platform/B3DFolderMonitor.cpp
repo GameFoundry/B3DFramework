@@ -1,6 +1,6 @@
 //********************************** Banshee Engine (www.banshee3d.com) **************************************************//
 //**************** Copyright (c) 2024 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
-#include "BsFolderMonitor.h"
+#include "B3DFolderMonitor.h"
 
 using namespace b3d;
 

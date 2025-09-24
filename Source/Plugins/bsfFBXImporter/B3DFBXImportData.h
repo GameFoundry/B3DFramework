@@ -2,15 +2,15 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsFBXPrerequisites.h"
-#include "Math/BsMatrix4.h"
-#include "Image/BsColor.h"
-#include "Math/BsVector2.h"
-#include "Math/BsVector4.h"
-#include "Math/BsQuaternion.h"
-#include "Animation/BsAnimationCurve.h"
-#include "RenderAPI/BsSubMesh.h"
-#include "Scene/BsTransform.h"
+#include "B3DFBXPrerequisites.h"
+#include "Math/B3DMatrix4.h"
+#include "Image/B3DColor.h"
+#include "Math/B3DVector2.h"
+#include "Math/B3DVector4.h"
+#include "Math/B3DQuaternion.h"
+#include "Animation/B3DAnimationCurve.h"
+#include "RenderAPI/B3DSubMesh.h"
+#include "Scene/B3DTransform.h"
 
 namespace b3d
 {

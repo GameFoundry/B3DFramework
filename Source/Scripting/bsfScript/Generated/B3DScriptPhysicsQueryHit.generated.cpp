@@ -1,17 +1,17 @@
 //********************************* B3D Framework - Copyright 2018-2022 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "BsScriptPhysicsQueryHit.generated.h"
-#include "BsMonoMethod.h"
-#include "BsMonoClass.h"
-#include "BsMonoUtil.h"
-#include "../../../Foundation/bsfCore/Components/BsCollider.h"
-#include "BsScriptCollider.generated.h"
-#include "../../../Foundation/bsfUtility/Math/BsVector3.h"
-#include "BsScriptTVector3.generated.h"
-#include "../../../Foundation/bsfCore/Physics/BsColliderShape.h"
-#include "BsScriptColliderShape.generated.h"
-#include "../../../Foundation/bsfUtility/Math/BsVector2.h"
-#include "BsScriptTVector2.generated.h"
+#include "B3DScriptPhysicsQueryHit.generated.h"
+#include "B3DMonoMethod.h"
+#include "B3DMonoClass.h"
+#include "B3DMonoUtil.h"
+#include "../../../Foundation/Core/Components/B3DCollider.h"
+#include "B3DScriptCollider.generated.h"
+#include "../../../Foundation/Utility/Math/B3DVector3.h"
+#include "B3DScriptTVector3.generated.h"
+#include "../../../Foundation/Core/Physics/B3DColliderShape.h"
+#include "B3DScriptColliderShape.generated.h"
+#include "../../../Foundation/Utility/Math/B3DVector2.h"
+#include "B3DScriptTVector2.generated.h"
 
 namespace b3d
 {

@@ -1,5 +1,5 @@
 
-#line 3 "BsLexerFX.c"
+#line 3 "B3DLexerFX.c"
 
 #define  YY_INT_ALIGNED short int
 
@@ -962,7 +962,7 @@ static yyconst flex_int32_t yy_rule_can_match_eol[205] =
 #define yymore() yymore_used_but_not_detected
 #define YY_MORE_ADJ 0
 #define YY_RESTORE_YY_MORE_OFFSET
-#include "BsParserFX.h"
+#include "B3DParserFX.h"
 
 #define YY_USER_ACTION yylloc->first_column = yycolumn + 1; yylloc->first_line = yylineno + 1; yycolumn += (int)yyleng; yylloc->filename = GetCurrentFilename(yyextra);
 #define YY_USER_INIT yylineno = 0; yycolumn = 0;

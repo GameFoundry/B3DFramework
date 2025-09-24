@@ -1,19 +1,19 @@
 //************************************ B3D Framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "Material/BsShader.h"
+#include "Material/B3DShader.h"
 
-#include "BsShaderManager.h"
-#include "Material/BsTechnique.h"
-#include "Error/BsException.h"
-#include "Debug/BsDebug.h"
-#include "Private/RTTI/BsShaderRTTI.h"
-#include "Resources/BsResources.h"
-#include "RenderAPI/BsGpuParameters.h"
-#include "Material/BsPass.h"
-#include "RenderAPI/BsSamplerState.h"
-#include "Image/BsTexture.h"
-#include "RenderAPI/BsGpuDevice.h"
-#include "Resources/BsBuiltinResources.h"
+#include "B3DShaderManager.h"
+#include "Material/B3DTechnique.h"
+#include "Error/B3DException.h"
+#include "Debug/B3DDebug.h"
+#include "Private/RTTI/B3DShaderRTTI.h"
+#include "Resources/B3DResources.h"
+#include "RenderAPI/B3DGpuParameters.h"
+#include "Material/B3DPass.h"
+#include "RenderAPI/B3DSamplerState.h"
+#include "Image/B3DTexture.h"
+#include "RenderAPI/B3DGpuDevice.h"
+#include "Resources/B3DBuiltinResources.h"
 #include "ThirdParty/CityHash/city.h"
 
 using namespace b3d;

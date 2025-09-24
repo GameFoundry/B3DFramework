@@ -2,9 +2,9 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsPrerequisites.h"
-#include "Utility/BsModule.h"
-#include "2D/BsSpriteMaterial.h"
+#include "B3DPrerequisites.h"
+#include "Utility/B3DModule.h"
+#include "2D/B3DSpriteMaterial.h"
 
 namespace b3d
 {

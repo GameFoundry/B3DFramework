@@ -2,10 +2,10 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsScriptEnginePrerequisites.h"
-#include "BsScriptReflectableWrapper.h"
-#include "BsScriptResourceMetaData.generated.h"
-#include "../BsManagedResourceMetaData.h"
+#include "B3DScriptEnginePrerequisites.h"
+#include "B3DScriptReflectableWrapper.h"
+#include "B3DScriptResourceMetaData.generated.h"
+#include "../B3DManagedResourceMetaData.h"
 
 namespace b3d { class ManagedResourceMetaData; }
 namespace b3d

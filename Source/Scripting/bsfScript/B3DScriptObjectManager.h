@@ -2,9 +2,9 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsScriptEnginePrerequisites.h"
-#include "Utility/BsModule.h"
-#include "Serialization/BsScriptAssemblyManager.h"
+#include "B3DScriptEnginePrerequisites.h"
+#include "Utility/B3DModule.h"
+#include "Serialization/B3DScriptAssemblyManager.h"
 
 namespace b3d
 {

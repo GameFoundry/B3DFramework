@@ -2,9 +2,9 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsSLPrerequisites.h"
-#include "Material/BsShader.h"
-#include "Material/BsShaderCompiler.h"
+#include "B3DSLPrerequisites.h"
+#include "Material/B3DShader.h"
+#include "Material/B3DShaderCompiler.h"
 
 namespace b3d
 {

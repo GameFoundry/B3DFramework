@@ -2,10 +2,10 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsCorePrerequisites.h"
-#include "CoreObject/BsRenderProxy.h"
-#include "Threading/BsAsyncOp.h"
-#include "Utility/BsFlags.h"
+#include "B3DCorePrerequisites.h"
+#include "CoreObject/B3DRenderProxy.h"
+#include "Threading/B3DAsyncOp.h"
+#include "Utility/B3DFlags.h"
 
 namespace b3d
 {

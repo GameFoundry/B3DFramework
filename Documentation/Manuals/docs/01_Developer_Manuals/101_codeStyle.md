@@ -50,7 +50,7 @@ When making changes or additions that you plan on contributing to `bsf`, you mus
    - private methods
    - protected fields
    - private fields
- - Each major class should belong to its own .h file, prefixed with `Bs` followed by the class name
+ - Each major class should belong to its own .h file, prefixed with `B3D` followed by the class name
    - If helper types are required, they can belong to the same file, but prefer to list them after the main class when possible
  
 **Function/method interface**

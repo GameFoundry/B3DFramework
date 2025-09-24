@@ -1,12 +1,12 @@
 %{
-#include "BsParserFX.h"
+#include "B3DParserFX.h"
 
 #define YY_USER_ACTION yylloc->first_column = yycolumn + 1; yylloc->first_line = yylineno + 1; yycolumn += (int)yyleng; yylloc->filename = GetCurrentFilename(yyextra);
 #define YY_USER_INIT yylineno = 0; yycolumn = 0;
 %}
 
 %option yylineno reentrant noyywrap nounistd never-interactive warn nodefault bison-bridge bison-locations
-%option outfile="BsLexerFX.c" header-file="BsLexerFX.h"
+%option outfile="B3DLexerFX.c" header-file="B3DLexerFX.h"
 %option extra-type="struct tagParseState *"
 
 INTEGER			-?[0-9][0-9]*

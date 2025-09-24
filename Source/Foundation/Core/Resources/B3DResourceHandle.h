@@ -2,9 +2,9 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "Reflection/BsIReflectable.h"
-#include "Threading/BsSignal.h"
-#include "Utility/BsUUID.h"
+#include "Reflection/B3DIReflectable.h"
+#include "Threading/B3DSignal.h"
+#include "Utility/B3DUUID.h"
 
 namespace b3d
 {

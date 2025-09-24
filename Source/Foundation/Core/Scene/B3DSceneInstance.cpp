@@ -1,25 +1,25 @@
 //************************************ B3D Framework - Copyright 2025 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "Scene/BsSceneInstance.h"
+#include "Scene/B3DSceneInstance.h"
 
-#include "BsGameObjectCollection.h"
-#include "BsScene.h"
-#include "BsSceneManager.h"
-#include "Components/BsCamera.h"
-#include "Scene/BsSceneObject.h"
-#include "Scene/BsComponent.h"
-#include "Components/BsRenderable.h"
-#include "RenderAPI/BsViewport.h"
-#include "Scene/BsGameObjectManager.h"
-#include "RenderAPI/BsRenderTarget.h"
-#include "Scene/BsPrefab.h"
-#include "Physics/BsPhysics.h"
-#include "Renderer/BsRendererScene.h"
-#include "Particles/BsParticleScene.h"
-#include "Profiling/BsProfilerCPU.h"
+#include "B3DGameObjectCollection.h"
+#include "B3DScene.h"
+#include "B3DSceneManager.h"
+#include "Components/B3DCamera.h"
+#include "Scene/B3DSceneObject.h"
+#include "Scene/B3DComponent.h"
+#include "Components/B3DRenderable.h"
+#include "RenderAPI/B3DViewport.h"
+#include "Scene/B3DGameObjectManager.h"
+#include "RenderAPI/B3DRenderTarget.h"
+#include "Scene/B3DPrefab.h"
+#include "Physics/B3DPhysics.h"
+#include "Renderer/B3DRendererScene.h"
+#include "Particles/B3DParticleScene.h"
+#include "Profiling/B3DProfilerCPU.h"
 
 #if B3D_WITH_EDITOR
-#include "Private/RTTI/BsIEditorSceneInstanceRTTI.h"
+#include "Private/RTTI/B3DIEditorSceneInstanceRTTI.h"
 #endif
 
 using namespace b3d;

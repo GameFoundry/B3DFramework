@@ -2,8 +2,8 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "Prerequisites/BsPrerequisitesUtil.h"
-#include "Math/BsVector2I.h"
+#include "Prerequisites/B3DPrerequisitesUtil.h"
+#include "Math/B3DVector2I.h"
 #include <X11/X.h>
 #include <X11/Xutil.h>
 

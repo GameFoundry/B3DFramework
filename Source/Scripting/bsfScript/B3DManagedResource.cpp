@@ -1,19 +1,19 @@
 //********************************* B3D Framework - Copyright 2018-2019 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "BsManagedResource.h"
-#include "RTTI/BsManagedResourceRTTI.h"
-#include "BsManagedResourceMetaData.h"
-#include "BsMonoManager.h"
-#include "BsMonoClass.h"
-#include "Resources/BsResources.h"
-#include "Serialization/BsManagedSerializableObject.h"
-#include "Wrappers/BsScriptManagedResource.h"
-#include "BsScriptResourceManager.h"
-#include "BsMonoUtil.h"
-#include "Serialization/BsScriptAssemblyManager.h"
-#include "Debug/BsDebug.h"
-#include "Serialization/BsBinarySerializer.h"
-#include "FileSystem/BsDataStream.h"
+#include "B3DManagedResource.h"
+#include "RTTI/B3DManagedResourceRTTI.h"
+#include "B3DManagedResourceMetaData.h"
+#include "B3DMonoManager.h"
+#include "B3DMonoClass.h"
+#include "Resources/B3DResources.h"
+#include "Serialization/B3DManagedSerializableObject.h"
+#include "Wrappers/B3DScriptManagedResource.h"
+#include "B3DScriptResourceManager.h"
+#include "B3DMonoUtil.h"
+#include "Serialization/B3DScriptAssemblyManager.h"
+#include "Debug/B3DDebug.h"
+#include "Serialization/B3DBinarySerializer.h"
+#include "FileSystem/B3DDataStream.h"
 
 using namespace b3d;
 ManagedResource::ManagedResource()

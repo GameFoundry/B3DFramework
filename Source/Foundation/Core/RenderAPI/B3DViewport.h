@@ -3,14 +3,14 @@
 #pragma once
 
 #include <utility>
-#include "BsCorePrerequisites.h"
-#include "Reflection/BsIReflectable.h"
-#include "CoreObject/BsCoreObject.h"
-#include "Image/BsColor.h"
-#include "Math/BsArea2.h"
-#include "Math/BsArea2.h"
-#include "Script/BsIScriptExportable.h"
-#include "Utility/BsEvent.h"
+#include "B3DCorePrerequisites.h"
+#include "Reflection/B3DIReflectable.h"
+#include "CoreObject/B3DCoreObject.h"
+#include "Image/B3DColor.h"
+#include "Math/B3DArea2.h"
+#include "Math/B3DArea2.h"
+#include "Script/B3DIScriptExportable.h"
+#include "Utility/B3DEvent.h"
 
 namespace b3d
 {

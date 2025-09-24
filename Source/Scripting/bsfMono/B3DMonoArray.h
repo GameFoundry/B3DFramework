@@ -2,10 +2,10 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsMonoPrerequisites.h"
-#include "BsScriptTypeMetaData.h"
-#include "BsMonoUtil.h"
-#include "BsMonoManager.h"
+#include "B3DMonoPrerequisites.h"
+#include "B3DScriptTypeMetaData.h"
+#include "B3DMonoUtil.h"
+#include "B3DMonoManager.h"
 
 namespace b3d
 {

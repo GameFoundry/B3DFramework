@@ -2,9 +2,9 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsPhysXPrerequisites.h"
-#include "Physics/BsPhysicsCommon.h"
-#include "Physics/BsColliderShape.h"
+#include "B3DPhysXPrerequisites.h"
+#include "Physics/B3DPhysicsCommon.h"
+#include "Physics/B3DColliderShape.h"
 #include "PxRigidStatic.h"
 
 namespace b3d

@@ -2,9 +2,9 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsVulkanPrerequisites.h"
-#include "RenderAPI/BsGpuPipelineParameterLayout.h"
-#include "Allocators/BsGroupAlloc.h"
+#include "B3DVulkanPrerequisites.h"
+#include "RenderAPI/B3DGpuPipelineParameterLayout.h"
+#include "Allocators/B3DGroupAlloc.h"
 
 namespace b3d
 {

@@ -1,10 +1,10 @@
 //************************************ B3D Framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "BsSLImporter.h"
-#include "FileSystem/BsDataStream.h"
-#include "FileSystem/BsFileSystem.h"
-#include "BsBSLCompiler.h"
-#include "Importer/BsShaderImportOptions.h"
+#include "B3DSLImporter.h"
+#include "FileSystem/B3DDataStream.h"
+#include "FileSystem/B3DFileSystem.h"
+#include "B3DBSLCompiler.h"
+#include "Importer/B3DShaderImportOptions.h"
 
 using namespace b3d;
 

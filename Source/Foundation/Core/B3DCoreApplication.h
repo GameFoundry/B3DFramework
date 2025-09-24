@@ -2,12 +2,12 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsCorePrerequisites.h"
-#include "Utility/BsModule.h"
-#include "RenderAPI/BsRenderWindow.h"
-#include "Threading/BsSignalEvent.h"
-#include "Utility/BsEvent.h"
-#include "Utility/BsPersistentCache.h"
+#include "B3DCorePrerequisites.h"
+#include "Utility/B3DModule.h"
+#include "RenderAPI/B3DRenderWindow.h"
+#include "Threading/B3DSignalEvent.h"
+#include "Utility/B3DEvent.h"
+#include "Utility/B3DPersistentCache.h"
 
 namespace b3d
 {

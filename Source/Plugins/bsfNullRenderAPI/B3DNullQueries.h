@@ -2,11 +2,11 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsNullPrerequisites.h"
-#include "Managers/BsQueryManager.h"
-#include "RenderAPI/BsEventQuery.h"
-#include "RenderAPI/BsTimerQuery.h"
-#include "RenderAPI/BsOcclusionQuery.h"
+#include "B3DNullPrerequisites.h"
+#include "Managers/B3DQueryManager.h"
+#include "RenderAPI/B3DEventQuery.h"
+#include "RenderAPI/B3DTimerQuery.h"
+#include "RenderAPI/B3DOcclusionQuery.h"
 
 namespace b3d
 {

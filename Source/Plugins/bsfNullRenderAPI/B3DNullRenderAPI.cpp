@@ -1,17 +1,17 @@
 //************************************ B3D Framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "BsNullRenderAPI.h"
-#include "CoreThread/BsCoreThread.h"
-#include "Math/BsMatrix4.h"
-#include "RenderAPI/BsGpuProgramParameterDescription.h"
-#include "RenderAPI/BsGpuParameters.h"
-#include "Managers/BsGpuProgramManager.h"
-#include "BsNullCommandBuffer.h"
-#include "BsNullTexture.h"
-#include "BsNullBuffers.h"
-#include "BsNullRenderTargets.h"
-#include "BsNullRenderStates.h"
-#include "BsNullQueries.h"
+#include "B3DNullRenderAPI.h"
+#include "CoreThread/B3DCoreThread.h"
+#include "Math/B3DMatrix4.h"
+#include "RenderAPI/B3DGpuProgramParameterDescription.h"
+#include "RenderAPI/B3DGpuParameters.h"
+#include "Managers/B3DGpuProgramManager.h"
+#include "B3DNullCommandBuffer.h"
+#include "B3DNullTexture.h"
+#include "B3DNullBuffers.h"
+#include "B3DNullRenderTargets.h"
+#include "B3DNullRenderStates.h"
+#include "B3DNullQueries.h"
 
 using namespace b3d;
 using namespace b3d::render;

@@ -1,10 +1,10 @@
 //************************************ B3D Framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "GUI/BsDragAndDrop.h"
-#include "Platform/BsPlatform.h"
-#include "BsCoreApplication.h"
-#include "Utility/BsTime.h"
-#include "Private/RTTI/BsDragAndDropDataRTTI.h"
+#include "GUI/B3DDragAndDrop.h"
+#include "Platform/B3DPlatform.h"
+#include "B3DCoreApplication.h"
+#include "Utility/B3DTime.h"
+#include "Private/RTTI/B3DDragAndDropDataRTTI.h"
 
 using namespace std::placeholders;
 

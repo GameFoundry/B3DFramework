@@ -2,10 +2,10 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsVulkanPrerequisites.h"
-#include "BsVulkanResource.h"
-#include "RenderAPI/BsGpuBuffer.h"
-#include "Allocators/BsPoolAlloc.h"
+#include "B3DVulkanPrerequisites.h"
+#include "B3DVulkanResource.h"
+#include "RenderAPI/B3DGpuBuffer.h"
+#include "Allocators/B3DPoolAlloc.h"
 
 namespace b3d
 {

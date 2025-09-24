@@ -2,8 +2,8 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "Platform/BsPlatform.h"
-#include "Private/Linux/BsLinuxInput.h"
+#include "Platform/B3DPlatform.h"
+#include "Private/Linux/B3DLinuxInput.h"
 #include <X11/X.h>
 #include <X11/Xlib.h>
 

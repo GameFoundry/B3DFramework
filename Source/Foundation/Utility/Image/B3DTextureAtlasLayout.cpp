@@ -1,8 +1,8 @@
 //************************************ B3D Framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "Image/BsTextureAtlasLayout.h"
-#include "Debug/BsDebug.h"
-#include "Utility/BsBitwise.h"
+#include "Image/B3DTextureAtlasLayout.h"
+#include "Debug/B3DDebug.h"
+#include "Utility/B3DBitwise.h"
 
 using namespace b3d;
 

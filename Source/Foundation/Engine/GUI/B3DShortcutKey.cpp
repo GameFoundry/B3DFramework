@@ -1,9 +1,9 @@
 //************************************ B3D Framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "GUI/BsShortcutKey.h"
-#include "Platform/BsPlatform.h"
-#include "Localization/BsHEString.h"
-#include "Localization/BsHString.h"
+#include "GUI/B3DShortcutKey.h"
+#include "Platform/B3DPlatform.h"
+#include "Localization/B3DHEString.h"
+#include "Localization/B3DHString.h"
 
 using namespace b3d;
 

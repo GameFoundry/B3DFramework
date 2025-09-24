@@ -2,12 +2,12 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsScriptEnginePrerequisites.h"
-#include "BsScriptReflectableWrapper.h"
-#include "BsScriptImportOptions.generated.h"
-#include "../../../Foundation/bsfCore/Text/BsFontImportOptions.h"
-#include "../../../Foundation/bsfCore/Text/BsFontImportOptions.h"
-#include "../../../Foundation/bsfCore/Text/BsFont.h"
+#include "B3DScriptEnginePrerequisites.h"
+#include "B3DScriptReflectableWrapper.h"
+#include "B3DScriptImportOptions.generated.h"
+#include "../../../Foundation/Core/Text/B3DFontImportOptions.h"
+#include "../../../Foundation/Core/Text/B3DFontImportOptions.h"
+#include "../../../Foundation/Core/Text/B3DFont.h"
 
 namespace b3d { class FontImportOptions; }
 namespace b3d

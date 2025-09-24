@@ -2,11 +2,11 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsScriptEnginePrerequisites.h"
-#include "BsScriptReflectableWrapper.h"
-#include "BsScriptParticleEmitterShape.generated.h"
-#include "../../../Foundation/bsfCore/Particles/BsParticleEmitter.h"
-#include "../../../Foundation/bsfCore/Particles/BsParticleEmitter.h"
+#include "B3DScriptEnginePrerequisites.h"
+#include "B3DScriptReflectableWrapper.h"
+#include "B3DScriptParticleEmitterShape.generated.h"
+#include "../../../Foundation/Core/Particles/B3DParticleEmitter.h"
+#include "../../../Foundation/Core/Particles/B3DParticleEmitter.h"
 
 namespace b3d { class ParticleEmitterHemisphereShape; }
 namespace b3d

@@ -2,15 +2,15 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsCorePrerequisites.h"
-#include "Reflection/BsRTTIType.h"
-#include "RenderAPI/BsGpuDevice.h"
-#include "RTTI/BsStringRTTI.h"
-#include "RTTI/BsStdRTTI.h"
-#include "RTTI/BsDataBlobRTTI.h"
-#include "RenderAPI/BsGpuProgram.h"
-#include "RenderAPI/BsGpuProgramParameterDescription.h"
-#include "BsCoreApplication.h"
+#include "B3DCorePrerequisites.h"
+#include "Reflection/B3DRTTIType.h"
+#include "RenderAPI/B3DGpuDevice.h"
+#include "RTTI/B3DStringRTTI.h"
+#include "RTTI/B3DStdRTTI.h"
+#include "RTTI/B3DDataBlobRTTI.h"
+#include "RenderAPI/B3DGpuProgram.h"
+#include "RenderAPI/B3DGpuProgramParameterDescription.h"
+#include "B3DCoreApplication.h"
 
 namespace b3d
 {

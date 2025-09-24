@@ -1,15 +1,15 @@
 //************************************ B3D Framework - Copyright 2023 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "Image/BsSpriteVectorPath.h"
+#include "Image/B3DSpriteVectorPath.h"
 
-#include "Private/RTTI/BsSpriteVectorPathRTTI.h"
-#include "Image/BsTexture.h"
-#include "Resources/BsResources.h"
-#include "Resources/BsBuiltinResources.h"
-#include "CoreObject/BsCoreObjectSync.h"
-#include "GUI/BsGUIManager.h"
-#include "VectorGraphics/BsVectorGraphics.h"
-#include "VectorGraphics/BsVectorSpriteAtlas.h"
+#include "Private/RTTI/B3DSpriteVectorPathRTTI.h"
+#include "Image/B3DTexture.h"
+#include "Resources/B3DResources.h"
+#include "Resources/B3DBuiltinResources.h"
+#include "CoreObject/B3DCoreObjectSync.h"
+#include "GUI/B3DGUIManager.h"
+#include "VectorGraphics/B3DVectorGraphics.h"
+#include "VectorGraphics/B3DVectorSpriteAtlas.h"
 
 using namespace b3d;
 

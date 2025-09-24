@@ -2,8 +2,8 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsMonoPrerequisites.h"
-#include "Utility/BsModule.h"
+#include "B3DMonoPrerequisites.h"
+#include "Utility/B3DModule.h"
 
 #include <mono/jit/details/jit-types.h>
 #include <mono/metadata/details/assembly-types.h>
@@ -27,12 +27,12 @@
 
 // Function pointer types
 #define MONO_API_FUNCTION(ret, name, args) typedef ret (*FNPTR_##name)args;
-#include "BsMonoLoaderFunctions.h"
+#include "B3DMonoLoaderFunctions.h"
 #undef MONO_API_FUNCTION
 
 // Function pointer variable declarations
 #define MONO_API_FUNCTION(ret, name, args) extern FNPTR_##name name;
-#include "BsMonoLoaderFunctions.h"
+#include "B3DMonoLoaderFunctions.h"
 #undef MONO_API_FUNCTION
 
 #define mono_array_addr(array,type,index) ((type*)mono_array_addr_with_size ((array), sizeof (type), (index)))
@@ -61,7 +61,7 @@ namespace b3d
 	 *  @{
 	 */
 
-	/** Dynamically loads the Mono dynamic library and sets up the function pointers defined in BsMonoLoaderFunctions.h. */
+	/** Dynamically loads the Mono dynamic library and sets up the function pointers defined in B3DMonoLoaderFunctions.h. */
 	class B3D_MONO_EXPORT MonoLoader : public Module<MonoLoader>
 	{
 	public:

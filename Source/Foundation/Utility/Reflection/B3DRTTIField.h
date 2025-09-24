@@ -3,11 +3,11 @@
 #pragma once
 
 #include <utility>
-#include "BsUtilityPrerequisites.h"
-#include "Reflection/BsRTTIPlain.h"
-#include "Reflection/BsRTTIIterator.h"
-#include "Reflection/BsIReflectable.h"
-#include "Utility/BsAny.h"
+#include "B3DUtilityPrerequisites.h"
+#include "Reflection/B3DRTTIPlain.h"
+#include "Reflection/B3DRTTIIterator.h"
+#include "Reflection/B3DIReflectable.h"
+#include "Utility/B3DAny.h"
 
 namespace b3d
 {

@@ -2,14 +2,14 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsScriptEnginePrerequisites.h"
-#include "Wrappers/BsScriptComponent.h"
-#include "../../../Foundation/bsfUtility/Math/BsAABox.h"
-#include "../../../Foundation/bsfCore/Components/BsAnimation.h"
-#include "../../../Foundation/bsfCore/Components/BsAnimation.h"
-#include "../../../Foundation/bsfUtility/Math/BsVector2.h"
-#include "../../../Foundation/bsfCore/Components/BsAnimation.h"
-#include "../../../Foundation/bsfCore/Components/BsAnimation.h"
+#include "B3DScriptEnginePrerequisites.h"
+#include "Wrappers/B3DScriptComponent.h"
+#include "../../../Foundation/Utility/Math/B3DAABox.h"
+#include "../../../Foundation/Core/Components/B3DAnimation.h"
+#include "../../../Foundation/Core/Components/B3DAnimation.h"
+#include "../../../Foundation/Utility/Math/B3DVector2.h"
+#include "../../../Foundation/Core/Components/B3DAnimation.h"
+#include "../../../Foundation/Core/Components/B3DAnimation.h"
 
 namespace b3d { class Animation; }
 namespace b3d { struct __Blend1DInfoInterop; }

@@ -2,14 +2,14 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsRenderBeastPrerequisites.h"
-#include "Utility/BsTriangulation.h"
-#include "Math/BsMatrix4.h"
-#include "Math/BsMatrixNxM.h"
-#include "Renderer/BsRendererMaterial.h"
-#include "Renderer/BsGpuResourcePool.h"
-#include "Renderer/BsGpuDataParameterBlock.h"
-#include "BsRendererLight.h"
+#include "B3DRenderBeastPrerequisites.h"
+#include "Utility/B3DTriangulation.h"
+#include "Math/B3DMatrix4.h"
+#include "Math/B3DMatrixNxM.h"
+#include "Renderer/B3DRendererMaterial.h"
+#include "Renderer/B3DGpuResourcePool.h"
+#include "Renderer/B3DGpuDataParameterBlock.h"
+#include "B3DRendererLight.h"
 
 namespace b3d
 {

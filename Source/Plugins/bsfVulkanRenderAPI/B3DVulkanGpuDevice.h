@@ -2,12 +2,12 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsVulkanBuiltinResources.h"
-#include "BsVulkanPrerequisites.h"
-#include "Managers/BsVulkanDescriptorManager.h"
-#include "RenderAPI/BsGpuCommandBuffer.h"
-#include "RenderAPI/BsGpuDevice.h"
-#include "RenderAPI/BsGpuDeviceCapabilities.h"
+#include "B3DVulkanBuiltinResources.h"
+#include "B3DVulkanPrerequisites.h"
+#include "Managers/B3DVulkanDescriptorManager.h"
+#include "RenderAPI/B3DGpuCommandBuffer.h"
+#include "RenderAPI/B3DGpuDevice.h"
+#include "RenderAPI/B3DGpuDeviceCapabilities.h"
 
 namespace b3d
 {

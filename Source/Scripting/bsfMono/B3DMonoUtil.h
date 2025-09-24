@@ -2,7 +2,7 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsMonoPrerequisites.h"
+#include "B3DMonoPrerequisites.h"
 
 namespace b3d
 {
@@ -201,4 +201,4 @@ namespace b3d
 	/** @} */
 } // namespace b3d
 
-#include "BsMonoArray.h"
+#include "B3DMonoArray.h"

@@ -2,11 +2,11 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsScriptEnginePrerequisites.h"
-#include "BsScriptResourceWrapper.h"
-#include "BsScriptSpriteImage.generated.h"
-#include "../../../Foundation/bsfUtility/Math/BsArea2.h"
-#include "../../../Foundation/bsfCore/Image/BsSpriteTexture.h"
+#include "B3DScriptEnginePrerequisites.h"
+#include "B3DScriptResourceWrapper.h"
+#include "B3DScriptSpriteImage.generated.h"
+#include "../../../Foundation/Utility/Math/B3DArea2.h"
+#include "../../../Foundation/Core/Image/B3DSpriteTexture.h"
 
 namespace b3d { class SpriteTexture; }
 namespace b3d { struct __SpriteTextureCreateInformationInterop; }

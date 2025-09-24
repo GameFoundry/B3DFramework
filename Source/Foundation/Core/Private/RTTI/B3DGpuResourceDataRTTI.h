@@ -2,10 +2,10 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsCorePrerequisites.h"
-#include "Reflection/BsRTTIType.h"
-#include "Resources/BsGpuResourceData.h"
-#include "Error/BsException.h"
+#include "B3DCorePrerequisites.h"
+#include "Reflection/B3DRTTIType.h"
+#include "Resources/B3DGpuResourceData.h"
+#include "Error/B3DException.h"
 
 namespace b3d
 {

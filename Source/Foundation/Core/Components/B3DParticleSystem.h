@@ -2,12 +2,12 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsCorePrerequisites.h"
-#include "Scene/BsComponent.h"
-#include "CoreObject/BsCoreObject.h"
-#include "Particles/BsParticleDistribution.h"
-#include "Particles/BsParticleModule.h"
-#include "Scene/BsTransform.h"
+#include "B3DCorePrerequisites.h"
+#include "Scene/B3DComponent.h"
+#include "CoreObject/B3DCoreObject.h"
+#include "Particles/B3DParticleDistribution.h"
+#include "Particles/B3DParticleModule.h"
+#include "Scene/B3DTransform.h"
 
 namespace b3d
 {

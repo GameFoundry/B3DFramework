@@ -2,15 +2,15 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsVulkanPrerequisites.h"
-#include "RenderAPI/BsGpuCommandBuffer.h"
-#include "BsVulkanResource.h"
-#include "BsVulkanGpuPipelineState.h"
-#include "BsVulkanGpuDevice.h"
-#include "Math/BsArea2.h"
-#include "Math/BsArea2.h"
-#include "RenderAPI/BsGpuDeviceCapabilities.h"
-#include "Utility/BsDenseMap.h"
+#include "B3DVulkanPrerequisites.h"
+#include "RenderAPI/B3DGpuCommandBuffer.h"
+#include "B3DVulkanResource.h"
+#include "B3DVulkanGpuPipelineState.h"
+#include "B3DVulkanGpuDevice.h"
+#include "Math/B3DArea2.h"
+#include "Math/B3DArea2.h"
+#include "RenderAPI/B3DGpuDeviceCapabilities.h"
+#include "Utility/B3DDenseMap.h"
 
 namespace b3d
 {

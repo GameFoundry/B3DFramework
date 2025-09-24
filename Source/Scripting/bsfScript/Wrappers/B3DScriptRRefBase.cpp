@@ -1,10 +1,10 @@
 //********************************* B3D Framework - Copyright 2018-2019 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "BsScriptRRefBase.h"
-#include "BsMonoClass.h"
-#include "BsMonoUtil.h"
-#include "Resources/BsResources.h"
-#include "Serialization/BsScriptAssemblyManager.h"
+#include "B3DScriptRRefBase.h"
+#include "B3DMonoClass.h"
+#include "B3DMonoUtil.h"
+#include "Resources/B3DResources.h"
+#include "Serialization/B3DScriptAssemblyManager.h"
 
 using namespace b3d;
 ScriptRRefBase::ScriptRRefBase(const HResource& nativeObject)

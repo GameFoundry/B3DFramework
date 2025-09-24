@@ -2,8 +2,8 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsPrerequisites.h"
-#include "Material/BsShaderManager.h"
+#include "B3DPrerequisites.h"
+#include "Material/B3DShaderManager.h"
 
 namespace b3d
 {

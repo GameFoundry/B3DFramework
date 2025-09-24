@@ -2,13 +2,13 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsCorePrerequisites.h"
-#include "Reflection/BsRTTIType.h"
-#include "BsCoreApplication.h"
-#include "RenderAPI/BsRenderTarget.h"
-#include "RenderAPI/BsRenderTexture.h"
-#include "RenderAPI/BsRenderWindow.h"
-#include "CoreObject/BsRenderThread.h"
+#include "B3DCorePrerequisites.h"
+#include "Reflection/B3DRTTIType.h"
+#include "B3DCoreApplication.h"
+#include "RenderAPI/B3DRenderTarget.h"
+#include "RenderAPI/B3DRenderTexture.h"
+#include "RenderAPI/B3DRenderWindow.h"
+#include "CoreObject/B3DRenderThread.h"
 
 namespace b3d
 {

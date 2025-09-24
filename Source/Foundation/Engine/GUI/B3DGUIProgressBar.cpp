@@ -1,9 +1,9 @@
 //************************************ B3D Framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "GUI/BsGUIProgressBar.h"
-#include "GUI/BsGUIWidget.h"
-#include "GUI/BsGUITexture.h"
-#include "GUI/BsGUISizeConstraints.h"
+#include "GUI/B3DGUIProgressBar.h"
+#include "GUI/B3DGUIWidget.h"
+#include "GUI/B3DGUITexture.h"
+#include "GUI/B3DGUISizeConstraints.h"
 
 using namespace std::placeholders;
 

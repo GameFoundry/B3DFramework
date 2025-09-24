@@ -1,10 +1,10 @@
 //************************************ B3D Framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "2D/BsTextSprite.h"
-#include "Math/BsVector2.h"
-#include "2D/BsSpriteManager.h"
-#include "GUI/StyleSheet/BsGUIStyleSheet.h"
-#include "String/BsUnicode.h"
+#include "2D/B3DTextSprite.h"
+#include "Math/B3DVector2.h"
+#include "2D/B3DSpriteManager.h"
+#include "GUI/StyleSheet/B3DGUIStyleSheet.h"
+#include "String/B3DUnicode.h"
 
 using namespace b3d;
 

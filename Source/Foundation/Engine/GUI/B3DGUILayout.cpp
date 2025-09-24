@@ -1,8 +1,8 @@
 //************************************ B3D Framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "GUI/BsGUILayout.h"
-#include "GUI/BsGUIInteractable.h"
-#include "Reflection/BsRTTIType.h"
+#include "GUI/B3DGUILayout.h"
+#include "GUI/B3DGUIInteractable.h"
+#include "Reflection/B3DRTTIType.h"
 
 using namespace b3d;
 

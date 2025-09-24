@@ -2,12 +2,12 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsPrerequisites.h"
-#include "GUI/BsGUIClickable.h"
-#include "GUI/BsGUIToggleGroup.h"
-#include "2D/BsImageSprite.h"
-#include "GUI/BsGUIContent.h"
-#include "Utility/BsEvent.h"
+#include "B3DPrerequisites.h"
+#include "GUI/B3DGUIClickable.h"
+#include "GUI/B3DGUIToggleGroup.h"
+#include "2D/B3DImageSprite.h"
+#include "GUI/B3DGUIContent.h"
+#include "Utility/B3DEvent.h"
 
 namespace b3d
 {

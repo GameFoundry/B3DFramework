@@ -2,11 +2,11 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsScriptEnginePrerequisites.h"
-#include "BsScriptGUIElementWrapper.h"
-#include "BsScriptGUIInteractable.generated.h"
-#include "../../../Foundation/bsfEngine/GUI/BsGUIProgressBar.h"
-#include "../../../Foundation/bsfEngine/GUI/BsGUIOptions.h"
+#include "B3DScriptEnginePrerequisites.h"
+#include "B3DScriptGUIElementWrapper.h"
+#include "B3DScriptGUIInteractable.generated.h"
+#include "../../../Foundation/Engine/GUI/B3DGUIProgressBar.h"
+#include "../../../Foundation/Engine/GUI/B3DGUIOptions.h"
 
 namespace b3d { class GUIProgressBar; }
 namespace b3d { struct __GUIOptionInterop; }

@@ -2,10 +2,10 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsScriptEnginePrerequisites.h"
-#include "BsScriptResourceWrapper.h"
-#include "../../../Foundation/bsfCore/Material/BsShader.h"
-#include "../Extensions/BsShaderEx.h"
+#include "B3DScriptEnginePrerequisites.h"
+#include "B3DScriptResourceWrapper.h"
+#include "../../../Foundation/Core/Material/B3DShader.h"
+#include "../Extensions/B3DShaderEx.h"
 
 namespace b3d { class Shader; }
 namespace b3d { struct __ShaderVariationParameterInformationInterop; }

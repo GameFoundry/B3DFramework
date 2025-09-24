@@ -5,10 +5,10 @@
 #include <limits>
 #include <new> /* For 'placement new' */
 
-#include "Prerequisites/BsPlatformDefines.h"
-#include "Prerequisites/BsTypes.h"
-#include "Prerequisites/BsStdHeaders.h"
-#include "Threading/BsThreading.h"
+#include "Prerequisites/B3DPlatformDefines.h"
+#include "Prerequisites/B3DTypes.h"
+#include "Prerequisites/B3DStdHeaders.h"
+#include "Threading/B3DThreading.h"
 
 namespace b3d
 {

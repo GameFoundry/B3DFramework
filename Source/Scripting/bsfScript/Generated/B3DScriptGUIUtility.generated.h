@@ -2,10 +2,10 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsScriptEnginePrerequisites.h"
-#include "../../../Foundation/bsfEngine/GUI/BsGUIUtility.h"
-#include "BsScriptTypeDefinition.h"
-#include "../../../Foundation/bsfUtility/Math/BsSize2.h"
+#include "B3DScriptEnginePrerequisites.h"
+#include "../../../Foundation/Engine/GUI/B3DGUIUtility.h"
+#include "B3DScriptTypeDefinition.h"
+#include "../../../Foundation/Utility/Math/B3DSize2.h"
 
 namespace b3d
 {

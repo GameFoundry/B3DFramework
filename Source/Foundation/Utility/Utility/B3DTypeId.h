@@ -2,9 +2,9 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsUtilityPrerequisites.h"
-#include "String/BsHashedString.h"
-#include "Reflection/BsRTTIType.h"
+#include "B3DUtilityPrerequisites.h"
+#include "String/B3DHashedString.h"
+#include "Reflection/B3DRTTIType.h"
 
 namespace b3d
 {

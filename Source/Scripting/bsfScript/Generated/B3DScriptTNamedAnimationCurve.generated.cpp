@@ -1,19 +1,19 @@
 //********************************* B3D Framework - Copyright 2018-2022 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "BsScriptTNamedAnimationCurve.generated.h"
-#include "BsMonoMethod.h"
-#include "BsMonoClass.h"
-#include "BsMonoUtil.h"
-#include "../../../Foundation/bsfCore/Animation/BsAnimationCurve.h"
-#include "BsScriptTAnimationCurve.generated.h"
-#include "../../../Foundation/bsfCore/Animation/BsAnimationCurve.h"
-#include "BsScriptTAnimationCurve.generated.h"
-#include "../../../Foundation/bsfCore/Animation/BsAnimationCurve.h"
-#include "BsScriptTAnimationCurve.generated.h"
-#include "../../../Foundation/bsfCore/Animation/BsAnimationCurve.h"
-#include "BsScriptTAnimationCurve.generated.h"
-#include "../../../Foundation/bsfCore/Animation/BsAnimationCurve.h"
-#include "BsScriptTAnimationCurve.generated.h"
+#include "B3DScriptTNamedAnimationCurve.generated.h"
+#include "B3DMonoMethod.h"
+#include "B3DMonoClass.h"
+#include "B3DMonoUtil.h"
+#include "../../../Foundation/Core/Animation/B3DAnimationCurve.h"
+#include "B3DScriptTAnimationCurve.generated.h"
+#include "../../../Foundation/Core/Animation/B3DAnimationCurve.h"
+#include "B3DScriptTAnimationCurve.generated.h"
+#include "../../../Foundation/Core/Animation/B3DAnimationCurve.h"
+#include "B3DScriptTAnimationCurve.generated.h"
+#include "../../../Foundation/Core/Animation/B3DAnimationCurve.h"
+#include "B3DScriptTAnimationCurve.generated.h"
+#include "../../../Foundation/Core/Animation/B3DAnimationCurve.h"
+#include "B3DScriptTAnimationCurve.generated.h"
 
 namespace b3d
 {

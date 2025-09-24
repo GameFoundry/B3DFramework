@@ -2,10 +2,10 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsPhysXJoint.h"
-#include "BsPhysXPrerequisites.h"
+#include "B3DPhysXJoint.h"
+#include "B3DPhysXPrerequisites.h"
 #include "PxPhysics.h"
-#include "Components/BsHingeJoint.h"
+#include "Components/B3DHingeJoint.h"
 #include "extensions/PxRevoluteJoint.h"
 
 namespace b3d

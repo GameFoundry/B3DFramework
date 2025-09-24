@@ -2,19 +2,19 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsPrerequisites.h"
-#include "CoreObject/BsRenderThread.h"
-#include "Material/BsMaterial.h"
-#include "Renderer/BsRendererMaterialManager.h"
-#include "Material/BsShaderVariation.h"
-#include "Material/BsShader.h"
-#include "Material/BsPass.h"
-#include "Material/BsShaderCompiler.h"
-#include "RenderAPI/BsGpuPipelineState.h"
-#include "Resources/BsBuiltinResources.h"
+#include "B3DPrerequisites.h"
+#include "CoreObject/B3DRenderThread.h"
+#include "Material/B3DMaterial.h"
+#include "Renderer/B3DRendererMaterialManager.h"
+#include "Material/B3DShaderVariation.h"
+#include "Material/B3DShader.h"
+#include "Material/B3DPass.h"
+#include "Material/B3DShaderCompiler.h"
+#include "RenderAPI/B3DGpuPipelineState.h"
+#include "Resources/B3DBuiltinResources.h"
 
 #if B3D_PROFILING_ENABLED
-#	include "Profiling/BsProfilerGPU.h"
+#	include "Profiling/B3DProfilerGPU.h"
 #endif
 
 B3D_CORE_EXPORT B3D_LOG_CATEGORY_EXTERN(RendererMaterial, Log)

@@ -2,14 +2,14 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsScriptEnginePrerequisites.h"
-#include "BsScriptReflectableWrapper.h"
-#include "../../../Foundation/bsfCore/Components/BsParticleSystem.h"
-#include "../../../Foundation/bsfCore/Components/BsParticleSystem.h"
-#include "../../../Foundation/bsfCore/Components/BsParticleSystem.h"
-#include "../../../Foundation/bsfCore/Particles/BsParticleDistribution.h"
-#include "../../../Foundation/bsfCore/Particles/BsParticleDistribution.h"
-#include "../../../Foundation/bsfUtility/Math/BsVector3.h"
+#include "B3DScriptEnginePrerequisites.h"
+#include "B3DScriptReflectableWrapper.h"
+#include "../../../Foundation/Core/Components/B3DParticleSystem.h"
+#include "../../../Foundation/Core/Components/B3DParticleSystem.h"
+#include "../../../Foundation/Core/Components/B3DParticleSystem.h"
+#include "../../../Foundation/Core/Particles/B3DParticleDistribution.h"
+#include "../../../Foundation/Core/Particles/B3DParticleDistribution.h"
+#include "../../../Foundation/Utility/Math/B3DVector3.h"
 
 namespace b3d { struct ParticleGpuSimulationSettings; }
 namespace b3d

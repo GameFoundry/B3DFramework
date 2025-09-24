@@ -2,9 +2,9 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsScriptEnginePrerequisites.h"
-#include "BsScriptReflectableWrapper.h"
-#include "../../../Foundation/bsfCore/Material/BsShaderVariation.h"
+#include "B3DScriptEnginePrerequisites.h"
+#include "B3DScriptReflectableWrapper.h"
+#include "../../../Foundation/Core/Material/B3DShaderVariation.h"
 
 namespace b3d { class ShaderVariationParameters; }
 namespace b3d
@@ -23,17 +23,17 @@ namespace b3d
 
 	private:
 		static void InternalShaderVariationParameters(MonoObject* scriptObject);
-		static int32_t InternalGetInt(ScriptShaderVariationParameters* self, MonoString* name);
-		static uint32_t InternalGetUInt(ScriptShaderVariationParameters* self, MonoString* name);
+		static int32_t InternalGetI32(ScriptShaderVariationParameters* self, MonoString* name);
+		static uint32_t InternalGetUI32(ScriptShaderVariationParameters* self, MonoString* name);
 		static float InternalGetFloat(ScriptShaderVariationParameters* self, MonoString* name);
 		static bool InternalGetBool(ScriptShaderVariationParameters* self, MonoString* name);
-		static void InternalSetInt(ScriptShaderVariationParameters* self, MonoString* name, int32_t value);
-		static void InternalSetUInt(ScriptShaderVariationParameters* self, MonoString* name, uint32_t value);
+		static void InternalSetI32(ScriptShaderVariationParameters* self, MonoString* name, int32_t value);
+		static void InternalSetU32(ScriptShaderVariationParameters* self, MonoString* name, uint32_t value);
 		static void InternalSetFloat(ScriptShaderVariationParameters* self, MonoString* name, float value);
 		static void InternalSetBool(ScriptShaderVariationParameters* self, MonoString* name, bool value);
-		static void InternalRemoveParam(ScriptShaderVariationParameters* self, MonoString* paramName);
-		static bool InternalHasParam(ScriptShaderVariationParameters* self, MonoString* paramName);
-		static void InternalClearParams(ScriptShaderVariationParameters* self);
-		static MonoArray* InternalGetParamNames(ScriptShaderVariationParameters* self);
+		static void InternalRemoveParameter(ScriptShaderVariationParameters* self, MonoString* parameter);
+		static bool InternalHasParameter(ScriptShaderVariationParameters* self, MonoString* paramName);
+		static void InternalClearParameters(ScriptShaderVariationParameters* self);
+		static MonoArray* InternalGetParameters(ScriptShaderVariationParameters* self);
 	};
 }

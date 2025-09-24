@@ -2,9 +2,9 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsPhysXPrerequisites.h"
-#include "Components/BsJoint.h"
-#include "BsPhysXRigidbody.h"
+#include "B3DPhysXPrerequisites.h"
+#include "Components/B3DJoint.h"
+#include "B3DPhysXRigidbody.h"
 #include "extensions/PxJoint.h"
 #include "PxRigidDynamic.h"
 

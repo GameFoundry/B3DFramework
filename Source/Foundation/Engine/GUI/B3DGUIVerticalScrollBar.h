@@ -2,9 +2,9 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsGUIConstructionMethods.h"
-#include "BsPrerequisites.h"
-#include "GUI/BsGUIScrollBar.h"
+#include "B3DGUIConstructionMethods.h"
+#include "B3DPrerequisites.h"
+#include "GUI/B3DGUIScrollBar.h"
 
 namespace b3d
 {

@@ -1,12 +1,12 @@
 //********************************* B3D Framework - Copyright 2018-2019 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "Serialization/BsManagedDelta.h"
-#include "Serialization/BsManagedSerializableDelta.h"
-#include "Serialization/BsBinarySerializer.h"
-#include "Serialization/BsManagedSerializableObject.h"
-#include "Reflection/BsRTTIType.h"
-#include "Utility/BsUtility.h"
-#include "Scene/BsSceneObject.h"
+#include "Serialization/B3DManagedDelta.h"
+#include "Serialization/B3DManagedSerializableDelta.h"
+#include "Serialization/B3DBinarySerializer.h"
+#include "Serialization/B3DManagedSerializableObject.h"
+#include "Reflection/B3DRTTIType.h"
+#include "Utility/B3DUtility.h"
+#include "Scene/B3DSceneObject.h"
 
 using namespace b3d;
 SPtr<SerializedObject> ManagedDeltaHandler::GenerateDeltaRecursive(IReflectable* original, IReflectable* modified, ObjectMap& objectMap, RTTIOperationContext& context, bool reflectableOnly)

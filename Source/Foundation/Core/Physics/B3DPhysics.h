@@ -4,14 +4,14 @@
 
 #include <cfloat>
 
-#include "BsColliderShape.h"
-#include "BsCorePrerequisites.h"
-#include "Physics/BsPhysicsCommon.h"
-#include "Utility/BsModule.h"
-#include "Math/BsVector3.h"
-#include "Math/BsVector2.h"
-#include "Math/BsQuaternion.h"
-#include "Script/BsIScriptExportable.h"
+#include "B3DColliderShape.h"
+#include "B3DCorePrerequisites.h"
+#include "Physics/B3DPhysicsCommon.h"
+#include "Utility/B3DModule.h"
+#include "Math/B3DVector3.h"
+#include "Math/B3DVector2.h"
+#include "Math/B3DQuaternion.h"
+#include "Script/B3DIScriptExportable.h"
 
 namespace b3d
 {

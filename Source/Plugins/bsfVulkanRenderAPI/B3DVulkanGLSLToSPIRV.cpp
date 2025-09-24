@@ -1,11 +1,11 @@
 //************************************ B3D Framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "BsVulkanGLSLToSPIRV.h"
-#include "BsVulkanGpuProgram.h"
-#include "BsVulkanUtility.h"
-#include "RenderAPI/BsGpuParameters.h"
-#include "RenderAPI/BsGpuProgramParameterDescription.h"
-#include "Math/BsMath.h"
+#include "B3DVulkanGLSLToSPIRV.h"
+#include "B3DVulkanGpuProgram.h"
+#include "B3DVulkanUtility.h"
+#include "RenderAPI/B3DGpuParameters.h"
+#include "RenderAPI/B3DGpuProgramParameterDescription.h"
+#include "Math/B3DMath.h"
 
 #define AMD_EXTENSIONS
 #define NV_EXTENSIONS
@@ -14,7 +14,7 @@
 #include "glslang/SPIRV/GlslangToSpv.h"
 #include "glslang/Include/revision.h"
 #include "spirv_cross/spirv_cross.hpp"
-#include "Utility/BsScopeGuard.h"
+#include "Utility/B3DScopeGuard.h"
 
 using namespace b3d;
 using namespace b3d::render;

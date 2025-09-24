@@ -2,8 +2,8 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsScriptEnginePrerequisites.h"
-#include "Particles/BsParticleDistribution.h"
+#include "B3DScriptEnginePrerequisites.h"
+#include "Particles/B3DParticleDistribution.h"
 
 namespace b3d
 {

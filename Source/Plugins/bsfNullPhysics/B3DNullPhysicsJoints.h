@@ -2,15 +2,15 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsNullPhysicsPrerequisites.h"
-#include "Physics/BsJoint.h"
-#include "Physics/BsFJoint.h"
-#include "Physics/BsD6Joint.h"
-#include "Physics/BsDistanceJoint.h"
-#include "Physics/BsFixedJoint.h"
-#include "Physics/BsHingeJoint.h"
-#include "Physics/BsSliderJoint.h"
-#include "Physics/BsSphericalJoint.h"
+#include "B3DNullPhysicsPrerequisites.h"
+#include "Physics/B3DJoint.h"
+#include "Physics/B3DFJoint.h"
+#include "Physics/B3DD6Joint.h"
+#include "Physics/B3DDistanceJoint.h"
+#include "Physics/B3DFixedJoint.h"
+#include "Physics/B3DHingeJoint.h"
+#include "Physics/B3DSliderJoint.h"
+#include "Physics/B3DSphericalJoint.h"
 
 namespace b3d
 {

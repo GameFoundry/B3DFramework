@@ -2,17 +2,17 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsCorePrerequisites.h"
-#include "BsGpuPipelineParameterLayout.h"
-#include "Math/BsVector2.h"
-#include "Math/BsVector3.h"
-#include "Math/BsVector4.h"
-#include "Math/BsMatrix3.h"
-#include "Math/BsMatrix4.h"
-#include "Math/BsMatrixNxM.h"
-#include "Math/BsVector3I.h"
-#include "Math/BsVector4I.h"
-#include "Image/BsColor.h"
+#include "B3DCorePrerequisites.h"
+#include "B3DGpuPipelineParameterLayout.h"
+#include "Math/B3DVector2.h"
+#include "Math/B3DVector3.h"
+#include "Math/B3DVector4.h"
+#include "Math/B3DMatrix3.h"
+#include "Math/B3DMatrix4.h"
+#include "Math/B3DMatrixNxM.h"
+#include "Math/B3DVector3I.h"
+#include "Math/B3DVector4I.h"
+#include "Image/B3DColor.h"
 
 namespace b3d
 {

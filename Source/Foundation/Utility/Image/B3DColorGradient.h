@@ -2,11 +2,11 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsUtilityPrerequisites.h"
-#include "Image/BsColor.h"
-#include "Allocators/BsPoolAlloc.h"
-#include "Utility/BsBitwise.h"
-#include "Script/BsIScriptExportable.h"
+#include "B3DUtilityPrerequisites.h"
+#include "Image/B3DColor.h"
+#include "Allocators/B3DPoolAlloc.h"
+#include "Utility/B3DBitwise.h"
+#include "Script/B3DIScriptExportable.h"
 
 namespace b3d
 {

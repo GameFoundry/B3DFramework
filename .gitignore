@@ -30,8 +30,8 @@ Documentation/Timestamp.asset
 /Build
 *.aps
 *.opendb
-BsEngineConfig.h
-BsFrameworkConfig.h
+B3DEngineConfig.h
+B3DFrameworkConfig.h
 Source/Scripting/bsfSharp/bsfSharpCore.csproj
 Source/Scripting/bsfSharp/MBansheeEngine.csproj
 Source/Scripting/bsfSharp/EngineVersion.cs

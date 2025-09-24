@@ -2,11 +2,11 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsUtilityPrerequisites.h"
-#include "BsSignal.h"
-#include "BsSignalEvent.h"
-#include "BsThreadPool.h"
-#include "Debug/BsDebug.h"
+#include "B3DUtilityPrerequisites.h"
+#include "B3DSignal.h"
+#include "B3DSignalEvent.h"
+#include "B3DThreadPool.h"
+#include "Debug/B3DDebug.h"
 
 namespace b3d
 {

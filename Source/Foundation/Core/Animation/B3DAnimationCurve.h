@@ -2,13 +2,13 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsCorePrerequisites.h"
-#include "Animation/BsCurveCache.h"
-#include "Math/BsVector3.h"
-#include "Math/BsVector2.h"
-#include "Math/BsQuaternion.h"
-#include "Allocators/BsPoolAlloc.h"
-#include "Script/BsIScriptExportable.h"
+#include "B3DCorePrerequisites.h"
+#include "Animation/B3DCurveCache.h"
+#include "Math/B3DVector3.h"
+#include "Math/B3DVector2.h"
+#include "Math/B3DQuaternion.h"
+#include "Allocators/B3DPoolAlloc.h"
+#include "Script/B3DIScriptExportable.h"
 
 namespace b3d
 {

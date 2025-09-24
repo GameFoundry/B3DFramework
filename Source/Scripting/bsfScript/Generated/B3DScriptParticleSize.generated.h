@@ -2,11 +2,11 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsScriptEnginePrerequisites.h"
-#include "BsScriptReflectableWrapper.h"
-#include "BsScriptParticleEvolver.generated.h"
-#include "../../../Foundation/bsfCore/Particles/BsParticleEvolver.h"
-#include "../../../Foundation/bsfCore/Particles/BsParticleEvolver.h"
+#include "B3DScriptEnginePrerequisites.h"
+#include "B3DScriptReflectableWrapper.h"
+#include "B3DScriptParticleEvolver.generated.h"
+#include "../../../Foundation/Core/Particles/B3DParticleEvolver.h"
+#include "../../../Foundation/Core/Particles/B3DParticleEvolver.h"
 
 namespace b3d { class ParticleSize; }
 namespace b3d { struct __ParticleSizeSettingsInterop; }

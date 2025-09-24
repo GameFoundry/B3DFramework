@@ -2,9 +2,9 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsScriptEnginePrerequisites.h"
-#include "BsScriptResourceWrapper.h"
-#include "../../../Foundation/bsfCore/Localization/BsStringTable.h"
+#include "B3DScriptEnginePrerequisites.h"
+#include "B3DScriptResourceWrapper.h"
+#include "../../../Foundation/Core/Localization/B3DStringTable.h"
 
 namespace b3d { class StringTable; }
 namespace b3d

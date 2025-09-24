@@ -2,11 +2,11 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsPrerequisites.h"
-#include "Renderer/BsIBLUtility.h"
-#include "Renderer/BsRendererMaterial.h"
-#include "Renderer/BsGpuDataParameterBlock.h"
-#include "Renderer/BsGpuResourcePool.h"
+#include "B3DPrerequisites.h"
+#include "Renderer/B3DIBLUtility.h"
+#include "Renderer/B3DRendererMaterial.h"
+#include "Renderer/B3DGpuDataParameterBlock.h"
+#include "Renderer/B3DGpuResourcePool.h"
 
 namespace b3d
 {

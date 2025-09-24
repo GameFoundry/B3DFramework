@@ -2,10 +2,10 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsScriptEnginePrerequisites.h"
-#include "BsScriptReflectableWrapper.h"
-#include "../../../Foundation/bsfCore/Renderer/BsRenderSettings.h"
-#include "../../../Foundation/bsfUtility/Image/BsColor.h"
+#include "B3DScriptEnginePrerequisites.h"
+#include "B3DScriptReflectableWrapper.h"
+#include "../../../Foundation/Core/Renderer/B3DRenderSettings.h"
+#include "../../../Foundation/Utility/Image/B3DColor.h"
 
 namespace b3d { struct BloomSettings; }
 namespace b3d

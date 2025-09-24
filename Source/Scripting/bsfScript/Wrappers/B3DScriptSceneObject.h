@@ -2,9 +2,9 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsScriptEnginePrerequisites.h"
-#include "BsScriptGameObjectWrapper.h"
-#include "Scene/BsSceneObject.h"
+#include "B3DScriptEnginePrerequisites.h"
+#include "B3DScriptGameObjectWrapper.h"
+#include "Scene/B3DSceneObject.h"
 
 namespace b3d
 {

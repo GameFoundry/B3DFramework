@@ -1,13 +1,13 @@
 //********************************* B3D Framework - Copyright 2018-2022 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "BsScriptGUIPanel.generated.h"
-#include "BsMonoMethod.h"
-#include "BsMonoClass.h"
-#include "BsMonoUtil.h"
-#include "../../../Foundation/bsfEngine/GUI/BsGUIPanel.h"
-#include "BsScriptGUIPanel.generated.h"
-#include "BsScriptGUIPanelContent.generated.h"
-#include "BsScriptGUIOption.generated.h"
+#include "B3DScriptGUIPanel.generated.h"
+#include "B3DMonoMethod.h"
+#include "B3DMonoClass.h"
+#include "B3DMonoUtil.h"
+#include "../../../Foundation/Engine/GUI/B3DGUIPanel.h"
+#include "B3DScriptGUIPanel.generated.h"
+#include "B3DScriptGUIPanelContent.generated.h"
+#include "B3DScriptGUIOption.generated.h"
 
 namespace b3d
 {

@@ -2,14 +2,14 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsCorePrerequisites.h"
-#include "BsShaderCompiler.h"
-#include "Reflection/BsRTTIType.h"
-#include "Reflection/BsRTTIPlain.h"
-#include "RTTI/BsStringRTTI.h"
-#include "RTTI/BsTArrayRTTI.h"
-#include "RTTI/BsStdRTTI.h"
-#include "Private/RTTI/BsShaderVariationRTTI.h"
+#include "B3DCorePrerequisites.h"
+#include "B3DShaderCompiler.h"
+#include "Reflection/B3DRTTIType.h"
+#include "Reflection/B3DRTTIPlain.h"
+#include "RTTI/B3DStringRTTI.h"
+#include "RTTI/B3DTArrayRTTI.h"
+#include "RTTI/B3DStdRTTI.h"
+#include "Private/RTTI/B3DShaderVariationRTTI.h"
 
 namespace b3d
 {

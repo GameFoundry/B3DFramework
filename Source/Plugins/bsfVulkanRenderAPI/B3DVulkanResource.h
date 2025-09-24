@@ -2,8 +2,8 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsVulkanPrerequisites.h"
-#include "Allocators/BsStaticAlloc.h"
+#include "B3DVulkanPrerequisites.h"
+#include "Allocators/B3DStaticAlloc.h"
 
 namespace b3d
 {

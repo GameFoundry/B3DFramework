@@ -2,12 +2,12 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsScriptEnginePrerequisites.h"
-#include "BsScriptResourceWrapper.h"
-#include "../../../Foundation/bsfCore/Utility/BsCommonTypes.h"
-#include "../../../Foundation/bsfUtility/Image/BsColor.h"
-#include "../../../Foundation/bsfCore/Image/BsPixelData.h"
-#include "../../../Foundation/bsfCore/Image/BsTexture.h"
+#include "B3DScriptEnginePrerequisites.h"
+#include "B3DScriptResourceWrapper.h"
+#include "../../../Foundation/Core/Utility/B3DCommonTypes.h"
+#include "../../../Foundation/Utility/Image/B3DColor.h"
+#include "../../../Foundation/Core/Image/B3DPixelData.h"
+#include "../../../Foundation/Core/Image/B3DTexture.h"
 
 namespace b3d { class Texture; }
 namespace b3d { class TextureEx; }

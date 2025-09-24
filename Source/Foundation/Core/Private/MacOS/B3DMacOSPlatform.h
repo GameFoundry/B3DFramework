@@ -2,8 +2,8 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "Platform/BsPlatform.h"
-#include "RenderAPI/BsRenderWindow.h"
+#include "Platform/B3DPlatform.h"
+#include "RenderAPI/B3DRenderWindow.h"
 
 // Don't include macOS frameworks when generating script bindings, as it can't find them
 #ifndef B3D_CODEGEN

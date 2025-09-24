@@ -2,15 +2,15 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsCorePrerequisites.h"
-#include "Reflection/BsRTTIType.h"
-#include "Reflection/BsRTTIPlain.h"
-#include "BsCoreApplication.h"
-#include "Mesh/BsMesh.h"
-#include "Animation/BsSkeleton.h"
-#include "Animation/BsMorphShapes.h"
-#include "CoreObject/BsRenderThread.h"
-#include "RTTI/BsFlagsRTTI.h"
+#include "B3DCorePrerequisites.h"
+#include "Reflection/B3DRTTIType.h"
+#include "Reflection/B3DRTTIPlain.h"
+#include "B3DCoreApplication.h"
+#include "Mesh/B3DMesh.h"
+#include "Animation/B3DSkeleton.h"
+#include "Animation/B3DMorphShapes.h"
+#include "CoreObject/B3DRenderThread.h"
+#include "RTTI/B3DFlagsRTTI.h"
 
 namespace b3d
 {

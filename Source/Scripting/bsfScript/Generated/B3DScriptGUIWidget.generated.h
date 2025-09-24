@@ -2,11 +2,11 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsScriptEnginePrerequisites.h"
-#include "Wrappers/BsScriptComponent.h"
-#include "../../../Foundation/bsfEngine/GUI/BsGUIPanel.h"
-#include "../../../Foundation/bsfEngine/GUI/BsGUIUnits.h"
-#include "../../../Foundation/bsfEngine/GUI/BsGUIUnits.h"
+#include "B3DScriptEnginePrerequisites.h"
+#include "Wrappers/B3DScriptComponent.h"
+#include "../../../Foundation/Engine/GUI/B3DGUIPanel.h"
+#include "../../../Foundation/Engine/GUI/B3DGUIUnits.h"
+#include "../../../Foundation/Engine/GUI/B3DGUIUnits.h"
 
 namespace b3d { class GUIWidget; }
 namespace b3d { struct __TVector2_TUnitValue_int32_t__PhysicalPixel__Interop; }

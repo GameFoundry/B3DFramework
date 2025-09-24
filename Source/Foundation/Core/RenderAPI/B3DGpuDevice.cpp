@@ -1,11 +1,11 @@
 //************************************ B3D Framework - Copyright 2023 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "BsGpuDevice.h"
-#include "BsGpuCommandBuffer.h"
-#include "BsEventQuery.h"
-#include "BsGpuFrameCapture.h"
-#include "BsTimerQuery.h"
-#include "BsOcclusionQuery.h"
+#include "B3DGpuDevice.h"
+#include "B3DGpuCommandBuffer.h"
+#include "B3DEventQuery.h"
+#include "B3DGpuFrameCapture.h"
+#include "B3DTimerQuery.h"
+#include "B3DOcclusionQuery.h"
 
 using namespace b3d;
 

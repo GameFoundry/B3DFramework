@@ -137,10 +137,10 @@
 #define B3D_CONCAT(a, b) B3D_CONCAT_(a, b)
 
 // Config from the build system
-#include "BsFrameworkConfig.h"
+#include "B3DFrameworkConfig.h"
 
 // Platform-specific stuff
-#include "Prerequisites/BsPlatformDefines.h"
+#include "Prerequisites/B3DPlatformDefines.h"
 
 #if B3D_COMPILER == B3D_COMPILER_ID_MSVC
 
@@ -209,28 +209,28 @@
 #endif
 
 // Short-hand names for various built-in types
-#include "Prerequisites/BsTypes.h"
+#include "Prerequisites/B3DTypes.h"
 
-#include "Allocators/BsMemoryAllocator.h"
+#include "Allocators/B3DMemoryAllocator.h"
 
 // Common threading functionality
-#include "Threading/BsThreading.h"
+#include "Threading/B3DThreading.h"
 
 // Commonly used standard headers
-#include "Prerequisites/BsStdHeaders.h"
+#include "Prerequisites/B3DStdHeaders.h"
 
 // Forward declarations
-#include "Prerequisites/BsFwdDeclUtil.h"
+#include "Prerequisites/B3DFwdDeclUtil.h"
 
-#include "String/BsString.h"
-#include "Utility/BsMessageHandlerFwd.h"
-#include "Utility/BsFlags.h"
-#include "Utility/BsUtil.h"
-#include "Utility/BsShared.h"
-#include "Utility/BsEvent.h"
-#include "Utility/BsPlatformUtility.h"
-#include "Utility/BsNonCopyable.h"
-#include "Utility/BsTArray.h"
-#include "Utility/BsTArrayView.h"
-#include "FileSystem/BsPath.h"
-#include "Error/BsCrashHandler.h"
+#include "String/B3DString.h"
+#include "Utility/B3DMessageHandlerFwd.h"
+#include "Utility/B3DFlags.h"
+#include "Utility/B3DUtil.h"
+#include "Utility/B3DShared.h"
+#include "Utility/B3DEvent.h"
+#include "Utility/B3DPlatformUtility.h"
+#include "Utility/B3DNonCopyable.h"
+#include "Utility/B3DTArray.h"
+#include "Utility/B3DTArrayView.h"
+#include "FileSystem/B3DPath.h"
+#include "Error/B3DCrashHandler.h"

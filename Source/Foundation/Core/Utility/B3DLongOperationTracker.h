@@ -2,7 +2,7 @@
 //**************** Copyright (c) 2024 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 #pragma once
 
-#include "BsCorePrerequisites.h"
+#include "B3DCorePrerequisites.h"
 
 namespace b3d
 {

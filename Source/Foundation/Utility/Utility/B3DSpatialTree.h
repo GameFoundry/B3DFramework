@@ -2,11 +2,11 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsUtilityPrerequisites.h"
-#include "Math/BsMath.h"
-#include "Math/BsVector4I.h"
-#include "Math/BsSIMD.h"
-#include "Allocators/BsPoolAlloc.h"
+#include "B3DUtilityPrerequisites.h"
+#include "Math/B3DMath.h"
+#include "Math/B3DVector4I.h"
+#include "Math/B3DSIMD.h"
+#include "Allocators/B3DPoolAlloc.h"
 
 namespace b3d
 {

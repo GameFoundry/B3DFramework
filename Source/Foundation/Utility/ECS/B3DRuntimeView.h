@@ -2,11 +2,11 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsUtilityPrerequisites.h"
-#include "Debug/BsDebug.h"
-#include "ECS/BsEntity.h"
-#include "ECS/BsUtility.h"
-#include "ECS/BsSparseSet.h"
+#include "B3DUtilityPrerequisites.h"
+#include "Debug/B3DDebug.h"
+#include "ECS/B3DEntity.h"
+#include "ECS/B3DUtility.h"
+#include "ECS/B3DSparseSet.h"
 
 #include <iterator>
 

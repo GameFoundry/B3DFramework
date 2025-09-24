@@ -1,19 +1,19 @@
 //********************************* B3D Framework - Copyright 2018-2022 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "BsScriptGUICanvas.generated.h"
-#include "BsMonoMethod.h"
-#include "BsMonoClass.h"
-#include "BsMonoUtil.h"
-#include "../../../Foundation/bsfEngine/GUI/BsGUICanvas.h"
-#include "BsScriptResourceManager.h"
-#include "Wrappers/BsScriptRRefBase.h"
-#include "BsScriptTVector2.generated.h"
-#include "../../../Foundation/bsfCore/Text/BsFont.h"
-#include "BsScriptColor.generated.h"
-#include "BsScriptGUIOption.generated.h"
-#include "../../../Foundation/bsfCore/Image/BsSpriteImage.h"
-#include "BsScriptGUICanvas.generated.h"
-#include "BsScriptTArea2.generated.h"
+#include "B3DScriptGUICanvas.generated.h"
+#include "B3DMonoMethod.h"
+#include "B3DMonoClass.h"
+#include "B3DMonoUtil.h"
+#include "../../../Foundation/Engine/GUI/B3DGUICanvas.h"
+#include "B3DScriptResourceManager.h"
+#include "Wrappers/B3DScriptRRefBase.h"
+#include "B3DScriptTVector2.generated.h"
+#include "../../../Foundation/Core/Text/B3DFont.h"
+#include "B3DScriptColor.generated.h"
+#include "B3DScriptGUIOption.generated.h"
+#include "../../../Foundation/Core/Image/B3DSpriteImage.h"
+#include "B3DScriptGUICanvas.generated.h"
+#include "B3DScriptTArea2.generated.h"
 
 namespace b3d
 {

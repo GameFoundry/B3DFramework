@@ -2,16 +2,16 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsScriptEnginePrerequisites.h"
-#include "Wrappers/BsScriptComponent.h"
-#include "../../../Foundation/bsfCore/Utility/BsCommonTypes.h"
-#include "../../../Foundation/bsfCore/Components/BsCamera.h"
-#include "Math/BsMatrix4.h"
-#include "Math/BsRadian.h"
-#include "../../../Foundation/bsfUtility/Math/BsVector2.h"
-#include "../../../Foundation/bsfUtility/Math/BsVector3.h"
-#include "../../../Foundation/bsfUtility/Math/BsVector2.h"
-#include "../../../Foundation/bsfUtility/Math/BsRay.h"
+#include "B3DScriptEnginePrerequisites.h"
+#include "Wrappers/B3DScriptComponent.h"
+#include "../../../Foundation/Core/Utility/B3DCommonTypes.h"
+#include "../../../Foundation/Core/Components/B3DCamera.h"
+#include "Math/B3DMatrix4.h"
+#include "Math/B3DRadian.h"
+#include "../../../Foundation/Utility/Math/B3DVector2.h"
+#include "../../../Foundation/Utility/Math/B3DVector3.h"
+#include "../../../Foundation/Utility/Math/B3DVector2.h"
+#include "../../../Foundation/Utility/Math/B3DRay.h"
 
 namespace b3d { class Camera; }
 namespace b3d { struct __TRay_float_Interop; }

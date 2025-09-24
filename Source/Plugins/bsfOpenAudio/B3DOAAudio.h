@@ -2,10 +2,10 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsOAPrerequisites.h"
-#include "Audio/BsAudio.h"
+#include "B3DOAPrerequisites.h"
+#include "Audio/B3DAudio.h"
 #include "AL/alc.h"
-#include "Threading/BsSignalEvent.h"
+#include "Threading/B3DSignalEvent.h"
 
 namespace b3d
 {

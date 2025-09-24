@@ -2,15 +2,15 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsScriptEnginePrerequisites.h"
-#include "Wrappers/BsScriptComponent.h"
-#include "../../../Foundation/bsfCore/Components/BsCharacterController.h"
-#include "../../../Foundation/bsfCore/Components/BsCharacterController.h"
-#include "../../../Foundation/bsfUtility/Math/BsVector3.h"
-#include "../../../Foundation/bsfCore/Components/BsCharacterController.h"
-#include "../../../Foundation/bsfCore/Components/BsCharacterController.h"
-#include "Math/BsRadian.h"
-#include "../../../Foundation/bsfCore/Components/BsCharacterController.h"
+#include "B3DScriptEnginePrerequisites.h"
+#include "Wrappers/B3DScriptComponent.h"
+#include "../../../Foundation/Core/Components/B3DCharacterController.h"
+#include "../../../Foundation/Core/Components/B3DCharacterController.h"
+#include "../../../Foundation/Utility/Math/B3DVector3.h"
+#include "../../../Foundation/Core/Components/B3DCharacterController.h"
+#include "../../../Foundation/Core/Components/B3DCharacterController.h"
+#include "Math/B3DRadian.h"
+#include "../../../Foundation/Core/Components/B3DCharacterController.h"
 
 namespace b3d { class CharacterController; }
 namespace b3d { struct __ControllerColliderCollisionInterop; }

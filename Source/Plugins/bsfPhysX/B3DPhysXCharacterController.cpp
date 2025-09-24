@@ -1,9 +1,9 @@
 //************************************ B3D Framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "BsPhysXCharacterController.h"
-#include "Utility/BsTime.h"
-#include "BsPhysX.h"
-#include "Components/BsCollider.h"
+#include "B3DPhysXCharacterController.h"
+#include "Utility/B3DTime.h"
+#include "B3DPhysX.h"
+#include "Components/B3DCollider.h"
 #include "characterkinematic/PxControllerManager.h"
 
 using namespace physx;

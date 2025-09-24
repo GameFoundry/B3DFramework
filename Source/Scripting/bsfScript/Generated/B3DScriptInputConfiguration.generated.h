@@ -2,12 +2,12 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsScriptEnginePrerequisites.h"
-#include "../../../Foundation/bsfEngine/Input/BsInputConfiguration.h"
-#include "BsScriptNonReflectableWrapper.h"
-#include "../../../Foundation/bsfCore/Input/BsInputFwd.h"
-#include "../../../Foundation/bsfCore/Input/BsInputFwd.h"
-#include "../../../Foundation/bsfEngine/Input/BsInputConfiguration.h"
+#include "B3DScriptEnginePrerequisites.h"
+#include "../../../Foundation/Engine/Input/B3DInputConfiguration.h"
+#include "B3DScriptNonReflectableWrapper.h"
+#include "../../../Foundation/Core/Input/B3DInputFwd.h"
+#include "../../../Foundation/Core/Input/B3DInputFwd.h"
+#include "../../../Foundation/Engine/Input/B3DInputConfiguration.h"
 
 namespace b3d
 {

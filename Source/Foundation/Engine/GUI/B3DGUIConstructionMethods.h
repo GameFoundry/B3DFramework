@@ -2,9 +2,9 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsPrerequisites.h"
-#include "BsGUIOptions.h"
-#include "BsGUIRenderable.h"
+#include "B3DPrerequisites.h"
+#include "B3DGUIOptions.h"
+#include "B3DGUIRenderable.h"
 
 namespace b3d
 {

@@ -2,12 +2,12 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsCorePrerequisites.h"
-#include "Reflection/BsRTTIType.h"
-#include "Reflection/BsRTTIPlain.h"
-#include "Mesh/BsMeshBase.h"
-#include "Error/BsException.h"
-#include "Private/RTTI/BsSubMeshRTTI.h"
+#include "B3DCorePrerequisites.h"
+#include "Reflection/B3DRTTIType.h"
+#include "Reflection/B3DRTTIPlain.h"
+#include "Mesh/B3DMeshBase.h"
+#include "Error/B3DException.h"
+#include "Private/RTTI/B3DSubMeshRTTI.h"
 
 namespace b3d
 {

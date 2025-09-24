@@ -2,11 +2,11 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsScriptEnginePrerequisites.h"
-#include "BsScriptObjectWrapper.h"
-#include "../../../Foundation/bsfEngine/GUI/BsGUIOptions.h"
-#include "../../../Foundation/bsfEngine/GUI/BsGUIUnits.h"
-#include "../../../Foundation/bsfEngine/GUI/BsGUIOptions.h"
+#include "B3DScriptEnginePrerequisites.h"
+#include "B3DScriptObjectWrapper.h"
+#include "../../../Foundation/Engine/GUI/B3DGUIOptions.h"
+#include "../../../Foundation/Engine/GUI/B3DGUIUnits.h"
+#include "../../../Foundation/Engine/GUI/B3DGUIOptions.h"
 
 namespace b3d
 {

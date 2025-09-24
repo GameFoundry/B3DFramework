@@ -2,9 +2,9 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsCorePrerequisites.h"
-#include "Scene/BsGameObject.h"
-#include "Math/BsBounds.h"
+#include "B3DCorePrerequisites.h"
+#include "Scene/B3DGameObject.h"
+#include "Math/B3DBounds.h"
 
 namespace b3d
 {

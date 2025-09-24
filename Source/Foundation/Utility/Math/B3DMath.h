@@ -2,10 +2,10 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsUtilityPrerequisites.h"
-#include "Math/BsDegree.h"
-#include "Math/BsRadian.h"
-#include "Math/BsUnitValue.h"
+#include "B3DUtilityPrerequisites.h"
+#include "Math/B3DDegree.h"
+#include "Math/B3DRadian.h"
+#include "Math/B3DUnitValue.h"
 
 namespace b3d
 {

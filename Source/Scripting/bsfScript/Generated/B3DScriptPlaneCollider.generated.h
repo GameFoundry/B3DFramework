@@ -2,10 +2,10 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsScriptEnginePrerequisites.h"
-#include "Wrappers/BsScriptComponent.h"
-#include "BsScriptCollider.generated.h"
-#include "../../../Foundation/bsfUtility/Math/BsVector3.h"
+#include "B3DScriptEnginePrerequisites.h"
+#include "Wrappers/B3DScriptComponent.h"
+#include "B3DScriptCollider.generated.h"
+#include "../../../Foundation/Utility/Math/B3DVector3.h"
 
 namespace b3d { class PlaneCollider; }
 namespace b3d

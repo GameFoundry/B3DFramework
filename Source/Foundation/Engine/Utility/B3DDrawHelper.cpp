@@ -1,17 +1,17 @@
 //************************************ B3D Framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "Utility/BsDrawHelper.h"
-#include "Mesh/BsMesh.h"
-#include "Math/BsAABox.h"
-#include "Math/BsSphere.h"
-#include "RenderAPI/BsVertexDescription.h"
-#include "Utility/BsShapeMeshes3D.h"
-#include "Text/BsTextGeometry.h"
-#include "Math/BsVector2.h"
-#include "Math/BsQuaternion.h"
-#include "String/BsUnicode.h"
-#include "Components/BsCamera.h"
-#include "Scene/BsSceneObject.h"
+#include "Utility/B3DDrawHelper.h"
+#include "Mesh/B3DMesh.h"
+#include "Math/B3DAABox.h"
+#include "Math/B3DSphere.h"
+#include "RenderAPI/B3DVertexDescription.h"
+#include "Utility/B3DShapeMeshes3D.h"
+#include "Text/B3DTextGeometry.h"
+#include "Math/B3DVector2.h"
+#include "Math/B3DQuaternion.h"
+#include "String/B3DUnicode.h"
+#include "Components/B3DCamera.h"
+#include "Scene/B3DSceneObject.h"
 
 using namespace b3d;
 

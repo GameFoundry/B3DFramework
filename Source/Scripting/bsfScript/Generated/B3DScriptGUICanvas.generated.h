@@ -2,15 +2,15 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsScriptEnginePrerequisites.h"
-#include "BsScriptGUIElementWrapper.h"
-#include "BsScriptGUIInteractable.generated.h"
-#include "../../../Foundation/bsfEngine/GUI/BsGUIUnits.h"
-#include "../../../Foundation/bsfUtility/Image/BsColor.h"
-#include "../../../Foundation/bsfEngine/GUI/BsGUIOptions.h"
-#include "../../../Foundation/bsfEngine/GUI/BsGUICanvas.h"
-#include "../../../Foundation/bsfEngine/GUI/BsGUIUnits.h"
-#include "../../../Foundation/bsfEngine/Utility/BsEnums.h"
+#include "B3DScriptEnginePrerequisites.h"
+#include "B3DScriptGUIElementWrapper.h"
+#include "B3DScriptGUIInteractable.generated.h"
+#include "../../../Foundation/Engine/GUI/B3DGUIUnits.h"
+#include "../../../Foundation/Utility/Image/B3DColor.h"
+#include "../../../Foundation/Engine/GUI/B3DGUIOptions.h"
+#include "../../../Foundation/Engine/GUI/B3DGUICanvas.h"
+#include "../../../Foundation/Engine/GUI/B3DGUIUnits.h"
+#include "../../../Foundation/Engine/Utility/B3DEnums.h"
 
 namespace b3d { class GUICanvas; }
 namespace b3d { struct __TVector2_TUnitValue_int32_t__LogicalPixel__Interop; }

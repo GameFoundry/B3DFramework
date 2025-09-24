@@ -2,9 +2,9 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsVulkanPrerequisites.h"
-#include "BsVulkanFramebuffer.h"
-#include "Threading/BsSingleConsumerQueue.h"
+#include "B3DVulkanPrerequisites.h"
+#include "B3DVulkanFramebuffer.h"
+#include "Threading/B3DSingleConsumerQueue.h"
 
 namespace b3d
 {

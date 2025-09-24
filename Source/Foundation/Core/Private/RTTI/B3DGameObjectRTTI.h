@@ -2,14 +2,14 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsCorePrerequisites.h"
-#include "Reflection/BsRTTIType.h"
-#include "RTTI/BsStringRTTI.h"
-#include "RTTI/BsUUIDRTTI.h"
-#include "RTTI/BsFlagsRTTI.h"
-#include "Scene/BsGameObject.h"
-#include "Scene/BsSceneObject.h"
-#include "Scene/BsGameObjectManager.h"
+#include "B3DCorePrerequisites.h"
+#include "Reflection/B3DRTTIType.h"
+#include "RTTI/B3DStringRTTI.h"
+#include "RTTI/B3DUUIDRTTI.h"
+#include "RTTI/B3DFlagsRTTI.h"
+#include "Scene/B3DGameObject.h"
+#include "Scene/B3DSceneObject.h"
+#include "Scene/B3DGameObjectManager.h"
 
 namespace b3d
 {

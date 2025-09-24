@@ -2,10 +2,10 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsScriptEnginePrerequisites.h"
-#include "BsScriptReflectableWrapper.h"
-#include "../../../Foundation/bsfCore/Animation/BsSkeleton.h"
-#include "../Extensions/BsSkeletonEx.h"
+#include "B3DScriptEnginePrerequisites.h"
+#include "B3DScriptReflectableWrapper.h"
+#include "../../../Foundation/Core/Animation/B3DSkeleton.h"
+#include "../Extensions/B3DSkeletonEx.h"
 
 namespace b3d { struct __SkeletonBoneInfoExInterop; }
 namespace b3d { class SkeletonEx; }

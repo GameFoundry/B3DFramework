@@ -2,11 +2,12 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsScriptEnginePrerequisites.h"
-#include "Generated/BsScriptGUIElement.generated.h"
-#include "GUI/BsGUIRenderTexture.h"
+#include "B3DScriptEnginePrerequisites.h"
+#include "Generated/B3DScriptGUIElement.generated.h"
+#include "GUI/B3DGUIRenderTexture.h"
 
-#include "Generated/BsScriptGUIInteractable.generated.h"
+#ifndef B3D_CODEGEN
+#include "Generated/B3DScriptGUIInteractable.generated.h"
 
 namespace b3d
 {
@@ -37,3 +38,4 @@ namespace b3d
 
 	/** @} */
 } // namespace b3d
+#endif

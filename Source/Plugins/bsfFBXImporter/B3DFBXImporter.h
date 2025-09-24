@@ -2,10 +2,10 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsFBXPrerequisites.h"
-#include "Importer/BsSpecificImporter.h"
-#include "RenderAPI/BsSubMesh.h"
-#include "BsFBXImportData.h"
+#include "B3DFBXPrerequisites.h"
+#include "Importer/B3DSpecificImporter.h"
+#include "RenderAPI/B3DSubMesh.h"
+#include "B3DFBXImportData.h"
 
 #define FBX_IMPORT_MAX_UV_LAYERS 2
 

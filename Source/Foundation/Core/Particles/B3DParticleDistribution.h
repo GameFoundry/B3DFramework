@@ -2,15 +2,15 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsCorePrerequisites.h"
-#include "Image/BsColor.h"
-#include "Image/BsColorGradient.h"
-#include "Math/BsVector3.h"
-#include "Math/BsRandom.h"
-#include "Animation/BsAnimationCurve.h"
-#include "Animation/BsAnimationUtility.h"
-#include "Utility/BsBitwise.h"
-#include "Utility/BsLookupTable.h"
+#include "B3DCorePrerequisites.h"
+#include "Image/B3DColor.h"
+#include "Image/B3DColorGradient.h"
+#include "Math/B3DVector3.h"
+#include "Math/B3DRandom.h"
+#include "Animation/B3DAnimationCurve.h"
+#include "Animation/B3DAnimationUtility.h"
+#include "Utility/B3DBitwise.h"
+#include "Utility/B3DLookupTable.h"
 
 namespace b3d
 {

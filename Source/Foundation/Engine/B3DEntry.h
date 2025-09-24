@@ -2,8 +2,8 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsApplication.h"
-#include "CoreObject/BsRenderThread.h"
+#include "B3DApplication.h"
+#include "CoreObject/B3DRenderThread.h"
 
 /** Provides an entry point for executables. */
 int bs_main(int argc, char* argv[]);

@@ -2,13 +2,13 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsScriptEnginePrerequisites.h"
-#include "Reflection/BsRTTIType.h"
-#include "Private/RTTI/BsResourceRTTI.h"
-#include "BsManagedResource.h"
-#include "BsMonoManager.h"
-#include "Serialization/BsManagedSerializableObject.h"
-#include "Resources/BsResources.h"
+#include "B3DScriptEnginePrerequisites.h"
+#include "Reflection/B3DRTTIType.h"
+#include "Private/RTTI/B3DResourceRTTI.h"
+#include "B3DManagedResource.h"
+#include "B3DMonoManager.h"
+#include "Serialization/B3DManagedSerializableObject.h"
+#include "Resources/B3DResources.h"
 
 namespace b3d
 {

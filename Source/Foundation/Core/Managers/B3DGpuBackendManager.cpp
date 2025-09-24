@@ -1,9 +1,9 @@
 //************************************ B3D Framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "Managers/BsGpuBackendManager.h"
-#include "RenderAPI/BsGpuBackend.h"
-#include "Utility/BsDynamicLibrary.h"
-#include "Utility/BsDynamicLibraryManager.h"
+#include "Managers/B3DGpuBackendManager.h"
+#include "RenderAPI/B3DGpuBackend.h"
+#include "Utility/B3DDynamicLibrary.h"
+#include "Utility/B3DDynamicLibraryManager.h"
 
 using namespace b3d;
 

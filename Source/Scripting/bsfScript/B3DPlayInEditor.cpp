@@ -1,15 +1,15 @@
 //********************************* B3D Framework - Copyright 2018-2019 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "BsPlayInEditor.h"
-#include "Utility/BsTime.h"
-#include "Scene/BsSceneObject.h"
-#include "BsApplication.h"
-#include "Physics/BsPhysics.h"
-#include "Audio/BsAudio.h"
-#include "Animation/BsAnimationScene.h"
-#include "Scene/BsGameObjectCollection.h"
-#include "Scene/BsSceneInstance.h"
-#include "Scene/BsSceneUtility.h"
+#include "B3DPlayInEditor.h"
+#include "Utility/B3DTime.h"
+#include "Scene/B3DSceneObject.h"
+#include "B3DApplication.h"
+#include "Physics/B3DPhysics.h"
+#include "Audio/B3DAudio.h"
+#include "Animation/B3DAnimationScene.h"
+#include "Scene/B3DGameObjectCollection.h"
+#include "Scene/B3DSceneInstance.h"
+#include "Scene/B3DSceneUtility.h"
 
 using namespace b3d;
 PlayInEditor::PlayInEditor(const SPtr<SceneInstance>& scene)

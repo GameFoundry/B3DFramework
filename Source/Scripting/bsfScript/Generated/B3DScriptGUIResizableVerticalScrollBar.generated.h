@@ -2,11 +2,11 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsScriptEnginePrerequisites.h"
-#include "BsScriptGUIElementWrapper.h"
-#include "BsScriptGUIScrollBar.generated.h"
-#include "../../../Foundation/bsfEngine/GUI/BsGUIVerticalScrollBar.h"
-#include "../../../Foundation/bsfEngine/GUI/BsGUIOptions.h"
+#include "B3DScriptEnginePrerequisites.h"
+#include "B3DScriptGUIElementWrapper.h"
+#include "B3DScriptGUIScrollBar.generated.h"
+#include "../../../Foundation/Engine/GUI/B3DGUIVerticalScrollBar.h"
+#include "../../../Foundation/Engine/GUI/B3DGUIOptions.h"
 
 namespace b3d { class GUIResizableVerticalScrollBar; }
 namespace b3d { struct __GUIOptionInterop; }

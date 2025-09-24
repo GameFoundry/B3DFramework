@@ -2,10 +2,10 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsScriptEnginePrerequisites.h"
-#include "BsScriptGUIElementWrapper.h"
-#include "BsScriptGUIRenderable.generated.h"
-#include "../../../Foundation/bsfEngine/GUI/BsGUIInteractable.h"
+#include "B3DScriptEnginePrerequisites.h"
+#include "B3DScriptGUIElementWrapper.h"
+#include "B3DScriptGUIRenderable.generated.h"
+#include "../../../Foundation/Engine/GUI/B3DGUIInteractable.h"
 
 namespace b3d { class GUIInteractable; }
 namespace b3d

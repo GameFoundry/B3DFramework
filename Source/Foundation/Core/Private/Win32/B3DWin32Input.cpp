@@ -1,15 +1,15 @@
 //************************************ B3D Framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "Input/BsInput.h"
-#include "Error/BsException.h"
-#include "Private/Win32/BsWin32Input.h"
+#include "Input/B3DInput.h"
+#include "Error/B3DException.h"
+#include "Private/Win32/B3DWin32Input.h"
 
-#include "BsCoreApplication.h"
-#include "Input/BsMouse.h"
-#include "Input/BsKeyboard.h"
-#include "Input/BsGamepad.h"
-#include "RenderAPI/BsGpuDevice.h"
-#include "RenderAPI/BsGpuDeviceCapabilities.h"
+#include "B3DCoreApplication.h"
+#include "Input/B3DMouse.h"
+#include "Input/B3DKeyboard.h"
+#include "Input/B3DGamepad.h"
+#include "RenderAPI/B3DGpuDevice.h"
+#include "RenderAPI/B3DGpuDeviceCapabilities.h"
 
 using namespace b3d;
 

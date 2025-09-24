@@ -1,9 +1,9 @@
 //************************************ B3D Framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "BsFMODAudioSource.h"
-#include "BsFMODAudio.h"
-#include "BsFMODAudioClip.h"
-#include "Scene/BsTransform.h"
+#include "B3DFMODAudioSource.h"
+#include "B3DFMODAudio.h"
+#include "B3DFMODAudioClip.h"
+#include "Scene/B3DTransform.h"
 
 using namespace b3d;
 

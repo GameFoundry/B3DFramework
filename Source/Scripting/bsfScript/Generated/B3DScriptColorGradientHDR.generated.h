@@ -2,11 +2,11 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsScriptEnginePrerequisites.h"
-#include "../../../Foundation/bsfUtility/Image/BsColorGradient.h"
-#include "BsScriptNonReflectableWrapper.h"
-#include "../../../Foundation/bsfUtility/Image/BsColor.h"
-#include "../../../Foundation/bsfUtility/Image/BsColorGradient.h"
+#include "B3DScriptEnginePrerequisites.h"
+#include "../../../Foundation/Utility/Image/B3DColorGradient.h"
+#include "B3DScriptNonReflectableWrapper.h"
+#include "../../../Foundation/Utility/Image/B3DColor.h"
+#include "../../../Foundation/Utility/Image/B3DColorGradient.h"
 
 namespace b3d { class ColorGradientHDREx; }
 namespace b3d { struct __ColorGradientKeyInterop; }

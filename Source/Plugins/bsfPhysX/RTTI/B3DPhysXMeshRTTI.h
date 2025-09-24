@@ -2,10 +2,10 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsPhysXPrerequisites.h"
-#include "Reflection/BsRTTIType.h"
-#include "BsPhysXMesh.h"
-#include "FileSystem/BsDataStream.h"
+#include "B3DPhysXPrerequisites.h"
+#include "Reflection/B3DRTTIType.h"
+#include "B3DPhysXMesh.h"
+#include "FileSystem/B3DDataStream.h"
 
 namespace b3d
 {

@@ -1,9 +1,9 @@
 //************************************ B3D Framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "Reflection/BsIReflectable.h"
-#include "Reflection/BsRTTIType.h"
-#include "Error/BsException.h"
-#include "RTTI/BsIReflectableRTTI.h"
+#include "Reflection/B3DIReflectable.h"
+#include "Reflection/B3DRTTIType.h"
+#include "Error/B3DException.h"
+#include "RTTI/B3DIReflectableRTTI.h"
 
 using namespace b3d;
 

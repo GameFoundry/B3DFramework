@@ -1,21 +1,21 @@
 //************************************ B3D Framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "RenderAPI/BsGpuParameters.h"
+#include "RenderAPI/B3DGpuParameters.h"
 
-#include "BsCoreApplication.h"
-#include "BsGpuDevice.h"
-#include "RenderAPI/BsGpuProgramParameterDescription.h"
-#include "RenderAPI/BsGpuBuffer.h"
-#include "RenderAPI/BsGpuPipelineParameterLayout.h"
-#include "RenderAPI/BsGpuPipelineState.h"
-#include "Math/BsVector2.h"
-#include "Image/BsTexture.h"
-#include "RenderAPI/BsSamplerState.h"
-#include "Debug/BsDebug.h"
-#include "Math/BsVector3I.h"
-#include "Math/BsVector4I.h"
-#include "Math/BsMatrixNxM.h"
-#include "CoreObject/BsCoreObjectSync.h"
+#include "B3DCoreApplication.h"
+#include "B3DGpuDevice.h"
+#include "RenderAPI/B3DGpuProgramParameterDescription.h"
+#include "RenderAPI/B3DGpuBuffer.h"
+#include "RenderAPI/B3DGpuPipelineParameterLayout.h"
+#include "RenderAPI/B3DGpuPipelineState.h"
+#include "Math/B3DVector2.h"
+#include "Image/B3DTexture.h"
+#include "RenderAPI/B3DSamplerState.h"
+#include "Debug/B3DDebug.h"
+#include "Math/B3DVector3I.h"
+#include "Math/B3DVector4I.h"
+#include "Math/B3DMatrixNxM.h"
+#include "CoreObject/B3DCoreObjectSync.h"
 
 using namespace b3d;
 

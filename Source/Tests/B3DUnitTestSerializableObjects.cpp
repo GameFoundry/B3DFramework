@@ -1,7 +1,7 @@
 //************************************ B3D Framework - Copyright 2024 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "BsUnitTestSerializableObjects.h"
-#include "RTTI/BsUnitTestSerializableObjectsRTTI.h"
+#include "B3DUnitTestSerializableObjects.h"
+#include "RTTI/B3DUnitTestSerializableObjectsRTTI.h"
 
 namespace b3d
 {

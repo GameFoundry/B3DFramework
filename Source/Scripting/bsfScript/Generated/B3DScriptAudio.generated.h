@@ -2,10 +2,10 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsScriptEnginePrerequisites.h"
-#include "../../../Foundation/bsfCore/Audio/BsAudio.h"
-#include "BsScriptTypeDefinition.h"
-#include "../../../Foundation/bsfCore/Audio/BsAudio.h"
+#include "B3DScriptEnginePrerequisites.h"
+#include "../../../Foundation/Core/Audio/B3DAudio.h"
+#include "B3DScriptTypeDefinition.h"
+#include "../../../Foundation/Core/Audio/B3DAudio.h"
 
 namespace b3d { struct __AudioDeviceInterop; }
 namespace b3d

@@ -2,19 +2,19 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsScriptEnginePrerequisites.h"
-#include "Wrappers/BsScriptComponent.h"
-#include "BsScriptJoint.generated.h"
-#include "../../../Foundation/bsfCore/Components/BsD6Joint.h"
-#include "../../../Foundation/bsfCore/Components/BsD6Joint.h"
-#include "../../../Foundation/bsfCore/Components/BsD6Joint.h"
-#include "../../../Foundation/bsfCore/Components/BsD6Joint.h"
-#include "Math/BsRadian.h"
-#include "../../../Foundation/bsfCore/Components/BsJoint.h"
-#include "../../../Foundation/bsfCore/Components/BsJoint.h"
-#include "../../../Foundation/bsfCore/Components/BsJoint.h"
-#include "../../../Foundation/bsfUtility/Math/BsVector3.h"
-#include "../../../Foundation/bsfUtility/Math/BsQuaternion.h"
+#include "B3DScriptEnginePrerequisites.h"
+#include "Wrappers/B3DScriptComponent.h"
+#include "B3DScriptJoint.generated.h"
+#include "../../../Foundation/Core/Components/B3DD6Joint.h"
+#include "../../../Foundation/Core/Components/B3DD6Joint.h"
+#include "../../../Foundation/Core/Components/B3DD6Joint.h"
+#include "../../../Foundation/Core/Components/B3DD6Joint.h"
+#include "Math/B3DRadian.h"
+#include "../../../Foundation/Core/Components/B3DJoint.h"
+#include "../../../Foundation/Core/Components/B3DJoint.h"
+#include "../../../Foundation/Core/Components/B3DJoint.h"
+#include "../../../Foundation/Utility/Math/B3DVector3.h"
+#include "../../../Foundation/Utility/Math/B3DQuaternion.h"
 
 namespace b3d { class D6Joint; }
 namespace b3d { struct __LimitLinearInterop; }

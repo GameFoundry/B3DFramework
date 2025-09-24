@@ -2,8 +2,8 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsCorePrerequisites.h"
-#include "BsSamplerState.h"
+#include "B3DCorePrerequisites.h"
+#include "B3DSamplerState.h"
 
 namespace b3d
 {

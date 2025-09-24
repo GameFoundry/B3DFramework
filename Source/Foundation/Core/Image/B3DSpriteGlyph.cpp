@@ -1,12 +1,12 @@
 //************************************ B3D Framework - Copyright 2023 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "Image/BsSpriteGlyph.h"
-#include "Private/RTTI/BsSpriteGlyphRTTI.h"
-#include "Image/BsTexture.h"
-#include "Resources/BsResources.h"
-#include "Resources/BsBuiltinResources.h"
-#include "CoreObject/BsCoreObjectSync.h"
-#include "Text/BsFont.h"
+#include "Image/B3DSpriteGlyph.h"
+#include "Private/RTTI/B3DSpriteGlyphRTTI.h"
+#include "Image/B3DTexture.h"
+#include "Resources/B3DResources.h"
+#include "Resources/B3DBuiltinResources.h"
+#include "CoreObject/B3DCoreObjectSync.h"
+#include "Text/B3DFont.h"
 
 using namespace b3d;
 

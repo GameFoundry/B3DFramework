@@ -1,18 +1,18 @@
 //********************************* B3D Framework - Copyright 2018-2022 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "BsScriptSceneInstance.generated.h"
-#include "BsMonoMethod.h"
-#include "BsMonoClass.h"
-#include "BsMonoUtil.h"
-#include "../../../Foundation/bsfCore/Scene/BsSceneInstance.h"
-#include "Reflection/BsRTTIType.h"
-#include "BsScriptSceneInstance.generated.h"
-#include "BsScriptIEditorSceneInstance.generated.h"
-#include "Wrappers/BsScriptSceneObject.h"
-#include "BsScriptResourceWrapper.h"
-#include "BsScriptPhysicsScene.generated.h"
-#include "../../../Foundation/bsfCore/Components/BsCamera.h"
-#include "BsScriptCamera.generated.h"
+#include "B3DScriptSceneInstance.generated.h"
+#include "B3DMonoMethod.h"
+#include "B3DMonoClass.h"
+#include "B3DMonoUtil.h"
+#include "../../../Foundation/Core/Scene/B3DSceneInstance.h"
+#include "Reflection/B3DRTTIType.h"
+#include "B3DScriptSceneInstance.generated.h"
+#include "B3DScriptIEditorSceneInstance.generated.h"
+#include "Wrappers/B3DScriptSceneObject.h"
+#include "B3DScriptResourceWrapper.h"
+#include "B3DScriptPhysicsScene.generated.h"
+#include "../../../Foundation/Core/Components/B3DCamera.h"
+#include "B3DScriptCamera.generated.h"
 
 namespace b3d
 {

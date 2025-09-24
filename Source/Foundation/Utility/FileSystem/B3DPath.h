@@ -2,9 +2,9 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "Prerequisites/BsPlatformDefines.h"
-#include "String/BsString.h"
-#include "Utility/BsUtil.h"
+#include "Prerequisites/B3DPlatformDefines.h"
+#include "String/B3DString.h"
+#include "Utility/B3DUtil.h"
 
 namespace b3d
 {

@@ -2,11 +2,11 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsScriptEnginePrerequisites.h"
-#include "Wrappers/BsScriptComponent.h"
-#include "BsScriptJoint.generated.h"
-#include "../../../Foundation/bsfCore/Components/BsJoint.h"
-#include "../../../Foundation/bsfCore/Components/BsSphericalJoint.h"
+#include "B3DScriptEnginePrerequisites.h"
+#include "Wrappers/B3DScriptComponent.h"
+#include "B3DScriptJoint.generated.h"
+#include "../../../Foundation/Core/Components/B3DJoint.h"
+#include "../../../Foundation/Core/Components/B3DSphericalJoint.h"
 
 namespace b3d { class SphericalJoint; }
 namespace b3d { struct __LimitConeRangeInterop; }

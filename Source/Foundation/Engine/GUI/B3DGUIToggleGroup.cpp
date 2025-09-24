@@ -1,7 +1,7 @@
 //************************************ B3D Framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "GUI/BsGUIToggleGroup.h"
-#include "GUI/BsGUIToggle.h"
+#include "GUI/B3DGUIToggleGroup.h"
+#include "GUI/B3DGUIToggle.h"
 
 using namespace b3d;
 

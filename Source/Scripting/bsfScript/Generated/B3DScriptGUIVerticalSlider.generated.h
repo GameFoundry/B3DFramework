@@ -2,11 +2,11 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsScriptEnginePrerequisites.h"
-#include "BsScriptGUIElementWrapper.h"
-#include "BsScriptGUISlider.generated.h"
-#include "../../../Foundation/bsfEngine/GUI/BsGUISlider.h"
-#include "../../../Foundation/bsfEngine/GUI/BsGUIOptions.h"
+#include "B3DScriptEnginePrerequisites.h"
+#include "B3DScriptGUIElementWrapper.h"
+#include "B3DScriptGUISlider.generated.h"
+#include "../../../Foundation/Engine/GUI/B3DGUISlider.h"
+#include "../../../Foundation/Engine/GUI/B3DGUIOptions.h"
 
 namespace b3d { class GUIVerticalSlider; }
 namespace b3d { struct __GUIOptionInterop; }

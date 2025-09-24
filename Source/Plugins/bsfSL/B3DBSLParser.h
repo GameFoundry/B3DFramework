@@ -2,15 +2,15 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsSLPrerequisites.h"
-#include "Material/BsShader.h"
-#include "RenderAPI/BsGpuProgram.h"
-#include "Importer/BsShaderImportOptions.h"
-#include "Material/BsShaderCompiler.h"
-#include "RenderAPI/BsGpuPipelineState.h"
+#include "B3DSLPrerequisites.h"
+#include "Material/B3DShader.h"
+#include "RenderAPI/B3DGpuProgram.h"
+#include "Importer/B3DShaderImportOptions.h"
+#include "Material/B3DShaderCompiler.h"
+#include "RenderAPI/B3DGpuPipelineState.h"
 
 extern "C" {
-#include "BsASTFX.h"
+#include "B3DASTFX.h"
 }
 
 namespace b3d

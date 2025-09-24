@@ -1,13 +1,13 @@
 //********************************* B3D Framework - Copyright 2018-2019 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "BsScriptObjectManager.h"
-#include "BsMonoManager.h"
-#include "Serialization/BsScriptAssemblyManager.h"
-#include "Scene/BsGameObjectManager.h"
-#include "BsMonoAssembly.h"
-#include "BsMonoUtil.h"
-#include "BsScriptObjectWrapper.h"
-#include "Utility/BsTime.h"
+#include "B3DScriptObjectManager.h"
+#include "B3DMonoManager.h"
+#include "Serialization/B3DScriptAssemblyManager.h"
+#include "Scene/B3DGameObjectManager.h"
+#include "B3DMonoAssembly.h"
+#include "B3DMonoUtil.h"
+#include "B3DScriptObjectWrapper.h"
+#include "Utility/B3DTime.h"
 
 using namespace b3d;
 ScriptObjectManager::~ScriptObjectManager()

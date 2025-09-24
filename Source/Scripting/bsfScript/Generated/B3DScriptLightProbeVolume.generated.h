@@ -2,12 +2,12 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsScriptEnginePrerequisites.h"
-#include "Wrappers/BsScriptComponent.h"
-#include "../../../Foundation/bsfUtility/Math/BsVector3I.h"
-#include "../../../Foundation/bsfCore/Components/BsLightProbeVolume.h"
-#include "../../../Foundation/bsfUtility/Math/BsVector3.h"
-#include "../../../Foundation/bsfUtility/Math/BsAABox.h"
+#include "B3DScriptEnginePrerequisites.h"
+#include "Wrappers/B3DScriptComponent.h"
+#include "../../../Foundation/Utility/Math/B3DVector3I.h"
+#include "../../../Foundation/Core/Components/B3DLightProbeVolume.h"
+#include "../../../Foundation/Utility/Math/B3DVector3.h"
+#include "../../../Foundation/Utility/Math/B3DAABox.h"
 
 namespace b3d { class LightProbeVolume; }
 namespace b3d { struct __LightProbeInfoInterop; }

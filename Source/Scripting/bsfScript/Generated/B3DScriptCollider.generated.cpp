@@ -1,14 +1,14 @@
 //********************************* B3D Framework - Copyright 2018-2022 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "BsScriptCollider.generated.h"
-#include "BsMonoMethod.h"
-#include "BsMonoClass.h"
-#include "BsMonoUtil.h"
-#include "../../../Foundation/bsfCore/Components/BsCollider.h"
-#include "BsScriptResourceManager.h"
-#include "Wrappers/BsScriptRRefBase.h"
-#include "BsScriptCollisionData.generated.h"
-#include "../../../Foundation/bsfCore/Physics/BsPhysicsMaterial.h"
+#include "B3DScriptCollider.generated.h"
+#include "B3DMonoMethod.h"
+#include "B3DMonoClass.h"
+#include "B3DMonoUtil.h"
+#include "../../../Foundation/Core/Components/B3DCollider.h"
+#include "B3DScriptResourceManager.h"
+#include "Wrappers/B3DScriptRRefBase.h"
+#include "B3DScriptCollisionData.generated.h"
+#include "../../../Foundation/Core/Physics/B3DPhysicsMaterial.h"
 
 namespace b3d
 {

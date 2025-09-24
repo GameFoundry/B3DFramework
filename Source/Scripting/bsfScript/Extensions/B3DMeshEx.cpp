@@ -1,7 +1,7 @@
 //********************************* B3D Framework - Copyright 2018-2019 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "Extensions/BsMeshEx.h"
-#include "CoreObject/BsRenderThread.h"
+#include "Extensions/B3DMeshEx.h"
+#include "CoreObject/B3DRenderThread.h"
 
 using namespace b3d;
 HMesh MeshEx::Create(int numVertices, int numIndices, DrawOperationType topology, MeshFlags flags, VertexLayout vertex, IndexType index)

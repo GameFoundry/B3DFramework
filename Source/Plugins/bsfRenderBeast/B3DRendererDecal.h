@@ -2,12 +2,12 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsRenderBeastPrerequisites.h"
-#include "Renderer/BsRenderElement.h"
-#include "Renderer/BsGpuDataParameterBlock.h"
-#include "Material/BsMaterialParam.h"
-#include "RenderAPI/BsGpuPipelineParameterLayout.h"
-#include "Renderer/BsRendererMaterial.h"
+#include "B3DRenderBeastPrerequisites.h"
+#include "Renderer/B3DRenderElement.h"
+#include "Renderer/B3DGpuDataParameterBlock.h"
+#include "Material/B3DMaterialParam.h"
+#include "RenderAPI/B3DGpuPipelineParameterLayout.h"
+#include "Renderer/B3DRendererMaterial.h"
 
 namespace b3d
 {

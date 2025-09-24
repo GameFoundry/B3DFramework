@@ -2,10 +2,10 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsCorePrerequisites.h"
-#include "Reflection/BsRTTIType.h"
-#include "RTTI/BsMathRTTI.h"
-#include "Particles/BsVectorField.h"
+#include "B3DCorePrerequisites.h"
+#include "Reflection/B3DRTTIType.h"
+#include "RTTI/B3DMathRTTI.h"
+#include "Particles/B3DVectorField.h"
 
 namespace b3d
 {

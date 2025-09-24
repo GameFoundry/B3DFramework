@@ -1,20 +1,20 @@
 //************************************ B3D Framework - Copyright 2023 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "BsBSLParser.h"
-#include "Material/BsShader.h"
-#include "Material/BsPass.h"
-#include "Debug/BsDebug.h"
-#include "Math/BsMatrix4.h"
-#include "Resources/BsBuiltinResources.h"
-#include "Material/BsShaderVariation.h"
-#include "Renderer/BsRenderer.h"
+#include "B3DBSLParser.h"
+#include "Material/B3DShader.h"
+#include "Material/B3DPass.h"
+#include "Debug/B3DDebug.h"
+#include "Math/B3DMatrix4.h"
+#include "Resources/B3DBuiltinResources.h"
+#include "Material/B3DShaderVariation.h"
+#include "Renderer/B3DRenderer.h"
 
 extern "C" {
-#include "BsMMAlloc.h"
+#include "B3DMMAlloc.h"
 
 #define YY_NO_UNISTD_H 1
-#include "BsParserFX.h"
-#include "BsLexerFX.h"
+#include "B3DParserFX.h"
+#include "B3DLexerFX.h"
 }
 
 using namespace std;

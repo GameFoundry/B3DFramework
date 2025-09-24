@@ -2,10 +2,10 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsVulkanPrerequisites.h"
-#include "Image/BsPixelUtility.h"
-#include "Math/BsArea2.h"
-#include "RenderAPI/BsVertexDescription.h"
+#include "B3DVulkanPrerequisites.h"
+#include "Image/B3DPixelUtility.h"
+#include "Math/B3DArea2.h"
+#include "RenderAPI/B3DVertexDescription.h"
 
 namespace b3d
 {

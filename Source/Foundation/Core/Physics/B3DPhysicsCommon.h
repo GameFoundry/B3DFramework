@@ -2,9 +2,9 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsCorePrerequisites.h"
-#include "Math/BsVector3.h"
-#include "Math/BsVector2.h"
+#include "B3DCorePrerequisites.h"
+#include "Math/B3DVector3.h"
+#include "Math/B3DVector2.h"
 
 namespace b3d
 {

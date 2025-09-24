@@ -2,10 +2,10 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsScriptEnginePrerequisites.h"
-#include "../../../Foundation/bsfEngine/BsApplication.h"
-#include "BsScriptTypeDefinition.h"
-#include "BsScriptCoreApplication.generated.h"
+#include "B3DScriptEnginePrerequisites.h"
+#include "../../../Foundation/Engine/B3DApplication.h"
+#include "B3DScriptTypeDefinition.h"
+#include "B3DScriptCoreApplication.generated.h"
 
 namespace b3d
 {

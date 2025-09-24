@@ -2,15 +2,15 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsCorePrerequisites.h"
-#include "Reflection/BsRTTIType.h"
-#include "Components/BsParticleSystem.h"
-#include "Particles/BsParticleEmitter.h"
-#include "Private/RTTI/BsGameObjectRTTI.h"
-#include "Particles/BsParticleEvolver.h"
-#include "RTTI/BsColorGradientRTTI.h"
-#include "RTTI/BsMathRTTI.h"
-#include "Private/RTTI/BsParticleDistributionRTTI.h"
+#include "B3DCorePrerequisites.h"
+#include "Reflection/B3DRTTIType.h"
+#include "Components/B3DParticleSystem.h"
+#include "Particles/B3DParticleEmitter.h"
+#include "Private/RTTI/B3DGameObjectRTTI.h"
+#include "Particles/B3DParticleEvolver.h"
+#include "RTTI/B3DColorGradientRTTI.h"
+#include "RTTI/B3DMathRTTI.h"
+#include "Private/RTTI/B3DParticleDistributionRTTI.h"
 
 namespace b3d
 {

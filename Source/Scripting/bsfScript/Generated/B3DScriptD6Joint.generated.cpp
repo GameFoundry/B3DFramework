@@ -1,16 +1,16 @@
 //********************************* B3D Framework - Copyright 2018-2022 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "BsScriptD6Joint.generated.h"
-#include "BsMonoMethod.h"
-#include "BsMonoClass.h"
-#include "BsMonoUtil.h"
-#include "../../../Foundation/bsfCore/Components/BsD6Joint.h"
-#include "BsScriptD6JointDrive.generated.h"
-#include "BsScriptLimitLinear.generated.h"
-#include "BsScriptLimitAngularRange.generated.h"
-#include "BsScriptLimitConeRange.generated.h"
-#include "BsScriptTVector3.generated.h"
-#include "BsScriptTQuaternion.generated.h"
+#include "B3DScriptD6Joint.generated.h"
+#include "B3DMonoMethod.h"
+#include "B3DMonoClass.h"
+#include "B3DMonoUtil.h"
+#include "../../../Foundation/Core/Components/B3DD6Joint.h"
+#include "B3DScriptD6JointDrive.generated.h"
+#include "B3DScriptLimitLinear.generated.h"
+#include "B3DScriptLimitAngularRange.generated.h"
+#include "B3DScriptLimitConeRange.generated.h"
+#include "B3DScriptTVector3.generated.h"
+#include "B3DScriptTQuaternion.generated.h"
 
 namespace b3d
 {

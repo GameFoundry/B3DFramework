@@ -2,10 +2,10 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsScriptEnginePrerequisites.h"
-#include "BsScriptResourceWrapper.h"
-#include "../../../Foundation/bsfCore/Audio/BsAudioClip.h"
-#include "../../../Foundation/bsfCore/Audio/BsAudioClip.h"
+#include "B3DScriptEnginePrerequisites.h"
+#include "B3DScriptResourceWrapper.h"
+#include "../../../Foundation/Core/Audio/B3DAudioClip.h"
+#include "../../../Foundation/Core/Audio/B3DAudioClip.h"
 
 namespace b3d { class AudioClip; }
 namespace b3d

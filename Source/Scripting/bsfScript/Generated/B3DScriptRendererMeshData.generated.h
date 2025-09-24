@@ -2,16 +2,16 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsScriptEnginePrerequisites.h"
-#include "../../../Foundation/bsfCore/Renderer/BsRendererMeshData.h"
-#include "BsScriptNonReflectableWrapper.h"
-#include "../../../Foundation/bsfUtility/Math/BsVector4.h"
-#include "../../../Foundation/bsfUtility/Math/BsVector3.h"
-#include "../../../Foundation/bsfCore/Renderer/BsRendererMeshData.h"
-#include "../../../Foundation/bsfCore/Utility/BsCommonTypes.h"
-#include "../../../Foundation/bsfUtility/Image/BsColor.h"
-#include "../../../Foundation/bsfUtility/Math/BsVector2.h"
-#include "../../../Foundation/bsfCore/Mesh/BsMeshData.h"
+#include "B3DScriptEnginePrerequisites.h"
+#include "../../../Foundation/Core/Renderer/B3DRendererMeshData.h"
+#include "B3DScriptNonReflectableWrapper.h"
+#include "../../../Foundation/Utility/Math/B3DVector4.h"
+#include "../../../Foundation/Utility/Math/B3DVector3.h"
+#include "../../../Foundation/Core/Renderer/B3DRendererMeshData.h"
+#include "../../../Foundation/Core/Utility/B3DCommonTypes.h"
+#include "../../../Foundation/Utility/Image/B3DColor.h"
+#include "../../../Foundation/Utility/Math/B3DVector2.h"
+#include "../../../Foundation/Core/Mesh/B3DMeshData.h"
 
 namespace b3d { class MeshDataEx; }
 namespace b3d

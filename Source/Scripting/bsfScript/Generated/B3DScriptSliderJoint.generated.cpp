@@ -1,11 +1,11 @@
 //********************************* B3D Framework - Copyright 2018-2022 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "BsScriptSliderJoint.generated.h"
-#include "BsMonoMethod.h"
-#include "BsMonoClass.h"
-#include "BsMonoUtil.h"
-#include "../../../Foundation/bsfCore/Components/BsSliderJoint.h"
-#include "BsScriptLimitLinearRange.generated.h"
+#include "B3DScriptSliderJoint.generated.h"
+#include "B3DMonoMethod.h"
+#include "B3DMonoClass.h"
+#include "B3DMonoUtil.h"
+#include "../../../Foundation/Core/Components/B3DSliderJoint.h"
+#include "B3DScriptLimitLinearRange.generated.h"
 
 namespace b3d
 {

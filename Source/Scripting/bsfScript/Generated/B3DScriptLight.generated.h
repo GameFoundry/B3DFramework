@@ -2,12 +2,12 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsScriptEnginePrerequisites.h"
-#include "Wrappers/BsScriptComponent.h"
-#include "../../../Foundation/bsfCore/Components/BsLight.h"
-#include "../../../Foundation/bsfUtility/Image/BsColor.h"
-#include "Math/BsDegree.h"
-#include "../../../Foundation/bsfUtility/Math/BsSphere.h"
+#include "B3DScriptEnginePrerequisites.h"
+#include "Wrappers/B3DScriptComponent.h"
+#include "../../../Foundation/Core/Components/B3DLight.h"
+#include "../../../Foundation/Utility/Image/B3DColor.h"
+#include "Math/B3DDegree.h"
+#include "../../../Foundation/Utility/Math/B3DSphere.h"
 
 namespace b3d { class Light; }
 namespace b3d { struct __TSphere_float_Interop; }

@@ -1,16 +1,16 @@
 //************************************ B3D Framework - Copyright 2019 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 
-#include "BsNetwork.h"
+#include "B3DNetwork.h"
 #include "RakNet/RakPeer.h"
 #include "RakNet/MessageIdentifiers.h"
-#include "Allocators/BsPoolAlloc.h"
-#include "Serialization/BsSerializedObject.h"
-#include "Serialization/BsBinarySerializer.h"
-#include "FileSystem/BsDataStream.h"
-#include "Math/BsMath.h"
-#include "Serialization/BsBinaryDiff.h"
-#include "Reflection/BsRTTIType.h"
+#include "Allocators/B3DPoolAlloc.h"
+#include "Serialization/B3DSerializedObject.h"
+#include "Serialization/B3DBinarySerializer.h"
+#include "FileSystem/B3DDataStream.h"
+#include "Math/B3DMath.h"
+#include "Serialization/B3DBinaryDiff.h"
+#include "Reflection/B3DRTTIType.h"
 
 using namespace RakNet;
 

@@ -1,8 +1,8 @@
 //************************************ B3D Framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "GUI/BsGUISizeConstraints.h"
-#include "GUI/BsGUIOptions.h"
-#include "StyleSheet/BsGUIStyleSheet.h"
+#include "GUI/B3DGUISizeConstraints.h"
+#include "GUI/B3DGUIOptions.h"
+#include "StyleSheet/B3DGUIStyleSheet.h"
 
 using namespace b3d;
 

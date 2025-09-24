@@ -1,8 +1,8 @@
 //************************************ B3D Framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "GUI/BsGUIDropDownHitBox.h"
-#include "GUI/BsGUICommandEvent.h"
-#include "GUI/BsGUIMouseEvent.h"
+#include "GUI/B3DGUIDropDownHitBox.h"
+#include "GUI/B3DGUICommandEvent.h"
+#include "GUI/B3DGUIMouseEvent.h"
 
 using namespace b3d;
 

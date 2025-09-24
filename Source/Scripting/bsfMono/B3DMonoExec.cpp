@@ -9,7 +9,7 @@
 #endif
 
 #if B3D_USE_DOTNETCORE
-#include "BsMonoLoader.h"
+#include "B3DMonoLoader.h"
 #else
 #include <mono/jit/jit.h>
 #include <mono/metadata/assembly.h>

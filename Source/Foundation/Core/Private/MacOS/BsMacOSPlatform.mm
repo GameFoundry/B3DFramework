@@ -1,15 +1,15 @@
 //************************************ B3D Framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #define BS_COCOA_INTERNALS 1
-#include "Private/MacOS/BsMacOSPlatform.h"
-#include "Private/MacOS/BsMacOSWindow.h"
-#include "Input/BsInputFwd.h"
-#include "Image/BsPixelData.h"
-#include "Image/BsColor.h"
-#include "RenderAPI/BsRenderWindow.h"
-#include "Private/MacOS/BsMacOSDropTarget.h"
-#include "String/BsUnicode.h"
-#include "BsCoreApplication.h"
+#include "Private/MacOS/B3DMacOSPlatform.h"
+#include "Private/MacOS/B3DMacOSWindow.h"
+#include "Input/B3DInputFwd.h"
+#include "Image/B3DPixelData.h"
+#include "Image/B3DColor.h"
+#include "RenderAPI/B3DRenderWindow.h"
+#include "Private/MacOS/B3DMacOSDropTarget.h"
+#include "String/B3DUnicode.h"
+#include "B3DCoreApplication.h"
 #import <Cocoa/Cocoa.h>
 #import <Carbon/Carbon.h>
 

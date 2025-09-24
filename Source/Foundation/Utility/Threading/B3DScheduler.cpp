@@ -1,11 +1,11 @@
 //************************************ B3D Framework - Copyright 2023 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "ThirdParty/marl/src/osfiber.h"  // Must come first. See osfiber_ucontext.h.
-#include "Threading/BsScheduler.h"
+#include "Threading/B3DScheduler.h"
 
-#include "BsSingleConsumerQueue.h"
-#include "BsThreadPool.h"
-#include "Debug/BsDebug.h"
+#include "B3DSingleConsumerQueue.h"
+#include "B3DThreadPool.h"
+#include "Debug/B3DDebug.h"
 
 using namespace b3d;
 

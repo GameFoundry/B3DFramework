@@ -1,8 +1,8 @@
 //************************************ B3D Framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "Profiling/BsProfilerCPU.h"
-#include "Debug/BsDebug.h"
-#include "Platform/BsPlatform.h"
+#include "Profiling/B3DProfilerCPU.h"
+#include "Debug/B3DDebug.h"
+#include "Platform/B3DPlatform.h"
 #include <chrono>
 
 #if B3D_COMPILER == B3D_COMPILER_ID_MSVC
@@ -10,7 +10,7 @@
 #endif
 
 #if B3D_COMPILER == B3D_COMPILER_ID_GCC || B3D_COMPILER == B3D_COMPILER_ID_CLANG
-#	include "BsCpuid.h"
+#	include "B3DCpuid.h"
 #endif
 
 #if B3D_COMPILER == B3D_COMPILER_ID_CLANG

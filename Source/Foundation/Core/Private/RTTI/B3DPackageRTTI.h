@@ -2,15 +2,15 @@
 //**************** Copyright (c) 2023 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 #pragma once
 
-#include "BsCorePrerequisites.h"
-#include "Resources/BsPackage.h"
-#include "Reflection/BsRTTIType.h"
-#include "Private/RTTI/BsResourceMetaDataRTTI.h"
-#include "RTTI/BsUUIDRTTI.h"
-#include "RTTI/BsPathRTTI.h"
-#include "RTTI/BsFlagsRTTI.h"
-#include "RTTI/BsStdRTTI.h"
-#include "RTTI/BsStringRTTI.h"
+#include "B3DCorePrerequisites.h"
+#include "Resources/B3DPackage.h"
+#include "Reflection/B3DRTTIType.h"
+#include "Private/RTTI/B3DResourceMetaDataRTTI.h"
+#include "RTTI/B3DUUIDRTTI.h"
+#include "RTTI/B3DPathRTTI.h"
+#include "RTTI/B3DFlagsRTTI.h"
+#include "RTTI/B3DStdRTTI.h"
+#include "RTTI/B3DStringRTTI.h"
 
 namespace b3d
 {

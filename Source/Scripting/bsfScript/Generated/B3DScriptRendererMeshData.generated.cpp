@@ -1,18 +1,18 @@
 //********************************* B3D Framework - Copyright 2018-2022 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "BsScriptRendererMeshData.generated.h"
-#include "BsMonoMethod.h"
-#include "BsMonoClass.h"
-#include "BsMonoUtil.h"
-#include "../../../Foundation/bsfCore/Renderer/BsRendererMeshData.h"
-#include "BsScriptTVector4.generated.h"
-#include "BsScriptMeshData.generated.h"
-#include "BsScriptTVector3.generated.h"
-#include "BsScriptRendererMeshData.generated.h"
-#include "../Extensions/BsMeshDataEx.h"
-#include "BsScriptColor.generated.h"
-#include "BsScriptTVector2.generated.h"
-#include "BsScriptBoneWeight.generated.h"
+#include "B3DScriptRendererMeshData.generated.h"
+#include "B3DMonoMethod.h"
+#include "B3DMonoClass.h"
+#include "B3DMonoUtil.h"
+#include "../../../Foundation/Core/Renderer/B3DRendererMeshData.h"
+#include "B3DScriptTVector4.generated.h"
+#include "B3DScriptMeshData.generated.h"
+#include "B3DScriptTVector3.generated.h"
+#include "B3DScriptRendererMeshData.generated.h"
+#include "../Extensions/B3DMeshDataEx.h"
+#include "B3DScriptColor.generated.h"
+#include "B3DScriptTVector2.generated.h"
+#include "B3DScriptBoneWeight.generated.h"
 
 namespace b3d
 {

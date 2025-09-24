@@ -2,10 +2,10 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsScriptEnginePrerequisites.h"
-#include "../../../Foundation/bsfCore/Animation/BsAnimationUtility.h"
-#include "BsScriptNonReflectableWrapper.h"
-#include "../../../Foundation/bsfUtility/Prerequisites/BsFwdDeclUtil.h"
+#include "B3DScriptEnginePrerequisites.h"
+#include "../../../Foundation/Core/Animation/B3DAnimationUtility.h"
+#include "B3DScriptNonReflectableWrapper.h"
+#include "../../../Foundation/Utility/Prerequisites/B3DFwdDeclUtil.h"
 
 namespace b3d
 {

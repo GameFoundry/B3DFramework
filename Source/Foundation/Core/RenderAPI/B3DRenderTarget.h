@@ -2,12 +2,12 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsCorePrerequisites.h"
-#include "Script/BsIScriptExportable.h"
-#include "Image/BsPixelUtility.h"
-#include "RenderAPI/BsViewport.h"
-#include "CoreObject/BsCoreObject.h"
-#include "Utility/BsEvent.h"
+#include "B3DCorePrerequisites.h"
+#include "Script/B3DIScriptExportable.h"
+#include "Image/B3DPixelUtility.h"
+#include "RenderAPI/B3DViewport.h"
+#include "CoreObject/B3DCoreObject.h"
+#include "Utility/B3DEvent.h"
 
 namespace b3d
 {

@@ -2,15 +2,15 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsScriptEnginePrerequisites.h"
-#include "../../../Foundation/bsfCore/Animation/BsAnimationClip.h"
-#include "BsScriptNonReflectableWrapper.h"
-#include "../../../Foundation/bsfCore/Animation/BsAnimationCurve.h"
-#include "../../../Foundation/bsfCore/Animation/BsAnimationCurve.h"
-#include "../../../Foundation/bsfCore/Animation/BsAnimationCurve.h"
-#include "../../../Foundation/bsfCore/Animation/BsAnimationCurve.h"
-#include "../../../Foundation/bsfCore/Animation/BsAnimationCurve.h"
-#include "../../../Foundation/bsfCore/Animation/BsAnimationCurve.h"
+#include "B3DScriptEnginePrerequisites.h"
+#include "../../../Foundation/Core/Animation/B3DAnimationClip.h"
+#include "B3DScriptNonReflectableWrapper.h"
+#include "../../../Foundation/Core/Animation/B3DAnimationCurve.h"
+#include "../../../Foundation/Core/Animation/B3DAnimationCurve.h"
+#include "../../../Foundation/Core/Animation/B3DAnimationCurve.h"
+#include "../../../Foundation/Core/Animation/B3DAnimationCurve.h"
+#include "../../../Foundation/Core/Animation/B3DAnimationCurve.h"
+#include "../../../Foundation/Core/Animation/B3DAnimationCurve.h"
 
 namespace b3d { class AnimationCurvesEx; }
 namespace b3d { struct __TNamedAnimationCurve_float_Interop; }

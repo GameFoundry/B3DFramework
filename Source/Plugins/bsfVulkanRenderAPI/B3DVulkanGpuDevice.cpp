@@ -1,39 +1,39 @@
 //************************************ B3D Framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "BsVulkanGpuDevice.h"
-#include "BsVulkanGpuQueue.h"
-#include "BsVulkanGpuCommandBuffer.h"
-#include "BsVulkanUtility.h"
-#include "BsVulkanGpuBackend.h"
-#include "BsVulkanSubmitThread.h"
-#include "Managers/BsVulkanDescriptorManager.h"
-#include "Managers/BsVulkanQueryManager.h"
+#include "B3DVulkanGpuDevice.h"
+#include "B3DVulkanGpuQueue.h"
+#include "B3DVulkanGpuCommandBuffer.h"
+#include "B3DVulkanUtility.h"
+#include "B3DVulkanGpuBackend.h"
+#include "B3DVulkanSubmitThread.h"
+#include "Managers/B3DVulkanDescriptorManager.h"
+#include "Managers/B3DVulkanQueryManager.h"
 
 #if B3D_PLATFORM == B3D_PLATFORM_ID_WIN32
-#	include "Private/Win32/BsWin32VideoModeInfo.h"
+#	include "Private/Win32/B3DWin32VideoModeInfo.h"
 #elif B3D_PLATFORM == B3D_PLATFORM_ID_LINUX
-#	include "Private/Linux/BsLinuxVideoModeInfo.h"
+#	include "Private/Linux/B3DLinuxVideoModeInfo.h"
 #elif B3D_PLATFORM == B3D_PLATFORM_ID_MACOS
-#	include "Private/MacOS/BsMacOSVideoModeInfo.h"
+#	include "Private/MacOS/B3DMacOSVideoModeInfo.h"
 #	include <MoltenVK/vk_mvk_moltenvk.h>
 #else
 static_assert(false, "Other platform includes go here.");
 #endif
 
 #define VMA_IMPLEMENTATION
-#include "BsVulkanEventQuery.h"
-#include "BsVulkanGLSLToSPIRV.h"
-#include "BsVulkanGpuBuffer.h"
-#include "BsVulkanGpuParameters.h"
-#include "BsVulkanGpuPipelineParameterLayout.h"
-#include "BsVulkanGpuProgram.h"
-#include "BsVulkanOcclusionQuery.h"
-#include "BsVulkanSamplerState.h"
-#include "BsVulkanTexture.h"
-#include "BsVulkanTimerQuery.h"
-#include "RenderAPI/BsGpuProgramParameterDescription.h"
+#include "B3DVulkanEventQuery.h"
+#include "B3DVulkanGLSLToSPIRV.h"
+#include "B3DVulkanGpuBuffer.h"
+#include "B3DVulkanGpuParameters.h"
+#include "B3DVulkanGpuPipelineParameterLayout.h"
+#include "B3DVulkanGpuProgram.h"
+#include "B3DVulkanOcclusionQuery.h"
+#include "B3DVulkanSamplerState.h"
+#include "B3DVulkanTexture.h"
+#include "B3DVulkanTimerQuery.h"
+#include "RenderAPI/B3DGpuProgramParameterDescription.h"
 #include "ThirdParty/vk_mem_alloc.h"
-#include "Utility/BsBitwise.h"
+#include "Utility/B3DBitwise.h"
 
 using namespace b3d;
 using namespace b3d::render;

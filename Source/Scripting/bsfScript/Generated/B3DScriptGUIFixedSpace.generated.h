@@ -2,10 +2,10 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsScriptEnginePrerequisites.h"
-#include "BsScriptGUIElementWrapper.h"
-#include "../../../Foundation/bsfEngine/GUI/BsGUIUnits.h"
-#include "../../../Foundation/bsfEngine/GUI/BsGUISpace.h"
+#include "B3DScriptEnginePrerequisites.h"
+#include "B3DScriptGUIElementWrapper.h"
+#include "../../../Foundation/Engine/GUI/B3DGUIUnits.h"
+#include "../../../Foundation/Engine/GUI/B3DGUISpace.h"
 
 namespace b3d { class GUIFixedSpace; }
 namespace b3d

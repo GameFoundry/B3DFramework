@@ -2,11 +2,11 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsScriptEnginePrerequisites.h"
-#include "BsScriptObjectWrapper.h"
-#include "BsScriptResourceManager.h"
-#include "Resources/BsResource.h"
-#include "Script/BsIScriptExportable.h"
+#include "B3DScriptEnginePrerequisites.h"
+#include "B3DScriptObjectWrapper.h"
+#include "B3DScriptResourceManager.h"
+#include "Resources/B3DResource.h"
+#include "Script/B3DIScriptExportable.h"
 
 namespace b3d
 {

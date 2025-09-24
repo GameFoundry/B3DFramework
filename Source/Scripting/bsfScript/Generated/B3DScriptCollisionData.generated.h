@@ -2,11 +2,11 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsScriptEnginePrerequisites.h"
-#include "BsScriptObjectWrapper.h"
-#include "../../../Foundation/bsfCore/Physics/BsPhysicsCommon.h"
-#include "../../../Foundation/bsfCore/Physics/BsPhysicsCommon.h"
-#include "BsScriptContactPoint.generated.h"
+#include "B3DScriptEnginePrerequisites.h"
+#include "B3DScriptObjectWrapper.h"
+#include "../../../Foundation/Core/Physics/B3DPhysicsCommon.h"
+#include "../../../Foundation/Core/Physics/B3DPhysicsCommon.h"
+#include "B3DScriptContactPoint.generated.h"
 
 namespace b3d
 {

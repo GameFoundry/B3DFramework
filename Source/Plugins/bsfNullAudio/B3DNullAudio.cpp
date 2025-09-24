@@ -1,8 +1,8 @@
 //************************************ B3D Framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "BsNullAudio.h"
-#include "Threading/BsTaskScheduler.h"
-#include "FileSystem/BsDataStream.h"
+#include "B3DNullAudio.h"
+#include "Threading/B3DTaskScheduler.h"
+#include "FileSystem/B3DDataStream.h"
 
 using namespace b3d;
 

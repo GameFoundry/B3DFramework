@@ -10,7 +10,7 @@
 #include <condition_variable>
 #include <shared_mutex>
 
-#include "Threading/BsSpinLock.h"
+#include "Threading/B3DSpinLock.h"
 
 namespace b3d
 {

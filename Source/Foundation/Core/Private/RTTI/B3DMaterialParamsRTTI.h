@@ -2,18 +2,18 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsCorePrerequisites.h"
-#include "Reflection/BsRTTIType.h"
-#include "RTTI/BsStringRTTI.h"
-#include "RTTI/BsColorGradientRTTI.h"
-#include "Private/RTTI/BsTextureRTTI.h"
-#include "Private/RTTI/BsTextureSurfaceRTTI.h"
-#include "Private/RTTI/BsAnimationCurveRTTI.h"
-#include "Material/BsMaterialParams.h"
-#include "RenderAPI/BsSamplerState.h"
-#include "FileSystem/BsDataStream.h"
-#include "Animation/BsAnimationCurve.h"
-#include "Image/BsColorGradient.h"
+#include "B3DCorePrerequisites.h"
+#include "Reflection/B3DRTTIType.h"
+#include "RTTI/B3DStringRTTI.h"
+#include "RTTI/B3DColorGradientRTTI.h"
+#include "Private/RTTI/B3DTextureRTTI.h"
+#include "Private/RTTI/B3DTextureSurfaceRTTI.h"
+#include "Private/RTTI/B3DAnimationCurveRTTI.h"
+#include "Material/B3DMaterialParams.h"
+#include "RenderAPI/B3DSamplerState.h"
+#include "FileSystem/B3DDataStream.h"
+#include "Animation/B3DAnimationCurve.h"
+#include "Image/B3DColorGradient.h"
 
 namespace b3d
 {

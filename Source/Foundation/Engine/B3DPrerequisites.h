@@ -2,7 +2,7 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsCorePrerequisites.h"
+#include "B3DCorePrerequisites.h"
 
 /** @addtogroup Layers
  *  @{
@@ -115,10 +115,10 @@
 #  define BS_HIDDEN __attribute__ ((visibility ("hidden")))
 #endif
 
-#include "Scene/BsGameObject.h"
-#include "Utility/BsEnums.h"
-#include "Utility/BsPaths.h"
-#include "Localization/BsHEString.h"
+#include "Scene/B3DGameObject.h"
+#include "Utility/B3DEnums.h"
+#include "Utility/B3DPaths.h"
+#include "Localization/B3DHEString.h"
 
 namespace b3d
 {

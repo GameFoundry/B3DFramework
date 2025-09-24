@@ -1,11 +1,11 @@
 //********************************* B3D Framework - Copyright 2018-2022 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "BsScriptParticleSize.generated.h"
-#include "BsMonoMethod.h"
-#include "BsMonoClass.h"
-#include "BsMonoUtil.h"
-#include "BsScriptParticleSizeSettings.generated.h"
-#include "BsScriptParticleSize.generated.h"
+#include "B3DScriptParticleSize.generated.h"
+#include "B3DMonoMethod.h"
+#include "B3DMonoClass.h"
+#include "B3DMonoUtil.h"
+#include "B3DScriptParticleSizeSettings.generated.h"
+#include "B3DScriptParticleSize.generated.h"
 
 namespace b3d
 {

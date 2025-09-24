@@ -2,11 +2,11 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsScriptEnginePrerequisites.h"
-#include "BsScriptReflectableWrapper.h"
-#include "BsScriptRenderTarget.generated.h"
-#include "../../../Foundation/bsfCore/RenderAPI/BsRenderTexture.h"
-#include "../../../Foundation/bsfCore/Image/BsPixelData.h"
+#include "B3DScriptEnginePrerequisites.h"
+#include "B3DScriptReflectableWrapper.h"
+#include "B3DScriptRenderTarget.generated.h"
+#include "../../../Foundation/Core/RenderAPI/B3DRenderTexture.h"
+#include "../../../Foundation/Core/Image/B3DPixelData.h"
 
 namespace b3d { class RenderTexture; }
 namespace b3d { class RenderTextureEx; }

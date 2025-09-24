@@ -2,11 +2,11 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsCorePrerequisites.h"
-#include "Reflection/BsRTTIType.h"
-#include "RTTI/BsFlagsRTTI.h"
-#include "RTTI/BsStdRTTI.h"
-#include "Animation/BsAnimationCurve.h"
+#include "B3DCorePrerequisites.h"
+#include "Reflection/B3DRTTIType.h"
+#include "RTTI/B3DFlagsRTTI.h"
+#include "RTTI/B3DStdRTTI.h"
+#include "Animation/B3DAnimationCurve.h"
 
 namespace b3d
 {

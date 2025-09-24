@@ -1,13 +1,13 @@
 //************************************ B3D Framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "String/BsUnicode.h"
-#include "Platform/BsPlatform.h"
-#include "Platform/BsDropTarget.h"
-#include "RenderAPI/BsRenderWindow.h"
-#include "Math/BsRect2I.h"
-#include "Private/Linux/BsLinuxDropTarget.h"
-#include "Private/Linux/BsLinuxWindow.h"
-#include "Private/Linux/BsLinuxPlatform.h"
+#include "String/B3DUnicode.h"
+#include "Platform/B3DPlatform.h"
+#include "Platform/B3DDropTarget.h"
+#include "RenderAPI/B3DRenderWindow.h"
+#include "Math/B3DRect2I.h"
+#include "Private/Linux/B3DLinuxDropTarget.h"
+#include "Private/Linux/B3DLinuxWindow.h"
+#include "Private/Linux/B3DLinuxPlatform.h"
 #include <X11/Xatom.h>
 #include <X11/Xlib.h>
 

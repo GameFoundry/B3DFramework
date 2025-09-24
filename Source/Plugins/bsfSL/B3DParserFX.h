@@ -42,9 +42,9 @@ extern int yydebug;
 /* "%code requires" blocks.  */
 
 
-#include "BsMMAlloc.h"
-#include "BsASTFX.h"
-#include "BsIncludeHandler.h"
+#include "B3DMMAlloc.h"
+#include "B3DASTFX.h"
+#include "B3DIncludeHandler.h"
 
 #define YY_NO_UNISTD_H 1
 #ifndef YY_TYPEDEF_YY_SCANNER_T

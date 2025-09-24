@@ -1,18 +1,18 @@
 //************************************ B3D Framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "Scene/BsSceneObject.h"
-#include "Scene/BsComponent.h"
-#include "Scene/BsSceneManager.h"
-#include "Scene/BsSceneInstance.h"
-#include "Error/BsException.h"
-#include "Debug/BsDebug.h"
-#include "Private/RTTI/BsSceneObjectRTTI.h"
-#include "Serialization/BsBinarySerializer.h"
-#include "FileSystem/BsDataStream.h"
-#include "Scene/BsPrefabUtility.h"
-#include "BsCoreApplication.h"
-#include "BsGameObjectCollection.h"
-#include "Script/BsIScriptObjectWrapper.h"
+#include "Scene/B3DSceneObject.h"
+#include "Scene/B3DComponent.h"
+#include "Scene/B3DSceneManager.h"
+#include "Scene/B3DSceneInstance.h"
+#include "Error/B3DException.h"
+#include "Debug/B3DDebug.h"
+#include "Private/RTTI/B3DSceneObjectRTTI.h"
+#include "Serialization/B3DBinarySerializer.h"
+#include "FileSystem/B3DDataStream.h"
+#include "Scene/B3DPrefabUtility.h"
+#include "B3DCoreApplication.h"
+#include "B3DGameObjectCollection.h"
+#include "Script/B3DIScriptObjectWrapper.h"
 
 using namespace b3d;
 

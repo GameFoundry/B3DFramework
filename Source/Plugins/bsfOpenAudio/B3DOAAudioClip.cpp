@@ -1,10 +1,10 @@
 //************************************ B3D Framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "BsOAAudioClip.h"
-#include "BsOggVorbisEncoder.h"
-#include "BsOggVorbisDecoder.h"
-#include "FileSystem/BsDataStream.h"
-#include "BsOAAudio.h"
+#include "B3DOAAudioClip.h"
+#include "B3DOggVorbisEncoder.h"
+#include "B3DOggVorbisDecoder.h"
+#include "FileSystem/B3DDataStream.h"
+#include "B3DOAAudio.h"
 #include "AL/al.h"
 
 using namespace b3d;

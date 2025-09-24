@@ -1,14 +1,14 @@
 //************************************ B3D Framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "Particles/BsParticleScene.h"
+#include "Particles/B3DParticleScene.h"
 
-#include "BsCoreApplication.h"
-#include "Utility/BsTime.h"
-#include "Allocators/BsPoolAlloc.h"
-#include "Private/Particles/BsParticleSet.h"
-#include "Animation/BsAnimationScene.h"
-#include "Components/BsParticleSystem.h"
-#include "Image/BsPixelUtility.h"
+#include "B3DCoreApplication.h"
+#include "Utility/B3DTime.h"
+#include "Allocators/B3DPoolAlloc.h"
+#include "Private/Particles/B3DParticleSet.h"
+#include "Animation/B3DAnimationScene.h"
+#include "Components/B3DParticleSystem.h"
+#include "Image/B3DPixelUtility.h"
 
 using namespace b3d;
 

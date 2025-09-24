@@ -2,11 +2,11 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsCorePrerequisites.h"
-#include "Script/BsIScriptExportable.h"
-#include "Image/BsPixelVolume.h"
-#include "Resources/BsGpuResourceData.h"
-#include "Reflection/BsIReflectable.h"
+#include "B3DCorePrerequisites.h"
+#include "Script/B3DIScriptExportable.h"
+#include "Image/B3DPixelVolume.h"
+#include "Resources/B3DGpuResourceData.h"
+#include "Reflection/B3DIReflectable.h"
 
 namespace b3d
 {

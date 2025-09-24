@@ -2,12 +2,12 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsCorePrerequisites.h"
-#include "Reflection/BsRTTIType.h"
-#include "RTTI/BsUUIDRTTI.h"
-#include "Scene/BsPrefab.h"
-#include "Scene/BsSceneObject.h"
-#include "Utility/BsUtility.h"
+#include "B3DCorePrerequisites.h"
+#include "Reflection/B3DRTTIType.h"
+#include "RTTI/B3DUUIDRTTI.h"
+#include "Scene/B3DPrefab.h"
+#include "Scene/B3DSceneObject.h"
+#include "Utility/B3DUtility.h"
 
 namespace b3d
 {

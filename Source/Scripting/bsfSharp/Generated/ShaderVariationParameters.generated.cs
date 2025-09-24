@@ -28,23 +28,23 @@ namespace b3d
 		[NativeWrapper]
 		public string[] ParamNames
 		{
-			get { return Internal_GetParamNames(mCachedPtr); }
+			get { return Internal_GetParameters(mCachedPtr); }
 		}
 
 		/// <summary>
 		/// Returns the value of a signed integer parameter with the specified name. Returns 0 if the parameter cannot be found.
 		/// </summary>
-		public int GetInt(string name)
+		public int GetI32(string name)
 		{
-			return Internal_GetInt(mCachedPtr, name);
+			return Internal_GetI32(mCachedPtr, name);
 		}
 
 		/// <summary>
 		/// Returns the value of a unsigned integer parameter with the specified name. Returns 0 if the parameter cannot be found.
 		/// </summary>
-		public int GetUInt(string name)
+		public int GetUI32(string name)
 		{
-			return Internal_GetUInt(mCachedPtr, name);
+			return Internal_GetUI32(mCachedPtr, name);
 		}
 
 		/// <summary>
@@ -67,18 +67,18 @@ namespace b3d
 		/// Sets the value of the parameter for the provided name. Any previous value for a parameter with the same name will be 
 		/// overwritten.
 		/// </summary>
-		public void SetInt(string name, int value)
+		public void SetI32(string name, int value)
 		{
-			Internal_SetInt(mCachedPtr, name, value);
+			Internal_SetI32(mCachedPtr, name, value);
 		}
 
 		/// <summary>
 		/// Sets the value of the parameter for the provided name. Any previous value for a parameter with the same name will be 
 		/// overwritten.
 		/// </summary>
-		public void SetUInt(string name, int value)
+		public void SetU32(string name, int value)
 		{
-			Internal_SetUInt(mCachedPtr, name, value);
+			Internal_SetU32(mCachedPtr, name, value);
 		}
 
 		/// <summary>
@@ -100,49 +100,49 @@ namespace b3d
 		}
 
 		/// <summary>Removes a parameter with the specified name.</summary>
-		public void RemoveParam(string paramName)
+		public void RemoveParameter(string parameter)
 		{
-			Internal_RemoveParam(mCachedPtr, paramName);
+			Internal_RemoveParameter(mCachedPtr, parameter);
 		}
 
 		/// <summary>Checks if the variation has a parameter with the specified name.</summary>
-		public bool HasParam(string paramName)
+		public bool HasParameter(string paramName)
 		{
-			return Internal_HasParam(mCachedPtr, paramName);
+			return Internal_HasParameter(mCachedPtr, paramName);
 		}
 
 		/// <summary>Removes all parameters.</summary>
-		public void ClearParams()
+		public void ClearParameters()
 		{
-			Internal_ClearParams(mCachedPtr);
+			Internal_ClearParameters(mCachedPtr);
 		}
 
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_ShaderVariationParameters(ShaderVariationParameters managedInstance);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern int Internal_GetInt(IntPtr thisPtr, string name);
+		private static extern int Internal_GetI32(IntPtr thisPtr, string name);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern int Internal_GetUInt(IntPtr thisPtr, string name);
+		private static extern int Internal_GetUI32(IntPtr thisPtr, string name);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern float Internal_GetFloat(IntPtr thisPtr, string name);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern bool Internal_GetBool(IntPtr thisPtr, string name);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_SetInt(IntPtr thisPtr, string name, int value);
+		private static extern void Internal_SetI32(IntPtr thisPtr, string name, int value);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_SetUInt(IntPtr thisPtr, string name, int value);
+		private static extern void Internal_SetU32(IntPtr thisPtr, string name, int value);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_SetFloat(IntPtr thisPtr, string name, float value);
 		[MethodImpl(MethodImplOptions.InternalCall)]
 		private static extern void Internal_SetBool(IntPtr thisPtr, string name, bool value);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_RemoveParam(IntPtr thisPtr, string paramName);
+		private static extern void Internal_RemoveParameter(IntPtr thisPtr, string parameter);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern bool Internal_HasParam(IntPtr thisPtr, string paramName);
+		private static extern bool Internal_HasParameter(IntPtr thisPtr, string paramName);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern void Internal_ClearParams(IntPtr thisPtr);
+		private static extern void Internal_ClearParameters(IntPtr thisPtr);
 		[MethodImpl(MethodImplOptions.InternalCall)]
-		private static extern string[] Internal_GetParamNames(IntPtr thisPtr);
+		private static extern string[] Internal_GetParameters(IntPtr thisPtr);
 	}
 
 	/** @} */

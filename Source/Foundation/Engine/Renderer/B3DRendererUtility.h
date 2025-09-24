@@ -2,14 +2,14 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsPrerequisites.h"
-#include "Utility/BsModule.h"
-#include "Math/BsArea2.h"
-#include "Math/BsArea2.h"
-#include "RenderAPI/BsGpuDevice.h"
-#include "Mesh/BsMeshBase.h"
-#include "Renderer/BsRendererMaterial.h"
-#include "Renderer/BsGpuDataParameterBlock.h"
+#include "B3DPrerequisites.h"
+#include "Utility/B3DModule.h"
+#include "Math/B3DArea2.h"
+#include "Math/B3DArea2.h"
+#include "RenderAPI/B3DGpuDevice.h"
+#include "Mesh/B3DMeshBase.h"
+#include "Renderer/B3DRendererMaterial.h"
+#include "Renderer/B3DGpuDataParameterBlock.h"
 
 namespace b3d
 {

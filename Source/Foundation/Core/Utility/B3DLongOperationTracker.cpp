@@ -1,6 +1,6 @@
 //********************************** Banshee Engine (www.banshee3d.com) **************************************************//
 //**************** Copyright (c) 2024 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
-#include "BsLongOperationTracker.h"
+#include "B3DLongOperationTracker.h"
 
 using namespace b3d;
 

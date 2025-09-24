@@ -2,8 +2,8 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsPhysXPrerequisites.h"
-#include "Physics/BsPhysicsMaterial.h"
+#include "B3DPhysXPrerequisites.h"
+#include "Physics/B3DPhysicsMaterial.h"
 #include "PxMaterial.h"
 
 namespace b3d

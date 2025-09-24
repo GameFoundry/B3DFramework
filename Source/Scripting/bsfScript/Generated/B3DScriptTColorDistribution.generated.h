@@ -2,17 +2,17 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsScriptEnginePrerequisites.h"
-#include "../../../Foundation/bsfCore/Particles/BsParticleDistribution.h"
-#include "BsScriptNonReflectableWrapper.h"
-#include "../../../Foundation/bsfCore/Particles/BsParticleDistribution.h"
-#include "../../../Foundation/bsfCore/Particles/BsParticleDistribution.h"
-#include "BsScriptNonReflectableWrapper.h"
-#include "../../../Foundation/bsfCore/Particles/BsParticleDistribution.h"
-#include "../../../Foundation/bsfUtility/Image/BsColorGradient.h"
-#include "../../../Foundation/bsfUtility/Image/BsColor.h"
-#include "../../../Foundation/bsfUtility/Image/BsColorGradient.h"
-#include "../../../Foundation/bsfCore/Particles/BsParticleDistribution.h"
+#include "B3DScriptEnginePrerequisites.h"
+#include "../../../Foundation/Core/Particles/B3DParticleDistribution.h"
+#include "B3DScriptNonReflectableWrapper.h"
+#include "../../../Foundation/Core/Particles/B3DParticleDistribution.h"
+#include "../../../Foundation/Core/Particles/B3DParticleDistribution.h"
+#include "B3DScriptNonReflectableWrapper.h"
+#include "../../../Foundation/Core/Particles/B3DParticleDistribution.h"
+#include "../../../Foundation/Utility/Image/B3DColorGradient.h"
+#include "../../../Foundation/Utility/Image/B3DColor.h"
+#include "../../../Foundation/Utility/Image/B3DColorGradient.h"
+#include "../../../Foundation/Core/Particles/B3DParticleDistribution.h"
 
 namespace b3d
 {

@@ -1,8 +1,8 @@
 //************************************ B3D Framework - Copyright 2024 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
-#include "FileSystem/BsDataStream.h"
-#include "Serialization/BsIntermediateSerializer.h"
+#include "FileSystem/B3DDataStream.h"
+#include "Serialization/B3DIntermediateSerializer.h"
 
 namespace b3d::RTTIObjectWrapper
 {

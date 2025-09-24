@@ -2,8 +2,8 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsCorePrerequisites.h"
-#include "RenderAPI/BsGpuProgram.h"
+#include "B3DCorePrerequisites.h"
+#include "RenderAPI/B3DGpuProgram.h"
 
 #include <cstdint>
 #define CAPS_CATEGORY_SIZE INT64_C(8)

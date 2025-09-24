@@ -2,9 +2,9 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsCorePrerequisites.h"
-#include "Particles/BsParticleDistribution.h"
-#include "Private/RTTI/BsAnimationCurveRTTI.h"
+#include "B3DCorePrerequisites.h"
+#include "Particles/B3DParticleDistribution.h"
+#include "Private/RTTI/B3DAnimationCurveRTTI.h"
 
 namespace b3d
 {

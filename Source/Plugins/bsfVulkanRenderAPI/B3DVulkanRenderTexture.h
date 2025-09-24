@@ -2,9 +2,9 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsVulkanPrerequisites.h"
-#include "Image/BsTexture.h"
-#include "RenderAPI/BsRenderTexture.h"
+#include "B3DVulkanPrerequisites.h"
+#include "Image/B3DTexture.h"
+#include "RenderAPI/B3DRenderTexture.h"
 
 namespace b3d
 {

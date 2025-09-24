@@ -1,9 +1,9 @@
 //************************************ B3D Framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "Utility/BsIconUtility.h"
-#include "Image/BsPixelData.h"
-#include "Image/BsColor.h"
-#include "Error/BsException.h"
+#include "Utility/B3DIconUtility.h"
+#include "Image/B3DPixelData.h"
+#include "Image/B3DColor.h"
+#include "Error/B3DException.h"
 
 #define MSDOS_SIGNATURE 0x5A4D
 #define PE_SIGNATURE 0x00004550

@@ -2,13 +2,13 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #define BS_COCOA_INTERNALS
 
-#include "Private/MacOS/BsMacOSRenderWindow.h"
-#include "Private/MacOS/BsMacOSVideoModeInfo.h"
-#include "Private/MacOS/BsMacOSWindow.h"
-#include "Private/MacOS/BsMacOSPlatform.h"
-#include "Managers/BsRenderWindowManager.h"
-#include "Math/BsMath.h"
-#include "CoreThread/BsCoreThread.h"
+#include "Private/MacOS/B3DMacOSRenderWindow.h"
+#include "Private/MacOS/B3DMacOSVideoModeInfo.h"
+#include "Private/MacOS/B3DMacOSWindow.h"
+#include "Private/MacOS/B3DMacOSPlatform.h"
+#include "Managers/B3DRenderWindowManager.h"
+#include "Math/B3DMath.h"
+#include "CoreThread/B3DCoreThread.h"
 
 #import <QuartzCore/QuartzCore.h>
 

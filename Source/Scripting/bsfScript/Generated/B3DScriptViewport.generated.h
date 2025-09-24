@@ -2,13 +2,13 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsScriptEnginePrerequisites.h"
-#include "BsScriptReflectableWrapper.h"
-#include "../../../Foundation/bsfCore/RenderAPI/BsViewport.h"
-#include "../../../Foundation/bsfUtility/Image/BsColor.h"
-#include "../../../Foundation/bsfUtility/Math/BsArea2.h"
-#include "../../../Foundation/bsfUtility/Math/BsArea2.h"
-#include "../../../Foundation/bsfCore/RenderAPI/BsViewport.h"
+#include "B3DScriptEnginePrerequisites.h"
+#include "B3DScriptReflectableWrapper.h"
+#include "../../../Foundation/Core/RenderAPI/B3DViewport.h"
+#include "../../../Foundation/Utility/Image/B3DColor.h"
+#include "../../../Foundation/Utility/Math/B3DArea2.h"
+#include "../../../Foundation/Utility/Math/B3DArea2.h"
+#include "../../../Foundation/Core/RenderAPI/B3DViewport.h"
 
 namespace b3d { class Viewport; }
 namespace b3d

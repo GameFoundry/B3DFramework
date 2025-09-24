@@ -2,13 +2,13 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsScriptEnginePrerequisites.h"
-#include "BsScriptObjectWrapper.h"
-#include "../../../Foundation/bsfUtility/Math/BsSphere.h"
-#include "BsScriptObjectWrapper.h"
-#include "../../../Foundation/bsfUtility/Math/BsSphere.h"
-#include "../../../Foundation/bsfUtility/Math/BsVector3.h"
-#include "../../../Foundation/bsfUtility/Math/BsVector3.h"
+#include "B3DScriptEnginePrerequisites.h"
+#include "B3DScriptObjectWrapper.h"
+#include "../../../Foundation/Utility/Math/B3DSphere.h"
+#include "B3DScriptObjectWrapper.h"
+#include "../../../Foundation/Utility/Math/B3DSphere.h"
+#include "../../../Foundation/Utility/Math/B3DVector3.h"
+#include "../../../Foundation/Utility/Math/B3DVector3.h"
 
 namespace b3d
 {

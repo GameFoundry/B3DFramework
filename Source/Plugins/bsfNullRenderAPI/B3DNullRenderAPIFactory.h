@@ -2,8 +2,8 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "Managers/BsRenderAPIFactory.h"
-#include "Managers/BsRenderAPIManager.h"
+#include "Managers/B3DRenderAPIFactory.h"
+#include "Managers/B3DRenderAPIManager.h"
 
 namespace b3d
 {

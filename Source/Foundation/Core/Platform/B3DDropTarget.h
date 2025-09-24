@@ -2,9 +2,9 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsCorePrerequisites.h"
-#include "Utility/BsEvent.h"
-#include "Math/BsArea2.h"
+#include "B3DCorePrerequisites.h"
+#include "Utility/B3DEvent.h"
+#include "Math/B3DArea2.h"
 
 namespace b3d
 {

@@ -1,15 +1,15 @@
 //************************************ B3D Framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "BsVulkanGpuProgram.h"
-#include "BsVulkanGpuDevice.h"
-#include "BsVulkanUtility.h"
-#include "RenderAPI/BsGpuParameters.h"
-#include "RenderAPI/BsGpuProgramParameterDescription.h"
-#include "RenderAPI/BsVertexDescription.h"
-#include "Profiling/BsRenderStats.h"
-#include "FileSystem/BsFileSystem.h"
-#include "FileSystem/BsDataStream.h"
-#include "BsVulkanGpuBackend.h"
+#include "B3DVulkanGpuProgram.h"
+#include "B3DVulkanGpuDevice.h"
+#include "B3DVulkanUtility.h"
+#include "RenderAPI/B3DGpuParameters.h"
+#include "RenderAPI/B3DGpuProgramParameterDescription.h"
+#include "RenderAPI/B3DVertexDescription.h"
+#include "Profiling/B3DRenderStats.h"
+#include "FileSystem/B3DFileSystem.h"
+#include "FileSystem/B3DDataStream.h"
+#include "B3DVulkanGpuBackend.h"
 
 #if B3D_PLATFORM == B3D_PLATFORM_ID_MACOS
 #	include <MoltenVK/vk_mvk_moltenvk.h>

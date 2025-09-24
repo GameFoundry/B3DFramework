@@ -2,9 +2,9 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsCorePrerequisites.h"
-#include "Image/BsTextureAtlasLayout.h"
-#include "VectorGraphics/BsVectorGraphics.h"
+#include "B3DCorePrerequisites.h"
+#include "Image/B3DTextureAtlasLayout.h"
+#include "VectorGraphics/B3DVectorGraphics.h"
 
 namespace b3d
 {

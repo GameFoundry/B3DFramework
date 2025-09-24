@@ -2,11 +2,11 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsNullPrerequisites.h"
-#include "Managers/BsHardwareBufferManager.h"
-#include "Allocators/BsPoolAlloc.h"
-#include "RenderAPI/BsGenericGpuBuffer.h"
-#include "RenderAPI/BsGpuParamBlockBuffer.h"
+#include "B3DNullPrerequisites.h"
+#include "Managers/B3DHardwareBufferManager.h"
+#include "Allocators/B3DPoolAlloc.h"
+#include "RenderAPI/B3DGenericGpuBuffer.h"
+#include "RenderAPI/B3DGpuParamBlockBuffer.h"
 
 namespace b3d
 {

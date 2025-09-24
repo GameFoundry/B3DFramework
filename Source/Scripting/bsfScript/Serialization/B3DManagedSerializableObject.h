@@ -2,9 +2,9 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsScriptEnginePrerequisites.h"
-#include "Reflection/BsIReflectable.h"
-#include "Serialization/BsManagedSerializableField.h"
+#include "B3DScriptEnginePrerequisites.h"
+#include "Reflection/B3DIReflectable.h"
+#include "Serialization/B3DManagedSerializableField.h"
 
 namespace b3d
 {

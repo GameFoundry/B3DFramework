@@ -2,9 +2,9 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsCorePrerequisites.h"
-#include "Particles/BsParticleModule.h"
-#include "BsParticleDistribution.h"
+#include "B3DCorePrerequisites.h"
+#include "Particles/B3DParticleModule.h"
+#include "B3DParticleDistribution.h"
 
 namespace b3d
 {

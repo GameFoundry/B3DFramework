@@ -1,17 +1,17 @@
 //********************************* B3D Framework - Copyright 2018-2019 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "Wrappers/BsScriptContextMenu.h"
-#include "BsMonoField.h"
-#include "BsMonoClass.h"
-#include "BsMonoManager.h"
-#include "BsMonoMethod.h"
-#include "BsMonoUtil.h"
-#include "BsScriptTVector2.generated.h"
-#include "GUI/BsGUIContextMenu.h"
-#include "GUI/BsGUILayout.h"
+#include "Wrappers/B3DScriptContextMenu.h"
+#include "B3DMonoField.h"
+#include "B3DMonoClass.h"
+#include "B3DMonoManager.h"
+#include "B3DMonoMethod.h"
+#include "B3DMonoUtil.h"
+#include "B3DScriptTVector2.generated.h"
+#include "GUI/B3DGUIContextMenu.h"
+#include "GUI/B3DGUILayout.h"
 
-#include "Generated/BsScriptHString.generated.h"
-#include "Generated/BsScriptGUILayout.generated.h"
+#include "Generated/B3DScriptHString.generated.h"
+#include "Generated/B3DScriptGUILayout.generated.h"
 
 using namespace std::placeholders;
 

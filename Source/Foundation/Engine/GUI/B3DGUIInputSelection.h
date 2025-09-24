@@ -2,9 +2,9 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsPrerequisites.h"
-#include "GUI/BsGUIInputTool.h"
-#include "2D/BsTextSprite.h"
+#include "B3DPrerequisites.h"
+#include "GUI/B3DGUIInputTool.h"
+#include "2D/B3DTextSprite.h"
 
 namespace b3d
 {

@@ -2,8 +2,8 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsUtilityPrerequisites.h"
-#include "Utility/BsAny.h"
+#include "B3DUtilityPrerequisites.h"
+#include "Utility/B3DAny.h"
 
 namespace b3d
 {

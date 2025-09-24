@@ -2,9 +2,9 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsScriptEnginePrerequisites.h"
-#include "BsScriptGUIElementWrapper.h"
-#include "../../../Foundation/bsfUtility/Image/BsColor.h"
+#include "B3DScriptEnginePrerequisites.h"
+#include "B3DScriptGUIElementWrapper.h"
+#include "../../../Foundation/Utility/Image/B3DColor.h"
 
 namespace b3d { class GUIRenderable; }
 namespace b3d

@@ -2,10 +2,10 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsVulkanPrerequisites.h"
-#include "Threading/BsSignal.h"
-#include "Threading/BsSingleConsumerQueue.h"
-#include "Utility/BsModule.h"
+#include "B3DVulkanPrerequisites.h"
+#include "Threading/B3DSignal.h"
+#include "Threading/B3DSingleConsumerQueue.h"
+#include "Utility/B3DModule.h"
 
 namespace b3d::render
 {

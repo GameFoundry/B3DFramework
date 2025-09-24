@@ -2,7 +2,7 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "Utility/BsTArray.h"
+#include "Utility/B3DTArray.h"
 
 namespace b3d
 {

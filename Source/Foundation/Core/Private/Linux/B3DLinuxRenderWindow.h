@@ -2,8 +2,8 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsCorePrerequisites.h"
-#include "RenderAPI/BsRenderWindow.h"
+#include "B3DCorePrerequisites.h"
+#include "RenderAPI/B3DRenderWindow.h"
 #include <X11/extensions/Xrandr.h>
 
 namespace b3d

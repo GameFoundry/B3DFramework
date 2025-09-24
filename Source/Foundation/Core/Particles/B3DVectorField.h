@@ -2,11 +2,11 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsCorePrerequisites.h"
-#include "Resources/BsResource.h"
-#include "Math/BsVector3I.h"
-#include "Math/BsAABox.h"
-#include "Importer/BsSpecificImporter.h"
+#include "B3DCorePrerequisites.h"
+#include "Resources/B3DResource.h"
+#include "Math/B3DVector3I.h"
+#include "Math/B3DAABox.h"
+#include "Importer/B3DSpecificImporter.h"
 
 namespace b3d
 {

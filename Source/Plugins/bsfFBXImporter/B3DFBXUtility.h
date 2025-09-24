@@ -2,8 +2,8 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsFBXPrerequisites.h"
-#include "BsFBXImportData.h"
+#include "B3DFBXPrerequisites.h"
+#include "B3DFBXImportData.h"
 
 namespace b3d
 {

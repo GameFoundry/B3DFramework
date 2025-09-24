@@ -1,18 +1,18 @@
 //********************************* B3D Framework - Copyright 2024 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "BsManagedTypeUtility.h"
-#include "BsMonoManager.h"
-#include "BsMonoClass.h"
-#include "BsMonoMethod.h"
-#include "BsMonoUtil.h"
-#include "Serialization/BsScriptAssemblyManager.h"
-#include "Serialization/BsManagedSerializableField.h"
-#include "Serialization/BsBinarySerializer.h"
-#include "FileSystem/BsDataStream.h"
-#include "Serialization/BsManagedSerializableArray.h"
-#include "Serialization/BsManagedSerializableDictionary.h"
-#include "Serialization/BsManagedSerializableList.h"
-#include "Serialization/BsManagedSerializableObject.h"
+#include "B3DManagedTypeUtility.h"
+#include "B3DMonoManager.h"
+#include "B3DMonoClass.h"
+#include "B3DMonoMethod.h"
+#include "B3DMonoUtil.h"
+#include "Serialization/B3DScriptAssemblyManager.h"
+#include "Serialization/B3DManagedSerializableField.h"
+#include "Serialization/B3DBinarySerializer.h"
+#include "FileSystem/B3DDataStream.h"
+#include "Serialization/B3DManagedSerializableArray.h"
+#include "Serialization/B3DManagedSerializableDictionary.h"
+#include "Serialization/B3DManagedSerializableList.h"
+#include "Serialization/B3DManagedSerializableObject.h"
 
 using namespace b3d;
 

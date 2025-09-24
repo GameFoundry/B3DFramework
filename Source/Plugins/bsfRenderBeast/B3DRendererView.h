@@ -2,18 +2,18 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsRenderBeastPrerequisites.h"
-#include "Renderer/BsRenderQueue.h"
-#include "Renderer/BsRenderSettings.h"
-#include "Math/BsBounds.h"
-#include "Math/BsConvexVolume.h"
-#include "Shading/BsLightGrid.h"
-#include "Shading/BsShadowRendering.h"
-#include "BsRendererRenderable.h"
-#include "BsRenderCompositor.h"
-#include "BsRendererParticles.h"
-#include "BsRendererDecal.h"
-#include "Renderer/BsRenderer.h"
+#include "B3DRenderBeastPrerequisites.h"
+#include "Renderer/B3DRenderQueue.h"
+#include "Renderer/B3DRenderSettings.h"
+#include "Math/B3DBounds.h"
+#include "Math/B3DConvexVolume.h"
+#include "Shading/B3DLightGrid.h"
+#include "Shading/B3DShadowRendering.h"
+#include "B3DRendererRenderable.h"
+#include "B3DRenderCompositor.h"
+#include "B3DRendererParticles.h"
+#include "B3DRendererDecal.h"
+#include "Renderer/B3DRenderer.h"
 
 namespace b3d
 {

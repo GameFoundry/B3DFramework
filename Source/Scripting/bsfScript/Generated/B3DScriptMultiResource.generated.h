@@ -2,10 +2,10 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsScriptEnginePrerequisites.h"
-#include "../../../Foundation/bsfCore/Importer/BsImporter.h"
-#include "BsScriptNonReflectableWrapper.h"
-#include "../../../Foundation/bsfCore/Importer/BsImporter.h"
+#include "B3DScriptEnginePrerequisites.h"
+#include "../../../Foundation/Core/Importer/B3DImporter.h"
+#include "B3DScriptNonReflectableWrapper.h"
+#include "../../../Foundation/Core/Importer/B3DImporter.h"
 
 namespace b3d { struct __SubResourceInterop; }
 namespace b3d

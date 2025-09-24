@@ -1,13 +1,13 @@
 //********************************* B3D Framework - Copyright 2018-2019 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "Wrappers/BsScriptScriptCode.h"
-#include "BsScriptResourceManager.h"
-#include "BsMonoField.h"
-#include "BsMonoClass.h"
-#include "BsMonoManager.h"
-#include "BsMonoUtil.h"
-#include "Serialization/BsScriptAssemblyManager.h"
-#include "Serialization/BsManagedTypeInfo.h"
+#include "Wrappers/B3DScriptScriptCode.h"
+#include "B3DScriptResourceManager.h"
+#include "B3DMonoField.h"
+#include "B3DMonoClass.h"
+#include "B3DMonoManager.h"
+#include "B3DMonoUtil.h"
+#include "Serialization/B3DScriptAssemblyManager.h"
+#include "Serialization/B3DManagedTypeInfo.h"
 #include <regex>
 
 using namespace std::placeholders;

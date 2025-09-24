@@ -3,11 +3,11 @@
 #pragma once
 
 #include <utility>
-#include "BsUtilityPrerequisites.h"
-#include "Serialization/BsSerializedObject.h"
-#include "Reflection/BsRTTIField.h"
-#include "Reflection/BsRTTIType.h"
-#include "Utility/BsBitstream.h"
+#include "B3DUtilityPrerequisites.h"
+#include "Serialization/B3DSerializedObject.h"
+#include "Reflection/B3DRTTIField.h"
+#include "Reflection/B3DRTTIType.h"
+#include "Utility/B3DBitstream.h"
 
 namespace b3d
 {

@@ -1,11 +1,11 @@
 //************************************ B3D Framework - Copyright 2023 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "GUI/BsGUIRenderable.h"
-#include "BsGUIUtility.h"
-#include "GUI/BsGUIWidget.h"
-#include "GUI/BsGUIManager.h"
-#include "Resources/BsBuiltinResources.h"
-#include "StyleSheet/BsGUIStyleSheet.h"
+#include "GUI/B3DGUIRenderable.h"
+#include "B3DGUIUtility.h"
+#include "GUI/B3DGUIWidget.h"
+#include "GUI/B3DGUIManager.h"
+#include "Resources/B3DBuiltinResources.h"
+#include "StyleSheet/B3DGUIStyleSheet.h"
 
 using namespace b3d;
 

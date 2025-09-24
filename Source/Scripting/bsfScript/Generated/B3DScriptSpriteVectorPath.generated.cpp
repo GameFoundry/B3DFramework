@@ -1,16 +1,16 @@
 //********************************* B3D Framework - Copyright 2018-2022 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "BsScriptSpriteVectorPath.generated.h"
-#include "BsMonoMethod.h"
-#include "BsMonoClass.h"
-#include "BsMonoUtil.h"
-#include "../../../Foundation/bsfCore/Image/BsSpriteVectorPath.h"
-#include "BsScriptResourceManager.h"
-#include "Wrappers/BsScriptRRefBase.h"
-#include "../../../Foundation/bsfCore/Image/BsSpriteVectorPath.h"
-#include "../../../Foundation/bsfCore/VectorGraphics/BsVectorGraphics.h"
-#include "BsScriptTSize2.generated.h"
-#include "BsScriptSpriteVectorPathCreateInformation.generated.h"
+#include "B3DScriptSpriteVectorPath.generated.h"
+#include "B3DMonoMethod.h"
+#include "B3DMonoClass.h"
+#include "B3DMonoUtil.h"
+#include "../../../Foundation/Core/Image/B3DSpriteVectorPath.h"
+#include "B3DScriptResourceManager.h"
+#include "Wrappers/B3DScriptRRefBase.h"
+#include "../../../Foundation/Core/Image/B3DSpriteVectorPath.h"
+#include "../../../Foundation/Core/VectorGraphics/B3DVectorGraphics.h"
+#include "B3DScriptTSize2.generated.h"
+#include "B3DScriptSpriteVectorPathCreateInformation.generated.h"
 
 namespace b3d
 {

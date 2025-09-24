@@ -3,7 +3,7 @@
 #ifndef __INCLUDEHANDLER_H__
 #define __INCLUDEHANDLER_H__
 
-#include "BsASTFX.h"
+#include "B3DASTFX.h"
 
 char* IncludePush(ParseState* state, const char* filename, int line, int column, int* size);
 void IncludePop(ParseState* state);

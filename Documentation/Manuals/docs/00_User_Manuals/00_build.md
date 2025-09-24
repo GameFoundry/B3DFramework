@@ -75,7 +75,7 @@ Make sure to modify `C:/path/to/bsf/install` and set it to the path where you ex
 ## Code
 The CMake file above references `Main.cpp` file. The most basic file that runs the framework looks like so:
 ```
-#include "BsEntry.h"
+#include "B3DEntry.h"
 
 int bs_main(int argc, char* argv[])
 {
@@ -166,7 +166,7 @@ Make sure to set `C:/bsf` to the directory where you cloned `bsf`.
 ## Code
 The CMake file above references `Main.cpp` file. The most basic file that runs the framework looks like so:
 ```
-#include "BsEntry.h"
+#include "B3DEntry.h"
 
 int bs_main(int argc, char* argv[])
 {

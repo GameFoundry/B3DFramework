@@ -2,11 +2,11 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsScriptEnginePrerequisites.h"
-#include "BsScriptObjectWrapper.h"
-#include "../../../Foundation/bsfUtility/Math/BsVector4.h"
-#include "BsScriptObjectWrapper.h"
-#include "../../../Foundation/bsfUtility/Math/BsVector4.h"
+#include "B3DScriptEnginePrerequisites.h"
+#include "B3DScriptObjectWrapper.h"
+#include "../../../Foundation/Utility/Math/B3DVector4.h"
+#include "B3DScriptObjectWrapper.h"
+#include "../../../Foundation/Utility/Math/B3DVector4.h"
 
 namespace b3d
 {

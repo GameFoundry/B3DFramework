@@ -1,7 +1,7 @@
 //************************************ B3D Framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "GUI/BsShortcutManager.h"
-#include "Input/BsInput.h"
+#include "GUI/B3DShortcutManager.h"
+#include "Input/B3DInput.h"
 
 using namespace std::placeholders;
 

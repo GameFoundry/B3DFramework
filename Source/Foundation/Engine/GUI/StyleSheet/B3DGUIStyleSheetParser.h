@@ -2,12 +2,12 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsPrerequisites.h"
-#include "BsGUIStyleSheetLexer.h"
-#include "BsGUIStyleSheet.h"
-#include "Image/BsColor.h"
-#include "Utility/BsBitfield.h"
-#include "Utility/BsRectOffset.h"
+#include "B3DPrerequisites.h"
+#include "B3DGUIStyleSheetLexer.h"
+#include "B3DGUIStyleSheet.h"
+#include "Image/B3DColor.h"
+#include "Utility/B3DBitfield.h"
+#include "Utility/B3DRectOffset.h"
 
 namespace b3d
 {

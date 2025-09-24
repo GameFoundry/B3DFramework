@@ -2,9 +2,9 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsScriptEnginePrerequisites.h"
-#include "../../../Foundation/bsfCore/Physics/BsPhysics.h"
-#include "BsScriptTypeDefinition.h"
+#include "B3DScriptEnginePrerequisites.h"
+#include "../../../Foundation/Core/Physics/B3DPhysics.h"
+#include "B3DScriptTypeDefinition.h"
 
 namespace b3d
 {

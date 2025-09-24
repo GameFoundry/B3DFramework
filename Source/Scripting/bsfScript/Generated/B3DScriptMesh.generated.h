@@ -2,15 +2,15 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsScriptEnginePrerequisites.h"
-#include "BsScriptResourceWrapper.h"
-#include "../../../Foundation/bsfCore/Mesh/BsMeshBase.h"
-#include "../../../Foundation/bsfCore/Utility/BsCommonTypes.h"
-#include "../../../Foundation/bsfCore/Renderer/BsRendererMeshData.h"
-#include "../../../Foundation/bsfCore/Utility/BsCommonTypes.h"
-#include "../../../Foundation/bsfCore/RenderAPI/BsSubMesh.h"
-#include "../../../Foundation/bsfUtility/Math/BsAABox.h"
-#include "../../../Foundation/bsfUtility/Math/BsSphere.h"
+#include "B3DScriptEnginePrerequisites.h"
+#include "B3DScriptResourceWrapper.h"
+#include "../../../Foundation/Core/Mesh/B3DMeshBase.h"
+#include "../../../Foundation/Core/Utility/B3DCommonTypes.h"
+#include "../../../Foundation/Core/Renderer/B3DRendererMeshData.h"
+#include "../../../Foundation/Core/Utility/B3DCommonTypes.h"
+#include "../../../Foundation/Core/RenderAPI/B3DSubMesh.h"
+#include "../../../Foundation/Utility/Math/B3DAABox.h"
+#include "../../../Foundation/Utility/Math/B3DSphere.h"
 
 namespace b3d { class Mesh; }
 namespace b3d { class MeshEx; }

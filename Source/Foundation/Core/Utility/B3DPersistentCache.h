@@ -3,10 +3,10 @@
 
 #pragma once
 
-#include "BsCorePrerequisites.h"
-#include "Reflection/BsRTTIType.h"
-#include "Resources/BsPackage.h"
-#include "Resources/BsResource.h"
+#include "B3DCorePrerequisites.h"
+#include "Reflection/B3DRTTIType.h"
+#include "Resources/B3DPackage.h"
+#include "Resources/B3DResource.h"
 
 namespace b3d
 {

@@ -6,13 +6,13 @@
 #include <algorithm>
 #include <unordered_map>
 
-#include "BsUtilityPrerequisites.h"
-#include "Reflection/BsRTTIField.h"
-#include "Reflection/BsRTTIIteratorField.h"
-#include "Reflection/BsRTTIDataBlockField.h"
-#include "Reflection/BsIReflectable.h"
-#include "Reflection/BsRTTITypeMacros.h"
-#include "Serialization/BsBinaryDelta.h"
+#include "B3DUtilityPrerequisites.h"
+#include "Reflection/B3DRTTIField.h"
+#include "Reflection/B3DRTTIIteratorField.h"
+#include "Reflection/B3DRTTIDataBlockField.h"
+#include "Reflection/B3DIReflectable.h"
+#include "Reflection/B3DRTTITypeMacros.h"
+#include "Serialization/B3DBinaryDelta.h"
 
 namespace b3d
 {
@@ -117,7 +117,7 @@ namespace b3d
 	 * Data can be easily accessed by getter and setter methods.
 	 *
 	 * Supported data types:
-	 *	- Plain types - All types defined in BsRTTIField.h, mostly native types and POD (plain old data) structs. Data is parsed byte by byte.
+	 *	- Plain types - All types defined in B3DRTTIField.h, mostly native types and POD (plain old data) structs. Data is parsed byte by byte.
 	 *	                No pointers to plain types are supported. Data is passed around by value.
 	 *	- Reflectable types - Any class deriving from IReflectable. Data is parsed based on fields in its RTTI class. Can be pointer or value type.
 	 *	- Arrays of both plain and reflectable types are supported

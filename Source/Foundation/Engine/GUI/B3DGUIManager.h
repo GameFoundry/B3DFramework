@@ -2,21 +2,21 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsGUIMeshBatches.h"
-#include "BsPrerequisites.h"
-#include "Renderer/BsRendererExtension.h"
-#include "GUI/BsGUIMouseEvent.h"
-#include "GUI/BsGUITextInputEvent.h"
-#include "GUI/BsGUICommandEvent.h"
-#include "GUI/BsGUIVirtualButtonEvent.h"
-#include "2D/BsSprite.h"
-#include "Utility/BsModule.h"
-#include "Image/BsColor.h"
-#include "Math/BsMatrix4.h"
-#include "Utility/BsEvent.h"
-#include "Material/BsMaterialParam.h"
-#include "Renderer/BsGpuDataParameterBlock.h"
-#include "RenderAPI/BsGpuDevice.h"
+#include "B3DGUIMeshBatches.h"
+#include "B3DPrerequisites.h"
+#include "Renderer/B3DRendererExtension.h"
+#include "GUI/B3DGUIMouseEvent.h"
+#include "GUI/B3DGUITextInputEvent.h"
+#include "GUI/B3DGUICommandEvent.h"
+#include "GUI/B3DGUIVirtualButtonEvent.h"
+#include "2D/B3DSprite.h"
+#include "Utility/B3DModule.h"
+#include "Image/B3DColor.h"
+#include "Math/B3DMatrix4.h"
+#include "Utility/B3DEvent.h"
+#include "Material/B3DMaterialParam.h"
+#include "Renderer/B3DGpuDataParameterBlock.h"
+#include "RenderAPI/B3DGpuDevice.h"
 
 namespace b3d
 {

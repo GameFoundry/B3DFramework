@@ -1,20 +1,20 @@
 //************************************ B3D Framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "Components/BsRenderable.h"
+#include "Components/B3DRenderable.h"
 
-#include "BsCoreApplication.h"
-#include "Animation/BsMorphShapes.h"
-#include "Scene/BsSceneObject.h"
-#include "Mesh/BsMesh.h"
-#include "Material/BsMaterial.h"
-#include "Components/BsAnimation.h"
-#include "CoreObject/BsCoreObjectSync.h"
-#include "Math/BsBounds.h"
-#include "RenderAPI/BsGpuBuffer.h"
-#include "RenderAPI/BsGpuDevice.h"
-#include "Renderer/BsRendererScene.h"
-#include "Scene/BsSceneInstance.h"
-#include "Private/RTTI/BsRenderableRTTI.h"
+#include "B3DCoreApplication.h"
+#include "Animation/B3DMorphShapes.h"
+#include "Scene/B3DSceneObject.h"
+#include "Mesh/B3DMesh.h"
+#include "Material/B3DMaterial.h"
+#include "Components/B3DAnimation.h"
+#include "CoreObject/B3DCoreObjectSync.h"
+#include "Math/B3DBounds.h"
+#include "RenderAPI/B3DGpuBuffer.h"
+#include "RenderAPI/B3DGpuDevice.h"
+#include "Renderer/B3DRendererScene.h"
+#include "Scene/B3DSceneInstance.h"
+#include "Private/RTTI/B3DRenderableRTTI.h"
 
 using namespace b3d;
 

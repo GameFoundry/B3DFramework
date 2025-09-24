@@ -1,16 +1,16 @@
 //************************************ B3D Framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "Scene/BsSceneObjectHierarchyDelta.h"
+#include "Scene/B3DSceneObjectHierarchyDelta.h"
 
-#include "BsGameObjectCollection.h"
-#include "Private/RTTI/BsSceneObjectHierarchyDeltaRTTI.h"
-#include "Scene/BsSceneObject.h"
-#include "Serialization/BsBinarySerializer.h"
-#include "Serialization/BsBinaryDelta.h"
-#include "Scene/BsSceneManager.h"
-#include "Utility/BsUtility.h"
-#include "BsPrefab.h"
-#include "BsPrefabUtility.h"
+#include "B3DGameObjectCollection.h"
+#include "Private/RTTI/B3DSceneObjectHierarchyDeltaRTTI.h"
+#include "Scene/B3DSceneObject.h"
+#include "Serialization/B3DBinarySerializer.h"
+#include "Serialization/B3DBinaryDelta.h"
+#include "Scene/B3DSceneManager.h"
+#include "Utility/B3DUtility.h"
+#include "B3DPrefab.h"
+#include "B3DPrefabUtility.h"
 
 using namespace b3d;
 

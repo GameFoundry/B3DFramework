@@ -1,17 +1,17 @@
 //************************************ B3D Framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "GUI/BsGUIDropDownContent.h"
-#include "GUI/BsGUITexture.h"
-#include "GUI/BsGUIButton.h"
-#include "GUI/BsGUILabel.h"
-#include "GUI/BsGUIWidget.h"
-#include "GUI/BsGUIToggle.h"
-#include "GUI/BsGUIMouseEvent.h"
-#include "GUI/BsGUICommandEvent.h"
-#include "BsGUILayoutX.h"
-#include "BsGUIVectorPaths.h"
-#include "StyleSheet/BsGUIStyleSheet.h"
-#include "Text/BsStockIcons.h"
+#include "GUI/B3DGUIDropDownContent.h"
+#include "GUI/B3DGUITexture.h"
+#include "GUI/B3DGUIButton.h"
+#include "GUI/B3DGUILabel.h"
+#include "GUI/B3DGUIWidget.h"
+#include "GUI/B3DGUIToggle.h"
+#include "GUI/B3DGUIMouseEvent.h"
+#include "GUI/B3DGUICommandEvent.h"
+#include "B3DGUILayoutX.h"
+#include "B3DGUIVectorPaths.h"
+#include "StyleSheet/B3DGUIStyleSheet.h"
+#include "Text/B3DStockIcons.h"
 #include <climits>
 
 using namespace std::placeholders;

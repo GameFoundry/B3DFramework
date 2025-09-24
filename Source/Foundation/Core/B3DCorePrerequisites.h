@@ -2,7 +2,7 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsUtilityPrerequisites.h"
+#include "B3DUtilityPrerequisites.h"
 
 /** @addtogroup Layers
  *  @{
@@ -229,8 +229,8 @@
 #	define BS_CORE_HIDDEN __attribute__((visibility("hidden")))
 #endif
 
-#include "Localization/BsHString.h"
-#include "String/BsStringID.h"
+#include "Localization/B3DHString.h"
+#include "String/B3DStringID.h"
 
 namespace b3d
 {
@@ -735,7 +735,7 @@ namespace b3d
 /* 							Resource references                   		*/
 /************************************************************************/
 
-#include "Resources/BsResourceHandle.h"
+#include "Resources/B3DResourceHandle.h"
 
 namespace b3d
 {
@@ -767,7 +767,7 @@ namespace b3d
 	/** @} */
 } // namespace b3d
 
-#include "Scene/BsGameObjectHandle.h"
+#include "Scene/B3DGameObjectHandle.h"
 
 namespace b3d
 {
@@ -959,4 +959,4 @@ namespace b3d
 	B3D_CORE_EXPORT B3D_LOG_CATEGORY_EXTERN(LogInput, Log)
 } // namespace b3d
 
-#include "Utility/BsCommonTypes.h"
+#include "Utility/B3DCommonTypes.h"

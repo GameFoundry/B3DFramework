@@ -1,19 +1,19 @@
 //********************************* B3D Framework - Copyright 2018-2019 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "Serialization/BsManagedTypeInfo.h"
-#include "RTTI/BsManagedTypeInfoRTTI.h"
-#include "Wrappers/GUI/BsScriptRange.h"
-#include "Wrappers/GUI/BsScriptStep.h"
-#include "BsMonoUtil.h"
-#include "BsMonoClass.h"
-#include "BsMonoManager.h"
-#include "BsMonoField.h"
-#include "BsMonoProperty.h"
-#include "Serialization/BsScriptAssemblyManager.h"
-#include "Wrappers/BsScriptCategory.h"
-#include "Wrappers/BsScriptManagedResource.h"
-#include "Wrappers/BsScriptOrder.h"
-#include "Wrappers/BsScriptRRefBase.h"
+#include "Serialization/B3DManagedTypeInfo.h"
+#include "RTTI/B3DManagedTypeInfoRTTI.h"
+#include "Wrappers/GUI/B3DScriptRange.h"
+#include "Wrappers/GUI/B3DScriptStep.h"
+#include "B3DMonoUtil.h"
+#include "B3DMonoClass.h"
+#include "B3DMonoManager.h"
+#include "B3DMonoField.h"
+#include "B3DMonoProperty.h"
+#include "Serialization/B3DScriptAssemblyManager.h"
+#include "Wrappers/B3DScriptCategory.h"
+#include "Wrappers/B3DScriptManagedResource.h"
+#include "Wrappers/B3DScriptOrder.h"
+#include "Wrappers/B3DScriptRRefBase.h"
 
 using namespace b3d;
 RTTIType* ManagedAssemblyInfo::GetRttiStatic()

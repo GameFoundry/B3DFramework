@@ -2,11 +2,11 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsScriptEnginePrerequisites.h"
-#include "../../../Foundation/bsfUtility/Debug/BsDebug.h"
-#include "BsScriptTypeDefinition.h"
-#include "../../../Foundation/bsfUtility/Debug/BsLog.h"
-#include "../../../Foundation/bsfUtility/Debug/BsLog.h"
+#include "B3DScriptEnginePrerequisites.h"
+#include "../../../Foundation/Utility/Debug/B3DDebug.h"
+#include "B3DScriptTypeDefinition.h"
+#include "../../../Foundation/Utility/Debug/B3DLog.h"
+#include "../../../Foundation/Utility/Debug/B3DLog.h"
 
 namespace b3d { struct __LogEntryInterop; }
 namespace b3d

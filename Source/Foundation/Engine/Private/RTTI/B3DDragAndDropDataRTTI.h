@@ -2,10 +2,10 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsPrerequisites.h"
-#include "Reflection/BsRTTIType.h"
-#include "GUI/BsDragAndDrop.h"
-#include "RTTI/BsPathRTTI.h"
+#include "B3DPrerequisites.h"
+#include "Reflection/B3DRTTIType.h"
+#include "GUI/B3DDragAndDrop.h"
+#include "RTTI/B3DPathRTTI.h"
 
 namespace b3d
 {

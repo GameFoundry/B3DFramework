@@ -1,10 +1,10 @@
 //********************************* B3D Framework - Copyright 2024 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "BsScriptObjectWrapper.h"
+#include "B3DScriptObjectWrapper.h"
 
-#include "BsMonoUtil.h"
-#include "BsScriptObjectManager.h"
-#include "Script/BsIScriptExportable.h"
+#include "B3DMonoUtil.h"
+#include "B3DScriptObjectManager.h"
+#include "Script/B3DIScriptExportable.h"
 
 using namespace b3d;
 

@@ -2,13 +2,13 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #define BS_COCOA_INTERNALS 1
 #define GL_SILENCE_DEPRECATION 1
-#include "Private/MacOS/BsMacOSWindow.h"
-#include "Private/MacOS/BsMacOSPlatform.h"
-#include "Private/MacOS/BsMacOSDropTarget.h"
-#include "Math/BsRect2I.h"
-#include "Input/BsInputFwd.h"
-#include "String/BsUnicode.h"
-#include "RenderAPI/BsRenderWindow.h"
+#include "Private/MacOS/B3DMacOSWindow.h"
+#include "Private/MacOS/B3DMacOSPlatform.h"
+#include "Private/MacOS/B3DMacOSDropTarget.h"
+#include "Math/B3DRect2I.h"
+#include "Input/B3DInputFwd.h"
+#include "String/B3DUnicode.h"
+#include "RenderAPI/B3DRenderWindow.h"
 
 #import <QuartzCore/CAMetalLayer.h>
 

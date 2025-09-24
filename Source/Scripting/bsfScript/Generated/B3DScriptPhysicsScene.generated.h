@@ -2,16 +2,16 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsScriptEnginePrerequisites.h"
-#include "../../../Foundation/bsfCore/Physics/BsPhysics.h"
-#include "BsScriptNonReflectableWrapper.h"
-#include "../../../Foundation/bsfUtility/Math/BsRay.h"
-#include "../../../Foundation/bsfUtility/Math/BsVector3.h"
-#include "../../../Foundation/bsfCore/Physics/BsPhysicsCommon.h"
-#include "../../../Foundation/bsfUtility/Math/BsAABox.h"
-#include "../../../Foundation/bsfUtility/Math/BsQuaternion.h"
-#include "Math/BsCapsule.h"
-#include "../../../Foundation/bsfUtility/Math/BsSphere.h"
+#include "B3DScriptEnginePrerequisites.h"
+#include "../../../Foundation/Core/Physics/B3DPhysics.h"
+#include "B3DScriptNonReflectableWrapper.h"
+#include "../../../Foundation/Utility/Math/B3DRay.h"
+#include "../../../Foundation/Utility/Math/B3DVector3.h"
+#include "../../../Foundation/Core/Physics/B3DPhysicsCommon.h"
+#include "../../../Foundation/Utility/Math/B3DAABox.h"
+#include "../../../Foundation/Utility/Math/B3DQuaternion.h"
+#include "Math/B3DCapsule.h"
+#include "../../../Foundation/Utility/Math/B3DSphere.h"
 
 namespace b3d { struct __TAABox_float_Interop; }
 namespace b3d { struct __TRay_float_Interop; }

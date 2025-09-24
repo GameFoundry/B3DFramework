@@ -2,14 +2,14 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsScriptEnginePrerequisites.h"
-#include "../../../Foundation/bsfEngine/Platform/BsCursor.h"
-#include "BsScriptTypeDefinition.h"
-#include "../../../Foundation/bsfUtility/Math/BsArea2.h"
-#include "../../../Foundation/bsfEngine/GUI/BsGUIUnits.h"
-#include "../../../Foundation/bsfCore/Image/BsPixelData.h"
-#include "../../../Foundation/bsfEngine/Utility/BsEnums.h"
-#include "../../../Foundation/bsfUtility/Math/BsVector2.h"
+#include "B3DScriptEnginePrerequisites.h"
+#include "../../../Foundation/Engine/Platform/B3DCursor.h"
+#include "B3DScriptTypeDefinition.h"
+#include "../../../Foundation/Utility/Math/B3DArea2.h"
+#include "../../../Foundation/Engine/GUI/B3DGUIUnits.h"
+#include "../../../Foundation/Core/Image/B3DPixelData.h"
+#include "../../../Foundation/Engine/Utility/B3DEnums.h"
+#include "../../../Foundation/Utility/Math/B3DVector2.h"
 
 namespace b3d { struct __TVector2_TUnitValue_int32_t__PhysicalPixel__Interop; }
 namespace b3d

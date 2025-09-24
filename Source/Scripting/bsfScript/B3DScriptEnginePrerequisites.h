@@ -2,7 +2,7 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsMonoPrerequisites.h"
+#include "B3DMonoPrerequisites.h"
 
 // DLL export
 #if B3D_PLATFORM == B3D_PLATFORM_ID_WIN32 // Windows

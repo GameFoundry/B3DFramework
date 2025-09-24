@@ -2,11 +2,11 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsUtilityPrerequisites.h"
-#include "Math/BsVector4.h"
-#include "Math/BsAABox.h"
-#include "Math/BsSphere.h"
-#include "Math/BsArea2.h"
+#include "B3DUtilityPrerequisites.h"
+#include "Math/B3DVector4.h"
+#include "Math/B3DAABox.h"
+#include "Math/B3DSphere.h"
+#include "Math/B3DArea2.h"
 
 #if B3D_ARCHITECTURE == B3D_ARCHITECTURE_ID_X86_32 || B3D_ARCHITECTURE == B3D_ARCHITECTURE_ID_X86_64
 #define SIMDPP_ARCH_X86_AVX 1

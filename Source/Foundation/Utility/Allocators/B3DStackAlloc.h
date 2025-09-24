@@ -5,10 +5,10 @@
 #include <stack>
 #include <assert.h>
 
-#include "Prerequisites/BsTypes.h"
-#include "Prerequisites/BsStdHeaders.h"
+#include "Prerequisites/B3DTypes.h"
+#include "Prerequisites/B3DStdHeaders.h"
 
-#include "Threading/BsThreading.h"
+#include "Threading/B3DThreading.h"
 
 namespace b3d
 {

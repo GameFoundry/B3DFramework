@@ -2,8 +2,8 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsNullPrerequisites.h"
-#include "Managers/BsRenderStateManager.h"
+#include "B3DNullPrerequisites.h"
+#include "Managers/B3DRenderStateManager.h"
 
 namespace b3d
 {

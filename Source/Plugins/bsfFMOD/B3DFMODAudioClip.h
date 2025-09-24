@@ -2,9 +2,9 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsFMODPrerequisites.h"
-#include "Audio/BsAudioClip.h"
-#include "BsOggVorbisDecoder.h"
+#include "B3DFMODPrerequisites.h"
+#include "Audio/B3DAudioClip.h"
+#include "B3DOggVorbisDecoder.h"
 #include <fmod.hpp>
 
 namespace b3d

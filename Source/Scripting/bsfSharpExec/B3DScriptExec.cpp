@@ -1,10 +1,10 @@
 //************************************ B3D Framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "BsMonoManager.h"
-#include "BsMonoAssembly.h"
-#include "BsMonoClass.h"
-#include "FileSystem/BsFileSystem.h"
-#include "BsEngineScriptLibrary.h"
+#include "B3DMonoManager.h"
+#include "B3DMonoAssembly.h"
+#include "B3DMonoClass.h"
+#include "FileSystem/B3DFileSystem.h"
+#include "B3DEngineScriptLibrary.h"
 
 /** Main entry point into the application. */
 #if B3D_PLATFORM == B3D_PLATFORM_ID_WIN32

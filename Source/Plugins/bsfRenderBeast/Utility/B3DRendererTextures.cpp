@@ -1,16 +1,16 @@
 //************************************ B3D Framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "BsRendererTextures.h"
+#include "B3DRendererTextures.h"
 
-#include "BsRenderBeast.h"
-#include "Math/BsVector2.h"
-#include "Math/BsVector3.h"
-#include "Image/BsColor.h"
-#include "Math/BsMath.h"
-#include "Image/BsTexture.h"
-#include "Image/BsPixelData.h"
-#include "Renderer/BsIBLUtility.h"
-#include "Image/BsColorGradient.h"
+#include "B3DRenderBeast.h"
+#include "Math/B3DVector2.h"
+#include "Math/B3DVector3.h"
+#include "Image/B3DColor.h"
+#include "Math/B3DMath.h"
+#include "Image/B3DTexture.h"
+#include "Image/B3DPixelData.h"
+#include "Renderer/B3DIBLUtility.h"
+#include "Image/B3DColorGradient.h"
 
 namespace b3d {
 namespace render {

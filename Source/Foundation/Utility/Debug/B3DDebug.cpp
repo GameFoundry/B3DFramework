@@ -1,15 +1,15 @@
 //************************************ B3D Framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "Debug/BsDebug.h"
-#include "Debug/BsLog.h"
-#include "Error/BsException.h"
-#include "Debug/BsBitmapWriter.h"
-#include "FileSystem/BsFileSystem.h"
-#include "FileSystem/BsDataStream.h"
-#include "Utility/BsTime.h"
+#include "Debug/B3DDebug.h"
+#include "Debug/B3DLog.h"
+#include "Error/B3DException.h"
+#include "Debug/B3DBitmapWriter.h"
+#include "FileSystem/B3DFileSystem.h"
+#include "FileSystem/B3DDataStream.h"
+#include "Utility/B3DTime.h"
 
 #if B3D_IS_ENGINE
-#	include "BsEngineConfig.h"
+#	include "B3DEngineConfig.h"
 #endif
 
 #if B3D_PLATFORM == B3D_PLATFORM_ID_WIN32 && B3D_COMPILER == B3D_COMPILER_ID_MSVC

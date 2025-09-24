@@ -2,11 +2,11 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsScriptEnginePrerequisites.h"
-#include "BsScriptReflectableWrapper.h"
-#include "BsScriptImportOptions.generated.h"
-#include "../../../Foundation/bsfCore/Importer/BsShaderImportOptions.h"
-#include "../../../Foundation/bsfCore/Material/BsShaderCompiler.h"
+#include "B3DScriptEnginePrerequisites.h"
+#include "B3DScriptReflectableWrapper.h"
+#include "B3DScriptImportOptions.generated.h"
+#include "../../../Foundation/Core/Importer/B3DShaderImportOptions.h"
+#include "../../../Foundation/Core/Material/B3DShaderCompiler.h"
 
 namespace b3d { class ShaderImportOptions; }
 namespace b3d

@@ -1,12 +1,12 @@
 //************************************ B3D Framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "Components/BsLight.h"
+#include "Components/B3DLight.h"
 
-#include "CoreObject/BsCoreObjectSync.h"
-#include "Image/BsColor.h"
-#include "Private/RTTI/BsLightRTTI.h"
-#include "Renderer/BsRendererScene.h"
-#include "Scene/BsSceneInstance.h"
+#include "CoreObject/B3DCoreObjectSync.h"
+#include "Image/B3DColor.h"
+#include "Private/RTTI/B3DLightRTTI.h"
+#include "Renderer/B3DRendererScene.h"
+#include "Scene/B3DSceneInstance.h"
 
 using namespace b3d;
 

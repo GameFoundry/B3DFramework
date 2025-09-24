@@ -2,12 +2,12 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsScriptEnginePrerequisites.h"
-#include "Reflection/BsRTTIType.h"
-#include "Serialization/BsScriptAssemblyManager.h"
-#include "Serialization/BsManagedSerializableObject.h"
-#include "Serialization/BsManagedSerializableField.h"
-#include "Serialization/BsManagedDelta.h"
+#include "B3DScriptEnginePrerequisites.h"
+#include "Reflection/B3DRTTIType.h"
+#include "Serialization/B3DScriptAssemblyManager.h"
+#include "Serialization/B3DManagedSerializableObject.h"
+#include "Serialization/B3DManagedSerializableField.h"
+#include "Serialization/B3DManagedDelta.h"
 
 namespace b3d
 {

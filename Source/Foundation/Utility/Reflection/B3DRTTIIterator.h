@@ -2,8 +2,8 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "Debug/BsDebug.h"
-#include "BsUtilityPrerequisites.h"
+#include "Debug/B3DDebug.h"
+#include "B3DUtilityPrerequisites.h"
 
 namespace b3d
 {

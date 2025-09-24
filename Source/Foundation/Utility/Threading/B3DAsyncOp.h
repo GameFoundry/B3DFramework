@@ -2,10 +2,10 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsUtilityPrerequisites.h"
-#include "BsSignal.h"
-#include "BsWaitGroup.h"
-#include "Utility/BsAny.h"
+#include "B3DUtilityPrerequisites.h"
+#include "B3DSignal.h"
+#include "B3DWaitGroup.h"
+#include "Utility/B3DAny.h"
 
 namespace b3d
 {

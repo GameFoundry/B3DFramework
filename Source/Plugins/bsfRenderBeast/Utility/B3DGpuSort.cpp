@@ -1,9 +1,9 @@
 //************************************ B3D Framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "Utility/BsGpuSort.h"
-#include "Math/BsRandom.h"
-#include "RenderAPI/BsGpuCommandBuffer.h"
-#include "Renderer/BsRendererUtility.h"
+#include "Utility/B3DGpuSort.h"
+#include "Math/B3DRandom.h"
+#include "RenderAPI/B3DGpuCommandBuffer.h"
+#include "Renderer/B3DRendererUtility.h"
 
 namespace b3d {
 namespace render {

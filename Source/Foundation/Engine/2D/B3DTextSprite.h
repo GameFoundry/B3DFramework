@@ -2,12 +2,12 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsPrerequisites.h"
-#include "2D/BsSprite.h"
-#include "Text/BsTextGeometry.h"
-#include "Image/BsColor.h"
-#include "Math/BsVector2.h"
-#include "Allocators/BsStaticAlloc.h"
+#include "B3DPrerequisites.h"
+#include "2D/B3DSprite.h"
+#include "Text/B3DTextGeometry.h"
+#include "Image/B3DColor.h"
+#include "Math/B3DVector2.h"
+#include "Allocators/B3DStaticAlloc.h"
 
 namespace b3d
 {

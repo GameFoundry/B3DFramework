@@ -2,13 +2,13 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsCorePrerequisites.h"
-#include "Utility/BsModule.h"
-#include "CoreObject/BsRenderThread.h"
-#include "Math/BsConvexVolume.h"
-#include "RenderAPI/BsVertexDescription.h"
-#include "Threading/BsWaitGroup.h"
-#include "Math/BsMatrix4.h"
+#include "B3DCorePrerequisites.h"
+#include "Utility/B3DModule.h"
+#include "CoreObject/B3DRenderThread.h"
+#include "Math/B3DConvexVolume.h"
+#include "RenderAPI/B3DVertexDescription.h"
+#include "Threading/B3DWaitGroup.h"
+#include "Math/B3DMatrix4.h"
 
 namespace b3d
 {

@@ -2,10 +2,10 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsCorePrerequisites.h"
-#include "Image/BsColor.h"
-#include "Reflection/BsIReflectable.h"
-#include "CoreObject/BsCoreObject.h"
+#include "B3DCorePrerequisites.h"
+#include "Image/B3DColor.h"
+#include "Reflection/B3DIReflectable.h"
+#include "CoreObject/B3DCoreObject.h"
 
 namespace b3d
 {

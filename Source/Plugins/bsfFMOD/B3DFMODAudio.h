@@ -2,8 +2,8 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsFMODPrerequisites.h"
-#include "Audio/BsAudio.h"
+#include "B3DFMODPrerequisites.h"
+#include "Audio/B3DAudio.h"
 #include "fmod.hpp"
 
 namespace b3d

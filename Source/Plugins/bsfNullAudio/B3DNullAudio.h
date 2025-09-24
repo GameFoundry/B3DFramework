@@ -2,11 +2,11 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsNullAudioPrerequisites.h"
-#include "Audio/BsAudio.h"
-#include "Audio/BsAudioClip.h"
-#include "Audio/BsAudioListener.h"
-#include "Audio/BsAudioSource.h"
+#include "B3DNullAudioPrerequisites.h"
+#include "Audio/B3DAudio.h"
+#include "Audio/B3DAudioClip.h"
+#include "Audio/B3DAudioListener.h"
+#include "Audio/B3DAudioSource.h"
 
 namespace b3d
 {

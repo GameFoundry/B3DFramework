@@ -2,12 +2,12 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsScriptEnginePrerequisites.h"
-#include "../../../Foundation/bsfUtility/Math/BsRandom.h"
-#include "BsScriptNonReflectableWrapper.h"
-#include "../../../Foundation/bsfUtility/Math/BsVector3.h"
-#include "../../../Foundation/bsfUtility/Math/BsVector2.h"
-#include "Math/BsDegree.h"
+#include "B3DScriptEnginePrerequisites.h"
+#include "../../../Foundation/Utility/Math/B3DRandom.h"
+#include "B3DScriptNonReflectableWrapper.h"
+#include "../../../Foundation/Utility/Math/B3DVector3.h"
+#include "../../../Foundation/Utility/Math/B3DVector2.h"
+#include "Math/B3DDegree.h"
 
 namespace b3d
 {

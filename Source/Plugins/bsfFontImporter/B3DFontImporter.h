@@ -2,9 +2,9 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsFontPrerequisites.h"
-#include "Importer/BsSpecificImporter.h"
-#include "Importer/BsImporter.h"
+#include "B3DFontPrerequisites.h"
+#include "Importer/B3DSpecificImporter.h"
+#include "Importer/B3DImporter.h"
 
 namespace b3d
 {

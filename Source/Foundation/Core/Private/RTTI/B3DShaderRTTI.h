@@ -2,17 +2,17 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsCorePrerequisites.h"
-#include "Reflection/BsRTTIType.h"
-#include "RTTI/BsStringIDRTTI.h"
-#include "RTTI/BsStringRTTI.h"
-#include "RTTI/BsStdRTTI.h"
-#include "RTTI/BsTArrayRTTI.h"
-#include "RTTI/BsFlagsRTTI.h"
-#include "Material/BsShader.h"
-#include "Material/BsMaterial.h"
-#include "Private/RTTI/BsShaderCompilerRTTI.h"
-#include "Private/RTTI/BsSamplerStateRTTI.h"
+#include "B3DCorePrerequisites.h"
+#include "Reflection/B3DRTTIType.h"
+#include "RTTI/B3DStringIDRTTI.h"
+#include "RTTI/B3DStringRTTI.h"
+#include "RTTI/B3DStdRTTI.h"
+#include "RTTI/B3DTArrayRTTI.h"
+#include "RTTI/B3DFlagsRTTI.h"
+#include "Material/B3DShader.h"
+#include "Material/B3DMaterial.h"
+#include "Private/RTTI/B3DShaderCompilerRTTI.h"
+#include "Private/RTTI/B3DSamplerStateRTTI.h"
 
 namespace b3d
 {

@@ -1,13 +1,13 @@
 //************************************ B3D Framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "Input/BsInput.h"
-#include "Input/BsMouse.h"
-#include "Input/BsKeyboard.h"
-#include "Input/BsGamepad.h"
-#include "Utility/BsTime.h"
-#include "Math/BsMath.h"
-#include "Managers/BsRenderWindowManager.h"
-#include "BsCoreApplication.h"
+#include "Input/B3DInput.h"
+#include "Input/B3DMouse.h"
+#include "Input/B3DKeyboard.h"
+#include "Input/B3DGamepad.h"
+#include "Utility/B3DTime.h"
+#include "Math/B3DMath.h"
+#include "Managers/B3DRenderWindowManager.h"
+#include "B3DCoreApplication.h"
 
 using namespace std::placeholders;
 

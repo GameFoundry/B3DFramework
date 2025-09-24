@@ -24,9 +24,9 @@
 #include <thread>
 #endif
 
-#include "Threading/BsThread.h"
-#include "Debug/BsDebug.h"
-#include "Utility/BsScopeGuard.h"
+#include "Threading/B3DThread.h"
+#include "Debug/B3DDebug.h"
+#include "Utility/B3DScopeGuard.h"
 
 using namespace b3d;
 

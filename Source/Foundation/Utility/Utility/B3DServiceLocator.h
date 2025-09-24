@@ -2,8 +2,8 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsUtilityPrerequisites.h"
-#include "Error/BsException.h"
+#include "B3DUtilityPrerequisites.h"
+#include "Error/B3DException.h"
 
 #include <atomic>
 

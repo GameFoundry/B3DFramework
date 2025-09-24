@@ -2,12 +2,12 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsCorePrerequisites.h"
-#include "Animation/BsAnimationScene.h"
-#include "CoreObject/BsCoreObject.h"
-#include "Utility/BsModule.h"
-#include "Scene/BsGameObject.h"
-#include "Utility/BsTime.h"
+#include "B3DCorePrerequisites.h"
+#include "Animation/B3DAnimationScene.h"
+#include "CoreObject/B3DCoreObject.h"
+#include "Utility/B3DModule.h"
+#include "Scene/B3DGameObject.h"
+#include "Utility/B3DTime.h"
 
 namespace b3d
 {

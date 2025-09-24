@@ -1,16 +1,16 @@
 //************************************ B3D Framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "Text/BsFont.h"
-#include "Resources/BsResources.h"
-#include "Image/BsTextureAtlasLayout.h"
-#include "Private/RTTI/BsFontRTTI.h"
-#include "BsCoreApplication.h"
-#include "FileSystem/BsDataStream.h"
-#include "RenderAPI/BsGpuCommandBuffer.h"
-#include "RenderAPI/BsGpuDevice.h"
-#include "Renderer/BsRenderer.h"
-#include "Renderer/BsRendererManager.h"
-#include "RenderAPI/BsGpuCommandBuffer.h"
+#include "Text/B3DFont.h"
+#include "Resources/B3DResources.h"
+#include "Image/B3DTextureAtlasLayout.h"
+#include "Private/RTTI/B3DFontRTTI.h"
+#include "B3DCoreApplication.h"
+#include "FileSystem/B3DDataStream.h"
+#include "RenderAPI/B3DGpuCommandBuffer.h"
+#include "RenderAPI/B3DGpuDevice.h"
+#include "Renderer/B3DRenderer.h"
+#include "Renderer/B3DRendererManager.h"
+#include "RenderAPI/B3DGpuCommandBuffer.h"
 
 #define USE_FREETYPE2_STATIC
 #include <ft2build.h>

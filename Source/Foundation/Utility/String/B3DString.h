@@ -2,7 +2,7 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "Allocators/BsMemoryAllocator.h"
+#include "Allocators/B3DMemoryAllocator.h"
 #include <string>
 
 namespace b3d
@@ -393,7 +393,7 @@ namespace b3d
 	/** @} */
 } // namespace b3d
 
-#include "String/BsStringFormat.h"
+#include "String/B3DStringFormat.h"
 
 namespace b3d
 {

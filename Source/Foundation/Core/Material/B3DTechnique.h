@@ -2,11 +2,11 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsCorePrerequisites.h"
-#include "Reflection/BsIReflectable.h"
-#include "CoreObject/BsCoreObject.h"
-#include "Material/BsShaderVariation.h"
-#include "String/BsStringID.h"
+#include "B3DCorePrerequisites.h"
+#include "Reflection/B3DIReflectable.h"
+#include "CoreObject/B3DCoreObject.h"
+#include "Material/B3DShaderVariation.h"
+#include "String/B3DStringID.h"
 
 namespace b3d
 {

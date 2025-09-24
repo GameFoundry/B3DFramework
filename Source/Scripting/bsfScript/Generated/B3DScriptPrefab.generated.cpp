@@ -1,15 +1,15 @@
 //********************************* B3D Framework - Copyright 2018-2022 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "BsScriptPrefab.generated.h"
-#include "BsMonoMethod.h"
-#include "BsMonoClass.h"
-#include "BsMonoUtil.h"
-#include "../../../Foundation/bsfCore/Scene/BsPrefab.h"
-#include "BsScriptResourceManager.h"
-#include "Wrappers/BsScriptRRefBase.h"
-#include "BsScriptSceneInstance.generated.h"
-#include "Wrappers/BsScriptSceneObject.h"
-#include "../../../Foundation/bsfCore/Scene/BsPrefab.h"
+#include "B3DScriptPrefab.generated.h"
+#include "B3DMonoMethod.h"
+#include "B3DMonoClass.h"
+#include "B3DMonoUtil.h"
+#include "../../../Foundation/Core/Scene/B3DPrefab.h"
+#include "B3DScriptResourceManager.h"
+#include "Wrappers/B3DScriptRRefBase.h"
+#include "B3DScriptSceneInstance.generated.h"
+#include "Wrappers/B3DScriptSceneObject.h"
+#include "../../../Foundation/Core/Scene/B3DPrefab.h"
 
 namespace b3d
 {

@@ -1,10 +1,10 @@
 //************************************ B3D Framework - Copyright 2023 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "RenderAPI/BsGpuBuffer.h"
-#include "BsCoreApplication.h"
-#include "BsGpuDevice.h"
-#include "BsGpuDeviceCapabilities.h"
-#include "CoreObject/BsCoreObjectSync.h"
+#include "RenderAPI/B3DGpuBuffer.h"
+#include "B3DCoreApplication.h"
+#include "B3DGpuDevice.h"
+#include "B3DGpuDeviceCapabilities.h"
+#include "CoreObject/B3DCoreObjectSync.h"
 
 using namespace b3d;
 

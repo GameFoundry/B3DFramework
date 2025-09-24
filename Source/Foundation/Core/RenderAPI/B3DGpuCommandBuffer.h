@@ -2,10 +2,10 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsCorePrerequisites.h"
-#include "Image/BsColor.h"
-#include "Math/BsArea2.h"
-#include "Threading/BsSingleConsumerQueue.h"
+#include "B3DCorePrerequisites.h"
+#include "Image/B3DColor.h"
+#include "Math/B3DArea2.h"
+#include "Threading/B3DSingleConsumerQueue.h"
 
 namespace b3d
 {

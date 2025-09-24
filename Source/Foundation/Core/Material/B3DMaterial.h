@@ -2,18 +2,18 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsCorePrerequisites.h"
-#include "Resources/BsResource.h"
-#include "Resources/BsIResourceListener.h"
-#include "Material/BsMaterialParam.h"
-#include "Material/BsMaterialParams.h"
-#include "Material/BsTechnique.h"
-#include "Animation/BsAnimationCurve.h"
-#include "Math/BsVector2.h"
-#include "Math/BsVector3.h"
-#include "Math/BsVector4.h"
-#include "Math/BsMatrix3.h"
-#include "Math/BsMatrix4.h"
+#include "B3DCorePrerequisites.h"
+#include "Resources/B3DResource.h"
+#include "Resources/B3DIResourceListener.h"
+#include "Material/B3DMaterialParam.h"
+#include "Material/B3DMaterialParams.h"
+#include "Material/B3DTechnique.h"
+#include "Animation/B3DAnimationCurve.h"
+#include "Math/B3DVector2.h"
+#include "Math/B3DVector3.h"
+#include "Math/B3DVector4.h"
+#include "Math/B3DMatrix3.h"
+#include "Math/B3DMatrix4.h"
 
 namespace b3d
 {

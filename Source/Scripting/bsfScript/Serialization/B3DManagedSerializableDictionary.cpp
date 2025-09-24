@@ -1,14 +1,14 @@
 //********************************* B3D Framework - Copyright 2018-2019 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "Serialization/BsManagedSerializableDictionary.h"
-#include "RTTI/BsManagedSerializableDictionaryRTTI.h"
-#include "BsMonoManager.h"
-#include "Serialization/BsScriptAssemblyManager.h"
-#include "Serialization/BsManagedSerializableField.h"
-#include "BsMonoClass.h"
-#include "BsMonoMethod.h"
-#include "BsMonoProperty.h"
-#include "BsMonoUtil.h"
+#include "Serialization/B3DManagedSerializableDictionary.h"
+#include "RTTI/B3DManagedSerializableDictionaryRTTI.h"
+#include "B3DMonoManager.h"
+#include "Serialization/B3DScriptAssemblyManager.h"
+#include "Serialization/B3DManagedSerializableField.h"
+#include "B3DMonoClass.h"
+#include "B3DMonoMethod.h"
+#include "B3DMonoProperty.h"
+#include "B3DMonoUtil.h"
 
 using namespace b3d;
 ManagedSerializableDictionaryKeyValue::ManagedSerializableDictionaryKeyValue(const SPtr<ManagedSerializableFieldData>& key, const SPtr<ManagedSerializableFieldData>& value)

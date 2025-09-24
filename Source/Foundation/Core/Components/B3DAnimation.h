@@ -2,11 +2,11 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsCorePrerequisites.h"
-#include "Animation/BsSkeleton.h"
-#include "Animation/BsSkeletonMask.h"
-#include "Resources/BsIResourceListener.h"
-#include "Scene/BsComponent.h"
+#include "B3DCorePrerequisites.h"
+#include "Animation/B3DSkeleton.h"
+#include "Animation/B3DSkeletonMask.h"
+#include "Resources/B3DIResourceListener.h"
+#include "Scene/B3DComponent.h"
 
 namespace b3d
 {

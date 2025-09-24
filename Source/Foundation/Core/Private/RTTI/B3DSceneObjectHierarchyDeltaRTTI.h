@@ -2,17 +2,17 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsCorePrerequisites.h"
-#include "Reflection/BsRTTIType.h"
-#include "RTTI/BsStringRTTI.h"
-#include "RTTI/BsUUIDRTTI.h"
-#include "RTTI/BsMathRTTI.h"
-#include "RTTI/BsFlagsRTTI.h"
-#include "Scene/BsSceneObjectHierarchyDelta.h"
-#include "Serialization/BsSerializedObject.h"
-#include "Scene/BsGameObjectManager.h"
-#include "Serialization/BsBinarySerializer.h"
-#include "Utility/BsUtility.h"
+#include "B3DCorePrerequisites.h"
+#include "Reflection/B3DRTTIType.h"
+#include "RTTI/B3DStringRTTI.h"
+#include "RTTI/B3DUUIDRTTI.h"
+#include "RTTI/B3DMathRTTI.h"
+#include "RTTI/B3DFlagsRTTI.h"
+#include "Scene/B3DSceneObjectHierarchyDelta.h"
+#include "Serialization/B3DSerializedObject.h"
+#include "Scene/B3DGameObjectManager.h"
+#include "Serialization/B3DBinarySerializer.h"
+#include "Utility/B3DUtility.h"
 
 namespace b3d
 {

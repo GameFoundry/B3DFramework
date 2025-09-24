@@ -2,7 +2,7 @@
 #define yyHEADER_H 1
 #define yyIN_HEADER 1
 
-#line 6 "BsLexerFX.h"
+#line 6 "B3DLexerFX.h"
 
 #define  YY_INT_ALIGNED short int
 
@@ -353,6 +353,6 @@ extern int yylex \
 #undef YY_DECL
 #endif
 
-#line 357 "BsLexerFX.h"
+#line 357 "B3DLexerFX.h"
 #undef yyIN_HEADER
 #endif /* yyHEADER_H */

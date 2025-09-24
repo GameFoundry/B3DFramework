@@ -1,7 +1,7 @@
 # Runtime executable
 if(NOT B3D_IS_ENGINE)
 	# Target for running framework scripting assemblies
-	add_executable(bsfSharp WIN32 BsScriptExec.cpp BsScriptWin32Resource.rc)
+	add_executable(bsfSharp WIN32 B3DScriptExec.cpp BsScriptWin32Resource.rc)
 	target_link_libraries(bsfSharp bsfScript bsfMono bsf)
 	
 	set_property(TARGET bsfSharp PROPERTY FOLDER Script)

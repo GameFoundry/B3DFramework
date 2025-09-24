@@ -1,13 +1,13 @@
 //************************************ B3D Framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "Profiling/BsProfilerGPU.h"
+#include "Profiling/B3DProfilerGPU.h"
 
-#include "BsCoreApplication.h"
-#include "Profiling/BsRenderStats.h"
-#include "RenderAPI/BsTimerQuery.h"
-#include "RenderAPI/BsOcclusionQuery.h"
-#include "Error/BsException.h"
-#include "RenderAPI/BsGpuDevice.h"
+#include "B3DCoreApplication.h"
+#include "Profiling/B3DRenderStats.h"
+#include "RenderAPI/B3DTimerQuery.h"
+#include "RenderAPI/B3DOcclusionQuery.h"
+#include "Error/B3DException.h"
+#include "RenderAPI/B3DGpuDevice.h"
 
 using namespace b3d;
 

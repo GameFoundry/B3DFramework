@@ -3,10 +3,10 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsUtilityPrerequisites.h"
-#include "Utility/BsBitstream.h"
-#include "FileSystem/BsDataStream.h"
-#include "Error/BsException.h"
+#include "B3DUtilityPrerequisites.h"
+#include "Utility/B3DBitstream.h"
+#include "FileSystem/B3DDataStream.h"
+#include "Error/B3DException.h"
 
 namespace b3d
 {

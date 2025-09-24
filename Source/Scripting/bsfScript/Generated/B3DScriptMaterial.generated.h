@@ -2,17 +2,17 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsScriptEnginePrerequisites.h"
-#include "BsScriptResourceWrapper.h"
-#include "../../../Foundation/bsfUtility/Image/BsColor.h"
-#include "../../../Foundation/bsfCore/Material/BsShaderVariation.h"
-#include "../../../Foundation/bsfUtility/Image/BsColorGradient.h"
-#include "../../../Foundation/bsfCore/Animation/BsAnimationCurve.h"
-#include "../../../Foundation/bsfUtility/Math/BsVector2.h"
-#include "../../../Foundation/bsfUtility/Math/BsVector3.h"
-#include "../../../Foundation/bsfUtility/Math/BsVector4.h"
-#include "Math/BsMatrix3.h"
-#include "Math/BsMatrix4.h"
+#include "B3DScriptEnginePrerequisites.h"
+#include "B3DScriptResourceWrapper.h"
+#include "../../../Foundation/Utility/Image/B3DColor.h"
+#include "../../../Foundation/Core/Material/B3DShaderVariation.h"
+#include "../../../Foundation/Utility/Image/B3DColorGradient.h"
+#include "../../../Foundation/Core/Animation/B3DAnimationCurve.h"
+#include "../../../Foundation/Utility/Math/B3DVector2.h"
+#include "../../../Foundation/Utility/Math/B3DVector3.h"
+#include "../../../Foundation/Utility/Math/B3DVector4.h"
+#include "Math/B3DMatrix3.h"
+#include "Math/B3DMatrix4.h"
 
 namespace b3d { class Material; }
 namespace b3d { class MaterialEx; }

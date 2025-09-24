@@ -2,13 +2,13 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsPrerequisites.h"
-#include "GUI/BsGUISizeConstraints.h"
-#include "GUI/BsGUILayoutData.h"
-#include "Math/BsArea2.h"
-#include "Utility/BsRectOffset.h"
-#include "Utility/BsSpatialTree.h"
-#include "BsGUIUnits.h"
+#include "B3DPrerequisites.h"
+#include "GUI/B3DGUISizeConstraints.h"
+#include "GUI/B3DGUILayoutData.h"
+#include "Math/B3DArea2.h"
+#include "Utility/B3DRectOffset.h"
+#include "Utility/B3DSpatialTree.h"
+#include "B3DGUIUnits.h"
 
 namespace b3d
 {

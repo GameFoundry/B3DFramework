@@ -2,9 +2,9 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsScriptEnginePrerequisites.h"
-#include "Reflection/BsIReflectable.h"
-#include "BsMonoArray.h"
+#include "B3DScriptEnginePrerequisites.h"
+#include "Reflection/B3DIReflectable.h"
+#include "B3DMonoArray.h"
 
 namespace b3d
 {

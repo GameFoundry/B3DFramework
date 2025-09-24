@@ -2,9 +2,9 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsCorePrerequisites.h"
-#include "Material/BsShader.h"
-#include "RenderAPI/BsGpuProgram.h"
+#include "B3DCorePrerequisites.h"
+#include "Material/B3DShader.h"
+#include "RenderAPI/B3DGpuProgram.h"
 
 namespace b3d
 {

@@ -2,12 +2,12 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsScriptEnginePrerequisites.h"
-#include "BsScriptReflectableWrapper.h"
-#include "BsScriptImportOptions.generated.h"
-#include "../../../Foundation/bsfCore/Audio/BsAudioClipImportOptions.h"
-#include "../../../Foundation/bsfCore/Audio/BsAudioClip.h"
-#include "../../../Foundation/bsfCore/Audio/BsAudioClip.h"
+#include "B3DScriptEnginePrerequisites.h"
+#include "B3DScriptReflectableWrapper.h"
+#include "B3DScriptImportOptions.generated.h"
+#include "../../../Foundation/Core/Audio/B3DAudioClipImportOptions.h"
+#include "../../../Foundation/Core/Audio/B3DAudioClip.h"
+#include "../../../Foundation/Core/Audio/B3DAudioClip.h"
 
 namespace b3d { class AudioClipImportOptions; }
 namespace b3d

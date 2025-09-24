@@ -1,9 +1,9 @@
 //********************************* B3D Framework - Copyright 2018-2022 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "BsScriptShaderVariationParameters.generated.h"
-#include "BsMonoMethod.h"
-#include "BsMonoClass.h"
-#include "BsMonoUtil.h"
+#include "B3DScriptShaderVariationParameters.generated.h"
+#include "B3DMonoMethod.h"
+#include "B3DMonoClass.h"
+#include "B3DMonoUtil.h"
 
 namespace b3d
 {
@@ -21,18 +21,18 @@ namespace b3d
 	void ScriptShaderVariationParameters::SetupScriptBindings()
 	{
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_ShaderVariationParameters", (void*)&ScriptShaderVariationParameters::InternalShaderVariationParameters);
-		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetInt", (void*)&ScriptShaderVariationParameters::InternalGetInt);
-		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetUInt", (void*)&ScriptShaderVariationParameters::InternalGetUInt);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetI32", (void*)&ScriptShaderVariationParameters::InternalGetI32);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetUI32", (void*)&ScriptShaderVariationParameters::InternalGetUI32);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetFloat", (void*)&ScriptShaderVariationParameters::InternalGetFloat);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetBool", (void*)&ScriptShaderVariationParameters::InternalGetBool);
-		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetInt", (void*)&ScriptShaderVariationParameters::InternalSetInt);
-		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetUInt", (void*)&ScriptShaderVariationParameters::InternalSetUInt);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetI32", (void*)&ScriptShaderVariationParameters::InternalSetI32);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetU32", (void*)&ScriptShaderVariationParameters::InternalSetU32);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetFloat", (void*)&ScriptShaderVariationParameters::InternalSetFloat);
 		sInteropMetaData.ScriptClass->AddInternalCall("Internal_SetBool", (void*)&ScriptShaderVariationParameters::InternalSetBool);
-		sInteropMetaData.ScriptClass->AddInternalCall("Internal_RemoveParam", (void*)&ScriptShaderVariationParameters::InternalRemoveParam);
-		sInteropMetaData.ScriptClass->AddInternalCall("Internal_HasParam", (void*)&ScriptShaderVariationParameters::InternalHasParam);
-		sInteropMetaData.ScriptClass->AddInternalCall("Internal_ClearParams", (void*)&ScriptShaderVariationParameters::InternalClearParams);
-		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetParamNames", (void*)&ScriptShaderVariationParameters::InternalGetParamNames);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_RemoveParameter", (void*)&ScriptShaderVariationParameters::InternalRemoveParameter);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_HasParameter", (void*)&ScriptShaderVariationParameters::InternalHasParameter);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_ClearParameters", (void*)&ScriptShaderVariationParameters::InternalClearParameters);
+		sInteropMetaData.ScriptClass->AddInternalCall("Internal_GetParameters", (void*)&ScriptShaderVariationParameters::InternalGetParameters);
 
 	}
 
@@ -52,7 +52,7 @@ namespace b3d
 		ScriptObjectWrapper::Create<ScriptShaderVariationParameters>(nativeObject, scriptObject);
 	}
 
-	int32_t ScriptShaderVariationParameters::InternalGetInt(ScriptShaderVariationParameters* self, MonoString* name)
+	int32_t ScriptShaderVariationParameters::InternalGetI32(ScriptShaderVariationParameters* self, MonoString* name)
 	{
 		int32_t tmp__output;
 		if(!self->IsNativeObjectValid())
@@ -68,7 +68,7 @@ namespace b3d
 		return __output;
 	}
 
-	uint32_t ScriptShaderVariationParameters::InternalGetUInt(ScriptShaderVariationParameters* self, MonoString* name)
+	uint32_t ScriptShaderVariationParameters::InternalGetUI32(ScriptShaderVariationParameters* self, MonoString* name)
 	{
 		uint32_t tmp__output;
 		if(!self->IsNativeObjectValid())
@@ -116,7 +116,7 @@ namespace b3d
 		return __output;
 	}
 
-	void ScriptShaderVariationParameters::InternalSetInt(ScriptShaderVariationParameters* self, MonoString* name, int32_t value)
+	void ScriptShaderVariationParameters::InternalSetI32(ScriptShaderVariationParameters* self, MonoString* name, int32_t value)
 	{
 		if(!self->IsNativeObjectValid())
 			return;
@@ -126,7 +126,7 @@ namespace b3d
 		static_cast<ShaderVariationParameters*>(self->GetNativeObject())->SetI32(tmpname, value);
 	}
 
-	void ScriptShaderVariationParameters::InternalSetUInt(ScriptShaderVariationParameters* self, MonoString* name, uint32_t value)
+	void ScriptShaderVariationParameters::InternalSetU32(ScriptShaderVariationParameters* self, MonoString* name, uint32_t value)
 	{
 		if(!self->IsNativeObjectValid())
 			return;
@@ -156,17 +156,17 @@ namespace b3d
 		static_cast<ShaderVariationParameters*>(self->GetNativeObject())->SetBool(tmpname, value);
 	}
 
-	void ScriptShaderVariationParameters::InternalRemoveParam(ScriptShaderVariationParameters* self, MonoString* paramName)
+	void ScriptShaderVariationParameters::InternalRemoveParameter(ScriptShaderVariationParameters* self, MonoString* parameter)
 	{
 		if(!self->IsNativeObjectValid())
 			return;
 
-		String tmpparamName;
-		tmpparamName = MonoUtil::MonoToString(paramName);
-		static_cast<ShaderVariationParameters*>(self->GetNativeObject())->RemoveParameter(tmpparamName);
+		String tmpparameter;
+		tmpparameter = MonoUtil::MonoToString(parameter);
+		static_cast<ShaderVariationParameters*>(self->GetNativeObject())->RemoveParameter(tmpparameter);
 	}
 
-	bool ScriptShaderVariationParameters::InternalHasParam(ScriptShaderVariationParameters* self, MonoString* paramName)
+	bool ScriptShaderVariationParameters::InternalHasParameter(ScriptShaderVariationParameters* self, MonoString* paramName)
 	{
 		bool tmp__output;
 		if(!self->IsNativeObjectValid())
@@ -182,7 +182,7 @@ namespace b3d
 		return __output;
 	}
 
-	void ScriptShaderVariationParameters::InternalClearParams(ScriptShaderVariationParameters* self)
+	void ScriptShaderVariationParameters::InternalClearParameters(ScriptShaderVariationParameters* self)
 	{
 		if(!self->IsNativeObjectValid())
 			return;
@@ -190,7 +190,7 @@ namespace b3d
 		static_cast<ShaderVariationParameters*>(self->GetNativeObject())->ClearParameters();
 	}
 
-	MonoArray* ScriptShaderVariationParameters::InternalGetParamNames(ScriptShaderVariationParameters* self)
+	MonoArray* ScriptShaderVariationParameters::InternalGetParameters(ScriptShaderVariationParameters* self)
 	{
 		Vector<String> nativeArray__output;
 		if(!self->IsNativeObjectValid())

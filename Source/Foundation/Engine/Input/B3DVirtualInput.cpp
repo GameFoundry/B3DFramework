@@ -1,9 +1,9 @@
 //************************************ B3D Framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "Input/BsVirtualInput.h"
-#include "Input/BsInput.h"
-#include "Math/BsMath.h"
-#include "Utility/BsTime.h"
+#include "Input/B3DVirtualInput.h"
+#include "Input/B3DInput.h"
+#include "Math/B3DMath.h"
+#include "Utility/B3DTime.h"
 
 using namespace std::placeholders;
 

@@ -2,11 +2,11 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "Allocators/BsMemoryAllocator.h"
-#include "Prerequisites/BsFwdDeclUtil.h" // For TIDs
-#include "Prerequisites/BsTypes.h" // For u32
-#include "Utility/BsBitstream.h"
-#include "Utility/BsBitLength.h"
+#include "Allocators/B3DMemoryAllocator.h"
+#include "Prerequisites/B3DFwdDeclUtil.h" // For TIDs
+#include "Prerequisites/B3DTypes.h" // For u32
+#include "Utility/B3DBitstream.h"
+#include "Utility/B3DBitLength.h"
 
 #include <limits>
 #include <type_traits> // For std::is_pod

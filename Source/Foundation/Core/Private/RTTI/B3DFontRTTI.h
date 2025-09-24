@@ -2,12 +2,12 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsCorePrerequisites.h"
-#include "Reflection/BsRTTIType.h"
-#include "RTTI/BsStdRTTI.h"
-#include "Text/BsFont.h"
-#include "Image/BsTexture.h"
-#include "FileSystem/BsDataStream.h"
+#include "B3DCorePrerequisites.h"
+#include "Reflection/B3DRTTIType.h"
+#include "RTTI/B3DStdRTTI.h"
+#include "Text/B3DFont.h"
+#include "Image/B3DTexture.h"
+#include "FileSystem/B3DDataStream.h"
 
 namespace b3d
 {

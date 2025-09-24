@@ -2,12 +2,12 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsCorePrerequisites.h"
-#include "Reflection/BsIReflectable.h"
-#include "Allocators/BsStaticAlloc.h"
-#include "Math/BsVector2.h"
-#include "RenderAPI/BsGpuParameters.h"
-#include "Allocators/BsPoolAlloc.h"
+#include "B3DCorePrerequisites.h"
+#include "Reflection/B3DIReflectable.h"
+#include "Allocators/B3DStaticAlloc.h"
+#include "Math/B3DVector2.h"
+#include "RenderAPI/B3DGpuParameters.h"
+#include "Allocators/B3DPoolAlloc.h"
 
 namespace b3d
 {

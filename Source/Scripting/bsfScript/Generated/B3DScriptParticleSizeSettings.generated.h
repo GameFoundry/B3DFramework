@@ -2,11 +2,11 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsScriptEnginePrerequisites.h"
-#include "BsScriptObjectWrapper.h"
-#include "../../../Foundation/bsfCore/Particles/BsParticleEvolver.h"
-#include "../../../Foundation/bsfCore/Particles/BsParticleDistribution.h"
-#include "../../../Foundation/bsfCore/Particles/BsParticleDistribution.h"
+#include "B3DScriptEnginePrerequisites.h"
+#include "B3DScriptObjectWrapper.h"
+#include "../../../Foundation/Core/Particles/B3DParticleEvolver.h"
+#include "../../../Foundation/Core/Particles/B3DParticleDistribution.h"
+#include "../../../Foundation/Core/Particles/B3DParticleDistribution.h"
 
 namespace b3d
 {

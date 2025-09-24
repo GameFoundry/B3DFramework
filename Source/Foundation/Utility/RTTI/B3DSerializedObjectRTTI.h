@@ -2,11 +2,11 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsUtilityPrerequisites.h"
-#include "Reflection/BsRTTIType.h"
-#include "Reflection/BsRTTIPlain.h"
-#include "Serialization/BsSerializedObject.h"
-#include "FileSystem/BsDataStream.h"
+#include "B3DUtilityPrerequisites.h"
+#include "Reflection/B3DRTTIType.h"
+#include "Reflection/B3DRTTIPlain.h"
+#include "Serialization/B3DSerializedObject.h"
+#include "FileSystem/B3DDataStream.h"
 
 namespace b3d
 {

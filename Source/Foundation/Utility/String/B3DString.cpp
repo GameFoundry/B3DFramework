@@ -3,17 +3,17 @@
 #include <codecvt>
 #include <locale>
 
-#include "BsUnicode.h"
-#include "Image/BsColor.h"
-#include "Math/BsMath.h"
-#include "Math/BsMatrix3.h"
-#include "Math/BsMatrix4.h"
-#include "Math/BsQuaternion.h"
-#include "Math/BsVector2.h"
-#include "Math/BsVector3.h"
-#include "Math/BsVector4.h"
-#include "Error/BsException.h"
-#include "Debug/BsLog.h"
+#include "B3DUnicode.h"
+#include "Image/B3DColor.h"
+#include "Math/B3DMath.h"
+#include "Math/B3DMatrix3.h"
+#include "Math/B3DMatrix4.h"
+#include "Math/B3DQuaternion.h"
+#include "Math/B3DVector2.h"
+#include "Math/B3DVector3.h"
+#include "Math/B3DVector4.h"
+#include "Error/B3DException.h"
+#include "Debug/B3DLog.h"
 
 using namespace b3d;
 

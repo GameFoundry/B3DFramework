@@ -2,13 +2,13 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsScriptEnginePrerequisites.h"
-#include "Wrappers/BsScriptComponent.h"
-#include "BsScriptJoint.generated.h"
-#include "Math/BsRadian.h"
-#include "../../../Foundation/bsfCore/Components/BsJoint.h"
-#include "../../../Foundation/bsfCore/Components/BsHingeJoint.h"
-#include "../../../Foundation/bsfCore/Components/BsHingeJoint.h"
+#include "B3DScriptEnginePrerequisites.h"
+#include "Wrappers/B3DScriptComponent.h"
+#include "B3DScriptJoint.generated.h"
+#include "Math/B3DRadian.h"
+#include "../../../Foundation/Core/Components/B3DJoint.h"
+#include "../../../Foundation/Core/Components/B3DHingeJoint.h"
+#include "../../../Foundation/Core/Components/B3DHingeJoint.h"
 
 namespace b3d { class HingeJoint; }
 namespace b3d { struct __LimitAngularRangeInterop; }

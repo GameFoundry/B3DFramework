@@ -2,13 +2,13 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsCorePrerequisites.h"
-#include "Particles/BsParticleModule.h"
-#include "Math/BsDegree.h"
-#include "Math/BsVector2.h"
-#include "Math/BsVector3.h"
-#include "Math/BsMatrix4.h"
-#include "BsParticleDistribution.h"
+#include "B3DCorePrerequisites.h"
+#include "Particles/B3DParticleModule.h"
+#include "Math/B3DDegree.h"
+#include "Math/B3DVector2.h"
+#include "Math/B3DVector3.h"
+#include "Math/B3DMatrix4.h"
+#include "B3DParticleDistribution.h"
 
 namespace b3d
 {

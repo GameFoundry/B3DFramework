@@ -1,8 +1,8 @@
 //************************************ B3D Framework - Copyright 2023 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "BsRenderDocFrameCapture.h"
-#include "Utility/BsDynamicLibraryManager.h"
-#include "Utility/BsDynamicLibrary.h"
+#include "B3DRenderDocFrameCapture.h"
+#include "Utility/B3DDynamicLibraryManager.h"
+#include "Utility/B3DDynamicLibrary.h"
 #include <RenderDoc/renderdoc_app.h>
 
 using namespace b3d;

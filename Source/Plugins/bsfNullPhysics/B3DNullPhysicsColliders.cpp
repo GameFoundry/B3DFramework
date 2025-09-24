@@ -1,7 +1,7 @@
 //************************************ B3D Framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "BsNullPhysicsColliders.h"
-#include "BsNullPhysicsRigidbody.h"
+#include "B3DNullPhysicsColliders.h"
+#include "B3DNullPhysicsRigidbody.h"
 
 using namespace b3d;
 

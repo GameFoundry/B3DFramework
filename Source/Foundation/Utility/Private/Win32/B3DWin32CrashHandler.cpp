@@ -1,16 +1,16 @@
 //************************************ B3D Framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "BsUtilityPrerequisites.h"
-#include "Debug/BsDebug.h"
-#include "Utility/BsDynamicLibrary.h"
-#include "FileSystem/BsFileSystem.h"
+#include "B3DUtilityPrerequisites.h"
+#include "Debug/B3DDebug.h"
+#include "Utility/B3DDynamicLibrary.h"
+#include "FileSystem/B3DFileSystem.h"
 #include "windows.h"
 #include <psapi.h>
 
 // Disable warning in VS2015 that's not under my control
 #pragma warning(disable : 4091)
 #include "DbgHelp.h"
-#include "String/BsUnicode.h"
+#include "String/B3DUnicode.h"
 #pragma warning(default : 4091)
 
 static const char* sMiniDumpName = "minidump.dmp";

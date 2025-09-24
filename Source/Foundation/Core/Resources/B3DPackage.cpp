@@ -1,16 +1,16 @@
 //********************************** Banshee Engine (www.banshee3d.com) **************************************************//
 //**************** Copyright (c) 2023 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
-#include "Resources/BsPackage.h"
-#include "Private/RTTI/BsPackageRTTI.h"
-#include "BsResource.h"
-#include "BsResources.h"
-#include "FileSystem/BsDataStream.h"
-#include "FileSystem/BsFileSystem.h"
-#include "Serialization/BsBinaryCloner.h"
-#include "Serialization/BsBinarySerializer.h"
-#include "Serialization/BsFileSerializer.h"
-#include "Utility/BsScopeGuard.h"
-#include "Utility/BsUtility.h"
+#include "Resources/B3DPackage.h"
+#include "Private/RTTI/B3DPackageRTTI.h"
+#include "B3DResource.h"
+#include "B3DResources.h"
+#include "FileSystem/B3DDataStream.h"
+#include "FileSystem/B3DFileSystem.h"
+#include "Serialization/B3DBinaryCloner.h"
+#include "Serialization/B3DBinarySerializer.h"
+#include "Serialization/B3DFileSerializer.h"
+#include "Utility/B3DScopeGuard.h"
+#include "Utility/B3DUtility.h"
 
 using namespace b3d;
 

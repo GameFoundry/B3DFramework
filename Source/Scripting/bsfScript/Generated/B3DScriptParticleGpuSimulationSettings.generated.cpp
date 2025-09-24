@@ -1,14 +1,14 @@
 //********************************* B3D Framework - Copyright 2018-2022 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "BsScriptParticleGpuSimulationSettings.generated.h"
-#include "BsMonoMethod.h"
-#include "BsMonoClass.h"
-#include "BsMonoUtil.h"
-#include "BsScriptParticleDepthCollisionSettings.generated.h"
-#include "BsScriptParticleVectorFieldSettings.generated.h"
-#include "BsScriptTColorDistribution.generated.h"
-#include "BsScriptTDistribution.generated.h"
-#include "BsScriptTVector3.generated.h"
+#include "B3DScriptParticleGpuSimulationSettings.generated.h"
+#include "B3DMonoMethod.h"
+#include "B3DMonoClass.h"
+#include "B3DMonoUtil.h"
+#include "B3DScriptParticleDepthCollisionSettings.generated.h"
+#include "B3DScriptParticleVectorFieldSettings.generated.h"
+#include "B3DScriptTColorDistribution.generated.h"
+#include "B3DScriptTDistribution.generated.h"
+#include "B3DScriptTVector3.generated.h"
 
 namespace b3d
 {

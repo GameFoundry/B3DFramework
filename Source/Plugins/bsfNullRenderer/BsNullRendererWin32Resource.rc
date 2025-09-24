@@ -1,4 +1,4 @@
-#include "BsFrameworkConfig.h"
+#include "B3DFrameworkConfig.h"
 
 #define APSTUDIO_READONLY_SYMBOLS
 #include "winres.h"

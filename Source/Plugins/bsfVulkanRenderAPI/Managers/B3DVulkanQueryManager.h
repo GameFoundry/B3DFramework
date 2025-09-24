@@ -2,8 +2,8 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsVulkanPrerequisites.h"
-#include "BsVulkanResource.h"
+#include "B3DVulkanPrerequisites.h"
+#include "B3DVulkanResource.h"
 
 namespace b3d
 {

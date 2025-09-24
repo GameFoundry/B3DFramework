@@ -2,10 +2,10 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsCorePrerequisites.h"
-#include "Material/BsMaterial.h"
-#include "Material/BsShader.h"
-#include "Material/BsPass.h"
+#include "B3DCorePrerequisites.h"
+#include "Material/B3DMaterial.h"
+#include "Material/B3DShader.h"
+#include "Material/B3DPass.h"
 
 namespace b3d
 {

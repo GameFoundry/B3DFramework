@@ -1,13 +1,13 @@
 //********************************* B3D Framework - Copyright 2018-2019 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "Serialization/BsManagedSerializableObject.h"
-#include "RTTI/BsManagedSerializableObjectRTTI.h"
-#include "Serialization/BsManagedTypeInfo.h"
-#include "Serialization/BsManagedSerializableField.h"
-#include "Serialization/BsScriptAssemblyManager.h"
-#include "BsMonoField.h"
-#include "BsMonoClass.h"
-#include "BsMonoUtil.h"
+#include "Serialization/B3DManagedSerializableObject.h"
+#include "RTTI/B3DManagedSerializableObjectRTTI.h"
+#include "Serialization/B3DManagedTypeInfo.h"
+#include "Serialization/B3DManagedSerializableField.h"
+#include "Serialization/B3DScriptAssemblyManager.h"
+#include "B3DMonoField.h"
+#include "B3DMonoClass.h"
+#include "B3DMonoUtil.h"
 
 using namespace b3d;
 size_t ManagedSerializableObject::Hash::operator()(const ManagedSerializableFieldKey& x) const

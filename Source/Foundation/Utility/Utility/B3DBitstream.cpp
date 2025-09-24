@@ -1,4 +1,4 @@
-#include "BsBitstream.h"
+#include "B3DBitstream.h"
 
 using namespace b3d;
 

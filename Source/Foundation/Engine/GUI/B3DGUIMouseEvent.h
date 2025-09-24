@@ -2,9 +2,9 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsPrerequisites.h"
-#include "BsDragAndDrop.h"
-#include "GUI/BsGUIUnits.h"
+#include "B3DPrerequisites.h"
+#include "B3DDragAndDrop.h"
+#include "GUI/B3DGUIUnits.h"
 
 namespace b3d
 {

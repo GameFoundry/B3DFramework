@@ -1,17 +1,17 @@
 //********************************* B3D Framework - Copyright 2018-2022 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "BsScriptManagedTypeUtility.generated.h"
-#include "BsMonoMethod.h"
-#include "BsMonoClass.h"
-#include "BsMonoUtil.h"
-#include "../BsManagedTypeUtility.h"
-#include "Reflection/BsRTTIType.h"
-#include "BsScriptManagedTypeInfo.generated.h"
-#include "BsScriptManagedTypeInfoObject.generated.h"
-#include "BsScriptManagedObjectInfo.generated.h"
-#include "BsScriptManagedTypeInfoArray.generated.h"
-#include "BsScriptManagedTypeInfoDictionary.generated.h"
-#include "BsScriptManagedTypeInfoList.generated.h"
+#include "B3DScriptManagedTypeUtility.generated.h"
+#include "B3DMonoMethod.h"
+#include "B3DMonoClass.h"
+#include "B3DMonoUtil.h"
+#include "../B3DManagedTypeUtility.h"
+#include "Reflection/B3DRTTIType.h"
+#include "B3DScriptManagedTypeInfo.generated.h"
+#include "B3DScriptManagedTypeInfoObject.generated.h"
+#include "B3DScriptManagedObjectInfo.generated.h"
+#include "B3DScriptManagedTypeInfoArray.generated.h"
+#include "B3DScriptManagedTypeInfoDictionary.generated.h"
+#include "B3DScriptManagedTypeInfoList.generated.h"
 
 namespace b3d
 {

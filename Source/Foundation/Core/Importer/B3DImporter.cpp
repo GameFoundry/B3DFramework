@@ -1,20 +1,20 @@
 //************************************ B3D Framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "Importer/BsImporter.h"
+#include "Importer/B3DImporter.h"
 
-#include "BsCoreApplication.h"
-#include "Resources/BsResource.h"
-#include "FileSystem/BsFileSystem.h"
-#include "Importer/BsSpecificImporter.h"
-#include "Importer/BsShaderIncludeImporter.h"
-#include "Importer/BsImportOptions.h"
-#include "Debug/BsDebug.h"
-#include "FileSystem/BsDataStream.h"
-#include "Error/BsException.h"
-#include "Utility/BsUUID.h"
-#include "Resources/BsResources.h"
-#include "Threading/BsSingleConsumerQueue.h"
-#include "Threading/BsThreadPool.h"
+#include "B3DCoreApplication.h"
+#include "Resources/B3DResource.h"
+#include "FileSystem/B3DFileSystem.h"
+#include "Importer/B3DSpecificImporter.h"
+#include "Importer/B3DShaderIncludeImporter.h"
+#include "Importer/B3DImportOptions.h"
+#include "Debug/B3DDebug.h"
+#include "FileSystem/B3DDataStream.h"
+#include "Error/B3DException.h"
+#include "Utility/B3DUUID.h"
+#include "Resources/B3DResources.h"
+#include "Threading/B3DSingleConsumerQueue.h"
+#include "Threading/B3DThreadPool.h"
 
 using namespace b3d;
 

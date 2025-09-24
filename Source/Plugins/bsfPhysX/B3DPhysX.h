@@ -3,9 +3,9 @@
 #pragma once
 
 
-#include "BsPhysXPrerequisites.h"
-#include "Physics/BsPhysics.h"
-#include "Physics/BsPhysicsCommon.h"
+#include "B3DPhysXPrerequisites.h"
+#include "Physics/B3DPhysics.h"
+#include "Physics/B3DPhysicsCommon.h"
 #include "PxPhysics.h"
 #include "foundation/Px.h"
 #include "characterkinematic/PxControllerManager.h"

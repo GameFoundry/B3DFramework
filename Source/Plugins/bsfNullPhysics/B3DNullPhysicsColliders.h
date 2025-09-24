@@ -2,14 +2,14 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsNullPhysicsPrerequisites.h"
-#include "Physics/BsPhysicsCommon.h"
-#include "Physics/BsFCollider.h"
-#include "Physics/BsBoxCollider.h"
-#include "Physics/BsCapsuleCollider.h"
-#include "Physics/BsMeshCollider.h"
-#include "Physics/BsPlaneCollider.h"
-#include "Physics/BsSphereCollider.h"
+#include "B3DNullPhysicsPrerequisites.h"
+#include "Physics/B3DPhysicsCommon.h"
+#include "Physics/B3DFCollider.h"
+#include "Physics/B3DBoxCollider.h"
+#include "Physics/B3DCapsuleCollider.h"
+#include "Physics/B3DMeshCollider.h"
+#include "Physics/B3DPlaneCollider.h"
+#include "Physics/B3DSphereCollider.h"
 
 namespace b3d
 {

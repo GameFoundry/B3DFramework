@@ -2,15 +2,15 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsScriptEnginePrerequisites.h"
-#include "../../../Foundation/bsfCore/Input/BsInput.h"
-#include "BsScriptTypeDefinition.h"
-#include "../../../Foundation/bsfCore/Input/BsInputFwd.h"
-#include "../../../Foundation/bsfUtility/Math/BsVector2.h"
-#include "../../../Foundation/bsfCore/Input/BsInputFwd.h"
-#include "../../../Foundation/bsfCore/Input/BsInputFwd.h"
-#include "../../../Foundation/bsfCore/Input/BsInputFwd.h"
-#include "../../../Foundation/bsfCore/Input/BsInputFwd.h"
+#include "B3DScriptEnginePrerequisites.h"
+#include "../../../Foundation/Core/Input/B3DInput.h"
+#include "B3DScriptTypeDefinition.h"
+#include "../../../Foundation/Core/Input/B3DInputFwd.h"
+#include "../../../Foundation/Utility/Math/B3DVector2.h"
+#include "../../../Foundation/Core/Input/B3DInputFwd.h"
+#include "../../../Foundation/Core/Input/B3DInputFwd.h"
+#include "../../../Foundation/Core/Input/B3DInputFwd.h"
+#include "../../../Foundation/Core/Input/B3DInputFwd.h"
 
 namespace b3d { struct __PointerEventInterop; }
 namespace b3d

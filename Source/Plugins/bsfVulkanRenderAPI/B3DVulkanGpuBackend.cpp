@@ -1,27 +1,27 @@
 //************************************ B3D Framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "BsVulkanGpuBackend.h"
-#include "BsVulkanGpuDevice.h"
-#include "Managers/BsVulkanTextureManager.h"
-#include "Managers/BsVulkanRenderWindowManager.h"
-#include "Managers/BsVulkanQueryManager.h"
-#include "Managers/BsVulkanVertexInputManager.h"
+#include "B3DVulkanGpuBackend.h"
+#include "B3DVulkanGpuDevice.h"
+#include "Managers/B3DVulkanTextureManager.h"
+#include "Managers/B3DVulkanRenderWindowManager.h"
+#include "Managers/B3DVulkanQueryManager.h"
+#include "Managers/B3DVulkanVertexInputManager.h"
 
 #include <vulkan/vulkan.h>
 
-#include "BsVulkanFramebuffer.h"
-#include "BsVulkanGLSLToSPIRV.h"
-#include "BsVulkanRenderPass.h"
-#include "BsVulkanSubmitThread.h"
-#include "CoreObject/BsRenderThread.h"
-#include "Win32/BsRenderDocFrameCapture.h"
+#include "B3DVulkanFramebuffer.h"
+#include "B3DVulkanGLSLToSPIRV.h"
+#include "B3DVulkanRenderPass.h"
+#include "B3DVulkanSubmitThread.h"
+#include "CoreObject/B3DRenderThread.h"
+#include "Win32/B3DRenderDocFrameCapture.h"
 
 #if B3D_PLATFORM == B3D_PLATFORM_ID_WIN32
-#	include "Private/Win32/BsWin32VideoModeInfo.h"
+#	include "Private/Win32/B3DWin32VideoModeInfo.h"
 #elif B3D_PLATFORM == B3D_PLATFORM_ID_LINUX
-#	include "Private/Linux/BsLinuxVideoModeInfo.h"
+#	include "Private/Linux/B3DLinuxVideoModeInfo.h"
 #elif B3D_PLATFORM == B3D_PLATFORM_ID_MACOS
-#	include "Private/MacOS/BsMacOSVideoModeInfo.h"
+#	include "Private/MacOS/B3DMacOSVideoModeInfo.h"
 #	include <MoltenVK/vk_mvk_moltenvk.h>
 #else
 static_assert(false, "Other platform includes go here.");

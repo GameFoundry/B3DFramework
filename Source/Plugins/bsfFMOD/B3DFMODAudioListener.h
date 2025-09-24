@@ -2,9 +2,9 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsFMODPrerequisites.h"
-#include "Components/BsAudioListener.h"
-#include "Scene/BsTransform.h"
+#include "B3DFMODPrerequisites.h"
+#include "Components/B3DAudioListener.h"
+#include "Scene/B3DTransform.h"
 
 namespace b3d
 {

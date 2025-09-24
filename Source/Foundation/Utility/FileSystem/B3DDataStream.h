@@ -2,7 +2,7 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsUtilityPrerequisites.h"
+#include "B3DUtilityPrerequisites.h"
 #include <istream>
 
 namespace b3d

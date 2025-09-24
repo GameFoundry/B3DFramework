@@ -1,22 +1,22 @@
 //************************************ B3D Framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "BsUtilityTestSuite.h"
+#include "B3DUtilityTestSuite.h"
 
-#include "BsECSTestSuite.h"
-#include "BsFileSystemTestSuite.h"
-#include "Utility/BsBitfield.h"
-#include "Utility/BsTArray.h"
-#include "Math/BsComplex.h"
-#include "Reflection/BsRTTIIterator.h"
-#include "String/BsHashedString.h"
-#include "Threading/BsSignal.h"
-#include "Threading/BsThreadPool.h"
-#include "Utility/BsMinHeap.h"
-#include "Utility/BsSpatialTree.h"
-#include "Utility/BsBitstream.h"
-#include "Utility/BsUSPtr.h"
-#include "Utility/BsQueue.h"
-#include "Threading/BsThread.h"
+#include "B3DECSTestSuite.h"
+#include "B3DFileSystemTestSuite.h"
+#include "Utility/B3DBitfield.h"
+#include "Utility/B3DTArray.h"
+#include "Math/B3DComplex.h"
+#include "Reflection/B3DRTTIIterator.h"
+#include "String/B3DHashedString.h"
+#include "Threading/B3DSignal.h"
+#include "Threading/B3DThreadPool.h"
+#include "Utility/B3DMinHeap.h"
+#include "Utility/B3DSpatialTree.h"
+#include "Utility/B3DBitstream.h"
+#include "Utility/B3DUSPtr.h"
+#include "Utility/B3DQueue.h"
+#include "Threading/B3DThread.h"
 
 using namespace b3d;
 

@@ -1,9 +1,9 @@
 //************************************ B3D Framework - Copyright 2023 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "BsSingleConsumerQueue.h"
+#include "B3DSingleConsumerQueue.h"
 
-#include "Debug/BsDebug.h"
-#include "Threading/BsScheduler.h"
+#include "Debug/B3DDebug.h"
+#include "Threading/B3DScheduler.h"
 
 using namespace b3d;
 

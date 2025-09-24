@@ -1,9 +1,9 @@
 //************************************ B3D Framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "Input/BsGamepad.h"
-#include "Input/BsInput.h"
-#include "Private/Win32/BsWin32Input.h"
-#include "Error/BsException.h"
+#include "Input/B3DGamepad.h"
+#include "Input/B3DInput.h"
+#include "Private/Win32/B3DWin32Input.h"
+#include "Error/B3DException.h"
 
 #undef DIJOFS_BUTTON
 #define DIJOFS_BUTTON(n) (FIELD_OFFSET(DIJOYSTATE2, rgbButtons) + (n))

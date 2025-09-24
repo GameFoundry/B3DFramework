@@ -1,18 +1,18 @@
 //********************************* B3D Framework - Copyright 2018-2019 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "Wrappers/GUI/BsScriptGUIRenderTexture.h"
-#include "BsMonoField.h"
-#include "BsMonoClass.h"
-#include "BsMonoManager.h"
-#include "Image/BsSpriteTexture.h"
-#include "BsMonoUtil.h"
-#include "GUI/BsGUILayout.h"
-#include "GUI/BsGUIRenderTexture.h"
-#include "GUI/BsGUIOptions.h"
+#include "Wrappers/GUI/B3DScriptGUIRenderTexture.h"
+#include "B3DMonoField.h"
+#include "B3DMonoClass.h"
+#include "B3DMonoManager.h"
+#include "Image/B3DSpriteTexture.h"
+#include "B3DMonoUtil.h"
+#include "GUI/B3DGUILayout.h"
+#include "GUI/B3DGUIRenderTexture.h"
+#include "GUI/B3DGUIOptions.h"
 
-#include "Generated/BsScriptHString.generated.h"
-#include "Generated/BsScriptGUIContent.generated.h"
-#include "Generated/BsScriptRenderTexture.generated.h"
+#include "Generated/B3DScriptHString.generated.h"
+#include "Generated/B3DScriptGUIContent.generated.h"
+#include "Generated/B3DScriptRenderTexture.generated.h"
 
 using namespace b3d;
 ScriptGUIRenderTexture::ScriptGUIRenderTexture(GUIRenderTexture* nativeObject)

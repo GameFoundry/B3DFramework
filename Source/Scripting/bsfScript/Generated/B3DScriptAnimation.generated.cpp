@@ -1,18 +1,18 @@
 //********************************* B3D Framework - Copyright 2018-2022 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "BsScriptAnimation.generated.h"
-#include "BsMonoMethod.h"
-#include "BsMonoClass.h"
-#include "BsMonoUtil.h"
-#include "../../../Foundation/bsfCore/Components/BsAnimation.h"
-#include "BsScriptResourceManager.h"
-#include "Wrappers/BsScriptRRefBase.h"
-#include "../../../Foundation/bsfCore/Animation/BsAnimationClip.h"
-#include "BsScriptTAABox.generated.h"
-#include "BsScriptBlend1DInfo.generated.h"
-#include "BsScriptTVector2.generated.h"
-#include "BsScriptBlend2DInfo.generated.h"
-#include "BsScriptAnimationClipState.generated.h"
+#include "B3DScriptAnimation.generated.h"
+#include "B3DMonoMethod.h"
+#include "B3DMonoClass.h"
+#include "B3DMonoUtil.h"
+#include "../../../Foundation/Core/Components/B3DAnimation.h"
+#include "B3DScriptResourceManager.h"
+#include "Wrappers/B3DScriptRRefBase.h"
+#include "../../../Foundation/Core/Animation/B3DAnimationClip.h"
+#include "B3DScriptTAABox.generated.h"
+#include "B3DScriptBlend1DInfo.generated.h"
+#include "B3DScriptTVector2.generated.h"
+#include "B3DScriptBlend2DInfo.generated.h"
+#include "B3DScriptAnimationClipState.generated.h"
 
 namespace b3d
 {

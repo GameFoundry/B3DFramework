@@ -52,8 +52,8 @@
 /* Copy the first part of user declarations.  */
 
 
-#include "BsParserFX.h"
-#include "BsLexerFX.h"
+#include "B3DParserFX.h"
+#include "B3DLexerFX.h"
 #define inline
 
 void yyerror(YYLTYPE *locp, ParseState* parse_state, yyscan_t scanner, const char *msg);
@@ -68,7 +68,7 @@ void yyerror(YYLTYPE *locp, ParseState* parse_state, yyscan_t scanner, const cha
 #  endif
 # endif
 
-#include "BsParserFX.h"
+#include "B3DParserFX.h"
 
 /* Enabling verbose error messages.  */
 #ifdef YYERROR_VERBOSE

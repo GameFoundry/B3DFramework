@@ -2,10 +2,10 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsScriptEnginePrerequisites.h"
-#include "Wrappers/BsScriptComponent.h"
-#include "../../../Foundation/bsfCore/Components/BsParticleSystem.h"
-#include "../../../Foundation/bsfCore/Components/BsParticleSystem.h"
+#include "B3DScriptEnginePrerequisites.h"
+#include "Wrappers/B3DScriptComponent.h"
+#include "../../../Foundation/Core/Components/B3DParticleSystem.h"
+#include "../../../Foundation/Core/Components/B3DParticleSystem.h"
 
 namespace b3d { class ParticleSystem; }
 namespace b3d

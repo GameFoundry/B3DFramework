@@ -2,9 +2,9 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsCorePrerequisites.h"
-#include "Animation/BsAnimationCurve.h"
-#include "Script/BsIScriptExportable.h"
+#include "B3DCorePrerequisites.h"
+#include "Animation/B3DAnimationCurve.h"
+#include "Script/B3DIScriptExportable.h"
 
 namespace b3d
 {

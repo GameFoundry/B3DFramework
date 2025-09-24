@@ -2,10 +2,10 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsUtilityPrerequisites.h"
-#include "RTTI/BsFlagsRTTI.h"
-#include "RTTI/BsBitLengthRTTI.h"
-#include "Reflection/BsRTTIType.h"
+#include "B3DUtilityPrerequisites.h"
+#include "RTTI/B3DFlagsRTTI.h"
+#include "RTTI/B3DBitLengthRTTI.h"
+#include "Reflection/B3DRTTIType.h"
 
 namespace b3d
 {

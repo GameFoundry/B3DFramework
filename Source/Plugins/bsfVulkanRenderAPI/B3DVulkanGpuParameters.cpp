@@ -1,17 +1,17 @@
 //************************************ B3D Framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "BsVulkanGpuParameters.h"
-#include "BsVulkanUtility.h"
-#include "BsVulkanGpuDevice.h"
-#include "BsVulkanTexture.h"
-#include "BsVulkanGpuBuffer.h"
-#include "BsVulkanDescriptorSet.h"
-#include "BsVulkanDescriptorLayout.h"
-#include "BsVulkanGpuPipelineParameterLayout.h"
-#include "BsVulkanGpuCommandBuffer.h"
-#include "BsVulkanSamplerState.h"
-#include "Managers/BsVulkanTextureManager.h"
-#include "RenderAPI/BsGpuProgramParameterDescription.h"
+#include "B3DVulkanGpuParameters.h"
+#include "B3DVulkanUtility.h"
+#include "B3DVulkanGpuDevice.h"
+#include "B3DVulkanTexture.h"
+#include "B3DVulkanGpuBuffer.h"
+#include "B3DVulkanDescriptorSet.h"
+#include "B3DVulkanDescriptorLayout.h"
+#include "B3DVulkanGpuPipelineParameterLayout.h"
+#include "B3DVulkanGpuCommandBuffer.h"
+#include "B3DVulkanSamplerState.h"
+#include "Managers/B3DVulkanTextureManager.h"
+#include "RenderAPI/B3DGpuProgramParameterDescription.h"
 
 using namespace b3d;
 using namespace b3d::render;

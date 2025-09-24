@@ -2,8 +2,8 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsNullPrerequisites.h"
-#include "RenderAPI/BsRenderAPI.h"
+#include "B3DNullPrerequisites.h"
+#include "RenderAPI/B3DRenderAPI.h"
 
 namespace b3d
 {

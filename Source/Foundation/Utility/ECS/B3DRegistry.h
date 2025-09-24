@@ -2,15 +2,15 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsUtilityPrerequisites.h"
-#include "Debug/BsDebug.h"
-#include "ECS/BsEntity.h"
-#include "ECS/BsUtility.h"
-#include "ECS/BsComponentStorage.h"
-#include "ECS/BsTagStorage.h"
-#include "ECS/BsEntityStorage.h"
-#include "ECS/BsView.h"
-#include "ECS/BsGroup.h"
+#include "B3DUtilityPrerequisites.h"
+#include "Debug/B3DDebug.h"
+#include "ECS/B3DEntity.h"
+#include "ECS/B3DUtility.h"
+#include "ECS/B3DComponentStorage.h"
+#include "ECS/B3DTagStorage.h"
+#include "ECS/B3DEntityStorage.h"
+#include "ECS/B3DView.h"
+#include "ECS/B3DGroup.h"
 
 namespace b3d::ecs
 {

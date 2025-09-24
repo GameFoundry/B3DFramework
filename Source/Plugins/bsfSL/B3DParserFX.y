@@ -1,15 +1,15 @@
 %{
-#include "BsParserFX.h"
-#include "BsLexerFX.h"
+#include "B3DParserFX.h"
+#include "B3DLexerFX.h"
 #define inline
 
 void yyerror(YYLTYPE *locp, ParseState* parse_state, yyscan_t scanner, const char *msg);
 %}
 
 %code requires{
-#include "BsMMAlloc.h"
-#include "BsASTFX.h"
-#include "BsIncludeHandler.h"
+#include "B3DMMAlloc.h"
+#include "B3DASTFX.h"
+#include "B3DIncludeHandler.h"
 
 #define YY_NO_UNISTD_H 1
 #ifndef YY_TYPEDEF_YY_SCANNER_T
@@ -46,8 +46,8 @@ typedef struct YYLTYPE {
 	
 }
 
-%output  "BsParserFX.c"
-%defines "BsParserFX.h"
+%output  "B3DParserFX.c"
+%defines "B3DParserFX.h"
 
 %define api.pure
 %locations

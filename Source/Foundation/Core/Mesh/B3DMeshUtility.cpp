@@ -1,10 +1,10 @@
 //************************************ B3D Framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "Mesh/BsMeshUtility.h"
-#include "Math/BsVector4.h"
-#include "Math/BsVector3.h"
-#include "Math/BsVector2.h"
-#include "Math/BsPlane.h"
+#include "Mesh/B3DMeshUtility.h"
+#include "Math/B3DVector4.h"
+#include "Math/B3DVector3.h"
+#include "Math/B3DVector2.h"
+#include "Math/B3DPlane.h"
 
 using namespace b3d;
 

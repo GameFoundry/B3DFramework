@@ -1,11 +1,11 @@
 //************************************ B3D Framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "Renderer/BsRendererManager.h"
+#include "Renderer/B3DRendererManager.h"
 
-#include "CoreObject/BsRenderThread.h"
-#include "Renderer/BsRenderer.h"
-#include "Error/BsException.h"
-#include "Renderer/BsRendererFactory.h"
+#include "CoreObject/B3DRenderThread.h"
+#include "Renderer/B3DRenderer.h"
+#include "Error/B3DException.h"
+#include "Renderer/B3DRendererFactory.h"
 
 using namespace b3d;
 

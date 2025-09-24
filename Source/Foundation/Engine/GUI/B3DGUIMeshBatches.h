@@ -2,10 +2,10 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsPrerequisites.h"
-#include "Math/BsArea2.h"
-#include "2D/BsSpriteMaterial.h"
-#include "RenderAPI/BsSubMesh.h"
+#include "B3DPrerequisites.h"
+#include "Math/B3DArea2.h"
+#include "2D/B3DSpriteMaterial.h"
+#include "RenderAPI/B3DSubMesh.h"
 
 namespace b3d
 {

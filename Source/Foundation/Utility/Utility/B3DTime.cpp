@@ -1,9 +1,9 @@
 //************************************ B3D Framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "Utility/BsTime.h"
-#include "Utility/BsTimer.h"
-#include "Math/BsMath.h"
-#include "String/BsString.h"
+#include "Utility/B3DTime.h"
+#include "Utility/B3DTimer.h"
+#include "Math/B3DMath.h"
+#include "String/B3DString.h"
 
 using namespace b3d;
 

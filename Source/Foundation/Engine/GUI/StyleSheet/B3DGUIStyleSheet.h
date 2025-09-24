@@ -2,14 +2,14 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsPrerequisites.h"
-#include "GUI/BsGUIContent.h"
-#include "GUI/BsGUIInteractable.h"
-#include "Image/BsColor.h"
-#include "Resources/BsResource.h"
-#include "Utility/BsBitfield.h"
-#include "Utility/BsRectOffset.h"
-#include "2D/BsTextSprite.h"
+#include "B3DPrerequisites.h"
+#include "GUI/B3DGUIContent.h"
+#include "GUI/B3DGUIInteractable.h"
+#include "Image/B3DColor.h"
+#include "Resources/B3DResource.h"
+#include "Utility/B3DBitfield.h"
+#include "Utility/B3DRectOffset.h"
+#include "2D/B3DTextSprite.h"
 
 namespace b3d
 {

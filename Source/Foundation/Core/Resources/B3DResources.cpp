@@ -1,19 +1,19 @@
 //************************************ B3D Framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "Resources/BsResources.h"
+#include "Resources/B3DResources.h"
 
-#include "BsApplication.h"
-#include "Resources/BsResource.h"
-#include "Serialization/BsFileSerializer.h"
-#include "FileSystem/BsFileSystem.h"
-#include "Utility/BsUUID.h"
-#include "Debug/BsDebug.h"
-#include "Utility/BsUtility.h"
-#include "Managers/BsResourceListenerManager.h"
-#include "Serialization/BsBinarySerializer.h"
-#include "Reflection/BsRTTIType.h"
-#include "BsCoreApplication.h"
-#include "Threading/BsScheduler.h"
+#include "B3DApplication.h"
+#include "Resources/B3DResource.h"
+#include "Serialization/B3DFileSerializer.h"
+#include "FileSystem/B3DFileSystem.h"
+#include "Utility/B3DUUID.h"
+#include "Debug/B3DDebug.h"
+#include "Utility/B3DUtility.h"
+#include "Managers/B3DResourceListenerManager.h"
+#include "Serialization/B3DBinarySerializer.h"
+#include "Reflection/B3DRTTIType.h"
+#include "B3DCoreApplication.h"
+#include "Threading/B3DScheduler.h"
 
 using namespace b3d;
 

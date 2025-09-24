@@ -2,13 +2,13 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsCorePrerequisites.h"
-#include "BsCoreApplication.h"
-#include "RenderAPI/BsGpuProgramParameterDescription.h"
-#include "RenderAPI/BsGpuParameters.h"
-#include "RenderAPI/BsGpuBuffer.h"
-#include "RenderAPI/BsGpuDevice.h"
-#include "RenderAPI/BsGpuDeviceCapabilities.h"
+#include "B3DCorePrerequisites.h"
+#include "B3DCoreApplication.h"
+#include "RenderAPI/B3DGpuProgramParameterDescription.h"
+#include "RenderAPI/B3DGpuParameters.h"
+#include "RenderAPI/B3DGpuBuffer.h"
+#include "RenderAPI/B3DGpuDevice.h"
+#include "RenderAPI/B3DGpuDeviceCapabilities.h"
 
 namespace b3d
 {

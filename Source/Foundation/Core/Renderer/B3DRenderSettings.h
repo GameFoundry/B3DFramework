@@ -2,13 +2,13 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsCorePrerequisites.h"
-#include "CoreObject/BsCoreObjectSync.h"
-#include "Reflection/BsIReflectable.h"
-#include "Math/BsVector3.h"
-#include "Image/BsColor.h"
-#include "Image/BsTexture.h"
-#include "Script/BsIScriptExportable.h"
+#include "B3DCorePrerequisites.h"
+#include "CoreObject/B3DCoreObjectSync.h"
+#include "Reflection/B3DIReflectable.h"
+#include "Math/B3DVector3.h"
+#include "Image/B3DColor.h"
+#include "Image/B3DTexture.h"
+#include "Script/B3DIScriptExportable.h"
 
 namespace b3d
 {

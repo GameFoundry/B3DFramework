@@ -2,9 +2,9 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsNullPrerequisites.h"
-#include "RenderAPI/BsGpuCommandBuffer.h"
-#include "Managers/BsCommandBufferManager.h"
+#include "B3DNullPrerequisites.h"
+#include "RenderAPI/B3DGpuCommandBuffer.h"
+#include "Managers/B3DCommandBufferManager.h"
 
 namespace b3d
 {

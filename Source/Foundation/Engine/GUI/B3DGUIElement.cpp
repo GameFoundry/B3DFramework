@@ -1,17 +1,17 @@
 //************************************ B3D Framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "GUI/BsGUIElement.h"
-#include "GUI/BsGUILayout.h"
-#include "GUI/BsGUIPanel.h"
-#include "GUI/BsGUISpace.h"
-#include "GUI/BsGUIInteractable.h"
-#include "Error/BsException.h"
-#include "GUI/BsGUIWidget.h"
-#include "BsGUIManager.h"
-#include "BsGUIUtility.h"
-#include "StyleSheet/BsGUIStyleSheet.h"
-#include "Reflection/BsRTTIType.h"
-#include "Scene/BsSceneObject.h"
+#include "GUI/B3DGUIElement.h"
+#include "GUI/B3DGUILayout.h"
+#include "GUI/B3DGUIPanel.h"
+#include "GUI/B3DGUISpace.h"
+#include "GUI/B3DGUIInteractable.h"
+#include "Error/B3DException.h"
+#include "GUI/B3DGUIWidget.h"
+#include "B3DGUIManager.h"
+#include "B3DGUIUtility.h"
+#include "StyleSheet/B3DGUIStyleSheet.h"
+#include "Reflection/B3DRTTIType.h"
+#include "Scene/B3DSceneObject.h"
 
 using namespace b3d;
 

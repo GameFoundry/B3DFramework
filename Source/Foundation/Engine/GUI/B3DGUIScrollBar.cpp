@@ -1,14 +1,14 @@
 //************************************ B3D Framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "GUI/BsGUIScrollBar.h"
-#include "Image/BsSpriteTexture.h"
-#include "GUI/BsGUISizeConstraints.h"
-#include "GUI/BsGUILayoutX.h"
-#include "GUI/BsGUILayoutY.h"
-#include "GUI/BsGUIButton.h"
-#include "GUI/BsGUISliderHandle.h"
-#include "GUI/BsGUISpace.h"
-#include "Text/BsStockIcons.h"
+#include "GUI/B3DGUIScrollBar.h"
+#include "Image/B3DSpriteTexture.h"
+#include "GUI/B3DGUISizeConstraints.h"
+#include "GUI/B3DGUILayoutX.h"
+#include "GUI/B3DGUILayoutY.h"
+#include "GUI/B3DGUIButton.h"
+#include "GUI/B3DGUISliderHandle.h"
+#include "GUI/B3DGUISpace.h"
+#include "Text/B3DStockIcons.h"
 
 using namespace std::placeholders;
 

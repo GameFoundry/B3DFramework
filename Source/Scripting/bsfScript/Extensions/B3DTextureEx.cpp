@@ -1,8 +1,8 @@
 //********************************* B3D Framework - Copyright 2018-2019 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "Extensions/BsTextureEx.h"
+#include "Extensions/B3DTextureEx.h"
 
-#include "Generated/BsScriptPixelData.generated.h"
+#include "Generated/B3DScriptPixelData.generated.h"
 
 using namespace std::placeholders;
 

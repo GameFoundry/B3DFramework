@@ -2,10 +2,10 @@
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 #pragma once
 
-#include "BsCorePrerequisites.h"
-#include "Reflection/BsRTTIType.h"
-#include "Components/BsSkybox.h"
-#include "Private/RTTI/BsGameObjectRTTI.h"
+#include "B3DCorePrerequisites.h"
+#include "Reflection/B3DRTTIType.h"
+#include "Components/B3DSkybox.h"
+#include "Private/RTTI/B3DGameObjectRTTI.h"
 
 namespace b3d
 {

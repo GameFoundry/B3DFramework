@@ -2,13 +2,13 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsRenderBeastPrerequisites.h"
-#include "Utility/BsBitfield.h"
-#include "Utility/BsModule.h"
-#include "Particles/BsParticleScene.h"
-#include "Allocators/BsPoolAlloc.h"
-#include "Utility/BsTextureRowAllocator.h"
-#include "Utility/BsGpuSort.h"
+#include "B3DRenderBeastPrerequisites.h"
+#include "Utility/B3DBitfield.h"
+#include "Utility/B3DModule.h"
+#include "Particles/B3DParticleScene.h"
+#include "Allocators/B3DPoolAlloc.h"
+#include "Utility/B3DTextureRowAllocator.h"
+#include "Utility/B3DGpuSort.h"
 
 namespace b3d
 {

@@ -2,9 +2,9 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsUtilityPrerequisites.h"
-#include "Reflection/BsIReflectable.h"
-#include "BsSerializedObject.h"
+#include "B3DUtilityPrerequisites.h"
+#include "Reflection/B3DIReflectable.h"
+#include "B3DSerializedObject.h"
 
 namespace b3d
 {

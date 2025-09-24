@@ -1,15 +1,15 @@
 //************************************ B3D Framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "Scene/BsPrefab.h"
-#include "Private/RTTI/BsPrefabRTTI.h"
-#include "Resources/BsResources.h"
-#include "Scene/BsSceneObject.h"
-#include "Scene/BsPrefabUtility.h"
-#include "BsCoreApplication.h"
-#include "BsGameObjectCollection.h"
-#include "Scene/BsSceneInstance.h"
-#include "BsSceneObjectHierarchyDelta.h"
-#include "Scene/BsPrefabIdRemapper.h"
+#include "Scene/B3DPrefab.h"
+#include "Private/RTTI/B3DPrefabRTTI.h"
+#include "Resources/B3DResources.h"
+#include "Scene/B3DSceneObject.h"
+#include "Scene/B3DPrefabUtility.h"
+#include "B3DCoreApplication.h"
+#include "B3DGameObjectCollection.h"
+#include "Scene/B3DSceneInstance.h"
+#include "B3DSceneObjectHierarchyDelta.h"
+#include "Scene/B3DPrefabIdRemapper.h"
 
 using namespace b3d;
 

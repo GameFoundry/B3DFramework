@@ -2,11 +2,11 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsRenderBeastPrerequisites.h"
-#include "Utility/BsModule.h"
-#include "Renderer/BsRendererMaterial.h"
-#include "BsRendererLight.h"
-#include "BsRendererReflectionProbe.h"
+#include "B3DRenderBeastPrerequisites.h"
+#include "Utility/B3DModule.h"
+#include "Renderer/B3DRendererMaterial.h"
+#include "B3DRendererLight.h"
+#include "B3DRendererReflectionProbe.h"
 
 namespace b3d
 {

@@ -1,7 +1,7 @@
 //************************************ B3D Framework - Copyright 2025 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "Renderer/BsRendererScene.h"
-#include "BsRenderer.h"
+#include "Renderer/B3DRendererScene.h"
+#include "B3DRenderer.h"
 
 namespace b3d
 {

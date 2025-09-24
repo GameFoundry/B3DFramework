@@ -1,9 +1,9 @@
 //************************************ B3D Framework - Copyright 2024 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
-#include "BsUtilityPrerequisites.h"
-#include "Serialization/BsSerializedObject.h"
-#include "BsRTTIIterator.h"
+#include "B3DUtilityPrerequisites.h"
+#include "Serialization/B3DSerializedObject.h"
+#include "B3DRTTIIterator.h"
 
 namespace b3d::RTTIObjectWrapper
 {
@@ -543,4 +543,4 @@ namespace b3d::RTTIObjectWrapper
 	void IterateFieldTupleValues(Object<IsIReflectable> object, RTTIOperationType operationType, Predicate&& fnPredicate, FieldFilterPredicate&& fnFieldFilterPredicate = nullptr);
 }
 
-#include "BsRTTIObjectWrapper.inl"
+#include "B3DRTTIObjectWrapper.inl"

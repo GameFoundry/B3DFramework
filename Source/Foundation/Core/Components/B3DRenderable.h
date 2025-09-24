@@ -2,13 +2,13 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsCorePrerequisites.h"
-#include "CoreObject/BsCoreObject.h"
-#include "CoreObject/BsRenderProxy.h"
-#include "Math/BsBounds.h"
-#include "Resources/BsIResourceListener.h"
-#include "Scene/BsComponent.h"
-#include "Scene/BsTransform.h"
+#include "B3DCorePrerequisites.h"
+#include "CoreObject/B3DCoreObject.h"
+#include "CoreObject/B3DRenderProxy.h"
+#include "Math/B3DBounds.h"
+#include "Resources/B3DIResourceListener.h"
+#include "Scene/B3DComponent.h"
+#include "Scene/B3DTransform.h"
 
 namespace b3d
 {

@@ -1,17 +1,17 @@
 //************************************ B3D Framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "BsLightProbes.h"
-#include "Components/BsLightProbeVolume.h"
-#include "BsRendererView.h"
-#include "BsRenderBeastIBLUtility.h"
-#include "Mesh/BsMesh.h"
-#include "RenderAPI/BsVertexDescription.h"
-#include "Material/BsGpuParamsSet.h"
-#include "RenderAPI/BsGpuCommandBuffer.h"
-#include "RenderAPI/BsRenderTexture.h"
-#include "Renderer/BsRendererUtility.h"
-#include "COmponents/BsSkybox.h"
-#include "Utility/BsRendererTextures.h"
+#include "B3DLightProbes.h"
+#include "Components/B3DLightProbeVolume.h"
+#include "B3DRendererView.h"
+#include "B3DRenderBeastIBLUtility.h"
+#include "Mesh/B3DMesh.h"
+#include "RenderAPI/B3DVertexDescription.h"
+#include "Material/B3DGpuParamsSet.h"
+#include "RenderAPI/B3DGpuCommandBuffer.h"
+#include "RenderAPI/B3DRenderTexture.h"
+#include "Renderer/B3DRendererUtility.h"
+#include "COmponents/B3DSkybox.h"
+#include "Utility/B3DRendererTextures.h"
 
 namespace b3d { namespace render {
 

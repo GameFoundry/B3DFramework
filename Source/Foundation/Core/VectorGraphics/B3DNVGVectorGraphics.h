@@ -2,10 +2,10 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsCorePrerequisites.h"
-#include <VectorGraphics/BsVectorGraphics.h>
-#include "Renderer/BsGpuDataParameterBlock.h"
-#include "Renderer/BsRendererMaterial.h"
+#include "B3DCorePrerequisites.h"
+#include "VectorGraphics/B3DVectorGraphics.h"
+#include "Renderer/B3DGpuDataParameterBlock.h"
+#include "Renderer/B3DRendererMaterial.h"
 #include <ThirdParty/nanovg.h>
 
 namespace b3d

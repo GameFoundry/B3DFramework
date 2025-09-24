@@ -1,15 +1,15 @@
 //************************************ B3D Framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "Managers/BsRenderWindowManager.h"
-#include "Platform/BsPlatform.h"
-#include "BsCoreApplication.h"
+#include "Managers/B3DRenderWindowManager.h"
+#include "Platform/B3DPlatform.h"
+#include "B3DCoreApplication.h"
 
 #if B3D_PLATFORM == B3D_PLATFORM_ID_WIN32
-#	include "Private/Win32/BsWin32RenderWindow.h"
+#	include "Private/Win32/B3DWin32RenderWindow.h"
 #elif B3D_PLATFORM == B3D_PLATFORM_ID_LINUX
-#	include "Private/Linux/BsLinuxRenderWindow.h"
+#	include "Private/Linux/B3DLinuxRenderWindow.h"
 #elif B3D_PLATFORM == B3D_PLATFORM_ID_MACOS
-#	include "Private/MacOS/BsMacOSRenderWindow.h"
+#	include "Private/MacOS/B3DMacOSRenderWindow.h"
 #endif
 
 using namespace std::placeholders;

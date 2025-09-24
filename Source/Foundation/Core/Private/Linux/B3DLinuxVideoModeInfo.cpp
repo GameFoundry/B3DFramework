@@ -1,7 +1,7 @@
 //************************************ B3D Framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "Private/Linux/BsLinuxVideoModeInfo.h"
-#include "Private/Linux/BsLinuxPlatform.h"
+#include "Private/Linux/B3DLinuxVideoModeInfo.h"
+#include "Private/Linux/B3DLinuxPlatform.h"
 #include <X11/extensions/Xrandr.h>
 
 #define XRANDR_ROTATION_LEFT (1 << 1)

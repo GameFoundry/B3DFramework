@@ -1,7 +1,7 @@
 //************************************ B3D Framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "GUI/BsGUIVerticalScrollBar.h"
-#include "GUI/BsGUISizeConstraints.h"
+#include "GUI/B3DGUIVerticalScrollBar.h"
+#include "GUI/B3DGUISizeConstraints.h"
 
 using namespace b3d;
 

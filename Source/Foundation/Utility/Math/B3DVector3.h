@@ -4,9 +4,9 @@
 
 #include <cmath>
 
-#include "BsUtilityPrerequisites.h"
-#include "Math/BsRadian.h"
-#include "BsMath.h"
+#include "B3DUtilityPrerequisites.h"
+#include "Math/B3DRadian.h"
+#include "B3DMath.h"
 
 namespace b3d
 {

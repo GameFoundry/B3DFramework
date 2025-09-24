@@ -1,13 +1,13 @@
 //************************************ B3D Framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "GUI/BsGUITexture.h"
-#include "BsGUIUtility.h"
-#include "2D/BsImageSprite.h"
-#include "Image/BsSpriteTexture.h"
-#include "GUI/BsGUISizeConstraints.h"
-#include "Image/BsSpriteVectorPath.h"
-#include "StyleSheet/BsGUIStyleSheet.h"
-#include "Utility/BsTime.h"
+#include "GUI/B3DGUITexture.h"
+#include "B3DGUIUtility.h"
+#include "2D/B3DImageSprite.h"
+#include "Image/B3DSpriteTexture.h"
+#include "GUI/B3DGUISizeConstraints.h"
+#include "Image/B3DSpriteVectorPath.h"
+#include "StyleSheet/B3DGUIStyleSheet.h"
+#include "Utility/B3DTime.h"
 
 using namespace b3d;
 

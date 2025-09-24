@@ -2,10 +2,10 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsCorePrerequisites.h"
-#include "Physics/BsPhysicsCommon.h"
-#include "Math/BsVector3.h"
-#include "Math/BsQuaternion.h"
+#include "B3DCorePrerequisites.h"
+#include "Physics/B3DPhysicsCommon.h"
+#include "Math/B3DVector3.h"
+#include "Math/B3DQuaternion.h"
 #include <variant>
 
 namespace b3d

@@ -1,12 +1,12 @@
 //************************************ B3D Framework - Copyright 2023 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "BsHLSLCrossCompiler.h"
-#include "RenderAPI/BsSamplerState.h"
-#include "Material/BsShader.h"
-#include "Resources/BsBuiltinResources.h"
+#include "B3DHLSLCrossCompiler.h"
+#include "RenderAPI/B3DSamplerState.h"
+#include "Material/B3DShader.h"
+#include "Resources/B3DBuiltinResources.h"
 
 #define XSC_ENABLE_LANGUAGE_EXT 1
-#include "RenderAPI/BsGpuParameters.h"
+#include "RenderAPI/B3DGpuParameters.h"
 #include "Xsc/Xsc.h"
 
 using namespace std;

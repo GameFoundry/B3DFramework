@@ -2,8 +2,8 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsScriptEnginePrerequisites.h"
-#include "RenderAPI/BsRenderTexture.h"
+#include "B3DScriptEnginePrerequisites.h"
+#include "RenderAPI/B3DRenderTexture.h"
 
 namespace b3d
 {

@@ -1,16 +1,16 @@
 //********************************* B3D Framework - Copyright 2018-2022 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "BsScriptImporter.generated.h"
-#include "BsMonoMethod.h"
-#include "BsMonoClass.h"
-#include "BsMonoUtil.h"
-#include "../../../Foundation/bsfCore/Importer/BsImporter.h"
-#include "Wrappers/BsScriptAsyncOp.h"
-#include "Reflection/BsRTTIType.h"
-#include "BsScriptResourceWrapper.h"
-#include "BsScriptMultiResource.generated.h"
-#include "BsScriptResourceWrapper.h"
-#include "BsScriptImportOptions.generated.h"
+#include "B3DScriptImporter.generated.h"
+#include "B3DMonoMethod.h"
+#include "B3DMonoClass.h"
+#include "B3DMonoUtil.h"
+#include "../../../Foundation/Core/Importer/B3DImporter.h"
+#include "Wrappers/B3DScriptAsyncOp.h"
+#include "Reflection/B3DRTTIType.h"
+#include "B3DScriptResourceWrapper.h"
+#include "B3DScriptMultiResource.generated.h"
+#include "B3DScriptResourceWrapper.h"
+#include "B3DScriptImportOptions.generated.h"
 
 namespace b3d
 {

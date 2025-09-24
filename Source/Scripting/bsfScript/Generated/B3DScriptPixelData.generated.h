@@ -2,12 +2,12 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsScriptEnginePrerequisites.h"
-#include "BsScriptReflectableWrapper.h"
-#include "../../../Foundation/bsfCore/Image/BsPixelData.h"
-#include "../../../Foundation/bsfUtility/Image/BsColor.h"
-#include "../../../Foundation/bsfCore/Image/BsPixelData.h"
-#include "../../../Foundation/bsfCore/Image/BsPixelVolume.h"
+#include "B3DScriptEnginePrerequisites.h"
+#include "B3DScriptReflectableWrapper.h"
+#include "../../../Foundation/Core/Image/B3DPixelData.h"
+#include "../../../Foundation/Utility/Image/B3DColor.h"
+#include "../../../Foundation/Core/Image/B3DPixelData.h"
+#include "../../../Foundation/Core/Image/B3DPixelVolume.h"
 
 namespace b3d { class PixelData; }
 namespace b3d { class PixelDataEx; }

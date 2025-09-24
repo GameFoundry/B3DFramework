@@ -1,11 +1,11 @@
 //********************************* B3D Framework - Copyright 2018-2022 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "BsScriptParticleEmitterStaticMeshShape.generated.h"
-#include "BsMonoMethod.h"
-#include "BsMonoClass.h"
-#include "BsMonoUtil.h"
-#include "BsScriptParticleStaticMeshShapeSettings.generated.h"
-#include "BsScriptParticleEmitterStaticMeshShape.generated.h"
+#include "B3DScriptParticleEmitterStaticMeshShape.generated.h"
+#include "B3DMonoMethod.h"
+#include "B3DMonoClass.h"
+#include "B3DMonoUtil.h"
+#include "B3DScriptParticleStaticMeshShapeSettings.generated.h"
+#include "B3DScriptParticleEmitterStaticMeshShape.generated.h"
 
 namespace b3d
 {

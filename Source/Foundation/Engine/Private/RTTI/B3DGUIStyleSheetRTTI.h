@@ -2,18 +2,18 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsPrerequisites.h"
-#include "Reflection/BsRTTIType.h"
-#include "RTTI/BsStringRTTI.h"
-#include "RTTI/BsBitfieldRTTI.h"
-#include "RTTI/BsRectOffsetRTTI.h"
-#include "RTTI/BsMathRTTI.h"
-#include "RTTI/BsColorRTTI.h"
-#include "RTTI/BsTArrayRTTI.h"
-#include "RTTI/BsStdRTTI.h"
-#include "Private/RTTI/BsFontRTTI.h"
-#include "Private/RTTI/BsTextureRTTI.h"
-#include "GUI/StyleSheet/BsGUIStyleSheet.h"
+#include "B3DPrerequisites.h"
+#include "Reflection/B3DRTTIType.h"
+#include "RTTI/B3DStringRTTI.h"
+#include "RTTI/B3DBitfieldRTTI.h"
+#include "RTTI/B3DRectOffsetRTTI.h"
+#include "RTTI/B3DMathRTTI.h"
+#include "RTTI/B3DColorRTTI.h"
+#include "RTTI/B3DTArrayRTTI.h"
+#include "RTTI/B3DStdRTTI.h"
+#include "Private/RTTI/B3DFontRTTI.h"
+#include "Private/RTTI/B3DTextureRTTI.h"
+#include "GUI/StyleSheet/B3DGUIStyleSheet.h"
 
 namespace b3d
 {

@@ -1,7 +1,7 @@
 //************************************ B3D Framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "Utility/BsTimer.h"
-#include "Utility/BsBitwise.h"
+#include "Utility/B3DTimer.h"
+#include "Utility/B3DBitwise.h"
 
 #include <chrono>
 

@@ -2,12 +2,12 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsScriptEnginePrerequisites.h"
-#include "BsScriptReflectableWrapper.h"
-#include "BsScriptParticleEvolver.generated.h"
-#include "../../../Foundation/bsfCore/Particles/BsParticleEvolver.h"
-#include "../../../Foundation/bsfUtility/Math/BsPlane.h"
-#include "../../../Foundation/bsfCore/Particles/BsParticleEvolver.h"
+#include "B3DScriptEnginePrerequisites.h"
+#include "B3DScriptReflectableWrapper.h"
+#include "B3DScriptParticleEvolver.generated.h"
+#include "../../../Foundation/Core/Particles/B3DParticleEvolver.h"
+#include "../../../Foundation/Utility/Math/B3DPlane.h"
+#include "../../../Foundation/Core/Particles/B3DParticleEvolver.h"
 
 namespace b3d { class ParticleCollisions; }
 namespace b3d { struct __TPlane_float_Interop; }

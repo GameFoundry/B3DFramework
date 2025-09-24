@@ -2,10 +2,10 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsPrerequisites.h"
-#include "GUI/BsGUIClickable.h"
-#include "GUI/BsGUIContent.h"
-#include "BsGUIConstructionMethods.h"
+#include "B3DPrerequisites.h"
+#include "GUI/B3DGUIClickable.h"
+#include "GUI/B3DGUIContent.h"
+#include "B3DGUIConstructionMethods.h"
 
 namespace b3d
 {

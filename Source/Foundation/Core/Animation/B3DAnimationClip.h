@@ -2,11 +2,11 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsCorePrerequisites.h"
-#include "Resources/BsResource.h"
-#include "Math/BsVector3.h"
-#include "Math/BsQuaternion.h"
-#include "Animation/BsAnimationCurve.h"
+#include "B3DCorePrerequisites.h"
+#include "Resources/B3DResource.h"
+#include "Math/B3DVector3.h"
+#include "Math/B3DQuaternion.h"
+#include "Animation/B3DAnimationCurve.h"
 #include <array>
 
 namespace b3d

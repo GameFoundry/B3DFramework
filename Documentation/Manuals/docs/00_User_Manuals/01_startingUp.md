@@ -4,12 +4,12 @@ title: Startup and main loop
 
 # Preparation
 
-Start by including *BsEntry.h* header into your project. It contains the definition for the main entry point `bs_main`, as well as the @b3d::Application class which is used for starting up and running `bsf`.
+Start by including *B3DEntry.h* header into your project. It contains the definition for the main entry point `bs_main`, as well as the @b3d::Application class which is used for starting up and running `bsf`.
 
 Entirety of `bsf` API is contained in the **b3d** namespace, so you will also likely want to add a `using namespace b3d;` directive.
 
 ~~~~~~~~~~~~~{.cpp}
-#include "BsEntry.h"
+#include "B3DEntry.h"
 
 using namespace b3d;
 
@@ -70,9 +70,9 @@ Once the main loop has been stopped, you will want to clean up any allocated res
 Here's a complete code of what we have so far. The code doesn't do much - it opens up a basic window and adds a camera to the scene. Since we haven't actually added any renderable objects to the scene the camera wont see anything. The code also doesn't respond to any input and therefore doesn't offer any way for the user to stop the main loop.
 
 ~~~~~~~~~~~~~{.cpp}
-#include "BsEntry.h"
-#include "Scene/BsSceneObject.h"
-#include "Components/BsCCamera.h"
+#include "B3DEntry.h"
+#include "Scene/B3DSceneObject.h"
+#include "Components/B3DCCamera.h"
 
 using namespace b3d;
 int bs_main(int argc, char* argv[])

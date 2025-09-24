@@ -1,11 +1,11 @@
 //********************************* B3D Framework - Copyright 2018-2022 Marko Pintera ************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "BsScriptSkeleton.generated.h"
-#include "BsMonoMethod.h"
-#include "BsMonoClass.h"
-#include "BsMonoUtil.h"
-#include "BsScriptSkeletonBoneInfoEx.generated.h"
-#include "../Extensions/BsSkeletonEx.h"
+#include "B3DScriptSkeleton.generated.h"
+#include "B3DMonoMethod.h"
+#include "B3DMonoClass.h"
+#include "B3DMonoUtil.h"
+#include "B3DScriptSkeletonBoneInfoEx.generated.h"
+#include "../Extensions/B3DSkeletonEx.h"
 
 namespace b3d
 {

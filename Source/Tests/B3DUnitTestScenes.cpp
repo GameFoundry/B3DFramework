@@ -1,11 +1,11 @@
 //************************************ B3D Framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "BsUnitTestScenes.h"
+#include "B3DUnitTestScenes.h"
 
-#include "Scene/BsPrefab.h"
-#include "Testing/BsTestSuite.h"
-#include "BsUnitTestPrefabUpdateHelper.h"
-#include "Scene/BsSceneInstance.h"
+#include "Scene/B3DPrefab.h"
+#include "Testing/B3DTestSuite.h"
+#include "B3DUnitTestPrefabUpdateHelper.h"
+#include "Scene/B3DSceneInstance.h"
 
 using namespace b3d;
 

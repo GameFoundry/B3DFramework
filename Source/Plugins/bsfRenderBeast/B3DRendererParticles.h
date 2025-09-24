@@ -2,17 +2,17 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsRenderBeastPrerequisites.h"
-#include "Renderer/BsRenderElement.h"
-#include "Renderer/BsGpuDataParameterBlock.h"
-#include "RenderAPI/BsGpuPipelineParameterLayout.h"
-#include "Material/BsShaderVariation.h"
-#include "Allocators/BsPoolAlloc.h"
-#include "Renderer/BsRendererMaterial.h"
-#include "Utility/BsTextureRowAllocator.h"
-#include "BsRendererLight.h"
-#include "BsRendererReflectionProbe.h"
-#include "Shading/BsGpuParticleSimulation.h"
+#include "B3DRenderBeastPrerequisites.h"
+#include "Renderer/B3DRenderElement.h"
+#include "Renderer/B3DGpuDataParameterBlock.h"
+#include "RenderAPI/B3DGpuPipelineParameterLayout.h"
+#include "Material/B3DShaderVariation.h"
+#include "Allocators/B3DPoolAlloc.h"
+#include "Renderer/B3DRendererMaterial.h"
+#include "Utility/B3DTextureRowAllocator.h"
+#include "B3DRendererLight.h"
+#include "B3DRendererReflectionProbe.h"
+#include "Shading/B3DGpuParticleSimulation.h"
 
 namespace b3d
 {

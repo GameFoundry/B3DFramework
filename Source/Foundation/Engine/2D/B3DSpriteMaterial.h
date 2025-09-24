@@ -2,11 +2,11 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "BsPrerequisites.h"
-#include "Material/BsMaterialParam.h"
-#include "Image/BsColor.h"
-#include "Material/BsShaderVariation.h"
-#include "Renderer/BsGpuDataParameterBlock.h"
+#include "B3DPrerequisites.h"
+#include "Material/B3DMaterialParam.h"
+#include "Image/B3DColor.h"
+#include "Material/B3DShaderVariation.h"
+#include "Renderer/B3DGpuDataParameterBlock.h"
 
 namespace b3d
 {

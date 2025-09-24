@@ -1,15 +1,15 @@
 //************************************ B3D Framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "BsWin32RenderWindow.h"
+#include "B3DWin32RenderWindow.h"
 
-#include "BsCoreApplication.h"
-#include "BsWin32VideoModeInfo.h"
-#include "Private/Win32/BsWin32Platform.h"
-#include "Private/Win32/BsWin32Window.h"
-#include "CoreObject/BsRenderThread.h"
-#include "Managers/BsRenderWindowManager.h"
-#include "Math/BsMath.h"
-#include "RenderAPI/BsGpuDevice.h"
+#include "B3DCoreApplication.h"
+#include "B3DWin32VideoModeInfo.h"
+#include "Private/Win32/B3DWin32Platform.h"
+#include "Private/Win32/B3DWin32Window.h"
+#include "CoreObject/B3DRenderThread.h"
+#include "Managers/B3DRenderWindowManager.h"
+#include "Math/B3DMath.h"
+#include "RenderAPI/B3DGpuDevice.h"
 
 using namespace b3d;
 

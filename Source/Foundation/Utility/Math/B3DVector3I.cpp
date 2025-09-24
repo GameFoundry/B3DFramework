@@ -1,6 +1,6 @@
 //************************************ B3D Framework - Copyright 2023 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "Math/BsVector3I.h"
+#include "Math/B3DVector3I.h"
 
 using namespace b3d;
 

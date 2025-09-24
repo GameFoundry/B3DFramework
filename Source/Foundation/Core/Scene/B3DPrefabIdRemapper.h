@@ -1,8 +1,8 @@
 //************************************ B3D Framework - Copyright 2024 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
-#include "BsCorePrerequisites.h"
-#include "BsPrefabUtility.h"
+#include "B3DCorePrerequisites.h"
+#include "B3DPrefabUtility.h"
 
 namespace b3d
 {

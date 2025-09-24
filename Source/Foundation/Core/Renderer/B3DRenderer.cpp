@@ -1,19 +1,19 @@
 //************************************ B3D Framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
-#include "Renderer/BsRenderer.h"
-#include "CoreObject/BsRenderThread.h"
-#include "Mesh/BsMesh.h"
-#include "Material/BsMaterial.h"
-#include "Renderer/BsRendererExtension.h"
-#include "Renderer/BsRendererManager.h"
-#include "CoreObject/BsCoreObjectManager.h"
-#include "Scene/BsSceneInstance.h"
-#include "Material/BsShader.h"
-#include "Profiling/BsProfilerGPU.h"
-#include "Profiling/BsProfilerCPU.h"
-#include "RenderAPI/BsGpuCommandBuffer.h"
-#include "RenderAPI/BsGpuDevice.h"
-#include "Scene/BsSceneManager.h"
+#include "Renderer/B3DRenderer.h"
+#include "CoreObject/B3DRenderThread.h"
+#include "Mesh/B3DMesh.h"
+#include "Material/B3DMaterial.h"
+#include "Renderer/B3DRendererExtension.h"
+#include "Renderer/B3DRendererManager.h"
+#include "CoreObject/B3DCoreObjectManager.h"
+#include "Scene/B3DSceneInstance.h"
+#include "Material/B3DShader.h"
+#include "Profiling/B3DProfilerGPU.h"
+#include "Profiling/B3DProfilerCPU.h"
+#include "RenderAPI/B3DGpuCommandBuffer.h"
+#include "RenderAPI/B3DGpuDevice.h"
+#include "Scene/B3DSceneManager.h"
 
 using namespace b3d;
 
