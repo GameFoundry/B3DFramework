@@ -3,7 +3,7 @@
 #include "Image/B3DTexture.h"
 
 #include "B3DCoreApplication.h"
-#include "Private/RTTI/B3DTextureRTTI.h"
+#include "RTTI/B3DTextureRTTI.h"
 #include "FileSystem/B3DDataStream.h"
 #include "Error/B3DException.h"
 #include "Debug/B3DDebug.h"

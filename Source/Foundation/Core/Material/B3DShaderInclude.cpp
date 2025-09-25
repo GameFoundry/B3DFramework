@@ -2,7 +2,7 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "Material/B3DShaderInclude.h"
 #include "Resources/B3DResources.h"
-#include "Private/RTTI/B3DShaderIncludeRTTI.h"
+#include "RTTI/B3DShaderIncludeRTTI.h"
 
 using namespace b3d;
 

@@ -9,7 +9,7 @@
 #include "RTTI/B3DStringRTTI.h"
 #include "RTTI/B3DTArrayRTTI.h"
 #include "RTTI/B3DStdRTTI.h"
-#include "Private/RTTI/B3DShaderVariationRTTI.h"
+#include "RTTI/B3DShaderVariationRTTI.h"
 
 namespace b3d
 {

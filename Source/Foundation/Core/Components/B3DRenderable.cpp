@@ -14,7 +14,7 @@
 #include "RenderAPI/B3DGpuDevice.h"
 #include "Renderer/B3DRendererScene.h"
 #include "Scene/B3DSceneInstance.h"
-#include "Private/RTTI/B3DRenderableRTTI.h"
+#include "RTTI/B3DRenderableRTTI.h"
 
 using namespace b3d;
 

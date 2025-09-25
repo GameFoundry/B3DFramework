@@ -5,7 +5,7 @@
 #include "B3DCorePrerequisites.h"
 #include "Reflection/B3DRTTIType.h"
 #include "Scene/B3DComponent.h"
-#include "Private/RTTI/B3DGameObjectRTTI.h"
+#include "RTTI/B3DGameObjectRTTI.h"
 #include "Scene/B3DGameObjectCollection.h"
 #include "Utility/B3DUtility.h"
 

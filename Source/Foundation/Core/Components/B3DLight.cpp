@@ -4,7 +4,7 @@
 
 #include "CoreObject/B3DCoreObjectSync.h"
 #include "Image/B3DColor.h"
-#include "Private/RTTI/B3DLightRTTI.h"
+#include "RTTI/B3DLightRTTI.h"
 #include "Renderer/B3DRendererScene.h"
 #include "Scene/B3DSceneInstance.h"
 

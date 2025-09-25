@@ -1,7 +1,7 @@
 //************************************ B3D Framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "RenderAPI/B3DViewport.h"
-#include "Private/RTTI/B3DViewportRTTI.h"
+#include "RTTI/B3DViewportRTTI.h"
 #include "Error/B3DException.h"
 #include "RenderAPI/B3DRenderTarget.h"
 #include "Math/B3DMath.h"

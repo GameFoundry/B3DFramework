@@ -3,7 +3,7 @@
 #include "Localization/B3DStringTable.h"
 #include "Error/B3DException.h"
 #include "Resources/B3DResources.h"
-#include "Private/RTTI/B3DStringTableRTTI.h"
+#include "RTTI/B3DStringTableRTTI.h"
 
 using namespace b3d;
 

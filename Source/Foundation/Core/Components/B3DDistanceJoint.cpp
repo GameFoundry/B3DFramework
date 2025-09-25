@@ -4,7 +4,7 @@
 
 #include "Physics/B3DPhysics.h"
 #include "Scene/B3DSceneObject.h"
-#include "Private/RTTI/B3DDistanceJointRTTI.h"
+#include "RTTI/B3DDistanceJointRTTI.h"
 #include "Scene/B3DSceneInstance.h"
 
 using namespace b3d;

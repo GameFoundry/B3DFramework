@@ -1,7 +1,7 @@
 //************************************ B3D Framework - Copyright 2023 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "Utility/B3DPersistentCache.h"
-#include "Private/RTTI/B3DPersistentCacheRTTI.h"
+#include "RTTI/B3DPersistentCacheRTTI.h"
 #include "FileSystem/B3DDataStream.h"
 #include "FileSystem/B3DFileSystem.h"
 #include "Resources/B3DPackage.h"

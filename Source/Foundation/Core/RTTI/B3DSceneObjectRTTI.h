@@ -8,7 +8,7 @@
 #include "Scene/B3DGameObjectHandle.h"
 #include "Scene/B3DGameObjectManager.h"
 #include "Scene/B3DComponent.h"
-#include "Private/RTTI/B3DGameObjectRTTI.h"
+#include "RTTI/B3DGameObjectRTTI.h"
 #include "Scene/B3DGameObjectCollection.h"
 #include "Scene/B3DSceneObjectHierarchyDelta.h"
 #include "Utility/B3DUtility.h"

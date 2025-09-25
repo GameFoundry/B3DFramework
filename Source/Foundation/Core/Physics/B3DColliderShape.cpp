@@ -2,7 +2,7 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "Physics/B3DColliderShape.h"
 #include "B3DPhysics.h"
-#include "Private/RTTI/B3DColliderShapeRTTI.h"
+#include "RTTI/B3DColliderShapeRTTI.h"
 
 using namespace b3d;
 

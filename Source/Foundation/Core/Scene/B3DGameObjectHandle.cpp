@@ -4,7 +4,7 @@
 #include "Scene/B3DGameObject.h"
 #include "Scene/B3DGameObjectHandle.h"
 #include "Scene/B3DGameObject.h"
-#include "Private/RTTI/B3DGameObjectHandleRTTI.h"
+#include "RTTI/B3DGameObjectHandleRTTI.h"
 
 using namespace b3d;
 

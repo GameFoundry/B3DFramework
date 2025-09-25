@@ -4,7 +4,7 @@
 #include "Platform/B3DPlatform.h"
 #include "B3DCoreApplication.h"
 #include "Utility/B3DTime.h"
-#include "Private/RTTI/B3DDragAndDropDataRTTI.h"
+#include "RTTI/B3DDragAndDropDataRTTI.h"
 
 using namespace std::placeholders;
 

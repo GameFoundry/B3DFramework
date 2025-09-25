@@ -3,7 +3,7 @@
 #include "Mesh/B3DMeshBase.h"
 
 #include "CoreObject/B3DCoreObjectSync.h"
-#include "Private/RTTI/B3DMeshBaseRTTI.h"
+#include "RTTI/B3DMeshBaseRTTI.h"
 #include "CoreObject/B3DRenderThread.h"
 
 using namespace b3d;

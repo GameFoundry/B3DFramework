@@ -4,7 +4,7 @@
 
 #include "B3DScriptEnginePrerequisites.h"
 #include "Reflection/B3DRTTIType.h"
-#include "Private/RTTI/B3DResourceRTTI.h"
+#include "RTTI/B3DResourceRTTI.h"
 #include "B3DManagedResource.h"
 #include "B3DMonoManager.h"
 #include "Serialization/B3DManagedSerializableObject.h"

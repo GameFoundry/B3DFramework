@@ -7,7 +7,7 @@
 #include "B3DGUIPanel.h"
 #include "B3DGUIRenderable.h"
 #include "B3DGUIUtility.h"
-#include "Private/RTTI/B3DGUIWidgetRTTI.h"
+#include "RTTI/B3DGUIWidgetRTTI.h"
 #include "Scene/B3DSceneObject.h"
 #include "Components/B3DCamera.h"
 #include "RenderAPI/B3DRenderTarget.h"

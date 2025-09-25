@@ -7,7 +7,7 @@
 #include "RTTI/B3DMathRTTI.h"
 #include "RTTI/B3DColorRTTI.h"
 #include "RTTI/B3DStdRTTI.h"
-#include "Private/RTTI/B3DSubmeshRTTI.h"
+#include "RTTI/B3DSubmeshRTTI.h"
 #include "VectorGraphics/B3DNVGVectorGraphics.h"
 
 namespace b3d

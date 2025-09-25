@@ -3,7 +3,7 @@
 #include "Text/B3DFont.h"
 #include "Resources/B3DResources.h"
 #include "Image/B3DTextureAtlasLayout.h"
-#include "Private/RTTI/B3DFontRTTI.h"
+#include "RTTI/B3DFontRTTI.h"
 #include "B3DCoreApplication.h"
 #include "FileSystem/B3DDataStream.h"
 #include "RenderAPI/B3DGpuCommandBuffer.h"

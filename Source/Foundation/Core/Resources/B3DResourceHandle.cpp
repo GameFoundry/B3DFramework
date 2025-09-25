@@ -3,7 +3,7 @@
 #include "B3DCorePrerequisites.h"
 #include "Resources/B3DResourceHandle.h"
 #include "Resources/B3DResource.h"
-#include "Private/RTTI/B3DResourceHandleRTTI.h"
+#include "RTTI/B3DResourceHandleRTTI.h"
 #include "Resources/B3DResources.h"
 #include "Managers/B3DResourceListenerManager.h"
 #include "B3DCoreApplication.h"

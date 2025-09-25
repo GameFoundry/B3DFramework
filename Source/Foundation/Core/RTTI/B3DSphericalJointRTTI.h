@@ -6,7 +6,7 @@
 #include "Reflection/B3DRTTIType.h"
 #include "RTTI/B3DMathRTTI.h"
 #include "Components/B3DSphericalJoint.h"
-#include "Private/RTTI/B3DGameObjectRTTI.h"
+#include "RTTI/B3DGameObjectRTTI.h"
 
 namespace b3d
 {

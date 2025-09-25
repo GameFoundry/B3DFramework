@@ -1,7 +1,7 @@
 //************************************ B3D Framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "Material/B3DMaterialParams.h"
-#include "Private/RTTI/B3DMaterialParamsRTTI.h"
+#include "RTTI/B3DMaterialParamsRTTI.h"
 #include "Material/B3DShader.h"
 #include "Image/B3DTexture.h"
 #include "Image/B3DSpriteTexture.h"

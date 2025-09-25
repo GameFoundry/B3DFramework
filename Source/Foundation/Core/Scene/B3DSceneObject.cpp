@@ -6,7 +6,7 @@
 #include "Scene/B3DSceneInstance.h"
 #include "Error/B3DException.h"
 #include "Debug/B3DDebug.h"
-#include "Private/RTTI/B3DSceneObjectRTTI.h"
+#include "RTTI/B3DSceneObjectRTTI.h"
 #include "Serialization/B3DBinarySerializer.h"
 #include "FileSystem/B3DDataStream.h"
 #include "Scene/B3DPrefabUtility.h"

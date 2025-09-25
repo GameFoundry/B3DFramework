@@ -7,7 +7,7 @@
 #include "RTTI/B3DStringRTTI.h"
 #include "RTTI/B3DStdRTTI.h"
 #include "Animation/B3DAnimationClip.h"
-#include "Private/RTTI/B3DAnimationCurveRTTI.h"
+#include "RTTI/B3DAnimationCurveRTTI.h"
 
 namespace b3d
 {

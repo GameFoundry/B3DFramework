@@ -3,7 +3,7 @@
 #include "Components/B3DDecal.h"
 
 #include "CoreObject/B3DCoreObjectSync.h"
-#include "Private/RTTI/B3DDecalRTTI.h"
+#include "RTTI/B3DDecalRTTI.h"
 #include "Renderer/B3DRendererScene.h"
 #include "Material/B3DMaterial.h"
 #include "Scene/B3DSceneInstance.h"

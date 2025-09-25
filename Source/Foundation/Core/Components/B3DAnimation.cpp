@@ -9,7 +9,7 @@
 #include "Animation/B3DAnimationClip.h"
 #include "Animation/B3DAnimationUtility.h"
 #include "Animation/B3DSkeleton.h"
-#include "Private/RTTI/B3DAnimationRTTI.h"
+#include "RTTI/B3DAnimationRTTI.h"
 #include "Scene/B3DSceneInstance.h"
 
 using namespace b3d;

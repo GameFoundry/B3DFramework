@@ -3,7 +3,7 @@
 #include "Audio/B3DAudioClip.h"
 #include "Resources/B3DResources.h"
 #include "Audio/B3DAudio.h"
-#include "Private/RTTI/B3DAudioClipRTTI.h"
+#include "RTTI/B3DAudioClipRTTI.h"
 
 using namespace b3d;
 

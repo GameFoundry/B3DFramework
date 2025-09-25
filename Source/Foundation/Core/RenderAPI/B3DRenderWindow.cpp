@@ -7,7 +7,7 @@
 #include "Managers/B3DRenderWindowManager.h"
 #include "RenderAPI/B3DViewport.h"
 #include "Platform/B3DPlatform.h"
-#include "Private/RTTI/B3DRenderTargetRTTI.h"
+#include "RTTI/B3DRenderTargetRTTI.h"
 
 using namespace b3d;
 

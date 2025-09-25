@@ -4,7 +4,7 @@
 #include "Material/B3DShader.h"
 #include "Material/B3DTechnique.h"
 #include "Material/B3DPass.h"
-#include "Private/RTTI/B3DMaterialRTTI.h"
+#include "RTTI/B3DMaterialRTTI.h"
 #include "Resources/B3DResources.h"
 #include "Math/B3DMatrixNxM.h"
 #include "Math/B3DVector3I.h"
@@ -13,7 +13,7 @@
 #include "Material/B3DGpuParamsSet.h"
 #include "Animation/B3DAnimationCurve.h"
 #include "CoreObject/B3DCoreObjectSync.h"
-#include "Private/RTTI/B3DShaderVariationRTTI.h"
+#include "RTTI/B3DShaderVariationRTTI.h"
 #include "Serialization/B3DBinarySerializer.h"
 #include "FileSystem/B3DDataStream.h"
 

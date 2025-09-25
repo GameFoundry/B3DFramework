@@ -5,7 +5,7 @@
 #include "Math/B3DVector3.h"
 #include "Math/B3DSphere.h"
 #include "Math/B3DAABox.h"
-#include "Private/RTTI/B3DMeshDataRTTI.h"
+#include "RTTI/B3DMeshDataRTTI.h"
 #include "RenderAPI/B3DVertexDescription.h"
 #include "Error/B3DException.h"
 #include "Debug/B3DDebug.h"

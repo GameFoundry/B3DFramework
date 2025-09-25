@@ -2,7 +2,7 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "RenderAPI/B3DRenderTarget.h"
 #include "RenderAPI/B3DViewport.h"
-#include "Private/RTTI/B3DRenderTargetRTTI.h"
+#include "RTTI/B3DRenderTargetRTTI.h"
 #include "Error/B3DException.h"
 #include "CoreObject/B3DRenderThread.h"
 

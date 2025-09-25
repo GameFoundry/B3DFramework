@@ -3,7 +3,7 @@
 #include "Components/B3DCharacterController.h"
 #include "Scene/B3DSceneObject.h"
 #include "Scene/B3DSceneInstance.h"
-#include "Private/RTTI/B3DCharacterControllerRTTI.h"
+#include "RTTI/B3DCharacterControllerRTTI.h"
 #include "B3DCollider.h"
 #include "Physics/B3DPhysics.h"
 

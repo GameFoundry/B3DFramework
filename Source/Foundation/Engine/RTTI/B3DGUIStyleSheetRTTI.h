@@ -11,8 +11,8 @@
 #include "RTTI/B3DColorRTTI.h"
 #include "RTTI/B3DTArrayRTTI.h"
 #include "RTTI/B3DStdRTTI.h"
-#include "Private/RTTI/B3DFontRTTI.h"
-#include "Private/RTTI/B3DTextureRTTI.h"
+#include "RTTI/B3DFontRTTI.h"
+#include "RTTI/B3DTextureRTTI.h"
 #include "GUI/StyleSheet/B3DGUIStyleSheet.h"
 
 namespace b3d

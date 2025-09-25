@@ -6,7 +6,7 @@
 #include "Reflection/B3DRTTIType.h"
 #include "Reflection/B3DRTTIPlain.h"
 #include "Components/B3DCharacterController.h"
-#include "Private/RTTI/B3DGameObjectRTTI.h"
+#include "RTTI/B3DGameObjectRTTI.h"
 #include "RTTI/B3DMathRTTI.h"
 
 namespace b3d

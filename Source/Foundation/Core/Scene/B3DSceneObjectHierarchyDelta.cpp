@@ -3,7 +3,7 @@
 #include "Scene/B3DSceneObjectHierarchyDelta.h"
 
 #include "B3DGameObjectCollection.h"
-#include "Private/RTTI/B3DSceneObjectHierarchyDeltaRTTI.h"
+#include "RTTI/B3DSceneObjectHierarchyDeltaRTTI.h"
 #include "Scene/B3DSceneObject.h"
 #include "Serialization/B3DBinarySerializer.h"
 #include "Serialization/B3DBinaryDelta.h"

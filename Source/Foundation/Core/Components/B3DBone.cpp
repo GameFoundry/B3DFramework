@@ -3,7 +3,7 @@
 #include "Components/B3DBone.h"
 #include "Scene/B3DSceneObject.h"
 #include "Components/B3DAnimation.h"
-#include "Private/RTTI/B3DBoneRTTI.h"
+#include "RTTI/B3DBoneRTTI.h"
 
 using namespace b3d;
 

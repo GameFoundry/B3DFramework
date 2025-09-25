@@ -9,7 +9,7 @@
 #include "Renderer/B3DRendererManager.h"
 #include "Material/B3DPass.h"
 #include "Renderer/B3DRenderer.h"
-#include "Private/RTTI/B3DTechniqueRTTI.h"
+#include "RTTI/B3DTechniqueRTTI.h"
 #include "RenderAPI/B3DGpuDevice.h"
 #include "Utility/B3DPersistentCache.h"
 

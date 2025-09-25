@@ -3,7 +3,7 @@
 #include "Animation/B3DAnimationClip.h"
 #include "Resources/B3DResources.h"
 #include "Animation/B3DSkeleton.h"
-#include "Private/RTTI/B3DAnimationClipRTTI.h"
+#include "RTTI/B3DAnimationClipRTTI.h"
 
 using namespace b3d;
 

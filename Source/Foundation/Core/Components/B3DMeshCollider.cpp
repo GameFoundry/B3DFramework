@@ -4,7 +4,7 @@
 #include "Scene/B3DSceneObject.h"
 #include "Components/B3DRigidbody.h"
 #include "Physics/B3DPhysicsMesh.h"
-#include "Private/RTTI/B3DMeshColliderRTTI.h"
+#include "RTTI/B3DMeshColliderRTTI.h"
 #include "Scene/B3DSceneInstance.h"
 
 using namespace b3d;

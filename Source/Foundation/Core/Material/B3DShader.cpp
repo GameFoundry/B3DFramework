@@ -6,7 +6,7 @@
 #include "Material/B3DTechnique.h"
 #include "Error/B3DException.h"
 #include "Debug/B3DDebug.h"
-#include "Private/RTTI/B3DShaderRTTI.h"
+#include "RTTI/B3DShaderRTTI.h"
 #include "Resources/B3DResources.h"
 #include "RenderAPI/B3DGpuParameters.h"
 #include "Material/B3DPass.h"

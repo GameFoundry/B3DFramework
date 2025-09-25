@@ -6,7 +6,7 @@
 #include "Utility/B3DPersistentCache.h"
 #include "Reflection/B3DRTTIType.h"
 #include "Reflection/B3DRTTIPlain.h"
-#include "Private/RTTI/B3DResourceRTTI.h"
+#include "RTTI/B3DResourceRTTI.h"
 
 namespace b3d
 {

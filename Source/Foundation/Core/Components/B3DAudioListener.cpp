@@ -5,7 +5,7 @@
 #include "Audio/B3DAudio.h"
 #include "Scene/B3DSceneObject.h"
 #include "Utility/B3DTime.h"
-#include "Private/RTTI/B3DAudioListenerRTTI.h"
+#include "RTTI/B3DAudioListenerRTTI.h"
 
 using namespace b3d;
 

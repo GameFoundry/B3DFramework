@@ -2,7 +2,7 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "Particles/B3DParticleEvolver.h"
 #include "Private/Particles/B3DParticleSet.h"
-#include "Private/RTTI/B3DParticleSystemRTTI.h"
+#include "RTTI/B3DParticleSystemRTTI.h"
 #include "Particles/B3DVectorField.h"
 #include "Image/B3DSpriteTexture.h"
 #include "Components/B3DCollider.h"

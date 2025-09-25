@@ -5,7 +5,7 @@
 #include "B3DCorePrerequisites.h"
 #include "Reflection/B3DRTTIType.h"
 #include "Components/B3DDistanceJoint.h"
-#include "Private/RTTI/B3DGameObjectRTTI.h"
+#include "RTTI/B3DGameObjectRTTI.h"
 
 namespace b3d
 {

@@ -5,7 +5,7 @@
 #include "B3DCorePrerequisites.h"
 #include "Reflection/B3DRTTIType.h"
 #include "Components/B3DLightProbeVolume.h"
-#include "Private/RTTI/B3DGameObjectRTTI.h"
+#include "RTTI/B3DGameObjectRTTI.h"
 #include "RTTI/B3DMathRTTI.h"
 #include "RTTI/B3DStdRTTI.h"
 

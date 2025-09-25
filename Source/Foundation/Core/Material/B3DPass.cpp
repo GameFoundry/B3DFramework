@@ -3,7 +3,7 @@
 #include "Material/B3DPass.h"
 
 #include "B3DCoreApplication.h"
-#include "Private/RTTI/B3DPassRTTI.h"
+#include "RTTI/B3DPassRTTI.h"
 #include "Material/B3DMaterial.h"
 #include "RenderAPI/B3DGpuParameters.h"
 #include "RenderAPI/B3DGpuProgram.h"

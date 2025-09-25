@@ -11,8 +11,8 @@
 #include "RTTI/B3DFlagsRTTI.h"
 #include "Material/B3DShader.h"
 #include "Material/B3DMaterial.h"
-#include "Private/RTTI/B3DShaderCompilerRTTI.h"
-#include "Private/RTTI/B3DSamplerStateRTTI.h"
+#include "RTTI/B3DShaderCompilerRTTI.h"
+#include "RTTI/B3DSamplerStateRTTI.h"
 
 namespace b3d
 {

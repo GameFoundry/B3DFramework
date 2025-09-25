@@ -2,7 +2,7 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "Image/B3DPixelData.h"
 #include "Image/B3DPixelUtility.h"
-#include "Private/RTTI/B3DPixelDataRTTI.h"
+#include "RTTI/B3DPixelDataRTTI.h"
 #include "Image/B3DColor.h"
 #include "Math/B3DVector2.h"
 #include "Math/B3DMath.h"

@@ -4,7 +4,7 @@
 #include "Mesh/B3DMesh.h"
 #include "RenderAPI/B3DGpuCommandBuffer.h"
 #include "RenderAPI/B3DGpuPipelineParameterLayout.h"
-#include "Private/RTTI/B3DNVGVectorGraphicsRTTI.h"
+#include "RTTI/B3DNVGVectorGraphicsRTTI.h"
 
 using namespace b3d;
 

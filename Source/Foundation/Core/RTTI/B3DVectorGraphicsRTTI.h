@@ -8,7 +8,7 @@
 #include "RTTI/B3DColorRTTI.h"
 #include "RTTI/B3DRectOffsetRTTI.h"
 #include "RTTI/B3DStdRTTI.h"
-#include "Private/RTTI/B3DResourceRTTI.h"
+#include "RTTI/B3DResourceRTTI.h"
 #include "VectorGraphics/B3DVectorGraphics.h"
 
 namespace b3d

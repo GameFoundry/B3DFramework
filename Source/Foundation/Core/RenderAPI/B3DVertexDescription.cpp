@@ -6,7 +6,7 @@
 #include "B3DGpuDevice.h"
 #include "B3DGpuDeviceCapabilities.h"
 #include "Image/B3DColor.h"
-#include "Private/RTTI/B3DVertexDescriptionRTTI.h"
+#include "RTTI/B3DVertexDescriptionRTTI.h"
 
 using namespace b3d;
 

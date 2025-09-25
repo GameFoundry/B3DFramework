@@ -7,7 +7,7 @@
 #include "Math/B3DRandom.h"
 #include "Components/B3DRenderable.h"
 #include "Private/Particles/B3DParticleSet.h"
-#include "Private/RTTI/B3DParticleSystemRTTI.h"
+#include "RTTI/B3DParticleSystemRTTI.h"
 #include "Animation/B3DAnimationScene.h"
 #include "Components/B3DAnimation.h"
 #include "Mesh/B3DMesh.h"

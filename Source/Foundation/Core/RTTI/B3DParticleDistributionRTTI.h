@@ -4,7 +4,7 @@
 
 #include "B3DCorePrerequisites.h"
 #include "Particles/B3DParticleDistribution.h"
-#include "Private/RTTI/B3DAnimationCurveRTTI.h"
+#include "RTTI/B3DAnimationCurveRTTI.h"
 
 namespace b3d
 {

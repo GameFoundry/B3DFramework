@@ -1,7 +1,7 @@
 //************************************ B3D Framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "Animation/B3DMorphShapes.h"
-#include "Private/RTTI/B3DMorphShapesRTTI.h"
+#include "RTTI/B3DMorphShapesRTTI.h"
 
 using namespace b3d;
 

@@ -5,7 +5,7 @@
 #include "B3DCoreApplication.h"
 #include "CoreObject/B3DCoreObjectSync.h"
 #include "Image/B3DTexture.h"
-#include "Private/RTTI/B3DReflectionProbeRTTI.h"
+#include "RTTI/B3DReflectionProbeRTTI.h"
 #include "Profiling/B3DProfilerGPU.h"
 #include "RenderAPI/B3DGpuDevice.h"
 #include "Renderer/B3DIBLUtility.h"

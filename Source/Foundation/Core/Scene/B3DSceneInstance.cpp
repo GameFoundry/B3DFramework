@@ -19,7 +19,7 @@
 #include "Profiling/B3DProfilerCPU.h"
 
 #if B3D_WITH_EDITOR
-#include "Private/RTTI/B3DIEditorSceneInstanceRTTI.h"
+#include "RTTI/B3DIEditorSceneInstanceRTTI.h"
 #endif
 
 using namespace b3d;

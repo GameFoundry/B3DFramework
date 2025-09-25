@@ -6,7 +6,7 @@
 #include "Managers/B3DTextureManager.h"
 #include "Resources/B3DResources.h"
 #include "CoreObject/B3DRenderThread.h"
-#include "Private/RTTI/B3DRenderTargetRTTI.h"
+#include "RTTI/B3DRenderTargetRTTI.h"
 
 #include "CoreObject/B3DCoreObjectSync.h"
 

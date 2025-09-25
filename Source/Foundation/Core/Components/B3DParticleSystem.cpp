@@ -6,7 +6,7 @@
 #include "Private/Particles/B3DParticleSet.h"
 #include "Scene/B3DSceneObject.h"
 #include "Utility/B3DTime.h"
-#include "Private/RTTI/B3DParticleSystemRTTI.h"
+#include "RTTI/B3DParticleSystemRTTI.h"
 #include "Renderer/B3DRendererScene.h"
 #include "Scene/B3DSceneInstance.h"
 #include "Mesh/B3DMesh.h"

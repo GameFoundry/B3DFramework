@@ -5,7 +5,7 @@
 #include "Components/B3DRigidbody.h"
 #include "Math/B3DRay.h"
 #include "Physics/B3DPhysics.h"
-#include "Private/RTTI/B3DColliderRTTI.h"
+#include "RTTI/B3DColliderRTTI.h"
 #include "Scene/B3DSceneInstance.h"
 
 using namespace std::placeholders;

@@ -5,7 +5,7 @@
 #include "B3DCorePrerequisites.h"
 #include "Resources/B3DPackage.h"
 #include "Reflection/B3DRTTIType.h"
-#include "Private/RTTI/B3DResourceMetaDataRTTI.h"
+#include "RTTI/B3DResourceMetaDataRTTI.h"
 #include "RTTI/B3DUUIDRTTI.h"
 #include "RTTI/B3DPathRTTI.h"
 #include "RTTI/B3DFlagsRTTI.h"

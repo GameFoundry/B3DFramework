@@ -7,7 +7,7 @@
 #include "RTTI/B3DStringRTTI.h"
 #include "RTTI/B3DStdRTTI.h"
 #include "Importer/B3DMeshImportOptions.h"
-#include "Private/RTTI/B3DAnimationClipRTTI.h"
+#include "RTTI/B3DAnimationClipRTTI.h"
 
 namespace b3d
 {

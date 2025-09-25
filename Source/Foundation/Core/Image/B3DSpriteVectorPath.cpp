@@ -2,7 +2,7 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "Image/B3DSpriteVectorPath.h"
 
-#include "Private/RTTI/B3DSpriteVectorPathRTTI.h"
+#include "RTTI/B3DSpriteVectorPathRTTI.h"
 #include "Image/B3DTexture.h"
 #include "Resources/B3DResources.h"
 #include "Resources/B3DBuiltinResources.h"

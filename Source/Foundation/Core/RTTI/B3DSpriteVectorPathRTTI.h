@@ -5,7 +5,7 @@
 #include "B3DCorePrerequisites.h"
 #include "Reflection/B3DRTTIType.h"
 #include "Reflection/B3DRTTIPlain.h"
-#include "Private/RTTI/B3DSpriteImageRTTI.h"
+#include "RTTI/B3DSpriteImageRTTI.h"
 #include "Image/B3DSpriteVectorPath.h"
 
 namespace b3d

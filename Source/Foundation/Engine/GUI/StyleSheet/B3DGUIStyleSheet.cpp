@@ -4,7 +4,7 @@
 #include "B3DGUIStyleSheetParser.h"
 #include "FileSystem/B3DFileSystem.h"
 #include "FileSystem/B3DDataStream.h"
-#include "Private/RTTI/B3DGUIStyleSheetRTTI.h"
+#include "RTTI/B3DGUIStyleSheetRTTI.h"
 #include "Resources/B3DBuiltinResources.h"
 #include "Resources/B3DResources.h"
 

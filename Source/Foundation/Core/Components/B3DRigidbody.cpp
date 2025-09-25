@@ -4,7 +4,7 @@
 #include "Scene/B3DSceneObject.h"
 #include "Components/B3DCollider.h"
 #include "Components/B3DJoint.h"
-#include "Private/RTTI/B3DRigidbodyRTTI.h"
+#include "RTTI/B3DRigidbodyRTTI.h"
 #include "Physics/B3DPhysics.h"
 #include "Scene/B3DSceneInstance.h"
 

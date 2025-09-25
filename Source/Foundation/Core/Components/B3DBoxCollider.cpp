@@ -3,7 +3,7 @@
 #include "Components/B3DBoxCollider.h"
 #include "Scene/B3DSceneObject.h"
 #include "Components/B3DRigidbody.h"
-#include "Private/RTTI/B3DBoxColliderRTTI.h"
+#include "RTTI/B3DBoxColliderRTTI.h"
 #include "Scene/B3DSceneInstance.h"
 
 using namespace b3d;

@@ -5,8 +5,8 @@
 #include "B3DCorePrerequisites.h"
 #include "Reflection/B3DRTTIType.h"
 #include "Reflection/B3DRTTIPlain.h"
-#include "Private/RTTI/B3DGpuProgramRTTI.h"
-#include "Private/RTTI/B3DGpuPipelineStateRTTI.h"
+#include "RTTI/B3DGpuProgramRTTI.h"
+#include "RTTI/B3DGpuPipelineStateRTTI.h"
 #include "Material/B3DPass.h"
 
 namespace b3d
