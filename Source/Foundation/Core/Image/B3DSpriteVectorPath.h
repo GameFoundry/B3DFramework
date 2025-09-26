@@ -80,7 +80,7 @@ namespace b3d
 	 */
 
 	/** Implementation of SpriteImage that renders a vector path. */
-	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Rendering)) SpriteVectorPath : public CoreVariantType<SpriteImage, false>
+	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Rendering)) SpriteVectorPath : public CoreVariantType<SpriteImage, false>
 	{
 	public:
 		SPtr<SpriteImageAllocation> FindOrAllocateImageToFitArea(const Size2I& size) override;
@@ -160,7 +160,7 @@ namespace b3d
 		 *
 		 * @note	Render thread.
 		 */
-		class B3D_CORE_EXPORT SpriteVectorPath : public CoreVariantType<SpriteImage, true>
+		class B3D_EXPORT SpriteVectorPath : public CoreVariantType<SpriteImage, true>
 		{
 		private:
 			friend class b3d::SpriteVectorPath;

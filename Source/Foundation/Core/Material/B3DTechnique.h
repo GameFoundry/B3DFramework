@@ -41,7 +41,7 @@ namespace b3d
 	namespace render { using PrecompiledVariationData = TPrecompiledVariationData<true>; }
 
 	/** Base class that is used for implementing both main and render thread versions of Technique. */
-	class B3D_CORE_EXPORT TechniqueBase
+	class B3D_EXPORT TechniqueBase
 	{
 	public:
 		TechniqueBase(const String& language, const ShaderVariationParameters& variationParameters);
@@ -66,7 +66,7 @@ namespace b3d
 
 	/** Templated class that is used for implementing both main and render thread versions of Technique. */
 	template <bool IsRenderProxy>
-	class B3D_CORE_EXPORT TTechnique : public TechniqueBase
+	class B3D_EXPORT TTechnique : public TechniqueBase
 	{
 	public:
 		using PassType = CoreVariantType<Pass, IsRenderProxy>;
@@ -128,7 +128,7 @@ namespace b3d
 	 * For example, if you are supporting DirectX11 and OpenGL you will want to have two techniques, one using HLSL based
 	 * GPU programs, other using GLSL. Those techniques should try to mirror each other's end results.
 	 */
-	class B3D_CORE_EXPORT Technique : public IReflectable, public CoreObject, public TTechnique<false>
+	class B3D_EXPORT Technique : public IReflectable, public CoreObject, public TTechnique<false>
 	{
 	public:
 		Technique(const WeakSPtr<Shader>& owner, const String& language, const ShaderVariationParameters& variationParameters, const Optional<PrecompiledVariationData>& precompiledData);
@@ -184,7 +184,7 @@ namespace b3d
 		 */
 
 		/** Render thread version of b3d::Technique. */
-		class B3D_CORE_EXPORT Technique : public IReflectable, public RenderProxy, public TTechnique<true>
+		class B3D_EXPORT Technique : public IReflectable, public RenderProxy, public TTechnique<true>
 		{
 		public:
 			Technique(const WeakSPtr<Shader>& owner, const String& language, const ShaderVariationParameters& variationParameters, const Optional<PrecompiledVariationData>& precompiledData);

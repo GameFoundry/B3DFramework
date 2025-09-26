@@ -7,7 +7,7 @@
 namespace b3d
 {
 	/** Represents a single hardware mouse. Used by the Input to report raw mouse input events. */
-	class B3D_CORE_EXPORT Mouse
+	class B3D_EXPORT Mouse
 	{
 	public:
 		struct Pimpl;

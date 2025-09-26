@@ -14,7 +14,7 @@ namespace b3d
 	 */
 
 	/**	Base class for all resources. */
-	class B3D_CORE_EXPORT Resource : public IReflectable, public IScriptExportable, public CoreObject
+	class B3D_EXPORT Resource : public IReflectable, public IScriptExportable, public CoreObject
 	{
 	public:
 		Resource(bool createRenderProxy = true, const String& name = StringUtil::kBlank);

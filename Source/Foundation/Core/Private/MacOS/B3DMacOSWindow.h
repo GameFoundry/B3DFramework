@@ -49,7 +49,7 @@ namespace b3d
 	 * Represents a Cocoa window. Note this class should only be used from the sim thread as Cocoa does not support
 	 * event handling, windows or views outside of the main thread.
 	 */
-	class B3D_UTILITY_EXPORT CocoaWindow
+	class B3D_EXPORT CocoaWindow
 	{
 	public:
 #ifdef BS_COCOA_INTERNALS

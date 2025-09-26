@@ -577,25 +577,25 @@ void AnimationUtility::CalculateTangents(Vector<TKeyframe<T>>& keyframes)
 	}
 }
 
-template B3D_CORE_EXPORT TAnimationCurve<Vector3> AnimationUtility::ScaleCurve(const TAnimationCurve<Vector3>& curve, float factor);
-template B3D_CORE_EXPORT TAnimationCurve<Vector2> AnimationUtility::ScaleCurve(const TAnimationCurve<Vector2>& curve, float factor);
-template B3D_CORE_EXPORT TAnimationCurve<Quaternion> AnimationUtility::ScaleCurve(const TAnimationCurve<Quaternion>& curve, float factor);
-template B3D_CORE_EXPORT TAnimationCurve<float> AnimationUtility::ScaleCurve(const TAnimationCurve<float>& curve, float factor);
+template B3D_EXPORT TAnimationCurve<Vector3> AnimationUtility::ScaleCurve(const TAnimationCurve<Vector3>& curve, float factor);
+template B3D_EXPORT TAnimationCurve<Vector2> AnimationUtility::ScaleCurve(const TAnimationCurve<Vector2>& curve, float factor);
+template B3D_EXPORT TAnimationCurve<Quaternion> AnimationUtility::ScaleCurve(const TAnimationCurve<Quaternion>& curve, float factor);
+template B3D_EXPORT TAnimationCurve<float> AnimationUtility::ScaleCurve(const TAnimationCurve<float>& curve, float factor);
 
-template B3D_CORE_EXPORT TAnimationCurve<Vector3> AnimationUtility::OffsetCurve(const TAnimationCurve<Vector3>& curve, float offset);
-template B3D_CORE_EXPORT TAnimationCurve<Vector2> AnimationUtility::OffsetCurve(const TAnimationCurve<Vector2>& curve, float offset);
-template B3D_CORE_EXPORT TAnimationCurve<Quaternion> AnimationUtility::OffsetCurve(const TAnimationCurve<Quaternion>& curve, float offset);
-template B3D_CORE_EXPORT TAnimationCurve<float> AnimationUtility::OffsetCurve(const TAnimationCurve<float>& curve, float offset);
+template B3D_EXPORT TAnimationCurve<Vector3> AnimationUtility::OffsetCurve(const TAnimationCurve<Vector3>& curve, float offset);
+template B3D_EXPORT TAnimationCurve<Vector2> AnimationUtility::OffsetCurve(const TAnimationCurve<Vector2>& curve, float offset);
+template B3D_EXPORT TAnimationCurve<Quaternion> AnimationUtility::OffsetCurve(const TAnimationCurve<Quaternion>& curve, float offset);
+template B3D_EXPORT TAnimationCurve<float> AnimationUtility::OffsetCurve(const TAnimationCurve<float>& curve, float offset);
 
-template B3D_CORE_EXPORT void AnimationUtility::CalculateTangents(Vector<TKeyframe<Vector3>>& keyframes);
-template B3D_CORE_EXPORT void AnimationUtility::CalculateTangents(Vector<TKeyframe<Vector2>>& keyframes);
-template B3D_CORE_EXPORT void AnimationUtility::CalculateTangents(Vector<TKeyframe<Quaternion>>& keyframes);
-template B3D_CORE_EXPORT void AnimationUtility::CalculateTangents(Vector<TKeyframe<float>>& keyframes);
+template B3D_EXPORT void AnimationUtility::CalculateTangents(Vector<TKeyframe<Vector3>>& keyframes);
+template B3D_EXPORT void AnimationUtility::CalculateTangents(Vector<TKeyframe<Vector2>>& keyframes);
+template B3D_EXPORT void AnimationUtility::CalculateTangents(Vector<TKeyframe<Quaternion>>& keyframes);
+template B3D_EXPORT void AnimationUtility::CalculateTangents(Vector<TKeyframe<float>>& keyframes);
 
-template B3D_CORE_EXPORT void AnimationUtility::SplitCurve(const TAnimationCurve<float>&, TAnimationCurve<float> (&)[1]);
-template B3D_CORE_EXPORT void AnimationUtility::SplitCurve(const TAnimationCurve<Vector2>&, TAnimationCurve<float> (&)[2]);
-template B3D_CORE_EXPORT void AnimationUtility::SplitCurve(const TAnimationCurve<Vector3>&, TAnimationCurve<float> (&)[3]);
+template B3D_EXPORT void AnimationUtility::SplitCurve(const TAnimationCurve<float>&, TAnimationCurve<float> (&)[1]);
+template B3D_EXPORT void AnimationUtility::SplitCurve(const TAnimationCurve<Vector2>&, TAnimationCurve<float> (&)[2]);
+template B3D_EXPORT void AnimationUtility::SplitCurve(const TAnimationCurve<Vector3>&, TAnimationCurve<float> (&)[3]);
 
-template B3D_CORE_EXPORT void AnimationUtility::CombineCurve(const TAnimationCurve<float> (&)[1], TAnimationCurve<float>&);
-template B3D_CORE_EXPORT void AnimationUtility::CombineCurve(const TAnimationCurve<float> (&)[2], TAnimationCurve<Vector2>&);
-template B3D_CORE_EXPORT void AnimationUtility::CombineCurve(const TAnimationCurve<float> (&)[3], TAnimationCurve<Vector3>&);
+template B3D_EXPORT void AnimationUtility::CombineCurve(const TAnimationCurve<float> (&)[1], TAnimationCurve<float>&);
+template B3D_EXPORT void AnimationUtility::CombineCurve(const TAnimationCurve<float> (&)[2], TAnimationCurve<Vector2>&);
+template B3D_EXPORT void AnimationUtility::CombineCurve(const TAnimationCurve<float> (&)[3], TAnimationCurve<Vector3>&);

@@ -15,7 +15,7 @@ namespace b3d
 	 *  @{
 	 */
 
-	class B3D_CORE_EXPORT PhysicsMeshRTTI : public TRTTIType<PhysicsMesh, Resource, PhysicsMeshRTTI>
+	class B3D_EXPORT PhysicsMeshRTTI : public TRTTIType<PhysicsMesh, Resource, PhysicsMeshRTTI>
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
@@ -47,7 +47,7 @@ namespace b3d
 		}
 	};
 
-	class B3D_CORE_EXPORT PhysicsMeshImplementationRTTI : public TRTTIType<IPhysicsMeshImplementation, IReflectable, PhysicsMeshImplementationRTTI>
+	class B3D_EXPORT PhysicsMeshImplementationRTTI : public TRTTIType<IPhysicsMeshImplementation, IReflectable, PhysicsMeshImplementationRTTI>
 	{
 	public:
 		const String& GetRttiName() override

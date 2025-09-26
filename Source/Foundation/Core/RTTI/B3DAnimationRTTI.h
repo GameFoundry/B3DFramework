@@ -15,7 +15,7 @@ namespace b3d
 	 *  @{
 	 */
 
-	class B3D_CORE_EXPORT AnimationRTTI : public TRTTIType<Animation, Component, AnimationRTTI>
+	class B3D_EXPORT AnimationRTTI : public TRTTIType<Animation, Component, AnimationRTTI>
 	{
 		B3D_RTTI_BEGIN_MEMBERS
 			B3D_RTTI_MEMBER(mDefaultClip, 0)

@@ -86,35 +86,6 @@
 /** @} */
 /** @} */
 
-// DLL export
-#if B3D_PLATFORM == B3D_PLATFORM_ID_WIN32 // Windows
-#  if B3D_COMPILER == B3D_COMPILER_ID_MSVC
-#    if defined(BS_STATIC_LIB)
-#      define B3D_EXPORT
-#    else
-#      if defined(B3D_EXPORTS)
-#        define B3D_EXPORT __declspec(dllexport)
-#      else
-#        define B3D_EXPORT __declspec(dllimport)
-#      endif
-#	 endif
-#  else
-#    if defined(BS_STATIC_LIB)
-#      define B3D_EXPORT
-#    else
-#      if defined(B3D_EXPORTS)
-#        define B3D_EXPORT __attribute__ ((dllexport))
-#      else
-#        define B3D_EXPORT __attribute__ ((dllimport))
-#      endif
-#	 endif
-#  endif
-#  define BS_HIDDEN
-#else // Linux/Mac settings
-#  define B3D_EXPORT __attribute__ ((visibility ("default")))
-#  define BS_HIDDEN __attribute__ ((visibility ("hidden")))
-#endif
-
 #include "Scene/B3DGameObject.h"
 #include "Utility/B3DEnums.h"
 #include "Utility/B3DPaths.h"

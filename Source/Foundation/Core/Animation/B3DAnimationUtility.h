@@ -89,7 +89,7 @@ namespace b3d
 	};
 
 	/** Helper class for dealing with animations, animation clips and curves. */
-	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Animation)) AnimationUtility : public IScriptExportable
+	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Animation)) AnimationUtility : public IScriptExportable
 	{
 	public:
 		/**

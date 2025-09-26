@@ -17,7 +17,7 @@ namespace b3d
 	 *
 	 * @note	Main thread only unless where specified otherwise.
 	 */
-	class B3D_UTILITY_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(General)) Time : public Module<Time>
+	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(General)) Time : public Module<Time>
 	{
 	public:
 		Time();
@@ -147,10 +147,10 @@ namespace b3d
 	};
 
 	/** Easier way to access the Time module. */
-	B3D_UTILITY_EXPORT Time& GetTime();
+	B3D_EXPORT Time& GetTime();
 
 	/** Manages simulation time for a particular scene. This time runs only while scene is simulating. */
-	class B3D_UTILITY_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(General)) SceneTime : public IScriptExportable
+	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(General)) SceneTime : public IScriptExportable
 	{
 	public:
 		SceneTime();

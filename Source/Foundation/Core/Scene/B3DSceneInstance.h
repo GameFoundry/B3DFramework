@@ -29,7 +29,7 @@ namespace b3d
 	};
 
 	/** Maintains a list of all components associated with a SceneInstance, and their current state (running, inactive, uninitialized). */
-	class B3D_CORE_EXPORT SceneInstanceComponents
+	class B3D_EXPORT SceneInstanceComponents
 	{
 	public:
 		/**
@@ -165,7 +165,7 @@ namespace b3d
 
 #if B3D_WITH_EDITOR 
 	/** Interface that provides editor-specific information about a scene instance. */
-	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Scene)) IEditorSceneInstance : public IScriptExportable, public IReflectable
+	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Scene)) IEditorSceneInstance : public IScriptExportable, public IReflectable
 	{
 	public:
 		IEditorSceneInstance() = default;
@@ -181,7 +181,7 @@ namespace b3d
 #endif
 
 	/** Contains information about an instantiated scene. */
-	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Scene)) SceneInstance : public CoreObject, public IScriptExportable, public SceneInstanceComponents
+	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Scene)) SceneInstance : public CoreObject, public IScriptExportable, public SceneInstanceComponents
 	{
 		struct ConstructPrivately
 		{};
@@ -355,7 +355,7 @@ namespace b3d
 		class RendererScene;
 
 		/** @copydoc SceneInstance */
-		class B3D_CORE_EXPORT SceneInstance : public RenderProxy
+		class B3D_EXPORT SceneInstance : public RenderProxy
 		{
 		public:
 			/**

@@ -85,7 +85,7 @@ namespace b3d
 		};
 
 		/** Base class for all parameter blocks. */
-		struct B3D_CORE_EXPORT GpuDataParameterBlock
+		struct B3D_EXPORT GpuDataParameterBlock
 		{
 			virtual ~GpuDataParameterBlock();
 			virtual void Initialize() = 0;
@@ -95,7 +95,7 @@ namespace b3d
 		 * Takes care of initializing param block definitions in a delayed manner since they depend on engine systems yet
 		 * are usually used as global variables which are initialized before engine systems are ready.
 		 */
-		class B3D_CORE_EXPORT GpuDataParameterBlockManager : public Module<GpuDataParameterBlockManager>
+		class B3D_EXPORT GpuDataParameterBlockManager : public Module<GpuDataParameterBlockManager>
 		{
 		public:
 			GpuDataParameterBlockManager();

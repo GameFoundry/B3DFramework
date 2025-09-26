@@ -14,7 +14,7 @@ namespace b3d
 	 *  @{
 	 */
 
-	class B3D_CORE_EXPORT RenderableRTTI : public TRTTIType<Renderable, Component, RenderableRTTI>
+	class B3D_EXPORT RenderableRTTI : public TRTTIType<Renderable, Component, RenderableRTTI>
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS

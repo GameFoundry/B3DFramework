@@ -16,7 +16,7 @@ namespace b3d
 	 *  @{
 	 */
 
-	class B3D_CORE_EXPORT CharacterControllerRTTI : public TRTTIType<CharacterController, Component, CharacterControllerRTTI>
+	class B3D_EXPORT CharacterControllerRTTI : public TRTTIType<CharacterController, Component, CharacterControllerRTTI>
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS

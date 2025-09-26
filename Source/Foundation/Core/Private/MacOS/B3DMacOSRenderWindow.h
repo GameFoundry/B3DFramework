@@ -19,7 +19,7 @@ namespace b3d
 	 */
 
 	/** Render window implementation for MacOS using Cocoa. */
-	class B3D_CORE_EXPORT MacOSRenderWindow : public RenderWindow
+	class B3D_EXPORT MacOSRenderWindow : public RenderWindow
 	{
 	public:
 		MacOSRenderWindow(const RenderWindowCreateInformation& createInformation, u32 windowId, const SPtr<RenderWindow>& parentWindow);

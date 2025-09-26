@@ -17,7 +17,7 @@ namespace b3d
 	 */
 
 	/** Helper class for performing SerializedObject <-> IReflectable encoding & decoding. */
-	class B3D_UTILITY_EXPORT IntermediateSerializer
+	class B3D_EXPORT IntermediateSerializer
 	{
 	public:
 		IntermediateSerializer(FrameAllocator* allocator, RTTIOperationContext& context);

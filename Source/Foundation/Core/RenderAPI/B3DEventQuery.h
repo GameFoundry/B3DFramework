@@ -13,7 +13,7 @@ namespace b3d
 		 */
 
 		/** Represents a GPU query that gets signaled when GPU starts processing the query. */
-		class B3D_CORE_EXPORT EventQuery
+		class B3D_EXPORT EventQuery
 		{
 		public:
 			EventQuery() = default;

@@ -23,7 +23,7 @@ namespace b3d
 	class GUIVectorSpriteAtlas;
 
 	/** Manages lifetime of an allocation in a sprite atlas. When this object goes out of scope the atlas will be notified so it may free the allocation. */
-	struct B3D_CORE_EXPORT GUIVectorSpriteAtlasAllocationHandle : public std::enable_shared_from_this<GUIVectorSpriteAtlasAllocationHandle>
+	struct B3D_EXPORT GUIVectorSpriteAtlasAllocationHandle : public std::enable_shared_from_this<GUIVectorSpriteAtlasAllocationHandle>
 	{
 		GUIVectorSpriteAtlasAllocationHandle(GUIVectorSpriteAtlas* owner, u64 vectorPathId, const Optional<TreeTextureAtlasLayout::Allocation>& layoutAllocation, u32 textureId, const SPtr<render::VectorPathRenderable>& renderable)
 			: mVectorPathId(vectorPathId), mOwner(owner), mLayoutAllocation(layoutAllocation), mTextureId(textureId), mRenderable(renderable)
@@ -64,7 +64,7 @@ namespace b3d
 	};
 
 	/** Represents a single allocation in a GUIVectorSpriteAtlas. */
-	class B3D_CORE_EXPORT GUIVectorSpriteAtlasAllocation : public std::enable_shared_from_this<GUIVectorSpriteAtlasAllocation>
+	class B3D_EXPORT GUIVectorSpriteAtlasAllocation : public std::enable_shared_from_this<GUIVectorSpriteAtlasAllocation>
 	{
 	public:
 		GUIVectorSpriteAtlasAllocation() = default;
@@ -86,7 +86,7 @@ namespace b3d
 	};
 
 	/** Manages a cache of all VectorPath objects used by the GUI and maintains an atlas containing their rasterized representation for use by GUI. */
-	class B3D_CORE_EXPORT GUIVectorSpriteAtlas
+	class B3D_EXPORT GUIVectorSpriteAtlas
 	{
 	public:
 		GUIVectorSpriteAtlas(const GUIVectorSpriteAtlasSettings& settings);

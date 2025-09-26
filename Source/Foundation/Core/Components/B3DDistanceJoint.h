@@ -35,7 +35,7 @@ namespace b3d
 	};
 
 	/** A joint that maintains an upper or lower (or both) bound on the distance between two bodies. */
-	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Physics)) DistanceJoint : public Joint
+	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Physics)) DistanceJoint : public Joint
 	{
 	public:
 		DistanceJoint(const HSceneObject& parent);
@@ -130,7 +130,7 @@ namespace b3d
 	};
 
 	/** Low-level interface for a joint used by the DistanceJoint component. Should be implemented by the physics plugin to provide joint functionality. */
-	class B3D_CORE_EXPORT IDistanceJointImplementation : public IJointImplementation
+	class B3D_EXPORT IDistanceJointImplementation : public IJointImplementation
 	{
 	public:
 		/** @copydoc DistanceJoint::GetDistance */

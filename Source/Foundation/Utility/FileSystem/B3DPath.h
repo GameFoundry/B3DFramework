@@ -29,7 +29,7 @@ namespace b3d
 	 * paths end with a separator (\ or / depending on platform). System won't fail if you don't but it will be easier to
 	 * misuse.
 	 */
-	class B3D_UTILITY_EXPORT Path
+	class B3D_EXPORT Path
 	{
 	public:
 		enum class PathType
@@ -486,7 +486,7 @@ namespace b3d
 
 	/** Calculates path hash from a case insensitive path. */
 	template<>
-	class B3D_UTILITY_EXPORT PathHashFunction<true>
+	class B3D_EXPORT PathHashFunction<true>
 	{
 	public:
 		size_t operator()(const Path& path) const;
@@ -494,7 +494,7 @@ namespace b3d
 
 	/** Calculates path hash from a case insensitive path. */
 	template<>
-	class B3D_UTILITY_EXPORT PathHashFunction<false>
+	class B3D_EXPORT PathHashFunction<false>
 	{
 	public:
 		size_t operator()(const Path& path) const;

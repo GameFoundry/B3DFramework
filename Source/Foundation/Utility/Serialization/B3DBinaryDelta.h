@@ -19,7 +19,7 @@ namespace b3d
 	 */
 
 	/** Represents an interface RTTI objects need to implement if they want to provide custom delta generation and applying. */
-	class B3D_UTILITY_EXPORT IDeltaHandler
+	class B3D_EXPORT IDeltaHandler
 	{
 	public:
 		virtual ~IDeltaHandler() = default;
@@ -119,7 +119,7 @@ namespace b3d
 	 *
 	 * Provided object may be any IReflectable object, and special handling is done to also natively support delta between SerializedObject types.
 	 */
-	class B3D_UTILITY_EXPORT BinaryDeltaHandler : public IDeltaHandler
+	class B3D_EXPORT BinaryDeltaHandler : public IDeltaHandler
 	{
 	protected:
 		SPtr<SerializedObject> GenerateDeltaRecursive(IReflectable* original, IReflectable* modified, ObjectMap& objectMap, RTTIOperationContext& context, bool replicableOnly) override;
@@ -152,7 +152,7 @@ namespace b3d
 	};
 
 	/** Holds a single tuple element entry in SerializedTupleDelta. */
-	struct B3D_UTILITY_EXPORT SerializedTupleEntryDelta : IReflectable
+	struct B3D_EXPORT SerializedTupleEntryDelta : IReflectable
 	{
 		SerializedTupleEntryDelta() = default;
 
@@ -169,7 +169,7 @@ namespace b3d
 	};
 
 	/** Contains a delta between two tuples. Only different tuple elements are stored in the delta. */
-	struct B3D_UTILITY_EXPORT SerializedTupleDelta : ISerialized
+	struct B3D_EXPORT SerializedTupleDelta : ISerialized
 	{
 		SerializedTupleDelta() = default;
 
@@ -190,7 +190,7 @@ namespace b3d
 	};
 
 	/** Holds a single array element entry in SerializedArrayDelta. */
-	struct B3D_UTILITY_EXPORT SerializedArrayEntryDelta : IReflectable
+	struct B3D_EXPORT SerializedArrayEntryDelta : IReflectable
 	{
 		SerializedArrayEntryDelta() = default;
 
@@ -207,7 +207,7 @@ namespace b3d
 	};
 
 	/** Contains a delta between two arrays. Only different array elements are stored in the delta. */
-	struct B3D_UTILITY_EXPORT SerializedArrayDelta : ISerialized
+	struct B3D_EXPORT SerializedArrayDelta : ISerialized
 	{
 		SerializedArrayDelta() = default;
 
@@ -228,7 +228,7 @@ namespace b3d
 	};
 
 	/** Holds a single array element entry in SerializedMapDelta. */
-	struct B3D_UTILITY_EXPORT SerializedMapEntryDelta : IReflectable
+	struct B3D_EXPORT SerializedMapEntryDelta : IReflectable
 	{
 		SerializedMapEntryDelta() = default;
 
@@ -245,7 +245,7 @@ namespace b3d
 	};
 
 	/** Contains a delta between two maps. Only different and removed array elements are stored in the delta. */
-	struct B3D_UTILITY_EXPORT SerializedMapDelta : ISerialized
+	struct B3D_EXPORT SerializedMapDelta : ISerialized
 	{
 		SerializedMapDelta() = default;
 

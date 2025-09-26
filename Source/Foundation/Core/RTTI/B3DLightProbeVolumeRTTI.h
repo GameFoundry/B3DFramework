@@ -86,7 +86,7 @@ namespace b3d
 	};
 
 
-	class B3D_CORE_EXPORT LightProbeVolumeRTTI : public TRTTIType<LightProbeVolume, Component, LightProbeVolumeRTTI>
+	class B3D_EXPORT LightProbeVolumeRTTI : public TRTTIType<LightProbeVolume, Component, LightProbeVolumeRTTI>
 	{
 	private:
 		SavedLightProbeInfo mSavedLightProbeInfo;

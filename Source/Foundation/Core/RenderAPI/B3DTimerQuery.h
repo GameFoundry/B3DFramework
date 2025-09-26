@@ -16,7 +16,7 @@ namespace b3d
 		 * Represents a GPU query that measures execution time of GPU operations. The query will measure any GPU operations
 		 * that take place between its Begin() and End() calls.
 		 */
-		class B3D_CORE_EXPORT TimerQuery
+		class B3D_EXPORT TimerQuery
 		{
 		public:
 			virtual ~TimerQuery() = default;

@@ -25,7 +25,7 @@ namespace b3d
 	 *
 	 * @note	Thread safe.
 	 */
-	class B3D_UTILITY_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Debug), Singleton(GetDebug)) Debug
+	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Debug), Singleton(GetDebug)) Debug
 	{
 	public:
 		Debug() = default;
@@ -124,7 +124,7 @@ namespace b3d
 	};
 
 	/** Returns the Debug class singleton. */
-	B3D_UTILITY_EXPORT Debug& GetDebug();
+	B3D_EXPORT Debug& GetDebug();
 
 #ifndef B3D_LOG_VERBOSITY
 #	if B3D_DEBUG
@@ -176,13 +176,13 @@ namespace b3d
 	}                                                                                                                                                                                                                        \
 	while(0)
 
-	B3D_UTILITY_EXPORT B3D_LOG_CATEGORY_EXTERN(Uncategorized, Log)
-	B3D_UTILITY_EXPORT B3D_LOG_CATEGORY_EXTERN(FileSystem, Log)
-	B3D_UTILITY_EXPORT B3D_LOG_CATEGORY_EXTERN(RTTI, Log)
-	B3D_UTILITY_EXPORT B3D_LOG_CATEGORY_EXTERN(Generic, Log)
-	B3D_UTILITY_EXPORT B3D_LOG_CATEGORY_EXTERN(Platform, Log)
-	B3D_UTILITY_EXPORT B3D_LOG_CATEGORY_EXTERN(Serialization, Log)
-	B3D_UTILITY_EXPORT B3D_LOG_CATEGORY_EXTERN(UnitTest, Log)
+	B3D_EXPORT B3D_LOG_CATEGORY_EXTERN(Uncategorized, Log)
+	B3D_EXPORT B3D_LOG_CATEGORY_EXTERN(FileSystem, Log)
+	B3D_EXPORT B3D_LOG_CATEGORY_EXTERN(RTTI, Log)
+	B3D_EXPORT B3D_LOG_CATEGORY_EXTERN(Generic, Log)
+	B3D_EXPORT B3D_LOG_CATEGORY_EXTERN(Platform, Log)
+	B3D_EXPORT B3D_LOG_CATEGORY_EXTERN(Serialization, Log)
+	B3D_EXPORT B3D_LOG_CATEGORY_EXTERN(UnitTest, Log)
 
 	// Ensure that our ensure macro implementation is correctly not inlined on MSVC
 	template <typename ReturnType = void, class Function>

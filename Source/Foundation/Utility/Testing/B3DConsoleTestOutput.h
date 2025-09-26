@@ -12,7 +12,7 @@ namespace b3d
 	 */
 
 	/** Outputs unit test failures to stdout. */
-	class B3D_UTILITY_EXPORT ConsoleTestOutput : public TestOutput
+	class B3D_EXPORT ConsoleTestOutput : public TestOutput
 	{
 	public:
 		void OutputFail(const String& desc, const String& function, const String& file, long line) override;

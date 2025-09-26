@@ -59,7 +59,7 @@ namespace b3d
 	 */
 
 	/** Implementation of SpriteImage that uses a user-provided texture as the atlas texture. */
-	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Rendering)) SpriteTexture : public CoreVariantType<SpriteImage, false>
+	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Rendering)) SpriteTexture : public CoreVariantType<SpriteImage, false>
 	{
 	public:
 		SPtr<SpriteImageAllocation> FindOrAllocateImageToFitArea(const Size2I& size) override { return mDefaultAllocatedImage; }
@@ -129,7 +129,7 @@ namespace b3d
 		 *
 		 * @note	Render thread.
 		 */
-		class B3D_CORE_EXPORT SpriteTexture : public CoreVariantType<SpriteImage, true>
+		class B3D_EXPORT SpriteTexture : public CoreVariantType<SpriteImage, true>
 		{
 		public:
 			/**	Sets the atlas texture to utilize. */

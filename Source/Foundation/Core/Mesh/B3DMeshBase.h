@@ -44,7 +44,7 @@ namespace b3d
 	B3D_FLAGS_OPERATORS(MeshFlag);
 
 	/** Properties of a Mesh. Shared between main and render thread counterparts of a Mesh. */
-	class B3D_CORE_EXPORT MeshProperties
+	class B3D_EXPORT MeshProperties
 	{
 	public:
 		MeshProperties();
@@ -76,7 +76,7 @@ namespace b3d
 	 *
 	 * @note	Main thread.
 	 */
-	class B3D_CORE_EXPORT MeshBase : public Resource
+	class B3D_EXPORT MeshBase : public Resource
 	{
 	public:
 		/**
@@ -134,7 +134,7 @@ namespace b3d
 		 *
 		 * @note	Render thread.
 		 */
-		class B3D_CORE_EXPORT MeshBase : public RenderProxy
+		class B3D_EXPORT MeshBase : public RenderProxy
 		{
 		public:
 			MeshBase(u32 vertexCount, u32 indexCount, const Vector<SubMesh>& subMeshes);

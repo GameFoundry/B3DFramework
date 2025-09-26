@@ -34,7 +34,7 @@ namespace b3d
 	};
 
 	/** Module that in some way modified or effects a ParticleSystem. */
-	class B3D_CORE_EXPORT ParticleModule : public IReflectable, public IScriptExportable, INonCopyable
+	class B3D_EXPORT ParticleModule : public IReflectable, public IScriptExportable, INonCopyable
 	{
 	public:
 		ParticleModule(const ParticleModule&) = delete;

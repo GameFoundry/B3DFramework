@@ -25,7 +25,7 @@ namespace b3d
 	 * the initial instance of the class. If that initial instance is deleted, any potential copies will point to garbage
 	 * data.
 	 */
-	class B3D_CORE_EXPORT GpuResourceData : public IReflectable
+	class B3D_EXPORT GpuResourceData : public IReflectable
 	{
 	public:
 		GpuResourceData() = default;

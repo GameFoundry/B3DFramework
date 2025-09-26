@@ -19,7 +19,7 @@ namespace b3d
 
 	/** Common functionality for all material data params. */
 	template <int DATA_TYPE, bool IsRenderProxy>
-	class B3D_CORE_EXPORT TMaterialDataCommon
+	class B3D_EXPORT TMaterialDataCommon
 	{
 	protected:
 		using MaterialPtrType = SPtr<CoreVariantType<Material, IsRenderProxy>>;
@@ -58,7 +58,7 @@ namespace b3d
 	 * @see		Material
 	 */
 	template <class T, bool IsRenderProxy>
-	class B3D_CORE_EXPORT TMaterialParameterPrimitive : public TMaterialDataCommon<TGpuDataParamInfo<T>::TypeId, IsRenderProxy>
+	class B3D_EXPORT TMaterialParameterPrimitive : public TMaterialDataCommon<TGpuDataParamInfo<T>::TypeId, IsRenderProxy>
 	{
 		using Base = TMaterialDataCommon<TGpuDataParamInfo<T>::TypeId, IsRenderProxy>;
 
@@ -74,7 +74,7 @@ namespace b3d
 
 	/** @copydoc TMaterialParameterPrimitive */
 	template <class T, bool IsRenderProxy>
-	class B3D_CORE_EXPORT TMaterialParameterCurve : public TMaterialDataCommon<TGpuDataParamInfo<T>::TypeId, IsRenderProxy>
+	class B3D_EXPORT TMaterialParameterCurve : public TMaterialDataCommon<TGpuDataParamInfo<T>::TypeId, IsRenderProxy>
 	{
 		using Base = TMaterialDataCommon<TGpuDataParamInfo<T>::TypeId, IsRenderProxy>;
 
@@ -90,7 +90,7 @@ namespace b3d
 
 	/** @copydoc TMaterialParameterPrimitive */
 	template <bool IsRenderProxy>
-	class B3D_CORE_EXPORT TMaterialParameterColorGradient : public TMaterialDataCommon<GPDT_COLOR, IsRenderProxy>
+	class B3D_EXPORT TMaterialParameterColorGradient : public TMaterialDataCommon<GPDT_COLOR, IsRenderProxy>
 	{
 		using Base = TMaterialDataCommon<GPDT_COLOR, IsRenderProxy>;
 
@@ -106,7 +106,7 @@ namespace b3d
 
 	/** @copydoc TMaterialParameterPrimitive */
 	template <bool IsRenderProxy>
-	class B3D_CORE_EXPORT TMaterialParameterStruct : public TMaterialDataCommon<GPDT_STRUCT, IsRenderProxy>
+	class B3D_EXPORT TMaterialParameterStruct : public TMaterialDataCommon<GPDT_STRUCT, IsRenderProxy>
 	{
 		using Base = TMaterialDataCommon<GPDT_STRUCT, IsRenderProxy>;
 
@@ -125,7 +125,7 @@ namespace b3d
 
 	/** @copydoc TMaterialParameterPrimitive */
 	template <bool IsRenderProxy>
-	class B3D_CORE_EXPORT TMaterialParameterSampledTexture
+	class B3D_EXPORT TMaterialParameterSampledTexture
 	{
 		using MaterialPtrType = SPtr<CoreVariantType<Material, IsRenderProxy>>;
 		using MaterialParamsType = CoreVariantType<MaterialParams, IsRenderProxy>;
@@ -155,7 +155,7 @@ namespace b3d
 
 	/** @copydoc TMaterialParameterPrimitive */
 	template <bool IsRenderProxy>
-	class B3D_CORE_EXPORT TMaterialParamSpriteImage
+	class B3D_EXPORT TMaterialParamSpriteImage
 	{
 		using MaterialPtrType = SPtr<CoreVariantType<Material, IsRenderProxy>>;
 		using MaterialParamsType = CoreVariantType<MaterialParams, IsRenderProxy>;
@@ -186,7 +186,7 @@ namespace b3d
 
 	/** @copydoc TMaterialParameterPrimitive */
 	template <bool IsRenderProxy>
-	class B3D_CORE_EXPORT TMaterialParameterStorageTexture
+	class B3D_EXPORT TMaterialParameterStorageTexture
 	{
 		using MaterialPtrType = SPtr<CoreVariantType<Material, IsRenderProxy>>;
 		using MaterialParamsType = CoreVariantType<MaterialParams, IsRenderProxy>;
@@ -216,7 +216,7 @@ namespace b3d
 
 	/** @copydoc TMaterialParameterPrimitive */
 	template <bool IsRenderProxy>
-	class B3D_CORE_EXPORT TMaterialParameterBuffer
+	class B3D_EXPORT TMaterialParameterBuffer
 	{
 		using MaterialPtrType = SPtr<CoreVariantType<Material, IsRenderProxy>>;
 		using MaterialParamsType = CoreVariantType<MaterialParams, IsRenderProxy>;
@@ -246,7 +246,7 @@ namespace b3d
 
 	/** @copydoc TMaterialParameterPrimitive */
 	template <bool IsRenderProxy>
-	class B3D_CORE_EXPORT TMaterialParameterSampler
+	class B3D_EXPORT TMaterialParameterSampler
 	{
 		using MaterialPtrType = SPtr<CoreVariantType<Material, IsRenderProxy>>;
 		using MaterialParamsType = CoreVariantType<MaterialParams, IsRenderProxy>;

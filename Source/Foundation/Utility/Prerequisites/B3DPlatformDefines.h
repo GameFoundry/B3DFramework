@@ -120,30 +120,30 @@
 // DLL export
 #if B3D_PLATFORM == B3D_PLATFORM_ID_WIN32 // Windows
 #	if B3D_COMPILER == B3D_COMPILER_ID_MSVC
-#		if defined(BS_STATIC_LIB)
-#			define B3D_UTILITY_EXPORT
+#		if defined(B3D_STATIC_LIB)
+#			define B3D_EXPORT
 #		else
-#			if defined(B3D_UTILITY_EXPORTS)
-#				define B3D_UTILITY_EXPORT __declspec(dllexport)
+#			if defined(B3D_EXPORTS)
+#				define B3D_EXPORT __declspec(dllexport)
 #			else
-#				define B3D_UTILITY_EXPORT __declspec(dllimport)
+#				define B3D_EXPORT __declspec(dllimport)
 #			endif
 #		endif
 #	else
-#		if defined(BS_STATIC_LIB)
-#			define B3D_UTILITY_EXPORT
+#		if defined(B3D_STATIC_LIB)
+#			define B3D_EXPORT
 #		else
-#			if defined(B3D_UTILITY_EXPORTS)
-#				define B3D_UTILITY_EXPORT __attribute__((dllexport))
+#			if defined(B3D_EXPORTS)
+#				define B3D_EXPORT __attribute__((dllexport))
 #			else
-#				define B3D_UTILITY_EXPORT __attribute__((dllimport))
+#				define B3D_EXPORT __attribute__((dllimport))
 #			endif
 #		endif
 #	endif
-#	define B3D_UTILITY_HIDDEN
+#	define B3D_HIDDEN
 #else // Linux/Mac settings
-#	define B3D_UTILITY_EXPORT __attribute__((visibility("default")))
-#	define BS_UTILITY_HIDDEN __attribute__((visibility("hidden")))
+#	define B3D_EXPORT __attribute__((visibility("default")))
+#	define B3D_HIDDEN __attribute__((visibility("hidden")))
 #endif
 
 // DLL export for plugins
@@ -153,9 +153,10 @@
 #	else
 #		define B3D_PLUGIN_EXPORT __attribute__((dllexport))
 #	endif
-#	define B3D_UTILITY_HIDDEN
+#	define B3D_PLUGIN_HIDDEN
 #else // Linux/Mac settings
 #	define B3D_PLUGIN_EXPORT __attribute__((visibility("default")))
+#	define B3D_PLUGIN_HIDDEN __attribute__((visibility("hidden")))
 #endif
 
 // Windows Settings

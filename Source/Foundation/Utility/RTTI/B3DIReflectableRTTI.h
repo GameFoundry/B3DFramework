@@ -12,7 +12,7 @@ namespace b3d
 	 *  @{
 	 */
 
-	class B3D_UTILITY_EXPORT IReflectableRTTI : public TRTTIType<IReflectable, IReflectable, IReflectableRTTI>
+	class B3D_EXPORT IReflectableRTTI : public TRTTIType<IReflectable, IReflectable, IReflectableRTTI>
 	{
 	public:
 		const String& GetRttiName()

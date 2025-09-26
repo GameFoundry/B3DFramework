@@ -11,7 +11,7 @@ namespace b3d
 	 */
 
 	/** Describes blend states for a single render target. */
-	struct B3D_CORE_EXPORT RenderTargetBlendStateInformation
+	struct B3D_EXPORT RenderTargetBlendStateInformation
 	{
 		bool operator==(const RenderTargetBlendStateInformation& rhs) const;
 
@@ -67,7 +67,7 @@ namespace b3d
 	};
 
 	/** Describes a graphics pipeline blend state. */
-	struct B3D_CORE_EXPORT BlendStateInformation
+	struct B3D_EXPORT BlendStateInformation
 	{
 		/**
 		 * Alpha to coverage allows you to perform blending without needing to worry about order of rendering like regular
@@ -97,7 +97,7 @@ namespace b3d
 	};
 
 	/** Describes a graphics pipeline rasterizer state. */
-	struct B3D_CORE_EXPORT RasterizerStateInformation
+	struct B3D_EXPORT RasterizerStateInformation
 	{
 		/** Polygon mode allows you to draw polygons as solid objects or as wireframe by just drawing their edges. */
 		PolygonMode PolygonMode = PM_SOLID;
@@ -164,7 +164,7 @@ namespace b3d
 	};
 
 	/** Describes a depth stencil state on a graphics pipeline. */
-	struct B3D_CORE_EXPORT DepthStencilStateInformation
+	struct B3D_EXPORT DepthStencilStateInformation
 	{
 		/**
 		 * If enabled, any pixel about to be written will be tested against the depth value currently in the buffer. If the
@@ -277,7 +277,7 @@ namespace b3d
 	 *
 	 * @note	Thread safe (Immutable).
 	 */
-	class B3D_CORE_EXPORT GpuGraphicsPipelineState
+	class B3D_EXPORT GpuGraphicsPipelineState
 	{
 	public:
 		GpuGraphicsPipelineState(GpuDevice& gpuDevice, const GpuGraphicsPipelineStateCreateInformation& createInformation);
@@ -317,7 +317,7 @@ namespace b3d
 	 *
 	 * @note	Thread safe (Immutable).
 	 */
-	class B3D_CORE_EXPORT GpuComputePipelineState
+	class B3D_EXPORT GpuComputePipelineState
 	{
 	public:
 		GpuComputePipelineState(GpuDevice& gpuDevice, const GpuComputePipelineStateCreateInformation& createInformation);

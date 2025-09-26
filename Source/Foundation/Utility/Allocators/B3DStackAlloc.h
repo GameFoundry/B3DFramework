@@ -235,19 +235,19 @@ namespace b3d
 		 * Sets up the stack with the currently active thread. You need to call this on any thread before doing any
 		 * allocations or deallocations.
 		 */
-		static B3D_UTILITY_EXPORT void BeginThread();
+		static B3D_EXPORT void BeginThread();
 
 		/**
 		 * Cleans up the stack for the current thread. You may not perform any allocations or deallocations after this is
 		 * called, unless you call beginThread again.
 		 */
-		static B3D_UTILITY_EXPORT void EndThread();
+		static B3D_EXPORT void EndThread();
 
 		/** @copydoc MemStackInternal::Alloc() */
-		static B3D_UTILITY_EXPORT u8* Alloc(u32 amount);
+		static B3D_EXPORT u8* Alloc(u32 amount);
 
 		/** @copydoc MemStackInternal::Dealloc() */
-		static B3D_UTILITY_EXPORT void DeallocLast(u8* data);
+		static B3D_EXPORT void DeallocLast(u8* data);
 
 	private:
 		static B3D_THREADLOCAL MemStackInternal<1024 * 1024>* ThreadMemStack;

@@ -11,7 +11,7 @@ namespace b3d
 	 */
 
 	/** Abstract interface used for outputting unit test results. */
-	class B3D_UTILITY_EXPORT TestOutput
+	class B3D_EXPORT TestOutput
 	{
 	public:
 		virtual ~TestOutput() {}
@@ -28,7 +28,7 @@ namespace b3d
 	};
 
 	/** Outputs unit test results so that failures are reported as exceptions. Success is not reported. */
-	class B3D_UTILITY_EXPORT ExceptionTestOutput : public TestOutput
+	class B3D_EXPORT ExceptionTestOutput : public TestOutput
 	{
 	public:
 		void OutputFail(const String& desc, const String& function, const String& file, long line) final;

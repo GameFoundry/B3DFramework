@@ -29,7 +29,7 @@ namespace b3d
 	 * Interface to be implemented by types that are exported to scripting. Such types should also be decorated with B3D_SCRIPT_EXPORT() macro, along
 	 * with any fields or methods that should be exported.
 	 */
-	class B3D_UTILITY_EXPORT IScriptExportable
+	class B3D_EXPORT IScriptExportable
 	{
 	public:
 		IScriptExportable() = default;

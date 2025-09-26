@@ -19,7 +19,7 @@ namespace b3d
 	 * Color represented as 4 components, each being a floating point value ranging from 0 to 1. Color components are
 	 * red, green, blue and alpha.
 	 */
-	class B3D_UTILITY_EXPORT B3D_SCRIPT_EXPORT(ExportAsStruct(true)) Color
+	class B3D_EXPORT B3D_SCRIPT_EXPORT(ExportAsStruct(true)) Color
 	{
 	public:
 		constexpr Color(float red = 1.0f, float green = 1.0f, float blue = 1.0f, float alpha = 1.0f)

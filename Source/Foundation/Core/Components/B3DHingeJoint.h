@@ -57,7 +57,7 @@ namespace b3d
 	};
 
 	/** Hinge joint removes all but a single rotation degree of freedom from its two attached bodies (for example a door hinge). */
-	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Physics)) HingeJoint : public Joint
+	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Physics)) HingeJoint : public Joint
 	{
 	public:
 		HingeJoint(const HSceneObject& parent);
@@ -136,7 +136,7 @@ namespace b3d
 	};
 
 	/** Low-level interface for a joint used by the HingeJoint component. Should be implemented by the physics plugin to provide joint functionality. */
-	class B3D_CORE_EXPORT IHingeJointImplementation : public IJointImplementation
+	class B3D_EXPORT IHingeJointImplementation : public IJointImplementation
 	{
 	public:
 		/** @copydoc HingeJoint::GetAngle */

@@ -22,7 +22,7 @@ namespace b3d
 	 * General purpose class used for encapsulating the reading and writing of data from and to various sources using a
 	 * common interface.
 	 */
-	class B3D_UTILITY_EXPORT DataStream
+	class B3D_EXPORT DataStream
 	{
 	public:
 		enum AccessMode
@@ -188,7 +188,7 @@ namespace b3d
 	};
 
 	/** Data stream for handling data from memory. */
-	class B3D_UTILITY_EXPORT MemoryDataStream : public DataStream
+	class B3D_EXPORT MemoryDataStream : public DataStream
 	{
 	public:
 		/**
@@ -279,7 +279,7 @@ namespace b3d
 	};
 
 	/** Data stream for handling data from standard streams. */
-	class B3D_UTILITY_EXPORT FileDataStream final : public DataStream
+	class B3D_EXPORT FileDataStream final : public DataStream
 	{
 	public:
 		/**

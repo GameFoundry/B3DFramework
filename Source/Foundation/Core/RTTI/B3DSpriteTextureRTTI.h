@@ -15,7 +15,7 @@ namespace b3d
 	 *  @{
 	 */
 
-	class B3D_CORE_EXPORT SpriteTextureRTTI : public TRTTIType<SpriteTexture, SpriteImage, SpriteTextureRTTI>
+	class B3D_EXPORT SpriteTextureRTTI : public TRTTIType<SpriteTexture, SpriteImage, SpriteTextureRTTI>
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS

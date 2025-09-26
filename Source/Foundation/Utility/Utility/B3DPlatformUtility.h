@@ -37,7 +37,7 @@ namespace b3d
 	};
 
 	/** Provides access to various operating system specific utility functions. */
-	class B3D_UTILITY_EXPORT PlatformUtility
+	class B3D_EXPORT PlatformUtility
 	{
 	public:
 		/**

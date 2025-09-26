@@ -229,7 +229,7 @@ namespace b3d
 	B3D_EXPORT Application& GetApplication();
 
 	/** Returns false if currently not at the main thread, and triggers an ensure. */
-	B3D_CORE_EXPORT inline bool EnsureMainThread()
+	B3D_EXPORT inline bool EnsureMainThread()
 	{
 		return B3D_ENSURE(B3D_CURRENT_THREAD_ID == Application::Instance().GetMainThreadId());
 	}

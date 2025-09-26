@@ -37,7 +37,7 @@ namespace b3d
 	B3D_FLAGS_OPERATORS(GameObjectDeltaFlag)
 
 	/** Contains either a fully serialized game object, or a delta between two game objects. Used internally by SceneObjectHierarchyDelta. */
-	struct B3D_CORE_EXPORT SceneObjectHierarchyDeltaObject : public IReflectable
+	struct B3D_EXPORT SceneObjectHierarchyDeltaObject : public IReflectable
 	{
 		SceneObjectHierarchyDeltaObject(const HComponent& component, const SPtr<SerializedObject>& data);
 		SceneObjectHierarchyDeltaObject(const HSceneObject& sceneObject, const SPtr<SerializedObject>& data);
@@ -76,7 +76,7 @@ namespace b3d
 	 * Contains modifications between two scene object hierarchies. The modifications are a set of added/removed children or
 	 * components and per-field deltas of their components.
 	 */
-	class B3D_CORE_EXPORT SceneObjectHierarchyDelta : public IReflectable
+	class B3D_EXPORT SceneObjectHierarchyDelta : public IReflectable
 	{
 	public:
 		/** Creates a new delta by recording changes present in @p modified, compared to @p original. */

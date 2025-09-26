@@ -14,7 +14,7 @@ namespace b3d
 	 */
 
 	/** Information describing a SamplerState. */
-	struct B3D_CORE_EXPORT SamplerStateInformation
+	struct B3D_EXPORT SamplerStateInformation
 	{
 		SamplerStateInformation() = default;
 
@@ -57,7 +57,7 @@ namespace b3d
 	};
 
 	/** Descriptor structure used for initialization of a SamplerState. */
-	struct B3D_CORE_EXPORT SamplerStateCreateInformation : SamplerStateInformation
+	struct B3D_EXPORT SamplerStateCreateInformation : SamplerStateInformation
 	{
 		SamplerStateCreateInformation() = default;
 
@@ -67,7 +67,7 @@ namespace b3d
 	};
 
 	/** Defines the behaviour of a texture sampler on the GPU. */
-	class B3D_CORE_EXPORT SamplerState : public IReflectable
+	class B3D_EXPORT SamplerState : public IReflectable
 	{
 	public:
 		virtual ~SamplerState() = default;

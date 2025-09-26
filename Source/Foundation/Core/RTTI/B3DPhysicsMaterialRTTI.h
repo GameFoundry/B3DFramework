@@ -14,7 +14,7 @@ namespace b3d
 	 *  @{
 	 */
 
-	class B3D_CORE_EXPORT PhysicsMaterialRTTI : public TRTTIType<PhysicsMaterial, Resource, PhysicsMaterialRTTI>
+	class B3D_EXPORT PhysicsMaterialRTTI : public TRTTIType<PhysicsMaterial, Resource, PhysicsMaterialRTTI>
 	{
 		float mStaticFriction;
 		float mDynamicFriction;

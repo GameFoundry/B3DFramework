@@ -59,7 +59,7 @@ namespace b3d
 	 * Keeps track of all active animations in a single scene instance. Queues animation thread tasks and synchronizes data
 	 * between main, render and animation threads.
 	 */
-	class B3D_CORE_EXPORT AnimationScene
+	class B3D_EXPORT AnimationScene
 	{
 	public:
 		AnimationScene();

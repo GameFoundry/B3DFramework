@@ -13,7 +13,7 @@ namespace b3d
 	 */
 
 #if B3D_WITH_EDITOR
-	class B3D_CORE_EXPORT IEditorSceneInstanceRTTI : public TRTTIType<IEditorSceneInstance, IReflectable, IEditorSceneInstanceRTTI>
+	class B3D_EXPORT IEditorSceneInstanceRTTI : public TRTTIType<IEditorSceneInstance, IReflectable, IEditorSceneInstanceRTTI>
 	{
 		B3D_RTTI_BEGIN_MEMBERS
 		B3D_RTTI_END_MEMBERS

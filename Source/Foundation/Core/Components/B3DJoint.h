@@ -286,7 +286,7 @@ namespace b3d
 	 * Base class for all Joint types. Joints constrain how two rigidbodies move relative to one another (for example a door
 	 * hinge). One of the bodies in the joint must always be movable (non-kinematic).
 	 */
-	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Physics)) Joint : public Component
+	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Physics)) Joint : public Component
 	{
 	public:
 		Joint(const HSceneObject& parent, JointCreateInformation& createInformation);
@@ -385,7 +385,7 @@ namespace b3d
 	};
 
 	/** Low-level interface for a joint used by the Joint component. Should be implemented by the physics plugin to provide joint functionality. */
-	class B3D_CORE_EXPORT IJointImplementation
+	class B3D_EXPORT IJointImplementation
 	{
 	public:
 		virtual ~IJointImplementation() = default;

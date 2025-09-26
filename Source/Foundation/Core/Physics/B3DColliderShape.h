@@ -80,7 +80,7 @@ namespace b3d
 	};
 
 	/** Represents a single collider shape that can be assigned to a collider. */
-	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT() ColliderShape : public IReflectable, public IScriptExportable
+	class B3D_EXPORT B3D_SCRIPT_EXPORT() ColliderShape : public IReflectable, public IScriptExportable
 	{
 	public:
 		ColliderShape();

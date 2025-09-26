@@ -60,7 +60,7 @@ namespace b3d
 	};
 
 	/**	Describes a single vertex element in a vertex declaration. */
-	class B3D_CORE_EXPORT VertexElement
+	class B3D_EXPORT VertexElement
 	{
 	public:
 		VertexElement() = default;
@@ -127,7 +127,7 @@ namespace b3d
 	 *
 	 * @note Thread safe (Immutable).
 	 */
-	class B3D_CORE_EXPORT VertexDescription : public IReflectable
+	class B3D_EXPORT VertexDescription : public IReflectable
 	{
 	public:
 		VertexDescription(const TArrayView<VertexElement>& elements, bool calculateOffsets = true);

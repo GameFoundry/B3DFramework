@@ -86,7 +86,7 @@ namespace b3d
 	};
 
 	/** Controls depth buffer collisions for GPU simulated particles. */
-	struct B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Particles)) ParticleDepthCollisionSettings : IReflectable, IScriptExportable
+	struct B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Particles)) ParticleDepthCollisionSettings : IReflectable, IScriptExportable
 	{
 		struct SyncPacket;
 
@@ -315,7 +315,7 @@ namespace b3d
 	 */
 
 	/** Settings used for controlling a vector field in a GPU simulated particle system. */
-	struct B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Particles))
+	struct B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Particles))
 	ParticleVectorFieldSettings : TParticleVectorFieldSettings<false>, IReflectable, IScriptExportable
 	{
 		friend struct render::ParticleVectorFieldSettings;
@@ -385,7 +385,7 @@ namespace b3d
 	 */
 
 	/** Generic settings used for controlling a ParticleSystem. */
-	struct B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Particles))
+	struct B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Particles))
 	ParticleSystemSettings : TParticleSystemSettings<false>, IReflectable, IScriptExportable
 	{
 		friend struct render::ParticleSystemSettings;
@@ -401,7 +401,7 @@ namespace b3d
 	};
 
 	/** Settings used for controlling particle system GPU simulation. */
-	struct B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Particles))
+	struct B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Particles))
 	ParticleGpuSimulationSettings : TParticleGpuSimulationSettings<false>, IReflectable, IScriptExportable
 	{
 		friend struct render::ParticleGpuSimulationSettings;
@@ -454,7 +454,7 @@ namespace b3d
 	 * The particle system requires you to specify at least one ParticleEmitter, which controls how are new particles
 	 * generated. You will also want to specify one or more ParticleEvolver%s, which change particle properties over time.
 	 */
-	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Particles)) ParticleSystem : public Component, public CoreObject
+	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Particles)) ParticleSystem : public Component, public CoreObject
 	{
 	public:
 		ParticleSystem(const HSceneObject& parent);
@@ -675,7 +675,7 @@ namespace b3d
 	namespace render
 	{
 		/** Render  thread counterpart of b3d::ParticleSystem. */
-		class B3D_CORE_EXPORT ParticleSystem final : public RenderProxy, public INonCopyable
+		class B3D_EXPORT ParticleSystem final : public RenderProxy, public INonCopyable
 		{
 		public:
 			~ParticleSystem();

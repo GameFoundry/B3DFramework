@@ -35,7 +35,7 @@ namespace b3d
 	 * Whether or not an audio source is spatial is controlled by the assigned AudioClip. The volume and the pitch of a
 	 * spatial audio source is controlled by its position and the AudioListener's position/direction/velocity.
 	 */
-	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Audio)) AudioSource : public Component, public IResourceListener
+	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Audio)) AudioSource : public Component, public IResourceListener
 	{
 	public:
 		AudioSource(const HSceneObject& parent);
@@ -200,7 +200,7 @@ namespace b3d
 	 */
 
 	/** Low-level interface for an audio source. Should be implemented by the audio plugin. */
-	class B3D_CORE_EXPORT IAudioSourceImplementation
+	class B3D_EXPORT IAudioSourceImplementation
 	{
 	public:
 		virtual ~IAudioSourceImplementation() = default;

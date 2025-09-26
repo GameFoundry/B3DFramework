@@ -15,7 +15,7 @@ namespace b3d
 	 *  @{
 	 */
 
-	class B3D_CORE_EXPORT CameraRTTI : public TRTTIType<Camera, Component, CameraRTTI>
+	class B3D_EXPORT CameraRTTI : public TRTTIType<Camera, Component, CameraRTTI>
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS

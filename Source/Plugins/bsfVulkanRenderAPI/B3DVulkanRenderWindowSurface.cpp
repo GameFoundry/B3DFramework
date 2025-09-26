@@ -21,7 +21,7 @@ VulkanRenderWindowSurface::VulkanRenderWindowSurface(const RenderWindowSurfaceCr
 	surfaceCreateInfo.flags = 0;
 	surfaceCreateInfo.hwnd = (HWND)mPlatformWindowHandle;
 
-#ifdef BS_STATIC_LIB
+#ifdef B3D_STATIC_LIB
 	surfaceCreateInfo.hinstance = GetModuleHandle(NULL);
 #else
 	surfaceCreateInfo.hinstance = GetModuleHandle("bsfVulkanRenderAPI.dll");

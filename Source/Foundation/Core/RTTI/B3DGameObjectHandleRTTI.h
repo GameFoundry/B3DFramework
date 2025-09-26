@@ -19,7 +19,7 @@ namespace b3d
 	 */
 
 	/** Specializes delta handler that is only used for GameObjectHandle type. Allows the system to perform ad-hoc ID remapping while comparing handles. */
-	class B3D_UTILITY_EXPORT GameObjectHandleDeltaHandler : public BinaryDeltaHandler
+	class B3D_EXPORT GameObjectHandleDeltaHandler : public BinaryDeltaHandler
 	{
 	protected:
 		SPtr<SerializedObject> GenerateDeltaRecursive(IReflectable* original, IReflectable* modified, ObjectMap& objectMap, RTTIOperationContext& context, bool replicableOnly) override;
@@ -73,7 +73,7 @@ namespace b3d
 		return SerializedObject::Create(*modifiedHandle);
 	}
 
-	class B3D_CORE_EXPORT GameObjectHandleRTTI : public TRTTIType<GameObjectHandleBase, IReflectable, GameObjectHandleRTTI>
+	class B3D_EXPORT GameObjectHandleRTTI : public TRTTIType<GameObjectHandleBase, IReflectable, GameObjectHandleRTTI>
 	{
 		UUID mId;
 

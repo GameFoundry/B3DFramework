@@ -26,7 +26,7 @@ namespace b3d
 	B3D_FLAGS_OPERATORS(PackageResourceFlag);
 
 	/** Contains meta-data for a resource stored in a Package. */
-	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT() PackageResourceMetaData final : public IReflectable, public IScriptExportable
+	class B3D_EXPORT B3D_SCRIPT_EXPORT() PackageResourceMetaData final : public IReflectable, public IScriptExportable
 	{
 	public:
 		PackageResourceMetaData() = default;
@@ -75,7 +75,7 @@ namespace b3d
 	};
 
 	/** Contains user-specified meta-data for a resource stored in a Package. */
-	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT() PackageResourceUserMetaData : public IReflectable, public IScriptExportable
+	class B3D_EXPORT B3D_SCRIPT_EXPORT() PackageResourceUserMetaData : public IReflectable, public IScriptExportable
 	{
 	public:
 		PackageResourceUserMetaData() = default;
@@ -90,7 +90,7 @@ namespace b3d
 	};
 
 	/** Contains meta-data for the entirety of a Package (not individual resources). */
-	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT() PackageMetaData : public IReflectable, public IScriptExportable
+	class B3D_EXPORT B3D_SCRIPT_EXPORT() PackageMetaData : public IReflectable, public IScriptExportable
 	{
 	public:
 		PackageMetaData() = default;
@@ -111,7 +111,7 @@ namespace b3d
 	};
 
 	/** Contains a hierarchy of folders and resources within a package. */
-	struct B3D_CORE_EXPORT PackageHierarchy final : INonCopyable
+	struct B3D_EXPORT PackageHierarchy final : INonCopyable
 	{
 		/** Type of entry within the package hierarchy. */
 		enum class EntryType
@@ -215,7 +215,7 @@ namespace b3d
 	 *
 	 * @note Thread safe.
 	 */
-	class B3D_CORE_EXPORT Package final : public IReflectable, public INonCopyable
+	class B3D_EXPORT Package final : public IReflectable, public INonCopyable
 	{
 		/** Runtime information about a resource stored in the package. */
 		struct ResourceInformation

@@ -251,7 +251,7 @@ namespace b3d
 	 */
 
 	/** Used for string localization. Stores strings and their translations in various languages. */
-	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Localization)) StringTable : public Resource
+	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Localization)) StringTable : public Resource
 	{
 		// TODO - When editing string table I will need to ensure that all languages of the same string have the same number of parameters
 

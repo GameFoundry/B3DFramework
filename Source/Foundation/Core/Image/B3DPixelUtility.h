@@ -86,7 +86,7 @@ namespace b3d
 	};
 
 	/**	Utility methods for converting and managing pixel data and formats. */
-	class B3D_CORE_EXPORT PixelUtility
+	class B3D_EXPORT PixelUtility
 	{
 	public:
 		/**	Returns the size of a single pixel of the provided pixel format, in bytes. */

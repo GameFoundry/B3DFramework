@@ -88,7 +88,7 @@ namespace b3d
 	};
 
 	/** Information about an acquired package read lock. */
-	struct B3D_CORE_EXPORT PackageReadLock
+	struct B3D_EXPORT PackageReadLock
 	{
 		PackageReadLock(RuntimePackageInformation& runtimePackageInformation, Mutex& lockMutex, const char* lockReason);
 		~PackageReadLock();
@@ -105,7 +105,7 @@ namespace b3d
 	};
 
 	/** Information about an acquired package write lock. */
-	struct B3D_CORE_EXPORT PackageWriteLock
+	struct B3D_EXPORT PackageWriteLock
 	{
 		PackageWriteLock(RuntimePackageInformation* runtimePackageInformation, Mutex& lockMutex, const char* lockReason);
 		~PackageWriteLock();
@@ -132,7 +132,7 @@ namespace b3d
 	 *
 	 * @note All methods are thread-safe unless otherwise noted.
 	 */
-	class B3D_CORE_EXPORT PackageManager : public Module<PackageManager>
+	class B3D_EXPORT PackageManager : public Module<PackageManager>
 	{
 	public:
 		/**
@@ -285,7 +285,7 @@ namespace b3d
 	};
 
 	/** Provides easier access to PackageManager. */
-	B3D_CORE_EXPORT PackageManager& GetPackageManager();
+	B3D_EXPORT PackageManager& GetPackageManager();
 
 	/** @} */
 } // namespace b3d

@@ -95,7 +95,7 @@ namespace b3d
 	 * @see		Material
 	 */
 	template <class T, bool IsRenderProxy>
-	class B3D_CORE_EXPORT TGpuParameterPrimitive
+	class B3D_EXPORT TGpuParameterPrimitive
 	{
 	private:
 		using GpuParamBufferType = SPtr<CoreVariantType<GpuBuffer, IsRenderProxy>>;
@@ -135,7 +135,7 @@ namespace b3d
 
 	/** @copydoc TGpuParameterPrimitive */
 	template <bool IsRenderProxy>
-	class B3D_CORE_EXPORT TGpuParameterStruct
+	class B3D_EXPORT TGpuParameterStruct
 	{
 	public:
 		using GpuParamBufferType = SPtr<CoreVariantType<GpuBuffer, IsRenderProxy>>;
@@ -166,7 +166,7 @@ namespace b3d
 
 	/** @copydoc TGpuParameterPrimitive */
 	template <bool IsRenderProxy>
-	class B3D_CORE_EXPORT TGpuParameterSampledTexture
+	class B3D_EXPORT TGpuParameterSampledTexture
 	{
 	private:
 		friend class GpuParameters;
@@ -198,7 +198,7 @@ namespace b3d
 
 	/** @copydoc TGpuParameterPrimitive */
 	template <bool IsRenderProxy>
-	class B3D_CORE_EXPORT TGpuParameterStorageTexture
+	class B3D_EXPORT TGpuParameterStorageTexture
 	{
 	private:
 		friend class GpuParameters;
@@ -230,7 +230,7 @@ namespace b3d
 
 	/** @copydoc TGpuParameterPrimitive */
 	template <bool IsRenderProxy>
-	class B3D_CORE_EXPORT TGpuParameterBuffer
+	class B3D_EXPORT TGpuParameterBuffer
 	{
 	private:
 		friend class GpuParameters;
@@ -262,7 +262,7 @@ namespace b3d
 
 	/** @copydoc TGpuParameterPrimitive */
 	template <bool IsRenderProxy>
-	class B3D_CORE_EXPORT TGpuParameterSampler
+	class B3D_EXPORT TGpuParameterSampler
 	{
 	private:
 		friend class GpuParameters;

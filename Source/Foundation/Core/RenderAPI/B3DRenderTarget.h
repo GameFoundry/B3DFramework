@@ -16,7 +16,7 @@ namespace b3d
 	 */
 
 	/** Structure that contains information about what part of the texture represents the render surface. */
-	struct B3D_CORE_EXPORT RenderSurfaceInformation
+	struct B3D_EXPORT RenderSurfaceInformation
 	{
 		RenderSurfaceInformation() = default;
 
@@ -38,7 +38,7 @@ namespace b3d
 	namespace render
 	{
 		/** @copydoc b3d::RenderSurfaceInformation */
-		struct B3D_CORE_EXPORT RenderSurfaceInformation
+		struct B3D_EXPORT RenderSurfaceInformation
 		{
 			RenderSurfaceInformation() = default;
 
@@ -59,7 +59,7 @@ namespace b3d
 	} // namespace render
 
 	/** Contains various properties that describe a render target. */
-	class B3D_CORE_EXPORT RenderTargetProperties
+	class B3D_EXPORT RenderTargetProperties
 	{
 	public:
 		virtual ~RenderTargetProperties() = default;
@@ -100,7 +100,7 @@ namespace b3d
 	};
 
 	/** Render target is a frame buffer or a texture that the render system renders the scene to. */
-	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Rendering)) RenderTarget : public IReflectable, public IScriptExportable, public CoreObject
+	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Rendering)) RenderTarget : public IReflectable, public IScriptExportable, public CoreObject
 	{
 	public:
 		RenderTarget();
@@ -149,7 +149,7 @@ namespace b3d
 		 *
 		 * @note	Render thread only.
 		 */
-		class B3D_CORE_EXPORT RenderTarget : public RenderProxy
+		class B3D_EXPORT RenderTarget : public RenderProxy
 		{
 		public:
 			/** Frame buffer type when double-buffering is used. */

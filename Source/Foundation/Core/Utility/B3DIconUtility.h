@@ -11,7 +11,7 @@ namespace b3d
 	 */
 
 	/**	Manipulates icons in executable files. */
-	class B3D_CORE_EXPORT IconUtility
+	class B3D_EXPORT IconUtility
 	{
 	public:
 		/**

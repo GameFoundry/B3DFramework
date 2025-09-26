@@ -11,7 +11,7 @@ namespace b3d
 	 */
 
 	/** Represents a location (file, line, column) in source code that's being scanned or parsed. */
-	class B3D_UTILITY_EXPORT SourceCodePosition
+	class B3D_EXPORT SourceCodePosition
 	{
 	public:
 		SourceCodePosition() = default;
@@ -51,7 +51,7 @@ namespace b3d
 	};
 
 	/** Wraps a source code represented as a text string, and provides helpers for movement through the code characters and lines. */
-	class B3D_UTILITY_EXPORT SourceCode
+	class B3D_EXPORT SourceCode
 	{
 	public:
 		SourceCode(const String& source);

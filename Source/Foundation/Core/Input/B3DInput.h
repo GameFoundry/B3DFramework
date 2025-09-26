@@ -22,7 +22,7 @@ namespace b3d
 	 * Primary module used for dealing with input. Allows you to receieve and query raw or OS input for
 	 * mouse/keyboard/gamepad.
 	 */
-	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Input)) Input : public Module<Input>
+	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Input)) Input : public Module<Input>
 	{
 		/** Possible button states. */
 		enum class ButtonState
@@ -366,7 +366,7 @@ namespace b3d
 	};
 
 	/** Provides global access to Input. */
-	B3D_CORE_EXPORT Input& GetInput();
+	B3D_EXPORT Input& GetInput();
 
 	/** @} */
 } // namespace b3d

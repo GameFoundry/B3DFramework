@@ -11,7 +11,7 @@ namespace b3d
 	 */
 
 	/** Provides various utility functionality relating to audio. */
-	class B3D_CORE_EXPORT AudioUtility
+	class B3D_EXPORT AudioUtility
 	{
 	public:
 		/**

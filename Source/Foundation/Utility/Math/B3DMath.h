@@ -76,7 +76,7 @@ namespace b3d
 	 */
 
 	/** Utility class providing common scalar math operations. */
-	class B3D_UTILITY_EXPORT Math
+	class B3D_EXPORT Math
 	{
 	public:
 		static constexpr float kBiggestFloatSmallerThanOne = 0.99999994f;

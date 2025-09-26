@@ -9,7 +9,7 @@ namespace b3d
 	struct GamepadInfo;
 
 	/** Represents a single hardware gamepad. Used by the Input to report gamepad input events. */
-	class B3D_CORE_EXPORT Gamepad
+	class B3D_EXPORT Gamepad
 	{
 	public:
 		struct Pimpl;

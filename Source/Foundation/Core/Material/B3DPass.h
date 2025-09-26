@@ -39,7 +39,7 @@ namespace b3d
 
 	/** Contains common functionality used by both main and render thread counterparts of Pass. */
 	template <bool IsRenderProxy>
-	class B3D_CORE_EXPORT TPass
+	class B3D_EXPORT TPass
 	{
 	public:
 		virtual ~TPass() = default;
@@ -92,7 +92,7 @@ namespace b3d
 	 *
 	 * @note	Main thread.
 	 */
-	class B3D_CORE_EXPORT Pass : public IReflectable, public CoreObject, public TPass<false>
+	class B3D_EXPORT Pass : public IReflectable, public CoreObject, public TPass<false>
 	{
 	public:
 		virtual ~Pass() = default;
@@ -145,7 +145,7 @@ namespace b3d
 		 *
 		 * @note	Render thread.
 		 */
-		class B3D_CORE_EXPORT Pass : public IReflectable, public RenderProxy, public TPass<true>
+		class B3D_EXPORT Pass : public IReflectable, public RenderProxy, public TPass<true>
 		{
 		public:
 			virtual ~Pass() = default;

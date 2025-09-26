@@ -40,7 +40,7 @@ namespace b3d
 		 */
 
 		/** Contains information about the scene (e.g. renderables, lights, cameras) required by the renderer. */
-		class B3D_CORE_EXPORT RendererScene : public RenderProxy
+		class B3D_EXPORT RendererScene : public RenderProxy
 		{
 		public:
 			virtual ~RendererScene() = default;

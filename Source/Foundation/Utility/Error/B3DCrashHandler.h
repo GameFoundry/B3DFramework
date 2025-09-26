@@ -43,7 +43,7 @@ namespace b3d
 	// appropriate way of doing it should be to resume another process to actually handle the crash.
 	//  - Perhaps an even better option would be to use a private heap for all engine allocations. So when corruptions does
 	//    happen the crash handler can use the default heap with no issues.
-	class B3D_UTILITY_EXPORT CrashHandler
+	class B3D_EXPORT CrashHandler
 	{
 	public:
 		CrashHandler(const CrashHandlerSettings& settings);
@@ -137,7 +137,7 @@ namespace b3d
 	};
 
 	/** Easier way of accessing the CrashHandler. */
-	B3D_UTILITY_EXPORT CrashHandler& GetCrashHandler();
+	B3D_EXPORT CrashHandler& GetCrashHandler();
 
 	/** @} */
 	/** @} */

@@ -6,6 +6,6 @@ using namespace b3d;
 
 template<typename T> const TVector3I<T> TVector3I<T>::kZero = TVector3I<T>(BS_ZERO());
 
-template struct B3D_UTILITY_EXPORT TVector3I<i32>;
-template struct B3D_UTILITY_EXPORT TVector3I<u32>;
+template struct B3D_EXPORT TVector3I<i32>;
+template struct B3D_EXPORT TVector3I<u32>;
 

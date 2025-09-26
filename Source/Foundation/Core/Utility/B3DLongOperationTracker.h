@@ -38,7 +38,7 @@ namespace b3d
 	 * Tracks execution of a long running operation (usually asynchronous operations taking multiple seconds/minutes).
 	 * Provides standardized of providing information about progress of the operation. 
 	 */
-	class B3D_CORE_EXPORT LongOperationTracker : public IScriptExportable
+	class B3D_EXPORT LongOperationTracker : public IScriptExportable
 	{
 	public:
 		/**

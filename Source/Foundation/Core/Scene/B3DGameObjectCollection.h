@@ -16,7 +16,7 @@ namespace b3d
 	 * Collection of all game objects associated with a particular scene or prefab. Provides functionality to patch game object handles
 	 * as may be needed when deserializing, updating from prefab, applying deltas, and similar.
 	 */
-	class B3D_CORE_EXPORT GameObjectCollection final : public std::enable_shared_from_this<GameObjectCollection>
+	class B3D_EXPORT GameObjectCollection final : public std::enable_shared_from_this<GameObjectCollection>
 	{
 		struct PrivatelyConstruct { };
 	public:

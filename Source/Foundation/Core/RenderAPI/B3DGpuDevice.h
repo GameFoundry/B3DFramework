@@ -33,7 +33,7 @@ namespace b3d
 	 *
 	 * @note	Thread safe.
 	 */
-	class B3D_CORE_EXPORT GpuQueue
+	class B3D_EXPORT GpuQueue
 	{
 	public:
 		virtual ~GpuQueue();
@@ -107,7 +107,7 @@ namespace b3d
 	 *
 	 * @note	Thread safe.
 	 */
-	class B3D_CORE_EXPORT GpuDevice
+	class B3D_EXPORT GpuDevice
 	{
 	public:
 		virtual ~GpuDevice() = default;

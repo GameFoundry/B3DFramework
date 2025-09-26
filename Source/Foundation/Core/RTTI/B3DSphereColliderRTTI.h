@@ -15,7 +15,7 @@ namespace b3d
 	 *  @{
 	 */
 
-	class B3D_CORE_EXPORT CSphereColliderRTTI : public TRTTIType<SphereCollider, Collider, CSphereColliderRTTI>
+	class B3D_EXPORT CSphereColliderRTTI : public TRTTIType<SphereCollider, Collider, CSphereColliderRTTI>
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS

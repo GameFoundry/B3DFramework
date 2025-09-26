@@ -137,5 +137,5 @@ std::pair<bool, T> TPlane<T>::Intersects(const TRay<T>& ray) const
 	}
 }
 
-template struct B3D_UTILITY_EXPORT TPlane<float>;
-template struct B3D_UTILITY_EXPORT TPlane<double>;
+template struct B3D_EXPORT TPlane<float>;
+template struct B3D_EXPORT TPlane<double>;

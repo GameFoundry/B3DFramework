@@ -12,7 +12,7 @@ namespace b3d
 	 */
 
 	/** Collider with box geometry. */
-	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Physics)) BoxCollider : public Collider
+	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Physics)) BoxCollider : public Collider
 	{
 	public:
 		BoxCollider(const HSceneObject& parent, const Vector3& extents = Vector3(0.5f, 0.5f, 0.5f));

@@ -18,7 +18,7 @@ namespace b3d
 	 *
 	 * Commands from various threads can be queued for execution on the render thread by calling PostCommand()
 	 */
-	class B3D_CORE_EXPORT RenderThread : public Module<RenderThread>
+	class B3D_EXPORT RenderThread : public Module<RenderThread>
 	{
 	public:
 		RenderThread();
@@ -92,16 +92,16 @@ namespace b3d
 	 *
 	 * @see		RenderThread
 	 */
-	B3D_CORE_EXPORT RenderThread& GetRenderThread();
+	B3D_EXPORT RenderThread& GetRenderThread();
 
 	/**	Throws an exception if current thread isn't the render thread. */
-	B3D_CORE_EXPORT void AssertIfNotRenderThread();
+	B3D_EXPORT void AssertIfNotRenderThread();
 
 	/** Throws an exception if current thread is the render thread. */
-	B3D_CORE_EXPORT void AssertIfRenderThread();
+	B3D_EXPORT void AssertIfRenderThread();
 
 	/** Returns false if currently not at the render thread, and triggers an ensure. */
-	B3D_CORE_EXPORT inline bool EnsureRenderThread()
+	B3D_EXPORT inline bool EnsureRenderThread()
 	{
 		return B3D_ENSURE(B3D_CURRENT_THREAD_ID == RenderThread::Instance().GetThreadId());
 	}

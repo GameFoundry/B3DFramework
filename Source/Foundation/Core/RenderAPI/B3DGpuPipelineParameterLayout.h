@@ -68,7 +68,7 @@ namespace b3d
 	 *
 	 * @note	Thread safe (Immutable).
 	 */
-	class B3D_CORE_EXPORT GpuPipelineParameterLayout
+	class B3D_EXPORT GpuPipelineParameterLayout
 	{
 	public:
 		virtual ~GpuPipelineParameterLayout() = default;

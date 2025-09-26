@@ -51,7 +51,7 @@ namespace b3d
 
 	/** Templated common base class for both main and render thread implementations of Camera. */
 	template <bool IsRenderProxy>
-	class B3D_CORE_EXPORT TCamera : public CoreVariantType<CoreObject, IsRenderProxy>
+	class B3D_EXPORT TCamera : public CoreVariantType<CoreObject, IsRenderProxy>
 	{
 		using ViewportType = CoreVariantType<Viewport, IsRenderProxy>;
 		using RenderSettingsType = CoreVariantType<RenderSettings, IsRenderProxy>;
@@ -521,7 +521,7 @@ namespace b3d
 	 * Camera determines how is world geometry projected onto a 2D surface. You may position and orient it in space, set
 	 * options like aspect ratio and field or view and it outputs view and projection matrices required for rendering.
 	 */
-	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Rendering)) Camera : public Component, public TCamera<false>
+	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Rendering)) Camera : public Component, public TCamera<false>
 	{
 	public:
 		Camera(const HSceneObject& parent);
@@ -584,7 +584,7 @@ namespace b3d
 	namespace render
 	{
 		/** @copydoc b3d::Camera */
-		class B3D_CORE_EXPORT Camera : public TCamera<true>
+		class B3D_EXPORT Camera : public TCamera<true>
 		{
 		public:
 			~Camera();

@@ -14,7 +14,7 @@ namespace b3d
 	 */
 
 	/** Handles creation and internal updates relating to render windows. */
-	class B3D_CORE_EXPORT RenderWindowManager : public Module<RenderWindowManager>
+	class B3D_EXPORT RenderWindowManager : public Module<RenderWindowManager>
 	{
 	public:
 		RenderWindowManager() = default;

@@ -14,7 +14,7 @@ namespace b3d
 	 *  @{
 	 */
 
-	class B3D_CORE_EXPORT AudioClipImportOptionsRTTI : public TRTTIType<AudioClipImportOptions, ImportOptions, AudioClipImportOptionsRTTI>
+	class B3D_EXPORT AudioClipImportOptionsRTTI : public TRTTIType<AudioClipImportOptions, ImportOptions, AudioClipImportOptionsRTTI>
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS

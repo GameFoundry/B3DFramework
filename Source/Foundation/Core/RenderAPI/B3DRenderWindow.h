@@ -58,7 +58,7 @@ namespace b3d
 	 */
 
 	/** Structure that is used for initializing a render window. */
-	struct B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(RenderAPI), ExportAsStruct(true), API(Framework)) RenderWindowCreateInformation
+	struct B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(RenderAPI), ExportAsStruct(true), API(Framework)) RenderWindowCreateInformation
 	{
 		/** Output monitor, frame buffer resize and refresh rate. This is the size of the window's client area (which means actual window may be larger due to title bar and border. */
 		VideoMode VideoMode;
@@ -119,7 +119,7 @@ namespace b3d
 	};
 
 	/**	Contains various properties that describe a render window. */
-	class B3D_CORE_EXPORT RenderWindowProperties
+	class B3D_EXPORT RenderWindowProperties
 	{
 	public:
 		RenderWindowProperties() = default;
@@ -167,7 +167,7 @@ namespace b3d
 	 * Operating system window with a specific position, size and style. Each window serves as a surface that can be
 	 * rendered into by RenderAPI operations.
 	 */
-	class B3D_CORE_EXPORT RenderWindow : public RenderTarget
+	class B3D_EXPORT RenderWindow : public RenderTarget
 	{
 		struct SyncPacket;
 	public:
@@ -314,7 +314,7 @@ namespace b3d
 		class IRenderWindowSurface;
 
 		/** Render thread counterpart of b3d::RenderWindow. */
-		class B3D_CORE_EXPORT RenderWindow : public RenderTarget
+		class B3D_EXPORT RenderWindow : public RenderTarget
 		{
 			using Super = RenderTarget;
 		public:
@@ -378,7 +378,7 @@ namespace b3d
 		 * Interface that acts as a bridge between a RenderWindow and a GpuBackend. One such interface should be implemented for each GPU backend.
 		 * Internally creates the swap chain that allows the GPU to render to the window.
 		 */
-		class B3D_CORE_EXPORT IRenderWindowSurface
+		class B3D_EXPORT IRenderWindowSurface
 		{
 		public:
 			IRenderWindowSurface() = default;

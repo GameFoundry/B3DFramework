@@ -14,7 +14,7 @@ namespace b3d
 		 */
 
 		/** Helper class that handles generation and processing of textures used for image based lighting. */
-		class B3D_CORE_EXPORT IBLUtility : public Module<IBLUtility>
+		class B3D_EXPORT IBLUtility : public Module<IBLUtility>
 		{
 		public:
 			/**
@@ -78,7 +78,7 @@ namespace b3d
 		};
 
 		/**	Provides easy access to IBLUtility. */
-		B3D_CORE_EXPORT const IBLUtility& GetIBLUtility();
+		B3D_EXPORT const IBLUtility& GetIBLUtility();
 
 		/** @} */
 	} // namespace render

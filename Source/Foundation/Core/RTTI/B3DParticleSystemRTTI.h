@@ -19,7 +19,7 @@ namespace b3d
 	 *  @{
 	 */
 
-	class B3D_CORE_EXPORT ParticleEmitterConeShapeRTTI : public TRTTIType<ParticleEmitterConeShape, IReflectable, ParticleEmitterConeShapeRTTI>
+	class B3D_EXPORT ParticleEmitterConeShapeRTTI : public TRTTIType<ParticleEmitterConeShape, IReflectable, ParticleEmitterConeShapeRTTI>
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
@@ -52,7 +52,7 @@ namespace b3d
 		}
 	};
 
-	class B3D_CORE_EXPORT ParticleEmitterSphereShapeRTTI : public TRTTIType<ParticleEmitterSphereShape, IReflectable, ParticleEmitterSphereShapeRTTI>
+	class B3D_EXPORT ParticleEmitterSphereShapeRTTI : public TRTTIType<ParticleEmitterSphereShape, IReflectable, ParticleEmitterSphereShapeRTTI>
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
@@ -78,7 +78,7 @@ namespace b3d
 		}
 	};
 
-	class B3D_CORE_EXPORT ParticleEmitterHemisphereShapeRTTI : public TRTTIType<ParticleEmitterHemisphereShape, IReflectable, ParticleEmitterHemisphereShapeRTTI>
+	class B3D_EXPORT ParticleEmitterHemisphereShapeRTTI : public TRTTIType<ParticleEmitterHemisphereShape, IReflectable, ParticleEmitterHemisphereShapeRTTI>
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
@@ -104,7 +104,7 @@ namespace b3d
 		}
 	};
 
-	class B3D_CORE_EXPORT ParticleEmitterBoxShapeRTTI : public TRTTIType<ParticleEmitterBoxShape, IReflectable, ParticleEmitterBoxShapeRTTI>
+	class B3D_EXPORT ParticleEmitterBoxShapeRTTI : public TRTTIType<ParticleEmitterBoxShape, IReflectable, ParticleEmitterBoxShapeRTTI>
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
@@ -130,7 +130,7 @@ namespace b3d
 		}
 	};
 
-	class B3D_CORE_EXPORT ParticleEmitterLineShapeRTTI : public TRTTIType<ParticleEmitterLineShape, IReflectable, ParticleEmitterLineShapeRTTI>
+	class B3D_EXPORT ParticleEmitterLineShapeRTTI : public TRTTIType<ParticleEmitterLineShape, IReflectable, ParticleEmitterLineShapeRTTI>
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
@@ -158,7 +158,7 @@ namespace b3d
 		}
 	};
 
-	class B3D_CORE_EXPORT ParticleEmitterCircleShapeRTTI : public TRTTIType<ParticleEmitterCircleShape, IReflectable, ParticleEmitterCircleShapeRTTI>
+	class B3D_EXPORT ParticleEmitterCircleShapeRTTI : public TRTTIType<ParticleEmitterCircleShape, IReflectable, ParticleEmitterCircleShapeRTTI>
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
@@ -188,7 +188,7 @@ namespace b3d
 		}
 	};
 
-	class B3D_CORE_EXPORT ParticleEmitterRectShapeRTTI : public TRTTIType<ParticleEmitterRectShape, IReflectable, ParticleEmitterRectShapeRTTI>
+	class B3D_EXPORT ParticleEmitterRectShapeRTTI : public TRTTIType<ParticleEmitterRectShape, IReflectable, ParticleEmitterRectShapeRTTI>
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
@@ -213,7 +213,7 @@ namespace b3d
 		}
 	};
 
-	class B3D_CORE_EXPORT ParticleEmitterStaticMeshShapeRTTI : public TRTTIType<ParticleEmitterStaticMeshShape, IReflectable, ParticleEmitterStaticMeshShapeRTTI>
+	class B3D_EXPORT ParticleEmitterStaticMeshShapeRTTI : public TRTTIType<ParticleEmitterStaticMeshShape, IReflectable, ParticleEmitterStaticMeshShapeRTTI>
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
@@ -240,7 +240,7 @@ namespace b3d
 		}
 	};
 
-	class B3D_CORE_EXPORT ParticleEmitterSkinnedMeshShapeRTTI : public TRTTIType<ParticleEmitterSkinnedMeshShape, IReflectable, ParticleEmitterSkinnedMeshShapeRTTI>
+	class B3D_EXPORT ParticleEmitterSkinnedMeshShapeRTTI : public TRTTIType<ParticleEmitterSkinnedMeshShape, IReflectable, ParticleEmitterSkinnedMeshShapeRTTI>
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
@@ -332,7 +332,7 @@ namespace b3d
 		}
 	};
 
-	class B3D_CORE_EXPORT ParticleEmitterRTTI : public TRTTIType<ParticleEmitter, IReflectable, ParticleEmitterRTTI>
+	class B3D_EXPORT ParticleEmitterRTTI : public TRTTIType<ParticleEmitter, IReflectable, ParticleEmitterRTTI>
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
@@ -371,7 +371,7 @@ namespace b3d
 		}
 	};
 
-	class B3D_CORE_EXPORT ParticleTextureAnimationRTTI : public TRTTIType<ParticleTextureAnimation, IReflectable, ParticleTextureAnimationRTTI>
+	class B3D_EXPORT ParticleTextureAnimationRTTI : public TRTTIType<ParticleTextureAnimation, IReflectable, ParticleTextureAnimationRTTI>
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
@@ -397,7 +397,7 @@ namespace b3d
 		}
 	};
 
-	class B3D_CORE_EXPORT ParticleOrbitRTTI : public TRTTIType<ParticleOrbit, IReflectable, ParticleOrbitRTTI>
+	class B3D_EXPORT ParticleOrbitRTTI : public TRTTIType<ParticleOrbit, IReflectable, ParticleOrbitRTTI>
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
@@ -425,7 +425,7 @@ namespace b3d
 		}
 	};
 
-	class B3D_CORE_EXPORT ParticleVelocityRTTI : public TRTTIType<ParticleVelocity, IReflectable, ParticleVelocityRTTI>
+	class B3D_EXPORT ParticleVelocityRTTI : public TRTTIType<ParticleVelocity, IReflectable, ParticleVelocityRTTI>
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
@@ -451,7 +451,7 @@ namespace b3d
 		}
 	};
 
-	class B3D_CORE_EXPORT ParticleForceRTTI : public TRTTIType<ParticleForce, IReflectable, ParticleForceRTTI>
+	class B3D_EXPORT ParticleForceRTTI : public TRTTIType<ParticleForce, IReflectable, ParticleForceRTTI>
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
@@ -477,7 +477,7 @@ namespace b3d
 		}
 	};
 
-	class B3D_CORE_EXPORT ParticleGravityRTTI : public TRTTIType<ParticleGravity, IReflectable, ParticleGravityRTTI>
+	class B3D_EXPORT ParticleGravityRTTI : public TRTTIType<ParticleGravity, IReflectable, ParticleGravityRTTI>
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
@@ -502,7 +502,7 @@ namespace b3d
 		}
 	};
 
-	class B3D_CORE_EXPORT ParticleColorRTTI : public TRTTIType<ParticleColor, IReflectable, ParticleColorRTTI>
+	class B3D_EXPORT ParticleColorRTTI : public TRTTIType<ParticleColor, IReflectable, ParticleColorRTTI>
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
@@ -527,7 +527,7 @@ namespace b3d
 		}
 	};
 
-	class B3D_CORE_EXPORT ParticleSizeRTTI : public TRTTIType<ParticleSize, IReflectable, ParticleSizeRTTI>
+	class B3D_EXPORT ParticleSizeRTTI : public TRTTIType<ParticleSize, IReflectable, ParticleSizeRTTI>
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
@@ -554,7 +554,7 @@ namespace b3d
 		}
 	};
 
-	class B3D_CORE_EXPORT ParticleRotationRTTI : public TRTTIType<ParticleRotation, IReflectable, ParticleRotationRTTI>
+	class B3D_EXPORT ParticleRotationRTTI : public TRTTIType<ParticleRotation, IReflectable, ParticleRotationRTTI>
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
@@ -581,7 +581,7 @@ namespace b3d
 		}
 	};
 
-	class B3D_CORE_EXPORT ParticleCollisionsRTTI : public TRTTIType<ParticleCollisions, IReflectable, ParticleCollisionsRTTI>
+	class B3D_EXPORT ParticleCollisionsRTTI : public TRTTIType<ParticleCollisions, IReflectable, ParticleCollisionsRTTI>
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
@@ -611,7 +611,7 @@ namespace b3d
 		}
 	};
 
-	class B3D_CORE_EXPORT ParticleVectorFieldSettingsRTTI : public TRTTIType<ParticleVectorFieldSettings, IReflectable, ParticleVectorFieldSettingsRTTI>
+	class B3D_EXPORT ParticleVectorFieldSettingsRTTI : public TRTTIType<ParticleVectorFieldSettings, IReflectable, ParticleVectorFieldSettingsRTTI>
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
@@ -645,7 +645,7 @@ namespace b3d
 		}
 	};
 
-	class B3D_CORE_EXPORT ParticleDepthCollisionSettingsRTTI : public TRTTIType<ParticleDepthCollisionSettings, IReflectable, ParticleDepthCollisionSettingsRTTI>
+	class B3D_EXPORT ParticleDepthCollisionSettingsRTTI : public TRTTIType<ParticleDepthCollisionSettings, IReflectable, ParticleDepthCollisionSettingsRTTI>
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
@@ -673,7 +673,7 @@ namespace b3d
 		}
 	};
 
-	class B3D_CORE_EXPORT ParticleGpuSimulationSettingsRTTI : public TRTTIType<ParticleGpuSimulationSettings, IReflectable, ParticleGpuSimulationSettingsRTTI>
+	class B3D_EXPORT ParticleGpuSimulationSettingsRTTI : public TRTTIType<ParticleGpuSimulationSettings, IReflectable, ParticleGpuSimulationSettingsRTTI>
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
@@ -703,7 +703,7 @@ namespace b3d
 		}
 	};
 
-	class B3D_CORE_EXPORT ParticleSystemSettingsRTTI : public TRTTIType<ParticleSystemSettings, IReflectable, ParticleSystemSettingsRTTI>
+	class B3D_EXPORT ParticleSystemSettingsRTTI : public TRTTIType<ParticleSystemSettings, IReflectable, ParticleSystemSettingsRTTI>
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
@@ -743,7 +743,7 @@ namespace b3d
 		}
 	};
 
-	class B3D_CORE_EXPORT ParticleSystemRTTI : public TRTTIType<ParticleSystem, Component, ParticleSystemRTTI>
+	class B3D_EXPORT ParticleSystemRTTI : public TRTTIType<ParticleSystem, Component, ParticleSystemRTTI>
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS

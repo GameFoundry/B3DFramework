@@ -18,7 +18,7 @@ namespace b3d
 	{};
 
 	/** Physics joint that will maintain a fixed distance and orientation between its two attached bodies. */
-	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Physics)) FixedJoint : public Joint
+	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Physics)) FixedJoint : public Joint
 	{
 	public:
 		FixedJoint(const HSceneObject& parent);
@@ -56,7 +56,7 @@ namespace b3d
 	};
 
 	/** Low-level interface for a joint used by the FixedJoint component. Should be implemented by the physics plugin to provide joint functionality. */
-	class B3D_CORE_EXPORT IFixedJointImplementation : public IJointImplementation
+	class B3D_EXPORT IFixedJointImplementation : public IJointImplementation
 	{ };
 
 	/** @} */

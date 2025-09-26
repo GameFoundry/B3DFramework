@@ -14,7 +14,7 @@ namespace b3d
 	 *  @{
 	 */
 
-	class B3D_CORE_EXPORT ResourceMetaDataRTTI : public TRTTIType<ResourceMetaData, IReflectable, ResourceMetaDataRTTI>
+	class B3D_EXPORT ResourceMetaDataRTTI : public TRTTIType<ResourceMetaData, IReflectable, ResourceMetaDataRTTI>
 	{
 	public:
 		const String& GetRttiName()

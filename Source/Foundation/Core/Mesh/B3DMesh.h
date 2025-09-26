@@ -16,7 +16,7 @@ namespace b3d
 	 */
 
 	/** Information used for creation of a new Mesh object. */
-	struct B3D_CORE_EXPORT MeshCreateInformation
+	struct B3D_EXPORT MeshCreateInformation
 	{
 		MeshCreateInformation() {}
 
@@ -61,7 +61,7 @@ namespace b3d
 	 * Primary class for holding geometry. Stores data in the form of vertex buffers and optionally an index buffer, which
 	 * may be bound to the pipeline for drawing. May contain multiple sub-meshes.
 	 */
-	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Rendering)) Mesh : public MeshBase
+	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Rendering)) Mesh : public MeshBase
 	{
 	public:
 		virtual ~Mesh() = default;
@@ -262,7 +262,7 @@ namespace b3d
 		 *
 		 * @note	Render thread.
 		 */
-		class B3D_CORE_EXPORT Mesh : public MeshBase
+		class B3D_EXPORT Mesh : public MeshBase
 		{
 		public:
 			Mesh(const SPtr<MeshData>& initialMeshData, const MeshCreateInformation& meshCreateInformation);

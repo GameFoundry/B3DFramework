@@ -16,7 +16,7 @@ namespace b3d
 	 *
 	 * @note	Main thread only.
 	 */
-	class B3D_CORE_EXPORT DeferredCallManager : public Module<DeferredCallManager>
+	class B3D_EXPORT DeferredCallManager : public Module<DeferredCallManager>
 	{
 	public:
 		DeferredCallManager() = default;

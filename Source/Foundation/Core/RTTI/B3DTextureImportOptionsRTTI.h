@@ -14,7 +14,7 @@ namespace b3d
 	 *  @{
 	 */
 
-	class B3D_CORE_EXPORT TextureImportOptionsRTTI : public TRTTIType<TextureImportOptions, ImportOptions, TextureImportOptionsRTTI>
+	class B3D_EXPORT TextureImportOptionsRTTI : public TRTTIType<TextureImportOptions, ImportOptions, TextureImportOptionsRTTI>
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS

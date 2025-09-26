@@ -38,7 +38,7 @@ namespace b3d
 	 * On initialization this class must register itself with the Importer module, which delegates asset import calls to a
 	 * specific importer.
 	 */
-	class B3D_CORE_EXPORT SpecificImporter
+	class B3D_EXPORT SpecificImporter
 	{
 	public:
 		SpecificImporter() {}

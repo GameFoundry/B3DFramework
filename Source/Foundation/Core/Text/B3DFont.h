@@ -55,7 +55,7 @@ namespace b3d
 	};
 
 	/** Information about a single page containing font bitmaps. */
-	struct B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(ExportAsStruct(true), DocumentationGroup(Text)) FontBitmapPage : IReflectable
+	struct B3D_EXPORT B3D_SCRIPT_EXPORT(ExportAsStruct(true), DocumentationGroup(Text)) FontBitmapPage : IReflectable
 	{
 		HTexture Texture;
 		FontBitmapPageType Type = FontBitmapPageType::Runtime;
@@ -73,7 +73,7 @@ namespace b3d
 	};
 
 	/**	Contains information about font characters rendered into one or multiple bitmaps, for specific font size. */
-	struct B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Text)) FontBitmapInformation : IReflectable, IScriptExportable
+	struct B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Text)) FontBitmapInformation : IReflectable, IScriptExportable
 	{
 		/**	Returns a character description for the character with the specified Unicode key. */
 		B3D_SCRIPT_EXPORT()
@@ -152,7 +152,7 @@ namespace b3d
 	 * Font resource containing data about textual characters and how to render text. Contains one or multiple font
 	 * bitmaps, each for a specific size.
 	 */
-	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Text)) Font : public Resource
+	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Text)) Font : public Resource
 	{
 	public:
 		virtual ~Font();

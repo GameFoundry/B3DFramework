@@ -83,7 +83,7 @@ namespace b3d
 	/** @} */
 
 	/** Cache that will persist between application runs. */
-	class B3D_CORE_EXPORT PersistentCache : public std::enable_shared_from_this<PersistentCache>
+	class B3D_EXPORT PersistentCache : public std::enable_shared_from_this<PersistentCache>
 	{
 		/** Information about a single entry in the cache. */
 		struct CacheEntry

@@ -24,7 +24,7 @@ namespace b3d
 
 	/** Represents a convex volume defined by planes representing the volume border. */
 	template<typename T>
-	struct B3D_UTILITY_EXPORT TConvexVolume
+	struct B3D_EXPORT TConvexVolume
 	{
 	public:
 		TConvexVolume() = default;

@@ -12,7 +12,7 @@ namespace b3d
 	 */
 
 	/**	Allows you to specify defines that can control shader compilation. */
-	class B3D_CORE_EXPORT ShaderDefines
+	class B3D_EXPORT ShaderDefines
 	{
 	public:
 		/** Adds a new define with a floating point value. */
@@ -84,7 +84,7 @@ namespace b3d
 	 * Contains information about a single variation of a Shader. Each variation can have a separate set of
 	 * \#defines that control shader compilation.
 	 */
-	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Rendering)) ShaderVariationParameters : public IReflectable, public IScriptExportable
+	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Rendering)) ShaderVariationParameters : public IReflectable, public IScriptExportable
 	{
 	public:
 		B3D_SCRIPT_EXPORT()
@@ -229,7 +229,7 @@ namespace b3d
 	};
 
 	/** A container for all variations of a single Shader. */
-	class B3D_CORE_EXPORT ShaderVariations
+	class B3D_EXPORT ShaderVariations
 	{
 	public:
 		/** Registers a new variation. */

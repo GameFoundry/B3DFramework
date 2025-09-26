@@ -138,6 +138,6 @@ TArea2<PositionType, SizeType> TDropDownAreaPlacement<PositionType, SizeType>::G
 	return output;
 }
 
-template class B3D_UTILITY_EXPORT TDropDownAreaPlacement<i32, u32>;
-template class B3D_UTILITY_EXPORT TDropDownAreaPlacement<GUIPhysicalUnit>;
-template class B3D_UTILITY_EXPORT TDropDownAreaPlacement<GUILogicalUnit>;
+template class B3D_EXPORT TDropDownAreaPlacement<i32, u32>;
+template class B3D_EXPORT TDropDownAreaPlacement<GUIPhysicalUnit>;
+template class B3D_EXPORT TDropDownAreaPlacement<GUILogicalUnit>;

@@ -17,10 +17,10 @@ namespace b3d
 	 */
 
 	/** Helper to compare two ISerialized objects for equality, while also checking if they are null. */
-	B3D_UTILITY_EXPORT bool Equals(const SPtr<ISerialized>& lhs, const SPtr<ISerialized>& rhs);
+	B3D_EXPORT bool Equals(const SPtr<ISerialized>& lhs, const SPtr<ISerialized>& rhs);
 
 	/** Base class for all data types used in intermediate IReflectable object representation. */
-	struct B3D_UTILITY_EXPORT ISerialized : IReflectable
+	struct B3D_EXPORT ISerialized : IReflectable
 	{
 		virtual ~ISerialized() = default;
 
@@ -83,7 +83,7 @@ namespace std
 namespace b3d
 {
 	/** Contains data for fields or container entries that are made up of more than one type (e.g. std::pair<K, V>). */
-	struct B3D_UTILITY_EXPORT SerializedTuple : ISerialized
+	struct B3D_EXPORT SerializedTuple : ISerialized
 	{
 		SerializedTuple() = default;
 
@@ -103,7 +103,7 @@ namespace b3d
 	};
 
 	/** Contains data for a single field in a serialized object. */
-	struct B3D_UTILITY_EXPORT SerializedField : IReflectable
+	struct B3D_EXPORT SerializedField : IReflectable
 	{
 		SerializedField() = default;
 
@@ -120,7 +120,7 @@ namespace b3d
 	};
 
 	/** Contains a sub-set of fields of a SerializedObject for a single class in a class hierarchy. */
-	struct B3D_UTILITY_EXPORT SerializedSubObject : IReflectable
+	struct B3D_EXPORT SerializedSubObject : IReflectable
 	{
 		SerializedSubObject() = default;
 
@@ -160,7 +160,7 @@ namespace b3d
 	 * memory but complex objects, their references and fields are available as their own serialized objects and can be
 	 * iterated over, viewed, compared or modified. Serialized object can later be decoded back into a IReflectable object.
 	 */
-	struct B3D_UTILITY_EXPORT SerializedObject : ISerialized
+	struct B3D_EXPORT SerializedObject : ISerialized
 	{
 		/** Returns the RTTI type ID for the most-derived class of this object. */
 		u32 GetRootTypeId() const;
@@ -198,7 +198,7 @@ namespace b3d
 	};
 
 	/** Contains data for a serialized value of a specific field or array entry. */
-	struct B3D_UTILITY_EXPORT SerializedPlainData : ISerialized
+	struct B3D_EXPORT SerializedPlainData : ISerialized
 	{
 		SerializedPlainData() = default;
 
@@ -226,7 +226,7 @@ namespace b3d
 	};
 
 	/** Contains data for a serialized value of a data block field. */
-	struct B3D_UTILITY_EXPORT SerializedDataBlock : ISerialized
+	struct B3D_EXPORT SerializedDataBlock : ISerialized
 	{
 		SerializedDataBlock() = default;
 
@@ -248,7 +248,7 @@ namespace b3d
 	};
 
 	/** A serialized array containing a list of all its entries. */
-	struct B3D_UTILITY_EXPORT SerializedArray : ISerialized
+	struct B3D_EXPORT SerializedArray : ISerialized
 	{
 		SerializedArray() = default;
 
@@ -268,7 +268,7 @@ namespace b3d
 	};
 
 	/** A serialized map containing a list of all its entries. */
-	struct B3D_UTILITY_EXPORT SerializedMap : ISerialized
+	struct B3D_EXPORT SerializedMap : ISerialized
 	{
 		SerializedMap() = default;
 

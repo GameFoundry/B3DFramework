@@ -115,7 +115,7 @@ namespace b3d
 	 * Contains information about bones required for skeletal animation.
 	 * @endscript
 	 */
-	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Animation)) Skeleton : public IReflectable, public IScriptExportable // Note: Must be immutable in order to be usable on multiple threads
+	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Animation)) Skeleton : public IReflectable, public IScriptExportable // Note: Must be immutable in order to be usable on multiple threads
 	{
 	public:
 		/**

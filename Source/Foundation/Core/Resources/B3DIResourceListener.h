@@ -11,7 +11,7 @@ namespace b3d
 	 */
 
 	/** Interface that allows the implementing class to be notified when the resources it is referencing change. */
-	class B3D_CORE_EXPORT IResourceListener
+	class B3D_EXPORT IResourceListener
 	{
 	public:
 		IResourceListener();

@@ -157,5 +157,5 @@ const TPlane<T>& TConvexVolume<T>::GetPlane(FrustumPlane whichPlane) const
 	return mPlanes[whichPlane];
 }
 
-template struct B3D_UTILITY_EXPORT TConvexVolume<float>;
-template struct B3D_UTILITY_EXPORT TConvexVolume<double>;
+template struct B3D_EXPORT TConvexVolume<float>;
+template struct B3D_EXPORT TConvexVolume<double>;

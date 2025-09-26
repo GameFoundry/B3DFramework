@@ -494,7 +494,7 @@ namespace b3d
 	};
 
 	/** Represents a vector path containing curves and geometric shapes that can be rasterized to any dimension. */
-	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(VectorGraphics)) VectorPath : public Resource
+	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(VectorGraphics)) VectorPath : public Resource
 	{
 	public:
 		static constexpr Size2 kDefaultCanvasSize = Size2(512.0f, 512.0f);
@@ -649,7 +649,7 @@ namespace b3d
 	namespace render
 	{
 		/** Allows a vector path to be rasterized into pixels. */
-		class B3D_CORE_EXPORT VectorPathRenderable : public IReflectable
+		class B3D_EXPORT VectorPathRenderable : public IReflectable
 		{
 		public:
 			VectorPathRenderable(const b3d::VectorPath& vectorPath, const VectorGraphicsSettings& settings)

@@ -76,7 +76,7 @@ namespace b3d
 	 *
 	 * The volume can never have less than 4 probes.
 	 */
-	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Rendering)) LightProbeVolume : public Component, public CoreObject
+	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Rendering)) LightProbeVolume : public Component, public CoreObject
 	{
 		/** Internal information about a single light probe. */
 		struct ProbeInfo
@@ -253,7 +253,7 @@ namespace b3d
 		};
 
 		/** Render thread counterpart of b3d::LightProbeVolume. */
-		class B3D_CORE_EXPORT LightProbeVolume : public RenderProxy
+		class B3D_EXPORT LightProbeVolume : public RenderProxy
 		{
 		public:
 			~LightProbeVolume();

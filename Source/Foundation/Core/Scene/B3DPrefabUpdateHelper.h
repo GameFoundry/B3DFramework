@@ -14,7 +14,7 @@ namespace b3d
 	 * Helper class that updates a prefab from scene object hierarchy, and makes sure the scene object hierarchy has correct
 	 * prefab links to the prefabs that were updated.
 	 */
-	class B3D_CORE_EXPORT PrefabUpdateHelper
+	class B3D_EXPORT PrefabUpdateHelper
 	{
 	public:
 		/**

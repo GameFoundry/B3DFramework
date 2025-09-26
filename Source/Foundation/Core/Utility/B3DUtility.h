@@ -21,7 +21,7 @@ namespace b3d
 	};
 
 	/** Static class containing various utility methods that do not fit anywhere else. */
-	class B3D_CORE_EXPORT Utility
+	class B3D_EXPORT Utility
 	{
 	public:
 		/**
@@ -48,7 +48,7 @@ namespace b3d
 	};
 
 	/** Extended version of RTTIOperationContext for various operations performed on classes in the engine layer. */
-	struct B3D_CORE_EXPORT RTTIOperationEngineContext : RTTIOperationContext
+	struct B3D_EXPORT RTTIOperationEngineContext : RTTIOperationContext
 	{
 		/**
 		 * By default deserialization will persist existing IDs for game objects. Setting this to false will generate brand new IDs on deserialization.

@@ -137,8 +137,8 @@ public:
 	static bool Compare(String const& a, char* b) { return a.compare(b) == 0; }
 };
 
-template B3D_UTILITY_EXPORT void StringID::Construct(const char* const&);
-template B3D_UTILITY_EXPORT void StringID::Construct(String const&);
+template B3D_EXPORT void StringID::Construct(const char* const&);
+template B3D_EXPORT void StringID::Construct(String const&);
 
-template B3D_UTILITY_EXPORT u32 StringID::CalcHash(const char* const&);
-template B3D_UTILITY_EXPORT u32 StringID::CalcHash(String const&);
+template B3D_EXPORT u32 StringID::CalcHash(const char* const&);
+template B3D_EXPORT u32 StringID::CalcHash(String const&);

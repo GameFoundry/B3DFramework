@@ -45,7 +45,7 @@ namespace b3d
 	};
 
 	/** Meta-data for a shader. Can be used for compiling specific variations of the shader. */
-	struct B3D_CORE_EXPORT ShaderCompilerMetaData : public IReflectable
+	struct B3D_EXPORT ShaderCompilerMetaData : public IReflectable
 	{
 		String Source; /**< High level source code of the shader. */
 		String NameInCache; /**< Unique name of this shader in the shader cache. */
@@ -67,7 +67,7 @@ namespace b3d
 	};
 
 	/**	Interface used for compilers that transform a source file written in a higher level shading language into a Shader and shader variations usable by the engine. */
-	class B3D_CORE_EXPORT IShaderCompiler
+	class B3D_EXPORT IShaderCompiler
 	{
 	public:
 		virtual ~IShaderCompiler() = default;
@@ -105,7 +105,7 @@ namespace b3d
 	};
 
 	/** Keeps track of all available shader compilers. */
-	class B3D_CORE_EXPORT ShaderCompilers : public Module<ShaderCompilers>
+	class B3D_EXPORT ShaderCompilers : public Module<ShaderCompilers>
 	{
 	public:
 		/** Registers a new shader compiler for the provided language. */

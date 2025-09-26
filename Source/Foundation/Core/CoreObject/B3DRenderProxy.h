@@ -31,7 +31,7 @@ namespace b3d
 		 *
 		 * @note	Render thread only.
 		 */
-		class B3D_CORE_EXPORT RenderProxy
+		class B3D_EXPORT RenderProxy
 		{
 		public:
 			RenderProxy();

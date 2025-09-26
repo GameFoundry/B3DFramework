@@ -15,7 +15,7 @@ namespace b3d
 	 *  @{
 	 */
 
-	class B3D_CORE_EXPORT PersistentCacheObjectRTTI : public TRTTIType<PersistentCacheObject, Resource, PersistentCacheObjectRTTI>
+	class B3D_EXPORT PersistentCacheObjectRTTI : public TRTTIType<PersistentCacheObject, Resource, PersistentCacheObjectRTTI>
 	{
 		B3D_RTTI_BEGIN_MEMBERS
 			B3D_RTTI_MEMBER_CONTAINER(mObjects, 0)
@@ -39,7 +39,7 @@ namespace b3d
 		}
 	};
 
-	class B3D_CORE_EXPORT PersistentCacheMetaDataRTTI : public TRTTIType<PersistentCacheMetaData, IReflectable, PersistentCacheMetaDataRTTI>
+	class B3D_EXPORT PersistentCacheMetaDataRTTI : public TRTTIType<PersistentCacheMetaData, IReflectable, PersistentCacheMetaDataRTTI>
 	{
 		B3D_RTTI_BEGIN_MEMBERS
 			B3D_RTTI_MEMBER(Priority, 0)

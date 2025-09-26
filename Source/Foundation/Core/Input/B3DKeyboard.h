@@ -7,7 +7,7 @@
 namespace b3d
 {
 	/** Represents a single hardware keyboard. Used by the Input to report raw keyboard input events. */
-	class B3D_CORE_EXPORT Keyboard
+	class B3D_EXPORT Keyboard
 	{
 	public:
 		struct Pimpl;

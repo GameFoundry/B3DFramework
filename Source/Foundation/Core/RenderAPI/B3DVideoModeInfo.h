@@ -14,7 +14,7 @@ namespace b3d
 	 * Video mode contains information about how a render window presents its information to an output device like a
 	 * monitor.
 	 */
-	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(RenderAPI), ExportAsStruct(true), API(Framework)) VideoMode
+	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(RenderAPI), ExportAsStruct(true), API(Framework)) VideoMode
 	{
 	public:
 		VideoMode() = default;
@@ -56,7 +56,7 @@ namespace b3d
 	};
 
 	/** Contains information about a video output device, including a list of all available video modes. */
-	class B3D_CORE_EXPORT VideoOutputInfo
+	class B3D_EXPORT VideoOutputInfo
 	{
 	public:
 		VideoOutputInfo() = default;
@@ -84,7 +84,7 @@ namespace b3d
 	};
 
 	/** Contains information about available output devices (for example monitor) and their video modes. */
-	class B3D_CORE_EXPORT VideoModeInfo
+	class B3D_EXPORT VideoModeInfo
 	{
 	public:
 		VideoModeInfo() = default;

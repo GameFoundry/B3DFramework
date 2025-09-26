@@ -31,7 +31,7 @@ namespace b3d
 	B3D_FLAGS_OPERATORS(ClearFlagBits)
 
 	/** Common base type used for both main and render thread variants of Viewport. */
-	class B3D_CORE_EXPORT ViewportBase
+	class B3D_EXPORT ViewportBase
 	{
 	public:
 		virtual ~ViewportBase() = default;
@@ -135,7 +135,7 @@ namespace b3d
 	 * Viewport determines to which RenderTarget should rendering be performed. It allows you to render to a sub-region of the
 	 * target by specifying the area rectangle, and allows you to set up color/depth/stencil clear values for that specific region.
 	 */
-	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Rendering)) Viewport : public IReflectable, public IScriptExportable, public CoreObject, public TViewport<false>
+	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Rendering)) Viewport : public IReflectable, public IScriptExportable, public CoreObject, public TViewport<false>
 	{
 	public:
 		/**	Determines the render target the viewport is associated with. */
@@ -193,7 +193,7 @@ namespace b3d
 		 */
 
 		/** @copydoc b3d::Viewport */
-		class B3D_CORE_EXPORT Viewport : public RenderProxy, public TViewport<true>
+		class B3D_EXPORT Viewport : public RenderProxy, public TViewport<true>
 		{
 		public:
 			/**	Returns the render target the viewport is associated with. */

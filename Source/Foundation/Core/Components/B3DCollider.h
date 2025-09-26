@@ -22,7 +22,7 @@ namespace b3d
 	 * This object is intended to remain static in the world. You /can/ move it, but it will not interact with the physics world correctly when moved. For that case
 	 * use Rigidbody instead.
 	 */
-	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Physics)) Collider : public Component
+	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Physics)) Collider : public Component
 	{
 	public:
 		Collider(const HSceneObject& parent);
@@ -205,7 +205,7 @@ namespace b3d
 	};
 
 	/** Low-level interface for a collider used by the Collider component. Should be implemented by the physics plugin to provide collider functionality. */
-	class B3D_CORE_EXPORT IColliderImplementation
+	class B3D_EXPORT IColliderImplementation
 	{
 	public:
 		virtual ~IColliderImplementation() = default;

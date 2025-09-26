@@ -392,7 +392,7 @@ namespace b3d
 		}
 	};
 
-	class B3D_CORE_EXPORT ShaderInformationBaseRTTI : public TRTTIType<ShaderInformationBase, IReflectable, ShaderInformationBaseRTTI>
+	class B3D_EXPORT ShaderInformationBaseRTTI : public TRTTIType<ShaderInformationBase, IReflectable, ShaderInformationBaseRTTI>
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
@@ -435,7 +435,7 @@ namespace b3d
 		}
 	};
 
-	class B3D_CORE_EXPORT ShaderInformationRTTI : public TRTTIType<ShaderInformation, ShaderInformationBase, ShaderInformationRTTI>
+	class B3D_EXPORT ShaderInformationRTTI : public TRTTIType<ShaderInformation, ShaderInformationBase, ShaderInformationRTTI>
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
@@ -460,7 +460,7 @@ namespace b3d
 		}
 	};
 
-	class B3D_CORE_EXPORT ShaderInformationRenderProxyRTTI : public TRTTIType<render::ShaderInformation, ShaderInformationBase, ShaderInformationRenderProxyRTTI>
+	class B3D_EXPORT ShaderInformationRenderProxyRTTI : public TRTTIType<render::ShaderInformation, ShaderInformationBase, ShaderInformationRenderProxyRTTI>
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
@@ -485,7 +485,7 @@ namespace b3d
 		}
 	};
 
-	class B3D_CORE_EXPORT ShaderRTTI : public TRTTIType<Shader, Resource, ShaderRTTI>
+	class B3D_EXPORT ShaderRTTI : public TRTTIType<Shader, Resource, ShaderRTTI>
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
@@ -524,7 +524,7 @@ namespace b3d
 		}
 	};
 
-	class B3D_CORE_EXPORT ShaderRenderProxyRTTI : public TRTTIType<render::Shader, IReflectable, ShaderRenderProxyRTTI>
+	class B3D_EXPORT ShaderRenderProxyRTTI : public TRTTIType<render::Shader, IReflectable, ShaderRenderProxyRTTI>
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
@@ -561,7 +561,7 @@ namespace b3d
 		}
 	};
 
-	class B3D_CORE_EXPORT ShaderMetaDataRTTI : public TRTTIType<ShaderMetaData, ResourceMetaData, ShaderMetaDataRTTI>
+	class B3D_EXPORT ShaderMetaDataRTTI : public TRTTIType<ShaderMetaData, ResourceMetaData, ShaderMetaDataRTTI>
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS

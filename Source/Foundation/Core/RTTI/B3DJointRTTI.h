@@ -15,7 +15,7 @@ namespace b3d
 	 *  @{
 	 */
 
-	class B3D_CORE_EXPORT JointRTTI : public TRTTIType<Joint, Component, JointRTTI>
+	class B3D_EXPORT JointRTTI : public TRTTIType<Joint, Component, JointRTTI>
 	{
 		B3D_RTTI_BEGIN_MEMBERS
 			B3D_RTTI_MEMBER_NAMED(mBodyA, mInformation.Bodies[0].Body, 0)

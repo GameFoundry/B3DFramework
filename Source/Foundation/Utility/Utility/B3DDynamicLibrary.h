@@ -30,7 +30,7 @@ namespace b3d
 #endif
 
 	/** Class that holds data about a dynamic library. */
-	class B3D_UTILITY_EXPORT DynamicLibrary final
+	class B3D_EXPORT DynamicLibrary final
 	{
 	public:
 		/** Platform-specific file extension for a dynamic library (e.g. "dll"). */

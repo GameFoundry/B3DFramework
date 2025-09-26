@@ -76,7 +76,7 @@ namespace b3d
 	B3D_FLAGS_OPERATORS(RTTIFieldFlag)
 
 	/** Provides various optional information regarding a RTTI field. */
-	struct B3D_UTILITY_EXPORT RTTIFieldInfo
+	struct B3D_EXPORT RTTIFieldInfo
 	{
 		RTTIFieldFlags Flags;
 

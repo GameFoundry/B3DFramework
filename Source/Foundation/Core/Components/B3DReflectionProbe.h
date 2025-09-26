@@ -36,7 +36,7 @@ namespace b3d
 
 	/** Templated base class for both render and main thread implementations of a reflection probe. */
 	template <bool IsRenderProxy>
-	class B3D_CORE_EXPORT TReflectionProbe : public CoreVariantType<CoreObject, IsRenderProxy>
+	class B3D_EXPORT TReflectionProbe : public CoreVariantType<CoreObject, IsRenderProxy>
 	{
 	public:
 		using TextureType = CoreVariantType<Texture, IsRenderProxy>;
@@ -119,7 +119,7 @@ namespace b3d
 	 * Specifies a location at which a pre-computed texture containing scene radiance will be generated. This texture will
 	 * then be used by the renderer to provide specular reflections.
 	 */
-	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Rendering)) ReflectionProbe : public Component, public TReflectionProbe<false>
+	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Rendering)) ReflectionProbe : public Component, public TReflectionProbe<false>
 	{
 	public:
 		ReflectionProbe(const HSceneObject& parent);
@@ -199,7 +199,7 @@ namespace b3d
 	namespace render
 	{
 		/** Render thread counterpart of a b3d::ReflectionProbe */
-		class B3D_CORE_EXPORT ReflectionProbe : public TReflectionProbe<true>
+		class B3D_EXPORT ReflectionProbe : public TReflectionProbe<true>
 		{
 		public:
 			~ReflectionProbe();

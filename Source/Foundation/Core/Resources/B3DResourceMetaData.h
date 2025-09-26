@@ -13,7 +13,7 @@ namespace b3d
 	 */
 
 	/**	Class containing meta-information describing a resource. */
-	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT() ResourceMetaData : public IReflectable, public IScriptExportable
+	class B3D_EXPORT B3D_SCRIPT_EXPORT() ResourceMetaData : public IReflectable, public IScriptExportable
 	{
 		/************************************************************************/
 		/* 								SERIALIZATION                      		*/

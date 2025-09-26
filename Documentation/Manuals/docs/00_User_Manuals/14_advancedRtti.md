@@ -343,7 +343,7 @@ During the calls to those methods, as well as any field getter/setter methods, y
 ```
 // RTTI for a Texture class that requires special initialization and checking after
 // deserialization ends
-class B3D_CORE_EXPORT TextureRTTI : public RTTIType<Texture, Resource, TextureRTTI>
+class B3D_EXPORT TextureRTTI : public RTTIType<Texture, Resource, TextureRTTI>
 {
 private:
 

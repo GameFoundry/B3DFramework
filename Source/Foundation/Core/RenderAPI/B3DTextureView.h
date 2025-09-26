@@ -13,7 +13,7 @@ namespace b3d
 		 */
 
 		/** Data describing a texture view. */
-		struct B3D_CORE_EXPORT TextureViewInformation
+		struct B3D_EXPORT TextureViewInformation
 		{
 			/** Determines which part of the texture is being viewed through the texture view. */
 			TextureSurface Surface;
@@ -30,7 +30,7 @@ namespace b3d
 		 *
 		 * @note	Render thread.
 		 */
-		class B3D_CORE_EXPORT TextureView
+		class B3D_EXPORT TextureView
 		{
 		public:
 			class HashFunction

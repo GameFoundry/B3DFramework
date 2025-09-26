@@ -18,7 +18,7 @@ namespace b3d
 	 */
 
 	/** Flag used for creating async operations signaling that we want to create an empty AsyncOp with no internal memory storage. */
-	struct B3D_UTILITY_EXPORT AsyncOpEmpty
+	struct B3D_EXPORT AsyncOpEmpty
 	{};
 
 	/** @} */
@@ -29,7 +29,7 @@ namespace b3d
 	 */
 
 	/** Common base for all TAsyncOp specializations. */
-	class B3D_UTILITY_EXPORT AsyncOp
+	class B3D_EXPORT AsyncOp
 	{
 	protected:
 		struct AsyncOpData

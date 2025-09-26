@@ -36,7 +36,7 @@ void Win32RenderWindow::Initialize()
 	windowCreateInformation.Modal = mCreateInformation.Modal;
 	windowCreateInformation.WndProc = &Win32Platform::Win32WndProcInternal;
 
-#ifdef BS_STATIC_LIB
+#ifdef B3D_STATIC_LIB
 	windowCreateInformation.module = GetModuleHandle(NULL);
 #else
 	windowCreateInformation.Module = GetModuleHandle("bsfVulkanRenderAPI.dll");

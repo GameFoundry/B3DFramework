@@ -15,7 +15,7 @@ namespace b3d
 	class ThreadPool;
 
 	/**	Wrapper around a thread that is used within ThreadPool. */
-	class B3D_UTILITY_EXPORT PooledThread
+	class B3D_EXPORT PooledThread
 	{
 	public:
 		PooledThread(const String& name);
@@ -113,7 +113,7 @@ namespace b3d
 	 * Class that maintains a pool of threads we can easily retrieve and use for any task. This saves on the cost of
 	 * creating and destroying threads.
 	 */
-	class B3D_UTILITY_EXPORT ThreadPool : public Module<ThreadPool>
+	class B3D_EXPORT ThreadPool : public Module<ThreadPool>
 	{
 	public:
 		/**

@@ -70,7 +70,7 @@ namespace b3d
 		}
 
 		/**	Set of options that can be used for controlling the renderer. */
-		struct B3D_CORE_EXPORT RendererOptions
+		struct B3D_EXPORT RendererOptions
 		{
 			virtual ~RendererOptions() = default;
 		};
@@ -144,7 +144,7 @@ namespace b3d
 		 * Normally you would iterate over all cameras, find visible objects for each camera and render those objects in some
 		 * way.
 		 */
-		class B3D_CORE_EXPORT Renderer
+		class B3D_EXPORT Renderer
 		{
 		public:
 			Renderer();
@@ -289,7 +289,7 @@ namespace b3d
 		};
 
 		/**	Provides easy access to Renderer. */
-		SPtr<Renderer> B3D_CORE_EXPORT GetRenderer();
+		SPtr<Renderer> B3D_EXPORT GetRenderer();
 
 		/**
 		 * Task that represents an asynchonous operation queued for execution on the render thread. All such tasks are executed
@@ -297,7 +297,7 @@ namespace b3d
 		 *
 		 * @note	Thread safe except where stated otherwise.
 		 */
-		class B3D_CORE_EXPORT RendererTask
+		class B3D_EXPORT RendererTask
 		{
 			struct PrivatelyConstruct
 			{};

@@ -14,7 +14,7 @@ namespace b3d
 	 *  @{
 	 */
 
-	class B3D_CORE_EXPORT FixedJointRTTI : public TRTTIType<FixedJoint, Joint, FixedJointRTTI>
+	class B3D_EXPORT FixedJointRTTI : public TRTTIType<FixedJoint, Joint, FixedJointRTTI>
 	{
 	public:
 		const String& GetRttiName() override

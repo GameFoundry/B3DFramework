@@ -93,7 +93,7 @@ namespace b3d
 	};
 
 	/** Contains mesh vertex and index data used for initializing, updating and reading mesh data from Mesh. */
-	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT() MeshData : public GpuResourceData, public IScriptExportable
+	class B3D_EXPORT B3D_SCRIPT_EXPORT() MeshData : public GpuResourceData, public IScriptExportable
 	{
 	public:
 		/**

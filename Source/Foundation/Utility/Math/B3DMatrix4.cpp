@@ -484,5 +484,5 @@ TMatrix4<T> TMatrix4<T>::InverseTrs(const TVector3<T>& translation, const TQuate
 	return mat;
 }
 
-template struct B3D_UTILITY_EXPORT TMatrix4<float>;
-template struct B3D_UTILITY_EXPORT TMatrix4<double>;
+template struct B3D_EXPORT TMatrix4<float>;
+template struct B3D_EXPORT TMatrix4<double>;

@@ -12,7 +12,7 @@ namespace b3d
 	 */
 
 	/** A collider with sphere geometry. */
-	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Physics)) SphereCollider : public Collider
+	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Physics)) SphereCollider : public Collider
 	{
 	public:
 		SphereCollider(const HSceneObject& parent, float radius = 1.0f);

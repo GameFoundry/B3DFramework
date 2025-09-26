@@ -232,7 +232,7 @@ namespace b3d
 	};
 
 	/** Defines a buffer that can be used for operations on the GPU. */
-	class B3D_CORE_EXPORT GpuBuffer : public CoreObject
+	class B3D_EXPORT GpuBuffer : public CoreObject
 	{
 	public:
 		virtual ~GpuBuffer() = default;
@@ -316,7 +316,7 @@ namespace b3d
 namespace b3d::render
 {
 	/** Defines a buffer that can be used for operations on the GPU. */
-	class B3D_CORE_EXPORT GpuBuffer : public RenderProxy
+	class B3D_EXPORT GpuBuffer : public RenderProxy
 	{
 	public:
 		virtual ~GpuBuffer();

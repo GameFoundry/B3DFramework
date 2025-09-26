@@ -17,7 +17,7 @@ namespace b3d
 	 */
 
 	/** Settings that control automatic exposure (eye adaptation) post-process. */
-	struct B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Rendering)) AutoExposureSettings : IReflectable, IScriptExportable
+	struct B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Rendering)) AutoExposureSettings : IReflectable, IScriptExportable
 	{
 		struct SyncPacket;
 
@@ -100,7 +100,7 @@ namespace b3d
 	};
 
 	/** Settings that control tonemap post-process. */
-	struct B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Rendering)) TonemappingSettings : IReflectable, IScriptExportable
+	struct B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Rendering)) TonemappingSettings : IReflectable, IScriptExportable
 	{
 		struct SyncPacket;
 
@@ -157,7 +157,7 @@ namespace b3d
 	};
 
 	/** Settings that control white balance post-process. */
-	struct B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Rendering)) WhiteBalanceSettings : IReflectable, IScriptExportable
+	struct B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Rendering)) WhiteBalanceSettings : IReflectable, IScriptExportable
 	{
 		struct SyncPacket;
 
@@ -192,7 +192,7 @@ namespace b3d
 	};
 
 	/** Settings that control color grading post-process. */
-	struct B3D_CORE_EXPORT B3D_SCRIPT_EXPORT() ColorGradingSettings : IReflectable, IScriptExportable
+	struct B3D_EXPORT B3D_SCRIPT_EXPORT() ColorGradingSettings : IReflectable, IScriptExportable
 	{
 		struct SyncPacket;
 
@@ -236,7 +236,7 @@ namespace b3d
 	};
 
 	/** Settings that control screen space ambient occlusion. */
-	struct B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Rendering)) AmbientOcclusionSettings : IReflectable, IScriptExportable
+	struct B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Rendering)) AmbientOcclusionSettings : IReflectable, IScriptExportable
 	{
 		struct SyncPacket;
 
@@ -327,7 +327,7 @@ namespace b3d
 	};
 
 	/** Base class for both main and render thread variants of DepthOfFieldSettings. */
-	struct B3D_CORE_EXPORT DepthOfFieldSettingsBase
+	struct B3D_EXPORT DepthOfFieldSettingsBase
 	{
 		DepthOfFieldSettingsBase() = default;
 
@@ -446,7 +446,7 @@ namespace b3d
 
 	/** Template version of DepthOfFieldSettings that can be specialized for either render or main thread. */
 	template <bool IsRenderProxy>
-	struct B3D_CORE_EXPORT TDepthOfFieldSettings : DepthOfFieldSettingsBase
+	struct B3D_EXPORT TDepthOfFieldSettings : DepthOfFieldSettingsBase
 	{
 		using TextureType = CoreVariantHandleType<Texture, IsRenderProxy>;
 
@@ -462,7 +462,7 @@ namespace b3d
 	};
 
 	/** Settings that control the depth-of-field effect. */
-	struct B3D_CORE_EXPORT B3D_SCRIPT_EXPORT() DepthOfFieldSettings : TDepthOfFieldSettings<false>, IReflectable, IScriptExportable
+	struct B3D_EXPORT B3D_SCRIPT_EXPORT() DepthOfFieldSettings : TDepthOfFieldSettings<false>, IReflectable, IScriptExportable
 	{
 		struct SyncPacket;
 
@@ -481,7 +481,7 @@ namespace b3d
 	namespace render
 	{
 		/** Render thread variant of DepthOfFieldSettings. */
-		struct B3D_CORE_EXPORT B3D_SCRIPT_EXPORT() DepthOfFieldSettings : TDepthOfFieldSettings<true>
+		struct B3D_EXPORT B3D_SCRIPT_EXPORT() DepthOfFieldSettings : TDepthOfFieldSettings<true>
 		{
 			DepthOfFieldSettings() = default;
 		};
@@ -535,7 +535,7 @@ namespace b3d
 	};
 
 	/** Settings that control the motion blur effect. */
-	struct B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Rendering)) MotionBlurSettings : IReflectable, IScriptExportable
+	struct B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Rendering)) MotionBlurSettings : IReflectable, IScriptExportable
 	{
 		struct SyncPacket;
 
@@ -580,7 +580,7 @@ namespace b3d
 	};
 
 	/** Settings that control temporal anti-aliasing. */
-	struct B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Rendering)) TemporalAASettings : IReflectable, IScriptExportable
+	struct B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Rendering)) TemporalAASettings : IReflectable, IScriptExportable
 	{
 		struct SyncPacket;
 
@@ -620,7 +620,7 @@ namespace b3d
 	 * for rougher (more glossy rather than mirror-like) surfaces. Those surfaces require a higher number of samples to
 	 * achieve the glossy look, so we instead fall back to refl. probes which are pre-filtered and can be quickly sampled.
 	 */
-	struct B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Rendering)) ScreenSpaceReflectionsSettings : IReflectable, IScriptExportable
+	struct B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Rendering)) ScreenSpaceReflectionsSettings : IReflectable, IScriptExportable
 	{
 		struct SyncPacket;
 
@@ -660,7 +660,7 @@ namespace b3d
 	};
 
 	/** Settings that control the bloom effect. Bloom adds an extra highlight to bright areas of the scene. */
-	struct B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Rendering)) BloomSettings : IReflectable, IScriptExportable
+	struct B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Rendering)) BloomSettings : IReflectable, IScriptExportable
 	{
 		struct SyncPacket;
 
@@ -714,7 +714,7 @@ namespace b3d
 	};
 
 	/** Settings that control the screen-space lens flare effect. */
-	struct B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Rendering)) ScreenSpaceLensFlareSettings : IReflectable, IScriptExportable
+	struct B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Rendering)) ScreenSpaceLensFlareSettings : IReflectable, IScriptExportable
 	{
 		struct SyncPacket;
 
@@ -836,7 +836,7 @@ namespace b3d
 	};
 
 	/** Base class used for both main and render thread variants of ChromaticAberrationSettings. */
-	struct B3D_CORE_EXPORT ChromaticAberrationSettingsBase
+	struct B3D_EXPORT ChromaticAberrationSettingsBase
 	{
 		ChromaticAberrationSettingsBase() = default;
 
@@ -861,7 +861,7 @@ namespace b3d
 
 	/** Template version of ChromaticAberrationSettings that can be specialized for either render or main thread. */
 	template <bool IsRenderProxy>
-	struct B3D_CORE_EXPORT TChromaticAberrationSettings : ChromaticAberrationSettingsBase
+	struct B3D_EXPORT TChromaticAberrationSettings : ChromaticAberrationSettingsBase
 	{
 		using TextureType = CoreVariantHandleType<Texture, IsRenderProxy>;
 
@@ -882,7 +882,7 @@ namespace b3d
 	};
 
 	/** Settings that control the chromatic aberration effect. */
-	struct B3D_CORE_EXPORT B3D_SCRIPT_EXPORT() ChromaticAberrationSettings : TChromaticAberrationSettings<false>, IReflectable, IScriptExportable
+	struct B3D_EXPORT B3D_SCRIPT_EXPORT() ChromaticAberrationSettings : TChromaticAberrationSettings<false>, IReflectable, IScriptExportable
 	{
 		struct SyncPacket;
 
@@ -901,14 +901,14 @@ namespace b3d
 	namespace render
 	{
 		/** Render thread variant of ChromaticAberrationSettings. */
-		struct B3D_CORE_EXPORT ChromaticAberrationSettings : TChromaticAberrationSettings<true>
+		struct B3D_EXPORT ChromaticAberrationSettings : TChromaticAberrationSettings<true>
 		{
 			ChromaticAberrationSettings() = default;
 		};
 	} // namespace render
 
 	/** Settings that control the film grain effect. Film grains adds a time-varying noise effect over the entire image. */
-	struct B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Rendering)) FilmGrainSettings : IReflectable, IScriptExportable
+	struct B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Rendering)) FilmGrainSettings : IReflectable, IScriptExportable
 	{
 		struct SyncPacket;
 
@@ -937,7 +937,7 @@ namespace b3d
 	};
 
 	/** Various options that control shadow rendering for a specific view. */
-	struct B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Rendering)) ShadowSettings : IReflectable, IScriptExportable
+	struct B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Rendering)) ShadowSettings : IReflectable, IScriptExportable
 	{
 		struct SyncPacket;
 
@@ -987,7 +987,7 @@ namespace b3d
 	};
 
 	/** Base class for both main and render thread variants of RenderSettings. */
-	struct B3D_CORE_EXPORT RenderSettingsBase
+	struct B3D_EXPORT RenderSettingsBase
 	{
 		RenderSettingsBase() = default;
 
@@ -1153,7 +1153,7 @@ namespace b3d
 
 	/** Template version of RenderSettings that can be specialized for either render or main thread. */
 	template <bool IsRenderProxy>
-	struct B3D_CORE_EXPORT TRenderSettings : RenderSettingsBase
+	struct B3D_EXPORT TRenderSettings : RenderSettingsBase
 	{
 		/** Parameters used for customizing the gaussian depth of field effect. */
 		B3D_SCRIPT_EXPORT()
@@ -1168,7 +1168,7 @@ namespace b3d
 	};
 
 	/** Settings that control rendering for a specific camera (view). */
-	struct B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Rendering)) RenderSettings : TRenderSettings<false>, IReflectable, IScriptExportable
+	struct B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Rendering)) RenderSettings : TRenderSettings<false>, IReflectable, IScriptExportable
 	{
 		struct SyncPacket;
 
@@ -1189,7 +1189,7 @@ namespace b3d
 	namespace render
 	{
 		/** Render thread variant of RenderSettings. */
-		struct B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Rendering)) RenderSettings : TRenderSettings<true>
+		struct B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Rendering)) RenderSettings : TRenderSettings<true>
 		{
 			RenderSettings() = default;
 			virtual ~RenderSettings() = default;

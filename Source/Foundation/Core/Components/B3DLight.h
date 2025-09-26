@@ -32,7 +32,7 @@ namespace b3d
 
 	/** Base class for both main and render thread Light implementations. */
 	template<bool IsRenderProxy>
-	class B3D_CORE_EXPORT TLight : public CoreVariantType<CoreObject, IsRenderProxy>
+	class B3D_EXPORT TLight : public CoreVariantType<CoreObject, IsRenderProxy>
 	{
 		using Super = CoreVariantType<CoreObject, IsRenderProxy>;
 	public:
@@ -230,7 +230,7 @@ namespace b3d
 	 *
 	 * @note	Wraps Light as a Component.
 	 */
-	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Rendering)) Light : public Component, public TLight<false>
+	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Rendering)) Light : public Component, public TLight<false>
 	{
 	public:
 		Light(const HSceneObject& parent);
@@ -277,7 +277,7 @@ namespace b3d
 	namespace render
 	{
 		/** Render thread counterpart of b3d::Light. */
-		class B3D_CORE_EXPORT Light : public TLight<true>
+		class B3D_EXPORT Light : public TLight<true>
 		{
 		public:
 			~Light();

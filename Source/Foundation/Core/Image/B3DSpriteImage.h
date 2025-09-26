@@ -80,7 +80,7 @@ namespace b3d
 	 * One sprite image may have one or multiple such allocations, resulting from different scale/size requirements.
 	 */
 	template<bool IsRenderProxy>
-	class B3D_CORE_EXPORT TSpriteImageAllocation
+	class B3D_EXPORT TSpriteImageAllocation
 	{
 	public:
 		using SpriteImageType = CoreVariantType<SpriteImage, IsRenderProxy>;
@@ -146,7 +146,7 @@ namespace b3d
 	};
 
 	/** Base class for both render and main thread counterparts of SpriteImage. */
-	class B3D_CORE_EXPORT SpriteImageBase
+	class B3D_EXPORT SpriteImageBase
 	{
 	public:
 		SpriteImageBase(const SpriteImageCreateInformation& createInformation)
@@ -199,7 +199,7 @@ namespace b3d
 
 	/** Templated base class for both render and main thread counterparts of SpriteImage. */
 	template<bool IsRenderProxy>
-	class B3D_CORE_EXPORT TSpriteImage : public SpriteImageBase
+	class B3D_EXPORT TSpriteImage : public SpriteImageBase
 	{
 	public:
 		using TextureType = CoreVariantHandleType<Texture, IsRenderProxy>;
@@ -242,7 +242,7 @@ namespace b3d
 	 *
 	 * Sprite images also allow you to specify sprite sheet animation by varying which portion of the UV is selected over time. 
 	 */
-	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Rendering)) SpriteImage : public Resource, public TSpriteImage<false>
+	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Rendering)) SpriteImage : public Resource, public TSpriteImage<false>
 	{
 	public:
 		struct SyncPacket;
@@ -334,7 +334,7 @@ namespace b3d
 		 *
 		 * @note	Render thread.
 		 */
-		class B3D_CORE_EXPORT SpriteImage : public RenderProxy, public TSpriteImage<true>
+		class B3D_EXPORT SpriteImage : public RenderProxy, public TSpriteImage<true>
 		{
 		protected:
 			friend class b3d::SpriteImage;

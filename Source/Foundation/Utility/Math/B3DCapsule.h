@@ -14,7 +14,7 @@ namespace b3d
 
 	/** Represents a capsule with a line segment and a radius. */
 	template<typename T>
-	struct B3D_UTILITY_EXPORT TCapsule
+	struct B3D_EXPORT TCapsule
 	{
 		TCapsule() = default;
 		TCapsule(const TLineSegment3<T>& segment, T radius);

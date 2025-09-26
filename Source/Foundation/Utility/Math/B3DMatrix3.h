@@ -16,7 +16,7 @@ namespace b3d
 	 * format.
 	 */
 	template<typename T>
-	struct B3D_UTILITY_EXPORT TMatrix3
+	struct B3D_EXPORT TMatrix3
 	{
 	private:
 		struct EulerAngleOrderData

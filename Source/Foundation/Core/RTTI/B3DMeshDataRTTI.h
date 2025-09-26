@@ -18,7 +18,7 @@ namespace b3d
 
 	B3D_ALLOW_MEMCPY_SERIALIZATION(IndexType, TID_IndexType);
 
-	class B3D_CORE_EXPORT MeshDataRTTI : public TRTTIType<MeshData, GpuResourceData, MeshDataRTTI>
+	class B3D_EXPORT MeshDataRTTI : public TRTTIType<MeshData, GpuResourceData, MeshDataRTTI>
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS

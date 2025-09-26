@@ -9,7 +9,7 @@ using namespace b3d;
 
 template<>
 template<>
-B3D_UTILITY_EXPORT void TArea2<i32, u32>::Transform(const Matrix4& matrix)
+B3D_EXPORT void TArea2<i32, u32>::Transform(const Matrix4& matrix)
 {
 	Vector4 verts[4];
 	verts[0] = Vector4((float)X, (float)Y, 0.0f, 1.0f);
@@ -46,14 +46,14 @@ B3D_UTILITY_EXPORT void TArea2<i32, u32>::Transform(const Matrix4& matrix)
 	Height = (u32)Math::CeilToInt(maxY) - Y;
 }
 
-template B3D_UTILITY_EXPORT void TArea2<i32>::AddUnique(const TArea2&, Vector<TArea2>&);
-template B3D_UTILITY_EXPORT void TArea2<i32, u32>::AddUnique(const TArea2&, Vector<TArea2>&);
-template B3D_UTILITY_EXPORT void TArea2<float>::AddUnique(const TArea2&, Vector<TArea2>&);
+template B3D_EXPORT void TArea2<i32>::AddUnique(const TArea2&, Vector<TArea2>&);
+template B3D_EXPORT void TArea2<i32, u32>::AddUnique(const TArea2&, Vector<TArea2>&);
+template B3D_EXPORT void TArea2<float>::AddUnique(const TArea2&, Vector<TArea2>&);
 
-template B3D_UTILITY_EXPORT void TArea2<i32>::AddUnique(const TArea2&, FrameVector<TArea2>&);
-template B3D_UTILITY_EXPORT void TArea2<i32, u32>::AddUnique(const TArea2&, FrameVector<TArea2>&);
-template B3D_UTILITY_EXPORT void TArea2<float>::AddUnique(const TArea2&, FrameVector<TArea2>&);
+template B3D_EXPORT void TArea2<i32>::AddUnique(const TArea2&, FrameVector<TArea2>&);
+template B3D_EXPORT void TArea2<i32, u32>::AddUnique(const TArea2&, FrameVector<TArea2>&);
+template B3D_EXPORT void TArea2<float>::AddUnique(const TArea2&, FrameVector<TArea2>&);
 
-template struct B3D_UTILITY_EXPORT TArea2<i32>;
-template struct B3D_UTILITY_EXPORT TArea2<i32, u32>;
-template struct B3D_UTILITY_EXPORT TArea2<float>;
+template struct B3D_EXPORT TArea2<i32>;
+template struct B3D_EXPORT TArea2<i32, u32>;
+template struct B3D_EXPORT TArea2<float>;

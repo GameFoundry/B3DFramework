@@ -56,7 +56,7 @@ namespace b3d
 	 * Material that controls how objects are rendered. It is represented by a shader and parameters used to set up that
 	 * shader. It provides a simple interface for manipulating the parameters.
 	 */
-	class B3D_CORE_EXPORT MaterialBase
+	class B3D_EXPORT MaterialBase
 	{
 	public:
 		/** Data used to describe a structure defined within a shader. */
@@ -105,7 +105,7 @@ namespace b3d
 
 	/** @copydoc MaterialBase */
 	template <bool IsRenderProxy>
-	class B3D_CORE_EXPORT TMaterial : public MaterialBase
+	class B3D_EXPORT TMaterial : public MaterialBase
 	{
 	public:
 		using TextureType = CoreVariantHandleType<Texture, IsRenderProxy>;
@@ -726,7 +726,7 @@ namespace b3d
 	 */
 
 	/** @copydoc MaterialBase */
-	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Rendering)) Material : public Resource, public TMaterial<false>, public IResourceListener
+	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Rendering)) Material : public Resource, public TMaterial<false>, public IResourceListener
 	{
 	public:
 		~Material() = default;
@@ -829,7 +829,7 @@ namespace b3d
 		 */
 
 		/** @copydoc MaterialBase */
-		class B3D_CORE_EXPORT Material : public RenderProxy, public TMaterial<true>
+		class B3D_EXPORT Material : public RenderProxy, public TMaterial<true>
 		{
 		public:
 			~Material() = default;

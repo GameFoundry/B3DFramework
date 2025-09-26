@@ -252,7 +252,7 @@ namespace b3d
 	};
 
 	/** Contains functionality common for both main and render thread versions of GpuParameters. */
-	class B3D_CORE_EXPORT GpuParamsBase
+	class B3D_EXPORT GpuParamsBase
 	{
 	public:
 		virtual ~GpuParamsBase() = default;
@@ -297,7 +297,7 @@ namespace b3d
 
 	/** Templated version of GpuParameters that contains functionality for both main and render thread versions of stored data. */
 	template <bool IsRenderProxy>
-	class B3D_CORE_EXPORT TGpuParams : public GpuParamsBase
+	class B3D_EXPORT TGpuParams : public GpuParamsBase
 	{
 	public:
 		using GpuParamsType = CoreVariantType<GpuParameters, IsRenderProxy>;
@@ -527,7 +527,7 @@ namespace b3d
 	 *
 	 * @note	Main thread only.
 	 */
-	class B3D_CORE_EXPORT GpuParameters : public CoreObject, public TGpuParams<false>, public IResourceListener
+	class B3D_EXPORT GpuParameters : public CoreObject, public TGpuParams<false>, public IResourceListener
 	{
 	public:
 		~GpuParameters() {}
@@ -589,7 +589,7 @@ namespace b3d
 		 *
 		 * @note	Render thread only.
 		 */
-		class B3D_CORE_EXPORT GpuParameters : public RenderProxy, public TGpuParams<true>
+		class B3D_EXPORT GpuParameters : public RenderProxy, public TGpuParams<true>
 		{
 		public:
 			virtual ~GpuParameters() = default;

@@ -62,40 +62,40 @@ namespace b3d
 	using SmallString = std::basic_string<char, std::char_traits<char>, StdAlloc<char>>; // TODO: Currently equivalent to String, need to implement the allocator
 
 	/** Converts a narrow string to a wide string. */
-	B3D_UTILITY_EXPORT WString ToWString(const String& source);
+	B3D_EXPORT WString ToWString(const String& source);
 
 	/**	Converts a narrow string to a wide string. */
-	B3D_UTILITY_EXPORT WString ToWString(const char* source);
+	B3D_EXPORT WString ToWString(const char* source);
 
 	/** Converts a float to a string. */
-	B3D_UTILITY_EXPORT WString ToWString(float val, unsigned short precision = 6, unsigned short width = 0, char fill = ' ', std::ios::fmtflags flags = std::ios::fmtflags(0));
+	B3D_EXPORT WString ToWString(float val, unsigned short precision = 6, unsigned short width = 0, char fill = ' ', std::ios::fmtflags flags = std::ios::fmtflags(0));
 
 	/** Converts a double to a string. */
-	B3D_UTILITY_EXPORT WString ToWString(double val, unsigned short precision = 6, unsigned short width = 0, char fill = ' ', std::ios::fmtflags flags = std::ios::fmtflags(0));
+	B3D_EXPORT WString ToWString(double val, unsigned short precision = 6, unsigned short width = 0, char fill = ' ', std::ios::fmtflags flags = std::ios::fmtflags(0));
 
 	/** Converts a Radian to a string. */
-	B3D_UTILITY_EXPORT WString ToWString(const Radian& val, unsigned short precision = 6, unsigned short width = 0, char fill = ' ', std::ios::fmtflags flags = std::ios::fmtflags(0));
+	B3D_EXPORT WString ToWString(const Radian& val, unsigned short precision = 6, unsigned short width = 0, char fill = ' ', std::ios::fmtflags flags = std::ios::fmtflags(0));
 
 	/** Converts a Degree to a string. */
-	B3D_UTILITY_EXPORT WString ToWString(const Degree& val, unsigned short precision = 6, unsigned short width = 0, char fill = ' ', std::ios::fmtflags flags = std::ios::fmtflags(0));
+	B3D_EXPORT WString ToWString(const Degree& val, unsigned short precision = 6, unsigned short width = 0, char fill = ' ', std::ios::fmtflags flags = std::ios::fmtflags(0));
 
 	/**	Converts an int to a string. */
-	B3D_UTILITY_EXPORT WString ToWString(int val, unsigned short width = 0, char fill = ' ', std::ios::fmtflags flags = std::ios::fmtflags(0));
+	B3D_EXPORT WString ToWString(int val, unsigned short width = 0, char fill = ' ', std::ios::fmtflags flags = std::ios::fmtflags(0));
 
 	/**	Converts an unsigned int to a string. */
-	B3D_UTILITY_EXPORT WString ToWString(unsigned int val, unsigned short width = 0, char fill = ' ', std::ios::fmtflags flags = std::ios::fmtflags(0));
+	B3D_EXPORT WString ToWString(unsigned int val, unsigned short width = 0, char fill = ' ', std::ios::fmtflags flags = std::ios::fmtflags(0));
 
 	/**	Converts an 64bit integer to a string. */
-	B3D_UTILITY_EXPORT WString ToWString(i64 val, unsigned short width = 0, char fill = ' ', std::ios::fmtflags flags = std::ios::fmtflags(0));
+	B3D_EXPORT WString ToWString(i64 val, unsigned short width = 0, char fill = ' ', std::ios::fmtflags flags = std::ios::fmtflags(0));
 
 	/**	Converts an 64bit unsigned to a string. */
-	B3D_UTILITY_EXPORT WString ToWString(u64 val, unsigned short width = 0, char fill = ' ', std::ios::fmtflags flags = std::ios::fmtflags(0));
+	B3D_EXPORT WString ToWString(u64 val, unsigned short width = 0, char fill = ' ', std::ios::fmtflags flags = std::ios::fmtflags(0));
 
 	/**	Converts an narrow char unsigned to a string. */
-	B3D_UTILITY_EXPORT WString ToWString(char val, unsigned short width = 0, char fill = ' ', std::ios::fmtflags flags = std::ios::fmtflags(0));
+	B3D_EXPORT WString ToWString(char val, unsigned short width = 0, char fill = ' ', std::ios::fmtflags flags = std::ios::fmtflags(0));
 
 	/**	Converts an wide bit char unsigned to a string. */
-	B3D_UTILITY_EXPORT WString ToWString(wchar_t val, unsigned short width = 0, char fill = ' ', std::ios::fmtflags flags = std::ios::fmtflags(0));
+	B3D_EXPORT WString ToWString(wchar_t val, unsigned short width = 0, char fill = ' ', std::ios::fmtflags flags = std::ios::fmtflags(0));
 
 	/**
 	 * Converts a boolean to a string.
@@ -103,96 +103,96 @@ namespace b3d
 	 * @param[in]	val  	Value to convert.
 	 * @param[in]	yesNo	(optional) If set to true, result is "yes" or "no" instead of "true" or "false".
 	 */
-	B3D_UTILITY_EXPORT WString ToWString(bool val, bool yesNo = false);
+	B3D_EXPORT WString ToWString(bool val, bool yesNo = false);
 
 	/**
 	 * Converts a 2 dimensional vector to a string.
 	 *
 	 * @note	Format is "x y".
 	 */
-	B3D_UTILITY_EXPORT WString ToWString(const Vector2& val);
+	B3D_EXPORT WString ToWString(const Vector2& val);
 
 	/**
 	 * Converts a 2 dimensional integer vector to a string.
 	 *
 	 * @note	Format is "x y".
 	 */
-	B3D_UTILITY_EXPORT WString ToWString(const Vector2I& val);
+	B3D_EXPORT WString ToWString(const Vector2I& val);
 
 	/**
 	 * Converts a 3 dimensional vector to a string.
 	 *
 	 * @note	Format is "x y z".
 	 */
-	B3D_UTILITY_EXPORT WString ToWString(const Vector3& val);
+	B3D_EXPORT WString ToWString(const Vector3& val);
 
 	/**
 	 * Converts a 4 dimensional vector to a string.
 	 *
 	 * @note	Format is "x y z w".
 	 */
-	B3D_UTILITY_EXPORT WString ToWString(const Vector4& val);
+	B3D_EXPORT WString ToWString(const Vector4& val);
 
 	/**
 	 * Converts a 3x3 matrix to a string.
 	 *
 	 * @note	Format is "00 01 02 10 11 12 20 21 22".
 	 */
-	B3D_UTILITY_EXPORT WString ToWString(const Matrix3& val);
+	B3D_EXPORT WString ToWString(const Matrix3& val);
 
 	/**
 	 * Converts a 4x4 matrix to a string.
 	 *
 	 * @note	Format is "00 01 02 03 10 11 12 13 20 21 22 23 30 31 32 33".
 	 */
-	B3D_UTILITY_EXPORT WString ToWString(const Matrix4& val);
+	B3D_EXPORT WString ToWString(const Matrix4& val);
 
 	/**
 	 * Converts a Quaternion to a string.
 	 *
 	 * @note	Format is "w x y z".
 	 */
-	B3D_UTILITY_EXPORT WString ToWString(const Quaternion& val);
+	B3D_EXPORT WString ToWString(const Quaternion& val);
 
 	/**
 	 * Converts a color to a string.
 	 *
 	 * @note	Format is "r g b a".
 	 */
-	B3D_UTILITY_EXPORT WString ToWString(const Color& val);
+	B3D_EXPORT WString ToWString(const Color& val);
 
 	/** Converts a vector of strings into a single string where the substrings are delimited by spaces. */
-	B3D_UTILITY_EXPORT WString ToWString(const Vector<b3d::WString>& val);
+	B3D_EXPORT WString ToWString(const Vector<b3d::WString>& val);
 
 	/** Converts a wide string to a narrow string. */
-	B3D_UTILITY_EXPORT String ToString(const WString& source);
+	B3D_EXPORT String ToString(const WString& source);
 
 	/**	Converts a wide string to a narrow string. */
-	B3D_UTILITY_EXPORT String ToString(const wchar_t* source);
+	B3D_EXPORT String ToString(const wchar_t* source);
 
 	/**	Converts a float to a string. */
-	B3D_UTILITY_EXPORT String ToString(float val, unsigned short precision = 6, unsigned short width = 0, char fill = ' ', std::ios::fmtflags flags = std::ios::fmtflags(0));
+	B3D_EXPORT String ToString(float val, unsigned short precision = 6, unsigned short width = 0, char fill = ' ', std::ios::fmtflags flags = std::ios::fmtflags(0));
 
 	/**	Converts a double to a string. */
-	B3D_UTILITY_EXPORT String ToString(double val, unsigned short precision = 6, unsigned short width = 0, char fill = ' ', std::ios::fmtflags flags = std::ios::fmtflags(0));
+	B3D_EXPORT String ToString(double val, unsigned short precision = 6, unsigned short width = 0, char fill = ' ', std::ios::fmtflags flags = std::ios::fmtflags(0));
 
 	/**	Converts a Radian to a string. */
-	B3D_UTILITY_EXPORT String ToString(const Radian& val, unsigned short precision = 6, unsigned short width = 0, char fill = ' ', std::ios::fmtflags flags = std::ios::fmtflags(0));
+	B3D_EXPORT String ToString(const Radian& val, unsigned short precision = 6, unsigned short width = 0, char fill = ' ', std::ios::fmtflags flags = std::ios::fmtflags(0));
 
 	/**	Converts a Degree to a string. */
-	B3D_UTILITY_EXPORT String ToString(const Degree& val, unsigned short precision = 6, unsigned short width = 0, char fill = ' ', std::ios::fmtflags flags = std::ios::fmtflags(0));
+	B3D_EXPORT String ToString(const Degree& val, unsigned short precision = 6, unsigned short width = 0, char fill = ' ', std::ios::fmtflags flags = std::ios::fmtflags(0));
 
 	/**	Converts an int to a string. */
-	B3D_UTILITY_EXPORT String ToString(int val, unsigned short width = 0, char fill = ' ', std::ios::fmtflags flags = std::ios::fmtflags(0));
+	B3D_EXPORT String ToString(int val, unsigned short width = 0, char fill = ' ', std::ios::fmtflags flags = std::ios::fmtflags(0));
 
 	/**	Converts an unsigned int to a string. */
-	B3D_UTILITY_EXPORT String ToString(unsigned int val, unsigned short width = 0, char fill = ' ', std::ios::fmtflags flags = std::ios::fmtflags(0));
+	B3D_EXPORT String ToString(unsigned int val, unsigned short width = 0, char fill = ' ', std::ios::fmtflags flags = std::ios::fmtflags(0));
 
 	/**	Converts a 64bit int to a string. */
-	B3D_UTILITY_EXPORT String ToString(i64 val, unsigned short width = 0, char fill = ' ', std::ios::fmtflags flags = std::ios::fmtflags(0));
+	B3D_EXPORT String ToString(i64 val, unsigned short width = 0, char fill = ' ', std::ios::fmtflags flags = std::ios::fmtflags(0));
 
 	/**	Converts an 64bit unsigned int to a string. */
-	B3D_UTILITY_EXPORT String ToString(u64 val, unsigned short width = 0, char fill = ' ', std::ios::fmtflags flags = std::ios::fmtflags(0));
+	B3D_EXPORT String ToString(u64 val, unsigned short width = 0, char fill = ' ', std::ios::fmtflags flags = std::ios::fmtflags(0));
 
 	/**
 	 * Converts a boolean to a string.
@@ -200,72 +200,72 @@ namespace b3d
 	 * @param[in]	val  	true to value.
 	 * @param[in]	yesNo	(optional) If set to true, result is "yes" or "no" instead of "true" or "false".
 	 */
-	B3D_UTILITY_EXPORT String ToString(bool val, bool yesNo = false);
+	B3D_EXPORT String ToString(bool val, bool yesNo = false);
 
 	/**
 	 * Converts a 2 dimensional vector to a string.
 	 *
 	 * @note	Format is "x y".
 	 */
-	B3D_UTILITY_EXPORT String ToString(const Vector2& val);
+	B3D_EXPORT String ToString(const Vector2& val);
 
 	/**
 	 * Converts a 2 dimensional integer vector to a string.
 	 *
 	 * @note	Format is "x y".
 	 */
-	B3D_UTILITY_EXPORT String ToString(const Vector2I& val);
+	B3D_EXPORT String ToString(const Vector2I& val);
 
 	/**
 	 * Converts a 3 dimensional vector to a string.
 	 *
 	 * @note	Format is "x y z".
 	 */
-	B3D_UTILITY_EXPORT String ToString(const Vector3& val);
+	B3D_EXPORT String ToString(const Vector3& val);
 
 	/**
 	 * Converts a 4 dimensional vector to a string.
 	 *
 	 * @note	Format is "x y z w".
 	 */
-	B3D_UTILITY_EXPORT String ToString(const Vector4& val);
+	B3D_EXPORT String ToString(const Vector4& val);
 
 	/**
 	 * Converts a 3x3 matrix to a string.
 	 *
 	 * @note	Format is "00 01 02 10 11 12 20 21 22".
 	 */
-	B3D_UTILITY_EXPORT String ToString(const Matrix3& val);
+	B3D_EXPORT String ToString(const Matrix3& val);
 
 	/**
 	 * Converts a 4x4 matrix to a string.
 	 *
 	 * @note	Format is "00 01 02 03 10 11 12 13 20 21 22 23 30 31 32 33".
 	 */
-	B3D_UTILITY_EXPORT String ToString(const Matrix4& val);
+	B3D_EXPORT String ToString(const Matrix4& val);
 
 	/**
 	 * Converts a Quaternion to a string.
 	 *
 	 * @note	Format is "w x y z".
 	 */
-	B3D_UTILITY_EXPORT String ToString(const Quaternion& val);
+	B3D_EXPORT String ToString(const Quaternion& val);
 
 	/**
 	 * Converts a color to a string.
 	 *
 	 * @note	Format is "r g b a".
 	 */
-	B3D_UTILITY_EXPORT String ToString(const Color& val);
+	B3D_EXPORT String ToString(const Color& val);
 
 	/** Converts an UUID to a string. */
-	B3D_UTILITY_EXPORT String ToString(const UUID& val);
+	B3D_EXPORT String ToString(const UUID& val);
 
 	/** Converts a path to a string. */
-	B3D_UTILITY_EXPORT String ToString(const Path& val);
+	B3D_EXPORT String ToString(const Path& val);
 
 	/** Converts a log verbosity to a string. */
-	B3D_UTILITY_EXPORT String ToString(const LogVerbosity& val);
+	B3D_EXPORT String ToString(const LogVerbosity& val);
 
 	/**
 	 *  Converts the std::time_t structure containing time data to the string.
@@ -289,47 +289,47 @@ namespace b3d
 	 *			- Full: [DayOfWeek], [Month] [NumericalDate], [NumericalYear] [HH]::[MM]::[SS]
 	 *  By default will output the local hour in custom format.
 	 */
-	B3D_UTILITY_EXPORT String ToString(std::time_t time, bool isUTC = false, bool useISO8601 = false, TimeToStringConversionType type = TimeToStringConversionType::Time);
+	B3D_EXPORT String ToString(std::time_t time, bool isUTC = false, bool useISO8601 = false, TimeToStringConversionType type = TimeToStringConversionType::Time);
 
 	/**
 	 * Converts a vector of strings into a single string where the substrings are delimited by spaces.
 	 */
-	B3D_UTILITY_EXPORT String ToString(const Vector<b3d::String>& val);
+	B3D_EXPORT String ToString(const Vector<b3d::String>& val);
 
 	/**
 	 * Converts a String to a float.
 	 *
 	 * @note	0.0f if the value could not be parsed, otherwise the numeric version of the string.
 	 */
-	B3D_UTILITY_EXPORT float ParseFloat(const String& val, float defaultValue = 0);
+	B3D_EXPORT float ParseFloat(const String& val, float defaultValue = 0);
 
 	/**
 	 * Converts a String to a whole number.
 	 *
 	 * @note	0 if the value could not be parsed, otherwise the numeric version of the string.
 	 */
-	B3D_UTILITY_EXPORT i32 Parsei32(const String& val, i32 defaultValue = 0);
+	B3D_EXPORT i32 Parsei32(const String& val, i32 defaultValue = 0);
 
 	/**
 	 * Converts a String to a whole number.
 	 *
 	 * @note	0 if the value could not be parsed, otherwise the numeric version of the string.
 	 */
-	B3D_UTILITY_EXPORT u32 Parseu32(const String& val, u32 defaultValue = 0);
+	B3D_EXPORT u32 Parseu32(const String& val, u32 defaultValue = 0);
 
 	/**
 	 * Converts a String to a whole number.
 	 *
 	 * @note	0 if the value could not be parsed, otherwise the numeric version of the string.
 	 */
-	B3D_UTILITY_EXPORT i64 Parsei64(const String& val, i64 defaultValue = 0);
+	B3D_EXPORT i64 Parsei64(const String& val, i64 defaultValue = 0);
 
 	/**
 	 * Converts a String to a whole number.
 	 *
 	 * @note	0 if the value could not be parsed, otherwise the numeric version of the string.
 	 */
-	B3D_UTILITY_EXPORT u64 Parseu64(const String& val, u64 defaultValue = 0);
+	B3D_EXPORT u64 Parseu64(const String& val, u64 defaultValue = 0);
 
 	/**
 	 * Converts a String to a boolean.
@@ -337,45 +337,45 @@ namespace b3d
 	 * @note	Returns true if case-insensitive match of the start of the string matches "true", "yes" or "1",
 	 *			false otherwise.
 	 */
-	B3D_UTILITY_EXPORT bool ParseBool(const String& val, bool defaultValue = 0);
+	B3D_EXPORT bool ParseBool(const String& val, bool defaultValue = 0);
 
 	/** Checks the String is a valid number value. */
-	B3D_UTILITY_EXPORT bool IsNumber(const String& val);
+	B3D_EXPORT bool IsNumber(const String& val);
 
 	/**
 	 * Converts a WString to a float.
 	 *
 	 * @note	0.0f if the value could not be parsed, otherwise the numeric version of the string.
 	 */
-	B3D_UTILITY_EXPORT float ParseFloat(const WString& val, float defaultValue = 0);
+	B3D_EXPORT float ParseFloat(const WString& val, float defaultValue = 0);
 
 	/**
 	 * Converts a WString to a whole number.
 	 *
 	 * @note	0 if the value could not be parsed, otherwise the numeric version of the string.
 	 */
-	B3D_UTILITY_EXPORT i32 Parsei32(const WString& val, i32 defaultValue = 0);
+	B3D_EXPORT i32 Parsei32(const WString& val, i32 defaultValue = 0);
 
 	/**
 	 * Converts a WString to a whole number.
 	 *
 	 * @note	0 if the value could not be parsed, otherwise the numeric version of the string.
 	 */
-	B3D_UTILITY_EXPORT u32 Parseu32(const WString& val, u32 defaultValue = 0);
+	B3D_EXPORT u32 Parseu32(const WString& val, u32 defaultValue = 0);
 
 	/**
 	 * Converts a WString to a whole number.
 	 *
 	 * @note	0 if the value could not be parsed, otherwise the numeric version of the string.
 	 */
-	B3D_UTILITY_EXPORT i64 Parsei64(const WString& val, i64 defaultValue = 0);
+	B3D_EXPORT i64 Parsei64(const WString& val, i64 defaultValue = 0);
 
 	/**
 	 * Converts a WString to a whole number.
 	 *
 	 * @note	0 if the value could not be parsed, otherwise the numeric version of the string.
 	 */
-	B3D_UTILITY_EXPORT u64 Parseu64(const WString& val, u64 defaultValue = 0);
+	B3D_EXPORT u64 Parseu64(const WString& val, u64 defaultValue = 0);
 
 	/**
 	 * Converts a WString to a boolean.
@@ -383,12 +383,12 @@ namespace b3d
 	 * @note	Returns true if case-insensitive match of the start of the string
 	 *			matches "true", "yes" or "1", false otherwise.
 	 */
-	B3D_UTILITY_EXPORT bool ParseBool(const WString& val, bool defaultValue = 0);
+	B3D_EXPORT bool ParseBool(const WString& val, bool defaultValue = 0);
 
 	/**
 	 * Checks the WString is a valid number value.
 	 */
-	B3D_UTILITY_EXPORT bool IsNumber(const WString& val);
+	B3D_EXPORT bool IsNumber(const WString& val);
 
 	/** @} */
 } // namespace b3d
@@ -402,7 +402,7 @@ namespace b3d
 	 */
 
 	/** Utility class for manipulating Strings. */
-	class B3D_UTILITY_EXPORT StringUtil
+	class B3D_EXPORT StringUtil
 	{
 	public:
 		/** Removes any whitespace characters from beginning or end of the string. */
@@ -831,7 +831,7 @@ namespace b3d
 	 */
 
 	/** Helper method that throws an exception regarding a data overflow. */
-	void B3D_UTILITY_EXPORT StringThrowDataOverflowException();
+	void B3D_EXPORT StringThrowDataOverflowException();
 
 	/** @} */
 	/** @} */

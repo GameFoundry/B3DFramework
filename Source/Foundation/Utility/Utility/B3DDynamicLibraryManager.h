@@ -17,7 +17,7 @@ namespace b3d
 	 *
 	 * @note	Not thread safe.
 	 */
-	class B3D_UTILITY_EXPORT DynamicLibraryManager : public Module<DynamicLibraryManager>
+	class B3D_EXPORT DynamicLibraryManager : public Module<DynamicLibraryManager>
 	{
 	public:
 		/**
@@ -35,7 +35,7 @@ namespace b3d
 	};
 
 	/** Easy way of accessing DynLibManager. */
-	B3D_UTILITY_EXPORT DynamicLibraryManager& GetDynamicLibraryManager();
+	B3D_EXPORT DynamicLibraryManager& GetDynamicLibraryManager();
 
 	/** @} */
 } // namespace b3d

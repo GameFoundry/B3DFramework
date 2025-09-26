@@ -22,7 +22,7 @@ namespace b3d
 	 *  @{
 	 */
 
-	class B3D_CORE_EXPORT MaterialParamTextureDataRTTI : public TRTTIType<MaterialParamTextureData, IReflectable, MaterialParamTextureDataRTTI>
+	class B3D_EXPORT MaterialParamTextureDataRTTI : public TRTTIType<MaterialParamTextureData, IReflectable, MaterialParamTextureDataRTTI>
 	{
 	public:
 		B3D_RTTI_BEGIN_MEMBERS
@@ -49,7 +49,7 @@ namespace b3d
 		}
 	};
 
-	class B3D_CORE_EXPORT MaterialParamBufferDataRTTI : public TRTTIType<MaterialParamBufferData, IReflectable, MaterialParamBufferDataRTTI>
+	class B3D_EXPORT MaterialParamBufferDataRTTI : public TRTTIType<MaterialParamBufferData, IReflectable, MaterialParamBufferDataRTTI>
 	{
 	public:
 		const String& GetRttiName() override
@@ -69,7 +69,7 @@ namespace b3d
 		}
 	};
 
-	class B3D_CORE_EXPORT MaterialParamSamplerStateDataRTTI : public TRTTIType<MaterialParamSamplerStateData, IReflectable, MaterialParamSamplerStateDataRTTI>
+	class B3D_EXPORT MaterialParamSamplerStateDataRTTI : public TRTTIType<MaterialParamSamplerStateData, IReflectable, MaterialParamSamplerStateDataRTTI>
 	{
 	public:
 		B3D_RTTI_BEGIN_MEMBERS
@@ -93,7 +93,7 @@ namespace b3d
 		}
 	};
 
-	class B3D_CORE_EXPORT MaterialParamsRTTI : public TRTTIType<MaterialParams, IReflectable, MaterialParamsRTTI>
+	class B3D_EXPORT MaterialParamsRTTI : public TRTTIType<MaterialParams, IReflectable, MaterialParamsRTTI>
 	{
 	public:
 		B3D_RTTI_BEGIN_MEMBERS

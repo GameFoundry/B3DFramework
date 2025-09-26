@@ -12,7 +12,7 @@ namespace b3d
 	 */
 
 	/**	Raw text resource that serves as an include file for shaders. */
-	class B3D_CORE_EXPORT ShaderInclude : public Resource
+	class B3D_EXPORT ShaderInclude : public Resource
 	{
 	public:
 		/**	Text of the include file. */

@@ -16,7 +16,7 @@ namespace b3d
 	 *  @{
 	 */
 
-	class B3D_CORE_EXPORT StrongResourceHandleRTTI : public TRTTIType<StrongResourceHandle, IReflectable, StrongResourceHandleRTTI>
+	class B3D_EXPORT StrongResourceHandleRTTI : public TRTTIType<StrongResourceHandle, IReflectable, StrongResourceHandleRTTI>
 	{
 		UUID mId;
 
@@ -65,7 +65,7 @@ namespace b3d
 		}
 	};
 
-	class B3D_CORE_EXPORT WeakResourceHandleRTTI : public TRTTIType<WeakResourceHandle, IReflectable, WeakResourceHandleRTTI>
+	class B3D_EXPORT WeakResourceHandleRTTI : public TRTTIType<WeakResourceHandle, IReflectable, WeakResourceHandleRTTI>
 	{
 		UUID mId;
 

@@ -21,7 +21,7 @@ namespace b3d
 	 */
 
 	/** Various Win32 specific functionality. Contains the main message loop. */
-	class B3D_CORE_EXPORT Win32Platform : public Platform
+	class B3D_EXPORT Win32Platform : public Platform
 	{
 	public:
 		/** Called when a new DropTarget gets created. */

@@ -17,7 +17,7 @@ namespace b3d
 	 */
 
 	/** Render window implementation for Windows using Win32 API. */
-	class B3D_CORE_EXPORT Win32RenderWindow : public RenderWindow
+	class B3D_EXPORT Win32RenderWindow : public RenderWindow
 	{
 		using Super = RenderWindow;
 	public:
@@ -58,7 +58,7 @@ namespace b3d
 	namespace render
 	{
 		/** Render thread proxy for b3d::Win32RenderWindow. */
-		class B3D_CORE_EXPORT Win32RenderWindow : public RenderWindow
+		class B3D_EXPORT Win32RenderWindow : public RenderWindow
 		{
 			using Super = RenderWindow;
 		public:

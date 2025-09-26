@@ -17,7 +17,7 @@ namespace b3d
 	 *
 	 * @note	No renderer is active by default. You must make a renderer active before doing any rendering.
 	 */
-	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Rendering)) RendererManager : public Module<RendererManager>
+	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Rendering)) RendererManager : public Module<RendererManager>
 	{
 	public:
 		~RendererManager();

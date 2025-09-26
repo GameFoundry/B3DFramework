@@ -15,7 +15,7 @@ namespace b3d
 	 *  @{
 	 */
 
-	class B3D_CORE_EXPORT SkeletonRTTI : public TRTTIType<Skeleton, IReflectable, SkeletonRTTI>
+	class B3D_EXPORT SkeletonRTTI : public TRTTIType<Skeleton, IReflectable, SkeletonRTTI>
 	{
 		B3D_RTTI_BEGIN_MEMBERS
 			B3D_RTTI_MEMBER(mNumBones, 0)

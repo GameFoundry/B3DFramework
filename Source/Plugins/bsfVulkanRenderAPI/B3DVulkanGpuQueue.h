@@ -132,7 +132,7 @@ namespace b3d
 			VkSubmitInfo RegisterSubmissionAndGenerateSubmitInfo(const TArrayView<SPtr<VulkanGpuCommandBuffer>>& commandBuffers, const TArrayView<VulkanSemaphore*>& waitSemaphores);
 
 			VkQueue mQueue;
-			VkPipelineStageFlags mSubmitDstWaitMask[BS_MAX_UNIQUE_QUEUES];
+			VkPipelineStageFlags mSubmitDstWaitMask[B3D_MAX_UNIQUE_QUEUES];
 
 			Queue<QueueSubmissionEntryInformation> mActiveCommandBuffers;
 			Queue<VulkanSemaphore*> mActiveSemaphores;

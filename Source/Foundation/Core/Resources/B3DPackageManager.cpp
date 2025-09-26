@@ -585,7 +585,7 @@ void PackageManager::ClearPackageResourceInformation(Package& package, const Pat
 
 namespace b3d
 {
-B3D_CORE_EXPORT PackageManager& GetPackageManager()
+B3D_EXPORT PackageManager& GetPackageManager()
 {
 	return PackageManager::Instance();
 }

@@ -14,7 +14,7 @@ namespace b3d
 	 *  @{
 	 */
 
-	class B3D_CORE_EXPORT SliderJointRTTI : public TRTTIType<SliderJoint, Joint, SliderJointRTTI>
+	class B3D_EXPORT SliderJointRTTI : public TRTTIType<SliderJoint, Joint, SliderJointRTTI>
 	{
 		B3D_RTTI_BEGIN_MEMBERS
 			B3D_RTTI_MEMBER_NAMED(mFlag, mInformation.Flags, 0)

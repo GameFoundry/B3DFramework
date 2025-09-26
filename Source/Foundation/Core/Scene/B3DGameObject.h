@@ -71,7 +71,7 @@ namespace b3d
 	 * Type of object that can be referenced by a GameObject handle. Each object has an unique ID and is registered with
 	 * the GameObjectManager.
 	 */
-	class B3D_CORE_EXPORT GameObject : public IReflectable, public IScriptExportable
+	class B3D_EXPORT GameObject : public IReflectable, public IScriptExportable
 	{
 	public:
 		GameObject() = default;

@@ -40,7 +40,7 @@ namespace b3d
 	};
 
 	/** Contains one or multiple logical CPU cores that a thread can run on. */
-	class B3D_UTILITY_EXPORT ThreadCoreMask
+	class B3D_EXPORT ThreadCoreMask
 	{
 	public:
 		/** True if thread affinity is supported on the current platform. */
@@ -85,7 +85,7 @@ namespace b3d
 	};
 
 	/** Assigns thread affinities to threads according to a particular policy. */
-	class B3D_UTILITY_EXPORT ThreadAffinityPolicy
+	class B3D_EXPORT ThreadAffinityPolicy
 	{
 	public:
 		virtual ~ThreadAffinityPolicy() = default;
@@ -105,7 +105,7 @@ namespace b3d
 	 * provided to the policy. On Windows returned affinity will return only cores from the
 	 * same group, and the groups are give out depending on the provided thread index.
 	 */
-	class B3D_UTILITY_EXPORT AnyOfThreadAffinityPolicy : public ThreadAffinityPolicy
+	class B3D_EXPORT AnyOfThreadAffinityPolicy : public ThreadAffinityPolicy
 	{
 	public:
 		/** Creates the policy with a list of cores that threads will be allowed to run on. */
@@ -118,7 +118,7 @@ namespace b3d
 	};
 
 	/** Policy that returns an affinity that pins a thread to a single core. The cores are given out depending on the provided thread index, from the policy's affinity mask. */
-	class B3D_UTILITY_EXPORT OneOfThreadAffinityPolicy : public ThreadAffinityPolicy
+	class B3D_EXPORT OneOfThreadAffinityPolicy : public ThreadAffinityPolicy
 	{
 	public:
 		/** Creates the policy with a list of cores that will be given out to the requesting threads in round-robin fashion. */
@@ -134,28 +134,28 @@ namespace b3d
 	class Thread final : INonCopyable
 	{
 	public:
-		B3D_UTILITY_EXPORT Thread() = default;
-		B3D_UTILITY_EXPORT Thread(const ThreadCoreMask& affinity, Function<void()>&& workerFunction);
-		B3D_UTILITY_EXPORT Thread(Function<void()>&& workerFunction);
-		B3D_UTILITY_EXPORT Thread(Thread&&);
-		B3D_UTILITY_EXPORT ~Thread();
+		B3D_EXPORT Thread() = default;
+		B3D_EXPORT Thread(const ThreadCoreMask& affinity, Function<void()>&& workerFunction);
+		B3D_EXPORT Thread(Function<void()>&& workerFunction);
+		B3D_EXPORT Thread(Thread&&);
+		B3D_EXPORT ~Thread();
 
-		B3D_UTILITY_EXPORT Thread& operator=(Thread&&);
+		B3D_EXPORT Thread& operator=(Thread&&);
 
 		/** Returns a unique identifier for the thread. */
-		B3D_UTILITY_EXPORT u32 GetId() const;
+		B3D_EXPORT u32 GetId() const;
 
 		/** Blocks the calling thread until this thread completes. */
-		B3D_UTILITY_EXPORT void WaitUntilComplete();
+		B3D_EXPORT void WaitUntilComplete();
 
 		/** Assigns a name to the current thread, primarily for debugging purposes. */
-		B3D_UTILITY_EXPORT static void SetName(const char* format, ...);
+		B3D_EXPORT static void SetName(const char* format, ...);
 
 		/** Returns the total available number of logical CPU cores. */
-		B3D_UTILITY_EXPORT static u32 GetLogicalCoreCount();
+		B3D_EXPORT static u32 GetLogicalCoreCount();
 
 		/** Gets the id of the current thread. */
-		B3D_UTILITY_EXPORT static u32 GetCurrentThreadId() { return CurrentId; }
+		B3D_EXPORT static u32 GetCurrentThreadId() { return CurrentId; }
 
 	private:
 		class Implementation;

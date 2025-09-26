@@ -730,7 +730,7 @@ HResource Resources::GetOrCreateResourceHandle(const UUID& resourceId)
 
 namespace b3d
 {
-B3D_CORE_EXPORT Resources& GetResources()
+B3D_EXPORT Resources& GetResources()
 {
 	return Resources::Instance();
 }

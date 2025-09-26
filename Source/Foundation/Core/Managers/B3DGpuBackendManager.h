@@ -25,7 +25,7 @@ namespace b3d
 	};
 
 	/** Manager that handles GPU backend initialization. */
-	class B3D_CORE_EXPORT GpuBackendManager : public Module<GpuBackendManager>
+	class B3D_EXPORT GpuBackendManager : public Module<GpuBackendManager>
 	{
 	public:
 		GpuBackendManager() = default;

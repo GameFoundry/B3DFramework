@@ -15,7 +15,7 @@ namespace b3d
 	 */
 
 	/** Provides access to various Windows specific utility functions. */
-	class B3D_UTILITY_EXPORT Win32PlatformUtility
+	class B3D_EXPORT Win32PlatformUtility
 	{
 	public:
 		/**

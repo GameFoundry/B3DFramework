@@ -21,7 +21,7 @@ namespace b3d
 	 * @note
 	 * Thread safe.
 	 */
-	class B3D_UTILITY_EXPORT StringID
+	class B3D_EXPORT StringID
 	{
 		static constexpr const int kHashTableSize = 4096;
 		static constexpr const int kMaxChunkCount = 50;

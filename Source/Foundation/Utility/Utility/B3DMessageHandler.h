@@ -16,7 +16,7 @@ namespace b3d
 	 *
 	 * @note Main thread only.
 	 */
-	class B3D_UTILITY_EXPORT MessageHandler : public Module<MessageHandler>
+	class B3D_EXPORT MessageHandler : public Module<MessageHandler>
 	{
 		struct MessageHandlerData
 		{

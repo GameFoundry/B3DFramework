@@ -15,7 +15,7 @@ namespace b3d
 
 	/** Common code used both by main and render thread variants of Decal. */
 	template <bool IsRenderProxy>
-	class B3D_CORE_EXPORT TDecal : public CoreVariantType<CoreObject, IsRenderProxy>
+	class B3D_EXPORT TDecal : public CoreVariantType<CoreObject, IsRenderProxy>
 	{
 	public:
 		using MaterialType = CoreVariantHandleType<Material, IsRenderProxy>;
@@ -130,7 +130,7 @@ namespace b3d
 	 */
 
 	/** Wraps Decal as a Component. */
-	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Rendering)) Decal : public Component, public TDecal<false>
+	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Rendering)) Decal : public Component, public TDecal<false>
 	{
 	public:
 		Decal(const HSceneObject& parent);
@@ -170,7 +170,7 @@ namespace b3d
 	namespace render
 	{
 		/** Render thread counterpart of a b3d::Decal */
-		class B3D_CORE_EXPORT Decal : public TDecal<true>
+		class B3D_EXPORT Decal : public TDecal<true>
 		{
 		public:
 			~Decal();

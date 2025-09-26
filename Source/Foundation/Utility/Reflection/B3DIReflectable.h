@@ -28,7 +28,7 @@ namespace b3d
 	 * method, returning the same value as GetRtti(). Object returned by those methods is used for retrieving actual RTTI
 	 * data about the class.
 	 */
-	class B3D_UTILITY_EXPORT IReflectable
+	class B3D_EXPORT IReflectable
 	{
 	public:
 		virtual ~IReflectable() = default;

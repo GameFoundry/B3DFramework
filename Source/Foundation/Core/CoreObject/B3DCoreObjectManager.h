@@ -22,7 +22,7 @@ namespace b3d
 	 * @note	Internal class.
 	 * @note	Thread safe unless specified otherwise.
 	 */
-	class B3D_CORE_EXPORT CoreObjectManager : public Module<CoreObjectManager>
+	class B3D_EXPORT CoreObjectManager : public Module<CoreObjectManager>
 	{
 		/**
 		 * Stores dirty data that is to be transferred from main thread to render thread part of a CoreObject, for a single

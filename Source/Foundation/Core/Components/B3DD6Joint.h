@@ -63,7 +63,7 @@ namespace b3d
 	 * Specifies parameters for a drive that will attempt to move the joint bodies to the specified drive position and
 	 * velocity.
 	 */
-	struct B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Physics), ExportAsStruct(true)) D6JointDrive : public IReflectable
+	struct B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Physics), ExportAsStruct(true)) D6JointDrive : public IReflectable
 	{
 		bool operator==(const D6JointDrive& other) const
 		{
@@ -121,7 +121,7 @@ namespace b3d
 	 * constraint (for example for slider), twist constraint (rotating around X) and swing constraint (rotating around Y and
 	 * Z). It also allows you to constrain limits to only specific axes or completely lock specific axes.
 	 */
-	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Physics)) D6Joint : public Joint
+	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Physics)) D6Joint : public Joint
 	{
 	public:
 		D6Joint(const HSceneObject& parent);
@@ -257,7 +257,7 @@ namespace b3d
 	};
 
 	/** Low-level interface for a joint used by the D6Joint component. Should be implemented by the physics plugin to provide joint functionality. */
-	class B3D_CORE_EXPORT ID6JointImplementation : public IJointImplementation
+	class B3D_EXPORT ID6JointImplementation : public IJointImplementation
 	{
 	public:
 		/** @copydoc D6Joint::SetMotion */

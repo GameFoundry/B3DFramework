@@ -60,5 +60,5 @@ T TDegree<T>::GetValueInRadians() const
 	return mDegrees * Math::kDeG2Rad;
 }
 
-template class B3D_UTILITY_EXPORT TDegree<float>;
-template class B3D_UTILITY_EXPORT TDegree<double>;
+template class B3D_EXPORT TDegree<float>;
+template class B3D_EXPORT TDegree<double>;

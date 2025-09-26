@@ -20,7 +20,7 @@ namespace b3d
 		struct POOLED_STORAGE_BUFFER_DESC;
 
 		/**	Contains data about a single render texture in the GPU resource pool. */
-		struct B3D_CORE_EXPORT PooledRenderTexture
+		struct B3D_EXPORT PooledRenderTexture
 		{
 			PooledRenderTexture(u32 lastUsedFrame)
 				: mLastUsedFrame(lastUsedFrame)
@@ -36,7 +36,7 @@ namespace b3d
 		};
 
 		/**	Contains data about a single storage buffer in the GPU resource pool. */
-		struct B3D_CORE_EXPORT PooledStorageBuffer
+		struct B3D_EXPORT PooledStorageBuffer
 		{
 			PooledStorageBuffer(u32 lastUsedFrame)
 				: mLastUsedFrame(lastUsedFrame)
@@ -54,7 +54,7 @@ namespace b3d
 		 * Contains a pool of textures and buffers meant to accommodate reuse of such resources for the main purpose of using
 		 * them as write targets on the GPU.
 		 */
-		class B3D_CORE_EXPORT GpuResourcePool : public Module<GpuResourcePool>
+		class B3D_EXPORT GpuResourcePool : public Module<GpuResourcePool>
 		{
 		public:
 			GpuResourcePool();
@@ -137,7 +137,7 @@ namespace b3d
 		};
 
 		/** Structure used for creating a new pooled render texture. */
-		struct B3D_CORE_EXPORT POOLED_RenderTextureCreateInformation
+		struct B3D_EXPORT POOLED_RenderTextureCreateInformation
 		{
 			// TODO - Add a required Name parameter to each Create method, and propagate it to created textures
 		public:
@@ -198,7 +198,7 @@ namespace b3d
 		};
 
 		/** Structure used for describing a pooled storage buffer. */
-		struct B3D_CORE_EXPORT POOLED_STORAGE_BUFFER_DESC
+		struct B3D_EXPORT POOLED_STORAGE_BUFFER_DESC
 		{
 		public:
 			POOLED_STORAGE_BUFFER_DESC() {}
@@ -232,7 +232,7 @@ namespace b3d
 		};
 
 		/**	Provides easy access to the GpuResourcePool. */
-		B3D_CORE_EXPORT GpuResourcePool& GetGpuResourcePool();
+		B3D_EXPORT GpuResourcePool& GetGpuResourcePool();
 
 		/** @} */
 	} // namespace render

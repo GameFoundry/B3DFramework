@@ -13,7 +13,7 @@ namespace b3d
 	 */
 
 	/**	Data that is shared between all resource handles. */
-	struct B3D_CORE_EXPORT ResourceHandleData
+	struct B3D_EXPORT ResourceHandleData
 	{
 		ResourceHandleData() = default;
 
@@ -92,7 +92,7 @@ namespace b3d
 	 *    the engine. The handle will be made valid as soon as the resource is loaded.
 	 *	- Handles can be serialized and deserialized, therefore saving/restoring references to their original resource.
 	 */
-	class B3D_CORE_EXPORT ResourceHandle : public IReflectable
+	class B3D_EXPORT ResourceHandle : public IReflectable
 	{
 	public:
 		/**
@@ -210,7 +210,7 @@ namespace b3d
 	};
 
 	/**	Implementation of ResourceHandle for weak handles. Weak handles do no reference counting. */
-	class B3D_CORE_EXPORT WeakResourceHandle : public ResourceHandle
+	class B3D_EXPORT WeakResourceHandle : public ResourceHandle
 	{
 	protected:
 		void IncrementReferenceCount() const { IncrementWeakReferenceCount(); }
@@ -226,7 +226,7 @@ namespace b3d
 	};
 
 	/**	Implementation of ResourceHandle for strong (non-weak) handles. */
-	class B3D_CORE_EXPORT StrongResourceHandle : public ResourceHandle
+	class B3D_EXPORT StrongResourceHandle : public ResourceHandle
 	{
 	protected:
 		void IncrementReferenceCount() const { IncrementStrongReferenceCount(); }

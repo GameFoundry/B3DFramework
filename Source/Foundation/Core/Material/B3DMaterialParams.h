@@ -35,7 +35,7 @@ namespace b3d
 	};
 
 	/** Common functionality for MaterialParams and render::MaterialParams. */
-	class B3D_CORE_EXPORT MaterialParamsBase
+	class B3D_EXPORT MaterialParamsBase
 	{
 	public:
 		/** Type of material parameter. */
@@ -419,7 +419,7 @@ namespace b3d
 	};
 
 	/** Data for a single texture parameter. */
-	class B3D_CORE_EXPORT MaterialParamTextureDataRenderProxy
+	class B3D_EXPORT MaterialParamTextureDataRenderProxy
 	{
 	public:
 		SPtr<render::Texture> Texture;
@@ -429,7 +429,7 @@ namespace b3d
 	};
 
 	/** Data for a single texture parameter. */
-	class B3D_CORE_EXPORT MaterialParamTextureData : public IReflectable
+	class B3D_EXPORT MaterialParamTextureData : public IReflectable
 	{
 	public:
 		HTexture Texture;
@@ -443,14 +443,14 @@ namespace b3d
 	};
 
 	/** Data for a single buffer parameter. */
-	class B3D_CORE_EXPORT MaterialParamBufferDataRenderProxy
+	class B3D_EXPORT MaterialParamBufferDataRenderProxy
 	{
 	public:
 		SPtr<render::GpuBuffer> Value;
 	};
 
 	/** Data for a single buffer parameter. */
-	class B3D_CORE_EXPORT MaterialParamBufferData : public IReflectable
+	class B3D_EXPORT MaterialParamBufferData : public IReflectable
 	{
 	public:
 		SPtr<GpuBuffer> Value;
@@ -461,14 +461,14 @@ namespace b3d
 	};
 
 	/** Data for a single sampler state parameter. */
-	class B3D_CORE_EXPORT MaterialParamSamplerStateDataRenderProxy
+	class B3D_EXPORT MaterialParamSamplerStateDataRenderProxy
 	{
 	public:
 		SPtr<SamplerState> Value;
 	};
 
 	/** Data for a single sampler state parameter. */
-	class B3D_CORE_EXPORT MaterialParamSamplerStateData : public IReflectable
+	class B3D_EXPORT MaterialParamSamplerStateData : public IReflectable
 	{
 	public:
 		SPtr<SamplerState> Value;
@@ -501,7 +501,7 @@ namespace b3d
 
 	/** Common code that may be specialized for both MaterialParams and render::MaterialParams. */
 	template <bool IsRenderProxy>
-	class B3D_CORE_EXPORT TMaterialParams : public MaterialParamsBase
+	class B3D_EXPORT TMaterialParams : public MaterialParamsBase
 	{
 	public:
 		using GpuParamsType = CoreVariantType<GpuParameters, IsRenderProxy>;
@@ -799,7 +799,7 @@ namespace b3d
 	 * optimizes out a variable in a GPU program we should still be able to store it, either for later when the variable
 	 * will be introduced, or for other techniques that might have that variable implemented.
 	 */
-	class B3D_CORE_EXPORT MaterialParams : public IReflectable, public TMaterialParams<false>
+	class B3D_EXPORT MaterialParams : public IReflectable, public TMaterialParams<false>
 	{
 	public:
 		struct SyncPacket;
@@ -842,7 +842,7 @@ namespace b3d
 	namespace render
 	{
 		/** Render thread version of MaterialParams. */
-		class B3D_CORE_EXPORT MaterialParams : public TMaterialParams<true>
+		class B3D_EXPORT MaterialParams : public TMaterialParams<true>
 		{
 		public:
 			/** Initializes the render proxy its main thread counterpart. */

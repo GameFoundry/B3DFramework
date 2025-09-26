@@ -15,7 +15,7 @@ using namespace b3d::render;
 VulkanGpuQueue::VulkanGpuQueue(VulkanGpuDevice& device, GpuQueueUsage usage, u32 index, VkQueue vulkanQueue)
 	: GpuQueue(device, usage, index), mQueue(vulkanQueue)
 {
-	for(u32 i = 0; i < BS_MAX_UNIQUE_QUEUES; i++)
+	for(u32 i = 0; i < B3D_MAX_UNIQUE_QUEUES; i++)
 		mSubmitDstWaitMask[i] = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
 }
 

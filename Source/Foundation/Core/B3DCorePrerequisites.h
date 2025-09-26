@@ -192,42 +192,10 @@
 #define B3D_SWAP_RENDER_AND_MAIN_THREAD 0
 
 /** Maximum number of individual GPU queues, per type. */
-#define BS_MAX_QUEUES_PER_TYPE 8
+#define B3D_MAX_QUEUES_PER_TYPE 8
 
 /** Maximum number of hardware devices usable at once. */
 #define B3D_MAX_DEVICES 5U
-
-/** Maximum number of devices one resource can exist at the same time. */
-#define BS_MAX_LINKED_DEVICES 4U
-
-// DLL export
-#if B3D_PLATFORM == B3D_PLATFORM_ID_WIN32 // Windows
-#	if B3D_COMPILER == B3D_COMPILER_ID_MSVC
-#		if defined(BS_STATIC_LIB)
-#			define B3D_CORE_EXPORT
-#		else
-#			if defined(B3D_CORE_EXPORTS)
-#				define B3D_CORE_EXPORT __declspec(dllexport)
-#			else
-#				define B3D_CORE_EXPORT __declspec(dllimport)
-#			endif
-#		endif
-#	else
-#		if defined(BS_STATIC_LIB)
-#			define B3D_CORE_EXPORT
-#		else
-#			if defined(B3D_CORE_EXPORTS)
-#				define B3D_CORE_EXPORT __attribute__((dllexport))
-#			else
-#				define B3D_CORE_EXPORT __attribute__((dllimport))
-#			endif
-#		endif
-#	endif
-#	define BS_CORE_HIDDEN
-#else // Linux/Mac settings
-#	define B3D_CORE_EXPORT __attribute__((visibility("default")))
-#	define BS_CORE_HIDDEN __attribute__((visibility("hidden")))
-#endif
 
 #include "Localization/B3DHString.h"
 #include "String/B3DStringID.h"
@@ -827,7 +795,7 @@ namespace b3d
 	 *
 	 * @param[in]	callback	The callback.
 	 */
-	void B3D_CORE_EXPORT DeferredCall(std::function<void()> callback);
+	void B3D_EXPORT DeferredCall(std::function<void()> callback);
 
 	// Special types for use by profilers
 	typedef std::basic_string<char, std::char_traits<char>, StdAlloc<char, ProfilerAllocatorTag>> ProfilerString;
@@ -839,7 +807,7 @@ namespace b3d
 	using ProfilerStack = std::stack<T, std::deque<T, A>>;
 
 	/** Default thread policy for the framework. Performs special startup/shutdown on threads managed by thread pool. */
-	class B3D_CORE_EXPORT ThreadDefaultPolicy
+	class B3D_EXPORT ThreadDefaultPolicy
 	{
 	public:
 		static void OnThreadStarted(const String& name)
@@ -936,27 +904,27 @@ namespace b3d
 	static constexpr double kMaximumSceneExtent = kMaximumSceneSize * 0.5;
 
 
-	B3D_CORE_EXPORT B3D_LOG_CATEGORY_EXTERN(RenderThread, Log)
-	B3D_CORE_EXPORT B3D_LOG_CATEGORY_EXTERN(Renderer, Log)
-	B3D_CORE_EXPORT B3D_LOG_CATEGORY_EXTERN(Scene, Log)
-	B3D_CORE_EXPORT B3D_LOG_CATEGORY_EXTERN(Physics, Log)
-	B3D_CORE_EXPORT B3D_LOG_CATEGORY_EXTERN(Audio, Log)
-	B3D_CORE_EXPORT B3D_LOG_CATEGORY_EXTERN(RenderBackend, Log)
-	B3D_CORE_EXPORT B3D_LOG_CATEGORY_EXTERN(BSLCompiler, Log)
-	B3D_CORE_EXPORT B3D_LOG_CATEGORY_EXTERN(Particles, Log)
-	B3D_CORE_EXPORT B3D_LOG_CATEGORY_EXTERN(Resources, Log)
-	B3D_CORE_EXPORT B3D_LOG_CATEGORY_EXTERN(FBXImporter, Log)
-	B3D_CORE_EXPORT B3D_LOG_CATEGORY_EXTERN(PixelUtility, Log)
-	B3D_CORE_EXPORT B3D_LOG_CATEGORY_EXTERN(Texture, Log)
-	B3D_CORE_EXPORT B3D_LOG_CATEGORY_EXTERN(Mesh, Log)
-	B3D_CORE_EXPORT B3D_LOG_CATEGORY_EXTERN(GUI, Log)
-	B3D_CORE_EXPORT B3D_LOG_CATEGORY_EXTERN(Profiler, Log)
-	B3D_CORE_EXPORT B3D_LOG_CATEGORY_EXTERN(Material, Log)
-	B3D_CORE_EXPORT B3D_LOG_CATEGORY_EXTERN(FreeImageImporter, Log)
-	B3D_CORE_EXPORT B3D_LOG_CATEGORY_EXTERN(Script, Log)
-	B3D_CORE_EXPORT B3D_LOG_CATEGORY_EXTERN(Importer, Log)
-	B3D_CORE_EXPORT B3D_LOG_CATEGORY_EXTERN(Network, Log)
-	B3D_CORE_EXPORT B3D_LOG_CATEGORY_EXTERN(LogInput, Log)
+	B3D_EXPORT B3D_LOG_CATEGORY_EXTERN(RenderThread, Log)
+	B3D_EXPORT B3D_LOG_CATEGORY_EXTERN(Renderer, Log)
+	B3D_EXPORT B3D_LOG_CATEGORY_EXTERN(Scene, Log)
+	B3D_EXPORT B3D_LOG_CATEGORY_EXTERN(Physics, Log)
+	B3D_EXPORT B3D_LOG_CATEGORY_EXTERN(Audio, Log)
+	B3D_EXPORT B3D_LOG_CATEGORY_EXTERN(RenderBackend, Log)
+	B3D_EXPORT B3D_LOG_CATEGORY_EXTERN(BSLCompiler, Log)
+	B3D_EXPORT B3D_LOG_CATEGORY_EXTERN(Particles, Log)
+	B3D_EXPORT B3D_LOG_CATEGORY_EXTERN(Resources, Log)
+	B3D_EXPORT B3D_LOG_CATEGORY_EXTERN(FBXImporter, Log)
+	B3D_EXPORT B3D_LOG_CATEGORY_EXTERN(PixelUtility, Log)
+	B3D_EXPORT B3D_LOG_CATEGORY_EXTERN(Texture, Log)
+	B3D_EXPORT B3D_LOG_CATEGORY_EXTERN(Mesh, Log)
+	B3D_EXPORT B3D_LOG_CATEGORY_EXTERN(GUI, Log)
+	B3D_EXPORT B3D_LOG_CATEGORY_EXTERN(Profiler, Log)
+	B3D_EXPORT B3D_LOG_CATEGORY_EXTERN(Material, Log)
+	B3D_EXPORT B3D_LOG_CATEGORY_EXTERN(FreeImageImporter, Log)
+	B3D_EXPORT B3D_LOG_CATEGORY_EXTERN(Script, Log)
+	B3D_EXPORT B3D_LOG_CATEGORY_EXTERN(Importer, Log)
+	B3D_EXPORT B3D_LOG_CATEGORY_EXTERN(Network, Log)
+	B3D_EXPORT B3D_LOG_CATEGORY_EXTERN(LogInput, Log)
 } // namespace b3d
 
 #include "Utility/B3DCommonTypes.h"

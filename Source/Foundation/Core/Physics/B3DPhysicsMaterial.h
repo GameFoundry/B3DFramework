@@ -15,7 +15,7 @@ namespace b3d
 	 * Material that controls how two physical objects interact with each other. Materials of both objects are used during
 	 * their interaction and their combined values are used.
 	 */
-	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Physics)) PhysicsMaterial : public Resource
+	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Physics)) PhysicsMaterial : public Resource
 	{
 	public:
 		virtual ~PhysicsMaterial() = default;

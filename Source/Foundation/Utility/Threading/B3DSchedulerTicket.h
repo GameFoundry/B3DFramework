@@ -21,7 +21,7 @@ namespace b3d
 	 *
 	 * Each ticket can have an associated callback, which will trigger when a ticket is Called.
 	 */
-	class B3D_UTILITY_EXPORT SchedulerTicket
+	class B3D_EXPORT SchedulerTicket
 	{
 	public:
 		SchedulerTicket() = default;
@@ -51,7 +51,7 @@ namespace b3d
 	};
 
 	/** Linked list entry storing information about one ticket, and links a ticket to its previous/next ticket. */
-	struct B3D_UTILITY_EXPORT SchedulerTicketData
+	struct B3D_EXPORT SchedulerTicketData
 	{
 		inline ~SchedulerTicketData();
 
@@ -89,7 +89,7 @@ namespace b3d
 	};
 
 	/** Queue that hands out scheduler tickets. */
-	class B3D_UTILITY_EXPORT SchedulerTicketQueue
+	class B3D_EXPORT SchedulerTicketQueue
 	{
 	public:
 		SchedulerTicketQueue(Scheduler& scheduler);

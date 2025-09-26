@@ -16,7 +16,7 @@ namespace b3d
 
 	/** Bounds represented by an axis aligned box and a sphere. */
 	template<typename T>
-	struct B3D_UTILITY_EXPORT TBounds
+	struct B3D_EXPORT TBounds
 	{
 		constexpr TBounds() = default;
 

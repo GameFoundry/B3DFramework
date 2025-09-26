@@ -14,7 +14,7 @@ namespace b3d
 	 *  @{
 	 */
 
-	class B3D_CORE_EXPORT BoneRTTI : public TRTTIType<Bone, Component, BoneRTTI>
+	class B3D_EXPORT BoneRTTI : public TRTTIType<Bone, Component, BoneRTTI>
 	{
 		B3D_RTTI_BEGIN_MEMBERS
 			B3D_RTTI_MEMBER(mBoneName, 0)

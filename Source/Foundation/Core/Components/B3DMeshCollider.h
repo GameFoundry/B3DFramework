@@ -12,7 +12,7 @@ namespace b3d
 	 */
 
 	/** A collider represented by an arbitrary mesh. */
-	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Physics)) MeshCollider : public Collider
+	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Physics)) MeshCollider : public Collider
 	{
 	public:
 		MeshCollider(const HSceneObject& parent);

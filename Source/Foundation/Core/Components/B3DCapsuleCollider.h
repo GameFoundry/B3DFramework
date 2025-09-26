@@ -12,7 +12,7 @@ namespace b3d
 	 */
 
 	/** Collider with a capsule geometry. */
-	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Physics)) CapsuleCollider : public Collider
+	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Physics)) CapsuleCollider : public Collider
 	{
 	public:
 		CapsuleCollider(const HSceneObject& parent, float radius = 1.0f, float halfHeight = 0.5f);

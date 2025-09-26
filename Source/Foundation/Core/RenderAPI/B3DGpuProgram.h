@@ -16,7 +16,7 @@ namespace b3d
 	struct GpuProgramBytecode;
 
 	/** Descriptor structure used for initialization of a GpuProgram. */
-	struct B3D_CORE_EXPORT GpuProgramCreateInformation : public IReflectable
+	struct B3D_EXPORT GpuProgramCreateInformation : public IReflectable
 	{
 		String Name; /**< Name of the program. Used primarily for debugging. */
 		String Source; /**< Source code to compile the program from. */
@@ -43,7 +43,7 @@ namespace b3d
 	 * A GPU program compiled to an intermediate bytecode format, as well as any relevant meta-data that could be
 	 * extracted from that format.
 	 */
-	struct B3D_CORE_EXPORT GpuProgramBytecode : IReflectable
+	struct B3D_EXPORT GpuProgramBytecode : IReflectable
 	{
 		~GpuProgramBytecode();
 
@@ -79,7 +79,7 @@ namespace b3d
 	 *
 	 * @note	Thread safe (Immutable).
 	 */
-	class B3D_CORE_EXPORT GpuProgram : public IReflectable
+	class B3D_EXPORT GpuProgram : public IReflectable
 	{
 	public:
 		virtual ~GpuProgram();

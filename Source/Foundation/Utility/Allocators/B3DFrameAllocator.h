@@ -29,7 +29,7 @@ namespace b3d
 	 * @note	Not thread safe with an exception. alloc() and clear() methods need to be called from the same thread.
 	 * 			dealloc() is thread safe and can be called from any thread.
 	 */
-	class B3D_UTILITY_EXPORT FrameAllocator
+	class B3D_EXPORT FrameAllocator
 	{
 	private:
 		/** A single block of memory within a frame allocator. */
@@ -282,34 +282,34 @@ namespace b3d
 	 *
 	 * @note	Thread safe.
 	 */
-	B3D_UTILITY_EXPORT FrameAllocator& GetFrameAllocator();
+	B3D_EXPORT FrameAllocator& GetFrameAllocator();
 
 	/**
 	 * Allocates some memory using the global frame allocator.
 	 *
 	 * @param[in]	numBytes	Number of bytes to allocate.
 	 */
-	B3D_UTILITY_EXPORT u8* B3DFrameAllocate(u32 numBytes);
+	B3D_EXPORT u8* B3DFrameAllocate(u32 numBytes);
 
 	/**
 	 * Allocates the specified number of bytes aligned to the provided boundary, using the global frame allocator. Boundary
 	 * is in bytes and must be a power of two.
 	 */
-	B3D_UTILITY_EXPORT u8* B3DFrameAllocateAligned(u32 count, u32 align);
+	B3D_EXPORT u8* B3DFrameAllocateAligned(u32 count, u32 align);
 
 	/**
 	 * Deallocates memory allocated with the global frame allocator.
 	 *
 	 * @note	Must be called on the same thread the memory was allocated on.
 	 */
-	B3D_UTILITY_EXPORT void B3DFrameFree(void* data);
+	B3D_EXPORT void B3DFrameFree(void* data);
 
 	/**
 	 * Frees memory previously allocated with B3DFrameAllocateAligned().
 	 *
 	 * @note	Must be called on the same thread the memory was allocated on.
 	 */
-	B3D_UTILITY_EXPORT void B3DFrameFreeAligned(void* data);
+	B3D_EXPORT void B3DFrameFreeAligned(void* data);
 
 	/**
 	 * Allocates enough memory to hold the object of specified type using the global frame allocator, but does not
@@ -388,10 +388,10 @@ namespace b3d
 	}
 
 	/** @copydoc FrameAllocator::MarkFrame */
-	B3D_UTILITY_EXPORT void B3DMarkAllocatorFrame();
+	B3D_EXPORT void B3DMarkAllocatorFrame();
 
 	/** @copydoc FrameAllocator::Clear */
-	B3D_UTILITY_EXPORT void B3DClearAllocatorFrame();
+	B3D_EXPORT void B3DClearAllocatorFrame();
 
 	/** Opens a frame scope on construction and closes it on destruction. See B3DMarkAllocatorFrame(). */
 	struct FrameScope

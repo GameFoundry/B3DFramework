@@ -82,7 +82,7 @@ namespace b3d
 	};
 
 	/** Descriptor structure used for initialization of a Texture. */
-	struct B3D_CORE_EXPORT TextureCreateInformation : TextureInformation
+	struct B3D_EXPORT TextureCreateInformation : TextureInformation
 	{
 		TextureCreateInformation() = default;
 		TextureCreateInformation(const TextureInformation& other)
@@ -127,7 +127,7 @@ namespace b3d
 		 */
 		Vector3I DestinationPosition;
 
-		B3D_CORE_EXPORT static const TextureCopyInformation kDefault;
+		B3D_EXPORT static const TextureCopyInformation kDefault;
 	};
 
 	/** Structure used for specifying information about a texture blit operation. */
@@ -160,11 +160,11 @@ namespace b3d
 		/** Pixel volume to which to blit to. This defaults to all pixels of the face. */
 		PixelVolume DestinationVolume = PixelVolume(0, 0, 0, 0, 0, 0);
 
-		B3D_CORE_EXPORT static const TextureBlitInformation kDefault;
+		B3D_EXPORT static const TextureBlitInformation kDefault;
 	};
 
 	/** Properties of a Texture. Shared between main and render thread counterparts of a Texture. */
-	struct B3D_CORE_EXPORT TextureProperties : TextureInformation
+	struct B3D_EXPORT TextureProperties : TextureInformation
 	{
 	public:
 		TextureProperties() = default;
@@ -210,7 +210,7 @@ namespace b3d
 	 *
 	 * @note	Main thread.
 	 */
-	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Rendering)) Texture : public Resource
+	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Rendering)) Texture : public Resource
 	{
 	public:
 		/**
@@ -350,7 +350,7 @@ namespace b3d
 		 *
 		 * @note	Render thread.
 		 */
-		class B3D_CORE_EXPORT Texture : public RenderProxy
+		class B3D_EXPORT Texture : public RenderProxy
 		{
 		public:
 			Texture(const TextureCreateInformation& createInformation);

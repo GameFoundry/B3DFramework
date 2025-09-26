@@ -17,7 +17,7 @@ namespace b3d
 	 * Represents a listener that hears audio sources. For spatial audio the volume and pitch of played audio is determined
 	 * by the distance, orientation and velocity differences between the source and the listener.
 	 */
-	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Audio)) AudioListener : public Component
+	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Audio)) AudioListener : public Component
 	{
 	public:
 		AudioListener(const HSceneObject& parent);
@@ -71,7 +71,7 @@ namespace b3d
 	 */
 
 	/** Low-level interface for an audio source. Should be implemented by the audio plugin. */
-	class B3D_CORE_EXPORT IAudioListenerImplementation
+	class B3D_EXPORT IAudioListenerImplementation
 	{
 	public:
 		virtual ~IAudioListenerImplementation() = default;

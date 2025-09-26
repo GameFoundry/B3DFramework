@@ -65,7 +65,7 @@ namespace b3d
 	 *    inactive, then the component is considered to be in Stopped state, regardless whether the ComponentFlag::AlwaysRun
 	 *    flag is set or not.
 	 **/
-	class B3D_CORE_EXPORT Component : public GameObject
+	class B3D_EXPORT Component : public GameObject
 	{
 	public:
 		virtual ~Component() = default;

@@ -13,7 +13,7 @@ namespace b3d
 	 *  @{
 	 */
 
-	class B3D_UTILITY_EXPORT SerializedTupleDeltaRTTI : public TRTTIType<SerializedTupleDelta, ISerialized, SerializedTupleDeltaRTTI>
+	class B3D_EXPORT SerializedTupleDeltaRTTI : public TRTTIType<SerializedTupleDelta, ISerialized, SerializedTupleDeltaRTTI>
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
@@ -39,7 +39,7 @@ namespace b3d
 		}
 	};
 
-	class B3D_UTILITY_EXPORT SerializedTupleEntryDeltaRTTI : public TRTTIType<SerializedTupleEntryDelta, IReflectable, SerializedTupleEntryDeltaRTTI>
+	class B3D_EXPORT SerializedTupleEntryDeltaRTTI : public TRTTIType<SerializedTupleEntryDelta, IReflectable, SerializedTupleEntryDeltaRTTI>
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
@@ -65,7 +65,7 @@ namespace b3d
 		}
 	};
 
-	class B3D_UTILITY_EXPORT SerializedArrayDeltaRTTI : public TRTTIType<SerializedArrayDelta, ISerialized, SerializedArrayDeltaRTTI>
+	class B3D_EXPORT SerializedArrayDeltaRTTI : public TRTTIType<SerializedArrayDelta, ISerialized, SerializedArrayDeltaRTTI>
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
@@ -91,7 +91,7 @@ namespace b3d
 		}
 	};
 
-	class B3D_UTILITY_EXPORT SerializedArrayEntryDeltaRTTI : public TRTTIType<SerializedArrayEntryDelta, IReflectable, SerializedArrayEntryDeltaRTTI>
+	class B3D_EXPORT SerializedArrayEntryDeltaRTTI : public TRTTIType<SerializedArrayEntryDelta, IReflectable, SerializedArrayEntryDeltaRTTI>
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
@@ -117,7 +117,7 @@ namespace b3d
 		}
 	};
 
-	class B3D_UTILITY_EXPORT SerializedMapDeltaRTTI : public TRTTIType<SerializedMapDelta, ISerialized, SerializedMapDeltaRTTI>
+	class B3D_EXPORT SerializedMapDeltaRTTI : public TRTTIType<SerializedMapDelta, ISerialized, SerializedMapDeltaRTTI>
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
@@ -142,7 +142,7 @@ namespace b3d
 		}
 	};
 
-	class B3D_UTILITY_EXPORT SerializedMapEntryDeltaRTTI : public TRTTIType<SerializedMapEntryDelta, IReflectable, SerializedMapEntryDeltaRTTI>
+	class B3D_EXPORT SerializedMapEntryDeltaRTTI : public TRTTIType<SerializedMapEntryDelta, IReflectable, SerializedMapEntryDeltaRTTI>
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS

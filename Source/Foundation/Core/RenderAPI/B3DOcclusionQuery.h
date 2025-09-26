@@ -13,7 +13,7 @@ namespace b3d
 		 */
 
 		/** Represents a query that counts number of samples (pixels) rendered by the GPU while the query is active. */
-		class B3D_CORE_EXPORT OcclusionQuery
+		class B3D_EXPORT OcclusionQuery
 		{
 		public:
 			OcclusionQuery(bool binary)

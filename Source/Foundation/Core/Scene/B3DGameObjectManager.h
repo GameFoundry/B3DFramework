@@ -17,7 +17,7 @@ namespace b3d
 	 *
 	 * @note	Main thread only.
 	 */
-	class B3D_CORE_EXPORT GameObjectManager : public Module<GameObjectManager>
+	class B3D_EXPORT GameObjectManager : public Module<GameObjectManager>
 	{
 	public:
 		GameObjectManager() = default;

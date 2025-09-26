@@ -40,7 +40,7 @@ namespace b3d
 	};
 
 	/** Contains helper methods that triangulate point data. */
-	class B3D_UTILITY_EXPORT Triangulation
+	class B3D_EXPORT Triangulation
 	{
 	public:
 		/**

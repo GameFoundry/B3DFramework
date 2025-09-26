@@ -14,7 +14,7 @@ namespace b3d
 	 */
 
 	/** Represents a universally unique identifier. */
-	struct B3D_UTILITY_EXPORT UUID
+	struct B3D_EXPORT UUID
 	{
 		/** Initializes an empty UUID. */
 		constexpr UUID() = default;
@@ -75,7 +75,7 @@ namespace b3d
 	 *
 	 * @note	Thread safe.
 	 */
-	class B3D_UTILITY_EXPORT UUIDGenerator
+	class B3D_EXPORT UUIDGenerator
 	{
 	public:
 		/**	Generate a new random universally unique identifier. */

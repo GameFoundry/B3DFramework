@@ -15,7 +15,7 @@ namespace b3d
 	 * Importer using for importing GPU program (shader) include files. Include files are just text files ending with
 	 * ".bslinc" extension.
 	 */
-	class B3D_CORE_EXPORT ShaderIncludeImporter : public SpecificImporter
+	class B3D_EXPORT ShaderIncludeImporter : public SpecificImporter
 	{
 	public:
 		/** @copydoc SpecificImporter::IsExtensionSupported */

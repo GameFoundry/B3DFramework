@@ -183,5 +183,5 @@ const char* ShaderCompilers::GetShadingLanguageName(ShadingLanguageFlag language
 	}
 }
 
-template B3D_CORE_EXPORT SPtr<CoreVariantType<Shader, false>> ShaderCompilers::GetOrCompileShader<false>(const Path& shaderPath, const String& cachePrefix, const ShaderDefines& defines);
-template B3D_CORE_EXPORT SPtr<CoreVariantType<Shader, true>> ShaderCompilers::GetOrCompileShader<true>(const Path& shaderPath, const String& cachePrefix, const ShaderDefines& defines);
+template B3D_EXPORT SPtr<CoreVariantType<Shader, false>> ShaderCompilers::GetOrCompileShader<false>(const Path& shaderPath, const String& cachePrefix, const ShaderDefines& defines);
+template B3D_EXPORT SPtr<CoreVariantType<Shader, true>> ShaderCompilers::GetOrCompileShader<true>(const Path& shaderPath, const String& cachePrefix, const ShaderDefines& defines);

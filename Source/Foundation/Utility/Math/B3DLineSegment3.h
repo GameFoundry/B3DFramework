@@ -13,7 +13,7 @@ namespace b3d
 
 	/** Represents a line segment in three dimensional space defined by a start and an end point. */
 	template<typename T>
-	struct B3D_UTILITY_EXPORT TLineSegment3
+	struct B3D_EXPORT TLineSegment3
 	{
 		TLineSegment3() = default;
 		TLineSegment3(const TVector3<T>& start, const TVector3<T>& end);

@@ -18,7 +18,7 @@ namespace b3d
 
 	/** Templated base class for both render and main thread implementations of a skybox. */
 	template <bool IsRenderProxy>
-	class B3D_CORE_EXPORT TSkybox : public CoreVariantType<CoreObject, IsRenderProxy>
+	class B3D_EXPORT TSkybox : public CoreVariantType<CoreObject, IsRenderProxy>
 	{
 	public:
 		using TextureType = CoreVariantHandleType<Texture, IsRenderProxy>;
@@ -63,7 +63,7 @@ namespace b3d
 	 */
 
 	/** Allows you to specify an environment map to use for sampling radiance of the sky. */
-	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Rendering)) Skybox : public Component, public TSkybox<false>
+	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Rendering)) Skybox : public Component, public TSkybox<false>
 	{
 	public:
 		Skybox(const HSceneObject& parent);
@@ -122,7 +122,7 @@ namespace b3d
 	namespace render
 	{
 		/** Render thread counterpart of a b3d::Skybox */
-		class B3D_CORE_EXPORT Skybox : public TSkybox<true>
+		class B3D_EXPORT Skybox : public TSkybox<true>
 		{
 		public:
 			~Skybox();

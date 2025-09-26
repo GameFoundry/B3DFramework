@@ -14,7 +14,7 @@ namespace b3d
 	 *  @{
 	 */
 
-	class B3D_CORE_EXPORT DistanceJointRTTI : public TRTTIType<DistanceJoint, Joint, DistanceJointRTTI>
+	class B3D_EXPORT DistanceJointRTTI : public TRTTIType<DistanceJoint, Joint, DistanceJointRTTI>
 	{
 		B3D_RTTI_BEGIN_MEMBERS
 			B3D_RTTI_MEMBER_NAMED(mFlag, mInformation.Flags, 0)

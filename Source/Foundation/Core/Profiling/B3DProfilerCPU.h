@@ -18,7 +18,7 @@ namespace b3d
 	 *
 	 * @note	Thread safe. Matching begin* \ end* calls must belong to the same thread though.
 	 */
-	class B3D_CORE_EXPORT ProfilerCPU : public Module<ProfilerCPU>
+	class B3D_EXPORT ProfilerCPU : public Module<ProfilerCPU>
 	{
 		/**	Timer class responsible for tracking elapsed time. */
 		class Timer
@@ -327,9 +327,9 @@ namespace b3d
 	};
 
 	/** Profiling entry containing information about a single CPU profiling block containing timing information. */
-	struct B3D_CORE_EXPORT CPUProfilerBasicSamplingEntry
+	struct B3D_EXPORT CPUProfilerBasicSamplingEntry
 	{
-		struct B3D_CORE_EXPORT Data
+		struct B3D_EXPORT Data
 		{
 			Data() = default;
 
@@ -359,9 +359,9 @@ namespace b3d
 	 * Profiling entry containing information about a single CPU profiling block containing CPU cycle count based
 	 * information.
 	 */
-	struct B3D_CORE_EXPORT CPUProfilerPreciseSamplingEntry
+	struct B3D_EXPORT CPUProfilerPreciseSamplingEntry
 	{
-		struct B3D_CORE_EXPORT Data
+		struct B3D_EXPORT Data
 		{
 			Data() = default;
 
@@ -388,7 +388,7 @@ namespace b3d
 	};
 
 	/** CPU profiling report containing all profiling information for a single profiling session. */
-	class B3D_CORE_EXPORT CPUProfilerReport
+	class B3D_EXPORT CPUProfilerReport
 	{
 	public:
 		CPUProfilerReport() = default;
@@ -413,7 +413,7 @@ namespace b3d
 	};
 
 	/** Provides global access to ProfilerCPU instance. */
-	B3D_CORE_EXPORT ProfilerCPU& GetProfilerCPU();
+	B3D_EXPORT ProfilerCPU& GetProfilerCPU();
 
 	/** Shortcut for profiling a single function call. */
 #define PROFILE_CALL(call, name)              \

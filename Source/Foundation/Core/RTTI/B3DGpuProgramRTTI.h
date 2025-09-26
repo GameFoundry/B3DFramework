@@ -19,7 +19,7 @@ namespace b3d
 	 *  @{
 	 */
 
-	class B3D_CORE_EXPORT GpuProgramBytecodeRTTI : public TRTTIType<GpuProgramBytecode, IReflectable, GpuProgramBytecodeRTTI>
+	class B3D_EXPORT GpuProgramBytecodeRTTI : public TRTTIType<GpuProgramBytecode, IReflectable, GpuProgramBytecodeRTTI>
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
@@ -49,7 +49,7 @@ namespace b3d
 		}
 	};
 
-	class B3D_CORE_EXPORT GpuProgramParameterDescriptionRTTI : public TRTTIType<GpuProgramParameterDescription, IReflectable, GpuProgramParameterDescriptionRTTI>
+	class B3D_EXPORT GpuProgramParameterDescriptionRTTI : public TRTTIType<GpuProgramParameterDescription, IReflectable, GpuProgramParameterDescriptionRTTI>
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
@@ -79,7 +79,7 @@ namespace b3d
 		}
 	};
 
-	class B3D_CORE_EXPORT GpuProgramRTTI : public TRTTIType<GpuProgram, IReflectable, GpuProgramRTTI>
+	class B3D_EXPORT GpuProgramRTTI : public TRTTIType<GpuProgram, IReflectable, GpuProgramRTTI>
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
@@ -120,7 +120,7 @@ namespace b3d
 		}
 	};
 
-	class B3D_CORE_EXPORT GpuProgramCreateInformationRTTI : public TRTTIType<GpuProgramCreateInformation, IReflectable, GpuProgramCreateInformationRTTI>
+	class B3D_EXPORT GpuProgramCreateInformationRTTI : public TRTTIType<GpuProgramCreateInformation, IReflectable, GpuProgramCreateInformationRTTI>
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS

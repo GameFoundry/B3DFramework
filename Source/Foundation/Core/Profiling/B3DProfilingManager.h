@@ -30,7 +30,7 @@ namespace b3d
 	 *
 	 * @note	Main thread only unless specified otherwise.
 	 */
-	class B3D_CORE_EXPORT ProfilingManager : public Module<ProfilingManager>
+	class B3D_EXPORT ProfilingManager : public Module<ProfilingManager>
 	{
 	public:
 		ProfilingManager();
@@ -72,7 +72,7 @@ namespace b3d
 	};
 
 	/** Easy way to access ProfilingManager. */
-	B3D_CORE_EXPORT ProfilingManager& GetProfiler();
+	B3D_EXPORT ProfilingManager& GetProfiler();
 
 	/** @} */
 } // namespace b3d

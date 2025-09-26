@@ -103,12 +103,12 @@ namespace b3d
 	class MemoryCounter
 	{
 	public:
-		static B3D_UTILITY_EXPORT uint64_t GetAllocationCount()
+		static B3D_EXPORT uint64_t GetAllocationCount()
 		{
 			return Allocs;
 		}
 
-		static B3D_UTILITY_EXPORT uint64_t GetFreeCount()
+		static B3D_EXPORT uint64_t GetFreeCount()
 		{
 			return Frees;
 		}
@@ -117,9 +117,9 @@ namespace b3d
 		friend class MemoryAllocatorBase;
 
 		// Threadlocal data can't be exported, so some magic to make it accessible from MemoryAllocator
-		static B3D_UTILITY_EXPORT void IncrementAllocationCount() { ++Allocs; }
+		static B3D_EXPORT void IncrementAllocationCount() { ++Allocs; }
 
-		static B3D_UTILITY_EXPORT void IncrementFreeCount() { ++Frees; }
+		static B3D_EXPORT void IncrementFreeCount() { ++Frees; }
 
 		static B3D_THREADLOCAL uint64_t Allocs;
 		static B3D_THREADLOCAL uint64_t Frees;

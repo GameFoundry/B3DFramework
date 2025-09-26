@@ -20,7 +20,7 @@ namespace b3d
 	 * It is expected each native class exported to script will implement its own version of the script object wrapper, which would provide
 	 * methods to create the script object, and allow the script object to call methods and access data on the native object.
 	 */
-	class B3D_UTILITY_EXPORT IScriptObjectWrapper
+	class B3D_EXPORT IScriptObjectWrapper
 	{
 	public:
 		IScriptObjectWrapper(IScriptExportable* nativeObject);

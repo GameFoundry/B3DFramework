@@ -123,7 +123,7 @@ namespace b3d
 	 *	- Arrays of both plain and reflectable types are supported
 	 *	- Data blocks - A managed or unmanaged block of data. See ManagedDataBlock.
 	 */
-	class B3D_UTILITY_EXPORT RTTIType
+	class B3D_EXPORT RTTIType
 	{
 	public:
 		RTTIType() = default;
@@ -474,7 +474,7 @@ namespace b3d
 	Type* TRTTIType<Type, BaseType, MyRTTIType>::DefaultObject = nullptr;
 
 	/** Provides information about the operation being performed on RTTIType objects. */
-	struct B3D_UTILITY_EXPORT RTTIOperationContext : IReflectable
+	struct B3D_EXPORT RTTIOperationContext : IReflectable
 	{
 		u32 Flags = 0;
 
@@ -501,7 +501,7 @@ namespace b3d
 	}
 
 	/** Creates a new object just from its type ID. */
-	B3D_UTILITY_EXPORT SPtr<IReflectable> B3DRTTICreate(u32 rttiId);
+	B3D_EXPORT SPtr<IReflectable> B3DRTTICreate(u32 rttiId);
 
 	/** Checks is the current object a subclass of some type. */
 	template <class T>

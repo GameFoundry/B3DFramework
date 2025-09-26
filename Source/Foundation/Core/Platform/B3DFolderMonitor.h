@@ -26,7 +26,7 @@ namespace b3d
 	 * Allows monitoring a file system folder for changes. Depending on the flags set this monitor can notify you when file
 	 * is changed/moved/renamed and similar.
 	 */
-	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(API(Editor)) FolderMonitor : public IScriptExportable
+	class B3D_EXPORT B3D_SCRIPT_EXPORT(API(Editor)) FolderMonitor : public IScriptExportable
 	{
 		class FileNotifyInfo;
 
@@ -85,7 +85,7 @@ namespace b3d
 	};
 
 	/**	Manages all active managed folder monitor objects. */
-	class B3D_CORE_EXPORT FolderMonitorManager : public Module<FolderMonitorManager>
+	class B3D_EXPORT FolderMonitorManager : public Module<FolderMonitorManager>
 	{
 	public:
 		/**	Triggers updates on all active folder monitor objects. Should be called once per frame. */

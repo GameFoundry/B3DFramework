@@ -17,7 +17,7 @@ namespace b3d
 
 	/** Class representing a 4x4 matrix, in row major format. */
 	template<typename T>
-	struct B3D_UTILITY_EXPORT TMatrix4
+	struct B3D_EXPORT TMatrix4
 	{
 	public:
 		TMatrix4() = default;

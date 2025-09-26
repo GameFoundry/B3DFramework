@@ -18,7 +18,7 @@ namespace b3d
 		 *
 		 * @note	Used just for more easily passing around vertex information.
 		 */
-		class B3D_CORE_EXPORT VertexData
+		class B3D_EXPORT VertexData
 		{
 		public:
 			VertexData() = default;

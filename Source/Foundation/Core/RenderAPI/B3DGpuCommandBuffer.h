@@ -16,7 +16,7 @@ namespace b3d
 		 */
 
 		/** Creates a mask that determines synchronization between command buffers executing on different hardware queues. */
-		class B3D_CORE_EXPORT CommandSyncMask
+		class B3D_EXPORT CommandSyncMask
 		{
 		public:
 			/** Uses the queue type and index to generate a mask with a bit set for that queue's global index. */
@@ -104,7 +104,7 @@ namespace b3d
 		 * All allocated command buffers may only be used on the GPU queues that have the subset of usage flags provided by this pool.
 		 * Command buffer and all command buffers allocated from the command buffer may only be used on a single thread. Command buffers may only be used on another thread as part of command buffer submission.
 		 */
-		class B3D_CORE_EXPORT GpuCommandBufferPool
+		class B3D_EXPORT GpuCommandBufferPool
 		{
 		public:
 			virtual ~GpuCommandBufferPool() = default;
@@ -144,7 +144,7 @@ namespace b3d
 		 * must always be created on the render thread. Same command buffer cannot be used on multiple threads simulateously
 		 * without external synchronization.
 		 */
-		class B3D_CORE_EXPORT GpuCommandBuffer
+		class B3D_EXPORT GpuCommandBuffer
 		{
 		public:
 			virtual ~GpuCommandBuffer();

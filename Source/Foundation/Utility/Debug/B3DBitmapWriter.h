@@ -11,7 +11,7 @@ namespace b3d
 	 */
 
 	/** Utility class for generating BMP images. */
-	class B3D_UTILITY_EXPORT BitmapWriter
+	class B3D_EXPORT BitmapWriter
 	{
 	public:
 		/**

@@ -35,7 +35,7 @@ namespace b3d
 	};
 
 	/** A single log entry, containing a message and a channel the message was recorded on. */
-	class B3D_UTILITY_EXPORT B3D_SCRIPT_EXPORT(ExportAsStruct(true), DocumentationGroup(Debug)) LogEntry
+	class B3D_EXPORT B3D_SCRIPT_EXPORT(ExportAsStruct(true), DocumentationGroup(Debug)) LogEntry
 	{
 	public:
 		LogEntry() = default;
@@ -52,7 +52,7 @@ namespace b3d
 	};
 
 	/** Base class for all log categories. */
-	struct B3D_UTILITY_EXPORT LogCategoryBase
+	struct B3D_EXPORT LogCategoryBase
 	{
 	public:
 		LogCategoryBase(const char* name, LogVerbosity defaultMaximumVerbosity);
@@ -98,7 +98,7 @@ namespace b3d
 	 *
 	 * @note	Thread safe.
 	 */
-	class B3D_UTILITY_EXPORT Log
+	class B3D_EXPORT Log
 	{
 	public:
 		Log() = default;

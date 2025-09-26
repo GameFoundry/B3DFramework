@@ -12,10 +12,10 @@ namespace b3d
 	 *  @{
 	 */
 
-	B3D_CORE_EXPORT B3D_LOG_CATEGORY_EXTERN(Prefab, Log)
+	B3D_EXPORT B3D_LOG_CATEGORY_EXTERN(Prefab, Log)
 
 	/** Keeps track of all live prefabs and ensures they are kept up to date. */
-	class B3D_CORE_EXPORT PrefabManager : public Module<PrefabManager>
+	class B3D_EXPORT PrefabManager : public Module<PrefabManager>
 	{
 	public:
 		/** Returns all prefabs that are currently loaded. */
@@ -37,7 +37,7 @@ namespace b3d
 	 * can also contain per instance modifications that will be preserved even if the prefab they were created from
 	 * changes.
 	 */
-	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Scene)) Prefab : public Resource
+	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Scene)) Prefab : public Resource
 	{
 	public:
 		Prefab();

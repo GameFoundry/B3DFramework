@@ -31,7 +31,7 @@ namespace b3d
 	 * Provides a standardized way to initialize/destroy objects, a unique runtime ID for each object, and a way to specify dependant CoreObject%s. 
 	 * Optionally it may also be used to create render proxy objects for use by the render thread.
 	 */
-	class B3D_CORE_EXPORT CoreObject
+	class B3D_EXPORT CoreObject
 	{
 	public:
 		/**

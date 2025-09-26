@@ -17,7 +17,7 @@ namespace b3d
 	 *  @{
 	 */
 
-	class B3D_CORE_EXPORT ResourceRTTI : public TRTTIType<Resource, IReflectable, ResourceRTTI>
+	class B3D_EXPORT ResourceRTTI : public TRTTIType<Resource, IReflectable, ResourceRTTI>
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS

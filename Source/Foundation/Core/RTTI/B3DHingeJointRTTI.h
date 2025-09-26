@@ -16,7 +16,7 @@ namespace b3d
 	 *  @{
 	 */
 
-	class B3D_CORE_EXPORT HingeJointRTTI : public TRTTIType<HingeJoint, Joint, HingeJointRTTI>
+	class B3D_EXPORT HingeJointRTTI : public TRTTIType<HingeJoint, Joint, HingeJointRTTI>
 	{
 		B3D_RTTI_BEGIN_MEMBERS
 			B3D_RTTI_MEMBER_NAMED(mFlag, mInformation.Flags, 0)

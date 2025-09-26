@@ -103,7 +103,7 @@ namespace b3d
 	 * and execution will continue from the point it yielded. To allow for this behaviour internally the fibers maintain their
 	 * own stack and registers.
 	 */
-	class B3D_UTILITY_EXPORT Fiber
+	class B3D_EXPORT Fiber
 	{
 	public:
 		Fiber(UPtr<marl::OSFiber>&& osFiber, u32 id);
@@ -257,16 +257,16 @@ namespace b3d
 			SingleThreaded, /**< Thread is the same thread bound to the scheduler. */
 		};
 
-		B3D_UTILITY_EXPORT SchedulerThread(Scheduler* scheduler, Mode mode, u32 id);
+		B3D_EXPORT SchedulerThread(Scheduler* scheduler, Mode mode, u32 id);
 
 		/** Returns the underlying thread object. */
-		B3D_UTILITY_EXPORT const Thread& GetThread() const { return mThread; }
+		B3D_EXPORT const Thread& GetThread() const { return mThread; }
 
 		/** Returns a message queue that may be used for posting messages to this thread. */
-		B3D_UTILITY_EXPORT SingleConsumerQueue& GetMessageQueue() const { return *mMessageQueue; }
+		B3D_EXPORT SingleConsumerQueue& GetMessageQueue() const { return *mMessageQueue; }
 
 		/** Queues a new task for execution on this thread. */
-		B3D_UTILITY_EXPORT void Post(SchedulerTask&& task);
+		B3D_EXPORT void Post(SchedulerTask&& task);
 
 		/** Returns the fiber currently being executed. */
 		Fiber* GetCurrentFiber() const { return mCurrentFiber; }
@@ -274,7 +274,7 @@ namespace b3d
 		const u32 Id; /**< Unique identifier of the scheduler thread. */
 
 		/** Returns the scheduler thread bound to the current thread. */
-		B3D_UTILITY_EXPORT static const SPtr<SchedulerThread>& Get() { return Current; }
+		B3D_EXPORT static const SPtr<SchedulerThread>& Get() { return Current; }
 
 	private:
 		friend class Scheduler;
@@ -287,10 +287,10 @@ namespace b3d
 		void Stop();
 
 		/** Suspends execution of the current task until the task is woken up via a call to Enqueue() or timeout expires. See Fiber::Wait() overloads for more information. */
-		bool B3D_UTILITY_EXPORT Wait(Lock& lock, const TimePoint* timeout, const Function<bool()>& predicate);
+		bool B3D_EXPORT Wait(Lock& lock, const TimePoint* timeout, const Function<bool()>& predicate);
 
 		/** Suspends execution of the current task until the task is woken up via a call to Enqueue() or timeout expires. See Fiber::Wait() overloads for more information. */
-		bool B3D_UTILITY_EXPORT Wait(const TimePoint* timeout);
+		bool B3D_EXPORT Wait(const TimePoint* timeout);
 
 		/** Suspends execution of the current task until the task is woken up via a call to Enqueue() or timeout expires. See Fiber::Wait() overloads for more information. Mutex must be locked when this is called. */
 		void WaitWithoutLocking(const TimePoint* timeout);
@@ -337,7 +337,7 @@ namespace b3d
 		/** Waits until the mAddedSignal is notified and predicate returns true. */
 		void WaitOnAddedSignal(const Function<bool()>& predicate);
 
-		B3D_UTILITY_HIDDEN static thread_local SPtr<SchedulerThread> Current;
+		B3D_HIDDEN static thread_local SPtr<SchedulerThread> Current;
 
 		const Mode mMode;
 		Scheduler* const mOwnerScheduler;
@@ -424,19 +424,19 @@ namespace b3d
 		~Scheduler();
 
 		/** Returns information describing the scheduler. */
-		B3D_UTILITY_EXPORT const SchedulerInformation& GetInformation() const { return mInformation; }
+		B3D_EXPORT const SchedulerInformation& GetInformation() const { return mInformation; }
 
 		/** Binds the scheduler to the current thread. No other scheduler can be bound already. */
-		B3D_UTILITY_EXPORT void BindToCurrentThread();
+		B3D_EXPORT void BindToCurrentThread();
 
 		/** Queues a new task for execution by the scheduler. */
-		B3D_UTILITY_EXPORT void Post(SchedulerTask&& task);
+		B3D_EXPORT void Post(SchedulerTask&& task);
 
 		/** Unbinds the scheduler currently bound on the calling thread. This will wait until all operations complete before returning. */
-		B3D_UTILITY_EXPORT static void UnbindFromCurrentThread();
+		B3D_EXPORT static void UnbindFromCurrentThread();
 
 		/** Gets the scheduler bound to the current thread. */
-		B3D_UTILITY_EXPORT static Scheduler* Get() { return Current; }
+		B3D_EXPORT static Scheduler* Get() { return Current; }
 
 	private:
 		friend class SchedulerThread;
@@ -454,7 +454,7 @@ namespace b3d
 		/** Notifies the scheduler that a scheduler thread has begun spinning. This allows the scheduler to prioritize work on this worker. */
 		void NotifyOnBeginSpinning(u32 workerId);
 
-		B3D_UTILITY_HIDDEN static thread_local Scheduler* Current;
+		B3D_HIDDEN static thread_local Scheduler* Current;
 
 		std::array<std::atomic<u32>, 8> mSpinningWorkers;
 		std::atomic<u32> mNextSpinningWorkerIndex = { 0x8000000 };

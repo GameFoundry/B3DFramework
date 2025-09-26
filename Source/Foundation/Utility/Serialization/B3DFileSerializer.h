@@ -14,7 +14,7 @@ namespace b3d
 	struct RTTIOperationContext;
 
 	/** Encodes the provided object to the specified file using the RTTI system. */
-	class B3D_UTILITY_EXPORT FileEncoder
+	class B3D_EXPORT FileEncoder
 	{
 	public:
 		FileEncoder(const Path& fileLocation);
@@ -40,7 +40,7 @@ namespace b3d
 	};
 
 	/** Decodes objects from the specified file using the RTTI system. */
-	class B3D_UTILITY_EXPORT FileDecoder
+	class B3D_EXPORT FileDecoder
 	{
 	public:
 		FileDecoder(const Path& fileLocation);

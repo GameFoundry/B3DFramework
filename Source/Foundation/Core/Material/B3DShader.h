@@ -194,7 +194,7 @@ namespace b3d
 	};
 
 	/** Structure used for initializing a shader. */
-	struct B3D_CORE_EXPORT ShaderInformationBase : public IReflectable
+	struct B3D_EXPORT ShaderInformationBase : public IReflectable
 	{
 		ShaderInformationBase();
 
@@ -351,7 +351,7 @@ namespace b3d
 
 	namespace render
 	{
-	struct B3D_CORE_EXPORT ShaderInformation : ShaderInformationBase
+	struct B3D_EXPORT ShaderInformation : ShaderInformationBase
 	{
 		ShaderInformation() = default;
 
@@ -377,7 +377,7 @@ namespace b3d
 	};
 	} // namespace render
 
-	struct B3D_CORE_EXPORT ShaderInformation : ShaderInformationBase 
+	struct B3D_EXPORT ShaderInformation : ShaderInformationBase
 	{
 		ShaderInformation() = default;
 
@@ -407,7 +407,7 @@ namespace b3d
 
 	/**	Templated version of Shader used for implementing both main and render thread counterparts. */
 	template <bool IsRenderProxy>
-	class B3D_CORE_EXPORT TShader
+	class B3D_EXPORT TShader
 	{
 	public:
 		using TechniqueType = CoreVariantType<Technique, IsRenderProxy>;
@@ -593,7 +593,7 @@ namespace b3d
 	 * programs.
 	 * @endscript
 	 */
-	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Rendering)) Shader : public Resource, public TShader<false>
+	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Rendering)) Shader : public Resource, public TShader<false>
 	{
 	public:
 		/** Returns the name of the shader. */
@@ -682,7 +682,7 @@ namespace b3d
 	 */
 
 	/** Shader specific resource meta-data containing information about referenced include files. */
-	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT() ShaderMetaData : public ResourceMetaData
+	class B3D_EXPORT B3D_SCRIPT_EXPORT() ShaderMetaData : public ResourceMetaData
 	{
 	public:
 		B3D_SCRIPT_EXPORT()
@@ -708,7 +708,7 @@ namespace b3d
 		 */
 
 		/** Render thread version of Shader. */
-		class B3D_CORE_EXPORT Shader : public IReflectable, public RenderProxy, public TShader<true>
+		class B3D_EXPORT Shader : public IReflectable, public RenderProxy, public TShader<true>
 		{
 		public:
 			/** @copydoc b3d::Shader::Create */

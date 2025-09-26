@@ -55,7 +55,7 @@ namespace b3d
 	};
 
 	/** Describes pointer (mouse, touch) states as reported by the OS. */
-	struct B3D_CORE_EXPORT OSPointerButtonStates
+	struct B3D_EXPORT OSPointerButtonStates
 	{
 		OSPointerButtonStates()
 		{
@@ -72,21 +72,21 @@ namespace b3d
 	};
 
 	/**	Represents a specific non client area used for window resizing. */
-	struct B3D_CORE_EXPORT NonClientResizeArea
+	struct B3D_EXPORT NonClientResizeArea
 	{
 		NonClientAreaBorderType Type;
 		Area2I Area;
 	};
 
 	/** Contains a list of window move and resize non client areas. */
-	struct B3D_CORE_EXPORT WindowNonClientAreaData
+	struct B3D_EXPORT WindowNonClientAreaData
 	{
 		Vector<NonClientResizeArea> ResizeAreas;
 		Vector<Area2I> MoveAreas;
 	};
 
 	/**	Provides access to various operating system functions, including the main message pump. */
-	class B3D_CORE_EXPORT Platform
+	class B3D_EXPORT Platform
 	{
 	public:
 		struct Private;

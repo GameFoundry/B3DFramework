@@ -21,7 +21,7 @@ namespace b3d
 	 */
 
 	/** Render window implementation for Linux using Xlib. */
-	class B3D_CORE_EXPORT LinuxRenderWindow : public RenderWindow
+	class B3D_EXPORT LinuxRenderWindow : public RenderWindow
 	{
 	public:
 		LinuxRenderWindow(const RenderWindowCreateInformation& createInformation, u32 windowId, const SPtr<RenderWindow>& parentWindow);
@@ -63,7 +63,7 @@ namespace b3d
 	namespace render
 	{
 		/** Render thread proxy for b3d::LinuxRenderWindow. */
-		class B3D_CORE_EXPORT LinuxRenderWindow : public RenderWindow
+		class B3D_EXPORT LinuxRenderWindow : public RenderWindow
 		{
 		public:
 			LinuxRenderWindow(const RenderWindowCreateInformation& createInformation, u32 windowId, u64 x11WindowHandle, const SPtr<RenderWindow>& parentWindow);

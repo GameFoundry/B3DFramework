@@ -12,7 +12,7 @@ namespace b3d
 	 */
 
 	/** A collider with plane geometry. Plane colliders cannot be a part of non-kinematic rigidbodies. */
-	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Physics)) PlaneCollider : public Collider
+	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Physics)) PlaneCollider : public Collider
 	{
 	public:
 		PlaneCollider(const HSceneObject& parent);

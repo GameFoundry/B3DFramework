@@ -15,7 +15,7 @@ namespace b3d
 
 	/** Contains a set of GpuParameters used for a single technique within a Material. */
 	template <bool IsRenderProxy>
-	class B3D_CORE_EXPORT TGpuParamsSet
+	class B3D_EXPORT TGpuParamsSet
 	{
 		using GpuParamsType = CoreVariantType<GpuParameters, IsRenderProxy>;
 		using MaterialParamsType = CoreVariantType<MaterialParams, IsRenderProxy>;
@@ -177,7 +177,7 @@ namespace b3d
 	};
 
 	/** Main thread version of TGpuParamsSet<IsRenderProxy>. */
-	class B3D_CORE_EXPORT GpuParamsSet : public TGpuParamsSet<false>
+	class B3D_EXPORT GpuParamsSet : public TGpuParamsSet<false>
 	{
 	public:
 		GpuParamsSet() = default;
@@ -190,7 +190,7 @@ namespace b3d
 	namespace render
 	{
 		/** Render thread version of TGpuParamsSet<IsRenderProxy>. */
-		class B3D_CORE_EXPORT GpuParamsSet : public TGpuParamsSet<true>
+		class B3D_EXPORT GpuParamsSet : public TGpuParamsSet<true>
 		{
 		public:
 			GpuParamsSet() = default;

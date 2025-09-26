@@ -35,7 +35,7 @@ namespace b3d
 		class VulkanResource
 		{
 		public:
-			static constexpr u32 kMaximumUniqueQueueCount = BS_MAX_QUEUES_PER_TYPE * GQT_COUNT;
+			static constexpr u32 kMaximumUniqueQueueCount = B3D_MAX_QUEUES_PER_TYPE * GQT_COUNT;
 
 			VulkanResource(VulkanResourceManager* owner, bool concurrency, const StringView& name);
 			virtual ~VulkanResource();

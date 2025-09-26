@@ -20,7 +20,7 @@ namespace b3d
 	 *  @{
 	 */
 
-	class B3D_CORE_EXPORT SceneObjectRTTI : public TRTTIType<SceneObject, GameObject, SceneObjectRTTI>
+	class B3D_EXPORT SceneObjectRTTI : public TRTTIType<SceneObject, GameObject, SceneObjectRTTI>
 	{
 		Vector<SPtr<SceneObject>> mChildren;
 		Vector<SPtr<Component>> mComponents;

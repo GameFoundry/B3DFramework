@@ -80,5 +80,5 @@ void TBounds<T>::TransformAffine(const TMatrix4<T>& matrix)
 	mSphereRadius *= Math::SquareRoot(maximumLengthSquared);
 }
 
-template struct B3D_UTILITY_EXPORT TBounds<float>;
-template struct B3D_UTILITY_EXPORT TBounds<double>;
+template struct B3D_EXPORT TBounds<float>;
+template struct B3D_EXPORT TBounds<double>;

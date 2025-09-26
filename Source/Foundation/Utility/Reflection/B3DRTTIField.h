@@ -55,7 +55,7 @@ namespace b3d
 	};
 
 	/** Information about a type stored in a RTTIField. A single field can hold one or multiple types (e.g. in case of a map entry it will store a key/value pair). */
-	struct B3D_UTILITY_EXPORT RTTIFieldDataTypeSchema : IReflectable
+	struct B3D_EXPORT RTTIFieldDataTypeSchema : IReflectable
 	{
 		RTTIFieldDataTypeSchema() = default;
 		RTTIFieldDataTypeSchema(bool hasDynamicSize, BitLength fixedSize, RTTIFieldDataType type, u32 fieldTypeId, SPtr<RTTISchema> fieldTypeSchema)
@@ -73,7 +73,7 @@ namespace b3d
 	};
 
 	/** Contains serializable meta-data about a single RTTI field. */
-	struct B3D_UTILITY_EXPORT RTTIFieldSchema : IReflectable
+	struct B3D_EXPORT RTTIFieldSchema : IReflectable
 	{
 		RTTIFieldSchema() = default;
 		RTTIFieldSchema(i16 id, bool isContainer, RTTIFieldType fieldType, const RTTIFieldInfo& info)
@@ -101,7 +101,7 @@ namespace b3d
 	 * Most of the methods for retrieving and setting data accept "void *" for both the data and the owning class instance.
 	 * It is up to the caller to ensure that pointer is of proper type.
 	 */
-	struct B3D_UTILITY_EXPORT RTTIField
+	struct B3D_EXPORT RTTIField
 	{
 		String Name;
 		RTTIFieldSchema Schema;

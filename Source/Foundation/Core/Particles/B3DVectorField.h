@@ -43,7 +43,7 @@ namespace b3d
 
 	/** Common functionality for both the main and render thread variants of VectorField. */
 	template <bool IsRenderProxy>
-	class B3D_CORE_EXPORT TVectorField
+	class B3D_EXPORT TVectorField
 	{
 	public:
 		using TextureType = SPtr<CoreVariantType<Texture, IsRenderProxy>>;
@@ -77,7 +77,7 @@ namespace b3d
 	 * Represents a three dimensional field of vectors. It is represented by spatial bounds which are split into a grid
 	 * of values with user-defined density, where each grid cell is assigned a vector.
 	 */
-	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Particles)) VectorField : public Resource, public TVectorField<false>
+	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Particles)) VectorField : public Resource, public TVectorField<false>
 	{
 	public:
 		/************************************************************************/
@@ -131,7 +131,7 @@ namespace b3d
 		 */
 
 		/** Render  thread version of a b3d::VectorField. */
-		class B3D_CORE_EXPORT VectorField : public RenderProxy, public TVectorField<true>
+		class B3D_EXPORT VectorField : public RenderProxy, public TVectorField<true>
 		{
 		public:
 			VectorField(const VECTOR_FIELD_DESC& desc, const SPtr<Texture>& texture);
@@ -145,7 +145,7 @@ namespace b3d
 	 */
 
 	/**	Imports vector fields from Fluid Grid ASCII (.fga) files. */
-	class B3D_CORE_EXPORT FGAImporter : public SpecificImporter
+	class B3D_EXPORT FGAImporter : public SpecificImporter
 	{
 	public:
 		bool IsExtensionSupported(const String& ext) const override;

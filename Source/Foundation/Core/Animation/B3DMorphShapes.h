@@ -14,7 +14,7 @@ namespace b3d
 	 */
 
 	/** A single vertex used for morph target animation. Contains a difference between base and target shape. */
-	struct B3D_CORE_EXPORT MorphVertex
+	struct B3D_EXPORT MorphVertex
 	{
 		MorphVertex() = default;
 
@@ -37,7 +37,7 @@ namespace b3d
 	 * that describe the morph shape.
 	 * @endscript
 	 */
-	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Animation)) MorphShape : public IReflectable, public IScriptExportable
+	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Animation)) MorphShape : public IReflectable, public IScriptExportable
 	{
 	public:
 		MorphShape(const String& name, float weight, const Vector<MorphVertex>& vertices);
@@ -85,7 +85,7 @@ namespace b3d
 	 * determines at what point is that shape blended. As the channel percent moves from 0 to 1, different shapes will be
 	 * blended with those before or after them, depending on their weight.
 	 */
-	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Animation)) MorphChannel : public IReflectable, public IScriptExportable
+	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Animation)) MorphChannel : public IReflectable, public IScriptExportable
 	{
 	public:
 		/** Returns the unique name of the channel. */
@@ -133,7 +133,7 @@ namespace b3d
 	 * which are blended together depending on frame animation. Each channel is then additively blended together depending
 	 * on some weight.
 	 */
-	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Animation)) MorphShapes : public IReflectable, public IScriptExportable // Note: Must be immutable in order to be usable on multiple threads
+	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Animation)) MorphShapes : public IReflectable, public IScriptExportable // Note: Must be immutable in order to be usable on multiple threads
 	{
 	public:
 		/** Returns the number of available morph channels. */

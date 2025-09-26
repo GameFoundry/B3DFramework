@@ -22,7 +22,7 @@ namespace b3d
 	 * Contains data resulting from a single frame of CPU particle simulation of a single particle system, used by all
 	 * rendering modes.
 	 */
-	struct B3D_CORE_EXPORT ParticleRenderData
+	struct B3D_EXPORT ParticleRenderData
 	{
 		/** Contains mapping from unsorted to sorted particle indices. */
 		Vector<u32> Indices;
@@ -38,7 +38,7 @@ namespace b3d
 	 * Contains data used for rendering particles as billboards. Per-particle data is stored in a 2D square layout so it
 	 * can be used for quickly initializing a texture.
 	 */
-	struct B3D_CORE_EXPORT ParticleBillboardRenderData : ParticleRenderData
+	struct B3D_EXPORT ParticleBillboardRenderData : ParticleRenderData
 	{
 		/** Contains particle positions in .xyz and 2D rotation in .w */
 		PixelData PositionAndRotation;
@@ -54,7 +54,7 @@ namespace b3d
 	 * Contains data used for rendering particles as meshes. Per-particle data is stored in a 2D square layout so it
 	 * can be used for quickly initializing a texture.
 	 */
-	struct B3D_CORE_EXPORT ParticleMeshRenderData : ParticleRenderData
+	struct B3D_EXPORT ParticleMeshRenderData : ParticleRenderData
 	{
 		/** Contains particle positions in .xyz with .w unused. */
 		PixelData Position;
@@ -106,7 +106,7 @@ namespace b3d
 	};
 
 	/** Contains inputs to the GPU particle simulation as provided by the particle system manager. */
-	struct B3D_CORE_EXPORT ParticleGPUSimulationData
+	struct B3D_EXPORT ParticleGPUSimulationData
 	{
 		/** A set of the particles to be inserted into the simulation. */
 		Vector<GpuParticle> Particles;
@@ -120,7 +120,7 @@ namespace b3d
 	};
 
 	/** Keeps track of all active ParticleSystem%s in a particular scene and performs per-frame updates. */
-	class B3D_CORE_EXPORT ParticleScene final
+	class B3D_EXPORT ParticleScene final
 	{
 		struct Members;
 

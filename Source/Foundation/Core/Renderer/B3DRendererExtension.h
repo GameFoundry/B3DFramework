@@ -87,7 +87,7 @@ namespace b3d
 	 *
 	 * @note	Render thread.
 	 */
-	class B3D_CORE_EXPORT RendererExtension
+	class B3D_EXPORT RendererExtension
 	{
 	public:
 		/**

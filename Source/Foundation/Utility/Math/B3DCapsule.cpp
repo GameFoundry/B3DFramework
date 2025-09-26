@@ -213,5 +213,5 @@ std::pair<bool, T> TCapsule<T>::Intersects(const TRay<T>& ray) const
 	return std::make_pair(false, (T)0.0);
 }
 
-template struct B3D_UTILITY_EXPORT TCapsule<float>;
-template struct B3D_UTILITY_EXPORT TCapsule<double>;
+template struct B3D_EXPORT TCapsule<float>;
+template struct B3D_EXPORT TCapsule<double>;

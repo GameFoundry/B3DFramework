@@ -108,7 +108,7 @@ namespace b3d
 		 *
 		 * @note	Due to the way allocation is handled, this class is not allowed to have a destructor.
 		 */
-		class B3D_CORE_EXPORT Line
+		class B3D_EXPORT Line
 		{
 		public:
 			/**	Returns width of the line in pixels. */
@@ -217,32 +217,32 @@ namespace b3d
 		 *
 		 * After this object is constructed you may call various getter methods to get needed information.
 		 */
-		B3D_CORE_EXPORT TextGeometry(const U32String& text, const HFont& font, float fontSize, u32 width = 0, u32 height = 0, bool wordWrap = false, bool wordBreak = true);
-		B3D_CORE_EXPORT virtual ~TextGeometry() = default;
+		B3D_EXPORT TextGeometry(const U32String& text, const HFont& font, float fontSize, u32 width = 0, u32 height = 0, bool wordWrap = false, bool wordBreak = true);
+		B3D_EXPORT virtual ~TextGeometry() = default;
 
 		/**	Returns the number of lines that were generated. */
-		B3D_CORE_EXPORT u32 GetLineCount() const { return mLineCount; }
+		B3D_EXPORT u32 GetLineCount() const { return mLineCount; }
 
 		/**	Returns the number of font pages references by the used characters. */
-		B3D_CORE_EXPORT u32 GetPageCount() const { return mPageCount; }
+		B3D_EXPORT u32 GetPageCount() const { return mPageCount; }
 
 		/**	Returns the height of a line in pixels. */
-		B3D_CORE_EXPORT float GetLineHeight() const;
+		B3D_EXPORT float GetLineHeight() const;
 
 		/**	Gets information describing a single line at the specified index. */
-		B3D_CORE_EXPORT const Line& GetLine(u32 idx) const { return mLines[idx]; }
+		B3D_EXPORT const Line& GetLine(u32 idx) const { return mLines[idx]; }
 
 		/**	Returns font texture for the provided page index.  */
-		B3D_CORE_EXPORT const HTexture& GetTextureForPage(u32 page) const;
+		B3D_EXPORT const HTexture& GetTextureForPage(u32 page) const;
 
 		/**	Returns the number of quads used by all the characters in the provided page. */
-		B3D_CORE_EXPORT u32 GetQuadCount(u32 page) const { return mPageInfos[page].QuadCount; }
+		B3D_EXPORT u32 GetQuadCount(u32 page) const { return mPageInfos[page].QuadCount; }
 
 		/**	Returns the width of the actual text in pixels. */
-		B3D_CORE_EXPORT float GetWidth() const;
+		B3D_EXPORT float GetWidth() const;
 
 		/**	Returns the height of the actual text in pixels. */
-		B3D_CORE_EXPORT float GetHeight() const;
+		B3D_EXPORT float GetHeight() const;
 
 	protected:
 		/**
@@ -257,7 +257,7 @@ namespace b3d
 		 *
 		 * @note	Must be called after text data has been constructed and is in the temporary buffers.
 		 */
-		B3D_CORE_EXPORT void GeneratePersistentData(const U32String& text, u8* buffer, u32& size, bool freeTemporary = true);
+		B3D_EXPORT void GeneratePersistentData(const U32String& text, u8* buffer, u32& size, bool freeTemporary = true);
 
 	private:
 		friend class Line;

@@ -13,14 +13,14 @@ namespace b3d
 	 */
 
 	/**	Structure that describes a render texture color and depth/stencil surfaces. */
-	struct B3D_CORE_EXPORT RenderTextureInformation
+	struct B3D_EXPORT RenderTextureInformation
 	{
 		RenderSurfaceInformation ColorSurfaces[B3D_MAXIMUM_RENDER_TARGET_COUNT];
 		RenderSurfaceInformation DepthStencilSurface;
 	};
 
 	/** Descriptor structure used for initialization of a RenderTexture. */
-	struct B3D_CORE_EXPORT RenderTextureCreateInformation : RenderTextureInformation 
+	struct B3D_EXPORT RenderTextureCreateInformation : RenderTextureInformation
 	{
 		RenderTextureCreateInformation() = default;
 		RenderTextureCreateInformation(const RenderTextureInformation& other)
@@ -37,7 +37,7 @@ namespace b3d
 	 * Render target specialization that allows you to render into one or multiple textures. Such textures can then be used
 	 * in other operations as GPU program input.
 	 */
-	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Rendering)) RenderTexture : public RenderTarget
+	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Rendering)) RenderTexture : public RenderTarget
 	{
 	public:
 		virtual ~RenderTexture() = default;
@@ -96,14 +96,14 @@ namespace b3d
 		 */
 
 		/** @copydoc b3d::RenderTextureInformation */
-		struct B3D_CORE_EXPORT RenderTextureInformation
+		struct B3D_EXPORT RenderTextureInformation
 		{
 			RenderSurfaceInformation ColorSurfaces[B3D_MAXIMUM_RENDER_TARGET_COUNT];
 			RenderSurfaceInformation DepthStencilSurface;
 		};
 
 		/** @copydoc b3d::RenderTextureCreateInformation */
-		struct B3D_CORE_EXPORT RenderTextureCreateInformation : RenderTextureInformation 
+		struct B3D_EXPORT RenderTextureCreateInformation : RenderTextureInformation
 		{
 			RenderTextureCreateInformation() = default;
 			RenderTextureCreateInformation(const RenderTextureInformation& other)
@@ -116,7 +116,7 @@ namespace b3d
 		 *
 		 * @note	Render thread only.
 		 */
-		class B3D_CORE_EXPORT RenderTexture : public RenderTarget
+		class B3D_EXPORT RenderTexture : public RenderTarget
 		{
 		public:
 			RenderTexture(const RenderTextureCreateInformation& createInformation);

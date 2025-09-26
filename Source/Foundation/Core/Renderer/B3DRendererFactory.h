@@ -16,7 +16,7 @@ namespace b3d
 	 *
 	 * @see		RendererManager
 	 */
-	class B3D_CORE_EXPORT RendererFactory
+	class B3D_EXPORT RendererFactory
 	{
 	public:
 		virtual ~RendererFactory() = default;

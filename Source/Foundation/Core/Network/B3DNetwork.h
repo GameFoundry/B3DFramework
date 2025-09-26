@@ -258,7 +258,7 @@ namespace b3d
 	 * explicit connection requests, or listening for incoming requests. Allows you to send and receive data from
 	 * connected peers.
 	 */
-	class B3D_CORE_EXPORT NetworkPeer
+	class B3D_EXPORT NetworkPeer
 	{
 	public:
 		/** Constructs a new network peer using the provided initial setting descriptor. */
@@ -372,13 +372,13 @@ namespace b3d
 	};
 
 	/** Represents a particular state of a network object at a certain point in time. */
-	struct B3D_CORE_EXPORT NetworkObjectState
+	struct B3D_EXPORT NetworkObjectState
 	{
 		SPtr<SerializedObject> state;
 	};
 
 	/** Base class for all objects that can be manipulated using the high-level networking system. */
-	class B3D_CORE_EXPORT NetworkObject : public virtual IReflectable
+	class B3D_EXPORT NetworkObject : public virtual IReflectable
 	{
 		enum State
 		{
@@ -469,7 +469,7 @@ namespace b3d
 	 * High-level networking class that utilizes the low-level networking systems to easily host a server, connect to
 	 * a server, and handle high level concepts such as object data replication and remote procedure calls.
 	 */
-	class B3D_CORE_EXPORT Network : public Module<Network>
+	class B3D_EXPORT Network : public Module<Network>
 	{
 	public:
 		// TODO- Doc

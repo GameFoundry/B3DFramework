@@ -64,7 +64,7 @@ namespace b3d
 	};
 
 	/** Contains information about all parameters (i.e. uniforms) for a single GPU program, including data/object parameters and parameter blocks. */
-	struct B3D_CORE_EXPORT GpuProgramParameterDescription : IReflectable
+	struct B3D_EXPORT GpuProgramParameterDescription : IReflectable
 	{
 		Map<String, GpuDataParameterBlockInformation> UniformBuffers;
 		Map<String, GpuDataParameterInformation> UniformBufferMembers;

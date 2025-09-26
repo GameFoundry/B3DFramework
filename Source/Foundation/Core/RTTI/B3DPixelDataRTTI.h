@@ -15,7 +15,7 @@ namespace b3d
 	 *  @{
 	 */
 
-	class B3D_CORE_EXPORT PixelDataRTTI : public TRTTIType<PixelData, GpuResourceData, PixelDataRTTI>
+	class B3D_EXPORT PixelDataRTTI : public TRTTIType<PixelData, GpuResourceData, PixelDataRTTI>
 	{
 		static constexpr u32 kVersion = 1;
 

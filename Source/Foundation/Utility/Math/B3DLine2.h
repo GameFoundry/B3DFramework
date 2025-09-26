@@ -12,7 +12,7 @@ namespace b3d
 	 */
 
 	/** A line in 2D space represented with an origin and direction. */
-	class B3D_UTILITY_EXPORT Line2
+	class B3D_EXPORT Line2
 	{
 	public:
 		Line2() = default;

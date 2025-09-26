@@ -92,7 +92,7 @@ namespace b3d
 	 */
 
 	/** Implementation of SpriteImage that renders a single glyph from a Font. */
-	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Rendering)) SpriteGlyph : public CoreVariantType<SpriteImage, false>
+	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Rendering)) SpriteGlyph : public CoreVariantType<SpriteImage, false>
 	{
 	public:
 		SPtr<SpriteImageAllocation> FindOrAllocateImageToFitArea(const Size2I& size) override;
@@ -166,7 +166,7 @@ namespace b3d
 		 *
 		 * @note	Render thread.
 		 */
-		class B3D_CORE_EXPORT SpriteGlyph : public CoreVariantType<SpriteImage, true>
+		class B3D_EXPORT SpriteGlyph : public CoreVariantType<SpriteImage, true>
 		{
 		public:
 		private:

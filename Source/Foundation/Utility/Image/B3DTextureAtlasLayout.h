@@ -13,7 +13,7 @@ namespace b3d
 	 */
 
 	/** Organizes a set of textures into a single larger texture (an atlas) by minimizing empty space. Does not allow modifications after initial construction. */
-	class B3D_UTILITY_EXPORT StaticTextureAtlasLayout
+	class B3D_EXPORT StaticTextureAtlasLayout
 	{
 		/** Represent a single node in the texture atlas binary tree. */
 		class TexAtlasNode
@@ -115,7 +115,7 @@ namespace b3d
 	 * Organizes a set of textures into a single larger texture (an atlas) by minimizing empty space. Uses a tree structure to minimize wasted space. Elements
 	 * can be dynamically added and removed from the layout.
 	 */
-	class B3D_UTILITY_EXPORT TreeTextureAtlasLayout
+	class B3D_EXPORT TreeTextureAtlasLayout
 	{
 		/** Determines how are child nodes laid out in a container node. */
 		enum class NodeOrientation
@@ -256,7 +256,7 @@ namespace b3d
 	};
 
 	/** Utility class used for texture atlas layouts. */
-	class B3D_UTILITY_EXPORT TextureAtlasUtility
+	class B3D_EXPORT TextureAtlasUtility
 	{
 	public:
 		/**

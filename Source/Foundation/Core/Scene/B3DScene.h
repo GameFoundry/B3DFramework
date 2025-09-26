@@ -13,7 +13,7 @@ namespace b3d
 	 */
 
 	/** Saveable hierarchy of scene objects that can be instantiated into a SceneInstance. */
-	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Localization)) Scene : public Resource
+	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Localization)) Scene : public Resource
 	{
 	public:
 		Scene();

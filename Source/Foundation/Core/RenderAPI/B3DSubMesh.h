@@ -11,7 +11,7 @@ namespace b3d
 	 */
 
 	/**	Data about a sub-mesh range and the type of primitives contained in the range. */
-	struct B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(ExportAsStruct(true), DocumentationGroup(Rendering)) SubMesh
+	struct B3D_EXPORT B3D_SCRIPT_EXPORT(ExportAsStruct(true), DocumentationGroup(Rendering)) SubMesh
 	{
 		SubMesh() = default;
 

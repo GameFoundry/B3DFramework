@@ -15,7 +15,7 @@ namespace b3d
 	 *  @{
 	 */
 
-	class B3D_CORE_EXPORT SpriteVectorPathRTTI : public TRTTIType<SpriteVectorPath, SpriteImage, SpriteVectorPathRTTI>
+	class B3D_EXPORT SpriteVectorPathRTTI : public TRTTIType<SpriteVectorPath, SpriteImage, SpriteVectorPathRTTI>
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS

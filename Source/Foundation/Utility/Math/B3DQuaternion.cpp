@@ -424,5 +424,5 @@ TQuaternion<T> TQuaternion<T>::GetRotationFromTo(const TVector3<T>& from, const 
 	return q;
 }
 
-template struct B3D_UTILITY_EXPORT TQuaternion<float>;
-template struct B3D_UTILITY_EXPORT TQuaternion<double>;
+template struct B3D_EXPORT TQuaternion<float>;
+template struct B3D_EXPORT TQuaternion<double>;

@@ -19,7 +19,7 @@ namespace b3d
 	};
 
 	/** Performs generic compression and decompression on raw data. */
-	class B3D_UTILITY_EXPORT Compression
+	class B3D_EXPORT Compression
 	{
 	public:
 		/**

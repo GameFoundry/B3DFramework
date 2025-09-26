@@ -19,7 +19,7 @@ namespace b3d
 	 *
 	 * @note	Thread safe.
 	 */
-	class B3D_CORE_EXPORT GpuBackend : public Module<GpuBackend>
+	class B3D_EXPORT GpuBackend : public Module<GpuBackend>
 	{
 	public:
 		~GpuBackend() override = default;

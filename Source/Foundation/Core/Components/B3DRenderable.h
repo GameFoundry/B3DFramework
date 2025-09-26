@@ -30,7 +30,7 @@ namespace b3d
 
 	/** Common code used both by main and render thread variants of Renderable. */
 	template <bool IsRenderProxy>
-	class B3D_CORE_EXPORT TRenderable : public CoreVariantType<CoreObject, IsRenderProxy>, public std::conditional_t<IsRenderProxy, EmptyBase, IResourceListener>
+	class B3D_EXPORT TRenderable : public CoreVariantType<CoreObject, IsRenderProxy>, public std::conditional_t<IsRenderProxy, EmptyBase, IResourceListener>
 	{
 		using MeshType = CoreVariantHandleType<Mesh, IsRenderProxy>;
 		using MaterialType = CoreVariantHandleType<Material, IsRenderProxy>;
@@ -166,7 +166,7 @@ namespace b3d
 	 * Renderable represents any visible object in the scene. It has a mesh, bounds and a set of materials. Renderer will
 	 * render any Renderable objects visible by a camera.
 	 */
-	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Rendering)) Renderable : public Component, public TRenderable<false>
+	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Rendering)) Renderable : public Component, public TRenderable<false>
 	{
 	public:
 		/**
@@ -252,7 +252,7 @@ namespace b3d
 	namespace render
 	{
 		/** @copydoc TRenderable */
-		class B3D_CORE_EXPORT Renderable : public TRenderable<true>
+		class B3D_EXPORT Renderable : public TRenderable<true>
 		{
 		public:
 			~Renderable();

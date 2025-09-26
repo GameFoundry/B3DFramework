@@ -30,7 +30,7 @@ namespace b3d
 	};
 
 	/** Joint that removes all but a single translational degree of freedom. Bodies are allowed to move along a single axis. */
-	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Physics)) SliderJoint : public Joint
+	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Physics)) SliderJoint : public Joint
 	{
 	public:
 		SliderJoint(const HSceneObject& parent);
@@ -97,7 +97,7 @@ namespace b3d
 	};
 
 	/** Low-level interface for a joint used by the SliderJoint component. Should be implemented by the physics plugin to provide joint functionality. */
-	class B3D_CORE_EXPORT ISliderJointImplementation : public IJointImplementation
+	class B3D_EXPORT ISliderJointImplementation : public IJointImplementation
 	{
 	public:
 		using IJointImplementation::GetPosition;

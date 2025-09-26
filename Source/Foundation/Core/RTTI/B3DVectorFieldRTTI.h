@@ -14,7 +14,7 @@ namespace b3d
 	 *  @{
 	 */
 
-	class B3D_CORE_EXPORT VectorFieldRTTI : public TRTTIType<VectorField, Resource, VectorFieldRTTI>
+	class B3D_EXPORT VectorFieldRTTI : public TRTTIType<VectorField, Resource, VectorFieldRTTI>
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS

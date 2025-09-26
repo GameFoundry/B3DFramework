@@ -207,7 +207,7 @@ namespace b3d
 		}
 	};
 
-	class B3D_CORE_EXPORT ColliderShapeRTTI : public TRTTIType<ColliderShape, IReflectable, ColliderShapeRTTI>
+	class B3D_EXPORT ColliderShapeRTTI : public TRTTIType<ColliderShape, IReflectable, ColliderShapeRTTI>
 	{
 		HPhysicsMesh mPhysicsMesh;
 

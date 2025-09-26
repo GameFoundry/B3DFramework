@@ -18,7 +18,7 @@ namespace b3d
 	 *  @{
 	 */
 
-	class B3D_CORE_EXPORT ShaderCompilerMetaDataRTTI : public TRTTIType<ShaderCompilerMetaData, IReflectable, ShaderCompilerMetaDataRTTI>
+	class B3D_EXPORT ShaderCompilerMetaDataRTTI : public TRTTIType<ShaderCompilerMetaData, IReflectable, ShaderCompilerMetaDataRTTI>
 	{
 		B3D_RTTI_BEGIN_MEMBERS
 			B3D_RTTI_MEMBER(Source, 0)

@@ -26,7 +26,7 @@ namespace b3d
 	};
 
 	/** Performs various operations on mesh geometry. */
-	class B3D_CORE_EXPORT MeshUtility
+	class B3D_EXPORT MeshUtility
 	{
 	public:
 		/**

@@ -17,7 +17,7 @@
 #	include "Profiling/B3DProfilerGPU.h"
 #endif
 
-B3D_CORE_EXPORT B3D_LOG_CATEGORY_EXTERN(RendererMaterial, Log)
+B3D_EXPORT B3D_LOG_CATEGORY_EXTERN(RendererMaterial, Log)
 
 /** @addtogroup Renderer-Engine-Internal
  *  @{

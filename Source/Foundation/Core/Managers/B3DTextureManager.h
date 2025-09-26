@@ -18,7 +18,7 @@ namespace b3d
 	 *
 	 * @note	Main thread only.
 	 */
-	class B3D_CORE_EXPORT TextureManager : public Module<TextureManager>
+	class B3D_EXPORT TextureManager : public Module<TextureManager>
 	{
 	public:
 		virtual ~TextureManager() = default;
@@ -63,7 +63,7 @@ namespace b3d
 		 *
 		 * @note	Render thread only.
 		 */
-		class B3D_CORE_EXPORT TextureManager : public Module<TextureManager>
+		class B3D_EXPORT TextureManager : public Module<TextureManager>
 		{
 		public:
 			TextureManager(GpuDevice& gpuDevice)

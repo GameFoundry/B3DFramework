@@ -78,7 +78,7 @@ namespace b3d
 
 	/** Common templated class for different color gradient implementations. */
 	template <class COLOR, class TIME>
-	class B3D_UTILITY_EXPORT TColorGradient
+	class B3D_EXPORT TColorGradient
 	{
 	public:
 		using ColorType = COLOR;
@@ -144,7 +144,7 @@ namespace b3d
 	 * keys that get interpolated between. Stores colors as 32-bit integers, and is therefor unable to represent
 	 * a color range outside of [0, 1] - see ColorGradientHDR for an alternative.
 	 */
-	class B3D_UTILITY_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Image)) ColorGradient : public TColorGradient<RGBA, uint16_t>, public IScriptExportable
+	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Image)) ColorGradient : public TColorGradient<RGBA, uint16_t>, public IScriptExportable
 	{
 		using TColorGradient::TColorGradient;
 
@@ -155,7 +155,7 @@ namespace b3d
 	 * Represents a range of color values over some parameters, similar to a curve. Internally represented as a set of
 	 * keys that get interpolated between. Capable of representing HDR colors, unlike the normal ColorGradient.
 	 */
-	class B3D_UTILITY_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Image)) ColorGradientHDR : public TColorGradient<Color, float>, public IScriptExportable
+	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Image)) ColorGradientHDR : public TColorGradient<Color, float>, public IScriptExportable
 	{
 		using TColorGradient::TColorGradient;
 

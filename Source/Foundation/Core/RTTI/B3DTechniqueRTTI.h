@@ -16,7 +16,7 @@ namespace b3d
 	 *  @{
 	 */
 
-	class B3D_CORE_EXPORT TechniqueRTTI : public TRTTIType<Technique, IReflectable, TechniqueRTTI>
+	class B3D_EXPORT TechniqueRTTI : public TRTTIType<Technique, IReflectable, TechniqueRTTI>
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
@@ -50,7 +50,7 @@ namespace b3d
 		}
 	};
 
-	class B3D_CORE_EXPORT TechniqueRenderProxyRTTI : public TRTTIType<render::Technique, IReflectable, TechniqueRenderProxyRTTI>
+	class B3D_EXPORT TechniqueRenderProxyRTTI : public TRTTIType<render::Technique, IReflectable, TechniqueRenderProxyRTTI>
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS

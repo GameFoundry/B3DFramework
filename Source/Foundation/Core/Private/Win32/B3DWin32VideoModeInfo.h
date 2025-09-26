@@ -19,7 +19,7 @@ namespace b3d::render
 	 */
 
 	/** @copydoc VideoMode */
-	class B3D_CORE_EXPORT Win32VideoMode : public VideoMode
+	class B3D_EXPORT Win32VideoMode : public VideoMode
 	{
 	public:
 		Win32VideoMode(u32 width, u32 height, float refreshRate, u32 outputIdx);
@@ -29,7 +29,7 @@ namespace b3d::render
 	};
 
 	/** @copydoc VideoOutputInfo */
-	class B3D_CORE_EXPORT Win32VideoOutputInfo : public VideoOutputInfo
+	class B3D_EXPORT Win32VideoOutputInfo : public VideoOutputInfo
 	{
 	public:
 		Win32VideoOutputInfo(HMONITOR monitorHandle, u32 outputIdx);
@@ -42,7 +42,7 @@ namespace b3d::render
 	};
 
 	/** @copydoc VideoModeInfo */
-	class B3D_CORE_EXPORT Win32VideoModeInfo : public VideoModeInfo
+	class B3D_EXPORT Win32VideoModeInfo : public VideoModeInfo
 	{
 	public:
 		Win32VideoModeInfo();

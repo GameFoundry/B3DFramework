@@ -13,7 +13,7 @@ namespace b3d::render
 	 */
 
 	/** @copydoc VideoMode */
-	class B3D_CORE_EXPORT LinuxVideoMode : public VideoMode
+	class B3D_EXPORT LinuxVideoMode : public VideoMode
 	{
 	public:
 		LinuxVideoMode(u32 width, u32 height, float refreshRate, u32 outputIdx);
@@ -29,7 +29,7 @@ namespace b3d::render
 	};
 
 	/** @copydoc VideoOutputInfo */
-	class B3D_CORE_EXPORT LinuxVideoOutputInfo : public VideoOutputInfo
+	class B3D_EXPORT LinuxVideoOutputInfo : public VideoOutputInfo
 	{
 	public:
 		LinuxVideoOutputInfo(::Display* x11Display, i32 screen, XRROutputInfo* outputInfo, XRRCrtcInfo* crtcInfo, XRRScreenResources* screenRes, RROutput outputID, u32 outputIdx);
@@ -46,7 +46,7 @@ namespace b3d::render
 	};
 
 	/** @copydoc VideoModeInfo */
-	class B3D_CORE_EXPORT LinuxVideoModeInfo : public VideoModeInfo
+	class B3D_EXPORT LinuxVideoModeInfo : public VideoModeInfo
 	{
 	public:
 		LinuxVideoModeInfo();

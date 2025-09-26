@@ -15,7 +15,7 @@ namespace b3d
 	 * for sampling that function at arbitrary time intervals. The sampling is fast but precision is limited to the number
 	 * of samples.
 	 */
-	class B3D_UTILITY_EXPORT LookupTable
+	class B3D_EXPORT LookupTable
 	{
 	public:
 		/**

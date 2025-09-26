@@ -139,7 +139,7 @@ namespace b3d
 	 * of the standard physics model to handle various issues with manually moving kinematic objects. Uses a capsule to
 	 * represent the character's bounds.
 	 */
-	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Physics)) CharacterController : public Component
+	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Physics)) CharacterController : public Component
 	{
 	public:
 		CharacterController(const HSceneObject& parent);
@@ -295,7 +295,7 @@ namespace b3d
 	};
 
 	/** Low-level interface for a character controller. Should be implemented by the physics plugin to provide functionality. */
-	class B3D_CORE_EXPORT ICharacterControllerImplementation
+	class B3D_EXPORT ICharacterControllerImplementation
 	{
 	public:
 		virtual ~ICharacterControllerImplementation() = default;

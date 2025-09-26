@@ -15,7 +15,7 @@ namespace b3d
 	 *  @{
 	 */
 
-	class B3D_CORE_EXPORT StringTableRTTI : public TRTTIType<StringTable, Resource, StringTableRTTI>
+	class B3D_EXPORT StringTableRTTI : public TRTTIType<StringTable, Resource, StringTableRTTI>
 	{
 		B3D_RTTI_BEGIN_MEMBERS
 			B3D_RTTI_MEMBER(mActiveLanguage, 0)

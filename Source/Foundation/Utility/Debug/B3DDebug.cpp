@@ -480,7 +480,7 @@ void Debug::SaveTextLog(const Path& path) const
 
 namespace b3d
 {
-B3D_UTILITY_EXPORT Debug& GetDebug()
+B3D_EXPORT Debug& GetDebug()
 {
 	static Debug debug;
 	return debug;

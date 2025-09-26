@@ -59,7 +59,7 @@ namespace b3d
 	/**
 	 * Base class from all emitter shapes. Emitter shapes determine the position and direction of newly created particles.
 	 */
-	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Particles)) ParticleEmitterShape : public IReflectable, public IScriptExportable
+	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Particles)) ParticleEmitterShape : public IReflectable, public IScriptExportable
 	{
 	public:
 		virtual ~ParticleEmitterShape() = default;
@@ -148,7 +148,7 @@ namespace b3d
 	 * controlling the radial arc of the emitted portion of the volume, as well as thickness of the cone emission volume.
 	 * All particles will have random normals within the distribution of the cone.
 	 */
-	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Particles)) ParticleEmitterConeShape : public ParticleEmitterShape
+	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Particles)) ParticleEmitterConeShape : public ParticleEmitterShape
 	{
 	public:
 		ParticleEmitterConeShape(const ParticleConeShapeSettings& settings);
@@ -221,7 +221,7 @@ namespace b3d
 	 * volume or a proportion of the volume depending on the thickness parameter. All particles will have normals pointing
 	 * outwards in a spherical direction.
 	 */
-	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Particles)) ParticleEmitterSphereShape : public ParticleEmitterShape
+	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Particles)) ParticleEmitterSphereShape : public ParticleEmitterShape
 	{
 	public:
 		ParticleEmitterSphereShape() = default;
@@ -287,7 +287,7 @@ namespace b3d
 	 * the entire volume or a proportion of the volume depending on the thickness parameter. All particles will have
 	 * normals pointing outwards in a spherical direction.
 	 */
-	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Particles)) ParticleEmitterHemisphereShape : public ParticleEmitterShape
+	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Particles)) ParticleEmitterHemisphereShape : public ParticleEmitterShape
 	{
 	public:
 		ParticleEmitterHemisphereShape() = default;
@@ -359,7 +359,7 @@ namespace b3d
 	 * Particle emitter shape that emits particles from an axis aligned box. Particles can be emitted from box volume,
 	 * surface or edges. All particles have their normals set to positive Z direction.
 	 */
-	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Particles)) ParticleEmitterBoxShape : public ParticleEmitterShape
+	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Particles)) ParticleEmitterBoxShape : public ParticleEmitterShape
 	{
 	public:
 		ParticleEmitterBoxShape() = default;
@@ -420,7 +420,7 @@ namespace b3d
 	};
 
 	/** Particle emitter shape that emits particles from a line segment. */
-	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Particles)) ParticleEmitterLineShape : public ParticleEmitterShape
+	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Particles)) ParticleEmitterLineShape : public ParticleEmitterShape
 	{
 	public:
 		ParticleEmitterLineShape() = default;
@@ -495,7 +495,7 @@ namespace b3d
 	 * emit only from circle edge, the entire surface or just a part of the surface. Using the arc parameter you can emit
 	 * from a specific angular portion of the circle.
 	 */
-	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Particles)) ParticleEmitterCircleShape : public ParticleEmitterShape
+	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Particles)) ParticleEmitterCircleShape : public ParticleEmitterShape
 	{
 	public:
 		ParticleEmitterCircleShape() = default;
@@ -554,7 +554,7 @@ namespace b3d
 	};
 
 	/** Particle emitter shape that emits particles from the surface of a rectangle. */
-	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Particles)) ParticleEmitterRectShape : public ParticleEmitterShape
+	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Particles)) ParticleEmitterRectShape : public ParticleEmitterShape
 	{
 	public:
 		ParticleEmitterRectShape() = default;
@@ -714,7 +714,7 @@ namespace b3d
 	 * emitted from mesh vertices, edges or triangles. If information about normals exists, particles will also inherit
 	 * the normals.
 	 */
-	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Particles)) ParticleEmitterStaticMeshShape : public ParticleEmitterShape
+	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Particles)) ParticleEmitterStaticMeshShape : public ParticleEmitterShape
 	{
 	public:
 		ParticleEmitterStaticMeshShape(const ParticleStaticMeshShapeSettings& settings);
@@ -786,7 +786,7 @@ namespace b3d
 	 * emitted from mesh vertices, edges or triangles. If information about normals exists, particles will also inherit
 	 * the normals.
 	 */
-	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Particles)) ParticleEmitterSkinnedMeshShape : public ParticleEmitterShape
+	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Particles)) ParticleEmitterSkinnedMeshShape : public ParticleEmitterShape
 	{
 	public:
 		ParticleEmitterSkinnedMeshShape(const ParticleSkinnedMeshShapeSettings& settings);
@@ -858,7 +858,7 @@ namespace b3d
 	};
 
 	/** Handles spawning of new particles using the specified parameters and shape. */
-	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Particles)) ParticleEmitter : public ParticleModule
+	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Particles)) ParticleEmitter : public ParticleModule
 	{
 	public:
 		/** Shape over which to emit the particles. */

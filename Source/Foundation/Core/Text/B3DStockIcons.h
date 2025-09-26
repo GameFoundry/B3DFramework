@@ -21,7 +21,7 @@ namespace b3d
 	};
 
 	/** Provides easy access to variety of icons for use in the engine. */
-	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Text)) StockIcons : public Module<StockIcons>
+	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Text)) StockIcons : public Module<StockIcons>
 	{
 	public:
 		/**

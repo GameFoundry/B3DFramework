@@ -20,7 +20,7 @@ namespace b3d
 	 * @note
 	 * This class is not thread safe and should only be used on the main thread.
 	 */
-	class B3D_UTILITY_EXPORT MessageId
+	class B3D_EXPORT MessageId
 	{
 	public:
 		MessageId() = default;
@@ -41,7 +41,7 @@ namespace b3d
 	};
 
 	/** Handle to a subscription for a specific message in the global messaging system. */
-	class B3D_UTILITY_EXPORT HMessage
+	class B3D_EXPORT HMessage
 	{
 	public:
 		HMessage() = default;
@@ -62,7 +62,7 @@ namespace b3d
 	 *
 	 * @note	Main thread only.
 	 */
-	void B3D_UTILITY_EXPORT SendMessage(MessageId message);
+	void B3D_EXPORT SendMessage(MessageId message);
 
 	class MessageHandler;
 

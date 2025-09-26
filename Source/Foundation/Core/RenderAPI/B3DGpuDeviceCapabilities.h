@@ -62,7 +62,7 @@ namespace b3d
 	};
 
 	/** Conventions used for a specific render backend. */
-	struct B3D_CORE_EXPORT GpuBackendConventions
+	struct B3D_EXPORT GpuBackendConventions
 	{
 		enum class Axis : u8
 		{
@@ -87,7 +87,7 @@ namespace b3d
 	};
 
 	/** Holds data about render system driver version. */
-	struct B3D_CORE_EXPORT GpuDriverVersion
+	struct B3D_EXPORT GpuDriverVersion
 	{
 		GpuDriverVersion() = default;
 
@@ -133,7 +133,7 @@ namespace b3d
 	};
 
 	/** Information about hardware (GPU) and driver capabilities, such as supported features, limits and conventions. */
-	class B3D_CORE_EXPORT GpuDeviceCapabilities final
+	class B3D_EXPORT GpuDeviceCapabilities final
 	{
 	public:
 		/** The identifier associated with the GPU backend. */

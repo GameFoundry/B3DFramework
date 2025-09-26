@@ -42,7 +42,7 @@ void StringTableManager::SetTable(u32 id, const HStringTable& table)
 
 namespace b3d
 {
-	B3D_CORE_EXPORT StringTableManager& GetStringTableManager()
+	B3D_EXPORT StringTableManager& GetStringTableManager()
 	{
 		return StringTableManager::Instance();
 	}

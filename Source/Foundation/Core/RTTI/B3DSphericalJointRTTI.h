@@ -15,7 +15,7 @@ namespace b3d
 	 *  @{
 	 */
 
-	class B3D_CORE_EXPORT SphericalJointRTTI : public TRTTIType<SphericalJoint, Joint, SphericalJointRTTI>
+	class B3D_EXPORT SphericalJointRTTI : public TRTTIType<SphericalJoint, Joint, SphericalJointRTTI>
 	{
 		B3D_RTTI_BEGIN_MEMBERS
 			B3D_RTTI_MEMBER_NAMED(mFlag, mInformation.Flags, 0)

@@ -14,7 +14,7 @@ namespace b3d
 	 *  @{
 	 */
 
-	class B3D_CORE_EXPORT AudioSourceRTTI : public TRTTIType<AudioSource, Component, AudioSourceRTTI>
+	class B3D_EXPORT AudioSourceRTTI : public TRTTIType<AudioSource, Component, AudioSourceRTTI>
 	{
 		B3D_RTTI_BEGIN_MEMBERS
 			// B3D_RTTI_MEMBER_REFLPTR(mInternal, 0)

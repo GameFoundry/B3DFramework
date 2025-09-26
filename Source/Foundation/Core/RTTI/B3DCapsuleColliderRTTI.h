@@ -15,7 +15,7 @@ namespace b3d
 	 *  @{
 	 */
 
-	class B3D_CORE_EXPORT CapsuleColliderRTTI : public TRTTIType<CapsuleCollider, Collider, CapsuleColliderRTTI>
+	class B3D_EXPORT CapsuleColliderRTTI : public TRTTIType<CapsuleCollider, Collider, CapsuleColliderRTTI>
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS

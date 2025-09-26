@@ -16,7 +16,7 @@ namespace b3d
 	 *  @{
 	 */
 
-	class B3D_CORE_EXPORT PassRTTI : public TRTTIType<Pass, IReflectable, PassRTTI>
+	class B3D_EXPORT PassRTTI : public TRTTIType<Pass, IReflectable, PassRTTI>
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS
@@ -57,7 +57,7 @@ namespace b3d
 		}
 	};
 
-	class B3D_CORE_EXPORT PassRenderProxyRTTI : public TRTTIType<render::Pass, IReflectable, PassRenderProxyRTTI>
+	class B3D_EXPORT PassRenderProxyRTTI : public TRTTIType<render::Pass, IReflectable, PassRenderProxyRTTI>
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS

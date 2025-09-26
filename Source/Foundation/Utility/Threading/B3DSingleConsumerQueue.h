@@ -18,7 +18,7 @@ namespace b3d
 	 */
 
 	/** Allows you to queue sequential commands safely from any thread/fiber, which are then processed by a single worker thread/fiber. */
-	class B3D_UTILITY_EXPORT SingleConsumerQueue
+	class B3D_EXPORT SingleConsumerQueue
 	{
 	public:
 		/** Command queue for execution. */

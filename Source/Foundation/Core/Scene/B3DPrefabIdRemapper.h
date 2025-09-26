@@ -97,7 +97,7 @@ namespace b3d
 	 * As may be seen from examples above, if an object within internal prefab hierarchy is not part of a nested prefab, its prefab object ID will be equal to its game object ID,
 	 * and resource ID point to the prefab resource it is contained in.
 	 */
-	class B3D_CORE_EXPORT PrefabIdRemapper
+	class B3D_EXPORT PrefabIdRemapper
 	{
 	public:
 		struct SceneObjectInformation

@@ -15,7 +15,7 @@ namespace b3d
 	 *  @{
 	 */
 
-	class B3D_CORE_EXPORT DecalRTTI : public TRTTIType<Decal, Component, DecalRTTI>
+	class B3D_EXPORT DecalRTTI : public TRTTIType<Decal, Component, DecalRTTI>
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS

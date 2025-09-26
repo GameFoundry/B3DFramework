@@ -64,7 +64,7 @@ namespace b3d
 	 * Any data the object or its children are pointing to will also be serialized (unless the pointer isn't registered in
 	 * RTTIType). Upon decoding the pointer addresses will be set to proper values.
 	 */
-	class B3D_UTILITY_EXPORT BinarySerializer
+	class B3D_EXPORT BinarySerializer
 	{
 	public:
 		BinarySerializer();

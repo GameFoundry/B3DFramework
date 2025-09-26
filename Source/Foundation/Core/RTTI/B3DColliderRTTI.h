@@ -15,7 +15,7 @@ namespace b3d
 	 *  @{
 	 */
 
-	class B3D_CORE_EXPORT ColliderRTTI : public TRTTIType<Collider, Component, ColliderRTTI>
+	class B3D_EXPORT ColliderRTTI : public TRTTIType<Collider, Component, ColliderRTTI>
 	{
 		B3D_RTTI_BEGIN_MEMBERS
 			B3D_RTTI_MEMBER(mLayer, 0)

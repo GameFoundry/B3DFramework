@@ -19,7 +19,7 @@ namespace b3d
 	 */
 
 	/**	Descriptor used for creating a platform specific native window. */
-	struct B3D_UTILITY_EXPORT WindowCreateInformation
+	struct B3D_EXPORT WindowCreateInformation
 	{
 		WindowCreateInformation() = default;
 
@@ -53,7 +53,7 @@ namespace b3d
 	};
 
 	/**	Represents a Windows native window. */
-	class B3D_UTILITY_EXPORT Win32Window
+	class B3D_EXPORT Win32Window
 	{
 	public:
 		Win32Window(const WindowCreateInformation& createInformation);

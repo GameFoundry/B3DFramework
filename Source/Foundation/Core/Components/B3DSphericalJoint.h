@@ -34,7 +34,7 @@ namespace b3d
 	 * Essentially this ensures that the anchor points of the two bodies are always coincident. Bodies are allowed to
 	 * rotate around the anchor points, and their rotation can be limited by an elliptical cone.
 	 */
-	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Physics)) SphericalJoint : public Joint
+	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Physics)) SphericalJoint : public Joint
 	{
 	public:
 		SphericalJoint(const HSceneObject& parent);
@@ -90,7 +90,7 @@ namespace b3d
 	};
 
 	/** Low-level interface for a joint used by the SphericalJoint component. Should be implemented by the physics plugin to provide joint functionality. */
-	class B3D_CORE_EXPORT ISphericalJointImplementation : public IJointImplementation
+	class B3D_EXPORT ISphericalJointImplementation : public IJointImplementation
 	{
 	public:
 		/** @copydoc SphericalJoint::SetLimit */

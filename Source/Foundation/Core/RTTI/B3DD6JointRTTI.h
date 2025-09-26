@@ -15,7 +15,7 @@ namespace b3d
 	 *  @{
 	 */
 
-	class B3D_CORE_EXPORT D6JointDriveRTTI : public TRTTIType<D6JointDrive, IReflectable, D6JointDriveRTTI>
+	class B3D_EXPORT D6JointDriveRTTI : public TRTTIType<D6JointDrive, IReflectable, D6JointDriveRTTI>
 	{
 		B3D_RTTI_BEGIN_MEMBERS
 			B3D_RTTI_MEMBER(Stiffness, 0)
@@ -41,7 +41,7 @@ namespace b3d
 		}
 	};
 
-	class B3D_CORE_EXPORT D6JointRTTI : public TRTTIType<D6Joint, Joint, D6JointRTTI>
+	class B3D_EXPORT D6JointRTTI : public TRTTIType<D6Joint, Joint, D6JointRTTI>
 	{
 		B3D_RTTI_BEGIN_MEMBERS
 			B3D_RTTI_MEMBER_CONTAINER_NAMED(mD6JointMotion, mInformation.Motion, 0)

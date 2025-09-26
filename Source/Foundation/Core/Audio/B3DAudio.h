@@ -22,7 +22,7 @@ namespace b3d
 	};
 
 	/** Provides global functionality relating to sounds and music. */
-	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Audio)) Audio : public Module<Audio>
+	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Audio)) Audio : public Module<Audio>
 	{
 	public:
 		virtual ~Audio() = default;
@@ -108,7 +108,7 @@ namespace b3d
 	};
 
 	/** Provides easier access to Audio. */
-	B3D_CORE_EXPORT Audio& GetAudio();
+	B3D_EXPORT Audio& GetAudio();
 
 	/** @} */
 } // namespace b3d

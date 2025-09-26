@@ -15,7 +15,7 @@ namespace b3d
 	 *  @{
 	 */
 
-	class B3D_CORE_EXPORT PlaneColliderRTTI : public TRTTIType<PlaneCollider, Collider, PlaneColliderRTTI>
+	class B3D_EXPORT PlaneColliderRTTI : public TRTTIType<PlaneCollider, Collider, PlaneColliderRTTI>
 	{
 	private:
 		B3D_RTTI_BEGIN_MEMBERS

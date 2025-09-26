@@ -14,7 +14,7 @@ namespace b3d
 	 *  @{
 	 */
 
-	class B3D_CORE_EXPORT GpuResourceDataRTTI : public TRTTIType<GpuResourceData, IReflectable, GpuResourceDataRTTI>
+	class B3D_EXPORT GpuResourceDataRTTI : public TRTTIType<GpuResourceData, IReflectable, GpuResourceDataRTTI>
 	{
 	public:
 		const String& GetRttiName()

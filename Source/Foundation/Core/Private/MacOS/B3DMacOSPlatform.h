@@ -29,7 +29,7 @@ namespace b3d
 	 */
 
 	/** Contains various macOS specific platform functionality. */
-	class B3D_CORE_EXPORT MacOSPlatform : public Platform
+	class B3D_EXPORT MacOSPlatform : public Platform
 	{
 	public:
 		/** Notifies the system that a new window was created. */

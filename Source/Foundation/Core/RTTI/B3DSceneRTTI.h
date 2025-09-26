@@ -16,7 +16,7 @@ namespace b3d
 	 *  @{
 	 */
 
-	class B3D_CORE_EXPORT SceneRTTI : public TRTTIType<Scene, Resource, SceneRTTI>
+	class B3D_EXPORT SceneRTTI : public TRTTIType<Scene, Resource, SceneRTTI>
 	{
 		SPtr<SceneObject> mRootSceneObject;
 

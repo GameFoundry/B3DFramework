@@ -18,7 +18,7 @@ namespace b3d
 	struct AnimationCurveMapping;
 
 	/** A set of animation curves representing translation/rotation/scale and generic animation. */
-	struct B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Animation)) AnimationCurves : public IScriptExportable
+	struct B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Animation)) AnimationCurves : public IScriptExportable
 	{
 		B3D_SCRIPT_EXPORT()
 		AnimationCurves() = default;
@@ -146,7 +146,7 @@ namespace b3d
 	 * Contains animation curves for translation/rotation/scale of scene objects/skeleton bones, as well as curves for
 	 * generic property animation.
 	 */
-	class B3D_CORE_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Animation)) AnimationClip : public Resource
+	class B3D_EXPORT B3D_SCRIPT_EXPORT(DocumentationGroup(Animation)) AnimationClip : public Resource
 	{
 	public:
 		virtual ~AnimationClip() = default;

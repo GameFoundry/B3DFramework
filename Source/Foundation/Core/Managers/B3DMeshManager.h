@@ -13,7 +13,7 @@ namespace b3d
 	 */
 
 	/** Manager that handles creation of Mesh%es. */
-	class B3D_CORE_EXPORT MeshManager : public Module<MeshManager>
+	class B3D_EXPORT MeshManager : public Module<MeshManager>
 	{
 	public:
 		/** Returns some dummy mesh data with one triangle you may use for initializing a mesh. */

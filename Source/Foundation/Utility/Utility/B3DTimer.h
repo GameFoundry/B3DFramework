@@ -11,7 +11,7 @@ namespace b3d
 	 */
 
 	/** Timer class used for querying high precision timers. */
-	class B3D_UTILITY_EXPORT Timer
+	class B3D_EXPORT Timer
 	{
 	public:
 		/** Construct the timer and start timing. */

@@ -749,7 +749,7 @@ namespace b3d
 		bool IsBoundAs2DArray;
 
 		/** Surface that covers all texture sub-resources. */
-		static B3D_CORE_EXPORT const TextureSurface kComplete;
+		static B3D_EXPORT const TextureSurface kComplete;
 	};
 
 	/** Meta-data describing a chunk of audio. */
