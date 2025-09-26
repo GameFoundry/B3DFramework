@@ -7,7 +7,7 @@
 
 namespace b3d
 {
-	/** @addtogroup Renderer-Engine-Internal
+	/** @addtogroup Renderer-Internal
 	 *  @{
 	 */
 

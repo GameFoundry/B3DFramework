@@ -2,12 +2,12 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "B3DCorePrerequisites.h"
+#include "B3DPrerequisites.h"
 #include "Utility/B3DModule.h"
 
 namespace b3d
 {
-	/** @addtogroup Utility-Core-Internal
+	/** @addtogroup Utility-Engine-Internal
 	 *  @{
 	 */
 

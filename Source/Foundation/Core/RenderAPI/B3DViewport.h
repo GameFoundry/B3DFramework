@@ -3,7 +3,7 @@
 #pragma once
 
 #include <utility>
-#include "B3DCorePrerequisites.h"
+#include "B3DPrerequisites.h"
 #include "Reflection/B3DIReflectable.h"
 #include "CoreObject/B3DCoreObject.h"
 #include "Image/B3DColor.h"

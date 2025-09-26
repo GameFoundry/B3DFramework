@@ -2,7 +2,7 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "B3DCorePrerequisites.h"
+#include "B3DPrerequisites.h"
 #include "Scene/B3DComponent.h"
 #include "Physics/B3DPhysicsCommon.h"
 #include "Math/B3DVector3.h"
@@ -13,7 +13,7 @@ namespace b3d
 	class PhysicsScene;
 	class IRigidbodyImplementation;
 
-	/** @addtogroup Components-Core
+	/** @addtogroup Components
 	 *  @{
 	 */
 

@@ -9,7 +9,7 @@ namespace b3d
 #undef None
 #undef Convex
 
-	/** @addtogroup Utility-Core
+	/** @addtogroup Utility-Engine
 	 *  @{
 	 */
 

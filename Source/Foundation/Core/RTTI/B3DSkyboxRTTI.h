@@ -2,7 +2,7 @@
 //**************** Copyright (c) 2016 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 #pragma once
 
-#include "B3DCorePrerequisites.h"
+#include "B3DPrerequisites.h"
 #include "Reflection/B3DRTTIType.h"
 #include "Components/B3DSkybox.h"
 #include "RTTI/B3DGameObjectRTTI.h"

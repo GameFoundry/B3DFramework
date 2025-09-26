@@ -15,7 +15,7 @@ namespace b3d
 {
 	namespace render
 	{
-		/** @addtogroup Renderer-Engine-Internal
+		/** @addtogroup Renderer-Internal
 		 *  @{
 		 */
 

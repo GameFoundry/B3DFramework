@@ -5,7 +5,7 @@
 #include <cfloat>
 
 #include "B3DColliderShape.h"
-#include "B3DCorePrerequisites.h"
+#include "B3DPrerequisites.h"
 #include "Physics/B3DPhysicsCommon.h"
 #include "Utility/B3DModule.h"
 #include "Math/B3DVector3.h"

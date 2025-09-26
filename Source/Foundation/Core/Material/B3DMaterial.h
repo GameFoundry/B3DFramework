@@ -2,7 +2,7 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "B3DCorePrerequisites.h"
+#include "B3DPrerequisites.h"
 #include "Resources/B3DResource.h"
 #include "Resources/B3DIResourceListener.h"
 #include "Material/B3DMaterialParam.h"

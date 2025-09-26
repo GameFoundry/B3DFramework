@@ -2,7 +2,7 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "B3DCorePrerequisites.h"
+#include "B3DPrerequisites.h"
 #include "Utility/B3DPersistentCache.h"
 #include "Reflection/B3DRTTIType.h"
 #include "Reflection/B3DRTTIPlain.h"
@@ -11,7 +11,7 @@
 namespace b3d
 {
 	/** @cond RTTI */
-	/** @addtogroup RTTI-Impl-Core
+	/** @addtogroup RTTI-Impl-Engine
 	 *  @{
 	 */
 

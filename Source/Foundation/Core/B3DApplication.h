@@ -10,7 +10,8 @@
 namespace b3d
 {
 	class PersistentCache;
-	/** @addtogroup Application-Engine
+
+	/** @addtogroup Application
 	 *  @{
 	 */
 

@@ -19,7 +19,7 @@
 
 B3D_EXPORT B3D_LOG_CATEGORY_EXTERN(RendererMaterial, Log)
 
-/** @addtogroup Renderer-Engine-Internal
+/** @addtogroup Renderer-Internal
  *  @{
  */
 
@@ -51,7 +51,7 @@ namespace b3d
 {
 	namespace render
 	{
-		/** @addtogroup Renderer-Engine-Internal
+		/** @addtogroup Renderer-Internal
 		 *  @{
 		 */
 

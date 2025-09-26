@@ -2,7 +2,7 @@
 //**************** Copyright (c) 2023 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 #pragma once
 
-#include "B3DCorePrerequisites.h"
+#include "B3DPrerequisites.h"
 #include "Resources/B3DPackage.h"
 #include "Reflection/B3DRTTIType.h"
 #include "RTTI/B3DResourceMetaDataRTTI.h"
@@ -15,7 +15,7 @@
 namespace b3d
 {
 	/** @cond RTTI */
-	/** @addtogroup RTTI-Impl-Core
+	/** @addtogroup RTTI-Impl-Engine
 	 *  @{
 	 */
 

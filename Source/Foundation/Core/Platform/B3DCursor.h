@@ -9,7 +9,7 @@
 
 namespace b3d
 {
-	/** @addtogroup Platform-Engine
+	/** @addtogroup Platform
 	 *  @{
 	 */
 

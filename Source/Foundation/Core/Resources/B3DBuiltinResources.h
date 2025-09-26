@@ -12,7 +12,7 @@ namespace b3d
 {
 	class GUIStyleSheetCascade;
 	class GUIStyleSheet;
-	/** @addtogroup Resources-Engine
+	/** @addtogroup Resources
 	 *  @{
 	 */
 

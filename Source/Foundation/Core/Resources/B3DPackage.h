@@ -2,7 +2,7 @@
 //**************** Copyright (c) 2023 Marko Pintera (marko.pintera@gmail.com). All rights reserved. **********************//
 #pragma once
 
-#include "B3DCorePrerequisites.h"
+#include "B3DPrerequisites.h"
 #include "Utility/B3DCompression.h"
 #include "Allocators/B3DPoolAlloc.h"
 #include "Threading/B3DSignal.h"

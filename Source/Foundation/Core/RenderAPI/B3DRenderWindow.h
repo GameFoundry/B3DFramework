@@ -2,7 +2,7 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "B3DCorePrerequisites.h"
+#include "B3DPrerequisites.h"
 #include "RenderAPI/B3DRenderTarget.h"
 #include "RenderAPI/B3DVideoModeInfo.h"
 

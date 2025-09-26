@@ -11,7 +11,7 @@ if(NOT bsf_INSTALL_DIR)
 endif()
 
 set(bsf_INCLUDE_SEARCH_DIRS "${bsf_INSTALL_DIR}/include")
-set(INCLUDE_FILES "Core/B3DCorePrerequisites.h")
+set(INCLUDE_FILES "Core/B3DPrerequisites.h")
 
 find_path(bsf_INCLUDE_DIR NAMES NAMES ${INCLUDE_FILES} PATHS ${bsf_INCLUDE_SEARCH_DIRS} NO_DEFAULT_PATH)
 find_path(bsf_INCLUDE_DIR NAMES NAMES ${INCLUDE_FILES} PATHS ${bsf_INCLUDE_SEARCH_DIRS})
