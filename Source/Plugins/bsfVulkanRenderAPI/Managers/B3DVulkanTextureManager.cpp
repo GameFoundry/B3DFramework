@@ -2,7 +2,7 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "Managers/B3DVulkanTextureManager.h"
 
-#include "B3DCoreApplication.h"
+#include "B3DApplication.h"
 #include "B3DVulkanTexture.h"
 #include "B3DVulkanRenderTexture.h"
 #include "B3DVulkanResource.h"
@@ -175,7 +175,7 @@ VkFormat VulkanTextureManager::GetDummyViewFormat(GpuBufferFormat format)
 
 SPtr<RenderTexture> VulkanTextureManager::CreateRenderTextureInternal(const RenderTextureCreateInformation& desc)
 {
-	SPtr<VulkanRenderTexture> texPtr = B3DMakeShared<VulkanRenderTexture>(static_cast<VulkanGpuDevice&>(*GetCoreApplication().GetPrimaryGpuDevice()), desc);
+	SPtr<VulkanRenderTexture> texPtr = B3DMakeShared<VulkanRenderTexture>(static_cast<VulkanGpuDevice&>(*GetApplication().GetPrimaryGpuDevice()), desc);
 	texPtr->SetShared(texPtr);
 
 	return texPtr;

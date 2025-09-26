@@ -353,7 +353,7 @@ namespace b3d
 			};
 
 			mMetaData.ShaderInitializeOperation = TAsyncOp<SPtr<Shader>>();
-			GetCoreApplication().GetTaskScheduler().Post(SchedulerTask(std::move(fnInitializeShader), "Compile shader meta-data"));
+			GetApplication().GetTaskScheduler().Post(SchedulerTask(std::move(fnInitializeShader), "Compile shader meta-data"));
 
 			return mMetaData.ShaderInitializeOperation;
 		}
@@ -473,7 +473,7 @@ namespace b3d
 		template<class T>
 		void RendererMaterial<T>::InitializeInternal(u32 variationIndex)
 		{
-			mGpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
+			mGpuDevice = GetApplication().GetPrimaryGpuDevice();
 			mShader = mMetaData.Shader;
 			mVariationParameters = mMetaData.VariationParameterSet.Get(variationIndex);
 

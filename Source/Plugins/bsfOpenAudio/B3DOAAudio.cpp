@@ -2,7 +2,7 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "B3DOAAudio.h"
 
-#include "B3DCoreApplication.h"
+#include "B3DApplication.h"
 #include "B3DOAAudioClip.h"
 #include "B3DOAAudioListener.h"
 #include "B3DOAAudioSource.h"
@@ -111,7 +111,7 @@ void OAAudio::Update()
 		return;
 
 	mStreamingTaskSignal.Reset();
-	GetCoreApplication().GetTaskScheduler().Post(SchedulerTask([this] { UpdateStreaming(); mStreamingTaskSignal.Signal(); }, "AudioStreaming"));
+	GetApplication().GetTaskScheduler().Post(SchedulerTask([this] { UpdateStreaming(); mStreamingTaskSignal.Signal(); }, "AudioStreaming"));
 
 	Audio::Update();
 }

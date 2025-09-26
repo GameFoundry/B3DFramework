@@ -1,6 +1,7 @@
 //************************************ B3D Framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "Scene/B3DSceneObject.h"
+
 #include "Scene/B3DComponent.h"
 #include "Scene/B3DSceneManager.h"
 #include "Scene/B3DSceneInstance.h"
@@ -10,7 +11,7 @@
 #include "Serialization/B3DBinarySerializer.h"
 #include "FileSystem/B3DDataStream.h"
 #include "Scene/B3DPrefabUtility.h"
-#include "B3DCoreApplication.h"
+#include "B3DApplication.h"
 #include "B3DGameObjectCollection.h"
 #include "Script/B3DIScriptObjectWrapper.h"
 
@@ -525,7 +526,7 @@ void SceneObject::SetParent(const HSceneObject& parent, bool keepWorldTransform)
 	SetParentInternal(parent, keepWorldTransform);
 
 #if B3D_IS_ENGINE
-	if(GetCoreApplication().IsEditor())
+	if(GetApplication().IsEditor())
 	{
 		UUID newPrefabResourceId = GetPrefabResourceId();
 		if(originalPrefabResourceId != newPrefabResourceId)

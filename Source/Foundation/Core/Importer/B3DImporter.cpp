@@ -2,7 +2,7 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "Importer/B3DImporter.h"
 
-#include "B3DCoreApplication.h"
+#include "B3DApplication.h"
 #include "Resources/B3DResource.h"
 #include "FileSystem/B3DFileSystem.h"
 #include "Importer/B3DSpecificImporter.h"
@@ -251,7 +251,7 @@ void Importer::QueueForImport(SpecificImporter* importer, const Path& inputFileP
 			DoImport(op, importer, inputFilePath, uuid, importOptions);
 		};
 
-		GetCoreApplication().GetTaskScheduler().Post(SchedulerTask(std::move(fnDoImport), "ImportWorker", SchedulerTaskFlag::None, inputFilePath.ToString()));
+		GetApplication().GetTaskScheduler().Post(SchedulerTask(std::move(fnDoImport), "ImportWorker", SchedulerTaskFlag::None, inputFilePath.ToString()));
 	}
 	else
 	{
@@ -263,7 +263,7 @@ void Importer::QueueForImport(SpecificImporter* importer, const Path& inputFileP
 				perImporterQueue = found->second.get();
 			else
 			{
-				UPtr<SchedulerTicketQueue> newQueue = B3DMakeUnique<SchedulerTicketQueue>(GetCoreApplication().GetTaskScheduler());
+				UPtr<SchedulerTicketQueue> newQueue = B3DMakeUnique<SchedulerTicketQueue>(GetApplication().GetTaskScheduler());
 				perImporterQueue = newQueue.get();
 
 				mPerImporterQueues[importer] = std::move(newQueue);
@@ -278,7 +278,7 @@ void Importer::QueueForImport(SpecificImporter* importer, const Path& inputFileP
 			DoImport(op, importer, inputFilePath, uuid, importOptions);
 		};
 
-		GetCoreApplication().GetTaskScheduler().Post(SchedulerTask(std::move(fnWaitForPreviousAndDoImport), "ImportWorker", SchedulerTaskFlag::None, inputFilePath.ToString()));
+		GetApplication().GetTaskScheduler().Post(SchedulerTask(std::move(fnWaitForPreviousAndDoImport), "ImportWorker", SchedulerTaskFlag::None, inputFilePath.ToString()));
 	}
 }
 

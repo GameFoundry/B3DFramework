@@ -217,7 +217,7 @@ struct TetrahedronFaceDataGPU
 LightProbes::LightProbes()
 	: mTetrahedronVolumeDirty(false), mMaxCoefficientRows(0), mMaxTetrahedra(0), mMaxFaces(0), mNumValidTetrahedra(0)
 {
-	mGpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
+	mGpuDevice = GetApplication().GetPrimaryGpuDevice();
 }
 
 void LightProbes::NotifyAdded(LightProbeVolume* volume)
@@ -793,7 +793,7 @@ void LightProbes::ResizeTetrahedronFaceBuffer(u32 count)
 
 void LightProbes::ResizeCoefficientTexture(GpuCommandBuffer& commandBuffer, u32 numRows)
 {
-	const SPtr<GpuDevice>& gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
+	const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
 
 	TextureCreateInformation desc;
 	desc.Width = 4096;

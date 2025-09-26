@@ -4,7 +4,6 @@
 
 #include "B3DCorePrerequisites.h"
 #include "Reflection/B3DRTTIType.h"
-#include "B3DCoreApplication.h"
 #include "RenderAPI/B3DRenderTarget.h"
 #include "RenderAPI/B3DRenderTexture.h"
 #include "RenderAPI/B3DRenderWindow.h"

@@ -8,7 +8,6 @@
 #include "Private/Linux/B3DLinuxWindow.h"
 #include "Private/Linux/B3DLinuxDropTarget.h"
 #include "RenderAPI/B3DRenderWindow.h"
-#include "B3DCoreApplication.h"
 #include <X11/X.h>
 #include <X11/Xatom.h>
 #include <X11/Xcursor/Xcursor.h>

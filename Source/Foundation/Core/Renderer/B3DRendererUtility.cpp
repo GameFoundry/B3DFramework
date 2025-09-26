@@ -23,7 +23,7 @@ namespace b3d { namespace render
 {
 RendererUtility::RendererUtility()
 {
-	const SPtr<GpuDevice>& gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
+	const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
 
 	{
 		TInlineArray<VertexElement, 8> vertexElements;

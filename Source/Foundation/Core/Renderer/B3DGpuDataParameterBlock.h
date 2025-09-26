@@ -3,7 +3,7 @@
 #pragma once
 
 #include "B3DCorePrerequisites.h"
-#include "B3DCoreApplication.h"
+#include "B3DApplication.h"
 #include "RenderAPI/B3DGpuProgramParameterDescription.h"
 #include "RenderAPI/B3DGpuParameters.h"
 #include "RenderAPI/B3DGpuBuffer.h"
@@ -44,7 +44,7 @@ namespace b3d
 
 				const GpuDataParameterTypeInformation& typeInformation = b3d::GpuParameters::kParamSizes.Lookup[mParameterInformation.Type];
 
-				const SPtr<GpuDevice>& gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
+				const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
 				const GpuBackendConventions& gpuBackendConventions = gpuDevice->GetCapabilities().Conventions;
 
 				const bool transposeMatrices = gpuBackendConventions.MatrixOrder == GpuBackendConventions::MatrixOrder::ColumnMajor;
@@ -107,7 +107,12 @@ namespace b3d
 			static void UnregisterBlock(GpuDataParameterBlock* parameterBlock);
 
 		private:
-			static Vector<GpuDataParameterBlock*> sToInitialize;
+			/** Retrieves the list of parameter blocks to initialize when the module is started. */
+			static Vector<GpuDataParameterBlock*>& GetToInitializeList()
+			{
+				static Vector<GpuDataParameterBlock*> sToInitialize;
+				return sToInitialize;
+			}
 		};
 
 /**
@@ -125,7 +130,7 @@ namespace b3d
                                                                                                                                                              \
 		SPtr<GpuBuffer> CreateBuffer(GpuBufferFlags flags = GpuBufferFlag::StoreOnCPUWithGPUAccess | GpuBufferFlag::AllowWriteCachingOnCPU) const            \
 		{                                                                                                                                                    \
-			const SPtr<GpuDevice> gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();                                                                    \
+			const SPtr<GpuDevice> gpuDevice = GetApplication().GetPrimaryGpuDevice();                                                                        \
 			if(gpuDevice)                                                                                                                                    \
 				return gpuDevice->CreateGpuBuffer(GpuBufferCreateInformation::CreateUniform(mBlockSize, flags, 1));                                          \
                                                                                                                                                              \
@@ -134,7 +139,7 @@ namespace b3d
                                                                                                                                                              \
 		SPtr<GpuBuffer> CreateBuffer(u32 count, GpuBufferFlags flags = GpuBufferFlag::StoreOnCPUWithGPUAccess | GpuBufferFlag::AllowWriteCachingOnCPU) const \
 		{                                                                                                                                                    \
-			const SPtr<GpuDevice> gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();                                                                    \
+			const SPtr<GpuDevice> gpuDevice = GetApplication().GetPrimaryGpuDevice();                                                                        \
 			if(gpuDevice)                                                                                                                                    \
 				return gpuDevice->CreateGpuBuffer(GpuBufferCreateInformation::CreateUniform(mBlockSize, flags, count));                                      \
                                                                                                                                                              \
@@ -152,7 +157,7 @@ namespace b3d
 		void Initialize() override                                                                                                                           \
 		{                                                                                                                                                    \
 			mParams = GetEntries();                                                                                                                          \
-			const SPtr<GpuDevice> gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();                                                                    \
+			const SPtr<GpuDevice> gpuDevice = GetApplication().GetPrimaryGpuDevice();                                                                        \
 			if(gpuDevice)                                                                                                                                    \
 			{                                                                                                                                                \
                                                                                                                                                              \

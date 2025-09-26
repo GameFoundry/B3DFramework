@@ -3,10 +3,10 @@
 #pragma once
 
 #include "B3DScriptEnginePrerequisites.h"
-#include "Generated/B3DScriptGUIElement.generated.h"
 #include "GUI/B3DGUIRenderTexture.h"
 
 #ifndef B3D_CODEGEN
+#include "Generated/B3DScriptGUIElement.generated.h"
 #include "Generated/B3DScriptGUIInteractable.generated.h"
 
 namespace b3d

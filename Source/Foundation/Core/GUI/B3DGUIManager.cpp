@@ -13,7 +13,6 @@
 #include "Managers/B3DRenderWindowManager.h"
 #include "Platform/B3DPlatform.h"
 #include "Math/B3DArea2.h"
-#include "B3DCoreApplication.h"
 #include "B3DGUIMeshBatches.h"
 #include "Error/B3DException.h"
 #include "Input/B3DInput.h"
@@ -1595,7 +1594,7 @@ GUIRenderer::GUIRenderer()
 
 void GUIRenderer::Initialize(const Any& data)
 {
-	const SPtr<GpuDevice> gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
+	const SPtr<GpuDevice> gpuDevice = GetApplication().GetPrimaryGpuDevice();
 
 	SamplerStateInformation ssDesc;
 	ssDesc.MagFilter = FO_POINT;
@@ -1640,7 +1639,7 @@ void GUIRenderer::Render(const Camera& camera, const RendererViewContext& viewCo
 	// TODO - Sprite animation might be broken. I need to continually mark the animated region as dirty.
 
 	FrameScope frameScope;
-	const SPtr<GpuDevice>& gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
+	const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
 	const GpuBackendConventions& gpuBackendConventions = gpuDevice->GetCapabilities().Conventions;
 
 	GUICameraRenderData& cameraRenderData = mPerCameraData[&camera];

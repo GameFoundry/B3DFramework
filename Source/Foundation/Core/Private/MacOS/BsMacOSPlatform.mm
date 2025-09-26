@@ -9,7 +9,6 @@
 #include "RenderAPI/B3DRenderWindow.h"
 #include "Private/MacOS/B3DMacOSDropTarget.h"
 #include "String/B3DUnicode.h"
-#include "B3DCoreApplication.h"
 #import <Cocoa/Cocoa.h>
 #import <Carbon/Carbon.h>
 

@@ -3,6 +3,7 @@
 #include "Resources/B3DResources.h"
 
 #include "B3DApplication.h"
+#include "B3DPackage.h"
 #include "Resources/B3DResource.h"
 #include "Serialization/B3DFileSerializer.h"
 #include "FileSystem/B3DFileSystem.h"
@@ -12,7 +13,6 @@
 #include "Managers/B3DResourceListenerManager.h"
 #include "Serialization/B3DBinarySerializer.h"
 #include "Reflection/B3DRTTIType.h"
-#include "B3DCoreApplication.h"
 #include "Threading/B3DScheduler.h"
 
 using namespace b3d;
@@ -250,7 +250,7 @@ HResource Resources::Load(UPtr<PackageReadLock> packageReadLock, const UUID& res
 	if(asyncLoad)
 	{
 		const String resourceFileName = metaData->Path.GetFilename();
-		GetCoreApplication().GetTaskScheduler().Post(SchedulerTask(fnLoadFromPackageAndFinalize, "Load resource", SchedulerTaskFlag::None, resourceFileName));
+		GetApplication().GetTaskScheduler().Post(SchedulerTask(fnLoadFromPackageAndFinalize, "Load resource", SchedulerTaskFlag::None, resourceFileName));
 	}
 	else 
 	{
@@ -340,7 +340,7 @@ void Resources::TryFinalizeLoad(const SPtr<InProgressLoadInformation>& inProgres
 	if(inProgressLoadInformation->ResourceHandle.IsLoaded(false))
 		OnResourceLoaded(inProgressLoadInformation->ResourceHandle);
 
-	if(!inProgressLoadInformation->LoadOptions.AsynchronousLoad && GetCoreApplication().GetMainThreadId() == B3D_CURRENT_THREAD_ID)
+	if(!inProgressLoadInformation->LoadOptions.AsynchronousLoad && GetApplication().GetMainThreadId() == B3D_CURRENT_THREAD_ID)
 		ResourceListenerManager::Instance().NotifyListeners(resourceId);
 
 	// See if any dependant load's remaining resource count reached 0, and try to finalize them
@@ -528,7 +528,7 @@ void Resources::UpdateHandle(HResource& handle, const SPtr<Resource>& resource)
 	OnResourceModified(handle);
 
 	// Notify listeners immediately if on main thread
-	if(GetCoreApplication().GetMainThreadId() == B3D_CURRENT_THREAD_ID)
+	if(GetApplication().GetMainThreadId() == B3D_CURRENT_THREAD_ID)
 		ResourceListenerManager::Instance().NotifyListeners(uuid);
 }
 

@@ -17,7 +17,7 @@ namespace render {
 
 SPtr<render::Texture> Generate4x4RandomizationTexture()
 {
-	const SPtr<GpuDevice>& gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
+	const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
 	if (!gpuDevice)
 		return nullptr;
 
@@ -94,7 +94,7 @@ float CalcMicrofacetShadowingSmithGgx(float roughness4, float NoV, float NoL)
 
 SPtr<render::Texture> GeneratePreintegratedEnvBrdf()
 {
-	const SPtr<GpuDevice>& gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
+	const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
 	if (!gpuDevice)
 		return nullptr;
 
@@ -189,7 +189,7 @@ SPtr<render::Texture> GeneratePreintegratedEnvBrdf()
 
 SPtr<render::Texture> GenerateDefaultIndirect()
 {
-	const SPtr<GpuDevice>& gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
+	const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
 	if (!gpuDevice)
 		return nullptr;
 
@@ -265,7 +265,7 @@ SPtr<render::Texture> GenerateDefaultIndirect()
 
 SPtr<render::Texture> GenerateLensFlareGradientTint()
 {
-	const SPtr<GpuDevice>& gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
+	const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
 	if (!gpuDevice)
 		return nullptr;
 
@@ -294,7 +294,7 @@ SPtr<render::Texture> GenerateLensFlareGradientTint()
 
 SPtr<render::Texture> GenerateChromaticAberrationFringe()
 {
-	const SPtr<GpuDevice>& gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
+	const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
 	if (!gpuDevice)
 		return nullptr;
 

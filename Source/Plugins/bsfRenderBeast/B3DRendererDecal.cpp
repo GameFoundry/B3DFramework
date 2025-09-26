@@ -51,7 +51,7 @@ void RendererDecal::UpdatePerObjectBuffer()
 
 	float flipDerivatives = 1.0f;
 
-	const SPtr<GpuDevice>& gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
+	const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
 	const GpuBackendConventions& gpuBackendConventions = gpuDevice->GetCapabilities().Conventions;
 	if(gpuBackendConventions.UvYAxis == GpuBackendConventions::Axis::Up)
 		flipDerivatives = -1.0f;

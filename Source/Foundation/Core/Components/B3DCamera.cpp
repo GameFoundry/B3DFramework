@@ -1,10 +1,10 @@
 //************************************ B3D Framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "Components/B3DCamera.h"
+#include "B3DApplication.h"
 #include "RTTI/B3DCameraRTTI.h"
 #include "Scene/B3DSceneObject.h"
 #include "Scene/B3DSceneInstance.h"
-#include "B3DCoreApplication.h"
 #include "CoreObject/B3DCoreObjectSync.h"
 #include "RenderAPI/B3DGpuDevice.h"
 #include "RenderAPI/B3DGpuDeviceCapabilities.h"
@@ -259,7 +259,7 @@ void TCamera<IsRenderProxy>::UpdateFrustum() const
 			}
 		}
 
-		if (const SPtr<GpuDevice> gpuDevice = GetCoreApplication().GetPrimaryGpuDevice())
+		if (const SPtr<GpuDevice> gpuDevice = GetApplication().GetPrimaryGpuDevice())
 			gpuDevice->ConvertProjectionMatrix(mProjMatrix, mProjMatrixRS);
 		else
 			mProjMatrixRS = mProjMatrix;
@@ -511,7 +511,7 @@ Vector2 TCamera<IsRenderProxy>::ScreenToNDCPoint(const Vector2I& screenPoint) co
 	Vector2 ndcPoint;
 	ndcPoint.X = (float)(((screenPoint.X - viewport.X) / (float)viewport.Width) * 2.0f - 1.0f);
 
-	const SPtr<GpuDevice>& gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
+	const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
 	const GpuBackendConventions& gpuBackendConventions = gpuDevice->GetCapabilities().Conventions;
 
 	if(gpuBackendConventions.NdcYAxis == GpuBackendConventions::Axis::Down)
@@ -564,7 +564,7 @@ Vector2I TCamera<IsRenderProxy>::NDCToScreenPoint(const Vector2& ndcPoint) const
 	Vector2I screenPoint;
 	screenPoint.X = Math::RoundToI32(viewport.X + ((ndcPoint.X + 1.0f) * 0.5f) * viewport.Width);
 
-	const SPtr<GpuDevice>& gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
+	const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
 	const GpuBackendConventions& gpuBackendConventions = gpuDevice->GetCapabilities().Conventions;
 
 	if(gpuBackendConventions.NdcYAxis == GpuBackendConventions::Axis::Down)

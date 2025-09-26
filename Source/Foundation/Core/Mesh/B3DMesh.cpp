@@ -1,6 +1,8 @@
 //************************************ B3D Framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "Mesh/B3DMesh.h"
+
+#include "B3DApplication.h"
 #include "RTTI/B3DMeshRTTI.h"
 #include "Mesh/B3DMeshData.h"
 #include "Debug/B3DDebug.h"
@@ -58,7 +60,7 @@ TAsyncOp<void> Mesh::ReadData(const SPtr<MeshData>& data)
 		[&](const SPtr<render::Mesh>& mesh, const SPtr<MeshData>& _meshData, TAsyncOp<void>& asyncOp)
 	{
 		// TODO - Transfer buffers should be handled by the Renderer
-		const SPtr<GpuDevice> gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
+		const SPtr<GpuDevice> gpuDevice = GetApplication().GetPrimaryGpuDevice();
 		if(gpuDevice != nullptr)
 			gpuDevice->SubmitTransferCommandBuffers();
 
@@ -274,7 +276,7 @@ void Mesh::Initialize()
 	if(mFlags.IsSet(MeshFlag::UnorderedAccess))
 		flags |= GpuBufferFlag::AllowUnorderedAccessOnTheGPU;
 
-	const SPtr<GpuDevice>& gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
+	const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
 
 	GpuBufferInformation indexBufferCreateInformation;
 	indexBufferCreateInformation.Type = GpuBufferType::Index;

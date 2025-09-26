@@ -3,7 +3,6 @@
 #include "B3DFontImporter.h"
 #include "Text/B3DFontImportOptions.h"
 #include "Image/B3DTexture.h"
-#include "B3DCoreApplication.h"
 #include "FileSystem/B3DFileSystem.h"
 #include "FileSystem/B3DDataStream.h"
 

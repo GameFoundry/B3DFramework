@@ -2,7 +2,7 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "Material/B3DPass.h"
 
-#include "B3DCoreApplication.h"
+#include "B3DApplication.h"
 #include "RTTI/B3DPassRTTI.h"
 #include "Material/B3DMaterial.h"
 #include "RenderAPI/B3DGpuParameters.h"
@@ -70,7 +70,7 @@ const GpuProgramCreateInformation& TPass<IsRenderProxy>::GetGpuProgramCreateInfo
 template <bool IsRenderProxy>
 void TPass<IsRenderProxy>::CreatePipelineState()
 {
-	const SPtr<GpuDevice>& device = GetCoreApplication().GetPrimaryGpuDevice();
+	const SPtr<GpuDevice>& device = GetApplication().GetPrimaryGpuDevice();
 
 	if(IsCompute())
 	{

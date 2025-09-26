@@ -2,7 +2,7 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "Image/B3DTexture.h"
 
-#include "B3DCoreApplication.h"
+#include "B3DApplication.h"
 #include "RTTI/B3DTextureRTTI.h"
 #include "FileSystem/B3DDataStream.h"
 #include "Error/B3DException.h"
@@ -109,7 +109,7 @@ void Texture::Initialize()
 
 SPtr<render::RenderProxy> Texture::CreateRenderProxy() const
 {
-	const SPtr<GpuDevice>& gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
+	const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
 	if(!gpuDevice)
 		return nullptr;
 
@@ -151,7 +151,7 @@ TAsyncOp<void> Texture::ReadData(const SPtr<PixelData>& data, u32 face, u32 mipL
 			TAsyncOp<void>& asyncOp)
 	{
 		// TODO - Transfer buffers should be handled by the Renderer
-		const SPtr<GpuDevice> gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
+		const SPtr<GpuDevice> gpuDevice = GetApplication().GetPrimaryGpuDevice();
 		if(gpuDevice != nullptr)
 			gpuDevice->SubmitTransferCommandBuffers();
 
@@ -173,7 +173,7 @@ TAsyncOp<SPtr<PixelData>> Texture::ReadData(u32 face, u32 mipLevel)
 	auto func = [texture = B3DGetRenderProxy(this), face, mipLevel, op]() mutable
 	{
 		// TODO - Transfer buffers should be handled by the Renderer
-		const SPtr<GpuDevice> gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
+		const SPtr<GpuDevice> gpuDevice = GetApplication().GetPrimaryGpuDevice();
 		if(gpuDevice != nullptr)
 			gpuDevice->SubmitTransferCommandBuffers();
 

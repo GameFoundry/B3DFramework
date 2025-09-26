@@ -2,7 +2,7 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "B3DPhysX.h"
 
-#include "B3DCoreApplication.h"
+#include "B3DApplication.h"
 #include "PxPhysicsAPI.h"
 #include "B3DPhysXMaterial.h"
 #include "B3DPhysXMesh.h"
@@ -282,12 +282,12 @@ public:
 	void submitTask(PxBaseTask& physxTask) override
 	{
 		auto runTask = [&physxTask]() { physxTask.run(); physxTask.release(); };
-		GetCoreApplication().GetTaskScheduler().Post(SchedulerTask(std::move(runTask), "PhysXWorker"));
+		GetApplication().GetTaskScheduler().Post(SchedulerTask(std::move(runTask), "PhysXWorker"));
 	}
 
 	PxU32 getWorkerCount() const override
 	{
-		return (PxU32)GetCoreApplication().GetTaskScheduler().GetInformation().WorkerThreadCount;
+		return (PxU32)GetApplication().GetTaskScheduler().GetInformation().WorkerThreadCount;
 	}
 };
 

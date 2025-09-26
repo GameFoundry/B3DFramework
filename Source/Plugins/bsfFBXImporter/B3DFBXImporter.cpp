@@ -2,7 +2,6 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "B3DFBXImporter.h"
 #include "Resources/B3DResource.h"
-#include "B3DCoreApplication.h"
 #include "Debug/B3DDebug.h"
 #include "FileSystem/B3DDataStream.h"
 #include "Mesh/B3DMeshData.h"

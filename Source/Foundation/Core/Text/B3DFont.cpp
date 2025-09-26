@@ -4,7 +4,7 @@
 #include "Resources/B3DResources.h"
 #include "Image/B3DTextureAtlasLayout.h"
 #include "RTTI/B3DFontRTTI.h"
-#include "B3DCoreApplication.h"
+#include "B3DApplication.h"
 #include "FileSystem/B3DDataStream.h"
 #include "RenderAPI/B3DGpuCommandBuffer.h"
 #include "RenderAPI/B3DGpuDevice.h"
@@ -15,6 +15,7 @@
 #define USE_FREETYPE2_STATIC
 #include <ft2build.h>
 #include <freetype/freetype.h>
+
 #include FT_FREETYPE_H
 
 B3D_LOG_CATEGORY_STATIC(Font, Log)
@@ -677,7 +678,7 @@ RTTIType* Font::GetRtti() const
 
 void FontAtlasRenderer::OnStartUp()
 {
-	SPtr<GpuDevice> gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
+	SPtr<GpuDevice> gpuDevice = GetApplication().GetPrimaryGpuDevice();
 	if (!gpuDevice)
 		return;
 
@@ -724,7 +725,7 @@ void FontAtlasRenderer::BlitGlyphs(Vector<GlyphBitmap> glyphBitmaps)
 			entry.GlyphTexture->Blit(*commandBuffer, entry.AtlasTexture, blitInformation);
 		}
 
-		const SPtr<GpuDevice>& gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
+		const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
 		if(!B3D_ENSURE(gpuDevice))
 			return;
 

@@ -1,10 +1,11 @@
 //************************************ B3D Framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "Managers/B3DResourceListenerManager.h"
+
+#include "B3DApplication.h"
 #include "Resources/B3DResources.h"
 #include "Resources/B3DIResourceListener.h"
 #include "CoreObject/B3DRenderThread.h"
-#include "B3DCoreApplication.h"
 
 using namespace std::placeholders;
 
@@ -13,7 +14,7 @@ using namespace b3d;
 #if B3D_DEBUG
 void throwIfNotSimThread()
 {
-	if(B3D_CURRENT_THREAD_ID != CoreApplication::Instance().GetMainThreadId())
+	if(B3D_CURRENT_THREAD_ID != Application::Instance().GetMainThreadId())
 		B3D_EXCEPT(InternalErrorException, "This method can only be accessed from the simulation thread.");
 }
 

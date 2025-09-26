@@ -266,7 +266,7 @@ struct GpuParticleHelperBuffers
 
 GpuParticleResources::GpuParticleResources()
 {
-	const SPtr<GpuDevice>& gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
+	const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
 
 	// Allocate textures
 	TextureCreateInformation positionAndTimeDesc;
@@ -398,7 +398,7 @@ const SPtr<GpuBuffer>& GpuParticleResources::GetSortedIndices() const
 
 GpuParticleHelperBuffers::GpuParticleHelperBuffers()
 {
-	const SPtr<GpuDevice>& gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
+	const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
 
 	// Prepare vertex declaration for rendering tiles
 	TInlineArray<VertexElement, 8> tileVertexElements;
@@ -639,7 +639,7 @@ bool GpuParticleSystem::FreeInactiveTiles(GpuParticleResources& resources)
 
 void GpuParticleSystem::UpdateGpuBuffers()
 {
-	const SPtr<GpuDevice>& gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
+	const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
 
 	const auto numTiles = (u32)mTiles.size();
 	const u32 numTilesToAllocates = Math::DivideAndRoundUp(numTiles, kTilesPerInstance) * kTilesPerInstance;
@@ -1062,7 +1062,7 @@ SPtr<GpuBuffer> CreateGpuParticleVertexInputBuffer()
 	// [0, 1] -> [-1, 1] and flip Y
 	Vector4 uvToNdc(2.0f, -2.0f, -1.0f, 1.0f);
 
-	const SPtr<GpuDevice>& gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
+	const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
 	const GpuBackendConventions& gpuBackendConventions = gpuDevice->GetCapabilities().Conventions;
 
 	// Either of these flips the Y axis, but if they're both true they cancel out
@@ -1330,7 +1330,7 @@ struct GpuParticleCurveInject
 
 GpuParticleCurves::GpuParticleCurves()
 {
-	const SPtr<GpuDevice>& gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
+	const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
 
 	TextureCreateInformation textureCreateInformation;
 	textureCreateInformation.Name = "GPU Particles Curves";

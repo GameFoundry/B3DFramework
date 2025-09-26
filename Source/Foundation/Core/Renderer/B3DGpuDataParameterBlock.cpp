@@ -12,14 +12,12 @@ GpuDataParameterBlock::~GpuDataParameterBlock()
 	GpuDataParameterBlockManager::UnregisterBlock(this);
 }
 
-Vector<GpuDataParameterBlock*> GpuDataParameterBlockManager::sToInitialize;
-
 GpuDataParameterBlockManager::GpuDataParameterBlockManager()
 {
-	for(auto& entry : sToInitialize)
+	for(auto& entry : GetToInitializeList())
 		entry->Initialize();
 
-	sToInitialize.clear();
+	GetToInitializeList().clear();
 }
 
 void GpuDataParameterBlockManager::RegisterBlock(GpuDataParameterBlock* parameterBlock)
@@ -27,13 +25,13 @@ void GpuDataParameterBlockManager::RegisterBlock(GpuDataParameterBlock* paramete
 	if(IsStarted())
 		parameterBlock->Initialize();
 	else
-		sToInitialize.push_back(parameterBlock);
+		GetToInitializeList().push_back(parameterBlock);
 }
 
 void GpuDataParameterBlockManager::UnregisterBlock(GpuDataParameterBlock* parameterBlock)
 {
-	auto iterFind = std::find(sToInitialize.begin(), sToInitialize.end(), parameterBlock);
-	if(iterFind != sToInitialize.end())
-		sToInitialize.erase(iterFind);
+	auto found = std::find(GetToInitializeList().begin(), GetToInitializeList().end(), parameterBlock);
+	if(found != GetToInitializeList().end())
+		GetToInitializeList().erase(found);
 }
 }}

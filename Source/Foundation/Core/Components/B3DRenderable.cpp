@@ -1,8 +1,7 @@
 //************************************ B3D Framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "Components/B3DRenderable.h"
-
-#include "B3DCoreApplication.h"
+#include "B3DApplication.h"
 #include "Animation/B3DMorphShapes.h"
 #include "Scene/B3DSceneObject.h"
 #include "Mesh/B3DMesh.h"
@@ -448,7 +447,7 @@ static SPtr<GpuBuffer> CreateBoneMatrixBuffer(u32 boneCount)
 	bufferCreateInformation.SimpleStorage.Count = boneCount * 3;
 	bufferCreateInformation.SimpleStorage.Format = BF_32X4F;
 
-	const SPtr<GpuDevice>& gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
+	const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
 	SPtr<GpuBuffer> buffer = gpuDevice->CreateGpuBuffer(bufferCreateInformation);
 
 	const u32 bufferSize = boneCount * 3 * sizeof(Vector4);
@@ -557,7 +556,7 @@ void Renderable::CreateAnimationBuffers()
 		vertexBufferCreateInformation.Vertex.ElementSize = vertexSize;
 		vertexBufferCreateInformation.Vertex.Count = vertexCount;
 
-		const SPtr<GpuDevice>& gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
+		const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
 		SPtr<GpuBuffer> vertexBuffer = gpuDevice->CreateGpuBuffer(vertexBufferCreateInformation);
 
 		u32 totalSize = vertexSize * vertexCount;

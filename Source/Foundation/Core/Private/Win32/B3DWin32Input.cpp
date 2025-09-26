@@ -4,7 +4,7 @@
 #include "Error/B3DException.h"
 #include "Private/Win32/B3DWin32Input.h"
 
-#include "B3DCoreApplication.h"
+#include "B3DApplication.h"
 #include "Input/B3DMouse.h"
 #include "Input/B3DKeyboard.h"
 #include "Input/B3DGamepad.h"
@@ -157,7 +157,7 @@ void Input::InitRawInput()
 {
 	mPlatformData = B3DNew<InputPrivateData>();
 
-	const SPtr<GpuDevice>& gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
+	const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
 
 	const bool isHeadless = gpuDevice == nullptr || gpuDevice->GetCapabilities().DeviceName == "Null";
 	if(isHeadless)

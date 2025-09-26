@@ -269,7 +269,7 @@ void VisibleLightData::Update(const SceneInfo& sceneInfo, const RendererViewGrou
 			bufferCreateInformation.StructuredStorage.Count = bufferSize / sizeof(LightData);
 			bufferCreateInformation.StructuredStorage.ElementSize = sizeof(LightData);
 
-			const SPtr<GpuDevice>& gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
+			const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
 			mLightBuffer = gpuDevice->CreateGpuBuffer(bufferCreateInformation);
 		}
 

@@ -1,13 +1,14 @@
 //************************************ B3D Framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "Input/B3DInput.h"
+
+#include "B3DApplication.h"
 #include "Input/B3DMouse.h"
 #include "Input/B3DKeyboard.h"
 #include "Input/B3DGamepad.h"
 #include "Utility/B3DTime.h"
 #include "Math/B3DMath.h"
 #include "Managers/B3DRenderWindowManager.h"
-#include "B3DCoreApplication.h"
 
 using namespace std::placeholders;
 
@@ -27,7 +28,7 @@ Input::DeviceData::DeviceData()
 
 Input::Input()
 {
-	SPtr<RenderWindow> primaryWindow = GetCoreApplication().GetPrimaryWindow();
+	SPtr<RenderWindow> primaryWindow = GetApplication().GetPrimaryWindow();
 	mWindowHandle = primaryWindow->GetPlatformWindowHandle();
 
 	// Subscribe to events

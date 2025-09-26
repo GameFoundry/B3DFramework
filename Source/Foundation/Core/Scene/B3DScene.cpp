@@ -5,7 +5,6 @@
 #include "Resources/B3DResources.h"
 #include "Scene/B3DSceneObject.h"
 #include "Scene/B3DPrefabUtility.h"
-#include "B3DCoreApplication.h"
 #include "B3DGameObjectCollection.h"
 #include "Scene/B3DSceneInstance.h"
 

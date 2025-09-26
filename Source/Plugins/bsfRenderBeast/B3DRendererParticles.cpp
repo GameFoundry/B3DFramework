@@ -288,7 +288,7 @@ void ParticleTexturePool::Clear()
 
 ParticleBillboardTextures* ParticleTexturePool::CreateNewBillboardTextures(u32 size)
 {
-	const SPtr<GpuDevice>& gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
+	const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
 	ParticleBillboardTextures* output = mBillboardAlloc.Construct<ParticleBillboardTextures>();
 
 	TextureCreateInformation textureCreateInformation;
@@ -322,7 +322,7 @@ ParticleBillboardTextures* ParticleTexturePool::CreateNewBillboardTextures(u32 s
 
 ParticleMeshTextures* ParticleTexturePool::CreateNewMeshTextures(u32 size)
 {
-	const SPtr<GpuDevice>& gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
+	const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
 	ParticleMeshTextures* output = mMeshAlloc.Construct<ParticleMeshTextures>();
 
 	TextureCreateInformation texDesc;
@@ -367,7 +367,7 @@ struct ParticleRenderer::Members
 ParticleRenderer::ParticleRenderer()
 	: m(B3DNew<Members>())
 {
-	const SPtr<GpuDevice>& gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
+	const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
 
 	TInlineArray<VertexElement, 8> vertexElements;
 	vertexElements.Add(VertexElement(VET_FLOAT3, VES_POSITION));

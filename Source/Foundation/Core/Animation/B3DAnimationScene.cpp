@@ -1,8 +1,7 @@
 //************************************ B3D Framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "Animation/B3DAnimationScene.h"
-
-#include "B3DCoreApplication.h"
+#include "B3DApplication.h"
 #include "Animation/B3DAnimationClip.h"
 #include "Utility/B3DTime.h"
 #include "Scene/B3DSceneInstance.h"
@@ -133,7 +132,7 @@ const EvaluatedAnimationData* AnimationScene::Update(bool async)
 			mWorkerWaitGroup.NotifyDone();
 		};
 
-		GetCoreApplication().GetTaskScheduler().Post(SchedulerTask(evaluateAnimWorker, "AnimWorker"));
+		GetApplication().GetTaskScheduler().Post(SchedulerTask(evaluateAnimWorker, "AnimWorker"));
 
 		if(anim->Skeleton != nullptr)
 			curBoneIdx += anim->Skeleton->GetBoneCount();

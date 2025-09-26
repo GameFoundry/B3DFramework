@@ -1,8 +1,9 @@
 //************************************ B3D Framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "Managers/B3DRenderWindowManager.h"
+
+#include "B3DApplication.h"
 #include "Platform/B3DPlatform.h"
-#include "B3DCoreApplication.h"
 
 #if B3D_PLATFORM == B3D_PLATFORM_ID_WIN32
 #	include "Private/Win32/B3DWin32RenderWindow.h"
@@ -93,11 +94,11 @@ void RenderWindowManager::RequestShowWindow(u32 windowId, bool show)
 		event.Signal();
 	};
 
-	if(GetCoreApplication().GetMainThreadId() == B3D_CURRENT_THREAD_ID)
+	if(GetApplication().GetMainThreadId() == B3D_CURRENT_THREAD_ID)
 		fnShowWindow();
 	else
 	{
-		GetCoreApplication().GetMainThreadScheduler().Post(SchedulerTask(std::move(fnShowWindow)));
+		GetApplication().GetMainThreadScheduler().Post(SchedulerTask(std::move(fnShowWindow)));
 
 		// Make sure to wait for the message to be processed by the main thread, because if we present an image onto a hidden window it will get lost (at least on Win32).
 		event.Wait();

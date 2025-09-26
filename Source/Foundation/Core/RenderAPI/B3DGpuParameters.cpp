@@ -2,7 +2,7 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "RenderAPI/B3DGpuParameters.h"
 
-#include "B3DCoreApplication.h"
+#include "B3DApplication.h"
 #include "B3DGpuDevice.h"
 #include "RenderAPI/B3DGpuProgramParameterDescription.h"
 #include "RenderAPI/B3DGpuBuffer.h"
@@ -531,7 +531,7 @@ SPtr<GpuParameters> GpuParameters::GetThisPtrInternal() const
 
 SPtr<render::RenderProxy> GpuParameters::CreateRenderProxy() const
 {
-	const SPtr<GpuDevice>& gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
+	const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
 	if(!gpuDevice)
 		return nullptr;
 

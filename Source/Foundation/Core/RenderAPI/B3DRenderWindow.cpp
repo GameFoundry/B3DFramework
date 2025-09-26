@@ -2,6 +2,7 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "RenderAPI/B3DRenderWindow.h"
 
+#include "B3DApplication.h"
 #include "CoreObject/B3DCoreObjectSync.h"
 #include "CoreObject/B3DRenderThread.h"
 #include "Managers/B3DRenderWindowManager.h"
@@ -154,12 +155,12 @@ void RenderWindow::NotifyWindowEvent(WindowEventType type)
 		}
 	case WindowEventType::CloseRequested:
 		{
-			const SPtr<RenderWindow> primaryWindow = GetCoreApplication().GetPrimaryWindow();
+			const SPtr<RenderWindow> primaryWindow = GetApplication().GetPrimaryWindow();
 
 			// Default behaviour for primary window is to quit the app on close
 			if(this == primaryWindow.get() && OnCloseRequested.Empty())
 			{
-				GetCoreApplication().QuitRequested();
+				GetApplication().NotifyQuitRequested();
 				return;
 			}
 

@@ -1,8 +1,7 @@
 //************************************ B3D Framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "Components/B3DReflectionProbe.h"
-
-#include "B3DCoreApplication.h"
+#include "B3DApplication.h"
 #include "CoreObject/B3DCoreObjectSync.h"
 #include "Image/B3DTexture.h"
 #include "RTTI/B3DReflectionProbeRTTI.h"
@@ -161,7 +160,7 @@ void ReflectionProbe::CaptureAndFilter()
 			rendererScene->UpdateReflectionProbe(probeRenderProxy.get(), true);
 			GetProfilerGPU().EndSample(*commandBuffer, "RenderAndFilterReflectionProbe");
 
-			const SPtr<GpuDevice>& gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
+			const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
 			gpuDevice->SubmitCommandBuffer(commandBuffer);
 
 			return true;
@@ -184,7 +183,7 @@ void ReflectionProbe::CaptureAndFilter()
 			rendererScene->UpdateReflectionProbe(probeRenderProxy.get(), true);
 			GetProfilerGPU().EndSample(*commandBuffer, "FilterReflectionProbe");
 
-			const SPtr<GpuDevice>& gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
+			const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
 			gpuDevice->SubmitCommandBuffer(commandBuffer);
 
 			return true;

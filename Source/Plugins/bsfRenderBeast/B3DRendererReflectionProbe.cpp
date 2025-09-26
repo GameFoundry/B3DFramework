@@ -63,7 +63,7 @@ void VisibleReflProbeData::Update(const SceneInfo& sceneInfo, const RendererView
 			bufferCreateInformation.StructuredStorage.Count = bufferSize / sizeof(ReflProbeData);
 			bufferCreateInformation.StructuredStorage.ElementSize = sizeof(ReflProbeData);
 
-			const SPtr<GpuDevice>& gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
+			const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
 			mProbeBuffer = gpuDevice->CreateGpuBuffer(bufferCreateInformation);
 		}
 

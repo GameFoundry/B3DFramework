@@ -74,7 +74,7 @@ SPtr<CoreVariantType<Shader, IsRenderProxy>> ShaderCompilers::GetOrCompileShader
 	const String shaderNameInCache = cachePrefix + shaderName + "/";
 
 	const Path shaderPathInCache = Path(shaderNameInCache) + shadingLanguageName + "MetaData";
-	PersistentCache& cache = GetCoreApplication().GetApplicationCache();
+	PersistentCache& cache = GetApplication().GetApplicationCache();
 
 	SPtr<ShaderType> shader = cache.TryGetEntry<ShaderType>(shaderPathInCache);
 	if(shader != nullptr)
@@ -138,7 +138,7 @@ SPtr<CoreVariantType<Shader, IsRenderProxy>> ShaderCompilers::GetOrCompileShader
 
 ShadingLanguageFlag ShaderCompilers::DetectActiveShadingLanguage()
 {
-	const SPtr<GpuDevice> gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
+	const SPtr<GpuDevice> gpuDevice = GetApplication().GetPrimaryGpuDevice();
 	if(gpuDevice == nullptr)
 		return ShadingLanguageFlag::Unknown;
 

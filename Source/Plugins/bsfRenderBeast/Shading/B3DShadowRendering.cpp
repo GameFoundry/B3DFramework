@@ -692,7 +692,7 @@ const float ShadowRendering::kCascadeFractionFade = 0.1f;
 ShadowRendering::ShadowRendering(u32 shadowMapSize)
 	: mShadowMapSize(shadowMapSize)
 {
-	const SPtr<GpuDevice>& gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
+	const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
 
 	TInlineArray<VertexElement, 8> vertexElements;
 	vertexElements.Add(VertexElement(VET_FLOAT3, VES_POSITION));
@@ -921,7 +921,7 @@ std::array<Vector3, 8> GetFrustum(const Matrix4& invVP, ConvexVolume& worldFrust
 {
 	std::array<Vector3, 8> output;
 
-	const SPtr<GpuDevice>& gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
+	const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
 	const GpuDeviceCapabilities& caps = gpuDevice->GetCapabilities();
 
 	float flipY = 1.0f;
@@ -971,7 +971,7 @@ Matrix4 CreateMixedToShadowUvMatrix(const Matrix4& viewP, const Matrix4& viewInv
 
 	// Convert shadow clip space coordinates to UV coordinates relative to the shadow map rectangle, and normalize
 	// depth
-	const SPtr<GpuDevice>& gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
+	const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
 	const GpuBackendConventions& gpuBackendConventions = gpuDevice->GetCapabilities().Conventions;
 
 	float flipY = -1.0f;
@@ -1927,7 +1927,7 @@ float ShadowRendering::GetDepthBias(const Light& light, float radius, float dept
 	if(light.GetType() == LightType::Spot)
 		rangeScale = 1.0f / depthRange;
 
-	const SPtr<GpuDevice>& gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
+	const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
 	const GpuDeviceCapabilities& caps = gpuDevice->GetCapabilities();
 	float deviceDepthRange = caps.MaxDepth - caps.MinDepth;
 

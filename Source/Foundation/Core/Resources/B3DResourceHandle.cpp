@@ -6,7 +6,7 @@
 #include "RTTI/B3DResourceHandleRTTI.h"
 #include "Resources/B3DResources.h"
 #include "Managers/B3DResourceListenerManager.h"
-#include "B3DCoreApplication.h"
+#include "B3DApplication.h"
 
 using namespace b3d;
 
@@ -46,7 +46,7 @@ void ResourceHandle::BlockUntilLoaded(bool waitForDependencies) const
 
 		// Send out ResourceListener events right away, as whatever called this method probably also expects the
 		// listener events to trigger immediately as well
-		if(B3D_CURRENT_THREAD_ID == GetCoreApplication().GetMainThreadId())
+		if(B3D_CURRENT_THREAD_ID == GetApplication().GetMainThreadId())
 			ResourceListenerManager::Instance().NotifyListeners(mData->Id);
 	}
 

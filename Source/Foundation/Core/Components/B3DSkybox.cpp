@@ -1,8 +1,7 @@
 //************************************ B3D Framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "Components/B3DSkybox.h"
-
-#include "B3DCoreApplication.h"
+#include "B3DApplication.h"
 #include "CoreObject/B3DCoreObjectSync.h"
 #include "Image/B3DTexture.h"
 #include "RTTI/B3DSkyboxRTTI.h"
@@ -155,7 +154,7 @@ void Skybox::FilterTexture()
 		skyboxRenderProxy->mIrradiance = irradianceRenderProxy;
 
 		GetProfilerGPU().EndSample(*commandBuffer, "FilterSkybox");
-		const SPtr<GpuDevice>& gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
+		const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
 		gpuDevice->SubmitCommandBuffer(commandBuffer);
 
 		return true;

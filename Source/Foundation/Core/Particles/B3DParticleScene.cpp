@@ -2,7 +2,7 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "Particles/B3DParticleScene.h"
 
-#include "B3DCoreApplication.h"
+#include "B3DApplication.h"
 #include "Utility/B3DTime.h"
 #include "Allocators/B3DPoolAlloc.h"
 #include "Private/Particles/B3DParticleSet.h"
@@ -425,7 +425,7 @@ EvaluatedParticleData* ParticleScene::Update(const EvaluatedAnimationData& animD
 			waitGroup.NotifyDone();
 		};
 
-		GetCoreApplication().GetTaskScheduler().Post(SchedulerTask(evaluateWorker, "ParticleWorker"));
+		GetApplication().GetTaskScheduler().Post(SchedulerTask(evaluateWorker, "ParticleWorker"));
 	}
 
 	waitGroup.Wait();

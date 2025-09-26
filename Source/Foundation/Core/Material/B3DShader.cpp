@@ -471,7 +471,7 @@ SPtr<SamplerState> TShader<IsRenderProxy>::GetDefaultSampler(u32 index) const
 {
 	if (index < (u32)mInformation.SamplerDefaultValues.size())
 	{
-		const SPtr<GpuDevice> gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
+		const SPtr<GpuDevice> gpuDevice = GetApplication().GetPrimaryGpuDevice();
 		if (!B3D_ENSURE(gpuDevice))
 			return nullptr;
 

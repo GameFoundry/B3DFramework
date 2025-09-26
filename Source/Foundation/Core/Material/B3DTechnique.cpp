@@ -2,7 +2,7 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "Material/B3DTechnique.h"
 
-#include "B3DCoreApplication.h"
+#include "B3DApplication.h"
 #include "B3DShaderCompiler.h"
 #include "CoreObject/B3DCoreObjectSync.h"
 #include "Error/B3DException.h"
@@ -22,7 +22,7 @@ TechniqueBase::TechniqueBase(const String& language, const ShaderVariationParame
 
 bool TechniqueBase::IsSupported() const
 {
-	const SPtr<GpuDevice> gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
+	const SPtr<GpuDevice> gpuDevice = GetApplication().GetPrimaryGpuDevice();
 
 	if((gpuDevice != nullptr && gpuDevice->IsGpuProgramLanguageSupported(mLanguage)) || mLanguage == "Any")
 		return true;
@@ -123,7 +123,7 @@ TAsyncOp<bool> TTechnique<IsRenderProxy>::Compile()
 		const Array<u64, 2> variationHash = Shader::ComputeHash(hashString);
 
 		Path cacheName;
-		PersistentCache& cache = GetCoreApplication().GetApplicationCache();
+		PersistentCache& cache = GetApplication().GetApplicationCache();
 
 		if(shaderCompilerMetaData != nullptr && !shaderCompilerMetaData->NameInCache.empty())
 		{

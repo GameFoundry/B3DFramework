@@ -306,7 +306,7 @@ ShaderCompilerResult BSLCompiler::TCompileVariation(const String& name, const BS
 			gpuProgramCreateInformation.Source = code;
 			gpuProgramCreateInformation.Type = type;
 
-			const SPtr<GpuDevice> gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
+			const SPtr<GpuDevice> gpuDevice = GetApplication().GetPrimaryGpuDevice();
 
 			if(gpuDevice != nullptr)
 				gpuProgramCreateInformation.Bytecode = gpuDevice->CompileGpuProgramBytecode(gpuProgramCreateInformation);

@@ -1,8 +1,8 @@
 //************************************ B3D Framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "GUI/B3DDragAndDrop.h"
+#include "B3DApplication.h"
 #include "Platform/B3DPlatform.h"
-#include "B3DCoreApplication.h"
 #include "Utility/B3DTime.h"
 #include "RTTI/B3DDragAndDropDataRTTI.h"
 
@@ -70,7 +70,7 @@ void DragAndDrop::StartDrag(const SPtr<DragAndDropData>& data, std::function<voi
 	mCaptureActive.store(false);
 	mCaptureChanged.store(false);
 
-	Platform::CaptureMouse(*GetCoreApplication().GetPrimaryWindow());
+	Platform::CaptureMouse(*GetApplication().GetPrimaryWindow());
 }
 
 void DragAndDrop::Update()

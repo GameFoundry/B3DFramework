@@ -369,7 +369,7 @@ void IrradianceProjectSHMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr
 
 void RenderBeastIBLUtility::FilterCubemapForSpecular(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& cubemap, const SPtr<Texture>& scratch) const
 {
-	const SPtr<GpuDevice>& gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
+	const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
 	auto& props = cubemap->GetProperties();
 
 	SPtr<Texture> scratchCubemap = scratch;
@@ -505,7 +505,7 @@ void RenderBeastIBLUtility::FilterCubemapForIrradiance(GpuCommandBuffer& command
 
 void RenderBeastIBLUtility::ScaleCubemap(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& src, u32 srcMip, const SPtr<Texture>& dst, u32 dstMip) const
 {
-	const SPtr<GpuDevice>& gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
+	const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
 
 	auto& srcProps = src->GetProperties();
 	auto& dstProps = dst->GetProperties();

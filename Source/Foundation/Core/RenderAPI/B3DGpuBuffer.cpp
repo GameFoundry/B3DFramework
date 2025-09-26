@@ -1,7 +1,7 @@
 //************************************ B3D Framework - Copyright 2023 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "RenderAPI/B3DGpuBuffer.h"
-#include "B3DCoreApplication.h"
+#include "B3DApplication.h"
 #include "B3DGpuDevice.h"
 #include "B3DGpuDeviceCapabilities.h"
 #include "CoreObject/B3DCoreObjectSync.h"
@@ -31,7 +31,7 @@ static u32 CalculateUnalignedGpuBufferSize(const GpuBufferInformation& informati
 GpuBuffer::GpuBuffer(const GpuBufferCreateInformation& createInformation)
 	: mInformation(createInformation)
 {
-	const SPtr<GpuDevice>& gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
+	const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
 	mSuballocationSize = CalculateSuballocatedBufferSize(createInformation, gpuDevice);
 	mTotalSize = CalculateTotalBufferSize(createInformation, gpuDevice);
 }
@@ -106,7 +106,7 @@ void GpuBuffer::ReadCached(u32 offset, u32 length, void* destination)
 
 SPtr<render::RenderProxy> GpuBuffer::CreateRenderProxy() const
 {
-	const SPtr<GpuDevice>& gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
+	const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
 	if(!gpuDevice)
 		return nullptr;
 

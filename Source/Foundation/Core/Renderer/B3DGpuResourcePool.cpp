@@ -2,7 +2,7 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "B3DGpuResourcePool.h"
 
-#include "B3DCoreApplication.h"
+#include "B3DApplication.h"
 #include "RenderAPI/B3DRenderTexture.h"
 #include "Image/B3DTexture.h"
 #include "RenderAPI/B3DGpuDevice.h"
@@ -13,7 +13,7 @@ namespace b3d { namespace render
 {
 GpuResourcePool::GpuResourcePool()
 {
-	mDevice = GetCoreApplication().GetPrimaryGpuDevice();
+	mDevice = GetApplication().GetPrimaryGpuDevice();
 }
 
 SPtr<PooledRenderTexture> GpuResourcePool::Get(const POOLED_RenderTextureCreateInformation& desc)

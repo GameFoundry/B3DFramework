@@ -23,16 +23,78 @@
 #include "Resources/B3DEngineShaderIncludeHandler.h"
 #include "Resources/B3DResources.h"
 #include "B3DEngineConfig.h"
+#include "Audio/B3DAudio.h"
 #include "GUI/B3DProfilerOverlay.h"
 #include "Components/B3DCamera.h"
 #include "Scene/B3DSceneInstance.h"
 #include "Text/B3DStockIcons.h"
+#include "RenderAPI/B3DRenderWindow.h"
+#include "Scene/B3DGameObjectManager.h"
+#include "Utility/B3DDynamicLibraryManager.h"
+#include "Utility/B3DTime.h"
+#include "Input/B3DInput.h"
+#include "Managers/B3DMeshManager.h"
+#include "Utility/B3DDeferredCallManager.h"
+#include "Localization/B3DStringTableManager.h"
+#include "Profiling/B3DProfilerCPU.h"
+#include "Profiling/B3DProfilerGPU.h"
+#include "Threading/B3DThreadPool.h"
+#include "Profiling/B3DRenderStats.h"
+#include "Utility/B3DMessageHandler.h"
+#include "Managers/B3DResourceListenerManager.h"
+#include "Material/B3DShaderManager.h"
+#include "Physics/B3DPhysicsManager.h"
+#include "Audio/B3DAudioManager.h"
+#include "Managers/B3DGpuBackendManager.h"
+#include "Managers/B3DRenderWindowManager.h"
+#include "Material/B3DShaderCompiler.h"
+#include "Particles/B3DParticleScene.h"
+#include "Particles/B3DVectorField.h"
+#include "Renderer/B3DGpuDataParameterBlock.h"
+#include "Platform/B3DFolderMonitor.h"
+#include "RenderAPI/B3DGpuBackend.h"
+#include "Renderer/B3DRenderer.h"
+#include "Renderer/B3DRendererScene.h"
+#include "Scene/B3DPrefab.h"
+#include "Text/B3DFont.h"
+#include "Threading/B3DScheduler.h"
+#include "Utility/B3DDynamicLibrary.h"
+#include "Utility/B3DPersistentCache.h"
+
+namespace b3d
+{
+	B3D_LOG_CATEGORY(RenderThread)
+	B3D_LOG_CATEGORY(Renderer)
+	B3D_LOG_CATEGORY(Scene)
+	B3D_LOG_CATEGORY(Physics)
+	B3D_LOG_CATEGORY(Audio)
+	B3D_LOG_CATEGORY(RenderBackend)
+	B3D_LOG_CATEGORY(BSLCompiler)
+	B3D_LOG_CATEGORY(Particles)
+	B3D_LOG_CATEGORY(Resources)
+	B3D_LOG_CATEGORY(FBXImporter)
+	B3D_LOG_CATEGORY(PixelUtility)
+	B3D_LOG_CATEGORY(Texture)
+	B3D_LOG_CATEGORY(Mesh)
+	B3D_LOG_CATEGORY(GUI)
+	B3D_LOG_CATEGORY(Profiler)
+	B3D_LOG_CATEGORY(Material)
+	B3D_LOG_CATEGORY(FreeImageImporter)
+	B3D_LOG_CATEGORY(Script)
+	B3D_LOG_CATEGORY(Importer)
+	B3D_LOG_CATEGORY(LogInput)
+} // namespace b3d
 
 using namespace b3d;
 
-Application::Application(const ApplicationCreateInformation& desc)
-	: CoreApplication(desc)
-{}
+Application::Application(const ApplicationCreateInformation& createInformation)
+	: mPrimaryWindow(nullptr), mStartUpDesc(createInformation), mFrameRenderingFinishedSignal(SignalEvent::Mode::AutomaticallyReset, true), mSimThreadId(B3D_CURRENT_THREAD_ID), mRunMainLoop(false), mMainThreadScheduler(SchedulerCreateInformation())
+{
+	// Ensure all errors are reported properly
+	CrashHandler::StartUp(createInformation.CrashHandling);
+	if(createInformation.LogCallback)
+		GetDebug().SetLogCallback(createInformation.LogCallback);
+}
 
 Application::~Application()
 {
@@ -48,11 +110,140 @@ Application::~Application()
 	BuiltinResources::ShutDown();
 	RendererMaterialManager::ShutDown();
 	VirtualInput::ShutDown();
+
+	mPrimaryWindow->Destroy();
+	mPrimaryWindow = nullptr;
+
+	FolderMonitorManager::ShutDown();
+
+	Importer::ShutDown();
+	MeshManager::ShutDown();
+	ProfilerGPU::ShutDown();
+
+	PrefabManager::ShutDown();
+
+	Input::ShutDown();
+
+	FontAtlasRenderer::ShutDown();
+	render::GpuDataParameterBlockManager::ShutDown();
+	StringTableManager::ShutDown();
+	Resources::ShutDown();
+	PackageManager::ShutDown();
+	GameObjectManager::ShutDown();
+
+	// Audio manager must be released before the ResourceListenerManager, as any one-shot audio sources need to be
+	// destroyed since they implement the IResourceListener interface
+	AudioManager::ShutDown();
+	ResourceListenerManager::ShutDown();
+
+	// This must be done after all resources are released since it will unload the physics plugin, and some resources
+	// might be instances of types from that plugin.
+	PhysicsManager::ShutDown();
+
+	RendererManager::ShutDown();
+
+	// All CoreObject related modules should be shut down now. They have likely queued CoreObjects for destruction, so
+	// we need to wait for those objects to get destroyed before continuing.
+	CoreObjectManager::Instance().SyncToRenderThread(true);
+	GetRenderThread().PostCommand([] {}, "SyncToRenderThread before shutdown", true);
+
+	UnloadPlugin(mStartUpDesc.Renderer);
+
+	mPrimaryGpu = nullptr;
+	GpuBackendManager::ShutDown();
+
+	CoreObjectManager::ShutDown(); // Must shut down before DynLibManager to ensure all objects are destroyed before unloading their libraries
+
+	UnloadAllPlugins();
+	DynamicLibraryManager::ShutDown();
+
+	Time::ShutDown();
+	DeferredCallManager::ShutDown();
+	RenderThread::ShutDown();
+	RenderStats::ShutDown();
+	ProfilingManager::ShutDown();
+	ProfilerCPU::ShutDown();
+	MessageHandler::ShutDown();
+	ShaderManager::ShutDown();
+	ShaderCompilers::ShutDown();
+
+	mTaskScheduler = nullptr;
+	Scheduler::UnbindFromCurrentThread();
+
+	ThreadPool::ShutDown();
+	MemStack::EndThread();
+	Platform::ShutDownInternal();
+
+	CrashHandler::ShutDown();
 }
 
 void Application::OnStartUp()
 {
-	CoreApplication::OnStartUp();
+	Platform::StartUpInternal();
+	MemStack::BeginThread();
+	ThreadPool::StartUp<TThreadPool<ThreadDefaultPolicy>>((Thread::GetLogicalCoreCount()));
+
+	mMainThreadScheduler.BindToCurrentThread();
+
+	SchedulerCreateInformation schedulerCreateInformation;
+	schedulerCreateInformation.WorkerThreadCount = (u32)Math::Max(1, (i32)Thread::GetLogicalCoreCount() - 2); // Reserve two threads for main + render thread
+	schedulerCreateInformation.AffinityPolicy = B3DMakeShared<AnyOfThreadAffinityPolicy>(ThreadCoreMask::CreateAnyThreadMask()); // TODO - Mask out main + render threads
+
+	mTaskScheduler = B3DMakeShared<Scheduler>(schedulerCreateInformation);
+
+	mApplicationCache = PersistentCache::Create();
+	mApplicationCache->Initialize(FileSystem::GetApplicationDataFolder());
+
+	ShaderCompilers::StartUp();
+	ShaderManager::StartUp(GetShaderIncludeHandler());
+	MessageHandler::StartUp();
+	ProfilerCPU::StartUp();
+	ProfilingManager::StartUp();
+	RenderStats::StartUp();
+	RenderThread::StartUp();
+	StringTableManager::StartUp();
+	DeferredCallManager::StartUp();
+	Time::StartUp();
+	DynamicLibraryManager::StartUp();
+	CoreObjectManager::StartUp();
+	GameObjectManager::StartUp();
+	PackageManager::StartUp();
+	Resources::StartUp();
+	ResourceListenerManager::StartUp();
+
+	GpuBackendManager::StartUp();
+	GpuBackendManager::Instance().Initialize(mStartUpDesc.RenderApi);
+
+	mPrimaryGpu = GpuBackend::Instance().GetDevice(0);
+	mPrimaryGpu->Initialize();
+
+	mPrimaryWindow = RenderWindow::Create(mStartUpDesc.PrimaryWindow, nullptr);
+
+	render::GpuDataParameterBlockManager::StartUp();
+	FontAtlasRenderer::StartUp();
+	Input::StartUp();
+	RendererManager::StartUp();
+
+	LoadPlugin(mStartUpDesc.Renderer);
+
+	// Must be initialized before the scene manager, as game scene creation triggers physics scene creation
+	PhysicsManager::StartUp(mStartUpDesc.Physics, mStartUpDesc.PhysicsCooking);
+	PrefabManager::StartUp();
+	RendererManager::Instance().SetActive(mStartUpDesc.Renderer);
+	StartUpRenderer();
+
+	ProfilerGPU::StartUp();
+	MeshManager::StartUp();
+	Importer::StartUp();
+	AudioManager::StartUp(mStartUpDesc.Audio);
+	FolderMonitorManager::StartUp();
+
+	for(auto& importerName : mStartUpDesc.Importers)
+		LoadPlugin(importerName);
+
+	// Built-in importers
+	FGAImporter* fgaImporter = B3DNew<FGAImporter>();
+	Importer::Instance().RegisterAssetImporterInternal(fgaImporter);
 
 	PlainTextImporter* importer = B3DNew<PlainTextImporter>();
 	Importer::Instance().RegisterAssetImporterInternal(importer);
@@ -101,13 +292,182 @@ void Application::OnShutDown()
 	DebugDraw::ShutDown();
 
 	SceneManager::ShutDown(); // Needs to trigger after ScriptManager, as script objects may still be referencing scene objects
-	CoreApplication::OnShutDown();
+}
+
+void Application::RunMainLoop()
+{
+	BeginMainLoop();
+
+	while(IsMainLoopRunning())
+	{
+		// Limit FPS if needed
+		if(mFrameStep > 0)
+		{
+			u64 currentTime = GetTime().GetTimePrecise();
+			u64 nextFrameTime = mLastFrameTime + mFrameStep;
+			while(nextFrameTime > currentTime)
+			{
+				u32 waitTime = (u32)(nextFrameTime - currentTime);
+
+				// If waiting for longer, sleep
+				if(waitTime >= 2000)
+				{
+					Platform::Sleep(waitTime / 1000);
+					currentTime = GetTime().GetTimePrecise();
+				}
+				else
+				{
+					// Otherwise we just spin, sleep timer granularity is too low and we might end up wasting a
+					// millisecond otherwise.
+					// Note: For mobiles where power might be more important than input latency, consider using sleep.
+					while(nextFrameTime > currentTime)
+						currentTime = GetTime().GetTimePrecise();
+				}
+			}
+
+			mLastFrameTime = currentTime;
+		}
+
+		RunMainLoopFrame();
+	}
+
+	EndMainLoop();
+}
+
+void Application::StopMainLoop()
+{
+	mRunMainLoop = false; // No sync primitives needed, in that rare case of
+	// a race condition we might run the loop one extra iteration which is acceptable
+}
+
+void Application::BeginMainLoop()
+{
+	mRunMainLoop = true;
+}
+
+void Application::EndMainLoop()
+{
+	WaitUntilFrameFinished();
+}
+
+void Application::RunMainLoopFrame()
+{
+	GetProfilerCPU().BeginThread("Main");
+
+	Platform::UpdateInternal();
+	DeferredCallManager::Instance().UpdateInternal();
+	GetTime().Update();
+	{
+		const UnorderedMap<SceneInstance*, WeakSPtr<SceneInstance>>& allScenes = GetSceneManager().GetAllScenes();
+
+		// Note: Can we do this as part of SceneInstance::Update? Would clean up this bit of code
+		for(const auto& entry : allScenes)
+		{
+			const SPtr<SceneInstance>& scene = entry.second.lock();
+			scene->GetTime().Update();
+		}
+	}
+	GetInput().UpdateInternal();
+	// RenderWindowManager::update needs to happen after Input::update and before Input::_triggerCallbacks,
+	// so that all input is properly captured in case there is a focus change, and so that
+	// focus change is registered before input events are sent out (mouse press can result in code
+	// checking if a window is in focus, so it has to be up to date)
+	RenderWindowManager::Instance().Update();
+	GetInput().TriggerCallbacksInternal();
+	GetDebug().TriggerCallbacksInternal();
+	FolderMonitorManager::Instance().Update();
+
+	PreUpdate();
+
+	{
+		// Purposefully make a copy, assume components Updates can modify the active scene list
+		const UnorderedMap<SceneInstance*, WeakSPtr<SceneInstance>> allScenes = GetSceneManager().GetAllScenes();
+		for(const auto& entry : allScenes)
+		{
+			const SPtr<SceneInstance>& scene = entry.second.lock();
+			if(scene == nullptr)
+				continue;
+
+			scene->FixedUpdate();
+			PROFILE_CALL(scene->Update(), "Scene update");
+		}
+	}
+
+	GetAudio().Update();
+
+	// Update plugins
+	for(const auto& pair : mLoadedPlugins)
+	{
+		if(pair.second.UpdateCallback != nullptr)
+			pair.second.UpdateCallback();
+	}
+
+	PostUpdate();
+
+	mApplicationCache->Update();
+
+	PerFrameData perFrameData;
+
+	// Update particles and animation
+	{
+		const UnorderedMap<SceneInstance*, WeakSPtr<SceneInstance>>& allScenes = GetSceneManager().GetAllScenes();
+
+		// Note: Can we do this as part of SceneInstance::Update? Would clean up this bit of code
+		for(const auto& entry : allScenes)
+		{
+			const SPtr<SceneInstance>& scene = entry.second.lock();
+			render::RendererScene* const rendererSceneProxy = B3DGetRenderProxy(scene->GetRendererScene()).get();
+
+			// Evaluate animation after scene and plugin updates because the renderer will just now be displaying the
+			// animation we sent on the previous frame, and we want the scene information to match to what is displayed.
+
+			PerSceneFrameData perSceneFrameData;
+			perSceneFrameData.Animation = scene->GetAnimationScene()->Update(mStartUpDesc.AsyncAnimation);
+			perSceneFrameData.Particles = scene->GetParticleScene()->Update(*perSceneFrameData.Animation);
+
+			perFrameData.PerSceneData[rendererSceneProxy] = std::move(perSceneFrameData);
+		}
+	}
+
+	// Send out resource events in case any were loaded/destroyed/modified
+	ResourceListenerManager::Instance().Update();
+
+	// Trigger any renderer task callbacks (should be done before scene object update, or core sync, so objects have
+	// a chance to respond to the callback).
+	RendererManager::Instance().GetActive()->Update();
+
+	// Render and main thread run in lockstep. This will result in a larger input latency than if I was
+	// running just a single thread. Latency becomes worse if the render thread takes longer than main
+	// thread, in which case main thread needs to wait. Optimal solution would be to get an average
+	// difference between main/render thread and start the main thread a bit later so they finish at nearly the same time.
+	WaitUntilFrameFinished();
+
+	GetRenderThread().PostCommand([this] { BeginRenderThreadProfiling(); }, "BeginRenderThreadProfiling");
+
+	PROFILE_CALL(RendererManager::Instance().GetActive()->RenderAll(perFrameData), "Render");
+
+	GetRenderThread().PostCommand([this] { FrameRenderingFinishedCallback(); }, "FrameRenderingFinishedCallback");
+	GetRenderThread().PostCommand([this] { EndRenderThreadProfiling(); }, "EndRenderThreadProfiling");
+
+	GetProfilerCPU().EndThread();
+	GetProfiler().UpdateInternal();
+}
+
+void Application::WaitUntilFrameFinished()
+{
+	mFrameRenderingFinishedSignal.Wait();
+}
+
+void Application::SetFpsLimit(u32 limit)
+{
+	if(limit > 0)
+		mFrameStep = (u64)1000000 / limit;
+	else
+		mFrameStep = 0;
 }
 
 void Application::PreUpdate()
 {
-	CoreApplication::PreUpdate();
-
 	VirtualInput::Instance().UpdateInternal();
 
 	if(mProfilerOverlay)
@@ -116,7 +476,6 @@ void Application::PreUpdate()
 
 void Application::PostUpdate()
 {
-	CoreApplication::PostUpdate();
 	UpdateScriptManager();
 
 	PROFILE_CALL(GUIManager::Instance().Update(), "GUI");
@@ -159,6 +518,96 @@ void Application::StartUpScriptManager()
 void Application::UpdateScriptManager()
 {
 	ScriptManager::Instance().Update();
+}
+
+void Application::NotifyQuitRequested()
+{
+	StopMainLoop();
+}
+
+void Application::FrameRenderingFinishedCallback()
+{
+	mFrameRenderingFinishedSignal.Signal();
+}
+
+void Application::BeginRenderThreadProfiling()
+{
+	GetProfilerCPU().BeginThread("Core");
+}
+
+void Application::EndRenderThreadProfiling()
+{
+	ProfilerGPU::Instance().UpdateInternal();
+
+	GetProfilerCPU().EndThread();
+	GetProfiler().UpdateRenderThreadInternal();
+}
+
+void* Application::LoadPlugin(const String& pluginName, DynamicLibrary** outLibrary, void* passThrough)
+{
+	B3D_ASSERT(mLoadedPlugins.find(pluginName) == mLoadedPlugins.end());
+
+	DynamicLibrary* loadedLibrary = GetDynamicLibraryManager().Load(pluginName);
+	if(outLibrary != nullptr)
+		*outLibrary = loadedLibrary;
+
+	void* returnValue = nullptr;
+	if(loadedLibrary != nullptr)
+	{
+		if(passThrough == nullptr)
+		{
+			typedef void* (*LoadPluginFunctionPointer)();
+
+			LoadPluginFunctionPointer loadFunction = (LoadPluginFunctionPointer)loadedLibrary->GetSymbol("LoadPlugin");
+
+			if(loadFunction != nullptr)
+				returnValue = loadFunction();
+		}
+		else
+		{
+			typedef void* (*LoadPluginFunctionPointer)(void*);
+
+			LoadPluginFunctionPointer loadFunction = (LoadPluginFunctionPointer)loadedLibrary->GetSymbol("LoadPlugin");
+
+			if(loadFunction != nullptr)
+				returnValue = loadFunction(passThrough);
+		}
+
+		LoadedPlugin loadedPlugin;
+		loadedPlugin.Library = loadedLibrary;
+		loadedPlugin.UpdateCallback = (UpdatePluginFunctionPointer)loadedLibrary->GetSymbol("UpdatePlugin");
+		loadedPlugin.UnloadCallback = (UnloadPluginFunctionPointer)loadedLibrary->GetSymbol("UnloadPlugin");
+
+		mLoadedPlugins[pluginName] = loadedPlugin;
+	}
+
+	return returnValue;
+}
+
+void Application::UnloadPlugin(const String& pluginName)
+{
+	auto found = mLoadedPlugins.find(pluginName);
+	if(found == mLoadedPlugins.end())
+		return;
+
+	if(found->second.UnloadCallback != nullptr)
+		found->second.UnloadCallback();
+
+	GetDynamicLibraryManager().Unload(found->second.Library);
+	mLoadedPlugins.erase(found);
+}
+
+void Application::UnloadAllPlugins()
+{
+	for(auto& entryPair : mLoadedPlugins)
+	{
+		if(entryPair.second.UnloadCallback != nullptr)
+			entryPair.second.UnloadCallback();
+
+		GetDynamicLibraryManager().Unload(entryPair.second.Library);
+	}
+
+	mLoadedPlugins.clear();
 }
 
 ApplicationCreateInformation Application::BuildCreateInformation(VideoMode videoMode, const String& title, bool fullscreen)

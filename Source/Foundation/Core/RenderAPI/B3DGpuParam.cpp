@@ -2,7 +2,7 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "RenderAPI/B3DGpuParam.h"
 
-#include "B3DCoreApplication.h"
+#include "B3DApplication.h"
 #include "B3DGpuDevice.h"
 #include "B3DGpuDeviceCapabilities.h"
 #include "RenderAPI/B3DGpuParameters.h"
@@ -41,7 +41,7 @@ void TGpuParameterPrimitive<T, IsRenderProxy>::Set(const T& value, u32 arrayIdx)
 
 	const GpuDataParameterTypeInformation& typeInformation = b3d::GpuParameters::kParamSizes.Lookup[mParameterInformation->Type];
 
-	const SPtr<GpuDevice>& gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
+	const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
 	const GpuBackendConventions& gpuBackendConventions = gpuDevice->GetCapabilities().Conventions;
 
 	const bool transposeMatrices = gpuBackendConventions.MatrixOrder == GpuBackendConventions::MatrixOrder::ColumnMajor;

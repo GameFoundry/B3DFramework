@@ -367,7 +367,7 @@ namespace b3d::render
 		render::gVectorGraphicsViewUniforms.gInverseViewportHalfSize.Set(uniformBuffer, Vector2(1.0f / ((float)viewRegion.Width * 0.5f), 1.0f / ((float)viewRegion.Height * 0.5f)));
 
 		bool viewportYFlip = true;
-		const SPtr<GpuDevice>& gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
+		const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
 		if(gpuDevice != nullptr)
 		{
 			const GpuBackendConventions& gpuBackendConventions = gpuDevice->GetCapabilities().Conventions;
@@ -691,7 +691,7 @@ namespace b3d::render
 		if(vertexCount == 0 || indexCount == 0)
 			return renderBuffers;
 
-		const SPtr<GpuDevice>& gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
+		const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
 		if(!gpuDevice)
 			return renderBuffers;
 
@@ -817,7 +817,7 @@ namespace b3d::render
 		const u32 vertexCount = (u32)mRawRenderData.Vertices.size();
 
 		u32 uniformBlockStride = gVectorGraphicsRenderUniforms.GetSize();
-		if(const SPtr<GpuDevice> gpuDevice = GetCoreApplication().GetPrimaryGpuDevice())
+		if(const SPtr<GpuDevice> gpuDevice = GetApplication().GetPrimaryGpuDevice())
 			uniformBlockStride = Math::CeilToMultiple(uniformBlockStride, gpuDevice->GetCapabilities().MinimumUniformBufferOffsetAlignment);
 
 		// Execute draw commands

@@ -114,7 +114,6 @@ void SpriteMaterial::Render(render::GpuCommandBuffer& commandBuffer, const SPtr<
 
 	const SPtr<render::VertexData>& vertexData = mesh->GetVertexData();
 	const SPtr<render::GpuBuffer>& vertexBuffer = vertexData->GetBuffer(0);
-	const SPtr<VertexDescription>& vertexDescription = mesh->GetVertexDescription();
 
 	if(clipRegionBuffer != nullptr)
 	{

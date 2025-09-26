@@ -5,7 +5,6 @@
 #include "B3DCorePrerequisites.h"
 #include "Reflection/B3DRTTIType.h"
 #include "Reflection/B3DRTTIPlain.h"
-#include "B3DCoreApplication.h"
 #include "Mesh/B3DMesh.h"
 #include "Animation/B3DSkeleton.h"
 #include "Animation/B3DMorphShapes.h"

@@ -1,7 +1,7 @@
 //************************************ B3D Framework - Copyright 2022 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "B3DVulkanSubmitThread.h"
-#include "B3DCoreApplication.h"
+#include "B3DApplication.h"
 #include "B3DVulkanGpuCommandBuffer.h"
 #include "B3DVulkanGpuDevice.h"
 #include "B3DVulkanGpuQueue.h"
@@ -27,7 +27,7 @@ VulkanSubmitThread::VulkanSubmitThread(VulkanGpuDevice& gpuDevice)
 {
 	if (kEnableSubmitThread)
 	{
-		mCommandQueue.ScheduleRunUntilShutdown(GetCoreApplication().GetTaskScheduler(), false);
+		mCommandQueue.ScheduleRunUntilShutdown(GetApplication().GetTaskScheduler(), false);
 	}
 
 	auto fnInitialize = [this]()

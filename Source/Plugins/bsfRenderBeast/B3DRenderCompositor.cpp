@@ -720,7 +720,7 @@ void RCNodeParticleSort::Render(const RenderCompositorNodeInputs& inputs)
 			waitGroup.NotifyDone();
 		};
 
-		Scheduler& taskScheduler = GetCoreApplication().GetTaskScheduler();
+		Scheduler& taskScheduler = GetApplication().GetTaskScheduler();
 		for (const auto& data : systemsToSort)
 		{
 			taskScheduler.Post(SchedulerTask([&fnSortWorker, &data] { fnSortWorker(data); }, "ParticleSort"));

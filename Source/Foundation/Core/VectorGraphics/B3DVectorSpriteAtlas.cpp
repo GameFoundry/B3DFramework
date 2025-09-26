@@ -212,7 +212,7 @@ void GUIVectorSpriteAtlas::RenderDirtySprites(u32 bufferIndex)
 	if(dirtySprites.empty())
 		return;
 
-	const SPtr<GpuDevice> gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
+	const SPtr<GpuDevice> gpuDevice = GetApplication().GetPrimaryGpuDevice();
 
 	// Create a command buffer
 	const SPtr<render::GpuCommandBufferPool>& commandBufferPool = RendererManager::Instance().GetActive()->GetCommandBufferPool();

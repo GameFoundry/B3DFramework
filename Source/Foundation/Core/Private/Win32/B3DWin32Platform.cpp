@@ -3,7 +3,7 @@
 #include "Private/Win32/B3DWin32Platform.h"
 #include "RenderAPI/B3DRenderWindow.h"
 #include "Image/B3DPixelUtility.h"
-#include "B3DCoreApplication.h"
+#include "B3DApplication.h"
 #include "Debug/B3DDebug.h"
 #include "Managers/B3DRenderWindowManager.h"
 #include "Platform/B3DDropTarget.h"
@@ -117,7 +117,7 @@ void Platform::SetCursorPosition(const Vector2I& screenPos)
 
 void Platform::CaptureMouse(const RenderWindow& window)
 {
-	SPtr<RenderWindow> primaryWindow = GetCoreApplication().GetPrimaryWindow();
+	SPtr<RenderWindow> primaryWindow = GetApplication().GetPrimaryWindow();
 	const u64 hwnd = primaryWindow->GetPlatformWindowHandle();
 
 	PostMessage((HWND)hwnd, WM_BS_SETCAPTURE, WPARAM((HWND)hwnd), 0);
@@ -125,7 +125,7 @@ void Platform::CaptureMouse(const RenderWindow& window)
 
 void Platform::ReleaseMouseCapture()
 {
-	SPtr<RenderWindow> primaryWindow = GetCoreApplication().GetPrimaryWindow();
+	SPtr<RenderWindow> primaryWindow = GetApplication().GetPrimaryWindow();
 	const u64 hwnd = primaryWindow->GetPlatformWindowHandle();
 
 	PostMessage((HWND)hwnd, WM_BS_RELEASECAPTURE, WPARAM((HWND)hwnd), 0);
@@ -133,7 +133,7 @@ void Platform::ReleaseMouseCapture()
 
 bool Platform::IsPointOverWindow(const RenderWindow& window, const Vector2I& screenPos)
 {
-	SPtr<RenderWindow> primaryWindow = GetCoreApplication().GetPrimaryWindow();
+	SPtr<RenderWindow> primaryWindow = GetApplication().GetPrimaryWindow();
 
 	POINT point;
 	point.x = screenPos.X;
@@ -155,7 +155,7 @@ void Platform::HideCursor()
 	// ShowCursor(FALSE) doesn't work. Presumably because we're in the wrong thread, and using
 	// WM_SETCURSOR in message loop to hide the cursor is smarter solution anyway.
 
-	SPtr<RenderWindow> primaryWindow = GetCoreApplication().GetPrimaryWindow();
+	SPtr<RenderWindow> primaryWindow = GetApplication().GetPrimaryWindow();
 	const u64 hwnd = primaryWindow->GetPlatformWindowHandle();
 
 	PostMessage((HWND)hwnd, WM_SETCURSOR, WPARAM((HWND)hwnd), (LPARAM)MAKELONG(HTCLIENT, WM_MOUSEMOVE));
@@ -171,7 +171,7 @@ void Platform::ShowCursor()
 	// ShowCursor(FALSE) doesn't work. Presumably because we're in the wrong thread, and using
 	// WM_SETCURSOR in message loop to hide the cursor is smarter solution anyway.
 
-	SPtr<RenderWindow> primaryWindow = GetCoreApplication().GetPrimaryWindow();
+	SPtr<RenderWindow> primaryWindow = GetApplication().GetPrimaryWindow();
 	const u64 hwnd = primaryWindow->GetPlatformWindowHandle();
 
 	PostMessage((HWND)hwnd, WM_SETCURSOR, WPARAM((HWND)hwnd), (LPARAM)MAKELONG(HTCLIENT, WM_MOUSEMOVE));
@@ -247,7 +247,7 @@ void Platform::SetCursor(PixelData& pixelData, const Vector2I& hotSpot)
 	DeleteObject(hMonoBitmap);
 
 	// Make sure we notify the message loop to perform the actual cursor update
-	SPtr<RenderWindow> primaryWindow = GetCoreApplication().GetPrimaryWindow();
+	SPtr<RenderWindow> primaryWindow = GetApplication().GetPrimaryWindow();
 	const u64 hwnd = primaryWindow->GetPlatformWindowHandle();
 
 	PostMessage((HWND)hwnd, WM_SETCURSOR, WPARAM((HWND)hwnd), (LPARAM)MAKELONG(HTCLIENT, WM_MOUSEMOVE));
@@ -275,7 +275,7 @@ void Platform::SetIcon(const PixelData& pixelData)
 	DeleteObject(hMonoBitmap);
 
 	// Make sure we notify the message loop to perform the actual cursor update
-	SPtr<RenderWindow> primaryWindow = GetCoreApplication().GetPrimaryWindow();
+	SPtr<RenderWindow> primaryWindow = GetApplication().GetPrimaryWindow();
 	const u64 hwnd = primaryWindow->GetPlatformWindowHandle();
 
 	PostMessage((HWND)hwnd, WM_SETICON, WPARAM(ICON_BIG), (LPARAM)icon);

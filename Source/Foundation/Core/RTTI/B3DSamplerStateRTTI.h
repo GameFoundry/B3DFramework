@@ -2,12 +2,12 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
-#include "B3DCoreApplication.h"
 #include "B3DCorePrerequisites.h"
 #include "Reflection/B3DRTTIType.h"
 #include "Reflection/B3DRTTIPlain.h"
 #include "RenderAPI/B3DGpuDevice.h"
 #include "RenderAPI/B3DSamplerState.h"
+#include "B3DApplication.h"
 
 namespace b3d
 {
@@ -44,7 +44,7 @@ namespace b3d
 
 		SPtr<IReflectable> NewRttiObject()
 		{
-			const SPtr<GpuDevice>& gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
+			const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
 			if(!gpuDevice)
 				return nullptr;
 

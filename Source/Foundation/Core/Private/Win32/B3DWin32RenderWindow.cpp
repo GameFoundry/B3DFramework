@@ -2,7 +2,7 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "B3DWin32RenderWindow.h"
 
-#include "B3DCoreApplication.h"
+#include "B3DApplication.h"
 #include "B3DWin32VideoModeInfo.h"
 #include "Private/Win32/B3DWin32Platform.h"
 #include "Private/Win32/B3DWin32Window.h"
@@ -49,7 +49,7 @@ void Win32RenderWindow::Initialize()
 			windowCreateInformation.Parent = (HWND)parentWindow->GetPlatformWindowHandle();
 	}
 
-	const render::Win32VideoModeInfo& videoModeInfo = static_cast<const render::Win32VideoModeInfo&>(GetCoreApplication().GetPrimaryGpuDevice()->GetVideoModeInfo());
+	const render::Win32VideoModeInfo& videoModeInfo = static_cast<const render::Win32VideoModeInfo&>(GetApplication().GetPrimaryGpuDevice()->GetVideoModeInfo());
 	u32 outputCount = videoModeInfo.GetOutputCount();
 	if(outputCount > 0)
 	{
@@ -240,7 +240,7 @@ void Win32RenderWindow::SetFullscreen(u32 width, u32 height, float refreshRate, 
 	if(mIsChild)
 		return;
 
-	const render::Win32VideoModeInfo& videoModeInfo = static_cast<const render::Win32VideoModeInfo&>(GetCoreApplication().GetPrimaryGpuDevice()->GetVideoModeInfo());
+	const render::Win32VideoModeInfo& videoModeInfo = static_cast<const render::Win32VideoModeInfo&>(GetApplication().GetPrimaryGpuDevice()->GetVideoModeInfo());
 	const u32 outputCount = videoModeInfo.GetOutputCount();
 	if(outputCount == 0)
 		return;

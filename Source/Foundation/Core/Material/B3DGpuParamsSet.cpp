@@ -2,7 +2,7 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "Material/B3DGpuParamsSet.h"
 
-#include "B3DCoreApplication.h"
+#include "B3DApplication.h"
 #include "Material/B3DShader.h"
 #include "Material/B3DTechnique.h"
 #include "Material/B3DPass.h"
@@ -453,7 +453,7 @@ SPtr<GpuBuffer> CreateGpuBuffer(const GpuBufferCreateInformation& gpuBufferCreat
 template<>
 SPtr<render::GpuBuffer> CreateGpuBuffer(const GpuBufferCreateInformation& gpuBufferCreateInformation)
 {
-	const SPtr<GpuDevice>& device = GetCoreApplication().GetPrimaryGpuDevice();
+	const SPtr<GpuDevice>& device = GetApplication().GetPrimaryGpuDevice();
 	return device->CreateGpuBuffer(gpuBufferCreateInformation);
 }
 
@@ -472,7 +472,7 @@ SPtr<GpuParameters> CreateGpuParameters<false>(const SPtr<GpuPipelineParameterLa
 template <>
 SPtr<render::GpuParameters> CreateGpuParameters<true>(const SPtr<GpuPipelineParameterLayout>& parameterLayout)
 {
-	const SPtr<GpuDevice>& device = GetCoreApplication().GetPrimaryGpuDevice();
+	const SPtr<GpuDevice>& device = GetApplication().GetPrimaryGpuDevice();
 	return device->CreateGpuParameters(parameterLayout);
 }
 
@@ -891,7 +891,7 @@ void TGpuParamsSet<IsRenderProxy>::Update(const SPtr<MaterialParamsType>& params
 	// a ring buffer and a version number. Then we could just iterate over the ring buffer and only access dirty
 	// parameters. If the version number is too high (larger than ring buffer can store), then we force update for all.
 
-	const SPtr<GpuDevice>& device = GetCoreApplication().GetPrimaryGpuDevice();
+	const SPtr<GpuDevice>& device = GetApplication().GetPrimaryGpuDevice();
 	const GpuBackendConventions& gpuBackendConventions = device->GetCapabilities().Conventions;
 
 	// Update data params

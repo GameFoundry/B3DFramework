@@ -1,8 +1,7 @@
 //************************************ B3D Framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "Components/B3DLightProbeVolume.h"
-
-#include "B3DCoreApplication.h"
+#include "B3DApplication.h"
 #include "CoreObject/B3DCoreObjectSync.h"
 #include "Image/B3DTexture.h"
 #include "RTTI/B3DLightProbeVolumeRTTI.h"
@@ -250,7 +249,7 @@ void LightProbeVolume::RunRenderProbeTask()
 		const bool isDone = renderProxy->RenderProbes(*commandBuffer, 3);
 		GetProfilerGPU().EndSample(*commandBuffer, "LightProbeRendering");
 
-		const SPtr<GpuDevice>& gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
+		const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
 		gpuDevice->SubmitCommandBuffer(commandBuffer);
 
 		return isDone;
@@ -446,7 +445,7 @@ bool LightProbeVolume::RenderProbes(GpuCommandBuffer& commandBuffer, u32 maxProb
 			oldTexture->Copy(commandBuffer, mCoefficients);
 	}
 
-	const SPtr<GpuDevice>& gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
+	const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
 	const SPtr<RendererScene>& rendererScene = mSceneInstance->GetRendererScene();
 
 	u32 numProbeUpdates = 0;
@@ -645,7 +644,7 @@ void LightProbeVolume::GetProbeCoefficients(Vector<LightProbeCoefficientInfo>& o
 
 void LightProbeVolume::ResizeCoefficientTexture(u32 count)
 {
-	const SPtr<GpuDevice>& gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
+	const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
 	Vector2I texSize = IBLUtility::GetShCoeffTextureSize(count, 3);
 
 	TextureCreateInformation desc;

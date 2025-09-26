@@ -8,7 +8,6 @@
 #include "Image/B3DTexture.h"
 #include "Importer/B3DTextureImportOptions.h"
 #include "FileSystem/B3DFileSystem.h"
-#include "B3DCoreApplication.h"
 #include "CoreObject/B3DRenderThread.h"
 #include "Math/B3DMath.h"
 #include "Math/B3DVector2.h"

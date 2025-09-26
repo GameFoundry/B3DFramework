@@ -10,7 +10,7 @@
 #include "RTTI/B3DDataBlobRTTI.h"
 #include "RenderAPI/B3DGpuProgram.h"
 #include "RenderAPI/B3DGpuProgramParameterDescription.h"
-#include "B3DCoreApplication.h"
+#include "B3DApplication.h"
 
 namespace b3d
 {
@@ -112,7 +112,7 @@ namespace b3d
 
 		SPtr<IReflectable> NewRttiObject() override
 		{
-			const SPtr<GpuDevice>& gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
+			const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
 			if(!gpuDevice)
 				return nullptr;
 

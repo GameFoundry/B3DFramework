@@ -2,7 +2,7 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "Profiling/B3DProfilerGPU.h"
 
-#include "B3DCoreApplication.h"
+#include "B3DApplication.h"
 #include "Profiling/B3DRenderStats.h"
 #include "RenderAPI/B3DTimerQuery.h"
 #include "RenderAPI/B3DOcclusionQuery.h"
@@ -331,7 +331,7 @@ SPtr<render::TimerQuery> ProfilerGPU::GetTimerQuery() const
 		return timerQuery;
 	}
 
-	const SPtr<GpuDevice>& gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
+	const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
 	if(gpuDevice == nullptr)
 		return nullptr;
 
@@ -348,7 +348,7 @@ SPtr<render::OcclusionQuery> ProfilerGPU::GetOcclusionQuery() const
 		return occlusionQuery;
 	}
 
-	const SPtr<GpuDevice>& gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
+	const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
 	if(gpuDevice == nullptr)
 		return nullptr;
 

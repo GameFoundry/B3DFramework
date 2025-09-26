@@ -100,7 +100,7 @@ SPtr<GpuBuffer> CreateHelperBuffer()
 	bufferCreateInformation.SimpleStorage.Count = kMaxNumGroups * kNumDigits;
 	bufferCreateInformation.SimpleStorage.Format = BF_32X1U;
 
-	const SPtr<GpuDevice> gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
+	const SPtr<GpuDevice> gpuDevice = GetApplication().GetPrimaryGpuDevice();
 	return gpuDevice->CreateGpuBuffer(bufferCreateInformation);
 }
 
@@ -277,7 +277,7 @@ u32 GpuSort::Sort(GpuCommandBuffer& commandBuffer, const GpuSortBuffers& buffers
 
 GpuSortBuffers GpuSort::CreateSortBuffers(u32 numElements, bool values)
 {
-	const SPtr<GpuDevice>& gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
+	const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
 	GpuSortBuffers output;
 
 	GpuBufferCreateInformation createBufferInformation;
@@ -303,7 +303,7 @@ GpuSortBuffers GpuSort::CreateSortBuffers(u32 numElements, bool values)
 // just make sure to run the test below if you modify any of the GpuSort code.
 void RunSortTest()
 {
-	SPtr<GpuDevice> gpuDevice = GetCoreApplication().GetPrimaryGpuDevice();
+	SPtr<GpuDevice> gpuDevice = GetApplication().GetPrimaryGpuDevice();
 	if (!gpuDevice)
 		return;
 
