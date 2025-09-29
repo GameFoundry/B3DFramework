@@ -717,22 +717,22 @@ void ProfilerOverlay::UpdateGpuSampleContents(const GPUProfileSample& frameSampl
 {
 	mGPUFrameNumStr.SetParameter(0, ToString((u64)GetTime().GetCurrentFrameIndex()));
 	mGPUTimeStr.SetParameter(0, ToString(frameSample.TimeMs));
-	mGPUDrawCallsStr.SetParameter(0, ToString(frameSample.NumDrawCalls));
-	mGPURenTargetChangesStr.SetParameter(0, ToString(frameSample.NumRenderTargetChanges));
-	mGPUPresentsStr.SetParameter(0, ToString(frameSample.NumPresents));
-	mGPUClearsStr.SetParameter(0, ToString(frameSample.NumClears));
-	mGPUVerticesStr.SetParameter(0, ToString(frameSample.NumVertices));
-	mGPUPrimitivesStr.SetParameter(0, ToString(frameSample.NumPrimitives));
-	mGPUSamplesStr.SetParameter(0, ToString(frameSample.NumDrawnSamples));
-	mGPUPipelineStateChangesStr.SetParameter(0, ToString(frameSample.NumPipelineStateChanges));
+	mGPUDrawCallsStr.SetParameter(0, ToString(frameSample.DrawCallCount));
+	mGPURenTargetChangesStr.SetParameter(0, ToString(frameSample.RenderTargetChangesCount));
+	mGPUPresentsStr.SetParameter(0, ToString(frameSample.PresentCount));
+	mGPUClearsStr.SetParameter(0, ToString(frameSample.ClearCount));
+	mGPUVerticesStr.SetParameter(0, ToString(frameSample.VerticesDrawn));
+	mGPUPrimitivesStr.SetParameter(0, ToString(frameSample.PrimitivesDrawn));
+	mGPUSamplesStr.SetParameter(0, ToString(frameSample.SamplesDrawn));
+	mGPUPipelineStateChangesStr.SetParameter(0, ToString(frameSample.PipelineStateChangeCount));
 
-	mGPUObjectsCreatedStr.SetParameter(0, ToString(frameSample.NumObjectsCreated));
-	mGPUObjectsDestroyedStr.SetParameter(0, ToString(frameSample.NumObjectsDestroyed));
-	mGPUResourceWritesStr.SetParameter(0, ToString(frameSample.NumResourceWrites));
-	mGPUResourceReadsStr.SetParameter(0, ToString(frameSample.NumResourceReads));
-	mGPUParamBindsStr.SetParameter(0, ToString(frameSample.NumGpuParamBinds));
-	mGPUVertexBufferBindsStr.SetParameter(0, ToString(frameSample.NumVertexBufferBinds));
-	mGPUIndexBufferBindsStr.SetParameter(0, ToString(frameSample.NumIndexBufferBinds));
+	mGPUObjectsCreatedStr.SetParameter(0, ToString(frameSample.ObjectsCreatedCount));
+	mGPUObjectsDestroyedStr.SetParameter(0, ToString(frameSample.ObjectsDestroyedCount));
+	mGPUResourceWritesStr.SetParameter(0, ToString(frameSample.ResourceWriteCount));
+	mGPUResourceReadsStr.SetParameter(0, ToString(frameSample.ResourceReadCount));
+	mGPUParamBindsStr.SetParameter(0, ToString(frameSample.GpuParameterBindCount));
+	mGPUVertexBufferBindsStr.SetParameter(0, ToString(frameSample.VertexBufferBindCount));
+	mGPUIndexBufferBindsStr.SetParameter(0, ToString(frameSample.IndexBufferBindCount));
 
 	mGPUFrameNumLbl->SetContent(mGPUFrameNumStr);
 	mGPUTimeLbl->SetContent(mGPUTimeStr);
@@ -791,7 +791,7 @@ void ProfilerOverlay::UpdateGpuSampleContents(const GPUProfileSample& frameSampl
 
 		if(curEntry.Depth <= kMaxDepth)
 		{
-			for(auto iter = curEntry.Entry.Children.rbegin(); iter != curEntry.Entry.Children.rend(); ++iter)
+			for(auto iter = curEntry.Entry.ChildSamples.rbegin(); iter != curEntry.Entry.ChildSamples.rend(); ++iter)
 				todo.push(Todo(*iter, curEntry.Depth + 1));
 		}
 	}

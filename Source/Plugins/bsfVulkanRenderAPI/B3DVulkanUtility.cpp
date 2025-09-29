@@ -641,6 +641,63 @@ VkPipelineStageFlags VulkanUtility::ShaderToPipelineStage(VkShaderStageFlags sha
 	return output;
 }
 
+VkQueryType VulkanUtility::GetQueryType(GpuQueryType queryType)
+{
+	switch(queryType)
+	{
+	default:
+	case GpuQueryType::Timestamp:
+		return VK_QUERY_TYPE_TIMESTAMP;
+	case GpuQueryType::Occlusion: 
+		return VK_QUERY_TYPE_OCCLUSION;
+	case GpuQueryType::PipelineStatistics:
+		return VK_QUERY_TYPE_PIPELINE_STATISTICS;
+	}
+}
+
+VkQueryPipelineStatisticFlagBits VulkanUtility::GetPipelineStatisticQueryBit(GpuPipelineStatisticsQueryBit bit)
+{
+	switch(bit)
+	{
+	default:
+	case GpuPipelineStatisticsQueryBit::VertexCount: return VK_QUERY_PIPELINE_STATISTIC_INPUT_ASSEMBLY_VERTICES_BIT;
+	case GpuPipelineStatisticsQueryBit::PrimitiveCount: return VK_QUERY_PIPELINE_STATISTIC_INPUT_ASSEMBLY_PRIMITIVES_BIT;
+	case GpuPipelineStatisticsQueryBit::VertexShaderInvocationCount: return VK_QUERY_PIPELINE_STATISTIC_VERTEX_SHADER_INVOCATIONS_BIT;
+	case GpuPipelineStatisticsQueryBit::FragmentShaderInvocationCount: return VK_QUERY_PIPELINE_STATISTIC_FRAGMENT_SHADER_INVOCATIONS_BIT;
+	case GpuPipelineStatisticsQueryBit::ComputeShaderInvocationCount: return VK_QUERY_PIPELINE_STATISTIC_COMPUTE_SHADER_INVOCATIONS_BIT;
+	case GpuPipelineStatisticsQueryBit::ClippingInvocationCount: return VK_QUERY_PIPELINE_STATISTIC_CLIPPING_INVOCATIONS_BIT;
+	case GpuPipelineStatisticsQueryBit::ClippingGeneratedPrimitiveCount: return VK_QUERY_PIPELINE_STATISTIC_CLIPPING_PRIMITIVES_BIT;
+	}
+}
+
+VkQueryPipelineStatisticFlags VulkanUtility::GetPipelineStatisticQueryBits(GpuPipelineStatisticsQueryBits bits)
+{
+	VkQueryPipelineStatisticFlags flags = 0;
+
+	if(bits.IsSet(GpuPipelineStatisticsQueryBit::VertexCount))
+		flags |= GetPipelineStatisticQueryBit(GpuPipelineStatisticsQueryBit::VertexCount);
+
+	if(bits.IsSet(GpuPipelineStatisticsQueryBit::PrimitiveCount))
+		flags |= GetPipelineStatisticQueryBit(GpuPipelineStatisticsQueryBit::PrimitiveCount);
+
+	if(bits.IsSet(GpuPipelineStatisticsQueryBit::VertexShaderInvocationCount))
+		flags |= GetPipelineStatisticQueryBit(GpuPipelineStatisticsQueryBit::VertexShaderInvocationCount);
+
+	if(bits.IsSet(GpuPipelineStatisticsQueryBit::FragmentShaderInvocationCount))
+		flags |= GetPipelineStatisticQueryBit(GpuPipelineStatisticsQueryBit::FragmentShaderInvocationCount);
+
+	if(bits.IsSet(GpuPipelineStatisticsQueryBit::ComputeShaderInvocationCount))
+		flags |= GetPipelineStatisticQueryBit(GpuPipelineStatisticsQueryBit::ComputeShaderInvocationCount);
+
+	if(bits.IsSet(GpuPipelineStatisticsQueryBit::ClippingInvocationCount))
+		flags |= GetPipelineStatisticQueryBit(GpuPipelineStatisticsQueryBit::ClippingInvocationCount);
+
+	if(bits.IsSet(GpuPipelineStatisticsQueryBit::ClippingGeneratedPrimitiveCount))
+		flags |= GetPipelineStatisticQueryBit(GpuPipelineStatisticsQueryBit::ClippingGeneratedPrimitiveCount);
+
+	return flags;
+}
+
 VkRect2D VulkanUtility::ToVulkanRect(const Area2I& input)
 {
 	VkRect2D output;

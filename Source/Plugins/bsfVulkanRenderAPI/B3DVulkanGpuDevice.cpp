@@ -7,6 +7,7 @@
 #include "B3DVulkanGpuBackend.h"
 #include "B3DVulkanSubmitThread.h"
 #include "Managers/B3DVulkanDescriptorManager.h"
+#include "Managers/B3DVulkanQueries.h"
 #include "Managers/B3DVulkanQueryManager.h"
 
 #if B3D_PLATFORM == B3D_PLATFORM_ID_WIN32
@@ -504,6 +505,11 @@ SPtr<render::GpuBuffer> VulkanGpuDevice::CreateGpuBuffer(const GpuBufferCreateIn
 	return output;
 }
 
+SPtr<GpuQueryPool> VulkanGpuDevice::CreateQueryPool(const GpuQueryPoolCreateInformation& createInformation)
+{
+	return B3DMakeShared<VulkanGpuQueryPool>(GetResourceManager(), createInformation);
+}
+
 SPtr<SamplerState> VulkanGpuDevice::CreateSamplerState(const SamplerStateCreateInformation& createInformation, bool deferredInitialize)
 {
 	SPtr<SamplerState> output = B3DMakeSharedFromExisting(new (B3DAllocate<VulkanSamplerState>()) VulkanSamplerState(*this, createInformation));
@@ -667,6 +673,12 @@ GpuDataParameterBlockInformation VulkanGpuDevice::GenerateUniformBlockInformatio
 		block.BlockSize += (4 - (block.BlockSize % 4));
 
 	return block;
+}
+
+float VulkanGpuDevice::ConvertTimestampToMilliseconds(u64 timestamp)
+{
+	const double timestampToMs = (double)GetDeviceProperties().limits.timestampPeriod / 1e6; // Nano to milli
+	return (float)((double)timestamp * timestampToMs);
 }
 
 void VulkanGpuDevice::DoForEachQueue(const std::function<void(VulkanGpuQueue&)>&& callback) const

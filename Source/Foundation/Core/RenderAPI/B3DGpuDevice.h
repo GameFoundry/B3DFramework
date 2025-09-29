@@ -2,8 +2,14 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
+#include "B3DGpuQueries.h"
 #include "B3DPrerequisites.h"
 #include "B3DSamplerState.h"
+
+namespace b3d::render
+{
+	class GpuQueryPool;
+}
 
 namespace b3d
 {
@@ -208,6 +214,13 @@ namespace b3d
 		 */
 		virtual SPtr<SamplerState> CreateSamplerState(const SamplerStateCreateInformation& createInformation, bool deferredInitialize = false) = 0;
 
+		/**
+		 * Creates a new query pool.
+		 * 
+		 * @param	createInformation		Object describing the query pool to create.
+		 */
+		virtual SPtr<render::GpuQueryPool> CreateQueryPool(const render::GpuQueryPoolCreateInformation& createInformation) = 0;
+
 		/** Create a new event query. */
 		virtual SPtr<render::EventQuery> CreateEventQuery() = 0;
 
@@ -285,6 +298,14 @@ namespace b3d
 		 *							default render API layout.
 		 */
 		virtual GpuDataParameterBlockInformation GenerateUniformBlockInformation(const String& name, Vector<GpuDataParameterInformation>& inOutUniforms) = 0;
+
+		/**
+		 * Converts a GPU timestamp into a time in milliseconds.
+
+		 * @param timestamp		Timestamp as the one retrieved from timestamp GPU query.
+		 * @return				Time in milliseconds.
+		 */
+		virtual float ConvertTimestampToMilliseconds(u64 timestamp) = 0;
 	protected:
 		mutable UnorderedMap<SamplerStateCreateInformation, SPtr<SamplerState>> mCachedSamplerStates;
 		mutable Mutex mSamplerStateMutex;

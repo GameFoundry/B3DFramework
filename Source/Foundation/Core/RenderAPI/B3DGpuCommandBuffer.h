@@ -2,6 +2,7 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
+#include "B3DGpuQueries.h"
 #include "B3DPrerequisites.h"
 #include "Image/B3DColor.h"
 #include "Math/B3DArea2.h"
@@ -323,6 +324,43 @@ namespace b3d
 			virtual void SetStencilReferenceValue(u32 value) = 0;
 
 			/**
+			 * Schedules the timestamp to be recorded in the command buffer. The timestamp will record the
+			 * time at which the command has been executed by the GPU. The timestamp will be written to the associated
+			 * query pool, which should only be accessed when the query pool has resolved the query.
+			 * 
+			 * @param query			Query to use for referencing the recorded timestamp.
+			 * @param queryPool		Query pool that @p query was created from.
+			 */
+			virtual void WriteTimestamp(GpuQueryId query, const SPtr<GpuQueryPool>& queryPool) = 0;
+
+			/**
+			 * Schedules the query start in the command buffer. The query will capture information about GPU execution
+			 * depending on the query type. Query start operation must be followed by EndQuery(). If a query is started
+			 * within a render pass, it must be ended within the same render pass. Queries can also be started outside
+			 * of a render pass, in which case they should end outside of a render pass. The query results will be
+			 * written to the associated query pool, which should only be accessed when the query pool has resolved the query.
+			 *
+			 * @param query			Query to use for referencing the recorded data.
+			 * @param queryPool		Query pool that @p query was created from.
+			 * @param flags			Flags used to control the query.
+			 */
+			virtual void BeginQuery(GpuQueryId query, const SPtr<GpuQueryPool>& queryPool, GpuQueryFlags flags = GpuQueryFlag::None) = 0;
+
+			/**
+			 * Records the timestamp when this particular command executes on the GPU.
+			 * 
+			 * @param query			Query to use for referencing the recorded data.
+			 * @param queryPool		Query pool that @p query was created from.
+			 */
+			virtual void EndQuery(GpuQueryId query, const SPtr<GpuQueryPool>& queryPool) = 0;
+
+			/**
+			 * Resets the pool when the command buffer execution reaches this point. After resetting the pool previously allocated queries are no
+			 * longer valid, and new AllocateQuery() calls return queries from the start of the pool.
+			 */
+			virtual void ResetQueries(const SPtr<GpuQueryPool>& queryPool) = 0;
+
+			/**
 			 * Surrounds all following commands with the provided label, until EndLabel() is called. This may be used by external
 			 * tools for easier debugging.
 			 */
@@ -343,7 +381,7 @@ namespace b3d
 			/** Triggers when the command buffer finishes execution on the GPU. */
 			Event<void()> OnDidComplete;
 
-			/** Triggered just before a command buffer is about to be destroyed. Provided parameters determines if the command buffer was ever submitted or not. */
+			/** Triggered just before a command buffer is about to be destroyed. Provided parameter determines if the command buffer was ever submitted or not. */
 			Event<void(bool)> OnDestroyed;
 
 			/**

@@ -3,7 +3,10 @@
 #pragma once
 
 #include "B3DVulkanPrerequisites.h"
+#include "B3DVulkanGpuCommandBuffer.h"
+#include "B3DVulkanGpuDevice.h"
 #include "B3DVulkanResource.h"
+#include "RenderAPI/B3DGpuQueries.h"
 
 namespace b3d
 {

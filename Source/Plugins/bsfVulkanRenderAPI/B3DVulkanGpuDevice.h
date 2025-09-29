@@ -66,6 +66,7 @@ namespace b3d
 			SPtr<GpuCommandBufferPool> CreateGpuCommandBufferPool(const GpuCommandBufferPoolCreateInformation& createInformation) override;
 			SPtr<Texture> CreateTexture(const TextureCreateInformation& createInformation, bool deferredInitialize) override;
 			SPtr<GpuBuffer> CreateGpuBuffer(const GpuBufferCreateInformation& createInformation, bool deferredInitialize = false) override;
+			SPtr<GpuQueryPool> CreateQueryPool(const GpuQueryPoolCreateInformation& createInformation) override;
 			SPtr<EventQuery> CreateEventQuery() override;
 			SPtr<TimerQuery> CreateTimerQuery() override;
 			SPtr<OcclusionQuery> CreateOcclusionQuery(bool isBinary) override;
@@ -77,6 +78,7 @@ namespace b3d
 
 			void ConvertProjectionMatrix(const Matrix4& input, Matrix4& output) override;
 			GpuDataParameterBlockInformation GenerateUniformBlockInformation(const String& name, Vector<GpuDataParameterInformation>& inOutUniforms) override;
+			float ConvertTimestampToMilliseconds(u64 timestamp) override;
 
 			/** @} */
 

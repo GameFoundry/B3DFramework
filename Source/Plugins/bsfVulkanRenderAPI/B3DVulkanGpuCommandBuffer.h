@@ -154,6 +154,10 @@ namespace b3d
 			void EnableScissorTest(u32 left, u32 top, u32 right, u32 bottom) override;
 			void DisableScissorTest() override;
 			void SetStencilReferenceValue(u32 value) override;
+			void WriteTimestamp(GpuQueryId query, const SPtr<GpuQueryPool>& queryPool) override;
+			void BeginQuery(GpuQueryId query, const SPtr<GpuQueryPool>& queryPool, GpuQueryFlags flags) override;
+			void EndQuery(GpuQueryId query, const SPtr<GpuQueryPool>& queryPool) override;
+			void ResetQueries(const SPtr<GpuQueryPool>& queryPool) override;
 			void BeginLabel(const StringView& name) override;
 			void EndLabel() override;
 			void InsertLabel(const StringView& name) override;

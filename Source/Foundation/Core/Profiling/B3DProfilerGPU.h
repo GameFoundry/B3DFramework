@@ -19,28 +19,28 @@ namespace b3d
 		String Name; /**< Name of the sample for easier identification. */
 		float TimeMs; /**< Time in milliseconds it took to execute the sampled block. */
 
-		u32 NumDrawCalls; /**< Number of draw calls that happened. */
-		u32 NumRenderTargetChanges; /**< How many times was render target changed. */
-		u32 NumPresents; /**< How many times did a buffer swap happen on a double buffered render target. */
-		u32 NumClears; /**< How many times was render target cleared. */
+		u32 DrawCallCount; /**< Number of draw calls that happened. */
+		u32 RenderTargetChangesCount; /**< How many times was render target changed. */
+		u32 PresentCount; /**< How many times did a buffer swap happen on a double buffered render target. */
+		u32 ClearCount; /**< How many times was render target cleared. */
 
-		u32 NumVertices; /**< Total number of vertices sent to the GPU. */
-		u32 NumPrimitives; /**< Total number of primitives sent to the GPU. */
-		u32 NumDrawnSamples; /**< Number of samples drawn by the GPU. */
+		u32 VerticesDrawn; /**< Total number of vertices sent to the GPU. */
+		u32 PrimitivesDrawn; /**< Total number of primitives sent to the GPU. */
+		u32 SamplesDrawn; /**< Number of samples drawn by the GPU. */
 
-		u32 NumPipelineStateChanges; /**< How many times did the pipeline state change. */
+		u32 PipelineStateChangeCount; /**< How many times did the pipeline state change. */
 
-		u32 NumGpuParamBinds; /**< How many times were GPU parameters bound. */
-		u32 NumVertexBufferBinds; /**< How many times was a vertex buffer bound. */
-		u32 NumIndexBufferBinds; /**< How many times was an index buffer bound. */
+		u32 GpuParameterBindCount; /**< How many times were GPU parameters bound. */
+		u32 VertexBufferBindCount; /**< How many times was a vertex buffer bound. */
+		u32 IndexBufferBindCount; /**< How many times was an index buffer bound. */
 
-		u32 NumResourceWrites; /**< How many times were GPU resources written to. */
-		u32 NumResourceReads; /**< How many times were GPU resources read from. */
+		u32 ResourceWriteCount; /**< How many times were GPU resources written to. */
+		u32 ResourceReadCount; /**< How many times were GPU resources read from. */
 
-		u32 NumObjectsCreated; /**< How many GPU objects were created. */
-		u32 NumObjectsDestroyed; /**< How many GPU objects were destroyed. */
+		u32 ObjectsCreatedCount; /**< How many GPU objects were created. */
+		u32 ObjectsDestroyedCount; /**< How many GPU objects were destroyed. */
 
-		Vector<GPUProfileSample> Children;
+		Vector<GPUProfileSample> ChildSamples;
 	};
 
 	/** Contains various profiler statistics for a particular view. */

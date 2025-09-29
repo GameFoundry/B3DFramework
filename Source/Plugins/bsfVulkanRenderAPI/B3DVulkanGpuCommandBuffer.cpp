@@ -18,6 +18,7 @@
 #include "B3DVulkanRenderTexture.h"
 #include "B3DVulkanGpuBackend.h"
 #include "B3DVulkanRenderWindowSurface.h"
+#include "Managers/B3DVulkanQueries.h"
 #include "Profiling/B3DRenderStats.h"
 #include "RenderAPI/B3DGpuProgramParameterDescription.h"
 
@@ -626,6 +627,47 @@ void VulkanGpuCommandBuffer::SetStencilReferenceValue(u32 value)
 
 	mStencilRef = value;
 	mStencilRefRequiresBind = true;
+}
+
+void VulkanGpuCommandBuffer::WriteTimestamp(GpuQueryId query, const SPtr<GpuQueryPool>& queryPool)
+{
+	EnsureValidThread();
+
+	VulkanGpuQueryPool* vulkanQueryPool = static_cast<VulkanGpuQueryPool*>(queryPool.get());
+	vkCmdWriteTimestamp(mCommandBufferHandle, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, vulkanQueryPool->GetVulkanHandle(), query.Id);
+
+	RegisterResource(vulkanQueryPool, VulkanAccessFlag::Write);
+}
+
+void VulkanGpuCommandBuffer::BeginQuery(GpuQueryId query, const SPtr<GpuQueryPool>& queryPool, GpuQueryFlags flags)
+{
+	EnsureValidThread();
+
+	VulkanGpuQueryPool* vulkanQueryPool = static_cast<VulkanGpuQueryPool*>(queryPool.get());
+	vkCmdBeginQuery(mCommandBufferHandle, vulkanQueryPool->GetVulkanHandle(), query.Id, flags.IsSet(GpuQueryFlag::PreciseOcclusion) ? VK_QUERY_CONTROL_PRECISE_BIT : 0);
+
+	RegisterResource(vulkanQueryPool, VulkanAccessFlag::Write);
+}
+
+void VulkanGpuCommandBuffer::EndQuery(GpuQueryId query, const SPtr<GpuQueryPool>& queryPool)
+{
+	EnsureValidThread();
+
+	VulkanGpuQueryPool* vulkanQueryPool = static_cast<VulkanGpuQueryPool*>(queryPool.get());
+	vkCmdEndQuery(mCommandBufferHandle, vulkanQueryPool->GetVulkanHandle(), query.Id);
+
+	RegisterResource(vulkanQueryPool, VulkanAccessFlag::Write);
+}
+
+void VulkanGpuCommandBuffer::ResetQueries(const SPtr<GpuQueryPool>& queryPool)
+{
+	EnsureValidThread();
+
+	VulkanGpuQueryPool* vulkanQueryPool = static_cast<VulkanGpuQueryPool*>(queryPool.get());
+	vkCmdResetQueryPool(mCommandBufferHandle, vulkanQueryPool->GetVulkanHandle(), 0, vulkanQueryPool->GetUsedQueryCount());
+
+	vulkanQueryPool->NotifyPoolReset();
+	RegisterResource(vulkanQueryPool, VulkanAccessFlag::Write);
 }
 
 void VulkanGpuCommandBuffer::SetDrawOperation(DrawOperationType drawOperation)

@@ -52,7 +52,7 @@ namespace b3d
 			 * Notifies the resource that it is currently bound to a command buffer. Buffer hasn't yet been submitted so the
 			 * resource isn't being used on the GPU yet.
 			 *
-			 * Must eventually be followed by a notifyUsed() or notifyUnbound().
+			 * Must eventually be followed by a NotifyUsed() or NotifyUnbound().
 			 */
 			void NotifyBound();
 
@@ -62,7 +62,7 @@ namespace b3d
 			 *
 			 * A resource can only be used by a single command buffer at a time unless resource concurrency is enabled.
 			 *
-			 * Must follow a notifyBound(). Must eventually be followed by a notifyDone().
+			 * Must follow a NotifyBound(). Must eventually be followed by a NotifyDone().
 			 *
 			 * @param[in]	globalQueueIdx	Global index of the queue the resource is being used in.
 			 * @param[in]	useFlags		Flags that determine in what way is the resource being used.
@@ -73,7 +73,7 @@ namespace b3d
 			 * Notifies the resource that it is no longer used by on the GPU. This makes the resource usable on other command
 			 * buffers again.
 			 *
-			 * Must follow a notifyUsed().
+			 * Must follow a NotifyUsed().
 			 *
 			 * @param[in]	globalQueueIdx	Global index of the queue that finished using the resource.
 			 * @param[in]	useFlags		Use flags that specify how was the resource being used.
@@ -85,7 +85,7 @@ namespace b3d
 			 * should only be called if resource never got submitted to the GPU (e.g. command buffer was destroyed before
 			 * being submitted).
 			 *
-			 * Must follow a notifyBound() if notifyUsed() wasn't called.
+			 * Must follow a NotifyBound() if NotifyUsed() wasn't called.
 			 */
 			virtual void NotifyUnbound();
 
@@ -93,8 +93,7 @@ namespace b3d
 			 * Checks is the resource currently used on a device.
 			 *
 			 * @note	Resource usage is only checked at certain points of the program. This means the resource could be
-			 *			done on the device but this method may still report true. If you need to know the latest state
-			 *			call VulkanCommandBufferManager::refreshStates() before checking for usage.
+			 *			done on the device but this method may still report true.
 			 */
 			bool IsUsed() const
 			{
@@ -106,8 +105,7 @@ namespace b3d
 			 * Checks is the resource currently bound to any command buffer.
 			 *
 			 * @note	Resource usage is only checked at certain points of the program. This means the resource could be
-			 *			done on the device but this method may still report true. If you need to know the latest state
-			 *			call VulkanCommandBufferManager::refreshStates() before checking for usage.
+			 *			done on the device but this method may still report true.
 			 */
 			bool IsBound() const
 			{
@@ -185,6 +183,7 @@ namespace b3d
 			u32 mNumUsedHandles;
 			u32 mNumBoundHandles;
 
+			// TODO - Work on getting rid of this mutex
 			mutable Mutex mMutex;
 		};
 

@@ -5,6 +5,7 @@
 #include "B3DVulkanPrerequisites.h"
 #include "Image/B3DPixelUtility.h"
 #include "Math/B3DArea2.h"
+#include "RenderAPI/B3DGpuQueries.h"
 #include "RenderAPI/B3DVertexDescription.h"
 
 namespace b3d
@@ -78,6 +79,15 @@ namespace b3d
 
 			/** Converts a set of shader stage flags into a pipeline stage flags set containing the relevant shader stages. */
 			static VkPipelineStageFlags ShaderToPipelineStage(VkShaderStageFlags shaderStageFlags);
+
+			/** Converts engine flags representing GPU query type into Vulkan enum. */
+			static VkQueryType GetQueryType(GpuQueryType queryType);
+
+			/** Converts engine flags representing GPU pipeline statistic query bit into a Vulkan bit. */
+			static VkQueryPipelineStatisticFlagBits GetPipelineStatisticQueryBit(GpuPipelineStatisticsQueryBit bit);
+
+			/** Converts engine flags representing multiple GPU pipeline statistic query bits into a Vulkan bitmask. */
+			static VkQueryPipelineStatisticFlags GetPipelineStatisticQueryBits(GpuPipelineStatisticsQueryBits bits);
 
 			/** Converts the engine rectangle into a VkRect2D. */
 			static VkRect2D ToVulkanRect(const Area2I& input);

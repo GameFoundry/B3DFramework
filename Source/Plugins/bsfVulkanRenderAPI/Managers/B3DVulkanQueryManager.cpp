@@ -6,6 +6,7 @@
 #include "B3DVulkanOcclusionQuery.h"
 #include "B3DVulkanGpuDevice.h"
 #include "B3DVulkanGpuCommandBuffer.h"
+#include "B3DVulkanUtility.h"
 
 using namespace b3d;
 using namespace b3d::render;
