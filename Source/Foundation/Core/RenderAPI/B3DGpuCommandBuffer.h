@@ -10,6 +10,11 @@
 
 namespace b3d
 {
+	class GpuCommandBufferProfiler;
+}
+
+namespace b3d
+{
 	namespace render
 	{
 		/** @addtogroup RenderAPI
@@ -356,7 +361,7 @@ namespace b3d
 
 			/**
 			 * Resets the pool when the command buffer execution reaches this point. After resetting the pool previously allocated queries are no
-			 * longer valid, and new AllocateQuery() calls return queries from the start of the pool.
+			 * longer valid, and new AllocateQuery() calls return queries from the start of the pool. Must be done outside of a render pass.
 			 */
 			virtual void ResetQueries(const SPtr<GpuQueryPool>& queryPool) = 0;
 
@@ -374,6 +379,22 @@ namespace b3d
 
 			/** Ends command recording on the command buffer and makes it ready for submission. */
 			virtual void End() = 0;
+
+#if B3D_PROFILING_ENABLED
+			/**
+			 * Returns a profiler that can be used for profiling calls on this command buffer.
+			 *
+			 * @name	profilingScopeName		Name of the profiling scope that you may use to identify it when retrieving
+			 *									results from GpuProfiler.
+			 */
+			SPtr<GpuCommandBufferProfiler> BeginProfiling(const ProfilerString& profilingScopeName);
+
+			/** Finishes profiling the command buffer. Requested samples will be sent for resolve to GpuProfiler. */
+			void EndProfiling();	
+
+			/** Returns the currently active GPU profiler. Only valid in-between Begin/EndProfiling calls. */
+			const SPtr<GpuCommandBufferProfiler>& GetProfiler() { return mProfiler; }
+#endif
 
 			/** Returns the shared pointer to the current object. */
 			SPtr<GpuCommandBuffer> GetShared() const { return mSelf.lock(); }
@@ -408,6 +429,11 @@ namespace b3d
 			const ThreadId mOwnerThread;
 			String mName;
 			bool mIsSubmitted = false;
+
+#if B3D_PROFILING_ENABLED
+			SPtr<GpuCommandBufferProfiler> mProfiler;
+			ProfilerString mProfilingScopeName;
+#endif
 
 			WeakSPtr<GpuCommandBuffer> mSelf;
 

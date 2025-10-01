@@ -42,7 +42,7 @@ void TetrahedraRenderMat::Initialize()
 
 void TetrahedraRenderMat::Execute(GpuCommandBuffer& commandBuffer, const RendererView& view, const SPtr<Texture>& sceneDepth, const SPtr<Mesh>& mesh, const SPtr<RenderTexture>& output)
 {
-	BS_RENMAT_PROFILE_BLOCK
+	B3D_PROFILE_RENDERER_MATERIAL
 
 	const TextureProperties& texProps = sceneDepth->GetProperties();
 
@@ -106,7 +106,7 @@ void IrradianceEvaluateMat::Initialize()
 
 void IrradianceEvaluateMat::Execute(GpuCommandBuffer& commandBuffer, const RendererView& view, const GBufferTextures& gbuffer, const SPtr<Texture>& lightProbeIndices, const LightProbesInfo& lightProbesInfo, const Skybox* skybox, const SPtr<Texture>& ambientOcclusion, const SPtr<RenderTexture>& output)
 {
-	BS_RENMAT_PROFILE_BLOCK
+	B3D_PROFILE_RENDERER_MATERIAL
 
 	const RendererViewProperties& viewProps = view.GetProperties();
 

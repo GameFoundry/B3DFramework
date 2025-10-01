@@ -531,10 +531,10 @@ void ProfilerOverlay::Update()
 
 	UpdateCpuSampleContents(latestSimReport, latestCoreReport);
 
-	while(ProfilerGPU::Instance().GetNumAvailableReports() > 1)
+	while(ProfilerGPU::Instance().GetAvailableReportCount() > 1)
 		ProfilerGPU::Instance().GetNextReport(); // Drop any extra reports, we only want the latest
 
-	if(ProfilerGPU::Instance().GetNumAvailableReports() > 0)
+	if(ProfilerGPU::Instance().GetAvailableReportCount() > 0)
 	{
 		GPUProfilerReport report = ProfilerGPU::Instance().GetNextReport();
 

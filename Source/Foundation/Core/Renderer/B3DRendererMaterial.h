@@ -112,7 +112,7 @@ namespace b3d
 			{}
 		};
 
-#define BS_RENMAT_PROFILE_BLOCK RendererMaterialProfileBlock __sampleBlock(commandBuffer, mMetaData);
+#define B3D_PROFILE_RENDERER_MATERIAL RendererMaterialProfileBlock __sampleBlock(commandBuffer, mMetaData);
 
 		/**	Base class for all RendererMaterial instances, containing common data and methods. */
 		class B3D_EXPORT RendererMaterialBase

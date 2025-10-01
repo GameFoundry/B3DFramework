@@ -105,7 +105,7 @@ void LightGridLLCreationMat::SetParams(GpuCommandBuffer& commandBuffer, const Ve
 
 void LightGridLLCreationMat::Execute(GpuCommandBuffer& commandBuffer, const RendererView& view)
 {
-	BS_RENMAT_PROFILE_BLOCK
+	B3D_PROFILE_RENDERER_MATERIAL
 
 	mGPUParameters->SetUniformBuffer("PerCamera", view.GetPerViewBuffer());
 
@@ -205,7 +205,7 @@ void LightGridLLReductionMat::SetParams(GpuCommandBuffer& commandBuffer, const V
 
 void LightGridLLReductionMat::Execute(GpuCommandBuffer& commandBuffer, const RendererView& view)
 {
-	BS_RENMAT_PROFILE_BLOCK
+	B3D_PROFILE_RENDERER_MATERIAL
 
 	mGPUParameters->TrySetUniformBuffer("PerCamera", view.GetPerViewBuffer());
 

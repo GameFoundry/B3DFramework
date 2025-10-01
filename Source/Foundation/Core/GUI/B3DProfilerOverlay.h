@@ -132,7 +132,7 @@ namespace b3d
 		 * Updates GPU GUI elemnts from the data in the provided profiler report. To be called whenever a new report is
 		 * received.
 		 */
-		void UpdateGpuSampleContents(const GPUProfileSample& gpuReport);
+		void UpdateGpuSampleContents(const GpuProfilerSample& gpuReport);
 
 		static constexpr u32 kGpuNumSampleColumns = 3;
 

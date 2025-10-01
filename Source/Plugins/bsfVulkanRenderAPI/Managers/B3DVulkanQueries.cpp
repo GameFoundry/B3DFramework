@@ -14,7 +14,6 @@ VulkanGpuQueryPool::VulkanGpuQueryPool(VulkanResourceManager& vulkanResourceMana
 	VkQueryPoolCreateInfo queryPoolCreateInfo;
 	queryPoolCreateInfo.sType = VK_STRUCTURE_TYPE_QUERY_POOL_CREATE_INFO;
 	queryPoolCreateInfo.pNext = nullptr;
-	queryPoolCreateInfo.flags = 0;
 	queryPoolCreateInfo.pipelineStatistics = createInformation.Type == GpuQueryType::PipelineStatistics ? VulkanUtility::GetPipelineStatisticQueryBits(createInformation.PipelineStatisticsQueryBits) : 0;
 	queryPoolCreateInfo.queryCount = mPoolSize;
 	queryPoolCreateInfo.queryType = VulkanUtility::GetQueryType(createInformation.Type);

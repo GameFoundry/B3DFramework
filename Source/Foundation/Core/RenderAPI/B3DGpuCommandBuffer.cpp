@@ -2,6 +2,8 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "RenderAPI/B3DGpuCommandBuffer.h"
 
+#include "Profiling/B3DProfilerGPU.h"
+
 using namespace b3d;
 
 namespace b3d { namespace render
@@ -85,4 +87,28 @@ GpuCommandBuffer::~GpuCommandBuffer()
 {
 	OnDestroyed(mIsSubmitted);
 }
+
+#if B3D_PROFILING_ENABLED
+SPtr<GpuCommandBufferProfiler> GpuCommandBuffer::BeginProfiling(const ProfilerString& profilingScopeName)
+{
+	if(!B3D_ENSURE(mProfiler == nullptr))
+		return nullptr;
+
+	mProfiler = GetProfilerGPU().CreateCommandBufferProfiler(*this);
+	mProfilingScopeName = profilingScopeName;
+
+	return mProfiler;
+}
+
+void GpuCommandBuffer::EndProfiling()
+{
+	if(!B3D_ENSURE(mProfiler != nullptr))
+		return;
+
+	GetProfilerGPU().ResolveProfileWhenReady(mProfilingScopeName, mProfiler);
+
+	mProfiler = nullptr;
+	mProfilingScopeName = nullptr;
+}
+#endif
 }}

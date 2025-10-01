@@ -168,7 +168,9 @@ void RenderCompositor::Execute(RenderCompositorNodeInputs& inputs) const
 
 #if B3D_PROFILING_ENABLED
 			const ProfilerString sampleName = ProfilerString("RC: ") + entry.NodeType->Id.CStr();
-			BS_GPU_PROFILE_BEGIN(*inputs.ActiveCommandBuffer, sampleName);
+			if(inputs.CommandBufferProfiler != nullptr)
+				inputs.CommandBufferProfiler->BeginSample(*inputs.ActiveCommandBuffer, sampleName);
+
 			GetProfilerCPU().BeginSample(sampleName.c_str());
 #endif
 
@@ -178,7 +180,9 @@ void RenderCompositor::Execute(RenderCompositorNodeInputs& inputs) const
 
 #if B3D_PROFILING_ENABLED
 			GetProfilerCPU().EndSample(sampleName.c_str());
-			BS_GPU_PROFILE_END(*inputs.ActiveCommandBuffer, sampleName);
+
+			if(inputs.CommandBufferProfiler != nullptr)
+				inputs.CommandBufferProfiler->EndSample(*inputs.ActiveCommandBuffer);
 #endif
 
 			activeNodes.push_back(&entry);

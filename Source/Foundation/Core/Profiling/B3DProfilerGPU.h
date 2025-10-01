@@ -6,6 +6,8 @@
 #include "Utility/B3DModule.h"
 #include "Profiling/B3DRenderStats.h"
 #include "Allocators/B3DPoolAlloc.h"
+#include "RenderAPI/B3DGpuCommandBuffer.h"
+#include "RenderAPI/B3DGpuQueries.h"
 
 namespace b3d
 {
@@ -14,7 +16,7 @@ namespace b3d
 	 */
 
 	/** Contains various profiler statistics about a single GPU profiling sample. */
-	struct GPUProfileSample
+	struct GpuProfilerSample // TODO - Rename
 	{
 		String Name; /**< Name of the sample for easier identification. */
 		float TimeMs; /**< Time in milliseconds it took to execute the sampled block. */
@@ -40,20 +42,72 @@ namespace b3d
 		u32 ObjectsCreatedCount; /**< How many GPU objects were created. */
 		u32 ObjectsDestroyedCount; /**< How many GPU objects were destroyed. */
 
-		Vector<GPUProfileSample> ChildSamples;
-	};
-
-	/** Contains various profiler statistics for a particular view. */
-	struct GPUProfileViewSample : GPUProfileSample
-	{
-		u64 ViewId;
+		Vector<GpuProfilerSample> ChildSamples;
 	};
 
 	/** Profiler report containing information about GPU sampling data from a single frame. */
-	struct GPUProfilerReport
+	struct GPUProfilerReport // TODO - Rename
 	{
 		Vector<GPUProfileViewSample> ViewSamples; /**< Profiler samples belonging to a particular view. */
-		Vector<GPUProfileSample> UncategorizedSamples; /**< Profiler samples not grouped under a particular view. */
+		Vector<GpuProfilerSample> UncategorizedSamples; /**< Profiler samples not grouped under a particular view. */
+	};
+
+	// TODO - Doc
+	class B3D_EXPORT GpuCommandBufferProfiler
+	{
+	private:
+		/** Information about a single profiling sample. Each sample can have multiple child samples. */
+		struct Sample
+		{
+			ProfilerString Name;
+
+			RenderStatsData BeginRenderStatistics;
+			RenderStatsData EndRenderStatistics;
+
+			render::GpuQueryId TimestampBeginQueryId;
+			render::GpuQueryId TimestampEndQueryId;
+			SPtr<render::GpuQueryPool> TimestampQueryPool;
+
+			TArray<Sample*> Children;
+		};
+
+	public:
+		/**
+		 * Constructs a new command buffer profiler and allocates query pool. Query pool reset is issued on the provided command buffer. Command buffer must not
+		 * be in a render pass.
+		 */
+		GpuCommandBufferProfiler(render::GpuCommandBuffer& commandBuffer);
+		~GpuCommandBufferProfiler() = default;
+
+		/**
+		 * Begins sample measurement. Must be followed by EndSample(). If command buffer is currently within a render pass, EndSample()
+		 * must also be issued within a render pass. If command buffer is currently outside of a render pass, EndSample() must be issued
+		 * outside of a render pass.
+		 *
+		 * @param	commandBuffer	Command buffer to record the sample on, must be the same as the profiler was created for.
+		 * @param	name			Unique name for the sample you can later use to find the sampling data.
+		 */
+		void BeginSample(render::GpuCommandBuffer& commandBuffer, ProfilerString name);
+
+		/**
+		 * Ends sample measurement that started in BeginSample().
+		 *
+		 * @param	commandBuffer	Command buffer to record the sample on, must be the same as the profiler was created for.
+		 */
+		void EndSample(render::GpuCommandBuffer& commandBuffer);
+
+	private:
+		friend class ProfilerGPU;
+
+		/** Resets the object so it may be re-used. */
+		void Reset();
+
+		SPtr<render::GpuQueryPool> mTimestampQueryPool;
+
+		TArray<Sample*> mRootSamples;
+		TArray<Sample*> mActiveSampleChain;
+		PoolAlloc<sizeof(Sample), 256> mSamplePool; // TODO - Grab this pool from the GPUProfiler, instead of allocating it for each COmmandBufferProfiler (in a thread safe way)
+		u64 mCommandBufferId = 0;
 	};
 
 	/**
@@ -61,89 +115,35 @@ namespace b3d
 	 *
 	 * @note	Render thread only except where noted otherwise.
 	 */
-	class B3D_EXPORT ProfilerGPU : public Module<ProfilerGPU>
+	class B3D_EXPORT ProfilerGPU : public Module<ProfilerGPU> // TODO - Rename
 	{
-	private:
-		struct ProfiledSample
-		{
-			ProfilerString Name;
-			RenderStatsData StartStats;
-			RenderStatsData EndStats;
-			SPtr<render::TimerQuery> ActiveTimeQuery;
-			SPtr<render::OcclusionQuery> ActiveOcclusionQuery;
-
-			Vector<ProfiledSample*> Children;
-		};
-
-		struct ProfiledViewSample : ProfiledSample
-		{
-			u64 ViewId;
-		};
-
-		struct ProfiledFrame
-		{
-			Vector<ProfiledViewSample*> ViewSamples;
-			Vector<ProfiledSample*> UncategorizedSamples;
-		};
-
 	public:
 		ProfilerGPU();
 		~ProfilerGPU();
 
 		/**
-		 * Signals a start of a new frame. Every frame will generate a separate profiling report. This call must be followed
-		 * by endFrame(), and any sampling operations must happen between beginFrame() and endFrame().
+		 * Creates a profiler that can be used for profiling commands on the provided command buffer. Query pool reset
+		 * command will be issued on the provided command buffer. Command buffer cannot be in render pass.
 		 */
-		void BeginFrame();
+		SPtr<GpuCommandBufferProfiler> CreateCommandBufferProfiler(render::GpuCommandBuffer& commandBuffer);
 
 		/**
-		 * Signals an end of the currently sampled frame. Results of the sampling will be available once
-		 * getNumAvailableReports increments. This may take a while as the sampling is scheduled on the render thread and
-		 * on the GPU.
+		 * Notifies the GPU profiler that we're done recording samples into the provided command buffer profiler. The systems
+		 * will then internally monitor command buffer completion resolve the profiler results when they are ready.
 		 *
-		 * @param[in]	 discard		If true, the results of the frame will not be resolved and it will be discarded.
+		 * @param	name		Name you can use to retrieve the results when ready.
+		 * @param	profiler	Profiler holding the samples to resolve.
 		 */
-		void EndFrame(bool discard = false);
+		void ResolveProfileWhenReady(const ProfilerString& name, const SPtr<GpuCommandBufferProfiler>& profiler);
 
 		/**
-		 * Signals that all following sample calls are used for rendering a particular view represented with the provided
-		 * id. A top-level timing and occlusion query is issued for the entire view and all following samples will
-		 * be grouped under the view in the output report. Must be followed by endView() when done sampling.
+		 * Returns latest profiling results, if available. Profiling results are consumed once retrieved and
+		 * cannot be retrieved again.
 		 *
-		 * @param	commandBuffer	Command buffer to record the view sample on.
-		 * @param	id				Identifier that can be used to uniquely identify the view.
-		 * @param	title			Title describing the view.
+		 * @param	name		Name given to the samples in call to ResolveProfileWhenReady.
+		 * @return				Set of resolved root samples, or null if no results are available.
 		 */
-		void BeginView(render::GpuCommandBuffer& commandBuffer, u64 id, ProfilerString title);
-
-		/**
-		 * Signals the end of rendering for a particular view. Must match the corresponding beginView() call.
-		 *
-		 * @param	commandBuffer	Command buffer to record the view sample on. Must match the buffer provided in BeginView().
-		 */
-		void EndView(render::GpuCommandBuffer& commandBuffer);
-
-		/**
-		 * Begins sample measurement. Must be followed by endSample().
-		 *
-		 * @param	commandBuffer	Command buffer to record the sample on.
-		 * @param	name			Unique name for the sample you can later use to find the sampling data.
-		 *
-		 * @note	Must be called between beginFrame()/endFrame() calls.
-		 */
-		void BeginSample(render::GpuCommandBuffer& commandBuffer, ProfilerString name);
-
-		/**
-		 * Ends sample measurement.
-		 *
-		 * @param	commandBuffer	Command buffer to record the sample on. Must match the buffer provided to BeginSample()
-		 * @param	name			Unique name for the sample.
-		 *
-		 * @note
-		 * Unique name is primarily needed to more easily identify mismatched begin/end sample pairs. Otherwise the name in
-		 * BeginSample() would be enough. Must be called between BeginFrame()/EndFrame() calls.
-		 */
-		void EndSample(render::GpuCommandBuffer& commandBuffer, const ProfilerString& name);
+		Optional<TArray<GpuProfilerSample>> GetResults(const ProfilerString& name);
 
 		/**
 		 * Returns number of profiling reports that are ready but haven't been retrieved yet.
@@ -154,7 +154,7 @@ namespace b3d
 		 * @note
 		 * Thread safe.
 		 */
-		u32 GetNumAvailableReports();
+		u32 GetAvailableReportCount();
 
 		/**
 		 * Gets the oldest report available and removes it from the internal list. Throws an exception if no reports are
@@ -178,17 +178,13 @@ namespace b3d
 		/** @} */
 
 	private:
-		/** Assigns start values for the provided sample. */
-		void BeginSampleInternal(ProfiledSample& sample, render::GpuCommandBuffer& commandBuffer, bool issueOcclusion);
+		friend class GpuCommandBufferProfiler;
 
-		/**	Assigns end values for the provided sample. */
-		void EndSampleInternal(ProfiledSample& sample, render::GpuCommandBuffer& commandBuffer);
+		/**	Attempts to find an existing free pool, or creates a new one if free one cannot be found. */
+		SPtr<render::GpuQueryPool> FindOrCreateQueryPool() const;
 
-		/**	Creates a new timer query or returns an existing free query. */
-		SPtr<render::TimerQuery> GetTimerQuery() const;
-
-		/**	Creates a new occlusion query or returns an existing free query. */
-		SPtr<render::OcclusionQuery> GetOcclusionQuery() const;
+		/** Notifies the system that the query pool is no longer used and can be re-used. */
+		void ReleaseQueryPool(const SPtr<render::GpuQueryPool>& queryPool);
 
 		/** Frees the memory used by all the child samples. */
 		void FreeSample(ProfiledSample& sample);
@@ -197,7 +193,7 @@ namespace b3d
 		void FreeFrame(ProfiledFrame& frame);
 
 		/** Resolves an active sample and converts it to report sample. */
-		void ResolveSample(const ProfiledSample& sample, GPUProfileSample& reportSample);
+		void ResolveSample(const ProfiledSample& sample, GpuProfilerSample& reportSample);
 
 	private:
 		bool mIsFrameActive = false;
@@ -212,26 +208,15 @@ namespace b3d
 		u32 mReportHeadPos = 0;
 		u32 mReportCount = 0;
 
-		PoolAlloc<sizeof(ProfiledViewSample), 16> mViewSamplePool;
+		PoolAlloc<sizeof(ProfiledScope), 16> mViewSamplePool;
 		PoolAlloc<sizeof(ProfiledSample), 256> mSamplePool;
 
-		mutable Stack<SPtr<render::TimerQuery>> mFreeTimerQueries;
-		mutable Stack<SPtr<render::OcclusionQuery>> mFreeOcclusionQueries;
-
-		Mutex mMutex;
+		mutable TArray<SPtr<render::GpuQueryPool>> mFreeTimestampQueryPools;
+		mutable Mutex mMutex;
 	};
 
 	/** Provides global access to ProfilerGPU instance. */
 	B3D_EXPORT ProfilerGPU& GetProfilerGPU();
-
-	/** Profiling macros that allow profiling functionality to be disabled at compile time. */
-#if B3D_PROFILING_ENABLED
-#	define BS_GPU_PROFILE_BEGIN(CommandBuffer, SampleName) GetProfilerGPU().BeginSample(CommandBuffer, SampleName);
-#	define BS_GPU_PROFILE_END(CommandBuffer, SampleName) GetProfilerGPU().EndSample(CommandBuffer, SampleName);
-#else
-#	define BS_GPU_PROFILE_BEGIN(CommandBuffer, SampleName)
-#	define BS_GPU_PROFILE_END(CommandBuffer, SampleName)
-#endif
 
 	/**
 	 * Helper class that performs GPU profiling in the current block. Profiling sample is started when the class is
@@ -243,24 +228,24 @@ namespace b3d
 		ProfileGPUBlock(render::GpuCommandBuffer& commandBuffer, ProfilerString name)
 			:mCommandBuffer(commandBuffer)
 		{
-			mSampleName = std::move(name);
-			GetProfilerGPU().BeginSample(commandBuffer, mSampleName);
+			const SPtr<GpuCommandBufferProfiler>& commandBufferProfiler = commandBuffer.GetProfiler();
+			commandBufferProfiler->BeginSample(commandBuffer, name);
 		}
 #else
-		ProfileGPUBlock(const ProfilerString& name)
+		ProfileGPUBlock(render::GpuCommandBuffer& commandBuffer, ProfilerString name)
 		{}
 #endif
 
 #if B3D_PROFILING_ENABLED
 		~ProfileGPUBlock()
 		{
-			GetProfilerGPU().EndSample(mCommandBuffer, mSampleName);
+			const SPtr<GpuCommandBufferProfiler>& commandBufferProfiler = mCommandBuffer.GetProfiler();
+			commandBufferProfiler->EndSample(mCommandBuffer);
 		}
 #endif
 
 	private:
 #if B3D_PROFILING_ENABLED
-		ProfilerString mSampleName;
 		render::GpuCommandBuffer& mCommandBuffer;
 #endif
 	};

@@ -149,13 +149,11 @@ void Renderer::ProcessTask(RendererTask& task, bool forceAll)
 	{
 		task.mState.store(1);
 
-		GetProfilerGPU().BeginFrame();
 		GetProfilerCPU().BeginThread("RenderTask");
 		{
 			complete = task.mTaskWorker(*mCommandBufferPool);
 		}
 		GetProfilerCPU().EndThread();
-		GetProfilerGPU().EndFrame(true);
 
 		if(complete)
 			task.mState.store(2);

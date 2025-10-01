@@ -72,7 +72,7 @@ namespace b3d
 			GpuPipelineStatisticsQueryBits PipelineStatisticsQueryBits = GpuPipelineStatisticsQueryBit::None; 
 		};
 
-		/** Pool used for allocating GPU queries of a particular type. */
+		/** Pool used for allocating GPU queries of a particular type. Note a pool must be reset on a command buffer before first use. */
 		class B3D_EXPORT GpuQueryPool
 		{
 		public:
@@ -84,12 +84,6 @@ namespace b3d
 
 			/** Attempts to allocate a new query. Returns an invalid ID if all queries in the pool have been exhausted. */
 			virtual GpuQueryId AllocateQuery() = 0;
-
-			/**
-			 * Resets the pool immediately. After resetting the pool previously allocated queries are not longer valid, and new AllocateQuery() calls return
-			 * queries from the start of the pool. 
-			 */
-			virtual void Reset() = 0;
 
 			/**
 			 * Attempts to retrieve the query information from the GPU.

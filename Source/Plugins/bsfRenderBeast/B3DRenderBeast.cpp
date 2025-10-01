@@ -84,9 +84,6 @@ void RenderBeast::InitializeOnRenderThread(const LoadedRendererTextures& rendere
 		mFeatureSet = RenderBeastFeatureSet::DesktopMacOS;
 	}
 
-	// Ensure profiler methods can be called from start-up methods
-	GetProfilerGPU().BeginFrame();
-
 	RendererUtility::StartUp();
 	GpuSort::StartUp();
 	GpuResourcePool::StartUp();
@@ -99,8 +96,6 @@ void RenderBeast::InitializeOnRenderThread(const LoadedRendererTextures& rendere
 	StandardDeferred::StartUp();
 	ParticleRenderer::StartUp();
 	GpuParticleSimulation::StartUp();
-
-	GetProfilerGPU().EndFrame(true);
 
 	RenderCompositor::RegisterNodeType<RCNodeSceneDepth>();
 	RenderCompositor::RegisterNodeType<RCNodeBasePass>();
@@ -234,7 +229,6 @@ void RenderBeast::RenderAllScenes(FrameTimings timings, PerFrameData perFrameDat
 {
 	ASSERT_IF_NOT_RENDER_THREAD;
 
-	GetProfilerGPU().BeginFrame();
 	GetProfilerCPU().BeginSample("Render");
 
 	// Make sure any renderer tasks finish first, as rendering might depend on them
@@ -263,7 +257,6 @@ void RenderBeast::RenderAllScenes(FrameTimings timings, PerFrameData perFrameDat
 	// Tick pool frame
 	GpuResourcePool::Instance().Update();
 
-	GetProfilerGPU().EndFrame();
 	GetProfilerCPU().EndSample("Render");
 
 	if(mIsFrameCaptureRequested)
@@ -280,6 +273,10 @@ void RenderBeast::RenderAllScenes(FrameTimings timings, PerFrameData perFrameDat
 bool RenderBeast::RenderScene(RenderBeastScene& scene, const FrameInfo& frameInfo)
 {
 	SPtr<GpuCommandBuffer> commandBuffer = mCommandBufferPool->Create(GpuCommandBufferCreateInformation::Create("Main"));
+#if B3D_PROFILING_ENABLED
+	commandBuffer->BeginProfiling("RenderScene");
+#endif
+
 	const SceneInfo& sceneInfo = scene.GetSceneInfo();
 
 	scene.UpdateCombinedRendererExtensionsIfNeeded(mRendererExtensions, mRendererExtensionsDirty);
@@ -348,8 +345,16 @@ bool RenderBeast::RenderScene(RenderBeastScene& scene, const FrameInfo& frameInf
 		const bool anythingDrawnForView = RenderViews(*commandBuffer, scene, *mMainViewGroup, frameInfo, renderTargetNeedsRedraw);
 		if(anythingDrawnForView)
 		{
+#if B3D_PROFILING_ENABLED
+			commandBuffer->EndProfiling();
+#endif
 			mDevice->SubmitCommandBuffer(commandBuffer);
+
 			commandBuffer = mCommandBufferPool->Create(GpuCommandBufferCreateInformation::Create("Main"));
+
+#if B3D_PROFILING_ENABLED
+			commandBuffer->BeginProfiling("RenderScene");
+#endif
 
 			if(isWindow)
 				mDevice->PresentRenderWindow(window);
@@ -358,6 +363,9 @@ bool RenderBeast::RenderScene(RenderBeastScene& scene, const FrameInfo& frameInf
 		}
 	}
 
+#if B3D_PROFILING_ENABLED
+	commandBuffer->EndProfiling();
+#endif
 	mDevice->SubmitCommandBuffer(commandBuffer);
 
 	return anythingDrawnForScene;
@@ -366,10 +374,10 @@ bool RenderBeast::RenderScene(RenderBeastScene& scene, const FrameInfo& frameInf
 bool RenderBeast::RenderViews(GpuCommandBuffer& commandBuffer, RenderBeastScene& scene, RendererViewGroup& viewGroup, const FrameInfo& frameInfo, bool forceRender)
 {
 	bool needs3DRender = false;
-	u32 numViews = viewGroup.GetNumViews();
-	for(u32 i = 0; i < numViews; i++)
+	u32 viewCount = viewGroup.GetViewCount();
+	for(u32 viewIndex = 0; viewIndex < viewCount; viewIndex++)
 	{
-		RendererView* view = viewGroup.GetView(i);
+		RendererView* view = viewGroup.GetView(viewIndex);
 
 		if(view->ShouldDraw3D())
 		{
@@ -388,8 +396,8 @@ bool RenderBeast::RenderViews(GpuCommandBuffer& commandBuffer, RenderBeastScene&
 		shadowRenderer.RenderShadowMaps(commandBuffer,scene, viewGroup, frameInfo);
 
 		// Update various buffers required by each renderable
-		u32 numRenderables = (u32)sceneInfo.Renderables.size();
-		for(u32 i = 0; i < numRenderables; i++)
+		u32 renderableCount = (u32)sceneInfo.Renderables.size();
+		for(u32 i = 0; i < renderableCount; i++)
 		{
 			if(!visibility.Renderables[i])
 				continue;
@@ -399,20 +407,23 @@ bool RenderBeast::RenderViews(GpuCommandBuffer& commandBuffer, RenderBeastScene&
 	}
 
 	bool anythingDrawn = false;
-	for(u32 i = 0; i < numViews; i++)
+	for(u32 viewIndex = 0; viewIndex < viewCount; viewIndex++)
 	{
-		RendererView* view = viewGroup.GetView(i);
+		RendererView* view = viewGroup.GetView(viewIndex);
 
-		auto viewId = (u64)view;
 		const RendererViewTargetInformation& viewTarget = view->GetProperties().Target;
-		String title = StringUtil::Format("({0} x {1})", viewTarget.TargetWidth, viewTarget.TargetHeight);
-		GetProfilerGPU().BeginView(commandBuffer, viewId, ProfilerString(title.data(), title.size()));
 
 		if(!view->ShouldDraw())
-		{
-			GetProfilerGPU().EndView(commandBuffer);
 			continue;
+
+#if B3D_PROFILING_ENABLED
+		const SPtr<GpuCommandBufferProfiler>& commandBufferProfiler = commandBuffer.GetProfiler();
+		if(commandBufferProfiler != nullptr)
+		{
+			const String title = StringUtil::Format("View ({0} x {1})", viewTarget.TargetWidth, viewTarget.TargetHeight);
+			commandBufferProfiler->BeginSample(commandBuffer, ProfilerString(title.data(), title.size()));
 		}
+#endif
 
 		const RenderSettings& settings = view->GetRenderSettings();
 		if(settings.OverlayOnly)
@@ -426,7 +437,10 @@ bool RenderBeast::RenderViews(GpuCommandBuffer& commandBuffer, RenderBeastScene&
 			anythingDrawn = true;
 		}
 
-		GetProfilerGPU().EndView(commandBuffer);
+#if B3D_PROFILING_ENABLED
+		if(commandBufferProfiler != nullptr)
+			commandBufferProfiler->EndSample(commandBuffer);
+#endif
 	}
 
 	return anythingDrawn;
@@ -450,6 +464,10 @@ void RenderBeast::RenderView(GpuCommandBuffer& commandBuffer, RenderBeastScene& 
 
 	RenderCompositorNodeInputs inputs(viewGroup, view, sceneInfo, *mRenderThreadOptions, frameInfo, mFeatureSet);
 	inputs.ActiveCommandBuffer = commandBuffer.GetShared();
+
+#if B3D_PROFILING_ENABLED
+	inputs.CommandBufferProfiler = commandBuffer.GetProfiler();
+#endif
 
 	// Register callbacks
 	if(viewProps.TriggerCallbacks)

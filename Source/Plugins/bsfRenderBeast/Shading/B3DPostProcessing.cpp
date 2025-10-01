@@ -46,7 +46,7 @@ void DownsampleMat::Initialize()
 
 void DownsampleMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& input, const SPtr<RenderTarget>& output)
 {
-	BS_RENMAT_PROFILE_BLOCK
+	B3D_PROFILE_RENDERER_MATERIAL
 
 	// Set parameters
 	mInputTexture.Set(input);
@@ -132,7 +132,7 @@ void EyeAdaptHistogramMat::InitDefinesInternal(ShaderDefines& defines)
 
 void EyeAdaptHistogramMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& input, const SPtr<Texture>& output, const AutoExposureSettings& settings)
 {
-	BS_RENMAT_PROFILE_BLOCK
+	B3D_PROFILE_RENDERER_MATERIAL
 
 	// Set parameters
 	mSceneColor.Set(input);
@@ -198,7 +198,7 @@ void EyeAdaptHistogramReduceMat::Initialize()
 
 void EyeAdaptHistogramReduceMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& sceneColor, const SPtr<Texture>& histogram, const SPtr<Texture>& prevFrame, const SPtr<RenderTarget>& output)
 {
-	BS_RENMAT_PROFILE_BLOCK
+	B3D_PROFILE_RENDERER_MATERIAL
 
 	// Set parameters
 	mHistogramTex.Set(histogram);
@@ -249,7 +249,7 @@ void EyeAdaptationMat::InitDefinesInternal(ShaderDefines& defines)
 
 void EyeAdaptationMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& reducedHistogram, const SPtr<RenderTarget>& output, float frameDelta, const AutoExposureSettings& settings, float exposureScale)
 {
-	BS_RENMAT_PROFILE_BLOCK
+	B3D_PROFILE_RENDERER_MATERIAL
 
 	// Set parameters
 	mReducedHistogramTex.Set(reducedHistogram);
@@ -318,7 +318,7 @@ void EyeAdaptationBasicSetupMat::Initialize()
 
 void EyeAdaptationBasicSetupMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& input, const SPtr<RenderTarget>& output, float frameDelta, const AutoExposureSettings& settings, float exposureScale)
 {
-	BS_RENMAT_PROFILE_BLOCK
+	B3D_PROFILE_RENDERER_MATERIAL
 
 	// Set parameters
 	mInputTex.Set(input);
@@ -355,7 +355,7 @@ void EyeAdaptationBasicMat::Initialize()
 
 void EyeAdaptationBasicMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& curFrame, const SPtr<Texture>& prevFrame, const SPtr<RenderTarget>& output, float frameDelta, const AutoExposureSettings& settings, float exposureScale)
 {
-	BS_RENMAT_PROFILE_BLOCK
+	B3D_PROFILE_RENDERER_MATERIAL
 
 	// Set parameters
 	mCurFrameTexParam.Set(curFrame);
@@ -405,7 +405,7 @@ void CreateTonemap2DLUTMat::InitDefinesInternal(ShaderDefines& defines)
 
 void CreateTonemap2DLUTMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<RenderTexture>& output, const RenderSettings& settings)
 {
-	BS_RENMAT_PROFILE_BLOCK
+	B3D_PROFILE_RENDERER_MATERIAL
 
 	PopulateTonemappingParameterBuffer(settings, mParamBuffer);
 	PopulateWhiteBalanceParameterBuffer(settings, mWhiteBalanceParamBuffer);
@@ -478,7 +478,7 @@ void CreateTonemap3DLUTMat::InitDefinesInternal(ShaderDefines& defines)
 
 void CreateTonemap3DLUTMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& output, const RenderSettings& settings)
 {
-	BS_RENMAT_PROFILE_BLOCK
+	B3D_PROFILE_RENDERER_MATERIAL
 
 	CreateTonemap2DLUTMat::PopulateTonemappingParameterBuffer(settings, mParamBuffer);
 	CreateTonemap2DLUTMat::PopulateWhiteBalanceParameterBuffer(settings, mWhiteBalanceParamBuffer);
@@ -517,7 +517,7 @@ void TonemappingMat::InitDefinesInternal(ShaderDefines& defines)
 
 void TonemappingMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& sceneColor, const SPtr<Texture>& eyeAdaptation, const SPtr<Texture>& bloom, const SPtr<Texture>& colorLUT, const SPtr<RenderTarget>& output, const RenderSettings& settings)
 {
-	BS_RENMAT_PROFILE_BLOCK
+	B3D_PROFILE_RENDERER_MATERIAL
 
 	const TextureProperties& texProps = sceneColor->GetProperties();
 
@@ -631,7 +631,7 @@ void BloomClipMat::Initialize()
 
 void BloomClipMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& input, float threshold, const SPtr<Texture>& eyeAdaptation, const RenderSettings& settings, const SPtr<RenderTarget>& output)
 {
-	BS_RENMAT_PROFILE_BLOCK
+	B3D_PROFILE_RENDERER_MATERIAL
 
 	gBloomClipParamDef.gThreshold.Set(mParamBuffer, threshold);
 	gBloomClipParamDef.gManualExposureScale.Set(mParamBuffer, Math::RaiseToPower(2.0f, settings.ExposureScale));
@@ -668,7 +668,7 @@ void ScreenSpaceLensFlareMat::Initialize()
 
 void ScreenSpaceLensFlareMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& input, const ScreenSpaceLensFlareSettings& settings, const SPtr<RenderTarget>& output)
 {
-	BS_RENMAT_PROFILE_BLOCK
+	B3D_PROFILE_RENDERER_MATERIAL
 
 	// Set parameters
 	gScreenSpaceLensFlareParamDef.gThreshold.Set(mParamBuffer, settings.Threshold);
@@ -733,7 +733,7 @@ void ChromaticAberrationMat::Initialize()
 
 void ChromaticAberrationMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& input, const ChromaticAberrationSettings& settings, const SPtr<RenderTarget>& output)
 {
-	BS_RENMAT_PROFILE_BLOCK
+	B3D_PROFILE_RENDERER_MATERIAL
 
 	const TextureProperties& texProps = input->GetProperties();
 
@@ -783,7 +783,7 @@ void FilmGrainMat::Initialize()
 
 void FilmGrainMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& input, float time, const FilmGrainSettings& settings, const SPtr<RenderTarget>& output)
 {
-	BS_RENMAT_PROFILE_BLOCK
+	B3D_PROFILE_RENDERER_MATERIAL
 
 	// Set parameters
 	gFilmGrainParamDef.gIntensity.Set(mParamBuffer, settings.Intensity);
@@ -819,7 +819,7 @@ void GaussianBlurMat::InitDefinesInternal(ShaderDefines& defines)
 
 void GaussianBlurMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& source, float filterSize, const SPtr<RenderTexture>& destination, const Color& tint, const SPtr<Texture>& additive)
 {
-	BS_RENMAT_PROFILE_BLOCK
+	B3D_PROFILE_RENDERER_MATERIAL
 
 	const TextureProperties& srcProps = source->GetProperties();
 	const RenderTargetProperties& dstProps = destination->GetProperties();
@@ -1025,7 +1025,7 @@ void GaussianDOFSeparateMat::Initialize()
 
 void GaussianDOFSeparateMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& color, const SPtr<Texture>& depth, const RendererView& view, const DepthOfFieldSettings& settings)
 {
-	BS_RENMAT_PROFILE_BLOCK
+	B3D_PROFILE_RENDERER_MATERIAL
 
 	const TextureProperties& srcProps = color->GetProperties();
 
@@ -1119,7 +1119,7 @@ void GaussianDOFCombineMat::Initialize()
 
 void GaussianDOFCombineMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& focused, const SPtr<Texture>& near, const SPtr<Texture>& far, const SPtr<Texture>& depth, const SPtr<RenderTarget>& output, const RendererView& view, const DepthOfFieldSettings& settings)
 {
-	BS_RENMAT_PROFILE_BLOCK
+	B3D_PROFILE_RENDERER_MATERIAL
 
 	const TextureProperties& srcProps = focused->GetProperties();
 
@@ -1175,7 +1175,7 @@ void BokehDOFPrepareMat::Initialize()
 
 void BokehDOFPrepareMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& input, const SPtr<Texture>& depth, const RendererView& view, const DepthOfFieldSettings& settings, const SPtr<RenderTarget>& output)
 {
-	BS_RENMAT_PROFILE_BLOCK
+	B3D_PROFILE_RENDERER_MATERIAL
 
 	const TextureProperties& srcProps = input->GetProperties();
 
@@ -1307,7 +1307,7 @@ void BokehDOFMat::InitDefinesInternal(ShaderDefines& defines)
 
 void BokehDOFMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& input, const RendererView& view, const DepthOfFieldSettings& settings, const SPtr<RenderTarget>& output)
 {
-	BS_RENMAT_PROFILE_BLOCK
+	B3D_PROFILE_RENDERER_MATERIAL
 
 	const TextureProperties& srcProps = input->GetProperties();
 	const RenderTargetProperties& dstProps = output->GetProperties();
@@ -1418,7 +1418,7 @@ void BokehDOFCombineMat::Initialize()
 
 void BokehDOFCombineMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& unfocused, const SPtr<Texture>& focused, const SPtr<Texture>& depth, const RendererView& view, const DepthOfFieldSettings& settings, const SPtr<RenderTarget>& output)
 {
-	BS_RENMAT_PROFILE_BLOCK
+	B3D_PROFILE_RENDERER_MATERIAL
 
 	const TextureProperties& focusedProps = focused->GetProperties();
 	const TextureProperties& unfocusedProps = unfocused->GetProperties();
@@ -1488,7 +1488,7 @@ void MotionBlurMat::Initialize()
 
 void MotionBlurMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& input, const SPtr<Texture>& depth, const RendererView& view, const MotionBlurSettings& settings, const SPtr<RenderTarget>& output)
 {
-	BS_RENMAT_PROFILE_BLOCK
+	B3D_PROFILE_RENDERER_MATERIAL
 
 	u32 numSamples;
 	switch(settings.Quality)
@@ -1541,7 +1541,7 @@ void BuildHiZMat::Initialize()
 
 void BuildHiZMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& source, u32 srcMip, const Area2& srcRect, const Area2& dstRect, const SPtr<RenderTexture>& output)
 {
-	BS_RENMAT_PROFILE_BLOCK
+	B3D_PROFILE_RENDERER_MATERIAL
 
 	// If no texture view support, we must manually pick a valid mip level in the shader
 	if(mNoTextureViews)
@@ -1589,7 +1589,7 @@ void FXAAMat::Initialize()
 
 void FXAAMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& source, const SPtr<RenderTarget>& destination)
 {
-	BS_RENMAT_PROFILE_BLOCK
+	B3D_PROFILE_RENDERER_MATERIAL
 
 	const TextureProperties& srcProps = source->GetProperties();
 
@@ -1669,7 +1669,7 @@ void SSAOMat::Initialize()
 
 void SSAOMat::Execute(GpuCommandBuffer& commandBuffer, const RendererView& view, const SSAOTextureInputs& textures, const SPtr<RenderTexture>& destination, const AmbientOcclusionSettings& settings)
 {
-	BS_RENMAT_PROFILE_BLOCK
+	B3D_PROFILE_RENDERER_MATERIAL
 
 	// Scale that can be used to adjust how quickly does AO radius increase with downsampled AO. This yields a very
 	// small AO radius at highest level, and very large radius at lowest level
@@ -1822,7 +1822,7 @@ void SSAODownsampleMat::Initialize()
 
 void SSAODownsampleMat::Execute(GpuCommandBuffer& commandBuffer, const RendererView& view, const SPtr<Texture>& depth, const SPtr<Texture>& normals, const SPtr<RenderTexture>& destination, float depthRange)
 {
-	BS_RENMAT_PROFILE_BLOCK
+	B3D_PROFILE_RENDERER_MATERIAL
 
 	const RendererViewProperties& viewProps = view.GetProperties();
 	const RenderTargetProperties& rtProps = destination->GetProperties();
@@ -1878,7 +1878,7 @@ void SSAOBlurMat::Initialize()
 
 void SSAOBlurMat::Execute(GpuCommandBuffer& commandBuffer, const RendererView& view, const SPtr<Texture>& ao, const SPtr<Texture>& depth, const SPtr<RenderTexture>& destination, float depthRange)
 {
-	BS_RENMAT_PROFILE_BLOCK
+	B3D_PROFILE_RENDERER_MATERIAL
 
 	const RendererViewProperties& viewProps = view.GetProperties();
 	const TextureProperties& texProps = ao->GetProperties();
@@ -1930,7 +1930,7 @@ void SSRStencilMat::Initialize()
 
 void SSRStencilMat::Execute(GpuCommandBuffer& commandBuffer, const RendererView& view, GBufferTextures gbuffer, const ScreenSpaceReflectionsSettings& settings)
 {
-	BS_RENMAT_PROFILE_BLOCK
+	B3D_PROFILE_RENDERER_MATERIAL
 
 	mGBufferParams.Bind(gbuffer);
 
@@ -1993,7 +1993,7 @@ void SSRTraceMat::Initialize()
 
 void SSRTraceMat::Execute(GpuCommandBuffer& commandBuffer, const RendererView& view, GBufferTextures gbuffer, const SPtr<Texture>& sceneColor, const SPtr<Texture>& hiZ, const ScreenSpaceReflectionsSettings& settings, const SPtr<RenderTarget>& destination)
 {
-	BS_RENMAT_PROFILE_BLOCK
+	B3D_PROFILE_RENDERER_MATERIAL
 
 	const RendererViewProperties& viewProps = view.GetProperties();
 
@@ -2150,7 +2150,7 @@ void TemporalFilteringMat::Initialize()
 
 void TemporalFilteringMat::Execute(GpuCommandBuffer& commandBuffer, const RendererView& view, const SPtr<Texture>& prevFrame, const SPtr<Texture>& curFrame, const SPtr<Texture>& velocity, const SPtr<Texture>& sceneDepth, const Vector2& jitter, float exposure, const SPtr<RenderTarget>& destination)
 {
-	BS_RENMAT_PROFILE_BLOCK
+	B3D_PROFILE_RENDERER_MATERIAL
 
 	SPtr<Texture> velocityTex = velocity;
 	if(!velocityTex)
@@ -2338,7 +2338,7 @@ void EncodeDepthMat::Initialize()
 
 void EncodeDepthMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& depth, float near, float far, const SPtr<RenderTarget>& output)
 {
-	BS_RENMAT_PROFILE_BLOCK
+	B3D_PROFILE_RENDERER_MATERIAL
 
 	mInputTexture.Set(depth);
 
@@ -2358,7 +2358,7 @@ void MSAACoverageMat::Initialize()
 
 void MSAACoverageMat::Execute(GpuCommandBuffer& commandBuffer, const RendererView& view, GBufferTextures gbuffer)
 {
-	BS_RENMAT_PROFILE_BLOCK
+	B3D_PROFILE_RENDERER_MATERIAL
 
 	mGBufferParams.Bind(gbuffer);
 
@@ -2391,7 +2391,7 @@ void MSAACoverageStencilMat::Initialize()
 
 void MSAACoverageStencilMat::Execute(GpuCommandBuffer& commandBuffer, const RendererView& view, const SPtr<Texture>& coverage)
 {
-	BS_RENMAT_PROFILE_BLOCK
+	B3D_PROFILE_RENDERER_MATERIAL
 
 	const Area2I& viewRect = view.GetProperties().Target.ViewRect;
 	mCoverageTexParam.Set(coverage);

@@ -7,11 +7,86 @@
 #include "RenderAPI/B3DTimerQuery.h"
 #include "RenderAPI/B3DOcclusionQuery.h"
 #include "Error/B3DException.h"
+#include "RenderAPI/B3DGpuCommandBuffer.h"
 #include "RenderAPI/B3DGpuDevice.h"
 
 using namespace b3d;
 
 const u32 ProfilerGPU::kMaxQueueElements = 5;
+
+GpuCommandBufferProfiler::GpuCommandBufferProfiler(render::GpuCommandBuffer& commandBuffer)
+	: mCommandBufferId((u64)&commandBuffer)
+{
+	mTimestampQueryPool = GetProfilerGPU().FindOrCreateQueryPool();
+	commandBuffer.ResetQueries(mTimestampQueryPool);
+}
+
+void GpuCommandBufferProfiler::BeginSample(render::GpuCommandBuffer& commandBuffer, ProfilerString name)
+{
+	if(!B3D_ENSURE(mCommandBufferId == (u64)&commandBuffer))
+		return;
+
+	auto sample = mSamplePool.Construct<Sample>();
+	sample->Name = std::move(name);
+	sample->BeginRenderStatistics = RenderStats::Instance().GetData();
+	sample->TimestampBeginQueryId = mTimestampQueryPool->AllocateQuery();
+
+	if(!B3D_ENSURE(sample->TimestampBeginQueryId.IsValid()))
+		return;
+
+	commandBuffer.WriteTimestamp(sample->TimestampBeginQueryId, mTimestampQueryPool);
+
+	if(mActiveSampleChain.Empty())
+		mRootSamples.Add(sample);
+	else
+	{
+		Sample* parent = mRootSamples.back();
+		parent->Children.Add(sample);
+	}
+
+	mActiveSampleChain.Add(sample);
+}
+
+void GpuCommandBufferProfiler::EndSample(render::GpuCommandBuffer& commandBuffer)
+{
+	if(!B3D_ENSURE(mCommandBufferId == (u64)&commandBuffer))
+		return;
+
+	if(!B3D_ENSURE(!mActiveSampleChain.Empty()))
+		return;
+
+	Sample* sample = mActiveSampleChain.back();
+	sample->EndRenderStatistics = RenderStats::Instance().GetData();
+	sample->TimestampEndQueryId = mTimestampQueryPool->AllocateQuery();
+
+	if(!B3D_ENSURE(sample->TimestampBeginQueryId.IsValid()))
+		return;
+
+	commandBuffer.WriteTimestamp(sample->TimestampEndQueryId, mTimestampQueryPool);
+
+	mActiveSampleChain.Pop();
+}
+
+void GpuCommandBufferProfiler::Reset()
+{
+	auto fnFreeSample = [this, fnFreeSample](Sample* sample)
+	{
+		for(Sample* child : sample->Children)
+			fnFreeSample(child);
+
+		mSamplePool.Destruct(sample);
+	};
+
+	for(const auto& sample : mRootSamples)
+		fnFreeSample(sample);
+	
+	mActiveSampleChain.Clear();
+	mRootSamples.Clear();
+	mCommandBufferId = 0;
+
+	GetProfilerGPU().ReleaseQueryPool(mTimestampQueryPool);
+	mTimestampQueryPool = nullptr;
+}
 
 ProfilerGPU::ProfilerGPU()
 {
@@ -31,45 +106,7 @@ ProfilerGPU::~ProfilerGPU()
 	B3DDeleteMultiple(mReadyReports, kMaxQueueElements);
 }
 
-void ProfilerGPU::BeginFrame()
-{
-	if(mIsFrameActive)
-	{
-		B3D_LOG(Error, Profiler, "Cannot begin a frame because another frame is active.");
-		return;
-	}
-
-	mIsFrameActive = true;
-	mActiveFrame.UncategorizedSamples.clear();
-	mActiveFrame.ViewSamples.clear();
-}
-
-void ProfilerGPU::EndFrame(bool discard)
-{
-	if(!mActiveSamples.empty())
-	{
-		B3D_LOG(Error, Profiler, "Attempting to end a frame while a sample is active.");
-		return;
-	}
-
-	if(mIsViewActive)
-	{
-		B3D_LOG(Error, Profiler, "Attempting to end a frame while a view is active.");
-		return;
-	}
-
-	if(!mIsFrameActive)
-		return;
-
-	if(!discard)
-		mUnresolvedFrames.push(mActiveFrame);
-	else
-		FreeFrame(mActiveFrame);
-
-	mIsFrameActive = false;
-}
-
-void ProfilerGPU::BeginView(render::GpuCommandBuffer& commandBuffer, u64 id, ProfilerString title)
+void ProfilerGPU::BeginProfilingScope(render::GpuCommandBuffer& commandBuffer, u64 id, ProfilerString title)
 {
 	if(!mIsFrameActive)
 	{
@@ -83,7 +120,7 @@ void ProfilerGPU::BeginView(render::GpuCommandBuffer& commandBuffer, u64 id, Pro
 		return;
 	}
 
-	auto sample = mViewSamplePool.Construct<ProfiledViewSample>();
+	auto sample = mViewSamplePool.Construct<ProfiledScope>();
 	sample->ViewId = id;
 
 	mActiveFrame.ViewSamples.push_back(sample);
@@ -92,7 +129,7 @@ void ProfilerGPU::BeginView(render::GpuCommandBuffer& commandBuffer, u64 id, Pro
 	mIsViewActive = true;
 }
 
-void ProfilerGPU::EndView(render::GpuCommandBuffer& commandBuffer)
+void ProfilerGPU::EndProfilingScope(render::GpuCommandBuffer& commandBuffer)
 {
 	if(!mActiveSamples.empty())
 	{
@@ -148,7 +185,7 @@ void ProfilerGPU::EndSample(render::GpuCommandBuffer& commandBuffer, const Profi
 	mActiveSamples.pop();
 }
 
-u32 ProfilerGPU::GetNumAvailableReports()
+u32 ProfilerGPU::GetAvailableReportCount()
 {
 	Lock lock(mMutex);
 
@@ -298,61 +335,34 @@ void ProfilerGPU::ResolveSample(const ProfiledSample& sample, GPUProfileSample& 
 	}
 }
 
-void ProfilerGPU::BeginSampleInternal(ProfiledSample& sample, render::GpuCommandBuffer& commandBuffer, bool issueOcclusion)
+SPtr<render::GpuQueryPool> ProfilerGPU::FindOrCreateQueryPool() const
 {
-	sample.StartStats = RenderStats::Instance().GetData();
-	sample.ActiveTimeQuery = GetTimerQuery();
-	sample.ActiveTimeQuery->Begin(commandBuffer);
+	Lock lock(mMutex);
 
-	if(issueOcclusion)
+	if(!mFreeTimestampQueryPools.empty())
 	{
-		sample.ActiveOcclusionQuery = GetOcclusionQuery();
-		sample.ActiveOcclusionQuery->Begin(commandBuffer);
-	}
-}
+		SPtr<render::GpuQueryPool> queryPool = mFreeTimestampQueryPools.back();
+		mFreeTimestampQueryPools.pop_back();
 
-void ProfilerGPU::EndSampleInternal(ProfiledSample& sample, render::GpuCommandBuffer& commandBuffer)
-{
-	sample.EndStats = RenderStats::Instance().GetData();
-
-	if(sample.ActiveOcclusionQuery)
-		sample.ActiveOcclusionQuery->End(commandBuffer);
-
-	sample.ActiveTimeQuery->End(commandBuffer);
-}
-
-SPtr<render::TimerQuery> ProfilerGPU::GetTimerQuery() const
-{
-	if(!mFreeTimerQueries.empty())
-	{
-		SPtr<render::TimerQuery> timerQuery = mFreeTimerQueries.top();
-		mFreeTimerQueries.pop();
-
-		return timerQuery;
+		return queryPool;
 	}
 
 	const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
 	if(gpuDevice == nullptr)
 		return nullptr;
 
-	return gpuDevice->CreateTimerQuery();
+	render::GpuQueryPoolCreateInformation createInformation;
+	createInformation.Type = render::GpuQueryType::Timestamp;
+	createInformation.PoolSize = 1024;
+
+	return gpuDevice->CreateQueryPool(createInformation);
 }
 
-SPtr<render::OcclusionQuery> ProfilerGPU::GetOcclusionQuery() const
+void ProfilerGPU::ReleaseQueryPool(const SPtr<render::GpuQueryPool>& queryPool)
 {
-	if(!mFreeOcclusionQueries.empty())
-	{
-		SPtr<render::OcclusionQuery> occlusionQuery = mFreeOcclusionQueries.top();
-		mFreeOcclusionQueries.pop();
+	Lock lock(mMutex);
 
-		return occlusionQuery;
-	}
-
-	const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
-	if(gpuDevice == nullptr)
-		return nullptr;
-
-	return gpuDevice->CreateOcclusionQuery(false);
+	mFreeTimestampQueryPools.Add(queryPool);
 }
 
 namespace b3d

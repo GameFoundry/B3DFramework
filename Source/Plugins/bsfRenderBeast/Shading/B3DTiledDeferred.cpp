@@ -38,7 +38,7 @@ void TiledDeferredLightingMat::InitDefinesInternal(ShaderDefines& defines)
 
 void TiledDeferredLightingMat::Execute(GpuCommandBuffer& commandBuffer, const RendererView& view, const VisibleLightData& lightData, const GBufferTextures& gbuffer, const SPtr<Texture>& inputTexture, const SPtr<Texture>& lightAccumTex, const SPtr<Texture>& lightAccumTexArray, const SPtr<Texture>& msaaCoverage)
 {
-	BS_RENMAT_PROFILE_BLOCK
+	B3D_PROFILE_RENDERER_MATERIAL
 
 	const RendererViewProperties& viewProps = view.GetProperties();
 	const RenderSettings& settings = view.GetRenderSettings();
@@ -138,7 +138,7 @@ void TextureArrayToMSAATexture::Initialize()
 
 void TextureArrayToMSAATexture::Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& inputArray, const SPtr<Texture>& target)
 {
-	BS_RENMAT_PROFILE_BLOCK
+	B3D_PROFILE_RENDERER_MATERIAL
 
 	const TextureProperties& inputProps = inputArray->GetProperties();
 	const TextureProperties& targetProps = target->GetProperties();
@@ -178,7 +178,7 @@ void ClearLoadStoreMat::InitDefinesInternal(ShaderDefines& defines)
 
 void ClearLoadStoreMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& target, const Color& clearValue, const TextureSurface& surface)
 {
-	BS_RENMAT_PROFILE_BLOCK
+	B3D_PROFILE_RENDERER_MATERIAL
 
 	const TextureProperties& props = target->GetProperties();
 	PixelFormat pf = props.Format;
@@ -203,7 +203,7 @@ void ClearLoadStoreMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<Text
 
 void ClearLoadStoreMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<GpuBuffer>& target, const Color& clearValue)
 {
-	BS_RENMAT_PROFILE_BLOCK
+	B3D_PROFILE_RENDERER_MATERIAL
 
 	mOutputBufferParam.Set(target);
 
@@ -328,7 +328,7 @@ void TiledDeferredImageBasedLightingMat::InitDefinesInternal(ShaderDefines& defi
 
 void TiledDeferredImageBasedLightingMat::Execute(GpuCommandBuffer& commandBuffer, const RendererView& view, const SceneInfo& sceneInfo, const VisibleReflProbeData& probeData, const Inputs& inputs)
 {
-	BS_RENMAT_PROFILE_BLOCK
+	B3D_PROFILE_RENDERER_MATERIAL
 
 	const RendererViewProperties& viewProps = view.GetProperties();
 	u32 width = viewProps.Target.ViewRect.Width;

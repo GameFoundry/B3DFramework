@@ -410,7 +410,7 @@ void BlitMat::Initialize()
 
 void BlitMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& source, const Area2& area, bool flipUV)
 {
-	BS_RENMAT_PROFILE_BLOCK
+	B3D_PROFILE_RENDERER_MATERIAL
 
 	mSource.Set(source);
 	Bind(commandBuffer);
@@ -489,7 +489,7 @@ void ClearMat::Initialize()
 
 void ClearMat::Execute(GpuCommandBuffer& commandBuffer, u32 value)
 {
-	BS_RENMAT_PROFILE_BLOCK
+	B3D_PROFILE_RENDERER_MATERIAL
 
 	gClearParamDef.gClearValue.Set(mParamBuffer, value);
 
@@ -509,7 +509,7 @@ void CompositeMat::Initialize()
 
 void CompositeMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& source, const SPtr<RenderTarget>& target, const Color& tint)
 {
-	BS_RENMAT_PROFILE_BLOCK
+	B3D_PROFILE_RENDERER_MATERIAL
 
 	// Set parameters
 	mSourceTex.Set(source);
@@ -535,7 +535,7 @@ void BicubicUpsampleMat::Initialize()
 
 void BicubicUpsampleMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& source, const SPtr<RenderTarget>& target, const Color& tint)
 {
-	BS_RENMAT_PROFILE_BLOCK
+	B3D_PROFILE_RENDERER_MATERIAL
 
 	// Set parameters
 	mSourceTex.Set(source);

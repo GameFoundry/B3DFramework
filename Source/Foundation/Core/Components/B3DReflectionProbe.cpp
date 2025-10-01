@@ -145,7 +145,9 @@ void ReflectionProbe::CaptureAndFilter()
 		auto renderReflProbe = [textureRenderProxy, probeRenderProxy, rendererScene](render::GpuCommandBufferPool& commandBufferPool)
 		{
 			const SPtr<render::GpuCommandBuffer> commandBuffer = commandBufferPool.Create(render::GpuCommandBufferCreateInformation::Create("RenderAndFilterReflectionProbe"));
-			GetProfilerGPU().BeginSample(*commandBuffer, "RenderAndFilterReflectionProbe");
+			SPtr<GpuCommandBufferProfiler> commandBufferProfiler = GetProfilerGPU().CreateCommandBufferProfiler(*commandBuffer);
+
+			commandBufferProfiler->BeginSample(*commandBuffer, "RenderAndFilterReflectionProbe");
 			float radius = probeRenderProxy->mType == ReflectionProbeType::Sphere ? probeRenderProxy->mRadius : probeRenderProxy->mExtents.Length();
 
 			render::CaptureSettings settings;
@@ -158,7 +160,9 @@ void ReflectionProbe::CaptureAndFilter()
 
 			probeRenderProxy->mFilteredTexture = textureRenderProxy;
 			rendererScene->UpdateReflectionProbe(probeRenderProxy.get(), true);
-			GetProfilerGPU().EndSample(*commandBuffer, "RenderAndFilterReflectionProbe");
+			commandBufferProfiler->EndSample(*commandBuffer);
+
+			GetProfilerGPU().ResolveProfileWhenReady("RenderAndFilterReflectionProbe", commandBufferProfiler);
 
 			const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
 			gpuDevice->SubmitCommandBuffer(commandBuffer);
@@ -174,14 +178,19 @@ void ReflectionProbe::CaptureAndFilter()
 		auto filterReflProbe = [customTextureRenderProxy, textureRenderProxy, probeRenderProxy, rendererScene](render::GpuCommandBufferPool& commandBufferPool)
 		{
 			const SPtr<render::GpuCommandBuffer> commandBuffer = commandBufferPool.Create(render::GpuCommandBufferCreateInformation::Create("FilterReflectionProbe"));
-			GetProfilerGPU().BeginSample(*commandBuffer, "FilterReflectionProbe");
+			SPtr<GpuCommandBufferProfiler> commandBufferProfiler = GetProfilerGPU().CreateCommandBufferProfiler(*commandBuffer);
+
+			commandBufferProfiler->BeginSample(*commandBuffer, "FilterReflectionProbe");
 
 			render::GetIBLUtility().ScaleCubemap(*commandBuffer, customTextureRenderProxy, 0, textureRenderProxy, 0);
 			render::GetIBLUtility().FilterCubemapForSpecular(*commandBuffer, textureRenderProxy, nullptr);
 
 			probeRenderProxy->mFilteredTexture = textureRenderProxy;
 			rendererScene->UpdateReflectionProbe(probeRenderProxy.get(), true);
-			GetProfilerGPU().EndSample(*commandBuffer, "FilterReflectionProbe");
+
+			commandBufferProfiler->EndSample(*commandBuffer);
+
+			GetProfilerGPU().ResolveProfileWhenReady("FilterReflectionProbe", commandBufferProfiler);
 
 			const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
 			gpuDevice->SubmitCommandBuffer(commandBuffer);

@@ -22,7 +22,7 @@ void ReflectionCubeDownsampleMat::Initialize()
 
 void ReflectionCubeDownsampleMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& source, u32 face, u32 mip, const SPtr<RenderTarget>& target)
 {
-	BS_RENMAT_PROFILE_BLOCK
+	B3D_PROFILE_RENDERER_MATERIAL
 
 	gReflectionCubeDownsampleParamDef.gCubeFace.Set(mParamBuffer, face);
 
@@ -62,7 +62,7 @@ void ReflectionCubeImportanceSampleMat::InitDefinesInternal(ShaderDefines& defin
 
 void ReflectionCubeImportanceSampleMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& source, u32 face, u32 mip, const SPtr<RenderTarget>& target)
 {
-	BS_RENMAT_PROFILE_BLOCK
+	B3D_PROFILE_RENDERER_MATERIAL
 
 	mInputTexture.Set(source);
 	gReflectionCubeImportanceSampleParamDef.gCubeFace.Set(mParamBuffer, face);
@@ -110,7 +110,7 @@ void IrradianceComputeSHMat::InitDefinesInternal(ShaderDefines& defines)
 
 void IrradianceComputeSHMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& source, u32 face, const SPtr<GpuBuffer>& output)
 {
-	BS_RENMAT_PROFILE_BLOCK
+	B3D_PROFILE_RENDERER_MATERIAL
 
 	auto& props = source->GetProperties();
 	u32 faceSize = props.Width;
@@ -176,7 +176,7 @@ void IrradianceComputeSHFragMat::Initialize()
 
 void IrradianceComputeSHFragMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& source, u32 face, u32 coefficientIdx, const SPtr<RenderTarget>& output)
 {
-	BS_RENMAT_PROFILE_BLOCK
+	B3D_PROFILE_RENDERER_MATERIAL
 
 	// Set parameters
 	mInputTexture.Set(source);
@@ -213,7 +213,7 @@ void IrradianceAccumulateSHMat::Initialize()
 
 void IrradianceAccumulateSHMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& source, u32 face, u32 sourceMip, const SPtr<RenderTarget>& output)
 {
-	BS_RENMAT_PROFILE_BLOCK
+	B3D_PROFILE_RENDERER_MATERIAL
 
 	// Set parameters
 	mInputTexture.Set(source);
@@ -254,7 +254,7 @@ void IrradianceAccumulateCubeSHMat::Initialize()
 
 void IrradianceAccumulateCubeSHMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& source, u32 sourceMip, const Vector2I& outputOffset, u32 coefficientIdx, const SPtr<RenderTarget>& output)
 {
-	BS_RENMAT_PROFILE_BLOCK
+	B3D_PROFILE_RENDERER_MATERIAL
 
 	// Set parameters
 	mInputTexture.Set(source);
@@ -305,7 +305,7 @@ void IrradianceReduceSHMat::Initialize()
 
 void IrradianceReduceSHMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<GpuBuffer>& source, u32 numCoeffSets, const SPtr<Texture>& output, u32 outputIdx)
 {
-	BS_RENMAT_PROFILE_BLOCK
+	B3D_PROFILE_RENDERER_MATERIAL
 
 	u32 shOrder = (u32)mVariationParameters.GetI32("SH_ORDER");
 
@@ -355,7 +355,7 @@ void IrradianceProjectSHMat::Initialize()
 
 void IrradianceProjectSHMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<Texture>& shCoeffs, u32 face, const SPtr<RenderTarget>& target)
 {
-	BS_RENMAT_PROFILE_BLOCK
+	B3D_PROFILE_RENDERER_MATERIAL
 
 	gIrradianceProjectSHParamDef.gCubeFace.Set(mParamBuffer, face);
 

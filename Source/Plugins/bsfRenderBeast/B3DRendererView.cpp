@@ -269,7 +269,7 @@ void RendererView::NotifyNeedsRedraw()
 
 bool RendererView::ShouldDraw() const
 {
-	//if(!mProperties.OnDemand)
+	if(!mProperties.OnDemand)
 		return true;
 
 	if(mRenderSettings->EnableHdr && mRenderSettings->EnableAutoExposure)

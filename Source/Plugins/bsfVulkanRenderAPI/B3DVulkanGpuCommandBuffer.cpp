@@ -646,6 +646,10 @@ void VulkanGpuCommandBuffer::BeginQuery(GpuQueryId query, const SPtr<GpuQueryPoo
 	VulkanGpuQueryPool* vulkanQueryPool = static_cast<VulkanGpuQueryPool*>(queryPool.get());
 	vkCmdBeginQuery(mCommandBufferHandle, vulkanQueryPool->GetVulkanHandle(), query.Id, flags.IsSet(GpuQueryFlag::PreciseOcclusion) ? VK_QUERY_CONTROL_PRECISE_BIT : 0);
 
+#if B3D_BUILD_TYPE == B3D_BUILD_TYPE_DEVELOPMENT
+	mOpenQueries.emplace_back(IsInRenderPass(), queryPool->GetQueryType(), (u64)queryPool.get());
+#endif
+
 	RegisterResource(vulkanQueryPool, VulkanAccessFlag::Write);
 }
 
@@ -656,12 +660,23 @@ void VulkanGpuCommandBuffer::EndQuery(GpuQueryId query, const SPtr<GpuQueryPool>
 	VulkanGpuQueryPool* vulkanQueryPool = static_cast<VulkanGpuQueryPool*>(queryPool.get());
 	vkCmdEndQuery(mCommandBufferHandle, vulkanQueryPool->GetVulkanHandle(), query.Id);
 
+#if B3D_BUILD_TYPE == B3D_BUILD_TYPE_DEVELOPMENT
+	if(B3D_ENSURE(!mOpenQueries.empty()))
+	{
+		const QueryInformation& lastQueryInformation = mOpenQueries.back();
+		B3D_ENSURE(lastQueryInformation.IsInRenderPass == IsInRenderPass());
+		B3D_ENSURE(lastQueryInformation.Type == queryPool->GetQueryType());
+		B3D_ENSURE(lastQueryInformation.PoolIdentifier == (u64)queryPool.get());
+	}
+#endif
+
 	RegisterResource(vulkanQueryPool, VulkanAccessFlag::Write);
 }
 
 void VulkanGpuCommandBuffer::ResetQueries(const SPtr<GpuQueryPool>& queryPool)
 {
 	EnsureValidThread();
+	B3D_ENSURE(!IsInRenderPass());
 
 	VulkanGpuQueryPool* vulkanQueryPool = static_cast<VulkanGpuQueryPool*>(queryPool.get());
 	vkCmdResetQueryPool(mCommandBufferHandle, vulkanQueryPool->GetVulkanHandle(), 0, vulkanQueryPool->GetUsedQueryCount());
@@ -1538,6 +1553,10 @@ void VulkanGpuCommandBuffer::Reset()
 	mMemoryBarrierSrcStages = 0;
 	mIsRenderPassInterrupted = false;
 	mSyncMask = 0;
+
+#if B3D_BUILD_TYPE == B3D_BUILD_TYPE_DEVELOPMENT
+	mOpenQueries.clear();
+#endif
 }
 
 void VulkanGpuCommandBuffer::ClearViewport(const Area2I& area, u32 buffers, const Color& color, float depth, u16 stencil, u8 targetMask)

@@ -562,6 +562,18 @@ namespace b3d
 				VkImageLayout RenderPassLayout;
 			};
 
+			/** Information about queries recorded on the command buffer. */
+			struct QueryInformation
+			{
+				QueryInformation(bool isInRenderPass = false, GpuQueryType type = GpuQueryType::Timestamp, u64 poolIdentifier = 0)
+					: IsInRenderPass(isInRenderPass), Type(type), PoolIdentifier(poolIdentifier)
+				{ }
+
+				bool IsInRenderPass = false;
+				GpuQueryType Type = GpuQueryType::Timestamp;
+				u64 PoolIdentifier = 0;
+			};
+
 			VulkanGpuCommandBuffer(VulkanGpuDevice& device, VulkanGpuCommandBufferPool& pool, u32 id, VkCommandBuffer commandBufferHandle, ThreadId ownerThread, GpuQueueUsage queueType, const GpuCommandBufferCreateInformation& createInformation);
 
 			/** Returns the pool the command buffer was allocated from. */
@@ -707,8 +719,6 @@ namespace b3d
 			DenseMap<VulkanResource*, u32> mImages;
 			DenseMap<VulkanResource*, BufferInfo> mBuffers;
 			UnorderedMap<VulkanSwapChain*, ResourceUseHandle> mSwapChains;
-			UnorderedSet<VulkanOcclusionQuery*> mOcclusionQueries;
-			UnorderedSet<VulkanTimerQuery*> mTimerQueries;
 			Vector<ImageInfo> mImageInfos;
 			Vector<ImageSubresourceInfo> mSubresourceInfoStorage;
 			Set<u32> mShaderBoundSubresourceInfos;
@@ -763,6 +773,10 @@ namespace b3d
 
 			SPtr<RenderTarget> mRenderTarget;
 			bool mRenderTargetModified = false;
+
+#if B3D_BUILD_TYPE == B3D_BUILD_TYPE_DEVELOPMENT
+			Vector<QueryInformation> mOpenQueries; // Only used for validation
+#endif
 		};
 
 		/** @} */

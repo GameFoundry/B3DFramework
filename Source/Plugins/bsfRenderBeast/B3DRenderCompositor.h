@@ -6,6 +6,11 @@
 
 namespace b3d
 {
+	class GpuCommandBufferProfiler;
+}
+
+namespace b3d
+{
 	class RendererExtension;
 
 	namespace render
@@ -29,6 +34,9 @@ namespace b3d
 			{}
 
 			SPtr<GpuCommandBuffer> ActiveCommandBuffer;
+#if B3D_PROFILING_ENABLED
+			SPtr<GpuCommandBufferProfiler> CommandBufferProfiler;
+#endif
 
 			const RendererViewGroup& ViewGroup;
 			const RendererView& View;

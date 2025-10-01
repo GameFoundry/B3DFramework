@@ -889,7 +889,7 @@ void ShadowRendering::RenderShadowMaps(GpuCommandBuffer& commandBuffer, RenderBe
 		if(!light.Internal->GetCastsShadow())
 			return;
 
-		u32 numViews = viewGroup.GetNumViews();
+		u32 numViews = viewGroup.GetViewCount();
 		mDirectionalLightShadows[i].ViewShadows.Resize(numViews);
 
 		for(u32 j = 0; j < numViews; ++j)
@@ -1629,7 +1629,7 @@ void ShadowRendering::CalcShadowMapProperties(const RendererLight& light, const 
 	// Find a view in which the light has the largest radius
 	float maxMapSize = 0.0f;
 	maxFadePercent = 0.0f;
-	for(int i = 0; i < (int)viewGroup.GetNumViews(); ++i)
+	for(int i = 0; i < (int)viewGroup.GetViewCount(); ++i)
 	{
 		const RendererView& view = *viewGroup.GetView(i);
 		const RendererViewProperties& viewProps = view.GetProperties();

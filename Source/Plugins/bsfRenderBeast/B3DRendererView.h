@@ -568,7 +568,7 @@ namespace b3d
 			RendererView* GetView(u32 idx) const { return mViews[idx]; }
 
 			/** Returns the total number of views in the group. */
-			u32 GetNumViews() const { return (u32)mViews.size(); }
+			u32 GetViewCount() const { return (u32)mViews.size(); }
 
 			/** Determines is this the primary rendering pass for this frame. There can only be one primary pass per frame. */
 			bool IsMainPass() const { return mIsMainPass; }
