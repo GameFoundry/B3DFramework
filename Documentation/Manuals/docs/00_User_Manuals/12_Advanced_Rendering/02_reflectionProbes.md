@@ -13,7 +13,7 @@ While the skybox is used to provide outdoor reflections, reflection probes are u
 
 ~~~~~~~~~~~~~{.cpp}
 HSceneObject reflProbeSO = SceneObject::create("Refl. probe");
-HReflectionProbe reflProbe = reflProbeSO->addComponent<CReflectionProbe>();
+HReflectionProbe reflProbe = reflProbeSO->addComponent<ReflectionProbe>();
 ~~~~~~~~~~~~~
 
 You must provide the extents of the geometry covered by the reflection probe. These extents serve both to determine a range of influence, and to approximate the surrounding geometry. For example if you are placing a reflection probe that covers a room, you should strive to match the reflection probe extents with the room walls. In practice you'll want to tweak it to what looks best.

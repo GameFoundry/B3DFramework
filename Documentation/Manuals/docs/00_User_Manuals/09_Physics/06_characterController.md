@@ -4,18 +4,18 @@ title: Character controller
 
 Character controller is a special type of a dynamic physics objects that is intended to be used primarily for the movement of the user-controller character in your game. Although you could simulate your character using a rigidbody, it is usually preferable to use the character controller due to various specific functionality it offers.
 
-It is represented using the @b3d::CCharacterController component.
+It is represented using the @b3d::CharacterController component.
 
 ~~~~~~~~~~~~~{.cpp}
 HSceneObject controllerSO = SceneObject::create("Rigidbody");
-HCharacterController charController = controllerSO->addComponent<CCharacterController>();
+HCharacterController charController = controllerSO->addComponent<CharacterController>();
 ~~~~~~~~~~~~~
 
 # Shape
 Similar to a rigidbody, the controller requires a shape to represent its surface. This shape is always a capsule, and you can control the size and orientation of it using the following methods:
- - @b3d::CCharacterController::setHeight - Sets the length of the line going along the center of the capsule.
- - @b3d::CCharacterController::setRadius - Sets the distance that determines how far away is the capsule's surface from its center line.
- - @b3d::CCharacterController::setUp - Sets the direction of the center line. 
+ - @b3d::CharacterController::setHeight - Sets the length of the line going along the center of the capsule.
+ - @b3d::CharacterController::setRadius - Sets the distance that determines how far away is the capsule's surface from its center line.
+ - @b3d::CharacterController::setUp - Sets the direction of the center line. 
  
 When setting the capsule shape, make sure it covers your character model. But without making it too large so there isn't a lot of empty space in order to prevent unrealistic collisions in which the capsule shape collides with an object, but the visible model doesn't.
  
@@ -27,7 +27,7 @@ charController->setUp(Vector3::UNIT_Y);
 ~~~~~~~~~~~~~
 
 # Movement
-Similar to a rigidbody, when needing to move the controller you should use a specialized @b3d::CCharacterController::move method instead of the movement methods available on the scene object. Unlike with **Rigidbody**, this *move()* method takes as a parameter a displacement determining how much to move from the current position, unlike **Rigidbody** whose *move()* method takes absolute coordinates.
+Similar to a rigidbody, when needing to move the controller you should use a specialized @b3d::CharacterController::move method instead of the movement methods available on the scene object. Unlike with **Rigidbody**, this *move()* method takes as a parameter a displacement determining how much to move from the current position, unlike **Rigidbody** whose *move()* method takes absolute coordinates.
 
 ~~~~~~~~~~~~~{.cpp}
 // Move 1 unit forward for every frame while W key is pressed
@@ -42,7 +42,7 @@ This is similar to collision events reported by colliders and rigidbodies, but a
 Unlike with **Rigidbody** rotation must be handled through the scene object. Such rotation will not properly physically interact with the environment.
 
 # Slopes
-Character controller has the ability to limit what is the maximum slope it can be moved on. This is useful to prevent the game character from climbing unrealistically steep slopes. Use @b3d::CCharacterController::setSlopeLimit to set the maximum slope the controller is allowed to climb, in angles.
+Character controller has the ability to limit what is the maximum slope it can be moved on. This is useful to prevent the game character from climbing unrealistically steep slopes. Use @b3d::CharacterController::setSlopeLimit to set the maximum slope the controller is allowed to climb, in angles.
 
 ~~~~~~~~~~~~~{.cpp}
 // Maximum slope of 45 degrees
@@ -53,14 +53,14 @@ Once the controller reaches the maximum slope the wanted behaviour can be:
  - to stop the controller from moving any further
  - to stop the controller and have it slide down
 
-This behaviour can be controlled by calling @b3d::CCharacterController::setNonWalkableMode, which accepts a parameter of type @b3d::CharacterNonWalkableMode.
+This behaviour can be controlled by calling @b3d::CharacterController::setNonWalkableMode, which accepts a parameter of type @b3d::CharacterNonWalkableMode.
 
 ~~~~~~~~~~~~~{.cpp}
 charController->setNonWalkableMode(CharacterNonWalkableMode::PreventAndSlide);
 ~~~~~~~~~~~~~
 
 # Steps
-Controller can be also made to automatically climb on small steep obstacles, like stairs. Maximum height that the controller can step over is controlled by @b3d::CCharacterController::setStepOffset.
+Controller can be also made to automatically climb on small steep obstacles, like stairs. Maximum height that the controller can step over is controlled by @b3d::CharacterController::setStepOffset.
 
 ~~~~~~~~~~~~~{.cpp}
 // Step over anything 0.15 units (e.g. 15cm) in height
@@ -68,7 +68,7 @@ charController->setStepOffset(0.15f);
 ~~~~~~~~~~~~~
 
 # Events
-Similar to colliders, character controllers also report events when they collide with other objects. Use @b3d::CCharacterController::onColliderHit to be notified when the controller hits a collider.
+Similar to colliders, character controllers also report events when they collide with other objects. Use @b3d::CharacterController::onColliderHit to be notified when the controller hits a collider.
 
 The value reported is @b3d::ControllerColliderCollision which contains the position, normal and motion of a single contact point, as well as the reference to the collider that was hit.
 
@@ -85,7 +85,7 @@ auto colliderHit = [](const ControllerColliderCollision& data)
 charController->onColliderHit.connect(colliderHit);
 ~~~~~~~~~~~~~
 
-You can also receive events when the controller hits another controller by subscribing to @b3d::CCharacterController::onControllerHit. 
+You can also receive events when the controller hits another controller by subscribing to @b3d::CharacterController::onControllerHit. 
 
 The value reported is @b3d::ControllerControllerCollision which contains the position, normal and motion of a single contact point, as well as the reference to the other controller that was hit.
 

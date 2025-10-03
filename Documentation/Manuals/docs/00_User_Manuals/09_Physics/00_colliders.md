@@ -18,11 +18,11 @@ There are five collider types, that differ in the way how is their surface descr
  - Mesh - The surface is represented by custom geometry using a triangle mesh
   
 # Plane collider
-Represented by @b3d::CPlaneCollider component. Use @b3d::CPlaneCollider::setNormal to provide the direction in which the plane is oriented in, and @b3d::CPlaneCollider::setDistance to provide an offset along that direction. Using these two properties you can position and orient a plane anywhere in the scene.
+Represented by @b3d::PlaneCollider component. Use @b3d::PlaneCollider::setNormal to provide the direction in which the plane is oriented in, and @b3d::PlaneCollider::setDistance to provide an offset along that direction. Using these two properties you can position and orient a plane anywhere in the scene.
 
 ~~~~~~~~~~~~~{.cpp}
 HSceneObject colliderSO = SceneObject::create("Collider");
-HPlaneCollider collider = colliderSO->addComponent<CPlaneCollider>();
+HPlaneCollider collider = colliderSO->addComponent<PlaneCollider>();
 
 // A plane pointing up, parallel to the XZ plane, 10 units beneath the origin
 collider->setNormal(Vector3(0, 1, 0));
@@ -34,11 +34,11 @@ collider->setDistance(-10.0f);
 ![Plane collider](../../Images/PlaneCollider.png)  
 
 # Box collider
-Represented by @b3d::CBoxCollider component. Use @b3d::CBoxCollider::setExtents to provide the extents (half size) of the box. Use @b3d::CBoxCollider::setCenter to offset the box relative to the scene object.
+Represented by @b3d::BoxCollider component. Use @b3d::BoxCollider::setExtents to provide the extents (half size) of the box. Use @b3d::BoxCollider::setCenter to offset the box relative to the scene object.
 
 ~~~~~~~~~~~~~{.cpp}
 HSceneObject colliderSO = SceneObject::create("Collider");
-HBoxCollider collider = colliderSO->addComponent<CBoxCollider>();
+HBoxCollider collider = colliderSO->addComponent<BoxCollider>();
 
 // Box 1x1x1 in size, centered at its scene object position
 collider->setExtents(Vector3(0.5f, 0.5f, 0.5f));
@@ -52,7 +52,7 @@ Represented by @b3d::CSphereCollider component. Use @b3d::CSphereCollider::setRa
 
 ~~~~~~~~~~~~~{.cpp}
 HSceneObject colliderSO = SceneObject::create("Collider");
-HSphereCollider collider = colliderSO->addComponent<CSphereCollider>();
+HSphereCollider collider = colliderSO->addComponent<SphereCollider>();
 
 // A unit sphere
 collider->setRadius(1.0f);
@@ -65,7 +65,7 @@ Represented by @b3d::CCapsuleCollider component. Capsule is defined using a heig
 
 ~~~~~~~~~~~~~{.cpp}
 HSceneObject colliderSO = SceneObject::create("Collider");
-HCapsuleCollider collider = colliderSO->addComponent<CCapsuleCollider>();
+HCapsuleCollider collider = colliderSO->addComponent<CapsuleCollider>();
 
 // A capsule 2 units in height, with 0.5 unit radius
 collider->setHalfHeight(1.0f);
@@ -83,7 +83,7 @@ You can assign a physics mesh by calling @b3d::CMeshCollider::setMesh.
 
 ~~~~~~~~~~~~~{.cpp}
 HSceneObject colliderSO = SceneObject::create("Collider");
-HMeshCollider collider = colliderSO->addComponent<CMeshCollider>();
+HMeshCollider collider = colliderSO->addComponent<MeshCollider>();
 
 HPhysicsMesh physicsMesh = ...; // Shown in next chapter
 collider->setMesh(physicsMesh);

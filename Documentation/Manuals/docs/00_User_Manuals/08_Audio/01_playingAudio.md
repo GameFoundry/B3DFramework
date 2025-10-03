@@ -2,14 +2,14 @@
 title: Playing audio
 ---
 
-To play an audio clip create an @b3d::CAudioSource component.
+To play an audio clip create an @b3d::AudioSource component.
 
 ~~~~~~~~~~~~~{.cpp}
 HSceneObject audioSourceSO = SceneObject::create("Audio source");
-HAudioSource audioSource = audioSourceSO->addComponent<CAudioSource>();
+HAudioSource audioSource = audioSourceSO->addComponent<AudioSource>();
 ~~~~~~~~~~~~~
 
-Each audio source can have a single **AudioClip** associated with it. We can attach the clip to the source by calling @b3d::CAudioSource.
+Each audio source can have a single **AudioClip** associated with it. We can attach the clip to the source by calling @b3d::AudioSource.
 
 ~~~~~~~~~~~~~{.cpp}
 HAudioClip clip = GetImporter().import<AudioClip>("myAudioClip.ogg");
@@ -18,9 +18,9 @@ audioSource->setClip(clip);
 ~~~~~~~~~~~~~
 
 Once clip has been assigned you can control playback through these methods:
- - @b3d::CAudioSource::play - Starts playing the assigned audio clip. If playback is currently stopped it starts playback from the clip beginning. If paused the playback is resumed from the point it was paused.
- - @b3d::CAudioSource::stop - Stops playing the assigned audio clip.
- - @b3d::CAudioSource::pause - Pauses playing the assigned audio clip, allowing you to later resume it with a call to **CAudioSource::play()**.
+ - @b3d::AudioSource::play - Starts playing the assigned audio clip. If playback is currently stopped it starts playback from the clip beginning. If paused the playback is resumed from the point it was paused.
+ - @b3d::AudioSource::stop - Stops playing the assigned audio clip.
+ - @b3d::AudioSource::pause - Pauses playing the assigned audio clip, allowing you to later resume it with a call to **CAudioSource::play()**.
  
 ~~~~~~~~~~~~~{.cpp}
 audioSource->play();
@@ -33,7 +33,7 @@ You can also control playback by enabling/disabling the scene object the compone
 audioSourceSO->setActive(false);
 ~~~~~~~~~~~~~
 
-When enabling a scene object, you can tell the audio source component to automatically start playback of its assigned clip by enabling the option through @b3d::CAudioSource::setPlayOnStart.
+When enabling a scene object, you can tell the audio source component to automatically start playback of its assigned clip by enabling the option through @b3d::AudioSource::setPlayOnStart.
 
 ~~~~~~~~~~~~~{.cpp}
 // When scene object this component is attached to, is enabled, playback will start automatically. Otherwise the user is required to call play() manually.
@@ -90,7 +90,7 @@ Listener provides a reference point used for 3D sound effects. It is represented
 
 ~~~~~~~~~~~~~{.cpp}
 HSceneObject audioListenerSO = SceneObject::create("Audio listener");
-audioListenerSO->addComponent<CAudioListener>();
+audioListenerSO->addComponent<AudioListener>();
 ~~~~~~~~~~~~~
 
 Normally you want to attach this component to a scene object representing your player, or the player's camera.

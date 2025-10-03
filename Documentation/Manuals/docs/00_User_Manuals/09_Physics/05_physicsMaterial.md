@@ -11,11 +11,11 @@ It is represented by @b3d::PhysicsMaterial and created by calling @b3d::PhysicsM
 HPhysicsMaterial material = PhysicsMaterial::create();
 ~~~~~~~~~~~~~
 
-Once created it can be applied to a collider by calling @b3d::CCollider::setMaterial.
+Once created it can be applied to a collider by calling @b3d::Collider::setMaterial.
 
 ~~~~~~~~~~~~~{.cpp}
 HSceneObject colliderSO = SceneObject::create("Collider");
-HBoxCollider collider = colliderSO->addComponent<CBoxCollider>();
+HBoxCollider collider = colliderSO->addComponent<BoxCollider>();
 
 collider->setMaterial(material);
 ~~~~~~~~~~~~~
@@ -78,7 +78,7 @@ When set to a too low value then the opposite may happen and the objects might s
 
 It is generally a matter of tweaking the value to what looks best. Faster moving objects generally need larger contact offset values if inter-penetration is not acceptable. Smaller objects might need smaller contact offset values to avoid collision area much larger than the object.
 
-Use @b3d::CCollider::setContactOffset to change the offset.
+Use @b3d::Collider::setContactOffset to change the offset.
  
 ~~~~~~~~~~~~~{.cpp}
 // Contact offset of 0.01 units (e.g. one centimeter)

@@ -18,7 +18,7 @@ HTexture skyTexture = GetImporter().import<Texture>("MySkybox.hdr", tio);
 
 // Set up the skybox
 HSceneObject skyboxSO = SceneObject::create("Skybox");
-HSkybox skybox = skyboxSO->addComponent<CSkybox>();
+HSkybox skybox = skyboxSO->addComponent<Skybox>();
 
 skybox->setTexture(skyTexture);
 ~~~~~~~~~~~~~

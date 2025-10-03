@@ -8,11 +8,11 @@ Aside from participating in collisions with other physical objects, colliders ca
  - Collision is in progress
  
 This is handled through the following events:
- - @b3d::CCollider::onCollisionBegin - Triggered whenever the collider starts colliding with another object.
- - @b3d::CCollider::onCollisionEnd - Triggered whenever the collider no longer collides (touches) an object.
- - @b3d::CCollider::onCollisionStay - Triggered every frame while the collider is in collision with (is touching) an object.
+ - @b3d::Collider::onCollisionBegin - Triggered whenever the collider starts colliding with another object.
+ - @b3d::Collider::onCollisionEnd - Triggered whenever the collider no longer collides (touches) an object.
+ - @b3d::Collider::onCollisionStay - Triggered every frame while the collider is in collision with (is touching) an object.
  
-By default those events will not be triggered until they are enabled by calling @b3d::CCollider::setCollisionReportMode, with the parameter of type @b3d::CollisionReportMode. It can have one of the following values:
+By default those events will not be triggered until they are enabled by calling @b3d::Collider::setCollisionReportMode, with the parameter of type @b3d::CollisionReportMode. It can have one of the following values:
  - **CollisionReportMode::None** - None of the events will trigger.
  - **CollisionReportMode::Report** - Only begin and end events will trigger.
  - **CollisionReportMode::ReportPersistent** - Begin/end events will trigger, as well as the *stay* event.
@@ -24,7 +24,7 @@ Each of the event callbacks will provide as a parameter a @b3d::CollisionData st
  
 ~~~~~~~~~~~~~{.cpp}
 HSceneObject colliderSO = SceneObject::create("Collider");
-HBoxCollider collider = colliderSO->addComponent<CBoxCollider>();
+HBoxCollider collider = colliderSO->addComponent<BoxCollider>();
 
 auto collisionStarted = [](const CollisionData& data)
 {
@@ -42,7 +42,7 @@ collider->onCollisionBegin.connect(collisionStarted);
 # Pure triggers
 In some cases you might only be interested in trigger events reported by a collider, without requiring the collider to be an actual physical object. This way you can set up "invisible" triggers within game levels that start executing code when player enters their bounds or interacts with them in some other way. Physical objects will go through such colliders as if they are not there - but the events will be reported just the same.
 
-To do this call @b3d::CCollider::setIsTrigger().
+To do this call @b3d::Collider::setIsTrigger().
 
 ~~~~~~~~~~~~~{.cpp}
 collider->setIsTrigger(true);

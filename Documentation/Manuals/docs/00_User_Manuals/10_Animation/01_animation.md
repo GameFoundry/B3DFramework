@@ -6,10 +6,10 @@ Animation playback is handled through the @b3d::CAnimation component. This compo
 
 ~~~~~~~~~~~~~{.cpp}
 HSceneObject animRenderableSO = SceneObject::create("Animated 3D object");
-animRenderableSO->addComponent<CRenderable>();
+animRenderableSO->addComponent<Renderable>();
 // ...set up renderable mesh and material...
 
-animation = animRenderableSO->addComponent<CAnimation>();
+animation = animRenderableSO->addComponent<Animation>();
 ~~~~~~~~~~~~~
 
 # Playback

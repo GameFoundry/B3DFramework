@@ -12,7 +12,7 @@ Decals are represented with the @b3d::CDecal component.
 
 ~~~~~~~~~~~~~{.cpp}
 HSceneObject decalSO = SceneObject::create("Decal");
-HDecal decal = decalSO->addComponent<CDecal>();
+HDecal decal = decalSO->addComponent<Decal>();
 ~~~~~~~~~~~~~
 
 # Material
@@ -37,7 +37,7 @@ decalSO->setPosition(Vector3(0.0f, 6.0f, 0.0f));
 decalSO->lookAt(Vector3(0.0f, 0.0f, 0.0f));
 
 // Create the component and set the material
-HDecal decal = decalSO->addComponent<CDecal>();
+HDecal decal = decalSO->addComponent<Decal>();
 decal->setMaterial(decalMaterial);
 ~~~~~~~~~~~~~
 

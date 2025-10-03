@@ -10,12 +10,12 @@ A bone component must always be added on a scene object that is a child of a sce
 ~~~~~~~~~~~~~{.cpp}
 HSceneObject animRenderableSO = SceneObject::create("Animated 3D object");
 // Set up renderable...
-animation = animRenderableSO->addComponent<CAnimation>();
+animation = animRenderableSO->addComponent<Animation>();
 
 HSceneObject boneSO = SceneObject::create("Bone");
 boneSO->setParent(animRenderableSO);
 
-HBone bone = boneSO->addComponent<CBone>();
+HBone bone = boneSO->addComponent<Bone>();
 ~~~~~~~~~~~~~
 
 After the component has been added to the scene you must specify the name of the bone it will mimic. You can find information about all bones in a specific **Mesh** by calling @b3d::Mesh::getSkeleton(). This will return a @b3d::Skeleton object which allows you to enumerate all bones.

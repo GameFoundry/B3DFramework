@@ -9,7 +9,7 @@ Lights control the rendering of the nearby **Renderable** objects, by attempting
 
 ~~~~~~~~~~~~~{.cpp}
 HSceneObject lightSO = SceneObject::create("Light");
-HLight light = lightSO->addComponent<CLight>();
+HLight light = lightSO->addComponent<Light>();
 ~~~~~~~~~~~~~
 
 Once created light can be positioned and oriented normally using its **SceneObject**.

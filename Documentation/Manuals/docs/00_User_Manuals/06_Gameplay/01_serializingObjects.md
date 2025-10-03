@@ -9,10 +9,10 @@ Often components will have data you will want to persist across application sess
 In order to make an object serializable you need to set up a RTTI interface that allows the system to query information about the object, retrieve and set its data. In this example we talk primarily about components, but the same interface can be used for resources and normal objects.
 
 Any object that is serializable (and therefore provides RTTI information) must implement the @b3d::IReflectable interface. If you are creating custom components or resources, **Component** and **Resource** base classes already derive from this interface so you don't need to specify it manually. The interface is simple, requiring you to implement two methods:
- - RTTITypeBase* getRTTI() const;
- - static RTTITypeBase* getRTTIStatic();
- 
-Implementations of these methods will return an object containing all RTTI for a specific class. In the rest of this manual we'll focus on explaning how to create a RTTI class implementation returned by these methods.
+ - RTTIType* GetRtti() const;
+ - static RTTIType* GetRttiStatic();
+
+Implementations of these methods will return an object containing all RTTI for a specific class. In the rest of this manual we'll focus on explaining how to create a RTTI class implementation returned by these methods.
 
 ~~~~~~~~~~~~~{.cpp}
 // IReflectable implementation for a component
@@ -20,16 +20,20 @@ class MyComponent : public Component
 {
 public:
 	MyComponent(const HSceneObject& parent)
-		:Component(parent)
+		: Component(parent)
 	{}
 
 	// ...class members...
 
-	static RTTITypeBase* getRTTIStatic()
-	{ return MyComponentRTTI::instance(); }
+	static RTTIType* GetRttiStatic()
+	{
+		return MyComponentRTTI::Instance();
+	}
 
-	RTTITypeBase* getRTTI() const override
-	{ return MyComponent::getRTTIStatic(); }
+	RTTIType* GetRtti() const override
+	{
+		return MyComponent::GetRttiStatic();
+	}
 };
 
 // IReflectable implementation for a normal class
@@ -37,98 +41,105 @@ class MyClass : public IReflectable
 {
 	// ...class members...
 
-	static RTTITypeBase* getRTTIStatic()
-	{ return MyClassRTTI::instance(); }
+	static RTTIType* GetRttiStatic()
+	{
+		return MyClassRTTI::Instance();
+	}
 
-	RTTITypeBase* getRTTI() const override
-	{ return MyClass::getRTTIStatic(); }
+	RTTIType* GetRtti() const override
+	{
+		return MyClass::GetRttiStatic();
+	}
 };
 ~~~~~~~~~~~~~
 
 # Creating the RTTI type
-All RTTI objects must implement the @b3d::RTTIType<Type, BaseType, MyRTTIType> interface. The interface accepts three template parameters:
+All RTTI objects must implement the @b3d::TRTTIType<Type, BaseType, MyRTTIType> template interface. The interface accepts three template parameters:
  - *Type* - Class of the object we're creating RTTI for (e.g. *MyClass* or *MyComponent* from example above)
  - *BaseType* - Base type of the object we're creating RTTI for (e.g. *IReflectable* or *Component* from example above)
  - *MyRTTIType* - Name of the RTTI class itself
- 
+
 ~~~~~~~~~~~~~{.cpp}
-class MyClassRTTI : public RTTIType<MyClass, IReflectable, MyClassRTTI>
+class MyClassRTTI : public TRTTIType<MyClass, IReflectable, MyClassRTTI>
 {
 	// ...
 };
 
-class MyComponentRTTI : public RTTIType<MyComponent, Component, MyComponentRTTI>
+class MyComponentRTTI : public TRTTIType<MyComponent, Component, MyComponentRTTI>
 {
 	// ...
 };
 ~~~~~~~~~~~~~
 
 The RTTI object must at least implement the following methods:
- - @b3d::RTTITypeBase::getRTTIName() - Returns the name of the class the RTTI describes
- - @b3d::RTTITypeBase::getRTTIId() - Returns an identifier that uniquely identifies the class. This should be a unique integer equal or larger than 200000 (in order to avoid conflict with built-in types).
- - @b3d::RTTITypeBase::newRTTIObject() - Creates a new empty instance of the class the RTTI describes
- 
+ - @b3d::RTTIType::GetRttiName() - Returns the name of the class the RTTI describes
+ - @b3d::RTTIType::GetRttiId() - Returns an identifier that uniquely identifies the class. This should be a unique integer equal or larger than 200000 (in order to avoid conflict with built-in types).
+ - @b3d::RTTIType::NewRttiObject() - Creates a new empty instance of the class the RTTI describes
+
 ~~~~~~~~~~~~~{.cpp}
 enum TypeIds
 {
 	TID_MyClass = 200000,
 	TID_MyComponent = 200001
-}
+};
 
-class MyClassRTTI : public RTTIType<MyClass, IReflectable, MyClassRTTI>
+class MyClassRTTI : public TRTTIType<MyClass, IReflectable, MyClassRTTI>
 {
 public:
-	const String& getRTTIName() override
+	const String& GetRttiName() override
 	{
 		static String name = "MyClass";
 		return name;
 	}
 
-	UINT32 getRTTIId() override
+	u32 GetRttiId() const override
 	{
 		return TID_MyClass;
 	}
 
-	SPtr<IReflectable> newRTTIObject() override
+	SPtr<IReflectable> NewRttiObject() override
 	{
 		return B3DMakeShared<MyClass>();
 	}
 };
 
-class MyComponentRTTI : public RTTIType<MyComponent, Component, MyComponentRTTI>
+class MyComponentRTTI : public TRTTIType<MyComponent, Component, MyComponentRTTI>
 {
 public:
-	const String& getRTTIName() override
+	const String& GetRttiName() override
 	{
 		static String name = "MyComponent";
 		return name;
 	}
 
-	UINT32 getRTTIId() override
+	u32 GetRttiId() const override
 	{
 		return TID_MyComponent;
 	}
 
-	SPtr<IReflectable> newRTTIObject() override
+	SPtr<IReflectable> NewRttiObject() override
 	{
-		return SceneObject::createEmptyComponent<MyComponent>();
+		return SceneObject::CreateEmptyComponent<MyComponent>();
 	}
 };
 ~~~~~~~~~~~~~
 
-> Note that when creating new instances of components within the RTTI type class, you must use **SceneObject::createEmptyComponent<T>()** method, instead of just creating a normal shared pointer.
+> Note that when creating new instances of components within the RTTI type class, you must use **SceneObject::CreateEmptyComponent<T>()** method, instead of just creating a normal shared pointer.
 
 This is the minimal amount of work you need to do in order to implement RTTI. The RTTI types above now describe the class type, but not any of its members. In order to actually have class data serialized, you also need to define member fields.
 
 # Member fields
-Member fields give the RTTI type a way to access (retrieve and assign) data from various members in the class the RTTI type describes. Let's imagine our *MyComponent* class had a few data members:
+Member fields give the RTTI type a way to access (retrieve and assign) data from various members in the class the RTTI type describes. 
+
+Let's imagine our *MyComponent* class had a few data members:
+
 ~~~~~~~~~~~~~{.cpp}
 class MyComponent : public Component
 {
 public:
 	// ...
 
-	UINT32 myInt;
+	u32 myInt;
 	float myFloat;
 	String myString;
 
@@ -137,35 +148,38 @@ public:
 ~~~~~~~~~~~~~
 
 Its field definition within the RTTI type would look like so:
+
 ~~~~~~~~~~~~~{.cpp}
-class MyComponentRTTI : public RTTIType<MyComponent, Component, MyComponentRTTI>
+class MyComponentRTTI : public TRTTIType<MyComponent, Component, MyComponentRTTI>
 {
-public:
 	B3D_RTTI_BEGIN_MEMBERS
-		B3D_RTTI_MEMBER_PLAIN(myInt, 0)
-		B3D_RTTI_MEMBER_PLAIN(myFloat, 1)
-		B3D_RTTI_MEMBER_PLAIN(myString, 2)
+		B3D_RTTI_MEMBER(myInt, 0)
+		B3D_RTTI_MEMBER(myFloat, 1)
+		B3D_RTTI_MEMBER(myString, 2)
 	B3D_RTTI_END_MEMBERS
 
-	// ... 
+public:
+	// ... GetRttiName, GetRttiId, NewRttiObject ...
 };
 ~~~~~~~~~~~~~
 
-Field definition portion of the RTTI type always begins with the @B3D_RTTI_BEGIN_MEMBERS macro, and ends with the @B3D_RTTI_END_MEMBERS.
+Field definition portion of the RTTI type always begins with the @B3D_RTTI_BEGIN_MEMBERS macro, and ends with the @B3D_RTTI_END_MEMBERS macro. Note that these macros must appear before the `public:` section of the RTTI class.
 
-The field members themselves are defined by calling macros starting with B3D_RTTI_MEMBER_. The macro expects the name of the field it describes, as well as a unique ID of the field. The suffix of the B3D_RTTI_MEMBER_ macro depends on the type of the field being added. There are three different types:
- - @B3D_RTTI_MEMBER_PLAIN - Field containing basic data types like ints, floats, strings or other types that can be just trivially copied during serialization/deserialization.
- - @B3D_RTTI_MEMBER_REFL - Field containing objects deriving from **IReflectable** (i.e. classes that have RTTI). The main advantage of using **IReflectable** types over plain ones is that you are allowed to add or remove fields from **IReflectable** RTTI type, and it wont break any data that was previously serialized. This is very important as you make changes to your components or resources, so you can still load previously saved data (e.g. imagine saving a level, changing a component, and then being unable to load the level). Plain types on the other hand must always keep the same structure, otherwise the serialized data will be broken.
- - @B3D_RTTI_MEMBER_REFLPTR - Fields containing pointers to objects deriving from **IReflectable**. Same as **B3D_RTTI_MEMBER_REFL**, except that multiple fields can point to the same object. This ensures the object won't be serialized multiple times, wasting space and performance, and also ensures that the system can properly restore all references to the object when it's deserialized.
- 
+## Field types
+The main macro for defining fields is @B3D_RTTI_MEMBER, which takes the field name and a unique ID. This macro works for:
+ - **Plain types**: Basic types like ints, floats, strings, and POD structs
+ - **Reflectable types**: Objects deriving from **IReflectable** (either by value or as SPtr)
+ - **Resource handles**: HMesh, HTexture, etc.
+ - **Component handles**: HRenderable, HCamera, etc.
+
 ~~~~~~~~~~~~~{.cpp}
-// Component definition with more complex field types
+// Component definition with various field types
 class MyComponent : public Component
 {
 public:
 	// ...
 
-	UINT32 myInt;
+	u32 myInt;
 	float myFloat;
 	String myString;
 	SPtr<MyClass> myPtrClass;
@@ -176,34 +190,27 @@ public:
 	// ...
 };
 
-class MyComponentRTTI : public RTTIType<MyComponent, Component, MyComponentRTTI>
+class MyComponentRTTI : public TRTTIType<MyComponent, Component, MyComponentRTTI>
 {
-public:
 	B3D_RTTI_BEGIN_MEMBERS
-		B3D_RTTI_MEMBER_PLAIN(myInt, 0)
-		B3D_RTTI_MEMBER_PLAIN(myFloat, 1)
-		B3D_RTTI_MEMBER_PLAIN(myString, 2)
-		B3D_RTTI_MEMBER_REFLPTR(myPtrClass, 3)
-		B3D_RTTI_MEMBER_REFL(myClass, 4)
-		B3D_RTTI_MEMBER_REFL(renderable, 5)
-		B3D_RTTI_MEMBER_REFL(mesh, 6)
+		B3D_RTTI_MEMBER(myInt, 0)
+		B3D_RTTI_MEMBER(myFloat, 1)
+		B3D_RTTI_MEMBER(myString, 2)
+		B3D_RTTI_MEMBER(myPtrClass, 3)
+		B3D_RTTI_MEMBER(myClass, 4)
+		B3D_RTTI_MEMBER(renderable, 5)
+		B3D_RTTI_MEMBER(mesh, 6)
 	B3D_RTTI_END_MEMBERS
 
-	// ... 
+public:
+	// ...
 };
 ~~~~~~~~~~~~~
 
-> Note that component and resource handles are considered **IReflectable**, and are therefore serialized by using **B3D_RTTI_MEMBER_REFL**.
-
 Each field must have an ID unique within the RTTI type. If you remove members from the RTTI type, you should not re-use their IDs for other members. Additionally, if the type of a specific field changes, you should assign it a new ID. The IDs allow the system to map previously serialized data to the current structure of the object.
 
-## Arrays
-Array field types are also supported:
- - @B3D_RTTI_MEMBER_PLAIN_ARRAY
- - @B3D_RTTI_MEMBER_REFL_ARRAY
- - @B3D_RTTI_MEMBER_REFLPTR_ARRAY
- 
-They perform the same function as their non-array counterparts, except the fields are expected to contain a **Vector<T>** instead of a single entry.
+## Container fields
+For container types (like Vector, Map, etc.), use the @B3D_RTTI_MEMBER_CONTAINER macro:
 
 ~~~~~~~~~~~~~{.cpp}
 class MyComponent : public Component
@@ -211,71 +218,140 @@ class MyComponent : public Component
 public:
 	// ...
 
-	Vector<UINT32> myInts;
+	Vector<u32> myInts;
 	Vector<SPtr<MyClass>> myPtrClasses;
 	Vector<HMesh> meshes;
 
 	// ...
 };
 
-class MyComponentRTTI : public RTTIType<MyComponent, Component, MyComponentRTTI>
+class MyComponentRTTI : public TRTTIType<MyComponent, Component, MyComponentRTTI>
 {
-public:
 	B3D_RTTI_BEGIN_MEMBERS
-		B3D_RTTI_MEMBER_PLAIN_ARRAY(myInts, 0)
-		B3D_RTTI_MEMBER_REFLPTR_ARRAY(myPtrClasses, 1)
-		B3D_RTTI_MEMBER_REFL_ARRAY(meshes, 2)
+		B3D_RTTI_MEMBER_CONTAINER(myInts, 0)
+		B3D_RTTI_MEMBER_CONTAINER(myPtrClasses, 1)
+		B3D_RTTI_MEMBER_CONTAINER(meshes, 2)
 	B3D_RTTI_END_MEMBERS
 
-	// ... 
+public:
+	// ...
 };
 ~~~~~~~~~~~~~
+
+## Field info and flags
+You can provide additional metadata about fields using the @B3D_RTTI_MEMBER_INFO and @B3D_RTTI_MEMBER_CONTAINER_INFO macros, which accept a @b3d::RTTIFieldInfo parameter:
+
+~~~~~~~~~~~~~{.cpp}
+class MyComponentRTTI : public TRTTIType<MyComponent, Component, MyComponentRTTI>
+{
+	B3D_RTTI_BEGIN_MEMBERS
+		// Skip this field when comparing or copying deltas
+		B3D_RTTI_MEMBER_INFO(mPrefabResourceId, 0,
+			RTTIFieldInfo(RTTIFieldFlag::SkipInDeltaCompare | RTTIFieldFlag::SkipInDeltaCopy))
+
+		// Normal field
+		B3D_RTTI_MEMBER(myInt, 1)
+	B3D_RTTI_END_MEMBERS
+
+public:
+	// ...
+};
+~~~~~~~~~~~~~
+
+Available field flags include:
+- **SkipInDeltaCompare** - Field won't be compared when generating deltas
+- **SkipInDeltaCopy** - Field won't be copied when applying deltas
+- **WeakRef** - Field is a weak reference and won't be serialized deeply
+
+## Generated members
+Sometimes you need to serialize data that isn't directly stored in the class, but is computed or transformed. Use @B3D_RTTI_GENERATED_MEMBER for such fields:
+
+~~~~~~~~~~~~~{.cpp}
+class SceneObjectRTTI : public TRTTIType<SceneObject, GameObject, SceneObjectRTTI>
+{
+	// These members exist in the RTTI class, not the SceneObject
+	Vector<SPtr<SceneObject>> mChildren;
+	Vector<SPtr<Component>> mComponents;
+
+	B3D_RTTI_BEGIN_MEMBERS
+		// Generated members reference fields in the RTTI class
+		B3D_RTTI_GENERATED_MEMBER_CONTAINER(mChildren, 0)
+		B3D_RTTI_GENERATED_MEMBER_CONTAINER(mComponents, 1)
+
+		// Regular members reference fields in SceneObject
+		B3D_RTTI_MEMBER(mLocalTfrm, 2)
+	B3D_RTTI_END_MEMBERS
+
+public:
+	void OnOperationStarted(SceneObject& object, RTTIOperationTypeFlags operationType, RTTIOperationContext& context) override
+	{
+		// Populate generated members before serialization
+		if (operationType.IsSet(RTTIOperationType::ReadBit))
+		{
+			mChildren.clear();
+			for (const auto& child : object.GetChildren())
+				mChildren.push_back(child.GetShared());
+		}
+	}
+};
+~~~~~~~~~~~~~
+
+Note the system guarantees that a unique instance of the RTTI class will be created for each object, so you can safely store references to generated members in the RTTI class.
 
 # Using RTTI
 Once the RTTI type class has been created, in most cases it will be used automatically. In the case of components it will be used when saving/loading a scene, and in the case of resources it will be used when saving/loading a resource. But for any other class you will want to know how to utilize it manually.
 
 ## Manually serializing
 
-To manually serialize an object you can use the @b3d::FileEncoder class. Create the file encoder with a path to the output file, followed by a call to @b3d::FileEncoder::encode with the object to encode as the parameter. The system will encode the provided object, as well as any other referenced **IReflectable** objects. 
+To manually serialize an object you can use the @b3d::FileEncoder class or @b3d::BinarySerializer class.
+
+### Using FileEncoder
+
+@b3d::FileEncoder serializes objects to a file:
 
 ~~~~~~~~~~~~~{.cpp}
 SPtr<IReflectable> myObject = B3DMakeShared<MyClass>();
 
-FileEncoder fe("Path\To\My\File.asset");
-fe.encode(myObject.get());
+FileEncoder encoder("Path/To/My/File.asset");
+encoder.Encode(myObject.get());
 ~~~~~~~~~~~~~
 
-Once ready to decode, create a @b3d::FileDecoder with the same file path. Then call @b3d::FileDecoder::decode.
+To decode from a file, use @b3d::FileDecoder:
 
 ~~~~~~~~~~~~~{.cpp}
-FileDecoder fd("Path\To\My\File.asset");
-SPtr<IReflectable> myObjectCopy = fd.decode();
+FileDecoder decoder("Path/To/My/File.asset");
+SPtr<IReflectable> myObjectCopy = decoder.Decode();
 ~~~~~~~~~~~~~
 
-You can also encode/decode to/from memory by using @b3d::BinarySerializer.
+### Using BinarySerializer
+
+@b3d::BinarySerializer serializes objects to/from memory streams:
+
 ~~~~~~~~~~~~~{.cpp}
 SPtr<IReflectable> myObject = B3DMakeShared<MyClass>();
 
 BinarySerializer bs;
 SPtr<MemoryDataStream> stream = B3DMakeShared<MemoryDataStream>();
-bs.encode(myObject.get(), stream);
+bs.Encode(myObject.get(), stream);
 
-stream->seek(0);
-SPtr<IReflectable> myObjectCopy2 = bs.decode(stream, stream->size());
+stream->Seek(0);
+SPtr<IReflectable> myObjectCopy = bs.Decode(stream, stream->Size());
 ~~~~~~~~~~~~~
 
+> For advanced serialization options, contexts, and detailed control over the serialization process, see the [Advanced RTTI](../14_advancedRtti.md) manual.
+
 ## Casting & queries
-Aside from using RTTI for serialization, you can also use it to manually query various information about objects, as well as create and cast object instances. 
+Aside from using RTTI for serialization, you can also use it to manually query various information about objects, as well as create and cast object instances.
 
 Global queries:
- - @b3d::B3DRTTIIsOfType - Checks is a specific object of type *T*
- - @b3d::B3DRTTIIsSubclass - Checks is a specific object derived from type *T*
+ - @b3d::B3DRTTIIsOfType - Checks if a specific object is of type *T*
+ - @b3d::B3DRTTIIsSubclass - Checks if a specific object is derived from type *T*
  - @b3d::B3DRTTICreate - Creates a new object from its type ID
  - @b3d::B3DRTTICast - Casts an object to the specified type if the cast is valid, or returns null otherwise
- 
+
 **IReflectable** queries:
- - @b3d::IReflectable::getTypeName - Gets the name of the object's type
- - @b3d::IReflectable::getTypeId - Gets the type ID of the object's type
+ - @b3d::IReflectable::GetTypeName - Gets the name of the object's type
+ - @b3d::IReflectable::GetTypeId - Gets the type ID of the object's type
 
 ~~~~~~~~~~~~~{.cpp}
 IReflectable* myObject = ...;
@@ -285,8 +361,18 @@ B3DRTTIIsSubclass<Texture>(myObject);
 B3DRTTICreate(TID_Texture);
 Texture* myTexture = B3DRTTICast<Texture>(myObject);
 
-myObject->getTypeName();
-myObject->getTypeId();
+myObject->GetTypeName();
+myObject->GetTypeId();
 ~~~~~~~~~~~~~
 
-For more information you can also continue reading the [Advanced RTTI](../advancedRtti) manual.
+# Advanced RTTI
+
+For advanced RTTI features including:
+- Manually defining fields without macros using RTTI iterators
+- Creating custom RTTIPlainType specializations
+- Advanced serialization options (shallow, compressed, no-metadata)
+- Operation notifications and versioning
+- RTTI querying and introspection
+- Data block fields
+
+See the [Advanced RTTI](../14_advancedRtti.md) manual.

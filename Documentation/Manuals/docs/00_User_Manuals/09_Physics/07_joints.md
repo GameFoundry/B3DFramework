@@ -12,24 +12,24 @@ b3d::f supports six different joint types:
  - Slider - Keeps orientations together but allows movement on the X axis
  - D6 - Fully customizable joint type that can be used for implementing all previously mentioned joints, as well as configure new types
  
-All joints are components derived from @b3d::CJoint. Before we talk about individual joint types, lets cover the functionality shared by all joints.
+All joints are components derived from @b3d::Joint. Before we talk about individual joint types, lets cover the functionality shared by all joints.
 
 # Basics
 All joints require two bodies to influence. You can also choose to specify *null* for one of the bodies, in which case the other body is assumed to move relative to an immovable reference frame. Note that at least one body attached to a joint must be movable.
 
-To assign bodies to a joint call @b3d::CJoint::setBody. The method accepts a @b3d::JointBody parameter specifiying which of the two bodies two assign the value to, and a **Rigidbody** component representing the body (or null).
+To assign bodies to a joint call @b3d::Joint::setBody. The method accepts a @b3d::JointBody parameter specifiying which of the two bodies two assign the value to, and a **Rigidbody** component representing the body (or null).
 
 ~~~~~~~~~~~~~{.cpp}
 // Create a rigidbody to manipulate with the joint
 HSceneObject rigidbodySO = SceneObject::create("Rigidbody");
-HRigidbody rigidbody = rigidbodySO->addComponent<CRigidbody>();
+HRigidbody rigidbody = rigidbodySO->addComponent<Rigidbody>();
 
-HBoxCollider boxCollider = rigidbodySO->addComponent<CBoxCollider>();
+HBoxCollider boxCollider = rigidbodySO->addComponent<BoxCollider>();
 boxCollider->setExtents(Vector3(0.5f, 0.5f, 0.5f));
 
 // Add a fixed joint (covered later)
 HSceneObject jointSO = SceneObject::create("Joint");
-HJoint joint = jointSO->addComponent<CFixedJoint>();
+HJoint joint = jointSO->addComponent<FixedJoint>();
 
 // Move the body so its not at the same position as the joint
 rigidbodySO->setPosition(Vector3(0, 5, 0));
@@ -51,7 +51,7 @@ They are represented with the @b3d::CFixedJoint component.They don't allow any a
 
 ~~~~~~~~~~~~~{.cpp}
 HSceneObject jointSO = SceneObject::create("Joint");
-HFixedJoint joint = jointSO->addComponent<CFixedJoint>();
+HFixedJoint joint = jointSO->addComponent<FixedJoint>();
 ~~~~~~~~~~~~~
 
 ## Distance joint
@@ -63,7 +63,7 @@ Distance joints are represented using the @b3d::CDistanceJoint component.
 
 ~~~~~~~~~~~~~{.cpp}
 HSceneObject jointSO = SceneObject::create("Joint");
-HDistanceJoint joint = jointSO->addComponent<CDistanceJoint>();
+HDistanceJoint joint = jointSO->addComponent<DistanceJoint>();
 ~~~~~~~~~~~~~
 
 ### Limits
@@ -114,7 +114,7 @@ Spherical joint is represented with the @b3d::CSphericalJoint component.
 
 ~~~~~~~~~~~~~{.cpp}
 HSceneObject jointSO = SceneObject::create("Joint");
-HSphericalJoint joint = jointSO->addComponent<CSphericalJoint>();
+HSphericalJoint joint = jointSO->addComponent<SphericalJoint>();
 ~~~~~~~~~~~~~
 
 ### Limits
@@ -167,7 +167,7 @@ It is represented using the @b3d::CSliderJoint component.
 
 ~~~~~~~~~~~~~{.cpp}
 HSceneObject jointSO = SceneObject::create("Joint");
-HSliderJoint joint = jointSO->addComponent<CSliderJoint>();
+HSliderJoint joint = jointSO->addComponent<SliderJoint>();
 ~~~~~~~~~~~~~
 
 ### Limits
@@ -197,7 +197,7 @@ It is represented using the @b3d::CHingeJoint component.
 
 ~~~~~~~~~~~~~{.cpp}
 HSceneObject jointSO = SceneObject::create("Joint");
-HHingeJoint joint = jointSO->addComponent<CHingeJoint>();
+HHingeJoint joint = jointSO->addComponent<HingeJoint>();
 ~~~~~~~~~~~~~
 
 ### Limits
@@ -236,7 +236,7 @@ It is represented using the @b3d::D6Joint component.
 
 ~~~~~~~~~~~~~{.cpp}
 HSceneObject jointSO = SceneObject::create("Joint");
-HD6Joint joint = jointSO->addComponent<CD6Joint>();
+HD6Joint joint = jointSO->addComponent<D6Joint>();
 ~~~~~~~~~~~~~
 
 ### Degrees of freedom
@@ -355,9 +355,9 @@ You can find out the current angles of all the rotational degrees by calling @b3
 # Joint breaking
 All joint types can be configured to break after a specific amount of force or torque is applied to them. Once a joint is broken it will no longer constrain the attached bodies.
 
-To set the break force and torque call @b3d::CJoint::setBreakForce and @b3d::CJoint::setBreakTorque.
+To set the break force and torque call @b3d::Joint::setBreakForce and @b3d::Joint::setBreakTorque.
 
-You can also get notified when the joint is broken by subscribing to the @b3d::CJoint::onJointBreak event.
+You can also get notified when the joint is broken by subscribing to the @b3d::Joint::onJointBreak event.
 
 ~~~~~~~~~~~~~{.cpp}
 // Break if force exceeds 500 units
@@ -372,7 +372,7 @@ joint->onJointBreak.connect(notify);
 ~~~~~~~~~~~~~
 
 # Joint collisions
-By default two bodies attached to the joint will collide with each other. You can disable this by calling @b3d::CJoint::setEnableCollision.
+By default two bodies attached to the joint will collide with each other. You can disable this by calling @b3d::Joint::setEnableCollision.
 
 ~~~~~~~~~~~~~{.cpp}
 // Disable collisions between two joint bodies

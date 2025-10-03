@@ -2,7 +2,7 @@
 title: GUI setup
 ---
 
-All GUI elements in b3d::f are handled by a @b3d::CGUIWidget component. Each such component must have an attached **Camera** component, which determines where will the rendered GUI elements be output. 
+All GUI elements in b3d::f are handled by a @b3d::GUIWidget component. Each such component must have an attached **Camera** component, which determines where will the rendered GUI elements be output. 
 
 The camera is created in the same way as we shown before, and you can in-fact use the same camera you use for normal scene rendering. GUI elements will not be affected by camera's position, orientation or projection properties - they might however be affected by the size of the camera's render target.
 
@@ -10,14 +10,14 @@ The camera is created in the same way as we shown before, and you can in-fact us
 SPtr<RenderWindow> primaryWindow = GetApplication().getPrimaryWindow();
 
 HSceneObject cameraSO = SceneObject::create("Camera");
-HCamera camera = cameraSO->addComponent<CCamera>(primaryWindow);
+HCamera camera = cameraSO->addComponent<Camera>(primaryWindow);
 ~~~~~~~~~~~~~
 
 And we create a **GUIWidget** the same as with any other component.
 
 ~~~~~~~~~~~~~{.cpp}
 HSceneObject guiSO = SceneObject::create("GUI");
-HGUIWidget gui = guiSO->addComponent<CGUIWidget>(camera);
+HGUIWidget gui = guiSO->addComponent<GUIWidget>(camera);
 ~~~~~~~~~~~~~
 
 Before a widget is usable we must first assign it a **GUISkin**. A skin defines how is every element on this particular widget rendered (its texture(s), fonts, size, etc.). We'll talk about skins and styles in detail later, but for now it's enough to assign the built-in skin available from **BuiltinResources**.
@@ -58,7 +58,7 @@ Initial creation of the camera is identical, we just choose a render target:
 SPtr<RenderWindow> primaryWindow = GetApplication().getPrimaryWindow();
 
 HSceneObject guiCameraSO = SceneObject::create("GUI camera");
-HCamera guiCamera = guiCameraSO->addComponent<CCamera>(primaryWindow);
+HCamera guiCamera = guiCameraSO->addComponent<Camera>(primaryWindow);
 ~~~~~~~~~~~~~
 
 In order to prevent the camera from rendering scene objects, we enable the **RenderSettings::overlayOnly** property on the camera's **RenderSettings** object.
@@ -73,7 +73,7 @@ Now our camera will render just overlay objects (GUI and sprites), and nothing e
 
 Next, we want to prevent the camera from clearing the render target. By default cameras will set all the pixels in the render target to some default value before they start rendering, every frame. We want our GUI camera to just render on top of anything rendered by the scene camera, so we disable that functionality by retrieving a @b3d::Viewport from the camera. 
 
-**Viewport** is retrieved by calling @b3d::CCamera::getViewport. It allows you to set if the render target is cleared through @b3d::Viewport::setClearFlags by providing the @b3d::ClearFlagBits::Empty flag. 
+**Viewport** is retrieved by calling @b3d::Camera::getViewport. It allows you to set if the render target is cleared through @b3d::Viewport::setClearFlags by providing the @b3d::ClearFlagBits::Empty flag. 
 
 ~~~~~~~~~~~~~{.cpp}
 SPtr<Viewport> viewport = guiCamera->getViewport();

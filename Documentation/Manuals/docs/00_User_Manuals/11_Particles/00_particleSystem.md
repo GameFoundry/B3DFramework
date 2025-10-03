@@ -16,7 +16,7 @@ Thoughout these set of manuals we will go over all the available emitters, evolv
 ~~~~~~~~~~~~~{.cpp}
 // Create a scene object and add a particle system component
 HSceneObject particleSystemSO = SceneObject::create("ParticleSystem");
-HParticleSystem particleSystem = particleSystemSO->addComponent<CParticleSystem>();
+HParticleSystem particleSystem = particleSystemSO->addComponent<ParticleSystem>();
 
 // Create a material to use for rendering the particles
 HShader shader = GetBuiltinResources().getBuiltinShader(BuiltinShader::ParticlesUnlit);

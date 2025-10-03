@@ -39,7 +39,7 @@ First create a new directory where you would like your project to live. Grab the
 In your project folder create `CMakeLists.txt`, and fill it out like so:
 ```
 # Minimum version of CMake as required by bsf
-cmake_minimum_required (VERSION 3.12.0)
+cmake_minimum_required (VERSION 3.31.0)
 
 # Name of your project
 project (myProject)
@@ -75,16 +75,26 @@ Make sure to modify `C:/path/to/bsf/install` and set it to the path where you ex
 ## Code
 The CMake file above references `Main.cpp` file. The most basic file that runs the framework looks like so:
 ```
-#include "B3DEntry.h"
+#include "B3DApplication.h"
 
-int bs_main(int argc, char* argv[])
+#if B3D_PLATFORM == B3D_PLATFORM_ID_WIN32
+#include <windows.h>
+
+int CALLBACK WinMain(
+	_In_ HINSTANCE hInstance,
+	_In_ HINSTANCE hPrevInstance,
+	_In_ LPSTR lpCmdLine,
+	_In_ int nCmdShow)
+#else
+int main()
+#endif
 {
 	using namespace b3d;
 
 	VideoMode videoMode(1280, 720);
-	Application::startUp(videoMode, "Example", false);
-	Application::instance().runMainLoop();
-	Application::shutDown();
+	Application::StartUp(videoMode, "My Application", false);
+	Application::Instance().RunMainLoop();
+	Application::ShutDown();
 
 	return 0;
 }
@@ -95,7 +105,7 @@ We will explain the code above in following manuals, but for now you can just co
 Place the `Main.cpp` into your project's root folder.
 
 ## Get CMake
-If you don't already have it, grab the latest version of CMake from [www.cmake.org](https://cmake.org/download/). Make sure to grab version 3.12.4 or later. 
+If you don't already have it, grab the latest version of CMake from [www.cmake.org](https://cmake.org/download/). Make sure to grab version 3.31.0 or later. 
 
 ## Build
 You are now ready to build the project. From your project's root folder execute the following commands in terminal/command line:
@@ -103,7 +113,7 @@ You are now ready to build the project. From your project's root folder execute 
  - `cd build`
  - `cmake -G "$generator" ..`
    - Where *$generator* should be replaced with any of the supported generators. Some common ones:
-     - `Visual Studio 15 2017 Win64` - Visual Studio 2017 (64-bit build)
+     - `Visual Studio 17 2022` - Visual Studio 20 (64-bit build)
 	 - `Unix Makefiles`
 	 - `Ninja`
 	 - `Xcode`
@@ -120,7 +130,7 @@ Before you can run the application you must first copy the data files and dynami
  - Copy the `bin/Data` folder to the location where is your executable is located
  - If on Windows you should also copy any .dll files in the `bin` folder to where your executable is located. Note that precompiled binaries package comes with separate set of dynamic libraries for Debug and Release builds in `bin/Debug` and `bin/Release` folders. You should copy them to the appropriate folder depending on the configuration you are building with. 
  
-For example in Visual Studio the executable will be placed at `Release/` folder within your project root, for a Release configuration. This is where you should place the dynamic libraries and the data files.
+For example in Visual Studio the executable will be placed at `Debug/` folder within your project root, for a Release configuration. This is where you should place the dynamic libraries and the data files.
 
 ![Structure of the executable folder on Windows](../Images/BuildStructure.png)
 
@@ -137,7 +147,7 @@ First make sure to follow the compilation guide on [GitHub](https://github.com/G
 Create a new project folder, with a `CMakeLists.txt` file with the following contents:
 ```
 # Minimum version of CMake as required by bsf
-cmake_minimum_required (VERSION 3.12.0)
+cmake_minimum_required (VERSION 3.31.0)
 
 # Name of your project
 project (myProject)
@@ -166,16 +176,26 @@ Make sure to set `C:/bsf` to the directory where you cloned `bsf`.
 ## Code
 The CMake file above references `Main.cpp` file. The most basic file that runs the framework looks like so:
 ```
-#include "B3DEntry.h"
+#include "B3DApplication.h"
 
-int bs_main(int argc, char* argv[])
+#if B3D_PLATFORM == B3D_PLATFORM_ID_WIN32
+#include <windows.h>
+
+int CALLBACK WinMain(
+	_In_ HINSTANCE hInstance,
+	_In_ HINSTANCE hPrevInstance,
+	_In_ LPSTR lpCmdLine,
+	_In_ int nCmdShow)
+#else
+int main()
+#endif
 {
 	using namespace b3d;
 
 	VideoMode videoMode(1280, 720);
-	Application::startUp(videoMode, "Example", false);
-	Application::instance().runMainLoop();
-	Application::shutDown();
+	Application::StartUp(videoMode, "My Application", false);
+	Application::Instance().RunMainLoop();
+	Application::ShutDown();
 
 	return 0;
 }
@@ -191,7 +211,7 @@ You are now ready to build the project. From your project's root folder execute 
  - `cd build`
  - `cmake -G "$generator" ..`
    - Where *$generator$* should be replaced with any of the supported generators. Some common ones:
-     - `Visual Studio 15 2017 Win64` - Visual Studio 2017 (64-bit build)
+     - `Visual Studio 15 2022 Win64` - Visual Studio 2022 (64-bit build)
 	 - `Unix Makefiles`
 	 - `Ninja`
 	 - `Xcode`

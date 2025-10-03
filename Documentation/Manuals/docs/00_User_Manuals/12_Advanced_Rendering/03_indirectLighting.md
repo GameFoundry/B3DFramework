@@ -17,7 +17,7 @@ When it comes to indoors you must follow a similar approach as with reflection p
 ~~~~~~~~~~~~~{.cpp}
 // Set up a light probe volume
 HSceneObject lightProbeVolumeSO = SceneObject::create("LightProbeVolume");
-HLightProbeVolume lightProbeVolume = lightProbeVolumeSO->addComponent<CLightProbeVolume>();
+HLightProbeVolume lightProbeVolume = lightProbeVolumeSO->addComponent<LightProbeVolume>();
 ~~~~~~~~~~~~~
 
 **LightProbeVolume** allows you to set up light probes over the scene. The light probes will record lighting information at their position, and nearby surfaces will then use that information for indirect lighting. If a camera is outside of a light probe volume it will fall back to sky lighting. 

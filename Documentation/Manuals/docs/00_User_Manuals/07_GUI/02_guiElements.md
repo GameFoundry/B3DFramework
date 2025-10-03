@@ -12,7 +12,7 @@ In order to display a GUI element we must first create it. All GUI elements are 
 GUILabel* label = GUILabel::create(HString("Hello!"));
 ~~~~~~~~~~~~~
 
-But just creating the element is not enough. We must also register it with our **GUIWidget**. To do that we must first retrieve the primary @b3d::GUIPanel from the widget. **GUIPanel** serves as an element container, and by default every widget has one. Use @b3d::CGUIWidget::getPanel() to retrieve the panel.
+But just creating the element is not enough. We must also register it with our **GUIWidget**. To do that we must first retrieve the primary @b3d::GUIPanel from the widget. **GUIPanel** serves as an element container, and by default every widget has one. Use @b3d::GUIWidget::getPanel() to retrieve the panel.
 
 ~~~~~~~~~~~~~{.cpp}
 GUIPanel* mainPanel = gui->getPanel();

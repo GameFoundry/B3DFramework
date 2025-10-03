@@ -8,11 +8,11 @@ They have parameters like position and orientation which define what part of the
 
 Finally, everything that the camera sees is output to what we call a render target. Render targets can be windows, like the one that was created when the application was started, or an off-screen surface, as we'll explain later.
 
-Cameras are represented by the @b3d::CCamera component, and they can be created as any other component. 
+Cameras are represented by the @b3d::Camera component, and they can be created as any other component. 
 
 ~~~~~~~~~~~~~{.cpp}
 HSceneObject cameraSO = SceneObject::create("Camera");
-HCamera camera = cameraSO->addComponent<CCamera>();
+HCamera camera = cameraSO->addComponent<Camera>();
 ~~~~~~~~~~~~~
 
 Before the camera can render anything, you need to assign the render target to which the camera will output its contents to. Lets create a camera that renders to the primary render window. The primary application window can be retrieved through @b3d::Application::getPrimaryWindow.
@@ -46,7 +46,7 @@ Once set up, any rendered objects in the camera's view will be displayed on the 
 You can also customize a variety of parameters that control how will the camera render the objects.
 
 # Projection type
-All cameras can be in two projection modes: *Perspective* and *Ortographic*. They can be changed by calling @b3d::CCamera::setProjectionType.
+All cameras can be in two projection modes: *Perspective* and *Ortographic*. They can be changed by calling @b3d::Camera::setProjectionType.
 
 ## Perspective cameras
 This mode simulates human vision, where objects farther away appear smaller. This is what you will need for most 3D applications.
@@ -67,7 +67,7 @@ camera->setProjectionType(PT_ORTHOGRAPHIC);
 ![Model drawn using the ortographic camera](../../Images/OrtographicCamera.png)  
 
 # Field of view
-This is a parameter only relevant for perspective cameras. It controls the horizontal angle of vision - increasing it means the camera essentially has a wider lens. Modify it by calling @b3d::CCamera::setHorzFOV.
+This is a parameter only relevant for perspective cameras. It controls the horizontal angle of vision - increasing it means the camera essentially has a wider lens. Modify it by calling @b3d::Camera::setHorzFOV.
 
 Example of setting the FOV to 90 degrees:
 ~~~~~~~~~~~~~{.cpp}
@@ -77,7 +77,7 @@ camera->setHorzFOV(Degree(90));
 Vertical FOV is automatically determined from the aspect ratio.
 
 # Aspect ratio
-Aspect ratio allows you to control the ratio of the camera's width and height. It can be set by calling @b3d::CCamera::setAspectRatio. 
+Aspect ratio allows you to control the ratio of the camera's width and height. It can be set by calling @b3d::Camera::setAspectRatio. 
 
 Normally you want to set it to the ratio of the render target's width and height, as shown below.
 

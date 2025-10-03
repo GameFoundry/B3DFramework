@@ -2,18 +2,18 @@
 title: Renderable object
 ---
 
-As the name implies, the renderable object allows you to display an object in the scene. It is represeted by the @b3d::CRenderable component. The component requires you to assign a **Mesh** to render, as well as a **Material** to render the mesh with. Both of these are resources, and we'll explain them in the following chapters.
+As the name implies, the renderable object allows you to display an object in the scene. It is represeted by the @b3d::Renderable component. The component requires you to assign a **Mesh** to render, as well as a **Material** to render the mesh with. Both of these are resources, and we'll explain them in the following chapters.
 
 # Creating a renderable
 **Renderable** is created as any component, and requires no additional parameters.
 
 ~~~~~~~~~~~~~{.cpp}
 HSceneObject renderableSO = SceneObject::create("3D object");
-HRenderable renderable = renderableSO->addComponent<CRenderable>();
+HRenderable renderable = renderableSO->addComponent<Renderable>();
 ~~~~~~~~~~~~~
 
 # Setting it up
-Once created you must assign it a **Mesh** to render, and a **Material** to render it with. Use @b3d::CRenderable::setMesh and @b3d::CRenderable::setMaterial.
+Once created you must assign it a **Mesh** to render, and a **Material** to render it with. Use @b3d::Renderable::setMesh and @b3d::Renderable::setMaterial.
 
 ~~~~~~~~~~~~~{.cpp}
 // Create a standard PBR material
@@ -29,7 +29,7 @@ HMesh mesh = GetImporter().import<Mesh>("myMesh.fbx");
 
 // Create a renderable
 HSceneObject renderableSO = SceneObject::create("3D object");
-HRenderable renderable = renderableSO->addComponent<CRenderable>();
+HRenderable renderable = renderableSO->addComponent<Renderable>();
 
 // Assign material and mesh to the renderable
 renderable->setMesh(mesh);

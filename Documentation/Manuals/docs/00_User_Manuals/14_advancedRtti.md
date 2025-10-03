@@ -2,385 +2,1189 @@
 title: Advanced RTTI
 ---
 
-This manual is a continuation of the [RTTI](User_Manuals/Gameplay/serializingObjects) manual, focusing on some more advanced features of the RTTI system.
+This manual is a continuation of the [Serializing objects](06_Gameplay/01_serializingObjects.md) manual, focusing on advanced features of the RTTI system.
 
 # Manually defining fields
-Previously we have shown how to define RTTI member fields by using the B3D_RTTI_MEMBER_ macros. While this method is in most cases preferable, it might not be useful if more advanced functionality is required. The macro approach is only able to reference class fields directly, but sometimes we might wish to access data returned by a method, or we might want to process the data in some way (e.g. compressing it).
 
-We can do this by manually defining fields. In order to manually register fields the systems supports a several sets of `add*Field` methods, each expecting a unique name/id, and a pair of getter/setter methods. The getter/setter methods can then be used for any more advanced processing.
+Previously we have shown how to define RTTI member fields using the B3D_RTTI_MEMBER macros. While this approach is recommended for most use cases, sometimes you need more advanced functionality. The macros are limited to referencing class fields directly, but sometimes you might want to access data returned by a method, process data during serialization (e.g., compression), or work with non-standard data structures.
 
-## Plain fields
-You register plain fields by calling @b3d::RTTIType::addPlainField. The getter/setter methods must return/accept a reference to the value of the field.
+You can achieve this by manually defining fields using the @b3d::TRTTIType::AddField method. This method accepts:
+- A field name and unique ID
+- Getter/setter methods that use RTTI iterators
+- Optional field information (@b3d::RTTIFieldInfo)
 
-~~~~~~~~~~~~~{.cpp}
-class MyComponent : public Component
-{
-public:
-	// ...
+## RTTI Iterators
 
-	UINT32 myInt;
+The RTTI system uses @b3d::TRTTIIterator<DataType, IsContainer> for accessing field data. Iterators provide a uniform interface for reading and writing both single values and containers.
 
-	// ...
-};
+The `IsContainer` template parameter determines the iterator's behavior:
+- `false` - Iterator treats the data type as a single value (acts as a faux single-element iterator)
+- `true` - Iterator treats the data type as a container with multiple elements
 
-class MyComponentRTTI : public RTTIType<MyComponent, Component, MyComponentRTTI>
-{
-public:
-	UINT32& getMyInt(MyComponent* obj) { return obj->myInt; }
-	void setMyInt(MyComponent* obj, UINT32& value) { obj->myInt = value; }
+## Manual field example
 
-	MyComponentRTTI ()
-	{
-		// Register the getter/setter methods above. You must specify a name and field id (both must be unique within the type).
-		addPlainField("myInt", 0, &MyComponentRTTI::getMyInt, &MyComponentRTTI::setMyInt);
-	}
-	
-	// ... 
-};
-~~~~~~~~~~~~~
-
-## Reflectable fields
-The reflectable field getter/setter signature is similar to the plain field one, only the @b3d::RTTIType::addReflectableField method is used for registration instead. 
+Here's how to manually define a field with custom getter/setter logic:
 
 ~~~~~~~~~~~~~{.cpp}
 class MyComponent : public Component
 {
 public:
-	// ...
+	MyComponent(const HSceneObject& parent)
+		: Component(parent)
+	{}
 
-	HMesh mesh;
-
-	// ...
+	u32 myInt;
 };
 
-class MyComponentRTTI : public RTTIType<MyComponent, Component, MyComponentRTTI>
+class MyComponentRTTI : public TRTTIType<MyComponent, Component, MyComponentRTTI>
 {
-public:
-	HMesh& getMesh(MyComponent* obj) { return obj->mesh; }
-	void setMesh(MyComponent* obj, HMesh& value) { obj->mesh = value; }
-
-	MyComponentRTTI ()
+	// Getter: Creates an iterator for the field
+	UPtrRTTIIterator<u32, false> GetMyIntIterator(MyComponent& obj, FrameAllocator& allocator)
 	{
-		addReflectableField("mesh", 0, &MyComponentRTTI::getMesh, &MyComponentRTTI::setMesh);
+		return CreateRTTIIterator<u32, false>(allocator, obj.myInt);
 	}
-	
-	// ... 
+
+	// Getter: Returns the value at the iterator position
+	const u32& GetMyIntValue(MyComponent& obj, FrameAllocator& allocator, TRTTIIterator<u32, false>& iterator)
+	{
+		return *iterator;
+	}
+
+	// Setter: Sets the value at the iterator position
+	void SetMyIntValue(MyComponent& obj, FrameAllocator& allocator, TRTTIIterator<u32, false>& iterator, const u32& value)
+	{
+		iterator = value;
+	}
+
+	B3D_RTTI_BEGIN_MEMBERS
+		// Normal macro-based field for comparison
+		// B3D_RTTI_MEMBER(myInt, 0)
+	B3D_RTTI_END_MEMBERS
+
+public:
+	MyComponentRTTI()
+	{
+		// Manually add the field using AddField method
+		AddField<MyComponentRTTI, MyComponent, u32>(
+			"myInt", 0,
+			&MyComponentRTTI::GetMyIntIterator,
+			&MyComponentRTTI::GetMyIntValue,
+			&MyComponentRTTI::SetMyIntValue);
+	}
+
+	const String& GetRttiName() override
+	{
+		static String name = "MyComponent";
+		return name;
+	}
+
+	u32 GetRttiId() const override
+	{
+		return TID_MyComponent;
+	}
+
+	SPtr<IReflectable> NewRttiObject() override
+	{
+		return SceneObject::CreateEmptyComponent<MyComponent>();
+	}
 };
 ~~~~~~~~~~~~~
 
-## Reflectable pointer fields
-Reflectable pointer getter/setter methods must return shared pointers to the instance, and they're registered with @b3d::RTTIType::addReflectablePtrField.
-~~~~~~~~~~~~~{.cpp}
-class MyClass : public IReflectable
-{
-	// ...
-}
+## Manual container field example
 
+For containers, use `IsContainer = true` to allow iteration over elements:
+
+~~~~~~~~~~~~~{.cpp}
 class MyComponent : public Component
 {
 public:
-	// ...
-
-	SPtr<MyClass> myClass;
-
-	// ...
+	Vector<u32> myInts;
 };
 
-class MyComponentRTTI : public RTTIType<MyComponent, Component, MyComponentRTTI>
+class MyComponentRTTI : public TRTTIType<MyComponent, Component, MyComponentRTTI>
 {
-public:
-	SPtr<MyClass> getMyClass(MyComponent* obj) { return obj->myClass; }
-	void setMyClass(MyComponent* obj, SPtr<MyClass> value) { obj->myClass = value; }
-
-	MyComponentRTTI ()
+	UPtrRTTIIterator<Vector<u32>, true> GetMyIntsIterator(MyComponent& obj, FrameAllocator& allocator)
 	{
-		addReflectablePtrField("myClass", 0, &MyComponentRTTI::getMyClass, &MyComponentRTTI::setMyClass);
+		return CreateRTTIIterator<Vector<u32>, true>(allocator, obj.myInts);
 	}
-	
-	// ... 
+
+	const u32& GetMyIntsValue(MyComponent& obj, FrameAllocator& allocator, TRTTIIterator<Vector<u32>, true>& iterator)
+	{
+		return *iterator;
+	}
+
+	void SetMyIntsValue(MyComponent& obj, FrameAllocator& allocator, TRTTIIterator<Vector<u32>, true>& iterator, const u32& value)
+	{
+		iterator = value;
+	}
+
+	B3D_RTTI_BEGIN_MEMBERS
+	B3D_RTTI_END_MEMBERS
+
+public:
+	MyComponentRTTI()
+	{
+		AddField<MyComponentRTTI, MyComponent, Vector<u32>>(
+			"myInts", 0,
+			&MyComponentRTTI::GetMyIntsIterator,
+			&MyComponentRTTI::GetMyIntsValue,
+			&MyComponentRTTI::SetMyIntsValue);
+	}
+
+	// ... GetRttiName, GetRttiId, NewRttiObject ...
 };
 ~~~~~~~~~~~~~
 
-## Array fields
-Each of the valid field types (plain/reflectable/reflectable pointer), also come in array form. The array form requires two additional getter/setter methods that get/set array size, and normal getter/setter methods require an additional index parameter. 
+## Custom processing example
 
-Methods for registering array fields are:
- - @b3d::RTTIType::addPlainArrayField
- - @b3d::RTTIType::addReflectableArrayField
- - @b3d::RTTIType::addReflectablePtrArrayField
- 
+Manual fields allow you to transform data during serialization:
+
 ~~~~~~~~~~~~~{.cpp}
 class MyComponent : public Component
 {
 public:
-	// ...
+	String GetCompressedData() const;
+	void SetCompressedData(const String& data);
 
-	Vector<HMesh> meshes;
-
-	// ...
+private:
+	String mInternalData;
 };
 
-class MyComponentRTTI : public RTTIType<MyComponent, Component, MyComponentRTTI>
+class MyComponentRTTI : public TRTTIType<MyComponent, Component, MyComponentRTTI>
 {
-public:
-	HMesh& getMesh(MyComponent* obj, UINT32 idx) { return obj->meshes[idx]; }
-	void setMesh(MyComponent* obj, HMesh& value, UINT32 idx) { obj->meshes[idx] = value; }
+	String mTempData;
 
-	UINT32 getNumMeshes(MyComponent* obj) { return obj->meshes.size(); }
-	void setNumMeshes(MyComponent* obj, UINT32 size) { obj->meshes.resize(size); }
-	
-	MyComponentRTTI ()
+	UPtrRTTIIterator<String, false> GetDataIterator(MyComponent& obj, FrameAllocator& allocator)
 	{
-		addReflectablePtrArrayField("meshes", 0, &MyComponentRTTI::getMesh, &MyComponentRTTI::getNumMeshes, 
-			&MyComponentRTTI::setMesh, &MyComponentRTTI::setNumMeshes);
-		
-		// And similarly for other field types
+		// Store compressed data in temporary field during serialization
+		mTempData = obj.GetCompressedData();
+		return CreateRTTIIterator<String, false>(allocator, mTempData);
 	}
-	
-	// ... 
+
+	const String& GetDataValue(MyComponent& obj, FrameAllocator& allocator, TRTTIIterator<String, false>& iterator)
+	{
+		return *iterator;
+	}
+
+	void SetDataValue(MyComponent& obj, FrameAllocator& allocator, TRTTIIterator<String, false>& iterator, const String& value)
+	{
+		// Decompress when setting
+		obj.SetCompressedData(value);
+	}
+
+	B3D_RTTI_BEGIN_MEMBERS
+	B3D_RTTI_END_MEMBERS
+
+public:
+	MyComponentRTTI()
+	{
+		AddField<MyComponentRTTI, MyComponent, String>(
+			"compressedData", 0,
+			&MyComponentRTTI::GetDataIterator,
+			&MyComponentRTTI::GetDataValue,
+			&MyComponentRTTI::SetDataValue);
+	}
+
+	// ... GetRttiName, GetRttiId, NewRttiObject ...
 };
 ~~~~~~~~~~~~~
 
-> By using this form of field definitions you are also no longer limited to arrays only contained with the **Vector** container.
+> By using manual field definitions, you gain full control over how data is accessed and stored during serialization.
 
-# Advanced plain fields
-Although plain fields are primarily intended for simple built-in types, sometimes they also need to be used on complex types. For example a **std::string** is often used as a field type, but it is not a simple built-in type, nor can we make it derive from **IReflectable**. For these purposes you can use @b3d::RTTIPlainType<T>. This is a templated class you can specialize for your specific type. 
+# Plain types vs IReflectable types
 
-Once you specialize the class for your type, implementing all the required methods, you will then be able to use your type on plain fields in the RTTI class. Without this specialization the system will refuse to compile the RTTI type.
+The RTTI system supports two main categories of serializable data: **plain types** and **IReflectable types**. Understanding the differences between them is crucial for choosing the right approach for your data.
 
-The specialization involves implementing methods for serializing/deserializing and retrieving object size. It has no advanced functionality like versioning (so if the structure of the type changes, it will break any previously serialized data), or keeping references to other objects.
+## Plain types
 
-For example if we wanted to serialize a simple `struct`:
+Plain types are simple, value-based types that are serialized directly to a binary stream. They include:
+- Built-in types (int, float, bool, etc.)
+- POD (Plain Old Data) structs
+- Standard containers (Vector, Map, String) containing plain types
+- Custom types with RTTIPlainType specialization
+
+**Advantages:**
+- **Faster serialization** - Direct binary encoding without metadata overhead
+- **Smaller serialized size** - No type information or versioning data
+- **Simple implementation** - Just implement ToMemory/FromMemory/GetSize methods
+
+**Limitations:**
+- **No reference tracking** - Shared pointers, resource handles, and game object handles are not properly handled
+- **Explicit versioning** - Changing the type structure breaks previously serialized data unless explicitly handled
+- **Plain types only** - Can only contain other plain types, not IReflectable objects
+- **No polymorphism** - Cannot handle derived types differently
+
+~~~~~~~~~~~~~{.cpp}
+// Plain type - Fast but limited
+struct PlayerStats
+{
+    i32 health;
+    i32 mana;
+    float speed;
+    // Can only contain plain types!
+    Vector<i32> inventory; // OK - Vector of plain type
+};
+
+B3D_ALLOW_MEMCPY_SERIALIZATION(PlayerStats)
+
+// This will NOT work correctly with plain types:
+struct BrokenExample
+{
+    SPtr<Texture> texture; // BROKEN - shared pointer not handled
+    HMesh mesh;            // BROKEN - resource handle not preserved
+    HRenderable component; // BROKEN - component handle not preserved
+};
+~~~~~~~~~~~~~
+
+## IReflectable types
+
+IReflectable types are full RTTI objects that derive from @b3d::IReflectable. They include:
+- Components
+- Resources
+- Scene objects
+- Any custom class deriving from IReflectable
+
+**Advantages:**
+- **Reference tracking** - Shared pointers, resource handles, and game object handles are properly serialized and restored
+- **Versioning** - Field IDs allow adding/removing fields without breaking old data
+- **Polymorphism** - Base class pointers correctly deserialize to derived types
+- **Can contain anything** - Can contain both plain types and other IReflectable objects
+- **Operation notifications** - OnOperationStarted/OnOperationEnded callbacks for custom logic
+
+**Limitations:**
+- **Slower serialization** - Additional metadata and reference tracking overhead
+- **Larger serialized size** - Stores type information and field IDs
+- **More complex** - Requires full RTTI class implementation
+
+~~~~~~~~~~~~~{.cpp}
+// IReflectable type - Full featured
+class GameEntity : public IReflectable
+{
+public:
+    // Can contain plain types
+    String name;
+    Vector3 position;
+
+    // Can contain shared pointers - properly tracked
+    SPtr<Material> material;
+
+    // Can contain resource handles - properly preserved
+    HMesh mesh;
+    HTexture texture;
+
+    // Can contain other IReflectable objects
+    SPtr<PhysicsData> physics;
+
+    // References are maintained after deserialization!
+    static RTTIType* GetRttiStatic();
+    RTTIType* GetRtti() const override;
+};
+~~~~~~~~~~~~~
+
+## When to use plain types
+
+Use plain types when:
+- The data is simple and self-contained
+- No shared pointers or handles are involved
+- Performance is critical (networking, frequent saves)
+- The data structure is stable and won't change
+- You don't need versioning
+
+~~~~~~~~~~~~~{.cpp}
+// Good use cases for plain types:
+struct Vector3 { float x, y, z; };
+struct Color { u8 r, g, b, a; };
+struct NetworkPacketHeader { u32 id; u16 size; };
+struct ConfigSettings { i32 width; i32 height; bool fullscreen; };
+~~~~~~~~~~~~~
+
+## When to use IReflectable types
+
+Use IReflectable types when:
+- The data contains shared pointers or handles
+- You need to preserve references between objects
+- The data structure may change over time (versioning needed)
+- The type is part of the scene hierarchy (components, resources)
+
+## Mixing plain and IReflectable types
+
+You can use plain types within IReflectable types, but **not** the other way around:
+
+~~~~~~~~~~~~~{.cpp}
+// ✓ OK - IReflectable containing plain types
+class MyComponent : public Component
+{
+    Vector3 position;      // Plain type
+    String name;           // Plain type
+    HMesh mesh;            // Handle (tracked by IReflectable system)
+};
+
+// ✗ BROKEN - Plain type containing IReflectable
+struct BrokenStruct
+{
+    SPtr<MyComponent> component; // Will NOT work - reference lost!
+};
+
+// ✓ OK - Use IReflectable wrapper instead
+class WorkingWrapper : public IReflectable
+{
+    SPtr<MyComponent> component; // Works correctly
+};
+~~~~~~~~~~~~~
+
+# Specializing plain types
+
+Although plain fields are primarily intended for simple built-in types, sometimes they need to be used for complex types. For example, **std::string** is often used as a field type, but it is not a simple built-in type, nor can we make it derive from **IReflectable**. For these purposes, you can specialize @b3d::RTTIPlainType<T>.
+
+Once you specialize this template for your type, implementing all the required methods, you will be able to use your type in plain fields. Without this specialization, the system will refuse to compile the RTTI type.
+
+The specialization involves implementing methods for serialization/deserialization and retrieving object size. 
+
+## Basic RTTIPlainType specialization
+
+For example, if we wanted to serialize a simple struct:
+
 ~~~~~~~~~~~~~{.cpp}
 struct MyStruct
 {
-	int a;
+	i32 a;
 	float b;
 	bool c;
 };
 
-template<> struct RTTIPlainType<MyStruct>
-{	
-	enum { id = 20 }; enum { hasDynamicSize = 0 }; // Provide unique ID, and a flag whether the size of the structure is dynamic.
+template<>
+struct RTTIPlainType<MyStruct>
+{
+	enum { id = 200000 }; // Provide unique ID
+	enum { hasDynamicSize = 0 }; // Flag whether the size is dynamic
 
-	static BitLength toMemory(const MyStruct& data, Bitstream& stream, const RTTIFieldInfo& info, bool compress)
-	{ 
-		uint32_t size = 0;
-
-		// Assume we only want to serialize the first two fields of the structure
-		size += stream.writeBytes(data.a);
-		size += stream.writeBytes(data.b);
-		
-		return size; 
-	}
-
-	static BitLength fromMemory(MyStruct& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
+	static BitLength ToMemory(const MyStruct& data, Bitstream& stream, const RTTIFieldInfo& info, bool compress)
 	{
-		uint32_t size = 0;
-		
-		size += stream.readBytes(data.a);
-		size += stream.readBytes(data.b);
-		
+		BitLength size;
+
+		// Serialize only the first two fields
+		size += stream.WriteBytes(data.a);
+		size += stream.WriteBytes(data.b);
+
 		return size;
 	}
 
-	static BitLength getSize(const std::string& data, const RTTIFieldInfo& fieldInfo, bool compress)
-	{ 
+	static BitLength FromMemory(MyStruct& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
+	{
+		BitLength size;
+
+		size += stream.ReadBytes(data.a);
+		size += stream.ReadBytes(data.b);
+
+		return size;
+	}
+
+	static BitLength GetSize(const MyStruct& data, const RTTIFieldInfo& fieldInfo, bool compress)
+	{
 		return sizeof(data.a) + sizeof(data.b);
-	}	
-}; 
+	}
+};
 ~~~~~~~~~~~~~
 
-Each specialization must implement all three **toMemory()**, **fromMemory()** and **getSize()** methods. It must also provide an unique **id** that identifies the type, as well as a **hasDynamicSize** flag which determines whether or not the field has dynamic size. Any structure whose size varies with each instance (like a string) must set this flag to true. You must also set it to true if the size is fixed, but larger than 256 bytes.
+Each specialization must implement all three **ToMemory()**, **FromMemory()**, and **GetSize()** methods. It must also provide a unique **id** that identifies the type, as well as a **hasDynamicSize** flag.
 
-Both **toMemory()**, **fromMemory()** have a similar signature:
- - **data** - Object that is to be written (**toMemory()**) or object that will receive the results of a read (**fromMemory()**)
- - **stream** - @b3d::Bitstream object that is used for writing or reading the serialized data.
- - **info** - Additional optional information about the field being serialized.
- - **compress** - If true you are allowed to provide a more space efficient encoding for your type. This is generally used for serializing for networking where data sizes are important. When false all written/read data sizes must be in multiples of a byte. If true, data sizes are allowed to be sub-byte sized (e.g. a boolean is allowed to be encoded as a single bit).
- - **return** - The total size of the data that was written or read as a @b3d::BitLength struct that contains the number of full bytes and any used bits in the last byte.
- 
-**getSize()** accepts similar parameters, without the **stream** parameter. It should calculate the size of the data and return it as **BitLength**.
+### Method parameters
 
-You should set **id** to some unique number not used by existing types. Make sure not to clash with built-in type ID's which are all listed as enum values starting with **TID_** (e.g. **TID_Texture = 1001**).
+**ToMemory()** and **FromMemory()** have similar signatures:
+- **data** - Object to write (**ToMemory()**) or object to receive read results (**FromMemory()**)
+- **stream** - @b3d::Bitstream object used for reading/writing serialized data
+- **info** - Optional additional information about the field being serialized (@b3d::RTTIFieldInfo)
+- **compress** - If true, you can provide space-efficient encoding. Used for networking where data size matters. When false, all data sizes must be in multiples of bytes. When true, data can be sub-byte sized (e.g., boolean as 1 bit).
+- **return** - Total size of data written/read as @b3d::BitLength (full bytes + bits in the last byte)
 
-After the specialization is implemented you will be able to use the type in getters/setters for plain fields as you would *int* or *float*. Note that the framework already provides many of such specializations, including ones for strings, vectors and maps.
- 
-## Dynamic size 
-If your structure has dynamic size or is fixed size that is more than 256 bytes you must set the **hasDynamicSize** flag to 1. The size of the structure should be returned from the **getSize()** method. If the size is dynamic you must also encode the size as the first four bytes in a call to **toMemory()**.
+**GetSize()** accepts similar parameters without the **stream** parameter. It should calculate and return the data size as **BitLength**.
 
-For example, you should use **hasDynamicSize** with **String** as each instance will have a different size depending on the string stored. Fields with dynamic size must write the actual size as a header before all encoded data. You can use the helper methods @b3d::B3DRTTIWriteWithSizeHeader to write the data with a header, @b3d::B3DRTTIReadSizeHeader to read the size from the header and @b3d::B3DRTTIAddHeaderSize to calculate the header size.
+### Type ID
 
-For example if we wanted to serialize a string:
+You should set **id** to a unique number not used by existing types. Avoid clashing with built-in type IDs which are listed as enum values starting with **TID_** (e.g., **TID_Texture = 1001**). Use values >= 200000 for custom types.
+
+After the specialization is implemented, you can use the type in plain fields as you would *int* or *float*. Note that the framework already provides many such specializations, including ones for strings, vectors, and maps.
+
+## Dynamic size types
+
+If your structure has dynamic size or is fixed size larger than 256 bytes, you must set the **hasDynamicSize** flag to 1. The size should be returned from the **GetSize()** method. For dynamic size types, you must also encode the size as a header before all data in **ToMemory()**.
+
+Fields with dynamic size must write the actual size as a header before encoded data. You can use helper methods:
+- @b3d::B3DRTTIWriteWithSizeHeader - Write data with a header
+- @b3d::B3DRTTIReadSizeHeader - Read size from the header
+- @b3d::B3DRTTIAddHeaderSize - Calculate header size
+
+For example, serializing a string:
+
 ~~~~~~~~~~~~~{.cpp}
-template<> struct RTTIPlainType<String>
-{	
-	enum { id = 21 }; enum { hasDynamicSize = 1 }; // Provide unique ID, and a flag whether the size of the structure is dynamic.
+template<>
+struct RTTIPlainType<String>
+{
+	enum { id = TID_String };
+	enum { hasDynamicSize = 1 }; // Dynamic size
 
-	static BitLength toMemory(const String& data, Bitstream& stream, const RTTIFieldInfo& info, bool compress)
-	{ 
+	static BitLength ToMemory(const String& data, Bitstream& stream, const RTTIFieldInfo& info, bool compress)
+	{
 		return B3DRTTIWriteWithSizeHeader(stream, data, compress, [&data, &stream]()
 		{
-			stream.writeBytes((uint8_t*)data.data(), data.size());
+			stream.WriteBytes((u8*)data.data(), data.size());
 			return data.size();
 		});
 	}
 
-	static BitLength fromMemory(String& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
+	static BitLength FromMemory(String& data, Bitstream& stream, const RTTIFieldInfo& fieldInfo, bool compress)
 	{
 		BitLength size;
 		BitLength headerSize = B3DRTTIReadSizeHeader(stream, compress, size);
 
-		// 'size' includes the size of the header, so subtract that
+		// 'size' includes the header, so subtract it
 		BitLength stringSize = size - headerSize;
-		data = String(stream.cursor(), stringSize.bytes);
+		data = String(stream.Cursor(), stringSize.Bytes);
+		stream.Skip(stringSize);
 
 		return size;
 	}
 
-	static BitLength getSize(const String& data, const RTTIFieldInfo& fieldInfo, bool compress)
-	{ 
+	static BitLength GetSize(const String& data, const RTTIFieldInfo& fieldInfo, bool compress)
+	{
 		BitLength dataSize = data.size();
-
 		B3DRTTIAddHeaderSize(dataSize, compress);
 		return dataSize;
-	}	
-}; 
+	}
+};
 ~~~~~~~~~~~~~
 
+## RTTIPlainTypeHelper
+
+For most cases, you should use @b3d::RTTIPlainTypeHelper instead of manually implementing RTTIPlainType. This helper simplifies the implementation and provides built-in versioning support.
+
+RTTIPlainTypeHelper allows you to define plain types by simply enumerating the fields to serialize:
+
+~~~~~~~~~~~~~{.cpp}
+struct PlayerData
+{
+	String name;
+	i32 level;
+	float health;
+	Vector3 position;
+};
+
+template<>
+struct RTTIPlainType<PlayerData> : RTTIPlainTypeHelper<PlayerData, TID_PlayerData>
+{
+	template <class Processor>
+	static void RTTIEnumerateFields(PlayerData& data, Processor& processor)
+	{
+		processor(data.name);
+		processor(data.level);
+		processor(data.health);
+		processor(data.position);
+	}
+};
+~~~~~~~~~~~~~
+
+The helper takes care of:
+- Implementing ToMemory/FromMemory/GetSize methods
+- Adding size headers for dynamic data
+- Handling versioning (optional)
+
+### RTTIPlainTypeHelper template parameters
+
+The template accepts up to 4 parameters:
+
+~~~~~~~~~~~~~{.cpp}
+RTTIPlainTypeHelper<SerializedObjectType, TypeId, Version, HasDynamicSize>
+~~~~~~~~~~~~~
+
+- **SerializedObjectType** - Your data type
+- **TypeId** - Unique ID for the type (required)
+- **Version** - Current version number (default: 255 = no versioning)
+- **HasDynamicSize** - 1 for dynamic size, 0 for fixed size (default: 1)
+
+### Versioning with RTTIPlainTypeHelper
+
+To enable versioning, provide a version number and handle different versions in RTTIEnumerateFields:
+
+~~~~~~~~~~~~~{.cpp}
+struct PlayerData
+{
+	String name;
+	i32 level;
+	float health;
+	Vector3 position;
+	i32 mana; // Added in version 1
+};
+
+template<>
+struct RTTIPlainType<PlayerData> : RTTIPlainTypeHelper<PlayerData, TID_PlayerData, 1>
+{
+	template <class Processor>
+	static void RTTIEnumerateFields(PlayerData& data, Processor& processor, u8 version)
+	{
+		// Fields present in all versions
+		processor(data.name);
+		processor(data.level);
+		processor(data.health);
+		processor(data.position);
+
+		// Field added in version 1
+		if (version >= 1)
+			processor(data.mana);
+	}
+};
+~~~~~~~~~~~~~
+
+When deserializing old data (version 0), the `mana` field will be skipped and retain its default value. The version is automatically encoded in the stream.
+
+### Fixed size optimization
+
+If your type has a fixed size ≤ 256 bytes and doesn't contain dynamic data, set HasDynamicSize to 0 for better performance:
+
+~~~~~~~~~~~~~{.cpp}
+struct Vector3Data
+{
+	float x, y, z;
+};
+
+template<>
+struct RTTIPlainType<Vector3Data> : RTTIPlainTypeHelper<Vector3Data, TID_Vector3Data, 255, 0>
+{
+	template <class Processor>
+	static void RTTIEnumerateFields(Vector3Data& data, Processor& processor)
+	{
+		processor(data.x);
+		processor(data.y);
+		processor(data.z);
+	}
+};
+~~~~~~~~~~~~~
+
+> **Note:** With `HasDynamicSize = 0`, no size header is written, saving 4 bytes per instance.
+
 ## Plain old data types
-For very simple structures you can also use the @B3D_ALLOW_MEMCPY_SERIALIZATION macro as a shortcut. It will create a basic **RTTIPlainType<T>** specialization which basically just does a *memcpy()* and uses *sizeof()* to determine the object size.
+
+For very simple structures with no dynamic data, you can use the @B3D_ALLOW_MEMCPY_SERIALIZATION macro as a shortcut. It creates a basic **RTTIPlainType<T>** specialization that uses *memcpy()* and *sizeof()*.
 
 ~~~~~~~~~~~~~{.cpp}
 // Simple plain old data type
 struct SimpleData
 {
-	int some;
+	i32 some;
 	float data;
 	float here;
 };
 
-B3D_ALLOW_MEMCPY_SERIALIZATION(SimpleData)
+B3D_ALLOW_MEMCPY_SERIALIZATION(SimpleData, TID_SimpleData)
 ~~~~~~~~~~~~~
 
+> **Warning:** Only use this macro for trivially copyable types without dynamic data (no strings, vectors, pointers, etc.). For anything more complex, use RTTIPlainTypeHelper instead.
+
 ## Helper methods
-**RTTIPlainType** specializations can also be used as a more traditional form of serialization in case you find the RTTI system an overkill. For example if you needed to transfer data over a network and don't require advanced versioning features. The system provides helper methods that allow you to easily work with plain types in such a case:
- - @b3d::B3DRTTIRead - Deserializes an object from the provided stream, advances the stream cursor and returns number of bytes/bits read
- - @b3d::B3DRTTIWrite - Serializes an object into the provided stream, advances the stream cursor and returns number of bytes/bits written
- - @b3d::B3DRTTISize - Returns a size an object as **BitLength**
- 
+
+**RTTIPlainType** specializations can be used as a traditional form of serialization if you find the RTTI system overkill. For example, for network data transfer without advanced versioning. Helper methods make this easy:
+- @b3d::B3DRTTIRead - Deserialize from stream, advance cursor, return bytes/bits read
+- @b3d::B3DRTTIWrite - Serialize to stream, advance cursor, return bytes/bits written
+- @b3d::B3DRTTISize - Return object size as **BitLength**
+
 ~~~~~~~~~~~~~{.cpp}
-// Assuming Vector has a RTTIPlainType<T> specialization (which it has, b3d::f provides it by default)
+// Assuming Vector has an RTTIPlainType<T> specialization (which it does by default)
 
 Vector<SimpleData> myData;
-// fill out myData
+// Fill out myData...
 
 // Serialize the entire vector and all of its contents
 BitLength size = B3DRTTISize(myData);
 
-Bitstream stream(size.bytes);
+Bitstream stream(size.Bytes);
 B3DRTTIWrite(myData, stream);
 
 // Deserialize the data
-stream.seek(0); // Reset cursor to beginning
+stream.Seek(0); // Reset cursor to beginning
 Vector<SimpleData> myDataCopy;
 B3DRTTIRead(myDataCopy, stream);
 ~~~~~~~~~~~~~
 
-# Querying more RTTI information
-You can manually query the class hierarchy and well as class members from the RTTI type object.
+# File encoders and binary serializers
 
-**RTTIType** queries:
- - @b3d::RTTITypeBase::getBaseClass - Returns the **RTTIType** object of the base class
- - @b3d::RTTITypeBase::getDerivedClasses - Returns a list of **RTTIType** objects for all derived classes
- - @b3d::RTTITypeBase::getNumFields - Returns the number of member fields
- - @b3d::RTTITypeBase::getField - Returns information about a field from its sequential index, in the form of @b3d::RTTIField
- - @b3d::RTTITypeBase::findField - Searches for a field with a specific name and returns information about it in form of **RTTIField**
- 
-**RTTIField** queries:
- - @b3d::RTTIField::isPlainType - Checks if field contains a plain data type. **RTTIField** can then be cast to @b3d::RTTIPlainFieldBase for more operations.
- - @b3d::RTTIField::isReflectableType - Checks if field contains an **IReflectable** data type. **RTTIField** can then be cast to @b3d::RTTIReflectableFieldBase for more operations.
- - @b3d::RTTIField::isReflectablePtrType - Checks if field contains an **IReflectable** pointer data type. **RTTIField** can then be cast to @b3d::RTTIReflectablePtrFieldBase for more operations.
- - @b3d::RTTIField::isArray - Checks if the field contains an array or a single value
- 
+The basic serialization manual showed how to use @b3d::FileEncoder and @b3d::BinarySerializer for simple cases. This section covers advanced usage.
+
+## BinarySerializer options
+
+@b3d::BinarySerializer supports various flags through @b3d::BinarySerializerFlags:
+
 ~~~~~~~~~~~~~{.cpp}
-IReflectable* myObject = ...;
+BinarySerializer bs;
+SPtr<IReflectable> myObject = B3DMakeShared<MyClass>();
+SPtr<MemoryDataStream> stream = B3DMakeShared<MemoryDataStream>();
 
-B3DRTTIIsOfType<Texture>(myObject);
-B3DRTTIIsSubclass<Texture>(myObject);
-B3DRTTICreate(TID_Texture);
-Texture* myTexture = B3DRTTICast<Texture>(myObject);
+// Shallow serialization - don't encode referenced objects
+// Referenced objects will become null when deserialized
+bs.Encode(myObject.get(), stream, BinarySerializerFlag::Shallow);
 
-myObject->getTypeName();
-myObject->getTypeId();
+// Compressed serialization - use sub-byte encoding for smaller size
+// Suitable for networking. Plain types can use bit-level encoding.
+bs.Encode(myObject.get(), stream, BinarySerializerFlag::Compress);
 
-RTTITypeBase* rttiType = myObject->getRTTI();
-rttiType->getBaseClass();
-rttiType->getDerivedClasses();
-rttiType->getNumFields();
-rttiType->getField(index);
+// No metadata - smaller size but requires identical RTTI types for decoding
+// The decoder must have the exact same RTTI structure (same fields, IDs, types)
+bs.Encode(myObject.get(), stream, BinarySerializerFlag::NoMeta);
 
-RTTIField* rttiField = rttiType->findField(name);
-rttiField->isPlainType();
-rttiField->isReflectableType();
-rttiField->isReflectablePtrType();
-rttiField->isArray();
+// Combine flags
+bs.Encode(myObject.get(), stream,
+	BinarySerializerFlag::Compress | BinarySerializerFlag::NoMeta);
 ~~~~~~~~~~~~~
 
-Once you have an instance of a **RTTIField** object, you can also use it to directly read and write values on object instances for that particular field.
+### Shallow serialization
 
-# Advanced serialization
-When implementing **RTTIType<Type, BaseType, MyRTTIType>** can optionally override any of these methods, for additional functionality:
- - @b3d::RTTIType::onSerializationStarted
- - @b3d::RTTIType::onSerializationEnded
- - @b3d::RTTIType::onDeserializationStarted
- - @b3d::RTTIType::onDeserializationEnded
- 
-As their names imply they will get called during serialization/deserialization and allow you to do any pre- or post-processing of the data. Each of those methods accepts an **IReflectable** pointer to the object currently being processed. 
+Use **Shallow** when you want to serialize an object without its referenced objects:
 
-During the calls to those methods, as well as any field getter/setter methods, your instance of the **RTTIType** object is guaranteed to be unique for the instance of the **IReflectable** object it is processing. This means you may use object for temporary data storage during serialization/deserialization.
-
-```
-// RTTI for a Texture class that requires special initialization and checking after
-// deserialization ends
-class B3D_EXPORT TextureRTTI : public RTTIType<Texture, Resource, TextureRTTI>
+~~~~~~~~~~~~~{.cpp}
+class MyClass : public IReflectable
 {
-private:
+	SPtr<Texture> texture; // Won't be serialized with Shallow flag
+	i32 someValue; // Will be serialized
+};
 
-	// The setter doesn't write to Texture directly, instead it just stores the
-	// data in temporary field
-	void setPixelData(Texture* obj, SPtr<PixelData> data) { mPixelData = data; }
-	
-	SPtr<PixelData> getPixelData(Texture* obj) { /* Not relevant */ return ...; };	
+BinarySerializer bs;
+bs.Encode(myObject.get(), stream, BinarySerializerFlag::Shallow);
+// After deserialization, texture will be null
+~~~~~~~~~~~~~
+
+### Compressed serialization
+
+Use **Compress** for network transmission or to reduce file size:
+
+~~~~~~~~~~~~~{.cpp}
+// Encode with compression
+bs.Encode(myObject.get(), stream, BinarySerializerFlag::Compress);
+
+// Must decode with the same flag
+SPtr<IReflectable> decoded = bs.Decode(stream, stream->Size(), BinarySerializerFlag::Compress);
+~~~~~~~~~~~~~
+
+When **Compress** is true, the `compress` parameter in **RTTIPlainType::ToMemory()/FromMemory()** will be true, allowing those types to use bit-level encoding.
+
+### No metadata serialization
+
+Use **NoMeta** when you need minimal serialization size and can guarantee RTTI types are identical:
+
+~~~~~~~~~~~~~{.cpp}
+// Encode without metadata
+bs.Encode(myObject.get(), stream, BinarySerializerFlag::NoMeta);
+
+// Decode without metadata - RTTI types must match exactly
+SPtr<IReflectable> decoded = bs.Decode(stream, stream->Size(), BinarySerializerFlag::NoMeta);
+~~~~~~~~~~~~~
+
+> **Warning**: NoMeta is fragile. If you add, remove, or reorder fields in the RTTI type, deserialization will fail or produce corrupted data. Only use this for temporary serialization (e.g., networking within the same game version).
+
+## Using RTTI schemas
+
+When using **NoMeta**, you can optionally provide a saved @b3d::RTTISchema that describes the types as they were when data was encoded. This allows decoding even if RTTI types have changed:
+
+~~~~~~~~~~~~~{.cpp}
+BinarySerializer bs;
+
+// Encode without metadata
+bs.Encode(myObject.get(), stream, BinarySerializerFlag::NoMeta);
+
+// Save the current RTTI schema
+SPtr<RTTISchema> schema = myObject->GetRtti()->GetSchema();
+
+// Later, decode using the saved schema
+SPtr<IReflectable> decoded = bs.Decode(stream, stream->Size(),
+	BinarySerializerFlag::NoMeta, nullptr, schema);
+~~~~~~~~~~~~~
+
+## Serialization contexts
+
+You can pass custom context objects to serialization operations to share state between RTTI types:
+
+~~~~~~~~~~~~~{.cpp}
+// Create a custom context
+struct MySerializationContext : RTTIOperationContext
+{
+	bool SomeFlag = true;
+	String SharedData = "test";
+	UnorderedMap<UUID, SPtr<Resource>> ResourceCache;
+};
+
+MySerializationContext context;
+
+// Pass context to encode
+BinarySerializer bs;
+bs.Encode(myObject.get(), stream, context);
+
+// Access context in RTTI class:
+class MyComponentRTTI : public TRTTIType<MyComponent, Component, MyComponentRTTI>
+{
+	void OnOperationStarted(MyComponent& object, RTTIOperationTypeFlags operationType, RTTIOperationContext& context) override
+	{
+		auto* myContext = context.As<MySerializationContext>();
+		if (myContext && myContext->SomeFlag)
+		{
+			// Access shared data, caches, etc.
+			SPtr<Resource> resource = myContext->ResourceCache[someId];
+		}
+	}
+};
+~~~~~~~~~~~~~
+
+Contexts are useful for:
+- Sharing caches between objects during serialization
+- Passing configuration flags to control serialization behavior
+- Collecting statistics or diagnostic information
+- Coordinating between multiple RTTI types
+
+## FileEncoder
+
+@b3d::FileEncoder/Decoder work similarly to BinarySerializer but handle file I/O directly:
+
+~~~~~~~~~~~~~{.cpp}
+// Encode to file
+FileEncoder encoder("Path/To/My/File.asset");
+encoder.Encode(myObject.get());
+
+// Decode from file
+FileDecoder decoder("Path/To/My/File.asset");
+SPtr<IReflectable> myObjectCopy = decoder.Decode();
+~~~~~~~~~~~~~
+
+FileEncoder doesn't support the same flag system as BinarySerializer, but it automatically handles file creation, buffering, and error checking.
+
+# Operation notifications
+
+RTTI types can override notification methods to be called when serialization operations begin and end:
+
+~~~~~~~~~~~~~{.cpp}
+class MyComponentRTTI : public TRTTIType<MyComponent, Component, MyComponentRTTI>
+{
+	void OnOperationStarted(MyComponent& object, RTTIOperationTypeFlags operationType, RTTIOperationContext& context) override
+	{
+		// Called before serialization/deserialization
+		if (operationType.IsSet(RTTIOperationType::Serialization))
+		{
+			// Prepare for serialization (e.g., collect data)
+		}
+		else if (operationType.IsSet(RTTIOperationType::Deserialization))
+		{
+			// Prepare for deserialization (e.g., allocate resources)
+		}
+		else if (operationType.IsSet(RTTIOperationType::DeltaGenerate))
+		{
+			// Preparing to generate delta between objects
+		}
+	}
+
+	void OnOperationEnded(MyComponent& object, RTTIOperationTypeFlags operationType, RTTIOperationContext& context) override
+	{
+		// Called after serialization/deserialization
+		if (operationType.IsSet(RTTIOperationType::Deserialization))
+		{
+			// Finalize deserialization (e.g., register with managers, initialize)
+			object.Initialize();
+		}
+	}
+};
+~~~~~~~~~~~~~
+
+## Operation types
+
+@b3d::RTTIOperationType includes:
+- **Serialization** - Reading object data for encoding
+- **Deserialization** - Writing data to create/update an object
+- **DeltaGenerate** - Generating delta between objects
+- **DeltaApply** - Applying delta to an object
+- **GatherReferences** - Finding referenced objects
+- **Patch** - Updating fields on a pre-existing object
+
+Each operation type has flags:
+- **ReadBit** - Operation reads from RTTI fields
+- **WriteBit** - Operation writes to RTTI fields
+- **PreExistingObjectBit** - Operation targets a pre-existing object (not newly created)
+
+~~~~~~~~~~~~~{.cpp}
+void OnOperationStarted(MyComponent& object, RTTIOperationTypeFlags operationType, RTTIOperationContext& context) override
+{
+	if (operationType.IsSet(RTTIOperationType::ReadBit))
+	{
+		// Any read operation (Serialization, DeltaGenerate, GatherReferences)
+	}
+
+	if (operationType.IsSet(RTTIOperationType::WriteBit))
+	{
+		// Any write operation (Deserialization, DeltaApply, Patch)
+	}
+
+	if (operationType.IsSet(RTTIOperationType::PreExistingObjectBit))
+	{
+		// Object already exists, don't initialize
+	}
+}
+~~~~~~~~~~~~~
+
+## Temporary data storage
+
+During operation notifications and field getter/setter calls, your **RTTIType** instance is unique to the object being processed. You can use it for temporary data storage:
+
+~~~~~~~~~~~~~{.cpp}
+class TextureRTTI : public TRTTIType<Texture, Resource, TextureRTTI>
+{
+	// Temporary storage
+	SPtr<PixelData> mPixelData;
+
+	UPtrRTTIIterator<SPtr<PixelData>, false> GetPixelDataIterator(Texture& obj, FrameAllocator& allocator)
+	{
+		return CreateRTTIIterator<SPtr<PixelData>, false>(allocator, mPixelData);
+	}
+
+	const SPtr<PixelData>& GetPixelDataValue(Texture& obj, FrameAllocator& allocator, TRTTIIterator<SPtr<PixelData>, false>& iterator)
+	{
+		// Read from actual texture
+		mPixelData = obj.GetPixelData();
+		return mPixelData;
+	}
+
+	void SetPixelDataValue(Texture& obj, FrameAllocator& allocator, TRTTIIterator<SPtr<PixelData>, false>& iterator, const SPtr<PixelData>& value)
+	{
+		// Store in temporary field, not directly in texture
+		mPixelData = value;
+	}
+
+	B3D_RTTI_BEGIN_MEMBERS
+	B3D_RTTI_END_MEMBERS
 
 public:
 	TextureRTTI()
 	{
-		addReflectablePtrField("mPixelData", 0, 
-			&TextureRTTI::getPixelData, &TextureRTTI::setPixelData);
+		AddField<TextureRTTI, Texture, SPtr<PixelData>>(
+			"mPixelData", 0,
+			&TextureRTTI::GetPixelDataIterator,
+			&TextureRTTI::GetPixelDataValue,
+			&TextureRTTI::SetPixelDataValue);
 	}
 
-	void onDeserializationEnded(IReflectable* obj, SerializationContext* context) override
+	void OnOperationEnded(Texture& object, RTTIOperationTypeFlags operationType, RTTIOperationContext& context) override
 	{
-		Texture* texture = static_cast<Texture*>(obj);
-		
-		// Initialize the texture now that all fields have been deserialized
-		texture->initialize();
-		
-		// Check if the pixel data matches our texture and write the data from
-		// our temporary field
-		
-		// Do the checks
-		...
-		
-		texture->writeData(mPixelData);
+		if (operationType.IsSet(RTTIOperationType::Deserialization))
+		{
+			// Initialize the texture now that all fields are deserialized
+			object.Initialize();
+
+			// Validate and write pixel data from our temporary field
+			if (mPixelData && mPixelData->IsValid())
+				object.WriteData(mPixelData);
+		}
 	}
 
-	// RTTIType boilerplate (name, id, newRTTIObject)
-	...
-	
-private:
-	// Temporary storage to be used during deserialization
-	SPtr<PixelData> mPixelData;
+	// ... GetRttiName, GetRttiId, NewRttiObject ...
 };
-```
+~~~~~~~~~~~~~
+
+# Versioning
+
+RTTI provides robust versioning through field IDs. When you modify a class structure, follow these rules:
+
+## Adding fields
+
+Simply add new fields with new unique IDs:
+
+~~~~~~~~~~~~~{.cpp}
+// Version 1
+class MyComponentRTTI : public TRTTIType<MyComponent, Component, MyComponentRTTI>
+{
+	B3D_RTTI_BEGIN_MEMBERS
+		B3D_RTTI_MEMBER(myInt, 0)
+		B3D_RTTI_MEMBER(myFloat, 1)
+	B3D_RTTI_END_MEMBERS
+	// ...
+};
+
+// Version 2 - Added new field
+class MyComponentRTTI : public TRTTIType<MyComponent, Component, MyComponentRTTI>
+{
+	B3D_RTTI_BEGIN_MEMBERS
+		B3D_RTTI_MEMBER(myInt, 0)
+		B3D_RTTI_MEMBER(myFloat, 1)
+		B3D_RTTI_MEMBER(myString, 2) // New field with new ID
+	B3D_RTTI_END_MEMBERS
+	// ...
+};
+~~~~~~~~~~~~~
+
+When deserializing old data, `myString` will be initialized to its default value.
+
+## Removing fields
+
+Never reuse field IDs of removed fields:
+
+~~~~~~~~~~~~~{.cpp}
+// Version 1
+class MyComponentRTTI : public TRTTIType<MyComponent, Component, MyComponentRTTI>
+{
+	B3D_RTTI_BEGIN_MEMBERS
+		B3D_RTTI_MEMBER(myInt, 0)
+		B3D_RTTI_MEMBER(myFloat, 1)
+		B3D_RTTI_MEMBER(deprecated, 2)
+	B3D_RTTI_END_MEMBERS
+	// ...
+};
+
+// Version 2 - Removed 'deprecated' field
+class MyComponentRTTI : public TRTTIType<MyComponent, Component, MyComponentRTTI>
+{
+	B3D_RTTI_BEGIN_MEMBERS
+		B3D_RTTI_MEMBER(myInt, 0)
+		B3D_RTTI_MEMBER(myFloat, 1)
+		// ID 2 is retired, never reuse it
+		B3D_RTTI_MEMBER(myNewField, 3) // Use new ID
+	B3D_RTTI_END_MEMBERS
+	// ...
+};
+~~~~~~~~~~~~~
+
+When deserializing old data with the removed field, it will be ignored.
+
+## Changing field types
+
+If you change the type of a field, assign it a new ID:
+
+~~~~~~~~~~~~~{.cpp}
+// Version 1
+class MyComponentRTTI : public TRTTIType<MyComponent, Component, MyComponentRTTI>
+{
+	B3D_RTTI_BEGIN_MEMBERS
+		B3D_RTTI_MEMBER(myValue, 0) // u32
+	B3D_RTTI_END_MEMBERS
+	// ...
+};
+
+// Version 2 - Changed myValue from u32 to float
+class MyComponentRTTI : public TRTTIType<MyComponent, Component, MyComponentRTTI>
+{
+	B3D_RTTI_BEGIN_MEMBERS
+		// ID 0 is retired
+		B3D_RTTI_MEMBER(myValue, 1) // Now float, new ID
+	B3D_RTTI_END_MEMBERS
+	// ...
+};
+~~~~~~~~~~~~~
+
+## Custom migration
+
+For complex migrations, use operation notifications:
+
+~~~~~~~~~~~~~{.cpp}
+class MyComponentRTTI : public TRTTIType<MyComponent, Component, MyComponentRTTI>
+{
+	// Temporary field to read old data
+	u32 mOldValue;
+
+	B3D_RTTI_BEGIN_MEMBERS
+		// Read old field into temporary storage
+		B3D_RTTI_GENERATED_MEMBER(mOldValue, 0)
+		// New field
+		B3D_RTTI_MEMBER(myNewValue, 1)
+	B3D_RTTI_END_MEMBERS
+
+public:
+	void OnOperationEnded(MyComponent& object, RTTIOperationTypeFlags operationType, RTTIOperationContext& context) override
+	{
+		if (operationType.IsSet(RTTIOperationType::Deserialization))
+		{
+			// Migrate old value to new format if it was present
+			if (mOldValue != 0)
+			{
+				object.myNewValue = ConvertOldToNew(mOldValue);
+			}
+		}
+	}
+
+	// ... GetRttiName, GetRttiId, NewRttiObject ...
+};
+~~~~~~~~~~~~~
+
+# Querying RTTI information
+
+You can manually query class hierarchy and fields from the RTTI type object.
+
+## RTTIType queries
+
+@b3d::RTTIType queries:
+- @b3d::RTTIType::GetBaseClass - Returns the **RTTIType** object of the base class
+- @b3d::RTTIType::GetDerivedClasses - Returns a list of **RTTIType** objects for all derived classes
+- @b3d::RTTIType::GetFieldCount - Returns the number of member fields
+- @b3d::RTTIType::GetField - Returns field information from its sequential index (@b3d::RTTIField)
+- @b3d::RTTIType::FindField - Searches for a field by name and returns **RTTIField**
+
+~~~~~~~~~~~~~{.cpp}
+IReflectable* myObject = ...;
+
+RTTIType* rttiType = myObject->GetRtti();
+
+// Query type hierarchy
+RTTIType* baseType = rttiType->GetBaseClass();
+Vector<RTTIType*>& derivedTypes = rttiType->GetDerivedClasses();
+
+// Query fields
+u32 fieldCount = rttiType->GetFieldCount();
+for (u32 i = 0; i < fieldCount; i++)
+{
+	RTTIField* field = rttiType->GetField(i);
+	B3D_LOG(Info, Generic, "Field: {0}", field->GetName());
+}
+
+// Find specific field
+RTTIField* field = rttiType->FindField("myInt");
+~~~~~~~~~~~~~
+
+## RTTIField queries
+
+@b3d::RTTIField queries:
+- @b3d::RTTIField::IsPlainType - Checks if field contains plain data
+- @b3d::RTTIField::IsReflectableType - Checks if field contains **IReflectable** data
+- @b3d::RTTIField::IsReflectablePtrType - Checks if field contains **IReflectable** pointer
+- @b3d::RTTIField::IsArray - Checks if the field contains an array or single value
+- @b3d::RTTIField::GetFlags - Returns field flags (@b3d::RTTIFieldFlags)
+
+~~~~~~~~~~~~~{.cpp}
+RTTIField* field = rttiType->FindField("myInt");
+
+if (field->IsPlainType())
+{
+	// Can cast to RTTIPlainFieldBase for plain operations
+}
+
+if (field->IsReflectableType())
+{
+	// Can cast to RTTIReflectableFieldBase
+}
+
+if (field->IsArray())
+{
+	// Field is a container
+}
+
+RTTIFieldFlags flags = field->GetFlags();
+if (flags.IsSet(RTTIFieldFlag::WeakRef))
+{
+	// Field is a weak reference
+}
+~~~~~~~~~~~~~
+
+## Global RTTI queries
+
+Global helper functions:
+- @b3d::B3DRTTIIsOfType - Checks if object is exactly type *T*
+- @b3d::B3DRTTIIsSubclass - Checks if object is derived from type *T*
+- @b3d::B3DRTTICreate - Creates new object from type ID
+- @b3d::B3DRTTICast - Casts object to specified type (returns null if invalid)
+
+~~~~~~~~~~~~~{.cpp}
+IReflectable* myObject = ...;
+
+// Type checking
+if (B3DRTTIIsOfType<Texture>(myObject))
+{
+	// Object is exactly a Texture
+}
+
+if (B3DRTTIIsSubclass<Resource>(myObject))
+{
+	// Object is a Resource or derived from Resource
+}
+
+// Create object from type ID
+SPtr<IReflectable> newObj = B3DRTTICreate(TID_Texture);
+
+// Safe casting
+Texture* texture = B3DRTTICast<Texture>(myObject);
+if (texture)
+{
+	// Cast succeeded
+}
+~~~~~~~~~~~~~
+
+## IReflectable queries
+
+@b3d::IReflectable provides direct queries:
+- @b3d::IReflectable::GetTypeName - Gets type name
+- @b3d::IReflectable::GetTypeId - Gets type ID
+- @b3d::IReflectable::GetRtti - Gets **RTTIType** object
+- @b3d::IReflectable::IsDerivedFrom - Checks inheritance
+
+~~~~~~~~~~~~~{.cpp}
+IReflectable* myObject = ...;
+
+String typeName = myObject->GetTypeName();
+u32 typeId = myObject->GetTypeId();
+RTTIType* rtti = myObject->GetRtti();
+
+if (myObject->IsDerivedFrom(Texture::GetRttiStatic()))
+{
+	// Object derives from Texture
+}
+~~~~~~~~~~~~~
+
+# Data block fields
+
+For raw binary data, use data block fields with @b3d::TRTTIType::AddDataBlockField. These fields are optimized for large binary blobs and provide streaming capabilities:
+
+~~~~~~~~~~~~~{.cpp}
+class MyComponent : public Component
+{
+public:
+	Vector<u8> mRawData;
+	u32 mDataSize;
+	u32 mDataOffset;
+};
+
+class MyComponentRTTI : public TRTTIType<MyComponent, Component, MyComponentRTTI>
+{
+	SPtr<DataStream> GetRawData(MyComponent* obj, u32& size)
+	{
+		size = (u32)obj->mRawData.size();
+		return B3DMakeShared<MemoryDataStream>(obj->mRawData.data(), size);
+	}
+
+	void SetRawData(MyComponent* obj, const SPtr<DataStream>& data, u32 size)
+	{
+		obj->mRawData.resize(size);
+		data->Read(obj->mRawData.data(), size);
+	}
+
+	B3D_RTTI_BEGIN_MEMBERS
+	B3D_RTTI_END_MEMBERS
+
+public:
+	MyComponentRTTI()
+	{
+		AddDataBlockField("rawData", 0,
+			&MyComponentRTTI::GetRawData,
+			&MyComponentRTTI::SetRawData);
+	}
+
+	// ... GetRttiName, GetRttiId, NewRttiObject ...
+};
+~~~~~~~~~~~~~
+
+The setter receives a @b3d::DataStream that can be read from or cloned for later use. When deserializing streaming resources (like audio clips), you can store the stream directly instead of reading all data immediately. The stream maintains its read position, allowing you to read incrementally or defer loading:
+
+~~~~~~~~~~~~~{.cpp}
+class AudioClipRTTI : public TRTTIType<AudioClip, Resource, AudioClipRTTI>
+{
+	void SetData(AudioClip* obj, const SPtr<DataStream>& stream, u32 size)
+	{
+		// Clone the stream to avoid modifying the deserializer's stream
+		obj->mStreamData = stream->Clone();
+		obj->mStreamSize = size;
+
+		// Store the current position for later streaming
+		obj->mStreamOffset = (u32)stream->Tell();
+
+		// Data can now be read on-demand during playback
+	}
+};
+~~~~~~~~~~~~~
+
+This approach is particularly useful for resources that don't need all data in memory at once (streaming audio, texture mipmaps, large meshes). The cloned stream can be read from incrementally during runtime without blocking deserialization.

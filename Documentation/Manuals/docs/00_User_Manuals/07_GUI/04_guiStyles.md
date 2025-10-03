@@ -27,7 +27,7 @@ Once a skin has been created you must assign it to a **GUIWidget** by calling @b
 
 ~~~~~~~~~~~~~{.cpp}
 HSceneObject guiSO = SceneObject::create("GUI");
-HGUIWidget gui = guiSO->addComponent<CGUIWidget>(camera);
+HGUIWidget gui = guiSO->addComponent<GUIWidget>(camera);
 
 gui->setSkin(skin);
 ~~~~~~~~~~~~~

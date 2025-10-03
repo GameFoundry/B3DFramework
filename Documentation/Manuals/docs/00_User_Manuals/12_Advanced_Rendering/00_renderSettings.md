@@ -2,7 +2,7 @@
 title: Render settings
 ---
 
-@b3d::RenderSettings is an object present on every **Camera** object. It can be retrieved through @b3d::CCamera::getRenderSettings() and allows you to customize what rendering effects are executed when rendering the scene through that view. 
+@b3d::RenderSettings is an object present on every **Camera** object. It can be retrieved through @b3d::Camera::getRenderSettings() and allows you to customize what rendering effects are executed when rendering the scene through that view. 
 
 For complete list of tweakable properties check the API reference, and here we'll just cover the main points.
 

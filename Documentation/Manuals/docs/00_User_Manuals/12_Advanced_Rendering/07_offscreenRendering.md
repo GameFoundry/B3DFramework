@@ -61,7 +61,7 @@ To render to a render texture you can assign it to a **Viewport** that's part of
 
 ~~~~~~~~~~~~~{.cpp}
 HSceneObject cameraSO = SceneObject::create("Camera");
-HCamera camera = cameraSO->addComponent<CCamera>();
+HCamera camera = cameraSO->addComponent<Camera>();
 camera->getViewport()->setTarget(renderTexture);
 ~~~~~~~~~~~~~
 
