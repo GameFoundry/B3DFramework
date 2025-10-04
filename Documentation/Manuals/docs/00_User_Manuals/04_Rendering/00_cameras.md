@@ -11,8 +11,8 @@ Finally, everything that the camera sees is output to what we call a render targ
 Cameras are represented by the @b3d::Camera component, and they can be created as any other component.
 
 ~~~~~~~~~~~~~{.cpp}
-HSceneObject cameraSO = SceneObject::Create("Camera");
-HCamera camera = cameraSO->AddComponent<Camera>();
+HSceneObject cameraSceneObject = SceneObject::Create("Camera");
+HCamera camera = cameraSceneObject->AddComponent<Camera>();
 ~~~~~~~~~~~~~
 
 Before the camera can render anything, you need to assign the render target to which the camera will output its contents to. Lets create a camera that renders to the primary render window. The primary application window can be retrieved through @b3d::Application::GetPrimaryWindow.
@@ -35,10 +35,10 @@ camera->SetMain(true);
 Once the camera has been created we can move and orient it using the **SceneObject** transform, as explained earlier. For example:
 ~~~~~~~~~~~~~{.cpp}
 // Move camera to 10 meters height, and 50 meters away from the center
-cameraSO->SetPosition(Vector3(0.0f, 10.0f, 50.0f));
+cameraSceneObject->SetPosition(Vector3(0.0f, 10.0f, 50.0f));
 
 // Orient the camera so it is looking at the center
-cameraSO->LookAt(Vector3(0.0f, 0.0f, 0.0f));
+cameraSceneObject->LookAt(Vector3(0.0f, 0.0f, 0.0f));
 ~~~~~~~~~~~~~
 
 Once set up, any rendered objects in the camera's view will be displayed on the selected render target, which is in this case the primary application window.
@@ -83,9 +83,9 @@ Normally you want to set it to the ratio of the render target's width and height
 
 ~~~~~~~~~~~~~{.cpp}
 SPtr<RenderWindow> primaryWindow = GetApplication().GetPrimaryWindow();
-const auto& windowProps = primaryWindow->GetRenderWindowProperties();
+const auto& windowProperties = primaryWindow->GetRenderWindowProperties();
 
-float aspectRatio = windowProps.Width / (float)windowProps.Height;
+float aspectRatio = windowProperties.Width / (float)windowProperties.Height;
 camera->SetAspectRatio(aspectRatio);
 ~~~~~~~~~~~~~
 
@@ -183,21 +183,21 @@ Cameras provide many methods for converting between different coordinate spaces:
 
 ~~~~~~~~~~~~~{.cpp}
 // World to screen
-Vector3 worldPos(10.0f, 5.0f, 0.0f);
-Vector2I screenPos = camera->WorldToScreenPoint(worldPos);
+Vector3 worldPoint(10.0f, 5.0f, 0.0f);
+Vector2I screenPoint = camera->WorldToScreenPoint(worldPoint);
 
 // Screen to world
-Vector3 worldPoint = camera->ScreenToWorldPoint(screenPos, 10.0f); // 10.0f is depth
+Vector3 worldPoint = camera->ScreenToWorldPoint(screenPoint, 10.0f); // 10.0f is depth
 
 // Screen to ray (useful for picking)
-Ray ray = camera->ScreenPointToRay(screenPos);
+Ray ray = camera->ScreenPointToRay(screenPoint);
 
 // World to view space
-Vector3 viewPos = camera->WorldToViewPoint(worldPos);
+Vector3 viewPoint = camera->WorldToViewPoint(worldPoint);
 
 // Normalized device coordinates (NDC)
-Vector2 ndcPos = camera->WorldToNDCPoint(worldPos);
-Vector3 worldFromNDC = camera->NDCToWorldPoint(ndcPos, 10.0f);
+Vector2 ndcPoint = camera->WorldToNDCPoint(worldPoint);
+Vector3 worldFromNDC = camera->NDCToWorldPoint(ndcPoint, 10.0f);
 ~~~~~~~~~~~~~
 
 # Custom projection and view matrices

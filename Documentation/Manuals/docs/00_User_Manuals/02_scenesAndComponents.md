@@ -13,13 +13,13 @@ Let's see an example where we add a single scene object to the scene, position i
 ~~~~~~~~~~~~~{.cpp}
 // Create a brand new scene object named "My Object". It is placed at the root
 // of the scene hierarchy, at position (0, 0, 0)
-HSceneObject so = SceneObject::Create("My Object");
+HSceneObject sceneObject = SceneObject::Create("My Object");
 
 // Change position of the object
-so->SetPosition(Vector3(0, 30, 0));
+sceneObject->SetPosition(Vector3(0, 30, 0));
 
 // Add a Renderable component to the scene object
-HRenderable renderable = so->AddComponent<Renderable>();
+HRenderable renderable = sceneObject->AddComponent<Renderable>();
 ~~~~~~~~~~~~~
 
 > As a convention, almost all complex classes in the framework use the static **Create** method as a way to create new objects. More simple classes and structures, like **Vector3**, use the traditional constructors instead.
@@ -33,18 +33,18 @@ Scene objects are always referenced using the **HSceneObject** handle, while com
 You may treat the handles as pointers, using "->" to access their members, comparing them for equality or with *nullptr* to check their validity.
 
 ~~~~~~~~~~~~~{.cpp}
-HSceneObject so = SceneObject::Create("My Object");
+HSceneObject sceneObject = SceneObject::Create("My Object");
 
 // Check if handle is valid
-if (so.IsValid())
+if (sceneObject.IsValid())
 {
     // Access members using ->
-    so->SetPosition(Vector3(0, 30, 0));
+    sceneObject->SetPosition(Vector3(0, 30, 0));
 }
 
 // Compare handles
-HSceneObject so2 = SceneObject::Create("Another Object");
-if (so == so2)
+HSceneObject anotherObject = SceneObject::Create("Another Object");
+if (sceneObject == anotherObject)
 {
     // Same object
 }
@@ -58,27 +58,27 @@ If you wish to destroy a scene object call @b3d::SceneObject::Destroy. Note that
 
 ~~~~~~~~~~~~~{.cpp}
 // Create a scene object
-HSceneObject so = SceneObject::Create("My Object");
+HSceneObject sceneObject = SceneObject::Create("My Object");
 
 // Destroy the scene object
-so->Destroy();
+sceneObject->Destroy();
 ~~~~~~~~~~~~~
 
 By default, object destruction is delayed until the end of the current frame. If you need immediate destruction, you can pass `true` as a parameter:
 
 ~~~~~~~~~~~~~{.cpp}
 // Destroy immediately
-so->Destroy(true);
+sceneObject->Destroy(true);
 ~~~~~~~~~~~~~
 
 Handles provide safety when referencing game objects. If the referenced object is destroyed, the handle automatically becomes invalid and you can check this using the @b3d::GameObjectHandleBase::IsDestroyed method or by comparing with nullptr.
 
 ~~~~~~~~~~~~~{.cpp}
-HSceneObject so = SceneObject::Create("My Object");
-so->Destroy();
+HSceneObject sceneObject = SceneObject::Create("My Object");
+sceneObject->Destroy();
 
 // Check if the object has been destroyed
-if (!so.IsValid())
+if (!sceneObject.IsValid())
 {
     // Object is no longer valid
 }
@@ -91,16 +91,16 @@ You can change scene object position, orientation and scale using @b3d::SceneObj
 Components attached to scene objects will reflect the scene object transform. For example, moving a scene object with a **Renderable** component will make the 3D mesh referenced by **Renderable** display in a different location in the scene.
 
 ~~~~~~~~~~~~~{.cpp}
-HSceneObject so = SceneObject::Create("My Object");
+HSceneObject sceneObject = SceneObject::Create("My Object");
 
 // Move the object to 30 units on the X axis
-so->SetPosition(Vector3(30, 0, 0));
+sceneObject->SetPosition(Vector3(30, 0, 0));
 
 // Rotate 90 degrees around the Y axis
-so->SetRotation(Quaternion(Degree(0), Degree(90), Degree(0)));
+sceneObject->SetRotation(Quaternion(Degree(0), Degree(90), Degree(0)));
 
 // Double its size
-so->SetScale(Vector3(2.0f, 2.0f, 2.0f));
+sceneObject->SetScale(Vector3(2.0f, 2.0f, 2.0f));
 ~~~~~~~~~~~~~
 
 Internally these methods manipulate a @b3d::Transform object. You can also retrieve the transform from a scene object and manipulate it directly for greater control. To retrieve the world-space transform call @b3d::SceneObject::GetTransform.
@@ -109,13 +109,13 @@ There are also other useful methods when it comes to dealing with scene object p
 
 ~~~~~~~~~~~~~{.cpp}
 // Move the object relative to its current position
-so->Move(Vector3(10, 0, 0));
+sceneObject->Move(Vector3(10, 0, 0));
 
 // Make the object look at a specific point
-so->LookAt(Vector3(100, 0, 100));
+sceneObject->LookAt(Vector3(100, 0, 100));
 
 // Rotate the object relative to its current rotation
-so->Rotate(Vector3(0, Degree(45), 0));
+sceneObject->Rotate(Vector3(0, Degree(45), 0));
 ~~~~~~~~~~~~~
 
 # Scene object hierarchy
@@ -174,13 +174,13 @@ You may retrieve existing components by calling @b3d::SceneObject::GetComponent<
 Components can be removed by calling the @b3d::Component::Destroy method on the component.
 
 ~~~~~~~~~~~~~{.cpp}
-HSceneObject so = SceneObject::Create("My Object");
+HSceneObject sceneObject = SceneObject::Create("My Object");
 
 // Add a Renderable component to the scene object
-HRenderable renderable = so->AddComponent<Renderable>();
+HRenderable renderable = sceneObject->AddComponent<Renderable>();
 
 // Find an existing component
-HRenderable existingRenderable = so->GetComponent<Renderable>();
+HRenderable existingRenderable = sceneObject->GetComponent<Renderable>();
 
 // Destroy the component
 renderable->Destroy();
@@ -223,8 +223,8 @@ public:
 Components can be enabled or disabled using @b3d::Component::SetEnabled. Disabled components do not receive Update() or FixedUpdate() calls.
 
 ~~~~~~~~~~~~~{.cpp}
-HSceneObject so = SceneObject::Create("My Object");
-HRenderable renderable = so->AddComponent<Renderable>();
+HSceneObject sceneObject = SceneObject::Create("My Object");
+HRenderable renderable = sceneObject->AddComponent<Renderable>();
 
 // Disable the component
 renderable->SetEnabled(false);
@@ -285,7 +285,7 @@ A **SceneInstance** represents an active, running scene in your game. It manages
 SPtr<SceneInstance> sceneInstance = SceneInstance::Create("MyScene");
 
 // Create scene objects within the scene instance
-HSceneObject obj = sceneInstance->CreateSceneObject("MyObject");
+HSceneObject sceneObject = sceneInstance->CreateSceneObject("MyObject");
 
 // Get the root object of the scene instance
 HSceneObject root = sceneInstance->GetRoot();

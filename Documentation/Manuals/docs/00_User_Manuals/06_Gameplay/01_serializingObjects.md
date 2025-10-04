@@ -330,12 +330,12 @@ SPtr<IReflectable> myObjectCopy = decoder.Decode();
 ~~~~~~~~~~~~~{.cpp}
 SPtr<IReflectable> myObject = B3DMakeShared<MyClass>();
 
-BinarySerializer bs;
+BinarySerializer binarySerializer;
 SPtr<MemoryDataStream> stream = B3DMakeShared<MemoryDataStream>();
-bs.Encode(myObject.get(), stream);
+binarySerializer.Encode(myObject.get(), stream);
 
 stream->Seek(0);
-SPtr<IReflectable> myObjectCopy = bs.Decode(stream, stream->Size());
+SPtr<IReflectable> myObjectCopy = binarySerializer.Decode(stream, stream->Size());
 ~~~~~~~~~~~~~
 
 > For advanced serialization options, contexts, and detailed control over the serialization process, see the [Advanced RTTI](../14_advancedRtti.md) manual.

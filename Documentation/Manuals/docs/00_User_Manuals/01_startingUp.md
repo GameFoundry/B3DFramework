@@ -61,8 +61,8 @@ We will go into much more detail about components in the next manual, but a quic
 
 ~~~~~~~~~~~~~{.cpp}
 // Add a scene object containing a camera component
-HSceneObject sceneCameraSO = SceneObject::Create("SceneCamera");
-HCamera sceneCamera = sceneCameraSO->AddComponent<Camera>();
+HSceneObject cameraSceneObject = SceneObject::Create("SceneCamera");
+HCamera sceneCamera = cameraSceneObject->AddComponent<Camera>();
 
 // Get the primary window for rendering
 SPtr<RenderWindow> window = GetApplication().GetPrimaryWindow();
@@ -71,8 +71,8 @@ SPtr<RenderWindow> window = GetApplication().GetPrimaryWindow();
 sceneCamera->GetViewport()->SetTarget(window);
 
 // Position the camera
-sceneCameraSO->SetPosition(Vector3(0.0f, 1.0f, 5.0f));
-sceneCameraSO->LookAt(Vector3(0.0f, 0.0f, 0.0f));
+cameraSceneObject->SetPosition(Vector3(0.0f, 1.0f, 5.0f));
+cameraSceneObject->LookAt(Vector3(0.0f, 0.0f, 0.0f));
 ~~~~~~~~~~~~~
 
 Scene objects are created using @b3d::SceneObject::Create which returns a handle to the scene object. You can then add components to the scene object using @b3d::SceneObject::AddComponent. The scene object's transform can be modified using methods like @b3d::SceneObject::SetPosition, @b3d::SceneObject::SetRotation, and @b3d::SceneObject::LookAt.
@@ -130,16 +130,16 @@ int main()
 	Application::StartUp(videoMode, "My Application", false);
 
 	// Create a camera
-	HSceneObject sceneCameraSO = SceneObject::Create("SceneCamera");
-	HCamera sceneCamera = sceneCameraSO->AddComponent<Camera>();
+	HSceneObject cameraSceneObject = SceneObject::Create("SceneCamera");
+	HCamera sceneCamera = cameraSceneObject->AddComponent<Camera>();
 
 	// Get the primary window and set the camera to render to it
 	SPtr<RenderWindow> window = GetApplication().GetPrimaryWindow();
 	sceneCamera->GetViewport()->SetTarget(window);
 
 	// Position the camera
-	sceneCameraSO->SetPosition(Vector3(0.0f, 1.0f, 5.0f));
-	sceneCameraSO->LookAt(Vector3(0.0f, 0.0f, 0.0f));
+	cameraSceneObject->SetPosition(Vector3(0.0f, 1.0f, 5.0f));
+	cameraSceneObject->LookAt(Vector3(0.0f, 0.0f, 0.0f));
 
 	// Run the main loop
 	Application::Instance().RunMainLoop();
@@ -162,7 +162,7 @@ ApplicationCreateInformation createInfo = Application::BuildCreateInformation(
 	false);
 
 // Customize settings
-createInfo.RenderApi = "D3D12"; // Specify render API
+createInfo.RenderApi = "Vulkan"; // Specify render API
 createInfo.PhysicsCooking = false; // Disable physics cooking
 
 // Create application with custom settings
@@ -170,7 +170,7 @@ Application::StartUp(createInfo);
 ~~~~~~~~~~~~~
 
 The @b3d::ApplicationCreateInformation structure allows you to specify:
-- Render API plugin (e.g., "D3D12", "Vulkan", "OpenGL")
+- Render API plugin (e.g., "Vulkan", "D3D12", "Null")
 - Renderer plugin
 - Physics plugin
 - Audio plugin

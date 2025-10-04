@@ -8,8 +8,8 @@ Lights control the rendering of the nearby **Renderable** objects, by attempting
 **Light** is created as any component, and requires no additional parameters.
 
 ~~~~~~~~~~~~~{.cpp}
-HSceneObject lightSO = SceneObject::Create("Light");
-HLight light = lightSO->AddComponent<Light>();
+HSceneObject lightSceneObject = SceneObject::Create("Light");
+HLight light = lightSceneObject->AddComponent<Light>();
 ~~~~~~~~~~~~~
 
 Once created light can be positioned and oriented normally using its **SceneObject**.
@@ -47,7 +47,7 @@ Directional lights are a special type of light primarily used for simulating sun
 
 ~~~~~~~~~~~~~{.cpp}
 light->SetType(LightType::Directional);
-lightSO->SetRotation(Quaternion(Degree(-45), Vector3::kUnitX)); // Angle sunlight
+lightSceneObject->SetRotation(Quaternion(Degree(-45), Vector3::kUnitX)); // Angle sunlight
 ~~~~~~~~~~~~~
 
 # Light properties

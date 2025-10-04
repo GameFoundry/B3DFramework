@@ -129,13 +129,13 @@ material->SetColorGradient("gTint", gradient);
 HTexture texture = GetImporter().Import<Texture>("spriteSheet.png");
 HSpriteImage spriteImage = SpriteImage::Create(texture);
 
-SpriteSheetGridAnimation anim;
-anim.RowCount = 3;
-anim.ColumnCount = 3;
-anim.FrameCount = 8;
-anim.FramesPerSecond = 8;
+SpriteSheetGridAnimation animation;
+animation.RowCount = 3;
+animation.ColumnCount = 3;
+animation.FrameCount = 8;
+animation.FramesPerSecond = 8;
 
-spriteImage->SetAnimation(anim);
+spriteImage->SetAnimation(animation);
 spriteImage->SetAnimationPlayback(SpriteAnimationPlayback::Loop);
 
 material->SetSpriteImage("gAlbedoTex", spriteImage);
@@ -159,12 +159,12 @@ Sampler states are created by calling @b3d::SamplerState::Create, while previous
 As an example, lets set up a sampler state that enables trilinear filtering for a texture using it, and then assign it to a material.
 
 ~~~~~~~~~~~~~{.cpp}
-SamplerStateCreateInformation desc;
-desc.MinFilter = FO_LINEAR;
-desc.MagFilter = FO_LINEAR;
-desc.MipFilter = FO_LINEAR;
+SamplerStateCreateInformation description;
+description.MinFilter = FO_LINEAR;
+description.MagFilter = FO_LINEAR;
+description.MipFilter = FO_LINEAR;
 
-SPtr<SamplerState> samplerState = SamplerState::Create(desc);
+SPtr<SamplerState> samplerState = SamplerState::Create(description);
 
 // "gAlbedoSamp" is a sampler state parameter provided by the standard shader we
 // used in the example above. It controls options for the texture set on the gAlbedoTex

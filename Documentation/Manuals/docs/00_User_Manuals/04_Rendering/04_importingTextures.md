@@ -34,34 +34,34 @@ Once a texture has been imported, you can retrieve its properties like width, he
 
 ~~~~~~~~~~~~~{.cpp}
 // Retrieve and print out various texture properties
-const auto& props = texture->GetProperties();
+const auto& properties = texture->GetProperties();
 
-B3D_LOG(Info, Generic, "Width: {0}", props.GetWidth());
-B3D_LOG(Info, Generic, "Height: {0}", props.GetHeight());
-B3D_LOG(Info, Generic, "Format: {0}", (u32)props.GetFormat());
-B3D_LOG(Info, Generic, "Num. mip maps: {0}", props.GetMipMapCount());
+B3D_LOG(Info, Generic, "Width: {0}", properties.GetWidth());
+B3D_LOG(Info, Generic, "Height: {0}", properties.GetHeight());
+B3D_LOG(Info, Generic, "Format: {0}", (u32)properties.GetFormat());
+B3D_LOG(Info, Generic, "Num. mip maps: {0}", properties.GetMipMapCount());
 ~~~~~~~~~~~~~
 
 Additional texture properties:
 
 ~~~~~~~~~~~~~{.cpp}
 // Get texture type (2D, 3D, cube map)
-TextureType texType = props.GetTextureType();
+TextureType textureType = properties.GetTextureType();
 
 // Get depth (for 3D textures)
-u32 depth = props.GetDepth();
+u32 depth = properties.GetDepth();
 
 // Get number of array slices (for texture arrays)
-u32 arraySize = props.GetArraySliceCount();
+u32 arraySliceCount = properties.GetArraySliceCount();
 
 // Get number of samples (for multisampled textures)
-u32 sampleCount = props.GetSampleCount();
+u32 sampleCount = properties.GetSampleCount();
 
 // Check if texture uses sRGB
-bool isSRGB = props.UseHardwareSRGB();
+bool isSRGB = properties.UseHardwareSRGB();
 
 // Get usage flags
-i32 usage = props.GetUsage();
+i32 usage = properties.GetUsage();
 ~~~~~~~~~~~~~
 
 # Customizing import
@@ -201,15 +201,15 @@ u32 rowPitch = pixelData->GetRowPitch();
 
 // Access pixel at (x, y)
 u32 x = 50, y = 100;
-u8* pixelPtr = pixelData->GetData() + (y * rowPitch) + (x * pixelSize);
+u8* pixelDataRaw = pixelData->GetData() + (y * rowPitch) + (x * pixelSize);
 
 // For RGBA8 format, read individual channels
 if (pixelData->GetFormat() == PF_RGBA8)
 {
-    u8 r = pixelPtr[0];
-    u8 g = pixelPtr[1];
-    u8 b = pixelPtr[2];
-    u8 a = pixelPtr[3];
+    u8 r = pixelDataRaw[0];
+    u8 g = pixelDataRaw[1];
+    u8 b = pixelDataRaw[2];
+    u8 a = pixelDataRaw[3];
 }
 ~~~~~~~~~~~~~
 
@@ -281,8 +281,8 @@ The framework supports different types of textures:
 
 ~~~~~~~~~~~~~{.cpp}
 // Check texture type
-const auto& props = texture->GetProperties();
-TextureType type = props.GetTextureType();
+const auto& properties = texture->GetProperties();
+TextureType type = properties.GetTextureType();
 
 if (type == TEX_TYPE_2D)
     B3D_LOG(Info, Generic, "2D texture");
@@ -300,19 +300,19 @@ else if (type == TEX_TYPE_CUBE_MAP_ARRAY)
 When creating textures programmatically, you can specify usage flags:
 
 ~~~~~~~~~~~~~{.cpp}
-TextureCreateInformation texDesc;
-texDesc.Width = 1024;
-texDesc.Height = 1024;
-texDesc.Format = PF_RGBA8;
+TextureCreateInformation textureCreateInformation;
+textureCreateInformation.Width = 1024;
+textureCreateInformation.Height = 1024;
+textureCreateInformation.Format = PF_RGBA8;
 
 // Set usage flags
-texDesc.Usage = TU_STATIC; // Default, not often updated
+textureCreateInformation.Usage = TU_STATIC; // Default, not often updated
 // or
-texDesc.Usage = TU_DYNAMIC; // Frequently updated from CPU
+textureCreateInformation.Usage = TU_DYNAMIC; // Frequently updated from CPU
 // or
-texDesc.Usage = TU_RENDERTARGET; // Can be rendered to by GPU
+textureCreateInformation.Usage = TU_RENDERTARGET; // Can be rendered to by GPU
 // or
-texDesc.Usage = TU_CPUCACHED; // Keep copy in system memory
+textureCreateInformation.Usage = TU_CPUCACHED; // Keep copy in system memory
 
-HTexture texture = Texture::Create(texDesc);
+HTexture texture = Texture::Create(textureCreateInformation);
 ~~~~~~~~~~~~~

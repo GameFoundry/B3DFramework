@@ -141,9 +141,9 @@ if (mainCamera != nullptr)
 const UnorderedMap<UUID, HCamera>& allCameras = sceneInstance->GetAllCameras();
 
 // Iterate through all cameras
-for (const auto& pair : allCameras)
+for (const auto& cameraEntry : allCameras)
 {
-    const HCamera& camera = pair.second;
+    const HCamera& camera = cameraEntry.second;
     // Do something with each camera
 }
 ~~~~~~~~~~~~~
@@ -153,8 +153,8 @@ The main camera is determined by the camera's viewport target. Typically, the ca
 You can set a camera's render target using:
 
 ~~~~~~~~~~~~~{.cpp}
-HSceneObject cameraSO = SceneObject::Create("MainCamera");
-HCamera camera = cameraSO->AddComponent<Camera>();
+HSceneObject cameraObject = SceneObject::Create("MainCamera");
+HCamera camera = cameraObject->AddComponent<Camera>();
 
 // Get the primary window and set it as the camera's target
 SPtr<RenderWindow> window = GetApplication().GetPrimaryWindow();
@@ -167,19 +167,19 @@ Scene objects can have flags that control their behavior. These flags are set wh
 
 ~~~~~~~~~~~~~{.cpp}
 // Create an object that won't be saved
-HSceneObject tempObj = SceneObject::Create("TempObject",
+HSceneObject temporaryObject = SceneObject::Create("TempObject",
     (u32)SceneObjectFlag::DontSave);
 
 // Create a persistent object that survives scene clear
-HSceneObject persistentObj = SceneObject::Create("Persistent",
+HSceneObject persistentObject = SceneObject::Create("Persistent",
     (u32)SceneObjectFlag::RuntimePersistent);
 
 // Create an internal object (used by engine systems)
-HSceneObject internalObj = SceneObject::Create("Internal",
+HSceneObject internalObject = SceneObject::Create("Internal",
     (u32)SceneObjectFlag::Internal);
 
 // Check if an object has a specific flag
-bool isDontSave = tempObj->HasFlag(SceneObjectFlag::DontSave);
+bool isDontSave = temporaryObject->HasFlag(SceneObjectFlag::DontSave);
 ~~~~~~~~~~~~~
 
 Available flags:
@@ -193,7 +193,7 @@ Objects marked with this flag will not be saved when saving the scene or prefab.
 
 ~~~~~~~~~~~~~{.cpp}
 // Create a debug visualization that won't be saved
-HSceneObject debugViz = SceneObject::Create("DebugViz",
+HSceneObject debugVisualization = SceneObject::Create("DebugViz",
     (u32)SceneObjectFlag::DontSave);
 ~~~~~~~~~~~~~
 
@@ -251,13 +251,13 @@ HSceneObject internalHelper = SceneObject::Create("Helper",
 Flags can also be set or unset after object creation:
 
 ~~~~~~~~~~~~~{.cpp}
-HSceneObject obj = SceneObject::Create("MyObject");
+HSceneObject sceneObject = SceneObject::Create("MyObject");
 
 // Set flags (recursively applies to all children)
-obj->SetFlags(SceneObjectFlag::DontSave);
+sceneObject->SetFlags(SceneObjectFlag::DontSave);
 
 // Unset flags (recursively removes from all children)
-obj->UnsetFlags(SceneObjectFlag::DontSave);
+sceneObject->UnsetFlags(SceneObjectFlag::DontSave);
 ~~~~~~~~~~~~~
 
 Note that SetFlags and UnsetFlags affect the object and all its children recursively.

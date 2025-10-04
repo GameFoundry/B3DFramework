@@ -39,19 +39,19 @@ public:
 class MyComponentRTTI : public TRTTIType<MyComponent, Component, MyComponentRTTI>
 {
 	// Getter: Creates an iterator for the field
-	UPtrRTTIIterator<u32, false> GetMyIntIterator(MyComponent& obj, FrameAllocator& allocator)
+	UPtrRTTIIterator<u32, false> GetMyIntIterator(MyComponent& object, FrameAllocator& allocator)
 	{
-		return CreateRTTIIterator<u32, false>(allocator, obj.myInt);
+		return CreateRTTIIterator<u32, false>(allocator, object.myInt);
 	}
 
 	// Getter: Returns the value at the iterator position
-	const u32& GetMyIntValue(MyComponent& obj, FrameAllocator& allocator, TRTTIIterator<u32, false>& iterator)
+	const u32& GetMyIntValue(MyComponent& object, FrameAllocator& allocator, TRTTIIterator<u32, false>& iterator)
 	{
 		return *iterator;
 	}
 
 	// Setter: Sets the value at the iterator position
-	void SetMyIntValue(MyComponent& obj, FrameAllocator& allocator, TRTTIIterator<u32, false>& iterator, const u32& value)
+	void SetMyIntValue(MyComponent& object, FrameAllocator& allocator, TRTTIIterator<u32, false>& iterator, const u32& value)
 	{
 		iterator = value;
 	}
@@ -103,17 +103,17 @@ public:
 
 class MyComponentRTTI : public TRTTIType<MyComponent, Component, MyComponentRTTI>
 {
-	UPtrRTTIIterator<Vector<u32>, true> GetMyIntsIterator(MyComponent& obj, FrameAllocator& allocator)
+	UPtrRTTIIterator<Vector<u32>, true> GetMyIntsIterator(MyComponent& object, FrameAllocator& allocator)
 	{
-		return CreateRTTIIterator<Vector<u32>, true>(allocator, obj.myInts);
+		return CreateRTTIIterator<Vector<u32>, true>(allocator, object.myInts);
 	}
 
-	const u32& GetMyIntsValue(MyComponent& obj, FrameAllocator& allocator, TRTTIIterator<Vector<u32>, true>& iterator)
+	const u32& GetMyIntsValue(MyComponent& object, FrameAllocator& allocator, TRTTIIterator<Vector<u32>, true>& iterator)
 	{
 		return *iterator;
 	}
 
-	void SetMyIntsValue(MyComponent& obj, FrameAllocator& allocator, TRTTIIterator<Vector<u32>, true>& iterator, const u32& value)
+	void SetMyIntsValue(MyComponent& object, FrameAllocator& allocator, TRTTIIterator<Vector<u32>, true>& iterator, const u32& value)
 	{
 		iterator = value;
 	}
@@ -154,22 +154,22 @@ class MyComponentRTTI : public TRTTIType<MyComponent, Component, MyComponentRTTI
 {
 	String mTempData;
 
-	UPtrRTTIIterator<String, false> GetDataIterator(MyComponent& obj, FrameAllocator& allocator)
+	UPtrRTTIIterator<String, false> GetDataIterator(MyComponent& object, FrameAllocator& allocator)
 	{
 		// Store compressed data in temporary field during serialization
-		mTempData = obj.GetCompressedData();
+		mTempData = object.GetCompressedData();
 		return CreateRTTIIterator<String, false>(allocator, mTempData);
 	}
 
-	const String& GetDataValue(MyComponent& obj, FrameAllocator& allocator, TRTTIIterator<String, false>& iterator)
+	const String& GetDataValue(MyComponent& object, FrameAllocator& allocator, TRTTIIterator<String, false>& iterator)
 	{
 		return *iterator;
 	}
 
-	void SetDataValue(MyComponent& obj, FrameAllocator& allocator, TRTTIIterator<String, false>& iterator, const String& value)
+	void SetDataValue(MyComponent& object, FrameAllocator& allocator, TRTTIIterator<String, false>& iterator, const String& value)
 	{
 		// Decompress when setting
-		obj.SetCompressedData(value);
+		object.SetCompressedData(value);
 	}
 
 	B3D_RTTI_BEGIN_MEMBERS
@@ -833,15 +833,15 @@ class TextureRTTI : public TRTTIType<Texture, Resource, TextureRTTI>
 	// Temporary storage
 	SPtr<PixelData> mPixelData;
 
-	UPtrRTTIIterator<SPtr<PixelData>, false> GetPixelDataIterator(Texture& obj, FrameAllocator& allocator)
+	UPtrRTTIIterator<SPtr<PixelData>, false> GetPixelDataIterator(Texture& object, FrameAllocator& allocator)
 	{
 		return CreateRTTIIterator<SPtr<PixelData>, false>(allocator, mPixelData);
 	}
 
-	const SPtr<PixelData>& GetPixelDataValue(Texture& obj, FrameAllocator& allocator, TRTTIIterator<SPtr<PixelData>, false>& iterator)
+	const SPtr<PixelData>& GetPixelDataValue(Texture& object, FrameAllocator& allocator, TRTTIIterator<SPtr<PixelData>, false>& iterator)
 	{
 		// Read from actual texture
-		mPixelData = obj.GetPixelData();
+		mPixelData = object.GetPixelData();
 		return mPixelData;
 	}
 
@@ -1095,10 +1095,10 @@ if (B3DRTTIIsSubclass<Resource>(myObject))
 }
 
 // Create object from type ID
-SPtr<IReflectable> newObj = B3DRTTICreate(TID_Texture);
+SPtr<IReflectable> newObject = B3DRTTICreate(TID_Texture);
 
 // Safe casting
-Texture* texture = B3DRTTICast<Texture>(myObject);
+Texture* texture = B3DRTTICast<Texture>(newObject);
 if (texture)
 {
 	// Cast succeeded
@@ -1118,7 +1118,7 @@ IReflectable* myObject = ...;
 
 String typeName = myObject->GetTypeName();
 u32 typeId = myObject->GetTypeId();
-RTTIType* rtti = myObject->GetRtti();
+RTTIType* rttiType = myObject->GetRtti();
 
 if (myObject->IsDerivedFrom(Texture::GetRttiStatic()))
 {
@@ -1134,23 +1134,23 @@ For raw binary data, use data block fields with @b3d::TRTTIType::AddDataBlockFie
 class MyComponent : public Component
 {
 public:
-	Vector<u8> mRawData;
-	u32 mDataSize;
-	u32 mDataOffset;
+	Vector<u8> RawData;
+	u32 DataSize;
+	u32 DataOffset;
 };
 
 class MyComponentRTTI : public TRTTIType<MyComponent, Component, MyComponentRTTI>
 {
-	SPtr<DataStream> GetRawData(MyComponent* obj, u32& size)
+	SPtr<DataStream> GetRawData(MyComponent* object, u32& size)
 	{
-		size = (u32)obj->mRawData.size();
-		return B3DMakeShared<MemoryDataStream>(obj->mRawData.data(), size);
+		size = (u32)object->RawData.size();
+		return B3DMakeShared<MemoryDataStream>(object->RawData.data(), size);
 	}
 
-	void SetRawData(MyComponent* obj, const SPtr<DataStream>& data, u32 size)
+	void SetRawData(MyComponent* object, const SPtr<DataStream>& data, u32 size)
 	{
-		obj->mRawData.resize(size);
-		data->Read(obj->mRawData.data(), size);
+		obj->RawData.resize(size);
+		data->Read(obj->RawData.data(), size);
 	}
 
 	B3D_RTTI_BEGIN_MEMBERS
@@ -1173,14 +1173,14 @@ The setter receives a @b3d::DataStream that can be read from or cloned for later
 ~~~~~~~~~~~~~{.cpp}
 class AudioClipRTTI : public TRTTIType<AudioClip, Resource, AudioClipRTTI>
 {
-	void SetData(AudioClip* obj, const SPtr<DataStream>& stream, u32 size)
+	void SetData(AudioClip* object, const SPtr<DataStream>& stream, u32 size)
 	{
 		// Clone the stream to avoid modifying the deserializer's stream
-		obj->mStreamData = stream->Clone();
-		obj->mStreamSize = size;
+		object->StreamData = stream->Clone();
+		object->StreamSize = size;
 
 		// Store the current position for later streaming
-		obj->mStreamOffset = (u32)stream->Tell();
+		object->StreamOffset = (u32)stream->Tell();
 
 		// Data can now be read on-demand during playback
 	}

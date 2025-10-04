@@ -129,7 +129,7 @@ private:
 		float speed = 10.0f;
 
 		Vector3 velocity = direction * speed;
-		SO()->Move(velocity * frameDelta);
+		SceneObject()->Move(velocity * frameDelta);
 	}
 
 	HCamera mCamera; // Camera component that is influenced by this component.
@@ -169,13 +169,13 @@ We now have everything ready to use the component. You can create the component 
 
 ~~~~~~~~~~~~~{.cpp}
 // Create a scene object to add our component to
-HSceneObject cameraSO = SceneObject::Create("Camera");
+HSceneObject cameraObject = SceneObject::Create("Camera");
 
 // We create a Camera component since our component relies on it
-HCamera camera = cameraSO->AddComponent<Camera>(primaryWindow);
+HCamera camera = cameraObject->AddComponent<Camera>(primaryWindow);
 
 // And finally we add our component
-HCameraFlyer cameraFlyer = cameraSO->AddComponent<CameraFlyer>();
+HCameraFlyer cameraFlyer = cameraObject->AddComponent<CameraFlyer>();
 ~~~~~~~~~~~~~
 
 # Enabling/disabling components

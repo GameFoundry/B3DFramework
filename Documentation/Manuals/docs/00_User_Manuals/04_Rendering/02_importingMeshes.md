@@ -28,11 +28,11 @@ Once a mesh has been imported, you can retrieve its properties like vertex & ind
 
 ~~~~~~~~~~~~~{.cpp}
 // Retrieve and print out various mesh properties
-const auto& props = mesh->GetProperties();
+const auto& properties = mesh->GetProperties();
 
-B3D_LOG(Info, Generic, "Num. vertices: {0}", props.GetVertexCount());
-B3D_LOG(Info, Generic, "Num. indices: {0}", props.GetIndexCount());
-B3D_LOG(Info, Generic, "Radius: {0}", props.GetBounds().GetSphere().GetRadius());
+B3D_LOG(Info, Generic, "Num. vertices: {0}", properties.GetVertexCount());
+B3D_LOG(Info, Generic, "Num. indices: {0}", properties.GetIndexCount());
+B3D_LOG(Info, Generic, "Radius: {0}", properties.GetBounds().GetSphere().GetRadius());
 ~~~~~~~~~~~~~
 
 > The debug logging functionality is explained in the [logging](../15_Utilities/07_logging.md) manual.
@@ -41,10 +41,10 @@ Additional mesh property information:
 
 ~~~~~~~~~~~~~{.cpp}
 // Get number of sub-meshes
-u32 numSubMeshes = props.GetSubMeshCount();
+u32 subMeshCount = properties.GetSubMeshCount();
 
 // Get bounds
-const Bounds& bounds = props.GetBounds();
+const Bounds& bounds = properties.GetBounds();
 AABox box = bounds.GetBox();
 Sphere sphere = bounds.GetSphere();
 
@@ -157,10 +157,10 @@ HMesh mesh = GetImporter().Import<Mesh>("dragon.fbx", importOptions);
 SPtr<MeshData> meshData = mesh->GetCachedData();
 
 // Read vertex positions using an iterator
-auto posIter = meshData->GetVec3DataIter(VES_POSITION);
-while (posIter.MoveNext())
+auto positionIterator = meshData->GetVec3DataIter(VES_POSITION);
+while (positionIterator.MoveNext())
 {
-    Vector3 position = posIter.GetValue();
+    Vector3 position = positionIterator.GetValue();
     B3D_LOG(Info, Generic, "Vertex: ({0}, {1}, {2})",
         position.x, position.y, position.z);
 }
@@ -187,12 +187,12 @@ u32 vertexCount = meshData->GetVertexCount();
 u32 indexCount = meshData->GetIndexCount();
 
 // Read positions
-auto posIter = meshData->GetVec3DataIter(VES_POSITION);
+auto positionIterator = meshData->GetVec3DataIter(VES_POSITION);
 for (u32 i = 0; i < vertexCount; i++)
 {
-    Vector3 pos = posIter.GetValue();
+    Vector3 position = positionIterator.GetValue();
     // Process position...
-    posIter.MoveNext();
+    positionIterator.MoveNext();
 }
 
 // Read normals
@@ -208,7 +208,7 @@ for (u32 i = 0; i < vertexCount; i++)
 auto uvIter = meshData->GetVec2DataIter(VES_TEXCOORD);
 for (u32 i = 0; i < vertexCount; i++)
 {
-    Vector2 uv = uvIter.GetValue();
+    Vector2 texCoord = uvIter.GetValue();
     // Process UV...
     uvIter.MoveNext();
 }
@@ -252,13 +252,13 @@ You can also write to mesh data and update the GPU buffers:
 SPtr<MeshData> meshData = mesh->AllocBuffer();
 
 // Modify vertex positions
-auto posIter = meshData->GetVec3DataIter(VES_POSITION);
+auto positionIterator = meshData->GetVec3DataIter(VES_POSITION);
 for (u32 i = 0; i < meshData->GetVertexCount(); i++)
 {
-    Vector3 pos = posIter.GetValue();
-    pos.y += 10.0f; // Move all vertices up
-    posIter.SetValue(pos);
-    posIter.MoveNext();
+    Vector3 position = positionIterator.GetValue();
+    position.y += 10.0f; // Move all vertices up
+    positionIterator.SetValue(position);
+    positionIterator.MoveNext();
 }
 
 // Write the modified data back to the mesh

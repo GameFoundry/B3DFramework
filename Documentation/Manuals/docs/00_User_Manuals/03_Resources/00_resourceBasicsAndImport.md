@@ -80,12 +80,12 @@ Some file formats can contain multiple resources. For example, an FBX file might
 SPtr<MultiResource> multiResource = GetImporter().ImportAll("character.fbx");
 
 // Access individual resources
-for (const SubResource& subRes : multiResource->Entries)
+for (const SubResource& subResource : multiResource->Entries)
 {
-	B3D_LOG(Info, Generic, "Imported resource: {0}", subRes.Name);
+	B3D_LOG(Info, Generic, "Imported resource: {0}", subResource.Name);
 
 	// Each sub-resource has a name and a handle
-	HResource resource = subRes.Value;
+	HResource resource = subResource.Value;
 }
 ~~~~~~~~~~~~~
 

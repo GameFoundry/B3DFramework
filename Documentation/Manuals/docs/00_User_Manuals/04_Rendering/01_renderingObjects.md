@@ -8,8 +8,8 @@ As the name implies, the renderable object allows you to display an object in th
 **Renderable** is created as any component, and requires no additional parameters.
 
 ~~~~~~~~~~~~~{.cpp}
-HSceneObject renderableSO = SceneObject::Create("3D object");
-HRenderable renderable = renderableSO->AddComponent<Renderable>();
+HSceneObject renderableSceneObject = SceneObject::Create("3D object");
+HRenderable renderable = renderableSceneObject->AddComponent<Renderable>();
 ~~~~~~~~~~~~~
 
 # Setting it up
@@ -28,15 +28,15 @@ material->SetTexture("gAlbedoTex", texture);
 HMesh mesh = GetImporter().Import<Mesh>("myMesh.fbx");
 
 // Create a renderable
-HSceneObject renderableSO = SceneObject::Create("3D object");
-HRenderable renderable = renderableSO->AddComponent<Renderable>();
+HSceneObject renderableSceneObject = SceneObject::Create("3D object");
+HRenderable renderable = renderableSceneObject->AddComponent<Renderable>();
 
 // Assign material and mesh to the renderable
 renderable->SetMesh(mesh);
 renderable->SetMaterial(material);
 
 // Optionally position the renderable in the scene
-renderableSO->SetPosition(Vector3(0.0f, 15.0f, 30.0f));
+renderableSceneObject->SetPosition(Vector3(0.0f, 15.0f, 30.0f));
 ~~~~~~~~~~~~~
 
 > Note that even though we always import resources in these examples, in production code you should load previously saved resources instead of importing them every time.
@@ -55,13 +55,13 @@ HMesh mesh = GetImporter().Import<Mesh>("myMesh.fbx");
 renderable->SetMesh(mesh);
 
 // Count the number of sub-meshes
-const auto& meshProps = mesh->GetProperties();
-u32 numSubMeshes = meshProps.GetSubMeshCount();
+const auto& meshProperties = mesh->GetProperties();
+u32 subMeshCount = meshProperties.GetSubMeshCount();
 
 // ... create necessary materials ...
 
 // Assign a different material on every submesh
-for(u32 i = 0; i < numSubMeshes; i++)
+for(u32 i = 0; i < subMeshCount; i++)
     renderable->SetMaterial(i, materials[i]);
 ~~~~~~~~~~~~~
 
@@ -203,9 +203,9 @@ Renderables use the transform of their parent scene object:
 
 ~~~~~~~~~~~~~{.cpp}
 // Position the renderable
-renderableSO->SetPosition(Vector3(10.0f, 0.0f, 5.0f));
-renderableSO->SetRotation(Quaternion(Degree(45), Vector3::kUnitY));
-renderableSO->SetScale(Vector3(2.0f, 2.0f, 2.0f));
+renderableSceneObject->SetPosition(Vector3(10.0f, 0.0f, 5.0f));
+renderableSceneObject->SetRotation(Quaternion(Degree(45), Vector3::kUnitY));
+renderableSceneObject->SetScale(Vector3(2.0f, 2.0f, 2.0f));
 
 // Get the world transform matrix (includes scale)
 Matrix4 worldMatrix = renderable->GetWorldTransformMatrix();
@@ -221,11 +221,11 @@ Here's a complete example showing how to create a simple rendered scene:
 
 ~~~~~~~~~~~~~{.cpp}
 // Create the camera
-HSceneObject cameraSO = SceneObject::Create("Camera");
-cameraSO->SetPosition(Vector3(0.0f, 5.0f, 10.0f));
-cameraSO->LookAt(Vector3(0.0f, 0.0f, 0.0f));
+HSceneObject cameraSceneObject = SceneObject::Create("Camera");
+cameraSceneObject->SetPosition(Vector3(0.0f, 5.0f, 10.0f));
+cameraSceneObject->LookAt(Vector3(0.0f, 0.0f, 0.0f));
 
-HCamera camera = cameraSO->AddComponent<Camera>();
+HCamera camera = cameraSceneObject->AddComponent<Camera>();
 camera->SetMain(true);
 
 // Create a material
@@ -237,18 +237,18 @@ HTexture texture = GetImporter().Import<Texture>("wood.png");
 material->SetTexture("gAlbedoTex", texture);
 
 // Create a renderable with a builtin sphere mesh
-HSceneObject sphereSO = SceneObject::Create("Sphere");
-sphereSO->SetPosition(Vector3(0.0f, 0.0f, 0.0f));
+HSceneObject sphereSceneObject = SceneObject::Create("Sphere");
+sphereSceneObject->SetPosition(Vector3(0.0f, 0.0f, 0.0f));
 
-HRenderable renderable = sphereSO->AddComponent<Renderable>();
+HRenderable renderable = sphereSceneObject->AddComponent<Renderable>();
 renderable->SetMesh(GetBuiltinResources().GetBuiltinMesh(BuiltinMesh::Sphere));
 renderable->SetMaterial(material);
 
 // Optional: Add a light to see the sphere better
-HSceneObject lightSO = SceneObject::Create("Light");
-lightSO->SetPosition(Vector3(5.0f, 5.0f, 5.0f));
+HSceneObject lightSceneObject = SceneObject::Create("Light");
+lightSceneObject->SetPosition(Vector3(5.0f, 5.0f, 5.0f));
 
-HLight light = lightSO->AddComponent<Light>();
+HLight light = lightSceneObject->AddComponent<Light>();
 light->SetLightType(LightType::Directional);
 light->SetColor(Color::White);
 ~~~~~~~~~~~~~
