@@ -2,63 +2,64 @@
 title: Saving a scene
 ---
 
-Once you have populated your scene with scene objects and components you will want to save it so you can easily load it later. 
+Once you have populated your scene with scene objects and components you will want to save it so you can easily load it later.
 
-Saved scenes are represented as a @b3d::Prefab object. Scene saving and loading is handled through @b3d::SceneManager, which can be accessed globally through @b3d::GetSceneManager().
+Scenes can be saved as @b3d::Scene resources. The framework provides simple methods for quickly saving and loading complete scene hierarchies.
 
-Scene saving in particular is done by calling @b3d::SceneManager::saveScene, which will return a **Prefab** representation of the current scene.
+# Saving a scene
 
-~~~~~~~~~~~~~{.cpp}
-HPrefab scenePrefab = GetSceneManager().saveScene();
-~~~~~~~~~~~~~
-
-A **Prefab** is a **Resource**, and as such can then be saved or loaded as any other **Resource**.
+To save a scene, create a @b3d::Scene resource from your scene object hierarchy using @b3d::Scene::Create:
 
 ~~~~~~~~~~~~~{.cpp}
-// Save the prefab we created previously
-GetResources().save(scenePrefab, "scenePrefab.asset");
+// Assuming you have built a scene hierarchy
+HSceneObject root = SceneObject::Create("SceneRoot");
+// ... add various scene objects and components ...
 
-// Then when ready, restore it
-HPrefab loadedScenePrefab = GetResources().load<Prefab>("scenePrefab.asset");
+// Create a scene from the hierarchy
+HScene scene = Scene::Create(root);
 ~~~~~~~~~~~~~
 
-Finally, when you wish to restore a scene you've loaded, you may call @b3d::SceneManager::loadScene, and pass it the **Prefab** of the scene to load. The contents of the prefab will replace the currently loaded scene (if any).
+A **Scene** is a **Resource**, and as such can be saved like any other resource:
 
 ~~~~~~~~~~~~~{.cpp}
-GetSceneManager().loadScene(loadedScenePrefab);
+// Save the scene to a package
+GetResources().SaveAsSinglePackage(scene, "D:/MyGame/Scenes/", "MainLevel");
+// This creates D:/MyGame/Scenes/MainLevel.b3d
+
+// Or save to an existing package or file location
+GetResources().Save(scene, "D:/MyGame/Scenes/MainLevel.asset");
 ~~~~~~~~~~~~~
 
-# Resource manifest
+# Loading a scene
 
-If your scene contains components that reference resources (e.g. a **Renderable** referencing a mesh or a material) you will also need to save a resource manifest along with your scene. This is an important step as every scene will almost certainly reference some resources. The resource manifest allows the system to automatically find the referenced resources when loading the scene, even after application has been shutdown and started again. Without the manifest your scene will lose all references to any resources after attempting to load it in a new application session.
-
-A manifest can be retrieved from @b3d::Resources::getResourceManifest(). The method expect a manifest name, which will be "Default" for the default manifest (which will be the only available manifest unless you have set up your own). Resources will be registered in this manifest whenever you call **Resources::save()**. 
-
-> You can also create your own manifests and manage them manually but that is outside the scope of this topic. See the API reference for @b3d::ResourceManifest.
-
-The manifest can then be saved by calling @b3d::ResourceManifest::save(). The method expects a file path in which to save the manifest in, as well as an optional path to which to make all the resources relative to. You will want to make the manifest relative to some folder so that you can relocate both the manifest and the resources and the system is still able to find them.
+When you wish to restore a scene you've saved, load the scene resource and instantiate it:
 
 ~~~~~~~~~~~~~{.cpp}
-SPtr<ResourceManifest> manifest = GetResources().getResourceManifest("Default");
+// Load the scene resource
+HScene scene = GetResources().Load<Scene>("D:/MyGame/Scenes/MainLevel.b3d/MainLevel");
 
-// Save the manifest as "myManifest.asset", with the assumption that all the resources
-// it references have been saved to the "C:/Data" folder
-ResourceManifest::save(manifest, "C:/myManifest.asset", "C:/Data");
+// Instantiate the scene into the world
+SPtr<SceneInstance> sceneInstance = scene->Instantiate();
+
+// The instantiated hierarchy is now active and will start updating
 ~~~~~~~~~~~~~
 
-> **SPtr** is a shared pointer, used in the framework for most object instances that aren't components, scene objects or resources. You can find more about it in the [smart pointers manual](../Utilities/smartPointers).
+The @b3d::SceneInstance manages the lifetime of all scene objects created from the scene.
 
-When starting a new application session and loading a **Prefab** you will first need to restore the manifest by calling @b3d::ResourceManifest::load. Note that you only need to restore the manifest once when your application starts up (usually before any scene loads).
-
-Loaded manifest should then be registered with **Resources** by calling @b3d::Resources::registerResourceManifest.
+# Resource references
+If your scene contains components that reference resources (e.g. a **Renderable** referencing a mesh or material), those resources must be saved separately and be loadable when the scene is loaded. The framework automatically handles resource references through the resource system.
 
 ~~~~~~~~~~~~~{.cpp}
-// Load the manifest. Assume that the application has moved to "C:/Program Files (x86)/MyApp".
-SPtr<ResourceManifest> manifest = ResourceManifest::load("C:/Program Files (x86)/MyApp/myManifest.asset", "C:/Program Files (x86)/MyApp/Data");
+// Save your resources first
+GetResources().Save(mesh, "PlayerMesh.asset");
+GetResources().Save(material, "PlayerMaterial.asset");
 
-// Register the manifest
-GetResources().registerResourceManifest(manifest);
+// Then save your scene - it will automatically reference the saved resources
+HScene scene = Scene::Create(sceneRoot);
+GetResources().Save(scene, "GameLevel.asset");
+
+// When loading, the scene will automatically load the referenced resources
+HScene loadedScene = GetResources().Load<Scene>("GameLevel.asset");
 ~~~~~~~~~~~~~
 
-
-
+For more detailed information about scenes, scene instances, and prefabs, see the [Scenes and prefabs](../06_Gameplay/02_scenesAndPrefabs.md) manual.

@@ -2,108 +2,305 @@
 title: Meshes
 ---
 
-Meshes are used for defining surfaces of 2D and 3D objects, and are the primary building blocks of the scene. In b3d::f meshes are represented with the @b3d::Mesh class. A mesh is a resource, meaning it can be imported, saved and loaded as any other resource.
+Meshes are used for defining surfaces of 2D and 3D objects, and are the primary building blocks of the scene. In the framework meshes are represented with the @b3d::Mesh class. A mesh is a resource, meaning it can be imported, saved and loaded as any other resource.
 
-![Wireframe mesh](../../Images/DragonWireframe.png) 
+![Wireframe mesh](../../Images/DragonWireframe.png)
 
 # Importing a mesh
 Meshes can be imported from various third party formats, using the importer.
 
 ~~~~~~~~~~~~~{.cpp}
 // Import a mesh named "dragon.fbx" from the disk
-HMesh mesh = GetImporter().import<Mesh>("dragon.fbx");
+HMesh mesh = GetImporter().Import<Mesh>("dragon.fbx");
 ~~~~~~~~~~~~~
 
 Supported formats are:
  - FBX
- - DAE
+ - DAE (Collada)
  - OBJ
- 
+ - glTF / GLB
+
 # Creating a mesh
-Meshes can also be created manually, which we cover later in the [creating meshes](../Advanced_Rendering/creatingMeshes) manual.
- 
+Meshes can also be created manually, which we cover later in the [creating meshes](../12_Advanced_Rendering/06_creatingMeshes.md) manual.
+
 # Mesh properties
-Once a mesh has been imported, you can retrieve its properties like vertex & index counts, as well as its bounds by calling @b3d::Mesh::getProperties, which returns a @b3d::MeshProperties object.
+Once a mesh has been imported, you can retrieve its properties like vertex & index counts, as well as its bounds by calling @b3d::Mesh::GetProperties, which returns a @b3d::MeshProperties object.
 
 ~~~~~~~~~~~~~{.cpp}
 // Retrieve and print out various mesh properties
-auto& props = mesh->getProperties();
+const auto& props = mesh->GetProperties();
 
-GetDebug().logDebug("Num. vertices: " + toString(props.getNumVertices()));
-GetDebug().logDebug("Num. indices: " + toString(props.getNumIndices()));
-GetDebug().logDebug("Radius: " + toString(props.getBounds().getSphere().getRadius()));
+B3D_LOG(Info, Generic, "Num. vertices: {0}", props.GetVertexCount());
+B3D_LOG(Info, Generic, "Num. indices: {0}", props.GetIndexCount());
+B3D_LOG(Info, Generic, "Radius: {0}", props.GetBounds().GetSphere().GetRadius());
 ~~~~~~~~~~~~~
 
-> The debug logging functionality is explained in the [logging](../Utilities/logging) manual.
+> The debug logging functionality is explained in the [logging](../15_Utilities/07_logging.md) manual.
+
+Additional mesh property information:
+
+~~~~~~~~~~~~~{.cpp}
+// Get number of sub-meshes
+u32 numSubMeshes = props.GetSubMeshCount();
+
+// Get bounds
+const Bounds& bounds = props.GetBounds();
+AABox box = bounds.GetBox();
+Sphere sphere = bounds.GetSphere();
+
+// Check if mesh has skeleton (for skeletal animation)
+if (mesh->GetSkeleton() != nullptr)
+    B3D_LOG(Info, Generic, "Mesh has skeleton with {0} bones",
+        mesh->GetSkeleton()->GetNumBones());
+
+// Check if mesh has morph shapes (for blend shape animation)
+if (mesh->GetMorphShapes() != nullptr)
+    B3D_LOG(Info, Generic, "Mesh has {0} morph shapes",
+        mesh->GetMorphShapes()->GetNumShapes());
+~~~~~~~~~~~~~
 
 # Customizing import
 Mesh import can be customized by providing a @b3d::MeshImportOptions object to the importer.
 
 ~~~~~~~~~~~~~{.cpp}
-auto importOptions = MeshImportOptions::create();
+auto importOptions = MeshImportOptions::Create();
 // Set required options here (as described below)
 
-HMesh mesh = GetImporter().import<Mesh>("dragon.fbx", importOptions);
+HMesh mesh = GetImporter().Import<Mesh>("dragon.fbx", importOptions);
 ~~~~~~~~~~~~~
 
 Lets see some of the options you can use for customizing import.
 
 ## Scale
-@b3d::MeshImportOptions::importScale allows you to apply a uniform scale value to the mesh upon import. Although you can scale the size of a rendered mesh by adjusting the **SceneObject** transform when its placed in the scene, sometimes it is more useful to be able to do it once at import instead of every time you place it.
+@b3d::MeshImportOptions::ImportScale allows you to apply a uniform scale value to the mesh upon import. Although you can scale the size of a rendered mesh by adjusting the **SceneObject** transform when its placed in the scene, sometimes it is more useful to be able to do it once at import instead of every time you place it.
 
 ~~~~~~~~~~~~~{.cpp}
 // Reduce the size of the mesh to 10% of its original size
-importOptions->importScale = 0.1f;
+importOptions->ImportScale = 0.1f;
 ~~~~~~~~~~~~~
 
 ## Normals
-@b3d::MeshImportOptions::importNormals controls whether normal vectors are imported from the mesh file. 
+@b3d::MeshImportOptions::ImportNormals controls whether normal vectors are imported from the mesh file.
 
 Normal vectors are used in lighting and are required for any meshes placed in the 3D scene (unless rendering them manually using some custom method). They allow the mesh to appear smooth even though its surface is made out of triangles.
 
-Most 3D authoring tools generate normals for their meshes, but if normals are not present in the mesh file, b3d::f will attempt to generate normals automatically when this option is turned on.
+Most 3D authoring tools generate normals for their meshes, but if normals are not present in the mesh file, the framework will attempt to generate normals automatically when this option is turned on.
 
 ~~~~~~~~~~~~~{.cpp}
 // Import or generate normals for the mesh
-importOptions->importNormals = true;
+importOptions->ImportNormals = true;
 ~~~~~~~~~~~~~
 
-## Tangent
-@b3d::MeshImportOptions::importTangents controls whether tangent vectors are imported from the mesh file. 
+## Tangents
+@b3d::MeshImportOptions::ImportTangents controls whether tangent vectors are imported from the mesh file.
 
-Tangent vectors (along with normal vectors) are required if your rendering shader uses normal maps. Similar to normals, if tangents are not present in the mesh file, b3d::f will attempt to generate them automatically.
+Tangent vectors (along with normal vectors) are required if your rendering shader uses normal maps. Similar to normals, if tangents are not present in the mesh file, the framework will attempt to generate them automatically.
 
 ~~~~~~~~~~~~~{.cpp}
-// Import or generate normals for the mesh
-importOptions->importTangents = true;
+// Import or generate tangents for the mesh
+importOptions->ImportTangents = true;
 ~~~~~~~~~~~~~
 
-## Caching
-Sometimes you need to import a mesh you don't want to only use for rendering, but rather for manually reading its contents. When that's the case you can enable the @b3d::MeshImportOptions::cpuCached option.
+## Animation data
+You can control whether skeletal animation, blend shapes, and animation clips are imported:
 
-This will allow you to call @b3d::Mesh::getCachedData and to manually read individual vertices and indices of the mesh.
+~~~~~~~~~~~~~{.cpp}
+// Import skeleton data (bone weights, indices, bind poses)
+importOptions->ImportSkin = true;
+
+// Import blend shapes (morph targets)
+importOptions->ImportBlendShapes = true;
+
+// Import animation clips
+importOptions->ImportAnimation = true;
+
+// Enable keyframe reduction to reduce animation clip size
+importOptions->ReduceKeyFrames = true;
+
+// Import root motion as separate curves
+importOptions->ImportRootMotion = true;
+~~~~~~~~~~~~~
+
+Animation import is covered in detail in the [Animation](../10_Animation/00_animationClip.md) manual.
+
+## Collision mesh
+You can import a collision mesh along with the visual mesh:
+
+~~~~~~~~~~~~~{.cpp}
+// Import a triangle mesh for collision
+importOptions->CollisionMeshType = CollisionMeshType::Normal;
+
+// Or import a convex hull
+importOptions->CollisionMeshType = CollisionMeshType::Convex;
+
+// Don't import collision mesh (default)
+importOptions->CollisionMeshType = CollisionMeshType::None;
+~~~~~~~~~~~~~
+
+The collision mesh will be available as a separate resource after import. See the [Physics mesh](../09_Physics/01_physicsMesh.md) manual for more information.
+
+## CPU caching
+Sometimes you need to import a mesh you don't want to only use for rendering, but rather for manually reading its contents. When that's the case you can enable the @b3d::MeshImportOptions::CpuCached option.
+
+This will allow you to call @b3d::Mesh::GetCachedData and to manually read individual vertices and indices of the mesh.
 
 Note that caching a mesh means its data will be available in system memory, essentially doubling its memory usage.
 
 ~~~~~~~~~~~~~{.cpp}
 // Enable caching
-importOptions->cpuCached = true;
+importOptions->CpuCached = true;
 
 // Import mesh
-HMesh mesh = GetImporter().import<Mesh>("dragon.fbx", importOptions);
-
-// Allocate a buffer to hold mesh contents
-//// Specify vertex properties. Assuming just a single property of a 3D position
-SPtr<VertexDataDesc> vertexDesc = VertexDataDesc::create();
-vertexDesc->addVertElem(VET_FLOAT3, VES_POSITION);
+HMesh mesh = GetImporter().Import<Mesh>("dragon.fbx", importOptions);
 
 // Read cached data
-SPtr<MeshData> meshData = mesh->getCachedData();
+SPtr<MeshData> meshData = mesh->GetCachedData();
 
-// Read vertex positions
-Vector<Vector3> vertices(8);
-meshData->getVertexData(VES_POSITION, vertices.data(), vertices.size() * sizeof(Vector3));
-...
+// Read vertex positions using an iterator
+auto posIter = meshData->GetVec3DataIter(VES_POSITION);
+while (posIter.MoveNext())
+{
+    Vector3 position = posIter.GetValue();
+    B3D_LOG(Info, Generic, "Vertex: ({0}, {1}, {2})",
+        position.x, position.y, position.z);
+}
+
+// Or read all positions at once
+u32 vertexCount = meshData->GetVertexCount();
+Vector<Vector3> positions(vertexCount);
+meshData->GetVertexData(VES_POSITION, positions.data(),
+    vertexCount * sizeof(Vector3));
 ~~~~~~~~~~~~~
 
-> **MeshData** is explained later in the [creating meshes](../Advanced_Rendering/creatingMeshes) manual.
+> **MeshData** is explained in detail in the [creating meshes](../12_Advanced_Rendering/06_creatingMeshes.md) manual.
+
+# Reading mesh data
+When you have CPU-cached mesh data, you can read various vertex attributes:
+
+~~~~~~~~~~~~~{.cpp}
+SPtr<MeshData> meshData = mesh->GetCachedData();
+
+// Get vertex count
+u32 vertexCount = meshData->GetVertexCount();
+
+// Get index count
+u32 indexCount = meshData->GetIndexCount();
+
+// Read positions
+auto posIter = meshData->GetVec3DataIter(VES_POSITION);
+for (u32 i = 0; i < vertexCount; i++)
+{
+    Vector3 pos = posIter.GetValue();
+    // Process position...
+    posIter.MoveNext();
+}
+
+// Read normals
+auto normIter = meshData->GetVec3DataIter(VES_NORMAL);
+for (u32 i = 0; i < vertexCount; i++)
+{
+    Vector3 normal = normIter.GetValue();
+    // Process normal...
+    normIter.MoveNext();
+}
+
+// Read texture coordinates
+auto uvIter = meshData->GetVec2DataIter(VES_TEXCOORD);
+for (u32 i = 0; i < vertexCount; i++)
+{
+    Vector2 uv = uvIter.GetValue();
+    // Process UV...
+    uvIter.MoveNext();
+}
+
+// Read indices (32-bit)
+if (meshData->GetIndexType() == IT_32BIT)
+{
+    u32* indices = meshData->GetIndices32();
+    for (u32 i = 0; i < indexCount; i++)
+    {
+        u32 index = indices[i];
+        // Process index...
+    }
+}
+// Read indices (16-bit)
+else
+{
+    u16* indices = meshData->GetIndices16();
+    for (u32 i = 0; i < indexCount; i++)
+    {
+        u16 index = indices[i];
+        // Process index...
+    }
+}
+~~~~~~~~~~~~~
+
+Available vertex element semantics include:
+- **VES_POSITION** - Vertex position (Vector3)
+- **VES_NORMAL** - Vertex normal (Vector3)
+- **VES_TANGENT** - Vertex tangent (Vector4)
+- **VES_TEXCOORD** - Texture coordinates (Vector2)
+- **VES_COLOR** - Vertex color (u32 as RGBA)
+- **VES_BLEND_WEIGHTS** - Bone weights for skinning (Vector4)
+- **VES_BLEND_INDICES** - Bone indices for skinning (u32)
+
+# Updating mesh data
+You can also write to mesh data and update the GPU buffers:
+
+~~~~~~~~~~~~~{.cpp}
+// Allocate mesh data matching the mesh format
+SPtr<MeshData> meshData = mesh->AllocBuffer();
+
+// Modify vertex positions
+auto posIter = meshData->GetVec3DataIter(VES_POSITION);
+for (u32 i = 0; i < meshData->GetVertexCount(); i++)
+{
+    Vector3 pos = posIter.GetValue();
+    pos.y += 10.0f; // Move all vertices up
+    posIter.SetValue(pos);
+    posIter.MoveNext();
+}
+
+// Write the modified data back to the mesh
+mesh->WriteData(meshData, false);
+~~~~~~~~~~~~~
+
+> **Note:** `WriteData()` is an asynchronous operation. The mesh will be updated on the next frame.
+
+# Using builtin meshes
+For prototyping and testing, you can use builtin meshes instead of importing:
+
+~~~~~~~~~~~~~{.cpp}
+// Get a builtin sphere mesh
+HMesh sphereMesh = GetBuiltinResources().GetBuiltinMesh(BuiltinMesh::Sphere);
+
+// Other available builtin meshes:
+HMesh boxMesh = GetBuiltinResources().GetBuiltinMesh(BuiltinMesh::Box);
+HMesh coneMesh = GetBuiltinResources().GetBuiltinMesh(BuiltinMesh::Cone);
+HMesh cylinderMesh = GetBuiltinResources().GetBuiltinMesh(BuiltinMesh::Cylinder);
+HMesh quadMesh = GetBuiltinResources().GetBuiltinMesh(BuiltinMesh::Quad);
+HMesh discMesh = GetBuiltinResources().GetBuiltinMesh(BuiltinMesh::Disc);
+~~~~~~~~~~~~~
+
+Builtin meshes are immediately available and don't require importing or loading.
+
+# Calculating bounds
+You can calculate the bounds of mesh data:
+
+~~~~~~~~~~~~~{.cpp}
+SPtr<MeshData> meshData = mesh->GetCachedData();
+
+// Calculate bounds from all vertices
+Bounds bounds = meshData->CalculateBounds();
+
+// Get axis-aligned bounding box
+AABox box = bounds.GetBox();
+Vector3 min = box.GetMin();
+Vector3 max = box.GetMax();
+Vector3 center = box.GetCenter();
+
+// Get bounding sphere
+Sphere sphere = bounds.GetSphere();
+Vector3 sphereCenter = sphere.GetCenter();
+float radius = sphere.GetRadius();
+~~~~~~~~~~~~~
