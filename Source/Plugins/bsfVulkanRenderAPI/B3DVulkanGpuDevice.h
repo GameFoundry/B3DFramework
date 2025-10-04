@@ -68,8 +68,6 @@ namespace b3d
 			SPtr<GpuBuffer> CreateGpuBuffer(const GpuBufferCreateInformation& createInformation, bool deferredInitialize = false) override;
 			SPtr<GpuQueryPool> CreateQueryPool(const GpuQueryPoolCreateInformation& createInformation) override;
 			SPtr<EventQuery> CreateEventQuery() override;
-			SPtr<TimerQuery> CreateTimerQuery() override;
-			SPtr<OcclusionQuery> CreateOcclusionQuery(bool isBinary) override;
 			SPtr<GpuProgram> CreateGpuProgram(const GpuProgramCreateInformation& createInformation, bool deferredInitialize = false) override;
 			SPtr<GpuParameters> CreateGpuParameters(const SPtr<GpuPipelineParameterLayout>& parameterLayout, bool deferredInitialize) override;
 			SPtr<GpuGraphicsPipelineState> CreateGpuGraphicsPipelineState(const GpuGraphicsPipelineStateCreateInformation& createInformation, bool deferredInitialize) override;
@@ -117,9 +115,6 @@ namespace b3d
 
 			/** Returns the best matching surface format according to the provided parameters. */
 			SurfaceFormat GetSurfaceFormat(const VkSurfaceKHR& surface, bool useHardwareSRGB) const;
-
-			/** Returns a pool that can be used for allocating queries on this device. */
-			VulkanQueryPool& GetQueryPool() const { return *mQueryPool; }
 
 			/** Returns a manager that can be used for allocating descriptor layouts and sets. */
 			VulkanDescriptorManager& GetDescriptorManager() const { return *mDescriptorManager; }
@@ -232,7 +227,6 @@ namespace b3d
 			VkDevice mLogicalDevice = nullptr;
 			bool mIsPrimary = false;
 
-			VulkanQueryPool* mQueryPool;
 			VulkanDescriptorManager* mDescriptorManager;
 			VulkanResourceManager* mResourceManager;
 			VulkanBuiltinResources mBuiltinResources;

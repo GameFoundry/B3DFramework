@@ -684,8 +684,7 @@ HSceneObject SceneObject::FindPath(const String& path) const
 	if(path.empty())
 		return HSceneObject();
 
-	String trimmedPath = path;
-	StringUtil::Trim(trimmedPath, "/");
+	String trimmedPath = StringUtil::Trim(path, "/");
 
 	Vector<String> entries = StringUtil::Split(trimmedPath, "/");
 

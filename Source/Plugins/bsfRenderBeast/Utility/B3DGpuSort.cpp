@@ -116,7 +116,7 @@ void RadixSortClearMat::InitDefinesInternal(ShaderDefines& defines)
 
 void RadixSortClearMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<GpuBuffer>& outputOffsets)
 {
-	BS_RENMAT_PROFILE_BLOCK
+	B3D_PROFILE_RENDERER_MATERIAL
 
 	MOutputParam.Set(outputOffsets);
 
@@ -137,7 +137,7 @@ void RadixSortCountMat::InitDefinesInternal(ShaderDefines& defines)
 
 void RadixSortCountMat::Execute(GpuCommandBuffer& commandBuffer, u32 numGroups, const SPtr<GpuBuffer>& params, const SPtr<GpuBuffer>& inputKeys, const SPtr<GpuBuffer>& outputOffsets)
 {
-	BS_RENMAT_PROFILE_BLOCK
+	B3D_PROFILE_RENDERER_MATERIAL
 
 	MInputKeysParam.Set(inputKeys);
 	MOutputCountsParam.Set(outputOffsets);
@@ -161,7 +161,7 @@ void RadixSortPrefixScanMat::InitDefinesInternal(ShaderDefines& defines)
 
 void RadixSortPrefixScanMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<GpuBuffer>& params, const SPtr<GpuBuffer>& inputCounts, const SPtr<GpuBuffer>& outputOffsets)
 {
-	BS_RENMAT_PROFILE_BLOCK
+	B3D_PROFILE_RENDERER_MATERIAL
 
 	MInputCountsParam.Set(inputCounts);
 	MOutputOffsetsParam.Set(outputOffsets);
@@ -188,7 +188,7 @@ void RadixSortReorderMat::InitDefinesInternal(ShaderDefines& defines)
 
 void RadixSortReorderMat::Execute(GpuCommandBuffer& commandBuffer, u32 numGroups, const SPtr<GpuBuffer>& params, const SPtr<GpuBuffer>& inputPrefix, const GpuSortBuffers& buffers, u32 inputBufferIdx)
 {
-	BS_RENMAT_PROFILE_BLOCK
+	B3D_PROFILE_RENDERER_MATERIAL
 
 	const u32 outputBufferIdx = (inputBufferIdx + 1) % 2;
 

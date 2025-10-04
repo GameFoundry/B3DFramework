@@ -82,6 +82,9 @@ namespace b3d
 			/** Retrieves the type of query managed by the pool. */
 			GpuQueryType GetQueryType() const { return mQueryType; }
 
+			/** Returns the maximum number of queries to allocate by this pool. */
+			u32 GetPoolSize() const { return mPoolSize; }
+
 			/** Attempts to allocate a new query. Returns an invalid ID if all queries in the pool have been exhausted. */
 			virtual GpuQueryId AllocateQuery() = 0;
 

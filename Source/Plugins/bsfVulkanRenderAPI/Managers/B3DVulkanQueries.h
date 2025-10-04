@@ -24,7 +24,6 @@ namespace b3d
 			~VulkanGpuQueryPool() override;
 
 			GpuQueryId AllocateQuery() override;
-			void Reset() override;
 			bool TryResolve(bool wait = false) override;
 			u64 GetQueryResult(GpuQueryId queryId, u32 elementIndex = 0) override;
 

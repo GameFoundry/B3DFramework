@@ -8,7 +8,6 @@
 #include "B3DVulkanSubmitThread.h"
 #include "Managers/B3DVulkanDescriptorManager.h"
 #include "Managers/B3DVulkanQueries.h"
-#include "Managers/B3DVulkanQueryManager.h"
 
 #if B3D_PLATFORM == B3D_PLATFORM_ID_WIN32
 #	include "Private/Win32/B3DWin32VideoModeInfo.h"
@@ -28,10 +27,8 @@ static_assert(false, "Other platform includes go here.");
 #include "B3DVulkanGpuParameters.h"
 #include "B3DVulkanGpuPipelineParameterLayout.h"
 #include "B3DVulkanGpuProgram.h"
-#include "B3DVulkanOcclusionQuery.h"
 #include "B3DVulkanSamplerState.h"
 #include "B3DVulkanTexture.h"
-#include "B3DVulkanTimerQuery.h"
 #include "RenderAPI/B3DGpuProgramParameterDescription.h"
 #include "ThirdParty/vk_mem_alloc.h"
 #include "Utility/B3DBitwise.h"
@@ -211,7 +208,6 @@ VulkanGpuDevice::VulkanGpuDevice(VkPhysicalDevice device)
 	// Initialize capabilities
 	InitializeCapabilities();
 
-	mQueryPool = B3DNew<VulkanQueryPool>(*this);
 	mDescriptorManager = B3DNew<VulkanDescriptorManager>(*this);
 	mResourceManager = B3DNew<VulkanResourceManager>(*this);
 	mBuiltinResources.Initialize();
@@ -240,7 +236,6 @@ VulkanGpuDevice::~VulkanGpuDevice()
 	}
 
 	B3DDelete(mDescriptorManager);
-	B3DDelete(mQueryPool);
 
 	// Needs to happen after query pool & command buffer pool shutdown, to ensure their resources are destroyed
 	B3DDelete(mResourceManager);
@@ -523,16 +518,6 @@ SPtr<SamplerState> VulkanGpuDevice::CreateSamplerState(const SamplerStateCreateI
 SPtr<EventQuery> VulkanGpuDevice::CreateEventQuery()
 {
 	return B3DMakeSharedFromExisting(new (B3DAllocate<VulkanEventQuery>()) VulkanEventQuery(*this));
-}
-
-SPtr<TimerQuery> VulkanGpuDevice::CreateTimerQuery()
-{
-	return B3DMakeSharedFromExisting(new (B3DAllocate<VulkanTimerQuery>()) VulkanTimerQuery(*this));
-}
-
-SPtr<OcclusionQuery> VulkanGpuDevice::CreateOcclusionQuery(bool isBinary)
-{
-	return B3DMakeSharedFromExisting(new (B3DAllocate<VulkanOcclusionQuery>()) VulkanOcclusionQuery(*this, isBinary));
 }
 
 SPtr<GpuProgram> VulkanGpuDevice::CreateGpuProgram(const GpuProgramCreateInformation& createInformation, bool deferredInitialize)

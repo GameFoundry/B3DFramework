@@ -10,10 +10,7 @@
 #include "B3DVulkanFramebuffer.h"
 #include "Managers/B3DVulkanVertexInputManager.h"
 #include "B3DVulkanEventQuery.h"
-#include "Managers/B3DVulkanQueryManager.h"
 #include "B3DVulkanSwapChain.h"
-#include "B3DVulkanTimerQuery.h"
-#include "B3DVulkanOcclusionQuery.h"
 #include "B3DVulkanRenderPass.h"
 #include "B3DVulkanRenderTexture.h"
 #include "B3DVulkanGpuBackend.h"
@@ -679,7 +676,7 @@ void VulkanGpuCommandBuffer::ResetQueries(const SPtr<GpuQueryPool>& queryPool)
 	B3D_ENSURE(!IsInRenderPass());
 
 	VulkanGpuQueryPool* vulkanQueryPool = static_cast<VulkanGpuQueryPool*>(queryPool.get());
-	vkCmdResetQueryPool(mCommandBufferHandle, vulkanQueryPool->GetVulkanHandle(), 0, vulkanQueryPool->GetUsedQueryCount());
+	vkCmdResetQueryPool(mCommandBufferHandle, vulkanQueryPool->GetVulkanHandle(), 0, vulkanQueryPool->GetPoolSize());
 
 	vulkanQueryPool->NotifyPoolReset();
 	RegisterResource(vulkanQueryPool, VulkanAccessFlag::Write);
@@ -1176,22 +1173,6 @@ GpuCommandBufferSubmitInformation VulkanGpuCommandBuffer::PrepareForSubmitOnSubm
 
 	GpuCommandBufferSubmitInformation submitInformation;
 	VulkanGpuCommandBufferPool& commandBufferPool = GetVulkanSubmitThread().GetCommandBufferPool(queueUsage);
-
-	// If there are any query resets needed, execute those first
-	if(!mQueuedQueryResets.empty())
-	{
-		const SPtr<VulkanGpuCommandBuffer> queryResetCommandBuffer = std::static_pointer_cast<VulkanGpuCommandBuffer>(commandBufferPool.Create(GpuCommandBufferCreateInformation::Create("Query reset")));
-
-		const VkCommandBuffer vkCommandBuffer = queryResetCommandBuffer->GetVulkanHandle();
-
-		for(auto& entry : mQueuedQueryResets)
-			entry->Reset(vkCommandBuffer);
-
-		queryResetCommandBuffer->End();
-		submitInformation.QueryResetCommandBuffer = queryResetCommandBuffer;
-
-		mQueuedQueryResets.clear();
-	}
 
 	// Issue pipeline barriers for queue transitions (need to happen on original queue first, then on new queue)
 	for(auto& entry : mBuffers)
@@ -2077,14 +2058,6 @@ void VulkanGpuCommandBuffer::SetEvent(VulkanEvent* event)
 		mQueuedEvents.push_back(event);
 	else
 		vkCmdSetEvent(mCommandBufferHandle, event->GetVulkanHandle(), VK_PIPELINE_STAGE_ALL_COMMANDS_BIT);
-}
-
-void VulkanGpuCommandBuffer::ResetQuery(VulkanQuery* query)
-{
-	if(IsInRenderPass())
-		mQueuedQueryResets.push_back(query);
-	else
-		query->Reset(mCommandBufferHandle);
 }
 
 void VulkanGpuCommandBuffer::UpdateBuffer(VulkanBuffer* destination, u8* data, VkDeviceSize offset, VkDeviceSize length)

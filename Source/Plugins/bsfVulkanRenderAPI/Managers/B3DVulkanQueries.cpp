@@ -9,11 +9,12 @@ using namespace b3d;
 using namespace b3d::render;
 
 VulkanGpuQueryPool::VulkanGpuQueryPool(VulkanResourceManager& vulkanResourceManager, const GpuQueryPoolCreateInformation& createInformation)
-	: GpuQueryPool(createInformation), VulkanResource(&vulkanResourceManager, false, "QueryPool") 
+	: GpuQueryPool(createInformation), VulkanResource(&vulkanResourceManager, false, "QueryPool")
 {
 	VkQueryPoolCreateInfo queryPoolCreateInfo;
 	queryPoolCreateInfo.sType = VK_STRUCTURE_TYPE_QUERY_POOL_CREATE_INFO;
 	queryPoolCreateInfo.pNext = nullptr;
+	queryPoolCreateInfo.flags = 0;
 	queryPoolCreateInfo.pipelineStatistics = createInformation.Type == GpuQueryType::PipelineStatistics ? VulkanUtility::GetPipelineStatisticQueryBits(createInformation.PipelineStatisticsQueryBits) : 0;
 	queryPoolCreateInfo.queryCount = mPoolSize;
 	queryPoolCreateInfo.queryType = VulkanUtility::GetQueryType(createInformation.Type);
@@ -50,6 +51,9 @@ bool VulkanGpuQueryPool::TryResolve(bool wait)
 {
 	VulkanGpuDevice& device = mOwner->GetDevice();
 
+	if(mNextFreeQueryId == 0)
+		return true;
+
 	if(IsBound())
 	{
 		if(!wait)
@@ -71,13 +75,4 @@ u64 VulkanGpuQueryPool::GetQueryResult(GpuQueryId queryId, u32 elementIndex)
 		return 0;
 
 	return mResultBuffer[queryId.Id * mElementsPerQuery];
-}
-
-void VulkanGpuQueryPool::Reset()
-{
-	VulkanGpuDevice& device = mOwner->GetDevice();
-	VkDevice vkDevice = device.GetLogical();
-
-	vkResetQueryPool(vkDevice, mPool, 0, mNextFreeQueryId);
-	mNextFreeQueryId = 0;
 }

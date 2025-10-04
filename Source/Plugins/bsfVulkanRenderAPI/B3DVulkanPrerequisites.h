@@ -64,8 +64,6 @@ namespace b3d
 		class VulkanDescriptorPool;
 		class VulkanGpuParameters;
 		class VulkanEvent;
-		class VulkanQuery;
-		class VulkanQueryPool;
 		class VulkanVertexInput;
 		class VulkanSemaphore;
 

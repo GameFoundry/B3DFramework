@@ -37,9 +37,7 @@ static TInlineArray<String, 2> ParseGenericArguments(const String& type)
 			--level;
 		else if(type[i] == ',' && level == 0)
 		{
-			String genericArgument = type.substr(start, i - start);
-			StringUtil::Trim(genericArgument);
-
+			String genericArgument = StringUtil::Trim(type.substr(start, i - start));
 			genericArguments.Add(genericArgument);
 
 			start = i + 1;
@@ -48,8 +46,7 @@ static TInlineArray<String, 2> ParseGenericArguments(const String& type)
 
 	if(start < type.size())
 	{
-		String genericArgument = type.substr(start);
-		StringUtil::Trim(genericArgument);
+		String genericArgument = StringUtil::Trim(type.substr(start));
 
 		genericArguments.Add(genericArgument);
 	}

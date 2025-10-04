@@ -94,7 +94,7 @@ SPtr<GpuCommandBufferProfiler> GpuCommandBuffer::BeginProfiling(const ProfilerSt
 	if(!B3D_ENSURE(mProfiler == nullptr))
 		return nullptr;
 
-	mProfiler = GetProfilerGPU().CreateCommandBufferProfiler(*this);
+	mProfiler = GetGpuProfiler().CreateCommandBufferProfiler(*this);
 	mProfilingScopeName = profilingScopeName;
 
 	return mProfiler;
@@ -105,10 +105,10 @@ void GpuCommandBuffer::EndProfiling()
 	if(!B3D_ENSURE(mProfiler != nullptr))
 		return;
 
-	GetProfilerGPU().ResolveProfileWhenReady(mProfilingScopeName, mProfiler);
+	GetGpuProfiler().ResolveProfileWhenReady(mProfilingScopeName, mProfiler);
 
 	mProfiler = nullptr;
-	mProfilingScopeName = nullptr;
+	mProfilingScopeName.clear();
 }
 #endif
 }}

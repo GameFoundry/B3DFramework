@@ -245,13 +245,13 @@ void LightProbeVolume::RunRenderProbeTask()
 	auto renderProbes = [renderProxy](render::GpuCommandBufferPool& commandBufferPool)
 	{
 		SPtr<render::GpuCommandBuffer> commandBuffer = commandBufferPool.Create(render::GpuCommandBufferCreateInformation::Create("LightProbeRendering"));
-		SPtr<GpuCommandBufferProfiler> commandBufferProfiler = GetProfilerGPU().CreateCommandBufferProfiler(*commandBuffer);
+		SPtr<GpuCommandBufferProfiler> commandBufferProfiler = GetGpuProfiler().CreateCommandBufferProfiler(*commandBuffer);
 
 		commandBufferProfiler->BeginSample(*commandBuffer, "LightProbeRendering");
 		const bool isDone = renderProxy->RenderProbes(*commandBuffer, 3);
 		commandBufferProfiler->EndSample(*commandBuffer);
 
-		GetProfilerGPU().ResolveProfileWhenReady("LightProbeRendering", commandBufferProfiler);
+		GetGpuProfiler().ResolveProfileWhenReady("LightProbeRendering", commandBufferProfiler);
 		const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
 		gpuDevice->SubmitCommandBuffer(commandBuffer);
 

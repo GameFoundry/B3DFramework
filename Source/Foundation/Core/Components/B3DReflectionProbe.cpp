@@ -145,7 +145,7 @@ void ReflectionProbe::CaptureAndFilter()
 		auto renderReflProbe = [textureRenderProxy, probeRenderProxy, rendererScene](render::GpuCommandBufferPool& commandBufferPool)
 		{
 			const SPtr<render::GpuCommandBuffer> commandBuffer = commandBufferPool.Create(render::GpuCommandBufferCreateInformation::Create("RenderAndFilterReflectionProbe"));
-			SPtr<GpuCommandBufferProfiler> commandBufferProfiler = GetProfilerGPU().CreateCommandBufferProfiler(*commandBuffer);
+			SPtr<GpuCommandBufferProfiler> commandBufferProfiler = GetGpuProfiler().CreateCommandBufferProfiler(*commandBuffer);
 
 			commandBufferProfiler->BeginSample(*commandBuffer, "RenderAndFilterReflectionProbe");
 			float radius = probeRenderProxy->mType == ReflectionProbeType::Sphere ? probeRenderProxy->mRadius : probeRenderProxy->mExtents.Length();
@@ -162,7 +162,7 @@ void ReflectionProbe::CaptureAndFilter()
 			rendererScene->UpdateReflectionProbe(probeRenderProxy.get(), true);
 			commandBufferProfiler->EndSample(*commandBuffer);
 
-			GetProfilerGPU().ResolveProfileWhenReady("RenderAndFilterReflectionProbe", commandBufferProfiler);
+			GetGpuProfiler().ResolveProfileWhenReady("RenderAndFilterReflectionProbe", commandBufferProfiler);
 
 			const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
 			gpuDevice->SubmitCommandBuffer(commandBuffer);
@@ -178,7 +178,7 @@ void ReflectionProbe::CaptureAndFilter()
 		auto filterReflProbe = [customTextureRenderProxy, textureRenderProxy, probeRenderProxy, rendererScene](render::GpuCommandBufferPool& commandBufferPool)
 		{
 			const SPtr<render::GpuCommandBuffer> commandBuffer = commandBufferPool.Create(render::GpuCommandBufferCreateInformation::Create("FilterReflectionProbe"));
-			SPtr<GpuCommandBufferProfiler> commandBufferProfiler = GetProfilerGPU().CreateCommandBufferProfiler(*commandBuffer);
+			SPtr<GpuCommandBufferProfiler> commandBufferProfiler = GetGpuProfiler().CreateCommandBufferProfiler(*commandBuffer);
 
 			commandBufferProfiler->BeginSample(*commandBuffer, "FilterReflectionProbe");
 
@@ -190,7 +190,7 @@ void ReflectionProbe::CaptureAndFilter()
 
 			commandBufferProfiler->EndSample(*commandBuffer);
 
-			GetProfilerGPU().ResolveProfileWhenReady("FilterReflectionProbe", commandBufferProfiler);
+			GetGpuProfiler().ResolveProfileWhenReady("FilterReflectionProbe", commandBufferProfiler);
 
 			const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
 			gpuDevice->SubmitCommandBuffer(commandBuffer);

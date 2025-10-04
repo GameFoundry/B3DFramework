@@ -531,16 +531,13 @@ void ProfilerOverlay::Update()
 
 	UpdateCpuSampleContents(latestSimReport, latestCoreReport);
 
-	while(ProfilerGPU::Instance().GetAvailableReportCount() > 1)
-		ProfilerGPU::Instance().GetNextReport(); // Drop any extra reports, we only want the latest
-
-	if(ProfilerGPU::Instance().GetAvailableReportCount() > 0)
+	Optional<GpuProfilerResults> lastProfilerResults = GetGpuProfiler().GetResults("RenderScene"); // Note: Must match name in the renderer
+	if(lastProfilerResults.has_value())
 	{
-		GPUProfilerReport report = ProfilerGPU::Instance().GetNextReport();
+		mLastProfilerResults = std::move(*lastProfilerResults);
 
-		// TODO - Currently displaying just the first view. I need to add a way to toggle between views
-		if(!report.ViewSamples.empty())
-			UpdateGpuSampleContents(report.ViewSamples[0]);
+		if(!mLastProfilerResults.Samples.Empty())
+			UpdateGpuSampleContents(mLastProfilerResults.Samples[0]);
 	}
 }
 
@@ -713,7 +710,7 @@ void ProfilerOverlay::UpdateCpuSampleContents(const ProfilerReport& mainThreadRe
 	}
 }
 
-void ProfilerOverlay::UpdateGpuSampleContents(const GPUProfileSample& frameSample)
+void ProfilerOverlay::UpdateGpuSampleContents(const GpuProfilerSample& frameSample)
 {
 	mGPUFrameNumStr.SetParameter(0, ToString((u64)GetTime().GetCurrentFrameIndex()));
 	mGPUTimeStr.SetParameter(0, ToString(frameSample.TimeMs));
@@ -761,11 +758,11 @@ void ProfilerOverlay::UpdateGpuSampleContents(const GPUProfileSample& frameSampl
 
 	struct Todo
 	{
-		Todo(const GPUProfileSample& entry, u32 depth)
+		Todo(const GpuProfilerSample& entry, u32 depth)
 			: Entry(entry), Depth(depth)
 		{}
 
-		const GPUProfileSample& Entry;
+		const GpuProfilerSample& Entry;
 		u32 Depth;
 	};
 
@@ -780,7 +777,7 @@ void ProfilerOverlay::UpdateGpuSampleContents(const GPUProfileSample& frameSampl
 		Todo curEntry = todo.top();
 		todo.pop();
 
-		const GPUProfileSample& data = curEntry.Entry;
+		const GpuProfilerSample& data = curEntry.Entry;
 
 		if(column < kGpuNumSampleColumns)
 			sampleRowFillers[column].AddData(curEntry.Depth, data.Name, data.TimeMs);

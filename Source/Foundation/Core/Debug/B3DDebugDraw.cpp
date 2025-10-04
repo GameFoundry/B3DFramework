@@ -146,7 +146,7 @@ DebugDrawParamsDef gDebugDrawParamsDef;
 
 void DebugDrawMat::Execute(GpuCommandBuffer& commandBuffer, const SPtr<GpuBuffer>& params, const SPtr<Mesh>& mesh, const SubMesh& subMesh)
 {
-	BS_RENMAT_PROFILE_BLOCK
+	B3D_PROFILE_RENDERER_MATERIAL
 
 	mGPUParameters->SetUniformBuffer("Params", params);
 

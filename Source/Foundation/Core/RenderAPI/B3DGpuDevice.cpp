@@ -4,8 +4,6 @@
 #include "B3DGpuCommandBuffer.h"
 #include "B3DEventQuery.h"
 #include "B3DGpuFrameCapture.h"
-#include "B3DTimerQuery.h"
-#include "B3DOcclusionQuery.h"
 
 using namespace b3d;
 

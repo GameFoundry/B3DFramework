@@ -2,11 +2,9 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "B3DVulkanGpuQueue.h"
 #include "B3DVulkanGpuCommandBuffer.h"
-#include "B3DVulkanOcclusionQuery.h"
 #include "B3DVulkanRenderWindowSurface.h"
 #include "B3DVulkanSubmitThread.h"
 #include "B3DVulkanSwapChain.h"
-#include "B3DVulkanTimerQuery.h"
 #include "Profiling/B3DRenderStats.h"
 
 using namespace b3d;

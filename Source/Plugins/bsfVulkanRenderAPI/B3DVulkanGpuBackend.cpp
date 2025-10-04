@@ -4,7 +4,6 @@
 #include "B3DVulkanGpuDevice.h"
 #include "Managers/B3DVulkanTextureManager.h"
 #include "Managers/B3DVulkanRenderWindowManager.h"
-#include "Managers/B3DVulkanQueryManager.h"
 #include "Managers/B3DVulkanVertexInputManager.h"
 
 #include <vulkan/vulkan.h>

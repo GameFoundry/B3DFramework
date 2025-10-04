@@ -20,32 +20,40 @@ using namespace b3d;
 const String StringUtil::kBlank;
 const WString StringUtil::kWblank;
 
-void StringUtil::Trim(String& str, bool left, bool right)
+String StringUtil::Trim(const String& str, bool left, bool right)
 {
 	static const String kDelims = " \t\r";
-	Trim(str, kDelims, left, right);
+	return Trim(str, kDelims, left, right);
 }
 
-void StringUtil::Trim(WString& str, bool left, bool right)
+WString StringUtil::Trim(const WString& str, bool left, bool right)
 {
 	static const WString kDelims = L" \t\r";
-	Trim(str, kDelims, left, right);
+	return Trim(str, kDelims, left, right);
 }
 
-void StringUtil::Trim(String& str, const String& delims, bool left, bool right)
+String StringUtil::Trim(const String& str, const String& delims, bool left, bool right)
 {
+	String output = str;
+
 	if(right)
-		str.erase(str.find_last_not_of(delims) + 1); // trim right
+		output.erase(str.find_last_not_of(delims) + 1); // trim right
 	if(left)
-		str.erase(0, str.find_first_not_of(delims)); // trim left
+		output.erase(0, str.find_first_not_of(delims)); // trim left
+
+	return output;
 }
 
-void StringUtil::Trim(WString& str, const WString& delims, bool left, bool right)
+WString StringUtil::Trim(const WString& str, const WString& delims, bool left, bool right)
 {
+	WString output = str;
+
 	if(right)
-		str.erase(str.find_last_not_of(delims) + 1); // trim right
+		output.erase(str.find_last_not_of(delims) + 1); // trim right
 	if(left)
-		str.erase(0, str.find_first_not_of(delims)); // trim left
+		output.erase(0, str.find_first_not_of(delims)); // trim left
+
+	return output;
 }
 
 Vector<String> StringUtil::Split(const String& str, const String& delims, unsigned int maxSplits)

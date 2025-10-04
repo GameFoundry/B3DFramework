@@ -122,7 +122,7 @@ Application::~Application()
 
 	Importer::ShutDown();
 	MeshManager::ShutDown();
-	ProfilerGPU::ShutDown();
+	GpuProfiler::ShutDown();
 
 	PrefabManager::ShutDown();
 
@@ -236,7 +236,7 @@ void Application::OnStartUp()
 	RendererManager::Instance().SetActive(mStartUpDesc.Renderer);
 	StartUpRenderer();
 
-	ProfilerGPU::StartUp();
+	GpuProfiler::StartUp();
 	MeshManager::StartUp();
 	Importer::StartUp();
 	AudioManager::StartUp(mStartUpDesc.Audio);
@@ -541,7 +541,7 @@ void Application::BeginRenderThreadProfiling()
 
 void Application::EndRenderThreadProfiling()
 {
-	ProfilerGPU::Instance().UpdateInternal();
+	GpuProfiler::Instance().Update();
 
 	GetProfilerCPU().EndThread();
 	GetProfiler().UpdateRenderThreadInternal();

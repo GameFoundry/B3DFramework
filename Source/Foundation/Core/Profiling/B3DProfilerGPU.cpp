@@ -4,21 +4,22 @@
 
 #include "B3DApplication.h"
 #include "Profiling/B3DRenderStats.h"
-#include "RenderAPI/B3DTimerQuery.h"
-#include "RenderAPI/B3DOcclusionQuery.h"
-#include "Error/B3DException.h"
 #include "RenderAPI/B3DGpuCommandBuffer.h"
 #include "RenderAPI/B3DGpuDevice.h"
 
 using namespace b3d;
 
-const u32 ProfilerGPU::kMaxQueueElements = 5;
-
 GpuCommandBufferProfiler::GpuCommandBufferProfiler(render::GpuCommandBuffer& commandBuffer)
 	: mCommandBufferId((u64)&commandBuffer)
 {
-	mTimestampQueryPool = GetProfilerGPU().FindOrCreateQueryPool();
+	mTimestampQueryPool = GetGpuProfiler().FindOrCreateQueryPool();
 	commandBuffer.ResetQueries(mTimestampQueryPool);
+}
+
+GpuCommandBufferProfiler::~GpuCommandBufferProfiler()
+{
+	if(mTimestampQueryPool != nullptr) // If it hasn't been cleared yet
+		Clear();
 }
 
 void GpuCommandBufferProfiler::BeginSample(render::GpuCommandBuffer& commandBuffer, ProfilerString name)
@@ -67,9 +68,9 @@ void GpuCommandBufferProfiler::EndSample(render::GpuCommandBuffer& commandBuffer
 	mActiveSampleChain.Pop();
 }
 
-void GpuCommandBufferProfiler::Reset()
+void GpuCommandBufferProfiler::Clear()
 {
-	auto fnFreeSample = [this, fnFreeSample](Sample* sample)
+	Function<void(Sample*)> fnFreeSample = [this, &fnFreeSample](Sample* sample)
 	{
 		for(Sample* child : sample->Children)
 			fnFreeSample(child);
@@ -84,265 +85,186 @@ void GpuCommandBufferProfiler::Reset()
 	mRootSamples.Clear();
 	mCommandBufferId = 0;
 
-	GetProfilerGPU().ReleaseQueryPool(mTimestampQueryPool);
+	GetGpuProfiler().ReleaseQueryPool(mTimestampQueryPool);
 	mTimestampQueryPool = nullptr;
 }
 
-ProfilerGPU::ProfilerGPU()
+void GpuCommandBufferProfiler::Reset(render::GpuCommandBuffer& commandBuffer)
 {
-	mReadyReports = B3DNewMultiple<GPUProfilerReport>(kMaxQueueElements);
+	mCommandBufferId = (u64)&commandBuffer;
+
+	mTimestampQueryPool = GetGpuProfiler().FindOrCreateQueryPool();
+	commandBuffer.ResetQueries(mTimestampQueryPool);
 }
 
-ProfilerGPU::~ProfilerGPU()
+void GpuCommandBufferProfiler::ConvertToResultSample(const Sample& sample, GpuProfilerSample& reportSample)
 {
-	while(!mUnresolvedFrames.empty())
-	{
-		ProfiledFrame& frame = mUnresolvedFrames.front();
+	const SPtr<GpuDevice>& device = GetApplication().GetPrimaryGpuDevice();
+	const u64 beginTimestamp = sample.TimestampQueryPool->GetQueryResult(sample.TimestampBeginQueryId);
+	const u64 endTimestamp = sample.TimestampQueryPool->GetQueryResult(sample.TimestampEndQueryId);
 
-		FreeFrame(frame);
-		mUnresolvedFrames.pop();
-	}
-
-	B3DDeleteMultiple(mReadyReports, kMaxQueueElements);
-}
-
-void ProfilerGPU::BeginProfilingScope(render::GpuCommandBuffer& commandBuffer, u64 id, ProfilerString title)
-{
-	if(!mIsFrameActive)
-	{
-		B3D_LOG(Error, Profiler, "Cannot begin a view because no frame is active.");
-		return;
-	}
-
-	if(mIsViewActive)
-	{
-		B3D_LOG(Error, Profiler, "Cannot begin a view because another view is active.");
-		return;
-	}
-
-	auto sample = mViewSamplePool.Construct<ProfiledScope>();
-	sample->ViewId = id;
-
-	mActiveFrame.ViewSamples.push_back(sample);
-
-	BeginSampleInternal(*sample, commandBuffer, false);
-	mIsViewActive = true;
-}
-
-void ProfilerGPU::EndProfilingScope(render::GpuCommandBuffer& commandBuffer)
-{
-	if(!mActiveSamples.empty())
-	{
-		B3D_LOG(Error, Profiler, "Attempting to end a view while a sample is active.");
-		return;
-	}
-
-	if(!mIsViewActive)
-		return;
-
-	EndSampleInternal(*mActiveFrame.ViewSamples.back(), commandBuffer);
-	mIsViewActive = false;
-}
-
-void ProfilerGPU::BeginSample(render::GpuCommandBuffer& commandBuffer, ProfilerString name)
-{
-	if(!mIsFrameActive)
-		return;
-
-	auto sample = mSamplePool.Construct<ProfiledSample>();
-	sample->Name = std::move(name);
-	BeginSampleInternal(*sample, commandBuffer, false);
-
-	if(mActiveSamples.empty())
-	{
-		if(mIsViewActive)
-			mActiveFrame.ViewSamples.back()->Children.push_back(sample);
-		else
-			mActiveFrame.UncategorizedSamples.push_back(sample);
-	}
-	else
-	{
-		ProfiledSample* parent = mActiveSamples.top();
-		parent->Children.push_back(sample);
-	}
-
-	mActiveSamples.push(sample);
-}
-
-void ProfilerGPU::EndSample(render::GpuCommandBuffer& commandBuffer, const ProfilerString& name)
-{
-	if(mActiveSamples.empty())
-		return;
-
-	ProfiledSample* lastSample = mActiveSamples.top();
-	if(lastSample->Name != name)
-	{
-		B3D_LOG(Error, Profiler, "Attempting to end a sample that doesn't match. Got: {0}. Expected: {1}", name.c_str(), lastSample->Name.c_str());
-		return;
-	}
-
-	EndSampleInternal(*lastSample, commandBuffer);
-	mActiveSamples.pop();
-}
-
-u32 ProfilerGPU::GetAvailableReportCount()
-{
-	Lock lock(mMutex);
-
-	return mReportCount;
-}
-
-GPUProfilerReport ProfilerGPU::GetNextReport()
-{
-	Lock lock(mMutex);
-
-	if(mReportCount == 0)
-	{
-		B3D_LOG(Error, Profiler, "No reports are available.");
-		return GPUProfilerReport();
-	}
-
-	GPUProfilerReport report = mReadyReports[mReportHeadPos];
-
-	mReportHeadPos = (mReportHeadPos + 1) % kMaxQueueElements;
-	mReportCount--;
-
-	return report;
-}
-
-void ProfilerGPU::UpdateInternal()
-{
-	while(!mUnresolvedFrames.empty())
-	{
-		ProfiledFrame& frame = mUnresolvedFrames.front();
-
-		// Make sure all the top-level queries have finished. If they have that implies
-		// all their children have finished as well
-		bool isReady = true;
-		for(auto& entry : frame.ViewSamples)
-		{
-			if(!entry->ActiveTimeQuery->IsReady())
-			{
-				isReady = false;
-				break;
-			}
-		}
-
-		for(auto& entry : frame.UncategorizedSamples)
-		{
-			if(!entry->ActiveTimeQuery->IsReady())
-			{
-				isReady = false;
-				break;
-			}
-		}
-
-		if(!isReady)
-			break;
-
-		GPUProfilerReport report;
-		report.ViewSamples.resize(frame.ViewSamples.size());
-		report.UncategorizedSamples.resize(frame.UncategorizedSamples.size());
-
-		for(size_t i = 0; i < frame.ViewSamples.size(); i++)
-			ResolveSample(*frame.ViewSamples[i], report.ViewSamples[i]);
-
-		for(size_t i = 0; i < frame.UncategorizedSamples.size(); i++)
-			ResolveSample(*frame.UncategorizedSamples[i], report.UncategorizedSamples[i]);
-
-		FreeFrame(frame);
-		mUnresolvedFrames.pop();
-
-		{
-			Lock lock(mMutex);
-			mReadyReports[(mReportHeadPos + mReportCount) % kMaxQueueElements] = report;
-			if(mReportCount == kMaxQueueElements)
-				mReportHeadPos = (mReportHeadPos + 1) % kMaxQueueElements;
-			else
-				mReportCount++;
-		}
-	}
-}
-
-void ProfilerGPU::FreeSample(ProfiledSample& sample)
-{
-	for(auto& entry : sample.Children)
-	{
-		FreeSample(*entry);
-		mSamplePool.Destruct(entry);
-	}
-
-	sample.Children.clear();
-
-	mFreeTimerQueries.push(sample.ActiveTimeQuery);
-
-	if(sample.ActiveOcclusionQuery)
-		mFreeOcclusionQueries.push(sample.ActiveOcclusionQuery);
-}
-
-void ProfilerGPU::FreeFrame(ProfiledFrame& frame)
-{
-	for(size_t i = 0; i < frame.ViewSamples.size(); i++)
-	{
-		FreeSample(*frame.ViewSamples[i]);
-		mViewSamplePool.Destruct(frame.ViewSamples[i]);
-	}
-
-	for(size_t i = 0; i < frame.UncategorizedSamples.size(); i++)
-	{
-		FreeSample(*frame.UncategorizedSamples[i]);
-		mSamplePool.Destruct(frame.UncategorizedSamples[i]);
-	}
-
-	frame.ViewSamples.clear();
-	frame.UncategorizedSamples.clear();
-}
-
-void ProfilerGPU::ResolveSample(const ProfiledSample& sample, GPUProfileSample& reportSample)
-{
 	reportSample.Name.assign(sample.Name.data(), sample.Name.size());
-	reportSample.TimeMs = sample.ActiveTimeQuery->GetTimeMs();
+	reportSample.TimeMs = device->ConvertTimestampToMilliseconds(endTimestamp - beginTimestamp);
+	reportSample.SamplesDrawn = 0;
 
-	if(sample.ActiveOcclusionQuery)
-		reportSample.SamplesDrawn = sample.ActiveOcclusionQuery->GetSampleCount();
-	else
-		reportSample.SamplesDrawn = 0;
+	reportSample.DrawCallCount = (u32)(sample.EndRenderStatistics.DrawCallCount - sample.BeginRenderStatistics.DrawCallCount);
+	reportSample.RenderTargetChangesCount = (u32)(sample.EndRenderStatistics.RenderTargetChangeCount - sample.BeginRenderStatistics.RenderTargetChangeCount);
+	reportSample.PresentCount = (u32)(sample.EndRenderStatistics.PresentCount - sample.BeginRenderStatistics.PresentCount);
+	reportSample.ClearCount = (u32)(sample.EndRenderStatistics.ClearCount - sample.BeginRenderStatistics.ClearCount);
 
-	reportSample.DrawCallCount = (u32)(sample.EndStats.NumDrawCalls - sample.StartStats.NumDrawCalls);
-	reportSample.RenderTargetChangesCount = (u32)(sample.EndStats.NumRenderTargetChanges - sample.StartStats.NumRenderTargetChanges);
-	reportSample.PresentCount = (u32)(sample.EndStats.NumPresents - sample.StartStats.NumPresents);
-	reportSample.ClearCount = (u32)(sample.EndStats.NumClears - sample.StartStats.NumClears);
+	reportSample.VerticesDrawn = (u32)(sample.EndRenderStatistics.VertexCount - sample.BeginRenderStatistics.VertexCount);
+	reportSample.PrimitivesDrawn = (u32)(sample.EndRenderStatistics.PrimitiveCount - sample.BeginRenderStatistics.PrimitiveCount);
 
-	reportSample.VerticesDrawn = (u32)(sample.EndStats.NumVertices - sample.StartStats.NumVertices);
-	reportSample.PrimitivesDrawn = (u32)(sample.EndStats.NumPrimitives - sample.StartStats.NumPrimitives);
+	reportSample.PipelineStateChangeCount = (u32)(sample.EndRenderStatistics.PipelineStateChangeCount - sample.BeginRenderStatistics.PipelineStateChangeCount);
 
-	reportSample.PipelineStateChangeCount = (u32)(sample.EndStats.NumPipelineStateChanges - sample.StartStats.NumPipelineStateChanges);
+	reportSample.GpuParameterBindCount = (u32)(sample.EndRenderStatistics.GpuParameterBindCount - sample.BeginRenderStatistics.GpuParameterBindCount);
+	reportSample.VertexBufferBindCount = (u32)(sample.EndRenderStatistics.VertexBufferBindCount - sample.BeginRenderStatistics.VertexBufferBindCount);
+	reportSample.IndexBufferBindCount = (u32)(sample.EndRenderStatistics.IndexBufferBindCount - sample.BeginRenderStatistics.IndexBufferBindCount);
 
-	reportSample.GpuParameterBindCount = (u32)(sample.EndStats.NumGpuParamBinds - sample.StartStats.NumGpuParamBinds);
-	reportSample.VertexBufferBindCount = (u32)(sample.EndStats.NumVertexBufferBinds - sample.StartStats.NumVertexBufferBinds);
-	reportSample.IndexBufferBindCount = (u32)(sample.EndStats.NumIndexBufferBinds - sample.StartStats.NumIndexBufferBinds);
+	reportSample.ResourceWriteCount = (u32)(sample.EndRenderStatistics.ResourceWriteCount - sample.BeginRenderStatistics.ResourceWriteCount);
+	reportSample.ResourceReadCount = (u32)(sample.EndRenderStatistics.ResourceReadCount - sample.BeginRenderStatistics.ResourceReadCount);
 
-	reportSample.ResourceWriteCount = (u32)(sample.EndStats.NumResourceWrites - sample.StartStats.NumResourceWrites);
-	reportSample.ResourceReadCount = (u32)(sample.EndStats.NumResourceReads - sample.StartStats.NumResourceReads);
+	reportSample.ObjectsCreatedCount = (u32)(sample.EndRenderStatistics.ObjectsCreatedCount - sample.BeginRenderStatistics.ObjectsCreatedCount);
+	reportSample.ObjectsDestroyedCount = (u32)(sample.EndRenderStatistics.ObjectsDestroyedCount - sample.BeginRenderStatistics.ObjectsDestroyedCount);
 
-	reportSample.ObjectsCreatedCount = (u32)(sample.EndStats.NumObjectsCreated - sample.StartStats.NumObjectsCreated);
-	reportSample.ObjectsDestroyedCount = (u32)(sample.EndStats.NumObjectsDestroyed - sample.StartStats.NumObjectsDestroyed);
-
+	reportSample.ChildSamples.Reserve(sample.Children.Size());
 	for(auto& entry : sample.Children)
 	{
-		reportSample.ChildSamples.push_back(GPUProfileSample());
-		ResolveSample(*entry, reportSample.ChildSamples.back());
+		reportSample.ChildSamples.Add(GpuProfilerSample());
+		ConvertToResultSample(*entry, reportSample.ChildSamples.Back());
 	}
 }
 
-SPtr<render::GpuQueryPool> ProfilerGPU::FindOrCreateQueryPool() const
+GpuProfilerResults GpuCommandBufferProfiler::GetResults()
+{
+	GpuProfilerResults output;
+
+	output.Samples.Reserve(mRootSamples.Size());
+	for(auto& sample : mRootSamples)
+	{
+		output.Samples.Add(GpuProfilerSample());
+		ConvertToResultSample(*sample, output.Samples.Back());
+	}
+
+	return output;
+}
+
+GpuProfiler::~GpuProfiler()
 {
 	Lock lock(mMutex);
 
-	if(!mFreeTimestampQueryPools.empty())
+	mFreeCommandBufferProfilers.Clear();
+}
+
+void GpuProfiler::Update()
+{
+	Lock lock(mMutex); // Note: Potentially expensive mutex as it could be held for long
+
+	for(auto& entry : mUnresolvedProfilerData)
+	{
+		UnresolvedCommandBufferProfilerData& unresolvedProfilerData = entry.second;
+
+		bool previousEntryWasResolved = false;
+		for(u32 reverseIndex = 0; reverseIndex < unresolvedProfilerData.Queued.Size();)
+		{
+			const u32 index = (u32)unresolvedProfilerData.Queued.Size() - 1 - reverseIndex;
+			SPtr<GpuCommandBufferProfiler>& unresolvedCommandBufferProfiler = unresolvedProfilerData.Queued[index];
+			if(unresolvedCommandBufferProfiler->mTimestampQueryPool == nullptr || previousEntryWasResolved)
+			{
+				auto it = unresolvedProfilerData.Queued.Begin() + index;
+				SPtr<GpuCommandBufferProfiler> profiler = *it;
+				unresolvedProfilerData.Queued.Erase(it);
+
+				profiler->Clear();
+				mFreeCommandBufferProfilers.Add(std::move(profiler));
+
+				continue;
+			}
+
+			if(unresolvedCommandBufferProfiler->mTimestampQueryPool->TryResolve())
+			{
+				mResolvedProfilerData[entry.first].LastResolved = unresolvedCommandBufferProfiler;
+				unresolvedProfilerData.Queued.Erase(unresolvedProfilerData.Queued.Begin() + index);
+
+				previousEntryWasResolved = true;
+				continue;
+			}
+
+			reverseIndex++;
+		}
+	}
+}
+
+SPtr<GpuCommandBufferProfiler> GpuProfiler::CreateCommandBufferProfiler(render::GpuCommandBuffer& commandBuffer)
+{
+	Lock lock(mMutex);
+
+	if(!mFreeCommandBufferProfilers.Empty())
+	{
+		SPtr<GpuCommandBufferProfiler> commandBufferProfiler = mFreeCommandBufferProfilers.Back();
+		mFreeCommandBufferProfilers.Pop();
+
+		commandBufferProfiler->Reset(commandBuffer);
+		return commandBufferProfiler;
+	}
+
+	return B3DMakeShared<GpuCommandBufferProfiler>(commandBuffer);
+}
+
+void GpuProfiler::ResolveProfileWhenReady(const ProfilerString& name, const SPtr<GpuCommandBufferProfiler>& profiler)
+{
+	Lock lock(mMutex);
+
+	if(profiler->IsEmpty())
+	{
+		profiler->Clear();
+		mFreeCommandBufferProfilers.Add(profiler);
+
+		return;
+	}
+
+	UnresolvedCommandBufferProfilerData& profilerData = mUnresolvedProfilerData[name];
+
+	if(profilerData.Queued.Size() == kMaxQueuedEntries)
+	{
+		auto it = profilerData.Queued.Begin();
+		SPtr<GpuCommandBufferProfiler> existingProfiler = *it;
+		profilerData.Queued.Erase(profilerData.Queued.Begin());
+
+		existingProfiler->Clear();
+		mFreeCommandBufferProfilers.Add(std::move(existingProfiler));
+	}
+
+	profilerData.Queued.Add(profiler);
+}
+
+Optional<GpuProfilerResults> GpuProfiler::GetResults(const ProfilerString& name)
+{
+	if(auto found = mResolvedProfilerData.find(name); found != mResolvedProfilerData.end())
+	{
+		ResolvedCommandBufferProfilerData resolvedProfilerData = std::move(found->second);
+		SPtr<GpuCommandBufferProfiler> profiler = resolvedProfilerData.LastResolved;
+		GpuProfilerResults results = resolvedProfilerData.LastResolved->GetResults();
+
+		mResolvedProfilerData.erase(found);
+
+		profiler->Clear();
+		mFreeCommandBufferProfilers.Add(std::move(profiler));
+
+		return results;
+	}
+	
+	return std::nullopt;
+}
+
+SPtr<render::GpuQueryPool> GpuProfiler::FindOrCreateQueryPool() const
+{
+	// Note: mMutex must be locked here
+
+	if(!mFreeTimestampQueryPools.Empty())
 	{
 		SPtr<render::GpuQueryPool> queryPool = mFreeTimestampQueryPools.back();
-		mFreeTimestampQueryPools.pop_back();
+		mFreeTimestampQueryPools.Pop();
 
 		return queryPool;
 	}
@@ -358,17 +280,17 @@ SPtr<render::GpuQueryPool> ProfilerGPU::FindOrCreateQueryPool() const
 	return gpuDevice->CreateQueryPool(createInformation);
 }
 
-void ProfilerGPU::ReleaseQueryPool(const SPtr<render::GpuQueryPool>& queryPool)
+void GpuProfiler::ReleaseQueryPool(const SPtr<render::GpuQueryPool>& queryPool)
 {
-	Lock lock(mMutex);
+	// Note: mMutex must be locked here
 
 	mFreeTimestampQueryPools.Add(queryPool);
 }
 
 namespace b3d
 {
-ProfilerGPU& GetProfilerGPU()
+GpuProfiler& GetGpuProfiler()
 {
-	return ProfilerGPU::Instance();
+	return GpuProfiler::Instance();
 }
 } // namespace b3d

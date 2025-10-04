@@ -308,12 +308,6 @@ namespace b3d
 			void SetEvent(VulkanEvent* event);
 
 			/**
-			 * Registers a command that resets the query. The command will be delayed until the next submit() if a render
-			 * pass is currently in progress, but is guaranteed to execute before this command buffer is submitted.
-			 */
-			void ResetQuery(VulkanQuery* query);
-
-			/**
 			 * Issues a pipeline barrier on the provided buffer. See vkCmdPipelineBarrier in Vulkan spec. for usage
 			 * information.
 			 */
@@ -766,7 +760,6 @@ namespace b3d
 			Vector<VkImageMemoryBarrier> mLayoutTransitionBarriersTemp;
 			UnorderedMap<VulkanImage*, u32> mQueuedLayoutTransitions;
 			Vector<VulkanEvent*> mQueuedEvents;
-			Vector<VulkanQuery*> mQueuedQueryResets;
 			Vector<SwapChainImageInformation> mAcquiredSwapChainImages;
 			Vector<u32> mDynamicDescriptorOffsetsToBind;
 			UnorderedMap<u32, u32> mDynamicDescriptorOffsetsOverrides;

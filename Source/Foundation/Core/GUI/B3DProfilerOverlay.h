@@ -136,6 +136,8 @@ namespace b3d
 
 		static constexpr u32 kGpuNumSampleColumns = 3;
 
+		GpuProfilerResults mLastProfilerResults;
+
 		ProfilerOverlayType mType;
 		SPtr<Viewport> mTarget;
 

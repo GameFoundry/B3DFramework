@@ -140,7 +140,7 @@ void Skybox::FilterTexture()
 	auto filterSkybox = [filteredRadianceRenderProxy, irradianceRenderProxy, skyboxRenderProxy](render::GpuCommandBufferPool& commandBufferPool)
 	{
 		const SPtr<render::GpuCommandBuffer> commandBuffer = commandBufferPool.Create(render::GpuCommandBufferCreateInformation::Create("FilterSkybox"));
-		SPtr<GpuCommandBufferProfiler> commandBufferProfiler = GetProfilerGPU().CreateCommandBufferProfiler(*commandBuffer);
+		SPtr<GpuCommandBufferProfiler> commandBufferProfiler = GetGpuProfiler().CreateCommandBufferProfiler(*commandBuffer);
 
 		commandBufferProfiler->BeginSample(*commandBuffer, "FilterSkybox");
 
@@ -155,7 +155,7 @@ void Skybox::FilterTexture()
 		skyboxRenderProxy->mIrradiance = irradianceRenderProxy;
 
 		commandBufferProfiler->EndSample(*commandBuffer);
-		GetProfilerGPU().ResolveProfileWhenReady("FilterSkybox", commandBufferProfiler);
+		GetGpuProfiler().ResolveProfileWhenReady("FilterSkybox", commandBufferProfiler);
 
 		const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
 		gpuDevice->SubmitCommandBuffer(commandBuffer);

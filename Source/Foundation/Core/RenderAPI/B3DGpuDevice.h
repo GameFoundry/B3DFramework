@@ -224,19 +224,6 @@ namespace b3d
 		/** Create a new event query. */
 		virtual SPtr<render::EventQuery> CreateEventQuery() = 0;
 
-		/** Creates a new timer query. */
-		virtual SPtr<render::TimerQuery> CreateTimerQuery() = 0;
-
-		/**
-		 * Creates a new occlusion query.
-		 *
-		 * @param isBinary		If query is binary it will not give you an exact count of samples rendered, but will
-		 *						instead just return 0 (no samples were rendered) or 1 (one or more samples were
-		 *						rendered). Binary queries can return sooner as they potentially do not need to wait
-		 *						until all of the geometry is rendered.
-		 */
-		virtual SPtr<render::OcclusionQuery> CreateOcclusionQuery(bool isBinary) = 0;
-
 		/**
 		 * Creates a new GPU program using the provided source code. If compilation fails or program is not supported
 		 * GpuProgram::IsCompiled() will return false, and you will be able to retrieve the error message via GpuProgram::GetCompileErrorMessage().
