@@ -183,8 +183,8 @@ VulkanGpuDevice::VulkanGpuDevice(VkPhysicalDevice device)
 	// Retrieve queues
 	for(u32 i = 0; i < GQT_COUNT; i++)
 	{
-		u32 numQueues = (u32)mQueueInfos[i].Queues.size();
-		for(u32 j = 0; j < numQueues; j++)
+		u32 queueCount = (u32)mQueueInfos[i].Queues.size();
+		for(u32 j = 0; j < queueCount; j++)
 		{
 			VkQueue queue;
 			vkGetDeviceQueue(mLogicalDevice, mQueueInfos[i].FamilyIndex, j, &queue);
@@ -600,7 +600,7 @@ void VulkanGpuDevice::SubmitTransferCommandBuffers(bool wait)
 	}
 }
 
-void VulkanGpuDevice::PresentRenderWindow(const SPtr<render::RenderWindow>& renderWindow, u32 syncMask)
+void VulkanGpuDevice::PresentRenderWindow(const SPtr<render::RenderWindow>& renderWindow, GpuQueueMask syncMask)
 {
 	SPtr<GpuQueue> queue = GetQueue(GQT_GRAPHICS, 0);
 	if (!B3D_ENSURE(queue))
@@ -681,21 +681,21 @@ void VulkanGpuDevice::DoForEachQueue(const std::function<void(VulkanGpuQueue&)>&
 	}
 }
 
-u32 VulkanGpuDevice::GetQueueMask(GpuQueueUsage type, u32 queueIdx) const
+GpuQueueMask VulkanGpuDevice::GetQueueMask(GpuQueueUsage type, u32 queueIdx) const
 {
-	u32 numQueues = GetQueueCount(type);
-	if(numQueues == 0)
+	const u32 queueCount = GetQueueCount(type);
+	if(queueCount == 0)
 		return 0;
 
-	u32 idMask = 0;
-	u32 curIdx = queueIdx % numQueues;
-	while(curIdx < B3D_MAX_QUEUES_PER_TYPE)
+	GpuQueueMask mask;
+	u32 localIndex = queueIdx % queueCount;
+	while(localIndex < B3D_MAX_QUEUES_PER_TYPE)
 	{
-		idMask |= CommandSyncMask::GetGlobalQueueMask(type, curIdx);
-		curIdx += numQueues;
+		mask |= GpuQueueMask(GpuQueueId(type, localIndex));
+		localIndex += queueCount;
 	}
 
-	return idMask;
+	return mask;
 }
 
 SurfaceFormat VulkanGpuDevice::GetSurfaceFormat(const VkSurfaceKHR& surface, bool useHardwareSRGB) const
@@ -986,7 +986,7 @@ void VulkanGpuDevice::InitializeCapabilities()
 	mCapabilities.AddShaderProfile("glsl");
 }
 
-void VulkanGpuDevice::GetSyncSemaphores(u32 syncMask, TInlineArray<VulkanSemaphore*, 8> outSemaphores) const
+void VulkanGpuDevice::GetSyncSemaphores(GpuQueueMask syncMask, TInlineArray<VulkanSemaphore*, 8> outSemaphores) const
 {
 	AssertIfNotVulkanSubmitThread();
 
@@ -1007,8 +1007,8 @@ void VulkanGpuDevice::GetSyncSemaphores(u32 syncMask, TInlineArray<VulkanSemapho
 				continue;
 
 			// Check if we care about this specific queue
-			u32 queueMask = GetQueueMask(queueType, queueIndex);
-			if((syncMask & queueMask) == 0)
+			const GpuQueueId queueId = GpuQueueId(queueType, queueIndex);
+			if(!syncMask.IsSet(queueId))
 				continue;
 
 			VulkanSemaphore* semaphore = lastCommandBuffer->RequestInterQueueSemaphore();

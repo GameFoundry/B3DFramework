@@ -4,6 +4,7 @@
 
 #include "B3DVulkanPrerequisites.h"
 #include "Allocators/B3DStaticAlloc.h"
+#include "RenderAPI/B3DGpuDevice.h"
 
 namespace b3d
 {
@@ -13,18 +14,7 @@ namespace b3d
 		 *  @{
 		 */
 
-		/** Flags that determine how is a resource being accessed by the GPU. */
-		enum class VulkanAccessFlag
-		{
-			None = 0,
-			Read = 0x1,
-			Write = 0x2
-		};
-
 		class VulkanResourceManager;
-
-		typedef Flags<VulkanAccessFlag> VulkanAccessFlags;
-		B3D_FLAGS_OPERATORS(VulkanAccessFlag);
 
 		/**
 		 * Wraps one or multiple native Vulkan objects. Allows the object usage to be tracked in command buffers, handles
@@ -64,10 +54,10 @@ namespace b3d
 			 *
 			 * Must follow a NotifyBound(). Must eventually be followed by a NotifyDone().
 			 *
-			 * @param[in]	globalQueueIdx	Global index of the queue the resource is being used in.
+			 * @param[in]	queueId			ID of the queue the resource is being used in.
 			 * @param[in]	useFlags		Flags that determine in what way is the resource being used.
 			 */
-			void NotifyUsed(u32 globalQueueIdx, VulkanAccessFlags useFlags);
+			void NotifyUsed(GpuQueueId queueId, GpuAccessFlags useFlags);
 
 			/**
 			 * Notifies the resource that it is no longer used by on the GPU. This makes the resource usable on other command
@@ -75,10 +65,10 @@ namespace b3d
 			 *
 			 * Must follow a NotifyUsed().
 			 *
-			 * @param[in]	globalQueueIdx	Global index of the queue that finished using the resource.
+			 * @param[in]	queueId			ID of the queue the resource is being used in.
 			 * @param[in]	useFlags		Use flags that specify how was the resource being used.
 			 */
-			virtual void NotifyDone(u32 globalQueueIdx, VulkanAccessFlags useFlags);
+			virtual void NotifyDone(GpuQueueId queueId, GpuAccessFlags useFlags);
 
 			/**
 			 * Notifies the resource that it is no longer queued on the command buffer. This is similar to notifyDone(), but
@@ -98,7 +88,7 @@ namespace b3d
 			bool IsUsed() const
 			{
 				Lock lock(mMutex);
-				return mNumUsedHandles > 0;
+				return mUsedCount > 0;
 			}
 
 			/**
@@ -110,7 +100,7 @@ namespace b3d
 			bool IsBound() const
 			{
 				Lock lock(mMutex);
-				return mNumBoundHandles > 0;
+				return mBountCount > 0;
 			}
 
 			/** Checks has the resource been destroyed. */
@@ -126,26 +116,25 @@ namespace b3d
 			 * @note	If resource concurrency is enabled, then this value has no meaning as the resource can be used on
 			 *			multiple queue families at once.
 			 */
-			GpuQueueUsage GetQueueUsage() const
+			GpuQueueUsage GetOwnedQueueType() const
 			{
 				Lock lock(mMutex);
-				return mQueueUsage;
+				return mOwnedQueueType;
 			}
 
 			/**
 			 * Returns a mask that has bits set for every queue that the resource is currently used (read or written) by.
 			 *
 			 * @param[in]	useFlags	Flags for which to check use information (e.g. read only, write only, or both).
-			 * @return					Bitmask of which queues is the resource used on. This has the same format as sync mask
-			 *							created by CommandSyncMask.
+			 * @return					Bitmask of which queues is the resource used on. 
 			 */
-			u32 GetUseInfo(VulkanAccessFlags useFlags) const;
+			GpuQueueMask GetUseInfo(GpuAccessFlags useFlags) const;
 
 			/** Returns on how many command buffers is the buffer currently used on. */
-			u32 GetUseCount() const { return mNumUsedHandles; }
+			u32 GetUseCount() const { return mUsedCount; }
 
 			/** Returns on how many command buffers is the buffer currently bound on. */
-			u32 GetBoundCount() const { return mNumBoundHandles; }
+			u32 GetBoundCount() const { return mBountCount; }
 
 			/** Returns true if the resource is only allowed to be used by a single queue family at once. */
 			bool IsExclusive() const
@@ -173,15 +162,15 @@ namespace b3d
 			};
 
 			VulkanResourceManager* mOwner;
-			GpuQueueUsage mQueueUsage = GQT_UNKNOWN;
+			GpuQueueUsage mOwnedQueueType = GQT_UNKNOWN;
 			State mState;
 			String mDebugName;
 
 			u8 mReadUses[kMaximumUniqueQueueCount];
 			u8 mWriteUses[kMaximumUniqueQueueCount];
 
-			u32 mNumUsedHandles;
-			u32 mNumBoundHandles;
+			u32 mUsedCount;
+			u32 mBountCount;
 
 			// TODO - Work on getting rid of this mutex
 			mutable Mutex mMutex;

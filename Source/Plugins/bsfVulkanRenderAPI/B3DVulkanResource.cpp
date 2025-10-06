@@ -16,8 +16,8 @@ VulkanResource::VulkanResource(VulkanResourceManager* owner, bool concurrency, c
 
 	mOwner = owner;
 	mState = concurrency ? State::Shared : State::Normal;
-	mNumUsedHandles = 0;
-	mNumBoundHandles = 0;
+	mUsedCount = 0;
+	mBountCount = 0;
 
 	B3DZeroOut(mReadUses);
 	B3DZeroOut(mWriteUses);
@@ -34,62 +34,59 @@ void VulkanResource::NotifyBound()
 	Lock lock(mMutex);
 	B3D_ASSERT(mState != State::Destroyed);
 
-	mNumBoundHandles++;
+	mBountCount++;
 }
 
-void VulkanResource::NotifyUsed(u32 globalQueueIdx, VulkanAccessFlags useFlags)
+void VulkanResource::NotifyUsed(GpuQueueId queueId, GpuAccessFlags useFlags)
 {
 	Lock lock(mMutex);
-	B3D_ASSERT(useFlags != VulkanAccessFlag::None);
+	B3D_ASSERT(useFlags != GpuAccessFlag::None);
 
-	GpuQueueUsage queueUsage;
-	CommandSyncMask::GetQueueIdxAndType(globalQueueIdx, queueUsage);
-
-	bool isUsed = mNumUsedHandles > 0;
+	bool isUsed = mUsedCount > 0;
 	if(isUsed && mState == State::Normal) // Used without support for concurrency
 	{
-		B3D_ASSERT(mQueueUsage == queueUsage && "Vulkan resource without concurrency support can only be used by one queue family at once.");
+		B3D_ASSERT(mOwnedQueueType == queueId.GetType() && "Vulkan resource without concurrency support can only be used by one queue family at once.");
 	}
 
-	mNumUsedHandles++;
-	mQueueUsage = queueUsage;
+	mUsedCount++;
+	mOwnedQueueType = queueId.GetType();
 
-	B3D_ASSERT(globalQueueIdx < kMaximumUniqueQueueCount);
+	B3D_ASSERT(queueId.Id < kMaximumUniqueQueueCount);
 
-	if(useFlags.IsSet(VulkanAccessFlag::Read))
+	if(useFlags.IsSet(GpuAccessFlag::Read))
 	{
-		B3D_ASSERT(mReadUses[globalQueueIdx] < 255 && "Resource used in too many command buffers at once.");
-		mReadUses[globalQueueIdx]++;
+		B3D_ASSERT(mReadUses[queueId.Id] < 255 && "Resource used in too many command buffers at once.");
+		mReadUses[queueId.Id]++;
 	}
 
-	if(useFlags.IsSet(VulkanAccessFlag::Write))
+	if(useFlags.IsSet(GpuAccessFlag::Write))
 	{
-		B3D_ASSERT(mWriteUses[globalQueueIdx] < 255 && "Resource used in too many command buffers at once.");
-		mWriteUses[globalQueueIdx]++;
+		B3D_ASSERT(mWriteUses[queueId.Id] < 255 && "Resource used in too many command buffers at once.");
+		mWriteUses[queueId.Id]++;
 	}
 }
 
-void VulkanResource::NotifyDone(u32 globalQueueIdx, VulkanAccessFlags useFlags)
+void VulkanResource::NotifyDone(GpuQueueId queueId, GpuAccessFlags useFlags)
 {
 	bool destroy;
 	{
 		Lock lock(mMutex);
-		mNumUsedHandles--;
-		mNumBoundHandles--;
+		mUsedCount--;
+		mBountCount--;
 
-		if(useFlags.IsSet(VulkanAccessFlag::Read))
+		if(useFlags.IsSet(GpuAccessFlag::Read))
 		{
-			B3D_ASSERT(mReadUses[globalQueueIdx] > 0);
-			mReadUses[globalQueueIdx]--;
+			B3D_ASSERT(mReadUses[queueId.Id] > 0);
+			mReadUses[queueId.Id]--;
 		}
 
-		if(useFlags.IsSet(VulkanAccessFlag::Write))
+		if(useFlags.IsSet(GpuAccessFlag::Write))
 		{
-			B3D_ASSERT(mWriteUses[globalQueueIdx] > 0);
-			mWriteUses[globalQueueIdx]--;
+			B3D_ASSERT(mWriteUses[queueId.Id] > 0);
+			mWriteUses[queueId.Id]--;
 		}
 
-		bool isBound = mNumBoundHandles > 0;
+		bool isBound = mBountCount > 0;
 		destroy = !isBound && mState == State::Destroyed; // Queued for destruction
 	}
 
@@ -103,9 +100,9 @@ void VulkanResource::NotifyUnbound()
 	bool destroy;
 	{
 		Lock lock(mMutex);
-		mNumBoundHandles--;
+		mBountCount--;
 
-		bool isBound = mNumBoundHandles > 0;
+		bool isBound = mBountCount > 0;
 		destroy = !isBound && mState == State::Destroyed; // Queued for destruction
 	}
 
@@ -114,25 +111,25 @@ void VulkanResource::NotifyUnbound()
 		mOwner->Destroy(this);
 }
 
-u32 VulkanResource::GetUseInfo(VulkanAccessFlags useFlags) const
+GpuQueueMask VulkanResource::GetUseInfo(GpuAccessFlags useFlags) const
 {
-	u32 mask = 0;
+	GpuQueueMask mask = 0;
 
-	if(useFlags.IsSet(VulkanAccessFlag::Read))
+	if(useFlags.IsSet(GpuAccessFlag::Read))
 	{
 		for(u32 i = 0; i < kMaximumUniqueQueueCount; i++)
 		{
 			if(mReadUses[i] > 0)
-				mask |= 1 << i;
+				mask |= GpuQueueId(i);
 		}
 	}
 
-	if(useFlags.IsSet(VulkanAccessFlag::Write))
+	if(useFlags.IsSet(GpuAccessFlag::Write))
 	{
 		for(u32 i = 0; i < kMaximumUniqueQueueCount; i++)
 		{
 			if(mWriteUses[i] > 0)
-				mask |= 1 << i;
+				mask |= GpuQueueId(i);
 		}
 	}
 
@@ -149,7 +146,7 @@ void VulkanResource::Destroy()
 		mState = State::Destroyed;
 
 		// If not bound anyhwere, destroy right away, otherwise check when it is reported as finished on the device
-		bool isBound = mNumBoundHandles > 0;
+		bool isBound = mBountCount > 0;
 		destroy = !isBound;
 	}
 

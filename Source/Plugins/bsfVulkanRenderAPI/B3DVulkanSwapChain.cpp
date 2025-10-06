@@ -382,7 +382,7 @@ void VulkanSwapChain::WaitUntilFirstImageAcquired()
 	mImageAcquireResults.clear();
 }
 
-void VulkanSwapChain::Present(u32 imageIndex, VulkanGpuQueue& queue, u32 syncMask)
+void VulkanSwapChain::Present(u32 imageIndex, VulkanGpuQueue& queue, GpuQueueMask syncMask)
 {
 	AssertIfNotVulkanSubmitThread();
 	B3D_ASSERT(imageIndex <= (UINT32)mSurfaces.size());
@@ -426,13 +426,13 @@ void VulkanSwapChain::Present(u32 imageIndex, VulkanGpuQueue& queue, u32 syncMas
 
 		GpuCommandBufferSubmitInformation submitInformation;
 		submitInformation.PrimaryCommandBuffer = commandBuffer;
-		queue.ExecuteSubmitOnSubmitThread(submitInformation, 0);
+		queue.ExecuteSubmitOnSubmitThread(submitInformation, GpuQueueMask::kNone);
 
 		imageSubresource->SetLayout(VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
 	}
 
 	VulkanGpuDevice& presentDevice = queue.GetDevice();
-	const u32 queueMask = presentDevice.GetQueueMask(queue.GetUsage(), queue.GetIndex());
+	const GpuQueueMask queueMask = presentDevice.GetQueueMask(queue.GetUsage(), queue.GetIndex());
 
 	// Ignore myself as we handle this in VulkanGpuQueue::Present() already
 	syncMask &= ~queueMask;

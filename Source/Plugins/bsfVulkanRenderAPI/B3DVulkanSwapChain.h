@@ -4,6 +4,7 @@
 
 #include "B3DVulkanPrerequisites.h"
 #include "B3DVulkanFramebuffer.h"
+#include "B3DVulkanGpuQueue.h"
 #include "Threading/B3DSingleConsumerQueue.h"
 
 namespace b3d
@@ -115,11 +116,11 @@ namespace b3d
 			 *						before presenting.
 			 * @param	queue		Queue to submit the operation on. Queue must support present operations.
 			 * @param	syncMask	Mask that controls which other command buffers does the present depend upon
-			 *						(if any). See description of @p syncMask parameter in RenderAPI::ExecuteCommands().
+			 *						(if any). 
 			 *
 			 * @note	Submit thread only.
 			 */
-			void Present(u32 imageIndex, VulkanGpuQueue& queue, u32 syncMask);
+			void Present(u32 imageIndex, VulkanGpuQueue& queue, GpuQueueMask syncMask);
 
 			/** Returns the number of available color images. */
 			u32 GetColorImageCount() const { return (u32)mSurfaces.size(); }

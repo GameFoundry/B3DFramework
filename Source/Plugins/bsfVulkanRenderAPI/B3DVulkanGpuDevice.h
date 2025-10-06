@@ -58,7 +58,7 @@ namespace b3d
 			u32 GetQueueCount(GpuQueueUsage usage) const override { return (u32)mQueueInfos[(u32)usage].Queues.size(); }
 			SPtr<GpuQueue> GetQueue(GpuQueueUsage usage, u32 index) const override;
 			void SubmitTransferCommandBuffers(bool wait = false) override;
-			void PresentRenderWindow(const SPtr<RenderWindow>& renderWindow, u32 syncMask = 0xFFFFFFFF) override;
+			void PresentRenderWindow(const SPtr<RenderWindow>& renderWindow, GpuQueueMask syncMask = GpuQueueMask::kAll) override;
 			void WaitUntilIdle() override;
 			void BeginFrame() override;
 			void EndFrame() override;
@@ -108,7 +108,7 @@ namespace b3d
 			 * Fills out a mask that has bits set for every queue index that maps to the same physical queue as the provided
 			 * index. This is useful as different queue indices will sometimes map to the same physical queue.
 			 */
-			u32 GetQueueMask(GpuQueueUsage type, u32 queueIdx) const;
+			GpuQueueMask GetQueueMask(GpuQueueUsage type, u32 queueIdx) const;
 
 			/** Perform an operation for each queue on the device. */
 			void DoForEachQueue(const std::function<void(VulkanGpuQueue&)>&& callback) const;
@@ -128,13 +128,13 @@ namespace b3d
 			/**
 			 * Returns a set of command buffer semaphores depending on the provided sync mask.
 			 *
-			 * @param	syncMask		Mask that has a bit enabled for each command buffer to retrieve the semaphore for.
-			 *							If the command buffer is not currently executing, semaphore won't be returned.
+			 * @param	syncMask		Mask that has a bit enabled for each queue to retrieve the semaphore for.
+			 *							If a command buffer on a queue is not currently executing, semaphore won't be returned.
 			 * @param	outSemaphores	Array into which all required semaphores will be appended to. 
 			 *
 			 * @note	Submit thread only.
 			 */
-			void GetSyncSemaphores(u32 syncMask, TInlineArray<VulkanSemaphore*, 8> outSemaphores) const;
+			void GetSyncSemaphores(GpuQueueMask syncMask, TInlineArray<VulkanSemaphore*, 8> outSemaphores) const;
 
 			/**
 			 * @name Memory Allocation

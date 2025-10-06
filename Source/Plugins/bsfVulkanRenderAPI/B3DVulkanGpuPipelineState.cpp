@@ -304,7 +304,7 @@ void VulkanGpuGraphicsPipelineState::RegisterPipelineResources(VulkanGpuCommandB
 			VulkanShaderModule* module = entry->GetVulkanResource();
 
 			if(module != nullptr)
-				cmdBuffer.RegisterResource(module, VulkanAccessFlag::Read);
+				cmdBuffer.RegisterResource(module, GpuAccessFlag::Read);
 		}
 	}
 }
@@ -505,6 +505,6 @@ void VulkanGpuComputePipelineState::RegisterPipelineResources(VulkanGpuCommandBu
 		VulkanShaderModule* module = program->GetVulkanResource();
 
 		if(module != nullptr)
-			cmdBuffer.RegisterResource(module, VulkanAccessFlag::Read);
+			cmdBuffer.RegisterResource(module, GpuAccessFlag::Read);
 	}
 }

@@ -7,6 +7,9 @@
 
 using namespace b3d;
 
+const GpuQueueMask GpuQueueMask::kNone = GpuQueueMask(0);
+const GpuQueueMask GpuQueueMask::kAll = GpuQueueMask(~0u);
+
 GpuQueue::GpuQueue(GpuDevice& gpuDevice, GpuQueueUsage usage, u32 index)
 	:mGpuDevice(gpuDevice), mUsage(usage), mIndex(index)
 {
@@ -58,7 +61,7 @@ SPtr<render::GpuCommandBuffer> GpuQueue::GetOrCreateTransferCommandBuffer()
 	return transferCommandBufferInformation.CurrentTransferCommandBuffer;
 }
 
-void GpuDevice::SubmitCommandBuffer(const SPtr<render::GpuCommandBuffer>& commandBuffer, u32 syncMask, u32 queueIndex)
+void GpuDevice::SubmitCommandBuffer(const SPtr<render::GpuCommandBuffer>& commandBuffer, GpuQueueMask syncMask, u32 queueIndex)
 {
 	if (!B3D_ENSURE(commandBuffer))
 		return;
@@ -91,7 +94,7 @@ SPtr<SamplerState> GpuDevice::FindOrCreateSamplerState(const SamplerStateCreateI
 	return newSamplerState;
 }
 
-void GpuQueue::SubmitCommandBuffer(const SPtr<render::GpuCommandBuffer>& commandBuffer, u32 syncMask)
+void GpuQueue::SubmitCommandBuffer(const SPtr<render::GpuCommandBuffer>& commandBuffer, GpuQueueMask syncMask)
 {
 	SubmitCommandBuffer(commandBuffer, syncMask, true);
 }

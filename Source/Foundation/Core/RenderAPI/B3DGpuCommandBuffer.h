@@ -2,6 +2,7 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
+#include "B3DGpuDevice.h"
 #include "B3DGpuQueries.h"
 #include "B3DPrerequisites.h"
 #include "Image/B3DColor.h"
@@ -20,20 +21,6 @@ namespace b3d
 		/** @addtogroup RenderAPI
 		 *  @{
 		 */
-
-		/** Creates a mask that determines synchronization between command buffers executing on different hardware queues. */
-		class B3D_EXPORT CommandSyncMask
-		{
-		public:
-			/** Uses the queue type and index to generate a mask with a bit set for that queue's global index. */
-			static u32 GetGlobalQueueMask(GpuQueueUsage type, u32 queueIdx);
-
-			/** Uses the queue type and index to generate a global queue index. */
-			static u32 GetGlobalQueueIdx(GpuQueueUsage type, u32 queueIdx);
-
-			/** Uses the global queue index to retrieve local queue index and queue type. */
-			static u32 GetQueueIdxAndType(u32 globalQueueIdx, GpuQueueUsage& type);
-		};
 
 		/** Possible states that a CommandBuffer can be in. */
 		enum class CommandBufferState
@@ -329,6 +316,18 @@ namespace b3d
 			virtual void SetStencilReferenceValue(u32 value) = 0;
 
 			/**
+			 * Copies the contents of the source buffer to the destination buffer. Caller must ensure the provided offsets and length are within valid bounds of both buffers.
+			 * Command buffer must not currently be in a render pass.
+			 *
+			 * @param	source				Source buffer to copy from.
+			 * @param	destination			Destination buffer to copy to.
+			 * @param	sourceOffset		Offset into the source buffer, from which to start copying, in bytes.
+			 * @param	destinationOffset	Offset into the destination buffer, at which to place the copied data, in bytes.
+			 * @param	length				Size of the data to copy, in bytes.
+			 */
+			virtual void CopyBufferToBuffer(const SPtr<GpuBuffer>& source, const SPtr<GpuBuffer>& destination, u32 sourceOffset, u32 destinationOffset, u32 length) = 0;
+
+			/**
 			 * Schedules the timestamp to be recorded in the command buffer. The timestamp will record the
 			 * time at which the command has been executed by the GPU. The timestamp will be written to the associated
 			 * query pool, which should only be accessed when the query pool has resolved the query.
@@ -380,6 +379,19 @@ namespace b3d
 			/** Ends command recording on the command buffer and makes it ready for submission. */
 			virtual void End() = 0;
 
+			/**
+			 * Ensures that this command buffer will wait for work to finish on all queues specified in the provided mask, before the
+			 * command buffer starts executing. This value is utilized at the time the command buffer is submitted to a queue.
+			 * Submissions on the same queue are automatically synchronized. The provided mask is OR-ed with existing mask.
+			 *
+			 * For example if you are performing GPU buffer updates on the transfer (copy) queue, you usually need to wait
+			 * for those transfers to finish before you start executing a command buffer that uses that buffer.
+			 */
+			void AddQueueSyncMask(GpuQueueMask queueMask) { mQueueSyncMask |= queueMask; }
+
+			/** Returns a mask containing all the queues the command buffer needs to wait on before executing. See AddQueueSync. */
+			GpuQueueMask GetQueueSyncMask() const { return mQueueSyncMask; }
+
 #if B3D_PROFILING_ENABLED
 			/**
 			 * Returns a profiler that can be used for profiling calls on this command buffer.
@@ -429,6 +441,7 @@ namespace b3d
 			const ThreadId mOwnerThread;
 			String mName;
 			bool mIsSubmitted = false;
+			GpuQueueMask mQueueSyncMask;
 
 #if B3D_PROFILING_ENABLED
 			SPtr<GpuCommandBufferProfiler> mProfiler;

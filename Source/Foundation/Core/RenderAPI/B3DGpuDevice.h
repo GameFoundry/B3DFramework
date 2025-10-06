@@ -34,6 +34,167 @@ namespace b3d
 	 *  @{
 	 */
 
+	/** Flags that determine how is a resource being accessed by the GPU. */
+	enum class GpuAccessFlag
+	{
+		None = 0,
+		Read = 0x1,
+		Write = 0x2
+	};
+
+	typedef Flags<GpuAccessFlag> GpuAccessFlags;
+	B3D_FLAGS_OPERATORS(GpuAccessFlag);
+	
+	/** Uniquely represents a GPU queue. */
+	struct GpuQueueId
+	{
+		GpuQueueId(u32 id = 0)
+			: Id(id)
+		{
+			B3D_ASSERT(Id < (B3D_MAX_QUEUES_PER_TYPE * GQT_COUNT));
+		}
+
+		GpuQueueId(GpuQueueUsage type, u32 index)
+		{
+			switch(type)
+			{
+			case GQT_COMPUTE:
+				Id = B3D_MAX_QUEUES_PER_TYPE + index;
+				break;
+			case GQT_TRANSFER:
+				Id = B3D_MAX_QUEUES_PER_TYPE * 2 + index;
+				break;
+			default:
+				Id = index;
+			}
+
+			B3D_ASSERT(Id < (B3D_MAX_QUEUES_PER_TYPE * GQT_COUNT));
+		}
+
+		GpuQueueUsage GetType() const
+		{
+			if(Id >= B3D_MAX_QUEUES_PER_TYPE * 2)
+				return GQT_TRANSFER;
+
+			if(Id >= B3D_MAX_QUEUES_PER_TYPE)
+				return GQT_COMPUTE;
+
+			return GQT_GRAPHICS;
+			
+		}
+
+		u32 GetIndex() const
+		{
+			if(Id >= B3D_MAX_QUEUES_PER_TYPE * 2)
+				return Id - B3D_MAX_QUEUES_PER_TYPE * 2;
+
+			if(Id >= B3D_MAX_QUEUES_PER_TYPE)
+				return Id - B3D_MAX_QUEUES_PER_TYPE;
+
+			return Id;
+		}
+
+		u32 Id;
+	};
+
+	/** Mask that represents zero or multiple GPU queues. */
+	struct B3D_EXPORT GpuQueueMask
+	{
+		GpuQueueMask(u32 mask = 0)
+			: Mask(mask)
+		{ }
+
+		GpuQueueMask(GpuQueueId id)
+		{
+			u32 bitShift = 0;
+			switch(id.GetType())
+			{
+			case GQT_GRAPHICS:
+				break;
+			case GQT_COMPUTE:
+				bitShift = 8;
+				break;
+			case GQT_TRANSFER:
+				bitShift = 16;
+				break;
+			default:
+				break;
+			}
+
+			Mask = 1 << id.GetIndex() << bitShift;
+		}
+
+		bool operator==(GpuQueueMask rhs) const { return Mask == rhs.Mask; }
+		bool operator!=(GpuQueueMask rhs) const { return Mask != rhs.Mask; }
+
+		GpuQueueMask& operator=(GpuQueueId id)
+		{
+			Mask = GpuQueueMask(id).Mask;
+			return *this;
+		}
+
+		GpuQueueMask& operator|=(GpuQueueMask rhs)
+		{
+			Mask |= rhs.Mask;
+			return *this;
+		}
+
+		GpuQueueMask operator|(GpuQueueMask rhs) const
+		{
+			GpuQueueMask out(*this);
+			out |= rhs;
+
+			return out;
+		}
+
+		GpuQueueMask& operator&=(GpuQueueMask rhs)
+		{
+			Mask &= rhs.Mask;
+			return *this;
+		}
+
+		GpuQueueMask operator&(GpuQueueMask rhs) const
+		{
+			GpuQueueMask out(*this);
+			out &= rhs;
+
+			return out;
+		}
+
+		GpuQueueMask& operator^=(GpuQueueMask rhs)
+		{
+			Mask ^= rhs.Mask;
+			return *this;
+		}
+
+		GpuQueueMask operator^(GpuQueueMask rhs) const
+		{
+			GpuQueueMask out(*this);
+			out ^= rhs;
+
+			return out;
+		}
+
+		GpuQueueMask operator~() const
+		{
+			GpuQueueMask out;
+			out.Mask = ~Mask;
+
+			return out;
+		}
+
+		/** Returns true if no queues are part of the mask. */
+		bool IsEmpty() const { return Mask == 0; }
+
+		/** Returns true if the queue ID is part of the mask. */
+		bool IsSet(GpuQueueId queueId) const { return (Mask & GpuQueueMask(queueId).Mask) != 0; }
+
+		u32 Mask = 0;
+
+		static const GpuQueueMask kNone;
+		static const GpuQueueMask kAll;
+	};
+
 	/**
 	 * Specifies a queue on which command buffers can be submitted on.
 	 *
@@ -50,30 +211,31 @@ namespace b3d
 		/** Returns the unique index of the queue, for its type. */
 		u32 GetIndex() const { return mIndex; }
 
+		/** Returns a unique identifier for this queue. */
+		GpuQueueId GetId() const { return GpuQueueId(mUsage, mIndex); }
+
 		/**
 		 * Submits the command buffer for execution on the specified queue.
 		 *
 		 * @param	commandBuffer	Command buffer to submit.
 		 * @param	syncMask		Optional synchronization mask that determines if the submitted command buffer
-		 *							depends on any other command buffers submitted on other queues. You may use the
-		 *							CommandSyncMask class to generate a mask.
+		 *							depends on any other command buffers submitted on other queues. 
 		 *
 		 *							This mask is only relevant if your command buffers are executing on different
 		 *							queues, and are dependent. If they are executing on the same queue then they will
 		 *							execute sequentially in the order they are submitted. Otherwise, if there is a
 		 *							dependency you must make state it explicitly here.
 		 */
-		void SubmitCommandBuffer(const SPtr<render::GpuCommandBuffer>& commandBuffer, u32 syncMask = 0xFFFFFFFF);
+		void SubmitCommandBuffer(const SPtr<render::GpuCommandBuffer>& commandBuffer, GpuQueueMask syncMask = GpuQueueMask::kAll);
 
 		/**
 		 * Presents the back-buffer image from the provided window onto the window, using the appropriate queue that supports present operations.
 		 *
 		 * @param	renderWindow		Window whose back-buffer to present.
 		 * @param	syncMask			Optional synchronization mask that determines if the present operation
-		 *								depends on any command buffers submitted on other queues. You may use
-		 *								CommandSyncMask class to generate a mask.
+		 *								depends on any command buffers submitted on other queues. 
 		 */
-		virtual void PresentRenderWindow(const SPtr<render::RenderWindow>& renderWindow, u32 syncMask = 0xFFFFFFFF) = 0;
+		virtual void PresentRenderWindow(const SPtr<render::RenderWindow>& renderWindow, GpuQueueMask syncMask = GpuQueueMask::kAll) = 0;
 
 		/**
 		 * Returns a command buffer that is to be used for transfer operations when user doesn't provide an explicit command buffer.
@@ -97,8 +259,8 @@ namespace b3d
 
 		GpuQueue(GpuDevice& gpuDevice, GpuQueueUsage usage, u32 index);
 
-		/** Provides the same functionality as SubmitCommandBuffer(const SPtr<render::GpuCommandBuffer>&, u32), but makes the command buffer flush optional. */
-		virtual void SubmitCommandBuffer(const SPtr<render::GpuCommandBuffer>& commandBuffer, u32 syncMask, bool flushTransferCommandBuffer) = 0;
+		/** Provides the same functionality as SubmitCommandBuffer(const SPtr<render::GpuCommandBuffer>&, GpuQueueMask), but makes the command buffer flush optional. */
+		virtual void SubmitCommandBuffer(const SPtr<render::GpuCommandBuffer>& commandBuffer, GpuQueueMask syncMask, bool flushTransferCommandBuffer) = 0;
 
 		GpuDevice& mGpuDevice;
 		GpuQueueUsage mUsage;
@@ -118,9 +280,11 @@ namespace b3d
 	public:
 		virtual ~GpuDevice() = default;
 
-		// TODO - Doc
-		virtual bool IsInitialized() const = 0;
+		/** Initializes the GpuDevice. Should be called after construction but before any other operations. */
 		virtual bool Initialize() = 0;
+
+		/** Returns true if Initialize() has been called. */
+		virtual bool IsInitialized() const = 0;
 
 		virtual const GpuDeviceCapabilities& GetCapabilities() const = 0;
 
@@ -141,8 +305,7 @@ namespace b3d
 		 *
 		 * @param	commandBuffer	Command buffer to submit. Usage of the command buffer determines the queue to execute on.
 		 * @param	syncMask		Optional synchronization mask that determines if the submitted command buffer
-		 *							depends on any other command buffers submitted on other queues. You may use the
-		 *							CommandSyncMask class to generate a mask.
+		 *							depends on any other command buffers submitted on other queues. 
 		 *
 		 *							This mask is only relevant if your command buffers are executing on different
 		 *							queues, and are dependent. If they are executing on the same queue then they will
@@ -151,7 +314,7 @@ namespace b3d
 		 * @param	queueIndex		In case there are multiple queues supported with the command buffer's usage,
 		 *							this determines which one to execute on.
 		 */
-		virtual void SubmitCommandBuffer(const SPtr<render::GpuCommandBuffer>& commandBuffer, u32 syncMask = 0xFFFFFFFF, u32 queueIndex = 0);
+		virtual void SubmitCommandBuffer(const SPtr<render::GpuCommandBuffer>& commandBuffer, GpuQueueMask syncMask = GpuQueueMask::kAll, u32 queueIndex = 0);
 
 		/** Submits all non-empty transfer command buffers on all queues, for the current thread. Optionally waits until the GPU is done processing them. */
 		virtual void SubmitTransferCommandBuffers(bool wait = false) = 0;
@@ -161,10 +324,9 @@ namespace b3d
 		 *
 		 * @param	renderWindow		Window whose back-buffer to present.
 		 * @param	syncMask			Optional synchronization mask that determines if the present operation
-		 *								depends on any command buffers submitted on other queues. You may use
-		 *								CommandSyncMask class to generate a mask.
+		 *								depends on command buffers submitted on other queues. 
 		 */
-		virtual void PresentRenderWindow(const SPtr<render::RenderWindow>& renderWindow, u32 syncMask = 0xFFFFFFFF) = 0;
+		virtual void PresentRenderWindow(const SPtr<render::RenderWindow>& renderWindow, GpuQueueMask syncMask = GpuQueueMask::kAll) = 0;
 
 		/** Blocks the calling thread until all operations on the device finish. */
 		virtual void WaitUntilIdle() = 0;

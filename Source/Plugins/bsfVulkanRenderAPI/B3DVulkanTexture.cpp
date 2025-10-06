@@ -1264,8 +1264,8 @@ PixelData VulkanTexture::LockInternal(GpuLockOptions options, u32 mipLevel, u32 
 	B3D_ASSERT(!mSupportsGPUWrites);
 
 	// Check is the GPU currently reading from the image
-	const u32 useMask = subresource->GetUseInfo(VulkanAccessFlag::Read | VulkanAccessFlag::Write);
-	bool isUsedOnGPU = useMask != 0;
+	const GpuQueueMask useMask = subresource->GetUseInfo(GpuAccessFlag::Read | GpuAccessFlag::Write);
+	bool isUsedOnGPU = !useMask.IsEmpty();
 	const bool isReadRequired = options == GBL_READ_ONLY || options == GBL_READ_WRITE;
 	const bool isWrite = options != GBL_READ_ONLY;
 	const bool canDiscardImage = (options == GBL_WRITE_ONLY_DISCARD) || (options == GBL_WRITE_ONLY_DISCARD_RANGE);
@@ -1414,8 +1414,8 @@ void VulkanTexture::ReadDataInternal(PixelData& destination, u32 mipLevel, u32 f
 		B3D_ASSERT(!mSupportsGPUWrites);
 
 		// Check is the GPU currently writing to the texture
-		const u32 writeUseMask = mImage->GetUseInfo(VulkanAccessFlag::Write);
-		const bool isUsedOnGPU = writeUseMask != 0;
+		const GpuQueueMask writeUseMask = mImage->GetUseInfo(GpuAccessFlag::Write);
+		const bool isUsedOnGPU = !writeUseMask.IsEmpty();
 
 		// If used on the GPU, we need to wait until all write operations complete before mapping it
 		if(isUsedOnGPU)
@@ -1424,7 +1424,7 @@ void VulkanTexture::ReadDataInternal(PixelData& destination, u32 mipLevel, u32 f
 				vulkanCommandBuffer = std::static_pointer_cast<VulkanGpuCommandBuffer>(transferGpuQueue.GetOrCreateTransferCommandBuffer());
 
 			// Submit the command buffer and wait until it finishes
-			vulkanCommandBuffer->AppendSyncMask(writeUseMask);
+			vulkanCommandBuffer->AddQueueSyncMask(writeUseMask);
 			transferGpuQueue.SubmitTransferCommandBuffer(true);
 		}
 
@@ -1442,10 +1442,10 @@ void VulkanTexture::ReadDataInternal(PixelData& destination, u32 mipLevel, u32 f
 
 	// Similar to above, if image supports GPU writes or is currently being written to, we need to wait on any
 	// potential writes to complete
-	const u32 writeUseMask = subresource->GetUseInfo(VulkanAccessFlag::Write);
+	const GpuQueueMask writeUseMask = subresource->GetUseInfo(GpuAccessFlag::Write);
 
-	u32 syncMask = 0;
-	if(mSupportsGPUWrites || writeUseMask != 0)
+	GpuQueueMask syncMask;
+	if(mSupportsGPUWrites || !writeUseMask.IsEmpty())
 	{
 		// Ensure flush will wait for all queues currently writing to the image (if any) to finish
 		syncMask = writeUseMask;
@@ -1458,7 +1458,7 @@ void VulkanTexture::ReadDataInternal(PixelData& destination, u32 mipLevel, u32 f
 	CopyImageSubresourceToBuffer(*vulkanCommandBuffer, mImage, face, mipLevel, stagingBuffer, true);
 
 	// Submit the command buffer and wait until it finishes
-	vulkanCommandBuffer->AppendSyncMask(syncMask);
+	vulkanCommandBuffer->AddQueueSyncMask(syncMask);
 	transferGpuQueue.SubmitTransferCommandBuffer(true);
 
 	u8* data = stagingBuffer->Map(0, lockedArea.GetSize(), true);
@@ -1506,7 +1506,7 @@ void VulkanTexture::WriteDataInternal(const PixelData& source, u32 mipLevel, u32
 	VulkanImageSubresource* subresource = mImage->GetSubresource(face, mipLevel);
 
 	// Check is the GPU currently reading or writing from the image
-	const u32 useMask = subresource->GetUseInfo(VulkanAccessFlag::Read | VulkanAccessFlag::Write);
+	const GpuQueueMask useMask = subresource->GetUseInfo(GpuAccessFlag::Read | GpuAccessFlag::Write);
 
 	// If memory is host visible try mapping it directly
 	if(mDirectlyMappable)
@@ -1519,7 +1519,7 @@ void VulkanTexture::WriteDataInternal(const PixelData& source, u32 mipLevel, u32
 		// for direct mapping, and we don't support using it with either storage textures or render targets.
 		B3D_ASSERT(!mSupportsGPUWrites);
 
-		const bool isUsedOnGPU = useMask != 0;
+		const bool isUsedOnGPU = !useMask.IsEmpty();
 
 		// Even if the texture is directly mappable we might wish to avoid mapping it directly in these situations:
 		const bool shouldMapDirectly =
@@ -1595,7 +1595,7 @@ void VulkanTexture::WriteDataInternal(const PixelData& source, u32 mipLevel, u32
 
 	// Queue copy command
 	vulkanCommandBuffer->CopyBufferToImage(stagingBuffer, mImage, extent, range, transferLayout);
-	vulkanCommandBuffer->AppendSyncMask(useMask);
+	vulkanCommandBuffer->AddQueueSyncMask(useMask);
 
 	stagingBuffer->Destroy();
 

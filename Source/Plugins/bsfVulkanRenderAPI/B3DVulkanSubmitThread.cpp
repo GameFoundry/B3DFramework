@@ -64,13 +64,13 @@ VulkanSubmitThread::~VulkanSubmitThread()
 	mCommandQueue.PostRequestShutdownCommand(true);
 }
 
-void VulkanSubmitThread::QueueSubmit(const SPtr<VulkanGpuCommandBuffer>& commandBuffer, VulkanGpuQueue& queue, u32 syncMask, bool blocking)
+void VulkanSubmitThread::QueueSubmit(const SPtr<VulkanGpuCommandBuffer>& commandBuffer, VulkanGpuQueue& queue, GpuQueueMask syncMask, bool blocking)
 {
 	auto fnCommand = [commandBuffer, &queue, syncMask]() mutable
 	{
 		GpuCommandBufferSubmitInformation submitInformation = commandBuffer->PrepareForSubmitOnSubmitThread(queue.GetUsage(), queue.GetIndex());
 
-		syncMask |= commandBuffer->GetSyncMask();
+		syncMask |= commandBuffer->GetQueueSyncMask();
 		queue.ExecuteSubmitOnSubmitThread(submitInformation, syncMask);
 	};
 
@@ -83,7 +83,7 @@ void VulkanSubmitThread::QueueSubmit(const SPtr<VulkanGpuCommandBuffer>& command
 	}
 }
 
-void VulkanSubmitThread::QueuePresent(VulkanGpuQueue& queue, VulkanSwapChain& swapChain, u32 syncMask)
+void VulkanSubmitThread::QueuePresent(VulkanGpuQueue& queue, VulkanSwapChain& swapChain, GpuQueueMask syncMask)
 {
 	u32 acquiredImageIndex;
 	const bool acquireSuccess = swapChain.TryGetFirstAcquiredImageIndex(acquiredImageIndex);

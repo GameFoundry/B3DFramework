@@ -2,6 +2,7 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
+#include "B3DVulkanGpuQueue.h"
 #include "B3DVulkanPrerequisites.h"
 #include "Threading/B3DSignal.h"
 #include "Threading/B3DSingleConsumerQueue.h"
@@ -26,10 +27,10 @@ namespace b3d::render
 		 * @param	commandBuffer	Command buffer to submit.
 		 * @param	queue			Queue to submit the command buffer on.
 		 * @param	syncMask		Mask that controls which other command buffers does this command buffer depend upon
-		 *							(if any). See description of @p syncMask parameter in RenderAPI::ExecuteCommands().
+		 *							(if any). 
 		 * @param	blocking		If true the calling thread will wait until the GPU completes the operation.
 		 */
-		void QueueSubmit(const SPtr<VulkanGpuCommandBuffer>& commandBuffer, VulkanGpuQueue& queue, u32 syncMask, bool blocking = false);
+		void QueueSubmit(const SPtr<VulkanGpuCommandBuffer>& commandBuffer, VulkanGpuQueue& queue, GpuQueueMask syncMask, bool blocking = false);
 
 		/**
 		 * Queues an operation that acquires a swap chain image. Acquired images can be written to and eventually presented to the screen.
@@ -43,10 +44,9 @@ namespace b3d::render
 		 *
 		 * @param	queue			Queue to execute the present operation on.
 		 * @param	swapChain		Swap chain whose image to present. First acquired image that hasn't yet been presented will be presented.
-		 * @param	syncMask		Mask that controls which command buffers submissions does the present depend on
-		 *							(if any). See description of @p syncMask parameter in RenderAPI::ExecuteCommands().
+		 * @param	syncMask		Mask that controls which other queues does the the present depend on (if any). 
 		 */
-		void QueuePresent(VulkanGpuQueue& queue, VulkanSwapChain& swapChain, u32 syncMask);
+		void QueuePresent(VulkanGpuQueue& queue, VulkanSwapChain& swapChain, GpuQueueMask syncMask);
 
 		/**
 		 * Queues an operation that checks the completion status of any command buffers submitted on the provided device. This needs to be followed by

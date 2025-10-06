@@ -722,7 +722,7 @@ void VulkanGpuParameters::PrepareForBind(VulkanGpuCommandBuffer& buffer, VkDescr
 			VkPipelineStageFlags stages = VulkanUtility::ShaderToPipelineStage(perSetBindings[usedBindingSequentialIndex].stageFlags);
 
 			// Register with command buffer
-			buffer.RegisterBuffer(resource, BufferUseFlagBits::Parameter, VulkanAccessFlag::Read, stages);
+			buffer.RegisterBuffer(resource, BufferUseFlagBits::Parameter, GpuAccessFlag::Read, stages);
 
 			// Check if internal resource changed from what was previously bound in the descriptor set
 			B3D_ASSERT(perDeviceData.UniformBuffers[sequentialResourceIndex] != VK_NULL_HANDLE);
@@ -757,7 +757,7 @@ void VulkanGpuParameters::PrepareForBind(VulkanGpuCommandBuffer& buffer, VkDescr
 			GpuParameterObjectType* types = vkParamInfo.GetLayoutTypes(set);
 			GpuParameterObjectType type = types[usedBindingSequentialIndex];
 
-			VulkanAccessFlags useFlags = VulkanAccessFlag::Read;
+			GpuAccessFlags useFlags = GpuAccessFlag::Read;
 			VulkanBuffer* resource = nullptr;
 			VkDeviceSize bufferSize = VK_WHOLE_SIZE;
 
@@ -773,7 +773,7 @@ void VulkanGpuParameters::PrepareForBind(VulkanGpuCommandBuffer& buffer, VkDescr
 				resource = element->GetVulkanResource();
 
 				if(element->GetInformation().Flags.IsSet(GpuBufferFlag::AllowUnorderedAccessOnTheGPU))
-					useFlags |= VulkanAccessFlag::Write;
+					useFlags |= GpuAccessFlag::Write;
 
 				bufferSize = element->GetSuballocationSize();
 			}
@@ -789,12 +789,12 @@ void VulkanGpuParameters::PrepareForBind(VulkanGpuCommandBuffer& buffer, VkDescr
 					break;
 				case GPOT_RWBYTE_BUFFER:
 					resource = builtinResources.DummyStorageBuffer->GetVulkanResource();
-					useFlags |= VulkanAccessFlag::Write;
+					useFlags |= GpuAccessFlag::Write;
 					break;
 				case GPOT_STRUCTURED_BUFFER:
 				case GPOT_RWSTRUCTURED_BUFFER:
 					resource = builtinResources.DummyStructuredBuffer->GetVulkanResource();
-					useFlags |= VulkanAccessFlag::Write;
+					useFlags |= GpuAccessFlag::Write;
 					break;
 				default:
 					break;
@@ -874,7 +874,7 @@ void VulkanGpuParameters::PrepareForBind(VulkanGpuCommandBuffer& buffer, VkDescr
 				continue;
 
 			// Register with command buffer
-			buffer.RegisterResource(resource, VulkanAccessFlag::Read);
+			buffer.RegisterResource(resource, GpuAccessFlag::Read);
 
 			// Check if internal resource changed from what was previously bound in the descriptor set
 			B3D_ASSERT(perDeviceData.Samplers[sequentialResourceIndex] != VK_NULL_HANDLE);
@@ -943,7 +943,7 @@ void VulkanGpuParameters::PrepareForBind(VulkanGpuCommandBuffer& buffer, VkDescr
 			VkDescriptorSetLayoutBinding* perSetBindings = vkParamInfo.GetLayoutBindings(set);
 			VkPipelineStageFlags stages = VulkanUtility::ShaderToPipelineStage(perSetBindings[usedBindingSequentialIndex].stageFlags);
 
-			const VulkanAccessFlags useFlags = VulkanAccessFlag::Read | VulkanAccessFlag::Write;
+			const GpuAccessFlags useFlags = GpuAccessFlag::Read | GpuAccessFlag::Write;
 			const VkImageSubresourceRange range = vulkanImage->GetRange(surface);
 
 			buffer.RegisterImageShader(vulkanImage, range, VK_IMAGE_LAYOUT_GENERAL, useFlags, stages);
@@ -1028,7 +1028,7 @@ void VulkanGpuParameters::PrepareForBind(VulkanGpuCommandBuffer& buffer, VkDescr
 			VkDescriptorSetLayoutBinding* perSetBindings = vkParamInfo.GetLayoutBindings(set);
 			VkPipelineStageFlags stages = VulkanUtility::ShaderToPipelineStage(perSetBindings[usedBindingSequentialIndex].stageFlags);
 
-			buffer.RegisterImageShader(vulkanImage, range, layout, VulkanAccessFlag::Read, stages);
+			buffer.RegisterImageShader(vulkanImage, range, layout, GpuAccessFlag::Read, stages);
 
 			// Actual layout might be different than requested if the image is also used as a FB attachment
 			layout = buffer.GetCurrentLayout(vulkanImage, range, true);
@@ -1110,7 +1110,7 @@ void VulkanGpuParameters::PrepareForBind(VulkanGpuCommandBuffer& buffer, VkDescr
 	{
 		VulkanDescriptorSet* set = perDeviceData.PerSetData[i].LastUsedSet;
 
-		buffer.RegisterResource(set, VulkanAccessFlag::Read);
+		buffer.RegisterResource(set, GpuAccessFlag::Read);
 		outSets[i] = set->GetVulkanHandle();
 	}
 }

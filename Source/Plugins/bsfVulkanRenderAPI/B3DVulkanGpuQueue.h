@@ -20,16 +20,16 @@ namespace b3d
 		public:
 			VulkanGpuQueue(VulkanGpuDevice& device, GpuQueueUsage usage, u32 index, VkQueue vulkanQueue);
 
-			void SubmitCommandBuffer(const SPtr<GpuCommandBuffer>& commandBuffer, u32 syncMask, bool flushTransferCommandBuffer) override;
+			void SubmitCommandBuffer(const SPtr<GpuCommandBuffer>& commandBuffer, GpuQueueMask syncMask, bool flushTransferCommandBuffer) override;
 			void WaitUntilIdle() override;
-			void PresentRenderWindow(const SPtr<RenderWindow>& renderWindow, u32 syncMask = 0xFFFFFFFF) override;
+			void PresentRenderWindow(const SPtr<RenderWindow>& renderWindow, GpuQueueMask syncMask = GpuQueueMask::kAll) override;
 
 			/**
 			 * Submits a command buffer on the queue using information prepared by the command buffer.
 			 *
 			 * @note	Submit thread only.
 			 */
-			void ExecuteSubmitOnSubmitThread(const GpuCommandBufferSubmitInformation& submitInformation, u32 syncMask);
+			void ExecuteSubmitOnSubmitThread(const GpuCommandBufferSubmitInformation& submitInformation, GpuQueueMask syncMask);
 
 			/** Returns the internal handle to the Vulkan queue object. */
 			VkQueue GetVulkanHandle() const { return mQueue; }

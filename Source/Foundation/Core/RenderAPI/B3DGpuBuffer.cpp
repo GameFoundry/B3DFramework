@@ -2,6 +2,7 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "RenderAPI/B3DGpuBuffer.h"
 #include "B3DApplication.h"
+#include "B3DGpuCommandBuffer.h"
 #include "B3DGpuDevice.h"
 #include "B3DGpuDeviceCapabilities.h"
 #include "CoreObject/B3DCoreObjectSync.h"
@@ -336,5 +337,117 @@ namespace b3d::render
 		}
 
 		allocator.Free(syncPacket->BufferData);
+	}
+
+	SPtr<GpuBuffer> GpuBufferUtility::CreateStaging(const SPtr<GpuBuffer>& buffer, bool readable)
+	{
+		if(!B3D_ENSURE(buffer != nullptr))
+			return nullptr;
+
+		GpuBufferCreateInformation createInformation;
+		createInformation.Type = readable ? GpuBufferType::StagingRead : GpuBufferType::StagingWrite;
+		createInformation.Staging.Size = buffer->GetTotalSize();
+
+		const SPtr<GpuDevice>& device = GetApplication().GetPrimaryGpuDevice(); // TODO - This should use the same device as buffer
+		return device != nullptr ? device->CreateGpuBuffer(createInformation) : nullptr;
+	}
+
+	bool GpuBufferUtility::Write(const SPtr<GpuBuffer>& buffer, u32 offset, u32 length, const void* source, GpuBufferWriteFlags flags, SPtr<GpuCommandBuffer> commandBuffer)
+	{
+#if 0
+		if(!B3D_ENSURE(buffer != nullptr))
+			return false;
+
+		if((offset + length) > buffer->GetTotalSize())
+			return false;
+
+		if(length == 0)
+			return true;
+
+		const GpuBufferInformation& gpuBufferInformation = buffer->GetInformation();
+		const bool isCPUAccessible = gpuBufferInformation.Type == GpuBufferType::StagingRead || gpuBufferInformation.Type == GpuBufferType::StagingWrite || gpuBufferInformation.Flags.IsSet(GpuBufferFlag::StoreOnCPUWithGPUAccess);
+		const bool supportsGPUWrites = gpuBufferInformation.Flags.IsSet(GpuBufferFlag::AllowUnorderedAccessOnTheGPU);
+		const bool canDiscardBuffer = flags.IsSet(GpuBufferWriteFlag::Discard);
+
+		// Check is the GPU currently reading or writing from the buffer
+		const GpuQueueMask useMask = buffer->GetUseMask(GpuAccessFlag::Read | GpuAccessFlag::Write);
+
+		if(isCPUAccessible) // TODO - Need to check if this is memory on an integrated GPU, in which case it might be directly mappable always
+		{
+			// Note: Even if GPU isn't currently using the buffer, but the buffer supports GPU writes, we consider it as
+			// being used because the write could have completed yet still not visible, so we need to issue a pipeline
+			// barrier below.
+			const bool isUsedOnGPU = !useMask.IsEmpty() || supportsGPUWrites;
+
+			// Even if the buffer is directly mappable we might wish to avoid mapping it directly in these situations:
+			const bool shouldMapDirectly =
+				(!isUsedOnGPU || flags.IsSet(GpuBufferWriteFlag::NoOverwrite)) && // GPU is currently using the buffer and we cannot map it safely (unless user specifically requested the no-overwrite flag)
+				(buffer->GetBoundCount() == 0 || (commandBuffer == nullptr && canDiscardBuffer)); // Buffer is bound to a command buffer already. If user provided a command buffer queue a write operation there instead of mapping directly. If not, discard the original buffer and lock a new copy of the buffer.
+
+			if(shouldMapDirectly)
+			{
+				void* lockedData = buffer->Lock(offset, length, GBL_WRITE_ONLY);
+				memcpy(lockedData, source, length);
+				buffer->Unlock();
+
+				return true;
+			}
+		}
+
+		// Note: Not supporting staging memory. Not sure if there's a benefit.
+
+		// Create a staging buffer
+		SPtr<GpuBuffer> stagingBuffer = CreateStaging(buffer, false);
+
+		if(commandBuffer == nullptr)
+			commandBuffer = device.GetQueue(GQT_GRAPHICS, 0)->GetOrCreateTransferCommandBuffer();
+
+		// Copy the source into the staging buffer
+		if(stagingBuffer != nullptr)
+		{
+			void* lockedStagingData = stagingBuffer->Lock(0, length, GBL_WRITE_ONLY);
+			memcpy(lockedStagingData, source, length);
+
+			stagingBuffer->Unlock();
+		}
+
+		// If the buffer is used in any way on the GPU, we need to wait for that use to finish before we issue our copy
+		GpuQueueMask syncMask;
+		if(!useMask.IsEmpty() && !flags.IsSet(GpuBufferWriteFlag::NoOverwrite)) // Buffer is currently used on the GPU
+			syncMask = useMask;
+
+		// Check if the buffer will still be bound somewhere after the CBs using it finish
+		const u32 useCount = buffer->GetUseCount();
+		const u32 boundCount = buffer->GetBoundCount();
+
+		const bool isBoundWithoutUse = boundCount > useCount;
+
+		// If a buffer is bound a command buffer, and we're using a transfer buffer to update, warn as only the latest update will persist on the transfer buffer
+		if(isBoundWithoutUse && commandBuffer == nullptr)
+		{
+			if(!canDiscardBuffer)
+			{
+				B3D_LOG(Warning, RenderBackend, "Writing to a buffer '{0}' that is currently bound on a command buffer, without providing an explicit command buffer. Such writes will be queued on the transfer buffer which is submitted before any user command buffers. This means multiple writes will overwrite it each other if not careful.", mName);
+			}
+			else
+				buffer->RecreateInternalBuffer();
+		}
+
+		if(commandBuffer->IsInRenderPass())
+			commandBuffer->EndRenderPass();
+
+		// Queue copy/update command for the actual write
+		commandBuffer->CopyBufferToBuffer(stagingBuffer, buffer, 0, offset, length);
+
+		if(stagingBuffer != nullptr)
+			stagingBuffer->Destroy();
+
+		commandBuffer->AddQueueSyncMask(syncMask);
+
+		// We don't actually flush the transfer buffer here since it's an expensive operation, but it's instead
+		// done automatically before next "normal" command buffer submission.
+
+#endif
+		return true;
 	}
 }

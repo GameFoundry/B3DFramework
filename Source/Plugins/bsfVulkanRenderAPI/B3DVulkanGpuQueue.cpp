@@ -17,7 +17,7 @@ VulkanGpuQueue::VulkanGpuQueue(VulkanGpuDevice& device, GpuQueueUsage usage, u32
 		mSubmitDstWaitMask[i] = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
 }
 
-void VulkanGpuQueue::SubmitCommandBuffer(const SPtr<GpuCommandBuffer>& commandBuffer, u32 syncMask, bool flushTransferCommandBuffer)
+void VulkanGpuQueue::SubmitCommandBuffer(const SPtr<GpuCommandBuffer>& commandBuffer, GpuQueueMask syncMask, bool flushTransferCommandBuffer)
 {
 	if(flushTransferCommandBuffer)
 		mGpuDevice.SubmitTransferCommandBuffers();
@@ -49,7 +49,7 @@ void VulkanGpuQueue::SubmitCommandBuffer(const SPtr<GpuCommandBuffer>& commandBu
 	vulkanCommandBuffer.mIsSubmitted = true;
 }
 
-void VulkanGpuQueue::PresentRenderWindow(const SPtr<RenderWindow>& renderWindow, u32 syncMask)
+void VulkanGpuQueue::PresentRenderWindow(const SPtr<RenderWindow>& renderWindow, GpuQueueMask syncMask)
 {
 	if(renderWindow == nullptr)
 		return;
@@ -184,7 +184,7 @@ VkSubmitInfo VulkanGpuQueue::RegisterSubmissionAndGenerateSubmitInfo(const TArra
 	return vkSubmitInfo;
 }
 
-void VulkanGpuQueue::ExecuteSubmitOnSubmitThread(const GpuCommandBufferSubmitInformation& submitInformation, u32 syncMask)
+void VulkanGpuQueue::ExecuteSubmitOnSubmitThread(const GpuCommandBufferSubmitInformation& submitInformation, GpuQueueMask syncMask)
 {
 	AssertIfNotVulkanSubmitThread();
 
@@ -194,7 +194,7 @@ void VulkanGpuQueue::ExecuteSubmitOnSubmitThread(const GpuCommandBufferSubmitInf
 	VulkanGpuDevice& device = static_cast<VulkanGpuDevice&>(mGpuDevice);
 
 	// No need to explicitly sync with any entries on the same queue
-	const u32 queueMask = device.GetQueueMask(mUsage, mIndex);
+	const GpuQueueMask queueMask = device.GetQueueMask(mUsage, mIndex);
 	syncMask &= ~queueMask;
 
 	B3D_ASSERT(B3DSize(submitInformation.SourceQueueTransitionCommandBuffer) == GQT_COUNT);
@@ -228,12 +228,12 @@ void VulkanGpuQueue::ExecuteSubmitOnSubmitThread(const GpuCommandBufferSubmitInf
 			transitionQueueIndex = 0;
 		}
 
-		syncMask |= CommandSyncMask::GetGlobalQueueMask(transitionQueueUsage, transitionQueueIndex);
+		syncMask |= GpuQueueId(transitionQueueUsage, transitionQueueIndex);
 
 		GpuCommandBufferSubmitInformation transitionSubmitInformation;
 		transitionSubmitInformation.PrimaryCommandBuffer = submitInformation.SourceQueueTransitionCommandBuffer[queueUsageIndex];
 
-		transitionQueue->ExecuteSubmitOnSubmitThread(transitionSubmitInformation, 0);
+		transitionQueue->ExecuteSubmitOnSubmitThread(transitionSubmitInformation, GpuQueueMask::kNone);
 	}
 
 	B3D_ENSURE(mWaitSemaphoreBuffer.Empty());
@@ -331,7 +331,7 @@ void VulkanGpuQueue::RefreshCompletionStateOnSubmitThread(bool forceWait, bool q
 			messageBackQueue.PostCommand([semaphoresToRelease]()
 			{
 				for (const auto& semaphore : semaphoresToRelease)
-					semaphore->NotifyDone(0, VulkanAccessFlag::Read | VulkanAccessFlag::Write);
+					semaphore->NotifyDone(0, GpuAccessFlag::Read | GpuAccessFlag::Write);
 			});
 
 			if (isPresentCall)
@@ -359,12 +359,10 @@ u32 VulkanGpuQueue::RegisterSemaphoresAndGetHandles(const TArrayView<VulkanSemap
 	AssertIfNotVulkanSubmitThread();
 
 	u32 count = 0;
-	const u32 globalQueueIndex = CommandSyncMask::GetGlobalQueueIdx(mUsage, mIndex);
-
 	for(const auto& semaphore : inSemaphores)
 	{
 		semaphore->NotifyBound();
-		semaphore->NotifyUsed(globalQueueIndex, VulkanAccessFlag::Read | VulkanAccessFlag::Write);
+		semaphore->NotifyUsed(GetId(), GpuAccessFlag::Read | GpuAccessFlag::Write);
 
 		outSemaphores.Add(semaphore->GetHandle());
 		count++;
@@ -377,7 +375,7 @@ u32 VulkanGpuQueue::RegisterSemaphoresAndGetHandles(const TArrayView<VulkanSemap
 		VulkanSemaphore* prevSemaphore = mLastSubmittedCommandBuffer->GetIntraQueueSemaphore();
 
 		prevSemaphore->NotifyBound();
-		prevSemaphore->NotifyUsed(globalQueueIndex, VulkanAccessFlag::Read | VulkanAccessFlag::Write);
+		prevSemaphore->NotifyUsed(GetId(), GpuAccessFlag::Read | GpuAccessFlag::Write);
 
 		outSemaphores.Add(prevSemaphore->GetHandle());
 		count++;

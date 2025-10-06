@@ -154,6 +154,7 @@ namespace b3d
 			void EnableScissorTest(u32 left, u32 top, u32 right, u32 bottom) override;
 			void DisableScissorTest() override;
 			void SetStencilReferenceValue(u32 value) override;
+			void CopyBufferToBuffer(const SPtr<GpuBuffer>& source, const SPtr<GpuBuffer>& destination, u32 sourceOffset, u32 destinationOffset, u32 length) override;
 			void WriteTimestamp(GpuQueryId query, const SPtr<GpuQueryPool>& queryPool) override;
 			void BeginQuery(GpuQueryId query, const SPtr<GpuQueryPool>& queryPool, GpuQueryFlags flags) override;
 			void EndQuery(GpuQueryId query, const SPtr<GpuQueryPool>& queryPool) override;
@@ -179,16 +180,6 @@ namespace b3d
 			 * @note Submit thread only.
 			 */
 			GpuCommandBufferSubmitInformation PrepareForSubmitOnSubmitThread(GpuQueueUsage queueUsage, u32 queueIndex);
-
-			/**
-			 * OR's the provided sync mask with the internal sync mask. The sync mask determines on which queues should
-			 * the buffer wait on before executing. Sync mask is reset after a flush. See CommandSyncMask on how to generate
-			 * a sync mask.
-			 */
-			void AppendSyncMask(u32 syncMask) { mSyncMask |= syncMask; }
-
-			/** Returns the sync mask as set by AppendSyncMask(). */
-			u32 GetSyncMask() const { return mSyncMask; }
 
 			/** Called when the command buffer is about to be sent to the submit queue for submit. */
 			void NotifyWillQueueForSubmit();
@@ -258,32 +249,32 @@ namespace b3d
 			 * device when the command buffer is submitted. If a resource is an image or a buffer use the more specific
 			 * registerResource() overload.
 			 */
-			void RegisterResource(VulkanResource* res, VulkanAccessFlags flags);
+			void RegisterResource(VulkanResource* res, GpuAccessFlags flags);
 
 			/**
 			 * Lets the command buffer know that the provided image will be used for shader reads or writes in a subsequent draw
 			 * or dispatch call. Transfers the image to the provided layout and issues any necessary execution and memory
 			 * barriers.
 			 */
-			void RegisterImageShader(VulkanImage* image, const VkImageSubresourceRange& range, VkImageLayout layout, VulkanAccessFlags access, VkPipelineStageFlags stages);
+			void RegisterImageShader(VulkanImage* image, const VkImageSubresourceRange& range, VkImageLayout layout, GpuAccessFlags access, VkPipelineStageFlags stages);
 
 			/**
 			 * Lets the command buffer know that the provided image will be used as a framebuffer attachment in a subsequent
 			 * draw call. Transfers the image to the provided layout and issues any necessary execution and memory barriers.
 			 */
-			void RegisterImageFramebuffer(VulkanImage* image, const VkImageSubresourceRange& range, VkImageLayout layout, VkImageLayout finalLayout, VulkanAccessFlags access, VkPipelineStageFlags stages);
+			void RegisterImageFramebuffer(VulkanImage* image, const VkImageSubresourceRange& range, VkImageLayout layout, VkImageLayout finalLayout, GpuAccessFlags access, VkPipelineStageFlags stages);
 
 			/**
 			 * Lets the command buffer know that the provided image will be used for a transfer operation. Transfers the image
 			 * to the provided layout and issues any necessary execution and memory barriers.
 			 */
-			void RegisterImageTransfer(VulkanImage* image, const VkImageSubresourceRange& range, VkImageLayout layout, VulkanAccessFlags access);
+			void RegisterImageTransfer(VulkanImage* image, const VkImageSubresourceRange& range, VkImageLayout layout, GpuAccessFlags access);
 			/**
 			 * Lets the command buffer know that the provided image resource has been queued on it, and will be used by the
 			 * device when the command buffer is submitted. @p stages can be left empty for all uses except for generic and
 			 * parameter buffer types.
 			 */
-			void RegisterBuffer(VulkanBuffer* res, BufferUseFlagBits useFlags, VulkanAccessFlags access, VkPipelineStageFlags stages = 0);
+			void RegisterBuffer(VulkanBuffer* res, BufferUseFlagBits useFlags, GpuAccessFlags access, VkPipelineStageFlags stages = 0);
 
 			/**
 			 * Lets the command buffer know that the provided framebuffer resource has been queued on it, and will be used by
@@ -439,14 +430,14 @@ namespace b3d
 			struct ResourceUseHandle
 			{
 				bool Used;
-				VulkanAccessFlags Flags;
+				GpuAccessFlags Flags;
 			};
 
 			/** Describes where and how is a resource being accessed and by which stages. */
 			struct ResourcePipelineUse
 			{
 				/** Specifies how will the subresource be accessed during the current render pass or dispatch call. */
-				VulkanAccessFlags Access;
+				GpuAccessFlags Access;
 
 				/** Stages the image is being used in during the current render pass or dispatch call. */
 				VkPipelineStageFlags Stages = 0;
@@ -655,25 +646,25 @@ namespace b3d
 			 * @param[in]	access					Flags that determine will the resource be written or read from (or both).
 			 * @param[in]	stages					Set of stages that read/write from/to the resource.
 			 */
-			void RegisterResource(VulkanImage* image, const VkImageSubresourceRange& range, ImageUseFlagBits use, VkImageLayout layout, VkImageLayout finalLayout, VulkanAccessFlags access, VkPipelineStageFlags stages);
+			void RegisterResource(VulkanImage* image, const VkImageSubresourceRange& range, ImageUseFlagBits use, VkImageLayout layout, VkImageLayout finalLayout, GpuAccessFlags access, VkPipelineStageFlags stages);
 
 			/**
 			 * Updates an existing image sub-resource with new layout, access and stage flags for the purposes of shader
 			 * read or write. Sets up any necessary execution and memory barriers, as well as layout transitions.
 			 */
-			void UpdateShaderSubresource(VulkanImage* image, u32 imageInfoIdx, ImageSubresourceInfo& subresourceInfo, VkImageLayout layout, VulkanAccessFlags access, VkPipelineStageFlags stages);
+			void UpdateShaderSubresource(VulkanImage* image, u32 imageInfoIdx, ImageSubresourceInfo& subresourceInfo, VkImageLayout layout, GpuAccessFlags access, VkPipelineStageFlags stages);
 
 			/**
 			 * Updates an existing image sub-resource with new layout, access and stage flags for the purposes of being bound
 			 * as a framebuffer attachment. Sets up any necessary execution and memory barriers, as well as layout transitions.
 			 */
-			void UpdateFramebufferSubresource(VulkanImage* image, u32 imageInfoIdx, ImageSubresourceInfo& subresourceInfo, VkImageLayout layout, VkImageLayout finalLayout, VulkanAccessFlags access, VkPipelineStageFlags stages);
+			void UpdateFramebufferSubresource(VulkanImage* image, u32 imageInfoIdx, ImageSubresourceInfo& subresourceInfo, VkImageLayout layout, VkImageLayout finalLayout, GpuAccessFlags access, VkPipelineStageFlags stages);
 
 			/**
 			 * Updates an existing image sub-resource with new access and stage flags for the purposes of being used for a
 			 * transfer operation. Sets up any necessary execution and memory barriers, as well as layout transitions.
 			 */
-			void UpdateTransferSubresource(VulkanImage* image, ImageSubresourceInfo& subresourceInfo, VkImageLayout layout, VulkanAccessFlags access, VkPipelineStageFlags stages);
+			void UpdateTransferSubresource(VulkanImage* image, ImageSubresourceInfo& subresourceInfo, VkImageLayout layout, GpuAccessFlags access, VkPipelineStageFlags stages);
 
 			/** Finds a subresource info structure containing the specified face and mip level of the provided image. */
 			ImageSubresourceInfo& FindSubresourceInfo(VulkanImage* image, u32 face, u32 mip);
@@ -699,7 +690,6 @@ namespace b3d
 			VulkanGpuCommandBufferPool& mPool;
 			VkFence mFence;
 			ThreadId mOwnerThread;
-			u32 mSyncMask;
 
 			VulkanSemaphore* mIntraQueueSemaphore = nullptr;
 			VulkanSemaphore* mInterQueueSemaphores[BS_MAX_VULKAN_CB_DEPENDENCIES]{};
@@ -716,7 +706,7 @@ namespace b3d
 			Vector<ImageInfo> mImageInfos;
 			Vector<ImageSubresourceInfo> mSubresourceInfoStorage;
 			Set<u32> mShaderBoundSubresourceInfos;
-			u32 mSubmittedQueueGlobalIndex = ~0u; // Global index of the queue the command buffer was submitted on. Undefined if not submitted.
+			GpuQueueId mSubmittedQueueId;
 
 			bool mNeedsWARMemoryBarrier : 1;
 			bool mNeedsRAWMemoryBarrier : 1;

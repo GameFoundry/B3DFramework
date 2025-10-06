@@ -118,6 +118,9 @@ namespace b3d
 			void ReadData(u32 offset, u32 length, void* destination, const SPtr<GpuQueue>& gpuQueue = nullptr) override;
 			void WriteData(u32 offset, u32 length, const void* source, BufferWriteType writeFlags = BWT_NORMAL, const SPtr<GpuCommandBuffer>& commandBuffer = nullptr) override;
 			void CopyData(GpuBuffer& srcBuffer, u32 srcOffset, u32 dstOffset, u32 length, bool discardWholeBuffer = false, const SPtr<GpuCommandBuffer>& commandBuffer = nullptr) override;
+			GpuQueueMask GetUseMask(GpuAccessFlags accessFlags) override;
+			u32 GetBoundCount() const override { return mBuffer->GetBoundCount(); }
+			u32 GetUseCount() const override { return mBuffer->GetUseCount(); }
 
 			/** Gets the resource wrapping the buffer object. */
 			VulkanBuffer* GetVulkanResource() const { return mBuffer; }
@@ -142,6 +145,7 @@ namespace b3d
 
 			void* Map(u32 offset, u32 length, GpuLockOptions options) override;
 			void Unmap() override;
+			void RecreateInternalBuffer() override;
 
 			/** Creates a new buffer for the specified device, matching the current buffer properties. */
 			VulkanBuffer* CreateBuffer(VulkanGpuDevice& device, u32 size, bool staging, bool readable);

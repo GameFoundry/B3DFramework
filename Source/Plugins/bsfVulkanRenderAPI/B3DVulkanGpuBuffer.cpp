@@ -1,6 +1,8 @@
 //************************************ B3D Framework - Copyright 2018 Marko Pintera **************************************//
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #include "B3DVulkanGpuBuffer.h"
+
+#include "B3DApplication.h"
 #include "B3DVulkanGpuDevice.h"
 #include "B3DVulkanUtility.h"
 #include "B3DVulkanGpuCommandBuffer.h"
@@ -185,6 +187,7 @@ void VulkanGpuBuffer::Initialize()
 	mBufferCI.queueFamilyIndexCount = 0;
 	mBufferCI.pQueueFamilyIndices = nullptr;
 
+	// TODO - Should all buffer really be readable by default?
 	mBuffer = CreateBuffer(mDevice, mTotalSize, false, true);
 }
 
@@ -292,12 +295,12 @@ void* VulkanGpuBuffer::Map(u32 offset, u32 length, GpuLockOptions options)
 		(options == GBL_WRITE_ONLY_DISCARD_RANGE && offset == 0 && length == mTotalSize);
 
 	// Check is the GPU currently reading or writing from the buffer
-	u32 useMask = buffer->GetUseInfo(VulkanAccessFlag::Read | VulkanAccessFlag::Write);
+	GpuQueueMask useMask = buffer->GetUseInfo(GpuAccessFlag::Read | GpuAccessFlag::Write);
 
 	// Note: Even if GPU isn't currently using the buffer, but the buffer supports GPU writes, we consider it as
 	// being used because the write could have completed yet still not visible, so we need to issue a pipeline
 	// barrier below.
-	const bool isUsedOnGPU = useMask != 0 || mSupportsGPUWrites;
+	const bool isUsedOnGPU = !useMask.IsEmpty() || mSupportsGPUWrites;
 
 	const bool isReadRequired = options == GBL_READ_ONLY || options == GBL_READ_WRITE;
 	const bool isWrite = options != GBL_READ_ONLY;
@@ -385,11 +388,6 @@ void VulkanGpuBuffer::CopyData(GpuBuffer& srcBuffer, u32 srcOffset, u32 dstOffse
 		vulkanCommandBuffer.EndRenderPass(true);
 
 	vulkanCommandBuffer.CopyBufferToBuffer(src, dst, srcOffset, dstOffset, length);
-
-	// Notify the command buffer that these resources are being used on it
-	// TODO - Move this within VulkanCmdBuffer::CopyBufferToBuffer?
-	vulkanCommandBuffer.RegisterBuffer(src, BufferUseFlagBits::Transfer, VulkanAccessFlag::Read);
-	vulkanCommandBuffer.RegisterBuffer(dst, BufferUseFlagBits::Transfer, VulkanAccessFlag::Write);
 }
 
 void VulkanGpuBuffer::ReadData(u32 offset, u32 length, void* destination, const SPtr<GpuQueue>& gpuQueue)
@@ -410,14 +408,14 @@ void VulkanGpuBuffer::ReadData(u32 offset, u32 length, void* destination, const 
 	SPtr<VulkanGpuCommandBuffer> vulkanCommandBuffer;
 
 	// Check is the GPU currently writing to the buffer
-	const u32 writeUseMask = mBuffer->GetUseInfo(VulkanAccessFlag::Write);
+	const GpuQueueMask writeUseMask = mBuffer->GetUseInfo(GpuAccessFlag::Write);
 
 	if(mDirectlyMappable) // TODO - Need to check if this is memory on an integrated GPU, in which case it might be directly mappable always
 	{
 		// Note: Even if GPU isn't currently using the buffer, but the buffer supports GPU writes, we consider it as
 		// being used because the write could have completed yet still not visible, so we need to issue a pipeline
 		// barrier below.
-		const bool isUsedOnGPU = writeUseMask != 0 || mSupportsGPUWrites;
+		const bool isUsedOnGPU = !writeUseMask.IsEmpty() || mSupportsGPUWrites;
 
 		// If used on the GPU, we need to wait until all write operations complete before mapping it
 		if(isUsedOnGPU)
@@ -437,7 +435,7 @@ void VulkanGpuBuffer::ReadData(u32 offset, u32 length, void* destination, const 
 			}
 
 			// Submit the command buffer and wait until it finishes
-			vulkanCommandBuffer->AppendSyncMask(writeUseMask);
+			vulkanCommandBuffer->AddQueueSyncMask(writeUseMask);
 			transferGpuQueue.SubmitTransferCommandBuffer(true);
 		}
 
@@ -452,8 +450,8 @@ void VulkanGpuBuffer::ReadData(u32 offset, u32 length, void* destination, const 
 	VulkanBuffer* const stagingBuffer = CreateBuffer(mDevice, length, true, true); // TODO - Allocate this from some memory pool
 
 	// If buffer supports GPU writes or is currently being written to, we need to wait on any potential writes to complete
-	u32 syncMask = 0;
-	if(mSupportsGPUWrites || writeUseMask != 0)
+	GpuQueueMask syncMask;
+	if(mSupportsGPUWrites || !writeUseMask.IsEmpty())
 	{
 		// Ensure flush will wait for all queues currently writing to the buffer (if any) to finish
 		syncMask = writeUseMask;
@@ -466,7 +464,7 @@ void VulkanGpuBuffer::ReadData(u32 offset, u32 length, void* destination, const 
 	vulkanCommandBuffer->CopyBufferToBuffer(mBuffer, stagingBuffer, offset, 0, length);
 
 	// Submit the command buffer and wait until it finishes
-	vulkanCommandBuffer->AppendSyncMask(syncMask);
+	vulkanCommandBuffer->AddQueueSyncMask(syncMask);
 	transferGpuQueue.SubmitTransferCommandBuffer(true);
 
 	void* lockedStagingData = stagingBuffer->Map(0, length, true);
@@ -474,6 +472,11 @@ void VulkanGpuBuffer::ReadData(u32 offset, u32 length, void* destination, const 
 
 	stagingBuffer->Unmap();
 	stagingBuffer->Destroy();
+}
+
+GpuQueueMask VulkanGpuBuffer::GetUseMask(GpuAccessFlags accessFlags)
+{
+	return mBuffer->GetUseInfo(accessFlags);
 }
 
 void VulkanGpuBuffer::WriteData(u32 offset, u32 length, const void* source, BufferWriteType writeFlags, const SPtr<GpuCommandBuffer>& commandBuffer)
@@ -501,14 +504,14 @@ void VulkanGpuBuffer::WriteData(u32 offset, u32 length, const void* source, Buff
 		(options == GBL_WRITE_ONLY_DISCARD_RANGE && offset == 0 && length == mTotalSize);
 
 	// Check is the GPU currently reading or writing from the buffer
-	const u32 useMask = mBuffer->GetUseInfo(VulkanAccessFlag::Read | VulkanAccessFlag::Write);
+	const GpuQueueMask useMask = mBuffer->GetUseInfo(GpuAccessFlag::Read | GpuAccessFlag::Write);
 
 	if(mDirectlyMappable) // TODO - Need to check if this is memory on an integrated GPU, in which case it might be directly mappable always
 	{
 		// Note: Even if GPU isn't currently using the buffer, but the buffer supports GPU writes, we consider it as
 		// being used because the write could have completed yet still not visible, so we need to issue a pipeline
 		// barrier below.
-		const bool isUsedOnGPU = useMask != 0 || mSupportsGPUWrites;
+		const bool isUsedOnGPU = !useMask.IsEmpty() || mSupportsGPUWrites;
 
 		// Even if the buffer is directly mappable we might wish to avoid mapping it directly in these situations:
 		const bool shouldMapDirectly =
@@ -547,8 +550,8 @@ void VulkanGpuBuffer::WriteData(u32 offset, u32 length, const void* source, Buff
 	}
 
 	// If the buffer is used in any way on the GPU, we need to wait for that use to finish before we issue our copy
-	u32 syncMask = 0;
-	if(useMask != 0 && options != GBL_WRITE_ONLY_NO_OVERWRITE) // Buffer is currently used on the GPU
+	GpuQueueMask syncMask;
+	if(!useMask.IsEmpty() && options != GBL_WRITE_ONLY_NO_OVERWRITE) // Buffer is currently used on the GPU
 	{
 		syncMask = useMask;
 	}
@@ -579,24 +582,14 @@ void VulkanGpuBuffer::WriteData(u32 offset, u32 length, const void* source, Buff
 
 	// Queue copy/update command for the actual write
 	if(stagingBuffer != nullptr)
-	{
 		vulkanCommandBuffer->CopyBufferToBuffer(stagingBuffer, mBuffer, 0, offset, length);
-
-		// TODO - Move this within VulkanCmdBuffer::CopyBufferToBuffer?
-		vulkanCommandBuffer->RegisterBuffer(stagingBuffer, BufferUseFlagBits::Transfer, VulkanAccessFlag::Read);
-	}
 	else // Staging memory
-	{
 		vulkanCommandBuffer->UpdateBuffer(mBuffer, (u8*)source, offset, length);
-	}
-
-	// TODO - Move this within VulkanCmdBuffer::CopyBufferToBuffer?
-	vulkanCommandBuffer->RegisterBuffer(mBuffer, BufferUseFlagBits::Transfer, VulkanAccessFlag::Write);
 
 	if(stagingBuffer != nullptr)
 		stagingBuffer->Destroy();
 
-	vulkanCommandBuffer->AppendSyncMask(syncMask);
+	vulkanCommandBuffer->AddQueueSyncMask(syncMask);
 
 	// We don't actually flush the transfer buffer here since it's an expensive operation, but it's instead
 	// done automatically before next "normal" command buffer submission.
@@ -611,5 +604,12 @@ VkBufferView VulkanGpuBuffer::GetOrCreateView(GpuBufferFormat format) const
 		format = mInformation.SimpleStorage.Format;
 
 	return mBuffer->GetOrCreateView(VulkanUtility::GetBufferFormat(mInformation.SimpleStorage.Format));
+}
+
+void VulkanGpuBuffer::RecreateInternalBuffer()
+{
+	VulkanBuffer* newBuffer = CreateBuffer(mDevice, mTotalSize, false, true);
+	mBuffer->Destroy();
+	mBuffer = newBuffer;
 }
 

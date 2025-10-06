@@ -2,6 +2,7 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
+#include "B3DGpuDevice.h"
 #include "B3DPrerequisites.h"
 #include "CoreObject/B3DCoreObject.h"
 #include "CoreObject/B3DRenderProxy.h"
@@ -85,6 +86,12 @@ namespace b3d
 			u32 Size = 0; /**< Total size of the uniform buffer. */
 		};
 
+		/** Describes a buffer used for copying from or to a buffer stores in non-CPU accessible memory. */
+		struct StagingBufferInformation
+		{
+			u32 Size = 0; /**< Total size of the staging buffer, in bytes. */
+		};
+
 		/** Describes a buffer containing of array of primitive types using a specific format. */
 		struct SimpleStorageBufferInformation
 		{
@@ -111,6 +118,7 @@ namespace b3d
 			VertexBufferInformation Vertex;
 			IndexBufferInformation Index;
 			UniformBufferInformation Uniform;
+			StagingBufferInformation Staging;
 			SimpleStorageBufferInformation SimpleStorage;
 			StructuredStorageBufferInformation StructuredStorage;
 		};
@@ -467,9 +475,22 @@ namespace b3d::render
 		/**	Returns whether or not this buffer is currently locked. */
 		bool IsLocked() const { return mIsLocked; }
 
+		/**
+		 * Returns if the buffer is currently being used on the GPU, and if so on which queues is it scheduled. Allows the caller so synchronize command buffer
+		 * execution after buffer is done being used.
+		 */
+		virtual GpuQueueMask GetUseMask(GpuAccessFlags accessFlags = GpuAccessFlag::Read | GpuAccessFlag::Write) = 0;
+
+		/** Returns the amount of command buffers that the buffer is currently bound to. Note that this does not specify if the command buffer has been submitted for execution or not. */
+		virtual u32 GetBoundCount() const = 0;
+
+		/** Returns the amount of submitted command buffers that the buffer is bound to. */
+		virtual u32 GetUseCount() const = 0;
+
 	protected:
 		friend class b3d::GpuDevice;
 		friend class b3d::GpuBuffer;
+		friend struct GpuBufferUtility;
 
 		/** Constructs a new GPU buffer. */
 		GpuBuffer(const GpuBufferCreateInformation& createInformation, u32 suballocationSize);
@@ -482,6 +503,9 @@ namespace b3d::render
 		/** @copydoc Unlock */
 		virtual void Unmap() {}
 
+		/** Recreates the underlying buffer. Note this will clear all currently written data. Old buffer will be released once its done being used. */
+		virtual void RecreateInternalBuffer() = 0;
+
 	protected:
 		GpuBufferInformation mInformation;
 		String mName;
@@ -492,6 +516,66 @@ namespace b3d::render
 
 		bool mIsLocked = false;
 	};
+
+	/** Flags used to control the GPU buffer writes. */
+	enum class GpuBufferWriteFlag
+	{
+		/**
+		 * Default flag. If the buffer is currently used by the GPU this will cause a CPU<->GPU sync point as the CPU waits on
+		 * the GPU to finish operations on the buffer.
+		 */
+		Default,
+
+		/**
+		 * If the buffer is currently being used on the GPU the system will internally allocate new memory for the buffer
+		 * and write to the new memory. Old buffer memory will remain for whatever purpose it was used for until
+		 * execution finishes, at which point it will be freed. Caller must ensure to either fully write in the
+		 * buffer range, as anything not written by the caller will be undefined. Avoids CPU<->GPU sync points at
+		 * the cost of additional memory being allocated.
+		 */
+		Discard,
+
+		/**
+		 * If the buffer is currently being used on the GPU the system will still let you update it. It's up to the
+		 * caller not to update the same memory region as the GPU is operating on, while respecting any other rules
+		 * required by the low-level render API when doing such an operation (such as issuing memory barriers, flushing
+		 * memory and respecting granularity). Use only when you know what you are doing.
+		 */
+		NoOverwrite
+	};
+
+	using GpuBufferWriteFlags = Flags<GpuBufferWriteFlag>;
+	B3D_FLAGS_OPERATORS(GpuBufferWriteFlag);
+
+	/** Provides various utility operations on GpuBuffer. */
+	struct GpuBufferUtility
+	{
+		/**
+		 * Creates a staging buffer that can be used for as copy source or destination for the provided buffer.
+		 *
+		 * @param	buffer		Buffer to create the the staging buffer for. The staging buffer will have enough size to fit the contents of this buffer.
+		 * @param	readable	True if the buffer needs to be CPU-readable, false if the buffer needs to be CPU-writeable.
+		 * @return				Newly created buffer.
+		 */
+		static SPtr<GpuBuffer> CreateStaging(const SPtr<GpuBuffer>& buffer, bool readable);
+
+		/**
+		 * Writes data into a portion of the buffer from the source memory.
+		 *
+		 * If the buffer cannot be directly mapped by the CPU (i.e. doesn't have the StoreOnCPUWithGPUAccess flag, and is not a staging buffer) this will
+		 * internally create a staging buffer, on which the contents will be copied before being written by the GPU, using the provided command buffer).
+		 *
+		 * @param	offset			Offset in bytes from which to copy the data.
+		 * @param	length			Length of the area you want to copy, in bytes.
+		 * @param	source			Source buffer containing the data to write. Data is read from the start of the buffer (@p offset is only applied to the destination).
+		 * @param	writeFlags		Optional write flags that may affect performance.
+		 * @param	commandBuffer	Command buffer on which to encode the staging buffer copy, in case the buffer is not directly readable. If not provided
+		 *							the operation will be queued on a transfer command buffer that will be submitted just before next regular command
+		 *							buffer submission (or at the latest, at the end of the current frame).
+		 */
+		static bool Write(const SPtr<GpuBuffer>& buffer, u32 offset, u32 length, const void* source, GpuBufferWriteFlags writeFlags, SPtr<GpuCommandBuffer> commandBuffer);
+	};
+
 } // namespace b3d::render
 
 /** @} */
