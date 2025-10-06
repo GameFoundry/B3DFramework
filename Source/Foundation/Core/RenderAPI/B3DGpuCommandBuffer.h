@@ -2,9 +2,9 @@
 //*********** Licensed under the MIT license. See LICENSE.md for full terms. This notice is not to be removed. ***********//
 #pragma once
 
+#include "B3DPrerequisites.h"
 #include "B3DGpuDevice.h"
 #include "B3DGpuQueries.h"
-#include "B3DPrerequisites.h"
 #include "Image/B3DColor.h"
 #include "Math/B3DArea2.h"
 #include "Threading/B3DSingleConsumerQueue.h"
