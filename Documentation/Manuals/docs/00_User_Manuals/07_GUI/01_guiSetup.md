@@ -23,7 +23,7 @@ HGUIWidget guiWidget = guiSceneObject->AddComponent<GUIWidget>(camera);
 Before a widget is usable, you must assign it a style sheet cascade. The cascade defines how each element on this widget will be styled (colors, fonts, sizes, etc.). For now, assign the built-in style sheet available from the resources:
 
 ~~~~~~~~~~~~~{.cpp}
-guiWidget->SetStyleSheetCascade(GetBuiltinResources().GetDefaultGUIStyleSheet());
+guiWidget->SetStyleSheetCascade(GetBuiltinResources().GetDefaultGUIStyleSheetCascade());
 ~~~~~~~~~~~~~
 
 You can now use the GUI widget to add GUI elements to it:

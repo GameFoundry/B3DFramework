@@ -2,211 +2,344 @@
 title: GUI styles
 ---
 
-So far all the GUI elements we have been creating have used the default built-in GUI style. However it is possible to fully customize an element's look by defining a @b3d::GUIElementStyle object. This object allows you to specify which textures to use, style of text (if any), default dimensions, margins, padding and similar.
+All GUI elements in the framework are styled using CSS-like style sheets. Style sheets define how elements are rendered, including colors, fonts, sizes, borders, and more. The framework uses the @b3d::GUIStyleSheet class to manage these styles through a cascading system similar to web CSS.
 
-Each style must be given a unique name and then registered with a @b3d::GUISkin object which serves as a collection of styles. Create an empty skin by calling @b3d::GUISkin::create. Register the style by calling @b3d::GUISkin.
+# Style sheets
 
-~~~~~~~~~~~~~{.cpp}
-HGUISkin skin = GUISkin::create();
-
-HTexture myButtonTex = GetImporter().import<Texture>("MyButton.png");
-HSpriteTexture myButtonSpriteTex = SpriteTexture::create(myButtonTex);
-
-// Create a style that displayes a fixed size 20x50 image
-GUIElementStyle myButtonStyle;
-myButtonStyle.normal.texture = myButtonSpriteTex;
-myButtonStyle.fixedHeight = true;
-myButtonStyle.fixedWidth = true;
-myButtonStyle.height = 20;
-myButtonStyle.width = 50;
-
-skin->setStyle("MyButtonStyle", myButtonStyle);
-~~~~~~~~~~~~~
-
-Once a skin has been created you must assign it to a **GUIWidget** by calling @b3d::GUIWidget::setSkin. Each **GUIWidget** can only have a single skin assigned, and all GUI elements parented to that widget will use the styles from the provided skin.
+Style sheets are CSS files that define the visual appearance of GUI elements. The framework provides a default style sheet that can be loaded from the built-in resources:
 
 ~~~~~~~~~~~~~{.cpp}
-HSceneObject guiSO = SceneObject::create("GUI");
-HGUIWidget gui = guiSO->addComponent<GUIWidget>(camera);
+HSceneObject guiSceneObject = SceneObject::Create("GUI");
+HGUIWidget guiWidget = guiSceneObject->AddComponent<GUIWidget>(camera);
 
-gui->setSkin(skin);
+// Assign the default style sheet
+guiWidget->SetStyleSheetCascade(GetBuiltinResources().GetDefaultGUIStyleSheet());
 ~~~~~~~~~~~~~
 
-Finally, you must tell the GUI element which style to use by providing its name as a parameter to their **create()** method.
+Style sheets use standard CSS syntax with selectors, properties, and values. Here is an example of a simple button style:
+
+~~~~~~~~~~~~~{.css}
+button
+{
+    min-width: 20px;
+    height: 22px;
+    margin-bottom: 4px;
+    text-align: center;
+    vertical-align: middle;
+    color: #B2B2B2;
+    background-color: #212121;
+    border-color: #1B1B1B;
+    border-width: 2px;
+    font-family: "Arial";
+    font-size: 8;
+}
+~~~~~~~~~~~~~
+
+# Selectors
+
+Style sheets support several types of selectors to target specific GUI elements:
+
+## Element selectors
+
+Element selectors target all instances of a particular GUI element type:
+
+~~~~~~~~~~~~~{.css}
+button { /* Applies to all buttons */ }
+label { /* Applies to all labels */ }
+inputbox { /* Applies to all input boxes */ }
+~~~~~~~~~~~~~
+
+## Class selectors
+
+Class selectors target elements with a specific class name, prefixed with a dot:
+
+~~~~~~~~~~~~~{.css}
+button.PrimaryButton
+{
+    background-color: #0E82FF;
+}
+
+button.DangerButton
+{
+    background-color: #C40000;
+}
+~~~~~~~~~~~~~
+
+Assign a class to a GUI element by calling @b3d::GUIElement::SetElementClass:
 
 ~~~~~~~~~~~~~{.cpp}
-GUIButton* customStyleButton = GUIButton::create(HString("Click me"), "MyButtonStyle");
+GUIButton* primaryButton = GUIButton::Create(HString("Save"));
+primaryButton->SetElementClass("PrimaryButton");
 ~~~~~~~~~~~~~
 
-![Button with a custom style](../../Images/customButton.png)
+## ID selectors
 
-All GUI elements also have a default style name they will use if you don't provide one in a call to **create()** (as was the case for all GUI elements we created in previous chapters). You can find out that name by calling a static **getGUITypeName()** method present on all GUI elements (e.g. **GUIButton::getGUITypeName()**). You can use this name to override GUI element's default styles in **GUISkin**.
+ID selectors target a single element with a specific ID, prefixed with a hash:
+
+~~~~~~~~~~~~~{.css}
+#MainMenuButton
+{
+    width: 200px;
+    height: 50px;
+}
+~~~~~~~~~~~~~
+
+Assign an ID to a GUI element by calling @b3d::GUIElement::SetElementId:
 
 ~~~~~~~~~~~~~{.cpp}
-// Overrides the default style for a GUIButton
-skin->setStyle(GUIButton::getGUITypeName(), myButtonStyle);
+GUIButton* mainMenuButton = GUIButton::Create(HString("Main Menu"));
+mainMenuButton->SetElementId("MainMenuButton");
 ~~~~~~~~~~~~~
 
-# GUI style properties
-**GUIElementStyle** allows you to set a variety of different properties to customize its look. They can be categorized into *states*, *textual*, *dimensions* and *offsets*.
+## Pseudo-class selectors
 
-## States
-States are used to change how an element looks as the user interacts with the element. There are five different states:
- - Normal - Default state when no interaction is happening
- - Hover - State when the user is hovering the pointer over the element
- - Active - State when the user is interacting with the element
- - Focused - State when the element has input focus
- - Focused hover - State when the element has input focus and the user is hovering the pointer over the element
- 
-All elements must have a *normal* state. This is the state that defines their default look. Elements that can be interacted with (like buttons) can optionally also provide the remaining states.
+Pseudo-class selectors target elements in specific states, using a colon:
 
-The states can be set in **GUIElementStyle** by populating the following fields:
- - @b3d::GUIElementStyle::normal
- - @b3d::GUIElementStyle::hover
- - @b3d::GUIElementStyle::active
- - @b3d::GUIElementStyle::focused
- - @b3d::GUIElementStyle::focusedHover
- 
-Additionally, certain elements can be permanently toggled on or off (i.e. toggle buttons). In that case it is useful to have a separate set of states for on and off modes. Therefore there are also states specific to the "on" mode (while above states default to "off"):
- - @b3d::GUIElementStyle::normalOn
- - @b3d::GUIElementStyle::hoverOn
- - @b3d::GUIElementStyle::activeOn
- - @b3d::GUIElementStyle::focusedOn
- - @b3d::GUIElementStyle::focusedHoverOn
- 
-Each of these eight states is a @b3d::GUIElementStateStyle object, which contains a single sprite texture and a text color tint. When the style is active the element will render the provided texture covering its available area, and render any text using the provided color.
+~~~~~~~~~~~~~{.css}
+button:hover
+{
+    background-color: #2D2D2D;
+    border-color: #1B1B1B;
+}
 
-An example that sets up a button style that has different textures depending if the button is in normal, hovered or active state:
+button:focus
+{
+    border-color: #FFA800;
+}
+
+button:active
+{
+    background-color: #FFA800;
+    color: #000000;
+}
+
+button:checked
+{
+    background-color: #FFA800;
+}
+~~~~~~~~~~~~~
+
+Supported pseudo-classes include:
+- `:hover` - When the pointer is over the element
+- `:focus` - When the element has input focus
+- `:active` - When the element is being actively interacted with
+- `:checked` - For toggle elements in the checked state
+- `:disabled` - When the element is disabled
+
+## Pseudo-element selectors
+
+Pseudo-element selectors target sub-parts of GUI elements, using double colons:
+
+~~~~~~~~~~~~~{.css}
+button.Toggle::checkmark
+{
+    color: #FFA800;
+    width: 9px;
+    height: 11px;
+}
+~~~~~~~~~~~~~
+
+# CSS variables
+
+Style sheets support CSS variables for consistent theming. Variables are defined in the `:root` selector and referenced using `var()`:
+
+~~~~~~~~~~~~~{.css}
+:root
+{
+    --PrimaryContentColor: #B2B2B2;
+    --PrimaryBackgroundColor: #212121;
+    --FocusColor: #FFA800;
+    --PrimaryFontFamily: "Arial";
+    --PrimaryFontSize: 8;
+}
+
+button
+{
+    color: var(--PrimaryContentColor);
+    background-color: var(--PrimaryBackgroundColor);
+    font-family: var(--PrimaryFontFamily);
+    font-size: var(--PrimaryFontSize);
+}
+
+button:focus
+{
+    border-color: var(--FocusColor);
+}
+~~~~~~~~~~~~~
+
+# Style properties
+
+Style sheets support a wide range of properties for controlling element appearance and layout.
+
+## Layout properties
+
+Control element size and spacing:
+
+~~~~~~~~~~~~~{.css}
+button
+{
+    width: 100px;
+    height: 30px;
+    min-width: 50px;
+    max-width: 200px;
+
+    margin: 4px;
+    margin-top: 8px;
+    margin-bottom: 4px;
+
+    padding: 5px;
+    padding-left: 10px;
+}
+~~~~~~~~~~~~~
+
+Properties:
+- `width`, `height` - Fixed dimensions
+- `min-width`, `min-height` - Minimum dimensions
+- `max-width`, `max-height` - Maximum dimensions
+- `margin` - Outer spacing (shorthand or individual sides)
+- `padding` - Inner spacing (shorthand or individual sides)
+
+## Visual properties
+
+Control colors, backgrounds, and visibility:
+
+~~~~~~~~~~~~~{.css}
+label
+{
+    color: #B2B2B2;
+    background-color: #212121;
+    background-image: url("background.png");
+    opacity: 0.8;
+    visibility: visible; /* or hidden */
+}
+~~~~~~~~~~~~~
+
+Properties:
+- `color` - Text and content color
+- `background-color` - Background fill color
+- `background-image` - Background image (use `url()` to reference)
+- `opacity` - Transparency (0.0 to 1.0)
+- `visibility` - Show or hide element
+
+## Text properties
+
+Control font and text formatting:
+
+~~~~~~~~~~~~~{.css}
+label
+{
+    font-family: "Arial";
+    font-size: 10;
+    text-align: center; /* left, center, right */
+    vertical-align: middle; /* top, middle, bottom */
+    word-wrap: wrap-word; /* or none */
+}
+~~~~~~~~~~~~~
+
+Properties:
+- `font-family` - Font name (must be imported)
+- `font-size` - Font size in points
+- `text-align` - Horizontal text alignment
+- `vertical-align` - Vertical text alignment
+- `word-wrap` - Text wrapping behavior
+
+## Border properties
+
+Control element borders:
+
+~~~~~~~~~~~~~{.css}
+button
+{
+    border-width: 2px;
+    border-color: #1B1B1B;
+    border-style: solid;
+
+    border-radius: 5px;
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+}
+~~~~~~~~~~~~~
+
+You can also set individual border sides:
+
+~~~~~~~~~~~~~{.css}
+button
+{
+    border-top-width: 1px;
+    border-top-color: #FFFFFF;
+    border-top-style: solid;
+
+    border-bottom-width: 2px;
+    border-bottom-color: #000000;
+}
+~~~~~~~~~~~~~
+
+Properties:
+- `border` - Shorthand for all borders
+- `border-width` - Border thickness
+- `border-color` - Border color
+- `border-style` - Border style (currently only `solid` is supported)
+- `border-radius` - Rounded corners
+- Individual border sides: `border-top`, `border-right`, `border-bottom`, `border-left`
+
+# Loading custom style sheets
+
+Create custom style sheets by writing CSS files and loading them as resources:
+
 ~~~~~~~~~~~~~{.cpp}
-HTexture normalTex = GetImporter().import<Texture>("normal.png");
-HTexture hoverTex = GetImporter().import<Texture>("hover.png");
-HTexture activeTex = GetImporter().import<Texture>("active.png");
+// Import the CSS file
+HGUIStyleSheet customStyleSheet = GetImporter().Import<GUIStyleSheet>("MyStyles.css");
 
-GUIElementStyle myButtonStyle;
-myButtonStyle.normal.texture = SpriteTexture::create(normalTex);
-myButtonStyle.hover.texture = SpriteTexture::create(hoverTex);
-myButtonStyle.active.texture = SpriteTexture::create(activeTex);
+// Create a cascade with the custom style sheet
+SPtr<GUIStyleSheetCascade> styleSheetCascade = GUIStyleSheetCascade::Create();
+styleSheetCascade->RegisterStyleSheet(customStyleSheet, 0);
+
+// Assign to widget
+guiWidget->SetStyleSheetCascade(styleSheetCascade);
 ~~~~~~~~~~~~~
 
-## Textual
-As the name implies, this set of properties is relevant for GUI elements that display text. The properties allow you to control text font, size and alignment using the following fields:
- - @b3d::GUIElementStyle::font
- - @b3d::GUIElementStyle::fontSize
- - @b3d::GUIElementStyle::textHorzAlign
- - @b3d::GUIElementStyle::textVertAlign
- - @b3d::GUIElementStyle::wordWrap
- 
-An example customizing text display on a GUI element:
-~~~~~~~~~~~~~{.cpp}
-HFont font = GetResources().load<Font>("MyFont.asset");
+# Style sheet cascades
 
-// Style with some previously imported font of size 11, with vertically & horizontally centered and no word wrap (overflowing text will be clipped)
-GUIElementStyle myButtonStyle;
-myButtonStyle.font = font;
-myButtonStyle.fontSize = 11;
-myButtonStyle.textHorzAlign = THA_Center;
-myButtonStyle.textVertAlign = TVA_Center;
-~~~~~~~~~~~~~
- 
-> We'll show how to import fonts in a later chapter.
-
-## Dimensions
-Dimensions provided on **GUIElementStyle** allow you to choose what's the default size of the GUI element. The user can override this on a per-element basis by calling **GUIElement::setSize()**, **GUIElement::setFlexibleWidth()**, **GUIElement::setFlexibleHeight()** or similar methods (as we have done in previous chapters).
-
-Dimensions are controlled by the following properties:
- - @b3d::GUIElementStyle::width
- - @b3d::GUIElementStyle::minWidth
- - @b3d::GUIElementStyle::maxWidth
- - @b3d::GUIElementStyle::fixedWidth
- - @b3d::GUIElementStyle::height
- - @b3d::GUIElementStyle::minHeight
- - @b3d::GUIElementStyle::maxHeight
- - @b3d::GUIElementStyle::fixedHeight
-   
-When **GUIElementStyle::fixedWidth** or **GUIElementStyle::fixedHeight** is set to true, the system will use size values provided by **GUIElementStyle::width** and **GUIElementStyle::height** respectively. This is the same as calling **GUIElement::setSize()**.
+The @b3d::GUIStyleSheetCascade class manages multiple style sheets with importance levels. Style sheets with higher importance values override rules from those with lower importance. This allows for layered styling:
 
 ~~~~~~~~~~~~~{.cpp}
-// Style that uses a fixed 50x20 size (e.g. a fixed size button)
+// Create a cascade with multiple style sheets
+SPtr<GUIStyleSheetCascade> cascade = GUIStyleSheetCascade::Create();
 
-GUIElementStyle style;
-style.fixedHeight = true;
-style.fixedWidth = true;
-style.height = 50;
-style.width = 20;
+// Base styles (lowest importance)
+cascade->RegisterStyleSheet(baseStyleSheet, 0);
+
+// Theme-specific styles (higher importance)
+cascade->RegisterStyleSheet(darkThemeStyleSheet, 10);
+
+// Component-specific overrides (highest importance)
+cascade->RegisterStyleSheet(customComponentStyleSheet, 20);
+
+guiWidget->SetStyleSheetCascade(cascade);
 ~~~~~~~~~~~~~
-		
-When **GUIElementStyle::fixedWidth** or **GUIElementStyle::fixedHeight** are false, the system will instead use the min/max values provided by **GUIElementStyle::minWidth** / **GUIElementStyle::maxWidth** and **GUIElementStyle::minHeight** / **GUIElementStyle::maxHeight**, respectively. This is the same as calling **GUIElement::setFlexibleWidth()** or **GUIElement::setFlexibleHeight()**.
+
+# Querying styles at runtime
+
+You can query the computed styles for a GUI element using @b3d::GUIStyleSheet::BuildRules:
 
 ~~~~~~~~~~~~~{.cpp}
-// Style that uses a fixed 20px height and flexible width with minimum 30 pixels, and no limit on maximum size (e.g. a button that expands horizontally to fit its contents)
+HGUIStyleSheet styleSheet = GetBuiltinResources().GetDefaultGUIStyleSheet();
 
-GUIElementStyle style;
-style.fixedHeight = true;
-style.fixedWidth = false;
-style.height = 50;
-style.minWidth = 20;
-style.maxWidth = 0; // 0 = infinite
+// Build rules for a button element
+GUIStyleSheetRules rules = styleSheet->BuildRules("button");
+
+// Access specific properties
+Color backgroundColor = rules.BackgroundColor;
+float fontSize = rules.FontSize;
+HFont font = rules.Font;
 ~~~~~~~~~~~~~
-   
-## Offsets
-Finally, styles allow you to provide offsets that control how are GUI elements positioned relative to other elements, and how are GUI element images & text positioned relative to GUI element borders.
 
-### Padding
-@b3d::GUIElementStyle::padding allows you to specify minimum distance between this and the next element in a **GUILayout**. This field is only relevant for elements that are in automatically positioning layouts (i.e. **GUILayoutX** or **GUILayoutY**). 
+Query rules for specific element states:
 
 ~~~~~~~~~~~~~{.cpp}
-GUIElementStyle style;
-style.padding.right = 10; // 10 pixels padding between this and next element in a horizontal layout
+// Build rules for a button in hover state
+GUIStyleSheetRules hoverRules = styleSheet->BuildRules("button", "", "", "", "hover");
 
-// No padding in other directions
-style.padding.left = 0;
-style.padding.top = 0;
-style.padding.bottom = 0;
+// Build rules for a button with a specific class
+GUIStyleSheetRules classRules = styleSheet->BuildRules("button", "PrimaryButton");
 ~~~~~~~~~~~~~
-
-### Margins
-@b3d::GUIElementStyle::margins work similarly to padding, except they work inwards. Margins will offset visible GUI element contents (e.g. text in a button) by the specified amount. Normally the contents are centered but you can use margins to more precisely position them.
-
-Note that margins will modify the bounds for the GUI element used for input. This means that pointer interaction will not be possible with areas outside of the zone defined by margins. This can be useful if you want to make a certain part of a GUI element visible, yet not interactable.
-
-~~~~~~~~~~~~~{.cpp}
-GUIElementStyle style;
-style.margins.bottom = 5; // Ignore bottom 5 pixels of the visible image (e.g. it could be a baked-in shadow effect we don't want to consider a part of the actual GUI element)
-
-// No margins in other directions
-style.margins.left = 0;
-style.margins.right = 0;
-style.margins.top = 0;
-~~~~~~~~~~~~~
-
-### Content offset
-@b3d::GUIElementStyle::contentOffset has the same visual effect as margins, but it doesn't affect the input bounds.
-
-~~~~~~~~~~~~~{.cpp}
-GUIElementStyle style;
-style.margins.left = 5; // Move the displayed button text (for example) to the right a bit, so it looks better
-
-// No offset in other directions
-style.margins.right = 0;
-style.margins.top = 0;
-style.margins.bottom = 0;
-~~~~~~~~~~~~~
-
-### Borders
-Normally when you set a texture for a GUI element state, the texture will stretch to fill out the area of the GUI element. Unless the texture is a uniform color or a repeatable pattern, that stretching will often look bad.
-
-For this reason b3d::f allows you to specify borders though @b3d::GUIElementStyle::border. By setting borders you split the image into 9 sections.
-
-Center section will be resized uniformly as normal. Four corner sections will never be resized. Top and bottom sections will be resized only horizontally (fixed height), and left and right sections will be resized only vertically (fixed width). This allows you to use more complex images that still look good when resized.
-
-Note that this property applies equally to textures in all GUI style states.
-
-~~~~~~~~~~~~~{.cpp}
-GUIElementStyle style;
-style.border.left = 4;
-style.border.right = 4;
-style.border.top = 4;
-style.border.bottom = 4;
-~~~~~~~~~~~~~
-
-![Border sections](../../Images/Scale9Grid.png) 
