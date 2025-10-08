@@ -79,7 +79,14 @@ Change element position by calling @b3d::GUIElement::SetPosition. Position is in
 
 ~~~~~~~~~~~~~{.cpp}
 // Move text to coordinates (50, 50)
-label->SetPosition(50, 50);
+label->SetPosition(GUILogicalPoint(50, 50));
+~~~~~~~~~~~~~
+
+Query current position with @b3d::GUIElement::GetPosition:
+
+~~~~~~~~~~~~~{.cpp}
+GUILogicalPoint currentPosition = label->GetPosition();
+B3D_LOG(Info, GUI, "Label position: X={0}, Y={1}", currentPosition.X, currentPosition.Y);
 ~~~~~~~~~~~~~
 
 ## Changing size
@@ -95,6 +102,13 @@ label->SetWidth(100);
 label->SetHeight(30);
 ~~~~~~~~~~~~~
 
+Query current size with @b3d::GUIElement::GetWidth, @b3d::GUIElement::GetHeight, or @b3d::GUIElement::GetSize:
+
+~~~~~~~~~~~~~{.cpp}
+GUILogicalSize currentSize = label->GetSize();
+B3D_LOG(Info, GUI, "Label size: {0}x{1}", currentSize.Width, currentSize.Height);
+~~~~~~~~~~~~~
+
 For flexible sizing based on content and layout constraints, use @b3d::GUIElement::SetFlexibleWidth and @b3d::GUIElement::SetFlexibleHeight:
 
 ~~~~~~~~~~~~~{.cpp}
@@ -103,6 +117,13 @@ label->SetFlexibleWidth(50, 200);
 
 // Allow label to resize based on content (no maximum)
 label->SetFlexibleHeight(10, 0);
+~~~~~~~~~~~~~
+
+Reset to fixed size behavior:
+
+~~~~~~~~~~~~~{.cpp}
+label->SetWidth(100);  // Removes flexible width
+label->SetHeight(30);  // Removes flexible height
 ~~~~~~~~~~~~~
 
 ## Hiding and disabling
@@ -128,6 +149,51 @@ label->SetDisabled(true);  // Disable
 label->SetDisabled(false);  // Enable
 ~~~~~~~~~~~~~
 
+Query element state:
+
+~~~~~~~~~~~~~{.cpp}
+bool isHidden = label->IsHidden();
+bool isActive = label->IsActive();
+bool isDisabled = label->IsDisabled();
+~~~~~~~~~~~~~
+
+## Changing color and transparency
+
+Override element color using @b3d::GUIElement::SetTint. The tint color is multiplied with the element's original color:
+
+~~~~~~~~~~~~~{.cpp}
+// Tint label red
+label->SetTint(Color::Red);
+
+// Restore original color
+label->SetTint(Color::White);
+~~~~~~~~~~~~~
+
+Control transparency separately using the alpha channel:
+
+~~~~~~~~~~~~~{.cpp}
+// 50% transparent
+label->SetTint(Color(1.0f, 1.0f, 1.0f, 0.5f));
+~~~~~~~~~~~~~
+
+## Bounds and clipping
+
+Query element bounds in both logical and physical coordinates:
+
+~~~~~~~~~~~~~{.cpp}
+// Bounds in logical pixels
+GUILogicalArea logicalBounds = label->GetBounds();
+
+// Bounds in physical pixels (for hit testing)
+GUIPhysicalArea physicalBounds = label->GetPhysicalBounds();
+~~~~~~~~~~~~~
+
+Elements outside their parent's bounds are automatically clipped. Retrieve the clipping rectangle:
+
+~~~~~~~~~~~~~{.cpp}
+GUIPhysicalArea clipRect = label->GetClipRect();
+~~~~~~~~~~~~~
+
 # GUI element types
 
 The framework provides a comprehensive library of GUI element types. We'll cover the most important ones here.
@@ -146,6 +212,14 @@ Change the displayed text with @b3d::GUILabel::SetContent:
 ~~~~~~~~~~~~~{.cpp}
 label->SetContent(HString("New text!"));
 ~~~~~~~~~~~~~
+
+Retrieve current text:
+
+~~~~~~~~~~~~~{.cpp}
+HString currentText = label->GetContent();
+~~~~~~~~~~~~~
+
+Labels automatically size to fit their content unless you explicitly set a fixed size. They support multi-line text that wraps according to the style sheet's word-wrap property.
 
 ![Label](../../Images/guiLabel.png)
 
@@ -167,6 +241,15 @@ guiTexture->SetSize(GUILogicalSize(150, 150));
 
 mainPanel->AddElement(guiTexture);
 ~~~~~~~~~~~~~
+
+Change the displayed sprite:
+
+~~~~~~~~~~~~~{.cpp}
+HSpriteTexture newSprite = SpriteTexture::Create(newTexture);
+guiTexture->SetSprite(newSprite);
+~~~~~~~~~~~~~
+
+Texture elements work with all sprite types including **SpriteTexture**, **SpriteVectorPath**, and **SpriteGlyph**. They preserve aspect ratio by default but can be stretched to fill their bounds.
 
 ![Texture](../../Images/guiTexture.png)
 
@@ -195,6 +278,22 @@ Available button events include:
 - @b3d::GUIButton::OnHover - Triggered when mouse hovers over button
 - @b3d::GUIButton::OnOut - Triggered when mouse leaves button area
 - @b3d::GUIButton::OnDoubleClick - Triggered on double-click
+
+Change button content:
+
+~~~~~~~~~~~~~{.cpp}
+button->SetContent(HString("New label"));
+~~~~~~~~~~~~~
+
+Create image buttons by providing a **SpriteImage** instead of text:
+
+~~~~~~~~~~~~~{.cpp}
+HSpriteTexture icon = SpriteTexture::Create(iconTexture);
+GUIButton* imageButton = GUIButton::Create(icon);
+mainPanel->AddElement(imageButton);
+~~~~~~~~~~~~~
+
+Buttons can also combine both text and images. Style sheets control the visual appearance including hover, active, and disabled states.
 
 ![GUI buttons](../../Images/guiButton.png)
 
@@ -233,6 +332,19 @@ auto elementToggled = [](bool toggled)
 };
 
 toggle->OnToggled.Connect(elementToggled);
+~~~~~~~~~~~~~
+
+Query and set toggle state:
+
+~~~~~~~~~~~~~{.cpp}
+bool isToggled = toggle->IsToggled();
+toggle->SetToggled(true);  // Programmatically toggle on
+~~~~~~~~~~~~~
+
+For radio button groups, only one toggle can be active at a time. When a toggle in the group is activated, all others are automatically deactivated. Query the active toggle:
+
+~~~~~~~~~~~~~{.cpp}
+GUIToggle* activeToggle = group->GetActiveToggle();
 ~~~~~~~~~~~~~
 
 ![GUI toggle](../../Images/guiToggle.png)
@@ -283,6 +395,29 @@ auto integerFilter = [](const String& text)
 
 singleLineInput->SetFilter(integerFilter);
 ~~~~~~~~~~~~~
+
+Control input focus:
+
+~~~~~~~~~~~~~{.cpp}
+bool hasFocus = singleLineInput->HasFocus();
+singleLineInput->SetFocus(true);  // Give keyboard focus
+~~~~~~~~~~~~~
+
+Additional input box methods:
+
+~~~~~~~~~~~~~{.cpp}
+// Clear all text
+singleLineInput->SetText("");
+
+// Set as password field (displays asterisks)
+GUIInputBox* passwordInput = GUIInputBox::Create(false);
+// Note: Password mode is typically controlled by style sheet
+
+// Get character limit
+u32 maxLength = singleLineInput->GetMaxLength();
+~~~~~~~~~~~~~
+
+Input boxes support text selection, copy/paste, and undo/redo operations automatically. Multi-line input boxes support vertical scrolling when content exceeds their bounds.
 
 ![Input boxes](../../Images/guiInputBox.png)
 
@@ -341,6 +476,35 @@ auto selectionToggled = [=](u32 index, bool enabled)
 listBox->OnSelectionToggled.Connect(selectionToggled);
 ~~~~~~~~~~~~~
 
+Modify list contents:
+
+~~~~~~~~~~~~~{.cpp}
+// Add new element
+listBox->AddElement(HString("Grape"));
+
+// Remove element by index
+listBox->RemoveElement(0);
+
+// Clear all elements
+listBox->ClearElements();
+
+// Set all elements at once
+Vector<HString> newElements = { HString("Item 1"), HString("Item 2") };
+listBox->SetElements(newElements);
+~~~~~~~~~~~~~
+
+Query list state:
+
+~~~~~~~~~~~~~{.cpp}
+// Get total number of elements
+u32 count = listBox->GetElementCount();
+
+// Check if specific index is selected
+bool isSelected = listBox->IsElementSelected(2);
+~~~~~~~~~~~~~
+
+List boxes automatically provide scrollbars when content exceeds visible area. Elements can be styled differently based on selection state through style sheets.
+
 ![List boxes](../../Images/guiListBox.png)
 
 ## Slider
@@ -392,6 +556,25 @@ Set step increment with @b3d::GUISlider::SetStep:
 sliderHorizontal->SetStep(10.0f / 360.0f);
 ~~~~~~~~~~~~~
 
+Set value directly:
+
+~~~~~~~~~~~~~{.cpp}
+// Set to 50% position
+sliderHorizontal->SetPercent(0.5f);
+
+// Set to specific value in custom range
+sliderHorizontal->SetValue(180.0f);  // Middle of 0-360 range
+~~~~~~~~~~~~~
+
+Handle range with @b3d::GUISlider::GetRangeMaximum and @b3d::GUISlider::GetRangeMinimum:
+
+~~~~~~~~~~~~~{.cpp}
+float minValue = sliderHorizontal->GetRangeMinimum();
+float maxValue = sliderHorizontal->GetRangeMaximum();
+~~~~~~~~~~~~~
+
+Sliders provide visual feedback during dragging and support both mouse and keyboard input. Style sheets control the appearance of the slider track, handle, and background.
+
 ![Vertical and a horizontal slider](../../Images/guiSlider.png)
 
 ## Scroll area
@@ -428,4 +611,85 @@ for (u32 i = 0; i < 20; i++)
 }
 ~~~~~~~~~~~~~
 
+Control scroll position programmatically:
+
+~~~~~~~~~~~~~{.cpp}
+// Scroll to specific position (0.0 = top, 1.0 = bottom)
+scrollArea->ScrollToVertical(0.5f);
+scrollArea->ScrollToHorizontal(0.0f);
+
+// Get current scroll position
+float verticalPos = scrollArea->GetVerticalScroll();
+float horizontalPos = scrollArea->GetHorizontalScroll();
+~~~~~~~~~~~~~
+
+Query scrollbar state:
+
+~~~~~~~~~~~~~{.cpp}
+// Check if scrollbars are visible
+bool hasVerticalScrollbar = scrollArea->GetVerticalScrollbar() != nullptr;
+bool hasHorizontalScrollbar = scrollArea->GetHorizontalScrollbar() != nullptr;
+~~~~~~~~~~~~~
+
+The scroll area's layout is a vertical layout by default, automatically stacking child elements. Scroll areas support mouse wheel scrolling and click-drag scrolling. The scrollbar appearance is controlled by style sheets.
+
+Available @b3d::ScrollBarType values:
+- **ShowIfDoesntFit** - Show scrollbar only when content exceeds bounds (default)
+- **AlwaysShow** - Always display scrollbar
+- **NeverShow** - Never show scrollbar, but allow scrolling programmatically
+- **AlwaysShowIfDoesntFit** - Reserve space for scrollbar always, but only show handle when needed
+
 ![Scroll area](../../Images/guiScrollArea.png)
+
+# Advanced element features
+
+## Tool tips
+
+Display contextual information when hovering over elements:
+
+~~~~~~~~~~~~~{.cpp}
+button->SetTooltip(HString("Click this button to save your work"));
+~~~~~~~~~~~~~
+
+## Context menus
+
+Elements can show context menus on right-click:
+
+~~~~~~~~~~~~~{.cpp}
+SPtr<GUIContextMenu> contextMenu = GUIContextMenu::Create();
+contextMenu->AddMenuItem(HString("Copy"), []() { B3D_LOG(Info, GUI, "Copy selected"); });
+contextMenu->AddMenuItem(HString("Paste"), []() { B3D_LOG(Info, GUI, "Paste selected"); });
+contextMenu->AddSeparator();
+contextMenu->AddMenuItem(HString("Delete"), []() { B3D_LOG(Info, GUI, "Delete selected"); });
+
+button->SetContextMenu(contextMenu);
+~~~~~~~~~~~~~
+
+## Focus order
+
+Control keyboard navigation order:
+
+~~~~~~~~~~~~~{.cpp}
+// Set tab index for keyboard navigation
+button->SetTabIndex(0);
+inputBox->SetTabIndex(1);
+listBox->SetTabIndex(2);
+
+// Allow or prevent receiving focus
+button->SetAcceptsFocus(true);
+~~~~~~~~~~~~~
+
+## Parent and hierarchy
+
+Query element relationships:
+
+~~~~~~~~~~~~~{.cpp}
+// Get parent layout
+GUILayout* parent = button->GetParent();
+
+// Get root widget
+GUIWidget* widget = button->GetParentWidget();
+
+// Check if element is descendant of another
+bool isChild = button->IsDescendantOf(mainPanel);
+~~~~~~~~~~~~~
