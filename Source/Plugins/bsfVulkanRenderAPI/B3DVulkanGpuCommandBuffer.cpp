@@ -413,13 +413,13 @@ void VulkanGpuCommandBuffer::BeginRenderPass(const SPtr<RenderTarget>& renderTar
 			u32 imageInfoIdx = mImages[fbAttachment.Image];
 			ImageInfo& imageInfo = mImageInfos[imageInfoIdx];
 
-			ImageSubresourceInfo* subresourceInfos = &mSubresourceInfoStorage[imageInfo.SubresourceInfoIdx];
-			for(u32 j = 0; j < imageInfo.NumSubresourceInfos; j++)
+			ImageSubresourceInfo* subresourceInfos = &mSubresourceInfoStorage[imageInfo.FirstSubresourceInfoIndex];
+			for(u32 j = 0; j < imageInfo.SubresourceInfoCount; j++)
 			{
 				ImageSubresourceInfo& entry = subresourceInfos[j];
 				entry.UseFlags.Unset(ImageUseFlagBits::Framebuffer);
-				entry.FbUse.Access = GpuAccessFlag::None;
-				entry.FbUse.Stages = 0;
+				entry.FramebufferUse.Access = GpuAccessFlag::None;
+				entry.FramebufferUse.Stages = 0;
 			}
 		}
 
@@ -429,13 +429,13 @@ void VulkanGpuCommandBuffer::BeginRenderPass(const SPtr<RenderTarget>& renderTar
 			u32 imageInfoIdx = mImages[fbAttachment.Image];
 			ImageInfo& imageInfo = mImageInfos[imageInfoIdx];
 
-			ImageSubresourceInfo* subresourceInfos = &mSubresourceInfoStorage[imageInfo.SubresourceInfoIdx];
-			for(u32 j = 0; j < imageInfo.NumSubresourceInfos; j++)
+			ImageSubresourceInfo* subresourceInfos = &mSubresourceInfoStorage[imageInfo.FirstSubresourceInfoIndex];
+			for(u32 j = 0; j < imageInfo.SubresourceInfoCount; j++)
 			{
 				ImageSubresourceInfo& entry = subresourceInfos[j];
 				entry.UseFlags.Unset(ImageUseFlagBits::Framebuffer);
-				entry.FbUse.Access = GpuAccessFlag::None;
-				entry.FbUse.Stages = 0;
+				entry.FramebufferUse.Access = GpuAccessFlag::None;
+				entry.FramebufferUse.Stages = 0;
 			}
 		}
 	}
@@ -1236,12 +1236,12 @@ GpuCommandBufferSubmitInformation VulkanGpuCommandBuffer::PrepareForSubmitOnSubm
 		const GpuQueueUsage oldQueueUsage = resource->GetOwnedQueueType();
 		bool queueMismatch = resource->IsExclusive() && oldQueueUsage != GQT_UNKNOWN && oldQueueUsage != queueUsage;
 
-		ImageSubresourceInfo* subresourceInfos = &mSubresourceInfoStorage[imageInfo.SubresourceInfoIdx];
+		ImageSubresourceInfo* subresourceInfos = &mSubresourceInfoStorage[imageInfo.FirstSubresourceInfoIndex];
 		if(queueMismatch)
 		{
 			Vector<VkImageMemoryBarrier>& barriers = mTransitionInfoTemp[(i32)oldQueueUsage].ImageBarriers;
 
-			for(u32 i = 0; i < imageInfo.NumSubresourceInfos; i++)
+			for(u32 i = 0; i < imageInfo.SubresourceInfoCount; i++)
 			{
 				ImageSubresourceInfo& subresourceInfo = subresourceInfos[i];
 
@@ -1260,7 +1260,7 @@ GpuCommandBufferSubmitInformation VulkanGpuCommandBuffer::PrepareForSubmitOnSubm
 			}
 		}
 
-		for(u32 i = 0; i < imageInfo.NumSubresourceInfos; i++)
+		for(u32 i = 0; i < imageInfo.SubresourceInfoCount; i++)
 		{
 			ImageSubresourceInfo& subresourceInfo = subresourceInfos[i];
 
@@ -1899,10 +1899,10 @@ void VulkanGpuCommandBuffer::BindGpuParams()
 
 void VulkanGpuCommandBuffer::ExecuteLayoutTransitions()
 {
-	auto createLayoutTransitionBarrier = [&](VulkanImage* image, ImageInfo& imageInfo)
+	auto fnCreateLayoutTransitionBarrier = [&](VulkanImage* image, ImageInfo& imageInfo)
 	{
-		ImageSubresourceInfo* subresourceInfos = &mSubresourceInfoStorage[imageInfo.SubresourceInfoIdx];
-		for(u32 i = 0; i < imageInfo.NumSubresourceInfos; i++)
+		ImageSubresourceInfo* subresourceInfos = &mSubresourceInfoStorage[imageInfo.FirstSubresourceInfoIndex];
+		for(u32 i = 0; i < imageInfo.SubresourceInfoCount; i++)
 		{
 			ImageSubresourceInfo& subresourceInfo = subresourceInfos[i];
 
@@ -1911,7 +1911,7 @@ void VulkanGpuCommandBuffer::ExecuteLayoutTransitions()
 				continue;
 
 			const bool isReadOnly =
-				!subresourceInfo.FbUse.Access.IsSet(GpuAccessFlag::Write) &&
+				!subresourceInfo.FramebufferUse.Access.IsSet(GpuAccessFlag::Write) &&
 				!subresourceInfo.ShaderUse.Access.IsSet(GpuAccessFlag::Write);
 
 			mLayoutTransitionBarriersTemp.push_back(VkImageMemoryBarrier());
@@ -1939,7 +1939,7 @@ void VulkanGpuCommandBuffer::ExecuteLayoutTransitions()
 		u32 imageInfoIdx = entry.second;
 		ImageInfo& imageInfo = mImageInfos[imageInfoIdx];
 
-		createLayoutTransitionBarrier(entry.first, imageInfo);
+		fnCreateLayoutTransitionBarrier(entry.first, imageInfo);
 	}
 
 	VkPipelineStageFlags srcStage = 0;
@@ -2238,8 +2238,8 @@ VkImageLayout VulkanGpuCommandBuffer::GetCurrentLayout(VulkanImage* image, const
 	if(mFramebuffer)
 		renderPass = mFramebuffer->GetRenderPass();
 
-	ImageSubresourceInfo* subresourceInfos = &mSubresourceInfoStorage[imageInfo.SubresourceInfoIdx];
-	for(u32 i = 0; i < imageInfo.NumSubresourceInfos; i++)
+	ImageSubresourceInfo* subresourceInfos = &mSubresourceInfoStorage[imageInfo.FirstSubresourceInfoIndex];
+	for(u32 i = 0; i < imageInfo.SubresourceInfoCount; i++)
 	{
 		ImageSubresourceInfo& entry = subresourceInfos[i];
 		if(face >= entry.Range.baseArrayLayer && face < (entry.Range.baseArrayLayer + entry.Range.layerCount) &&
@@ -2341,6 +2341,41 @@ VkPipelineStageFlags VulkanGpuCommandBuffer::GetPipelineStageFlags(VkAccessFlags
 	return flags;
 }
 
+void VulkanGpuCommandBuffer::TransitionTextureLayout(const SPtr<Texture>& texture, GpuTextureLayout layout, const GpuTextureSubresourceRange& subresourceRange)
+{
+#if 0
+	if(!B3D_ENSURE(texture != nullptr))
+		return;
+
+	VulkanTexture* const vulkanTexture = static_cast<VulkanTexture*>(texture.get());
+	VulkanImage* const vulkanImage = vulkanTexture->GetVulkanResource();
+	VkImageSubresourceRange vulkanSubresourceRange = VulkanUtility::GetSubresourceRange(subresourceRange);
+	VkPipelineStageFlags stages; // TODO
+
+	const TextureProperties& textureProperties = texture->GetProperties();
+	const bool isDynamic = (textureProperties.Usage & TU_DYNAMIC) != 0;
+
+	switch(layout)
+	{
+	case GpuTextureLayout::ShaderRead:
+		RegisterImageShader(vulkanImage, vulkanSubresourceRange, isDynamic ? VK_IMAGE_LAYOUT_GENERAL : VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, GpuAccessFlag::Read, stages);
+		break;
+	case GpuTextureLayout::UnorderedAccess:
+		RegisterImageShader(vulkanImage, vulkanSubresourceRange, VK_IMAGE_LAYOUT_GENERAL, GpuAccessFlag::Read | GpuAccessFlag::Write, stages);
+		break;
+	case GpuTextureLayout::TransferSource:
+		RegisterImageTransfer(vulkanImage, vulkanSubresourceRange, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, GpuAccessFlag::Read); // TODO - Transfer should defer executing pipeline barrier
+		break;
+	case GpuTextureLayout::TransferDestination:
+		RegisterImageTransfer(vulkanImage, vulkanSubresourceRange, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, GpuAccessFlag::Write); // TODO - Transfer should defer executing pipeline barrier
+		break;
+	}
+
+	// TODO - Transitions to read-only depth stencil and general layout (due to use of color attachment as read-only shader input) should be handled in a way so they are transitioned by the render pass.
+	// - It might be okay to disallow
+#endif
+}
+
 void VulkanGpuCommandBuffer::RegisterResource(VulkanResource* res, GpuAccessFlags flags)
 {
 	auto insertResult = mResources.insert(std::make_pair(res, ResourceUseHandle()));
@@ -2407,8 +2442,8 @@ void VulkanGpuCommandBuffer::RegisterResource(VulkanImage* image, const VkImageS
 			subresourceInfo.NewWriteHazardUse = subresourceInfo.WriteHazardUse;
 			break;
 		case ImageUseFlagBits::Framebuffer:
-			subresourceInfo.FbUse.Access = access;
-			subresourceInfo.FbUse.Stages = stages;
+			subresourceInfo.FramebufferUse.Access = access;
+			subresourceInfo.FramebufferUse.Stages = stages;
 			break;
 		case ImageUseFlagBits::Transfer:
 			subresourceInfo.TransferUse.Access = access;
@@ -2429,8 +2464,8 @@ void VulkanGpuCommandBuffer::RegisterResource(VulkanImage* image, const VkImageS
 		mImageInfos.push_back(ImageInfo());
 
 		ImageInfo& imageInfo = mImageInfos[imageInfoIdx];
-		imageInfo.SubresourceInfoIdx = (u32)mSubresourceInfoStorage.size();
-		imageInfo.NumSubresourceInfos = 1;
+		imageInfo.FirstSubresourceInfoIndex = (u32)mSubresourceInfoStorage.size();
+		imageInfo.SubresourceInfoCount = 1;
 
 		imageInfo.UseHandle.Used = false;
 		imageInfo.UseHandle.Flags = access;
@@ -2450,10 +2485,10 @@ void VulkanGpuCommandBuffer::RegisterResource(VulkanImage* image, const VkImageS
 		// See if there is an overlap between existing ranges and the new range. And if so break them up accordingly.
 		//// First test for the simplest and most common case (same range or no overlap) to avoid more complex
 		//// computations.
-		ImageSubresourceInfo* subresources = &mSubresourceInfoStorage[imageInfo.SubresourceInfoIdx];
+		ImageSubresourceInfo* subresources = &mSubresourceInfoStorage[imageInfo.FirstSubresourceInfoIndex];
 
 		bool foundRange = false;
-		for(u32 i = 0; i < imageInfo.NumSubresourceInfos; i++)
+		for(u32 i = 0; i < imageInfo.SubresourceInfoCount; i++)
 		{
 			if(VulkanUtility::RangeOverlaps(subresources[i].Range, range))
 			{
@@ -2478,7 +2513,7 @@ void VulkanGpuCommandBuffer::RegisterResource(VulkanImage* image, const VkImageS
 					}
 
 					if(use == ImageUseFlagBits::Shader)
-						mShaderBoundSubresourceInfos.insert(imageInfo.SubresourceInfoIdx + i);
+						mShaderBoundSubresourceInfos.insert(imageInfo.FirstSubresourceInfoIndex + i);
 
 					foundRange = true;
 					break;
@@ -2500,9 +2535,9 @@ void VulkanGpuCommandBuffer::RegisterResource(VulkanImage* image, const VkImageS
 				u32 newSubresourceIdx = (u32)mSubresourceInfoStorage.size();
 
 				FrameVector<u32> cutOverlappingRanges;
-				for(u32 i = 0; i < imageInfo.NumSubresourceInfos; i++)
+				for(u32 i = 0; i < imageInfo.SubresourceInfoCount; i++)
 				{
-					u32 subresourceIdx = imageInfo.SubresourceInfoIdx + i;
+					u32 subresourceIdx = imageInfo.FirstSubresourceInfoIndex + i;
 					ImageSubresourceInfo& subresource = mSubresourceInfoStorage[subresourceIdx];
 
 					if(!VulkanUtility::RangeOverlaps(subresource.Range, range))
@@ -2593,8 +2628,8 @@ void VulkanGpuCommandBuffer::RegisterResource(VulkanImage* image, const VkImageS
 					}
 				}
 
-				imageInfo.SubresourceInfoIdx = newSubresourceIdx;
-				imageInfo.NumSubresourceInfos = (u32)mSubresourceInfoStorage.size() - newSubresourceIdx;
+				imageInfo.FirstSubresourceInfoIndex = newSubresourceIdx;
+				imageInfo.SubresourceInfoCount = (u32)mSubresourceInfoStorage.size() - newSubresourceIdx;
 			}
 			B3DClearAllocatorFrame();
 		}
@@ -2968,8 +3003,8 @@ void VulkanGpuCommandBuffer::UpdateFramebufferSubresource(VulkanImage* image, u3
 	// No need to check for write-after-read barrier as it only needs an execution dependency and that is already
 	// handled by the render pass
 
-	subresourceInfo.FbUse.Access |= access;
-	subresourceInfo.FbUse.Stages |= stages;
+	subresourceInfo.FramebufferUse.Access |= access;
+	subresourceInfo.FramebufferUse.Stages |= stages;
 
 	subresourceInfo.UseFlags |= ImageUseFlagBits::Framebuffer;
 
@@ -3026,8 +3061,8 @@ VulkanGpuCommandBuffer::ImageSubresourceInfo& VulkanGpuCommandBuffer::FindSubres
 	u32 imageInfoIdx = mImages[image];
 	ImageInfo& imageInfo = mImageInfos[imageInfoIdx];
 
-	ImageSubresourceInfo* subresourceInfos = &mSubresourceInfoStorage[imageInfo.SubresourceInfoIdx];
-	for(u32 i = 0; i < imageInfo.NumSubresourceInfos; i++)
+	ImageSubresourceInfo* subresourceInfos = &mSubresourceInfoStorage[imageInfo.FirstSubresourceInfoIndex];
+	for(u32 i = 0; i < imageInfo.SubresourceInfoCount; i++)
 	{
 		ImageSubresourceInfo& entry = subresourceInfos[i];
 		if(face >= entry.Range.baseArrayLayer && face < (entry.Range.baseArrayLayer + entry.Range.layerCount) &&

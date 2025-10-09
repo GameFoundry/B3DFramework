@@ -6,6 +6,7 @@
 #include "B3DGpuDevice.h"
 #include "B3DGpuQueries.h"
 #include "Image/B3DColor.h"
+#include "Image/B3DTexture.h"
 #include "Math/B3DArea2.h"
 #include "Threading/B3DSingleConsumerQueue.h"
 
@@ -40,6 +41,28 @@ namespace b3d
 			/** Command buffer has been queued for execution and has finished executing. */
 			Done
 		};
+
+		/** Represents different GPU stages, primarily used for purposes of memory and execution barriers. */
+		enum class GpuStageBit
+		{
+			Begin = 1 << 0, /**< Pseudo stage representing the time before any stage runs. Useful for expressing 'happens before anything else'. */
+			DrawIndirect = 1 << 1, /**< Consumes indirect argument buffers. Synchronize this stage if argument buffers are modified. */
+			VertexInput = 1 << 2, /**< Consumes vertex & index data. Synchronize this stage if vertex or index buffers are modified. */
+			VertexShader = 1 << 3, /**< Execution of a vertex shader. */
+			FragmentShader = 1 << 4, /**< Execution of a fragment shader. */
+			EarlyFragmentTests = 1 << 5, /**< Depth/stencil tests that run before the fragment shader. */
+			LastFragmentTests = 1 << 6, /**< Depth/stencil tests that run after the fragment shader. */
+			ColorAttachmentOutput = 1 << 7, /**< Writes outputs to color attachments. */
+			ComputeShader = 1 << 8, /**< Execution of a compute a shader. */
+			Transfer = 1 << 9, /**< Execution of copy, blit, resolve and clear commands. */
+			End = 1 << 10, /**< Pseudo stage representing the time before any stage runs. Useful for expressing 'happens after everything else'. */
+			Host = 1 << 11, /**< CPU access to memory. */
+			AllGraphics = 1 << 12, /**< Shortcut for all graphics stages. */
+			AllCommands = 1 << 13, /**< Shortcut for all commands. */
+		};
+
+		using GpuStageBits = Flags<GpuStageBit>;
+		B3D_FLAGS_OPERATORS(GpuStageBit);
 
 		/** Object describing a GpuCommandBufferPool. */
 		struct GpuCommandBufferPoolInformation
@@ -263,6 +286,19 @@ namespace b3d
 
 			/** Returns true if the command buffer is currently recording a render pass. */
 			virtual bool IsInRenderPass() const = 0;
+
+			/**
+			 * Transitions a texture from one layout to another. Transitions determine in what way a texture may be used on the command buffer.
+			 * 
+			 *  By default all textures will be assigned a ShaderRead layout, you generally don't need to transition to this layout unless if you explicitly transitioned out of it. You generally need to perform
+			 *  a transition if a texture is being accessed as a storage texture (unordered access), or if it's used as a transfer source or destination. You might also need to transition back to shader readable
+			 *  layout after those operations are complete.
+			 *
+			 * @param	texture				Texture whose layout to transition.
+			 * @param	layout				Layout to transition to.
+			 * @param	subresourceRange	Subresources (mips, array levels) of the texture to transition. Different subresources can be in different layouts.
+			 */
+			virtual void TransitionTextureLayout(const SPtr<Texture>& texture, GpuTextureLayout layout, const GpuTextureSubresourceRange& subresourceRange = GpuTextureSubresourceRange::AllSubresources()) = 0;
 
 			/**
 			 * Sets the active viewport that will be used for all following render operations.

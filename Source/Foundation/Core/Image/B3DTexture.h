@@ -204,6 +204,52 @@ namespace b3d
 		u32 MapToSubresourceIdx(u32 face, u32 mip) const;
 	};
 
+	/** Represents a part of a texture. */
+	enum class GpuTextureAspectFlag
+	{
+		Color	= 1 << 0,
+		Depth	= 1 << 1,
+		Stencil = 1 << 2,
+	};
+
+	using GpuTextureAspectFlags = Flags<GpuTextureAspectFlag>;
+	B3D_FLAGS_OPERATORS(GpuTextureAspectFlag)
+
+	/** Represents a range of subresources in a texture. */
+	struct GpuTextureSubresourceRange
+	{
+		GpuTextureSubresourceRange(u32 baseMipLevel = 0, u32 mipLevelCount = 1, u32 baseArrayLayer = 0, u32 arrayLayerCount = 1, GpuTextureAspectFlags aspectMask = GpuTextureAspectFlag::Color)
+			:BaseMipLevel(baseMipLevel), MipLevelCount(mipLevelCount), BaseArrayLayer(baseArrayLayer), ArrayLayerCount(arrayLayerCount), AspectMask(aspectMask)
+		{ }
+
+		/** Creates a subresource range covering only the highest (first) mip level. */
+		static GpuTextureSubresourceRange TopMip(u32 baseArrayLayer = 0, u32 arrayLayerCount = 1, GpuTextureAspectFlags aspectMask = GpuTextureAspectFlag::Color)
+		{
+			return GpuTextureSubresourceRange(0, 1, baseArrayLayer, arrayLayerCount, aspectMask);
+		}
+
+		/** Creates a subresource range covering all subresources. */
+		static GpuTextureSubresourceRange AllSubresources(GpuTextureAspectFlags aspectMask = GpuTextureAspectFlag::Color)
+		{
+			return GpuTextureSubresourceRange(0, ~0u, 0, ~0u, aspectMask);
+		}
+
+		u32 BaseMipLevel = 0;
+		u32 MipLevelCount = 1;
+		u32 BaseArrayLayer = 0;
+		u32 ArrayLayerCount = 1;
+		GpuTextureAspectFlags AspectMask = GpuTextureAspectFlag::Color;
+	};
+
+	/** Represents layout that a texture can be in. Layout determines what kind of operations can be performed on the texture. */
+	enum class GpuTextureLayout
+	{
+		ShaderRead, /**< Most common layout for textures. Texture can be sampled by the shader. */
+		UnorderedAccess, /**< Supports unordered access reads or writes. */
+		TransferSource, /**< Texture will be used as a source of a transfer operation. */
+		TransferDestination, /**< Texture will be used as a destination of a transfer operation. */
+	};
+
 	/**
 	 * Abstract class representing a texture. Specific render systems have their own Texture implementations. Internally
 	 * represented as one or more surfaces with pixels in a certain number of dimensions, backed by a hardware buffer.

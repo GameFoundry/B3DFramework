@@ -4,7 +4,9 @@
 
 #include "B3DVulkanPrerequisites.h"
 #include "Image/B3DPixelUtility.h"
+#include "Managers/B3DVulkanTextureManager.h"
 #include "Math/B3DArea2.h"
+#include "RenderAPI/B3DGpuCommandBuffer.h"
 #include "RenderAPI/B3DGpuQueries.h"
 #include "RenderAPI/B3DVertexDescription.h"
 
@@ -83,17 +85,23 @@ namespace b3d
 			/** Converts engine flags representing GPU query type into Vulkan enum. */
 			static VkQueryType GetQueryType(GpuQueryType queryType);
 
-			/** Converts engine flags representing GPU pipeline statistic query bit into a Vulkan bit. */
-			static VkQueryPipelineStatisticFlagBits GetPipelineStatisticQueryBit(GpuPipelineStatisticsQueryBit bit);
-
 			/** Converts engine flags representing multiple GPU pipeline statistic query bits into a Vulkan bitmask. */
 			static VkQueryPipelineStatisticFlags GetPipelineStatisticQueryBits(GpuPipelineStatisticsQueryBits bits);
+
+			/** Converts engine GPU pipeline stages to VkPipelineStageFlags. */
+			static VkPipelineStageFlags GetPipelineStageFlags(GpuStageBits stages);
+
+			/** Converts engine texture aspect mask into VkImageAspectFlags. */
+			static VkImageAspectFlags GetAspectMask(GpuTextureAspectFlags aspectMask);
 
 			/** Converts the engine rectangle into a VkRect2D. */
 			static VkRect2D ToVulkanRect(const Area2I& input);
 
 			/** Converts the engine rectangle into a VkViewport. */
 			static VkViewport ToVulkanViewport(const Area2I& input, float minDepth, float maxDepth);
+
+			/** Converts engine texture subresource range into VkImageSubresourceRange. */
+			static VkImageSubresourceRange ToVulkanImageSubresourceRange(const GpuTextureSubresourceRange& subresourceRange);
 
 			/**
 			 * Subdivides an image subresource range by cutting it with another range. If the ranges don't overlap, or the

@@ -165,6 +165,7 @@ namespace b3d
 			void EndLabel() override;
 			void InsertLabel(const StringView& name) override;
 			void End() override;
+			void TransitionTextureLayout(const SPtr<Texture>& texture, GpuTextureLayout layout, const GpuTextureSubresourceRange& subresourceRange) override;
 
 			/** Returns an unique identifier of this command buffer. */
 			u32 GetId() const { return mId; }
@@ -469,8 +470,8 @@ namespace b3d
 			{
 				ResourceUseHandle UseHandle;
 
-				u32 SubresourceInfoIdx;
-				u32 NumSubresourceInfos;
+				u32 FirstSubresourceInfoIndex;
+				u32 SubresourceInfoCount;
 			};
 
 			/** Information an acquires swap chain image. */
@@ -492,7 +493,7 @@ namespace b3d
 				ResourcePipelineUse ShaderUse;
 
 				/** Use flags when subresource is bound as a framebuffer attachment. Reset after resource is unbound. */
-				ResourcePipelineUse FbUse;
+				ResourcePipelineUse FramebufferUse;
 
 				/** Use flags when subresource is bound for a transfer operation. Currently unused. */
 				ResourcePipelineUse TransferUse;
@@ -522,26 +523,26 @@ namespace b3d
 
 				// Only relevant for layout transitions
 				/**
-				 * Layout transition performed during the submit() call. Doesn't require ending the render pass since it
-				 * will be delayed until submit().
+				 * Layout transition performed during the command buffer submit. This will be the initial layout of the
+				 * image when the command buffer starts executing.
 				 */
 				VkImageLayout InitialLayout;
 
 				/**
 				 * Layout the image is currently in. This will be the initial layout if no other transition was performed, or
-				 * layout resulting from the last performed transition.
+				 * layout resulting from the last performed transition. 
 				 */
 				VkImageLayout CurrentLayout;
 
 				/**
 				 * Stores the layout that the image needs to be before being used in the current render pass or dispatch call.
-				 * Equal to currentLayout if no transition is needed. Updated after every render pass or dispatch call.
+				 * Equal to CurrentLayout if no transition is needed. Updated after every render pass or dispatch call.
 				 */
 				VkImageLayout RequiredLayout;
 
 				/**
 				 * Layout the image will have after the render pass executes, taking account automatic transitions render pass
-				 * does on its attachments. Only relevant for FB attachments. Ignored if render pass doesn't execute.
+				 * does on its attachments. Only relevant for framebuffer attachments. Ignored if render pass doesn't execute.
 				 */
 				VkImageLayout RenderPassLayout;
 			};
