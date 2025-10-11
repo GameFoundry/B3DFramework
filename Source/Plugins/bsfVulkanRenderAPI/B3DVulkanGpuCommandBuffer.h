@@ -7,10 +7,14 @@
 #include "B3DVulkanResource.h"
 #include "B3DVulkanGpuPipelineState.h"
 #include "B3DVulkanGpuDevice.h"
+#include "Allocators/B3DPoolAlloc.h"
 #include "Math/B3DArea2.h"
 #include "Math/B3DArea2.h"
 #include "RenderAPI/B3DGpuDeviceCapabilities.h"
 #include "Utility/B3DDenseMap.h"
+
+#define B3D_HAZARD_TRACKING 0// B3D_BUILD_TYPE == B3D_BUILD_TYPE_DEVELOPMENT
+#define B3D_AUTOMATIC_BARRIERS 1
 
 namespace b3d
 {
@@ -25,7 +29,7 @@ namespace b3d
 		 */
 
 // Maximum number of command buffers that another command buffer can be dependant on (via a sync mask)
-#define BS_MAX_VULKAN_CB_DEPENDENCIES 2
+#define B3D_MAX_COMMAND_BUFFER_DEPENDENCIES 2
 
 		/** Wrapper around a Vulkan semaphore object that manages its usage and lifetime. */
 		class VulkanSemaphore : public VulkanResource
@@ -153,7 +157,7 @@ namespace b3d
 			void InsertLabel(const StringView& name) override;
 			void End() override;
 			void TransitionTextureLayout(const SPtr<Texture>& texture, GpuTextureLayout layout, const GpuTextureSubresourceRange& subresourceRange) override;
-			void IssueBarrier(GpuBufferUseFlags sourceUsage, GpuAccessFlags sourceAccess, GpuBufferUseFlags destinationUsage, GpuAccessFlags destinationAccess) override;
+			void IssueBarrier(GpuResourceUseFlags sourceUsage, GpuAccessFlags sourceAccess, GpuResourceUseFlags destinationUsage, GpuAccessFlags destinationAccess) override;
 
 			/** Returns an unique identifier of this command buffer. */
 			u32 GetId() const { return mId; }
@@ -421,6 +425,7 @@ namespace b3d
 				GpuAccessFlags Flags;
 			};
 
+#if B3D_HAZARD_TRACKING
 			/** Tracking that is used for validation when memory barriers need to be issued. */
 			struct WriteHazardTracking
 			{
@@ -438,9 +443,13 @@ namespace b3d
 				 */
 				VkPipelineStageFlags UnsafeWriteStages = 0;
 
+				/** List of stages that is safe to write the buffer in. This is populated by issuing a memory barrier after a buffer read happened. */
 				VkPipelineStageFlags SafeAfterReadStages = 0;
+
+				/** List of stages that are safe to read or write the buffer in. This is populated by issuing a memory barrier after a buffer write happened. */
 				VkPipelineStageFlags SafeAfterWriteStages = 0;
 			};
+#endif
 
 			/** Describes where and how is a resource being accessed and by which stages. */
 			struct ResourcePipelineUse
@@ -457,8 +466,9 @@ namespace b3d
 			{
 				ResourceUseHandle UseHandle;
 
-				GpuBufferUseFlags UseFlags;
+				GpuResourceUseFlags UseFlags;
 
+#if B3D_AUTOMATIC_BARRIERS
 				/**
 				 * Use flags when buffer is bound for any kind of operation that will require an execution or memory
 				 * barrier due to a write hazard. Currently used for issuing execution/memory barriers after shader writes
@@ -472,9 +482,12 @@ namespace b3d
 				 * trigger barriers on their next use.
 				 */
 				ResourcePipelineUse NewWriteHazardUse;
+#endif
 
-				/** Used for validating that write hazard memory and execution barriers are being properly issued. */
-				WriteHazardTracking WriteHazardTracking;
+#if B3D_HAZARD_TRACKING
+				/** Used for tracking read-after-write/write-after-write and write-after-read hazards, and validating that correct barriers were issued*/
+				WriteHazardTracking* WriteHazardTracking = nullptr;
+#endif
 			};
 
 			/** Contains information about a single Vulkan image resource bound/used on this command buffer. */
@@ -510,6 +523,7 @@ namespace b3d
 				/** Use flags when subresource is bound for a transfer operation. Currently unused. */
 				ResourcePipelineUse TransferUse;
 
+#if B3D_AUTOMATIC_BARRIERS
 				/**
 				 * Use flags when subresource is bound for any kind of operation that will require an execution or memory
 				 * barrier due to a write hazard. Currently used for issuing execution/memory barriers after shader writes
@@ -523,6 +537,7 @@ namespace b3d
 				 * trigger barriers on their next use.
 				 */
 				ResourcePipelineUse NewWriteHazardUse;
+#endif
 
 				/**
 				 * Specifies how will the subresource be used during the current render pass or dispatch call. Reset
@@ -557,6 +572,11 @@ namespace b3d
 				 * does on its attachments. Only relevant for framebuffer attachments. Ignored if render pass doesn't execute.
 				 */
 				VkImageLayout RenderPassLayout;
+
+#if B3D_HAZARD_TRACKING
+				/** Used for tracking read-after-write/write-after-write and write-after-read hazards, and validating that correct barriers were issued*/
+				WriteHazardTracking* WriteHazardTracking = nullptr;
+#endif
 			};
 
 			/** Information about queries recorded on the command buffer. */
@@ -632,8 +652,10 @@ namespace b3d
 			/** Executes any queued layout transitions by issuing a pipeline barrier. */
 			void ExecuteLayoutTransitions();
 
+#if B3D_AUTOMATIC_BARRIERS
 			/** Executes any queued memory barriers. */
 			void ExecuteWriteHazardBarrier();
+#endif
 
 			/**
 			 * Updates final layouts for images used by the current framebuffer, reflecting layout changes performed by render
@@ -687,6 +709,11 @@ namespace b3d
 			/** Returns the current area of the render pass in pixels. This depends on the currently bound framebuffer. */
 			Area2I GetRenderPassArea() const;
 
+#if B3D_HAZARD_TRACKING
+			/** Updates write hazard tracking after a barrier has been issued. */
+			void UpdateWriteHazardTrackingAfterBarrier(GpuAccessFlags sourceAccess, VkPipelineStageFlags sourceStages, GpuAccessFlags destinationAccess, VkPipelineStageFlags destinationStages);
+#endif
+
 			/** Notifies the active render target that a rendering command was queued that will potentially change its contents. */
 			void NotifyRenderTargetModified();
 
@@ -701,7 +728,7 @@ namespace b3d
 			ThreadId mOwnerThread;
 
 			VulkanSemaphore* mIntraQueueSemaphore = nullptr;
-			VulkanSemaphore* mInterQueueSemaphores[BS_MAX_VULKAN_CB_DEPENDENCIES]{};
+			VulkanSemaphore* mInterQueueSemaphores[B3D_MAX_COMMAND_BUFFER_DEPENDENCIES]{};
 			mutable u32 mNumUsedInterQueueSemaphores = 0;
 
 			VulkanFramebuffer* mFramebuffer = nullptr;
@@ -717,12 +744,21 @@ namespace b3d
 			Set<u32> mShaderBoundSubresourceInfos;
 			GpuQueueId mSubmittedQueueId;
 
-			bool mNeedsWARMemoryBarrier : 1;
-			bool mNeedsRAWMemoryBarrier : 1;
+#if B3D_HAZARD_TRACKING
+			/** List of buffers and images that were read or written since the last call to IssueBarrier. */
+			TArray<WriteHazardTracking*> mWriteHazards;
+
+			PoolAlloc<sizeof(WriteHazardTracking)> mWriteHazardPool;
+#endif
+
+#if B3D_AUTOMATIC_BARRIERS
+			bool mNeedsWARMemoryBarrier = false;
+			bool mNeedsRAWMemoryBarrier = false;
 			VkPipelineStageFlags mMemoryBarrierSrcStages = 0;
 			VkPipelineStageFlags mMemoryBarrierDstStages = 0;
 			VkAccessFlags mMemoryBarrierSrcAccess = 0;
 			VkAccessFlags mMemoryBarrierDstAccess = 0;
+#endif
 
 			SPtr<VulkanGpuGraphicsPipelineState> mGraphicsPipeline;
 			SPtr<VulkanGpuComputePipelineState> mComputePipeline;

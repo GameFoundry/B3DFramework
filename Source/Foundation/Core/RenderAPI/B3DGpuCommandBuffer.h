@@ -67,14 +67,16 @@ namespace b3d
 		/** Bits that represent different ways a GPU resource can be used. */
 		enum class GpuResourceUseFlag
 		{
-			Shader = 1 << 0,
-			Index = 1 << 1,
-			Vertex = 1 << 2,
-			Uniform = 1 << 3,
-			Transfer = 1 << 4
+			Shader = 1 << 0, /**< Sampled or unordered access in shader. */
+			Index = 1 << 1, /**< Index buffer (read only). */
+			Vertex = 1 << 2, /**< Vertex buffer (read only). */
+			Uniform = 1 << 3, /**< Uniform buffer (read only). */
+			Transfer = 1 << 4, /**< Transfer source or destination. */
+			ColorAttachment = 1 << 5, /**< Color attachment. */
+			DepthStencilAttachment = 1 << 6 /**< Depth/stencil attachment. */
 		};
 
-		typedef Flags<GpuResourceUseFlag> GpuBufferUseFlags;
+		typedef Flags<GpuResourceUseFlag> GpuResourceUseFlags;
 		B3D_FLAGS_OPERATORS(GpuResourceUseFlag)
 
 		/** Object describing a GpuCommandBufferPool. */
@@ -314,14 +316,23 @@ namespace b3d
 			virtual void TransitionTextureLayout(const SPtr<Texture>& texture, GpuTextureLayout layout, const GpuTextureSubresourceRange& subresourceRange = GpuTextureSubresourceRange::AllSubresources()) = 0;
 
 			/**
-			 * Issues a memory and/or execution barrier that guarantees that the contents of GPU buffers will be correctly visible for the provided destination stages. It is important to issue this barrier in
-			 * two cases:
-			 *  - Just before GPU writes to the buffer. This ensures that any other GPU operation reading from the buffer completes before the GPU writes to it.
-			 *  - Just before GPU read to a buffer that was just written. This ensures that writes complete before GPU attempts to read from the buffer.
+			 * Issues a memory and/or execution barrier that guarantees that the contents of GPU buffers will be correctly visible for the provided destination stages. The barrier must be issued when
+			 * performing writes to an image or a buffer. For example if writing to a buffer/image:
+			 *  - A write-after-read barrier must be issued to ensure any GPU operations reading from the buffer complete before we start writing to it
+			 *  - A read-after-write/write-after-write barrier must be issued to ensure any GPU operations writing to the buffer complete before we start reading it (or doing another wring)
 			 *
-			 * Transfer operations such as copy, blit, resolve and clear also require barriers, but those are issued automatically under the hood.
+			 * In certain cases the barriers are handled automatically and don't need to be issued:
+			 *  - When starting a render pass, all render pass attachments will be safe to write, provided were only used for shader reads previously
+			 *  - When ending a render pass, all render pass attachments will be safe to read by shaders, provided they were only used for attachment reads/writes
+			 *  - All transfer operations (copy, blit, resolve, clear) issue barriers under the hood when the transfer operation runs
+			 *
+			 * An example cases where you need to issue a barrier:
+			 *  - A compute shader writes to a buffer. You must issue a barrier before attempting to use the buffer for shader reads or writes.
+			 *  - A compute shader reads a buffer, then another compute shader writes a buffer. You must issue a barrier before the compute shader write, and one after, as in the above case.
+			 *  - A render target writes to an attachment, which you then use for writes in a shader.
+			 *  - A render target writes to an attachment, which you then use for writes in another render pass.
 			 */
-			virtual void IssueBarrier(GpuBufferUseFlags sourceUsage, GpuAccessFlags sourceAccess, GpuBufferUseFlags destinationUsage, GpuAccessFlags destinationAccess) = 0;
+			virtual void IssueBarrier(GpuResourceUseFlags sourceUsage, GpuAccessFlags sourceAccess, GpuResourceUseFlags destinationUsage, GpuAccessFlags destinationAccess) = 0;
 
 			/**
 			 * Sets the active viewport that will be used for all following render operations.

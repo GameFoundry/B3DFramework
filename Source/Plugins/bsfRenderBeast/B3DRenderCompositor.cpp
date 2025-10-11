@@ -477,6 +477,8 @@ void RCNodeBasePass::Render(const RenderCompositorNodeInputs& inputs)
 		commandBuffer.EndRenderPass();
 	}
 
+	commandBuffer.IssueBarrier(GpuResourceUseFlag::ColorAttachment | GpuResourceUseFlag::DepthStencilAttachment, GpuAccessFlag::Write, GpuResourceUseFlag::ColorAttachment | GpuResourceUseFlag::DepthStencilAttachment, GpuAccessFlag::Write); // Gbuffer textures
+
 	// Render decals after all normal objects, using a read-only depth buffer
 	commandBuffer.BeginRenderPass(RenderTargetNoMask, FBT_DEPTH, RT_ALL);
 
@@ -896,6 +898,7 @@ void RCNodeDeferredDirectLighting::Render(const RenderCompositorNodeInputs& inpu
 			lightAccumTexArray = Output->LightAccumulationTexArray->Texture;
 
 		tiledDeferredMat->Execute(commandBuffer, inputs.View, lightData, gbuffer, sceneColorNode->SceneColorTex->Texture, Output->LightAccumulationTex->Texture, lightAccumTexArray, msaaCoverage);
+		commandBuffer.IssueBarrier(GpuResourceUseFlag::Shader, GpuAccessFlag::Write, GpuResourceUseFlag::ColorAttachment, GpuAccessFlag::Read | GpuAccessFlag::Write); // LightAccumulationTex
 
 		if(viewProps.Target.NumSamples > 1)
 			Output->MsaaTexArrayToTexture(commandBuffer);
