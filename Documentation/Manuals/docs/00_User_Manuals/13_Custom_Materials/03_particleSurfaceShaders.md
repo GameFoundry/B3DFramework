@@ -19,25 +19,27 @@ shader Surface
 
 	code
 	{
+		[alias(gAlbedoTex)]
 		SamplerState gAlbedoSamp;
-		Texture2D gAlbedoTex;
-	
+
+		Texture2D gAlbedoTex = white;
+
 		void fsmain(
-			in VStoFS input, 
+			in VStoFS input,
 			out float4 OutSceneColor : SV_Target0,
 			out GBufferData OutGBuffer)
 		{
 			SurfaceData surfaceData;
 			surfaceData.albedo = gAlbedoTex.Sample(gAlbedoSamp, input.uv0);
-			surfaceData.worldNormal.xyz = float3(0, 1, 0);
+			surfaceData.worldNormal.xyz = input.tangentToWorldZ;
 			surfaceData.roughness = 1.0f;
 			surfaceData.metalness = 0.0f;
 			surfaceData.mask = gLayer;
 			surfaceData.velocity = 0.0f;
-			
+
 			OutSceneColor = 0.0f;
 			OutGBuffer = encodeGBuffer(surfaceData);
-		}	
+		}
 	};
 };
 ~~~~~~~~~~~~~
@@ -62,47 +64,60 @@ shader Surface
 {
 	mixin ParticleVertex;
 	mixin ForwardLighting;
-	
+
 	// Enable blending (i.e. transparency)
 	blend
 	{
-		target	
+		target
 		{
 			enabled = true;
 			color = { srcA, srcIA, add };
 		};
-	};	
-	
-	// Transparent objects shouldnt write to depth
+	};
+
+	// Transparent objects shouldn't write to depth
 	depth
 	{
 		write = false;
 	};
-	
+
 	code
 	{
+		[alias(gAlbedoTex)]
 		SamplerState gAlbedoSamp;
-		Texture2D gAlbedoTex;
-		
+
+		[alias(gNormalTex)]
+		SamplerState gNormalSamp;
+
+		Texture2D gAlbedoTex = white;
+		Texture2D gNormalTex = normal;
+
+		cbuffer MaterialParams
+		{
+			float gOpacity = 1.0f;
+		}
+
 		float4 fsmain(in VStoFS input) : SV_Target0
 		{
-			// For simplicity we only read the albedo from the texture, and assume other properties are constant
+			float3 normal = normalize(gNormalTex.Sample(gNormalSamp, input.uv0).xyz * 2.0f - float3(1, 1, 1));
+			float3 worldNormal = calcWorldNormal(input, normal);
+
 			SurfaceData surfaceData;
-			surfaceData.albedo = gAlbedoTex.Sample(gAlbedoSamp, input.uv0);
-			surfaceData.worldNormal.xyz = float3(0, 1, 0);
+			surfaceData.albedo = gAlbedoTex.Sample(gAlbedoSamp, input.uv0) * input.color;
+			surfaceData.worldNormal.xyz = worldNormal;
+			surfaceData.worldNormal.w = 1.0f;
 			surfaceData.roughness = 1.0f;
 			surfaceData.metalness = 0.0f;
-			
+
 			float3 lighting = calcLighting(input.worldPosition.xyz, input.position, input.uv0, surfaceData);
-			float opacity = surfaceData.albedo.a;
-			return float4(lighting, opacity);
-		}	
+			return float4(lighting, surfaceData.albedo.a * gOpacity);
+		}
 	};
 };
 ~~~~~~~~~~~~~
 
 # Unlit forward
-And finally the most common way particles will be renderered is with support for transparency but ignoring any lighting. This can be done simply by including **ParticleVertex** on its own with no other mixins and writing the color in the fragment shader.
+And finally the most common way particles will be rendered is with support for transparency but ignoring any lighting. This can be done simply by including **ParticleVertex** on its own with no other mixins and writing the color in the fragment shader.
 
 ~~~~~~~~~~~~~
 #include "$ENGINE$\ParticleVertex.bslinc"
@@ -118,27 +133,31 @@ shader Surface
 
 	blend
 	{
-		target	
+		target
 		{
 			enabled = true;
 			color = { srcA, srcIA, add };
 		};
-	};	
+	};
 
 	depth
 	{
 		write = false;
 	};
-	
+
 	code
 	{
+		[alias(gTexture)]
 		SamplerState gSampler;
-		Texture2D gTexture;
-		
+
+		Texture2D gTexture = white;
+
 		float4 fsmain(in VStoFS input) : SV_Target0
 		{
-			return gTexture.Sample(gSampler, input.uv0);
+			return gTexture.Sample(gSampler, input.uv0) * input.color;
 		}
 	};
 };
 ~~~~~~~~~~~~~
+
+Note that in the particle shaders, the **input.color** field contains the per-particle color that can be set via the particle system. This is often multiplied with the texture sample to tint particles dynamically.

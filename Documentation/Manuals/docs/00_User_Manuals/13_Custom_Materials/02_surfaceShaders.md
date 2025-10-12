@@ -18,7 +18,7 @@ Vertex shaders allow you to transform object geometry before an object is raster
  - `VStoFS vsmain(VertexInput input)`
  
 Where:
- - *input* - Contains position of the vertex, UV coordinates, a normal and a tangent. If the rendered mesh is animated via skinning it will also include skinning weights and indices. If the renderer mesh is animated via morph shapes it will include delta position and normal.
+ - *input* - Contains position of the vertex, UV coordinates, a normal and a tangent. If the rendered mesh is animated via skinning it will also include skinning weights and indices. If the rendered mesh is animated via morph shapes it will include delta position and normal.
  - Method returns a **VStoFS** structure that you will need to populate. The contents of the structure are displayed below.
 
 ~~~~~~~~~~~~~
@@ -68,9 +68,9 @@ shader VertexTransform
 ~~~~~~~~~~~~~
 
 When populating **VStoFS** output structure you can use the following helper methods to make the job easier:
- - `VertexIntermediate getVertexIntermediate(VertexInput input)` - Calculates world space normal/tangent, as well as potentially other properties required for animation. Normally you do not need to read the returned value directly, it is instead provided to the methods below.
+ - `VertexIntermediate GetVertexIntermediate(VertexInput input)` - Calculates world space normal/tangent, as well as potentially other properties required for animation. Normally you do not need to read the returned value directly, it is instead provided to the methods below.
  - `float4 GetVertexWorldPosition(VertexInput input, VertexIntermediate intermediate, float4x4 worldTransform)` - Calculates the world space position of the vertex. It is preferable to call this method instead of calculating the world position yourself because the method will automatically account for any potential animation (skinned or morph).
- - `void populateVertexOutput(VertexInput input, VertexIntermediate intermediate, inout VStoFS result)` - Populates the UV and normal/tangent fields of the **VStoFS** structure.
+ - `void PopulateVertexOutput(VertexInput input, VertexIntermediate intermediate, inout VStoFS result)` - Populates the UV and normal/tangent fields of the **VStoFS** structure.
 
 You are of course not forced to use any of the methods above, as long as you properly populate the **VStoFS** structure. An example shader making use of these methods would look like so:
 
@@ -90,14 +90,14 @@ shader VertexTransform
 		VStoFS vsmain(VertexInput input)
 		{
 			VStoFS output;
-		
-			VertexIntermediate intermediate = getVertexIntermediate(input);
+
+			VertexIntermediate intermediate = GetVertexIntermediate(input);
 			float4 worldPosition = GetVertexWorldPosition(input, intermediate, gMatWorld);
-			
+
 			output.worldPosition = worldPosition.xyz;
 			output.position = mul(gMatViewProj, worldPosition);
-			populateVertexOutput(input, intermediate, output);
-						
+			PopulateVertexOutput(input, intermediate, output);
+
 			return output;
 		}
 	};
@@ -164,7 +164,10 @@ struct SurfaceData
 ~~~~~~~~~~~~~
 
 Once populated, you call **encodeGBuffer** method with the **SurfaceData** object and it will return a **GBufferData** structure that will contain the encoded surface data used for populating the GBuffer textures.
- 
+
+You can also use the **calcWorldNormal** helper method to transform tangent-space normals from a normal map into world space:
+ - `float3 calcWorldNormal(VStoFS input, float3 tangentSpaceNormal)` - Transforms a tangent-space normal vector into world space using the tangent-to-world matrix from the vertex shader output.
+
 A complete example looks like below. For simplicity the shader only evaluates albedo from the texture, while it assumes the rest of the surface data parameters are constant.
 
 ~~~~~~~~~~~~~
@@ -178,17 +181,19 @@ shader Surface
 
 	code
 	{
+		[alias(gAlbedoTex)]
 		SamplerState gAlbedoSamp;
-		Texture2D gAlbedoTex;
-	
+
+		Texture2D gAlbedoTex = white;
+
 		void fsmain(
-			in VStoFS input, 
+			in VStoFS input,
 			out float4 OutSceneColor : SV_Target0,
 			out GBufferData OutGBuffer)
 		{
 			SurfaceData surfaceData;
 			surfaceData.albedo = gAlbedoTex.Sample(gAlbedoSamp, input.uv0);
-			surfaceData.worldNormal.xyz = float3(0, 1, 0);
+			surfaceData.worldNormal.xyz = input.tangentToWorldZ;
 			surfaceData.roughness = 1.0f;
 			surfaceData.metalness = 0.0f;
 			surfaceData.mask = gLayer;
@@ -196,7 +201,7 @@ shader Surface
 
 			OutSceneColor = 0.0f;
 			OutGBuffer = encodeGBuffer(surfaceData);
-		}	
+		}
 	};
 };
 ~~~~~~~~~~~~~
@@ -228,7 +233,7 @@ subshader DeferredDirectLighting
 	mixin StandardBRDF
 	{
 		code
-		{	
+		{
 			float3 evaluateStandardBRDF(float3 V, float3 L, float specLobeEnergy, SurfaceData surfaceData)
 			{
 				return surfaceData.albedo.rgb / 3.14f;
@@ -323,16 +328,9 @@ subshader DeferredDirectLighting
 **LuminanceDirectional** also requires a single method with the following signature:
  - `float3 getLuminanceDirectional(LightData lightData, float3 worldPos, float3 V, float3 R, SurfaceData surfaceData)`
 
-The meaning of the parametes is the same across all three functions, and they can be implemented similarily to **getLuminanceRadial**. 
+The meaning of the parametes is the same across all three functions, and they can be implemented similarily to **getLuminanceRadial**.
 
-Once the shader is created you need to apply it for rendering. Because the deferred pipeline performs lighting in a separate stage from normal rendering, you cannot simply assign this material to a **Renderable**. The shader must instead be applied by calling @b3d::render::Renderer::setGlobalShaderOverride. As the name implies this will apply the shader globally, meaning it will effect lighting of all objects using the deferred pipeline. 
-
-~~~~~~~~~~~~~
-SPtr<Shader> customShader = ...; // Import the shader we created above
-
-// Apply the shader
-GetRenderer().setGlobalShaderOverride(customShader);
-~~~~~~~~~~~~~ 
+Once the shader is created you need to apply it for rendering. Because the deferred pipeline performs lighting in a separate stage from normal rendering, you cannot simply assign this material to a **Renderable**. Instead, you need to provide the shader as a subshader within your .bsl file, as shown in the examples above. When the engine imports your shader, it will automatically detect and use the lighting overrides defined in the **DeferredDirectLighting** subshader. 
  
 # Forward
 When it comes to the forward pipeline, vertex, surface and lighting aspects are all handled in the same shader. Its entry point must have the following signature:
@@ -387,21 +385,24 @@ shader Surface
 
 	code
 	{
+		[alias(gAlbedoTex)]
 		SamplerState gAlbedoSamp;
-		Texture2D gAlbedoTex;
-		
+
+		Texture2D gAlbedoTex = white;
+
 		float4 fsmain(in VStoFS input) : SV_Target0
 		{
 			// For simplicity we only read the albedo from the texture, and assume other properties are constant
 			SurfaceData surfaceData;
 			surfaceData.albedo = gAlbedoTex.Sample(gAlbedoSamp, input.uv0);
-			surfaceData.worldNormal.xyz = float3(0, 1, 0);
+			surfaceData.worldNormal.xyz = input.tangentToWorldZ;
+			surfaceData.worldNormal.w = 1.0f;
 			surfaceData.roughness = 1.0f;
 			surfaceData.metalness = 0.0f;
-			
+
 			float3 lighting = calcLighting(input.worldPosition.xyz, input.position, input.uv0, surfaceData);
 			return float4(lighting, 1.0f);
-		}	
+		}
 	};
 };
 ~~~~~~~~~~~~~

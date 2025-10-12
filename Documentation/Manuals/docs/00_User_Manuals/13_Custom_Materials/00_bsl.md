@@ -2,7 +2,7 @@
 title: BSL syntax
 ---
 
-All shaders in b3d::f are written in BSL (b3d::f Shading Language). The core of the language is based on HLSL (High Level Shading Language), with various extensions to make development easier. In this manual we will not cover HLSL syntax, nor talk about shaders in general, and will instead focus on the functionality specific to BSL. If you are not familiar with the concept of a shader, or HLSL syntax, it is suggested you learn about them before continuing.
+All shaders in the framework are written in BSL (Banshee Shading Language). The core of the language is based on HLSL (High Level Shading Language), with various extensions to make development easier. In this manual we will not cover HLSL syntax, nor talk about shaders in general, and will instead focus on the functionality specific to BSL. If you are not familiar with the concept of a shader, or HLSL syntax, it is suggested you learn about them before continuing.
 
 # Basics
 
@@ -546,11 +546,47 @@ shader MyShader
 		cbuffer SomeBuffer
 		{
 			float3 position;
-			
+
 			// Interpret as color, instead of a 3D vector
 			[color]
 			float3 tint;
-		};		
+		};
+	};
+};
+~~~~~~~~~~~~~~
+
+## hdr
+Marks a color constant to support high dynamic range (HDR) values. This allows the color to have values outside the normal [0, 1] range. Must be used in combination with the **color** attribute. Only usable on *float3* or *float4* types.
+
+~~~~~~~~~~~~~~
+shader MyShader
+{
+	code
+	{
+		cbuffer MaterialParams
+		{
+			// Emissive color with HDR support
+			[color][hdr]
+			float3 emissiveColor = { 1.0f, 1.0f, 1.0f };
+		};
+	};
+};
+~~~~~~~~~~~~~~
+
+## hideInInspector
+Marks a constant or constant buffer to be hidden from the material inspector UI in the editor. Unlike the **internal** attribute, the constant is still accessible through the **Material** API, but it won't be shown in the editor's material properties panel.
+
+~~~~~~~~~~~~~~
+shader MyShader
+{
+	code
+	{
+		cbuffer Params
+		{
+			// Hidden from inspector but accessible via Material API
+			[hideInInspector]
+			float invDepthRange = 1.0f;
+		};
 	};
 };
 ~~~~~~~~~~~~~~
