@@ -2,115 +2,126 @@
 title: Windows
 ---
 
-A window represents the final destination where the application's rendered output gets displayed to the user. It has a title, size and a position. Window can cover the entirety of the user's screen (fullscreen mode) or just part of it (windowed mode). In b3d::f a window is represented using the @b3d::RenderWindow class. We have already shown how the application creates a primary window when it is first started up, and in this chapter we'll show how to create more windows manually as well as manipulate them.
+A window represents the final destination where the application's rendered output gets displayed to the user. It has a title, size and a position. Window can cover the entirety of the user's screen (fullscreen mode) or just part of it (windowed mode). In the framework a window is represented using the @b3d::RenderWindow class. We have already shown how the application creates a primary window when it is first started up, and in this chapter we'll show how to create more windows manually as well as manipulate them.
 
-![Render window](../../Images/RenderWindow.png)  
+![Render window](../../Images/RenderWindow.png)
 
 # Creating windows
-You can also create your own windows by filling out the @b3d::RENDER_WINDOW_DESC structure and calling @b3d::RenderWindow::create.
+You can also create your own windows by filling out the @b3d::RenderWindowCreateInformation structure and calling @b3d::RenderWindow::Create.
 
 ~~~~~~~~~~~~~{.cpp}
-RENDER_WINDOW_DESC desc;
-desc.videoMode = VideoMode(1280, 720);
-desc.fullscreen = false;
-desc.title = "Helper window".
+RenderWindowCreateInformation createInformation;
+createInformation.VideoMode = VideoMode(1280, 720);
+createInformation.Fullscreen = false;
+createInformation.Title = "Helper window";
 
 // Creates a new non-fullscreen window with size 1280x720, at the center of the screen
-SPtr<RenderWindow> newWindow = RenderWindow::create(desc);
+SPtr<RenderWindow> helperWindow = RenderWindow::Create(createInformation);
 ~~~~~~~~~~~~~
 
 # Destroying windows
-You can destroy a window by calling @b3d::RenderWindow::destroy. 
+You can destroy a window by calling @b3d::RenderWindow::Destroy.
 
 ~~~~~~~~~~~~~{.cpp}
-newWindow->destroy();
+helperWindow->Destroy();
 ~~~~~~~~~~~~~
 
 > Do not destroy the primary window, as it will result in undefined behaviour.
 
 # Manipulating windows
-Window size can be changed by calling @b3d::RenderWindow::resize.
+Window size can be changed by calling @b3d::RenderWindow::Resize.
 
 ~~~~~~~~~~~~~{.cpp}
-newWindow->resize(1920, 1080);
+helperWindow->Resize(1920, 1080);
 ~~~~~~~~~~~~~
 
-And they can be moved by calling @b3d::RenderWindow::move. Movement is not relevant for windows in fullscreen mode.
+And they can be moved by calling @b3d::RenderWindow::Move. Movement is not relevant for windows in fullscreen mode.
 
 ~~~~~~~~~~~~~{.cpp}
-newWindow->move(0, 0); // Move to top right of the screen
+helperWindow->Move(0, 0); // Move to top left of the screen
 ~~~~~~~~~~~~~
 
-If you wish to switch from windowed to fullscreen mode call @b3d::RenderWindow::setFullscreen.
+If you wish to switch from windowed to fullscreen mode call @b3d::RenderWindow::SetFullscreen.
 
 ~~~~~~~~~~~~~{.cpp}
-newWindow->setFullscreen(VideoMode(1920, 1080));
+helperWindow->SetFullscreen(VideoMode(1920, 1080));
 ~~~~~~~~~~~~~
 
-And if you wish to switch from fullscreen to windowed call @b3d::RenderWindow::setWindowed.
+And if you wish to switch from fullscreen to windowed call @b3d::RenderWindow::SetWindowed.
 
 ~~~~~~~~~~~~~{.cpp}
-newWindow->setWindowed(1280, 720);
+helperWindow->SetWindowed(1280, 720);
 ~~~~~~~~~~~~~
 
 # Window properties
-You can access current properties of the window, like its size and position, by calling @b3d::RenderWindow::getProperties, which returns a @b3d::RenderWindowProperties object. For example let's print out current window's size:
+You can access current properties of the window, like its size and position, by calling @b3d::RenderWindow::GetRenderWindowProperties, which returns a @b3d::RenderWindowProperties object. For example let's print out current window's size:
 
 ~~~~~~~~~~~~~{.cpp}
-auto& props = newWindow->getProperties();
+const RenderWindowProperties& windowProperties = helperWindow->GetRenderWindowProperties();
 
-GetDebug().logDebug(toString(props.width) + " x " + toString(props.height));
+B3D_LOG(Info, Generic, "Window size: {0} x {1}", windowProperties.Width, windowProperties.Height);
+~~~~~~~~~~~~~
+
+You can also query the window's position and focus state:
+
+~~~~~~~~~~~~~{.cpp}
+const RenderWindowProperties& windowProperties = helperWindow->GetRenderWindowProperties();
+
+B3D_LOG(Info, Generic, "Window position: ({0}, {1})", windowProperties.Left, windowProperties.Top);
+B3D_LOG(Info, Generic, "Window has focus: {0}", windowProperties.HasFocus);
+B3D_LOG(Info, Generic, "Window is fullscreen: {0}", windowProperties.IsFullScreen);
 ~~~~~~~~~~~~~
 
 # Window events
-Sometimes you might want to be notified if the user resizes the window externally, in which case use the @b3d::RenderWindow::onResized event.
+Sometimes you might want to be notified if the user resizes the window externally, in which case use the @b3d::RenderWindow::OnResized event.
 
 ~~~~~~~~~~~~~{.cpp}
-void notifyResized()
+void NotifyResized()
 {
-	GetDebug().logDebug("Window was resized.");
+	B3D_LOG(Info, Generic, "Window was resized.");
 }
 
-newWindow->onResized.connect(&notifyResized);
+helperWindow->OnResized.Connect(&NotifyResized);
 ~~~~~~~~~~~~~
 
 # Video modes
-During window creation and calls to **RenderWindow::setFullscreen()** we have seen the use of the @b3d::VideoMode class. This class allows you to specify the resolution of the window, along with an optional refresh rate and output monitor (in case of multi-monitor setups, to choose on which monitor to show the window). 
+During window creation and calls to **RenderWindow::SetFullscreen()** we have seen the use of the @b3d::VideoMode class. This class allows you to specify the resolution of the window, along with an optional refresh rate and output monitor (in case of multi-monitor setups, to choose on which monitor to show the window).
 
-You can create your own **VideoMode** with custom parameters (as we did so far), or you can query for all video modes supported by the user's GPU by calling @b3d::RenderAPI::getVideoModeInfo(). This will return a @b3d::VideoModeInfo object that contains information about all available monitors, their supported resolutions and refresh rates.
+You can create your own **VideoMode** with custom parameters (as we did so far), or you can query for all video modes supported by the user's GPU by calling @b3d::GpuDevice::GetVideoModeInfo(). This will return a @b3d::VideoModeInfo object that contains information about all available monitors, their supported resolutions and refresh rates.
 
 An example on how to use the video mode enumeration to set a window to fullscreen mode using the user's desktop resolution of the primary monitor:
 ~~~~~~~~~~~~~{.cpp}
-VideoModeInfo videoModeInfo = RenderAPI::getVideoModeInfo();
-VideoOutputInfo primaryMonitorInfo = videoModeInfo.getOutputInfo(0); // 0th monitor is always primary
+const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
+const VideoModeInfo& videoModeInfo = gpuDevice->GetVideoModeInfo();
+const VideoOutputInfo& primaryMonitorInfo = videoModeInfo.GetOutputInfo(0); // 0th monitor is always primary
 
-newWindow->setFullscreen(primaryMonitorInfo.getDesktopVideoMode());
+helperWindow->SetFullscreen(primaryMonitorInfo.GetDesktopVideoMode());
 ~~~~~~~~~~~~~
 
 An example to make a window fullscreen on a secondary monitor if one is available:
 ~~~~~~~~~~~~~{.cpp}
-VideoModeInfo videoModeInfo = RenderAPI::getVideoModeInfo();
+const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
+const VideoModeInfo& videoModeInfo = gpuDevice->GetVideoModeInfo();
 
-UINT32 numOutputs = videoModeInfo.getNumOutputs();
-if(numOutputs > 1)
+u32 outputCount = videoModeInfo.GetOutputCount();
+if(outputCount > 1)
 {
-	VideoOutputInfo secondaryMonitorInfo = videoModeInfo.getOutputInfo(1);
-	newWindow->setFullscreen(secondaryMonitorInfo.getDesktopVideoMode());
+	const VideoOutputInfo& secondaryMonitorInfo = videoModeInfo.GetOutputInfo(1);
+	helperWindow->SetFullscreen(secondaryMonitorInfo.GetDesktopVideoMode());
 }
 ~~~~~~~~~~~~~
 
 And an example how to enumerate and print all available resolutions on the primary monitor:
 ~~~~~~~~~~~~~{.cpp}
-VideoModeInfo videoModeInfo = RenderAPI::getVideoModeInfo();
-VideoOutputInfo primaryMonitorInfo = videoModeInfo.getOutputInfo(0);
+const SPtr<GpuDevice>& gpuDevice = GetApplication().GetPrimaryGpuDevice();
+const VideoModeInfo& videoModeInfo = gpuDevice->GetVideoModeInfo();
+const VideoOutputInfo& primaryMonitorInfo = videoModeInfo.GetOutputInfo(0);
 
-UINT32 numVideoModes = primaryMonitorInfo.getNumVideoModes();
-for (UINT32 i = 0; i < numVideoModes; i++)
+u32 videoModeCount = primaryMonitorInfo.GetVideoModeCount();
+for (u32 i = 0; i < videoModeCount; i++)
 {
-	const VideoMode& curVideoMode = primaryMonitorInfo.getVideoMode(i);
+	const VideoMode& currentVideoMode = primaryMonitorInfo.GetVideoMode(i);
 
-	String videoModeString = toString(curVideoMode.width) + " x " + toString(curVideoMode.height) + " at " + toString(curVideoMode.refreshRate) + "Hz";
-	
-	GetDebug().logDebug(videoModeString);
+	B3D_LOG(Info, Generic, "Video mode: {0} x {1} at {2}Hz", currentVideoMode.Width, currentVideoMode.Height, currentVideoMode.RefreshRate);
 }
 ~~~~~~~~~~~~~

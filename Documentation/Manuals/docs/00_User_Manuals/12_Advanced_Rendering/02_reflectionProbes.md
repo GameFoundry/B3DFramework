@@ -2,47 +2,102 @@
 title: Reflection environment
 ---
 
-Setting up a valid reflection environment is essential for all types of physically based materials. The environment ensures that the specular reflections on the materials correctly reflect the surroundings. 
+Setting up a valid reflection environment is essential for all types of physically based materials. The environment ensures that the specular reflections on the materials correctly reflect the surroundings.
 
 [TODO_IMAGE]()
 
-A **Skybox** is one such example of a reflection environment. When one is present all materials will reflect the image displayed by the skybox. This is generally fine for open outdoor areas, but when the camera is indoors you don't want the indoor surfaces to reflect the sky. This is where @b3d::CReflectionProbe component comes into play.
+A **Skybox** is one such example of a reflection environment. When one is present all materials will reflect the image displayed by the skybox. This is generally fine for open outdoor areas, but when the camera is indoors you don't want the indoor surfaces to reflect the sky. This is where @b3d::ReflectionProbe component comes into play.
 
 # Reflection probes
 While the skybox is used to provide outdoor reflections, reflection probes are used to create reflection cubemaps for indoor environments. Reflection probes have an origin and a radius of influence. Reflection probes also use HDR cubemaps, but instead of using external textures those cubemaps are generated in-engine, at the position of the reflection probe. They are represented using the **ReflectionProbe** component.
 
 ~~~~~~~~~~~~~{.cpp}
-HSceneObject reflProbeSO = SceneObject::create("Refl. probe");
-HReflectionProbe reflProbe = reflProbeSO->addComponent<ReflectionProbe>();
+HSceneObject reflectionProbeSceneObject = SceneObject::Create("Refl. probe");
+HReflectionProbe reflectionProbe = reflectionProbeSceneObject->AddComponent<ReflectionProbe>();
 ~~~~~~~~~~~~~
 
 You must provide the extents of the geometry covered by the reflection probe. These extents serve both to determine a range of influence, and to approximate the surrounding geometry. For example if you are placing a reflection probe that covers a room, you should strive to match the reflection probe extents with the room walls. In practice you'll want to tweak it to what looks best.
 
 You can assign extents in two ways, depending on reflection probe type:
- - @b3d::ReflectionProbeType::Box - Reflection probe is represented by a box and extents are set by calling @b3d::CReflectionProbe::setExtents.
- - @b3d::ReflectionProbeType::Sphere - Reflection probe is represented by a sphere an extents are set by calling @b3d::CReflectionProbe::setRadius.
- 
-You can change the type of the reflection probe (and therefore extents) by calling @b3d::CReflectionProbe::setType.
+ - @b3d::ReflectionProbeType::Box - Reflection probe is represented by a box and extents are set by calling @b3d::ReflectionProbe::SetExtents.
+ - @b3d::ReflectionProbeType::Sphere - Reflection probe is represented by a sphere an extents are set by calling @b3d::ReflectionProbe::SetRadius.
+
+You can change the type of the reflection probe (and therefore extents) by calling @b3d::ReflectionProbe::SetType.
 
 ~~~~~~~~~~~~~{.cpp}
-reflProbe->setType(ReflectionProbeType::Box);
-reflProbe->setExtents(Vector3(2.0f, 2.0f, 2.0f));
+HReflectionProbe reflectionProbe = ...;
+
+reflectionProbe->SetType(ReflectionProbeType::Box);
+reflectionProbe->SetExtents(Vector3(2.0f, 2.0f, 2.0f));
+~~~~~~~~~~~~~
+
+You can also query the current probe type and extents using the corresponding getter methods.
+
+~~~~~~~~~~~~~{.cpp}
+HReflectionProbe reflectionProbe = ...;
+
+// Get the current probe type
+ReflectionProbeType probeType = reflectionProbe->GetType();
+
+// Get extents based on the probe type
+if (probeType == ReflectionProbeType::Box)
+{
+    Vector3 extents = reflectionProbe->GetExtents();
+    B3D_LOG(LogVerbosity::Info, LogGeneral, "Box probe extents: {0}", extents);
+}
+else if (probeType == ReflectionProbeType::Sphere)
+{
+    float radius = reflectionProbe->GetRadius();
+    B3D_LOG(LogVerbosity::Info, LogGeneral, "Sphere probe radius: {0}", radius);
+}
 ~~~~~~~~~~~~~
 
 ## Generating reflection probes
-Reflection probe cubemap will be generated automatically when the reflection probe is first added to the scene, and whenever it is moved. You can also force the cubemap to regenerate by calling @b3d::CReflectionProbe::capture(). This is required when surrounding geometry changes and you wish to update the probe cubemap.
+Reflection probe cubemap will be generated automatically when the reflection probe is first added to the scene, and whenever it is moved. You can also force the cubemap to regenerate by calling @b3d::ReflectionProbe::Capture(). This is required when surrounding geometry changes and you wish to update the probe cubemap.
 
 ~~~~~~~~~~~~~{.cpp}
-reflProbe->capture();
+HReflectionProbe reflectionProbe = ...;
+
+// Capture the scene at the current probe location
+reflectionProbe->Capture();
 ~~~~~~~~~~~~~
 
 ## Using external textures
-In case you want to use an external HDR texture, similar to a skybox, you can call @b3d::CReflectionProbe::setCustomTexture. The system will no longer use the automatically generated cubemap and use the provided one instead. If you wish to switch back to the automatic generator, call the method with a null value.
+In case you want to use an external HDR texture, similar to a skybox, you can call @b3d::ReflectionProbe::SetCustomTexture. The system will no longer use the automatically generated cubemap and use the provided one instead. If you wish to switch back to the automatic generator, call the method with a null value.
 
 ~~~~~~~~~~~~~{.cpp}
-HTexture myCubemap = ...;
+HReflectionProbe reflectionProbe = ...;
 
-reflProbe->setCustomTexture(myCubemap);
+// Set a custom cubemap texture
+HTexture customCubemap = GetImporter().Import<Texture>("MyCustomCubemap.hdr", textureImportOptions);
+reflectionProbe->SetCustomTexture(customCubemap);
+~~~~~~~~~~~~~
+
+To switch back to automatic generation, pass a null texture:
+
+~~~~~~~~~~~~~{.cpp}
+HReflectionProbe reflectionProbe = ...;
+
+// Re-enable automatic cubemap generation
+reflectionProbe->SetCustomTexture(HTexture());
+~~~~~~~~~~~~~
+
+You can query the currently assigned custom texture using @b3d::ReflectionProbe::GetCustomTexture.
+
+~~~~~~~~~~~~~{.cpp}
+HReflectionProbe reflectionProbe = ...;
+
+// Get the current custom texture
+HTexture customTexture = reflectionProbe->GetCustomTexture();
+
+if (customTexture)
+{
+    B3D_LOG(LogVerbosity::Info, LogGeneral, "Using custom reflection texture");
+}
+else
+{
+    B3D_LOG(LogVerbosity::Info, LogGeneral, "Using automatic reflection capture");
+}
 ~~~~~~~~~~~~~
 
 ## Reflection probe interpolation
