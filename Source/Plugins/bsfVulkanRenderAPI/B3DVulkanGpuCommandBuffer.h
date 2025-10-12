@@ -7,14 +7,15 @@
 #include "B3DVulkanResource.h"
 #include "B3DVulkanGpuPipelineState.h"
 #include "B3DVulkanGpuDevice.h"
+#include "B3DVulkanUtility.h"
 #include "Allocators/B3DPoolAlloc.h"
 #include "Math/B3DArea2.h"
 #include "Math/B3DArea2.h"
 #include "RenderAPI/B3DGpuDeviceCapabilities.h"
 #include "Utility/B3DDenseMap.h"
 
-#define B3D_HAZARD_TRACKING 0// B3D_BUILD_TYPE == B3D_BUILD_TYPE_DEVELOPMENT
-#define B3D_AUTOMATIC_BARRIERS 1
+#define B3D_HAZARD_TRACKING  B3D_BUILD_TYPE == B3D_BUILD_TYPE_DEVELOPMENT
+#define B3D_AUTOMATIC_BARRIERS 0
 
 namespace b3d
 {
@@ -99,6 +100,52 @@ namespace b3d
 			SPtr<VulkanGpuCommandBuffer> PrimaryCommandBuffer; /**< Primary command buffer we're submitting. This should be submitted after the destination queue transition command buffer. This submit should contain the semaphores if destination queue transition command buffer is not present. */
 			TInlineArray<VulkanSemaphore*, 8> Semaphores; /**< Semaphores that need to be waited on before executing the command buffers. */
 		};
+
+#if B3D_HAZARD_TRACKING
+		/** Keeps track on which pipelines was a resource written/read, and on which pipelines may it be safely accessed from. */
+		struct WriteHazardPipelineTracking
+		{
+			static constexpr u32 kPipelineStageCount = 16;
+
+			static constexpr VkPipelineStageFlags kAllPipelines = VK_PIPELINE_STAGE_DRAW_INDIRECT_BIT | VK_PIPELINE_STAGE_VERTEX_SHADER_BIT |
+				VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT |
+				VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT | VK_PIPELINE_STAGE_TRANSFER_BIT;
+
+			/** For each pipeline stage, stores in which pipelines is it safe to access the pipeline. */
+			std::array<VkPipelineStageFlags, kPipelineStageCount> SafeAccess;
+
+			WriteHazardPipelineTracking();
+
+			/** Clears safe access for all provided pipeline stages. */
+			void ClearStageSafeAccess(VkPipelineStageFlags stages);
+
+			/**
+			 * Adds safe access for all provided pipeline stages.
+			 *
+			 * @param	sourceStages		One or multiple stages to add the safe access to.
+			 * @param	destinationStages	Stages to register as being safe to access from.
+			 */
+			void AddStageSafeAccess(VkPipelineStageFlags sourceStages, VkPipelineStageFlags destinationStages);
+
+			/** Checks is it safe to access the resource in all the provided pipeline stages. */
+			bool IsAccessSafe(VkPipelineStageFlags stages) const;
+
+			/** Writes a descriptive error message when access is unsafe. */
+			void LogUnsafeAccess(VkPipelineStageFlags stages, GpuAccessFlags currentAccessType, GpuAccessFlags previousAccessType) const;
+		};
+
+		/** Tracking that is used for validation when memory barriers need to be issued. */
+		struct WriteHazardTracking
+		{
+			GpuAccessFlags Access; /**< Has the buffer been read or written so far. */
+
+			/** Keeps track of all pipeline stages that the resource was read from, and which of those stages can be safely accessed by a write operation (and on which stage). */
+			WriteHazardPipelineTracking ReadAccessStages;
+
+			/** Keeps track of all pipeline stages that the resource was written to, and which of those stages can be safely accessed by a read or write operation (and on which stage). */
+			WriteHazardPipelineTracking WriteAccessStages;
+		};
+#endif
 
 		/** CommandBuffer implementation for Vulkan. */
 		class VulkanGpuCommandBuffer final : public GpuCommandBuffer
@@ -424,32 +471,6 @@ namespace b3d
 				bool Used;
 				GpuAccessFlags Flags;
 			};
-
-#if B3D_HAZARD_TRACKING
-			/** Tracking that is used for validation when memory barriers need to be issued. */
-			struct WriteHazardTracking
-			{
-				GpuAccessFlags Access; /**< Has the buffer been read or written so far. */
-				
-				/**
-				 * All the stages that the buffer was being read in. These get removed when we issue a RAW barrier for particular stages. It's an error to perform a write to a buffer
-				 * in a stage that is contained here. This is because the stage may be reading a buffer that we're about to write into.
-				 */
-				VkPipelineStageFlags UnsafeReadStages = 0;
-
-				/**
-				 * All the stages that the buffer was being written in. These get removed when we issue a WAR barrier for particular stages. It's an error to perform a read or write to a buffer
-				 * in a stage that is contained here. This is because the stage may be writing a buffer that we're about to read or write.
-				 */
-				VkPipelineStageFlags UnsafeWriteStages = 0;
-
-				/** List of stages that is safe to write the buffer in. This is populated by issuing a memory barrier after a buffer read happened. */
-				VkPipelineStageFlags SafeAfterReadStages = 0;
-
-				/** List of stages that are safe to read or write the buffer in. This is populated by issuing a memory barrier after a buffer write happened. */
-				VkPipelineStageFlags SafeAfterWriteStages = 0;
-			};
-#endif
 
 			/** Describes where and how is a resource being accessed and by which stages. */
 			struct ResourcePipelineUse

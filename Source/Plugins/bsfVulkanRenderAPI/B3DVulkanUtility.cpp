@@ -932,3 +932,43 @@ u32 VulkanUtility::CalcInterfaceBlockElementSizeAndOffset(GpuDataParameterType t
 	else
 		return size;
 }
+
+const char* VulkanUtility::GetPipelineStageName(VkPipelineStageFlagBits stage)
+{
+	switch(stage)
+	{
+		case VK_PIPELINE_STAGE_DRAW_INDIRECT_BIT: return "DrawnIndirect";
+		case VK_PIPELINE_STAGE_VERTEX_INPUT_BIT: return "VertexInput";
+		case VK_PIPELINE_STAGE_VERTEX_SHADER_BIT: return "VertexShader";
+		case VK_PIPELINE_STAGE_TESSELLATION_CONTROL_SHADER_BIT: return "TessellationControlShader";
+		case VK_PIPELINE_STAGE_TESSELLATION_EVALUATION_SHADER_BIT: return "TessellationEvaluationShader";
+		case VK_PIPELINE_STAGE_GEOMETRY_SHADER_BIT: return "GeometryShader";
+		case VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT: return "FragmentShader";
+		case VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT: return "EarlyFragmentTests";
+		case VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT: return "LateFragmentTests";
+		case VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT: return "ColorAttachmentOutput";
+		case VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT: return "ComputeShader";
+		case VK_PIPELINE_STAGE_TRANSFER_BIT: return "Transfer";
+		case VK_PIPELINE_STAGE_HOST_BIT: return "Host";
+		default: return "Unknown";
+	}
+}
+
+/** Converts all bits set in VkPipelineStageFlagFlags into a list readable pipeline names that will be appended to @p output, using "|" as separator. */
+void VulkanUtility::GetPipelineStageNames(VkPipelineStageFlags stages, StringStream& output)
+{
+	bool isFirstStage = true;
+	while(stages != 0)
+	{
+		const u32 stageFlagIndex = Bitwise::LeastSignificantBit(stages);
+		const VkPipelineStageFlagBits stage = (VkPipelineStageFlagBits)(1 << stageFlagIndex);
+
+		if(!isFirstStage)
+			output << " | ";
+
+		output << GetPipelineStageName(stage);
+
+		stages &= ~(1 << stageFlagIndex);
+		isFirstStage = false;
+	}
+}

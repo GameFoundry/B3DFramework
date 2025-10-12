@@ -128,6 +128,12 @@ namespace b3d
 			 * @return						Size of the element, in multiples of 4 bytes.
 			 */
 			static u32 CalcInterfaceBlockElementSizeAndOffset(GpuDataParameterType type, u32 arraySize, u32& offset);
+
+			/** Converts a VkPipelineStageFlag to a readable string of characters representing the stage name. */
+			static const char* GetPipelineStageName(VkPipelineStageFlagBits stage);
+
+			/** Converts all bits set in VkPipelineStageFlagFlags into a list readable pipeline names that will be appended to @p output, using "|" as separator. */
+			static void GetPipelineStageNames(VkPipelineStageFlags stages, StringStream& output);
 		};
 
 		/** @} */

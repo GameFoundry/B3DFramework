@@ -318,19 +318,22 @@ namespace b3d
 			/**
 			 * Issues a memory and/or execution barrier that guarantees that the contents of GPU buffers will be correctly visible for the provided destination stages. The barrier must be issued when
 			 * performing writes to an image or a buffer. For example if writing to a buffer/image:
-			 *  - A write-after-read barrier must be issued to ensure any GPU operations reading from the buffer complete before we start writing to it
-			 *  - A read-after-write/write-after-write barrier must be issued to ensure any GPU operations writing to the buffer complete before we start reading it (or doing another wring)
+			 *  - a write-after-read barrier must be issued to ensure any GPU operations reading from the buffer complete before we start writing to it.
+			 *  - a read-after-write/write-after-write barrier must be issued to ensure any GPU operations writing to the buffer complete before we start reading it (or doing another wring).
 			 *
 			 * In certain cases the barriers are handled automatically and don't need to be issued:
 			 *  - When starting a render pass, all render pass attachments will be safe to write, provided were only used for shader reads previously
 			 *  - When ending a render pass, all render pass attachments will be safe to read by shaders, provided they were only used for attachment reads/writes
 			 *  - All transfer operations (copy, blit, resolve, clear) issue barriers under the hood when the transfer operation runs
 			 *
-			 * An example cases where you need to issue a barrier:
-			 *  - A compute shader writes to a buffer. You must issue a barrier before attempting to use the buffer for shader reads or writes.
-			 *  - A compute shader reads a buffer, then another compute shader writes a buffer. You must issue a barrier before the compute shader write, and one after, as in the above case.
-			 *  - A render target writes to an attachment, which you then use for writes in a shader.
-			 *  - A render target writes to an attachment, which you then use for writes in another render pass.
+			 * Common example cases where you need to issue a barrier:
+			 *  - A shader writes to a texture/buffer and you wish to read from that texture/buffer in the shader. You need to issue a barrier between the write and read.
+			 *  - A shader writes to a texture/buffer and you wish to write to that texture/buffer in the shader again. You need to issue a barrier between the write and write.
+			 *  - A shader reads from a texture/buffer and you wish to write to that texture/buffer. You need to issue a barrier between read and write.
+			 *  - A shader writes to a texture and you wish to use that texture as a render pass attachment. You need to issue a barrier between the write and beginning the render pass.
+			 *  - A render target writes to an attachment, which you then use one of its textures for writes in a shader. You must issue a barrier after ending the render pass and writing to the texture.
+			 *  - A render target writes to an attachment, and then another render pass writes to the same attachment. You must issue a barrier between render passes.
+			 *  - A render target writes to depth-stencil attachment, and then another render pass uses the depth-stencil attachment as a read-only attachment. You must issue a barrier between render passes.
 			 */
 			virtual void IssueBarrier(GpuResourceUseFlags sourceUsage, GpuAccessFlags sourceAccess, GpuResourceUseFlags destinationUsage, GpuAccessFlags destinationAccess) = 0;
 

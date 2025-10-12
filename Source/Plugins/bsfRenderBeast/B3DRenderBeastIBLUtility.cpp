@@ -463,16 +463,17 @@ void RenderBeastIBLUtility::FilterCubemapForIrradiance(GpuCommandBuffer& command
 		SPtr<GpuBuffer> coeffSetBuffer = shCompute->CreateOutputBuffer(cubemap, numCoeffSets);
 		for(u32 face = 0; face < 6; face++)
 		{
-			commandBuffer.IssueBarrier(GpuResourceUseFlag::Shader, GpuAccessFlag::Write, GpuResourceUseFlag::Shader, GpuAccessFlag::Write); // coeffSetBuffer, write after write
 			shCompute->Execute(commandBuffer, cubemap, face, coeffSetBuffer);
-		}
 
-		commandBuffer.IssueBarrier(GpuResourceUseFlag::Shader, GpuAccessFlag::Write, GpuResourceUseFlag::Shader, GpuAccessFlag::Read); // coeffSetBuffer, read after write
+			// Ensure we can safely write to the coefficient set buffer, after the write above
+			commandBuffer.IssueBarrier(GpuResourceUseFlag::Shader, GpuAccessFlag::Write, GpuResourceUseFlag::Shader, GpuAccessFlag::Write);
+		}
 
 		coeffTexture = shReduce->CreateOutputTexture(1);
 		shReduce->Execute(commandBuffer, coeffSetBuffer, numCoeffSets, coeffTexture, 0);
 
-		commandBuffer.IssueBarrier(GpuResourceUseFlag::Shader, GpuAccessFlag::Write, GpuResourceUseFlag::Shader, GpuAccessFlag::Read); // coeffTexture, read after write
+		// Ensure shader can read coefficient texture after the write above
+		commandBuffer.IssueBarrier(GpuResourceUseFlag::Shader, GpuAccessFlag::Write, GpuResourceUseFlag::Shader, GpuAccessFlag::Read);
 	}
 	else
 	{
