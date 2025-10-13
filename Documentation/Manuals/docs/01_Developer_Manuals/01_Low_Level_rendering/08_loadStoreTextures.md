@@ -10,31 +10,36 @@ Creation of a load-store texture is essentially the same as for normal textures,
 
 ~~~~~~~~~~~~~{.cpp}
 // Creates a 2D load-store texture, 128x128 with a 4-component 32-bit floating point format
-TEXTURE_DESC desc;
-desc.type = TEX_TYPE_2D;
-desc.width = 128;
-desc.heigth = 128;
-desc.format = PF_FLOAT32_RGBA;
-desc.usage = TU_LOADSTORE;
+TextureCreateInformation createInformation;
+createInformation.Type = TEX_TYPE_2D;
+createInformation.Width = 128;
+createInformation.Height = 128;
+createInformation.Format = PF_RGBA32F;
+createInformation.Usage = TU_LOADSTORE;
 
-SPtr<Texture> texture = Texture::create(desc);
-~~~~~~~~~~~~~ 
+SPtr<GpuDevice> gpuDevice = ...;
+SPtr<Texture> texture = gpuDevice->CreateTexture(createInformation);
+~~~~~~~~~~~~~
 
-You can then bind a load-store texture to a GPU program by calling @b3d::render::GpuParams::setLoadStoreTexture(GpuProgramType, const String&, const TextureType&, const TextureSurface&) as was described in an earlier chapter.
-
-~~~~~~~~~~~~~{.cpp}
-SPtr<GpuParams> params = ...;
-params->setLoadStoreTexture(GPT_COMPUTE_PROGRAM, "myLoadStoreTex", texture);
-~~~~~~~~~~~~~ 
-
-Load-store textures do not support sampling using sampler states, you can only read-write their pixels directly. They also do not support mip-maps, and if your texture has multiple mip-maps you must provide a @b3d::TextureSurface struct to **render::GpuParams::setLoadStoreTexture()** in order to specify which mip-level to bind (by default it is the first).
+You can then bind a load-store texture to a GPU program by calling @b3d::render::GpuParameters::SetStorageTexture as was described in an earlier chapter.
 
 ~~~~~~~~~~~~~{.cpp}
-SPtr<GpuParams> params = ...;
+SPtr<GpuParameters> parameters = ...;
+SPtr<Texture> texture = ...;
+
+TextureSurface surface = TextureSurface::kComplete;
+parameters->SetStorageTexture("myLoadStoreTex", texture, surface);
+~~~~~~~~~~~~~
+
+Load-store textures do not support sampling using sampler states, you can only read-write their pixels directly. They also do not support mip-maps, and if your texture has multiple mip-maps you must provide a @b3d::TextureSurface struct to **render::GpuParameters::SetStorageTexture()** in order to specify which mip-level to bind (by default it is the first).
+
+~~~~~~~~~~~~~{.cpp}
+SPtr<GpuParameters> parameters = ...;
+SPtr<Texture> texture = ...;
 
 TextureSurface surface;
-surface.mipLevel = 5; // Bind 5th mip-level for load-store operations
-params->setLoadStoreTexture(GPT_COMPUTE_PROGRAM, "myLoadStoreTex", texture);
-~~~~~~~~~~~~~ 
+surface.MipLevel = 5; // Bind 5th mip-level for load-store operations
+parameters->SetStorageTexture("myLoadStoreTex", texture, surface);
+~~~~~~~~~~~~~
 
 Load-store textures can also be bound as normal textures, for read-only operations like sampling. Note that they cannot be bound for both operations at once. Also note that load-store textures are not supported for 3D textures, and have limited support (depending on the rendering backend) for multisampled surfaces.

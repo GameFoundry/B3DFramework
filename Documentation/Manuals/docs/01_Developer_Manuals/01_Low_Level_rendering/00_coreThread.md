@@ -1,122 +1,90 @@
 ---
-title: Core Thread
+title: Render Thread
 ---
 
-Framework is a multi-threaded framework that has two primary threads. One is the main thread on which the application is started, this is where your game code runs and what majority of users will be working with, we call this the **simulation** thread. The second thread is the rendering thread, this is where all calls to render API (like Vulkan/DirectX/OpenGL) are made. This thread also deals with the OS (like the main message loop). We call this the **core** thread.
+Framework is a multi-threaded framework that has two primary threads. One is the main thread on which the application is started, this is where your game code runs and what majority of users will be working with, we call this the **simulation** thread. The second thread is the rendering thread, this is where all calls to render API (like Vulkan/DirectX) are made. 
 
 Various other operations can use threads other than the two primary ones (async resource loading, physics, animation, etc.) in the form of worker threads or tasks. But we won't touch on those as they act as standard threads and require no special handling.
 
-Dealing with the core thread on the other hand requires some knowledge of how it interacts with the simulation thread. The core threads deals with:
- - Render API calls (Vulkan/DirectX/OpenGL)
+Dealing with the render thread on the other hand requires some knowledge of how it interacts with the simulation thread. The render thread deals with:
+ - Render API calls (Vulkan/DirectX)
  - Renderer
- - OS functionality (window creation, main message loop)
 
-Here are some examples of when the simulation thread needs to interact with the core thread:
+Here are some examples of when the simulation thread needs to interact with the render thread:
  - You add a new renderable object to the scene. The simulation thread needs to notify the renderer.
  - You modify a property on a renderable/camera/light object. The simulation thread needs to notify the renderer.
  - You create a resource like a mesh or a texture. The simulation thread must schedule resource creation with the render API (i.e. creating vertex/index buffers for mesh, texture surfaces for texture).
  - You destroy a resource like a mesh or texture. The simulation thread must call into render API to free the GPU portions of those objects.
- - You create a new window and the simulation thread needs to schedule its creation on the core thread.
- - You resize/move a window and the simulation thread needs to notify the core thread.
- 
-As you can see the communication is one directional. Simulation thread calls into the core thread when it needs to notify it of a certain event. In rare cases the core thread needs to notify the simulation thread (e.g. when the user moves/resizes the window the simulation thread needs to be aware of the new position/size), but this is handled on a per-case basis using normal thread synchronization primitives, and we won't touch on it further.
+
+As you can see the communication is one directional. Simulation thread calls into the render thread when it needs to notify it of a certain event. In rare cases the render thread needs to notify the simulation thread (e.g. when the user moves/resizes the window the simulation thread needs to be aware of the new position/size), but this is handled on a per-case basis using normal thread synchronization primitives, and we won't touch on it further.
 
 # Command queue
-All the operations listed above happen with the help of a command queue. When simulation thread needs to notify the core thread about something it queues a command, which is then eventually received and processed by the core thread.
+All the operations listed above happen with the help of a command queue. When simulation thread needs to notify the render thread about something it queues a command, which is then eventually received and processed by the render thread.
 
-@b3d::CoreThread manages all operations on the command queues. Use @b3d::CoreThread::queueCommand to send a new command to the core thread.
+@b3d::RenderThread manages all operations on the command queue. Use @b3d::RenderThread::PostCommand to send a new command to the render thread.
 
 ~~~~~~~~~~~~~{.cpp}
-void doSomething()
+void DoSomething()
 { }
 
-// Queue doSomething method to be executed on the core thread
-GetCoreThread().queueCommand(&doSomething);
+// Queue DoSomething method to be executed on the render thread
+GetRenderThread().PostCommand(&DoSomething, "DoSomething");
 ~~~~~~~~~~~~~
 
-Note that each thread has its own internal command queue. So calling this method from different threads will fill up their separate command queues. This is important because queuing the command does not actually make it sent to the core thread yet. Instead you must submit the commands after you are done queuing.
+Commands are queued immediately and become visible to the render thread once posted. The render thread processes commands continuously as they arrive.
 
-## Submitting commands
-Commands that are queued aren't yet visible to the core thread. In order to make them visible you must call @b3d::CoreThread::submit, which will submit all the commands for the current thread's command queue. You may also call @b3d::CoreThread::submitAll to submit queues for all threads.
+## Blocking execution
+Sometimes you may need to wait for a command to complete before continuing execution on the calling thread. To do this, pass `true` as the third parameter to **RenderThread::PostCommand**. This will block the calling thread until the command finishes executing. Note that this is an expensive operation and shouldn't be done in performance critical code.
 
 ~~~~~~~~~~~~~{.cpp}
-// Submit all commands queued since the last submit call
-GetCoreThread().submit();
+// Queue a command and wait until it completes
+GetRenderThread().PostCommand(&DoSomething, "DoSomething", true);
 ~~~~~~~~~~~~~
-
-By default commands are also submitted automatically at the end of every frame, just before rendering. Therefore normally you do not need to submit commands manually.
-
-The most common case for submitting commands manually is when you need the results of the command right away. In such a case you can call **CoreThread::submit()** or **CoreThread::submitAll()** with the parameter `blockUntilComplete` set to true. This will block the calling thread until the command finishes executing. Note that this is an expensive operation and shouldn't be done in performance critical code.
-
-~~~~~~~~~~~~~{.cpp}
-// Submit all commands queued since the last submit call and wait until they're done executing
-GetCoreThread().submit(true);
-~~~~~~~~~~~~~
-
-## Internal queue
-Internal command queue is different from the per-thread command queues because that's the only command queue that the core thread actually sees. For example, when you call **CoreThread::submit()** the system takes all the commands from the per-thread command queue and moves them to the internal command queue, making them visible to the core thread.
-
-You may directly queue commands on the internal command queue by calling **CoreThread::queueCommand()** with the @b3d::CTQF_InternalQueue flag. When such a command is submitted it is immediately visible to the core thread and does not require a separate call to **CoreThread::submit()**. 
-
-If you wish to block the calling thread until the internally queued command finishes executing you may provide the @b3d::CTQF_BlockUntilComplete flag.
-
-~~~~~~~~~~~~~{.cpp}
-void doSomething()
-{ }
-
-// Submit a command directly on the internal queue
-GetCoreThread().queueCommand(&doSomething, CTQF_InternalQueue);
-~~~~~~~~~~~~~
-
-There is only one internal command queue, so different threads can write to it in an interleaved manner, unlike with per-thread queues. Note that internal command queue is slower than per-thread queues and you should prefer them instead.
-
-Also note that since commands queued on the internal command queue are seen by the core thread immediately, they will execute before commands previously queued on per-thread queues, unless they were submitted before you queued the command on the internal queue.
 
 ## Returning values
-Sometimes a queued command needs to return a value to the simulation thread (for example, when reading pixels from a texture). This can be performed by calling @b3d::CoreThread::queueReturnCommand. Aside from the return value it operates in the same manner as **CoreThread::queueCommand()**.
-
-Since we don't know when will the core thread execute a queued command, we have no guarantees when will its return value be available. Therefore this method will return an @b3d::AsyncOp object. This object can be used for checking if the return value is available by calling @b3d::AsyncOp::hasCompleted. If the return value is available you can retrieve it via @b3d::AsyncOp::getReturnValue<T>.
+Sometimes a queued command needs to return a value to the simulation thread (for example, when reading pixels from a texture). You can use @b3d::AsyncOp to handle this. The command callback should call @b3d::AsyncOp::CompleteOperation when done, and the calling thread can check if the operation has completed via @b3d::AsyncOp::HasCompleted or block until completion using @b3d::AsyncOp::BlockUntilComplete.
 
 ~~~~~~~~~~~~~{.cpp}
-void doSomethingAndReturn(AsyncOp& asyncOp)
+void DoSomethingAndReturn(AsyncOp& asyncOperation)
 {
 	int result = 5 + 3;
-	asyncOp._completeOperation(result);
+	asyncOperation.CompleteOperation(result);
 }
 
-AsyncOp asyncOp = GetCoreThread().queueReturnCommand(&doSomethingAndReturn);
-GetCoreThread().submit();
-
-// do something ...
-
-if(asyncOp.hasCompleted()) // Or just block until done, as mentioned below
+AsyncOp asyncOperation;
+GetRenderThread().PostCommand([asyncOperation]()
 {
-	String valueStr = toString(asyncOp.getReturnValue<int>());
-	GetDebug().logWarning("Returned value: " + valueStr);
+	DoSomethingAndReturn(asyncOperation);
+}, "DoSomethingAndReturn");
+
+// Do something else...
+
+if(asyncOperation.HasCompleted())
+{
+	String valueString = ToString(asyncOperation.GetReturnValue<int>());
+	B3D_LOG(Warning, Uncategorized, "Returned value: {0}", valueString);
 }
 ~~~~~~~~~~~~~
 
-As seen in the example, the callback method must accept an **AsyncOp** parameter, and set its data when done by calling @b3d::AsyncOp::_completeOperation().
-
-**AsyncOp** also allows you to block the calling thread by calling @b3d::AsyncOp::blockUntilComplete. This is similar to blocking directly on the **CoreThread::submit()** or **CoreThread::queueReturnCommand()** calls, but can be more useful if you're not immediately sure if you need to wait for the result or not.
+**AsyncOp** also allows you to block the calling thread by calling @b3d::AsyncOp::BlockUntilComplete. This is similar to blocking directly on the **RenderThread::PostCommand()** call, but can be more useful if you're not immediately sure if you need to wait for the result or not.
 
 # Core objects
-Core objects are objects that need to exist on both simulation and core threads. Although you could technically handle such cases manually by using the command queue, it is useful to provide an interface that allows the user to work normally with an object without needing to know about the threading internals, and this is where core objects come in.
+Core objects are objects that need to exist on both simulation and render threads. Although you could technically handle such cases manually by using the command queue, it is useful to provide an interface that allows the user to work normally with an object without needing to know about the threading internals, and this is where core objects come in.
 
-For example, a @b3d::Mesh is a core object because we want to allow the user to intuitively work with it on the simulation thread (without having to know about command queues or the core thread), but we also want to use it on the core thread (it needs to create index/vertex buffers on the GPU, and have a Vulkan/DirectX/OpenGL representation that can be used by the renderer).
+For example, a @b3d::Mesh is a core object because we want to allow the user to intuitively work with it on the simulation thread (without having to know about command queues or the render thread), but we also want to use it on the render thread (it needs to create index/vertex buffers on the GPU, and have a Vulkan/DirectX representation that can be used by the renderer).
 
 Every core object is split into two interfaces:
  - @b3d::CoreObject - Implementations of this interface represents the simulation thread counterpart of the object.
- - @b3d::render::CoreObject - Implementations of this interface represents the core thread counterpart of the object.
-  
-When a **CoreObject** is created it internally queues the creation of its **render::CoreObject** counterpart on the command queue. Similar thing happens when it is destroyed, a destroy operation is queued and sent to the core thread. 
+ - @b3d::render::RenderProxy - Implementations of this interface represents the render thread counterpart of the object.
 
-Aside from initialization/destruction, core objects also support synchronization of data between the two threads (e.g. a @b3d::Light is a core object, and when the user changes light radius, it is automatically synchronized to its core thread counterpart @b3d::render::Light). We talk more about this later.
+When a **CoreObject** is created it internally queues the creation of its **render::RenderProxy** counterpart on the command queue. Similar thing happens when it is destroyed, a destroy operation is queued and sent to the render thread.
 
-Both core thread counterpart class objects have the same name (e.g. **Mesh** or **Light**), but the core-thread counterpart is in the *render* namespace. In fact, most classes meant to be used on the core thread (core objects or not), will be in the *ct* namespace.
+Aside from initialization/destruction, core objects also support synchronization of data between the two threads (e.g. a @b3d::Light is a core object, and when the user changes light radius, it is automatically synchronized to its render thread counterpart @b3d::render::Light). We talk more about this later.
+
+Both core thread counterpart class objects have the same name (e.g. **Mesh** or **Light**), but the render thread counterpart is in the *render* namespace. In fact, most classes meant to be used on the render thread (core objects or not), will be in the *render* namespace.
 
 ## Creating your own core objects
-To create a custom core object, you need to implement the **CoreObject** class, and its core thread counterpart **render::CoreObject**.
+To create a custom core object, you need to implement the **CoreObject** class, and its render thread counterpart **render::RenderProxy**.
 
 ~~~~~~~~~~~~~{.cpp}
 class MyCoreObject : public CoreObject
@@ -126,7 +94,7 @@ class MyCoreObject : public CoreObject
 
 namespace render
 {
-	class MyCoreObject : public CoreObject
+	class MyCoreObject : public RenderProxy
 	{
 		// ...
 	};
@@ -135,100 +103,147 @@ namespace render
 
 > Note that usually you want these two classes to share data and functionality (at least somewhat), and therefore you'll want to use base classes or templates to avoid redundant code.
 
-At minimum the **CoreThread** implementation requires an implementation of the @b3d::CoreObject::createCore method, which creates and returns the core-thread counterpart of the object.
+At minimum the **CoreObject** implementation requires an implementation of the @b3d::CoreObject::CreateRenderProxy method, which creates and returns the render thread counterpart of the object.
 
 ~~~~~~~~~~~~~{.cpp}
 class MyCoreObject : public CoreObject
 {
-	SPtr<render::CoreObject> createCore() override const 
-	{ 
-		SPtr<render::MyCoreObject> ptr = B3DMakeShared<render::MyCoreObject>();
-		ptr->_setThisPtr(ptr);
-		
-		return ptr; 
+	SPtr<render::RenderProxy> CreateRenderProxy() const override
+	{
+		render::MyCoreObject* renderProxy = new (B3DAllocate<render::MyCoreObject>()) render::MyCoreObject();
+		SPtr<render::MyCoreObject> renderProxyShared = B3DMakeSharedFromExisting<render::MyCoreObject>(renderProxy);
+		renderProxyShared->SetShared(renderProxyShared);
+
+		return renderProxyShared;
 	}
 };
 ~~~~~~~~~~~~~
 
-When creating your core object it's important to note they require specific initialization steps. As seen in the example, **render::CoreObject** implementation needs to be created as a normal shared pointer, and the pointer instance must be assigned after creation by calling @b3d::render::CoreObject::_setThisPtr.
+When creating your core object it's important to note they require specific initialization steps. As seen in the example, **render::RenderProxy** implementation needs to be created using placement new with **B3DAllocate**, then wrapped in a shared pointer using **B3DMakeSharedFromExisting**, and the pointer instance must be assigned after creation by calling @b3d::render::RenderProxy::SetShared.
 
-For **CoreObject** implementation additional rules apply. Its shared pointer must be created using @b3d::B3DMakeCoreFromExisting<T> method, followed by a call to @b3d::CoreObject::_setThisPtr and finally a call to @b3d::CoreObject::initialize. Due to the complex initialization procedure it is always suggested that you create a static `create` method that does these steps automatically. In fact **CoreObject** constructor is by default protected so you cannot accidently create it incorrectly.
+For **CoreObject** implementation additional rules apply. Its shared pointer must be created using @b3d::B3DMakeSharedFromExisting<T> method, followed by a call to @b3d::CoreObject::SetShared and finally a call to @b3d::CoreObject::Initialize. Due to the complex initialization procedure it is always suggested that you create a static `Create` method that does these steps automatically. In fact **CoreObject** constructor is by default protected so you cannot accidently create it incorrectly.
 
 ~~~~~~~~~~~~~{.cpp}
-SPtr<MyCoreObject> MyCoreObject::create()
+SPtr<MyCoreObject> MyCoreObject::Create()
 {
 	// Because of the protected constructor we need to use placement new operator
-	MyCoreObject* ptr = new (B3DAllocate<MyCoreObject>()) MyCoreObject();
+	MyCoreObject* object = new (B3DAllocate<MyCoreObject>()) MyCoreObject();
 
-	SPtr<MyCoreObject> sptr = B3DMakeCoreFromExisting<MyCoreObject>(ptr);
-	sptr->_setThisPtr(sptr);
-	sptr->initialize();
-	
-	return sptr;
+	SPtr<MyCoreObject> sharedPointer = B3DMakeSharedFromExisting<MyCoreObject>(object);
+	sharedPointer->SetShared(sharedPointer);
+	sharedPointer->Initialize();
+
+	return sharedPointer;
 }
 ~~~~~~~~~~~~~
 
-Once a core object is created you can use it as a normal object, while you can retrieve its core thread counterpart by calling @b3d::CoreObject::getCore, which you can use on the core thread (e.g. when calling **CoreThread::queueCommand()**). Object creation/destruction will happen automatically on the valid thread, and you also get the ability to synchronize information between the two (see below).
+Once a core object is created you can use it as a normal object, while you can retrieve its render thread counterpart by calling @b3d::CoreObject::GetRenderProxy, which you can use on the render thread (e.g. when calling **RenderThread::PostCommand()**). Object creation/destruction will happen automatically on the valid thread, and you also get the ability to synchronize information between the two (see below).
 
-### render::CoreObject initialization
-When creating the core thread counterpart object **render::CoreObject** it is important to perform any initialization in the @b3d::CoreObject::initialize method instead of the constructor. This is because the constructor will be executed on the simulation thread, but **CoreObject::initialize()** will be executed on the core thread.
+### render::RenderProxy initialization
+When creating the render thread counterpart object **render::RenderProxy** it is important to perform any initialization in the @b3d::render::RenderProxy::Initialize method instead of the constructor. This is because the constructor will be executed on the simulation thread, but **RenderProxy::Initialize()** will be executed on the render thread.
 
-The destructor is always assumed to be executed on the core thread. For this reason you must ensure never to store references to **render::CoreObject** on the simulation thread, because if they go out of scope there it will trigger an error. Similar rule applies to **CoreObject** as it shouldn't be stored on the core thread.
+The destructor is always assumed to be executed on the render thread. For this reason you must ensure never to store references to **render::RenderProxy** on the simulation thread, because if they go out of scope there it will trigger an error. Similar rule applies to **CoreObject** as it shouldn't be stored on the render thread.
 
 ### Synchronization
-Earlier we mentioned that aside from handling construction/destruction the core objects also provide a way to synchronize between the two threads. The synchronization is always one way, from **CoreObject** to **render::CoreObject**. 
+Earlier we mentioned that aside from handling construction/destruction the core objects also provide a way to synchronize between the two threads. The synchronization is always one way, from **CoreObject** to **render::RenderProxy**.
 
-Synchronization should happen whenever some property on the **CoreObject** changes, that you would wish to make available on the core thread (e.g. a radius of a light source). To synchronize implement the @b3d::CoreObject::syncToCore(FrameAlloc*) method, which generates the data for synchronization, and @b3d::render::CoreObject::syncToCore which accepts it.
+Synchronization should happen whenever some property on the **CoreObject** changes, that you would wish to make available on the render thread (e.g. a radius of a light source). To synchronize implement the @b3d::CoreObject::CreateRenderProxySyncPacket method, which generates a data packet for synchronization, and @b3d::render::RenderProxy::SyncFromCoreObject which applies it.
 
-The synchronized data is transfered between the objects in the form of raw bytes, within the @b3d::CoreSyncData structure. For convenience you can use @b3d::B3DRTTISize and @b3d::B3DRTTIWrite to encode fields into raw memory, and @b3d::B3DRTTIRead to decode them. These are explained in more detail in the [advanced RTTI manual](../../User_Manuals/advancedRtti).
+The synchronized data is transferred between the objects via a @b3d::RenderProxySyncPacket structure. For convenience the engine provides a set of macros to make defining sync packets easier: @b3d::B3D_SYNC_BLOCK_BEGIN, @b3d::B3D_SYNC_BLOCK_ENTRY, and @b3d::B3D_SYNC_BLOCK_END.
 
-**CoreObject::syncToCore()** is provided an instance of @b3d::FrameAlloc which should be used for allocating the serialization buffer. This is an allocator that is fast and doesn't require explicit memory deallocation making it perfect for synchronization. A simple synchronization example would look like so:
+Here's an example of how to define a sync packet:
+
 ~~~~~~~~~~~~~{.cpp}
-// CoreObject (creates the synchronization data)
-CoreSyncData MyCoreObject::syncToCore(FrameAlloc* allocator) 
+// In the header file, declare the sync packet structure
+class MyCoreObject : public CoreObject
 {
-	uint32_t size = 0;
-	size += B3DRTTISize(mField1);
-	size += B3DRTTISize(mField2);
+	struct FullSyncPacket; // Forward declaration
 
-	uint8_t* buffer = allocator->alloc(size);
-	Bitstream stream(buffer, size);
+	// ...
+private:
+	int mField1;
+	float mField2;
+};
 
-	B3DRTTIWrite(mField1, stream);
-	B3DRTTIWrite(mField2, stream);
+namespace render
+{
+	class MyCoreObject : public RenderProxy
+	{
+		friend class b3d::MyCoreObject;
 
-	return CoreSyncData(buffer, size);
+		// ...
+	private:
+		int mField1;
+		float mField2;
+	};
 }
 
-// render::CoreObject (receives the synchronization data)
-void MyCoreObject::syncToCore(const CoreSyncData& data) 
+// In the cpp file, define the sync packet using macros
+B3D_SYNC_BLOCK_BEGIN(MyCoreObject, FullSyncPacket)
+	B3D_SYNC_BLOCK_ENTRY(mField1)
+	B3D_SYNC_BLOCK_ENTRY(mField2)
+B3D_SYNC_BLOCK_END
+~~~~~~~~~~~~~
+
+The sync packet definition creates a structure that automatically copies fields from the source object (simulation thread) and can apply them to the destination object (render thread). The packet data is allocated using a fast frame allocator that doesn't require explicit deallocation.
+
+To use the sync packet, implement **CoreObject::CreateRenderProxySyncPacket** and **RenderProxy::SyncFromCoreObject**:
+
+~~~~~~~~~~~~~{.cpp}
+// CoreObject (creates the synchronization data)
+RenderProxySyncPacket* MyCoreObject::CreateRenderProxySyncPacket(FrameAllocator& allocator, u32 flags)
 {
-	Bitstream stream(data.getBuffer(), data.getBufferSize());
-	B3DRTTIRead(mField1, stream);
-	B3DRTTIRead(mField2, stream); 
-	
+	FullSyncPacket* syncPacket = allocator.Construct<FullSyncPacket>(*this, allocator, flags);
+	return syncPacket;
+}
+
+// render::RenderProxy (receives the synchronization data)
+void MyCoreObject::SyncFromCoreObject(const CoreSyncData& data, FrameAllocator& allocator)
+{
+	RenderProxySyncPacket* syncPacket = data.GetSyncPacket();
+	if(syncPacket == nullptr)
+		return;
+
+	syncPacket->ApplySyncData(this);
+
 	// Potentially trigger something depending on new data
 }
 ~~~~~~~~~~~~~
 
-Whenever you need to trigger synchronization you must call @b3d::CoreObject::markCoreDirty which notifies the system that synchronization is required. This will in turn trigger a call to **CoreObject::syncToCore** method you implemented earlier. Synchronization happens automatically for all dirty core objects once per frame. Optionally you may call @b3d::CoreObject::syncToCore() to manually queue the synchronization on the per-thread command queue.
+Whenever you need to trigger synchronization you must call @b3d::CoreObject::MarkRenderProxyDataDirty which notifies the system that synchronization is required. This will in turn trigger a call to **CoreObject::CreateRenderProxySyncPacket** method you implemented earlier. Synchronization happens automatically for all dirty core objects once per frame. Optionally you may call @b3d::CoreObject::SyncToRenderProxy() to manually queue the synchronization immediately.
+
+~~~~~~~~~~~~~{.cpp}
+void MyCoreObject::SetField1(int value)
+{
+	mField1 = value;
+	MarkRenderProxyDataDirty(); // Schedule sync to render thread
+}
+~~~~~~~~~~~~~
+
+The sync packet macros support several variants:
+ - **B3D_SYNC_BLOCK_ENTRY** - Automatically syncs a field that exists in both objects
+ - **B3D_SYNC_BLOCK_ENTRY_CUSTOM_SETTER** - Field is automatically read from source but must be manually applied to destination
+ - **B3D_SYNC_BLOCK_ENTRY_CUSTOM_GETTER** - Field must be manually populated in packet but is automatically applied to destination
+ - **B3D_SYNC_BLOCK_ENTRY_CUSTOM** - Field must be manually populated and applied
 
 ### Dependencies
 Core objects might be dependant on other core objects. For example a @b3d::Material is dependant on a @b3d::Shader. Whenever the shader's object is marked as dirty the material might need to perform synchronization as well. In general whenever a dependency core object is marked as dirty, its dependant will be synchronized as well.
 
-To add dependencies implement the @b3d::CoreObject::getCoreDependencies method, which returns all currently valid dependencies. Whenever the dependencies change call @b3d::CoreObject::markDependenciesDirty so the system can refresh its dependency list.
+To add dependencies implement the @b3d::CoreObject::GetCoreDependencies method, which populates a provided array with all currently valid dependencies. Whenever the dependencies change call @b3d::CoreObject::MarkDependenciesDirty so the system can refresh its dependency list.
+
+You can also optionally override @b3d::CoreObject::OnDependencyDirty to customize behavior when a dependency is marked dirty, allowing fine-grained control over which dirty flags should propagate to the dependent object.
 
 ## Deserialization
 When creating RTTI for a **CoreObject** you must take care not to fully initialize the object until deserialization of the object's fields is done.
 
-Essentially this means that @b3d::RTTITypeBase::newRTTIObject must return a pointer to the core object on which **CoreObject::initialize()** hasn't been called yet. You must then call **CoreObject::initialize()** manually in @b3d::RTTITypeBase::onDeserializationEnded.
+Essentially this means that @b3d::RTTITypeBase::NewRttiObject must return a pointer to the core object on which **CoreObject::Initialize()** hasn't been called yet. You must then call **CoreObject::Initialize()** manually in @b3d::RTTIType::OnOperationEnded.
 
-This ensures that all information was properly deserialized before **CoreObject::initialize()** is ran.
+This ensures that all information was properly deserialized before **CoreObject::Initialize()** is ran.
 
 ## Other features
 Core objects also have some other potentially useful features:
- - @b3d::CoreObject::getInternalID will return a globally unique ID for the core object
- - @b3d::CoreObject::destroy will destroy the core object and its core thread counterpart. You do not need to call this manually as it will be automatically called when the object goes out of scope (is no longer referenced). The core thread counterpart will not be destroyed if something on the core thread is still holding a reference to it.
- - Override @b3d::CoreObject::initialize or @b3d::CoreObject::destroy methods instead of using the constructor/destructor. This ensures that your initialization code runs after things like serialization, and also allows you to call virtual methods.
- - You can construct a core object without a core thread counterpart. Simply don't override @b3d::CoreObject::createCore. This is useful when creating resources, which all by default derive from **CoreObject** but simpler resources might not require core object features.
- - Core objects always hold a shared pointer to themselves. Use @b3d::CoreObject::getThisPtr to access it.
+ - @b3d::CoreObject::GetInternalId will return a globally unique ID for the core object
+ - @b3d::CoreObject::Destroy will destroy the core object and its render thread counterpart. You do not need to call this manually as it will be automatically called when the object goes out of scope (is no longer referenced). The render thread counterpart will not be destroyed if something on the render thread is still holding a reference to it.
+ - Override @b3d::CoreObject::Initialize or @b3d::CoreObject::Destroy methods instead of using the constructor/destructor. This ensures that your initialization code runs after things like serialization, and also allows you to call virtual methods.
+ - You can construct a core object without a render thread counterpart by passing `false` to the **CoreObject** constructor. Simply don't override @b3d::CoreObject::CreateRenderProxy. This is useful when creating resources, which all by default derive from **CoreObject** but simpler resources might not require render proxy features.
+ - Core objects always hold a shared pointer to themselves. Use @b3d::CoreObject::GetShared to access it.

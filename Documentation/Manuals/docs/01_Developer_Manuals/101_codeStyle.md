@@ -18,19 +18,19 @@ When making changes or additions that you plan on contributing to `bsf`, you mus
  - Conditionals or loops that have just one line should omit the brackets
   
 **Naming**
- - Methods, public fields and local variables must be in camelCase with first letter as lowercase (e.g. `void myMethod(); int myVar;`).
+ - Methods and functions must use Capital case with first letter as uppercase (e.g. `void MyMethod(); int GetValue();`).
+ - Local variables must be in camelCase with first letter as lowercase (e.g. `int myVar; const T squaredLength;`).
+ - Public fields in classes/structs must use Capital case with first letter as uppercase (e.g. `int X; bool IsCompleted;`).
  - Class/struct/enum names must be in PascalCase with first letter as uppercase (e.g. `class MyClass`).
  - Non-public class/struct fields should be prefixed with `m`, followed by a capital first letter (e.g. `int mClassMemberField;`).
- - Non-constant global variables and methods should be prefixed with an `g`, followed by a capital first letter (e.g. `const Application& GetApplication();`).
- - Constant global variables should be written in all caps with underscores separating the words (e.g. `int NUM_ELEMENTS = 5;`).
+ - Non-constant global variables and methods should be prefixed with `g`, followed by a capital first letter (e.g. `const Application& GetApplication();`).
+ - Constant variables (both global and class members) should be prefixed with `k`, followed by a capital first letter (e.g. `static const Vector3 kZero; const T kSquareZero = 1e-06;`).
  - Macros should be written in all caps with underscores separating the words, and prefixed with `B3D_` (e.g. `#define B3D_EXCEPT`).
- - Static non-constant variables should be prefixed with an `s`, followed by a capital first letter (e.g. `bool sIsInitialized;`).
- - Static constant variables should be written in all caps with underscores separating the words (e.g. `int NUM_ELEMENTS = 5;`).
+ - Static non-constant variables should be prefixed with `s`, followed by a capital first letter (e.g. `bool sIsInitialized;`).
  - Everything needs to be part of the `b3d` namespace
-   - Types used primarily on the core thread should be part of the `b3d::render` namespace
+   - Types used primarily on the render thread should be part of the `b3d::render` namespace
  - Use `Base` suffix to mark base classes unless a more generalized name is more appropriate (e.g. `MeshBase`)
  - Prefix templated base classes/structs with a `T` unless a more generalized name is more appropriate (e.g. `TAsyncOp<...>`)
- - Use `C` prefix for component implementations (e.g. `CMyComponent`)
  - Use `H` prefix for component and resource handles (e.g. `HMyComponent`)
  
 **Class interface**
@@ -94,5 +94,5 @@ When making changes or additions that you plan on contributing to `bsf`, you mus
    - Classes/structs/functions/enums that aren't meant to be used by normal users should be placed in a separate group to avoid polluting the user-facing documentation (e.g. user-facing physics functionality should be in the "Physics" group, while non-user-facing should be in "Physics_Internal" group)
  - Use `@name Internal` to mark public methods inside a class that they are not meant for normal use (i.e. they might be used for internal communication within a sub-system only)
  - Documentation should produce no Doxygen warnings when it is generated
- - If it is not obvious for which thread is a class/method meant to be used on, note it in the documentation
+ - If it is not obvious for which thread is a class/method meant to be used on, note it in the documentation (use "render thread" or "simulation thread" terminology)
  
