@@ -159,7 +159,7 @@ void SchedulerThread::Start()
 
 	switch (mMode)
 	{
-		case Mode::MultiThreaded:
+		case Mode::Internal:
 		{
 			auto& affinityPolicy = mOwnerScheduler->GetInformation().AffinityPolicy;
 			auto affinity = affinityPolicy->GetMaskForThread(Id);
@@ -192,7 +192,7 @@ void SchedulerThread::Start()
 
 			break;
 		}
-		case Mode::SingleThreaded:
+		case Mode::External:
 		{
 			Current = shared_from_this();
 			mMainFiber = Fiber::CreateFromCurrentThread(0);
@@ -213,13 +213,13 @@ void SchedulerThread::Stop()
 
 	switch (mMode)
 	{
-		case Mode::MultiThreaded:
+		case Mode::Internal:
 		{
 			Enqueue(SchedulerTask([this] { mIsShutdownRequested = true; }, SchedulerTaskFlag::SameThread));
 			mThread.WaitUntilComplete();
 			break;
 		}
-		case Mode::SingleThreaded:
+		case Mode::External:
 		{
 			Lock lock(mMutex);
 			mIsShutdownRequested = true;
@@ -421,7 +421,7 @@ void SchedulerThread::WaitOnAddedSignal(const Function<bool()>& predicate)
 
 void SchedulerThread::Run()
 {
-	if (mMode == Mode::MultiThreaded)
+	if (mMode == Mode::Internal)
 	{
 		auto fnWaitCondition = [this]() { return mReadyOperationCount > 0 || mWaitingFibers || mIsShutdownRequested; };
 
@@ -450,7 +450,7 @@ void SchedulerThread::WaitForWork()
 	if (mReadyOperationCount > 0)
 		return;
 
-	if (mMode == Mode::MultiThreaded)
+	if (mMode == Mode::Internal)
 	{
 		mOwnerScheduler->NotifyOnBeginSpinning(Id);
 
@@ -579,22 +579,42 @@ void SchedulerThread::SwitchExecutionToFiber(Fiber* to)
 
 thread_local Scheduler* Scheduler::Current{ nullptr };
 
-void Scheduler::BindToCurrentThread()
+u32 Scheduler::BindToCurrentThread()
 {
-	B3D_ASSERT(Get() == nullptr && "Scheduler already bound to this thread.");
+	if (Get() != nullptr)
+	{
+		B3D_ASSERT(false && "Scheduler already bound to this thread");
+		return ~0u;
+	}
 
 	Current = this;
 
+	Lock lock(mWorkerThreadsMutex);
+
+	// Assign worker ID
+	u32 workerId = mNextExternalWorkerId++;
+
+	// Create scheduler thread wrapper for this external thread
+	SPtr<SchedulerThread> schedulerThread = B3DMakeShared<SchedulerThread>(
+		this, SchedulerThread::Mode::External, workerId);
+	schedulerThread->Start();
+
+	mWorkerThreads.Add(schedulerThread);
+	mExternalThreadCount++;
+
+	return workerId;
+}
+
+void Scheduler::ProcessTasksOnCurrentThread()
+{
+	const SPtr<SchedulerThread>& thread = SchedulerThread::Get();
+	if (!B3D_ENSURE(thread != nullptr))
 	{
-		Lock lock(mSingleThreadWorkerMutex);
-		B3D_ASSERT(mSingleThreadWorker == nullptr);
-
-		SPtr<SchedulerThread> schedulerThread = b3d::B3DMakeShared<SchedulerThread>(this, SchedulerThread::Mode::SingleThreaded, ~0u);
-		schedulerThread->Start();
-
-		mSingleThreadWorkerThreadId = std::this_thread::get_id();
-		mSingleThreadWorker = schedulerThread;
+		B3D_LOG(Error, Generic, "ProcessTasks() called on a thread not bound to any scheduler");
+		return;
 	}
+
+	thread->RunUntilIdle();
 }
 
 void Scheduler::UnbindFromCurrentThread()
@@ -605,14 +625,16 @@ void Scheduler::UnbindFromCurrentThread()
 	schedulerThread->Stop();
 
 	{
-		Lock lock(Get()->mSingleThreadWorkerMutex);
+		Lock lock(Get()->mWorkerThreadsMutex);
 
-		const std::thread::id threadId = std::this_thread::get_id();
-		B3D_ASSERT(Get()->mSingleThreadWorkerThreadId == threadId);
-		B3D_ASSERT(Get()->mSingleThreadWorker == schedulerThread && "Scheduler running a single threaded worker that is not currently bound.");
+		// Remove this thread from the worker list
+		Get()->mWorkerThreads.RemoveValue(schedulerThread);
 
-		Get()->mSingleThreadWorker = nullptr;
-		Get()->mSingleThreadWorkerUnbindSignal.notify_one();
+		// Decrement external thread count
+		Get()->mExternalThreadCount--;
+
+		// Notify destructor that an external thread has unbound
+		Get()->mExternalThreadsUnbindSignal.notify_one();
 	}
 
 	Current = nullptr;
@@ -621,11 +643,17 @@ void Scheduler::UnbindFromCurrentThread()
 Scheduler::Scheduler(const SchedulerCreateInformation& createInformation)
 	: mInformation(createInformation)
 {
-	for (size_t i = 0; i < mSpinningWorkers.size(); i++) {
+	// Initialize external worker ID counter to start after internal threads
+	mNextExternalWorkerId = mInformation.InternalWorkerThreadCount;
+
+	for (size_t i = 0; i < mSpinningWorkers.size(); i++)
 		mSpinningWorkers[i] = ~0u;
+
+	for (u32 i = 0; i < mInformation.InternalWorkerThreadCount; i++)
+	{
+		mWorkerThreads.Add(B3DMakeShared<SchedulerThread>(this, SchedulerThread::Mode::Internal, i));
+		mInternalWorkerIndices.Add(i);
 	}
-	for (u32 i = 0; i < mInformation.WorkerThreadCount; i++)
-		mWorkerThreads.push_back(B3DMakeShared<SchedulerThread>(this, SchedulerThread::Mode::MultiThreaded, i));
 
 	for(auto& thread : mWorkerThreads)
 		thread->Start();
@@ -634,15 +662,15 @@ Scheduler::Scheduler(const SchedulerCreateInformation& createInformation)
 Scheduler::~Scheduler()
 {
 	{
-		// Wait until the single threaded worker has been unbound.
-		Lock lock(mSingleThreadWorkerMutex);
-		mSingleThreadWorkerUnbindSignal.wait(lock, [this]() { return mSingleThreadWorker == nullptr; });
+		// Wait until all external threads have unbound
+		Lock lock(mWorkerThreadsMutex);
+		mExternalThreadsUnbindSignal.wait(lock, [this]() { return mExternalThreadCount == 0; });
 	}
 
-	// Release all worker threads.
-	// This will wait for all in-flight tasks to complete before returning.
-	for(auto& thread : mWorkerThreads)
-		thread->Stop();
+	// Stop all internal worker threads
+	// This will wait for all in-flight tasks to complete before returning
+	for(u32 i = 0; i < mInformation.InternalWorkerThreadCount; i++)
+		mWorkerThreads[i]->Stop();
 }
 
 void Scheduler::Post(SchedulerTask&& task)
@@ -653,53 +681,73 @@ void Scheduler::Post(SchedulerTask&& task)
 		return;
 	}
 
-	if (mInformation.WorkerThreadCount > 0)
-	{
-		while (true)
-		{
-			// Prioritize workers that have recently started spinning.
-			u32 index = --mNextSpinningWorkerIndex % mSpinningWorkers.size();
-			u32 workerId = mSpinningWorkers[index].exchange(~0u);
-			if (workerId == ~0u)
-			{
-				// If a spinning worker couldn't be found, round-robin the workers.
-				workerId = mNextEnqueueIndex++ % mInformation.WorkerThreadCount;
-			}
+	Lock lock(mWorkerThreadsMutex);
+	const u32 workerCount = static_cast<u32>(mWorkerThreads.Size());
 
-			const SPtr<SchedulerThread>& worker = mWorkerThreads[workerId];
-			if (worker->TryLockForEnqueue())
-			{
-				worker->EnqueueAndUnlock(std::move(task));
-				return;
-			}
-		}
-	}
-	else
+	if (workerCount == 0)
 	{
-		mSingleThreadWorkerMutex.lock();
-		if (auto worker = mSingleThreadWorker)
+		B3D_ASSERT(false &&"No threads bound to the scheduler. Did you call Scheduler::BindToCurrentThread()?");
+		return;
+	}
+
+	lock.unlock();
+
+	// Try to enqueue to a worker thread
+	while (true)
+	{
+		// Prioritize workers that have recently started spinning
+		u32 index = --mNextSpinningWorkerIndex % mSpinningWorkers.size();
+		u32 workerId = mSpinningWorkers[index].exchange(~0u);
+		if (workerId == ~0u)
 		{
-			mSingleThreadWorkerMutex.unlock();
-			worker->Enqueue(std::move(task));
+			// If a spinning worker couldn't be found, round-robin the workers
+			workerId = mNextEnqueueIndex++ % workerCount;
 		}
 		else
 		{
-			mSingleThreadWorkerMutex.unlock();
-			B3D_EXCEPT(InvalidStateException, "No thread bound to the scheduler. Did you call Scheduler::BindToCurrentThread()?");
+			// Ensure the worker ID is valid (spinning worker may have unbound)
+			if (workerId >= workerCount)
+				workerId = mNextEnqueueIndex++ % workerCount;
+		}
+
+		lock.lock();
+		if (workerId >= mWorkerThreads.Size())
+		{
+			// Worker was removed, try again
+			lock.unlock();
+			continue;
+		}
+
+		const SPtr<SchedulerThread>& worker = mWorkerThreads[workerId];
+		lock.unlock();
+
+		if (worker->TryLockForEnqueue())
+		{
+			worker->EnqueueAndUnlock(std::move(task));
+			return;
 		}
 	}
 }
 
 bool Scheduler::TryStealWork(SchedulerThread* thief, u32 random, SchedulerTask& out)
 {
-	if (mInformation.WorkerThreadCount > 0)
+	Lock lock(mWorkerThreadsMutex);
+	const u32 workerCount = static_cast<u32>(mWorkerThreads.Size());
+
+	if (workerCount == 0)
+		return false;
+
+	const u32 targetIndex = random % workerCount;
+	if (targetIndex >= mWorkerThreads.Size())
+		return false;
+
+	auto thread = mWorkerThreads[targetIndex].get();
+	lock.unlock();
+
+	if (thread != thief)
 	{
-		auto thread = mWorkerThreads[random % mInformation.WorkerThreadCount].get();
-		if (thread != thief)
-		{
-			if (thread->TryStealTask(out))
-				return true;
-		}
+		if (thread->TryStealTask(out))
+			return true;
 	}
 
 	return false;

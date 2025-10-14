@@ -15,7 +15,7 @@ BEGIN
         BLOCK "040904b0"
         BEGIN
             VALUE "CompanyName",            "Marko Pintera and contributors"
-            VALUE "FileDescription",        "b3d::f Shading Language import plugin for B3D Framework"
+            VALUE "FileDescription",        "Banshee Shading Language import plugin for B3D Framework"
             VALUE "FileVersion",            B3D_FRAMEWORK_VERSION_STRING
             VALUE "ProductName",            "B3D Framework"
             VALUE "Licence",                "Released under the MIT License"

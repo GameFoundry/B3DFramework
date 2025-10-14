@@ -190,7 +190,7 @@ void Application::OnStartUp()
 	mMainThreadScheduler.BindToCurrentThread();
 
 	SchedulerCreateInformation schedulerCreateInformation;
-	schedulerCreateInformation.WorkerThreadCount = (u32)Math::Max(1, (i32)Thread::GetLogicalCoreCount() - 2); // Reserve two threads for main + render thread
+	schedulerCreateInformation.InternalWorkerThreadCount = (u32)Math::Max(1, (i32)Thread::GetLogicalCoreCount() - 2); // Reserve two threads for main + render thread
 	schedulerCreateInformation.AffinityPolicy = B3DMakeShared<AnyOfThreadAffinityPolicy>(ThreadCoreMask::CreateAnyThreadMask()); // TODO - Mask out main + render threads
 
 	mTaskScheduler = B3DMakeShared<Scheduler>(schedulerCreateInformation);

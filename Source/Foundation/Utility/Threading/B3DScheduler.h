@@ -253,8 +253,8 @@ namespace b3d
 		/** Modes that the scheduler thread can be in. */
 		enum class Mode
 		{
-			MultiThreaded, /**< Thread is a background thread spawned by the scheduler. */
-			SingleThreaded, /**< Thread is the same thread bound to the scheduler. */
+			Internal, /**< Thread is a background thread spawned by the scheduler. */
+			External, /**< Thread is managed by the user and bound to the scheduler. */
 		};
 
 		B3D_EXPORT SchedulerThread(Scheduler* scheduler, Mode mode, u32 id);
@@ -387,13 +387,16 @@ namespace b3d
 	/** Information describing a Scheduler. */
 	struct SchedulerInformation
 	{
-		/** Number of worker threads to start by the scheduler. If 0, the scheduler must be bound to an existing thread before use. */
-		u32 WorkerThreadCount = 0;
+		/**
+		 * Number of worker threads to start internally by the scheduler.
+		 * Set to 0 if you only want to bind external threads via BindToCurrentThread().
+		 */
+		u32 InternalWorkerThreadCount = 0;
 
-		/** Callback to execute when a worker thread is started. */
+		/** Callback to execute when a worker thread is started (both internal and external). */
 		Function<void(u32 workerId)> ThreadInitializeCallback;
 
-		/** Determines on which cores will the created threads be allowed to execute on. */
+		/** Determines on which cores the internally created threads are allowed to execute on. */
 		SPtr<ThreadAffinityPolicy> AffinityPolicy;
 
 		/** Stack size for a single fiber, in bytes. */
@@ -410,9 +413,11 @@ namespace b3d
 	};
 
 	/**
-	 * Schedules provided tasks to one or multiple threads managed by the scheduler. Scheduler can operate in two modes:
-	 *	 - Single threaded - Scheduler can be bound to a single thread
-	 *	 - Multi threaded - Scheduler will launch N threads as provided by the user
+	 * Allows the caller to post tasks which will then be executed on one of the threads managed by the scheduler.
+	 * The scheduler can create internal worker threads to process tasks, or you can bind existing threads (created externally).
+	 *
+	 * External threads need to be bound/unbound to the scheduler via BindToCurrentThread/UnbindFromCurrentThread, and you need to
+	 * call ProcessTasksOnCurrentThread() regularly for them to actually process queued tasks.
 	 *
 	 * All executing tasks are allowed to yield mid-execution, at which point a new task will start executing on the thread. The suspended
 	 * task can be resumed from the point it yielded as the scheduler will preserve its context in a fiber.
@@ -426,14 +431,27 @@ namespace b3d
 		/** Returns information describing the scheduler. */
 		B3D_EXPORT const SchedulerInformation& GetInformation() const { return mInformation; }
 
-		/** Binds the scheduler to the current thread. No other scheduler can be bound already. */
-		B3D_EXPORT void BindToCurrentThread();
+		/**
+		 * Binds the scheduler to the current thread, allowing it to process tasks.
+		 * The thread is managed externally - you must call UnbindFromCurrentThread() before the thread exits.
+		 * Can be called from multiple threads to bind them all to the scheduler.
+		 *
+		 * @return Worker ID assigned to this thread, or ~0u if binding failed (max threads reached or already bound).
+		 */
+		B3D_EXPORT u32 BindToCurrentThread();
 
-		/** Queues a new task for execution by the scheduler. */
-		B3D_EXPORT void Post(SchedulerTask&& task);
+		/**
+		 * Processes all pending tasks on the current bound thread and returns.
+		 * Must be called from a thread that has called BindToCurrentThread().
+		 * Typically called in a loop from your own thread (e.g., game loop).
+		 */
+		B3D_EXPORT void ProcessTasksOnCurrentThread();
 
 		/** Unbinds the scheduler currently bound on the calling thread. This will wait until all operations complete before returning. */
 		B3D_EXPORT static void UnbindFromCurrentThread();
+
+		/** Queues a new task for execution by the scheduler. The task will be executed on one of the worker threads (either internal or external). */
+		B3D_EXPORT void Post(SchedulerTask&& task);
 
 		/** Gets the scheduler bound to the current thread. */
 		B3D_EXPORT static Scheduler* Get() { return Current; }
@@ -460,12 +478,16 @@ namespace b3d
 		std::atomic<u32> mNextSpinningWorkerIndex = { 0x8000000 };
 
 		std::atomic<u32> mNextEnqueueIndex = { 0 };
-		Vector<SPtr<SchedulerThread>> mWorkerThreads;
 
-		Mutex mSingleThreadWorkerMutex;
-		ConditionVariable mSingleThreadWorkerUnbindSignal;
-		SPtr<SchedulerThread> mSingleThreadWorker;
-		std::thread::id mSingleThreadWorkerThreadId;
+		// Unified thread management - both internal and external threads
+		Mutex mWorkerThreadsMutex;
+		TArray<SPtr<SchedulerThread>> mWorkerThreads;
+		TArray<u32> mInternalWorkerIndices;
+		std::atomic<u32> mNextExternalWorkerId;
+
+		// Synchronization for external thread unbinding
+		ConditionVariable mExternalThreadsUnbindSignal;
+		u32 mExternalThreadCount = 0;
 
 		SchedulerInformation mInformation;
 	};
