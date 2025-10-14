@@ -15,7 +15,12 @@ namespace b3d
 		 *  @{
 		 */
 
-		/**	Null implementation of a texture. */
+		/**
+		 * Null implementation of a texture.
+		 *
+		 * Stores texture properties but does not allocate GPU memory. Lock operations return fake
+		 * pixel buffers that can be written to but have no effect on actual rendering.
+		 */
 		class NullTexture : public Texture
 		{
 		public:
@@ -37,7 +42,6 @@ namespace b3d
 			void WriteDataInternal(const PixelData& source, u32 mipLevel = 0, u32 face = 0, bool discardWholeBuffer = false, const SPtr<GpuCommandBuffer>& commandBuffer = nullptr) override {}
 
 		private:
-			NullGpuDevice& mGpuDevice;
 			PixelData* mMappedBuffer = nullptr;
 			String mName;
 		};

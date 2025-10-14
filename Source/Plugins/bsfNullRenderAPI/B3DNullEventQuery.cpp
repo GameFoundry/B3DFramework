@@ -8,7 +8,8 @@ namespace b3d
 	namespace render
 	{
 		NullEventQuery::NullEventQuery(NullGpuDevice& gpuDevice)
-			: mGpuDevice(gpuDevice)
-		{ }
+		{
+			(void)gpuDevice; // Unused parameter
+		}
 	} // namespace render
 } // namespace b3d

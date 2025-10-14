@@ -9,12 +9,10 @@ namespace b3d
 	{
 		NullGpuGraphicsPipelineState::NullGpuGraphicsPipelineState(NullGpuDevice& gpuDevice, const GpuGraphicsPipelineStateCreateInformation& createInformation)
 			: GpuGraphicsPipelineState(gpuDevice, createInformation)
-			, mGpuDevice(gpuDevice)
 		{ }
 
 		NullGpuComputePipelineState::NullGpuComputePipelineState(NullGpuDevice& gpuDevice, const GpuComputePipelineStateCreateInformation& createInformation)
 			: GpuComputePipelineState(gpuDevice, createInformation)
-			, mGpuDevice(gpuDevice)
 		{ }
 	} // namespace render
 } // namespace b3d

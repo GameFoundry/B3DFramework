@@ -14,7 +14,13 @@ namespace b3d
 		 *  @{
 		 */
 
-		/** Represents a single null GPU device. */
+		/**
+		 * Represents a single null GPU device.
+		 *
+		 * This device simulates a GPU without performing any actual rendering operations. It reports
+		 * reasonable capabilities to allow content to be loaded and processed, but all draw calls and
+		 * resource operations are no-ops. Useful for testing rendering logic without requiring GPU hardware.
+		 */
 		class NullGpuDevice : public GpuDevice
 		{
 		public:
@@ -71,6 +77,9 @@ namespace b3d
 			};
 
 			SPtr<SamplerState> CreateSamplerState(const SamplerStateCreateInformation& createInformation, bool deferredInitialize = false) override;
+
+			/** Initializes capabilities with reasonable defaults for a null backend. */
+			void InitializeCapabilities();
 
 			bool mIsInitialized = false;
 			QueueInfo mQueueInfos[GQT_COUNT];

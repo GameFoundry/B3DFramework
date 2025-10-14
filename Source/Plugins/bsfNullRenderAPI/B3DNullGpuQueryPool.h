@@ -27,7 +27,6 @@ namespace b3d
 			u64 GetQueryResult(GpuQueryId queryId, u32 elementIndex = 0) override;
 
 		private:
-			NullGpuDevice& mGpuDevice;
 			u32 mNextQueryId = 0;
 		};
 

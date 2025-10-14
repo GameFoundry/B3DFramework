@@ -9,7 +9,8 @@ namespace b3d
 	{
 		NullGpuParameters::NullGpuParameters(NullGpuDevice& gpuDevice, const SPtr<GpuPipelineParameterLayout>& parameterLayout)
 			: GpuParameters(parameterLayout)
-			, mGpuDevice(gpuDevice)
-		{ }
+		{
+			(void)gpuDevice; // Unused parameter
+		}
 	} // namespace render
 } // namespace b3d

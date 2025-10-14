@@ -9,8 +9,9 @@ namespace b3d
 	{
 		NullGpuQueryPool::NullGpuQueryPool(NullGpuDevice& gpuDevice, const GpuQueryPoolCreateInformation& createInformation)
 			: GpuQueryPool(createInformation)
-			, mGpuDevice(gpuDevice)
-		{ }
+		{
+			(void)gpuDevice; // Unused parameter
+		}
 
 		GpuQueryId NullGpuQueryPool::AllocateQuery()
 		{

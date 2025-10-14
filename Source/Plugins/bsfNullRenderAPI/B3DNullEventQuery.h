@@ -24,9 +24,6 @@ namespace b3d
 
 			void Begin(GpuCommandBuffer& commandBuffer) override {}
 			bool IsReady() const override { return true; }
-
-		private:
-			NullGpuDevice& mGpuDevice;
 		};
 
 		/** @} */

@@ -23,9 +23,6 @@ namespace b3d
 			~NullSamplerState() = default;
 
 			void Initialize() override {}
-
-		private:
-			NullGpuDevice& mGpuDevice;
 		};
 
 		/** @} */

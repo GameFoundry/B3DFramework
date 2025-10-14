@@ -9,7 +9,8 @@ namespace b3d
 	{
 		NullSamplerState::NullSamplerState(NullGpuDevice& gpuDevice, const SamplerStateCreateInformation& createInformation)
 			: SamplerState(createInformation)
-			, mGpuDevice(gpuDevice)
-		{ }
+		{
+			(void)gpuDevice; // Unused parameter
+		}
 	} // namespace render
 } // namespace b3d

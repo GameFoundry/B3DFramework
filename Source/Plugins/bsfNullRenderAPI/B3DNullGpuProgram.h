@@ -23,9 +23,6 @@ namespace b3d
 			virtual ~NullGpuProgram() = default;
 
 			void Initialize() override {}
-
-		private:
-			NullGpuDevice& mGpuDevice;
 		};
 
 		/** Identifier of the compiler used for compiling Null GPU programs. */

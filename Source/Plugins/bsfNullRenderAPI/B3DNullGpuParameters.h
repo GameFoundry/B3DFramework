@@ -29,9 +29,6 @@ namespace b3d
 			bool SetSamplerState(u32 set, u32 slot, const SPtr<SamplerState>& sampler, u32 arrayIndex = 0) override { return true; }
 
 			void Initialize() override {}
-
-		private:
-			NullGpuDevice& mGpuDevice;
 		};
 
 		/** @} */

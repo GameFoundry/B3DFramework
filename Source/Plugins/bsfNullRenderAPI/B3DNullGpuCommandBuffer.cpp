@@ -12,5 +12,11 @@ namespace b3d
 			: GpuCommandBuffer(device, ownerThread, queueType, createInformation)
 			, mId(id)
 		{ }
+
+		void NullGpuCommandBuffer::End()
+		{
+			// Transition from Ready to Done (null backend executes instantly)
+			mState = CommandBufferState::Done;
+		}
 	} // namespace render
 } // namespace b3d

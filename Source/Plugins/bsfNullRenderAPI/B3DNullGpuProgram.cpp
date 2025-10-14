@@ -9,8 +9,9 @@ namespace b3d
 	{
 		NullGpuProgram::NullGpuProgram(NullGpuDevice& gpuDevice, const GpuProgramCreateInformation& createInformation)
 			: GpuProgram(createInformation)
-			, mGpuDevice(gpuDevice)
 		{
+			(void)gpuDevice; // Unused parameter
+
 			// Mark as compiled immediately since we don't actually compile anything
 			mIsCompiled = true;
 		}

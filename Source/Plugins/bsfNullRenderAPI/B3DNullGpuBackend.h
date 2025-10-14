@@ -11,7 +11,13 @@ namespace b3d
 	 *  @{
 	 */
 
-	/** Handles initialization and shutdown of Null GPU backend, and provides access to GPU device objects. */
+	/**
+	 * Handles initialization and shutdown of Null GPU backend, and provides access to GPU device objects.
+	 *
+	 * The Null backend is a no-op render API implementation used for headless rendering, automated testing,
+	 * and continuous integration environments where no actual GPU is available or needed. All rendering
+	 * operations are accepted but not executed, allowing the engine to run without GPU hardware.
+	 */
 	class NullGpuBackend : public GpuBackend
 	{
 		using Super = GpuBackend;

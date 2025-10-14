@@ -23,9 +23,6 @@ namespace b3d
 			~NullGpuGraphicsPipelineState() = default;
 
 			void Initialize() override {}
-
-		protected:
-			NullGpuDevice& mGpuDevice;
 		};
 
 		/**	Null implementation of a compute pipeline state. */
@@ -36,9 +33,6 @@ namespace b3d
 			~NullGpuComputePipelineState() = default;
 
 			void Initialize() override {}
-
-		protected:
-			NullGpuDevice& mGpuDevice;
 		};
 
 		/** @} */

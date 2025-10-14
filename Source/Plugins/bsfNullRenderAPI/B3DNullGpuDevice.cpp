@@ -39,8 +39,69 @@ namespace b3d
 				mQueueInfos[i].Queues.Add(B3DMakeShared<NullGpuQueue>(*this, (GpuQueueUsage)i, 0));
 			}
 
+			// Initialize capabilities with reasonable defaults for a null backend
+			InitializeCapabilities();
+
 			mIsInitialized = true;
 			return true;
+		}
+
+		void NullGpuDevice::InitializeCapabilities()
+		{
+			// Set driver version
+			mCapabilities.DriverVersion.Major = 1;
+			mCapabilities.DriverVersion.Minor = 0;
+			mCapabilities.DriverVersion.Release = 0;
+			mCapabilities.DriverVersion.Build = 0;
+
+			mCapabilities.DeviceName = "Null Render Device";
+			mCapabilities.DeviceVendor = GPU_UNKNOWN;
+			mCapabilities.BackendName = "Null";
+
+			// Support common features for maximum compatibility
+			mCapabilities.SetCapability(RSC_COMPUTE_PROGRAM);
+			mCapabilities.SetCapability(RSC_GEOMETRY_PROGRAM);
+			mCapabilities.SetCapability(RSC_TESSELLATION_PROGRAM);
+			mCapabilities.SetCapability(RSC_LOAD_STORE);
+			mCapabilities.SetCapability(RSC_LOAD_STORE_MSAA);
+			mCapabilities.SetCapability(RSC_TEXTURE_COMPRESSION_BC);
+			mCapabilities.SetCapability(RSC_TEXTURE_COMPRESSION_ETC2);
+			mCapabilities.SetCapability(RSC_TEXTURE_COMPRESSION_ASTC);
+			mCapabilities.SetCapability(RSC_BYTECODE_CACHING);
+			mCapabilities.SetCapability(RSC_TEXTURE_VIEWS);
+			mCapabilities.SetCapability(RSC_RENDER_TARGET_LAYERS);
+			mCapabilities.SetCapability(RSC_MULTI_THREADED_CB);
+
+			// Set conventions (matching Vulkan for consistency)
+			mCapabilities.Conventions.NdcYAxis = GpuBackendConventions::Axis::Down;
+			mCapabilities.Conventions.MatrixOrder = GpuBackendConventions::MatrixOrder::ColumnMajor;
+
+			// Set reasonable limits
+			mCapabilities.MaxBoundVertexBuffers = 16;
+			mCapabilities.NumMultiRenderTargets = 8;
+
+			// Texture units per stage
+			constexpr u16 textureUnitsPerStage = 16;
+			for (u32 i = 0; i < GPT_COUNT; i++)
+			{
+				mCapabilities.NumTextureUnitsPerStage[i] = textureUnitsPerStage;
+				mCapabilities.NumGpuParamBlockBuffersPerStage[i] = 16;
+			}
+
+			// Load-store texture units (only fragment and compute)
+			mCapabilities.NumLoadStoreTextureUnitsPerStage[GPT_FRAGMENT_PROGRAM] = 8;
+			mCapabilities.NumLoadStoreTextureUnitsPerStage[GPT_COMPUTE_PROGRAM] = 8;
+
+			// Calculate combined totals
+			mCapabilities.NumCombinedTextureUnits = textureUnitsPerStage * GPT_COUNT;
+			mCapabilities.NumCombinedParamBlockBuffers = 16 * GPT_COUNT;
+			mCapabilities.NumCombinedLoadStoreTextureUnits = 16;
+
+			mCapabilities.GeometryProgramNumOutputVertices = 1024;
+			mCapabilities.MinimumUniformBufferOffsetAlignment = 16;
+
+			// Add shader profile
+			mCapabilities.AddShaderProfile("nullsl");
 		}
 
 		SPtr<GpuProgramBytecode> NullGpuDevice::CompileGpuProgramBytecode(const GpuProgramCreateInformation& createInformation) const

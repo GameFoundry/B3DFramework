@@ -16,7 +16,12 @@ namespace b3d
 		 *  @{
 		 */
 
-		/** CommandBuffer implementation for Null. */
+		/**
+		 * Command buffer implementation for Null backend.
+		 *
+		 * Accepts all rendering commands but does not execute them. State tracking is implemented
+		 * to allow proper command buffer lifecycle management (Ready -> Done transitions).
+		 */
 		class NullGpuCommandBuffer final : public GpuCommandBuffer
 		{
 		public:
@@ -24,7 +29,7 @@ namespace b3d
 			~NullGpuCommandBuffer() override = default;
 
 			void SetName(const StringView& name) override { mName = name; }
-			CommandBufferState GetState() const override { return CommandBufferState::Ready; }
+			CommandBufferState GetState() const override { return mState; }
 
 			void SetGpuParameters(const SPtr<GpuParameters>& parameters) override {}
 			void SetDynamicBufferOffset(u32 bufferIndex, u32 offset) override {}
@@ -54,7 +59,7 @@ namespace b3d
 			void BeginLabel(const StringView& name) override {}
 			void EndLabel() override {}
 			void InsertLabel(const StringView& name) override {}
-			void End() override {}
+			void End() override;
 			void TransitionTextureLayout(const SPtr<Texture>& texture, GpuTextureLayout layout, const GpuTextureSubresourceRange& subresourceRange) override {}
 			void IssueBarriers(const GpuBarriers& barriers) override {}
 
@@ -65,8 +70,12 @@ namespace b3d
 			friend class NullGpuCommandBufferPool;
 			friend class NullGpuQueue;
 
+			/** Sets the command buffer state. Only accessible by friends (pool and queue). */
+			void SetState(CommandBufferState state) { mState = state; }
+
 			u32 mId;
 			String mName;
+			CommandBufferState mState = CommandBufferState::Ready;
 		};
 
 		/** @} */
