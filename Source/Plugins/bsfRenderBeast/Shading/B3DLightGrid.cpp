@@ -319,6 +319,10 @@ void LightGrid::UpdateGrid(GpuCommandBuffer& commandBuffer, const RendererView& 
 		GpuBufferBarrier(lightLL, GpuResourceUseFlag::Shader, GpuAccessFlag::Write, GpuResourceUseFlag::Shader, GpuAccessFlag::Read),
 		GpuBufferBarrier(probeLLHeads, GpuResourceUseFlag::Shader, GpuAccessFlag::Write, GpuResourceUseFlag::Shader, GpuAccessFlag::Read),
 		GpuBufferBarrier(probeLL, GpuResourceUseFlag::Shader, GpuAccessFlag::Write, GpuResourceUseFlag::Shader, GpuAccessFlag::Read),
+
+		// Note: These are only necessary because our shader compiler ignores the read-only access modifier, so the validation systems thinks these buffers are being written even though they're not
+		GpuBufferBarrier(lightData.GetLightBuffer(), GpuResourceUseFlag::Shader, GpuAccessFlag::Write, GpuResourceUseFlag::Shader, GpuAccessFlag::Read),
+		GpuBufferBarrier(probeData.GetProbeBuffer(), GpuResourceUseFlag::Shader, GpuAccessFlag::Write, GpuResourceUseFlag::Shader, GpuAccessFlag::Read),
 	}});
 
 	LightGridLLReductionMat* reductionMat = LightGridLLReductionMat::Get();

@@ -2537,24 +2537,63 @@ void VulkanGpuCommandBuffer::IssueBarriers(const GpuBarriers& barriers)
 
 		VulkanImage* const vulkanImage = vulkanTexture->GetVulkanResource();
 
+		auto found = mImages.find(vulkanImage);
+		if(found == mImages.end()) // Not yet registered with the command buffer, no need to track anything as all accesses will be safe the first time
+			return;
+
+		const u32 imageInfoIndex = found->second;
+		ImageInfo& imageInfo = mImageInfos[imageInfoIndex];
+
 		VkImageSubresourceRange subresourceRange = VulkanUtility::ToVulkanImageSubresourceRange(barrier.SubresourceRange);
 
 		// Filter out invalid aspect mask to avoid validation warnings
 		subresourceRange.aspectMask &= vulkanImage->GetAspectFlags();
 
-		VkImageMemoryBarrier vkImageBarrier;
-		vkImageBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-		vkImageBarrier.pNext = nullptr;
-		vkImageBarrier.srcAccessMask = sourceAccessMask;
-		vkImageBarrier.dstAccessMask = destinationAccessMask;
-		vkImageBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-		vkImageBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-		vkImageBarrier.oldLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-		vkImageBarrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-		vkImageBarrier.image = vulkanImage->GetVulkanHandle();
-		vkImageBarrier.subresourceRange = subresourceRange;
+		// Provide exact size as FindOrSubdivideResourceRange doesn't handle VK_REMAINING_* macros
+		if(subresourceRange.layerCount == VK_REMAINING_ARRAY_LAYERS)
+			subresourceRange.layerCount = vulkanImage->GetRange().layerCount;
 
-		vkImageBarriers.push_back(vkImageBarrier);
+		if(subresourceRange.levelCount == VK_REMAINING_MIP_LEVELS)
+			subresourceRange.levelCount = vulkanImage->GetRange().levelCount;
+
+		FindOrSubdivideSubresourceRange(imageInfo, subresourceRange, [this](const VkImageSubresourceRange& range, Optional<u32> copyFrom)
+		{
+			if(copyFrom.has_value())
+			{
+				const u32 copyFromSubresourceIndex = copyFrom.value();
+				ImageSubresourceInfo* const copyFromSubresource = &mSubresourceInfoStorage[copyFromSubresourceIndex];
+
+				ImageSubresourceInfo subresourceCopy = *copyFromSubresource;
+				subresourceCopy.Range = range;
+				subresourceCopy.WriteHazardTracking = mWriteHazardPool.Construct<WriteHazardTracking>();
+
+				if(B3D_ENSURE(copyFromSubresource->WriteHazardTracking != nullptr))
+					*subresourceCopy.WriteHazardTracking = *copyFromSubresource->WriteHazardTracking;
+
+				mSubresourceInfoStorage.push_back(subresourceCopy);
+				return;
+			}
+
+			AddSubresourceRange(range, ImageUseFlagBits::None, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_UNDEFINED, GpuAccessFlag::None, 0);
+		},
+		[this, &vkImageBarriers, vulkanImage, subresourceRange, sourceAccessMask, destinationAccessMask](u32 subresourceIndex, bool isNewSubresource)
+		{
+			ImageSubresourceInfo& subresource = mSubresourceInfoStorage[subresourceIndex];
+
+			VkImageMemoryBarrier vkImageBarrier;
+			vkImageBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+			vkImageBarrier.pNext = nullptr;
+			vkImageBarrier.srcAccessMask = sourceAccessMask;
+			vkImageBarrier.dstAccessMask = destinationAccessMask;
+			vkImageBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+			vkImageBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+			vkImageBarrier.oldLayout = subresource.CurrentLayout;
+			vkImageBarrier.newLayout = subresource.CurrentLayout;
+			vkImageBarrier.image = vulkanImage->GetVulkanHandle();
+			vkImageBarrier.subresourceRange = subresourceRange;
+
+			vkImageBarriers.push_back(vkImageBarrier);
+		});
 	}
 
 	// Read-after-write or write-after-write
@@ -2655,7 +2694,7 @@ void VulkanGpuCommandBuffer::UpdateWriteHazardTrackingAfterBarrier(VulkanImage* 
 			return;
 		}
 
-		AddSubresourceRange(range, ImageUseFlagBits::Shader, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_UNDEFINED, GpuAccessFlag::None, 0);
+		AddSubresourceRange(range, ImageUseFlagBits::None, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_UNDEFINED, GpuAccessFlag::None, 0);
 	},
 	[this, sourceStages, destinationStages, isReadOrWriteAfterWrite, isWriteAfterRead](u32 subresourceIndex, bool isNewSubresource)
 	{

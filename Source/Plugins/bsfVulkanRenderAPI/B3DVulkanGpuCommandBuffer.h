@@ -83,6 +83,7 @@ namespace b3d
 		/** Bits that represent different ways an image subresource can be used. */
 		enum class ImageUseFlagBits
 		{
+			None = 0,
 			Shader = 1 << 0,
 			Framebuffer = 1 << 1,
 			Transfer = 1 << 2

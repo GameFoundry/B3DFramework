@@ -516,6 +516,11 @@ void RCNodeBasePass::Render(const RenderCompositorNodeInputs& inputs)
 	// Make sure that any compute shaders are able to read g-buffer by unbinding it
 	commandBuffer.EndRenderPass();
 	commandBuffer.BeginRenderPass(nullptr);  // TODO - RenderPass
+
+	// Ensure scene color attachment can be written by future passes
+	commandBuffer.IssueBarriers({{
+		GpuTextureBarrier(sceneColorTex->Texture, GpuResourceUseFlag::ColorAttachment, GpuAccessFlag::Write, GpuResourceUseFlag::ColorAttachment, GpuAccessFlag::Write),
+	}});
 }
 
 void RCNodeBasePass::Clear()
@@ -913,7 +918,7 @@ void RCNodeDeferredDirectLighting::Render(const RenderCompositorNodeInputs& inpu
 		tiledDeferredMat->Execute(commandBuffer, inputs.View, lightData, gbuffer, sceneColorNode->SceneColorTex->Texture, Output->LightAccumulationTex->Texture, lightAccumTexArray, msaaCoverage);
 
 		// Ensure the light accumulation texture can be written/read by a shader, and used as a color attachment in future passes
-		commandBuffer.IssueBarriers(GpuTextureBarrier(Output->LightAccumulationTex->Texture, GpuResourceUseFlag::Shader, GpuAccessFlag::Write, GpuResourceUseFlag::ColorAttachment, GpuAccessFlag::Read | GpuAccessFlag::Write));
+		commandBuffer.IssueBarriers(GpuTextureBarrier(Output->LightAccumulationTex->Texture, GpuResourceUseFlag::Shader, GpuAccessFlag::Write, GpuResourceUseFlag::ColorAttachment | GpuResourceUseFlag::Shader, GpuAccessFlag::Read | GpuAccessFlag::Write));
 
 		if(viewProps.Target.NumSamples > 1)
 			Output->MsaaTexArrayToTexture(commandBuffer);
@@ -1172,6 +1177,9 @@ void RCNodeDeferredIndirectSpecularLighting::Render(const RenderCompositorNodeIn
 
 		if(sceneColorNode->SceneColorTexArray)
 			iblInputs.SceneColorTexArray = sceneColorNode->SceneColorTexArray->Texture;
+
+		// Ensure any reads to the scene color texture finish before attempting the write
+		commandBuffer.IssueBarriers(GpuTextureBarrier(sceneColorNode->SceneColorTex->Texture, GpuResourceUseFlag::Shader | GpuResourceUseFlag::ColorAttachment, GpuAccessFlag::Read, GpuResourceUseFlag::Shader, GpuAccessFlag::Write));
 
 		material->Execute(*inputs.ActiveCommandBuffer, inputs.View, inputs.Scene, inputs.ViewGroup.GetVisibleReflProbeData(), iblInputs);
 
