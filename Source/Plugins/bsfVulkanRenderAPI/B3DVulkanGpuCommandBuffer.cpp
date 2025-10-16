@@ -1264,6 +1264,7 @@ void VulkanGpuCommandBuffer::EndRenderPass(bool isInternalInterrupt)
 			const VkImageSubresourceRange range = image->GetRange(attachment.Surface);
 
 			UpdateWriteHazardTrackingAfterBarrier(image, range, GpuAccessFlag::Read | GpuAccessFlag::Write, kSourceStages, GpuAccessFlag::Read, kDestinationStages);
+			UpdateWriteHazardTrackingAfterBarrier(image, range, GpuAccessFlag::Write, kSourceStages, GpuAccessFlag::Write, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);
 		}
 
 		if(renderPass->HasDepthAttachment())
@@ -1273,6 +1274,7 @@ void VulkanGpuCommandBuffer::EndRenderPass(bool isInternalInterrupt)
 			const VkImageSubresourceRange range = image->GetRange(attachment.Surface);
 
 			UpdateWriteHazardTrackingAfterBarrier(image, range, GpuAccessFlag::Read | GpuAccessFlag::Write, kSourceStages, GpuAccessFlag::Read, kDestinationStages);
+			UpdateWriteHazardTrackingAfterBarrier(image, range, GpuAccessFlag::Write, kSourceStages, GpuAccessFlag::Write, VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT);
 		}
 	}
 #endif

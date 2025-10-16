@@ -540,8 +540,6 @@ bool RenderBeast::RenderOverlay(GpuCommandBuffer& commandBuffer, RenderBeastScen
 		commandBuffer.BeginRenderPass(target);
 		commandBuffer.ClearViewport(clearBuffers, viewport->GetClearColorValue(), viewport->GetClearDepthValue(), viewport->GetClearStencilValue());
 		commandBuffer.EndRenderPass();
-
-		commandBuffer.IssueBarriers({{ GpuRenderTargetBarrier(target, RT_COLOR0, GpuResourceUseFlag::ColorAttachment, GpuAccessFlag::Write, GpuResourceUseFlag::ColorAttachment, GpuAccessFlag::Write )}});
 	}
 
 	commandBuffer.SetViewport(viewport->GetArea());

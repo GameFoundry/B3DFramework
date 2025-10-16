@@ -168,6 +168,9 @@ VulkanRenderPass::VulkanRenderPass(const VkDevice& device, const VulkanRenderPas
 	else
 		mSubpassDescription.pDepthStencilAttachment = nullptr;
 
+	// TODO - This should be refactored in order to keep only the cheap barriers: Color & Depth-stencil writes should automatically be safe in another render pass
+	// - But shader reads/writes should require explicit synchronization
+
 	// Any textures read by a shader before a render pass are safe to be used as attachments in the render pass
 	mDependencies[0].srcSubpass = VK_SUBPASS_EXTERNAL;
 	mDependencies[0].dstSubpass = 0;
@@ -182,7 +185,7 @@ VulkanRenderPass::VulkanRenderPass(const VkDevice& device, const VulkanRenderPas
 	mDependencies[1].dstSubpass = VK_SUBPASS_EXTERNAL;
 	mDependencies[1].srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
 	mDependencies[1].srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
-	mDependencies[1].dstStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_VERTEX_SHADER_BIT | VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+	mDependencies[1].dstStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_VERTEX_SHADER_BIT | VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
 	mDependencies[1].dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
 	mDependencies[1].dependencyFlags = 0;
 

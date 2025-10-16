@@ -502,13 +502,8 @@ void RCNodeBasePass::Render(const RenderCompositorNodeInputs& inputs)
 		commandBuffer.EndRenderPass();
 	}
 
-	// We're binding GBuffer textures as attachments twice in a row, need a barrier for the second time
+	// Ensure depth stencil can be read
 	commandBuffer.IssueBarriers({{
-		GpuTextureBarrier(sceneColorTex->Texture, GpuResourceUseFlag::ColorAttachment, GpuAccessFlag::Write, GpuResourceUseFlag::ColorAttachment, GpuAccessFlag::Read | GpuAccessFlag::Write),
-		GpuTextureBarrier(AlbedoTex->Texture, GpuResourceUseFlag::ColorAttachment, GpuAccessFlag::Write, GpuResourceUseFlag::ColorAttachment, GpuAccessFlag::Read | GpuAccessFlag::Write),
-		GpuTextureBarrier(NormalTex->Texture, GpuResourceUseFlag::ColorAttachment, GpuAccessFlag::Write, GpuResourceUseFlag::ColorAttachment, GpuAccessFlag::Read | GpuAccessFlag::Write),
-		GpuTextureBarrier(RoughMetalTex->Texture, GpuResourceUseFlag::ColorAttachment, GpuAccessFlag::Write, GpuResourceUseFlag::ColorAttachment, GpuAccessFlag::Read | GpuAccessFlag::Write),
-		GpuTextureBarrier(needsVelocity ? VelocityTex->Texture : nullptr, GpuResourceUseFlag::ColorAttachment, GpuAccessFlag::Write, GpuResourceUseFlag::ColorAttachment, GpuAccessFlag::Read | GpuAccessFlag::Write),
 		GpuTextureBarrier(sceneDepthNode->DepthTex->Texture, GpuResourceUseFlag::DepthStencilAttachment, GpuAccessFlag::Write, GpuResourceUseFlag::DepthStencilAttachment, GpuAccessFlag::Read)
 	}});
 
@@ -536,11 +531,6 @@ void RCNodeBasePass::Render(const RenderCompositorNodeInputs& inputs)
 	// Make sure that any compute shaders are able to read g-buffer by unbinding it
 	commandBuffer.EndRenderPass();
 	commandBuffer.BeginRenderPass(nullptr);  // TODO - RenderPass
-
-	// Ensure scene color attachment can be written by future passes
-	commandBuffer.IssueBarriers({{
-		GpuTextureBarrier(sceneColorTex->Texture, GpuResourceUseFlag::ColorAttachment, GpuAccessFlag::Write, GpuResourceUseFlag::ColorAttachment, GpuAccessFlag::Write),
-	}});
 }
 
 void RCNodeBasePass::Clear()
@@ -1592,9 +1582,6 @@ void RCNodeClusteredForward::Render(const RenderCompositorNodeInputs& inputs)
 	RenderQueueElements(commandBuffer, opaqueQueue->GetSortedElements());
 	commandBuffer.EndRenderPass();
 
-	// We're binding scene texture as writable attachment twice in a row, need a barrier for the second time
-	commandBuffer.IssueBarriers(GpuTextureBarrier(sceneColorNode->SceneColorTex->Texture, GpuResourceUseFlag::ColorAttachment, GpuAccessFlag::Write, GpuResourceUseFlag::ColorAttachment, GpuAccessFlag::Read | GpuAccessFlag::Write));
-
 	// Allow depth-testing against the depth buffer after the writes above
 	commandBuffer.IssueBarriers(GpuTextureBarrier(sceneDepthNode->DepthTex->Texture, GpuResourceUseFlag::DepthStencilAttachment, GpuAccessFlag::Write, GpuResourceUseFlag::DepthStencilAttachment, GpuAccessFlag::Read));
 
@@ -1675,9 +1662,6 @@ void RCNodeSkybox::Render(const RenderCompositorNodeInputs& inputs)
 	GetRendererUtility().Draw(commandBuffer, mesh, mesh->GetProperties().SubMeshes[0]);
 
 	commandBuffer.EndRenderPass();
-
-	// Ensure the scene color texture can be used as a color attachment in future passes
-	commandBuffer.IssueBarriers(GpuTextureBarrier(sceneColorNode->SceneColorTex->Texture, GpuResourceUseFlag::ColorAttachment, GpuAccessFlag::Write, GpuResourceUseFlag::ColorAttachment, GpuAccessFlag::Read | GpuAccessFlag::Write));
 }
 
 void RCNodeSkybox::Clear()
@@ -1727,8 +1711,6 @@ void RCNodeFinalResolve::Render(const RenderCompositorNodeInputs& inputs)
 	}
 
 	commandBuffer.EndRenderPass();
-
-	commandBuffer.IssueBarriers({{ GpuRenderTargetBarrier(target, RT_COLOR0, GpuResourceUseFlag::ColorAttachment, GpuAccessFlag::Write, GpuResourceUseFlag::ColorAttachment, GpuAccessFlag::Write )}});
 
 	// Trigger overlay callbacks
 	Camera* sceneCamera = inputs.View.GetSceneCamera();
@@ -2734,12 +2716,6 @@ void RCNodeSSAO::Render(const RenderCompositorNodeInputs& inputs)
 		bool upsample = numDownsampleLevels > 0;
 		SSAOMat* ssaoMat = SSAOMat::GetVariation(upsample, true, quality);
 		ssaoMat->Execute(commandBuffer, inputs.View, textures, mPooledOutput->RenderTexture, settings);
-
-		if(quality > 1)
-		{
-			// Ensure the output texture can be used as a color attachment again below, if having to do a vertical & horizontal blur pass
-			commandBuffer.IssueBarriers(GpuTextureBarrier(mPooledOutput->Texture, GpuResourceUseFlag::ColorAttachment, GpuAccessFlag::Write, GpuResourceUseFlag::ColorAttachment, GpuAccessFlag::Write));
-		}
 	}
 
 	resolvedNormals = nullptr;

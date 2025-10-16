@@ -272,9 +272,6 @@ void GUIVectorSpriteAtlas::RenderDirtySprites(u32 bufferIndex)
 		commandBuffer->SetViewport(entry.UVRegion);
 		render::GetRendererUtility().Blit(*commandBuffer, colorTexture);
 		commandBuffer->EndRenderPass();
-
-		// Ensure the atlas can be rendered to in future passes
-		commandBuffer->IssueBarriers({{ render::GpuTextureBarrier(atlasRenderTexture->GetColorTexture(0), render::GpuResourceUseFlag::ColorAttachment, GpuAccessFlag::Write, render::GpuResourceUseFlag::ColorAttachment, GpuAccessFlag::Write )} });
 	}
 
 	gpuDevice->SubmitCommandBuffer(commandBuffer);
