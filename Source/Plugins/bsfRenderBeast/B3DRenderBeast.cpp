@@ -539,9 +539,10 @@ bool RenderBeast::RenderOverlay(GpuCommandBuffer& commandBuffer, RenderBeastScen
 	{
 		commandBuffer.BeginRenderPass(target);
 		commandBuffer.ClearViewport(clearBuffers, viewport->GetClearColorValue(), viewport->GetClearDepthValue(), viewport->GetClearStencilValue());
+		commandBuffer.EndRenderPass();
+
+		commandBuffer.IssueBarriers({{ GpuRenderTargetBarrier(target, RT_COLOR0, GpuResourceUseFlag::ColorAttachment, GpuAccessFlag::Write, GpuResourceUseFlag::ColorAttachment, GpuAccessFlag::Write )}});
 	}
-	else
-		commandBuffer.BeginRenderPass(target, 0, RT_COLOR0);
 
 	commandBuffer.SetViewport(viewport->GetArea());
 
@@ -582,8 +583,6 @@ bool RenderBeast::RenderOverlay(GpuCommandBuffer& commandBuffer, RenderBeastScen
 			entry->Render(*camera, context);
 		}
 	}
-
-	// TODO - RenderPass - Need to end render pass. Or not even start it.
 
 	view.EndFrame();
 

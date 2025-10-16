@@ -717,7 +717,18 @@ namespace b3d
 			void UpdateTransferSubresource(VulkanImage* image, ImageSubresourceInfo& subresourceInfo, VkImageLayout layout, GpuAccessFlags access, VkPipelineStageFlags stages);
 
 			/** Registers a new resource range using the provided parameters to initialize it. */
-			void AddSubresourceRange(const VkImageSubresourceRange& range, ImageUseFlagBits use, VkImageLayout layout, VkImageLayout finalLayout, GpuAccessFlags access, VkPipelineStageFlags stages);
+			u32 AddSubresourceRange(const VkImageSubresourceRange& range, ImageUseFlagBits use, VkImageLayout layout, VkImageLayout finalLayout, GpuAccessFlags access, VkPipelineStageFlags stages);
+
+
+			/**
+			 * Creates a copy of an existing subresource with a new range. Optionally allocates hazard tracking and updates shader bound tracking.
+			 *
+			 * @param	copyFromIndex				Global index of the subresource to copy from.
+			 * @param	newRange					The new subresource range to assign to the copy.
+			 * @param	needsHazardTracking			If true, allocates and copies WriteHazardTracking from the source.
+			 * @return								Global index of the newly created subresource.
+			 */
+			u32 CopySubresourceWithNewRange(u32 copyFromIndex, const VkImageSubresourceRange& newRange, bool needsHazardTracking = true);
 
 			/**
 			 * Attempts to find an existing subrange that matches the provided subrange, for the provided image. If one

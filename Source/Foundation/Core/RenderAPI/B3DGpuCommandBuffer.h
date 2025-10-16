@@ -226,7 +226,7 @@ namespace b3d
 				: Object(object), SurfaceMask(surfaceMask), SubresourceRange(subresourceRange)
 			{ }
 
-			GpuRenderTargetBarrier(const SPtr<RenderTarget>& object, GpuResourceUseFlags sourceUsage, GpuAccessFlags sourceAccess, GpuResourceUseFlags destinationUsage, GpuAccessFlags destinationAccess, RenderSurfaceMaskBits surfaceMask, const GpuTextureSubresourceRange& subresourceRange = GpuTextureSubresourceRange::AllSubresources())
+			GpuRenderTargetBarrier(const SPtr<RenderTarget>& object, RenderSurfaceMaskBits surfaceMask, GpuResourceUseFlags sourceUsage, GpuAccessFlags sourceAccess, GpuResourceUseFlags destinationUsage, GpuAccessFlags destinationAccess, const GpuTextureSubresourceRange& subresourceRange = GpuTextureSubresourceRange::AllSubresources())
 				: GpuBarrier(sourceUsage, sourceAccess, destinationUsage, destinationAccess), Object(object), SurfaceMask(surfaceMask), SubresourceRange(subresourceRange)
 			{ }
 

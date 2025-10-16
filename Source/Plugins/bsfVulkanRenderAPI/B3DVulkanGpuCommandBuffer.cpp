@@ -2515,17 +2515,7 @@ void VulkanGpuCommandBuffer::IssueBarriers(const GpuBarriers& barriers)
 		{
 			if(copyFrom.has_value())
 			{
-				const u32 copyFromSubresourceIndex = copyFrom.value();
-				ImageSubresourceInfo* const copyFromSubresource = &mSubresourceInfoStorage[copyFromSubresourceIndex];
-
-				ImageSubresourceInfo subresourceCopy = *copyFromSubresource;
-				subresourceCopy.Range = range;
-				subresourceCopy.WriteHazardTracking = mWriteHazardPool.Construct<WriteHazardTracking>();
-
-				if(B3D_ENSURE(copyFromSubresource->WriteHazardTracking != nullptr))
-					*subresourceCopy.WriteHazardTracking = *copyFromSubresource->WriteHazardTracking;
-
-				mSubresourceInfoStorage.push_back(subresourceCopy);
+				CopySubresourceWithNewRange(copyFrom.value(), range);
 				return;
 			}
 
@@ -2799,17 +2789,7 @@ void VulkanGpuCommandBuffer::UpdateWriteHazardTrackingAfterBarrier(VulkanImage* 
 	{
 		if(copyFrom.has_value())
 		{
-			const u32 copyFromSubresourceIndex = copyFrom.value();
-			ImageSubresourceInfo* const copyFromSubresource = &mSubresourceInfoStorage[copyFromSubresourceIndex];
-
-			ImageSubresourceInfo subresourceCopy = *copyFromSubresource;
-			subresourceCopy.Range = range;
-			subresourceCopy.WriteHazardTracking = mWriteHazardPool.Construct<WriteHazardTracking>();
-
-			if(B3D_ENSURE(copyFromSubresource->WriteHazardTracking != nullptr))
-				*subresourceCopy.WriteHazardTracking = *copyFromSubresource->WriteHazardTracking;
-
-			mSubresourceInfoStorage.push_back(subresourceCopy);
+			CopySubresourceWithNewRange(copyFrom.value(), range);
 			return;
 		}
 
@@ -2878,6 +2858,8 @@ void VulkanGpuCommandBuffer::FindOrSubdivideSubresourceRange(const VulkanImage* 
 
 	ImageSubresourceInfo* subresources = &mSubresourceInfoStorage[imageInfo.FirstSubresourceInfoIndex];
 
+	// First test for the simplest and most common case (same range or no overlap) to avoid more complex
+	// computations.
 	bool foundRange = false;
 	for(u32 i = 0; i < imageInfo.SubresourceInfoCount; i++)
 	{
@@ -2897,8 +2879,8 @@ void VulkanGpuCommandBuffer::FindOrSubdivideSubresourceRange(const VulkanImage* 
 		}
 	}
 
-	//// We'll need to update subresource ranges or add new ones. The hope is that this code is trigger VERY rarely
-	//// (for just a few specific textures per frame).
+	// We'll need to update subresource ranges or add new ones. The hope is that this code is trigger VERY rarely
+	// (for just a few specific textures per frame).
 	if(!foundRange)
 	{
 		std::array<VkImageSubresourceRange, 5> tempCutRanges;
@@ -2984,7 +2966,31 @@ void VulkanGpuCommandBuffer::FindOrSubdivideSubresourceRange(const VulkanImage* 
 	}
 }
 
-void VulkanGpuCommandBuffer::AddSubresourceRange(const VkImageSubresourceRange& range, ImageUseFlagBits use, VkImageLayout layout, VkImageLayout finalLayout, GpuAccessFlags access, VkPipelineStageFlags stages)
+
+u32 VulkanGpuCommandBuffer::CopySubresourceWithNewRange(u32 copyFromIndex, const VkImageSubresourceRange& newRange, bool needsHazardTracking)
+{
+	ImageSubresourceInfo* const copyFromSubresource = &mSubresourceInfoStorage[copyFromIndex];
+
+	ImageSubresourceInfo subresourceCopy = *copyFromSubresource;
+	subresourceCopy.Range = newRange;
+
+#if B3D_HAZARD_TRACKING
+	if(needsHazardTracking)
+	{
+		subresourceCopy.WriteHazardTracking = mWriteHazardPool.Construct<WriteHazardTracking>();
+
+		if(B3D_ENSURE(copyFromSubresource->WriteHazardTracking != nullptr))
+			*subresourceCopy.WriteHazardTracking = *copyFromSubresource->WriteHazardTracking;
+	}
+#endif
+
+	mSubresourceInfoStorage.push_back(subresourceCopy);
+	const u32 newSubresourceIndex = (u32)mSubresourceInfoStorage.size() - 1;
+
+	return newSubresourceIndex;
+}
+
+u32 VulkanGpuCommandBuffer::AddSubresourceRange(const VkImageSubresourceRange& range, ImageUseFlagBits use, VkImageLayout layout, VkImageLayout finalLayout, GpuAccessFlags access, VkPipelineStageFlags stages)
 {
 	mSubresourceInfoStorage.push_back(ImageSubresourceInfo());
 	ImageSubresourceInfo& subresourceInfo = mSubresourceInfoStorage.back();
@@ -3038,6 +3044,8 @@ void VulkanGpuCommandBuffer::AddSubresourceRange(const VkImageSubresourceRange& 
 
 	if(use == ImageUseFlagBits::Shader)
 		mShaderBoundSubresourceInfos.insert((u32)mSubresourceInfoStorage.size() - 1);
+
+	return (u32)mSubresourceInfoStorage.size() - 1;
 }
 
 void VulkanGpuCommandBuffer::RegisterResource(VulkanImage* image, const VkImageSubresourceRange& range, ImageUseFlagBits use, VkImageLayout layout, VkImageLayout finalLayout, GpuAccessFlags access, VkPipelineStageFlags stages)
@@ -3074,32 +3082,15 @@ void VulkanGpuCommandBuffer::RegisterResource(VulkanImage* image, const VkImageS
 		imageInfo.UseHandle.Flags |= access;
 
 		// See if there is an overlap between existing ranges and the new range. And if so break them up accordingly.
-		//// First test for the simplest and most common case (same range or no overlap) to avoid more complex
-		//// computations.
 		FindOrSubdivideSubresourceRange(image, imageInfo, range, [this, use, layout, finalLayout, access, stages](const VkImageSubresourceRange& range, Optional<u32> copyFrom)
 		{
 			if(copyFrom.has_value())
 			{
-				const u32 copyFromSubresourceIndex = copyFrom.value();
-				ImageSubresourceInfo* const copyFromSubresource = &mSubresourceInfoStorage[copyFromSubresourceIndex];
-
-				ImageSubresourceInfo subresourceCopy = *copyFromSubresource;
-				subresourceCopy.Range = range;
-
-#if B3D_HAZARD_TRACKING
-				if(use == ImageUseFlagBits::Shader || use == ImageUseFlagBits::Framebuffer)
-				{
-					subresourceCopy.WriteHazardTracking = mWriteHazardPool.Construct<WriteHazardTracking>();
-
-					if(B3D_ENSURE(copyFromSubresource->WriteHazardTracking != nullptr))
-						*subresourceCopy.WriteHazardTracking = *copyFromSubresource->WriteHazardTracking;
-				}
-#endif
-
-				mSubresourceInfoStorage.push_back(subresourceCopy);
+				const bool needsHazardTracking = (use == ImageUseFlagBits::Shader || use == ImageUseFlagBits::Framebuffer);
+				const u32 newSubresourceIndex = CopySubresourceWithNewRange(copyFrom.value(), range, needsHazardTracking);
 
 				if(use == ImageUseFlagBits::Shader)
-					mShaderBoundSubresourceInfos.insert((u32)mSubresourceInfoStorage.size() - 1);
+					mShaderBoundSubresourceInfos.insert(newSubresourceIndex);
 
 				return;
 			}

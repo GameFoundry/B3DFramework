@@ -1703,6 +1703,8 @@ void RCNodeFinalResolve::Render(const RenderCompositorNodeInputs& inputs)
 
 	commandBuffer.EndRenderPass();
 
+	commandBuffer.IssueBarriers({{ GpuRenderTargetBarrier(target, RT_COLOR0, GpuResourceUseFlag::ColorAttachment, GpuAccessFlag::Write, GpuResourceUseFlag::ColorAttachment, GpuAccessFlag::Write )}});
+
 	// Trigger overlay callbacks
 	Camera* sceneCamera = inputs.View.GetSceneCamera();
 	if(sceneCamera != nullptr)
