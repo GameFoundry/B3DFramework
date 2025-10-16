@@ -211,11 +211,32 @@ namespace b3d
 			SPtr<Texture> Object;
 			GpuTextureSubresourceRange SubresourceRange;
 		};
+		/**
+		 * Describes a barrier for a RenderTarget.
+		 *
+		 * This is functionally equivalent to specifying GpuTextureBarrier on the color or depth/stencil textures of the
+		 * render target. However, it is necessary for issuing barriers on swap chain images, which cannot be accessed
+		 * as standalone textures.
+		 */
+		struct GpuRenderTargetBarrier : GpuBarrier
+		{
+			GpuRenderTargetBarrier(const SPtr<RenderTarget>& object, RenderSurfaceMask surfaceMask = RT_ALL, const GpuTextureSubresourceRange& subresourceRange = GpuTextureSubresourceRange::AllSubresources())
+				: Object(object), SurfaceMask(surfaceMask), SubresourceRange(subresourceRange)
+			{ }
 
-		/** A list of buffer and texture barriers. */
+			GpuRenderTargetBarrier(const SPtr<RenderTarget>& object, GpuResourceUseFlags sourceUsage, GpuAccessFlags sourceAccess, GpuResourceUseFlags destinationUsage, GpuAccessFlags destinationAccess, RenderSurfaceMask surfaceMask = RT_ALL, const GpuTextureSubresourceRange& subresourceRange = GpuTextureSubresourceRange::AllSubresources())
+				: GpuBarrier(sourceUsage, sourceAccess, destinationUsage, destinationAccess), Object(object), SurfaceMask(surfaceMask), SubresourceRange(subresourceRange)
+			{ }
+
+			SPtr<RenderTarget> Object;
+			RenderSurfaceMask SurfaceMask; /**< Specifies which surfaces of the render target the barrier applies to. */
+			GpuTextureSubresourceRange SubresourceRange; /**< Subresources (mips, array levels) of the textures to apply the barrier to. */
+		};
+
+		/** A list of buffer, texture, and render target barriers. */
 		struct GpuBarriers
 		{
-			GpuBarriers(TArrayView<GpuBufferBarrier> bufferBarriers, TArrayView<GpuTextureBarrier> textureBarriers = TArrayView<GpuTextureBarrier>())
+			GpuBarriers(TArrayView<GpuBufferBarrier> bufferBarriers, TArrayView<GpuTextureBarrier> textureBarriers = TArrayView<GpuTextureBarrier>(), TArrayView<GpuRenderTargetBarrier> renderTargetBarriers = TArrayView<GpuRenderTargetBarrier>())
 			{
 				BufferBarriers.Reserve(bufferBarriers.Size());
 
@@ -226,6 +247,11 @@ namespace b3d
 
 				for(const auto& entry : textureBarriers)
 					TextureBarriers.Add(entry);
+
+				RenderTargetBarriers.Reserve(renderTargetBarriers.Size());
+
+				for(const auto& entry : renderTargetBarriers)
+					RenderTargetBarriers.Add(entry);
 			}
 
 			GpuBarriers(TArrayView<GpuTextureBarrier> textureBarriers)
@@ -234,6 +260,14 @@ namespace b3d
 
 				for(const auto& entry : textureBarriers)
 					TextureBarriers.Add(entry);
+			}
+
+			GpuBarriers(TArrayView<GpuRenderTargetBarrier> renderTargetBarriers)
+			{
+				RenderTargetBarriers.Reserve(renderTargetBarriers.Size());
+
+				for(const auto& entry : renderTargetBarriers)
+					RenderTargetBarriers.Add(entry);
 			}
 
 			GpuBarriers(const GpuTextureBarrier& textureBarrier)
@@ -246,10 +280,15 @@ namespace b3d
 				BufferBarriers.Add(bufferBarrier);
 			}
 
+			GpuBarriers(const GpuRenderTargetBarrier& renderTargetBarrier)
+			{
+				RenderTargetBarriers.Add(renderTargetBarrier);
+			}
+
 			TInlineArray<GpuBufferBarrier, 2> BufferBarriers;
 			TInlineArray<GpuTextureBarrier, 2> TextureBarriers;
+			TInlineArray<GpuRenderTargetBarrier, 2> RenderTargetBarriers;
 		};
-
 		/**
 		 * Contains a list of render API commands that can be queued for execution on the GPU. User is allowed to populate the
 		 * command buffer from any thread, ensuring render API command generation can be multi-threaded. Command buffers

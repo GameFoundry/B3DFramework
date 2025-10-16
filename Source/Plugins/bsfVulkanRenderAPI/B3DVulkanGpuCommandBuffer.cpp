@@ -2596,6 +2596,140 @@ void VulkanGpuCommandBuffer::IssueBarriers(const GpuBarriers& barriers)
 		});
 	}
 
+	for(const auto& barrier : barriers.RenderTargetBarriers)
+	{
+		if(barrier.Object == nullptr)
+			continue;
+
+		const VkAccessFlags sourceAccessMask = VulkanUtility::GetAccessMaskFromUsage(barrier.SourceUsage, barrier.SourceAccess);
+		const VkAccessFlags destinationAccessMask = VulkanUtility::GetAccessMaskFromUsage(barrier.DestinationUsage, barrier.DestinationAccess);
+
+		combinedSourceStages |= VulkanUtility::GetPipelineStageFlags(sourceAccessMask);
+		combinedDestinationStages |= VulkanUtility::GetPipelineStageFlags(destinationAccessMask);
+		combinedSourceAccess |= barrier.SourceAccess;
+		combinedDestinationAccess |= barrier.DestinationAccess;
+
+		// Helper lambda to process a single image with the barrier
+		auto processImage = [&](VulkanImage* vulkanImage, const GpuTextureSubresourceRange& subresourceRange)
+		{
+			if(vulkanImage == nullptr)
+				return;
+
+			auto found = mImages.find(vulkanImage);
+			if(found == mImages.end()) // Not yet registered with the command buffer
+				return;
+
+			const u32 imageInfoIndex = found->second;
+			ImageInfo& imageInfo = mImageInfos[imageInfoIndex];
+
+			VkImageSubresourceRange vkSubresourceRange = VulkanUtility::ToVulkanImageSubresourceRange(subresourceRange);
+
+			// Filter out invalid aspect mask to avoid validation warnings
+			vkSubresourceRange.aspectMask &= vulkanImage->GetAspectFlags();
+
+			// Provide exact size as FindOrSubdivideResourceRange doesn't handle VK_REMAINING_* macros
+			if(vkSubresourceRange.layerCount == VK_REMAINING_ARRAY_LAYERS)
+				vkSubresourceRange.layerCount = vulkanImage->GetRange().layerCount;
+
+			if(vkSubresourceRange.levelCount == VK_REMAINING_MIP_LEVELS)
+				vkSubresourceRange.levelCount = vulkanImage->GetRange().levelCount;
+
+			FindOrSubdivideSubresourceRange(imageInfo, vkSubresourceRange, [this](const VkImageSubresourceRange& range, Optional<u32> copyFrom)
+			{
+				if(copyFrom.has_value())
+				{
+					const u32 copyFromSubresourceIndex = copyFrom.value();
+					ImageSubresourceInfo* const copyFromSubresource = &mSubresourceInfoStorage[copyFromSubresourceIndex];
+
+					ImageSubresourceInfo subresourceCopy = *copyFromSubresource;
+					subresourceCopy.Range = range;
+					subresourceCopy.WriteHazardTracking = mWriteHazardPool.Construct<WriteHazardTracking>();
+
+					if(B3D_ENSURE(copyFromSubresource->WriteHazardTracking != nullptr))
+						*subresourceCopy.WriteHazardTracking = *copyFromSubresource->WriteHazardTracking;
+
+					mSubresourceInfoStorage.push_back(subresourceCopy);
+					return;
+				}
+
+				AddSubresourceRange(range, ImageUseFlagBits::None, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_UNDEFINED, GpuAccessFlag::None, 0);
+			},
+			[this, &vkImageBarriers, vulkanImage, vkSubresourceRange, sourceAccessMask, destinationAccessMask](u32 subresourceIndex, bool isNewSubresource)
+			{
+				ImageSubresourceInfo& subresource = mSubresourceInfoStorage[subresourceIndex];
+
+				VkImageMemoryBarrier vkImageBarrier;
+				vkImageBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+				vkImageBarrier.pNext = nullptr;
+				vkImageBarrier.srcAccessMask = sourceAccessMask;
+				vkImageBarrier.dstAccessMask = destinationAccessMask;
+				vkImageBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+				vkImageBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+				vkImageBarrier.oldLayout = subresource.CurrentLayout;
+				vkImageBarrier.newLayout = subresource.CurrentLayout;
+				vkImageBarrier.image = vulkanImage->GetVulkanHandle();
+				vkImageBarrier.subresourceRange = vkSubresourceRange;
+
+				vkImageBarriers.push_back(vkImageBarrier);
+			});
+		};
+
+		// Get framebuffer based on render target type
+		VulkanFramebuffer* framebuffer = nullptr;
+		if(barrier.Object->GetProperties().IsWindow)
+		{
+			// Handle RenderWindow - need to get the acquired swap chain image
+			render::RenderWindow* const renderWindow = static_cast<render::RenderWindow*>(barrier.Object.get());
+			VulkanRenderWindowSurface* renderWindowSurface = static_cast<VulkanRenderWindowSurface*>(renderWindow->GetRenderWindowSurface().get());
+
+			if(renderWindowSurface != nullptr)
+			{
+				VulkanSwapChain* swapChain = renderWindowSurface->GetSwapChain();
+
+				// Find the acquired image index for this swap chain
+				const auto found = std::find_if(mAcquiredSwapChainImages.begin(), mAcquiredSwapChainImages.end(),
+					[swapChain](const SwapChainImageInformation& info) { return info.SwapChain == swapChain; });
+
+				if(found != mAcquiredSwapChainImages.end())
+				{
+					framebuffer = swapChain->GetFramebufferForImage(found->ImageIndex);
+				}
+			}
+		}
+		else
+		{
+			// Handle RenderTexture
+			render::VulkanRenderTexture* const renderTexture = static_cast<render::VulkanRenderTexture*>(barrier.Object.get());
+			framebuffer = renderTexture->GetFramebuffer();
+		}
+
+		if(framebuffer == nullptr)
+			continue;
+
+		// Process color attachments if specified in the surface mask
+		for(u32 colorIndex = 0; colorIndex < B3D_MAXIMUM_RENDER_TARGET_COUNT; colorIndex++)
+		{
+			const RenderSurfaceMaskBits colorMask = static_cast<RenderSurfaceMaskBits>(RT_COLOR0 << colorIndex);
+			if(barrier.SurfaceMask.IsSet(colorMask))
+			{
+				const VulkanFramebufferAttachment& attachment = framebuffer->GetColorAttachment(colorIndex);
+				if(attachment.Image != nullptr)
+				{
+					processImage(attachment.Image, barrier.SubresourceRange);
+				}
+			}
+		}
+
+		// Process depth/stencil attachment if specified in the surface mask
+		if(barrier.SurfaceMask.IsSetAny(RT_DEPTH | RT_STENCIL))
+		{
+			const VulkanFramebufferAttachment& attachment = framebuffer->GetDepthStencilAttachment();
+			if(attachment.Image != nullptr)
+			{
+				processImage(attachment.Image, barrier.SubresourceRange);
+			}
+		}
+	}
 	// Read-after-write or write-after-write
 	if(combinedSourceAccess.IsSet(GpuAccessFlag::Write))
 	{
@@ -2643,6 +2777,80 @@ void VulkanGpuCommandBuffer::UpdateWriteHazardTrackingAfterBarrier(GpuAccessFlag
 			vkSubresourceRange.levelCount = vulkanImage->GetRange().levelCount;
 
 		UpdateWriteHazardTrackingAfterBarrier(vulkanTexture->GetVulkanResource(), vkSubresourceRange, sourceAccess, sourceStages, destinationAccess, destinationStages);
+	}
+
+	for(const auto& barrier : barriers.RenderTargetBarriers)
+	{
+		if(barrier.Object == nullptr)
+			continue;
+
+		// Helper lambda to process a single image
+		auto processImage = [&](VulkanImage* vulkanImage)
+		{
+			if(vulkanImage == nullptr)
+				return;
+
+			VkImageSubresourceRange vkSubresourceRange = VulkanUtility::ToVulkanImageSubresourceRange(barrier.SubresourceRange);
+
+			// Provide exact size as FindOrSubdivideResourceRange doesn't handle VK_REMAINING_* macros
+			if(vkSubresourceRange.layerCount == VK_REMAINING_ARRAY_LAYERS)
+				vkSubresourceRange.layerCount = vulkanImage->GetRange().layerCount;
+
+			if(vkSubresourceRange.levelCount == VK_REMAINING_MIP_LEVELS)
+				vkSubresourceRange.levelCount = vulkanImage->GetRange().levelCount;
+
+			UpdateWriteHazardTrackingAfterBarrier(vulkanImage, vkSubresourceRange, sourceAccess, sourceStages, destinationAccess, destinationStages);
+		};
+
+		// Get framebuffer based on render target type
+		VulkanFramebuffer* framebuffer = nullptr;
+		if(barrier.Object->GetProperties().IsWindow)
+		{
+			// Handle RenderWindow
+			render::RenderWindow* const renderWindow = static_cast<render::RenderWindow*>(barrier.Object.get());
+			VulkanRenderWindowSurface* renderWindowSurface = static_cast<VulkanRenderWindowSurface*>(renderWindow->GetRenderWindowSurface().get());
+
+			if(renderWindowSurface != nullptr)
+			{
+				VulkanSwapChain* swapChain = renderWindowSurface->GetSwapChain();
+
+				// Find the acquired image index for this swap chain
+				const auto found = std::find_if(mAcquiredSwapChainImages.begin(), mAcquiredSwapChainImages.end(),
+					[swapChain](const SwapChainImageInformation& info) { return info.SwapChain == swapChain; });
+
+				if(found != mAcquiredSwapChainImages.end())
+				{
+					framebuffer = swapChain->GetFramebufferForImage(found->ImageIndex);
+				}
+			}
+		}
+		else
+		{
+			// Handle RenderTexture
+			render::VulkanRenderTexture* const renderTexture = static_cast<render::VulkanRenderTexture*>(barrier.Object.get());
+			framebuffer = renderTexture->GetFramebuffer();
+		}
+
+		if(framebuffer == nullptr)
+			continue;
+
+		// Process color attachments if specified in the surface mask
+		for(u32 colorIndex = 0; colorIndex < B3D_MAXIMUM_RENDER_TARGET_COUNT; colorIndex++)
+		{
+			const RenderSurfaceMaskBits colorMask = static_cast<RenderSurfaceMaskBits>(RT_COLOR0 << colorIndex);
+			if(barrier.SurfaceMask.IsSet(colorMask))
+			{
+				const VulkanFramebufferAttachment& attachment = framebuffer->GetColorAttachment(colorIndex);
+				processImage(attachment.Image);
+			}
+		}
+
+		// Process depth/stencil attachment if specified in the surface mask
+		if(barrier.SurfaceMask.IsSetAny(RT_DEPTH | RT_STENCIL))
+		{
+			const VulkanFramebufferAttachment& attachment = framebuffer->GetDepthStencilAttachment();
+			processImage(attachment.Image);
+		}
 	}
 }
 
