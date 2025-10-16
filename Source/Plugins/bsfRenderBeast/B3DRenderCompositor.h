@@ -226,11 +226,8 @@ namespace b3d
 				/** Returns identifier for all the dependencies of a node of this type. */
 				virtual TInlineArray<StringID, 4> GetDependencies(const RendererView& view) const = 0;
 
-				/**
-				 * Returns identifier for all possible dependencies, regardless of enable state.
-				 * For nodes without conditional dependencies, this returns the same as GetDependencies().
-				 */
-				virtual TInlineArray<StringID, 4> GetAllDependencyIds(const RendererView& view) const = 0;
+				/** Returns identifier for all possible dependencies, regardless of enable state. */
+				virtual TInlineArray<StringID, 4> GetAllDependencyIds() const = 0;
 
 				/**
 				 * Returns the category of this node. Primary nodes represent the main path through the pipeline, and must be explicitly
@@ -254,14 +251,12 @@ namespace b3d
 				RenderCompositorNode* Create() const override { return B3DNew<T>(); }
 				TInlineArray<StringID, 4> GetDependencies(const RendererView& view) const override
 				{
-					return T::GetDependencies(view);
+					return T::GetDependencyDefinition().GetEnabledDependencyIds(view);
 				}
 
-				TInlineArray<StringID, 4> GetAllDependencyIds(const RendererView& view) const override
+				TInlineArray<StringID, 4> GetAllDependencyIds() const override
 				{
-					// For non-migrated nodes, return same as GetDependencies
-					// TODO: Update to call T::GetDependencyDefinition().GetAllNodeIds() once nodes are migrated
-					return T::GetDependencies(view);
+					return T::GetDependencyDefinition().GetAllDependencyIds();
 				}
 
 				RenderCompositorNodeCategory GetCategory() const override
@@ -302,6 +297,17 @@ namespace b3d
 		class RCNodeHalfSceneColor;
 		class RCNodeBloom;
 		class RCNodeScreenSpaceLensFlare;
+		class RCNodeTemporalAA;
+		class RCNodeFilmGrain;
+		class RCNodePostProcess;
+		class RCNodeResolvedSceneDepth;
+		class RCNodeSkybox;
+		class RCNodeIndirectDiffuseLighting;
+		class RCNodeSSAO;
+		class RCNodeSSR;
+		class RCNodeMSAACoverage;
+		class RCNodeParticleSort;
+		class RCNodeSceneColor;
 
 		/************************************************************************/
 		/* 							BASE PASS NODES	                     		*/
@@ -318,7 +324,6 @@ namespace b3d
 
 			static StringID GetNodeId() { return "SceneDepth"; }
 			static DependencyDefinition GetDependencyDefinition();
-			static TInlineArray<StringID, 4> GetDependencies(const RendererView& view);
 			static RenderCompositorNodeCategory GetCategory() { return RenderCompositorNodeCategory::Utility; }
 
 		protected:
@@ -347,7 +352,6 @@ namespace b3d
 
 			static StringID GetNodeId() { return "BasePass"; }
 			static DependencyDefinition GetDependencyDefinition();
-			static TInlineArray<StringID, 4> GetDependencies(const RendererView& view);
 			static RenderCompositorNodeCategory GetCategory() { return RenderCompositorNodeCategory::Primary; }
 
 		protected:
@@ -390,7 +394,6 @@ namespace b3d
 
 			static StringID GetNodeId() { return "SceneColor"; }
 			static DependencyDefinition GetDependencyDefinition();
-			static TInlineArray<StringID, 4> GetDependencies(const RendererView& view);
 			static RenderCompositorNodeCategory GetCategory() { return RenderCompositorNodeCategory::Utility; }
 
 		protected:
@@ -413,7 +416,6 @@ namespace b3d
 
 			static StringID GetNodeId() { return "MSAACoverage"; }
 			static DependencyDefinition GetDependencyDefinition();
-			static TInlineArray<StringID, 4> GetDependencies(const RendererView& view);
 			static RenderCompositorNodeCategory GetCategory() { return RenderCompositorNodeCategory::Utility; }
 
 		protected:
@@ -433,7 +435,6 @@ namespace b3d
 
 			static StringID GetNodeId() { return "ParticleSimulate"; }
 			static DependencyDefinition GetDependencyDefinition();
-			static TInlineArray<StringID, 4> GetDependencies(const RendererView& view);
 			static RenderCompositorNodeCategory GetCategory() { return RenderCompositorNodeCategory::Primary; }
 
 		protected:
@@ -449,7 +450,6 @@ namespace b3d
 
 			static StringID GetNodeId() { return "ParticleSort"; }
 			static DependencyDefinition GetDependencyDefinition();
-			static TInlineArray<StringID, 4> GetDependencies(const RendererView& view);
 			static RenderCompositorNodeCategory GetCategory() { return RenderCompositorNodeCategory::Primary; }
 
 		protected:
@@ -487,7 +487,6 @@ namespace b3d
 
 			static StringID GetNodeId() { return "LightAccumulation"; }
 			static DependencyDefinition GetDependencyDefinition();
-			static TInlineArray<StringID, 4> GetDependencies(const RendererView& view);
 			static RenderCompositorNodeCategory GetCategory() { return RenderCompositorNodeCategory::Utility; }
 
 		protected:
@@ -509,7 +508,6 @@ namespace b3d
 
 			static StringID GetNodeId() { return "DeferredDirectLighting"; }
 			static DependencyDefinition GetDependencyDefinition();
-			static TInlineArray<StringID, 4> GetDependencies(const RendererView& view);
 			static RenderCompositorNodeCategory GetCategory() { return RenderCompositorNodeCategory::Primary; }
 
 		protected:
@@ -534,7 +532,6 @@ namespace b3d
 
 			static StringID GetNodeId() { return "DeferredIndirectSpecularLighting"; }
 			static DependencyDefinition GetDependencyDefinition();
-			static TInlineArray<StringID, 4> GetDependencies(const RendererView& view);
 			static RenderCompositorNodeCategory GetCategory() { return RenderCompositorNodeCategory::Primary; }
 
 		protected:
@@ -555,7 +552,6 @@ namespace b3d
 
 			static StringID GetNodeId() { return "IndirectDiffuseLighting"; }
 			static DependencyDefinition GetDependencyDefinition();
-			static TInlineArray<StringID, 4> GetDependencies(const RendererView& view);
 			static RenderCompositorNodeCategory GetCategory() { return RenderCompositorNodeCategory::Primary; }
 
 		protected:
@@ -574,7 +570,6 @@ namespace b3d
 
 			static StringID GetNodeId() { return "ClusteredForward"; }
 			static DependencyDefinition GetDependencyDefinition();
-			static TInlineArray<StringID, 4> GetDependencies(const RendererView& view);
 			static RenderCompositorNodeCategory GetCategory() { return RenderCompositorNodeCategory::Primary; }
 
 		protected:
@@ -595,7 +590,6 @@ namespace b3d
 
 			static StringID GetNodeId() { return "Skybox"; }
 			static DependencyDefinition GetDependencyDefinition();
-			static TInlineArray<StringID, 4> GetDependencies(const RendererView& view);
 			static RenderCompositorNodeCategory GetCategory() { return RenderCompositorNodeCategory::Primary; }
 
 		protected:
@@ -611,7 +605,6 @@ namespace b3d
 
 			static StringID GetNodeId() { return "FinalResolve"; }
 			static DependencyDefinition GetDependencyDefinition();
-			static TInlineArray<StringID, 4> GetDependencies(const RendererView& view);
 			static RenderCompositorNodeCategory GetCategory() { return RenderCompositorNodeCategory::Primary; }
 
 		protected:
@@ -643,7 +636,6 @@ namespace b3d
 
 			static StringID GetNodeId() { return "PostProcess"; }
 			static DependencyDefinition GetDependencyDefinition();
-			static TInlineArray<StringID, 4> GetDependencies(const RendererView& view);
 			static RenderCompositorNodeCategory GetCategory() { return RenderCompositorNodeCategory::Utility; }
 
 		protected:
@@ -664,7 +656,6 @@ namespace b3d
 
 			static StringID GetNodeId() { return "EyeAdaptation"; }
 			static DependencyDefinition GetDependencyDefinition();
-			static TInlineArray<StringID, 4> GetDependencies(const RendererView& view);
 			static RenderCompositorNodeCategory GetCategory() { return RenderCompositorNodeCategory::Utility; }
 
 		protected:
@@ -691,7 +682,6 @@ namespace b3d
 
 			static StringID GetNodeId() { return "Tonemapping"; }
 			static DependencyDefinition GetDependencyDefinition();
-			static TInlineArray<StringID, 4> GetDependencies(const RendererView& view);
 			static RenderCompositorNodeCategory GetCategory() { return RenderCompositorNodeCategory::Primary; }
 
 		protected:
@@ -706,8 +696,10 @@ namespace b3d
 		class RCNodeBokehDOF : public RenderCompositorNode
 		{
 		public:
+			using DependencyDefinition = RCNodeDependencyDefinition<RCNodeClusteredForward, RCNodeSceneColor, RCNodeSceneDepth, RCNodeLightAccumulation>;
+
 			static StringID GetNodeId() { return "BokehDOF"; }
-			static TInlineArray<StringID, 4> GetDependencies(const RendererView& view);
+			static DependencyDefinition GetDependencyDefinition();
 			static RenderCompositorNodeCategory GetCategory() { return RenderCompositorNodeCategory::Primary; }
 
 		protected:
@@ -727,7 +719,6 @@ namespace b3d
 
 			static StringID GetNodeId() { return "MotionBlur"; }
 			static DependencyDefinition GetDependencyDefinition();
-			static TInlineArray<StringID, 4> GetDependencies(const RendererView& view);
 			static RenderCompositorNodeCategory GetCategory() { return RenderCompositorNodeCategory::Primary; }
 
 		protected:
@@ -743,7 +734,6 @@ namespace b3d
 
 			static StringID GetNodeId() { return "GaussianDOF"; }
 			static DependencyDefinition GetDependencyDefinition();
-			static TInlineArray<StringID, 4> GetDependencies(const RendererView& view);
 			static RenderCompositorNodeCategory GetCategory() { return RenderCompositorNodeCategory::Primary; }
 
 		protected:
@@ -759,7 +749,6 @@ namespace b3d
 
 			static StringID GetNodeId() { return "FXAA"; }
 			static DependencyDefinition GetDependencyDefinition();
-			static TInlineArray<StringID, 4> GetDependencies(const RendererView& view);
 			static RenderCompositorNodeCategory GetCategory() { return RenderCompositorNodeCategory::Primary; }
 
 		protected:
@@ -781,7 +770,6 @@ namespace b3d
 
 			static StringID GetNodeId() { return "HalfSceneColor"; }
 			static DependencyDefinition GetDependencyDefinition();
-			static TInlineArray<StringID, 4> GetDependencies(const RendererView& view);
 			static RenderCompositorNodeCategory GetCategory() { return RenderCompositorNodeCategory::Utility; }
 
 		protected:
@@ -805,7 +793,6 @@ namespace b3d
 
 			static StringID GetNodeId() { return "SceneColorDownsamples"; }
 			static DependencyDefinition GetDependencyDefinition();
-			static TInlineArray<StringID, 4> GetDependencies(const RendererView& view);
 			static RenderCompositorNodeCategory GetCategory() { return RenderCompositorNodeCategory::Utility; }
 
 		protected:
@@ -823,7 +810,6 @@ namespace b3d
 
 			static StringID GetNodeId() { return "ResolvedSceneDepth"; }
 			static DependencyDefinition GetDependencyDefinition();
-			static TInlineArray<StringID, 4> GetDependencies(const RendererView& view);
 			static RenderCompositorNodeCategory GetCategory() { return RenderCompositorNodeCategory::Utility; }
 
 		protected:
@@ -837,11 +823,13 @@ namespace b3d
 		public:
 			SPtr<PooledRenderTexture> Output;
 
+			// Note: This doesn't actually use any gbuffer textures, but node is a dependency because it renders to the depth
+			// buffer. In order to avoid keeping gbuffer textures alive I could separate out the base pass into its own node
+			// perhaps. But at the moment it doesn't matter, as anything using HiZ also needs gbuffer.
 			using DependencyDefinition = RCNodeDependencyDefinition<RCNodeResolvedSceneDepth, RCNodeBasePass>;
 
 			static StringID GetNodeId() { return "HiZ"; }
 			static DependencyDefinition GetDependencyDefinition();
-			static TInlineArray<StringID, 4> GetDependencies(const RendererView& view);
 			static RenderCompositorNodeCategory GetCategory() { return RenderCompositorNodeCategory::Utility; }
 
 		protected:
@@ -859,7 +847,6 @@ namespace b3d
 
 			static StringID GetNodeId() { return "SSAO"; }
 			static DependencyDefinition GetDependencyDefinition();
-			static TInlineArray<StringID, 4> GetDependencies(const RendererView& view);
 			static RenderCompositorNodeCategory GetCategory() { return RenderCompositorNodeCategory::Primary; }
 
 		protected:
@@ -877,8 +864,10 @@ namespace b3d
 
 			~RCNodeSSR();
 
+			using DependencyDefinition = RCNodeDependencyDefinition<RCNodeSceneDepth, RCNodeLightAccumulation, RCNodeBasePass, RCNodeHiZ, RCNodeResolvedSceneDepth, RCNodeIndirectDiffuseLighting>;
+
 			static StringID GetNodeId() { return "SSR"; }
-			static TInlineArray<StringID, 4> GetDependencies(const RendererView& view);
+			static DependencyDefinition GetDependencyDefinition();
 			static RenderCompositorNodeCategory GetCategory() { return RenderCompositorNodeCategory::Primary; }
 
 		protected:
@@ -904,8 +893,10 @@ namespace b3d
 
 			~RCNodeTemporalAA();
 
+			using DependencyDefinition = RCNodeDependencyDefinition<RCNodeSceneColor, RCNodeSceneDepth, RCNodeBasePass>;
+
 			static StringID GetNodeId() { return "TemporalAA"; }
-			static TInlineArray<StringID, 4> GetDependencies(const RendererView& view);
+			static DependencyDefinition GetDependencyDefinition();
 			static RenderCompositorNodeCategory GetCategory() { return RenderCompositorNodeCategory::Primary; }
 
 		protected:
@@ -925,8 +916,10 @@ namespace b3d
 		public:
 			SPtr<Texture> Output;
 
+			using DependencyDefinition = RCNodeDependencyDefinition<RCNodeClusteredForward, RCNodeSceneColorDownsamples, RCNodeEyeAdaptation>;
+
 			static StringID GetNodeId() { return "Bloom"; }
-			static TInlineArray<StringID, 4> GetDependencies(const RendererView& view);
+			static DependencyDefinition GetDependencyDefinition();
 			static RenderCompositorNodeCategory GetCategory() { return RenderCompositorNodeCategory::Primary; }
 
 		protected:
@@ -940,8 +933,10 @@ namespace b3d
 		class RCNodeScreenSpaceLensFlare : public RenderCompositorNode
 		{
 		public:
+			using DependencyDefinition = RCNodeDependencyDefinition<RCNodeClusteredForward, RCNodeSceneColor, RCNodeSceneColorDownsamples>;
+
 			static StringID GetNodeId() { return "ScreenSpaceLensFlare"; }
-			static TInlineArray<StringID, 4> GetDependencies(const RendererView& view);
+			static DependencyDefinition GetDependencyDefinition();
 			static RenderCompositorNodeCategory GetCategory() { return RenderCompositorNodeCategory::Primary; }
 
 		protected:
@@ -953,8 +948,10 @@ namespace b3d
 		class RCNodeChromaticAberration : public RenderCompositorNode
 		{
 		public:
+			using DependencyDefinition = RCNodeDependencyDefinition<RCNodeFXAA, RCNodePostProcess>;
+
 			static StringID GetNodeId() { return "ChromaticAberration"; }
-			static TInlineArray<StringID, 4> GetDependencies(const RendererView& view);
+			static DependencyDefinition GetDependencyDefinition();
 			static RenderCompositorNodeCategory GetCategory() { return RenderCompositorNodeCategory::Primary; }
 
 		protected:
@@ -970,7 +967,6 @@ namespace b3d
 
 			static StringID GetNodeId() { return "FilmGrain"; }
 			static DependencyDefinition GetDependencyDefinition();
-			static TInlineArray<StringID, 4> GetDependencies(const RendererView& view);
 			static RenderCompositorNodeCategory GetCategory() { return RenderCompositorNodeCategory::Primary; }
 
 		protected:
