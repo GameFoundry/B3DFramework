@@ -80,6 +80,12 @@ namespace b3d
 			/** Returns the required access flags for this buffer. */
 			VkAccessFlags GetAccessFlags() const;
 
+			/** Returns the resource use flags appropriate for this buffer type. */
+			GpuResourceUseFlags GetResourceUseFlags() const;
+
+			/** Returns the access flags appropriate for this buffer type and flags. */
+			GpuAccessFlags GetBufferAccessFlags() const;
+
 		private:
 			/** Information about a view of this buffer. */
 			struct ViewInformation

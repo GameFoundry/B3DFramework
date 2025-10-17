@@ -722,7 +722,7 @@ void VulkanGpuParameters::PrepareForBind(VulkanGpuCommandBuffer& buffer, VkDescr
 			VkPipelineStageFlags stages = VulkanUtility::ShaderToPipelineStage(perSetBindings[usedBindingSequentialIndex].stageFlags);
 
 			// Register with command buffer
-			buffer.RegisterBuffer(resource, GpuResourceUseFlag::Uniform, GpuAccessFlag::Read, stages);
+			buffer.RegisterBuffer(resource, GpuResourceUseFlag::UniformBuffer, GpuAccessFlag::Read, stages);
 
 			// Check if internal resource changed from what was previously bound in the descriptor set
 			B3D_ASSERT(perDeviceData.UniformBuffers[sequentialResourceIndex] != VK_NULL_HANDLE);

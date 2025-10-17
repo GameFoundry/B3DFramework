@@ -138,6 +138,14 @@ namespace b3d
 			/** Converts resource use flag and access flag combination into VkAccessFlags. */
 			static VkAccessFlags GetAccessMaskFromUsage(GpuResourceUseFlags usage, GpuAccessFlags access);
 
+			/**
+			 * Returns pipeline stages based on the resource usage flags. This allows for fine-grained control
+			 * of which shader stages are involved when individual shader stage flags are used (VertexShader,
+			 * FragmentShader, ComputeShader). When using the combined Shader flag or other non-shader usage
+			 * flags, appropriate pipeline stages are determined automatically.
+			 */
+			static VkPipelineStageFlags GetPipelineStageFlags(GpuResourceUseFlags usage, VkAccessFlags accessFlags);
+
 			/** Returns a set of pipeline stages that can are allowed to be used for the specified set of access flags. */
 			static VkPipelineStageFlags GetPipelineStageFlags(VkAccessFlags accessFlags);
 		};

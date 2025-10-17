@@ -357,7 +357,7 @@ namespace b3d
 			 * @param	length			Size of the data to copy, in bytes. Must be a multiple of 4 and less or equal than 65536.
 			 * @param	isNewBuffer		If buffer is new, issuing memory barrier before the transfer can be skipped.
 			 */
-			void UpdateBuffer(VulkanBuffer* destination, u8* data, VkDeviceSize offset, VkDeviceSize length, bool isNewBuffer);
+			void UpdateBuffer(VulkanBuffer* destination, u8* data, VkDeviceSize offset, VkDeviceSize length);
 
 			/**
 			 * Copies the contents of the source buffer to the destination buffer. Caller must ensure the provided

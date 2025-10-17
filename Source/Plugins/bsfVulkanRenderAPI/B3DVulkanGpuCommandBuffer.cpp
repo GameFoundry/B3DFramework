@@ -1995,7 +1995,7 @@ void VulkanGpuCommandBuffer::BindVertexInputs()
 				resource = dummyVertexBuffer;
 
 			mVertexBuffersTemp[bindingIndex] = resource->GetVulkanHandle();
-			RegisterBuffer(resource, GpuResourceUseFlag::Vertex, GpuAccessFlag::Read);
+			RegisterBuffer(resource, GpuResourceUseFlag::VertexBuffer, GpuAccessFlag::Read);
 		}
 
 		vkCmdBindVertexBuffers(mCommandBufferHandle, 0, mRequiredVertexBufferBindingCount, mVertexBuffersTemp, mVertexBufferOffsetsTemp);
@@ -2012,7 +2012,7 @@ void VulkanGpuCommandBuffer::BindVertexInputs()
 			if(B3D_ENSURE(mIndexBuffer->GetInformation().Type == GpuBufferType::Index))
 				indexType = VulkanUtility::GetIndexType(mIndexBuffer->GetInformation().Index.Type);
 
-			RegisterBuffer(resource, GpuResourceUseFlag::Index, GpuAccessFlag::Read);
+			RegisterBuffer(resource, GpuResourceUseFlag::IndexBuffer, GpuAccessFlag::Read);
 
 			vkCmdBindIndexBuffer(mCommandBufferHandle, vkBuffer, 0, indexType);
 		}
@@ -2237,17 +2237,25 @@ void VulkanGpuCommandBuffer::SetEvent(VulkanEvent* event)
 		vkCmdSetEvent(mCommandBufferHandle, event->GetVulkanHandle(), VK_PIPELINE_STAGE_ALL_COMMANDS_BIT);
 }
 
-void VulkanGpuCommandBuffer::UpdateBuffer(VulkanBuffer* destination, u8* data, VkDeviceSize offset, VkDeviceSize length, bool isNewBuffer)
+void VulkanGpuCommandBuffer::UpdateBuffer(VulkanBuffer* destination, u8* data, VkDeviceSize offset, VkDeviceSize length)
 {
-	if(!isNewBuffer)
-	{
+	// TODO - Down the line we should make these barriers explicit, so user can batch multiple updates and issue one set of barriers, rather than barriers for each update. Same applied to other transfer ops below.
 
+	if(destination->IsBound()) // No need for barrier if this buffer hasn't yet been used on any command buffer
+	{
+		FrameScope frameScope;
+		VulkanBarrierHelper barrierHelper(this);
+		barrierHelper.AddBufferBarrier(destination, destination->GetResourceUseFlags(), destination->GetBufferAccessFlags(), GpuResourceUseFlag::Transfer, GpuAccessFlag::Write);
+		barrierHelper.Execute();
 	}
 
-
-	MemoryBarrier(destination->GetVulkanHandle(), destination->GetAccessFlags(), VK_ACCESS_TRANSFER_READ_BIT);
 	vkCmdUpdateBuffer(GetVulkanHandle(), destination->GetVulkanHandle(), offset, length, (uint32_t*)data);
-	MemoryBarrier(destination->GetVulkanHandle(), VK_ACCESS_TRANSFER_WRITE_BIT, destination->GetAccessFlags());
+
+	// Issue post-update barrier
+	FrameScope frameScope;
+	VulkanBarrierHelper barrierHelper(this);
+	barrierHelper.AddBufferBarrier(destination, GpuResourceUseFlag::Transfer, GpuAccessFlag::Write, destination->GetResourceUseFlags(), destination->GetBufferAccessFlags());
+	barrierHelper.Execute();
 
 	RegisterBuffer(destination, GpuResourceUseFlag::Transfer, GpuAccessFlag::Write);
 }
@@ -2259,15 +2267,24 @@ void VulkanGpuCommandBuffer::CopyBufferToBuffer(VulkanBuffer* source, VulkanBuff
 	region.srcOffset = sourceOffset;
 	region.dstOffset = destinationOffset;
 
-	// TODO - Don't issue barrier if source is a newly created buffer, those don't need cache invalidation
+	// Issue pre-copy barriers
+	FrameScope frameScope;
+	VulkanBarrierHelper barrierHelper(this);
 
-	MemoryBarrier(source->GetVulkanHandle(), source->GetAccessFlags(), VK_ACCESS_TRANSFER_READ_BIT);
-	MemoryBarrier(destination->GetVulkanHandle(), destination->GetAccessFlags(), VK_ACCESS_TRANSFER_WRITE_BIT);
+	if(source->IsBound())
+		barrierHelper.AddBufferBarrier(source, source->GetResourceUseFlags(), source->GetBufferAccessFlags(), GpuResourceUseFlag::Transfer, GpuAccessFlag::Read);
+
+	if(destination->IsBound())
+		barrierHelper.AddBufferBarrier(destination, destination->GetResourceUseFlags(), destination->GetBufferAccessFlags(), GpuResourceUseFlag::Transfer, GpuAccessFlag::Write);
+
+	barrierHelper.Execute();
 
 	vkCmdCopyBuffer(GetVulkanHandle(), source->GetVulkanHandle(), destination->GetVulkanHandle(), 1, &region);
 
-	MemoryBarrier(source->GetVulkanHandle(), VK_ACCESS_TRANSFER_READ_BIT, source->GetAccessFlags());
-	MemoryBarrier(destination->GetVulkanHandle(), VK_ACCESS_TRANSFER_WRITE_BIT, destination->GetAccessFlags());
+	// Issue post-copy barriers
+	barrierHelper.AddBufferBarrier(source, GpuResourceUseFlag::Transfer, GpuAccessFlag::Read, source->GetResourceUseFlags(), source->GetBufferAccessFlags());
+	barrierHelper.AddBufferBarrier(destination, GpuResourceUseFlag::Transfer, GpuAccessFlag::Write, destination->GetResourceUseFlags(), destination->GetBufferAccessFlags());
+	barrierHelper.Execute();
 
 	RegisterBuffer(source, GpuResourceUseFlag::Transfer, GpuAccessFlag::Read);
 	RegisterBuffer(destination, GpuResourceUseFlag::Transfer, GpuAccessFlag::Write);
@@ -2275,7 +2292,6 @@ void VulkanGpuCommandBuffer::CopyBufferToBuffer(VulkanBuffer* source, VulkanBuff
 
 void VulkanGpuCommandBuffer::CopyBufferToImage(VulkanBuffer* source, VulkanImage* destination, const VkExtent3D& region, const VkImageSubresourceRange& subresourceRange, VkImageLayout layout)
 {
-	RegisterBuffer(source, GpuResourceUseFlag::Transfer, GpuAccessFlag::Read);
 	RegisterImageTransfer(destination, subresourceRange, layout, GpuAccessFlag::Write);
 
 	VkImageSubresourceLayers rangeLayers;
@@ -2294,10 +2310,22 @@ void VulkanGpuCommandBuffer::CopyBufferToImage(VulkanBuffer* source, VulkanImage
 	copyRegion.imageExtent = region;
 	copyRegion.imageSubresource = rangeLayers;
 
-	MemoryBarrier(source->GetVulkanHandle(), source->GetAccessFlags(), VK_ACCESS_TRANSFER_READ_BIT);
-	// TODO - Barriers for the image
+	// Issue pre-copy barrier for source buffer
+	FrameScope frameScope;
+	VulkanBarrierHelper barrierHelper(this);
+	if(source->IsBound())
+		barrierHelper.AddBufferBarrier(source, source->GetResourceUseFlags(), source->GetBufferAccessFlags(), GpuResourceUseFlag::Transfer, GpuAccessFlag::Read);
+
+	// Note: Image barriers are handled by RegisterImageTransfer
+	barrierHelper.Execute();
+
 	vkCmdCopyBufferToImage(GetVulkanHandle(), source->GetVulkanHandle(), destination->GetVulkanHandle(), layout, 1, &copyRegion);
-	MemoryBarrier(source->GetVulkanHandle(), VK_ACCESS_TRANSFER_READ_BIT, source->GetAccessFlags());
+
+	// Issue post-copy barrier for source buffer
+	barrierHelper.AddBufferBarrier(source, GpuResourceUseFlag::Transfer, GpuAccessFlag::Read, source->GetResourceUseFlags(), source->GetBufferAccessFlags());
+	barrierHelper.Execute();
+
+	RegisterBuffer(source, GpuResourceUseFlag::Transfer, GpuAccessFlag::Read);
 }
 
 void VulkanGpuCommandBuffer::CopyImageToBuffer(VulkanImage* source, VulkanBuffer* destination, const VkExtent3D& region, const VkImageSubresourceRange& subresourceRange, VkImageLayout layout, u32 rowPitch, u32 sliceHeight)
@@ -2306,7 +2334,6 @@ void VulkanGpuCommandBuffer::CopyImageToBuffer(VulkanImage* source, VulkanBuffer
 	subresourceRangeForBarrier.aspectMask = source->GetAspectFlags(); // If the source image contains both depth & stencil, then both aspect flags need to provided for pipeline barrier. But for the copy operation there must only be one aspect.
 
 	RegisterImageTransfer(source, subresourceRangeForBarrier, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, GpuAccessFlag::Read);
-	RegisterBuffer(destination, GpuResourceUseFlag::Transfer, GpuAccessFlag::Write);
 
 	VkImageSubresourceLayers rangeLayers;
 	rangeLayers.aspectMask = subresourceRange.aspectMask;
@@ -2324,10 +2351,22 @@ void VulkanGpuCommandBuffer::CopyImageToBuffer(VulkanImage* source, VulkanBuffer
 	copyRegion.imageExtent = region;
 	copyRegion.imageSubresource = rangeLayers;
 
-	MemoryBarrier(destination->GetVulkanHandle(), destination->GetAccessFlags(), VK_ACCESS_TRANSFER_WRITE_BIT);
-	// TODO - Barriers for the image
+	// Issue pre-copy barrier for destination buffer
+	FrameScope frameScope;
+	VulkanBarrierHelper barrierHelper(this);
+	if(destination->IsBound())
+		barrierHelper.AddBufferBarrier(destination, destination->GetResourceUseFlags(), destination->GetBufferAccessFlags(), GpuResourceUseFlag::Transfer, GpuAccessFlag::Write);
+
+	// Note: Image barriers are handled by RegisterImageTransfer
+	barrierHelper.Execute();
+
 	vkCmdCopyImageToBuffer(GetVulkanHandle(), source->GetVulkanHandle(), layout, destination->GetVulkanHandle(), 1, &copyRegion);
-	MemoryBarrier(destination->GetVulkanHandle(), VK_ACCESS_TRANSFER_WRITE_BIT, destination->GetAccessFlags());
+
+	// Issue post-copy barrier for destination buffer
+	barrierHelper.AddBufferBarrier(destination, GpuResourceUseFlag::Transfer, GpuAccessFlag::Write, destination->GetResourceUseFlags(), destination->GetBufferAccessFlags());
+	barrierHelper.Execute();
+
+	RegisterBuffer(destination, GpuResourceUseFlag::Transfer, GpuAccessFlag::Write);
 }
 
 void VulkanGpuCommandBuffer::CopyImageToImage(VulkanImage* source, VulkanImage* destination, VkImageLayout sourceLayout, VkImageLayout destinationLayout, const VkImageSubresourceRange& sourceSubresourceRange, const VkImageSubresourceRange& destinationSubresourceRange, uint32_t regionCount, VkImageCopy* regions)
@@ -3037,48 +3076,44 @@ void VulkanGpuCommandBuffer::RegisterBuffer(VulkanBuffer* res, GpuResourceUseFla
 		B3D_ASSERT(!bufferInfo.UseHandle.Used);
 
 #if B3D_HAZARD_TRACKING
-		// Transfer write hazards are handled externally
-		if(useFlags != GpuResourceUseFlag::Transfer)
+		WriteHazardTracking* const writeHazardTracking = bufferInfo.WriteHazardTracking;
+
+		// If this buffer has been previously written to prevent read-after-write and write-after-read hazards
+		if(access.IsSetAny(GpuAccessFlag::Read | GpuAccessFlag::Write))
 		{
-			WriteHazardTracking* const writeHazardTracking = bufferInfo.WriteHazardTracking;
-
-			// If this buffer has been previously written to prevent read-after-write and write-after-read hazards
-			if(access.IsSetAny(GpuAccessFlag::Read | GpuAccessFlag::Write))
+			// Read-after-write (or write-after-write)
+			if(writeHazardTracking->Access.IsSet(GpuAccessFlag::Write))
 			{
-				// Read-after-write (or write-after-write)
-				if(writeHazardTracking->Access.IsSet(GpuAccessFlag::Write))
+				// Triggers if user did not issue a RAW memory barrier between a previous write and this usage (or did not specify all the relevant stages in the barrier)
+				if(!writeHazardTracking->WriteAccessStages.IsAccessSafe(stages))
 				{
-					// Triggers if user did not issue a RAW memory barrier between a previous write and this usage (or did not specify all the relevant stages in the barrier)
-					if(!writeHazardTracking->WriteAccessStages.IsAccessSafe(stages))
-					{
-						writeHazardTracking->WriteAccessStages.LogUnsafeAccess(stages, access, GpuAccessFlag::Write);
-						B3D_ENSURE(false);
-					}
+					writeHazardTracking->WriteAccessStages.LogUnsafeAccess(stages, access, GpuAccessFlag::Write);
+					B3D_ENSURE(false);
 				}
 			}
-
-			if(access.IsSet(GpuAccessFlag::Write))
-			{
-				// Write-after-read
-				if(writeHazardTracking->Access.IsSet(GpuAccessFlag::Read))
-				{
-					// Triggers if user did not issue a WAR memory barrier between a previous write and this usage (or did not specify all the relevant stages in the barrier)
-					if(!writeHazardTracking->ReadAccessStages.IsAccessSafe(stages))
-					{
-						writeHazardTracking->ReadAccessStages.LogUnsafeAccess(stages, GpuAccessFlag::Write, GpuAccessFlag::Read);
-						B3D_ENSURE(false);
-					}
-				}
-			}
-
-			writeHazardTracking->Access |= access;
-
-			if(access.IsSet(GpuAccessFlag::Read))
-				writeHazardTracking->ReadAccessStages.ClearStageSafeAccess(stages);
-
-			if(access.IsSet(GpuAccessFlag::Write))
-				writeHazardTracking->WriteAccessStages.ClearStageSafeAccess(stages);
 		}
+
+		if(access.IsSet(GpuAccessFlag::Write))
+		{
+			// Write-after-read
+			if(writeHazardTracking->Access.IsSet(GpuAccessFlag::Read))
+			{
+				// Triggers if user did not issue a WAR memory barrier between a previous write and this usage (or did not specify all the relevant stages in the barrier)
+				if(!writeHazardTracking->ReadAccessStages.IsAccessSafe(stages))
+				{
+					writeHazardTracking->ReadAccessStages.LogUnsafeAccess(stages, GpuAccessFlag::Write, GpuAccessFlag::Read);
+					B3D_ENSURE(false);
+				}
+			}
+		}
+
+		writeHazardTracking->Access |= access;
+
+		if(access.IsSet(GpuAccessFlag::Read))
+			writeHazardTracking->ReadAccessStages.ClearStageSafeAccess(stages);
+
+		if(access.IsSet(GpuAccessFlag::Write))
+			writeHazardTracking->WriteAccessStages.ClearStageSafeAccess(stages);
 #endif
 
 #if B3D_AUTOMATIC_BARRIERS
@@ -3106,13 +3141,13 @@ void VulkanGpuCommandBuffer::RegisterBuffer(VulkanBuffer* res, GpuResourceUseFla
 						if(access.IsSet(GpuAccessFlag::Write))
 							mMemoryBarrierDstAccess |= VK_ACCESS_SHADER_WRITE_BIT;
 						break;
-					case GpuResourceUseFlag::Index:
+					case GpuResourceUseFlag::IndexBuffer:
 						mMemoryBarrierDstAccess |= VK_ACCESS_INDEX_READ_BIT;
 						break;
-					case GpuResourceUseFlag::Vertex:
+					case GpuResourceUseFlag::VertexBuffer:
 						mMemoryBarrierDstAccess |= VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT;
 						break;
-					case GpuResourceUseFlag::Uniform:
+					case GpuResourceUseFlag::UniformBuffer:
 						mMemoryBarrierDstAccess |= VK_ACCESS_UNIFORM_READ_BIT;
 						break;
 					case GpuResourceUseFlag::Transfer:

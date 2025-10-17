@@ -101,7 +101,7 @@ VkBufferView VulkanBuffer::GetOrCreateView(VkFormat format)
 	return view;
 }
 
-VkAccessFlags VulkanBuffer::GetAccessFlags() const
+VkAccessFlags VulkanBuffer::GetVkAccessFlags() const
 {
 	VkAccessFlags accessFlags = 0;
 	switch(mType)
@@ -131,6 +131,37 @@ VkAccessFlags VulkanBuffer::GetAccessFlags() const
 		accessFlags |= VK_ACCESS_SHADER_WRITE_BIT;
 
 	return accessFlags;
+}
+
+GpuResourceUseFlags VulkanBuffer::GetUseFlags() const
+{
+	switch(mType)
+	{
+	case GpuBufferType::SimpleStorage:
+	case GpuBufferType::StructuredStorage:
+		return GpuResourceUseFlag::Shader;
+	case GpuBufferType::Index:
+		return GpuResourceUseFlag::IndexBuffer;
+	case GpuBufferType::Vertex:
+		return GpuResourceUseFlag::VertexBuffer;
+	case GpuBufferType::Uniform:
+		return GpuResourceUseFlag::UniformBuffer;
+	case GpuBufferType::StagingRead:
+	case GpuBufferType::StagingWrite:
+		return GpuResourceUseFlag::Transfer;
+	default:
+		return GpuResourceUseFlag::Shader;
+	}
+}
+
+GpuAccessFlags VulkanBuffer::GetAccessFlags() const
+{
+	GpuAccessFlags access = GpuAccessFlag::Read;
+	if(mFlags.IsSet(GpuBufferFlag::AllowUnorderedAccessOnTheGPU))
+		access |= GpuAccessFlag::Write;
+	if(mType == GpuBufferType::StagingWrite)
+		access = GpuAccessFlag::Write;
+	return access;
 }
 
 VulkanGpuBuffer::VulkanGpuBuffer(VulkanGpuDevice& device, const GpuBufferCreateInformation& createInformation)
@@ -584,7 +615,7 @@ void VulkanGpuBuffer::WriteData(u32 offset, u32 length, const void* source, Buff
 	if(stagingBuffer != nullptr)
 		vulkanCommandBuffer->CopyBufferToBuffer(stagingBuffer, mBuffer, 0, offset, length);
 	else // Staging memory
-		vulkanCommandBuffer->UpdateBuffer(mBuffer, (u8*)source, offset, length, false);
+		vulkanCommandBuffer->UpdateBuffer(mBuffer, (u8*)source, offset, length);
 
 	if(stagingBuffer != nullptr)
 		stagingBuffer->Destroy();

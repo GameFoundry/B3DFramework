@@ -21,8 +21,8 @@ void VulkanBarrierHelper::AddBufferBarrier(VulkanBuffer* buffer, GpuResourceUseF
 	const VkAccessFlags sourceAccessMask = VulkanUtility::GetAccessMaskFromUsage(sourceUsage, sourceAccess);
 	const VkAccessFlags destinationAccessMask = VulkanUtility::GetAccessMaskFromUsage(destinationUsage, destinationAccess);
 
-	const VkPipelineStageFlags sourceStages = VulkanUtility::GetPipelineStageFlags(sourceAccessMask);
-	const VkPipelineStageFlags destinationStages = VulkanUtility::GetPipelineStageFlags(destinationAccessMask);
+	const VkPipelineStageFlags sourceStages = VulkanUtility::GetPipelineStageFlags(sourceUsage, sourceAccessMask);
+	const VkPipelineStageFlags destinationStages = VulkanUtility::GetPipelineStageFlags(destinationUsage, destinationAccessMask);
 
 	mCombinedSourceStages |= sourceStages;
 	mCombinedDestinationStages |= destinationStages;
@@ -61,8 +61,8 @@ void VulkanBarrierHelper::AddImageBarrier(VulkanImage* image, const VkImageSubre
 	const VkAccessFlags sourceAccessMask = VulkanUtility::GetAccessMaskFromUsage(sourceUsage, sourceAccess);
 	const VkAccessFlags destinationAccessMask = VulkanUtility::GetAccessMaskFromUsage(destinationUsage, destinationAccess);
 
-	const VkPipelineStageFlags sourceStages = VulkanUtility::GetPipelineStageFlags(sourceAccessMask);
-	const VkPipelineStageFlags destinationStages = VulkanUtility::GetPipelineStageFlags(destinationAccessMask);
+	const VkPipelineStageFlags sourceStages = VulkanUtility::GetPipelineStageFlags(sourceUsage, sourceAccessMask);
+	const VkPipelineStageFlags destinationStages = VulkanUtility::GetPipelineStageFlags(destinationUsage, destinationAccessMask);
 
 	mCombinedSourceStages |= sourceStages;
 	mCombinedDestinationStages |= destinationStages;
