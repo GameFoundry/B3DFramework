@@ -108,10 +108,10 @@ void LightGridLLCreationMat::SetParams(GpuCommandBuffer& commandBuffer, const Ve
 
 	// Ensure we can safely write to the light & probe LL head & counter buffers
 	commandBuffer.IssueBarriers({{
-		GpuBufferBarrier(mLightsCounter, GpuResourceUseFlag::Shader, GpuAccessFlag::Write, GpuResourceUseFlag::Shader, GpuAccessFlag::Write),
-		GpuBufferBarrier(mProbesCounter, GpuResourceUseFlag::Shader, GpuAccessFlag::Write, GpuResourceUseFlag::Shader, GpuAccessFlag::Write),
-		GpuBufferBarrier(mLightsLLHeads, GpuResourceUseFlag::Shader, GpuAccessFlag::Write, GpuResourceUseFlag::Shader, GpuAccessFlag::Write),
-		GpuBufferBarrier(mProbesLLHeads, GpuResourceUseFlag::Shader, GpuAccessFlag::Write, GpuResourceUseFlag::Shader, GpuAccessFlag::Write),
+		GpuBufferBarrier(mLightsCounter, GpuResourceUseFlag::ShaderAccess, GpuAccessFlag::Write, GpuResourceUseFlag::ShaderAccess, GpuAccessFlag::Write),
+		GpuBufferBarrier(mProbesCounter, GpuResourceUseFlag::ShaderAccess, GpuAccessFlag::Write, GpuResourceUseFlag::ShaderAccess, GpuAccessFlag::Write),
+		GpuBufferBarrier(mLightsLLHeads, GpuResourceUseFlag::ShaderAccess, GpuAccessFlag::Write, GpuResourceUseFlag::ShaderAccess, GpuAccessFlag::Write),
+		GpuBufferBarrier(mProbesLLHeads, GpuResourceUseFlag::ShaderAccess, GpuAccessFlag::Write, GpuResourceUseFlag::ShaderAccess, GpuAccessFlag::Write),
 	}});
 
 	mGPUParameters->SetUniformBuffer("GridParams", gridParams);
@@ -220,7 +220,7 @@ void LightGridLLReductionMat::SetParams(GpuCommandBuffer& commandBuffer, const V
 	clearMat->Execute(commandBuffer, mGridDataCounter);
 
 	// Ensure we can safely write to the grid data counter buffer
-	commandBuffer.IssueBarriers(GpuBufferBarrier(mGridDataCounter, GpuResourceUseFlag::Shader, GpuAccessFlag::Write, GpuResourceUseFlag::Shader, GpuAccessFlag::Write));
+	commandBuffer.IssueBarriers(GpuBufferBarrier(mGridDataCounter, GpuResourceUseFlag::ShaderAccess, GpuAccessFlag::Write, GpuResourceUseFlag::ShaderAccess, GpuAccessFlag::Write));
 
 	mGPUParameters->SetUniformBuffer("GridParams", gridParams);
 
@@ -315,14 +315,14 @@ void LightGrid::UpdateGrid(GpuCommandBuffer& commandBuffer, const RendererView& 
 
 	// Make the buffer readable
 	commandBuffer.IssueBarriers({{
-		GpuBufferBarrier(lightLLHeads, GpuResourceUseFlag::Shader, GpuAccessFlag::Write, GpuResourceUseFlag::Shader, GpuAccessFlag::Read),
-		GpuBufferBarrier(lightLL, GpuResourceUseFlag::Shader, GpuAccessFlag::Write, GpuResourceUseFlag::Shader, GpuAccessFlag::Read),
-		GpuBufferBarrier(probeLLHeads, GpuResourceUseFlag::Shader, GpuAccessFlag::Write, GpuResourceUseFlag::Shader, GpuAccessFlag::Read),
-		GpuBufferBarrier(probeLL, GpuResourceUseFlag::Shader, GpuAccessFlag::Write, GpuResourceUseFlag::Shader, GpuAccessFlag::Read),
+		GpuBufferBarrier(lightLLHeads, GpuResourceUseFlag::ShaderAccess, GpuAccessFlag::Write, GpuResourceUseFlag::ShaderAccess, GpuAccessFlag::Read),
+		GpuBufferBarrier(lightLL, GpuResourceUseFlag::ShaderAccess, GpuAccessFlag::Write, GpuResourceUseFlag::ShaderAccess, GpuAccessFlag::Read),
+		GpuBufferBarrier(probeLLHeads, GpuResourceUseFlag::ShaderAccess, GpuAccessFlag::Write, GpuResourceUseFlag::ShaderAccess, GpuAccessFlag::Read),
+		GpuBufferBarrier(probeLL, GpuResourceUseFlag::ShaderAccess, GpuAccessFlag::Write, GpuResourceUseFlag::ShaderAccess, GpuAccessFlag::Read),
 
 		// Note: These are only necessary because our shader compiler ignores the read-only access modifier, so the validation systems thinks these buffers are being written even though they're not
-		GpuBufferBarrier(lightData.GetLightBuffer(), GpuResourceUseFlag::Shader, GpuAccessFlag::Write, GpuResourceUseFlag::Shader, GpuAccessFlag::Read),
-		GpuBufferBarrier(probeData.GetProbeBuffer(), GpuResourceUseFlag::Shader, GpuAccessFlag::Write, GpuResourceUseFlag::Shader, GpuAccessFlag::Read),
+		GpuBufferBarrier(lightData.GetLightBuffer(), GpuResourceUseFlag::ShaderAccess, GpuAccessFlag::Write, GpuResourceUseFlag::ShaderAccess, GpuAccessFlag::Read),
+		GpuBufferBarrier(probeData.GetProbeBuffer(), GpuResourceUseFlag::ShaderAccess, GpuAccessFlag::Write, GpuResourceUseFlag::ShaderAccess, GpuAccessFlag::Read),
 	}});
 
 	LightGridLLReductionMat* reductionMat = LightGridLLReductionMat::Get();

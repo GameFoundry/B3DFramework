@@ -42,42 +42,23 @@ namespace b3d
 			Done
 		};
 
-		/** Represents different GPU stages, primarily used for purposes of memory and execution barriers. */
-		enum class GpuStageBit
-		{
-			Begin = 1 << 0, /**< Pseudo stage representing the time before any stage runs. Useful for expressing 'happens before anything else'. */
-			DrawIndirect = 1 << 1, /**< Consumes indirect argument buffers. Synchronize this stage if argument buffers are modified. */
-			VertexInput = 1 << 2, /**< Consumes vertex & index data. Synchronize this stage if vertex or index buffers are modified. */
-			VertexShader = 1 << 3, /**< Execution of a vertex shader. */
-			FragmentShader = 1 << 4, /**< Execution of a fragment shader. */
-			EarlyFragmentTests = 1 << 5, /**< Depth/stencil tests that run before the fragment shader. */
-			LastFragmentTests = 1 << 6, /**< Depth/stencil tests that run after the fragment shader. */
-			ColorAttachmentOutput = 1 << 7, /**< Writes outputs to color attachments. */
-			ComputeShader = 1 << 8, /**< Execution of a compute a shader. */
-			Transfer = 1 << 9, /**< Execution of copy, blit, resolve and clear commands. */
-			End = 1 << 10, /**< Pseudo stage representing the time before any stage runs. Useful for expressing 'happens after everything else'. */
-			Host = 1 << 11, /**< CPU access to memory. */
-			AllGraphics = 1 << 12, /**< Shortcut for all graphics stages. */
-			AllCommands = 1 << 13, /**< Shortcut for all commands. */
-		};
-
-		using GpuStageBits = Flags<GpuStageBit>;
-		B3D_FLAGS_OPERATORS(GpuStageBit);
-
 		/** Bits that represent different ways a GPU resource can be used. */
 		enum class GpuResourceUseFlag
 		{
 			Undefined = 0,
-			VertexShader = 1 << 0, /**< Sampled or unordered access in vertex shader. */
-			FragmentShader = 1 << 1, /**< Sampled or unordered access in fragment shader. */
-			ComputeShader = 1 << 2, /**< Sampled or unordered access in compute shader. */
-			Shader = VertexShader | FragmentShader | ComputeShader, /**< Sampled or unordered access in any shader stage. */
-			IndexBuffer = 1 << 3, /**< Index buffer (read only). */
-			VertexBuffer = 1 << 4, /**< Vertex buffer (read only). */
-			UniformBuffer = 1 << 5, /**< Uniform buffer (read only). */
-			Transfer = 1 << 6, /**< Transfer source or destination. */
-			ColorAttachment = 1 << 7, /**< Color attachment. */
-			DepthStencilAttachment = 1 << 8 /**< Depth/stencil attachment. */
+			ShaderAccess = 1 << 0, /**< Sampled or unordered access in any shader stage. */
+			IndexBuffer = 1 << 1, /**< Index buffer (read only). */
+			VertexBuffer = 1 << 2, /**< Vertex buffer (read only). */
+			UniformBuffer = 1 << 3, /**< Uniform buffer (read only). */
+			Transfer = 1 << 4, /**< Transfer source or destination. */
+			ColorAttachment = 1 << 5, /**< Color attachment. */
+			DepthStencilAttachment = 1 << 6, /**< Depth/stencil attachment. */
+
+			// Stage flags can be combined with ShaderAccess or UniformBuffer usages, to clearly define at which stage the use is happening.
+			// If not provided system usually assumes potential use in all shader stages.
+			StageVertexShader = 1 << 7, /**< Access in vertex shader. */
+			StageFragmentShader = 1 << 8, /**< Access in fragment shader. */
+			StageComputeShader = 1 << 9, /**< Access in compute shader. */
 		};
 
 		typedef Flags<GpuResourceUseFlag> GpuResourceUseFlags;

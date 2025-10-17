@@ -43,8 +43,9 @@ namespace b3d::render
 		 * Constructs a barrier helper associated with the provided command buffer.
 		 *
 		 * @param commandBuffer		Command buffer on which barriers will be issued.
+		 * @param resourceTracker	Object responsible for tracking all resource usages on a command buffer.
 		 */
-		VulkanBarrierHelper(VulkanGpuCommandBuffer* commandBuffer);
+		VulkanBarrierHelper(VulkanGpuCommandBuffer* commandBuffer, VulkanResourceTracker* resourceTracker);
 
 		/**
 		 * Adds a memory barrier for a buffer resource.
@@ -104,6 +105,7 @@ namespace b3d::render
 #endif
 
 		VulkanGpuCommandBuffer* mCommandBuffer;
+		VulkanResourceTracker* mResourceTracker;
 
 		FrameVector<VkBufferMemoryBarrier> mBufferBarriers;
 		FrameVector<VkImageMemoryBarrier> mImageBarriers;

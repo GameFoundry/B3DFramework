@@ -659,7 +659,7 @@ u32 VulkanGpuParameters::GetSetCount() const
 	return mParameterLayout->GetSetCount();
 }
 
-void VulkanGpuParameters::PrepareForBind(VulkanGpuCommandBuffer& buffer, VkDescriptorSet* outSets, Vector<u32>& outDynamicOffsets)
+void VulkanGpuParameters::PrepareForBind(VulkanGpuCommandBuffer& buffer, VulkanResourceTracker& resourceTracker, VkDescriptorSet* outSets, Vector<u32>& outDynamicOffsets)
 {
 	PerDeviceData& perDeviceData = mPerDeviceData;
 	if(perDeviceData.PerSetData == nullptr)
@@ -719,10 +719,10 @@ void VulkanGpuParameters::PrepareForBind(VulkanGpuCommandBuffer& buffer, VkDescr
 			}
 
 			VkDescriptorSetLayoutBinding* perSetBindings = vkParamInfo.GetLayoutBindings(set);
-			VkPipelineStageFlags stages = VulkanUtility::ShaderToPipelineStage(perSetBindings[usedBindingSequentialIndex].stageFlags);
+			GpuResourceUseFlags useFlags = VulkanUtility::ShaderToResourceUseFlags(perSetBindings[usedBindingSequentialIndex].stageFlags) | GpuResourceUseFlag::UniformBuffer;
 
 			// Register with command buffer
-			buffer.RegisterBuffer(resource, GpuResourceUseFlag::UniformBuffer, GpuAccessFlag::Read, stages);
+			resourceTracker.TrackBufferUsage(resource, useFlags, GpuAccessFlag::Read);
 
 			// Check if internal resource changed from what was previously bound in the descriptor set
 			B3D_ASSERT(perDeviceData.UniformBuffers[sequentialResourceIndex] != VK_NULL_HANDLE);
@@ -757,7 +757,7 @@ void VulkanGpuParameters::PrepareForBind(VulkanGpuCommandBuffer& buffer, VkDescr
 			GpuParameterObjectType* types = vkParamInfo.GetLayoutTypes(set);
 			GpuParameterObjectType type = types[usedBindingSequentialIndex];
 
-			GpuAccessFlags useFlags = GpuAccessFlag::Read;
+			GpuAccessFlags accessFlags = GpuAccessFlag::Read;
 			VulkanBuffer* resource = nullptr;
 			VkDeviceSize bufferSize = VK_WHOLE_SIZE;
 
@@ -800,12 +800,12 @@ void VulkanGpuParameters::PrepareForBind(VulkanGpuCommandBuffer& buffer, VkDescr
 			}
 
 			if(type == GPOT_RWBYTE_BUFFER || type == GPOT_RWSTRUCTURED_BUFFER)
-				useFlags |= GpuAccessFlag::Write;
+				accessFlags |= GpuAccessFlag::Write;
 
 			// Register with command buffer
 			VkDescriptorSetLayoutBinding* perSetBindings = vkParamInfo.GetLayoutBindings(set);
-			VkPipelineStageFlags stages = VulkanUtility::ShaderToPipelineStage(perSetBindings[usedBindingSequentialIndex].stageFlags);
-			buffer.RegisterBuffer(resource, GpuResourceUseFlag::Shader, useFlags, stages);
+			GpuResourceUseFlags useFlags = VulkanUtility::ShaderToResourceUseFlags(perSetBindings[usedBindingSequentialIndex].stageFlags) | GpuResourceUseFlag::ShaderAccess;
+			resourceTracker.TrackBufferUsage(resource, useFlags, accessFlags);
 
 			// Check if internal resource changed from what was previously bound in the descriptor set
 			B3D_ASSERT(perDeviceData.Buffers[sequentialResourceIndex] != VK_NULL_HANDLE);

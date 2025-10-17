@@ -939,7 +939,7 @@ void RCNodeDeferredDirectLighting::Render(const RenderCompositorNodeInputs& inpu
 		tiledDeferredMat->Execute(commandBuffer, inputs.View, lightData, gbuffer, sceneColorNode->SceneColorTex->Texture, Output->LightAccumulationTex->Texture, lightAccumTexArray, msaaCoverage);
 
 		// Ensure the light accumulation texture can be written/read by a shader, and used as a color attachment in future passes
-		commandBuffer.IssueBarriers(GpuTextureBarrier(Output->LightAccumulationTex->Texture, GpuResourceUseFlag::Shader, GpuAccessFlag::Write, GpuResourceUseFlag::ColorAttachment | GpuResourceUseFlag::Shader, GpuAccessFlag::Read | GpuAccessFlag::Write));
+		commandBuffer.IssueBarriers(GpuTextureBarrier(Output->LightAccumulationTex->Texture, GpuResourceUseFlag::ShaderAccess, GpuAccessFlag::Write, GpuResourceUseFlag::ColorAttachment | GpuResourceUseFlag::ShaderAccess, GpuAccessFlag::Read | GpuAccessFlag::Write));
 
 		if(viewProps.Target.NumSamples > 1)
 			Output->MsaaTexArrayToTexture(commandBuffer);
@@ -1194,12 +1194,12 @@ void RCNodeDeferredIndirectSpecularLighting::Render(const RenderCompositorNodeIn
 			iblInputs.SceneColorTexArray = sceneColorNode->SceneColorTexArray->Texture;
 
 		// Ensure any reads to the scene color texture finish before attempting the write
-		commandBuffer.IssueBarriers(GpuTextureBarrier(sceneColorNode->SceneColorTex->Texture, GpuResourceUseFlag::Shader | GpuResourceUseFlag::ColorAttachment, GpuAccessFlag::Read, GpuResourceUseFlag::Shader, GpuAccessFlag::Write));
+		commandBuffer.IssueBarriers(GpuTextureBarrier(sceneColorNode->SceneColorTex->Texture, GpuResourceUseFlag::ShaderAccess | GpuResourceUseFlag::ColorAttachment, GpuAccessFlag::Read, GpuResourceUseFlag::ShaderAccess, GpuAccessFlag::Write));
 
 		material->Execute(*inputs.ActiveCommandBuffer, inputs.View, inputs.Scene, inputs.ViewGroup.GetVisibleReflProbeData(), iblInputs);
 
 		// Ensure the scene color texture can be written/read by a shader, and used as a color attachment in future passes
-		commandBuffer.IssueBarriers(GpuTextureBarrier(sceneColorNode->SceneColorTex->Texture, GpuResourceUseFlag::Shader, GpuAccessFlag::Write, GpuResourceUseFlag::Shader | GpuResourceUseFlag::ColorAttachment, GpuAccessFlag::Read | GpuAccessFlag::Write));
+		commandBuffer.IssueBarriers(GpuTextureBarrier(sceneColorNode->SceneColorTex->Texture, GpuResourceUseFlag::ShaderAccess, GpuAccessFlag::Write, GpuResourceUseFlag::ShaderAccess | GpuResourceUseFlag::ColorAttachment, GpuAccessFlag::Read | GpuAccessFlag::Write));
 
 		if(viewProps.Target.NumSamples > 1)
 			sceneColorNode->MsaaTexArrayToTexture(*inputs.ActiveCommandBuffer);
@@ -1815,7 +1815,7 @@ void RCNodeEyeAdaptation::Render(const RenderCompositorNodeInputs& inputs)
 			eyeAdaptHistogramMat->Execute(commandBuffer, downsampledScene->Texture, eyeAdaptHistogram->Texture, settings.AutoExposure);
 
 			// Ensure eye adaptation histogram texture can be read after the write above
-			commandBuffer.IssueBarriers(GpuTextureBarrier(eyeAdaptHistogram->Texture, GpuResourceUseFlag::Shader, GpuAccessFlag::Write, GpuResourceUseFlag::Shader, GpuAccessFlag::Read));
+			commandBuffer.IssueBarriers(GpuTextureBarrier(eyeAdaptHistogram->Texture, GpuResourceUseFlag::ShaderAccess, GpuAccessFlag::Write, GpuResourceUseFlag::ShaderAccess, GpuAccessFlag::Read));
 
 			// Reduce histogram
 			SPtr<PooledRenderTexture> reducedHistogram = resPool.Get(EyeAdaptHistogramReduceMat::GetOutputDesc());
@@ -1970,7 +1970,7 @@ void RCNodeTonemapping::Render(const RenderCompositorNodeInputs& inputs)
 				}
 
 				// Ensure tonemap LUT can be read by the tonemapping shader after the write above
-				commandBuffer.IssueBarriers(GpuTextureBarrier(mTonemapLUT->Texture, GpuResourceUseFlag::Shader, GpuAccessFlag::Write, GpuResourceUseFlag::Shader, GpuAccessFlag::Read));
+				commandBuffer.IssueBarriers(GpuTextureBarrier(mTonemapLUT->Texture, GpuResourceUseFlag::ShaderAccess, GpuAccessFlag::Write, GpuResourceUseFlag::ShaderAccess, GpuAccessFlag::Read));
 
 				mTonemapLastUpdateHash = latestHash;
 			}

@@ -466,14 +466,14 @@ void RenderBeastIBLUtility::FilterCubemapForIrradiance(GpuCommandBuffer& command
 			shCompute->Execute(commandBuffer, cubemap, face, coeffSetBuffer);
 
 			// Ensure we can safely write to the coefficient set buffer, after the write above
-			commandBuffer.IssueBarriers(GpuBufferBarrier(coeffSetBuffer, GpuResourceUseFlag::Shader, GpuAccessFlag::Write, GpuResourceUseFlag::Shader, GpuAccessFlag::Write));
+			commandBuffer.IssueBarriers(GpuBufferBarrier(coeffSetBuffer, GpuResourceUseFlag::ShaderAccess, GpuAccessFlag::Write, GpuResourceUseFlag::ShaderAccess, GpuAccessFlag::Write));
 		}
 
 		coeffTexture = shReduce->CreateOutputTexture(1);
 		shReduce->Execute(commandBuffer, coeffSetBuffer, numCoeffSets, coeffTexture, 0);
 
 		// Ensure shader can read coefficient texture after the write above
-		commandBuffer.IssueBarriers(GpuTextureBarrier(coeffTexture, GpuResourceUseFlag::Shader, GpuAccessFlag::Write, GpuResourceUseFlag::Shader, GpuAccessFlag::Read));
+		commandBuffer.IssueBarriers(GpuTextureBarrier(coeffTexture, GpuResourceUseFlag::ShaderAccess, GpuAccessFlag::Write, GpuResourceUseFlag::ShaderAccess, GpuAccessFlag::Read));
 	}
 	else
 	{

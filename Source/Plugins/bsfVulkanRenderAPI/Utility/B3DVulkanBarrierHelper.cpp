@@ -8,8 +8,8 @@
 using namespace b3d;
 using namespace b3d::render;
 
-VulkanBarrierHelper::VulkanBarrierHelper(VulkanGpuCommandBuffer* commandBuffer)
-	: mCommandBuffer(commandBuffer)
+VulkanBarrierHelper::VulkanBarrierHelper(VulkanGpuCommandBuffer* commandBuffer, VulkanResourceTracker* resourceTracker)
+	: mCommandBuffer(commandBuffer), mResourceTracker(resourceTracker)
 {
 }
 
@@ -136,7 +136,7 @@ void VulkanBarrierHelper::Execute()
 	{
 		if(trackingInfo.Buffer != nullptr)
 		{
-			mCommandBuffer->UpdateWriteHazardTrackingAfterBarrier(
+			mResourceTracker->UpdateWriteHazardTrackingAfterBarrier(
 				trackingInfo.Buffer,
 				trackingInfo.SourceAccess,
 				trackingInfo.SourceStages,

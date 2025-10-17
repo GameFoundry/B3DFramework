@@ -139,7 +139,7 @@ GpuResourceUseFlags VulkanBuffer::GetUseFlags() const
 	{
 	case GpuBufferType::SimpleStorage:
 	case GpuBufferType::StructuredStorage:
-		return GpuResourceUseFlag::Shader;
+		return GpuResourceUseFlag::ShaderAccess;
 	case GpuBufferType::Index:
 		return GpuResourceUseFlag::IndexBuffer;
 	case GpuBufferType::Vertex:
@@ -150,7 +150,7 @@ GpuResourceUseFlags VulkanBuffer::GetUseFlags() const
 	case GpuBufferType::StagingWrite:
 		return GpuResourceUseFlag::Transfer;
 	default:
-		return GpuResourceUseFlag::Shader;
+		return GpuResourceUseFlag::ShaderAccess;
 	}
 }
 
