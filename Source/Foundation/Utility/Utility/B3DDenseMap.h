@@ -136,7 +136,10 @@ namespace b3d
 		typedef DenseMapIterator<Key, Value, KeyInfo> Iterator;
 		typedef DenseMapConstIterator<Key, Value, KeyInfo> ConstIterator;
 
-		DenseMap() = default;
+		DenseMap()
+		{
+			init();
+		}
 
 		DenseMap(const DenseMap<Key, Value>& other)
 		{
