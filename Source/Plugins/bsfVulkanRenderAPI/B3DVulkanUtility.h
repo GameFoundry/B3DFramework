@@ -148,6 +148,20 @@ namespace b3d
 
 			/** Returns a set of pipeline stages that can are allowed to be used for the specified set of access flags. */
 			static VkPipelineStageFlags GetPipelineStageFlags(VkAccessFlags accessFlags);
+
+			/**
+			 * Determines the appropriate Vulkan image layout based on resource usage and access flags.
+			 *
+			 * This method handles all common usage patterns including render targets, shader resources, and transfers.
+			 * For dynamic textures (TU_DYNAMIC), callers should check this before calling and use VK_IMAGE_LAYOUT_GENERAL directly.
+			 *
+			 * @param usage  How the image will be used.
+			 * @param access Type of access (read/write) for the image.
+			 * @return       The appropriate VkImageLayout for the given usage pattern.
+			 *
+			 * @note Logs an error if multiple incompatible usage flags are detected.
+			 */
+			static VkImageLayout GetImageLayoutFromUsage(GpuResourceUseFlags usage, GpuAccessFlags access);
 		};
 
 		/** @} */

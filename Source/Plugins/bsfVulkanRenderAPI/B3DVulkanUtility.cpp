@@ -1134,3 +1134,115 @@ VkPipelineStageFlags VulkanUtility::GetPipelineStageFlags(VkAccessFlags accessFl
 	return flags;
 }
 
+VkImageLayout VulkanUtility::GetImageLayoutFromUsage(GpuResourceUseFlags usage, GpuAccessFlags access)
+{
+	// Validate for incompatible flag combinations
+	const bool hasColorAttachment = usage.IsSet(GpuResourceUseFlag::ColorAttachment);
+	const bool hasDepthStencilAttachment = usage.IsSet(GpuResourceUseFlag::DepthStencilAttachment);
+	const bool hasTransfer = usage.IsSet(GpuResourceUseFlag::Transfer);
+	const bool hasShader = usage.IsSetAny(GpuResourceUseFlag::Shader);
+	const bool hasBufferUsage = usage.IsSet(GpuResourceUseFlag::IndexBuffer) ||
+	                            usage.IsSet(GpuResourceUseFlag::VertexBuffer) ||
+	                            usage.IsSet(GpuResourceUseFlag::UniformBuffer);
+	const bool isReadOnly = access.IsSet(GpuAccessFlag::Read) && !access.IsSet(GpuAccessFlag::Write);
+
+	// Validate invalid buffer usage on images
+	if(!B3D_ENSURE(!hasBufferUsage))
+	{
+		B3D_LOG(Error, Vulkan, "Buffer-specific usage flags (IndexBuffer, VertexBuffer, UniformBuffer) cannot be used with images.");
+		return VK_IMAGE_LAYOUT_UNDEFINED;
+	}
+
+	// Cannot be both color and depth/stencil attachment
+	if(!B3D_ENSURE(!(hasColorAttachment && hasDepthStencilAttachment)))
+	{
+		B3D_LOG(Error, Vulkan, "Image cannot be used as both ColorAttachment and DepthStencilAttachment simultaneously.");
+		return VK_IMAGE_LAYOUT_UNDEFINED;
+	}
+
+	// Transfer cannot be combined with attachments
+	if(!B3D_ENSURE(!(hasTransfer && (hasColorAttachment || hasDepthStencilAttachment))))
+	{
+		B3D_LOG(Error, Vulkan, "Transfer usage cannot be combined with attachment usage.");
+		return VK_IMAGE_LAYOUT_UNDEFINED;
+	}
+
+	// Shader + Attachment is only valid if both are read-only
+	if(hasShader && (hasColorAttachment || hasDepthStencilAttachment))
+	{
+		if(!B3D_ENSURE(isReadOnly))
+		{
+			B3D_LOG(Error, Vulkan, "Shader and attachment usage can only be combined for read-only access (shader sampling from attachment).");
+			return VK_IMAGE_LAYOUT_UNDEFINED;
+		}
+	}
+
+	// Handle ColorAttachment
+	if(usage.IsSet(GpuResourceUseFlag::ColorAttachment))
+	{
+		// Read-only color attachment (shader read while attached) uses GENERAL layout
+		if(access.IsSet(GpuAccessFlag::Read) && !access.IsSet(GpuAccessFlag::Write))
+			return VK_IMAGE_LAYOUT_GENERAL;
+
+		// Write access (or read+write) uses optimal attachment layout
+		if(access.IsSet(GpuAccessFlag::Write))
+			return VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+		// If no access flags set, assume write
+		return VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+	}
+
+	// Handle DepthStencilAttachment
+	if(usage.IsSet(GpuResourceUseFlag::DepthStencilAttachment))
+	{
+		// Read-only depth/stencil uses read-only optimal layout
+		if(access.IsSet(GpuAccessFlag::Read) && !access.IsSet(GpuAccessFlag::Write))
+			return VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+
+		// Write access (or read+write) uses attachment optimal layout
+		if(access.IsSet(GpuAccessFlag::Write))
+			return VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+
+		// If no access flags set, assume write
+		return VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+	}
+
+	// Handle Transfer
+	if(usage.IsSet(GpuResourceUseFlag::Transfer))
+	{
+		// Transfer source (read)
+		if(access.IsSet(GpuAccessFlag::Read) && !access.IsSet(GpuAccessFlag::Write))
+			return VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+
+		// Transfer destination (write)
+		if(access.IsSet(GpuAccessFlag::Write))
+			return VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+
+		// If no access specified, default to source
+		return VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+	}
+
+	// Handle Shader usage (VertexShader, FragmentShader, ComputeShader, or combined Shader flag)
+	if(usage.IsSetAny(GpuResourceUseFlag::Shader))
+	{
+		// Shader write access requires GENERAL layout
+		if(access.IsSet(GpuAccessFlag::Write))
+			return VK_IMAGE_LAYOUT_GENERAL;
+
+		// Read-only shader access uses shader read optimal layout
+		if(access.IsSet(GpuAccessFlag::Read))
+			return VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+
+		// If no access specified, assume read-only
+		return VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+	}
+
+	// Undefined or no usage specified
+	if(usage.IsSet(GpuResourceUseFlag::Undefined) || usage == GpuResourceUseFlag::Undefined)
+		return VK_IMAGE_LAYOUT_UNDEFINED;
+
+	// Unknown usage pattern
+	B3D_LOG(Warning, Vulkan, "Unknown or unhandled resource usage flags when determining image layout. Returning UNDEFINED layout.");
+	return VK_IMAGE_LAYOUT_UNDEFINED;
+}
+
