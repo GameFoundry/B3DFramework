@@ -106,10 +106,10 @@ namespace b3d::ecs
 	/**
 	 * Provides helper functionality for owning groups.
 	 *
-	 * @tparam OwnedTypeCount		Number of types owned by the group. All owned types will be sorted and tightly packed in their respective storage so they
+	 * @tparam	OwnedTypeCount		Number of types owned by the group. All owned types will be sorted and tightly packed in their respective storage so they
 	 *								may be quickly iterated over.
-	 * @tparam IncludedTypeCount	Number of types in the included type filter.
-	 * @tparam ExcludedTypeCount	Number of types in the excluded type filter.
+	 * @tparam	IncludedTypeCount	Number of types in the included type filter.
+	 * @tparam	ExcludedTypeCount	Number of types in the excluded type filter.
 	 */
 	template<u32 OwnedTypeCount, u32 IncludedTypeCount, u32 ExcludedTypeCount>
 	struct TGroupCommon : GroupCommon
@@ -171,8 +171,8 @@ namespace b3d::ecs
 		/**
 		 * Swaps locations of two entities and their associated components in all owned storages.
 		 *
-		 * @param	packedIndex		Packed index of the entity to swap from.
-		 * @param	entity			Entity to swap to.
+		 * @param	packedIndex	Packed index of the entity to swap from.
+		 * @param	entity		Entity to swap to.
 		 */
 		void SwapEntry(u64 packedIndex, Entity entity)
 		{
@@ -232,9 +232,9 @@ namespace b3d::ecs
 
 	/**
 	 * Provides helper functionality for non-owning groups.
-	 * 
-	 * @tparam IncludedTypeCount		Number of types in the included type filter.
-	 * @tparam ExcludedTypeCount		Number of types in the excluded type filter.
+	 *
+	 * @tparam	IncludedTypeCount	Number of types in the included type filter.
+	 * @tparam	ExcludedTypeCount	Number of types in the excluded type filter.
 	 */
 	template<u32 IncludedTypeCount, u32 ExcludedTypeCount>
 	struct TGroupCommon<0, IncludedTypeCount, ExcludedTypeCount> : GroupCommon
@@ -326,9 +326,9 @@ namespace b3d::ecs
 	/**
 	 * Non-owning group specialization. Acts similarly to a TView but ensures that entities are tightly packed for fast iteration,
 	 * and allows sorting of entities.
-	 * 
-	 * @tparam IncludedStorageTypes		List of storage types that the entity must be a part of to be included in the group.
-	 * @tparam ExcludedStorageTypes		List of storage types that the entity must not be a part of to be included in the group.
+	 *
+	 * @tparam	IncludedStorageTypes	List of storage types that the entity must be a part of to be included in the group.
+	 * @tparam	ExcludedStorageTypes	List of storage types that the entity must not be a part of to be included in the group.
 	 */
 	template<typename... IncludedStorageTypes, typename... ExcludedStorageTypes>
 	class TGroup<TOwnedTypes<>, TIncludedTypes<IncludedStorageTypes...>, TExcludedTypes<ExcludedStorageTypes...>>
@@ -507,9 +507,9 @@ namespace b3d::ecs
 
 		/**
 		 * Sorts the packed entity storage using the provided comparison function.
-		 * 
+		 *
 		 * @tparam	Indices				Indices of types in the included type filter, whose components to provide to the comparison function. If no indices are provided then
-		 *								only entity will be provided o the comparison function.
+		 *								only entity will be provided to the comparison function.
 		 * @tparam	ComparisonFunction	Function to use for comparison. Signature of the comparison function depends on the number of @p Indices template arguments:
 		 *								 - 0 arguments: Comparison function accepts two Entity types
 		 *								 - 1 argument:  Comparison function accepts two component types matching the element type of the storage at the provided index
@@ -542,13 +542,13 @@ namespace b3d::ecs
 
 		/**
 		 * Sorts the packed entity storage using the provided comparison function.
-		 * 
-		 * @tparam	ElementType			Type of the first component to provide to the comparison function.
-		 * @tparam	OtherElementTypes	Type of other components to provide to the comparison function.
-		 * @tparam	ComparisonFunction	Function to use for comparison. Signature of the comparison function depends on the number of provided type template arguments:
-		 *								 - 0 arguments: Comparison function accepts two Entity types
-		 *								 - 1 argument:  Comparison function accepts two component types matching the provided element type
-		 *								 - >1 arguments:  Comparison function accepts two tuples that contain types matching the provided element types
+		 *
+		 * @tparam	ElementType				Type of the first component to provide to the comparison function.
+		 * @tparam	OtherElementTypes		Type of other components to provide to the comparison function.
+		 * @tparam	ComparisonFunction		Function to use for comparison. Signature of the comparison function depends on the number of provided type template arguments:
+		 *									 - 0 arguments: Comparison function accepts two Entity types
+		 *									 - 1 argument:  Comparison function accepts two component types matching the provided element type
+		 *									 - >1 arguments:  Comparison function accepts two tuples that contain types matching the provided element types
 		 */
 		template <typename ElementType, typename... OtherElementTypes, typename ComparisonFunction = std::less<>>
 		void Sort(ComparisonFunction predicate = {})
@@ -605,11 +605,11 @@ namespace b3d::ecs
 	/**
 	 * Non-owning group specialization. Acts similarly to a TView but ensures that entities are tightly packed for fast iteration,
 	 * and allows sorting of entities.
-	 * 
-	 * @tparam OwnedStorageTypes		List of storage types that the group will own. Owned storage types are guaranteed to pack their contents
+	 *
+	 * @tparam	OwnedStorageTypes		List of storage types that the group will own. Owned storage types are guaranteed to pack their contents
 	 *									in a way so that they can be quickly iterated over. Owned storage types can also be sorted.
-	 * @tparam IncludedStorageTypes		List of storage types that the entity must be a part of to be included in the group.
-	 * @tparam ExcludedStorageTypes		List of storage types that the entity must not be a part of to be included in the group.
+	 * @tparam	IncludedStorageTypes	List of storage types that the entity must be a part of to be included in the group.
+	 * @tparam	ExcludedStorageTypes	List of storage types that the entity must not be a part of to be included in the group.
 	 */
 	template<typename... OwnedStorageTypes, typename... IncludedStorageTypes, typename... ExcludedStorageTypes>
 	class TGroup<TOwnedTypes<OwnedStorageTypes...>, TIncludedTypes<IncludedStorageTypes...>, TExcludedTypes<ExcludedStorageTypes...>>
@@ -779,9 +779,9 @@ namespace b3d::ecs
 
 		/**
 		 * Sorts the packed entity storage using the provided comparison function.
-		 * 
+		 *
 		 * @tparam	Indices				Indices of types in the included type filter, whose components to provide to the comparison function. If no indices are provided then
-		 *								only entity will be provided o the comparison function.
+		 *								only entity will be provided to the comparison function.
 		 * @tparam	ComparisonFunction	Function to use for comparison. Signature of the comparison function depends on the number of @p Indices template arguments:
 		 *								 - 0 arguments: Comparison function accepts two Entity types
 		 *								 - 1 argument:  Comparison function accepts two component types matching the element type of the storage at the provided index
@@ -828,13 +828,13 @@ namespace b3d::ecs
 
 		/**
 		 * Sorts the packed entity storage using the provided comparison function.
-		 * 
-		 * @tparam	ElementType			Type of the first component to provide to the comparison function.
-		 * @tparam	OtherElementTypes	Type of other components to provide to the comparison function.
-		 * @tparam	ComparisonFunction	Function to use for comparison. Signature of the comparison function depends on the number of provided type template arguments:
-		 *								 - 0 arguments: Comparison function accepts two Entity types
-		 *								 - 1 argument:  Comparison function accepts two component types matching the provided element type
-		 *								 - >1 arguments:  Comparison function accepts two tuples that contain types matching the provided element types
+		 *
+		 * @tparam	ElementType				Type of the first component to provide to the comparison function.
+		 * @tparam	OtherElementTypes		Type of other components to provide to the comparison function.
+		 * @tparam	ComparisonFunction		Function to use for comparison. Signature of the comparison function depends on the number of provided type template arguments:
+		 *									 - 0 arguments: Comparison function accepts two Entity types
+		 *									 - 1 argument:  Comparison function accepts two component types matching the provided element type
+		 *									 - >1 arguments:  Comparison function accepts two tuples that contain types matching the provided element types
 		 */
 		template <typename ElementType, typename... OtherElementTypes, typename ComparisonFunction = std::less<>>
 		void Sort(ComparisonFunction predicate = {})

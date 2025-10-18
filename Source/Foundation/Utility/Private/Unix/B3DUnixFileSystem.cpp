@@ -214,9 +214,9 @@ bool FileSystem::CreateDir(const Path& path)
 		parentPath = parentPath.getParent();
 	}
 
-	for(u32 i = parentPath.getNumDirectories(); i < path.getNumDirectories(); i++)
+	for(u32 directoryIndex = parentPath.getNumDirectories(); directoryIndex < path.getNumDirectories(); directoryIndex++)
 	{
-		parentPath.Append(path[i]);
+		parentPath.Append(path[directoryIndex]);
 		if(!unix_createDirectory(parentPath.toString()))
 			return false;
 	}

@@ -72,11 +72,11 @@ namespace b3d
 		/**
 		 * Records a crash with a custom error message.
 		 *
-		 * @param[in]	type		Type of the crash that occurred. For example "InvalidParameter".
-		 * @param[in]	description	More detailed description of the issue that caused the crash.
-		 * @param[in]	function	Optional name of the function where the error occurred.
-		 * @param[in]	file		Optional name of the source code file in which the code that crashed the program exists.
-		 * @param[in]	line		Optional source code line at which the crash was triggered at.
+		 * @param	type		Type of the crash that occurred. For example "InvalidParameter".
+		 * @param	description	More detailed description of the issue that caused the crash.
+		 * @param	function	Optional name of the function where the error occurred.
+		 * @param	file		Optional name of the source code file in which the code that crashed the program exists.
+		 * @param	line		Optional source code line at which the crash was triggered at.
 		 */
 		void ReportCrash(const String& type, const String& description, const String& function = StringUtil::kBlank, const String& file = StringUtil::kBlank, u32 line = 0) const;
 
@@ -84,8 +84,8 @@ namespace b3d
 		/**
 		 * Records a crash resulting from a Windows-specific SEH exception.
 		 *
-		 * @param[in]	exceptionData	Exception data returned from GetExceptionInformation()
-		 * @return						Code that signals the __except exception handler on how to proceed.
+		 * @param	exceptionData	Exception data returned from GetExceptionInformation()
+		 * @return					Code that signals the __except exception handler on how to proceed.
 		 *
 		 * @note	Available in Windows builds only.
 		 */

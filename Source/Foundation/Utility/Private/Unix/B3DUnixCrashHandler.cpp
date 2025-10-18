@@ -15,11 +15,11 @@ struct sigaction gSavedSignals[4];
 void signalHandler(int signal, siginfo_t* info, void* context)
 {
 	// Restore old signal handlers
-	i32 i = 0;
+	i32 signalIndex = 0;
 	for(auto& entry : SIGNALS)
 	{
-		sigaction(entry, &gSavedSignals[i], nullptr);
-		i++;
+		sigaction(entry, &gSavedSignals[signalIndex], nullptr);
+		signalIndex++;
 	}
 
 	const char* signalNameSz = strsignal(signal);
@@ -49,13 +49,13 @@ CrashHandler::CrashHandler(const CrashHandlerSettings& settings)
 	action.sa_sigaction = &signalHandler;
 	action.sa_flags = SA_SIGINFO;
 
-	i32 i = 0;
+	i32 signalIndex = 0;
 	for(auto& entry : SIGNALS)
 	{
-		memset(&gSavedSignals[i], 0, sizeof(struct sigaction));
-		sigaction(entry, &action, &gSavedSignals[i]);
+		memset(&gSavedSignals[signalIndex], 0, sizeof(struct sigaction));
+		sigaction(entry, &action, &gSavedSignals[signalIndex]);
 
-		i++;
+		signalIndex++;
 	}
 }
 
@@ -83,14 +83,14 @@ String CrashHandler::getStackTrace()
 	int traceSize = backtrace(trace, B3D_MAX_STACKTRACE_DEPTH);
 	char** messages = backtrace_symbols(trace, traceSize);
 
-	for(int i = 0; i < traceSize && messages != nullptr; ++i)
+	for(int traceIndex = 0; traceIndex < traceSize && messages != nullptr; ++traceIndex)
 	{
 #if B3D_PLATFORM == B3D_PLATFORM_ID_MACOS
-		stackTrace << std::to_string(i) << ") " << messages[i];
+		stackTrace << std::to_string(traceIndex) << ") " << messages[traceIndex];
 
 		// Try parsing a human readable name
 		Dl_info info;
-		if(dladdr(trace[i], &info) && info.dli_sname)
+		if(dladdr(trace[traceIndex], &info) && info.dli_sname)
 		{
 			stackTrace << ": ";
 
@@ -110,7 +110,7 @@ String CrashHandler::getStackTrace()
 				stackTrace << info.dli_sname;
 
 			// Try to find the line number
-			for(char* p = messages[i]; *p; ++p)
+			for(char* p = messages[traceIndex]; *p; ++p)
 			{
 				if(*p == '+')
 				{
@@ -120,13 +120,13 @@ String CrashHandler::getStackTrace()
 			}
 		}
 		else
-			stackTrace << String(messages[i]);
+			stackTrace << String(messages[traceIndex]);
 #elif B3D_PLATFORM == B3D_PLATFORM_ID_LINUX
 		// Try to find the characters surrounding the mangled name: '(' and '+'
 		char* mangedName = nullptr;
 		char* offsetBegin = nullptr;
 		char* offsetEnd = nullptr;
-		for(char* p = messages[i]; *p; ++p)
+		for(char* p = messages[traceIndex]; *p; ++p)
 		{
 			if(*p == '(')
 				mangedName = p;
@@ -142,7 +142,7 @@ String CrashHandler::getStackTrace()
 		bool lineContainsMangledSymbol = mangedName != nullptr && offsetBegin != nullptr && offsetEnd != nullptr &&
 			mangedName < offsetBegin;
 
-		stackTrace << toString(i) << ") ";
+		stackTrace << toString(traceIndex) << ") ";
 
 		if(lineContainsMangledSymbol)
 		{
@@ -153,17 +153,17 @@ String CrashHandler::getStackTrace()
 			int status;
 			char* real_name = abi::__cxa_demangle(mangedName, 0, 0, &status);
 			char* output_name = status == 0 /* Demangling successful */ ? real_name : mangedName;
-			stackTrace << String(messages[i])
+			stackTrace << String(messages[traceIndex])
 					   << ": " << output_name
 					   << "+" << offsetBegin << offsetEnd;
 
 			free(real_name);
 		}
 		else
-			stackTrace << String(messages[i]);
+			stackTrace << String(messages[traceIndex]);
 #endif
 
-		if(i < traceSize - 1)
+		if(traceIndex < traceSize - 1)
 			stackTrace << "\n";
 	}
 

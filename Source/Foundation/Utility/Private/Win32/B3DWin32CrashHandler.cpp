@@ -108,12 +108,12 @@ String Win32GetStackTrace(CONTEXT context, u32 skip = 0)
 	HANDLE hProcess = GetCurrentProcess();
 
 	StringStream outputStream;
-	for(u32 i = skip; i < numEntries; i++)
+	for(u32 entryIndex = skip; entryIndex < numEntries; entryIndex++)
 	{
-		if(i > skip)
+		if(entryIndex > skip)
 			outputStream << std::endl;
 
-		DWORD64 funcAddress = rawStackTrace[i];
+		DWORD64 funcAddress = rawStackTrace[entryIndex];
 
 		// Output function name
 		DWORD64 dummy;
@@ -225,16 +225,16 @@ void Win32LoadSymbols()
 	gEnumProcessModules(hProcess, modules, bufferSize, &bufferSize);
 
 	u32 numModules = bufferSize / sizeof(HMODULE);
-	for(u32 i = 0; i < numModules; i++)
+	for(u32 moduleIndex = 0; moduleIndex < numModules; moduleIndex++)
 	{
 		MODULEINFO moduleInfo;
 
 		char moduleName[B3D_MAX_STACKTRACE_NAME_BYTES];
 		char imageName[B3D_MAX_STACKTRACE_NAME_BYTES];
 
-		gGetModuleInformation(hProcess, modules[i], &moduleInfo, sizeof(moduleInfo));
-		gGetModuleFileNameEx(hProcess, modules[i], imageName, B3D_MAX_STACKTRACE_NAME_BYTES);
-		gGetModuleBaseName(hProcess, modules[i], moduleName, B3D_MAX_STACKTRACE_NAME_BYTES);
+		gGetModuleInformation(hProcess, modules[moduleIndex], &moduleInfo, sizeof(moduleInfo));
+		gGetModuleFileNameEx(hProcess, modules[moduleIndex], imageName, B3D_MAX_STACKTRACE_NAME_BYTES);
+		gGetModuleBaseName(hProcess, modules[moduleIndex], moduleName, B3D_MAX_STACKTRACE_NAME_BYTES);
 
 		char pdbSearchPath[B3D_MAX_STACKTRACE_NAME_BYTES];
 		char* fileName = nullptr;
@@ -243,7 +243,7 @@ void Win32LoadSymbols()
 
 		SymSetSearchPath(GetCurrentProcess(), pdbSearchPath);
 
-		DWORD64 moduleAddress = SymLoadModule64(hProcess, modules[i], imageName, moduleName, (DWORD64)moduleInfo.lpBaseOfDll, (DWORD)moduleInfo.SizeOfImage);
+		DWORD64 moduleAddress = SymLoadModule64(hProcess, modules[moduleIndex], imageName, moduleName, (DWORD64)moduleInfo.lpBaseOfDll, (DWORD)moduleInfo.SizeOfImage);
 
 		if(moduleAddress != 0)
 		{

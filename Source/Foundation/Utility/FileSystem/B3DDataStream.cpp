@@ -40,9 +40,9 @@ bool IsUtF8(const u8* buffer)
 }
 
 template <typename T>
-DataStream& DataStream::operator>>(T& val)
+DataStream& DataStream::operator>>(T& value)
 {
-	read(static_cast<void*>(&val), sizeof(T));
+	Read(static_cast<void*>(&value), sizeof(T));
 
 	return *this;
 }
@@ -133,14 +133,14 @@ String DataStream::GetAsString()
 
 	// Read the entire buffer - ideally in one read, but if the size of the buffer is unknown, do multiple fixed size
 	// reads.
-	size_t bufSize = (mSize > 0 ? mSize : 4096);
-	auto tempBuffer = B3DStackAllocate<std::stringstream::char_type>((u32)bufSize);
+	size_t bufferSize = (mSize > 0 ? mSize : 4096);
+	auto tempBuffer = B3DStackAllocate<std::stringstream::char_type>((u32)bufferSize);
 
 	std::stringstream result;
 	while(!Eof())
 	{
-		size_t numReadBytes = Read(tempBuffer, bufSize);
-		result.write(tempBuffer, numReadBytes);
+		size_t readByteCount = Read(tempBuffer, bufferSize);
+		result.write(tempBuffer, readByteCount);
 	}
 
 	B3DStackFree(tempBuffer);
@@ -155,15 +155,15 @@ String DataStream::GetAsString()
 		return String(string.data(), string.length());
 	case 2: // UTF-16
 		{
-			u32 numElems = (u32)string.length() / 2;
+			u32 elementCount = (u32)string.length() / 2;
 
-			return UTF8::FromUtF16(U16String((char16_t*)string.data(), numElems));
+			return UTF8::FromUtF16(U16String((char16_t*)string.data(), elementCount));
 		}
 	case 4: // UTF-32
 		{
-			u32 numElems = (u32)string.length() / 4;
+			u32 elementCount = (u32)string.length() / 4;
 
-			return UTF8::FromUtF32(U32String((char32_t*)string.data(), numElems));
+			return UTF8::FromUtF32(U32String((char32_t*)string.data(), elementCount));
 		}
 	}
 
@@ -179,16 +179,16 @@ WString DataStream::GetAsWString()
 	return UTF8::ToWide(u8string);
 }
 
-size_t DataStream::ReadBits(uint8_t* data, uint32_t count)
+size_t DataStream::ReadBits(uint8_t* outData, uint32_t count)
 {
-	uint32_t numBytes = Math::DivideAndRoundUp(count, 8U);
-	return Read(data, numBytes) * 8;
+	uint32_t byteCount = Math::DivideAndRoundUp(count, 8U);
+	return Read(outData, byteCount) * 8;
 }
 
 size_t DataStream::WriteBits(const uint8_t* data, uint32_t count)
 {
-	uint32_t numBytes = Math::DivideAndRoundUp(count, 8U);
-	return Write(data, numBytes) * 8;
+	uint32_t byteCount = Math::DivideAndRoundUp(count, 8U);
+	return Write(data, byteCount) * 8;
 }
 
 void DataStream::Align(uint32_t count)
@@ -319,22 +319,22 @@ MemoryDataStream& MemoryDataStream::operator=(MemoryDataStream&& other)
 	return *this;
 }
 
-size_t MemoryDataStream::Read(void* data, size_t byteCount) const
+size_t MemoryDataStream::Read(void* outData, size_t byteCount) const
 {
-	size_t cnt = byteCount;
+	size_t actualByteCount = byteCount;
 
-	if(mCursor + cnt > mEnd)
-		cnt = mEnd - mCursor;
+	if(mCursor + actualByteCount > mEnd)
+		actualByteCount = mEnd - mCursor;
 
-	if(cnt == 0)
+	if(actualByteCount == 0)
 		return 0;
 
-	B3D_ASSERT(cnt <= byteCount);
+	B3D_ASSERT(actualByteCount <= byteCount);
 
-	memcpy(data, mCursor, cnt);
-	mCursor += cnt;
+	memcpy(outData, mCursor, actualByteCount);
+	mCursor += actualByteCount;
 
-	return cnt;
+	return actualByteCount;
 }
 
 size_t MemoryDataStream::Write(const void* data, size_t byteCount)
@@ -496,12 +496,12 @@ bool FileDataStream::Open()
 	return true;
 }
 
-size_t FileDataStream::Read(void* data, size_t byteCount) const
+size_t FileDataStream::Read(void* outData, size_t byteCount) const
 {
 	if(!B3D_ENSURE(mFileStream.is_open()))
 		return 0;
 
-	const_cast<std::fstream&>(mFileStream).read(static_cast<char*>(data), static_cast<std::streamsize>(byteCount));
+	const_cast<std::fstream&>(mFileStream).read(static_cast<char*>(outData), static_cast<std::streamsize>(byteCount));
 	return (size_t)mFileStream.gcount();
 }
 

@@ -61,12 +61,12 @@ namespace b3d
 		/**
 		 * Ray/triangle intersection, returns boolean result and distance to intersection point.
 		 *
-		 * @param[in]	a				Triangle first vertex.
-		 * @param[in]	b				Triangle second vertex.
-		 * @param[in]	c				Triangle third vertex.
-		 * @param[in]	normal			The normal of the triangle. Doesn't need to be normalized.
-		 * @param[in]	positiveSide	(optional) Should intersections with the positive side (normal facing) count.
-		 * @param[in]	negativeSide	(optional) Should intersections with the negative side (opposite of normal facing) count.
+		 * @param	a				Triangle first vertex.
+		 * @param	b				Triangle second vertex.
+		 * @param	c				Triangle third vertex.
+		 * @param	normal			The normal of the triangle. Doesn't need to be normalized.
+		 * @param	positiveSide	(optional) Should intersections with the positive side (normal facing) count.
+		 * @param	negativeSide	(optional) Should intersections with the negative side (opposite of normal facing) count.
 		 * @return						Boolean result if intersection happened and distance to intersection point.
 		 */
 		std::pair<bool, T> Intersects(const TVector3<T>& a, const TVector3<T>& b, const TVector3<T>& c, const TVector3<T>& normal, bool positiveSide = true, bool negativeSide = true) const;

@@ -428,7 +428,7 @@ void TMatrix3<T>::SingularValueDecomposition(TMatrix3& matL, TVector3<T>& matS, 
 	TMatrix3 mat = *this;
 	Bidiagonalize(mat, matL, matR);
 
-	for(unsigned int i = 0; i < kSvdMaxIters; i++)
+	for(unsigned int iterationIndex = 0; iterationIndex < kSvdMaxIters; iterationIndex++)
 	{
 		T tmp, tmp0, tmp1;
 		T sin0, cos0, tan0;
@@ -923,14 +923,14 @@ bool TMatrix3<T>::QLAlgorithm(T diag[3], T subDiag[3])
 {
 	// QL iteration with implicit shifting to reduce matrix from tridiagonal to diagonal
 
-	for(int i = 0; i < 3; i++)
+	for(int elementIndex = 0; elementIndex < 3; elementIndex++)
 	{
 		const unsigned int maxIter = 32;
 		unsigned int iter;
 		for(iter = 0; iter < maxIter; iter++)
 		{
 			int j;
-			for(j = i; j <= 1; j++)
+			for(j = elementIndex; j <= 1; j++)
 			{
 				T sum = abs(diag[j]) + abs(diag[j + 1]);
 
@@ -938,21 +938,21 @@ bool TMatrix3<T>::QLAlgorithm(T diag[3], T subDiag[3])
 					break;
 			}
 
-			if(j == i)
+			if(j == elementIndex)
 				break;
 
-			T tmp0 = (diag[i + 1] - diag[i]) / ((T)2.0 * subDiag[i]);
+			T tmp0 = (diag[elementIndex + 1] - diag[elementIndex]) / ((T)2.0 * subDiag[elementIndex]);
 			T tmp1 = Math::SquareRoot(tmp0 * tmp0 + (T)1.0);
 
 			if(tmp0 < (T)0.0)
-				tmp0 = diag[j] - diag[i] + subDiag[i] / (tmp0 - tmp1);
+				tmp0 = diag[j] - diag[elementIndex] + subDiag[elementIndex] / (tmp0 - tmp1);
 			else
-				tmp0 = diag[j] - diag[i] + subDiag[i] / (tmp0 + tmp1);
+				tmp0 = diag[j] - diag[elementIndex] + subDiag[elementIndex] / (tmp0 + tmp1);
 
 			T sin = (T)1.0;
 			T cos = (T)1.0;
 			T tmp2 = (T)0.0;
-			for(int k = j - 1; k >= i; k--)
+			for(int k = j - 1; k >= elementIndex; k--)
 			{
 				T tmp3 = sin * subDiag[k];
 				T tmp4 = cos * subDiag[k];
@@ -988,8 +988,8 @@ bool TMatrix3<T>::QLAlgorithm(T diag[3], T subDiag[3])
 				}
 			}
 
-			diag[i] -= tmp2;
-			subDiag[i] = tmp0;
+			diag[elementIndex] -= tmp2;
+			subDiag[elementIndex] = tmp0;
 			subDiag[j] = 0.0;
 		}
 
@@ -1011,11 +1011,11 @@ void TMatrix3<T>::EigenSolveSymmetric(T eigenValues[3], TVector3<T> eigenVectors
 	mat.Tridiagonal(eigenValues, subDiag);
 	mat.QLAlgorithm(eigenValues, subDiag);
 
-	for(u32 i = 0; i < 3; i++)
+	for(u32 vectorIndex = 0; vectorIndex < 3; vectorIndex++)
 	{
-		eigenVectors[i][0] = mat[0][i];
-		eigenVectors[i][1] = mat[1][i];
-		eigenVectors[i][2] = mat[2][i];
+		eigenVectors[vectorIndex][0] = mat[0][vectorIndex];
+		eigenVectors[vectorIndex][1] = mat[1][vectorIndex];
+		eigenVectors[vectorIndex][2] = mat[2][vectorIndex];
 	}
 
 	// Make eigenvectors form a right--handed system

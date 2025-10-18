@@ -33,9 +33,9 @@ namespace b3d
 		/**
 		 * Logs a new message.
 		 *
-		 * @param[in]	message			The message describing the log entry.
-		 * @param[in]	verbosity		Verbosity of the message, determining its importance.
-		 * @param[in]	categoryName	Category of the message, determining which system is it relevant to.
+		 * @param	message			The message describing the log entry.
+		 * @param	verbosity		Verbosity of the message, determining its importance.
+		 * @param	categoryName	Category of the message, determining which system is it relevant to.
 		 */
 		B3D_SCRIPT_EXPORT()
 		void Log(const String& message, LogVerbosity verbosity, const String& categoryName);

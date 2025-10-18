@@ -73,27 +73,27 @@ void Log::Clear(const String& categoryName, LogVerbosity verbosity)
 	mHash++;
 }
 
-bool Log::GetUnreadEntry(LogEntry& entry)
+bool Log::GetUnreadEntry(LogEntry& outEntry)
 {
 	RecursiveLock lock(mMutex);
 
 	if(mUnreadEntries.empty())
 		return false;
 
-	entry = mUnreadEntries.front();
+	outEntry = mUnreadEntries.front();
 	mUnreadEntries.pop();
-	mEntries.push_back(entry);
+	mEntries.push_back(outEntry);
 	mHash++;
 
 	return true;
 }
 
-bool Log::GetLastEntry(LogEntry& entry)
+bool Log::GetLastEntry(LogEntry& outEntry)
 {
 	if(mEntries.size() == 0)
 		return false;
 
-	entry = mEntries.back();
+	outEntry = mEntries.back();
 	return true;
 }
 

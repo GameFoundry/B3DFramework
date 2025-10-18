@@ -33,9 +33,9 @@ std::pair<bool, float> Torus::Intersects(const Ray& ray) const
 	{
 		float nearestT = std::numeric_limits<float>::max();
 
-		for(u32 i = 0; i < numRoots; i++)
+		for(u32 rootIndex = 0; rootIndex < numRoots; rootIndex++)
 		{
-			float t = roots[i];
+			float t = roots[rootIndex];
 			if(t > 0 && t < nearestT)
 				nearestT = t;
 		}

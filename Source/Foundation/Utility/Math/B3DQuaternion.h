@@ -135,9 +135,9 @@ namespace b3d
 		/**
 		 * Creates a quaternion from the provided Pitch/Yaw/Roll angles.
 		 *
-		 * @param[in]	xAngle	Rotation about x axis. (AKA Pitch)
-		 * @param[in]	yAngle	Rotation about y axis. (AKA Yaw)
-		 * @param[in]	zAngle	Rotation about z axis. (AKA Roll)
+		 * @param	xAngle	Rotation about x axis. (AKA Pitch)
+		 * @param	yAngle	Rotation about y axis. (AKA Yaw)
+		 * @param	zAngle	Rotation about z axis. (AKA Roll)
 		 *
 		 * @note
 		 * Since different values will be produced depending in which order are the rotations applied, this method assumes
@@ -148,10 +148,10 @@ namespace b3d
 		/**
 		 * Creates a quaternion from the provided Pitch/Yaw/Roll angles.
 		 *
-		 * @param[in]	xAngle	Rotation about x axis. (AKA Pitch)
-		 * @param[in]	yAngle	Rotation about y axis. (AKA Yaw)
-		 * @param[in]	zAngle	Rotation about z axis. (AKA Roll)
-		 * @param[in]	order 	The order in which rotations will be extracted. Different values can be retrieved depending
+		 * @param	xAngle	Rotation about x axis. (AKA Pitch)
+		 * @param	yAngle	Rotation about y axis. (AKA Yaw)
+		 * @param	zAngle	Rotation about z axis. (AKA Roll)
+		 * @param	order 	The order in which rotations will be extracted. Different values can be retrieved depending
 		 *						on the order.
 		 */
 		void FromEulerAngles(const TRadian<T>& xAngle, const TRadian<T>& yAngle, const TRadian<T>& zAngle, EulerAngleOrder order);
@@ -164,26 +164,26 @@ namespace b3d
 		/**
 		 * Converts a quaternion to an angle axis pair.
 		 *
-		 * @param[out]	axis 	The axis around the which rotation takes place.
-		 * @param[out]	angle	The angle in radians determining amount of rotation around the axis.
+		 * @param	axis 	The axis around the which rotation takes place.
+		 * @param	angle	The angle in radians determining amount of rotation around the axis.
 		 */
 		void ToAxisAngle(TVector3<T>& axis, TRadian<T>& angle) const;
 
 		/**
 		 * Converts a quaternion to an orthonormal set of axes.
 		 *
-		 * @param[out]	xAxis	The X axis.
-		 * @param[out]	yAxis	The Y axis.
-		 * @param[out]	zAxis	The Z axis.
+		 * @param	xAxis	The X axis.
+		 * @param	yAxis	The Y axis.
+		 * @param	zAxis	The Z axis.
 		 */
 		void ToAxes(TVector3<T>& xAxis, TVector3<T>& yAxis, TVector3<T>& zAxis) const;
 
 		/**
 		 * Extracts Pitch/Yaw/Roll rotations from this quaternion.
 		 *
-		 * @param[out]	xAngle	Rotation about x axis. (AKA Pitch)
-		 * @param[out]	yAngle  Rotation about y axis. (AKA Yaw)
-		 * @param[out]	zAngle 	Rotation about z axis. (AKA Roll)
+		 * @param	xAngle	Rotation about x axis. (AKA Pitch)
+		 * @param	yAngle  Rotation about y axis. (AKA Yaw)
+		 * @param	zAngle 	Rotation about z axis. (AKA Roll)
 		 *
 		 * @return	True if unique solution was found, false otherwise.
 		 */
@@ -318,15 +318,15 @@ namespace b3d
 		/**
 		 * Orients the quaternion so its negative z axis points to the provided direction.
 		 *
-		 * @param[in]	forwardDir	Direction to orient towards.
+		 * @param	forwardDir	Direction to orient towards.
 		 */
 		void LookRotation(const TVector3<T>& forwardDir);
 
 		/**
 		 * Orients the quaternion so its negative z axis points to the provided direction.
 		 *
-		 * @param[in]	forwardDir	Direction to orient towards.
-		 * @param[in]	upDir		Constrains y axis orientation to a plane this vector lies on. This rule might be broken
+		 * @param	forwardDir	Direction to orient towards.
+		 * @param	upDir		Constrains y axis orientation to a plane this vector lies on. This rule might be broken
 		 *							if forward and up direction are nearly parallel.
 		 */
 		void LookRotation(const TVector3<T>& forwardDir, const TVector3<T>& upDir);

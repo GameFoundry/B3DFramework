@@ -113,7 +113,7 @@ namespace b3d
 
 		/** Returns the color key at the specified index. If out of range an empty key is returned. */
 		B3D_SCRIPT_EXPORT()
-		ColorGradientKey GetKey(u32 idx) const;
+		ColorGradientKey GetKey(u32 index) const;
 
 		/** Specify a "gradient" that represents a single color value. */
 		B3D_SCRIPT_EXPORT()

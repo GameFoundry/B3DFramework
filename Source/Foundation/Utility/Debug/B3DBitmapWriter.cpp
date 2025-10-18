@@ -67,9 +67,9 @@ void BitmapWriter::RawPixelsToBmp(const u8* input, u8* output, u32 width, u32 he
 	// BPP matches so we can just copy directly
 	if(bmpBytesPerPixel == bytesPerPixel)
 	{
-		for(i32 y = height - 1; y >= 0; y--)
+		for(i32 rowIndex = height - 1; rowIndex >= 0; rowIndex--)
 		{
-			u8* outputPtr = output + y * rowPitch;
+			u8* outputPtr = output + rowIndex * rowPitch;
 
 			memcpy(outputPtr, input, widthBytes);
 			memset(outputPtr + widthBytes, 0, padding);
@@ -79,11 +79,11 @@ void BitmapWriter::RawPixelsToBmp(const u8* input, u8* output, u32 width, u32 he
 	}
 	else if(bmpBytesPerPixel < bytesPerPixel) // More bytes in source than supported in BMP, just truncate excess data
 	{
-		for(i32 y = height - 1; y >= 0; y--)
+		for(i32 rowIndex = height - 1; rowIndex >= 0; rowIndex--)
 		{
-			u8* outputPtr = output + y * rowPitch;
+			u8* outputPtr = output + rowIndex * rowPitch;
 
-			for(u32 x = 0; x < width; x++)
+			for(u32 columnIndex = 0; columnIndex < width; columnIndex++)
 			{
 				memcpy(outputPtr, input, bmpBytesPerPixel);
 				outputPtr += bmpBytesPerPixel;
@@ -95,11 +95,11 @@ void BitmapWriter::RawPixelsToBmp(const u8* input, u8* output, u32 width, u32 he
 	}
 	else // More bytes in BMP than in source (BMP must be 24bit minimum)
 	{
-		for(i32 y = height - 1; y >= 0; y--)
+		for(i32 rowIndex = height - 1; rowIndex >= 0; rowIndex--)
 		{
-			u8* outputPtr = output + y * rowPitch;
+			u8* outputPtr = output + rowIndex * rowPitch;
 
-			for(u32 x = 0; x < width; x++)
+			for(u32 columnIndex = 0; columnIndex < width; columnIndex++)
 			{
 				memcpy(outputPtr, input, bytesPerPixel);
 

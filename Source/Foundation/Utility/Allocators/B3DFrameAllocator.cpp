@@ -147,9 +147,9 @@ void FrameAllocator::Clear()
 
 		u32 startBlockIdx = mNextBlockIdx - 1;
 		u32 numFreedBlocks = 0;
-		for(i32 i = startBlockIdx; i >= 0; i--)
+		for(i32 blockIndex = startBlockIdx; blockIndex >= 0; blockIndex--)
 		{
-			MemBlock* curBlock = mBlocks[i];
+			MemBlock* curBlock = mBlocks[blockIndex];
 			u8* blockEnd = curBlock->MData + curBlock->MSize;
 			if(framePtr >= curBlock->MData && framePtr < blockEnd)
 			{
@@ -164,7 +164,7 @@ void FrameAllocator::Clear()
 
 					// Reset block counter if we're gonna reallocate this one
 					if(numFreedBlocks > 1)
-						mNextBlockIdx = (u32)i;
+						mNextBlockIdx = (u32)blockIndex;
 				}
 
 				break;
@@ -172,7 +172,7 @@ void FrameAllocator::Clear()
 			else
 			{
 				curBlock->MFreePtr = 0;
-				mNextBlockIdx = (u32)i;
+				mNextBlockIdx = (u32)blockIndex;
 				numFreedBlocks++;
 			}
 		}
@@ -180,7 +180,7 @@ void FrameAllocator::Clear()
 		if(numFreedBlocks > 1)
 		{
 			u32 totalBytes = 0;
-			for(u32 i = 0; i < numFreedBlocks; i++)
+			for(u32 blockIndex = 0; blockIndex < numFreedBlocks; blockIndex++)
 			{
 				MemBlock* curBlock = mBlocks[mNextBlockIdx];
 				totalBytes += curBlock->MSize;
@@ -292,9 +292,9 @@ B3D_EXPORT FrameAllocator& GetFrameAllocator()
 	return *_GlobalFrameAlloc;
 }
 
-B3D_EXPORT u8* B3DFrameAllocate(u32 numBytes)
+B3D_EXPORT u8* B3DFrameAllocate(u32 byteCount)
 {
-	return GetFrameAllocator().Alloc(numBytes);
+	return GetFrameAllocator().Alloc(byteCount);
 }
 
 B3D_EXPORT u8* B3DFrameAllocateAligned(u32 count, u32 align)

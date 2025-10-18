@@ -40,16 +40,16 @@ namespace b3d::ecs
 
 	/**
 	 * Checks if entity matches the included & excluded type filters.
-	 * 
-	 * @tparam IncludedTypeCount						Number of types in the included type filter.
-	 * @tparam ExcludedTypeCount						Number of types in the excluded type filter.
-	 * @tparam StorageMayContainInvalidEntities			True if the storage may contain invalid entities (i.e. storage is using in-place delete).
 	 *
-	 * @param entity									Entity to check.
-	 * @param includedTypeStorage						Storages that must contain the entity to pass the filter.
-	 * @param excludedTypeStorage						Storages that must not contain the entity to pass the filter.
-	 * @param leadingTypeIndex							Index of the included type storage which leading, and therefore guaranteed to contain the entity.
-	 * @return 
+	 * @tparam	IncludedTypeCount						Number of types in the included type filter.
+	 * @tparam	ExcludedTypeCount						Number of types in the excluded type filter.
+	 * @tparam	StorageMayContainInvalidEntities		True if the storage may contain invalid entities (i.e. storage is using in-place delete).
+	 *
+	 * @param	entity									Entity to check.
+	 * @param	includedTypeStorage						Storages that must contain the entity to pass the filter.
+	 * @param	excludedTypeStorage						Storages that must not contain the entity to pass the filter.
+	 * @param	leadingTypeIndex						Index of the included type storage which is leading, and therefore guaranteed to contain the entity.
+	 * @return
 	 */
 	template<u32 IncludedTypeCount, u32 ExcludedTypeCount, bool StorageMayContainInvalidEntities>
 	static bool DoesEntityMatchFilter(Entity entity, const std::array<const SparseSet*, IncludedTypeCount>& includedTypeStorage, const std::array<const SparseSet*, ExcludedTypeCount>& excludedTypeStorage, u32 leadingTypeIndex)
@@ -62,10 +62,10 @@ namespace b3d::ecs
 
 	/**
 	 * Iterator that iterates over all entities that match the view included & excluded type filter.
-	 * 
-	 * @tparam IncludedTypeCount		Number of types in the included type filter.
-	 * @tparam ExcludedTypeCount		Number of types in the excluded type filter.
-	 * @tparam InPlaceDelete			True if the storages support in-place delete policy.
+	 *
+	 * @tparam	IncludedTypeCount	Number of types in the included type filter.
+	 * @tparam	ExcludedTypeCount	Number of types in the excluded type filter.
+	 * @tparam	InPlaceDelete		True if the storages support in-place delete policy.
 	 */
 	template<u32 IncludedTypeCount, u32 ExcludedTypeCount, bool InPlaceDelete>
 	struct TViewIterator final
@@ -211,9 +211,9 @@ namespace b3d::ecs
 	/**
 	 * Provides helper functionality for a view containing multiple (more than one) included or excluded types.
 	 *
-	 * @tparam IncludedTypeCount		Number of types in the included type filter.
-	 * @tparam ExcludedTypeCount		Number of types in the excluded type filter.
-	 * @tparam InPlaceDelete			True if the storages support in-place delete policy.
+	 * @tparam	IncludedTypeCount	Number of types in the included type filter.
+	 * @tparam	ExcludedTypeCount	Number of types in the excluded type filter.
+	 * @tparam	InPlaceDelete		True if the storages support in-place delete policy.
 	 */
 	template<u32 IncludedTypeCount, u32 ExcludedTypeCount, bool InPlaceDelete>
 	class TMultiStorageViewCommon
@@ -427,10 +427,10 @@ namespace b3d::ecs
 	class TView;
 
 	/**
-	 * Creates a view that allows you to iterate over all entities that match included & excluded type filter. 
-	 * 
-	 * @tparam IncludedStorageType		List of storage types that the entity must be a part of to be included in the view.
-	 * @tparam ExcludedStorageType		List of storage types that the entity must not be a part of to be included in the view.
+	 * Creates a view that allows you to iterate over all entities that match included & excluded type filter.
+	 *
+	 * @tparam	IncludedStorageType	List of storage types that the entity must be a part of to be included in the view.
+	 * @tparam	ExcludedStorageType	List of storage types that the entity must not be a part of to be included in the view.
 	 */
 	template<typename... IncludedStorageType, typename... ExcludedStorageType>
 	class TView<TIncludedTypes<IncludedStorageType...>, TExcludedTypes<ExcludedStorageType...>, std::enable_if_t<(sizeof...(IncludedStorageType) != 0u)>> : public TMultiStorageViewCommon<sizeof...(IncludedStorageType), sizeof...(ExcludedStorageType), TAllTypesUseInPlaceDelete<IncludedStorageType...>>

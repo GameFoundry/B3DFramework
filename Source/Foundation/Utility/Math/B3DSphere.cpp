@@ -38,10 +38,10 @@ template<typename T>
 void TSphere<T>::Transform(const TMatrix4<T>& matrix)
 {
 	T lengthSquared[3];
-	for(u32 i = 0; i < 3; i++)
+	for(u32 columnIndex = 0; columnIndex < 3; columnIndex++)
 	{
-		TVector3<T> column = matrix.GetColumn(i);
-		lengthSquared[i] = column.Dot(column);
+		TVector3<T> column = matrix.GetColumn(columnIndex);
+		lengthSquared[columnIndex] = column.Dot(column);
 	}
 
 	T maxLengthSquared = std::max(lengthSquared[0], std::max(lengthSquared[1], lengthSquared[2]));

@@ -88,10 +88,10 @@ TConvexVolume<T>::TConvexVolume(const TMatrix4<T>& projectionMatrix, bool useNea
 		mPlanes.push_back(plane);
 	}
 
-	for(u32 i = 0; i < (u32)mPlanes.size(); i++)
+	for(u32 planeIndex = 0; planeIndex < (u32)mPlanes.size(); planeIndex++)
 	{
-		T length = mPlanes[i].Normal.Normalize();
-		mPlanes[i].D /= -length;
+		T length = mPlanes[planeIndex].Normal.Normalize();
+		mPlanes[planeIndex].D /= -length;
 	}
 }
 

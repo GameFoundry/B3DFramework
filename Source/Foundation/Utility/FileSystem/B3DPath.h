@@ -45,10 +45,10 @@ namespace b3d
 		/**
 		 * Constructs a path by parsing the provided path string. Throws exception if provided path is not valid.
 		 *
-		 * @param[in]	pathStr	String containing the path. Ideally this should be an UTF-8 encoded string in order to
-		 *						support non-ANSI characters in the path.
-		 * @param[in]	type	If set to default path will be parsed according to the rules of the platform the application
-		 *						is being compiled to. Otherwise it will be parsed according to provided type.
+		 * @param	pathStr	String containing the path. Ideally this should be an UTF-8 encoded string in order to
+		 *					support non-ANSI characters in the path.
+		 * @param	type	If set to default path will be parsed according to the rules of the platform the application
+		 *					is being compiled to. Otherwise it will be parsed according to provided type.
 		 */
 		Path(const String& pathStr, PathType type = PathType::Default);
 
@@ -56,10 +56,10 @@ namespace b3d
 		 * Constructs a path by parsing the provided path null terminated string. Throws exception if provided path is
 		 * not valid.
 		 *
-		 * @param[in]	pathStr	Null-terminated string containing the path. Ideally this should be an UTF-8 encoded string
-		 *						in order to support non-ANSI characters in the path.
-		 * @param[in]	type	If set to default path will be parsed according to the rules of the platform the application
-		 *						is being compiled to. Otherwise it will be parsed according to provided type.
+		 * @param	pathStr	Null-terminated string containing the path. Ideally this should be an UTF-8 encoded string
+		 *					in order to support non-ANSI characters in the path.
+		 * @param	type	If set to default path will be parsed according to the rules of the platform the application
+		 *					is being compiled to. Otherwise it will be parsed according to provided type.
 		 */
 		Path(const char* pathStr, PathType type = PathType::Default);
 		Path(const Path& other);
@@ -91,7 +91,7 @@ namespace b3d
 		bool operator!=(const Path& path) const { return !Equals(path); }
 
 		/** Gets a directory name with the specified index from the path. */
-		const String& operator[](u32 idx) const { return GetDirectory(idx); }
+		const String& operator[](u32 index) const { return GetDirectory(index); }
 
 		/** Swap internal data with another Path object. */
 		void Swap(Path& path);
@@ -102,9 +102,9 @@ namespace b3d
 		/**
 		 * Constructs a path by parsing the provided path string. Throws exception if provided path is not valid.
 		 *
-		 * @param[in]	pathStr	String containing the path.
-		 * @param[in]	type	If set to default path will be parsed according to the rules of the platform the application
-		 *						is being compiled to. Otherwise it will be parsed according to provided type.
+		 * @param	pathStr	String containing the path.
+		 * @param	type	If set to default path will be parsed according to the rules of the platform the application
+		 *					is being compiled to. Otherwise it will be parsed according to provided type.
 		 */
 		void Assign(const String& pathStr, PathType type = PathType::Default);
 
@@ -112,17 +112,17 @@ namespace b3d
 		 * Constructs a path by parsing the provided path null terminated string. Throws exception if provided path is not
 		 * valid.
 		 *
-		 * @param[in]	pathStr		Null-terminated string containing the path.
-		 * @param[in]	type		If set to default path will be parsed according to the rules of the platform the
-		 *							application is being compiled to. Otherwise it will be parsed according to provided
-		 *							type.
+		 * @param	pathStr		Null-terminated string containing the path.
+		 * @param	type		If set to default path will be parsed according to the rules of the platform the
+		 *						application is being compiled to. Otherwise it will be parsed according to provided
+		 *						type.
 		 */
 		void Assign(const char* pathStr, PathType type = PathType::Default);
 
 		/**
 		 * Converts the path in a string according to platform path rules.
 		 *
-		 * @param[in] type	If set to default path will be parsed according to the rules of the platform the application is
+		 * @param	type	If set to default path will be parsed according to the rules of the platform the application is
 		 *					being compiled to. Otherwise it will be parsed according to provided type.
 		 * @return			String representing the path using the UTF8 string encoding.
 		 */
@@ -218,7 +218,7 @@ namespace b3d
 		/**
 		 * Change or set the extension of the filename in the path.
 		 *
-		 * @param[in]	extension	Extension with a leading ".".
+		 * @param	extension	Extension with a leading ".".
 		 */
 		void SetExtension(const String& extension);
 
@@ -228,7 +228,7 @@ namespace b3d
 		/**
 		 * Returns a filename in the path.
 		 *
-		 * @param[in]	extension	If true, returned filename will contain an extension.
+		 * @param	extension	If true, returned filename will contain an extension.
 		 */
 		String GetFilename(bool extension) const;
 
@@ -239,7 +239,7 @@ namespace b3d
 		u32 GetDirectoryCount() const { return (u32)mDirectories.size(); }
 
 		/** Gets a directory name with the specified index from the path. */
-		const String& GetDirectory(u32 idx) const;
+		const String& GetDirectory(u32 index) const;
 
 		/** Returns path device (for example drive, volume, etc.) if one exists in the path. */
 		const String& GetDevice() const { return mDevice; }
@@ -292,13 +292,13 @@ namespace b3d
 		/**
 		 * Constructs a path by parsing the provided raw string data. Throws exception if provided path is not valid.
 		 *
-		 * @param[in]	pathStr		String containing the path.
-		 * @param[in]	numChars	Number of character in the provided path string.
-		 * @param[in]	type		If set to default path will be parsed according to the rules of the platform the
+		 * @param	pathStr			String containing the path.
+		 * @param	characterCount	Number of character in the provided path string.
+		 * @param	type			If set to default path will be parsed according to the rules of the platform the
 		 *							application is being compiled to. Otherwise it will be parsed according to provided
 		 *							type.
 		 */
-		void Assign(const char* pathStr, u32 numChars, PathType type = PathType::Default);
+		void Assign(const char* pathStr, u32 characterCount, PathType type = PathType::Default);
 
 		/** Parses a Windows path and stores the parsed data internally. Throws an exception if parsing fails. */
 		template <class T>

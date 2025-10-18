@@ -70,21 +70,21 @@ void Path::Assign(const char* pathStr, PathType type)
 	Assign(pathStr, (u32)strlen(pathStr), type);
 }
 
-void Path::Assign(const char* pathStr, u32 numChars, PathType type)
+void Path::Assign(const char* pathStr, u32 characterCount, PathType type)
 {
 	switch(type)
 	{
 	case PathType::Windows:
-		ParseWindows(pathStr, numChars);
+		ParseWindows(pathStr, characterCount);
 		break;
 	case PathType::Unix:
-		ParseUnix(pathStr, numChars);
+		ParseUnix(pathStr, characterCount);
 		break;
 	default:
 #if B3D_PLATFORM == B3D_PLATFORM_ID_WIN32
-		ParseWindows(pathStr, numChars);
+		ParseWindows(pathStr, characterCount);
 #elif B3D_PLATFORM == B3D_PLATFORM_ID_MACOS || B3D_PLATFORM == B3D_PLATFORM_ID_LINUX
-		parseUnix(pathStr, numChars);
+		parseUnix(pathStr, characterCount);
 #else
 		static_assert(false, "Unsupported platform for path.");
 #endif
@@ -376,14 +376,14 @@ String Path::GetExtension() const
 		return String();
 }
 
-const String& Path::GetDirectory(u32 idx) const
+const String& Path::GetDirectory(u32 index) const
 {
-	if(idx >= (u32)mDirectories.size())
+	if(index >= (u32)mDirectories.size())
 	{
-		B3D_EXCEPT(InvalidParametersException, "Index out of range: " + b3d::ToString(idx) + ". Valid range: [0, " + b3d::ToString((u32)mDirectories.size() - 1) + "]");
+		B3D_EXCEPT(InvalidParametersException, "Index out of range: " + b3d::ToString(index) + ". Valid range: [0, " + b3d::ToString((u32)mDirectories.size() - 1) + "]");
 	}
 
-	return mDirectories[idx];
+	return mDirectories[index];
 }
 
 const String& Path::GetTail() const

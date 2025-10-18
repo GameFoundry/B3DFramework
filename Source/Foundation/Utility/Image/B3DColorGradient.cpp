@@ -40,15 +40,15 @@ COLOR TColorGradient<COLOR, TIME>::Evaluate(float t) const
 		return mColors[0];
 
 	// Note: Add a version of evaluate that supports caching?
-	for(uint32_t i = 1; i < mNumKeys; i++)
+	for(uint32_t keyIndex = 1; keyIndex < mNumKeys; keyIndex++)
 	{
-		const auto curKeyTime = mTimes[i];
+		const auto curKeyTime = mTimes[keyIndex];
 		if(time > curKeyTime)
 			continue;
 
-		const auto prevKeyTime = mTimes[i - 1];
+		const auto prevKeyTime = mTimes[keyIndex - 1];
 		const auto fracColor = TGradientHelper<COLOR>::InvLerp(prevKeyTime, curKeyTime, time);
-		return Color::Lerp(fracColor, mColors[i - 1], mColors[i]);
+		return Color::Lerp(fracColor, mColors[keyIndex - 1], mColors[keyIndex]);
 	}
 
 	return mColors[mNumKeys - 1];
@@ -62,10 +62,10 @@ void TColorGradient<COLOR, TIME>::SetKeys(const Vector<ColorGradientKey>& keys, 
 	if(!keys.empty())
 	{
 		float time = keys[0].Time;
-		for(u32 i = 1; i < (u32)keys.size(); i++)
+		for(u32 keyIndex = 1; keyIndex < (u32)keys.size(); keyIndex++)
 		{
-			B3D_ASSERT(keys[i].Time >= time);
-			time = keys[i].Time;
+			B3D_ASSERT(keys[keyIndex].Time >= time);
+			time = keys[keyIndex].Time;
 		}
 	}
 #endif
@@ -96,24 +96,24 @@ template <class COLOR, class TIME>
 Vector<ColorGradientKey> TColorGradient<COLOR, TIME>::GetKeys() const
 {
 	Vector<ColorGradientKey> output(mNumKeys);
-	for(u32 i = 0; i < mNumKeys; i++)
+	for(u32 keyIndex = 0; keyIndex < mNumKeys; keyIndex++)
 	{
-		output[i].Color = TGradientHelper<COLOR>::FromInternalColor(mColors[i]);
-		output[i].Time = TGradientHelper<COLOR>::FromInternalTime(mTimes[i]);
+		output[keyIndex].Color = TGradientHelper<COLOR>::FromInternalColor(mColors[keyIndex]);
+		output[keyIndex].Time = TGradientHelper<COLOR>::FromInternalTime(mTimes[keyIndex]);
 	}
 
 	return output;
 }
 
 template <class COLOR, class TIME>
-ColorGradientKey TColorGradient<COLOR, TIME>::GetKey(u32 idx) const
+ColorGradientKey TColorGradient<COLOR, TIME>::GetKey(u32 index) const
 {
-	if(idx >= mNumKeys)
+	if(index >= mNumKeys)
 		return ColorGradientKey(Color::kBlack, 0.0f);
 
 	return ColorGradientKey(
-		TGradientHelper<COLOR>::FromInternalColor(mColors[idx]),
-		TGradientHelper<COLOR>::FromInternalTime(mTimes[idx]));
+		TGradientHelper<COLOR>::FromInternalColor(mColors[index]),
+		TGradientHelper<COLOR>::FromInternalTime(mTimes[index]));
 }
 
 template <class COLOR, class TIME>
@@ -148,9 +148,9 @@ bool TColorGradient<COLOR, TIME>::operator==(const TColorGradient<COLOR, TIME>& 
 	if(mNumKeys != rhs.mNumKeys || mDuration != rhs.mDuration)
 		return false;
 
-	for(uint32_t i = 0; i < mNumKeys; i++)
+	for(uint32_t keyIndex = 0; keyIndex < mNumKeys; keyIndex++)
 	{
-		if(mColors[i] != rhs.mColors[i] || mTimes[i] != rhs.mTimes[i])
+		if(mColors[keyIndex] != rhs.mColors[keyIndex] || mTimes[keyIndex] != rhs.mTimes[keyIndex])
 			return false;
 	}
 

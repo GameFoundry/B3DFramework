@@ -61,8 +61,8 @@ SystemInfo PlatformUtility::GetSystemInfo()
 
 	//// Get the information associated with each extended ID.
 	__cpuid(CPUInfo, 0x80000000);
-	u32 numExtensionIds = CPUInfo[0];
-	for(u32 extensionIdIndex = 0x80000000; extensionIdIndex <= numExtensionIds; ++extensionIdIndex)
+	u32 extensionIdCount = CPUInfo[0];
+	for(u32 extensionIdIndex = 0x80000000; extensionIdIndex <= extensionIdCount; ++extensionIdIndex)
 	{
 		__cpuid(CPUInfo, extensionIdIndex);
 
@@ -200,13 +200,13 @@ HBITMAP Win32PlatformUtility::CreateBitmap(const Color* pixels, u32 width, u32 h
 
 	// Scan each pixel of the source bitmap and create the masks
 	Color pixel;
-	DWORD* dst = (DWORD*)data;
+	DWORD* destination = (DWORD*)data;
 	for(u32 rowIndex = 0; rowIndex < height; ++rowIndex)
 	{
 		for(u32 columnIndex = 0; columnIndex < width; ++columnIndex)
 		{
-			u32 revY = height - rowIndex - 1;
-			pixel = pixels[revY * width + columnIndex];
+			u32 reversedY = height - rowIndex - 1;
+			pixel = pixels[reversedY * width + columnIndex];
 
 			if(premultiplyAlpha)
 			{
@@ -215,9 +215,9 @@ HBITMAP Win32PlatformUtility::CreateBitmap(const Color* pixels, u32 width, u32 h
 				pixel.B *= pixel.A;
 			}
 
-			*dst = pixel.GetAsRgba();
+			*destination = pixel.GetAsRgba();
 
-			dst++;
+			destination++;
 		}
 	}
 

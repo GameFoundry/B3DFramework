@@ -6,32 +6,32 @@
 
 using namespace b3d;
 
-bool StaticTextureAtlasLayout::AddElement(u32 width, u32 height, u32& x, u32& y)
+bool StaticTextureAtlasLayout::AddElement(u32 width, u32 height, u32& outX, u32& outY)
 {
 	if(width == 0 || height == 0)
 	{
-		x = 0;
-		y = 0;
+		outX = 0;
+		outY = 0;
 		return true;
 	}
 
 	// Try adding without expanding, if that fails try to expand
-	if(!AddToNode(0, width, height, x, y, false))
+	if(!AddToNode(0, width, height, outX, outY, false))
 	{
-		if(!AddToNode(0, width, height, x, y, true))
+		if(!AddToNode(0, width, height, outX, outY, true))
 			return false;
 	}
 
 	// Update size to cover all nodes
 	if(mPow2)
 	{
-		mWidth = std::max(mWidth, Bitwise::NextPow2(x + width));
-		mHeight = std::max(mHeight, Bitwise::NextPow2(y + height));
+		mWidth = std::max(mWidth, Bitwise::NextPow2(outX + width));
+		mHeight = std::max(mHeight, Bitwise::NextPow2(outY + height));
 	}
 	else
 	{
-		mWidth = std::max(mWidth, x + width);
-		mHeight = std::max(mHeight, y + height);
+		mWidth = std::max(mWidth, outX + width);
+		mHeight = std::max(mHeight, outY + height);
 	}
 
 	return true;
@@ -46,17 +46,17 @@ void StaticTextureAtlasLayout::Clear()
 	mHeight = mInitialHeight;
 }
 
-bool StaticTextureAtlasLayout::AddToNode(u32 nodeIdx, u32 width, u32 height, u32& x, u32& y, bool allowGrowth)
+bool StaticTextureAtlasLayout::AddToNode(u32 nodeIndex, u32 width, u32 height, u32& outX, u32& outY, bool allowGrowth)
 {
-	TexAtlasNode* node = &mNodes[nodeIdx];
+	TexAtlasNode* node = &mNodes[nodeIndex];
 	float aspect = node->Width / (float)node->Height;
 
 	if(node->Children[0] != (u32)-1)
 	{
-		if(AddToNode(node->Children[0], width, height, x, y, allowGrowth))
+		if(AddToNode(node->Children[0], width, height, outX, outY, allowGrowth))
 			return true;
 
-		return AddToNode(node->Children[1], width, height, x, y, allowGrowth);
+		return AddToNode(node->Children[1], width, height, outX, outY, allowGrowth);
 	}
 	else
 	{
@@ -74,8 +74,8 @@ bool StaticTextureAtlasLayout::AddToNode(u32 nodeIdx, u32 width, u32 height, u32
 
 		if(width == node->Width && height == node->Height)
 		{
-			x = node->X;
-			y = node->Y;
+			outX = node->X;
+			outY = node->Y;
 			node->NodeFull = true;
 
 			return true;
@@ -84,9 +84,9 @@ bool StaticTextureAtlasLayout::AddToNode(u32 nodeIdx, u32 width, u32 height, u32
 		float dw = (float)(node->Width - width);
 		float dh = (node->Height - height) * aspect;
 
-		u32 nextChildIdx = (u32)mNodes.size();
-		node->Children[0] = nextChildIdx;
-		node->Children[1] = nextChildIdx + 1;
+		u32 nextChildIndex = (u32)mNodes.size();
+		node->Children[0] = nextChildIndex;
+		node->Children[1] = nextChildIndex + 1;
 
 		TexAtlasNode nodeCopy = *node;
 		node = nullptr; // Undefined past this point
@@ -101,16 +101,16 @@ bool StaticTextureAtlasLayout::AddToNode(u32 nodeIdx, u32 width, u32 height, u32
 			mNodes.emplace_back(nodeCopy.X, nodeCopy.Y + height, nodeCopy.Width, nodeCopy.Height - height);
 		}
 
-		return AddToNode(nodeCopy.Children[0], width, height, x, y, allowGrowth);
+		return AddToNode(nodeCopy.Children[0], width, height, outX, outY, allowGrowth);
 	}
 }
 
 Vector<TextureAtlasUtility::Page> TextureAtlasUtility::CreateAtlasLayout(Vector<Element>& elements, u32 width, u32 height, u32 maxWidth, u32 maxHeight, bool pow2)
 {
-	for(size_t i = 0; i < elements.size(); i++)
+	for(size_t elementIndex = 0; elementIndex < elements.size(); elementIndex++)
 	{
-		elements[i].Output.Idx = (u32)i; // Preserve original index before sorting
-		elements[i].Output.Page = -1;
+		elements[elementIndex].Output.Idx = (u32)elementIndex; // Preserve original index before sorting
+		elements[elementIndex].Output.Page = -1;
 	}
 
 	std::sort(elements.begin(), elements.end(), [](const Element& a, const Element& b)
@@ -130,14 +130,14 @@ Vector<TextureAtlasUtility::Page> TextureAtlasUtility::CreateAtlasLayout(Vector<
 			u32 largestId = -1;
 
 			// Assumes elements are sorted from largest to smallest
-			for(u32 i = 0; i < (u32)elements.size(); i++)
+			for(u32 elementIndex = 0; elementIndex < (u32)elements.size(); elementIndex++)
 			{
-				if(elements[i].Output.Page == -1)
+				if(elements[elementIndex].Output.Page == -1)
 				{
-					u32 size = elements[i].Input.Width * elements[i].Input.Height;
+					u32 size = elements[elementIndex].Input.Width * elements[elementIndex].Input.Height;
 					if(size < sizeLimit)
 					{
-						largestId = i;
+						largestId = elementIndex;
 						break;
 					}
 				}

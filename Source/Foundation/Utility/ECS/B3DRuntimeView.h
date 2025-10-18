@@ -86,11 +86,11 @@ namespace b3d::ecs
 	private:
 		/**
 		 * Checks if entity matches the included & excluded type filters.
-		 * 
-		 * @param entity						Entity to check.
-		 * @param includedTypeStorage			Storages that must contain the entity to pass the filter.
-		 * @param excludedTypeStorage			Storages that must not contain the entity to pass the filter.
-		 * @return 
+		 *
+		 * @param	entity					Entity to check.
+		 * @param	includedTypeStorage		Storages that must contain the entity to pass the filter.
+		 * @param	excludedTypeStorage		Storages that must not contain the entity to pass the filter.
+		 * @return
 		 */
 		bool DoesEntityMatchFilter(Entity entity, const TArray<SparseSet*>& includedTypeStorage, const TArray<SparseSet*>& excludedTypeStorage) const
 		{

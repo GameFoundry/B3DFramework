@@ -139,11 +139,11 @@ namespace b3d::ecs
 	/**
 	 * Storage used for storing components associated with entities.
 	 *
-	 * @tparam ComponentType	Type of the component to store. Type must not be empty.
-	 * @tparam InPlaceDelete	If true, deletion of entities will not erase the entity, but rather just mark it as invalid. Space of invalid entities
+	 * @tparam	ComponentType	Type of the component to store. Type must not be empty.
+	 * @tparam	InPlaceDelete	If true, deletion of entities will not erase the entity, but rather just mark it as invalid. Space of invalid entities
 	 *							can be re-used, but iterating such storages is slower. Additionally sorting operations are limited when invalid
 	 *							entities are present in the storage.
-	 * @tparam PackedPageSize	Size of a single payload page. In order to reduce the impact of array resize, payload array is split into pages of this size.
+	 * @tparam	PackedPageSize	Size of a single payload page. In order to reduce the impact of array resize, payload array is split into pages of this size.
 	 */
 	template<typename ComponentType, bool InPlaceDelete = false, u64 PackedPageSize = 1024>
 	class TComponentSparseSet : public TSparseSet<InPlaceDelete ? SparseSetDeletePolicy::InPlace : SparseSetDeletePolicy::SwapAndErase>
@@ -337,7 +337,7 @@ namespace b3d::ecs
 		/**
 		 * Adds an entity and associates a newly constructed component of type @p Type using the provided arguments. If @p forceAddAtEnd is true
 		 * ensures that all added entries are added to the end of the component array, rather than re-using invalid (deleted) entries (only
-		 * relevant if in-place deletion is true.).
+		 * relevant if in-place deletion is true).
 		 */
 		template<typename... Arguments>
 		UnderlyingIterator AddInternal(Entity entity, bool forceAddAtEnd, Arguments&&... arguments)

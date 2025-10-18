@@ -129,22 +129,22 @@ void TAABox<T>::TransformAffine(const TMatrix4<T>& m)
 {
 	TVector3<T> min = m.GetTranslation();
 	TVector3<T> max = m.GetTranslation();
-	for(u32 i = 0; i < 3; i++)
+	for(u32 rowIndex = 0; rowIndex < 3; rowIndex++)
 	{
-		for(u32 j = 0; j < 3; j++)
+		for(u32 columnIndex = 0; columnIndex < 3; columnIndex++)
 		{
-			T e = m[i][j] * Minimum[j];
-			T f = m[i][j] * Maximum[j];
+			T e = m[rowIndex][columnIndex] * Minimum[columnIndex];
+			T f = m[rowIndex][columnIndex] * Maximum[columnIndex];
 
 			if(e < f)
 			{
-				min[i] += e;
-				max[i] += f;
+				min[rowIndex] += e;
+				max[rowIndex] += f;
 			}
 			else
 			{
-				min[i] += f;
-				max[i] += e;
+				min[rowIndex] += f;
+				max[rowIndex] += e;
 			}
 		}
 	}
@@ -185,16 +185,16 @@ bool TAABox<T>::Intersects(const TSphere<T>& sphere) const
 
 	// Arvo's algorithm
 	T s, d = (T)0.0;
-	for(int i = 0; i < 3; ++i)
+	for(int axisIndex = 0; axisIndex < 3; ++axisIndex)
 	{
-		if(center[i] < min[i])
+		if(center[axisIndex] < min[axisIndex])
 		{
-			s = center[i] - min[i];
+			s = center[axisIndex] - min[axisIndex];
 			d += s * s;
 		}
-		else if(center[i] > max[i])
+		else if(center[axisIndex] > max[axisIndex])
 		{
-			s = center[i] - max[i];
+			s = center[axisIndex] - max[axisIndex];
 			d += s * s;
 		}
 	}
@@ -346,21 +346,21 @@ bool TAABox<T>::Intersects(const TRay<T>& ray, T& d1, T& d2) const
 	absDir[2] = abs(raydir[2]);
 
 	// Sort the axis, ensure check minimise floating error axis first
-	int imax = 0, imid = 1, imin = 2;
+	int maxAxisIndex = 0, midAxisIndex = 1, minAxisIndex = 2;
 	if(absDir[0] < absDir[2])
 	{
-		imax = 2;
-		imin = 0;
+		maxAxisIndex = 2;
+		minAxisIndex = 0;
 	}
-	if(absDir[1] < absDir[imin])
+	if(absDir[1] < absDir[minAxisIndex])
 	{
-		imid = imin;
-		imin = 1;
+		midAxisIndex = minAxisIndex;
+		minAxisIndex = 1;
 	}
-	else if(absDir[1] > absDir[imax])
+	else if(absDir[1] > absDir[maxAxisIndex])
 	{
-		imid = imax;
-		imax = 1;
+		midAxisIndex = maxAxisIndex;
+		maxAxisIndex = 1;
 	}
 
 	T start = (T)0.0, end = std::numeric_limits<T>::infinity();
@@ -380,28 +380,28 @@ bool TAABox<T>::Intersects(const TRay<T>& ray, T& d1, T& d2) const
 
 	// Check each axis in turn
 
-	_CALC_AXIS(imax);
+	_CALC_AXIS(maxAxisIndex);
 
-	if(absDir[imid] < std::numeric_limits<T>::epsilon())
+	if(absDir[midAxisIndex] < std::numeric_limits<T>::epsilon())
 	{
 		// Parallel with middle and minimise axis, check bounds only
-		if(rayorig[imid] < min[imid] || rayorig[imid] > max[imid] ||
-		   rayorig[imin] < min[imin] || rayorig[imin] > max[imin])
+		if(rayorig[midAxisIndex] < min[midAxisIndex] || rayorig[midAxisIndex] > max[midAxisIndex] ||
+		   rayorig[minAxisIndex] < min[minAxisIndex] || rayorig[minAxisIndex] > max[minAxisIndex])
 			return false;
 	}
 	else
 	{
-		_CALC_AXIS(imid);
+		_CALC_AXIS(midAxisIndex);
 
-		if(absDir[imin] < std::numeric_limits<T>::epsilon())
+		if(absDir[minAxisIndex] < std::numeric_limits<T>::epsilon())
 		{
 			// Parallel with minimise axis, check bounds only
-			if(rayorig[imin] < min[imin] || rayorig[imin] > max[imin])
+			if(rayorig[minAxisIndex] < min[minAxisIndex] || rayorig[minAxisIndex] > max[minAxisIndex])
 				return false;
 		}
 		else
 		{
-			_CALC_AXIS(imin);
+			_CALC_AXIS(minAxisIndex);
 		}
 	}
 #undef _CALC_AXIS

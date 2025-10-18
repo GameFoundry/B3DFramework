@@ -448,11 +448,11 @@ namespace b3d::ecs
 	protected:
 		/**
 		 * Adds a new entity to the set.
-		 * 
-		 * @param	entity			Entity to add.
-		 * @param	forceAddAtEnd	Only relevant when using in-place deletion policy. When true it will add an entity at the end of the packaged data array,
-		 *							rather than re-using the first available invalid entity entry.
-		 * @return					Iterator to the added entity.
+		 *
+		 * @param	entity					Entity to add.
+		 * @param	forceAddAtEnd			Only relevant when using in-place deletion policy. When true it will add an entity at the end of the packaged data array,
+		 *									rather than re-using the first available invalid entity entry.
+		 * @return							Iterator to the added entity.
 		 */
 		virtual Iterator AddInternal(Entity entity, bool forceAddAtEnd) { return End(); }
 
@@ -468,9 +468,9 @@ namespace b3d::ecs
 
 		/**
 		 * Swaps the location of two entities.
-		 * 
-		 * @param lhsPackedIndex		Index within the packed array of the first element to swap.
-		 * @param rhsPackedIndex		Index within the packed array of the second element to swap.
+		 *
+		 * @param	lhsPackedIndex		Index within the packed array of the first element to swap.
+		 * @param	rhsPackedIndex		Index within the packed array of the second element to swap.
 		 */
 		void SwapEntities(u64 lhsPackedIndex, u64 rhsPackedIndex)
 		{
@@ -636,9 +636,9 @@ namespace b3d::ecs
 		/**
 		 * Sorts the entity packed data to match the order of the provided entities.
 		 * Note sorting operation will fail if using in-place deletion policy and invalid (deleted) entries are present.
-		 * 
-		 * @param first		Iterator pointing to the first entity.
-		 * @param last		Iterator pointing to the last entity.
+		 *
+		 * @param	first	Iterator pointing to the first entity.
+		 * @param	last	Iterator pointing to the last entity.
 		 * @return			Iterator one past the last entity that was sorted (begin() if nothing was sorted).
 		 */
 		template<typename It>
@@ -650,9 +650,9 @@ namespace b3d::ecs
 		/**
 		 * Sorts the first @p count entities using the provided comparison function.
 		 * Note sorting operation will fail if using in-place deletion policy and invalid (deleted) entries are present.
-		 * 
-		 * @param count			Number of entities to sort.
-		 * @param predicate		Function used to sort the entities.
+		 *
+		 * @param	count		Number of entities to sort.
+		 * @param	predicate	Function used to sort the entities.
 		 */
 		template<typename ComparisonFunction = std::less<>>
 		void SortN(u64 count, ComparisonFunction predicate = ComparisonFunction{})
@@ -765,7 +765,7 @@ namespace b3d::ecs
 
 		/**
 		 * Helper for ClearInvalid(). Clears all invalid entities, and allows the caller to provide a function
-		 * that also clear the associated payload data, if any. @p MoveOrSwapPayload accepts two parameters,
+		 * that also clears the associated payload data, if any. @p MoveOrSwapPayload accepts two parameters,
 		 * packed index from which to move the payload, and packed index where to move the payload, respectively.
 		 */
 		template<typename T, void(T::*MoveOrSwapPayload)(u64, u64)>

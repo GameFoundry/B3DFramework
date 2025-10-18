@@ -350,40 +350,40 @@ bool Color::operator!=(const Color& rhs) const
 	return !(*this == rhs);
 }
 
-void Color::GetHsb(float* hue, float* saturation, float* brightness) const
+void Color::GetHsb(float* outHue, float* outSaturation, float* outBrightness) const
 {
 	float vMin = std::min(R, std::min(G, B));
 	float vMax = std::max(R, std::max(G, B));
 	float delta = vMax - vMin;
 
-	*brightness = vMax;
+	*outBrightness = vMax;
 
 	if(Math::ApproxEquals(delta, 0.0f, 1e-6f))
 	{
 		// grey
-		*hue = 0;
-		*saturation = 0;
+		*outHue = 0;
+		*outSaturation = 0;
 	}
 	else
 	{
 		// a colour
-		*saturation = delta / vMax;
+		*outSaturation = delta / vMax;
 
 		float deltaR = (((vMax - R) / 6.0f) + (delta / 2.0f)) / delta;
 		float deltaG = (((vMax - G) / 6.0f) + (delta / 2.0f)) / delta;
 		float deltaB = (((vMax - B) / 6.0f) + (delta / 2.0f)) / delta;
 
 		if(Math::ApproxEquals(R, vMax))
-			*hue = deltaB - deltaG;
+			*outHue = deltaB - deltaG;
 		else if(Math::ApproxEquals(G, vMax))
-			*hue = 0.3333333f + deltaR - deltaB;
+			*outHue = 0.3333333f + deltaR - deltaB;
 		else if(Math::ApproxEquals(B, vMax))
-			*hue = 0.6666667f + deltaG - deltaR;
+			*outHue = 0.6666667f + deltaG - deltaR;
 
-		if(*hue < 0.0f)
-			*hue += 1.0f;
-		if(*hue > 1.0f)
-			*hue -= 1.0f;
+		if(*outHue < 0.0f)
+			*outHue += 1.0f;
+		if(*outHue > 1.0f)
+			*outHue -= 1.0f;
 	}
 }
 

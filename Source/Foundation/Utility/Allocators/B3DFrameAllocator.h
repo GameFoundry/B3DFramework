@@ -59,7 +59,7 @@ namespace b3d
 		/**
 		 * Allocates a new block of memory of the specified size.
 		 *
-		 * @param[in]	amount	Amount of memory to allocate, in bytes.
+		 * @param	amount	Amount of memory to allocate, in bytes.
 		 *
 		 * @note	Not thread safe.
 		 */
@@ -67,10 +67,10 @@ namespace b3d
 
 		/**
 		 * Allocates a new block of memory of the specified size aligned to the specified boundary. If the aligment is less
-		 * or equal to 16 it is more efficient to use the allocAligned16() alternative of this method.
+		 * or equal to 16 it is more efficient to use the AllocAligned16() alternative of this method.
 		 *
-		 * @param[in]	amount		Amount of memory to allocate, in bytes.
-		 * @param[in]	alignment	Alignment of the allocated memory. Must be power of two.
+		 * @param	amount		Amount of memory to allocate, in bytes.
+		 * @param	alignment	Alignment of the allocated memory. Must be power of two.
 		 *
 		 * @note	Not thread safe.
 		 */
@@ -128,12 +128,12 @@ namespace b3d
 			Free((u8*)obj);
 		}
 
-		/** Starts a new frame. Next call to clear() will only clear memory allocated past this point. */
+		/** Starts a new frame. Next call to Clear() will only clear memory allocated past this point. */
 		void MarkFrame();
 
 		/**
-		 * Deallocates all allocated memory since the last call to markFrame() (or all the memory if there was no call
-		 * to markFrame()).
+		 * Deallocates all allocated memory since the last call to MarkFrame() (or all the memory if there was no call
+		 * to MarkFrame()).
 		 *
 		 * @note	Not thread safe.
 		 */
@@ -287,9 +287,9 @@ namespace b3d
 	/**
 	 * Allocates some memory using the global frame allocator.
 	 *
-	 * @param[in]	numBytes	Number of bytes to allocate.
+	 * @param	byteCount	Number of bytes to allocate.
 	 */
-	B3D_EXPORT u8* B3DFrameAllocate(u32 numBytes);
+	B3D_EXPORT u8* B3DFrameAllocate(u32 byteCount);
 
 	/**
 	 * Allocates the specified number of bytes aligned to the provided boundary, using the global frame allocator. Boundary
@@ -326,9 +326,9 @@ namespace b3d
 	 * construct the object.
 	 */
 	template <class T>
-	T* B3DFrameAllocate(u32 count)
+	T* B3DFrameAllocate(u32 elementCount)
 	{
-		return (T*)B3DFrameAllocate(sizeof(T) * count);
+		return (T*)B3DFrameAllocate(sizeof(T) * elementCount);
 	}
 
 	/**
@@ -336,12 +336,12 @@ namespace b3d
 	 * and constructs them.
 	 */
 	template <class T>
-	T* B3DFrameNew(u32 count = 0)
+	T* B3DFrameNew(u32 elementCount = 0)
 	{
-		T* data = B3DFrameAllocate<T>(count);
+		T* data = B3DFrameAllocate<T>(elementCount);
 
-		for(unsigned int i = 0; i < count; i++)
-			new((void*)&data[i]) T;
+		for(unsigned int elementIndex = 0; elementIndex < elementCount; elementIndex++)
+			new((void*)&data[elementIndex]) T;
 
 		return data;
 	}
@@ -350,12 +350,12 @@ namespace b3d
 	 * Allocates enough memory to hold the object(s) of specified type using the global frame allocator, and constructs them.
 	 */
 	template <class T, class... Args>
-	T* B3DFrameNew(Args&&... args, u32 count = 0)
+	T* B3DFrameNew(Args&&... args, u32 elementCount = 0)
 	{
-		T* data = B3DFrameAllocate<T>(count);
+		T* data = B3DFrameAllocate<T>(elementCount);
 
-		for(unsigned int i = 0; i < count; i++)
-			new((void*)&data[i]) T(std::forward<Args>(args)...);
+		for(unsigned int elementIndex = 0; elementIndex < elementCount; elementIndex++)
+			new((void*)&data[elementIndex]) T(std::forward<Args>(args)...);
 
 		return data;
 	}
@@ -379,10 +379,10 @@ namespace b3d
 	 * @note	Must be called on the same thread the memory was allocated on.
 	 */
 	template <class T>
-	void B3DFrameDelete(T* data, u32 count)
+	void B3DFrameDelete(T* data, u32 elementCount)
 	{
-		for(unsigned int i = 0; i < count; i++)
-			data[i].~T();
+		for(unsigned int elementIndex = 0; elementIndex < elementCount; elementIndex++)
+			data[elementIndex].~T();
 
 		B3DFrameFree((u8*)data);
 	}

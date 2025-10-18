@@ -461,7 +461,7 @@ namespace b3d
 		/**
 		 * Sine function approximation.
 		 *
-		 * @param[in]	val	Angle in range [0, pi/2].
+		 * @param	val	Angle in range [0, pi/2].
 		 *
 		 * @note	Evaluates trigonometric functions using polynomial approximations.
 		 */
@@ -470,7 +470,7 @@ namespace b3d
 		/**
 		 * Sine function approximation.
 		 *
-		 * @param[in]	val	Angle in range [0, pi/2].
+		 * @param	val	Angle in range [0, pi/2].
 		 *
 		 * @note	Evaluates trigonometric functions using polynomial approximations.
 		 */
@@ -479,7 +479,7 @@ namespace b3d
 		/**
 		 * Sine function approximation.
 		 *
-		 * @param[in]	val	Angle in range [0, pi/2].
+		 * @param	val	Angle in range [0, pi/2].
 		 *
 		 * @note
 		 * Evaluates trigonometric functions using polynomial approximations. Slightly better (and slower) than fastSin0.
@@ -489,7 +489,7 @@ namespace b3d
 		/**
 		 * Sine function approximation.
 		 *
-		 * @param[in]	val	Angle in range [0, pi/2].
+		 * @param	val	Angle in range [0, pi/2].
 		 *
 		 * @note
 		 * Evaluates trigonometric functions using polynomial approximations. Slightly better (and slower) than fastSin0.
@@ -499,7 +499,7 @@ namespace b3d
 		/**
 		 * Cosine function approximation.
 		 *
-		 * @param[in]	val	Angle in range [0, pi/2].
+		 * @param	val	Angle in range [0, pi/2].
 		 *
 		 * @note	Evaluates trigonometric functions using polynomial approximations.
 		 */
@@ -508,7 +508,7 @@ namespace b3d
 		/**
 		 * Cosine function approximation.
 		 *
-		 * @param[in]	val	Angle in range [0, pi/2].
+		 * @param	val	Angle in range [0, pi/2].
 		 *
 		 * @note	Evaluates trigonometric functions using polynomial approximations.
 		 */
@@ -517,7 +517,7 @@ namespace b3d
 		/**
 		 * Cosine function approximation.
 		 *
-		 * @param[in]	val	Angle in range [0, pi/2].
+		 * @param	val	Angle in range [0, pi/2].
 		 *
 		 * @note
 		 * Evaluates trigonometric functions using polynomial approximations. Slightly better (and slower) than fastCos0.
@@ -527,7 +527,7 @@ namespace b3d
 		/**
 		 * Cosine function approximation.
 		 *
-		 * @param[in]	val	Angle in range [0, pi/2].
+		 * @param	val	Angle in range [0, pi/2].
 		 *
 		 * @note
 		 * Evaluates trigonometric functions using polynomial approximations. Slightly better (and slower) than fastCos0.
@@ -537,7 +537,7 @@ namespace b3d
 		/**
 		 * Tangent function approximation.
 		 *
-		 * @param[in]	val	Angle in range [0, pi/4].
+		 * @param	val	Angle in range [0, pi/4].
 		 *
 		 * @note	Evaluates trigonometric functions using polynomial approximations.
 		 */
@@ -546,7 +546,7 @@ namespace b3d
 		/**
 		 * Tangent function approximation.
 		 *
-		 * @param[in]	val	Angle in range [0, pi/4].
+		 * @param	val	Angle in range [0, pi/4].
 		 *
 		 * @note	Evaluates trigonometric functions using polynomial approximations.
 		 */
@@ -555,7 +555,7 @@ namespace b3d
 		/**
 		 * Tangent function approximation.
 		 *
-		 * @param[in]	val	Angle in range [0, pi/4].
+		 * @param	val	Angle in range [0, pi/4].
 		 *
 		 * @note
 		 * Evaluates trigonometric functions using polynomial approximations. Slightly better (and slower) than fastTan0.
@@ -565,7 +565,7 @@ namespace b3d
 		/**
 		 * Tangent function approximation.
 		 *
-		 * @param[in]	val	Angle in range [0, pi/4].
+		 * @param	val	Angle in range [0, pi/4].
 		 *
 		 * @note
 		 * Evaluates trigonometric functions using polynomial approximations. Slightly better (and slower) than fastTan0.
@@ -575,7 +575,7 @@ namespace b3d
 		/**
 		 * Inverse sine function approximation.
 		 *
-		 * @param[in]	val	Angle in range [0, 1].
+		 * @param	val	Angle in range [0, 1].
 		 *
 		 * @note	Evaluates trigonometric functions using polynomial approximations.
 		 */
@@ -584,7 +584,7 @@ namespace b3d
 		/**
 		 * Inverse sine function approximation.
 		 *
-		 * @param[in]	val	Angle in range [0, 1].
+		 * @param	val	Angle in range [0, 1].
 		 *
 		 * @note	Evaluates trigonometric functions using polynomial approximations.
 		 */
@@ -593,7 +593,7 @@ namespace b3d
 		/**
 		 * Inverse sine function approximation.
 		 *
-		 * @param[in]	val	Angle in range [0, 1].
+		 * @param	val	Angle in range [0, 1].
 		 *
 		 * @note
 		 * Evaluates trigonometric functions using polynomial approximations. Slightly better (and slower) than fastASin0.
@@ -603,7 +603,7 @@ namespace b3d
 		/**
 		 * Inverse sine function approximation.
 		 *
-		 * @param[in]	val	Angle in range [0, 1].
+		 * @param	val	Angle in range [0, 1].
 		 *
 		 * @note
 		 * Evaluates trigonometric functions using polynomial approximations. Slightly better (and slower) than fastASin0.
@@ -613,7 +613,7 @@ namespace b3d
 		/**
 		 * Inverse cosine function approximation.
 		 *
-		 * @param[in]	val	Angle in range [0, 1].
+		 * @param	val	Angle in range [0, 1].
 		 *
 		 * @note	Evaluates trigonometric functions using polynomial approximations.
 		 */
@@ -622,7 +622,7 @@ namespace b3d
 		/**
 		 * Inverse cosine function approximation.
 		 *
-		 * @param[in]	val	Angle in range [0, 1].
+		 * @param	val	Angle in range [0, 1].
 		 *
 		 * @note	Evaluates trigonometric functions using polynomial approximations.
 		 */
@@ -631,7 +631,7 @@ namespace b3d
 		/**
 		 * Inverse cosine function approximation.
 		 *
-		 * @param[in]	val	Angle in range [0, 1].
+		 * @param	val	Angle in range [0, 1].
 		 *
 		 * @note
 		 * Evaluates trigonometric functions using polynomial approximations. Slightly better (and slower) than fastACos0.
@@ -641,7 +641,7 @@ namespace b3d
 		/**
 		 * Inverse cosine function approximation.
 		 *
-		 * @param[in]	val	Angle in range [0, 1].
+		 * @param	val	Angle in range [0, 1].
 		 *
 		 * @note
 		 * Evaluates trigonometric functions using polynomial approximations. Slightly better (and slower) than fastACos0.
@@ -651,7 +651,7 @@ namespace b3d
 		/**
 		 * Inverse tangent function approximation.
 		 *
-		 * @param[in]	val	Angle in range [-1, 1].
+		 * @param	val	Angle in range [-1, 1].
 		 *
 		 * @note	Evaluates trigonometric functions using polynomial approximations.
 		 */
@@ -660,7 +660,7 @@ namespace b3d
 		/**
 		 * Inverse tangent function approximation.
 		 *
-		 * @param[in]	val	Angle in range [-1, 1].
+		 * @param	val	Angle in range [-1, 1].
 		 *
 		 * @note	Evaluates trigonometric functions using polynomial approximations.
 		 */
@@ -669,7 +669,7 @@ namespace b3d
 		/**
 		 * Inverse tangent function approximation.
 		 *
-		 * @param[in]	val	Angle in range [-1, 1].
+		 * @param	val	Angle in range [-1, 1].
 		 *
 		 * @note
 		 * Evaluates trigonometric functions using polynomial approximations. Slightly better (and slower) than fastATan0.
@@ -679,7 +679,7 @@ namespace b3d
 		/**
 		 * Inverse tangent function approximation.
 		 *
-		 * @param[in]	val	Angle in range [-1, 1].
+		 * @param	val	Angle in range [-1, 1].
 		 *
 		 * @note
 		 * Evaluates trigonometric functions using polynomial approximations. Slightly better (and slower) than fastATan0.
@@ -766,9 +766,9 @@ namespace b3d
 		 * Solves the linear equation with the parameters A, B. Returns number of roots found and the roots themselves will
 		 * be output in the @p roots array.
 		 *
-		 * @param[in]	A		First variable.
-		 * @param[in]	B		Second variable.
-		 * @param[out]	roots	Must be at least size of 1.
+		 * @param	A		First variable.
+		 * @param	B		Second variable.
+		 * @param	roots	Must be at least size of 1.
 		 *
 		 * @note	Only returns real roots.
 		 */
@@ -789,10 +789,10 @@ namespace b3d
 		 * Solves the quadratic equation with the parameters A, B, C. Returns number of roots found and the roots themselves
 		 * will be output in the @p roots array.
 		 *
-		 * @param[in]	A		First variable.
-		 * @param[in]	B		Second variable.
-		 * @param[in]	C		Third variable.
-		 * @param[out]	roots	Must be at least size of 2.
+		 * @param	A		First variable.
+		 * @param	B		Second variable.
+		 * @param	C		Third variable.
+		 * @param	roots	Must be at least size of 2.
 		 *
 		 * @note	Only returns real roots.
 		 */
@@ -834,11 +834,11 @@ namespace b3d
 		 * Solves the cubic equation with the parameters A, B, C, D. Returns number of roots found and the roots themselves
 		 * will be output in the @p roots array.
 		 *
-		 * @param[in]	A		First variable.
-		 * @param[in]	B		Second variable.
-		 * @param[in]	C		Third variable.
-		 * @param[in]	D		Fourth variable.
-		 * @param[out]	roots	Must be at least size of 3.
+		 * @param	A		First variable.
+		 * @param	B		Second variable.
+		 * @param	C		Third variable.
+		 * @param	D		Fourth variable.
+		 * @param	roots	Must be at least size of 3.
 		 *
 		 * @note	Only returns real roots.
 		 */
@@ -914,12 +914,12 @@ namespace b3d
 		 * Solves the quartic equation with the parameters A, B, C, D, E. Returns number of roots found and the roots
 		 * themselves will be output in the @p roots array.
 		 *
-		 * @param[in]	A		First variable.
-		 * @param[in]	B		Second variable.
-		 * @param[in]	C		Third variable.
-		 * @param[in]	D		Fourth variable.
-		 * @param[in]	E		Fifth variable.
-		 * @param[out]	roots	Must be at least size of 4.
+		 * @param	A		First variable.
+		 * @param	B		Second variable.
+		 * @param	C		Third variable.
+		 * @param	D		Fourth variable.
+		 * @param	E		Fifth variable.
+		 * @param	roots	Must be at least size of 4.
 		 *
 		 * @note	Only returns real roots.
 		 */
@@ -993,11 +993,11 @@ namespace b3d
 		/**
 		 * Evaluates a cubic Hermite curve at a specific point.
 		 *
-		 * @param[in]	t			Parameter that at which to evaluate the curve, in range [0, 1].
-		 * @param[in]	pointA		Starting point (at t=0).
-		 * @param[in]	pointB		Ending point (at t=1).
-		 * @param[in]	tangentA	Starting tangent (at t=0).
-		 * @param[in]	tangentB	Ending tangent (at t = 1).
+		 * @param	t			Parameter that at which to evaluate the curve, in range [0, 1].
+		 * @param	pointA		Starting point (at t=0).
+		 * @param	pointB		Ending point (at t=1).
+		 * @param	tangentA	Starting tangent (at t=0).
+		 * @param	tangentB	Ending tangent (at t = 1).
 		 * @return					Evaluated value at @p t.
 		 */
 		template <class T>
@@ -1017,11 +1017,11 @@ namespace b3d
 		/**
 		 * Evaluates the first derivative of a cubic Hermite curve at a specific point.
 		 *
-		 * @param[in]	t			Parameter that at which to evaluate the curve, in range [0, 1].
-		 * @param[in]	pointA		Starting point (at t=0).
-		 * @param[in]	pointB		Ending point (at t=1).
-		 * @param[in]	tangentA	Starting tangent (at t=0).
-		 * @param[in]	tangentB	Ending tangent (at t = 1).
+		 * @param	t			Parameter that at which to evaluate the curve, in range [0, 1].
+		 * @param	pointA		Starting point (at t=0).
+		 * @param	pointB		Ending point (at t=1).
+		 * @param	tangentA	Starting tangent (at t=0).
+		 * @param	tangentB	Ending tangent (at t = 1).
 		 * @return					Evaluated value at @p t.
 		 */
 		template <class T>
@@ -1042,11 +1042,11 @@ namespace b3d
 		 * in range [0, 1]. Tangents must be scaled by the length of the curve (length is the maximum value of @p t before
 		 * it was normalized).
 		 *
-		 * @param[in]	pointA			Starting point (at t=0).
-		 * @param[in]	pointB			Ending point (at t=1).
-		 * @param[in]	tangentA		Starting tangent (at t=0).
-		 * @param[in]	tangentB		Ending tangent (at t = 1).
-		 * @param[out]	coefficients	Four coefficients for the cubic curve, in order [t^3, t^2, t, 1].
+		 * @param	pointA			Starting point (at t=0).
+		 * @param	pointB			Ending point (at t=1).
+		 * @param	tangentA		Starting tangent (at t=0).
+		 * @param	tangentB		Ending tangent (at t = 1).
+		 * @param	coefficients	Four coefficients for the cubic curve, in order [t^3, t^2, t, 1].
 		 */
 		template <class T>
 		static void CubicHermiteCoefficients(const T& pointA, const T& pointB, const T& tangentA, const T& tangentB, T (&coefficients)[4])
@@ -1063,12 +1063,12 @@ namespace b3d
 		 * Calculates coefficients needed for evaluating a cubic curve in Hermite form. Assumes @p t is in range
 		 * [0, @p length]. Tangents must not be scaled by @p length.
 		 *
-		 * @param[in]	pointA			Starting point (at t=0).
-		 * @param[in]	pointB			Ending point (at t=length).
-		 * @param[in]	tangentA		Starting tangent (at t=0).
-		 * @param[in]	tangentB		Ending tangent (at t=length).
-		 * @param[in]	length			Maximum value the curve will be evaluated at.
-		 * @param[out]	coefficients	Four coefficients for the cubic curve, in order [t^3, t^2, t, 1].
+		 * @param	pointA			Starting point (at t=0).
+		 * @param	pointB			Ending point (at t=length).
+		 * @param	tangentA		Starting tangent (at t=0).
+		 * @param	tangentB		Ending tangent (at t=length).
+		 * @param	length			Maximum value the curve will be evaluated at.
+		 * @param	coefficients	Four coefficients for the cubic curve, in order [t^3, t^2, t, 1].
 		 */
 		template <class T>
 		static void CubicHermiteCoefficients(const T& pointA, const T& pointB, const T& tangentA, const T& tangentB, float length, T (&coefficients)[4])
@@ -1091,10 +1091,10 @@ namespace b3d
 		/**
 		 * Calculates the Romberg Integration.
 		 *
-		 * @param[in]  a				Lower bound.
-		 * @param[in]  b				Upper bound.
-		 * @param[in]  order			Order of the function.
-		 * @param[in]  integrand		Function to integrate.
+		 * @param  a				Lower bound.
+		 * @param  b				Upper bound.
+		 * @param  order			Order of the function.
+		 * @param  integrand		Function to integrate.
 		 * @return					Integrated function.
 		 */
 		template <typename T>
@@ -1129,11 +1129,11 @@ namespace b3d
 		/**
 		 * Calculates the Gaussian Quadrature.
 		 *
-		 * @param[in]  a				Lower bound.
-		 * @param[in]  b				Upper bound.
-		 * @param[in]  roots			Roots of the function.
-		 * @param[in]  coefficients  Coefficients of the function.
-		 * @param[in]  integrand		Function to integrate.
+		 * @param  a				Lower bound.
+		 * @param  b				Upper bound.
+		 * @param  roots			Roots of the function.
+		 * @param  coefficients  Coefficients of the function.
+		 * @param  integrand		Function to integrate.
 		 * @return					Gaussian Quadrature integration.
 		 */
 		template <typename T>
@@ -1155,8 +1155,8 @@ namespace b3d
 		/**
 		 * Generates numbers in a deterministic sequence suitable for Monte Carlo algorithms.
 		 *
-		 * @param[in]	index		Index of the item in the sequence to return.
-		 * @param[in]	base		Base that determines how is the sequence sub-divided.
+		 * @param	index		Index of the item in the sequence to return.
+		 * @param	base		Base that determines how is the sequence sub-divided.
 		 *
 		 */
 		template <typename T>

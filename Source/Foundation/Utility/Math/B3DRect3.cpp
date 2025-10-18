@@ -38,14 +38,14 @@ std::pair<std::array<Vector3, 2>, float> Rect3::GetNearestPoint(const Ray& ray) 
 		;
 
 		distance = std::numeric_limits<float>::max();
-		for(u32 i = 0; i < 2; i++)
+		for(u32 axisIndex = 0; axisIndex < 2; axisIndex++)
 		{
-			for(u32 j = 0; j < 2; j++)
+			for(u32 sideIndex = 0; sideIndex < 2; sideIndex++)
 			{
-				float sign = (float)(2 * j - 1);
-				Vector3 segCenter = Center + sign * scaledAxes[i];
-				Vector3 segStart = segCenter - scaledAxes[1 - i];
-				Vector3 segEnd = segCenter + scaledAxes[1 - i];
+				float sign = (float)(2 * sideIndex - 1);
+				Vector3 segCenter = Center + sign * scaledAxes[axisIndex];
+				Vector3 segStart = segCenter - scaledAxes[1 - axisIndex];
+				Vector3 segEnd = segCenter + scaledAxes[1 - axisIndex];
 
 				LineSegment3 segment(segStart, segEnd);
 				auto segResult = segment.GetNearestPoint(ray);

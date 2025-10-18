@@ -62,13 +62,13 @@ namespace b3d
 		 * Read the requisite number of bytes from the stream, stopping at the end of the file. Advances
 		 * the read pointer.
 		 *
-		 * @param	data		Pre-allocated buffer to read the data into.
+		 * @param	outData		Pre-allocated buffer to read the data into.
 		 * @param	byteCount	Number of bytes to read.
 		 * @return				Number of bytes actually read.
 		 *
 		 * @note	Stream must be created with READ access mode.
 		 */
-		virtual size_t Read(void* data, size_t byteCount) const = 0;
+		virtual size_t Read(void* outData, size_t byteCount) const = 0;
 
 		/**
 		 * Write the requisite number of bytes to the stream and advance the write pointer.
@@ -85,21 +85,21 @@ namespace b3d
 		 * Reads bits from the stream into the provided buffer from the current cursor location and advances the cursor.
 		 * If the stream doesn't support per-bit reads, data size will be rounded up to nearest byte.
 		 *
-		 * @param[out]	data	Buffer to read the data from. Must have enough capacity to store @p count bits.
-		 * @param[in]	count	Number of bits to read.
-		 * @return				Number of bits actually read.
+		 * @param	outData	Buffer to read the data from. Must have enough capacity to store @p count bits.
+		 * @param	count	Number of bits to read.
+		 * @return			Number of bits actually read.
 		 *
 		 * @note	Stream must be created with READ access mode.
 		 */
-		virtual size_t ReadBits(uint8_t* data, uint32_t count);
+		virtual size_t ReadBits(uint8_t* outData, uint32_t count);
 
 		/**
 		 * Writes bits from the provided buffer into the stream at the current cursor location and advances the cursor.
 		 * If the stream doesn't support per-bit writes, data size will be rounded up to nearest byte.
 		 *
-		 * @param[in]	data	Buffer to write the data from. Must have enough capacity to store @p count bits.
-		 * @param[in]	count	Number of bits to write.
-		 * @return				Number of bits actually written.
+		 * @param	data	Buffer to write the data from. Must have enough capacity to store @p count bits.
+		 * @param	count	Number of bits to write.
+		 * @return			Number of bits actually written.
 		 *
 		 * @note	Stream must be created with WRITE access mode.
 		 */
@@ -108,17 +108,17 @@ namespace b3d
 		/**
 		 * Writes the provided narrow string to the steam. String is convered to the required encoding before being written.
 		 *
-		 * @param[in]	string		String containing narrow characters to write, encoded as UTF8.
-		 * @param[in]	encoding	Encoding to convert the string to before writing.
+		 * @param	string		String containing narrow characters to write, encoded as UTF8.
+		 * @param	encoding	Encoding to convert the string to before writing.
 		 */
 		virtual void WriteString(const String& string, StringEncoding encoding = StringEncoding::UTF8);
 
 		/**
 		 * Writes the provided wide string to the steam. String is convered to the required encoding before being written.
 		 *
-		 * @param[in]	string		String containing wide characters to write, encoded as specified by platform for
-		 * 							wide characters.
-		 * @param[in]	encoding	Encoding to convert the string to before writing.
+		 * @param	string		String containing wide characters to write, encoded as specified by platform for
+		 * 						wide characters.
+		 * @param	encoding	Encoding to convert the string to before writing.
 		 */
 		virtual void WriteString(const WString& string, StringEncoding encoding = StringEncoding::UTF8);
 
@@ -167,9 +167,9 @@ namespace b3d
 		/**
 		 * Creates a copy of this stream.
 		 *
-		 * @param[in]	copyData	If true the internal stream data will be copied as well, otherwise it will just
-		 *							reference the data from the original stream (in which case the caller must ensure the
-		 *							original stream outlives the clone). This is not relevant for file streams.
+		 * @param	copyData	If true the internal stream data will be copied as well, otherwise it will just
+		 *						reference the data from the original stream (in which case the caller must ensure the
+		 *						original stream outlives the clone). This is not relevant for file streams.
 		 */
 		virtual SPtr<DataStream> Clone(bool copyData = true) const = 0;
 
@@ -201,15 +201,15 @@ namespace b3d
 		 * Initializes a stream with some initial capacity. If more bytes than capacity is written, the stream will
 		 * grow its internal memory storage.
 		 *
-		 * @param[in]	capacity	Number of bytes to initially allocate for the internal memory storage.
+		 * @param	capacity	Number of bytes to initially allocate for the internal memory storage.
 		 */
 		MemoryDataStream(size_t capacity);
 
 		/**
 		 * Wrap an existing memory chunk in a stream.
 		 *
-		 * @param[in] 	memory		Memory to wrap the data stream around.
-		 * @param[in]	size		Size of the memory chunk in bytes.
+		 * @param 	memory		Memory to wrap the data stream around.
+		 * @param	size		Size of the memory chunk in bytes.
 		 */
 		MemoryDataStream(void* memory, size_t size);
 

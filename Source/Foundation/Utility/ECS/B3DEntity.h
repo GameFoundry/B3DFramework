@@ -43,7 +43,7 @@ namespace b3d::ecs
 	 * Represents a single entity in the ECS system. Each entity can have zero or multiple components associated with it. Each entity has a unique
 	 * identifier and a version field. Version field gets incremented if an entity is destroyed and then its identifier gets re-used.
 	 *
-	 * @tparam		Type Backing type for the entity, normally 32-bit or 64-bit unsigned integer. Use a larger integer if you require larger number of entities.
+	 * @tparam	Type	Backing type for the entity, normally 32-bit or 64-bit unsigned integer. Use a larger integer if you require larger number of entities.
 	 */
 	template<typename Type>
 	struct TEntity

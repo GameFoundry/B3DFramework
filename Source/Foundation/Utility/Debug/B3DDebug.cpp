@@ -307,8 +307,8 @@ table td
 		stream << "<p>GPU: " << systemInfo.GpuInfo.Names[0] << "</p>\n";
 	else
 	{
-		for(u32 i = 0; i < systemInfo.GpuInfo.NumGpUs; i++)
-			stream << "<p>GPU #" << i << ": " << systemInfo.GpuInfo.Names[i] << "</p>\n";
+		for(u32 gpuIndex = 0; gpuIndex < systemInfo.GpuInfo.NumGpUs; gpuIndex++)
+			stream << "<p>GPU #" << gpuIndex << ": " << systemInfo.GpuInfo.Names[gpuIndex] << "</p>\n";
 	}
 
 	// Write log entries
@@ -370,10 +370,10 @@ table td
 }
 
 /* Internal function to get the given number of spaces, so that the log looks properly indented */
-String GetSpacesIndentationInternal(size_t numSpaces)
+String GetSpacesIndentationInternal(size_t spaceCount)
 {
 	String tmp;
-	for(u8 i = 0; i < numSpaces; i++)
+	for(u8 spaceIndex = 0; spaceIndex < spaceCount; spaceIndex++)
 		tmp.append(" ");
 	return tmp;
 }
@@ -417,8 +417,8 @@ void Debug::SaveTextLog(const Path& path) const
 		stream << "GPU: " << systemInfo.GpuInfo.Names[0] << "\n";
 	else
 	{
-		for(u32 i = 0; i < systemInfo.GpuInfo.NumGpUs; i++)
-			stream << "GPU #" << i << ": " << systemInfo.GpuInfo.Names[i] << "\n";
+		for(u32 gpuIndex = 0; gpuIndex < systemInfo.GpuInfo.NumGpUs; gpuIndex++)
+			stream << "GPU #" << gpuIndex << ": " << systemInfo.GpuInfo.Names[gpuIndex] << "\n";
 	}
 
 	stream << "\n";

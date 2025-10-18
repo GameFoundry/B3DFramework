@@ -17,27 +17,27 @@ B3D_EXPORT void TArea2<i32, u32>::Transform(const Matrix4& matrix)
 	verts[2] = Vector4((float)X, (float)Y + Height, 0.0f, 1.0f);
 	verts[3] = Vector4((float)X + Width, (float)Y + Height, 0.0f, 1.0f);
 
-	for(u32 i = 0; i < 4; i++)
-		verts[i] = matrix.Multiply(verts[i]);
+	for(u32 vertexIndex = 0; vertexIndex < 4; vertexIndex++)
+		verts[vertexIndex] = matrix.Multiply(verts[vertexIndex]);
 
 	float minX = std::numeric_limits<float>::max();
 	float maxX = std::numeric_limits<float>::min();
 	float minY = std::numeric_limits<float>::max();
 	float maxY = std::numeric_limits<float>::min();
 
-	for(u32 i = 0; i < 4; i++)
+	for(u32 vertexIndex = 0; vertexIndex < 4; vertexIndex++)
 	{
-		if(verts[i].X < minX)
-			minX = verts[i].X;
+		if(verts[vertexIndex].X < minX)
+			minX = verts[vertexIndex].X;
 
-		if(verts[i].Y < minY)
-			minY = verts[i].Y;
+		if(verts[vertexIndex].Y < minY)
+			minY = verts[vertexIndex].Y;
 
-		if(verts[i].X > maxX)
-			maxX = verts[i].X;
+		if(verts[vertexIndex].X > maxX)
+			maxX = verts[vertexIndex].X;
 
-		if(verts[i].Y > maxY)
-			maxY = verts[i].Y;
+		if(verts[vertexIndex].Y > maxY)
+			maxY = verts[vertexIndex].Y;
 	}
 
 	X = Math::FloorToInt(minX);

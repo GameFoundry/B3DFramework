@@ -356,15 +356,15 @@ namespace b3d::ecs
 
 		/**
 		 * Creates a group using the provided types as a filter. A group is similar to a view, as it will allow for iteration over all entities containing components that match the types
-		 * in the owned, included & excluded type filter. However group will also ensure that all components in the owned type list are tighly packed, ensuring they can be quickly iterated
+		 * in the owned, included & excluded type filter. However group will also ensure that all components in the owned type list are tightly packed, ensuring they can be quickly iterated
 		 * over. Owned components may also be sorted using custom rules. Group therefore modifies the storage of owned components, and therefore a single component storage may only be owned
 		 * by a single group.
-		 * 
-		 * @tparam OwnedTypes				Zero or more types that the group should own. If zero types are provided then a non-owning group is created, which is a special case that's
-		 *									similar to a view, but ensures that entities in a group are tightly packed and can be sorted using a custom rule.
-		 * @tparam IncludedTypes			Optional types of components that an entity must contain in order to be included in the group. For non-owning groups, at least one included
-		 *									type must be provided.
-		 * @tparam ExcludedTypes			Optional types of components that the entity must not contain in order to be included in the group.
+		 *
+		 * @tparam	OwnedTypes		Zero or more types that the group should own. If zero types are provided then a non-owning group is created, which is a special case that's
+		 *							similar to a view, but ensures that entities in a group are tightly packed and can be sorted using a custom rule.
+		 * @tparam	IncludedTypes	Optional types of components that an entity must contain in order to be included in the group. For non-owning groups, at least one included
+		 *							type must be provided.
+		 * @tparam	ExcludedTypes	Optional types of components that the entity must not contain in order to be included in the group.
 		 */
 		template<typename... OwnedTypes, typename... IncludedTypes, typename... ExcludedTypes>
 		TGroup<TOwnedTypes<TStorageType<OwnedTypes>...>, TIncludedTypes<TStorageType<IncludedTypes>...>, TExcludedTypes<TStorageType<ExcludedTypes>...>>

@@ -141,8 +141,8 @@ namespace b3d
 		/**
 		 * Calculates an inverse of the matrix if it exists.
 		 *
-		 * @param[out]	mat			Resulting matrix inverse.
-		 * @param[in]	fTolerance 	(optional) Tolerance to use when checking if determinant is zero (or near zero in this case).
+		 * @param	mat			Resulting matrix inverse.
+		 * @param	fTolerance 	(optional) Tolerance to use when checking if determinant is zero (or near zero in this case).
 		 * 							Zero determinant means inverse doesn't exist.
 		 * @return					True if inverse exists, false otherwise.
 		 */
@@ -151,7 +151,7 @@ namespace b3d
 		/**
 		 * Calculates an inverse of the matrix if it exists.
 		 *
-		 * @param[in]	fTolerance 	(optional) Tolerance to use when checking if determinant is zero (or near zero in this case).
+		 * @param	fTolerance 	(optional) Tolerance to use when checking if determinant is zero (or near zero in this case).
 		 * 							Zero determinant means inverse doesn't exist.
 		 *
 		 * @return					Resulting matrix inverse if it exists, otherwise a zero matrix.
@@ -173,10 +173,10 @@ namespace b3d
 		/**
 		 * Decomposes the matrix into various useful values.
 		 *
-		 * @param[out]	matL	Unitary matrix. Columns form orthonormal bases. If your matrix is affine and
+		 * @param	matL	Unitary matrix. Columns form orthonormal bases. If your matrix is affine and
 		 * 						doesn't use non-uniform scaling this matrix will be a conjugate transpose of the rotation part of the matrix.
-		 * @param[out]	matS	Singular values of the matrix. If your matrix is affine these will be scaling factors of the matrix.
-		 * @param[out]	matR	Unitary matrix. Columns form orthonormal bases. If your matrix is affine and
+		 * @param	matS	Singular values of the matrix. If your matrix is affine these will be scaling factors of the matrix.
+		 * @param	matR	Unitary matrix. Columns form orthonormal bases. If your matrix is affine and
 		 * 						doesn't use non-uniform scaling this matrix will be the rotation part of the matrix.
 		 */
 		void SingularValueDecomposition(TMatrix3& matL, TVector3<T>& matS, TMatrix3& matR) const;
@@ -184,10 +184,10 @@ namespace b3d
 		/**
 		 * Decomposes the matrix into a set of values.
 		 *
-		 * @param[out]	matQ	Columns form orthonormal bases. If your matrix is affine and
+		 * @param	matQ	Columns form orthonormal bases. If your matrix is affine and
 		 * 						doesn't use non-uniform scaling this matrix will be the rotation part of the matrix.
-		 * @param[out]	vecD	If the matrix is affine these will be scaling factors of the matrix.
-		 * @param[out]	vecU	If the matrix is affine these will be shear factors of the matrix.
+		 * @param	vecD	If the matrix is affine these will be scaling factors of the matrix.
+		 * @param	vecU	If the matrix is affine these will be shear factors of the matrix.
 		 */
 		void QDUDecomposition(TMatrix3& matQ, TVector3<T>& vecD, TVector3<T>& vecU) const;
 
@@ -220,9 +220,9 @@ namespace b3d
 		/**
 		 * Converts an orthonormal matrix to euler angle (pitch/yaw/roll) representation.
 		 *
-		 * @param[in,out]	xAngle	Rotation about x axis. (AKA Pitch)
-		 * @param[in,out]	yAngle  Rotation about y axis. (AKA Yaw)
-		 * @param[in,out]	zAngle 	Rotation about z axis. (AKA Roll)
+		 * @param	xAngle	Rotation about x axis. (AKA Pitch)
+		 * @param	yAngle  Rotation about y axis. (AKA Yaw)
+		 * @param	zAngle 	Rotation about z axis. (AKA Roll)
 		 * @return					True if unique solution was found, false otherwise.
 		 *
 		 * @note	Matrix must be orthonormal.
@@ -232,9 +232,9 @@ namespace b3d
 		/**
 		 * Creates a rotation matrix from the provided Pitch/Yaw/Roll angles.
 		 *
-		 * @param[in]	xAngle	Rotation about x axis. (AKA Pitch)
-		 * @param[in]	yAngle	Rotation about y axis. (AKA Yaw)
-		 * @param[in]	zAngle	Rotation about z axis. (AKA Roll)
+		 * @param	xAngle	Rotation about x axis. (AKA Pitch)
+		 * @param	yAngle	Rotation about y axis. (AKA Yaw)
+		 * @param	zAngle	Rotation about z axis. (AKA Roll)
 		 *
 		 * @note	Matrix must be orthonormal.
 		 * 			Since different values will be produced depending in which order are the rotations applied, this method assumes
@@ -245,10 +245,10 @@ namespace b3d
 		/**
 		 * Creates a rotation matrix from the provided Pitch/Yaw/Roll angles.
 		 *
-		 * @param[in]	xAngle	Rotation about x axis. (AKA Pitch)
-		 * @param[in]	yAngle	Rotation about y axis. (AKA Yaw)
-		 * @param[in]	zAngle	Rotation about z axis. (AKA Roll)
-		 * @param[in]	order 	The order in which rotations will be applied.
+		 * @param	xAngle	Rotation about x axis. (AKA Pitch)
+		 * @param	yAngle	Rotation about y axis. (AKA Yaw)
+		 * @param	zAngle	Rotation about z axis. (AKA Roll)
+		 * @param	order 	The order in which rotations will be applied.
 		 *						Different rotations can be created depending on the order.
 		 *
 		 * @note	Matrix must be orthonormal.

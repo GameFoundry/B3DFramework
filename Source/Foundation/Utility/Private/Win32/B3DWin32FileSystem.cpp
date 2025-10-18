@@ -366,9 +366,9 @@ bool FileSystem::CreateDir(const Path& fullPath)
 		parentPath = parentPath.GetParent();
 	}
 
-	for(u32 i = parentPath.GetDirectoryCount(); i < fullPath.GetDirectoryCount(); i++)
+	for(u32 directoryIndex = parentPath.GetDirectoryCount(); directoryIndex < fullPath.GetDirectoryCount(); directoryIndex++)
 	{
-		parentPath.Append(fullPath[i]);
+		parentPath.Append(fullPath[directoryIndex]);
 		if(!Win32CreateDirectory(UTF8::ToWide(parentPath.ToString())))
 			return false;
 	}

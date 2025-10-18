@@ -52,8 +52,8 @@ namespace b3d
 		/**
 		 * Ray/sphere intersection, returns boolean result and distance to nearest intersection.
 		 *
-		 * @param[in]	ray				Ray to intersect with the sphere.
-		 * @param[in]	discardInside	(optional) If true the intersection will be discarded if ray origin
+		 * @param	ray				Ray to intersect with the sphere.
+		 * @param	discardInside	(optional) If true the intersection will be discarded if ray origin
 		 * 								is located within the sphere.
 		 */
 		std::pair<bool, T> Intersects(const TRay<T>& ray, bool discardInside = true) const;

@@ -54,11 +54,11 @@ namespace b3d
 		/**
 		 * Convert the current color to hue, saturation and brightness values.
 		 *
-		 * @param[in] hue			Output hue value, scaled to the [0,1] range.
-		 * @param[in] saturation	Output saturation level, [0,1].
-		 * @param[in] brightness	Output brightness level, [0,1].
+		 * @param	outHue			Output hue value, scaled to the [0,1] range.
+		 * @param	outSaturation	Output saturation level, [0,1].
+		 * @param	outBrightness	Output brightness level, [0,1].
 		 */
-		void GetHsb(float* hue, float* saturation, float* brightness) const;
+		void GetHsb(float* outHue, float* outSaturation, float* outBrightness) const;
 
 		/** Converts the current color from gamma to linear space and returns the result. */
 		Color GetLinear() const;

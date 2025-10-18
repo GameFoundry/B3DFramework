@@ -130,18 +130,18 @@ namespace b3d
 		/**
 		 * Returns the latest unread entry from the log queue, and removes the entry from the unread entries list.
 		 *
-		 * @param[out]	entry	Entry that was retrieved, or undefined if no entries exist.
+		 * @param	outEntry	Entry that was retrieved, or undefined if no entries exist.
 		 * @return				True if an unread entry was retrieved, false otherwise.
 		 */
-		bool GetUnreadEntry(LogEntry& entry);
+		bool GetUnreadEntry(LogEntry& outEntry);
 
 		/**
 		 * Returns the last available log entry.
 		 *
-		 * @param[out]	entry	Entry that was retrieved, or undefined if no entries exist.
+		 * @param	outEntry	Entry that was retrieved, or undefined if no entries exist.
 		 * @return				True if an entry was retrieved, false otherwise.
 		 */
-		bool GetLastEntry(LogEntry& entry);
+		bool GetLastEntry(LogEntry& outEntry);
 
 		/**
 		 * Returns a hash value that is modified whenever entries in the log change. This can be used for
