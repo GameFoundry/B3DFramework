@@ -117,9 +117,9 @@ SystemInfo PlatformUtility::getSystemInfo()
 					{
 						if(lineStream >> token && token == ":")
 						{
-							u32 numCores;
-							if(lineStream >> numCores)
-								output.cpuNumCores = numCores;
+							u32 coreCount;
+							if(lineStream >> coreCount)
+								output.cpuNumCores = coreCount;
 						}
 					}
 				}

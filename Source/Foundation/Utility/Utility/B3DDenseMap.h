@@ -372,12 +372,12 @@ namespace b3d
 			if(std::is_pod<Key>() && std::is_pod<Value>())
 				memcpy(getBuckets(), other.getBuckets(), other.getCount() * sizeof(DensePair));
 			else
-				for(u32 i = 0; i < other.getCount(); ++i)
+				for(u32 bucketIndex = 0; bucketIndex < other.getCount(); ++bucketIndex)
 				{
-					new(&mBuckets[i].first) Key(other.mBuckets[i].first);
+					new(&mBuckets[bucketIndex].first) Key(other.mBuckets[bucketIndex].first);
 
-					if(!(mBuckets[i].first == getEmptyKey()) && !(mBuckets[i].first == getTombstoneKey()))
-						new(&mBuckets[i].second) Value(other.mBuckets[i].second);
+					if(!(mBuckets[bucketIndex].first == getEmptyKey()) && !(mBuckets[bucketIndex].first == getTombstoneKey()))
+						new(&mBuckets[bucketIndex].second) Value(other.mBuckets[bucketIndex].second);
 				}
 
 			mCount = other.getCount();
@@ -468,8 +468,8 @@ namespace b3d
 
 			mBuckets = B3DAllocateMultiple<DensePair>(n);
 
-			for(u32 i = 0; i != n; ++i)
-				new(&mBuckets[i].first) Key(getEmptyKey());
+			for(u32 bucketIndex = 0; bucketIndex != n; ++bucketIndex)
+				new(&mBuckets[bucketIndex].first) Key(getEmptyKey());
 		}
 
 		void grow(u32 n)
@@ -486,8 +486,8 @@ namespace b3d
 
 			// Initialize all the keys to EmptyKey
 			const Key EmptyKey = getEmptyKey();
-			for(u32 i = 0, e = mCount; i != e; ++i)
-				new(&mBuckets[i].first) Key(EmptyKey);
+			for(u32 bucketIndex = 0, bucketCount = mCount; bucketIndex != bucketCount; ++bucketIndex)
+				new(&mBuckets[bucketIndex].first) Key(EmptyKey);
 
 			// Insert all the old elements
 			const Key TombstoneKey = getTombstoneKey();
@@ -528,8 +528,8 @@ namespace b3d
 
 			// Initialize the keys to EmptyKey
 			const Key EmptyKey = getEmptyKey();
-			for(u32 i = 0, e = mCount; i != e; ++i)
-				new(&mBuckets[i].first) Key(EmptyKey);
+			for(u32 bucketIndex = 0, bucketCount = mCount; bucketIndex != bucketCount; ++bucketIndex)
+				new(&mBuckets[bucketIndex].first) Key(EmptyKey);
 
 			// Free the old mBuckets
 			const Key TombstoneKey = getTombstoneKey();

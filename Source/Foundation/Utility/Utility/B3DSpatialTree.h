@@ -638,7 +638,7 @@ namespace b3d
 
 		*elements = mElementData.ElementsBlock;
 		*bounds = mElementData.ElementBoundsBlock;
-		for(u32 i = 0; i < groupIndex; i++)
+		for(u32 blockIndex = 0; blockIndex < groupIndex; blockIndex++)
 		{
 			*elements = (*elements)->NextBlock;
 			*bounds = (*bounds)->NextBlock;
@@ -910,10 +910,10 @@ namespace b3d
 
 			// Add all intersecting child nodes to the iterator
 			TSpatialTreeChildNodeIdRange<Dimension> childRange = nodeTraversalContext.Bounds.FindIntersectingChildren(mBounds);
-			for(u32 i = 0; i < kChildNodeCount; i++)
+			for(u32 childIndex = 0; childIndex < kChildNodeCount; childIndex++)
 			{
-				if(childRange.Contains(i) && nodeTraversalContext.Node->HasChild(i))
-					mNodeIterator.PushChild(i);
+				if(childRange.Contains(childIndex) && nodeTraversalContext.Node->HasChild(childIndex))
+					mNodeIterator.PushChild(childIndex);
 			}
 		}
 
@@ -943,10 +943,10 @@ namespace b3d
 
 			// Add all intersecting child nodes to the iterator
 			TSpatialTreeChildNodeIdRange<Dimension> childRange = nodeTraversalContext.Node->GetChildren();
-			for(u32 i = 0; i < kChildNodeCount; i++)
+			for(u32 childIndex = 0; childIndex < kChildNodeCount; childIndex++)
 			{
-				if(childRange.Contains(i) && nodeTraversalContext.Node->HasChild(i))
-					mNodeIterator.PushChild(i);
+				if(childRange.Contains(childIndex) && nodeTraversalContext.Node->HasChild(childIndex))
+					mNodeIterator.PushChild(childIndex);
 			}
 		}
 
@@ -985,11 +985,11 @@ namespace b3d
 			// Add all the child node elements to the current node
 			auto fnAddChildElementsRecursive = [this, node](Node* nodeToIterate, auto&& fnAddChilElementsRecursive) -> void
 			{
-				for(u32 i = 0; i < kChildNodeCount; i++)
+				for(u32 childIndex = 0; childIndex < kChildNodeCount; childIndex++)
 				{
-					if(nodeToIterate->HasChild(i))
+					if(nodeToIterate->HasChild(childIndex))
 					{
-						Node* const childNode = nodeToIterate->GetChild(i);
+						Node* const childNode = nodeToIterate->GetChild(childIndex);
 
 						ElementIterator elementIterator(childNode);
 						while(elementIterator.MoveNext())
@@ -1005,14 +1005,14 @@ namespace b3d
 			node->mIsLeaf = true;
 
 			// Recursively delete all child nodes
-			for(u32 i = 0; i < kChildNodeCount; i++)
+			for(u32 childIndex = 0; childIndex < kChildNodeCount; childIndex++)
 			{
-				if(node->mChildren[i])
+				if(node->mChildren[childIndex])
 				{
-					FreeNode(node->mChildren[i]);
+					FreeNode(node->mChildren[childIndex]);
 
-					mNodeAllocator.Destruct(node->mChildren[i]);
-					node->mChildren[i] = nullptr;
+					mNodeAllocator.Destruct(node->mChildren[childIndex]);
+					node->mChildren[childIndex] = nullptr;
 				}
 			}
 		}

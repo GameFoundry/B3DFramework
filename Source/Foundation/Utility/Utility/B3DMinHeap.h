@@ -210,10 +210,10 @@ namespace b3d
 				mNode.Resize(elements);
 				mPtr.Resize(elements);
 
-				for(u32 i = 0; i < elements; ++i)
+				for(u32 elementIndex = 0; elementIndex < elements; ++elementIndex)
 				{
-					mPtr[i] = &mNode[i];
-					mPtr[i]->Index = i;
+					mPtr[elementIndex] = &mNode[elementIndex];
+					mPtr[elementIndex]->Index = elementIndex;
 				}
 			}
 			else
@@ -225,12 +225,12 @@ namespace b3d
 
 		bool Valid() const
 		{
-			for(int i = 0; i < (int)mSize; ++i)
+			for(int nodeIndex = 0; nodeIndex < (int)mSize; ++nodeIndex)
 			{
-				int parent = (i - 1) / 2;
+				int parent = (nodeIndex - 1) / 2;
 				if(parent > 0)
 				{
-					if(mPtr[i]->Value < mPtr[parent]->Value ||
+					if(mPtr[nodeIndex]->Value < mPtr[parent]->Value ||
 					   (int)mPtr[parent]->Index != parent)
 						return false;
 				}

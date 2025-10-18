@@ -162,9 +162,9 @@ namespace b3d
 		/**
 		 * Creates a new fiber.
 		 *
-		 * @param id				Unique id of the fiber within the current thread.
-		 * @param stackSize			Size of the fiber stack, in bytes.
-		 * @param workerFunction	Function to execute when the fiber gets switched to.
+		 * @param	id				Unique id of the fiber within the current thread.
+		 * @param	stackSize		Size of the fiber stack, in bytes.
+		 * @param	workerFunction	Function to execute when the fiber gets switched to.
 		 * @return					Newly allocated fiber.
 		 */
 		static UPtr<Fiber> Create(u32 id, u64 stackSize, const std::function<void()>& workerFunction);
@@ -172,8 +172,8 @@ namespace b3d
 		/**
 		 * Creates a new fiber using the current thread's context.
 		 *
-		 * @param id				Unique id of the fiber within the current thread.
-		 * @return					Newly allocated fiber.
+		 * @param	id		Unique id of the fiber within the current thread.
+		 * @return			Newly allocated fiber.
 		 */
 		static UPtr<Fiber> CreateFromCurrentThread(u32 id);
 
@@ -311,7 +311,7 @@ namespace b3d
 		void RunUntilShutdown();
 
 		/** Attempts to steal a Task from another worker. Returns true if a task was successfully stolen. */
-		bool TryStealTask(SchedulerTask& out);
+		bool TryStealTask(SchedulerTask& outTask);
 
 		/** Processes all tasks until Stop() is called. */
 		void Run();
@@ -462,12 +462,12 @@ namespace b3d
 		/**
 		 * Attempts to steal work from another scheduler thread.
 		 *
-		 * @param thief			Thread trying to steal the task.
-		 * @param random		Random value based on which to pick the worker to try to steal from.
-		 * @param out			Stolen task, if successful.
+		 * @param	thief		Thread trying to steal the task.
+		 * @param	random		Random value based on which to pick the worker to try to steal from.
+		 * @param	outTask		Stolen task, if successful.
 		 * @return				True if a task was stolen, false otherwise.
 		 */
-		bool TryStealWork(SchedulerThread* thief, u32 random, SchedulerTask& out);
+		bool TryStealWork(SchedulerThread* thief, u32 random, SchedulerTask& outTask);
 
 		/** Notifies the scheduler that a scheduler thread has begun spinning. This allows the scheduler to prioritize work on this worker. */
 		void NotifyOnBeginSpinning(u32 workerId);

@@ -43,7 +43,7 @@ namespace b3d
 		/**
 		 * Terminates the current process.
 		 *
-		 * @param[in]	force	True if the process should be forcefully terminated with no cleanup.
+		 * @param	force	True if the process should be forcefully terminated with no cleanup.
 		 */
 		[[noreturn]] static void Terminate(bool force = false);
 
@@ -56,9 +56,9 @@ namespace b3d
 		/**
 		 * Converts a UTF8 encoded string into uppercase or lowercase.
 		 *
-		 * @param[in]	input	String to convert.
-		 * @param[in]	toUpper	If true, converts the character to uppercase. Otherwise convert to lowercase.
-		 * @return				Converted string.
+		 * @param	input	String to convert.
+		 * @param	toUpper	If true, converts the character to uppercase. Otherwise convert to lowercase.
+		 * @return			Converted string.
 		 */
 		static String ConvertCaseUtF8(const String& input, bool toUpper);
 

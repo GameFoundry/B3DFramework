@@ -16,8 +16,8 @@ namespace b3d
 
 		String buf;
 		buf.resize(32);
-		for(int i = 0; i < 16; i++)
-			snprintf(&(buf[0]) + i * 2, 3, "%02x", digest[i]);
+		for(int digestIndex = 0; digestIndex < 16; digestIndex++)
+			snprintf(&(buf[0]) + digestIndex * 2, 3, "%02x", digest[digestIndex]);
 
 		return buf;
 	}
@@ -33,8 +33,8 @@ namespace b3d
 
 		String buf;
 		buf.resize(32);
-		for(int i = 0; i < 16; i++)
-			snprintf(&(buf[0]) + i * 2, 3, "%02x", digest[i]);
+		for(int digestIndex = 0; digestIndex < 16; digestIndex++)
+			snprintf(&(buf[0]) + digestIndex * 2, 3, "%02x", digest[digestIndex]);
 
 		return buf;
 	}

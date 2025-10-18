@@ -258,14 +258,14 @@ namespace b3d
 			srcValue = srcValue & srcBitMask;
 
 			// Shift source down to bottom of DWORD
-			const uint32_t srcBitShift = getBitShift(srcBitMask);
+			const uint32_t srcBitShift = GetBitShift(srcBitMask);
 			srcValue >>= srcBitShift;
 
 			// Get max value possible in source from srcMask
 			const SrcT srcMax = srcBitMask >> srcBitShift;
 
 			// Get max available in dest
-			const uint32_t destBitShift = getBitShift(destBitMask);
+			const uint32_t destBitShift = GetBitShift(destBitMask);
 			const DestT destMax = destBitMask >> destBitShift;
 
 			// Scale source value into destination, and shift back
@@ -363,7 +363,7 @@ namespace b3d
 		template <uint32_t bits = 8>
 		static float UintToSnorm(uint32_t value)
 		{
-			return uintToUnorm<bits>(value) * 2.0f - 1.0f;
+			return UintToUnorm<bits>(value) * 2.0f - 1.0f;
 		}
 
 		/**
@@ -756,75 +756,75 @@ namespace b3d
 		 * Encodes a 32-bit integer value as a base-128 varint. Varints are a method of serializing integers using one or
 		 * more bytes, where smaller values use less bytes.
 		 *
-		 * @param[in]	value		Value to encode.
-		 * @param[out]	output		Buffer to store the encoded bytes in. Must be at least 5 bytes in length.
-		 * @return					Number of bytes required to store the value, in range [1, 5]
+		 * @param	value		Value to encode.
+		 * @param	output		Buffer to store the encoded bytes in. Must be at least 5 bytes in length.
+		 * @return				Number of bytes required to store the value, in range [1, 5]
 		 */
 		static u32 EncodeVarInt(u32 value, u8* output)
 		{
-			u32 idx = 0;
+			u32 index = 0;
 			if(value & 0xFFFFFF80U)
 			{
-				output[idx++] = (u8)(value | 0x80);
+				output[index++] = (u8)(value | 0x80);
 				value >>= 7;
 
 				if(value & 0xFFFFFF80U)
 				{
-					output[idx++] = (u8)(value | 0x80);
+					output[index++] = (u8)(value | 0x80);
 					value >>= 7;
 
 					if(value & 0xFFFFFF80U)
 					{
-						output[idx++] = (u8)(value | 0x80);
+						output[index++] = (u8)(value | 0x80);
 						value >>= 7;
 
 						if(value & 0xFFFFFF80U)
 						{
-							output[idx++] = (u8)(value | 0x80);
+							output[index++] = (u8)(value | 0x80);
 							value >>= 7;
 						}
 					}
 				}
 			}
 
-			output[idx++] = (u8)value;
-			return idx;
+			output[index++] = (u8)value;
+			return index;
 		}
 
 		/**
 		 * Decodes a value encoded using encodeVarInt(u32, u8*).
 		 *
-		 * @param[out]	value	Variable to receive the decoded value.
-		 * @param[in]	input	Input buffer to decode the data from.
-		 * @param[in]	size	Size of the input buffer.
+		 * @param	outValue	Variable to receive the decoded value.
+		 * @param	input		Input buffer to decode the data from.
+		 * @param	size		Size of the input buffer.
 		 * @return				Number of bytes read.
 		 */
-		static u32 DecodeVarInt(u32& value, const u8* input, u32 size)
+		static u32 DecodeVarInt(u32& outValue, const u8* input, u32 size)
 		{
 			if(size == 0)
 				return 0;
 
-			u32 idx = 0;
-			value = (u32)(input[idx] & 0x7F);
-			if(input[idx++] & 0x80 && --size)
+			u32 index = 0;
+			outValue = (u32)(input[index] & 0x7F);
+			if(input[index++] & 0x80 && --size)
 			{
-				value |= (u32)(input[idx] & 0x7F) << 7;
+				outValue |= (u32)(input[index] & 0x7F) << 7;
 
-				if(input[idx++] & 0x80 && --size)
+				if(input[index++] & 0x80 && --size)
 				{
-					value |= (u32)(input[idx] & 0x7F) << 14;
+					outValue |= (u32)(input[index] & 0x7F) << 14;
 
-					if(input[idx++] & 0x80 && --size)
+					if(input[index++] & 0x80 && --size)
 					{
-						value |= (u32)(input[idx] & 0x7F) << 21;
+						outValue |= (u32)(input[index] & 0x7F) << 21;
 
-						if(input[idx++] & 0x80 && --size)
-							value |= (u32)(input[idx++]) << 28;
+						if(input[index++] & 0x80 && --size)
+							outValue |= (u32)(input[index++]) << 28;
 					}
 				}
 			}
 
-			return !size || input[idx - 1] & 0x80 ? 0 : idx;
+			return !size || input[index - 1] & 0x80 ? 0 : index;
 		}
 
 		/** @copydoc EncodeVarInt(u32, u8*) */
@@ -836,12 +836,12 @@ namespace b3d
 		}
 
 		/** @copydoc DecodeVarInt(u32&, const u8*, u32) */
-		static u32 DecodeVarInt(i32& value, const u8* input, u32 size)
+		static u32 DecodeVarInt(i32& outValue, const u8* input, u32 size)
 		{
 			u32 temp;
 
 			u32 readBytes = DecodeVarInt(temp, input, size);
-			value = (i32)((temp >> 1) ^ -((i32)temp & 1));
+			outValue = (i32)((temp >> 1) ^ -((i32)temp & 1));
 
 			return readBytes;
 		}
@@ -850,56 +850,56 @@ namespace b3d
 		 * Encodes a 64-bit integer value as a base-128 varint. Varints are a method of serializing integers using one or
 		 * more bytes, where smaller values use less bytes.
 		 *
-		 * @param[in]	value		Value to encode.
-		 * @param[out]	output		Buffer to store the encoded bytes in. Must be at least 10 bytes in length.
-		 * @return					Number of bytes required to store the value, in range [1, 10]
+		 * @param	value		Value to encode.
+		 * @param	output		Buffer to store the encoded bytes in. Must be at least 10 bytes in length.
+		 * @return				Number of bytes required to store the value, in range [1, 10]
 		 */
 		static u32 EncodeVarInt(u64 value, u8* output)
 		{
-			u32 idx = 0;
+			u32 index = 0;
 			if(value & 0xFFFFFFFFFFFFFF80ULL)
 			{
-				output[idx++] = (u8)(value | 0x80);
+				output[index++] = (u8)(value | 0x80);
 				value >>= 7;
 
 				if(value & 0xFFFFFFFFFFFFFF80ULL)
 				{
-					output[idx++] = (u8)(value | 0x80);
+					output[index++] = (u8)(value | 0x80);
 					value >>= 7;
 
 					if(value & 0xFFFFFFFFFFFFFF80ULL)
 					{
-						output[idx++] = (u8)(value | 0x80);
+						output[index++] = (u8)(value | 0x80);
 						value >>= 7;
 
 						if(value & 0xFFFFFFFFFFFFFF80ULL)
 						{
-							output[idx++] = (u8)(value | 0x80);
+							output[index++] = (u8)(value | 0x80);
 							value >>= 7;
 
 							if(value & 0xFFFFFFFFFFFFFF80ULL)
 							{
-								output[idx++] = (u8)(value | 0x80);
+								output[index++] = (u8)(value | 0x80);
 								value >>= 7;
 
 								if(value & 0xFFFFFFFFFFFFFF80ULL)
 								{
-									output[idx++] = (u8)(value | 0x80);
+									output[index++] = (u8)(value | 0x80);
 									value >>= 7;
 
 									if(value & 0xFFFFFFFFFFFFFF80ULL)
 									{
-										output[idx++] = (u8)(value | 0x80);
+										output[index++] = (u8)(value | 0x80);
 										value >>= 7;
 
 										if(value & 0xFFFFFFFFFFFFFF80ULL)
 										{
-											output[idx++] = (u8)(value | 0x80);
+											output[index++] = (u8)(value | 0x80);
 											value >>= 7;
 
 											if(value & 0xFFFFFFFFFFFFFF80ULL)
 											{
-												output[idx++] = (u8)(value | 0x80);
+												output[index++] = (u8)(value | 0x80);
 												value >>= 7;
 											}
 										}
@@ -911,59 +911,59 @@ namespace b3d
 				}
 			}
 
-			output[idx++] = (u8)value;
-			return idx;
+			output[index++] = (u8)value;
+			return index;
 		}
 
 		/**
 		 * Decodes a value encoded using encodeVarInt(u64, u8*).
 		 *
-		 * @param[out]	value	Variable to receive the decoded value.
-		 * @param[in]	input	Input buffer to decode the data from.
-		 * @param[in]	size	Size of the input buffer.
+		 * @param	outValue	Variable to receive the decoded value.
+		 * @param	input		Input buffer to decode the data from.
+		 * @param	size		Size of the input buffer.
 		 * @return				Number of bytes read.
 		 */
-		static u32 DecodeVarInt(u64& value, const u8* input, u32 size)
+		static u32 DecodeVarInt(u64& outValue, const u8* input, u32 size)
 		{
 			if(size == 0)
 				return 0;
 
-			u32 idx = 0;
-			value = (u64)(input[idx] & 0x7F);
-			if(input[idx++] & 0x80 && --size)
+			u32 index = 0;
+			outValue = (u64)(input[index] & 0x7F);
+			if(input[index++] & 0x80 && --size)
 			{
-				value |= (u64)(input[idx] & 0x7F) << 7;
+				outValue |= (u64)(input[index] & 0x7F) << 7;
 
-				if(input[idx++] & 0x80 && --size)
+				if(input[index++] & 0x80 && --size)
 				{
-					value |= (u64)(input[idx] & 0x7F) << 14;
+					outValue |= (u64)(input[index] & 0x7F) << 14;
 
-					if(input[idx++] & 0x80 && --size)
+					if(input[index++] & 0x80 && --size)
 					{
-						value |= (u64)(input[idx] & 0x7F) << 21;
+						outValue |= (u64)(input[index] & 0x7F) << 21;
 
-						if(input[idx++] & 0x80 && --size)
+						if(input[index++] & 0x80 && --size)
 						{
-							value |= (u64)(input[idx] & 0x7F) << 28;
+							outValue |= (u64)(input[index] & 0x7F) << 28;
 
-							if(input[idx++] & 0x80 && --size)
+							if(input[index++] & 0x80 && --size)
 							{
-								value |= (u64)(input[idx] & 0x7F) << 35;
+								outValue |= (u64)(input[index] & 0x7F) << 35;
 
-								if(input[idx++] & 0x80 && --size)
+								if(input[index++] & 0x80 && --size)
 								{
-									value |= (u64)(input[idx] & 0x7F) << 42;
+									outValue |= (u64)(input[index] & 0x7F) << 42;
 
-									if(input[idx++] & 0x80 && --size)
+									if(input[index++] & 0x80 && --size)
 									{
-										value |= (u64)(input[idx] & 0x7F) << 49;
+										outValue |= (u64)(input[index] & 0x7F) << 49;
 
-										if(input[idx++] & 0x80 && --size)
+										if(input[index++] & 0x80 && --size)
 										{
-											value |= (u64)(input[idx] & 0x7F) << 56;
+											outValue |= (u64)(input[index] & 0x7F) << 56;
 
-											if(input[idx++] & 0x80 && --size)
-												value |= (u64)(input[idx++]) << 63;
+											if(input[index++] & 0x80 && --size)
+												outValue |= (u64)(input[index++]) << 63;
 										}
 									}
 								}
@@ -973,7 +973,7 @@ namespace b3d
 				}
 			}
 
-			return !size || input[idx - 1] & 0x80 ? 0 : idx;
+			return !size || input[index - 1] & 0x80 ? 0 : index;
 		}
 
 		/** @copydoc EncodeVarInt(u64, u8*) */
@@ -985,12 +985,12 @@ namespace b3d
 		}
 
 		/** @copydoc DecodeVarInt(u64&, const u8*, u32) */
-		static u32 DecodeVarInt(i64& value, const u8* input, u32 size)
+		static u32 DecodeVarInt(i64& outValue, const u8* input, u32 size)
 		{
 			u64 temp;
 
 			u32 readBytes = DecodeVarInt(temp, input, size);
-			value = (i64)((temp >> 1) ^ -((i64)temp & 1));
+			outValue = (i64)((temp >> 1) ^ -((i64)temp & 1));
 
 			return readBytes;
 		}

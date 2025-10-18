@@ -17,11 +17,11 @@ TetrahedronVolume Triangulation::Tetrahedralize(const Vector<Vector3>& points)
 	tetgenio input;
 	input.numberofpoints = (int)points.size();
 	input.pointlist = new REAL[input.numberofpoints * 3]; // Must be allocated with "new" because TetGen deallocates it using "delete"
-	for(u32 i = 0; i < (u32)points.size(); ++i)
+	for(u32 pointIndex = 0; pointIndex < (u32)points.size(); ++pointIndex)
 	{
-		input.pointlist[i * 3 + 0] = points[i].X;
-		input.pointlist[i * 3 + 1] = points[i].Y;
-		input.pointlist[i * 3 + 2] = points[i].Z;
+		input.pointlist[pointIndex * 3 + 0] = points[pointIndex].X;
+		input.pointlist[pointIndex * 3 + 1] = points[pointIndex].Y;
+		input.pointlist[pointIndex * 3 + 2] = points[pointIndex].Z;
 	}
 
 	tetgenbehavior options;
@@ -32,55 +32,55 @@ TetrahedronVolume Triangulation::Tetrahedralize(const Vector<Vector3>& points)
 	tetgenio output;
 	::tetrahedralize(&options, &input, &output);
 
-	u32 numTetrahedra = (u32)output.numberoftetrahedra;
-	volume.Tetrahedra.resize(numTetrahedra);
+	u32 tetrahedronCount = (u32)output.numberoftetrahedra;
+	volume.Tetrahedra.resize(tetrahedronCount);
 
-	for(u32 i = 0; i < numTetrahedra; ++i)
+	for(u32 tetrahedronIndex = 0; tetrahedronIndex < tetrahedronCount; ++tetrahedronIndex)
 	{
-		memcpy(volume.Tetrahedra[i].Vertices, &output.tetrahedronlist[i * 4], sizeof(i32) * 4);
-		memcpy(volume.Tetrahedra[i].Neighbors, &output.neighborlist[i * 4], sizeof(i32) * 4);
+		memcpy(volume.Tetrahedra[tetrahedronIndex].Vertices, &output.tetrahedronlist[tetrahedronIndex * 4], sizeof(i32) * 4);
+		memcpy(volume.Tetrahedra[tetrahedronIndex].Neighbors, &output.neighborlist[tetrahedronIndex * 4], sizeof(i32) * 4);
 	}
 
 	// Generate boundary faces
-	u32 numFaces = (u32)output.numberoftrifaces;
-	for(u32 i = 0; i < numFaces; ++i)
+	u32 faceCount = (u32)output.numberoftrifaces;
+	for(u32 faceIndex = 0; faceIndex < faceCount; ++faceIndex)
 	{
-		i32 tetIdx = -1;
-		if(output.adjtetlist[i * 2] == -1)
-			tetIdx = output.adjtetlist[i * 2 + 1];
-		else if(output.adjtetlist[i * 2 + 1] == -1)
-			tetIdx = output.adjtetlist[i * 2];
+		i32 tetrahedronIndex = -1;
+		if(output.adjtetlist[faceIndex * 2] == -1)
+			tetrahedronIndex = output.adjtetlist[faceIndex * 2 + 1];
+		else if(output.adjtetlist[faceIndex * 2 + 1] == -1)
+			tetrahedronIndex = output.adjtetlist[faceIndex * 2];
 		else // Not a boundary face
 			continue;
 
 		volume.OuterFaces.push_back(TetrahedronFace());
 		TetrahedronFace& face = volume.OuterFaces.back();
 
-		memcpy(face.Vertices, &output.trifacelist[i * 3], sizeof(i32) * 3);
-		face.Tetrahedron = tetIdx;
+		memcpy(face.Vertices, &output.trifacelist[faceIndex * 3], sizeof(i32) * 3);
+		face.Tetrahedron = tetrahedronIndex;
 	}
 
 	// Ensure that vertex at the specified location points a neighbor opposite to it
-	for(u32 i = 0; i < numTetrahedra; ++i)
+	for(u32 tetrahedronIndex = 0; tetrahedronIndex < tetrahedronCount; ++tetrahedronIndex)
 	{
 		i32 neighbors[4];
-		memcpy(neighbors, volume.Tetrahedra[i].Neighbors, sizeof(i32) * 4);
+		memcpy(neighbors, volume.Tetrahedra[tetrahedronIndex].Neighbors, sizeof(i32) * 4);
 
-		for(u32 j = 0; j < 4; ++j)
+		for(u32 vertexIndex = 0; vertexIndex < 4; ++vertexIndex)
 		{
-			i32 vert = volume.Tetrahedra[i].Vertices[j];
+			i32 vertex = volume.Tetrahedra[tetrahedronIndex].Vertices[vertexIndex];
 
-			for(u32 k = 0; k < 4; ++k)
+			for(u32 neighborListIndex = 0; neighborListIndex < 4; ++neighborListIndex)
 			{
-				i32 neighborIdx = neighbors[k];
-				if(neighborIdx == -1)
+				i32 neighborIndex = neighbors[neighborListIndex];
+				if(neighborIndex == -1)
 					continue;
 
-				Tetrahedron& neighbor = volume.Tetrahedra[neighborIdx];
-				if(vert != neighbor.Vertices[0] && vert != neighbor.Vertices[1] &&
-				   vert != neighbor.Vertices[2] && vert != neighbor.Vertices[3])
+				Tetrahedron& neighbor = volume.Tetrahedra[neighborIndex];
+				if(vertex != neighbor.Vertices[0] && vertex != neighbor.Vertices[1] &&
+				   vertex != neighbor.Vertices[2] && vertex != neighbor.Vertices[3])
 				{
-					volume.Tetrahedra[i].Neighbors[j] = neighborIdx;
+					volume.Tetrahedra[tetrahedronIndex].Neighbors[vertexIndex] = neighborIndex;
 					break;
 				}
 			}

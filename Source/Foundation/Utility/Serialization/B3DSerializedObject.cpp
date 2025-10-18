@@ -48,10 +48,10 @@ SPtr<ISerialized> SerializedObject::Clone(bool cloneData)
 	SPtr<SerializedObject> copy = B3DMakeShared<SerializedObject>();
 	copy->SubObjects = Vector<SerializedSubObject>(SubObjects.size());
 
-	u32 i = 0;
+	u32 subObjectIndex = 0;
 	for(auto& subObject : SubObjects)
 	{
-		copy->SubObjects[i].TypeId = subObject.TypeId;
+		copy->SubObjects[subObjectIndex].TypeId = subObject.TypeId;
 
 		for(auto& entryPair : subObject.FieldEntries)
 		{
@@ -60,10 +60,10 @@ SPtr<ISerialized> SerializedObject::Clone(bool cloneData)
 			if(entry.Value != nullptr)
 				entry.Value = entry.Value->Clone(cloneData);
 
-			copy->SubObjects[i].FieldEntries[entryPair.first] = entry;
+			copy->SubObjects[subObjectIndex].FieldEntries[entryPair.first] = entry;
 		}
 
-		i++;
+		subObjectIndex++;
 	}
 
 	return copy;

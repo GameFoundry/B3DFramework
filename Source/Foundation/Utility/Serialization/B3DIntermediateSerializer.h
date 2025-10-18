@@ -36,10 +36,10 @@ namespace b3d
 		/**
 		 * Serializes an entire field from the provided reflectable object. Field must support RTTI iterators.
 		 *
-		 * @param object				Object that contains the field to serialize.
-		 * @param rttiInstance			Type information describing @p object.
-		 * @param field					Field to serialize.
-		 * @param flags					Flags controlling the serialization process.
+		 * @param	object				Object that contains the field to serialize.
+		 * @param	rttiInstance		Type information describing @p object.
+		 * @param	field				Field to serialize.
+		 * @param	flags				Flags controlling the serialization process.
 		 * @return						Serialized field, or null if the field data is null.
 		 */
 		SPtr<ISerialized> SerializeIterableField(IReflectable& object, RTTIType& rttiInstance, RTTIIteratorField& field, SerializedObjectEncodeFlags flags);
@@ -48,26 +48,26 @@ namespace b3d
 		SPtr<ISerialized> SerializeDataBlockField(IReflectable* object, RTTIType* rtti, RTTIField* field, SerializedObjectEncodeFlags flags);
 
 		/**
-		 * Serializes an element at the provided iterator location. 
+		 * Serializes an element at the provided iterator location.
 		 *
-		 * @param object				Object that contains the field to serialize.
-		 * @param rttiInstance			Type information describing @p object.
-		 * @param field					Field from which the element is being serialized.
-		 * @param iterator				Iterator pointing to the location of the element to serialize.
-		 * @param flags					Flags controlling the serialization process.
+		 * @param	object				Object that contains the field to serialize.
+		 * @param	rttiInstance		Type information describing @p object.
+		 * @param	field				Field from which the element is being serialized.
+		 * @param	iterator			Iterator pointing to the location of the element to serialize.
+		 * @param	flags				Flags controlling the serialization process.
 		 * @return						Serialized element, or null if the source element is null.
 		 */
 		SPtr<ISerialized> SerializeElement(IReflectable& object, RTTIType& rttiInstance, RTTIIteratorField& field, IRTTIIterator& iterator, SerializedObjectEncodeFlags flags);
 
 		/**
-		 * Serializes a single tuple element from the provided iterator location. 
+		 * Serializes a single tuple element from the provided iterator location.
 		 *
-		 * @param object				Object that contains the field to serialize.
-		 * @param rttiInstance			Type information describing @p object.
-		 * @param field					Field from which the element is being serialized.
-		 * @param iterator				Iterator pointing to the location of the element to serialize.
-		 * @param tupleElementIndex		Tuple index to serialize. e.g. if element is of std::pair<K, V> type, index 0 would represent K and index 1 would represent V. Should be 0 if the iterator element is not a tuple type.
-		 * @param flags					Flags controlling the serialization process.
+		 * @param	object				Object that contains the field to serialize.
+		 * @param	rttiInstance		Type information describing @p object.
+		 * @param	field				Field from which the element is being serialized.
+		 * @param	iterator			Iterator pointing to the location of the element to serialize.
+		 * @param	tupleElementIndex	Tuple index to serialize. e.g. if element is of std::pair<K, V> type, index 0 would represent K and index 1 would represent V. Should be 0 if the iterator element is not a tuple type.
+		 * @param	flags				Flags controlling the serialization process.
 		 * @return						Serialized tuple element, or null if the source element is null.
 		 */
 		SPtr<ISerialized> SerializeTupleElement(IReflectable& object, RTTIType& rttiInstance, RTTIIteratorField& field, IRTTIIterator& iterator, u32 tupleElementIndex, SerializedObjectEncodeFlags flags);

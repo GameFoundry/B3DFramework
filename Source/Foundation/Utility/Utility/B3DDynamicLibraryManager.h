@@ -23,7 +23,7 @@ namespace b3d
 		/**
 		 * Loads the given file as a dynamic library.
 		 *
-		 * @param[in]	name	The name of the library. The extension can be omitted.
+		 * @param	name	The name of the library. The extension can be omitted.
 		 */
 		DynamicLibrary* Load(String name);
 

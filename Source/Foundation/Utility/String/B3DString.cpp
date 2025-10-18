@@ -88,9 +88,9 @@ String StringUtil::HexToLiteral(const u32* input, u32 count)
 
 	for(u32 index = 0; index < count; index++)
 	{
-		for(i32 i = 7; i >= 0; --i)
+		for(i32 digitIndex = 7; digitIndex >= 0; --digitIndex)
 		{
-			const i32 hexadecimalValue = (input[index] >> (i * 4)) & 0xF;
+			const i32 hexadecimalValue = (input[index] >> (digitIndex * 4)) & 0xF;
 			output.push_back(kHexadecimalToLiteral[hexadecimalValue]);
 		}
 
@@ -113,9 +113,9 @@ String StringUtil::HexToLiteral(const u64* input, u32 count)
 
 	for(u32 index = 0; index < count; index++)
 	{
-		for(i32 i = 15; i >= 0; --i)
+		for(i32 digitIndex = 15; digitIndex >= 0; --digitIndex)
 		{
-			const i32 hexadecimalValue = (input[index] >> (i * 4)) & 0xF;
+			const i32 hexadecimalValue = (input[index] >> (digitIndex * 4)) & 0xF;
 			output.push_back(kHexadecimalToLiteral[hexadecimalValue]);
 		}
 
@@ -355,9 +355,9 @@ WString ToWString(const Matrix3& val)
 	return stream.str();
 }
 
-WString ToWString(bool val, bool yesNo)
+WString ToWString(bool value, bool yesNo)
 {
-	if(val)
+	if(value)
 	{
 		if(yesNo)
 		{
@@ -417,15 +417,15 @@ WString ToWString(const Color& val)
 WString ToWString(const Vector<b3d::WString>& val)
 {
 	WStringStream stream;
-	Vector<b3d::WString>::const_iterator i, iend, ibegin;
-	ibegin = val.begin();
-	iend = val.end();
-	for(i = ibegin; i != iend; ++i)
+	Vector<b3d::WString>::const_iterator it, iteratorEnd, iteratorBegin;
+	iteratorBegin = val.begin();
+	iteratorEnd = val.end();
+	for(it = iteratorBegin; it != iteratorEnd; ++it)
 	{
-		if(i != ibegin)
+		if(it != iteratorBegin)
 			stream << L" ";
 
-		stream << *i;
+		stream << *it;
 	}
 	return stream.str();
 }
@@ -561,9 +561,9 @@ String ToString(const Matrix3& val)
 	return stream.str();
 }
 
-String ToString(bool val, bool yesNo)
+String ToString(bool value, bool yesNo)
 {
-	if(val)
+	if(value)
 	{
 		if(yesNo)
 		{
@@ -633,15 +633,15 @@ String ToString(const Path& val)
 String ToString(const Vector<b3d::String>& val)
 {
 	StringStream stream;
-	Vector<b3d::String>::const_iterator i, iend, ibegin;
-	ibegin = val.begin();
-	iend = val.end();
-	for(i = ibegin; i != iend; ++i)
+	Vector<b3d::String>::const_iterator it, iteratorEnd, iteratorBegin;
+	iteratorBegin = val.begin();
+	iteratorEnd = val.end();
+	for(it = iteratorBegin; it != iteratorEnd; ++it)
 	{
-		if(i != ibegin)
+		if(it != iteratorBegin)
 			stream << " ";
 
-		stream << *i;
+		stream << *it;
 	}
 	return stream.str();
 }

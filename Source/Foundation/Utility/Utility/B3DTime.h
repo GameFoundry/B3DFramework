@@ -83,7 +83,7 @@ namespace b3d
 		/**
 		 * Gets the current date and time in textual form.
 		 *
-		 * @param[in]	isUTC Outputs the date and time in Coordinated Universal Time, otherwise in local time.
+		 * @param	isUTC	Outputs the date and time in Coordinated Universal Time, otherwise in local time.
 		 *
 		 * @return	A String containing the current date and time.
 		 *
@@ -96,7 +96,7 @@ namespace b3d
 		/**
 		 * Gets the current time in textual form
 		 *
-		 * @param[in]	isUTC Outputs the time in Coordinated Universal Time, otherwise in local time.
+		 * @param	isUTC	Outputs the time in Coordinated Universal Time, otherwise in local time.
 		 *
 		 * @return	A String containing the current time.
 		 *
@@ -109,7 +109,7 @@ namespace b3d
 		/**
 		 * Gets the date and time where the application has been started in textual form.
 		 *
-		 * @param[in]	isUTC Outputs the date and time in Coordinated Universal Time, otherwise in local time.
+		 * @param	isUTC	Outputs the date and time in Coordinated Universal Time, otherwise in local time.
 		 *
 		 * @return	A String containing the application startup date and time.
 		 *
@@ -199,14 +199,14 @@ namespace b3d
 		 * Calculates the number of fixed update iterations required and their step size. Values depend on the current
 		 * time and previous calls to AdvanceFixedUpdateInternal().;
 		 *
-		 * @param[out]		step	Duration of the fixed step in microseconds. In most cases this is the same duration as
-		 *							the	fixed time delta, but in the cases where frame is taking a very long time the step
-		 *							might be increased to avoid a large number of fixed updates per frame.
-		 * @return					Returns the number of fixed frame updates to execute (each of @p step duration). In most
-		 *							cases this will be either 1 or 0, or a larger amount of frames are taking a long time
-		 *							to execute (longer than a multiple of fixed frame step).
+		 * @param	outStep	Duration of the fixed step in microseconds. In most cases this is the same duration as
+		 *					the	fixed time delta, but in the cases where frame is taking a very long time the step
+		 *					might be increased to avoid a large number of fixed updates per frame.
+		 * @return			Returns the number of fixed frame updates to execute (each of @p outStep duration). In most
+		 *					cases this will be either 1 or 0, or a larger amount of frames are taking a long time
+		 *					to execute (longer than a multiple of fixed frame step).
 		 */
-		u32 GetFixedUpdateStep(u64& step);
+		u32 GetFixedUpdateStep(u64& outStep);
 
 		/**
 		 * Advances the fixed update timers by @p step microseconds. Should be called once for each iteration as returned

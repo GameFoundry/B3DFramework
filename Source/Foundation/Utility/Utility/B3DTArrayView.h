@@ -172,9 +172,9 @@ namespace b3d
 
 		bool Contains(const Type& element)
 		{
-			for(u64 i = 0; i < mSize; i++)
+			for(u64 elementIndex = 0; elementIndex < mSize; elementIndex++)
 			{
-				if(mData[i] == element)
+				if(mData[elementIndex] == element)
 					return true;
 			}
 

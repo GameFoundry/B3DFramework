@@ -217,15 +217,15 @@ void ThreadPool::ClearUnused()
 
 	u32 limit = std::min((u32)idleThreads.size(), mDefaultCapacity);
 
-	u32 i = 0;
+	u32 threadIndex = 0;
 	mThreads.clear();
 
 	for(auto& thread : idleThreads)
 	{
-		if(i < limit)
+		if(threadIndex < limit)
 		{
 			mThreads.push_back(thread);
-			i++;
+			threadIndex++;
 		}
 	}
 
@@ -262,16 +262,16 @@ SPtr<PooledThread> ThreadPool::GetThread(const String& name)
 
 u32 ThreadPool::GetNumActive() const
 {
-	u32 numActive = 0;
+	u32 activeCount = 0;
 
 	Lock lock(mMutex);
 	for(auto& thread : mThreads)
 	{
 		if(!thread->IsIdle())
-			numActive++;
+			activeCount++;
 	}
 
-	return numActive;
+	return activeCount;
 }
 
 u32 ThreadPool::GetNumAllocated() const

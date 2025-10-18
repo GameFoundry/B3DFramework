@@ -362,9 +362,9 @@ bool BinaryDeserializationContext::DeserializeReflectableObject(SPtr<RTTISchema>
 	}
 
 	// Iterate in reverse to notify base classes before derived classes
-	for(auto iter = rttiInstances.rbegin(); iter != rttiInstances.rend(); ++iter)
+	for(auto it = rttiInstances.rbegin(); it != rttiInstances.rend(); ++it)
 	{
-		(*iter)->NotifyOperationStarted(*output.get(), RTTIOperationType::Deserialization, mRTTIContext);
+		(*it)->NotifyOperationStarted(*output.get(), RTTIOperationType::Deserialization, mRTTIContext);
 	}
 
 	RTTIType* rttiInstance = nullptr;
@@ -1351,18 +1351,18 @@ void BinarySerializer::Encode(IReflectable* object, const SPtr<DataStream>& stre
 	UnorderedSet<u32> serializedObjects;
 	while(true)
 	{
-		auto iter = referencedObjectsToSerialize.begin();
+		auto it = referencedObjectsToSerialize.begin();
 		bool foundObjectToProcess = false;
-		for(; iter != referencedObjectsToSerialize.end(); ++iter)
+		for(; it != referencedObjectsToSerialize.end(); ++it)
 		{
-			auto foundExisting = serializedObjects.find(iter->ObjectId);
-			if(foundExisting != serializedObjects.end())
+			auto found = serializedObjects.find(it->ObjectId);
+			if(found != serializedObjects.end())
 				continue; // Already processed
 
-			SPtr<IReflectable> curObject = iter->Object;
-			u32 curObjectid = iter->ObjectId;
+			SPtr<IReflectable> curObject = it->Object;
+			u32 curObjectid = it->ObjectId;
 			serializedObjects.insert(curObjectid);
-			referencedObjectsToSerialize.erase(iter); // TODO - Should update iter to returned value from erase()
+			referencedObjectsToSerialize.erase(it); // TODO - Should update it to returned value from erase()
 
 			if(!serializationContext.SerializeReflectableObject(curObject.get(), curObjectid, referencedObjectsToSerialize))
 			{

@@ -79,8 +79,8 @@ u32 StringID::CalcHash(T const& input)
 	u32 size = StringIDUtil<T>::Size(input);
 
 	u32 hash = 0;
-	for(u32 i = 0; i < size; i++)
-		hash = hash * 101 + input[i];
+	for(u32 characterIndex = 0; characterIndex < size; characterIndex++)
+		hash = hash * 101 + input[characterIndex];
 
 	return hash;
 }

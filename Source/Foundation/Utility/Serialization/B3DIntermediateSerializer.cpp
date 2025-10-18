@@ -62,14 +62,14 @@ SPtr<SerializedObject> IntermediateSerializer::Encode(IReflectable* object, Seri
 
 void IntermediateSerializer::DeserializeReflectableObject(const SPtr<IReflectable>& object, const SerializedObject* serializableObject)
 {
-	const u32 subobjectCount = (u32)serializableObject->SubObjects.size();
-	if(subobjectCount == 0)
+	const u32 subObjectCount = (u32)serializableObject->SubObjects.size();
+	if(subObjectCount == 0)
 		return;
 
 	FrameStack<RTTIType*> rttiInstances;
-	for(i32 subObjectIdx = (i32)subobjectCount - 1; subObjectIdx >= 0; subObjectIdx--)
+	for(i32 subObjectIndex = (i32)subObjectCount - 1; subObjectIndex >= 0; subObjectIndex--)
 	{
-		const SerializedSubObject& subObject = serializableObject->SubObjects[subObjectIdx];
+		const SerializedSubObject& subObject = serializableObject->SubObjects[subObjectIndex];
 
 		RTTIType* rtti = IReflectable::GetRTTITypeFromTypeId(subObject.TypeId);
 		if(rtti == nullptr)

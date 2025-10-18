@@ -100,10 +100,10 @@ namespace b3d
 	/**
 	 * Converts a boolean to a string.
 	 *
-	 * @param[in]	val  	Value to convert.
-	 * @param[in]	yesNo	(optional) If set to true, result is "yes" or "no" instead of "true" or "false".
+	 * @param	value	Value to convert.
+	 * @param	yesNo	(optional) If set to true, result is "yes" or "no" instead of "true" or "false".
 	 */
-	B3D_EXPORT WString ToWString(bool val, bool yesNo = false);
+	B3D_EXPORT WString ToWString(bool value, bool yesNo = false);
 
 	/**
 	 * Converts a 2 dimensional vector to a string.
@@ -197,10 +197,10 @@ namespace b3d
 	/**
 	 * Converts a boolean to a string.
 	 *
-	 * @param[in]	val  	true to value.
-	 * @param[in]	yesNo	(optional) If set to true, result is "yes" or "no" instead of "true" or "false".
+	 * @param	value	true to value.
+	 * @param	yesNo	(optional) If set to true, result is "yes" or "no" instead of "true" or "false".
 	 */
-	B3D_EXPORT String ToString(bool val, bool yesNo = false);
+	B3D_EXPORT String ToString(bool value, bool yesNo = false);
 
 	/**
 	 * Converts a 2 dimensional vector to a string.
@@ -270,10 +270,10 @@ namespace b3d
 	/**
 	 *  Converts the std::time_t structure containing time data to the string.
 	 *
-	 *  @param[in]	time       Variable representing stored time
-	 *  @param[in]	isUTC      Outputs the date and time in Coordinated Universal Time, otherwise in local time.
-	 *  @param[in]	useISO8601 Outputs the date and time in ISO 8601 format, otherwise it uses a custom format.
-	 *  @param[in]	type       Type of the conversion applied.
+	 *  @param	time		Variable representing stored time
+	 *  @param	isUTC		Outputs the date and time in Coordinated Universal Time, otherwise in local time.
+	 *  @param	useISO8601	Outputs the date and time in ISO 8601 format, otherwise it uses a custom format.
+	 *  @param	type		Type of the conversion applied.
 	 *
 	 *  @return Converted time as a String.
 	 *
@@ -575,10 +575,10 @@ namespace b3d
 				return (int)lhs.compare(rhs);
 
 			int size = (int)std::min(lhs.size(), rhs.size());
-			for(int i = 0; i < size; i++)
+			for(int characterIndex = 0; characterIndex < size; characterIndex++)
 			{
-				if(toupper(lhs[i]) < toupper(rhs[i])) return -1;
-				if(toupper(lhs[i]) > toupper(rhs[i])) return 1;
+				if(toupper(lhs[characterIndex]) < toupper(rhs[characterIndex])) return -1;
+				if(toupper(lhs[characterIndex]) > toupper(rhs[characterIndex])) return 1;
 			}
 
 			return (lhs.size() < rhs.size() ? -1 : (lhs.size() == rhs.size() ? 0 : 1));
@@ -848,8 +848,8 @@ namespace std
 		size_t operator()(const b3d::String& string) const
 		{
 			size_t hash = 0;
-			for(size_t i = 0; i < string.size(); i++)
-				hash = 65599 * hash + string[i];
+			for(size_t characterIndex = 0; characterIndex < string.size(); characterIndex++)
+				hash = 65599 * hash + string[characterIndex];
 			return hash ^ (hash >> 16);
 		}
 	};
@@ -861,8 +861,8 @@ namespace std
 		size_t operator()(const b3d::WString& string) const
 		{
 			size_t hash = 0;
-			for(size_t i = 0; i < string.size(); i++)
-				hash = 65599 * hash + string[i];
+			for(size_t characterIndex = 0; characterIndex < string.size(); characterIndex++)
+				hash = 65599 * hash + string[characterIndex];
 			return hash ^ (hash >> 16);
 		}
 	};

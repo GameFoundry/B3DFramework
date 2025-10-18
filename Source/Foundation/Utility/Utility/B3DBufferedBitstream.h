@@ -24,11 +24,11 @@ namespace b3d
 		/**
 		 * Constructs a new instance of the object.
 		 *
-		 * @param[in]	bitstream		Bitstream into which to load the buffered data.
-		 * @param[in]	dataStream		Data stream from which to read the data.
-		 * @param[in]	preloadSize		Determines the size of the chunk to preload, when we reach the end of
-		 *								buffered data. In bytes.
-		 * @param[in]	maxBufferSize	Maximum size of the buffer before it is cleared.
+		 * @param	bitstream		Bitstream into which to load the buffered data.
+		 * @param	dataStream		Data stream from which to read the data.
+		 * @param	preloadSize		Determines the size of the chunk to preload, when we reach the end of
+		 *							buffered data. In bytes.
+		 * @param	maxBufferSize	Maximum size of the buffer before it is cleared.
 		 */
 		BufferedBitstreamReader(Bitstream* bitstream, const SPtr<DataStream>& dataStream, uint32_t preloadSize, uint32_t maxBufferSize);
 
@@ -68,8 +68,8 @@ namespace b3d
 		/**
 		 * Clears buffered data behind the current cursor location.
 		 *
-		 * @param[in]	force	If false the buffer will only be cleared if its current size is	over the maximum
-		 *						buffer size limit. Otherwise it will always be cleared.
+		 * @param	force	If false the buffer will only be cleared if its current size is	over the maximum
+		 *					buffer size limit. Otherwise it will always be cleared.
 		 */
 		void ClearBuffered(bool force);
 
@@ -102,10 +102,10 @@ namespace b3d
 		/**
 		 * Constructs a new instance of the object.
 		 *
-		 * @param[in]	bitstream		Bitstream into which the buffered data will be written.
-		 * @param[in]	dataStream		Data stream from which to read the data.
-		 * @param[in]	bufferSize		Initial size of the write buffer, in bytes.
-		 * @param[in]	flushAfter		Number of bytes after which the write buffer will be flushed to the data stream.
+		 * @param	bitstream		Bitstream into which the buffered data will be written.
+		 * @param	dataStream		Data stream from which to read the data.
+		 * @param	bufferSize		Initial size of the write buffer, in bytes.
+		 * @param	flushAfter		Number of bytes after which the write buffer will be flushed to the data stream.
 		 */
 		BufferedBitstreamWriter(Bitstream* bitstream, const SPtr<DataStream>& dataStream, uint32_t bufferSize, uint32_t flushAfter);
 
@@ -227,11 +227,11 @@ namespace b3d
 		B3D_ASSERT((mBufferedRangeEnd % 8) == 0);
 		uint64_t remainingBytes = mLength - mBufferedRangeEnd / 8;
 
-		uint64_t numBytesToPreload = std::min(std::max(mPreloadSize, (uint64_t)count), remainingBytes);
+		uint64_t byteCountToPreload = std::min(std::max(mPreloadSize, (uint64_t)count), remainingBytes);
 
 		// Make sure our buffer has enough room for the new data
 		uint64_t bufferedLength = mBufferedRangeEnd - mBufferedRangeStart;
-		uint64_t newBufferedLength = bufferedLength + numBytesToPreload * 8;
+		uint64_t newBufferedLength = bufferedLength + byteCountToPreload * 8;
 		if(mBitstream->Capacity() < newBufferedLength)
 			mBitstream->Resize((uint32_t)Math::DivideAndRoundUp(newBufferedLength, (uint64_t)Bitstream::kBitsPerQuant));
 
@@ -240,11 +240,11 @@ namespace b3d
 		mBitstream->Seek(bufferedLength);
 
 		mDataStream->Seek((size_t)(mBufferedRangeEnd / 8));
-		if(mDataStream->Read(mBitstream->Cursor(), numBytesToPreload) != numBytesToPreload)
+		if(mDataStream->Read(mBitstream->Cursor(), byteCountToPreload) != byteCountToPreload)
 			B3D_EXCEPT(InternalErrorException, "Error reading data.");
 
 		mBitstream->Seek(orgPos);
-		mBufferedRangeEnd += numBytesToPreload * 8;
+		mBufferedRangeEnd += byteCountToPreload * 8;
 	}
 
 	inline void BufferedBitstreamReader::ClearBuffered(bool force)

@@ -56,9 +56,9 @@ inline SchedulerTicketQueue::SchedulerTicketQueue(Scheduler& scheduler)
 
 SchedulerTicket SchedulerTicketQueue::TakeTicket()
 {
-	SchedulerTicket output;
-	TakeTickets(1, [&output](SchedulerTicket&& ticket) { output = std::move(ticket); });
-	return output;
+	SchedulerTicket outputTicket;
+	TakeTickets(1, [&outputTicket](SchedulerTicket&& ticket) { outputTicket = std::move(ticket); });
+	return outputTicket;
 }
 
 template <typename F>

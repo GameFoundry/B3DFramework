@@ -39,11 +39,11 @@ namespace b3d
 
 		constexpr bool operator<(const UUID& rhs) const
 		{
-			for(u32 i = 0; i < 4; i++)
+			for(u32 elementIndex = 0; elementIndex < 4; elementIndex++)
 			{
-				if(mData[i] < rhs.mData[i])
+				if(mData[elementIndex] < rhs.mData[elementIndex])
 					return true;
-				else if(mData[i] > rhs.mData[i])
+				else if(mData[elementIndex] > rhs.mData[elementIndex])
 					return false;
 
 				// Move to next element if equal

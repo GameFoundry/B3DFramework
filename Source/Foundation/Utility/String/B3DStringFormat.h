@@ -24,13 +24,13 @@ namespace b3d
 		{
 			FormatParamRange() = default;
 
-			FormatParamRange(u32 start, u32 identifierSize, u32 paramIdx)
-				: Start(start), IdentifierSize(identifierSize), ParamIdx(paramIdx)
+			FormatParamRange(u32 start, u32 identifierSize, u32 parameterIndex)
+				: Start(start), IdentifierSize(identifierSize), ParameterIndex(parameterIndex)
 			{}
 
 			u32 Start = 0;
 			u32 IdentifierSize = 0;
-			u32 ParamIdx = 0;
+			u32 ParameterIndex = 0;
 		};
 
 		/** Structure that holds value of a parameter during string formatting. */
@@ -104,11 +104,11 @@ namespace b3d
 						if(source[i] == '}' && numParamChars > 0 && !escaped)
 						{
 							bracketChars[bracketWriteIdx] = '\0';
-							u32 paramIdx = StrToInt(bracketChars);
-							if(paramIdx < kMaxParams && paramRangeWriteIdx < kMaxParamReferences) // Check if exceeded maximum parameter limit
+							u32 parameterIndex = StrToInt(bracketChars);
+							if(parameterIndex < kMaxParams && paramRangeWriteIdx < kMaxParamReferences) // Check if exceeded maximum parameter limit
 							{
-								paramRanges[paramRangeWriteIdx++] = FormatParamRange(charWriteIdx, numParamChars + 2, paramIdx);
-								charWriteIdx += parameters[paramIdx].Size;
+								paramRanges[paramRangeWriteIdx++] = FormatParamRange(charWriteIdx, numParamChars + 2, parameterIndex);
+								charWriteIdx += parameters[parameterIndex].Size;
 
 								processedBracket = true;
 							}
@@ -144,12 +144,12 @@ namespace b3d
 				copySourceIdx += copySize + rangeInfo.IdentifierSize;
 				copyDestIdx += copySize;
 
-				if(rangeInfo.ParamIdx == (u32)-1)
+				if(rangeInfo.ParameterIndex == (u32)-1)
 					continue;
 
-				u32 paramSize = parameters[rangeInfo.ParamIdx].Size;
-				memcpy(outputBuffer + copyDestIdx, parameters[rangeInfo.ParamIdx].Buffer, paramSize * sizeof(T));
-				copyDestIdx += paramSize;
+				u32 parameterSize = parameters[rangeInfo.ParameterIndex].Size;
+				memcpy(outputBuffer + copyDestIdx, parameters[rangeInfo.ParameterIndex].Buffer, parameterSize * sizeof(T));
+				copyDestIdx += parameterSize;
 			}
 
 			memcpy(outputBuffer + copyDestIdx, source + copySourceIdx, (finalStringSize - copyDestIdx) * sizeof(T));
@@ -287,14 +287,14 @@ namespace b3d
 		template <class P, class... Args>
 		static void GetParams(ParamData<wchar_t>* parameters, u32 idx, P&& param, Args&&... args)
 		{
-			if(idx >= MAX_PARAMS)
+			if(idx >= kMaxParams)
 				return;
 
-			BasicString<wchar_t> sourceParam = toWString(param);
-			parameters[idx].buffer = (wchar_t*)B3DAllocate((u32)sourceParam.size() * sizeof(wchar_t));
-			parameters[idx].size = (u32)sourceParam.size();
+			BasicString<wchar_t> sourceParam = ToWString(param);
+			parameters[idx].Buffer = (wchar_t*)B3DAllocate((u32)sourceParam.size() * sizeof(wchar_t));
+			parameters[idx].Size = (u32)sourceParam.size();
 
-			sourceParam.copy(parameters[idx].buffer, parameters[idx].size, 0);
+			sourceParam.copy(parameters[idx].Buffer, parameters[idx].Size, 0);
 
 			GetParams(parameters, idx + 1, std::forward<Args>(args)...);
 		}

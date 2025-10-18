@@ -119,8 +119,8 @@ namespace b3d
 		/**
 		 * Constructs a new thread pool
 		 *
-		 * @param[in]	threadCapacity	Default thread capacity, the pool will always try to keep this many threads available.
-		 * @param[in]	idleTimeout   	(optional) How many seconds do threads need to be idle before we remove them from the pool.
+		 * @param	threadCapacity	Default thread capacity, the pool will always try to keep this many threads available.
+		 * @param	idleTimeout   	(optional) How many seconds do threads need to be idle before we remove them from the pool.
 		 */
 		ThreadPool(u32 threadCapacity, u32 idleTimeout = 60);
 		virtual ~ThreadPool();
@@ -128,9 +128,9 @@ namespace b3d
 		/**
 		 * Find an unused thread (or creates a new one) and runs the specified worker method on it.
 		 *
-		 * @param[in]	name			A name you may use for more easily identifying the thread.
-		 * @param[in]	workerMethod	The worker method to be called by the thread.
-		 * @return						A thread handle you may use for monitoring the thread execution.
+		 * @param	name			A name you may use for more easily identifying the thread.
+		 * @param	workerMethod	The worker method to be called by the thread.
+		 * @return					A thread handle you may use for monitoring the thread execution.
 		 */
 		SPtr<PooledThread> Run(const String& name, std::function<void()> workerMethod);
 
@@ -160,7 +160,7 @@ namespace b3d
 		/**
 		 * Returns the first unused thread if one exists, otherwise creates a new one.
 		 *
-		 * @param[in]	name	Name to assign the thread.
+		 * @param	name	Name to assign the thread.
 		 *
 		 * @note	Throws an exception if we have reached our maximum thread capacity.
 		 */

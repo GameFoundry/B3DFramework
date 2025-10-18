@@ -10,8 +10,6 @@
 #include "Debug/B3DDebug.h"
 #include <numeric>
 
-using namespace std::placeholders;
-
 using namespace b3d;
 
 FileEncoder::FileEncoder(const Path& fileLocation)

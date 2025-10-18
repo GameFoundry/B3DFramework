@@ -378,7 +378,7 @@ void SchedulerThread::Post(SchedulerTask&& task)
 	Enqueue(std::move(task));
 }
 
-bool SchedulerThread::TryStealTask(SchedulerTask& out)
+bool SchedulerThread::TryStealTask(SchedulerTask& outTask)
 {
 	if (mReadyOperationCount.load() == 0)
 		return false;
@@ -393,7 +393,7 @@ bool SchedulerThread::TryStealTask(SchedulerTask& out)
 	}
 
 	mReadyOperationCount--;
-	out = take(mPendingTasks);
+	outTask = take(mPendingTasks);
 	mMutex.unlock();
 
 	return true;
@@ -485,7 +485,7 @@ void SchedulerThread::SpinForWork()
 	auto start = std::chrono::high_resolution_clock::now();
 	while (std::chrono::high_resolution_clock::now() - start < duration)
 	{
-		for (int i = 0; i < 256; i++)
+		for (int iterationIndex = 0; iterationIndex < 256; iterationIndex++)
 		{
 			// clang-format off
 			nop(); nop(); nop(); nop(); nop(); nop(); nop(); nop();
@@ -646,13 +646,13 @@ Scheduler::Scheduler(const SchedulerCreateInformation& createInformation)
 	// Initialize external worker ID counter to start after internal threads
 	mNextExternalWorkerId = mInformation.InternalWorkerThreadCount;
 
-	for (size_t i = 0; i < mSpinningWorkers.size(); i++)
-		mSpinningWorkers[i] = ~0u;
+	for (size_t workerIndex = 0; workerIndex < mSpinningWorkers.size(); workerIndex++)
+		mSpinningWorkers[workerIndex] = ~0u;
 
-	for (u32 i = 0; i < mInformation.InternalWorkerThreadCount; i++)
+	for (u32 threadIndex = 0; threadIndex < mInformation.InternalWorkerThreadCount; threadIndex++)
 	{
-		mWorkerThreads.Add(B3DMakeShared<SchedulerThread>(this, SchedulerThread::Mode::Internal, i));
-		mInternalWorkerIndices.Add(i);
+		mWorkerThreads.Add(B3DMakeShared<SchedulerThread>(this, SchedulerThread::Mode::Internal, threadIndex));
+		mInternalWorkerIndices.Add(threadIndex);
 	}
 
 	for(auto& thread : mWorkerThreads)
@@ -669,8 +669,8 @@ Scheduler::~Scheduler()
 
 	// Stop all internal worker threads
 	// This will wait for all in-flight tasks to complete before returning
-	for(u32 i = 0; i < mInformation.InternalWorkerThreadCount; i++)
-		mWorkerThreads[i]->Stop();
+	for(u32 threadIndex = 0; threadIndex < mInformation.InternalWorkerThreadCount; threadIndex++)
+		mWorkerThreads[threadIndex]->Stop();
 }
 
 void Scheduler::Post(SchedulerTask&& task)
@@ -729,7 +729,7 @@ void Scheduler::Post(SchedulerTask&& task)
 	}
 }
 
-bool Scheduler::TryStealWork(SchedulerThread* thief, u32 random, SchedulerTask& out)
+bool Scheduler::TryStealWork(SchedulerThread* thief, u32 random, SchedulerTask& outTask)
 {
 	Lock lock(mWorkerThreadsMutex);
 	const u32 workerCount = static_cast<u32>(mWorkerThreads.Size());
@@ -746,7 +746,7 @@ bool Scheduler::TryStealWork(SchedulerThread* thief, u32 random, SchedulerTask& 
 
 	if (thread != thief)
 	{
-		if (thread->TryStealTask(out))
+		if (thread->TryStealTask(outTask))
 			return true;
 	}
 

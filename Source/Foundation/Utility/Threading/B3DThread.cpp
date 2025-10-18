@@ -126,11 +126,11 @@ ThreadCoreMask& ThreadCoreMask::Remove(const ThreadCoreMask& other)
 	for (auto core : other.mCores)
 		set.emplace(core);
 
-	for (size_t i = 0; i < mCores.size(); i++)
+	for (size_t coreIndex = 0; coreIndex < mCores.size(); coreIndex++)
 	{
-		if (set.count(mCores[i]) != 0)
+		if (set.count(mCores[coreIndex]) != 0)
 		{
-			mCores[i] = mCores.back();
+			mCores[coreIndex] = mCores.back();
 			mCores.resize(mCores.size() - 1);
 		}
 	}
@@ -168,10 +168,10 @@ ThreadCoreMask ThreadCoreMask::CreateAnyThreadMask()
 	if (pthread_getaffinity_np(thread, sizeof(cpu_set_t), &cpuset) == 0)
 	{
 		int count = CPU_COUNT(&cpuset);
-		for (int i = 0; i < count; i++)
+		for (int coreIndex = 0; coreIndex < count; coreIndex++)
 		{
 			CPUCore core;
-			core.Pthread.Index = (u16)i;
+			core.Pthread.Index = (u16)coreIndex;
 			output.mCores.Add(core);
 		}
 	}
@@ -363,8 +363,8 @@ public:
 		cpu_set_t cpuset;
 		CPU_ZERO(&cpuset);
 
-		for (size_t i = 0; i < count; i++)
-			CPU_SET(mAffinity[i].Pthread.Index, &cpuset);
+		for (size_t coreIndex = 0; coreIndex < count; coreIndex++)
+			CPU_SET(mAffinity[coreIndex].Pthread.Index, &cpuset);
 
 		auto thread = pthread_self();
 		pthread_setaffinity_np(mThread, sizeof(cpu_set_t), &cpuset);
@@ -372,8 +372,8 @@ public:
 		cpuset_t cpuset;
 		CPU_ZERO(&cpuset);
 
-		for (size_t i = 0; i < count; i++)
-			CPU_SET(mAffinity[i].Pthread.index, &cpuset);
+		for (size_t coreIndex = 0; coreIndex < count; coreIndex++)
+			CPU_SET(mAffinity[coreIndex].Pthread.index, &cpuset);
 
 		auto thread = pthread_self();
 		pthread_setaffinity_np(thread, sizeof(cpuset_t), &cpuset);

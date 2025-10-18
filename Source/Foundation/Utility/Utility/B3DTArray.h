@@ -351,9 +351,9 @@ namespace b3d
 
 		bool Contains(const Type& element)
 		{
-			for(u64 i = 0; i < mSize; i++)
+			for(u64 elementIndex = 0; elementIndex < mSize; elementIndex++)
 			{
-				if(mAllocator.GetElements()[i] == element)
+				if(mAllocator.GetElements()[elementIndex] == element)
 					return true;
 			}
 
@@ -362,11 +362,11 @@ namespace b3d
 
 		void RemoveValue(const Type& element)
 		{
-			for(u64 i = 0; i < mSize; i++)
+			for(u64 elementIndex = 0; elementIndex < mSize; elementIndex++)
 			{
-				if(mAllocator.GetElements()[i] == element)
+				if(mAllocator.GetElements()[elementIndex] == element)
 				{
-					Remove(i);
+					Remove(elementIndex);
 					break;
 				}
 			}
@@ -374,8 +374,8 @@ namespace b3d
 
 		void Clear()
 		{
-			for(u64 i = 0; i < mSize; ++i)
-				mAllocator.GetElements()[i].~Type();
+			for(u64 elementIndex = 0; elementIndex < mSize; ++elementIndex)
+				mAllocator.GetElements()[elementIndex].~Type();
 
 			mSize = 0;
 		}
@@ -393,13 +393,13 @@ namespace b3d
 
 			if(size > mSize)
 			{
-				for(u64 i = mSize; i < size; i++)
-					new(&mAllocator.GetElements()[i]) Type(value);
+				for(u64 elementIndex = mSize; elementIndex < size; elementIndex++)
+					new(&mAllocator.GetElements()[elementIndex]) Type(value);
 			}
 			else
 			{
-				for(u64 i = size; i < mSize; i++)
-					mAllocator.GetElements()[i].~Type();
+				for(u64 elementIndex = size; elementIndex < mSize; elementIndex++)
+					mAllocator.GetElements()[elementIndex].~Type();
 			}
 
 			mSize = size;

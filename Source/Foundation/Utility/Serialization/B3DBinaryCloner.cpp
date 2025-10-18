@@ -57,7 +57,7 @@ BinaryCloner::ObjectExternalReferences BinaryCloner::GatherExternalReferences(IR
 		rttiInstance->NotifyOperationStarted(*object, RTTIOperationType::GatherReferences, rttiOperationContext);
 		SubObjectExternalReferences* subObjectReferences = nullptr;
 
-		auto fnGetSubObjectReferences = [&subObjectReferences, &externalReferences, rtti]()
+		auto fnGetSubObjectReferences = [&]()
 		{
 			if(subObjectReferences == nullptr)
 			{

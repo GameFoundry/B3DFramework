@@ -100,6 +100,9 @@ namespace b3d
 		/**
 		 * Retrieves a number of tickets from the queue. For each ticket @p callback() is called.
 		 * Callback signature must be void(SchedulerTicket&&).
+		 *
+		 * @param	count		Number of tickets to retrieve.
+		 * @param	callback	Callback function to call for each ticket.
 		 */
 		template <typename Function>
 		void TakeTickets(u32 count, const Function& callback);

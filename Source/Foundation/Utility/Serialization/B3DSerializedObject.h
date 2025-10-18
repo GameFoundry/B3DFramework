@@ -27,10 +27,10 @@ namespace b3d
 		/**
 		 * Performs a deep clone of this object any any potential child objects.
 		 *
-		 * @param[in]	cloneData	If true the data contained by the objects will be cloned as well, instead of just
-		 *							meta-data. If false then both the original and the cloned instances will point to the
-		 *							same instances of data. The original will retain data ownership and it will go out of
-		 *							scope when the original does.
+		 * @param	cloneData	If true the data contained by the objects will be cloned as well, instead of just
+		 *						meta-data. If false then both the original and the cloned instances will point to the
+		 *						same instances of data. The original will retain data ownership and it will go out of
+		 *						scope when the original does.
 		 */
 		virtual SPtr<ISerialized> Clone(bool cloneData = true) = 0;
 
@@ -172,17 +172,17 @@ namespace b3d
 		/**
 		 * Decodes the serialized object back into its original IReflectable object form.
 		 *
-		 * @param	context		Object that will be passed along to all RTTI type objects through their notify callbacks. Can be used for controlling
-		 *						serialization, maintaining state or sharing information between objects during serialization.
+		 * @param	context	Object that will be passed along to all RTTI type objects through their notify callbacks. Can be used for controlling
+		 *					serialization, maintaining state or sharing information between objects during serialization.
 		 */
 		SPtr<IReflectable> Decode(RTTIOperationContext& context) const;
 
 		/**
 		 * Serializes the provided object and returns its SerializedObject representation.
 		 *
-		 * @param	object		Object to serialize.
-		 * @param	flags		Flags used for controlling the serialization process.
-		 * @return				Serialized version of @p object.
+		 * @param	object	Object to serialize.
+		 * @param	flags	Flags used for controlling the serialization process.
+		 * @return			Serialized version of @p object.
 		 */
 		static SPtr<SerializedObject> Create(IReflectable& object, SerializedObjectEncodeFlags flags = SerializedObjectEncodeFlags());
 

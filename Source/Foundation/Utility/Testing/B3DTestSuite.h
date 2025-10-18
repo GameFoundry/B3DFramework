@@ -64,10 +64,10 @@ namespace b3d
 		/**
 		 * Reports success or failure depending on the result of an expression.
 		 *
-		 * @param[in]	success		If true success is reported, otherwise failure.
-		 * @param[in]	desc		Message describing the nature of the failure.
-		 * @param[in]	file		Name of the source code file the assert originates from.
-		 * @param[in]	line		Line number at which the assert was triggered at.
+		 * @param	success	If true success is reported, otherwise failure.
+		 * @param	desc	Message describing the nature of the failure.
+		 * @param	file	Name of the source code file the assert originates from.
+		 * @param	line	Line number at which the assert was triggered at.
 		 */
 		void Assertment(bool success, const String& desc, const String& file, long line);
 
@@ -85,8 +85,8 @@ namespace b3d
 		/**
 		 * Register a new unit test.
 		 *
-		 * @param[in]	test	Function to call in order to execute the test.
-		 * @param[in]	name	Name of the test we can use for referencing it later.
+		 * @param	test	Function to call in order to execute the test.
+		 * @param	name	Name of the test we can use for referencing it later.
 		 */
 		void AddTest(Func test, const String& name);
 

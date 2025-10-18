@@ -19,10 +19,10 @@ namespace b3d
 		/**
 		 * Triggered when a unit test fails.
 		 *
-		 * @param[in]	desc		Reason why the unit test failed.
-		 * @param[in]	function	Name of the function the test failed in.
-		 * @param[in]	file		File the unit test failed in.
-		 * @param[in]	line		Line of code the unit test failed on.
+		 * @param	desc		Reason why the unit test failed.
+		 * @param	function	Name of the function the test failed in.
+		 * @param	file		File the unit test failed in.
+		 * @param	line		Line of code the unit test failed on.
 		 */
 		virtual void OutputFail(const String& desc, const String& function, const String& file, long line) = 0;
 	};

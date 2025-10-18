@@ -66,7 +66,7 @@ void MessageHandler::Unsubscribe(u32 handleId)
 		Vector<MessageHandlerData>& handlerData = iterFind->second;
 
 		handlerData.erase(
-			std::remove_if(handlerData.begin(), handlerData.end(), [&](MessageHandlerData& x)
+			std::remove_if(handlerData.begin(), handlerData.end(), [handleId](MessageHandlerData& x)
 						   { return x.Id == handleId; }),
 			handlerData.end());
 	}

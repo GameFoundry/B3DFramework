@@ -222,22 +222,22 @@ namespace b3d
 			return *this;
 		}
 
-		BitReference operator[](u64 idx)
+		BitReference operator[](u64 index)
 		{
-			B3D_ASSERT(idx < mNumBits);
+			B3D_ASSERT(index < mNumBits);
 
-			const u32 bitMask = 1 << (idx & (kBitsPerDword - 1));
-			u32& data = mAllocator.GetElements()[idx >> kBitsPerDwordLoG2];
+			const u32 bitMask = 1 << (index & (kBitsPerDword - 1));
+			u32& data = mAllocator.GetElements()[index >> kBitsPerDwordLoG2];
 
 			return BitReference(data, bitMask);
 		}
 
-		BitReferenceConst operator[](u64 idx) const
+		BitReferenceConst operator[](u64 index) const
 		{
-			B3D_ASSERT(idx < mNumBits);
+			B3D_ASSERT(index < mNumBits);
 
-			const u32 bitMask = 1 << (idx & (kBitsPerDword - 1));
-			u32& data = mAllocator.GetElements()[idx >> kBitsPerDwordLoG2];
+			const u32 bitMask = 1 << (index & (kBitsPerDword - 1));
+			u32& data = mAllocator.GetElements()[index >> kBitsPerDwordLoG2];
 
 			return BitReferenceConst(data, bitMask);
 		}
@@ -278,13 +278,13 @@ namespace b3d
 			// Grab the last bit from the next dword and put it as the last bit in the current dword. Then shift the
 			// next dword and repeat until all following dwords are processed.
 			const u64 lastDwordIndex = (mNumBits - 1) >> kBitsPerDwordLoG2;
-			for(u64 i = dwordIndex; i < lastDwordIndex; i++)
+			for(u64 currentDwordIndex = dwordIndex; currentDwordIndex < lastDwordIndex; currentDwordIndex++)
 			{
 				// First bit from next dword goes at the end of the current dword
-				mAllocator.GetElements()[i] |= (mAllocator.GetElements()[i + 1] & 0x1) << 31;
+				mAllocator.GetElements()[currentDwordIndex] |= (mAllocator.GetElements()[currentDwordIndex + 1] & 0x1) << 31;
 
 				// Following dword gets shifted, removing the bit we just mvoed
-				mAllocator.GetElements()[i + 1] >>= 1;
+				mAllocator.GetElements()[currentDwordIndex + 1] >>= 1;
 			}
 
 			mNumBits--;
@@ -296,13 +296,13 @@ namespace b3d
 			const u32 mask = value ? 0 : ~0u;
 			const u64 numDWords = Math::DivideAndRoundUp(mNumBits, kBitsPerDword);
 
-			for(u64 i = 0; i < numDWords; i++)
+			for(u64 dwordIndex = 0; dwordIndex < numDWords; dwordIndex++)
 			{
-				if(mAllocator.GetElements()[i] == mask)
+				if(mAllocator.GetElements()[dwordIndex] == mask)
 					continue;
 
-				const u32 bits = value ? mAllocator.GetElements()[i] : ~mAllocator.GetElements()[i];
-				const u64 bitIndex = i * kBitsPerDword + Bitwise::LeastSignificantBit(bits);
+				const u32 bits = value ? mAllocator.GetElements()[dwordIndex] : ~mAllocator.GetElements()[dwordIndex];
+				const u64 bitIndex = dwordIndex * kBitsPerDword + Bitwise::LeastSignificantBit(bits);
 
 				if(bitIndex < mNumBits)
 					return bitIndex;

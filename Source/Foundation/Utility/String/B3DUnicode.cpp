@@ -13,24 +13,24 @@ T UTF8To32(T begin, T end, char32_t& output, char32_t invalidChar = 0)
 		return begin;
 
 	// Determine the number of bytes used by the character
-	u32 numBytes;
+	u32 byteCount;
 
 	u8 firstByte = (u8)*begin;
 	if(firstByte < 192)
-		numBytes = 1;
+		byteCount = 1;
 	else if(firstByte < 224)
-		numBytes = 2;
+		byteCount = 2;
 	else if(firstByte < 240)
-		numBytes = 3;
+		byteCount = 3;
 	else if(firstByte < 248)
-		numBytes = 4;
+		byteCount = 4;
 	else if(firstByte < 252)
-		numBytes = 5;
+		byteCount = 5;
 	else // < 256
-		numBytes = 6;
+		byteCount = 6;
 
 	// Not enough bytes were provided, invalid character
-	if((begin + numBytes) > end)
+	if((begin + byteCount) > end)
 	{
 		output = invalidChar;
 		return end;
@@ -38,7 +38,7 @@ T UTF8To32(T begin, T end, char32_t& output, char32_t invalidChar = 0)
 
 	// Decode the character
 	output = 0;
-	switch(numBytes)
+	switch(byteCount)
 	{
 	case 6:
 		output += (u8)(*begin);
@@ -73,17 +73,17 @@ T UTF8To32(T begin, T end, char32_t& output, char32_t invalidChar = 0)
 	}
 
 	constexpr u32 offsets[6] = { 0x00000000, 0x00003080, 0x000E2080, 0x03C82080, 0xFA082080, 0x82082080 };
-	output -= offsets[numBytes - 1];
+	output -= offsets[byteCount - 1];
 
 	return begin;
 }
 
 /** Converts an UTF-32 encoded character into an (possibly multibyte) UTF-8 character. */
 template <typename T>
-T UTF32To8(char32_t input, T output, u32 maxElems, char invalidChar = 0)
+T UTF32To8(char32_t input, T output, u32 maxElementCount, char invalidChar = 0)
 {
 	// No place to write the character
-	if(maxElems == 0)
+	if(maxElementCount == 0)
 		return output;
 
 	// Check if character is valid
@@ -96,18 +96,18 @@ T UTF32To8(char32_t input, T output, u32 maxElems, char invalidChar = 0)
 	}
 
 	// Determine the number of bytes used by the character
-	u32 numBytes;
+	u32 byteCount;
 	if(input < 0x80)
-		numBytes = 1;
+		byteCount = 1;
 	else if(input < 0x800)
-		numBytes = 2;
+		byteCount = 2;
 	else if(input < 0x10000)
-		numBytes = 3;
+		byteCount = 3;
 	else // <= 0x0010FFFF
-		numBytes = 4;
+		byteCount = 4;
 
 	// Check if we have enough space
-	if(numBytes > maxElems)
+	if(byteCount > maxElementCount)
 	{
 		*output = invalidChar;
 		++output;
@@ -119,7 +119,7 @@ T UTF32To8(char32_t input, T output, u32 maxElems, char invalidChar = 0)
 	constexpr u8 headers[7] = { 0x00, 0x00, 0xC0, 0xE0, 0xF0, 0xF8, 0xFC };
 
 	char bytes[4];
-	switch(numBytes)
+	switch(byteCount)
 	{
 	case 4:
 		bytes[3] = (char)((input | 0x80) & 0xBF);
@@ -133,11 +133,11 @@ T UTF32To8(char32_t input, T output, u32 maxElems, char invalidChar = 0)
 		bytes[1] = (char)((input | 0x80) & 0xBF);
 		input >>= 6;
 		B3D_FALLTHROUGH;
-	case 1: bytes[0] = (char)(input | headers[numBytes]); B3D_FALLTHROUGH;
+	case 1: bytes[0] = (char)(input | headers[byteCount]); B3D_FALLTHROUGH;
 	default: break;
 	}
 
-	output = std::copy(bytes, bytes + numBytes, output);
+	output = std::copy(bytes, bytes + byteCount, output);
 	return output;
 }
 
@@ -181,10 +181,10 @@ T UTF16To32(T begin, T end, char32_t& output, char32_t invalidChar = 0)
 
 /** Converts an UTF-32 encoded character into an UTF-16 character. */
 template <typename T>
-T UTF32To16(char32_t input, T output, u32 maxElems, char16_t invalidChar = 0)
+T UTF32To16(char32_t input, T output, u32 maxElementCount, char16_t invalidChar = 0)
 {
 	// No place to write the character
-	if(maxElems == 0)
+	if(maxElementCount == 0)
 		return output;
 
 	// Invalid character
@@ -214,7 +214,7 @@ T UTF32To16(char32_t input, T output, u32 maxElems, char16_t invalidChar = 0)
 	else // Must be encoded as two elements
 	{
 		// Two elements won't fit
-		if(maxElems < 2)
+		if(maxElementCount < 2)
 		{
 			*output = invalidChar;
 			++output;
@@ -263,7 +263,7 @@ char32_t ANSIToUTF32(char input, const std::locale& locale = std::locale(""))
 }
 
 template <typename T>
-T UTF32ToWide(char32_t input, T output, u32 maxElems, wchar_t invalidChar = 0)
+T UTF32ToWide(char32_t input, T output, u32 maxElementCount, wchar_t invalidChar = 0)
 {
 	if(sizeof(wchar_t) == 4) // Assuming UTF-32 (i.e. Unix)
 	{
@@ -273,7 +273,7 @@ T UTF32ToWide(char32_t input, T output, u32 maxElems, wchar_t invalidChar = 0)
 		return output;
 	}
 	else // Assuming UTF-16 (i.e. Windows)
-		return UTF32To16(input, output, maxElems, invalidChar);
+		return UTF32To16(input, output, maxElementCount, invalidChar);
 }
 
 char UTF32ToANSI(char32_t input, char invalidChar = 0, const std::locale& locale = std::locale(""))
@@ -426,44 +426,44 @@ U32String UTF8::ToUtF32(const String& input)
 u32 UTF8::Count(const String& input)
 {
 	u32 length = 0;
-	for(char i : input)
+	for(char character : input)
 	{
 		// Include only characters that don't start with bits 10
-		length += (i & 0xc0) != 0x80;
+		length += (character & 0xc0) != 0x80;
 	}
 
 	return length;
 }
 
-u32 UTF8::CharToByteIndex(const String& input, u32 charIdx)
+u32 UTF8::CharToByteIndex(const String& input, u32 characterIndex)
 {
-	u32 curChar = 0;
-	u32 curByte = 0;
-	for(char i : input)
+	u32 currentCharacter = 0;
+	u32 currentByte = 0;
+	for(char character : input)
 	{
 		// Include only characters that don't start with bits 10
-		if((i & 0xc0) != 0x80)
+		if((character & 0xc0) != 0x80)
 		{
-			if(curChar == charIdx)
-				return curByte;
+			if(currentCharacter == characterIndex)
+				return currentByte;
 
-			curChar++;
+			currentCharacter++;
 		}
 
-		curByte++;
+		currentByte++;
 	}
 
 	return (u32)input.size();
 }
 
-u32 UTF8::CharByteCount(const String& input, u32 charIdx)
+u32 UTF8::CharByteCount(const String& input, u32 characterIndex)
 {
-	const u32 byteIdx = CharToByteIndex(input, charIdx);
+	const u32 byteIndex = CharToByteIndex(input, characterIndex);
 
 	u32 count = 1;
-	for(auto i = (size_t)byteIdx + 1; i < input.size(); i++)
+	for(auto byteIt = (size_t)byteIndex + 1; byteIt < input.size(); byteIt++)
 	{
-		if((i & 0xc0) != 0x80)
+		if((byteIt & 0xc0) != 0x80)
 			break;
 
 		count++;

@@ -40,122 +40,122 @@ UUID::UUID(const String& uuid)
 	if(uuid.size() < 36)
 		return;
 
-	u32 idx = 0;
+	u32 index = 0;
 
 	// First group: 8 digits
-	for(i32 i = 7; i >= 0; --i)
+	for(i32 digitIndex = 7; digitIndex >= 0; --digitIndex)
 	{
-		char charVal = uuid[idx++];
-		u8 hexVal = kLiteralToHex[(int)charVal];
+		char character = uuid[index++];
+		u8 hexValue = kLiteralToHex[(int)character];
 
-		mData[0] |= hexVal << (i * 4);
+		mData[0] |= hexValue << (digitIndex * 4);
 	}
 
-	idx++;
+	index++;
 
 	// Second group: 4 digits
-	for(i32 i = 7; i >= 4; --i)
+	for(i32 digitIndex = 7; digitIndex >= 4; --digitIndex)
 	{
-		char charVal = uuid[idx++];
-		u8 hexVal = kLiteralToHex[(int)charVal];
+		char character = uuid[index++];
+		u8 hexValue = kLiteralToHex[(int)character];
 
-		mData[1] |= hexVal << (i * 4);
+		mData[1] |= hexValue << (digitIndex * 4);
 	}
 
-	idx++;
+	index++;
 
 	// Third group: 4 digits
-	for(i32 i = 3; i >= 0; --i)
+	for(i32 digitIndex = 3; digitIndex >= 0; --digitIndex)
 	{
-		char charVal = uuid[idx++];
-		u8 hexVal = kLiteralToHex[(int)charVal];
+		char character = uuid[index++];
+		u8 hexValue = kLiteralToHex[(int)character];
 
-		mData[1] |= hexVal << (i * 4);
+		mData[1] |= hexValue << (digitIndex * 4);
 	}
 
-	idx++;
+	index++;
 
 	// Fourth group: 4 digits
-	for(i32 i = 7; i >= 4; --i)
+	for(i32 digitIndex = 7; digitIndex >= 4; --digitIndex)
 	{
-		char charVal = uuid[idx++];
-		u8 hexVal = kLiteralToHex[(int)charVal];
+		char character = uuid[index++];
+		u8 hexValue = kLiteralToHex[(int)character];
 
-		mData[2] |= hexVal << (i * 4);
+		mData[2] |= hexValue << (digitIndex * 4);
 	}
 
-	idx++;
+	index++;
 
 	// Fifth group: 12 digits
-	for(i32 i = 3; i >= 0; --i)
+	for(i32 digitIndex = 3; digitIndex >= 0; --digitIndex)
 	{
-		char charVal = uuid[idx++];
-		u8 hexVal = kLiteralToHex[(int)charVal];
+		char character = uuid[index++];
+		u8 hexValue = kLiteralToHex[(int)character];
 
-		mData[2] |= hexVal << (i * 4);
+		mData[2] |= hexValue << (digitIndex * 4);
 	}
 
-	for(i32 i = 7; i >= 0; --i)
+	for(i32 digitIndex = 7; digitIndex >= 0; --digitIndex)
 	{
-		char charVal = uuid[idx++];
-		u8 hexVal = kLiteralToHex[(int)charVal];
+		char character = uuid[index++];
+		u8 hexValue = kLiteralToHex[(int)character];
 
-		mData[3] |= hexVal << (i * 4);
+		mData[3] |= hexValue << (digitIndex * 4);
 	}
 }
 
 String UUID::ToString() const
 {
 	u8 output[36];
-	u32 idx = 0;
+	u32 index = 0;
 
 	// First group: 8 digits
-	for(i32 i = 7; i >= 0; --i)
+	for(i32 digitIndex = 7; digitIndex >= 0; --digitIndex)
 	{
-		u32 hexVal = (mData[0] >> (i * 4)) & 0xF;
-		output[idx++] = kHexToLiteral[hexVal];
+		u32 hexValue = (mData[0] >> (digitIndex * 4)) & 0xF;
+		output[index++] = kHexToLiteral[hexValue];
 	}
 
-	output[idx++] = '-';
+	output[index++] = '-';
 
 	// Second group: 4 digits
-	for(i32 i = 7; i >= 4; --i)
+	for(i32 digitIndex = 7; digitIndex >= 4; --digitIndex)
 	{
-		u32 hexVal = (mData[1] >> (i * 4)) & 0xF;
-		output[idx++] = kHexToLiteral[hexVal];
+		u32 hexValue = (mData[1] >> (digitIndex * 4)) & 0xF;
+		output[index++] = kHexToLiteral[hexValue];
 	}
 
-	output[idx++] = '-';
+	output[index++] = '-';
 
 	// Third group: 4 digits
-	for(i32 i = 3; i >= 0; --i)
+	for(i32 digitIndex = 3; digitIndex >= 0; --digitIndex)
 	{
-		u32 hexVal = (mData[1] >> (i * 4)) & 0xF;
-		output[idx++] = kHexToLiteral[hexVal];
+		u32 hexValue = (mData[1] >> (digitIndex * 4)) & 0xF;
+		output[index++] = kHexToLiteral[hexValue];
 	}
 
-	output[idx++] = '-';
+	output[index++] = '-';
 
 	// Fourth group: 4 digits
-	for(i32 i = 7; i >= 4; --i)
+	for(i32 digitIndex = 7; digitIndex >= 4; --digitIndex)
 	{
-		u32 hexVal = (mData[2] >> (i * 4)) & 0xF;
-		output[idx++] = kHexToLiteral[hexVal];
+		u32 hexValue = (mData[2] >> (digitIndex * 4)) & 0xF;
+		output[index++] = kHexToLiteral[hexValue];
 	}
 
-	output[idx++] = '-';
+	output[index++] = '-';
 
 	// Fifth group: 12 digits
-	for(i32 i = 3; i >= 0; --i)
+	for(i32 digitIndex = 3; digitIndex >= 0; --digitIndex)
 	{
-		u32 hexVal = (mData[2] >> (i * 4)) & 0xF;
-		output[idx++] = kHexToLiteral[hexVal];
+		u32 hexValue = (mData[2] >> (digitIndex * 4)) & 0xF;
+		output[index++] = kHexToLiteral[hexValue];
 	}
 
-	for(i32 i = 7; i >= 0; --i)
+	for(i32 digitIndex = 7; digitIndex >= 0; --digitIndex)
 	{
-		u32 hexVal = (mData[3] >> (i * 4)) & 0xF;
-		output[idx++] = kHexToLiteral[hexVal];
+		u32 hexValue = (mData[3] >> (digitIndex * 4)) & 0xF;
+		output[index++] = kHexToLiteral[hexValue];
 	}
 
 	return String((const char*)output, 36);

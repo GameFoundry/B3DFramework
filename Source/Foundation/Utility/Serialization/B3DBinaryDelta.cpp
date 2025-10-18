@@ -58,17 +58,17 @@ bool SerializedTupleDelta::Equals(const SPtr<ISerialized>& other) const
 		if(Values.Size() != otherTuple->Values.Size())
 			return false;
 
-		for(auto myEntryIterator = Values.begin(); myEntryIterator != Values.end(); ++myEntryIterator)
+		for(auto it = Values.begin(); it != Values.end(); ++it)
 		{
-			auto foundOtherEntry = std::find_if(otherTuple->Values.begin(), otherTuple->Values.end(), [index = myEntryIterator->Index](const SerializedTupleEntryDelta& entry)
+			auto found = std::find_if(otherTuple->Values.begin(), otherTuple->Values.end(), [index = it->Index](const SerializedTupleEntryDelta& entry)
 			{
 				return entry.Index == index;
 			});
 
-			if(foundOtherEntry == otherTuple->Values.end())
+			if(found == otherTuple->Values.end())
 				return false;
 
-			if(!::Equals(myEntryIterator->Value, foundOtherEntry->Value))
+			if(!::Equals(it->Value, found->Value))
 				return false;
 		}
 
@@ -141,13 +141,13 @@ bool SerializedArrayDelta::Equals(const SPtr<ISerialized>& other) const
 		if(Entries.size() != otherArray->Entries.size())
 			return false;
 
-		for(auto myEntryIterator = Entries.begin(); myEntryIterator != Entries.end(); ++myEntryIterator)
+		for(auto it = Entries.begin(); it != Entries.end(); ++it)
 		{
-			auto foundOtherEntry = otherArray->Entries.find(myEntryIterator->first);
-			if(foundOtherEntry == otherArray->Entries.end())
+			auto found = otherArray->Entries.find(it->first);
+			if(found == otherArray->Entries.end())
 				return false;
 
-			if(!::Equals(myEntryIterator->second.Value, foundOtherEntry->second.Value))
+			if(!::Equals(it->second.Value, found->second.Value))
 				return false;
 		}
 
@@ -221,16 +221,16 @@ bool SerializedMapDelta::Equals(const SPtr<ISerialized>& other) const
 		if(Entries.size() != otherMap->Entries.size())
 			return false;
 
-		for(auto myEntryIterator = Entries.begin(); myEntryIterator != Entries.end(); ++myEntryIterator)
+		for(auto it = Entries.begin(); it != Entries.end(); ++it)
 		{
-			auto foundOtherEntry = otherMap->Entries.find(myEntryIterator->first);
-			if(foundOtherEntry == otherMap->Entries.end())
+			auto found = otherMap->Entries.find(it->first);
+			if(found == otherMap->Entries.end())
 				return false;
 
-			if(myEntryIterator->second.IsRemoved != foundOtherEntry->second.IsRemoved)
+			if(it->second.IsRemoved != found->second.IsRemoved)
 				return false;
 
-			if(!::Equals(myEntryIterator->second.Value, foundOtherEntry->second.Value))
+			if(!::Equals(it->second.Value, found->second.Value))
 				return false;
 		}
 
@@ -1175,16 +1175,16 @@ void BinaryDeltaHandler::GenerateDeltaCommandForFieldEntry(RTTIType* rttiInstanc
 		SPtr<ISerialized> serializedEntryDelta;
 		if(serializedTupleDelta != nullptr)
 		{
-			auto foundTupleEntry = std::find_if(serializedTupleDelta->Values.begin(), serializedTupleDelta->Values.end(),
+			auto found = std::find_if(serializedTupleDelta->Values.begin(), serializedTupleDelta->Values.end(),
 				[tupleElementIndex](const SerializedTupleEntryDelta& entry)
 				{
 					return entry.Index == tupleElementIndex;
 				});
 
-			if(foundTupleEntry == serializedTupleDelta->Values.end())
+			if(found == serializedTupleDelta->Values.end())
 				continue;
 
-			serializedEntryDelta = foundTupleEntry->Value;
+			serializedEntryDelta = found->Value;
 		}
 		else
 			serializedEntryDelta = entryDelta;

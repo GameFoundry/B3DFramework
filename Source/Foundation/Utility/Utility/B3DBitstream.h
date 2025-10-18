@@ -44,7 +44,7 @@ namespace b3d
 		 * Initializes a bitstream with some initial capacity. If more bytes than capacity is written, the bitstream will
 		 * grow its internal memory storage.
 		 *
-		 * @param[in]	capacity	Number of bytes to initially allocate for the internal memory storage.
+		 * @param	capacity	Number of bytes to initially allocate for the internal memory storage.
 		 */
 		Bitstream(uint32_t capacity);
 
@@ -53,10 +53,10 @@ namespace b3d
 		 * grow memory storage if capacity is exceeded. The user is responsible for keeping track and not writing outside
 		 * of buffer range.
 		 *
-		 * @param[in]	data	Address of the external memory buffer. The user is responsible of keeping this memory alive
-		 *						for the lifetime of the bitstream, as well as releasing it. Must have enough capacity to
-		 *						store @p count bits.
-		 * @param[in]	count	Size of the provided data, in bytes.
+		 * @param	data	Address of the external memory buffer. The user is responsible of keeping this memory alive
+		 *					for the lifetime of the bitstream, as well as releasing it. Must have enough capacity to
+		 *					store @p count bits.
+		 * @param	count	Size of the provided data, in bytes.
 		 */
 		Bitstream(QuantType* data, uint32_t count);
 
@@ -70,27 +70,27 @@ namespace b3d
 		/**
 		 * Writes bits from the provided buffer into the stream at the current cursor location and advances the cursor.
 		 *
-		 * @param[in]	data	Buffer to write the data from. Must have enough capacity to store @p count bits.
-		 * @param[in]	count	Number of bits to write.
-		 * @return				Number of bits written.
+		 * @param	data	Buffer to write the data from. Must have enough capacity to store @p count bits.
+		 * @param	count	Number of bits to write.
+		 * @return			Number of bits written.
 		 */
 		uint64_t WriteBits(const QuantType* data, uint64_t count);
 
 		/**
 		 * Reads bits from the stream into the provided buffer from the current cursor location and advances the cursor.
 		 *
-		 * @param[out]	data	Buffer to read the data from. Must have enough capacity to store @p count bits.
-		 * @param[in]	count	Number of bits to read.
-		 * @return				Number of bits read.
+		 * @param	outData	Buffer to read the data from. Must have enough capacity to store @p count bits.
+		 * @param	count	Number of bits to read.
+		 * @return			Number of bits read.
 		 */
-		uint64_t ReadBits(QuantType* data, uint64_t count);
+		uint64_t ReadBits(QuantType* outData, uint64_t count);
 
 		/**
 		 * Writes the provided data into the stream at the current cursor location and advances the cursor. This
 		 * will compress certain data types if possible (i.e. a boolean will be written as a single bit).
 		 *
-		 * @param[in]	value	Data to write.
-		 * @return				Number of bits written.
+		 * @param	value	Data to write.
+		 * @return			Number of bits written.
 		 */
 		template <class T>
 		uint64_t Write(const T& value);
@@ -99,30 +99,30 @@ namespace b3d
 		 * Reads bits from the stream previously written by write() and stores them into the provided object. Data is
 		 * read from the current cursor location and advances the cursor.
 		 *
-		 * @param[out]	value	Object to initialize with the read bits.
+		 * @param	outValue	Object to initialize with the read bits.
 		 * @return				Number of bits read.
 		 */
 		template <class T>
-		uint64_t Read(T& value);
+		uint64_t Read(T& outValue);
 
 		/** @copydoc Write(const T&) */
 		uint64_t Write(const bool& value);
 
 		/** @copydoc Read(T&) */
-		uint64_t Read(bool& value);
+		uint64_t Read(bool& outValue);
 
 		/** @copydoc Write(const T&) */
 		uint64_t Write(const String& value);
 
 		/** @copydoc Read(T&) */
-		uint64_t Read(String& value);
+		uint64_t Read(String& outValue);
 
 		/**
 		 * Writes the provided data into the stream at the current cursor location and advances the cursor.
 		 * Unlike write() this function always writes the full object size (i.e. sizeof(T)).
 		 *
-		 * @param[in]	value	Data to write.
-		 * @return				Number of bytes written.
+		 * @param	value	Data to write.
+		 * @return			Number of bytes written.
 		 */
 		template <class T>
 		uint32_t WriteBytes(const T& value);
@@ -131,29 +131,29 @@ namespace b3d
 		 * Reads bits from the stream previously written by writeBytes() and stores them into the provided object. Data is
 		 * read from the current cursor location and advances the cursor.
 		 *
-		 * @param[out]	value	Object to initialize with the read bits.
+		 * @param	outValue	Object to initialize with the read bits.
 		 * @return				Number of bytes read.
 		 */
 		template <class T>
-		uint32_t ReadBytes(T& value);
+		uint32_t ReadBytes(T& outValue);
 
 		/**
 		 * Writes bytes from the provided buffer into the stream at the current cursor location and advances the cursor.
 		 *
-		 * @param[in]	data	Buffer to write the data from. Must have enough capacity to store @p count bytes.
-		 * @param[in]	count	Number of bytes to write.
-		 * @return				Number of bytes written.
+		 * @param	data	Buffer to write the data from. Must have enough capacity to store @p count bytes.
+		 * @param	count	Number of bytes to write.
+		 * @return			Number of bytes written.
 		 */
 		uint32_t WriteBytes(const QuantType* data, uint32_t count);
 
 		/**
 		 * Reads bytes from the stream into the provided buffer from the current cursor location and advances the cursor.
 		 *
-		 * @param[out]	data	Buffer to read the data from. Must have enough capacity to store @p count bytes.
-		 * @param[in]	count	Number of bytes to read.
-		 * @return				Number of bytes read.
+		 * @param	outData	Buffer to read the data from. Must have enough capacity to store @p count bytes.
+		 * @param	count	Number of bytes to read.
+		 * @return			Number of bytes read.
 		 */
-		uint32_t ReadBytes(QuantType* data, uint32_t count);
+		uint32_t ReadBytes(QuantType* outData, uint32_t count);
 
 		/**
 		 * Checks if the provided value differs from the last provided value, and if they are equivalent writes just a
@@ -164,13 +164,13 @@ namespace b3d
 
 		/** Reads the data written by writeDelta() from the current cursor location and advances the cursor. */
 		template <class T>
-		uint64_t ReadDelta(T& value, const T& lastValue);
+		uint64_t ReadDelta(T& outValue, const T& lastValue);
 
 		/** @copydoc WriteDelta(const T&, const T&) */
 		uint32_t WriteDelta(bool value, bool lastValue);
 
 		/** @copydoc ReadDelta(T&, const T&) */
-		uint32_t ReadDelta(bool& value, bool lastValue);
+		uint32_t ReadDelta(bool& outValue, bool lastValue);
 
 		/**
 		 * Encodes a 32-bit integer value as a base-128 varint and writes it to the stream. Write is performed at the
@@ -205,28 +205,28 @@ namespace b3d
 		 * current cursor location and advances the cursor. Varints are a method of serializing integers using one or
 		 * more bytes, where smaller values use less bytes. Returns the number of bits written.
 		 */
-		uint32_t ReadVarInt(uint32_t& value);
+		uint32_t ReadVarInt(uint32_t& outValue);
 
 		/**
 		 * Decodes a 32-bit integer value encoded as a base-128 varint from the stream. Read is performed at the
 		 * current cursor location and advances the cursor. Varints are a method of serializing integers using one or
 		 * more bytes, where smaller values use less bytes. Returns the number of bits written.
 		 */
-		uint32_t ReadVarInt(int32_t& value);
+		uint32_t ReadVarInt(int32_t& outValue);
 
 		/**
 		 * Decodes a 32-bit integer value encoded as a base-128 varint from the stream. Read is performed at the
 		 * current cursor location and advances the cursor. Varints are a method of serializing integers using one or
 		 * more bytes, where smaller values use less bytes. Returns the number of bits written.
 		 */
-		uint32_t ReadVarInt(uint64_t& value);
+		uint32_t ReadVarInt(uint64_t& outValue);
 
 		/**
 		 * Decodes a 32-bit integer value encoded as a base-128 varint from the stream. Read is performed at the
 		 * current cursor location and advances the cursor. Varints are a method of serializing integers using one or
 		 * more bytes, where smaller values use less bytes. Returns the number of bits written.
 		 */
-		uint32_t ReadVarInt(int64_t& value);
+		uint32_t ReadVarInt(int64_t& outValue);
 
 		/**
 		 * Checks if the provided value differs from the last provided value, and if they are equivalent writes just a
@@ -241,7 +241,7 @@ namespace b3d
 		 * Returns the number of bits read.
 		 */
 		template <class T>
-		uint32_t ReadVarIntDelta(T& value, const T& lastValue);
+		uint32_t ReadVarIntDelta(T& outValue, const T& lastValue);
 
 		/**
 		 * Encodes a float in range [0, 1] into a fixed point representation using a specific number of bits, and writes it
@@ -253,7 +253,7 @@ namespace b3d
 		 * Decodes a float encoded using writeNorm(float, uint32_t). Read is performed at the current cursor location and
 		 * advances the cursor. Same number of bits need to be used as when the float was encoded.
 		 */
-		void ReadNorm(float& value, uint32_t bits = 16);
+		void ReadNorm(float& outValue, uint32_t bits = 16);
 
 		/**
 		 * Encodes a 3D vector with individual components in range [-1, 1] into a fixed point representation where each
@@ -266,7 +266,7 @@ namespace b3d
 		 * Decodes a 3D vector encoded using writeNorm(Vector3, uint32_t). Read is performed at the current cursor location
 		 * and advances the cursor. Same number of bits need to be used as when the float was encoded.
 		 */
-		void ReadNorm(Vector3& value, uint32_t bits = 16);
+		void ReadNorm(Vector3& outValue, uint32_t bits = 16);
 
 		/**
 		 * Encodes a quaternion with individual components in range [-1, 1] into a fixed point representation where each
@@ -279,7 +279,7 @@ namespace b3d
 		 * Decodes a quaternion encoded using writeNorm(Quaternion, uint32_t). Read is performed at the current cursor
 		 * location and advances the cursor. Same number of bits need to be used as when the float was encoded.
 		 */
-		void ReadNorm(Quaternion& value, uint32_t bits = 16);
+		void ReadNorm(Quaternion& outValue, uint32_t bits = 16);
 
 		/**
 		 * Checks if the provided value differs from the last provided value, and if they are equivalent writes just a
@@ -290,7 +290,7 @@ namespace b3d
 
 		/** Reads the data written by writeNormDelta() from the current cursor location and advances the cursor. */
 		template <class T>
-		void ReadNormDelta(T& value, const T& lastValue, uint32_t bits = 16);
+		void ReadNormDelta(T& outValue, const T& lastValue, uint32_t bits = 16);
 
 		/**
 		 * Encodes an integer in a specific range, using the range the reduce the number of bits required, and writes it
@@ -306,7 +306,7 @@ namespace b3d
 		 * number of bits read.
 		 */
 		template <class T>
-		uint32_t ReadRange(T& value, const T& min, const T& max);
+		uint32_t ReadRange(T& outValue, const T& min, const T& max);
 
 		/**
 		 * Checks if the provided value differs from the last provided value, and if they are equivalent writes just a
@@ -321,7 +321,7 @@ namespace b3d
 		 * location and advances the cursor. Returns the number of bits read.
 		 */
 		template <class T>
-		uint32_t ReadRangeDelta(T& value, const T& lastValue, const T& min, const T& max);
+		uint32_t ReadRangeDelta(T& outValue, const T& lastValue, const T& min, const T& max);
 
 		/**
 		 * Encodes a float in a specific range into a fixed point representation using a specific number of bits, and
@@ -334,7 +334,7 @@ namespace b3d
 		 * location and advances the cursor. Same number of bits, and the same range needs to be used as when the float was
 		 * encoded.
 		 */
-		void ReadRange(float& value, float min, float max, uint32_t bits = 16);
+		void ReadRange(float& outValue, float min, float max, uint32_t bits = 16);
 
 		/**
 		 * Checks if the provided value differs from the last provided value, and if they are equivalent writes just a
@@ -347,7 +347,7 @@ namespace b3d
 		 * Reads the data written by writeRangeDelta(float, float, float, float, uint32_t) from the current cursor
 		 * location and advances the cursor.
 		 */
-		void ReadRangeDelta(float& value, float lastValue, float min, float max, uint32_t bits = 16);
+		void ReadRangeDelta(float& outValue, float lastValue, float min, float max, uint32_t bits = 16);
 
 		/**
 		 * Skip a defined number of bits, moving the read/write cursor by this amount. This can also be a negative value,
@@ -540,7 +540,7 @@ namespace b3d
 		return count;
 	}
 
-	inline uint64_t Bitstream::ReadBits(QuantType* data, uint64_t count)
+	inline uint64_t Bitstream::ReadBits(QuantType* outData, uint64_t count)
 	{
 		if(count == 0)
 			return 0;
@@ -556,9 +556,9 @@ namespace b3d
 		if(srcBitsMod == 0)
 		{
 			uint64_t numQuants = remaining >> kBitsPerQuantLoG2;
-			memcpy(data, &mData[srcQuant], numQuants * kBytesPerQuant);
+			memcpy(outData, &mData[srcQuant], numQuants * kBytesPerQuant);
 
-			data += numQuants;
+			outData += numQuants;
 			remaining -= numQuants * kBitsPerQuant;
 			srcQuant += numQuants;
 		}
@@ -566,8 +566,8 @@ namespace b3d
 		// Read remaining bits (or all bits if source wasn't aligned)
 		while(remaining > 0)
 		{
-			QuantType& quant = *data;
-			data++;
+			QuantType& quant = *outData;
+			outData++;
 
 			quant = 0;
 			quant |= mData[srcQuant] >> srcBitsMod;
@@ -591,10 +591,10 @@ namespace b3d
 	}
 
 	template <class T>
-	uint64_t Bitstream::Read(T& value)
+	uint64_t Bitstream::Read(T& outValue)
 	{
-		QuantType* temp = (QuantType*)&value;
-		return ReadBits(temp, sizeof(value) * 8);
+		QuantType* temp = (QuantType*)&outValue;
+		return ReadBits(temp, sizeof(outValue) * 8);
 	}
 
 	inline uint64_t Bitstream::Write(const bool& value)
@@ -615,14 +615,14 @@ namespace b3d
 		return 1;
 	}
 
-	inline uint64_t Bitstream::Read(bool& value)
+	inline uint64_t Bitstream::Read(bool& outValue)
 	{
 		B3D_ASSERT((mCursor + 1) <= mNumBits);
 
 		uint64_t srcBitsMod = mCursor & (kBitsPerQuant - 1);
 		uint64_t srcQuant = mCursor >> kBitsPerQuantLoG2;
 
-		value = (mData[srcQuant] >> srcBitsMod) & 0x1;
+		outValue = (mData[srcQuant] >> srcBitsMod) & 0x1;
 		mCursor++;
 
 		return 1;
@@ -637,14 +637,14 @@ namespace b3d
 		return written;
 	}
 
-	inline uint64_t Bitstream::Read(String& value)
+	inline uint64_t Bitstream::Read(String& outValue)
 	{
 		uint32_t length;
 		uint64_t read = ReadVarInt(length);
 
-		value.resize(length);
+		outValue.resize(length);
 
-		QuantType* temp = (QuantType*)value.data();
+		QuantType* temp = (QuantType*)outValue.data();
 		read += ReadBits(temp, (uint64_t)length * 8);
 
 		return read;
@@ -660,10 +660,10 @@ namespace b3d
 	}
 
 	template <class T>
-	uint32_t Bitstream::ReadBytes(T& value)
+	uint32_t Bitstream::ReadBytes(T& outValue)
 	{
-		QuantType* temp = (QuantType*)&value;
-		uint64_t numBits = ReadBits(temp, sizeof(value) * 8);
+		QuantType* temp = (QuantType*)&outValue;
+		uint64_t numBits = ReadBits(temp, sizeof(outValue) * 8);
 		B3D_ASSERT((numBits % 8) == 0);
 
 		return (uint32_t)(numBits / 8);
@@ -674,9 +674,9 @@ namespace b3d
 		return (uint32_t)(WriteBits(data, (uint64_t)count * 8) / 8);
 	}
 
-	inline uint32_t Bitstream::ReadBytes(QuantType* data, uint32_t count)
+	inline uint32_t Bitstream::ReadBytes(QuantType* outData, uint32_t count)
 	{
-		return (uint32_t)(ReadBits(data, (uint64_t)count * 8) / 8);
+		return (uint32_t)(ReadBits(outData, (uint64_t)count * 8) / 8);
 	}
 
 	template <class T>
@@ -685,22 +685,22 @@ namespace b3d
 		if(value == lastValue)
 			return Write(true);
 		else
-			return Write(false) + write(value);
+			return Write(false) + Write(value);
 	}
 
 	template <class T>
-	uint64_t Bitstream::ReadDelta(T& value, const T& lastValue)
+	uint64_t Bitstream::ReadDelta(T& outValue, const T& lastValue)
 	{
 		bool clean;
 		Read(clean);
 
 		if(clean)
 		{
-			value = lastValue;
+			outValue = lastValue;
 			return 1;
 		}
 		else
-			return read(value) + 1;
+			return Read(outValue) + 1;
 	}
 
 	inline uint32_t Bitstream::WriteDelta(bool value, bool lastValue)
@@ -708,9 +708,9 @@ namespace b3d
 		return (uint32_t)Write(value);
 	}
 
-	inline uint32_t Bitstream::ReadDelta(bool& value, bool lastValue)
+	inline uint32_t Bitstream::ReadDelta(bool& outValue, bool lastValue)
 	{
-		return (uint32_t)Read(value);
+		return (uint32_t)Read(outValue);
 	}
 
 	inline uint32_t Bitstream::WriteVarInt(uint32_t value)
@@ -745,63 +745,63 @@ namespace b3d
 		return (uint32_t)WriteBits(output, (uint64_t)count * 8);
 	}
 
-	inline uint32_t Bitstream::ReadVarInt(uint32_t& value)
+	inline uint32_t Bitstream::ReadVarInt(uint32_t& outValue)
 	{
 		uint32_t read = 0;
 		uint8_t output[5];
-		for(uint32_t i = 0; i < 5; i++)
+		for(uint32_t outputIndex = 0; outputIndex < 5; outputIndex++)
 		{
-			read += (uint32_t)ReadBits(&output[i], 8);
-			if((output[i] & 0x80) == 0)
+			read += (uint32_t)ReadBits(&output[outputIndex], 8);
+			if((output[outputIndex] & 0x80) == 0)
 				break;
 		}
 
-		Bitwise::DecodeVarInt(value, output, 5);
+		Bitwise::DecodeVarInt(outValue, output, 5);
 		return read;
 	}
 
-	inline uint32_t Bitstream::ReadVarInt(int32_t& value)
+	inline uint32_t Bitstream::ReadVarInt(int32_t& outValue)
 	{
 		uint32_t read = 0;
 		uint8_t output[5];
-		for(uint32_t i = 0; i < 5; i++)
+		for(uint32_t outputIndex = 0; outputIndex < 5; outputIndex++)
 		{
-			read += (uint32_t)ReadBits(&output[i], 8);
-			if((output[i] & 0x80) == 0)
+			read += (uint32_t)ReadBits(&output[outputIndex], 8);
+			if((output[outputIndex] & 0x80) == 0)
 				break;
 		}
 
-		Bitwise::DecodeVarInt(value, output, 5);
+		Bitwise::DecodeVarInt(outValue, output, 5);
 		return read;
 	}
 
-	inline uint32_t Bitstream::ReadVarInt(uint64_t& value)
+	inline uint32_t Bitstream::ReadVarInt(uint64_t& outValue)
 	{
 		uint32_t read = 0;
 		uint8_t output[10];
-		for(uint32_t i = 0; i < 10; i++)
+		for(uint32_t outputIndex = 0; outputIndex < 10; outputIndex++)
 		{
-			read += (uint32_t)ReadBits(&output[i], 8);
-			if((output[i] & 0x80) == 0)
+			read += (uint32_t)ReadBits(&output[outputIndex], 8);
+			if((output[outputIndex] & 0x80) == 0)
 				break;
 		}
 
-		Bitwise::DecodeVarInt(value, output, 10);
+		Bitwise::DecodeVarInt(outValue, output, 10);
 		return read;
 	}
 
-	inline uint32_t Bitstream::ReadVarInt(int64_t& value)
+	inline uint32_t Bitstream::ReadVarInt(int64_t& outValue)
 	{
 		uint32_t read = 0;
 		uint8_t output[10];
-		for(uint32_t i = 0; i < 10; i++)
+		for(uint32_t outputIndex = 0; outputIndex < 10; outputIndex++)
 		{
-			read += (uint32_t)ReadBits(&output[i], 8);
-			if((output[i] & 0x80) == 0)
+			read += (uint32_t)ReadBits(&output[outputIndex], 8);
+			if((output[outputIndex] & 0x80) == 0)
 				break;
 		}
 
-		Bitwise::DecodeVarInt(value, output, 10);
+		Bitwise::DecodeVarInt(outValue, output, 10);
 		return read;
 	}
 
@@ -821,18 +821,18 @@ namespace b3d
 	}
 
 	template <class T>
-	uint32_t Bitstream::ReadVarIntDelta(T& value, const T& lastValue)
+	uint32_t Bitstream::ReadVarIntDelta(T& outValue, const T& lastValue)
 	{
 		bool clean;
 		Read(clean);
 
 		if(clean)
 		{
-			value = lastValue;
+			outValue = lastValue;
 			return 1;
 		}
 		else
-			return ReadVarInt(value) + 1;
+			return ReadVarInt(outValue) + 1;
 	}
 
 	inline void Bitstream::WriteNorm(float value, uint32_t bits)
@@ -841,11 +841,11 @@ namespace b3d
 		WriteBits((QuantType*)&encodedVal, bits);
 	}
 
-	inline void Bitstream::ReadNorm(float& value, uint32_t bits)
+	inline void Bitstream::ReadNorm(float& outValue, uint32_t bits)
 	{
 		uint32_t encodedVal = 0;
 		ReadBits((QuantType*)&encodedVal, bits);
-		value = Bitwise::UintToUnorm(encodedVal, bits);
+		outValue = Bitwise::UintToUnorm(encodedVal, bits);
 	}
 
 	inline void Bitstream::WriteNorm(const Vector3& value, uint32_t bits)
@@ -855,11 +855,11 @@ namespace b3d
 		WriteRange(value.Z, -1.0f, 1.0f, bits);
 	}
 
-	inline void Bitstream::ReadNorm(Vector3& value, uint32_t bits)
+	inline void Bitstream::ReadNorm(Vector3& outValue, uint32_t bits)
 	{
-		ReadRange(value.X, -1.0f, 1.0f, bits);
-		ReadRange(value.Y, -1.0f, 1.0f, bits);
-		ReadRange(value.Z, -1.0f, 1.0f, bits);
+		ReadRange(outValue.X, -1.0f, 1.0f, bits);
+		ReadRange(outValue.Y, -1.0f, 1.0f, bits);
+		ReadRange(outValue.Z, -1.0f, 1.0f, bits);
 	}
 
 	inline void Bitstream::WriteNorm(const Quaternion& value, uint32_t bits)
@@ -870,12 +870,12 @@ namespace b3d
 		WriteRange(value.W, -1.0f, 1.0f, bits);
 	}
 
-	inline void Bitstream::ReadNorm(Quaternion& value, uint32_t bits)
+	inline void Bitstream::ReadNorm(Quaternion& outValue, uint32_t bits)
 	{
-		ReadRange(value.X, -1.0f, 1.0f, bits);
-		ReadRange(value.Y, -1.0f, 1.0f, bits);
-		ReadRange(value.Z, -1.0f, 1.0f, bits);
-		ReadRange(value.W, -1.0f, 1.0f, bits);
+		ReadRange(outValue.X, -1.0f, 1.0f, bits);
+		ReadRange(outValue.Y, -1.0f, 1.0f, bits);
+		ReadRange(outValue.Z, -1.0f, 1.0f, bits);
+		ReadRange(outValue.W, -1.0f, 1.0f, bits);
 	}
 
 	template <class T>
@@ -891,15 +891,15 @@ namespace b3d
 	}
 
 	template <class T>
-	void Bitstream::ReadNormDelta(T& value, const T& lastValue, uint32_t bits)
+	void Bitstream::ReadNormDelta(T& outValue, const T& lastValue, uint32_t bits)
 	{
 		bool clean;
 		Read(clean);
 
 		if(clean)
-			value = lastValue;
+			outValue = lastValue;
 		else
-			ReadNorm(value, bits);
+			ReadNorm(outValue, bits);
 	}
 
 	template <class T>
@@ -915,14 +915,14 @@ namespace b3d
 	}
 
 	template <class T>
-	uint32_t Bitstream::ReadRange(T& value, const T& min, const T& max)
+	uint32_t Bitstream::ReadRange(T& outValue, const T& min, const T& max)
 	{
 		T range = max - min;
 		uint32_t bits = Bitwise::MostSignificantBit(range) + 1;
 
-		value = 0;
-		ReadBits((QuantType*)&value, bits);
-		value += min;
+		outValue = 0;
+		ReadBits((QuantType*)&outValue, bits);
+		outValue += min;
 
 		return bits;
 	}
@@ -943,18 +943,18 @@ namespace b3d
 	}
 
 	template <class T>
-	uint32_t Bitstream::ReadRangeDelta(T& value, const T& lastValue, const T& min, const T& max)
+	uint32_t Bitstream::ReadRangeDelta(T& outValue, const T& lastValue, const T& min, const T& max)
 	{
 		bool clean;
 		Read(clean);
 
 		if(clean)
 		{
-			value = lastValue;
+			outValue = lastValue;
 			return 1;
 		}
 		else
-			return ReadRange(value, min, max) + 1;
+			return ReadRange(outValue, min, max) + 1;
 	}
 
 	inline void Bitstream::WriteRange(float value, float min, float max, uint32_t bits)
@@ -963,12 +963,12 @@ namespace b3d
 		WriteNorm(pct, bits);
 	}
 
-	inline void Bitstream::ReadRange(float& value, float min, float max, uint32_t bits)
+	inline void Bitstream::ReadRange(float& outValue, float min, float max, uint32_t bits)
 	{
 		float pct;
 		ReadNorm(pct, bits);
 
-		value = min + (max - min) * pct;
+		outValue = min + (max - min) * pct;
 	}
 
 	inline void Bitstream::WriteRangeDelta(float value, float lastValue, float min, float max, uint32_t bits)
@@ -982,15 +982,15 @@ namespace b3d
 		}
 	}
 
-	inline void Bitstream::ReadRangeDelta(float& value, float lastValue, float min, float max, uint32_t bits)
+	inline void Bitstream::ReadRangeDelta(float& outValue, float lastValue, float min, float max, uint32_t bits)
 	{
 		bool clean;
 		Read(clean);
 
 		if(clean)
-			value = lastValue;
+			outValue = lastValue;
 		else
-			ReadRange(value, min, max, bits);
+			ReadRange(outValue, min, max, bits);
 	}
 
 	inline void Bitstream::Skip(int64_t count)
@@ -1010,7 +1010,7 @@ namespace b3d
 
 		const u64 bitsToAlign = count * 8;
 		const u64 bitsToSkip = bitsToAlign - (((mCursor - 1) & (bitsToAlign - 1)) + 1);
-		Skip((i64)bitsToSkip);
+		Skip((int64_t)bitsToSkip);
 
 		return bitsToSkip;
 	}

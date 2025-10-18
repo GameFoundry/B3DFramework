@@ -97,7 +97,7 @@ void SceneTime::SetScale(float scale)
 	mTimeScale = Math::Max(0.0f, scale);
 }
 
-u32 SceneTime::GetFixedUpdateStep(u64& step)
+u32 SceneTime::GetFixedUpdateStep(u64& outStep)
 {
 	const u64 currentTime = GetTime().GetTimePrecise();
 
@@ -112,7 +112,7 @@ u32 SceneTime::GetFixedUpdateStep(u64& step)
 	if(nextFrameTime <= currentTime)
 	{
 		const i64 simulationAmount = (i64)std::max(currentTime - mLastFixedUpdateTime, mFixedStep); // At least one step
-		auto numIterations = (u32)Math::DivideAndRoundUp(simulationAmount, (i64)mFixedStep);
+		auto iterationCount = (u32)Math::DivideAndRoundUp(simulationAmount, (i64)mFixedStep);
 
 		// Prevent physics from completely hogging the CPU. If the framerate is low, the physics will want to run many
 		// iterations per frame, slowing down the game even further. Therefore we limit the number of physics updates
@@ -128,23 +128,23 @@ u32 SceneTime::GetFixedUpdateStep(u64& step)
 		// performance is consistently low (not just a spike), then the pool will get exhausted and physics updates
 		// will slow down to free up the CPU (at the cost of stability, but this time we have no other option).
 
-		auto stepus = (i64)mFixedStep;
-		if(numIterations > mRemainingFixedUpdateCount)
+		auto stepMicroseconds = (i64)mFixedStep;
+		if(iterationCount > mRemainingFixedUpdateCount)
 		{
-			stepus = Math::DivideAndRoundUp(simulationAmount, (i64)mRemainingFixedUpdateCount);
-			numIterations = (u32)Math::DivideAndRoundUp(simulationAmount, (i64)stepus);
+			stepMicroseconds = Math::DivideAndRoundUp(simulationAmount, (i64)mRemainingFixedUpdateCount);
+			iterationCount = (u32)Math::DivideAndRoundUp(simulationAmount, (i64)stepMicroseconds);
 		}
 
-		B3D_ASSERT(numIterations <= mRemainingFixedUpdateCount);
+		B3D_ASSERT(iterationCount <= mRemainingFixedUpdateCount);
 
-		mRemainingFixedUpdateCount -= numIterations;
+		mRemainingFixedUpdateCount -= iterationCount;
 		mRemainingFixedUpdateCount = std::min(kMaximumAccumulatedFixedUpdates, mRemainingFixedUpdateCount + kNewFixedUpdatesPerFrame);
 
-		step = stepus;
-		return numIterations;
+		outStep = stepMicroseconds;
+		return iterationCount;
 	}
 
-	step = 0;
+	outStep = 0;
 	return 0;
 }
 
