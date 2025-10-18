@@ -521,7 +521,7 @@ VkAccessFlags VulkanImage::GetAccessFlags(VkImageLayout layout, bool readOnly)
 	return accessFlags;
 }
 
-void VulkanImage::GetBarriers(const VkImageSubresourceRange& range, Vector<VkImageMemoryBarrier>& barriers)
+void VulkanImage::GetBarriers(const VkImageSubresourceRange& range, TArray<VkImageMemoryBarrier>& barriers)
 {
 	AssertIfNotVulkanSubmitThread();
 
@@ -548,8 +548,8 @@ void VulkanImage::GetBarriers(const VkImageSubresourceRange& range, Vector<VkIma
 
 	auto addNewBarrier = [&](VulkanImageSubresource* subresource, u32 face, u32 mip)
 	{
-		barriers.push_back(defaultBarrier);
-		VkImageMemoryBarrier* barrier = &barriers.back();
+		barriers.Add(defaultBarrier);
+		VkImageMemoryBarrier* barrier = &barriers.Back();
 
 		barrier->subresourceRange.baseArrayLayer = face;
 		barrier->subresourceRange.baseMipLevel = mip;

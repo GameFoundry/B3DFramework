@@ -151,19 +151,19 @@ void VulkanGpuCommandBufferPool::Reset()
 }
 
 template <class T>
-void GetPipelineStageFlags(const Vector<T>& barriers, VkPipelineStageFlags& src, VkPipelineStageFlags& dst)
+static void GetPipelineStageFlags(const TArray<T>& barriers, VkPipelineStageFlags& source, VkPipelineStageFlags& destination)
 {
 	for(auto& entry : barriers)
 	{
-		src |= VulkanUtility::GetPipelineStageFlags(entry.srcAccessMask);
-		dst |= VulkanUtility::GetPipelineStageFlags(entry.dstAccessMask);
+		source |= VulkanUtility::GetPipelineStageFlags(entry.srcAccessMask);
+		destination |= VulkanUtility::GetPipelineStageFlags(entry.dstAccessMask);
 	}
 
-	if(src == 0)
-		src = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
+	if(source == 0)
+		source = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
 
-	if(dst == 0)
-		dst = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+	if(destination == 0)
+		destination = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
 }
 
 const Color kDebugLabelColor = Color::kBansheeOrange;
@@ -868,7 +868,7 @@ void VulkanGpuCommandBuffer::DispatchCompute(u32 groupCountX, u32 groupCountY, u
 			return;
 
 		mResourceTracker.TrackResourceUse(pipeline, GpuAccessFlag::Read);
-		mComputePipeline->RegisterPipelineResources(*this);
+		mComputePipeline->RegisterShaderModuleResources(mResourceTracker);
 
 		vkCmdBindPipeline(mCommandBufferHandle, VK_PIPELINE_BIND_POINT_COMPUTE, pipeline->GetVulkanHandle());
 		mCmpPipelineRequiresBind = false;
@@ -1200,10 +1200,10 @@ GpuCommandBufferSubmitInformation VulkanGpuCommandBuffer::PrepareForSubmitOnSubm
 		const GpuQueueUsage oldQueueUsage = resource->GetOwnedQueueType();
 		if(oldQueueUsage != GQT_UNKNOWN && oldQueueUsage != queueUsage)
 		{
-			Vector<VkBufferMemoryBarrier>& barriers = mTransitionInfoTemp[(i32)oldQueueUsage].BufferBarriers;
+			TArray<VkBufferMemoryBarrier>& barriers = mTransitionInfoTemp[(i32)oldQueueUsage].BufferBarriers;
 
-			barriers.push_back(VkBufferMemoryBarrier());
-			VkBufferMemoryBarrier& barrier = barriers.back();
+			barriers.Add(VkBufferMemoryBarrier());
+			VkBufferMemoryBarrier& barrier = barriers.Back();
 			barrier.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
 			barrier.pNext = nullptr;
 			barrier.srcAccessMask = 0;
@@ -1217,7 +1217,7 @@ GpuCommandBufferSubmitInformation VulkanGpuCommandBuffer::PrepareForSubmitOnSubm
 	}
 
 	// For images issue queue transitions, as above. Also issue layout transitions to their inital layouts.
-	Vector<VkImageMemoryBarrier>& localBarriers = mTransitionInfoTemp[(i32)queueUsage].ImageBarriers;
+	TArray<VkImageMemoryBarrier>& localBarriers = mTransitionInfoTemp[(i32)queueUsage].ImageBarriers;
 	for(auto& entry : mResourceTracker.GetImages())
 	{
 		VulkanImage* const image = static_cast<VulkanImage*>(entry.first);
@@ -1228,7 +1228,7 @@ GpuCommandBufferSubmitInformation VulkanGpuCommandBuffer::PrepareForSubmitOnSubm
 
 		if(queueMismatch)
 		{
-			Vector<VkImageMemoryBarrier>& barriers = mTransitionInfoTemp[(i32)oldQueueUsage].ImageBarriers;
+			TArray<VkImageMemoryBarrier>& barriers = mTransitionInfoTemp[(i32)oldQueueUsage].ImageBarriers;
 
 			for(const auto& subresourceTrackingState : subresourceTrackingStates)
 			{
@@ -1313,7 +1313,7 @@ GpuCommandBufferSubmitInformation VulkanGpuCommandBuffer::PrepareForSubmitOnSubm
 		const GpuQueueUsage transitionQueueUsage = (GpuQueueUsage)queueUsageIndex;
 		TransitionInfo& transitionInformation = mTransitionInfoTemp[queueUsageIndex];
 
-		bool empty = transitionInformation.ImageBarriers.empty() && transitionInformation.BufferBarriers.empty();
+		bool empty = transitionInformation.ImageBarriers.Empty() && transitionInformation.BufferBarriers.Empty();
 		if(empty)
 			continue;
 
@@ -1351,7 +1351,7 @@ GpuCommandBufferSubmitInformation VulkanGpuCommandBuffer::PrepareForSubmitOnSubm
 		const GpuQueueUsage transitionQueueUsage = (GpuQueueUsage)queueUsageIndex;
 		TransitionInfo& transitionInformation = mTransitionInfoTemp[queueUsageIndex];
 
-		bool empty = transitionInformation.ImageBarriers.empty() && transitionInformation.BufferBarriers.empty();
+		bool empty = transitionInformation.ImageBarriers.Empty() && transitionInformation.BufferBarriers.Empty();
 		if(empty)
 			continue;
 
@@ -1666,7 +1666,7 @@ bool VulkanGpuCommandBuffer::BindGraphicsPipeline()
 		}
 	}
 
-	mGraphicsPipeline->RegisterPipelineResources(*this);
+	mGraphicsPipeline->RegisterShaderModuleResources(mResourceTracker);
 	mResourceTracker.TrackResourceUse(pipeline, GpuAccessFlag::Read);
 
 	vkCmdBindPipeline(mCommandBufferHandle, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->GetVulkanHandle());
@@ -1786,50 +1786,13 @@ void VulkanGpuCommandBuffer::BindGpuParams()
 
 void VulkanGpuCommandBuffer::ExecuteLayoutTransitions()
 {
-	// TODO - Port this to use VulkanBarrierHelper, move it to VulkanResourceTracker
-
-	auto fnCreateLayoutTransitionBarrier = [this](VulkanImage* image)
-	{
-		TArrayView<VulkanResourceTracker::ImageSubresourceTrackingState> subresourceTrackingStates = mResourceTracker.GetSubresourceTrackingStatesForImage(image);
-
-		for(const auto& subresourceTrackingState : subresourceTrackingStates)
-		{
-			if(subresourceTrackingState.RequiredLayout == VK_IMAGE_LAYOUT_UNDEFINED ||
-			   subresourceTrackingState.CurrentLayout == subresourceTrackingState.RequiredLayout)
-				continue;
-
-			const bool isReadOnly =
-				!subresourceTrackingState.FramebufferUse.Access.IsSet(GpuAccessFlag::Write) &&
-				!subresourceTrackingState.ShaderUse.Access.IsSet(GpuAccessFlag::Write);
-
-			mLayoutTransitionBarriersTemp.push_back(VkImageMemoryBarrier());
-			VkImageMemoryBarrier& barrier = mLayoutTransitionBarriersTemp.back();
-			barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-			barrier.pNext = nullptr;
-			barrier.srcAccessMask = 0; // Not relevant for layout transition
-			barrier.dstAccessMask = image->GetAccessFlags(subresourceTrackingState.RequiredLayout, isReadOnly);
-			barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-			barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-			barrier.oldLayout = subresourceTrackingState.CurrentLayout;
-			barrier.newLayout = subresourceTrackingState.RequiredLayout;
-			barrier.image = image->GetVulkanHandle();
-			barrier.subresourceRange = subresourceTrackingState.Range;
-
-			subresourceTrackingState.CurrentLayout = subresourceTrackingState.RequiredLayout;
-		}
-	};
-
-	// Note: These layout transitions will contain transitions for offscreen framebuffer attachments (while they
-	// transition to shader read-only layout). This can be avoided, since they're immediately used by the render pass
-	// as color attachments, making the layout change redundant.
-	for(auto& entry : mResourceTracker.GetQueuedLayoutTransitions())
-		fnCreateLayoutTransitionBarrier(entry);
+	mResourceTracker.PopulateAndResetLayoutTransitions(mLayoutTransitionBarriersTemp);
 
 	VkPipelineStageFlags srcStage = 0;
 	VkPipelineStageFlags dstStage = 0;
 	::GetPipelineStageFlags(mLayoutTransitionBarriersTemp, srcStage, dstStage);
 
-	if(!mLayoutTransitionBarriersTemp.empty())
+	if(!mLayoutTransitionBarriersTemp.Empty())
 	{
 		vkCmdPipelineBarrier(
 			mCommandBufferHandle,
@@ -1920,6 +1883,8 @@ void VulkanGpuCommandBuffer::SetEvent(VulkanEvent* event)
 		mQueuedEvents.push_back(event);
 	else
 		vkCmdSetEvent(mCommandBufferHandle, event->GetVulkanHandle(), VK_PIPELINE_STAGE_ALL_COMMANDS_BIT);
+
+	mResourceTracker.TrackResourceUse(event, GpuAccessFlag::Read);
 }
 
 void VulkanGpuCommandBuffer::UpdateBuffer(VulkanBuffer* destination, u8* data, VkDeviceSize offset, VkDeviceSize length)

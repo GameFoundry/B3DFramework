@@ -175,7 +175,7 @@ namespace b3d
 			 *
 			 * @note	Submit thread only.
 			 */
-			void GetBarriers(const VkImageSubresourceRange& range, Vector<VkImageMemoryBarrier>& barriers);
+			void GetBarriers(const VkImageSubresourceRange& range, TArray<VkImageMemoryBarrier>& barriers);
 
 			/** Returns the subresource layout (pitch values in bytes) for a specific image subresource. */
 			VkSubresourceLayout GetSubresourceLayout(u32 face, u32 mipLevel) const;

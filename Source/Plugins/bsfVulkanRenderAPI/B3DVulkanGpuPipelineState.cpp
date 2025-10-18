@@ -287,7 +287,7 @@ VulkanPipeline* VulkanGpuGraphicsPipelineState::FindOrCreateVulkanResource(Vulka
 	return newPipeline;
 }
 
-void VulkanGpuGraphicsPipelineState::RegisterPipelineResources(VulkanGpuCommandBuffer& cmdBuffer)
+void VulkanGpuGraphicsPipelineState::RegisterShaderModuleResources(VulkanResourceTracker& resourceTracker)
 {
 	std::array<VulkanGpuProgram*, 5> programs = {
 		static_cast<VulkanGpuProgram*>(mData.VertexProgram.get()),
@@ -304,7 +304,7 @@ void VulkanGpuGraphicsPipelineState::RegisterPipelineResources(VulkanGpuCommandB
 			VulkanShaderModule* module = entry->GetVulkanResource();
 
 			if(module != nullptr)
-				cmdBuffer.RegisterResource(module, GpuAccessFlag::Read);
+				resourceTracker.TrackResourceUse(module, GpuAccessFlag::Read);
 		}
 	}
 }
@@ -497,7 +497,7 @@ void VulkanGpuComputePipelineState::Initialize()
 	B3D_INCREMENT_RENDER_STATISTIC_CATEGORY(ResCreated, RenderStatObject_PipelineState);
 }
 
-void VulkanGpuComputePipelineState::RegisterPipelineResources(VulkanGpuCommandBuffer& cmdBuffer)
+void VulkanGpuComputePipelineState::RegisterShaderModuleResources(VulkanResourceTracker& resourceTracker)
 {
 	VulkanGpuProgram* program = static_cast<VulkanGpuProgram*>(mData.Program.get());
 	if(program != nullptr)
@@ -505,6 +505,6 @@ void VulkanGpuComputePipelineState::RegisterPipelineResources(VulkanGpuCommandBu
 		VulkanShaderModule* module = program->GetVulkanResource();
 
 		if(module != nullptr)
-			cmdBuffer.RegisterResource(module, GpuAccessFlag::Read);
+			resourceTracker.TrackResourceUse(module, GpuAccessFlag::Read);
 	}
 }

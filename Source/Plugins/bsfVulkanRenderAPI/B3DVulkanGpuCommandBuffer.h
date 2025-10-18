@@ -546,7 +546,7 @@ namespace b3d
 			VkDeviceSize mVertexBufferOffsetsTemp[BS_MAX_BOUND_VERTEX_BUFFERS]{};
 			VkDescriptorSet* mDescriptorSetsTemp;
 			TransitionInfo mTransitionInfoTemp[GQT_COUNT];
-			Vector<VkImageMemoryBarrier> mLayoutTransitionBarriersTemp;
+			TArray<VkImageMemoryBarrier> mLayoutTransitionBarriersTemp;
 			Vector<VulkanEvent*> mQueuedEvents;
 			Vector<SwapChainImageInformation> mAcquiredSwapChainImages;
 			Vector<u32> mDynamicDescriptorOffsetsToBind;

@@ -6,6 +6,11 @@
 #include "B3DVulkanResource.h"
 #include "RenderAPI/B3DGpuPipelineState.h"
 
+namespace b3d::render
+{
+	class VulkanResourceTracker;
+}
+
 namespace b3d
 {
 	namespace render
@@ -75,10 +80,10 @@ namespace b3d
 			VkPipelineLayout GetPipelineLayoutHandle() const { return mPipelineLayout; }
 
 			/**
-			 * Registers any resources used by the pipeline with the provided command buffer. This should be called whenever
+			 * Registers any resources used by the pipeline with the provided command buffer resource tracker. This should be called whenever
 			 * a pipeline is bound to a command buffer.
 			 */
-			void RegisterPipelineResources(VulkanGpuCommandBuffer& cmdBuffer);
+			void RegisterShaderModuleResources(VulkanResourceTracker& resourceTracker);
 
 		protected:
 			/**
@@ -156,10 +161,10 @@ namespace b3d
 			VkPipelineLayout GetPipelineLayoutHandle() const { return mPipelineLayout; }
 
 			/**
-			 * Registers any resources used by the pipeline with the provided command buffer. This should be called whenever
+			 * Registers any resources used by the pipeline with the provided command buffer resource tracker. This should be called whenever
 			 * a pipeline is bound to a command buffer.
 			 */
-			void RegisterPipelineResources(VulkanGpuCommandBuffer& cmdBuffer);
+			void RegisterShaderModuleResources(VulkanResourceTracker& resourceTracker);
 
 		protected:
 			VulkanPipeline* mPipeline = nullptr;

@@ -206,6 +206,7 @@ namespace b3d::render
 		const ImageTrackingState* FindImageTrackingState(VulkanImage* image);
 		TArrayView<ImageSubresourceTrackingState> GetSubresourceTrackingStatesForImage(VulkanImage* image);
 		const ImageSubresourceTrackingState& GetSubresourceTrackingStateAtIndex(u32 globalSubresourceIndex) { return mSubresourceTrackingState[globalSubresourceIndex]; }
+		void PopulateAndResetLayoutTransitions(TArray<VkImageMemoryBarrier>& outBarriers);
 
 		/**
 		 * Lets the tracker know that the provided framebuffer has been queued on the associated command buffer. All associated attachment images

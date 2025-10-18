@@ -207,10 +207,10 @@ void VulkanResourceTracker::UpdateWriteHazardTrackingAfterBarrier(VulkanImage* i
 		ImageSubresourceTrackingState& subresourceTrackingState = callbackParameters->Self->mSubresourceTrackingState[globalSubresourceIndex];
 		WriteHazardTracking* const writeHazardTracking = subresourceTrackingState.WriteHazardTracking;
 
-		if(isReadOrWriteAfterWrite || isWriteAfterRead)
+		if(callbackParameters->IsReadOrWriteAfterWrite || callbackParameters->IsWriteAfterRead)
 			writeHazardTracking->ReadAccessStages.AddStageSafeAccess(callbackParameters->SourceStages, callbackParameters->DestinationStages);
 
-		if(isReadOrWriteAfterWrite)
+		if(callbackParameters->IsReadOrWriteAfterWrite)
 			writeHazardTracking->WriteAccessStages.AddStageSafeAccess(callbackParameters->SourceStages, callbackParameters->DestinationStages);
 
 	}, &callbackParameters);
@@ -811,11 +811,11 @@ void VulkanResourceTracker::ClearShaderFlagsForAllRenderPassImageSubresources()
 {
 	for(const auto& subresourceIndex : mRenderPassSubresources)
 	{
-		ImageSubresourceTrackingState& subresoureceTrackingState = mSubresourceTrackingState[subresourceIndex];
+		ImageSubresourceTrackingState& subresourceTrackingState = mSubresourceTrackingState[subresourceIndex];
 
-		subresoureceTrackingState.UseFlags.Unset(ImageUseFlagBits::Shader);
-		subresoureceTrackingState.ShaderUse.Access = GpuAccessFlag::None;
-		subresoureceTrackingState.ShaderUse.Stages = 0;
+		subresourceTrackingState.UseFlags.Unset(ImageUseFlagBits::Shader);
+		subresourceTrackingState.ShaderUse.Access = GpuAccessFlag::None;
+		subresourceTrackingState.ShaderUse.Stages = 0;
 	}
 
 	mRenderPassSubresources.clear();
@@ -847,6 +847,48 @@ TArrayView<VulkanResourceTracker::ImageSubresourceTrackingState> VulkanResourceT
 		return {};
 
 	return TArrayView(&mSubresourceTrackingState[imageTrackingState.FirstSubresourceInfoIndex], imageTrackingState.SubresourceInfoCount);
+}
+
+void VulkanResourceTracker::PopulateAndResetLayoutTransitions(TArray<VkImageMemoryBarrier>& outBarriers)
+{
+	// TODO - Port this to use VulkanBarrierHelper
+
+	// Note: These layout transitions will contain transitions for offscreen framebuffer attachments (while they
+	// transition to shader read-only layout). This can be avoided, since they're immediately used by the render pass
+	// as color attachments, making the layout change redundant.
+	for(auto& image : mQueuedLayoutTransitions)
+	{
+		TArrayView<ImageSubresourceTrackingState> subresourceTrackingStates = GetSubresourceTrackingStatesForImage(image);
+
+		for(auto& subresourceTrackingState : subresourceTrackingStates)
+		{
+			if(subresourceTrackingState.RequiredLayout == VK_IMAGE_LAYOUT_UNDEFINED ||
+			   subresourceTrackingState.CurrentLayout == subresourceTrackingState.RequiredLayout)
+				continue;
+
+			const bool isReadOnly =
+				!subresourceTrackingState.FramebufferUse.Access.IsSet(GpuAccessFlag::Write) &&
+				!subresourceTrackingState.ShaderUse.Access.IsSet(GpuAccessFlag::Write);
+
+			outBarriers.Add(VkImageMemoryBarrier());
+
+			VkImageMemoryBarrier& barrier = outBarriers.Back();
+			barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+			barrier.pNext = nullptr;
+			barrier.srcAccessMask = 0; // Not relevant for layout transition
+			barrier.dstAccessMask = image->GetAccessFlags(subresourceTrackingState.RequiredLayout, isReadOnly);
+			barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+			barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+			barrier.oldLayout = subresourceTrackingState.CurrentLayout;
+			barrier.newLayout = subresourceTrackingState.RequiredLayout;
+			barrier.image = image->GetVulkanHandle();
+			barrier.subresourceRange = subresourceTrackingState.Range;
+
+			subresourceTrackingState.CurrentLayout = subresourceTrackingState.RequiredLayout;
+		}
+	}
+
+	mQueuedLayoutTransitions.clear();
 }
 
 u32 VulkanResourceTracker::AddSubresourceTrackingState(const VkImageSubresourceRange& range)

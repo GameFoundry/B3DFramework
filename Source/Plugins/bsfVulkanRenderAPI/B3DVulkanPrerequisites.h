@@ -76,8 +76,8 @@ namespace b3d
 		/** Contains lists of images and buffers that require pipeline barrier transitions. */
 		struct TransitionInfo
 		{
-			Vector<VkImageMemoryBarrier> ImageBarriers;
-			Vector<VkBufferMemoryBarrier> BufferBarriers;
+			TArray<VkImageMemoryBarrier> ImageBarriers;
+			TArray<VkBufferMemoryBarrier> BufferBarriers;
 		};
 
 		/** Contains the row pitch and slice height for an image subresource. */
