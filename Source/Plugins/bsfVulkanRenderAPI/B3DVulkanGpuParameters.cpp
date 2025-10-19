@@ -659,7 +659,7 @@ u32 VulkanGpuParameters::GetSetCount() const
 	return mParameterLayout->GetSetCount();
 }
 
-void VulkanGpuParameters::PrepareForBind(VulkanGpuCommandBuffer& buffer, VulkanResourceTracker& resourceTracker, VkDescriptorSet* outSets, Vector<u32>& outDynamicOffsets)
+void VulkanGpuParameters::PrepareForBind(VulkanGpuCommandBuffer& commandBuffer, VulkanResourceTracker& resourceTracker, VkDescriptorSet* outSets, Vector<u32>& outDynamicOffsets)
 {
 	PerDeviceData& perDeviceData = mPerDeviceData;
 	if(perDeviceData.PerSetData == nullptr)
@@ -944,7 +944,7 @@ void VulkanGpuParameters::PrepareForBind(VulkanGpuCommandBuffer& buffer, VulkanR
 			const GpuAccessFlags useFlags = GpuAccessFlag::Read | GpuAccessFlag::Write;
 			const VkImageSubresourceRange range = vulkanImage->GetRange(surface);
 
-			buffer.RegisterImageShader(vulkanImage, range, VK_IMAGE_LAYOUT_GENERAL, useFlags, stages);
+			commandBuffer.RegisterImageShader(vulkanImage, range, VK_IMAGE_LAYOUT_GENERAL, useFlags, stages);
 
 			// Check if internal resource changed from what was previously bound in the descriptor set
 			B3D_ASSERT(perDeviceData.StorageImages[sequentialResourceIndex] != VK_NULL_HANDLE);
@@ -1026,10 +1026,10 @@ void VulkanGpuParameters::PrepareForBind(VulkanGpuCommandBuffer& buffer, VulkanR
 			VkDescriptorSetLayoutBinding* perSetBindings = vkParamInfo.GetLayoutBindings(set);
 			VkPipelineStageFlags stages = VulkanUtility::ShaderToPipelineStage(perSetBindings[usedBindingSequentialIndex].stageFlags);
 
-			buffer.RegisterImageShader(vulkanImage, range, layout, GpuAccessFlag::Read, stages);
+			commandBuffer.RegisterImageShader(vulkanImage, range, layout, GpuAccessFlag::Read, stages);
 
 			// Actual layout might be different than requested if the image is also used as a FB attachment
-			layout = buffer.GetCurrentLayout(vulkanImage, range, true);
+			layout = commandBuffer.GetCurrentLayout(vulkanImage, range, true);
 
 			// Check if internal resource changed from what was previously bound in the descriptor set
 			B3D_ASSERT(perDeviceData.SampledImages[sequentialResourceIndex] != VK_NULL_HANDLE);

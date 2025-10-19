@@ -976,7 +976,7 @@ void VulkanGpuCommandBuffer::BeginRenderPass()
 
 	const Area2I renderArea = GetRenderPassArea();
 
-	const RenderSurfaceMask readMask = GetFramebufferReadMask();
+	const RenderSurfaceMask readMask = mResourceTracker.GetFramebufferReadOnlyMask(mFramebuffer, mRenderTargetReadOnlyFlags);
 	RenderSurfaceMask loadMask = mRenderTargetLoadMask;
 	const RenderSurfaceMask originalClearMask = mClearMask;
 
@@ -1105,7 +1105,8 @@ void VulkanGpuCommandBuffer::EndRenderPass(bool isInternalInterrupt)
 	// images remain to be used in subsequent calls).
 	mResourceTracker.ClearShaderFlagsForAllRenderPassImageSubresources();
 
-	UpdateFinalLayouts();
+	if(mFramebuffer != nullptr)
+		mResourceTracker.MoveAllFramebufferAttachmentsToFinalLayouts(mFramebuffer);
 
 #if B3D_HAZARD_TRACKING
 	if(mFramebuffer != nullptr)
@@ -1806,32 +1807,6 @@ void VulkanGpuCommandBuffer::ExecuteLayoutTransitions()
 	mLayoutTransitionBarriersTemp.clear();
 }
 
-void VulkanGpuCommandBuffer::UpdateFinalLayouts()
-{
-	if(mFramebuffer == nullptr)
-		return;
-
-	const VulkanRenderPass* const renderPass = mFramebuffer->GetRenderPass();
-	const u32 colorAttachmentCount = renderPass->GetColorAttachmentCount();
-	for(u32 colorAttachmentIndex = 0; colorAttachmentIndex < colorAttachmentCount; colorAttachmentIndex++)
-	{
-		const VulkanFramebufferAttachment& fbAttachment = mFramebuffer->GetColorAttachment(colorAttachmentIndex);
-		VulkanResourceTracker::ImageSubresourceTrackingState& subresourceTrackingState = mResourceTracker.FindSubresourceTrackingState(fbAttachment.Image, fbAttachment.Surface.Face, fbAttachment.Surface.MipLevel);
-
-		subresourceTrackingState.CurrentLayout = subresourceTrackingState.RenderPassLayout;
-		subresourceTrackingState.RequiredLayout = subresourceTrackingState.RenderPassLayout;
-	}
-
-	if(renderPass->HasDepthAttachment())
-	{
-		const VulkanFramebufferAttachment& fbAttachment = mFramebuffer->GetDepthStencilAttachment();
-		VulkanResourceTracker::ImageSubresourceTrackingState& subresourceTrackingState = mResourceTracker.FindSubresourceTrackingState(fbAttachment.Image, fbAttachment.Surface.Face, fbAttachment.Surface.MipLevel);
-
-		subresourceTrackingState.CurrentLayout = subresourceTrackingState.RenderPassLayout;
-		subresourceTrackingState.RequiredLayout = subresourceTrackingState.RenderPassLayout;
-	}
-}
-
 void VulkanGpuCommandBuffer::ExecuteClearPass()
 {
 	B3D_ASSERT(mState == State::Recording);
@@ -1872,8 +1847,7 @@ void VulkanGpuCommandBuffer::ExecuteClearPass()
 
 	vkCmdEndRenderPass(mCommandBufferHandle);
 
-	UpdateFinalLayouts();
-
+	mResourceTracker.MoveAllFramebufferAttachmentsToFinalLayouts(mFramebuffer);
 	mClearMask = RT_NONE;
 }
 
@@ -2066,78 +2040,12 @@ void VulkanGpuCommandBuffer::MemoryBarrier(VkBuffer buffer, VkAccessFlags source
 	MemoryBarrier(buffer, sourceAccessFlags, destinationAccessFlags, VulkanUtility::GetPipelineStageFlags(sourceAccessFlags), VulkanUtility::GetPipelineStageFlags(destinationAccessFlags));
 }
 
-// TODO - Move to VulkanResourceTracking, instead of inRenderPass parameter pass a VulkanFramebuffer* parameter if it needs to be evaluated
 VkImageLayout VulkanGpuCommandBuffer::GetCurrentLayout(VulkanImage* image, const VkImageSubresourceRange& range, bool inRenderPass)
 {
-	const u32 face = range.baseArrayLayer;
-	const u32 mip = range.baseMipLevel;
+	if(inRenderPass)
+		return mResourceTracker.GetCurrentSubresourceLayout(image, range, mFramebuffer, mRenderTargetReadOnlyFlags);
 
-#if B3D_BUILD_TYPE == B3D_BUILD_TYPE_DEVELOPMENT
-	const VulkanResourceTracker::ImageTrackingState* const imageTrackingState = mResourceTracker.FindImageTrackingState(image);
-	if(imageTrackingState == nullptr)
-	{
-		B3D_ASSERT(false);
-		return VK_IMAGE_LAYOUT_UNDEFINED;
-	}
-#endif
-
-	VulkanRenderPass* renderPass = nullptr;
-	if(mFramebuffer)
-		renderPass = mFramebuffer->GetRenderPass();
-
-	TArrayView<VulkanResourceTracker::ImageSubresourceTrackingState> subresourceTrackingStates = mResourceTracker.GetSubresourceTrackingStatesForImage(image);
-	for(const auto& subresourceTrackingState : subresourceTrackingStates)
-	{
-		if(face >= subresourceTrackingState.Range.baseArrayLayer && face < (subresourceTrackingState.Range.baseArrayLayer + subresourceTrackingState.Range.layerCount) &&
-		   mip >= subresourceTrackingState.Range.baseMipLevel && mip < (subresourceTrackingState.Range.baseMipLevel + subresourceTrackingState.Range.levelCount))
-		{
-			// If it's a FB attachment, retrieve its layout after the render pass begins
-			if(subresourceTrackingState.UseFlags.IsSet(ImageUseFlagBits::Framebuffer) && inRenderPass && mFramebuffer)
-			{
-				RenderSurfaceMask readMask = GetFramebufferReadMask();
-
-				// Is it a depth-stencil attachment?
-				if(renderPass->HasDepthAttachment() && mFramebuffer->GetDepthStencilAttachment().Image == image)
-				{
-					if(readMask.IsSet(RT_DEPTH))
-					{
-						if(readMask.IsSet(RT_STENCIL))
-							return VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
-						else // Depth readable but stencil isn't
-							return VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_STENCIL_ATTACHMENT_OPTIMAL_KHR;
-					}
-					else
-					{
-						if(readMask.IsSet(RT_STENCIL)) // Stencil readable but depth isn't
-							return VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_STENCIL_READ_ONLY_OPTIMAL_KHR;
-						else
-							return VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-					}
-				}
-				else // It is a color attachment
-				{
-					const u32 colorAttachmentCount = renderPass->GetColorAttachmentCount();
-					for(u32 colorAttachmentIndex = 0; colorAttachmentIndex < colorAttachmentCount; colorAttachmentIndex++)
-					{
-						const VulkanFramebufferAttachment& attachment = mFramebuffer->GetColorAttachment(colorAttachmentIndex);
-
-						if(attachment.Image == image)
-						{
-							if(readMask.IsSet((RenderSurfaceMaskBits)(1 << attachment.Index)))
-								return VK_IMAGE_LAYOUT_GENERAL;
-							else
-								return VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-						}
-					}
-				}
-			}
-
-			return subresourceTrackingState.RequiredLayout;
-		}
-	}
-
-	B3D_ASSERT(false);
-	return VK_IMAGE_LAYOUT_UNDEFINED;
+	return mResourceTracker.GetCurrentSubresourceLayout(image, range);
 }
 
 void VulkanGpuCommandBuffer::IssueBarriers(const GpuBarriers& barriers)
@@ -2290,44 +2198,6 @@ void VulkanGpuCommandBuffer::NotifyRenderTargetModified()
 
 	mRenderTarget->TickUpdateCountInternal();
 	mRenderTargetModified = true;
-}
-
-RenderSurfaceMask VulkanGpuCommandBuffer::GetFramebufferReadMask()
-{
-	// Check if any frame-buffer attachments are also used as shader inputs, in which case we make them read-only
-	VulkanRenderPass* const renderPass = mFramebuffer->GetRenderPass();
-	RenderSurfaceMask readMask = RT_NONE;
-
-	const u32 colorAttachmentCount = renderPass->GetColorAttachmentCount();
-	for(u32 colorAttachmentIndex = 0; colorAttachmentIndex < colorAttachmentCount; colorAttachmentIndex++)
-	{
-		const VulkanFramebufferAttachment& fbAttachment = mFramebuffer->GetColorAttachment(colorAttachmentIndex);
-		VulkanResourceTracker::ImageSubresourceTrackingState& subresourceTrackingState = mResourceTracker.FindSubresourceTrackingState(fbAttachment.Image, fbAttachment.Surface.Face, fbAttachment.Surface.MipLevel);
-
-		const bool readOnly = subresourceTrackingState.UseFlags.IsSet(ImageUseFlagBits::Shader);
-
-		if(readOnly)
-			readMask.Set((RenderSurfaceMaskBits)(1 << colorAttachmentIndex));
-	}
-
-	if(renderPass->HasDepthAttachment())
-	{
-		const VulkanFramebufferAttachment& fbAttachment = mFramebuffer->GetDepthStencilAttachment();
-		VulkanResourceTracker::ImageSubresourceTrackingState& subresourceTrackingState = mResourceTracker.FindSubresourceTrackingState(fbAttachment.Image, fbAttachment.Surface.Face, fbAttachment.Surface.MipLevel);
-
-		const bool readOnly = subresourceTrackingState.UseFlags.IsSet(ImageUseFlagBits::Shader);
-
-		if(readOnly)
-			readMask.Set(RT_DEPTH);
-
-		if((mRenderTargetReadOnlyFlags & FBT_DEPTH) != 0)
-			readMask.Set(RT_DEPTH);
-
-		if((mRenderTargetReadOnlyFlags & FBT_STENCIL) != 0)
-			readMask.Set(RT_STENCIL);
-	}
-
-	return readMask;
 }
 
 Area2I VulkanGpuCommandBuffer::GetViewportArea() const

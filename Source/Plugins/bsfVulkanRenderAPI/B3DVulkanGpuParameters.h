@@ -42,14 +42,14 @@ namespace b3d
 			 * Caller must perform external locking if some other thread could write to this object while it is being bound.
 			 * The same applies to any resources held by this object.
 			 *
-			 * @param		buffer				Buffer on which the parameters will be bound to.
+			 * @param		commandBuffer				Buffer on which the parameters will be bound to.
 			 * @param		resourceTracker		Tracker to track usages of resources used on the command buffer.
 			 * @param		outSets				Pre-allocated buffer in which the descriptor set handled will be written. Must be of GetSetCount() size.
 			 * @param		outDynamicOffsets	Dynamic offsets required for binding the descriptor sets.
 			 *
 			 * @note	Thread safe.
 			 */
-			void PrepareForBind(VulkanGpuCommandBuffer& buffer, VulkanResourceTracker& resourceTracker, VkDescriptorSet* outSets, Vector<u32>& outDynamicOffsets);
+			void PrepareForBind(VulkanGpuCommandBuffer& commandBuffer, VulkanResourceTracker& resourceTracker, VkDescriptorSet* outSets, Vector<u32>& outDynamicOffsets);
 
 		protected:
 			/** All GPU param data related to a single descriptor set. */

@@ -471,15 +471,6 @@ namespace b3d
 			/** Executes any queued layout transitions by issuing a pipeline barrier. */
 			void ExecuteLayoutTransitions();
 
-			/**
-			 * Updates final layouts for images used by the current framebuffer, reflecting layout changes performed by render
-			 * pass' automatic layout transitions.
-			 */
-			void UpdateFinalLayouts();
-
-			/** Returns the read mask for the current framebuffer. */
-			RenderSurfaceMask GetFramebufferReadMask();
-
 			/** Returns the current viewport area in pixels. This depends on the currently bound framebuffer and normalized viewport area. */
 			Area2I GetViewportArea() const;
 

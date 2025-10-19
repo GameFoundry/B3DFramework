@@ -12,6 +12,7 @@
 
 namespace b3d::render
 {
+	class VulkanRenderPass;
 	class VulkanGpuCommandBuffer;
 	class VulkanImage;
 	class VulkanBuffer;
@@ -205,11 +206,33 @@ namespace b3d::render
 		void IterateAndCreateOverlappingImageSubresourceTrackingState(VulkanImage* image, VkImageSubresourceRange subresourceRange, void(*FnDoOnOverlappingSubresource)(u32 globalSubresourceIndex, void* userData), void* userData = nullptr);
 		void ClearFramebufferFlagsForImage(VulkanImage* image);
 		void ClearShaderFlagsForAllRenderPassImageSubresources();
-		u32 FindImageTrackingStateIndex(VulkanImage* image);
-		const ImageTrackingState* FindImageTrackingState(VulkanImage* image);
+		u32 FindImageTrackingStateIndex(VulkanImage* image) const;
+		const ImageTrackingState* FindImageTrackingState(VulkanImage* image) const;
+		TArrayView<const ImageSubresourceTrackingState> GetSubresourceTrackingStatesForImage(VulkanImage* image) const;
 		TArrayView<ImageSubresourceTrackingState> GetSubresourceTrackingStatesForImage(VulkanImage* image);
 		const ImageSubresourceTrackingState& GetSubresourceTrackingStateAtIndex(u32 globalSubresourceIndex) { return mSubresourceTrackingState[globalSubresourceIndex]; }
 		void PopulateAndResetLayoutTransitions(TArray<VkImageMemoryBarrier>& outBarriers);
+
+		/**
+		 * Returns the current layout of the specified image subresource, as seen by the associated command buffer. This is different from the
+		 * global layout stored in VulkanImage itself, as it includes any transitions performed by the command buffer
+		 * (at the current point in time), while the global layout is only updated after a command buffer as been submitted.
+		 *
+		 * @param	image						Image to lookup the layout for.
+		 * @param	range						Subresource range of the image to lookup the layout for.
+		 * @param	framebuffer					Optional framebuffer. If provided the method will assume we are currently executing a render pass with
+		 *										the provided framebuffer, and will return the layout of the subresource after the render pass begins.
+		 *										This may be different from the current layout if the image is used as a framebuffer attachment, in which
+		 *										case the render pass may perform an automated layout transition when it begins.
+		 * @param	explicitReadOnlyFlags		Flags that specify which aspects of the image are known to be read-only, regardless of shader use.
+		 */
+		VkImageLayout GetCurrentSubresourceLayout(VulkanImage* image, const VkImageSubresourceRange& range, VulkanFramebuffer* framebuffer = nullptr, u32 explicitReadOnlyFlags = 0) const;
+
+		/**
+		 * Checks the subresource state of all associated framebuffer attachments and returns a mask of those that need to be read-only during the render pass,
+		 * due to the fact they are also accessed by a shader during the same render pass.
+		 */
+		RenderSurfaceMask GetFramebufferReadOnlyMask(VulkanFramebuffer* framebuffer, u32 explicitReadOnlyFlags) const; // TODO - Replace u32 for flags with something typed
 
 		/**
 		 * Lets the tracker know that the provided framebuffer has been queued on the associated command buffer. All associated attachment images
@@ -228,6 +251,10 @@ namespace b3d::render
 
 		/** Finds a subresource tracking state for the specified face and mip level of the provided image. */
 		ImageSubresourceTrackingState& FindSubresourceTrackingState(VulkanImage* image, u32 face, u32 mip);
+		const ImageSubresourceTrackingState& FindSubresourceTrackingState(VulkanImage* image, u32 face, u32 mip) const;
+
+		/** Updates the current layout of all associated framebuffer attachments to their final layouts after a render pass has executed. */
+		void MoveAllFramebufferAttachmentsToFinalLayouts(VulkanFramebuffer* framebuffer);
 
 		/** Notifies all tracked resources that the command buffer has submitted to a GPU queue. */
 		void NotifyUsed(GpuQueueId queueId);
@@ -255,8 +282,6 @@ namespace b3d::render
 		// TODO - These are temporarily exposed during the process of moving towards the tracker
 		TDenseMap<VulkanResource*, BufferTrackingState>& GetBuffers() { return mBuffers; }
 		TDenseMap<VulkanResource*, u32>& GetImages() { return mImages; }
-		Vector<ImageTrackingState>& GetImageTrackingState() { return mImageTrackingState; }
-		Vector<ImageSubresourceTrackingState>& GetSubresourceTrackingState() { return mSubresourceTrackingState; }
 		UnorderedSet<VulkanImage*>& GetQueuedLayoutTransitions() { return mQueuedLayoutTransitions; }
 		void ClearQueuedLayoutTransitions() { mQueuedLayoutTransitions.clear(); }
 
@@ -268,6 +293,7 @@ namespace b3d::render
 
 		// TODO - Doc
 		ImageTrackingState& GetOrCreateImageTrackingState(VulkanImage* image);
+		const ImageTrackingState& GetImageTrackingState(VulkanImage* image) const;
 		ImageTrackingState& GetImageTrackingState(VulkanImage* image);
 		void IterateAndCreateOverlappingImageSubresourceTrackingState(ImageTrackingState& imageTrackingState, const VulkanImage& image, VkImageSubresourceRange subresourceRange, void(*FnDoOnOverlappingSubresource)(u32 globalSubresourceIndex, void* userData), void* userData = nullptr);
 
