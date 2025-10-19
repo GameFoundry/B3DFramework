@@ -246,7 +246,7 @@ void GUIVectorSpriteAtlas::RenderDirtySprites(u32 bufferIndex)
 		SPtr<render::RenderTexture> renderTarget = render::RenderTexture::Create(renderTextureCreateInformation);
 		
 		// Bind render surface & clear it
-		commandBuffer->BeginRenderPass(renderTarget, 0, RT_NONE);
+		commandBuffer->BeginRenderPass(renderTarget, RT_NONE, RT_NONE);
 		commandBuffer->SetViewport(Area2(0.0f, 0.0f, 1.0f, 1.0f));
 		commandBuffer->ClearRenderTarget(FBT_COLOR | FBT_DEPTH | FBT_STENCIL, Color::kZero, 1, 0, 0xFF);
 
@@ -268,7 +268,7 @@ void GUIVectorSpriteAtlas::RenderDirtySprites(u32 bufferIndex)
 
 		commandBuffer->EndRenderPass();
 
-		commandBuffer->BeginRenderPass(atlasRenderTexture, 0, RT_COLOR0);
+		commandBuffer->BeginRenderPass(atlasRenderTexture, RT_NONE, RT_COLOR0);
 		commandBuffer->SetViewport(entry.UVRegion);
 		render::GetRendererUtility().Blit(*commandBuffer, colorTexture);
 		commandBuffer->EndRenderPass();

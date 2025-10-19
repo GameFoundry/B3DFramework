@@ -388,10 +388,9 @@ namespace b3d
 			 * Change the render target into which to draw into and begins a render pass.
 			 *
 			 * @param	target			Render target to draw to.
-			 * @param	readOnlyFlags	Combination of one or more elements of FrameBufferType denoting which buffers
-			 *							will be bound for read-only operations. This is useful for depth or stencil
-			 *							buffers which need to be bound both for depth/stencil tests, as well as
-			 *							shader reads.
+			 * @param	readOnlyMask	Determines which attachments will be bound for read-only operations.
+			 *							This is mainly useful for depth or stencil attachments which need to be bound
+			 *							both for depth/stencil tests, as well as shader reads.
 			 * @param	loadMask		Determines which render target surfaces will have their current contents
 			 *							preserved. By default when a render target is bound its contents will be
 			 *							lost. You might need to preserve contents if you need to perform blending
@@ -400,7 +399,7 @@ namespace b3d
 			 *							Use the mask to select exactly which surfaces of the render target need
 			 *							their contents preserved.
 			 */
-			virtual void BeginRenderPass(const SPtr<RenderTarget>& target, u32 readOnlyFlags = 0, RenderSurfaceMask loadMask = RT_NONE) = 0;
+			virtual void BeginRenderPass(const SPtr<RenderTarget>& target, RenderSurfaceMask readOnlyMask = RT_NONE, RenderSurfaceMask loadMask = RT_NONE) = 0;
 
 			/** Ends the current render pass. */
 			virtual void EndRenderPass() = 0;
