@@ -2080,8 +2080,13 @@ void VulkanGpuCommandBuffer::IssueBarriers(const GpuBarriers& barriers)
 			CallbackParameters* const callbackParameters = static_cast<CallbackParameters*>(userData);
 			const GpuBarrier& barrier = callbackParameters->Barrier;
 
-			const VulkanResourceTracker::ImageSubresourceTrackingState& subresourceTrackingState = callbackParameters->ResourceTracker->GetSubresourceTrackingStateAtIndex(globalSubresourceIndex);
-			callbackParameters->BarrierHelper->AddImageBarrier(callbackParameters->Image, subresourceTrackingState.Range, barrier.SourceUsage, barrier.SourceAccess, barrier.DestinationUsage, barrier.DestinationAccess);
+			VulkanResourceTracker& resourceTracker = *callbackParameters->ResourceTracker;;
+			const VulkanResourceTracker::ImageSubresourceTrackingState& subresourceTrackingState = resourceTracker.GetSubresourceTrackingStateAtIndex(globalSubresourceIndex);
+
+			const VkImageLayout oldLayout = subresourceTrackingState.CurrentLayout;
+			const VkImageLayout newLayout = VulkanUtility::GetImageLayoutFromUsage(barrier.DestinationUsage, barrier.DestinationAccess);
+
+			callbackParameters->BarrierHelper->AddImageBarrier(callbackParameters->Image, subresourceTrackingState.Range, barrier.SourceUsage, barrier.SourceAccess, barrier.DestinationUsage, barrier.DestinationAccess, oldLayout, newLayout);
 
 		}, &callbackParameters);
 	};

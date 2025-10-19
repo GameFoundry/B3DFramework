@@ -271,6 +271,9 @@ namespace b3d::render
 		 */
 		void Clear();
 
+		/** Updates image layout tracking for a single image subresource after a barrier has been issued. */
+		void UpdateImageLayoutTrackingAfterBarrier(VulkanImage* image, const VkImageSubresourceRange& range, VkImageLayout oldLayout, VkImageLayout newLayout);
+
 #if B3D_HAZARD_TRACKING
 		/** Updates write hazard tracking for a single buffer after a barrier has been issued. */
 		void UpdateWriteHazardTrackingAfterBarrier(VulkanBuffer* buffer, GpuAccessFlags sourceAccess, VkPipelineStageFlags sourceStages, GpuAccessFlags destinationAccess, VkPipelineStageFlags destinationStages);

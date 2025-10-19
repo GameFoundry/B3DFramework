@@ -166,6 +166,33 @@ void VulkanResourceTracker::TrackBufferUsage(VulkanBuffer* buffer, GpuResourceUs
 	TrackBufferUsage(bufferTrackingState, useFlags, access);
 }
 
+void VulkanResourceTracker::UpdateImageLayoutTrackingAfterBarrier(VulkanImage* image, const VkImageSubresourceRange& range, VkImageLayout oldLayout, VkImageLayout newLayout)
+{
+	ImageTrackingState& imageTrackingState = GetOrCreateImageTrackingState(image);
+
+	struct CallbackParameters
+	{
+		VulkanResourceTracker* Self;
+		VkImageLayout OldLayout;
+		VkImageLayout NewLayout;
+	};
+
+	CallbackParameters callbackParameters = { this, oldLayout, newLayout };
+
+	IterateAndCreateOverlappingImageSubresourceTrackingState(imageTrackingState, *image, range, [](u32 globalSubresourceIndex, void* userData)
+	{
+		CallbackParameters* callbackParameters = (CallbackParameters*)userData;
+
+		ImageSubresourceTrackingState& subresourceTrackingState = callbackParameters->Self->mSubresourceTrackingState[globalSubresourceIndex];
+
+		// TODO - Add better error logging, including which are the expected layouts
+		B3D_ENSURE(subresourceTrackingState.CurrentLayout == subresourceTrackingState.RequiredLayout); // Ensure any queued implicit transitions have completed first
+		B3D_ENSURE(subresourceTrackingState.CurrentLayout == callbackParameters->OldLayout);
+		subresourceTrackingState.CurrentLayout = callbackParameters->NewLayout;
+		subresourceTrackingState.RequiredLayout = callbackParameters->NewLayout; // TODO - RequiredLayout should no longer be necessary with explicit transitions
+	}, &callbackParameters);
+}
+
 #if B3D_HAZARD_TRACKING
 void VulkanResourceTracker::UpdateWriteHazardTrackingAfterBarrier(VulkanBuffer* buffer, GpuAccessFlags sourceAccess, VkPipelineStageFlags sourceStages, GpuAccessFlags destinationAccess, VkPipelineStageFlags destinationStages)
 {

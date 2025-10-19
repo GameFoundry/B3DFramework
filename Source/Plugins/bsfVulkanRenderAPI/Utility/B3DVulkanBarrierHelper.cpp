@@ -53,7 +53,7 @@ void VulkanBarrierHelper::AddBufferBarrier(VulkanBuffer* buffer, GpuResourceUseF
 #endif
 }
 
-void VulkanBarrierHelper::AddImageBarrier(VulkanImage* image, const VkImageSubresourceRange& subresourceRange, GpuResourceUseFlags sourceUsage, GpuAccessFlags sourceAccess, GpuResourceUseFlags destinationUsage, GpuAccessFlags destinationAccess)
+void VulkanBarrierHelper::AddImageBarrier(VulkanImage* image, const VkImageSubresourceRange& subresourceRange, GpuResourceUseFlags sourceUsage, GpuAccessFlags sourceAccess, GpuResourceUseFlags destinationUsage, GpuAccessFlags destinationAccess, VkImageLayout oldLayout, VkImageLayout newLayout)
 {
 	if(image == nullptr)
 		return;
@@ -69,10 +69,6 @@ void VulkanBarrierHelper::AddImageBarrier(VulkanImage* image, const VkImageSubre
 	mCombinedSourceAccess |= sourceAccess;
 	mCombinedDestinationAccess |= destinationAccess;
 
-	// Get the current layout from the command buffer's tracking
-	// If the image is not yet registered, use UNDEFINED layout
-	const VkImageLayout currentLayout = mCommandBuffer->GetCurrentLayout(image, subresourceRange, false);
-
 	VkImageMemoryBarrier barrier;
 	barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
 	barrier.pNext = nullptr;
@@ -80,22 +76,32 @@ void VulkanBarrierHelper::AddImageBarrier(VulkanImage* image, const VkImageSubre
 	barrier.dstAccessMask = destinationAccessMask;
 	barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 	barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-	barrier.oldLayout = currentLayout;
-	barrier.newLayout = currentLayout; // No layout transition, just memory barrier
+	barrier.oldLayout = oldLayout;
+	barrier.newLayout = newLayout;
 	barrier.image = image->GetVulkanHandle();
 	barrier.subresourceRange = subresourceRange;
 
 	mImageBarriers.push_back(barrier);
 
+	LayoutTrackingInfo layoutTrackingInfo;
+	layoutTrackingInfo.Image = image;
+	layoutTrackingInfo.SubresourceRange = subresourceRange;
+	layoutTrackingInfo.OldLayout = oldLayout;
+	layoutTrackingInfo.NewLayout = newLayout;
+	mImageLayoutTracking.push_back(layoutTrackingInfo);
+
+	if(oldLayout != newLayout)
+		mHasLayoutTransition = true;
+
 #if B3D_HAZARD_TRACKING
-	BarrierTrackingInfo trackingInfo;
-	trackingInfo.Image = image;
-	trackingInfo.ImageSubresourceRange = subresourceRange;
-	trackingInfo.SourceAccess = sourceAccess;
-	trackingInfo.SourceStages = sourceStages;
-	trackingInfo.DestinationAccess = destinationAccess;
-	trackingInfo.DestinationStages = destinationStages;
-	mBarrierTracking.push_back(trackingInfo);
+	BarrierTrackingInfo barrierTrackingInfo;
+	barrierTrackingInfo.Image = image;
+	barrierTrackingInfo.ImageSubresourceRange = subresourceRange;
+	barrierTrackingInfo.SourceAccess = sourceAccess;
+	barrierTrackingInfo.SourceStages = sourceStages;
+	barrierTrackingInfo.DestinationAccess = destinationAccess;
+	barrierTrackingInfo.DestinationStages = destinationStages;
+	mBarrierTracking.push_back(barrierTrackingInfo);
 #endif
 }
 
@@ -105,8 +111,8 @@ void VulkanBarrierHelper::Execute()
 		return;
 
 	// Determine barrier type based on access patterns
-	// Read-after-write or write-after-write requires memory barrier
-	if(mCombinedSourceAccess.IsSet(GpuAccessFlag::Write))
+	// Read-after-write or write-after-write requires memory barrier, or if there are any layout transitions queued
+	if(mCombinedSourceAccess.IsSet(GpuAccessFlag::Write) || mHasLayoutTransition)
 	{
 		vkCmdPipelineBarrier(
 			mCommandBuffer->GetVulkanHandle(),
@@ -128,6 +134,19 @@ void VulkanBarrierHelper::Execute()
 			0, nullptr,
 			0, nullptr,
 			0, nullptr);
+	}
+
+	// Update layout for all image barriers
+	for(const auto& trackingInfo : mImageLayoutTracking)
+	{
+		if(trackingInfo.Image == nullptr)
+			continue;
+
+		mResourceTracker->UpdateImageLayoutTrackingAfterBarrier(
+			trackingInfo.Image,
+			trackingInfo.SubresourceRange,
+			trackingInfo.OldLayout,
+			trackingInfo.NewLayout);
 	}
 
 #if B3D_HAZARD_TRACKING
@@ -167,6 +186,9 @@ void VulkanBarrierHelper::Clear()
 	mCombinedDestinationStages = 0;
 	mCombinedSourceAccess = GpuAccessFlag::None;
 	mCombinedDestinationAccess = GpuAccessFlag::None;
+
+	mImageLayoutTracking.clear();
+	mHasLayoutTransition = false;
 
 #if B3D_HAZARD_TRACKING
 	mBarrierTracking.clear();

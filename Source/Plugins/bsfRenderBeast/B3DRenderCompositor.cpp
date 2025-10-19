@@ -938,9 +938,6 @@ void RCNodeDeferredDirectLighting::Render(const RenderCompositorNodeInputs& inpu
 
 		tiledDeferredMat->Execute(commandBuffer, inputs.View, lightData, gbuffer, sceneColorNode->SceneColorTex->Texture, Output->LightAccumulationTex->Texture, lightAccumTexArray, msaaCoverage);
 
-		// Ensure the light accumulation texture can be written/read by a shader, and used as a color attachment in future passes
-		commandBuffer.IssueBarriers(GpuTextureBarrier(Output->LightAccumulationTex->Texture, GpuResourceUseFlag::ShaderAccess, GpuAccessFlag::Write, GpuResourceUseFlag::ColorAttachment | GpuResourceUseFlag::ShaderAccess, GpuAccessFlag::Read | GpuAccessFlag::Write));
-
 		if(viewProps.Target.NumSamples > 1)
 			Output->MsaaTexArrayToTexture(commandBuffer);
 
@@ -1132,6 +1129,11 @@ void RCNodeIndirectDiffuseLighting::Render(const RenderCompositorNodeInputs& inp
 	if(inputs.View.GetRenderSettings().EnableSkybox)
 		skybox = inputs.Scene.Skybox;
 
+	// Ensure the light accumulation texture was previously written by shader in tile deferred lighting, ensure it can be used as an attachment now
+	commandBuffer.IssueBarriers(GpuTextureBarrier(lightAccumNode->LightAccumulationTex->Texture,
+		GpuResourceUseFlag::ShaderAccess, GpuAccessFlag::Write,
+		GpuResourceUseFlag::ColorAttachment, GpuAccessFlag::Read | GpuAccessFlag::Write));
+
 	evaluateMat->Execute(commandBuffer, inputs.View, gbuffer, volumeIndicesTex, lpInfo, skybox, ssaoNode->Output, lightAccumNode->RenderTarget);
 
 	volumeIndices = nullptr;
@@ -1197,9 +1199,6 @@ void RCNodeDeferredIndirectSpecularLighting::Render(const RenderCompositorNodeIn
 		commandBuffer.IssueBarriers(GpuTextureBarrier(sceneColorNode->SceneColorTex->Texture, GpuResourceUseFlag::ShaderAccess | GpuResourceUseFlag::ColorAttachment, GpuAccessFlag::Read, GpuResourceUseFlag::ShaderAccess, GpuAccessFlag::Write));
 
 		material->Execute(*inputs.ActiveCommandBuffer, inputs.View, inputs.Scene, inputs.ViewGroup.GetVisibleReflProbeData(), iblInputs);
-
-		// Ensure the scene color texture can be written/read by a shader, and used as a color attachment in future passes
-		commandBuffer.IssueBarriers(GpuTextureBarrier(sceneColorNode->SceneColorTex->Texture, GpuResourceUseFlag::ShaderAccess, GpuAccessFlag::Write, GpuResourceUseFlag::ShaderAccess | GpuResourceUseFlag::ColorAttachment, GpuAccessFlag::Read | GpuAccessFlag::Write));
 
 		if(viewProps.Target.NumSamples > 1)
 			sceneColorNode->MsaaTexArrayToTexture(*inputs.ActiveCommandBuffer);
@@ -1638,6 +1637,9 @@ void RCNodeSkybox::Render(const RenderCompositorNodeInputs& inputs)
 
 	auto dependencies = GetDependencyDefinition().ResolveDependencies(inputs);
 	RCNodeSceneColor* sceneColorNode = dependencies.Get<RCNodeSceneColor>();
+
+	// Ensure the scene color texture can be used as a color attachment, as previously it was written by a shader
+	commandBuffer.IssueBarriers(GpuTextureBarrier(sceneColorNode->SceneColorTex->Texture, GpuResourceUseFlag::ShaderAccess, GpuAccessFlag::Write, GpuResourceUseFlag::ColorAttachment, GpuAccessFlag::Read | GpuAccessFlag::Write));
 
 	commandBuffer.BeginRenderPass(sceneColorNode->RenderTarget, RT_DEPTH_STENCIL, RT_COLOR0 | RT_DEPTH_STENCIL);
 
@@ -2389,6 +2391,9 @@ void RCNodeHalfSceneColor::Render(const RenderCompositorNodeInputs& inputs)
 
 	Output = GetGpuResourcePool().Get(DownsampleMat::GetOutputDesc(input));
 
+	// Ensure the scene color texture can be read by a shader
+	inputs.ActiveCommandBuffer->IssueBarriers(GpuTextureBarrier(sceneColorNode->SceneColorTex->Texture, GpuResourceUseFlag::ShaderAccess | GpuResourceUseFlag::ColorAttachment, GpuAccessFlag::Write, GpuResourceUseFlag::ShaderAccess, GpuAccessFlag::Read));
+
 	downsampleMat->Execute(*inputs.ActiveCommandBuffer, input, Output->RenderTexture);
 }
 
@@ -2780,7 +2785,7 @@ void RCNodeSSR::Render(const RenderCompositorNodeInputs& inputs)
 	SPtr<Texture> hiZ = hiZNode->Output->Texture;
 
 	// This will be executing before scene color is resolved, so get the light accum buffer instead
-	SPtr<Texture> sceneColor = lightAccumNode->LightAccumulationTex->Texture;
+	SPtr<Texture> sceneColor;
 
 	// Resolve multiple samples if MSAA is used
 	SPtr<PooledRenderTexture> resolvedSceneColor;
@@ -2793,6 +2798,13 @@ void RCNodeSSR::Render(const RenderCompositorNodeInputs& inputs)
 		commandBuffer.EndRenderPass();
 
 		sceneColor = resolvedSceneColor->Texture;
+	}
+	else
+	{
+		sceneColor = lightAccumNode->LightAccumulationTex->Texture;
+
+		// Light accumulation was written by a shader and used as a color attachment, issue barrier so its safe to read
+		commandBuffer.IssueBarriers(GpuTextureBarrier(sceneColor, GpuResourceUseFlag::ShaderAccess, GpuAccessFlag::Write, GpuResourceUseFlag::ShaderAccess, GpuAccessFlag::Read));
 	}
 
 	GBufferTextures gbuffer;

@@ -67,8 +67,10 @@ namespace b3d::render
 		 * @param sourceAccess			Type of access (read/write) before the barrier.
 		 * @param destinationUsage		How the image will be used after the barrier.
 		 * @param destinationAccess		Type of access (read/write) after the barrier.
+		 * @param oldLayout				Current layout of the image before the barrier.
+		 * @param newLayout				Layout the image will be transitioned to after the barrier.
 		 */
-		void AddImageBarrier(VulkanImage* image, const VkImageSubresourceRange& subresourceRange, GpuResourceUseFlags sourceUsage, GpuAccessFlags sourceAccess, GpuResourceUseFlags destinationUsage, GpuAccessFlags destinationAccess);
+		void AddImageBarrier(VulkanImage* image, const VkImageSubresourceRange& subresourceRange, GpuResourceUseFlags sourceUsage, GpuAccessFlags sourceAccess, GpuResourceUseFlags destinationUsage, GpuAccessFlags destinationAccess, VkImageLayout oldLayout, VkImageLayout newLayout);
 
 		/**
 		 * Executes all accumulated barriers by issuing a pipeline barrier command.
@@ -104,6 +106,15 @@ namespace b3d::render
 		};
 #endif
 
+		/** Information needed to update layout after barrier execution. */
+		struct LayoutTrackingInfo
+		{
+			VulkanImage* Image = nullptr;
+			VkImageSubresourceRange SubresourceRange{};
+			VkImageLayout OldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+			VkImageLayout NewLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+		};
+
 		VulkanGpuCommandBuffer* mCommandBuffer;
 		VulkanResourceTracker* mResourceTracker;
 
@@ -114,6 +125,9 @@ namespace b3d::render
 		VkPipelineStageFlags mCombinedDestinationStages = 0;
 		GpuAccessFlags mCombinedSourceAccess = GpuAccessFlag::None;
 		GpuAccessFlags mCombinedDestinationAccess = GpuAccessFlag::None;
+
+		FrameVector<LayoutTrackingInfo> mImageLayoutTracking;
+		bool mHasLayoutTransition = false;
 
 #if B3D_HAZARD_TRACKING
 		FrameVector<BarrierTrackingInfo> mBarrierTracking;
